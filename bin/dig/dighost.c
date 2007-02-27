@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.259.18.40 2007/02/26 00:37:03 marka Exp $ */
+/* $Id: dighost.c,v 1.259.18.41 2007/02/27 01:07:18 marka Exp $ */
 
 /*! \file
  *  \note
@@ -3892,7 +3892,7 @@ get_trusted_key(isc_mem_t *mctx)
 		       filename);
 		return (ISC_R_FAILURE);
 	}
-	while (fgets(buf, 1500, fp) != NULL) {
+	while (fgets(buf, sizeof(buf), fp) != NULL) {
 		result = opentmpkey(mctx,"tmp_file", &filetemp, &fptemp);
 		if (result != ISC_R_SUCCESS) {
 			fclose(fp);
