@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.146 2006/12/07 05:39:41 marka Exp $ */
+/* $Id: nsupdate.c,v 1.147 2007/02/28 23:57:39 marka Exp $ */
 
 /*! \file */
 
@@ -2416,6 +2416,10 @@ start_update(void) {
 			result = dns_message_firstname(updatemsg, section);
 		}
 		if (result != ISC_R_SUCCESS) {
+			dns_message_puttempname(soaquery, &name);
+			dns_rdataset_disassociate(rdataset);
+			dns_message_puttemprdataset(soaquery, &rdataset);
+			dns_message_destroy(&soaquery);
 			done_update();
 			return;
 		}
