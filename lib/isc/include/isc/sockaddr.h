@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.h,v 1.52 2006/12/22 01:45:00 marka Exp $ */
+/* $Id: sockaddr.h,v 1.53 2007/03/05 04:57:57 marka Exp $ */
 
 #ifndef ISC_SOCKADDR_H
 #define ISC_SOCKADDR_H 1
@@ -84,6 +84,7 @@ isc_sockaddr_eqaddrprefix(const isc_sockaddr_t *a, const isc_sockaddr_t *b,
 /*%<
  * Return ISC_TRUE iff the most significant 'prefixlen' bits of the
  * socket addresses 'a' and 'b' are equal, ignoring the ports.
+ * If 'b''s scope is zero then 'a''s scope will be ignored.
  */
 
 unsigned int

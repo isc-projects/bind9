@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.c,v 1.35 2005/04/27 04:57:13 sra Exp $ */
+/* $Id: netaddr.c,v 1.36 2007/03/05 04:57:57 marka Exp $ */
 
 /*! \file */
 
@@ -79,7 +79,7 @@ isc_netaddr_eqprefix(const isc_netaddr_t *a, const isc_netaddr_t *b,
 	if (a->family != b->family)
 		return (ISC_FALSE);
 
-	if (a->zone != b->zone)
+	if (a->zone != b->zone && b->zone != 0)
 		return (ISC_FALSE);
 
 	switch (a->family) {

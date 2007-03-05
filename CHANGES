@@ -1,3 +1,6 @@
+2154.	[func]		Scoped (e.g. IPv6 link-local) addresses may now be
+			matched in acls by omitting the scope. [RT #16599]
+
 2153.	[bug]		nsupdate could leak memory. [RT #16691]
 
 2152.	[cleanup]	Use sizeof(buf) instead of fixed number in

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.h,v 1.32 2006/12/22 01:59:43 marka Exp $ */
+/* $Id: netaddr.h,v 1.33 2007/03/05 04:57:57 marka Exp $ */
 
 #ifndef ISC_NETADDR_H
 #define ISC_NETADDR_H 1
@@ -48,13 +48,18 @@ struct isc_netaddr {
 isc_boolean_t
 isc_netaddr_equal(const isc_netaddr_t *a, const isc_netaddr_t *b);
 
+/*%<
+ * Compare network addresses 'a' and 'b'.  Return #ISC_TRUE if
+ * they are equal, #ISC_FALSE if not.
+ */
+
 isc_boolean_t
 isc_netaddr_eqprefix(const isc_netaddr_t *a, const isc_netaddr_t *b,
 		     unsigned int prefixlen);
 /*%<
  * Compare the 'prefixlen' most significant bits of the network
- * addresses 'a' and 'b'.  Return #ISC_TRUE if they are equal,
- * #ISC_FALSE if not.
+ * addresses 'a' and 'b'.  If 'b''s scope is zero then 'a''s scope is
+ * ignored.  Return #ISC_TRUE if they are equal, #ISC_FALSE if not.
  */
 
 isc_result_t
