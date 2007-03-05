@@ -1,3 +1,6 @@
+2155.	[contrib]	SQLite sdb module from jaboydjr@netwalk.com.
+			[RT #16694]
+
 2151.	[bug]		Missing newline in usage message for journalprint.
 			[RT #16679]
 
