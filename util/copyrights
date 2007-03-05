@@ -1176,6 +1176,10 @@
 ./contrib/sdb/pgsql/pgsqldb.c			C	2000,2001,2004
 ./contrib/sdb/pgsql/pgsqldb.h			C	2000,2001,2004
 ./contrib/sdb/pgsql/zonetodb.c			C	2000,2001,2002,2004,2005,2007
+./contrib/sdb/sqlite/README.sdb_sqlite		X	2007
+./contrib/sdb/sqlite/sqlitedb.c			X	2007
+./contrib/sdb/sqlite/sqlitedb.h			X	2007
+./contrib/sdb/sqlite/zone2sqlite.c		X	2007
 ./contrib/sdb/tcl/lookup.tcl			TCL	2000,2001,2004
 ./contrib/sdb/tcl/tcldb.c			C	2000,2001,2004
 ./contrib/sdb/tcl/tcldb.h			C	2000,2001,2004
@@ -2077,7 +2081,7 @@
 ./lib/isc/include/isc/msgcat.h			C	1999,2000,2001,2004,2005
 ./lib/isc/include/isc/msgs.h			C	2000,2001,2002,2003,2004,2005,2006
 ./lib/isc/include/isc/mutexblock.h		C	1999,2000,2001,2004,2005,2006
-./lib/isc/include/isc/netaddr.h			C	1998,1999,2000,2001,2002,2004,2005,2006
+./lib/isc/include/isc/netaddr.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007
 ./lib/isc/include/isc/netscope.h		C	2002,2004,2005,2006
 ./lib/isc/include/isc/ondestroy.h		C	2000,2001,2004,2005,2006
 ./lib/isc/include/isc/os.h			C	2000,2001,2004,2005,2006
@@ -2096,7 +2100,7 @@
 ./lib/isc/include/isc/serial.h			C	1999,2000,2001,2004,2005,2006
 ./lib/isc/include/isc/sha1.h			C	2000,2001,2004,2005,2006
 ./lib/isc/include/isc/sha2.h			C	2005,2006
-./lib/isc/include/isc/sockaddr.h		C	1998,1999,2000,2001,2002,2003,2004,2005,2006
+./lib/isc/include/isc/sockaddr.h		C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/isc/include/isc/socket.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007
 ./lib/isc/include/isc/stdio.h			C	2000,2001,2004,2005,2006
 ./lib/isc/include/isc/stdlib.h			C	2003,2004,2005,2006
@@ -2120,7 +2124,7 @@
 ./lib/isc/mem.c					C	1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/isc/mips/include/isc/atomic.h		C	2005
 ./lib/isc/mutexblock.c				C	1999,2000,2001,2004,2005
-./lib/isc/netaddr.c				C	1999,2000,2001,2002,2004,2005
+./lib/isc/netaddr.c				C	1999,2000,2001,2002,2004,2005,2007
 ./lib/isc/netscope.c				C	2002,2004,2005,2006
 ./lib/isc/nls/.cvsignore			X	1999,2000,2001
 ./lib/isc/nls/Makefile.in			MAKE	1999,2000,2001,2004
