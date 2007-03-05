@@ -1,3 +1,6 @@
+2155.	[contrib]	SQLite sdb module from jaboydjr@netwalk.com.
+			[RT #16694]
+
 2154.	[func]		Scoped (e.g. IPv6 link-local) addresses may now be
 			matched in acls by omitting the scope. [RT #16599]
 
