@@ -1173,6 +1173,10 @@
 ./contrib/sdb/pgsql/pgsqldb.c			C	2000,2001,2004
 ./contrib/sdb/pgsql/pgsqldb.h			C	2000,2001,2004
 ./contrib/sdb/pgsql/zonetodb.c			C	2000,2001,2002,2004,2005,2007
+./contrib/sdb/sqlite/README.sdb_sqlite		X	2007
+./contrib/sdb/sqlite/sqlitedb.c			X	2007
+./contrib/sdb/sqlite/sqlitedb.h			X	2007
+./contrib/sdb/sqlite/zone2sqlite.c		X	2007
 ./contrib/sdb/tcl/lookup.tcl			TCL	2000,2001,2004
 ./contrib/sdb/tcl/tcldb.c			C	2000,2001,2004
 ./contrib/sdb/tcl/tcldb.h			C	2000,2001,2004
