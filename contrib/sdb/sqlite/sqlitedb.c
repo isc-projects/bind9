@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sqlitedb.c,v 1.1 2007/03/05 05:30:22 marka Exp $ */
+/* $Id: sqlitedb.c,v 1.1.2.1 2007/03/05 05:34:02 marka Exp $ */
 
 #include <config.h>
 

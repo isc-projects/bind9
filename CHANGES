@@ -1,3 +1,6 @@
+2155.	[contrib]	SQLite sdb module from jaboydjr@netwalk.com.
+			[RT #16694]
+
 2153.	[bug]		nsupdate could leak memory. [RT #16691]
 
 2152.	[cleanup]	Use sizeof(buf) instead of fixed number in
