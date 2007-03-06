@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.48 2007/02/13 02:49:08 marka Exp $ */
+/* $Id: socket.c,v 1.49 2007/03/06 01:50:48 marka Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -225,6 +225,11 @@ struct isc_socket {
 	unsigned int		references;
 	SOCKET			fd;
 	int			pf;
+
+#ifdef ISC_SOCKET_NAMES   
+	char			name[16];
+	void *			tag;
+#endif
 
 	ISC_LIST(isc_socketevent_t)		send_list;
 	ISC_LIST(isc_socketevent_t)		recv_list;
