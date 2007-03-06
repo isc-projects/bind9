@@ -487,6 +487,7 @@ dns_resolver_algorithm_supported
 dns_resolver_attach
 dns_resolver_cancelfetch
 dns_resolver_create
+dns_resolver_createdispatchpool
 dns_resolver_createfetch
 dns_resolver_createfetch2
 dns_resolver_destroyfetch
@@ -497,6 +498,7 @@ dns_resolver_dispatchv4
 dns_resolver_dispatchv6
 dns_resolver_freeze
 dns_resolver_getlamettl
+dns_resolver_getoptions
 dns_resolver_getudpsize
 dns_resolver_getzeronosoattl
 dns_resolver_nrunning
