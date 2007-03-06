@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.14.206.3 2007/03/06 02:11:43 tbox Exp $
+# $Id: tests.sh,v 1.14.206.4 2007/03/06 07:05:35 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -32,7 +32,7 @@ status=`expr $status + $ret`
 
 $PERL $SYSTEMTESTTOP/stop.pl . lwresd1
 
-$PERL $SYSTEMTESTTOP/start.pl . lwresd1 -- "-m record,size,mctx -c lwresd.conf -d 99 -g"
+$PERL $SYSTEMTESTTOP/start.pl . lwresd1 -- "-m record -c lwresd.conf -d 99 -g"
 
 echo "I:using lwresd.conf"
 ret=0
