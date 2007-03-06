@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.48 2007/01/08 02:45:02 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.49 2007/03/06 01:00:54 marka Exp $ */
 
 #include <config.h>
 
@@ -218,7 +218,7 @@ struct fetchctx {
 #define ADDRWAIT(f)		(((f)->attributes & FCTX_ATTR_ADDRWAIT) != \
 				 0)
 #define SHUTTINGDOWN(f)		(((f)->attributes & FCTX_ATTR_SHUTTINGDOWN) \
- 				 != 0)
+				 != 0)
 #define WANTCACHE(f)		(((f)->attributes & FCTX_ATTR_WANTCACHE) != 0)
 #define WANTNCACHE(f)		(((f)->attributes & FCTX_ATTR_WANTNCACHE) != 0)
 #define NEEDEDNS0(f)		(((f)->attributes & FCTX_ATTR_NEEDEDNS0) != 0)
@@ -282,6 +282,8 @@ struct dns_resolver {
 					 FCTX_ADDRINFO_FORWARDER) != 0)
 
 #define NXDOMAIN(r) (((r)->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
+
+#define dns_db_transfernode(a,b,c) do { (*c) = (*b); (*b) = NULL; } while (0)
 
 static void destroy(dns_resolver_t *res);
 static void empty_bucket(dns_resolver_t *res);
@@ -495,7 +497,7 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 		dns_adbaddrinfo_t *addrinfo;
 
 		factor = DNS_ADB_RTTADJAGE;
-                for (find = ISC_LIST_HEAD(fctx->finds);
+		for (find = ISC_LIST_HEAD(fctx->finds);
 		     find != NULL;
 		     find = ISC_LIST_NEXT(find, publink))
 			for (addrinfo = ISC_LIST_HEAD(find->list);
@@ -2498,7 +2500,7 @@ is_lame(fetchctx_t *fctx) {
 			if (rdataset->type != dns_rdatatype_ns)
 				continue;
 			namereln = dns_name_fullcompare(name, &fctx->domain,
-				   			&order, &labels, &bits);
+							&order, &labels, &bits);
 			if (namereln == dns_namereln_equal &&
 			    (message->flags & DNS_MESSAGEFLAG_AA) != 0)
 				return (ISC_FALSE);
@@ -2828,6 +2830,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 		 * If we only deferred the destroy because we wanted to cache
 		 * the data, destroy now.
 		 */
+		dns_db_detachnode(fctx->cache, &node);
 		if (SHUTTINGDOWN(fctx))
 			maybe_destroy(fctx);
 
@@ -2843,6 +2846,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 		 * more rdatasets that still need to
 		 * be validated.
 		 */
+		dns_db_detachnode(fctx->cache, &node);
 		dns_validator_send(ISC_LIST_HEAD(fctx->validators));
 		goto cleanup_event;
 	}
@@ -2862,8 +2866,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 		dns_name_copy(vevent->name,
 			      dns_fixedname_name(&hevent->foundname), NULL);
 		dns_db_attach(fctx->cache, &hevent->db);
-		hevent->node = node;
-		node = NULL;
+		dns_db_transfernode(fctx->cache, &node, &hevent->node);
 		clone_results(fctx);
 	}
 
@@ -2874,6 +2877,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 	fctx_done(fctx, result);
 
  cleanup_event:
+	INSIST(node == NULL);
 	isc_event_free(&event);
 }
 
@@ -3115,7 +3119,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 			}
 			if (rdataset->trust == dns_trust_glue &&
 			    (rdataset->type == dns_rdatatype_ns ||
-		             (rdataset->type == dns_rdatatype_sig &&
+			     (rdataset->type == dns_rdatatype_sig &&
 			      rdataset->covers == dns_rdatatype_ns))) {
 				/*
 				 * If the trust level is 'dns_trust_glue'
@@ -3180,8 +3184,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 		if (event != NULL) {
 			event->result = eresult;
 			dns_db_attach(fctx->cache, adbp);
-			*anodep = node;
-			node = NULL;
+			dns_db_transfernode(fctx->cache, &node, anodep);
 			clone_results(fctx);
 		}
 	}
@@ -3412,8 +3415,7 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 		if (event != NULL) {
 			event->result = eresult;
 			dns_db_attach(fctx->cache, adbp);
-			*anodep = node;
-			node = NULL;
+			dns_db_transfernode(fctx->cache, &node, anodep);
 			clone_results(fctx);
 		}
 	}

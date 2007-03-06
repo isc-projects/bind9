@@ -1,3 +1,8 @@
+2156.	[bug]		Fix node reference leaks in lookup.c:lookup_find(),
+			resolver.c:validated() and resolver.c:cache_name().
+			Make lookup.c:lookup_find() robust against
+			event leaks. [RT #16685]
+
 2155.	[contrib]	SQLite sdb module from jaboydjr@netwalk.com.
 			[RT #16694]
 
