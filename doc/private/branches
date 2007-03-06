@@ -52,10 +52,10 @@ rt16428				open
 rt16443				open	marka	// post 9.4.0
 rt16519				open	marka	// epsilon for .DE
 rt16592				open	mayer	// windows condition variable
-rt16599				new	marka	// 2007-03-01 05:23 +0000
+rt16599				closed	marka	// 2007-03-01 05:23 +0000
 rt16665				review	marka	// 2007-02-12 06:11 +0000
 rt16671				open	marka	// Silence Coverity reports
-rt16685				new	marka	// 2007-02-28 06:01 +0000
+rt16685				closed	marka	// 2007-02-28 06:01 +0000
 rt1727				open		// ixfr-from-differences workfile
 skan				open	explorer
 skan-metazones1			private	explorer
