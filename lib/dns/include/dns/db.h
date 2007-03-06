@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.67.12.8 2004/05/14 05:06:41 marka Exp $ */
+/* $Id: db.h,v 1.67.12.9 2007/03/06 00:51:29 marka Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -852,7 +852,7 @@ dns_db_attachnode(dns_db_t *db, dns_dbnode_t *source, dns_dbnode_t **targetp);
  *
  *	'source' is a valid node.
  *
- *	'targetp' points to a NULL dns_node_t *.
+ *	'targetp' points to a NULL dns_dbnode_t *.
  *
  * Ensures:
  *

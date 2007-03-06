@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.168.2.11.2.28 2007/02/26 23:45:55 tbox Exp $ */
+/* $Id: rbtdb.c,v 1.168.2.11.2.29 2007/03/06 00:51:29 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -658,7 +658,7 @@ free_noqname(isc_mem_t *mctx, struct noqname **noqname) {
 	if ((*noqname)->nsec != NULL)
 		isc_mem_put(mctx, (*noqname)->nsec,
 			    dns_rdataslab_size((*noqname)->nsec, 0));
-	if ((*noqname)->nsec != NULL)
+	if ((*noqname)->nsecsig != NULL)
 		isc_mem_put(mctx, (*noqname)->nsecsig,
 			    dns_rdataslab_size((*noqname)->nsecsig, 0));
 	isc_mem_put(mctx, *noqname, sizeof(**noqname));
