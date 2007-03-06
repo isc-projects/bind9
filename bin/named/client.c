@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.219.18.23 2007/03/06 00:50:10 marka Exp $ */
+/* $Id: client.c,v 1.219.18.24 2007/03/06 01:17:33 marka Exp $ */
 
 #include <config.h>
 
@@ -1227,6 +1227,7 @@ ns_client_isself(dns_view_t *myview, dns_tsigkey_t *mykey,
 {
 	dns_view_t *view;
 	dns_tsigkey_t *key = NULL;
+	dns_name_t *tsig = NULL;
 	isc_netaddr_t netsrc;
 	isc_netaddr_t netdst;
 
@@ -1241,7 +1242,6 @@ ns_client_isself(dns_view_t *myview, dns_tsigkey_t *mykey,
 	for (view = ISC_LIST_HEAD(ns_g_server->viewlist);
 	     view != NULL;
 	     view = ISC_LIST_NEXT(view, link)) {
-		dns_name_t *tsig = NULL;
 
 		if (view->matchrecursiveonly)
 			continue;

@@ -1,3 +1,6 @@
+2158.	[bug]		ns_client_isself() failed to initialise key
+			leading to a REQUIRE failure. [RT #16688]
+
 2156.	[bug]		Fix node reference leaks in lookup.c:lookup_find(),
 			resolver.c:validated() and resolver.c:cache_name().
 			Fix a memory leak in rbtdb.c:free_noqname().
