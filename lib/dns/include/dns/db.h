@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.86 2006/12/22 01:59:43 marka Exp $ */
+/* $Id: db.h,v 1.87 2007/03/06 00:38:57 marka Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -146,6 +146,8 @@ typedef struct dns_dbmethods {
 	void		(*overmem)(dns_db_t *db, isc_boolean_t overmem);
 	void		(*settask)(dns_db_t *db, isc_task_t *);
 	isc_result_t	(*getoriginnode)(dns_db_t *db, dns_dbnode_t **nodep);
+	void		(*transfernode)(dns_db_t *db, dns_dbnode_t **sourcep,
+				        dns_dbnode_t **targetp);
 } dns_dbmethods_t;
 
 typedef isc_result_t
@@ -860,7 +862,7 @@ dns_db_attachnode(dns_db_t *db, dns_dbnode_t *source, dns_dbnode_t **targetp);
  *
  * \li	'source' is a valid node.
  *
- * \li	'targetp' points to a NULL dns_node_t *.
+ * \li	'targetp' points to a NULL dns_dbnode_t *.
  *
  * Ensures:
  *
@@ -881,6 +883,27 @@ dns_db_detachnode(dns_db_t *db, dns_dbnode_t **nodep);
  * Ensures:
  *
  * \li	*nodep is NULL.
+ */
+
+void
+dns_db_transfernode(dns_db_t *db, dns_dbnode_t **sourcep, 
+                    dns_dbnode_t **targetp);
+/*%<
+ * Transfer a node between pointer.
+ *
+ * This is equivalent to calling dns_db_attachnode() then dns_db_detachnode().
+ *
+ * Requires:
+ *
+ * \li	'db' is a valid database.
+ *
+ * \li	'*sourcep' is a valid node.
+ *
+ * \li	'targetp' points to a NULL dns_dbnode_t *.
+ *
+ * Ensures:
+ *
+ * \li	'*sourcep' is NULL.
  */
 
 isc_result_t

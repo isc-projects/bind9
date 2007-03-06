@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.241 2007/02/26 23:46:54 tbox Exp $ */
+/* $Id: rbtdb.c,v 1.242 2007/03/06 00:38:57 marka Exp $ */
 
 /*! \file */
 
@@ -902,7 +902,7 @@ free_noqname(isc_mem_t *mctx, struct noqname **noqname) {
 	if ((*noqname)->nsec != NULL)
 		isc_mem_put(mctx, (*noqname)->nsec,
 			    dns_rdataslab_size((*noqname)->nsec, 0));
-	if ((*noqname)->nsec != NULL)
+	if ((*noqname)->nsecsig != NULL)
 		isc_mem_put(mctx, (*noqname)->nsecsig,
 			    dns_rdataslab_size((*noqname)->nsecsig, 0));
 	isc_mem_put(mctx, *noqname, sizeof(**noqname));
@@ -5388,7 +5388,8 @@ static dns_dbmethods_t zone_methods = {
 	ispersistent,
 	overmem,
 	settask,
-	getoriginnode
+	getoriginnode,
+	NULL,
 };
 
 static dns_dbmethods_t cache_methods = {
@@ -5419,7 +5420,8 @@ static dns_dbmethods_t cache_methods = {
 	ispersistent,
 	overmem,
 	settask,
-	getoriginnode
+	getoriginnode,
+	NULL
 };
 
 isc_result_t

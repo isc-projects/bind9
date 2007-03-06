@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.344 2007/02/26 01:07:49 marka Exp $ */
+/* $Id: resolver.c,v 1.345 2007/03/06 00:38:57 marka Exp $ */
 
 /*! \file */
 
@@ -3589,6 +3589,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 		 * If we only deferred the destroy because we wanted to cache
 		 * the data, destroy now.
 		 */
+		dns_db_detachnode(fctx->cache, &node);
 		UNLOCK(&fctx->res->buckets[fctx->bucketnum].lock);
 		if (SHUTTINGDOWN(fctx))
 			maybe_destroy(fctx);	/* Locks bucket. */
@@ -3605,6 +3606,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 		 * more rdatasets that still need to
 		 * be validated.
 		 */
+		dns_db_detachnode(fctx->cache, &node);
 		UNLOCK(&fctx->res->buckets[fctx->bucketnum].lock);
 		dns_validator_send(ISC_LIST_HEAD(fctx->validators));
 		goto cleanup_event;
@@ -3670,8 +3672,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 			      dns_fixedname_name(&hevent->foundname), NULL)
 			      == ISC_R_SUCCESS);
 		dns_db_attach(fctx->cache, &hevent->db);
-		hevent->node = node;
-		node = NULL;
+		dns_db_transfernode(fctx->cache, &node, &hevent->node);
 		clone_results(fctx);
 	}
 
@@ -3684,6 +3685,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 	fctx_done(fctx, result);	/* Locks bucket. */
 
  cleanup_event:
+	INSIST(node == NULL);
 	isc_event_free(&event);
 }
 
@@ -3803,8 +3805,10 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 				      fail ? "failure" : "warning",
 				      namebuf, typebuf, classbuf);
 			if (fail) {
-				if (ANSWER(rdataset))
+				if (ANSWER(rdataset)) {
+					dns_db_detachnode(fctx->cache, &node);
 					return (DNS_R_BADNAME);
+				}
 				continue;
 			}
 		}
@@ -4010,8 +4014,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 		if (event != NULL) {
 			event->result = eresult;
 			dns_db_attach(fctx->cache, adbp);
-			*anodep = node;
-			node = NULL;
+			dns_db_transfernode(fctx->cache, &node, anodep);
 			clone_results(fctx);
 		}
 	}
@@ -4251,8 +4254,7 @@ ncache_message(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		if (event != NULL) {
 			event->result = eresult;
 			dns_db_attach(fctx->cache, adbp);
-			*anodep = node;
-			node = NULL;
+			dns_db_transfernode(fctx->cache, &node, anodep);
 			clone_results(fctx);
 		}
 	}

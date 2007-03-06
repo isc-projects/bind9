@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.80 2005/10/13 01:58:31 marka Exp $ */
+/* $Id: db.c,v 1.81 2007/03/06 00:38:57 marka Exp $ */
 
 /*! \file */
 
@@ -525,6 +525,30 @@ dns_db_detachnode(dns_db_t *db, dns_dbnode_t **nodep) {
 	(db->methods->detachnode)(db, nodep);
 
 	ENSURE(*nodep == NULL);
+}
+
+void
+dns_db_transfernode(dns_db_t *db, dns_dbnode_t **sourcep,
+		    dns_dbnode_t **targetp)
+{
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE(targetp != NULL && *targetp == NULL);
+	/*
+	 * This doesn't check the implementation magic.  If we find that
+	 * we need such checks in future then this will be done in the
+	 * method.
+	 */
+	REQUIRE(sourcep != NULL && *sourcep != NULL);
+
+	UNUSED(db);
+
+	if (db->methods->transfernode == NULL) {
+	 	*targetp = *sourcep;
+	 	*sourcep = NULL;
+	} else
+	 	(db->methods->transfernode)(db, sourcep, targetp);
+
+	ENSURE(*sourcep == NULL);
 }
 
 isc_result_t

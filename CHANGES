@@ -1,3 +1,11 @@
+2157.	[func]		dns_db_transfernode() created. [RT #16685]
+
+2156.	[bug]		Fix node reference leaks in lookup.c:lookup_find(),
+			resolver.c:validated() and resolver.c:cache_name().
+			Fix a memory leak in rbtdb.c:free_noqname().
+			Make lookup.c:lookup_find() robust against
+			event leaks. [RT #16685]
+
 2155.	[contrib]	SQLite sdb module from jaboydjr@netwalk.com.
 			[RT #16694]
 
