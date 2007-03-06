@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.219.18.22 2007/02/26 23:46:22 tbox Exp $ */
+/* $Id: client.c,v 1.219.18.23 2007/03/06 00:50:10 marka Exp $ */
 
 #include <config.h>
 
@@ -1226,7 +1226,7 @@ ns_client_isself(dns_view_t *myview, dns_tsigkey_t *mykey,
 		 dns_rdataclass_t rdclass, void *arg)
 {
 	dns_view_t *view;
-	dns_tsigkey_t *key;
+	dns_tsigkey_t *key = NULL;
 	isc_netaddr_t netsrc;
 	isc_netaddr_t netdst;
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.126.18.11 2006/03/09 23:38:21 marka Exp $ */
+/* $Id: view.c,v 1.126.18.12 2007/03/06 00:50:11 marka Exp $ */
 
 /*! \file */
 
@@ -703,6 +703,7 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	REQUIRE(view->frozen);
 	REQUIRE(type != dns_rdatatype_rrsig);
 	REQUIRE(rdataset != NULL);  /* XXXBEW - remove this */
+	REQUIRE(nodep == NULL || *nodep == NULL);
 
 	/*
 	 * Initialize.
