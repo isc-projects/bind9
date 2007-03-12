@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_getifaddrs.c,v 1.6 2005/04/29 00:23:50 marka Exp $ */
+/* $Id: ifiter_getifaddrs.c,v 1.7 2007/03/12 05:59:08 marka Exp $ */
 
 /*! \file
  * \brief
@@ -111,7 +111,9 @@ internal_current(isc_interfaceiter_t *iter) {
 
 	INSIST(ifa != NULL);
 	INSIST(ifa->ifa_name != NULL);
-	INSIST(ifa->ifa_addr != NULL);
+
+	if (ifa->ifa_addr == NULL)
+		return (ISC_R_IGNORE);
 
 	family = ifa->ifa_addr->sa_family;
 	if (family != AF_INET && family != AF_INET6)
