@@ -1,3 +1,6 @@
+2160.	[bug]		libisc wasn't handling NULL ifa_addr pointers returned
+			from getifaddrs(). [RT #16708]
+
 2159.	[bug]		Array bounds overrun in acache processing. [RT #16710]
 
 2158.	[bug]		ns_client_isself() failed to initialise key
