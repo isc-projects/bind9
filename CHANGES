@@ -1,3 +1,6 @@
+2160.	[bug]		libisc wasn't handling NULL ifa_addr pointers returned
+			from getifaddrs(). [RT #16708]
+
 2156.	[bug]		Fix node reference leaks in lookup.c:lookup_find(),
 			resolver.c:validated() and resolver.c:cache_name().
 			Fix a memory leak in rbtdb.c:free_noqname().

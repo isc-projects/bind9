@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_getifaddrs.c,v 1.2.68.3 2004/03/06 08:14:59 marka Exp $ */
+/* $Id: ifiter_getifaddrs.c,v 1.2.68.4 2007/03/12 06:09:35 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using the getifaddrs(3) library.
@@ -106,7 +106,9 @@ internal_current(isc_interfaceiter_t *iter) {
 
 	INSIST(ifa != NULL);
 	INSIST(ifa->ifa_name != NULL);
-	INSIST(ifa->ifa_addr != NULL);
+
+	if (ifa->ifa_addr == NULL)
+		return (ISC_R_IGNORE);
 
 	family = ifa->ifa_addr->sa_family;
 	if (family != AF_INET && family != AF_INET6)
