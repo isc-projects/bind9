@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.196.18.44 2007/03/06 00:50:11 marka Exp $ */
+/* $Id: rbtdb.c,v 1.196.18.45 2007/03/12 03:42:43 marka Exp $ */
 
 /*! \file */
 
@@ -6559,7 +6559,7 @@ rdataset_setadditional(dns_rdataset_t *rdataset, dns_rdatasetadditional_t type,
 	if (newcbarg == NULL)
 		return (ISC_R_NOMEMORY);
 	newcbarg->type = type;
-	newcbarg->count = init_count;
+	newcbarg->count = count;
 	newcbarg->header = header;
 	newcbarg->db = NULL;
 	dns_db_attach((dns_db_t *)rbtdb, &newcbarg->db);

@@ -1,3 +1,5 @@
+2159.	[bug]		Array bounds overrun in acache processing. [RT #16710]
+
 2158.	[bug]		ns_client_isself() failed to initialise key
 			leading to a REQUIRE failure. [RT #16688]
 
