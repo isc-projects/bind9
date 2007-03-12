@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_getifaddrs.c,v 1.2.68.4 2007/03/12 06:09:35 marka Exp $ */
+/* $Id: ifiter_getifaddrs.c,v 1.2.68.5 2007/03/12 23:45:53 tbox Exp $ */
 
 /*
  * Obtain the list of network interfaces using the getifaddrs(3) library.
