@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.478 2007/02/26 02:19:45 marka Exp $ */
+/* $Id: server.c,v 1.479 2007/03/13 04:30:17 marka Exp $ */
 
 /*! \file */
 
@@ -4816,7 +4816,7 @@ isc_result_t
 ns_server_flushcache(ns_server_t *server, char *args) {
 	char *ptr, *viewname;
 	dns_view_t *view;
-	isc_boolean_t flushed = ISC_FALSE;
+	isc_boolean_t flushed;
 	isc_result_t result;
 
 	/* Skip the command name. */
@@ -4829,6 +4829,7 @@ ns_server_flushcache(ns_server_t *server, char *args) {
 
 	result = isc_task_beginexclusive(server->task);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	flushed = ISC_TRUE;
 	for (view = ISC_LIST_HEAD(server->viewlist);
 	     view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
@@ -4837,13 +4838,12 @@ ns_server_flushcache(ns_server_t *server, char *args) {
 			continue;
 		result = dns_view_flushcache(view);
 		if (result != ISC_R_SUCCESS) {
+			flushed = ISC_FALSE;
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 				      "flushing cache in view '%s' failed: %s",
 				      view->name, isc_result_totext(result));
-			goto out;
 		}
-		flushed = ISC_TRUE;
 	}
 	if (flushed) {
 		if (viewname != NULL)
@@ -4859,7 +4859,6 @@ ns_server_flushcache(ns_server_t *server, char *args) {
 	} else {
 		result = ISC_R_FAILURE;
 	}
- out:
 	isc_task_endexclusive(server->task);	
 	return (result);
 }
@@ -4868,7 +4867,7 @@ isc_result_t
 ns_server_flushname(ns_server_t *server, char *args) {
 	char *ptr, *target, *viewname;
 	dns_view_t *view;
-	isc_boolean_t flushed = ISC_FALSE;
+	isc_boolean_t flushed;
 	isc_result_t result;
 	isc_buffer_t b;
 	dns_fixedname_t fixed;

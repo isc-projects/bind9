@@ -1,3 +1,6 @@
+2161.	[bug]		Fix which log messages are emitted for 'rndc flush'.
+			[RT #16698]
+
 2160.	[bug]		libisc wasn't handling NULL ifa_addr pointers returned
 			from getifaddrs(). [RT #16708]
 
