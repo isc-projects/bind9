@@ -1,3 +1,6 @@
+2162.	[func]		Allow "rrset-order fixed" to be disabled at compile
+			time. [RT #16665]
+
 2160.	[bug]		libisc wasn't handling NULL ifa_addr pointers returned
 			from getifaddrs(). [RT #16708]
 

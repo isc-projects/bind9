@@ -408,7 +408,7 @@ Building
 	We've had successful builds and tests on the following systems:
 
 		COMPAQ Tru64 UNIX 5.1B
-		FreeBSD 4.10, 5.2.1
+		FreeBSD 4.10, 5.2.1, 6.2
 		HP-UX 11.11
 		NetBSD 1.5
 		Slackware Linux 8.1
@@ -465,6 +465,8 @@ Building
 				    -DDIG_SIGCHASE_BU=1)
 		Disable dropping queries from particular well known ports.
 		  -DNS_CLIENT_DROPPORT=0
+		Disable support for "rrset-order fixed".
+		  -DDNS_RDATASET_FIXED=0
 
 	    LDFLAGS
 		Linker flags. Defaults to empty string.
