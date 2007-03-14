@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.243 2007/03/12 03:37:21 marka Exp $ */
+/* $Id: rbtdb.c,v 1.244 2007/03/14 05:57:10 marka Exp $ */
 
 /*! \file */
 
@@ -177,6 +177,10 @@ typedef isc_mutex_t nodelock_t;
 #define NODE_WEAKLOCK(l, t)	((void)0)
 #define NODE_WEAKUNLOCK(l, t)	((void)0)
 #define NODE_WEAKDOWNGRADE(l)	((void)0)
+#endif
+
+#ifndef DNS_RDATASET_FIXED
+#define DNS_RDATASET_FIXED 1
 #endif
 
 /*
@@ -1977,12 +1981,20 @@ valid_glue(rbtdb_search_t *search, dns_name_t *name, rbtdb_rdatatype_t type,
 	header = search->zonecut_rdataset;
 	raw = (unsigned char *)header + sizeof(*header);
 	count = raw[0] * 256 + raw[1];
+#if DNS_RDATASET_FIXED
 	raw += 2 + (4 * count);
+#else 
+	raw += 2;
+#endif
 
 	while (count > 0) {
 		count--;
 		size = raw[0] * 256 + raw[1];
+#if DNS_RDATASET_FIXED
 		raw += 4;
+#else
+		raw += 2;
+#endif
 		region.base = raw;
 		region.length = size;
 		raw += size;
@@ -5651,9 +5663,11 @@ rdataset_first(dns_rdataset_t *rdataset) {
 		return (ISC_R_NOMORE);
 	}
 	
+#if DNS_RDATASET_FIXED
 	if ((rdataset->attributes & DNS_RDATASETATTR_LOADORDER) == 0)
 		raw += 2 + (4 * count);
 	else
+#endif
 		raw += 2;
 
 	/*
@@ -5688,11 +5702,17 @@ rdataset_next(dns_rdataset_t *rdataset) {
 	 * Skip forward one record (length + 4) or one offset (4).
 	 */
 	raw = rdataset->private5;
+#if DNS_RDATASET_FIXED
 	if ((rdataset->attributes & DNS_RDATASETATTR_LOADORDER) == 0) {
+#endif
 		length = raw[0] * 256 + raw[1];
 		raw += length;
+#if DNS_RDATASET_FIXED
 	}
-	rdataset->private5 = raw + 4;
+	rdataset->private5 = raw + 4;		/* length(2) + order(2) */
+#else
+	rdataset->private5 = raw + 2;		/* length(2) */
+#endif
 
 	return (ISC_R_SUCCESS);
 }
@@ -5700,7 +5720,9 @@ rdataset_next(dns_rdataset_t *rdataset) {
 static void
 rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 	unsigned char *raw = rdataset->private5;	/* RDATASLAB */
+#if DNS_RDATASET_FIXED
 	unsigned int offset;
+#endif
 	isc_region_t r;
 
 	REQUIRE(raw != NULL);
@@ -5709,14 +5731,21 @@ rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 	 * Find the start of the record if not already in private5
 	 * then skip the length and order fields.
 	 */
+#if DNS_RDATASET_FIXED
 	if ((rdataset->attributes & DNS_RDATASETATTR_LOADORDER) != 0) {
 		offset = (raw[0] << 24) + (raw[1] << 16) +
 			 (raw[2] << 8) + raw[3];
 		raw = rdataset->private3;
 		raw += offset;
 	}
+#endif
 	r.length = raw[0] * 256 + raw[1];
+
+#if DNS_RDATASET_FIXED
 	raw += 4;
+#else
+	raw += 2;
+#endif
 	r.base = raw;
 	dns_rdata_fromregion(rdata, rdataset->rdclass, rdataset->type, &r);
 }

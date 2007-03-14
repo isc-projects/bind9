@@ -1,3 +1,6 @@
+2162.	[func]		Allow "rrset-order fixed" to be disabled at compile
+			time. [RT #16665]
+
 2161.	[bug]		Fix which log messages are emitted for 'rndc flush'.
 			[RT #16698]
 
