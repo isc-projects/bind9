@@ -4,7 +4,7 @@
 ./FAQ						X	2000,2001,2002,2003,2004,2005,2006,2007
 ./FAQ.xml					SGML	2000,2001,2002,2003,2004,2005,2006,2007
 ./Makefile.in					MAKE	1998,1999,2000,2001,2002,2004,2005,2006
-./README					X	1999,2000,2001,2002,2003,2004,2005,2006
+./README					X	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./README.idnkit					X	2005
 ./acconfig.h					C	1999,2000,2001,2002,2003,2004,2005
 ./aclocal.m4					X	1999,2000,2001
@@ -1718,7 +1718,7 @@
 ./lib/bind9/.cvsignore				X	2001
 ./lib/bind9/Makefile.in				MAKE	2001,2004
 ./lib/bind9/api					X	2001,2006
-./lib/bind9/check.c				C	2001,2002,2003,2004,2005,2006
+./lib/bind9/check.c				C	2001,2002,2003,2004,2005,2006,2007
 ./lib/bind9/getaddresses.c			C	2001,2002,2004,2005
 ./lib/bind9/include/.cvsignore			X	2001
 ./lib/bind9/include/Makefile.in			MAKE	2001,2004
@@ -1985,7 +1985,7 @@
 ./lib/dns/rdatalist_p.h				C	2000,2001,2004,2005
 ./lib/dns/rdataset.c				C	1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/rdatasetiter.c			C	1999,2000,2001,2004,2005
-./lib/dns/rdataslab.c				C	1999,2000,2001,2002,2003,2004,2005,2006
+./lib/dns/rdataslab.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/request.c				C	2000,2001,2002,2004,2005,2006
 ./lib/dns/resolver.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/result.c				C	1998,1999,2000,2001,2002,2003,2004,2005
