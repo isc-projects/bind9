@@ -58,6 +58,7 @@ rt16671				open	marka	// Silence Coverity reports
 rt16698				new	marka	// 2007-03-09 02:41 +0000
 rt16707				new	marka	// 2007-03-13 05:13 +0000
 rt16711				new	marka	// 2007-03-09 02:33 +0000
+rt16760				new	explorer	// 2007-03-19 14:59 +0000
 rt1727				open		// ixfr-from-differences workfile
 skan				open	explorer
 skan-metazones1			private	explorer
