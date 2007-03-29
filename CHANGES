@@ -1,3 +1,7 @@
+2164.	[bug]		The code to determine how named-checkzone / 
+			named-compilezone was called failed under windows.
+			[RT #16764]
+
 2163.	[bug]		If only one of query-source and query-source-v6
 			specified a port the query pools code broke (change
 			2129).  [RT #16768]
