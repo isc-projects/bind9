@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.74 2007/02/06 00:01:23 marka Exp $ */
+/* $Id: namedconf.c,v 1.75 2007/03/29 06:36:31 marka Exp $ */
 
 /*! \file */
 
@@ -735,7 +735,9 @@ static cfg_type_t cfg_type_lookaside = {
 static cfg_clausedef_t
 view_clauses[] = {
 	{ "allow-query-cache", &cfg_type_bracketed_aml, 0 },
+	{ "allow-query-cache-on", &cfg_type_bracketed_aml, 0 },
 	{ "allow-recursion", &cfg_type_bracketed_aml, 0 },
+	{ "allow-recursion-on", &cfg_type_bracketed_aml, 0 },
 	{ "allow-v6-synthesis", &cfg_type_bracketed_aml,
 	  CFG_CLAUSEFLAG_OBSOLETE },
 	{ "sortlist", &cfg_type_bracketed_aml, 0 },
@@ -814,6 +816,7 @@ view_only_clauses[] = {
 static cfg_clausedef_t
 zone_clauses[] = {
 	{ "allow-query", &cfg_type_bracketed_aml, 0 },
+	{ "allow-query-on", &cfg_type_bracketed_aml, 0 },
 	{ "allow-transfer", &cfg_type_bracketed_aml, 0 },
 	{ "allow-update", &cfg_type_bracketed_aml, 0 },
 	{ "allow-update-forwarding", &cfg_type_bracketed_aml, 0 },

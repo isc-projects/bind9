@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.140 2007/03/06 02:12:39 tbox Exp $ */
+/* $Id: view.c,v 1.141 2007/03/29 06:36:30 marka Exp $ */
 
 /*! \file */
 
@@ -166,7 +166,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->minimalresponses = ISC_FALSE;
 	view->transfer_format = dns_one_answer;
 	view->queryacl = NULL;
+	view->queryonacl = NULL;
 	view->recursionacl = NULL;
+	view->recursiononacl = NULL;
 	view->sortlist = NULL;
 	view->requestixfr = ISC_TRUE;
 	view->provideixfr = ISC_TRUE;
@@ -287,8 +289,12 @@ destroy(dns_view_t *view) {
 		dns_acl_detach(&view->matchdestinations);
 	if (view->queryacl != NULL)
 		dns_acl_detach(&view->queryacl);
+	if (view->queryonacl != NULL)
+		dns_acl_detach(&view->queryonacl);
 	if (view->recursionacl != NULL)
 		dns_acl_detach(&view->recursionacl);
+	if (view->recursiononacl != NULL)
+		dns_acl_detach(&view->recursiononacl);
 	if (view->sortlist != NULL)
 		dns_acl_detach(&view->sortlist);
 	if (view->delonly != NULL) {

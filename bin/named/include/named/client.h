@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.79 2006/06/06 00:11:42 marka Exp $ */
+/* $Id: client.h,v 1.80 2007/03/29 06:36:30 marka Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -266,7 +266,9 @@ ns_client_getsockaddr(ns_client_t *client);
  */
 
 isc_result_t
-ns_client_checkaclsilent(ns_client_t  *client,dns_acl_t *acl,
+ns_client_checkaclsilent(ns_client_t *client,
+			 isc_sockaddr_t *sockaddr,
+			 dns_acl_t *acl,
 			 isc_boolean_t default_allow);
 
 /*%
@@ -274,6 +276,8 @@ ns_client_checkaclsilent(ns_client_t  *client,dns_acl_t *acl,
  *
  * Check the current client request against 'acl'.  If 'acl'
  * is NULL, allow the request iff 'default_allow' is ISC_TRUE.
+ * If netaddr is NULL, check the ACL against client->peeraddr;
+ * otherwise check it against netaddr.
  *
  * Notes:
  *\li	This is appropriate for checking allow-update,
@@ -284,6 +288,7 @@ ns_client_checkaclsilent(ns_client_t  *client,dns_acl_t *acl,
  *
  * Requires:
  *\li	'client' points to a valid client.
+ *\li	'sockaddr' points to a valid address, or is NULL.
  *\li	'acl' points to a valid ACL, or is NULL.
  *
  * Returns:
@@ -294,18 +299,19 @@ ns_client_checkaclsilent(ns_client_t  *client,dns_acl_t *acl,
 
 isc_result_t
 ns_client_checkacl(ns_client_t  *client,
+		   isc_sockaddr_t *sockaddr,
 		   const char *opname, dns_acl_t *acl,
 		   isc_boolean_t default_allow,
 		   int log_level);
 /*%
- * Like ns_client_checkacl, but also logs the outcome of the
- * check at log level 'log_level' if denied, and at debug 3
- * if approved.  Log messages will refer to the request as
- * an 'opname' request.
+ * Like ns_client_checkaclsilent, except the outcome of the check is
+ * logged at log level 'log_level' if denied, and at debug 3 if approved.
+ * Log messages will refer to the request as an 'opname' request.
  *
  * Requires:
- *\li	Those of ns_client_checkaclsilent(), and:
- *
+ *\li	'client' points to a valid client.
+ *\li	'sockaddr' points to a valid address, or is NULL.
+ *\li	'acl' points to a valid ACL, or is NULL.
  *\li	'opname' points to a null-terminated string.
  */
 

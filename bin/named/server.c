@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.479 2007/03/13 04:30:17 marka Exp $ */
+/* $Id: server.c,v 1.480 2007/03/29 06:36:29 marka Exp $ */
 
 /*! \file */
 
@@ -102,12 +102,12 @@
  * using it has a 'result' variable and a 'cleanup' label.
  */
 #define CHECK(op) \
-	do { result = (op); 				  	 \
-	       if (result != ISC_R_SUCCESS) goto cleanup; 	 \
+	do { result = (op);					 \
+	       if (result != ISC_R_SUCCESS) goto cleanup;	 \
 	} while (0)
 
 #define CHECKM(op, msg) \
-	do { result = (op); 				  	  \
+	do { result = (op);					  \
 	       if (result != ISC_R_SUCCESS) {			  \
 			isc_log_write(ns_g_lctx,		  \
 				      NS_LOGCATEGORY_GENERAL,	  \
@@ -120,7 +120,7 @@
 	} while (0)						  \
 
 #define CHECKMF(op, msg, file) \
-	do { result = (op); 				  	  \
+	do { result = (op);					  \
 	       if (result != ISC_R_SUCCESS) {			  \
 			isc_log_write(ns_g_lctx,		  \
 				      NS_LOGCATEGORY_GENERAL,	  \
@@ -133,7 +133,7 @@
 	} while (0)						  \
 
 #define CHECKFATAL(op, msg) \
-	do { result = (op); 				  	  \
+	do { result = (op);					  \
 	       if (result != ISC_R_SUCCESS)			  \
 			fatal(msg, result);			  \
 	} while (0)						  \
@@ -302,7 +302,7 @@ configure_view_acl(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 	(void)ns_config_get(maps, aclname, &aclobj);
 	if (aclobj == NULL)
 		/*
-		 * No value available.  *aclp == NULL.
+		 * No value available.	*aclp == NULL.
 		 */
 		return (ISC_R_SUCCESS);
 
@@ -420,7 +420,7 @@ configure_view_dnsseckey(const cfg_obj_t *vconfig, const cfg_obj_t *key,
  * the security roots.
  *
  * The per-view configuration values and the server-global defaults are read
- * from 'vconfig' and 'config'.  The variable to be configured is '*target'.
+ * from 'vconfig' and 'config'.	 The variable to be configured is '*target'.
  */
 static isc_result_t
 configure_view_dnsseckeys(const cfg_obj_t *vconfig, const cfg_obj_t *config,
@@ -1550,29 +1550,36 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 					 "allow-query-cache", actx,
 					 ns_g_mctx, &view->queryacl));
 
-	if (strcmp(view->name, "_bind") != 0)
+	CHECK(configure_view_acl(vconfig, config, "allow-query-cache-on",
+				 actx, ns_g_mctx, &view->queryonacl));
+	if (view->queryonacl == NULL)
+		CHECK(configure_view_acl(NULL, ns_g_defaults,
+					 "allow-query-cache-on", actx,
+					 ns_g_mctx, &view->queryonacl));
+
+	if (strcmp(view->name, "_bind") != 0) {
 		CHECK(configure_view_acl(vconfig, config, "allow-recursion",
-					 actx, ns_g_mctx, &view->recursionacl));
+					 actx, ns_g_mctx,
+					 &view->recursionacl));
+		CHECK(configure_view_acl(vconfig, config, "allow-recursion-on",
+					 actx, ns_g_mctx,
+					 &view->recursiononacl));
+	}
 
 	/*
-	 * Warning if both "recursion no;" and allow-recursion are active
-	 * except for "allow-recursion { none; };".
-	 */
-	if (!view->recursion && view->recursionacl != NULL &&
-	    (view->recursionacl->length != 1 ||
-	     view->recursionacl->elements[0].type != dns_aclelementtype_any ||
-	     view->recursionacl->elements[0].negative != ISC_TRUE))
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
-			      "both \"recursion no;\" and \"allow-recursion\" "
-			      "active%s%s", forview, viewname);
-
-	/*
-	 * Set default "allow-recursion" acl.
+	 * Set default "allow-recursion" and "allow-recursion-on" acls.
 	 */
 	if (view->recursionacl == NULL && view->recursion)
-		CHECK(configure_view_acl(NULL, ns_g_defaults, "allow-recursion",
-					 actx, ns_g_mctx, &view->recursionacl));
+		CHECK(configure_view_acl(NULL, ns_g_defaults,
+					 "allow-recursion",
+					 actx, ns_g_mctx,
+					 &view->recursionacl));
+
+	if (view->recursiononacl == NULL && view->recursion)
+		CHECK(configure_view_acl(NULL, ns_g_defaults,
+					 "allow-recursion-on",
+					 actx, ns_g_mctx,
+					 &view->recursiononacl));
 
 	CHECK(configure_view_acl(vconfig, config, "sortlist",
 				 actx, ns_g_mctx, &view->sortlist));
@@ -1878,6 +1885,8 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 						 empty_dbtype));
 			if (view->queryacl != NULL)
 				dns_zone_setqueryacl(zone, view->queryacl);
+			if (view->queryonacl != NULL)
+				dns_zone_setqueryonacl(zone, view->queryonacl);
 			dns_zone_setdialup(zone, dns_dialuptype_no);
 			dns_zone_setnotifytype(zone, dns_notifytype_no);
 			dns_zone_setoption(zone, DNS_ZONEOPT_NOCHECKNS,

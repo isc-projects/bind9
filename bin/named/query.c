@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.293 2007/02/06 04:00:21 marka Exp $ */
+/* $Id: query.c,v 1.294 2007/03/29 06:36:29 marka Exp $ */
 
 /*! \file */
 
@@ -640,7 +640,8 @@ query_validatezonedb(ns_client_t *client, dns_name_t *name,
 	if (check_acl) {
 		isc_boolean_t log = ISC_TF((options & DNS_GETDB_NOLOG) == 0);
 
-		result = ns_client_checkaclsilent(client, queryacl, ISC_TRUE);
+		result = ns_client_checkaclsilent(client, NULL, queryacl,
+						  ISC_TRUE);
 		if (log) {
 			char msg[NS_CLIENT_ACLMSGSIZE("query")];
 			if (result == ISC_R_SUCCESS) {
@@ -804,7 +805,7 @@ query_getcachedb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 		isc_boolean_t log = ISC_TF((options & DNS_GETDB_NOLOG) == 0);
 		char msg[NS_CLIENT_ACLMSGSIZE("query (cache)")];
 
-		result = ns_client_checkaclsilent(client,
+		result = ns_client_checkaclsilent(client, NULL,
 						  client->view->queryacl,
 						  ISC_TRUE);
 		if (result == ISC_R_SUCCESS) {

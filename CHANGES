@@ -1,3 +1,8 @@
+2165.	[func]		Allow the destination address of a query to determine
+			if we will answer the query or recurse.
+			allow-query-on, allow-recursion-on and
+			allow-query-cache-on. [RT #16291]
+
 2164.	[bug]		The code to determine how named-checkzone / 
 			named-compilezone was called failed under windows.
 			[RT #16764]

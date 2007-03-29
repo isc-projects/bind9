@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.149 2006/12/22 01:45:00 marka Exp $ */
+/* $Id: zone.h,v 1.150 2007/03/29 06:36:31 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -703,6 +703,16 @@ dns_zone_setqueryacl(dns_zone_t *zone, dns_acl_t *acl);
  */
 
 void
+dns_zone_setqueryonacl(dns_zone_t *zone, dns_acl_t *acl);
+/*%<
+ *	Sets the query-on acl list for the zone.
+ *
+ * Require:
+ *\li	'zone' to be a valid zone.
+ *\li	'acl' to be a valid acl.
+ */
+
+void
 dns_zone_setupdateacl(dns_zone_t *zone, dns_acl_t *acl);
 /*%<
  *	Sets the update acl list for the zone.
@@ -749,6 +759,19 @@ dns_acl_t *
 dns_zone_getqueryacl(dns_zone_t *zone);
 /*%<
  * 	Returns the current query acl or NULL.
+ *
+ * Require:
+ *\li	'zone' to be a valid zone.
+ *
+ * Returns:
+ *\li	acl a pointer to the acl.
+ *\li	NULL
+ */
+
+dns_acl_t *
+dns_zone_getqueryonacl(dns_zone_t *zone);
+/*%<
+ * 	Returns the current query-on acl or NULL.
  *
  * Require:
  *\li	'zone' to be a valid zone.
@@ -828,6 +851,15 @@ void
 dns_zone_clearqueryacl(dns_zone_t *zone);
 /*%<
  *	Clear the current query acl.
+ *
+ * Require:
+ *\li	'zone' to be a valid zone.
+ */
+
+void
+dns_zone_clearqueryonacl(dns_zone_t *zone);
+/*%<
+ *	Clear the current query-on acl.
  *
  * Require:
  *\li	'zone' to be a valid zone.

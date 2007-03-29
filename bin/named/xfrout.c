@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.123 2006/03/05 23:58:52 marka Exp $ */
+/* $Id: xfrout.c,v 1.124 2007/03/29 06:36:30 marka Exp $ */
 
 #include <config.h>
 
@@ -1090,9 +1090,9 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 #endif
 		ns_client_aclmsg("zone transfer", question_name, reqtype,
 				 client->view->rdclass, msg, sizeof(msg));
-		CHECK(ns_client_checkacl(client, msg,
-					 dns_zone_getxfracl(zone), ISC_TRUE,
-					 ISC_LOG_ERROR));
+		CHECK(ns_client_checkacl(client, NULL, msg,
+					 dns_zone_getxfracl(zone),
+					 ISC_TRUE, ISC_LOG_ERROR));
 #ifdef DLZ
 	}
 #endif

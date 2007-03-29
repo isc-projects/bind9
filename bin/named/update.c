@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.130 2006/12/04 01:52:45 marka Exp $ */
+/* $Id: update.c,v 1.131 2007/03/29 06:36:30 marka Exp $ */
 
 #include <config.h>
 
@@ -255,7 +255,7 @@ checkupdateacl(ns_client_t *client, dns_acl_t *acl, const char *message,
 		level = ISC_LOG_DEBUG(3);
 		msg = "disabled";
 	} else
-		result = ns_client_checkaclsilent(client, acl, ISC_FALSE);
+		result = ns_client_checkaclsilent(client, NULL, acl, ISC_FALSE);
 
 	if (result == ISC_R_SUCCESS) {
 		level = ISC_LOG_DEBUG(3);

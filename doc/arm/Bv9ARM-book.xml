@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.315 2007/03/05 04:57:57 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.316 2007/03/29 06:36:30 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -3082,8 +3082,12 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	    allows access and a negated match denies access. If
 	    there is no match, access is denied. The clauses
 	    <command>allow-notify</command>,
+	    <command>allow-recursion</command>,
+	    <command>allow-recursion-on</command>,
 	    <command>allow-query</command>,
+	    <command>allow-query-on</command>,
 	    <command>allow-query-cache</command>,
+	    <command>allow-query-cache-on</command>,
 	    <command>allow-transfer</command>,
 	    <command>allow-update</command>,
 	    <command>allow-update-forwarding</command>, and
@@ -4426,9 +4430,12 @@ category notify { null; };
     <optional> check-sibling <replaceable>yes_or_no</replaceable>; </optional>
     <optional> allow-notify { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-query { <replaceable>address_match_list</replaceable> }; </optional>
+    <optional> allow-query-on { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-query-cache { <replaceable>address_match_list</replaceable> }; </optional>
+    <optional> allow-query-cache-on { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-transfer { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-recursion { <replaceable>address_match_list</replaceable> }; </optional>
+    <optional> allow-recursion-on { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-update { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-update-forwarding { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> update-check-ksk <replaceable>yes_or_no</replaceable>; </optional>
@@ -5866,6 +5873,35 @@ options {
 	    </varlistentry>
 
 	    <varlistentry>
+	      <term><command>allow-query-on</command></term>
+	      <listitem>
+		<para>
+		  Specifies which local addresses can accept ordinary
+		  DNS questions. This makes it possible, for instance,
+		  to allow queries on internal-facing interfaces but
+		  disallow them on external-facing ones, without
+		  necessarily knowing the internal network's addresses.
+		</para>
+		<para>
+		  <command>allow-query-on</command> may
+		  also be specified in the <command>zone</command>
+		  statement, in which case it overrides the
+		  <command>options allow-query-on</command> statement.
+		</para>
+		<para>
+		  If not specified, the default is to allow queries
+		  on all addresses.
+		</para>
+		<note>
+		  <para>
+		    <command>allow-query-cache</command> is
+		    used to specify access to the cache.
+		  </para>
+		</note>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
 	      <term><command>allow-query-cache</command></term>
 	      <listitem>
 		<para>
@@ -5874,11 +5910,18 @@ options {
 		  <command>localnets</command> and
 		  <command>localhost</command>.
 		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>allow-query-cache-on</command></term>
+	      <listitem>
 		<para>
-		  The way to set query access to the cache is now
-		  via <command>allow-query-cache</command>.
-		  This differs from earlier versions which used
-		  <command>allow-query</command>.
+		  Specifies which local addresses can give answers
+		  from the cache.  If not specified, the default is
+		  to allow cache queries on any address.
+		  <command>localnets</command> and
+		  <command>localhost</command>.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -5895,6 +5938,17 @@ options {
 		  Note that disallowing recursive queries for a
 		  host does not prevent the host from retrieving
 		  data that is already in the server's cache.
+                </para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term><command>allow-recursion-on</command></term>
+              <listitem>
+                <para>
+		  Specifies which local addresses can accept recursive
+		  queries.  If not specified, the default is to allow
+		  recursive queries on all addresses.
                 </para>
               </listitem>
             </varlistentry>
@@ -8095,6 +8149,7 @@ view "external" {
 <programlisting>zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replaceable></optional> {
     type master;
     <optional> allow-query { <replaceable>address_match_list</replaceable> }; </optional>
+    <optional> allow-query-on { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-transfer { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-update { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> update-policy { <replaceable>update_policy_rule</replaceable> <optional>...</optional> }; </optional>
@@ -8134,6 +8189,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
     type slave;
     <optional> allow-notify { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-query { <replaceable>address_match_list</replaceable> }; </optional>
+    <optional> allow-query-on { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-transfer { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-update-forwarding { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> update-check-ksk <replaceable>yes_or_no</replaceable>; </optional>
@@ -8184,6 +8240,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
 zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replaceable></optional> {
     type stub;
     <optional> allow-query { <replaceable>address_match_list</replaceable> }; </optional>
+    <optional> allow-query-on { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> check-names (<constant>warn</constant>|<constant>fail</constant>|<constant>ignore</constant>) ; </optional>
     <optional> dialup <replaceable>dialup_option</replaceable> ; </optional>
     <optional> delegation-only <replaceable>yes_or_no</replaceable> ; </optional>
@@ -8479,6 +8536,16 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                   <para>
                     See the description of
                     <command>allow-query</command> in <xref linkend="access_control"/>.
+                  </para>
+                </listitem>
+              </varlistentry>
+
+              <varlistentry>
+                <term><command>allow-query-on</command></term>
+                <listitem>
+                  <para>
+                    See the description of
+                    <command>allow-query-on</command> in <xref linkend="access_control"/>.
                   </para>
                 </listitem>
               </varlistentry>
@@ -10655,7 +10722,8 @@ $GENERATE 1-127 $ CNAME $.0</programlisting>
         <para>
           Access Control Lists (ACLs), are address match lists that
           you can set up and nickname for future use in <command>allow-notify</command>,
-          <command>allow-query</command>, <command>allow-recursion</command>,
+          <command>allow-query</command>, <command>allow-query-on</command>,
+	  <command>allow-recursion</command>, <command>allow-recursion-on</command>,
           <command>blackhole</command>, <command>allow-transfer</command>,
           etc.
         </para>

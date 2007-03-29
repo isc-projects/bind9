@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.463 2007/02/26 23:46:54 tbox Exp $ */
+/* $Id: zone.c,v 1.464 2007/03/29 06:36:30 marka Exp $ */
 
 /*! \file */
 
@@ -216,6 +216,7 @@ struct dns_zone {
 	dns_acl_t		*forward_acl;
 	dns_acl_t		*notify_acl;
 	dns_acl_t		*query_acl;
+	dns_acl_t		*queryon_acl;
 	dns_acl_t		*xfr_acl;
 	isc_boolean_t		update_disabled;
 	isc_boolean_t		zero_no_soa_ttl;
@@ -623,6 +624,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->forward_acl = NULL;
 	zone->notify_acl = NULL;
 	zone->query_acl = NULL;
+	zone->queryon_acl = NULL;
 	zone->xfr_acl = NULL;
 	zone->update_disabled = ISC_FALSE;
 	zone->zero_no_soa_ttl = ISC_TRUE;
@@ -747,6 +749,8 @@ zone_free(dns_zone_t *zone) {
 		dns_acl_detach(&zone->notify_acl);
 	if (zone->query_acl != NULL)
 		dns_acl_detach(&zone->query_acl);
+	if (zone->queryon_acl != NULL)
+		dns_acl_detach(&zone->queryon_acl);
 	if (zone->xfr_acl != NULL)
 		dns_acl_detach(&zone->xfr_acl);
 	if (dns_name_dynamic(&zone->origin))
@@ -5871,6 +5875,18 @@ dns_zone_setqueryacl(dns_zone_t *zone, dns_acl_t *acl) {
 }
 
 void
+dns_zone_setqueryonacl(dns_zone_t *zone, dns_acl_t *acl) {
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	if (zone->queryon_acl != NULL)
+		dns_acl_detach(&zone->queryon_acl);
+	dns_acl_attach(acl, &zone->queryon_acl);
+	UNLOCK_ZONE(zone);
+}
+
+void
 dns_zone_setupdateacl(dns_zone_t *zone, dns_acl_t *acl) {
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -5920,6 +5936,14 @@ dns_zone_getqueryacl(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	return (zone->query_acl);
+}
+
+dns_acl_t *
+dns_zone_getqueryonacl(dns_zone_t *zone) {
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	return (zone->queryon_acl);
 }
 
 dns_acl_t *
@@ -5987,6 +6011,17 @@ dns_zone_clearqueryacl(dns_zone_t *zone) {
 	LOCK_ZONE(zone);
 	if (zone->query_acl != NULL)
 		dns_acl_detach(&zone->query_acl);
+	UNLOCK_ZONE(zone);
+}
+
+void
+dns_zone_clearqueryonacl(dns_zone_t *zone) {
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	if (zone->queryon_acl != NULL)
+		dns_acl_detach(&zone->queryon_acl);
 	UNLOCK_ZONE(zone);
 }
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.75 2006/06/04 23:17:06 marka Exp $ */
+/* $Id: config.c,v 1.76 2007/03/29 06:36:29 marka Exp $ */
 
 /*! \file */
 
@@ -104,7 +104,9 @@ options {\n\
 	allow-notify {none;};\n\
 	allow-update-forwarding {none;};\n\
 	allow-query-cache { localnets; localhost; };\n\
+	allow-query-cache-on { any; };\n\
 	allow-recursion { localnets; localhost; };\n\
+	allow-recursion-on { any; };\n\
 #	allow-v6-synthesis <obsolete>;\n\
 #	sortlist <none>\n\
 #	topology <none>\n\
@@ -145,6 +147,7 @@ options {\n\
 
 "	/* zone */\n\
 	allow-query {any;};\n\
+	allow-query-on {any;};\n\
 	allow-transfer {any;};\n\
 	notify yes;\n\
 #	also-notify <none>\n\

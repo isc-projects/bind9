@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.103 2006/12/22 01:45:00 marka Exp $ */
+/* $Id: view.h,v 1.104 2007/03/29 06:36:31 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -118,7 +118,9 @@ struct dns_view {
 	isc_boolean_t			acceptexpired;
 	dns_transfer_format_t		transfer_format;
 	dns_acl_t *			queryacl;
+	dns_acl_t *			queryonacl;
 	dns_acl_t *			recursionacl;
+	dns_acl_t *			recursiononacl;
 	dns_acl_t *			sortlist;
 	isc_boolean_t			requestixfr;
 	isc_boolean_t			provideixfr;

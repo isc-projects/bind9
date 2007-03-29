@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.27 2007/02/02 02:18:04 marka Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.28 2007/03/29 06:36:29 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>Aug 13, 2004</date>
@@ -219,6 +219,7 @@ options {
 	use-ixfr <replaceable>boolean</replaceable>;
 	version ( <replaceable>quoted_string</replaceable> | none );
 	allow-recursion { <replaceable>address_match_element</replaceable>; ... };
+	allow-recursion-on { <replaceable>address_match_element</replaceable>; ... };
 	sortlist { <replaceable>address_match_element</replaceable>; ... };
 	topology { <replaceable>address_match_element</replaceable>; ... }; // not implemented
 	auth-nxdomain <replaceable>boolean</replaceable>; // default changed
@@ -281,7 +282,9 @@ options {
 	ixfr-from-differences <replaceable>ixfrdiff</replaceable>;
 
 	allow-query { <replaceable>address_match_element</replaceable>; ... };
+	allow-query-on { <replaceable>address_match_element</replaceable>; ... };
 	allow-query-cache { <replaceable>address_match_element</replaceable>; ... };
+	allow-query-cache-on { <replaceable>address_match_element</replaceable>; ... };
 	allow-transfer { <replaceable>address_match_element</replaceable>; ... };
 	allow-update { <replaceable>address_match_element</replaceable>; ... };
 	allow-update-forwarding { <replaceable>address_match_element</replaceable>; ... };
@@ -371,6 +374,7 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	};
 
 	allow-recursion { <replaceable>address_match_element</replaceable>; ... };
+	allow-recursion-on { <replaceable>address_match_element</replaceable>; ... };
 	sortlist { <replaceable>address_match_element</replaceable>; ... };
 	topology { <replaceable>address_match_element</replaceable>; ... }; // not implemented
 	auth-nxdomain <replaceable>boolean</replaceable>; // default changed
@@ -433,7 +437,9 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	ixfr-from-differences <replaceable>ixfrdiff</replaceable>;
 
 	allow-query { <replaceable>address_match_element</replaceable>; ... };
+	allow-query-on { <replaceable>address_match_element</replaceable>; ... };
 	allow-query-cache { <replaceable>address_match_element</replaceable>; ... };
+	allow-query-cache-on { <replaceable>address_match_element</replaceable>; ... };
 	allow-transfer { <replaceable>address_match_element</replaceable>; ... };
 	allow-update { <replaceable>address_match_element</replaceable>; ... };
 	allow-update-forwarding { <replaceable>address_match_element</replaceable>; ... };
@@ -516,6 +522,7 @@ zone <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	zero-no-soa-ttl <replaceable>boolean</replaceable>;
 
 	allow-query { <replaceable>address_match_element</replaceable>; ... };
+	allow-query-on { <replaceable>address_match_element</replaceable>; ... };
 	allow-transfer { <replaceable>address_match_element</replaceable>; ... };
 	allow-update { <replaceable>address_match_element</replaceable>; ... };
 	allow-update-forwarding { <replaceable>address_match_element</replaceable>; ... };
