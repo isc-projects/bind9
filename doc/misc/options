@@ -53,7 +53,9 @@ options {
         stats-server <addrport4>;
         stats-server-v6 <addrport6>;
         allow-query-cache { <address_match_element>; ... };
+        allow-query-cache-on { <address_match_element>; ... };
         allow-recursion { <address_match_element>; ... };
+        allow-recursion-on { <address_match_element>; ... };
         allow-v6-synthesis { <address_match_element>; ... }; // obsolete
         sortlist { <address_match_element>; ... };
         topology { <address_match_element>; ... }; // not implemented
@@ -107,6 +109,7 @@ options {
         queryport-pool-ports <integer>;
         queryport-pool-updateinterval <integer>;
         allow-query { <address_match_element>; ... };
+        allow-query-on { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
@@ -207,6 +210,7 @@ view <string> <optional_class> {
                 check-names ( fail | warn | ignore );
                 ixfr-from-differences <boolean>;
                 allow-query { <address_match_element>; ... };
+                allow-query-on { <address_match_element>; ... };
                 allow-transfer { <address_match_element>; ... };
                 allow-update { <address_match_element>; ... };
                 allow-update-forwarding { <address_match_element>; ... };
@@ -286,7 +290,9 @@ view <string> <optional_class> {
         trusted-keys { <string> <integer> <integer> <integer>
             <quoted_string>; ... };
         allow-query-cache { <address_match_element>; ... };
+        allow-query-cache-on { <address_match_element>; ... };
         allow-recursion { <address_match_element>; ... };
+        allow-recursion-on { <address_match_element>; ... };
         allow-v6-synthesis { <address_match_element>; ... }; // obsolete
         sortlist { <address_match_element>; ... };
         topology { <address_match_element>; ... }; // not implemented
@@ -340,6 +346,7 @@ view <string> <optional_class> {
         queryport-pool-ports <integer>;
         queryport-pool-updateinterval <integer>;
         allow-query { <address_match_element>; ... };
+        allow-query-on { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
@@ -418,6 +425,7 @@ zone <string> <optional_class> {
         check-names ( fail | warn | ignore );
         ixfr-from-differences <boolean>;
         allow-query { <address_match_element>; ... };
+        allow-query-on { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };

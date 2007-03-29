@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.conf.5,v 1.25 2007/02/02 04:33:36 marka Exp $
+.\" $Id: named.conf.5,v 1.26 2007/03/29 15:19:16 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -192,6 +192,7 @@ options {
 	use\-ixfr \fIboolean\fR;
 	version ( \fIquoted_string\fR | none );
 	allow\-recursion { \fIaddress_match_element\fR; ... };
+	allow\-recursion\-on { \fIaddress_match_element\fR; ... };
 	sortlist { \fIaddress_match_element\fR; ... };
 	topology { \fIaddress_match_element\fR; ... }; // not implemented
 	auth\-nxdomain \fIboolean\fR; // default changed
@@ -251,7 +252,9 @@ options {
 	dialup \fIdialuptype\fR;
 	ixfr\-from\-differences \fIixfrdiff\fR;
 	allow\-query { \fIaddress_match_element\fR; ... };
+	allow\-query\-on { \fIaddress_match_element\fR; ... };
 	allow\-query\-cache { \fIaddress_match_element\fR; ... };
+	allow\-query\-cache\-on { \fIaddress_match_element\fR; ... };
 	allow\-transfer { \fIaddress_match_element\fR; ... };
 	allow\-update { \fIaddress_match_element\fR; ... };
 	allow\-update\-forwarding { \fIaddress_match_element\fR; ... };
@@ -329,6 +332,7 @@ view \fIstring\fR \fIoptional_class\fR {
 		\fIstring\fR \fIinteger\fR \fIinteger\fR \fIinteger\fR \fIquoted_string\fR; ...
 	};
 	allow\-recursion { \fIaddress_match_element\fR; ... };
+	allow\-recursion\-on { \fIaddress_match_element\fR; ... };
 	sortlist { \fIaddress_match_element\fR; ... };
 	topology { \fIaddress_match_element\fR; ... }; // not implemented
 	auth\-nxdomain \fIboolean\fR; // default changed
@@ -388,7 +392,9 @@ view \fIstring\fR \fIoptional_class\fR {
 	dialup \fIdialuptype\fR;
 	ixfr\-from\-differences \fIixfrdiff\fR;
 	allow\-query { \fIaddress_match_element\fR; ... };
+	allow\-query\-on { \fIaddress_match_element\fR; ... };
 	allow\-query\-cache { \fIaddress_match_element\fR; ... };
+	allow\-query\-cache\-on { \fIaddress_match_element\fR; ... };
 	allow\-transfer { \fIaddress_match_element\fR; ... };
 	allow\-update { \fIaddress_match_element\fR; ... };
 	allow\-update\-forwarding { \fIaddress_match_element\fR; ... };
@@ -461,6 +467,7 @@ zone \fIstring\fR \fIoptional_class\fR {
 	journal \fIquoted_string\fR;
 	zero\-no\-soa\-ttl \fIboolean\fR;
 	allow\-query { \fIaddress_match_element\fR; ... };
+	allow\-query\-on { \fIaddress_match_element\fR; ... };
 	allow\-transfer { \fIaddress_match_element\fR; ... };
 	allow\-update { \fIaddress_match_element\fR; ... };
 	allow\-update\-forwarding { \fIaddress_match_element\fR; ... };

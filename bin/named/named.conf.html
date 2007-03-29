@@ -13,7 +13,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: named.conf.html,v 1.34 2007/02/02 04:33:36 marka Exp $ -->
+<!-- $Id: named.conf.html,v 1.35 2007/03/29 15:19:17 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -190,6 +190,7 @@ options {<br>
 	use-ixfr <em class="replaceable"><code>boolean</code></em>;<br>
 	version ( <em class="replaceable"><code>quoted_string</code></em> | none );<br>
 	allow-recursion { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	allow-recursion-on { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	sortlist { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	topology { <em class="replaceable"><code>address_match_element</code></em>; ... }; // not implemented<br>
 	auth-nxdomain <em class="replaceable"><code>boolean</code></em>; // default changed<br>
@@ -252,7 +253,9 @@ options {<br>
 	ixfr-from-differences <em class="replaceable"><code>ixfrdiff</code></em>;<br>
 <br>
 	allow-query { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	allow-query-on { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	allow-query-cache { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	allow-query-cache-on { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	allow-transfer { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	allow-update { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	allow-update-forwarding { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
@@ -316,7 +319,7 @@ options {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544413"></a><h2>VIEW</h2>
+<a name="id2544424"></a><h2>VIEW</h2>
 <div class="literallayout"><p><br>
 view <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	match-clients { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
@@ -341,6 +344,7 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 	};<br>
 <br>
 	allow-recursion { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	allow-recursion-on { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	sortlist { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	topology { <em class="replaceable"><code>address_match_element</code></em>; ... }; // not implemented<br>
 	auth-nxdomain <em class="replaceable"><code>boolean</code></em>; // default changed<br>
@@ -403,7 +407,9 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 	ixfr-from-differences <em class="replaceable"><code>ixfrdiff</code></em>;<br>
 <br>
 	allow-query { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	allow-query-on { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	allow-query-cache { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	allow-query-cache-on { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	allow-transfer { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	allow-update { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	allow-update-forwarding { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
@@ -459,7 +465,7 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544992"></a><h2>ZONE</h2>
+<a name="id2545081"></a><h2>ZONE</h2>
 <div class="literallayout"><p><br>
 zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	type ( master | slave | stub | hint |<br>
@@ -485,6 +491,7 @@ zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 	zero-no-soa-ttl <em class="replaceable"><code>boolean</code></em>;<br>
 <br>
 	allow-query { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	allow-query-on { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	allow-transfer { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	allow-update { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	allow-update-forwarding { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
@@ -544,12 +551,12 @@ zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545347"></a><h2>FILES</h2>
+<a name="id2545371"></a><h2>FILES</h2>
 <p><code class="filename">/etc/named.conf</code>
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545358"></a><h2>SEE ALSO</h2>
+<a name="id2545383"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">rndc</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">BIND 9 Administrator Reference Manual</span></span>.
