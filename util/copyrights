@@ -19,7 +19,7 @@
 ./bin/check/named-checkconf.docbook		SGML	2000,2001,2002,2004,2005,2007
 ./bin/check/named-checkconf.html		HTML	DOCBOOK
 ./bin/check/named-checkzone.8			MAN	DOCBOOK
-./bin/check/named-checkzone.c			C	1999,2000,2001,2002,2003,2004,2005,2006
+./bin/check/named-checkzone.c			C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./bin/check/named-checkzone.docbook		SGML	2000,2001,2002,2004,2005,2006,2007
 ./bin/check/named-checkzone.html		HTML	DOCBOOK
 ./bin/check/win32/checktool.dsp			X	2006
@@ -84,12 +84,12 @@
 ./bin/named/bind9.xsl				SGML	2006,2007
 ./bin/named/builtin.c				C	2001,2002,2003,2004,2005
 ./bin/named/client.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
-./bin/named/config.c				C	2001,2002,2003,2004,2005,2006
+./bin/named/config.c				C	2001,2002,2003,2004,2005,2006,2007
 ./bin/named/control.c				C	2001,2002,2003,2004,2005,2006,2007
 ./bin/named/controlconf.c			C	2001,2002,2003,2004,2005,2006,2007
 ./bin/named/convertxsl.pl			PERL	2006
 ./bin/named/include/named/builtin.h		C	2001,2004,2005
-./bin/named/include/named/client.h		C	1999,2000,2001,2002,2003,2004,2005,2006
+./bin/named/include/named/client.h		C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./bin/named/include/named/config.h		C	2001,2002,2004,2005,2006
 ./bin/named/include/named/control.h		C	2001,2002,2003,2004,2005,2006
 ./bin/named/include/named/globals.h		C	1999,2000,2001,2002,2003,2004,2005,2006
@@ -146,7 +146,7 @@
 ./bin/named/unix/Makefile.in			MAKE	1999,2000,2001,2004
 ./bin/named/unix/include/named/os.h		C	1999,2000,2001,2002,2004,2005
 ./bin/named/unix/os.c				C	1999,2000,2001,2002,2004,2005,2006
-./bin/named/update.c				C	1999,2000,2001,2002,2003,2004,2005,2006
+./bin/named/update.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./bin/named/win32/include/named/ntservice.h	C	1999,2000,2001,2002,2003,2004
 ./bin/named/win32/include/named/os.h		C	1999,2000,2001,2002,2004
 ./bin/named/win32/named.dsp			X	2001,2004,2005
@@ -154,7 +154,7 @@
 ./bin/named/win32/named.mak			X	2001,2002,2004,2005,2006
 ./bin/named/win32/ntservice.c			C	1999,2000,2001,2002,2004,2006
 ./bin/named/win32/os.c				C	1999,2000,2001,2002,2004,2005
-./bin/named/xfrout.c				C	1999,2000,2001,2002,2003,2004,2005,2006
+./bin/named/xfrout.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./bin/named/zoneconf.c				C	1999,2000,2001,2002,2003,2004,2005,2006
 ./bin/nsupdate/.cvsignore			X	2000,2001
 ./bin/nsupdate/Makefile.in			MAKE	2000,2001,2002,2004,2006
@@ -1836,9 +1836,9 @@
 ./lib/dns/include/dns/types.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/include/dns/validator.h		C	2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/include/dns/version.h			C	2001,2004,2005,2006
-./lib/dns/include/dns/view.h			C	1999,2000,2001,2002,2003,2004,2005,2006
+./lib/dns/include/dns/view.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/include/dns/xfrin.h			C	1999,2000,2001,2003,2004,2005,2006
-./lib/dns/include/dns/zone.h			C	1999,2000,2001,2002,2003,2004,2005,2006
+./lib/dns/include/dns/zone.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/include/dns/zonekey.h			C	2001,2004,2005,2006
 ./lib/dns/include/dns/zt.h			C	1999,2000,2001,2002,2004,2005,2006
 ./lib/dns/include/dst/.cvsignore		X	2000,2001,2004
