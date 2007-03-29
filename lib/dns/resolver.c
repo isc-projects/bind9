@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.345 2007/03/06 00:38:57 marka Exp $ */
+/* $Id: resolver.c,v 1.346 2007/03/29 04:13:22 marka Exp $ */
 
 /*! \file */
 
@@ -1182,7 +1182,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 			}
 			switch (isc_sockaddr_pf(&addrinfo->sockaddr)) {
 			case PF_INET:
-				if (res->ndisps > 0) {
+				if (res->dispatchv4pool != NULL) {
 					RES_LOCK(&res->poollock,
 						 isc_rwlocktype_read);
 					dns_dispatch_attach(res->dispatchv4pool[did],
@@ -1195,7 +1195,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 				}
 				break;
 			case PF_INET6:
-				if (res->ndisps > 0) {
+				if (res->dispatchv6pool != NULL) {
 					RES_LOCK(&res->poollock,
 						 isc_rwlocktype_read);
 					dns_dispatch_attach(res->dispatchv6pool[did],

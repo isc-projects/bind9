@@ -1,3 +1,7 @@
+2163.	[bug]		If only one of query-source and query-source-v6
+			specified a port the query pools code broke (change
+			2129).  [RT #16768]
+
 2162.	[func]		Allow "rrset-order fixed" to be disabled at compile
 			time. [RT #16665]
 
