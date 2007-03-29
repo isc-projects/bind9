@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.29.18.16 2006/10/05 05:24:35 marka Exp $ */
+/* $Id: named-checkzone.c,v 1.29.18.17 2007/03/29 04:56:06 marka Exp $ */
 
 /*! \file */
 
@@ -109,6 +109,8 @@ main(int argc, char **argv) {
 	outputstyle = &dns_master_style_full;
 
 	prog_name = strrchr(argv[0], '/');
+	if (prog_name == NULL)
+		prog_name = strrchr(argv[0], '\\');
 	if (prog_name != NULL)
 		prog_name++;
 	else
