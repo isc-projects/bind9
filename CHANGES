@@ -1,3 +1,7 @@
+2166.	[bug]		When running in batch mode, dig could misinterpret
+			a server address as a name to be looked up, causing
+			unexpected output. [RT #16743]
+
 2165.	[func]		Allow the destination address of a query to determine
 			if we will answer the query or recurse.
 			allow-query-on, allow-recursion-on and

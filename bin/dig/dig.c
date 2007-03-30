@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.213 2006/07/21 23:50:15 marka Exp $ */
+/* $Id: dig.c,v 1.214 2007/03/30 03:46:13 each Exp $ */
 
 /*! \file */
 
@@ -669,16 +669,16 @@ reorder_args(int argc, char *argv[]) {
 			return;
 	}
 	debug("arg[end]=%s", argv[end]);
-	for (i = 1; i < end - 1; i++) {
+	for (i = end; i > 0; i--) {
+		debug("arg[%d]=%s", i, argv[i]);
 		if (argv[i][0] == '@') {
-			debug("arg[%d]=%s", i, argv[i]);
 			ptr = argv[i];
-			for (j = i + 1; j < end; j++) {
+			for (j = i + 1; j <= end; j++) {
 				debug("Moving %s to %d", argv[j], j - 1);
 				argv[j - 1] = argv[j];
 			}
-			debug("moving %s to end, %d", ptr, end - 1);
-			argv[end - 1] = ptr;
+			debug("moving %s to end, %d", ptr, end);
+			argv[end] = ptr;
 			end--;
 			if (end < 1)
 				return;
@@ -1481,6 +1481,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 	char rcfile[256];
 #endif
 	char *input;
+	int i;
 
 	/*
 	 * The semantics for parsing the args is a bit complex; if
@@ -1529,6 +1530,9 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 				argv0 = argv[0];
 
 				reorder_args(bargc, (char **)bargv);
+				for(i = 0; i < bargc; i++)
+					debug("cmdline argv %d: %s",
+					      i, bargv[i]);
 				parse_args(ISC_TRUE, ISC_TRUE, bargc,
 					   (char **)bargv);
 			}
@@ -1679,6 +1683,8 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			argv0 = argv[0];
 
 			reorder_args(bargc, (char **)bargv);
+			for(i = 0; i < bargc; i++)
+				debug("batch argv %d: %s", i, bargv[i]);
 			parse_args(ISC_TRUE, ISC_FALSE, bargc, (char **)bargv);
 		}
 	}
@@ -1715,7 +1721,7 @@ dighost_shutdown(void) {
 	int bargc;
 	char *bargv[16];
 	char *input;
-
+	int i;
 
 	if (batchname == NULL) {
 		isc_app_shutdown();
@@ -1744,6 +1750,8 @@ dighost_shutdown(void) {
 		bargv[0] = argv0;
 
 		reorder_args(bargc, (char **)bargv);
+		for(i = 0; i < bargc; i++)
+			debug("batch argv %d: %s", i, bargv[i]);
 		parse_args(ISC_TRUE, ISC_FALSE, bargc, (char **)bargv);
 		start_lookup();
 	} else {
