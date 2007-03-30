@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.316 2007/03/29 06:36:30 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.317 2007/03/30 02:27:13 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -6167,7 +6167,7 @@ query-source-v6 address * port *;
               <term><command>use-queryport-pool</command></term>
               <listitem>
                 <para>
-		  Enable they use of query port pools.  By default query port
+		  Enable the use of query port pools.  By default query port
 		  pools are enabled unless there is a explicit port defined
 		  in <command>query-source</command> or
 		  <command>query-source-v6</command>.
