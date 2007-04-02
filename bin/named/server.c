@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.481 2007/04/02 23:17:52 marka Exp $ */
+/* $Id: server.c,v 1.482 2007/04/02 23:46:47 marka Exp $ */
 
 /*! \file */
 
@@ -4869,12 +4869,14 @@ ns_server_flushcache(ns_server_t *server, char *args) {
 				      "flushing caches in all views succeeded");
 		result = ISC_R_SUCCESS;
 	} else {
-		if (!found)
+		if (!found) {
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 				      "flushing cache in view '%s' failed: "
-				      "view not found", view->name);
-		result = ISC_R_FAILURE;
+				      "view not found", viewname);
+			result = ISC_R_NOTFOUND;
+		} else
+			result = ISC_R_FAILURE;
 	}
 	isc_task_endexclusive(server->task);	
 	return (result);
