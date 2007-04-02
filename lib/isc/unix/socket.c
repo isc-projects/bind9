@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.207.2.19.2.28 2007/02/26 23:45:55 tbox Exp $ */
+/* $Id: socket.c,v 1.207.2.19.2.29 2007/04/02 02:11:17 marka Exp $ */
 
 #include <config.h>
 
@@ -1558,7 +1558,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		}
 #ifdef ISC_PLATFORM_HAVEIN6PKTINFO
 #ifdef IPV6_RECVPKTINFO
-		/* 2292bis */
+		/* RFC 3542 */
 		if ((pf == AF_INET6)
 		    && (setsockopt(sock->fd, IPPROTO_IPV6, IPV6_RECVPKTINFO,
 				   (void *)&on, sizeof(on)) < 0)) {
@@ -1573,7 +1573,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 					 strbuf);
 		}
 #else
-		/* 2292 */
+		/* RFC 2292 */
 		if ((pf == AF_INET6)
 		    && (setsockopt(sock->fd, IPPROTO_IPV6, IPV6_PKTINFO,
 				   (void *)&on, sizeof(on)) < 0)) {
@@ -1589,7 +1589,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		}
 #endif /* IPV6_RECVPKTINFO */
 #endif /* ISC_PLATFORM_HAVEIN6PKTINFO */
-#ifdef IPV6_USE_MIN_MTU        /*2292bis, not too common yet*/
+#ifdef IPV6_USE_MIN_MTU        /* RFC 3542, not too common yet*/
 		/* use minimum MTU */
 		if (pf == AF_INET6) {
 			(void)setsockopt(sock->fd, IPPROTO_IPV6,
