@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.480 2007/03/29 06:36:29 marka Exp $ */
+/* $Id: server.c,v 1.481 2007/04/02 23:17:52 marka Exp $ */
 
 /*! \file */
 
@@ -4826,6 +4826,7 @@ ns_server_flushcache(ns_server_t *server, char *args) {
 	char *ptr, *viewname;
 	dns_view_t *view;
 	isc_boolean_t flushed;
+	isc_boolean_t found;
 	isc_result_t result;
 
 	/* Skip the command name. */
@@ -4839,12 +4840,14 @@ ns_server_flushcache(ns_server_t *server, char *args) {
 	result = isc_task_beginexclusive(server->task);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	flushed = ISC_TRUE;
+	found = ISC_FALSE;
 	for (view = ISC_LIST_HEAD(server->viewlist);
 	     view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
 	{
 		if (viewname != NULL && strcasecmp(viewname, view->name) != 0)
 			continue;
+		found = ISC_TRUE;
 		result = dns_view_flushcache(view);
 		if (result != ISC_R_SUCCESS) {
 			flushed = ISC_FALSE;
@@ -4854,7 +4857,7 @@ ns_server_flushcache(ns_server_t *server, char *args) {
 				      view->name, isc_result_totext(result));
 		}
 	}
-	if (flushed) {
+	if (flushed && found) {
 		if (viewname != NULL)
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
@@ -4866,6 +4869,11 @@ ns_server_flushcache(ns_server_t *server, char *args) {
 				      "flushing caches in all views succeeded");
 		result = ISC_R_SUCCESS;
 	} else {
+		if (!found)
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      "flushing cache in view '%s' failed: "
+				      "view not found", view->name);
 		result = ISC_R_FAILURE;
 	}
 	isc_task_endexclusive(server->task);	
@@ -4877,6 +4885,7 @@ ns_server_flushname(ns_server_t *server, char *args) {
 	char *ptr, *target, *viewname;
 	dns_view_t *view;
 	isc_boolean_t flushed;
+	isc_boolean_t found;
 	isc_result_t result;
 	isc_buffer_t b;
 	dns_fixedname_t fixed;
@@ -4906,12 +4915,14 @@ ns_server_flushname(ns_server_t *server, char *args) {
 	result = isc_task_beginexclusive(server->task);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	flushed = ISC_TRUE;
+	found = ISC_FALSE;
 	for (view = ISC_LIST_HEAD(server->viewlist);
 	     view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
 	{
 		if (viewname != NULL && strcasecmp(viewname, view->name) != 0)
 			continue;
+		found = ISC_TRUE;
 		result = dns_view_flushname(view, name);
 		if (result != ISC_R_SUCCESS) {
 			flushed = ISC_FALSE;
@@ -4922,7 +4933,7 @@ ns_server_flushname(ns_server_t *server, char *args) {
 				      isc_result_totext(result));
 		}
 	}
-	if (flushed) {
+	if (flushed && found) {
 		if (viewname != NULL)
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
@@ -4935,6 +4946,12 @@ ns_server_flushname(ns_server_t *server, char *args) {
 				      "succeeded", target);
 		result = ISC_R_SUCCESS;
 	} else {
+		if (!found)
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      "flushing name '%s' in cache view '%s' "
+				      "failed: view not found", target,
+				      view->name);
 		result = ISC_R_FAILURE;
 	}
 	isc_task_endexclusive(server->task);	
