@@ -136,7 +136,7 @@
 ./bin/named/named.html				HTML	DOCBOOK
 ./bin/named/notify.c				C	1999,2000,2001,2002,2003,2004,2005
 ./bin/named/query.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
-./bin/named/server.c				C	1999,2000,2001,2002,2003,2004,2005,2006
+./bin/named/server.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./bin/named/sortlist.c				C	2000,2001,2004,2005,2006
 ./bin/named/tkeyconf.c				C	1999,2000,2001,2004,2005,2006
 ./bin/named/tsigconf.c				C	1999,2000,2001,2004,2005,2006
