@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.38 2006/12/07 05:25:03 marka Exp $ */
+/* $Id: server.c,v 1.339.2.39 2007/04/03 00:09:00 marka Exp $ */
 
 #include <config.h>
 
@@ -3142,7 +3142,8 @@ isc_result_t
 ns_server_flushcache(ns_server_t *server, char *args) {
 	char *ptr, *viewname;
 	dns_view_t *view;
-	isc_boolean_t flushed = ISC_FALSE;
+	isc_boolean_t flushed;
+	isc_boolean_t found;
 	isc_result_t result;
 
 	/* Skip the command name. */
@@ -3155,22 +3156,27 @@ ns_server_flushcache(ns_server_t *server, char *args) {
 
 	result = isc_task_beginexclusive(server->task);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	flushed = ISC_TRUE;
+	found = ISC_FALSE;
 	for (view = ISC_LIST_HEAD(server->viewlist);
 	     view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
 	{
 		if (viewname != NULL && strcasecmp(viewname, view->name) != 0)
 			continue;
+		found = ISC_TRUE;
 		result = dns_view_flushcache(view);
 		if (result != ISC_R_SUCCESS)
-			goto out;
-		flushed = ISC_TRUE;
+			flushed = ISC_FALSE;
 	}
-	if (flushed)
+	if (flushed && found) {
 		result = ISC_R_SUCCESS;
-	else
-		result = ISC_R_FAILURE;
- out:
+	} else {
+		if (!found)
+			result = ISC_R_NOTFOUND;
+		else
+			result = ISC_R_FAILURE;
+	}
 	isc_task_endexclusive(server->task);	
 	return (result);
 }
