@@ -12,7 +12,7 @@ Branch				Status	Whom	// Comments
 custom_WFB_v9_3_1		private	
 custom_WFB_v9_3_2		private	
 custom_WFB_v9_3_3		private	
-custom_WFB_v9_4_0		private
+custom_WFB_v9_4_0		private	
 gsstsig4			open	sra	// head + gsstsig as of 12 may 2006
 gsstsig4_win32			open	danny	// sub-branch off gsstsig4 for windows development
 jinmei-mmapzone-test		open		// mmap based zone file. very experimental, just for reference purposes
@@ -47,7 +47,6 @@ rt15869				review		// libdnsng
 rt16157				open	
 rt16288				review	
 rt16288_best_to_first_match	new	
-rt16291				closed	each	// 2007-02-06 22:29 +0000
 rt16402				open	
 rt16428				open	
 rt16443				open	marka	// post 9.4.0
@@ -55,14 +54,12 @@ rt16519				open	marka	// epsilon for .DE
 rt16592				open	mayer	// windows condition variable
 rt16665				review	marka	// 2007-02-12 06:11 +0000
 rt16671				open	marka	// Silence Coverity reports
-rt16698				closed	marka	// 2007-03-09 02:41 +0000
 rt16707				review	marka	// 2007-03-13 05:13 +0000
 rt16711				review	marka	// 2007-03-09 02:33 +0000
 rt16743				review	
 rt16760				new	explorer	// 2007-03-19 14:59 +0000
 rt16763				review	marka	// 2007-04-02 06:31 +0000
-rt16764				closed	marka	// 2007-03-25 23:35 +0000
-rt16768				closed	marka	// 2007-03-27 01:58 +0000
+rt16785				new	marka	// 2007-04-03 02:53 +0000
 rt1727				open		// ixfr-from-differences workfile
 skan				open	explorer
 skan-metazones1			private	explorer
@@ -473,6 +470,7 @@ rt16220				closed
 rt16220a			closed
 rt16244				closed
 rt16290				closed
+rt16291				closed		// 2007-02-06 22:29 +0000
 rt16292				closed
 rt16300				closed
 rt16307				closed
@@ -525,6 +523,9 @@ rt16653				closed		// 2007-02-07 05:11 +0000
 rt16654				closed		// 2007-02-07 06:10 +0000
 rt16655				closed		// 2007-02-08 02:41 +0000
 rt16685				closed		// 2007-02-28 06:01 +0000
+rt16698				closed		// 2007-03-09 02:41 +0000
+rt16764				closed		// 2007-03-25 23:35 +0000
+rt16768				closed		// 2007-03-27 01:58 +0000
 rt1727b				closed
 rt1727c				closed
 rt2471				closed
