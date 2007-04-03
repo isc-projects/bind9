@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.301 2007/02/27 00:58:08 marka Exp $ */
+/* $Id: dighost.c,v 1.302 2007/04/03 23:06:39 marka Exp $ */
 
 /*! \file
  *  \note
@@ -1276,9 +1276,7 @@ clear_query(dig_query_t *query) {
  */
 static isc_boolean_t
 try_clear_lookup(dig_lookup_t *lookup) {
-	dig_server_t *s;
 	dig_query_t *q;
-	void *ptr;
 
 	REQUIRE(lookup != NULL);
 
@@ -1299,7 +1297,16 @@ try_clear_lookup(dig_lookup_t *lookup) {
 	 * At this point, we know there are no queries on the lookup,
 	 * so can make it go away also.
 	 */
-	debug("cleared");
+	destroy_lookup(lookup);
+	return (ISC_TRUE);
+}
+
+void
+destroy_lookup(dig_lookup_t *lookup) {
+	dig_server_t *s;
+	void *ptr;
+
+	debug("destroy");
 	s = ISC_LIST_HEAD(lookup->my_server_list);
 	while (s != NULL) {
 		debug("freeing server %p belonging to %p", s, lookup);
@@ -1324,7 +1331,6 @@ try_clear_lookup(dig_lookup_t *lookup) {
 		dst_context_destroy(&lookup->tsigctx);
 
 	isc_mem_free(mctx, lookup);
-	return (ISC_TRUE);
 }
 
 /*%
