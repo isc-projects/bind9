@@ -1,3 +1,6 @@
+
+	--- 9.5.0a3 released ---
+
 2166.	[bug]		When running in batch mode, dig could misinterpret
 			a server address as a name to be looked up, causing
 			unexpected output. [RT #16743]
