@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.50 2007/04/03 00:00:24 marka Exp $ */
+/* $Id: server.c,v 1.419.18.51 2007/04/03 00:05:17 marka Exp $ */
 
 /*! \file */
 
@@ -4610,7 +4610,6 @@ ns_server_flushcache(ns_server_t *server, char *args) {
 		else
 			result = ISC_R_FAILURE;
 	}
- out:
 	isc_task_endexclusive(server->task);	
 	return (result);
 }
