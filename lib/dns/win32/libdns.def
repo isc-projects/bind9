@@ -718,6 +718,7 @@ dns_zone_setnotifytype
 dns_zone_setoption
 dns_zone_setorigin
 dns_zone_setqueryacl
+dns_zone_setqueryonacl
 dns_zone_setsigvalidityinterval
 dns_zone_setssutable
 dns_zone_setstatistics
