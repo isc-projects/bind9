@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.76.2.5.2.16 2006/05/23 04:43:47 marka Exp $ */
+/* $Id: host.c,v 1.76.2.5.2.17 2007/04/24 07:39:16 marka Exp $ */
 
 #include <config.h>
 #include <limits.h>
@@ -410,8 +410,10 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	if (msg->rcode != 0) {
 		char namestr[DNS_NAME_FORMATSIZE];
 		dns_name_format(query->lookup->name, namestr, sizeof(namestr));
-		printf("Host %s not found: %d(%s)\n", namestr,
-		       msg->rcode, rcodetext[msg->rcode]);
+		printf("Host %s not found: %d(%s)\n",
+		       (msg->rcode != dns_rcode_nxdomain) ? namestr :
+		       query->lookup->textname, msg->rcode,
+		       rcodetext[msg->rcode]);
 		return (ISC_R_SUCCESS);
 	}
 
