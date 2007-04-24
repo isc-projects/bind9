@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.76 2007/01/29 23:57:18 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.77 2007/04/24 02:02:34 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -5226,7 +5226,7 @@ shared secret is the same as the identity of the key used to authenticate the
 TKEY exchange.  When the <replaceable>identity</replaceable> field specifies a
 wildcard name, it is subject to DNS wildcard expansion, so the rule will apply
 to multiple identities.  The <replaceable>identity</replaceable> field must
-contain a fully qualified domain name.</para>
+contain a fully-qualified domain name.</para>
 
 <para>The <replaceable>nametype</replaceable> field has 4 values:
 <varname>name</varname>, <varname>subdomain</varname>,
@@ -5271,7 +5271,7 @@ specified as <constant>*</constant> in this case.</para></entry>
 </tgroup></informaltable>
 
 <para>In all cases, the <replaceable>name</replaceable> field must
-specify a fully qualified domain name.</para>
+specify a fully-qualified domain name.</para>
 
 <para>If no types are explicitly specified, this rule matches all types except
 SIG, NS, SOA, and NXT. Types may be specified by name, including
