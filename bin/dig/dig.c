@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.157.2.13.2.32 2007/04/24 07:36:13 each Exp $ */
+/* $Id: dig.c,v 1.157.2.13.2.33 2007/04/24 07:48:49 each Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -1019,8 +1019,7 @@ static const char *dash_opts = "46bcdfhikmnptvyx";
 static isc_boolean_t
 dash_option(char *option, char *next, dig_lookup_t **lookup,
  	    isc_boolean_t *open_type_class, isc_boolean_t *need_clone,
- 	    isc_boolean_t config_only, int argc, char **argv,
- 	    isc_boolean_t *firstarg)
+ 	    int argc, char **argv, isc_boolean_t *firstarg)
 {
 	char opt, *value, *ptr;
 	isc_result_t result;
@@ -1403,16 +1402,16 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			if (rc <= 1) {
 				if (dash_option(&rv[0][1], NULL,
 						&lookup, &open_type_class,
- 						&need_clone, config_only,
- 						argc, argv, &firstarg)) {
+ 						&need_clone, argc, argv,
+                                                &firstarg)) {
 					rc--;
 					rv++;
 				}
 			} else {
 				if (dash_option(&rv[0][1], rv[1],
 						&lookup, &open_type_class,
- 						&need_clone, config_only,
- 						argc, argv, &firstarg)) {
+ 						&need_clone, argc, argv,
+                                                &firstarg)) {
 					rc--;
 					rv++;
 				}
