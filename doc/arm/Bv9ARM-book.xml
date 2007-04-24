@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.66 2007/01/29 23:57:20 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.67 2007/04/24 01:59:47 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -8935,7 +8935,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
               wildcard name, it is subject to DNS wildcard expansion, so the
               rule will apply
               to multiple identities.  The <replaceable>identity</replaceable> field must
-              contain a fully qualified domain name.
+              contain a fully-qualified domain name.
             </para>
 
             <para>
@@ -9049,7 +9049,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
             <para>
               In all cases, the <replaceable>name</replaceable>
               field must
-              specify a fully qualified domain name.
+              specify a fully-qualified domain name.
             </para>
 
             <para>
