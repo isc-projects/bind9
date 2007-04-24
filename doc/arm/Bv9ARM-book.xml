@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.52 2007/01/29 23:57:17 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.53 2007/04/24 02:05:13 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -4919,11 +4919,11 @@ owner domain.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>NS</para></entry>
-<entry colname = "2"><para>a fully qualified domain name.</para></entry>
+<entry colname = "2"><para>a fully-qualified domain name.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>PTR</para></entry>
-<entry colname = "2"><para>a fully qualified domain name.</para></entry>
+<entry colname = "2"><para>a fully-qualified domain name.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>SOA</para></entry>
