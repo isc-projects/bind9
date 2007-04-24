@@ -1,3 +1,5 @@
+2167.	[bug]		When re-using a automatic zone named failed to
+			attach it to the new view. [RT #16786]
 
 	--- 9.5.0a3 released ---
 
