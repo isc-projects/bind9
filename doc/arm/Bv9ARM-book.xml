@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.317 2007/03/30 02:27:13 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.318 2007/04/24 01:54:36 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4454,7 +4454,7 @@ category notify { null; };
 	<optional> port ( <replaceable>ip_port</replaceable> | <replaceable>*</replaceable> ) </optional> | 
 	<optional> address ( <replaceable>ip6_addr</replaceable> | <replaceable>*</replaceable> ) </optional> 
 	<optional> port ( <replaceable>ip_port</replaceable> | <replaceable>*</replaceable> ) </optional> ) ; </optional>
-    <optional> use-queryport-pool <replaceable>yse_or_no</replaceable>; </optional>
+    <optional> use-queryport-pool <replaceable>yes_or_no</replaceable>; </optional>
     <optional> queryport-pool-ports <replaceable>number</replaceable>; </optional>
     <optional> queryport-pool-interval <replaceable>number</replaceable>; </optional>
     <optional> max-transfer-time-in <replaceable>number</replaceable>; </optional>
@@ -4632,7 +4632,7 @@ category notify { null; };
 		should be the server's domain name, or an otherwise
 		non-existent subdomain like
 		"_tkey.<varname>domainname</varname>".  If you are
-		using GSS-TSIG, this variable must be defined
+		using GSS-TSIG, this variable must be defined.
 	      </para>
 	    </listitem>
 	  </varlistentry>
@@ -5919,7 +5919,7 @@ options {
 		<para>
 		  Specifies which local addresses can give answers
 		  from the cache.  If not specified, the default is
-		  to allow cache queries on any address.
+		  to allow cache queries on any address,
 		  <command>localnets</command> and
 		  <command>localhost</command>.
 		</para>
@@ -6146,10 +6146,10 @@ listen-on-v6 port 1234 { !2001:db8::/32; any; };
             a wildcard IP address (<command>INADDR_ANY</command>)
             will be used.
             If <command>port</command> is <command>*</command> or is omitted,
-            a pool of random unprivileged port will be used.  See
+            a pool of random unprivileged ports will be used.  See the
 	    <command>use-queryport-pool</command>,
 	    <command>queryport-pool-ports</command> and
-	    <command>queryport-pool-updateinterval</command> for how the pool
+	    <command>queryport-pool-updateinterval</command> options below for how the pool
 	    is configured.
 	    The <command>avoid-v4-udp-ports</command>
             and <command>avoid-v6-udp-ports</command> options can be used
@@ -7768,10 +7768,10 @@ query-source-v6 address * port *;
     <optional> notify-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> query-source <optional> address ( <replaceable>ip_addr</replaceable> | <replaceable>*</replaceable> ) </optional> <optional> port ( <replaceable>ip_port</replaceable> | <replaceable>*</replaceable> ) </optional>; </optional>
     <optional> query-source-v6 <optional> address ( <replaceable>ip_addr</replaceable> | <replaceable>*</replaceable> ) </optional> <optional> port ( <replaceable>ip_port</replaceable> | <replaceable>*</replaceable> ) </optional>; </optional>
-};
-    <optional> use-queryport-pool <replaceable>yse_or_no</replaceable>; </optional>
+    <optional> use-queryport-pool <replaceable>yes_or_no</replaceable>; </optional>
     <optional> queryport-pool-ports <replaceable>number</replaceable>; </optional>
     <optional> queryport-pool-interval <replaceable>number</replaceable>; </optional>
+};
 </programlisting>
 
         </sect2>
@@ -9095,7 +9095,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
 	      a wildcard name, it is subject to DNS wildcard
 	      expansion, so the rule will apply to multiple identities.
 	      The <replaceable>identity</replaceable> field must
-	      contain a fully qualified domain name.
+	      contain a fully-qualified domain name.
 	    </para>
 
             <para>
@@ -9209,7 +9209,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
             <para>
               In all cases, the <replaceable>name</replaceable>
               field must
-              specify a fully qualified domain name.
+              specify a fully-qualified domain name.
             </para>
 
             <para>
