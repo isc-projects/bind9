@@ -1,6 +1,10 @@
 2168.	[bug]		nsupdate: in non-interactive mode treat syntax errors
 			as fatal errors. [RT #16785]
 
+2166.	[bug]		When running in batch mode, dig could misinterpret
+			a server address as a name to be looked up, causing
+			unexpected output. [RT #16743]
+
 2161.	[bug]		'rndc flush' could report a false success. [RT #16698]
 
 2160.	[bug]		libisc wasn't handling NULL ifa_addr pointers returned
