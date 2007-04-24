@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.101.18.12 2006/12/07 06:08:02 marka Exp $ */
+/* $Id: nslookup.c,v 1.101.18.13 2007/04/24 07:36:36 marka Exp $ */
 
 #include <config.h>
 
@@ -410,8 +410,9 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 		char nametext[DNS_NAME_FORMATSIZE];
 		dns_name_format(query->lookup->name,
 				nametext, sizeof(nametext));
-		printf("** server can't find %s: %s\n", nametext,
-		       rcodetext[msg->rcode]);
+		printf("** server can't find %s: %s\n",
+		       (msg->rcode != dns_rcode_nxdomain) ? nametext :
+		       query->lookup->textname, rcodetext[msg->rcode]);
 		debug("returning with rcode == 0");
 		return (ISC_R_SUCCESS);
 	}
