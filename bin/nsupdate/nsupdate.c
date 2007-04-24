@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.130.18.17 2007/03/01 23:46:12 tbox Exp $ */
+/* $Id: nsupdate.c,v 1.130.18.18 2007/04/24 07:10:22 marka Exp $ */
 
 /*! \file */
 
@@ -1565,8 +1565,11 @@ user_interaction(void) {
 	isc_uint16_t result = STATUS_MORE;
 
 	ddebug("user_interaction()");
-	while ((result == STATUS_MORE) || (result == STATUS_SYNTAX))
+	while ((result == STATUS_MORE) || (result == STATUS_SYNTAX)) {
 		result = get_next_command();
+		if (!interactive && result == STATUS_SYNTAX)
+			fatal("syntax error");
+	}
 	if (result == STATUS_SEND)
 		return (ISC_TRUE);
 	return (ISC_FALSE);
