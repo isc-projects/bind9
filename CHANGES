@@ -1,3 +1,7 @@
+2169.	[bug]		host, nslookup: when reporting NXDOMAIN report the
+			given name and not the last name searched for.
+			[RT #16763]
+
 2168.	[bug]		nsupdate: in non-interactive mode treat syntax errors
 			as fatal errors. [RT #16785]
 
