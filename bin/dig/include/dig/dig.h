@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.71.2.16 2006/12/07 06:07:32 marka Exp $ */
+/* $Id: dig.h,v 1.71.2.17 2007/04/24 07:46:40 each Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -243,6 +243,9 @@ check_result(isc_result_t result, const char *msg);
 
 void
 setup_lookup(dig_lookup_t *lookup);
+
+void
+destroy_lookup(dig_lookup_t *lookup);
 
 void
 do_lookup(dig_lookup_t *lookup);
