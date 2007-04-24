@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.52 2007/04/03 23:43:54 tbox Exp $ */
+/* $Id: server.c,v 1.419.18.53 2007/04/24 06:58:47 marka Exp $ */
 
 /*! \file */
 
@@ -1755,6 +1755,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 						     empty_dbtype, mctx);
 				if (zone != NULL) {
 					dns_zone_setview(zone, view);
+					CHECK(dns_view_addzone(view, zone));
 					dns_zone_detach(&zone);
 					continue;
 				}
