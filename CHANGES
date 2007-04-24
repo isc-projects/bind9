@@ -1,3 +1,6 @@
+2168.	[bug]		nsupdate: in non-interactive mode treat syntax errors
+			as fatal errors. [RT #16785]
+
 2161.	[bug]		'rndc flush' could report a false success. [RT #16698]
 
 2156.	[bug]		Fix node reference leaks in lookup.c:lookup_find(),
