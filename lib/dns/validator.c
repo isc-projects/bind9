@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.119.18.30 2007/02/26 01:30:22 marka Exp $ */
+/* $Id: validator.c,v 1.119.18.31 2007/04/27 06:37:38 marka Exp $ */
 
 /*! \file */
 
@@ -352,10 +352,12 @@ dsfetched(isc_task_t *task, isc_event_t *event) {
 		if (result != DNS_R_WAIT)
 			validator_done(val, result);
 	} else if (eresult == DNS_R_NXRRSET ||
-		   eresult == DNS_R_NCACHENXRRSET)
+		   eresult == DNS_R_NCACHENXRRSET ||
+		   eresult == DNS_R_SERVFAIL)	/* RFC 1034 parent? */
 	{
 		validator_log(val, ISC_LOG_DEBUG(3),
-			      "falling back to insecurity proof");
+			      "falling back to insecurity proof (%s)",
+			      dns_result_totext(eresult));
 		val->attributes |= VALATTR_INSECURITY;
 		result = proveunsecure(val, ISC_FALSE);
 		if (result != DNS_R_WAIT)
