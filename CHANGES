@@ -1,3 +1,7 @@
+2171.	[bug]		Handle breaks in DNSSEC trust chains where the parent
+			servers are not DS aware (DS queries to the parent
+			return a referral to the child).
+
 2170.	[func]		Add acache processing to test suite. [RT #16711]
 
 2169.	[bug]		host, nslookup: when reporting NXDOMAIN report the
