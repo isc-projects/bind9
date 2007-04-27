@@ -1,9 +1,9 @@
-2169.	[bug]		host, nslookup: when reporting NXDOMAIN report the
-			given name and not the last name searched for.
 2171.	[bug]		Handle breaks in DNSSEC trust chains where the parent
 			servers are not DS aware (DS queries to the parent
 			return a referral to the child).
 
+2169.	[bug]		host, nslookup: when reporting NXDOMAIN report the
+			given name and not the last name searched for.
 			[RT #16763]
 
 2168.	[bug]		nsupdate: in non-interactive mode treat syntax errors
