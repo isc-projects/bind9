@@ -1,3 +1,6 @@
+
+	--- 9.5.0a4 released ---
+
 2172.	[bug]		query_addsoa() was being called with a non zone db.
 			[RT #16834]
 
