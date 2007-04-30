@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.13.4.44 2006/12/07 04:38:19 marka Exp $ */
+/* $Id: query.c,v 1.198.2.13.4.45 2007/04/30 01:36:21 marka Exp $ */
 
 #include <config.h>
 
@@ -2798,7 +2798,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				else
 					QUERY_ERROR(DNS_R_SERVFAIL);
 			} else {
-				/*
+				*
 				 * This is the best answer.
 				 */
 				client->query.attributes |=
@@ -3212,6 +3212,21 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				 * an error unless we were searching for
 				 * glue.  Ugh.
 				 */
+				if (!is_zone) {
+					authoritative = ISC_FALSE;
+					dns_rdatasetiter_destroy(&rdsiter);
+					if (RECURSIONOK(client)) {
+						result = query_recurse(client,
+								       qtype,
+								       NULL,
+								       NULL);
+						if (result == ISC_R_SUCCESS)
+						    client->query.attributes |=
+							NS_QUERYATTR_RECURSING;
+						else
+						    QUERY_ERROR(DNS_R_SERVFAIL);					}
+					goto addauth;
+				}
 				/*
 				 * We were searching for SIG records in
 				 * a nonsecure zone.  Send a "no error,

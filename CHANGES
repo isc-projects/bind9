@@ -1,3 +1,6 @@
+2172.	[bug]		query_addsoa() was being called with a non zone db.
+			[RT #16834]
+
 2171.	[bug]		Handle breaks in DNSSEC trust chains where the parent
 			servers are not DS aware (DS queries to the parent
 			return a referral to the child).
