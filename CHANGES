@@ -1,3 +1,6 @@
+2172.	[bug]		query_addsoa() was being called with a non zone db.
+			[RT #16834]
+
 2169.	[bug]		host, nslookup: when reporting NXDOMAIN report the
 			given name and not the last name searched for.
 			[RT #16763]
