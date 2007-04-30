@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.13.4.45 2007/04/30 01:36:21 marka Exp $ */
+/* $Id: query.c,v 1.198.2.13.4.46 2007/04/30 03:05:50 marka Exp $ */
 
 #include <config.h>
 
@@ -2798,7 +2798,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				else
 					QUERY_ERROR(DNS_R_SERVFAIL);
 			} else {
-				*
+				/*
 				 * This is the best answer.
 				 */
 				client->query.attributes |=
