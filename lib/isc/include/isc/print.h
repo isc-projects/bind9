@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print.h,v 1.19 2004/03/05 05:10:59 marka Exp $ */
+/* $Id: print.h,v 1.19.18.3 2005/06/08 02:07:56 marka Exp $ */
 
 #ifndef ISC_PRINT_H
 #define ISC_PRINT_H 1
+
+/*! \file */
 
 /***
  *** Imports
@@ -28,7 +30,7 @@
 #include <isc/lang.h>
 #include <isc/platform.h>
 
-/*
+/*!
  * This block allows lib/isc/print.c to be cleanly compiled even if
  * the platform does not need it.  The standard Makefile will still
  * not compile print.c or archive print.o, so this is just to make test
@@ -55,6 +57,10 @@
 #include <stdarg.h>
 #include <stddef.h>
 #endif
+#ifdef ISC_PLATFORM_NEEDSPRINTF
+#include <stdio.h>
+#endif
+
 
 ISC_LANG_BEGINDECLS
 

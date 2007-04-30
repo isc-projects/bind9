@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.35 2004/03/05 05:11:45 marka Exp $ */
+/* $Id: interfaceiter.c,v 1.35.18.5 2005/04/29 00:17:08 marka Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -36,6 +38,7 @@
 #include <isc/mem.h>
 #include <isc/msgs.h>
 #include <isc/net.h>
+#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/strerror.h>
 #include <isc/string.h>
@@ -50,9 +53,9 @@
 
 /* Common utility functions */
 
-/*
+/*%
  * Extract the network address part from a "struct sockaddr".
- *
+ * \brief
  * The address family is given explicitly
  * instead of using src->sa_family, because the latter does not work
  * for copying a network mask obtained by SIOCGIFNETMASK (it does
@@ -64,6 +67,11 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src,
 	 char *ifname)
 {
 	struct sockaddr_in6 *sa6;
+
+#if !defined(ISC_PLATFORM_HAVEIFNAMETOINDEX) || \
+    !defined(ISC_PLATFORM_HAVESCOPEID)
+	UNUSED(ifname);
+#endif
 
 	/* clear any remaining value for safety */
 	memset(dst, 0, sizeof(*dst));
@@ -106,6 +114,7 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src,
 							    (isc_uint32_t)zone16);
 					dst->type.in6.s6_addr[2] = 0;
 					dst->type.in6.s6_addr[3] = 0;
+#ifdef ISC_PLATFORM_HAVEIFNAMETOINDEX
 				} else if (ifname != NULL) {
 					unsigned int zone;
 
@@ -120,6 +129,7 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src,
 						isc_netaddr_setzone(dst,
 								    (isc_uint32_t)zone);
 					}
+#endif
 				}
 			}
 		}

@@ -20,7 +20,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: ev_streams.c,v 1.3 2004/03/09 06:30:07 marka Exp $";
+static const char rcsid[] = "$Id: ev_streams.c,v 1.4.18.1 2005/04/27 05:01:06 sra Exp $";
 #endif
 
 #include "port_before.h"
@@ -221,7 +221,7 @@ copyvec(evStream *str, const struct iovec *iov, int iocnt) {
 /* Pull off or truncate lead iovec(s). */
 static void
 consume(evStream *str, size_t bytes) {
-	while (bytes > 0) {
+	while (bytes > 0U) {
 		if (bytes < (size_t)str->iovCur->iov_len) {
 			str->iovCur->iov_len -= bytes;
 			str->iovCur->iov_base = (void *)
@@ -304,3 +304,5 @@ readable(evContext opaqueCtx, void *uap, int fd, int evmask) {
 	if (str->ioDone <= 0 || str->ioDone == str->ioTotal)
 		done(opaqueCtx, str);
 }
+
+/*! \file */

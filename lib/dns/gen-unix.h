@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,9 +15,10 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gen-unix.h,v 1.14 2004/03/05 05:09:19 marka Exp $ */
+/* $Id: gen-unix.h,v 1.14.18.3 2005/06/08 02:07:54 marka Exp $ */
 
-/*
+/*! \file
+ * \brief
  * This file is responsible for defining two operations that are not
  * directly portable between Unix-like systems and Windows NT, option
  * parsing and directory scanning.  It is here because it was decided
@@ -39,6 +40,10 @@
 
 #include <isc/boolean.h>
 #include <isc/lang.h>
+
+#ifdef NEED_OPTARG
+extern char *optarg;
+#endif
 
 #define isc_commandline_parse		getopt
 #define isc_commandline_argument 	optarg

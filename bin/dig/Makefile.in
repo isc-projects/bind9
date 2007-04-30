@@ -1,4 +1,4 @@
-# Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000-2002  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.33 2004/03/05 04:57:29 marka Exp $
+# $Id: Makefile.in,v 1.33.18.6 2005/09/09 14:11:04 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -45,7 +45,7 @@ DEPLIBS =	${DNSDEPLIBS} ${BIND9DEPLIBS} ${ISCDEPLIBS} ${ISCCFGDEPLIBS} \
 		${LWRESDEPLIBS}
 
 LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} ${ISCLIBS} \
-		${ISCCFGLIBS} @LIBS@
+		${ISCCFGLIBS} @IDNLIBS@ @LIBS@
 
 SUBDIRS =
 
@@ -57,24 +57,24 @@ UOBJS =
 
 SRCS =		dig.c dighost.c host.c nslookup.c
 
-MANPAGES =	dig.1 host.1
+MANPAGES =	dig.1 host.1 nslookup.1
 
-HTMLPAGES =	dig.html host.html
+HTMLPAGES =	dig.html host.html nslookup.html
 
 MANOBJS =	${MANPAGES} ${HTMLPAGES}
 
 @BIND9_MAKE_RULES@
 
 dig@EXEEXT@: dig.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} -o $@ \
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 	dig.@O@ dighost.@O@ ${UOBJS} ${LIBS}
 
 host@EXEEXT@: host.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} -o $@ \
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 	host.@O@ dighost.@O@ ${UOBJS} ${LIBS}
 
 nslookup@EXEEXT@: nslookup.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} -o $@ \
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 	nslookup.@O@ dighost.@O@ ${UOBJS} ${LIBS}
 
 doc man:: ${MANOBJS}
@@ -96,4 +96,6 @@ install:: dig@EXEEXT@ host@EXEEXT@ nslookup@EXEEXT@ installdirs
 		host@EXEEXT@ ${DESTDIR}${bindir}
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} \
 		nslookup@EXEEXT@ ${DESTDIR}${bindir}
-	for m in ${MANPAGES}; do ${INSTALL_DATA} ${srcdir}/$$m ${DESTDIR}${mandir}/man1; done
+	for m in ${MANPAGES}; do \
+		${INSTALL_DATA} ${srcdir}/$$m ${DESTDIR}${mandir}/man1; \
+		done

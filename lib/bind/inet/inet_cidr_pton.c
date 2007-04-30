@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: inet_cidr_pton.c,v 1.4 2004/03/09 06:29:57 marka Exp $";
+static const char rcsid[] = "$Id: inet_cidr_pton.c,v 1.5.18.1 2005/04/27 05:00:53 sra Exp $";
 #endif
 
 #include "port_before.h"
@@ -49,7 +49,7 @@ static int	inet_cidr_pton_ipv6 __P((const char *src, u_char *dst,
 
 static int	getbits(const char *, int ipv6);
 
-/*
+/*%
  * int
  * inet_cidr_pton(af, src, dst, *bits)
  *	convert network address from presentation to network format.
@@ -98,7 +98,7 @@ inet_cidr_pton_ipv4(const char *src, u_char *dst, int *pbits, int ipv6) {
 			if (tmp > 255)
 				goto enoent;
 		} while ((ch = *src++) != '\0' && isascii(ch) && isdigit(ch));
-		if (size-- == 0)
+		if (size-- == 0U)
 			goto emsgsize;
 		*dst++ = (u_char) tmp;
 		if (ch == '\0' || ch == '/')
@@ -133,7 +133,7 @@ inet_cidr_pton_ipv4(const char *src, u_char *dst, int *pbits, int ipv6) {
 		goto enoent;
 
 	/* Extend address to four octets. */
-	while (size-- > 0)
+	while (size-- > 0U)
 		*dst++ = 0;
 
 	*pbits = bits;
@@ -204,7 +204,7 @@ inet_cidr_pton_ipv6(const char *src, u_char *dst, int *pbits) {
 		    inet_cidr_pton_ipv4(curtok, tp, &bits, 1) == 0) {
 			tp += NS_INADDRSZ;
 			saw_xdigit = 0;
-			break;	/* '\0' was seen by inet_pton4(). */
+			break;	/*%< '\\0' was seen by inet_pton4(). */
 		}
 		if (ch == '/') {
 			bits = getbits(src, 1);
@@ -256,20 +256,22 @@ getbits(const char *src, int ipv6) {
 	int bits = 0;
 	char *cp, ch;
 	
-	if (*src == '\0')			/* syntax */
+	if (*src == '\0')			/*%< syntax */
 		return (-2);
 	do {
 		ch = *src++;
 		cp = strchr(digits, ch);
-		if (cp == NULL)			/* syntax */
+		if (cp == NULL)			/*%< syntax */
 			return (-2);
 		bits *= 10;
 		bits += cp - digits;
-		if (bits == 0 && *src != '\0')	/* no leading zeros */
+		if (bits == 0 && *src != '\0')	/*%< no leading zeros */
 			return (-2);
-		if (bits > (ipv6 ? 128 : 32))	/* range error */
+		if (bits > (ipv6 ? 128 : 32))	/*%< range error */
 			return (-2);
 	} while (*src != '\0');
 
 	return (bits);
 }
+
+/*! \file */

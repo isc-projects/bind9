@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,10 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.71 2004/03/16 05:52:21 marka Exp $ */
+/* $Id: entropy.c,v 1.71.18.7 2006/12/07 04:53:03 marka Exp $ */
 
-/*
- * This is the system depenedent part of the ISC entropy API.
+/* \file unix/entropy.c
+ * \brief
+ * This is the system dependent part of the ISC entropy API.
  */
 
 #include <config.h>
@@ -41,7 +42,7 @@
 
 #include "errno2result.h"
 
-/*
+/*%
  * There is only one variable in the entropy data structures that is not
  * system independent, but pulling the structure that uses it into this file
  * ultimately means pulling several other independent structures here also to
@@ -127,7 +128,7 @@ get_from_usocketsource(isc_entropysource_t *source, isc_uint32_t desired) {
 		switch ( source->sources.usocket.status ) {
 		case isc_usocketsource_ndesired:
 			buf[0] = ndesired;
-			if ((n = send(fd, buf, 1, 0)) < 0) {
+			if ((n = sendto(fd, buf, 1, 0, NULL, 0)) < 0) {
 				if (errno == EWOULDBLOCK || errno == EINTR ||
 				    errno == ECONNRESET)
 					goto out;
@@ -142,7 +143,7 @@ get_from_usocketsource(isc_entropysource_t *source, isc_uint32_t desired) {
 		case isc_usocketsource_connected:
 			buf[0] = 1;
 			buf[1] = ndesired;
-			if ((n = send(fd, buf, 2, 0)) < 0) {
+			if ((n = sendto(fd, buf, 2, 0, NULL, 0)) < 0) {
 				if (errno == EWOULDBLOCK || errno == EINTR ||
 				    errno == ECONNRESET)
 					goto out;
@@ -159,12 +160,12 @@ get_from_usocketsource(isc_entropysource_t *source, isc_uint32_t desired) {
 			/*FALLTHROUGH*/
 		
 		case isc_usocketsource_wrote:
-			if (recv(fd, buf, 1, 0) != 1) {
+			if (recvfrom(fd, buf, 1, 0, NULL, NULL) != 1) {
 				if (errno == EAGAIN) {
 					/*
 					 * The problem of EAGAIN (try again
 					 * later) is a major issue on HP-UX.
-					 * Solaris actually tries the recv
+					 * Solaris actually tries the recvfrom
 					 * call again, while HP-UX just dies. 
 					 * This code is an attempt to let the
 					 * entropy pool fill back up (at least
@@ -446,16 +447,25 @@ make_nonblock(int fd) {
 	int ret;
 	int flags;
 	char strbuf[ISC_STRERRORSIZE];
+#ifdef USE_FIONBIO_IOCTL
+	int on = 1;
 
+	ret = ioctl(fd, FIONBIO, (char *)&on);
+#else
 	flags = fcntl(fd, F_GETFL, 0);
-	flags |= O_NONBLOCK;
+	flags |= PORT_NONBLOCK;
 	ret = fcntl(fd, F_SETFL, flags);
+#endif
 
 	if (ret == -1) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "fcntl(%d, F_SETFL, %d): %s",
-				 fd, flags, strbuf);
+#ifdef USE_FIONBIO_IOCTL
+				 "ioctl(%d, FIONBIO, &on): %s", fd,
+#else
+				 "fcntl(%d, F_SETFL, %d): %s", fd, flags,
+#endif
+				 strbuf);
 
 		return (ISC_R_UNEXPECTED);
 	}
@@ -477,8 +487,6 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname) {
 
 	LOCK(&ent->lock);
 
-	source = NULL;
-
 	if (stat(fname, &_stat) < 0) {
 		ret = isc__errno2result(errno);
 		goto errout;
@@ -494,14 +502,14 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname) {
 	if (S_ISSOCK(_stat.st_mode))
 		is_usocket = ISC_TRUE;
 #endif
-#if defined(S_ISFIFO)
+#if defined(S_ISFIFO) && defined(sun)
 	if (S_ISFIFO(_stat.st_mode))
 		is_usocket = ISC_TRUE;
 #endif
 	if (is_usocket)
 		fd = socket(PF_UNIX, SOCK_STREAM, 0);
 	else
-		fd = open(fname, O_RDONLY | O_NONBLOCK, 0);
+		fd = open(fname, O_RDONLY | PORT_NONBLOCK, 0);
 
 	if (fd < 0) {
 		ret = isc__errno2result(errno);
@@ -580,9 +588,6 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname) {
 	(void)close(fd);
 
  errout:
-	if (source != NULL)
-		isc_mem_put(ent->mctx, source, sizeof(isc_entropysource_t));
-
 	UNLOCK(&ent->lock);
 
 	return (ret);

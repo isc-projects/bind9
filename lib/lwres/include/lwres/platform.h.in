@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.14 2004/03/05 05:12:53 marka Exp $ */
+/* $Id: platform.h.in,v 1.14.18.5 2005/06/08 02:07:59 marka Exp $ */
+
+/*! \file */
 
 #ifndef LWRES_PLATFORM_H
 #define LWRES_PLATFORM_H 1
@@ -78,6 +80,26 @@
  */
 @LWRES_PLATFORM_USEDECLSPEC@
 
+/*
+ * Defined this system needs vsnprintf() and snprintf().
+ */
+@LWRES_PLATFORM_NEEDVSNPRINTF@
+ 
+/*
+ * If this system need a modern sprintf() that returns (int) not (char*).
+ */
+@LWRES_PLATFORM_NEEDSPRINTF@
+
+/*
+ * The printf format string modifier to use with lwres_uint64_t values.
+ */
+@LWRES_PLATFORM_QUADFORMAT@
+
+/*! \brief
+ * Define if this system needs strtoul.
+ */
+@LWRES_PLATFORM_NEEDSTRTOUL@
+
 #ifndef LWRES_PLATFORM_USEDECLSPEC
 #define LIBLWRES_EXTERNAL_DATA
 #else
@@ -87,5 +109,12 @@
 #define LIBLWRES_EXTERNAL_DATA __declspec(dllimport)
 #endif
 #endif
+
+/*
+ * Tell Emacs to use C mode on this file.
+ * Local Variables:
+ * mode: c
+ * End:
+ */
 
 #endif /* LWRES_PLATFORM_H */

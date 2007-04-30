@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: dns_nw.c,v 1.8 2004/03/09 06:29:59 marka Exp $";
+static const char rcsid[] = "$Id: dns_nw.c,v 1.9.18.3 2005/04/27 05:00:55 sra Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /* Imports. */
@@ -349,12 +349,7 @@ get1101answer(struct irs_nw *this,
 				RES_SET_H_ERRNO(pvt->res, NO_RECOVERY);
 				return (NULL);
 			}
-#ifdef HAVE_STRLCPY
-			strlcpy(bp, name, ep - bp);
-			pvt->net.n_name = bp;
-#else
-			pvt->net.n_name = strcpy(bp, name);
-#endif
+			pvt->net.n_name = strcpy(bp, name);	/* (checked) */
 			bp += n;
 		}
 		break;
@@ -382,16 +377,16 @@ get1101answer(struct irs_nw *this,
 	while (--ancount >= 0 && cp < eom) {
 		int n = dn_expand(ansbuf, eom, cp, bp, ep - bp);
 
-		cp += n;		/* Owner */
+		cp += n;		/*%< Owner */
 		if (n < 0 || !maybe_dnok(pvt->res, bp) ||
 		    cp + 3 * INT16SZ + INT32SZ > eom) {
 			RES_SET_H_ERRNO(pvt->res, NO_RECOVERY);
 			return (NULL);
 		}
-		GETSHORT(type, cp);	/* Type */
-		GETSHORT(class, cp);	/* Class */
-		cp += INT32SZ;		/* TTL */
-		GETSHORT(n, cp);	/* RDLENGTH */
+		GETSHORT(type, cp);	/*%< Type */
+		GETSHORT(class, cp);	/*%< Class */
+		cp += INT32SZ;		/*%< TTL */
+		GETSHORT(n, cp);	/*%< RDLENGTH */
 		if (class == C_IN && type == T_PTR) {
 			int nn;
 
@@ -435,7 +430,7 @@ get1101answer(struct irs_nw *this,
 			    }
 			}
 		}
-		cp += n;		/* RDATA */
+		cp += n;		/*%< RDATA */
 	}
 	if (!haveanswer) {
 		RES_SET_H_ERRNO(pvt->res, TRY_AGAIN);
@@ -496,13 +491,13 @@ get1101mask(struct irs_nw *this, struct nwent *nwent) {
 
 		if (n < 0 || !maybe_dnok(pvt->res, owner))
 			break;
-		cp += n;		/* Owner */
+		cp += n;		/*%< Owner */
 		if (cp + 3 * INT16SZ + INT32SZ > eom)
 			break;
-		GETSHORT(type, cp);	/* Type */
-		GETSHORT(class, cp);	/* Class */
-		cp += INT32SZ;		/* TTL */
-		GETSHORT(n, cp);	/* RDLENGTH */
+		GETSHORT(type, cp);	/*%< Type */
+		GETSHORT(class, cp);	/*%< Class */
+		cp += INT32SZ;		/*%< TTL */
+		GETSHORT(n, cp);	/*%< RDLENGTH */
 		if (cp + n > eom)
 			break;
 		if (n == INADDRSZ && class == C_IN && type == T_A &&
@@ -518,7 +513,7 @@ get1101mask(struct irs_nw *this, struct nwent *nwent) {
 					else
 						break;
 		}
-		cp += n;		/* RDATA */
+		cp += n;		/*%< RDATA */
 	}
 	memput(ansbuf, MAXPACKET);
 	return (nwent);
@@ -574,7 +569,7 @@ normalize_name(char *name) {
 	/* Make lower case. */
 	for (t = name; *t; t++)
 		if (isascii((unsigned char)*t) && isupper((unsigned char)*t))
-			*t = tolower(*t);
+			*t = tolower((*t)&0xff);
 
 	/* Remove trailing dots. */
 	while (t > name && t[-1] == '.')
@@ -587,8 +582,10 @@ init(struct irs_nw *this) {
 	
 	if (!pvt->res && !nw_res_get(this))
 		return (-1);
-	if (((pvt->res->options & RES_INIT) == 0) &&
+	if (((pvt->res->options & RES_INIT) == 0U) &&
 	    res_ninit(pvt->res) == -1)
 		return (-1);
 	return (0);
 }
+
+/*! \file */

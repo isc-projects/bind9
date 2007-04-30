@@ -41,7 +41,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: base64.c,v 1.2 2004/03/09 06:30:06 marka Exp $";
+static const char rcsid[] = "$Id: base64.c,v 1.3.18.1 2005/04/27 05:01:05 sra Exp $";
 #endif /* not lint */
 
 #include "port_before.h"
@@ -69,7 +69,7 @@ static const char Base64[] =
 static const char Pad64 = '=';
 
 /* (From RFC1521 and draft-ietf-dnssec-secext-03.txt)
-   The following encoding technique is taken from RFC 1521 by Borenstein
+   The following encoding technique is taken from RFC1521 by Borenstein
    and Freed.  It is reproduced here in a slightly edited form for
    convenience.
 
@@ -138,7 +138,7 @@ b64_ntop(u_char const *src, size_t srclength, char *target, size_t targsize) {
 	u_char output[4];
 	size_t i;
 
-	while (2 < srclength) {
+	while (2U < srclength) {
 		input[0] = *src++;
 		input[1] = *src++;
 		input[2] = *src++;
@@ -162,7 +162,7 @@ b64_ntop(u_char const *src, size_t srclength, char *target, size_t targsize) {
 	}
     
 	/* Now we worry about padding. */
-	if (0 != srclength) {
+	if (0U != srclength) {
 		/* Get what's left. */
 		input[0] = input[1] = input[2] = '\0';
 		for (i = 0; i < srclength; i++)
@@ -179,7 +179,7 @@ b64_ntop(u_char const *src, size_t srclength, char *target, size_t targsize) {
 			return (-1);
 		target[datalength++] = Base64[output[0]];
 		target[datalength++] = Base64[output[1]];
-		if (srclength == 1)
+		if (srclength == 1U)
 			target[datalength++] = Pad64;
 		else
 			target[datalength++] = Base64[output[2]];
@@ -187,7 +187,7 @@ b64_ntop(u_char const *src, size_t srclength, char *target, size_t targsize) {
 	}
 	if (datalength >= targsize)
 		return (-1);
-	target[datalength] = '\0';	/* Returned value doesn't count \0. */
+	target[datalength] = '\0';	/*%< Returned value doesn't count \\0. */
 	return (datalength);
 }
 
@@ -210,14 +210,14 @@ b64_pton(src, target, targsize)
 	tarindex = 0;
 
 	while ((ch = *src++) != '\0') {
-		if (isspace(ch))	/* Skip whitespace anywhere. */
+		if (isspace(ch))	/*%< Skip whitespace anywhere. */
 			continue;
 
 		if (ch == Pad64)
 			break;
 
 		pos = strchr(Base64, ch);
-		if (pos == 0) 		/* A non-base64 character. */
+		if (pos == 0) 		/*%< A non-base64 character. */
 			return (-1);
 
 		switch (state) {
@@ -270,14 +270,14 @@ b64_pton(src, target, targsize)
 	 * on a byte boundary, and/or with erroneous trailing characters.
 	 */
 
-	if (ch == Pad64) {		/* We got a pad char. */
-		ch = *src++;		/* Skip it, get next. */
+	if (ch == Pad64) {		/*%< We got a pad char. */
+		ch = *src++;		/*%< Skip it, get next. */
 		switch (state) {
-		case 0:		/* Invalid = in first position */
-		case 1:		/* Invalid = in second position */
+		case 0:		/*%< Invalid = in first position */
+		case 1:		/*%< Invalid = in second position */
 			return (-1);
 
-		case 2:		/* Valid, means one byte of info */
+		case 2:		/*%< Valid, means one byte of info */
 			/* Skip any number of spaces. */
 			for ((void)NULL; ch != '\0'; ch = *src++)
 				if (!isspace(ch))
@@ -285,11 +285,11 @@ b64_pton(src, target, targsize)
 			/* Make sure there is another trailing = sign. */
 			if (ch != Pad64)
 				return (-1);
-			ch = *src++;		/* Skip the = */
+			ch = *src++;		/*%< Skip the = */
 			/* Fall through to "single trailing =" case. */
 			/* FALLTHROUGH */
 
-		case 3:		/* Valid, means two bytes of info */
+		case 3:		/*%< Valid, means two bytes of info */
 			/*
 			 * We know this char is an =.  Is there anything but
 			 * whitespace after it?
@@ -318,3 +318,5 @@ b64_pton(src, target, targsize)
 
 	return (tarindex);
 }
+
+/*! \file */

@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: irs_data.c,v 1.6 2004/03/09 06:30:03 marka Exp $";
+static const char rcsid[] = "$Id: irs_data.c,v 1.7.18.3 2006/03/10 00:20:08 marka Exp $";
 #endif
 
 #include "port_before.h"
@@ -113,7 +113,8 @@ net_data_destroy(void *p) {
 	memput(net_data, sizeof *net_data);
 }
 
-/* applications that need a specific config file other than
+/*%
+ *  applications that need a specific config file other than
  * _PATH_IRS_CONF should call net_data_init directly rather than letting
  *   the various wrapper functions make the first call. - brister
  */
@@ -121,14 +122,22 @@ net_data_destroy(void *p) {
 struct net_data *
 net_data_init(const char *conf_file) {
 #ifdef	DO_PTHREADS
-	static pthread_mutex_t keylock = PTHREAD_MUTEX_INITIALIZER;
+#ifndef LIBBIND_MUTEX_INITIALIZER
+#define LIBBIND_MUTEX_INITIALIZER PTHREAD_MUTEX_INITIALIZER
+#endif
+	static pthread_mutex_t keylock = LIBBIND_MUTEX_INITIALIZER;
 	struct net_data *net_data;
 
 	if (!once) {
-		pthread_mutex_lock(&keylock);
-		if (!once++)
-			pthread_key_create(&key, net_data_destroy);
-		pthread_mutex_unlock(&keylock);
+		if (pthread_mutex_lock(&keylock) != 0)
+			return (NULL);
+		if (!once) {
+			if (pthread_key_create(&key, net_data_destroy) != 0)
+				return (NULL);
+			once = 1;
+		}
+		if (pthread_mutex_unlock(&keylock) != 0)
+			return (NULL);
 	}
 	net_data = pthread_getspecific(key);
 #endif
@@ -138,7 +147,10 @@ net_data_init(const char *conf_file) {
 		if (net_data == NULL)
 			return (NULL);
 #ifdef	DO_PTHREADS
-		pthread_setspecific(key, net_data);
+		if (pthread_setspecific(key, net_data) != 0) {
+			net_data_destroy(net_data);
+			return (NULL);
+		}
 #endif
 	}
 
@@ -169,7 +181,7 @@ net_data_create(const char *conf_file) {
 		return (NULL);
 	}
 
-	if ((net_data->res->options & RES_INIT) == 0 &&
+	if ((net_data->res->options & RES_INIT) == 0U &&
 	    res_ninit(net_data->res) == -1) {
 		(*net_data->irs->close)(net_data->irs);
 		memput(net_data, sizeof (struct net_data));
@@ -228,3 +240,5 @@ __h_errno_set(struct __res_state *res, int err) {
 }
 
 #endif /*__BIND_NOSTATIC*/
+
+/*! \file */

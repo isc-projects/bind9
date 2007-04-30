@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,11 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: srv_33.c,v 1.41 2004/03/05 05:10:25 marka Exp $ */
+/* $Id: srv_33.c,v 1.41.18.2 2005/04/29 00:16:43 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 13:01:00 PST 2000 by bwelling */
 
-/* RFC 2782 */
+/* RFC2782 */
 
 #ifndef RDATA_IN_1_SRV_33_C
 #define RDATA_IN_1_SRV_33_C

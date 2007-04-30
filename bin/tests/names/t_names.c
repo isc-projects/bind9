@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_names.c,v 1.36 2004/03/05 04:58:56 marka Exp $ */
+/* $Id: t_names.c,v 1.36.18.5 2006/12/07 23:57:58 marka Exp $ */
 
 #include <config.h>
 
@@ -38,15 +38,16 @@
 
 static char	*Tokens[MAXTOKS + 1];
 
-/*
+
+#ifdef	NEED_PBUF
+
+/*%
  * get a hex formatted dns message from a data
  * file into an isc_buffer_t
  * caller supplies data storage and the isc_buffer
  * we read the file, convert, setup the buffer
  * and return the data length
  */
-
-#ifdef	NEED_PBUF
 
 static char *
 ctoh(unsigned char c) {
@@ -85,7 +86,7 @@ pbuf(isc_buffer_t *pbuf) {
 
 #endif	/* NEED_PBUF */
 
-/*
+/*%
  * Compare data at buf with data in hex representation at exp_data,
  * of length exp_data_len, for equality.
  * Return 0 if equal, else non-zero.
@@ -167,7 +168,7 @@ chkdata(unsigned char *buf, size_t buflen, char *exp_data,
 	return (result);
 }
 
-/*
+/*%
  * Get a hex formatted dns message from a data file into an isc_buffer_t.
  * Caller supplies data storage and the isc_buffer.  We read the file, convert,
  * setup the buffer and return the data length.
@@ -256,13 +257,14 @@ bustline(char *line, char **toks) {
 	return (cnt);
 }
 
-/*
+
+#ifdef	NEED_HNAME_TO_TNAME
+
+/*%
  * convert a name from hex representation to text form
  * format of hex notation is:
  * %xXXXXXXXX
  */
-
-#ifdef	NEED_HNAME_TO_TNAME
 
 static int
 hname_to_tname(char *src, char *target, size_t len) {
@@ -317,7 +319,7 @@ hname_to_tname(char *src, char *target, size_t len) {
 
 #endif	/* NEED_HNAME_TO_TNAME */
 
-/*
+/*%
  * initialize a dns_name_t from a text name, hiding all
  * buffer and other object initialization from the caller
  *
@@ -566,8 +568,10 @@ t_dns_name_isabsolute(void) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 2) {
@@ -598,7 +602,7 @@ static const char *a8 =	"dns_name_hash(name, case_sensitive) returns "
 		"a hash of 'name' which is case_sensitive if case_sensitive "
 		"is true";
 
-/*
+/*%
  * a9 merged with a8.
  */
 
@@ -677,8 +681,10 @@ t_dns_name_hash(void) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 4) {
@@ -718,7 +724,7 @@ static const char *a10 =
 		"and sets nbitsp to the number of bits name1 and name2 "
 		"have in common";
 
-/*
+/*%
  * a11 thru a22 merged into a10.
  */
 static const char *
@@ -831,8 +837,10 @@ t_dns_name_fullcompare(void) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 6) {
@@ -880,7 +888,7 @@ static const char *a23 =
 		"the relative ordering under the DNSSEC ordering relationship "
 		"of name1 and name2";
 
-/*
+/*%
  * a24 thru a29 merged into a23.
  */
 
@@ -949,8 +957,10 @@ t_dns_name_compare(void) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 3) {
@@ -981,7 +991,7 @@ static const char *a30 =
 		"about the relative ordering of name1 and name2 as if they "
 		"are part of rdata in DNSSEC canonical form";
 
-/*
+/*%
  * a31, a32 merged into a30.
  */
 
@@ -1049,8 +1059,10 @@ t_dns_name_rdatacompare(void) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 3) {
@@ -1082,7 +1094,7 @@ static const char *a33 =
 		"dns_name_issubdomain(name1, name2) returns true, "
 		"otherwise it returns false.";
 
-/*
+/*%
  * a34 merged into a33.
  */
 
@@ -1145,8 +1157,10 @@ t_dns_name_issubdomain(void) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 3) {
@@ -1226,8 +1240,10 @@ t_dns_name_countlabels(void) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 2) {
@@ -1255,7 +1271,7 @@ static const char *a36 =
 		"dns_name_getlabel(name, n, labelp) initializes labelp "
 		"to point to the nth label in name";
 
-/*
+/*%
  * The strategy here is two take two dns names with a shared label in
  * different positions, get the two labels and compare them for equality.
  * If they don't match, dns_name_getlabel failed.
@@ -1336,8 +1352,10 @@ t_dns_name_getlabel(void) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 4) {
@@ -1368,7 +1386,7 @@ static const char *a37 =
 		"initializes target to point to the n label sequence of "
 		"labels in source starting with first";
 
-/*
+/*%
  * We adopt a similiar strategy to that used by the dns_name_getlabel test.
  */
 
@@ -1464,8 +1482,10 @@ t_dns_name_getlabelsequence(void) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 5) {
@@ -1552,8 +1572,10 @@ t_dns_name_fromregion(void) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 1) {
@@ -1600,8 +1622,10 @@ t_dns_name_toregion(void) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 1) {
@@ -1735,8 +1759,10 @@ t_dns_name_fromtext(void) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 4) {
@@ -1869,8 +1895,10 @@ t_dns_name_totext(void) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 2) {
@@ -1933,10 +1961,6 @@ static const char *a48 =
 		"returns ISC_R_UNEXPECTEDEND";
 
 static const char *a49 =
-		"when there are too many compression pointers, "
-		"dns_name_fromwire() returns DNS_R_TOOMANYHOPS";
-
-static const char *a50 =
 		"when there is not enough space in target, "
 		"dns_name_fromwire(name, source, dcts, downcase, target) "
 		"returns ISC_R_NOSPACE";
@@ -2028,8 +2052,10 @@ t_dns_name_fromwire_x(const char *testfile, size_t buflen) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 6) {
@@ -2117,11 +2143,8 @@ t_dns_name_fromwire(void) {
 	t_assert("dns_name_fromwire", 7, T_REQUIRED, a48);
 	t_dns_name_fromwire_x("dns_name_fromwire_7_data", BUFLEN);
 
-	t_assert("dns_name_fromwire", 8, T_REQUIRED, a49);
-	t_dns_name_fromwire_x("dns_name_fromwire_8_data", BUFLEN);
-
-	t_assert("dns_name_fromwire", 9, T_REQUIRED, a50);
-	t_dns_name_fromwire_x("dns_name_fromwire_9_data", 2);
+	t_assert("dns_name_fromwire", 9, T_REQUIRED, a49);
+	t_dns_name_fromwire_x("dns_name_fromwire_8_data", 2);
 }
 
 
@@ -2221,8 +2244,10 @@ t_dns_name_towire_x(const char *testfile, size_t buflen) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 5) {

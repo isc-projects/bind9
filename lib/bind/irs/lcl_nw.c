@@ -49,7 +49,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: lcl_nw.c,v 1.2 2004/03/09 06:30:04 marka Exp $";
+static const char rcsid[] = "$Id: lcl_nw.c,v 1.3.18.1 2005/04/27 05:01:02 sra Exp $";
 /* from getgrent.c 8.2 (Berkeley) 3/21/94"; */
 /* from BSDI Id: getgrent.c,v 2.8 1996/05/28 18:15:14 bostic Exp $	*/
 #endif /* LIBC_SCCS and not lint */
@@ -364,8 +364,10 @@ init(struct irs_nw *this) {
 	
 	if (!pvt->res && !nw_res_get(this))
 		return (-1);
-	if (((pvt->res->options & RES_INIT) == 0) &&
+	if (((pvt->res->options & RES_INIT) == 0U) &&
 	    res_ninit(pvt->res) == -1)
 		return (-1);
 	return (0);
 }
+
+/*! \file */

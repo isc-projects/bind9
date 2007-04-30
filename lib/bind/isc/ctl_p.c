@@ -1,5 +1,5 @@
 #if !defined(lint) && !defined(SABER)
-static const char rcsid[] = "$Id: ctl_p.c,v 1.2 2004/03/09 06:30:07 marka Exp $";
+static const char rcsid[] = "$Id: ctl_p.c,v 1.3.18.1 2005/04/27 05:01:05 sra Exp $";
 #endif /* not lint */
 
 /*
@@ -56,7 +56,7 @@ const char * const ctl_sevnames[] = {
 
 /* Public. */
 
-/*
+/*%
  * ctl_logger()
  *	if ctl_startup()'s caller didn't specify a logger, this one
  *	is used.  this pollutes stderr with all kinds of trash so it will
@@ -78,7 +78,7 @@ int
 ctl_bufget(struct ctl_buf *buf, ctl_logfunc logger) {
 	static const char me[] = "ctl_bufget";
 
-	REQUIRE(!allocated_p(*buf) && buf->used == 0);
+	REQUIRE(!allocated_p(*buf) && buf->used == 0U);
 	buf->text = memget(MAX_LINELEN);
 	if (!allocated_p(*buf)) {
 		(*logger)(ctl_error, "%s: getmem: %s", me, strerror(errno));
@@ -184,3 +184,5 @@ ctl_sa_copy(const struct sockaddr *src, struct sockaddr *dst) {
 		break;
 	}
 }
+
+/*! \file */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.h,v 1.22 2004/03/05 04:58:05 marka Exp $ */
+/* $Id: os.h,v 1.22.18.3 2005/04/29 00:15:39 marka Exp $ */
 
 #ifndef NS_OS_H
 #define NS_OS_H 1
+
+/*! \file */
 
 #include <isc/types.h>
 
@@ -60,5 +62,8 @@ ns_os_shutdownmsg(char *command, isc_buffer_t *text);
 
 void
 ns_os_tzset(void);
+
+void
+ns_os_started(void);
 
 #endif /* NS_OS_H */

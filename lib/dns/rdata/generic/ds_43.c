@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ds_43.c,v 1.6 2004/03/05 05:10:11 marka Exp $ */
+/* $Id: ds_43.c,v 1.7.18.2 2005/09/06 07:29:32 marka Exp $ */
 
 /* draft-ietf-dnsext-delegation-signer-05.txt */
 
@@ -28,6 +28,7 @@
 static inline isc_result_t
 fromtext_ds(ARGS_FROMTEXT) {
 	isc_token_t token;
+	unsigned char c;
 
 	REQUIRE(type == 43);
 
@@ -42,25 +43,24 @@ fromtext_ds(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      ISC_FALSE));
-	if (token.value.as_ulong > 0xffff)
+	if (token.value.as_ulong > 0xffffU)
 		RETTOK(ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/*
 	 * Algorithm.
 	 */
-	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
-	if (token.value.as_ulong > 0xff)
-		RETTOK(ISC_R_RANGE);
-	RETERR(uint8_tobuffer(token.value.as_ulong, target));
+	RETTOK(dns_secalg_fromtext(&c, &token.value.as_textregion));
+	RETERR(mem_tobuffer(target, &c, 1));
 
 	/*
 	 * Digest type.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      ISC_FALSE));
-	if (token.value.as_ulong > 0xff)
+	if (token.value.as_ulong > 0xffU)
 		RETTOK(ISC_R_RANGE);
 	RETERR(uint8_tobuffer(token.value.as_ulong, target));
 	type = (isc_uint16_t) token.value.as_ulong;
