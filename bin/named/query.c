@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.257.18.36 2007/01/08 02:41:59 marka Exp $ */
+/* $Id: query.c,v 1.257.18.36.12.1 2007/04/30 01:10:19 marka Exp $ */
 
 /*! \file */
 
@@ -4209,6 +4209,21 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				 * an error unless we were searching for
 				 * glue.  Ugh.
 				 */
+				if (!is_zone) {
+					authoritative = ISC_FALSE;
+					dns_rdatasetiter_destroy(&rdsiter);
+					if (RECURSIONOK(client)) {
+						result = query_recurse(client,
+								       qtype,
+								       NULL,
+								       NULL);
+						if (result == ISC_R_SUCCESS)
+						    client->query.attributes |=
+							NS_QUERYATTR_RECURSING;
+						else
+						    QUERY_ERROR(DNS_R_SERVFAIL);					}
+					goto addauth;
+				}
 				/*
 				 * We were searching for SIG records in
 				 * a nonsecure zone.  Send a "no error,
