@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.cpp,v 1.6.2.17 2006/11/08 02:00:49 marka Exp $ */
+/* $Id: BINDInstallDlg.cpp,v 1.6.2.18 2007/05/01 03:26:08 marka Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -108,6 +108,18 @@ const FileData installFiles[] =
 #  ifdef RELEASE_BINARIES
 	{"msvcrt.dll", FileData::WinSystem, FileData::Critical, TRUE},
 #  endif
+#endif
+#if _MSC_VER >= 1400
+	{"MFC80CHS.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"MFC80CHT.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"MFC80DEU.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"MFC80ENU.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"MFC80ESP.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"MFC80FRA.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"MFC80ITA.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"MFC80JPN.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"MFC80KOR.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"Microsoft.VC80.MFCLOC.manifest", FileData::BinDir, FileData::Critical, FALSE},
 #endif
 #if _MSC_VER >= 1400
 	{"mfc80.dll", FileData::BinDir, FileData::Critical, FALSE},
