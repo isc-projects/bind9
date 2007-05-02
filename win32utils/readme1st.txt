@@ -2,11 +2,11 @@ Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
 Copyright (C) 2001, 2003  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: readme1st.txt,v 1.7.2.7 2004/03/09 06:12:48 marka Exp $
+$Id: readme1st.txt,v 1.7.2.8 2007/05/02 05:11:25 marka Exp $
 
-	   Release of BIND 9.2 for Window NT/2000
+	   Release of BIND 9.2 for Window 2000
 
-This is a maintenance release of BIND 9.2 for Window NT/2000.  Only
+This is a maintenance release of BIND 9.2 for Window 2000.  Only
 IPv4 stacks are supported on the box running this version of BIND.
 IPv6 stacks will be supported in a future release.
   
@@ -22,6 +22,15 @@ in a future release.
 Unpack the kit into any convenient directory and run the BINDInstall
 program.  This will install the named and associated programs into
 the correct directories and set up the required registry keys.
+
+It is important that on Windows the directory directive is used in
+the options section to tell BIND where to find the files used in
+named.conf (default %WINDOWS%\system32\dns\etc\named.conf).
+
+e.g.
+        options {
+                directory "C:\WINDOWS\system32\dns\etc";
+        };
 
 	Controlling BIND
 
