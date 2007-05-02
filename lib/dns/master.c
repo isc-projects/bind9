@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.161 2006/12/07 23:57:59 marka Exp $ */
+/* $Id: master.c,v 1.162 2007/05/02 04:06:24 marka Exp $ */
 
 /*! \file */
 
@@ -276,7 +276,8 @@ loadctx_destroy(dns_loadctx_t *lctx);
 
 #define MANYERRS(lctx, result) \
 		((result != ISC_R_SUCCESS) && \
-		((lctx)->options & DNS_MASTER_MANYERRORS) != 0)
+		 (result != ISC_R_IOERROR) && \
+		 ((lctx)->options & DNS_MASTER_MANYERRORS) != 0)
 
 #define SETRESULT(lctx, r) \
 		do { \
