@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.122.2.8.2.16 2006/12/07 23:57:57 marka Exp $ */
+/* $Id: master.c,v 1.122.2.8.2.17 2007/05/02 04:10:58 marka Exp $ */
 
 #include <config.h>
 
@@ -246,7 +246,8 @@ loadctx_destroy(dns_loadctx_t *lctx);
 
 #define MANYERRS(lctx, result) \
 		((result != ISC_R_SUCCESS) && \
-		((lctx)->options & DNS_MASTER_MANYERRORS) != 0)
+		 (result != ISC_R_IOERROR) && \
+		 ((lctx)->options & DNS_MASTER_MANYERRORS) != 0)
 
 #define SETRESULT(lctx, r) \
 		do { \
