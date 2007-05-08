@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch03.html,v 1.61 2007/01/30 00:24:59 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch03.html,v 1.62 2007/05/08 02:30:41 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -54,7 +54,7 @@
 <dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2568465">Name Server Operations</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2568470">Tools for Use With the Name Server Daemon</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2569972">Signals</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2570104">Signals</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -425,6 +425,12 @@ zone "eng.example.com" {
                   (<span><strong class="command">rndc</strong></span>) program allows the
                   system
                   administrator to control the operation of a name server.
+                  Since <acronym class="acronym">BIND</acronym> 9.2, <span><strong class="command">rndc</strong></span>
+                  supports all the commands of the BIND 8 <span><strong class="command">ndc</strong></span>
+                  utility except <span><strong class="command">ndc start</strong></span> and
+                  <span><strong class="command">ndc restart</strong></span>, which were also
+                  not supported in <span><strong class="command">ndc</strong></span>'s
+                  channel mode.
                   If you run <span><strong class="command">rndc</strong></span> without any
                   options
                   it will display a usage message as follows:
@@ -585,14 +591,6 @@ zone "eng.example.com" {
                       </p></dd>
 </dl></div>
 <p>
-                  In <acronym class="acronym">BIND</acronym> 9.2, <span><strong class="command">rndc</strong></span>
-                  supports all the commands of the BIND 8 <span><strong class="command">ndc</strong></span>
-                  utility except <span><strong class="command">ndc start</strong></span> and
-                  <span><strong class="command">ndc restart</strong></span>, which were also
-                  not supported in <span><strong class="command">ndc</strong></span>'s
-                  channel mode.
-                </p>
-<p>
                   A configuration file is required, since all
                   communication with the server is authenticated with
                   digital signatures that rely on a shared secret, and
@@ -741,7 +739,7 @@ controls {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2569972"></a>Signals</h3></div></div></div>
+<a name="id2570104"></a>Signals</h3></div></div></div>
 <p>
           Certain UNIX signals cause the name server to take specific
           actions, as described in the following table.  These signals can
