@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.68 2007/04/26 06:15:48 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.69 2007/05/08 00:33:07 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -91,8 +91,8 @@
         security considerations, and
         <emphasis>Section 8</emphasis> contains troubleshooting help. The
         main body of the document is followed by several
-        <emphasis>Appendices</emphasis> which contain useful reference
-        information, such as a <emphasis>Bibliography</emphasis> and
+        <emphasis>appendices</emphasis> which contain useful reference
+        information, such as a <emphasis>bibliography</emphasis> and
         historic information related to <acronym>BIND</acronym>
         and the Domain Name
         System.
@@ -229,8 +229,8 @@
       <title>The Domain Name System (<acronym>DNS</acronym>)</title>
       <para>
         The purpose of this document is to explain the installation
-        and upkeep of the <acronym>BIND</acronym> software
-        package, and we
+        and upkeep of the <acronym>BIND</acronym> (Berkeley Internet
+	Name Domain) software package, and we
         begin by reviewing the fundamentals of the Domain Name System
         (<acronym>DNS</acronym>) as they relate to <acronym>BIND</acronym>.
       </para>
@@ -1085,6 +1085,12 @@ zone "eng.example.com" {
                   (<command>rndc</command>) program allows the
                   system
                   administrator to control the operation of a name server.
+                  Since <acronym>BIND</acronym> 9.2, <command>rndc</command>
+                  supports all the commands of the BIND 8 <command>ndc</command>
+                  utility except <command>ndc start</command> and
+                  <command>ndc restart</command>, which were also
+                  not supported in <command>ndc</command>'s
+                  channel mode.
                   If you run <command>rndc</command> without any
                   options
                   it will display a usage message as follows:
@@ -1355,15 +1361,6 @@ zone "eng.example.com" {
                   </varlistentry>
 
                 </variablelist>
-
-                <para>
-                  In <acronym>BIND</acronym> 9.2, <command>rndc</command>
-                  supports all the commands of the BIND 8 <command>ndc</command>
-                  utility except <command>ndc start</command> and
-                  <command>ndc restart</command>, which were also
-                  not supported in <command>ndc</command>'s
-                  channel mode.
-                </para>
 
                 <para>
                   A configuration file is required, since all
@@ -1753,9 +1750,8 @@ controls {
         on the Internet. Split DNS can also be used to allow mail from outside
         back in to the internal network.
       </para>
-      <para>
-        Here is an example of a split DNS setup:
-      </para>
+     <sect2>
+      <title>Example split DNS setup</title>
       <para>
         Let's say a company named <emphasis>Example, Inc.</emphasis>
         (<literal>example.com</literal>)
@@ -1990,6 +1986,7 @@ nameserver 172.16.72.3
 nameserver 172.16.72.4
 </programlisting>
 
+     </sect2>
     </sect1>
     <sect1 id="tsig">
       <title>TSIG</title>
@@ -2187,7 +2184,7 @@ allow-update { key host1-host2. ;};
           outside of the allowed range, the response will be signed with
           the TSIG extended error code set to BADTIME, and the time values
           will be adjusted so that the response can be successfully
-          verified. In any of these cases, the message's rcode is set to
+          verified. In any of these cases, the message's rcode (response code) is set to
           NOTAUTH (not authenticated).
         </para>
 
@@ -2266,7 +2263,7 @@ allow-update { key host1-host2. ;};
       <para>
         Cryptographic authentication of DNS information is possible
         through the DNS Security (<emphasis>DNSSEC-bis</emphasis>) extensions,
-        defined in RFC 4033, RFC 4034 and RFC 4035.
+        defined in RFC 4033, RFC 4034, and RFC 4035.
 	This section describes the creation and use of DNSSEC signed zones.
       </para>
 
@@ -2334,7 +2331,7 @@ allow-update { key host1-host2. ;};
           <filename>Kchild.example.+005+12345.key</filename> and
           <filename>Kchild.example.+005+12345.private</filename>
           (where
-          12345 is an example of a key tag).  The key file names contain
+          12345 is an example of a key tag).  The key filenames contain
           the key name (<filename>child.example.</filename>),
           algorithm (3
           is DSA, 1 is RSAMD5, 5 is RSASHA1, etc.), and the key tag (12345 in
@@ -2840,7 +2837,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
               <entry colname="2">
                 <para>
                   An IP port <varname>number</varname>.
-                  <varname>number</varname> is limited to 0
+                  The <varname>number</varname> is limited to 0
                   through 65535, with values
                   below 1024 typically restricted to use by processes running
                   as root.
@@ -3109,7 +3106,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
         <para>
           The <acronym>BIND</acronym> 9 comment syntax allows for
           comments to appear
-          anywhere that white space may appear in a <acronym>BIND</acronym> configuration
+          anywhere that whitespace may appear in a <acronym>BIND</acronym> configuration
           file. To appeal to programmers of all kinds, they can be written
           in the C, C++, or shell/perl style.
         </para>
@@ -3126,7 +3123,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
         <sect3>
           <title>Definition and Usage</title>
           <para>
-            Comments may appear anywhere that white space may appear in
+            Comments may appear anywhere that whitespace may appear in
             a <acronym>BIND</acronym> configuration file.
           </para>
           <para>
@@ -4289,7 +4286,7 @@ category notify { null; };
           The <command>lwres</command> statement configures the
           name
           server to also act as a lightweight resolver server. (See
-          <xref linkend="lwresd"/>.)  There may be be multiple
+          <xref linkend="lwresd"/>.)  There may be multiple
           <command>lwres</command> statements configuring
           lightweight resolver servers with different properties.
         </para>
@@ -4657,7 +4654,7 @@ digits</varname>" + "<varname>tkey-domain</varname>". In most cases,
                 name server. Specifying <command>pid-file none</command> disables the
                 use of a PID file &mdash; no file will be written and any
                 existing one will be removed.  Note that <command>none</command>
-                is a keyword, not a file name, and therefore is not enclosed
+                is a keyword, not a filename, and therefore is not enclosed
                 in
                 double quotes.
               </para>
@@ -5286,7 +5283,7 @@ options {
                 <para>
                   <emphasis>This option is obsolete</emphasis>.
                   If you need to disable IXFR to a particular server or
-                  servers see
+                  servers, see
                   the information on the <command>provide-ixfr</command> option
                   in <xref linkend="server_statement_definition_and_usage"/>.
                   See also
@@ -5520,6 +5517,7 @@ options {
                 <para>
 		  Accept expired signatures when verifying DNSSEC signatures.
                   The default is <userinput>no</userinput>.
+		  Setting this option to "yes" leaves named vulnerable to replay attacks.
                 </para>
               </listitem>
             </varlistentry>
@@ -5563,7 +5561,7 @@ options {
 		  and MX records.
 		  It also applies to the RDATA of PTR records where the owner
 		  name indicated that it is a reverse lookup of a hostname
-		  (the owner name ends in IN-ADDR.ARPA, IP6.ARPA or IP6.INT).
+		  (the owner name ends in IN-ADDR.ARPA, IP6.ARPA, or IP6.INT).
                 </para>
               </listitem>
             </varlistentry>
@@ -5835,6 +5833,12 @@ options {
 		  The way to set query access to the cache is now
 		  via <command>allow-query-cache</command>.
 		  This differs from earlier versions which used
+		  <command>allow-query</command>.
+		</para>
+		<para>
+		  The way to set query access to the cache is now via
+		  <command>allow-query-cache</command>.
+		  This differs from earlier versions which used 
 		  <command>allow-query</command>.
 		</para>
 	      </listitem>
@@ -6683,7 +6687,7 @@ query-source-v6 address * port *;
                   </para><note>
                   <simpara>
                     Not yet implemented in
-                    <acronym>BIND</acronym>9.
+                    <acronym>BIND</acronym> 9.
                   </simpara>
                 </note>
               </listitem>
@@ -7070,7 +7074,7 @@ query-source-v6 address * port *;
                   values are 512 to 4096 (values outside this range
                   will be silently adjusted).  The default value is
                   4096.  The usual reason for setting edns-udp-size to
-                  a non-default value it to get UDP answers to pass
+                  a non-default value is to get UDP answers to pass
                   through broken firewalls that block fragmented
                   packets and/or block UDP packets that are greater
                   than 512 bytes.
@@ -7090,6 +7094,8 @@ query-source-v6 address * port *;
 		  answers to pass through broken firewalls that
 		  block fragmented packets and/or block UDP packets
 		  that are greater than 512 bytes.
+		  This is independent of the advertised receive
+		  buffer (<command>edns-udp-size</command>).
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -7307,10 +7313,10 @@ query-source-v6 address * port *;
 	    If you are using the address ranges covered here, you should
 	    already have reverse zones covering the addresses you use.
 	    In practice this appears to not be the case with many queries
-	    being made to the infrustructure servers for names in these
+	    being made to the infrastructure servers for names in these
 	    spaces.  So many in fact that sacrificial servers were needed
 	    to be deployed to channel the query load away from the
-	    infrustructure servers.
+	    infrastructure servers.
 	  </para>
 	  <note>
 	    The real parent servers for these zones should disable all
@@ -8197,7 +8203,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                         numbers (in the
                         tens or hundreds of thousands) of zones per server, it
                         is best to
-                        use a two-level naming scheme for zone file names. For
+                        use a two-level naming scheme for zone filenames. For
                         example,
                         a slave server for the zone <literal>example.com</literal> might place
                         the zone contents into a file called
@@ -8643,8 +8649,8 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                 <term><command>journal</command></term>
                 <listitem>
                   <para>
-                    Allow the default journal's file name to be overridden.
-                    The default is the zone's file with "<filename>.jnl</filename>" appended.
+                    Allow the default journal's filename to be overridden.
+                    The default is the zone's filename with "<filename>.jnl</filename>" appended.
                     This is applicable to <command>master</command> and <command>slave</command> zones.
                   </para>
                 </listitem>
@@ -10406,14 +10412,14 @@ $GENERATE 1-127 $ CNAME $.0</programlisting>
                     <para><command>lhs</command></para>
                   </entry>
                   <entry colname="2">
-                    <para><command>lhs</command>
+                    <para>This
 		      describes the owner name of the resource records
                       to be created.  Any single <command>$</command>
                       (dollar sign)
                       symbols within the <command>lhs</command> side
                       are replaced by the iterator value.
 
-                      To get a $ in the output you need to escape the
+                      To get a $ in the output, you need to escape the
                       <command>$</command> using a backslash
                       <command>\</command>,
                       e.g. <command>\$</command>. The
@@ -10422,7 +10428,7 @@ $GENERATE 1-127 $ CNAME $.0</programlisting>
                       iterator, field width and base.
 
                       Modifiers are introduced by a
-                      <command>{</command> immediately following the
+                      <command>{</command> (left brace) immediately following the
                       <command>$</command> as
                       <command>${offset[,width[,base]]}</command>.
                       For example, <command>${-20,3,d}</command>
@@ -10495,7 +10501,7 @@ $GENERATE 1-127 $ CNAME $.0</programlisting>
                   </entry>
                   <entry colname="2">
                     <para>
-                      A domain name. It is processed
+                      <command>rhs</command> is a domain name. It is processed
                       similarly to lhs.
                     </para>
                   </entry>
@@ -10622,7 +10628,7 @@ zone "example.com" {
         </para>
       </sect1>
       <sect1>
-        <title><command>chroot</command> and <command>setuid</command></title>
+        <title><command>Chroot</command> and <command>Setuid</command></title>
         <para>
           On UNIX servers, it is possible to run <acronym>BIND</acronym> in a <emphasis>chrooted</emphasis> environment
           (using the <command>chroot()</command> function) by specifying the "<option>-t</option>"
@@ -10661,7 +10667,7 @@ zone "example.com" {
             for this.
           </para>
           <para>
-            Unlike with earlier versions of BIND, you will typically
+            Unlike with earlier versions of BIND, you typically will
             <emphasis>not</emphasis> need to compile <command>named</command>
             statically nor install shared libraries under the new root.
             However, depending on your operating system, you may need
@@ -10884,7 +10890,7 @@ zone "example.com" {
             Wolfhugel, and others.
           </para>
           <para>
-            <acronym>BIND</acronym> version 4.9.2 was sponsored by
+            In 1994, <acronym>BIND</acronym> version 4.9.2 was sponsored by
             Vixie Enterprises. Paul
             Vixie became <acronym>BIND</acronym>'s principal
             architect/programmer.
@@ -10918,7 +10924,8 @@ zone "example.com" {
             <emphasis>Anycast</emphasis>,
             an identifier for a set of interfaces; and <emphasis>Multicast</emphasis>,
             an identifier for a set of interfaces. Here we describe the global
-            Unicast address scheme. For more information, see RFC 3587.
+            Unicast address scheme. For more information, see RFC 3587,
+	    "Global Unicast Address Format."
           </para>
           <para>
 	    IPv6 unicast addresses consist of a
