@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch03.html,v 1.26.2.5.4.20 2007/01/30 00:11:48 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch03.html,v 1.26.2.5.4.21 2007/05/08 02:29:39 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -54,7 +54,7 @@
 <dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2565994">Name Server Operations</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2566000">Tools for Use With the Name Server Daemon</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2567369">Signals</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2567392">Signals</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -280,6 +280,11 @@ of a server.</p>
 <p>The remote name daemon control
               (<span><strong class="command">rndc</strong></span>) program allows the system
               administrator to control the operation of a name server.
+	      Since <acronym class="acronym">BIND</acronym> 9.2, <span><strong class="command">rndc</strong></span>
+	      supports all the commands of the BIND 8 <span><strong class="command">ndc</strong></span>
+	      utility except <span><strong class="command">ndc start</strong></span> and
+	      <span><strong class="command">ndc restart</strong></span>, which were also
+	      not supported in <span><strong class="command">ndc</strong></span>'s channel mode.
               If you run <span><strong class="command">rndc</strong></span> without any options
               it will display a usage message as follows:</p>
 <div class="cmdsynopsis"><p><code class="command">rndc</code>  [-c <em class="replaceable"><code>config</code></em>] [-s <em class="replaceable"><code>server</code></em>] [-p <em class="replaceable"><code>port</code></em>] [-y <em class="replaceable"><code>key</code></em>]  <em class="replaceable"><code>command</code></em>  [<em class="replaceable"><code>command</code></em>...]</p></div>
@@ -473,7 +478,7 @@ a <code class="filename">rndc.key</code> file and not modify
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2567369"></a>Signals</h3></div></div></div>
+<a name="id2567392"></a>Signals</h3></div></div></div>
 <p>Certain UNIX signals cause the name server to take specific
 actions, as described in the following table.  These signals can
 be sent using the <span><strong class="command">kill</strong></span> command.</p>
