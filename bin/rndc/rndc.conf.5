@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: rndc.conf.5,v 1.36 2007/01/30 00:24:59 marka Exp $
+.\" $Id: rndc.conf.5,v 1.37 2007/05/09 03:33:51 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -156,7 +156,7 @@ does not ship with BIND 9 but is available on many systems. See the EXAMPLE sect
       key testkey {
         algorithm	hmac\-md5;
         secret		"R3HI8P6BKw9ZwXwN3VZKuQ==";
-      }
+      };
 .fi
 .RE
 .sp
@@ -178,7 +178,7 @@ To generate a random secret with
 .PP
 A complete
 \fIrndc.conf\fR
-file, including the randomly generated key, will be written to the standard output. Commented out
+file, including the randomly generated key, will be written to the standard output. Commented\-out
 \fBkey\fR
 and
 \fBcontrols\fR

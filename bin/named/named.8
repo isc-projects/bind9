@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.8,v 1.31 2007/01/30 00:24:59 marka Exp $
+.\" $Id: named.8,v 1.32 2007/05/09 03:33:51 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -122,8 +122,7 @@ This option is mainly of interest to BIND 9 developers and may be removed or cha
 .PP
 \-t \fIdirectory\fR
 .RS 4
-\fBchroot()\fR
-to
+Chroot to
 \fIdirectory\fR
 after processing the command line arguments, but before reading the configuration file.
 .RS
@@ -131,15 +130,14 @@ after processing the command line arguments, but before reading the configuratio
 This option should be used in conjunction with the
 \fB\-u\fR
 option, as chrooting a process running as root doesn't enhance security on most systems; the way
-\fBchroot()\fR
+\fBchroot(2)\fR
 is defined allows a process with root privileges to escape a chroot jail.
 .RE
 .RE
 .PP
 \-u \fIuser\fR
 .RS 4
-\fBsetuid()\fR
-to
+Setuid to
 \fIuser\fR
 after completing privileged operations, such as creating sockets that listen on privileged ports.
 .RS
@@ -147,13 +145,13 @@ after completing privileged operations, such as creating sockets that listen on 
 On Linux,
 \fBnamed\fR
 uses the kernel's capability mechanism to drop all root privileges except the ability to
-\fBbind()\fR
+\fBbind(2)\fR
 to a privileged port and set process resource limits. Unfortunately, this means that the
 \fB\-u\fR
 option only works when
 \fBnamed\fR
 is run on kernel 2.2.18 or later, or kernel 2.3.99\-pre3 or later, since previous kernels did not allow privileges to be retained after
-\fBsetuid()\fR.
+\fBsetuid(2)\fR.
 .RE
 .RE
 .PP

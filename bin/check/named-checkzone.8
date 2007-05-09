@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named-checkzone.8,v 1.38 2007/01/30 00:24:59 marka Exp $
+.\" $Id: named-checkzone.8,v 1.39 2007/05/09 03:33:50 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -82,7 +82,7 @@ Specify the class of the zone. If not specified "IN" is assumed.
 .PP
 \-i \fImode\fR
 .RS 4
-Perform post load zone integrity checks. Possible modes are
+Perform post\-load zone integrity checks. Possible modes are
 \fB"full"\fR
 (default),
 \fB"full\-sibling"\fR,
@@ -105,7 +105,7 @@ only checks SRV records which refer to in\-zone hostnames.
 .sp
 Mode
 \fB"full"\fR
-checks that delegation NS records refer to A or AAAA record (both in\-zone and out\-of\-zone hostnames). It also checks that glue addresses records in the zone match those advertised by the child. Mode
+checks that delegation NS records refer to A or AAAA record (both in\-zone and out\-of\-zone hostnames). It also checks that glue address records in the zone match those advertised by the child. Mode
 \fB"local"\fR
 only checks NS records which refer to in\-zone hostnames or that some required glue exists, that is when the nameserver is in a child zone.
 .sp
@@ -213,7 +213,7 @@ Check if a SRV record refers to a CNAME. Possible modes are
 .PP
 \-t \fIdirectory\fR
 .RS 4
-chroot to
+Chroot to
 \fIdirectory\fR
 so that include directives in the configuration file are processed as if run by a similarly chrooted named.
 .RE
