@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named-checkzone.docbook,v 1.29 2007/01/29 23:57:22 marka Exp $ -->
+<!-- $Id: named-checkzone.docbook,v 1.30 2007/05/09 01:32:08 marka Exp $ -->
 <refentry id="man.named-checkzone">
   <refentryinfo>
     <date>June 13, 2000</date>
@@ -177,7 +177,7 @@
         <term>-i <replaceable class="parameter">mode</replaceable></term>
 	<listitem>
 	  <para>
-	      Perform post load zone integrity checks.  Possible modes are
+	      Perform post-load zone integrity checks.  Possible modes are
 	      <command>"full"</command> (default),
 	      <command>"full-sibling"</command>,
 	      <command>"local"</command>,
@@ -199,7 +199,7 @@
 	  <para>
 	      Mode <command>"full"</command> checks that delegation NS
 	      records refer to A or AAAA record (both in-zone and out-of-zone
-	      hostnames).  It also checks that glue addresses records
+	      hostnames).  It also checks that glue address records
 	      in the zone match those advertised by the child.
 	      Mode <command>"local"</command> only checks NS records which
 	      refer to in-zone hostnames or that some required glue exists,
@@ -342,7 +342,7 @@
         <term>-t <replaceable class="parameter">directory</replaceable></term>
         <listitem>
           <para>
-            chroot to <filename>directory</filename> so that
+            Chroot to <filename>directory</filename> so that
             include
             directives in the configuration file are processed as if
             run by a similarly chrooted named.

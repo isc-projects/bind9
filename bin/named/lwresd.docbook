@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: lwresd.docbook,v 1.12 2007/01/29 23:57:22 marka Exp $ -->
+<!-- $Id: lwresd.docbook,v 1.13 2007/05/09 01:32:08 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>June 30, 2000</date>
@@ -207,7 +207,7 @@
       <varlistentry>
         <term>-t <replaceable class="parameter">directory</replaceable></term>
         <listitem>
-          <para><function>chroot()</function>
+          <para>Chroot
 	    to <replaceable class="parameter">directory</replaceable> after
             processing the command line arguments, but before
             reading the configuration file.
@@ -217,7 +217,7 @@
               This option should be used in conjunction with the
               <option>-u</option> option, as chrooting a process
               running as root doesn't enhance security on most
-              systems; the way <function>chroot()</function> is
+              systems; the way <function>chroot(2)</function> is
               defined allows a process with root privileges to
               escape a chroot jail.
             </para>
@@ -228,7 +228,7 @@
       <varlistentry>
         <term>-u <replaceable class="parameter">user</replaceable></term>
         <listitem>
-          <para><function>setuid()</function>
+          <para>Setuid
 	    to <replaceable class="parameter">user</replaceable> after completing
             privileged operations, such as creating sockets that
             listen on privileged ports.
