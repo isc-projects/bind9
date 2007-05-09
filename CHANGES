@@ -1,3 +1,6 @@
+2175.	[bug]		win32: windows broadcast condition variable support
+			was broken. [RT #16592]
+
 2174.	[bug]		I/O errors should always be fatal when reading
 			master files. [RT #16825]
 
