@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: rndc.docbook,v 1.8.18.8 2007/01/29 23:57:20 marka Exp $ -->
+<!-- $Id: rndc.docbook,v 1.8.18.9 2007/05/09 01:38:19 marka Exp $ -->
 <refentry id="man.rndc">
   <refentryinfo>
     <date>June 30, 2000</date>
@@ -230,7 +230,7 @@
       </citerefentry>,
       <citerefentry>
         <refentrytitle>named.conf</refentrytitle><manvolnum>5</manvolnum>
-      </citerefentry>
+      </citerefentry>,
       <citerefentry>
         <refentrytitle>ndc</refentrytitle><manvolnum>8</manvolnum>
       </citerefentry>,

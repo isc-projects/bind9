@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.1.2.25 2007/01/29 23:57:20 marka Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.1.2.26 2007/05/09 01:38:19 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>Aug 13, 2004</date>
@@ -580,9 +580,7 @@ zone <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
       <citerefentry>
         <refentrytitle>rndc</refentrytitle><manvolnum>8</manvolnum>
       </citerefentry>,
-      <citerefentry>
-        <refentrytitle>BIND 9 Administrator Reference Manual</refentrytitle>
-      </citerefentry>.
+      <citetitle>BIND 9 Administrator Reference Manual</citetitle>.
     </para>
   </refsect1>
 
