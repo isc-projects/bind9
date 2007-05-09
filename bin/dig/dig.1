@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dig.1,v 1.14.2.15 2007/05/09 03:32:21 marka Exp $
+.\" $Id: dig.1,v 1.14.2.16 2007/05/09 13:35:32 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -148,7 +148,7 @@ will send its queries instead of the standard DNS port number 53. This option wo
 The
 \fB\-t\fR
 option sets the query type to
-\fItype\fR. It can be any valid query type which is supported in BIND 9. The default query type "A", unless the
+\fItype\fR. It can be any valid query type which is supported in BIND 9. The default query type is "A", unless the
 \fB\-x\fR
 option is supplied to indicate a reverse lookup. A zone transfer can be requested by specifying a type of AXFR. When an incremental zone transfer (IXFR) is required,
 \fItype\fR
