@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: lwresd.html,v 1.4.2.1.4.13 2007/01/30 00:11:47 marka Exp $ -->
+<!-- $Id: lwresd.html,v 1.4.2.1.4.14 2007/05/09 03:32:36 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -130,7 +130,7 @@
 <dt><span class="term">-t <em class="replaceable"><code>directory</code></em></span></dt>
 <dd>
 <p>
-		<code class="function">chroot()</code> to <em class="replaceable"><code>directory</code></em> after
+		<code class="function">Chroot</code> to <em class="replaceable"><code>directory</code></em> after
 		processing the command line arguments, but before
 		reading the configuration file.
           </p>
@@ -140,7 +140,7 @@
 		This option should be used in conjunction with the
 		<code class="option">-u</code> option, as chrooting a process
 		running as root doesn't enhance security on most
-		systems; the way <code class="function">chroot()</code> is
+		systems; the way <code class="function">chroot(2)</code> is
 		defined allows a process with root privileges to
 		escape a chroot jail.
 	    </p>
@@ -148,7 +148,7 @@
 </dd>
 <dt><span class="term">-u <em class="replaceable"><code>user</code></em></span></dt>
 <dd><p>
-		<code class="function">setuid()</code> to <em class="replaceable"><code>user</code></em> after completing
+		<code class="function">Setuid</code> to <em class="replaceable"><code>user</code></em> after completing
 		privileged operations, such as creating sockets that
 		listen on privileged ports.
           </p></dd>

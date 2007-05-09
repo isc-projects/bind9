@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: dnssec-keygen.html,v 1.5.2.1.4.18 2007/01/30 00:11:47 marka Exp $ -->
+<!-- $Id: dnssec-keygen.html,v 1.5.2.1.4.19 2007/05/09 03:32:36 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -35,7 +35,7 @@
 <a name="id2543462"></a><h2>DESCRIPTION</h2>
 <p>
         <span><strong class="command">dnssec-keygen</strong></span> generates keys for DNSSEC
-	(Secure DNS), as defined in RFC 2535 and RFC &lt;TBA\&gt;.  It can also generate
+	(Secure DNS), as defined in RFC 2535 and RFC 4034.  It can also generate
 	keys for use with TSIG (Transaction Signatures), as
 	defined in RFC 2845.
     </p>
@@ -164,7 +164,7 @@
         </p></li>
 </ul></div>
 <p>
-        <span><strong class="command">dnssec-keygen</strong></span> creates two file, with names based
+        <span><strong class="command">dnssec-keygen</strong></span> creates two files, with names based
 	on the printed string.  <code class="filename">Knnnn.+aaa+iiiii.key</code>
 	contains the public key, and
 	<code class="filename">Knnnn.+aaa+iiiii.private</code> contains the private
@@ -176,18 +176,18 @@
 	statement).
     </p>
 <p>
-        The <code class="filename">.private</code> file contains algorithm specific
+        The <code class="filename">.private</code> file contains algorithm-specific
 	fields.  For obvious security reasons, this file does not have
 	general read permission.
     </p>
 <p>
         Both <code class="filename">.key</code> and <code class="filename">.private</code>
-	files are generated for symmetric encryption algorithm such as
+	files are generated for symmetric encryption algorithms such as
 	HMAC-MD5, even though the public and private key are equivalent.
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543832"></a><h2>EXAMPLE</h2>
+<a name="id2543900"></a><h2>EXAMPLE</h2>
 <p>
         To generate a 768-bit DSA key for the domain
 	<strong class="userinput"><code>example.com</code></strong>, the following command would be
@@ -205,11 +205,11 @@
 <p>
         In this example, <span><strong class="command">dnssec-keygen</strong></span> creates
 	the files <code class="filename">Kexample.com.+003+26160.key</code> and
-	<code class="filename">Kexample.com.+003+26160.private</code>
+	<code class="filename">Kexample.com.+003+26160.private</code>.
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543878"></a><h2>SEE ALSO</h2>
+<a name="id2543946"></a><h2>SEE ALSO</h2>
 <p>
       <span class="citerefentry"><span class="refentrytitle">dnssec-signzone</span>(8)</span>,
       <em class="citetitle">BIND 9 Administrator Reference Manual</em>,

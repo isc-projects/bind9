@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named-checkconf.8,v 1.11.12.11 2007/01/18 04:20:22 marka Exp $
+.\" $Id: named-checkconf.8,v 1.11.12.12 2007/05/09 03:32:36 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -42,7 +42,7 @@ checks the syntax, but not the semantics, of a named configuration file.
 .PP
 \-t \fIdirectory\fR
 .RS 4
-chroot to
+Chroot to
 \fIdirectory\fR
 so that include directives in the configuration file are processed as if run by a similarly chrooted named.
 .RE
@@ -56,7 +56,7 @@ program and exit.
 .PP
 \-z
 .RS 4
-Perform a check load the master zonefiles found in
+Perform a test load of all master zones found in
 \fInamed.conf\fR.
 .RE
 .PP
