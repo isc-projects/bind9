@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.4.2.7.4.17 2007/05/09 02:06:17 marka Exp $ -->
+<!-- $Id: dig.docbook,v 1.4.2.7.4.18 2007/05/09 06:30:13 marka Exp $ -->
 
 <refentry>
 
@@ -218,7 +218,7 @@ use IPv4 query transport.  The <option>-6</option> option forces
 <para>
 The <option>-t</option> option sets the query type to
 <parameter>type</parameter>.  It can be any valid query type which is
-supported in BIND 9.  The default query type "A", unless the
+supported in BIND 9.  The default query type is "A", unless the
 <option>-x</option> option is supplied to indicate a reverse lookup.
 A zone transfer can be requested by specifying a type of AXFR.  When
 an incremental zone transfer (IXFR) is required,
