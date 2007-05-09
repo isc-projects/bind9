@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: named.html,v 1.6.18.18 2007/01/30 00:23:44 marka Exp $ -->
+<!-- $Id: named.html,v 1.6.18.19 2007/05/09 03:33:12 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -117,7 +117,7 @@
 </dd>
 <dt><span class="term">-t <em class="replaceable"><code>directory</code></em></span></dt>
 <dd>
-<p><code class="function">chroot()</code>
+<p>Chroot
 	    to <em class="replaceable"><code>directory</code></em> after
             processing the command line arguments, but before
             reading the configuration file.
@@ -128,7 +128,7 @@
               This option should be used in conjunction with the
               <code class="option">-u</code> option, as chrooting a process
               running as root doesn't enhance security on most
-              systems; the way <code class="function">chroot()</code> is
+              systems; the way <code class="function">chroot(2)</code> is
               defined allows a process with root privileges to
               escape a chroot jail.
             </p>
@@ -136,7 +136,7 @@
 </dd>
 <dt><span class="term">-u <em class="replaceable"><code>user</code></em></span></dt>
 <dd>
-<p><code class="function">setuid()</code>
+<p>Setuid
 	    to <em class="replaceable"><code>user</code></em> after completing
             privileged operations, such as creating sockets that
             listen on privileged ports.
@@ -146,7 +146,7 @@
 <p>
               On Linux, <span><strong class="command">named</strong></span> uses the kernel's
               		capability mechanism to drop all root privileges
-              except the ability to <code class="function">bind()</code> to
+              except the ability to <code class="function">bind(2)</code> to
               a
               privileged port and set process resource limits.
               Unfortunately, this means that the <code class="option">-u</code>
@@ -154,7 +154,7 @@
               run
               on kernel 2.2.18 or later, or kernel 2.3.99-pre3 or
               later, since previous kernels did not allow privileges
-              to be retained after <code class="function">setuid()</code>.
+              to be retained after <code class="function">setuid(2)</code>.
             </p>
 </div>
 </dd>
@@ -180,7 +180,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543813"></a><h2>SIGNALS</h2>
+<a name="id2543809"></a><h2>SIGNALS</h2>
 <p>
       In routine operation, signals should not be used to control
       the nameserver; <span><strong class="command">rndc</strong></span> should be used
@@ -201,7 +201,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543861"></a><h2>CONFIGURATION</h2>
+<a name="id2543857"></a><h2>CONFIGURATION</h2>
 <p>
       The <span><strong class="command">named</strong></span> configuration file is too complex
       to describe in detail here.  A complete description is provided
@@ -210,7 +210,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543878"></a><h2>FILES</h2>
+<a name="id2543874"></a><h2>FILES</h2>
 <div class="variablelist"><dl>
 <dt><span class="term"><code class="filename">/etc/named.conf</code></span></dt>
 <dd><p>
@@ -223,7 +223,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543917"></a><h2>SEE ALSO</h2>
+<a name="id2543913"></a><h2>SEE ALSO</h2>
 <p><em class="citetitle">RFC 1033</em>,
       <em class="citetitle">RFC 1034</em>,
       <em class="citetitle">RFC 1035</em>,
@@ -234,7 +234,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543969"></a><h2>AUTHOR</h2>
+<a name="id2543964"></a><h2>AUTHOR</h2>
 <p><span class="corpauthor">Internet Systems Consortium</span>
     </p>
 </div>
