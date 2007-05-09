@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named-checkconf.docbook,v 1.3.2.1.8.10 2007/01/29 22:14:52 sra Exp $ -->
+<!-- $Id: named-checkconf.docbook,v 1.3.2.1.8.11 2007/05/09 02:06:17 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -79,7 +79,7 @@
         <term>-t <replaceable class="parameter">directory</replaceable></term>
 	<listitem>
 	  <para>
-	      chroot to <filename>directory</filename> so that include
+	      Chroot to <filename>directory</filename> so that include
 	      directives in the configuration file are processed as if
 	      run by a similarly chrooted named.
 	  </para>
@@ -100,7 +100,7 @@
         <term>-z</term>
 	<listitem>
 	  <para>
-	      Perform a check load the master zonefiles found in
+	      Perform a test load of all master zones found in
 	      <filename>named.conf</filename>.
 	  </para>
 	</listitem>
