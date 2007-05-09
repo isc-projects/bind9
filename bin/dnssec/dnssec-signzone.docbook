@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.docbook,v 1.2.2.10 2007/01/29 23:57:16 marka Exp $ -->
+<!-- $Id: dnssec-signzone.docbook,v 1.2.2.11 2007/05/09 02:11:44 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -156,7 +156,7 @@
 	  <para>
 	       The name of the output file containing the signed zone.  The
 	       default is to append <filename>.signed</filename> to the
-	       input file.
+	       input filename.
 	  </para>
 	</listitem>
       </varlistentry>
@@ -175,7 +175,7 @@
         <term>-i <replaceable class="parameter">interval</replaceable></term>
 	<listitem>
 	  <para>
-	       When a previously signed zone is passed as input, records
+	       When a previously-signed zone is passed as input, records
 	       may be resigned.  The <option>interval</option> option
 	       specifies the cycle interval as an offset from the current
 	       time (in seconds).  If a SIG record expires after the
@@ -274,9 +274,11 @@
         <term>key</term>
 	<listitem>
 	  <para>
-	       The keys used to sign the zone.  If no keys are specified, the
-	       default all zone keys that have private key files in the
-	       current directory.
+	    Specify which keys should be used to sign the zone.  If
+	    no keys are specified, then the zone will be examined
+	    for DNSKEY records at the zone apex.  If these are found and
+	    there are matching private keys, in the current directory,
+	    then these will be used for signing.
 	  </para>
 	</listitem>
       </varlistentry>

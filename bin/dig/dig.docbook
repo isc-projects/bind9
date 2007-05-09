@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.4.2.15 2007/01/29 23:57:16 marka Exp $ -->
+<!-- $Id: dig.docbook,v 1.4.2.16 2007/05/09 02:11:44 marka Exp $ -->
 
 <refentry>
 
@@ -100,7 +100,7 @@ Although <command>dig</command> is normally used with command-line
 arguments, it also has a batch mode of operation for reading lookup
 requests from a file.  A brief summary of its command-line arguments
 and options is printed when the <option>-h</option> option is given.
-Unlike earlier versions, the BIND9 implementation of
+Unlike earlier versions, the BIND 9 implementation of
 <command>dig</command> allows multiple lookups to be issued from the
 command line.
 </para>
@@ -191,7 +191,7 @@ class, such as HS for Hesiod records or CH for CHAOSNET records.
 The <option>-f</option> option makes <command>dig </command> operate
 in batch mode by reading a list of lookup requests to process from the
 file <parameter>filename</parameter>.  The file contains a number of
-queries, one per line.  Each entry in the file should be organised in
+queries, one per line.  Each entry in the file should be organized in
 the same way they would be presented as queries to
 <command>dig</command> using the command-line interface.
 </para>
@@ -208,7 +208,7 @@ on a non-standard port number.
 <para>
 The <option>-t</option> option sets the query type to
 <parameter>type</parameter>.  It can be any valid query type which is
-supported in BIND9.  The default query type "A", unless the
+supported in BIND 9.  The default query type "A", unless the
 <option>-x</option> option is supplied to indicate a reverse lookup.
 A zone transfer can be requested by specifying a type of AXFR.  When
 an incremental zone transfer (IXFR) is required,
@@ -219,7 +219,7 @@ since the serial number in the zone's SOA record was
 </para>
 
 <para>
-Reverse lookups - mapping addresses to names - are simplified by the
+Reverse lookups &mdash; mapping addresses to names &mdash; are simplified by the
 <option>-x</option> option.  <parameter>addr</parameter> is an IPv4
 address in dotted-decimal notation, or a colon-delimited IPv6 address.
 When this option is used, there is no need to provide the
@@ -281,7 +281,7 @@ The query options are:
 <varlistentry><term><option>+[no]tcp</option></term>
 <listitem><para>
 Use [do not use] TCP when querying name servers.  The default
-behaviour is to use UDP unless an AXFR or IXFR query is requested, in
+behavior is to use UDP unless an AXFR or IXFR query is requested, in
 which case a TCP connection is used.
 </para></listitem></varlistentry>
 
@@ -397,7 +397,7 @@ print comments.
 <varlistentry><term><option>+[no]stats</option></term>
 <listitem><para>
 This query option toggles the printing of statistics: when the query
-was made, the size of the reply and so on.  The default behaviour is
+was made, the size of the reply and so on.  The default behavior is
 to print the query statistics.
 </para></listitem></varlistentry>
 
@@ -440,7 +440,7 @@ Set or clear all display flags.
 <listitem><para>
 
 Sets the timeout for a query to
-<parameter>T</parameter> seconds.  The default time out is 5 seconds.
+<parameter>T</parameter> seconds.  The default timeout is 5 seconds.
 An attempt to set <parameter>T</parameter> to less than 1 will result
 in a query timeout of 1 second being applied.
 </para></listitem></varlistentry>
@@ -487,7 +487,7 @@ of the <command>dig</command> output.
 <listitem><para>
 Do not try the next server if you receive a SERVFAIL.  The default is
 to not try the next server which is the reverse of normal stub resolver
-behaviour.
+behavior.
 </para>
 
 </listitem></varlistentry>

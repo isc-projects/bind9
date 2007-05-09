@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: nsupdate.docbook,v 1.8.2.13 2007/01/29 23:57:17 marka Exp $ -->
+<!-- $Id: nsupdate.docbook,v 1.8.2.14 2007/05/09 02:11:44 marka Exp $ -->
 
 <refentry>
 <refentryinfo>
@@ -109,7 +109,7 @@ HMAC-MD5, which is defined in RFC 2104.
 Once other algorithms are defined for TSIG, applications will need to
 ensure they select the appropriate algorithm as well as the key when
 authenticating each other.
-For instance suitable
+For instance, suitable
 <type>key</type>
 and
 <type>server</type>
@@ -271,7 +271,7 @@ will attempt determine the correct zone to update based on the rest of the input
 <listitem>
 <para>
 Specify the default class.
-If no <parameter>class</parameter> is specified the default class is
+If no <parameter>class</parameter> is specified, the default class is
 <parameter>IN</parameter>.
 </para>
 </listitem>
@@ -284,7 +284,7 @@ If no <parameter>class</parameter> is specified the default class is
 </term>
 <listitem>
 <para>
-Specifies that all updates are to be TSIG signed using the
+Specifies that all updates are to be TSIG-signed using the
 <parameter>keyname</parameter> <parameter>keysecret</parameter> pair.
 The <command>key</command> command
 overrides any key specified on the command line via
@@ -490,10 +490,10 @@ master name server for
 Any A records for
 <type>oldhost.example.com</type>
 are deleted.
-and an A record for
+And an A record for
 <type>newhost.example.com</type>
-it IP address 172.16.1.1 is added.
-The newly-added record has a 1 day TTL (86400 seconds)
+with IP address 172.16.1.1 is added.
+The newly-added record has a 1 day TTL (86400 seconds).
 <programlisting>
 # nsupdate
 > prereq nxdomain nickname.example.com
