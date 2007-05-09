@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named-checkzone.docbook,v 1.11.18.18 2007/05/09 01:38:19 marka Exp $ -->
+<!-- $Id: named-checkzone.docbook,v 1.11.18.19 2007/05/09 06:19:49 marka Exp $ -->
 <refentry id="man.named-checkzone">
   <refentryinfo>
     <date>June 13, 2000</date>
@@ -117,7 +117,7 @@
 	Additionally, it applies stricter check levels by default,
         since the dump output will be used as an actual zone file
 	loaded by <command>named</command>.
-	When manaully specified otherwise, the check levels must at
+	When manually specified otherwise, the check levels must at
         least be as strict as those specified in the
 	<command>named</command> configuration file.
      </para>

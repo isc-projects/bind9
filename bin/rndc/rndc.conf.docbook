@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: rndc.conf.docbook,v 1.5.18.10 2007/05/09 01:38:19 marka Exp $ -->
+<!-- $Id: rndc.conf.docbook,v 1.5.18.11 2007/05/09 06:19:49 marka Exp $ -->
 <refentry id="man.rndc.conf">
   <refentryinfo>
     <date>June 30, 2000</date>
@@ -111,7 +111,7 @@
       name of a key statement in the file.  The port number
       specifies the port to connect to.  If an <option>addresses</option>
       clause is supplied these addresses will be used instead of
-      the server name.  Each address can take a optional port.
+      the server name.  Each address can take an optional port.
       If an <option>source-address</option> or <option>source-address-v6</option>
       of supplied then these will be used to specify the IPv4 and IPv6
       source addresses respectively.
