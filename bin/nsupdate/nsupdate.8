@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: nsupdate.8,v 1.24.2.11 2007/01/30 00:10:37 marka Exp $
+.\" $Id: nsupdate.8,v 1.24.2.12 2007/05/09 03:32:21 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -55,7 +55,7 @@ operate in debug mode. This provides tracing information about the update reques
 .PP
 Transaction signatures can be used to authenticate the Dynamic DNS updates. These use the TSIG resource record type described in RFC2845. The signatures rely on a shared secret that should only be known to
 \fBnsupdate\fR
-and the name server. Currently, the only supported encryption algorithm for TSIG is HMAC\-MD5, which is defined in RFC 2104. Once other algorithms are defined for TSIG, applications will need to ensure they select the appropriate algorithm as well as the key when authenticating each other. For instance suitable
+and the name server. Currently, the only supported encryption algorithm for TSIG is HMAC\-MD5, which is defined in RFC 2104. Once other algorithms are defined for TSIG, applications will need to ensure they select the appropriate algorithm as well as the key when authenticating each other. For instance, suitable
 \fBkey\fR
 and
 \fBserver\fR
@@ -148,13 +148,13 @@ will attempt determine the correct zone to update based on the rest of the input
 .RS 4
 Specify the default class. If no
 \fIclass\fR
-is specified the default class is
+is specified, the default class is
 \fIIN\fR.
 .RE
 .PP
 \fBkey\fR {name} {secret}
 .RS 4
-Specifies that all updates are to be TSIG signed using the
+Specifies that all updates are to be TSIG\-signed using the
 \fIkeyname\fR
 \fIkeysecret\fR
 pair. The
@@ -272,9 +272,9 @@ zone. Notice that the input in each example contains a trailing blank line so th
 .PP
 Any A records for
 \fBoldhost.example.com\fR
-are deleted. and an A record for
+are deleted. And an A record for
 \fBnewhost.example.com\fR
-it IP address 172.16.1.1 is added. The newly\-added record has a 1 day TTL (86400 seconds)
+with IP address 172.16.1.1 is added. The newly\-added record has a 1 day TTL (86400 seconds).
 .sp
 .RS 4
 .nf

@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: named.html,v 1.4.2.18 2007/01/30 00:10:37 marka Exp $ -->
+<!-- $Id: named.html,v 1.4.2.19 2007/05/09 03:32:21 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -105,7 +105,7 @@
 <dt><span class="term">-t <em class="replaceable"><code>directory</code></em></span></dt>
 <dd>
 <p>
-		<code class="function">chroot()</code> to <em class="replaceable"><code>directory</code></em> after
+		<code class="function">Chroot</code> to <em class="replaceable"><code>directory</code></em> after
 		processing the command line arguments, but before
 		reading the configuration file.
           </p>
@@ -115,7 +115,7 @@
 		This option should be used in conjunction with the
 		<code class="option">-u</code> option, as chrooting a process
 		running as root doesn't enhance security on most
-		systems; the way <code class="function">chroot()</code> is
+		systems; the way <code class="function">chroot(2)</code> is
 		defined allows a process with root privileges to
 		escape a chroot jail.
 	    </p>
@@ -124,7 +124,7 @@
 <dt><span class="term">-u <em class="replaceable"><code>user</code></em></span></dt>
 <dd>
 <p>
-		<code class="function">setuid()</code> to <em class="replaceable"><code>user</code></em> after completing
+		<code class="function">Setuid</code> to <em class="replaceable"><code>user</code></em> after completing
 		privileged operations, such as creating sockets that
 		listen on privileged ports.
           </p>
@@ -133,13 +133,13 @@
 <p>
 		On Linux, <span><strong class="command">named</strong></span> uses the kernel's
 		capability mechanism to drop all root privileges
-		except the ability to <code class="function">bind()</code> to a
+		except the ability to <code class="function">bind(2)</code> to a
 		privileged port and set process resource limits.
 		Unfortunately, this means that the <code class="option">-u</code>
 		option only works when <span><strong class="command">named</strong></span> is run
 		on kernel 2.2.18 or later, or kernel 2.3.99-pre3 or
 		later, since previous kernels did not allow privileges
-		to be retained after <code class="function">setuid()</code>.
+		to be retained after <code class="function">setuid(2)</code>.
 	    </p>
 </div>
 </dd>

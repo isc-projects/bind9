@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-signzone.8,v 1.23.2.11 2007/01/30 00:10:37 marka Exp $
+.\" $Id: dnssec-signzone.8,v 1.23.2.12 2007/05/09 03:32:21 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -82,7 +82,7 @@ is specified, 30 days from the start time is used as a default.
 .RS 4
 The name of the output file containing the signed zone. The default is to append
 \fI.signed\fR
-to the input file.
+to the input filename.
 .RE
 .PP
 \-h
@@ -93,7 +93,7 @@ Prints a short summary of the options and arguments to
 .PP
 \-i \fIinterval\fR
 .RS 4
-When a previously signed zone is passed as input, records may be resigned. The
+When a previously\-signed zone is passed as input, records may be resigned. The
 \fBinterval\fR
 option specifies the cycle interval as an offset from the current time (in seconds). If a SIG record expires after the cycle interval, it is retained. Otherwise, it is considered to be expiring soon, and it will be replaced.
 .sp
@@ -149,7 +149,7 @@ The file containing the zone to be signed.
 .PP
 key
 .RS 4
-The keys used to sign the zone. If no keys are specified, the default all zone keys that have private key files in the current directory.
+Specify which keys should be used to sign the zone. If no keys are specified, then the zone will be examined for DNSKEY records at the zone apex. If these are found and there are matching private keys, in the current directory, then these will be used for signing.
 .RE
 .SH "EXAMPLE"
 .PP

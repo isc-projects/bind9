@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: dnssec-signzone.html,v 1.4.2.17 2007/01/30 00:10:37 marka Exp $ -->
+<!-- $Id: dnssec-signzone.html,v 1.4.2.18 2007/05/09 03:32:21 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -85,7 +85,7 @@
 <dd><p>
 	       The name of the output file containing the signed zone.  The
 	       default is to append <code class="filename">.signed</code> to the
-	       input file.
+	       input filename.
 	  </p></dd>
 <dt><span class="term">-h</span></dt>
 <dd><p>
@@ -95,7 +95,7 @@
 <dt><span class="term">-i <em class="replaceable"><code>interval</code></em></span></dt>
 <dd>
 <p>
-	       When a previously signed zone is passed as input, records
+	       When a previously-signed zone is passed as input, records
 	       may be resigned.  The <code class="option">interval</code> option
 	       specifies the cycle interval as an offset from the current
 	       time (in seconds).  If a SIG record expires after the
@@ -155,14 +155,16 @@
 	  </p></dd>
 <dt><span class="term">key</span></dt>
 <dd><p>
-	       The keys used to sign the zone.  If no keys are specified, the
-	       default all zone keys that have private key files in the
-	       current directory.
+	    Specify which keys should be used to sign the zone.  If
+	    no keys are specified, then the zone will be examined
+	    for DNSKEY records at the zone apex.  If these are found and
+	    there are matching private keys, in the current directory,
+	    then these will be used for signing.
 	  </p></dd>
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543857"></a><h2>EXAMPLE</h2>
+<a name="id2543858"></a><h2>EXAMPLE</h2>
 <p>
         The following command signs the <strong class="userinput"><code>example.com</code></strong>
 	zone with the DSA key generated in the <span><strong class="command">dnssec-keygen</strong></span>
@@ -186,7 +188,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543907"></a><h2>SEE ALSO</h2>
+<a name="id2543908"></a><h2>SEE ALSO</h2>
 <p>
       <span class="citerefentry"><span class="refentrytitle">dnssec-keygen</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">dnssec-signkey</span>(8)</span>,
@@ -195,7 +197,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543943"></a><h2>AUTHOR</h2>
+<a name="id2543944"></a><h2>AUTHOR</h2>
 <p>
         <span class="corpauthor">Internet Systems Consortium</span>
     </p>

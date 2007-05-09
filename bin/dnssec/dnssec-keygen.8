@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-keygen.8,v 1.19.2.8 2007/01/30 00:10:37 marka Exp $
+.\" $Id: dnssec-keygen.8,v 1.19.2.9 2007/05/09 03:32:21 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -136,7 +136,7 @@ is the numeric representation of the algorithm.
 is the key identifier (or footprint).
 .PP
 \fBdnssec\-keygen\fR
-creates two file, with names based on the printed string.
+creates two files, with names based on the printed string.
 \fIKnnnn.+aaa+iiiii.key\fR
 contains the public key, and
 \fIKnnnn.+aaa+iiiii.private\fR
@@ -148,13 +148,13 @@ file contains a DNS KEY record that can be inserted into a zone file (directly o
 .PP
 The
 \fI.private\fR
-file contains algorithm specific fields. For obvious security reasons, this file does not have general read permission.
+file contains algorithm\-specific fields. For obvious security reasons, this file does not have general read permission.
 .PP
 Both
 \fI.key\fR
 and
 \fI.private\fR
-files are generated for symmetric encryption algorithm such as HMAC\-MD5, even though the public and private key are equivalent.
+files are generated for symmetric encryption algorithms such as HMAC\-MD5, even though the public and private key are equivalent.
 .SH "EXAMPLE"
 .PP
 To generate a 768\-bit DSA key for the domain
@@ -171,7 +171,7 @@ In this example,
 creates the files
 \fIKexample.com.+003+26160.key\fR
 and
-\fIKexample.com.+003+26160.private\fR
+\fIKexample.com.+003+26160.private\fR.
 .SH "SEE ALSO"
 .PP
 \fBdnssec\-makekeyset\fR(8),

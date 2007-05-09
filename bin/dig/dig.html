@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: dig.html,v 1.6.2.20 2007/01/30 00:10:37 marka Exp $ -->
+<!-- $Id: dig.html,v 1.6.2.21 2007/05/09 03:32:21 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -49,7 +49,7 @@ Although <span><strong class="command">dig</strong></span> is normally used with
 arguments, it also has a batch mode of operation for reading lookup
 requests from a file.  A brief summary of its command-line arguments
 and options is printed when the <code class="option">-h</code> option is given.
-Unlike earlier versions, the BIND9 implementation of
+Unlike earlier versions, the BIND 9 implementation of
 <span><strong class="command">dig</strong></span> allows multiple lookups to be issued from the
 command line.
 </p>
@@ -128,7 +128,7 @@ class, such as HS for Hesiod records or CH for CHAOSNET records.
 The <code class="option">-f</code> option makes <span><strong class="command">dig </strong></span> operate
 in batch mode by reading a list of lookup requests to process from the
 file <em class="parameter"><code>filename</code></em>.  The file contains a number of
-queries, one per line.  Each entry in the file should be organised in
+queries, one per line.  Each entry in the file should be organized in
 the same way they would be presented as queries to
 <span><strong class="command">dig</strong></span> using the command-line interface.
 </p>
@@ -143,7 +143,7 @@ on a non-standard port number.
 <p>
 The <code class="option">-t</code> option sets the query type to
 <em class="parameter"><code>type</code></em>.  It can be any valid query type which is
-supported in BIND9.  The default query type "A", unless the
+supported in BIND 9.  The default query type "A", unless the
 <code class="option">-x</code> option is supplied to indicate a reverse lookup.
 A zone transfer can be requested by specifying a type of AXFR.  When
 an incremental zone transfer (IXFR) is required,
@@ -153,7 +153,7 @@ since the serial number in the zone's SOA record was
 <em class="parameter"><code>N</code></em>.
 </p>
 <p>
-Reverse lookups - mapping addresses to names - are simplified by the
+Reverse lookups &#8212; mapping addresses to names &#8212; are simplified by the
 <code class="option">-x</code> option.  <em class="parameter"><code>addr</code></em> is an IPv4
 address in dotted-decimal notation, or a colon-delimited IPv6 address.
 When this option is used, there is no need to provide the
@@ -208,7 +208,7 @@ The query options are:
 <dt><span class="term"><code class="option">+[no]tcp</code></span></dt>
 <dd><p>
 Use [do not use] TCP when querying name servers.  The default
-behaviour is to use UDP unless an AXFR or IXFR query is requested, in
+behavior is to use UDP unless an AXFR or IXFR query is requested, in
 which case a TCP connection is used.
 </p></dd>
 <dt><span class="term"><code class="option">+[no]vc</code></span></dt>
@@ -308,7 +308,7 @@ print comments.
 <dt><span class="term"><code class="option">+[no]stats</code></span></dt>
 <dd><p>
 This query option toggles the printing of statistics: when the query
-was made, the size of the reply and so on.  The default behaviour is
+was made, the size of the reply and so on.  The default behavior is
 to print the query statistics.
 </p></dd>
 <dt><span class="term"><code class="option">+[no]qr</code></span></dt>
@@ -344,7 +344,7 @@ Set or clear all display flags.
 <dd><p>
 
 Sets the timeout for a query to
-<em class="parameter"><code>T</code></em> seconds.  The default time out is 5 seconds.
+<em class="parameter"><code>T</code></em> seconds.  The default timeout is 5 seconds.
 An attempt to set <em class="parameter"><code>T</code></em> to less than 1 will result
 in a query timeout of 1 second being applied.
 </p></dd>
@@ -384,7 +384,7 @@ of the <span><strong class="command">dig</strong></span> output.
 <dd><p>
 Do not try the next server if you receive a SERVFAIL.  The default is
 to not try the next server which is the reverse of normal stub resolver
-behaviour.
+behavior.
 </p></dd>
 <dt><span class="term"><code class="option">+[no]besteffort</code></span></dt>
 <dd><p>
@@ -402,7 +402,7 @@ in the OPT record in the additional section of the query.
 </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544353"></a><h2>MULTIPLE QUERIES</h2>
+<a name="id2544354"></a><h2>MULTIPLE QUERIES</h2>
 <p>
 The BIND 9 implementation of <span><strong class="command">dig </strong></span> supports
 specifying multiple queries on the command line (in addition to
@@ -443,7 +443,7 @@ will not print the initial query when it looks up the NS records for
 </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544480"></a><h2>FILES</h2>
+<a name="id2544481"></a><h2>FILES</h2>
 <p>
 <code class="filename">/etc/resolv.conf</code>
 </p>
@@ -452,7 +452,7 @@ will not print the initial query when it looks up the NS records for
 </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544499"></a><h2>SEE ALSO</h2>
+<a name="id2544500"></a><h2>SEE ALSO</h2>
 <p>
 <span class="citerefentry"><span class="refentrytitle">host</span>(1)</span>,
 <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
@@ -461,7 +461,7 @@ will not print the initial query when it looks up the NS records for
 </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544605"></a><h2>BUGS </h2>
+<a name="id2544606"></a><h2>BUGS </h2>
 <p>
 There are probably too many query options. 
 </p>
