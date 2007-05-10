@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: condition.h,v 1.13.206.2 2007/05/09 23:53:03 marka Exp $ */
+/* $Id: condition.h,v 1.13.206.3 2007/05/10 23:45:56 tbox Exp $ */
 
 #ifndef ISC_CONDITION_H
 #define ISC_CONDITION_H 1
