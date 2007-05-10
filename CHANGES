@@ -1,3 +1,6 @@
+2176.	[contrib]	dbus update to handle race condition during
+			initialisation (Bugzilla 235809). [RT #16842]
+
 2175.	[bug]		win32: windows broadcast condition variable support
 			was broken. [RT #16592]
 
