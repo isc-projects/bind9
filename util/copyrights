@@ -829,10 +829,10 @@
 ./contrib/dbus/SetForwarders			X	2006
 ./contrib/dbus/bind-9.3.2b1-dbus.patch		X	2006
 ./contrib/dbus/bind-9.3.3rc2-dbus.patch		X	2006
-./contrib/dbus/dbus_mgr.c			X	2006
+./contrib/dbus/dbus_mgr.c			X	2006,2007
 ./contrib/dbus/dbus_mgr.h			X	2006
-./contrib/dbus/dbus_service.c			X	2006
-./contrib/dbus/dbus_service.h			X	2006
+./contrib/dbus/dbus_service.c			X	2006,2007
+./contrib/dbus/dbus_service.h			X	2006,2007
 ./contrib/dbus/named-dbus-system.conf		X	2006
 ./contrib/dbus/named-dbus.service		X	2006
 ./contrib/idn/idnkit-1.0-src/ChangeLog		X	2003
@@ -2092,7 +2092,7 @@
 ./lib/isc/win32/DLLMain.c			C	2001,2003,2004,2007
 ./lib/isc/win32/Makefile.in			MAKE	1999,2000,2001,2004
 ./lib/isc/win32/app.c				C	1999,2000,2001,2003,2004,2007
-./lib/isc/win32/condition.c			C	1998,1999,2000,2001,2004,2006
+./lib/isc/win32/condition.c			C	1998,1999,2000,2001,2004,2006,2007
 ./lib/isc/win32/dir.c				C	1999,2000,2001,2003,2004,2007
 ./lib/isc/win32/entropy.c			C	2000,2001,2002,2003,2004,2007
 ./lib/isc/win32/errno2result.c			C	2000,2001,2002,2003,2004,2005,2007
@@ -2105,7 +2105,7 @@
 ./lib/isc/win32/include/isc/Makefile.in		MAKE	1999,2000,2001,2004
 ./lib/isc/win32/include/isc/bind_registry.h	C	2001,2003,2004,2007
 ./lib/isc/win32/include/isc/bindevt.h		C	2001,2004
-./lib/isc/win32/include/isc/condition.h		C	1998,1999,2000,2001,2004
+./lib/isc/win32/include/isc/condition.h		C	1998,1999,2000,2001,2004,2007
 ./lib/isc/win32/include/isc/dir.h		C	1999,2000,2001,2003,2004,2007
 ./lib/isc/win32/include/isc/int.h		C	1999,2000,2001,2004
 ./lib/isc/win32/include/isc/ipv6.h		C	1999,2000,2001,2002,2003,2004,2005,2007
