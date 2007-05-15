@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.176.2.26 2007/02/26 23:45:24 tbox Exp $ */
+/* $Id: client.c,v 1.176.2.27 2007/05/15 22:52:05 marka Exp $ */
 
 #include <config.h>
 
@@ -1087,7 +1087,7 @@ client_addopt(ns_client_t *client) {
 #endif
 
 	/*
-	 * No ENDS options in the default case.
+	 * No EDNS options in the default case.
 	 */
 	rdata->data = NULL;
 	rdata->length = 0;
@@ -1344,7 +1344,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		}
 
 		/*
-		 * Do we understand this version of ENDS?
+		 * Do we understand this version of EDNS?
 		 *
 		 * XXXRTH need library support for this!
 		 */
