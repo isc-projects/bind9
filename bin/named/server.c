@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.483 2007/04/24 06:55:32 marka Exp $ */
+/* $Id: server.c,v 1.484 2007/05/15 02:28:27 marka Exp $ */
 
 /*! \file */
 
@@ -4189,6 +4189,7 @@ ns_server_reloadcommand(ns_server_t *server, char *args, isc_buffer_t *text) {
 		type = dns_zone_gettype(zone);
 		if (type == dns_zone_slave || type == dns_zone_stub) {
 			dns_zone_refresh(zone);
+			dns_zone_detach(&zone);
 			msg = "zone refresh queued";
 		} else {
 			result = dns_zone_load(zone);
