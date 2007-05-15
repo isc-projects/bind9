@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.176.2.13.4.34 2007/05/15 21:52:34 marka Exp $ */
+/* $Id: client.c,v 1.176.2.13.4.35 2007/05/15 22:52:29 marka Exp $ */
 
 #include <config.h>
 
@@ -1413,7 +1413,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		}
 
 		/*
-		 * Do we understand this version of ENDS?
+		 * Do we understand this version of EDNS?
 		 *
 		 * XXXRTH need library support for this!
 		 */
