@@ -1,3 +1,6 @@
+2180.	[cleanup]	Remove bit test from 'compress_test' as they
+			are no longer needed. [RT #16497]
+
 2178.	[bug]		'rndc reload' of a slave or stub zone resulted in
 			a reference leak. [RT #16867]
 
