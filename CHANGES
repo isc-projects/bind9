@@ -1,3 +1,5 @@
+2177.	[bug]		Array bounds overrun on read (rcodetext). [RT #16798]
+
 2176.	[contrib]	dbus update to handle race condition during
 			initialisation (Bugzilla 235809). [RT #16842]
 

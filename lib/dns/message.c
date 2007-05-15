@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.233 2006/12/04 01:52:46 marka Exp $ */
+/* $Id: message.c,v 1.234 2007/05/15 01:54:49 marka Exp $ */
 
 /*! \file */
 
@@ -3064,8 +3064,7 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 		ADD_STRING(target, ";; ");
 		if (msg->opcode != dns_opcode_update) {
 			ADD_STRING(target, sectiontext[section]);
-		}
-		else {
+		} else {
 			ADD_STRING(target, updsectiontext[section]);
 		}
 		ADD_STRING(target, " SECTION:\n");
@@ -3187,7 +3186,12 @@ dns_message_totext(dns_message_t *msg, const dns_master_style_t *style,
 		ADD_STRING(target, ";; ->>HEADER<<- opcode: ");
 		ADD_STRING(target, opcodetext[msg->opcode]);
 		ADD_STRING(target, ", status: ");
-		ADD_STRING(target, rcodetext[msg->rcode]);
+		if (msg->rcode < (sizeof(rcodetext)/sizeof(rcodetext[0]))) {
+			ADD_STRING(target, rcodetext[msg->rcode]);
+		} else {
+			snprintf(buf, sizeof(buf), "%4u", msg->rcode);
+			ADD_STRING(target, buf);
+		}
 		ADD_STRING(target, ", id: ");
 		snprintf(buf, sizeof(buf), "%6u", msg->id);
 		ADD_STRING(target, buf);
