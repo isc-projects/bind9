@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.176.2.13.4.33 2007/02/26 23:45:55 tbox Exp $ */
+/* $Id: client.c,v 1.176.2.13.4.34 2007/05/15 21:52:34 marka Exp $ */
 
 #include <config.h>
 
@@ -1149,7 +1149,7 @@ client_addopt(ns_client_t *client) {
 	rdatalist->ttl = (client->extflags & DNS_MESSAGEEXTFLAG_REPLYPRESERVE);
 
 	/*
-	 * No ENDS options in the default case.
+	 * No EDNS options in the default case.
 	 */
 	rdata->data = NULL;
 	rdata->length = 0;
