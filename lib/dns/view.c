@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.141 2007/03/29 06:36:30 marka Exp $ */
+/* $Id: view.c,v 1.142 2007/05/15 02:38:34 marka Exp $ */
 
 /*! \file */
 
@@ -1144,6 +1144,40 @@ dns_viewlist_find(dns_viewlist_t *list, const char *name,
 	dns_view_attach(view, viewp);
 
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_viewlist_findzone(dns_viewlist_t *list, dns_name_t *name,
+		      isc_boolean_t allclasses, dns_rdataclass_t rdclass,
+		      dns_zone_t **zonep)
+{
+	dns_view_t *view;
+	isc_result_t result;
+	dns_zone_t *zone1 = NULL, *zone2 = NULL;
+
+	REQUIRE(list != NULL);
+	for (view = ISC_LIST_HEAD(*list);
+             view != NULL;
+             view = ISC_LIST_NEXT(view, link)) {
+		if (allclasses == ISC_FALSE && view->rdclass != rdclass)
+			continue;
+		result = dns_zt_find(view->zonetable, name, 0, NULL,
+				    (zone1 == NULL) ? &zone1 : &zone2);
+		INSIST(result == ISC_R_SUCCESS || result == ISC_R_NOTFOUND);
+		if (zone2 != NULL) {
+			dns_zone_detach(&zone1);
+			dns_zone_detach(&zone2);
+			return (ISC_R_NOTFOUND);
+		}
+	}
+
+	if (zone1 != NULL) {
+		dns_zone_attach(zone1, zonep);
+		dns_zone_detach(&zone1);
+		return (ISC_R_SUCCESS);
+	}
+
+	return (ISC_R_NOTFOUND);
 }
 
 isc_result_t

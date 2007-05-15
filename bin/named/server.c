@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.484 2007/05/15 02:28:27 marka Exp $ */
+/* $Id: server.c,v 1.485 2007/05/15 02:38:34 marka Exp $ */
 
 /*! \file */
 
@@ -4124,23 +4124,28 @@ zone_from_args(ns_server_t *server, char *args, dns_zone_t **zonep) {
 		result = dns_rdataclass_fromtext(&rdclass, &r);
 		if (result != ISC_R_SUCCESS)
 			goto fail1;
-	} else {
+	} else
 		rdclass = dns_rdataclass_in;
+	
+	if (viewtxt == NULL) {
+		result = dns_viewlist_findzone(&server->viewlist,
+					       dns_fixedname_name(&name),
+					       ISC_TF(classtxt == NULL),
+					       rdclass, zonep);
+	} else {
+		result = dns_viewlist_find(&server->viewlist, viewtxt,
+					   rdclass, &view);
+		if (result != ISC_R_SUCCESS)
+			goto fail1;
+	
+		result = dns_zt_find(view->zonetable, dns_fixedname_name(&name),
+				     0, NULL, zonep);
+		dns_view_detach(&view);
 	}
-	
-	if (viewtxt == NULL)
-		viewtxt = "_default";
-	result = dns_viewlist_find(&server->viewlist, viewtxt,
-				   rdclass, &view);
-	if (result != ISC_R_SUCCESS)
-		goto fail1;
-	
-	result = dns_zt_find(view->zonetable, dns_fixedname_name(&name),
-			     0, NULL, zonep);
+
 	/* Partial match? */
 	if (result != ISC_R_SUCCESS && *zonep != NULL)
 		dns_zone_detach(zonep);
-	dns_view_detach(&view);
  fail1:
 	return (result);
 }

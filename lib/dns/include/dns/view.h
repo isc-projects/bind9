@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.105 2007/03/29 23:47:04 tbox Exp $ */
+/* $Id: view.h,v 1.106 2007/05/15 02:38:34 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -592,6 +592,19 @@ dns_viewlist_find(dns_viewlist_t *list, const char *name,
  *
  *\li	#ISC_R_SUCCESS		A matching view was found.
  *\li	#ISC_R_NOTFOUND		No matching view was found.
+ */
+
+isc_result_t
+dns_viewlist_findzone(dns_viewlist_t *list, dns_name_t *name, isc_boolean_t allclasses,
+                      dns_rdataclass_t rdclass, dns_zone_t **zonep);
+
+/*%<
+ * Search zone with 'name' in view with 'rdclass' in viewlist 'list'
+ * If found, zone is returned in *zonep. If allclasses is set rdclass is ignored
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS          A matching zone was found.
+ *\li	#ISC_R_NOTFOUND         No matching zone was found.
  */
 
 isc_result_t

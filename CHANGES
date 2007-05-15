@@ -1,3 +1,6 @@
+2179.	[func]		'rndc command zone' will now find 'zone' if it is
+			unique to all the views. [RT #16821]
+
 2178.	[bug]		'rndc reload' of a slave or stub zone resulted in
 			a reference leak. [RT #16867]
 
