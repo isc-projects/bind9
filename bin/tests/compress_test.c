@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress_test.c,v 1.27.18.5 2007/05/15 05:42:34 marka Exp $ */
+/* $Id: compress_test.c,v 1.27.18.6 2007/05/15 23:46:28 tbox Exp $ */
 
 /*! \file */
 
