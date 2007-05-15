@@ -204,7 +204,7 @@
 ./bin/tests/byaddr_test.c			C	2000,2001,2002,2004,2005
 ./bin/tests/byname_test.c			C	2000,2001,2004,2005
 ./bin/tests/cfg_test.c				C	2001,2002,2004,2005
-./bin/tests/compress_test.c			C	1999,2000,2001,2004,2005,2006
+./bin/tests/compress_test.c			C	1999,2000,2001,2004,2005,2006,2007
 ./bin/tests/db/.cvsignore			X	1999,2000,2001
 ./bin/tests/db/Makefile.in			MAKE	1999,2000,2001,2002,2004
 ./bin/tests/db/dns_db_class_1.data		X	1999,2000,2001
@@ -1855,7 +1855,7 @@
 ./lib/dns/lookup.c				C	2000,2001,2003,2004,2005,2007
 ./lib/dns/master.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/masterdump.c				C	1999,2000,2001,2002,2003,2004,2005,2006
-./lib/dns/message.c				C	1999,2000,2001,2002,2003,2004,2005,2006
+./lib/dns/message.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/name.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/ncache.c				C	1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/nsec.c				C	1999,2000,2001,2003,2004,2005
