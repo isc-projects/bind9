@@ -9,7 +9,8 @@
 2178.	[bug]		'rndc reload' of a slave or stub zone resulted in
 			a reference leak. [RT #16867]
 
-2177.	[bug]		Array bounds overrun on read (rcodetext). [RT #16798]
+2177.	[bug]		Array bounds overrun on read (rcodetext) at
+			debug level 10+. [RT #16798]
 
 2176.	[contrib]	dbus update to handle race condition during
 			initialisation (Bugzilla 235809). [RT #16842]
