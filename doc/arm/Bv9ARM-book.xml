@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.323 2007/05/16 03:17:19 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.324 2007/05/16 04:33:28 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -11064,7 +11064,7 @@ zone "example.com" {
             during that time: Doug Kingston, Craig Partridge, Smoot
             Carl-Mitchell,
             Mike Muuss, Jim Bloom and Mike Schwartz. <acronym>BIND</acronym> maintenance was subsequently
-            handled by Mike Karels and Øivind Kure.
+            handled by Mike Karels and &#216;ivind Kure.
           </para>
           <para>
             <acronym>BIND</acronym> versions 4.9 and 4.9.1 were
