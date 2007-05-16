@@ -1,3 +1,5 @@
+2181.	[port]		sunos: libbind: add paths.h from BIND 8. [RT #16462]
+
 2180.	[cleanup]	Remove bit test from 'compress_test' as they
 			are no longer needed. [RT #16497]
 
