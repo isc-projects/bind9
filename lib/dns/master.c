@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.163 2007/05/02 23:46:54 tbox Exp $ */
+/* $Id: master.c,v 1.164 2007/05/16 06:58:33 marka Exp $ */
 
 /*! \file */
 
@@ -1475,7 +1475,7 @@ load_text(dns_loadctx_t *lctx) {
 		} else {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "%s:%lu: isc_lex_gettoken() returned "
-					 "unexpeced token type (%d)",
+					 "unexpected token type (%d)",
 					 source, line, token.type);
 			result = ISC_R_UNEXPECTED;
 			if (MANYERRS(lctx, result)) {
