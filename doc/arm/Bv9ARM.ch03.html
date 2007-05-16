@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch03.html,v 1.26.2.5.4.21 2007/05/08 02:29:39 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch03.html,v 1.26.2.5.4.22 2007/05/16 06:58:05 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -54,7 +54,7 @@
 <dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2565994">Name Server Operations</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2566000">Tools for Use With the Name Server Daemon</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2567392">Signals</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2567398">Signals</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -226,7 +226,7 @@ options, see the <span><strong class="command">dig</strong></span> man page.</p>
 and ease of use.  By default, it converts
 between host names and Internet addresses, but its functionality
 can be extended with the use of options.</p>
-<div class="cmdsynopsis"><p><code class="command">host</code>  [-aCdlrTwv] [-c <em class="replaceable"><code>class</code></em>] [-N <em class="replaceable"><code>ndots</code></em>] [-t <em class="replaceable"><code>type</code></em>] [-W <em class="replaceable"><code>timeout</code></em>] [-R <em class="replaceable"><code>retries</code></em>]  <em class="replaceable"><code>hostname</code></em>  [<em class="replaceable"><code>server</code></em>]</p></div>
+<div class="cmdsynopsis"><p><code class="command">host</code>  [-aCdlrTwv] [-c <em class="replaceable"><code>class</code></em>] [-N <em class="replaceable"><code>ndots</code></em>] [-t <em class="replaceable"><code>type</code></em>] [-W <em class="replaceable"><code>timeout</code></em>] [-R <em class="replaceable"><code>retries</code></em>] [-4] [-6]  <em class="replaceable"><code>hostname</code></em>  [<em class="replaceable"><code>server</code></em>]</p></div>
 <p>For more information and a list of available commands and
 options, see the <span><strong class="command">host</strong></span> man page.</p>
 </dd>
@@ -478,7 +478,7 @@ a <code class="filename">rndc.key</code> file and not modify
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2567392"></a>Signals</h3></div></div></div>
+<a name="id2567398"></a>Signals</h3></div></div></div>
 <p>Certain UNIX signals cause the name server to take specific
 actions, as described in the following table.  These signals can
 be sent using the <span><strong class="command">kill</strong></span> command.</p>
