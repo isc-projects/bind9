@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.4.2.7.4.18 2007/05/09 06:30:13 marka Exp $ -->
+<!-- $Id: dig.docbook,v 1.4.2.7.4.19 2007/05/16 01:58:42 marka Exp $ -->
 
 <refentry>
 
@@ -188,7 +188,7 @@ may be specified by appending "#&lt;port&gt;"
 <para>
 The default query class (IN for internet) is overridden by the
 <option>-c</option> option.  <parameter>class</parameter> is any valid
-class, such as HS for Hesiod records or CH for CHAOSNET records.
+class, such as HS for Hesiod records or CH for Chaosnet records.
 </para>
 
 <para>
@@ -393,7 +393,7 @@ resolve the lookup.
 
 <varlistentry><term><option>+[no]cmd</option></term>
 <listitem><para>
-toggles the printing of the initial comment in the output identifying
+Toggles the printing of the initial comment in the output identifying
 the version of <command>dig</command> and the query options that have
 been applied.  This comment is printed by default.
 </para></listitem></varlistentry>

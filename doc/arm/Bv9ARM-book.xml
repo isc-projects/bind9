@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.79 2007/05/08 01:00:36 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.80 2007/05/16 01:58:42 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -4966,7 +4966,7 @@ used to share information about various systems databases, such
 as users, groups, printers and so on. The keyword 
 <literal>HS</literal> is
 a synonym for hesiod.</para>
-<para>Another MIT development is CHAOSnet, a LAN protocol created
+<para>Another MIT development is Chaosnet, a LAN protocol created
 in the mid-1970s. Zone data for it can be specified with the <literal>CHAOS</literal> class.</para></sect3>
 <sect3>
 
@@ -5522,7 +5522,7 @@ are currently valid in the DNS:</para><informaltable colsep = "0"
 <row rowsep = "0">
 <entry colname = "1"><para>CH</para></entry>
 <entry colname = "2"><para>
-CHAOSnet, a LAN protocol created at MIT in the mid-1970s.
+Chaosnet, a LAN protocol created at MIT in the mid-1970s.
 Rarely used for its historical purpose, but reused for BIND's
 built-in server information zones, e.g.,
 <literal>version.bind</literal>.

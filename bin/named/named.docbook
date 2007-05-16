@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.docbook,v 1.5.98.10 2007/05/09 02:06:17 marka Exp $ -->
+<!-- $Id: named.docbook,v 1.5.98.11 2007/05/16 01:58:42 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -61,6 +61,7 @@
       <arg><option>-d <replaceable class="parameter">debug-level</replaceable></option></arg>
       <arg><option>-f</option></arg>
       <arg><option>-g</option></arg>
+      <arg><option>-m <replaceable class="parameter">flag</replaceable></option></arg>
       <arg><option>-n <replaceable class="parameter">#cpus</replaceable></option></arg>
       <arg><option>-p <replaceable class="parameter">port</replaceable></option></arg>
       <arg><option>-s</option></arg>
@@ -158,6 +159,20 @@
 		Run the server in the foreground and force all logging
 		to <filename>stderr</filename>.
           </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>-m <replaceable class="parameter">flag</replaceable></term>
+	<listitem>
+	  <para>
+	  Turn on memory usage debugging flags.  Possible flags are
+	  <replaceable class="parameter">usage</replaceable>,
+	  <replaceable class="parameter">trace</replaceable>, and
+	  <replaceable class="parameter">record</replaceable>.
+	  These correspond to the ISC_MEM_DEBUGXXXX flags described in
+	  <filename>&lt;isc/mem.h&gt;</filename>.
+	  </para>
 	</listitem>
       </varlistentry>
 
