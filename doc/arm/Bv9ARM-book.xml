@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.56 2007/05/16 02:07:45 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.57 2007/05/16 04:50:39 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -5180,7 +5180,7 @@ in the <optional>example.com</optional> domain:</para>
 </tgroup></informaltable>
       <note>
 <para>The <command>$ORIGIN</command> lines in the examples
-are for providing context to the examples only-they do not necessarily
+are for providing context to the examples only &mdash; they do not necessarily
 appear in the actual usage. They are only used here to indicate
 that the example is relative to the listed origin.</para></note></sect2>
 <sect2><title>Other Zone File Directives</title>
@@ -5524,7 +5524,7 @@ employee on loan to the CSRG, worked on <acronym>BIND</acronym> for 2 years, fro
 to 1987. Many other people also contributed to <acronym>BIND</acronym> development
 during that time: Doug Kingston, Craig Partridge, Smoot Carl-Mitchell,
 Mike Muuss, Jim Bloom and Mike Schwartz. <acronym>BIND</acronym> maintenance was subsequently
-handled by Mike Karels and O. Kure.</para>
+handled by Mike Karels and &#216;ivind Kure.</para>
       <para><acronym>BIND</acronym> versions 4.9 and 4.9.1 were released by Digital Equipment
 Corporation (now Compaq Computer Corporation). Paul Vixie, then
 a DEC employee, became <acronym>BIND</acronym>'s primary caretaker. He was assisted
@@ -5536,9 +5536,23 @@ Wolfhugel, and others.</para>
 Vixie became <acronym>BIND</acronym>'s principal architect/programmer.</para>
       <para><acronym>BIND</acronym> versions from 4.9.3 onward have been developed and maintained
 by the Internet Software Consortium with support being provided
-by ISC's sponsors. As co-architects/programmers, Bob Halley and
+by ISC's sponsors.
+      </para>
+      <para As co-architects/programmers, Bob Halley and
 Paul Vixie released the first production-ready version of <acronym>BIND</acronym> version
 8 in May 1997.</para>
+	<para>
+	  BIND version 9 was released in September 2000 and is a
+	  major rewrite of nearly all aspects of the underlying
+	  BIND architecture.
+	  </para>
+	  <para>
+	  BIND version 4 is officially deprecated and BIND version
+	  8 development is considered maintenance-only in favor
+	  of BIND version 9. No additional development is done
+	  on BIND version 4 or BIND version 8 other than for
+	  security-related patches.
+	</para>
       <para><acronym>BIND</acronym> development work is made possible today by the sponsorship
 of several corporations, and by the tireless work efforts of numerous
 individuals.</para>
