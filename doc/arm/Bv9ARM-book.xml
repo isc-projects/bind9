@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.71 2007/05/16 01:45:31 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.72 2007/05/16 04:36:19 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -464,7 +464,7 @@
         <title>Caching Name Servers</title>
 
 	<!--
-	  - Terminology here is inconsistant.  Probably ought to
+	  - Terminology here is inconsistent.  Probably ought to
 	  - convert to using "recursive name server" everywhere
 	  - with just a note about "caching" terminology.
 	  -->
@@ -955,12 +955,15 @@ zone "eng.example.com" {
                 </para>
                 <cmdsynopsis label="Usage">
                   <command>host</command>
-                  <arg>-aCdlrTwv</arg>
+                  <arg>-aCdlnrsTwv</arg>
                   <arg>-c <replaceable>class</replaceable></arg>
                   <arg>-N <replaceable>ndots</replaceable></arg>
                   <arg>-t <replaceable>type</replaceable></arg>
                   <arg>-W <replaceable>timeout</replaceable></arg>
                   <arg>-R <replaceable>retries</replaceable></arg>
+                  <arg>-m <replaceable>flag</replaceable></arg>
+		  <arg>-4</arg>
+		  <arg>-6</arg>
                   <arg choice="plain"><replaceable>hostname</replaceable></arg>
                   <arg><replaceable>server</replaceable></arg>
                 </cmdsynopsis>
@@ -1740,7 +1743,7 @@ controls {
 	However, since listing addresses of internal servers that
         external clients cannot possibly reach can result in
         connection delays and other annoyances, an organization may
-        choose to use a Split DNS to present a consistant view of itself
+        choose to use a Split DNS to present a consistent view of itself
         to the outside world.
       </para>
       <para>
@@ -2399,7 +2402,7 @@ allow-update { key host1-host2. ;};
         <para><command>dnssec-signzone</command>
 	  will also produce a keyset and dsset files and optionally a
           dlvset file.  These are used to provide the parent zone
-          administators with the <literal>DNSKEYs</literal> (or their
+          administrators with the <literal>DNSKEYs</literal> (or their
           corresponding <literal>DS</literal> records) that are the
           secure entry point to the zone.
         </para>
@@ -3646,7 +3649,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	  <literal>hmac-sha256</literal>, <literal>hmac-sha384</literal>
 	  and <literal>hmac-sha512</literal> TSIG authentication.
 	  Truncated hashes are supported by appending the minimum
-	  number of required bits preceeded by a dash, e.g.
+	  number of required bits preceded by a dash, e.g.
 	  <literal>hmac-sha1-80</literal>.  The
 	  <replaceable>secret_string</replaceable> is the secret
 	  to be used by the algorithm, and is treated as a base-64
@@ -5605,7 +5608,7 @@ options {
 		  MX and SRV records only in-zone hostnames are
 		  checked (for out-of-zone hostnames use named-checkzone).
 		  For NS records only names below top of zone are
-		  checked (for out-of-zone names and glue consistancy
+		  checked (for out-of-zone names and glue consistency
 		  checks use named-checkzone).  The default is
 		  <command>yes</command>.
 		</para>
@@ -5829,6 +5832,8 @@ options {
 		  from the cache. The default is the builtin acls
 		  <command>localnets</command> and
 		  <command>localhost</command>.
+
+		  <!-- The way to set query access to the cache is now via allow-query-cache. This differs from earlier versions which used allow-query. -->
 		</para>
 		<para>
 		  The way to set query access to the cache is now
@@ -7265,7 +7270,7 @@ query-source-v6 address * port *;
 	    Named has some built-in empty zones (SOA and NS records only).
 	    These are for zones that should normally be answered locally
 	    and which queries should not be sent to the Internet's root
-	    servers.  The offical servers which cover these namespaces
+	    servers.  The official servers which cover these namespaces
 	    return NXDOMAIN responses to these queries.  In particular,
 	    these cover the reverse namespace for addresses from RFC 1918 and
 	    RFC 3330.  They also include the reverse namespace for IPv6 local
@@ -8714,6 +8719,16 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                   <para>
                     See the description of
                     <command>notify</command> in <xref linkend="boolean_options"/>.
+                  </para>
+                </listitem>
+              </varlistentry>
+
+              <varlistentry>
+                <term><command>notify-delay</command></term>
+                <listitem>
+                  <para>
+                    See the description of
+                    <command>notify-delay</command> in <xref linkend="tuning"/>.
                   </para>
                 </listitem>
               </varlistentry>
@@ -10260,7 +10275,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
           <note>
             <para>
               The <command>$ORIGIN</command> lines in the examples
-              are for providing context to the examples only-they do not
+              are for providing context to the examples only &mdash; they do not
               necessarily
               appear in the actual usage. They are only used here to indicate
               that the example is relative to the listed origin.
@@ -10887,7 +10902,7 @@ zone "example.com" {
             during that time: Doug Kingston, Craig Partridge, Smoot
             Carl-Mitchell,
             Mike Muuss, Jim Bloom and Mike Schwartz. <acronym>BIND</acronym> maintenance was subsequently
-            handled by Mike Karels and O. Kure.
+            handled by Mike Karels and &#216;ivind Kure.
           </para>
           <para>
             <acronym>BIND</acronym> versions 4.9 and 4.9.1 were
@@ -10912,9 +10927,24 @@ zone "example.com" {
             have been developed and maintained
             by the Internet Systems Consortium and its predecessor,
             the Internet Software Consortium,  with support being provided
-            by ISC's sponsors. As co-architects/programmers, Bob Halley and
+            by ISC's sponsors.
+          </para>
+	  <para>
+	    As co-architects/programmers, Bob Halley and
             Paul Vixie released the first production-ready version of
 	    <acronym>BIND</acronym> version 8 in May 1997.
+          </para>
+	  <para>
+	    BIND version 9 was released in September 2000 and is a
+	    major rewrite of nearly all aspects of the underlying
+	    BIND architecture.
+          </para>
+          <para>
+	    BIND version 4 is officially deprecated and BIND version
+	    8 development is considered maintenance-only in favor
+	    of BIND version 9. No additional development is done
+	    on BIND version 4 or BIND version 8 other than for
+	    security-related patches.
           </para>
           <para>
             <acronym>BIND</acronym> development work is made
