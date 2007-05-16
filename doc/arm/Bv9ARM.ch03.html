@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch03.html,v 1.35.18.27 2007/05/08 02:30:10 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch03.html,v 1.35.18.28 2007/05/16 06:11:28 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -54,7 +54,7 @@
 <dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2568465">Name Server Operations</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2568470">Tools for Use With the Name Server Daemon</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2570104">Signals</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2570116">Signals</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -336,7 +336,7 @@ zone "eng.example.com" {
                   functionality
                   can be extended with the use of options.
                 </p>
-<div class="cmdsynopsis"><p><code class="command">host</code>  [-aCdlrTwv] [-c <em class="replaceable"><code>class</code></em>] [-N <em class="replaceable"><code>ndots</code></em>] [-t <em class="replaceable"><code>type</code></em>] [-W <em class="replaceable"><code>timeout</code></em>] [-R <em class="replaceable"><code>retries</code></em>]  <em class="replaceable"><code>hostname</code></em>  [<em class="replaceable"><code>server</code></em>]</p></div>
+<div class="cmdsynopsis"><p><code class="command">host</code>  [-aCdlnrsTwv] [-c <em class="replaceable"><code>class</code></em>] [-N <em class="replaceable"><code>ndots</code></em>] [-t <em class="replaceable"><code>type</code></em>] [-W <em class="replaceable"><code>timeout</code></em>] [-R <em class="replaceable"><code>retries</code></em>] [-m <em class="replaceable"><code>flag</code></em>] [-4] [-6]  <em class="replaceable"><code>hostname</code></em>  [<em class="replaceable"><code>server</code></em>]</p></div>
 <p>
                   For more information and a list of available commands and
                   options, see the <span><strong class="command">host</strong></span> man
@@ -739,7 +739,7 @@ controls {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2570104"></a>Signals</h3></div></div></div>
+<a name="id2570116"></a>Signals</h3></div></div></div>
 <p>
           Certain UNIX signals cause the name server to take specific
           actions, as described in the following table.  These signals can
