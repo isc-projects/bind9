@@ -1,3 +1,5 @@
+2181.	[port]		sunos: libbind: add paths.h from BIND 8. [RT #16462]
+
 2177.	[bug]		Array bounds overrun on read (rcodetext). [RT #16798]
 
 2176.	[contrib]	dbus update to handle race condition during
