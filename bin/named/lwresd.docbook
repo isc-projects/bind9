@@ -1,5 +1,5 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
-               "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd"
+	       "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd"
 	       [<!ENTITY mdash "&#8212;">]>
 <!--
  - Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: lwresd.docbook,v 1.6.2.7 2007/05/09 02:11:44 marka Exp $ -->
+<!-- $Id: lwresd.docbook,v 1.6.2.8 2007/05/16 02:07:45 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -53,6 +53,7 @@
   <refsynopsisdiv>
     <cmdsynopsis>
       <command>lwresd</command>
+      <arg><option>-c <replaceable class="parameter">config-file</replaceable></option></arg>
       <arg><option>-C <replaceable class="parameter">config-file</replaceable></option></arg>
       <arg><option>-d <replaceable class="parameter">debug-level</replaceable></option></arg>
       <arg><option>-f</option></arg>
@@ -109,14 +110,27 @@
 
     <variablelist>
       <varlistentry>
+	<term>-c <replaceable class="parameter">config-file</replaceable></term>
+	<listitem>
+	  <para>
+	    Use <replaceable class="parameter">config-file</replaceable> as the
+	    configuration file instead of the default,
+	    <filename>/etc/lwresd.conf</filename>.
+	    <!-- Should this be an absolute path name? -->
+	    <term>-c</term> can not be used with <term>-C</term>.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
 	<term>-C <replaceable class="parameter">config-file</replaceable></term>
 	<listitem>
 	  <para>
-		Use <replaceable
-		class="parameter">config-file</replaceable> as the
-		configuration file instead of the default,
-		<filename>/etc/resolv.conf</filename>.
-          </para>
+	    Use <replaceable class="parameter">config-file</replaceable> as the
+	    configuration file instead of the default,
+	    <filename>/etc/resolv.conf</filename>.
+	    <term>-C</term> can not be used with <term>-c</term>.
+	  </para>
 	</listitem>
       </varlistentry>
 
@@ -128,7 +142,7 @@
 		class="parameter">debug-level</replaceable>.
 		Debugging traces from <command>lwresd</command> become
 		more verbose as the debug level increases.
-          </para>
+	  </para>
 	</listitem>
       </varlistentry>
 
@@ -137,7 +151,7 @@
 	<listitem>
 	  <para>
 		Run the server in the foreground (i.e. do not daemonize).
-          </para>
+	  </para>
 	</listitem>
       </varlistentry>
 
@@ -147,9 +161,20 @@
 	  <para>
 		Run the server in the foreground and force all logging
 		to <filename>stderr</filename>.
-          </para>
+	  </para>
 	</listitem>
       </varlistentry>
+
+      <varlistentry>
+	 <term>-i <replaceable class="parameter">pid-file</replaceable></term>
+	 <listitem>
+	   <para>
+	     Use <replaceable class="parameter">pid-file</replaceable> as the
+	     PID file instead of the default,
+	     <filename>/var/run/lwresd.pid</filename>.
+	   </para>
+	 </listitem>
+       </varlistentry>
 
       <varlistentry>
 	<term>-n <replaceable class="parameter">#cpus</replaceable></term>
@@ -162,7 +187,7 @@
 		number of CPUs present and create one thread per CPU.
 		If it is unable to determine the number of CPUs, a
 		single worker thread will be created.
-          </para>
+	  </para>
 	</listitem>
       </varlistentry>
 
@@ -173,7 +198,7 @@
 		Listen for lightweight resolver queries on port
 		<replaceable class="parameter">port</replaceable>.  If
 		not specified, the default is port 921.
-          </para>
+	  </para>
 	</listitem>
       </varlistentry>
 
@@ -187,7 +212,7 @@
 		way of testing the lightweight resolver daemon with a
 		name server that listens for queries on a non-standard
 		port number.
-          </para>
+	  </para>
 	</listitem>
       </varlistentry>
 
@@ -197,7 +222,7 @@
 	  <para>
 		Write memory usage statistics to <filename>stdout</filename>
 		on exit.
-          </para>
+	  </para>
 	  <note>
 	    <para>
 		This option is mainly of interest to BIND 9 developers
@@ -215,7 +240,7 @@
 		class="parameter">directory</replaceable> after
 		processing the command line arguments, but before
 		reading the configuration file.
-          </para>
+	  </para>
 	  <warning>
 	    <para>
 		This option should be used in conjunction with the
@@ -237,7 +262,7 @@
 		class="parameter">user</replaceable> after completing
 		privileged operations, such as creating sockets that
 		listen on privileged ports.
-          </para>
+	  </para>
 	</listitem>
       </varlistentry>
 
@@ -246,7 +271,7 @@
 	<listitem>
 	  <para>
 		Report the version number and exit.
-          </para>
+	  </para>
 	</listitem>
       </varlistentry>
 
@@ -264,7 +289,7 @@
 	<listitem>
 	  <para>
 		The default configuration file.
-          </para>
+	  </para>
 	</listitem>
       </varlistentry>
 
@@ -273,7 +298,7 @@
 	<listitem>
 	  <para>
 		The default process-id file.
-          </para>
+	  </para>
 	</listitem>
       </varlistentry>
 
@@ -287,15 +312,15 @@
 	<citerefentry>
 	  <refentrytitle>named</refentrytitle>
 	  <manvolnum>8</manvolnum>
-        </citerefentry>,
+	</citerefentry>,
 	<citerefentry>
 	  <refentrytitle>lwres</refentrytitle>
 	  <manvolnum>3</manvolnum>
-        </citerefentry>,
+	</citerefentry>,
 	<citerefentry>
 	  <refentrytitle>resolver</refentrytitle>
 	  <manvolnum>5</manvolnum>
-        </citerefentry>.
+	</citerefentry>.
     </para>
   </refsect1>
 

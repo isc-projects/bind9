@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.55 2007/05/08 01:44:07 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.56 2007/05/16 02:07:45 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -4401,7 +4401,7 @@ used to share information about various systems databases, such
 as users, groups, printers and so on. The keyword 
 <literal>HS</literal> is
 a synonym for hesiod.</para>
-<para>Another MIT development is CHAOSnet, a LAN protocol created
+<para>Another MIT development is Chaosnet, a LAN protocol created
 in the mid-1970s. Zone data for it can be specified with the <literal>CHAOS</literal> class.</para></sect3>
 <sect3>
 
@@ -5559,7 +5559,7 @@ hesiod.</para>
       <sect3>
         <title>CH = chaos</title>
         <para>The <command>chaos</command> class is used to specify zone
-data for the MIT-developed CHAOSnet, a LAN protocol created in the
+data for the MIT-developed Chaosnet, a LAN protocol created in the
 mid-1970s.</para>
       </sect3>
     </sect2>
