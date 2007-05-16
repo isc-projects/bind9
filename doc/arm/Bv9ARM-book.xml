@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.57 2007/05/16 04:50:39 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.58 2007/05/16 06:15:11 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -5538,7 +5538,7 @@ Vixie became <acronym>BIND</acronym>'s principal architect/programmer.</para>
 by the Internet Software Consortium with support being provided
 by ISC's sponsors.
       </para>
-      <para As co-architects/programmers, Bob Halley and
+      <para>As co-architects/programmers, Bob Halley and
 Paul Vixie released the first production-ready version of <acronym>BIND</acronym> version
 8 in May 1997.</para>
 	<para>
