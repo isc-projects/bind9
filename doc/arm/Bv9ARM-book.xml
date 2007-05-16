@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.70 2007/05/08 07:11:57 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.71 2007/05/16 01:45:31 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -8385,7 +8385,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
               a synonym for hesiod.
             </para>
             <para>
-              Another MIT development is CHAOSnet, a LAN protocol created
+              Another MIT development is Chaosnet, a LAN protocol created
               in the mid-1970s. Zone data for it can be specified with the <literal>CHAOS</literal> class.
             </para>
           </sect3>
@@ -9680,7 +9680,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                     </entry>
                     <entry colname="2">
                       <para>
-                        CHAOSnet, a LAN protocol created at MIT in the
+                        Chaosnet, a LAN protocol created at MIT in the
                         mid-1970s.
                         Rarely used for its historical purpose, but reused for
                         BIND's

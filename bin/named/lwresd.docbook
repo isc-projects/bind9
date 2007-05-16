@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: lwresd.docbook,v 1.7.18.6 2007/05/09 01:38:19 marka Exp $ -->
+<!-- $Id: lwresd.docbook,v 1.7.18.7 2007/05/16 01:45:31 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>June 30, 2000</date>
@@ -52,11 +52,13 @@
   <refsynopsisdiv>
     <cmdsynopsis>
       <command>lwresd</command>
+      <arg><option>-c <replaceable class="parameter">config-file</replaceable></option></arg>
       <arg><option>-C <replaceable class="parameter">config-file</replaceable></option></arg>
       <arg><option>-d <replaceable class="parameter">debug-level</replaceable></option></arg>
       <arg><option>-f</option></arg>
       <arg><option>-g</option></arg>
       <arg><option>-i <replaceable class="parameter">pid-file</replaceable></option></arg>
+      <arg><option>-m <replaceable class="parameter">flag</replaceable></option></arg>
       <arg><option>-n <replaceable class="parameter">#cpus</replaceable></option></arg>
       <arg><option>-P <replaceable class="parameter">port</replaceable></option></arg>
       <arg><option>-p <replaceable class="parameter">port</replaceable></option></arg>
@@ -64,6 +66,8 @@
       <arg><option>-t <replaceable class="parameter">directory</replaceable></option></arg>
       <arg><option>-u <replaceable class="parameter">user</replaceable></option></arg>
       <arg><option>-v</option></arg>
+      <arg><option>-4</option></arg>
+      <arg><option>-6</option></arg>
     </cmdsynopsis>
   </refsynopsisdiv>
 
@@ -109,6 +113,43 @@
     <title>OPTIONS</title>
 
     <variablelist>
+
+      <varlistentry>
+        <term>-4</term>
+        <listitem>
+          <para>
+            Use IPv4 only even if the host machine is capable of IPv6.
+            <option>-4</option> and <option>-6</option> are mutually
+            exclusive.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-6</term>
+        <listitem>
+          <para>
+            Use IPv6 only even if the host machine is capable of IPv4.
+            <option>-4</option> and <option>-6</option> are mutually
+            exclusive.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <!-- this is in source but not mentioned? does this matter? -->
+      <varlistentry>
+        <term>-c <replaceable class="parameter">config-file</replaceable></term>
+        <listitem>
+          <para>
+            Use <replaceable class="parameter">config-file</replaceable> as the
+            configuration file instead of the default,
+            <filename>/etc/lwresd.conf</filename>.
+	    <!-- Should this be an absolute path name? -->
+	    <term>-c</term> can not be used with <term>-C</term>.
+          </para>
+        </listitem>
+      </varlistentry>
+
       <varlistentry>
         <term>-C <replaceable class="parameter">config-file</replaceable></term>
         <listitem>
@@ -116,6 +157,7 @@
             Use <replaceable class="parameter">config-file</replaceable> as the
             configuration file instead of the default,
             <filename>/etc/resolv.conf</filename>.
+	    <term>-C</term> can not be used with <term>-c</term>.
           </para>
         </listitem>
       </varlistentry>
@@ -146,6 +188,33 @@
           <para>
             Run the server in the foreground and force all logging
             to <filename>stderr</filename>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-i <replaceable class="parameter">pid-file</replaceable></term>
+        <listitem>
+          <para>
+            Use <replaceable class="parameter">pid-file</replaceable> as the
+            PID file instead of the default,
+            <filename>/var/run/lwresd.pid</filename>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-m <replaceable class="parameter">flag</replaceable></term>
+        <listitem>
+          <para>
+            Turn on memory usage debugging flags.  Possible flags are
+            <replaceable class="parameter">usage</replaceable>,
+            <replaceable class="parameter">trace</replaceable>,
+            <replaceable class="parameter">record</replaceable>,
+            <replaceable class="parameter">size</replaceable>, and
+            <replaceable class="parameter">mctx</replaceable>.  
+            These correspond to the ISC_MEM_DEBUGXXXX flags described in
+            <filename>&lt;isc/mem.h&gt;</filename>.
           </para>
         </listitem>
       </varlistentry>
