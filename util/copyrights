@@ -64,7 +64,7 @@
 ./bin/dnssec/dnssec-keygen.docbook		SGML	2000,2001,2002,2003,2004,2005,2007
 ./bin/dnssec/dnssec-keygen.html			HTML	DOCBOOK
 ./bin/dnssec/dnssec-signzone.8			MAN	DOCBOOK
-./bin/dnssec/dnssec-signzone.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006
+./bin/dnssec/dnssec-signzone.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./bin/dnssec/dnssec-signzone.docbook		SGML	2000,2001,2002,2003,2004,2005,2006,2007
 ./bin/dnssec/dnssec-signzone.html		HTML	DOCBOOK
 ./bin/dnssec/dnssectool.c			C	2000,2001,2003,2004,2005
@@ -1318,8 +1318,8 @@
 ./lib/bind/bsd/strtoul.c			X	2001,2003,2005
 ./lib/bind/bsd/utimes.c				X	2001,2004,2005
 ./lib/bind/bsd/writev.c				X	2001,2003,2005
-./lib/bind/config.h.in				X	2001,2003,2004,2005,2006
-./lib/bind/configure				X	2001,2002,2003,2004,2005,2006
+./lib/bind/config.h.in				X	2001,2003,2004,2005,2006,2007
+./lib/bind/configure				X	2001,2002,2003,2004,2005,2006,2007
 ./lib/bind/configure.in				SH	2001,2003,2004,2005,2006,2007
 ./lib/bind/dst/.cvsignore			X	2001
 ./lib/bind/dst/Makefile.in			MAKE	2001,2004
@@ -1451,7 +1451,7 @@
 ./lib/bind/isc/base64.c				X	2001,2004,2005
 ./lib/bind/isc/bitncmp.c			X	2001,2004,2005
 ./lib/bind/isc/bitncmp.mdoc			X	2001,2004
-./lib/bind/isc/ctl_clnt.c			X	2001,2003,2004,2005
+./lib/bind/isc/ctl_clnt.c			X	2001,2003,2004,2005,2007
 ./lib/bind/isc/ctl_p.c				X	2001,2004,2005
 ./lib/bind/isc/ctl_p.h				X	2001,2005
 ./lib/bind/isc/ctl_srvr.c			X	2001,2003,2004,2005,2006
@@ -1751,7 +1751,7 @@
 ./lib/dns/diff.c				C	2000,2001,2002,2003,2004,2005
 ./lib/dns/dispatch.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/dlz.c					C.PORTION	1999,2000,2001,2005
-./lib/dns/dnssec.c				C	1999,2000,2001,2002,2003,2004,2005,2006
+./lib/dns/dnssec.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/ds.c					C	2002,2003,2004,2005,2006
 ./lib/dns/dst_api.c				C.NAI	1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/dst_internal.h			C.NAI	2000,2001,2002,2004,2005,2006
