@@ -1,3 +1,6 @@
+2185.	[port]		sunos: libbind: check for ssize_t, memmove() and
+			memchr(). [RT #16463]
+
 2183.	[bug]		dnssec-signzone didn't handle offline private keys
 			well.  [RT #16832]
 
