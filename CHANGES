@@ -1,3 +1,6 @@
+2184.	[bug]		bind9.xsl.h didn't build out of the source tree.
+			[RT #16830]
+
 2183.	[bug]		dnssec-signzone didn't handle offline private keys
 			well.  [RT #16832]
 
