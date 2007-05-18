@@ -1,3 +1,6 @@
+2185.	[port]		sunos: libbind: check for ssize_t, memmove() and
+			memchr(). [RT #16463]
+
 2182.	[bug]		dns_dispatch_createtcp() and dispatch_createudp()
 			could return ISC_R_SUCCESS when they ran out of
 			memory. [RT #16365]
