@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.109.18.19 2006/03/06 01:38:00 marka Exp $ */
+/* $Id: update.c,v 1.109.18.20 2007/05/18 05:59:26 marka Exp $ */
 
 #include <config.h>
 
@@ -1674,6 +1674,9 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		
 		if (check_ksk && type != dns_rdatatype_dnskey &&
 		    (dst_key_flags(keys[i]) & DNS_KEYFLAG_KSK) != 0)
+			continue;
+
+		if (!dst_key_isprivate(keys[i]))
 			continue;
 		
 		/* Calculate the signature, creating a RRSIG RDATA. */

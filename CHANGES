@@ -1,3 +1,6 @@
+2183.	[bug]		dnssec-signzone didn't handle offline private keys
+			well.  [RT #16832]
+
 2182.	[bug]		dns_dispatch_createtcp() and dispatch_createudp()
 			could return ISC_R_SUCCESS when they ran out of
 			memory. [RT #16365]
