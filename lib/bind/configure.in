@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.83.2.5.2.34 $)
+AC_REVISION($Revision: 1.83.2.5.2.35 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -882,33 +882,30 @@ $isc_netinet6in6_hack
 			 ISC_PLATFORM_HAVEIN6PKTINFO="#define ISC_PLATFORM_HAVEIN6PKTINFO 1"],
 			[AC_MSG_RESULT(no -- disabling runtime ipv6 support)
 			 ISC_PLATFORM_HAVEIN6PKTINFO="#undef ISC_PLATFORM_HAVEIN6PKTINFO"])
-
-		AC_MSG_CHECKING(for sockaddr_storage)
-		AC_TRY_COMPILE([
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-$isc_netinetin6_hack
-$isc_netinet6in6_hack
-],
-		[struct sockaddr_storage xyzzy; return (0);],
-			[AC_MSG_RESULT(yes)
-			 HAVE_SOCKADDR_STORAGE="#define HAVE_SOCKADDR_STORAGE 1"],
-			[AC_MSG_RESULT(no)
-			 HAVE_SOCKADDR_STORAGE="#undef HAVE_SOCKADDR_STORAGE"])
 		;;
 	no)
 		HAS_INET6_STRUCTS="#undef HAS_INET6_STRUCTS"
 		NEED_IN6ADDR_ANY="#undef NEED_IN6ADDR_ANY"
 		ISC_PLATFORM_HAVEIN6PKTINFO="#undef ISC_PLATFORM_HAVEIN6PKTINFO"
 		HAVE_SIN6_SCOPE_ID="#define HAVE_SIN6_SCOPE_ID 1"
-		HAVE_SOCKADDR_STORAGE="#undef HAVE_SOCKADDR_STORAGE"
 		ISC_IPV6_H="ipv6.h"
 		ISC_IPV6_O="ipv6.$O"
 		ISC_ISCIPV6_O="unix/ipv6.$O"
 		ISC_IPV6_C="ipv6.c"
 		;;
 esac
+
+AC_MSG_CHECKING(for sockaddr_storage)
+AC_TRY_COMPILE([
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+],
+[struct sockaddr_storage xyzzy; return (0);],
+	[AC_MSG_RESULT(yes)
+	 HAVE_SOCKADDR_STORAGE="#define HAVE_SOCKADDR_STORAGE 1"],
+	[AC_MSG_RESULT(no)
+	 HAVE_SOCKADDR_STORAGE="#undef HAVE_SOCKADDR_STORAGE"])
 
 AC_SUBST(HAS_INET6_STRUCTS)
 AC_SUBST(ISC_PLATFORM_NEEDNETINETIN6H)
