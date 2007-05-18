@@ -1183,8 +1183,8 @@
 ./lib/bind/bsd/strtoul.c			X	2001,2003
 ./lib/bind/bsd/utimes.c				X	2001,2004
 ./lib/bind/bsd/writev.c				X	2001,2003
-./lib/bind/config.h.in				X	2001,2003,2004,2005,2006
-./lib/bind/configure				X	2001,2002,2003,2004,2005,2006
+./lib/bind/config.h.in				X	2001,2003,2004,2005,2006,2007
+./lib/bind/configure				X	2001,2002,2003,2004,2005,2006,2007
 ./lib/bind/configure.in				SH	2001,2002,2003,2004,2005,2006,2007
 ./lib/bind/dst/.cvsignore			X	2001
 ./lib/bind/dst/Makefile.in			MAKE	2001,2004
@@ -1316,7 +1316,7 @@
 ./lib/bind/isc/base64.c				X	2001,2004
 ./lib/bind/isc/bitncmp.c			X	2001,2004
 ./lib/bind/isc/bitncmp.mdoc			X	2001,2004
-./lib/bind/isc/ctl_clnt.c			X	2001,2003,2004
+./lib/bind/isc/ctl_clnt.c			X	2001,2003,2004,2007
 ./lib/bind/isc/ctl_p.c				X	2001,2004
 ./lib/bind/isc/ctl_p.h				X	2001
 ./lib/bind/isc/ctl_srvr.c			X	2001,2003,2004,2006
@@ -1561,7 +1561,7 @@
 ./lib/bind/port/unknown/include/.cvsignore	X	2001
 ./lib/bind/port/unknown/include/Makefile.in	MAKE	2001,2004,2005
 ./lib/bind/port_after.h.in			X	2001,2002,2003,2004,2005,2006
-./lib/bind/port_before.h.in			X	2001,2002,2005,2006
+./lib/bind/port_before.h.in			X	2001,2002,2005,2006,2007
 ./lib/bind/resolv/.cvsignore			X	2001
 ./lib/bind/resolv/Makefile.in			MAKE	2001,2004,2005
 ./lib/bind/resolv/herror.c			X	2001,2004
