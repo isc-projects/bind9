@@ -1,3 +1,7 @@
+2182.	[bug]		dns_dispatch_createtcp() and dispatch_createudp()
+			could return ISC_R_SUCCESS when they ran out of
+			memory. [RT #16365]
+
 2181.	[port]		sunos: libbind: add paths.h from BIND 8. [RT #16462]
 
 2180.	[cleanup]	Remove bit test from 'compress_test' as they

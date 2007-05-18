@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.131 2007/02/13 02:49:08 marka Exp $ */
+/* $Id: dispatch.c,v 1.132 2007/05/18 05:30:23 marka Exp $ */
 
 /*! \file */
 
@@ -1643,8 +1643,10 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 					    DNS_EVENT_DISPATCHCONTROL,
 					    destroy_disp, disp,
 					    sizeof(isc_event_t));
-	if (disp->ctlevent == NULL)
+	if (disp->ctlevent == NULL) {
+		result = ISC_R_NOMEMORY;
 		goto kill_task;
+	}
 
 	isc_task_setname(disp->task, "tcpdispatch", disp);
 
@@ -1850,8 +1852,10 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 					    DNS_EVENT_DISPATCHCONTROL,
 					    destroy_disp, disp,
 					    sizeof(isc_event_t));
-	if (disp->ctlevent == NULL)
+	if (disp->ctlevent == NULL) {
+		result = ISC_R_NOMEMORY;
 		goto kill_task;
+	}
 
 	isc_task_setname(disp->task, "udpdispatch", disp);
 
