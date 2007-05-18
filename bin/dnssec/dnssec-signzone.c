@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.139.2.2.4.23 2006/01/04 23:50:19 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.139.2.2.4.24 2007/05/18 05:58:49 marka Exp $ */
 
 #include <config.h>
 
@@ -1382,7 +1382,7 @@ loadzonekeys(dns_db_t *db) {
 	for (i = 0; i < nkeys; i++) {
 		signer_key_t *key;
 
-		key = newkeystruct(keys[i], ISC_TRUE);
+		key = newkeystruct(keys[i], dst_key_isprivate(keys[i]));
 		ISC_LIST_APPEND(keylist, key, link);
 	}
 	dns_db_detachnode(db, &node);

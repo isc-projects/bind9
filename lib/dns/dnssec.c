@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.69.2.5.2.9 2006/01/04 23:50:20 marka Exp $
+ * $Id: dnssec.c,v 1.69.2.5.2.10 2007/05/18 05:58:49 marka Exp $
  */
 
 
@@ -530,6 +530,9 @@ dns_dnssec_findzonekeys2(dns_db_t *db, dns_dbversion_t *ver,
 	dst_key_t *pubkey = NULL;
 	unsigned int count = 0;
 
+	REQUIRE(nkeys != NULL);
+	REQUIRE(keys != NULL);
+
 	*nkeys = 0;
 	dns_rdataset_init(&rdataset);
 	RETERR(dns_db_findrdataset(db, node, ver, dns_rdatatype_dnskey, 0, 0,
@@ -539,7 +542,8 @@ dns_dnssec_findzonekeys2(dns_db_t *db, dns_dbversion_t *ver,
 		pubkey = NULL;
 		dns_rdataset_current(&rdataset, &rdata);
 		RETERR(dns_dnssec_keyfromrdata(name, &rdata, mctx, &pubkey));
-		if (!is_zone_key(pubkey))
+		if (!is_zone_key(pubkey) ||
+		    (dst_key_flags(pubkey) & DNS_KEYTYPE_NOAUTH) != 0)
 			goto next;
 		keys[count] = NULL;
 		result = dst_key_fromfile(dst_key_name(pubkey),
@@ -548,17 +552,23 @@ dns_dnssec_findzonekeys2(dns_db_t *db, dns_dbversion_t *ver,
 					  DST_TYPE_PUBLIC|DST_TYPE_PRIVATE,
 					  directory,
 					  mctx, &keys[count]);
-		if (result == ISC_R_FILENOTFOUND)
+		if (result == ISC_R_FILENOTFOUND) {
+			keys[count] = pubkey;
+			pubkey = NULL;
+			count++;
 			goto next;
+		}
 		if (result != ISC_R_SUCCESS)
 			goto failure;
 		if ((dst_key_flags(keys[count]) & DNS_KEYTYPE_NOAUTH) != 0) {
+			/* We should never get here. */
 			dst_key_free(&keys[count]);
 			goto next;
 		}
 		count++;
  next:
-		dst_key_free(&pubkey);
+		if (pubkey != NULL)
+			dst_key_free(&pubkey);
 		dns_rdata_reset(&rdata);
 		result = dns_rdataset_next(&rdataset);
 	}
@@ -574,6 +584,9 @@ dns_dnssec_findzonekeys2(dns_db_t *db, dns_dbversion_t *ver,
 		dns_rdataset_disassociate(&rdataset);
 	if (pubkey != NULL)
 		dst_key_free(&pubkey);
+	if (result != ISC_R_SUCCESS)
+		while (count > 0)
+			dst_key_free(&keys[--count]);
 	*nkeys = count;
 	return (result);
 }

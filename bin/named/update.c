@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.88.2.5.2.29 2006/01/06 00:01:42 marka Exp $ */
+/* $Id: update.c,v 1.88.2.5.2.30 2007/05/18 05:58:49 marka Exp $ */
 
 #include <config.h>
 
@@ -1631,6 +1631,8 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	dns_db_detachnode(db, &node);
 
 	for (i = 0; i < nkeys; i++) {
+		if (!dst_key_isprivate(keys[i]))
+			continue;
 		/* Calculate the signature, creating a RRSIG RDATA. */
 		CHECK(dns_dnssec_sign(name, &rdataset, keys[i],
 				      &inception, &expire,
