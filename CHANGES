@@ -1,3 +1,6 @@
+2186.	[port]		cygwin: libbind: check for struct sockaddr_storage
+			independently of IPv6. [RT #16482]
+
 2185.	[port]		sunos: libbind: check for ssize_t, memmove() and
 			memchr(). [RT #16463]
 
