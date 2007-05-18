@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: port_before.h.in,v 1.25 2007/01/09 03:11:15 marka Exp $ */
+/* $Id: port_before.h.in,v 1.26 2007/05/18 06:22:03 marka Exp $ */
 
 #ifndef port_before_h
 #define port_before_h
@@ -31,6 +31,16 @@ struct timezone;        /* silence warning */
 #endif
 #include <limits.h>
 
+#ifdef ISC_PLATFORM_NEEDTIMESPEC
+#include <time.h>		/* For time_t */
+struct timespec {
+        time_t  tv_sec;         /* seconds */
+        long    tv_nsec;        /* nanoseconds */
+};
+#endif
+#ifndef HAVE_MEMMOVE
+#define memmove(a,b,c) bcopy(b,a,c)
+#endif
 
 @WANT_IRS_GR@
 @WANT_IRS_NIS@

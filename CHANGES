@@ -1,3 +1,6 @@
+2185.	[port]		sunos: libbind: check for ssize_t, memmove() and
+			memchr(). [RT #16463]
+
 2184.	[bug]		bind9.xsl.h didn't build out of the source tree.
 			[RT #16830]
 
