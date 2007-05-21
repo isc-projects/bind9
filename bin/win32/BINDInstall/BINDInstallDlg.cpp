@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.cpp,v 1.29 2007/04/30 23:46:55 tbox Exp $ */
+/* $Id: BINDInstallDlg.cpp,v 1.30 2007/05/21 03:42:00 marka Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -113,29 +113,7 @@ const FileData installFiles[] =
 	{"msvcrt.dll", FileData::WinSystem, FileData::Critical, TRUE},
 #  endif
 #endif
-#if _MSC_VER >= 1400
-	{"MFC80CHS.dll", FileData::BinDir, FileData::Critical, FALSE},
-	{"MFC80CHT.dll", FileData::BinDir, FileData::Critical, FALSE},
-	{"MFC80DEU.dll", FileData::BinDir, FileData::Critical, FALSE},
-	{"MFC80ENU.dll", FileData::BinDir, FileData::Critical, FALSE},
-	{"MFC80ESP.dll", FileData::BinDir, FileData::Critical, FALSE},
-	{"MFC80FRA.dll", FileData::BinDir, FileData::Critical, FALSE},
-	{"MFC80ITA.dll", FileData::BinDir, FileData::Critical, FALSE},
-	{"MFC80JPN.dll", FileData::BinDir, FileData::Critical, FALSE},
-	{"MFC80KOR.dll", FileData::BinDir, FileData::Critical, FALSE},
-	{"Microsoft.VC80.MFCLOC.manifest", FileData::BinDir, FileData::Critical, FALSE},
-#endif
-#if _MSC_VER >= 1400
-	{"mfc80.dll", FileData::BinDir, FileData::Critical, FALSE},
-	{"mfc80u.dll", FileData::BinDir, FileData::Critical, FALSE},
-	{"mfcm80.dll", FileData::BinDir, FileData::Critical, FALSE},
-	{"mfcm80u.dll", FileData::BinDir, FileData::Critical, FALSE},
-	{"Microsoft.VC80.MFC.manifest", FileData::BinDir, FileData::Critical, FALSE},
-	{"msvcm80.dll", FileData::BinDir, FileData::Critical, FALSE},
-	{"msvcp80.dll", FileData::BinDir, FileData::Critical, FALSE},
-	{"msvcr80.dll", FileData::BinDir, FileData::Critical, FALSE},
-	{"Microsoft.VC80.CRT.manifest", FileData::BinDir, FileData::Critical, FALSE},
-#elif _MSC_VER >= 1310
+#if _MSC_VER < 1400 && _MSC_VER >= 1310
 	{"mfc71.dll", FileData::WinSystem, FileData::Critical, TRUE},
 	{"msvcr71.dll", FileData::WinSystem, FileData::Critical, TRUE},
 #elif _MSC_VER > 1200
@@ -493,6 +471,15 @@ void CBINDInstallDlg::OnInstall() {
 
 	ProgramGroup(FALSE);
 
+#if _MSC_VER >= 1400
+	/*
+	 * Install Visual Studio libraries. 
+	 * vcredist_x86.exe /Q:a /c:"msiexec.exe /qn /i vcredist.msi"
+	 * /Q:a install silently.
+	 * /c:"msiexec.exe /qn /i vcredist.msi"
+	 */
+	system(".\\vcredist_x86.exe /Q:a");
+#endif
 	try {
 		CreateDirs();
  		CopyFiles();

@@ -1,3 +1,7 @@
+2192.	[port]		win32: use vcredist_x86.exe to install Visual
+			Studio's redistributable dlls if building with
+			Visual Stdio 2005 or later.
+
 2191.	[func]		named-checkzone now allows dumping to stdout (-).
 			named-checkconf now has -h for help.
 			named-checkzone now has -h for help.
