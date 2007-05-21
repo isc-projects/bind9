@@ -612,6 +612,7 @@ dns_view_simplefind
 dns_view_weakattach
 dns_view_weakdetach
 dns_viewlist_find
+dns_viewlist_findzone
 dns_xfrin_attach
 dns_xfrin_create
 dns_xfrin_detach
