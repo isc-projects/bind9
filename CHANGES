@@ -1,3 +1,9 @@
+2191.	[func]		named-checkzone now allows dumping to stdout (-).
+			named-checkconf now has -h for help.
+			named-checkzone now has -h for help.
+			Better handling of '-?' for usage summaries.
+			[RT #16707]
+
 2190.	[func]		Make fallback to plain DNS from EDNS due to timeouts
 			more visible.  New logging category "edns-disabled".
 			[RT #16871]

@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.201 2007/05/18 23:46:58 tbox Exp $ */
+/* $Id: dnssec-signzone.c,v 1.202 2007/05/21 02:47:25 marka Exp $ */
 
 /*! \file */
 
@@ -1862,8 +1862,10 @@ main(int argc, char *argv[]) {
 
 	dns_result_register();
 
+	isc_commandline_errprint = ISC_FALSE;
+
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "ac:d:e:f:ghi:I:j:k:l:n:N:o:O:pr:s:Stv:z"))
+				    "ac:d:e:f:ghi:I:j:k:l:n:N:o:O:pr:s:Stv:z"))
 	       != -1) {
 		switch (ch) {
 		case 'a':
@@ -1890,10 +1892,18 @@ main(int argc, char *argv[]) {
 			generateds = ISC_TRUE;
 			break;
 
+		case '?':
+			if (isc_commandline_option != '?')
+				fprintf(stderr, "%s: invalid argument -%c\n",
+					program, isc_commandline_option);
 		case 'h':
-		default:
 			usage();
 			break;
+
+		default:
+			fprintf(stderr, "%s: unhandled option -%c\n",
+				program, isc_commandline_option);
+			exit(1);
 
 		case 'i':
 			endp = NULL;

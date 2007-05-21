@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.154 2006/12/21 06:02:29 marka Exp $ */
+/* $Id: main.c,v 1.155 2007/05/21 02:47:25 marka Exp $ */
 
 /*! \file */
 
@@ -447,6 +447,8 @@ parse_command_line(int argc, char *argv[]) {
 			exit(0);
 		case '?':
 			usage();
+			if (isc_commandline_option == '?')
+				exit(0);
 			ns_main_earlyfatal("unknown option '-%c'",
 					   isc_commandline_option);
 		default:

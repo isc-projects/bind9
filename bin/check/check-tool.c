@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.c,v 1.26 2006/07/21 07:11:56 marka Exp $ */
+/* $Id: check-tool.c,v 1.27 2007/05/21 02:47:25 marka Exp $ */
 
 /*! \file */
 
@@ -494,7 +494,7 @@ checksrv(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner) {
 }
 
 isc_result_t
-setup_logging(isc_mem_t *mctx, isc_log_t **logp) {
+setup_logging(isc_mem_t *mctx, FILE *errout, isc_log_t **logp) {
 	isc_logdestination_t destination;
 	isc_logconfig_t *logconfig = NULL;
 	isc_log_t *log = NULL;
@@ -506,7 +506,7 @@ setup_logging(isc_mem_t *mctx, isc_log_t **logp) {
 	dns_log_setcontext(log);
 	cfg_log_init(log);
 
-	destination.file.stream = stdout;
+	destination.file.stream = errout;
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;
 	destination.file.maximum_size = 0;
@@ -590,14 +590,14 @@ dump_zone(const char *zonename, dns_zone_t *zone, const char *filename,
 	FILE *output = stdout;
 
 	if (debug) {
-		if (filename != NULL)
+		if (filename != NULL && strcmp(filename, "-") != 0)
 			fprintf(stderr, "dumping \"%s\" to \"%s\"\n",
 				zonename, filename);
 		else
 			fprintf(stderr, "dumping \"%s\"\n", zonename);
 	}
 
-	if (filename != NULL) {
+	if (filename != NULL && strcmp(filename, "-") != 0) {
 		result = isc_stdio_open(filename, "w+", &output);
 
 		if (result != ISC_R_SUCCESS) {
@@ -609,7 +609,7 @@ dump_zone(const char *zonename, dns_zone_t *zone, const char *filename,
 
 	result = dns_zone_dumptostream2(zone, output, fileformat, style);
 
-	if (filename != NULL)
+	if (output != stdout)
 		(void)isc_stdio_close(output);
 
 	return (result);

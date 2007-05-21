@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.h,v 1.11 2005/06/20 01:03:48 marka Exp $ */
+/* $Id: check-tool.h,v 1.12 2007/05/21 02:47:25 marka Exp $ */
 
 #ifndef CHECK_TOOL_H
 #define CHECK_TOOL_H
@@ -23,6 +23,7 @@
 /*! \file */
 
 #include <isc/lang.h>
+#include <isc/stdio.h>
 #include <isc/types.h>
 
 #include <dns/masterdump.h>
@@ -31,7 +32,7 @@
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-setup_logging(isc_mem_t *mctx, isc_log_t **logp);
+setup_logging(isc_mem_t *mctx, FILE *errout, isc_log_t **logp);
 
 isc_result_t
 load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,

@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.75 2007/01/09 23:49:38 marka Exp $ */
+/* $Id: dnssec-keygen.c,v 1.76 2007/05/21 02:47:25 marka Exp $ */
 
 /*! \file */
 
@@ -134,8 +134,10 @@ main(int argc, char **argv) {
 
 	dns_result_register();
 
+	isc_commandline_errprint = ISC_FALSE;
+
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "a:b:c:d:ef:g:kn:t:p:s:r:v:h")) != -1)
+					 "a:b:c:d:ef:g:kn:t:p:s:r:v:h")) != -1)
 	{
 	    switch (ch) {
 		case 'a':
@@ -202,12 +204,17 @@ main(int argc, char **argv) {
 				fatal("-v must be followed by a number");
 			break;
 
+		case '?':
+			if (isc_commandline_option != '?')
+				fprintf(stderr, "%s: invalid argument -%c\n",
+					program, isc_commandline_option);
 		case 'h':
 			usage();
+
 		default:
-			fprintf(stderr, "%s: invalid argument -%c\n",
-				program, ch);
-			usage();
+			fprintf(stderr, "%s: unhandled option -%c\n",
+				program, isc_commandline_option);
+			exit(1);
 		}
 	}
 

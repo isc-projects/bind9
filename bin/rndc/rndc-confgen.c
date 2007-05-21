@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc-confgen.c,v 1.21 2005/04/29 00:22:35 marka Exp $ */
+/* $Id: rndc-confgen.c,v 1.22 2007/05/21 02:47:25 marka Exp $ */
 
 /*! \file */
 
@@ -160,6 +160,8 @@ main(int argc, char **argv) {
 	serveraddr = DEFAULT_SERVER;
 	port = DEFAULT_PORT;
 
+	isc_commandline_errprint = ISC_FALSE;
+
 	while ((ch = isc_commandline_parse(argc, argv,
 					   "ab:c:hk:Mmp:r:s:t:u:Vy")) != -1) {
 		switch (ch) {
@@ -214,12 +216,17 @@ main(int argc, char **argv) {
 			verbose = ISC_TRUE;
 			break;
 		case '?':
-			usage(1);
+			if (isc_commandline_option != '?') {
+				fprintf(stderr, "%s: invalid argument -%c\n",
+					program, isc_commandline_option);
+				usage(1);
+			} else
+				usage(0);
 			break;
 		default:
-			fatal("unexpected error parsing command arguments: "
-			      "got %c\n", ch);
-			break;
+			fprintf(stderr, "%s: unhandled option -%c\n",
+				program, isc_commandline_option);
+			exit(1);
 		}
 	}
 

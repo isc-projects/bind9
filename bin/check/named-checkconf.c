@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.42 2006/02/28 02:39:51 marka Exp $ */
+/* $Id: named-checkconf.c,v 1.43 2007/05/21 02:47:25 marka Exp $ */
 
 /*! \file */
 
@@ -47,6 +47,8 @@
 
 #include "check-tool.h"
 
+static const char *program = "named-checkconf";
+
 isc_log_t *logc = NULL;
 
 #define CHECK(r)\
@@ -59,8 +61,8 @@ isc_log_t *logc = NULL;
 /*% usage */
 static void
 usage(void) {
-        fprintf(stderr, "usage: named-checkconf [-j] [-v] [-z] [-t directory] "
-		"[named.conf]\n");
+        fprintf(stderr, "usage: %s [-h] [-j] [-v] [-z] [-t directory] "
+		"[named.conf]\n", program);
         exit(1);
 }
 
@@ -397,7 +399,9 @@ main(int argc, char **argv) {
 	isc_entropy_t *ectx = NULL;
 	isc_boolean_t load_zones = ISC_FALSE;
 	
-	while ((c = isc_commandline_parse(argc, argv, "djt:vz")) != EOF) {
+	isc_commandline_errprint = ISC_FALSE;
+
+	while ((c = isc_commandline_parse(argc, argv, "dhjt:vz")) != EOF) {
 		switch (c) {
 		case 'd':
 			debug++;
@@ -433,11 +437,22 @@ main(int argc, char **argv) {
 			dochecksrv = ISC_FALSE;
 			break;
 
-		default:
+		case '?':
+			if (isc_commandline_option != '?')
+				fprintf(stderr, "%s: invalid argument -%c\n",
+					program, isc_commandline_option);
+		case 'h':
 			usage();
+
+		default:
+			fprintf(stderr, "%s: unhandled option -%c\n",
+				program, isc_commandline_option);
+			exit(1);
 		}
 	}
 
+	if (isc_commandline_index + 1 < argc)
+		usage();
 	if (argv[isc_commandline_index] != NULL)
 		conffile = argv[isc_commandline_index];
 	if (conffile == NULL || conffile[0] == '\0')
@@ -445,7 +460,7 @@ main(int argc, char **argv) {
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
-	RUNTIME_CHECK(setup_logging(mctx, &logc) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(setup_logging(mctx, stdout, &logc) == ISC_R_SUCCESS);
 
 	RUNTIME_CHECK(isc_entropy_create(mctx, &ectx) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE)

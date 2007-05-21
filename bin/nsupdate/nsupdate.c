@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.149 2007/04/24 07:02:31 marka Exp $ */
+/* $Id: nsupdate.c,v 1.150 2007/05/21 02:47:25 marka Exp $ */
 
 /*! \file */
 
@@ -847,12 +847,18 @@ parse_args(int argc, char **argv) {
 				exit(1);
 			}
 			break;
-		default:
-			fprintf(stderr, "%s: invalid argument -%c\n",
-				argv[0], ch);
+		case '?':
+			if (isc_commandline_option != '?')
+				fprintf(stderr, "%s: invalid argument -%c\n",
+					argv[0], isc_commandline_option);
 			fprintf(stderr, "usage: nsupdate [-d] "
 				"[-g | -o | -y keyname:secret | -k keyfile] "
 				"[-v] [filename]\n");
+			exit(1);
+
+		default:
+			fprintf(stderr, "%s: unhandled option: %c\n",
+				argv[0], isc_commandline_option);
 			exit(1);
 		}
 	}

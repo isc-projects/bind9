@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.114 2006/12/04 01:52:45 marka Exp $ */
+/* $Id: rndc.c,v 1.115 2007/05/21 02:47:25 marka Exp $ */
 
 /*! \file */
 
@@ -690,6 +690,8 @@ main(int argc, char **argv) {
 	if (result != ISC_R_SUCCESS)
 		fatal("isc_app_start() failed: %s", isc_result_totext(result));
 
+	isc_commandline_errprint = ISC_FALSE;
+
 	while ((ch = isc_commandline_parse(argc, argv, "b:c:k:Mmp:s:Vy:"))
 	       != -1) {
 		switch (ch) {
@@ -741,13 +743,18 @@ main(int argc, char **argv) {
 			break;
  
 		case '?':
+			if (isc_commandline_option != '?') {
+				fprintf(stderr, "%s: invalid argument -%c\n",
+					program, isc_commandline_option);
+				usage(1);
+			}
+		case 'h':
 			usage(0);
 			break;
-
 		default:
-			fatal("unexpected error parsing command arguments: "
-			      "got %c\n", ch);
-			break;
+			fprintf(stderr, "%s: unhandled option -%c\n",
+				program, isc_commandline_option);
+                        exit(1);
 		}
 	}
 
