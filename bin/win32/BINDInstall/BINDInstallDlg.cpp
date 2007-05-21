@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.cpp,v 1.32 2007/05/21 05:48:43 marka Exp $ */
+/* $Id: BINDInstallDlg.cpp,v 1.33 2007/05/21 05:52:21 marka Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -480,7 +480,7 @@ void CBINDInstallDlg::OnInstall() {
 	 *
 	 * Vcredist_x86.exe /q:a /c:"msiexec /i vcredist.msi /qn /l*v %temp%\vcredist_x86.log"
 	 */
-	system(".\\Vcredist_x86.exe /q:a /c:\"msiexec /i vcredist.msi /qn /l*v %temp%\vcredist_x86.log\"");
+	/*system(".\\Vcredist_x86.exe /q:a /c:\"msiexec /i vcredist.msi /qn /l*v %temp%\vcredist_x86.log\"");*/
 	system(".\\Vcredist_x86.exe");
 #endif
 	try {
