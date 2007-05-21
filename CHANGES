@@ -1,4 +1,4 @@
-2188.	[contrib]	queryperf: autoconf changes to make the seach for
+2188.	[contrib]	queryperf: autoconf changes to make the search for
 			libresolv or libbind more robust. [RT #16299]
 
 2187.	[bug]		query_addds(), query_addwildcardproof() and
