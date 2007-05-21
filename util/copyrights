@@ -1148,8 +1148,8 @@
 ./contrib/queryperf/.cvsignore			X	2001
 ./contrib/queryperf/Makefile.in			X	2001,2004
 ./contrib/queryperf/README			X	2001
-./contrib/queryperf/configure			X	2001,2004
-./contrib/queryperf/configure.in		X	2001,2004
+./contrib/queryperf/configure			X	2001,2004,2007
+./contrib/queryperf/configure.in		X	2001,2004,2007
 ./contrib/queryperf/input/sample.0		X	2001
 ./contrib/queryperf/input/sample.1		X	2001
 ./contrib/queryperf/missing/addrinfo.h		X	2004
