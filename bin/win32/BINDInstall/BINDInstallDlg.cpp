@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.cpp,v 1.30 2007/05/21 03:42:00 marka Exp $ */
+/* $Id: BINDInstallDlg.cpp,v 1.31 2007/05/21 05:23:50 marka Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -113,12 +113,14 @@ const FileData installFiles[] =
 	{"msvcrt.dll", FileData::WinSystem, FileData::Critical, TRUE},
 #  endif
 #endif
-#if _MSC_VER < 1400 && _MSC_VER >= 1310
+#if _MSC_VER < 1400
+#if _MSC_VER >= 1310
 	{"mfc71.dll", FileData::WinSystem, FileData::Critical, TRUE},
 	{"msvcr71.dll", FileData::WinSystem, FileData::Critical, TRUE},
-#elif _MSC_VER > 1200
+#elif _MSC_VER > 1200 && _MSC_VER <
 	{"mfc70.dll", FileData::WinSystem, FileData::Critical, TRUE},
 	{"msvcr70.dll", FileData::WinSystem, FileData::Critical, TRUE},
+#endif
 #endif
 	{"bindevt.dll", FileData::BinDir, FileData::Normal, FALSE},
 	{"libbind9.dll", FileData::BinDir, FileData::Critical, FALSE},
@@ -473,12 +475,12 @@ void CBINDInstallDlg::OnInstall() {
 
 #if _MSC_VER >= 1400
 	/*
-	 * Install Visual Studio libraries. 
-	 * vcredist_x86.exe /Q:a /c:"msiexec.exe /qn /i vcredist.msi"
-	 * /Q:a install silently.
-	 * /c:"msiexec.exe /qn /i vcredist.msi"
+	 * Install Visual Studio libraries.  As per:
+	 * http://blogs.msdn.com/astebner/archive/2006/08/23/715755.aspx
+	 *
+	 * Vcredist_x86.exe /q:a /c:"msiexec /i vcredist.msi /qn /l*v %temp%\vcredist_x86.log"
 	 */
-	system(".\\vcredist_x86.exe /Q:a");
+	system(".\\Vcredist_x86.exe /q:a /c:\"msiexec /i vcredist.msi /qn /l*v %temp%\vcredist_x86.log\"");
 #endif
 	try {
 		CreateDirs();
