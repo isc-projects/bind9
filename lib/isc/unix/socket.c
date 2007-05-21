@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.207.2.44 2007/04/02 02:11:52 marka Exp $ */
+/* $Id: socket.c,v 1.207.2.45 2007/05/21 01:57:16 marka Exp $ */
 
 #include <config.h>
 
@@ -1428,6 +1428,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 #endif
 	char strbuf[ISC_STRERRORSIZE];
 	const char *err = "socket";
+	int try = 0;
 
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(socketp != NULL && *socketp == NULL);
@@ -1437,6 +1438,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		return (ret);
 
 	sock->pf = pf;
+ again:
 	switch (type) {
 	case isc_sockettype_udp:
 		sock->fd = socket(pf, SOCK_DGRAM, IPPROTO_UDP);
@@ -1445,6 +1447,8 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		sock->fd = socket(pf, SOCK_STREAM, IPPROTO_TCP);
 		break;
 	}
+	if (sock->fd == -1 && errno == EINTR && try++ < 42)
+		goto again;
 
 #ifdef F_DUPFD
 	/*

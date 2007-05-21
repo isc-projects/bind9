@@ -1,3 +1,5 @@
+2189.	[bug]		Handle socket() returning EINTR. [RT #15949]
+
 2186.	[port]		cygwin: libbind: check for struct sockaddr_storage
 			independently of IPv6. [RT #16482]
 
