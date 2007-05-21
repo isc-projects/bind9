@@ -1,6 +1,7 @@
 2191.	[func]		named-checkzone now allows dumping to stdout (-).
 			named-checkconf now has -h for help.
 			named-checkzone now has -h for help.
+			rndc now has -h for help.
 			Better handling of '-?' for usage summaries.
 			[RT #16707]
 

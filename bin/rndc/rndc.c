@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.115 2007/05/21 02:47:25 marka Exp $ */
+/* $Id: rndc.c,v 1.116 2007/05/21 02:58:10 marka Exp $ */
 
 /*! \file */
 
@@ -692,7 +692,7 @@ main(int argc, char **argv) {
 
 	isc_commandline_errprint = ISC_FALSE;
 
-	while ((ch = isc_commandline_parse(argc, argv, "b:c:k:Mmp:s:Vy:"))
+	while ((ch = isc_commandline_parse(argc, argv, "b:c:hk:Mmp:s:Vy:"))
 	       != -1) {
 		switch (ch) {
 		case 'b':
