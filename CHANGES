@@ -1,3 +1,6 @@
+2188.	[contrib]	queryperf: autoconf changes to make the seach for
+			libresolv or libbind more robust. [RT #16299]
+
 2187.	[bug]		query_addds(), query_addwildcardproof() and
 			query_addnxrrsetnsec() should take a version
 			arguement. [RT #16368]
