@@ -12,10 +12,10 @@
 ./bin/Makefile.in				MAKE	1998,1999,2000,2001,2004
 ./bin/check/.cvsignore				X	2000,2001
 ./bin/check/Makefile.in				MAKE	2000,2001,2002,2003,2004,2005,2006
-./bin/check/check-tool.c			C	2000,2001,2002,2004,2005,2006
-./bin/check/check-tool.h			C	2000,2001,2002,2004,2005
+./bin/check/check-tool.c			C	2000,2001,2002,2004,2005,2006,2007
+./bin/check/check-tool.h			C	2000,2001,2002,2004,2005,2007
 ./bin/check/named-checkconf.8			MAN	DOCBOOK
-./bin/check/named-checkconf.c			C	1999,2000,2001,2002,2004,2005,2006
+./bin/check/named-checkconf.c			C	1999,2000,2001,2002,2004,2005,2006,2007
 ./bin/check/named-checkconf.docbook		SGML	2000,2001,2002,2004,2005,2007
 ./bin/check/named-checkconf.html		HTML	DOCBOOK
 ./bin/check/named-checkzone.8			MAN	DOCBOOK
@@ -129,7 +129,7 @@
 ./bin/named/lwresd.docbook			SGML	2000,2001,2004,2005,2007
 ./bin/named/lwresd.html				HTML	DOCBOOK
 ./bin/named/lwsearch.c				C	2000,2001,2004,2005
-./bin/named/main.c				C	1999,2000,2001,2002,2003,2004,2005,2006
+./bin/named/main.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./bin/named/named.8				MAN	DOCBOOK
 ./bin/named/named.conf.5			MAN	DOCBOOK
 ./bin/named/named.conf.docbook			SGML	2004,2005,2006,2007
@@ -169,11 +169,11 @@
 ./bin/rndc/Makefile.in				MAKE	2000,2001,2002,2004,2007
 ./bin/rndc/include/rndc/os.h			C	2001,2004,2005
 ./bin/rndc/rndc-confgen.8			MAN	DOCBOOK
-./bin/rndc/rndc-confgen.c			C	2001,2003,2004,2005
+./bin/rndc/rndc-confgen.c			C	2001,2003,2004,2005,2007
 ./bin/rndc/rndc-confgen.docbook			SGML	2001,2003,2004,2005,2007
 ./bin/rndc/rndc-confgen.html			HTML	DOCBOOK
 ./bin/rndc/rndc.8				MAN	DOCBOOK
-./bin/rndc/rndc.c				C	2000,2001,2002,2003,2004,2005,2006
+./bin/rndc/rndc.c				C	2000,2001,2002,2003,2004,2005,2006,2007
 ./bin/rndc/rndc.conf				CONF-C	2000,2001,2004
 ./bin/rndc/rndc.conf.5				MAN	DOCBOOK
 ./bin/rndc/rndc.conf.docbook			SGML	2000,2001,2004,2005,2007
@@ -1151,8 +1151,8 @@
 ./contrib/queryperf/.cvsignore			X	2001
 ./contrib/queryperf/Makefile.in			X	2001,2004
 ./contrib/queryperf/README			X	2001
-./contrib/queryperf/configure			X	2001,2002,2004
-./contrib/queryperf/configure.in		X	2001,2004
+./contrib/queryperf/configure			X	2001,2002,2004,2007
+./contrib/queryperf/configure.in		X	2001,2004,2007
 ./contrib/queryperf/input/sample.0		X	2001
 ./contrib/queryperf/input/sample.1		X	2001
 ./contrib/queryperf/missing/addrinfo.h		X	2004
@@ -1796,7 +1796,7 @@
 ./lib/dns/include/dns/keytable.h		C	2000,2001,2004,2005
 ./lib/dns/include/dns/keyvalues.h		C	1999,2000,2001,2003,2004,2005,2006
 ./lib/dns/include/dns/lib.h			C	1999,2000,2001,2004,2005,2006
-./lib/dns/include/dns/log.h			C	1999,2000,2001,2003,2004,2005,2006
+./lib/dns/include/dns/log.h			C	1999,2000,2001,2003,2004,2005,2006,2007
 ./lib/dns/include/dns/lookup.h			C	2000,2001,2004,2005,2006
 ./lib/dns/include/dns/master.h			C	1999,2000,2001,2002,2004,2005,2006
 ./lib/dns/include/dns/masterdump.h		C	1999,2000,2001,2002,2004,2005,2006
@@ -1852,7 +1852,7 @@
 ./lib/dns/key.c					C	2001,2004,2005,2006
 ./lib/dns/keytable.c				C	2000,2001,2004,2005
 ./lib/dns/lib.c					C	1999,2000,2001,2004,2005
-./lib/dns/log.c					C	1999,2000,2001,2003,2004,2005,2006
+./lib/dns/log.c					C	1999,2000,2001,2003,2004,2005,2006,2007
 ./lib/dns/lookup.c				C	2000,2001,2003,2004,2005,2007
 ./lib/dns/master.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/masterdump.c				C	1999,2000,2001,2002,2003,2004,2005,2006
