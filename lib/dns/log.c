@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.42 2006/12/22 01:59:43 marka Exp $ */
+/* $Id: log.c,v 1.43 2007/05/21 02:03:22 marka Exp $ */
 
 /*! \file */
 
@@ -43,6 +43,7 @@ LIBDNS_EXTERNAL_DATA isc_logcategory_t dns_categories[] = {
 	{ "dispatch",	0 },
 	{ "lame-servers", 0 },
 	{ "delegation-only", 0 },
+	{ "edns-disabled", 0 },
 	{ NULL, 	0 }
 };
 

@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.324 2007/05/16 04:33:28 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.325 2007/05/21 02:03:22 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4273,10 +4273,43 @@ category notify { null; };
                     </para>
                   </entry>
                 </row>
-              </tbody>
-            </tgroup>
-          </informaltable>
-        </sect3>
+                <row rowsep="0">
+                  <entry colname="1">
+                    <para><command>edns-disabled</command></para>
+                  </entry>
+		  <entry colname="2">
+		    <para>
+		      Log queries that have been forced to use plain
+		      DNS due to timeouts.  This is often due to
+		      the remote servers not being RFC 1034 compliant
+		      (not always returning FORMERR or similar to
+		      EDNS queries and other extension to the DNS
+		      when they are not understood).  i.e. this is
+		      targeted at servers that fail to respond to
+		      DNS queries that they don't understand.
+		    </para>
+		    <para>
+		      Note: the log message can be also due to
+		      packet loss.  Before reporting servers for
+		      non RFC 1034 compliance they should be re-tested
+		      to determine the nature of of the non-compliance.
+		      This testing should prevent / reduce the
+		      number of false positive reports.
+		    </para>
+		    <para>
+		      Note: eventually named will have to stop
+		      treating such timeouts as due to RFC 1034 non
+		      compliance and start treating it as plain
+		      packet loss as falsely classifying packet
+		      loss as due to RFC 1034 non compliance impacts
+		      on DNSSEC validation.
+		    </para>
+		  </entry>
+		</row>
+	      </tbody>
+	    </tgroup>
+	  </informaltable>
+	</sect3>
       </sect2>
 
       <sect2>

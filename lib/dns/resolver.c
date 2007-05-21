@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.346 2007/03/29 04:13:22 marka Exp $ */
+/* $Id: resolver.c,v 1.347 2007/05/21 02:03:22 marka Exp $ */
 
 /*! \file */
 
@@ -1331,6 +1331,17 @@ add_triededns512(fetchctx_t *fctx, isc_sockaddr_t *address) {
 	ISC_LIST_INITANDAPPEND(fctx->edns512, sa, link);
 }
 
+static inline void
+log_edns(fetchctx_t *fctx) {
+	char domainbuf[DNS_NAME_FORMATSIZE];	
+	
+	dns_name_format(&fctx->domain, domainbuf, sizeof(domainbuf));
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_EDNS_DISABLED,
+		      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
+		      "too many timeouts resolving '%s' (in '%s'?): "
+		      "disabling EDNS", fctx->info, domainbuf);
+}
+
 static isc_result_t
 resquery_send(resquery_t *query) {
 	fetchctx_t *fctx;
@@ -1485,7 +1496,7 @@ resquery_send(resquery_t *query) {
 	     fctx->timeouts >= (MAX_EDNS0_TIMEOUTS * 2)) &&
 	    (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
 		query->options |= DNS_FETCHOPT_NOEDNS0;
-		FCTXTRACE("too many timeouts, disabling EDNS0");
+		log_edns(fctx);
 	} else if ((triededns(fctx, &query->addrinfo->sockaddr) ||
 		    fctx->timeouts >= MAX_EDNS0_TIMEOUTS) &&
 	           (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {

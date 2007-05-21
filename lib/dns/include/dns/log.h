@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.39 2006/12/22 01:59:43 marka Exp $ */
+/* $Id: log.h,v 1.40 2007/05/21 02:03:22 marka Exp $ */
 
 /*! \file dns/log.h
  * \author  Principal Authors: DCL */
@@ -41,6 +41,7 @@ LIBDNS_EXTERNAL_DATA extern isc_logmodule_t dns_modules[];
 #define DNS_LOGCATEGORY_DISPATCH	(&dns_categories[8])
 #define DNS_LOGCATEGORY_LAME_SERVERS	(&dns_categories[9])
 #define DNS_LOGCATEGORY_DELEGATION_ONLY	(&dns_categories[10])
+#define DNS_LOGCATEGORY_EDNS_DISABLED	(&dns_categories[11])
 
 /* Backwards compatibility. */
 #define DNS_LOGCATEGORY_GENERAL		ISC_LOGCATEGORY_GENERAL
