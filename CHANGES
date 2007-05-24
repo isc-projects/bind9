@@ -1,7 +1,8 @@
-2193.	[port]		win32: BINDInstall.exe is now linked statically.
-			[RT #16906]
 
 	--- 9.5.0a5 released ---
+
+2193.	[port]		win32: BINDInstall.exe is now linked statically.
+			[RT #16906]
 
 2192.	[port]		win32: use vcredist_x86.exe to install Visual
 			Studio's redistributable dlls if building with
