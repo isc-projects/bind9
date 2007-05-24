@@ -1,3 +1,5 @@
+2194.	[bug]		Close journal before calling 'done' in xfrin.c.
+
 2193.	[port]		win32: BINDInstall.exe is now linked statically.
 			[RT #16906]
 
