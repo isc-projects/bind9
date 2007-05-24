@@ -847,10 +847,10 @@
 ./bin/win32/BINDInstall/AccountInfo.cpp		C.PORTION	2001,2002,2004
 ./bin/win32/BINDInstall/AccountInfo.h		C	2001,2004
 ./bin/win32/BINDInstall/BINDInstall.cpp		C.PORTION	2001,2004
-./bin/win32/BINDInstall/BINDInstall.dsp		X	2001
+./bin/win32/BINDInstall/BINDInstall.dsp		X	2001,2007
 ./bin/win32/BINDInstall/BINDInstall.dsw		X	2001
 ./bin/win32/BINDInstall/BINDInstall.h		C.PORTION	2001,2004
-./bin/win32/BINDInstall/BINDInstall.mak		X	2001,2006
+./bin/win32/BINDInstall/BINDInstall.mak		X	2001,2006,2007
 ./bin/win32/BINDInstall/BINDInstall.rc		X	2001,2005
 ./bin/win32/BINDInstall/BINDInstallDlg.cpp	C.PORTION	2001,2003,2004,2005,2006,2007
 ./bin/win32/BINDInstall/BINDInstallDlg.h	C.PORTION	2001,2004
