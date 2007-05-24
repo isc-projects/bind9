@@ -1,3 +1,10 @@
+2193.	[port]		win32: BINDInstall.exe is now linked statically.
+			[RT #16906]
+
+2192.	[port]		win32: use vcredist_x86.exe to install Visual
+			Studio's redistributable dlls if building with
+			Visual Stdio 2005 or later.
+
 2189.	[bug]		Handle socket() returning EINTR. [RT #15949]
 
 2188.	[contrib]	queryperf: autoconf changes to make the search for
