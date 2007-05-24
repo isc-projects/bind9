@@ -1,3 +1,5 @@
+2193.	[port]		win32: BINDInstall.exe is now linked statically.
+			[RT #16906]
 
 	--- 9.5.0a5 released ---
 
