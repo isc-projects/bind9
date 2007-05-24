@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.124.2.15 2007/05/24 01:56:01 tbox Exp $ */
+/* $Id: xfrin.c,v 1.124.2.16 2007/05/24 02:57:42 marka Exp $ */
 
 #include <config.h>
 
@@ -673,6 +673,11 @@ xfrin_fail(dns_xfrin_ctx_t *xfr, isc_result_t result, const char *msg) {
 			result = DNS_R_BADIXFR;
 	}
 	xfrin_cancelio(xfr);
+	/*
+	 * Close the journal.
+	 */
+	if (xfr->ixfr.journal != NULL)
+		dns_journal_destroy(&xfr->ixfr.journal);
 	if (xfr->done != NULL) {
 		(xfr->done)(xfr->zone, result);
 		xfr->done = NULL;
