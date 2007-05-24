@@ -43,6 +43,16 @@ BIND 9
 		Nominum, Inc.
 
 
+BIND 9.4.2
+
+	BIND 9.4.2 is a maintenance release, containing fixes for
+	a number of bugs in 9.4.1.
+
+BIND 9.4.1
+
+	BIND 9.4.1 is a security release, containing a fix for
+	a security bugs in 9.4.0.
+
 BIND 9.4.0
 
 	BIND 9.4.0 has a number of new features over 9.3,
@@ -579,9 +589,8 @@ Bug Reports and Mailing Lists
 		http://www.isc.org/ops/lists/
 
 	If you're planning on making changes to the BIND 9 source
-	code, you might want to join the BIND Workers mailing list.
-	Send mail to
+	code, you might want to join the BIND Forum as a Worker.
+	This gives you access to the bind-workers@isc.org mailing
+	list and pre-release access to the code.
 
-		bind-workers-request@isc.org
-
-
+		http://www.isc.org/sw/guild/bf/
