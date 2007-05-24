@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.150 2007/02/14 00:27:26 marka Exp $ */
+/* $Id: xfrin.c,v 1.151 2007/05/24 01:35:22 marka Exp $ */
 
 /*! \file */
 
@@ -1314,6 +1314,11 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 		xfr->state = XFRST_INITIALSOA;
 		CHECK(xfrin_send_request(xfr));
 	} else if (xfr->state == XFRST_END) {
+		/*
+		 * Close the journal.
+		 */
+		if (xfr->ixfr.journal != NULL)
+			dns_journal_destroy(&xfr->ixfr.journal);
 		/*
 		 * Inform the caller we succeeded.
 		 */
