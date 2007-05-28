@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.73 2007/05/28 00:12:00 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.74 2007/05/28 13:46:44 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -2421,7 +2421,7 @@ allow-update { key host1-host2. ;};
 	<para>
 	  To enable <command>named</command> to validate answers from
 	  other servers both <command>dnssec-enable</command> and
-	  <command>dnssec-validatation</command> must be set and some
+	  <command>dnssec-validation</command> must be set and some
 	  <command>trusted-keys</command> must be configured
 	  into <filename>named.conf</filename>.
         </para>
