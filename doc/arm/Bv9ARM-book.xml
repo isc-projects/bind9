@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.326 2007/05/28 00:09:07 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.327 2007/05/29 23:12:42 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -600,7 +600,7 @@
         traffic.
         Additionally, if additional section caching
         (<xref linkend="acache"/>) is enabled,
-        the <command>max-acache-size</command> can be used to
+        the <command>max-acache-size</command> option can be used to
         limit the amount
         of memory used by the mechanism.
         It is still good practice to have enough memory to load
@@ -4283,26 +4283,27 @@ category notify { null; };
 		      DNS due to timeouts.  This is often due to
 		      the remote servers not being RFC 1034 compliant
 		      (not always returning FORMERR or similar to
-		      EDNS queries and other extension to the DNS
-		      when they are not understood).  i.e. this is
+		      EDNS queries and other extensions to the DNS
+		      when they are not understood).  In other words, this is
 		      targeted at servers that fail to respond to
 		      DNS queries that they don't understand.
 		    </para>
 		    <para>
-		      Note: the log message can be also due to
+		      Note: the log message can also be due to
 		      packet loss.  Before reporting servers for
-		      non RFC 1034 compliance they should be re-tested
-		      to determine the nature of of the non-compliance.
-		      This testing should prevent / reduce the
-		      number of false positive reports.
+		      non-RFC 1034 compliance they should be re-tested
+		      to determine the nature of the non-compliance.
+		      This testing should prevent or reduce the
+		      number of false-positive reports.
 		    </para>
 		    <para>
 		      Note: eventually named will have to stop
 		      treating such timeouts as due to RFC 1034 non
 		      compliance and start treating it as plain
-		      packet loss as falsely classifying packet
+		      packet loss.  Falsely classifying packet
 		      loss as due to RFC 1034 non compliance impacts
-		      on DNSSEC validation.
+		      on DNSSEC validation which requires EDNS for
+		      the DNSSEC records to be returned.
 		    </para>
 		  </entry>
 		</row>
