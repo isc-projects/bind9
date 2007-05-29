@@ -9,14 +9,14 @@ Branch				Status	Whom	// Comments
 				private		private branch
 				closed		finished with
 
-custom_AFIS_v9_4_0		new	marka	// 2007-04-23 05:08 +0000
-custom_UTK_v9_4_0		new	marka	// 2007-04-23 13:35 +0000
-custom_UTK_v9_4_1		new	marka	// 2007-04-30 01:51 +0000
+custom_AFIS_v9_4_0		private	marka	// 2007-04-23 05:08 +0000
+custom_UTK_v9_4_0		private	marka	// 2007-04-23 13:35 +0000
+custom_UTK_v9_4_1		private	marka	// 2007-04-30 01:51 +0000
 custom_WFB_v9_3_1		private	
 custom_WFB_v9_3_2		private	
 custom_WFB_v9_3_3		private	
 custom_WFB_v9_4_0		private	
-custom_WFB_v9_4_1		new	marka	// 2007-04-30 01:53 +0000
+custom_WFB_v9_4_1		private	marka	// 2007-04-30 01:53 +0000
 gsstsig4			open	sra	// head + gsstsig as of 12 may 2006
 gsstsig4_win32			open	danny	// sub-branch off gsstsig4 for windows development
 jinmei-mmapzone-test		open		// mmap based zone file. very experimental, just for reference purposes
@@ -33,7 +33,7 @@ rt11398e			open	sra
 rt11543				open	jakob
 rt11733				open	jakob
 rt11733b			open	jakob
-rt13489				review	marka
+rt13489				review	marka	// Solaris bug fixes
 rt13555				open	marka	// nslookup name failure
 rt13562				open	marka
 rt14654				open	
@@ -43,45 +43,45 @@ rt14895b			open	jinmei
 rt14951a			open	
 rt15327				open	
 rt15452a			open	marka	// NSEC3
-rt15473b			review	marka
+rt15473b			closed	marka
 rt15698				open	
 rt15765				open	
 rt15860				open	
 rt15869				review		// libdnsng
-rt15949				new	marka	// 2007-05-17 02:25 +0000
+rt15949				closed	marka	// 2007-05-17 02:25 +0000
 rt16157				open	
 rt16288				review	
-rt16288_best_to_first_match	new	
-rt16299				new	marka	// 2007-05-17 01:08 +0000
-rt16365				new	marka	// 2007-05-16 14:39 +0000
-rt16368				new	marka	// 2007-05-16 14:11 +0000
+rt16288_best_to_first_match	review
+rt16299				closed	marka	// 2007-05-17 01:08 +0000
+rt16365				closed	marka	// 2007-05-16 14:39 +0000
+rt16368				closed	marka	// 2007-05-16 14:11 +0000
 rt16402				open	
 rt16428				open	
 rt16443				open	marka	// post 9.4.0
-rt16463				new	marka	// 2007-05-16 06:10 +0000
-rt16481				new	marka	// 2007-05-15 06:54 +0000
-rt16497				new	marka	// 2007-05-15 05:07 +0000
+rt16463				closed	marka	// 2007-05-16 06:10 +0000
+rt16481				closed	marka	// 2007-05-15 06:54 +0000
+rt16497				closed	marka	// 2007-05-15 05:07 +0000
 rt16519				open	marka	// epsilon for .DE
-rt16592				open	mayer	// windows condition variable
-rt16665				review	marka	// 2007-02-12 06:11 +0000
+rt16592				closed	mayer	// windows condition variable
+rt16665				closed	marka	// 2007-02-12 06:11 +0000
 rt16671				open	marka	// Silence Coverity reports
-rt16707				review	marka	// 2007-03-13 05:13 +0000
-rt16711				review	marka	// 2007-03-09 02:33 +0000
-rt16743				review	
-rt16760				new	explorer	// 2007-03-19 14:59 +0000
-rt16763				review	marka	// 2007-04-02 06:31 +0000
-rt16785				new	marka	// 2007-04-03 02:53 +0000
-rt16798				new	marka	// 2007-05-14 06:18 +0000
-rt16806				new	marka	// 2007-04-24 04:38 +0000
-rt16821				new	marka	// 2007-05-14 05:44 +0000
-rt16832				new	marka	// 2007-05-03 02:30 +0000
-rt16832a			new	marka	// 2007-05-16 23:09 +0000
-rt16834				new	marka	// 2007-04-29 23:52 +0000
-rt16844				new	marka	// 2007-05-03 07:23 +0000
-rt16857				new	marka	// 2007-05-14 03:45 +0000
-rt16871				new	marka	// 2007-05-16 00:07 +0000
-rt16906				new	marka	// 2007-05-23 02:51 +0000
-rt16911				new	marka	// 2007-05-27 23:20 +0000
+rt16707				closed	marka	// 2007-03-13 05:13 +0000
+rt16711				closed	marka	// 2007-03-09 02:33 +0000
+rt16743				closed	
+rt16760				open	explorer	// 2007-03-19 14:59 +0000
+rt16763				closed	marka	// 2007-04-02 06:31 +0000
+rt16785				closed	marka	// 2007-04-03 02:53 +0000
+rt16798				closed	marka	// 2007-05-14 06:18 +0000
+rt16806				open	marka	// 2007-04-24 04:38 +0000
+rt16821				closed	marka	// 2007-05-14 05:44 +0000
+rt16832				closed	marka	// 2007-05-03 02:30 +0000
+rt16832a			closed	marka	// 2007-05-16 23:09 +0000
+rt16834				closed	marka	// 2007-04-29 23:52 +0000
+rt16844				open	marka	// EVP conversion
+rt16857				open	marka	// 2007-05-14 03:45 +0000
+rt16871				closed	marka	// 2007-05-16 00:07 +0000
+rt16906				closed	marka	// 2007-05-23 02:51 +0000
+rt16911				review	marka	// 2007-05-27 23:20 +0000
 rt1727				open		// ixfr-from-differences workfile
 skan				open	explorer
 skan-metazones1			private	explorer
@@ -107,10 +107,10 @@ v9_2_8_patch			active		// security fixes 9.2.9 only
 v9_3				active	
 v9_3_0base			active		// security fixes 9.3.0 only
 v9_3_2_patch			active		// security fixes 9.3.2 only	
-v9_3_4-cisco			new	
+v9_3_4-cisco			active	
 v9_3_4_patch			active		// security fixes 9.3.4 only
 v9_4				active	
-v9_4_1_patch			new	marka	// 2007-04-30 00:58 +0000
+v9_4_1_patch			active		// security fixes 9.4.1 only
 
 
 a6_remove			closed
