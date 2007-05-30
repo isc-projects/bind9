@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch04.html,v 1.77 2007/05/28 03:46:00 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch04.html,v 1.78 2007/05/30 02:30:14 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -55,8 +55,8 @@
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2571111">Generate Shared Keys for Each Pair of Hosts</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2571185">Copying the Shared Secret to Both Machines</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2571264">Informing the Servers of the Key's Existence</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2571303">Instructing the Server to Use the Key</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2571195">Informing the Servers of the Key's Existence</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2571235">Instructing the Server to Use the Key</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2571429">TSIG Key Based Access Control</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2571474">Errors</a></span></dt>
 </dl></dd>
@@ -70,8 +70,8 @@
 </dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2572033">IPv6 Support in <acronym class="acronym">BIND</acronym> 9</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2572163">Address Lookups Using AAAA Records</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2572184">Address to Name Lookups Using Nibble Format</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2572231">Address Lookups Using AAAA Records</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2572252">Address to Name Lookups Using Nibble Format</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -542,7 +542,7 @@ nameserver 172.16.72.4
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2571264"></a>Informing the Servers of the Key's Existence</h3></div></div></div>
+<a name="id2571195"></a>Informing the Servers of the Key's Existence</h3></div></div></div>
 <p>
           Imagine <span class="emphasis"><em>host1</em></span> and <span class="emphasis"><em>host 2</em></span>
           are
@@ -571,7 +571,7 @@ key host1-host2. {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2571303"></a>Instructing the Server to Use the Key</h3></div></div></div>
+<a name="id2571235"></a>Instructing the Server to Use the Key</h3></div></div></div>
 <p>
           Since keys are shared between two hosts only, the server must
           be told when keys are to be used. The following is added to the <code class="filename">named.conf</code> file
@@ -976,7 +976,7 @@ options {
       </p>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2572163"></a>Address Lookups Using AAAA Records</h3></div></div></div>
+<a name="id2572231"></a>Address Lookups Using AAAA Records</h3></div></div></div>
 <p>
           The IPv6 AAAA record is a parallel to the IPv4 A record,
           and, unlike the deprecated A6 record, specifies the entire
@@ -995,7 +995,7 @@ host            3600    IN      AAAA    2001:db8::1
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2572184"></a>Address to Name Lookups Using Nibble Format</h3></div></div></div>
+<a name="id2572252"></a>Address to Name Lookups Using Nibble Format</h3></div></div></div>
 <p>
           When looking up an address in nibble format, the address
           components are simply reversed, just as in IPv4, and
