@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: rndc.docbook,v 1.8.18.9 2007/05/09 01:38:19 marka Exp $ -->
+<!-- $Id: rndc.docbook,v 1.8.18.10 2007/05/31 22:29:47 marka Exp $ -->
 <refentry id="man.rndc">
   <refentryinfo>
     <date>June 30, 2000</date>
@@ -78,7 +78,7 @@
       communicates with the name server
       over a TCP connection, sending commands authenticated with
       digital signatures.  In the current versions of
-      <command>rndc</command> and <command>named</command> named
+      <command>rndc</command> and <command>named</command>,
       the only supported authentication algorithm is HMAC-MD5,
       which uses a shared secret on each end of the connection.
       This provides TSIG-style authentication for the command
@@ -172,16 +172,16 @@
       </varlistentry>
 
       <varlistentry>
-        <term>-y <replaceable class="parameter">keyid</replaceable></term>
+        <term>-y <replaceable class="parameter">key_id</replaceable></term>
         <listitem>
           <para>
-            Use the key <replaceable class="parameter">keyid</replaceable>
+            Use the key <replaceable class="parameter">key_id</replaceable>
             from the configuration file.
-            <replaceable class="parameter">keyid</replaceable>
+            <replaceable class="parameter">key_id</replaceable>
             must be
             known by named with the same algorithm and secret string
             in order for control message validation to succeed.
-            If no <replaceable class="parameter">keyid</replaceable>
+            If no <replaceable class="parameter">key_id</replaceable>
             is specified, <command>rndc</command> will first look
             for a key clause in the server statement of the server
             being used, or if no server statement is present for that
