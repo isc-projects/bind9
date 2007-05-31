@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: rndc.html,v 1.7.2.1.4.16 2007/05/09 03:32:36 marka Exp $ -->
+<!-- $Id: rndc.html,v 1.7.2.1.4.17 2007/05/31 23:28:45 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -46,7 +46,7 @@
         <span><strong class="command">rndc</strong></span> communicates with the name server
 	over a TCP connection, sending commands authenticated with
 	digital signatures.  In the current versions of
-	<span><strong class="command">rndc</strong></span> and <span><strong class="command">named</strong></span> named
+      <span><strong class="command">rndc</strong></span> and <span><strong class="command">named</strong></span>,
         the only supported authentication algorithm is HMAC-MD5,
 	which uses a shared secret on each end of the connection.
 	This provides TSIG-style authentication for the command
@@ -98,14 +98,14 @@
 <dd><p>
 	       Enable verbose logging.
 	  </p></dd>
-<dt><span class="term">-y <em class="replaceable"><code>keyid</code></em></span></dt>
+<dt><span class="term">-y <em class="replaceable"><code>key_id</code></em></span></dt>
 <dd><p>
-	       Use the key <em class="replaceable"><code>keyid</code></em>
+	       Use the key <em class="replaceable"><code>key_id</code></em>
 	       from the configuration file.
-	       <em class="replaceable"><code>keyid</code></em> must be
+	       <em class="replaceable"><code>key_id</code></em> must be
 	       known by named with the same algorithm and secret string
 	       in order for control message validation to succeed.
-	       If no <em class="replaceable"><code>keyid</code></em>
+	       If no <em class="replaceable"><code>key_id</code></em>
 	       is specified, <span><strong class="command">rndc</strong></span> will first look
 	       for a key clause in the server statement of the server
 	       being used, or if no server statement is present for that
