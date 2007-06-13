@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.327 2007/05/29 23:12:42 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.328 2007/06/13 07:04:47 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -7668,6 +7668,32 @@ query-source-v6 address * port *;
                     </para>
                   </entry>
                 </row>
+                <row rowsep="0">
+                  <entry colname="1">
+                    <para><command>duplicate</command></para>
+                  </entry>
+                  <entry colname="2">
+                    <para>
+                      The number of queries which the server attempted to
+		      recurse but discover a existing query with the same
+		      IP address, port, query id, name, type and class
+		      already being processed.
+                    </para>
+                  </entry>
+                </row>
+                <row rowsep="0">
+                  <entry colname="1">
+                    <para><command>dropped</command></para>
+                  </entry>
+                  <entry colname="2">
+                    <para>
+		      The number of queries for which the server
+		      discovered a excessive number of existing
+		      recursive queries for the same name, type and
+		      class and were subsequently dropped.
+		    </para>
+		  </entry>
+		</row>
               </tbody>
             </tgroup>
           </informaltable>
