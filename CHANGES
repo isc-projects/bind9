@@ -945,7 +945,7 @@
 			[RT #14892]
 
 1878.	[func]		Detect duplicates of UDP queries we are recursing on
-			and drop them.  New stats category "duplicates".
+			and drop them.  New stats category "duplicate".
 			[RT #2471]
 
 1877.	[bug]		Fix unreasonably low quantum on call to
