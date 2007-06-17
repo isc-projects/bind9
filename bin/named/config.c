@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.47.18.28 2006/05/03 01:46:40 marka Exp $ */
+/* $Id: config.c,v 1.47.18.29 2007/06/17 23:48:27 marka Exp $ */
 
 /*! \file */
 
@@ -182,7 +182,7 @@ options {\n\
 "
 
 "#\n\
-#  Zones in the \"_bind\" view are NOT counted is the count of zones.\n\
+#  Zones in the \"_bind\" view are NOT counted in the count of zones.\n\
 #\n\
 view \"_bind\" chaos {\n\
 	recursion no;\n\
