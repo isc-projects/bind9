@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: context.c,v 1.41.2.1.2.5 2007/06/18 03:11:33 marka Exp $ */
+/* $Id: context.c,v 1.41.2.1.2.6 2007/06/18 03:30:53 marka Exp $ */
 
 #include <config.h>
 
@@ -238,8 +238,12 @@ context_connect(lwres_context_t *ctx) {
 	InitSockets();
 #endif
 	s = socket(domain, SOCK_DGRAM, IPPROTO_UDP);
-	if (s < 0)
+	if (s < 0) {
+#ifdef WIN32
+		DestroySockets();
+#endif
 		return (LWRES_R_IOERROR);
+	}
 
 	ret = connect(s, sa, salen);
 	if (ret != 0) {
