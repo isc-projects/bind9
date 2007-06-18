@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: context.c,v 1.45.18.4 2007/06/18 03:08:56 marka Exp $ */
+/* $Id: context.c,v 1.45.18.5 2007/06/18 03:30:39 marka Exp $ */
 
 /*! \file context.c 
    lwres_context_create() creates a #lwres_context_t structure for use in
@@ -322,8 +322,12 @@ context_connect(lwres_context_t *ctx) {
 	InitSockets();
 #endif
 	s = socket(domain, SOCK_DGRAM, IPPROTO_UDP);
-	if (s < 0)
+	if (s < 0) {
+#ifdef WIN32
+		DestroySockets();
+#endif
 		return (LWRES_R_IOERROR);
+	}
 
 	ret = connect(s, sa, salen);
 	if (ret != 0) {

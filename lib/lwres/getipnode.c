@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getipnode.c,v 1.37.18.4 2007/06/18 03:08:56 marka Exp $ */
+/* $Id: getipnode.c,v 1.37.18.5 2007/06/18 03:30:39 marka Exp $ */
 
 /*! \file */
 
@@ -818,12 +818,11 @@ scan_interfaces(int *have_v4, int *have_v6) {
  err_ret:
 	if (buf != NULL)
 		free(buf);
-	if (s != -1) {
-#ifdef WIN32
-		DestroySockets();
-#endif
+	if (s != -1)
 		close(s);
-	}
+#ifdef WIN32
+	DestroySockets();
+#endif
 	return (-1);
 #endif
 }
