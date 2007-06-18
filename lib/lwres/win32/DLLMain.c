@@ -15,12 +15,10 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: DLLMain.c,v 1.3 2004/03/05 05:13:20 marka Exp $ */
+/* $Id: DLLMain.c,v 1.4 2007/06/18 03:36:51 marka Exp $ */
 
 #include <windows.h>
 #include <signal.h>
-
-BOOL InitSockets(void);
 
 /*
  * Called when we enter the DLL
