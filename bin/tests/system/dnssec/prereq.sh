@@ -3,7 +3,7 @@
 # Copyright (C) 2004, 2006  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000-2002  Internet Software Consortium.
 #
-# Permission to use, copy, modify, and distribute this software for any
+# Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
 # copyright notice and this permission notice appear in all copies.
 #
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: prereq.sh,v 1.8 2006/01/04 00:37:24 marka Exp $
+# $Id: prereq.sh,v 1.9 2007/06/18 23:47:28 tbox Exp $
 
 ../../genrandom 400 random.data
 

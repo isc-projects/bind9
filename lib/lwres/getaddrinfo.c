@@ -5,7 +5,7 @@
  * This code is derived from software contributed to ISC by
  * Berkeley Software Design, Inc.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -18,7 +18,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddrinfo.c,v 1.49 2006/11/14 01:07:29 marka Exp $ */
+/* $Id: getaddrinfo.c,v 1.50 2007/06/18 23:47:51 tbox Exp $ */
 
 /*! \file */
 

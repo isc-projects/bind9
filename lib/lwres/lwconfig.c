@@ -2,7 +2,7 @@
  * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.44 2006/10/03 23:50:52 marka Exp $ */
+/* $Id: lwconfig.c,v 1.45 2007/06/18 23:47:51 tbox Exp $ */
 
 /*! \file */
 

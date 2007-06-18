@@ -2,7 +2,7 @@
  * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntservice.h,v 1.4 2004/03/05 04:58:11 marka Exp $ */
+/* $Id: ntservice.h,v 1.5 2007/06/18 23:47:21 tbox Exp $ */
 
 #ifndef NTSERVICE_H
 #define NTSERVICE_H

@@ -2,7 +2,7 @@
  * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: unistd.h,v 1.4 2004/03/05 05:12:00 marka Exp $ */
+/* $Id: unistd.h,v 1.5 2007/06/18 23:47:49 tbox Exp $ */
 
 /* None of these are defined in NT, so define them for our use */
 #define O_NONBLOCK 1

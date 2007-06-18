@@ -3,7 +3,7 @@
 # Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000, 2001  Internet Software Consortium.
 #
-# Permission to use, copy, modify, and distribute this software for any
+# Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
 # copyright notice and this permission notice appear in all copies.
 #
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: mkreslib.pl,v 1.10 2004/03/05 05:14:16 marka Exp $
+# $Id: mkreslib.pl,v 1.11 2007/06/18 23:47:57 tbox Exp $
 
 # Build a res_* library distribution from the BIND 8 source
 

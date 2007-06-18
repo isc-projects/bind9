@@ -1,7 +1,7 @@
 <!--
  - Copyright (C) 2005  Internet Systems Consortium, Inc. ("ISC")
  -
- - Permission to use, copy, modify, and distribute this software for any
+ - Permission to use, copy, modify, and/or distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
  - copyright notice and this permission notice appear in all copies.
  -
@@ -14,7 +14,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: pre-latex.xsl,v 1.4 2005/09/15 02:25:25 marka Exp $ -->
+<!-- $Id: pre-latex.xsl,v 1.5 2007/06/18 23:47:34 tbox Exp $ -->
 
 <!--
   - Whack &mdash; into something that won't choke LaTeX.

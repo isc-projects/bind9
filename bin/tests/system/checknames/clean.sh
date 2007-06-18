@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
 #
-# Permission to use, copy, modify, and distribute this software for any
+# Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
 # copyright notice and this permission notice appear in all copies.
 #
@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.3 2004/03/05 04:59:26 marka Exp $
+# $Id: clean.sh,v 1.4 2007/06/18 23:47:27 tbox Exp $
 
 rm -f dig.out.ns?.test*
 rm -f nsupdate.out.test*

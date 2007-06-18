@@ -2,7 +2,7 @@
  * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_sysctl.c,v 1.23 2005/04/27 04:57:23 sra Exp $ */
+/* $Id: ifiter_sysctl.c,v 1.24 2007/06/18 23:47:48 tbox Exp $ */
 
 /*! \file
  * \brief

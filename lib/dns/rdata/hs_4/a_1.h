@@ -2,7 +2,7 @@
  * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -19,7 +19,7 @@
 #ifndef HS_4_A_1_H
 #define HS_4_A_1_H 1
 
-/* $Id: a_1.h,v 1.10 2005/04/29 00:23:18 marka Exp $ */
+/* $Id: a_1.h,v 1.11 2007/06/18 23:47:43 tbox Exp $ */
 
 typedef struct dns_rdata_hs_a {
 	dns_rdatacommon_t	common;

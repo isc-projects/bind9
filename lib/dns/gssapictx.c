@@ -2,7 +2,7 @@
  * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gssapictx.c,v 1.6 2006/12/05 21:59:12 marka Exp $ */
+/* $Id: gssapictx.c,v 1.7 2007/06/18 23:47:40 tbox Exp $ */
 
 #include <config.h>
 

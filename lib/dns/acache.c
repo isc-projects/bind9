@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acache.c,v 1.18 2006/07/06 06:30:00 jinmei Exp $ */
+/* $Id: acache.c,v 1.19 2007/06/18 23:47:40 tbox Exp $ */
 
 #include <config.h>
 
