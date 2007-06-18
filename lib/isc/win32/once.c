@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: once.c,v 1.9.2.2 2007/06/18 01:22:08 marka Exp $ */
+/* $Id: once.c,v 1.9.2.3 2007/06/18 23:45:27 tbox Exp $ */
 
 /* Principal Authors: DCL */
 
