@@ -1,3 +1,6 @@
+2196.	[port]		win32: yield processor while waiting for once to
+			to complete. [RT# 16958]
+
 2194.	[bug]		Close journal before calling 'done' in xfrin.c.
 
 2193.	[port]		win32: BINDInstall.exe is now linked statically.
