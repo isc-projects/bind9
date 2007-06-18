@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-keygen.8,v 1.37 2007/05/09 03:33:50 marka Exp $
+.\" $Id: dnssec-keygen.8,v 1.38 2007/06/18 23:37:19 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -60,7 +60,7 @@ Specifies the number of bits in the key. The choice of key size depends on the a
 .RS 4
 Specifies the owner type of the key. The value of
 \fBnametype\fR
-must either be ZONE (for a DNSSEC zone key (KEY/DNSKEY)), HOST or ENTITY (for a key associated with a host (KEY)), USER (for a key associated with a user(KEY)) or OTHER (DNSKEY). These values are case insensitive.
+must either be ZONE (for a DNSSEC zone key (KEY/DNSKEY)), HOST or ENTITY (for a key associated with a host (KEY)), USER (for a key associated with a user(KEY)) or OTHER (DNSKEY). These values are case insensitive. Defaults to ZONE for DNSKEY generation.
 .RE
 .PP
 \-c \fIclass\fR

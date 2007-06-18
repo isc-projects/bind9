@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: dnssec-keygen.html,v 1.29 2007/05/09 03:33:50 marka Exp $ -->
+<!-- $Id: dnssec-keygen.html,v 1.30 2007/06/18 23:37:19 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -76,8 +76,8 @@
             zone key (KEY/DNSKEY)), HOST or ENTITY (for a key associated with
             a host (KEY)),
             USER (for a key associated with a user(KEY)) or OTHER (DNSKEY).
-            These values are
-            case insensitive.
+            These values are case insensitive.  Defaults to ZONE for DNSKEY
+	    generation.
           </p></dd>
 <dt><span class="term">-c <em class="replaceable"><code>class</code></em></span></dt>
 <dd><p>
