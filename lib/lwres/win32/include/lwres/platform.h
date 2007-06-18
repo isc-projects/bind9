@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h,v 1.4.2.1 2004/03/09 06:12:44 marka Exp $ */
+/* $Id: platform.h,v 1.4.2.2 2007/06/18 03:30:31 marka Exp $ */
 
 #ifndef LWRES_PLATFORM_H
 #define LWRES_PLATFORM_H 1
@@ -91,5 +91,12 @@ do { \
  */
 #undef  close
 #define close closesocket
+
+/*
+ * Internal to liblwres.
+ */
+void InitSockets(void);
+
+void DestroySockets(void);
 
 #endif /* LWRES_PLATFORM_H */

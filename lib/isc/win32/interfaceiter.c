@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.4.2.1 2004/03/09 06:12:18 marka Exp $ */
+/* $Id: interfaceiter.c,v 1.4.2.2 2007/06/18 03:30:31 marka Exp $ */
 
 /*
  * Note that this code will need to be revisited to support IPv6 Interfaces.
@@ -38,6 +38,8 @@
 #include <isc/types.h>
 #include <isc/util.h>
 #include "errno2result.h"
+
+void InitSockets(void);
 
 /* Common utility functions */
 
@@ -113,6 +115,8 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	iter = isc_mem_get(mctx, sizeof(*iter));
 	if (iter == NULL)
 		return (ISC_R_NOMEMORY);
+
+	InitSockets();
 
 	iter->mctx = mctx;
 	iter->buf = NULL;

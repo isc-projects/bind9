@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getipnode.c,v 1.30.2.8 2005/04/28 23:59:13 marka Exp $ */
+/* $Id: getipnode.c,v 1.30.2.9 2007/06/18 03:30:31 marka Exp $ */
 
 #include <config.h>
 
@@ -399,6 +399,9 @@ scan_interfaces(int *have_v4, int *have_v6) {
 	static int bufsiz = 4095;
 	int s, cpsize, n;
 
+#ifdef WIN32
+	InitSockets();
+#endif
 	/*
 	 * Set to zero.  Used as loop terminators below.
 	 */
@@ -519,13 +522,20 @@ scan_interfaces(int *have_v4, int *have_v6) {
 	}
 	if (buf != NULL)
 		free(buf);
+#ifdef WIN32
+	DestroySockets();
+#endif
 	close(s);
 	return (0);
+
  err_ret:
 	if (buf != NULL)
 		free(buf);
 	if (s != -1)
 		close(s);
+#ifdef WIN32
+	DestroySockets();
+#endif
 	return (-1);
 #endif
 }

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.c,v 1.3.2.3 2004/03/09 06:12:18 marka Exp $ */
+/* $Id: net.c,v 1.3.2.4 2007/06/18 03:30:31 marka Exp $ */
 
 #include <config.h>
 
@@ -36,6 +36,8 @@ const struct in6_addr isc_net_in6addrany = IN6ADDR_ANY_INIT;
 static isc_once_t 	once = ISC_ONCE_INIT;
 static isc_result_t	ipv4_result = ISC_R_NOTFOUND;
 static isc_result_t	ipv6_result = ISC_R_NOTFOUND;
+
+void InitSockets(void);
 
 static isc_result_t
 try_proto(int domain) {
@@ -112,6 +114,7 @@ try_proto(int domain) {
 
 static void
 initialize_action(void) {
+	InitSockets();
 	ipv4_result = try_proto(PF_INET);
 #ifdef ISC_PLATFORM_HAVEIPV6
 #ifdef WANT_IPV6
