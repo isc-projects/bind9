@@ -174,6 +174,10 @@ SOURCE=..\lwresutil.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\socket.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\version.c
 # End Source File
 # End Group

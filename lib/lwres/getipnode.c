@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getipnode.c,v 1.30.2.4.2.6 2005/04/29 00:03:32 marka Exp $ */
+/* $Id: getipnode.c,v 1.30.2.4.2.7 2007/06/18 03:11:33 marka Exp $ */
 
 #include <config.h>
 
@@ -566,13 +566,20 @@ scan_interfaces(int *have_v4, int *have_v6) {
 	int s, n;
 	size_t cpsize;
 
+#ifdef WIN32
+	InitSockets();
+#endif
 #if defined(SIOCGLIFCONF) && defined(SIOCGLIFADDR) && \
     !defined(IRIX_EMUL_IOCTL_SIOCGIFCONF) 
 	/*
 	 * Try to scan the interfaces using IPv6 ioctls().
 	 */
-	if (!scan_interfaces6(have_v4, have_v6))
+	if (!scan_interfaces6(have_v4, have_v6)) {
+#ifdef WIN32
+		DestroySockets();
+#endif
 		return (0);
+	}
 #endif
 
 	/*
@@ -697,13 +704,21 @@ scan_interfaces(int *have_v4, int *have_v6) {
 	}
 	if (buf != NULL)
 		free(buf);
+#ifdef WIN32
+	DestroySockets();
+#endif
 	close(s);
 	return (0);
+
  err_ret:
 	if (buf != NULL)
 		free(buf);
-	if (s != -1)
+	if (s != -1) {
+#ifdef WIN32
+		DestroySockets();
+#endif
 		close(s);
+	}
 	return (-1);
 #endif
 }

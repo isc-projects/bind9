@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: context.c,v 1.41.2.1.2.4 2004/09/17 05:50:31 marka Exp $ */
+/* $Id: context.c,v 1.41.2.1.2.5 2007/06/18 03:11:33 marka Exp $ */
 
 #include <config.h>
 
@@ -128,6 +128,9 @@ lwres_context_destroy(lwres_context_t **contextp) {
 	*contextp = NULL;
 
 	if (ctx->sock != -1) {
+#ifdef WIN32
+		DestroySockets();
+#endif
 		(void)close(ctx->sock);
 		ctx->sock = -1;
 	}
@@ -231,19 +234,30 @@ context_connect(lwres_context_t *ctx) {
 	} else
 		return (LWRES_R_IOERROR);
 
+#ifdef WIN32
+	InitSockets();
+#endif
 	s = socket(domain, SOCK_DGRAM, IPPROTO_UDP);
 	if (s < 0)
 		return (LWRES_R_IOERROR);
 
 	ret = connect(s, sa, salen);
 	if (ret != 0) {
+#ifdef WIN32
+		DestroySockets();
+#endif
 		(void)close(s);
 		return (LWRES_R_IOERROR);
 	}
 
 	MAKE_NONBLOCKING(s, ret);
-	if (ret < 0)
+	if (ret < 0) {
+#ifdef WIN32
+		DestroySockets();
+#endif
+		(void)close(s);
 		return (LWRES_R_IOERROR);
+	}
 
 	ctx->sock = s;
 

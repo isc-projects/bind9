@@ -15,13 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: DLLMain.c,v 1.3.2.1.10.3 2007/01/18 00:06:09 marka Exp $ */
+/* $Id: DLLMain.c,v 1.3.2.1.10.4 2007/06/18 03:11:33 marka Exp $ */
 
 #include <windows.h>
 #include <stdio.h>
 
-BOOL InitSockets(void);
- 
 /*
  * Called when we enter the DLL
  */
@@ -35,8 +33,6 @@ __declspec(dllexport) BOOL WINAPI DllMain(HINSTANCE hinstDLL,
 	 * initialization or a call to LoadLibrary. 
 	 */
 	case DLL_PROCESS_ATTACH: 
-		if (!InitSockets())
-			return (FALSE);
 		break; 
  
 	/* The attached process creates a new thread.  */
