@@ -1,3 +1,6 @@
+2198.	[bug]		win32: RegCloseKey() could be called when
+			RegOpenKeyEx() failed. [RT #16911]
+
 2197.	[bug]		Add INSIST to catch negative responses which are
 			not setting the event result code appropriately.
 			[RT #16909]
