@@ -1,3 +1,6 @@
+2196.	[port]		win32: yield processor while waiting for once to
+			to complete. [RT# 16958]
+
 2195.	[func]		dnssec-keygen now defaults to nametype "ZONE"
 			when generating DNSKEYs. [RT #16954]
 

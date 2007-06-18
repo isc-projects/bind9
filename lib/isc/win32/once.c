@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: once.c,v 1.10 2004/03/05 05:11:58 marka Exp $ */
+/* $Id: once.c,v 1.11 2007/06/18 01:16:46 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -41,8 +41,11 @@ isc_once_do(isc_once_t *controller, void(*function)(void)) {
 		} else {
 			while (controller->status == ISC_ONCE_INIT_NEEDED) {
 				/*
-				 * Spin wait.
+				 * Sleep(0) indicates that this thread 
+				 * should be suspended to allow other 
+				 * waiting threads to execute.
 				 */
+				Sleep(0);
 			}
 		}
 	}
