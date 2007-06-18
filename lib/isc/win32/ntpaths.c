@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntpaths.c,v 1.6.2.3 2004/03/09 06:12:19 marka Exp $ */
+/* $Id: ntpaths.c,v 1.6.2.4 2007/06/18 03:04:58 marka Exp $ */
 
 /*
  * This module fetches the required path information that is specific
@@ -63,9 +63,8 @@ isc_ntpaths_init() {
 		if (RegQueryValueEx(hKey, "InstallDir", NULL, NULL,
 			(LPBYTE)namedBase, &baseLen) != ERROR_SUCCESS)
 			keyFound = FALSE;
+		RegCloseKey(hKey);
 	}
-	
-	RegCloseKey(hKey);
 
 	GetSystemDirectory(systemDir, MAX_PATH);
 
