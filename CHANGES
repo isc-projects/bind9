@@ -1,5 +1,9 @@
+2197.	[bug]		Add INSIST to catch negative responses which are
+			not setting the event result code appropriately.
+			[RT #16909]
+
 2196.	[port]		win32: yield processor while waiting for once to
-			to complete. [RT# 16958]
+			to complete. [RT #16958]
 
 2195.	[func]		dnssec-keygen now defaults to nametype "ZONE"
 			when generating DNSKEYs. [RT #16954]
