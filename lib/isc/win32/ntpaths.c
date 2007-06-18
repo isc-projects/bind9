@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntpaths.c,v 1.9.18.1 2007/06/18 03:02:18 marka Exp $ */
+/* $Id: ntpaths.c,v 1.9.18.2 2007/06/18 23:46:32 tbox Exp $ */
 
 /*
  * This module fetches the required path information that is specific

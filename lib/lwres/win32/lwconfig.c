@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2006  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2006, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.2.18.3 2007/06/18 03:02:18 marka Exp $ */
+/* $Id: lwconfig.c,v 1.2.18.4 2007/06/18 23:46:33 tbox Exp $ */
 
 /*
  * We do this so that we may incorporate everything in the main routines
