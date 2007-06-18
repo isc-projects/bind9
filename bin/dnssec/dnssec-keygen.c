@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.76 2007/05/21 02:47:25 marka Exp $ */
+/* $Id: dnssec-keygen.c,v 1.77 2007/06/18 01:03:13 marka Exp $ */
 
 /*! \file */
 
@@ -61,7 +61,7 @@ dsa_size_ok(int size) {
 static void
 usage(void) {
 	fprintf(stderr, "Usage:\n");
-	fprintf(stderr, "    %s -a alg -b bits -n type [options] name\n\n",
+	fprintf(stderr, "    %s -a alg -b bits [-n type] [options] name\n\n",
 		program);
 	fprintf(stderr, "Version: %s\n", VERSION);
 	fprintf(stderr, "Required options:\n");
@@ -78,6 +78,7 @@ usage(void) {
 	fprintf(stderr, "        HMAC-SHA384:\t[1..384]\n");
 	fprintf(stderr, "        HMAC-SHA512:\t[1..512]\n");
 	fprintf(stderr, "    -n nametype: ZONE | HOST | ENTITY | USER | OTHER\n");
+	fprintf(stderr, "        (DNSKEY generation defaults to ZONE\n");
 	fprintf(stderr, "    name: owner of the key\n");
 	fprintf(stderr, "Other options:\n");
 	fprintf(stderr, "    -c <class> (default: IN)\n");
@@ -363,11 +364,13 @@ main(int argc, char **argv) {
 	if (alg != DNS_KEYALG_DH && generator != 0)
 		fatal("specified DH generator for a non-DH key");
 
-	if (nametype == NULL)
-		fatal("no nametype specified");
-	if (strcasecmp(nametype, "zone") == 0)
+	if (nametype == NULL) {
+		if ((options & DST_TYPE_KEY) != 0) /* KEY / HMAC */
+			fatal("no nametype specified");
+		flags |= DNS_KEYOWNER_ZONE;	/* DNSKEY */
+	} else if (strcasecmp(nametype, "zone") == 0)
 		flags |= DNS_KEYOWNER_ZONE;
-	else if ((options & DST_TYPE_KEY) != 0)	{ /* KEY */
+	else if ((options & DST_TYPE_KEY) != 0)	{ /* KEY / HMAC */
 		if (strcasecmp(nametype, "host") == 0 ||
 			 strcasecmp(nametype, "entity") == 0)
 			flags |= DNS_KEYOWNER_ENTITY;
@@ -380,7 +383,7 @@ main(int argc, char **argv) {
 
 	rdclass = strtoclass(classname);
 
-	if ((options & DST_TYPE_KEY) != 0)  /* KEY */
+	if ((options & DST_TYPE_KEY) != 0)  /* KEY / HMAC */
 		flags |= signatory;
 	else if ((flags & DNS_KEYOWNER_ZONE) != 0) /* DNSKEY */
 		flags |= ksk;

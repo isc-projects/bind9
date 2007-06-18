@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-keygen.docbook,v 1.17 2007/05/09 01:32:08 marka Exp $ -->
+<!-- $Id: dnssec-keygen.docbook,v 1.18 2007/06/18 01:03:13 marka Exp $ -->
 <refentry id="man.dnssec-keygen">
   <refentryinfo>
     <date>June 30, 2000</date>
@@ -129,8 +129,8 @@
             zone key (KEY/DNSKEY)), HOST or ENTITY (for a key associated with
             a host (KEY)),
             USER (for a key associated with a user(KEY)) or OTHER (DNSKEY).
-            These values are
-            case insensitive.
+            These values are case insensitive.  Defaults to ZONE for DNSKEY
+	    generation.
           </para>
         </listitem>
       </varlistentry>
