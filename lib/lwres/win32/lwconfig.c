@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.4 2006/10/03 23:50:52 marka Exp $ */
+/* $Id: lwconfig.c,v 1.5 2007/06/18 03:05:46 marka Exp $ */
 
 /*
  * We do this so that we may incorporate everything in the main routines
@@ -67,10 +67,9 @@ get_win32_searchlist(lwres_context_t *ctx) {
 		if (RegQueryValueEx(hKey, "SearchList", NULL, NULL,
 			(LPBYTE)searchlist, &searchlen) != ERROR_SUCCESS)
 			keyFound = FALSE;
+		RegCloseKey(hKey);
 	}
 	
-	RegCloseKey(hKey);
-
 	confdata->searchnxt = 0;
 
 	idx = 0;
