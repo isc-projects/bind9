@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.30.18.17 2007/02/01 23:55:20 marka Exp $ */
+/* $Id: socket.c,v 1.30.18.18 2007/06/18 03:08:56 marka Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -77,6 +77,7 @@
 #include <isc/msgs.h>
 #include <isc/mutex.h>
 #include <isc/net.h>
+#include <isc/once.h>
 #include <isc/os.h>
 #include <isc/platform.h>
 #include <isc/print.h>
@@ -904,10 +905,11 @@ socket_close(isc_socket_t *sock) {
 	}
 }
 
-/*
- * Initialize socket services
- */
-BOOL InitSockets() {
+static isc_once_t initialise_once = ISC_ONCE_INIT;
+static isc_boolean_t initialised = ISC_FALSE;
+
+static void
+initialise(void) {
 	WORD wVersionRequested;
 	WSADATA wsaData;
 	int err;
@@ -916,11 +918,26 @@ BOOL InitSockets() {
 	wVersionRequested = MAKEWORD(2, 0);
 
 	err = WSAStartup(wVersionRequested, &wsaData);
-	if ( err != 0 ) {
-		/* Tell the user that we could not find a usable Winsock DLL */
-		return(FALSE);
-	}
-	return(TRUE);
+	if (err != 0) {
+		char strbuf[ISC_STRERRORSIZE];
+		isc__strerror(err, strbuf, sizeof(strbuf));
+		FATAL_ERROR(__FILE__, __LINE__, "WSAStartup() %s: %s",
+			    isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+					   ISC_MSG_FAILED, "failed"),
+			    strbuf);
+	} else
+		initialised = ISC_TRUE;
+}
+
+/*
+ * Initialize socket services
+ */
+void
+InitSockets(void) {
+	RUNTIME_CHECK(isc_once_do(&initialise_once,
+                                  initialise) == ISC_R_SUCCESS);
+	if (!initialised)
+		exit(1);
 }
 
 int
@@ -2774,6 +2791,8 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
 	manager = isc_mem_get(mctx, sizeof(*manager));
 	if (manager == NULL)
 		return (ISC_R_NOMEMORY);
+
+	InitSockets();
 
 	manager->magic = SOCKET_MANAGER_MAGIC;
 	manager->mctx = NULL;

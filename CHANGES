@@ -1,3 +1,6 @@
+2199.	[bug]		win32: don't call WSAStartup() while loading dlls.
+			[RT #16911]
+
 2198.	[bug]		win32: RegCloseKey() could be called when
 			RegOpenKeyEx() failed. [RT #16911]
 

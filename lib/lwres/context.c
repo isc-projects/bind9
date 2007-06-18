@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: context.c,v 1.45.18.3 2005/04/29 00:17:16 marka Exp $ */
+/* $Id: context.c,v 1.45.18.4 2007/06/18 03:08:56 marka Exp $ */
 
 /*! \file context.c 
    lwres_context_create() creates a #lwres_context_t structure for use in
@@ -209,6 +209,9 @@ lwres_context_destroy(lwres_context_t **contextp) {
 	*contextp = NULL;
 
 	if (ctx->sock != -1) {
+#ifdef WIN32
+		DestroySockets();
+#endif
 		(void)close(ctx->sock);
 		ctx->sock = -1;
 	}
@@ -315,19 +318,30 @@ context_connect(lwres_context_t *ctx) {
 	} else
 		return (LWRES_R_IOERROR);
 
+#ifdef WIN32
+	InitSockets();
+#endif
 	s = socket(domain, SOCK_DGRAM, IPPROTO_UDP);
 	if (s < 0)
 		return (LWRES_R_IOERROR);
 
 	ret = connect(s, sa, salen);
 	if (ret != 0) {
+#ifdef WIN32
+		DestroySockets();
+#endif
 		(void)close(s);
 		return (LWRES_R_IOERROR);
 	}
 
 	MAKE_NONBLOCKING(s, ret);
-	if (ret < 0)
+	if (ret < 0) {
+#ifdef WIN32
+		DestroySockets();
+#endif
+		(void)close(s);
 		return (LWRES_R_IOERROR);
+	}
 
 	ctx->sock = s;
 
