@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.59 2007/03/06 00:50:11 marka Exp $ */
+/* $Id: resolver.c,v 1.284.18.60 2007/06/18 02:43:46 marka Exp $ */
 
 /*! \file */
 
@@ -795,6 +795,15 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 		       fctx->type == dns_rdatatype_any ||
 		       fctx->type == dns_rdatatype_rrsig ||
 		       fctx->type == dns_rdatatype_sig);
+		
+		/*
+		 * Negative results must be indicated in event->result.
+		 */
+		if (dns_rdataset_isassociated(event->rdataset) &&
+		    event->rdataset->type == dns_rdatatype_none) {
+			INSIST(event->result == DNS_R_NCACHENXDOMAIN ||
+			       event->result == DNS_R_NCACHENXRRSET);
+		}
 
 		isc_task_sendanddetach(&task, ISC_EVENT_PTR(&event));
 		count++;
