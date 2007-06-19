@@ -1,4 +1,4 @@
-2201.	[bug]		The build failed in a seperate object directory.
+2201.	[bug]		The build failed in a separate object directory.
 			[RT #16943]
 
 2200.	[bug]		The search for cached NSEC records was stopping to
@@ -714,7 +714,7 @@
 			hex strings with comments. [RT #15814]
 
 1974.	[doc]		List each of the zone types and associated zone
-			options seperately in the ARM.
+			options separately in the ARM.
 
 1973.	[func]		TSIG HMACSHA1, HMACSHA224, HMACSHA256, HMACSHA384 and
 			HMACSHA512 support. [RT #13606]
@@ -741,7 +741,7 @@
 1965.	[func]		Suppress spurious "recusion requested but not
 			available" warning with 'dig +qr'. [RT #15780].
 
-1964.	[func]		Seperate out MX and SRV to CNAME checks. [RT #15723]
+1964.	[func]		Separate out MX and SRV to CNAME checks. [RT #15723]
 
 1963.	[port]		Tru64 4.0E doesn't support send() and recv(). 
 			[RT #15586]
@@ -951,7 +951,7 @@
 1898.	[bug]		Extend ISC_SOCKADDR_FORMATSIZE and
 			ISC_NETADDR_FORMATSIZE to allow for scope details.
 
-1897.	[func]		x86 and x86_64 now have seperate atomic locking
+1897.	[func]		x86 and x86_64 now have separate atomic locking
 			implementations.
 
 1896.	[bug]		Recursive clients soft quota support wasn't working
@@ -6444,7 +6444,7 @@
 			and has been removed.
 
  170.	[cleanup]	Remove inter server consistancy checks from zone,
-			these should return as a seperate module in 9.1.
+			these should return as a separate module in 9.1.
 			dns_zone_checkservers(), dns_zone_checkparents(),
 			dns_zone_checkchildren(), dns_zone_checkglue().
 
