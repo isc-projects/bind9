@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.docbook,v 1.7.18.10 2007/05/16 01:45:31 marka Exp $ -->
+<!-- $Id: named.docbook,v 1.7.18.11 2007/06/19 06:59:09 marka Exp $ -->
 <refentry id="man.named">
   <refentryinfo>
     <date>June 30, 2000</date>
@@ -369,6 +369,14 @@
     <para><citetitle>RFC 1033</citetitle>,
       <citetitle>RFC 1034</citetitle>,
       <citetitle>RFC 1035</citetitle>,
+      <citerefentry>
+        <refentrytitle>named-checkconf</refentrytitle>
+	<manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>named-checkzone</refentrytitle>
+	<manvolnum>8</manvolnum>
+      </citerefentry>,
       <citerefentry>
         <refentrytitle>rndc</refentrytitle>
 	<manvolnum>8</manvolnum>

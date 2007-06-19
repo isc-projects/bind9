@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.1.2.26 2007/05/09 01:38:19 marka Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.1.2.27 2007/06/19 06:59:09 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>Aug 13, 2004</date>
@@ -576,6 +576,9 @@ zone <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
     <title>SEE ALSO</title>
     <para><citerefentry>
         <refentrytitle>named</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>named-checkconf</refentrytitle><manvolnum>8</manvolnum>
       </citerefentry>,
       <citerefentry>
         <refentrytitle>rndc</refentrytitle><manvolnum>8</manvolnum>
