@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.245 2007/06/18 23:47:41 tbox Exp $ */
+/* $Id: rbtdb.c,v 1.246 2007/06/19 06:19:29 marka Exp $ */
 
 /*! \file */
 
@@ -3323,7 +3323,8 @@ find_coveringnsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 					header_prev = header;
 				continue;
 			}
-			if (NONEXISTENT(header) || NXDOMAIN(header)) {
+			if (NONEXISTENT(header) ||
+			    RBTDB_RDATATYPE_BASE(header->type) == 0) {
 				header_prev = header;
 				continue;
 			}
@@ -3349,7 +3350,7 @@ find_coveringnsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 			result = DNS_R_COVERINGNSEC;
 		} else if (!empty_node) {
 			result = ISC_R_NOTFOUND;
-		}else
+		} else
 			result = dns_rbtnodechain_prev(&search->chain, NULL,
 						       NULL);
  unlock_node:
