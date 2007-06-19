@@ -1,3 +1,6 @@
+2200.	[bug]		The search for cached NSEC records was stopping to
+			early leading to excessive DLV queries. [RT #16930]
+
 2199.	[bug]		win32: don't call WSAStartup() while loading dlls.
 			[RT #16911]
 
