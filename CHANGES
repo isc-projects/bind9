@@ -331,7 +331,7 @@
 			hex strings with comments. [RT #15814]
 
 1974.	[doc]		List each of the zone types and associated zone
-			options seperately in the ARM.
+			options separately in the ARM.
 
 1972.	[contrib]	DBUS dynamic forwarders integation from
 			Jason Vas Dias <jvdias@redhat.com>.
@@ -4848,7 +4848,7 @@
 			and has been removed.
 
  170.	[cleanup]	Remove inter server consistancy checks from zone,
-			these should return as a seperate module in 9.1.
+			these should return as a separate module in 9.1.
 			dns_zone_checkservers(), dns_zone_checkparents(),
 			dns_zone_checkchildren(), dns_zone_checkglue().
 
