@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named-checkzone.docbook,v 1.33 2007/06/18 23:47:17 tbox Exp $ -->
+<!-- $Id: named-checkzone.docbook,v 1.34 2007/06/19 06:58:03 marka Exp $ -->
 <refentry id="man.named-checkzone">
   <refentryinfo>
     <date>June 13, 2000</date>
@@ -433,6 +433,9 @@
     <title>SEE ALSO</title>
     <para><citerefentry>
         <refentrytitle>named</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>named-checkconf</refentrytitle><manvolnum>8</manvolnum>  
       </citerefentry>,
       <citetitle>RFC 1035</citetitle>,
       <citetitle>BIND 9 Administrator Reference Manual</citetitle>.
