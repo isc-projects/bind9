@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.1.6.11 2007/05/09 02:11:44 marka Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.1.6.12 2007/06/19 07:52:23 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -452,18 +452,21 @@ zone <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 </para>
 </refsect1>
 
-<refsect1>
-<title>SEE ALSO</title>
-<para>
-<citerefentry>
-<refentrytitle>named</refentrytitle><manvolnum>8</manvolnum>
-</citerefentry>,
-<citerefentry>
-<refentrytitle>rndc</refentrytitle><manvolnum>8</manvolnum>
-</citerefentry>,
-<citetitle>BIND 9 Administrator Reference Manual</citetitle>
-</para>
-</refsect1>
+    <refsect1>
+      <title>SEE ALSO</title>
+      <para>
+	<citerefentry>
+	  <refentrytitle>named</refentrytitle><manvolnum>8</manvolnum>
+	</citerefentry>,
+	<citerefentry>
+	  <refentrytitle>named-checkconf</refentrytitle><manvolnum>8</manvolnum>
+	</citerefentry>,
+	<citerefentry>
+	  <refentrytitle>rndc</refentrytitle><manvolnum>8</manvolnum>
+	</citerefentry>,
+	<citetitle>BIND 9 Administrator Reference Manual</citetitle>
+      </para>
+    </refsect1>
 
 </refentry>
 <!--

@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named-checkconf.docbook,v 1.3.2.8 2007/05/09 02:11:44 marka Exp $ -->
+<!-- $Id: named-checkconf.docbook,v 1.3.2.9 2007/06/19 07:52:23 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -121,6 +121,9 @@
       <citerefentry>
         <refentrytitle>named</refentrytitle>
 	<manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>named-checkzone</refentrytitle><manvolnum>8</manvolnum>
       </citerefentry>,
       <citetitle>BIND 9 Administrator Reference Manual</citetitle>.
     </para>
