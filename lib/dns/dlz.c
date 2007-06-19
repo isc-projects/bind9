@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dlz.c,v 1.4 2007/06/18 23:47:40 tbox Exp $ */
+/* $Id: dlz.c,v 1.5 2007/06/19 23:47:16 tbox Exp $ */
 
 /*! \file */
 

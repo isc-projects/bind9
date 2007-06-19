@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -72,7 +72,7 @@
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)herror.c	8.1 (Berkeley) 6/4/93";
 static const char rcsid[] =
-	"$Id: herror.c,v 1.16 2007/06/18 23:47:51 tbox Exp $";
+	"$Id: herror.c,v 1.17 2007/06/19 23:47:22 tbox Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>

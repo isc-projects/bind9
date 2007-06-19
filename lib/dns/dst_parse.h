@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_parse.h,v 1.6 2007/06/18 23:47:40 tbox Exp $ */
+/* $Id: dst_parse.h,v 1.7 2007/06/19 23:47:16 tbox Exp $ */
 
 /*! \file */
 #ifndef DST_DST_PARSE_H

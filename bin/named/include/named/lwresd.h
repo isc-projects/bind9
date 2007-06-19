@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.h,v 1.18 2007/06/18 23:47:19 tbox Exp $ */
+/* $Id: lwresd.h,v 1.19 2007/06/19 23:46:59 tbox Exp $ */
 
 #ifndef NAMED_LWRESD_H
 #define NAMED_LWRESD_H 1

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: syslog.c,v 1.9 2007/06/18 23:47:49 tbox Exp $ */
+/* $Id: syslog.c,v 1.10 2007/06/19 23:47:19 tbox Exp $ */
 
 #include <config.h>
 

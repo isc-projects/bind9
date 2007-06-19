@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print_p.h,v 1.3 2007/06/18 23:47:51 tbox Exp $ */
+/* $Id: print_p.h,v 1.4 2007/06/19 23:47:22 tbox Exp $ */
 
 #ifndef LWRES_PRINT_P_H
 #define LWRES_PRINT_P_H 1

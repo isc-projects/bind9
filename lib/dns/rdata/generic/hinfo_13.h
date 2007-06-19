@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -18,7 +18,7 @@
 #ifndef GENERIC_HINFO_13_H
 #define GENERIC_HINFO_13_H 1
 
-/* $Id: hinfo_13.h,v 1.24 2007/06/18 23:47:43 tbox Exp $ */
+/* $Id: hinfo_13.h,v 1.25 2007/06/19 23:47:17 tbox Exp $ */
 
 typedef struct dns_rdata_hinfo {
 	dns_rdatacommon_t	common;

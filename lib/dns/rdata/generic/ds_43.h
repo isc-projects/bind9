@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ds_43.h,v 1.6 2007/06/18 23:47:43 tbox Exp $ */
+/* $Id: ds_43.h,v 1.7 2007/06/19 23:47:17 tbox Exp $ */
 
 #ifndef GENERIC_DS_43_H
 #define GENERIC_DS_43_H 1

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: minfo_14.c,v 1.44 2007/06/18 23:47:43 tbox Exp $ */
+/* $Id: minfo_14.c,v 1.45 2007/06/19 23:47:17 tbox Exp $ */
 
 /* reviewed: Wed Mar 15 17:45:32 PST 2000 by brister */
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2006  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2006, 2007  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acache.h,v 1.7 2007/06/18 23:47:42 tbox Exp $ */
+/* $Id: acache.h,v 1.8 2007/06/19 23:47:16 tbox Exp $ */
 
 #ifndef DNS_ACACHE_H
 #define DNS_ACACHE_H 1

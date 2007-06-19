@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001, 2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h,v 1.13 2007/06/18 23:47:19 tbox Exp $ */
+/* $Id: config.h,v 1.14 2007/06/19 23:46:59 tbox Exp $ */
 
 #ifndef NAMED_CONFIG_H
 #define NAMED_CONFIG_H 1

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2006  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2006, 2007  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: prereq.sh,v 1.9 2007/06/18 23:47:31 tbox Exp $
+# $Id: prereq.sh,v 1.10 2007/06/19 23:47:06 tbox Exp $
 
 ../../genrandom 400 random.data
 

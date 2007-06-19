@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,6 +15,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.9 2007/06/18 23:47:29 tbox Exp $
+# $Id: setup.sh,v 1.10 2007/06/19 23:47:04 tbox Exp $
 
 cp -f ns2/example1.db ns2/example.db

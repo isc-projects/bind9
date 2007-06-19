@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -18,7 +18,7 @@
 #ifndef GENERIC_RT_21_H
 #define GENERIC_RT_21_H 1
 
-/* $Id: rt_21.h,v 1.20 2007/06/18 23:47:43 tbox Exp $ */
+/* $Id: rt_21.h,v 1.21 2007/06/19 23:47:17 tbox Exp $ */
 
 /*!
  *  \brief Per RFC1183 */

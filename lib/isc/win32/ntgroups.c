@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2006  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2006, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntgroups.c,v 1.9 2007/06/18 23:47:49 tbox Exp $ */
+/* $Id: ntgroups.c,v 1.10 2007/06/19 23:47:19 tbox Exp $ */
 
 /*
  * The NT Groups have two groups that are not well documented and are

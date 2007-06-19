@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: check-instincludes.sh,v 1.10 2007/06/18 23:47:57 tbox Exp $
+# $Id: check-instincludes.sh,v 1.11 2007/06/19 23:47:24 tbox Exp $
 
 #
 # Check the installed bind9 header files to make sure that no header

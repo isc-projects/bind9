@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -18,7 +18,7 @@
 #ifndef IN_1_NAPTR_35_H
 #define IN_1_NAPTR_35_H 1
 
-/* $Id: naptr_35.h,v 1.22 2007/06/18 23:47:44 tbox Exp $ */
+/* $Id: naptr_35.h,v 1.23 2007/06/19 23:47:17 tbox Exp $ */
 
 /*! 
  *  \brief Per RFC2915 */

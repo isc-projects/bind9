@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.h,v 1.11 2007/06/18 23:47:21 tbox Exp $ */
+/* $Id: os.h,v 1.12 2007/06/19 23:46:59 tbox Exp $ */
 
 #ifndef NS_OS_H
 #define NS_OS_H 1

@@ -1,5 +1,5 @@
 <!--
- - Copyright (C) 2005  Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
  -
  - Permission to use, copy, modify, and/or distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: isc-docbook-text.xsl,v 1.2 2007/06/18 23:47:34 tbox Exp $ -->
+<!-- $Id: isc-docbook-text.xsl,v 1.3 2007/06/19 23:47:13 tbox Exp $ -->
 
 <!-- Tweaks to Docbook-XSL HTML for producing flat ASCII text. --> 
 

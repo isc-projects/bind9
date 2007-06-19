@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -18,7 +18,7 @@
 #ifndef GENERIC_NXT_30_H
 #define GENERIC_NXT_30_H 1
 
-/* $Id: nxt_30.h,v 1.24 2007/06/18 23:47:43 tbox Exp $ */
+/* $Id: nxt_30.h,v 1.25 2007/06/19 23:47:17 tbox Exp $ */
 
 /*!
  *  \brief RFC2535 */

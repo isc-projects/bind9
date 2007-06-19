@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * This code is derived from software contributed to ISC by
@@ -18,7 +18,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddrinfo.c,v 1.50 2007/06/18 23:47:51 tbox Exp $ */
+/* $Id: getaddrinfo.c,v 1.51 2007/06/19 23:47:22 tbox Exp $ */
 
 /*! \file */
 

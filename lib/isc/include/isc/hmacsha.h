@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005, 2006  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2005-2007  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hmacsha.h,v 1.6 2007/06/18 23:47:44 tbox Exp $ */
+/* $Id: hmacsha.h,v 1.7 2007/06/19 23:47:18 tbox Exp $ */
 
 /*! \file isc/hmacsha.h
  * This is the header file for the HMAC-SHA1, HMAC-SHA224, HMAC-SHA256,

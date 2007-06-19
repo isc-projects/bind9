@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ptr_12.c,v 1.42 2007/06/18 23:47:43 tbox Exp $ */
+/* $Id: ptr_12.c,v 1.43 2007/06/19 23:47:17 tbox Exp $ */
 
 /* Reviewed: Thu Mar 16 14:05:12 PST 2000 by explorer */
 

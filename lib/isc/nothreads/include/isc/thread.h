@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: thread.h,v 1.5 2007/06/18 23:47:47 tbox Exp $ */
+/* $Id: thread.h,v 1.6 2007/06/19 23:47:18 tbox Exp $ */
 
 #ifndef ISC_THREAD_H
 #define ISC_THREAD_H 1

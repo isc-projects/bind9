@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -19,7 +19,7 @@
 #ifndef HS_4_A_1_H
 #define HS_4_A_1_H 1
 
-/* $Id: a_1.h,v 1.11 2007/06/18 23:47:43 tbox Exp $ */
+/* $Id: a_1.h,v 1.12 2007/06/19 23:47:17 tbox Exp $ */
 
 typedef struct dns_rdata_hs_a {
 	dns_rdatacommon_t	common;

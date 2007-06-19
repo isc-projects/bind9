@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -19,7 +19,7 @@
 #ifndef GENERIC_MG_8_H
 #define GENERIC_MG_8_H 1
 
-/* $Id: mg_8.h,v 1.25 2007/06/18 23:47:43 tbox Exp $ */
+/* $Id: mg_8.h,v 1.26 2007/06/19 23:47:17 tbox Exp $ */
 
 typedef struct dns_rdata_mg {
 	dns_rdatacommon_t	common;

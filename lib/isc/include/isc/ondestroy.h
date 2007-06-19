@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ondestroy.h,v 1.13 2007/06/18 23:47:44 tbox Exp $ */
+/* $Id: ondestroy.h,v 1.14 2007/06/19 23:47:18 tbox Exp $ */
 
 #ifndef ISC_ONDESTROY_H
 #define ISC_ONDESTROY_H 1

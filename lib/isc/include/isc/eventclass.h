@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: eventclass.h,v 1.17 2007/06/18 23:47:44 tbox Exp $ */
+/* $Id: eventclass.h,v 1.18 2007/06/19 23:47:18 tbox Exp $ */
 
 #ifndef ISC_EVENTCLASS_H
 #define ISC_EVENTCLASS_H 1

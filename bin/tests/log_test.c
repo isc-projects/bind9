@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log_test.c,v 1.25 2007/06/18 23:47:26 tbox Exp $ */
+/* $Id: log_test.c,v 1.26 2007/06/19 23:46:59 tbox Exp $ */
 
 /* Principal Authors: DCL */
 

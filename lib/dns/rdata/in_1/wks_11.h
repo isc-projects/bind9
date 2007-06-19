@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -18,7 +18,7 @@
 #ifndef IN_1_WKS_11_H
 #define IN_1_WKS_11_H 1
 
-/* $Id: wks_11.h,v 1.21 2007/06/18 23:47:44 tbox Exp $ */
+/* $Id: wks_11.h,v 1.22 2007/06/19 23:47:17 tbox Exp $ */
 
 typedef	struct dns_rdata_in_wks {
 	dns_rdatacommon_t	common;

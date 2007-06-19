@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -19,7 +19,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char rcsid[] =
-	"$Id: netscope.c,v 1.12 2007/06/18 23:47:44 tbox Exp $";
+	"$Id: netscope.c,v 1.13 2007/06/19 23:47:17 tbox Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>

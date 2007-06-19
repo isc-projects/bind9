@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntgroups.h,v 1.4 2007/06/18 23:47:49 tbox Exp $ */
+/* $Id: ntgroups.h,v 1.5 2007/06/19 23:47:20 tbox Exp $ */
 
 #ifndef ISC_NTGROUPS_H
 #define ISC_NTGROUPS_H 1

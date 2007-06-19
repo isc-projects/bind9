@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Portions Copyright (C) 2004, 2006  Internet Systems Consortium, Inc. ("ISC")
+# Portions Copyright (C) 2004, 2006, 2007  Internet Systems Consortium, Inc. ("ISC")
 # Portions Copyright (C) 1999-2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: named-bootconf.sh,v 1.11 2007/06/18 23:47:32 tbox Exp $
+# $Id: named-bootconf.sh,v 1.12 2007/06/19 23:47:07 tbox Exp $
 
 # $NetBSD: named-bootconf.sh,v 1.5 1998/12/15 01:00:53 tron Exp $
 #

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.128 2007/06/18 23:47:41 tbox Exp $
+ * $Id: tsig.c,v 1.129 2007/06/19 23:47:16 tbox Exp $
  */
 /*! \file */
 #include <config.h>

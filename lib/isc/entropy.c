@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.17 2007/06/18 23:47:44 tbox Exp $ */
+/* $Id: entropy.c,v 1.18 2007/06/19 23:47:17 tbox Exp $ */
 
 /*! \file
  * \brief

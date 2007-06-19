@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: gssapi_link.c,v 1.6 2007/06/18 23:47:40 tbox Exp $
+ * $Id: gssapi_link.c,v 1.7 2007/06/19 23:47:16 tbox Exp $
  */
 
 #include <config.h>

@@ -1,4 +1,4 @@
-# Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.5 2007/06/18 23:47:27 tbox Exp $
+# $Id: setup.sh,v 1.6 2007/06/19 23:47:01 tbox Exp $
 
 rm -f ns2/example.bk
 rm -f ns3/example.bk

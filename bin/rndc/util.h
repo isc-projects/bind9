@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: util.h,v 1.9 2007/06/18 23:47:26 tbox Exp $ */
+/* $Id: util.h,v 1.10 2007/06/19 23:46:59 tbox Exp $ */
 
 #ifndef RNDC_UTIL_H
 #define RNDC_UTIL_H 1

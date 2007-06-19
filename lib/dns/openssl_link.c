@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.13 2007/06/18 23:47:41 tbox Exp $
+ * $Id: openssl_link.c,v 1.14 2007/06/19 23:47:16 tbox Exp $
  */
 #ifdef OPENSSL
 

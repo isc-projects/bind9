@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.86 2007/06/18 23:47:21 tbox Exp $ */
+/* $Id: server.h,v 1.87 2007/06/19 23:46:59 tbox Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
