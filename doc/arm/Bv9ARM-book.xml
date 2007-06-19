@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.82 2007/05/16 06:16:55 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.83 2007/06/19 07:11:44 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -517,7 +517,8 @@ zone "eng.example.com" {
 <title>Load Balancing</title>
 
 <para>A primitive form of load balancing can be achieved in
-the <acronym>DNS</acronym> by using multiple A records for one name.</para>
+the <acronym>DNS</acronym> by using multiple records
+(such as multiple A records) for one name.</para>
 
 <para>For example, if you have three WWW servers with network addresses
 of 10.0.0.1, 10.0.0.2 and 10.0.0.3, a set of records such as the
@@ -2832,6 +2833,7 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> dump-file <replaceable>path_name</replaceable>; </optional>
     <optional> memstatistics-file <replaceable>path_name</replaceable>; </optional>
     <optional> pid-file <replaceable>path_name</replaceable>; </optional>
+    <optional> recursing-file <replaceable>path_name</replaceable>; </optional>
     <optional> statistics-file <replaceable>path_name</replaceable>; </optional>
     <optional> zone-statistics <replaceable>yes_or_no</replaceable>; </optional>
     <optional> auth-nxdomain <replaceable>yes_or_no</replaceable>; </optional>
@@ -3020,6 +3022,18 @@ existing one will be removed.  Note that <command>none</command>
 is a keyword, not a filename, and therefore is not enclosed in
 double quotes.</para>
 </listitem></varlistentry>
+
+	    <varlistentry>
+	      <term><command>recursing-file</command></term>
+	      <listitem>
+		<para>
+		  The pathname of the file the server dumps
+		  the queries that are currently recursing when instructed
+		  to do so with <command>rndc recursing</command>.
+		  If not specified, the default is <filename>named.recursing</filename>.
+		</para>
+	      </listitem>
+	    </varlistentry>
 
 <varlistentry><term><command>statistics-file</command></term>
 <listitem><para>The pathname of the file the server appends statistics
