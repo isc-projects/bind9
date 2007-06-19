@@ -1,3 +1,6 @@
+2201.	[bug]		The build failed in a seperate object directory.
+			[RT #16943]
+
 2200.	[bug]		The search for cached NSEC records was stopping to
 			early leading to excessive DLV queries. [RT #16930]
 
