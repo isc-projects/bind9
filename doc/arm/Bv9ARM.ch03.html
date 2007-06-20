@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch03.html,v 1.26.2.5.4.22 2007/05/16 06:58:05 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch03.html,v 1.26.2.5.4.23 2007/06/20 02:26:23 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -51,10 +51,10 @@
 <dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2565552">An Authoritative-only Name Server</a></span></dt>
 </dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2565574">Load Balancing</a></span></dt>
-<dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2565994">Name Server Operations</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2565993">Name Server Operations</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2566000">Tools for Use With the Name Server Daemon</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2567398">Signals</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2565998">Tools for Use With the Name Server Daemon</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2567397">Signals</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -130,7 +130,8 @@ zone "eng.example.com" {
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
 <a name="id2565574"></a>Load Balancing</h2></div></div></div>
 <p>A primitive form of load balancing can be achieved in
-the <acronym class="acronym">DNS</acronym> by using multiple A records for one name.</p>
+the <acronym class="acronym">DNS</acronym> by using multiple records
+(such as multiple A records) for one name.</p>
 <p>For example, if you have three WWW servers with network addresses
 of 10.0.0.1, 10.0.0.2 and 10.0.0.3, a set of records such as the
 following means that clients will connect to each machine one third
@@ -189,10 +190,10 @@ of the time:</p>
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2565994"></a>Name Server Operations</h2></div></div></div>
+<a name="id2565993"></a>Name Server Operations</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2566000"></a>Tools for Use With the Name Server Daemon</h3></div></div></div>
+<a name="id2565998"></a>Tools for Use With the Name Server Daemon</h3></div></div></div>
 <p>There are several indispensable diagnostic, administrative
 and monitoring tools available to the system administrator for controlling
 and debugging the name server daemon. We describe several in this
@@ -478,7 +479,7 @@ a <code class="filename">rndc.key</code> file and not modify
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2567398"></a>Signals</h3></div></div></div>
+<a name="id2567397"></a>Signals</h3></div></div></div>
 <p>Certain UNIX signals cause the name server to take specific
 actions, as described in the following table.  These signals can
 be sent using the <span><strong class="command">kill</strong></span> command.</p>
