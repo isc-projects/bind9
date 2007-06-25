@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.54 2007/05/15 02:31:05 marka Exp $ */
+/* $Id: server.c,v 1.419.18.55 2007/06/25 02:42:24 marka Exp $ */
 
 /*! \file */
 
@@ -1438,7 +1438,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	CHECK(configure_view_acl(vconfig, config, "allow-query-cache",
 				 actx, ns_g_mctx, &view->queryacl));
 	if (view->queryacl == NULL)
-		CHECK(configure_view_acl(NULL, ns_g_defaults,
+		CHECK(configure_view_acl(NULL, ns_g_config,
 					 "allow-query-cache", actx,
 					 ns_g_mctx, &view->queryacl));
 
@@ -1463,7 +1463,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	 * Set default "allow-recursion" acl.
 	 */
 	if (view->recursionacl == NULL && view->recursion)
-		CHECK(configure_view_acl(NULL, ns_g_defaults, "allow-recursion",
+		CHECK(configure_view_acl(NULL, ns_g_config, "allow-recursion",
 					 actx, ns_g_mctx, &view->recursionacl));
 
 	CHECK(configure_view_acl(vconfig, config, "sortlist",

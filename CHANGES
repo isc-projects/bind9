@@ -1,3 +1,6 @@
+2202.	[security]	The default acls for allow-query-cache and 
+			allow-recursion were not being applied. [RT #16960]
+
 2200.	[bug]		The search for cached NSEC records was stopping to
 			early leading to excessive DLV queries. [RT #16930]
 
