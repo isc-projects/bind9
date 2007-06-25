@@ -1,3 +1,6 @@
+2202.	[security]	The default acls for allow-query-cache and
+			allow-recursion were not being applied. [RT #16960]
+
 2201.	[bug]		The build failed in a separate object directory.
 			[RT #16943]
 

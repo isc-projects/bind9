@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.486 2007/06/18 23:47:19 tbox Exp $ */
+/* $Id: server.c,v 1.487 2007/06/25 02:37:25 marka Exp $ */
 
 /*! \file */
 
@@ -1546,14 +1546,14 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	CHECK(configure_view_acl(vconfig, config, "allow-query-cache",
 				 actx, ns_g_mctx, &view->queryacl));
 	if (view->queryacl == NULL)
-		CHECK(configure_view_acl(NULL, ns_g_defaults,
+		CHECK(configure_view_acl(NULL, ns_g_config,
 					 "allow-query-cache", actx,
 					 ns_g_mctx, &view->queryacl));
 
 	CHECK(configure_view_acl(vconfig, config, "allow-query-cache-on",
 				 actx, ns_g_mctx, &view->queryonacl));
 	if (view->queryonacl == NULL)
-		CHECK(configure_view_acl(NULL, ns_g_defaults,
+		CHECK(configure_view_acl(NULL, ns_g_config,
 					 "allow-query-cache-on", actx,
 					 ns_g_mctx, &view->queryonacl));
 
@@ -1570,13 +1570,13 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	 * Set default "allow-recursion" and "allow-recursion-on" acls.
 	 */
 	if (view->recursionacl == NULL && view->recursion)
-		CHECK(configure_view_acl(NULL, ns_g_defaults,
+		CHECK(configure_view_acl(NULL, ns_g_config,
 					 "allow-recursion",
 					 actx, ns_g_mctx,
 					 &view->recursionacl));
 
 	if (view->recursiononacl == NULL && view->recursion)
-		CHECK(configure_view_acl(NULL, ns_g_defaults,
+		CHECK(configure_view_acl(NULL, ns_g_config,
 					 "allow-recursion-on",
 					 actx, ns_g_mctx,
 					 &view->recursiononacl));
