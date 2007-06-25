@@ -1,3 +1,6 @@
+2202.	[security]	The default acls for allow-query-cache and 
+			allow-recursion were not being applied. [RT #16960]
+
 2173.	[port]		win32: When compiling with MSVS 2005 SP1 we also
 			need to ship Microsoft.VC80.MFCLOC.
 
