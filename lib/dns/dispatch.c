@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.135 2007/06/26 05:00:53 marka Exp $ */
+/* $Id: dispatch.c,v 1.136 2007/06/26 06:02:37 marka Exp $ */
 
 /*! \file */
 
@@ -31,6 +31,7 @@
 #include <isc/print.h>
 #include <isc/string.h>
 #include <isc/task.h>
+#include <isc/time.h>
 #include <isc/util.h>
 
 #include <dns/acl.h>
@@ -2618,12 +2619,12 @@ nsid_next(dns_nsid_t *nsid) {
 
 static isc_result_t
 nsid_init(isc_mem_t *mctx, dns_nsid_t *nsid, isc_boolean_t usepool) {
-        struct timeval now;
+        isc_time_t now;
         pid_t mypid;
         isc_uint16_t a1ndx, a2ndx, a3ndx, c1ndx, c2ndx, c3ndx;
         int i;
 
-        gettimeofday(&now, NULL);
+	isc_time_now(&now);
         mypid = getpid();
 
         /* Initialize the state */
