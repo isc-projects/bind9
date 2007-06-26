@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.116.18.13.10.1 2007/06/26 02:58:54 marka Exp $ */
+/* $Id: dispatch.c,v 1.116.18.13.10.2 2007/06/26 04:58:45 marka Exp $ */
 
 /*! \file */
 
@@ -2527,7 +2527,7 @@ nsid_next(dns_nsid_t *nsid) {
 			   (nsid_hash_state)) & 0xFFFF;
 
 	if (nsid->nsid_usepool) {
-	        u_int16_t pick;
+	        isc_uint16_t pick;
 
                 pick = compressed_hash & NSID_RANGE_MASK;
 		pick = (nsid->nsid_state + pick) & NSID_POOL_MASK;
@@ -2624,7 +2624,7 @@ nsid_init(isc_mem_t *mctx, dns_nsid_t *nsid, isc_boolean_t usepool) {
 
 	nsid->nsid_usepool = usepool;
 	if (nsid->nsid_usepool) {
-                nsid->nsid_pool = isc_mem_get(mctx, 0x10000 * sizeof(u_int16_t));
+                nsid->nsid_pool = isc_mem_get(mctx, 0x10000 * sizeof(isc_uint16_t));
 		if (nsid->nsid_pool == NULL)
 			return (ISC_R_NOMEMORY);
                 for (i = 0; ; i++) {
