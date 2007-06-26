@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.101.2.14.6.1 2007/06/26 04:37:53 marka Exp $ */
+/* $Id: dispatch.c,v 1.101.2.14.6.2 2007/06/26 04:54:14 marka Exp $ */
 
 #include <config.h>
 
@@ -2405,7 +2405,7 @@ nsid_next(dns_nsid_t *nsid) {
 			   (nsid_hash_state)) & 0xFFFF;
 
 	if (nsid->nsid_usepool) {
-	        u_int16_t pick;
+	        isc_uint16_t pick;
 
                 pick = compressed_hash & NSID_RANGE_MASK;
 		pick = (nsid->nsid_state + pick) & NSID_POOL_MASK;
@@ -2502,7 +2502,7 @@ nsid_init(isc_mem_t *mctx, dns_nsid_t *nsid, isc_boolean_t usepool) {
 
 	nsid->nsid_usepool = usepool;
 	if (nsid->nsid_usepool) {
-                nsid->nsid_pool = isc_mem_get(mctx, 0x10000 * sizeof(u_int16_t));
+                nsid->nsid_pool = isc_mem_get(mctx, 0x10000 * sizeof(isc_uint16_t));
 		if (nsid->nsid_pool == NULL)
 			return (ISC_R_NOMEMORY);
                 for (i = 0; ; i++) {
