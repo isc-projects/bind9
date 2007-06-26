@@ -1,3 +1,6 @@
+2203.	[security]	Query id generation was cryptographically weak.
+			[RT # 16915]
+
 2199.	[bug]		win32: don't call WSAStartup() while loading dlls.
 			[RT #16911]
 
