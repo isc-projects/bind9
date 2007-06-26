@@ -1,3 +1,6 @@
+2203.	[security]	Query id generation was cryptographically weak.
+			[RT # 16915]
+
 2200.	[bug]		The search for cached NSEC records was stopping to
 			early leading to excessive DLV queries. [RT #16930]
 
