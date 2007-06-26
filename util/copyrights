@@ -1770,7 +1770,7 @@
 ./lib/dns/include/dns/dbiterator.h		C	1999,2000,2001,2004,2005
 ./lib/dns/include/dns/dbtable.h			C	1999,2000,2001,2004,2005
 ./lib/dns/include/dns/diff.h			C	2000,2001,2004,2005
-./lib/dns/include/dns/dispatch.h		C	1999,2000,2001,2002,2003,2004,2005
+./lib/dns/include/dns/dispatch.h		C	1999,2000,2001,2002,2003,2004,2005,2007
 ./lib/dns/include/dns/dlz.h			C.PORTION	1999,2000,2001,2005
 ./lib/dns/include/dns/dnssec.h			C	1999,2000,2001,2002,2004,2005
 ./lib/dns/include/dns/ds.h			C	2002,2004,2005,2006
@@ -1993,7 +1993,7 @@
 ./lib/dns/win32/gen.dsp				X	2001
 ./lib/dns/win32/gen.dsw				X	2001
 ./lib/dns/win32/gen.mak				X	2001,2006
-./lib/dns/win32/libdns.def			X	2001,2002,2003,2004,2005,2006
+./lib/dns/win32/libdns.def			X	2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/win32/libdns.dsp			X	2001,2002,2003,2004,2005,2006
 ./lib/dns/win32/libdns.dsw			X	2001
 ./lib/dns/win32/libdns.mak			X	2001,2002,2003,2004,2005,2006
