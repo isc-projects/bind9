@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.116.18.13.10.3 2007/06/26 06:06:49 marka Exp $ */
+/* $Id: dispatch.c,v 1.116.18.13.10.4 2007/06/27 04:17:45 marka Exp $ */
 
 /*! \file */
 
@@ -2365,7 +2365,7 @@ nsid_hash(void *data, size_t len) {
 	 * We don't care about locking access to nsid_hash_state.
 	 * In fact races make the result even more non deteministic.
 	 */
-	while (len-- > 0) {
+	while (len-- > 0U) {
 		nsid_hash_state = NSID_HASHROTATE(nsid_hash_state);
 		nsid_hash_state += *p++;
 	}
