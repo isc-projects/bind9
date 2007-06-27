@@ -1,3 +1,5 @@
+	--- 9.2.8-P1 released ---
+
 2203.	[security]	Query id generation was cryptographically weak.
 			[RT # 16915]
 
