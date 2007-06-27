@@ -43,6 +43,10 @@ BIND 9
 		Nominum, Inc.
 
 
+BIND 9.2.8-P1
+
+	BIND 9.2.8-P1 is a security release.
+
 BIND 9.2.8
 	BIND 9.2.8 is a security release.
 
