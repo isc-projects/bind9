@@ -4,8 +4,12 @@
 2202.	[security]	The default acls for allow-query-cache and 
 			allow-recursion were not being applied. [RT #16960]
 
-2173.	[port]		win32: When compiling with MSVS 2005 SP1 we also
-			need to ship Microsoft.VC80.MFCLOC.
+2193.	[port]		win32: BINDInstall.exe is now linked statically.
+			[RT #16906]
+
+2192.	[port]		win32: use vcredist_x86.exe to install Visual
+			Studio's redistributable dlls if building with
+			Visual Stdio 2005 or later.
 
 	--- 9.4.1 released ---
 
