@@ -57,13 +57,16 @@ echo Copying the OpenSSL DLL.
 copy ..\..\openssl-0.9.8d\out32dll\libeay32.dll ..\Build\Release\
 copy ..\..\openssl-0.9.8d\out32dll\libeay32.dll ..\Build\Debug
 
+rem
+rem set vcredist here so that it is correctly expanded in the if body 
+rem
+set vcredist=BootStrapper\Packages\vcredist_x86\vcredist_x86.exe
+
 if Defined FrameworkSDKDir (
 
 rem
 rem vcredist_x86.exe path relative to FrameworkSDKDir
 rem
-
-set vcredist=BootStrapper\Packages\vcredist_x86\vcredist_x86.exe
 
 if Exist "%FrameworkSDKDir%\%vcredist%" (
 
