@@ -719,3 +719,16 @@ A: Short Answer: No.
    private network? Are you on a NAT'd network? The answers to all these questions
    change how you configure even a caching name server.
 
+Q: Is it possible to configure BIND to redirect "anything.domain.com" to
+   "domain.com/anything"?
+
+A: No. This mapping needs to be done in the HTTP server using the "Host:
+   anything.domain.com" header from HTTP 1.1. See your HTTP server documentation
+   for how to do this.
+
+   You can however use wildcard records to map all the hostnames to the same
+   addresses. e.g.
+
+   * A 192.0.2.10
+   * AAAA 2001:DB8:0:0:8:800:200C:417A
+

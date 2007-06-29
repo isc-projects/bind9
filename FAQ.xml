@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: FAQ.xml,v 1.19 2007/06/18 23:47:16 tbox Exp $ -->
+<!-- $Id: FAQ.xml,v 1.20 2007/06/29 02:26:20 marka Exp $ -->
 
 <article class="faq">
   <title>Frequently Asked Questions about BIND 9</title>
@@ -1352,6 +1352,30 @@ zone "list.dsbl.org" {
 	</para>
       </answer>
     </qandaentry>
+
+    <qandaentry>
+      <question>
+	<para>
+	  Is it possible to configure BIND to redirect
+	  <quote>anything.domain.com</quote> to
+	  <quote>domain.com/anything</quote>?
+	</para>
+      </question>
+      <answer>
+	<para>
+	  No. This mapping needs to be done in the HTTP server using the
+	  <quote>Host: anything.domain.com</quote> header from HTTP 1.1.
+	  See your HTTP server documentation for how to do this.
+	</para>
+	<para>
+	  You can however use wildcard records to map all the hostnames
+	  to the same addresses. e.g.
+<programlisting>* A 192.0.2.10
+* AAAA 2001:DB8:0:0:8:800:200C:417A</programlisting>
+	</para>
+      </answer>
+    </qandaentry>
+
 
   </qandaset>
 </article>
