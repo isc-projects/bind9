@@ -1,3 +1,5 @@
+2204	[bug]		"rndc flushanme name unknown-view" caused named
+			to crash. [RT #16984]
 
 	--- 9.5.0a6 released ---
 

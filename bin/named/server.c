@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.487 2007/06/25 02:37:25 marka Exp $ */
+/* $Id: server.c,v 1.488 2007/07/02 01:00:35 marka Exp $ */
 
 /*! \file */
 
@@ -4960,7 +4960,7 @@ ns_server_flushname(ns_server_t *server, char *args) {
 				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 				      "flushing name '%s' in cache view '%s' "
 				      "failed: view not found", target,
-				      view->name);
+				      viewname);
 		result = ISC_R_FAILURE;
 	}
 	isc_task_endexclusive(server->task);	
