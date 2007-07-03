@@ -64,6 +64,9 @@ rt16911				review	marka	// 2007-05-27 23:20 +0000
 rt16915				new	marka	// 2007-06-05 23:48 +0000
 rt16915a			new	marka	// 2007-06-25 03:06 +0000
 rt16958				new	
+rt16982				new	marka	// 2007-07-03 00:33 +0000
+rt16987				new	marka	// 2007-07-03 01:20 +0000
+rt16987a			new	marka	// 2007-07-03 01:25 +0000
 rt1727				open		// ixfr-from-differences workfile
 skan				open	explorer
 skan-metazones1			private	explorer
