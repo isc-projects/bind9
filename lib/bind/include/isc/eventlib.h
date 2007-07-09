@@ -18,7 +18,7 @@
 /* eventlib.h - exported interfaces for eventlib
  * vix 09sep95 [initial]
  *
- * $Id: eventlib.h,v 1.3 2004/03/09 06:29:55 marka Exp $
+ * $Id: eventlib.h,v 1.3.18.2 2005/07/28 07:38:07 marka Exp $
  */
 
 #ifndef _EVENTLIB_H
@@ -75,6 +75,8 @@ typedef	struct { unsigned char mask[256/8]; } evByteMask;
 #define	EV_READ		1
 #define	EV_WRITE	2
 #define	EV_EXCEPT	4
+
+#define EV_WASNONBLOCKING 8	/* Internal library use. */
 
 /* eventlib.c */
 #define evCreate	__evCreate
@@ -198,3 +200,5 @@ int evDefer __P((evContext, evWaitFunc, void *));
 #endif
 
 #endif /*_EVENTLIB_H*/
+
+/*! \file */

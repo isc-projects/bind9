@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,10 +15,13 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lfsr.c,v 1.14 2004/03/05 05:10:46 marka Exp $ */
+/* $Id: lfsr.c,v 1.14.18.4 2005/10/14 01:28:29 marka Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
+#include <stddef.h>
 #include <stdlib.h>
 
 #include <isc/assertions.h>
@@ -49,15 +52,12 @@ isc_lfsr_init(isc_lfsr_t *lfsr, isc_uint32_t state, unsigned int bits,
 		lfsr->state = 0xffffffffU >> (32 - lfsr->bits);
 }
 
-/*
+/*!
  * Return the next state of the lfsr.
  */
 static inline isc_uint32_t
 lfsr_generate(isc_lfsr_t *lfsr)
 {
-	unsigned int highbit;
-
-	highbit = 1 << (lfsr->bits - 1);
 
 	/*
 	 * If the previous state is zero, we must fill it with something

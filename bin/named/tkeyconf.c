@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkeyconf.c,v 1.20 2004/03/05 04:57:49 marka Exp $ */
+/* $Id: tkeyconf.c,v 1.20.18.6 2006/03/02 00:37:21 marka Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -42,17 +44,18 @@
 
 
 isc_result_t
-ns_tkeyctx_fromconfig(cfg_obj_t *options, isc_mem_t *mctx, isc_entropy_t *ectx,
-		       dns_tkeyctx_t **tctxp)
+ns_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
+		      isc_entropy_t *ectx, dns_tkeyctx_t **tctxp)
 {
 	isc_result_t result;
 	dns_tkeyctx_t *tctx = NULL;
-	char *s;
+	const char *s;
 	isc_uint32_t n;
 	dns_fixedname_t fname;
 	dns_name_t *name;
 	isc_buffer_t b;
-	cfg_obj_t *obj;
+	const cfg_obj_t *obj;
+	int type;
 
 	result = dns_tkeyctx_create(mctx, ectx, &tctx);
 	if (result != ISC_R_SUCCESS)
@@ -69,9 +72,9 @@ ns_tkeyctx_fromconfig(cfg_obj_t *options, isc_mem_t *mctx, isc_entropy_t *ectx,
 		name = dns_fixedname_name(&fname);
 		RETERR(dns_name_fromtext(name, &b, dns_rootname,
 					 ISC_FALSE, NULL));
+		type = DST_TYPE_PUBLIC|DST_TYPE_PRIVATE|DST_TYPE_KEY;
 		RETERR(dst_key_fromfile(name, (dns_keytag_t) n, DNS_KEYALG_DH,
-					DST_TYPE_PUBLIC|DST_TYPE_PRIVATE,
-					NULL, mctx, &tctx->dhkey));
+					type, NULL, mctx, &tctx->dhkey));
 	}
 
 	obj = NULL;

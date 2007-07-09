@@ -1,4 +1,4 @@
-# Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 1998-2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
@@ -18,10 +18,10 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.355 $)
+AC_REVISION($Revision: 1.355.18.67 $)
 
 AC_INIT(lib/dns/name.c)
-AC_PREREQ(2.13)
+AC_PREREQ(2.59)
 
 AC_CONFIG_HEADER(config.h)
 AC_CONFIG_SUBDIRS(lib/bind)
@@ -31,11 +31,19 @@ AC_CANONICAL_HOST
 AC_PROG_MAKE_SET
 AC_PROG_RANLIB
 AC_PROG_INSTALL
+AC_PROG_LN_S
 
 AC_SUBST(STD_CINCLUDES)
 AC_SUBST(STD_CDEFINES)
 AC_SUBST(STD_CWARNINGS)
 AC_SUBST(CCOPT)
+
+#
+# Make very sure that these are the first files processed by
+# config.status, since we use the processed output as the input for
+# AC_SUBST_FILE() subsitutions in other files.
+#
+AC_CONFIG_FILES([make/rules make/includes])
 
 AC_PATH_PROG(AR, ar)
 ARFLAGS="cruv"
@@ -261,6 +269,24 @@ AC_TRY_COMPILE(, [
 
 AC_TYPE_SIZE_T
 AC_CHECK_TYPE(ssize_t, int)
+AC_CHECK_TYPE(uintptr_t,unsigned long)
+AC_CHECK_TYPE(socklen_t,
+[AC_DEFINE(ISC_SOCKADDR_LEN_T, socklen_t)],
+[
+AC_TRY_COMPILE(
+[
+#include <sys/types.h>
+#include <sys/socket.h>
+int getsockname(int, struct sockaddr *, size_t *);
+],[],
+[AC_DEFINE(ISC_SOCKADDR_LEN_T, size_t)],
+[AC_DEFINE(ISC_SOCKADDR_LEN_T, int)])
+],
+[
+#include <sys/types.h>
+#include <sys/socket.h>
+])
+AC_SUBST(ISC_SOCKADDR_LEN_T)
 AC_HEADER_TIME
 AC_MSG_CHECKING(for long long)
 AC_TRY_COMPILE([],[long long i = 0; return (0);],
@@ -336,26 +362,44 @@ AC_SUBST(LWRES_PLATFORM_NEEDSYSSELECTH)
 #
 AC_C_BIGENDIAN
 
+
 #
 # was --with-openssl specified?
 #
+OPENSSL_WARNING=
 AC_MSG_CHECKING(for OpenSSL library)
 AC_ARG_WITH(openssl,
 [  --with-openssl[=PATH]   Build with OpenSSL [yes|no|path].
                           (Required for DNSSEC)],
-    use_openssl="$withval", use_openssl="no")
+    use_openssl="$withval", use_openssl="auto")
 
+openssldirs="/usr /usr/local /usr/local/ssl /usr/pkg /usr/sfw"
+if test "$use_openssl" = "auto"
+then
+	for d in $openssldirs
+	do
+		if test -f $d/include/openssl/opensslv.h
+		then
+			use_openssl=$d
+			break
+		fi
+	done
+fi
 case "$use_openssl" in
 	no)
 		AC_MSG_RESULT(no)
 		DST_OPENSSL_INC=""
 		USE_OPENSSL=""
 		;;
+	auto)
+		DST_OPENSSL_INC=""
+		USE_OPENSSL=""
+		AC_MSG_RESULT(not found)
+		;;
 	*)
 		if test "$use_openssl" = "yes"
 		then
 		    	# User did not specify a path - guess it
-			openssldirs="/usr /usr/local /usr/local/ssl /usr/pkg"
 			for d in $openssldirs
 			do
 				if test -f $d/include/openssl/opensslv.h
@@ -372,15 +416,24 @@ case "$use_openssl" in
 			fi
 		fi
 		USE_OPENSSL='-DOPENSSL'
-		DST_OPENSSL_INC="-I$use_openssl/include"
-		case $host in
-		*-solaris*)
-			DNS_OPENSSL_LIBS="-L$use_openssl/lib -R$use_openssl/lib -lcrypto"
-			;;
-		*)
-			DNS_OPENSSL_LIBS="-L$use_openssl/lib -lcrypto"
-			;;
-		esac
+		if test "$use_openssl" = "/usr"
+		then
+			DST_OPENSSL_INC=""
+			DNS_OPENSSL_LIBS="-lcrypto"
+		else
+			DST_OPENSSL_INC="-I$use_openssl/include"
+			case $host in
+			*-solaris*)
+				DNS_OPENSSL_LIBS="-L$use_openssl/lib -R$use_openssl/lib -lcrypto"
+				;;
+			*-hp-hpux*)
+				DNS_OPENSSL_LIBS="-L$use_openssl/lib -Wl,+b: -lcrypto"
+				;;
+			*)
+				DNS_OPENSSL_LIBS="-L$use_openssl/lib -lcrypto"
+				;;
+			esac
+		fi
 		AC_MSG_RESULT(using openssl from $use_openssl/lib and $use_openssl/include)
 
 		saved_cflags="$CFLAGS"
@@ -422,51 +475,46 @@ shared library configuration (e.g., LD_LIBRARY_PATH).)],
 		[AC_MSG_RESULT(assuming it does work on target platform)]
 		)
 		 
-#
-#	OpenSSLDie is new with CERT CS-2002-23.  If we see it we have may
-#	have a patched library otherwise check that we are greater than
-#	the fixed versions
-#
-		AC_CHECK_FUNC(OpenSSLDie,
+AC_ARG_ENABLE(openssl-version-check,
+[AC_HELP_STRING([--enable-openssl-version-check],
+        [Check OpenSSL Version @<:@default=yes@:>@])])
+case "$enable_openssl_version_check" in
+yes|'')
 		AC_MSG_CHECKING(OpenSSL library version)
 		AC_TRY_RUN([
 #include <stdio.h>
 #include <openssl/opensslv.h>
 int main() {
-        if (OPENSSL_VERSION_NUMBER >= 0x0090581fL)
+        if ((OPENSSL_VERSION_NUMBER >= 0x009070cfL &&
+	     OPENSSL_VERSION_NUMBER < 0x00908000L) ||
+	     OPENSSL_VERSION_NUMBER >= 0x0090804fL)
                 return (0);
 	printf("\n\nFound   OPENSSL_VERSION_NUMBER %#010x\n",
 		OPENSSL_VERSION_NUMBER);
-	printf("Require OPENSSL_VERSION_NUMBER 0x0090581f or greater\n\n");
+	printf("Require OPENSSL_VERSION_NUMBER 0x009070cf or greater (0.9.7l)\n"
+	       "Require OPENSSL_VERSION_NUMBER 0x0090804f or greater (0.9.8d)\n\n");
         return (1);
 }
-],
+		],
 	        [AC_MSG_RESULT(ok)],
 		[AC_MSG_RESULT(not compatible)
-		 AC_MSG_ERROR(you need OpenSSL 0.9.5a or newer)],
+                 OPENSSL_WARNING=yes
+		],
 		[AC_MSG_RESULT(assuming target platform has compatible version)])
-		,
-	        AC_MSG_RESULT(did not find fixes for CERT CA-2002-23)
-		AC_MSG_CHECKING(OpenSSL library version)
-		AC_TRY_RUN([
-#include <stdio.h>
-#include <openssl/opensslv.h>
-int main() {
-        if ((OPENSSL_VERSION_NUMBER >= 0x0090605fL &&
-	     OPENSSL_VERSION_NUMBER < 0x009070000L) ||
-	     OPENSSL_VERSION_NUMBER >= 0x00907003L)
-                return (0);
-	printf("\n\nFound   OPENSSL_VERSION_NUMBER %#010x\n",
-		OPENSSL_VERSION_NUMBER);
-	printf("Require OPENSSL_VERSION_NUMBER 0x0090605f or greater (0.9.6e)\n"
-	       "Require OPENSSL_VERSION_NUMBER 0x00907003 or greater (0.9.7-beta2)\n\n");
-        return (1);
-}
-],
-	        [AC_MSG_RESULT(ok)],
-		[AC_MSG_RESULT(not compatible)
-		 AC_MSG_ERROR(you need OpenSSL 0.9.6e/0.9.7-beta2 (or newer): CERT CA-2002-23)],
-		[AC_MSG_RESULT(assuming target platform has compatible version)]))
+;;
+no)
+	AC_MSG_RESULT(Skipped OpenSSL version check)
+;;
+esac
+
+		AC_MSG_CHECKING(for OpenSSL DSA support)
+		if test -f $use_openssl/include/openssl/dsa.h
+		then
+			AC_DEFINE(HAVE_OPENSSL_DSA)
+			AC_MSG_RESULT(yes)
+		else
+			AC_MSG_RESULT(no)
+		fi
 		CFLAGS="$saved_cflags"
 		LIBS="$saved_libs"
 		;;
@@ -561,225 +609,10 @@ esac
 #
 AC_CHECK_FUNC(arc4random, AC_DEFINE(HAVE_ARC4RANDOM))
 
-#
-# Begin pthreads checking.
-#
-# First, decide whether to use multithreading or not.
-#
-# Enable multithreading by default on systems where it is known
-# to work well, and where debugging of multithreaded programs
-# is supported.
-#
-
-AC_MSG_CHECKING(whether to build with thread support)
-
-case $host in
-*-dec-osf*)
-	use_threads=true ;;
-[*-solaris2.[0-6]])
-	# Thread signals are broken on Solaris 2.6; they are sometimes
-	# delivered to the wrong thread.
-	use_threads=false ;;
-*-solaris*)
-	use_threads=true ;;
-*-ibm-aix*)
-	use_threads=true ;;
-*-hp-hpux10*)
-	use_threads=false ;;
-*-hp-hpux11*)
-	use_threads=true ;;
-*-sgi-irix*)
-	use_threads=true ;;
-*-sco-sysv*uw*|*-*-sysv*UnixWare*)
-        # UnixWare
-	use_threads=false ;;
-*-*-sysv*OpenUNIX*)
-        # UnixWare
-	use_threads=true ;;
-*-netbsd*)
-	if test -r /usr/lib/libpthread.so ; then
-	    use_threads=true
-	else
-	    # Socket I/O optimizations introduced in 9.2 expose a
-	    # bug in unproven-pthreads; see PR #12650
-	    use_threads=false
-	fi
-	;;
-*-openbsd*)
-	# OpenBSD users have reported that named dumps core on
-	# startup when built with threads.
-	use_threads=false ;;
-*-freebsd*)
-	use_threads=false ;;
-*-bsdi[234]*)
-	# Thread signals do not work reliably on some versions of BSD/OS.
-	use_threads=false ;;
-*-bsdi5*)
-	use_threads=true ;;
-*-linux*)
-   	# Threads are disabled on Linux by default because most
-	# Linux kernels produce unusable core dumps from multithreaded
-	# programs, and because of limitations in setuid().
-	use_threads=false ;;	
-*)
-	use_threads=false ;;
-esac
-
-AC_ARG_ENABLE(threads,
-	[  --enable-threads	enable multithreading])
-case "$enable_threads" in
-	yes)
-		use_threads=true
-		;;
-	no)
-		use_threads=false
-		;;
-	'')
-		# Use system-dependent default
-		;;
-	*)
-	    	AC_MSG_ERROR([--enable-threads takes yes or no])
-		;;
-esac
+sinclude(config.threads.in)dnl
 
 if $use_threads
 then
-	AC_MSG_RESULT(yes)
-else
-	AC_MSG_RESULT(no)	
-fi
-
-if $use_threads
-then
-	#
-	# Search for / configure pthreads in a system-dependent fashion.
-	#
-	case "$host" in
-	  *-netbsd*)
-		# NetBSD has multiple pthreads implementations.	 The
-		# recommended one to use is "unproven-pthreads".  The
-		# older "mit-pthreads" may also work on some NetBSD
-		# versions.  The PTL2 thread library does not
-		# currently work with bind9, but can be chosen with
-		# the --with-ptl2 option for those who wish to
-		# experiment with it.
-		CC="gcc"
-		AC_MSG_CHECKING(which NetBSD thread library to use)
-
-		AC_ARG_WITH(ptl2,
-[  --with-ptl2		on NetBSD, use the ptl2 thread library (experimental)],
-		    use_ptl2="$withval", use_ptl2="no")
-
-		: ${LOCALBASE:=/usr/pkg}
-
-		if test "X$use_ptl2" = "Xyes"
-		then
-			AC_MSG_RESULT(PTL2)
-			AC_MSG_WARN(
-[linking with PTL2 is highly experimental and not expected to work])
-			CC=ptlgcc
-		else
-			if test -r /usr/lib/libpthread.so
-			then
-				AC_MSG_RESULT(native)
-				LIBS="-lpthread $LIBS"
-			else
-				if test ! -d $LOCALBASE/pthreads
-				then
-					AC_MSG_RESULT(none)
-					AC_MSG_ERROR("could not find thread libraries")
-				fi
-
-				if $use_threads
-				then
-					AC_MSG_RESULT(mit-pthreads/unproven-pthreads)
-					pkg="$LOCALBASE/pthreads"
-					lib1="-L$pkg/lib -Wl,-R$pkg/lib"
-					lib2="-lpthread -lm -lgcc -lpthread"
-					LIBS="$lib1 $lib2 $LIBS"
-					CPPFLAGS="$CPPFLAGS -I$pkg/include"
-					STD_CINCLUDES="$STD_CINCLUDES -I$pkg/include"
-				fi
-			fi
-		fi
-		;;
-		*)
-			AC_CHECK_LIB(pthread, pthread_create,,
-				AC_CHECK_LIB(pthread, __pthread_create,,
-				AC_CHECK_LIB(pthread, __pthread_create_system,,
-				AC_CHECK_LIB(c_r, pthread_create,,
-				AC_CHECK_LIB(c, pthread_create,,
-				AC_MSG_ERROR("could not find thread libraries"))))))
-		;;
-	esac
-fi
-
-if $use_threads
-then
-	#
-	# We'd like to use sigwait() too
-	#
-	AC_CHECK_LIB(c, sigwait,
-		     AC_DEFINE(HAVE_SIGWAIT),
-		     AC_CHECK_LIB(pthread, sigwait,
-				  AC_DEFINE(HAVE_SIGWAIT),
-				  AC_CHECK_LIB(pthread, _Psigwait,
-					       AC_DEFINE(HAVE_SIGWAIT),))
-	)
-
-	AC_CHECK_FUNC(pthread_attr_getstacksize,
-		      AC_DEFINE(HAVE_PTHREAD_ATTR_GETSTACKSIZE),)
-
-	AC_CHECK_FUNC(pthread_attr_setstacksize,
-		      AC_DEFINE(HAVE_PTHREAD_ATTR_SETSTACKSIZE),)
-
-	#
-	# Additional OS-specific issues related to pthreads and sigwait.
-	#
-	case "$host" in
-		#
-		# One more place to look for sigwait.
-		#
-		*-freebsd*)
-			AC_CHECK_LIB(c_r, sigwait, AC_DEFINE(HAVE_SIGWAIT),)
-			;;
-		#
-		# BSDI 3.0 through 4.0.1 needs pthread_init() to be
-		# called before certain pthreads calls.	 This is deprecated
-		# in BSD/OS 4.1.
-		#
-		*-bsdi3.*|*-bsdi4.0*)
-			AC_DEFINE(NEED_PTHREAD_INIT)
-			;;
-		#
-		# LinuxThreads requires some changes to the way we
-		# deal with signals.
-		#
-		*-linux*)
-			AC_DEFINE(HAVE_LINUXTHREADS)
-			;;
-		#
-		# Ensure the right sigwait() semantics on Solaris and make
-		# sure we call pthread_setconcurrency.
-		#
-		*-solaris*)
-			AC_DEFINE(_POSIX_PTHREAD_SEMANTICS)
-			AC_CHECK_FUNC(pthread_setconcurrency,
-				      AC_DEFINE(CALL_PTHREAD_SETCONCURRENCY))
-			;;
-		#
-		# UnixWare does things its own way.
-		#
-		*-sco-sysv*uw*|*-*-sysv*UnixWare*|*-*-sysv*OpenUNIX*)
-			AC_DEFINE(HAVE_UNIXWARE_SIGWAIT)
-			;;
-	esac
-
-	#
-	# Look for sysconf to allow detection of the number of processors.
-	#
-	AC_CHECK_FUNC(sysconf, AC_DEFINE(HAVE_SYSCONF),)
-
 	if test "X$GCC" = "Xyes"; then
 		case "$host" in
 		*-freebsd*)
@@ -824,6 +657,80 @@ then
 	ALWAYS_DEFINES="-D_REENTRANT"
 	ISC_PLATFORM_USETHREADS="#define ISC_PLATFORM_USETHREADS 1"
 	thread_dir=pthreads
+	#
+	# We'd like to use sigwait() too
+	#
+	AC_CHECK_FUNC(sigwait,
+		      AC_DEFINE(HAVE_SIGWAIT),
+		      AC_CHECK_LIB(c, sigwait,
+		      AC_DEFINE(HAVE_SIGWAIT),
+		      AC_CHECK_LIB(pthread, sigwait,
+				   AC_DEFINE(HAVE_SIGWAIT),
+				   AC_CHECK_LIB(pthread, _Psigwait,
+					        AC_DEFINE(HAVE_SIGWAIT),))))
+
+	AC_CHECK_FUNC(pthread_attr_getstacksize,
+		      AC_DEFINE(HAVE_PTHREAD_ATTR_GETSTACKSIZE),)
+
+	AC_CHECK_FUNC(pthread_attr_setstacksize,
+		      AC_DEFINE(HAVE_PTHREAD_ATTR_SETSTACKSIZE),)
+
+	#
+	# Additional OS-specific issues related to pthreads and sigwait.
+	#
+	case "$host" in
+		#
+		# One more place to look for sigwait.
+		#
+		*-freebsd*)
+			AC_CHECK_LIB(c_r, sigwait, AC_DEFINE(HAVE_SIGWAIT),)
+			case $host in
+			*-freebsd5.[[012]]|*-freebsd5.[[012]].*);;
+			*-freebsd5.[[3456789]]|*-freebsd5.[[3456789]].*)
+				AC_DEFINE(NEED_PTHREAD_SCOPE_SYSTEM)
+				;;
+			*-freebsd6.*)
+				AC_DEFINE(NEED_PTHREAD_SCOPE_SYSTEM)
+				;;
+			esac
+			;;
+		#
+		# BSDI 3.0 through 4.0.1 needs pthread_init() to be
+		# called before certain pthreads calls.	 This is deprecated
+		# in BSD/OS 4.1.
+		#
+		*-bsdi3.*|*-bsdi4.0*)
+			AC_DEFINE(NEED_PTHREAD_INIT)
+			;;
+		#
+		# LinuxThreads requires some changes to the way we
+		# deal with signals.
+		#
+		*-linux*)
+			AC_DEFINE(HAVE_LINUXTHREADS)
+			;;
+		#
+		# Ensure the right sigwait() semantics on Solaris and make
+		# sure we call pthread_setconcurrency.
+		#
+		*-solaris*)
+			AC_DEFINE(_POSIX_PTHREAD_SEMANTICS)
+			AC_CHECK_FUNC(pthread_setconcurrency,
+				      AC_DEFINE(CALL_PTHREAD_SETCONCURRENCY))
+			;;
+		#
+		# UnixWare does things its own way.
+		#
+		*-sco-sysv*uw*|*-*-sysv*UnixWare*|*-*-sysv*OpenUNIX*)
+			AC_DEFINE(HAVE_UNIXWARE_SIGWAIT)
+			;;
+	esac
+
+	#
+	# Look for sysconf to allow detection of the number of processors.
+	#
+	AC_CHECK_FUNC(sysconf, AC_DEFINE(HAVE_SYSCONF),)
+
 else
 	ISC_PLATFORM_USETHREADS="#undef ISC_PLATFORM_USETHREADS"
 	thread_dir=nothreads
@@ -832,9 +739,13 @@ fi
 
 AC_SUBST(ALWAYS_DEFINES)
 AC_SUBST(ISC_PLATFORM_USETHREADS)
-
 ISC_THREAD_DIR=$thread_dir
 AC_SUBST(ISC_THREAD_DIR)
+
+#
+# In solaris 10, SMF can manage named service
+#
+AC_CHECK_LIB(scf, smf_enable_instance)
 
 #
 # flockfile is usually provided by pthreads, but we may want to use it
@@ -879,7 +790,23 @@ MKDEPCFLAGS="-M"
 IRIX_DNSSEC_WARNINGS_HACK=""
 
 if test "X$GCC" = "Xyes"; then
-	STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes -Wcast-qual -Wwrite-strings -Wformat"
+	AC_MSG_CHECKING(if "$CC" supports -fno-strict-aliasing)
+	SAVE_CFLAGS=$CFLAGS
+	CFLAGS=-fno-strict-aliasing
+	AC_TRY_COMPILE(,, [FNOSTRICTALIASING=yes],[FNOSTRICTALIASING=no])
+	CFLAGS=$SAVE_CFLAGS
+	if test "$FNOSTRICTALIASING" = "yes"; then
+		AC_MSG_RESULT(yes)
+	STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes -Wcast-qual -Wwrite-strings -Wformat -Wpointer-arith -fno-strict-aliasing"
+	else
+		AC_MSG_RESULT(no)
+	STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes -Wcast-qual -Wwrite-strings -Wformat -Wpointer-arith"
+	fi
+	case "$host" in
+	*-hp-hpux*)
+		LDFLAGS="-Wl,+vnocompatwarnings $LDFLAGS"
+		;;
+	esac
 else
 	case $host in
 	*-dec-osf*)
@@ -899,11 +826,11 @@ else
 			;;
 		*)
 			# Turn off the pointlessly noisy warnings.
-			STD_CWARNINGS="+w1 +W 474,530"
+			STD_CWARNINGS="+w1 +W 474,530,2193,2236"
 			;;
 		esac
 		CCOPT="$CCOPT -Ae -z"
-		LIBS="-Wl,+vnocompatwarnings $LIBS"
+		LDFLAGS="-Wl,+vnocompatwarnings $LDFLAGS"
 		MKDEPPROG='cc -Ae -E -Wp,-M >/dev/null 2>>$TMP'
 		;;
 	*-sgi-irix*)
@@ -1014,6 +941,13 @@ case $use_libtool in
 		LIBTOOL_MODE_COMPILE='--mode=compile'
 		LIBTOOL_MODE_INSTALL='--mode=install'
 		LIBTOOL_MODE_LINK='--mode=link'
+		case "$host" in
+		*) LIBTOOL_ALLOW_UNDEFINED= ;;
+		esac
+		case "$host" in
+		*-ibm-aix*) LIBTOOL_IN_MAIN="-Wl,-bI:T_testlist.imp" ;;
+		*) LIBTOOL_IN_MAIN= ;;
+		esac;
 		;;
 	*)
 		O=o
@@ -1024,6 +958,8 @@ case $use_libtool in
 		LIBTOOL_MODE_COMPILE=
 		LIBTOOL_MODE_INSTALL=
 		LIBTOOL_MODE_LINK=
+		LIBTOOL_ALLOW_UNDEFINED=
+		LIBTOOL_IN_MAIN=
 		;;
 esac
 
@@ -1040,6 +976,8 @@ AC_SUBST(LIBTOOL_MKDEP_SED)
 AC_SUBST(LIBTOOL_MODE_COMPILE)
 AC_SUBST(LIBTOOL_MODE_INSTALL)
 AC_SUBST(LIBTOOL_MODE_LINK)
+AC_SUBST(LIBTOOL_ALLOW_UNDEFINED)
+AC_SUBST(LIBTOOL_IN_MAIN)
 
 #
 # build libbind?
@@ -1055,6 +993,7 @@ case "$enable_libbind" in
 	no|'')
 		;;
 esac
+
 
 #
 # Here begins a very long section to determine the system's networking
@@ -1341,6 +1280,10 @@ char a[16],b[64]; return(inet_ntop(AF_INET6, a, b, sizeof(b)) == (char*)0);}],
         [AC_MSG_RESULT(no)
         ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_ntop.$O"
         ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_ntop.c"
+        ISC_PLATFORM_NEEDNTOP="#define ISC_PLATFORM_NEEDNTOP 1"],
+        [AC_MSG_RESULT(assuming inet_ntop needed)
+        ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_ntop.$O"
+        ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_ntop.c"
         ISC_PLATFORM_NEEDNTOP="#define ISC_PLATFORM_NEEDNTOP 1"])
 
 
@@ -1364,7 +1307,13 @@ main() { char a[16]; return (inet_pton(AF_INET, "1.2.3", a) == 1 ? 1 :
         ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_pton.c"
         ISC_PLATFORM_NEEDPTON="#define ISC_PLATFORM_NEEDPTON 1"],
 	[AC_MSG_RESULT(assuming target platform has working inet_pton)
-	ISC_PLATFORM_NEEDPTON="#undef ISC_PLATFORM_NEEDPTON"])
+	ISC_PLATFORM_NEEDPTON="#undef ISC_PLATFORM_NEEDPTON"],
+        [AC_MSG_RESULT(assuming inet_pton needed)
+        ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_pton.$O"
+        ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_pton.c"
+        ISC_PLATFORM_NEEDPTON="#define ISC_PLATFORM_NEEDPTON 1"],
+        [AC_MSG_RESULT(assuming target platform has working inet_pton)
+        ISC_PLATFORM_NEEDPTON="#undef ISC_PLATFORM_NEEDPTON"])
 
 AC_MSG_CHECKING([for inet_aton])
 AC_TRY_LINK([
@@ -1567,7 +1516,7 @@ case $host in
 	# project handles the AF_INET6 case correctly.  We need to avoid
 	# using the former but prefer the latter unless overridden by
 	# --enable-getifaddrs=glibc.
-	if $use_getifaddrs = glibc
+	if test $want_getifaddrs = glibc
 	then
 		AC_CHECK_FUNC(getifaddrs, AC_DEFINE(HAVE_GETIFADDRS))
 	else
@@ -1630,9 +1579,15 @@ AC_CHECK_FUNC(memmove,
 AC_SUBST(ISC_PLATFORM_NEEDMEMMOVE)
 
 AC_CHECK_FUNC(strtoul,
-	[ISC_PLATFORM_NEEDSTRTOUL="#undef ISC_PLATFORM_NEEDSTRTOUL"],
-	[ISC_PLATFORM_NEEDSTRTOUL="#define ISC_PLATFORM_NEEDSTRTOUL 1"])
+	[ISC_PLATFORM_NEEDSTRTOUL="#undef ISC_PLATFORM_NEEDSTRTOUL"
+	 LWRES_PLATFORM_NEEDSTRTOUL="#undef LWRES_PLATFORM_NEEDSTRTOUL"
+	 GENRANDOMLIB=""],
+	[ISC_PLATFORM_NEEDSTRTOUL="#define ISC_PLATFORM_NEEDSTRTOUL 1"
+	 LWRES_PLATFORM_NEEDSTRTOUL="#define LWRES_PLATFORM_NEEDSTRTOUL 1"
+	 GENRANDOMLIB='${ISCLIBS}'])
 AC_SUBST(ISC_PLATFORM_NEEDSTRTOUL)
+AC_SUBST(LWRES_PLATFORM_NEEDSTRTOUL)
+AC_SUBST(GENRANDOMLIB)
 
 AC_CHECK_FUNC(strlcpy,
 	[ISC_PLATFORM_NEEDSTRLCPY="#undef ISC_PLATFORM_NEEDSTRLCPY"],
@@ -1655,17 +1610,23 @@ AC_TRY_COMPILE([
 ISC_PRINT_OBJS="print.$O"
 ISC_PRINT_SRCS="print.c"
 ISC_PLATFORM_NEEDSPRINTF="#define ISC_PLATFORM_NEEDSPRINTF"
+LWRES_PLATFORM_NEEDSPRINTF="#define LWRES_PLATFORM_NEEDSPRINTF"
 ],
-[ISC_PLATFORM_NEEDSPRINTF="#undef ISC_PLATFORM_NEEDSPRINTF"]
+[ISC_PLATFORM_NEEDSPRINTF="#undef ISC_PLATFORM_NEEDSPRINTF"
+ LWRES_PLATFORM_NEEDSPRINTF="#undef LWRES_PLATFORM_NEEDSPRINTF"]
 )
 AC_SUBST(ISC_PLATFORM_NEEDSPRINTF)
+AC_SUBST(LWRES_PLATFORM_NEEDSPRINTF)
 
 AC_CHECK_FUNC(vsnprintf,
-	[ISC_PLATFORM_NEEDVSNPRINTF="#undef ISC_PLATFORM_NEEDVSNPRINTF"],
+	[ISC_PLATFORM_NEEDVSNPRINTF="#undef ISC_PLATFORM_NEEDVSNPRINTF"
+	 LWRES_PLATFORM_NEEDVSNPRINTF="#undef LWRES_PLATFORM_NEEDVSNPRINTF"],
 	[ISC_PRINT_OBJS="print.$O"
 	 ISC_PRINT_SRCS="print.c"
-	 ISC_PLATFORM_NEEDVSNPRINTF="#define ISC_PLATFORM_NEEDVSNPRINTF 1"])
+	 ISC_PLATFORM_NEEDVSNPRINTF="#define ISC_PLATFORM_NEEDVSNPRINTF 1"
+	 LWRES_PLATFORM_NEEDVSNPRINTF="#define LWRES_PLATFORM_NEEDVSNPRINTF 1"])
 AC_SUBST(ISC_PLATFORM_NEEDVSNPRINTF)
+AC_SUBST(LWRES_PLATFORM_NEEDVSNPRINTF)
 ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS $ISC_PRINT_OBJS"
 ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS $ISC_PRINT_SRCS"
 
@@ -1674,22 +1635,42 @@ AC_CHECK_FUNC(strerror, AC_DEFINE(HAVE_STRERROR))
 AC_SUBST(ISC_EXTRA_OBJS)
 AC_SUBST(ISC_EXTRA_SRCS)
 
-#
 # Determine the printf format characters to use when printing
-# values of type isc_int64_t.  We make the assumption that platforms
-# where a "long long" is the same size as a "long" (e.g., Alpha/OSF1)
-# want "%ld" and everyone else can use "%lld".  Win32 uses "%I64d",
-# but that's defined elsewhere since we don't use configure on Win32.
+# values of type isc_int64_t. This will normally be "ll", but where
+# the compiler treats "long long" as a alias for "long" and printf
+# doesn't know about "long long" use "l".  Hopefully the sprintf
+# will produce a inconsistant result in the later case.  If the compiler
+# fails due to seeing "%lld" we fall back to "l".
+#
+# Digital Unix 4.0 (gcc?) (long long) is 64 bits as is its long. It uses
+# %ld even for (long long)/
+#
+# Win32 uses "%I64d", but that's defined elsewhere since we don't use
+# configure on Win32.
 #
 AC_MSG_CHECKING(printf format modifier for 64-bit integers)
-AC_TRY_RUN([main() { exit(!(sizeof(long long int) == sizeof(long int))); }],
-	[AC_MSG_RESULT(l)
-	ISC_PLATFORM_QUADFORMAT='#define ISC_PLATFORM_QUADFORMAT "l"'],
+AC_TRY_RUN([
+#include <stdio.h>
+main() {
+	long long int j = 0;
+	char buf[100];
+	buf[0] = 0;
+	sprintf(buf, "%lld", j);
+	exit((sizeof(long long int) != sizeof(long int))? 0 :
+	     (strcmp(buf, "0") != 0));
+} 
+],
 	[AC_MSG_RESULT(ll)
-	ISC_PLATFORM_QUADFORMAT='#define ISC_PLATFORM_QUADFORMAT "ll"'],
+	ISC_PLATFORM_QUADFORMAT='#define ISC_PLATFORM_QUADFORMAT "ll"'
+	LWRES_PLATFORM_QUADFORMAT='#define LWRES_PLATFORM_QUADFORMAT "ll"'],
+	[AC_MSG_RESULT(l)
+	ISC_PLATFORM_QUADFORMAT='#define ISC_PLATFORM_QUADFORMAT "l"'
+	LWRES_PLATFORM_QUADFORMAT='#define LWRES_PLATFORM_QUADFORMAT "l"'],
 	[AC_MSG_RESULT(assuming target platform uses ll)
-	ISC_PLATFORM_QUADFORMAT='#define ISC_PLATFORM_QUADFORMAT "ll"'])
+	ISC_PLATFORM_QUADFORMAT='#define ISC_PLATFORM_QUADFORMAT "ll"'
+	LWRES_PLATFORM_QUADFORMAT='#define LWRES_PLATFORM_QUADFORMAT "ll"'])
 AC_SUBST(ISC_PLATFORM_QUADFORMAT)
+AC_SUBST(LWRES_PLATFORM_QUADFORMAT)
 
 #
 # Security Stuff
@@ -1706,10 +1687,38 @@ case "$enable_linux_caps" in
 esac
 AC_CHECK_HEADERS(sys/prctl.h)
 
+AC_CHECK_HEADERS(sys/un.h,
+ISC_PLATFORM_HAVESYSUNH="#define ISC_PLATFORM_HAVESYSUNH 1"
+,
+ISC_PLATFORM_HAVESYSUNH="#undef ISC_PLATFORM_HAVESYSUNH"
+)
+AC_SUBST(ISC_PLATFORM_HAVESYSUNH)
+
+case "$host" in
+*-solaris*)
+	AC_DEFINE(NEED_SECURE_DIRECTORY, 1,
+		  [Define if connect does not honour the permission on the UNIX domain socket.])
+	;;
+*-sunos*)
+	AC_DEFINE(NEED_SECURE_DIRECTORY, 1,
+		  [Define if connect does not honour the permission on the UNIX domain socket.])
+	;;
+esac
+
 #
 # Time Zone Stuff
 #
 AC_CHECK_FUNC(tzset, AC_DEFINE(HAVE_TZSET))
+
+AC_MSG_CHECKING(for optarg decarartion)
+AC_TRY_COMPILE([
+#include <unistd.h>
+],
+[optarg = 0;],
+[AC_MSG_RESULT(yes)],
+[AC_MSG_RESULT(no)
+GEN_NEED_OPTARG="-DNEED_OPTARG=1"
+AC_DEFINE(NEED_OPTARG, 1, [Defined if extern char *optarg is not declared.])])
 
 #
 # BSD/OS, and perhaps some others, don't define rlim_t.
@@ -1751,7 +1760,9 @@ ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE long long int"],
 [AC_MSG_ERROR([unable to determine sizeof rlim_cur])
 ],[AC_MSG_ERROR(this cannot happen)])
 ],[AC_MSG_ERROR(this cannot happen)])
-],[AC_MSG_ERROR(cannot determine type of rlim_cur when cross compiling - define rlim_t)])
+],[
+ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE long long int"
+AC_MSG_RESULT(cannot determine type of rlim_cur when cross compiling - assuming long long int)])
 ])
 AC_SUBST(ISC_PLATFORM_RLIMITTYPE)
 
@@ -1767,6 +1778,17 @@ case "$host" in
 		;;
 	*)
 		;;
+esac
+
+#
+# Some hosts need msg_namelen to match the size of the socket structure.
+# Some hosts don't set msg_namelen appropriately on return from recvmsg().
+#
+case $host in
+*os2*|*hp-mpeix*)
+	AC_DEFINE(BROKEN_RECVMSG, 1,
+		  [Define if recvmsg() does not meet all of the BSD socket API specifications.])
+	;;
 esac
 
 #
@@ -1786,6 +1808,9 @@ AC_SUBST(ISC_PLATFORM_BRACEPTHREADONCEINIT)
 ISC_PLATFORM_BRACEPTHREADONCEINIT="#undef ISC_PLATFORM_BRACEPTHREADONCEINIT"
 
 case "$host" in
+	*-aix5.[[123]].*)
+		hack_shutup_pthreadonceinit=yes
+		;;
 	*-bsdi3.1*)
 		hack_shutup_sputaux=yes
 		;;
@@ -1797,6 +1822,9 @@ case "$host" in
 		hack_shutup_stdargcast=yes
 		;;
 	[*-solaris2.[89]])
+		hack_shutup_pthreadonceinit=yes
+		;;
+	*-solaris2.10)
 		hack_shutup_pthreadonceinit=yes
 		;;
 esac
@@ -1863,30 +1891,219 @@ esac
 AC_SUBST(ISC_PLATFORM_HAVEIFNAMETOINDEX)
 
 #
+# Machine architecture dependent features
+#
+AC_ARG_ENABLE(atomic,
+	[  --enable-atomic	enable machine specific atomic operations
+                        [[default=autodetect]]],
+			enable_atomic="$enableval",
+			enable_atomic="autodetect")
+case "$enable_atomic" in
+	yes|''|autodetect)
+		use_atomic=yes
+		;;
+	no)
+		use_atomic=no
+		arch=noatomic
+		;;
+esac
+
+ISC_PLATFORM_USEOSFASM="#undef ISC_PLATFORM_USEOSFASM"
+if test "$use_atomic" = "yes"; then
+	AC_MSG_CHECKING([architecture type for atomic operations])
+	have_atomic=yes		# set default
+	case "$host" in
+	[i[3456]86-*])
+		# XXX: some old x86 architectures actually do not support
+		#      (some of) these operations.  Do we need stricter checks?
+AC_TRY_RUN([
+main() {
+	exit((sizeof(void *) == 8) ? 0 : 1);
+}
+],
+		[arch=x86_64],
+		[arch=x86_32],
+	        [arch=x86_32])
+	;;
+	x86_64-*)
+		arch=x86_64
+	;;
+	alpha*-*)
+		arch=alpha
+	;;
+	powerpc-*)
+		arch=powerpc
+	;;
+	mips-*|mipsel-*|mips64-*|mips64el-*)
+		arch=mips
+	;;
+	ia64-*)
+		arch=ia64
+	;;
+	*)
+		have_atomic=no
+		arch=noatomic
+	;;
+	esac
+	AC_MSG_RESULT($arch)
+fi
+
+if test "$have_atomic" = "yes"; then
+	AC_MSG_CHECKING([compiler support for inline assembly code])
+
+	compiler=generic
+	# Check whether the compiler supports the assembly syntax we provide.
+	if test "X$GCC" = "Xyes"; then
+		# GCC's ASM extension always works
+		compiler=gcc
+		if test $arch = "x86_64"; then
+			# We can share the same code for gcc with x86_32
+			arch=x86_32
+		fi
+		if test $arch = "powerpc"; then
+			#
+			# The MacOS (and maybe others) uses "r0" for register
+			# zero. Under linux/ibm it is "0" for register 0.
+			# Probe to see if we have a MacOS style assembler.
+			#
+			AC_MSG_CHECKING([Checking for MacOS style assembler syntax])
+			AC_TRY_COMPILE(, [
+			__asm__ volatile ("li r0, 0x0\n"::);
+			], [
+			AC_MSG_RESULT(yes)
+			compiler="mac"
+			ISC_PLATFORM_USEMACASM="#define ISC_PLATFORM_USEMACASM 1"
+			], [AC_MSG_RESULT(no)])
+		fi
+	else
+		case "$host" in
+		alpha*-dec-osf*)
+			# Tru64 compiler has its own syntax for inline 
+			# assembly.
+			AC_TRY_COMPILE(, [
+#ifndef __DECC
+#error "unexpected compiler"
+#endif
+				return (0);],
+				[compiler=osf],)
+		;;
+		powerpc-ibm-aix*)
+			compiler=aix
+		;;
+		esac
+	fi
+	case "$compiler" in
+	gcc)
+		ISC_PLATFORM_USEGCCASM="#define ISC_PLATFORM_USEGCCASM 1"
+		;;
+	osf)
+		ISC_PLATFORM_USEOSFASM="#define ISC_PLATFORM_USEOSFASM 1"
+		;;
+	aix)
+		;;
+	mac)
+		;;
+	*)
+		# See if the generic __asm function works.  If not,
+		# we need to disable the atomic operations.
+		AC_TRY_LINK(, [
+					__asm("nop")
+				],
+		[compiler="standard"
+		ISC_PLATFORM_USESTDASM="#define ISC_PLATFORM_USESTDASM 1"],
+		[compiler="not supported (atomic operations disabled)"
+		have_atomic=no
+		arch=noatomic ]);
+		;;
+	esac
+
+	AC_MSG_RESULT($compiler)
+fi
+
+if test "$have_atomic" = "yes"; then
+	ISC_PLATFORM_HAVEXADD="#define ISC_PLATFORM_HAVEXADD 1"
+	ISC_PLATFORM_HAVECMPXCHG="#define ISC_PLATFORM_HAVECMPXCHG 1"
+	ISC_PLATFORM_HAVEATOMICSTORE="#define ISC_PLATFORM_HAVEATOMICSTORE 1"
+else
+	ISC_PLATFORM_HAVEXADD="#undef ISC_PLATFORM_HAVEXADD"
+	ISC_PLATFORM_HAVECMPXCHG="#undef ISC_PLATFORM_HAVECMPXCHG"
+	ISC_PLATFORM_HAVEATOMICSTORE="#undef ISC_PLATFORM_HAVEATOMICSTORE"
+fi
+
+AC_SUBST(ISC_PLATFORM_HAVEXADD)
+AC_SUBST(ISC_PLATFORM_HAVECMPXCHG)
+AC_SUBST(ISC_PLATFORM_HAVEATOMICSTORE)
+
+AC_SUBST(ISC_PLATFORM_USEGCCASM)
+AC_SUBST(ISC_PLATFORM_USEOSFASM)
+AC_SUBST(ISC_PLATFORM_USESTDASM)
+AC_SUBST(ISC_PLATFORM_USEMACASM)
+
+ISC_ARCH_DIR=$arch
+AC_SUBST(ISC_ARCH_DIR)
+
+#
+#  The following sets up how non-blocking i/o is established.
+#  Sunos, cygwin and solaris 2.x (x<5) require special handling.
+#
+case "$host" in
+*-sunos*) AC_DEFINE(PORT_NONBLOCK, O_NDELAY);;
+*-cygwin*) AC_DEFINE(PORT_NONBLOCK, O_NDELAY);;
+*-solaris2.[[01234]])
+	AC_DEFINE(PORT_NONBLOCK, O_NONBLOCK)
+	AC_DEFINE(USE_FIONBIO_IOCTL, 1,
+		  [Defined if you need to use ioctl(FIONBIO) instead a fcntl call to make non-blocking.])
+	;;
+*) AC_DEFINE(PORT_NONBLOCK, O_NONBLOCK,
+	     [Sets which flag to pass to open/fcntl to make non-blocking (O_NDELAY/O_NONBLOCK).])
+	;;
+esac
+#
+# Solaris 2.5.1 and earlier cannot bind() then connect() a TCP socket.
+# This prevents the source address being set.
+#
+case "$host" in
+*-solaris2.[[012345]]|*-solaris2.5.1)
+	AC_DEFINE(BROKEN_TCP_BIND_BEFORE_CONNECT, 1,
+		  [Define if you cannot bind() before connect() for TCP sockets.])
+	;;
+esac
+#
 # The following sections deal with tools used for formatting
 # the documentation.  They are all optional, unless you are
 # a developer editing the documentation source.
 #
 
-# Directory trees where SGML files are commonly found.
-sgmltrees="/usr/pkg/share/sgml /usr/local/share/sgml /usr/share/sgml"
-
-#
-# Look for openjade.  Plain jade is no longer supported.
-#
-
-AC_PATH_PROGS(OPENJADE, openjade, openjade)
-AC_SUBST(OPENJADE)
-
 #
 # Look for TeX.
 #
 
-AC_PATH_PROGS(JADETEX, jadetex, jadetex)
-AC_SUBST(JADETEX)
+AC_PATH_PROGS(LATEX, latex, latex)
+AC_SUBST(LATEX)
 
-AC_PATH_PROGS(PDFJADETEX, pdfjadetex, pdfjadetex)
-AC_SUBST(PDFJADETEX)
+AC_PATH_PROGS(PDFLATEX, pdflatex, pdflatex)
+AC_SUBST(PDFLATEX)
+
+#
+# Look for w3m
+#
+
+AC_PATH_PROGS(W3M, w3m, w3m)
+AC_SUBST(W3M)
+
+#
+# Look for xsltproc (libxslt)
+#
+
+AC_PATH_PROG(XSLTPROC, xsltproc, xsltproc)
+AC_SUBST(XSLTPROC)
+
+#
+# Look for xmllint (libxml2)
+#
+
+AC_PATH_PROG(XMLLINT, xmllint, xmllint)
+AC_SUBST(XMLLINT)
 
 #
 # Subroutine for searching for an ordinary file (e.g., a stylesheet)
@@ -1923,74 +2140,140 @@ AC_SUBST($1)
 ])
 
 #
-# Look for the SGML catalog.
-# Its location varies, so far we have seen:
+# Look for Docbook-XSL stylesheets.  Location probably varies by
+# system.  Guessing where it might be found, based on where SGML stuff
+# lives on some systems.  FreeBSD is the only one I'm sure of at the
+# moment.
 #
-# 	NetBSD 	/usr/pkg/share/sgml/docbook/catalog
-# 	FreeBSD	/usr/local/share/sgml/docbook/catalog
-#	Linux	/usr/local/share/dsssl/docbook/catalog
-#		/usr/share/sgml/docbook/dsssl-stylesheets/catalog
+
+docbook_xsl_trees="/usr/pkg/share/xsl /usr/local/share/xsl /usr/share/xsl"
+
 #
-catalogpath=""
-for d in $sgmltrees 
+# Look for stylesheets we need.
+#
+
+NOM_PATH_FILE(XSLT_DOCBOOK_STYLE_HTML, docbook/html/docbook.xsl, $docbook_xsl_trees)
+NOM_PATH_FILE(XSLT_DOCBOOK_STYLE_XHTML, docbook/xhtml/docbook.xsl, $docbook_xsl_trees)
+NOM_PATH_FILE(XSLT_DOCBOOK_STYLE_MAN, docbook/manpages/docbook.xsl, $docbook_xsl_trees)
+NOM_PATH_FILE(XSLT_DOCBOOK_CHUNK_HTML, docbook/html/chunk.xsl, $docbook_xsl_trees)
+NOM_PATH_FILE(XSLT_DOCBOOK_CHUNK_XHTML, docbook/xhtml/chunk.xsl, $docbook_xsl_trees)
+NOM_PATH_FILE(XSLT_DOCBOOK_CHUNKTOC_HTML, docbook/html/chunktoc.xsl, $docbook_xsl_trees)
+NOM_PATH_FILE(XSLT_DOCBOOK_CHUNKTOC_XHTML, docbook/xhtml/chunktoc.xsl, $docbook_xsl_trees)
+NOM_PATH_FILE(XSLT_DOCBOOK_MAKETOC_HTML, docbook/html/maketoc.xsl, $docbook_xsl_trees)
+NOM_PATH_FILE(XSLT_DOCBOOK_MAKETOC_XHTML, docbook/xhtml/maketoc.xsl, $docbook_xsl_trees)
+
+#
+# Same dance for db2latex
+#
+# No idea where this lives except on FreeBSD.
+#
+
+db2latex_xsl_trees="/usr/local/share"
+
+#
+# Look for stylesheets we need.
+#
+
+NOM_PATH_FILE(XSLT_DB2LATEX_STYLE, db2latex/xsl/docbook.xsl, $db2latex_xsl_trees)
+
+#
+# Look for "admonition" image directory.  Can't use NOM_PATH_FILE()
+# because it's a directory, so just do the same things, inline.
+#
+
+AC_MSG_CHECKING(for db2latex/xsl/figures)
+for d in $db2latex_xsl_trees
 do
-	catalogpath="$catalogpath $d"
-	for s in docbook/dsssl-stylesheets
-	do
-		catalogpath="$catalogpath $d/$s"
-	done
+	dd=$d/db2latex/xsl/figures
+	if test -d $dd
+	then
+		XSLT_DB2LATEX_ADMONITIONS=$dd
+		AC_MSG_RESULT($dd)
+		break
+	fi
 done
-NOM_PATH_FILE(SGMLCATALOG, catalog, $catalogpath)
+if test "X$XSLT_DB2LATEX_ADMONITIONS" = "X"
+then
+	AC_MSG_RESULT(not found)
+	XSLT_DB2LATEX_ADMONITIONS=db2latex/xsl/figures
+fi
+AC_SUBST(XSLT_DB2LATEX_ADMONITIONS)
 
 #
-# Look for the HTML stylesheet html/docbook.dsl, used for
-# formatting man pages in HTML.  Its location varies,
-# so far we have seen:
+# IDN support
 #
-# 	NetBSD 	/usr/pkg/share/sgml/docbook/dsssl/modular/
-# 	FreeBSD	/usr/local/share/sgml/docbook/dsssl/modular/
-#	Linux	/usr/local/share/dsssl/docbook/
-#		/usr/share/sgml/docbook/dsssl-stylesheets/
-#
-# Ditto for the print stylesheet print/docbook.dsl.
-#
+AC_ARG_WITH(idn,
+	[  --with-idn[=MPREFIX]   enable IDN support using idnkit [default PREFIX]],
+	use_idn="$withval", use_idn="no")
+case "$use_idn" in
+yes)
+	if test X$prefix = XNONE ; then
+		idn_path=/usr/local
+	else
+		idn_path=$prefix
+	fi
+	;;
+no)
+	;;
+*)
+	idn_path="$use_idn"
+	;;
+esac
 
-stylepath=""
-for d in $sgmltrees 
-do
-	for s in docbook/dsssl/modular dsssl/docbook docbook/dsssl-stylesheets
-	do
-		stylepath="$stylepath $d/$s"
-	done
-done
-NOM_PATH_FILE(HTMLSTYLE, html/docbook.dsl, $stylepath)
-NOM_PATH_FILE(PRINTSTYLE, print/docbook.dsl, $stylepath)
+iconvinc=
+iconvlib=
+AC_ARG_WITH(libiconv,
+	[  --with-libiconv[=IPREFIX]   GNU libiconv are in IPREFIX [default PREFIX]],
+	use_libiconv="$withval", use_libiconv="no")
+case "$use_libiconv" in
+yes)
+	if test X$prefix = XNONE ; then
+		iconvlib="-L/usr/local/lib -R/usr/local/lib -liconv"
+	else
+		iconvlib="-L$prefix/lib -R$prefix/lib -liconv"
+	fi
+	;;
+no)
+	iconvlib=
+	;;
+*)
+	iconvlib="-L$use_libiconv/lib -R$use_libiconv/lib -liconv"
+	;;
+esac
 
-#
-# Look for XML declarations.
-# Its location varies, so far we have seen:
-#
-# 	NetBSD 	/usr/pkg/share/sgml/docbook/dsssl/modular/dtds/decls/
-# 	FreeBSD	/usr/local/share/sgml/docbook/dsssl/modular/dtds/decls/
-#	Linux	/usr/local/share/dsssl/docbook/dtds/decls/
-#		/usr/share/sgml/docbook/dsssl-stylesheets/dtds/decls/
-#
+AC_ARG_WITH(iconv,
+	[  --with-iconv[=LIBSPEC]   specify iconv library [default -liconv]],
+	iconvlib="$withval")
+case "$iconvlib" in
+no)
+	iconvlib=
+	;;
+yes)
+	iconvlib=-liconv
+	;;
+esac
 
-xmlpath=""
-for d in $sgmltrees 
-do
-	for s in docbook/dsssl/modular dsssl/docbook docbook/dsssl-stylesheets
-	do
-		xmlpath="$xmlpath $d/$s"
-	done
-done
-NOM_PATH_FILE(XMLDCL, dtds/decls/xml.dcl, $xmlpath)
+AC_ARG_WITH(idnlib,
+	[  --with-idnlib=ARG    specify libidnkit],
+	idnlib="$withval", idnlib="no")
+if test "$idnlib" = yes; then
+	AC_MSG_ERROR([You must specify ARG for --with-idnlib.])
+fi
 
-#
-# Look for docbook2man-spec.pl
-#
+IDNLIBS=
+if test "$use_idn" != no; then
+	AC_DEFINE(WITH_IDN, 1, [define if idnkit support is to be included.])
+	STD_CINCLUDES="$STD_CINCLUDES -I$idn_path/include"
+	if test "$idnlib" != no; then
+		IDNLIBS="$idnlib $iconvlib"
+	else
+		IDNLIBS="-L$idn_path/lib -lidnkit $iconvlib"
+	fi
+fi
+AC_SUBST(IDNLIBS)
 
-NOM_PATH_FILE(DOCBOOK2MANSPEC, docbook2X/docbook2man-spec.pl, $sgmltrees)
+AC_CHECK_HEADERS(locale.h)
+AC_CHECK_FUNCS(setlocale)
 
 #
 # Substitutions
@@ -2048,9 +2331,84 @@ LIBBIND9_API=$srcdir/lib/bind9/api
 AC_SUBST_FILE(LIBLWRES_API)
 LIBLWRES_API=$srcdir/lib/lwres/api
 
-AC_OUTPUT(
-	make/rules
-	make/includes
+#
+# Configure any DLZ drivers.
+#
+# If config.dlz.in selects one or more DLZ drivers, it will set
+# USE_DLZ to a non-empty value, which will be our clue to
+# enable the DLZ core functions.
+#
+# This section has to come after the libtool stuff because it needs to
+# know how to name the driver object files.
+#
+
+USE_DLZ=""
+DLZ_DRIVER_INCLUDES=""
+DLZ_DRIVER_LIBS=""
+DLZ_DRIVER_SRCS=""
+DLZ_DRIVER_OBJS=""
+
+sinclude(contrib/dlz/config.dlz.in)
+
+AC_MSG_CHECKING(for DLZ)
+
+if test -n "$USE_DLZ"
+then
+	AC_MSG_RESULT(yes)
+	USE_DLZ="-DDLZ $USE_DLZ"
+	DLZ_DRIVER_RULES=contrib/dlz/drivers/rules
+	AC_CONFIG_FILES([$DLZ_DRIVER_RULES])
+else
+	AC_MSG_RESULT(no)
+	DLZ_DRIVER_RULES=/dev/null
+fi
+
+AC_SUBST(USE_DLZ)
+AC_SUBST(DLZ_DRIVER_INCLUDES)
+AC_SUBST(DLZ_DRIVER_LIBS)
+AC_SUBST(DLZ_DRIVER_SRCS)
+AC_SUBST(DLZ_DRIVER_OBJS)
+AC_SUBST_FILE(DLZ_DRIVER_RULES)
+
+if test "$cross_compiling" = "yes"; then
+	if test -z "$BUILD_CC"; then
+		AC_ERROR([BUILD_CC not set])
+	fi
+	BUILD_CFLAGS="$BUILD_CFLAGS"
+	BUILD_CPPFLAGS="$BUILD_CPPFLAGS"
+	BUILD_LDFLAGS="$BUILD_LDFLAGS"
+	BUILD_LIBS="$BUILD_LIBS"
+else
+	BUILD_CC="$CC" 
+	BUILD_CFLAGS="$CFLAGS" 
+	BUILD_CPPFLAGS="$CPPFLAGS $GEN_NEED_OPTARG"
+	BUILD_LDFLAGS="$LDFLAGS"
+	BUILD_LIBS="$LIBS"
+fi
+
+AC_SUBST(BUILD_CC)
+AC_SUBST(BUILD_CFLAGS)
+AC_SUBST(BUILD_CPPFLAGS)
+AC_SUBST(BUILD_LDFLAGS)
+AC_SUBST(BUILD_LIBS)
+
+#
+# Commands to run at the end of config.status.
+# Don't just put these into configure, it won't work right if somebody
+# runs config.status directly (which autoconf allows).
+#
+
+AC_CONFIG_COMMANDS(
+	[chmod],
+	[chmod a+x isc-config.sh])
+
+#
+# Files to configure.  These are listed here because we used to
+# specify them as arguments to AC_OUTPUT.  It's (now) ok to move these
+# elsewhere if there's a good reason for doing so.
+#
+
+AC_CONFIG_FILES([
 	Makefile
 	make/Makefile
 	make/mkdep
@@ -2075,10 +2433,7 @@ AC_OUTPUT(
 	lib/dns/Makefile
 	lib/dns/include/Makefile
 	lib/dns/include/dns/Makefile
-	lib/dns/sec/Makefile
-	lib/dns/sec/dst/Makefile
-	lib/dns/sec/dst/include/Makefile
-	lib/dns/sec/dst/include/dst/Makefile
+	lib/dns/include/dst/Makefile
 	lib/bind9/Makefile
 	lib/bind9/include/Makefile
 	lib/bind9/include/bind9/Makefile
@@ -2121,14 +2476,44 @@ AC_OUTPUT(
 	bin/dnssec/Makefile
 	doc/Makefile
 	doc/arm/Makefile
-	doc/arm/nominum-docbook-html.dsl
-	doc/arm/nominum-docbook-print.dsl
-	doc/arm/validate.sh
 	doc/misc/Makefile
-	docutil/docbook2man-wrapper.sh
 	isc-config.sh
-)
-chmod a+x isc-config.sh
+	doc/xsl/Makefile
+	doc/xsl/isc-docbook-chunk.xsl
+	doc/xsl/isc-docbook-html.xsl
+	doc/xsl/isc-docbook-latex.xsl
+	doc/xsl/isc-manpage.xsl
+])
+
+#
+# Do it
+#
+
+AC_OUTPUT
+
+if test "X$OPENSSL_WARNING" != "X"; then
+cat << \EOF
+WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
+WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
+WARNING                                                                 WARNING
+WARNING         Your OpenSSL crypto library may be vulnerable to        WARNING
+WARNING         one or more of the the following known security         WARNING
+WARNING         flaws:                                                  WARNING
+WARNING                                                                 WARNING
+WARNING         CAN-2002-0659, CAN-2006-4339, CVE-2006-2937 and         WARNING
+WARNING         CVE-2006-2940.                                          WARNING
+WARNING                                                                 WARNING
+WARNING         It is recommended that you upgrade to OpenSSL           WARNING
+WARNING         version 0.9.8d/0.9.7l (or greater).                     WARNING
+WARNING                                                                 WARNING
+WARNING         You can disable this warning by specifying:             WARNING
+WARNING                                                                 WARNING
+WARNING               --disable-openssl-version-check          	        WARNING
+WARNING                                                                 WARNING
+WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
+WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
+EOF
+fi
 
 # Tell Emacs to edit this file in shell mode.
 # Local Variables:

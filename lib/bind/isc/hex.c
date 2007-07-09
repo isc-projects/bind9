@@ -33,7 +33,7 @@ isc_gethexstring(unsigned char *buf, size_t len, int count, FILE *fp,
 	char *s;
 	int result = count;
 	
-	x = 0; /* silence compiler */
+	x = 0; /*%< silence compiler */
 	n = 0;
 	while (count > 0) {
 		c = fgetc(fp);
@@ -45,8 +45,9 @@ isc_gethexstring(unsigned char *buf, size_t len, int count, FILE *fp,
 			goto formerr;
 		/* comment */
 		if (c == ';') {
-			while ((c = fgetc(fp)) != EOF && c != '\n')
-				/* empty */
+			do {
+				c = fgetc(fp);
+			} while (c != EOF && c != '\n');
 			if (c == '\n' && *multiline)
 				continue;
 			goto formerr;
@@ -63,7 +64,7 @@ isc_gethexstring(unsigned char *buf, size_t len, int count, FILE *fp,
 			goto formerr;
 		x = (x<<4) | (s - hex);
 		if (++n == 2) {
-			if (len > 0) {
+			if (len > 0U) {
 				*buf++ = x;
 				len--;
 			} else
@@ -86,11 +87,11 @@ isc_puthexstring(FILE *fp, const unsigned char *buf, size_t buflen,
 {
 	size_t i = 0;
 
-	if (len1 < 4)
+	if (len1 < 4U)
 		len1 = 4;
-	if (len2 < 4)
+	if (len2 < 4U)
 		len2 = 4;
-	while (buflen > 0) {
+	while (buflen > 0U) {
 		fputc(hex[(buf[0]>>4)&0xf], fp);
 		fputc(hex[buf[0]&0xf], fp);
 		i += 2;
@@ -106,7 +107,7 @@ isc_puthexstring(FILE *fp, const unsigned char *buf, size_t buflen,
 
 void
 isc_tohex(const unsigned char *buf, size_t buflen, char *t) {
-	while (buflen > 0) {
+	while (buflen > 0U) {
 		*t++ = hex[(buf[0]>>4)&0xf];
 		*t++ = hex[buf[0]&0xf];
 		buf++;
@@ -114,3 +115,5 @@ isc_tohex(const unsigned char *buf, size_t buflen, char *t) {
 	}
 	*t = '\0';
 }
+
+/*! \file */

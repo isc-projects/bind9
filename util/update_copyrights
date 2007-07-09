@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -w
 #
-# Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 1998-2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
@@ -15,13 +15,17 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_copyrights,v 1.32 2004/03/16 05:22:33 marka Exp $
+# $Id: update_copyrights,v 1.32.18.12 2007/01/08 03:13:06 marka Exp $
 
 require 5.002;
 
 # Map copyright owners to the files containing copyright messages.
 # The first line of the copyright message is not in the file;
 # it is constructed by this script.
+#
+# Usage:
+#
+#   perl util/update_copyrights <util/copyrights
 
 my %owner2filename = (
 	"" => "util/COPYRIGHT",
@@ -47,14 +51,83 @@ foreach $owner (keys %owner2filename) {
         $owner2text{$owner} = [ @copyright_text ];
 }
 
+my %file_types = ();
+my %file_years = ();
+my $years_list;
+my $parent;
+
 while (<>) {
-        ($file, $typeandowner, $years_list) = split(/\s+/);
-        @years = split(/,/, $years_list);
+	chomp;
+	($file, $type, $years) = split(/\s+/);
+	$file_types{$file} = $type;
+	$file_years{$file} = $years;
+}
+
+sub getyears {
+	$parent = $_[0];
+	$parent =~ s/PARENT://;
+	$years_list = $file_years{$parent};
+	if (defined($years_list) && $years_list =~ /^PARENT:/) {
+		print "BAD PARENT:$parent\n";
+		undefine($years_list);
+	}
+}
+
+sub docbook {
+	$parent = $_[0];
+	$parent =~ s/\.[^.]*$/.docbook/;
+	$years_list = $file_years{$parent};
+}
+
+sub copyright {
+	my $holder = shift;
+	my $result = "";
+	return $result unless (@_);
+	$result = "$result    <copyright>\n";
+	$result = "$result      <year>$_</year>\n" foreach (@_);
+	$result = "$result      <holder>$holder</holder>\n";
+	$result = "$result    </copyright>\n";
+	return $result;
+}
+
+sub copyrights {
+	my $a = copyright("Internet Systems Consortium, Inc. (\"ISC\")",
+		   grep({ $_ >= 2004} @_));
+	my $b = copyright("Internet Software Consortium.",
+		   grep({ $_ < 2004} @_));
+	return "$a$b";
+}
+
+foreach $file (keys %file_types) {
+	$typeandowner = $file_types{$file};
+	$years_list = $file_years{$file};
 
         if ( ! -f $file ) {
                 print "$file: missing\n";
                 next;
         }
+	# print "Doing: $file";
+
+        if ($years_list =~ /PARENT:/) {
+		getyears($years_list);
+		if (!defined $years_list) {
+			print "$file: has bad parent $parent\n";
+			next;
+		}
+	}
+
+	# copyright notice is now generated from the source.
+	next if ($years_list eq "DOCBOOK");
+
+	if ($years_list eq "DOCBOOK") {
+		docbook($file);
+		if (!defined $years_list) {
+			print "$file: has bad parent $parent\n";
+			next;
+		}
+	}
+
+        @years = split(/,/, $years_list);
 
         my ($type, $owner) = split(/\./, $typeandowner);
         $owner = "" if !defined $owner;
@@ -82,7 +155,7 @@ while (<>) {
                 $start_comment = "/*\n";
                 $prefix = " * ";
                 $end_comment = " */\n";
-        } elsif ($type =~ /^(SH|PERL|TCL|MAKE|CONF-SH)$/) {
+        } elsif ($type =~ /^(SH|PERL|TCL|MAKE|CONF-SH|RNC)$/) {
                 $shell_comment = 1;
                 $prefix = "# ";
         } elsif ($type eq "ZONE" || $type eq "MC") {
@@ -173,9 +246,24 @@ while (<>) {
                         }
                 }
         } elsif ($sgml_comment) {
-                if (/^<!DOCTYPE/) {
-                        $before_copyright = $_;
-                        $_ = <SOURCE>;
+		$before_copyright = "";
+                while (/^<!DOCTYPE/ || /^<\?xml-stylesheet/ || /^<\?xml /) {
+			# print "SGML: $_";
+			$before_copyright = "$before_copyright$_";
+			if (/>$/ ) {
+				$_ = <SOURCE>;
+				close(SOURCE) if (eof(SOURCE));
+				next;
+			}
+			$_ = <SOURCE>;
+			while (!eof(SOURCE) && ! /^<!/ ) {
+				$before_copyright = "$before_copyright$_";
+				$_ = <SOURCE>;
+			}
+			if (eof(SOURCE)) {
+				close(SOURCE);
+				next;
+			}
                 }
                 if (/^<!/) {
                         $_ = <SOURCE> if $_ eq "<!--\n";
@@ -242,10 +330,10 @@ while (<>) {
                         }
                 } else {
                         $years .= $last_year == 0 ? "$year" : ", $year";
-                        if ($anchor_year != 0) {
-                                print "$file: noncontiguous year: ",
-                                      "$year != $last_year + 1\n";
-                        }
+                        #if ($anchor_year != 0) {
+                        #        print "$file: noncontiguous year: ",
+                        #              "$year != $last_year + 1\n";
+                        #}
                         $anchor_year = $year;
                         $anchor_end = length($years);
                 }
@@ -270,10 +358,10 @@ while (<>) {
                         }
                 } else {
                         $years .= $last_year == 0 ? "$year" : ", $year";
-                        if ($anchor_year != 0) {
-                                print "$file: noncontiguous year: ",
-                                      "$year != $last_year + 1\n";
-                        }
+                        #if ($anchor_year != 0) {
+                        #        print "$file: noncontiguous year: ",
+                        #              "$year != $last_year + 1\n";
+                        #}
                         $anchor_year = $year;
                         $anchor_end = length($years);
                 }
@@ -285,12 +373,12 @@ while (<>) {
 	#
 	# Internet Systems Consortium: 2004 onwards.
 	#
-        $last_year = 2004;
-        $anchor_year = 2004;
-	$years = "2004";
+        $last_year = 0;
+        $anchor_year = 0;
+	$years = "";
 	$anchor_end = length($years);
         foreach $year (@years) {
-		if ($year < 2005) { next; }
+		if ($year < 2004) { next; }
                 if ($last_year != 0 && $year == $last_year + 1) {
                         if ($year > $anchor_year + 1) {
                                 substr($years, $anchor_end) = "-$year";
@@ -299,10 +387,10 @@ while (<>) {
                         }
                 } else {
                         $years .= $last_year == 0 ? "$year" : ", $year";
-                        if ($anchor_year != 0) {
-                                print "$file: noncontiguous year: ",
-                                      "$year != $last_year + 1\n";
-                        }
+                        #if ($anchor_year != 0) {
+                        #        print "$file: noncontiguous year: ",
+                        #              "$year != $last_year + 1\n";
+                        #}
                         $anchor_year = $year;
                         $anchor_end = length($years);
                 }
@@ -345,6 +433,22 @@ while (<>) {
                 undef $/;
                 $_ = <SOURCE>;
                 $/ = "\n";
+
+		if ($type eq 'SGML' && m:<articleinfo>.*?</articleinfo>:s) {
+			# print "docinfo: $file\n";
+			my $r = copyrights(@years);
+			s:<articleinfo>.*?</articleinfo>:<articleinfo>\n$r  </articleinfo>:s;
+		}
+		if ($type eq 'SGML' && m:<docinfo>.*?</docinfo>:s) {
+			# print "docinfo: $file\n";
+			my $r = copyrights(@years);
+			s:<docinfo>.*?</docinfo>:<docinfo>\n$r  </docinfo>:s;
+		}
+		if ($type eq 'SGML' && m:<bookinfo>.*?</bookinfo>:s) {
+			# print "bookinfo: $file\n";
+			my $r = copyrights(@years);
+			s:<bookinfo>.*?</bookinfo>:<bookinfo>\n$r  </bookinfo>:s;
+		}
 
                 my ($start, $end);
                 if ($start_comment ne "") {

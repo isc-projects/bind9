@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_dst.c,v 1.48 2004/03/05 04:58:46 marka Exp $ */
+/* $Id: t_dst.c,v 1.48.18.3 2005/11/30 23:52:53 marka Exp $ */
 
 #include <config.h>
 
@@ -168,7 +168,7 @@ dh(dns_name_t *name1, int id1, dns_name_t *name2, int id2, isc_mem_t *mctx,
 	char		tmp[PATH_MAX + 1];
 	char		*p;
 	int		alg = DST_ALG_DH;
-	int		type = DST_TYPE_PUBLIC|DST_TYPE_PRIVATE;
+	int		type = DST_TYPE_PUBLIC|DST_TYPE_PRIVATE|DST_TYPE_KEY;
 	unsigned char	array1[1024], array2[1024];
 	isc_buffer_t	b1, b2;
 	isc_region_t	r1, r2;
@@ -405,7 +405,13 @@ t1(void) {
 	name = dns_fixedname_name(&fname);
 	isc_buffer_init(&b, "test.", 5);
 	isc_buffer_add(&b, 5);
-	dns_name_fromtext(name, &b, NULL, ISC_FALSE, NULL);
+	isc_result = dns_name_fromtext(name, &b, NULL, ISC_FALSE, NULL);
+	if (isc_result != ISC_R_SUCCESS) {
+		t_info("dns_name_fromtext failed %s\n",
+		       isc_result_totext(isc_result));
+		t_result(T_UNRESOLVED);
+		return;
+	}
 	io(name, 23616, DST_ALG_DSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
 			mctx, ISC_R_SUCCESS, &nfails, &nprobs);
 	t_info("testing use of stored keys [2]\n");
@@ -421,7 +427,13 @@ t1(void) {
 
 	isc_buffer_init(&b, "dh.", 3);
 	isc_buffer_add(&b, 3);
-	dns_name_fromtext(name, &b, NULL, ISC_FALSE, NULL);
+	isc_result = dns_name_fromtext(name, &b, NULL, ISC_FALSE, NULL);
+	if (isc_result != ISC_R_SUCCESS) {
+		t_info("dns_name_fromtext failed %s\n",
+		       isc_result_totext(isc_result));
+		t_result(T_UNRESOLVED);
+		return;
+	}
 
 	dh(name, 18602, name, 48957, mctx, ISC_R_SUCCESS, &nfails, &nprobs);
 
@@ -674,7 +686,14 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 	name = dns_fixedname_name(&fname);
 	isc_buffer_init(&b, keyname, strlen(keyname));
 	isc_buffer_add(&b, strlen(keyname));
-	dns_name_fromtext(name, &b, dns_rootname, ISC_FALSE, NULL);
+	isc_result = dns_name_fromtext(name, &b, dns_rootname, ISC_FALSE, NULL);
+	if (isc_result != ISC_R_SUCCESS) {
+		t_info("dns_name_fromtext failed %s\n",
+			isc_result_totext(isc_result));
+		(void) free(data);
+		++*nprobs;
+		return;
+	}
 	isc_result = dst_key_fromfile(name, id, alg, type, NULL, mctx, &key);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("dst_key_fromfile failed %s\n",

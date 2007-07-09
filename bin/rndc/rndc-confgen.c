@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,18 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc-confgen.c,v 1.18 2004/03/05 04:58:20 marka Exp $ */
+/* $Id: rndc-confgen.c,v 1.18.18.3 2005/04/29 00:15:40 marka Exp $ */
+
+/*! \file */
+
+/**
+ * rndc-confgen generates configuration files for rndc. It can be used
+ * as a convenient alternative to writing the rndc.conf file and the
+ * corresponding controls and key statements in named.conf by hand.
+ * Alternatively, it can be run with the -a option to set up a
+ * rndc.key file and avoid the need for a rndc.conf file and a
+ * controls statement altogether.
+ */
 
 #include <config.h>
 
@@ -45,7 +56,7 @@
 
 #include "util.h"
 
-#define DEFAULT_KEYLENGTH	128		/* Bits. */
+#define DEFAULT_KEYLENGTH	128		/*% Bits. */
 #define DEFAULT_KEYNAME		"rndc-key"
 #define DEFAULT_SERVER		"127.0.0.1"
 #define DEFAULT_PORT		953
@@ -78,7 +89,7 @@ Usage:\n\
 	exit (status);
 }
 
-/*
+/*%
  * Write an rndc.key file to 'keyfile'.  If 'user' is non-NULL,
  * make that user the owner of the file.  The key will have
  * the name 'keyname' and the secret in the buffer 'secret'.
@@ -273,7 +284,8 @@ main(int argc, char **argv) {
 			buf = isc_mem_get(mctx, len);
 			if (buf == NULL)
 				fatal("isc_mem_get(%d) failed\n", len);
-			snprintf(buf, len, "%s/%s", chrootdir, keyfile);
+			snprintf(buf, len, "%s%s%s", chrootdir,
+				 (*keyfile != '/') ? "/" : "", keyfile);
 			
 			write_key_file(buf, user, keyname, &key_txtbuffer);
 			isc_mem_put(mctx, buf, len);

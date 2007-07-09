@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,12 +15,15 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print.c,v 1.27 2004/03/05 05:10:48 marka Exp $ */
+/* $Id: print.c,v 1.27.18.3 2006/04/17 18:27:33 explorer Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
 #include <ctype.h>
-#include <stdio.h>		/* for sprintf */
+#include <stdio.h>		/* for sprintf() */
+#include <string.h>		/* for strlen() */
 
 #define	ISC__PRINT_SOURCE	/* Used to get the isc_print_* prototypes. */
 
@@ -41,7 +44,7 @@ isc_print_sprintf(char *str, const char *format, ...) {
 	return (strlen(str));
 }
 
-/*
+/*!
  * Return length of string that would have been written if not truncated.
  */
 
@@ -57,7 +60,7 @@ isc_print_snprintf(char *str, size_t size, const char *format, ...) {
 
 }
 
-/*
+/*!
  * Return length of string that would have been written if not truncated.
  */
 

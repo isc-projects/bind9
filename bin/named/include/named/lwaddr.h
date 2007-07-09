@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwaddr.h,v 1.4 2004/03/05 04:57:56 marka Exp $ */
+/* $Id: lwaddr.h,v 1.4.18.2 2005/04/29 00:15:35 marka Exp $ */
+
+/*! \file */
 
 #include <lwres/lwres.h>
 #include <lwres/net.h>

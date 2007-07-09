@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.13 2004/03/05 05:11:46 marka Exp $ */
+/* $Id: os.c,v 1.13.18.3 2005/10/14 02:13:08 marka Exp $ */
 
 #include <config.h>
 
@@ -26,6 +26,7 @@
 
 #include <unistd.h>
 
+#ifndef __hpux
 static inline long
 sysconf_ncpus(void) {
 #if defined(_SC_NPROCESSORS_ONLN)
@@ -36,6 +37,7 @@ sysconf_ncpus(void) {
 	return (0);
 #endif
 }
+#endif
 #endif /* HAVE_SYSCONF */
 
 
@@ -55,7 +57,8 @@ hpux_ncpus(void) {
 #endif /* __hpux */
 
 #if defined(HAVE_SYS_SYSCTL_H) && defined(HAVE_SYSCTLBYNAME)
-#include <sys/types.h>
+#include <sys/types.h>  /* for FreeBSD */
+#include <sys/param.h>  /* for NetBSD */
 #include <sys/sysctl.h>
 
 static int

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,10 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journalprint.c,v 1.4 2004/03/05 04:58:37 marka Exp $ */
+/* $Id: journalprint.c,v 1.4.18.5 2006/08/25 05:25:51 marka Exp $ */
+
+/*! \file */
+#include <config.h>
 
 #include <isc/mem.h>
 #include <isc/util.h>
@@ -32,7 +35,7 @@ main(int argc, char **argv) {
 
 	if (argc != 2) {
 		printf("usage: %s journal", argv[0]);
-		exit(1);
+		return(1);
 	}
 
 	file = argv[1];
@@ -41,5 +44,5 @@ main(int argc, char **argv) {
 
 	RUNTIME_CHECK(dns_journal_print(mctx, file, stdout) == ISC_R_SUCCESS);
 	isc_mem_detach(&mctx);
-	exit(0);
+	return(0);
 }
