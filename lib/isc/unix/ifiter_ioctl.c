@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,9 +15,10 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.44 2004/03/05 05:11:45 marka Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.44.18.11 2006/02/03 23:51:38 marka Exp $ */
 
-/*
+/*! \file
+ * \brief
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
  * See netintro(4).
  */
@@ -50,7 +51,7 @@
 #define VALID_IFITER(t)		ISC_MAGIC_VALID(t, IFITER_MAGIC)
 
 #define ISC_IF_INET6_SZ \
-	 sizeof("00000000000000000000000000000001 01 80 10 80       lo\n")
+    sizeof("00000000000000000000000000000001 01 80 10 80 XXXXXXloXXXXXXXX\n")
 
 struct isc_interfaceiter {
 	unsigned int		magic;		/* Magic number. */
@@ -93,12 +94,22 @@ struct isc_interfaceiter {
 #endif
 
 
-/*
+/*%
  * Size of buffer for SIOCGLIFCONF, in bytes.  We assume no sane system
  * will have more than a megabyte of interface configuration data.
  */
 #define IFCONF_BUFSIZE_INITIAL	4096
 #define IFCONF_BUFSIZE_MAX	1048576
+
+#ifdef __linux
+#ifndef IF_NAMESIZE
+# ifdef IFNAMSIZ
+#  define IF_NAMESIZE  IFNAMSIZ  
+# else
+#  define IF_NAMESIZE 16
+# endif
+#endif
+#endif
 
 static isc_result_t
 getbuf4(isc_interfaceiter_t *iter) {
@@ -267,7 +278,8 @@ getbuf6(isc_interfaceiter_t *iter) {
 		iter->bufsize6 *= 2;
 	}
 
-	iter->mode = 6;
+	if (iter->lifc.lifc_len != 0)
+		iter->mode = 6;
 	return (ISC_R_SUCCESS);
 
  cleanup:
@@ -328,9 +340,8 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 			result = ISC_R_UNEXPECTED;
 			goto socket6_failure;
 		}
-		iter->result6 = getbuf6(iter);
-		if (iter->result6 != ISC_R_NOTIMPLEMENTED &&
-		    iter->result6 != ISC_R_SUCCESS)
+		result = iter->result6 = getbuf6(iter);
+		if (result != ISC_R_NOTIMPLEMENTED && result != ISC_R_SUCCESS)
 			goto ioctl6_failure;
 	}
 #endif
@@ -443,15 +454,28 @@ linux_if_inet6_current(isc_interfaceiter_t *iter) {
 
 	if (iter->valid != ISC_R_SUCCESS)
 		return (iter->valid);
-	if (iter->proc == NULL)
+	if (iter->proc == NULL) {
+		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_INTERFACE, ISC_LOG_ERROR,
+			      "/proc/net/if_inet6:iter->proc == NULL");
 		return (ISC_R_FAILURE);
+	}
 
 	res = sscanf(iter->entry, "%32[a-f0-9] %x %x %x %x %16s\n",
 		     address, &ifindex, &prefix, &flag3, &flag4, name);
-	if (res != 6)
+	if (res != 6) {
+		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_INTERFACE, ISC_LOG_ERROR,
+			      "/proc/net/if_inet6:sscanf() -> %d (expected 6)",
+			      res);
 		return (ISC_R_FAILURE);
-	if (strlen(address) != 32)
+	}
+	if (strlen(address) != 32) {
+		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_INTERFACE, ISC_LOG_ERROR,
+			      "/proc/net/if_inet6:strlen(%s) != 32", address);
 		return (ISC_R_FAILURE);
+	}
 	for (i = 0; i < 16; i++) {
 		unsigned char byte;
 		static const char hex[] = "0123456789abcdef";
@@ -506,7 +530,8 @@ internal_current4(isc_interfaceiter_t *iter) {
 #endif
 
 	REQUIRE(VALID_IFITER(iter));
-	REQUIRE (iter->pos < (unsigned int) iter->ifc.ifc_len);
+	REQUIRE(iter->ifc.ifc_len == 0 ||
+		iter->pos < (unsigned int) iter->ifc.ifc_len);
 
 #ifdef __linux
 	result = linux_if_inet6_current(iter);
@@ -514,6 +539,9 @@ internal_current4(isc_interfaceiter_t *iter) {
 		return (result);
 	iter->first = ISC_TRUE;
 #endif
+
+	if (iter->ifc.ifc_len == 0)
+		return (ISC_R_NOMORE);
 
 	ifrp = (struct ifreq *)((char *) iter->ifc.ifc_req + iter->pos);
 
@@ -873,7 +901,9 @@ internal_current(isc_interfaceiter_t *iter) {
  */
 static isc_result_t
 internal_next4(isc_interfaceiter_t *iter) {
+#ifdef ISC_PLATFORM_HAVESALEN
 	struct ifreq *ifrp;
+#endif
 
 	REQUIRE (iter->pos < (unsigned int) iter->ifc.ifc_len);
 
@@ -883,14 +913,14 @@ internal_next4(isc_interfaceiter_t *iter) {
 	if (!iter->first)
 		return (ISC_R_SUCCESS);
 #endif
+#ifdef ISC_PLATFORM_HAVESALEN
 	ifrp = (struct ifreq *)((char *) iter->ifc.ifc_req + iter->pos);
 
-#ifdef ISC_PLATFORM_HAVESALEN
 	if (ifrp->ifr_addr.sa_len > sizeof(struct sockaddr))
 		iter->pos += sizeof(ifrp->ifr_name) + ifrp->ifr_addr.sa_len;
 	else
 #endif
-		iter->pos += sizeof(*ifrp);
+		iter->pos += sizeof(struct ifreq);
 
 	if (iter->pos >= (unsigned int) iter->ifc.ifc_len)
 		return (ISC_R_NOMORE);
@@ -901,21 +931,23 @@ internal_next4(isc_interfaceiter_t *iter) {
 #if defined(SIOCGLIFCONF) && defined(SIOCGLIFADDR)
 static isc_result_t
 internal_next6(isc_interfaceiter_t *iter) {
+#ifdef ISC_PLATFORM_HAVESALEN
 	struct LIFREQ *ifrp;
+#endif
 	
 	if (iter->result6 != ISC_R_SUCCESS && iter->result6 != ISC_R_IGNORE)
 		return (iter->result6);
 
 	REQUIRE(iter->pos6 < (unsigned int) iter->lifc.lifc_len);
 
+#ifdef ISC_PLATFORM_HAVESALEN
 	ifrp = (struct LIFREQ *)((char *) iter->lifc.lifc_req + iter->pos6);
 
-#ifdef ISC_PLATFORM_HAVESALEN
 	if (ifrp->lifr_addr.sa_len > sizeof(struct sockaddr))
 		iter->pos6 += sizeof(ifrp->lifr_name) + ifrp->lifr_addr.sa_len;
 	else
 #endif
-		iter->pos6 += sizeof(*ifrp);
+		iter->pos6 += sizeof(struct LIFREQ);
 
 	if (iter->pos6 >= (unsigned int) iter->lifc.lifc_len)
 		return (ISC_R_NOMORE);
@@ -942,7 +974,7 @@ internal_next(isc_interfaceiter_t *iter) {
 #endif
 #ifdef HAVE_TRUCLUSTER
 	if (!iter->clua_done) {
-		clua_result = clua_getaliasaddress(&intr->clua_sa,
+		clua_result = clua_getaliasaddress(&iter->clua_sa,
 						   &iter->clua_context);
 		if (clua_result != CLUA_SUCCESS)
 			iter->clua_done = ISC_TRUE;
@@ -982,7 +1014,7 @@ void internal_first(isc_interfaceiter_t *iter) {
 #endif
 #ifdef HAVE_TRUCLUSTER
 	iter->clua_context = 0;
-	clua_result = clua_getaliasaddress(&intr->clua_sa,
+	clua_result = clua_getaliasaddress(&iter->clua_sa,
 					   &iter->clua_context);
 	iter->clua_done = ISC_TF(clua_result != CLUA_SUCCESS);
 #endif

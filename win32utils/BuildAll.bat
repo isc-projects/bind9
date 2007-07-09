@@ -30,6 +30,10 @@ rem a future release of BIND 9 for Windows NT/2000/XP.
 
 echo Setting up the BIND files required for the build
 
+rem Get and update for the latest build of the openssl library
+perl updateopenssl.pl
+
+rem Setup the files
 call BuildSetup.bat
 
 echo Build all of the Library files
@@ -100,15 +104,18 @@ cd ..\..
 cd check\win32
 nmake /nologo -f namedcheckconf.mak CFG="namedcheckconf - Win32 Release"  NO_EXTERNAL_DEPS="1"
 nmake /nologo -f namedcheckzone.mak CFG="namedcheckzone - Win32 Release"  NO_EXTERNAL_DEPS="1"
+copy /Y ..\..\..\Build\Release\named-checkzone.exe ..\..\..\Build\Release\named-compilezone.exe
 copy ..\*.html ..\..\..\Build\Release
 cd ..\..
 
 cd dnssec\win32
 nmake /nologo -f keygen.mak CFG="keygen - Win32 Release"  NO_EXTERNAL_DEPS="1"
-nmake /nologo -f makekeyset.mak CFG="makekeyset - Win32 Release"  NO_EXTERNAL_DEPS="1"
-nmake /nologo -f signkey.mak CFG="signkey - Win32 Release"  NO_EXTERNAL_DEPS="1"
+rem nmake /nologo -f makekeyset.mak CFG="makekeyset - Win32 Release"  NO_EXTERNAL_DEPS="1"
+rem nmake /nologo -f signkey.mak CFG="signkey - Win32 Release"  NO_EXTERNAL_DEPS="1"
 nmake /nologo -f signzone.mak CFG="signzone - Win32 Release"  NO_EXTERNAL_DEPS="1"
-copy ..\*.html ..\..\..\Build\Release
+rem copy ..\*.html ..\..\..\Build\Release
+copy ..\dnssec-keygen.html ..\..\..\Build\Release
+copy ..\dnssec-signzone.html ..\..\..\Build\Release
 cd ..\..
 
 rem This is the BIND 9 Installer
@@ -120,6 +127,9 @@ cd ..\..
 cd ..
 
 cd win32utils
+
+copy ..\doc\misc\migration ..\Build\Release
+copy ..\doc\misc\migration-4to9 ..\Build\Release
 
 echo Done.
 

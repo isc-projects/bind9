@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,10 +15,10 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.91 2004/03/05 05:10:50 marka Exp $ */
+/* $Id: task.c,v 1.91.18.6 2006/01/04 23:50:23 marka Exp $ */
 
-/*
- * Principal Author: Bob Halley
+/*! \file
+ * \author Principal Author: Bob Halley
  */
 
 /*
@@ -105,8 +105,8 @@ struct isc_taskmgr {
 	unsigned int			magic;
 	isc_mem_t *			mctx;
 	isc_mutex_t			lock;
-	unsigned int			workers;
 #ifdef ISC_PLATFORM_USETHREADS
+	unsigned int			workers;
 	isc_thread_t *			threads;
 #endif /* ISC_PLATFORM_USETHREADS */
 	/* Locked by task manager lock. */
@@ -174,6 +174,7 @@ isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,
 {
 	isc_task_t *task;
 	isc_boolean_t exiting;
+	isc_result_t result;
 
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(taskp != NULL && *taskp == NULL);
@@ -183,13 +184,10 @@ isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,
 		return (ISC_R_NOMEMORY);
 	XTRACE("isc_task_create");
 	task->manager = manager;
-	if (isc_mutex_init(&task->lock) != ISC_R_SUCCESS) {
+	result = isc_mutex_init(&task->lock);
+	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(manager->mctx, task, sizeof(*task));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"));
-		return (ISC_R_UNEXPECTED);
+		return (result);
 	}
 	task->state = task_state_idle;
 	task->references = 1;
@@ -1025,8 +1023,7 @@ manager_free(isc_taskmgr_t *manager) {
 #ifdef ISC_PLATFORM_USETHREADS
 	(void)isc_condition_destroy(&manager->exclusive_granted);	
 	(void)isc_condition_destroy(&manager->work_available);
-	isc_mem_put(manager->mctx, manager->threads,
-		    manager->workers * sizeof(isc_thread_t));
+	isc_mem_free(manager->mctx, manager->threads);
 #endif /* ISC_PLATFORM_USETHREADS */
 	DESTROYLOCK(&manager->lock);
 	manager->magic = 0;
@@ -1067,17 +1064,14 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 		return (ISC_R_NOMEMORY);
 	manager->magic = TASK_MANAGER_MAGIC;
 	manager->mctx = NULL;
-	manager->workers = 0;
-	if (isc_mutex_init(&manager->lock) != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"));
-		result = ISC_R_UNEXPECTED;
+	result = isc_mutex_init(&manager->lock);
+	if (result != ISC_R_SUCCESS)
 		goto cleanup_mgr;
-	}
+
 #ifdef ISC_PLATFORM_USETHREADS
-	manager->threads = isc_mem_get(mctx, workers * sizeof(isc_thread_t));
+	manager->workers = 0;
+	manager->threads = isc_mem_allocate(mctx,
+					    workers * sizeof(isc_thread_t));
 	if (manager->threads == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto cleanup_lock;
@@ -1107,7 +1101,6 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	manager->tasks_running = 0;
 	manager->exclusive_requested = ISC_FALSE;
 	manager->exiting = ISC_FALSE;
-	manager->workers = 0;
 
 	isc_mem_attach(mctx, &manager->mctx);
 
@@ -1144,7 +1137,7 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
  cleanup_workavailable:
 	(void)isc_condition_destroy(&manager->work_available);
  cleanup_threads:
-	isc_mem_put(mctx, manager->threads, workers * sizeof(isc_thread_t));
+	isc_mem_free(mctx, manager->threads);
  cleanup_lock:
 	DESTROYLOCK(&manager->lock);
 #endif
@@ -1236,6 +1229,8 @@ isc_taskmgr_destroy(isc_taskmgr_t **managerp) {
 	UNLOCK(&manager->lock);
 	while (isc__taskmgr_ready())
 		(void)isc__taskmgr_dispatch();
+	if (!ISC_LIST_EMPTY(manager->tasks))
+		isc_mem_printallactive(stderr);
 	INSIST(ISC_LIST_EMPTY(manager->tasks));
 #endif /* ISC_PLATFORM_USETHREADS */
 

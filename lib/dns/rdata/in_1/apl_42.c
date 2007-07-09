@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,9 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: apl_42.c,v 1.7 2004/03/05 05:10:24 marka Exp $ */
+/* $Id: apl_42.c,v 1.8.18.2 2005/04/29 00:16:42 marka Exp $ */
 
-/* RFC 3123 */
+/* RFC3123 */
 
 #ifndef RDATA_IN_1_APL_42_C
 #define RDATA_IN_1_APL_42_C
@@ -57,7 +57,7 @@ fromtext_in_apl(ARGS_FROMTEXT) {
 		afi = strtoul(cp, &ap, 10);
 		if (*ap++ != ':' || cp == ap)
 			RETTOK(DNS_R_SYNTAX);
-		if (afi > 0xffff)
+		if (afi > 0xffffU)
 			RETTOK(ISC_R_RANGE);
 		slash = strchr(ap, '/');
 		if (slash == NULL || slash == ap)

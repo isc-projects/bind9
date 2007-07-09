@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keydelete.c,v 1.6 2004/03/05 05:03:12 marka Exp $ */
+/* $Id: keydelete.c,v 1.6.18.3 2005/11/30 23:52:53 marka Exp $ */
 
 #include <config.h>
 
@@ -118,7 +118,9 @@ sendquery(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
-	inet_pton(AF_INET, "10.53.0.1", &inaddr);
+	result = ISC_R_FAILURE;
+	if (inet_pton(AF_INET, "10.53.0.1", &inaddr) != 1)
+		CHECK("inet_pton", result);
 	isc_sockaddr_fromin(&address, &inaddr, PORT);
 
 	query = NULL;
@@ -154,6 +156,7 @@ main(int argc, char **argv) {
 	isc_logconfig_t *logconfig;
 	isc_task_t *task;
 	isc_result_t result;
+	int type;
 
 	RUNCHECK(isc_app_start());
 
@@ -222,9 +225,8 @@ main(int argc, char **argv) {
 	RUNCHECK(isc_app_onrun(mctx, task, sendquery, NULL));
 
 	dstkey = NULL;
-	result = dst_key_fromnamedfile(keyname,
-				       DST_TYPE_PUBLIC | DST_TYPE_PRIVATE,
-				       mctx, &dstkey);
+	type = DST_TYPE_PUBLIC | DST_TYPE_PRIVATE | DST_TYPE_KEY;
+	result = dst_key_fromnamedfile(keyname, type, mctx, &dstkey);
 	CHECK("dst_key_fromnamedfile", result);
 	result = dns_tsigkey_createfromkey(dst_key_name(dstkey),
 					   DNS_TSIG_HMACMD5_NAME,

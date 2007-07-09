@@ -16,18 +16,18 @@
  */
 
 /*
- * $Id: dns_p.h,v 1.2 2004/03/09 06:29:59 marka Exp $
+ * $Id: dns_p.h,v 1.3.18.1 2005/04/27 05:00:55 sra Exp $
  */
 
 #ifndef _DNS_P_H_INCLUDED
 #define	_DNS_P_H_INCLUDED
 
-#define	maybe_ok(res, nm, ok) (((res)->options & RES_NOCHECKNAME) != 0 || \
+#define	maybe_ok(res, nm, ok) (((res)->options & RES_NOCHECKNAME) != 0U || \
 			       (ok)(nm) != 0)
 #define maybe_hnok(res, hn) maybe_ok((res), (hn), res_hnok)
 #define maybe_dnok(res, dn) maybe_ok((res), (dn), res_dnok)
 
-/*
+/*%
  * Object state.
  */
 struct dns_p {
@@ -48,3 +48,5 @@ extern struct irs_ho *	irs_dns_ho __P((struct irs_acc *));
 extern struct irs_nw *	irs_dns_nw __P((struct irs_acc *));
 
 #endif /*_DNS_P_H_INCLUDED*/
+
+/*! \file */

@@ -20,7 +20,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: ev_timers.c,v 1.4 2004/03/09 06:30:07 marka Exp $";
+static const char rcsid[] = "$Id: ev_timers.c,v 1.5.18.1 2005/04/27 05:01:06 sra Exp $";
 #endif
 
 /* Import. */
@@ -180,14 +180,25 @@ evSetTimer(evContext opaqueCtx,
 		 (long)due.tv_sec, due.tv_nsec,
 		 (long)inter.tv_sec, inter.tv_nsec);
 
-	if (due.tv_sec < 0 || due.tv_nsec < 0)
+#ifdef __hpux
+	/*
+	 * tv_sec and tv_nsec are unsigned.
+	 */
+	if (due.tv_nsec >= BILLION)
 		EV_ERR(EINVAL);
 
-	if (inter.tv_sec < 0 || inter.tv_nsec < 0)
+	if (inter.tv_nsec >= BILLION)
 		EV_ERR(EINVAL);
+#else
+	if (due.tv_sec < 0 || due.tv_nsec < 0 || due.tv_nsec >= BILLION)
+		EV_ERR(EINVAL);
+
+	if (inter.tv_sec < 0 || inter.tv_nsec < 0 || inter.tv_nsec >= BILLION)
+		EV_ERR(EINVAL);
+#endif
 
 	/* due={0,0} is a magic cookie meaning "now." */
-	if (due.tv_sec == 0 && due.tv_nsec == 0L)
+	if (due.tv_sec == (time_t)0 && due.tv_nsec == 0L)
 		due = evNowTime();
 
 	/* Allocate and fill. */
@@ -254,6 +265,8 @@ evConfigTimer(evContext opaqueCtx,
 	evTimer *timer = id.opaque;
 	int result=0;
 
+	UNUSED(value);
+
 	if (heap_element(ctx->timers, timer->index) != timer)
 		EV_ERR(ENOENT);
 
@@ -283,11 +296,22 @@ evResetTimer(evContext opaqueCtx,
 	if (heap_element(ctx->timers, timer->index) != timer)
 		EV_ERR(ENOENT);
 
-	if (due.tv_sec < 0 || due.tv_nsec < 0)
+#ifdef __hpux
+	/*
+	 * tv_sec and tv_nsec are unsigned.
+	 */
+	if (due.tv_nsec >= BILLION)
 		EV_ERR(EINVAL);
 
-	if (inter.tv_sec < 0 || inter.tv_nsec < 0)
+	if (inter.tv_nsec >= BILLION)
 		EV_ERR(EINVAL);
+#else
+	if (due.tv_sec < 0 || due.tv_nsec < 0 || due.tv_nsec >= BILLION)
+		EV_ERR(EINVAL);
+
+	if (inter.tv_sec < 0 || inter.tv_nsec < 0 || inter.tv_nsec >= BILLION)
+		EV_ERR(EINVAL);
+#endif
 
 	old_due = timer->due;
 
@@ -471,3 +495,5 @@ idle_timeout(evContext opaqueCtx,
 		this->timer->inter = evSubTime(this->max_idle, idle);
 	}
 }
+
+/*! \file */

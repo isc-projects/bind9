@@ -56,6 +56,8 @@
 #define IDS_CREATEACCOUNT_FAILED        55
 #define IDS_ERR_PASSWORD                56
 #define IDS_ERR_UPDATE_SERVICE          57
+#define IDS_ERR_NULLPASSWORD            58
+#define IDS_ERR_WHITESPACE              59
 #define IDD_BINDINSTALL_DIALOG          102
 #define IDR_MAINFRAME                   128
 #define IDD_BROWSE                      129

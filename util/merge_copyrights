@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -w
 #
-# Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 1998-2001, 2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: merge_copyrights,v 1.19 2004/03/05 12:56:28 marka Exp $
+# $Id: merge_copyrights,v 1.19.18.7 2006/10/05 00:31:42 marka Exp $
 
 %file_types = ();
 %file_years = ();
@@ -62,6 +62,10 @@ while (<FILES>) {
 	    $file_types{$_} = "PERL";
         } elsif ($base =~ /\.sh$/) {
 	    $file_types{$_} = "SH";
+        } elsif ($base =~ /\.docbook$/ ||
+		 $base =~ /.xsl$/ ||
+		 $base =~ /.xml$/) {
+	    $file_types{$_} = "SGML";
         } elsif ($base =~ /\.html$/) {
 	    $file_types{$_} = "HTML";
         } elsif ($base =~ /\.(man|[0-9])$/) {
@@ -74,7 +78,7 @@ while (<FILES>) {
 	    $file_types{$_} = "CONF-SH";
 	} elsif ($base =~ /\.(db|hint)$/) {
 	    $file_types{$_} = "ZONE";
-	} elsif ($base =~ /(\/\.cvsignore|\.gif|\.jpg)$/i) {
+	} elsif ($base =~ /(\/\.cvsignore|\.gif|\.jpg|\.dsp|\.dsw)$/i) {
 	    $file_types{$_} = "X";
 	} else {
 	    $file_types{$_} = "?";
@@ -104,7 +108,11 @@ while (<FILES>) {
             next;
         }
 
-	next if $file_types{$_} eq "X";
+	# track the modification years even if we are not going to be
+	# updating the copyrights.
+	# next if $file_types{$_} eq "X";
+	next if ($file_years{$_} =~ /^PARENT:/);
+	next if ($file_years{$_} eq "DOCBOOK");
 
 	@years = split(/,/, $file_years{$_});
 	$has_current = 0;

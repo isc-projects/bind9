@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,14 +15,16 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: msgcat.c,v 1.13 2004/03/05 05:11:06 marka Exp $ */
+/* $Id: msgcat.c,v 1.13.18.3 2005/06/08 02:07:57 marka Exp $ */
 
-/*
- * Principal Author: Bob Halley
+/*! \file msgcat.c
+ *
+ * \author Principal Author: Bob Halley
  */
 
 #include <config.h>
 
+#include <stddef.h>
 #include <stdlib.h>
 
 #include <isc/magic.h>

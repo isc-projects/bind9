@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -48,15 +48,15 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: gen-win32.h,v 1.16 2004/03/05 05:09:20 marka Exp $ */
+/* $Id: gen-win32.h,v 1.16.18.5 2006/10/03 23:50:51 marka Exp $ */
 
-/*
- * Principal Authors: Computer Systems Research Group at UC Berkeley
- * Principal ISC caretaker: DCL
+/*! \file
+ * \author Principal Authors: Computer Systems Research Group at UC Berkeley
+ * \author Principal ISC caretaker: DCL
  */
 
 /*
- * This file was adapted from the NetBSD project's source tree, RCS ID:
+ * \note This file was adapted from the NetBSD project's source tree, RCS ID:
  *    NetBSD: getopt.c,v 1.15 1999/09/20 04:39:37 lukem Exp
  *
  * The primary change has been to rename items to the ISC namespace

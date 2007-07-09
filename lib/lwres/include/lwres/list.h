@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1997-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: list.h,v 1.8 2004/03/05 05:12:52 marka Exp $ */
+/* $Id: list.h,v 1.8.18.2 2005/04/29 00:17:22 marka Exp $ */
 
 #ifndef LWRES_LIST_H
 #define LWRES_LIST_H 1
+
+/*! \file */
 
 #define LWRES_LIST(type) struct { type *head, *tail; }
 #define LWRES_LIST_INIT(list) \

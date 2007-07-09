@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: logging.c,v 1.5 2004/03/09 06:30:08 marka Exp $";
+static const char rcsid[] = "$Id: logging.c,v 1.6.18.1 2005/04/27 05:01:07 sra Exp $";
 #endif /* not lint */
 
 #include "port_before.h"
@@ -75,7 +75,7 @@ version_rename(log_channel chan) {
 	/*
 	 * Need to have room for '.nn' (XXX assumes LOG_MAX_VERSIONS < 100)
 	 */
-	if (strlen(chan->out.file.name) > (PATH_MAX-3))
+	if (strlen(chan->out.file.name) > (size_t)(PATH_MAX-3))
 		return;
 	for (ver--; ver > 0; ver--) {
 		sprintf(old_name, "%s.%d", chan->out.file.name, ver-1);
@@ -258,7 +258,7 @@ log_check(log_context lc, int category, int level) {
 		return (0);
 
 	if (category < 0 || category > lc->num_categories)
-		category = 0;		/* use default */
+		category = 0;		/*%< use default */
 	lcl = lc->categories[category];
 	if (lcl == NULL) {
 		category = 0;
@@ -302,7 +302,7 @@ log_vwrite(log_context lc, int category, int level, const char *format,
 		return;
 
 	if (category < 0 || category > lc->num_categories)
-		category = 0;		/* use default */
+		category = 0;		/*%< use default */
 	original_category = category;
 	lcl = lc->categories[category];
 	if (lcl == NULL) {
@@ -364,7 +364,7 @@ log_vwrite(log_context lc, int category, int level, const char *format,
 
 		if (!did_vsprintf) {
 			if (VSPRINTF((lc->buffer, format, args)) >
-			    LOG_BUFFER_SIZE) {
+			    (size_t)LOG_BUFFER_SIZE) {
 				syslog(LOG_CRIT,
 				       "memory overrun in log_vwrite()");
 				exit(1);
@@ -441,7 +441,7 @@ log_write(log_context lc, int category, int level, const char *format, ...) {
 	va_end(args);
 }
 
-/*
+/*%
  * Functions to create, set, or destroy contexts
  */
 
@@ -718,3 +718,5 @@ log_free_channel(log_channel chan) {
 	}
 	return (0);
 }
+
+/*! \file */

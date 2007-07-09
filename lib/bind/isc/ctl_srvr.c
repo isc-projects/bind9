@@ -1,5 +1,5 @@
 #if !defined(lint) && !defined(SABER)
-static const char rcsid[] = "$Id: ctl_srvr.c,v 1.5 2004/03/09 06:30:07 marka Exp $";
+static const char rcsid[] = "$Id: ctl_srvr.c,v 1.6.18.2 2006/12/07 04:53:02 marka Exp $";
 #endif /* not lint */
 
 /*
@@ -158,7 +158,7 @@ static const struct ctl_verb	fakehelpverb = {
 
 /* Public. */
 
-/*
+/*%
  * void
  * ctl_server()
  *	create, condition, and start a listener on the control port.
@@ -263,7 +263,7 @@ ctl_server(evContext lev, const struct sockaddr *sap, size_t sap_len,
 	return (ctx);
 }
 
-/*
+/*%
  * void
  * ctl_endserver(ctx)
  *	if the control listener is open, close it.  clean out all eventlib
@@ -291,7 +291,7 @@ ctl_endserver(struct ctl_sctx *ctx) {
 	memput(ctx, sizeof *ctx);
 }
 
-/*
+/*%
  * If body is non-NULL then it we add a "." line after it.
  * Caller must have  escaped lines with leading ".".
  */
@@ -321,7 +321,7 @@ ctl_response(struct ctl_sess *sess, u_int code, const char *text,
 			       me, address_expr);
 		goto untimely;
 	}
-	if (sizeof "000-\r\n" + strlen(text) > MAX_LINELEN) {
+	if (sizeof "000-\r\n" + strlen(text) > (size_t)MAX_LINELEN) {
 		(*ctx->logger)(ctl_error, "%s: %s: output buffer ovf, closing",
 			       me, address_expr);
 		goto untimely;
@@ -564,7 +564,7 @@ static void
 ctl_readable(evContext lev, void *uap, int fd, int evmask) {
 	static const char me[] = "ctl_readable";
 	struct ctl_sess *sess = uap;
-	struct ctl_sctx *ctx = sess->ctx;
+	struct ctl_sctx *ctx;
 	char *eos, tmp[MAX_NTOP];
 	ssize_t n;
 
@@ -572,6 +572,8 @@ ctl_readable(evContext lev, void *uap, int fd, int evmask) {
 	REQUIRE(fd >= 0);
 	REQUIRE(evmask == EV_READ);
 	REQUIRE(sess->state == reading || sess->state == reading_data);
+
+	ctx = sess->ctx;
 	evTouchIdleTimer(lev, sess->rdtiID);
 	if (!allocated_p(sess->inbuf) &&
 	    ctl_bufget(&sess->inbuf, ctx->logger) < 0) {
@@ -604,13 +606,13 @@ ctl_readable(evContext lev, void *uap, int fd, int evmask) {
 			ctl_docommand(sess);
 		}
 		sess->inbuf.used -= ((eos - sess->inbuf.text) + 1);
-		if (sess->inbuf.used == 0)
+		if (sess->inbuf.used == 0U)
 			ctl_bufput(&sess->inbuf);
 		else
 			memmove(sess->inbuf.text, eos + 1, sess->inbuf.used);
 		return;
 	}
-	if (sess->inbuf.used == MAX_LINELEN) {
+	if (sess->inbuf.used == (size_t)MAX_LINELEN) {
 		(*ctx->logger)(ctl_error, "%s: %s: line too long, closing",
 			       me, address_expr);
 		ctl_close(sess);
@@ -778,3 +780,5 @@ ctl_signal_done(struct ctl_sctx *ctx, struct ctl_sess *sess) {
 		sess->donefunc = NULL;
 	}
 }
+
+/*! \file */

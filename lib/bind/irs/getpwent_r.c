@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: getpwent_r.c,v 1.6 2004/03/09 06:30:02 marka Exp $";
+static const char rcsid[] = "$Id: getpwent_r.c,v 1.6.18.2 2005/04/27 05:00:59 sra Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <port_before.h>
@@ -121,7 +121,7 @@ getpwuid_r(uid_t uid,  struct passwd *pwptr, char *buf, int buflen) {
 }
 #endif
 
-/*
+/*%
  *	These assume a single context is in operation per thread.
  *	If this is not the case we will need to call irs directly
  *	rather than through the base functions.
@@ -130,7 +130,7 @@ getpwuid_r(uid_t uid,  struct passwd *pwptr, char *buf, int buflen) {
 PASS_R_RETURN
 getpwent_r(struct passwd *pwptr, PASS_R_ARGS) {
 	struct passwd *pw = getpwent();
-	int res;
+	int res = 0;
 
 	if (pw == NULL)
 		return (PASS_R_BAD);
@@ -184,7 +184,7 @@ endpwent_r(void)
 PASS_R_RETURN
 fgetpwent_r(FILE *f, struct passwd *pwptr, PASS_R_COPY_ARGS) {
 	struct passwd *pw = fgetpwent(f);
-	int res;
+	int res = 0;
 
 	if (pw == NULL)
 		return (PASS_R_BAD);
@@ -273,3 +273,4 @@ copy_passwd(struct passwd *pw, struct passwd *pwptr, char *buf, int buflen) {
 	static int getpwent_r_unknown_system = 0;
 #endif /* PASS_R_RETURN */
 #endif /* !def(_REENTRANT) || !def(DO_PTHREADS) || !def(WANT_IRS_PW) */
+/*! \file */

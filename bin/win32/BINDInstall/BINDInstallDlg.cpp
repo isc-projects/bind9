@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.cpp,v 1.15 2004/03/16 05:52:15 marka Exp $ */
+/* $Id: BINDInstallDlg.cpp,v 1.15.18.10.12.2 2007/06/27 01:06:14 marka Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -113,15 +113,34 @@ const FileData installFiles[] =
 	{"msvcrt.dll", FileData::WinSystem, FileData::Critical, TRUE},
 #  endif
 #endif
+#if _MSC_VER >= 1400
+	{"MFC80CHS.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"MFC80CHT.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"MFC80DEU.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"MFC80ENU.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"MFC80ESP.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"MFC80FRA.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"MFC80ITA.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"MFC80JPN.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"MFC80KOR.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"Microsoft.VC80.MFCLOC.manifest", FileData::BinDir, FileData::Critical, FALSE},
+#endif
+#if _MSC_VER < 1400
+#if _MSC_VER >= 1310
+	{"mfc71.dll", FileData::WinSystem, FileData::Critical, TRUE},
+	{"msvcr71.dll", FileData::WinSystem, FileData::Critical, TRUE},
+#elif _MSC_VER > 1200 && _MSC_VER < 1310
 	{"mfc70.dll", FileData::WinSystem, FileData::Critical, TRUE},
 	{"msvcr70.dll", FileData::WinSystem, FileData::Critical, TRUE},
-	{"bindevt.dll", FileData::WinSystem, FileData::Normal, FALSE},
-	{"libbind9.dll", FileData::WinSystem, FileData::Critical, FALSE},
-	{"libisc.dll", FileData::WinSystem, FileData::Critical, FALSE},
-	{"libisccfg.dll", FileData::WinSystem, FileData::Critical, FALSE},
-	{"libisccc.dll", FileData::WinSystem, FileData::Critical, FALSE},
-	{"libdns.dll", FileData::WinSystem, FileData::Critical, FALSE},
-	{"liblwres.dll", FileData::WinSystem, FileData::Critical, FALSE},
+#endif
+#endif
+	{"bindevt.dll", FileData::BinDir, FileData::Normal, FALSE},
+	{"libbind9.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"libisc.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"libisccfg.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"libisccc.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"libdns.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"liblwres.dll", FileData::BinDir, FileData::Critical, FALSE},
 	{"libeay32.dll", FileData::BinDir, FileData::Critical, FALSE},
 	{"named.exe", FileData::BinDir, FileData::Critical, FALSE},
 	{"nsupdate.exe", FileData::BinDir, FileData::Normal, FALSE},
@@ -132,11 +151,10 @@ const FileData installFiles[] =
 	{"nslookup.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"rndc-confgen.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"dnssec-keygen.exe", FileData::BinDir, FileData::Normal, FALSE},
-	{"dnssec-makekeyset.exe", FileData::BinDir, FileData::Normal, FALSE},
-	{"dnssec-signkey.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"dnssec-signzone.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"named-checkconf.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"named-checkzone.exe", FileData::BinDir, FileData::Normal, FALSE},
+	{"named-compilezone.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"readme1st.txt", FileData::BinDir, FileData::Trivial, FALSE},
 	{NULL, -1, -1}
 };
@@ -382,6 +400,7 @@ void CBINDInstallDlg::OnUninstall() {
  */
 void CBINDInstallDlg::OnInstall() {
 	BOOL success = FALSE;
+	int oldlen;
 
 	if (CheckBINDService())
 		StopBINDService();
@@ -390,20 +409,49 @@ void CBINDInstallDlg::OnInstall() {
 
 	UpdateData();
 
-	/* Check that the Passwords entered match */ 
+	/*
+	 * Check that the Passwords entered match.
+	 */ 
 	if (m_accountPassword != m_accountPasswordConfirm) {
 		MsgBox(IDS_ERR_PASSWORD);
 		return;
 	}
 
-	/* Check the entered account name */
+	/*
+	 * Check that there is not leading / trailing whitespace.
+	 * This is for compatability with the standard password dialog.
+	 * Passwords really should be treated as opaque blobs.
+	 */
+	oldlen = m_accountPassword.GetLength();
+	m_accountPassword.TrimLeft();
+	m_accountPassword.TrimRight();
+	if (m_accountPassword.GetLength() != oldlen) {
+		MsgBox(IDS_ERR_WHITESPACE);
+		return;
+	}
+	
+	/*
+	 * Check the entered account name.
+	 */
 	if (ValidateServiceAccount() == FALSE)
 		return;
 
-
-	/* For Registration we need to know if account was changed */
-	if(m_accountName != m_currentAccount)
+	/*
+	 * For Registration we need to know if account was changed.
+	 */
+	if (m_accountName != m_currentAccount)
 		m_accountUsed = FALSE;
+
+	if (m_accountUsed == FALSE && m_serviceExists == FALSE)
+	{
+	/*
+	 * Check that the Password is not null.
+	 */
+		if (m_accountPassword.GetLength() == 0) {
+			MsgBox(IDS_ERR_NULLPASSWORD);
+			return;
+		}
+	}
 
 	/* Directories */
 	m_etcDir = m_targetDir + "\\etc";
@@ -435,8 +483,18 @@ void CBINDInstallDlg::OnInstall() {
 		m_accountExists = TRUE;
 	}
 
-	ProgramGroup();
+	ProgramGroup(FALSE);
 
+#if _MSC_VER >= 1400
+	/*
+	 * Install Visual Studio libraries.  As per:
+	 * http://blogs.msdn.com/astebner/archive/2006/08/23/715755.aspx
+	 *
+	 * Vcredist_x86.exe /q:a /c:"msiexec /i vcredist.msi /qn /l*v %temp%\vcredist_x86.log"
+	 */
+	/*system(".\\Vcredist_x86.exe /q:a /c:\"msiexec /i vcredist.msi /qn /l*v %temp%\vcredist_x86.log\"");*/
+	system(".\\Vcredist_x86.exe");
+#endif
 	try {
 		CreateDirs();
  		CopyFiles();
@@ -459,21 +517,19 @@ void CBINDInstallDlg::OnInstall() {
 		
 		SetCurrent(IDS_ADD_REMOVE);
 		if (RegCreateKey(HKEY_LOCAL_MACHINE, BIND_UNINSTALL_SUBKEY,
-				&hKey) == ERROR_SUCCESS) {
-			char winDir[MAX_PATH];
+				 &hKey) == ERROR_SUCCESS) {
 			CString buf(BIND_DISPLAY_NAME);
-			GetWindowsDirectory(winDir, MAX_PATH);
 
 			RegSetValueEx(hKey, "DisplayName", 0, REG_SZ,
 					(LPBYTE)(LPCTSTR)buf, buf.GetLength());
 
-			buf.Format("%s\\BINDInstall.exe", winDir);
+			buf.Format("%s\\BINDInstall.exe", m_binDir);
 			RegSetValueEx(hKey, "UninstallString", 0, REG_SZ,
 					(LPBYTE)(LPCTSTR)buf, buf.GetLength());
 			RegCloseKey(hKey);
 		}
 	
-		ProgramGroup();
+		ProgramGroup(FALSE);
 		
 		if (m_startOnInstall)
 			StartBINDService();

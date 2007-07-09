@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,9 +15,10 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db_test.c,v 1.59 2004/03/05 04:58:37 marka Exp $ */
+/* $Id: db_test.c,v 1.59.18.3 2005/04/27 05:00:40 sra Exp $ */
 
-/*
+/*! \file 
+ * \author
  * Principal Author: Bob Halley
  */
 
@@ -76,8 +77,8 @@ print_result(const char *message, isc_result_t result) {
 		message = "";
 	}
 	len = strlen(message);
-	printf("%s%sresult %08x: %s\n", message, (len == 0) ? "" : " ", result,
-	       isc_result_totext(result));
+	printf("%s%sresult %08x: %s\n", message, (len == 0U) ? "" : " ",
+	       result, isc_result_totext(result));
 }
 
 static void
@@ -477,7 +478,7 @@ main(int argc, char *argv[]) {
 			continue;
 		}
 		len = strlen(s);
-		if (len > 0 && s[len - 1] == '\n') {
+		if (len > 0U && s[len - 1] == '\n') {
 			s[len - 1] = '\0';
 			len--;
 		}

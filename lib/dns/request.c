@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.72 2004/03/05 05:09:24 marka Exp $ */
+/* $Id: request.c,v 1.72.18.5 2006/08/21 00:40:53 marka Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -91,10 +93,10 @@ struct dns_request {
 
 #define DNS_REQUEST_F_CONNECTING 0x0001
 #define DNS_REQUEST_F_SENDING 0x0002
-#define DNS_REQUEST_F_CANCELED 0x0004	/* ctlevent received, or otherwise
+#define DNS_REQUEST_F_CANCELED 0x0004	/*%< ctlevent received, or otherwise
 					   synchronously canceled */
-#define DNS_REQUEST_F_TIMEDOUT 0x0008	/* cancelled due to a timeout */
-#define DNS_REQUEST_F_TCP 0x0010	/* This request used TCP */
+#define DNS_REQUEST_F_TIMEDOUT 0x0008	/*%< cancelled due to a timeout */
+#define DNS_REQUEST_F_TCP 0x0010	/*%< This request used TCP */
 #define DNS_REQUEST_CANCELED(r) \
 	(((r)->flags & DNS_REQUEST_F_CANCELED) != 0)
 #define DNS_REQUEST_CONNECTING(r) \
@@ -512,6 +514,7 @@ create_tcp_dispatch(dns_requestmgr_t *requestmgr, isc_sockaddr_t *srcaddr,
 				   isc_sockettype_tcp, &socket);
 	if (result != ISC_R_SUCCESS)
 		return (result);
+#ifndef BROKEN_TCP_BIND_BEFORE_CONNECT
 	if (srcaddr == NULL) {
 		isc_sockaddr_anyofpf(&bind_any,
 				     isc_sockaddr_pf(destaddr));
@@ -523,6 +526,7 @@ create_tcp_dispatch(dns_requestmgr_t *requestmgr, isc_sockaddr_t *srcaddr,
 	}
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
+#endif
 	attrs = 0;
 	attrs |= DNS_DISPATCHATTR_TCP;
 	attrs |= DNS_DISPATCHATTR_PRIVATE;
@@ -701,6 +705,7 @@ dns_request_createraw3(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 		if (udptimeout == 0)
 			udptimeout = 1;
 	}
+	request->udpcount = udpretries;
 
 	/*
 	 * Create timer now.  We will set it below once.
@@ -898,6 +903,7 @@ dns_request_createvia3(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		if (udptimeout == 0)
 			udptimeout = 1;
 	}
+	request->udpcount = udpretries;
 
 	/*
 	 * Create timer now.  We will set it below once.

@@ -101,9 +101,9 @@
 			switch (sc) \
 				{ \
 			case 0: l =((unsigned long)(*((c)++))); \
-				if (--len == 0) break; \
+				if (--len == 0U) break; \
 			case 1: l|=((unsigned long)(*((c)++)))<< 8; \
-				if (--len == 0) break; \
+				if (--len == 0U) break; \
 			case 2: l|=((unsigned long)(*((c)++)))<<16; \
 				} \
 			}
@@ -147,7 +147,8 @@
 	(a)=ROTATE(l,16L); \
 	}
 #endif
-/*
+
+/*%
 #define	F(x,y,z)	(((x) & (y))  |  ((~(x)) & (z)))
 #define	G(x,y,z)	(((x) & (z))  |  ((y) & (~(z))))
 */
@@ -188,3 +189,5 @@
 	a+=((k)+(t)+I((b),(c),(d))); \
 	a=ROTATE(a,s); \
 	a+=b; };
+
+/*! \file */

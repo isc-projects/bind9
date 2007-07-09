@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.c,v 1.19 2004/03/05 04:57:46 marka Exp $ */
+/* $Id: control.c,v 1.20.10.8 2006/03/10 00:23:20 marka Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -27,6 +29,8 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
+#include <dns/result.h>
+
 #include <isccc/alist.h>
 #include <isccc/cc.h>
 #include <isccc/result.h>
@@ -35,6 +39,9 @@
 #include <named/log.h>
 #include <named/os.h>
 #include <named/server.h>
+#ifdef HAVE_LIBSCF
+#include <named/ns_smf_globals.h>
+#endif
 
 static isc_boolean_t
 command_compare(const char *text, const char *command) {
@@ -47,7 +54,7 @@ command_compare(const char *text, const char *command) {
 	return (ISC_FALSE);
 }
 
-/*
+/*%
  * This function is called to process the incoming command
  * when a control channel message is received.  
  */
@@ -56,6 +63,9 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 	isccc_sexpr_t *data;
 	char *command;
 	isc_result_t result;
+#ifdef HAVE_LIBSCF
+	ns_smf_want_disable = 0;
+#endif
 
 	data = isccc_alist_lookup(message, "_data");
 	if (data == NULL) {
@@ -90,11 +100,41 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 	} else if (command_compare(command, NS_COMMAND_RETRANSFER)) {
 		result = ns_server_retransfercommand(ns_g_server, command);
 	} else if (command_compare(command, NS_COMMAND_HALT)) {
+#ifdef HAVE_LIBSCF
+		/*
+		 * If we are managed by smf(5), AND in chroot, then
+		 * we cannot connect to the smf repository, so just
+		 * return with an appropriate message back to rndc.
+		 */
+		if (ns_smf_got_instance == 1 && ns_smf_chroot == 1) {
+			result = ns_smf_add_message(text);
+			return (result);
+		}
+		/*
+		 * If we are managed by smf(5) but not in chroot,
+		 * try to disable ourselves the smf way.
+		 */
+		if (ns_smf_got_instance == 1 && ns_smf_chroot == 0)
+			ns_smf_want_disable = 1;
+		/*
+		 * If ns_smf_got_instance = 0, ns_smf_chroot
+		 * is not relevant and we fall through to
+		 * isc_app_shutdown below.
+		 */
+#endif
 		ns_server_flushonshutdown(ns_g_server, ISC_FALSE);
 		ns_os_shutdownmsg(command, text);
 		isc_app_shutdown();
 		result = ISC_R_SUCCESS;
 	} else if (command_compare(command, NS_COMMAND_STOP)) {
+#ifdef HAVE_LIBSCF
+		if (ns_smf_got_instance == 1 && ns_smf_chroot == 1) {
+			result = ns_smf_add_message(text);
+			return (result);
+		}
+		if (ns_smf_got_instance == 1 && ns_smf_chroot == 0)
+			ns_smf_want_disable = 1;
+#endif
 		ns_server_flushonshutdown(ns_g_server, ISC_TRUE);
 		ns_os_shutdownmsg(command, text);
 		isc_app_shutdown();
@@ -120,7 +160,8 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 		result = ns_server_status(ns_g_server, text);
 	} else if (command_compare(command, NS_COMMAND_FREEZE)) {
 		result = ns_server_freeze(ns_g_server, ISC_TRUE, command);
-	} else if (command_compare(command, NS_COMMAND_UNFREEZE)) {
+	} else if (command_compare(command, NS_COMMAND_UNFREEZE) ||
+		   command_compare(command, NS_COMMAND_THAW)) {
 		result = ns_server_freeze(ns_g_server, ISC_FALSE, command);
 	} else if (command_compare(command, NS_COMMAND_RECURSING)) {
 		result = ns_server_dumprecursing(ns_g_server);
@@ -129,12 +170,16 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 		isc_timermgr_poke(ns_g_timermgr);
 	} else if (command_compare(command, NS_COMMAND_NULL)) {
 		result = ISC_R_SUCCESS;
+	} else if (command_compare(command, NS_COMMAND_NOTIFY)) {
+		result = ns_server_notifycommand(ns_g_server, command, text);
+	} else if (command_compare(command, NS_COMMAND_VALIDATION)) {
+		result = ns_server_validation(ns_g_server, command);
 	} else {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_CONTROL, ISC_LOG_WARNING,
 			      "unknown control channel command '%s'",
 			      command);
-		result = ISC_R_NOTIMPLEMENTED;
+		result = DNS_R_UNKNOWNCOMMAND;
 	}
 
 	return (result);

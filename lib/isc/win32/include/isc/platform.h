@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h,v 1.9 2004/03/16 05:52:23 marka Exp $ */
+/* $Id: platform.h,v 1.9.18.3 2005/02/24 00:32:23 marka Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -31,7 +31,9 @@
  ***/
 
 #define ISC_PLATFORM_HAVEIPV6
+#if _MSC_VER > 1200
 #define ISC_PLATFORM_HAVEIN6PKTINFO
+#endif
 #define ISC_PLATFORM_NEEDPORTT
 #undef MSG_TRUNC
 #define ISC_PLATFORM_NEEDNTOP
@@ -53,6 +55,12 @@
  * and we don't want to redeclare it.
  */
 #define ISC_PLATFORM_NONSTDHERRNO
+
+/*
+ * Define if the platform has <sys/un.h>.
+ */
+#undef ISC_PLATFORM_HAVESYSUNH
+
  /*
  * Set up a macro for importing and exporting from the DLL
  */
