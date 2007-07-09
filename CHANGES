@@ -1,3 +1,6 @@
+
+	--- 9.5.0a6 released ---
+
 2206.	[security]	"allow-query-cache" and "allow-recursion" now
 			cross inherit from each other.
 
@@ -17,8 +20,6 @@
 
 2204	[bug]		"rndc flushanme name unknown-view" caused named
 			to crash. [RT #16984]
-
-	--- 9.5.0a6 released ---
 
 2203.	[security]	Query id generation was cryptographically weak.
 			[RT # 16915]
