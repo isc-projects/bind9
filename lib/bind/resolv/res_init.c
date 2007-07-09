@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_init.c	8.1 (Berkeley) 6/7/93";
-static const char rcsid[] = "$Id: res_init.c,v 1.16.18.6 2007/02/26 00:19:18 marka Exp $";
+static const char rcsid[] = "$Id: res_init.c,v 1.16.18.7 2007/07/09 01:52:58 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -168,7 +168,7 @@ __res_vinit(res_state statp, int preinit) {
 	union res_sockaddr_union u[2];
 	int maxns = MAXNS;
 
-	h_errno = 0;
+	RES_SET_H_ERRNO(statp, 0);
 	if (statp->_u._ext.ext != NULL)
 		res_ndestroy(statp);
 
@@ -231,7 +231,7 @@ __res_vinit(res_state statp, int preinit) {
 		 * to check our return code wont be able to make
 		 * queries anyhow.
 		 */
-		h_errno = statp->res_h_errno = NETDB_INTERNAL;
+		RES_SET_H_ERRNO(statp, NETDB_INTERNAL);
 		maxns = 0;
 	}
 #ifdef RESOLVSORT
@@ -498,7 +498,7 @@ __res_vinit(res_state statp, int preinit) {
 	if ((cp = getenv("RES_OPTIONS")) != NULL)
 		res_setoptions(statp, cp, "env");
 	statp->options |= RES_INIT;
-	return (h_errno);
+	return (statp->res_h_errno);
 }
 
 static void

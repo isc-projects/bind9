@@ -1,3 +1,5 @@
+2205.	[bug]		libbind: change #2119 broke thread support. [RT #16982]
+
 2203.	[security]	Query id generation was cryptographically weak.
 			[RT # 16915]
 
