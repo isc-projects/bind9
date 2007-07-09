@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.488 2007/07/02 01:00:35 marka Exp $ */
+/* $Id: server.c,v 1.489 2007/07/09 02:12:42 marka Exp $ */
 
 /*! \file */
 
@@ -1543,20 +1543,19 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 		view->additionalfromcache = ISC_TRUE;
 	}
 
+	/*
+	 * Set "allow-query-cache", "allow-query-cache-on",
+	 * "allow-recursion", and "allow-recursion-on" acls if
+	 * configured in named.conf.
+	 */
 	CHECK(configure_view_acl(vconfig, config, "allow-query-cache",
 				 actx, ns_g_mctx, &view->queryacl));
-	if (view->queryacl == NULL)
-		CHECK(configure_view_acl(NULL, ns_g_config,
-					 "allow-query-cache", actx,
-					 ns_g_mctx, &view->queryacl));
-
 	CHECK(configure_view_acl(vconfig, config, "allow-query-cache-on",
 				 actx, ns_g_mctx, &view->queryonacl));
 	if (view->queryonacl == NULL)
 		CHECK(configure_view_acl(NULL, ns_g_config,
 					 "allow-query-cache-on", actx,
 					 ns_g_mctx, &view->queryonacl));
-
 	if (strcmp(view->name, "_bind") != 0) {
 		CHECK(configure_view_acl(vconfig, config, "allow-recursion",
 					 actx, ns_g_mctx,
@@ -1567,19 +1566,37 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	}
 
 	/*
-	 * Set default "allow-recursion" and "allow-recursion-on" acls.
+	 * "allow-query-cache" inherits from "allow-recursion" if set,
+	 * otherwise from "allow-query" if set.
+	 * "allow-recursion" inherits from "allow-query-cache" if set,
+	 * otherwise from "allow-query" if set.
+	 */
+	if (view->queryacl == NULL && view->recursionacl != NULL)
+		dns_acl_attach(view->recursionacl, &view->queryacl);
+	if (view->queryacl == NULL)
+		CHECK(configure_view_acl(vconfig, config, "allow-query",
+					 actx, ns_g_mctx, &view->queryacl));
+	if (view->recursionacl == NULL && view->queryacl != NULL)
+		dns_acl_attach(view->queryacl, &view->recursionacl);
+
+	/*
+	 * Set default "allow-recursion", "allow-recursion-on" and
+	 * "allow-query-cache" acls.
 	 */
 	if (view->recursionacl == NULL && view->recursion)
 		CHECK(configure_view_acl(NULL, ns_g_config,
 					 "allow-recursion",
 					 actx, ns_g_mctx,
 					 &view->recursionacl));
-
 	if (view->recursiononacl == NULL && view->recursion)
 		CHECK(configure_view_acl(NULL, ns_g_config,
 					 "allow-recursion-on",
 					 actx, ns_g_mctx,
 					 &view->recursiononacl));
+	if (view->queryacl == NULL)
+		CHECK(configure_view_acl(NULL, ns_g_config,
+					 "allow-query-cache", actx,
+					 ns_g_mctx, &view->queryacl));
 
 	CHECK(configure_view_acl(vconfig, config, "sortlist",
 				 actx, ns_g_mctx, &view->sortlist));
