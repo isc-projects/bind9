@@ -1,4 +1,6 @@
 
+	--- 9.4.1-P1 released ---
+
 2206.	[security]	"allow-query-cache" and "allow-recursion" now
 			cross inherit from each other.
 
@@ -14,8 +16,6 @@
 
 			[RT #16987]
 	
-	--- 9.4.1-P1 released ---
-
 2203.	[security]	Query id generation was cryptographically weak.
 			[RT # 16915]
 
