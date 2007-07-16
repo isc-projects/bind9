@@ -71,6 +71,7 @@ rt1727				open		// ixfr-from-differences workfile
 skan				open	explorer
 skan-metazones1			private	explorer
 skan_implicit_update1		open	explorer
+skan_lruttl			new	
 skan_stats1			open	explorer
 skan_stats2			open	explorer
 skan_stats3			open	explorer
