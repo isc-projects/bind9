@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.273 2007/06/18 23:47:48 tbox Exp $ */
+/* $Id: socket.c,v 1.274 2007/07/27 14:28:04 explorer Exp $ */
 
 /*! \file */
 
@@ -4060,15 +4060,15 @@ isc_socket_gettag(isc_socket_t *socket) {
 #ifdef HAVE_LIBXML2
 
 static const char *
-_socktype(int type)
+_socktype(isc_sockettype_t type)
 {
-	if (type == 1)
+	if (type == isc_sockettype_udp)
 		return ("udp");
-	else if (type == 2)
+	else if (type == isc_sockettype_tcp)
 		return ("tcp");
-	else if (type == 3)
+	else if (type == isc_sockettype_unix)
 		return ("unix");
-	else if (type == 4)
+	else if (type == isc_sockettype_fdwatch)
 		return ("fdwatch");
 	else
 		return ("not-initialized");
