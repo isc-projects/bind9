@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: atomic.h,v 1.7 2007/07/23 16:10:15 explorer Exp $ */
+/* $Id: atomic.h,v 1.8 2007/07/27 14:22:53 explorer Exp $ */
 
 #ifndef ISC_ATOMIC_H
 #define ISC_ATOMIC_H 1
@@ -27,7 +27,7 @@
  * This routine atomically increments the value stored in 'p' by 'val', and
  * returns the previous value.
  */
-static __inline__ isc_int32_t __attribute__((__always_inline__))
+static __inline__ isc_int32_t
 isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
 	isc_int32_t prev = val;
 
@@ -46,7 +46,7 @@ isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
 /*
  * This routine atomically stores the value 'val' in 'p'.
  */
-static __inline__ void __attribute__((__always_inline__))
+static __inline__ void
 isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
 	__asm__ volatile(
 #ifdef ISC_PLATFORM_USETHREADS
@@ -68,7 +68,7 @@ isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
  * original value is equal to 'cmpval'.  The original value is returned in any
  * case.
  */
-static __inline__ isc_int32_t __attribute__((__always_inline__))
+static __inline__ isc_int32_t
 isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
 	__asm__ volatile(
 #ifdef ISC_PLATFORM_USETHREADS
