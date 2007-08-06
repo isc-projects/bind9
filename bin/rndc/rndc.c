@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.77 2001/08/06 11:40:46 gson Exp $ */
+/* $Id: rndc.c,v 1.68 2001/07/09 22:02:15 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -61,19 +61,17 @@
 #endif
 
 #ifndef USE_GETADDRINFO
-#ifndef ISC_PLATFORM_NONSTDHERRNO
 extern int h_errno;
-#endif
 #endif
 
 char *progname;
 isc_boolean_t verbose;
 
-static const char *admin_conffile;
-static const char *admin_keyfile;
+static const char *admin_conffile = RNDC_SYSCONFDIR "/rndc.conf";
+static const char *auto_conffile = NS_LOCALSTATEDIR "/run/named.key";
 static const char *version = VERSION;
 static const char *servername = NULL;
-static unsigned int remoteport = 0;
+static unsigned int remoteport = NS_CONTROL_PORT;
 static isc_socketmgr_t *socketmgr = NULL;
 static unsigned char databuf[2048];
 static isccc_ccmsg_t ccmsg;
@@ -149,7 +147,6 @@ get_address(const char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 			hints.ai_family = PF_INET6;
 		else
 			hints.ai_family = PF_UNSPEC;
-		hints.ai_socktype = SOCK_STREAM;
 		isc_app_block();
 		result = getaddrinfo(host, NULL, &hints, &res);
 		isc_app_unblock();
@@ -202,9 +199,9 @@ rndc_recvdone(isc_task_t *task, isc_event_t *event) {
 	if (ccmsg.result == ISC_R_EOF)
 		fatal("connection to remote host closed\n"
 		      "This may indicate that the remote server is using "
-		      "an older version of \n"
-		      "the command protocol, this host is not authorized "
-		      "to connect,\nor the key is invalid.");
+		      "an older version of the\n"
+		      "command protocol, this host is not authorized "
+		      "to connect, or the key is invalid.");
 
 	if (ccmsg.result != ISC_R_SUCCESS)
 		fatal("recv failed: %s", isc_result_totext(ccmsg.result));
@@ -299,7 +296,7 @@ rndc_start(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
-	get_address(servername, (in_port_t) remoteport, &addr);
+	get_address(servername, remoteport, &addr);
 
 	isc_sockaddr_format(&addr, socktext, sizeof(socktext));
 
@@ -314,36 +311,18 @@ rndc_start(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
-parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
-	     cfg_parser_t **pctxp, cfg_obj_t **configp)
+parse_config(isc_mem_t *mctx, isc_log_t *log, cfg_parser_t **pctxp,
+	     cfg_obj_t **config)
 {
 	isc_result_t result;
 	const char *conffile = admin_conffile;
-	cfg_obj_t *defkey = NULL;
-	cfg_obj_t *options = NULL;
-	cfg_obj_t *servers = NULL;
-	cfg_obj_t *server = NULL;
-	cfg_obj_t *keys = NULL;
-	cfg_obj_t *key = NULL;
-	cfg_obj_t *defport = NULL;
-	cfg_obj_t *secretobj = NULL;
-	cfg_obj_t *algorithmobj = NULL;
-	cfg_obj_t *config = NULL;
-	cfg_listelt_t *elt;
-	const char *secretstr;
-	const char *algorithm;
-	static char secretarray[1024];
-	const cfg_type_t *conftype = &cfg_type_rndcconf;
-	isc_boolean_t key_only = ISC_FALSE;
 
 	if (! isc_file_exists(conffile)) {
-		conffile = admin_keyfile;
-		conftype = &cfg_type_rndckey;
+		conffile = auto_conffile;
 
 		if (! isc_file_exists(conffile))
 			fatal("neither %s nor %s was found",
-			      admin_conffile, admin_keyfile);
-		key_only = ISC_TRUE;
+			      admin_conffile, auto_conffile);
 	}
 
 	DO("create parser", cfg_parser_create(mctx, log, pctxp));
@@ -351,112 +330,10 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 	/*
 	 * The parser will output its own errors, so DO() is not used.
 	 */
-	result = cfg_parse_file(*pctxp, conffile, conftype, &config);
+	result = cfg_parse_file(*pctxp, conffile, &cfg_type_rndcconf, config);
+
 	if (result != ISC_R_SUCCESS)
-		fatal("could not load rndc configuration");
-
-	if (!key_only)
-		(void)cfg_map_get(config, "options", &options);
-
-	if (key_only && servername == NULL)
-		servername = "127.0.0.1";
-	else if (servername == NULL && options != NULL) {
-		cfg_obj_t *defserverobj = NULL;
-		(void)cfg_map_get(options, "default-server", &defserverobj);
-		if (defserverobj != NULL)
-			servername = cfg_obj_asstring(defserverobj);
-	}
-
-	if (servername == NULL)
-		fatal("no server specified and no default");
-
-	if (!key_only) {
-		cfg_map_get(config, "server", &servers);
-		if (servers != NULL) {
-			for (elt = cfg_list_first(servers);
-			     elt != NULL; 
-			     elt = cfg_list_next(elt))
-			{
-				const char *name;
-				server = cfg_listelt_value(elt);
-				name = cfg_obj_asstring(cfg_map_getname(server));
-				if (strcasecmp(name, servername) == 0)
-					break;
-				server = NULL;
-			}
-		}
-	}
-
-	/*
-	 * Look for the name of the key to use.
-	 */
-	if (keyname != NULL)
-		;		/* Was set on command line, do nothing. */
-	else if (server != NULL) {
-		DO("get key for server", cfg_map_get(server, "key", &defkey));
-		keyname = cfg_obj_asstring(defkey);
-	} else if (options != NULL) {
-		DO("get default key", cfg_map_get(options, "default-key",
-						  &defkey));
-		keyname = cfg_obj_asstring(defkey);
-	} else if (!key_only)
-		fatal("no key for server and no default");
-
-	/*
-	 * Get the key's definition.
-	 */
-	if (key_only)
-		DO("get key", cfg_map_get(config, "key", &key));
-	else {
-		DO("get config key list", cfg_map_get(config, "key", &keys));
-		for (elt = cfg_list_first(keys);
-		     elt != NULL; 
-		     elt = cfg_list_next(elt))
-		{
-			key = cfg_listelt_value(elt);
-			if (strcasecmp(cfg_obj_asstring(cfg_map_getname(key)),
-				       keyname) == 0)
-				break;
-		}
-		if (elt == NULL)
-			fatal("no key definition for name %s", keyname);
-	}
-	(void)cfg_map_get(key, "secret", &secretobj);
-	(void)cfg_map_get(key, "algorithm", &algorithmobj);
-	if (secretobj == NULL || algorithmobj == NULL)
-		fatal("key must have algorithm and secret");
-
-	secretstr = cfg_obj_asstring(secretobj);
-	algorithm = cfg_obj_asstring(algorithmobj);
-
-	if (strcasecmp(algorithm, "hmac-md5") != 0)
-		fatal("unsupported algorithm: %s", algorithm);
-
-	secret.rstart = (unsigned char *)secretarray;
-	secret.rend = (unsigned char *)secretarray + sizeof(secretarray);
-	DO("decode base64 secret", isccc_base64_decode(secretstr, &secret));
-	secret.rend = secret.rstart;
-	secret.rstart = (unsigned char *)secretarray;
-
-	/*
-	 * Find the port to connect to.
-	 */
-	if (remoteport != 0)
-		;		/* Was set on command line, do nothing. */
-	else {
-		if (server != NULL)
-			(void)cfg_map_get(server, "port", &defport);
-		if (defport == NULL && options != NULL)
-			cfg_map_get(options, "default-port", &defport);
-	}
-	if (defport != NULL) {
-		remoteport = cfg_obj_asuint32(defport);
-		if (remoteport > 65535 || remoteport == 0)
-			fatal("port %d out of range", remoteport);
-	} else if (remoteport == 0)
-		remoteport = NS_CONTROL_PORT;
-
-	*configp = config;
+		exit(1);
 }
 
 int
@@ -470,31 +347,38 @@ main(int argc, char **argv) {
 	isc_logdestination_t logdest;
 	cfg_parser_t *pctx = NULL;
 	cfg_obj_t *config = NULL;
+	cfg_obj_t *options = NULL;
+	cfg_obj_t *servers = NULL;
+	cfg_obj_t *server = NULL;
+	cfg_obj_t *defkey = NULL;
+	cfg_obj_t *keys = NULL;
+	cfg_obj_t *key = NULL;
+	cfg_obj_t *defport = NULL;
+	cfg_obj_t *secretobj = NULL;
+	cfg_obj_t *algorithmobj = NULL;
+	cfg_listelt_t *elt;
 	const char *keyname = NULL;
+	const char *secretstr;
+	const char *algorithm;
+	isc_boolean_t portset = ISC_FALSE;
+	char secretarray[1024];
 	char *p;
 	size_t argslen;
 	int ch;
 	int i;
 
-	result = isc_file_progname(*argv, program, sizeof(program));
-	if (result != ISC_R_SUCCESS)
-		memcpy(program, "rndc", 5);
-	progname = program;
-
-	admin_conffile = RNDC_CONFFILE;
-	admin_keyfile = RNDC_KEYFILE;
-
 	isc_app_start();
 
-	while ((ch = isc_commandline_parse(argc, argv, "c:k:Mmp:s:Vy:"))
+	result = isc_file_progname(*argv, program, sizeof(program));
+	if (result != ISC_R_SUCCESS)
+		memcpy(progname, "rndc", 5);
+	progname = program;
+
+	while ((ch = isc_commandline_parse(argc, argv, "c:Mmp:s:Vy:"))
 	       != -1) {
 		switch (ch) {
 		case 'c':
 			admin_conffile = isc_commandline_argument;
-			break;
-
-		case 'k':
-			admin_keyfile = isc_commandline_argument;
 			break;
 
 		case 'M':
@@ -507,9 +391,10 @@ main(int argc, char **argv) {
 
 		case 'p':
 			remoteport = atoi(isc_commandline_argument);
-			if (remoteport > 65535 || remoteport == 0)
+			if (remoteport > 65535)
 				fatal("port '%s' out of range",
 				      isc_commandline_argument);
+			portset = ISC_TRUE;
 			break;
 
 		case 's':
@@ -556,7 +441,100 @@ main(int argc, char **argv) {
 	DO("enabling log channel", isc_log_usechannel(logconfig, "stderr",
 						      NULL, NULL));
 
-	parse_config(mctx, log, keyname, &pctx, &config);
+	parse_config(mctx, log, &pctx, &config);
+
+	(void)cfg_map_get(config, "options", &options);
+
+	if (servername == NULL && options != NULL) {
+		cfg_obj_t *defserverobj = NULL;
+		(void)cfg_map_get(options, "default-server", &defserverobj);
+		if (defserverobj != NULL)
+			servername = cfg_obj_asstring(defserverobj);
+	}
+
+	if (servername == NULL)
+		fatal("no server specified and no default");
+
+	cfg_map_get(config, "server", &servers);
+	if (servers != NULL) {
+		for (elt = cfg_list_first(servers);
+		     elt != NULL; 
+		     elt = cfg_list_next(elt))
+		{
+			const char *name;
+			server = cfg_listelt_value(elt);
+			name = cfg_obj_asstring(cfg_map_getname(server));
+			if (strcasecmp(name, servername) == 0)
+				break;
+			server = NULL;
+		}
+	}
+
+	/*
+	 * Look for the name of the key to use.
+	 */
+	if (keyname != NULL)
+		;		/* Was set on command line, do nothing. */
+	else if (server != NULL) {
+		DO("get key for server", cfg_map_get(server, "key", &defkey));
+		keyname = cfg_obj_asstring(defkey);
+	} else if (options != NULL) {
+		DO("get default key", cfg_map_get(options, "default-key",
+						  &defkey));
+		keyname = cfg_obj_asstring(defkey);
+	} else
+		fatal("no key for server and no default");
+
+	/*
+	 * Get the key's definition.
+	 */
+	DO("get config key list", cfg_map_get(config, "key", &keys));
+	for (elt = cfg_list_first(keys);
+	     elt != NULL; 
+	     elt = cfg_list_next(elt))
+	{
+		key = cfg_listelt_value(elt);
+		if (strcasecmp(cfg_obj_asstring(cfg_map_getname(key)),
+			       keyname) == 0)
+			break;
+	}
+	if (elt == NULL)
+		fatal("no key definition for name %s", keyname);
+
+	(void)cfg_map_get(key, "secret", &secretobj);
+	(void)cfg_map_get(key, "algorithm", &algorithmobj);
+	if (secretobj == NULL || algorithmobj == NULL)
+		fatal("key must have algorithm and secret");
+
+	secretstr = cfg_obj_asstring(secretobj);
+	algorithm = cfg_obj_asstring(algorithmobj);
+
+	if (strcasecmp(algorithm, "hmac-md5") != 0)
+		fatal("unsupported algorithm: %s", algorithm);
+
+	secret.rstart = (unsigned char *)secretarray;
+	secret.rend = (unsigned char *)secretarray + sizeof(secretarray);
+	DO("decode base64 secret", isccc_base64_decode(secretstr, &secret));
+	secret.rend = secret.rstart;
+	secret.rstart = (unsigned char *)secretarray;
+
+	/*
+	 * Find the port to connect to.
+	 */
+	if (portset)
+		;		/* Was set on command line, do nothing. */
+	else {
+		if (server != NULL)
+			(void)cfg_map_get(server, "port", &defport);
+		if (defport == NULL && options != NULL)
+			cfg_map_get(options, "default-port", &defport);
+	}
+	if (defport != NULL) {
+		remoteport = cfg_obj_asuint32(defport);
+		if (remoteport > 65535)
+			fatal("port %d out of range", remoteport);
+	} else if (!portset)
+		remoteport = NS_CONTROL_PORT;
 
 	isccc_result_register();
 
@@ -587,7 +565,7 @@ main(int argc, char **argv) {
 	*p++ = '\0';
 	INSIST(p == args + argslen);
 
-	notify("%s", command);
+	notify(command);
 
 	if (strcmp(command, "restart") == 0)
 		fatal("'%s' is not implemented", command);

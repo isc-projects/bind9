@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339 2001/08/07 01:58:56 marka Exp $ */
+/* $Id: server.c,v 1.334 2001/07/16 18:33:30 gson Exp $ */
 
 #include <config.h>
 
@@ -192,8 +192,7 @@ configure_view_dnsseckey(cfg_obj_t *vconfig, cfg_obj_t *key,
 		viewclass = dns_rdataclass_in;
 	else {
 		cfg_obj_t *classobj = cfg_tuple_get(vconfig, "class");
-		CHECK(ns_config_getclass(classobj, dns_rdataclass_in,
-					 &viewclass));
+		CHECK(ns_config_getclass(classobj, &viewclass));
 	}
 	keystruct.common.rdclass = viewclass;
 	keystruct.common.rdtype = dns_rdatatype_key;
@@ -729,22 +728,10 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	dns_aclenv_copy(&view->aclenv, &ns_g_server->aclenv);
 
 	/*
-	 * Configure the "match-clients" and "match-destinations" ACL.
+	 * Configure the "match-clients" ACL.
 	 */
 	CHECK(configure_view_acl(vconfig, config, "match-clients", actx,
 				 ns_g_mctx, &view->matchclients));
-	CHECK(configure_view_acl(vconfig, config, "match-destinations", actx,
-				 ns_g_mctx, &view->matchdestinations));
-
-	/*
-	 * Configure the "match-recursive-only" option.
-	 */
-	obj = NULL;
-	(void) ns_config_get(maps, "match-recursive-only", &obj);
-	if (obj != NULL && cfg_obj_asboolean(obj))
-		view->matchrecursiveonly = ISC_TRUE;
-	else
-		view->matchrecursiveonly = ISC_FALSE;
 
 	/*
 	 * Configure other configurable data.
@@ -986,7 +973,6 @@ create_authors_zone(cfg_obj_t *options, dns_zonemgr_t *zmgr, dns_view_t *view)
 		"\022Andreas Gustafsson",
 		"\012Bob Halley",
 		"\016David Lawrence",
-		"\013Danny Mayer",
 		"\013Damien Neil",
 		"\013Matt Nelson",
 		"\016Michael Sawyer",
@@ -1148,14 +1134,8 @@ configure_forward(cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
 
 	result = dns_fwdtable_add(view->fwdtable, origin, &addresses,
 				  fwdpolicy);
-	if (result != ISC_R_SUCCESS) {
-		char namebuf[DNS_NAME_FORMATSIZE];
-		dns_name_format(origin, namebuf, sizeof(namebuf));
-		cfg_obj_log(forwarders, ns_g_lctx, ISC_LOG_WARNING,
-			    "could not set up forwarding for domain '%s': %s",
-			    namebuf, isc_result_totext(result));
+	if (result != ISC_R_SUCCESS)
 		goto cleanup;
-	}
 
 	result = ISC_R_SUCCESS;
 
@@ -1189,8 +1169,7 @@ create_view(cfg_obj_t *vconfig, dns_viewlist_t *viewlist, dns_view_t **viewp) {
 
 		viewname = cfg_obj_asstring(cfg_tuple_get(vconfig, "name"));
 		classobj = cfg_tuple_get(vconfig, "class");
-		result = ns_config_getclass(classobj, dns_rdataclass_in,
-					    &viewclass);
+		result = ns_config_getclass(classobj, &viewclass);
 	} else {
 		viewname = "_default";
 		viewclass = dns_rdataclass_in;
@@ -1251,8 +1230,7 @@ configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 				&buffer, dns_rootname, ISC_FALSE, NULL));
 	origin = dns_fixedname_name(&fixorigin);
 
-	CHECK(ns_config_getclass(cfg_tuple_get(zconfig, "class"),
-				 view->rdclass, &zclass));
+	CHECK(ns_config_getclass(cfg_tuple_get(zconfig, "class"), &zclass));
 	if (zclass != view->rdclass) {
 		const char *vname = NULL;
 		if (vconfig != NULL)
@@ -1292,15 +1270,8 @@ configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 			goto cleanup;
 		}
 		if (dns_name_equal(origin, dns_rootname)) {
-			char *hintsfile = cfg_obj_asstring(fileobj);
-			result = configure_hints(view, hintsfile);
-			if (result != ISC_R_SUCCESS)
-				isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-					      NS_LOGMODULE_SERVER,
-					      ISC_LOG_ERROR,
-					      "could not configure root hints "
-					      "from '%s': %s", hintsfile,
-					      isc_result_totext(result));
+			result = configure_hints(view,
+						 cfg_obj_asstring(fileobj));
 		} else {
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
@@ -1308,7 +1279,6 @@ configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 				      zname);
 			result = ISC_R_SUCCESS;
 		}
-		/* Skip ordinary zone processing. */
 		goto cleanup;
 	}
 

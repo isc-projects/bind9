@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.207 2001/08/16 07:27:48 marka Exp $ */
+/* $Id: socket.c,v 1.204 2001/07/15 22:50:24 gson Exp $ */
 
 #include <config.h>
 
@@ -35,7 +35,6 @@
 #include <isc/buffer.h>
 #include <isc/bufferlist.h>
 #include <isc/condition.h>
-#include <isc/formatcheck.h>
 #include <isc/list.h>
 #include <isc/log.h>
 #include <isc/mem.h>
@@ -273,10 +272,6 @@ static void build_msghdr_recv(isc_socket_t *, isc_socketevent_t *,
 static void
 manager_log(isc_socketmgr_t *sockmgr,
 	    isc_logcategory_t *category, isc_logmodule_t *module, int level,
-	    const char *fmt, ...) ISC_FORMAT_PRINTF(5, 6);
-static void
-manager_log(isc_socketmgr_t *sockmgr,
-	    isc_logcategory_t *category, isc_logmodule_t *module, int level,
 	    const char *fmt, ...)
 {
 	char msgbuf[2048];
@@ -293,11 +288,6 @@ manager_log(isc_socketmgr_t *sockmgr,
 		      "sockmgr %p: %s", sockmgr, msgbuf);
 }
 
-static void
-socket_log(isc_socket_t *sock, isc_sockaddr_t *address,
-	   isc_logcategory_t *category, isc_logmodule_t *module, int level,
-	   isc_msgcat_t *msgcat, int msgset, int message,
-	   const char *fmt, ...) ISC_FORMAT_PRINTF(9, 10);
 static void
 socket_log(isc_socket_t *sock, isc_sockaddr_t *address,
 	   isc_logcategory_t *category, isc_logmodule_t *module, int level,
@@ -650,7 +640,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 	msg->msg_control = NULL;
 	msg->msg_controllen = 0;
 	msg->msg_flags = 0;
-#if defined(USE_CMSG) && defined(ISC_PLATFORM_HAVEIPV6)
+#ifdef USE_CMSG
 	if ((sock->type == isc_sockettype_udp)
 	    && ((dev->attributes & ISC_SOCKEVENTATTR_PKTINFO) != 0)) {
 		struct cmsghdr *cmsgp;
@@ -671,7 +661,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 		pktinfop = (struct in6_pktinfo *)CMSG_DATA(cmsgp);
 		memcpy(pktinfop, &dev->pktinfo, sizeof(struct in6_pktinfo));
 	}
-#endif /* USE_CMSG && ISC_PLATFORM_HAVEIPV6 */
+#endif /* USE_CMSG */
 #else /* ISC_NET_BSD44MSGHDR */
 	msg->msg_accrights = NULL;
 	msg->msg_accrightslen = 0;
@@ -1838,7 +1828,7 @@ internal_recv(isc_task_t *me, isc_event_t *ev) {
 	LOCK(&sock->lock);
 	socket_log(sock, NULL, IOEVENT,
 		   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_INTERNALRECV,
-		   "internal_recv: task %p got event %p", me, ev);
+		   "internal_recv: task %p got event %p", me, ev, sock);
 
 	INSIST(sock->pending_recv == 1);
 	sock->pending_recv = 0;
@@ -1906,7 +1896,7 @@ internal_send(isc_task_t *me, isc_event_t *ev) {
 	LOCK(&sock->lock);
 	socket_log(sock, NULL, IOEVENT,
 		   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_INTERNALSEND,
-		   "internal_send: task %p got event %p", me, ev);
+		   "internal_send: task %p got event %p", me, ev, sock);
 
 	INSIST(sock->pending_send == 1);
 	sock->pending_send = 0;

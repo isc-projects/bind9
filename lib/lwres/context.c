@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: context.c,v 1.41 2001/07/19 16:59:32 gson Exp $ */
+/* $Id: context.c,v 1.38 2001/07/10 21:13:07 gson Exp $ */
 
 #include <config.h>
 
@@ -44,20 +44,6 @@
  */
 #ifndef LWRES_SOCKADDR_LEN_T
 #define LWRES_SOCKADDR_LEN_T unsigned int
-#endif
-
-/*
- * Make a socket nonblocking.
- */
-#ifndef MAKE_NONBLOCKING
-#define MAKE_NONBLOCKING(sd, retval) \
-do { \
-	retval = fcntl(sd, F_GETFL, 0); \
-	if (retval != -1) { \
-		retval |= O_NONBLOCK; \
-		retval = fcntl(sd, F_SETFL, retval); \
-	} \
-} while (0)
 #endif
 
 lwres_uint16_t lwres_udp_port = LWRES_UDP_PORT;
@@ -195,6 +181,7 @@ context_connect(lwres_context_t *ctx) {
 	struct sockaddr_in6 sin6;
 	struct sockaddr *sa;
 	LWRES_SOCKADDR_LEN_T salen;
+	int flags;
 	int domain;
 
 	if (ctx->confdata.lwnext != 0) {
@@ -241,7 +228,9 @@ context_connect(lwres_context_t *ctx) {
 		return (LWRES_R_IOERROR);
 	}
 
-	MAKE_NONBLOCKING(s, ret);
+	flags = fcntl(s, F_GETFL, 0);
+	flags |= O_NONBLOCK;
+	ret = fcntl(s, F_SETFL, flags);
 	if (ret < 0)
 		return (LWRES_R_IOERROR);
 

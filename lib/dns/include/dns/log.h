@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.30 2001/08/27 03:36:00 marka Exp $ */
+/* $Id: log.h,v 1.29 2001/07/16 05:10:24 mayer Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -67,7 +67,6 @@ LIBDNS_EXTERNAL_DATA extern isc_logmodule_t dns_modules[];
 #define DNS_LOGMODULE_TKEY		(&dns_modules[21])
 #define DNS_LOGMODULE_SDB		(&dns_modules[22])
 #define DNS_LOGMODULE_DIFF		(&dns_modules[23])
-#define DNS_LOGMODULE_HINTS		(&dns_modules[24])
 
 ISC_LANG_BEGINDECLS
 

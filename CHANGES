@@ -1,109 +1,3 @@
- 968.	[bug]		On win32, the isc_time_now() function was unnecessarily
-			calling strtime(). [RT #1671]
-
- 967.	[bug]		On win32, the link for bindevt was not including the
-			required resource file to enable the event viewer
-			to interpret the error messages in the event log,
-			[RT #1668]
-
- 966.	[placeholder]
-
- 965.	[bug]		Including data other than root server NS and A
-			records in the root hint file could cause a rbtdb
-			node reference leak. [RT #1581, #1618]
-
- 964.	[func]		Warn if data other than root server NS and A records
-			are found in the root hint file. [RT #1581, #1618]
-
- 963.	[bug]		bad ISC_LANG_ENDDECLS. [RT #1645]
-
- 962.	[bug]		libbind: bad "#undef", don't attempt to install
-			non-existant nlist.h. [RT #1640]
-
- 961.	[bug]		Tried to use a IPV6 feature when ISC_PLATFORM_HAVEIPV6
-			was not defined. [RT #1482]
-
- 960.	[port]		liblwres failed to build on systems with support for
-			getrrsetbyname() in the OS. [RT #1592]
-
- 959.	[port]		On FreeBSD, determine the number of CPUs by calling
-			sysctlbyname(). [RT #1584]
-
- 958.	[port]		ssize_t is not available on all platforms. [RT #1607]
-
- 957.	[bug]		sys/select.h inclusion was broken on older platforms.
-			[RT #1607]
-
- 956.	[bug]		ns_g_autorndcfile changed to ns_g_keyfile
-			in named/win32/os.c due to code changes in
-			change #953. win32 .make file for rndc-confgen
-			updated to add include path for os.h header.
-
-	--- 9.2.0rc1 released ---
-
- 955.	[bug]		When using views, the zone's class was not being
-			inherited from the view's class. [RT #1583]
-
- 954.	[bug]		When requesting AXFRs or IXFRs using dig, host, or
-			nslookup, the RD bit should not be set as zone
-			transfers are inherently nonrecursive. [RT #1575]
-
- 953.	[func]		The /var/run/named.key file from change #843
-			has been replaced by /etc/rndc.key.  Both
-			named and rndc will look for this file and use
-			it to configure a default control channel key
-			if not already configured using a different
-			method (rndc.conf / controls).  Unlike
-			named.key, rndc.key is not created automatically;
-			it must be created by manually running
-			"rndc-confgen -a".
-
- 952.	[bug]		The server required manual intervention to serve the
-			affected zones if it died between creating a journal
-			and committing the first change to it.
-
- 951.	[bug]		CFLAGS was not passed to the linker when
-			linking some of the test programs under
-			bin/tests. [RT #1555].
-
- 950.	[bug]		Explicit TTLs did not properly override $TTL
-			due to a bug in change 834. [RT #1558]
-
- 949.	[bug]		host was unable to print records larger than 512
- 			bytes. [RT #1557]
-
-	--- 9.2.0b2 released ---
-
- 948.	[port]		Integrated support for building on Windows NT /
-			Windows 2000.
-
- 947.	[bug]		dns_rdata_soa_t had a badly named element "mname" which
-			was really the RNAME field from RFC1035.  To avoid
-			confusion and silent errors that would occur it the
-			"origin" and "mname" elements were given their correct
-			names "mname" and "rname" respectively, the "mname"
-			element is renamed to "contact".
-
- 946.	[cleanup]	doc/misc/options is now machine-generated from the
-			configuration parser syntax tables, and therefore
-			more likely to be correct.
-
- 945.	[func]		Add the new view-specific options
-			"match-destinations" and "match-recursive-only".
-
- 944.	[func]		Check for expired signatures on load.
-
- 943.	[bug]		The server could crash when receiving a command
-			via rndc if the configuration file listed only
-			nonexistent keys in the controls statement. [RT #1530]
-
- 942.	[port]		libbind: GETNETBYADDR_ADDR_T was not correctly
-			defined on some platforms.
-
- 941.	[bug]		The configuration checker crashed if a slave
-			zone didn't contain a masters statement. [RT #1514]
-
- 940.	[bug]		Double zone locking failure on error path. [RT #1510]
 
 	--- 9.2.0b1 released ---
 
@@ -125,7 +19,7 @@
 			ECONNRESET.
 
  933.	[bug]		configure failed doing libbind on platforms not
-			supported by BIND 8. [RT #1496]
+			supported by BIND 8.  [RT #1496]
 
 	--- 9.2.0a3 released ---
 
@@ -287,7 +181,7 @@
 			TSIG key. [RT #1392]
 
  887.	[port]		Detect broken compilers that can't call static
-			functions from inline functions. [RT #1212]
+			functions from inline functions.  [RT #1212]
 
  866.	[func]		Close debug only file channels when debug is set to
 			zero. [RT #1246]
@@ -331,13 +225,13 @@
 
  856.	[func]		Allow partial rdatasets to be returned in answer and
 			authority sections to help non-TCP capable clients
-			recover from truncation. [RT #1301]
+			recover from truncation.  [RT #1301]
 
  855.	[bug]		Stop spurious "using RFC 1035 TTL semantics" warnings.
 
  854.	[bug]		The config parser didn't properly handle config
 			options that were specified in units of time other
-			than seconds. [RT #1372]
+			than seconds.  [RT #1372]
 
  853.	[bug]		configure_view_acl() failed to detach existing acls.
 			[RT #1374]

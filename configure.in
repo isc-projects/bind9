@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.294 $)
+AC_REVISION($Revision: 1.282 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -194,11 +194,10 @@ AC_PROG_CC
 
 AC_HEADER_STDC
 
-AC_CHECK_HEADERS(fcntl.h sys/time.h unistd.h sys/sockio.h sys/select.h sys/sysctl.h)
+AC_CHECK_HEADERS(fcntl.h sys/time.h unistd.h sys/sockio.h sys/select.h)
 
 AC_C_CONST
 AC_C_INLINE
-AC_CHECK_FUNC(sysctlbyname, AC_DEFINE(HAVE_SYSCTLBYNAME),)
 
 #
 # UnixWare 7.1.1 with the feature supplement to the UDK compiler
@@ -221,7 +220,6 @@ AC_TRY_COMPILE(, [
          AC_DEFINE(inline, )])
 
 AC_TYPE_SIZE_T
-AC_CHECK_TYPE(ssize_t, int)
 AC_HEADER_TIME
 AC_MSG_CHECKING(for long long)
 AC_TRY_COMPILE([],[long long i = 0; return (0);],
@@ -244,7 +242,7 @@ AC_TRY_COMPILE([
 	 ISC_PLATFORM_NEEDSYSSELECTH="#undef ISC_PLATFORM_NEEDSYSSELECTH"
 	 LWRES_PLATFORM_NEEDSYSSELECTH="#undef LWRES_PLATFORM_NEEDSYSSELECTH"],
 	[AC_MSG_RESULT(no)
-	case $ac_cv_header_sys_select_h in
+	case ac_cv_header_sys_select_h in
 	yes)
          ISC_PLATFORM_NEEDSYSSELECTH="#define ISC_PLATFORM_NEEDSYSSELECTH 1"
 	 LWRES_PLATFORM_NEEDSYSSELECTH="#define LWRES_PLATFORM_NEEDSYSSELECTH 1"
@@ -256,7 +254,7 @@ AC_TRY_COMPILE([
 	])
 	;;
 no)
-	case $ac_cv_header_sys_select_h in
+	case ac_cv_header_sys_select_h in
 	yes)
              ISC_PLATFORM_NEEDSYSSELECTH="#define ISC_PLATFORM_NEEDSYSSELECTH 1"
 	     LWRES_PLATFORM_NEEDSYSSELECTH="#define LWRES_PLATFORM_NEEDSYSSELECTH 1"
@@ -321,14 +319,10 @@ case "$use_openssl" in
 		CFLAGS="$CFLAGS $DST_OPENSSL_INC"
 		LIBS="$LIBS $DNS_OPENSSL_LIBS"
 		AC_TRY_RUN([
-#include <stdio.h>
 #include <openssl/opensslv.h>
 int main() {
         if (OPENSSL_VERSION_NUMBER >= 0x0090581fL)
                 return (0);
-	printf("\n\nFound   OPENSSL_VERSION_NUMBER %#010x\n",
-		OPENSSL_VERSION_NUMBER);
-	printf("Require OPENSSL_VERSION_NUMBER 0x0090581f or greater\n\n");
         return (1);
 }
 ],
@@ -402,7 +396,6 @@ case "$use_randomdev" in
 				devrandom=/dev/random
 				;;
 		esac
-		AC_MSG_RESULT($devrandom)
 		AC_CHECK_FILE($devrandom,
 			      AC_DEFINE_UNQUOTED(PATH_RANDOMDEV,
 						 "$devrandom"),)
@@ -1215,20 +1208,6 @@ AC_TRY_COMPILE([
 	ISC_LWRES_NEEDADDRINFO="#define ISC_LWRES_NEEDADDRINFO 1"])
 AC_SUBST(ISC_LWRES_NEEDADDRINFO)
 
-#
-# Check for rrsetinfo
-#
-AC_MSG_CHECKING(for struct rrsetinfo)
-AC_TRY_COMPILE([
-#include <netdb.h>],
-[struct rrsetinfo r; return (0);],
-	[AC_MSG_RESULT(yes)
-	ISC_LWRES_NEEDRRSETINFO="#undef ISC_LWRES_NEEDRRSETINFO"
-	AC_DEFINE(HAVE_RRSETINFO)],
-	[AC_MSG_RESULT(no)
-	ISC_LWRES_NEEDRRSETINFO="#define ISC_LWRES_NEEDRRSETINFO 1"])
-AC_SUBST(ISC_LWRES_NEEDRRSETINFO)
-
 AC_MSG_CHECKING(for int sethostent)
 AC_TRY_COMPILE([
 #include <netdb.h>],
@@ -1431,8 +1410,6 @@ AC_SUBST(ISC_PLATFORM_RLIMITTYPE)
 #
 AC_SUBST(ISC_PLATFORM_USEDECLSPEC)
 ISC_PLATFORM_USEDECLSPEC="#undef ISC_PLATFORM_USEDECLSPEC"
-AC_SUBST(LWRES_PLATFORM_USEDECLSPEC)
-LWRES_PLATFORM_USEDECLSPEC="#undef LWRES_PLATFORM_USEDECLSPEC"
 
 #
 # Random remaining OS-specific issues involving compiler warnings.
@@ -1449,7 +1426,7 @@ case "$host" in
 		hack_shutup_sigwait=yes
 		hack_shutup_sputaux=yes
 		;;
-	[*-bsdi4[12]*])
+	*-bsdi4.1*)
 		hack_shutup_stdargcast=yes
 		;;
 	*-solaris2.8)
@@ -1691,7 +1668,6 @@ AC_OUTPUT(
 	bin/named/Makefile
 	bin/named/unix/Makefile
 	bin/rndc/Makefile
-	bin/rndc/unix/Makefile
 	bin/dig/Makefile
 	bin/nsupdate/Makefile
 	bin/tests/Makefile
@@ -1716,7 +1692,6 @@ AC_OUTPUT(
 	doc/arm/nominum-docbook-html.dsl
 	doc/arm/nominum-docbook-print.dsl
 	doc/arm/validate.sh
-	doc/misc/Makefile
 	docutil/docbook2man-wrapper.sh
 	isc-config.sh
 )

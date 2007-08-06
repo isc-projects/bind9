@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc-confgen.c,v 1.9 2001/08/27 23:55:16 gson Exp $ */
+/* $Id: rndc-confgen.c,v 1.2 2001/06/29 23:32:09 gson Exp $ */
 
 #include <config.h>
 
@@ -31,7 +31,6 @@
 #include <isc/keyboard.h>
 #include <isc/mem.h>
 #include <isc/net.h>
-#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/time.h>
@@ -41,7 +40,6 @@
 #include <dns/name.h>
 
 #include <dst/dst.h>
-#include <rndc/os.h>
 
 #include "util.h"
 
@@ -50,76 +48,29 @@
 #define DEFAULT_SERVER		"127.0.0.1"
 #define DEFAULT_PORT		953
 
-static char program[256];
-char *progname;
-
+char progname[256];
 isc_boolean_t verbose = ISC_FALSE;
-
-const char *keyfile, *keydef;
 
 static void
 usage(int status) {
-
 	fprintf(stderr, "\
 Usage:\n\
- %s [-a] [-b bits] [-c keyfile] [-k keyname] [-p port] [-r randomfile] \
-[-s addr] [-t chrootdir] [-u user]\n\
-  -a:		generate just the key clause and write it to keyfile (%s)\n\
+ %s [-b bits] [-k keyname] [-P] [-p port] [-r randomfile] [-s addr]\n\
   -b bits:	from 1 through 512, default %d; total length of the secret\n\
-  -c keyfile:	specify a alterate keyfile (requires -a)\n\
   -k keyname:	the name as it will be used  in named.conf and rndc.conf\n\
+  -P:		using pseudorandom data for key generation is ok\n\
   -p port:	the port named will listen on and rndc will connect to\n\
   -r randomfile: a file containing random data\n\
-  -s addr:	the address to which rndc should connect\n\
-  -t chrootdir:	write a keyfile in chrootdir as well (requires -a)\n\
-  -u user:	set the keyfile owner to \"user\" (requires -a)\n",
-		progname, keydef, DEFAULT_KEYLENGTH);
+  -s addr:	the address to which rndc should connect\n",
+		progname, DEFAULT_KEYLENGTH);
 
 	exit (status);
-}
-
-/*
- * Write an rndc.key file to 'keyfile'.  If 'user' is non-NULL,
- * make that user the owner of the file.  The key will have
- * the name 'keyname' and the secret in the buffer 'secret'.
- */
-static void
-write_key_file(const char *keyfile, const char *user,
-	       const char *keyname, isc_buffer_t *secret )
-{
-	FILE *fd;
-
-	fd = safe_create(keyfile);
-	if (fd == NULL) {
-		fprintf(stderr, "unable to create \"%s\"\n", keyfile);
-		return;
-	}
-	if (user != NULL) {
-		if (set_user(fd, user) == -1) {
-			fprintf(stderr, "unable to set file owner\n");
-			fclose(fd);
-			return;
-		}
-	}
-	fprintf(fd, "key \"%s\" {\n\talgorithm hmac-md5;\n"
-		"\tsecret \"%.*s\";\n};\n", keyname,
-		(int)isc_buffer_usedlength(secret),
-		(char *)isc_buffer_base(secret));
-	fflush(fd);
-	if (ferror(fd)) {
-		fprintf(stderr, "write to %s failed\n", keyfile);
-		fclose(fd);
-		return;
-	}
-	if (fclose(fd)) {
-		fprintf(stderr, "fclose(%s) failed\n", keyfile);
-		return;
-	}
 }
 
 int
 main(int argc, char **argv) {
 	isc_boolean_t show_final_mem = ISC_FALSE;
+	isc_boolean_t pseudorandom = ISC_FALSE;
 	isc_buffer_t key_rawbuffer;
 	isc_buffer_t key_txtbuffer;
 	isc_region_t key_rawregion;
@@ -140,38 +91,25 @@ main(int argc, char **argv) {
 	int entropy_flags = 0;
 	int open_keyboard = ISC_ENTROPY_KEYBOARDMAYBE;
 	struct in_addr addr;
-	char *chrootdir = NULL;
-	char *user = NULL;
-	isc_boolean_t keyonly = ISC_FALSE;
-	int len;
 
- 	keydef = keyfile = RNDC_KEYFILE;
-
-	result = isc_file_progname(*argv, program, sizeof(program));
+	result = isc_file_progname(*argv, progname, sizeof(progname));
 	if (result != ISC_R_SUCCESS)
-		memcpy(program, "rndc-confgen", 13);
-	progname = program;
+		memcpy(progname, "rndc", 5);
 
 	keyname = DEFAULT_KEYNAME;
 	keysize = DEFAULT_KEYLENGTH;
 	serveraddr = DEFAULT_SERVER;
 	port = DEFAULT_PORT;
 
-	while ((ch = isc_commandline_parse(argc, argv,
-					   "ab:c:hk:Mmp:r:s:t:u:Vy")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "b:hk:MmPp:r:s:Vy"))
+	       != -1) {
 		switch (ch) {
-		case 'a':
-			keyonly = ISC_TRUE;
-			break;
 		case 'b':
 			keysize = strtol(isc_commandline_argument, &p, 10);
 			if (*p != '\0' || keysize < 0)
 				fatal("-b requires a non-negative number");
 			if (keysize < 1 || keysize > 512)
 				fatal("-b must be in the range 1 through 512");
-			break;
-		case 'c':
-			keyfile = isc_commandline_argument;
 			break;
 		case 'h':
 			usage(0);
@@ -185,6 +123,10 @@ main(int argc, char **argv) {
 
 		case 'm':
 			show_final_mem = ISC_TRUE;
+			break;
+		case 'P':
+			pseudorandom = ISC_TRUE;
+			open_keyboard = ISC_ENTROPY_KEYBOARDNO;
 			break;
 		case 'p':
 			port = strtol(isc_commandline_argument, &p, 10);
@@ -200,12 +142,6 @@ main(int argc, char **argv) {
 			if (inet_aton(serveraddr, &addr) == 0)
 				fatal("-s should be an IPv4 or IPv6 address");
 				
-			break;
-		case 't':
-			chrootdir = isc_commandline_argument;
-			break;
-		case 'u':
-			user = isc_commandline_argument;
 			break;
 		case 'V':
 			verbose = ISC_TRUE;
@@ -235,7 +171,8 @@ main(int argc, char **argv) {
 							     randomfile,
 							     open_keyboard));
 
-	entropy_flags = ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY;
+	if (! pseudorandom)
+		entropy_flags = ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY;
 
 	DO("initialize dst library", dst_lib_init(mctx, ectx, entropy_flags));
 
@@ -267,25 +204,14 @@ main(int argc, char **argv) {
 	isc_entropy_detach(&ectx);
 	dst_lib_destroy();
 
-	if (keyonly) {
-		write_key_file(keyfile, chrootdir == NULL ? user : NULL,
-			       keyname, &key_txtbuffer);
+	if (open_keyboard)
+		/*
+		 * Add a little vertical whitespace to separate it
+		 * from the "stop typing" message".
+		 */
+		printf("\n\n");
 
-		if (chrootdir != NULL) {
-			char *buf;
-			len = strlen(chrootdir) + strlen(keyfile) + 2;
-			buf = isc_mem_get(mctx, len);
-			if (buf != NULL) {
-				fprintf(stderr, "isc_mem_get(%d) failed\n", len);
-				goto cleanup;
-			}
-			snprintf(buf, len, "%s/%s", chrootdir, keyfile);
-			
-			write_key_file(buf, user, keyname, &key_txtbuffer);
-			isc_mem_put(mctx, buf, len);
-		}
-	} else {
-		printf("\
+	printf("\
 # Start of rndc.conf\n\
 key \"%s\" {\n\
 	algorithm hmac-md5;\n\
@@ -310,17 +236,15 @@ options {\n\
 # 		allow { %s; } keys { \"%s\"; };\n\
 # };\n\
 # End of named.conf\n",
-		       keyname,
-		       (int)isc_buffer_usedlength(&key_txtbuffer),
-		       (char *)isc_buffer_base(&key_txtbuffer),
-		       keyname, serveraddr, port,
-		       keyname,
-		       (int)isc_buffer_usedlength(&key_txtbuffer),
-		       (char *)isc_buffer_base(&key_txtbuffer),
-		       serveraddr, port, serveraddr, keyname);
-	}
+	       keyname,
+	       (int)isc_buffer_usedlength(&key_txtbuffer),
+	       (char *)isc_buffer_base(&key_txtbuffer),
+	       keyname, serveraddr, port,
+	       keyname,
+	       (int)isc_buffer_usedlength(&key_txtbuffer),
+	       (char *)isc_buffer_base(&key_txtbuffer),
+	       serveraddr, port, serveraddr, keyname);
 
- cleanup:
 	if (show_final_mem)
 		isc_mem_stats(mctx, stderr);
 

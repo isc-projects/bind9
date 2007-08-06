@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333 2001/08/28 03:58:10 marka Exp $ */
+/* $Id: zone.c,v 1.330 2001/07/17 02:49:44 marka Exp $ */
 
 #include <config.h>
 
@@ -294,7 +294,7 @@ struct dns_zonemgr {
  * Hold notify state.
  */
 struct dns_notify {
-	unsigned int		magic;
+	isc_int32_t		magic;
 	unsigned int		flags;
 	isc_mem_t		*mctx;
 	dns_zone_t		*zone;
@@ -315,7 +315,7 @@ struct dns_notify {
  */
 
 struct dns_stub {
-	unsigned int		magic;
+	isc_int32_t		magic;
 	isc_mem_t		*mctx;
 	dns_zone_t		*zone;
 	dns_db_t		*db;
@@ -326,7 +326,7 @@ struct dns_stub {
  *	Hold load state.
  */
 struct dns_load {
-	unsigned int		magic;
+	isc_int32_t		magic;
 	isc_mem_t		*mctx;
 	dns_zone_t		*zone;
 	dns_db_t		*db;
@@ -338,7 +338,7 @@ struct dns_load {
  *	Hold forward state.
  */
 struct dns_forward {
-	unsigned int		magic;
+	isc_int32_t		magic;
 	isc_mem_t		*mctx;
 	dns_zone_t		*zone;
 	isc_buffer_t		*msgbuf;
@@ -353,7 +353,7 @@ struct dns_forward {
  *	Hold IO request state.
  */
 struct dns_io {
-	unsigned int	magic;
+	isc_int32_t	magic;
 	dns_zonemgr_t	*zmgr;
 	isc_boolean_t	high;
 	isc_task_t	*task;
@@ -364,9 +364,8 @@ struct dns_io {
 static void zone_settimer(dns_zone_t *, isc_stdtime_t);
 static void cancel_refresh(dns_zone_t *);
 static void zone_debuglog(dns_zone_t *zone, const char *, int debuglevel,
-			  const char *msg, ...) ISC_FORMAT_PRINTF(4, 5);
-static void notify_log(dns_zone_t *zone, int level, const char *fmt, ...)
-     ISC_FORMAT_PRINTF(3, 4);
+			  const char *msg, ...);
+static void notify_log(dns_zone_t *zone, int level, const char *fmt, ...);
 static void queue_xfrin(dns_zone_t *zone);
 static void zone_unload(dns_zone_t *zone);
 static void zone_expire(dns_zone_t *zone);
@@ -2343,10 +2342,7 @@ notify_destroy(dns_notify_t *notify, isc_boolean_t locked) {
 			ISC_LIST_UNLINK(notify->zone->notifies, notify, link);
 		if (!locked)
 			UNLOCK_ZONE(notify->zone);
-		if (locked)
-			zone_idetach(&notify->zone);
-		else
-			dns_zone_idetach(&notify->zone);
+		dns_zone_idetach(&notify->zone);
 	}
 	if (notify->find != NULL)
 		dns_adb_destroyfind(&notify->find);
@@ -4555,7 +4551,7 @@ notify_done(isc_task_t *task, isc_event_t *event) {
 	if (result == ISC_R_SUCCESS)
 		notify_log(notify->zone, ISC_LOG_DEBUG(3),
 			   "notify response from %s: %.*s",
-			   addrbuf, (int)buf.used, rcode);
+			   addrbuf, buf.used, rcode);
 	else
 		notify_log(notify->zone, ISC_LOG_DEBUG(1),
 			   "notify to %s failed: %s", addrbuf,

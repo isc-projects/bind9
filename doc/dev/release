@@ -1,7 +1,7 @@
 Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: release,v 1.41 2001/08/01 21:52:57 gson Exp $
+$Id: release,v 1.39 2001/07/14 01:55:39 gson Exp $
 
 Preparing a bind9 release
 
@@ -179,12 +179,12 @@ release.
  - Sign the distribution files with the ISC signing PGP key
    and fix the permissions on the signature file:
   
-   	pgp -sba bind-9.2.0b2.tar.gz -u 0x51BAB2ED
-	chmod 644 bind-9.2.0b2.tar.gz.asc
+   	pgp -sba bind-9.2.0a3.tar.gz -u 0x51BAB2ED
+	chmod 644 bind-9.2.0a3.tar.gz.asc
 
  - Verify the PGP signature:
 
-	pgp bind-9.2.0b2.tar.gz.asc bind-9.2.0b2.tar.gz
+	pgp bind-9.2.0a3.tar.gz.asc bind-9.2.0a3.tar.gz
 
    (Look for the words "Good signature" in the output.)
 
@@ -192,7 +192,7 @@ release.
 
  - Copy the distribution and PGP signature files to the FTP site:
 
-     ver=9.2.0b2
+     ver=9.2.0a3
      ssh -n isrv4.pa.vix.com "mkdir /udir/ftp/isc/bind9/$ver"
      scp bind-$ver.tar.gz bind-$ver.tar.gz.asc \
 	isrv4.pa.vix.com:/udir/ftp/isc/bind9/$ver

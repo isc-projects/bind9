@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.106 2001/08/27 21:47:00 gson Exp $ */
+/* $Id: zone.h,v 1.105 2001/05/14 19:06:45 bwelling Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -38,6 +38,8 @@ typedef enum {
 	dns_zone_slave,
 	dns_zone_stub
 } dns_zonetype_t;
+
+#define DNS_STATS_NCOUNTERS      6
 
 #define DNS_ZONEOPT_SERVERS	0x00000001U	/* perform server checks */
 #define DNS_ZONEOPT_PARENTS	0x00000002U	/* perform parent checks */

@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_copyrights,v 1.26 2001/07/30 23:45:03 gson Exp $
+# $Id: update_copyrights,v 1.25 2001/06/10 14:01:10 tale Exp $
 
 require 5.002;
 
@@ -65,7 +65,7 @@ while (<>) {
                 next;
         }
 
-        next if $type eq "X" or $type eq "BAT";
+        next if $type eq "X";
 
         $before_copyright = "";
         $c_comment = 0;

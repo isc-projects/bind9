@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.139 2001/07/22 06:09:41 mayer Exp $ */
+/* $Id: dnssec-signzone.c,v 1.138 2001/05/10 06:04:58 bwelling Exp $ */
 
 #include <config.h>
 
@@ -100,7 +100,7 @@ static isc_entropy_t *ectx = NULL;
 static dns_ttl_t zonettl;
 static FILE *fp;
 static char *tempfile = NULL;
-static const dns_master_style_t *masterstyle;
+static const dns_master_style_t *masterstyle = &dns_master_style_explicitttl;
 static unsigned int nsigned = 0, nretained = 0, ndropped = 0;
 static unsigned int nverified = 0, nverifyfailed = 0;
 static const char *directory;
@@ -1513,7 +1513,6 @@ main(int argc, char *argv[]) {
 	dns_rdataclass_t rdclass;
 	isc_textregion_t r;
 	isc_task_t **tasks = NULL;
-	masterstyle = &dns_master_style_explicitttl;
 
 	check_result(isc_app_start(), "isc_app_start");
 

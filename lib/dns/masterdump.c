@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.56 2001/08/29 05:52:49 marka Exp $ */
+/* $Id: masterdump.c,v 1.55 2001/07/16 17:15:08 gson Exp $ */
 
 #include <config.h>
 
@@ -1004,17 +1004,6 @@ dns_master_dump(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 		goto cleanup;
 	}
 
-	result = isc_stdio_sync(f);
-	if (result != ISC_R_SUCCESS) {
-		isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_ERROR,
-			      "dumping master file: %s: fsync: %s",
-			      tempname, isc_result_totext(result));
-		(void)isc_stdio_close(f);
-		(void)isc_file_remove(tempname);
-		goto cleanup;
-	}
-
 	result = isc_stdio_close(f);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
@@ -1023,6 +1012,7 @@ dns_master_dump(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 			      tempname, isc_result_totext(result));
 		(void)isc_file_remove(tempname);
 		goto cleanup;
+		
 	}
 
 	result = isc_file_rename(tempname, filename);

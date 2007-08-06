@@ -1,21 +1,21 @@
 /*
- * Portions Copyright (C) 2001  Internet Software Consortium.
+ * Portions Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2001-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
- * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
- * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
- * INTERNET SOFTWARE CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT,
- * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
- * FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
- * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
- * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.cpp,v 1.6 2001/07/31 00:03:13 gson Exp $ */
+/* $Id: BINDInstallDlg.cpp,v 1.6.2.21 2007/06/27 01:52:19 marka Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -68,14 +68,14 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-typedef struct _exception
+typedef struct _xexception
 {
-	_exception(UINT string, ...);
+	_xexception(UINT string, ...);
 	
 	CString resString;
 } Exception;
 
-_exception::_exception(UINT string, ...)
+_xexception::_xexception(UINT string, ...)
 {
 	CString format;
 	va_list va;
@@ -109,13 +109,22 @@ const FileData installFiles[] =
 	{"msvcrt.dll", FileData::WinSystem, FileData::Critical, TRUE},
 #  endif
 #endif
-	{"bindevt.dll", FileData::WinSystem, FileData::Normal, FALSE},
-	{"libisc.dll", FileData::WinSystem, FileData::Critical, FALSE},
-	{"libisccfg.dll", FileData::WinSystem, FileData::Critical, FALSE},
-	{"libisccc.dll", FileData::WinSystem, FileData::Critical, FALSE},
-	{"libdns.dll", FileData::WinSystem, FileData::Critical, FALSE},
-	{"liblwres.dll", FileData::WinSystem, FileData::Critical, FALSE},
-	{"libeay32.dll", FileData::WinSystem, FileData::Critical, FALSE},
+#if _MSC_VER < 1400
+#if _MSC_VER >= 1310
+	{"mfc71.dll", FileData::WinSystem, FileData::Critical, TRUE},
+	{"msvcr71.dll", FileData::WinSystem, FileData::Critical, TRUE},
+#elif _MSC_VER > 1200 && _MSC_VER < 1310
+	{"mfc70.dll", FileData::WinSystem, FileData::Critical, TRUE},
+	{"msvcr70.dll", FileData::WinSystem, FileData::Critical, TRUE},
+#endif
+#endif
+	{"bindevt.dll", FileData::BinDir, FileData::Normal, FALSE},
+	{"libisc.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"libisccfg.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"libisccc.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"libdns.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"liblwres.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"libeay32.dll", FileData::BinDir, FileData::Critical, FALSE},
 	{"named.exe", FileData::BinDir, FileData::Critical, FALSE},
 	{"nsupdate.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"BINDInstall.exe", FileData::BinDir, FileData::Normal, FALSE},
@@ -191,29 +200,6 @@ BOOL CBINDInstallDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
-	HANDLE hToken; 
-	TOKEN_PRIVILEGES tkp; 
-	BOOL adjustedPrivileges = FALSE;
-	
-	if(OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken))
-	{ 
-		LookupPrivilegeValue(NULL, SE_SHUTDOWN_NAME, &tkp.Privileges[0].Luid); 
-		tkp.PrivilegeCount = 1;
-		tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED; 
- 
-		AdjustTokenPrivileges(hToken, FALSE, &tkp, 0, (PTOKEN_PRIVILEGES)NULL, 0); 
- 
-		if(GetLastError() == ERROR_SUCCESS) 
-		{ 
-			adjustedPrivileges = TRUE;
-		}
-	}
-		 
-	if(!adjustedPrivileges)
-	{
-		MsgBox(IDS_BAD_PRIVILEGES, MB_OK);
-		EndDialog(1);
-	}
 	// Set the icon for this dialog.  The framework does this automatically
 	//  when the application's main window is not a dialog
 	SetIcon(m_hIcon, TRUE);			// Set big icon
@@ -333,14 +319,14 @@ void CBINDInstallDlg::OnUninstall()
 		if(CheckBINDService())
 			StopBINDService();
 
-		HANDLE hSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+		SC_HANDLE hSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
 		if(!hSCManager)
 		{
 			MsgBox(IDS_ERR_OPEN_SCM, GetErrMessage());
 			return;
 		}
 		
-		HANDLE hService = OpenService(hSCManager, BIND_SERVICE_NAME, SERVICE_ALL_ACCESS);
+		SC_HANDLE hService = OpenService(hSCManager, BIND_SERVICE_NAME, SERVICE_ALL_ACCESS);
 		if(!hService && GetLastError() != ERROR_SERVICE_DOES_NOT_EXIST)
 		{
 			MsgBox(IDS_ERR_OPEN_SERVICE, GetErrMessage());
@@ -422,8 +408,16 @@ void CBINDInstallDlg::OnInstall()
 		}
 	}
 
-	ProgramGroup();
-
+#if _MSC_VER >= 1400
+	/*
+	 * Install Visual Studio libraries.  As per:
+	 * http://blogs.msdn.com/astebner/archive/2006/08/23/715755.aspx
+	 *
+	 * Vcredist_x86.exe /q:a /c:"msiexec /i vcredist.msi /qn /l*v %temp%\vcredist_x86.log"
+	*/
+	/*system(".\\Vcredist_x86.exe /q:a /c:\"msiexec /i vcredist.msi /qn /l*v %temp%\vcredist_x86.log\"");*/
+	system(".\\Vcredist_x86.exe");
+#endif
 	try
 	{
 		CreateDirs();
@@ -444,21 +438,20 @@ void CBINDInstallDlg::OnInstall()
 
 		
 		SetCurrent(IDS_ADD_REMOVE);
-		if(RegCreateKey(HKEY_LOCAL_MACHINE, BIND_UNINSTALL_SUBKEY, &hKey) == ERROR_SUCCESS)
+		if(RegCreateKey(HKEY_LOCAL_MACHINE, BIND_UNINSTALL_SUBKEY,
+				&hKey) == ERROR_SUCCESS)
 		{
-			char winDir[MAX_PATH];
 			CString buf(BIND_DISPLAY_NAME);
-			GetWindowsDirectory(winDir, MAX_PATH);
 
-			RegSetValueEx(hKey, "DisplayName", 0, REG_SZ, (LPBYTE)(LPCTSTR)buf, buf.GetLength());
+			RegSetValueEx(hKey, "DisplayName", 0, REG_SZ,
+				      (LPBYTE)(LPCTSTR)buf, buf.GetLength());
 
-			buf.Format("%s\\BINDInstall.exe", winDir);
-			RegSetValueEx(hKey, "UninstallString", 0, REG_SZ, (LPBYTE)(LPCTSTR)buf, buf.GetLength());
+			buf.Format("%s\\BINDInstall.exe", m_binDir);
+			RegSetValueEx(hKey, "UninstallString", 0, REG_SZ,
+				      (LPBYTE)(LPCTSTR)buf, buf.GetLength());
 			RegCloseKey(hKey);
 		}
 	
-		ProgramGroup();
-		
 		if(m_startOnInstall && !m_reboot)
 			StartBINDService();
 	}
@@ -626,8 +619,8 @@ void CBINDInstallDlg::DeleteFiles(BOOL uninstall)
 
 void CBINDInstallDlg::RegisterService()
 {
-	HANDLE hSCManager;
-	HANDLE hService;
+	SC_HANDLE hSCManager;
+	SC_HANDLE hService;
 
 	SetCurrent(IDS_OPEN_SCM);
 	hSCManager= OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
@@ -662,8 +655,8 @@ void CBINDInstallDlg::RegisterService()
 void CBINDInstallDlg::UnregisterService(BOOL uninstall)
 {
 	BOOL rc = FALSE;
-	HANDLE hSCManager;
-	HANDLE hService;
+	SC_HANDLE hSCManager;
+	SC_HANDLE hService;
 
 	while(1)
 	{
@@ -862,13 +855,13 @@ void CBINDInstallDlg::StopBINDService()
 	
 	SetCurrent(IDS_STOP_SERVICE);
 
-	HANDLE hSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+	SC_HANDLE hSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
 	if(!hSCManager)
 	{
 		MsgBox(IDS_ERR_OPEN_SCM, GetErrMessage());
 	}
 	
-	HANDLE hBINDSvc = OpenService(hSCManager, BIND_SERVICE_NAME, SERVICE_ALL_ACCESS);
+	SC_HANDLE hBINDSvc = OpenService(hSCManager, BIND_SERVICE_NAME, SERVICE_ALL_ACCESS);
 	if(!hBINDSvc)
 	{
 		MsgBox(IDS_ERR_OPEN_SERVICE, GetErrMessage());
@@ -884,13 +877,13 @@ void CBINDInstallDlg::StartBINDService()
 {
 	SetCurrent(IDS_START_SERVICE);
 
-	HANDLE hSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+	SC_HANDLE hSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
 	if(!hSCManager)
 	{
 		MsgBox(IDS_ERR_OPEN_SCM, GetErrMessage());
 	}
 	
-	HANDLE hBINDSvc = OpenService(hSCManager, BIND_SERVICE_NAME, SERVICE_ALL_ACCESS);
+	SC_HANDLE hBINDSvc = OpenService(hSCManager, BIND_SERVICE_NAME, SERVICE_ALL_ACCESS);
 	if(!hBINDSvc)
 	{
 		MsgBox(IDS_ERR_OPEN_SERVICE, GetErrMessage());
@@ -905,10 +898,10 @@ BOOL CBINDInstallDlg::CheckBINDService()
 {
 	SERVICE_STATUS svcStatus;
 
-	HANDLE hSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+	SC_HANDLE hSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
 	if(hSCManager)
 	{
-		HANDLE hBINDSvc = OpenService(hSCManager, BIND_SERVICE_NAME, SERVICE_ALL_ACCESS);
+		SC_HANDLE hBINDSvc = OpenService(hSCManager, BIND_SERVICE_NAME, SERVICE_ALL_ACCESS);
 		if(hBINDSvc)
 		{
 			BOOL rc = ControlService(hBINDSvc, SERVICE_CONTROL_INTERROGATE, &svcStatus);

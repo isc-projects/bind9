@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.64 2001/08/28 03:58:07 marka Exp $ */
+/* $Id: request.c,v 1.62 2001/06/28 21:34:39 gson Exp $ */
 
 #include <config.h>
 
@@ -48,7 +48,7 @@ typedef ISC_LIST(dns_request_t) dns_requestlist_t;
 #define DNS_REQUEST_NLOCKS 7
 
 struct dns_requestmgr {
-	unsigned int			magic;
+	isc_int32_t			magic;
 	isc_mutex_t			lock;
 	isc_mem_t		       *mctx;
 
@@ -69,7 +69,7 @@ struct dns_requestmgr {
 };
 
 struct dns_request {
-	unsigned int			magic;
+	isc_int32_t			magic;
 	unsigned int			hash;
 	isc_mem_t		       *mctx;
 	isc_int32_t			flags;
@@ -120,7 +120,7 @@ static void req_connected(isc_task_t *task, isc_event_t *event);
 static void req_sendevent(dns_request_t *request, isc_result_t result);
 static void req_cancel(dns_request_t *request);
 static void req_destroy(dns_request_t *request);
-static void req_log(int level, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
+static void req_log(int level, const char *fmt, ...);
 static void do_cancel(isc_task_t *task, isc_event_t *event);
 
 /***

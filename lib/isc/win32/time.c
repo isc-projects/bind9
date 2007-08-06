@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.24 2001/08/29 05:13:42 mayer Exp $ */
+/* $Id: time.c,v 1.23 2001/07/09 21:06:22 gson Exp $ */
 
 /*
  * Windows has a different epoch than Unix. Therefore this code sets the epoch
@@ -139,11 +139,13 @@ isc_time_isepoch(isc_time_t *t) {
 
 isc_result_t
 isc_time_now(isc_time_t *t) {
+	char dtime[10];
 
 	REQUIRE(t != NULL);
 
 	GetSystemTimeAsFileTime(&t->absolute);
 
+	_strtime(dtime);
 	return (ISC_R_SUCCESS);
 }
 

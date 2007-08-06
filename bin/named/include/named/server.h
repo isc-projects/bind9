@@ -15,14 +15,13 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.58 2001/08/28 03:58:04 marka Exp $ */
+/* $Id: server.h,v 1.57 2001/05/31 01:21:09 bwelling Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
 
 #include <isc/log.h>
 #include <isc/sockaddr.h>
-#include <isc/magic.h>
 #include <isc/types.h>
 #include <isc/quota.h>
 
@@ -37,7 +36,7 @@
  * Name server state.  Better here than in lots of separate global variables.
  */
 struct ns_server {
-	unsigned int		magic;
+	isc_uint32_t		magic;
 	isc_mem_t *		mctx;
 
 	isc_task_t *		task;
@@ -82,8 +81,9 @@ struct ns_server {
 	ns_controls_t *		controls;	/* Control channels */
 };
 
-#define NS_SERVER_MAGIC			ISC_MAGIC('S','V','E','R')
-#define NS_SERVER_VALID(s)		ISC_MAGIC_VALID(s, NS_SERVER_MAGIC)
+#define NS_SERVER_MAGIC			0x53564552	/* SVER */
+#define NS_SERVER_VALID(s)		((s) != NULL && \
+					 (s)->magic == NS_SERVER_MAGIC)
 
 void
 ns_server_create(isc_mem_t *mctx, ns_server_t **serverp);

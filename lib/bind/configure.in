@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.83 $)
+AC_REVISION($Revision: 1.74 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -306,7 +306,6 @@ case "$use_randomdev" in
 				devrandom=/dev/random
 				;;
 		esac
-		AC_MSG_RESULT($devrandom)
 		AC_CHECK_FILE($devrandom,
 			      AC_DEFINE_UNQUOTED(PATH_RANDOMDEV,
 						 "$devrandom"),)
@@ -1058,54 +1057,52 @@ case "$have_minimum_ifreq" in
 esac
 AC_SUBST(HAVE_MINIMUM_IFREQ)
 
-# PORT_DIR
-PORT_DIR=port/unknown
+# PORT_INCLUDE
+PORT_INCLUDE=port/unknown/include
 SOLARIS_BITTYPES="#undef NEED_SOLARIS_BITTYPES"
 BSD_COMP="#undef BSD_COMP"
 USE_FIONBIO_IOCTL="#undef USE_FIONBIO_IOCTL"
 case "$host" in
-	*aix3.2*)	PORT_DIR="port/aix32";;
-	*aix4*)		PORT_DIR="port/aix4";;
-	*aux3*)		PORT_DIR="port/aux3";;
-	*-bsdi2*)	PORT_DIR="port/bsdos2";;
-	*-bsdi*)	PORT_DIR="port/bsdos";;
-	*-cygwin*)	PORT_DIR="port/cygwin";;
-	*-darwin*)	PORT_DIR="port/darwin";;
-	*-osf*)		PORT_DIR="port/decunix";;
-	*-freebsd*)	PORT_DIR="port/freebsd";;
-	*-hpux9*)	PORT_DIR="port/hpux9";;
-	*-hpux10*)	PORT_DIR="port/hpux10";;
-	*-hpux11*)	PORT_DIR="port/hpux";;
-	*-irix*)	PORT_DIR="port/irix";;
-	*-linux*)	PORT_DIR="port/linux";;
-	*-lynxos*)	PORT_DIR="port/lynxos";;
-	*-mpe*)		PORT_DIR="port/mpe";;
-	*-netbsd*)	PORT_DIR="port/netbsd";;
-	*-next*)	PORT_DIR="port/next";;
-	*-openbsd*)	PORT_DIR="port/openbsd";;
-	*-qnx*)		PORT_DIR="port/qnx";;
-	*-rhapsody*)	PORT_DIR="port/rhapsody";;
+	*aix3.2*)	PORT_INCLUDE="port/aix32/include";;
+	*aix4*)		PORT_INCLUDE="port/aix4/include";;
+	*aux3*)		PORT_INCLUDE="port/aux3/include";;
+	*-bsdi2*)	PORT_INCLUDE="port/bsdos2/include";;
+	*-bsdi*)	PORT_INCLUDE="port/bsdos/include";;
+	*-cygwin*)	PORT_INCLUDE="port/cygwin/include";;
+	*-darwin*)	PORT_INCLUDE="port/darwin/include";;
+	*-osf*)		PORT_INCLUDE="port/decunix/include";;
+	*-freebsd*)	PORT_INCLUDE="port/freebsd/include";;
+	*-hpux9*)	PORT_INCLUDE="port/hpux9/include";;
+	*-hpux10*)	PORT_INCLUDE="port/hpux10/include";;
+	*-hpux11*)	PORT_INCLUDE="port/hpux/include";;
+	*-irix*)	PORT_INCLUDE="port/irix/include";;
+	*-linux*)	PORT_INCLUDE="port/linux/include";;
+	*-lynxos*)	PORT_INCLUDE="port/lynxos/include";;
+	*-mpe*)		PORT_INCLUDE="port/mpe/include";;
+	*-netbsd*)	PORT_INCLUDE="port/netbsd/include";;
+	*-next*)	PORT_INCLUDE="port/next/include";;
+	*-openbsd*)	PORT_INCLUDE="port/openbsd/include";;
+	*-qnx*)		PORT_INCLUDE="port/qnx/include";;
+	*-rhapsody*)	PORT_INCLUDE="port/rhapsody/include";;
 	*-solaris2.[[01234]]*)
 			BSD_COMP="#define BSD_COMP 1"
 			SOLARIS_BITTYPES="#define NEED_SOLARIS_BITTYPES 1"
 			USE_FIONBIO_IOCTL="#define USE_FIONBIO_IOCTL 1"
-			PORT_DIR="port/solaris";;
+			PORT_INCLUDE="port/solaris/include";;
 	*-solaris2.5*)
 			BSD_COMP="#define BSD_COMP 1"
 			SOLARIS_BITTYPES="#define NEED_SOLARIS_BITTYPES 1"
-			PORT_DIR="port/solaris";;
+			PORT_INCLUDE="port/solaris/include";;
 	*-solaris2*)	BSD_COMP="#define BSD_COMP 1"
-			PORT_DIR="port/solaris";;
-	*-ultrix*)	PORT_DIR="port/ultrix";;
-	*-sco-sysv*uw2.0*)	PORT_DIR="port/unixware20";;
-	*-sco-sysv*uw2.1.2*)	PORT_DIR="port/unixware212";;
-	*-sco-sysv*uw7*)	PORT_DIR="port/unixware7";;
+			PORT_INCLUDE="port/solaris/include";;
+	*-ultrix*)	PORT_INCLUDE="port/ultrix/include";;
+	*-sco-sysv*uw2.0*)	PORT_INCLUDE="port/unixware20/include";;
+	*-sco-sysv*uw2.1.2*)	PORT_INCLUDE="port/unixware212/include";;
+	*-sco-sysv*uw7*)	PORT_INCLUDE="port/unixware7/include";;
 esac
 AC_SUBST(BSD_COMP)
 AC_SUBST(SOLARIS_BITTYPES)
 AC_SUBST(USE_FIONBIO_IOCTL)
-AC_SUBST(PORT_DIR)
-PORT_INCLUDE=${PORT_DIR}/include
 AC_SUBST(PORT_INCLUDE)
 
 
@@ -1164,6 +1161,22 @@ AC_TRY_COMPILE([
 	[AC_MSG_RESULT(no)
 	ISC_LWRES_ENDHOSTENTINT="#undef ISC_LWRES_ENDHOSTENTINT"])
 AC_SUBST(ISC_LWRES_ENDHOSTENTINT)
+
+case "$host" in
+*-solaris2.8*)
+	GETNETBYADDR_ADDR_T="#define GETNETBYADDR_ADDR_T long";;
+*)
+AC_MSG_CHECKING(for getnetbyaddr(in_addr_t, ...))
+AC_TRY_COMPILE([
+#include <netdb.h>
+struct netent *getnetbyaddr(in_addr_t, int);],
+[],
+	[AC_MSG_RESULT(yes)
+	GETNETBYADDR_ADDR_T="#define GETNETBYADDR_ADDR_T in_addr_t"],
+	[AC_MSG_RESULT(no)
+	GETNETBYADDR_ADDR_T="#define GETNETBYADDR_ADDR_T long"])
+esac
+AC_SUBST(GETNETBYADDR_ADDR_T)
 
 AC_MSG_CHECKING(for int setnetent)
 AC_TRY_COMPILE([
@@ -1297,37 +1310,74 @@ AC_TRY_COMPILE([
 #include <sys/socket.h>
 int accept(int, struct sockaddr *, socklen_t *);
 ],[],
-[ISC_SOCKLEN_T="#define ISC_SOCKLEN_T socklen_t"
-AC_MSG_RESULT(socklen_t)]
+[ISC_SOCKLEN_T="#define ISC_SOCKLEN_T socklen_t"]
 ,
 AC_TRY_COMPILE([
 #include <sys/types.h>
 #include <sys/socket.h>
 int accept(int, struct sockaddr *, unsigned int *);
 ],[],
-[ISC_SOCKLEN_T="#define ISC_SOCKLEN_T unsigned int"
-AC_MSG_RESULT(unsigned int)]
+[ISC_SOCKLEN_T="#define ISC_SOCKLEN_T unsigned int"]
 ,
 AC_TRY_COMPILE([
 #include <sys/types.h>
 #include <sys/socket.h>
 int accept(int, struct sockaddr *, unsigned long *);
 ],[],
-[ISC_SOCKLEN_T="#define ISC_SOCKLEN_T unsigned long"
-AC_MSG_RESULT(unsigned long)]
+[ISC_SOCKLEN_T="#define ISC_SOCKLEN_T unsigned long"]
 ,
 AC_TRY_COMPILE([
 #include <sys/types.h>
 #include <sys/socket.h>
 int accept(int, struct sockaddr *, long *);
 ],[],
-[ISC_SOCKLEN_T="#define ISC_SOCKLEN_T long"
-AC_MSG_RESULT(long)]
+[ISC_SOCKLEN_T="#define ISC_SOCKLEN_T long"]
 ,
 ISC_SOCKLEN_T="#define ISC_SOCKLEN_T int"
-AC_MSG_RESULT(int)
 ))))
 AC_SUBST(ISC_SOCKLEN_T)
+
+#
+# BSD/OS, and perhaps some others, don't define rlim_t.
+#
+AC_MSG_CHECKING(for type rlim_t)
+AC_TRY_COMPILE([
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/resource.h>],
+[rlim_t rl = 19671212; return (0);],
+	[AC_MSG_RESULT(yes)
+         AC_DEFINE(HAVE_RLIM_T)],
+        [AC_MSG_RESULT(no)])
+AC_MSG_CHECKING(sizeof rlim_cur)
+AC_TRY_RUN([
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/resource.h>
+main() { struct rlimit r; exit(!(sizeof(r.rlim_cur) == sizeof(int)));}],
+[AC_MSG_RESULT(int)
+ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE int"],
+[
+AC_TRY_RUN([
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/resource.h>
+main() { struct rlimit r; exit(!(sizeof(r.rlim_cur) == sizeof(long int)));}],
+[AC_MSG_RESULT(long int)
+ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE long int"],
+[
+AC_TRY_RUN([
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/resource.h>
+main() { struct rlimit r; exit((!sizeof(r.rlim_cur) == sizeof(long long int)));}],
+[AC_MSG_RESULT(long long int)
+ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE long long int"],
+[AC_MSG_ERROR([unable to determine sizeof rlim_cur])
+],[])
+],[])
+],[])
+AC_SUBST(ISC_PLATFORM_RLIMITTYPE)
 
 AC_CHECK_FUNC(getgrouplist,
 AC_TRY_COMPILE(
@@ -1350,11 +1400,7 @@ AC_CHECK_FUNC(setgroupent,,AC_DEFINE(NEED_SETGROUPENT))
 
 AC_CHECK_FUNC(getnetbyaddr_r,
 AC_TRY_COMPILE(
-[
-#undef _REENTRANT
-#define _REENTRANT
-#define _OSF_SOURCE
-#include <netdb.h>
+[#include <netdb.h>
 struct netent *
 getnetbyaddr_r(long net, int type, struct netent *result, char *buffer,
 int buflen) {}
@@ -1368,15 +1414,9 @@ NET_R_COPY_ARGS="#define NET_R_COPY_ARGS NET_R_ARGS"
 NET_R_OK="#define NET_R_OK nptr"
 NET_R_SETANSWER="#undef NET_R_SETANSWER"
 NET_R_RETURN="#define NET_R_RETURN struct netent *"
-GETNETBYADDR_ADDR_T="#define GETNETBYADDR_ADDR_T long"
-NETENT_DATA="#undef NETENT_DATA"
 ],
 AC_TRY_COMPILE(
-[
-#undef _REENTRANT
-#define _REENTRANT
-#define _OSF_SOURCE
-#include <netdb.h>
+[#include <netdb.h>
 int getnetbyaddr_r (unsigned long int, int, struct netent *,
                     char *, size_t, struct netent **, int *);
 ],
@@ -1389,47 +1429,7 @@ NET_R_COPY_ARGS="#define NET_R_COPY_ARGS char *buf, size_t buflen"
 NET_R_OK="#define NET_R_OK 0"
 NET_R_SETANSWER="#define NET_R_SETANSWER 1"
 NET_R_RETURN="#define NET_R_RETURN int"
-GETNETBYADDR_ADDR_T="#define GETNETBYADDR_ADDR_T unsigned long int"
-NETENT_DATA="#undef NETENT_DATA"
 ],
-AC_TRY_COMPILE(
-[
-#undef _REENTRANT
-#define _REENTRANT
-#define _OSF_SOURCE
-#include <netdb.h>
-extern int getnetbyaddr_r(int, int, struct netent *, struct netent_data *);
-],
-[return (0)],
-[
-NET_R_ARGS="#define NET_R_ARGS struct netent_data *ndptr"
-NET_R_BAD="#define NET_R_BAD (-1)"
-NET_R_COPY="#define NET_R_COPY ndptr"
-NET_R_COPY_ARGS="#define NET_R_COPY_ARGS struct netent_data *ndptr"
-NET_R_OK="#define NET_R_OK 0"
-NET_R_SETANSWER="#undef NET_R_SETANSWER"
-NET_R_RETURN="#define NET_R_RETURN int"
-GETNETBYADDR_ADDR_T="#define GETNETBYADDR_ADDR_T int"
-NETENT_DATA="#define NETENT_DATA 1"
-],
-AC_TRY_COMPILE(
-[#include <netdb.h>
-int getnetbyaddr_r (long, int, struct netent *, struct netent_data *);
-],
-[return (0)],
-[
-NET_R_ARGS="#define NET_R_ARGS struct netent_data *ndptr"
-NET_R_BAD="#define NET_R_BAD (-1)"
-NET_R_COPY="#define NET_R_COPY ndptr"
-NET_R_COPY_ARGS="#define NET_R_COPY_ARGS struct netent_data *ndptr"
-NET_R_OK="#define NET_R_OK 0"
-NET_R_SETANSWER="#undef NET_R_SETANSWER"
-NET_R_RETURN="#define NET_R_RETURN int"
-GETNETBYADDR_ADDR_T="#define GETNETBYADDR_ADDR_T long"
-NETENT_DATA="#define NETENT_DATA 1"
-],
-)
-)
 )
 )
 ,
@@ -1440,12 +1440,7 @@ NET_R_COPY_ARGS="#define NET_R_COPY_ARGS NET_R_ARGS"
 NET_R_OK="#define NET_R_OK nptr"
 NET_R_SETANSWER="#undef NET_R_SETANSWER"
 NET_R_RETURN="#define NET_R_RETURN struct netent *"
-GETNETBYADDR_ADDR_T="#define GETNETBYADDR_ADDR_T long"
-NETENT_DATA="#undef NETENT_DATA"
 )
-case "$host" in
-*dec-osf*) GETNETBYADDR_ADDR_T="#define GETNETBYADDR_ADDR_T int" ;;
-esac
 AC_SUBST(NET_R_ARGS)
 AC_SUBST(NET_R_BAD)
 AC_SUBST(NET_R_COPY)
@@ -1453,31 +1448,8 @@ AC_SUBST(NET_R_COPY_ARGS)
 AC_SUBST(NET_R_OK)
 AC_SUBST(NET_R_SETANSWER)
 AC_SUBST(NET_R_RETURN)
-AC_SUBST(GETNETBYADDR_ADDR_T)
-AC_SUBST(NETENT_DATA)
 
 AC_CHECK_FUNC(setnetent_r,
-AC_TRY_COMPILE(
-[
-#include <netdb.h>
-void  setnetent_r (int);
-] ,[return (0);],[
-NET_R_ENT_ARGS="#undef NET_R_ENT_ARGS /*empty*/"
-NET_R_SET_RESULT="#undef NET_R_SET_RESULT /*empty*/"
-NET_R_SET_RETURN="#define NET_R_SET_RETURN void"
-],
-AC_TRY_COMPILE(
-[
-#define _REENTRANT
-#include <netdb.h>
-extern int setnetent_r(int, struct netent_data *);
-] ,[return (0);],[
-NET_R_ENT_ARGS="#define NET_R_ENT_ARGS struct netent_data *ndptr"
-NET_R_SET_RESULT="#define NET_R_SET_RESULT NET_R_OK"
-NET_R_SET_RETURN="#define NET_R_SET_RETURN int"
-],
-)
-)
 ,
 NET_R_ENT_ARGS="#undef NET_R_ENT_ARGS /*empty*/"
 NET_R_SET_RESULT="#undef NET_R_SET_RESULT /*empty*/"
@@ -1488,39 +1460,6 @@ AC_SUBST(NET_R_SET_RESULT)
 AC_SUBST(NET_R_SET_RETURN)
 
 AC_CHECK_FUNC(endnetent_r,
-AC_TRY_COMPILE(
-[
-#undef _REENTRANT
-#define _REENTRANT
-#include <netdb.h>
-void  endnetent_r (void);
-] ,[return (0);],[
-NET_R_END_RESULT="#define NET_R_END_RESULT(x) /*empty*/"
-NET_R_END_RETURN="#define NET_R_END_RETURN void"
-],
-AC_TRY_COMPILE(
-[
-#undef _REENTRANT
-#define _REENTRANT
-#include <netdb.h>
-extern int endnetent_r(struct netent_data *);
-] ,[return (0);],[
-NET_R_END_RESULT="#define NET_R_END_RESULT(x) return (x)"
-NET_R_END_RETURN="#define NET_R_END_RETURN int"
-],
-AC_TRY_COMPILE(
-[
-#undef _REENTRANT
-#define _REENTRANT
-#include <netdb.h>
-extern void endnetent_r(struct netent_data *);
-] ,[return (0);],[
-NET_R_END_RESULT="#define NET_R_END_RESULT(x) /*empty*/"
-NET_R_END_RETURN="#define NET_R_END_RETURN void"
-],
-)
-)
-)
 ,
 NET_R_END_RESULT="#define NET_R_END_RESULT(x) /*empty*/"
 NET_R_END_RETURN="#define NET_R_END_RETURN void"
@@ -1656,8 +1595,6 @@ AC_SUBST(HOSTENT_DATA)
 
 AC_CHECK_FUNC(endhostent_r,
 AC_TRY_COMPILE([
-#undef _REENTRANT
-#define _REENTRANT
 #include <netdb.h>
 int endhostent_r(struct hostent_data *buffer);
 ], ,
@@ -1666,8 +1603,6 @@ HOST_R_END_RETURN="#define HOST_R_END_RETURN int"
 HOST_R_ENT_ARGS="#define HOST_R_ENT_ARGS struct hostent_data *hdptr"
 ,
 AC_TRY_COMPILE([
-#undef _REENTRANT
-#define _REENTRANT
 #include <netdb.h>
 extern void endhostent_r(struct hostent_data *ht_data);
 ],[],[
@@ -1675,17 +1610,6 @@ HOST_R_END_RESULT="#define HOST_R_END_RESULT(x)"
 HOST_R_END_RETURN="#define HOST_R_END_RETURN void"
 HOST_R_ENT_ARGS="#define HOST_R_ENT_ARGS struct hostent_data *hdptr"
 ],
-AC_TRY_COMPILE([
-#undef _REENTRANT
-#define _REENTRANT
-#include <netdb.h>
-extern void endhostent_r(void);
-],[],[
-HOST_R_END_RESULT="#define HOST_R_END_RESULT(x) /*empty*/"
-HOST_R_END_RETURN="#define HOST_R_END_RETURN void"
-HOST_R_ENT_ARGS="#undef HOST_R_ENT_ARGS /*empty*/"
-],
-)
 )
 )
 ,
@@ -1699,31 +1623,19 @@ AC_SUBST(HOST_R_ENT_ARGS)
 
 AC_CHECK_FUNC(sethostent_r,
 AC_TRY_COMPILE([
-#undef _REENTRANT
-#define _REENTRANT
 #include <netdb.h>
 extern void sethostent_r(int flag, struct hostent_data *ht_data);],[],
 [HOST_R_SET_RESULT="#undef HOST_R_SET_RESULT /*empty*/"
 HOST_R_SET_RETURN="#define HOST_R_SET_RETURN void"],
 AC_TRY_COMPILE([
-#undef _REENTRANT
-#define _REENTRANT
 #include <netdb.h>
 extern int sethostent_r(int flag, struct hostent_data *ht_data);],[],
 [HOST_R_SET_RESULT="#define HOST_R_SET_RESULT 0"
 HOST_R_SET_RETURN="#define HOST_R_SET_RETURN int"],
-AC_TRY_COMPILE([
-#undef _REENTRANT
-#define _REENTRANT
-#include <netdb.h>
-void            sethostent_r (int);],[],
-[HOST_R_SET_RESULT="#undef HOST_R_SET_RESULT"
-HOST_R_SET_RETURN="#define HOST_R_SET_RETURN void"],
-)
 )
 )
 ,
-HOST_R_SET_RESULT="#undef HOST_R_SET_RESULT"
+host_R_SET_RESULT="#undef HOST_R_SET_RESULT /*empty*/"
 HOST_R_SET_RETURN="#define HOST_R_SET_RETURN void"
 )
 AC_SUBST(HOST_R_SET_RESULT)
@@ -1851,18 +1763,8 @@ AC_SUBST(NGR_R_END_RETURN)
 AC_SUBST(NGR_R_ENT_ARGS)
 
 AC_CHECK_FUNC(setnetgrent_r,
-[
-case "$host" in
-*bsdi*)
-	NGR_R_SET_RESULT="#undef NGR_R_SET_RESULT /*empty*/"
-	NGR_R_SET_RETURN="#define NGR_R_SET_RETURN void"
-	;;
-*)
-	NGR_R_SET_RESULT="#define NGR_R_SET_RESULT NGR_R_OK"
-	NGR_R_SET_RETURN="#define NGR_R_SET_RETURN int"
-	;;
-esac
-]
+NGR_R_SET_RESULT="#define NGR_R_SET_RESULT NGR_R_OK"
+NGR_R_SET_RETURN="#define NGR_R_SET_RETURN int"
 ,
 NGR_R_SET_RESULT="#undef NGR_R_SET_RESULT /*empty*/"
 NGR_R_SET_RETURN="#define NGR_R_SET_RETURN void"
@@ -1931,21 +1833,6 @@ AC_SUBST(PROTO_R_SETANSWER)
 AC_SUBST(PROTO_R_RETURN)
 
 AC_CHECK_FUNC(endprotoent_r,
-AC_TRY_COMPILE(
-[
-#undef _REENTRANT
-#define _REENTRANT
-#include <netdb.h>
-void endprotoent_r(void);
-]
-,,
-[
-PROTO_R_END_RESULT="#define PROTO_R_END_RESULT(x) /*empty*/"
-PROTO_R_END_RETURN="#define PROTO_R_END_RETURN void"
-PROTO_R_ENT_ARGS="#undef PROTO_R_ENT_ARGS"
-]
-,
-)
 ,
 PROTO_R_END_RESULT="#define PROTO_R_END_RESULT(x) /*empty*/"
 PROTO_R_END_RETURN="#define PROTO_R_END_RETURN void"
@@ -1956,19 +1843,8 @@ AC_SUBST(PROTO_R_END_RETURN)
 AC_SUBST(PROTO_R_ENT_ARGS)
 
 AC_CHECK_FUNC(setprotoent_r,
-AC_TRY_COMPILE(
-[
-#undef _REENTRANT
-#define _REENTRANT
-#include <netdb.h>
-void               setprotoent_r __P((int));
-],[],
-PROTO_R_SET_RESULT="#undef PROTO_R_SET_RESULT"
-PROTO_R_SET_RETURN="#define PROTO_R_SET_RETURN void"
 ,
-)
-,
-PROTO_R_SET_RESULT="#undef PROTO_R_SET_RESULT"
+PROTO_R_SET_RESULT="#undef PROTO_R_SET_RESULT /*empty*/"
 PROTO_R_SET_RETURN="#define PROTO_R_SET_RETURN void"
 )
 AC_SUBST(PROTO_R_SET_RESULT)
@@ -2111,22 +1987,6 @@ AC_SUBST(SERV_R_SETANSWER)
 AC_SUBST(SERV_R_RETURN)
 
 AC_CHECK_FUNC(endservent_r,
-AC_TRY_COMPILE(
-[
-#undef _REENTRANT
-#define _REENTRANT
-#include <netdb.h>
-void endservent_r(void);
-]
-,
-,
-[
-SERV_R_END_RESULT="#define SERV_R_END_RESULT(x) /*empty*/"
-SERV_R_END_RETURN="#define SERV_R_END_RETURN void "
-SERV_R_ENT_ARGS="#undef SERV_R_ENT_ARGS /*empty*/"
-]
-,
-)
 ,
 SERV_R_END_RESULT="#define SERV_R_END_RESULT(x) /*empty*/"
 SERV_R_END_RETURN="#define SERV_R_END_RETURN void "
@@ -2137,22 +1997,8 @@ AC_SUBST(SERV_R_END_RETURN)
 AC_SUBST(SERV_R_ENT_ARGS)
 
 AC_CHECK_FUNC(setservent_r,
-AC_TRY_COMPILE(
-[
-#undef _REENTRANT
-#define _REENTRANT
-#include <netdb.h>
-void            setservent_r(int);
-]
-,,
-[
-SERV_R_SET_RESULT="#undef SERV_R_SET_RESULT"
-SERV_R_SET_RETURN="#define SERV_R_SET_RETURN void"
-]
 ,
-)
-,
-SERV_R_SET_RESULT="#undef SERV_R_SET_RESULT"
+SERV_R_SET_RESULT="#undef SERV_R_SET_RESULT /*empty*/"
 SERV_R_SET_RETURN="#define SERV_R_SET_RETURN void"
 )
 AC_SUBST(SERV_R_SET_RESULT)
@@ -2260,8 +2106,6 @@ AC_OUTPUT(
 	port_after.h
 	port_before.h
 	resolv/Makefile
-	port/Makefile
-	${PORT_DIR}/Makefile
 	${PORT_INCLUDE}/Makefile
 )
 

@@ -15,19 +15,16 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.71 2001/08/08 22:54:15 gson Exp $ */
+/* $Id: dig.h,v 1.67 2001/02/17 01:05:30 gson Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
 
 #include <dns/rdatalist.h>
-
 #include <dst/dst.h>
-
 #include <isc/boolean.h>
 #include <isc/buffer.h>
 #include <isc/bufferlist.h>
-#include <isc/formatcheck.h>
 #include <isc/lang.h>
 #include <isc/list.h>
 #include <isc/mem.h>
@@ -85,7 +82,8 @@ struct dig_lookup {
 	        pending, /* Pending a successful answer */
 		waiting_connect,
 		doing_xfr,
-		ns_search_only, /* dig +nssearch, host -C */
+		ns_search_only,
+		ns_search_only_leafnode,
 		identify, /* Append an "on server <foo>" message */
 		identify_previous_line, /* Prepend a "Nameserver <foo>:"
 					   message, with newline and tab */
@@ -94,8 +92,8 @@ struct dig_lookup {
 		aaonly,
 		adflag,
 		cdflag,
-		trace, /* dig +trace */
-		trace_root, /* initial query for either +trace or +nssearch */
+		trace,
+		trace_root,
 		tcp_mode,
 		nibble,
 		comments,
@@ -111,7 +109,6 @@ struct dig_lookup {
 	char textname[MXNAME]; /* Name we're going to be looking up */
 	char cmdline[MXNAME];
 	dns_rdatatype_t rdtype;
-	dns_rdatatype_t qrdtype;
 	dns_rdataclass_t rdclass;
 	isc_boolean_t rdtypeset;
 	isc_boolean_t rdclassset;
@@ -194,10 +191,10 @@ isc_result_t
 get_reverse(char reverse[MXNAME], char *value, isc_boolean_t nibble);
 
 void
-fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
+fatal(const char *format, ...);
 
 void
-debug(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
+debug(const char *format, ...);
 
 void
 check_result(isc_result_t result, const char *msg);
@@ -267,7 +264,7 @@ received(int bytes, isc_sockaddr_t *from, dig_query_t *query);
  */
 
 void
-trying(char *frm, dig_lookup_t *lookup);
+trying(int frmsize, char *frm, dig_lookup_t *lookup);
 
 void
 dighost_shutdown(void);

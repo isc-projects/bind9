@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.103 2001/08/27 17:20:10 gson Exp $ */
+/* $Id: view.c,v 1.100 2001/05/07 23:34:04 gson Exp $ */
 
 #include <config.h>
 
@@ -133,8 +133,6 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->statickeys = NULL;
 	view->dynamickeys = NULL;
 	view->matchclients = NULL;
-	view->matchdestinations = NULL;
-	view->matchrecursiveonly = ISC_FALSE;
 	result = dns_tsigkeyring_create(view->mctx, &view->dynamickeys);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_fwdtable;
@@ -244,8 +242,6 @@ destroy(dns_view_t *view) {
 		dns_cache_detach(&view->cache);
 	if (view->matchclients != NULL)
 		dns_acl_detach(&view->matchclients);
-	if (view->matchdestinations != NULL)
-		dns_acl_detach(&view->matchdestinations);
 	if (view->queryacl != NULL)
 		dns_acl_detach(&view->queryacl);
 	if (view->recursionacl != NULL)
@@ -749,12 +745,6 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 			result = DNS_R_HINTNXRRSET;
 		} else if (result == DNS_R_NXDOMAIN)
 			result = ISC_R_NOTFOUND;
-
-		/*
-		 * Cleanup if non-standard hints are used.
-		 */
-		if (db == NULL && node != NULL)
-			dns_db_detachnode(view->hints, &node);
 	}
 
  cleanup:
@@ -792,8 +782,7 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 			*dbp = db;
 		else
 			dns_db_detach(&db);
-	} else
-		INSIST(node == NULL);
+	}
 
 	if (zone != NULL)
 		dns_zone_detach(&zone);
@@ -998,8 +987,6 @@ dns_view_findzonecut(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 			 * We can't even find the hints for the root
 			 * nameservers!
 			 */
-			if (dns_rdataset_isassociated(rdataset))
-				dns_rdataset_disassociate(rdataset);
 			result = ISC_R_NOTFOUND;
 		}
 	}

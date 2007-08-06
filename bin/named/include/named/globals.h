@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: globals.h,v 1.59 2001/08/08 20:37:31 gson Exp $ */
+/* $Id: globals.h,v 1.57 2001/05/31 10:38:56 tale Exp $ */
 
 #ifndef NAMED_GLOBALS_H
 #define NAMED_GLOBALS_H 1
@@ -76,8 +76,6 @@ EXTERN cfg_obj_t *		ns_g_config		INIT(NULL);
 EXTERN cfg_obj_t *		ns_g_defaults		INIT(NULL);
 EXTERN const char *		ns_g_conffile		INIT(NS_SYSCONFDIR
 							     "/named.conf");
-EXTERN const char *		ns_g_keyfile		INIT(NS_SYSCONFDIR
-							     "/rndc.key");
 EXTERN const char *		lwresd_g_conffile	INIT(NS_SYSCONFDIR
 							     "/lwresd.conf");
 EXTERN const char *		lwresd_g_resolvconffile	INIT("/etc"
@@ -105,6 +103,8 @@ EXTERN const char *		ns_g_defaultpidfile 	INIT(NS_LOCALSTATEDIR
 							     "/run/named.pid");
 EXTERN const char *		lwresd_g_defaultpidfile INIT(NS_LOCALSTATEDIR
 							    "/run/lwresd.pid");
+EXTERN const char *		ns_g_autorndckeyfile	INIT(NS_LOCALSTATEDIR
+							     "/run/named.key");
 EXTERN const char *		ns_g_username		INIT(NULL);
 
 #undef EXTERN

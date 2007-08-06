@@ -15,11 +15,13 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.90 2001/07/30 01:09:14 marka Exp $ */
+/* $Id: nslookup.c,v 1.82 2001/03/16 22:13:41 bwelling Exp $ */
 
 #include <config.h>
 
 #include <stdlib.h>
+
+extern int h_errno;
 
 #include <isc/app.h>
 #include <isc/buffer.h>
@@ -47,11 +49,14 @@ extern ISC_LIST(dig_lookup_t) lookup_list;
 extern ISC_LIST(dig_server_t) server_list;
 extern ISC_LIST(dig_searchlist_t) search_list;
 
-extern isc_boolean_t have_ipv6, usesearch, qr, debugging;
+extern isc_boolean_t have_ipv6,
+	usesearch, trace, qr, debugging;
 extern in_port_t port;
 extern unsigned int timeout;
 extern isc_mem_t *mctx;
 extern dns_messageid_t id;
+extern char *rootspace[BUFSIZE];
+extern isc_buffer_t rootbuf;
 extern int sendcount;
 extern int ndots;
 extern int tries;
@@ -61,19 +66,24 @@ extern isc_taskmgr_t *taskmgr;
 extern isc_task_t *global_task;
 extern char *progname;
 
-static isc_boolean_t short_form = ISC_TRUE,
-	tcpmode = ISC_FALSE, deprecation_msg = ISC_TRUE,
-	identify = ISC_FALSE, stats = ISC_TRUE,
+isc_boolean_t short_form = ISC_TRUE, printcmd = ISC_TRUE,
+	filter = ISC_FALSE, showallsoa = ISC_FALSE,
+	tcpmode = ISC_FALSE, deprecation_msg = ISC_TRUE;
+
+isc_uint16_t bufsize = 0;
+isc_boolean_t identify = ISC_FALSE,
+	trace = ISC_FALSE, ns_search_only = ISC_FALSE,
+	forcecomment = ISC_FALSE, stats = ISC_TRUE,
 	comments = ISC_TRUE, section_question = ISC_TRUE,
 	section_answer = ISC_TRUE, section_authority = ISC_TRUE,
 	section_additional = ISC_TRUE, recurse = ISC_TRUE,
 	aaonly = ISC_FALSE;
-static isc_boolean_t in_use = ISC_FALSE;
-static char defclass[MXRD] = "IN";
-static char deftype[MXRD] = "A";
-static isc_event_t *global_event = NULL;
+isc_boolean_t busy = ISC_FALSE, in_use = ISC_FALSE;
+char defclass[MXRD] = "IN";
+char deftype[MXRD] = "A";
+isc_event_t *global_event = NULL;
 
-static char domainopt[DNS_NAME_MAXTEXT];
+char domainopt[DNS_NAME_MAXTEXT];
 
 static const char *rcodetext[] = {
 	"NOERROR",
@@ -170,7 +180,7 @@ printsoa(dns_rdata_t *rdata) {
 
 	dns_name_format(&soa.origin, namebuf, sizeof(namebuf));
 	printf("\torigin = %s\n", namebuf);
-	dns_name_format(&soa.contact, namebuf, sizeof(namebuf));
+	dns_name_format(&soa.mname, namebuf, sizeof(namebuf));
 	printf("\tmail addr = %s\n", namebuf);
 	printf("\tserial = %u\n", soa.serial);
 	printf("\trefresh = %u\n", soa.refresh);
@@ -381,7 +391,8 @@ received(int bytes, isc_sockaddr_t *from, dig_query_t *query)
 }
 
 void
-trying(char *frm, dig_lookup_t *lookup) {
+trying(int frmsize, char *frm, dig_lookup_t *lookup) {
+	UNUSED(frmsize);
 	UNUSED(frm);
 	UNUSED(lookup);
 
@@ -443,17 +454,22 @@ static void
 show_settings(isc_boolean_t full, isc_boolean_t serv_only) {
 	dig_server_t *srv;
 	isc_sockaddr_t sockaddr;
+	isc_buffer_t *b = NULL;
+	isc_result_t result;
 	dig_searchlist_t *listent;
 
 	srv = ISC_LIST_HEAD(server_list);
 
 	while (srv != NULL) {
-		char sockstr[ISC_SOCKADDR_FORMATSIZE];
-
+		result = isc_buffer_allocate(mctx, &b, MXNAME);
+		check_result(result, "isc_buffer_allocate");
 		get_address(srv->servername, port, &sockaddr);
-		isc_sockaddr_format(&sockaddr, sockstr, sizeof(sockstr));
-		printf("Default server: %s\nAddress: %s\n",
-			srv->servername, sockstr);
+		result = isc_sockaddr_totext(&sockaddr, b);
+		check_result(result, "isc_sockaddr_totext");
+		printf("Default server: %s\nAddress: %.*s\n",
+			srv->servername, (int)isc_buffer_usedlength(b),
+			(char*)isc_buffer_base(b));
+		isc_buffer_free(&b);
 		if (!full)
 			return;
 		srv = ISC_LIST_NEXT(srv, link);
@@ -635,14 +651,14 @@ addlookup(char *opt) {
 	}
 	lookup->rdclass = rdclass;
 	lookup->rdclassset = ISC_TRUE;
-	lookup->trace = ISC_FALSE;
-	lookup->trace_root = lookup->trace;
-	lookup->ns_search_only = ISC_FALSE;
+	lookup->trace = ISC_TF(trace || ns_search_only);
+	lookup->trace_root = trace;
+	lookup->ns_search_only = ns_search_only;
 	lookup->identify = identify;
 	lookup->recurse = recurse;
 	lookup->aaonly = aaonly;
 	lookup->retries = tries;
-	lookup->udpsize = 0;
+	lookup->udpsize = bufsize;
 	lookup->comments = comments;
 	lookup->tcp_mode = tcpmode;
 	lookup->stats = stats;

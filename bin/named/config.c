@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.11 2001/08/07 01:58:54 marka Exp $ */
+/* $Id: config.c,v 1.9 2001/06/04 21:51:23 bwelling Exp $ */
 
 #include <config.h>
 
@@ -35,7 +35,6 @@
 #include <dns/fixedname.h>
 #include <dns/name.h>
 #include <dns/rdataclass.h>
-#include <dns/tsig.h>
 #include <dns/zone.h>
 
 #include <named/config.h>
@@ -177,13 +176,12 @@ ns_config_listcount(cfg_obj_t *list) {
 }
 
 isc_result_t
-ns_config_getclass(cfg_obj_t *classobj, dns_rdataclass_t defclass,
-		   dns_rdataclass_t *classp) {
+ns_config_getclass(cfg_obj_t *classobj, dns_rdataclass_t *classp) {
 	char *str;
 	isc_textregion_t r;
 
 	if (!cfg_obj_isstring(classobj)) {
-		*classp = defclass;
+		*classp = dns_rdataclass_in;
 		return (ISC_R_SUCCESS);
 	}
 	str = cfg_obj_asstring(classobj);
@@ -436,18 +434,4 @@ ns_config_getport(cfg_obj_t *config, in_port_t *portp) {
 	}
 	*portp = (in_port_t)cfg_obj_asuint32(portobj);
 	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
-ns_config_getkeyalgorithm(const char *str, dns_name_t **name)
-{
-	if (strcasecmp(str, "hmac-md5") == 0 ||
-	    strcasecmp(str, "hmac-md5.sig-alg.reg.int") == 0 ||
-	    strcasecmp(str, "hmac-md5.sig-alg.reg.int.") == 0)
-	{
-		if (name != NULL)
-			*name = dns_tsig_hmacmd5_name;
-		return (ISC_R_SUCCESS);
-	}
-	return (ISC_R_NOTFOUND);
 }

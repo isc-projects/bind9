@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsigconf.c,v 1.21 2001/08/03 18:39:50 bwelling Exp $ */
+/* $Id: tsigconf.c,v 1.18 2001/06/10 02:37:08 bwelling Exp $ */
 
 #include <config.h>
 
@@ -31,7 +31,6 @@
 
 #include <named/log.h>
 
-#include <named/config.h>
 #include <named/tsigconf.h>
 
 static isc_result_t
@@ -84,7 +83,11 @@ add_initial_keys(cfg_obj_t *list, dns_tsig_keyring_t *ring, isc_mem_t *mctx) {
 		 * Create the algorithm.
 		 */
 		algstr = cfg_obj_asstring(algobj);
-		if (ns_config_getkeyalgorithm(algstr, &alg) != ISC_R_SUCCESS) {
+		if (strcasecmp(algstr, "hmac-md5") == 0 ||
+		    strcasecmp(algstr, "hmac-md5.sig-alg.reg.int") ||
+		    strcasecmp(algstr, "hmac-md5.sig-alg.reg.int."))
+			alg = dns_tsig_hmacmd5_name;
+		else {
 			cfg_obj_log(algobj, ns_g_lctx, ISC_LOG_ERROR,
 				    "key '%s': the only supported algorithm "
 				    "is hmac-md5", keyid);
@@ -119,7 +122,7 @@ add_initial_keys(cfg_obj_t *list, dns_tsig_keyring_t *ring, isc_mem_t *mctx) {
 
  failure:
 	cfg_obj_log(key, ns_g_lctx, ISC_LOG_ERROR,
-		    "configuring key '%s': %s", keyid,
+		    "configuring TSIG key '%s': %s", keyid,
 		    isc_result_totext(ret));
 
 	if (secret != NULL)

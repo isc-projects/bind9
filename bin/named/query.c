@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198 2001/08/27 17:20:09 gson Exp $ */
+/* $Id: query.c,v 1.196 2001/06/15 23:28:27 gson Exp $ */
 
 #include <config.h>
 
@@ -2608,17 +2608,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 					     rdataset, sigrdataset);
 		}
 		if (result != ISC_R_SUCCESS) {
-			/*
-			 * Nonsensical root hints may require cleanup.
-			 */
-			if (dns_rdataset_isassociated(rdataset))
-				dns_rdataset_disassociate(rdataset);
-			if (sigrdataset != NULL &&
-			    dns_rdataset_isassociated(sigrdataset))
-				dns_rdataset_disassociate(sigrdataset);
-			if (node != NULL)
-				dns_db_detachnode(db, &node);
-
 			/*
 			 * We don't have any root server hints, but
 			 * we may have working forwarders, so try to

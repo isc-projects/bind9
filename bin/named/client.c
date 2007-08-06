@@ -15,11 +15,10 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.176 2001/08/08 22:54:18 gson Exp $ */
+/* $Id: client.c,v 1.174 2001/06/28 02:39:46 marka Exp $ */
 
 #include <config.h>
 
-#include <isc/formatcheck.h>
 #include <isc/mutex.h>
 #include <isc/once.h>
 #include <isc/print.h>
@@ -1190,19 +1189,6 @@ client_getoptattrs(ns_client_t *client, dns_rdataset_t *opt) {
 }
 #endif /* DNS_OPT_NEWCODES */
 
-static inline isc_boolean_t
-allowed(isc_netaddr_t *addr, dns_acl_t *acl) {
-	int match;
-	isc_result_t result;
-
-	if (acl == NULL)
-		return (ISC_TRUE);
-	result = dns_acl_match(addr, NULL, acl, &ns_g_server->aclenv,
-			       &match, NULL);
-	if (result == ISC_R_SUCCESS && match > 0)
-		return (ISC_TRUE);
-	return (ISC_FALSE);
-}
 
 /*
  * Handle an incoming request event from the socket (UDP case)
@@ -1452,14 +1438,11 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		if (client->message->rdclass == view->rdclass ||
 		    client->message->rdclass == dns_rdataclass_any)
 		{
-			isc_netaddr_t destaddr;
-
-			isc_netaddr_fromsockaddr(&destaddr,
-						 &client->interface->addr); 
-			if (allowed(&netaddr, view->matchclients) &&
-			    allowed(&destaddr, view->matchdestinations) &&
-			    !((flags & DNS_MESSAGEFLAG_RD) == 0 &&
-			      view->matchrecursiveonly))
+			if (view->matchclients == NULL ||
+			    (dns_acl_match(&netaddr, NULL, view->matchclients,
+					   &ns_g_server->aclenv,
+					   &match, NULL) == ISC_R_SUCCESS &&
+			     match > 0))
 			{
 				dns_view_attach(view, &client->view);
 				break;
@@ -2247,11 +2230,6 @@ ns_client_name(ns_client_t *client, char *peerbuf, size_t len) {
 	else
 		snprintf(peerbuf, len, "@%p", client);
 }
-
-static void
-ns_client_logv(ns_client_t *client, isc_logcategory_t *category,
-	   isc_logmodule_t *module, int level, const char *fmt, va_list ap)
-     ISC_FORMAT_PRINTF(5, 0);
 
 static void
 ns_client_logv(ns_client_t *client, isc_logcategory_t *category,

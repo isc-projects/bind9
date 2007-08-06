@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.3 2001/08/28 03:58:26 marka Exp $ */
+/* $Id: entropy.c,v 1.2 2001/06/22 17:05:52 tale Exp $ */
 
 /*
  * This is the system independent part of the entropy module.  It is
@@ -87,6 +87,7 @@
 #define RND_INITIALIZE	128
 
 typedef struct {
+	isc_uint32_t	magic;
 	isc_uint32_t	cursor;		/* current add point in the pool */
 	isc_uint32_t	entropy;	/* current entropy estimate in bits */
 	isc_uint32_t	pseudo;		/* bits extracted in pseudorandom */
@@ -95,7 +96,7 @@ typedef struct {
 } isc_entropypool_t;
 
 struct isc_entropy {
-	unsigned int			magic;
+	isc_uint32_t			magic;
 	isc_mem_t		       *mctx;
 	isc_mutex_t			lock;
 	unsigned int			refcnt;
@@ -134,7 +135,7 @@ typedef struct {
 } isc_entropyfilesource_t;
 
 struct isc_entropysource {
-	unsigned int	magic;
+	isc_uint32_t	magic;
 	unsigned int	type;
 	isc_entropy_t  *ent;
 	isc_uint32_t	total;		/* entropy from this source */

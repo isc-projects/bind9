@@ -48,7 +48,7 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: gen-win32.h,v 1.14 2001/07/26 20:31:48 gson Exp $ */
+/* $Id: gen-win32.h,v 1.11 2001/07/16 05:10:19 mayer Exp $ */
 
 /*
  * Principal Authors: Computer Systems Research Group at UC Berkeley
@@ -80,21 +80,19 @@
 #include <string.h>
 #include <windows.h>
 
+#include <isc/assertions.h>
 #include <isc/boolean.h>
+#include <isc/commandline.h>
 #include <isc/lang.h>
+#include <isc/platform.h>
 
-int isc_commandline_index = 1;		/* Index into parent argv vector. */
-int isc_commandline_option;		/* Character checked for validity. */
+/* Index into parent argv vector. */
+/* Argument associated with option. */
+LIBISC_EXTERNAL_DATA char *isc_commandline_argument;
 
-char *isc_commandline_argument;		/* Argument associated with option. */
-char *isc_commandline_progname;		/* For printing error messages. */
-
-isc_boolean_t isc_commandline_errprint = ISC_TRUE;/* Print error messages. */
-isc_boolean_t isc_commandline_reset = ISC_TRUE; /* Reset processing. */
-
-#define BADOPT	'?'
-#define BADARG	':'
-#define ENDOPT	""
+#define	BADOPT	'?'
+#define	BADARG	':'
+#define ENDOPT  ""
 
 ISC_LANG_BEGINDECLS
 
@@ -128,7 +126,7 @@ isc_commandline_parse(int argc, char * const *argv, const char *options) {
 
 		if (place[1] != '\0' && *++place == '-' && place[1] == '\0') {
 			/*
-			 * Found '--' to signal end of options.	 Advance
+			 * Found '--' to signal end of options.  Advance
 			 * index to next argv, the first non-option.
 			 */
 			isc_commandline_index++;

@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.32 2001/08/28 17:29:34 gson Exp $
+# $Id: Makefile.in,v 1.27 2001/06/27 06:32:20 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -23,8 +23,11 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_INCLUDES@
 
-CINCLUDES = -I${srcdir}/include ${ISC_INCLUDES} ${ISCCC_INCLUDES} \
-	${ISCCFG_INCLUDES} ${DNS_INCLUDES}
+CINCLUDES = ${ISC_INCLUDES}
+
+RNDCINCLUDES =	${CINCLUDES} ${ISCCC_INCLUDES} ${ISCCFG_INCLUDES}
+
+CONFINCLUDES =	${CINCLUDES} ${DNS_INCLUDES}
 
 CDEFINES =
 CWARNINGS =
@@ -45,39 +48,33 @@ RNDCDEPLIBS =	${ISCCFGDEPLIBS} ${ISCCCDEPLIBS} ${ISCDEPLIBS}
 CONFLIBS =	${DNSLIBS} ${ISCLIBS} @LIBS@
 CONFDEPLIBS =	${DNSDEPLIBS} ${ISCDEPLIBS}
 
-SUBDIRS =	unix
-
 TARGETS =	rndc rndc-confgen
 
-MANPAGES =	rndc.8 rndc-confgen.8 rndc.conf.5
+MANPAGES =	rndc.8 rndc.conf.5
 
-HTMLPAGES =	rndc.html rndc-confgen.html rndc.conf.html
+HTMLPAGES =	rndc.html rndc.conf.html
 
 MANOBJS =	${MANPAGES} ${HTMLPAGES}
-
-UOBJS =		unix/os.@O@
 
 @BIND9_MAKE_RULES@
 
 rndc.@O@: rndc.c
-	${LIBTOOL} ${CC} ${ALL_CFLAGS} \
+	${LIBTOOL} ${CC} ${ALL_CFLAGS} ${RNDCINCLUDES} \
 		-DVERSION=\"${VERSION}\" \
-		-DRNDC_CONFFILE=\"${sysconfdir}/rndc.conf\" \
-		-DRNDC_KEYFILE=\"${sysconfdir}/rndc.key\" \
-		-c ${srcdir}/rndc.c
+		-DRNDC_SYSCONFDIR=\"${sysconfdir}\" \
+		-DNS_LOCALSTATEDIR=\"${localstatedir}\" -c ${srcdir}/rndc.c
 
 rndc-confgen.@O@: rndc-confgen.c
-	${LIBTOOL} ${CC} ${ALL_CFLAGS} \
-		-DRNDC_KEYFILE=\"${sysconfdir}/rndc.key\" \
-		-c ${srcdir}/rndc-confgen.c
+	${LIBTOOL} ${CC} ${ALL_CFLAGS} ${CONFINCLUDES} \
+		-DRNDC_SYSCONFDIR=\"${sysconfdir}\" -c ${srcdir}/rndc-confgen.c
 
 rndc: rndc.@O@ util.@O@ ${RNDCDEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ rndc.@O@ util.@O@ \
 		${RNDCLIBS}
 
-rndc-confgen: rndc-confgen.@O@ util.@O@ ${UOBJS} ${CONFDEPLIBS} 
+rndc-confgen: rndc-confgen.@O@ util.@O@ ${CONFDEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ rndc-confgen.@O@ util.@O@ \
-		${UOBJS} ${CONFLIBS}
+		${CONFLIBS}
 
 doc man:: ${MANOBJS}
 

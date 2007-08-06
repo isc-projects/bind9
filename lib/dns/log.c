@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.33 2001/08/27 03:35:58 marka Exp $ */
+/* $Id: log.c,v 1.32 2001/07/16 05:10:21 mayer Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -72,7 +72,6 @@ LIBDNS_EXTERNAL_DATA isc_logmodule_t dns_modules[] = {
 	{ "dns/tkey",		0 },
 	{ "dns/sdb",		0 },
 	{ "dns/diff",		0 },
-	{ "dns/hints",		0 },
 	{ NULL, 		0 }
 };
 

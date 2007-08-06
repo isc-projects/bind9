@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_dst.c,v 1.47 2001/08/08 22:54:31 gson Exp $ */
+/* $Id: t_dst.c,v 1.45 2001/07/11 21:46:32 bwelling Exp $ */
 
 #include <config.h>
 
@@ -47,10 +47,6 @@
 
 #include <tests/t_api.h>
 
-#ifndef PATH_MAX
-#define PATH_MAX	256
-#endif
-
 /*
  * Adapted from the original dst_test.c program.
  * XXXDCL should use isc_dir_*.
@@ -64,7 +60,7 @@ cleandir(char *path) {
 
 	dirp = opendir(path);
 	if (dirp == NULL) {
-		t_info("opendir(%s) failed %d\n", path, errno);
+		t_info("opendir(%s) failed %d\n", path, opendir);
 		return;
 	}
 
@@ -364,7 +360,7 @@ t1(void) {
 	mctx = NULL;
 	isc_result = isc_mem_create(0, 0, &mctx);
 	if (isc_result != ISC_R_SUCCESS) {
-		t_info("isc_mem_create failed %s\n",
+		t_info("isc_mem_create failed %d\n",
 		       isc_result_totext(isc_result));
 		t_result(T_UNRESOLVED);
 		return;
@@ -372,21 +368,21 @@ t1(void) {
 	ectx = NULL;
 	isc_result = isc_entropy_create(mctx, &ectx);
 	if (isc_result != ISC_R_SUCCESS) {
-		t_info("isc_entropy_create failed %s\n",
+		t_info("isc_entropy_create failed %d\n",
 		       isc_result_totext(isc_result));
 		t_result(T_UNRESOLVED);
 		return;
 	}
 	result = isc_entropy_createfilesource(ectx, "randomfile");
 	if (isc_result != ISC_R_SUCCESS) {
-		t_info("isc_entropy_create failed %s\n",
+		t_info("isc_entropy_create failed %d\n",
 		       isc_result_totext(isc_result));
 		t_result(T_UNRESOLVED);
 		return;
 	}
 	isc_result = dst_lib_init(mctx, ectx, ISC_ENTROPY_BLOCKING);
 	if (isc_result != ISC_R_SUCCESS) {
-		t_info("dst_lib_init failed %s\n",
+		t_info("dst_lib_init failed %d\n",
 		       isc_result_totext(isc_result));
 		t_result(T_UNRESOLVED);
 		return;
@@ -846,26 +842,26 @@ t2_vfy(char **av) {
 	mctx = NULL;
 	isc_result = isc_mem_create(0, 0, &mctx);
 	if (isc_result != ISC_R_SUCCESS) {
-		t_info("isc_mem_create failed %s\n",
+		t_info("isc_mem_create failed %d\n",
 		       isc_result_totext(isc_result));
 		return(T_UNRESOLVED);
 	}
 	ectx = NULL;
 	isc_result = isc_entropy_create(mctx, &ectx);
 	if (isc_result != ISC_R_SUCCESS) {
-		t_info("isc_entropy_create failed %s\n",
+		t_info("isc_entropy_create failed %d\n",
 		       isc_result_totext(isc_result));
 		return(T_UNRESOLVED);
 	}
 	result = isc_entropy_createfilesource(ectx, "randomfile");
 	if (isc_result != ISC_R_SUCCESS) {
-		t_info("isc_entropy_create failed %s\n",
+		t_info("isc_entropy_create failed %d\n",
 		       isc_result_totext(isc_result));
 		return(T_UNRESOLVED);
 	}
 	isc_result = dst_lib_init(mctx, ectx, ISC_ENTROPY_BLOCKING);
 	if (isc_result != ISC_R_SUCCESS) {
-		t_info("dst_lib_init failed %s\n",
+		t_info("dst_lib_init failed %d\n",
 		       isc_result_totext(isc_result));
 		return(T_UNRESOLVED);
 	}

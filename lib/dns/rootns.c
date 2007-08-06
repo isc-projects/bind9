@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rootns.c,v 1.20 2001/08/27 17:21:56 gson Exp $ */
+/* $Id: rootns.c,v 1.18 2001/01/09 21:51:30 bwelling Exp $ */
 
 #include <config.h>
 
@@ -25,14 +25,7 @@
 
 #include <dns/callbacks.h>
 #include <dns/db.h>
-#include <dns/dbiterator.h>
-#include <dns/log.h>
-#include <dns/fixedname.h>
 #include <dns/master.h>
-#include <dns/rdata.h>
-#include <dns/rdatasetiter.h>
-#include <dns/rdataset.h>
-#include <dns/rdatastruct.h>
 #include <dns/result.h>
 #include <dns/rootns.h>
 
@@ -69,120 +62,6 @@ static char root_ns[] =
 "K.ROOT-SERVERS.NET.     3600000 IN      A       193.0.14.129\n"
 "L.ROOT-SERVERS.NET.     3600000 IN      A       198.32.64.12\n"
 "M.ROOT-SERVERS.NET.     3600000 IN      A       202.12.27.33\n";
-
-static isc_result_t
-in_rootns(dns_rdataset_t *rootns, dns_name_t *name) {
-	isc_result_t result;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	dns_rdata_ns_t ns;
-	
-	result = dns_rdataset_first(rootns);
-	while (result == ISC_R_SUCCESS) {
-		dns_rdataset_current(rootns, &rdata);
-		result = dns_rdata_tostruct(&rdata, &ns, NULL);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-		if (dns_name_compare(name, &ns.name) == 0)
-			return (ISC_R_SUCCESS);
-		result = dns_rdataset_next(rootns);
-	}
-	if (result == ISC_R_NOMORE)
-		result = ISC_R_NOTFOUND;
-	return (result);
-}
-
-static isc_result_t 
-check_node(dns_rdataset_t *rootns, dns_name_t *name,
-	   dns_rdatasetiter_t *rdsiter) {
-	isc_result_t result;
-	dns_rdataset_t rdataset;
-
-	dns_rdataset_init(&rdataset);
-	result = dns_rdatasetiter_first(rdsiter);
-	while (result == ISC_R_SUCCESS) {
-		dns_rdatasetiter_current(rdsiter, &rdataset);
-		switch (rdataset.type) {
-		case dns_rdatatype_a:
-		case dns_rdatatype_aaaa:
-		case dns_rdatatype_a6:
-			result = in_rootns(rootns, name);
-			if (result != ISC_R_SUCCESS)
-				goto cleanup;
-			break;
-		case dns_rdatatype_ns:
-			if (dns_name_compare(name, dns_rootname) == 0)
-				break;
-			/*FALLTHROUGH*/
-		default:
-			result = ISC_R_FAILURE;
-			goto cleanup;
-		}
-		dns_rdataset_disassociate(&rdataset);
-		result = dns_rdatasetiter_next(rdsiter);
-	}
-	if (result == ISC_R_NOMORE)
-		result = ISC_R_SUCCESS;
- cleanup:
-	if (dns_rdataset_isassociated(&rdataset))
-		dns_rdataset_disassociate(&rdataset);
-	return (result);
-}
-
-static isc_result_t
-check_hints(dns_db_t *db) {
-	isc_result_t result;
-	dns_rdataset_t rootns;
-	dns_dbiterator_t *dbiter = NULL;
-	dns_dbnode_t *node = NULL;
-	isc_stdtime_t now;
-	dns_fixedname_t fixname;
-	dns_name_t *name;
-	dns_rdatasetiter_t *rdsiter = NULL;
-
-	isc_stdtime_get(&now);
-
-	dns_fixedname_init(&fixname);
-	name = dns_fixedname_name(&fixname);
-
-	dns_rdataset_init(&rootns);
-	result = dns_db_find(db, dns_rootname, NULL, dns_rdatatype_ns, 0,
-			     now, NULL, name, &rootns, NULL);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-	result = dns_db_createiterator(db, ISC_FALSE, &dbiter);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-	result = dns_dbiterator_first(dbiter);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-	while (result == ISC_R_SUCCESS) {
-		result = dns_dbiterator_current(dbiter, &node, name);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
-		result = dns_db_allrdatasets(db, node, NULL, now, &rdsiter);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
-		result = check_node(&rootns, name, rdsiter);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
-		dns_rdatasetiter_destroy(&rdsiter);
-		dns_db_detachnode(db, &node);
-		result = dns_dbiterator_next(dbiter);
-	}
-	if (result == ISC_R_NOMORE)
-		result = ISC_R_SUCCESS;
-
- cleanup:
-	if (dns_rdataset_isassociated(&rootns))
-		dns_rdataset_disassociate(&rootns);
-	if (rdsiter != NULL)
-		dns_rdatasetiter_destroy(&rdsiter);
-	if (node != NULL)
-		dns_db_detachnode(db, &node);
-	if (dbiter != NULL)
-		dns_dbiterator_destroy(&dbiter);
-	return (result);
-}
 
 isc_result_t
 dns_rootns_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
@@ -232,11 +111,7 @@ dns_rootns_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		result = eresult;
 	if (result != ISC_R_SUCCESS && result != DNS_R_SEENINCLUDE)
 		goto db_detach;
-	if (check_hints(db) != ISC_R_SUCCESS)
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_HINTS, ISC_LOG_WARNING,
-			      "extra data in root hints '%s'",
-			      (filename != NULL) ? filename : "<BUILT-IN>");
+
 	*target = db;
 	return (ISC_R_SUCCESS);
 

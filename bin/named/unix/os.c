@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.46 2001/08/29 18:03:36 gson Exp $ */
+/* $Id: os.c,v 1.44 2001/05/25 07:42:15 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.103 2001/08/08 22:54:27 gson Exp $ */
+/* $Id: nsupdate.c,v 1.100 2001/07/14 20:17:48 bwelling Exp $ */
 
 #include <config.h>
 
@@ -75,9 +75,7 @@
 #endif
 
 #ifndef USE_GETADDRINFO
-#ifndef ISC_PLATFORM_NONSTDHERRNO
 extern int h_errno;
-#endif
 #endif
 
 #define MAXCMD (4 * 1024)
@@ -130,7 +128,7 @@ static isc_boolean_t shuttingdown = ISC_FALSE;
 static FILE *input;
 static isc_boolean_t interactive = ISC_TRUE;
 static isc_boolean_t seenerror = ISC_FALSE;
-static const dns_master_style_t *style;
+static const dns_master_style_t *style = &dns_master_style_debug;
 static int requests = 0;
 
 typedef struct nsu_requestinfo {
@@ -141,14 +139,6 @@ typedef struct nsu_requestinfo {
 static void
 sendrequest(isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
 	    dns_message_t *msg, dns_request_t **request);
-static void
-fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
-
-static void
-debug(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
-
-static void
-ddebug(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
 #define STATUS_MORE	(isc_uint16_t)0
 #define STATUS_SEND	(isc_uint16_t)1
@@ -1565,7 +1555,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 			fatal("could not talk to specified name server");
 		else if (++ns_inuse >= lwconf->nsnext)
 			fatal("could not talk to any default name server");
-		ddebug("Destroying request [%p]", request);
+		ddebug("Destroying request [%lx]", request);
 		dns_request_destroy(&request);
 		dns_message_renderreset(soaquery);
 		sendrequest(localaddr, &servers[ns_inuse], soaquery, &request);
@@ -1855,7 +1845,6 @@ getinput(isc_task_t *task, isc_event_t *event) {
 int
 main(int argc, char **argv) {
 	isc_result_t result;
-	style = &dns_master_style_debug;
 
 	input = stdin;
 

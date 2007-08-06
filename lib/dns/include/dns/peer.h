@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: peer.h,v 1.16 2001/08/28 03:58:20 marka Exp $ */
+/* $Id: peer.h,v 1.15 2001/04/30 18:09:29 gson Exp $ */
 
 #ifndef DNS_PEER_H
 #define DNS_PEER_H 1
@@ -38,8 +38,8 @@
 
 #include <dns/types.h>
 
-#define DNS_PEERLIST_MAGIC	ISC_MAGIC('s','e','R','L')
-#define DNS_PEER_MAGIC		ISC_MAGIC('S','E','r','v')
+#define DNS_PEERLIST_MAGIC	0x7365524c /* seRL */
+#define DNS_PEER_MAGIC		0x53457276 /* SErv */
 
 #define DNS_PEERLIST_VALID(ptr)	ISC_MAGIC_VALID(ptr, DNS_PEERLIST_MAGIC)
 #define DNS_PEER_VALID(ptr)	ISC_MAGIC_VALID(ptr, DNS_PEER_MAGIC)
@@ -49,7 +49,7 @@
  ***/
 
 struct dns_peerlist {
-	unsigned int		magic;
+	isc_uint32_t		magic;
 	isc_uint32_t		refs;
 
 	isc_mem_t	       *mem;
@@ -58,7 +58,7 @@ struct dns_peerlist {
 };
 
 struct dns_peer {
-	unsigned int		magic;
+	isc_uint32_t		magic;
 	isc_uint32_t		refs;
 
 	isc_mem_t	       *mem;

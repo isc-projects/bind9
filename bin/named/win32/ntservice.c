@@ -1,27 +1,32 @@
 /*
+ * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
- * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
- * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
- * INTERNET SOFTWARE CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT,
- * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
- * FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
- * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
- * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntservice.c,v 1.3 2001/07/26 03:15:08 mayer Exp $ */
+/* $Id: ntservice.c,v 1.3.2.2 2004/03/09 06:09:24 marka Exp $ */
 
 #include <config.h>
 #include <stdio.h>
+
+#include <isc/app.h>
 #include <isc/log.h>
+
+#include <named/globals.h>
 #include <named/ntservice.h>
 #include <named/main.h>
+#include <named/server.h>
 
 /* Handle to SCM for updating service status */
 static SERVICE_STATUS_HANDLE hServiceStatus = 0;
@@ -120,7 +125,7 @@ ntservice_shutdown() {
 
 /* 
  * ServiceControl(): Handles requests from the SCM and passes them on
- * to named via signals.
+ * to named.
  */
 void
 ServiceControl(DWORD dwCtrlCode) {
@@ -131,6 +136,8 @@ ServiceControl(DWORD dwCtrlCode) {
 		break;
 
         case SERVICE_CONTROL_STOP:
+		ns_server_flushonshutdown(ns_g_server, ISC_TRUE);
+		isc_app_shutdown();
 		UpdateSCM(SERVICE_STOPPED);
 		break;
         default:

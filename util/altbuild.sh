@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: altbuild.sh,v 1.11 2001/08/09 02:36:01 gson Exp $
+# $Id: altbuild.sh,v 1.9 2001/07/13 01:51:28 gson Exp $
 
 #
 # "Alternative build" test.
@@ -27,15 +27,10 @@
 
 case $# in 
     1) arg=$1 ;;
-    *) echo "usage: $0 cvs-tag | absolute-path-to-gzipped-tar-file" >&2; exit 1 ;;
+    *) echo "usage: $0 cvs-tag | gzipped-tar-file" >&2; exit 1 ;;
 esac
 
 here=`pwd`
-
-test -f util/check-instincludes.sh || {
-    echo "$0: must be run from top of CVS tree";
-    exit 1;
-}
 
 kitdir=/tmp/kit
 srcdir=/tmp/src

@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.112 2001/08/08 22:54:44 gson Exp $
+ * $Id: tsig.c,v 1.110 2001/06/15 02:24:02 bwelling Exp $
  */
 
 #include <config.h>
@@ -98,10 +98,6 @@ dns_name_t *dns_tsig_gssapims_name = &gsstsigms;
 
 static isc_result_t
 tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg);
-
-static void
-tsig_log(dns_tsigkey_t *key, int level, const char *fmt, ...)
-     ISC_FORMAT_PRINTF(3, 4);
 
 static void
 tsig_log(dns_tsigkey_t *key, int level, const char *fmt, ...) {
@@ -215,8 +211,8 @@ dns_tsigkey_createfromkey(dns_name_t *name, dns_name_t *algorithm,
 		dns_name_format(name, namestr, sizeof(namestr));
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
 			      DNS_LOGMODULE_TSIG, ISC_LOG_INFO,
-			      "the key '%s' is too short to be secure",
-			      namestr);
+			      "the TSIG key for '%s' is too short to "
+			      "be secure", namestr);
 	}
 	if (key != NULL)
 		*key = tkey;

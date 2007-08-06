@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.168 2001/08/27 03:58:44 marka Exp $ */
+/* $Id: rbtdb.c,v 1.167 2001/06/04 20:57:25 tale Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -1289,8 +1289,6 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		return;
 
 	new_reference(rbtdb, node);
-
-	INSIST(rdataset->methods == NULL);	/* We must be disassociated. */
 
 	rdataset->methods = &rdataset_methods;
 	rdataset->rdclass = rbtdb->common.rdclass;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.60 2001/08/28 03:57:59 marka Exp $ */
+/* $Id: client.h,v 1.58 2001/06/15 23:28:29 gson Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -64,7 +64,6 @@
  ***/
 
 #include <isc/buffer.h>
-#include <isc/magic.h>
 #include <isc/stdtime.h>
 #include <isc/quota.h>
 
@@ -160,7 +159,7 @@ struct ns_client {
 #define CLIENT_NUMATTRS 2
 #endif /* DNS_OPT_NEWCODES */
 
-#define NS_CLIENT_MAGIC			ISC_MAGIC('N','S','C','c')
+#define NS_CLIENT_MAGIC			0x4E534363U	/* NSCc */
 #define NS_CLIENT_VALID(c)		ISC_MAGIC_VALID(c, NS_CLIENT_MAGIC)
 
 #define NS_CLIENTATTR_TCP		0x01
@@ -315,7 +314,7 @@ ns_client_checkacl(ns_client_t  *client,
 void
 ns_client_log(ns_client_t *client, isc_logcategory_t *category,
 	      isc_logmodule_t *module, int level,
-	      const char *fmt, ...) ISC_FORMAT_PRINTF(5, 6);
+	      const char *fmt, ...);
 
 void
 ns_client_aclmsg(const char *msg, dns_name_t *name, dns_rdataclass_t rdclass,

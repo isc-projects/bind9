@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.30 2001/08/03 23:19:01 gson Exp $ */
+/* $Id: cfg.h,v 1.25 2001/06/29 18:36:12 gson Exp $ */
 
 #ifndef ISCCFG_CFG_H
 #define ISCCFG_CFG_H 1
@@ -110,10 +110,10 @@ cfg_parser_setcallback(cfg_parser_t *pctx,
 
 isc_result_t
 cfg_parse_file(cfg_parser_t *pctx, const char *filename,
-	       const cfg_type_t *type, cfg_obj_t **ret);
+	       cfg_type_t *type, cfg_obj_t **ret);
 isc_result_t
 cfg_parse_buffer(cfg_parser_t *pctx, isc_buffer_t *buffer,
-		 const cfg_type_t *type, cfg_obj_t **ret);
+		 cfg_type_t *type, cfg_obj_t **ret);
 /*
  * Read a configuration containing data of type 'type'
  * and make '*ret' point to its parse tree.
@@ -371,7 +371,7 @@ cfg_print(cfg_obj_t *obj,
  */
 
 void
-cfg_print_grammar(const cfg_type_t *type,
+cfg_print_grammar(cfg_type_t *type,
 	  void (*f)(void *closure, const char *text, int textlen),
 	  void *closure);
 /*
@@ -379,7 +379,7 @@ cfg_print_grammar(const cfg_type_t *type,
  */
 
 isc_boolean_t
-cfg_obj_istype(cfg_obj_t *obj, const cfg_type_t *type);
+cfg_obj_istype(cfg_obj_t *obj, cfg_type_t *type);
 /*
  * Return true iff 'obj' is of type 'type'. 
  */
@@ -401,17 +401,9 @@ cfg_obj_log(cfg_obj_t *obj, isc_log_t *lctx, int level, const char *fmt, ...)
 /*
  * Configuration object types.
  */
-LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_namedconf;
-/* A complete named.conf file. */
-
-LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_rndcconf;
-/* A complete rndc.conf file. */
-
-LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_rndckey;
-/* A complete rndc.key file. */
-
-LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_keyref;
-/* A key reference, used as an ACL element */
+extern cfg_type_t cfg_type_namedconf; /* A complete named.conf file. */
+extern cfg_type_t cfg_type_rndcconf; /* A complete rndc.conf file. */
+extern cfg_type_t cfg_type_keyref; /* A key reference, used as an ACL element */
 
 ISC_LANG_ENDDECLS
 

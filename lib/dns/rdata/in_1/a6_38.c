@@ -15,9 +15,9 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: a6_38.c,v 1.46 2001/07/26 21:34:00 gson Exp $ */
+/* $Id: a6_38.c,v 1.45 2001/07/16 03:06:39 marka Exp $ */
 
-/* RFC2874 */
+/* draft-ietf-ipngwg-dns-lookups-03.txt */
 
 #ifndef RDATA_IN_1_A6_28_C
 #define RDATA_IN_1_A6_28_C
