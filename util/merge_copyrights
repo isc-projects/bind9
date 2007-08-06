@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: merge_copyrights,v 1.30 2007/06/19 23:47:24 tbox Exp $
+# $Id: merge_copyrights,v 1.31 2007/08/06 04:52:27 marka Exp $
 
 %file_types = ();
 %file_years = ();
@@ -82,6 +82,8 @@ while (<FILES>) {
 	    $file_types{$_} = "X";
 	} elsif ($base =~ /\.rnc$/i) {
 	    $file_types{$_} = "RNC";
+	} elsif ($base =~ /\.bat$/i) {
+	    $file_types{$_} = "BAT";
 	} else {
 	    $file_types{$_} = "?";
 	}
