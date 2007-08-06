@@ -12,7 +12,7 @@
 ./bin/Makefile.in				MAKE	1998,1999,2000,2001,2004
 ./bin/check/.cvsignore				X	2000,2001
 ./bin/check/Makefile.in				MAKE	2000,2001,2002,2003,2004,2005,2006
-./bin/check/check-tool.c			C	2000,2001,2002,2004,2005,2006
+./bin/check/check-tool.c			C	2000,2001,2002,2004,2005,2006,2007
 ./bin/check/check-tool.h			C	2000,2001,2002,2004,2005
 ./bin/check/named-checkconf.8			MAN	DOCBOOK
 ./bin/check/named-checkconf.c			C	1999,2000,2001,2002,2004,2005,2006
@@ -2486,7 +2486,7 @@
 ./util/mandoc2docbook.pl			PERL	2001,2004
 ./util/mdnbuildtest.sh				SH	2000,2001,2004
 ./util/memleak.pl				PERL	1999,2000,2001,2004
-./util/merge_copyrights				PERL	1998,1999,2000,2001,2003,2004,2005,2006
+./util/merge_copyrights				PERL	1998,1999,2000,2001,2003,2004,2005,2006,2007
 ./util/mkreslib.pl				PERL	2000,2001,2004
 ./util/nanny.pl					PERL	2000,2001,2004
 ./util/nt-kit					SH	1999,2000,2001,2004
@@ -2496,7 +2496,8 @@
 ./util/update_copyrights			PERL	1998,1999,2000,2001,2004,2005,2006,2007
 ./version					X	1998,1999,2000,2001,2002,2003,2005,2006,2007
 ./win32utils/BINDBuild.dsw			X	2001,2005,2006
-./win32utils/BuildAll.bat			BAT	2001,2002,2004,2005,2006
+./win32utils/BuildAll.bat			BAT	2001,2002,2004,2005,2006,2007
+./win32utils/BuildOpenSSL.bat			BAT	2007
 ./win32utils/BuildPost.bat			BAT	2005,2006
 ./win32utils/BuildSetup.bat			BAT	2001,2002,2004,2005,2006,2007
 ./win32utils/dnsheadergen.bat			BAT	2001,2004
@@ -2504,5 +2505,5 @@
 ./win32utils/makedefs.pl			PERL	2001,2004
 ./win32utils/makeversion.pl			PERL	2001,2004
 ./win32utils/readme1st.txt			TXT.BRIEF	2001,2003,2004,2005,2007
-./win32utils/updateopenssl.pl			PERL	2006
+./win32utils/updateopenssl.pl			PERL	2006,2007
 ./win32utils/win32-build.txt			TXT.BRIEF	2001,2002,2004,2005
