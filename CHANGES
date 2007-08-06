@@ -1,3 +1,5 @@
+2207.	[port]		Some implementations of getaddrinfo() fail to set
+			ai_canonname correctly. [RT #17061]
 
 	--- 9.5.0a6 released ---
 
