@@ -1,3 +1,6 @@
+2208.	[port]		win32: make sure both build methods produce the
+			same output. [RT #17058]
+
 2207.	[port]		Some implementations of getaddrinfo() fail to set
 			ai_canonname correctly. [RT #17061]
 
