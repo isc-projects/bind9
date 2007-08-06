@@ -5,7 +5,7 @@
 ./FAQ						X	2000,2001,2002,2003,2004,2005,2006,2007
 ./FAQ.xml					SGML	2000,2001,2002,2003,2004,2005,2006,2007
 ./Makefile.in					MAKE	1998,1999,2000,2001,2003,2004,2006
-./README					X	1999,2000,2001,2002,2003,2004,2005,2006
+./README					X	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./acconfig.h					C	1999,2000,2001,2003,2004
 ./aclocal.m4					X	1999,2000,2001
 ./bin/.cvsignore				X	1998,1999,2000,2001
@@ -1091,7 +1091,7 @@
 ./doc/arm/Bv9ARM.ch08.html			X	2000,2001,2002,2003,2004,2005,2006,2007
 ./doc/arm/Bv9ARM.ch09.html			X	2000,2001,2002,2003,2004,2005,2006,2007
 ./doc/arm/Bv9ARM.html				X	2000,2001,2002,2003,2004,2005,2006,2007
-./doc/arm/Bv9ARM.pdf				X	2005,2006
+./doc/arm/Bv9ARM.pdf				X	2005,2006,2007
 ./doc/arm/Makefile.in				MAKE	2001,2002,2004,2005,2007
 ./doc/arm/README-SGML				TXT.BRIEF	2000,2001,2004
 ./doc/arm/latex-fixup.pl			PERL	2005
@@ -1164,7 +1164,7 @@
 ./lib/bind/Makefile.in				MAKE	2001,2002,2003,2004,2005,2006
 ./lib/bind/README				X	2001
 ./lib/bind/aclocal.m4				X	2001,2004
-./lib/bind/api					X	2001,2002,2003,2004,2005,2006
+./lib/bind/api					X	2001,2002,2003,2004,2005,2006,2007
 ./lib/bind/bsd/.cvsignore			X	2001
 ./lib/bind/bsd/Makefile.in			MAKE	2001,2004
 ./lib/bind/bsd/daemon.c				X	2001
@@ -1585,7 +1585,7 @@
 ./lib/dns/a6.c					C	1999,2000,2001,2004
 ./lib/dns/acl.c					C	1999,2000,2001,2004,2006
 ./lib/dns/adb.c					C	1999,2000,2001,2002,2003,2004,2005,2006,2007
-./lib/dns/api					X	1999,2000,2001,2002,2003,2004,2005,2006
+./lib/dns/api					X	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/byaddr.c				C	2000,2001,2003,2004
 ./lib/dns/cache.c				C	1999,2000,2001,2002,2003,2004,2006
 ./lib/dns/callbacks.c				C	1999,2000,2001,2004,2006
@@ -1829,7 +1829,7 @@
 ./lib/dns/zt.c					C	1999,2000,2001,2004
 ./lib/isc/.cvsignore				X	1998,1999,2000,2001
 ./lib/isc/Makefile.in				MAKE	1998,1999,2000,2001,2003,2004
-./lib/isc/api					X	1999,2000,2001,2002,2003,2004,2005,2006
+./lib/isc/api					X	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/isc/assertions.c				C	1997,1998,1999,2000,2001,2004
 ./lib/isc/base64.c				C	1998,1999,2000,2001,2003,2004
 ./lib/isc/bitstring.c				C	1999,2000,2001,2004
@@ -2067,7 +2067,7 @@
 ./lib/isccc/.cvsignore				X	2001
 ./lib/isccc/Makefile.in				MAKE	2001,2003,2004
 ./lib/isccc/alist.c				C.NOM	2001,2004
-./lib/isccc/api					X	2001,2002,2003
+./lib/isccc/api					X	2001,2002,2003,2007
 ./lib/isccc/base64.c				C.NOM	2001,2004
 ./lib/isccc/cc.c				C.NOM	2001,2002,2003,2004,2006
 ./lib/isccc/ccmsg.c				C.NOM	2001,2004
@@ -2236,6 +2236,7 @@
 ./lib/lwres/win32/liblwres.dsp			X	2001,2003,2004,2006,2007
 ./lib/lwres/win32/liblwres.dsw			X	2001,2003,2006
 ./lib/lwres/win32/liblwres.mak			X	2001,2004,2006,2007
+./lib/lwres/win32/socket.c			C	2007
 ./lib/lwres/win32/version.c			C	1998,1999,2000,2001,2004
 ./lib/tests/.cvsignore				X	1999,2000,2001
 ./lib/tests/Makefile.in				MAKE	1998,1999,2000,2001,2003,2004
@@ -2276,7 +2277,7 @@
 ./util/mandoc2docbook.pl			PERL	2001,2004
 ./util/mdnbuildtest.sh				SH	2000,2001,2004
 ./util/memleak.pl				PERL	1999,2000,2001,2004
-./util/merge_copyrights				PERL	1998,1999,2000,2001,2002,2004,2005,2006
+./util/merge_copyrights				PERL	1998,1999,2000,2001,2002,2004,2005,2006,2007
 ./util/mkreslib.pl				PERL	2000,2001,2004
 ./util/nanny.pl					PERL	2000,2001,2004
 ./util/nt-kit					SH	1999,2000,2001,2004
@@ -2287,12 +2288,13 @@
 ./util/update_copyrights			PERL	1998,1999,2000,2001,2004,2005,2006,2007
 ./version					X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./win32utils/BINDBuild.dsw			X	2001,2003,2005,2006
-./win32utils/BuildAll.bat			BAT	2001,2003,2004,2006
+./win32utils/BuildAll.bat			BAT	2001,2003,2004,2006,2007
+./win32utils/BuildOpenSSL.bat			BAT	2007
 ./win32utils/BuildSetup.bat			BAT	2001,2002,2003,2004,2005,2006,2007
 ./win32utils/dnsheadergen.bat			BAT	2001,2003,2004,2006
 ./win32utils/index.html				HTML	2006
 ./win32utils/makedefs.pl			PERL	2001,2004
 ./win32utils/makeversion.pl			PERL	2001,2004
 ./win32utils/readme1st.txt			TXT.BRIEF	2001,2003,2004,2007
-./win32utils/updateopenssl.pl			PERL	2006
+./win32utils/updateopenssl.pl			PERL	2006,2007
 ./win32utils/win32-build.txt			TXT.BRIEF	2001,2003,2004
