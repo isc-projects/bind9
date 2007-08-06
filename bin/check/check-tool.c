@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.c,v 1.10.18.14 2006/06/08 01:43:00 marka Exp $ */
+/* $Id: check-tool.c,v 1.10.18.15 2007/08/06 01:10:11 marka Exp $ */
 
 /*! \file */
 
@@ -130,7 +130,16 @@ checkns(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner,
 	dns_name_format(name, namebuf, sizeof(namebuf) - 1);
 	switch (result) {
 	case 0:
-		if (strcasecmp(ai->ai_canonname, namebuf) != 0) {
+		/*
+		 * Work around broken getaddrinfo() implementations that
+		 * fail to set ai_canonname on first entry.
+		 */
+		cur = ai;
+		while (cur != NULL && cur->ai_canonname == NULL &&
+		       cur->ai_next != NULL)
+			cur = cur->ai_next;
+		if (cur != NULL && cur->ai_canonname != NULL &&
+		    strcasecmp(ai->ai_canonname, namebuf) != 0) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "%s/NS '%s' (out of zone) "
 				     "is a CNAME (illegal)",
@@ -268,7 +277,7 @@ checkns(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner,
 static isc_boolean_t
 checkmx(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner) {
 #ifdef USE_GETADDRINFO
-	struct addrinfo hints, *ai;
+	struct addrinfo hints, *ai, *cur;
 	char namebuf[DNS_NAME_FORMATSIZE + 1];
 	char ownerbuf[DNS_NAME_FORMATSIZE];
 	int result;
@@ -293,7 +302,16 @@ checkmx(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner) {
 	dns_name_format(name, namebuf, sizeof(namebuf) - 1);
 	switch (result) {
 	case 0:
-		if (strcasecmp(ai->ai_canonname, namebuf) != 0) {
+		/*
+		 * Work around broken getaddrinfo() implementations that
+		 * fail to set ai_canonname on first entry.
+		 */
+		cur = ai;
+		while (cur != NULL && cur->ai_canonname == NULL &&
+		       cur->ai_next != NULL)
+			cur = cur->ai_next;
+		if (cur != NULL && cur->ai_canonname != NULL &&
+		    strcasecmp(cur->ai_canonname, namebuf) != 0) {
 			if ((zone_options & DNS_ZONEOPT_WARNMXCNAME) != 0)
 				level = ISC_LOG_WARNING;
 			if ((zone_options & DNS_ZONEOPT_IGNOREMXCNAME) == 0) {
@@ -332,7 +350,7 @@ checkmx(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner) {
 static isc_boolean_t
 checksrv(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner) {
 #ifdef USE_GETADDRINFO
-	struct addrinfo hints, *ai;
+	struct addrinfo hints, *ai, *cur;
 	char namebuf[DNS_NAME_FORMATSIZE + 1];
 	char ownerbuf[DNS_NAME_FORMATSIZE];
 	int result;
@@ -357,7 +375,16 @@ checksrv(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner) {
 	dns_name_format(name, namebuf, sizeof(namebuf) - 1);
 	switch (result) {
 	case 0:
-		if (strcasecmp(ai->ai_canonname, namebuf) != 0) {
+		/*
+		 * Work around broken getaddrinfo() implementations that
+		 * fail to set ai_canonname on first entry.
+		 */
+		cur = ai;
+		while (cur != NULL && cur->ai_canonname == NULL &&
+		       cur->ai_next != NULL)
+			cur = cur->ai_next;
+		if (cur != NULL && cur->ai_canonname != NULL &&
+		    strcasecmp(cur->ai_canonname, namebuf) != 0) {
 			if ((zone_options & DNS_ZONEOPT_WARNSRVCNAME) != 0)
 				level = ISC_LOG_WARNING;
 			if ((zone_options & DNS_ZONEOPT_IGNORESRVCNAME) == 0) {
