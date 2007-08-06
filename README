@@ -43,6 +43,20 @@ BIND 9
 		Nominum, Inc.
 
 
+BIND 9.2.9
+
+	BIND 9.2.9 is the final maintenance release for BIND 9.2.
+	BIND 9.2.9 contains fixes for a number of bugs in 9.2.8.
+	
+BIND 9.2.8
+
+	BIND 9.2.9 is a security release for BIND 9.2.
+
+BIND 9.2.7
+
+	BIND 9.2.7 is a maintenance release, containing fixes for
+	a number of bugs in 9.2.6.
+
 BIND 9.2.6
 
 	BIND 9.2.6 is a maintenance release, containing fixes for
