@@ -98,4 +98,10 @@ copy /Y "%FrameworkSDKDir%\%vcredist%" ..\Build\Debug\
 	echo "****         Run vsvars32.bat            ****"
 )
 
+echo Running Message Compiler
+
+cd ..\lib\win32\bindevt
+mc bindevt.mc
+cd ..\..\..\win32utils
+
 rem Done
