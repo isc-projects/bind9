@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.h,v 1.45 2001/04/30 18:09:28 gson Exp $ */
+/* $Id: dispatch.h,v 1.45.4.1 2007/08/12 23:33:24 marka Exp $ */
 
 #ifndef DNS_DISPATCH_H
 #define DNS_DISPATCH_H 1
@@ -408,6 +408,13 @@ dns_dispatch_importrecv(dns_dispatch_t *disp, isc_event_t *event);
  * Requires:
  * 	disp is valid, and the attribute DNS_DISPATCHATTR_NOLISTEN is set.
  * 	event != NULL
+ */
+
+void
+dns_dispatch_hash(void *data, size_t len);
+/*%<
+ * Feed 'data' to the dispatch query id generator where 'len' is the size
+ * of 'data'.
  */
 
 ISC_LANG_ENDDECLS
