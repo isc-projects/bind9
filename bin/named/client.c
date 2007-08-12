@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.136.2.4 2001/02/23 02:27:25 gson Exp $ */
+/* $Id: client.c,v 1.136.2.4.4.1 2007/08/12 07:38:18 marka Exp $ */
 
 #include <config.h>
 
@@ -1221,6 +1221,10 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		ns_client_error(client, DNS_R_REFUSED);
 #endif
 	}
+
+	dns_dispatch_hash(&client->now, sizeof(client->now));
+	dns_dispatch_hash(isc_buffer_base(buffer),
+			  isc_buffer_usedlength(buffer));
 
 	result = dns_message_parse(client->message, buffer, 0);
 	if (result != ISC_R_SUCCESS) {

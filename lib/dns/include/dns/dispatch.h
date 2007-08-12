@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.h,v 1.37.4.1 2001/01/09 22:45:34 bwelling Exp $ */
+/* $Id: dispatch.h,v 1.37.4.1.4.1 2007/08/12 07:38:18 marka Exp $ */
 
 #ifndef DNS_DISPATCH_H
 #define DNS_DISPATCH_H 1
@@ -460,6 +460,13 @@ dns_dispatch_changeattributes(dns_dispatch_t *disp,
  *
  *	attributes are reasonable for the dispatch.  That is, setting the UDP
  *	attribute on a TCP socket isn't reasonable.
+ */
+
+void
+dns_dispatch_hash(void *data, size_t len);
+/*%<
+ * Feed 'data' to the dispatch query id generator where 'len' is the size
+ * of 'data'.
  */
 
 ISC_LANG_ENDDECLS

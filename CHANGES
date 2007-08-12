@@ -1,3 +1,7 @@
+	--- 9.1.1-P4 released ---
+
+2203.	[security]	Query id generation was cryptographically weak.
+			[RT # 16915]
 
 	--- 9.1.1-P3 released ---
 
