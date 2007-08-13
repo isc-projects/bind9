@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.78 2007/07/09 02:18:49 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.79 2007/08/13 03:58:17 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -12045,15 +12045,6 @@ zone "example.com" {
                 </authorgroup>
                 <title>DNS IPv6 Transport Operational Guidelines</title>
                 <pubdate>September 2004</pubdate>
-              </biblioentry>
-              <biblioentry>
-                <abbrev>RFC2352</abbrev>
-                <author>
-                  <surname>Vaughan</surname>
-                  <firstname>O.</firstname>
-                </author>
-                <title>A Convention For Using Legal Names as Domain Names</title>
-                <pubdate>May 1998</pubdate>
               </biblioentry>
             </bibliodiv>
             <bibliodiv>
