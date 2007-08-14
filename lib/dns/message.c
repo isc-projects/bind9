@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.194.2.10.2.26 2007/05/15 23:45:57 tbox Exp $ */
+/* $Id: message.c,v 1.194.2.10.2.27 2007/08/14 00:31:32 marka Exp $ */
 
 /***
  *** Imports
@@ -1306,6 +1306,11 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			rdata->type = rdtype;
 			rdata->flags = DNS_RDATA_UPDATE;
 			result = ISC_R_SUCCESS;
+		} else if (rdclass == dns_rdataclass_none &&
+			   msg->opcode == dns_opcode_update &&
+			   sectionid == DNS_SECTION_UPDATE) {
+			result = getrdata(source, msg, dctx, msg->rdclass,
+					  rdtype, rdatalen, rdata);
 		} else
 			result = getrdata(source, msg, dctx, rdclass,
 					  rdtype, rdatalen, rdata);
