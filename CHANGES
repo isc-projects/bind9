@@ -1,3 +1,6 @@
+2211.	[func]		Update "dynamic update temporarily disabled" message.
+			[RT #17065]
+
 2210.	[bug]		Deleting class specific records via UPDATE could
 			fail.  [RT #17074]
 

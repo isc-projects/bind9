@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.134 2007/06/18 23:47:19 tbox Exp $ */
+/* $Id: update.c,v 1.135 2007/08/14 00:36:43 marka Exp $ */
 
 #include <config.h>
 
@@ -2456,7 +2456,9 @@ update_action(isc_task_t *task, isc_event_t *event) {
 				     ISC_FALSE));
 	
 	if (dns_zone_getupdatedisabled(zone))
-		FAILC(DNS_R_REFUSED, "dynamic update temporarily disabled");
+		FAILC(DNS_R_REFUSED, "dynamic update temporarily disabled "
+			             "because the zone is frozen.  Use "
+				     "'rndc thaw' to re-enable updates.");
 
 	/*
 	 * Perform the Update Section Prescan.
