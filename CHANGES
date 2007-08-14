@@ -1,3 +1,6 @@
+2209.	[port]		osx: linking against user supplied static OpenSSL
+			libraries failed as the system ones were still being
+			found. [RT #17078]
 
 	--- 9.2.9b1 released ---
 
