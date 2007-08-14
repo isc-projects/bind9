@@ -1,3 +1,7 @@
+2209.	[port]		osx: linking against user supplied static OpenSSL
+			libraries failed as the system ones were still being
+			found. [RT #17078]
+
 2208.	[port]		win32: make sure both build methods produce the
 			same output. [RT #17058]
 
