@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.429 $)
+AC_REVISION($Revision: 1.430 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -428,6 +428,21 @@ case "$use_openssl" in
 				;;
 			*-hp-hpux*)
 				DNS_OPENSSL_LIBS="-L$use_openssl/lib -Wl,+b: -lcrypto"
+				;;
+			*-apple-darwin*)
+				#
+				# Apple's ld seaches for serially for dynamic
+				# then static libraries.  This means you can't
+				# use -L to override dynamic system libraries
+				# with static ones when linking.  Instead
+				# we specify a absolute path.
+				#
+				if test -f "$use_openssl/lib/libcrypto.dylib"
+				then
+					DNS_OPENSSL_LIBS="-L$use_openssl/lib -lcrypto"
+				else
+					DNS_OPENSSL_LIBS="$use_openssl/lib/libcrypto.a"
+				fi
 				;;
 			*)
 				DNS_OPENSSL_LIBS="-L$use_openssl/lib -lcrypto"
