@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.94.18.17 2007/04/24 07:36:36 marka Exp $ */
+/* $Id: host.c,v 1.94.18.18 2007/08/15 04:52:27 marka Exp $ */
 
 /*! \file */
 
@@ -583,6 +583,7 @@ pre_parse_args(int argc, char **argv) {
 	while ((c = isc_commandline_parse(argc, argv, optstring)) != -1) {
 		switch (c) {
 		case 'm':
+			memdebugging = ISC_TRUE;
 			if (strcasecmp("trace", isc_commandline_argument) == 0)
 				isc_mem_debugging |= ISC_MEM_DEBUGTRACE;
 			else if (!strcasecmp("record",

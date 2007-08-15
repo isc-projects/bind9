@@ -1,3 +1,6 @@
+2213.	[func]		'host -m' now causes memory statistics and active
+			memory to be printed at exit. [RT 17028]
+
 2210.	[bug]		Deleting class specific records via UPDATE could
 			fail.  [RT #17074]
 
