@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.1.2.27 2007/06/19 06:59:09 marka Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.1.2.28 2007/08/17 06:26:18 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>Aug 13, 2004</date>
@@ -284,6 +284,7 @@ options {
 	allow-update-forwarding { <replaceable>address_match_element</replaceable>; ... };
 	update-check-ksk <replaceable>boolean</replaceable>;
 
+	masterfile-format ( text | raw );
 	notify <replaceable>notifytype</replaceable>;
 	notify-source ( <replaceable>ipv4_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
 	notify-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
@@ -432,6 +433,7 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	allow-update-forwarding { <replaceable>address_match_element</replaceable>; ... };
 	update-check-ksk <replaceable>boolean</replaceable>;
 
+	masterfile-format ( text | raw );
 	notify <replaceable>notifytype</replaceable>;
 	notify-source ( <replaceable>ipv4_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
 	notify-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
@@ -518,6 +520,7 @@ zone <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	};
 	update-check-ksk <replaceable>boolean</replaceable>;
 
+	masterfile-format ( text | raw );
 	notify <replaceable>notifytype</replaceable>;
 	notify-source ( <replaceable>ipv4_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
 	notify-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
