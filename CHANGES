@@ -1,3 +1,6 @@
+2213.	[bug]		SIG0 diagnostic failure messages were looking at the
+			wrong status code. [RT #17101]
+
 2212.	[func]		'host -m' now causes memory statistics and active
 			memory to be printed at exit. [RT 17028]
 
