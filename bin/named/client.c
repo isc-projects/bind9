@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.248 2007/06/26 02:52:15 marka Exp $ */
+/* $Id: client.c,v 1.249 2007/08/22 00:42:42 marka Exp $ */
 
 #include <config.h>
 
@@ -1674,16 +1674,19 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		char tsigrcode[64];
 		isc_buffer_t b;
 		dns_name_t *name = NULL;
+		dns_rcode_t status;
+		isc_result_t tresult;
 
-		isc_buffer_init(&b, tsigrcode, sizeof(tsigrcode) - 1);
-		RUNTIME_CHECK(dns_tsigrcode_totext(client->message->tsigstatus,
-						   &b) == ISC_R_SUCCESS);
-		tsigrcode[isc_buffer_usedlength(&b)] = '\0';
 		/* There is a signature, but it is bad. */
 		if (dns_message_gettsig(client->message, &name) != NULL) {
 			char namebuf[DNS_NAME_FORMATSIZE];
 			char cnamebuf[DNS_NAME_FORMATSIZE];
 			dns_name_format(name, namebuf, sizeof(namebuf));
+			status = client->message->tsigstatus;
+			isc_buffer_init(&b, tsigrcode, sizeof(tsigrcode) - 1);
+			tresult = dns_tsigrcode_totext(status, &b);
+			INSIST(tresult == ISC_R_SUCCESS);
+			tsigrcode[isc_buffer_usedlength(&b)] = '\0';
 			if (client->message->tsigkey->generated) {
 				dns_name_format(client->message->tsigkey->creator,
 						cnamebuf, sizeof(cnamebuf));
@@ -1705,6 +1708,11 @@ client_request(isc_task_t *task, isc_event_t *event) {
 					      tsigrcode);
 			}
 		} else {
+			status = client->message->sig0status;
+			isc_buffer_init(&b, tsigrcode, sizeof(tsigrcode) - 1);
+			tresult = dns_tsigrcode_totext(status, &b);
+			INSIST(tresult == ISC_R_SUCCESS);
+			tsigrcode[isc_buffer_usedlength(&b)] = '\0';
 			ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 				      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
 				      "request has invalid signature: %s (%s)",
