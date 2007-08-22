@@ -1,3 +1,6 @@
+2213.	[bug]		SIG0 diagnostic failure messages were looking at the
+			wrong status code. [RT #17101]
+
 2210.	[bug]		Deleting class specific records via UPDATE could
 			fail.  [RT #17074]
 
