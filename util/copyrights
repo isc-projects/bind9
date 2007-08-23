@@ -1255,7 +1255,7 @@
 ./doc/misc/dnssec				TXT.BRIEF	2000,2001,2002,2004
 ./doc/misc/format-options.pl			PERL	2001,2004,2007
 ./doc/misc/ipv6					TXT.BRIEF	2000,2001,2004
-./doc/misc/migration				TXT.BRIEF	2000,2001,2003,2004
+./doc/misc/migration				TXT.BRIEF	2000,2001,2003,2004,2007
 ./doc/misc/migration-4to9			TXT.BRIEF	2001,2004
 ./doc/misc/options				X	2000,2001,2002,2003,2004,2005,2006,2007
 ./doc/misc/rfc-compliance			TXT.BRIEF	2001,2004
