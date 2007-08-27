@@ -1,3 +1,5 @@
+2217.	[func]		Adjust update log levels. [RT #17092]
+
 2216.	[cleanup]	Fix a number of errors reported by Coverity.
 		        [RT #17094]
 

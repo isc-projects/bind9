@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.135 2007/08/14 00:36:43 marka Exp $ */
+/* $Id: update.c,v 1.136 2007/08/27 04:31:42 marka Exp $ */
 
 #include <config.h>
 
@@ -240,9 +240,24 @@ update_log(ns_client_t *client, dns_zone_t *zone,
 		      namebuf, classbuf, message);
 }
 
+/*%
+ * Override the default acl logging when checking whether a client
+ * can update the zone or whether we can forward the request to the
+ * master based on IP address.
+ *
+ * 'message' contains the type of operation that is being attempted.
+ * 'slave' indicates if this is a slave zone.  If 'acl' is NULL then
+ * log at debug=3.
+ * If the zone has no access controls configured ('acl' == NULL &&
+ * 'has_ssutable == ISC_FALS) log the attempt at info, otherwise
+ * at error.
+ *
+ * If the request was signed log that we received it.
+ */
 static isc_result_t
 checkupdateacl(ns_client_t *client, dns_acl_t *acl, const char *message,
-	       dns_name_t *zonename, isc_boolean_t slave)
+	       dns_name_t *zonename, isc_boolean_t slave,
+	       isc_boolean_t has_ssutable)
 {
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char classbuf[DNS_RDATACLASS_FORMATSIZE];
@@ -254,12 +269,14 @@ checkupdateacl(ns_client_t *client, dns_acl_t *acl, const char *message,
 		result = DNS_R_NOTIMP;
 		level = ISC_LOG_DEBUG(3);
 		msg = "disabled";
-	} else
+	} else {
 		result = ns_client_checkaclsilent(client, NULL, acl, ISC_FALSE);
-
-	if (result == ISC_R_SUCCESS) {
-		level = ISC_LOG_DEBUG(3);
-		msg = "approved";
+		if (result == ISC_R_SUCCESS) {
+			level = ISC_LOG_DEBUG(3);
+			msg = "approved";
+		} else if (acl == NULL && !has_ssutable) {
+			level = ISC_LOG_INFO;
+		}
 	}
 
 	if (client->signer != NULL) {
@@ -2135,7 +2152,8 @@ ns_update_start(ns_client_t *client, isc_result_t sigresult) {
 		break;
 	case dns_zone_slave:
 		CHECK(checkupdateacl(client, dns_zone_getforwardacl(zone),
-				     "update forwarding", zonename, ISC_TRUE));
+				     "update forwarding", zonename, ISC_TRUE,
+				     ISC_FALSE));
 		CHECK(send_forward_event(client, zone));
 		break;
 	default:
@@ -2450,10 +2468,10 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	result = ISC_R_SUCCESS;
 	if (ssutable == NULL)
 		CHECK(checkupdateacl(client, dns_zone_getupdateacl(zone),
-				     "update", zonename, ISC_FALSE));
+				     "update", zonename, ISC_FALSE, ISC_FALSE));
 	else if (client->signer == NULL)
 		CHECK(checkupdateacl(client, NULL, "update", zonename,
-				     ISC_FALSE));
+				     ISC_FALSE, ISC_TRUE));
 	
 	if (dns_zone_getupdatedisabled(zone))
 		FAILC(DNS_R_REFUSED, "dynamic update temporarily disabled "
