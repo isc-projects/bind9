@@ -1,3 +1,6 @@
+2218.	[bug]		Remove unnecessary REQUIRE from dns_validator_create().
+			[RT #16976]
+
 2214.	[bug]		Deregister OpenSSL lock callback when cleaning
 			up. [RT #17098]
 
