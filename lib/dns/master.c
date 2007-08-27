@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.122.2.8.2.19 2007/05/16 06:59:56 marka Exp $ */
+/* $Id: master.c,v 1.122.2.8.2.20 2007/08/27 03:40:01 marka Exp $ */
 
 #include <config.h>
 
@@ -2042,8 +2042,7 @@ dns_master_loadbuffer(isc_buffer_t *buffer, dns_name_t *top,
 	INSIST(result != DNS_R_CONTINUE);
 
  cleanup:
-	if (lctx != NULL)
-		dns_loadctx_detach(&lctx);
+	dns_loadctx_detach(&lctx);
 	return (result);
 }
 
@@ -2078,8 +2077,7 @@ dns_master_loadbufferinc(isc_buffer_t *buffer, dns_name_t *top,
 	}
 
  cleanup:
-	if (lctx != NULL)
-		dns_loadctx_detach(&lctx);
+	dns_loadctx_detach(&lctx);
 	return (result);
 }
 

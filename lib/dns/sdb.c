@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.35.12.10 2006/12/07 23:57:57 marka Exp $ */
+/* $Id: sdb.c,v 1.35.12.11 2007/08/27 03:40:01 marka Exp $ */
 
 #include <config.h>
 
@@ -119,6 +119,10 @@ typedef struct sdb_rdatasetiter {
 /* This is a reasonable value */
 #define SDB_DEFAULT_TTL		(60 * 60 * 24)
 
+#ifdef __COVERITY__
+#define MAYBE_LOCK(sdb) LOCK(&sdb->implementation->driverlock)
+#define MAYBE_UNLOCK(sdb) UNLOCK(&sdb->implementation->driverlock)
+#else
 #define MAYBE_LOCK(sdb)							\
 	do {								\
 		unsigned int flags = sdb->implementation->flags;	\
@@ -132,6 +136,7 @@ typedef struct sdb_rdatasetiter {
 		if ((flags & DNS_SDBFLAG_THREADSAFE) == 0)		\
 			UNLOCK(&sdb->implementation->driverlock);	\
 	} while (0)
+#endif
 
 static int dummy;
 

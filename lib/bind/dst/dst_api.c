@@ -1,5 +1,5 @@
 #ifndef LINT
-static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/dst_api.c,v 1.4.2.6.8.4 2006/03/10 00:17:21 marka Exp $";
+static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/dst_api.c,v 1.4.2.6.8.5 2007/08/27 03:40:01 marka Exp $";
 #endif
 
 /*
@@ -362,7 +362,7 @@ dst_read_key(const char *in_keyname, const u_int16_t in_id,
 					pubkey->dk_alg) == 0)
 		dg_key = dst_free_key(dg_key);
 
-	pubkey = dst_free_key(pubkey);
+	(void)dst_free_key(pubkey);
 	return (dg_key);
 }
 
