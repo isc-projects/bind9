@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.410.18.49 2007/02/26 23:46:22 tbox Exp $ */
+/* $Id: zone.c,v 1.410.18.50 2007/08/27 03:34:24 marka Exp $ */
 
 /*! \file */
 
@@ -5462,7 +5462,6 @@ notify_createmessage(dns_zone_t *zone, unsigned int flags,
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(messagep != NULL && *messagep == NULL);
 
-	message = NULL;
 	result = dns_message_create(zone->mctx, DNS_MESSAGE_INTENTRENDER,
 				    &message);
 	if (result != ISC_R_SUCCESS)
@@ -5589,8 +5588,7 @@ notify_createmessage(dns_zone_t *zone, unsigned int flags,
 		dns_message_puttempname(message, &tempname);
 	if (temprdataset != NULL)
 		dns_message_puttemprdataset(message, &temprdataset);
-	if (message != NULL)
-		dns_message_destroy(&message);
+	dns_message_destroy(&message);
 	return (result);
 }
 

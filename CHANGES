@@ -1,3 +1,6 @@
+2216.	[cleanup]	Fix a number of errors reported by Coverity.
+		        [RT #17094]
+
 2215.	[bug]		Bad REQUIRE check isc_hmacsha1_verify(). [RT #17094]
 
 2214.	[bug]		Deregister OpenSSL lock callback when cleaning
