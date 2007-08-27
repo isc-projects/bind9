@@ -1309,7 +1309,7 @@
 ./lib/bind/configure.in				SH	2001,2003,2004,2005,2006,2007
 ./lib/bind/dst/.cvsignore			X	2001
 ./lib/bind/dst/Makefile.in			MAKE	2001,2004
-./lib/bind/dst/dst_api.c			X	2001,2002,2004,2005,2006
+./lib/bind/dst/dst_api.c			X	2001,2002,2004,2005,2006,2007
 ./lib/bind/dst/dst_internal.h			X	2001,2004,2005
 ./lib/bind/dst/hmac_link.c			X	2001,2003,2005,2006,2007
 ./lib/bind/dst/md5.h				X	2001,2005
@@ -1470,7 +1470,7 @@
 ./lib/bind/nameser/ns_date.c			X	2001,2004,2005
 ./lib/bind/nameser/ns_name.c			X	2001,2002,2003,2004,2005
 ./lib/bind/nameser/ns_netint.c			X	2001,2004,2005
-./lib/bind/nameser/ns_parse.c			X	2001,2003,2004,2005
+./lib/bind/nameser/ns_parse.c			X	2001,2003,2004,2005,2007
 ./lib/bind/nameser/ns_print.c			X	2001,2003,2004,2005
 ./lib/bind/nameser/ns_samedomain.c		X	2001,2003,2004,2005
 ./lib/bind/nameser/ns_sign.c			X	2001,2002,2003,2004,2005,2006
@@ -1846,7 +1846,7 @@
 ./lib/dns/name.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/ncache.c				C	1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/nsec.c				C	1999,2000,2001,2003,2004,2005
-./lib/dns/openssl_link.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006
+./lib/dns/openssl_link.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/openssldh_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006,2007
 ./lib/dns/openssldsa_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006,2007
 ./lib/dns/opensslrsa_link.c			C	2000,2001,2002,2003,2004,2005,2006
@@ -1975,7 +1975,7 @@
 ./lib/dns/resolver.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/result.c				C	1998,1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/rootns.c				C	1999,2000,2001,2002,2004,2005
-./lib/dns/sdb.c					C	2000,2001,2003,2004,2005,2006
+./lib/dns/sdb.c					C	2000,2001,2003,2004,2005,2006,2007
 ./lib/dns/sdlz.c				C.PORTION	1999,2000,2001,2005,2006,2007
 ./lib/dns/soa.c					C	2000,2001,2004,2005
 ./lib/dns/ssu.c					C	2000,2001,2003,2004,2005,2006
@@ -2020,7 +2020,7 @@
 ./lib/isc/heap.c				C	1997,1998,1999,2000,2001,2004,2005,2006
 ./lib/isc/hex.c					C	2000,2001,2002,2003,2004,2005
 ./lib/isc/hmacmd5.c				C	2000,2001,2004,2005,2006
-./lib/isc/hmacsha.c				C	2005,2006
+./lib/isc/hmacsha.c				C	2005,2006,2007
 ./lib/isc/ia64/include/isc/atomic.h		C	2006
 ./lib/isc/include/.cvsignore			X	1998,1999,2000,2001
 ./lib/isc/include/Makefile.in			MAKE	1998,1999,2000,2001,2004
