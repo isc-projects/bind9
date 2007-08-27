@@ -1,3 +1,5 @@
+2215.	[bug]		Bad REQUIRE check isc_hmacsha1_verify(). [RT #17094]
+
 2214.	[bug]		Deregister OpenSSL lock callback when cleaning
 			up.  Reorder OpenSSL cleanup so that RAND_cleanup()
 			is called before the locks are destroyed. [RT #17098]
