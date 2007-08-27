@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hmacsha.c,v 1.7 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: hmacsha.c,v 1.8 2007/08/27 03:27:53 marka Exp $ */
 
 /*
  * This code implements the HMAC-SHA1, HMAC-SHA224, HMAC-SHA256, HMAC-SHA384
@@ -112,7 +112,7 @@ isc_boolean_t
 isc_hmacsha1_verify(isc_hmacsha1_t *ctx, unsigned char *digest, size_t len) {
 	unsigned char newdigest[ISC_SHA1_DIGESTLENGTH];
 
-	REQUIRE(len <= ISC_SHA1_BLOCK_LENGTH);
+	REQUIRE(len <= ISC_SHA1_DIGESTLENGTH);
 	isc_hmacsha1_sign(ctx, newdigest, ISC_SHA1_DIGESTLENGTH);
 	return (ISC_TF(memcmp(digest, newdigest, len) == 0));
 }
