@@ -18,7 +18,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.1.2.3 2006/05/23 23:51:02 marka Exp $
+ * $Id: openssl_link.c,v 1.1.2.4 2007/08/27 03:15:14 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -141,6 +141,7 @@ dst__openssl_init() {
 	dst__mem_free(rm);
 #endif
  cleanup_mutexinit:
+	CRYPTO_set_locking_callback(NULL);
 	RUNTIME_CHECK(isc_mutexblock_destroy(locks, nlocks) == ISC_R_SUCCESS);
  cleanup_mutexalloc:
 	dst__mem_free(locks);
@@ -155,13 +156,14 @@ dst__openssl_destroy() {
 		e = NULL;
 	}
 #endif
+	if (rm != NULL)
+		dst__mem_free(rm);
 	if (locks != NULL) {
+		CRYPTO_set_locking_callback(NULL);
 		RUNTIME_CHECK(isc_mutexblock_destroy(locks, nlocks) ==
 			      ISC_R_SUCCESS);
 		dst__mem_free(locks);
 	}
-	if (rm != NULL)
-		dst__mem_free(rm);
 }
 
 #endif /* OPENSSL */

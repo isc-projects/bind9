@@ -1,3 +1,6 @@
+2214.	[bug]		Deregister OpenSSL lock callback when cleaning
+			up. [RT #17098]
+
 2210.	[bug]		Deleting class specific records via UPDATE could
 			fail.  [RT #17074]
 
