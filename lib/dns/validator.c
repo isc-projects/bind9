@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.91.2.5.8.31 2007/04/27 06:38:56 marka Exp $ */
+/* $Id: validator.c,v 1.91.2.5.8.32 2007/08/27 04:48:09 marka Exp $ */
 
 #include <config.h>
 
@@ -2776,7 +2776,6 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	dns_validatorevent_t *event;
 
 	REQUIRE(name != NULL);
-	REQUIRE(type != 0);
 	REQUIRE(rdataset != NULL ||
 		(rdataset == NULL && sigrdataset == NULL && message != NULL));
 	REQUIRE(validatorp != NULL && *validatorp == NULL);
