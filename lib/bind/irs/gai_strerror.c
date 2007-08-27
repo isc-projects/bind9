@@ -69,7 +69,7 @@ gai_strerror(int ecode) {
 			goto unknown;
                 if (!once) {
                         if (pthread_key_create(&key, free) != 0) {
-				pthread_mutex_unlock(&lock);
+				(void)pthread_mutex_unlock(&lock);
 				goto unknown;
 			}
 			once = 1;

@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: httpd.c,v 1.10 2007/06/18 23:47:44 tbox Exp $ */
+/* $Id: httpd.c,v 1.11 2007/08/27 03:32:27 marka Exp $ */
 
 /*! \file */
 
@@ -257,7 +257,11 @@ isc_httpdmgr_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	if (httpd == NULL)
 		return (ISC_R_NOMEMORY);
 
-	isc_mutex_init(&httpd->lock);
+	result = isc_mutex_init(&httpd->lock);
+	if (result != ISC_R_SUCCESS) {
+		isc_mem_put(mctx, httpd, sizeof(isc_httpdmgr_t));
+		return (result);
+	}
 	httpd->mctx = NULL;
 	isc_mem_attach(mctx, &httpd->mctx);
 	httpd->sock = NULL;
@@ -274,6 +278,10 @@ isc_httpdmgr_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 
 	result = isc_socket_accept(sock, task, isc_httpd_accept, httpd);
 	if (result != ISC_R_SUCCESS) {
+		isc_task_detach(&httpd->task);
+		isc_socket_detach(&httpd->sock);
+		isc_mem_detach(&httpd->mctx);
+		isc_mutex_destroy(&httpd->lock);
 		isc_mem_put(mctx, httpd, sizeof(isc_httpdmgr_t));
 		return (result);
 	}

@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdlz.c,v 1.13 2007/06/18 23:47:41 tbox Exp $ */
+/* $Id: sdlz.c,v 1.14 2007/08/27 03:32:27 marka Exp $ */
 
 /*! \file */
 
@@ -166,6 +166,10 @@ typedef struct sdlz_rdatasetiter {
 
 static int dummy;
 
+#ifdef __COVERITY__
+#define MAYBE_LOCK(imp) LOCK(&imp->driverlock)
+#define MAYBE_UNLOCK(imp) UNLOCK(&imp->driverlock)
+#else
 #define MAYBE_LOCK(imp) \
 	do { \
 		unsigned int flags = imp->flags; \
@@ -179,6 +183,7 @@ static int dummy;
 		if ((flags & DNS_SDLZFLAG_THREADSAFE) == 0) \
 			UNLOCK(&imp->driverlock); \
 	} while (0)
+#endif
 
 /*
  * Forward references.  Try to keep these to a minimum.
