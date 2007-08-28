@@ -3,7 +3,7 @@
 # Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 1998-2001  Internet Software Consortium.
 #
-# Permission to use, copy, modify, and distribute this software for any
+# Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
 # copyright notice and this permission notice appear in all copies.
 #
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_copyrights,v 1.32.18.12 2007/01/08 03:13:06 marka Exp $
+# $Id: update_copyrights,v 1.32.18.13 2007/08/28 02:13:34 marka Exp $
 
 require 5.002;
 
@@ -377,8 +377,10 @@ foreach $file (keys %file_types) {
         $anchor_year = 0;
 	$years = "";
 	$anchor_end = length($years);
+	my $andor = 0;
         foreach $year (@years) {
 		if ($year < 2004) { next; }
+		$andor = 1 if ($year >= 2007);
                 if ($last_year != 0 && $year == $last_year + 1) {
                         if ($year > $anchor_year + 1) {
                                 substr($years, $anchor_end) = "-$year";
@@ -399,22 +401,21 @@ foreach $file (keys %file_types) {
         }
 	$sysyears = $years;
 
-        ($firstline, $secondline, $thirdline, @otherlines) = @$textp;
+        ($firstline, $secondline, @otherlines) = @$textp;
 
         $firstline =~ s/\@SYSYEARS\@/$sysyears/;
         $secondline =~ s/\@SFTYEARS\@/$sftyears/;
-        $thirdline =~ s/\@NOMYEARS\@/$nomyears/;
 
         print TARGET "$prefix$firstline";
 	if ($sftyears ne "" ) {
 		print TARGET $secondline =~ /^$/ ? $nonspaceprefix : $prefix;
 		print TARGET "$secondline";
 	}
-        print TARGET $thirdline =~ /^$/ ? $nonspaceprefix : $prefix;
-	print TARGET "$thirdline";
 
         foreach $_ (@otherlines) {
+		s:modify, and distribute:modify, and/or distribute: if ($andor);
                 print TARGET (/^$/ ? $nonspaceprefix : $prefix);
+		s/\@NOMYEARS\@/$nomyears/;
                 print TARGET "$_";
         }
         print TARGET $end_comment if $end_comment;
