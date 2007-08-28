@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.136 2007/08/27 04:31:42 marka Exp $ */
+/* $Id: update.c,v 1.137 2007/08/28 00:05:06 marka Exp $ */
 
 #include <config.h>
 
@@ -2187,7 +2187,7 @@ remove_orphaned_ds(dns_db_t *db, dns_dbversion_t *newver, dns_diff_t *diff) {
 	for (t = ISC_LIST_HEAD(diff->tuples);
 	     t != NULL;
 	     t = ISC_LIST_NEXT(t, link)) {
-		if (t->op != DNS_DIFFOP_DEL ||
+		if (t->op != DNS_DIFFOP_ADD ||
 		    t->rdata.type != dns_rdatatype_ns)
 			continue;
 		CHECK(rrset_exists(db, newver, &t->name, dns_rdatatype_ns, 0,
@@ -2238,7 +2238,7 @@ check_mx(ns_client_t *client, dns_zone_t *zone,
 	for (t = ISC_LIST_HEAD(diff->tuples);
 	     t != NULL;
 	     t = ISC_LIST_NEXT(t, link)) {
-		if (t->op != DNS_DIFFOP_DEL ||
+		if (t->op != DNS_DIFFOP_ADD ||
 		    t->rdata.type != dns_rdatatype_mx)
 			continue;
 
