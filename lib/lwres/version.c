@@ -2,7 +2,7 @@
  * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: version.c,v 1.6.12.5 2007/01/18 00:06:10 marka Exp $ */
+/* $Id: version.c,v 1.6.12.6 2007/08/28 07:19:18 tbox Exp $ */
 
 #include <lwres/version.h>
 

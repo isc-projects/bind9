@@ -2,7 +2,7 @@
  * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: printmsg.c,v 1.25.2.2.8.4 2007/01/18 00:06:04 marka Exp $ */
+/* $Id: printmsg.c,v 1.25.2.2.8.5 2007/08/28 07:19:09 tbox Exp $ */
 
 #include <config.h>
 

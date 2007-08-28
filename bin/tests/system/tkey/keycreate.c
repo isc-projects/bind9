@@ -2,7 +2,7 @@
  * Copyright (C) 2004, 2006, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001, 2003  Internet Software Consortium.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keycreate.c,v 1.7.12.9 2007/01/18 00:06:06 marka Exp $ */
+/* $Id: keycreate.c,v 1.7.12.10 2007/08/28 07:19:11 tbox Exp $ */
 
 #include <config.h>
 
