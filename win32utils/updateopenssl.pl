@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2006, 2007  Internet Systems Consortium, Inc. ("ISC")
 #
-# Permission to use, copy, modify, and distribute this software for any
+# Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
 # copyright notice and this permission notice appear in all copies.
 #
@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: updateopenssl.pl,v 1.3.8.5 2007/08/06 07:23:12 tbox Exp $
+# $Id: updateopenssl.pl,v 1.3.8.6 2007/08/28 07:18:19 tbox Exp $
 
 # updateopenssl.pl
 # This script locates the latest version of OpenSSL in the grandparent

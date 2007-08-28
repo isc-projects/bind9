@@ -3,7 +3,7 @@
  * Portions Copyright (C) 1999-2001  Internet Software Consortium.
  * Portions Copyright (C) 1995-2000 by Network Associates, Inc.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: openssldsa_link.c,v 1.1.2.8 2007/01/08 05:57:37 marka Exp $ */
+/* $Id: openssldsa_link.c,v 1.1.2.9 2007/08/28 07:18:17 tbox Exp $ */
 
 #ifdef OPENSSL
 
