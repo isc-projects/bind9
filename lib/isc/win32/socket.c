@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.51 2007/06/18 23:47:49 tbox Exp $ */
+/* $Id: socket.c,v 1.52 2007/08/28 00:39:15 marka Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -662,10 +662,11 @@ socket_eventlist_add(event_change_t *evchange, sock_event_list *evlist,
 
 /*
  * Note that the eventLock is locked before calling this function.
- * All Events and associated sockets are closed here.
  */
 isc_boolean_t
-socket_eventlist_delete(event_change_t *evchange, sock_event_list *evlist) {
+socket_eventlist_delete(event_change_t *evchange, sock_event_list *evlist,
+		        isc_socketmgr_t *manager)
+{
 	int i;
 	WSAEVENT hEvent;
 	int iEvent = -1;
@@ -712,11 +713,15 @@ socket_eventlist_delete(event_change_t *evchange, sock_event_list *evlist) {
 	    evchange->sock->pending_send == 0 &&
 	    evchange->sock->pending_free) {
 		evchange->sock->pending_free = 0;
+		ISC_LIST_UNLINK(manager->socklist, evchange->sock, link);
 		dofree = ISC_TRUE;
 	}
 	UNLOCK(&evchange->sock->lock);
 	if (dofree)
 		free_socket(&evchange->sock);
+
+	if (ISC_LIST_EMPTY(manager->socklist))
+		SIGNAL(&manager->shutdown_ok);
 
 	evlist->max_event--;
 	evlist->total_events--;
@@ -756,7 +761,8 @@ process_eventlist(sock_event_list *evlist, isc_socketmgr_t *manager) {
 		next = ISC_LIST_NEXT(evchange, link);
 		del = ISC_FALSE;
 		if (evchange->action == EVENT_DELETE) {
-			del = socket_eventlist_delete(evchange, evlist);
+			del = socket_eventlist_delete(evchange, evlist,
+						      manager);
 
 			/*
 			 * Delete only if this thread's socket list was
@@ -1749,8 +1755,8 @@ destroy_socket(isc_socket_t **sockp) {
 	    sock->pending_close != 0) {
 		dofree = ISC_FALSE;
 		sock->pending_free = 1;
-	}
-	ISC_LIST_UNLINK(manager->socklist, sock, link);
+	} else
+		ISC_LIST_UNLINK(manager->socklist, sock, link);
 	UNLOCK(&sock->lock);
 
 	if (ISC_LIST_EMPTY(manager->socklist))
@@ -2617,8 +2623,15 @@ SocketIoThread(LPVOID ThreadContext) {
 					dofree = ISC_TRUE;
 				}
 				UNLOCK(&sock->lock);
-				if (dofree)
+				if (dofree) {
+					LOCK(&manager->lock);
+					ISC_LIST_UNLINK(manager->socklist,
+							sock, link);
 					free_socket(&sock);
+					if (ISC_LIST_EMPTY(manager->socklist))
+						SIGNAL(&manager->shutdown_ok);
+					UNLOCK(&manager->lock);
+				}
 				if (lpo != NULL)
 					HeapFree(hHeapHandle, 0, lpo);
 				continue;
