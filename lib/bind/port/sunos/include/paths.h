@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2007  Internet Systems Consortium, Inc. ("ISC")
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: paths.h,v 1.1.6.2 2007/05/16 23:46:24 tbox Exp $ */
+/* $Id: paths.h,v 1.1.6.3 2007/08/28 07:20:04 tbox Exp $ */
 
 #define _PATH_DEVNULL "/dev/null"
 

@@ -5,7 +5,7 @@
  - Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
  - Copyright (C) 2000, 2001  Internet Software Consortium.
  -
- - Permission to use, copy, modify, and distribute this software for any
+ - Permission to use, copy, modify, and/or distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
  - copyright notice and this permission notice appear in all copies.
  -
@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: rndc.docbook,v 1.8.18.11 2007/06/19 06:59:09 marka Exp $ -->
+<!-- $Id: rndc.docbook,v 1.8.18.12 2007/08/28 07:20:01 tbox Exp $ -->
 <refentry id="man.rndc">
   <refentryinfo>
     <date>June 30, 2000</date>
