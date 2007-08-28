@@ -1,6 +1,7 @@
 2221.	[bug]		Set the event result code to reflect the actual
-			record content when a cache update is rejected
-			due to a more credible answer existing. [RT #17017]
+			record turned to caller when a cache update is
+			rejected due to a more credible answer existing.
+			[RT #17017]
 
 2220.	[bug]		win32: Address a race condition in final shutdown of
 			the Windows socket code. [RT #17028]
