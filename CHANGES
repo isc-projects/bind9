@@ -1,3 +1,6 @@
+2220.	[bug]		win32: Address a race condition in final shutdown of
+			the Windows socket code. [RT #17028]
+			
 2218.	[bug]		Remove unnecessary REQUIRE from dns_validator_create().
 			[RT #16976]
 
