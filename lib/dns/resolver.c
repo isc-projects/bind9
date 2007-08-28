@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.60 2007/06/18 02:43:46 marka Exp $ */
+/* $Id: resolver.c,v 1.284.18.61 2007/08/28 02:24:59 marka Exp $ */
 
 /*! \file */
 
@@ -54,6 +54,8 @@
 #include <dns/rootns.h>
 #include <dns/tsig.h>
 #include <dns/validator.h>
+
+#define inline  /* XXXMPA remove for 9.4.2 */
 
 #define DNS_RESOLVER_TRACE
 #ifdef DNS_RESOLVER_TRACE
@@ -3531,7 +3533,12 @@ validated(isc_task_t *task, isc_event_t *event) {
 	if (result != ISC_R_SUCCESS &&
 	    result != DNS_R_UNCHANGED)
 		goto noanswer_response;
-	if (vevent->sigrdataset != NULL) {
+	if (ardataset != NULL && ardataset->type == 0) {
+		if (NXDOMAIN(ardataset))
+			eresult = DNS_R_NCACHENXDOMAIN;
+		else
+			eresult = DNS_R_NCACHENXRRSET;
+	} else if (vevent->sigrdataset != NULL) {
 		result = dns_db_addrdataset(fctx->cache, node, NULL, now,
 					    vevent->sigrdataset, 0,
 					    asigrdataset);
@@ -3647,7 +3654,8 @@ validated(isc_task_t *task, isc_event_t *event) {
 
 static inline isc_result_t
 cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
-	   isc_stdtime_t now) {
+	   isc_stdtime_t now)
+{
 	dns_rdataset_t *rdataset, *sigrdataset;
 	dns_rdataset_t *addedrdataset, *ardataset, *asigrdataset;
 	dns_rdataset_t *valrdataset = NULL, *valsigrdataset = NULL;
@@ -3829,8 +3837,29 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 			result = dns_db_addrdataset(fctx->cache, node, NULL,
 						    now, rdataset, 0,
 						    addedrdataset);
-			if (result == DNS_R_UNCHANGED)
+			if (result == DNS_R_UNCHANGED) {
 				result = ISC_R_SUCCESS;
+				if (!need_validation &&
+				    ardataset != NULL &&
+				    ardataset->type == 0) {
+					/*
+					 * The answer in the cache is better
+					 * than the answer we found, and is
+					 * a negative cache entry, so we
+					 * must set eresult appropriately.
+					 */
+					if (NXDOMAIN(ardataset))
+						eresult = DNS_R_NCACHENXDOMAIN;
+					else
+						eresult = DNS_R_NCACHENXRRSET;
+					/*
+					 * We have a negative response from
+					 * the cache so don't attempt to
+					 * add the RRSIG rrset.
+					 */
+					continue;
+				}
+			}
 			if (result != ISC_R_SUCCESS)
 				break;
 			if (sigrdataset != NULL) {
@@ -3947,12 +3976,10 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 					 * a negative cache entry, so we
 					 * must set eresult appropriately.
 					 */
-					 if (NXDOMAIN(ardataset))
-						 eresult =
-							 DNS_R_NCACHENXDOMAIN;
-					 else
-						 eresult =
-							 DNS_R_NCACHENXRRSET;
+					if (NXDOMAIN(ardataset))
+						eresult = DNS_R_NCACHENXDOMAIN;
+					else
+						eresult = DNS_R_NCACHENXRRSET;
 				}
 				result = ISC_R_SUCCESS;
 			} else if (result != ISC_R_SUCCESS)
@@ -3963,11 +3990,19 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 	if (valrdataset != NULL)
 		result = valcreate(fctx, addrinfo, name, fctx->type,
 				   valrdataset, valsigrdataset, valoptions,
-				    task);
+				   task);
 
 	if (result == ISC_R_SUCCESS && have_answer) {
 		fctx->attributes |= FCTX_ATTR_HAVEANSWER;
 		if (event != NULL) {
+			/*
+			 * Negative results must be indicated in event->result.
+			 */
+			if (dns_rdataset_isassociated(event->rdataset) &&
+			    event->rdataset->type == dns_rdatatype_none) {
+				INSIST(eresult == DNS_R_NCACHENXDOMAIN ||
+				       eresult == DNS_R_NCACHENXRRSET);
+			}
 			event->result = eresult;
 			dns_db_attach(fctx->cache, adbp);
 			dns_db_transfernode(fctx->cache, &node, anodep);
