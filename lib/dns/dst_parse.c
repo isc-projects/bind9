@@ -16,7 +16,7 @@
  *
  * Portions Copyright (C) 1995-2000 by Network Associates, Inc.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -31,7 +31,7 @@
 
 /*%
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.9 2007/06/19 23:47:16 tbox Exp $
+ * $Id: dst_parse.c,v 1.10 2007/08/28 07:20:42 tbox Exp $
  */
 
 #include <config.h>

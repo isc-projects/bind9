@@ -16,7 +16,7 @@
  *
  * Portions Copyright (C) 1995-2000 by Network Associates, Inc.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.15 2007/08/27 03:03:41 marka Exp $
+ * $Id: openssl_link.c,v 1.16 2007/08/28 07:20:42 tbox Exp $
  */
 #ifdef OPENSSL
 
