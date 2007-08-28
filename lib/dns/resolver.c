@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.50 2007/06/18 02:46:22 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.51 2007/08/28 02:33:20 marka Exp $ */
 
 #include <config.h>
 
@@ -45,6 +45,8 @@
 #include <dns/result.h>
 #include <dns/tsig.h>
 #include <dns/validator.h>
+
+#define inline  /* XXXMPA remove for 9.4.2 */
 
 #define DNS_RESOLVER_TRACE
 #ifdef DNS_RESOLVER_TRACE
@@ -2823,7 +2825,12 @@ validated(isc_task_t *task, isc_event_t *event) {
 	if (result != ISC_R_SUCCESS &&
 	    result != DNS_R_UNCHANGED)
 		goto noanswer_response;
-	if (vevent->sigrdataset != NULL) {
+	if (ardataset != NULL && ardataset->type == 0) {
+		if (NXDOMAIN(ardataset))
+			eresult = DNS_R_NCACHENXDOMAIN;
+		else
+			eresult = DNS_R_NCACHENXRRSET;
+	} else if (vevent->sigrdataset != NULL) {
 		result = dns_db_addrdataset(fctx->cache, node, NULL, now,
 					    vevent->sigrdataset, 0,
 					    asigrdataset);
@@ -3041,8 +3048,29 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 			result = dns_db_addrdataset(fctx->cache, node, NULL,
 						    now, rdataset, 0,
 						    addedrdataset);
-			if (result == DNS_R_UNCHANGED)
+			if (result == DNS_R_UNCHANGED) {
 				result = ISC_R_SUCCESS;
+				if (!need_validation &&
+				    ardataset != NULL &&
+				    ardataset->type == 0) {
+					/*
+					 * The answer in the cache is better
+					 * than the answer we found, and is
+					 * a negative cache entry, so we
+					 * must set eresult appropriately.
+					 */
+					if (NXDOMAIN(ardataset))
+						eresult = DNS_R_NCACHENXDOMAIN;
+					else
+						eresult = DNS_R_NCACHENXRRSET;
+					/*
+					 * We have a negative response from
+					 * the cache so don't attempt to
+					 * add the RRSIG rrset.
+					 */
+					continue;
+				}
+			}
 			if (result != ISC_R_SUCCESS)
 				break;
 			if (sigrdataset != NULL) {
@@ -3158,12 +3186,10 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 					 * a negative cache entry, so we
 					 * must set eresult appropriately.
 					 */
-					 if (NXDOMAIN(ardataset))
-						 eresult =
-							 DNS_R_NCACHENXDOMAIN;
-					 else
-						 eresult =
-							 DNS_R_NCACHENXRRSET;
+					if (NXDOMAIN(ardataset))
+						eresult = DNS_R_NCACHENXDOMAIN;
+					else
+						eresult = DNS_R_NCACHENXRRSET;
 				}
 				result = ISC_R_SUCCESS;
 			} else if (result != ISC_R_SUCCESS)
@@ -3190,6 +3216,14 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 
 	if (result == ISC_R_SUCCESS && have_answer) {
 		fctx->attributes |= FCTX_ATTR_HAVEANSWER;
+		/*
+		 * Negative results must be indicated in event->result.
+		 */
+		if (dns_rdataset_isassociated(event->rdataset) &&
+			event->rdataset->type == dns_rdatatype_none) {
+			INSIST(eresult == DNS_R_NCACHENXDOMAIN ||
+			eresult == DNS_R_NCACHENXRRSET);
+		}
 		if (event != NULL) {
 			event->result = eresult;
 			dns_db_attach(fctx->cache, adbp);
