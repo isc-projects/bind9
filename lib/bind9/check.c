@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.80 2007/06/18 23:47:39 tbox Exp $ */
+/* $Id: check.c,v 1.81 2007/08/29 03:23:46 marka Exp $ */
 
 /*! \file */
 
@@ -611,7 +611,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 	(void)cfg_map_get(options, "dnssec-lookaside", &obj);
 	if (obj != NULL) {
 		tresult = isc_symtab_create(mctx, 100, freekey, mctx,
-					    ISC_TRUE, &symtab);
+					    ISC_FALSE, &symtab);
 		if (tresult != ISC_R_SUCCESS)
 			result = tresult;
 		for (element = cfg_list_first(obj);
@@ -1350,27 +1350,56 @@ bind9_check_key(const cfg_obj_t *key, isc_log_t *logctx) {
 	return (ISC_R_SUCCESS);
 }
 
+/*
+ * Check key list for duplicates key names and that the key names
+ * are valid domain names as these keys are used for TSIG.
+ *
+ * Check the key contents for validity.
+ */
 static isc_result_t
-check_keylist(const cfg_obj_t *keys, isc_symtab_t *symtab, isc_log_t *logctx) {
+check_keylist(const cfg_obj_t *keys, isc_symtab_t *symtab,
+	      isc_mem_t *mctx, isc_log_t *logctx)
+{
+	char namebuf[DNS_NAME_FORMATSIZE];
+	dns_fixedname_t fname;
+	dns_name_t *name;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
 	const cfg_listelt_t *element;
 
+	dns_fixedname_init(&fname);
+	name = dns_fixedname_name(&fname);
 	for (element = cfg_list_first(keys);
 	     element != NULL;
 	     element = cfg_list_next(element))
 	{
 		const cfg_obj_t *key = cfg_listelt_value(element);
-		const char *keyname = cfg_obj_asstring(cfg_map_getname(key));
+		const char *keyid = cfg_obj_asstring(cfg_map_getname(key));
 		isc_symvalue_t symvalue;
+		isc_buffer_t b;
+		char *keyname;
 
+		isc_buffer_init(&b, keyid, strlen(keyid));
+		isc_buffer_add(&b, strlen(keyid));
+		tresult = dns_name_fromtext(name, &b, dns_rootname,
+					    ISC_FALSE, NULL);
+		if (tresult != ISC_R_SUCCESS) {
+			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
+				    "key '%s': bad key name", keyid);
+			result = tresult;
+			continue;
+		}
 		tresult = bind9_check_key(key, logctx);
 		if (tresult != ISC_R_SUCCESS)
 			return (tresult);
 
+		dns_name_format(name, namebuf, sizeof(namebuf));
+		keyname = isc_mem_strdup(mctx, namebuf);
+		if (keyname == NULL)
+			return (ISC_R_NOMEMORY);
 		symvalue.as_cpointer = key;
-		tresult = isc_symtab_define(symtab, keyname, 1,
-					    symvalue, isc_symexists_reject);
+		tresult = isc_symtab_define(symtab, keyname, 1, symvalue,
+					    isc_symexists_reject);
 		if (tresult == ISC_R_EXISTS) {
 			const char *file;
 			unsigned int line;
@@ -1385,10 +1414,13 @@ check_keylist(const cfg_obj_t *keys, isc_symtab_t *symtab, isc_log_t *logctx) {
 			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
 				    "key '%s': already exists "
 				    "previous definition: %s:%u",
-				    keyname, file, line);
+				    keyid, file, line);
+			isc_mem_free(mctx, keyname);
 			result = tresult;
-		} else if (tresult != ISC_R_SUCCESS)
+		} else if (tresult != ISC_R_SUCCESS) {
+			isc_mem_free(mctx, keyname);
 			return (tresult);
+		}
 	}
 	return (result);
 }
@@ -1403,18 +1435,60 @@ static struct {
 	{ NULL, NULL }
 };
 
+/*
+ * RNDC keys are not normalised unlike TSIG keys.
+ *
+ * 	"foo." is different to "foo".
+ */
+static isc_boolean_t
+rndckey_exists(const cfg_obj_t *keylist, const char *keyname) {
+	const cfg_listelt_t *element;
+	const cfg_obj_t *obj;
+	const char *str;
+	
+	if (keylist == NULL)
+		return (ISC_FALSE);
+
+	for (element = cfg_list_first(keylist);
+	     element != NULL;   
+	     element = cfg_list_next(element)) 
+	{
+		obj = cfg_listelt_value(element);
+		str = cfg_obj_asstring(cfg_map_getname(obj));
+		if (!strcasecmp(str, keyname))
+			return (ISC_TRUE);
+	}
+	return (ISC_FALSE);
+}
+
 static isc_result_t
-check_servers(const cfg_obj_t *servers, isc_log_t *logctx) {
+check_servers(const cfg_obj_t *config, const cfg_obj_t *voptions,
+	      isc_symtab_t *symtab, isc_log_t *logctx)
+{
+	dns_fixedname_t fname;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
 	const cfg_listelt_t *e1, *e2;
-	const cfg_obj_t *v1, *v2;
+	const cfg_obj_t *v1, *v2, *keys;
+	const cfg_obj_t *servers;
 	isc_netaddr_t n1, n2;
 	unsigned int p1, p2;
 	const cfg_obj_t *obj;
 	char buf[ISC_NETADDR_FORMATSIZE];
+	char namebuf[DNS_NAME_FORMATSIZE];
 	const char *xfr;
+	const char *keyval;
+	isc_buffer_t b;
 	int source;
+	dns_name_t *keyname;
+
+	servers = NULL;
+	if (voptions != NULL)
+		(void)cfg_map_get(voptions, "server", &servers);
+	if (servers == NULL)
+		(void)cfg_map_get(config, "server", &servers);
+	if (servers == NULL)
+		return (ISC_R_SUCCESS);
 
 	for (e1 = cfg_list_first(servers); e1 != NULL; e1 = cfg_list_next(e1)) {
 		v1 = cfg_listelt_value(e1);
@@ -1442,8 +1516,8 @@ check_servers(const cfg_obj_t *servers, isc_log_t *logctx) {
 			if (obj != NULL) {
 				isc_netaddr_format(&n1, buf, sizeof(buf));
 				cfg_obj_log(v1, logctx, ISC_LOG_ERROR,
-					    "server '%s': %s not legal",
-					    buf, xfr);
+					    "server '%s/%u': %s not legal",
+					    buf, p1, xfr);
 				result = ISC_R_FAILURE;
 			}
 		} while (sources[++source].v4 != NULL);
@@ -1466,6 +1540,33 @@ check_servers(const cfg_obj_t *servers, isc_log_t *logctx) {
 				result = ISC_R_FAILURE;
 			}
 		}
+		keys = NULL;
+		cfg_map_get(v1, "keys", &keys);
+		if (keys != NULL) {
+			/*
+			 * Normalize key name.
+			 */
+			keyval = cfg_obj_asstring(keys);
+			dns_fixedname_init(&fname);
+			isc_buffer_init(&b, keyval, strlen(keyval));
+			isc_buffer_add(&b, strlen(keyval));
+			keyname = dns_fixedname_name(&fname);
+			tresult = dns_name_fromtext(keyname, &b, dns_rootname,
+						    ISC_FALSE, NULL);
+			if (tresult != ISC_R_SUCCESS) {
+				cfg_obj_log(keys, logctx, ISC_LOG_ERROR,
+					    "bad key name '%s'", keyval);
+				result = ISC_R_FAILURE;
+				continue;
+			}
+			dns_name_format(keyname, namebuf, sizeof(namebuf));
+			tresult = isc_symtab_lookup(symtab, namebuf, 1, NULL);
+			if (tresult != ISC_R_SUCCESS) {
+				cfg_obj_log(keys, logctx, ISC_LOG_ERROR,
+					    "unknown key '%s'", keyval);
+				result = ISC_R_FAILURE;
+			}
+		}
 	}
 	return (result);
 }
@@ -1475,7 +1576,6 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	       const char *viewname, dns_rdataclass_t vclass,
 	       isc_log_t *logctx, isc_mem_t *mctx)
 {
-	const cfg_obj_t *servers = NULL;
 	const cfg_obj_t *zones = NULL;
 	const cfg_obj_t *keys = NULL;
 	const cfg_listelt_t *element;
@@ -1518,37 +1618,6 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	isc_symtab_destroy(&symtab);
 
 	/*
-	 * Check that all key statements are syntactically correct and
-	 * there are no duplicate keys.
-	 */
-	tresult = isc_symtab_create(mctx, 100, NULL, NULL, ISC_TRUE, &symtab);
-	if (tresult != ISC_R_SUCCESS)
-		return (ISC_R_NOMEMORY);
-
-	(void)cfg_map_get(config, "key", &keys);
-	tresult = check_keylist(keys, symtab, logctx);
-	if (tresult == ISC_R_EXISTS)
-		result = ISC_R_FAILURE;
-	else if (tresult != ISC_R_SUCCESS) {
-		isc_symtab_destroy(&symtab);
-		return (tresult);
-	}
-	
-	if (voptions != NULL) {
-		keys = NULL;
-		(void)cfg_map_get(voptions, "key", &keys);
-		tresult = check_keylist(keys, symtab, logctx);
-		if (tresult == ISC_R_EXISTS)
-			result = ISC_R_FAILURE;
-		else if (tresult != ISC_R_SUCCESS) {
-			isc_symtab_destroy(&symtab);
-			return (tresult);
-		}
-	}
-
-	isc_symtab_destroy(&symtab);
-
-	/*
 	 * Check that forwarding is reasonable.
 	 */
 	if (voptions == NULL) {
@@ -1561,6 +1630,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		if (check_forward(voptions, logctx) != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}
+
 	/*
 	 * Check that dual-stack-servers is reasonable.
 	 */
@@ -1583,12 +1653,43 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 			result = ISC_R_FAILURE;
 	}
 
-	if (voptions != NULL) {
-		(void)cfg_map_get(voptions, "server", &servers);
-		if (servers != NULL &&
-		    check_servers(servers, logctx) != ISC_R_SUCCESS)
-			result = ISC_R_FAILURE;
+	/*
+	 * Check that all key statements are syntactically correct and
+	 * there are no duplicate keys.
+	 */
+	tresult = isc_symtab_create(mctx, 100, freekey, mctx,
+				    ISC_FALSE, &symtab);
+	if (tresult != ISC_R_SUCCESS)
+		return (ISC_R_NOMEMORY);
+
+	(void)cfg_map_get(config, "key", &keys);
+	tresult = check_keylist(keys, symtab, mctx, logctx);
+	if (tresult == ISC_R_EXISTS)
+		result = ISC_R_FAILURE;
+	else if (tresult != ISC_R_SUCCESS) {
+		isc_symtab_destroy(&symtab);
+		return (tresult);
 	}
+	
+	if (voptions != NULL) {
+		keys = NULL;
+		(void)cfg_map_get(voptions, "key", &keys);
+		tresult = check_keylist(keys, symtab, mctx, logctx);
+		if (tresult == ISC_R_EXISTS)
+			result = ISC_R_FAILURE;
+		else if (tresult != ISC_R_SUCCESS) {
+			isc_symtab_destroy(&symtab);
+			return (tresult);
+		}
+	}
+
+	/*
+	 * Global servers can refer to keys in views.
+	 */
+	if (check_servers(config, voptions, symtab, logctx) != ISC_R_SUCCESS)
+		result = ISC_R_FAILURE;
+
+	isc_symtab_destroy(&symtab);
 
 	/*
 	 * Check that dnssec-enable/dnssec-validation are sensible.
@@ -1756,33 +1857,14 @@ bind9_check_logging(const cfg_obj_t *config, isc_log_t *logctx,
 }
 
 static isc_result_t
-key_exists(const cfg_obj_t *keylist, const char *keyname) {
-	const cfg_listelt_t *element;
-	const char *str;
-	const cfg_obj_t *obj;
-	
-	if (keylist == NULL)
-		return (ISC_R_NOTFOUND);
-	for (element = cfg_list_first(keylist);
-	     element != NULL;   
-	     element = cfg_list_next(element)) 
-	{
-		obj = cfg_listelt_value(element);
-		str = cfg_obj_asstring(cfg_map_getname(obj));
-		if (strcasecmp(str, keyname) == 0)
-			return (ISC_R_SUCCESS);
-	}
-	return (ISC_R_NOTFOUND);
-}
-
-static isc_result_t
 bind9_check_controlskeys(const cfg_obj_t *control, const cfg_obj_t *keylist,
 			 isc_log_t *logctx)
 {
-	isc_result_t result = ISC_R_SUCCESS, tresult;
+	isc_result_t result = ISC_R_SUCCESS;
 	const cfg_obj_t *control_keylist;
 	const cfg_listelt_t *element;
 	const cfg_obj_t *key;
+	const char *keyval;
 	
 	control_keylist = cfg_tuple_get(control, "keys");
 	if (cfg_obj_isvoid(control_keylist))
@@ -1793,11 +1875,12 @@ bind9_check_controlskeys(const cfg_obj_t *control, const cfg_obj_t *keylist,
 	     element = cfg_list_next(element))
 	{
 		key = cfg_listelt_value(element);
-		tresult = key_exists(keylist, cfg_obj_asstring(key));
-		if (tresult != ISC_R_SUCCESS) {
+		keyval = cfg_obj_asstring(key);
+
+		if (!rndckey_exists(keylist, keyval)) {
 			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
-				    "unknown key '%s'", cfg_obj_asstring(key));
-			result = tresult;
+				    "unknown key '%s'", keyval);
+			result = ISC_R_NOTFOUND;
 		}
 	}
 	return (result);
@@ -1905,7 +1988,6 @@ bind9_check_namedconf(const cfg_obj_t *config, isc_log_t *logctx,
 		      isc_mem_t *mctx)
 {
 	const cfg_obj_t *options = NULL;
-	const cfg_obj_t *servers = NULL;
 	const cfg_obj_t *views = NULL;
 	const cfg_obj_t *acls = NULL;
 	const cfg_obj_t *kals = NULL;
@@ -1922,11 +2004,6 @@ bind9_check_namedconf(const cfg_obj_t *config, isc_log_t *logctx,
 
 	if (options != NULL &&
 	    check_options(options, logctx, mctx) != ISC_R_SUCCESS)
-		result = ISC_R_FAILURE;
-
-	(void)cfg_map_get(config, "server", &servers);
-	if (servers != NULL &&
-	    check_servers(servers, logctx) != ISC_R_SUCCESS)
 		result = ISC_R_FAILURE;
 
 	if (bind9_check_logging(config, logctx, mctx) != ISC_R_SUCCESS)

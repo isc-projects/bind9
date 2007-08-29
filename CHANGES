@@ -1,3 +1,6 @@
+2222.	[func]		named-checkconf now checks server key references.
+		        [RT #17097]
+
 2221.	[bug]		Set the event result code to reflect the actual
 			record turned to caller when a cache update is
 			rejected due to a more credible answer existing.
