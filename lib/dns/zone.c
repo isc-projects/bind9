@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.410.18.51 2007/08/28 07:20:05 tbox Exp $ */
+/* $Id: zone.c,v 1.410.18.52 2007/08/30 05:15:03 marka Exp $ */
 
 /*! \file */
 
@@ -253,6 +253,11 @@ struct dns_zone {
 	isc_uint32_t		notifydelay;
 	dns_isselffunc_t	isself;
 	void			*isselfarg;
+
+	/*%
+	 * Serial number for deferred journal compaction.
+	 */
+	isc_uint32_t		compact_serial;
 };
 
 #define DNS_ZONE_FLAG(z,f) (ISC_TF(((z)->flags & (f)) != 0))
@@ -298,6 +303,7 @@ struct dns_zone {
 #define DNS_ZONEFLG_NOEDNS	0x00400000U
 #define DNS_ZONEFLG_USEALTXFRSRC 0x00800000U
 #define DNS_ZONEFLG_SOABEFOREAXFR 0x01000000U
+#define DNS_ZONEFLG_NEEDCOMPACT 0x02000000U
 
 #define DNS_ZONE_OPTION(z,o) (((z)->options & (o)) != 0)
 
@@ -3194,6 +3200,9 @@ dump_done(void *arg, isc_result_t result) {
 	dns_db_t *db;
 	dns_dbversion_t *version;
 	isc_boolean_t again = ISC_FALSE;
+	isc_boolean_t compact = ISC_FALSE;
+	isc_uint32_t serial;
+	isc_result_t tresult;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -3201,8 +3210,6 @@ dump_done(void *arg, isc_result_t result) {
 
 	if (result == ISC_R_SUCCESS && zone->journal != NULL &&
 	    zone->journalsize != -1) {
-		isc_uint32_t serial;
-		isc_result_t tresult;
 
 		/*
 		 * We don't own these, zone->dctx must stay valid.
@@ -3211,7 +3218,11 @@ dump_done(void *arg, isc_result_t result) {
 		version = dns_dumpctx_version(zone->dctx);
 
 		tresult = dns_db_getsoaserial(db, version, &serial);
-		if (tresult == ISC_R_SUCCESS) {
+		/*
+		 * Note: we are task locked here so we can test
+		 * zone->xfr safely.
+		 */
+		if (tresult == ISC_R_SUCCESS && zone->xfr == NULL) {
 			tresult = dns_journal_compact(zone->mctx,
 						      zone->journal,
 						      serial,
@@ -3230,11 +3241,16 @@ dump_done(void *arg, isc_result_t result) {
 					     dns_result_totext(tresult));
 				break;
 			}
+		} else if (tresult == ISC_R_SUCCESS) {
+			compact = ISC_TRUE;
+			zone->compact_serial = serial;
 		}
 	}
 
 	LOCK_ZONE(zone);
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_DUMPING);
+	if (compact)
+		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDCOMPACT);
 	if (result != ISC_R_SUCCESS && result != ISC_R_CANCELED) {
 		/*
 		 * Try again in a short while.
@@ -6625,6 +6641,30 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 	if (zone->tsigkey != NULL)
 		dns_tsigkey_detach(&zone->tsigkey);
 
+	/*
+	 * Handle any deferred journal compaction.
+	 */
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDCOMPACT)) {
+		result = dns_journal_compact(zone->mctx, zone->journal,
+					     zone->compact_serial,
+					     zone->journalsize);
+		switch (result) {
+		case ISC_R_SUCCESS:
+		case ISC_R_NOSPACE:
+		case ISC_R_NOTFOUND:
+			dns_zone_log(zone, ISC_LOG_DEBUG(3),
+				     "dns_journal_compact: %s",
+				     dns_result_totext(result));
+			break;
+		default:
+			dns_zone_log(zone, ISC_LOG_ERROR,
+				     "dns_journal_compact failed: %s",
+				     dns_result_totext(result));
+			break;
+		}
+		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NEEDCOMPACT);
+	}
+	
 	/*
 	 * This transfer finishing freed up a transfer quota slot.
 	 * Let any other zones waiting for quota have it.
