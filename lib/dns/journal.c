@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.77.2.1.10.19 2007/08/30 22:41:10 marka Exp $ */
+/* $Id: journal.c,v 1.77.2.1.10.20 2007/08/30 23:51:46 marka Exp $ */
 
 #include <config.h>
 
@@ -679,6 +679,7 @@ dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 	isc_result_t result;
 	int len;
 	char backup[1024];
+	size_t n;
 	
 	result = journal_open(mctx, filename, write, write, journalp);
 	if (result == ISC_R_NOTFOUND) {
@@ -686,9 +687,8 @@ dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 		if (len > 4 && strcmp(filename + len - 4, ".jnl") == 0)
 			len -= 4;
 
-		len = snprintf(backup, sizeof(backup), "%.*s.jbk", len,
-                                  filename);
-		if (sizeof(backup) <= len)
+		n = snprintf(backup, sizeof(backup), "%.*s.jbk", len, filename);
+		if (sizeof(backup) <= n)
 			return (ISC_R_NOSPACE);
 		result = journal_open(mctx, backup, write, write, journalp);
 	}
