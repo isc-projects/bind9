@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.77.2.1.10.17 2007/08/30 05:17:48 marka Exp $ */
+/* $Id: journal.c,v 1.77.2.1.10.18 2007/08/30 17:46:57 each Exp $ */
 
 #include <config.h>
 
@@ -28,6 +28,7 @@
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/util.h>
+#include <isc/print.h>
 
 #include <dns/compress.h>
 #include <dns/db.h>
@@ -685,8 +686,8 @@ dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 		if (len > 4 && strcmp(filename + len - 4, ".jnl") == 0)
 			len -= 4;
 
-		result = isc_string_printf(backup, sizeof(backup), "%.*s.jbk",
-					   len, filename);
+		result = snprintf(backup, sizeof(backup), "%.*s.jbk", len,
+                                  filename);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		result = journal_open(mctx, backup, write, write, journalp);
@@ -1964,13 +1965,11 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, isc_uint32_t serial,
 	if (len > 4 && strcmp(filename + len - 4, ".jnl") == 0)
 		len -= 4;
 
-	result = isc_string_printf(newname, sizeof(newname), "%.*s.jnw",
-				   len, filename);
+	result = snprintf(newname, sizeof(newname), "%.*s.jnw", len, filename);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = isc_string_printf(backup, sizeof(backup), "%.*s.jbk",
-				   len, filename);
+	result = snprintf(backup, sizeof(backup), "%.*s.jbk", len, filename);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
