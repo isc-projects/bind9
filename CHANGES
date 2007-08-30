@@ -1,3 +1,8 @@
+2224.	[bug]		Defer journal compaction if a xfrin is in progress.
+			[RT #17119]
+
+2223.	[bug]		Make a new journal when compacting. [RT #17119]
+
 2221.	[bug]		Set the event result code to reflect the actual
 			record returned to caller when a cache update is
 			rejected due to a more credible answer existing.
