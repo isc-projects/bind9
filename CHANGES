@@ -1,3 +1,8 @@
+2224.	[bug]		Defer journal compaction if a xfrin is in progress.
+			[RT #17119]
+
+2223.	[bug]		Make a new journal when compacting. [RT #17119]
+
 2222.	[func]		named-checkconf now checks server key references.
 		        [RT #17097]
 
