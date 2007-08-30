@@ -1,4 +1,4 @@
-2225.   [bug]           Fix build error.  [RT #17124]
+2226.   [bug]           Fix build error.  [RT #17124]
 
 2224.	[bug]		Defer journal compaction if a xfrin is in progress.
 			[RT #17119]
