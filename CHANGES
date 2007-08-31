@@ -1,5 +1,8 @@
 2226.   [bug]           Fix build error.  [RT #17124]
 
+2225.	[bug]		More support for systems with no IPv4 addresses.
+		        [RT #17111]
+
 2224.	[bug]		Defer journal compaction if a xfrin is in progress.
 			[RT #17119]
 
