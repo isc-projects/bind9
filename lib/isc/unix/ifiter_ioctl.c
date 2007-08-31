@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.44.18.11 2006/02/03 23:51:38 marka Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.44.18.12 2007/08/31 03:44:52 marka Exp $ */
 
 /*! \file
  * \brief
@@ -905,7 +905,8 @@ internal_next4(isc_interfaceiter_t *iter) {
 	struct ifreq *ifrp;
 #endif
 
-	REQUIRE (iter->pos < (unsigned int) iter->ifc.ifc_len);
+	REQUIRE(iter->ifc.ifc_len == 0 ||
+	        iter->pos < (unsigned int) iter->ifc.ifc_len);
 
 #ifdef __linux
 	if (linux_if_inet6_next(iter) == ISC_R_SUCCESS)
@@ -913,6 +914,10 @@ internal_next4(isc_interfaceiter_t *iter) {
 	if (!iter->first)
 		return (ISC_R_SUCCESS);
 #endif
+
+	if (iter->ifc.ifc_len == 0)
+		return (ISC_R_NOMORE);
+
 #ifdef ISC_PLATFORM_HAVESALEN
 	ifrp = (struct ifreq *)((char *) iter->ifc.ifc_req + iter->pos);
 
