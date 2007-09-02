@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.86.18.10 2007/08/30 23:46:18 tbox Exp $ */
+/* $Id: journal.c,v 1.86.18.11 2007/09/02 23:00:24 marka Exp $ */
 
 #include <config.h>
 
@@ -672,17 +672,17 @@ isc_result_t
 dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 		 dns_journal_t **journalp) {
 	isc_result_t result;
-	int len;
+	int namelen;
 	char backup[1024];
 	
 	result = journal_open(mctx, filename, write, write, journalp);
 	if (result == ISC_R_NOTFOUND) {
-		len = strlen(filename);
-		if (len > 4 && strcmp(filename + len - 4, ".jnl") == 0)
-			len -= 4;
+		namelen = strlen(filename);
+		if (namelen > 4 && strcmp(filename + namelen - 4, ".jnl") == 0)
+			namelen -= 4;
 
 		result = isc_string_printf(backup, sizeof(backup), "%.*s.jbk",
-					   len, filename);
+					   namelen, filename);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		result = journal_open(mctx, backup, write, write, journalp);
@@ -1947,7 +1947,7 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, isc_uint32_t serial,
 	dns_journal_t *new = NULL;
 	journal_rawheader_t rawheader;
 	unsigned int copy_length;
-	unsigned int len;
+	int namelen;
 	char *buf = NULL;
 	unsigned int size = 0;
 	isc_result_t result;
@@ -1956,17 +1956,17 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, isc_uint32_t serial,
 	char backup[1024];
 	isc_boolean_t is_backup = ISC_FALSE;
 
-	len = strlen(filename);
-	if (len > 4 && strcmp(filename + len - 4, ".jnl") == 0)
-		len -= 4;
+	namelen = strlen(filename);
+	if (namelen > 4 && strcmp(filename + namelen - 4, ".jnl") == 0)
+		namelen -= 4;
 
 	result = isc_string_printf(newname, sizeof(newname), "%.*s.jnw",
-				   len, filename);
+				   namelen, filename);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
 	result = isc_string_printf(backup, sizeof(backup), "%.*s.jbk",
-				   len, filename);
+				   namelen, filename);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -2068,7 +2068,7 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, isc_uint32_t serial,
 		CHECK(journal_seek(j, best_guess.offset));
 		CHECK(journal_seek(new, indexend));
 		for (i = 0; i < copy_length; i += size) {
-			len = (copy_length - i) > size ? size :
+			unsigned int len = (copy_length - i) > size ? size :
 							 (copy_length - i);
 			CHECK(journal_read(j, buf, len));
 			CHECK(journal_write(new, buf, len));
