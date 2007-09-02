@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.77.2.1.10.20 2007/08/30 23:51:46 marka Exp $ */
+/* $Id: journal.c,v 1.77.2.1.10.21 2007/09/02 23:05:06 marka Exp $ */
 
 #include <config.h>
 
@@ -677,17 +677,17 @@ isc_result_t
 dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 		 dns_journal_t **journalp) {
 	isc_result_t result;
-	int len;
+	int namelen;
 	char backup[1024];
 	size_t n;
 	
 	result = journal_open(mctx, filename, write, write, journalp);
 	if (result == ISC_R_NOTFOUND) {
-		len = strlen(filename);
-		if (len > 4 && strcmp(filename + len - 4, ".jnl") == 0)
-			len -= 4;
+		namelen = strlen(filename);
+		if (namelen > 4 && strcmp(filename + namelen - 4, ".jnl") == 0)
+			namelen -= 4;
 
-		n = snprintf(backup, sizeof(backup), "%.*s.jbk", len, filename);
+		n = snprintf(backup, sizeof(backup), "%.*s.jbk", namelen, filename);
 		if (sizeof(backup) <= n)
 			return (ISC_R_NOSPACE);
 		result = journal_open(mctx, backup, write, write, journalp);
@@ -1952,7 +1952,7 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, isc_uint32_t serial,
 	dns_journal_t *new = NULL;
 	journal_rawheader_t rawheader;
 	unsigned int copy_length;
-	unsigned int len;
+	int namelen;
 	char *buf = NULL;
 	unsigned int size = 0;
 	isc_result_t result;
@@ -1962,15 +1962,15 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, isc_uint32_t serial,
 	isc_boolean_t is_backup = ISC_FALSE;
 	size_t n;
 
-	len = strlen(filename);
-	if (len > 4 && strcmp(filename + len - 4, ".jnl") == 0)
-		len -= 4;
+	namelen = strlen(filename);
+	if (namelen > 4 && strcmp(filename + namelen - 4, ".jnl") == 0)
+		namelen -= 4;
 
-	n = snprintf(newname, sizeof(newname), "%.*s.jnw", len, filename);
+	n = snprintf(newname, sizeof(newname), "%.*s.jnw", namelen, filename);
 	if (sizeof(newname) <= n)
 		return (ISC_R_NOSPACE);
 
-	n = snprintf(backup, sizeof(backup), "%.*s.jbk", len, filename);
+	n = snprintf(backup, sizeof(backup), "%.*s.jbk", namelen, filename);
 	if (sizeof(newname) <= n)
 		return (ISC_R_NOSPACE);
 
@@ -2072,7 +2072,7 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, isc_uint32_t serial,
 		CHECK(journal_seek(j, best_guess.offset));
 		CHECK(journal_seek(new, indexend));
 		for (i = 0; i < copy_length; i += size) {
-			len = (copy_length - i) > size ? size :
+			unsigned int len = (copy_length - i) > size ? size :
 							 (copy_length - i);
 			CHECK(journal_read(j, buf, len));
 			CHECK(journal_write(new, buf, len));
