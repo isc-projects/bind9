@@ -18,7 +18,7 @@
 /***
  ***	DNS Query Performance Testing Tool  (queryperf.c)
  ***
- ***	Version $Id: queryperf.c,v 1.11 2005/10/29 00:18:10 jinmei Exp $
+ ***	Version $Id: queryperf.c,v 1.12 2007/09/05 07:36:04 marka Exp $
  ***
  ***	Stephen Jacob <sj@nominum.com>
  ***/
@@ -39,8 +39,11 @@
 #include <math.h>
 #include <errno.h>
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
 #ifndef HAVE_GETADDRINFO
 #include "missing/addrinfo.h"
+#endif
 #endif
 
 /*
@@ -217,7 +220,7 @@ void
 show_startup_info(void) {
 	printf("\n"
 "DNS Query Performance Testing Tool\n"
-"Version: $Id: queryperf.c,v 1.11 2005/10/29 00:18:10 jinmei Exp $\n"
+"Version: $Id: queryperf.c,v 1.12 2007/09/05 07:36:04 marka Exp $\n"
 "\n");
 }
 
