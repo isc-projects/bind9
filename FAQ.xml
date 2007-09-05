@@ -1,4 +1,3 @@
-<?xml-stylesheet href="common.css" type="text/css"?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
        "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd" []>
 <!--
@@ -18,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: FAQ.xml,v 1.4.4.11 2007/09/03 23:46:20 tbox Exp $ -->
+<!-- $Id: FAQ.xml,v 1.4.4.12 2007/09/05 13:49:41 marka Exp $ -->
 
 <article class="faq">
   <title>Frequently Asked Questions about BIND 9</title>
@@ -902,6 +901,32 @@ empty:
     
     <qandadiv><title>Operating-System Specific Questions</title>
 	    
+    <qandadiv><title>HPUX</title>
+
+    <qandaentry>
+      <question>
+	<para>I get the following error trying to configure BIND:
+<programlisting>checking if unistd.h or sys/types.h defines fd_set... no
+configure: error: need either working unistd.h or sys/select.h</programlisting>
+	</para>
+      </question>
+      <answer>
+	<para>
+	  You have attempted to configure BIND with the bundled C compiler.
+	  This compiler does not meet the minimum compiler requirements to
+	  for building BIND.  You need to install a ANSI C compiler and / or
+	  teach configure how to find the ANSI C compiler.  The later can
+	  be done by adjusting the PATH environment variable and / or
+	  specifying the compiler via CC.
+	</para>
+	<informalexample>
+	  <programlisting>./configure CC=&lt;compiler&gt; ...</programlisting>
+	</informalexample>
+      </answer>
+    </qandaentry>
+
+    </qandadiv> <!-- HPUX -->
+
     <qandadiv><title>Linux</title>
 	    
     <qandaentry>

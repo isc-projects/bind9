@@ -506,7 +506,23 @@ A: No, so long as the machines internal clock (as reported by "date -u")
 
 4. Operating-System Specific Questions
 
-4.1. Linux
+4.1. HPUX
+
+Q: I get the following error trying to configure BIND:
+
+   checking if unistd.h or sys/types.h defines fd_set... no
+   configure: error: need either working unistd.h or sys/select.h
+
+A: You have attempted to configure BIND with the bundled C compiler. This
+   compiler does not meet the minimum compiler requirements to for
+   building BIND. You need to install a ANSI C compiler and / or teach
+   configure how to find the ANSI C compiler. The later can be done by
+   adjusting the PATH environment variable and / or specifying the
+   compiler via CC.
+
+   ./configure CC=<compiler> ...
+
+4.2. Linux
 
 Q: Why do I get the following errors:
 
@@ -646,7 +662,7 @@ A: Red Hat Security Enhanced Linux (SELinux) policy security protections :
    See these man-pages for more information : selinux(8), named_selinux
    (8), chcon(1), setsebool(8)
 
-4.2. Windows
+4.3. Windows
 
 Q: Zone transfers from my BIND 9 master to my Windows 2000 slave fail.
    Why?
@@ -672,7 +688,7 @@ A: This is the service manager saying that named exited. You need to
            Directory "C:\windows\dns\etc";
    };
 
-4.3. FreeBSD
+4.4. FreeBSD
 
 Q: I have FreeBSD 4.x and "rndc-confgen -a" just sits there.
 
@@ -685,7 +701,7 @@ A: /dev/random is not configured. Use rndcontrol(8) to tell the kernel to
 
    See also http://people.freebsd.org/~dougb/randomness.html
 
-4.4. Solaris
+4.5. Solaris
 
 Q: How do I integrate BIND 9 and Solaris SMF
 
