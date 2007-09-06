@@ -74,7 +74,10 @@ BIND 9.4.0
 	used to specify the default zone access level rather than
 	having to have every zone override the global value.
 	allow-query-cache can be set at both the options and view
-	levels.  If allow-query-cache is not set allow-query applies.
+	levels. If allow-query-cache is not set then, allow-recursion
+	is used,  if allow-recursion is not set then allow-query is
+	used,  if allow-query is not set then the default
+	(localhost; localnets;) is used.
 
 	rndc: the source address can now be specified.
 
