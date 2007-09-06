@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.350 2007/08/28 01:37:18 marka Exp $ */
+/* $Id: resolver.c,v 1.351 2007/09/06 10:00:19 marka Exp $ */
 
 /*! \file */
 
@@ -7490,17 +7490,17 @@ dns_resolver_createdispatchpool(dns_resolver_t *res, unsigned int ndisps,
 	return (result);
 
   cleanup:
-	for (i = 0; i < ndisps; i++) {
-		if (res->dispatchv4pool[i] != NULL)
-			dns_dispatch_detach(&res->dispatchv4pool[i]);
-		if (res->dispatchv6pool[i] != NULL)
-			dns_dispatch_detach(&res->dispatchv6pool[i]);
-	}
 	if (res->dispatchv4pool != NULL) {
+		for (i = 0; i < ndisps; i++)
+			if (res->dispatchv4pool[i] != NULL)
+				dns_dispatch_detach(&res->dispatchv4pool[i]);
 		isc_mem_put(res->mctx, res->dispatchv4pool,
 			    sizeof(dns_dispatch_t *) * ndisps);
 	}
 	if (res->dispatchv6pool != NULL) {
+		for (i = 0; i < ndisps; i++)
+			if (res->dispatchv6pool[i] != NULL)
+				dns_dispatch_detach(&res->dispatchv6pool[i]);
 		isc_mem_put(res->mctx, res->dispatchv6pool,
 			    sizeof(dns_dispatch_t *) * ndisps);
 	}
