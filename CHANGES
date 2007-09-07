@@ -1,3 +1,6 @@
+2231.	[bug]		Building dlzbdb (contrib/dlz/bin/dlzbdb) was broken.
+			[RT #17088]
+
 2230.	[bug]		We could INSIST reading a corrupted journal.
 			[RT #17132]
 
