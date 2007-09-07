@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.77.2.1.10.21 2007/09/02 23:05:06 marka Exp $ */
+/* $Id: journal.c,v 1.77.2.1.10.22 2007/09/07 05:25:37 marka Exp $ */
 
 #include <config.h>
 
@@ -1634,6 +1634,8 @@ read_one_rr(dns_journal_t *j) {
 	/*
 	 * Parse the rdata.
 	 */
+	if (isc_buffer_remaininglength(&j->it.source) != rdlen)
+		FAIL(DNS_R_FORMERR);
 	isc_buffer_setactive(&j->it.source, rdlen);
 	dns_rdata_reset(&j->it.rdata);
 	CHECK(dns_rdata_fromwire(&j->it.rdata, rdclass,
