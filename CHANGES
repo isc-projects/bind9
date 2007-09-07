@@ -1,3 +1,6 @@
+2230.	[bug]		We could INSIST reading a corrupted journal.
+			[RT #17132]
+
 2229.	[bug]		Null pointer dereference on query pool creation
 			failure. [RT #17133]
 
