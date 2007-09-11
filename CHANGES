@@ -1,3 +1,6 @@
+2232.	[bug]		dns_adb_findaddrinfo() could fail and return
+			ISC_R_SUCCESS. [RT #17137]
+
 2231.	[bug]		Building dlzbdb (contrib/dlz/bin/dlzbdb) was broken.
 			[RT #17088]
 
