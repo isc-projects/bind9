@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.h,v 1.8 2007/06/19 23:47:22 tbox Exp $ */
+/* $Id: aclconf.h,v 1.9 2007/09/12 01:09:08 each Exp $ */
 
 #ifndef ISCCFG_ACLCONF_H
 #define ISCCFG_ACLCONF_H 1
@@ -28,6 +28,7 @@
 
 typedef struct cfg_aclconfctx {
 	ISC_LIST(dns_acl_t) named_acl_cache;
+	ISC_LIST(dns_iptable_t) named_iptable_cache;
 } cfg_aclconfctx_t;
 
 /***
@@ -54,6 +55,7 @@ cfg_acl_fromconfig(const cfg_obj_t *caml,
 		   isc_log_t *lctx,
 		   cfg_aclconfctx_t *ctx,
 		   isc_mem_t *mctx,
+                   int nest_level,
 		   dns_acl_t **target);
 /*
  * Construct a new dns_acl_t from configuration data in 'caml' and

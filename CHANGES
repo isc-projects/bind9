@@ -1,3 +1,7 @@
+2233.   [func]          Add support for O(1) ACL processing, based on
+                        radix tree code originally written by kevin
+                        brintnall. [RT #16288]
+
 2232.	[bug]		dns_adb_findaddrinfo() could fail and return
 			ISC_R_SUCCESS. [RT #17137]
 

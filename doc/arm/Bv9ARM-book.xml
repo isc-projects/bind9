@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.333 2007/09/07 07:29:22 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.334 2007/09/12 01:09:08 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -3023,9 +3023,8 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
             Address match lists are primarily used to determine access
             control for various server operations. They are also used in
             the <command>listen-on</command> and <command>sortlist</command>
-            statements. The elements
-            which constitute an address match list can be any of the
-            following:
+            statements. The elements which constitute an address match
+            list can be any of the following:
           </para>
           <itemizedlist>
             <listitem>
@@ -3053,28 +3052,30 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
           <para>
             Elements can be negated with a leading exclamation mark (`!'),
             and the match list names "any", "none", "localhost", and
-            "localnets"
-            are predefined. More information on those names can be found in
-            the description of the acl statement.
+            "localnets" are predefined. More information on those names
+            can be found in the description of the acl statement.
           </para>
 
           <para>
             The addition of the key clause made the name of this syntactic
             element something of a misnomer, since security keys can be used
             to validate access without regard to a host or network address.
-            Nonetheless,
-            the term "address match list" is still used throughout the
-            documentation.
+            Nonetheless, the term "address match list" is still used
+            throughout the documentation.
           </para>
 
           <para>
             When a given IP address or prefix is compared to an address
-            match list, the list is traversed in order until an element
-            matches.
+            match list, the comparison takes place in approximately O(1)
+            time.  However, key comparisons require that the list of keys
+            be traversed until a matching key is found, and therefore may
+            be somewhat slower.
+          </para>
+
+          <para>
             The interpretation of a match depends on whether the list is being
-            used
-            for access control, defining listen-on ports, or in a sortlist,
-            and whether the element was negated.
+            used for access control, defining listen-on ports, or in a
+            sortlist, and whether the element was negated.
           </para>
 
 	  <para>
@@ -3093,23 +3094,25 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	    <command>allow-update-forwarding</command>, and
 	    <command>blackhole</command> all use address match
 	    lists.  Similarly, the listen-on option will cause the
-	    server to not accept queries on any of the machine's
+	    server to refuse queries on any of the machine's
 	    addresses which do not match the list.
 	  </para>
 
           <para>
-            Because of the first-match aspect of the algorithm, an element
-            that defines a subset of another element in the list should come
-            before the broader element, regardless of whether either is
-            negated. For
-            example, in
-            <command>1.2.3/24; ! 1.2.3.13;</command> the 1.2.3.13
-            element is
-            completely useless because the algorithm will match any lookup for
-            1.2.3.13 to the 1.2.3/24 element.
-            Using <command>! 1.2.3.13; 1.2.3/24</command> fixes
-            that problem by having 1.2.3.13 blocked by the negation but all
-            other 1.2.3.* hosts fall through.
+            Order of insertion is signficant.  If more than one element
+            in an ACL is found to match a given IP address or prefix,
+            preference will be given to the one that came
+            <emphasis>first</emphasis> in the ACL definition.
+            Because of this first-match behavior, an element that
+            defines a subset of another element in the list should
+            come before the broader element, regardless of whether
+            either is negated. For example, in
+            <command>1.2.3/24; ! 1.2.3.13;</command>
+            the 1.2.3.13 element is completely useless because the
+            algorithm will match any lookup for 1.2.3.13 to the 1.2.3/24
+            element.  Using <command>! 1.2.3.13; 1.2.3/24</command> fixes
+            that problem by having 1.2.3.13 blocked by the negation, but
+            all other 1.2.3.* hosts fall through.
           </para>
         </sect3>
       </sect2>
@@ -3390,8 +3393,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
         <para>
           Note that an address match list's name must be defined
           with <command>acl</command> before it can be used
-          elsewhere; no
-          forward references are allowed.
+          elsewhere; no forward references are allowed.
         </para>
 
         <para>

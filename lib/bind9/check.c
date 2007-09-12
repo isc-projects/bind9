@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.81 2007/08/29 03:23:46 marka Exp $ */
+/* $Id: check.c,v 1.82 2007/09/12 01:09:08 each Exp $ */
 
 /*! \file */
 
@@ -379,7 +379,8 @@ checkacl(const char *aclname, cfg_aclconfctx_t *actx, const cfg_obj_t *zconfig,
 	}
 	if (aclobj == NULL)
 		return (ISC_R_SUCCESS);
-	result = cfg_acl_fromconfig(aclobj, config, logctx, actx, mctx, &acl);
+	result = cfg_acl_fromconfig(aclobj, config, logctx,
+                                    actx, mctx, 0, &acl);
 	if (acl != NULL)
 		dns_acl_detach(&acl);
 	return (result);
@@ -459,7 +460,7 @@ check_recursionacls(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 			continue;
 
 		tresult = cfg_acl_fromconfig(aclobj, config, logctx,
-					    actx, mctx, &acl);
+					    actx, mctx, 0, &acl);
 
 		if (tresult != ISC_R_SUCCESS)
 			result = tresult;  
@@ -1932,7 +1933,7 @@ bind9_check_controls(const cfg_obj_t *config, isc_log_t *logctx,
 			control = cfg_listelt_value(element2);
 			allow = cfg_tuple_get(control, "allow");
 			tresult = cfg_acl_fromconfig(allow, config, logctx,
-						     &actx, mctx, &acl);
+						     &actx, mctx, 0, &acl);
 			if (acl != NULL)
 				dns_acl_detach(&acl);
 			if (tresult != ISC_R_SUCCESS)
@@ -2114,8 +2115,9 @@ bind9_check_namedconf(const cfg_obj_t *config, isc_log_t *logctx,
 		}
 	}
 
-        tresult = cfg_map_get(config, "acl", &acls);
-        if (tresult == ISC_R_SUCCESS) {
+        cfg_map_get(config, "acl", &acls);
+
+        if (acls != NULL) {
 		const cfg_listelt_t *elt;
 		const cfg_listelt_t *elt2;
 		const char *aclname;
@@ -2124,6 +2126,7 @@ bind9_check_namedconf(const cfg_obj_t *config, isc_log_t *logctx,
 		     elt != NULL;
 		     elt = cfg_list_next(elt)) {
 			const cfg_obj_t *acl = cfg_listelt_value(elt);
+			unsigned int line = cfg_obj_line(acl);
 			unsigned int i;
 
 			aclname = cfg_obj_asstring(cfg_tuple_get(acl, "name"));
@@ -2148,7 +2151,6 @@ bind9_check_namedconf(const cfg_obj_t *config, isc_log_t *logctx,
 								      "name"));
 				if (strcasecmp(aclname, name) == 0) {
 					const char *file = cfg_obj_file(acl);
-					unsigned int line = cfg_obj_line(acl);
 
 					if (file == NULL)
 						file = "<unknown file>";

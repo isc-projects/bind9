@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.157 2007/06/19 23:47:16 tbox Exp $
+# $Id: Makefile.in,v 1.158 2007/09/12 01:09:08 each Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -53,8 +53,8 @@ DSTOBJS =	@DST_EXTRA_OBJS@ \
 DNSOBJS =	acache.@O@ acl.@O@ adb.@O@ byaddr.@O@ \
 		cache.@O@ callbacks.@O@ compress.@O@ \
 		db.@O@ dbiterator.@O@ dbtable.@O@ diff.@O@ dispatch.@O@ \
-		dlz.@O@ dnssec.@O@ ds.@O@ forward.@O@ journal.@O@ keytable.@O@ \
-		lib.@O@ log.@O@ lookup.@O@ \
+		dlz.@O@ dnssec.@O@ ds.@O@ forward.@O@ iptable.@O@ journal.@O@ \
+		keytable.@O@ lib.@O@ log.@O@ lookup.@O@ \
 		master.@O@ masterdump.@O@ message.@O@ \
 		name.@O@ ncache.@O@ nsec.@O@ order.@O@ peer.@O@ portlist.@O@ \
 		rbt.@O@ rbtdb.@O@ rbtdb64.@O@ rcode.@O@ rdata.@O@ \
@@ -79,8 +79,8 @@ DSTSRCS =	@DST_EXTRA_SRCS@ \
 DNSSRCS =	acache.c acl.c adb.c byaddr.c \
 		cache.c callbacks.c compress.c \
 		db.c dbiterator.c dbtable.c diff.c dispatch.c \
-		dlz.c dnssec.c ds.c forward.c journal.c keytable.c \
-		lib.c log.c lookup.c \
+		dlz.c dnssec.c ds.c forward.c iptable.c journal.c \
+		keytable.c lib.c log.c lookup.c \
 		master.c masterdump.c message.c \
 		name.c ncache.c nsec.c order.c peer.c portlist.c \
 		rbt.c rbtdb.c rbtdb64.c rcode.c rdata.c \

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.54 2007/06/18 23:47:18 tbox Exp $ */
+/* $Id: controlconf.c,v 1.55 2007/09/12 01:09:07 each Exp $ */
 
 /*! \file */
 
@@ -1014,7 +1014,7 @@ update_listener(ns_controls_t *cp, controllistener_t **listenerp,
 	if (control != NULL && type == isc_sockettype_tcp) {
 		allow = cfg_tuple_get(control, "allow");
 		result = cfg_acl_fromconfig(allow, config, ns_g_lctx,
-					    aclconfctx, listener->mctx,
+					    aclconfctx, listener->mctx, 0,
 					    &new_acl);
 	} else {
 		result = dns_acl_any(listener->mctx, &new_acl);
@@ -1101,7 +1101,8 @@ add_listener(ns_controls_t *cp, controllistener_t **listenerp,
 		if (control != NULL && type == isc_sockettype_tcp) {
 			allow = cfg_tuple_get(control, "allow");
 			result = cfg_acl_fromconfig(allow, config, ns_g_lctx,
-						    aclconfctx, mctx, &new_acl);
+						    aclconfctx, mctx, 0,
+                                                    &new_acl);
 		} else {
 			result = dns_acl_any(mctx, &new_acl);
 		}

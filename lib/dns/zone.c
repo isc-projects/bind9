@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.467 2007/08/30 05:08:42 marka Exp $ */
+/* $Id: zone.c,v 1.468 2007/09/12 01:09:08 each Exp $ */
 
 /*! \file */
 
@@ -1144,11 +1144,7 @@ zone_isdynamic(dns_zone_t *zone) {
 		       zone->type == dns_zone_stub ||
 		       (!zone->update_disabled && zone->ssutable != NULL) ||
 		       (!zone->update_disabled && zone->update_acl != NULL &&
-			! (zone->update_acl->length == 1 &&
-			   zone->update_acl->elements[0].negative == ISC_TRUE
-			   &&
-			   zone->update_acl->elements[0].type ==
-			   dns_aclelementtype_any))));
+			!dns_acl_isnone(zone->update_acl))));
 }
 
 

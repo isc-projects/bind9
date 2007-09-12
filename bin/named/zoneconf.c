@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.137 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id: zoneconf.c,v 1.138 2007/09/12 01:09:07 each Exp $ */
 
 /*% */
 
@@ -90,7 +90,7 @@ configure_zone_acl(const cfg_obj_t *zconfig, const cfg_obj_t *vconfig,
 	}
 
 	result = cfg_acl_fromconfig(aclobj, config, ns_g_lctx, actx,
-				    dns_zone_getmctx(zone), &dacl);
+				    dns_zone_getmctx(zone), 0, &dacl);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	(*setzacl)(zone, dacl);

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sortlist.c,v 1.15 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id: sortlist.c,v 1.16 2007/09/12 01:09:07 each Exp $ */
 
 /*! \file */
 
@@ -51,7 +51,7 @@ ns_sortlist_setup(dns_acl_t *acl, isc_netaddr_t *clientaddr,
 		const dns_aclelement_t *matched_elt = NULL;
 
 		if (e->type == dns_aclelementtype_nestedacl) {
-			dns_acl_t *inner = e->u.nestedacl;
+			dns_acl_t *inner = e->nestedacl;
 
 			if (inner->length < 1 || inner->length > 2)
 				goto dont_sort;
@@ -74,7 +74,7 @@ ns_sortlist_setup(dns_acl_t *acl, isc_netaddr_t *clientaddr,
 			if (order_elt != NULL) {
 				if (order_elt->type ==
 				    dns_aclelementtype_nestedacl) {
-					*argp = order_elt->u.nestedacl;
+					*argp = order_elt->nestedacl;
 					return (NS_SORTLISTTYPE_2ELEMENT);
 				} else if (order_elt->type ==
 					   dns_aclelementtype_localhost &&

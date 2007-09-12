@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.489 2007/07/09 02:12:42 marka Exp $ */
+/* $Id: server.c,v 1.490 2007/09/12 01:09:07 each Exp $ */
 
 /*! \file */
 
@@ -307,7 +307,51 @@ configure_view_acl(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 		return (ISC_R_SUCCESS);
 
 	result = cfg_acl_fromconfig(aclobj, config, ns_g_lctx,
-				    actx, mctx, aclp);
+				    actx, mctx, 0, aclp);
+
+	return (result);
+}
+
+
+/*%
+ * Configure a sortlist at '*aclp'.  Essentially the same as
+ * configure_view_acl() except it calls cfg_acl_fromconfig with a
+ * nest_level value of 2.
+ */
+static isc_result_t
+configure_view_sortlist(const cfg_obj_t *vconfig, const cfg_obj_t *config,
+		        cfg_aclconfctx_t *actx, isc_mem_t *mctx,
+                        dns_acl_t **aclp)
+{
+	isc_result_t result;
+	const cfg_obj_t *maps[3];
+	const cfg_obj_t *aclobj = NULL;
+	int i = 0;
+
+	if (*aclp != NULL)
+		dns_acl_detach(aclp);
+	if (vconfig != NULL)
+		maps[i++] = cfg_tuple_get(vconfig, "options");
+	if (config != NULL) {
+		const cfg_obj_t *options = NULL;
+		(void)cfg_map_get(config, "options", &options);
+		if (options != NULL)
+			maps[i++] = options;
+	}
+	maps[i] = NULL;
+
+	(void)ns_config_get(maps, "sortlist", &aclobj);
+	if (aclobj == NULL)
+		return (ISC_R_SUCCESS);
+
+        /*
+         * Use a nest level of 2 for the "top level" of the sortlist;
+         * this means each entry in the top two levels will be stored as
+         * lists of separate, nested ACLs, rather than merged together
+         * into IP tables as is usually done with ACLs.
+         */
+	result = cfg_acl_fromconfig(aclobj, config, ns_g_lctx,
+				    actx, mctx, 2, aclp);
 
 	return (result);
 }
@@ -1598,8 +1642,11 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 					 "allow-query-cache", actx,
 					 ns_g_mctx, &view->queryacl));
 
-	CHECK(configure_view_acl(vconfig, config, "sortlist",
-				 actx, ns_g_mctx, &view->sortlist));
+        /*
+         * Configure sortlist, if set
+         */
+	CHECK(configure_view_sortlist(vconfig, config, actx, ns_g_mctx,
+                                      &view->sortlist));
 
 	obj = NULL;
 	result = ns_config_get(maps, "request-ixfr", &obj);
@@ -2490,25 +2537,23 @@ add_listenelt(isc_mem_t *mctx, ns_listenlist_t *list, isc_sockaddr_t *addr,
 {
 	ns_listenelt_t *lelt = NULL;
 	dns_acl_t *src_acl = NULL;
-	dns_aclelement_t aelt;
 	isc_result_t result;
 	isc_sockaddr_t any_sa6;
+        isc_netaddr_t netaddr;
 
 	REQUIRE(isc_sockaddr_pf(addr) == AF_INET6);
 
 	isc_sockaddr_any6(&any_sa6);
 	if (!isc_sockaddr_equal(&any_sa6, addr) &&
 	    (wcardport_ok || isc_sockaddr_getport(addr) != 0)) {
-		aelt.type = dns_aclelementtype_ipprefix;
-		aelt.negative = ISC_FALSE;
-		aelt.u.ip_prefix.prefixlen = 128;
-		isc_netaddr_fromin6(&aelt.u.ip_prefix.address,
-				    &addr->type.sin6.sin6_addr);
-
-		result = dns_acl_create(mctx, 1, &src_acl);
+		isc_netaddr_fromin6(&netaddr, &addr->type.sin6.sin6_addr);
+  
+		result = dns_acl_create(mctx, 0, &src_acl);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-		result = dns_acl_appendelement(src_acl, &aelt);
+
+                result = dns_iptable_addprefix(src_acl->iptable,
+                                               &netaddr, 128, ISC_TRUE);
 		if (result != ISC_R_SUCCESS)
 			goto clean;
 
@@ -4391,7 +4436,8 @@ ns_listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 		return (result);
 
 	result = cfg_acl_fromconfig(cfg_tuple_get(listener, "acl"),
-				   config, ns_g_lctx, actx, mctx, &delt->acl);
+				   config, ns_g_lctx, actx, mctx, 0,
+                                   &delt->acl);
 	if (result != ISC_R_SUCCESS) {
 		ns_listenelt_destroy(delt);
 		return (result);
