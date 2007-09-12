@@ -1792,6 +1792,7 @@
 ./lib/dns/include/dns/events.h			C	1999,2000,2001,2002,2004,2005,2006,2007
 ./lib/dns/include/dns/fixedname.h		C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/forward.h			C	2000,2001,2004,2005,2006,2007
+./lib/dns/include/dns/iptable.h			C	2007
 ./lib/dns/include/dns/journal.h			C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/keyflags.h		C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/keytable.h		C	2000,2001,2004,2005,2007
@@ -1849,6 +1850,7 @@
 ./lib/dns/include/dst/gssapi.h			C	2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dst/lib.h			C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dst/result.h			C	1999,2000,2001,2004,2005,2006,2007
+./lib/dns/iptable.c				C	2007
 ./lib/dns/journal.c				C	1999,2000,2001,2002,2004,2005,2007
 ./lib/dns/key.c					C	2001,2004,2005,2006,2007
 ./lib/dns/keytable.c				C	2000,2001,2004,2005,2007
@@ -2092,6 +2094,7 @@
 ./lib/isc/include/isc/platform.h.in		C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/isc/include/isc/print.h			C	1999,2000,2001,2003,2004,2005,2006,2007
 ./lib/isc/include/isc/quota.h			C	2000,2001,2004,2005,2007
+./lib/isc/include/isc/radix.h			C	2007
 ./lib/isc/include/isc/random.h			C	1999,2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/ratelimiter.h		C	1999,2000,2001,2002,2004,2005,2006,2007
 ./lib/isc/include/isc/refcount.h		C	2001,2003,2004,2005,2006,2007
@@ -2164,6 +2167,7 @@
 ./lib/isc/pthreads/mutex.c			C	2000,2001,2002,2004,2005,2007
 ./lib/isc/pthreads/thread.c			C	2000,2001,2003,2004,2005,2007
 ./lib/isc/quota.c				C	2000,2001,2004,2005,2007
+./lib/isc/radix.c				C	2007
 ./lib/isc/random.c				C	1999,2000,2001,2002,2003,2004,2005,2007
 ./lib/isc/ratelimiter.c				C	1999,2000,2001,2002,2004,2005,2007
 ./lib/isc/refcount.c				C	2005,2007
