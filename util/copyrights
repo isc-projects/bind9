@@ -84,7 +84,7 @@
 ./bin/named/builtin.c				C	2001,2002,2003,2004,2005
 ./bin/named/client.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./bin/named/config.c				C	2001,2002,2003,2004,2005,2006,2007
-./bin/named/control.c				C	2001,2002,2003,2004,2005,2006
+./bin/named/control.c				C	2001,2002,2003,2004,2005,2006,2007
 ./bin/named/controlconf.c			C	2001,2002,2003,2004,2005,2006
 ./bin/named/include/named/builtin.h		C	2001,2004,2005
 ./bin/named/include/named/client.h		C	1999,2000,2001,2002,2003,2004,2005,2006
@@ -567,7 +567,7 @@
 ./bin/tests/system/lwresd/lwresd1/.cvsignore	X	2000,2001
 ./bin/tests/system/lwresd/lwresd1/lwresd.conf	CONF-C	2000,2001,2004
 ./bin/tests/system/lwresd/lwresd1/resolv.conf	CONF-SH	2000,2001,2004
-./bin/tests/system/lwresd/lwtest.c		C	2000,2001,2002,2004
+./bin/tests/system/lwresd/lwtest.c		C	2000,2001,2002,2004,2007
 ./bin/tests/system/lwresd/ns1/.cvsignore	X	2000,2001
 ./bin/tests/system/lwresd/ns1/10.10.10.in-addr.arpa.db	ZONE	2000,2001,2004
 ./bin/tests/system/lwresd/ns1/example1.db	ZONE	2000,2001,2002,2003,2004
@@ -2189,7 +2189,7 @@
 ./lib/isc/unix/interfaceiter.c			C	1999,2000,2001,2002,2003,2004,2005
 ./lib/isc/unix/ipv6.c				C	1999,2000,2001,2004,2005,2006
 ./lib/isc/unix/keyboard.c			C	2000,2001,2004
-./lib/isc/unix/net.c				C	1999,2000,2001,2002,2003,2004,2005
+./lib/isc/unix/net.c				C	1999,2000,2001,2002,2003,2004,2005,2007
 ./lib/isc/unix/os.c				C	2000,2001,2004,2005
 ./lib/isc/unix/resource.c			C	2000,2001,2004
 ./lib/isc/unix/socket.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
@@ -2197,7 +2197,7 @@
 ./lib/isc/unix/stdio.c				C	2000,2001,2004
 ./lib/isc/unix/stdtime.c			C	1999,2000,2001,2004,2005
 ./lib/isc/unix/strerror.c			C	2001,2004,2005
-./lib/isc/unix/syslog.c				C	2001,2004,2005
+./lib/isc/unix/syslog.c				C	2001,2004,2005,2007
 ./lib/isc/unix/time.c				C	1998,1999,2000,2001,2003,2004,2005
 ./lib/isc/version.c				C	1998,1999,2000,2001,2004,2005
 ./lib/isc/win32/.cvsignore			X	1999,2000,2001
@@ -2291,7 +2291,7 @@
 ./lib/isccc/lib.c				C.NOM	2001,2004,2005
 ./lib/isccc/result.c				C.NOM	2001,2003,2004,2005
 ./lib/isccc/sexpr.c				C.NOM	2001,2004,2005
-./lib/isccc/symtab.c				C.NOM	2001,2004,2005
+./lib/isccc/symtab.c				C.NOM	2001,2004,2005,2007
 ./lib/isccc/version.c				C	1998,1999,2000,2001,2004,2005
 ./lib/isccc/win32/DLLMain.c			C	2001,2004,2007
 ./lib/isccc/win32/libisccc.def			X	2001
@@ -2330,7 +2330,7 @@
 ./lib/lwres/context.c				C	2000,2001,2003,2004,2005,2007
 ./lib/lwres/context_p.h				C	2000,2001,2004,2005
 ./lib/lwres/gai_strerror.c			C	2000,2001,2004,2005,2006
-./lib/lwres/getaddrinfo.c			C.BSDI	1999,2000,2001,2004,2005,2006
+./lib/lwres/getaddrinfo.c			C.BSDI	1999,2000,2001,2004,2005,2006,2007
 ./lib/lwres/gethost.c				C	2000,2001,2004,2005
 ./lib/lwres/getipnode.c				C	1999,2000,2001,2002,2003,2004,2005,2007
 ./lib/lwres/getnameinfo.c			C.PORTION	1999,2000,2001,2003,2004,2005
