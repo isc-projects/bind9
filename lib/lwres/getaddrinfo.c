@@ -18,12 +18,13 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddrinfo.c,v 1.41.206.6 2006/11/13 11:57:41 marka Exp $ */
+/* $Id: getaddrinfo.c,v 1.41.206.7 2007/09/13 05:18:08 each Exp $ */
 
 #include <config.h>
 
-#include <string.h>
 #include <errno.h>
+
+#include <isc/string.h>
 
 #include <lwres/lwres.h>
 #include <lwres/net.h>

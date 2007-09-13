@@ -16,16 +16,16 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: symtab.c,v 1.3.12.6 2007/08/28 07:19:17 tbox Exp $ */
+/* $Id: symtab.c,v 1.3.12.7 2007/09/13 05:18:08 each Exp $ */
 
 #include <config.h>
 
 #include <ctype.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include <isc/assertions.h>
 #include <isc/magic.h>
+#include <isc/string.h>
 
 #include <isccc/result.h>
 #include <isccc/symtab.h>

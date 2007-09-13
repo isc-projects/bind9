@@ -15,12 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.11.2.4.8.35 2007/08/28 07:19:08 tbox Exp $ */
+/* $Id: config.c,v 1.11.2.4.8.36 2007/09/13 05:18:08 each Exp $ */
 
 #include <config.h>
 
 #include <stdlib.h>
-#include <string.h>
 
 #include <isc/buffer.h>
 #include <isc/log.h>
@@ -28,6 +27,7 @@
 #include <isc/region.h>
 #include <isc/result.h>
 #include <isc/sockaddr.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include <isccfg/namedconf.h>

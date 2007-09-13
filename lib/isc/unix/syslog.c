@@ -15,15 +15,15 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: syslog.c,v 1.1.12.6 2007/08/28 07:19:17 tbox Exp $ */
+/* $Id: syslog.c,v 1.1.12.7 2007/09/13 05:18:08 each Exp $ */
 
 #include <config.h>
 
 #include <stdlib.h>
-#include <string.h>
 #include <syslog.h>
 
 #include <isc/result.h>
+#include <isc/string.h>
 #include <isc/syslog.h>
 #include <isc/util.h>
 
