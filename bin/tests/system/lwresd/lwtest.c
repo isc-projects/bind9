@@ -15,15 +15,15 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwtest.c,v 1.28 2007/06/19 23:47:04 tbox Exp $ */
+/* $Id: lwtest.c,v 1.29 2007/09/13 04:45:18 each Exp $ */
 
 #include <config.h>
 
 #include <assert.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include <isc/net.h>
+#include <isc/string.h>
 
 #include <lwres/lwres.h>
 #include <lwres/netdb.h>

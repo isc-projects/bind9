@@ -15,27 +15,26 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.c,v 1.30 2007/08/06 01:06:49 marka Exp $ */
+/* $Id: check-tool.c,v 1.31 2007/09/13 04:45:18 each Exp $ */
 
 /*! \file */
 
 #include <config.h>
 
 #include <stdio.h>
-#include <string.h>
 
 #include "check-tool.h"
-#include <isc/util.h>
-
 #include <isc/buffer.h>
 #include <isc/log.h>
-#include <isc/net.h>
+#include <isc/mem.h>
 #include <isc/netdb.h>
+#include <isc/net.h>
 #include <isc/region.h>
 #include <isc/stdio.h>
+#include <isc/string.h>
 #include <isc/symtab.h>
 #include <isc/types.h>
-#include <isc/mem.h>
+#include <isc/util.h>
 
 #include <dns/fixedname.h>
 #include <dns/log.h>

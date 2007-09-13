@@ -1,3 +1,5 @@
+2234.   [port]          Correct some compiler warnings on SCO OSr5 [RT #17134]
+  
 2233.   [func]          Add support for O(1) ACL processing, based on
                         radix tree code originally written by kevin
                         brintnall. [RT #16288]

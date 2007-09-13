@@ -15,14 +15,13 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.82 2007/09/12 01:09:08 each Exp $ */
+/* $Id: check.c,v 1.83 2007/09/13 04:45:18 each Exp $ */
 
 /*! \file */
 
 #include <config.h>
 
 #include <stdlib.h>
-#include <string.h>
 
 #include <isc/buffer.h>
 #include <isc/log.h>
@@ -32,6 +31,7 @@
 #include <isc/region.h>
 #include <isc/result.h>
 #include <isc/sockaddr.h>
+#include <isc/string.h>
 #include <isc/symtab.h>
 #include <isc/util.h>
 

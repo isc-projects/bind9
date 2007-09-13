@@ -15,17 +15,17 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.c,v 1.32 2007/06/18 23:47:18 tbox Exp $ */
+/* $Id: control.c,v 1.33 2007/09/13 04:45:18 each Exp $ */
 
 /*! \file */
 
 #include <config.h>
 
-#include <string.h>
 
 #include <isc/app.h>
 #include <isc/event.h>
 #include <isc/mem.h>
+#include <isc/string.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 

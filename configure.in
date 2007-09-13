@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.430 $)
+AC_REVISION($Revision: 1.431 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -2058,6 +2058,13 @@ case "$hack_shutup_stdargcast" in
 		AC_DEFINE(SHUTUP_STDARG_CAST)
 		;;
 esac
+
+AC_CHECK_HEADERS(strings.h,
+  ISC_PLATFORM_HAVESTRINGSH="#define ISC_PLATFORM_HAVESTRINGSH 1"
+,
+  ISC_PLATFORM_HAVESTRINGSH="#undef ISC_PLATFORM_HAVESTRINGSH"
+)
+AC_SUBST(ISC_PLATFORM_HAVESTRINGSH)
 
 #
 # Check for if_nametoindex() for IPv6 scoped addresses support
