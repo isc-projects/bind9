@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.c,v 1.35 2007/06/19 23:47:18 tbox Exp $ */
+/* $Id: net.c,v 1.36 2007/09/13 04:45:18 each Exp $ */
 
 #include <config.h>
 
@@ -30,17 +30,26 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#if defined(ISC_PLATFORM_HAVEIPV6) && defined(ISC_PLATFORM_NEEDIN6ADDRANY)
+#if defined(ISC_PLATFORM_HAVEIPV6)
+# if defined(ISC_PLATFORM_NEEDIN6ADDRANY)
 const struct in6_addr isc_net_in6addrany = IN6ADDR_ANY_INIT;
-#endif
+# endif
 
-#if defined(ISC_PLATFORM_HAVEIPV6) && defined(ISC_PLATFORM_NEEDIN6ADDRLOOPBACK)
+# if defined(ISC_PLATFORM_NEEDIN6ADDRLOOPBACK)
 const struct in6_addr isc_net_in6addrloop = IN6ADDR_LOOPBACK_INIT;
-#endif
+# endif
+
+# if defined(WANT_IPV6)
+static isc_once_t 	once_ipv6only = ISC_ONCE_INIT;
+# endif
+
+# if defined(ISC_PLATFORM_HAVEIN6PKTINFO)
+static isc_once_t 	once_ipv6pktinfo = ISC_ONCE_INIT;
+# endif
+#endif /* ISC_PLATFORM_HAVEIPV6 */
 
 static isc_once_t 	once = ISC_ONCE_INIT;
-static isc_once_t 	once_ipv6only = ISC_ONCE_INIT;
-static isc_once_t 	once_ipv6pktinfo = ISC_ONCE_INIT;
+
 static isc_result_t	ipv4_result = ISC_R_NOTFOUND;
 static isc_result_t	ipv6_result = ISC_R_NOTFOUND;
 static isc_result_t	unix_result = ISC_R_NOTFOUND;
@@ -245,7 +254,7 @@ initialize_ipv6only(void) {
 	RUNTIME_CHECK(isc_once_do(&once_ipv6only,
 				  try_ipv6only) == ISC_R_SUCCESS);
 }
-#endif /* IPV6_V6ONLY */
+#endif /* WANT_IPV6 */
 
 #ifdef ISC_PLATFORM_HAVEIN6PKTINFO
 static void
@@ -301,7 +310,7 @@ initialize_ipv6pktinfo(void) {
 				  try_ipv6pktinfo) == ISC_R_SUCCESS);
 }
 #endif /* ISC_PLATFORM_HAVEIN6PKTINFO */
-#endif /* WANT_IPV6 */
+#endif /* ISC_PLATFORM_HAVEIPV6 */
 
 isc_result_t
 isc_net_probe_ipv6only(void) {

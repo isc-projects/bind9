@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: string.h,v 1.22 2007/09/13 04:45:18 each Exp $ */
+/* $Id: string.h,v 1.23 2007/09/13 04:48:16 each Exp $ */
 
 #ifndef ISC_STRING_H
 #define ISC_STRING_H 1
@@ -30,7 +30,7 @@
 
 #include <string.h>
 
-#ifdef ISC_PLATFORM_HAVE_STRINGS_H
+#ifdef ISC_PLATFORM_HAVESTRINGSH
 #include <strings.h>
 #endif
 
