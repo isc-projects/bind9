@@ -15,20 +15,24 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: string.h,v 1.12.18.5 2007/09/02 23:46:24 tbox Exp $ */
+/* $Id: string.h,v 1.12.18.6 2007/09/13 05:04:01 each Exp $ */
 
 #ifndef ISC_STRING_H
 #define ISC_STRING_H 1
 
 /*! \file */
 
-#include <string.h>
-
 #include <isc/formatcheck.h>
 #include <isc/int.h>
 #include <isc/lang.h>
 #include <isc/platform.h>
 #include <isc/types.h>
+
+#include <string.h>
+
+#ifdef ISC_PLATFORM_HAVESTRINGSH
+#include <strings.h>
+#endif
 
 #define ISC_STRING_MAGIC 0x5e
 

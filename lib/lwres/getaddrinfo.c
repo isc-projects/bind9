@@ -18,7 +18,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddrinfo.c,v 1.43.18.6 2006/11/14 01:07:28 marka Exp $ */
+/* $Id: getaddrinfo.c,v 1.43.18.7 2007/09/13 05:04:01 each Exp $ */
 
 /*! \file */
 
@@ -133,8 +133,9 @@
 
 #include <config.h>
 
-#include <string.h>
 #include <errno.h>
+
+#include <isc/string.h>
 
 #include <lwres/lwres.h>
 #include <lwres/net.h>

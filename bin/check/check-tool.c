@@ -15,14 +15,13 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.c,v 1.10.18.17 2007/08/28 07:19:55 tbox Exp $ */
+/* $Id: check-tool.c,v 1.10.18.18 2007/09/13 05:04:01 each Exp $ */
 
 /*! \file */
 
 #include <config.h>
 
 #include <stdio.h>
-#include <string.h>
 
 #include "check-tool.h"
 #include <isc/util.h>
@@ -33,6 +32,7 @@
 #include <isc/netdb.h>
 #include <isc/region.h>
 #include <isc/stdio.h>
+#include <isc/string.h>
 #include <isc/types.h>
 
 #include <dns/fixedname.h>

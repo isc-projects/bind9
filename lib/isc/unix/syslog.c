@@ -15,17 +15,17 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: syslog.c,v 1.3.18.2 2005/04/29 00:17:09 marka Exp $ */
+/* $Id: syslog.c,v 1.3.18.3 2007/09/13 05:04:01 each Exp $ */
 
 /*! \file */
 
 #include <config.h>
 
 #include <stdlib.h>
-#include <string.h>
 #include <syslog.h>
 
 #include <isc/result.h>
+#include <isc/string.h>
 #include <isc/syslog.h>
 #include <isc/util.h>
 

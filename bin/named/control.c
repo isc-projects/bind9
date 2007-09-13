@@ -15,17 +15,17 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.c,v 1.20.10.8 2006/03/10 00:23:20 marka Exp $ */
+/* $Id: control.c,v 1.20.10.9 2007/09/13 05:04:01 each Exp $ */
 
 /*! \file */
 
 #include <config.h>
 
-#include <string.h>
 
 #include <isc/app.h>
 #include <isc/event.h>
 #include <isc/mem.h>
+#include <isc/string.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 

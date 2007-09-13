@@ -16,7 +16,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.60.18.23 2007/01/08 01:58:16 marka Exp $ */
+/* $Id: config.h.in,v 1.60.18.25 2007/09/13 05:04:52 each Exp $ */
 
 /*! \file */
 
@@ -299,7 +299,7 @@ int sigwait(const unsigned int *set, int *sig);
 #undef inline
 #endif
 
-/* Define to `unsigned' if <sys/types.h> does not define. */
+/* Define to `unsigned int' if <sys/types.h> does not define. */
 #undef size_t
 
 /* Define to `int' if <sys/types.h> does not define. */
