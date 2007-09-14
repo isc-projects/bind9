@@ -1,5 +1,5 @@
 2235.	[bug]		dnssec-signzone failed to preserve the case of
-			of wildcard owner named. [RT #17085]
+			of wildcard owner names. [RT #17085]
 
 2235.	[bug]		<isc/atomic.h> was not being installed. [RT #17135]
 
