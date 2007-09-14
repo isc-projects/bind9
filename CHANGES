@@ -1,3 +1,6 @@
+2238.	[bug]		It was possible to trigger a REQUIRE when a
+			validation was cancelled. [RT #17106]
+
 2237.	[bug]		libbind: res_init() was not thread aware. [RT #17123]
 
 2236.	[bug]		dnssec-signzone failed to preserve the case of
