@@ -1,3 +1,5 @@
+2235.	[bug]		<isc/atomic.h> was not being installed. [RT #17135]
+
 2234.   [port]          Correct some compiler warnings on SCO OSr5 [RT #17134]
   
 2229.	[bug]		Null pointer dereference on query pool creation
