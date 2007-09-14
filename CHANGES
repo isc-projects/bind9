@@ -1,3 +1,5 @@
+2239.	[func]		Ship a prebuilt bin/named/bind9.xsl.h. [RT #17114]
+
 2238.	[bug]		It was possible to trigger a REQUIRE when a
 			validation was cancelled. [RT #17106]
 
