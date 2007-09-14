@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.153 2007/08/27 04:36:54 marka Exp $ */
+/* $Id: validator.c,v 1.154 2007/09/14 05:43:05 marka Exp $ */
 
 #include <config.h>
 
@@ -87,6 +87,7 @@
 #define VALID_VALIDATOR(v)		ISC_MAGIC_VALID(v, VALIDATOR_MAGIC)
 
 #define VALATTR_SHUTDOWN		0x0001	/*%< Shutting down. */
+#define VALATTR_CANCELED		0x0002	/*%< Cancelled. */
 #define VALATTR_TRIEDVERIFY		0x0004  /*%< We have found a key and
 						 * have attempted a verify. */
 #define VALATTR_INSECURITY		0x0010	/*%< Attempting proveunsecure. */
@@ -112,6 +113,7 @@
 #define DLVTRIED(val) ((val->attributes & VALATTR_DLVTRIED) != 0)
 
 #define SHUTDOWN(v)		(((v)->attributes & VALATTR_SHUTDOWN) != 0)
+#define CANCELED(v)		(((v)->attributes & VALATTR_CANCELED) != 0)
 
 static void
 destroy(dns_validator_t *val);
@@ -278,7 +280,9 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in fetch_callback_validator");
 	LOCK(&val->lock);
-	if (eresult == ISC_R_SUCCESS) {
+	if (CANCELED(val)) {
+		validator_done(val, ISC_R_CANCELED);
+	} else if (eresult == ISC_R_SUCCESS) {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "keyset with trust %d", rdataset->trust);
 		/*
@@ -342,7 +346,9 @@ dsfetched(isc_task_t *task, isc_event_t *event) {
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in dsfetched");
 	LOCK(&val->lock);
-	if (eresult == ISC_R_SUCCESS) {
+	if (CANCELED(val)) {
+		validator_done(val, ISC_R_CANCELED);
+	} else if (eresult == ISC_R_SUCCESS) {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "dsset with trust %d", rdataset->trust);
 		val->dsset = &val->frdataset;
@@ -415,7 +421,9 @@ dsfetched2(isc_task_t *task, isc_event_t *event) {
 	validator_log(val, ISC_LOG_DEBUG(3), "in dsfetched2: %s",
 		      dns_result_totext(eresult));
 	LOCK(&val->lock);
-	if (eresult == DNS_R_NXRRSET || eresult == DNS_R_NCACHENXRRSET) {
+	if (CANCELED(val)) {
+		validator_done(val, ISC_R_CANCELED);
+	} else if (eresult == DNS_R_NXRRSET || eresult == DNS_R_NCACHENXRRSET) {
 		/*
 		 * There is no DS.  If this is a delegation, we're done.
 		 */
@@ -490,7 +498,9 @@ keyvalidated(isc_task_t *task, isc_event_t *event) {
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in keyvalidated");
 	LOCK(&val->lock);
-	if (eresult == ISC_R_SUCCESS) {
+	if (CANCELED(val)) {
+		validator_done(val, ISC_R_CANCELED);
+	} else if (eresult == ISC_R_SUCCESS) {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "keyset with trust %d", val->frdataset.trust);
 		/*
@@ -540,7 +550,9 @@ dsvalidated(isc_task_t *task, isc_event_t *event) {
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in dsvalidated");
 	LOCK(&val->lock);
-	if (eresult == ISC_R_SUCCESS) {
+	if (CANCELED(val)) {
+		validator_done(val, ISC_R_CANCELED);
+	} else if (eresult == ISC_R_SUCCESS) {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "dsset with trust %d", val->frdataset.trust);
 		if ((val->attributes & VALATTR_INSECURITY) != 0)
@@ -749,7 +761,9 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in authvalidated");
 	LOCK(&val->lock);
-	if (result != ISC_R_SUCCESS) {
+	if (CANCELED(val)) {
+		validator_done(val, ISC_R_CANCELED);
+	} else if (result != ISC_R_SUCCESS) {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "authvalidated: got %s",
 			      isc_result_totext(result));
@@ -2932,6 +2946,7 @@ dns_validator_cancel(dns_validator_t *validator) {
 			isc_event_free((isc_event_t **)&validator->event);
 			isc_task_detach(&task);
 		}
+		validator->attributes |= VALATTR_CANCELED;
 	}
 	UNLOCK(&validator->lock);
 }
