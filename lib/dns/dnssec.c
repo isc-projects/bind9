@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.69.2.5.2.12 2007/08/28 07:19:13 tbox Exp $
+ * $Id: dnssec.c,v 1.69.2.5.2.13 2007/09/14 05:21:56 marka Exp $
  */
 
 
@@ -405,16 +405,11 @@ dns_dnssec_verify2(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	 */
 	dns_fixedname_init(&fnewname);
 	labels = dns_name_countlabels(name) - 1;
-	if (labels - sig.labels > 0) {
-		dns_name_split(name, sig.labels + 1, NULL,
-			       dns_fixedname_name(&fnewname));
-		RUNTIME_CHECK(dns_name_downcase(dns_fixedname_name(&fnewname),
-						dns_fixedname_name(&fnewname),
-						NULL)
-			      == ISC_R_SUCCESS);
-	}
-	else
-		dns_name_downcase(name, dns_fixedname_name(&fnewname), NULL);
+	RUNTIME_CHECK(dns_name_downcase(name, dns_fixedname_name(&fnewname),
+				        NULL) == ISC_R_SUCCESS);
+	if (labels - sig.labels > 0)
+		dns_name_split(dns_fixedname_name(&fnewname), sig.labels + 1,
+			       NULL, dns_fixedname_name(&fnewname));
 
 	dns_name_toregion(dns_fixedname_name(&fnewname), &r);
 

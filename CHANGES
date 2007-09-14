@@ -1,3 +1,6 @@
+2236.	[bug]		dnssec-signzone failed to preserve the case of
+			of wildcard owner names. [RT #17085]
+
 2234.   [port]          Correct some compiler warnings on SCO OSr5 [RT #17134]
   
 2229.	[bug]		Null pointer dereference on query pool creation
