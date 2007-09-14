@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.92 2007/09/12 01:09:08 each Exp $
+# $Id: Makefile.in,v 1.93 2007/09/14 03:39:29 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -80,7 +80,7 @@ SRCS =		@ISC_EXTRA_SRCS@ \
 
 LIBS =		@LIBS@
 
-SUBDIRS =	include unix nls @ISC_THREAD_DIR@
+SUBDIRS =	include unix nls @ISC_THREAD_DIR@ @ISC_ARCH_DIR@
 TARGETS =	timestamp
 
 @BIND9_MAKE_RULES@
