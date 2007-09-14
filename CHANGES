@@ -1,3 +1,5 @@
+2237.	[bug]		libbind: res_init() was not thread aware. [RT #17123]
+
 2236.	[bug]		dnssec-signzone failed to preserve the case of
 			of wildcard owner names. [RT #17085]
 
