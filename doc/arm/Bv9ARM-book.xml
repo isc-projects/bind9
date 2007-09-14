@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.334 2007/09/12 01:09:08 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.335 2007/09/14 01:43:23 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -5649,7 +5649,7 @@ options {
                   from RFC 952 and RFC 821 as modified by RFC 1123.
                 </para>
                 <para><command>check-names</command>
-		  applies to the owner names of A, AAA and MX records.
+		  applies to the owner names of A, AAAA and MX records.
 		  It also applies to the domain names in the RDATA of NS, SOA
 		  and MX records.
 		  It also applies to the RDATA of PTR records where the owner
