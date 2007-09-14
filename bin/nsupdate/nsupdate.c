@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.151 2007/06/18 23:47:21 tbox Exp $ */
+/* $Id: nsupdate.c,v 1.152 2007/09/14 06:43:12 marka Exp $ */
 
 /*! \file */
 
@@ -1654,8 +1654,10 @@ get_next_command(void) {
 			show_message(stdout, answer, "Answer:");
 		return (STATUS_MORE);
 	}
-	if (strcasecmp(word, "key") == 0)
+	if (strcasecmp(word, "key") == 0) {
+		usegsstsig = ISC_FALSE;
 		return (evaluate_key(cmdline));
+	}
 	if (strcasecmp(word, "gsstsig") == 0) {
 #ifdef GSSAPI
 		usegsstsig = ISC_TRUE;
@@ -1672,6 +1674,28 @@ get_next_command(void) {
 #else
 		fprintf(stderr, "gsstsig not supported\n");
 #endif
+		return (STATUS_MORE);
+	}
+	if (strcasecmp(word, "help") == 0) {
+		fprintf(stdout,
+"local address [port]      (set local resolver)\n"
+"server address [port]     (set master server for zone)\n"
+"send                      (send the update request)\n"
+"show                      (show the update request)\n"
+"answer	                   (show the answer to the last request)\n"
+"quit                      (quit, any pending update is not sent\n"
+"help			   (display this message_\n"
+"key [hmac:]keyname secret (use TSIG to sign the request)\n"
+"gsstsig                   (use GSS_TSIG to sign the request)\n"
+"oldgsstsig                (use Microsoft's GSS_TSIG to sign the request)\n"
+"zone name                 (set the zone to be updated)\n"
+"class CLASS               (set the zone's DNS class, e.g. IN (default), CH)\n"
+"prereq nxdomain name      (does this name not exist)\n"
+"prereq yxdomain name      (does this name exist)\n"
+"prereq nxrrset ....       (does this RRset exist)\n"
+"prereq yxrrset ....       (does this RRset not exist)\n"
+"update add ....           (add the given record to the zone)\n"
+"update delete ....        (remove the given record(s) from the zone)\n");
 		return (STATUS_MORE);
 	}
 	fprintf(stderr, "incorrect section name: %s\n", word);
@@ -2142,6 +2166,10 @@ start_gssrequest(dns_name_t *master)
 		dns_tsigkeyring_destroy(&gssring);
 	gssring = NULL;
 	result = dns_tsigkeyring_create(mctx, &gssring);
+	
+	if (result != ISC_R_SUCCESS)
+		fatal("dns_tsigkeyring_create failed: %s",
+		      isc_result_totext(result));
 
 	dns_name_format(master, namestr, sizeof(namestr));
 	if (kserver == NULL) {
@@ -2157,30 +2185,45 @@ start_gssrequest(dns_name_t *master)
 	dns_fixedname_init(&fname);
 	servname = dns_fixedname_name(&fname);
 
-	sprintf(servicename,"DNS/%s", namestr);
+	result = isc_string_printf(servicename, sizeof(servicename),
+				   "DNS/%s", namestr);
+	if (result != ISC_R_SUCCESS)
+		fatal("isc_string_printf(servicename) failed: %s",
+		      isc_result_totext(result));
 	isc_buffer_init(&buf, servicename, strlen(servicename));
 	isc_buffer_add(&buf, strlen(servicename));
 	result = dns_name_fromtext(servname, &buf, dns_rootname,
 				   ISC_FALSE, NULL);
+	if (result != ISC_R_SUCCESS)
+		fatal("dns_name_fromtext(servname) failed: %s",
+		      isc_result_totext(result));
       
 	dns_fixedname_init(&fkname);
 	keyname = dns_fixedname_name(&fkname);
 
 	isc_random_get(&val);
-	sprintf(keystr, "%u.sig-%s", val, namestr);
+	result = isc_string_printf(keystr, sizeof(keystr), "%u.sig-%s",
+				   val, namestr);
+	if (result != ISC_R_SUCCESS)
+		fatal("isc_string_printf(keystr) failed: %s",
+		      isc_result_totext(result));
 	isc_buffer_init(&buf, keystr, strlen(keystr));
 	isc_buffer_add(&buf, strlen(keystr));
 
 	result = dns_name_fromtext(keyname, &buf, dns_rootname,
 				   ISC_FALSE, NULL);
-	INSIST(result == ISC_R_SUCCESS);
+	if (result != ISC_R_SUCCESS)
+		fatal("dns_name_fromtext(keyname) failed: %s",
+		      isc_result_totext(result));
 
 	/* Windows doesn't recognize name compression in the key name. */
 	keyname->attributes |= DNS_NAMEATTR_NOCOMPRESS;
 
 	rmsg = NULL;
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &rmsg);
-	INSIST(result == ISC_R_SUCCESS);
+	if (result != ISC_R_SUCCESS)
+		fatal("dns_message_create failed: %s",
+		      isc_result_totext(result));
 
 	/* Build first request. */
 
@@ -2189,7 +2232,9 @@ start_gssrequest(dns_name_t *master)
 					&context, use_win2k_gsstsig);
 	if (result == ISC_R_FAILURE)
 		fatal("Check your Kerberos ticket, it may have expired.");
-	INSIST(result == ISC_R_SUCCESS);
+	if (result != ISC_R_SUCCESS)
+		fatal("dns_tkey_buildgssquery failed: %s",
+		      isc_result_totext(result));
 
 	send_gssrequest(localaddr, kserver, rmsg, &request, context);
 }
@@ -2458,17 +2503,18 @@ cleanup(void) {
 		dns_message_destroy(&answer);
 
 #ifdef GSSAPI
-	if (usegsstsig) {
-		if (tsigkey != NULL) {
-			ddebug("detach tsigkey x%p", tsigkey);
-			dns_tsigkey_detach(&tsigkey);
-		}
-		ddebug("Destroying GSS-TSIG keyring");
-		if (gssring != NULL)
-			dns_tsigkeyring_destroy(&gssring);
+	if (tsigkey != NULL) {
+		ddebug("detach tsigkey x%p", tsigkey);
+		dns_tsigkey_detach(&tsigkey);
 	}
-	if (kserver != NULL)
+	if (gssring != NULL) {
+		ddebug("Destroying GSS-TSIG keyring");
+		dns_tsigkeyring_destroy(&gssring);
+	}
+	if (kserver != NULL) {
 		isc_mem_put(mctx, kserver, sizeof(isc_sockaddr_t));
+		kserver = NULL;
+	}
 #endif
 
 	ddebug("Shutting down task manager");

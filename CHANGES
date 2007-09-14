@@ -1,3 +1,11 @@
+2241.	[func]		nsupdate: add a interative 'help' command. [RT #17099]
+
+2240.	[bug]		Cleanup nsupdates GSS-TSIG support.  Convert
+			a number of INSIST()s into plain fatal() errors
+			which report the triggering result code.
+			The 'key' command wasn't disabling GSS-TSIG.
+			[RT #17099]
+
 2239.	[func]		Ship a prebuilt bin/named/bind9.xsl.h. [RT #17114]
 
 2238.	[bug]		It was possible to trigger a REQUIRE when a
