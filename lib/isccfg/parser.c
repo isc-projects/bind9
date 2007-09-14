@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.125 2007/06/19 23:47:22 tbox Exp $ */
+/* $Id: parser.c,v 1.126 2007/09/14 01:46:05 marka Exp $ */
 
 /*! \file */
 
@@ -1107,6 +1107,25 @@ const cfg_listelt_t *
 cfg_list_next(const cfg_listelt_t *elt) {
 	REQUIRE(elt != NULL);
 	return (ISC_LIST_NEXT(elt, link));
+}
+
+/*
+ * Return the length of a list object.  If obj is NULL or is not
+ * a list, return 0.
+ */
+unsigned int
+cfg_list_length(const cfg_obj_t *obj) {
+	const cfg_listelt_t *elt;
+	unsigned int count = 0;
+
+	if (obj == NULL || ! cfg_obj_islist(obj))
+		return (0U);
+	for (elt = cfg_list_first(obj);
+	     elt != NULL;
+	     elt = cfg_list_next(elt)) {
+		count++;
+	}
+	return (count);
 }
 
 const cfg_obj_t *

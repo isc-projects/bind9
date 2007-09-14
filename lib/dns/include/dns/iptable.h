@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: iptable.h,v 1.3 2007/09/12 23:46:47 tbox Exp $ */
+/* $Id: iptable.h,v 1.4 2007/09/14 01:46:05 marka Exp $ */
 
 #ifndef DNS_IPTABLE_H
 #define DNS_IPTABLE_H 1
@@ -53,7 +53,7 @@ dns_iptable_addprefix(dns_iptable_t *tab, isc_netaddr_t *addr,
  * Add an IP prefix to an existing IP table
  */
 
-void
+isc_result_t
 dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, isc_boolean_t pos);
 /*
  * Merge one IP table into another one.

@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: iptable.c,v 1.3 2007/09/12 23:46:47 tbox Exp $ */
+/* $Id: iptable.c,v 1.4 2007/09/14 01:46:05 marka Exp $ */
 
 #include <isc/mem.h>
 #include <isc/radix.h>
@@ -67,7 +67,6 @@ dns_iptable_addprefix(dns_iptable_t *tab, isc_netaddr_t *addr,
 	INSIST(DNS_IPTABLE_VALID(tab));
 	INSIST(tab->radix);
 
-
 	NETADDR_TO_PREFIX_T(addr, pfx, bitlen);
 
 	result = isc_radix_insert(tab->radix, &node, NULL, &pfx);
@@ -89,14 +88,18 @@ dns_iptable_addprefix(dns_iptable_t *tab, isc_netaddr_t *addr,
 /*
  * Merge one IP table into another one.
  */
-void
+isc_result_t
 dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, isc_boolean_t pos)
 {
+	isc_result_t result;
 	isc_radix_node_t *node, *new_node;
         int max_node = 0;
 
 	RADIX_WALK (source->radix->head, node) {
-		isc_radix_insert (tab->radix, &new_node, node, NULL);
+		result = isc_radix_insert (tab->radix, &new_node, node, NULL);
+
+	        if (result != ISC_R_SUCCESS)
+	        	return(result);
 
                 /*
                  * If we're negating a nested ACL, then we should
@@ -105,7 +108,6 @@ dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, isc_boolean_t pos)
                  * becoming a positive match in the parent, which
                  * could be a security risk.  To prevent this, we
                  * just leave the negative nodes negative.
-                 * (XXX: does this still need to be documented?)
                  */
                 if (!pos &&
                     node->data &&
@@ -119,6 +121,7 @@ dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, isc_boolean_t pos)
 	} RADIX_WALK_END;
 
         tab->radix->num_added_node += max_node;
+        return (ISC_R_SUCCESS);
 }
 
 void

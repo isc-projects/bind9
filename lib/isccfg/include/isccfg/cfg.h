@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.42 2007/06/19 23:47:22 tbox Exp $ */
+/* $Id: cfg.h,v 1.43 2007/09/14 01:46:06 marka Exp $ */
 
 #ifndef ISCCFG_CFG_H
 #define ISCCFG_CFG_H 1
@@ -345,6 +345,13 @@ cfg_list_next(const cfg_listelt_t *elt);
  * Returns:
  * \li     A pointer to a cfg_listelt_t representing the next element,
  * 	or NULL if there are no more elements.
+ */
+
+unsigned int
+cfg_list_length(const cfg_obj_t *obj);
+/*%<
+ * Returns the length of a list of configure objects.  If obj is
+ * not a list, returns 0.
  */
 
 const cfg_obj_t *

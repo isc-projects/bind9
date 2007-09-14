@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.c,v 1.33 2007/09/12 01:09:08 each Exp $ */
+/* $Id: acl.c,v 1.34 2007/09/14 01:46:05 marka Exp $ */
 
 /*! \file */
 
@@ -249,6 +249,7 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
 isc_result_t
 dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, isc_boolean_t pos)
 {
+	isc_result_t result;
         unsigned int newalloc, nelem, i;
         int max_node = 0, nodes;
 
@@ -299,7 +300,9 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, isc_boolean_t pos)
          * node_count value is set correctly afterward.
          */
         nodes = max_node + dest->node_count;
-        dns_iptable_merge(dest->iptable, source->iptable, pos);
+        result = dns_iptable_merge(dest->iptable, source->iptable, pos);
+        if (result != ISC_R_SUCCESS)
+                return (result);
         if (nodes > dest->node_count)
                 dest->node_count = nodes;
 
@@ -400,6 +403,8 @@ destroy(dns_acl_t *dacl) {
 		dns_aclelement_t *de = &dacl->elements[i];
 		if (de->type == dns_aclelementtype_keyname) {
 			dns_name_free(&de->keyname, dacl->mctx);
+		} else if (de->type == dns_aclelementtype_nestedacl) {
+			dns_acl_detach(&de->nestedacl);
 		}
 	}
 	if (dacl->elements != NULL)

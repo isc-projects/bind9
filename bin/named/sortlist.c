@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sortlist.c,v 1.16 2007/09/12 01:09:07 each Exp $ */
+/* $Id: sortlist.c,v 1.17 2007/09/14 01:46:05 marka Exp $ */
 
 /*! \file */
 
@@ -53,13 +53,17 @@ ns_sortlist_setup(dns_acl_t *acl, isc_netaddr_t *clientaddr,
 		if (e->type == dns_aclelementtype_nestedacl) {
 			dns_acl_t *inner = e->nestedacl;
 
-			if (inner->length < 1 || inner->length > 2)
+			if (inner->length == 0)
+				try_elt = e;
+			else if (inner->length > 2)
 				goto dont_sort;
-			if (inner->elements[0].negative)
+			else if (inner->elements[0].negative)
 				goto dont_sort;
-			try_elt = &inner->elements[0];
-			if (inner->length == 2)
-				order_elt = &inner->elements[1];
+			else {
+				try_elt = &inner->elements[0];
+				if (inner->length == 2)
+					order_elt = &inner->elements[1];
+			}
 		} else {
 			/*
 			 * BIND 8 allows bare elements at the top level

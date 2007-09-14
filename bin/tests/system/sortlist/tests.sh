@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.8 2007/06/19 23:47:05 tbox Exp $
+# $Id: tests.sh,v 1.9 2007/09/14 01:46:05 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -39,16 +39,22 @@ $DIG +tcp +noadd +nosea +nostat +noquest +noauth +nocomm +nocmd a.example. \
 diff test1.dig test1.good || status=1
 
 echo "I:test 1-element sortlist statement and undocumented BIND 8 features"
-for n in 2 3 4 5
-do
 	cat <<EOF >test2.good
 b.example.		300	IN	A	10.53.0.$n
 EOF
-	$DIG +tcp +noadd +nosea +nostat +noquest +noauth +nocomm +nocmd \
-		b.example. \
-		@10.53.0.1 -b 10.53.0.$n -p 5300 | sed 1q >test2.dig
-	diff test2.dig test2.good || status=1
-done		
+
+$DIG +tcp +noadd +nosea +nostat +noquest +noauth +nocomm +nocmd \
+	b.example. @10.53.0.1 -b 10.53.0.2 -p 5300 | sed 1q | \
+        egrep '10.53.0.(2|3)$' > test2.out &&
+$DIG +tcp +noadd +nosea +nostat +noquest +noauth +nocomm +nocmd \
+	b.example. @10.53.0.1 -b 10.53.0.3 -p 5300 | sed 1q | \
+        egrep '10.53.0.(2|3)$' >> test2.out &&
+$DIG +tcp +noadd +nosea +nostat +noquest +noauth +nocomm +nocmd \
+	b.example. @10.53.0.1 -b 10.53.0.4 -p 5300 | sed 1q | \
+        egrep '10.53.0.4$' >> test2.out &&
+$DIG +tcp +noadd +nosea +nostat +noquest +noauth +nocomm +nocmd \
+	b.example. @10.53.0.1 -b 10.53.0.5 -p 5300 | sed 1q | \
+        egrep '10.53.0.5$' >> test2.out || status=1
 
 echo "I:exit status: $status"
 exit $status

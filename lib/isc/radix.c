@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.c,v 1.3 2007/09/12 23:46:47 tbox Exp $ */
+/* $Id: radix.c,v 1.4 2007/09/14 01:46:05 marka Exp $ */
 
 /*
  * This source was adapted from MRT's RCS Ids:
@@ -49,6 +49,8 @@ _new_prefix(isc_mem_t *mctx, isc_prefix_t **target, int family, void *dest,
 {
 	isc_prefix_t *prefix;
 
+	REQUIRE(target != NULL);
+
 	if (family != AF_INET6 && family != AF_INET)
 		return (ISC_R_NOTIMPLEMENTED);
 
@@ -74,7 +76,6 @@ _new_prefix(isc_mem_t *mctx, isc_prefix_t **target, int family, void *dest,
 
 static void 
 _deref_prefix(isc_mem_t *mctx, isc_prefix_t *prefix) {
-	size_t size;
 	int refs;
 
 	if (prefix == NULL)
@@ -84,31 +85,28 @@ _deref_prefix(isc_mem_t *mctx, isc_prefix_t *prefix) {
 
 	if (refs <= 0) {
 		isc_refcount_destroy(&prefix->refcount);
-
-		if (prefix->family == AF_INET6)
-			size = sizeof(isc_prefix_t);
-		else
-			size = sizeof(isc_prefix_t);
-
-		isc_mem_put(mctx, prefix, size);
+		isc_mem_put(mctx, prefix, sizeof(isc_prefix_t));
 	}
 }
 
 static isc_result_t
 _ref_prefix(isc_mem_t *mctx, isc_prefix_t **target, isc_prefix_t *prefix) {
+	INSIST(prefix != NULL);
+	INSIST((prefix->family == AF_INET && prefix->bitlen <= 32) ||
+	       (prefix->family == AF_INET6 && prefix->bitlen <= 128));
+	REQUIRE(target != NULL);
 
-        INSIST((prefix->family == AF_INET && prefix->bitlen <= 32) ||
-               (prefix->family == AF_INET6 && prefix->bitlen <= 128));
-
-	if (prefix != NULL) {	
-		if (isc_refcount_current(&prefix->refcount) == 0) {
-			/* Make a copy in case of a static prefix. */
-			return (_new_prefix(mctx, target, prefix->family,
-					    &prefix->add, prefix->bitlen));
-		}
-
-		isc_refcount_increment(&prefix->refcount, NULL);
+	/* If this prefix is a static allocation, copy it into new memory */
+	if (isc_refcount_current(&prefix->refcount) == 0) {
+		isc_result_t ret;
+		ret = _new_prefix(mctx, target, prefix->family,
+				  &prefix->add, prefix->bitlen);
+		if (ret == ISC_R_SUCCESS)
+			isc_refcount_destroy(&prefix->refcount);
+		return ret;
 	}
+
+	isc_refcount_increment(&prefix->refcount, NULL);
 
 	*target = prefix;
 	return (ISC_R_SUCCESS);
@@ -132,6 +130,8 @@ isc_result_t
 isc_radix_create(isc_mem_t *mctx, isc_radix_tree_t **target, int maxbits) {
 	isc_radix_tree_t *radix;
 
+	REQUIRE(target != NULL);
+
 	radix = isc_mem_get(mctx, sizeof(isc_radix_tree_t));
 	if (radix == NULL)
 		return (ISC_R_NOMEMORY);
@@ -143,7 +143,6 @@ isc_radix_create(isc_mem_t *mctx, isc_radix_tree_t **target, int maxbits) {
 	radix->num_added_node = 0;
 	RUNTIME_CHECK(maxbits <= RADIX_MAXBITS); /* XXX */
 	radix->magic = RADIX_TREE_MAGIC;
-
 	*target = radix;
 	return (ISC_R_SUCCESS);
 }
@@ -200,6 +199,7 @@ _clear_radix(isc_radix_tree_t *radix, void_fn_t func) {
 void
 isc_destroy_radix(isc_radix_tree_t *radix, void_fn_t func)
 {
+	REQUIRE(radix != NULL);
 	_clear_radix(radix, func);
 	isc_mem_put(radix->mctx, radix, sizeof(*radix));
 }
@@ -266,9 +266,9 @@ isc_radix_search(isc_radix_tree_t *radix, isc_radix_node_t **target,
 		if (_comp_with_mask(isc_prefix_tochar(node->prefix), 
 				    isc_prefix_tochar(prefix),
 				    node->prefix->bitlen)) {
-        		if ((*target == NULL) ||
-        		    (*target)->node_num > node->node_num) 
-        			*target = node;
+			if ((*target == NULL) ||
+			    (*target)->node_num > node->node_num) 
+				*target = node;
 		}
 	}
 
@@ -293,8 +293,8 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 	REQUIRE(prefix || (source && source->prefix));
 	RUNTIME_CHECK(prefix->bitlen <= radix->maxbits);
 
-        if (!prefix && source && source->prefix)
-                prefix = source->prefix;
+	if (!prefix && source && source->prefix)
+		prefix = source->prefix;
 
 	if (radix->head == NULL) {
 		node = isc_mem_get(radix->mctx, sizeof(isc_radix_node_t));
@@ -406,24 +406,24 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 	new_node->l = new_node->r = NULL;
 	radix->num_active_node++;
 
-        if (source) {
-                /*
-                 * If source is non-NULL, then we're merging in a node
-                 * from an existing radix tree.  Node_num values have to
-                 * remain consistent; they can't just be added in whatever
-                 * order came from walking the tree.  So we don't increment
-                 * num_added_node here; instead, we add it to the node-num
-                 * values for each node from the nested tree, and then when
-                 * the whole tree is done, the calling function will bump
-                 * num_added_node by the highest value of node_num in the
-                 * tree.
-                 */
-                new_node->node_num = radix->num_added_node + source->node_num;
-                new_node->data = source->data;
-        } else {
-                new_node->node_num = ++radix->num_added_node;
-	        new_node->data = NULL;
-        }
+	if (source) {
+		/*
+		 * If source is non-NULL, then we're merging in a node
+		 * from an existing radix tree.  Node_num values have to
+		 * remain consistent; they can't just be added in whatever
+		 * order came from walking the tree.  So we don't increment
+		 * num_added_node here; instead, we add it to the node-num
+		 * values for each node from the nested tree, and then when
+		 * the whole tree is done, the calling function will bump
+		 * num_added_node by the highest value of node_num in the
+		 * tree.
+		 */
+		new_node->node_num = radix->num_added_node + source->node_num;
+		new_node->data = source->data;
+	} else {
+		new_node->node_num = ++radix->num_added_node;
+		new_node->data = NULL;
+	}
 
 	if (node->bit == differ_bit) {
 		INSIST(glue == NULL);
