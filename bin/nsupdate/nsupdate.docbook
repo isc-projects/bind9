@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: nsupdate.docbook,v 1.28 2007/06/18 23:47:21 tbox Exp $ -->
+<!-- $Id: nsupdate.docbook,v 1.29 2007/09/15 14:46:03 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>Jun 30, 2000</date>
@@ -61,6 +61,7 @@
       <arg><option>-t <replaceable class="parameter">timeout</replaceable></option></arg>
       <arg><option>-u <replaceable class="parameter">udptimeout</replaceable></option></arg>
       <arg><option>-r <replaceable class="parameter">udpretries</replaceable></option></arg>
+      <arg><option>-R <replaceable class="parameter">randomdev</replaceable></option></arg>
       <arg><option>-v</option></arg>
       <arg>filename</arg>
     </cmdsynopsis>
@@ -187,6 +188,18 @@
       The <option>-r</option> option sets the number of UDP retries. The
       default is
       3.  If zero, only one update request will be made.
+    </para>
+    <para>
+      The <option>-R <replaceable
+      class="parameter">randomdev</replaceable></option> option
+      specifies a source of randomness.  If the operating system
+      does not provide a <filename>/dev/random</filename> or
+      equivalent device, the default source of randomness is keyboard
+      input.  <filename>randomdev</filename> specifies the name of
+      a character device or file containing random data to be used
+      instead of the default.  The special value
+      <filename>keyboard</filename> indicates that keyboard input
+      should be used.  This option may be specified multiple times.
     </para>
   </refsect1>
 

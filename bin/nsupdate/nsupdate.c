@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.152 2007/09/14 06:43:12 marka Exp $ */
+/* $Id: nsupdate.c,v 1.153 2007/09/15 14:46:03 marka Exp $ */
 
 /*! \file */
 
@@ -148,7 +148,7 @@ static isc_sockaddr_t *localaddr = NULL;
 static isc_sockaddr_t *serveraddr = NULL;
 static isc_sockaddr_t tempaddr;
 static char *keystr = NULL, *keyfile = NULL;
-static isc_entropy_t *entp = NULL;
+static isc_entropy_t *entropy = NULL;
 static isc_boolean_t shuttingdown = ISC_FALSE;
 static FILE *input;
 static isc_boolean_t interactive = ISC_TRUE;
@@ -208,6 +208,69 @@ error(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 #define STATUS_SEND	(isc_uint16_t)1
 #define STATUS_QUIT	(isc_uint16_t)2
 #define STATUS_SYNTAX	(isc_uint16_t)3
+
+typedef struct entropysource entropysource_t;
+
+struct entropysource {
+	isc_entropysource_t *source;
+	isc_mem_t *mctx;
+	ISC_LINK(entropysource_t) link;
+};
+
+static ISC_LIST(entropysource_t) sources;
+
+static void
+setup_entropy(isc_mem_t *mctx, const char *randomfile, isc_entropy_t **ectx)
+{
+	isc_result_t result;
+	isc_entropysource_t *source = NULL;
+	entropysource_t *elt;
+	int usekeyboard = ISC_ENTROPY_KEYBOARDMAYBE;
+
+	REQUIRE(ectx != NULL);
+
+	if (*ectx == NULL) {
+		result = isc_entropy_create(mctx, ectx);
+		if (result != ISC_R_SUCCESS)
+			fatal("could not create entropy object");
+		ISC_LIST_INIT(sources);
+	}
+
+	if (randomfile != NULL && strcmp(randomfile, "keyboard") == 0) {
+		usekeyboard = ISC_ENTROPY_KEYBOARDYES;
+		randomfile = NULL;
+	}
+
+	result = isc_entropy_usebestsource(*ectx, &source, randomfile,
+					   usekeyboard);
+
+	if (result != ISC_R_SUCCESS)
+		fatal("could not initialize entropy source: %s",
+		      isc_result_totext(result));
+
+	if (source != NULL) {
+		elt = isc_mem_get(mctx, sizeof(*elt));
+		if (elt == NULL)
+			fatal("out of memory");
+		elt->source = source;
+		elt->mctx = mctx;
+		ISC_LINK_INIT(elt, link);
+		ISC_LIST_APPEND(sources, elt, link);
+	}
+}
+
+static void
+cleanup_entropy(isc_entropy_t **ectx) {
+	entropysource_t *source;
+	while (!ISC_LIST_EMPTY(sources)) {
+		source = ISC_LIST_HEAD(sources);
+		ISC_LIST_UNLINK(sources, source, link);
+		isc_entropy_destroysource(&source->source);
+		isc_mem_put(source->mctx, source, sizeof(*source));
+	}
+	isc_entropy_detach(ectx);
+}
+
 
 static dns_rdataclass_t
 getzoneclass(void) {
@@ -565,10 +628,7 @@ doshutdown(void) {
 		is_dst_up = ISC_FALSE;
 	}
 
-	if (entp != NULL) {
-		ddebug("Detach from entropy");
-		isc_entropy_detach(&entp);
-	}
+	cleanup_entropy(&entropy);
 
 	lwres_conf_clear(lwctx);
 	lwres_context_destroy(&lwctx);
@@ -636,9 +696,6 @@ setup_system(void) {
 	if (!have_ipv4 && !have_ipv6)
 		fatal("could not find either IPv4 or IPv6");
 
-	result = isc_mem_create(0, 0, &mctx);
-	check_result(result, "isc_mem_create");
-
 	result = isc_log_create(mctx, &lctx, &logconfig);
 	check_result(result, "isc_log_create");
 
@@ -686,14 +743,13 @@ setup_system(void) {
 		}
 	}
 
-	result = isc_entropy_create(mctx, &entp);
-	check_result(result, "isc_entropy_create");
+	setup_entropy(mctx, isc_commandline_argument, &entropy);
 
-	result = isc_hash_create(mctx, entp, DNS_NAME_MAXWIRE);
+	result = isc_hash_create(mctx, entropy, DNS_NAME_MAXWIRE);
 	check_result(result, "isc_hash_create");
 	isc_hash_init();
 
-	result = dns_dispatchmgr_create(mctx, entp, &dispatchmgr);
+	result = dns_dispatchmgr_create(mctx, entropy, &dispatchmgr);
 	check_result(result, "dns_dispatchmgr_create");
 
 	result = isc_socketmgr_create(mctx, &socketmgr);
@@ -711,7 +767,7 @@ setup_system(void) {
 	result = isc_task_onshutdown(global_task, shutdown_program, NULL);
 	check_result(result, "isc_task_onshutdown");
 
-	result = dst_lib_init(mctx, entp, 0);
+	result = dst_lib_init(mctx, entropy, 0);
 	check_result(result, "dst_lib_init");
 	is_dst_up = ISC_TRUE;
 
@@ -767,16 +823,47 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 	INSIST(count == 1);
 }
 
+#define PARSE_ARGS_FMT "dDMl:y:govk:rR::t:u:"
+
 static void
-parse_args(int argc, char **argv) {
+pre_parse_args(int argc, char **argv) {
+	int ch;
+
+	while ((ch = isc_commandline_parse(argc, argv, PARSE_ARGS_FMT)) != -1) {
+		switch (ch) {
+		case 'M': /* was -dm */
+			debugging = ISC_TRUE;
+			ddebugging = ISC_TRUE;
+			memdebugging = ISC_TRUE;
+			isc_mem_debugging = ISC_MEM_DEBUGTRACE |
+					    ISC_MEM_DEBUGRECORD;
+			break;
+
+		case '?':
+			if (isc_commandline_option != '?')
+				fprintf(stderr, "%s: invalid argument -%c\n",
+					argv[0], isc_commandline_option);
+			fprintf(stderr, "usage: nsupdate [-d] "
+				"[-g | -o | -y keyname:secret | -k keyfile] "
+				"[-v] [filename]\n");
+			exit(1);
+
+		default:
+			break;
+		}
+	}
+	isc_commandline_reset = ISC_TRUE;
+	isc_commandline_index = 1;
+}
+
+static void
+parse_args(int argc, char **argv, isc_mem_t *mctx, isc_entropy_t **ectx) {
 	int ch;
 	isc_uint32_t i;
 	isc_result_t result;
 
 	debug("parse_args");
-	while ((ch = isc_commandline_parse(argc, argv, "dDMl:y:govk:r:t:u:")
-		) != -1)
-	{
+	while ((ch = isc_commandline_parse(argc, argv, PARSE_ARGS_FMT)) != -1) {
 		switch (ch) {
 		case 'd':
 			debugging = ISC_TRUE;
@@ -785,12 +872,7 @@ parse_args(int argc, char **argv) {
 			debugging = ISC_TRUE;
 			ddebugging = ISC_TRUE;
 			break;
-		case 'M': /* was -dm */
-			debugging = ISC_TRUE;
-			ddebugging = ISC_TRUE;
-			memdebugging = ISC_TRUE;
-			isc_mem_debugging = ISC_MEM_DEBUGTRACE |
-					    ISC_MEM_DEBUGRECORD;
+		case 'M':
 			break;
 		case 'l':
 			result = isc_parse_uint32(&i, isc_commandline_argument,
@@ -847,14 +929,10 @@ parse_args(int argc, char **argv) {
 				exit(1);
 			}
 			break;
-		case '?':
-			if (isc_commandline_option != '?')
-				fprintf(stderr, "%s: invalid argument -%c\n",
-					argv[0], isc_commandline_option);
-			fprintf(stderr, "usage: nsupdate [-d] "
-				"[-g | -o | -y keyname:secret | -k keyfile] "
-				"[-v] [filename]\n");
-			exit(1);
+
+		case 'R':
+			setup_entropy(mctx, isc_commandline_argument, ectx);
+			break;
 
 		default:
 			fprintf(stderr, "%s: unhandled option: %c\n",
@@ -2579,7 +2657,12 @@ main(int argc, char **argv) {
 
 	isc_app_start();
 
-	parse_args(argc, argv);
+	pre_parse_args(argc, argv);
+
+	result = isc_mem_create(0, 0, &mctx);
+	check_result(result, "isc_mem_create");
+
+	parse_args(argc, argv, mctx, &entropy);
 
 	setup_system();
 
