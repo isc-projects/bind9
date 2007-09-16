@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.153 2007/09/15 14:46:03 marka Exp $ */
+/* $Id: nsupdate.c,v 1.154 2007/09/16 02:37:12 marka Exp $ */
 
 /*! \file */
 
@@ -743,7 +743,7 @@ setup_system(void) {
 		}
 	}
 
-	setup_entropy(mctx, isc_commandline_argument, &entropy);
+	setup_entropy(mctx, NULL, &entropy);
 
 	result = isc_hash_create(mctx, entropy, DNS_NAME_MAXWIRE);
 	check_result(result, "isc_hash_create");
