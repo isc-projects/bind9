@@ -1,3 +1,6 @@
+2243.	[func]		Configuration files without a newline at the end now
+			parse without error. [RT #17120]
+
 2242.	[bug]		nsupdate: GSS-TSIG support using the Heimdal Kerberos
 			library could require a source of random data.
 			[RT #17127]

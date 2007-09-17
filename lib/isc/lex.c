@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.85 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: lex.c,v 1.86 2007/09/17 09:56:29 shane Exp $ */
 
 /*! \file */
 
@@ -720,11 +720,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 				state = lexstate_ccomment;
 			break;
 		case lexstate_eatline:
-			if (c == EOF) {
-				result = ISC_R_UNEXPECTEDEND;
-				goto done;
-			}
-			if (c == '\n') {
+			if ((c == '\n') || (c == EOF)) {
 				no_comments = ISC_FALSE;
 				state = saved_state;
 				goto no_read;
