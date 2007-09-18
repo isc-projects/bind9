@@ -401,6 +401,13 @@ isc_stdio_seek
 isc_stdio_sync
 isc_stdio_write
 isc_stdtime_get
+isc_string_append
+isc_string_append_truncate
+isc_string_copy
+isc_string_copy_truncate
+isc_string_printf
+isc_string_printf_truncate
+isc_string_regiondup
 isc_string_separate
 isc_string_strlcat
 isc_string_strlcpy
