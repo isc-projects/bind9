@@ -1,3 +1,5 @@
+	--- 9.4.2rc1 released ---
+
 2238.	[bug]		It was possible to trigger a REQUIRE when a
 			validation was cancelled. [RT #17106]
 
