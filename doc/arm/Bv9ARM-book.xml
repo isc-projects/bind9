@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.336 2007/09/17 23:15:12 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.337 2007/09/18 00:22:30 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4515,6 +4515,7 @@ category notify { null; };
     <optional> notify-delay <replaceable>seconds</replaceable> ; </optional>
     <optional> notify-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> notify-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
+    <optional> notify-to-soa <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> also-notify { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
     <optional> max-ixfr-log-size <replaceable>number</replaceable>; </optional>
     <optional> max-journal-size <replaceable>size_spec</replaceable>; </optional>
@@ -5295,6 +5296,22 @@ options {
                   It would only be necessary to turn off this option if it
                   caused slaves
                   to crash.
+                </para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term><command>notify-to-soa</command></term>
+              <listitem>
+                <para>
+		  If <userinput>yes</userinput> do not check the nameservers
+		  in the NS RRset against the SOA MNAME.  Normally a NOTIFY
+		  message is not sent to the SOA MNAME (SOA ORIGIN) as it is
+		  supposed to contain the name of the ultimate master.
+		  Sometimes, however, a slave is listed as the SOA MNAME in
+		  hidden master configurations and in that case you would
+		  want the ultimate master to still send NOTIFY messages to
+		  all the nameservers listed in the NS RRset.
                 </para>
               </listitem>
             </varlistentry>
@@ -8265,6 +8282,7 @@ view "external" {
     <optional> max-transfer-time-out <replaceable>number</replaceable> ; </optional>
     <optional> notify <replaceable>yes_or_no</replaceable> | <replaceable>explicit</replaceable> | <replaceable>master-only</replaceable> ; </optional>
     <optional> notify-delay <replaceable>seconds</replaceable> ; </optional>
+    <optional> notify-to-soa <replaceable>yes_or_no</replaceable>; </optional>
     <optional> pubkey <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>string</replaceable> ; </optional>
     <optional> notify-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> notify-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
@@ -8306,6 +8324,8 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
     <optional> max-transfer-time-in <replaceable>number</replaceable> ; </optional>
     <optional> max-transfer-time-out <replaceable>number</replaceable> ; </optional>
     <optional> notify <replaceable>yes_or_no</replaceable> | <replaceable>explicit</replaceable> | <replaceable>master-only</replaceable> ; </optional>
+    <optional> notify-delay <replaceable>seconds</replaceable> ; </optional>
+    <optional> notify-to-soa <replaceable>yes_or_no</replaceable>; </optional>
     <optional> pubkey <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>string</replaceable> ; </optional>
     <optional> transfer-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
@@ -8963,6 +8983,17 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                   <para>
                     See the description of
                     <command>notify-delay</command> in <xref linkend="tuning"/>.
+                  </para>
+                </listitem>
+              </varlistentry>
+
+              <varlistentry>
+                <term><command>notify-to-soa</command></term>
+                <listitem>
+                  <para>
+                    See the description of
+                    <command>notify-to-soa</command> in
+		    <xref linkend="boolean_options"/>.
                   </para>
                 </listitem>
               </varlistentry>

@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.32 2007/08/17 06:10:44 marka Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.33 2007/09/18 00:22:30 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>Aug 13, 2004</date>
@@ -295,6 +295,7 @@ options {
 	notify-source ( <replaceable>ipv4_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
 	notify-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
 	notify-delay <replaceable>seconds</replaceable>;
+	notify-to-soa <replaceable>boolean</replaceable>;
 	also-notify <optional> port <replaceable>integer</replaceable> </optional> { ( <replaceable>ipv4_address</replaceable> | <replaceable>ipv6_address</replaceable> )
 		<optional> port <replaceable>integer</replaceable> </optional>; ... };
 	allow-notify { <replaceable>address_match_element</replaceable>; ... };
@@ -451,6 +452,7 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	notify-source ( <replaceable>ipv4_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
 	notify-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
 	notify-delay <replaceable>seconds</replaceable>;
+	notify-to-soa <replaceable>boolean</replaceable>;
 	also-notify <optional> port <replaceable>integer</replaceable> </optional> { ( <replaceable>ipv4_address</replaceable> | <replaceable>ipv6_address</replaceable> )
 		<optional> port <replaceable>integer</replaceable> </optional>; ... };
 	allow-notify { <replaceable>address_match_element</replaceable>; ... };
@@ -540,6 +542,7 @@ zone <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	notify-source ( <replaceable>ipv4_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
 	notify-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
 	notify-delay <replaceable>seconds</replaceable>;
+	notify-to-soa <replaceable>boolean</replaceable>;
 	also-notify <optional> port <replaceable>integer</replaceable> </optional> { ( <replaceable>ipv4_address</replaceable> | <replaceable>ipv6_address</replaceable> )
 		<optional> port <replaceable>integer</replaceable> </optional>; ... };
 	allow-notify { <replaceable>address_match_element</replaceable>; ... };

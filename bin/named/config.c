@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.80 2007/09/13 04:45:18 each Exp $ */
+/* $Id: config.c,v 1.81 2007/09/18 00:22:30 marka Exp $ */
 
 /*! \file */
 
@@ -152,6 +152,7 @@ options {\n\
 	notify yes;\n\
 #	also-notify <none>\n\
 	notify-delay 5;\n\
+	notify-to-soa no;\n\
 	dialup no;\n\
 #	forward <none>\n\
 #	forwarders <none>\n\

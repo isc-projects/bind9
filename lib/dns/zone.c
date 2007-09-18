@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.468 2007/09/12 01:09:08 each Exp $ */
+/* $Id: zone.c,v 1.469 2007/09/18 00:22:31 marka Exp $ */
 
 /*! \file */
 
@@ -4049,9 +4049,11 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		dns_rdata_reset(&rdata);
 		/*
-		 * don't notify the master server.
+		 * Don't notify the master server unless explictly
+		 * configured to do so.
 		 */
-		if (dns_name_compare(&master, &ns.name) == 0) {
+		if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_NOTIFYTOSOA) &&
+		    dns_name_compare(&master, &ns.name) == 0) {
 			result = dns_rdataset_next(&nsrdset);
 			continue;
 		}

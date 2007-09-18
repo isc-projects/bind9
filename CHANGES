@@ -1,3 +1,7 @@
+2244.	[func]		Allow the check of nameserver names against the
+			SOA MNAME field to be disabled by specifying
+			'notify-to-soa yes;'.  [RT #17073]
+
 2243.	[func]		Configuration files without a newline at the end now
 			parse without error. [RT #17120]
 
