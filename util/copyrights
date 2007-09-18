@@ -2276,7 +2276,7 @@
 ./lib/isc/win32/interfaceiter.c			C	1999,2000,2001,2004,2007
 ./lib/isc/win32/ipv6.c				C	1999,2000,2001,2004
 ./lib/isc/win32/keyboard.c			C	2000,2001,2004
-./lib/isc/win32/libisc.def			X	2001,2002,2003,2004,2005,2006
+./lib/isc/win32/libisc.def			X	2001,2002,2003,2004,2005,2006,2007
 ./lib/isc/win32/libisc.dsp			X	2001,2002,2003,2004,2005,2006
 ./lib/isc/win32/libisc.dsw			X	2001
 ./lib/isc/win32/libisc.mak			X	2001,2002,2003,2004,2005,2006
@@ -2350,7 +2350,7 @@
 ./lib/isccfg/.cvsignore				X	2001
 ./lib/isccfg/Makefile.in			MAKE	2001,2002,2003,2004,2005
 ./lib/isccfg/aclconf.c				C	1999,2000,2001,2002,2004,2005,2006
-./lib/isccfg/api				X	2001,2005,2006
+./lib/isccfg/api				X	2001,2005,2006,2007
 ./lib/isccfg/include/.cvsignore			X	2001
 ./lib/isccfg/include/Makefile.in		MAKE	2001,2004
 ./lib/isccfg/include/isccfg/.cvsignore		X	2001
@@ -2373,7 +2373,7 @@
 ./lib/isccfg/win32/version.c			C	1998,1999,2000,2001,2004
 ./lib/lwres/.cvsignore				X	2000,2001
 ./lib/lwres/Makefile.in				MAKE	2000,2001,2004,2005
-./lib/lwres/api					X	2000,2001,2005,2006
+./lib/lwres/api					X	2000,2001,2005,2006,2007
 ./lib/lwres/assert_p.h				C	2000,2001,2004,2005
 ./lib/lwres/context.c				C	2000,2001,2003,2004,2005,2007
 ./lib/lwres/context_p.h				C	2000,2001,2004,2005
