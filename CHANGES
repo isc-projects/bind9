@@ -1,3 +1,6 @@
+2245.	[bug]		Validating lack of DS records at trust anchors wasn't
+			working. [RT #17151]
+
 2244.	[func]		Allow the check of nameserver names against the
 			SOA MNAME field to be disabled by specifying
 			'notify-to-soa yes;'.  [RT #17073]
