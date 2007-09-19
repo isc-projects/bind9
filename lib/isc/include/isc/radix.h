@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.h,v 1.3 2007/09/12 23:46:47 tbox Exp $ */
+/* $Id: radix.h,v 1.4 2007/09/19 03:03:29 marka Exp $ */
 
 /*
  * This source was adapted from MRT's RCS Ids:
@@ -56,7 +56,8 @@ typedef struct isc_prefix {
     } add;
 } isc_prefix_t;
 
-typedef void (*void_fn_t)();
+typedef void (*isc_radix_destroyfunc_t)(void *);
+typedef void (*isc_radix_processfunc_t)(isc_prefix_t *, void *);
 
 #define isc_prefix_tochar(prefix) ((char *)&(prefix)->add.sin)
 #define isc_prefix_touchar(prefix) ((u_char *)&(prefix)->add.sin)
@@ -108,10 +109,10 @@ isc_result_t
 isc_radix_create(isc_mem_t *mctx, isc_radix_tree_t **target, int maxbits);
 
 void
-isc_destroy_radix(isc_radix_tree_t *radix, void_fn_t func);
+isc_destroy_radix(isc_radix_tree_t *radix, isc_radix_destroyfunc_t func);
 
 void
-isc_radix_process(isc_radix_tree_t *radix, void_fn_t func);
+isc_radix_process(isc_radix_tree_t *radix, isc_radix_processfunc_t func);
 
 
 #define RADIX_MAXBITS 128

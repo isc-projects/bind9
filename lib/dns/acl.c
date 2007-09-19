@@ -15,13 +15,14 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.c,v 1.34 2007/09/14 01:46:05 marka Exp $ */
+/* $Id: acl.c,v 1.35 2007/09/19 03:03:29 marka Exp $ */
 
 /*! \file */
 
 #include <config.h>
 
 #include <isc/mem.h>
+#include <isc/once.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -430,16 +431,26 @@ dns_acl_detach(dns_acl_t **aclp) {
 	*aclp = NULL;
 }
 
-static isc_boolean_t insecure_prefix_found;
+
+static isc_once_t	insecure_prefix_once = ISC_ONCE_INIT;
+static isc_mutex_t	insecure_prefix_lock;
+static isc_boolean_t	insecure_prefix_found;
+
+static void
+initialize_action(void) {
+        RUNTIME_CHECK(isc_mutex_init(&insecure_prefix_lock) == ISC_R_SUCCESS);
+}
 
 /*
  * Called via isc_radix_walk() to find IP table nodes that are
  * insecure.
  */
 static void
-is_insecure(isc_prefix_t *prefix, isc_boolean_t *data) {
+is_insecure(isc_prefix_t *prefix, void *data) {
+	isc_boolean_t secure = * (isc_boolean_t *)data;
+
         /* Negated entries are always secure */
-        if(* (isc_boolean_t *)data == ISC_FALSE) {
+        if (!secure) {
                 return; 
         }
 
@@ -475,14 +486,21 @@ is_insecure(isc_prefix_t *prefix, isc_boolean_t *data) {
 isc_boolean_t
 dns_acl_isinsecure(const dns_acl_t *a) {
 	unsigned int i;
+	isc_boolean_t insecure;
+
+	RUNTIME_CHECK(isc_once_do(&insecure_prefix_once,
+				  initialize_action) == ISC_R_SUCCESS);
 
         /*
          * Walk radix tree to find out if there are any non-negated,
          * non-loopback prefixes.
          */
+	LOCK(&insecure_prefix_lock);
         insecure_prefix_found = ISC_FALSE;
         isc_radix_process(a->iptable->radix, is_insecure);
-        if(insecure_prefix_found)
+	insecure = insecure_prefix_found;
+	UNLOCK(&insecure_prefix_lock);
+        if (insecure)
                 return(ISC_TRUE);
 			
         /* Now check non-radix elements */

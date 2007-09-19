@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.c,v 1.4 2007/09/14 01:46:05 marka Exp $ */
+/* $Id: radix.c,v 1.5 2007/09/19 03:03:29 marka Exp $ */
 
 /*
  * This source was adapted from MRT's RCS Ids:
@@ -41,7 +41,7 @@ static int
 _comp_with_mask(void *addr, void *dest, u_int mask);
 
 static void
-_clear_radix(isc_radix_tree_t *radix, void_fn_t func);
+_clear_radix(isc_radix_tree_t *radix, isc_radix_destroyfunc_t func);
 
 static isc_result_t
 _new_prefix(isc_mem_t *mctx, isc_prefix_t **target, int family, void *dest,
@@ -153,11 +153,11 @@ isc_radix_create(isc_mem_t *mctx, isc_radix_tree_t **target, int maxbits) {
  */
 
 static void
-_clear_radix(isc_radix_tree_t *radix, void_fn_t func) {
+_clear_radix(isc_radix_tree_t *radix, isc_radix_destroyfunc_t func) {
 
-	REQUIRE(radix);
+	REQUIRE(radix != NULL);
 
-	if (radix->head) {
+	if (radix->head != NULL) {
 
 		isc_radix_node_t *Xstack[RADIX_MAXBITS+1];
 		isc_radix_node_t **Xsp = Xstack;
@@ -167,9 +167,9 @@ _clear_radix(isc_radix_tree_t *radix, void_fn_t func) {
 			isc_radix_node_t *l = Xrn->l;
 			isc_radix_node_t *r = Xrn->r;
 
-			if (Xrn->prefix) {
+			if (Xrn->prefix != NULL) {
 				_deref_prefix(radix->mctx, Xrn->prefix);
-				if (Xrn->data && func)
+				if (Xrn->data != NULL && func != NULL)
 					func(Xrn->data);
 			} else {
 				INSIST(Xrn->data == NULL);
@@ -197,7 +197,7 @@ _clear_radix(isc_radix_tree_t *radix, void_fn_t func) {
 
 
 void
-isc_destroy_radix(isc_radix_tree_t *radix, void_fn_t func)
+isc_destroy_radix(isc_radix_tree_t *radix, isc_radix_destroyfunc_t func)
 {
 	REQUIRE(radix != NULL);
 	_clear_radix(radix, func);
@@ -209,11 +209,11 @@ isc_destroy_radix(isc_radix_tree_t *radix, void_fn_t func)
  * func will be called as func(node->prefix, node->data)
  */
 void
-isc_radix_process(isc_radix_tree_t *radix, void_fn_t func)
+isc_radix_process(isc_radix_tree_t *radix, isc_radix_processfunc_t func)
 {
 	isc_radix_node_t *node;
 
-	REQUIRE(func);
+	REQUIRE(func != NULL);
 
 	RADIX_WALK(radix->head, node) {
 		func(node->prefix, node->data);
