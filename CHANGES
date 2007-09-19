@@ -1,3 +1,6 @@
+2245.	[bug]		Validating lack of DS records at trust anchors wasn't
+			working. [RT #17151]
+
 2238.	[bug]		It was possible to trigger a REQUIRE when a
 			validation was cancelled. [RT #17106]
 
