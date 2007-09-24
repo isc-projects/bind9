@@ -351,6 +351,30 @@ A: options {
    };
 
 
+Q: Can you help me understand how BIND 9 uses memory to store DNS zones?
+
+   Some times it seems to take several times the amount of memory it needs
+   to store the zone.
+
+A: When reloading a zone named my have multiple copies of the zone in
+   memory at one time. The zone it is serving and the one it is loading.
+   If reloads are ultra fast it can have more still.
+
+   e.g. Ones that are transferring out, the one that it is serving and the
+   one that is loading.
+
+   BIND 8 destroyed the zone before loading and also killed off outgoing
+   transfers of the zone.
+
+   The new strategy allows slaves to get copies of the new zone regardless
+   of how often the master is loaded compared to the transfer time. The
+   slave might skip some intermediate versions but the transfers will
+   complete and it will keep reasonably in sync with the master.
+
+   The new strategy also allows the master to recover from syntax and
+   other errors in the master file as it still has an in-core copy of the
+   old contents.
+
 3. General Questions
 
 Q: I keep getting log messages like the following. Why?
