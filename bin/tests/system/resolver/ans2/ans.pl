@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: ans.pl,v 1.9 2007/06/19 23:47:05 tbox Exp $
+# $Id: ans.pl,v 1.10 2007/09/24 04:13:25 marka Exp $
 
 #
 # Ad hoc name server
@@ -29,9 +29,9 @@ use Net::DNS::Packet;
 my $sock = IO::Socket::INET->new(LocalAddr => "10.53.0.2",
    LocalPort => 5300, Proto => "udp") or die "$!";
 
-my $pidf = new IO::File "ans.pid", "w" or die "cannot write pid file: $!";
-print $pidf "$$\n";
-$pidf->close;
+my $pidf = new IO::File "ans.pid", "w" or die "cannot open pid file: $!";
+print $pidf "$$\n" or die "cannot write pid file: $!";
+$pidf->close or die "cannot close pid file: $!";
 sub rmpid { unlink "ans.pid"; exit 1; };
 
 $SIG{INT} = \&rmpid;
