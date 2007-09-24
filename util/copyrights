@@ -1263,6 +1263,7 @@
 ./doc/misc/rfc-compliance			TXT.BRIEF	2001,2004
 ./doc/misc/roadmap				TXT.BRIEF	2000,2001,2004
 ./doc/misc/sdb					TXT.BRIEF	2000,2001,2004
+./doc/misc/sort-options.pl			PERL	2007
 ./doc/private/CHANGES				X	2000,2001
 ./doc/private/branches				X	2002,2003,2004,2005,2006,2007
 ./doc/private/bugfix-by-assertion		X	2001
