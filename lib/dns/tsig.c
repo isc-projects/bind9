@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.129 2007/06/19 23:47:16 tbox Exp $
+ * $Id: tsig.c,v 1.130 2007/09/24 17:18:25 each Exp $
  */
 /*! \file */
 #include <config.h>
@@ -1512,8 +1512,10 @@ dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ringp) {
 		return (ISC_R_NOMEMORY);
 
 	result = isc_rwlock_init(&ring->lock, 0, 0);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
+		isc_mem_put(mctx, ring, sizeof(dns_tsig_keyring_t));
 		return (result);
+	}
 
 	ring->keys = NULL;
 	result = dns_rbt_create(mctx, free_tsignode, NULL, &ring->keys);

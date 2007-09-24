@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.c,v 1.5 2007/09/19 03:03:29 marka Exp $ */
+/* $Id: radix.c,v 1.6 2007/09/24 17:18:25 each Exp $ */
 
 /*
  * This source was adapted from MRT's RCS Ids:
@@ -289,12 +289,14 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 	isc_uint32_t i, j, r;
 	isc_result_t result;
 
-	REQUIRE(radix);
-	REQUIRE(prefix || (source && source->prefix));
-	RUNTIME_CHECK(prefix->bitlen <= radix->maxbits);
+	REQUIRE(radix != NULL);
+	REQUIRE(prefix != NULL || (source != NULL && source->prefix != NULL));
+	RUNTIME_CHECK(prefix == NULL || prefix->bitlen <= radix->maxbits);
 
-	if (!prefix && source && source->prefix)
+	if (prefix == NULL)
 		prefix = source->prefix;
+
+	INSIST(prefix != NULL);
 
 	if (radix->head == NULL) {
 		node = isc_mem_get(radix->mctx, sizeof(isc_radix_node_t));
@@ -338,7 +340,7 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 		INSIST(node != NULL);
 	}
 
-	INSIST(node->prefix);
+	INSIST(node->prefix != NULL);
 
 	test_addr = isc_prefix_touchar(node->prefix);
 	/* Find the first bit different. */
@@ -364,13 +366,13 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 		differ_bit = check_bit;
 
 	parent = node->parent;
-	while (parent && parent->bit >= differ_bit) {
+	while (parent != NULL && parent->bit >= differ_bit) {
 		node = parent;
 		parent = node->parent;
 	}
 
 	if (differ_bit == bitlen && node->bit == bitlen) {
-		if (node->prefix) {
+		if (node->prefix != NULL) {
 			*target = node;
 			return (ISC_R_SUCCESS);
 		}
@@ -406,7 +408,7 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 	new_node->l = new_node->r = NULL;
 	radix->num_active_node++;
 
-	if (source) {
+	if (source != NULL) {
 		/*
 		 * If source is non-NULL, then we're merging in a node
 		 * from an existing radix tree.  Node_num values have to

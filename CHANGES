@@ -1,3 +1,5 @@
+2248.   [cleanup]       Fix several errors reported by Coverity. [RT #17160]
+
 2247.	[doc]		Sort doc/misc/options. [RT #17067]
 
 2246.	[bug]		Make the startup of test servers (ans.pl) more
