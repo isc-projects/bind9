@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.112.2.3.8.13 2007/08/28 07:19:14 tbox Exp $
+ * $Id: tsig.c,v 1.112.2.3.8.14 2007/09/24 17:26:10 each Exp $
  */
 
 #include <config.h>
@@ -1187,6 +1187,7 @@ dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ringp) {
 
 	result = isc_rwlock_init(&ring->lock, 0, 0);
 	if (result != ISC_R_SUCCESS) {
+		isc_mem_put(mctx, ring, sizeof(dns_tsig_keyring_t));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_rwlock_init() failed: %s",
 				 isc_result_totext(result));

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwres_gnba.c,v 1.20.2.2.8.7 2007/08/28 07:19:18 tbox Exp $ */
+/* $Id: lwres_gnba.c,v 1.20.2.2.8.8 2007/09/24 17:26:10 each Exp $ */
 
 #include <config.h>
 
@@ -44,7 +44,6 @@ lwres_gnbarequest_render(lwres_context_t *ctx, lwres_gnbarequest_t *req,
 	REQUIRE(req != NULL);
 	REQUIRE(req->addr.family != 0);
 	REQUIRE(req->addr.length != 0);
-	REQUIRE(req->addr.address != NULL);
 	REQUIRE(pkt != NULL);
 	REQUIRE(b != NULL);
 
