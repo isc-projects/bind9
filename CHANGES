@@ -1,3 +1,5 @@
+2247.	[doc]		Sort doc/misc/options. [RT #17067]
+
 2246.	[bug]		Make the startup of test servers (ans.pl) more
 			robust. [RT #17147]
 
