@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: format-options.pl,v 1.4 2007/06/19 23:47:13 tbox Exp $
+# $Id: format-options.pl,v 1.5 2007/09/24 04:21:59 marka Exp $
 
 print <<END;
 
@@ -26,11 +26,24 @@ END
 
 # Break long lines
 while (<>) {
+	chomp;
 	s/\t/        /g;
-	if (length >= 79) {
-		m!^( *)!;
-		my $indent = $1;
-		s!^(.{0,75}) (.*)$!\1\n$indent    \2!;
+	my $line = $_;
+	m!^( *)!;
+	my $indent = $1;
+	my $comment = "";
+	if ( $line =~ m!//.*! ) {
+		$comment = $&;
+		$line =~ s!//.*!!;
 	}
-	print;
+	my $start = "";
+	while (length($line) >= 79 - length($comment)) {
+		$_ = $line;
+		# this makes sure that the comment has something in front of it
+		$len = 75 - length($comment);
+		m!^(.{0,$len}) (.*)$!;
+		$start = $start.$1."\n";
+		$line = $indent."    ".$2;
+	}
+	print $start.$line.$comment."\n";
 }

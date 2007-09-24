@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.6 2007/06/18 23:47:34 tbox Exp $
+# $Id: Makefile.in,v 1.7 2007/09/24 04:21:59 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -40,6 +40,7 @@ CFG_TEST = ../../bin/tests/cfg_test
 options: FORCE
 	if test -x ${CFG_TEST} && \
 	   ${CFG_TEST} --named --grammar | \
+	   ${PERL} ${srcdir}/sort-options.pl | \
 	   ${PERL} ${srcdir}/format-options.pl >$@.new ; then \
 		mv -f $@.new $@ ; \
 	else \
