@@ -12,9 +12,6 @@
 
 2234.   [port]          Correct some compiler warnings on SCO OSr5 [RT #17134]
   
-2229.	[bug]		Null pointer dereference on query pool creation
- 			failure. [RT #17133]
- 
 2232.	[bug]		dns_adb_findaddrinfo() could fail and return
 			ISC_R_SUCCESS. [RT #17137]
 
