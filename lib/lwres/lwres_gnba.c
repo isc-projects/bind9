@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwres_gnba.c,v 1.23.18.2 2005/04/29 00:17:20 marka Exp $ */
+/* $Id: lwres_gnba.c,v 1.23.18.3 2007/09/26 04:41:47 each Exp $ */
 
 /*! \file lwres_gnba.c
    These are low-level routines for creating and parsing lightweight
@@ -126,7 +126,6 @@ lwres_gnbarequest_render(lwres_context_t *ctx, lwres_gnbarequest_t *req,
 	REQUIRE(req != NULL);
 	REQUIRE(req->addr.family != 0);
 	REQUIRE(req->addr.length != 0);
-	REQUIRE(req->addr.address != NULL);
 	REQUIRE(pkt != NULL);
 	REQUIRE(b != NULL);
 

@@ -1,6 +1,6 @@
 #ifdef HMAC_MD5
 #ifndef LINT
-static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/hmac_link.c,v 1.3.164.4 2007/02/26 02:00:24 marka Exp $";
+static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/hmac_link.c,v 1.3.164.5 2007/09/26 04:41:47 each Exp $";
 #endif
 /*
  * Portions Copyright (c) 1995-1998 by Trusted Information Systems, Inc.
@@ -223,6 +223,7 @@ dst_buffer_to_hmac_md5(DST_KEY *dkey, const u_char *key, const int keylen)
 	HMAC_Key *hkey = NULL;
 	MD5_CTX ctx;
 	int local_keylen = keylen;
+	u_char tk[MD5_LEN];
 
 	if (dkey == NULL || key == NULL || keylen < 0)
 		return (-1);
@@ -235,7 +236,6 @@ dst_buffer_to_hmac_md5(DST_KEY *dkey, const u_char *key, const int keylen)
 
 	/* if key is longer than HMAC_LEN bytes reset it to key=MD5(key) */
 	if (keylen > HMAC_LEN) {
-		u_char tk[MD5_LEN];
 		MD5Init(&ctx);
 		MD5Update(&ctx, key, keylen);
 		MD5Final(tk, &ctx);

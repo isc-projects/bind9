@@ -8,6 +8,8 @@
 2249.   [bug]           Only set Authentic Data bit if client requested
                         DNSSEC, per RFC 3655 [RT #17175]
 
+2248.   [cleanup]       Fix several errors reported by Coverity. [RT #17160]
+
 2245.	[bug]		Validating lack of DS records at trust anchors wasn't
 			working. [RT #17151]
 
