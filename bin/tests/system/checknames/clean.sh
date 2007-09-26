@@ -14,10 +14,11 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.5 2007/06/19 23:47:01 tbox Exp $
+# $Id: clean.sh,v 1.6 2007/09/26 03:22:43 marka Exp $
 
 rm -f dig.out.ns?.test*
 rm -f nsupdate.out.test*
 rm -f ns1/*.example.db
 rm -f ns1/*.update.db
 rm -f ns1/*.update.db.jnl
+rm -f */named.memstats

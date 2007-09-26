@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.77 2007/09/18 00:22:31 marka Exp $ */
+/* $Id: namedconf.c,v 1.78 2007/09/26 03:22:45 marka Exp $ */
 
 /*! \file */
 
@@ -630,6 +630,7 @@ options_clauses[] = {
 	{ "listen-on-v6", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
 	{ "match-mapped-addresses", &cfg_type_boolean, 0 },
 	{ "memstatistics-file", &cfg_type_qstring, 0 },
+	{ "memstatistics", &cfg_type_boolean, 0 },
 	{ "multiple-cnames", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "named-xfer", &cfg_type_qstring, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "pid-file", &cfg_type_qstringornone, 0 },

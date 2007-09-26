@@ -15,6 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.5 2007/06/19 23:47:03 tbox Exp $
+# $Id: clean.sh,v 1.6 2007/09/26 03:22:43 marka Exp $
 
 rm -f ns1/named.conf ns1/myftp.db
+rm -f */named.memstats

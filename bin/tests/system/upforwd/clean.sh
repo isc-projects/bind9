@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.8 2007/06/19 23:47:06 tbox Exp $
+# $Id: clean.sh,v 1.9 2007/09/26 03:22:44 marka Exp $
 
 #
 # Clean up after zone transfer tests.
@@ -23,7 +23,4 @@
 
 rm -f dig.out.ns1 dig.out.ns2 dig.out.ns1 dig.out.ns3 dig.out.ns1.after
 rm -f ns1/*.jnl ns2/*.jnl ns3/*.jnl ns1/example.db ns2/*.bk ns3/*.bk
-
-
-
-
+rm -f */named.memstats

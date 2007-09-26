@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.157 2007/06/18 23:47:18 tbox Exp $ */
+/* $Id: main.c,v 1.158 2007/09/26 03:22:43 marka Exp $ */
 
 /*! \file */
 
@@ -912,7 +912,8 @@ main(int argc, char *argv[]) {
 		isc_mem_stats(ns_g_mctx, stdout);
 		isc_mutex_stats(stdout);
 	}
-	if (memstats != NULL) {
+
+	if (ns_g_memstatistics && memstats != NULL) {
 		FILE *fp = NULL;
 		result = isc_stdio_open(memstats, "w", &fp);
 		if (result == ISC_R_SUCCESS) {

@@ -15,10 +15,10 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.9 2007/06/19 23:47:05 tbox Exp $
+# $Id: clean.sh,v 1.10 2007/09/26 03:22:44 marka Exp $
 
 #
 # Clean up after stub tests.
 #
 rm -f dig.out.ns3 ns3/child.example.st
-
+rm -f */named.memstats

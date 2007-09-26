@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: globals.h,v 1.72 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id: globals.h,v 1.73 2007/09/26 03:22:43 marka Exp $ */
 
 #ifndef NAMED_GLOBALS_H
 #define NAMED_GLOBALS_H 1
@@ -114,6 +114,7 @@ EXTERN const char *		ns_g_username		INIT(NULL);
 
 EXTERN int			ns_g_listen		INIT(3);
 EXTERN isc_time_t		ns_g_boottime;
+EXTERN isc_boolean_t		ns_g_memstatistics	INIT(ISC_FALSE);
 
 #undef EXTERN
 #undef INIT

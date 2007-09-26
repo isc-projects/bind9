@@ -15,11 +15,11 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.5 2007/06/19 23:47:04 tbox Exp $
+# $Id: clean.sh,v 1.6 2007/09/26 03:22:44 marka Exp $
 
 #
 # Clean up after relay transfer tests.
 #
 
 rm -f ns3/example.bk ns4/example.bk dig.out.ns2 dig.out.ns3 dig.out.ns4
-
+rm -f */named.memstats

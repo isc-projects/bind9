@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.5 2007/06/19 23:47:05 tbox Exp $
+# $Id: clean.sh,v 1.6 2007/09/26 03:22:44 marka Exp $
 
 rm -f reload.pid
 
@@ -26,3 +26,4 @@ rm -f ns1/delegations.db
 
 rm -f ns2/zone0*.db
 rm -f ns2/zone0*.jnl
+rm -f */named.memstats

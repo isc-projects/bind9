@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.490 2007/09/12 01:09:07 each Exp $ */
+/* $Id: server.c,v 1.491 2007/09/26 03:22:43 marka Exp $ */
 
 /*! \file */
 
@@ -3432,8 +3432,17 @@ load_configuration(const char *filename, ns_server_t *server,
 	
 	obj = NULL;
 	if (options != NULL &&
-	    cfg_map_get(options, "memstatistics-file", &obj) == ISC_R_SUCCESS)
+	    cfg_map_get(options, "memstatistics", &obj) == ISC_R_SUCCESS)
+		ns_g_memstatistics = cfg_obj_asboolean(obj);
+	else
+		ns_g_memstatistics =
+			ISC_TF((isc_mem_debugging & ISC_MEM_DEBUGRECORD) != 0);
+
+	obj = NULL;
+	if (ns_config_get(maps, "memstatistics-file", &obj) == ISC_R_SUCCESS)
 		ns_main_setmemstats(cfg_obj_asstring(obj));
+	else if (ns_g_memstatistics)
+		ns_main_setmemstats("named.memstats");
 	else
 		ns_main_setmemstats(NULL);
 

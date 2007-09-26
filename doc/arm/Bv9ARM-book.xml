@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.337 2007/09/18 00:22:30 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.338 2007/09/26 03:22:44 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4425,6 +4425,7 @@ category notify { null; };
     <optional> tkey-dhkey <replaceable>key_name</replaceable> <replaceable>key_tag</replaceable>; </optional>
     <optional> cache-file <replaceable>path_name</replaceable>; </optional>
     <optional> dump-file <replaceable>path_name</replaceable>; </optional>
+    <optional> memstatistics <replaceable>yes_or_no</replaceable>; </optional>
     <optional> memstatistics-file <replaceable>path_name</replaceable>; </optional>
     <optional> pid-file <replaceable>path_name</replaceable>; </optional>
     <optional> recursing-file <replaceable>path_name</replaceable>; </optional>
@@ -4719,8 +4720,7 @@ category notify { null; };
               <para>
                 The pathname of the file the server writes memory
                 usage statistics to on exit. If not specified,
-                the default is
-                <filename>named.memstats</filename>.
+                the default is <filename>named.memstats</filename>.
               </para>
             </listitem>
           </varlistentry>
@@ -4928,6 +4928,19 @@ options {
                   8 to enable checking
                   for memory leaks on exit. <acronym>BIND</acronym> 9 ignores the option and always performs
                   the checks.
+                </para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term><command>memstatistics</command></term>
+              <listitem>
+                <para>
+		  Write memory statistics to the file specfied by
+		  <command>memstatistics-file</command> at exit.
+		  The default is <userinput>no</userinput> unless
+		  '-m record' is specified on the command line in
+		  which case it is <userinput>yes</userinput>.
                 </para>
               </listitem>
             </varlistentry>

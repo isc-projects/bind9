@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.4 2007/06/19 23:47:02 tbox Exp $
+# $Id: clean.sh,v 1.5 2007/09/26 03:22:43 marka Exp $
 
 rm -f random.data
 rm -f ns*/named.run
@@ -25,3 +25,4 @@ rm -f ns3/dlvset-*
 rm -f ns3/dsset-*
 rm -f ns3/keyset-*
 rm -f ns3/trusted.conf ns5/trusted.conf
+rm -f */named.memstats
