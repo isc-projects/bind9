@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.81 2007/09/07 07:30:53 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.82 2007/09/26 03:28:27 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4641,12 +4641,18 @@ digits</varname>" + "<varname>tkey-domain</varname>". In most cases,
             <listitem>
               <para>
                 The pathname of the file the server writes memory
-                usage statistics to on exit. If not specified,
-                the default is
-                <filename>named.memstats</filename>.
+                usage statistics to on exit.  If specified the
+		statistics will be written to the file on exit.
               </para>
-            </listitem>
-          </varlistentry>
+	      <para>
+		In <acronym>BIND</acronym> 9.5 and later this will
+		default to <filename>named.memstats</filename>.
+		<acronym>BIND</acronym> 9.5 will also introduce
+		<command>memstatistics</command> to control the
+		writing.
+	      </para>
+	    </listitem>
+	  </varlistentry>
 
           <varlistentry>
             <term><command>pid-file</command></term>
