@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.56.2.12.2.51 2007/06/20 02:26:23 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.56.2.12.2.52 2007/09/26 04:36:28 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -71,23 +71,23 @@ Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#options"><span><strong class="command">options</strong></span> Statement Definition and Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#server_statement_grammar"><span><strong class="command">server</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#server_statement_definition_and_usage"><span><strong class="command">server</strong></span> Statement Definition and Usage</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2580789"><span><strong class="command">trusted-keys</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2580905"><span><strong class="command">trusted-keys</strong></span> Statement Definition
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2580739"><span><strong class="command">trusted-keys</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2580855"><span><strong class="command">trusted-keys</strong></span> Statement Definition
 	    and Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#view_statement_grammar"><span><strong class="command">view</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2580987"><span><strong class="command">view</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2580937"><span><strong class="command">view</strong></span> Statement Definition and Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#zone_statement_grammar"><span><strong class="command">zone</strong></span>
 Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2582202"><span><strong class="command">zone</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2582220"><span><strong class="command">zone</strong></span> Statement Definition and Usage</a></span></dt>
 </dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2583809">Zone File</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2583758">Zone File</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#types_of_resource_records_and_when_to_use_them">Types of Resource Records and When to Use Them</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2585105">Discussion of MX Records</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2585123">Discussion of MX Records</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#Setting_TTLs">Setting TTLs</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2585670">Inverse Mapping in IPv4</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2585776">Other Zone File Directives</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2586149"><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2585620">Inverse Mapping in IPv4</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2585725">Other Zone File Directives</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2586099"><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -1244,9 +1244,20 @@ the database to when instructed to do so with
 <span><strong class="command">rndc dumpdb</strong></span>.
 If not specified, the default is <code class="filename">named_dump.db</code>.</p></dd>
 <dt><span class="term"><span><strong class="command">memstatistics-file</strong></span></span></dt>
-<dd><p>The pathname of the file the server writes memory
-usage statistics to on exit. If not specified,
-the default is <code class="filename">named.memstats</code>.</p></dd>
+<dd>
+<p>
+		The pathname of the file the server writes memory
+		usage statistics to on exit.  If specified the
+		statistics will be written to the file on exit.
+	      </p>
+<p>
+		In <acronym class="acronym">BIND</acronym> 9.5 and later this will
+		default to <code class="filename">named.memstats</code>.
+		<acronym class="acronym">BIND</acronym> 9.5 will also introduce
+		<span><strong class="command">memstatistics</strong></span> to control the
+		writing.
+	      </p>
+</dd>
 <dt><span class="term"><span><strong class="command">pid-file</strong></span></span></dt>
 <dd><p>The pathname of the file the server writes its process ID
 in. If not specified, the default is <code class="filename">/var/run/named.pid</code>.
@@ -1710,7 +1721,7 @@ IN-ADDR.ARPA, IP6.ARPA, or IP6.INT).
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2564069"></a>Forwarding</h4></div></div></div>
+<a name="id2575829"></a>Forwarding</h4></div></div></div>
 <p>The forwarding facility can be used to create a large site-wide
 cache on a few servers, reducing traffic over links to external
 name servers. It can also be used to allow queries by servers that
@@ -1742,7 +1753,7 @@ Statement Grammar&#8221;</a>.</p>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2575997"></a>Dual-stack Servers</h4></div></div></div>
+<a name="id2575879"></a>Dual-stack Servers</h4></div></div></div>
 <p>Dual-stack servers are used as servers of last resort to work around
 problems in reachability due the lack of support for either IPv4 or IPv6
 on the host machine.</p>
@@ -1823,7 +1834,7 @@ from these addresses will not be responded to. The default is <strong class="use
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2576177"></a>Interfaces</h4></div></div></div>
+<a name="id2576126"></a>Interfaces</h4></div></div></div>
 <p>The interfaces and ports that the server will answer queries
 from may be specified using the <span><strong class="command">listen-on</strong></span> option. <span><strong class="command">listen-on</strong></span> takes
 an optional port, and an <code class="varname">address_match_list</code>.
@@ -1873,7 +1884,7 @@ the server will not listen on any IPv6 address.</p>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2576333"></a>Query Address</h4></div></div></div>
+<a name="id2576215"></a>Query Address</h4></div></div></div>
 <p>If the server doesn't know the answer to a question, it will
 query other name servers. <span><strong class="command">query-source</strong></span> specifies
 the address and port used for such queries. For queries sent over
@@ -2064,7 +2075,7 @@ but applies to notify messages sent to IPv6 addresses.</p></dd>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2564587"></a>Bad UDP Port Lists</h4></div></div></div>
+<a name="id2576962"></a>Bad UDP Port Lists</h4></div></div></div>
 <p>
 <span><strong class="command">avoid-v4-udp-ports</strong></span> and <span><strong class="command">avoid-v6-udp-ports</strong></span>
 specify a list of IPv4 and IPv6 UDP ports that will not be used as system
@@ -2077,7 +2088,7 @@ to query again.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2564603"></a>Operating System Resource Limits</h4></div></div></div>
+<a name="id2576978"></a>Operating System Resource Limits</h4></div></div></div>
 <p>The server's usage of many system resources can be limited.
 Scaled values are allowed when specifying resource limits.  For
 example, <span><strong class="command">1G</strong></span> can be used instead of
@@ -2121,7 +2132,7 @@ may use. The default is <code class="literal">default</code>.</p></dd>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2564705"></a>Server  Resource Limits</h4></div></div></div>
+<a name="id2564654"></a>Server  Resource Limits</h4></div></div></div>
 <p>The following options set limits on the server's
 resource consumption that are enforced internally by the
 server rather than the operating system.</p>
@@ -2175,7 +2186,7 @@ silently raised.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2564818"></a>Periodic Task Intervals</h4></div></div></div>
+<a name="id2564768"></a>Periodic Task Intervals</h4></div></div></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><span><strong class="command">cleaning-interval</strong></span></span></dt>
 <dd><p>The server will remove expired resource records
@@ -2670,7 +2681,7 @@ For more details, see the description of
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2580789"></a><span><strong class="command">trusted-keys</strong></span> Statement Grammar</h3></div></div></div>
+<a name="id2580739"></a><span><strong class="command">trusted-keys</strong></span> Statement Grammar</h3></div></div></div>
 <pre class="programlisting">trusted-keys {
     <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>string</code></em> ;
     [<span class="optional"> <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>string</code></em> ; [<span class="optional">...</span>]</span>]
@@ -2679,7 +2690,7 @@ For more details, see the description of
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2580905"></a><span><strong class="command">trusted-keys</strong></span> Statement Definition
+<a name="id2580855"></a><span><strong class="command">trusted-keys</strong></span> Statement Definition
 	    and Usage</h3></div></div></div>
 <p>
 	    The <span><strong class="command">trusted-keys</strong></span> statement defines
@@ -2722,7 +2733,7 @@ For more details, see the description of
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2580987"></a><span><strong class="command">view</strong></span> Statement Definition and Usage</h3></div></div></div>
+<a name="id2580937"></a><span><strong class="command">view</strong></span> Statement Definition and Usage</h3></div></div></div>
 <p>The <span><strong class="command">view</strong></span> statement is a powerful new feature
 of <acronym class="acronym">BIND</acronym> 9 that lets a name server answer a DNS query differently
 depending on who is asking. It is particularly useful for implementing
@@ -2924,10 +2935,10 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2582202"></a><span><strong class="command">zone</strong></span> Statement Definition and Usage</h3></div></div></div>
+<a name="id2582220"></a><span><strong class="command">zone</strong></span> Statement Definition and Usage</h3></div></div></div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2582209"></a>Zone Types</h4></div></div></div>
+<a name="id2582227"></a>Zone Types</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -3040,7 +3051,7 @@ from forwarders.</p>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2582583"></a>Class</h4></div></div></div>
+<a name="id2582601"></a>Class</h4></div></div></div>
 <p>The zone's name may optionally be followed by a class. If
 a class is not specified, class <code class="literal">IN</code> (for <code class="varname">Internet</code>),
 is assumed. This is correct for the vast majority of cases.</p>
@@ -3055,7 +3066,7 @@ in the mid-1970s. Zone data for it can be specified with the <code class="litera
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2582682"></a>Zone Options</h4></div></div></div>
+<a name="id2582632"></a>Zone Options</h4></div></div></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><span><strong class="command">allow-notify</strong></span></span></dt>
 <dd><p>See the description of
@@ -3303,7 +3314,7 @@ name, the rules are checked for each existing record type.
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2583809"></a>Zone File</h2></div></div></div>
+<a name="id2583758"></a>Zone File</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="types_of_resource_records_and_when_to_use_them"></a>Types of Resource Records and When to Use Them</h3></div></div></div>
@@ -3313,7 +3324,7 @@ Since the publication of RFC 1034, several new RRs have been identified
 and implemented in the DNS. These are also included.</p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2583827"></a>Resource Records</h4></div></div></div>
+<a name="id2583777"></a>Resource Records</h4></div></div></div>
 <p>A domain name identifies a node.  Each node has a set of
         resource information, which may be empty.  The set of resource
         information associated with a particular name is composed of
@@ -3572,7 +3583,7 @@ used as "pointers" to other data in the DNS.</p>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2584747"></a>Textual expression of RRs</h4></div></div></div>
+<a name="id2584697"></a>Textual expression of RRs</h4></div></div></div>
 <p>RRs are represented in binary form in the packets of the DNS
 protocol, and are usually represented in highly encoded form when
 stored in a name server or resolver.  In the examples provided in
@@ -3662,7 +3673,7 @@ each of a different class.</p>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2585105"></a>Discussion of MX Records</h3></div></div></div>
+<a name="id2585123"></a>Discussion of MX Records</h3></div></div></div>
 <p>As described above, domain servers store information as a
 series of resource records, each of which contains a particular
 piece of information about a given domain name (which is usually,
@@ -3779,7 +3790,7 @@ can be explicitly specified, for example, <code class="literal">1h30m</code>. </
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2585670"></a>Inverse Mapping in IPv4</h3></div></div></div>
+<a name="id2585620"></a>Inverse Mapping in IPv4</h3></div></div></div>
 <p>Reverse name resolution (that is, translation from IP address
 to name) is achieved by means of the <span class="emphasis"><em>in-addr.arpa</em></span> domain
 and PTR records. Entries in the in-addr.arpa domain are made in
@@ -3817,7 +3828,7 @@ that the example is relative to the listed origin.</p>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2585776"></a>Other Zone File Directives</h3></div></div></div>
+<a name="id2585725"></a>Other Zone File Directives</h3></div></div></div>
 <p>The Master File Format was initially defined in RFC 1035 and
 has subsequently been extended. While the Master File Format itself
 is class independent all records in a Master File must be of the same
@@ -3826,7 +3837,7 @@ class.</p>
 and <span><strong class="command">$TTL.</strong></span></p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2585795"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
+<a name="id2585745"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
 <p>Syntax: <span><strong class="command">$ORIGIN
 </strong></span><em class="replaceable"><code>domain-name</code></em> [<span class="optional"> <em class="replaceable"><code>comment</code></em></span>]</p>
 <p><span><strong class="command">$ORIGIN</strong></span> sets the domain name that will
@@ -3841,7 +3852,7 @@ WWW     CNAME   MAIN-SERVER</pre>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2585850"></a>The <span><strong class="command">$INCLUDE</strong></span> Directive</h4></div></div></div>
+<a name="id2585800"></a>The <span><strong class="command">$INCLUDE</strong></span> Directive</h4></div></div></div>
 <p>Syntax: <span><strong class="command">$INCLUDE</strong></span>
 <em class="replaceable"><code>filename</code></em> [<span class="optional">
 <em class="replaceable"><code>origin</code></em> </span>] [<span class="optional"> <em class="replaceable"><code>comment</code></em> </span>]</p>
@@ -3865,7 +3876,7 @@ This could be construed as a deviation from RFC 1035, a feature, or both.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2585981"></a>The <span><strong class="command">$TTL</strong></span> Directive</h4></div></div></div>
+<a name="id2585863"></a>The <span><strong class="command">$TTL</strong></span> Directive</h4></div></div></div>
 <p>Syntax: <span><strong class="command">$TTL</strong></span>
 <em class="replaceable"><code>default-ttl</code></em> [<span class="optional">
 <em class="replaceable"><code>comment</code></em> </span>]</p>
@@ -3876,7 +3887,7 @@ with undefined TTLs. Valid TTLs are of the range 0-2147483647 seconds.</p>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2586149"></a><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</h3></div></div></div>
+<a name="id2586099"></a><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</h3></div></div></div>
 <p>Syntax: <span><strong class="command">$GENERATE</strong></span> <em class="replaceable"><code>range</code></em> <em class="replaceable"><code>lhs</code></em> [<span class="optional"><em class="replaceable"><code>ttl</code></em></span>] [<span class="optional"><em class="replaceable"><code>class</code></em></span>] <em class="replaceable"><code>type</code></em> <em class="replaceable"><code>rhs</code></em> [<span class="optional"> <em class="replaceable"><code>comment</code></em> </span>]</p>
 <p><span><strong class="command">$GENERATE</strong></span> is used to create a series of
 resource records that only differ from each other by an iterator. <span><strong class="command">$GENERATE</strong></span> can
