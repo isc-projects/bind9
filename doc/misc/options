@@ -136,6 +136,7 @@ options {
         max-transfer-time-in <integer>;
         max-transfer-time-out <integer>;
         max-udp-size <integer>;
+        memstatistics <boolean>;
         memstatistics-file <quoted_string>;
         min-refresh-time <integer>;
         min-retry-time <integer>;
