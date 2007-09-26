@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.13.4.49 2007/08/28 07:19:08 tbox Exp $ */
+/* $Id: query.c,v 1.198.2.13.4.50 2007/09/26 03:09:46 each Exp $ */
 
 #include <config.h>
 
@@ -3581,7 +3581,7 @@ ns_query_start(ns_client_t *client) {
 	 * Set AD.  We must clear it if we add non-validated data to a
 	 * response.
 	 */
-	if (client->view->enablednssec)
+	if (WANTDNSSEC(client))
 		message->flags |= DNS_MESSAGEFLAG_AD;
 
 	qclient = NULL;
