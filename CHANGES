@@ -1,5 +1,8 @@
 	--- 9.4.2rc1 released ---
 
+2249.   [bug]           Only set Authentic Data bit if client requested
+                        DNSSEC, per RFC 3655 [RT #17175]
+
 2238.	[bug]		It was possible to trigger a REQUIRE when a
 			validation was cancelled. [RT #17106]
 
