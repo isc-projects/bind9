@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.85 2007/09/07 07:32:47 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.86 2007/09/26 03:36:59 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -3006,11 +3006,24 @@ the database to when instructed to do so with
 <command>rndc dumpdb</command>.
 If not specified, the default is <filename>named_dump.db</filename>.</para>
 </listitem></varlistentry>
-<varlistentry><term><command>memstatistics-file</command></term>
-<listitem><para>The pathname of the file the server writes memory
-usage statistics to on exit. If not specified,
-the default is <filename>named.memstats</filename>.</para>
-</listitem></varlistentry>
+
+	  <varlistentry>
+	    <term><command>memstatistics-file</command></term>
+	    <listitem>
+	      <para>
+		The pathname of the file the server writes memory
+		usage statistics to on exit.  If specified the
+		statistics will be written to the file on exit.
+	      </para>
+	      <para>
+		In <acronym>BIND</acronym> 9.5 and later this will
+		default to <filename>named.memstats</filename>.
+		<acronym>BIND</acronym> 9.5 will also introduce
+		<command>memstatistics</command> to control the
+		writing.
+	      </para>
+	    </listitem>
+	  </varlistentry>
 
 <varlistentry><term><command>pid-file</command></term>
 <listitem><para>The pathname of the file the server writes its process ID
