@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.h,v 1.27.18.9 2007/08/28 07:20:05 tbox Exp $ */
+/* $Id: validator.h,v 1.27.18.10 2007/09/26 04:39:45 each Exp $ */
 
 #ifndef DNS_VALIDATOR_H
 #define DNS_VALIDATOR_H 1
@@ -81,11 +81,24 @@ typedef struct dns_validatorevent {
 	ISC_EVENT_COMMON(struct dns_validatorevent);
 	dns_validator_t *		validator;
 	isc_result_t			result;
+	/*
+	 * Name and type of the response to be validated.
+	 */
 	dns_name_t *			name;
 	dns_rdatatype_t			type;
+	/*
+	 * Rdata and RRSIG (if any) for positive responses.
+	 */
 	dns_rdataset_t *		rdataset;
 	dns_rdataset_t *		sigrdataset;
+	/*
+	 * The full response.  Required for negative responses.
+	 * Also required for positive wildcard responses.
+	 */
 	dns_message_t *			message;
+	/*
+	 * Proofs to be cached.
+	 */
 	dns_name_t *			proofs[3];
 } dns_validatorevent_t;
 
