@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.h,v 1.4 2007/09/19 03:03:29 marka Exp $ */
+/* $Id: radix.h,v 1.5 2007/09/28 00:11:32 each Exp $ */
 
 /*
  * This source was adapted from MRT's RCS Ids:
@@ -109,7 +109,7 @@ isc_result_t
 isc_radix_create(isc_mem_t *mctx, isc_radix_tree_t **target, int maxbits);
 
 void
-isc_destroy_radix(isc_radix_tree_t *radix, isc_radix_destroyfunc_t func);
+isc_radix_destroy(isc_radix_tree_t *radix, isc_radix_destroyfunc_t func);
 
 void
 isc_radix_process(isc_radix_tree_t *radix, isc_radix_processfunc_t func);

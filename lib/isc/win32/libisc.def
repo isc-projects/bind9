@@ -304,6 +304,12 @@ isc_quota_max
 isc_quota_release
 isc_quota_reserve
 isc_quota_soft
+isc_radix_create
+isc_radix_destroy
+isc_radix_insert
+isc_radix_process
+isc_radix_remove
+isc_radix_search
 isc_random_get
 isc_random_jitter
 isc_random_seed
@@ -406,6 +412,13 @@ isc_stdio_seek
 isc_stdio_sync
 isc_stdio_write
 isc_stdtime_get
+isc_string_append
+isc_string_append_truncate
+isc_string_copy
+isc_string_copy_truncate
+isc_string_printf
+isc_string_printf_truncate
+isc_string_regiondup
 isc_string_separate
 isc_string_strlcat
 isc_string_strlcpy

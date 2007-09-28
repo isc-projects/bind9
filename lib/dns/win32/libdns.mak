@@ -1048,6 +1048,24 @@ SOURCE=..\forward.c
 
 !ENDIF 
 
+SOURCE=..\iptable.c
+
+!IF  "$(CFG)" == "libdns - Win32 Release"
+
+
+"$(INTDIR)\iptable.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libdns - Win32 Debug"
+
+
+"$(INTDIR)\iptable.obj"	"$(INTDIR)\iptable.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 SOURCE=..\journal.c
 
 !IF  "$(CFG)" == "libdns - Win32 Release"

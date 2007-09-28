@@ -1568,6 +1568,24 @@ SOURCE=..\quota.c
 
 !ENDIF 
 
+SOURCE=..\radix.c
+
+!IF  "$(CFG)" == "libisc - Win32 Release"
+
+
+"$(INTDIR)\radix.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libisc - Win32 Debug"
+
+
+"$(INTDIR)\radix.obj"	"$(INTDIR)\radix.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 SOURCE=..\random.c
 
 !IF  "$(CFG)" == "libisc - Win32 Release"

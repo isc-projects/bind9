@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: iptable.c,v 1.4 2007/09/14 01:46:05 marka Exp $ */
+/* $Id: iptable.c,v 1.5 2007/09/28 00:11:32 each Exp $ */
 
 #include <isc/mem.h>
 #include <isc/radix.h>
@@ -148,7 +148,7 @@ destroy_iptable(dns_iptable_t *dtab) {
 	REQUIRE(DNS_IPTABLE_VALID(dtab));
 
 	if (dtab->radix != NULL) {
-		isc_destroy_radix(dtab->radix, NULL);
+		isc_radix_destroy(dtab->radix, NULL);
 		dtab->radix = NULL;
 	}
 	

@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.c,v 1.6 2007/09/24 17:18:25 each Exp $ */
+/* $Id: radix.c,v 1.7 2007/09/28 00:11:32 each Exp $ */
 
 /*
  * This source was adapted from MRT's RCS Ids:
@@ -197,7 +197,7 @@ _clear_radix(isc_radix_tree_t *radix, isc_radix_destroyfunc_t func) {
 
 
 void
-isc_destroy_radix(isc_radix_tree_t *radix, isc_radix_destroyfunc_t func)
+isc_radix_destroy(isc_radix_tree_t *radix, isc_radix_destroyfunc_t func)
 {
 	REQUIRE(radix != NULL);
 	_clear_radix(radix, func);

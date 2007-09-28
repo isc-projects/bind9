@@ -190,6 +190,10 @@ SOURCE=..\include\dns\forward.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\dns\iptable.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\dns\journal.h
 # End Source File
 # Begin Source File
@@ -475,6 +479,10 @@ SOURCE=..\ds.c
 # Begin Source File
 
 SOURCE=..\forward.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\iptable.c
 # End Source File
 # Begin Source File
 
