@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.c,v 1.11 2007/09/14 01:46:05 marka Exp $ */
+/* $Id: aclconf.c,v 1.12 2007/10/12 04:17:18 each Exp $ */
 
 #include <config.h>
 
@@ -81,7 +81,7 @@ get_acl_def(const cfg_obj_t *cctx, const char *name, const cfg_obj_t **ret) {
 static isc_result_t
 convert_named_acl(const cfg_obj_t *nameobj, const cfg_obj_t *cctx,
 		  isc_log_t *lctx, cfg_aclconfctx_t *ctx,
-		  isc_mem_t *mctx, int nest_level,
+		  isc_mem_t *mctx, unsigned int nest_level,
 		  dns_acl_t **target)
 {
 	isc_result_t result;
@@ -166,7 +166,7 @@ cfg_acl_fromconfig(const cfg_obj_t *caml,
 		   isc_log_t *lctx,
 		   cfg_aclconfctx_t *ctx,
 		   isc_mem_t *mctx,
-		   int nest_level,
+		   unsigned int nest_level,
 		   dns_acl_t **target)
 {
 	isc_result_t result;
@@ -185,7 +185,8 @@ cfg_acl_fromconfig(const cfg_obj_t *caml,
 		 * nested ACL's contents should just be absorbed into its
 		 * parent ACL.
 		 */
-		dacl = *target;
+		dns_acl_attach(*target, &dacl);
+		dns_acl_detach(target);
 	} else {
 		/*
 		 * Need to allocate a new ACL structure.  Count the items
@@ -193,7 +194,10 @@ cfg_acl_fromconfig(const cfg_obj_t *caml,
 		 * elements (even though some or all of them may end up in
 		 * the iptable instead of the element array).
 		 */
-		result = dns_acl_create(mctx, cfg_list_length(caml), &dacl);
+		isc_boolean_t recurse = ISC_TF(nest_level == 0);
+		result = dns_acl_create(mctx,
+					cfg_list_length(caml, recurse),
+					&dacl);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 	}
@@ -219,8 +223,10 @@ cfg_acl_fromconfig(const cfg_obj_t *caml,
 		 * merged into the main iptable.
 		 */
 		iptab = dacl->iptable;
-		if (nest_level > 0) {
-			result = dns_acl_create(mctx, cfg_list_length(ce),
+
+		if (nest_level != 0) {
+			result = dns_acl_create(mctx,
+						cfg_list_length(ce, ISC_FALSE),
 						&de->nestedacl);
 			if (result != ISC_R_SUCCESS)
 				goto cleanup;
@@ -238,7 +244,7 @@ cfg_acl_fromconfig(const cfg_obj_t *caml,
 			if (result != ISC_R_SUCCESS)
 				goto cleanup;
 
-			if (nest_level > 0) {
+			if (nest_level != 0) {
 				/* This prefix is going into a nested acl */
 				de->type = dns_aclelementtype_nestedacl;
 				de->negative = neg;
@@ -300,10 +306,11 @@ cfg_acl_fromconfig(const cfg_obj_t *caml,
 				result = get_acl_def(cctx, name, NULL);
 				if (result == ISC_R_SUCCESS) {
 					/* found it in acl definitions */
-					inneracl = NULL;
+					if (inneracl != NULL)
+						dns_acl_detach(&inneracl);
 					result = convert_named_acl(ce, cctx,
 							lctx, ctx, mctx,
-							(nest_level > 0)
+							(nest_level != 0)
 							  ?  (nest_level - 1)
 							  : 0,
 							&inneracl);
@@ -311,16 +318,21 @@ cfg_acl_fromconfig(const cfg_obj_t *caml,
 				if (result != ISC_R_SUCCESS)
 					goto cleanup;
 
-				if (nest_level) {
-					de->type = dns_aclelementtype_nestedacl,
+				if (nest_level != 0) {
+					de->type = dns_aclelementtype_nestedacl;
 					de->negative = neg;
-					de->nestedacl = inneracl;
+					if(de->nestedacl != NULL)
+						dns_acl_detach(&de->nestedacl);
+					dns_acl_attach(inneracl,
+						       &de->nestedacl);
+					dns_acl_detach(&inneracl);
+					/* Fall through */
 				} else {
 					dns_acl_merge(dacl, inneracl,
 						      ISC_TF(!neg));
 					dns_acl_detach(&inneracl);
+					continue;
 				}
-				continue;
 			}
 		} else {
 			cfg_obj_log(ce, lctx, ISC_LOG_WARNING,
@@ -335,7 +347,8 @@ cfg_acl_fromconfig(const cfg_obj_t *caml,
 		 * and keyname elements, and nested ACLs if nest_level is
 		 * nonzero (i.e., in sortlists). 
 		 */
-		if (nest_level > 0 && de->type != dns_aclelementtype_nestedacl)
+		if (de->nestedacl != NULL &&
+		    de->type != dns_aclelementtype_nestedacl)
 			dns_acl_detach(&de->nestedacl);
 
 		dacl->node_count++;
@@ -346,10 +359,12 @@ cfg_acl_fromconfig(const cfg_obj_t *caml,
 		INSIST(dacl->length <= dacl->alloc);
 	}
 
-	*target = dacl;
-	return (ISC_R_SUCCESS);
+	dns_acl_attach(dacl, target);
+	result = ISC_R_SUCCESS;
 
  cleanup:
+	if (inneracl != NULL)
+		dns_acl_detach(&inneracl);
 	dns_acl_detach(&dacl);
 	return (result);
 }

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.h,v 1.9 2007/09/12 01:09:08 each Exp $ */
+/* $Id: aclconf.h,v 1.10 2007/10/12 04:17:18 each Exp $ */
 
 #ifndef ISCCFG_ACLCONF_H
 #define ISCCFG_ACLCONF_H 1
@@ -55,7 +55,7 @@ cfg_acl_fromconfig(const cfg_obj_t *caml,
 		   isc_log_t *lctx,
 		   cfg_aclconfctx_t *ctx,
 		   isc_mem_t *mctx,
-                   int nest_level,
+		   unsigned int nest_level,
 		   dns_acl_t **target);
 /*
  * Construct a new dns_acl_t from configuration data in 'caml' and
