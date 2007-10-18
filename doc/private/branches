@@ -9,9 +9,9 @@ Branch				Status	Whom	// Comments
 				private		private branch
 				closed		finished with
 
-custom_AFILIAS_v9_4_1_P1	new	marka	// 2007-08-30 01:11 +0000
+custom_AFILIAS_v9_4_1_P1	private	marka	// 2007-08-30 01:11 +0000
 custom_AFIS_v9_4_0		private	marka	// 2007-04-23 05:08 +0000
-custom_ALLIANZ_v9_4_1_P1	new	marka	// 2007-08-03 04:51 +0000
+custom_ALLIANZ_v9_4_1_P1	private	marka	// 2007-08-03 04:51 +0000
 custom_UTK_v9_4_0		private	marka	// 2007-04-23 13:35 +0000
 custom_UTK_v9_4_1		private	marka	// 2007-04-30 01:51 +0000
 custom_WFB_v9_3_1		private	
@@ -19,12 +19,12 @@ custom_WFB_v9_3_2		private
 custom_WFB_v9_3_3		private	
 custom_WFB_v9_4_0		private	
 custom_WFB_v9_4_1		private	marka	// 2007-04-30 01:53 +0000
-custom_WFB_v9_4_1_P1		new	marka	// 2007-08-01 22:49 +0000
+custom_WFB_v9_4_1_P1		private	marka	// 2007-08-01 22:49 +0000
 gsstsig4			open	sra	// head + gsstsig as of 12 may 2006
 gsstsig4_win32			open	danny	// sub-branch off gsstsig4 for windows development
 jinmei-mmapzone-test		open		// mmap based zone file. very experimental, just for reference purposes
 jinmei_libdnsng			open	
-jinmei_lrucache			new	
+jinmei_lrucache			open	
 libbind_clean			open	jinmei
 marka_libdnsng			open	
 mlg-20000518			open	explorer
@@ -34,7 +34,6 @@ rt10864				open	marka	// NSEC caching @ delegation
 rt11398d			open	sra	// doxygen dev
 rt11398e			open	sra
 rt11543				open	jakob
-rt115470			new	marka	// 2007-09-05 23:01 +0000
 rt11733				open	jakob
 rt11733b			open	jakob
 rt13489				review	marka	// Solaris bug fixes
@@ -63,62 +62,62 @@ rt16760				open	explorer	// 2007-03-19 14:59 +0000
 rt16806				open	marka	// 2007-04-24 04:38 +0000
 rt16844				open	marka	// EVP conversion
 rt16857				open	marka	// 2007-05-14 03:45 +0000
-rt16908				new	marka	// 2007-05-29 01:48 +0000
-rt16911				review	marka	// 2007-05-27 23:20 +0000
-rt16915				new	marka	// 2007-06-05 23:48 +0000
-rt16915a			new	marka	// 2007-06-25 03:06 +0000
-rt16958				new	
-rt16976				new	marka	// 2007-08-16 01:15 +0000
-rt16982				new	marka	// 2007-07-03 00:33 +0000
-rt16987				new	marka	// 2007-07-03 01:20 +0000
-rt16987a			new	marka	// 2007-07-03 01:25 +0000
-rt17017				new	marka	// 2007-08-10 05:20 +0000
-rt17028				new	marka	// 2007-08-14 03:18 +0000
-rt17049				new	marka	// 2007-08-13 04:30 +0000
-rt17058				new	marka	// 2007-08-02 00:39 +0000
-rt17061				new	marka	// 2007-08-02 02:08 +0000
-rt17067				new	marka	// 2007-09-11 13:18 +0000
-rt17073				new	marka	// 2007-09-12 03:46 +0000
-rt17074				new	marka	// 2007-08-13 15:01 +0000
-rt17078				new	marka	// 2007-08-13 06:11 +0000
-rt17085				new	marka	// 2007-09-07 07:08 +0000
-rt17091				new	
-rt17092				new	marka	// 2007-08-21 06:00 +0000
-rt17094				new	marka	// 2007-08-17 02:27 +0000
-rt17097				new	marka	// 2007-08-20 07:30 +0000
-rt17098				new	marka	// 2007-08-19 23:14 +0000
-rt17099				new	marka	// 2007-09-02 23:42 +0000
-rt17101				new	marka	// 2007-08-20 22:38 +0000
-rt17106				new	marka	// 2007-08-30 00:30 +0000
-rt17111				new	marka	// 2007-08-28 01:24 +0000
-rt17113				new	marka	// 2007-09-06 05:18 +0000
-rt17113_v9_4			new	marka	// 2007-09-07 04:40 +0000
-rt17114				new	marka	// 2007-09-06 01:59 +0000
-rt17120				new	
-rt17121				new	
-rt17123				new	marka	// 2007-09-06 01:09 +0000
-rt17127				new	marka	// 2007-09-03 04:09 +0000
-rt17132				new	
-rt17134				new	
-rt17135				new	marka	// 2007-09-07 02:28 +0000
-rt17137				new	marka	// 2007-09-10 23:47 +0000
-rt17138				new	marka	// 2007-09-11 01:39 +0000
-rt17140				new	
-rt17146				new	
-rt17147				new	marka	// 2007-09-19 04:49 +0000
-rt17151				new	marka	// 2007-09-18 00:34 +0000
-rt17155				new	marka	// 2007-09-18 01:54 +0000
-rt17159				new	marka	// 2007-10-16 04:32 +0000
-rt17160				new	marka	// 2007-09-19 03:58 +0000
-rt17175				new	
-rt17214				new	
-rt17216				new	
+rt16908				closed	marka	// 2007-05-29 01:48 +0000
+rt16911				closed	marka	// 2007-05-27 23:20 +0000
+rt16915				closed	marka	// 2007-06-05 23:48 +0000
+rt16915a			closed	marka	// 2007-06-25 03:06 +0000
+rt16958				closed	
+rt16976				closed	marka	// 2007-08-16 01:15 +0000
+rt16982				closed	marka	// 2007-07-03 00:33 +0000
+rt16987				closed	marka	// 2007-07-03 01:20 +0000
+rt16987a			closed	marka	// 2007-07-03 01:25 +0000
+rt17017				closed	marka	// 2007-08-10 05:20 +0000
+rt17028				closed	marka	// 2007-08-14 03:18 +0000
+rt17049				closed	marka	// 2007-08-13 04:30 +0000
+rt17058				closed	marka	// 2007-08-02 00:39 +0000
+rt17061				open	marka	// 2007-08-02 02:08 +0000
+rt17067				open	marka	// 2007-09-11 13:18 +0000
+rt17073				closed	marka	// 2007-09-12 03:46 +0000
+rt17074				closed	marka	// 2007-08-13 15:01 +0000
+rt17078				closed	marka	// 2007-08-13 06:11 +0000
+rt17085				closed	marka	// 2007-09-07 07:08 +0000
+rt17091				open	evan	
+rt17092				closed	marka	// 2007-08-21 06:00 +0000
+rt17094				closed	marka	// 2007-08-17 02:27 +0000
+rt17097				closed	marka	// 2007-08-20 07:30 +0000
+rt17098				closed	marka	// 2007-08-19 23:14 +0000
+rt17099				open	marka	// 2007-09-02 23:42 +0000
+rt17101				closed	marka	// 2007-08-20 22:38 +0000
+rt17106				closed	marka	// 2007-08-30 00:30 +0000
+rt17111				closed	marka	// 2007-08-28 01:24 +0000
+rt17113				open	marka	// 2007-09-06 05:18 +0000
+rt17113_v9_4			open	marka	// 2007-09-07 04:40 +0000
+rt17114				closed	marka	// 2007-09-06 01:59 +0000
+rt17120				closed	
+rt17121				closed	
+rt17123				closed	marka	// 2007-09-06 01:09 +0000
+rt17127				closed	marka	// 2007-09-03 04:09 +0000
+rt17132				closed	
+rt17134				closed	
+rt17135				closed	marka	// 2007-09-07 02:28 +0000
+rt17137				closed	marka	// 2007-09-10 23:47 +0000
+rt17138				open	marka	// 2007-09-11 01:39 +0000
+rt17140				closed	
+rt17146				open	
+rt17147				open	marka	// 2007-09-19 04:49 +0000
+rt17151				open	marka	// 2007-09-18 00:34 +0000
+rt17155				closed	marka	// 2007-09-18 01:54 +0000
+rt17159				review	marka	// 2007-10-16 04:32 +0000
+rt17160				closed	marka	// 2007-09-19 03:58 +0000
+rt17175				closed	
+rt17214				review	jakob	
+rt17216				review	evan	
 rt1727				open		// ixfr-from-differences workfile
-shane_dbbackend			new	
+shane_dbbackend			open	
 skan				open	explorer
 skan-metazones1			private	explorer
 skan_implicit_update1		open	explorer
-skan_lruttl			new	
+skan_lruttl			open	explorer	
 skan_stats1			open	explorer
 skan_stats2			open	explorer
 skan_stats3			open	explorer
@@ -144,7 +143,7 @@ v9_3_2_patch			active		// security fixes 9.3.2 only
 v9_3_4-cisco			active	
 v9_3_4_patch			active		// security fixes 9.3.4 only
 v9_4				active	
-v9_4_1_P1_lruttl		new	
+v9_4_1_P1_lruttl		active	
 v9_4_1_patch			active		// security fixes 9.4.1 only
 
 
