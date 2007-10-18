@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.c,v 1.12 2007/10/12 04:17:18 each Exp $ */
+/* $Id: aclconf.c,v 1.13 2007/10/18 05:42:03 marka Exp $ */
 
 #include <config.h>
 
@@ -239,13 +239,17 @@ cfg_acl_fromconfig(const cfg_obj_t *caml,
 			unsigned int	bitlen;
 
 			cfg_obj_asnetprefix(ce, &addr, &bitlen);
+
+                        /*
+                         * If nesting ACLs (nest_level != 0), we negate
+                         * the nestedacl element, not the iptable entry
+                         */
 			result = dns_iptable_addprefix(iptab, &addr, bitlen,
-						       ISC_TF(!neg));
+				              ISC_TF(nest_level != 0 || !neg));
 			if (result != ISC_R_SUCCESS)
 				goto cleanup;
 
 			if (nest_level != 0) {
-				/* This prefix is going into a nested acl */
 				de->type = dns_aclelementtype_nestedacl;
 				de->negative = neg;
 			} else
