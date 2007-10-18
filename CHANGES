@@ -1,6 +1,6 @@
 	--- 9.5.0a7 released ---
 
-2252.   [bug]           Fixed memory leaks in sortlist code [RT #17216]
+2252.   [bug]           Fixed errors in sortlist code [RT #17216]
 
 2251.	[placeholder]
 

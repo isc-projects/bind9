@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.491 2007/09/26 03:22:43 marka Exp $ */
+/* $Id: server.c,v 1.492 2007/10/18 01:37:49 each Exp $ */
 
 /*! \file */
 
@@ -345,13 +345,13 @@ configure_view_sortlist(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 		return (ISC_R_SUCCESS);
 
         /*
-         * Use a nest level of 2 for the "top level" of the sortlist;
-         * this means each entry in the top two levels will be stored as
-         * lists of separate, nested ACLs, rather than merged together
+         * Use a nest level of 3 for the "top level" of the sortlist;
+         * this means each entry in the top three levels will be stored
+         * as lists of separate, nested ACLs, rather than merged together
          * into IP tables as is usually done with ACLs.
          */
 	result = cfg_acl_fromconfig(aclobj, config, ns_g_lctx,
-				    actx, mctx, 2, aclp);
+				    actx, mctx, 3, aclp);
 
 	return (result);
 }
