@@ -58,6 +58,8 @@ BIND 9.5.0
 
 	Use Doxygen to generate internal documention.
 
+        Efficient LRU cache-cleaning mechanism.
+
 BIND 9.4.0
 
 	BIND 9.4.0 has a number of new features over 9.3,
