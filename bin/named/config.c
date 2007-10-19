@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.81 2007/09/18 00:22:30 marka Exp $ */
+/* $Id: config.c,v 1.82 2007/10/19 17:15:53 explorer Exp $ */
 
 /*! \file */
 
@@ -129,14 +129,14 @@ options {\n\
 	max-ncache-ttl 10800; /* 3 hours */\n\
 	max-cache-ttl 604800; /* 1 week */\n\
 	transfer-format many-answers;\n\
-	max-cache-size 0;\n\
+	max-cache-size 32M;\n\
 	check-names master fail;\n\
 	check-names slave warn;\n\
 	check-names response ignore;\n\
 	check-mx warn;\n\
 	acache-enable no;\n\
 	acache-cleaning-interval 60;\n\
-	max-acache-size 0;\n\
+	max-acache-size 16M;\n\
 	dnssec-enable yes;\n\
 	dnssec-validation no; /* Make yes for 9.5. */ \n\
 	dnssec-accept-expired no;\n\

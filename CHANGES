@@ -137,6 +137,9 @@
 
 	--- 9.5.0a6 released ---
 
+2213.	[func]	    	"max-cache-size" defaults to 32M.
+			"max-acache-size" defaults to 16M.
+
 2206.	[security]	"allow-query-cache" and "allow-recursion" now
 			cross inherit from each other.
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: heap.c,v 1.36 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: heap.c,v 1.37 2007/10/19 17:15:53 explorer Exp $ */
 
 /*! \file
  * Heap implementation of priority queues adapted from the following:
@@ -208,9 +208,13 @@ isc_heap_delete(isc_heap_t *heap, unsigned int index) {
 	REQUIRE(index >= 1 && index <= heap->last);
 
 	if (index == heap->last) {
+		heap->array[heap->last] = NULL;
 		heap->last--;
 	} else {
-		elt = heap->array[heap->last--];
+		elt = heap->array[heap->last];
+		heap->array[heap->last] = NULL;
+		heap->last--;
+
 		less = heap->compare(elt, heap->array[index]);
 		heap->array[index] = elt;
 		if (less)
@@ -239,9 +243,11 @@ isc_heap_decreased(isc_heap_t *heap, unsigned int index) {
 void *
 isc_heap_element(isc_heap_t *heap, unsigned int index) {
 	REQUIRE(VALID_HEAP(heap));
-	REQUIRE(index >= 1 && index <= heap->last);
+	REQUIRE(index >= 1);
 
-	return (heap->array[index]);
+	if (index <= heap->last)
+		return (heap->array[index]);
+	return (NULL);
 }
 
 void

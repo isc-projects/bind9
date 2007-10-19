@@ -1,5 +1,5 @@
 
-This is a summary of the named.conf options supported by 
+This is a summary of the named.conf options supported by
 this version of BIND 9.
 
 acl <string> { <address_match_element>; ... };
@@ -122,8 +122,8 @@ options {
         maintain-ixfr-base <boolean>; // obsolete
         masterfile-format ( text | raw );
         match-mapped-addresses <boolean>;
-        max-acache-size <size_no_default>;
-        max-cache-size <size_no_default>;
+        max-acache-size <size>;
+        max-cache-size <size>;
         max-cache-ttl <integer>;
         max-clients-per-query <integer>;
         max-ixfr-log-size <size>; // obsolete
@@ -292,8 +292,8 @@ view <string> <optional_class> {
         match-clients { <address_match_element>; ... };
         match-destinations { <address_match_element>; ... };
         match-recursive-only <boolean>;
-        max-acache-size <size_no_default>;
-        max-cache-size <size_no_default>;
+        max-acache-size <size>;
+        max-cache-size <size>;
         max-cache-ttl <integer>;
         max-clients-per-query <integer>;
         max-ixfr-log-size <size>; // obsolete
