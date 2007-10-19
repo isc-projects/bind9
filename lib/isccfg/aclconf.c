@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.c,v 1.13 2007/10/18 05:42:03 marka Exp $ */
+/* $Id: aclconf.c,v 1.14 2007/10/19 00:28:20 each Exp $ */
 
 #include <config.h>
 
@@ -261,19 +261,26 @@ cfg_acl_fromconfig(const cfg_obj_t *caml,
 			 * merge it into *this* ACL.
 			 */
 			if (nest_level == 0) {
-				result = cfg_acl_fromconfig(ce,
-						 cctx, lctx, ctx, mctx, 0,
-						 &dacl);
+				if (inneracl != NULL)
+					dns_acl_detach(&inneracl);
+
+				result = cfg_acl_fromconfig(ce, cctx, lctx,
+							    ctx, mctx, 0,
+						 	    &inneracl);
 				if (result != ISC_R_SUCCESS)
 					goto cleanup;
+
+				dns_acl_merge(dacl, inneracl,
+					      ISC_TF(!neg));
+				dns_acl_detach(&inneracl);
 				continue;
 			} else {
 				de->type = dns_aclelementtype_nestedacl;
 				de->negative = neg;
-				result = cfg_acl_fromconfig(ce,
-						 cctx, lctx, ctx, mctx,
-						 nest_level - 1,
-						 &de->nestedacl);
+				result = cfg_acl_fromconfig(ce, cctx, lctx,
+							    ctx, mctx,
+						 	    nest_level - 1,
+						 	    &de->nestedacl);
 				if (result != ISC_R_SUCCESS)
 					goto cleanup;
 				/* Fall through */
