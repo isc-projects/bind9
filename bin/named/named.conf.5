@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.conf.5,v 1.30 2007/09/18 02:40:47 marka Exp $
+.\" $Id: named.conf.5,v 1.31 2007/10/21 22:15:32 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -218,8 +218,8 @@ options {
 	max\-ncache\-ttl \fIinteger\fR;
 	max\-cache\-ttl \fIinteger\fR;
 	transfer\-format ( many\-answers | one\-answer );
-	max\-cache\-size \fIsize_no_default\fR;
-	max\-acache\-size \fIsize_no_default\fR;
+	max\-cache\-size \fIsize\fR;
+	max\-acache\-size \fIsize\fR;
 	clients\-per\-query \fInumber\fR;
 	max\-clients\-per\-query \fInumber\fR;
 	check\-names ( master | slave | response )
@@ -360,8 +360,8 @@ view \fIstring\fR \fIoptional_class\fR {
 	max\-ncache\-ttl \fIinteger\fR;
 	max\-cache\-ttl \fIinteger\fR;
 	transfer\-format ( many\-answers | one\-answer );
-	max\-cache\-size \fIsize_no_default\fR;
-	max\-acache\-size \fIsize_no_default\fR;
+	max\-cache\-size \fIsize\fR;
+	max\-acache\-size \fIsize\fR;
 	clients\-per\-query \fInumber\fR;
 	max\-clients\-per\-query \fInumber\fR;
 	check\-names ( master | slave | response )
