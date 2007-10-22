@@ -1,6 +1,6 @@
 	--- 9.5.0a7 released ---
 
-2253.	[func]	    	"max-cache-size" defaults to 32M.
+2253.	[func]	 	"max-cache-size" defaults to 32M.
 			"max-acache-size" defaults to 16M.
 
 2252.   [bug]           Fixed errors in sortlist code [RT #17216]
