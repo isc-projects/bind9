@@ -32,6 +32,7 @@ newresolver0			open
 openssl_stub			open	marka
 resign				new	marka	// 2007-10-19 03:57 +0000
 rt10864				open	marka	// NSEC caching @ delegation
+rt1091				new	marka	// 2007-10-22 02:27 +0000
 rt11398d			open	sra	// doxygen dev
 rt11398e			open	sra
 rt11543				open	jakob
@@ -77,6 +78,7 @@ rt17159				review	marka	// 2007-10-16 04:32 +0000
 rt17214				review	jakob
 rt17216				review	evan
 rt17235				new	marka	// 2007-10-19 01:19 +0000
+rt17237				new	
 rt1727				open		// ixfr-from-differences workfile
 shane_dbbackend			open	
 skan				open	explorer
