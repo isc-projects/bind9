@@ -1,3 +1,8 @@
+2254.	[bug]		timer.c:dispatch() failed to lock timer->lock
+			when reading timer->idle allowing it to see
+			intermediate values as timer->idle was reset by
+			isc_timer_touch(). [RT #17243]
+
 	--- 9.5.0a7 released ---
 
 2253.	[func]	 	"max-cache-size" defaults to 32M.
