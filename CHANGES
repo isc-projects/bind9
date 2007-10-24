@@ -1,3 +1,8 @@
+2254.	[bug]		timer.c:dispatch() failed to lock timer->lock
+			when reading timer->idle allowing it to see
+			intermediate values as timer->idle was reset by
+			isc_timer_touch(). [RT #17243]
+
 2251.	[doc]		Update memstatistics-file documentation to reflect
 			reality. Note there is behaviour change for BIND 9.5.
 			[RT #17113]
