@@ -94,6 +94,7 @@ skan_stats3			open	explorer
 skan_stats4			open	explorer
 sp1213				open	
 sp1324				new	marka	// 2007-06-29 05:40 +0000
+sp1705				new	
 stats_lidl			open	
 v6source			open	
 v9_1				active		// security fixes only
