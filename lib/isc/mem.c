@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.116.18.17 2007/08/28 07:20:06 tbox Exp $ */
+/* $Id: mem.c,v 1.116.18.18 2007/10/30 23:31:43 marka Exp $ */
 
 /*! \file */
 
@@ -690,7 +690,8 @@ default_memfree(void *arg, void *ptr) {
 
 static void
 initialize_action(void) {
-        RUNTIME_CHECK(isc_mutex_init(&lock) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_mutex_init(&lock) == ISC_R_SUCCESS);
+	ISC_LIST_INIT(contexts);
 }
 
 /*
