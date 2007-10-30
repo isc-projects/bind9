@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rootns.c,v 1.20.2.3.2.8 2007/08/28 07:19:14 tbox Exp $ */
+/* $Id: rootns.c,v 1.20.2.3.2.9 2007/10/30 23:48:05 marka Exp $ */
 
 #include <config.h>
 
@@ -67,7 +67,7 @@ static char root_ns[] =
 "I.ROOT-SERVERS.NET.     3600000 IN      A       192.36.148.17\n"
 "J.ROOT-SERVERS.NET.     3600000 IN      A       192.58.128.30\n"
 "K.ROOT-SERVERS.NET.     3600000 IN      A       193.0.14.129\n"
-"L.ROOT-SERVERS.NET.     3600000 IN      A       198.32.64.12\n"
+"L.ROOT-SERVERS.NET.     3600000 IN      A       199.7.83.42\n"
 "M.ROOT-SERVERS.NET.     3600000 IN      A       202.12.27.33\n";
 
 static isc_result_t
