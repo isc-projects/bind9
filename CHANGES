@@ -1,4 +1,6 @@
 
+	--- 9.4.2rc2 released ---
+
 2258.	[bug]		Fallback from IXFR/TSIG to SOA/AXFR/TSIG broken.
 			[RT #17241]
 
