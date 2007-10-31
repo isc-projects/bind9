@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.cpp,v 1.6.2.6.2.22 2007/08/28 07:19:11 tbox Exp $ */
+/* $Id: BINDInstallDlg.cpp,v 1.6.2.6.2.23 2007/10/31 00:15:12 marka Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -916,10 +916,9 @@ void CBINDInstallDlg::UnregisterService(BOOL uninstall) {
 void CBINDInstallDlg::RegisterMessages() {
 	HKEY hKey;
 	DWORD dwData;
-	char pszMsgDLL[MAX_PATH], buf[MAX_PATH];
+	char pszMsgDLL[MAX_PATH];
 
-	GetSystemDirectory(buf, MAX_PATH);
-	sprintf(pszMsgDLL, "%s\\%s", buf, "bindevt.dll");
+	sprintf(pszMsgDLL, "%s\\%s", (LPCTSTR)m_binDir, "bindevt.dll");
 
 	SetCurrent(IDS_REGISTER_MESSAGES);
 	/* Create a new key for named */
