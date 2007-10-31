@@ -1,4 +1,7 @@
 
+2256.	[bug]		win32: Correctly register the installation location of
+			bindevt.dll. [RT #17159]
+
 2255.	[bug]		L.ROOT-SERVERS.NET is now 199.7.83.42.
 
 2254.	[bug]		timer.c:dispatch() failed to lock timer->lock
