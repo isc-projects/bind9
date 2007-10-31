@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.63 2007/09/14 05:52:49 marka Exp $ */
+/* $Id: resolver.c,v 1.284.18.64 2007/10/31 05:14:59 marka Exp $ */
 
 /*! \file */
 
@@ -54,8 +54,6 @@
 #include <dns/rootns.h>
 #include <dns/tsig.h>
 #include <dns/validator.h>
-
-#define inline  /* XXXMPA remove for 9.4.2 */
 
 #define DNS_RESOLVER_TRACE
 #ifdef DNS_RESOLVER_TRACE
