@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.cpp,v 1.36 2007/10/31 00:05:36 marka Exp $ */
+/* $Id: BINDInstallDlg.cpp,v 1.37 2007/10/31 01:34:19 marka Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -387,6 +387,9 @@ void CBINDInstallDlg::OnUninstall() {
  * User pressed the install button.  Make it go.
  */
 void CBINDInstallDlg::OnInstall() {
+#if _MSC_VER >= 1400
+	char Vcredist_x86[MAX_PATH];
+#endif
 	BOOL success = FALSE;
 	int oldlen;
 
@@ -481,7 +484,14 @@ void CBINDInstallDlg::OnInstall() {
 	 * Vcredist_x86.exe /q:a /c:"msiexec /i vcredist.msi /qn /l*v %temp%\vcredist_x86.log"
 	 */
 	/*system(".\\Vcredist_x86.exe /q:a /c:\"msiexec /i vcredist.msi /qn /l*v %temp%\vcredist_x86.log\"");*/
-	system(".\\Vcredist_x86.exe");
+
+	/*
+	 * Enclose full path to Vcredist_x86.exe in quotes as
+	 * m_currentDir may contain spaces.
+	 */
+	sprintf(Vcredist_x86, "\"%s\\Vcredist_x86.exe\"",
+		(LPCTSTR) m_currentDir);
+	system(Vcredist_x86);
 #endif
 	try {
 		CreateDirs();
