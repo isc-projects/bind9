@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.153 2007/06/18 23:47:42 tbox Exp $ */
+/* $Id: xfrin.c,v 1.154 2007/10/31 01:56:47 marka Exp $ */
 
 /*! \file */
 
@@ -1059,6 +1059,7 @@ xfrin_send_request(dns_xfrin_ctx_t *xfr) {
 
 	xfr->checkid = ISC_TRUE;
 	xfr->id++;
+	xfr->nmsg = 0;
 	msg->id = xfr->id;
 
 	CHECK(render(msg, xfr->mctx, &xfr->qbuffer));
