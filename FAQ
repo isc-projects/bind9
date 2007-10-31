@@ -528,6 +528,19 @@ A: No, so long as the machines internal clock (as reported by "date -u")
    basis by setting the TZ environment variable appropriately. See your
    OS's documentation for more details.
 
+Q: Is there a bugzilla (or other tool) database that mere mortals can have
+   (read-only) access to for bind?
+
+A: No. The BIND 9 bug database is kept closed for a number of reasons.
+   These include, but are not limited to, that the database contains
+   proprietory information from people reporting bugs. The database has in
+   the past and may in future contain unfixed bugs which are capable of
+   bringing down most of the Internet's DNS infrastructure.
+
+   The release pages for each version contain up to date lists of bugs
+   that have been fixed post release. That is as close as we can get to
+   providing a bug database.
+
 4. Operating-System Specific Questions
 
 4.1. HPUX
