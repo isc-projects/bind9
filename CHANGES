@@ -1,3 +1,6 @@
+2257.	[bug]		win32: Use the full path to vcredist_x86.exe when
+			calling it. [RT #17222]
+
 2256.	[bug]		win32: Correctly register the installation location of
 			bindevt.dll. [RT #17159]
 
