@@ -1,3 +1,6 @@
+
+	--- 9.5.0a7 released ---
+
 2258.	[bug]		Fallback from IXFR/TSIG to SOA/AXFR/TSIG broken.
 			[RT #17241]
 
@@ -13,8 +16,6 @@
 			when reading timer->idle allowing it to see
 			intermediate values as timer->idle was reset by
 			isc_timer_touch(). [RT #17243]
-
-	--- 9.5.0a7 released ---
 
 2253.	[func]	 	"max-cache-size" defaults to 32M.
 			"max-acache-size" defaults to 16M.
