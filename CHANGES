@@ -1,4 +1,7 @@
 
+2258.	[bug]		Fallback from IXFR/TSIG to SOA/AXFR/TSIG broken.
+			[RT #17241]
+
 2257.	[bug]		win32: Use the full path to vcredist_x86.exe when
 			calling it. [RT #17222]
 
