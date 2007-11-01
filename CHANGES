@@ -1,5 +1,7 @@
-2259.	[bug]		Reported wrong clients-per-query when increasing the
+2260.	[bug]		Reported wrong clients-per-query when increasing the
                         value. [RT #17236]
+
+2259.	[placeholder]
 
 	--- 9.5.0a7 released ---
 
