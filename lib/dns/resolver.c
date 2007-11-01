@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.353 2007/10/19 17:15:53 explorer Exp $ */
+/* $Id: resolver.c,v 1.354 2007/11/01 13:00:17 shane Exp $ */
 
 /*! \file */
 
@@ -364,7 +364,7 @@ struct dns_resolver {
         isc_eventlist_t                 whenshutdown;
         unsigned int                    activebuckets;
         isc_boolean_t                   priming;
-        unsigned int                    spillat;
+        unsigned int                    spillat;	/* clients-per-query */
         unsigned int                    nextdisp;
         /* Locked by primelock. */
         dns_fetch_t *                   primefetch;
@@ -825,6 +825,9 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
         unsigned int count = 0;
         isc_interval_t i;
         isc_boolean_t logit = ISC_FALSE;
+	unsigned int old_spillat;
+	unsigned int new_spillat = 0;	/* initialized to silence 
+					   compiler warnings */
 
         /*
          * Caller must be holding the appropriate bucket lock.
@@ -867,23 +870,27 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
             (count < fctx->res->spillatmax || fctx->res->spillatmax == 0)) {
                 LOCK(&fctx->res->lock);
                 if (count == fctx->res->spillat && !fctx->res->exiting) {
+			old_spillat = fctx->res->spillat;
                         fctx->res->spillat += 5;
                         if (fctx->res->spillat > fctx->res->spillatmax &&
                             fctx->res->spillatmax != 0)
                                 fctx->res->spillat = fctx->res->spillatmax;
+			new_spillat = fctx->res->spillat;
+			if (new_spillat != old_spillat) {
+                        	logit = ISC_TRUE;
+			}
                         isc_interval_set(&i, 20 * 60, 0);
                         result = isc_timer_reset(fctx->res->spillattimer,
                                                  isc_timertype_ticker, NULL,
                                                  &i, ISC_TRUE);
                         RUNTIME_CHECK(result == ISC_R_SUCCESS);
-                        logit = ISC_TRUE;
                 }
                 UNLOCK(&fctx->res->lock);
                 if (logit)
                         isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
                                       DNS_LOGMODULE_RESOLVER, ISC_LOG_NOTICE,
                                       "clients-per-query increased to %u",
-                                      count + 1);
+                                      new_spillat);
         }
 }
 
