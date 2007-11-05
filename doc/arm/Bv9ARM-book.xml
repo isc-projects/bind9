@@ -1,5 +1,5 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
-               "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd"
+              "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd"
 	       [<!ENTITY mdash "&#8212;">]>
 <!--
  - Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.339 2007/10/19 17:15:53 explorer Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.340 2007/11/05 17:05:03 explorer Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4568,6 +4568,7 @@ category notify { null; };
     <optional> disable-empty-zone <replaceable>zone_name</replaceable> ; </optional>
     <optional> zero-no-soa-ttl <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> zero-no-soa-ttl-cache <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> stats-server address <replacable> ip_address </replacable> port <replacable> ip_port </replacable> ; </optional>
 };
 </programlisting>
 
@@ -6835,6 +6836,33 @@ query-source-v6 address * port *;
 
           </variablelist>
 
+        </sect3>
+
+        <sect3>
+          <title>Statistics Server</title>
+          <variablelist>
+
+            <varlistentry>
+              <term><command>stats-server</command></term>
+              <listitem>
+                <para>
+                  Start a HTTP-based statistics server on the given IP address and port.
+                  At this time, no client authentication is performed.
+                  Using the IPv4 wildcard address (0.0.0.0) will cause the stats-server to listen
+                  on all available IP addresses.  Listing a single address (10.1.2.3) will listen
+                  only on that address.  Please use a caution in enabling this option and limit
+                  connections to it via standard firewall techniques.
+                </para>
+                <para>
+                  At this time, the stats-server can only listen on one IP address and port, or on all addresses.
+                </para>
+		<para>
+		  This option requires that BIND 9 be compiled with libxml2.
+		</para>
+              </listitem>
+            </varlistentry>
+
+          </variablelist>
         </sect3>
 
         <sect3>
