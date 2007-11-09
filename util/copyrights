@@ -903,7 +903,7 @@
 ./contrib/dlz/drivers/dlz_ldap_driver.c		X	2005
 ./contrib/dlz/drivers/dlz_mysql_driver.c	X	2005,2007
 ./contrib/dlz/drivers/dlz_odbc_driver.c		X	2005
-./contrib/dlz/drivers/dlz_postgres_driver.c	X	2005,2007
+./contrib/dlz/drivers/dlz_postgres_driver.c	X	2005
 ./contrib/dlz/drivers/dlz_stub_driver.c		X	2005
 ./contrib/dlz/drivers/include/dlz/dlz_bdb_driver.h	X	2005
 ./contrib/dlz/drivers/include/dlz/dlz_bdbhpt_driver.h	X	2005
