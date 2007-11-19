@@ -1,3 +1,5 @@
+	--- 9.5.0b1 released ---
+
 2261.   [bug]           Fix memory leak with "any" and "none" ACLs [RT #17272]
 
 2260.	[bug]		Reported wrong clients-per-query when increasing the
