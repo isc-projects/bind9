@@ -1,5 +1,6 @@
 
 	--- 9.4.2 released ---
+	--- 9.4.2rc2 released ---
 
 2259.	[bug]		Reverse incorrect LIBINTERFACE bump of libisc
 			in 9.4.2rc1.  Applications built against 9.4.2rc1
