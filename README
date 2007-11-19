@@ -368,27 +368,31 @@ Building
 	We've had successful builds and tests on the following systems:
 
 		COMPAQ Tru64 UNIX 5.1B
+		Fedora Core 6
 		FreeBSD 4.10, 5.2.1, 6.2
 		HP-UX 11.11
-		NetBSD 1.5
-		Slackware Linux 8.1
-		Solaris 8, 9, 9 (x86)
+		Mac OS X 10.5
+		NetBSD 3.x and 4.0-beta
+		OpenBSD 3.3 and up
+		Solaris 8, 9, 9 (x86), 10
+		Ubuntu 7.04, 7.10
 		Windows NT/2000/XP/2003
 
-	Additionally, we have unverified reports of success building
-	previous versions of BIND 9 from users of the following systems:
+	We have recent reports from the user community that a supported
+	version of BIND will build and run on the following systems:
 
-		AIX 5L
-		SuSE Linux 7.0
-		Slackware Linux 7.x, 8.0
-	        Red Hat Linux 7.1
-		Debian GNU/Linux 2.2 and 3.0
-		Mandrake 8.1
-		OpenBSD 2.6, 2.8, 2.9, 3.1, 3.6, 3.8
-		UnixWare 7.1.1
-		HP-UX 10.20
-		BSD/OS 4.2
-		Mac OS X 10.1, 10.3.8
+		AIX 4.3, 5L
+		CentOS 4, 4.5, 5
+		Darwin 9.0.0d1/ARM
+		Debian 4
+		Fedora Core 5, 7
+		FreeBSD 6.1
+		HP-UX 11.23 PA
+		MacOS X 10.4, 10.5
+		Red Hat Enterprise Linux 4, 5
+		SCO OpenServer 5.0.6
+		Slackware 9, 10
+		SuSE 9, 10
 
 	To build, just
 

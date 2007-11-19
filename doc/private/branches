@@ -26,6 +26,7 @@ jinmei-mmapzone-test		open		// mmap based zone file. very experimental, just for
 jinmei_libdnsng			open	
 jinmei_lrucache			open	
 libbind_clean			open	jinmei
+make				new	
 marka_libdnsng			open	
 mlg-20000518			open	explorer
 newresolver0			open	
@@ -95,6 +96,7 @@ skan_stats4			open	explorer
 sp1213				open	
 sp1324				new	marka	// 2007-06-29 05:40 +0000
 sp1705				new	
+sp1705a				new	
 stats_lidl			open	
 v6source			open	
 v9_1				active		// security fixes only
