@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.c,v 1.14 2007/10/19 00:28:20 each Exp $ */
+/* $Id: aclconf.c,v 1.15 2007/11/19 23:13:28 each Exp $ */
 
 #include <config.h>
 
@@ -299,14 +299,28 @@ cfg_acl_fromconfig(const cfg_obj_t *caml,
 			const char *name = cfg_obj_asstring(ce);
 			if (strcasecmp(name, "any") == 0) {
 				/* iptable entry with zero bit length */
-				dns_iptable_addprefix(iptab, NULL, 0,
-						      ISC_TRUE);
-				continue;
+				result = dns_iptable_addprefix(iptab, NULL, 0,
+				              ISC_TF(nest_level != 0 || !neg));
+                                if (result != ISC_R_SUCCESS)
+                                        goto cleanup;
+
+                                if (nest_level != 0) {
+                                        de->type = dns_aclelementtype_nestedacl;
+                                        de->negative = neg;
+                                } else
+                                        continue;
 			} else if (strcasecmp(name, "none") == 0) {
 				/* negated "any" */
-				dns_iptable_addprefix(iptab, NULL, 0,
-						      ISC_FALSE);
-				continue;
+				result = dns_iptable_addprefix(iptab, NULL, 0,
+				              ISC_TF(nest_level != 0 || neg));
+                                if (result != ISC_R_SUCCESS)
+                                        goto cleanup;
+
+                                if (nest_level != 0) {
+                                        de->type = dns_aclelementtype_nestedacl;
+                                        de->negative = !neg;
+                                } else
+                                        continue;
 			} else if (strcasecmp(name, "localhost") == 0) {
 				de->type = dns_aclelementtype_localhost;
 				de->negative = neg;
