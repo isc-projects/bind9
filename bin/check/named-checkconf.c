@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.45 2007/06/18 23:47:17 tbox Exp $ */
+/* $Id: named-checkconf.c,v 1.46 2007/11/26 02:12:45 marka Exp $ */
 
 /*! \file */
 
@@ -226,7 +226,8 @@ configure_zone(const char *vclass, const char *view,
 			zone_options |= DNS_ZONEOPT_CHECKINTEGRITY;
 		else
 			zone_options &= ~DNS_ZONEOPT_CHECKINTEGRITY;
-	}
+	} else
+		zone_options |= DNS_ZONEOPT_CHECKINTEGRITY;
 
 	obj = NULL;
 	if (get_maps(maps, "check-mx-cname", &obj)) {
