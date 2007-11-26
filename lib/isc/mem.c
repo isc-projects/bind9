@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.98.2.7.2.10 2006/12/08 05:06:37 marka Exp $ */
+/* $Id: mem.c,v 1.98.2.7.2.11 2007/11/26 04:31:25 marka Exp $ */
 
 #include <config.h>
 
@@ -884,7 +884,8 @@ destroy(isc_mem_t *ctx) {
 	for (i = 0; i < ctx->basic_table_count; i++)
 		(ctx->memfree)(ctx->arg, ctx->basic_table[i]);
 	(ctx->memfree)(ctx->arg, ctx->freelists);
-	(ctx->memfree)(ctx->arg, ctx->basic_table);
+	if (ctx->basic_table != NULL)
+		(ctx->memfree)(ctx->arg, ctx->basic_table);
 #endif /* ISC_MEM_USE_INTERNAL_MALLOC */
 
 	ondest = ctx->ondestroy;

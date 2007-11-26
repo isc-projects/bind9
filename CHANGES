@@ -1,3 +1,6 @@
+2265.	[bug]		Test that the memory context's basic_table is non NULL
+			before freeing.  [RT #17265]
+
 2262.	[bug]		Error status from all but the last view could be
 			lost. [RT #17292]
 
