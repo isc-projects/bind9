@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.219.18.28 2007/08/28 07:20:00 tbox Exp $ */
+/* $Id: client.c,v 1.219.18.29 2007/11/26 05:26:09 marka Exp $ */
 
 #include <config.h>
 
@@ -1828,10 +1828,10 @@ get_clientmctx(ns_clientmgr_t *manager, isc_mem_t **mctxp) {
 			return (result);
 
 		manager->mctxpool[manager->nextmctx] = clientmctx;
-		manager->nextmctx++;
-		if (manager->nextmctx == NMCTXS)
-			manager->nextmctx = 0;
 	}
+	manager->nextmctx++;
+	if (manager->nextmctx == NMCTXS)
+		manager->nextmctx = 0;
 #else
 	clientmctx = manager->mctx;
 #endif
