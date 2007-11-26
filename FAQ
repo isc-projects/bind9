@@ -746,3 +746,36 @@ A: Sun has a blog entry describing how to do this.
 
    http://blogs.sun.com/roller/page/anay/Weblog?catname=%2FSolaris
 
+4.6. Apple Mac OS X
+
+Q: How do I run BIND 9 on Apple Mac OS X?
+
+A: If you run Tiger(Mac OS 10.4) or later then this is all you need to do:
+
+   % sudo rndc-confgen  > /etc/rndc.conf
+
+   Copy the key statement from /etc/rndc.conf into /etc/rndc.key, e.g.:
+
+   key "rndc-key" {
+           algorithm hmac-md5;
+           secret "uvceheVuqf17ZwIcTydddw==";
+   };
+
+   Then start the relevant service:
+
+   % sudo service org.isc.named start
+
+   This is persistent upon a reboot, so you will have to do it only once.
+
+A: Alternatively you can just generate /etc/rndc.key by running:
+
+   % sudo rndc-confgen -a
+
+   Then start the relevant service:
+
+   % sudo service org.isc.named start
+
+   Named will look for /etc/rndc.key when it starts if it doesn't have a
+   controls section or the existing controls are missing keys sub-clauses.
+   This is persistent upon a reboot, so you will have to do it only once.
+
