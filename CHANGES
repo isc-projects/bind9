@@ -1,3 +1,6 @@
+2262.	[bug]		Error status from all but the last view could be
+			lost. [RT #17292]
+
 2258.	[bug]		Fallback from IXFR/TSIG to SOA/AXFR/TSIG broken.
 			[RT #17241]
 

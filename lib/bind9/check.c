@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.37.6.36 2007/09/13 23:45:58 tbox Exp $ */
+/* $Id: check.c,v 1.37.6.37 2007/11/26 02:03:24 marka Exp $ */
 
 #include <config.h>
 
@@ -1318,7 +1318,7 @@ bind9_check_namedconf(const cfg_obj_t *config, isc_log_t *logctx,
 					    "previous definition: %s:%u",
 					    key, file, line);
 				result = tresult;
-			} else if (result != ISC_R_SUCCESS) {
+			} else if (tresult != ISC_R_SUCCESS) {
 				result = tresult;
 			} else if ((strcasecmp(key, "_bind") == 0 &&
 				    vclass == dns_rdataclass_ch) ||
