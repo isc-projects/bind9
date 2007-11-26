@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.57 2007/08/28 07:20:01 tbox Exp $ */
+/* $Id: server.c,v 1.419.18.58 2007/11/26 03:01:34 marka Exp $ */
 
 /*! \file */
 
@@ -654,7 +654,7 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 	cfg_obj_asnetprefix(cfg_map_getname(cpeer), &na, &prefixlen);
 
 	peer = NULL;
-	result = dns_peer_new(mctx, &na, &peer);
+	result = dns_peer_newprefix(mctx, &na, prefixlen, &peer);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
