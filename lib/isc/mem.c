@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.136 2007/10/30 23:30:09 marka Exp $ */
+/* $Id: mem.c,v 1.137 2007/11/26 04:27:19 marka Exp $ */
 
 /*! \file */
 
@@ -907,7 +907,8 @@ destroy(isc_mem_t *ctx) {
 		for (i = 0; i < ctx->basic_table_count; i++)
 			(ctx->memfree)(ctx->arg, ctx->basic_table[i]);
 		(ctx->memfree)(ctx->arg, ctx->freelists);
-		(ctx->memfree)(ctx->arg, ctx->basic_table);
+		if (ctx->basic_table != NULL)
+			(ctx->memfree)(ctx->arg, ctx->basic_table);
 	}
 
 	ondest = ctx->ondestroy;
