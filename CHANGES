@@ -1,3 +1,6 @@
+2266.	[bug]		client.c:get_clientmctx() returned the same mctx
+			once the pool of mctx's was filled. [RT #17218]
+
 2265.	[bug]		Test that the memory context's basic_table is non NULL
 			before freeing.  [RT #17265]
 
