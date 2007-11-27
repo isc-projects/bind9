@@ -1,3 +1,5 @@
+	--- 9.5.0b1 released ---
+
 2267.   [bug]           Radix tree node_num value could be set incorrectly,
                         causing positive ACL matches to look like negative
                         ones.  [RT #17311]
@@ -15,8 +17,6 @@
 
 2262.	[bug]		Error status from all but the last view could be
 			lost. [RT #17292]
-
-	--- 9.5.0b1 released ---
 
 2261.   [bug]           Fix memory leak with "any" and "none" ACLs [RT #17272]
 
