@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.c,v 1.7 2007/09/28 00:11:32 each Exp $ */
+/* $Id: radix.c,v 1.8 2007/11/27 19:14:45 each Exp $ */
 
 /*
  * This source was adapted from MRT's RCS Ids:
@@ -114,6 +114,10 @@ _ref_prefix(isc_mem_t *mctx, isc_prefix_t **target, isc_prefix_t *prefix) {
 
 static int 
 _comp_with_mask(void *addr, void *dest, u_int mask) {
+
+        /* Mask length of zero matches everything */
+        if (mask == 0)
+                return (1);
 
 	if (memcmp(addr, dest, mask / 8) == 0) {
 		int n = mask / 8;
@@ -297,7 +301,6 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 		prefix = source->prefix;
 
 	INSIST(prefix != NULL);
-
 	if (radix->head == NULL) {
 		node = isc_mem_get(radix->mctx, sizeof(isc_radix_node_t));
 		if (node == NULL)
@@ -324,7 +327,6 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 	node = radix->head;
 
 	while (node->bit < bitlen || node->prefix == NULL) {
-
 		if (node->bit < radix->maxbits &&
 		    BIT_TEST(addr[node->bit >> 3], 0x80 >> (node->bit & 0x07)))
 		{
@@ -379,7 +381,8 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 		result = _ref_prefix(radix->mctx, &node->prefix, prefix);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-		INSIST(node->data == NULL);
+		INSIST(node->data == NULL && node->node_num == -1);
+		node->node_num = ++radix->num_added_node;
 		*target = node;
 		return (ISC_R_SUCCESS);
 	}

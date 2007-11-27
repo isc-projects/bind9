@@ -1,3 +1,7 @@
+2267.   [bug]           Radix tree node_num value could be set incorrectly,
+                        causing positive ACL matches to look like negative
+                        ones.  [RT #17311]
+
 2266.	[bug]		client.c:get_clientmctx() returned the same mctx
 			once the pool of mctx's was filled. [RT #17218]
 
