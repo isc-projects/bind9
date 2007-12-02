@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: ans.pl,v 1.3 2004/03/05 05:01:06 marka Exp $
+# $Id: ans.pl,v 1.3.18.1 2007/12/02 22:18:21 marka Exp $
 
 #
 # This is the name server from hell.  It provides canned
@@ -68,9 +68,9 @@ my $udpsock = IO::Socket::INET->new(LocalAddr => "10.53.0.2",
 my $tcpsock = IO::Socket::INET->new(LocalAddr => "10.53.0.2",
    LocalPort => 5300, Proto => "tcp", Listen => 5, Reuse => 1) or die "$!";
 
-my $pidf = new IO::File "ans.pid", "w" or die "cannot write pid file: $!";
-print $pidf "$$\n";
-$pidf->close;
+my $pidf = new IO::File "ans.pid", "w" or die "cannot open pid file: $!";
+print $pidf "$$\n" or die "cannot write pid file: $!";
+$pidf->close or die "cannot close pid file: $!";;
 sub rmpid { unlink "ans.pid"; exit 1; };
 
 $SIG{INT} = \&rmpid;

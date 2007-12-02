@@ -26,6 +26,9 @@
 2260.	[bug]		Reported wrong clients-per-query when increasing the
 			value. [RT #17236]
 
+2246.	[bug]		Make the startup of test servers (ans.pl) more
+			robust. [RT #17147]
+
 	--- 9.4.2 released ---
 
 	--- 9.4.2rc2 released ---
