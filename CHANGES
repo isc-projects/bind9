@@ -1,3 +1,6 @@
+2268.	[bug]		0.IN-ADDR.ARPA was missing from the empty zones
+			list.
+
 	--- 9.5.0b1 released ---
 
 2267.   [bug]           Radix tree node_num value could be set incorrectly,
