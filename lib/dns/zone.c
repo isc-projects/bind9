@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.410.18.52 2007/08/30 05:15:03 marka Exp $ */
+/* $Id: zone.c,v 1.410.18.53 2007/12/02 22:31:35 marka Exp $ */
 
 /*! \file */
 
@@ -7725,7 +7725,7 @@ zone_saveunique(dns_zone_t *zone, const char *path, const char *templat) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	dns_zone_log(zone, ISC_LOG_INFO, "saved '%s' as '%s'",
+	dns_zone_log(zone, ISC_LOG_WARNING, "saved '%s' as '%s'",
 		     path, buf);
 
  cleanup:
