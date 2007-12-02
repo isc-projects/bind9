@@ -1,3 +1,6 @@
+2268.	[bug]		0.IN-ADDR.ARPA was missing from the empty zones
+			list.
+
 2266.	[bug]		client.c:get_clientmctx() returned the same mctx
 			once the pool of mctx's was filled. [RT #17218]
 
