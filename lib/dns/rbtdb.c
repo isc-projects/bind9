@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.168.2.11.2.31 2007/08/28 07:19:13 tbox Exp $ */
+/* $Id: rbtdb.c,v 1.168.2.11.2.32 2007/12/02 20:39:48 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -524,6 +524,7 @@ static void
 detach(dns_db_t **dbp) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)(*dbp);
 	unsigned int refs;
+	isc_boolean_t writer;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
@@ -1087,6 +1088,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 	INSIST(!version->writer || !(commit && version->references > 1));
 	version->references--;
 	serial = version->serial;
+	writer = version->writer;
 	if (version->references == 0) {
 		if (version->writer) {
 			if (commit) {
@@ -1193,7 +1195,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 	/*
 	 * Update the zone's secure status.
 	 */
-	if (version->writer && commit && !IS_CACHE(rbtdb))
+	if (writer && commit && !IS_CACHE(rbtdb))
 		rbtdb->secure = iszonesecure(db, rbtdb->origin_node);
 
 	if (cleanup_version != NULL) {

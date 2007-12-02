@@ -1,3 +1,6 @@
+2270.	[bug]		dns_db_closeversion() version->writer could be reset
+			before it is tested. [RT #17290]
+
 2269.	[contrib]	dbus memory leaks and missing va_end calls. [RT #17232]
 
 2265.	[bug]		Test that the memory context's basic_table is non NULL
