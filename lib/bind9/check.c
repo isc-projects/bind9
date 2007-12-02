@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.84 2007/11/26 01:51:32 marka Exp $ */
+/* $Id: check.c,v 1.85 2007/12/02 21:58:23 marka Exp $ */
 
 /*! \file */
 
@@ -632,6 +632,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 					    "bad domain name '%s'", dlv);
 				result = tresult;
+				continue;
 			}
 			if (symtab != NULL) {
 				tresult = nameexist(obj, dlv, 1, symtab,
