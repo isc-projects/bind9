@@ -1,9 +1,9 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000, 2001  Internet Software Consortium.
 #
-# Permission to use, copy, modify, and distribute this software for any
+# Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
 # copyright notice and this permission notice appear in all copies.
 #
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: ans.pl,v 1.6.18.1 2007/12/02 22:18:21 marka Exp $
+# $Id: ans.pl,v 1.6.18.2 2007/12/02 23:46:31 tbox Exp $
 
 #
 # Ad hoc name server
