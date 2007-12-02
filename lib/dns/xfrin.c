@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.156 2007/12/02 23:47:01 marka Exp $ */
+/* $Id: xfrin.c,v 1.157 2007/12/02 23:55:01 marka Exp $ */
 
 /*! \file */
 
@@ -1408,7 +1408,7 @@ maybe_free(dns_xfrin_ctx_t *xfr) {
 	msecs = isc_time_microdiff(&xfr->end, &xfr->start) / 1000;
 	if (msecs == 0)
 		msecs = 1;
-	persec = xfr->nbytes / msecs / 1000;
+	persec = (xfr->nbytes * 1000) / msecs;
 	xfrin_log(xfr, ISC_LOG_INFO, 
 		  "Transfer completed: %d messages, %d records, "
 		  "%" ISC_PRINT_QUADFORMAT "u bytes, "
