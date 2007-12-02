@@ -29,6 +29,8 @@
 2260.	[bug]		Reported wrong clients-per-query when increasing the
 			value. [RT #17236]
 
+2247.	[doc]		Sort doc/misc/options. [RT #17067]
+
 2246.	[bug]		Make the startup of test servers (ans.pl) more
 			robust. [RT #17147]
 
