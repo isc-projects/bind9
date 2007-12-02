@@ -1,3 +1,5 @@
+2271.	[bug]		Fix a memory leak in http server code [RT #17100]
+
 2270.	[bug]		dns_db_closeversion() version->writer could be reset
 			before it is tested. [RT #17290]
 
