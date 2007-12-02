@@ -200,6 +200,7 @@ dbus_svc_add_filter
 	    }
 	}
     }
+    va_end(va);
     return( 1 );
 }
 
@@ -424,6 +425,7 @@ dbus_svc_message_append_args(DBusConnectionState *cs, dbus_svc_MessageHandle msg
     if( !dbus_message_append_args_valist( msg, firstType, va ) )
     {
 	if( cs->eh != 0L ) (*(cs->eh))("dbus_svc_send: dbus_message_append_args failed");
+	va_end(va);
 	return 0;	
     }
     va_end(va);
@@ -488,6 +490,7 @@ dbus_svc_call
 	va_end(va);
 	return(0L);
     }
+    va_end(va);
     return reply;
 }
 

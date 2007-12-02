@@ -1,3 +1,5 @@
+2269.	[contrib]	dbus memory leaks and missing va_end calls. [RT #17232]
+
 2265.	[bug]		Test that the memory context's basic_table is non NULL
 			before freeing.  [RT #17265]
 
