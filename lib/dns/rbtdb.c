@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.168.2.11.2.32 2007/12/02 20:39:48 marka Exp $ */
+/* $Id: rbtdb.c,v 1.168.2.11.2.33 2007/12/02 21:24:50 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -524,7 +524,6 @@ static void
 detach(dns_db_t **dbp) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)(*dbp);
 	unsigned int refs;
-	isc_boolean_t writer;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
@@ -1076,6 +1075,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 	rbtdb_serial_t serial, least_serial;
 	dns_rbtnode_t *rbtnode;
 	isc_mutex_t *lock;
+	isc_boolean_t writer;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 	version = (rbtdb_version_t *)*versionp;
