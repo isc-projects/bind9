@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.155 2007/12/02 23:21:19 marka Exp $ */
+/* $Id: xfrin.c,v 1.156 2007/12/02 23:47:01 marka Exp $ */
 
 /*! \file */
 
@@ -1390,7 +1390,8 @@ xfrin_timeout(isc_task_t *task, isc_event_t *event) {
 
 static void
 maybe_free(dns_xfrin_ctx_t *xfr) {
-	isc_uint64_t secs;
+	isc_uint64_t msecs;
+	isc_uint64_t persec;
 
 	REQUIRE(VALID_XFRIN(xfr));
 
@@ -1404,15 +1405,17 @@ maybe_free(dns_xfrin_ctx_t *xfr) {
 	 * and print a log message with the bytes and rate.
 	 */
 	isc_time_now(&xfr->end);
-	secs = isc_time_microdiff(&xfr->end, &xfr->start) / 1000000;
-	if (secs == 0)
-		secs = 1;
+	msecs = isc_time_microdiff(&xfr->end, &xfr->start) / 1000;
+	if (msecs == 0)
+		msecs = 1;
+	persec = xfr->nbytes / msecs / 1000;
 	xfrin_log(xfr, ISC_LOG_INFO, 
 		  "Transfer completed: %d messages, %d records, "
 		  "%" ISC_PRINT_QUADFORMAT "u bytes, "
-		  "%" ISC_PRINT_QUADFORMAT "u secs (%0.1f bytes/sec)",
-		  xfr->nmsg, xfr->nrecs, xfr->nbytes, secs,
-		  (float) (xfr->nbytes / secs));
+		  "%u.%03u secs (%u bytes/sec)",
+		  xfr->nmsg, xfr->nrecs, xfr->nbytes,
+		  (unsigned int) (msecs / 1000), (unsigned int) (msecs % 1000),
+		  (unsigned int) persec);
 
 	if (xfr->socket != NULL)
 		isc_socket_detach(&xfr->socket);
