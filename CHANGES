@@ -1,3 +1,6 @@
+2273.	[bug]		Adjust log level to WARNING when saving inconsistant
+			stub/slave master and journal files. [RT# 17279]
+
 2272.	[bug]		Handle illegal dnssec-lookaside trust-anchor names.
 			[RT #17262]
 
