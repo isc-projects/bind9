@@ -1,3 +1,5 @@
+2269.	[contrib]	dbus memory leaks and missing va_end calls. [RT #17232]
+
 2268.	[bug]		0.IN-ADDR.ARPA was missing from the empty zones
 			list.
 
