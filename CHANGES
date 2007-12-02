@@ -20,6 +20,9 @@
 2262.	[bug]		Error status from all but the last view could be
 			lost. [RT #17292]
 
+2260.	[bug]		Reported wrong clients-per-query when increasing the
+			value. [RT #17236]
+
 	--- 9.4.2 released ---
 
 	--- 9.4.2rc2 released ---

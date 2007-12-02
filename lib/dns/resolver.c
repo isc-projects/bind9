@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.66 2007/11/01 13:53:27 shane Exp $ */
+/* $Id: resolver.c,v 1.284.18.67 2007/12/02 21:16:36 marka Exp $ */
 
 /*! \file */
 
@@ -331,7 +331,7 @@ struct dns_resolver {
 	isc_eventlist_t			whenshutdown;
 	unsigned int			activebuckets;
 	isc_boolean_t			priming;
-	unsigned int			spillat;
+	unsigned int			spillat;	/* clients-per-query */
 	/* Locked by primelock. */
 	dns_fetch_t *			primefetch;
 	/* Locked by nlock. */
@@ -777,6 +777,8 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 	unsigned int count = 0;
 	isc_interval_t i;
 	isc_boolean_t logit = ISC_FALSE;
+	unsigned int old_spillat;
+	unsigned int new_spillat = 0;	/* initialized to silence compiler warnings */
 
 	/*
 	 * Caller must be holding the appropriate bucket lock.
@@ -819,11 +821,15 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 	    (count < fctx->res->spillatmax || fctx->res->spillatmax == 0)) {
 		LOCK(&fctx->res->lock);
 		if (count == fctx->res->spillat && !fctx->res->exiting) {
+			old_spillat = fctx->res->spillat;
 			fctx->res->spillat += 5;
 			if (fctx->res->spillat > fctx->res->spillatmax &&
 			    fctx->res->spillatmax != 0)
 				fctx->res->spillat = fctx->res->spillatmax;
-			logit = ISC_TRUE;
+			new_spillat = fctx->res->spillat;
+			if (new_spillat != old_spillat) {
+				logit = ISC_TRUE;
+			}
 			isc_interval_set(&i, 20 * 60, 0);
 			result = isc_timer_reset(fctx->res->spillattimer,
 						 isc_timertype_ticker, NULL,
@@ -835,7 +841,7 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
 				      DNS_LOGMODULE_RESOLVER, ISC_LOG_NOTICE,
 				      "clients-per-query increased to %u",
-				      count + 1);
+				      new_spillat);
 	}
 }
 
