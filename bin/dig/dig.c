@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.217 2007/06/18 23:47:17 tbox Exp $ */
+/* $Id: dig.c,v 1.218 2007/12/03 00:21:48 marka Exp $ */
 
 /*! \file */
 
@@ -1253,6 +1253,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 					  	MAXSERIAL);
 				(*lookup)->section_question = plusquest;
 				(*lookup)->comments = pluscomm;
+				(*lookup)->tcp_mode = ISC_TRUE;
 			} else {
 				(*lookup)->rdtype = rdtype;
 				(*lookup)->rdtypeset = ISC_TRUE;
@@ -1593,6 +1594,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 						lookup->section_question =
 							plusquest;
 						lookup->comments = pluscomm;
+						lookup->tcp_mode = ISC_TRUE;
 					} else {
 						lookup->rdtype = rdtype;
 						lookup->rdtypeset = ISC_TRUE;
