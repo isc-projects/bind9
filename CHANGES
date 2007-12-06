@@ -1,3 +1,5 @@
+	--- 9.3.5b1 released ---
+
 2273.	[bug]		Adjust log level to WARNING when saving inconsistant
 			stub/slave master and journal files. [RT# 17279]
 
