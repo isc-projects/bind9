@@ -115,9 +115,6 @@
 
 2205.	[bug]		libbind: change #2119 broke thread support. [RT #16982]
 
-2203.	[security]	Query id generation was cryptographically weak.
-			[RT # 16915]
-
 2200.	[bug]		The search for cached NSEC records was stopping to
 			early leading to excessive DLV queries. [RT #16930]
 
@@ -135,13 +132,6 @@
 			to complete. [RT #16958]
 
 2194.	[bug]		Close journal before calling 'done' in xfrin.c.
-
-2193.	[port]		win32: BINDInstall.exe is now linked statically.
-			[RT #16906]
-
-2192.	[port]		win32: use vcredist_x86.exe to install Visual
-			Studio's redistributable dlls if building with
-			Visual Stdio 2005 or later.
 
 2189.	[bug]		Handle socket() returning EINTR. [RT #15949]
 
@@ -301,6 +291,18 @@
 			priming queries. [RT #16491]
 
 2109.	[port]		libbind: silence aix 5.3 compiler warnings. [RT #16502]
+
+	--- 9.3.4-P1 released ---
+
+2203.	[security]	Query id generation was cryptographically weak.
+			[RT # 16915]
+	
+2193.	[port]		win32: BINDInstall.exe is now linked statically.
+			[RT #16906]
+
+2192.	[port]		win32: use vcredist_x86.exe to install Visual
+			Studio's redistributable dlls if building with
+			Visual Stdio 2005 or later.
 
 	--- 9.3.4 released ---
 
