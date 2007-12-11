@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.493 2007/11/26 02:43:53 marka Exp $ */
+/* $Id: server.c,v 1.494 2007/12/02 18:56:03 marka Exp $ */
 
 /*! \file */
 
@@ -201,6 +201,7 @@ static const struct {
 #endif
 
 	/* RFC 3330 */
+	{ "0.IN-ADDR.ARPA", ISC_FALSE },	/* THIS NETWORK */
 	{ "127.IN-ADDR.ARPA", ISC_FALSE },	/* LOOPBACK */
 	{ "254.169.IN-ADDR.ARPA", ISC_FALSE },	/* LINK LOCAL */
 	{ "2.0.192.IN-ADDR.ARPA", ISC_FALSE },	/* TEST NET */

@@ -1,3 +1,26 @@
+2276.	[bug]		Install <dst/gssapi.h>.  [RT# 17359]
+
+2275.	[func]		Add support to dig to perform IXFR queries over UDP.
+			[RT #17235]
+
+2274.	[func]		Log zone transfer statistics. [RT #17161]
+
+2273.	[bug]		Adjust log level to WARNING when saving inconsistant
+			stub/slave master and journal files. [RT# 17279]
+
+2272.	[bug]		Handle illegal dnssec-lookaside trust-anchor names.
+			[RT #17262]
+
+2271.	[bug]		Fix a memory leak in http server code [RT #17100]
+
+2270.	[bug]		dns_db_closeversion() version->writer could be reset
+			before it is tested. [RT #17290]
+
+2269.	[contrib]	dbus memory leaks and missing va_end calls. [RT #17232]
+
+2268.	[bug]		0.IN-ADDR.ARPA was missing from the empty zones
+			list.
+
 	--- 9.5.0b1 released ---
 
 2267.   [bug]           Radix tree node_num value could be set incorrectly,

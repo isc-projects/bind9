@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.247 2007/10/19 17:15:53 explorer Exp $ */
+/* $Id: rbtdb.c,v 1.248 2007/12/02 20:27:35 marka Exp $ */
 
 /*! \file */
 
@@ -1751,6 +1751,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
         rbtdb_serial_t serial, least_serial;
         dns_rbtnode_t *rbtnode;
         unsigned int refs;
+	isc_boolean_t writer;
 
         REQUIRE(VALID_RBTDB(rbtdb));
         version = (rbtdb_version_t *)*versionp;
@@ -1770,6 +1771,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 
         RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_write);
         serial = version->serial;
+        writer = version->writer;
         if (version->writer) {
                 if (commit) {
                         unsigned cur_ref;
@@ -1902,7 +1904,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
         /*
          * Update the zone's secure status.
          */
-        if (version->writer && commit && !IS_CACHE(rbtdb))
+        if (writer && commit && !IS_CACHE(rbtdb))
                 rbtdb->secure = iszonesecure(db, rbtdb->origin_node);
 
         if (cleanup_version != NULL) {
