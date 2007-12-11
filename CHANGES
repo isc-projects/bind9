@@ -1,3 +1,5 @@
+2276.	[bug]		Install <dst/gssapi.h>.  [RT# 17359]
+
 2275.	[func]		Add support to dig to perform IXFR queries over UDP.
 			[RT #17235]
 
