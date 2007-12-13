@@ -43,6 +43,7 @@ rt11398e			open	sra
 rt11543				open	jakob
 rt11733				open	jakob
 rt11733b			open	jakob
+rt12017				new	marka	// 2007-12-13 01:00 +0000
 rt13489				review	marka	// Solaris bug fixes
 rt13555				open	marka	// nslookup name failure
 rt13562				open	marka
