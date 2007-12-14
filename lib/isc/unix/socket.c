@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.274 2007/07/27 14:28:04 explorer Exp $ */
+/* $Id: socket.c,v 1.275 2007/12/14 03:52:40 marka Exp $ */
 
 /*! \file */
 
@@ -1576,6 +1576,20 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "setsockopt(%d, SO_BSDCOMPAT) %s: %s",
+				 sock->fd,
+				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+						ISC_MSG_FAILED, "failed"),
+				 strbuf);
+		/* Press on... */
+	}
+#endif
+
+#ifdef SO_NOSIGPIPE
+	if (setsockopt(sock->fd, SOL_SOCKET, SO_NOSIGPIPE,
+		       (void *)&on, sizeof(on)) < 0) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "setsockopt(%d, SO_NOSIGPIPE) %s: %s",
 				 sock->fd,
 				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
 						ISC_MSG_FAILED, "failed"),
