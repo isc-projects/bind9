@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.87 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id: server.h,v 1.88 2007/12/14 04:01:20 marka Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -100,8 +100,10 @@ struct ns_server {
 
 	dns_acache_t		*acache;
 
-	isc_httpdmgr_t		*httpd;
-	isc_sockaddr_t		httpd_sockaddr;
+	isc_httpdmgr_t		*httpd4;
+	isc_sockaddr_t		httpd_sockaddr4;
+	isc_httpdmgr_t		*httpd6;
+	isc_sockaddr_t		httpd_sockaddr6;
 };
 
 #define NS_SERVER_MAGIC			ISC_MAGIC('S','V','E','R')
