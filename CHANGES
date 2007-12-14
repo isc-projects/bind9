@@ -1,3 +1,7 @@
+2279.   [bug]           Use setsockopt(SO_NOSIGPIPE), when available,
+			to protect applications from receiving spurious
+			SIGPIPE signals when using the resolver.
+
 2277.	[bug]		Empty zone names were not correctly being caught at
 			in the post parse checks. [RT #17357]
 

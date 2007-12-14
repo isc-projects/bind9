@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.207.2.19.2.31 2007/08/28 07:19:17 tbox Exp $ */
+/* $Id: socket.c,v 1.207.2.19.2.32 2007/12/14 04:00:48 marka Exp $ */
 
 #include <config.h>
 
@@ -1525,6 +1525,20 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 				 sock->fd,
 				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
 						ISC_MSG_FAILED, "failed"),
+				 strbuf);
+		/* Press on... */
+	}
+#endif
+
+#ifdef SO_NOSIGPIPE
+	if (setsockopt(sock->fd, SOL_SOCKET, SO_NOSIGPIPE,
+		       (void *)&on, sizeof(on)) < 0) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "setsockopt(%d, SO_NOSIGPIPE) %s: %s",
+				 sock->fd,
+				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+					        ISC_MSG_FAILED, "failed"),
 				 strbuf);
 		/* Press on... */
 	}
