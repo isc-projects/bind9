@@ -1,3 +1,7 @@
+2279.   [bug]           Use setsockopt(SO_NOSIGPIPE), when available,
+			to protect applications from receiving spurious
+			SIGPIPE signals when using the resolver.
+
 2278.	[bug]		win32: handle the case where Windows returns no
 			searchlist or DNS suffix. [RT #17354]
 
