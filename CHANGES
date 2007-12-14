@@ -1,3 +1,6 @@
+2277.	[bug]		Empty zone names were not correctly being caught at
+			in the post parse checks. [RT #17357]
+
 	--- 9.3.5b1 released ---
 
 2273.	[bug]		Adjust log level to WARNING when saving inconsistant

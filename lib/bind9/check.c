@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.37.6.38 2007/12/02 22:05:31 marka Exp $ */
+/* $Id: check.c,v 1.37.6.39 2007/12/14 01:28:26 marka Exp $ */
 
 #include <config.h>
 
@@ -818,18 +818,18 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *config,
 	isc_buffer_add(&b, strlen(zname));
 	tresult = dns_name_fromtext(dns_fixedname_name(&fixedname), &b,
 				   dns_rootname, ISC_TRUE, NULL);
-	if (result != ISC_R_SUCCESS) {
+	if (tresult != ISC_R_SUCCESS) {
 		cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
 			    "zone '%s': is not a valid name", zname);
-		tresult = ISC_R_FAILURE;
+		result = ISC_R_FAILURE;
 	} else {
 		char namebuf[DNS_NAME_FORMATSIZE];
 
 		dns_name_format(dns_fixedname_name(&fixedname),
 				namebuf, sizeof(namebuf));
 		tresult = nameexist(zconfig, namebuf, ztype == HINTZONE ? 1 : 2,
-				   symtab, "zone '%s': already exists "
-				   "previous definition: %s:%u", logctx, mctx);
+				    symtab, "zone '%s': already exists "
+				    "previous definition: %s:%u", logctx, mctx);
 		if (tresult != ISC_R_SUCCESS)
 			result = tresult;
 	}
