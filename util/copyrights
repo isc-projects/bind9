@@ -1716,7 +1716,7 @@
 ./lib/bind/resolv/res_mkupdate.h		X	2001,2004,2005
 ./lib/bind/resolv/res_private.h			X	2001,2002,2003,2005
 ./lib/bind/resolv/res_query.c			X	2001,2003,2004,2005
-./lib/bind/resolv/res_send.c			X	2001,2002,2003,2004,2005,2006
+./lib/bind/resolv/res_send.c			X	2001,2002,2003,2004,2005,2006,2007
 ./lib/bind/resolv/res_sendsigned.c		X	2001,2004,2005,2006
 ./lib/bind/resolv/res_update.c			X	2001,2002,2003,2004,2005
 ./lib/bind9/.cvsignore				X	2001
