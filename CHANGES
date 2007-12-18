@@ -1,3 +1,6 @@
+2281.	[bug]		Attempts to use undefined acls were not being logged.
+			[RT #17307]
+
 2280.	[func]		Allow the experimental http server to be reached
 			over IPv6 as well as IPv4. [RT #17332]
 

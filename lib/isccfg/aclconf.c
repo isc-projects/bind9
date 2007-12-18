@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.c,v 1.15 2007/11/19 23:13:28 each Exp $ */
+/* $Id: aclconf.c,v 1.16 2007/12/18 01:53:26 marka Exp $ */
 
 #include <config.h>
 
@@ -328,18 +328,16 @@ cfg_acl_fromconfig(const cfg_obj_t *caml,
 				de->type = dns_aclelementtype_localnets;
 				de->negative = neg;
 			} else {
-				result = get_acl_def(cctx, name, NULL);
-				if (result == ISC_R_SUCCESS) {
-					/* found it in acl definitions */
-					if (inneracl != NULL)
-						dns_acl_detach(&inneracl);
-					result = convert_named_acl(ce, cctx,
-							lctx, ctx, mctx,
-							(nest_level != 0)
-							  ?  (nest_level - 1)
-							  : 0,
-							&inneracl);
-				}
+				int new_nest_level;
+				if (inneracl != NULL)
+					dns_acl_detach(&inneracl);
+				if (nest_level != 0)
+					new_nest_level = nest_level - 1;
+				else
+					new_nest_level = 0;
+				result = convert_named_acl(ce, cctx, lctx, ctx,
+							   mctx, new_nest_level,
+							   &inneracl);
 				if (result != ISC_R_SUCCESS)
 					goto cleanup;
 
