@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.c,v 1.35 2007/09/19 03:03:29 marka Exp $ */
+/* $Id: acl.c,v 1.36 2007/12/20 01:48:29 marka Exp $ */
 
 /*! \file */
 
@@ -57,12 +57,12 @@ dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target) {
 		return (result);
 	}
 
-        result = dns_iptable_create(mctx, &acl->iptable);
+	result = dns_iptable_create(mctx, &acl->iptable);
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(mctx, acl, sizeof(*acl));
 		return (result);
 	}
-        
+
 	acl->elements = NULL;
 	acl->alloc = 0;
 	acl->length = 0;
@@ -101,7 +101,7 @@ dns_acl_anyornone(isc_mem_t *mctx, isc_boolean_t neg, dns_acl_t **target) {
 	result = dns_acl_create(mctx, 0, &acl);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-        dns_iptable_addprefix(acl->iptable, NULL, 0, ISC_TF(!neg));
+	dns_iptable_addprefix(acl->iptable, NULL, 0, ISC_TF(!neg));
 	*target = acl;
 	return (result);
 }
@@ -129,13 +129,13 @@ dns_acl_none(isc_mem_t *mctx, dns_acl_t **target) {
 static isc_boolean_t
 dns_acl_isanyornone(dns_acl_t *acl, isc_boolean_t pos)
 {
-        /* Should never happen but let's be safe */
-        if (acl == NULL ||
-            acl->iptable == NULL ||
-            acl->iptable->radix == NULL ||
-            acl->iptable->radix->head == NULL ||
-            acl->iptable->radix->head->prefix == NULL)
-                return (ISC_FALSE);
+	/* Should never happen but let's be safe */
+	if (acl == NULL ||
+	    acl->iptable == NULL ||
+	    acl->iptable->radix == NULL ||
+	    acl->iptable->radix->head == NULL ||
+	    acl->iptable->radix->head->prefix == NULL)
+		return (ISC_FALSE);
 
 	if (acl->length != 0 && acl->node_count != 1)
 		return (ISC_FALSE);
@@ -153,7 +153,7 @@ dns_acl_isanyornone(dns_acl_t *acl, isc_boolean_t pos)
 isc_boolean_t
 dns_acl_isany(dns_acl_t *acl)
 {
-        return (dns_acl_isanyornone(acl, ISC_TRUE));
+	return (dns_acl_isanyornone(acl, ISC_TRUE));
 }
 
 /*
@@ -162,7 +162,7 @@ dns_acl_isany(dns_acl_t *acl)
 isc_boolean_t
 dns_acl_isnone(dns_acl_t *acl)
 {
-        return (dns_acl_isanyornone(acl, ISC_FALSE));
+	return (dns_acl_isanyornone(acl, ISC_FALSE));
 }
 
 /*
@@ -182,10 +182,10 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
 	isc_uint16_t bitlen;
 	isc_prefix_t pfx;
 	isc_radix_node_t *node;
-        const isc_netaddr_t *addr;
-        isc_netaddr_t v4addr;
+	const isc_netaddr_t *addr;
+	isc_netaddr_t v4addr;
 	isc_result_t result;
-        int match_num = -1;
+	int match_num = -1;
 	unsigned int i;
 
 	REQUIRE(reqaddr != NULL);
@@ -194,7 +194,7 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
 	if (env == NULL || env->match_mapped == ISC_FALSE ||
 	    reqaddr->family != AF_INET6 ||
 	    !IN6_IS_ADDR_V4MAPPED(&reqaddr->type.in6))
-                addr = reqaddr;
+		addr = reqaddr;
 	else {
 		isc_netaddr_fromv4mapped(&v4addr, reqaddr);
 		addr = &v4addr;
@@ -213,24 +213,24 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
 	/* Found a match. */
 	if (result == ISC_R_SUCCESS && node != NULL) {
 		match_num = node->node_num;
-                if (*(isc_boolean_t *) node->data == ISC_TRUE)
-                        *match = match_num;
-                else
-                        *match = -match_num;
-        }
+		if (*(isc_boolean_t *) node->data == ISC_TRUE)
+			*match = match_num;
+		else
+			*match = -match_num;
+	}
 
-        /* Now search non-radix elements for a match with a lower node_num. */
+	/* Now search non-radix elements for a match with a lower node_num. */
 	for (i = 0; i < acl->length; i++) {
 		dns_aclelement_t *e = &acl->elements[i];
 
 		if (dns_aclelement_match(reqaddr, reqsigner,
 					 e, env, matchelt)) {
-                        if (match_num == -1 || e->node_num < match_num) {
-                                if (e->negative)
-			                *match = -e->node_num;
-                                else
-			                *match = e->node_num;
-                        }
+			if (match_num == -1 || e->node_num < match_num) {
+				if (e->negative == ISC_TRUE)
+					*match = -e->node_num;
+				else
+					*match = e->node_num;
+			}
 			return (ISC_R_SUCCESS);
 		}
 	}
@@ -251,63 +251,90 @@ isc_result_t
 dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, isc_boolean_t pos)
 {
 	isc_result_t result;
-        unsigned int newalloc, nelem, i;
-        int max_node = 0, nodes;
+	unsigned int newalloc, nelem, i;
+	int max_node = 0, nodes;
 
-        /* Resize the element array if needed. */
-        if (dest->length + source->length > dest->alloc) {
-                void *newmem;
+	/* Resize the element array if needed. */
+	if (dest->length + source->length > dest->alloc) {
+		void *newmem;
 
-                newalloc = dest->alloc + source->alloc;
-                if (newalloc < 4)
-                        newalloc = 4;
+		newalloc = dest->alloc + source->alloc;
+		if (newalloc < 4)
+			newalloc = 4;
 
-                newmem = isc_mem_get(dest->mctx,
-                                     newalloc * sizeof(dns_aclelement_t));
-                if (newmem == NULL)
-                        return (ISC_R_NOMEMORY);
+		newmem = isc_mem_get(dest->mctx,
+				     newalloc * sizeof(dns_aclelement_t));
+		if (newmem == NULL)
+			return (ISC_R_NOMEMORY);
 
-                /* Copy in the original elements */
-                memcpy(newmem, dest->elements,
-                       dest->length * sizeof(dns_aclelement_t));
+		/* Copy in the original elements */
+		memcpy(newmem, dest->elements,
+		       dest->length * sizeof(dns_aclelement_t));
 
-                /* Release the memory for the old elements array */
-                isc_mem_put(dest->mctx, dest->elements,
-                            dest->alloc * sizeof(dns_aclelement_t));
-                dest->elements = newmem;
-                dest->alloc = newalloc;
-        }
+		/* Release the memory for the old elements array */
+		isc_mem_put(dest->mctx, dest->elements,
+			    dest->alloc * sizeof(dns_aclelement_t));
+		dest->elements = newmem;
+		dest->alloc = newalloc;
+	}
 
-        /*
-         * Now copy in the new elements, increasing their node_num
-         * values so as to keep the new ACL consistent.  If we're
-         * negating, then negate positive elements, but keep negative
-         * elements the same for security reasons.
-         */
-        nelem = dest->length;
-        memcpy(&dest->elements[nelem], source->elements,
-               (source->length * sizeof(dns_aclelement_t)));
-        for (i = 0; i < source->length; i++) {
-                dest->elements[nelem + i].node_num = 
-                        source->elements[i].node_num + dest->node_count;
-                if (source->elements[i].node_num > max_node)
-                        max_node = source->elements[i].node_num;
-                if (!pos && source->elements[i].negative == ISC_FALSE)
-                        dest->elements[nelem + i].negative = ISC_TRUE;
-        }
+	/*
+	 * Now copy in the new elements, increasing their node_num
+	 * values so as to keep the new ACL consistent.  If we're
+	 * negating, then negate positive elements, but keep negative
+	 * elements the same for security reasons.
+	 */
+	nelem = dest->length;
+	dest->length += source->length;
+	for (i = 0; i < source->length; i++) {
+		if (source->elements[i].node_num > max_node)
+			max_node = source->elements[i].node_num;
 
-        /*
-         * Merge the iptables.  Make sure the destination ACL's
-         * node_count value is set correctly afterward.
-         */
-        nodes = max_node + dest->node_count;
-        result = dns_iptable_merge(dest->iptable, source->iptable, pos);
-        if (result != ISC_R_SUCCESS)
-                return (result);
-        if (nodes > dest->node_count)
-                dest->node_count = nodes;
+		/* Copy type. */
+		dest->elements[nelem + i].type = source->elements[i].type;
 
-        return (ISC_R_SUCCESS);
+		/* Adjust node numbering. */
+		dest->elements[nelem + i].node_num = 
+			source->elements[i].node_num + dest->node_count;
+
+		/* Duplicate nested acl. */
+		if(source->elements[i].type == dns_aclelementtype_nestedacl &&
+		   source->elements[i].nestedacl != NULL)
+			dns_acl_attach(source->elements[i].nestedacl,
+				       &dest->elements[nelem + i].nestedacl);
+
+		/* Duplicate key name. */
+		if (source->elements[i].type == dns_aclelementtype_keyname) {
+			dns_name_init(&dest->elements[nelem+i].keyname, NULL);
+			result = dns_name_dup(&source->elements[i].keyname,
+					      dest->mctx,
+					      &dest->elements[nelem+i].keyname);
+			if (result != ISC_R_SUCCESS)
+				return result;
+		}
+
+		/* reverse sense of positives if this is a negative acl */
+		if (!pos && source->elements[i].negative == ISC_FALSE) {
+			dest->elements[nelem + i].negative = ISC_TRUE;
+		} else {
+			dest->elements[nelem + i].negative = 
+				source->elements[i].negative;
+		}
+	}
+
+
+	/*
+	 * Merge the iptables.  Make sure the destination ACL's
+	 * node_count value is set correctly afterward.
+	 */
+	nodes = max_node + dest->node_count;
+	result = dns_iptable_merge(dest->iptable, source->iptable, pos);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	if (nodes > dest->node_count)
+		dest->node_count = nodes;
+
+	return (ISC_R_SUCCESS);
 }
 
 /*
@@ -330,62 +357,62 @@ dns_aclelement_match(const isc_netaddr_t *reqaddr,
 	int indirectmatch;
 	isc_result_t result;
 
-        switch (e->type) {
-	    case dns_aclelementtype_keyname:
+	switch (e->type) {
+	case dns_aclelementtype_keyname:
 		if (reqsigner != NULL &&
 		    dns_name_equal(reqsigner, &e->keyname)) {
-		        if (matchelt != NULL)
-		        	*matchelt = e;
-		        return (ISC_TRUE);
-                } else {
-                        return (ISC_FALSE);
-                }
+			if (matchelt != NULL)
+				*matchelt = e;
+			return (ISC_TRUE);
+		} else {
+			return (ISC_FALSE);
+		}
 
-	    case dns_aclelementtype_nestedacl:
-                inner = e->nestedacl;
-                break;
+	case dns_aclelementtype_nestedacl:
+		inner = e->nestedacl;
+		break;
 
-            case dns_aclelementtype_localhost:
-                if (env == NULL || env->localhost == NULL)
-                        return (ISC_FALSE);
-                inner = env->localhost;
-                break;
+	case dns_aclelementtype_localhost:
+		if (env == NULL || env->localhost == NULL)
+			return (ISC_FALSE);
+		inner = env->localhost;
+		break;
 
-            case dns_aclelementtype_localnets:
-                if (env == NULL || env->localnets == NULL)
-                        return (ISC_FALSE);
-                inner = env->localnets;
-                break;
+	case dns_aclelementtype_localnets:
+		if (env == NULL || env->localnets == NULL)
+			return (ISC_FALSE);
+		inner = env->localnets;
+		break;
 
-            default:
-                /* Should be impossible */
-                INSIST(0);
-        }
+	default:
+		/* Should be impossible. */
+		INSIST(0);
+	}
 		
-        result = dns_acl_match(reqaddr, reqsigner, inner, env,
-                               &indirectmatch, matchelt);
-        INSIST(result == ISC_R_SUCCESS);
+	result = dns_acl_match(reqaddr, reqsigner, inner, env,
+			       &indirectmatch, matchelt);
+	INSIST(result == ISC_R_SUCCESS);
 
-        /*
-         * Treat negative matches in indirect ACLs as "no match".
-         * That way, a negated indirect ACL will never become a
-         * surprise positive match through double negation.
-         * XXXDCL this should be documented.
-         */
+	/*
+	 * Treat negative matches in indirect ACLs as "no match".
+	 * That way, a negated indirect ACL will never become a
+	 * surprise positive match through double negation.
+	 * XXXDCL this should be documented.
+	 */
 
-        if (indirectmatch > 0) {
-                if (matchelt != NULL)
-                        *matchelt = e;
-                return (ISC_TRUE);
-        }
+	if (indirectmatch > 0) {
+		if (matchelt != NULL)
+			*matchelt = e;
+		return (ISC_TRUE);
+	}
 		
-        /*
-         * A negative indirect match may have set *matchelt, but we don't
-         * want it set when we return.
-         */
+	/*
+	 * A negative indirect match may have set *matchelt, but we don't
+	 * want it set when we return.
+	 */
 
-        if (matchelt != NULL)
-                *matchelt = NULL;
+	if (matchelt != NULL)
+		*matchelt = NULL;
 		
 	return (ISC_FALSE);
 }	
@@ -413,8 +440,8 @@ destroy(dns_acl_t *dacl) {
 			    dacl->alloc * sizeof(dns_aclelement_t));
 	if (dacl->name != NULL)
 		isc_mem_free(dacl->mctx, dacl->name);
-        if (dacl->iptable != NULL)
-                dns_iptable_detach(&dacl->iptable);
+	if (dacl->iptable != NULL)
+		dns_iptable_detach(&dacl->iptable);
 	isc_refcount_destroy(&dacl->refcount);
 	dacl->magic = 0;
 	isc_mem_put(dacl->mctx, dacl, sizeof(*dacl));
@@ -438,7 +465,7 @@ static isc_boolean_t	insecure_prefix_found;
 
 static void
 initialize_action(void) {
-        RUNTIME_CHECK(isc_mutex_init(&insecure_prefix_lock) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_mutex_init(&insecure_prefix_lock) == ISC_R_SUCCESS);
 }
 
 /*
@@ -449,30 +476,30 @@ static void
 is_insecure(isc_prefix_t *prefix, void *data) {
 	isc_boolean_t secure = * (isc_boolean_t *)data;
 
-        /* Negated entries are always secure */
-        if (!secure) {
-                return; 
-        }
+	/* Negated entries are always secure. */
+	if (!secure) {
+		return; 
+	}
 
-        /* If loopback prefix found, return */
+	/* If loopback prefix found, return */
 	switch (prefix->family) {
-	    case AF_INET:
+	case AF_INET:
 		if (prefix->bitlen == 32 &&
 		    htonl(prefix->add.sin.s_addr) == INADDR_LOOPBACK)
-                        return;
+			return;
 		break;
-	    case AF_INET6:
+	case AF_INET6:
 		if (prefix->bitlen == 128 &&
 		    IN6_IS_ADDR_LOOPBACK(&prefix->add.sin6))
-                        return;
+			return;
 		break;
-	    default:
+	default:
 		break;
 	}
 
-        /* Non-negated, non-loopback */
-        insecure_prefix_found = ISC_TRUE;
-        return;
+	/* Non-negated, non-loopback */
+	insecure_prefix_found = ISC_TRUE;
+	return;
 }
 
 /*
@@ -491,19 +518,19 @@ dns_acl_isinsecure(const dns_acl_t *a) {
 	RUNTIME_CHECK(isc_once_do(&insecure_prefix_once,
 				  initialize_action) == ISC_R_SUCCESS);
 
-        /*
-         * Walk radix tree to find out if there are any non-negated,
-         * non-loopback prefixes.
-         */
+	/*
+	 * Walk radix tree to find out if there are any non-negated,
+	 * non-loopback prefixes.
+	 */
 	LOCK(&insecure_prefix_lock);
-        insecure_prefix_found = ISC_FALSE;
-        isc_radix_process(a->iptable->radix, is_insecure);
+	insecure_prefix_found = ISC_FALSE;
+	isc_radix_process(a->iptable->radix, is_insecure);
 	insecure = insecure_prefix_found;
 	UNLOCK(&insecure_prefix_lock);
-        if (insecure)
-                return(ISC_TRUE);
+	if (insecure)
+		return(ISC_TRUE);
 			
-        /* Now check non-radix elements */
+	/* Now check non-radix elements */
 	for (i = 0; i < a->length; i++) {
 		dns_aclelement_t *e = &a->elements[i];
 
@@ -512,19 +539,19 @@ dns_acl_isinsecure(const dns_acl_t *a) {
 			continue;
 
 		switch (e->type) {
-		    case dns_aclelementtype_keyname:
-		    case dns_aclelementtype_localhost:
+		case dns_aclelementtype_keyname:
+		case dns_aclelementtype_localhost:
 			continue;
 
-                    case dns_aclelementtype_nestedacl:
-                        if (dns_acl_isinsecure(e->nestedacl))
-                                return (ISC_TRUE);
-                        continue;
+		case dns_aclelementtype_nestedacl:
+			if (dns_acl_isinsecure(e->nestedacl))
+				return (ISC_TRUE);
+			continue;
 
-		    case dns_aclelementtype_localnets:
+		case dns_aclelementtype_localnets:
 			return (ISC_TRUE);
 
-		    default:
+		default:
 			INSIST(0);
 			return (ISC_TRUE);
 		}
