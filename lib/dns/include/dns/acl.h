@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.h,v 1.30 2007/09/12 01:09:08 each Exp $ */
+/* $Id: acl.h,v 1.31 2007/12/21 06:46:47 marka Exp $ */
 
 #ifndef DNS_ACL_H
 #define DNS_ACL_H 1
@@ -63,20 +63,21 @@ struct dns_aclipprefix {
 };
 
 struct dns_aclelement {
-	dns_aclelemettype_t type;
-	isc_boolean_t negative;
-	dns_name_t 	  keyname;
-        dns_acl_t         *nestedacl;
-        int node_num;
+	dns_aclelemettype_t	type;
+	isc_boolean_t		negative;
+	dns_name_t		keyname;
+	dns_acl_t		*nestedacl;
+	int			node_num;
 };
 
 struct dns_acl {
 	unsigned int		magic;
 	isc_mem_t		*mctx;
 	isc_refcount_t		refcount;
-	dns_iptable_t	        *iptable;
-#define node_count              iptable->radix->num_added_node
+	dns_iptable_t		*iptable;
+#define node_count		iptable->radix->num_added_node
 	dns_aclelement_t	*elements;
+	isc_boolean_t 		has_negatives;
 	unsigned int 		alloc;		/*%< Elements allocated */
 	unsigned int 		length;		/*%< Elements initialized */
 	char 			*name;		/*%< Temporary use only */
@@ -204,7 +205,7 @@ isc_boolean_t
 dns_aclelement_match(const isc_netaddr_t *reqaddr,
 		     const dns_name_t *reqsigner,
 		     const dns_aclelement_t *e,
-		     const dns_aclenv_t *env,		     
+		     const dns_aclenv_t *env,
 		     const dns_aclelement_t **matchelt);
 /*%<
  * Like dns_acl_match, but matches against the single ACL element 'e'

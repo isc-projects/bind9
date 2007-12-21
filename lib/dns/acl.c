@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.c,v 1.36 2007/12/20 01:48:29 marka Exp $ */
+/* $Id: acl.c,v 1.37 2007/12/21 06:46:47 marka Exp $ */
 
 /*! \file */
 
@@ -66,6 +66,7 @@ dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target) {
 	acl->elements = NULL;
 	acl->alloc = 0;
 	acl->length = 0;
+	acl->has_negatives = ISC_FALSE;
 
 	ISC_LINK_INIT(acl, nextincache);
 	/*
@@ -222,6 +223,10 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
 	/* Now search non-radix elements for a match with a lower node_num. */
 	for (i = 0; i < acl->length; i++) {
 		dns_aclelement_t *e = &acl->elements[i];
+
+		/* Already found a better match? */
+		if (match_num != -1 && match_num < e->node_num)
+			return (ISC_R_SUCCESS);
 
 		if (dns_aclelement_match(reqaddr, reqsigner,
 					 e, env, matchelt)) {
