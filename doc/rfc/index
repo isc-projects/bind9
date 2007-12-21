@@ -63,6 +63,7 @@
 2931:	DNS Request and Transaction Signatures ( SIG(0)s )
 3007:	Secure Domain Name System (DNS) Dynamic Update
 3008:	Domain Name System Security (DNSSEC) Signing Authority
+3056:	Connection of IPv6 Domains via IPv4 Clouds
 3071:	Reflections on the DNS, RFC 1591, and Categories of Domains
 3090:	DNS Security Extension Clarification on Zone Status
 3110:	RSA/SHA-1 SIGs and RSA KEYs in the Domain Name System (DNS)
