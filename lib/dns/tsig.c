@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.117.18.11 2007/09/26 23:46:34 tbox Exp $
+ * $Id: tsig.c,v 1.117.18.12 2008/01/02 04:43:44 marka Exp $
  */
 /*! \file */
 #include <config.h>
@@ -323,7 +323,8 @@ dns_tsigkey_createfromkey(dns_name_t *name, dns_name_t *algorithm,
 	tkey->generated = generated;
 	tkey->inception = inception;
 	tkey->expire = expire;
-	tkey->mctx = mctx;
+	tkey->mctx = NULL;
+	isc_mem_attach(mctx, &tkey->mctx);
 
 	tkey->magic = TSIG_MAGIC;
 
@@ -509,7 +510,7 @@ tsigkey_free(dns_tsigkey_t *key) {
 		isc_mem_put(key->mctx, key->creator, sizeof(dns_name_t));
 	}
 	isc_refcount_destroy(&key->refs);
-	isc_mem_put(key->mctx, key, sizeof(dns_tsigkey_t));
+	isc_mem_putanddetach(&key->mctx, key, sizeof(dns_tsigkey_t));
 }
 
 void
@@ -1442,7 +1443,8 @@ dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ringp) {
 		return (result);
 	}
 
-	ring->mctx = mctx;
+	ring->mctx = NULL;
+	isc_mem_attach(mctx, &ring->mctx);
 
 	*ringp = ring;
 	return (ISC_R_SUCCESS);
@@ -1460,5 +1462,5 @@ dns_tsigkeyring_destroy(dns_tsig_keyring_t **ringp) {
 
 	dns_rbt_destroy(&ring->keys);
 	isc_rwlock_destroy(&ring->lock);
-	isc_mem_put(ring->mctx, ring, sizeof(dns_tsig_keyring_t));
+	isc_mem_putanddetach(&ring->mctx, ring, sizeof(dns_tsig_keyring_t));
 }
