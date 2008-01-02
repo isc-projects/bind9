@@ -1,3 +1,6 @@
+2284.	[bug]		Memory leak in UPDATE prerequisite processing.
+			[RT #17377]
+
 2283.	[bug]		TSIG keys were not attaching to the memory
 			context.  TSIG keys should use the rings
 			memory context rather than the clients memory
