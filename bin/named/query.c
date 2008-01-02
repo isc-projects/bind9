@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.298 2007/09/26 03:04:45 each Exp $ */
+/* $Id: query.c,v 1.299 2008/01/02 05:03:07 marka Exp $ */
 
 /*! \file */
 
@@ -4444,6 +4444,12 @@ ns_query_start(ns_client_t *client) {
 	unsigned int saved_flags = client->message->flags;
 
 	CTRACE("ns_query_start");
+
+	/*
+	 * Test only.
+	 */
+	if (ns_g_clienttest && (client->attributes & NS_CLIENTATTR_TCP) == 0)
+		RUNTIME_CHECK(ns_client_replace(client) == ISC_R_SUCCESS);
 
 	/*
 	 * Ensure that appropriate cleanups occur.

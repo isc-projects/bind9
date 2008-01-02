@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.137 2007/11/26 04:27:19 marka Exp $ */
+/* $Id: mem.c,v 1.138 2008/01/02 05:03:07 marka Exp $ */
 
 /*! \file */
 
@@ -1953,6 +1953,18 @@ isc_mem_checkdestroyed(FILE *file) {
 		INSIST(0);
 	}
 	UNLOCK(&lock);
+}
+
+unsigned int
+isc_mem_references(isc_mem_t *ctx) {
+	unsigned int references;
+	REQUIRE(VALID_CONTEXT(ctx));
+
+	MCTXLOCK(ctx, &ctx->lock);
+	references = ctx->references;
+	MCTXUNLOCK(ctx, &ctx->lock);
+
+	return (references);
 }
 
 #ifdef HAVE_LIBXML2

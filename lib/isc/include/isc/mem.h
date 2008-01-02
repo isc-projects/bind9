@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.72 2007/06/18 23:47:44 tbox Exp $ */
+/* $Id: mem.h,v 1.73 2008/01/02 05:03:07 marka Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -375,6 +375,12 @@ isc_mem_checkdestroyed(FILE *file);
  * Check that all memory contexts have been destroyed.
  * Prints out those that have not been.
  * Fatally fails if there are still active contexts.
+ */
+
+unsigned int
+isc_mem_references(isc_mem_t *ctx);
+/*%<
+ * Return the current reference count.
  */
 
 /*

@@ -1,3 +1,6 @@
+2285.	[func]		Test framework for client memory context management.
+			[RT #17377]
+
 2284.	[bug]		Memory leak in UPDATE prerequisite processing.
 			[RT #17377]
 
