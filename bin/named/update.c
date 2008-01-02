@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.109.18.23 2007/08/28 07:20:01 tbox Exp $ */
+/* $Id: update.c,v 1.109.18.24 2008/01/02 04:44:56 marka Exp $ */
 
 #include <config.h>
 
@@ -843,10 +843,14 @@ temp_check(isc_mem_t *mctx, dns_diff_t *temp, dns_db_t *db,
 		/* A new unique name begins here. */
 		node = NULL;
 		result = dns_db_findnode(db, name, ISC_FALSE, &node);
-		if (result == ISC_R_NOTFOUND)
+		if (result == ISC_R_NOTFOUND) {
+			dns_diff_clear(&trash);
 			return (DNS_R_NXRRSET);
-		if (result != ISC_R_SUCCESS)
+		}
+		if (result != ISC_R_SUCCESS) {
+			dns_diff_clear(&trash);
 			return (result);
+		}
 
 		/* A new unique type begins here. */
 		while (t != NULL && dns_name_equal(&t->name, name)) {
@@ -874,6 +878,7 @@ temp_check(isc_mem_t *mctx, dns_diff_t *temp, dns_db_t *db,
 						     &rdataset, NULL);
 			if (result != ISC_R_SUCCESS) {
 				dns_db_detachnode(db, &node);
+				dns_diff_clear(&trash);
 				return (DNS_R_NXRRSET);
 			}
 
