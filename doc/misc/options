@@ -433,8 +433,8 @@ view <string> <optional_class> {
                 update-check-ksk <boolean>;
                 update-policy { ( grant | deny ) <string> ( name |
                     subdomain | wildcard | self | selfsub | selfwild |
-                    krb5-self | ms-self | krb5-subdomain | ms-subdomain )
-                    <string> <rrtypelist>; ... };
+                    krb5-self | ms-self | krb5-subdomain | ms-subdomain |
+                    tcp-self | 6to4-self ) <string> <rrtypelist>; ... };
                 use-alt-transfer-source <boolean>;
                 zero-no-soa-ttl <boolean>;
                 zone-statistics <boolean>;
@@ -503,7 +503,8 @@ zone <string> <optional_class> {
         update-check-ksk <boolean>;
         update-policy { ( grant | deny ) <string> ( name | subdomain |
             wildcard | self | selfsub | selfwild | krb5-self | ms-self |
-            krb5-subdomain | ms-subdomain ) <string> <rrtypelist>; ... };
+            krb5-subdomain | ms-subdomain | tcp-self | 6to4-self ) <string>
+            <rrtypelist>; ... };
         use-alt-transfer-source <boolean>;
         zero-no-soa-ttl <boolean>;
         zone-statistics <boolean>;

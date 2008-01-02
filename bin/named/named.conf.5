@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.conf.5,v 1.31 2007/10/21 22:15:32 marka Exp $
+.\" $Id: named.conf.5,v 1.32 2008/01/02 14:01:24 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -477,7 +477,9 @@ zone \fIstring\fR \fIoptional_class\fR {
 	allow\-update\-forwarding { \fIaddress_match_element\fR; ... };
 	update\-policy {
 		( grant | deny ) \fIstring\fR
-		( name | subdomain | wildcard | self ) \fIstring\fR
+		( name | subdomain | wildcard | self | selfsub | selfwild |
+                  krb5\-self | ms\-self | krb5\-subdomain | ms\-subdomain |
+		  tcp\-self | 6to4\-self ) \fIstring\fR
 		\fIrrtypelist\fR; ...
 	};
 	update\-check\-ksk \fIboolean\fR;

@@ -13,7 +13,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: named.conf.html,v 1.40 2007/10/21 22:15:32 marka Exp $ -->
+<!-- $Id: named.conf.html,v 1.41 2008/01/02 14:01:24 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -501,7 +501,9 @@ zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 	allow-update-forwarding { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	update-policy {<br>
 		( grant | deny ) <em class="replaceable"><code>string</code></em><br>
-		( name | subdomain | wildcard | self ) <em class="replaceable"><code>string</code></em><br>
+		( name | subdomain | wildcard | self | selfsub | selfwild |<br>
+                  krb5-self | ms-self | krb5-subdomain | ms-subdomain |<br>
+		  tcp-self | 6to4-self ) <em class="replaceable"><code>string</code></em><br>
 		<em class="replaceable"><code>rrtypelist</code></em>; ...<br>
 	};<br>
 	update-check-ksk <em class="replaceable"><code>boolean</code></em>;<br>
@@ -557,12 +559,12 @@ zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545384"></a><h2>FILES</h2>
+<a name="id2545383"></a><h2>FILES</h2>
 <p><code class="filename">/etc/named.conf</code>
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545396"></a><h2>SEE ALSO</h2>
+<a name="id2545395"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">named-checkconf</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">rndc</span>(8)</span>,
