@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.71.2.1.10.9 2006/01/04 23:50:20 marka Exp $
+ * $Id: tkey.c,v 1.71.2.1.10.10 2008/01/02 04:46:49 marka Exp $
  */
 
 #include <config.h>
@@ -379,7 +379,7 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 				  isc_buffer_base(&secret),
 				  isc_buffer_usedlength(&secret),
 				  ISC_TRUE, signer, tkeyin->inception,
-				  tkeyin->expire, msg->mctx, ring, NULL));
+				  tkeyin->expire, ring->mctx, ring, NULL));
 
 	/* This key is good for a long time */
 	tkeyout->inception = tkeyin->inception;
@@ -440,7 +440,7 @@ process_gsstkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	result = dns_tsigkey_createfromkey(name, &tkeyin->algorithm,
 					   dstkey, ISC_TRUE, signer,
 					   tkeyin->inception, tkeyin->expire,
-					   msg->mctx, ring, NULL);
+					   ring->mctx, ring, NULL);
 #if 1
 	if (result != ISC_R_SUCCESS)
 		goto failure;
@@ -1106,7 +1106,7 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	result = dns_tsigkey_create(tkeyname, &rtkey.algorithm,
 				    r.base, r.length, ISC_TRUE,
 				    NULL, rtkey.inception, rtkey.expire,
-				    rmsg->mctx, ring, outkey);
+				    ring->mctx, ring, outkey);
 	isc_buffer_free(&shared);
 	dns_rdata_freestruct(&rtkey);
 	dst_key_free(&theirkey);
@@ -1176,7 +1176,7 @@ dns_tkey_processgssresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	RETERR(dns_tsigkey_createfromkey(tkeyname, DNS_TSIG_GSSAPI_NAME,
 					 dstkey, ISC_TRUE, NULL,
 					 rtkey.inception, rtkey.expire,
-					 rmsg->mctx, ring, outkey));
+					 ring->mctx, ring, outkey));
 
 	dns_rdata_freestruct(&rtkey);
 	return (result);
