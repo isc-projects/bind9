@@ -1,3 +1,8 @@
+2286.	[func]		Allow a TCP connection to be used as a weak
+			authentication method for reverse zones.
+			New update-policy methods tcp-self and 6to4-self.
+			[RT #17378]
+
 2285.	[func]		Test framework for client memory context management.
 			[RT #17377]
 

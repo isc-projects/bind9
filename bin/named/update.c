@@ -15,10 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.138 2008/01/02 04:26:26 marka Exp $ */
+/* $Id: update.c,v 1.139 2008/01/02 05:13:41 marka Exp $ */
 
 #include <config.h>
 
+#include <isc/netaddr.h>
 #include <isc/print.h>
 #include <isc/string.h>
 #include <isc/taskpool.h>
@@ -175,6 +176,11 @@
 			   msg, isc_result_totext(result));	\
 		if (result != ISC_R_SUCCESS) goto failure;	\
 	} while (0)
+
+/*
+ * Return TRUE if NS_CLIENTATTR_TCP is set in the attibutes other FALSE.
+ */
+#define TCPCLIENT(client) (((client)->attributes & NS_CLIENTATTR_TCP) != 0)
 
 /**************************************************************************/
 
@@ -708,9 +714,22 @@ name_exists(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	RETURN_EXISTENCE_FLAG;
 }
 
+/*
+ *	'ssu_check_t' is used to pass the arguements to
+ *	dns_ssutable_checkrules() to the callback function
+ *	ssu_checkrule().
+ */
 typedef struct {
+	/* The ownername of the record to be updated. */
 	dns_name_t *name;
+
+	/* The signature's name if the request was signed. */
 	dns_name_t *signer;
+
+	/* The address of the client if the request was received via TCP. */
+	isc_netaddr_t *tcpaddr;
+
+	/* The ssu table to check against. */
 	dns_ssutable_t *table;
 } ssu_check_t;
 
@@ -727,13 +746,15 @@ ssu_checkrule(void *data, dns_rdataset_t *rrset) {
 	    rrset->type == dns_rdatatype_nsec)
 		return (ISC_R_SUCCESS);
 	result = dns_ssutable_checkrules(ssuinfo->table, ssuinfo->signer,
-					 ssuinfo->name, rrset->type);
+					 ssuinfo->name, ssuinfo->tcpaddr,
+					 rrset->type);
 	return (result == ISC_TRUE ? ISC_R_SUCCESS : ISC_R_FAILURE);
 }
 
 static isc_boolean_t
 ssu_checkall(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
-	     dns_ssutable_t *ssutable, dns_name_t *signer)
+	     dns_ssutable_t *ssutable, dns_name_t *signer,
+	     isc_netaddr_t *tcpaddr)
 {
 	isc_result_t result;
 	ssu_check_t ssuinfo;
@@ -741,6 +762,7 @@ ssu_checkall(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	ssuinfo.name = name;
 	ssuinfo.table = ssutable;
 	ssuinfo.signer = signer;
+	ssuinfo.tcpaddr = tcpaddr;
 	result = foreach_rrset(db, ver, name, ssu_checkrule, &ssuinfo);
 	return (ISC_TF(result == ISC_R_SUCCESS));
 }
@@ -2474,7 +2496,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	if (ssutable == NULL)
 		CHECK(checkupdateacl(client, dns_zone_getupdateacl(zone),
 				     "update", zonename, ISC_FALSE, ISC_FALSE));
-	else if (client->signer == NULL)
+	else if (client->signer == NULL && !TCPCLIENT(client))
 		CHECK(checkupdateacl(client, NULL, "update", zonename,
 				     ISC_FALSE, ISC_TRUE));
 	
@@ -2544,22 +2566,35 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			}
 			else if (rdata.type == dns_rdatatype_rrsig) {
 				FAILC(DNS_R_REFUSED,
-				      "explicit RRSIG updates are currently not "
-				      "supported in secure zones");
+				      "explicit RRSIG updates are currently "
+				      "not supported in secure zones");
 			}
 		}
 
-		if (ssutable != NULL && client->signer != NULL) {
+		if (ssutable != NULL) {
+			isc_netaddr_t *tcpaddr, netaddr;
+			/*
+			 * If this is a TCP connection then pass the
+			 * address of the client through for tcp-self
+			 * and 6to4-self otherwise pass NULL.  This
+			 * provides weak address based authentication.
+			 */
+			if (TCPCLIENT(client)) {
+				isc_netaddr_fromsockaddr(&netaddr,
+							 &client->peeraddr);
+				tcpaddr = &netaddr;
+			} else
+				tcpaddr = NULL;
 			if (rdata.type != dns_rdatatype_any) {
 				if (!dns_ssutable_checkrules(ssutable,
 							     client->signer,
-							     name, rdata.type))
+							     name, tcpaddr,
+							     rdata.type))
 					FAILC(DNS_R_REFUSED,
 					      "rejected by secure update");
-			}
-			else {
+			} else {
 				if (!ssu_checkall(db, ver, name, ssutable,
-						  client->signer))
+						  client->signer, tcpaddr))
 					FAILC(DNS_R_REFUSED,
 					      "rejected by secure update");
 			}

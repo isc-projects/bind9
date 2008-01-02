@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.139 2007/09/18 00:22:30 marka Exp $ */
+/* $Id: zoneconf.c,v 1.140 2008/01/02 05:13:41 marka Exp $ */
 
 /*% */
 
@@ -166,6 +166,10 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone) {
 			mtype = DNS_SSUMATCHTYPE_SUBDOMAINMS;
 		else if (strcasecmp(str, "krb5-subdomain") == 0)
 			mtype = DNS_SSUMATCHTYPE_SUBDOMAINKRB5;
+		else if (strcasecmp(str, "tcp-self") == 0)
+			mtype = DNS_SSUMATCHTYPE_TCPSELF;
+		else if (strcasecmp(str, "6to4-self") == 0)
+			mtype = DNS_SSUMATCHTYPE_6TO4SELF;
 		else
 			INSIST(0);
 

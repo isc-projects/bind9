@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ssu.h,v 1.21 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: ssu.h,v 1.22 2008/01/02 05:13:42 marka Exp $ */
 
 #ifndef DNS_SSU_H
 #define DNS_SSU_H 1
@@ -38,7 +38,9 @@ ISC_LANG_BEGINDECLS
 #define DNS_SSUMATCHTYPE_SELFMS		7
 #define DNS_SSUMATCHTYPE_SUBDOMAINMS	8
 #define DNS_SSUMATCHTYPE_SUBDOMAINKRB5	9
-#define DNS_SSUMATCHTYPE_MAX 		9  /* max value */
+#define DNS_SSUMATCHTYPE_TCPSELF	10
+#define DNS_SSUMATCHTYPE_6TO4SELF	11
+#define DNS_SSUMATCHTYPE_MAX 		11  /* max value */
 
 isc_result_t
 dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **table);
@@ -117,16 +119,35 @@ dns_ssutable_addrule(dns_ssutable_t *table, isc_boolean_t grant,
 
 isc_boolean_t
 dns_ssutable_checkrules(dns_ssutable_t *table, dns_name_t *signer,
-			dns_name_t *name, dns_rdatatype_t type);
+			dns_name_t *name, isc_netaddr_t *tcpaddr,
+			dns_rdatatype_t type);
 /*%<
  *	Checks that the attempted update of (name, type) is allowed according
  *	to the rules specified in the simple-secure-update rule table.  If
- *	no rules are matched, access is denied.  If signer is NULL, access
- *	is denied.
+ *	no rules are matched, access is denied.
  *
+ *	Notes:
+ *		'tcpaddr' should only be set if the request received
+ *		via TCP.  This provides a weak assurance that the
+ *		request was not spoofed.  'tcpaddr' is to to validate
+ *		DNS_SSUMATCHTYPE_TCPSELF and DNS_SSUMATCHTYPE_6TO4SELF
+ *		rules.
+ *
+ *		For DNS_SSUMATCHTYPE_TCPSELF the addresses are mapped to
+ *		the standard reverse names under IN-ADDR.ARPA and IP6.ARPA.
+ *		RFC 1035, Section 3.5, "IN-ADDR.ARPA domain" and RFC 3596,
+ *		Section 2.5, "IP6.ARPA Domain".
+ *
+ *		For DNS_SSUMATCHTYPE_6TO4SELF, IPv4 address are converted
+ *		to a 6to4 prefix (48 bits) per the rules in RFC 3056.  Only
+ *		the top	48 bits of the IPv6 address are mapped to the reverse
+ *		name. This is independent of whether the most significant 16
+ *		bits match 2002::/16, assigned for 6to4 prefixes, or not.
+ * 
  *	Requires:
  *\li		'table' is a valid SSU table
  *\li		'signer' is NULL or a valid absolute name
+ *\li		'tcpaddr' is NULL or a valid network address.
  *\li		'name' is a valid absolute name
  */
 

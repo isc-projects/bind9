@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.340 2007/11/05 17:05:03 explorer Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.341 2008/01/02 05:13:41 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -9251,6 +9251,12 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
               matches
               the types specified in the type field.
             </para>
+            <para>
+	      No signer is required for <replaceable>tcp-self</replaceable>
+	      or <replaceable>6to4-self</replaceable> however the standard
+	      reverse mapping / prefix conversion must match the identity
+	      field.
+	    </para>
 	    <para>
 	      The identity field specifies a name or a wildcard
 	      name.  Normally, this is the name of the TSIG or
@@ -9270,11 +9276,15 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
 	    </para>
 
             <para>
-              The <replaceable>nametype</replaceable> field has 6
+              The <replaceable>nametype</replaceable> field has 12
               values:
               <varname>name</varname>, <varname>subdomain</varname>,
               <varname>wildcard</varname>, <varname>self</varname>,
-	       <varname>selfsub</varname>, and <varname>selfwild</varname>.
+	      <varname>selfsub</varname>, <varname>selfwild</varname>,
+	      <varname>krb5-self</varname>, <varname>ms-self</varname>,
+	      <varname>krb5-subdomain</varname>,
+	      <varname>ms-subdomain</varname>,
+	      <varname>tcp-self</varname> and <varname>6to4-self</varname>.
             </para>
             <informaltable>
               <tgroup cols="2" colsep="0" rowsep="0" tgroupstyle="4Level-table">
@@ -9371,6 +9381,43 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
 			except that only subdomains of
 			<varname>self</varname> can be updated.
 		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			<varname>tcp-self</varname>
+		      </para>
+		    </entry> <entry colname="2">
+		      <para>
+			Allow updates that have been sent via TCP and
+			for which the standard mapping from the initiating
+			IP address into the IN-ADDR.ARPA and IP6.ARPA
+			namespaces match the name to be updated.
+		      </para>
+		      <note>
+			It is theoretically possible to spoof these TCP
+			sessions.
+		      </note>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			<varname>6to4-self</varname>
+		      </para>
+		    </entry> <entry colname="2">
+		      <para>
+			Allow the 6to4 prefix to be update by any TCP
+			conection from the 6to4 network or from the
+			corresponding IPv4 address.  This is intended
+			to allow NS or DNAME RRsets to be added to the
+			reverse tree.
+		      </para>
+		      <note>
+			It is theoretically possible to spoof these TCP
+			sessions.
+		      </note>
 		    </entry>
 		  </row>
                 </tbody>

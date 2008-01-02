@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.34 2007/10/19 17:15:53 explorer Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.35 2008/01/02 05:13:41 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>Aug 13, 2004</date>
@@ -532,7 +532,9 @@ zone <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	allow-update-forwarding { <replaceable>address_match_element</replaceable>; ... };
 	update-policy {
 		( grant | deny ) <replaceable>string</replaceable>
-		( name | subdomain | wildcard | self ) <replaceable>string</replaceable>
+		( name | subdomain | wildcard | self | selfsub | selfwild |
+                  krb5-self | ms-self | krb5-subdomain | ms-subdomain |
+		  tcp-self | 6to4-self ) <replaceable>string</replaceable>
 		<replaceable>rrtypelist</replaceable>; ...
 	};
 	update-check-ksk <replaceable>boolean</replaceable>;
