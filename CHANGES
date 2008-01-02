@@ -1,3 +1,8 @@
+2283.	[bug]		TSIG keys were not attaching to the memory
+			context.  TSIG keys should use the rings
+			memory context rather than the clients memory
+			context. [RT #17377]
+
 2282.	[bug]		Acl code fixups. [RT #17346] [RT #17374]
 
 2281.	[bug]		Attempts to use undefined acls were not being logged.

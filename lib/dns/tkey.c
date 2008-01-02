@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.86 2007/06/19 23:47:16 tbox Exp $
+ * $Id: tkey.c,v 1.87 2008/01/02 04:24:59 marka Exp $
  */
 /*! \file */
 #include <config.h>
@@ -393,7 +393,7 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 				  isc_buffer_base(&secret),
 				  isc_buffer_usedlength(&secret),
 				  ISC_TRUE, signer, tkeyin->inception,
-				  tkeyin->expire, msg->mctx, ring, NULL));
+				  tkeyin->expire, ring->mctx, ring, NULL));
 
 	/* This key is good for a long time */
 	tkeyout->inception = tkeyin->inception;
@@ -485,7 +485,7 @@ process_gsstkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 						 dns_fixedname_name(&principal),
 						 tkeyin->inception,
 						 tkeyin->expire,
-						 msg->mctx, ring, NULL));
+						 ring->mctx, ring, NULL));
 	}
 
 	isc_stdtime_get(&now);
@@ -1270,7 +1270,7 @@ dns_tkey_processgssresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	RETERR(dns_tsigkey_createfromkey(tkeyname, DNS_TSIG_GSSAPI_NAME,
 					 dstkey, ISC_FALSE, NULL,
 					 rtkey.inception, rtkey.expire,
-					 rmsg->mctx, ring, outkey));
+					 ring->mctx, ring, outkey));
 
 	dns_rdata_freestruct(&rtkey);
 	return (result);
@@ -1405,7 +1405,7 @@ dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 					  : DNS_TSIG_GSSAPI_NAME),
 					 dstkey, ISC_TRUE, NULL,
 					 rtkey.inception, rtkey.expire,
-					 rmsg->mctx, ring, outkey));
+					 ring->mctx, ring, outkey));
 
 	dns_rdata_freestruct(&rtkey);
 	return (result);
