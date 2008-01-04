@@ -1,3 +1,5 @@
+2287.	[bug]		Use 'volatile' if the compiler supports it. [RT #17413]
+
 2286.	[func]		Allow a TCP connection to be used as a weak
 			authentication method for reverse zones.
 			New update-policy methods tcp-self and 6to4-self.

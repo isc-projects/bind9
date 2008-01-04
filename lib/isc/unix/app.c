@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.54 2007/06/19 23:47:18 tbox Exp $ */
+/* $Id: app.c,v 1.55 2008/01/04 03:27:47 marka Exp $ */
 
 /*! \file */
 
@@ -59,11 +59,11 @@ static isc_boolean_t		running = ISC_FALSE;
 /*!
  * We assume that 'want_shutdown' can be read and written atomically.
  */
-static isc_boolean_t		want_shutdown = ISC_FALSE;
+static volatile isc_boolean_t	want_shutdown = ISC_FALSE;
 /*
  * We assume that 'want_reload' can be read and written atomically.
  */
-static isc_boolean_t		want_reload = ISC_FALSE;
+static volatile isc_boolean_t	want_reload = ISC_FALSE;
 
 static isc_boolean_t		blocked  = ISC_FALSE;
 #ifdef ISC_PLATFORM_USETHREADS
