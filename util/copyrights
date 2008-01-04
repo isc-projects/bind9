@@ -809,12 +809,12 @@
 ./bin/win32/BINDInstall/res/BINDInstall.rc2	X	2001
 ./bin/win32/BINDInstall/resource.h		X	2001,2003,2005
 ./config.guess					X	1998,1999,2000,2001,2003,2004
-./config.h.in					X	1998,1999,2000,2001,2003,2004,2005,2006,2007
+./config.h.in					X	1998,1999,2000,2001,2003,2004,2005,2006,2007,2008
 ./config.h.win32				C	1999,2000,2001,2003,2004,2006,2007
 ./config.sub					X	1998,1999,2000,2001,2003,2004
 ./config.threads.in				X	2005,2006
-./configure					X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
-./configure.in					SH	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
+./configure					X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
+./configure.in					SH	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./conftools/perllib/dnsconf/DNSConf-macros.h	C	2000,2001,2004
 ./conftools/perllib/dnsconf/DNSConf.i		C	2000,2001,2004
 ./conftools/perllib/dnsconf/Makefile.PL		PERL	2000,2001,2004
@@ -2053,7 +2053,7 @@
 ./lib/isc/timer_p.h				C	2000,2001,2003,2004,2007
 ./lib/isc/unix/.cvsignore			X	1998,1999,2000,2001
 ./lib/isc/unix/Makefile.in			MAKE	1998,1999,2000,2001,2003,2004,2007
-./lib/isc/unix/app.c				C	1999,2000,2001,2002,2003,2004
+./lib/isc/unix/app.c				C	1999,2000,2001,2002,2003,2004,2008
 ./lib/isc/unix/dir.c				C	1999,2000,2001,2003,2004,2007
 ./lib/isc/unix/entropy.c			C	2000,2001,2002,2003,2004,2005,2006
 ./lib/isc/unix/errno2result.c			C	2000,2001,2002,2003,2004,2007
