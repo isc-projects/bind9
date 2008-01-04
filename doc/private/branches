@@ -12,9 +12,9 @@ Branch				Status	Whom	// Comments
 custom_AFILIAS_v9_4_1_P1	private	marka	// 2007-08-30 01:11 +0000
 custom_AFIS_v9_4_0		private	marka	// 2007-04-23 05:08 +0000
 custom_ALLIANZ_v9_4_1_P1	private	marka	// 2007-08-03 04:51 +0000
-custom_ALLIANZ_v9_4_2		new	marka	// 2007-11-23 04:32 +0000
-custom_CISCO_v9_3_4_P1		new	marka	// 2007-11-23 04:19 +0000
-custom_NOM_v9_5_0a7		new	
+custom_ALLIANZ_v9_4_2		private	marka	// 2007-11-23 04:32 +0000
+custom_CISCO_v9_3_4_P1		private	marka	// 2007-11-23 04:19 +0000
+custom_NOM_v9_5_0a7		private	
 custom_UTK_v9_4_0		private	marka	// 2007-04-23 13:35 +0000
 custom_UTK_v9_4_1		private	marka	// 2007-04-30 01:51 +0000
 custom_WFB_v9_3_1		private	
@@ -23,7 +23,7 @@ custom_WFB_v9_3_3		private
 custom_WFB_v9_4_0		private	
 custom_WFB_v9_4_1		private	marka	// 2007-04-30 01:53 +0000
 custom_WFB_v9_4_1_P1		private	marka	// 2007-08-01 22:49 +0000
-custom_WFB_v9_4_2		new	each	// 2007-12-05 18:10 +0000
+custom_WFB_v9_4_2		private	each	// 2007-12-05 18:10 +0000
 gsstsig4			open	sra	// head + gsstsig as of 12 may 2006
 gsstsig4_win32			open	danny	// sub-branch off gsstsig4 for windows development
 jinmei-mmapzone-test		open		// mmap based zone file. very experimental, just for reference purposes
@@ -37,13 +37,13 @@ newresolver0			open
 openssl_stub			open	marka
 resign				new	marka	// 2007-10-19 03:57 +0000
 rt10864				open	marka	// NSEC caching @ delegation
-rt1091				new	marka	// 2007-10-22 02:27 +0000
+rt1091				open	marka	// 2007-10-22 02:27 +0000
 rt11398d			open	sra	// doxygen dev
 rt11398e			open	sra
 rt11543				open	jakob
 rt11733				open	jakob
 rt11733b			open	jakob
-rt12017				new	marka	// 2007-12-13 01:00 +0000
+rt12017				closed	marka	// 2007-12-13 01:00 +0000
 rt13489				review	marka	// Solaris bug fixes
 rt13555				open	marka	// nslookup name failure
 rt13562				open	marka
@@ -71,33 +71,33 @@ rt16806				open	marka	// 2007-04-24 04:38 +0000
 rt16844				open	marka	// EVP conversion
 rt16857				open	marka	// 2007-05-14 03:45 +0000
 rt17061				open	marka	// 2007-08-02 02:08 +0000
-rt17067				open	marka	// 2007-09-11 13:18 +0000
+rt17067				closed	marka	// 2007-09-11 13:18 +0000
 rt17091				open	evan
 rt17099				open	marka	// 2007-09-02 23:42 +0000
-rt17113				open	marka	// 2007-09-06 05:18 +0000
-rt17113_v9_4			open	marka	// 2007-09-07 04:40 +0000
+rt17113				closed	marka	// 2007-09-06 05:18 +0000
+rt17113_v9_4			closed	marka	// 2007-09-07 04:40 +0000
 rt17138				open	marka	// 2007-09-11 01:39 +0000
 rt17146				open	
-rt17147				open	marka	// 2007-09-19 04:49 +0000
+rt17147				closed	marka	// 2007-09-19 04:49 +0000
 rt17151				open	marka	// 2007-09-18 00:34 +0000
-rt17159				review	marka	// 2007-10-16 04:32 +0000
-rt17178				new	marka	// 2007-10-24 08:43 +0000
+rt17159				closed	marka	// 2007-10-16 04:32 +0000
+rt17178				closed	marka	// 2007-10-24 08:43 +0000
 rt17214				review	jakob
-rt17216				review	evan
-rt17222				new	marka	// 2007-10-24 08:04 +0000
-rt17235				new	marka	// 2007-10-19 01:19 +0000
-rt17236				new	shane	// 2007-10-29 16:43 +0000
-rt17237				open	fdupont	// re-signing
+rt17216				closed	evan
+rt17222				closed	marka	// 2007-10-24 08:04 +0000
+rt17235				closed	marka	// 2007-10-19 01:19 +0000
+rt17236				closed	shane	// 2007-10-29 16:43 +0000
+rt17237				closed	fdupont	// re-signing
 rt1727				open		// ixfr-from-differences workfile
-rt17272				new	each	// 2007-11-19 21:28 +0000
-rt17307				new	marka	// 2007-11-26 03:55 +0000
-rt17311				new	each	// 2007-11-27 01:45 +0000
-rt17332				new	
-rt17347				new	each	// 2007-12-17 23:48 +0000
-rt17354				new	marka	// 2007-12-11 05:50 +0000
-rt17374				new	each	// 2007-12-19 05:51 +0000
-rt17375				new	each	// 2007-12-20 16:47 +0000
-rt17378				new	marka	// 2007-12-20 01:15 +0000
+rt17272				closed	each	// 2007-11-19 21:28 +0000
+rt17307				closed	marka	// 2007-11-26 03:55 +0000
+rt17311				closed	each	// 2007-11-27 01:45 +0000
+rt17332				closed	
+rt17347				open	each	// 2007-12-17 23:48 +0000
+rt17354				closed	marka	// 2007-12-11 05:50 +0000
+rt17374				open	each	// 2007-12-19 05:51 +0000
+rt17375				open	each	// 2007-12-20 16:47 +0000
+rt17378				closed	marka	// 2007-12-20 01:15 +0000
 shane_dbbackend			open	
 skan				open	explorer
 skan-metazones1			private	explorer
