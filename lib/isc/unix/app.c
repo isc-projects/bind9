@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.43.2.3.8.5 2004/03/08 02:08:05 marka Exp $ */
+/* $Id: app.c,v 1.43.2.3.8.6 2008/01/04 03:38:18 marka Exp $ */
 
 #include <config.h>
 
@@ -57,11 +57,11 @@ static isc_boolean_t		running = ISC_FALSE;
 /*
  * We assume that 'want_shutdown' can be read and written atomically.
  */
-static isc_boolean_t		want_shutdown = ISC_FALSE;
+static volatile isc_boolean_t	want_shutdown = ISC_FALSE;
 /*
  * We assume that 'want_reload' can be read and written atomically.
  */
-static isc_boolean_t		want_reload = ISC_FALSE;
+static volatile isc_boolean_t	want_reload = ISC_FALSE;
 
 static isc_boolean_t		blocked  = ISC_FALSE;
 #ifdef ISC_PLATFORM_USETHREADS

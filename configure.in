@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.294.2.23.2.78 $)
+AC_REVISION($Revision: 1.294.2.23.2.79 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -237,6 +237,7 @@ AC_CHECK_HEADERS(fcntl.h sys/time.h unistd.h sys/sockio.h sys/select.h sys/param
 
 AC_C_CONST
 AC_C_INLINE
+AC_C_VOLATILE
 AC_CHECK_FUNC(sysctlbyname, AC_DEFINE(HAVE_SYSCTLBYNAME))
 
 #
