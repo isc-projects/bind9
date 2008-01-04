@@ -16,7 +16,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.90 2007/09/14 03:40:36 marka Exp $ */
+/* $Id: config.h.in,v 1.90.60.1 2008/01/04 03:34:08 marka Exp $ */
 
 /*! \file */
 
@@ -316,3 +316,7 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to `unsigned long' if <sys/types.h> does not define. */
 #undef uintptr_t
+
+/* Define to empty if the keyword `volatile' does not work. Warning: valid
+   code using `volatile' can become incorrect without. Disable with care. */
+#undef volatile
