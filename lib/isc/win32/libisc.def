@@ -246,6 +246,7 @@ isc_mem_detach
 isc_mem_getquota
 isc_mem_inuse
 isc_mem_ondestroy
+isc_mem_references
 isc_mem_setdestroycheck
 isc_mem_setquota
 isc_mem_setwater
