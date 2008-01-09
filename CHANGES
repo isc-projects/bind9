@@ -1,3 +1,6 @@
+2290.	[bug]		Let AD in the query signal that the client wants AD
+			set in the response. [RT #17301]
+
 2289.	[func]		named-checkzone now reports the out-of-zone CNAME
 			found. [RT #17309]
 
