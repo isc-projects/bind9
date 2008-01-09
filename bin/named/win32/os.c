@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.25 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id: os.c,v 1.26 2008/01/09 02:35:10 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -103,7 +103,16 @@ void
 ns_os_init(const char *progname) {
 	ns_paths_init();
 	setup_syslog(progname);
-	ntservice_init();
+	/*
+	 * XXXMPA. We may need to split ntservice_init() in two and
+	 * just mark as running in ns_os_started().  If we do that
+	 * this is where the first part of ntservice_init() should be
+	 * called from.
+	 *
+	 * XXX970 Remove comment if no problems by 9.7.0.
+	 *
+	 * ntservice_init();
+	 */
 	version_check(progname);
 }
 
@@ -285,4 +294,5 @@ ns_os_tzset(void) {
 
 void
 ns_os_started(void) {
+	ntservice_init();
 }
