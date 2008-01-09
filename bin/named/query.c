@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.298 2007/09/26 03:04:45 each Exp $ */
+/* $Id: query.c,v 1.298.48.1 2008/01/09 04:13:45 marka Exp $ */
 
 /*! \file */
 
@@ -4442,6 +4442,7 @@ ns_query_start(ns_client_t *client) {
 	dns_rdatatype_t qtype;
 	unsigned int saved_extflags = client->extflags;
 	unsigned int saved_flags = client->message->flags;
+	isc_boolean_t want_ad;
 
 	CTRACE("ns_query_start");
 
@@ -4581,6 +4582,15 @@ ns_query_start(ns_client_t *client) {
 		client->query.attributes &= ~NS_QUERYATTR_SECURE;
 
 	/*
+	 * Set 'want_ad' if the client has set AD in the query.
+	 * This allows AD to be returned on queries without DO set.
+	 */
+	if ((message->flags & DNS_MESSAGEFLAG_AD) != 0)
+		want_ad = ISC_TRUE;
+	else
+		want_ad = ISC_FALSE;
+
+	/*
 	 * This is an ordinary query.
 	 */
 	result = dns_message_reply(message, ISC_TRUE);
@@ -4599,7 +4609,7 @@ ns_query_start(ns_client_t *client) {
 	 * Set AD.  We must clear it if we add non-validated data to a
 	 * response.
 	 */
-	if (WANTDNSSEC(client))
+	if (WANTDNSSEC(client) || want_ad)
 		message->flags |= DNS_MESSAGEFLAG_AD;
 
 	qclient = NULL;
