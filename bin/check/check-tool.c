@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.c,v 1.31 2007/09/13 04:45:18 each Exp $ */
+/* $Id: check-tool.c,v 1.32 2008/01/09 02:50:43 marka Exp $ */
 
 /*! \file */
 
@@ -205,8 +205,9 @@ checkns(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner,
 		    !logged(namebuf, ERR_IS_CNAME)) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "%s/NS '%s' (out of zone) "
-				     "is a CNAME (illegal)",
-				     ownerbuf, namebuf);
+				     "is a CNAME '%s' (illegal)",
+				     ownerbuf, namebuf,
+				     cur->ai_canonname);
 			/* XXX950 make fatal for 9.5.0 */
 			/* answer = ISC_FALSE; */
 			add(namebuf, ERR_IS_CNAME);
@@ -397,8 +398,10 @@ checkmx(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner) {
 				if (!logged(namebuf, ERR_IS_MXCNAME)) {
 					dns_zone_log(zone, level,
 						     "%s/MX '%s' (out of zone)"
-						     " is a CNAME (illegal)",
-						     ownerbuf, namebuf);
+						     " is a CNAME '%s' "
+						     "(illegal)",
+						     ownerbuf, namebuf,
+						     cur->ai_canonname);
 					add(namebuf, ERR_IS_MXCNAME);
 				}
 				if (level == ISC_LOG_ERROR)
@@ -480,8 +483,9 @@ checksrv(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner) {
 				if (!logged(namebuf, ERR_IS_SRVCNAME)) {
 					dns_zone_log(zone, level, "%s/SRV '%s'"
 						     " (out of zone) is a "
-						     "CNAME (illegal)",
-						     ownerbuf, namebuf);
+						     "CNAME '%s' (illegal)",
+						     ownerbuf, namebuf,
+						     cur->ai_canonname);
 					add(namebuf, ERR_IS_SRVCNAME);
 				}
 				if (level == ISC_LOG_ERROR)

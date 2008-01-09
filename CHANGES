@@ -1,3 +1,6 @@
+2289.	[func]		named-checkzone now reports the out-of-zone CNAME
+			found. [RT #17309]
+
 2288.	[port]		win32: mark service as running when we have finished
 			loading.  [RT #17441]
 
