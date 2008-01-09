@@ -1,3 +1,9 @@
+2292.	[bug]		Log if the working directory is not writable.
+			[RT #17312]
+
+2291.   [bug]           PR_SET_DUMPABLE may be set too late.  Also report
+			failure to set PR_SET_DUMPABLE. [RT #17312]
+
 2290.	[bug]		Let AD in the query signal that the client wants AD
 			set in the response. [RT #17301]
 
