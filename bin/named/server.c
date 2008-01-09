@@ -15,13 +15,14 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.59 2007/12/02 18:58:20 marka Exp $ */
+/* $Id: server.c,v 1.419.18.60 2008/01/09 04:52:56 marka Exp $ */
 
 /*! \file */
 
 #include <config.h>
 
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <isc/app.h>
 #include <isc/base64.h>
@@ -2755,6 +2756,15 @@ load_configuration(const char *filename, ns_server_t *server,
 						    &config);
 	}
 	CHECK(result);
+
+	/*
+	 * Check that the working directory is writable.
+	 */
+	if (access(".", W_OK) != 0) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "the working directory is not writable");
+	}
 
 	/*
 	 * Check the validity of the configuration.
