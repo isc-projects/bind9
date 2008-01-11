@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwaddr.c,v 1.4.18.2 2005/04/29 00:15:23 marka Exp $ */
+/* $Id: lwaddr.c,v 1.4.18.3 2008/01/11 03:03:51 marka Exp $ */
 
 /*! \file */
 
@@ -81,7 +81,7 @@ lwaddr_lwresaddr_fromnetaddr(lwres_addr_t *la, isc_netaddr_t *na) {
 	} else {
 		la->family = LWRES_ADDRTYPE_V6;
 		la->length = 16;
-		memcpy(la->address, &na->type.in, 16);
+		memcpy(la->address, &na->type.in6, 16);
 	}
 	return (ISC_R_SUCCESS);
 }
