@@ -1,3 +1,6 @@
+2296.	[port]		Allow docbook stylesheet location to be specified to
+			configure. [RT #17457]
+
 2295.	[bug]		Silence static overrun error in bin/named/lwaddr.c.
 			[RT #17459]
 
