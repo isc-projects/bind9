@@ -1,3 +1,6 @@
+2295.	[bug]		Silence static overrun error in bin/named/lwaddr.c.
+			[RT #17459]
+
 2294.	[placeholder]	rt17435
 
 2293.	[func]		Add ACL regression test. [RT #17375]
