@@ -1,9 +1,9 @@
 #!/bin/sh
 #
-# Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2006, 2008  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000-2003  Internet Software Consortium.
 #
-# Permission to use, copy, modify, and distribute this software for any
+# Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
 # copyright notice and this permission notice appear in all copies.
 #
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: conf.sh.in,v 1.27.18.9 2008/01/11 02:19:16 marka Exp $
+# $Id: conf.sh.in,v 1.27.18.10 2008/01/11 23:45:59 tbox Exp $
 
 #
 # Common configuration data for system tests, to be sourced into
