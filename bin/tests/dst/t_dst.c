@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_dst.c,v 1.47.206.4 2006/01/04 23:50:19 marka Exp $ */
+/* $Id: t_dst.c,v 1.47.206.5 2008/01/12 21:53:23 marka Exp $ */
 
 #include <config.h>
 
@@ -377,7 +377,7 @@ t1(void) {
 		t_result(T_UNRESOLVED);
 		return;
 	}
-	result = isc_entropy_createfilesource(ectx, "randomfile");
+	isc_result = isc_entropy_createfilesource(ectx, "randomfile");
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_entropy_create failed %s\n",
 		       isc_result_totext(isc_result));
@@ -876,7 +876,7 @@ t2_vfy(char **av) {
 		       isc_result_totext(isc_result));
 		return(T_UNRESOLVED);
 	}
-	result = isc_entropy_createfilesource(ectx, "randomfile");
+	isc_result = isc_entropy_createfilesource(ectx, "randomfile");
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_entropy_create failed %s\n",
 		       isc_result_totext(isc_result));
