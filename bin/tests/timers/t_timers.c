@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_timers.c,v 1.23.18.1 2004/06/21 06:45:18 marka Exp $ */
+/* $Id: t_timers.c,v 1.23.18.2 2008/01/12 22:05:55 marka Exp $ */
 
 #include <config.h>
 
@@ -256,7 +256,7 @@ t_timers_x(isc_timertype_t timertype, isc_time_t *expires,
 		return;
 	}
 
-	isc_mutex_lock(&Tx_mx);
+	isc_result = isc_mutex_lock(&Tx_mx);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_mutex_lock failed %s\n",
 		       isc_result_totext(isc_result));
