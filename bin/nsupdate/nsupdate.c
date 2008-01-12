@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.130.18.19 2007/08/28 07:20:01 tbox Exp $ */
+/* $Id: nsupdate.c,v 1.130.18.20 2008/01/12 22:15:59 marka Exp $ */
 
 /*! \file */
 
@@ -1407,8 +1407,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
  failure:
 	if (name != NULL)
 		dns_message_puttempname(updatemsg, &name);
-	if (rdata != NULL)
-		dns_message_puttemprdata(updatemsg, &rdata);
+	dns_message_puttemprdata(updatemsg, &rdata);
 	return (STATUS_SYNTAX);
 }
 

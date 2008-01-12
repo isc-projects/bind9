@@ -1,3 +1,6 @@
+2299.	[bug]		Remove unnecessary NULL check in
+			bin/nsupdate/nsupdate.c. [RT #17475]
+
 2298.	[bug]		isc_mutex_lock() failure not caught in
 			bin/tests/timers/t_timers.c. [RT #17468]
 
