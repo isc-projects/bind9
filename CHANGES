@@ -1,3 +1,6 @@
+2297.	[bug]		isc_entropy_createfilesource() failure not caught in
+			bin/tests/dst/t_dst.c. [RT #17467]
+
 2296.	[port]		Allow docbook stylesheet location to be specified to
 			configure. [RT #17457]
 
