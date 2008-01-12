@@ -1,3 +1,6 @@
+2298.	[bug]		isc_mutex_lock() failure not caught in
+			bin/tests/timers/t_timers.c. [RT #17468]
+
 2297.	[bug]		isc_entropy_createfilesource() failure not caught in
 			bin/tests/dst/t_dst.c. [RT #17467]
 
