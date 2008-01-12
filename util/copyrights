@@ -157,7 +157,7 @@
 ./bin/nsupdate/.cvsignore			X	2000,2001
 ./bin/nsupdate/Makefile.in			MAKE	2000,2001,2002,2004
 ./bin/nsupdate/nsupdate.8			MAN	DOCBOOK
-./bin/nsupdate/nsupdate.c			C	2000,2001,2002,2003,2004,2005,2006,2007
+./bin/nsupdate/nsupdate.c			C	2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./bin/nsupdate/nsupdate.docbook			SGML	2000,2001,2002,2003,2004,2005,2006,2007
 ./bin/nsupdate/nsupdate.html			HTML	DOCBOOK
 ./bin/nsupdate/win32/nsupdate.dsp		X	2001,2004,2005
@@ -275,7 +275,7 @@
 ./bin/tests/dst/t2_data_2			X	1999,2000,2001
 ./bin/tests/dst/t2_dsasig			X	1999,2000,2001
 ./bin/tests/dst/t2_rsasig			X	1999,2000,2001
-./bin/tests/dst/t_dst.c				C	1999,2000,2001,2004,2005
+./bin/tests/dst/t_dst.c				C	1999,2000,2001,2004,2005,2008
 ./bin/tests/entropy2_test.c			C	2000,2001,2004,2005
 ./bin/tests/entropy_test.c			C	2000,2001,2004,2005
 ./bin/tests/fsaccess_test.c			C	2000,2001,2004,2005
@@ -841,7 +841,7 @@
 ./bin/tests/timer_test.c			C	1998,1999,2000,2001,2004
 ./bin/tests/timers/.cvsignore			X	1999,2000,2001
 ./bin/tests/timers/Makefile.in			MAKE	1999,2000,2001,2002,2004
-./bin/tests/timers/t_timers.c			C	1999,2000,2001,2004
+./bin/tests/timers/t_timers.c			C	1999,2000,2001,2004,2008
 ./bin/tests/wire_test.c				C	1999,2000,2001,2004,2005
 ./bin/tests/wire_test.data			X	1999,2000,2001
 ./bin/tests/wire_test.data2			X	1999,2000,2001
