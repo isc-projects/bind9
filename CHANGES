@@ -1,3 +1,6 @@
+2301.	[bug]		Remove resource leak and fix error messages in
+			bin/tests/system/lwresd/lwtest.c. [RT #17474]
+
 2300.	[bug]		Fixed failure to close open file in 
 			bin/tests/names/t_names.c. [RT #17473]
 
