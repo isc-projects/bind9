@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_api.c,v 1.48.2.1.2.10 2006/01/04 23:50:21 marka Exp $ */
+/* $Id: t_api.c,v 1.48.2.1.2.11 2008/01/14 12:48:59 marka Exp $ */
 
 #include <config.h>
 
@@ -128,7 +128,7 @@ main(int argc, char **argv) {
 	/*
 	 * -a option is now default.
 	 */
-	memset(T_tvec, 0xffff, sizeof(T_tvec));
+	memset(T_tvec, 0xff, sizeof(T_tvec));
 
 	/*
 	 * Parse args.
@@ -139,7 +139,7 @@ main(int argc, char **argv) {
 			/*
 			 * Flag all tests to be run.
 			 */
-			memset(T_tvec, 0xffff, sizeof(T_tvec));
+			memset(T_tvec, 0xff, sizeof(T_tvec));
 		}
 		else if (c == 'b') {
 			T_dir = isc_commandline_argument;
