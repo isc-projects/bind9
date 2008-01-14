@@ -1,3 +1,6 @@
+2300.	[bug]		Fixed failure to close open file in 
+			bin/tests/names/t_names.c. [RT #17473]
+
 2299.	[bug]		Remove unnecessary NULL check in
 			bin/nsupdate/nsupdate.c. [RT #17475]
 
