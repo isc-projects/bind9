@@ -122,7 +122,7 @@
 ./bin/named/lwdclient.c				C	2000,2001,2004,2005,2007
 ./bin/named/lwderror.c				C	2000,2001,2004,2005,2007
 ./bin/named/lwdgabn.c				C	2000,2001,2004,2005,2006,2007
-./bin/named/lwdgnba.c				C	2000,2001,2002,2004,2005,2007
+./bin/named/lwdgnba.c				C	2000,2001,2002,2004,2005,2007,2008
 ./bin/named/lwdgrbn.c				C	2000,2001,2003,2004,2005,2006,2007
 ./bin/named/lwdnoop.c				C	2000,2001,2004,2005,2007
 ./bin/named/lwresd.8				MAN	DOCBOOK
@@ -353,7 +353,7 @@
 ./bin/tests/names/dns_name_totext_data		X	1999,2000,2001
 ./bin/tests/names/dns_name_towire_1_data	X	1999,2000,2001
 ./bin/tests/names/dns_name_towire_2_data	X	1999,2000,2001
-./bin/tests/names/t_names.c			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
+./bin/tests/names/t_names.c			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./bin/tests/names/wire_test1.data		X	1999,2000,2001
 ./bin/tests/names/wire_test2.data		X	1999,2000,2001
 ./bin/tests/names/wire_test3_1.data		X	1999,2000,2001
@@ -578,7 +578,7 @@
 ./bin/tests/system/lwresd/lwresd1/.cvsignore	X	2000,2001
 ./bin/tests/system/lwresd/lwresd1/lwresd.conf	CONF-C	2000,2001,2004,2007
 ./bin/tests/system/lwresd/lwresd1/resolv.conf	CONF-SH	2000,2001,2004,2007
-./bin/tests/system/lwresd/lwtest.c		C	2000,2001,2002,2004,2007
+./bin/tests/system/lwresd/lwtest.c		C	2000,2001,2002,2004,2007,2008
 ./bin/tests/system/lwresd/ns1/.cvsignore	X	2000,2001
 ./bin/tests/system/lwresd/ns1/10.10.10.in-addr.arpa.db	ZONE	2000,2001,2004,2007
 ./bin/tests/system/lwresd/ns1/example1.db	ZONE	2000,2001,2002,2003,2004,2007
@@ -2540,7 +2540,7 @@
 ./lib/tests/include/tests/.cvsignore		X	1999,2000,2001
 ./lib/tests/include/tests/Makefile.in		MAKE	1999,2000,2001,2004,2007
 ./lib/tests/include/tests/t_api.h		C	1999,2000,2001,2004,2005,2006,2007
-./lib/tests/t_api.c				C	1999,2000,2001,2002,2003,2004,2005,2007
+./lib/tests/t_api.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2008
 ./lib/win32/bindevt/bindevt.c			C	2000,2001,2004,2007
 ./lib/win32/bindevt/bindevt.dsp			X	2001
 ./lib/win32/bindevt/bindevt.dsw			X	2001
