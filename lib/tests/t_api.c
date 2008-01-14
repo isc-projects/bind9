@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_api.c,v 1.60 2007/06/19 23:47:23 tbox Exp $ */
+/* $Id: t_api.c,v 1.60.128.1 2008/01/14 12:47:00 marka Exp $ */
 
 /*! \file */
 
@@ -130,7 +130,7 @@ main(int argc, char **argv) {
 	/*
 	 * -a option is now default.
 	 */
-	memset(T_tvec, 0xffff, sizeof(T_tvec));
+	memset(T_tvec, 0xff, sizeof(T_tvec));
 
 	/*
 	 * Parse args.
@@ -141,7 +141,7 @@ main(int argc, char **argv) {
 			/*
 			 * Flag all tests to be run.
 			 */
-			memset(T_tvec, 0xffff, sizeof(T_tvec));
+			memset(T_tvec, 0xff, sizeof(T_tvec));
 		}
 		else if (c == 'b') {
 			T_dir = isc_commandline_argument;
