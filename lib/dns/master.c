@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.166 2007/08/27 03:32:26 marka Exp $ */
+/* $Id: master.c,v 1.167 2008/01/14 23:24:24 marka Exp $ */
 
 /*! \file */
 
@@ -1801,7 +1801,9 @@ load_text(dns_loadctx_t *lctx) {
 
 		if (type == dns_rdatatype_rrsig && lctx->warn_sigexpired) {
 			dns_rdata_rrsig_t sig;
-			(void)dns_rdata_tostruct(&rdata[rdcount], &sig, NULL);
+			result = dns_rdata_tostruct(&rdata[rdcount], &sig,
+						    NULL);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			if (isc_serial_lt(sig.timeexpire, now)) {
 				(*callbacks->warn)(callbacks,
 						   "%s:%lu: "
