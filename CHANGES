@@ -1,3 +1,6 @@
+2303.	[bug]		Remove unnecessary code from bin/named/lwdgnba.c.
+			[RT #17471]
+
 2302.	[bug]		Fix memset() calls in lib/tests/t_api.c. [RT #17472]
 
 2301.	[bug]		Remove resource leak and fix error messages in

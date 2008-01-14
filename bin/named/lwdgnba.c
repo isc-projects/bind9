@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgnba.c,v 1.13.2.1.2.8 2007/08/28 07:19:08 tbox Exp $ */
+/* $Id: lwdgnba.c,v 1.13.2.1.2.9 2008/01/14 13:05:33 marka Exp $ */
 
 #include <config.h>
 
@@ -217,8 +217,6 @@ ns_lwdclient_processgnba(ns_lwdclient_t *client, lwres_buffer_t *b) {
 	result = lwres_gnbarequest_parse(cm->lwctx,
 					 b, &client->pkt, &req);
 	if (result != LWRES_R_SUCCESS)
-		goto out;
-	if (req->addr.address == NULL)
 		goto out;
 
 	client->options = 0;
