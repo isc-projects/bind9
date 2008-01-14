@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgnba.c,v 1.13.2.1.2.9 2008/01/14 13:05:33 marka Exp $ */
+/* $Id: lwdgnba.c,v 1.13.2.1.2.10 2008/01/14 23:45:30 tbox Exp $ */
 
 #include <config.h>
 
