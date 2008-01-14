@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_names.c,v 1.32.2.2.8.6 2006/12/07 13:24:44 marka Exp $ */
+/* $Id: t_names.c,v 1.32.2.2.8.7 2008/01/14 11:54:14 marka Exp $ */
 
 #include <config.h>
 
@@ -208,6 +208,7 @@ getmsg(char *datafile_name, unsigned char *buf, int buflen, isc_buffer_t *pbuf)
 		else if (('A' <= c) && (c <= 'Z'))
 			val = c - 'A'+ 10;
 		else {
+			(void)fclose(fp);
 			t_info("Bad format in datafile\n");
 			return (0);
 		}
@@ -221,6 +222,7 @@ getmsg(char *datafile_name, unsigned char *buf, int buflen, isc_buffer_t *pbuf)
 				/*
 				 * Buffer too small.
 				 */
+				(void)fclose(fp);
 				t_info("Buffer overflow error\n");
 				return (0);
 			}
