@@ -1,3 +1,6 @@
+2304.	[bug]		Check returns from all dns_rdata_tostruct() calls.
+			[RT #17460]
+
 2303.	[bug]		Remove unnecessary code from bin/named/lwdgnba.c.
 			[RT #17471]
 
