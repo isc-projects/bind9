@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.259.18.43 2007/08/28 07:19:55 tbox Exp $ */
+/* $Id: dighost.c,v 1.259.18.44 2008/01/15 01:13:05 marka Exp $ */
 
 /*! \file
  *  \note
@@ -1545,7 +1545,8 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 			dns_rdataset_current(rdataset, &rdata);
 
 			query->lookup->nsfound++;
-			(void)dns_rdata_tostruct(&rdata, &ns, NULL);
+			result = dns_rdata_tostruct(&rdata, &ns, NULL);
+			check_result(result, "dns_rdata_tostruct");
 			dns_name_format(&ns.name, namestr, sizeof(namestr));
 			dns_rdata_freestruct(&ns);
 
@@ -1845,7 +1846,7 @@ setup_lookup(dig_lookup_t *lookup) {
 						&lookup->name);
 			dns_message_puttempname(lookup->sendmsg,
 						&lookup->oname);
-			fatal("'%s' is not in legal name syntax (%s)",
+			fatal("Origin '%s' is not in legal name syntax (%s)",
 			      lookup->origin->origin,
 			      isc_result_totext(result));
 		}
@@ -2661,7 +2662,8 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 					goto next_rdata;
 				/* Now we have an SOA.  Work with it. */
 				debug("got an SOA");
-				(void)dns_rdata_tostruct(&rdata, &soa, NULL);
+				result = dns_rdata_tostruct(&rdata, &soa, NULL);
+				check_result(result, "dns_rdata_tostruct");
 				serial = soa.serial;
 				dns_rdata_freestruct(&soa);
 				if (!query->first_soa_rcvd) {
@@ -4006,9 +4008,8 @@ prepare_lookup(dns_name_t *name)
 
 		dns_rdataset_current(chase_nsrdataset, &rdata);
 
-		(void)dns_rdata_tostruct(&rdata, &ns, NULL);
-      
-     
+		result = dns_rdata_tostruct(&rdata, &ns, NULL);
+		check_result(result, "dns_rdata_tostruct");
       
 #ifdef __FOLLOW_GLUE__
       

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.119.18.35 2007/09/26 04:39:45 each Exp $ */
+/* $Id: validator.c,v 1.119.18.36 2008/01/15 01:13:05 marka Exp $ */
 
 /*! \file */
 
@@ -1246,7 +1246,8 @@ isselfsigned(dns_validator_t *val) {
 	{
 		dns_rdata_reset(&rdata);
 		dns_rdataset_current(rdataset, &rdata);
-		(void)dns_rdata_tostruct(&rdata, &key, NULL);
+		result = dns_rdata_tostruct(&rdata, &key, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		keytag = compute_keytag(&rdata, &key);
 		for (result = dns_rdataset_first(sigrdataset);
 		     result == ISC_R_SUCCESS;
@@ -1254,7 +1255,8 @@ isselfsigned(dns_validator_t *val) {
 		{
 			dns_rdata_reset(&sigrdata);
 			dns_rdataset_current(sigrdataset, &sigrdata);
-			(void)dns_rdata_tostruct(&sigrdata, &sig, NULL);
+			result = dns_rdata_tostruct(&sigrdata, &sig, NULL);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 			if (sig.algorithm == key.algorithm &&
 			    sig.keyid == keytag)
@@ -1514,7 +1516,8 @@ dlv_validatezonekey(dns_validator_t *val) {
 	     result = dns_rdataset_next(&val->dlv)) {
 		dns_rdata_reset(&dlvrdata);
 		dns_rdataset_current(&val->dlv, &dlvrdata);
-		dns_rdata_tostruct(&dlvrdata, &dlv, NULL);
+		result = dns_rdata_tostruct(&dlvrdata, &dlv, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		if (!dns_resolver_algorithm_supported(val->view->resolver,
 						      val->event->name,
@@ -1534,7 +1537,8 @@ dlv_validatezonekey(dns_validator_t *val) {
 	{
 		dns_rdata_reset(&dlvrdata);
 		dns_rdataset_current(&val->dlv, &dlvrdata);
-		(void)dns_rdata_tostruct(&dlvrdata, &dlv, NULL);
+		result = dns_rdata_tostruct(&dlvrdata, &dlv, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		if (!dns_resolver_digest_supported(val->view->resolver,
 						   dlv.digest_type))
@@ -1559,7 +1563,8 @@ dlv_validatezonekey(dns_validator_t *val) {
 		{
 			dns_rdata_reset(&keyrdata);
 			dns_rdataset_current(&trdataset, &keyrdata);
-			(void)dns_rdata_tostruct(&keyrdata, &key, NULL);
+			result = dns_rdata_tostruct(&keyrdata, &key, NULL);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			keytag = compute_keytag(&keyrdata, &key);
 			if (dlv.key_tag != keytag ||
 			    dlv.algorithm != key.algorithm)
@@ -1594,7 +1599,8 @@ dlv_validatezonekey(dns_validator_t *val) {
 			dns_rdata_reset(&sigrdata);
 			dns_rdataset_current(val->event->sigrdataset,
 					     &sigrdata);
-			(void)dns_rdata_tostruct(&sigrdata, &sig, NULL);
+			result = dns_rdata_tostruct(&sigrdata, &sig, NULL);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			if (dlv.key_tag != sig.keyid &&
 			    dlv.algorithm != sig.algorithm)
 				continue;
@@ -1691,7 +1697,8 @@ validatezonekey(dns_validator_t *val) {
 			dns_rdata_reset(&sigrdata);
 			dns_rdataset_current(val->event->sigrdataset,
 					     &sigrdata);
-			(void)dns_rdata_tostruct(&sigrdata, &sig, NULL);
+			result = dns_rdata_tostruct(&sigrdata, &sig, NULL);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			result = dns_keytable_findkeynode(val->keytable,
 							  val->event->name,
 							  sig.algorithm,
@@ -1848,7 +1855,8 @@ validatezonekey(dns_validator_t *val) {
 	     result = dns_rdataset_next(val->dsset)) {
 		dns_rdata_reset(&dsrdata);
 		dns_rdataset_current(val->dsset, &dsrdata);
-		dns_rdata_tostruct(&dsrdata, &ds, NULL);
+		result = dns_rdata_tostruct(&dsrdata, &ds, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		if (!dns_resolver_algorithm_supported(val->view->resolver,
 						      val->event->name,
@@ -1868,7 +1876,8 @@ validatezonekey(dns_validator_t *val) {
 	{
 		dns_rdata_reset(&dsrdata);
 		dns_rdataset_current(val->dsset, &dsrdata);
-		(void)dns_rdata_tostruct(&dsrdata, &ds, NULL);
+		result = dns_rdata_tostruct(&dsrdata, &ds, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		if (!dns_resolver_digest_supported(val->view->resolver,
 						   ds.digest_type))
@@ -1896,7 +1905,8 @@ validatezonekey(dns_validator_t *val) {
 		{
 			dns_rdata_reset(&keyrdata);
 			dns_rdataset_current(&trdataset, &keyrdata);
-			(void)dns_rdata_tostruct(&keyrdata, &key, NULL);
+			result = dns_rdata_tostruct(&keyrdata, &key, NULL);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			keytag = compute_keytag(&keyrdata, &key);
 			if (ds.key_tag != keytag ||
 			    ds.algorithm != key.algorithm)
@@ -1923,7 +1933,8 @@ validatezonekey(dns_validator_t *val) {
 			dns_rdata_reset(&sigrdata);
 			dns_rdataset_current(val->event->sigrdataset,
 					     &sigrdata);
-			(void)dns_rdata_tostruct(&sigrdata, &sig, NULL);
+			result = dns_rdata_tostruct(&sigrdata, &sig, NULL);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			if (ds.key_tag != sig.keyid ||
 			    ds.algorithm != sig.algorithm)
 				continue;
@@ -2226,7 +2237,8 @@ check_ds(dns_validator_t *val, dns_name_t *name, dns_rdataset_t *rdataset) {
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(rdataset)) {
 		dns_rdataset_current(rdataset, &dsrdata);
-		(void)dns_rdata_tostruct(&dsrdata, &ds, NULL);
+		result = dns_rdata_tostruct(&dsrdata, &ds, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		if (dns_resolver_digest_supported(val->view->resolver,
 						  ds.digest_type) &&
