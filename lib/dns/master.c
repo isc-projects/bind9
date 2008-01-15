@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.122.2.8.2.21 2007/08/28 07:19:13 tbox Exp $ */
+/* $Id: master.c,v 1.122.2.8.2.22 2008/01/15 01:13:03 marka Exp $ */
 
 #include <config.h>
 
@@ -1695,7 +1695,9 @@ load(dns_loadctx_t *lctx) {
 
 		if (type == dns_rdatatype_rrsig && lctx->warn_sigexpired) {
 			dns_rdata_rrsig_t sig;
-			(void)dns_rdata_tostruct(&rdata[rdcount], &sig, NULL);
+			result = dns_rdata_tostruct(&rdata[rdcount], &sig,
+						    NULL);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			if (isc_serial_lt(sig.timeexpire, now)) {
 				(*callbacks->warn)(callbacks,
 						   "%s:%lu: "

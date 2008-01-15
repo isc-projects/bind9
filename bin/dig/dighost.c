@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.221.2.19.2.42 2007/08/28 07:19:07 tbox Exp $ */
+/* $Id: dighost.c,v 1.221.2.19.2.43 2008/01/15 01:13:03 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1460,7 +1460,8 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 			dns_rdataset_current(rdataset, &rdata);
 
 			query->lookup->nsfound++;
-			(void)dns_rdata_tostruct(&rdata, &ns, NULL);
+			result = dns_rdata_tostruct(&rdata, &ns, NULL);
+			check_result(result, "dns_rdata_tostruct");
 			dns_name_format(&ns.name, namestr, sizeof(namestr));
 			dns_rdata_freestruct(&ns);
 
@@ -2487,7 +2488,8 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 					goto next_rdata;
 				/* Now we have an SOA.  Work with it. */
 				debug("got an SOA");
-				(void)dns_rdata_tostruct(&rdata, &soa, NULL);
+				result = dns_rdata_tostruct(&rdata, &soa, NULL);
+				check_result(result, "dns_rdata_tostruct");
 				serial = soa.serial;
 				dns_rdata_freestruct(&soa);
 				if (!query->first_soa_rcvd) {
@@ -3726,9 +3728,8 @@ prepare_lookup(dns_name_t *name)
 
 		dns_rdataset_current(chase_nsrdataset, &rdata);
 
-		(void)dns_rdata_tostruct(&rdata, &ns, NULL);
-
-
+		result = dns_rdata_tostruct(&rdata, &ns, NULL);
+		check_result(result, "dns_rdata_tostruct");
 
 #ifdef __FOLLOW_GLUE__
 
