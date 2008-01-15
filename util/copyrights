@@ -1377,7 +1377,7 @@
 ./lib/bind/inet/inet_net_pton.c			X	2001,2004,2005
 ./lib/bind/inet/inet_neta.c			X	2001,2004,2005
 ./lib/bind/inet/inet_netof.c			X	2001,2005
-./lib/bind/inet/inet_network.c			X	2001,2004,2005
+./lib/bind/inet/inet_network.c			X	2001,2004,2005,2008
 ./lib/bind/inet/inet_ntoa.c			X	2001,2005
 ./lib/bind/inet/inet_ntop.c			X	2001,2004,2005
 ./lib/bind/inet/inet_pton.c			X	2001,2004,2005
@@ -2000,7 +2000,7 @@
 ./lib/dns/rdatasetiter.c			C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rdataslab.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/request.c				C	2000,2001,2002,2004,2005,2006,2007
-./lib/dns/resolver.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
+./lib/dns/resolver.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/dns/result.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2007
 ./lib/dns/rootns.c				C	1999,2000,2001,2002,2004,2005,2007
 ./lib/dns/sdb.c					C	2000,2001,2003,2004,2005,2006,2007
