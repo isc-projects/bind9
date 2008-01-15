@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.355.12.2 2008/01/02 23:46:28 tbox Exp $ */
+/* $Id: resolver.c,v 1.355.12.3 2008/01/15 12:37:28 marka Exp $ */
 
 /*! \file */
 
@@ -6793,6 +6793,7 @@ dns_resolver_createfetch2(dns_resolver_t *res, dns_name_t *name,
 	isc_event_t *event;
 	unsigned int count = 0;
 	unsigned int spillat;
+	unsigned int spillatmin;
 
 	UNUSED(forwarders);
 
@@ -6823,6 +6824,7 @@ dns_resolver_createfetch2(dns_resolver_t *res, dns_name_t *name,
 
 	LOCK(&res->lock);
 	spillat = res->spillat;
+	spillatmin = res->spillatmin;
 	UNLOCK(&res->lock);
 	LOCK(&res->buckets[bucketnum].lock);
 
@@ -6856,7 +6858,8 @@ dns_resolver_createfetch2(dns_resolver_t *res, dns_name_t *name,
 			count++;
 		}
 	}
-	if (count >= res->spillatmin && res->spillatmin != 0) {
+	if (count >= spillatmin && spillatmin != 0) {
+		INSIST(fctx != NULL);
 		if (count >= spillat)
 			fctx->spilled = ISC_TRUE;
 		if (fctx->spilled) {
