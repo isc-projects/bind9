@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.45.18.13 2007/08/28 07:20:05 tbox Exp $ */
+/* $Id: sdb.c,v 1.45.18.14 2008/01/16 21:58:11 marka Exp $ */
 
 /*! \file */
 
@@ -380,7 +380,7 @@ dns_sdb_putrr(dns_sdblookup_t *lookup, const char *type, dns_ttl_t ttl,
 
 	datalen = strlen(data);
 	size = initial_size(datalen);
-	for (;;) {
+	do {
 		isc_buffer_init(&b, data, datalen);
 		isc_buffer_add(&b, datalen);
 		result = isc_lex_openbuffer(lex, &b);
