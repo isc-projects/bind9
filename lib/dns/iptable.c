@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: iptable.c,v 1.5 2007/09/28 00:11:32 each Exp $ */
+/* $Id: iptable.c,v 1.5.46.1 2008/01/17 08:09:36 each Exp $ */
 
 #include <isc/mem.h>
 #include <isc/radix.h>
@@ -66,6 +66,7 @@ dns_iptable_addprefix(dns_iptable_t *tab, isc_netaddr_t *addr,
 
 	INSIST(DNS_IPTABLE_VALID(tab));
 	INSIST(tab->radix);
+	INSIST(bitlen <= 32 || (addr->family == AF_INET6 && bitlen <= 128));
 
 	NETADDR_TO_PREFIX_T(addr, pfx, bitlen);
 
