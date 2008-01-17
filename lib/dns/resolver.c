@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.69 2008/01/15 23:46:02 tbox Exp $ */
+/* $Id: resolver.c,v 1.284.18.70 2008/01/17 23:45:58 tbox Exp $ */
 
 /*! \file */
 
@@ -213,7 +213,7 @@ struct fetchctx {
 	unsigned int			restarts;
 
 	/*%
-	 * The number of timeouts that have occurred since we 
+	 * The number of timeouts that have occurred since we
 	 * last successfully received a response packet.  This
 	 * is used for EDNS0 black hole detection.
 	 */
@@ -221,7 +221,7 @@ struct fetchctx {
 	/*%
 	 * Look aside state for DS lookups.
 	 */
-	dns_name_t 			nsname; 
+	dns_name_t 			nsname;
 	dns_fetch_t *			nsfetch;
 	dns_rdataset_t			nsrrset;
 
@@ -296,8 +296,8 @@ struct dns_resolver {
 	unsigned int			magic;
 	isc_mem_t *			mctx;
 	isc_mutex_t			lock;
-	isc_mutex_t			nlock;	
-	isc_mutex_t			primelock;	
+	isc_mutex_t			nlock;
+	isc_mutex_t			primelock;
 	dns_rdataclass_t		rdclass;
 	isc_socketmgr_t *		socketmgr;
 	isc_timermgr_t *		timermgr;
@@ -369,7 +369,7 @@ static isc_result_t ncache_adderesult(dns_message_t *message,
 				      isc_stdtime_t now, dns_ttl_t maxttl,
 				      dns_rdataset_t *ardataset,
 				      isc_result_t *eresultp);
-static void validated(isc_task_t *task, isc_event_t *event); 
+static void validated(isc_task_t *task, isc_event_t *event);
 static void maybe_destroy(fetchctx_t *fctx);
 
 static isc_result_t
@@ -802,7 +802,7 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 		       fctx->type == dns_rdatatype_any ||
 		       fctx->type == dns_rdatatype_rrsig ||
 		       fctx->type == dns_rdatatype_sig);
-		
+
 		/*
 		 * Negative results must be indicated in event->result.
 		 */
@@ -906,7 +906,7 @@ resquery_senddone(isc_task_t *task, isc_event_t *event) {
 				isc_socket_detach(&query->tcpsocket);
 			resquery_destroy(&query);
 		}
-	} else 
+	} else
 		switch (sevent->result) {
 		case ISC_R_SUCCESS:
 			break;
@@ -947,7 +947,7 @@ resquery_senddone(isc_task_t *task, isc_event_t *event) {
 
 static inline isc_result_t
 fctx_addopt(dns_message_t *message, unsigned int version, isc_uint16_t udpsize)
-{ 
+{
 	dns_rdataset_t *rdataset;
 	dns_rdatalist_t *rdatalist;
 	dns_rdata_t *rdata;
@@ -1703,7 +1703,7 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 	}
 
 	isc_event_free(&event);
-	
+
 	if (retry) {
 		/*
 		 * Behave as if the idle timer has expired.  For TCP
@@ -1893,7 +1893,7 @@ add_bad(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo, isc_result_t reason) {
 	if (reason == DNS_R_LAME)	/* already logged */
 		return;
 
-	if (reason == DNS_R_UNEXPECTEDRCODE && 
+	if (reason == DNS_R_UNEXPECTEDRCODE &&
 	    fctx->rmessage->opcode == dns_rcode_servfail &&
 	    ISFORWARDER(addrinfo))
 		return;
@@ -2338,7 +2338,7 @@ possibly_mark(fetchctx_t *fctx, dns_adbaddrinfo_t *addr)
 	isc_netaddr_fromsockaddr(&ipaddr, sa);
 	blackhole = dns_dispatchmgr_getblackhole(res->dispatchmgr);
 	(void) dns_peerlist_peerbyaddr(res->view->peers, &ipaddr, &peer);
-	
+
 	if (blackhole != NULL) {
 		int match;
 
@@ -2759,7 +2759,7 @@ fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
 		dns_validator_cancel(validator);
 		validator = ISC_LIST_NEXT(validator, link);
 	}
-	
+
 	if (fctx->nsfetch != NULL)
 		dns_resolver_cancelfetch(fctx->nsfetch);
 
@@ -3212,9 +3212,9 @@ is_lame(fetchctx_t *fctx) {
 static inline void
 log_lame(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo) {
 	char namebuf[DNS_NAME_FORMATSIZE];
-	char domainbuf[DNS_NAME_FORMATSIZE];	
+	char domainbuf[DNS_NAME_FORMATSIZE];
 	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
-	
+
 	dns_name_format(&fctx->name, namebuf, sizeof(namebuf));
 	dns_name_format(&fctx->domain, domainbuf, sizeof(domainbuf));
 	isc_sockaddr_format(&addrinfo->sockaddr, addrbuf, sizeof(addrbuf));
@@ -3782,9 +3782,9 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 					     sizeof(typebuf));
 			dns_rdataclass_format(rdataset->rdclass, classbuf,
 					      sizeof(classbuf));
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,  
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
 				      DNS_LOGMODULE_RESOLVER, ISC_LOG_NOTICE,
-				      "check-names %s %s/%s/%s", 
+				      "check-names %s %s/%s/%s",
 				      fail ? "failure" : "warning",
 				      namebuf, typebuf, classbuf);
 			if (fail) {
@@ -4371,7 +4371,7 @@ chase_additional(fetchctx_t *fctx) {
 
  again:
 	rescan = ISC_FALSE;
-	
+
 	for (result = dns_message_firstname(fctx->rmessage, section);
 	     result == ISC_R_SUCCESS;
 	     result = dns_message_nextname(fctx->rmessage, section)) {
@@ -4451,7 +4451,7 @@ dname_target(dns_rdataset_t *rdataset, dns_name_t *qname, dns_name_t *oname,
 		return (DNS_R_FORMERR);
 	}
 	dns_fixedname_init(&prefix);
-	dns_name_split(qname, nlabels, dns_fixedname_name(&prefix), NULL); 
+	dns_name_split(qname, nlabels, dns_fixedname_name(&prefix), NULL);
 	dns_fixedname_init(fixeddname);
 	result = dns_name_concatenate(dns_fixedname_name(&prefix),
 				      &dname.dname,
@@ -4610,7 +4610,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 	}
 
 	/*
-	 * A negative response has a SOA record (Type 2) 
+	 * A negative response has a SOA record (Type 2)
 	 * and a optional NS RRset (Type 1) or it has neither
 	 * a SOA or a NS RRset (Type 3, handled above) or
 	 * rcode is NXDOMAIN (handled above) in which case
@@ -5323,7 +5323,7 @@ checknamessection(dns_message_t *message, dns_section_t section) {
 	dns_name_t *name;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdataset_t *rdataset;
-	
+
 	for (result = dns_message_firstname(message, section);
 	     result == ISC_R_SUCCESS;
 	     result = dns_message_nextname(message, section))
@@ -5342,7 +5342,7 @@ checknamessection(dns_message_t *message, dns_section_t section) {
 							  ISC_FALSE) ||
 				    !dns_rdata_checknames(&rdata, name, NULL))
 				{
-					rdataset->attributes |= 
+					rdataset->attributes |=
 						DNS_RDATASETATTR_CHECKNAMES;
 				}
 				dns_rdata_reset(&rdata);
@@ -6114,7 +6114,7 @@ spillattimer_countdown(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(VALID_RESOLVER(res));
 
 	UNUSED(task);
-	
+
 	LOCK(&res->lock);
 	INSIST(!res->exiting);
 	if (res->spillat > res->spillatmin) {
@@ -6141,7 +6141,7 @@ isc_result_t
 dns_resolver_create(dns_view_t *view,
 		    isc_taskmgr_t *taskmgr, unsigned int ntasks,
 		    isc_socketmgr_t *socketmgr,
-		    isc_timermgr_t *timermgr, 
+		    isc_timermgr_t *timermgr,
 		    unsigned int options,
 		    dns_dispatchmgr_t *dispatchmgr,
 		    dns_dispatch_t *dispatchv4,
@@ -6340,7 +6340,7 @@ prime_done(isc_task_t *task, isc_event_t *event) {
 	UNLOCK(&res->primelock);
 
 	UNLOCK(&res->lock);
-	
+
 	if (fevent->result == ISC_R_SUCCESS &&
 	    res->view->cache != NULL && res->view->hints != NULL) {
 		dns_cache_attachdb(res->view->cache, &db);
@@ -6673,7 +6673,7 @@ dns_resolver_createfetch2(dns_resolver_t *res, dns_name_t *name,
 				break;
 		}
 	}
-	
+
 	/*
 	 * Is this a duplicate?
 	 */
@@ -6967,7 +6967,7 @@ free_algorithm(void *node, void *arg) {
 
 	isc_mem_put(mctx, algorithms, *algorithms);
 }
- 
+
 void
 dns_resolver_reset_algorithms(dns_resolver_t *resolver) {
 
@@ -7011,7 +7011,7 @@ dns_resolver_disable_algorithm(dns_resolver_t *resolver, dns_name_t *name,
 	mask = 1 << (alg%8);
 
 	result = dns_rbt_addnode(resolver->algorithms, name, &node);
-	
+
 	if (result == ISC_R_SUCCESS || result == ISC_R_EXISTS) {
 		algorithms = node->data;
 		if (algorithms == NULL || len > *algorithms) {
@@ -7027,7 +7027,7 @@ dns_resolver_disable_algorithm(dns_resolver_t *resolver, dns_name_t *name,
 			*new = len;
 			node->data = new;
 			if (algorithms != NULL)
-				isc_mem_put(resolver->mctx, algorithms, 
+				isc_mem_put(resolver->mctx, algorithms,
 					    *algorithms);
 		} else
 			algorithms[len-1] |= mask;
@@ -7095,7 +7095,7 @@ dns_resolver_resetmustbesecure(dns_resolver_t *resolver) {
 	RWUNLOCK(&resolver->mbslock, isc_rwlocktype_write);
 #endif
 }
- 
+
 static isc_boolean_t yes = ISC_TRUE, no = ISC_FALSE;
 
 isc_result_t
@@ -7115,7 +7115,7 @@ dns_resolver_setmustbesecure(dns_resolver_t *resolver, dns_name_t *name,
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 	}
-	result = dns_rbt_addname(resolver->mustbesecure, name, 
+	result = dns_rbt_addname(resolver->mustbesecure, name,
 				 value ? &yes : &no);
  cleanup:
 #if USE_MBSLOCK

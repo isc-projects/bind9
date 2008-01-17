@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.109.18.25 2008/01/02 23:46:02 tbox Exp $ */
+/* $Id: update.c,v 1.109.18.26 2008/01/17 23:45:57 tbox Exp $ */
 
 #include <config.h>
 
@@ -114,7 +114,7 @@
 		}						\
 		update_log(client, zone, LOGLEVEL_PROTOCOL,   	\
 			      "update %s: %s (%s)", _what,	\
-		      	      msg, isc_result_totext(result));	\
+			      msg, isc_result_totext(result));	\
 		if (result != ISC_R_SUCCESS) goto failure;	\
 	} while (0)
 
@@ -403,7 +403,7 @@ foreach_node_rr_action(void *data, dns_rdataset_t *rdataset) {
 	     result = dns_rdataset_next(rdataset))
 	{
 		rr_t rr = { 0, DNS_RDATA_INIT };
-		
+
 		dns_rdataset_current(rdataset, &rr.rdata);
 		rr.ttl = rdataset->ttl;
 		result = (*ctx->rr_action)(ctx->rr_action_data, &rr);
@@ -858,7 +858,7 @@ temp_check(isc_mem_t *mctx, dns_diff_t *temp, dns_db_t *db,
 			dns_rdataset_t rdataset;
 			dns_diff_t d_rrs; /* Database RRs with
 						this name and type */
- 			dns_diff_t u_rrs; /* Update RRs with
+			dns_diff_t u_rrs; /* Update RRs with
 						this name and type */
 
 			*typep = type = t->rdata.type;
@@ -1124,7 +1124,7 @@ typedef struct {
 
 static isc_result_t
 add_rr_prepare_action(void *data, rr_t *rr) {
-	isc_result_t result = ISC_R_SUCCESS;	
+	isc_result_t result = ISC_R_SUCCESS;
 	add_rr_prepare_ctx_t *ctx = data;
 	dns_difftuple_t *tuple = NULL;
 	isc_boolean_t equal;
@@ -1676,14 +1676,14 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	dns_db_detachnode(db, &node);
 
 	for (i = 0; i < nkeys; i++) {
-		
+
 		if (check_ksk && type != dns_rdatatype_dnskey &&
 		    (dst_key_flags(keys[i]) & DNS_KEYFLAG_KSK) != 0)
 			continue;
 
 		if (!dst_key_isprivate(keys[i]))
 			continue;
-		
+
 		/* Calculate the signature, creating a RRSIG RDATA. */
 		CHECK(dns_dnssec_sign(name, &rdataset, keys[i],
 				      &inception, &expire,
@@ -1775,7 +1775,7 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	CHECK(dns_db_findnode(db, dns_db_origin(db), ISC_FALSE, &node));
 	dns_rdataset_init(&rdataset);
 	CHECK(dns_db_findrdataset(db, node, newver, dns_rdatatype_soa, 0,
-                                  (isc_stdtime_t) 0, &rdataset, NULL));
+				  (isc_stdtime_t) 0, &rdataset, NULL));
 	CHECK(dns_rdataset_first(&rdataset));
 	dns_rdataset_current(&rdataset, &rdata);
 	CHECK(dns_rdata_tostruct(&rdata, &soa, NULL));
@@ -2279,7 +2279,7 @@ check_mx(ns_client_t *client, dns_zone_t *zone,
 				   ownerbuf, namebuf,
 				   dns_result_totext(DNS_R_MXISADDRESS));
 		}
-		
+
 		/*
 		 * Check zone integrity checks.
 		 */
@@ -2479,7 +2479,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	else if (client->signer == NULL)
 		CHECK(checkupdateacl(client, NULL, "update", zonename,
 				     ISC_FALSE));
-	
+
 	if (dns_zone_getupdatedisabled(zone))
 		FAILC(DNS_R_REFUSED, "dynamic update temporarily disabled");
 
@@ -2886,7 +2886,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	 * The reason for failure should have been logged at this point.
 	 */
 	if (ver != NULL) {
-		update_log(client, zone, LOGLEVEL_DEBUG, 
+		update_log(client, zone, LOGLEVEL_DEBUG,
 			   "rolling back");
 		dns_db_closeversion(db, &ver, ISC_FALSE);
 	}
@@ -2938,7 +2938,7 @@ updatedone_action(isc_task_t *task, isc_event_t *event) {
 
 static void
 forward_fail(isc_task_t *task, isc_event_t *event) {
-        ns_client_t *client = (ns_client_t *)event->ev_arg;
+	ns_client_t *client = (ns_client_t *)event->ev_arg;
 
 	UNUSED(task);
 
