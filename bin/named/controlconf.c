@@ -1,8 +1,8 @@
 /*
- * Copyright (C) 2004, 2006  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2006, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001-2003  Internet Software Consortium.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.28.2.9.2.12 2008/01/17 03:01:14 marka Exp $ */
+/* $Id: controlconf.c,v 1.28.2.9.2.13 2008/01/17 23:45:27 tbox Exp $ */
 
 #include <config.h>
 
@@ -337,9 +337,9 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	listener = conn->listener;
 	secret.rstart = NULL;
 
-        /* Is the server shutting down? */
-        if (listener->controls->shuttingdown)
-                goto cleanup;
+	/* Is the server shutting down? */
+	if (listener->controls->shuttingdown)
+		goto cleanup;
 
 	if (conn->ccmsg.result != ISC_R_SUCCESS) {
 		if (conn->ccmsg.result != ISC_R_CANCELED &&
@@ -426,7 +426,7 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	result = isccc_cc_checkdup(listener->controls->symtab, request, now);
 	if (result != ISC_R_SUCCESS) {
 		if (result == ISC_R_EXISTS)
-                        result = ISCCC_R_DUPLICATE; 
+			result = ISCCC_R_DUPLICATE;
 		log_invalid(&conn->ccmsg, result);
 		goto cleanup_request;
 	}
@@ -534,7 +534,7 @@ newconnection(controllistener_t *listener, isc_socket_t *sock) {
 	conn = isc_mem_get(listener->mctx, sizeof(*conn));
 	if (conn == NULL)
 		return (ISC_R_NOMEMORY);
-	
+
 	conn->sock = sock;
 	isccc_ccmsg_init(listener->mctx, sock, &conn->ccmsg);
 	conn->ccmsg_valid = ISC_TRUE;
@@ -645,7 +645,7 @@ ns_controls_shutdown(ns_controls_t *controls) {
 
 static isc_result_t
 cfgkeylist_find(const cfg_obj_t *keylist, const char *keyname,
-	        const cfg_obj_t **objp)
+		const cfg_obj_t **objp)
 {
 	const cfg_listelt_t *element;
 	const char *str;
@@ -793,7 +793,7 @@ register_keys(const cfg_obj_t *control, const cfg_obj_t *keylist,
 		 if (result != ISC_R_SUCCESS) \
 			goto cleanup; \
 	} while (0)
-		
+
 static isc_result_t
 get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids) {
 	isc_result_t result;
@@ -813,14 +813,14 @@ get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids) {
 	CHECK(cfg_map_get(config, "key", &key));
 
 	keyid = isc_mem_get(mctx, sizeof(*keyid));
-	if (keyid == NULL) 
+	if (keyid == NULL)
 		CHECK(ISC_R_NOMEMORY);
 	keyid->keyname = isc_mem_strdup(mctx,
 					cfg_obj_asstring(cfg_map_getname(key)));
 	keyid->secret.base = NULL;
 	keyid->secret.length = 0;
 	ISC_LINK_INIT(keyid, link);
-	if (keyid->keyname == NULL) 
+	if (keyid->keyname == NULL)
 		CHECK(ISC_R_NOMEMORY);
 
 	CHECK(bind9_check_key(key, ns_g_lctx));
@@ -876,7 +876,7 @@ get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids) {
 		cfg_parser_destroy(&pctx);
 	return (result);
 }
-			
+
 /*
  * Ensures that both '*global_keylistp' and '*control_keylistp' are
  * valid or both are NULL.
@@ -930,7 +930,7 @@ update_listener(ns_controls_t *cp, controllistener_t **listenerp,
 		*listenerp = NULL;
 		return;
 	}
-		
+
 	/*
 	 * There is already a listener for this sockaddr.
 	 * Update the access list and key information.
@@ -1258,7 +1258,7 @@ ns_controls_configure(ns_controls_t *cp, const cfg_obj_t *config,
 			isc_sockaddr_setport(&addr, NS_CONTROL_PORT);
 
 			isc_sockaddr_format(&addr, socktext, sizeof(socktext));
-			
+
 			update_listener(cp, &listener, NULL, NULL,
 					&addr, NULL, socktext);
 

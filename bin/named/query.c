@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.13.4.52 2008/01/09 23:45:30 tbox Exp $ */
+/* $Id: query.c,v 1.198.2.13.4.53 2008/01/17 23:45:27 tbox Exp $ */
 
 #include <config.h>
 
@@ -479,7 +479,7 @@ ns_query_init(ns_client_t *client) {
 	client->query.authdb = NULL;
 	client->query.authzone = NULL;
 	client->query.authdbset = ISC_FALSE;
-	client->query.isreferral = ISC_FALSE;	
+	client->query.isreferral = ISC_FALSE;
 	query_reset(client, ISC_FALSE);
 	result = query_newdbversion(client, 3);
 	if (result != ISC_R_SUCCESS) {
@@ -561,13 +561,13 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
 		result = dns_zone_getdb(zone, &db);
 
-	if (result != ISC_R_SUCCESS)		
+	if (result != ISC_R_SUCCESS)
 		goto fail;
 
 	/*
 	 * This limits our searching to the zone where the first name
 	 * (the query target) was looked for.  This prevents following
-	 * CNAMES or DNAMES into other zones and prevents returning 
+	 * CNAMES or DNAMES into other zones and prevents returning
 	 * additional data from other zones.
 	 */
 	if (!client->view->additionalfromauth &&
@@ -745,7 +745,7 @@ query_getcachedb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 	if (check_acl) {
 		isc_boolean_t log = ISC_TF((options & DNS_GETDB_NOLOG) == 0);
 		char msg[NS_CLIENT_ACLMSGSIZE("query (cache)")];
-		
+
 		result = ns_client_checkaclsilent(client,
 						  client->view->queryacl,
 						  ISC_TRUE);
@@ -1925,7 +1925,7 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 			name = wname;
 			goto again;
 		}
-	} 
+	}
  cleanup:
 	if (rdataset != NULL)
 		query_putrdataset(client, &rdataset);
@@ -2196,7 +2196,7 @@ static isc_result_t
 rdata_tonetaddr(const dns_rdata_t *rdata, isc_netaddr_t *netaddr) {
 	struct in_addr ina;
 	struct in6_addr in6a;
-	
+
 	switch (rdata->type) {
 	case dns_rdatatype_a:
 		INSIST(rdata->length == 4);
@@ -2249,7 +2249,7 @@ setup_query_sortlist(ns_client_t *client) {
 	isc_netaddr_t netaddr;
 	dns_rdatasetorderfunc_t order = NULL;
 	const void *order_arg = NULL;
-	
+
 	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
 	switch (ns_sortlist_setup(client->view->sortlist,
 			       &netaddr, &order_arg)) {
@@ -2437,7 +2437,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 
 		goto resume;
 	}
-	
+
 	/*
 	 * Not returning from recursion.
 	 */
@@ -2530,7 +2530,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 
 	if (is_zone)
 		authoritative = ISC_TRUE;
-       
+
 	if (event == NULL && client->query.restarts == 0) {
 		if (is_zone) {
 			dns_zone_attach(zone, &client->query.authzone);
@@ -3268,7 +3268,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			noqname = rdataset;
 		else
 			noqname = NULL;
-		/*  
+		/*
 		 * BIND 8 priming queries need the additional section.
 		 */
 		if (is_zone && qtype == dns_rdatatype_ns &&
@@ -3449,10 +3449,10 @@ ns_query_start(ns_client_t *client) {
 
 	if ((message->flags & DNS_MESSAGEFLAG_RD) != 0)
 		client->query.attributes |= NS_QUERYATTR_WANTRECURSION;
-	
+
 	if ((client->extflags & DNS_MESSAGEEXTFLAG_DO) != 0)
 		client->attributes |= NS_CLIENTATTR_WANTDNSSEC;
-	
+
 	if (client->view->minimalresponses)
 		client->query.attributes |= (NS_QUERYATTR_NOAUTHORITY |
 					     NS_QUERYATTR_NOADDITIONAL);

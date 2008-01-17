@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.103.2.15.2.29 2008/01/12 23:45:31 tbox Exp $ */
+/* $Id: nsupdate.c,v 1.103.2.15.2.30 2008/01/17 23:45:27 tbox Exp $ */
 
 #include <config.h>
 
@@ -1038,7 +1038,7 @@ evaluate_key(char *cmdline) {
 	secret = isc_mem_allocate(mctx, secretlen);
 	if (secret == NULL)
 		fatal("out of memory");
-	
+
 	isc_buffer_init(&secretbuf, secret, secretlen);
 	result = isc_base64_decodestring(secretstr, &secretbuf);
 	if (result != ISC_R_SUCCESS) {
@@ -1104,8 +1104,8 @@ evaluate_class(char *cmdline) {
 	}
 
 	r.base = word;
-        r.length = strlen(word);
-        result = dns_rdataclass_fromtext(&rdclass, &r);
+	r.length = strlen(word);
+	result = dns_rdataclass_fromtext(&rdclass, &r);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "could not parse class name: %s\n", word);
 		return (STATUS_SYNTAX);
@@ -1323,7 +1323,7 @@ show_message(dns_message_t *msg) {
 
 	ddebug("show_message()");
 	bufsz = INITTEXT;
-	do { 
+	do {
 		if (bufsz > MAXTEXT) {
 			fprintf(stderr, "could not allocate large enough "
 				"buffer to display message\n");
@@ -1505,7 +1505,7 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 			char buf[64];
 			isc_buffer_t b;
 			dns_rdataset_t *rds;
-			
+
 			isc_buffer_init(&b, buf, sizeof(buf) - 1);
 			result = dns_rcode_totext(answer->rcode, &b);
 			check_result(result, "dns_rcode_totext");
@@ -1521,7 +1521,7 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 		int bufsz;
 
 		bufsz = INITTEXT;
-		do { 
+		do {
 			if (bufsz > MAXTEXT) {
 				fprintf(stderr, "could not allocate large "
 					"enough buffer to display message\n");
@@ -1620,7 +1620,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	ddebug("recvsoa()");
 
 	requests--;
-	
+
 	REQUIRE(event->ev_type == DNS_EVENT_REQUESTDONE);
 	reqev = (dns_requestevent_t *)event;
 	request = reqev->request;
@@ -1737,7 +1737,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		section = DNS_SECTION_ANSWER;
 	else if (pass == 1)
 		section = DNS_SECTION_AUTHORITY;
-	else 
+	else
 		goto droplabel;
 
 	result = dns_message_firstname(rcvmsg, section);
@@ -1766,7 +1766,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 				break;
 			}
 		}
-				
+
 		result = dns_message_nextname(rcvmsg, section);
 	}
 
@@ -1831,7 +1831,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	dns_message_destroy(&rcvmsg);
 	ddebug("Out of recvsoa");
 	return;
- 
+
  droplabel:
 	result = dns_message_firstname(soaquery, DNS_SECTION_QUESTION);
 	INSIST(result == ISC_R_SUCCESS);

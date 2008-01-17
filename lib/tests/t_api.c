@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_api.c,v 1.48.2.1.2.12 2008/01/14 23:45:30 tbox Exp $ */
+/* $Id: t_api.c,v 1.48.2.1.2.13 2008/01/17 23:45:28 tbox Exp $ */
 
 #include <config.h>
 
@@ -304,8 +304,8 @@ main(int argc, char **argv) {
 						  "the test case timed out\n");
 							else
 								t_info(
-				         "the test case caused exception %d\n",
-					 		     WTERMSIG(status));
+					 "the test case caused exception %d\n",
+							     WTERMSIG(status));
 							t_result(T_UNRESOLVED);
 						    }
 					    } else if ((deadpid == -1) &&
