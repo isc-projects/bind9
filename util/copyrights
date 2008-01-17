@@ -80,14 +80,14 @@
 ./bin/dnssec/win32/signzone.dsw			X	2001
 ./bin/dnssec/win32/signzone.mak			X	2001,2004,2005,2006
 ./bin/named/.cvsignore				X	1999,2000,2001,2007
-./bin/named/Makefile.in				MAKE	1998,1999,2000,2001,2002,2004,2005,2006,2007
+./bin/named/Makefile.in				MAKE	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008
 ./bin/named/bind9.xsl				SGML	2006,2007
 ./bin/named/bind9.xsl.h				X	2007
 ./bin/named/builtin.c				C	2001,2002,2003,2004,2005,2007
 ./bin/named/client.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./bin/named/config.c				C	2001,2002,2003,2004,2005,2006,2007
 ./bin/named/control.c				C	2001,2002,2003,2004,2005,2006,2007
-./bin/named/controlconf.c			C	2001,2002,2003,2004,2005,2006,2007
+./bin/named/controlconf.c			C	2001,2002,2003,2004,2005,2006,2007,2008
 ./bin/named/convertxsl.pl			PERL	2006,2007
 ./bin/named/include/named/builtin.h		C	2001,2004,2005,2007
 ./bin/named/include/named/client.h		C	1999,2000,2001,2002,2003,2004,2005,2006,2007
@@ -106,11 +106,12 @@
 ./bin/named/include/named/notify.h		C	1999,2000,2001,2004,2005,2007
 ./bin/named/include/named/ns_smf_globals.h	C	2005,2007
 ./bin/named/include/named/query.h		C	1999,2000,2001,2002,2004,2005,2007
-./bin/named/include/named/server.h		C	1999,2000,2001,2002,2003,2004,2005,2006,2007
+./bin/named/include/named/server.h		C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./bin/named/include/named/sortlist.h		C	2000,2001,2004,2005,2006,2007
+./bin/named/include/named/statschannel.h	C	2008
 ./bin/named/include/named/tkeyconf.h		C	1999,2000,2001,2004,2005,2006,2007
 ./bin/named/include/named/tsigconf.h		C	1999,2000,2001,2004,2005,2006,2007
-./bin/named/include/named/types.h		C	1999,2000,2001,2004,2005,2006,2007
+./bin/named/include/named/types.h		C	1999,2000,2001,2004,2005,2006,2007,2008
 ./bin/named/include/named/update.h		C	1999,2000,2001,2004,2005,2007
 ./bin/named/include/named/xfrout.h		C	1999,2000,2001,2004,2005,2007
 ./bin/named/include/named/zoneconf.h		C	1999,2000,2001,2002,2004,2005,2006,2007
@@ -141,6 +142,7 @@
 ./bin/named/query.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./bin/named/server.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./bin/named/sortlist.c				C	2000,2001,2004,2005,2006,2007
+./bin/named/statschannel.c			C	2008
 ./bin/named/tkeyconf.c				C	1999,2000,2001,2004,2005,2006,2007
 ./bin/named/tsigconf.c				C	1999,2000,2001,2004,2005,2006,2007
 ./bin/named/unix/.cvsignore			X	1999,2000,2001
@@ -1197,7 +1199,7 @@
 ./doc/.cvsignore				X	2000,2001
 ./doc/Makefile.in				MAKE	2000,2001,2004,2005,2006,2007
 ./doc/arm/.cvsignore				X	2000,2001,2005
-./doc/arm/Bv9ARM-book.xml			SGML	2000,2001,2002,2003,2004,2005,2006,2007
+./doc/arm/Bv9ARM-book.xml			SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./doc/arm/Bv9ARM.ch01.html			X	2000,2001,2003,2004,2005,2006,2007
 ./doc/arm/Bv9ARM.ch02.html			X	2000,2001,2003,2004,2005,2006,2007
 ./doc/arm/Bv9ARM.ch03.html			X	2000,2001,2002,2003,2004,2005,2006,2007
@@ -1218,7 +1220,7 @@
 ./doc/arm/man.dig.html				X	2005,2006,2007,2008
 ./doc/arm/man.dnssec-keygen.html		X	2005,2006,2007,2008
 ./doc/arm/man.dnssec-signzone.html		X	2005,2006,2007,2008
-./doc/arm/man.host.html				X	2005,2006,2007
+./doc/arm/man.host.html				X	2005,2006,2007,2008
 ./doc/arm/man.named-checkconf.html		X	2005,2006,2007,2008
 ./doc/arm/man.named-checkzone.html		X	2005,2006,2007,2008
 ./doc/arm/man.named.html			X	2005,2006,2007,2008
@@ -1266,7 +1268,7 @@
 ./doc/misc/ipv6					TXT.BRIEF	2000,2001,2004
 ./doc/misc/migration				TXT.BRIEF	2000,2001,2003,2004,2007
 ./doc/misc/migration-4to9			TXT.BRIEF	2001,2004
-./doc/misc/options				X	2000,2001,2002,2003,2004,2005,2006,2007
+./doc/misc/options				X	2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./doc/misc/rfc-compliance			TXT.BRIEF	2001,2004
 ./doc/misc/roadmap				TXT.BRIEF	2000,2001,2004
 ./doc/misc/sdb					TXT.BRIEF	2000,2001,2004
@@ -1748,7 +1750,7 @@
 ./lib/dns/.cvsignore				X	1998,1999,2000,2001
 ./lib/dns/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/acache.c				C	2004,2005,2006,2007
-./lib/dns/acl.c					C	1999,2000,2001,2002,2004,2005,2006,2007
+./lib/dns/acl.c					C	1999,2000,2001,2002,2004,2005,2006,2007,2008
 ./lib/dns/adb.c					C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/api					X	1999,2000,2001,2006
 ./lib/dns/byaddr.c				C	2000,2001,2002,2003,2004,2005,2007
@@ -1859,7 +1861,7 @@
 ./lib/dns/include/dst/gssapi.h			C	2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dst/lib.h			C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dst/result.h			C	1999,2000,2001,2004,2005,2006,2007
-./lib/dns/iptable.c				C	2007
+./lib/dns/iptable.c				C	2007,2008
 ./lib/dns/journal.c				C	1999,2000,2001,2002,2004,2005,2007
 ./lib/dns/key.c					C	2001,2004,2005,2006,2007
 ./lib/dns/keytable.c				C	2000,2001,2004,2005,2007
@@ -2060,7 +2062,7 @@
 ./lib/isc/hex.c					C	2000,2001,2002,2003,2004,2005,2007
 ./lib/isc/hmacmd5.c				C	2000,2001,2004,2005,2006,2007
 ./lib/isc/hmacsha.c				C	2005,2006,2007
-./lib/isc/httpd.c				C	2006,2007
+./lib/isc/httpd.c				C	2006,2007,2008
 ./lib/isc/ia64/.cvsignore			X	2007
 ./lib/isc/ia64/Makefile.in			MAKE	2007
 ./lib/isc/ia64/include/.cvsignore		X	2007
@@ -2092,7 +2094,7 @@
 ./lib/isc/include/isc/hex.h			C	2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/hmacmd5.h			C	2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/hmacsha.h			C	2005,2006,2007
-./lib/isc/include/isc/httpd.h			C	2006,2007
+./lib/isc/include/isc/httpd.h			C	2006,2007,2008
 ./lib/isc/include/isc/interfaceiter.h		C	1999,2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/ipv6.h			C	1999,2000,2001,2002,2004,2005,2007
 ./lib/isc/include/isc/lang.h			C	1999,2000,2001,2004,2005,2006,2007
@@ -2115,7 +2117,7 @@
 ./lib/isc/include/isc/platform.h.in		C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/isc/include/isc/print.h			C	1999,2000,2001,2003,2004,2005,2006,2007
 ./lib/isc/include/isc/quota.h			C	2000,2001,2004,2005,2007
-./lib/isc/include/isc/radix.h			C	2007
+./lib/isc/include/isc/radix.h			C	2007,2008
 ./lib/isc/include/isc/random.h			C	1999,2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/ratelimiter.h		C	1999,2000,2001,2002,2004,2005,2006,2007
 ./lib/isc/include/isc/refcount.h		C	2001,2003,2004,2005,2006,2007
@@ -2136,7 +2138,7 @@
 ./lib/isc/include/isc/task.h			C	1998,1999,2000,2001,2003,2004,2005,2006,2007
 ./lib/isc/include/isc/taskpool.h		C	1999,2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/timer.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007
-./lib/isc/include/isc/types.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007
+./lib/isc/include/isc/types.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/isc/include/isc/util.h			C	1998,1999,2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/version.h			C	2001,2004,2005,2006,2007
 ./lib/isc/include/isc/xml.h			C	2006,2007
@@ -2399,7 +2401,7 @@
 ./lib/isccfg/include/isccfg/namedconf.h		C	2002,2004,2005,2006,2007
 ./lib/isccfg/include/isccfg/version.h		C	2001,2004,2005,2006,2007
 ./lib/isccfg/log.c				C	2001,2004,2005,2006,2007
-./lib/isccfg/namedconf.c			C	2002,2003,2004,2005,2006,2007
+./lib/isccfg/namedconf.c			C	2002,2003,2004,2005,2006,2007,2008
 ./lib/isccfg/parser.c				C	2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/isccfg/version.c				C	1998,1999,2000,2001,2004,2005,2007
 ./lib/isccfg/win32/DLLMain.c			C	2001,2004,2007
@@ -2581,7 +2583,7 @@
 ./util/tabify-changes				SH	2004,2007
 ./util/update-drafts.pl				PERL	2000,2001,2004,2007
 ./util/update_branches				PERL	2005,2007
-./util/update_copyrights			PERL	1998,1999,2000,2001,2004,2005,2006,2007
+./util/update_copyrights			PERL	1998,1999,2000,2001,2004,2005,2006,2007,2008
 ./version					X	1998,1999,2000,2001,2003,2005,2006,2007
 ./win32utils/BINDBuild.dsw			X	2001,2005,2006
 ./win32utils/BuildAll.bat			BAT	2001,2002,2004,2005,2006,2007
