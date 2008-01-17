@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.221.2.19.2.44 2008/01/15 23:45:32 tbox Exp $ */
+/* $Id: dighost.c,v 1.221.2.19.2.45 2008/01/17 21:51:00 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -462,6 +462,7 @@ void
 fatal(const char *format, ...) {
 	va_list args;
 
+	fflush(stdout);
 	fprintf(stderr, "%s: ", progname);
 	va_start(args, format);
 	vfprintf(stderr, format, args);
@@ -479,6 +480,7 @@ debug(const char *format, ...) {
 	va_list args;
 
 	if (debugging) {
+		fflush(stdout);
 		va_start(args, format);
 		vfprintf(stderr, format, args);
 		va_end(args);
