@@ -1,3 +1,6 @@
+2308.	[cleanup]	Silence Coverity warning in bin/named/controlconf.c.
+			[RT #17495]
+
 2307.	[bug]		Remove infinite loop from lib/dns/sdb.c. [RT #17496]
 
 2305.	[security]	inet_network() buffer overflow. CVE-2008-0122.
