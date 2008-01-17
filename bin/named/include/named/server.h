@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.88.10.1 2008/01/17 00:24:31 jinmei Exp $ */
+/* $Id: server.h,v 1.88.10.2 2008/01/17 23:46:36 tbox Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -63,7 +63,7 @@ struct ns_server {
 	isc_boolean_t		server_usehostname;
 	char *			server_id;	/*%< User-specified server id */
 
-        /*%
+	/*%
 	 * Current ACL environment.  This defines the
 	 * current values of the localhost and localnets
 	 * ACLs.

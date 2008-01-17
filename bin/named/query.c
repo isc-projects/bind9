@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.298.48.2 2008/01/09 23:46:33 tbox Exp $ */
+/* $Id: query.c,v 1.298.48.3 2008/01/17 23:46:36 tbox Exp $ */
 
 /*! \file */
 
@@ -2299,7 +2299,7 @@ mark_secure(ns_client_t *client, dns_db_t *db, dns_name_t *name,
 static isc_boolean_t
 get_key(ns_client_t *client, dns_db_t *db, dns_rdata_rrsig_t *rrsig,
 	dns_rdataset_t *keyrdataset, dst_key_t **keyp)
-{ 
+{
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
 	isc_boolean_t secure = ISC_FALSE;
@@ -2332,12 +2332,12 @@ get_key(ns_client_t *client, dns_db_t *db, dns_rdata_rrsig_t *rrsig,
 		isc_buffer_init(&b, rdata.data, rdata.length);
 		isc_buffer_add(&b, rdata.length);
 		result = dst_key_fromdns(&rrsig->signer, rdata.rdclass, &b,
-                                         client->mctx, keyp);
+					 client->mctx, keyp);
 		if (result != ISC_R_SUCCESS)
 			continue;
 		if (rrsig->algorithm == (dns_secalg_t)dst_key_alg(*keyp) &&
-                    rrsig->keyid == (dns_keytag_t)dst_key_id(*keyp) &&
-                    dst_key_iszonekey(*keyp)) {
+		    rrsig->keyid == (dns_keytag_t)dst_key_id(*keyp) &&
+		    dst_key_iszonekey(*keyp)) {
 			secure = ISC_TRUE;
 			break;
 		}
@@ -2355,7 +2355,7 @@ verify(dst_key_t *key, dns_name_t *name, dns_rdataset_t *rdataset,
 	isc_boolean_t ignore = ISC_FALSE;
 
 	dns_fixedname_init(&fixed);
-	
+
 again:
 	result = dns_dnssec_verify2(name, rdataset, key, ignore, mctx,
 				    rdata, NULL);
@@ -2383,7 +2383,7 @@ validate(ns_client_t *client, dns_db_t *db, dns_name_t *name,
 
 	if (sigrdataset == NULL || !dns_rdataset_isassociated(sigrdataset))
 		return (ISC_FALSE);
-	
+
 	for (result = dns_rdataset_first(sigrdataset);
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(sigrdataset)) {
@@ -3163,11 +3163,11 @@ query_addnoqnameproof(ns_client_t *client, dns_rdataset_t *rdataset) {
 
  cleanup:
 	if (nsec != NULL)
-                query_putrdataset(client, &nsec);
-        if (nsecsig != NULL)
-                query_putrdataset(client, &nsecsig);
-        if (fname != NULL)
-                query_releasename(client, &fname);
+		query_putrdataset(client, &nsec);
+	if (nsecsig != NULL)
+		query_putrdataset(client, &nsecsig);
+	if (fname != NULL)
+		query_releasename(client, &fname);
 }
 
 static inline void
@@ -3270,12 +3270,12 @@ warn_rfc1918(ns_client_t *client, dns_name_t *fname, dns_rdataset_t *rdataset) {
 	dns_rdata_soa_t soa;
 	dns_rdataset_t found;
 	isc_result_t result;
-	
+
 	for (i = 0; i < (sizeof(rfc1918names)/sizeof(*rfc1918names)); i++) {
 		if (dns_name_issubdomain(fname, &rfc1918names[i])) {
 			dns_rdataset_init(&found);
 			result = dns_ncache_getrdataset(rdataset,
-						        &rfc1918names[i],
+							&rfc1918names[i],
 							dns_rdatatype_soa,
 							&found);
 			if (result != ISC_R_SUCCESS)

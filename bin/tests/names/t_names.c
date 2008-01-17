@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_names.c,v 1.43.128.2 2008/01/14 23:46:28 tbox Exp $ */
+/* $Id: t_names.c,v 1.43.128.3 2008/01/17 23:46:36 tbox Exp $ */
 
 #include <config.h>
 
@@ -581,7 +581,7 @@ t_dns_name_isabsolute(void) {
 				 * label, bitpos, expected value.
 				 */
 				result = test_dns_name_isabsolute(Tokens[0],
-							        atoi(Tokens[1])
+								atoi(Tokens[1])
 								  == 0 ?
 								  ISC_FALSE :
 								  ISC_TRUE);
@@ -1366,7 +1366,7 @@ t_dns_name_getlabel(void) {
 				 */
 				result = test_dns_name_getlabel(Tokens[0],
 							      atoi(Tokens[1]),
-							           Tokens[2],
+								   Tokens[2],
 							      atoi(Tokens[3]));
 			} else {
 				t_info("bad format at line %d\n", line);

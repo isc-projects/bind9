@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006-2008  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: httpd.c,v 1.12.12.1 2008/01/17 00:24:32 jinmei Exp $ */
+/* $Id: httpd.c,v 1.12.12.2 2008/01/17 23:46:37 tbox Exp $ */
 
 /*! \file */
 
@@ -692,7 +692,7 @@ isc_httpd_recvdone(isc_task_t *task, isc_event_t *ev)
 		destroy_client(&httpd);
 		goto out;
 	}
-	
+
 	isc_httpd_response(httpd);
 	isc_httpd_addheader(httpd, "Content-Type", httpd->mimetype);
 	isc_httpd_addheader(httpd, "Date", datebuf);

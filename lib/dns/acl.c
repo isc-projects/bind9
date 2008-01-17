@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.c,v 1.37.2.1 2008/01/17 08:09:36 each Exp $ */
+/* $Id: acl.c,v 1.37.2.2 2008/01/17 23:46:37 tbox Exp $ */
 
 /*! \file */
 
@@ -105,9 +105,9 @@ dns_acl_anyornone(isc_mem_t *mctx, isc_boolean_t neg, dns_acl_t **target) {
 
 	result = dns_iptable_addprefix(acl->iptable, NULL, 0, ISC_TF(!neg));
 	if (result != ISC_R_SUCCESS) {
-                dns_acl_detach(&acl);
+		dns_acl_detach(&acl);
 		return (result);
-        }
+	}
 
 	*target = acl;
 	return (result);
@@ -174,7 +174,7 @@ dns_acl_isnone(dns_acl_t *acl)
 
 /*
  * Determine whether a given address or signer matches a given ACL.
- * For a match with a positive ACL element or iptable radix entry, 
+ * For a match with a positive ACL element or iptable radix entry,
  * return with a positive value in match; for a match with a negated ACL
  * element or radix entry, return with a negative value in match.
  */
@@ -305,7 +305,7 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, isc_boolean_t pos)
 		dest->elements[nelem + i].type = source->elements[i].type;
 
 		/* Adjust node numbering. */
-		dest->elements[nelem + i].node_num = 
+		dest->elements[nelem + i].node_num =
 			source->elements[i].node_num + dest->node_count;
 
 		/* Duplicate nested acl. */
@@ -328,7 +328,7 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, isc_boolean_t pos)
 		if (!pos && source->elements[i].negative == ISC_FALSE) {
 			dest->elements[nelem + i].negative = ISC_TRUE;
 		} else {
-			dest->elements[nelem + i].negative = 
+			dest->elements[nelem + i].negative =
 				source->elements[i].negative;
 		}
 	}
@@ -352,7 +352,7 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, isc_boolean_t pos)
  * Like dns_acl_match, but matches against the single ACL element 'e'
  * rather than a complete ACL, and returns ISC_TRUE iff it matched.
  *
- * To determine whether the match was prositive or negative, the 
+ * To determine whether the match was prositive or negative, the
  * caller should examine e->negative.  Since the element 'e' may be
  * a reference to a named ACL or a nested ACL, a matching element
  * returned through 'matchelt' is not necessarily 'e' itself.
@@ -399,7 +399,7 @@ dns_aclelement_match(const isc_netaddr_t *reqaddr,
 		/* Should be impossible. */
 		INSIST(0);
 	}
-		
+
 	result = dns_acl_match(reqaddr, reqsigner, inner, env,
 			       &indirectmatch, matchelt);
 	INSIST(result == ISC_R_SUCCESS);
@@ -416,7 +416,7 @@ dns_aclelement_match(const isc_netaddr_t *reqaddr,
 			*matchelt = e;
 		return (ISC_TRUE);
 	}
-		
+
 	/*
 	 * A negative indirect match may have set *matchelt, but we don't
 	 * want it set when we return.
@@ -424,9 +424,9 @@ dns_aclelement_match(const isc_netaddr_t *reqaddr,
 
 	if (matchelt != NULL)
 		*matchelt = NULL;
-		
+
 	return (ISC_FALSE);
-}	
+}
 
 void
 dns_acl_attach(dns_acl_t *source, dns_acl_t **target) {
@@ -489,7 +489,7 @@ is_insecure(isc_prefix_t *prefix, void *data) {
 
 	/* Negated entries are always secure. */
 	if (!secure) {
-		return; 
+		return;
 	}
 
 	/* If loopback prefix found, return */
@@ -516,7 +516,7 @@ is_insecure(isc_prefix_t *prefix, void *data) {
 /*
  * Return ISC_TRUE iff the acl 'a' is considered insecure, that is,
  * if it contains IP addresses other than those of the local host.
- * This is intended for applications such as printing warning 
+ * This is intended for applications such as printing warning
  * messages for suspect ACLs; it is not intended for making access
  * control decisions.  We make no guarantee that an ACL for which
  * this function returns ISC_FALSE is safe.
@@ -540,7 +540,7 @@ dns_acl_isinsecure(const dns_acl_t *a) {
 	UNLOCK(&insecure_prefix_lock);
 	if (insecure)
 		return(ISC_TRUE);
-			
+
 	/* Now check non-radix elements */
 	for (i = 0; i < a->length; i++) {
 		dns_aclelement_t *e = &a->elements[i];

@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: statschannel.c,v 1.2.2.2 2008/01/17 03:02:17 jinmei Exp $ */
+/* $Id: statschannel.c,v 1.2.2.3 2008/01/17 23:46:36 tbox Exp $ */
 
 /*! \file */
 
@@ -42,7 +42,7 @@ struct ns_statschannel {
 
 	/*
 	 * Locked by channel lock: can be refererenced and modified by both
-	 * the server task and the channel task. 
+	 * the server task and the channel task.
 	 */
 	isc_mutex_t				lock;
 	dns_acl_t				*acl;
@@ -213,7 +213,7 @@ shutdown_listener(ns_statschannel_t *listener) {
 	isc_httpdmgr_shutdown(&listener->httpdmgr);
 }
 
-static isc_boolean_t 
+static isc_boolean_t
 client_ok(const isc_sockaddr_t *fromaddr, void *arg) {
 	ns_statschannel_t *listener = arg;
 	isc_netaddr_t netaddr;
@@ -231,7 +231,7 @@ client_ok(const isc_sockaddr_t *fromaddr, void *arg) {
 		return (ISC_TRUE);
 	}
 	UNLOCK(&listener->lock);
-	
+
 	isc_sockaddr_format(fromaddr, socktext, sizeof(socktext));
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 		      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
@@ -277,8 +277,8 @@ add_listener(ns_server_t *server, ns_statschannel_t **listenerp,
 	listener->mctx = NULL;
 	ISC_LINK_INIT(listener, link);
 
-        result = isc_mutex_init(&listener->lock);
-        if (result != ISC_R_SUCCESS) {
+	result = isc_mutex_init(&listener->lock);
+	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(server->mctx, listener, sizeof(*listener));
 		return (ISC_R_FAILURE);
 	}
@@ -370,7 +370,7 @@ update_listener(ns_server_t *server, ns_statschannel_t **listenerp,
 		*listenerp = NULL;
 		return;
 	}
-		
+
 	/*
 	 * Now, keep the old access list unless a new one can be made.
 	 */

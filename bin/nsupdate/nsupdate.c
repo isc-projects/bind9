@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.154.56.2 2008/01/12 23:46:42 tbox Exp $ */
+/* $Id: nsupdate.c,v 1.154.56.3 2008/01/17 23:46:36 tbox Exp $ */
 
 /*! \file */
 
@@ -195,7 +195,7 @@ static void
 start_gssrequest(dns_name_t *master);
 static void
 send_gssrequest(isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
-		dns_message_t *msg, dns_request_t **request, 
+		dns_message_t *msg, dns_request_t **request,
 		gss_ctx_id_t context);
 static void
 recvgss(isc_task_t *task, isc_event_t *event);
@@ -421,7 +421,7 @@ parse_hmac(dns_name_t **hmac, const char *hmacstr, size_t len) {
 
 	strncpy(buf, hmacstr, len);
 	buf[len] = 0;
-	
+
 	if (strcasecmp(buf, "hmac-md5") == 0) {
 		*hmac = DNS_TSIG_HMACMD5_NAME;
 	} else if (strncasecmp(buf, "hmac-md5-", 9) == 0) {
@@ -1334,7 +1334,7 @@ evaluate_key(char *cmdline) {
 	secret = isc_mem_allocate(mctx, secretlen);
 	if (secret == NULL)
 		fatal("out of memory");
-	
+
 	isc_buffer_init(&secretbuf, secret, secretlen);
 	result = isc_base64_decodestring(secretstr, &secretbuf);
 	if (result != ISC_R_SUCCESS) {
@@ -1658,7 +1658,7 @@ show_message(FILE *stream, dns_message_t *msg, const char *description) {
 	setzone(userzone);
 
 	bufsz = INITTEXT;
-	do { 
+	do {
 		if (bufsz > MAXTEXT) {
 			fprintf(stderr, "could not allocate large enough "
 				"buffer to display message\n");
@@ -1892,7 +1892,7 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 			char buf[64];
 			isc_buffer_t b;
 			dns_rdataset_t *rds;
-			
+
 			isc_buffer_init(&b, buf, sizeof(buf) - 1);
 			result = dns_rcode_totext(answer->rcode, &b);
 			check_result(result, "dns_rcode_totext");
@@ -1978,7 +1978,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	ddebug("recvsoa()");
 
 	requests--;
-	
+
 	REQUIRE(event->ev_type == DNS_EVENT_REQUESTDONE);
 	reqev = (dns_requestevent_t *)event;
 	request = reqev->request;
@@ -2075,7 +2075,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		section = DNS_SECTION_ANSWER;
 	else if (pass == 1)
 		section = DNS_SECTION_AUTHORITY;
-	else 
+	else
 		goto droplabel;
 
 	result = dns_message_firstname(rcvmsg, section);
@@ -2101,7 +2101,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 				break;
 			}
 		}
-				
+
 		result = dns_message_nextname(rcvmsg, section);
 	}
 
@@ -2179,7 +2179,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	dns_message_destroy(&rcvmsg);
 	ddebug("Out of recvsoa");
 	return;
- 
+
  droplabel:
 	result = dns_message_firstname(soaquery, DNS_SECTION_QUESTION);
 	INSIST(result == ISC_R_SUCCESS);
@@ -2243,7 +2243,7 @@ start_gssrequest(dns_name_t *master)
 		dns_tsigkeyring_destroy(&gssring);
 	gssring = NULL;
 	result = dns_tsigkeyring_create(mctx, &gssring);
-	
+
 	if (result != ISC_R_SUCCESS)
 		fatal("dns_tsigkeyring_create failed: %s",
 		      isc_result_totext(result));
@@ -2274,7 +2274,7 @@ start_gssrequest(dns_name_t *master)
 	if (result != ISC_R_SUCCESS)
 		fatal("dns_name_fromtext(servname) failed: %s",
 		      isc_result_totext(result));
-      
+
 	dns_fixedname_init(&fkname);
 	keyname = dns_fixedname_name(&fkname);
 
@@ -2363,7 +2363,7 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 	ddebug("recvgss()");
 
 	requests--;
-      
+
 	REQUIRE(event->ev_type == DNS_EVENT_REQUESTDONE);
 	reqev = (dns_requestevent_t *)event;
 	request = reqev->request;
@@ -2414,7 +2414,7 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 					 DNS_MESSAGEPARSE_PRESERVEORDER);
 	check_result(result, "dns_request_getresponse");
 
-	if (debugging) 
+	if (debugging)
 		show_message(stderr, rcvmsg,
 			     "recvmsg reply from GSS-TSIG query");
 
@@ -2445,7 +2445,7 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 
 	tsigkey = NULL;
 	result = dns_tkey_gssnegotiate(tsigquery, rcvmsg, servname,
-				       &context, &tsigkey, gssring, 
+				       &context, &tsigkey, gssring,
 				       use_win2k_gsstsig);
 	switch (result) {
 
@@ -2473,7 +2473,7 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 		 */
 #if 0
 		/*
-		 * Verify the signature. 
+		 * Verify the signature.
 		 */
 		rcvmsg->state = DNS_SECTION_ANY;
 		dns_message_setquerytsig(rcvmsg, NULL);

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.79.128.2 2008/01/09 23:46:33 tbox Exp $ */
+/* $Id: os.c,v 1.79.128.3 2008/01/17 23:46:36 tbox Exp $ */
 
 /*! \file */
 
@@ -326,7 +326,7 @@ ns_os_daemonize(void) {
 		/*
 		 * Wait for the child to finish loading for the first time.
 		 * This would be so much simpler if fork() worked once we
-	         * were multi-threaded.
+		 * were multi-threaded.
 		 */
 		(void)close(dfd[1]);
 		do {
@@ -669,7 +669,7 @@ ns_os_shutdownmsg(char *command, isc_buffer_t *text) {
 	ptr = next_token(&input, " \t");
 	if (ptr == NULL)
 		return;
-	
+
 	if (strcmp(ptr, "-p") != 0)
 		return;
 

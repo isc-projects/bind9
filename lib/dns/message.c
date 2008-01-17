@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.237.110.2 2008/01/15 23:46:32 tbox Exp $ */
+/* $Id: message.c,v 1.237.110.3 2008/01/17 23:46:37 tbox Exp $ */
 
 /*! \file */
 
@@ -1016,7 +1016,7 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		if (name == NULL)
 			return (ISC_R_NOMEMORY);
 		free_name = ISC_TRUE;
-		
+
 		offsets = newoffsets(msg);
 		if (offsets == NULL) {
 			result = ISC_R_NOMEMORY;
@@ -1326,7 +1326,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			}
 			/*
 			 * When the rdata is empty, the data pointer is
-			 * never dereferenced, but it must still be non-NULL. 
+			 * never dereferenced, but it must still be non-NULL.
 			 * Casting 1 rather than "" avoids warnings about
 			 * discarding the const attribute of a string,
 			 * for compilers that would warn about such things.
@@ -1465,7 +1465,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 							       rdataset)
 				      == ISC_R_SUCCESS);
 
-			if (rdtype != dns_rdatatype_opt && 
+			if (rdtype != dns_rdatatype_opt &&
 			    rdtype != dns_rdatatype_tsig &&
 			    !issigzero)
 			{

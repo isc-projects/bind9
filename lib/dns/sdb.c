@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.59.94.2 2008/01/16 23:46:23 tbox Exp $ */
+/* $Id: sdb.c,v 1.59.94.3 2008/01/17 23:46:37 tbox Exp $ */
 
 /*! \file */
 
@@ -310,7 +310,7 @@ dns_sdb_putrdata(dns_sdblookup_t *lookup, dns_rdatatype_t typeval, dns_ttl_t ttl
 		ISC_LIST_INIT(rdatalist->rdata);
 		ISC_LINK_INIT(rdatalist, link);
 		ISC_LIST_APPEND(lookup->lists, rdatalist, link);
-	} else 
+	} else
 		if (rdatalist->ttl != ttl)
 			return (DNS_R_BADTTL);
 
@@ -337,7 +337,7 @@ dns_sdb_putrdata(dns_sdblookup_t *lookup, dns_rdatatype_t typeval, dns_ttl_t ttl
 		isc_mem_put(mctx, rdata, sizeof(dns_rdata_t));
 	return (result);
 }
-	
+
 
 isc_result_t
 dns_sdb_putrr(dns_sdblookup_t *lookup, const char *type, dns_ttl_t ttl,
@@ -638,7 +638,7 @@ newversion(dns_db_t *db, dns_dbversion_t **versionp) {
 }
 
 static void
-attachversion(dns_db_t *db, dns_dbversion_t *source, 
+attachversion(dns_db_t *db, dns_dbversion_t *source,
 	      dns_dbversion_t **targetp)
 {
 	REQUIRE(source != NULL && source == (void *) &dummy);
@@ -792,7 +792,7 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 			return (result);
 		}
 	}
-	
+
 	*nodep = node;
 	return (ISC_R_SUCCESS);
 }
@@ -1120,7 +1120,7 @@ allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	sdb_rdatasetiter_t *iterator;
 
 	REQUIRE(version == NULL || version == &dummy);
-	
+
 	UNUSED(version);
 	UNUSED(now);
 

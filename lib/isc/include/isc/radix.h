@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.h,v 1.5.46.1 2008/01/17 08:09:36 each Exp $ */
+/* $Id: radix.h,v 1.5.46.2 2008/01/17 23:46:37 tbox Exp $ */
 
 /*
  * This source was adapted from MRT's RCS Ids:
@@ -84,8 +84,8 @@ typedef struct isc_radix_node {
    struct isc_radix_node *l, *r;	/* left and right children */
    struct isc_radix_node *parent;	/* may be used */
    void *data;				/* pointer to data */
-   int node_num;			/* which node this was in the tree, 
-   					   or -1 for glue nodes */
+   int node_num;			/* which node this was in the tree,
+					   or -1 for glue nodes */
 } isc_radix_node_t;
 
 #define RADIX_TREE_MAGIC         ISC_MAGIC('R','d','x','T');
@@ -129,18 +129,18 @@ isc_radix_process(isc_radix_tree_t *radix, isc_radix_processfunc_t func);
 
 #define RADIX_WALK(Xhead, Xnode) \
     do { \
-        isc_radix_node_t *Xstack[RADIX_MAXBITS+1]; \
-        isc_radix_node_t **Xsp = Xstack; \
-        isc_radix_node_t *Xrn = (Xhead); \
-        while ((Xnode = Xrn)) { \
-            if (Xnode->prefix)
+	isc_radix_node_t *Xstack[RADIX_MAXBITS+1]; \
+	isc_radix_node_t **Xsp = Xstack; \
+	isc_radix_node_t *Xrn = (Xhead); \
+	while ((Xnode = Xrn)) { \
+	    if (Xnode->prefix)
 
 #define RADIX_WALK_ALL(Xhead, Xnode) \
 do { \
-        isc_radix_node_t *Xstack[RADIX_MAXBITS+1]; \
-        isc_radix_node_t **Xsp = Xstack; \
-        isc_radix_node_t *Xrn = (Xhead); \
-        while ((Xnode = Xrn)) { \
+	isc_radix_node_t *Xstack[RADIX_MAXBITS+1]; \
+	isc_radix_node_t **Xsp = Xstack; \
+	isc_radix_node_t *Xrn = (Xhead); \
+	while ((Xnode = Xrn)) { \
 	    if (1)
 
 #define RADIX_WALK_BREAK { \
@@ -152,19 +152,19 @@ do { \
 	    continue; }
 
 #define RADIX_WALK_END \
-            if (Xrn->l) { \
-                if (Xrn->r) { \
-                    *Xsp++ = Xrn->r; \
-                } \
-                Xrn = Xrn->l; \
-            } else if (Xrn->r) { \
-                Xrn = Xrn->r; \
-            } else if (Xsp != Xstack) { \
-                Xrn = *(--Xsp); \
-            } else { \
-                Xrn = (isc_radix_node_t *) 0; \
-            } \
-        } \
+	    if (Xrn->l) { \
+		if (Xrn->r) { \
+		    *Xsp++ = Xrn->r; \
+		} \
+		Xrn = Xrn->l; \
+	    } else if (Xrn->r) { \
+		Xrn = Xrn->r; \
+	    } else if (Xsp != Xstack) { \
+		Xrn = *(--Xsp); \
+	    } else { \
+		Xrn = (isc_radix_node_t *) 0; \
+	    } \
+	} \
     } while (0)
 
 #endif /* _RADIX_H */

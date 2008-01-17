@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.43.128.1 2008/01/17 00:24:32 jinmei Exp $ */
+/* $Id: types.h,v 1.43.128.2 2008/01/17 23:46:37 tbox Exp $ */
 
 #ifndef ISC_TYPES_H
 #define ISC_TYPES_H 1
