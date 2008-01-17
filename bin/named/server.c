@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.497 2008/01/09 23:47:00 tbox Exp $ */
+/* $Id: server.c,v 1.498 2008/01/17 00:15:13 jinmei Exp $ */
 
 /*! \file */
 
@@ -90,6 +90,7 @@
 #include <named/main.h>
 #include <named/os.h>
 #include <named/server.h>
+#include <named/statschannel.h>
 #include <named/tkeyconf.h>
 #include <named/tsigconf.h>
 #include <named/zoneconf.h>
@@ -220,28 +221,6 @@ static const struct {
 
 	{ NULL, ISC_FALSE }
 };
-
-#ifdef HAVE_LIBXML2
-
-static isc_result_t
-server_httpd_create(ns_server_t *server, int pf);
-
-static isc_result_t
-render_index(const char *url, const char *querystring, void *args,
-	     unsigned int *retcode, const char **retmsg, const char **mimetype,
-	     isc_buffer_t *b, isc_httpdfree_t **freecb,
-	     void **freecb_args);
-
-static isc_result_t
-render_xsl(const char *url, const char *querystring, void *args,
-	   unsigned int *retcode, const char **retmsg, const char **mimetype,
-	   isc_buffer_t *b, isc_httpdfree_t **freecb,
-	   void **freecb_args);
-
-void
-server_generatexml(ns_server_t *server, int *buflen, xmlChar **buf);
-
-#endif /* HAVE_LIBXML2 */
 
 static void
 fatal(const char *msg, isc_result_t result);
@@ -2989,51 +2968,8 @@ load_configuration(const char *filename, ns_server_t *server,
 	INSIST(result == ISC_R_SUCCESS);
 	server->aclenv.match_mapped = cfg_obj_asboolean(obj);
 
-#ifdef HAVE_LIBXML2
-	/*
-	 * [Re]configure the httpd server.
-	 *
-	 * If it is no longer there but was previously configured, destroy
-	 * it here.
-	 *
-	 * If the IP address or port has changed, destroy the old server
-	 * and create a new one.
-	 *
-	 * XXXMLG this will have to change later.  Eventually, we will want
-	 * XXXMLG to start it once, and add/remove listener ports as the
-	 * XXXMLG user wants, which will allow more than one.
-	 * XXXMLG We will also want to support some form of ACL.
-	 */
-	obj = NULL;
-	result = ns_config_get(maps, "stats-server", &obj);
-
-	if (result == ISC_R_SUCCESS && obj != NULL) {
-		if (!isc_sockaddr_equal(cfg_obj_assockaddr(obj),
-					&server->httpd_sockaddr4)) {
-			if (server->httpd4 != NULL)
-				isc_httpdmgr_shutdown(&server->httpd4);
-			server->httpd_sockaddr4 = *cfg_obj_assockaddr(obj);
-			CHECKM(server_httpd_create(server, AF_INET),
-			       "stats-server");
-		}
-	} else if (server->httpd4 != NULL)
-			isc_httpdmgr_shutdown(&server->httpd4);
-
-	obj = NULL;
-	result = ns_config_get(maps, "stats-server-v6", &obj);
-
-	if (result == ISC_R_SUCCESS && obj != NULL) {
-		if (!isc_sockaddr_equal(cfg_obj_assockaddr(obj),
-					&server->httpd_sockaddr6)) {
-			if (server->httpd6 != NULL)
-				isc_httpdmgr_shutdown(&server->httpd6);
-			server->httpd_sockaddr6 = *cfg_obj_assockaddr(obj);
-			CHECKM(server_httpd_create(server, AF_INET6),
-			       "stats-server-v6");
-		}
-	} else if (server->httpd6 != NULL)
-			isc_httpdmgr_shutdown(&server->httpd6);
-#endif
+	CHECKM(ns_statschannels_configure(ns_g_server, config, &aclconfctx),
+	       "configuring statistics server(s)");
 
 	v4ports = NULL;
 	v6ports = NULL;
@@ -3711,13 +3647,7 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 		      ISC_LOG_INFO, "shutting down%s",
 		      flush ? ": flushing changes" : "");
 
-#ifdef HAVE_LIBXML2
-	if (server->httpd4 != NULL)
-		isc_httpdmgr_shutdown(&server->httpd4);
-	if (server->httpd6 != NULL)
-		isc_httpdmgr_shutdown(&server->httpd6);
-#endif
-
+	ns_statschannels_shutdown(server);
 	ns_controls_shutdown(server->controls);
 	end_reserved_dispatches(server, ISC_TRUE);
 
@@ -3757,61 +3687,6 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 }
-
-#ifdef HAVE_LIBXML2
-
-static isc_result_t
-server_httpd_create(ns_server_t *server, int pf) {
-	isc_socket_t *sock;
-	isc_task_t *task;
-	isc_result_t result;
-	isc_httpdmgr_t *httpd;
-
-	task = NULL;
-	result = isc_task_create(ns_g_taskmgr, 0, &task);
-	INSIST(result == ISC_R_SUCCESS);
-	isc_task_setname(task, "httpd", NULL);
-
-	sock = NULL;
-	result = isc_socket_create(ns_g_socketmgr, pf, isc_sockettype_tcp,
-				   &sock);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-	isc_socket_setname(sock, "httpd", NULL);
-
-#ifndef ISC_ALLOW_MAPPED
-	isc_socket_ipv6only(sock, ISC_TRUE);
-#endif
-
-	if (pf == AF_INET)
-		result = isc_socket_bind(sock, &server->httpd_sockaddr4);
-	else
-		result = isc_socket_bind(sock, &server->httpd_sockaddr6);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-
-	httpd = NULL;
-	result = isc_httpdmgr_create(ns_g_mctx, sock, task, ns_g_timermgr,
-				     &httpd);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-
-	isc_httpdmgr_addurl(httpd, "/", render_index, server);
-	isc_httpdmgr_addurl(httpd, "/bind9.xsl", render_xsl, server);
-
-	if (pf == AF_INET)
-		server->httpd4 = httpd;
-	else
-		server->httpd6 = httpd;
-
-cleanup:
-	isc_task_detach(&task);
-	isc_socket_detach(&sock);
-
-	return (result);
-}
-
-#endif
 
 void
 ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
@@ -3922,13 +3797,7 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->dispatchgen = 0;
 	ISC_LIST_INIT(server->dispatches);
 
-	/*
-	 * HTTP server configuration.
-	 */
-	server->httpd4 = NULL;
-	isc_sockaddr_any(&server->httpd_sockaddr4);
-	server->httpd6 = NULL;
-	isc_sockaddr_any6(&server->httpd_sockaddr6);
+	ISC_LIST_INIT(server->statschannels);
 
 	server->magic = NS_SERVER_MAGIC;
 	*serverp = server;
@@ -5468,156 +5337,3 @@ ns_smf_add_message(isc_buffer_t *text) {
 	return (ISC_R_SUCCESS);
 }
 #endif /* HAVE_LIBSCF */
-
-#ifdef HAVE_LIBXML2
-
-/* XXXMLG below here sucks. */
-
-#define TRY(a) do { result = (a); INSIST(result == ISC_R_SUCCESS); } while(0);
-#define TRY0(a) do { xmlrc = (a); INSIST(xmlrc >= 0); } while(0);
-
-#define NODES 8
-#define SPACES 3
-
-void
-server_generatexml(ns_server_t *server, int *buflen, xmlChar **buf)
-{
-	char boottime[sizeof "yyyy-mm-ddThh:mm:ssZ"];
-	char nowstr[sizeof "yyyy-mm-ddThh:mm:ssZ"];
-	isc_time_t now;
-	xmlTextWriterPtr writer;
-	xmlDocPtr doc;
-	int xmlrc;
-	dns_view_t *view;
-	int i;
-
-	isc_time_now(&now);
-	isc_time_formatISO8601(&ns_g_boottime, boottime, sizeof boottime);
-	isc_time_formatISO8601(&now, nowstr, sizeof nowstr);
-
-	writer = xmlNewTextWriterDoc(&doc, 0);
-	TRY0(xmlTextWriterStartDocument(writer, NULL, "UTF-8", NULL));
-	TRY0(xmlTextWriterWritePI(writer, ISC_XMLCHAR "xml-stylesheet",
-			ISC_XMLCHAR "type=\"text/xsl\" href=\"/bind9.xsl\""));
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "isc"));
-	TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "version",
-					 ISC_XMLCHAR "1.0"));
-
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "bind"));
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "statistics"));
-	TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "version",
-					 ISC_XMLCHAR "1.0"));
-
-	/*
-	 * Start by rendering the views we know of here.  For each view we
-	 * know of, call its rendering function.
-	 */
-	view = ISC_LIST_HEAD(server->viewlist);
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "views"));
-	while (view != NULL) {
-		dns_view_xmlrender(view, writer, ISC_XML_RENDERALL);
-		view = ISC_LIST_NEXT(view, link);
-	}
-	TRY0(xmlTextWriterEndElement(writer)); /* views */
-
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "socketmgr"));
-	isc_socketmgr_renderxml(ns_g_socketmgr, writer);
-	TRY0(xmlTextWriterEndElement(writer)); /* socketmgr */
-
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "taskmgr"));
-	isc_taskmgr_renderxml(ns_g_taskmgr, writer);
-	TRY0(xmlTextWriterEndElement(writer)); /* taskmgr */
-
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "server"));
-	xmlTextWriterStartElement(writer, ISC_XMLCHAR "boot-time");
-	xmlTextWriterWriteString(writer, ISC_XMLCHAR boottime);
-	xmlTextWriterEndElement(writer);
-	xmlTextWriterStartElement(writer, ISC_XMLCHAR "current-time");
-	xmlTextWriterWriteString(writer, ISC_XMLCHAR nowstr);
-	xmlTextWriterEndElement(writer);
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counters"));
-	for (i = 0; i < DNS_STATS_NCOUNTERS; i++) {
-		xmlTextWriterStartElement(writer,
-					ISC_XMLCHAR dns_statscounter_names[i]);
-		xmlTextWriterWriteFormatString(writer,
-					       "%" ISC_PRINT_QUADFORMAT "u",
-					       server->querystats[i]);
-		xmlTextWriterEndElement(writer);
-	}
-	xmlTextWriterEndElement(writer); /* counters */
-	xmlTextWriterEndElement(writer); /* server */
-
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "memory"));
-	isc_mem_renderxml(server->mctx, writer);
-	TRY0(xmlTextWriterEndElement(writer)); /* memory */
-
-	TRY0(xmlTextWriterEndElement(writer)); /* statistics */
-	TRY0(xmlTextWriterEndElement(writer)); /* bind */
-	TRY0(xmlTextWriterEndElement(writer)); /* isc */
-
-	TRY0(xmlTextWriterEndDocument(writer));
-
-	xmlFreeTextWriter(writer);
-
-	xmlDocDumpFormatMemoryEnc(doc, buf, buflen, "UTF-8", 1);
-	xmlFreeDoc(doc);
-}
-
-static void
-wrap_xmlfree(isc_buffer_t *buffer, void *arg)
-{
-	UNUSED(arg);
-
-	xmlFree(isc_buffer_base(buffer));
-}
-
-static isc_result_t
-render_index(const char *url, const char *querystring, void *arg,
-	     unsigned int *retcode, const char **retmsg, const char **mimetype,
-	     isc_buffer_t *b, isc_httpdfree_t **freecb,
-	     void **freecb_args)
-{
-	unsigned char *msg;
-	int msglen;
-	ns_server_t *server = arg;
-
-	UNUSED(url);
-	UNUSED(querystring);
-
-	server_generatexml(server, &msglen, &msg);
-
-	*retcode = 200;
-	*retmsg = "OK";
-	*mimetype = "text/xml";
-	isc_buffer_reinit(b, msg, msglen);
-	isc_buffer_add(b, msglen);
-	*freecb = wrap_xmlfree;
-	*freecb_args = NULL;
-
-	return (ISC_R_SUCCESS);
-}
-
-static isc_result_t
-render_xsl(const char *url, const char *querystring, void *args,
-	   unsigned int *retcode, const char **retmsg, const char **mimetype,
-	   isc_buffer_t *b, isc_httpdfree_t **freecb,
-	   void **freecb_args)
-{
-#include "bind9.xsl.h"
-
-	UNUSED(url);
-	UNUSED(querystring);
-	UNUSED(args);
-
-	*retcode = 200;
-	*retmsg = "OK";
-	*mimetype = "text/xslt+xml";
-	isc_buffer_reinit(b, msg, strlen(msg));
-	isc_buffer_add(b, strlen(msg));
-	*freecb = NULL;
-	*freecb_args = NULL;
-
-	return (ISC_R_SUCCESS);
-}
-
-#endif /* HAVE_LIBXML2 */

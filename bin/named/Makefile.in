@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.96 2007/06/19 06:49:18 marka Exp $
+# $Id: Makefile.in,v 1.97 2008/01/17 00:15:13 jinmei Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -75,7 +75,7 @@ TARGETS =	named@EXEEXT@ lwresd@EXEEXT@
 OBJS =		builtin.@O@ client.@O@ config.@O@ control.@O@ \
 		controlconf.@O@ interfacemgr.@O@ \
 		listenlist.@O@ log.@O@ logconf.@O@ main.@O@ notify.@O@ \
-		query.@O@ server.@O@ sortlist.@O@ \
+		query.@O@ server.@O@ sortlist.@O@ statschannel.@O@ \
 		tkeyconf.@O@ tsigconf.@O@ update.@O@ xfrout.@O@ \
 		zoneconf.@O@ \
 		lwaddr.@O@ lwresd.@O@ lwdclient.@O@ lwderror.@O@ lwdgabn.@O@ \
@@ -89,7 +89,7 @@ GENERATED =	bind9.xsl.h
 SRCS =		builtin.c client.c config.c control.c \
 		controlconf.c interfacemgr.c \
 		listenlist.c log.c logconf.c main.c notify.c \
-		query.c server.c sortlist.c \
+		query.c server.c sortlist.c statschannel.c \
 		tkeyconf.c tsigconf.c update.c xfrout.c \
 		zoneconf.c \
 		lwaddr.c lwresd.c lwdclient.c lwderror.c lwdgabn.c \

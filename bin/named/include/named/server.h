@@ -15,14 +15,13 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.88 2007/12/14 04:01:20 marka Exp $ */
+/* $Id: server.h,v 1.89 2008/01/17 00:15:13 jinmei Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
 
 /*! \file */
 
-#include <isc/httpd.h>
 #include <isc/log.h>
 #include <isc/magic.h>
 #include <isc/quota.h>
@@ -100,10 +99,7 @@ struct ns_server {
 
 	dns_acache_t		*acache;
 
-	isc_httpdmgr_t		*httpd4;
-	isc_sockaddr_t		httpd_sockaddr4;
-	isc_httpdmgr_t		*httpd6;
-	isc_sockaddr_t		httpd_sockaddr6;
+	ns_statschannellist_t	statschannels;
 };
 
 #define NS_SERVER_MAGIC			ISC_MAGIC('S','V','E','R')

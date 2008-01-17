@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.342 2008/01/02 23:47:02 tbox Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.343 2008/01/17 00:15:13 jinmei Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -3322,6 +3322,17 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
             </row>
             <row rowsep="0">
               <entry colname="1">
+                <para><command>statistics-channels</command></para>
+              </entry>
+              <entry colname="2">
+                <para>
+		  declares communication channels to get access to
+		  <command>named</command> statistics.
+                </para>
+              </entry>
+            </row>
+            <row rowsep="0">
+              <entry colname="1">
                 <para><command>server</command></para>
               </entry>
               <entry colname="2">
@@ -4569,7 +4580,6 @@ category notify { null; };
     <optional> disable-empty-zone <replaceable>zone_name</replaceable> ; </optional>
     <optional> zero-no-soa-ttl <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> zero-no-soa-ttl-cache <replaceable>yes_or_no</replaceable> ; </optional>
-    <optional> stats-server address <replacable> ip_address </replacable> port <replacable> ip_port </replacable> ; </optional>
 };
 </programlisting>
 
@@ -6840,33 +6850,6 @@ query-source-v6 address * port *;
         </sect3>
 
         <sect3>
-          <title>Statistics Server</title>
-          <variablelist>
-
-            <varlistentry>
-              <term><command>stats-server</command></term>
-              <listitem>
-                <para>
-                  Start a HTTP-based statistics server on the given IP address and port.
-                  At this time, no client authentication is performed.
-                  Using the IPv4 wildcard address (0.0.0.0) will cause the stats-server to listen
-                  on all available IP addresses.  Listing a single address (10.1.2.3) will listen
-                  only on that address.  Please use a caution in enabling this option and limit
-                  connections to it via standard firewall techniques.
-                </para>
-                <para>
-                  At this time, the stats-server can only listen on one IP address and port, or on all addresses.
-                </para>
-		<para>
-		  This option requires that BIND 9 be compiled with libxml2.
-		</para>
-              </listitem>
-            </varlistentry>
-
-          </variablelist>
-        </sect3>
-
-        <sect3>
           <title>Periodic Task Intervals</title>
 
           <variablelist>
@@ -7893,6 +7876,74 @@ query-source-v6 address * port *;
           </variablelist>
 
         </sect3>
+
+      </sect2>
+
+      <sect2>
+        <title><command>statistics-channels</command> Statement Grammar</title>
+
+<programlisting><command>statistics-channels</command> {
+   [ inet ( ip_addr | * ) [ port ip_port ] [allow { <replaceable> address_match_list </replaceable> } ]; ]
+   [ inet ...; ]
+};
+</programlisting>
+      </sect2>
+
+      <sect2>
+          <title><command>statistics-channels</command> Statement Definition and
+            Usage</title>
+
+        <para>
+          The <command>statistics-channels</command> statement
+	  declares communication channels to be used by system
+	  administrators to get access to statistics information of
+	  the name server.
+        </para>
+
+        <para>
+	  This statement intends to be flexible to support multiple
+	  communication protocols in the future, but currently only
+	  HTTP access is supported.
+	  It requires that BIND 9 be compiled with libxml2;
+	  the <command>statistics-channels</command> statement is
+	  still accepted even if it is built without the library,
+	  but any HTTP access will fail with an error.
+        </para>
+
+        <para>
+          An <command>inet</command> control channel is a TCP socket
+	  listening at the specified <command>ip_port</command> on the
+	  specified <command>ip_addr</command>, which can be an IPv4 or IPv6
+	  address.  An <command>ip_addr</command> of <literal>*</literal> (asterisk) is
+	  interpreted as the IPv4 wildcard address; connections will be
+	  accepted on any of the system's IPv4 addresses.
+	  To listen on the IPv6 wildcard address,
+          use an <command>ip_addr</command> of <literal>::</literal>.
+        </para>
+
+        <para>
+          If no port is specified, port 80 is used for HTTP channels.
+	  The asterisk "<literal>*</literal>" cannot be used for
+	  <command>ip_port</command>.
+        </para>
+
+        <para>
+          The attempt of opening a statistics channel is
+          restricted by the optional <command>allow</command> clause.
+	  Connections to the statistics channel are permitted based on the
+          <command>address_match_list</command>.
+	  If no <command>allow</command> clause is present,
+	  <command>named</command> accepts connection
+	  attempts from any address; since the statistics may
+	  contain sensitive internal information, it is highly
+	  recommended to restrict the source of connection requests
+	  appropriately.
+        </para>
+
+        <para>
+          If no <command>statistics-channels</command> statement is present,
+          <command>named</command> will not open any communication channels.
+        </para>
 
       </sect2>
 
