@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.259.18.45 2008/01/15 23:46:01 tbox Exp $ */
+/* $Id: dighost.c,v 1.259.18.46 2008/01/17 21:51:13 marka Exp $ */
 
 /*! \file
  *  \note
@@ -493,6 +493,7 @@ void
 fatal(const char *format, ...) {
 	va_list args;
 
+	fflush(stdout);
 	fprintf(stderr, "%s: ", progname);
 	va_start(args, format);
 	vfprintf(stderr, format, args);
@@ -510,6 +511,7 @@ debug(const char *format, ...) {
 	va_list args;
 
 	if (debugging) {
+		fflush(stdout);
 		va_start(args, format);
 		vfprintf(stderr, format, args);
 		va_end(args);
