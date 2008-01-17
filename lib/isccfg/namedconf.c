@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.78.46.1 2008/01/17 00:24:32 jinmei Exp $ */
+/* $Id: namedconf.c,v 1.78.46.2 2008/01/17 21:41:47 marka Exp $ */
 
 /*! \file */
 
@@ -1396,9 +1396,10 @@ static void
 doc_optional_bracketed_list(cfg_printer_t *pctx, const cfg_type_t *type) {
 	const keyword_type_t *kw = type->of;
 	cfg_print_chars(pctx, "[ ", 2);
-	cfg_print_chars(pctx, "{ ", 2);
+	cfg_print_cstr(pctx, kw->name);
+	cfg_print_chars(pctx, " ", 1);
 	cfg_doc_obj(pctx, kw->type);
-	cfg_print_chars(pctx, "; ... }", 7);
+	cfg_print_chars(pctx, " ]", 2);
 }
 
 static cfg_type_t cfg_type_optional_allow = {
