@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: statschannel.c,v 1.2 2008/01/17 00:15:13 jinmei Exp $ */
+/* $Id: statschannel.c,v 1.2.2.2 2008/01/17 03:02:17 jinmei Exp $ */
 
 /*! \file */
 
@@ -375,7 +375,7 @@ update_listener(ns_server_t *server, ns_statschannel_t **listenerp,
 	 * Now, keep the old access list unless a new one can be made.
 	 */
 	allow = cfg_tuple_get(listen_params, "allow");
-	if (allow != NULL) {
+	if (allow != NULL && cfg_obj_islist(allow)) {
 		result = cfg_acl_fromconfig(allow, config, ns_g_lctx,
 					    aclconfctx, listener->mctx, 0,
 					    &new_acl);
