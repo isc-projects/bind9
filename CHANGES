@@ -1,3 +1,6 @@
+2308.	[cleanup]	Silence Coverity warning in bin/named/controlconf.c.
+			[RT #17495]
+
 2307.	[bug]		Remove infinite loop from lib/dns/sdb.c. [RT #17496]
 
 2306.	[bug]		Remove potential race from lib/dns/resolver.c.
