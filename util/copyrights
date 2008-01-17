@@ -85,7 +85,7 @@
 ./bin/named/client.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./bin/named/config.c				C	2001,2002,2003,2004,2005,2006,2007
 ./bin/named/control.c				C	2001,2002,2003,2004,2005,2006,2007
-./bin/named/controlconf.c			C	2001,2002,2003,2004,2005,2006
+./bin/named/controlconf.c			C	2001,2002,2003,2004,2005,2006,2008
 ./bin/named/include/named/builtin.h		C	2001,2004,2005
 ./bin/named/include/named/client.h		C	1999,2000,2001,2002,2003,2004,2005,2006
 ./bin/named/include/named/config.h		C	2001,2002,2004,2005,2006
@@ -2550,7 +2550,7 @@
 ./util/spacewhack.pl				PERL	2000,2001,2004
 ./util/tabify-changes				SH	2004
 ./util/update-drafts.pl				PERL	2000,2001,2004
-./util/update_copyrights			PERL	1998,1999,2000,2001,2004,2005,2006,2007
+./util/update_copyrights			PERL	1998,1999,2000,2001,2004,2005,2006,2007,2008
 ./version					X	1998,1999,2000,2001,2002,2003,2005,2006,2007
 ./win32utils/BINDBuild.dsw			X	2001,2005,2006
 ./win32utils/BuildAll.bat			BAT	2001,2002,2004,2005,2006,2007
