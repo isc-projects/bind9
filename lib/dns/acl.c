@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.c,v 1.37 2007/12/21 06:46:47 marka Exp $ */
+/* $Id: acl.c,v 1.38 2008/01/17 08:08:08 each Exp $ */
 
 /*! \file */
 
@@ -102,7 +102,13 @@ dns_acl_anyornone(isc_mem_t *mctx, isc_boolean_t neg, dns_acl_t **target) {
 	result = dns_acl_create(mctx, 0, &acl);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	dns_iptable_addprefix(acl->iptable, NULL, 0, ISC_TF(!neg));
+
+	result = dns_iptable_addprefix(acl->iptable, NULL, 0, ISC_TF(!neg));
+	if (result != ISC_R_SUCCESS) {
+                dns_acl_detach(&acl);
+		return (result);
+        }
+
 	*target = acl;
 	return (result);
 }
