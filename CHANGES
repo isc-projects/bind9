@@ -1,5 +1,5 @@
-2310	[bug]		Flush stdout before emitting debug/fatal messages.
-			[RT #17501]
+2310	[bug]		dig, host, nslookup: flush stdout before emitting
+			debug/fatal messages.  [RT #17501]
 
 2309.   [cleanup]       Fix Coverity warnings in lib/dns/acl.c and iptable.c.
                         [RT #17455]
