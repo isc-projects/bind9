@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: httpd.h,v 1.6 2007/06/19 23:47:18 tbox Exp $ */
+/* $Id: httpd.h,v 1.6.128.1 2008/01/17 00:24:32 jinmei Exp $ */
 
 #ifndef ISC_HTTPD_H
 #define ISC_HTTPD_H 1
@@ -37,7 +37,9 @@
  * a http-like header followed by HTTP data.
  */
 isc_result_t
-isc_httpdmgr_create(isc_mem_t *mctx, isc_socket_t *socket, isc_task_t *task,
+isc_httpdmgr_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
+		    isc_httpdclientok_t *client_ok,
+		    isc_httpdondestroy_t *ondestory, void *cb_arg,
 		    isc_timermgr_t *tmgr, isc_httpdmgr_t **httpdp);
 
 void

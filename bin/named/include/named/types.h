@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.27 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id: types.h,v 1.27.128.1 2008/01/17 00:24:31 jinmei Exp $ */
 
 #ifndef NAMED_TYPES_H
 #define NAMED_TYPES_H 1
@@ -41,5 +41,6 @@ typedef struct ns_lwsearchctx		ns_lwsearchctx_t;
 typedef struct ns_controls		ns_controls_t;
 typedef struct ns_dispatch		ns_dispatch_t;
 typedef ISC_LIST(ns_dispatch_t)		ns_dispatchlist_t;
-
+typedef struct ns_statschannel		ns_statschannel_t;
+typedef ISC_LIST(ns_statschannel_t)	ns_statschannellist_t;
 #endif /* NAMED_TYPES_H */

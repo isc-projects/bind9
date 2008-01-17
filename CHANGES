@@ -34,6 +34,12 @@
 2295.	[bug]		Silence static overrun error in bin/named/lwaddr.c.
 			[RT #17459]
 
+2294.	[func]		Allow the experimental statistics channels to have
+			multiple connections and ACL.
+			Note: the stats-server and stats-server-v6 options
+			available in the previous beta releases are replaced
+			with the generic statistics-channels statment.
+
 2293.	[func]		Add ACL regression test. [RT #17375]
 
 2292.	[bug]		Log if the working directory is not writable.
