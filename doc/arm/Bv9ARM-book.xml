@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.86 2007/09/26 03:36:59 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.87 2008/01/18 02:23:18 jinmei Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2316,7 +2316,7 @@ statement: <command>controls { };</command>.
     </sect2>
     <sect2>
       <title><command>include</command> Statement Grammar</title>
-      <programlisting>include <replaceable>filename</replaceable>;</programlisting>
+      <programlisting><command>include</command> <replaceable>filename</replaceable>;</programlisting>
     </sect2>
     <sect2>
       <title><command>include</command> Statement Definition and Usage</title>
@@ -2332,7 +2332,7 @@ statement: <command>controls { };</command>.
     </sect2>
     <sect2>
       <title><command>key</command> Statement Grammar</title>
-<programlisting>key <replaceable>key_id</replaceable> {
+<programlisting><command>key</command> <replaceable>key_id</replaceable> {
     algorithm <replaceable>string</replaceable>;
     secret <replaceable>string</replaceable>;
 };
@@ -2820,7 +2820,7 @@ to be easily used by multiple stub and slave zones.</para>
 <para>This is the grammar of the <command>options</command>
 statement in the <filename>named.conf</filename> file:</para>
 
-<programlisting>options {
+<programlisting><command>options</command> {
     <optional> version <replaceable>version_string</replaceable>; </optional>
     <optional> hostname <replaceable>hostname_string</replaceable>; </optional>
     <optional> server-id <replaceable>server_id_string</replaceable>; </optional>
@@ -4517,7 +4517,7 @@ to be incremented, and may additionally cause the
 <sect2 id="server_statement_grammar">
 <title><command>server</command> Statement Grammar</title>
 
-<programlisting>server <replaceable>ip_addr</replaceable> {
+<programlisting><command>server</command> <replaceable>ip_addr</replaceable> {
     <optional> bogus <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> provide-ixfr <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> request-ixfr <replaceable>yes_or_no</replaceable> ; </optional>
@@ -4623,7 +4623,7 @@ For more details, see the description of
 </sect2>
 
 <sect2><title><command>trusted-keys</command> Statement Grammar</title>
-<programlisting>trusted-keys {
+<programlisting><command>trusted-keys</command> {
     <replaceable>string</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>string</replaceable> ;
     <optional> <replaceable>string</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>string</replaceable> ; <optional>...</optional></optional>
 };
@@ -4663,7 +4663,7 @@ For more details, see the description of
 
 <sect2 id="view_statement_grammar">
 <title><command>view</command> Statement Grammar</title>
-<programlisting>view <replaceable>view_name</replaceable> 
+<programlisting><command>view</command> <replaceable>view_name</replaceable> 
       <optional><replaceable>class</replaceable></optional> {
       match-clients { <replaceable>address_match_list</replaceable> } ;
       match-destinations { <replaceable>address_match_list</replaceable> } ;
@@ -4759,7 +4759,7 @@ view "external" {
 </sect2>
 <sect2 id="zone_statement_grammar"><title><command>zone</command>
 Statement Grammar</title>
-<programlisting>zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replaceable></optional> { 
+<programlisting><command>zone</command> <replaceable>zone_name</replaceable> <optional><replaceable>class</replaceable></optional> { 
     type master;
     <optional> allow-query { <replaceable>address_match_list</replaceable> } ; </optional>
     <optional> allow-transfer { <replaceable>address_match_list</replaceable> } ; </optional>
