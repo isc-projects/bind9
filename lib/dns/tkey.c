@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.88 2008/01/02 23:47:02 tbox Exp $
+ * $Id: tkey.c,v 1.89 2008/01/18 23:46:58 tbox Exp $
  */
 /*! \file */
 #include <config.h>
@@ -766,7 +766,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 			RETERR(process_gsstkey(msg, signer, keyname, &tkeyin,
 					       tctx, &tkeyout, ring,
 					       &namelist));
-			
+
 			break;
 		case DNS_TKEYMODE_DELETE:
 			tkeyout.error = dns_rcode_noerror;
@@ -1399,7 +1399,7 @@ dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 	 * anything yet.
 	 */
 
-	RETERR(dns_tsigkey_createfromkey(tkeyname, 
+	RETERR(dns_tsigkey_createfromkey(tkeyname,
 					 (win2k
 					  ? DNS_TSIG_GSSAPIMS_NAME
 					  : DNS_TSIG_GSSAPI_NAME),

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.157 2008/01/14 23:46:56 tbox Exp $ */
+/* $Id: validator.c,v 1.158 2008/01/18 23:46:58 tbox Exp $ */
 
 #include <config.h>
 
@@ -53,7 +53,7 @@
  *	dlv_validator_start -> validator_start -> validate -> proveunsecure
  *
  * validator_start -> validate -> nsecvalidate	(secure wildcard answer)
- * 
+ *
  * \li When called with rdataset, sigrdataset and with DNS_VALIDATOR_DLV:
  * validator_start -> startfinddlvsep -> dlv_validator_start ->
  *	validator_start -> validate -> proveunsecure
@@ -451,7 +451,7 @@ dsfetched2(isc_task_t *task, isc_event_t *event) {
 		   eresult == DNS_R_NCACHENXDOMAIN)
 	{
 		/*
-		 * There is a DS which may or may not be a zone cut. 
+		 * There is a DS which may or may not be a zone cut.
 		 * In either case we are still in a secure zone resume
 		 * validation.
 		 */
@@ -777,7 +777,7 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 	} else {
 		dns_name_t **proofs = val->event->proofs;
 		dns_name_t *wild = dns_fixedname_name(&val->wild);
-		
+
 		if (rdataset->trust == dns_trust_secure)
 			val->seensig = ISC_TRUE;
 
@@ -785,7 +785,7 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 		    rdataset->trust == dns_trust_secure &&
 		    ((val->attributes & VALATTR_NEEDNODATA) != 0 ||
 		     (val->attributes & VALATTR_NEEDNOQNAME) != 0) &&
-	            (val->attributes & VALATTR_FOUNDNODATA) == 0 &&
+		    (val->attributes & VALATTR_FOUNDNODATA) == 0 &&
 		    (val->attributes & VALATTR_FOUNDNOQNAME) == 0 &&
 		    nsecnoexistnodata(val, val->event->name, devent->name,
 				      rdataset, &exists, &data, wild)
@@ -898,7 +898,7 @@ view_find(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type) {
 			/* End of zone chain. */
 			if (!dns_name_issubdomain(name, &nsec.next)) {
 				/*
- 				 * XXXMPA We could look for a parent NSEC
+				 * XXXMPA We could look for a parent NSEC
 				 * at nsec.next and if found retest with
 				 * this NSEC.
 				 */
@@ -935,10 +935,10 @@ view_find(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type) {
 		dns_rdata_freestruct(&nsec);
 		result = DNS_R_NCACHENXDOMAIN;
 	} else if (result != ISC_R_SUCCESS &&
-                   result != DNS_R_NCACHENXDOMAIN &&
-                   result != DNS_R_NCACHENXRRSET &&
-                   result != DNS_R_NXRRSET &&
-                   result != ISC_R_NOTFOUND) {
+		   result != DNS_R_NCACHENXDOMAIN &&
+		   result != DNS_R_NCACHENXRRSET &&
+		   result != DNS_R_NXRRSET &&
+		   result != ISC_R_NOTFOUND) {
 		goto  notfound;
 	}
 	return (result);
@@ -1541,7 +1541,7 @@ dlv_validatezonekey(dns_validator_t *val) {
 		if (!dns_resolver_digest_supported(val->view->resolver,
 						   dlv.digest_type))
 			continue;
-		
+
 		if (dlv.digest_type != digest_type)
 			continue;
 
@@ -1750,7 +1750,7 @@ validatezonekey(dns_validator_t *val) {
 			 * the RRset is invalid.
 			 */
 			dns_name_format(val->event->name, namebuf,
-				        sizeof(namebuf));
+					sizeof(namebuf));
 			validator_log(val, ISC_LOG_DEBUG(2),
 				      "unable to find a DNSKEY which verifies "
 				      "the DNSKEY RRset and also matches one "
@@ -1923,7 +1923,7 @@ validatezonekey(dns_validator_t *val) {
 				      "no DNSKEY matching DS");
 			continue;
 		}
-		
+
 		for (result = dns_rdataset_first(val->event->sigrdataset);
 		     result == ISC_R_SUCCESS;
 		     result = dns_rdataset_next(val->event->sigrdataset))
@@ -2003,7 +2003,7 @@ start_positive_validation(dns_validator_t *val) {
  * exclusive we stop when one is found.
  *
  * Returns
- * \li	ISC_R_SUCCESS 
+ * \li	ISC_R_SUCCESS
  */
 static isc_result_t
 checkwildcard(dns_validator_t *val) {
@@ -2252,7 +2252,7 @@ check_ds(dns_validator_t *val, dns_name_t *name, dns_rdataset_t *rdataset) {
 
 /*%
  * Callback from fetching a DLV record.
- * 
+ *
  * Resumes the DLV lookup process.
  */
 static void
@@ -2326,7 +2326,7 @@ dlvfetched(isc_task_t *task, isc_event_t *event) {
 
 /*%
  * Start the DLV lookup proccess.
- * 
+ *
  * Returns
  * \li	ISC_R_SUCCESS
  * \li	DNS_R_WAIT
@@ -2518,7 +2518,7 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 			dns_name_split(secroot, 1, NULL, secroot);
 		result = dns_keytable_finddeepestmatch(val->keytable,
 						       secroot, secroot);
-	
+
 		if (result == ISC_R_NOTFOUND) {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "not beneath secure root");

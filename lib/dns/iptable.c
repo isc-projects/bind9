@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: iptable.c,v 1.7 2008/01/17 23:46:59 tbox Exp $ */
+/* $Id: iptable.c,v 1.8 2008/01/18 23:46:58 tbox Exp $ */
 
 #include <isc/mem.h>
 #include <isc/radix.h>
@@ -37,7 +37,7 @@ dns_iptable_create(isc_mem_t *mctx, dns_iptable_t **target) {
 	tab->mctx = mctx;
 	isc_refcount_init(&tab->refcount, 1);
 	tab->magic = DNS_IPTABLE_MAGIC;
-	
+
 	result = isc_radix_create(mctx, &tab->radix, RADIX_MAXBITS);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
@@ -58,7 +58,7 @@ isc_boolean_t dns_iptable_pos = ISC_TRUE;
  */
 isc_result_t
 dns_iptable_addprefix(dns_iptable_t *tab, isc_netaddr_t *addr,
-                      isc_uint16_t bitlen, isc_boolean_t pos)
+		      isc_uint16_t bitlen, isc_boolean_t pos)
 {
 	isc_result_t result;
 	isc_prefix_t pfx;
@@ -75,13 +75,13 @@ dns_iptable_addprefix(dns_iptable_t *tab, isc_netaddr_t *addr,
 	if (result != ISC_R_SUCCESS)
 		return(result);
 
-        /* If the node already contains data, don't overwrite it */
-        if (node->data == NULL) {
-                if (pos)
-        	        node->data = &dns_iptable_pos;
-                else
-        	        node->data = &dns_iptable_neg;
-        }
+	/* If the node already contains data, don't overwrite it */
+	if (node->data == NULL) {
+		if (pos)
+			node->data = &dns_iptable_pos;
+		else
+			node->data = &dns_iptable_neg;
+	}
 
 	return (ISC_R_SUCCESS);
 }
@@ -94,35 +94,35 @@ dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, isc_boolean_t pos)
 {
 	isc_result_t result;
 	isc_radix_node_t *node, *new_node;
-        int max_node = 0;
+	int max_node = 0;
 
 	RADIX_WALK (source->radix->head, node) {
 		result = isc_radix_insert (tab->radix, &new_node, node, NULL);
 
-	        if (result != ISC_R_SUCCESS)
-	        	return(result);
+		if (result != ISC_R_SUCCESS)
+			return(result);
 
-                /*
-                 * If we're negating a nested ACL, then we should
-                 * reverse the sense of every node.  However, this
-                 * could lead to a negative node in a nested ACL
-                 * becoming a positive match in the parent, which
-                 * could be a security risk.  To prevent this, we
-                 * just leave the negative nodes negative.
-                 */
-                if (!pos &&
-                    node->data &&
-                    *(isc_boolean_t *) node->data == ISC_TRUE)
-                        new_node->data = &dns_iptable_neg;
-                else
-                        new_node->data = node->data;
+		/*
+		 * If we're negating a nested ACL, then we should
+		 * reverse the sense of every node.  However, this
+		 * could lead to a negative node in a nested ACL
+		 * becoming a positive match in the parent, which
+		 * could be a security risk.  To prevent this, we
+		 * just leave the negative nodes negative.
+		 */
+		if (!pos &&
+		    node->data &&
+		    *(isc_boolean_t *) node->data == ISC_TRUE)
+			new_node->data = &dns_iptable_neg;
+		else
+			new_node->data = node->data;
 
-                if (node->node_num > max_node)
-                        max_node = node->node_num;
+		if (node->node_num > max_node)
+			max_node = node->node_num;
 	} RADIX_WALK_END;
 
-        tab->radix->num_added_node += max_node;
-        return (ISC_R_SUCCESS);
+	tab->radix->num_added_node += max_node;
+	return (ISC_R_SUCCESS);
 }
 
 void
@@ -152,7 +152,7 @@ destroy_iptable(dns_iptable_t *dtab) {
 		isc_radix_destroy(dtab->radix, NULL);
 		dtab->radix = NULL;
 	}
-	
+
 	isc_refcount_destroy(&dtab->refcount);
 	dtab->magic = 0;
 	isc_mem_put(dtab->mctx, dtab, sizeof(*dtab));

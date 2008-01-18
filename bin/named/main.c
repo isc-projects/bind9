@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.160 2008/01/02 23:47:01 tbox Exp $ */
+/* $Id: main.c,v 1.161 2008/01/18 23:46:57 tbox Exp $ */
 
 /*! \file */
 
@@ -356,7 +356,7 @@ parse_command_line(int argc, char *argv[]) {
 
 	isc_commandline_errprint = ISC_FALSE;
 	while ((ch = isc_commandline_parse(argc, argv,
-			         "46c:C:d:fgi:lm:n:N:p:P:st:T:u:vx:")) != -1) {
+				 "46c:C:d:fgi:lm:n:N:p:P:st:T:u:vx:")) != -1) {
 		switch (ch) {
 		case '4':
 			if (disable4)
@@ -678,7 +678,7 @@ setup(void) {
 					       sizeof(absolute_conffile));
 		if (result != ISC_R_SUCCESS)
 			ns_main_earlyfatal("could not construct absolute path of "
-					   "configuration file: %s", 
+					   "configuration file: %s",
 					   isc_result_totext(result));
 		ns_g_conffile = absolute_conffile;
 	}
@@ -778,7 +778,7 @@ ns_smf_get_instance(char **ins_name, int debug, isc_mem_t *mctx) {
 		if (debug)
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "scf_handle_create() failed: %s",
-			 		 scf_strerror(scf_error()));
+					 scf_strerror(scf_error()));
 		return (ISC_R_FAILURE);
 	}
 

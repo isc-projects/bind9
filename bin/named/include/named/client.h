@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.84 2008/01/02 23:47:01 tbox Exp $ */
+/* $Id: client.h,v 1.85 2008/01/18 23:46:57 tbox Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file 
+/*! \file
  * \brief
  * This module defines two objects, ns_client_t and ns_clientmgr_t.
  *
@@ -365,8 +365,8 @@ ns_client_qnamereplace(ns_client_t *client, dns_name_t *name);
 
 isc_boolean_t
 ns_client_isself(dns_view_t *myview, dns_tsigkey_t *mykey,
-                 isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
-                 dns_rdataclass_t rdclass, void *arg);
+		 isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
+		 dns_rdataclass_t rdclass, void *arg);
 /*%
  * Isself callback.
  */

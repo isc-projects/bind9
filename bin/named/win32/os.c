@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.27 2008/01/09 23:47:00 tbox Exp $ */
+/* $Id: os.c,v 1.28 2008/01/18 23:46:57 tbox Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -51,7 +51,7 @@ static int devnullfd = -1;
 
 static BOOL Initialized = FALSE;
 
-static char *version_error = 
+static char *version_error =
 	"named requires Windows 2000 Service Pack 2 or later to run correctly";
 
 void
@@ -83,7 +83,7 @@ version_check(const char *progname) {
 	if(isc_win32os_versioncheck(5, 0, 2, 0) < 0)
 		if (ntservice_isservice())
 			NTReportError(progname, version_error);
-		else 
+		else
 			fprintf(stderr, "%s\n", version_error);
 }
 

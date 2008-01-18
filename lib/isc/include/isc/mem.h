@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.74 2008/01/02 23:47:02 tbox Exp $ */
+/* $Id: mem.h,v 1.75 2008/01/18 23:46:58 tbox Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -157,7 +157,7 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_debugging;
 #define isc_mem_strdup(c, p)	isc__mem_strdup((c), (p) _ISC_MEM_FILELINE)
 #define isc_mempool_get(c)	isc__mempool_get((c) _ISC_MEM_FILELINE)
 
-/*% 
+/*%
  * isc_mem_putanddetach() is a convienence function for use where you
  * have a structure with an attached memory context.
  *
@@ -216,7 +216,7 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_debugging;
 #endif
 
 /*@{*/
-isc_result_t 
+isc_result_t
 isc_mem_create(size_t max_size, size_t target_size,
 	       isc_mem_t **mctxp);
 
@@ -224,12 +224,12 @@ isc_result_t
 isc_mem_create2(size_t max_size, size_t target_size,
 		isc_mem_t **mctxp, unsigned int flags);
 
-isc_result_t 
+isc_result_t
 isc_mem_createx(size_t max_size, size_t target_size,
 		isc_memalloc_t memalloc, isc_memfree_t memfree,
 		void *arg, isc_mem_t **mctxp);
 
-isc_result_t 
+isc_result_t
 isc_mem_createx2(size_t max_size, size_t target_size,
 		 isc_memalloc_t memalloc, isc_memfree_t memfree,
 		 void *arg, isc_mem_t **mctxp, unsigned int flags);
@@ -266,9 +266,9 @@ isc_mem_createx2(size_t max_size, size_t target_size,
 /*@}*/
 
 /*@{*/
-void 
+void
 isc_mem_attach(isc_mem_t *, isc_mem_t **);
-void 
+void
 isc_mem_detach(isc_mem_t **);
 /*!<
  * \brief Attach to / detach from a memory context.
@@ -276,7 +276,7 @@ isc_mem_detach(isc_mem_t **);
  * This is intended for applications that use multiple memory contexts
  * in such a way that it is not obvious when the last allocations from
  * a given context has been freed and destroying the context is safe.
- * 
+ *
  * Most applications do not need to call these functions as they can
  * simply create a single memory context at the beginning of main()
  * and destroy it at the end of main(), thereby guaranteeing that it
@@ -284,13 +284,13 @@ isc_mem_detach(isc_mem_t **);
  */
 /*@}*/
 
-void 
+void
 isc_mem_destroy(isc_mem_t **);
 /*%<
  * Destroy a memory context.
  */
 
-isc_result_t 
+isc_result_t
 isc_mem_ondestroy(isc_mem_t *ctx,
 		  isc_task_t *task,
 		  isc_event_t **event);
@@ -299,13 +299,13 @@ isc_mem_ondestroy(isc_mem_t *ctx,
  * been successfully destroyed.
  */
 
-void 
+void
 isc_mem_stats(isc_mem_t *mctx, FILE *out);
 /*%<
  * Print memory usage statistics for 'mctx' on the stream 'out'.
  */
 
-void 
+void
 isc_mem_setdestroycheck(isc_mem_t *mctx,
 			isc_boolean_t on);
 /*%<
@@ -314,9 +314,9 @@ isc_mem_setdestroycheck(isc_mem_t *mctx,
  */
 
 /*@{*/
-void 
+void
 isc_mem_setquota(isc_mem_t *, size_t);
-size_t 
+size_t
 isc_mem_getquota(isc_mem_t *);
 /*%<
  * Set/get the memory quota of 'mctx'.  This is a hard limit
@@ -325,7 +325,7 @@ isc_mem_getquota(isc_mem_t *);
  */
 /*@}*/
 
-size_t 
+size_t
 isc_mem_inuse(isc_mem_t *mctx);
 /*%<
  * Get an estimate of the number of memory in use in 'mctx', in bytes.
@@ -337,8 +337,8 @@ void
 isc_mem_setwater(isc_mem_t *mctx, isc_mem_water_t water, void *water_arg,
 		 size_t hiwater, size_t lowater);
 /*%<
- * Set high and low water marks for this memory context.  
- * 
+ * Set high and low water marks for this memory context.
+ *
  * When the memory
  * usage of 'mctx' exceeds 'hiwater', '(water)(water_arg, #ISC_MEM_HIWATER)'
  * will be called.  When the usage drops below 'lowater', 'water' will
@@ -527,22 +527,22 @@ isc_mempool_setfillcount(isc_mempool_t *mpctx, unsigned int limit);
 /*
  * Pseudo-private functions for use via macros.  Do not call directly.
  */
-void *		
+void *
 isc__mem_get(isc_mem_t *, size_t _ISC_MEM_FLARG);
-void 		
+void
 isc__mem_putanddetach(isc_mem_t **, void *,
 				      size_t _ISC_MEM_FLARG);
-void 		
+void
 isc__mem_put(isc_mem_t *, void *, size_t _ISC_MEM_FLARG);
-void *		
+void *
 isc__mem_allocate(isc_mem_t *, size_t _ISC_MEM_FLARG);
-void		
+void
 isc__mem_free(isc_mem_t *, void * _ISC_MEM_FLARG);
-char *		
+char *
 isc__mem_strdup(isc_mem_t *, const char *_ISC_MEM_FLARG);
-void *		
+void *
 isc__mempool_get(isc_mempool_t * _ISC_MEM_FLARG);
-void 		
+void
 isc__mempool_put(isc_mempool_t *, void * _ISC_MEM_FLARG);
 
 #ifdef HAVE_LIBXML2

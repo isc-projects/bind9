@@ -17,7 +17,7 @@
 
 /*! \file */
 /*
- * $Id: ssu.c,v 1.33 2008/01/02 23:47:02 tbox Exp $
+ * $Id: ssu.c,v 1.34 2008/01/18 23:46:58 tbox Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -262,7 +262,7 @@ reverse_from_address(dns_name_t *tcpself, isc_netaddr_t *tcpaddr) {
 		result = isc_string_printf(buf, sizeof(buf),
 					   "%lu.%lu.%lu.%lu.IN-ADDR.ARPA.",
 					   (l >> 0) & 0xff, (l >> 8) & 0xff,
-			                   (l >> 16) & 0xff, (l >> 24) & 0xff);
+					   (l >> 16) & 0xff, (l >> 24) & 0xff);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		break;
 	case AF_INET6:

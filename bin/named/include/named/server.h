@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.90 2008/01/17 23:46:59 tbox Exp $ */
+/* $Id: server.h,v 1.91 2008/01/18 23:46:57 tbox Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -63,7 +63,7 @@ struct ns_server {
 	isc_boolean_t		server_usehostname;
 	char *			server_id;	/*%< User-specified server id */
 
-        /*%
+	/*%
 	 * Current ACL environment.  This defines the
 	 * current values of the localhost and localnets
 	 * ACLs.

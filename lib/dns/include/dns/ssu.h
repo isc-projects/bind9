@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ssu.h,v 1.23 2008/01/02 23:47:02 tbox Exp $ */
+/* $Id: ssu.h,v 1.24 2008/01/18 23:46:58 tbox Exp $ */
 
 #ifndef DNS_SSU_H
 #define DNS_SSU_H 1
@@ -143,7 +143,7 @@ dns_ssutable_checkrules(dns_ssutable_t *table, dns_name_t *signer,
  *		the top	48 bits of the IPv6 address are mapped to the reverse
  *		name. This is independent of whether the most significant 16
  *		bits match 2002::/16, assigned for 6to4 prefixes, or not.
- * 
+ *
  *	Requires:
  *\li		'table' is a valid SSU table
  *\li		'signer' is NULL or a valid absolute name

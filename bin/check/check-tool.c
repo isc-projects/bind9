@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.c,v 1.33 2008/01/09 23:47:00 tbox Exp $ */
+/* $Id: check-tool.c,v 1.34 2008/01/18 23:46:57 tbox Exp $ */
 
 /*! \file */
 
@@ -60,7 +60,7 @@
 		result = (r); \
 		if (result != ISC_R_SUCCESS) \
 			goto cleanup; \
-	} while (0)   
+	} while (0)
 
 #define ERR_IS_CNAME 1
 #define ERR_NO_ADDRESSES 2
@@ -78,7 +78,7 @@ isc_boolean_t nomerge = ISC_TRUE;
 isc_boolean_t docheckmx = ISC_TRUE;
 isc_boolean_t dochecksrv = ISC_TRUE;
 isc_boolean_t docheckns = ISC_TRUE;
-unsigned int zone_options = DNS_ZONEOPT_CHECKNS | 
+unsigned int zone_options = DNS_ZONEOPT_CHECKNS |
 			    DNS_ZONEOPT_CHECKMX |
 			    DNS_ZONEOPT_MANYERRORS |
 			    DNS_ZONEOPT_CHECKNAMES |
@@ -109,7 +109,7 @@ freekey(char *key, unsigned int type, isc_symvalue_t value, void *userarg) {
 	UNUSED(type);
 	UNUSED(value);
 	isc_mem_free(userarg, key);
-} 
+}
 
 static void
 add(char *key, int value) {
@@ -377,7 +377,7 @@ checkmx(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner) {
 	if (dns_name_countlabels(name) > 1U)
 		strcat(namebuf, ".");
 	dns_name_format(owner, ownerbuf, sizeof(ownerbuf));
-	
+
 	result = getaddrinfo(namebuf, NULL, &hints, &ai);
 	dns_name_format(name, namebuf, sizeof(namebuf) - 1);
 	switch (result) {
@@ -462,7 +462,7 @@ checksrv(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner) {
 	if (dns_name_countlabels(name) > 1U)
 		strcat(namebuf, ".");
 	dns_name_format(owner, ownerbuf, sizeof(ownerbuf));
-	
+
 	result = getaddrinfo(namebuf, NULL, &hints, &ai);
 	dns_name_format(name, namebuf, sizeof(namebuf) - 1);
 	switch (result) {

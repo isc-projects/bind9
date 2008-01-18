@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: httpd.c,v 1.14 2008/01/17 23:47:00 tbox Exp $ */
+/* $Id: httpd.c,v 1.15 2008/01/18 23:46:58 tbox Exp $ */
 
 /*! \file */
 
@@ -692,7 +692,7 @@ isc_httpd_recvdone(isc_task_t *task, isc_event_t *ev)
 		destroy_client(&httpd);
 		goto out;
 	}
-	
+
 	isc_httpd_response(httpd);
 	isc_httpd_addheader(httpd, "Content-Type", httpd->mimetype);
 	isc_httpd_addheader(httpd, "Date", datebuf);

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.139 2008/01/02 23:47:02 tbox Exp $ */
+/* $Id: mem.c,v 1.140 2008/01/18 23:46:58 tbox Exp $ */
 
 /*! \file */
 
@@ -193,7 +193,7 @@ struct isc_mempool {
 		if ((isc_mem_debugging & (ISC_MEM_DEBUGTRACE | \
 					  ISC_MEM_DEBUGRECORD)) != 0 && \
 		     b != NULL) \
-		         add_trace_entry(a, b, c, d, e); \
+			 add_trace_entry(a, b, c, d, e); \
 	} while (0)
 #define DELETE_TRACE(a, b, c, d, e)	delete_trace_entry(a, b, c, d, e)
 
@@ -314,7 +314,7 @@ delete_trace_entry(isc_mem_t *mctx, const void *ptr, unsigned int size,
 static inline size_t
 rmsize(size_t size) {
 	/*
- 	 * round down to ALIGNMENT_SIZE
+	 * round down to ALIGNMENT_SIZE
 	 */
 	return (size & (~(ALIGNMENT_SIZE - 1)));
 }
@@ -603,7 +603,7 @@ mem_get(isc_mem_t *ctx, size_t size) {
 
 	ret = (ctx->memalloc)(ctx->arg, size);
 	if (ret == NULL)
-		ctx->memalloc_failures++;	
+		ctx->memalloc_failures++;
 
 #if ISC_MEM_FILL
 	if (ret != NULL)
@@ -705,7 +705,7 @@ isc_mem_createx(size_t init_max_size, size_t target_size,
 {
 	return (isc_mem_createx2(init_max_size, target_size, memalloc, memfree,
 				 arg, ctxp, ISC_MEMFLAG_DEFAULT));
-				 
+
 }
 
 isc_result_t
@@ -882,7 +882,7 @@ destroy(isc_mem_t *ctx) {
 				     dl != NULL;
 				     dl = ISC_LIST_HEAD(ctx->debuglist[i])) {
 					ISC_LIST_UNLINK(ctx->debuglist[i],
-						 	dl, link);
+							dl, link);
 					free(dl);
 				}
 		}
@@ -1142,7 +1142,7 @@ isc__mem_put(isc_mem_t *ctx, void *ptr, size_t size FLARG)
 	 * when the context was pushed over hi_water but then had
 	 * isc_mem_setwater() called with 0 for hi_water and lo_water.
 	 */
-	if (ctx->hi_called && 
+	if (ctx->hi_called &&
 	    (ctx->inuse < ctx->lo_water || ctx->lo_water == 0U)) {
 		ctx->hi_called = ISC_FALSE;
 
@@ -1170,11 +1170,11 @@ print_active(isc_mem_t *mctx, FILE *out) {
 					    "memory allocations:\n"));
 		found = ISC_FALSE;
 		format = isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
-				        ISC_MSG_PTRFILELINE,
+					ISC_MSG_PTRFILELINE,
 					"\tptr %p size %u file %s line %u\n");
 		for (i = 0; i <= mctx->max_size; i++) {
 			dl = ISC_LIST_HEAD(mctx->debuglist[i]);
-			
+
 			if (dl != NULL)
 				found = ISC_TRUE;
 
@@ -1372,7 +1372,7 @@ isc__mem_free(isc_mem_t *ctx, void *ptr FLARG) {
 	 * when the context was pushed over hi_water but then had
 	 * isc_mem_setwater() called with 0 for hi_water and lo_water.
 	 */
-	if (ctx->hi_called && 
+	if (ctx->hi_called &&
 	    (ctx->inuse < ctx->lo_water || ctx->lo_water == 0U)) {
 		ctx->hi_called = ISC_FALSE;
 
@@ -1462,7 +1462,7 @@ isc_mem_inuse(isc_mem_t *ctx) {
 
 void
 isc_mem_setwater(isc_mem_t *ctx, isc_mem_water_t water, void *water_arg,
-                 size_t hiwater, size_t lowater)
+		 size_t hiwater, size_t lowater)
 {
 	isc_boolean_t callwater = ISC_FALSE;
 	isc_mem_water_t oldwater;
@@ -1493,7 +1493,7 @@ isc_mem_setwater(isc_mem_t *ctx, isc_mem_water_t water, void *water_arg,
 		ctx->hi_called = ISC_FALSE;
 	}
 	MCTXUNLOCK(ctx, &ctx->lock);
-	
+
 	if (callwater && oldwater != NULL)
 		(oldwater)(oldwater_arg, ISC_MEM_LOWATER);
 }
@@ -1932,7 +1932,7 @@ isc_mem_printallactive(FILE *file) {
 #endif
 }
 
-void    
+void
 isc_mem_checkdestroyed(FILE *file) {
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);

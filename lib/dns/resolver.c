@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.358 2008/01/15 23:46:59 tbox Exp $ */
+/* $Id: resolver.c,v 1.359 2008/01/18 23:46:58 tbox Exp $ */
 
 /*! \file */
 
@@ -824,7 +824,7 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 	isc_interval_t i;
 	isc_boolean_t logit = ISC_FALSE;
 	unsigned int old_spillat;
-	unsigned int new_spillat = 0;	/* initialized to silence 
+	unsigned int new_spillat = 0;	/* initialized to silence
 					   compiler warnings */
 
 	/*
