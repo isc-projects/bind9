@@ -223,7 +223,7 @@ server <netprefix> {
 
 statistics-channels {
         inet ( <ipv4_address> | <ipv6_address> | * ) [ port ( <integer> | *
-            ) ] [ { { <address_match_element>; ... }; ... };
+            ) ] [ allow { <address_match_element>; ... } ];
 };
 
 trusted-keys { <string> <integer> <integer> <integer> <quoted_string>; ... };
