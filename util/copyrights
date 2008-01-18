@@ -2583,7 +2583,7 @@
 ./util/tabify-changes				SH	2004,2007
 ./util/update-drafts.pl				PERL	2000,2001,2004,2007
 ./util/update_branches				PERL	2005,2007
-./util/update_copyrights			PERL	1998,1999,2000,2001,2004,2005,2006,2007
+./util/update_copyrights			PERL	1998,1999,2000,2001,2004,2005,2006,2007,2008
 ./version					X	1998,1999,2000,2001,2003,2005,2006,2007,2008
 ./win32utils/BINDBuild.dsw			X	2001,2005,2006
 ./win32utils/BuildAll.bat			BAT	2001,2002,2004,2005,2006,2007
