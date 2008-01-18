@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.343 2008/01/17 00:15:13 jinmei Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.344 2008/01/18 01:59:07 jinmei Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -3606,7 +3606,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
       </sect2>
       <sect2>
         <title><command>include</command> Statement Grammar</title>
-        <programlisting>include <replaceable>filename</replaceable>;</programlisting>
+        <programlisting><command>include</command> <replaceable>filename</replaceable>;</programlisting>
       </sect2>
       <sect2>
         <title><command>include</command> Statement Definition and
@@ -3627,7 +3627,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
       <sect2>
         <title><command>key</command> Statement Grammar</title>
 
-<programlisting>key <replaceable>key_id</replaceable> {
+<programlisting><command>key</command> <replaceable>key_id</replaceable> {
     algorithm <replaceable>string</replaceable>;
     secret <replaceable>string</replaceable>;
 };
@@ -4425,7 +4425,7 @@ category notify { null; };
           statement in the <filename>named.conf</filename> file:
         </para>
 
-<programlisting>options {
+<programlisting><command>options</command> {
     <optional> version <replaceable>version_string</replaceable>; </optional>
     <optional> hostname <replaceable>hostname_string</replaceable>; </optional>
     <optional> server-id <replaceable>server_id_string</replaceable>; </optional>
@@ -7950,7 +7950,7 @@ query-source-v6 address * port *;
       <sect2 id="server_statement_grammar">
         <title><command>server</command> Statement Grammar</title>
 
-<programlisting>server <replaceable>ip_addr[/prefixlen]</replaceable> {
+<programlisting><command>server</command> <replaceable>ip_addr[/prefixlen]</replaceable> {
     <optional> bogus <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> provide-ixfr <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> request-ixfr <replaceable>yes_or_no</replaceable> ; </optional>
@@ -8162,7 +8162,7 @@ query-source-v6 address * port *;
         <sect2>
           <title><command>trusted-keys</command> Statement Grammar</title>
 
-<programlisting>trusted-keys {
+<programlisting><command>trusted-keys</command> {
     <replaceable>string</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>string</replaceable> ;
     <optional> <replaceable>string</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>string</replaceable> ; <optional>...</optional></optional>
 };
@@ -8203,7 +8203,7 @@ query-source-v6 address * port *;
         <sect2 id="view_statement_grammar">
           <title><command>view</command> Statement Grammar</title>
 
-<programlisting>view <replaceable>view_name</replaceable>
+<programlisting><command>view</command> <replaceable>view_name</replaceable>
       <optional><replaceable>class</replaceable></optional> {
       match-clients { <replaceable>address_match_list</replaceable> };
       match-destinations { <replaceable>address_match_list</replaceable> };
@@ -8344,7 +8344,7 @@ view "external" {
           <title><command>zone</command>
             Statement Grammar</title>
 
-<programlisting>zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replaceable></optional> {
+<programlisting><command>zone</command> <replaceable>zone_name</replaceable> <optional><replaceable>class</replaceable></optional> {
     type master;
     <optional> allow-query { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-query-on { <replaceable>address_match_list</replaceable> }; </optional>
