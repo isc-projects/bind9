@@ -1,5 +1,5 @@
 <!--
- - Copyright (C) 2004-2007 Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2004-2008 Internet Systems Consortium, Inc. ("ISC")
  - Copyright (C) 2000-2003 Internet Software Consortium.
  - 
  - Permission to use, copy, modify, and distribute this software for any
@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch04.html,v 1.30.2.6.2.31 2007/06/20 02:26:23 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch04.html,v 1.30.2.6.2.32 2008/01/19 01:52:13 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -49,29 +49,29 @@
 <dt><span class="sect1"><a href="Bv9ARM.ch04.html#dynamic_update">Dynamic Update</a></span></dt>
 <dd><dl><dt><span class="sect2"><a href="Bv9ARM.ch04.html#journal">The journal file</a></span></dt></dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch04.html#incremental_zone_transfers">Incremental Zone Transfers (IXFR)</a></span></dt>
-<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2567685">Split DNS</a></span></dt>
-<dd><dl><dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2567702">Example split DNS setup</a></span></dt></dl></dd>
+<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2567688">Split DNS</a></span></dt>
+<dd><dl><dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2567705">Example split DNS setup</a></span></dt></dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch04.html#tsig">TSIG</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2568044">Generate Shared Keys for Each Pair of Hosts</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2568179">Copying the Shared Secret to Both Machines</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2568187">Informing the Servers of the Key's Existence</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2568227">Instructing the Server to Use the Key</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2568347">TSIG Key Based Access Control</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2568391">Errors</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2568048">Generate Shared Keys for Each Pair of Hosts</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2568182">Copying the Shared Secret to Both Machines</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2568190">Informing the Servers of the Key's Existence</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2568230">Instructing the Server to Use the Key</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2568350">TSIG Key Based Access Control</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2568394">Errors</a></span></dt>
 </dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2568405">TKEY</a></span></dt>
-<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2568454">SIG(0)</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2568408">TKEY</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2568457">SIG(0)</a></span></dt>
 <dt><span class="sect1"><a href="Bv9ARM.ch04.html#DNSSEC">DNSSEC</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2568657">Generating Keys</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2568724">Signing the Zone</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2568798">Configuring Servers</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2568592">Generating Keys</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2568727">Signing the Zone</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2568802">Configuring Servers</a></span></dt>
 </dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2568936">IPv6 Support in <acronym class="acronym">BIND</acronym> 9</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2568939">IPv6 Support in <acronym class="acronym">BIND</acronym> 9</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2569063">Address Lookups Using AAAA Records</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2569083">Address to Name Lookups Using Nibble Format</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2569066">Address Lookups Using AAAA Records</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2569086">Address to Name Lookups Using Nibble Format</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -169,7 +169,7 @@ of the <span><strong class="command">server</strong></span> statement.</p>
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2567685"></a>Split DNS</h2></div></div></div>
+<a name="id2567688"></a>Split DNS</h2></div></div></div>
 <p>Setting up different views, or visibility, of the DNS space to
 internal and external resolvers is usually referred to as a <span class="emphasis"><em>Split
 DNS</em></span> setup. There are several reasons an organization
@@ -187,7 +187,7 @@ on the Internet. Split DNS can also be used to allow mail from outside
 back in to the internal network.</p>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2567702"></a>Example split DNS setup</h3></div></div></div>
+<a name="id2567705"></a>Example split DNS setup</h3></div></div></div>
 <p>Let's say a company named <span class="emphasis"><em>Example, Inc.</em></span>
 (<code class="literal">example.com</code>)
 has several corporate sites that have an internal network with reserved
@@ -376,13 +376,13 @@ for TSIG.</p>
     <code class="option">-y</code> command line options.</p>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2568044"></a>Generate Shared Keys for Each Pair of Hosts</h3></div></div></div>
+<a name="id2568048"></a>Generate Shared Keys for Each Pair of Hosts</h3></div></div></div>
 <p>A shared secret is generated to be shared between <span class="emphasis"><em>host1</em></span> and <span class="emphasis"><em>host2</em></span>.
 An arbitrary key name is chosen: "host1-host2.". The key name must
 be the same on both hosts.</p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2568129"></a>Automatic Generation</h4></div></div></div>
+<a name="id2568132"></a>Automatic Generation</h4></div></div></div>
 <p>The following command will generate a 128-bit (16 byte) HMAC-MD5
 key as described above. Longer keys are better, but shorter keys
 are easier to read. Note that the maximum key length is 512 bits;
@@ -399,7 +399,7 @@ be used as the shared secret.</p>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2568163"></a>Manual Generation</h4></div></div></div>
+<a name="id2568166"></a>Manual Generation</h4></div></div></div>
 <p>The shared secret is simply a random sequence of bits, encoded
 in base-64. Most ASCII strings are valid base-64 strings (assuming
 the length is a multiple of 4 and only valid characters are used),
@@ -410,13 +410,13 @@ a similar program to generate base-64 encoded data.</p>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2568179"></a>Copying the Shared Secret to Both Machines</h3></div></div></div>
+<a name="id2568182"></a>Copying the Shared Secret to Both Machines</h3></div></div></div>
 <p>This is beyond the scope of DNS. A secure transport mechanism
 should be used. This could be secure FTP, ssh, telephone, etc.</p>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2568187"></a>Informing the Servers of the Key's Existence</h3></div></div></div>
+<a name="id2568190"></a>Informing the Servers of the Key's Existence</h3></div></div></div>
 <p>Imagine <span class="emphasis"><em>host1</em></span> and <span class="emphasis"><em>host 2</em></span> are
 both servers. The following is added to each server's <code class="filename">named.conf</code> file:</p>
 <pre class="programlisting">
@@ -437,7 +437,7 @@ response is signed by the same key.</p>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2568227"></a>Instructing the Server to Use the Key</h3></div></div></div>
+<a name="id2568230"></a>Instructing the Server to Use the Key</h3></div></div></div>
 <p>Since keys are shared between two hosts only, the server must
 be told when keys are to be used. The following is added to the <code class="filename">named.conf</code> file
 for <span class="emphasis"><em>host1</em></span>, if the IP address of <span class="emphasis"><em>host2</em></span> is
@@ -460,7 +460,7 @@ sign request messages to <span class="emphasis"><em>host1</em></span>.</p>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2568347"></a>TSIG Key Based Access Control</h3></div></div></div>
+<a name="id2568350"></a>TSIG Key Based Access Control</h3></div></div></div>
 <p><acronym class="acronym">BIND</acronym> allows IP addresses and ranges to be specified in ACL
 definitions and
 <span><strong class="command">allow-{ query | transfer | update }</strong></span> directives.
@@ -478,7 +478,7 @@ allow-update { key host1-host2. ;};
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2568391"></a>Errors</h3></div></div></div>
+<a name="id2568394"></a>Errors</h3></div></div></div>
 <p>The processing of TSIG signed messages can result in
       several errors. If a signed message is sent to a non-TSIG
       aware server, a FORMERR (format error) will be returned, since
@@ -501,7 +501,7 @@ allow-update { key host1-host2. ;};
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2568405"></a>TKEY</h2></div></div></div>
+<a name="id2568408"></a>TKEY</h2></div></div></div>
 <p><span><strong class="command">TKEY</strong></span> is a mechanism for automatically
     generating a shared secret between two hosts.  There are several
     "modes" of <span><strong class="command">TKEY</strong></span> that specify how the key is
@@ -528,7 +528,7 @@ allow-update { key host1-host2. ;};
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2568454"></a>SIG(0)</h2></div></div></div>
+<a name="id2568457"></a>SIG(0)</h2></div></div></div>
 <p><acronym class="acronym">BIND</acronym> 9 partially supports DNSSEC SIG(0)
     transaction signatures as specified in RFC 2535 and RFC2931.  SIG(0)
     uses public/private keys to authenticate messages.  Access control
@@ -571,7 +571,7 @@ allow-update { key host1-host2. ;};
     zone key of another zone above this one in the DNS tree.</p>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2568657"></a>Generating Keys</h3></div></div></div>
+<a name="id2568592"></a>Generating Keys</h3></div></div></div>
 <p>The <span><strong class="command">dnssec-keygen</strong></span> program is used to
       generate keys.</p>
 <p>A secure zone must contain one or more zone keys.  The
@@ -604,7 +604,7 @@ allow-update { key host1-host2. ;};
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2568724"></a>Signing the Zone</h3></div></div></div>
+<a name="id2568727"></a>Signing the Zone</h3></div></div></div>
 <p>The <span><strong class="command">dnssec-signzone</strong></span> program is used to
       sign a zone.</p>
 <p>Any <code class="filename">keyset</code> files corresponding
@@ -631,7 +631,7 @@ allow-update { key host1-host2. ;};
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2568798"></a>Configuring Servers</h3></div></div></div>
+<a name="id2568802"></a>Configuring Servers</h3></div></div></div>
 <p>
 	  To enable <span><strong class="command">named</strong></span> to respond appropriately
 	  to DNS requests from DNSSEC aware clients,
@@ -717,7 +717,7 @@ options {
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2568936"></a>IPv6 Support in <acronym class="acronym">BIND</acronym> 9</h2></div></div></div>
+<a name="id2568939"></a>IPv6 Support in <acronym class="acronym">BIND</acronym> 9</h2></div></div></div>
 <p><acronym class="acronym">BIND</acronym> 9 fully supports all currently defined forms of IPv6
     name to address and address to name lookups.  It will also use
     IPv6 addresses to make queries when running on an IPv6 capable
@@ -746,7 +746,7 @@ options {
     see <a href="Bv9ARM.ch09.html#ipv6addresses" title="IPv6 addresses (AAAA)">the section called &#8220;IPv6 addresses (AAAA)&#8221;</a>.</p>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2569063"></a>Address Lookups Using AAAA Records</h3></div></div></div>
+<a name="id2569066"></a>Address Lookups Using AAAA Records</h3></div></div></div>
 <p>The AAAA record is a parallel to the IPv4 A record.  It
       specifies the entire address in a single record.  For
       example,</p>
@@ -761,7 +761,7 @@ host            3600    IN      AAAA    2001:db8::1
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2569083"></a>Address to Name Lookups Using Nibble Format</h3></div></div></div>
+<a name="id2569086"></a>Address to Name Lookups Using Nibble Format</h3></div></div></div>
 <p>When looking up an address in nibble format, the address
       components are simply reversed, just as in IPv4, and
       <code class="literal">ip6.arpa.</code> is appended to the resulting name.
