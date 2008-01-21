@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.c,v 1.37.2.2 2008/01/17 23:46:37 tbox Exp $ */
+/* $Id: acl.c,v 1.37.2.3 2008/01/21 21:02:23 each Exp $ */
 
 /*! \file */
 
@@ -186,7 +186,7 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
 	      int *match,
 	      const dns_aclelement_t **matchelt)
 {
-	isc_uint16_t bitlen;
+	isc_uint16_t bitlen, family;
 	isc_prefix_t pfx;
 	isc_radix_node_t *node;
 	const isc_netaddr_t *addr;
@@ -208,7 +208,8 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
 	}
 
 	/* Always match with host addresses. */
-	bitlen = reqaddr->family == AF_INET6 ? 128 : 32;
+	family = reqaddr->family;
+	bitlen = family == AF_INET6 ? 128 : 32;
 	NETADDR_TO_PREFIX_T(addr, pfx, bitlen);
 
 	/* Assume no match. */
@@ -219,8 +220,8 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
 
 	/* Found a match. */
 	if (result == ISC_R_SUCCESS && node != NULL) {
-		match_num = node->node_num;
-		if (*(isc_boolean_t *) node->data == ISC_TRUE)
+		match_num = node->node_num[ISC_IS6(family)];
+		if (*(isc_boolean_t *) node->data[ISC_IS6(family)] == ISC_TRUE)
 			*match = match_num;
 		else
 			*match = -match_num;
@@ -309,7 +310,7 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, isc_boolean_t pos)
 			source->elements[i].node_num + dest->node_count;
 
 		/* Duplicate nested acl. */
-		if(source->elements[i].type == dns_aclelementtype_nestedacl &&
+		if (source->elements[i].type == dns_aclelementtype_nestedacl &&
 		   source->elements[i].nestedacl != NULL)
 			dns_acl_attach(source->elements[i].nestedacl,
 				       &dest->elements[nelem + i].nestedacl);
@@ -484,24 +485,29 @@ initialize_action(void) {
  * insecure.
  */
 static void
-is_insecure(isc_prefix_t *prefix, void *data) {
-	isc_boolean_t secure = * (isc_boolean_t *)data;
+is_insecure(isc_prefix_t *prefix, void **data) {
+	isc_boolean_t secure;
+	int bitlen, family;
 
+	/* Bitlen 0 means "any" or "none", which is always treated as IPv4 */
+	bitlen = prefix->bitlen;
+	family = bitlen ? prefix->family : AF_INET;
+  
 	/* Negated entries are always secure. */
+	secure = * (isc_boolean_t *)data[ISC_IS6(family)];
 	if (!secure) {
-		return;
+		return; 
 	}
-
+  
 	/* If loopback prefix found, return */
-	switch (prefix->family) {
+	switch (family) {
 	case AF_INET:
-		if (prefix->bitlen == 32 &&
+		if (bitlen == 32 &&
 		    htonl(prefix->add.sin.s_addr) == INADDR_LOOPBACK)
 			return;
 		break;
 	case AF_INET6:
-		if (prefix->bitlen == 128 &&
-		    IN6_IS_ADDR_LOOPBACK(&prefix->add.sin6))
+		if (bitlen == 128 && IN6_IS_ADDR_LOOPBACK(&prefix->add.sin6))
 			return;
 		break;
 	default:
@@ -509,7 +515,7 @@ is_insecure(isc_prefix_t *prefix, void *data) {
 	}
 
 	/* Non-negated, non-loopback */
-	insecure_prefix_found = ISC_TRUE;
+	insecure_prefix_found = ISC_TRUE;	/* LOCKED */
 	return;
 }
 
