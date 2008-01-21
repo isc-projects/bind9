@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: iptable.c,v 1.8 2008/01/18 23:46:58 tbox Exp $ */
+/* $Id: iptable.c,v 1.9 2008/01/21 20:38:54 each Exp $ */
 
 #include <isc/mem.h>
 #include <isc/radix.h>
@@ -63,12 +63,15 @@ dns_iptable_addprefix(dns_iptable_t *tab, isc_netaddr_t *addr,
 	isc_result_t result;
 	isc_prefix_t pfx;
 	isc_radix_node_t *node;
+	int family;
 
 	INSIST(DNS_IPTABLE_VALID(tab));
 	INSIST(tab->radix);
-	INSIST(bitlen <= 32 || (addr->family == AF_INET6 && bitlen <= 128));
 
 	NETADDR_TO_PREFIX_T(addr, pfx, bitlen);
+
+	/* Bitlen 0 means "any" or "none", which is always treated as IPv4 */
+	family = bitlen ? pfx.family : AF_INET;
 
 	result = isc_radix_insert(tab->radix, &node, NULL, &pfx);
 
@@ -76,11 +79,11 @@ dns_iptable_addprefix(dns_iptable_t *tab, isc_netaddr_t *addr,
 		return(result);
 
 	/* If the node already contains data, don't overwrite it */
-	if (node->data == NULL) {
+	if (node->data[ISC_IS6(family)] == NULL) {
 		if (pos)
-			node->data = &dns_iptable_pos;
+			node->data[ISC_IS6(family)] = &dns_iptable_pos;
 		else
-			node->data = &dns_iptable_neg;
+			node->data[ISC_IS6(family)] = &dns_iptable_neg;
 	}
 
 	return (ISC_R_SUCCESS);
@@ -110,15 +113,24 @@ dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, isc_boolean_t pos)
 		 * could be a security risk.  To prevent this, we
 		 * just leave the negative nodes negative.
 		 */
-		if (!pos &&
-		    node->data &&
-		    *(isc_boolean_t *) node->data == ISC_TRUE)
-			new_node->data = &dns_iptable_neg;
-		else
-			new_node->data = node->data;
+		if (!pos) {
+			if (node->data[0] &&
+			    *(isc_boolean_t *) node->data[0] == ISC_TRUE)
+				new_node->data[0] = &dns_iptable_neg;
+			else
+				new_node->data[0] = node->data[0];
 
-		if (node->node_num > max_node)
-			max_node = node->node_num;
+			if (node->data[1] &&
+			    *(isc_boolean_t *) node->data[1] == ISC_TRUE)
+				new_node->data[1] = &dns_iptable_neg;
+			else
+				new_node->data[1] = node->data[0];
+		}
+
+		if (node->node_num[0] > max_node)
+			max_node = node->node_num[0];
+		if (node->node_num[1] > max_node)
+			max_node = node->node_num[1];
 	} RADIX_WALK_END;
 
 	tab->radix->num_added_node += max_node;

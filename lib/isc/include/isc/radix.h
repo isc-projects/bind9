@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.h,v 1.8 2008/01/18 23:46:58 tbox Exp $ */
+/* $Id: radix.h,v 1.9 2008/01/21 20:38:54 each Exp $ */
 
 /*
  * This source was adapted from MRT's RCS Ids:
@@ -62,7 +62,7 @@ typedef struct isc_prefix {
 } isc_prefix_t;
 
 typedef void (*isc_radix_destroyfunc_t)(void *);
-typedef void (*isc_radix_processfunc_t)(isc_prefix_t *, void *);
+typedef void (*isc_radix_processfunc_t)(isc_prefix_t *, void **);
 
 #define isc_prefix_tochar(prefix) ((char *)&(prefix)->add.sin)
 #define isc_prefix_touchar(prefix) ((u_char *)&(prefix)->add.sin)
@@ -72,19 +72,28 @@ typedef void (*isc_radix_processfunc_t)(isc_prefix_t *, void *);
 /*
  * We need "first match" when we search the radix tree to preserve
  * compatibility with the existing ACL implementation. Radix trees
- * naturally lend themselves to "best match". In order to get "first
- * match" behavior, we remember the entries are added to the tree,
- * and when a search is made, we find all matching entries, and return
- * the one that was added first.
+ * naturally lend themselves to "best match". In order to get "first match"
+ * behavior, we keep track of the order in which entries are added to the
+ * tree--and when a search is made, we find all matching entries, and
+ * return the one that was added first.
+ *
+ * An IPv4 prefix and an IPv6 prefix may share a radix tree node if they
+ * have the same length and bit pattern (e.g., 127/8 and 7f::/8).  To
+ * disambiguate between them, node_num and data are two-element arrays;
+ * node_num[0] and data[0] are used for IPv4 addresses, node_num[1]
+ * and data[1] for IPv6 addresses.  The only exception is a prefix of
+ * 0/0 (aka "any" or "none"), which is always stored as IPv4 but matches
+ * IPv6 addresses too.
  */
-
+  
+#define ISC_IS6(family) ((family) == AF_INET6 ? 1 : 0)
 typedef struct isc_radix_node {
    isc_uint32_t bit;			/* bit length of the prefix */
    isc_prefix_t *prefix;		/* who we are in radix tree */
    struct isc_radix_node *l, *r;	/* left and right children */
    struct isc_radix_node *parent;	/* may be used */
-   void *data;				/* pointer to data */
-   int node_num;			/* which node this was in the tree,
+   void *data[2];			/* pointers to IPv4 and IPV6 data */
+   int node_num[2];			/* which node this was in the tree, 
 					   or -1 for glue nodes */
 } isc_radix_node_t;
 
