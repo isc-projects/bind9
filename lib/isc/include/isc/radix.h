@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.h,v 1.9 2008/01/21 20:38:54 each Exp $ */
+/* $Id: radix.h,v 1.10 2008/01/21 23:46:56 tbox Exp $ */
 
 /*
  * This source was adapted from MRT's RCS Ids:
@@ -85,7 +85,7 @@ typedef void (*isc_radix_processfunc_t)(isc_prefix_t *, void **);
  * 0/0 (aka "any" or "none"), which is always stored as IPv4 but matches
  * IPv6 addresses too.
  */
-  
+
 #define ISC_IS6(family) ((family) == AF_INET6 ? 1 : 0)
 typedef struct isc_radix_node {
    isc_uint32_t bit;			/* bit length of the prefix */
@@ -93,7 +93,7 @@ typedef struct isc_radix_node {
    struct isc_radix_node *l, *r;	/* left and right children */
    struct isc_radix_node *parent;	/* may be used */
    void *data[2];			/* pointers to IPv4 and IPV6 data */
-   int node_num[2];			/* which node this was in the tree, 
+   int node_num[2];			/* which node this was in the tree,
 					   or -1 for glue nodes */
 } isc_radix_node_t;
 

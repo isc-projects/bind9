@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.c,v 1.10 2008/01/21 20:38:54 each Exp $ */
+/* $Id: radix.c,v 1.11 2008/01/21 23:46:56 tbox Exp $ */
 
 /*
  * This source was adapted from MRT's RCS Ids:
@@ -74,7 +74,7 @@ _new_prefix(isc_mem_t *mctx, isc_prefix_t **target, int family, void *dest,
 	return (ISC_R_SUCCESS);
 }
 
-static void 
+static void
 _deref_prefix(isc_mem_t *mctx, isc_prefix_t *prefix) {
 	int refs;
 
@@ -112,7 +112,7 @@ _ref_prefix(isc_mem_t *mctx, isc_prefix_t **target, isc_prefix_t *prefix) {
 	return (ISC_R_SUCCESS);
 }
 
-static int 
+static int
 _comp_with_mask(void *addr, void *dest, u_int mask) {
 
 	/* Mask length of zero matches everything */
@@ -174,11 +174,11 @@ _clear_radix(isc_radix_tree_t *radix, isc_radix_destroyfunc_t func) {
 			if (Xrn->prefix != NULL) {
 				_deref_prefix(radix->mctx, Xrn->prefix);
 				if (func != NULL && (Xrn->data[0] != NULL ||
-						     Xrn->data[1] != NULL)) 
+						     Xrn->data[1] != NULL))
 					func(Xrn->data);
 			} else {
 				INSIST(Xrn->data[0] == NULL &&
-			 	       Xrn->data[1] == NULL);
+				       Xrn->data[1] == NULL);
 			}
 
 			isc_mem_put(radix->mctx, Xrn, sizeof(*Xrn));
@@ -250,7 +250,7 @@ isc_radix_search(isc_radix_tree_t *radix, isc_radix_node_t **target,
 	addr = isc_prefix_touchar(prefix);
 	bitlen = prefix->bitlen;
 
-        /* Bitlen 0 means "any" or "none", which is always treated as IPv4 */
+	/* Bitlen 0 means "any" or "none", which is always treated as IPv4 */
 	family = bitlen ? prefix->family : AF_INET;
 
 	while (node->bit < bitlen) {
@@ -272,7 +272,7 @@ isc_radix_search(isc_radix_tree_t *radix, isc_radix_node_t **target,
 	while (--cnt >= 0) {
 		node = stack[cnt];
 
-		if (_comp_with_mask(isc_prefix_tochar(node->prefix), 
+		if (_comp_with_mask(isc_prefix_tochar(node->prefix),
 				    isc_prefix_tochar(prefix),
 				    node->prefix->bitlen)) {
 			if (node->node_num[ISC_IS6(family)] != -1 &&
@@ -311,7 +311,7 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 
 	bitlen = prefix->bitlen;
 
-        /* Bitlen 0 means "any" or "none", which is always treated as IPv4 */
+	/* Bitlen 0 means "any" or "none", which is always treated as IPv4 */
 	family = bitlen ? prefix->family : AF_INET;
 
 	if (radix->head == NULL) {
@@ -554,7 +554,7 @@ isc_radix_remove(isc_radix_tree_t *radix, isc_radix_node_t *node) {
 		 * This might be a placeholder node -- have to check and
 		 * make sure there is a prefix aossciated with it!
 		 */
-		if (node->prefix != NULL) 
+		if (node->prefix != NULL)
 			_deref_prefix(radix->mctx, node->prefix);
 
 		node->prefix = NULL;

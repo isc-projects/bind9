@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.c,v 1.41 2008/01/21 20:38:54 each Exp $ */
+/* $Id: acl.c,v 1.42 2008/01/21 23:46:56 tbox Exp $ */
 
 /*! \file */
 
@@ -492,13 +492,13 @@ is_insecure(isc_prefix_t *prefix, void **data) {
 	/* Bitlen 0 means "any" or "none", which is always treated as IPv4 */
 	bitlen = prefix->bitlen;
 	family = bitlen ? prefix->family : AF_INET;
-  
+
 	/* Negated entries are always secure. */
 	secure = * (isc_boolean_t *)data[ISC_IS6(family)];
 	if (!secure) {
-		return; 
+		return;
 	}
-  
+
 	/* If loopback prefix found, return */
 	switch (family) {
 	case AF_INET:
