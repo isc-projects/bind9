@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gssapictx.c,v 1.8.128.1 2008/01/22 11:44:56 marka Exp $ */
+/* $Id: gssapictx.c,v 1.8.128.2 2008/01/22 23:27:35 tbox Exp $ */
 
 #include <config.h>
 
@@ -129,7 +129,7 @@ name_to_gbuffer(dns_name_t *name, isc_buffer_t *buffer,
 		dns_name_getlabelsequence(name, 0, labels - 1, &tname);
 		namep = &tname;
 	}
-					
+
 	result = dns_name_totext(namep, ISC_FALSE, buffer);
 	isc_buffer_putuint8(buffer, 0);
 	isc_buffer_usedregion(buffer, &r);
@@ -433,7 +433,7 @@ dst_gssapi_releasecred(gss_cred_id_t *cred) {
 	char buf[1024];
 
 	REQUIRE(cred != NULL && *cred != NULL);
-	
+
 	gret = gss_release_cred(&minor, cred);
 	if (gret != GSS_S_COMPLETE) {
 		/* Log the error, but still free the credential's memory */
@@ -441,7 +441,7 @@ dst_gssapi_releasecred(gss_cred_id_t *cred) {
 			gss_error_tostring(gret, minor, buf, sizeof(buf)));
 	}
 	*cred = NULL;
-	
+
 	return(ISC_R_SUCCESS);
 #else
 	UNUSED(cred);
@@ -467,7 +467,7 @@ dst_gssapi_initctx(dns_name_t *name, isc_buffer_t *intoken,
 
 	/* Client must pass us a valid gss_ctx_id_t here */
 	REQUIRE(gssctx != NULL);
-	
+
 	isc_buffer_init(&namebuf, array, sizeof(array));
 	name_to_gbuffer(name, &namebuf, &gnamebuf);
 
@@ -501,7 +501,7 @@ dst_gssapi_initctx(dns_name_t *name, isc_buffer_t *intoken,
 		result = ISC_R_FAILURE;
 		goto out;
 	}
-	
+
 	/*
 	 * XXXSRA Not handled yet: RFC 3645 3.1.1: check ret_flags
 	 * MUTUAL and INTEG flags, fail if either not set.
@@ -691,7 +691,7 @@ gss_error_tostring(isc_uint32_t major, isc_uint32_t minor,
 	/* Handle major status */
 	msg_ctx = 0;
 	(void)gss_display_status(&minor_stat, major, GSS_C_GSS_CODE,
-			         GSS_C_NULL_OID, &msg_ctx, &msg_major);
+				 GSS_C_NULL_OID, &msg_ctx, &msg_major);
 
 	/* Handle minor status */
 	msg_ctx = 0;
@@ -700,14 +700,14 @@ gss_error_tostring(isc_uint32_t major, isc_uint32_t minor,
 
 	snprintf(buf, buflen, "GSSAPI error: Major = %s, Minor = %s.",
 		(char *)msg_major.value, (char *)msg_minor.value);
-	
+
 	(void)gss_release_buffer(&minor_stat, &msg_major);
 	(void)gss_release_buffer(&minor_stat, &msg_minor);
 	return(buf);
 #else
 	snprintf(buf, buflen, "GSSAPI error: Major = %u, Minor = %u.",
 		 major, minor);
-		
+
 	return (buf);
 #endif
 }
