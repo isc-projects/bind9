@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.237.18.31 2008/01/22 01:39:08 marka Exp $ */
+/* $Id: socket.c,v 1.237.18.32 2008/01/22 23:27:06 tbox Exp $ */
 
 /*! \file */
 
@@ -417,7 +417,7 @@ select_readmsg(isc_socketmgr_t *mgr, int *fd, int *msg) {
 					   "read() failed "
 					   "during watcher poke: %s"),
 			    strbuf);
-		
+
 		return;
 	}
 	INSIST(cc == sizeof(buf));
@@ -522,7 +522,7 @@ cmsg_space(ISC_SOCKADDR_LEN_T len) {
 		return ((char *)cmsgp - (char *)msg.msg_control);
 	else
 		return (0);
-#endif	
+#endif
 }
 #endif /* USE_CMSG */
 
@@ -596,7 +596,7 @@ process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
 				   "interface received on ifindex %u",
 				   dev->pktinfo.ipi6_ifindex);
 			if (IN6_IS_ADDR_MULTICAST(&pktinfop->ipi6_addr))
-				dev->attributes |= ISC_SOCKEVENTATTR_MULTICAST;				
+				dev->attributes |= ISC_SOCKEVENTATTR_MULTICAST;
 			goto next;
 		}
 #endif
@@ -979,7 +979,7 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 			isc__strerror(recv_errno, strbuf, sizeof(strbuf));
 			socket_log(sock, NULL, IOEVENT,
 				   isc_msgcat, ISC_MSGSET_SOCKET,
-				   ISC_MSG_DOIORECV, 
+				   ISC_MSG_DOIORECV,
 				  "doio_recv: recvmsg(%d) %d bytes, err %d/%s",
 				   sock->fd, cc, recv_errno, strbuf);
 		}
@@ -1027,7 +1027,7 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 			if (isc_log_wouldlog(isc_lctx, IOEVENT_LEVEL)) {
 				socket_log(sock, &dev->address, IOEVENT,
 					   isc_msgcat, ISC_MSGSET_SOCKET,
-					   ISC_MSG_ZEROPORT, 
+					   ISC_MSG_ZEROPORT,
 					   "dropping source port zero packet");
 			}
 			return (DOIO_SOFT);
@@ -1501,7 +1501,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		free_socket(&sock);
 		return (ISC_R_NORESOURCES);
 	}
-	
+
 	if (sock->fd < 0) {
 		free_socket(&sock);
 
@@ -1582,7 +1582,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 			isc__strerror(errno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "setsockopt(%d, SO_TIMESTAMP) %s: %s",
-					 sock->fd, 
+					 sock->fd,
 					 isc_msgcat_get(isc_msgcat,
 							ISC_MSGSET_GENERAL,
 							ISC_MSG_FAILED,
@@ -2031,7 +2031,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "internal_accept(): "
 					 "accept() returned peer address "
-					 "family %u (expected %u)", 
+					 "family %u (expected %u)",
 					 dev->newsocket->address.
 					 type.sa.sa_family,
 					 sock->pf);
@@ -2104,7 +2104,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		dev->newsocket->references--;
 		free_socket(&dev->newsocket);
 	}
-	
+
 	/*
 	 * Fill in the done event details and send it off.
 	 */
@@ -3150,7 +3150,7 @@ isc_socket_permunix(isc_sockaddr_t *sockaddr, isc_uint32_t perm,
 	} else
 		strcpy(path, ".");
 #endif
-	
+
 	if (chmod(path, perm) < 0) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,

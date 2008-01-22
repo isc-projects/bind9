@@ -1,8 +1,8 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2002  Internet Software Consortium.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: apl_42.c,v 1.8.18.3 2008/01/22 23:21:36 marka Exp $ */
+/* $Id: apl_42.c,v 1.8.18.4 2008/01/22 23:27:06 tbox Exp $ */
 
 /* RFC3123 */
 
@@ -49,7 +49,7 @@ fromtext_in_apl(ARGS_FROMTEXT) {
 					      isc_tokentype_string, ISC_TRUE));
 		if (token.type != isc_tokentype_string)
 			break;
-	
+
 		cp = DNS_AS_STR(token);
 		neg = ISC_TF(*cp == '!');
 		if (neg)
@@ -259,7 +259,7 @@ fromstruct_in_apl(ARGS_FROMSTRUCT) {
 	REQUIRE(apl->common.rdtype == type);
 	REQUIRE(apl->common.rdclass == rdclass);
 	REQUIRE(apl->apl != NULL || apl->apl_len == 0);
-	
+
 	isc_buffer_init(&b, apl->apl, apl->apl_len);
 	isc_buffer_add(&b, apl->apl_len);
 	isc_buffer_setactive(&b, apl->apl_len);
