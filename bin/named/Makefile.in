@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.98 2008/01/17 23:46:59 tbox Exp $
+# $Id: Makefile.in,v 1.99 2008/01/22 22:50:10 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -84,8 +84,6 @@ OBJS =		builtin.@O@ client.@O@ config.@O@ control.@O@ \
 
 UOBJS =		unix/os.@O@
 
-GENERATED =	bind9.xsl.h
-
 SRCS =		builtin.c client.c config.c control.c \
 		controlconf.c interfacemgr.c \
 		listenlist.c log.c logconf.c main.c notify.c \
@@ -130,7 +128,7 @@ docclean manclean maintainer-clean::
 	rm -f ${MANOBJS}
 
 clean distclean maintainer-clean::
-	rm -f ${TARGETS} ${OBJS} ${GENERATED}
+	rm -f ${TARGETS} ${OBJS}
 
 bind9.xsl.h: bind9.xsl convertxsl.pl
 	${PERL} ${srcdir}/convertxsl.pl < ${srcdir}/bind9.xsl > bind9.xsl.h
