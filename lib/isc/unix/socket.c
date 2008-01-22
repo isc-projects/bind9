@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.237.18.30 2007/12/14 04:00:53 marka Exp $ */
+/* $Id: socket.c,v 1.237.18.31 2008/01/22 01:39:08 marka Exp $ */
 
 /*! \file */
 
@@ -1963,7 +1963,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 	 */
 
 	addrlen = sizeof(dev->newsocket->address.type);
-	memset(&dev->newsocket->address.type.sa, 0, addrlen);
+	memset(&dev->newsocket->address.type, 0, addrlen);
 	fd = accept(sock->fd, &dev->newsocket->address.type.sa,
 		    (void *)&addrlen);
 

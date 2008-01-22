@@ -1,3 +1,6 @@
+2312.	[cleanup]	Silence Coverity warning in lib/isc/unix/socket.c.
+			[RT #17458]
+
 2311.   [func]          Update ACL regression test. [RT #17462]
 
 2310.   [bug]		dig, host, nslookup: flush stdout before emitting
