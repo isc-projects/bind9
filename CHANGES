@@ -1,3 +1,6 @@
+2312.	[cleanup]	Silence Coverity warning in lib/isc/unix/socket.c.
+			[RT #17458]
+
 2311.   [bug]           IPv6 addresses could match IPv4 ACL entries and
                         vice versa. [RT #17462]
 
