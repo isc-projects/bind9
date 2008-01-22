@@ -1,4 +1,7 @@
 2314.	[bug]		Uninitialized memory use on error path in
+2318.	[port]		ISC_PLATFORM_NEEDTIMESPEC missing from
+			lib/bind/config.h.in. [RT #17514]
+
 			bin/named/lwdnoop.c.  [RT #17476]
 
 2313.	[cleanup]	Silence Coverity warnings. Handle private stacks.
