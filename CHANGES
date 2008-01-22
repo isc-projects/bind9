@@ -1,3 +1,6 @@
+2319.	[bug]		Silence Coverity warnings in 
+			lib/dns/rdata/in_1/apl_42.c. [RT #174]
+
 2318.	[port]		ISC_PLATFORM_NEEDTIMESPEC missing from
 			lib/bind/config.h.in. [RT #17514]
 
