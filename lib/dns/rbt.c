@@ -1,8 +1,8 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.115.2.2.2.14 2008/01/22 01:42:25 marka Exp $ */
+/* $Id: rbt.c,v 1.115.2.2.2.15 2008/01/22 23:26:40 tbox Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -201,7 +201,7 @@ static inline void
 rotate_right(dns_rbtnode_t *node, dns_rbtnode_t **rootp);
 
 static void
-dns_rbt_addonlevel(dns_rbtnode_t *node, dns_rbtnode_t *current, int order, 
+dns_rbt_addonlevel(dns_rbtnode_t *node, dns_rbtnode_t *current, int order,
 		   dns_rbtnode_t **rootp);
 
 static void
@@ -225,7 +225,7 @@ dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *),
 	isc_result_t result;
 #endif
 	dns_rbt_t *rbt;
-	
+
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(rbtp != NULL && *rbtp == NULL);
@@ -574,7 +574,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				rbt->nodecount++;
 				dns_name_getlabelsequence(name,
 							  nlabels - hlabels,
-						          hlabels, new_name);
+							  hlabels, new_name);
 				hash_node(rbt, new_current, new_name);
 
 				if (common_labels ==
@@ -770,7 +770,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 			dns_name_init(&hash_name, NULL);
 
 		hashagain:
-			/* 
+			/*
 			 * Hash includes tail.
 			 */
 			dns_name_getlabelsequence(name,
@@ -830,7 +830,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 			 */
 			current = NULL;
 			continue;
-			    
+
 		nohash:
 #endif /* DNS_RBT_USEHASH */
 			/*
@@ -1372,7 +1372,7 @@ dns_rbt_fullnamefromnode(dns_rbtnode_t *node, dns_name_t *name) {
 		result = dns_name_concatenate(name, &current, name, NULL);
 		if (result != ISC_R_SUCCESS)
 			break;
-		
+
 		node = find_up(node);
 	} while (! dns_name_isabsolute(name));
 
@@ -1639,7 +1639,7 @@ rotate_right(dns_rbtnode_t *node, dns_rbtnode_t **rootp) {
  * true red/black tree on a single level.
  */
 static void
-dns_rbt_addonlevel(dns_rbtnode_t *node, dns_rbtnode_t *current, int order, 
+dns_rbt_addonlevel(dns_rbtnode_t *node, dns_rbtnode_t *current, int order,
 		   dns_rbtnode_t **rootp)
 {
 	dns_rbtnode_t *child, *root, *parent, *grandparent;
@@ -2062,8 +2062,8 @@ dns_rbt_deletetreeflat(dns_rbt_t *rbt, unsigned int quantum,
 
 	/*
 	 * Note: we don't call unhash_node() here as we are destroying
-	 * the complete rbt tree. 
-         */
+	 * the complete rbt tree.
+	 */
 #if DNS_RBT_USEMAGIC
 	node->magic = 0;
 #endif
