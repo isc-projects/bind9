@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.83 2008/01/18 23:46:58 tbox Exp $ */
+/* $Id: namedconf.c,v 1.84 2008/01/22 00:29:03 jinmei Exp $ */
 
 /*! \file */
 
@@ -764,7 +764,7 @@ view_clauses[] = {
 	{ "max-ncache-ttl", &cfg_type_uint32, 0 },
 	{ "max-cache-ttl", &cfg_type_uint32, 0 },
 	{ "transfer-format", &cfg_type_transferformat, 0 },
-	{ "max-cache-size", &cfg_type_sizenodefault, 0 },
+	{ "max-cache-size", &cfg_type_size, 0 },
 	{ "check-names", &cfg_type_checknames, CFG_CLAUSEFLAG_MULTI },
 	{ "cache-file", &cfg_type_qstring, 0 },
 	{ "suppress-initial-notify", &cfg_type_boolean, CFG_CLAUSEFLAG_NYI },
