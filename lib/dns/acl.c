@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.c,v 1.37.2.4 2008/01/21 23:46:23 tbox Exp $ */
+/* $Id: acl.c,v 1.37.2.5 2008/01/22 05:39:18 each Exp $ */
 
 /*! \file */
 
@@ -208,7 +208,7 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
 	}
 
 	/* Always match with host addresses. */
-	family = reqaddr->family;
+	family = addr->family;
 	bitlen = family == AF_INET6 ? 128 : 32;
 	NETADDR_TO_PREFIX_T(addr, pfx, bitlen);
 

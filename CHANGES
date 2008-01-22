@@ -1,3 +1,6 @@
+2315.   [bug]           Used incorrect address family for mapped IPv4
+                        addresses in acl.c. [RT #17519]
+
 2314.	[bug]		Uninitialized memory use on error path in
 			bin/named/lwdnoop.c.  [RT #17476]
 
