@@ -1,3 +1,6 @@
+2318.	[port]		ISC_PLATFORM_NEEDTIMESPEC missing from
+			lib/bind/config.h.in. [RT #17514]
+
 2317.	[bug]		"make distclean" removed bind9.xsl.h. [RT #17518]
 
 2316.	[port]		Missing #include <isc/print.h> in lib/dns/gssapictx.c.
