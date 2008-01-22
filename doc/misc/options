@@ -123,7 +123,7 @@ options {
         masterfile-format ( text | raw );
         match-mapped-addresses <boolean>;
         max-acache-size <size_no_default>;
-        max-cache-size <size_no_default>;
+        max-cache-size <size>;
         max-cache-ttl <integer>;
         max-clients-per-query <integer>;
         max-ixfr-log-size <size>; // obsolete
@@ -296,7 +296,7 @@ view <string> <optional_class> {
         match-destinations { <address_match_element>; ... };
         match-recursive-only <boolean>;
         max-acache-size <size_no_default>;
-        max-cache-size <size_no_default>;
+        max-cache-size <size>;
         max-cache-ttl <integer>;
         max-clients-per-query <integer>;
         max-ixfr-log-size <size>; // obsolete
