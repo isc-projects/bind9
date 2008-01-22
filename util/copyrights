@@ -85,7 +85,7 @@
 ./bin/named/bind9.xsl.h				X	2007
 ./bin/named/builtin.c				C	2001,2002,2003,2004,2005,2007
 ./bin/named/client.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
-./bin/named/config.c				C	2001,2002,2003,2004,2005,2006,2007
+./bin/named/config.c				C	2001,2002,2003,2004,2005,2006,2007,2008
 ./bin/named/control.c				C	2001,2002,2003,2004,2005,2006,2007
 ./bin/named/controlconf.c			C	2001,2002,2003,2004,2005,2006,2007,2008
 ./bin/named/convertxsl.pl			PERL	2006,2007
@@ -125,7 +125,7 @@
 ./bin/named/lwdgabn.c				C	2000,2001,2004,2005,2006,2007
 ./bin/named/lwdgnba.c				C	2000,2001,2002,2004,2005,2007,2008
 ./bin/named/lwdgrbn.c				C	2000,2001,2003,2004,2005,2006,2007
-./bin/named/lwdnoop.c				C	2000,2001,2004,2005,2007
+./bin/named/lwdnoop.c				C	2000,2001,2004,2005,2007,2008
 ./bin/named/lwresd.8				MAN	DOCBOOK
 ./bin/named/lwresd.c				C	2000,2001,2002,2003,2004,2005,2006,2007
 ./bin/named/lwresd.docbook			SGML	2000,2001,2004,2005,2007
@@ -1330,7 +1330,7 @@
 ./lib/bind/bsd/strtoul.c			X	2001,2003,2005
 ./lib/bind/bsd/utimes.c				X	2001,2004,2005
 ./lib/bind/bsd/writev.c				X	2001,2003,2005
-./lib/bind/config.h.in				X	2001,2003,2004,2005,2006,2007
+./lib/bind/config.h.in				X	2001,2003,2004,2005,2006,2007,2008
 ./lib/bind/configure				X	2001,2002,2003,2004,2005,2006,2007
 ./lib/bind/configure.in				SH	2001,2003,2004,2005,2006,2007
 ./lib/bind/dst/.cvsignore			X	2001
@@ -1769,7 +1769,7 @@
 ./lib/dns/dst_internal.h			C.NAI	2000,2001,2002,2004,2005,2006,2007
 ./lib/dns/dst_lib.c				C	1999,2000,2001,2004,2005,2007
 ./lib/dns/dst_openssl.h				C	2002,2004,2005,2007
-./lib/dns/dst_parse.c				C.NAI	1999,2000,2001,2002,2004,2005,2006,2007
+./lib/dns/dst_parse.c				C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008
 ./lib/dns/dst_parse.h				C.NAI	2000,2001,2002,2004,2005,2006,2007
 ./lib/dns/dst_result.c				C	1999,2000,2001,2004,2005,2007
 ./lib/dns/forward.c				C	2000,2001,2004,2005,2007
@@ -1777,7 +1777,7 @@
 ./lib/dns/gen-win32.h				C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/gen.c					C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/gssapi_link.c				C	2000,2001,2002,2004,2005,2006,2007
-./lib/dns/gssapictx.c				C	2000,2001,2004,2005,2006,2007
+./lib/dns/gssapictx.c				C	2000,2001,2004,2005,2006,2007,2008
 ./lib/dns/hmac_link.c				C.NAI	1999,2000,2001,2002,2004,2005,2006,2007
 ./lib/dns/include/.cvsignore			X	1998,1999,2000,2001
 ./lib/dns/include/Makefile.in			MAKE	1998,1999,2000,2001,2004,2007
@@ -1881,7 +1881,7 @@
 ./lib/dns/order.c				C	2002,2004,2005,2007
 ./lib/dns/peer.c				C	2000,2001,2003,2004,2005,2006,2007
 ./lib/dns/portlist.c				C	2003,2004,2005,2006,2007
-./lib/dns/rbt.c					C	1999,2000,2001,2002,2003,2004,2005,2007
+./lib/dns/rbt.c					C	1999,2000,2001,2002,2003,2004,2005,2007,2008
 ./lib/dns/rbtdb.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/rbtdb.h				C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rbtdb64.c				C	1999,2000,2001,2004,2005,2007
@@ -1976,7 +1976,7 @@
 ./lib/dns/rdata/in_1/a_1.h			C	1998,1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/in_1/aaaa_28.c			C	1999,2000,2001,2002,2004,2005,2007
 ./lib/dns/rdata/in_1/aaaa_28.h			C	1999,2000,2001,2004,2005,2007
-./lib/dns/rdata/in_1/apl_42.c			C	2002,2004,2005,2007
+./lib/dns/rdata/in_1/apl_42.c			C	2002,2004,2005,2007,2008
 ./lib/dns/rdata/in_1/apl_42.h			C	2002,2004,2005,2007
 ./lib/dns/rdata/in_1/dhcid_49.c			C	2006,2007
 ./lib/dns/rdata/in_1/dhcid_49.h			C	2006,2007
