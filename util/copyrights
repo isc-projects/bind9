@@ -123,7 +123,7 @@
 ./bin/named/lwdgabn.c				C	2000,2001,2003,2004,2006,2007
 ./bin/named/lwdgnba.c				C	2000,2001,2002,2003,2004,2007,2008
 ./bin/named/lwdgrbn.c				C	2000,2001,2003,2004,2006
-./bin/named/lwdnoop.c				C	2000,2001,2004
+./bin/named/lwdnoop.c				C	2000,2001,2004,2008
 ./bin/named/lwresd.8				MAN	DOCBOOK
 ./bin/named/lwresd.c				C	2000,2001,2002,2003,2004,2006
 ./bin/named/lwresd.docbook			SGML	2000,2001,2004,2005,2007
@@ -757,18 +757,18 @@
 ./bin/tests/system/views/ns3/named2.conf	CONF-C	2000,2001,2004
 ./bin/tests/system/views/setup.sh		SH	2000,2001,2004
 ./bin/tests/system/views/tests.sh		SH	2000,2001,2004
-./bin/tests/system/xfer/clean.sh		SH	2000,2001,2003,2004,2007
+./bin/tests/system/xfer/clean.sh		SH	2000,2001,2003,2004,2007,2008
 ./bin/tests/system/xfer/dig1.good		X	2000,2001,2003,2004
 ./bin/tests/system/xfer/dig2.good		X	2000,2001,2003,2004
 ./bin/tests/system/xfer/ns1/.cvsignore		X	2000,2001
 ./bin/tests/system/xfer/ns1/named.conf		CONF-C	2000,2001,2004
 ./bin/tests/system/xfer/ns1/root.db		ZONE	2000,2001,2003,2004,2007
 ./bin/tests/system/xfer/ns2/.cvsignore		X	2000,2001,2003
-./bin/tests/system/xfer/ns2/named.conf		CONF-C	2000,2001,2003,2004,2007
+./bin/tests/system/xfer/ns2/named.conf		CONF-C	2000,2001,2003,2004,2007,2008
 ./bin/tests/system/xfer/ns3/.cvsignore		X	2000,2001,2003
 ./bin/tests/system/xfer/ns3/named.conf		CONF-C	2000,2001,2003,2004,2007
 ./bin/tests/system/xfer/setup.sh		SH	2001,2002,2003,2004,2007
-./bin/tests/system/xfer/tests.sh		SH	2000,2001,2003,2004,2005,2007
+./bin/tests/system/xfer/tests.sh		SH	2000,2001,2003,2004,2005,2007,2008
 ./bin/tests/system/xferquota/clean.sh		SH	2000,2001,2004,2005
 ./bin/tests/system/xferquota/ns1/.cvsignore	X	2000,2001
 ./bin/tests/system/xferquota/ns1/changing1.db	ZONE	2000,2001,2004
@@ -1227,7 +1227,7 @@
 ./lib/bind/bsd/strtoul.c			X	2001,2003
 ./lib/bind/bsd/utimes.c				X	2001,2004
 ./lib/bind/bsd/writev.c				X	2001,2003
-./lib/bind/config.h.in				X	2001,2003,2004,2005,2006,2007
+./lib/bind/config.h.in				X	2001,2003,2004,2005,2006,2007,2008
 ./lib/bind/configure				X	2001,2002,2003,2004,2005,2006,2007
 ./lib/bind/configure.in				SH	2001,2002,2003,2004,2005,2006,2007
 ./lib/bind/dst/.cvsignore			X	2001
@@ -1664,7 +1664,7 @@
 ./lib/dns/dst_internal.h			C.NAI	2000,2001,2002,2004
 ./lib/dns/dst_lib.c				C	1999,2000,2001,2004
 ./lib/dns/dst_openssl.h				C	2002,2004
-./lib/dns/dst_parse.c				C.NAI	1999,2000,2001,2002,2004
+./lib/dns/dst_parse.c				C.NAI	1999,2000,2001,2002,2004,2008
 ./lib/dns/dst_parse.h				C.NAI	2000,2001,2002,2004
 ./lib/dns/dst_result.c				C	1999,2000,2001,2004
 ./lib/dns/forward.c				C	2000,2001,2004,2005
@@ -1771,7 +1771,7 @@
 ./lib/dns/order.c				C	2002,2003,2004,2007
 ./lib/dns/peer.c				C	2000,2001,2003,2004,2006
 ./lib/dns/portlist.c				C	2003,2004,2006
-./lib/dns/rbt.c					C	1999,2000,2001,2002,2003,2004,2005
+./lib/dns/rbt.c					C	1999,2000,2001,2002,2003,2004,2005,2008
 ./lib/dns/rbtdb.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/rbtdb.h				C	1999,2000,2001,2004
 ./lib/dns/rbtdb64.c				C	1999,2000,2001,2004
@@ -1860,7 +1860,7 @@
 ./lib/dns/rdata/in_1/a_1.h			C	1998,1999,2000,2001,2004
 ./lib/dns/rdata/in_1/aaaa_28.c			C	1999,2000,2001,2002,2003,2004,2007
 ./lib/dns/rdata/in_1/aaaa_28.h			C	1999,2000,2001,2004
-./lib/dns/rdata/in_1/apl_42.c			C	2002,2003,2004,2007
+./lib/dns/rdata/in_1/apl_42.c			C	2002,2003,2004,2007,2008
 ./lib/dns/rdata/in_1/apl_42.h			C	2002,2003,2004,2007
 ./lib/dns/rdata/in_1/kx_36.c			C	1999,2000,2001,2003,2004
 ./lib/dns/rdata/in_1/kx_36.h			C	1999,2000,2001,2004
@@ -2091,7 +2091,7 @@
 ./lib/isc/unix/net.c				C	1999,2000,2001,2002,2003,2004,2005,2007
 ./lib/isc/unix/os.c				C	2000,2001,2003,2004,2005,2007
 ./lib/isc/unix/resource.c			C	2000,2001,2004
-./lib/isc/unix/socket.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
+./lib/isc/unix/socket.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/isc/unix/socket_p.h			C	2000,2001,2004
 ./lib/isc/unix/stdio.c				C	2000,2001,2004
 ./lib/isc/unix/stdtime.c			C	1999,2000,2001,2003,2004,2005,2007
