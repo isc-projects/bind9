@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.495.10.4 2008/01/17 23:46:36 tbox Exp $ */
+/* $Id: server.c,v 1.495.10.5 2008/01/22 00:31:00 jinmei Exp $ */
 
 /*! \file */
 
@@ -221,6 +221,11 @@ static const struct {
 
 	{ NULL, ISC_FALSE }
 };
+
+/*%
+ * The default max-cache-size
+ */
+#define NS_MAXCACHESIZE_DEFAULT	33554432 /*%< Bytes.  33554432 = 32MB */
 
 static void
 fatal(const char *msg, isc_result_t result);
@@ -1179,11 +1184,21 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 
 	obj = NULL;
 	result = ns_config_get(maps, "max-cache-size", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	if (cfg_obj_isstring(obj)) {
+	INSIST(result == ISC_R_SUCCESS || result == ISC_R_NOTFOUND);
+	if (result == ISC_R_NOTFOUND) {
+		max_cache_size = NS_MAXCACHESIZE_DEFAULT;
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+			      "default max-cache-size (%u) applies%s%s",
+			      max_cache_size, sep, viewname);
+	} else if (cfg_obj_isstring(obj)) {
 		str = cfg_obj_asstring(obj);
-		INSIST(strcasecmp(str, "unlimited") == 0);
-		max_cache_size = ISC_UINT32_MAX;
+		INSIST(strcasecmp(str, "unlimited") == 0 ||
+		       strcasecmp(str, "default") == 0);
+		if (strcasecmp(str, "unlimited") == 0)
+			max_cache_size = ISC_UINT32_MAX;
+		else
+			max_cache_size = NS_MAXCACHESIZE_DEFAULT;
 	} else {
 		isc_resourcevalue_t value;
 		value = cfg_obj_asuint64(obj);
