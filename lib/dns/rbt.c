@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.128.18.7 2005/10/13 01:26:06 marka Exp $ */
+/* $Id: rbt.c,v 1.128.18.8 2008/01/22 01:43:20 marka Exp $ */
 
 /*! \file */
 
@@ -2191,6 +2191,7 @@ dns_rbtnodechain_init(dns_rbtnodechain_t *chain, isc_mem_t *mctx) {
 	chain->end = NULL;
 	chain->level_count = 0;
 	chain->level_matches = 0;
+	memset(chain->levels, 0, sizeof(chain->levels));
 
 	chain->magic = CHAIN_MAGIC;
 }

@@ -18,7 +18,7 @@
 
 /*%
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.1.6.7 2006/05/16 03:59:26 marka Exp $
+ * $Id: dst_parse.c,v 1.1.6.8 2008/01/22 01:43:20 marka Exp $
  */
 
 #include <config.h>
@@ -260,6 +260,7 @@ dst__privstruct_parse(dst_key_t *key, unsigned int alg, isc_lex_t *lex,
 	REQUIRE(priv != NULL);
 
 	priv->nelements = 0;
+	memset(priv->elements, 0, sizeof(priv->elements));
 
 #define NEXTTOKEN(lex, opt, token)				\
 	do {							\
@@ -351,7 +352,6 @@ dst__privstruct_parse(dst_key_t *key, unsigned int alg, isc_lex_t *lex,
 			goto fail;
 		}
 
-		memset(&priv->elements[n], 0, sizeof(dst_private_element_t));
 		tag = find_value(DST_AS_STR(token), alg);
 		if (tag < 0 || TAG_ALG(tag) != alg) {
 			ret = DST_R_INVALIDPRIVATEKEY;
