@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.138 2007/10/19 17:15:53 explorer Exp $ */
+/* $Id: rbt.c,v 1.138.36.1 2008/01/22 01:44:04 marka Exp $ */
 
 /*! \file */
 
@@ -2187,18 +2187,19 @@ dns_rbt_printall(dns_rbt_t *rbt) {
 
 void
 dns_rbtnodechain_init(dns_rbtnodechain_t *chain, isc_mem_t *mctx) {
-        /*
-         * Initialize 'chain'.
-         */
+	/*
+	 * Initialize 'chain'.
+	 */
 
-        REQUIRE(chain != NULL);
+	REQUIRE(chain != NULL);
 
-        chain->mctx = mctx;
-        chain->end = NULL;
-        chain->level_count = 0;
-        chain->level_matches = 0;
+	chain->mctx = mctx;
+	chain->end = NULL;
+	chain->level_count = 0;
+	chain->level_matches = 0;
+	memset(chain->levels, 0, sizeof(chain->levels));
 
-        chain->magic = CHAIN_MAGIC;
+	chain->magic = CHAIN_MAGIC;
 }
 
 isc_result_t
