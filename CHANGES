@@ -1,8 +1,7 @@
 2319.	[bug]		Silence Coverity warnings in 
 			lib/dns/rdata/in_1/apl_42.c. [RT #17469]
 
-2318.	[port]		ISC_PLATFORM_NEEDTIMESPEC missing from
-			lib/bind/config.h.in. [RT #17514]
+2318.	[port]		sunos fixes for libbind.  [RT #17514]
 
 2314.	[bug]		Uninitialized memory use on error path in
 			bin/named/lwdnoop.c.  [RT #17476]
