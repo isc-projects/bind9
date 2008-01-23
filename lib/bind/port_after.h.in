@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: port_after.h.in,v 1.53 2007/06/18 23:47:34 tbox Exp $ */
+/* $Id: port_after.h.in,v 1.54 2008/01/23 02:00:56 marka Exp $ */
 
 #ifndef port_after_h
 #define port_after_h
@@ -54,6 +54,13 @@
 @SETNETGRENT_ARGS@
 @USE_IFNAMELINKID@
 @PORT_NONBLOCK@
+
+#ifndef _POSIX_PATH_MAX
+#define _POSIX_PATH_MAX 255
+#endif
+#ifndef PATH_MAX
+#define PATH_MAX _POSIX_PATH_MAX
+#endif
 
 /*
  * We need to know the IPv6 address family number even on IPv4-only systems.
