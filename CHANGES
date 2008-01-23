@@ -3,8 +3,7 @@
 2319.	[bug]		Silence Coverity warnings in 
 			lib/dns/rdata/in_1/apl_42.c. [RT #17469]
 
-2318.	[port]		ISC_PLATFORM_NEEDTIMESPEC missing from
-			lib/bind/config.h.in. [RT #17514]
+2318.	[port]		sunos fixes for libbind.  [RT #17514]
 
 2317.	[bug]		"make distclean" removed bind9.xsl.h. [RT #17518]
 
