@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.128 $)
+AC_REVISION($Revision: 1.128.128.1 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -2675,6 +2675,7 @@ AC_OUTPUT(
 	port/Makefile
 	${PORT_DIR}/Makefile
 	${PORT_INCLUDE}/Makefile
+	include/isc/platform.h
 )
 
 # Tell Emacs to edit this file in shell mode.
