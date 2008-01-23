@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: unistd.h,v 1.3.206.1 2004/03/06 08:15:12 marka Exp $ */
+/* $Id: unistd.h,v 1.3.206.2 2008/01/23 03:14:18 marka Exp $ */
 
 /* None of these are defined in NT, so define them for our use */
 #define O_NONBLOCK 1
@@ -34,5 +34,20 @@
 #undef F_DUPFD 
 
 int fcntl(int, int, ...);
+
+/*
+ * access() related definitions for winXP
+ */
+#include <io.h>
+
+#ifndef W_OK
+#define W_OK 2
+#endif
+
+#ifndef R_OK
+#define R_OK 4
+#endif
+
+#define access _access
 
 #include <process.h>
