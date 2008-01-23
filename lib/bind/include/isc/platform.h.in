@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.2 2008/01/23 02:00:56 marka Exp $ */
+/* $Id: platform.h.in,v 1.2.4.2 2008/01/23 02:14:28 tbox Exp $ */
 
 /*! \file */
 
@@ -28,8 +28,8 @@
 #ifdef ISC_PLATFORM_NEEDTIMESPEC
 #include <time.h>               /* For time_t */
 struct timespec {
-        time_t  tv_sec;         /* seconds */
-        long    tv_nsec;        /* nanoseconds */
+	time_t  tv_sec;         /* seconds */
+	long    tv_nsec;        /* nanoseconds */
 };
 #endif
 
