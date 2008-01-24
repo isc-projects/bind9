@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.154 2008/01/24 02:00:44 jinmei Exp $ */
+/* $Id: zone.h,v 1.155 2008/01/24 23:47:00 tbox Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1194,7 +1194,7 @@ dns_zone_setnotifytype(dns_zone_t *zone, dns_notifytype_t notifytype);
 
 isc_result_t
 dns_zone_forwardupdate(dns_zone_t *zone, dns_message_t *msg,
-                       dns_updatecallback_t callback, void *callback_arg);
+		       dns_updatecallback_t callback, void *callback_arg);
 /*%<
  * Forward 'msg' to each master in turn until we get an answer or we
  * have exausted the list of masters. 'callback' will be called with
@@ -1400,7 +1400,7 @@ dns_zonemgr_getttransfersperns(dns_zonemgr_t *zmgr);
 void
 dns_zonemgr_setiolimit(dns_zonemgr_t *zmgr, isc_uint32_t iolimit);
 /*%<
- *	Set the number of simultaneous file descriptors available for 
+ *	Set the number of simultaneous file descriptors available for
  *	reading and writing masterfiles.
  *
  * Requires:
@@ -1411,7 +1411,7 @@ dns_zonemgr_setiolimit(dns_zonemgr_t *zmgr, isc_uint32_t iolimit);
 isc_uint32_t
 dns_zonemgr_getiolimit(dns_zonemgr_t *zmgr);
 /*%<
- *	Get the number of simultaneous file descriptors available for 
+ *	Get the number of simultaneous file descriptors available for
  *	reading and writing masterfiles.
  *
  * Requires:
@@ -1539,7 +1539,7 @@ void
 dns_zone_name(dns_zone_t *zone, char *buf, size_t len);
 /*%<
  * Return the name of the zone with class and view.
- * 
+ *
  * Requires:
  *\li	'zone' to be valid.
  *\li	'buf' to be non NULL.

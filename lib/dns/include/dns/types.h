@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.127 2008/01/24 02:00:44 jinmei Exp $ */
+/* $Id: types.h,v 1.128 2008/01/24 23:47:00 tbox Exp $ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
@@ -260,7 +260,7 @@ enum {
 	dns_trust_additional = 2,
 #define dns_trust_additional		((dns_trust_t)dns_trust_additional)
 
-	/* Received in a referral response. */ 
+	/* Received in a referral response. */
 	dns_trust_glue = 3,
 #define dns_trust_glue			((dns_trust_t)dns_trust_glue)
 
@@ -277,7 +277,7 @@ enum {
 	dns_trust_authanswer = 6,
 #define dns_trust_authanswer		((dns_trust_t)dns_trust_authanswer)
 
-	/* Successfully DNSSEC validated */	
+	/* Successfully DNSSEC validated */
 	dns_trust_secure = 7,
 #define dns_trust_secure		((dns_trust_t)dns_trust_secure)
 
@@ -319,7 +319,7 @@ typedef void
 typedef void
 (*dns_updatecallback_t)(void *, isc_result_t, dns_message_t *);
 
-typedef int 
+typedef int
 (*dns_rdatasetorderfunc_t)(const dns_rdata_t *, const void *);
 
 typedef isc_boolean_t
