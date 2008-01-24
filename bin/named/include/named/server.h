@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.91 2008/01/18 23:46:57 tbox Exp $ */
+/* $Id: server.h,v 1.92 2008/01/24 02:00:44 jinmei Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -91,7 +91,7 @@ struct ns_server {
 	isc_boolean_t		flushonshutdown;
 	isc_boolean_t		log_queries;	/*%< For BIND 8 compatibility */
 
-	isc_uint64_t *		querystats;	/*%< Query statistics counters */
+	dns_stats_t *		querystats;	/*%< Query statistics counters */
 
 	ns_controls_t *		controls;	/*%< Control channels */
 	unsigned int		dispatchgen;

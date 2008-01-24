@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: atomic.h,v 1.8 2007/07/27 14:22:53 explorer Exp $ */
+/* $Id: atomic.h,v 1.9 2008/01/24 02:00:44 jinmei Exp $ */
 
 #ifndef ISC_ATOMIC_H
 #define ISC_ATOMIC_H 1
@@ -42,6 +42,24 @@ isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
 
 	return (prev);
 }
+
+#ifdef ISC_PLATFORM_HAVEXADDQ
+static __inline__ isc_int64_t
+isc_atomic_xaddq(isc_int64_t *p, isc_int64_t val) {
+	isc_int64_t prev = val;
+
+	__asm__ volatile(
+#ifdef ISC_PLATFORM_USETHREADS
+	    "lock;"
+#endif
+	    "xaddq %0, %1"
+	    :"=q"(prev)
+	    :"m"(*p), "0"(prev)
+	    :"memory", "cc");
+
+	return (prev);
+}
+#endif /* ISC_PLATFORM_HAVEXADDQ */
 
 /*
  * This routine atomically stores the value 'val' in 'p'.

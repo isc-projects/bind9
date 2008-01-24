@@ -1,3 +1,6 @@
+2320.	[func]		Make statistics couters thread-safe for platforms
+			that support certain atomic operations. [RT #17466]
+
 2319.	[bug]		Silence Coverity warnings in 
 			lib/dns/rdata/in_1/apl_42.c. [RT #17469]
 

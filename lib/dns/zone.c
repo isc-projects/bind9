@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.470 2007/12/02 22:27:54 marka Exp $ */
+/* $Id: zone.c,v 1.471 2008/01/24 02:00:44 jinmei Exp $ */
 
 /*! \file */
 
@@ -251,7 +251,7 @@ struct dns_zone {
 	/*%
 	 * Optional per-zone statistics counters (NULL if not present).
 	 */
-	isc_uint64_t	    	*counters;
+	dns_stats_t	    	*counters;
 	isc_uint32_t		notifydelay;
 	dns_isselffunc_t	isself;
 	void			*isselfarg;
@@ -736,7 +736,7 @@ zone_free(dns_zone_t *zone) {
 		isc_mem_free(zone->mctx, zone->journal);
 	zone->journal = NULL;
 	if (zone->counters != NULL)
-		dns_stats_freecounters(zone->mctx, &zone->counters);
+		dns_stats_destroy(zone->mctx, &zone->counters);
 	if (zone->db != NULL)
 		zone_detachdb(zone);
 	if (zone->acache != NULL)
@@ -8092,11 +8092,11 @@ dns_zone_setstatistics(dns_zone_t *zone, isc_boolean_t on) {
 	if (on) {
 		if (zone->counters != NULL)
 			goto done;
-		result = dns_stats_alloccounters(zone->mctx, &zone->counters);
+		result = dns_stats_create(zone->mctx, &zone->counters);
 	} else {
 		if (zone->counters == NULL)
 			goto done;
-		dns_stats_freecounters(zone->mctx, &zone->counters);
+		dns_stats_destroy(zone->mctx, &zone->counters);
 	}
  done:
 	UNLOCK_ZONE(zone);
@@ -8105,6 +8105,15 @@ dns_zone_setstatistics(dns_zone_t *zone, isc_boolean_t on) {
 
 isc_uint64_t *
 dns_zone_getstatscounters(dns_zone_t *zone) {
+	/*
+	 * This function is obsoleted by dns_zone_getstats().
+	 */
+	UNUSED(zone);
+	return (NULL);
+}
+
+dns_stats_t *
+dns_zone_getstats(dns_zone_t *zone) {
 	return (zone->counters);
 }
 
@@ -8342,13 +8351,16 @@ dns_zone_xmlrender(dns_zone_t *zone, xmlTextWriterPtr xml, int flags)
 		xmlTextWriterEndElement(xml);
 
 		if (zone->counters != NULL) {
+			isc_uint64_t counters[DNS_STATS_NCOUNTERS];
+
 			xmlTextWriterStartElement(xml, ISC_XMLCHAR "counters");
+			dns_stats_copy(zone->counters, counters);
 			for (i = 0 ; i < DNS_STATS_NCOUNTERS ; i++) {
 				xmlTextWriterStartElement(xml,
 					ISC_XMLCHAR dns_statscounter_names[i]);
 				xmlTextWriterWriteFormatString(xml,
 					       "%" ISC_PRINT_QUADFORMAT "u",
-					       zone->counters[i]);
+					       counters[i]);
 				xmlTextWriterEndElement(xml);
 			}
 			xmlTextWriterEndElement(xml); /* counters */

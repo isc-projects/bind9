@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: statschannel.c,v 1.4 2008/01/18 23:46:57 tbox Exp $ */
+/* $Id: statschannel.c,v 1.5 2008/01/24 02:00:44 jinmei Exp $ */
 
 /*! \file */
 
@@ -71,6 +71,7 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 	int xmlrc;
 	dns_view_t *view;
 	int i;
+	isc_uint64_t counters[DNS_STATS_NCOUNTERS];
 
 	isc_time_now(&now);
 	isc_time_formatISO8601(&ns_g_boottime, boottime, sizeof boottime);
@@ -117,12 +118,13 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 	xmlTextWriterWriteString(writer, ISC_XMLCHAR nowstr);
 	xmlTextWriterEndElement(writer);
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counters"));
+	dns_stats_copy(server->querystats, counters);
 	for (i = 0; i < DNS_STATS_NCOUNTERS; i++) {
 		xmlTextWriterStartElement(writer,
 					ISC_XMLCHAR dns_statscounter_names[i]);
 		xmlTextWriterWriteFormatString(writer,
 					       "%" ISC_PRINT_QUADFORMAT "u",
-					       server->querystats[i]);
+					       counters[i]);
 		xmlTextWriterEndElement(writer);
 	}
 	xmlTextWriterEndElement(writer); /* counters */

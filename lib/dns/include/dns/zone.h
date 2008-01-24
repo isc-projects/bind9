@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.153 2007/09/18 00:22:31 marka Exp $ */
+/* $Id: zone.h,v 1.154 2008/01/24 02:00:44 jinmei Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1488,6 +1488,12 @@ dns_zone_setstatistics(dns_zone_t *zone, isc_boolean_t on);
 
 isc_uint64_t *
 dns_zone_getstatscounters(dns_zone_t *zone);
+/*%<
+ * This function is obsoleted by dns_zone_getstats().
+ */
+
+dns_stats_t *
+dns_zone_getstats(dns_zone_t *zone);
 /*%<
  * Requires:
  *      zone be a valid zone.
