@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.21.44.34 2006/03/02 00:37:20 marka Exp $ */
+/* $Id: namedconf.c,v 1.21.44.35 2008/01/24 13:06:47 marka Exp $ */
 
 #include <config.h>
 
@@ -1274,7 +1274,6 @@ parse_querysource(cfg_parser_t *pctx, int flags, cfg_obj_t **ret) {
 
 	port = 0;
 
-	CHECK(cfg_create_obj(pctx, &cfg_type_querysource, &obj));
 	for (;;) {
 		CHECK(cfg_peektoken(pctx, 0));
 		if (pctx->token.type == isc_tokentype_string) {
@@ -1309,6 +1308,7 @@ parse_querysource(cfg_parser_t *pctx, int flags, cfg_obj_t **ret) {
 		return (ISC_R_UNEXPECTEDTOKEN);
 	}
 
+	CHECK(cfg_create_obj(pctx, &cfg_type_querysource, &obj));
 	isc_sockaddr_fromnetaddr(&obj->value.sockaddr, &netaddr, port);
 	*ret = obj;
 	return (ISC_R_SUCCESS);

@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.139.2.2.4.26 2007/08/28 07:19:07 tbox Exp $ */
+/* $Id: dnssec-signzone.c,v 1.139.2.2.4.27 2008/01/24 13:06:47 marka Exp $ */
 
 #include <config.h>
 
@@ -1720,7 +1720,6 @@ main(int argc, char *argv[]) {
 	isc_boolean_t free_output = ISC_FALSE;
 	int tempfilelen;
 	dns_rdataclass_t rdclass;
-	dns_db_t *udb = NULL;
 	isc_task_t **tasks = NULL;
 	isc_buffer_t b;
 	int len;
@@ -2073,11 +2072,6 @@ main(int argc, char *argv[]) {
 	isc_taskmgr_destroy(&taskmgr);
 	isc_mem_put(mctx, tasks, ntasks * sizeof(isc_task_t *));
 	postsign();
-
-	if (udb != NULL) {
-		dumpdb(udb);
-		dns_db_detach(&udb);
-	}
 
 	result = isc_stdio_close(fp);
 	check_result(result, "isc_stdio_close");

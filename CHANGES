@@ -1,3 +1,7 @@
+2321.   [bug]		Silence Coverity warnings in lib/dns/master.c,
+			lib/dns/rbtdb.c, lib/isccfg/namedconf.c,
+			lib/dns/tsig.c and bin/dnssec/dnssec-signzone.c.
+
 2319.	[bug]		Silence Coverity warnings in 
 			lib/dns/rdata/in_1/apl_42.c. [RT #17469]
 

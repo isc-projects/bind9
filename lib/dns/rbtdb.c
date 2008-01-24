@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.168.2.11.2.33 2007/12/02 21:24:50 marka Exp $ */
+/* $Id: rbtdb.c,v 1.168.2.11.2.34 2008/01/24 13:06:47 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -4951,6 +4951,12 @@ dns_rbtdb_create
 		rbtdb->node_lock_count = DEFAULT_NODE_LOCK_COUNT;
 	rbtdb->node_locks = isc_mem_get(mctx, rbtdb->node_lock_count *
 					sizeof(rbtdb_nodelock_t));
+	if (rbtdb->node_locks == NULL) {
+		isc_rwlock_destroy(&rbtdb->tree_lock);
+		DESTROYLOCK(&rbtdb->lock);
+		isc_mem_put(mctx, rbtdb, sizeof(*rbtdb));
+		return (ISC_R_NOMEMORY);
+	}
 	rbtdb->active = rbtdb->node_lock_count;
 	for (i = 0; i < (int)(rbtdb->node_lock_count); i++) {
 		result = isc_mutex_init(&rbtdb->node_locks[i].lock);

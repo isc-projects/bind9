@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.122.2.8.2.24 2008/01/17 23:45:27 tbox Exp $ */
+/* $Id: master.c,v 1.122.2.8.2.25 2008/01/24 13:06:47 marka Exp $ */
 
 #include <config.h>
 
@@ -1918,8 +1918,7 @@ dns_master_loadfile(const char *master_file, dns_name_t *top,
 	INSIST(result != DNS_R_CONTINUE);
 
  cleanup:
-	if (lctx != NULL)
-		dns_loadctx_detach(&lctx);
+	dns_loadctx_detach(&lctx);
 	return (result);
 }
 
@@ -1952,8 +1951,7 @@ dns_master_loadfileinc(const char *master_file, dns_name_t *top,
 	}
 
  cleanup:
-	if (lctx != NULL)
-		dns_loadctx_detach(&lctx);
+	dns_loadctx_detach(&lctx);
 	return (result);
 }
 
