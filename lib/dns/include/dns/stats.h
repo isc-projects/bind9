@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stats.h,v 1.13 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: stats.h,v 1.13.128.1 2008/01/24 02:29:56 jinmei Exp $ */
 
 #ifndef DNS_STATS_H
 #define DNS_STATS_H 1
@@ -43,10 +43,65 @@ typedef enum {
 LIBDNS_EXTERNAL_DATA extern const char *dns_statscounter_names[];
 
 isc_result_t
+dns_stats_create(isc_mem_t *mctx, dns_stats_t **statsp);
+/*%<
+ * Create a statistics counter structure.
+ *
+ * Requires:
+ *
+ *\li	'mctx' must be a valid memory context.
+ *
+ *\li	'statsp' != NULL && '*statsp' == NULL.
+ */
+
+void
+dns_stats_destroy(isc_mem_t *mctx, dns_stats_t **statsp);
+/*%<
+ * Destroy a statistics counter structure.
+ *
+ * Requires:
+ *
+ *\li	'mctx' must be a valid memory context.
+ *
+ *\li	'statsp' != NULL and '*statsp' be valid dns_stats_t.
+ *
+ * Ensures:
+ *
+ *\li	'*statsp' == NULL
+ */
+
+void
+dns_stats_incrementcounter(dns_stats_t *stat, dns_statscounter_t counter);
+/*%<
+ * Increment a counter field of 'stat' specified by 'counter'.
+ *
+ * Requires:
+ *
+ *\li	'stat' be a valid dns_stats_t.
+ *
+ *\li	counter < DNS_STATS_NCOUNTERS
+ */
+
+void
+dns_stats_copy(dns_stats_t *src, isc_uint64_t *dst);
+/*%<
+ * Copy statistics counter fields of 'src' to the 'dst' array.
+ *
+ * Requires:
+ *
+ *\li	'src' be a valid dns_stats_t.
+ *
+ *\li	'dst' be sufficiently large to store DNS_STATS_NCOUNTERS 64-bit
+ *	integers.
+ */
+
+isc_result_t
 dns_stats_alloccounters(isc_mem_t *mctx, isc_uint64_t **ctrp);
 /*%<
  * Allocate an array of query statistics counters from the memory
  * context 'mctx'.
+ *
+ * This function is obsoleted.  Use dns_stats_create() instead.
  */
 
 void
@@ -54,6 +109,8 @@ dns_stats_freecounters(isc_mem_t *mctx, isc_uint64_t **ctrp);
 /*%<
  * Free an array of query statistics counters allocated from the memory
  * context 'mctx'.
+ *
+ * This function is obsoleted.  Use dns_stats_destroy() instead.
  */
 
 ISC_LANG_ENDDECLS

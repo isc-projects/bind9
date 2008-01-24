@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.495.10.5 2008/01/22 00:31:00 jinmei Exp $ */
+/* $Id: server.c,v 1.495.10.6 2008/01/24 02:29:56 jinmei Exp $ */
 
 /*! \file */
 
@@ -3800,8 +3800,8 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->server_usehostname = ISC_FALSE;
 	server->server_id = NULL;
 
-	CHECKFATAL(dns_stats_alloccounters(ns_g_mctx, &server->querystats),
-		   "dns_stats_alloccounters");
+	CHECKFATAL(dns_stats_create(ns_g_mctx, &server->querystats),
+		   "dns_stats_create");
 
 	server->flushonshutdown = ISC_FALSE;
 	server->log_queries = ISC_FALSE;
@@ -3825,7 +3825,7 @@ ns_server_destroy(ns_server_t **serverp) {
 
 	ns_controls_destroy(&server->controls);
 
-	dns_stats_freecounters(server->mctx, &server->querystats);
+	dns_stats_destroy(server->mctx, &server->querystats);
 
 	isc_mem_free(server->mctx, server->statsfile);
 	isc_mem_free(server->mctx, server->dumpfile);
@@ -4394,6 +4394,7 @@ ns_server_dumpstats(ns_server_t *server) {
 	FILE *fp = NULL;
 	int i;
 	int ncounters;
+	isc_uint64_t counters[DNS_STATS_NCOUNTERS];
 
 	isc_stdtime_get(&now);
 
@@ -4403,22 +4404,23 @@ ns_server_dumpstats(ns_server_t *server) {
 	ncounters = DNS_STATS_NCOUNTERS;
 	fprintf(fp, "+++ Statistics Dump +++ (%lu)\n", (unsigned long)now);
 
+	dns_stats_copy(server->querystats, counters);
 	for (i = 0; i < ncounters; i++)
 		fprintf(fp, "%s %" ISC_PRINT_QUADFORMAT "u\n",
-			dns_statscounter_names[i],
-			server->querystats[i]);
+			dns_statscounter_names[i], counters[i]);
 
 	zone = NULL;
 	for (result = dns_zone_first(server->zonemgr, &zone);
 	     result == ISC_R_SUCCESS;
 	     next = NULL, result = dns_zone_next(zone, &next), zone = next)
 	{
-		isc_uint64_t *zonestats = dns_zone_getstatscounters(zone);
+		dns_stats_t *zonestats = dns_zone_getstats(zone);
 		if (zonestats != NULL) {
 			char zonename[DNS_NAME_FORMATSIZE];
 			dns_view_t *view;
 			char *viewname;
 
+			dns_stats_copy(zonestats, counters);
 			dns_name_format(dns_zone_getorigin(zone),
 					zonename, sizeof(zonename));
 			view = dns_zone_getview(zone);
@@ -4427,7 +4429,7 @@ ns_server_dumpstats(ns_server_t *server) {
 				fprintf(fp, "%s %" ISC_PRINT_QUADFORMAT
 					"u %s",
 					dns_statscounter_names[i],
-					zonestats[i],
+					counters[i],
 					zonename);
 				if (strcmp(viewname, "_default") != 0)
 					fprintf(fp, " %s", viewname);

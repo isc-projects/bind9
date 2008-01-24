@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.432.60.4 $)
+AC_REVISION($Revision: 1.432.60.5 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -2123,11 +2123,13 @@ main() {
 	exit((sizeof(void *) == 8) ? 0 : 1);
 }
 ],
-		[arch=x86_64],
+		[arch=x86_64
+		have_xaddq=yes],
 		[arch=x86_32],
 		[arch=x86_32])
 	;;
 	x86_64-*)
+		have_xaddq=yes
 		arch=x86_64
 	;;
 	alpha*-*)
@@ -2232,7 +2234,14 @@ else
 	ISC_PLATFORM_HAVEATOMICSTORE="#undef ISC_PLATFORM_HAVEATOMICSTORE"
 fi
 
+if test "$have_xaddq" = "yes"; then
+        ISC_PLATFORM_HAVEXADDQ="#define ISC_PLATFORM_HAVEXADDQ 1"
+else
+        ISC_PLATFORM_HAVEXADDQ="#undef ISC_PLATFORM_HAVEXADDQ"
+fi
+
 AC_SUBST(ISC_PLATFORM_HAVEXADD)
+AC_SUBST(ISC_PLATFORM_HAVEXADDQ)
 AC_SUBST(ISC_PLATFORM_HAVECMPXCHG)
 AC_SUBST(ISC_PLATFORM_HAVEATOMICSTORE)
 

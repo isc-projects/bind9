@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.298.48.3 2008/01/17 23:46:36 tbox Exp $ */
+/* $Id: query.c,v 1.298.48.4 2008/01/24 02:29:56 jinmei Exp $ */
 
 /*! \file */
 
@@ -130,12 +130,12 @@ inc_stats(ns_client_t *client, dns_statscounter_t counter) {
 
 	REQUIRE(counter < DNS_STATS_NCOUNTERS);
 
-	ns_g_server->querystats[counter]++;
+	dns_stats_incrementcounter(ns_g_server->querystats, counter);
 
 	if (zone != NULL) {
-		isc_uint64_t *zonestats = dns_zone_getstatscounters(zone);
+		dns_stats_t *zonestats = dns_zone_getstats(zone);
 		if (zonestats != NULL)
-			zonestats[counter]++;
+			dns_stats_incrementcounter(zonestats, counter);
 	}
 }
 

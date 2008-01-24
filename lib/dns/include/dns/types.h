@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.126 2007/09/12 01:09:08 each Exp $ */
+/* $Id: types.h,v 1.126.62.1 2008/01/24 02:29:56 jinmei Exp $ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
@@ -106,6 +106,7 @@ typedef isc_uint8_t				dns_secproto_t;
 typedef struct dns_signature			dns_signature_t;
 typedef struct dns_ssurule			dns_ssurule_t;
 typedef struct dns_ssutable			dns_ssutable_t;
+typedef struct dns_stats			dns_stats_t;
 typedef struct dns_tkeyctx			dns_tkeyctx_t;
 typedef isc_uint16_t				dns_trust_t;
 typedef struct dns_tsig_keyring			dns_tsig_keyring_t;
