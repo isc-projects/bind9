@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: atomic.h,v 1.4.128.1 2008/01/24 02:29:57 jinmei Exp $ */
+/* $Id: atomic.h,v 1.4.128.2 2008/01/24 23:46:26 tbox Exp $ */
 
 #ifndef ISC_ATOMIC_H
 #define ISC_ATOMIC_H 1
@@ -58,20 +58,20 @@ isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
 #ifdef ISC_PLATFORM_HAVEXADDQ
 static isc_int64_t
 isc_atomic_xaddq(isc_int64_t *p, isc_int64_t val) {
-        UNUSED(p);
-        UNUSED(val);
+	UNUSED(p);
+	UNUSED(val);
 
-        __asm (
-                "movq %rdi, %rdx\n"
-                "movq %rsi, %rax\n"
+	__asm (
+		"movq %rdi, %rdx\n"
+		"movq %rsi, %rax\n"
 #ifdef ISC_PLATFORM_USETHREADS
-                "lock;"
+		"lock;"
 #endif
-                "xaddq %rax, (%rdx)\n"
+		"xaddq %rax, (%rdx)\n"
 		/*
 		 * XXX: assume %rax will be used as the return value.
 		 */
-                );
+		);
 }
 #endif
 
