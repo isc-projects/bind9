@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resource.c,v 1.15 2008/01/25 19:31:29 jinmei Exp $ */
+/* $Id: resource.c,v 1.16 2008/01/25 23:46:48 tbox Exp $ */
 
 #include <config.h>
 
@@ -40,13 +40,13 @@ resource2rlim(isc_resource_t resource, int *rlim_resource) {
 		break;
 	case isc_resource_cputime:
 		*rlim_resource = RLIMIT_CPU;
-		break;		
+		break;
 	case isc_resource_datasize:
 		*rlim_resource = RLIMIT_DATA;
-		break;		
+		break;
 	case isc_resource_filesize:
 		*rlim_resource = RLIMIT_FSIZE;
-		break;		
+		break;
 	case isc_resource_lockedmemory:
 #ifdef RLIMIT_MEMLOCK
 		*rlim_resource = RLIMIT_MEMLOCK;
@@ -79,7 +79,7 @@ resource2rlim(isc_resource_t resource, int *rlim_resource) {
 		*rlim_resource = RLIMIT_STACK;
 		break;
 	default:
-                /*
+		/*
 		 * This test is not very robust if isc_resource_t
 		 * changes, but generates a clear assertion message.
 		 */
