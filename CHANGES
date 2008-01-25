@@ -1,3 +1,6 @@
+2322.	[port]		MacOS: work around the limitation of setrlimit()
+			for RLIMIT_NOFILE. [RT #17526]
+
 2321.   [bug]		Silence Coverity warnings in lib/dns/master.c,
 			lib/dns/rbtdb.c, lib/isccfg/namedconf.c,
 			lib/dns/tsig.c and bin/dnssec/dnssec-signzone.c.
