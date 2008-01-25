@@ -1,3 +1,6 @@
+2322.	[port]		MacOS: work around the limitation of setrlimit()
+			for RLIMIT_NOFILE. [RT #17526]
+
 2321.	[placeholder]
 
 2320.	[func]		Make statistics couters thread-safe for platforms
