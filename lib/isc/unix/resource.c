@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resource.c,v 1.16 2008/01/25 23:46:48 tbox Exp $ */
+/* $Id: resource.c,v 1.17 2008/01/25 23:50:38 jinmei Exp $ */
 
 #include <config.h>
 
@@ -138,7 +138,7 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 	if (unixresult == 0)
 		return (ISC_R_SUCCESS);
 
-#if defined(OPEN_MAX) && defined(__APPLE___)
+#if defined(OPEN_MAX) && defined(__APPLE__)
 	/*
 	 * The Darwin kernel doesn't accept RLIM_INFINITY for rlim_cur; the
 	 * maximum possible value is OPEN_MAX.  BIND8 used to use
