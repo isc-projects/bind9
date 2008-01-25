@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resource.c,v 1.14 2007/06/19 23:47:18 tbox Exp $ */
+/* $Id: resource.c,v 1.14.128.1 2008/01/25 23:48:17 jinmei Exp $ */
 
 #include <config.h>
 
@@ -132,58 +132,27 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 		rlim_value = value;
 	}
 
-	/*
-	 * The BIND 8 documentation reports:
-	 *
-	 *	Note: on some operating systems the server cannot set an
-	 *	unlimited value and cannot determine the maximum number of
-	 *	open files the kernel can support. On such systems, choosing
-	 *	unlimited will cause the server to use the larger of the
-	 *	rlim_max for RLIMIT_NOFILE and the value returned by
-	 *	sysconf(_SC_OPEN_MAX). If the actual kernel limit is larger
-	 *	than this value, use limit files to specify the limit
-	 *	explicitly.
-	 *
-	 * The CHANGES for 8.1.2-T3A also mention:
-	 *
-	 *	352. [bug] Because of problems with setting an infinite
-	 *	rlim_max for RLIMIT_NOFILE on some systems, previous versions
-	 *	of the server implemented "limit files unlimited" by setting
-	 *	the limit to the value returned by sysconf(_SC_OPEN_MAX).  The
-	 *	server will now use RLIM_INFINITY on systems which allow it.
-	 *
-	 * At some point the BIND 8 server stopped using SC_OPEN_MAX for this
-	 * purpose at all, but it isn't clear to me when or why, as my access
-	 * to the CVS archive is limited at the time of this writing.  What
-	 * BIND 8 *does* do is to set RLIMIT_NOFILE to either RLIMIT_INFINITY
-	 * on a half dozen operating systems or to FD_SETSIZE on the rest,
-	 * the latter of which is probably fewer than the real limit.  (Note
-	 * that libisc's socket module will have problems with any fd over
-	 * FD_SETSIZE.  This should be fixed in the socket module, not a
-	 * limitation here.  BIND 8's eventlib also has a problem, making
-	 * its RLIMIT_INFINITY setting useless, because it closes and ignores
-	 * any fd over FD_SETSIZE.)
-	 *
-	 * More troubling is the reference to some operating systems not being
-	 * able to set an unlimited value for the number of open files.  I'd
-	 * hate to put in code that is really only there to support archaic
-	 * systems that the rest of libisc won't work on anyway.  So what this
-	 * extremely verbose comment is here to say is the following:
-	 *
-	 *   I'm aware there might be an issue with not limiting the value
-	 *   for RLIMIT_NOFILE on some systems, but since I don't know yet
-	 *   what those systems are and what the best workaround is (use
-	 *   sysconf()?  rlim_max from getrlimit()?  FD_SETSIZE?) so nothing
-	 *   is currently being done to clamp the value for open files.
-	 */
-
 	rl.rlim_cur = rl.rlim_max = rlim_value;
 	unixresult = setrlimit(unixresource, &rl);
 
 	if (unixresult == 0)
 		return (ISC_R_SUCCESS);
-	else
-		return (isc__errno2result(errno));
+
+#if defined(OPEN_MAX) && defined(__APPLE___)
+	/*
+	 * The Darwin kernel doesn't accept RLIM_INFINITY for rlim_cur; the
+	 * maximum possible value is OPEN_MAX.  BIND8 used to use
+	 * sysconf(_SC_OPEN_MAX) for such a case, but this value is much
+	 * smaller than OPEN_MAX and is not really effective.
+	 */
+	if (resource == isc_resource_openfiles && rlim_value == RLIM_INFINITY) {
+		rl.rlim_cur = OPEN_MAX;
+		unixresult = setrlimit(unixresource, &rl);
+		if (unixresult == 0)
+			return (ISC_R_SUCCESS);
+	}
+#endif
+	return (isc__errno2result(errno));
 }
 
 isc_result_t
