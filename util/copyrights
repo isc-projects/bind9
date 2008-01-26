@@ -2091,7 +2091,7 @@
 ./lib/isc/unix/keyboard.c			C	2000,2001,2003,2004,2007
 ./lib/isc/unix/net.c				C	1999,2000,2001,2002,2003,2004,2005,2007
 ./lib/isc/unix/os.c				C	2000,2001,2003,2004,2005,2007
-./lib/isc/unix/resource.c			C	2000,2001,2004
+./lib/isc/unix/resource.c			C	2000,2001,2004,2008
 ./lib/isc/unix/socket.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/isc/unix/socket_p.h			C	2000,2001,2004
 ./lib/isc/unix/stdio.c				C	2000,2001,2004
