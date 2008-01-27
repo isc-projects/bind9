@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.c,v 1.43 2008/01/22 05:37:49 each Exp $ */
+/* $Id: acl.c,v 1.44 2008/01/27 02:13:34 marka Exp $ */
 
 /*! \file */
 
@@ -220,6 +220,8 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
 
 	/* Found a match. */
 	if (result == ISC_R_SUCCESS && node != NULL) {
+		if (node->bit == 0)
+			family = AF_INET;
 		match_num = node->node_num[ISC_IS6(family)];
 		if (*(isc_boolean_t *) node->data[ISC_IS6(family)] == ISC_TRUE)
 			*match = match_num;
