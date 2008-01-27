@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.c,v 1.9.6.2 2008/01/21 23:46:23 tbox Exp $ */
+/* $Id: radix.c,v 1.9.6.3 2008/01/27 02:12:51 marka Exp $ */
 
 /*
  * This source was adapted from MRT's RCS Ids:
@@ -233,7 +233,7 @@ isc_radix_search(isc_radix_tree_t *radix, isc_radix_node_t **target,
 	isc_radix_node_t *node;
 	isc_radix_node_t *stack[RADIX_MAXBITS + 1];
 	u_char *addr;
-	isc_uint32_t bitlen, family;
+	isc_uint32_t bitlen, family, tfamily = -1;
 	int cnt = 0;
 
 	REQUIRE(radix != NULL);
@@ -250,8 +250,6 @@ isc_radix_search(isc_radix_tree_t *radix, isc_radix_node_t **target,
 	addr = isc_prefix_touchar(prefix);
 	bitlen = prefix->bitlen;
 
-	/* Bitlen 0 means "any" or "none", which is always treated as IPv4 */
-	family = bitlen ? prefix->family : AF_INET;
 
 	while (node->bit < bitlen) {
 		if (node->prefix)
@@ -275,11 +273,17 @@ isc_radix_search(isc_radix_tree_t *radix, isc_radix_node_t **target,
 		if (_comp_with_mask(isc_prefix_tochar(node->prefix),
 				    isc_prefix_tochar(prefix),
 				    node->prefix->bitlen)) {
+			/* Bitlen 0 means "any" or "none",
+			   which is always treated as IPv4 */
+			family = node->prefix->bitlen ?
+				 prefix->family : AF_INET;
 			if (node->node_num[ISC_IS6(family)] != -1 &&
-			    ((*target == NULL) ||
-			     (*target)->node_num[ISC_IS6(family)] >
-				   node->node_num[ISC_IS6(family)]))
+			         ((*target == NULL) ||
+			          (*target)->node_num[ISC_IS6(tfamily)] >
+				   node->node_num[ISC_IS6(family)])) {
 				*target = node;
+				tfamily = family;
+			}
 		}
 	}
 

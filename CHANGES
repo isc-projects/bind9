@@ -1,3 +1,5 @@
+2324.	[bug]		Fix IPv6 matching against "any;" [RT #17533]
+
 2323.	[port]		tru64: namespace clash. [RT #17547]
 
 2322.	[port]		MacOS: work around the limitation of setrlimit()
