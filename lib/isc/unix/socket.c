@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.237.18.32 2008/01/22 23:27:06 tbox Exp $ */
+/* $Id: socket.c,v 1.237.18.33 2008/01/27 02:06:26 marka Exp $ */
 
 /*! \file */
 
@@ -1451,7 +1451,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 #endif
 	char strbuf[ISC_STRERRORSIZE];
 	const char *err = "socket";
-	int try = 0;
+	int tries = 0;
 
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(socketp != NULL && *socketp == NULL);
@@ -1473,7 +1473,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		sock->fd = socket(pf, SOCK_STREAM, 0);
 		break;
 	}
-	if (sock->fd == -1 && errno == EINTR && try++ < 42)
+	if (sock->fd == -1 && errno == EINTR && tries++ < 42)
 		goto again;
 
 #ifdef F_DUPFD
