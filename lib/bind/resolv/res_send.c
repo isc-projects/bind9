@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_send.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: res_send.c,v 1.5.2.2.4.10 2007/12/14 04:00:48 marka Exp $";
+static const char rcsid[] = "$Id: res_send.c,v 1.5.2.2.4.11 2008/01/27 02:06:07 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /*
@@ -288,7 +288,7 @@ int
 res_nsend(res_state statp,
 	  const u_char *buf, int buflen, u_char *ans, int anssiz)
 {
-	int gotsomewhere, terrno, try, v_circuit, resplen, ns, n;
+	int gotsomewhere, terrno, tries, v_circuit, resplen, ns, n;
 	char abuf[NI_MAXHOST];
 
 #ifdef USE_POLL
@@ -400,7 +400,7 @@ res_nsend(res_state statp,
 	/*
 	 * Send request, RETRY times, or until successful.
 	 */
-	for (try = 0; try < statp->retry; try++) {
+	for (tries = 0; tries < statp->retry; tries++) {
 	    for (ns = 0; ns < statp->nscount; ns++) {
 		struct sockaddr *nsap;
 		int nsaplen;
@@ -448,7 +448,7 @@ res_nsend(res_state statp,
 
 		if (v_circuit) {
 			/* Use VC; at most one attempt per server. */
-			try = statp->retry;
+			tries = statp->retry;
 			n = send_vc(statp, buf, buflen, ans, anssiz, &terrno,
 				    ns);
 			if (n < 0)
@@ -459,7 +459,7 @@ res_nsend(res_state statp,
 		} else {
 			/* Use datagrams. */
 			n = send_dg(statp, buf, buflen, ans, anssiz, &terrno,
-				    ns, try, &v_circuit, &gotsomewhere);
+				    ns, tries, &v_circuit, &gotsomewhere);
 			if (n < 0)
 				goto fail;
 			if (n == 0)
@@ -782,7 +782,7 @@ send_vc(res_state statp,
 
 static int
 send_dg(res_state statp, const u_char *buf, int buflen, u_char *ans,
-	int anssiz, int *terrno, int ns, int try, int *v_circuit,
+	int anssiz, int *terrno, int ns, int tries, int *v_circuit,
 	int *gotsomewhere)
 {
 	const HEADER *hp = (const HEADER *) buf;
@@ -864,7 +864,7 @@ send_dg(res_state statp, const u_char *buf, int buflen, u_char *ans,
 	/*
 	 * Wait for reply.
 	 */
-	seconds = (statp->retrans << try);
+	seconds = (statp->retrans << tries);
 	if (ns > 0)
 		seconds /= statp->nscount;
 	if (seconds <= 0)

@@ -1,3 +1,5 @@
+2323.	[port]		tru64: namespace clash. [RT #17547]
+
 2322.	[port]		MacOS: work around the limitation of setrlimit()
 			for RLIMIT_NOFILE. [RT #17526]
 
