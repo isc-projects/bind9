@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.c,v 1.12 2008/01/27 02:13:34 marka Exp $ */
+/* $Id: radix.c,v 1.13 2008/01/27 23:47:20 tbox Exp $ */
 
 /*
  * This source was adapted from MRT's RCS Ids:
@@ -278,8 +278,8 @@ isc_radix_search(isc_radix_tree_t *radix, isc_radix_node_t **target,
 			family = node->prefix->bitlen ?
 				 prefix->family : AF_INET;
 			if (node->node_num[ISC_IS6(family)] != -1 &&
-			         ((*target == NULL) ||
-			          (*target)->node_num[ISC_IS6(tfamily)] >
+				 ((*target == NULL) ||
+				  (*target)->node_num[ISC_IS6(tfamily)] >
 				   node->node_num[ISC_IS6(family)])) {
 				*target = node;
 				tfamily = family;
