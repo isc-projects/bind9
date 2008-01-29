@@ -56,7 +56,7 @@ BIND 9.5.0
 
 	Faster ACL processing.
 
-	Use Doxygen to generate internal documention.
+	Use Doxygen to generate internal documentation.
 
         Efficient LRU cache-cleaning mechanism.
 
