@@ -548,7 +548,11 @@ dns_ssutable_checkrules
 dns_ssutable_create
 dns_ssutable_detach
 dns_stats_alloccounters
+dns_stats_copy
+dns_stats_create
+dns_stats_destroy
 dns_stats_freecounters
+dns_stats_incrementcounter
 dns_tcpmsg_cancelread
 dns_tcpmsg_init
 dns_tcpmsg_invalidate
@@ -665,6 +669,7 @@ dns_zone_getorigin
 dns_zone_getqueryacl
 dns_zone_getsigvalidityinterval
 dns_zone_getssutable
+dns_zone_getstats
 dns_zone_getstatscounters
 dns_zone_gettask
 dns_zone_gettype
