@@ -2,8 +2,8 @@
 ./CHANGES					X	2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./COPYRIGHT					TXT	1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./EXCLUDED					X	2001,2002,2003
-./FAQ						X	2000,2001,2002,2003,2004,2005,2006,2007
-./FAQ.xml					SGML	2000,2001,2002,2003,2004,2005,2006,2007
+./FAQ						X	2000,2001,2002,2003,2004,2005,2006,2007,2008
+./FAQ.xml					SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./Makefile.in					MAKE	1998,1999,2000,2001,2002,2003,2004,2006,2007
 ./README					X	1999,2000,2001,2002,2003,2004,2005,2006
 ./acconfig.h					C	1999,2000,2001,2002,2003,2004
@@ -986,7 +986,7 @@
 ./contrib/idn/idnkit-1.0-src/patch/bind9/bind-9.3.2-patch	X	2005
 ./contrib/idn/idnkit-1.0-src/patch/bind9/bind-9.3.3-patch	X	2006
 ./contrib/idn/idnkit-1.0-src/patch/bind9/bind-9.3.4-patch	X	2007
-./contrib/idn/idnkit-1.0-src/patch/bind9/bind-9.3.5-patch	X	2007
+./contrib/idn/idnkit-1.0-src/patch/bind9/bind-9.3.5-patch	X	2007,2008
 ./contrib/idn/idnkit-1.0-src/tools/Makefile.in	X	2003
 ./contrib/idn/idnkit-1.0-src/tools/idnconv/Makefile.in	X	2003
 ./contrib/idn/idnkit-1.0-src/tools/idnconv/idnconv.1	X	2003
