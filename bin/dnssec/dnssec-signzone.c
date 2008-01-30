@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.139.2.2.4.28 2008/01/24 23:45:27 tbox Exp $ */
+/* $Id: dnssec-signzone.c,v 1.139.2.2.4.29 2008/01/30 01:51:54 marka Exp $ */
 
 #include <config.h>
 
@@ -157,37 +157,6 @@ dumpnode(dns_name_t *name, dns_dbnode_t *node) {
 	result = dns_master_dumpnodetostream(mctx, gdb, gversion, node, name,
 					     masterstyle, fp);
 	check_result(result, "dns_master_dumpnodetostream");
-}
-
-static void
-dumpdb(dns_db_t *db) {
-	dns_dbiterator_t *dbiter = NULL;
-	dns_dbnode_t *node;
-	dns_fixedname_t fname;
-	dns_name_t *name;
-	isc_result_t result;
-
-	dbiter = NULL;
-	result = dns_db_createiterator(db, ISC_FALSE, &dbiter);
-	check_result(result, "dns_db_createiterator()");
-
-	dns_fixedname_init(&fname);
-	name = dns_fixedname_name(&fname);
-	node = NULL;
-
-	for (result = dns_dbiterator_first(dbiter);
-	     result == ISC_R_SUCCESS;
-	     result = dns_dbiterator_next(dbiter))
-	{
-		result = dns_dbiterator_current(dbiter, &node, name);
-		check_result(result, "dns_dbiterator_current()");
-		dumpnode(name, node);
-		dns_db_detachnode(db, &node);
-	}
-	if (result != ISC_R_NOMORE)
-		fatal("iterating database: %s", isc_result_totext(result));
-
-	dns_dbiterator_destroy(&dbiter);
 }
 
 static signer_key_t *
