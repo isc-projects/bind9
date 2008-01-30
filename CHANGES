@@ -144,7 +144,7 @@
 2275.	[func]		Add support to dig to perform IXFR queries over UDP.
 			[RT #17235]
 
-2274.	[func]		Log zone transfer statistics. [RT #17161]
+2274.	[func]		Log zone transfer statistics. [RT #17336]
 
 2273.	[bug]		Adjust log level to WARNING when saving inconsistant
 			stub/slave master and journal files. [RT# 17279]
