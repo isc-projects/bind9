@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: FAQ.xml,v 1.4.6.17 2007/11/26 01:34:14 marka Exp $ -->
+<!-- $Id: FAQ.xml,v 1.4.6.18 2008/01/30 02:31:33 marka Exp $ -->
 
 <article class="faq">
   <title>Frequently Asked Questions about BIND 9</title>
@@ -1064,7 +1064,13 @@ client: UDP client handler shutting down due to fatal receive error: unexpected 
       <answer>
 	<para>
 	  The capability module, part of "Linux Security Modules/LSM",
-	  has not been loaded into the kernel.  See insmod(8).
+	  has not been loaded into the kernel.  See insmod(8), modprobe(8).
+	</para>
+	<para>
+	  The relevant modules can be loaded by running:
+<programlisting>
+modprobe commoncap
+modprobe capability</programlisting>
 	</para>
       </answer>
     </qandaentry>
