@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.79.128.3 2008/01/17 23:46:36 tbox Exp $ */
+/* $Id: os.c,v 1.79.128.4 2008/01/30 04:55:51 marka Exp $ */
 
 /*! \file */
 
@@ -116,6 +116,16 @@ static int dfd[2] = { -1, -1 };
 static isc_boolean_t non_root = ISC_FALSE;
 static isc_boolean_t non_root_caps = ISC_FALSE;
 
+#if defined(HAVE_CAPSET)
+#undef _POSIX_SOURCE
+#ifdef HAVE_SYS_CAPABILITY_H
+#include <sys/capability.h>
+#else
+#include <linux/capability.h>
+int capset(cap_user_header_t hdrp, const cap_user_data_t datap);
+#endif
+#include <sys/prctl.h>
+#else
 /*%
  * We define _LINUX_FS_H to prevent it from being included.  We don't need
  * anything from it, and the files it includes cause warnings with 2.2
@@ -148,6 +158,7 @@ static isc_boolean_t non_root_caps = ISC_FALSE;
 #endif
 #define SYS_capset __NR_capset
 #endif
+#endif
 
 static void
 linux_setcaps(unsigned int caps) {
@@ -165,13 +176,23 @@ linux_setcaps(unsigned int caps) {
 	cap.effective = caps;
 	cap.permitted = caps;
 	cap.inheritable = 0;
-	if (syscall(SYS_capset, &caphead, &cap) < 0) {
+#ifdef HAVE_CAPSET
+	if (capset(&caphead, &cap) < 0 ) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		ns_main_earlyfatal("capset failed: %s:"
 				   " please ensure that the capset kernel"
 				   " module is loaded.  see insmod(8)",
 				   strbuf);
 	}
+#else
+	if (syscall(SYS_capset, &caphead, &cap) < 0) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		ns_main_earlyfatal("syscall(capset) failed: %s:"
+				   " please ensure that the capset kernel"
+				   " module is loaded.  see insmod(8)",
+				   strbuf);
+	}
+#endif
 }
 
 static void
