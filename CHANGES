@@ -1,3 +1,6 @@
+2326.	[bug]		It was possible to trigger a INSIST in the acache
+			processing.
+
 2325.	[port]		Linux: use capset() function if available. [RT #17557]
 
 2324.	[bug]		Fix IPv6 matching against "any;" [RT #17533]

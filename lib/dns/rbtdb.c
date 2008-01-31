@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.248 2007/12/02 20:27:35 marka Exp $ */
+/* $Id: rbtdb.c,v 1.249 2008/01/31 05:28:46 marka Exp $ */
 
 /*! \file */
 
@@ -7225,12 +7225,13 @@ acache_callback(dns_acacheentry_t *entry, void **arg) {
         }
 
         count = cbarg->count;
-        if (acarray[count].entry == entry)
+	if (acarray != NULL && acarray[count].entry == entry) {
                 acarray[count].entry = NULL;
-        INSIST(acarray[count].cbarg != NULL);
-        isc_mem_put(rbtdb->common.mctx, acarray[count].cbarg,
-                    sizeof(acache_cbarg_t));
-        acarray[count].cbarg = NULL;
+		INSIST(acarray[count].cbarg == cbarg);
+		isc_mem_put(rbtdb->common.mctx, cbarg, sizeof(acache_cbarg_t));
+		acarray[count].cbarg = NULL;
+	} else 
+		isc_mem_put(rbtdb->common.mctx, cbarg, sizeof(acache_cbarg_t));
 
         dns_acache_detachentry(&entry);
 
@@ -7372,9 +7373,7 @@ rdataset_setadditional(dns_rdataset_t *rdataset, dns_rdatasetadditional_t type,
         NODE_UNLOCK(nodelock, isc_rwlocktype_write);
 
         if (oldentry != NULL) {
-                if (oldcbarg != NULL)
-                        acache_cancelentry(rbtdb->common.mctx, oldentry,
-                                           &oldcbarg);
+		acache_cancelentry(rbtdb->common.mctx, oldentry, &oldcbarg); 
                 dns_acache_detachentry(&oldentry);
         }
 
