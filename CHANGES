@@ -1,3 +1,6 @@
+2326.	[bug]		It was possible to trigger a INSIST in the acache
+			processing.
+
 2325.	[port]		Linux: use capset() function if available. [RT #17557]
 
 	--- 9.5.0b2 released ---
