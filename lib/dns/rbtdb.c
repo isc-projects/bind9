@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.250 2008/01/31 23:47:06 tbox Exp $ */
+/* $Id: rbtdb.c,v 1.251 2008/02/01 04:31:04 marka Exp $ */
 
 /*! \file */
 
@@ -405,6 +405,11 @@ typedef struct {
 	 * placed on the linked list rdatasets[1].
 	 */
 	rdatasetheaderlist_t            *rdatasets;
+
+        /*%
+         * Temporary storage for stale cache nodes and dynamically deleted
+	 * nodes that await being cleaned up.
+         */
 	rbtnodelist_t                   *deadnodes;
 
 	/*
@@ -763,23 +768,21 @@ free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log, isc_event_t *event) {
 		isc_mem_put(rbtdb->common.mctx, rbtdb->current_version,
 			    sizeof(rbtdb_version_t));
 	}
-	if (IS_CACHE(rbtdb)) {
-		/*
-		 * We assume the number of remaining dead nodes is reasonably
-		 * small; the overhead of unlinking all nodes here should be
-		 * negligible.
-		 */
-		for (i = 0; i < rbtdb->node_lock_count; i++) {
-			dns_rbtnode_t *node;
 
+	/*
+	 * We assume the number of remaining dead nodes is reasonably small;
+	 * the overhead of unlinking all nodes here should be negligible.
+	 */
+	for (i = 0; i < rbtdb->node_lock_count; i++) {
+		dns_rbtnode_t *node;
+
+		node = ISC_LIST_HEAD(rbtdb->deadnodes[i]);
+		while (node != NULL) {
+			ISC_LIST_UNLINK(rbtdb->deadnodes[i], node, deadlink);
 			node = ISC_LIST_HEAD(rbtdb->deadnodes[i]);
-			while (node != NULL) {
-				ISC_LIST_UNLINK(rbtdb->deadnodes[i], node,
-				    deadlink);
-				node = ISC_LIST_HEAD(rbtdb->deadnodes[i]);
-			}
 		}
 	}
+
 	if (event == NULL)
 		rbtdb->quantum = (rbtdb->task != NULL) ? 100 : 0;
  again:
@@ -1914,6 +1917,15 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 	}
 
 	if (!EMPTY(cleanup_list)) {
+		/*
+		 * We acquire a tree write lock here in order to make sure
+		 * that stale nodes will be removed in decrement_reference().
+		 * If we didn't have the lock, those nodes could miss the
+		 * chance to be removed until the server stops.  The write lock
+		 * is expensive, but this event should be rare enough to justify
+		 * the cost.
+		 */
+		RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_write);
 		for (changed = HEAD(cleanup_list);
 		     changed != NULL;
 		     changed = next_changed) {
@@ -1924,16 +1936,24 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 			lock = &rbtdb->node_locks[rbtnode->locknum].lock;
 
 			NODE_LOCK(lock, isc_rwlocktype_write);
+			/*
+			 * This is a good opportunity to purge any dead nodes,
+			 * so use it.
+			 */
+			cleanup_dead_nodes(rbtdb, rbtnode->locknum);
+
 			if (rollback)
 				rollback_node(rbtnode, serial);
 			decrement_reference(rbtdb, rbtnode, least_serial,
 					    isc_rwlocktype_write,
-					    isc_rwlocktype_none);
+                                            isc_rwlocktype_write);
+
 			NODE_UNLOCK(lock, isc_rwlocktype_write);
 
 			isc_mem_put(rbtdb->common.mctx, changed,
 				    sizeof(*changed));
 		}
+		RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_write);
 	}
 
   end:
@@ -2011,6 +2031,7 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 	dns_name_t nodename;
 	isc_result_t result;
 	isc_rwlocktype_t locktype = isc_rwlocktype_read;
+	isc_boolean_t need_relock;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
@@ -2066,29 +2087,26 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 	 * happen to hold a write lock on the tree, it's a good chance to purge
 	 * dead nodes.
 	 */
-	if (IS_CACHE(rbtdb)) {
-		isc_boolean_t need_relock = ISC_FALSE;
-
+	need_relock = ISC_FALSE;
+	NODE_WEAKLOCK(&rbtdb->node_locks[node->locknum].lock,
+		      isc_rwlocktype_read);
+	if (ISC_LINK_LINKED(node, deadlink) && isc_rwlocktype_write)
+		need_relock = ISC_TRUE;
+	else if (!ISC_LIST_EMPTY(rbtdb->deadnodes[node->locknum]) &&
+		 locktype == isc_rwlocktype_write)
+		need_relock = ISC_TRUE;
+	NODE_WEAKUNLOCK(&rbtdb->node_locks[node->locknum].lock,
+			isc_rwlocktype_read);
+	if (need_relock) {
 		NODE_WEAKLOCK(&rbtdb->node_locks[node->locknum].lock,
-			      isc_rwlocktype_read);
-		if (ISC_LINK_LINKED(node, deadlink) && isc_rwlocktype_write)
-			need_relock = ISC_TRUE;
-		else if (!ISC_LIST_EMPTY(rbtdb->deadnodes[node->locknum]) &&
-			 locktype == isc_rwlocktype_write)
-			need_relock = ISC_TRUE;
+			      isc_rwlocktype_write);
+		if (ISC_LINK_LINKED(node, deadlink))
+			ISC_LIST_UNLINK(rbtdb->deadnodes[node->locknum],
+					node, deadlink);
+		if (locktype == isc_rwlocktype_write)
+			cleanup_dead_nodes(rbtdb, node->locknum);
 		NODE_WEAKUNLOCK(&rbtdb->node_locks[node->locknum].lock,
-				isc_rwlocktype_read);
-		if (need_relock) {
-			NODE_WEAKLOCK(&rbtdb->node_locks[node->locknum].lock,
-				      isc_rwlocktype_write);
-			if (ISC_LINK_LINKED(node, deadlink))
-				ISC_LIST_UNLINK(rbtdb->deadnodes[node->locknum],
-						node, deadlink);
-			if (locktype == isc_rwlocktype_write)
-				cleanup_dead_nodes(rbtdb, node->locknum);
-			NODE_WEAKUNLOCK(&rbtdb->node_locks[node->locknum].lock,
-					isc_rwlocktype_write);
-		}
+				isc_rwlocktype_write);
 	}
 
 	NODE_STRONGUNLOCK(&rbtdb->node_locks[node->locknum].lock);
@@ -6151,15 +6169,6 @@ dns_rbtdb_create
 		for (i = 0; i < (int)rbtdb->node_lock_count; i++)
 			ISC_LIST_INIT(rbtdb->rdatasets[i]);
 
-		rbtdb->deadnodes = isc_mem_get(mctx, rbtdb->node_lock_count *
-					       sizeof(rbtnodelist_t));
-		if (rbtdb->deadnodes == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto cleanup_rdatasets;
-		}
-		for (i = 0; i < (int)rbtdb->node_lock_count; i++)
-			ISC_LIST_INIT(rbtdb->deadnodes[i]);
-
 		/*
 		 * Create the heaps.
 		 */
@@ -6167,7 +6176,7 @@ dns_rbtdb_create
 					   sizeof(isc_heap_t *));
 		if (rbtdb->heaps == NULL) {
 			result = ISC_R_NOMEMORY;
-			goto cleanup_deadnodes;
+                        goto cleanup_rdatasets;
 		}
 		for (i = 0; i < (int)rbtdb->node_lock_count; i++)
 			rbtdb->heaps[i] = NULL;
@@ -6180,9 +6189,17 @@ dns_rbtdb_create
 		}
 	} else {
 		rbtdb->rdatasets = NULL;
-		rbtdb->deadnodes = NULL;
 		rbtdb->heaps = NULL;
 	}
+
+	rbtdb->deadnodes = isc_mem_get(mctx, rbtdb->node_lock_count *
+				       sizeof(rbtnodelist_t));
+	if (rbtdb->deadnodes == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto cleanup_heaps;
+	}
+	for (i = 0; i < (int)rbtdb->node_lock_count; i++)
+		ISC_LIST_INIT(rbtdb->deadnodes[i]);
 
 	rbtdb->active = rbtdb->node_lock_count;
 
@@ -6199,7 +6216,7 @@ dns_rbtdb_create
 				isc_refcount_decrement(&rbtdb->node_locks[i].references, NULL);
 				isc_refcount_destroy(&rbtdb->node_locks[i].references);
 			}
-			goto cleanup_heaps;
+                        goto cleanup_deadnodes;
 		}
 		rbtdb->node_locks[i].exiting = ISC_FALSE;
 	}
@@ -6312,6 +6329,10 @@ dns_rbtdb_create
 
 	return (ISC_R_SUCCESS);
 
+ cleanup_deadnodes:
+	isc_mem_put(mctx, rbtdb->deadnodes,
+                    rbtdb->node_lock_count * sizeof(rbtnodelist_t));
+
  cleanup_heaps:
 	if (rbtdb->heaps != NULL) {
 		for (i = 0 ; i < (int)rbtdb->node_lock_count ; i++)
@@ -6320,11 +6341,6 @@ dns_rbtdb_create
 		isc_mem_put(mctx, rbtdb->heaps,
 			    rbtdb->node_lock_count * sizeof(isc_heap_t *));
 	}
-
- cleanup_deadnodes:
-	if (rbtdb->deadnodes != NULL)
-		isc_mem_put(mctx, rbtdb->deadnodes,
-			    rbtdb->node_lock_count * sizeof(rbtnodelist_t));
 
  cleanup_rdatasets:
 	if (rbtdb->rdatasets != NULL)

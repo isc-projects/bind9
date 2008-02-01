@@ -1,3 +1,7 @@
+2327.	[bug]		It was possible to dereference a NULL in rbtdb.c.
+			Implement deadnode processing in zones as we do for
+			caches. [RT #17312]
+
 2326.	[bug]		It was possible to trigger a INSIST in the acache
 			processing.
 
