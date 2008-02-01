@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.251 2008/02/01 04:31:04 marka Exp $ */
+/* $Id: rbtdb.c,v 1.252 2008/02/01 23:46:58 tbox Exp $ */
 
 /*! \file */
 
@@ -406,10 +406,10 @@ typedef struct {
 	 */
 	rdatasetheaderlist_t            *rdatasets;
 
-        /*%
-         * Temporary storage for stale cache nodes and dynamically deleted
+	/*%
+	 * Temporary storage for stale cache nodes and dynamically deleted
 	 * nodes that await being cleaned up.
-         */
+	 */
 	rbtnodelist_t                   *deadnodes;
 
 	/*
@@ -1946,7 +1946,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 				rollback_node(rbtnode, serial);
 			decrement_reference(rbtdb, rbtnode, least_serial,
 					    isc_rwlocktype_write,
-                                            isc_rwlocktype_write);
+					    isc_rwlocktype_write);
 
 			NODE_UNLOCK(lock, isc_rwlocktype_write);
 
@@ -6176,7 +6176,7 @@ dns_rbtdb_create
 					   sizeof(isc_heap_t *));
 		if (rbtdb->heaps == NULL) {
 			result = ISC_R_NOMEMORY;
-                        goto cleanup_rdatasets;
+			goto cleanup_rdatasets;
 		}
 		for (i = 0; i < (int)rbtdb->node_lock_count; i++)
 			rbtdb->heaps[i] = NULL;
@@ -6216,7 +6216,7 @@ dns_rbtdb_create
 				isc_refcount_decrement(&rbtdb->node_locks[i].references, NULL);
 				isc_refcount_destroy(&rbtdb->node_locks[i].references);
 			}
-                        goto cleanup_deadnodes;
+			goto cleanup_deadnodes;
 		}
 		rbtdb->node_locks[i].exiting = ISC_FALSE;
 	}
@@ -6331,7 +6331,7 @@ dns_rbtdb_create
 
  cleanup_deadnodes:
 	isc_mem_put(mctx, rbtdb->deadnodes,
-                    rbtdb->node_lock_count * sizeof(rbtnodelist_t));
+		    rbtdb->node_lock_count * sizeof(rbtnodelist_t));
 
  cleanup_heaps:
 	if (rbtdb->heaps != NULL) {
