@@ -1,3 +1,8 @@
+2328.	[bug]		Add AAAA addresses for A.ROOT-SERVERS.NET,
+			F.ROOT-SERVERS.NET, H.ROOT-SERVERS.NET,
+			J.ROOT-SERVERS.NET, K.ROOT-SERVERS.NET and
+			M.ROOT-SERVERS.NET.
+
 2327.	[bug]		It was possible to dereference a NULL pointer in
 			rbtdb.c.  Implement deadnode processing in zones as
 			we do for caches. [RT #17312]
