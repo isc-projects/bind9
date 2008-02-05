@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rootns.c,v 1.33 2008/02/05 03:21:20 marka Exp $ */
+/* $Id: rootns.c,v 1.34 2008/02/05 23:47:08 tbox Exp $ */
 
 /*! \file */
 
@@ -84,7 +84,7 @@ in_rootns(dns_rdataset_t *rootns, dns_name_t *name) {
 	isc_result_t result;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_ns_t ns;
-	
+
 	if (!dns_rdataset_isassociated(rootns))
 		return (ISC_R_NOTFOUND);
 
@@ -103,7 +103,7 @@ in_rootns(dns_rdataset_t *rootns, dns_name_t *name) {
 	return (result);
 }
 
-static isc_result_t 
+static isc_result_t
 check_node(dns_rdataset_t *rootns, dns_name_t *name,
 	   dns_rdatasetiter_t *rdsiter) {
 	isc_result_t result;
@@ -231,7 +231,7 @@ dns_rootns_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		 * Default to using the Internet root servers.
 		 */
 		result = dns_master_loadbuffer(&source, &db->origin,
-					       &db->origin, db->rdclass, 
+					       &db->origin, db->rdclass,
 					       DNS_MASTER_HINT,
 					       &callbacks, db->mctx);
 	} else
@@ -266,11 +266,11 @@ report(dns_view_t *view, dns_name_t *name, isc_boolean_t missing,
 	isc_buffer_t buffer;
 	isc_result_t result;
 
-        if (strcmp(view->name, "_bind") != 0 &&
-            strcmp(view->name, "_default") != 0) {
-                viewname = view->name;
-                sep = ": view ";
-        }
+	if (strcmp(view->name, "_bind") != 0 &&
+	    strcmp(view->name, "_default") != 0) {
+		viewname = view->name;
+		sep = ": view ";
+	}
 
 	dns_name_format(name, namebuf, sizeof(namebuf));
 	dns_rdatatype_format(rdata->type, typebuf, sizeof(typebuf));
@@ -350,7 +350,7 @@ check_address_records(dns_view_t *view, dns_db_t *hints, dns_db_t *db,
 				report(view, name, ISC_FALSE, &rdata);
 			result = dns_rdataset_next(&hintrrset);
 		}
-	} 
+	}
 	if (hresult == ISC_R_NOTFOUND &&
 	    (rresult == ISC_R_SUCCESS || rresult == DNS_R_GLUE)) {
 		result = dns_rdataset_first(&rootrrset);
@@ -391,7 +391,7 @@ check_address_records(dns_view_t *view, dns_db_t *hints, dns_db_t *db,
 			dns_rdata_reset(&rdata);
 			result = dns_rdataset_next(&hintrrset);
 		}
-	} 
+	}
 	if (hresult == ISC_R_NOTFOUND &&
 	    (rresult == ISC_R_SUCCESS || rresult == DNS_R_GLUE)) {
 		result = dns_rdataset_first(&rootrrset);
@@ -425,11 +425,11 @@ dns_root_checkhints(dns_view_t *view, dns_db_t *hints, dns_db_t *db) {
 
 	isc_stdtime_get(&now);
 
-        if (strcmp(view->name, "_bind") != 0 &&
-            strcmp(view->name, "_default") != 0) {
-                viewname = view->name;
-                sep = ": view ";
-        }
+	if (strcmp(view->name, "_bind") != 0 &&
+	    strcmp(view->name, "_default") != 0) {
+		viewname = view->name;
+		sep = ": view ";
+	}
 
 	dns_rdataset_init(&hintns);
 	dns_rdataset_init(&rootns);
@@ -457,7 +457,7 @@ dns_root_checkhints(dns_view_t *view, dns_db_t *hints, dns_db_t *db) {
 			      dns_result_totext(result));
 		goto cleanup;
 	}
-	
+
 	/*
 	 * Look for missing root NS names.
 	 */
@@ -476,7 +476,7 @@ dns_root_checkhints(dns_view_t *view, dns_db_t *hints, dns_db_t *db) {
 				      "checkhints%s%s: unable to find root "
 				      "NS '%s' in hints", sep, viewname,
 				      namebuf);
-		} else 
+		} else
 			check_address_records(view, hints, db, &ns.name, now);
 		dns_rdata_reset(&rdata);
 		result = dns_rdataset_next(&rootns);
