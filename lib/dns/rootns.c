@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rootns.c,v 1.20.2.3.2.10 2008/02/05 03:29:07 marka Exp $ */
+/* $Id: rootns.c,v 1.20.2.3.2.11 2008/02/05 23:45:38 tbox Exp $ */
 
 #include <config.h>
 
@@ -79,7 +79,7 @@ in_rootns(dns_rdataset_t *rootns, dns_name_t *name) {
 	isc_result_t result;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_ns_t ns;
-	
+
 	if (!dns_rdataset_isassociated(rootns))
 		return (ISC_R_NOTFOUND);
 
@@ -98,7 +98,7 @@ in_rootns(dns_rdataset_t *rootns, dns_name_t *name) {
 	return (result);
 }
 
-static isc_result_t 
+static isc_result_t
 check_node(dns_rdataset_t *rootns, dns_name_t *name,
 	   dns_rdatasetiter_t *rdsiter) {
 	isc_result_t result;
@@ -226,7 +226,7 @@ dns_rootns_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		 * Default to using the Internet root servers.
 		 */
 		result = dns_master_loadbuffer(&source, &db->origin,
-					       &db->origin, db->rdclass, 
+					       &db->origin, db->rdclass,
 					       DNS_MASTER_HINT,
 					       &callbacks, db->mctx);
 	} else
