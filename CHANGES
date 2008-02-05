@@ -1,3 +1,5 @@
+2329.	[bug]		Clearer help text for dig's '-x' and '-i' options.
+
 2328.	[bug]		Add AAAA addresses for A.ROOT-SERVERS.NET,
 			F.ROOT-SERVERS.NET, H.ROOT-SERVERS.NET,
 			J.ROOT-SERVERS.NET, K.ROOT-SERVERS.NET and
