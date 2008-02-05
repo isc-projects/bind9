@@ -1,3 +1,8 @@
+2328.	[bug]		Add AAAA addresses for A.ROOT-SERVERS.NET,
+			F.ROOT-SERVERS.NET, H.ROOT-SERVERS.NET,
+			J.ROOT-SERVERS.NET, K.ROOT-SERVERS.NET and
+			M.ROOT-SERVERS.NET.
+
 	--- 9.3.5rc1 released ---
 
 2323.	[port]		tru64: namespace clash. [RT #17547]
