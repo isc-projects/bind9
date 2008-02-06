@@ -96,6 +96,7 @@ rt17557				new	marka	// 2008-01-29 00:48 +0000
 rt17572				new	marka	// 2008-02-04 00:59 +0000
 rt17573				new	marka	// 2008-02-04 05:15 +0000
 rt17576				new	marka	// 2008-02-05 02:22 +0000
+rt17580				new	
 shane_dbbackend			open	
 skan				open	explorer
 skan-metazones1			private	explorer
@@ -105,6 +106,7 @@ skan_stats1			open	explorer
 skan_stats2			open	explorer
 skan_stats3			open	explorer
 skan_stats4			open	explorer
+skan_zonemaint			new	
 sp1213				open	
 sp1324				new	marka	// 2007-06-29 05:40 +0000
 sp1705				new	
