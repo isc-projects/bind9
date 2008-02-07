@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.137 2007/11/26 04:27:19 marka Exp $ */
+/* $Id: mem.c,v 1.137.16.1 2008/02/07 02:51:42 marka Exp $ */
 
 /*! \file */
 
@@ -1086,7 +1086,6 @@ isc__mem_get(isc_mem_t *ctx, size_t size FLARG) {
 	ADD_TRACE(ctx, ptr, size, file, line);
 	if (ctx->hi_water != 0U && !ctx->hi_called &&
 	    ctx->inuse > ctx->hi_water) {
-		ctx->hi_called = ISC_TRUE;
 		call_water = ISC_TRUE;
 	}
 	if (ctx->inuse > ctx->maxinuse) {
@@ -1144,8 +1143,6 @@ isc__mem_put(isc_mem_t *ctx, void *ptr, size_t size FLARG)
 	 */
 	if (ctx->hi_called && 
 	    (ctx->inuse < ctx->lo_water || ctx->lo_water == 0U)) {
-		ctx->hi_called = ISC_FALSE;
-
 		if (ctx->water != NULL)
 			call_water = ISC_TRUE;
 	}
@@ -1153,6 +1150,18 @@ isc__mem_put(isc_mem_t *ctx, void *ptr, size_t size FLARG)
 
 	if (call_water)
 		(ctx->water)(ctx->water_arg, ISC_MEM_LOWATER);
+}
+
+void
+isc_mem_waterack(isc_mem_t *ctx, int flag) {
+	REQUIRE(VALID_CONTEXT(ctx));
+
+	MCTXLOCK(ctx, &ctx->lock);
+	if (flag == ISC_MEM_LOWATER)
+		ctx->hi_called = ISC_FALSE;
+	else if (flag == ISC_MEM_HIWATER)
+		ctx->hi_called = ISC_TRUE;
+	MCTXUNLOCK(ctx, &ctx->lock);
 }
 
 #if ISC_MEM_TRACKLINES

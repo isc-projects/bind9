@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.76 2007/10/19 17:15:53 explorer Exp $ */
+/* $Id: cache.c,v 1.76.36.1 2008/02/07 02:51:42 marka Exp $ */
 
 /*! \file */
 
@@ -708,8 +708,11 @@ water(void *arg, int mark) {
 
         LOCK(&cache->cleaner.lock);
 
-        dns_db_overmem(cache->db, overmem);
-        cache->cleaner.overmem = overmem;
+	if (overmem != cache->cleaner.overmem) {
+		dns_db_overmem(cache->db, overmem);
+		cache->cleaner.overmem = overmem;
+		isc_mem_waterack(cache->mctx, mark);
+	}
 
         UNLOCK(&cache->cleaner.lock);
 }
