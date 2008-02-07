@@ -1,5 +1,5 @@
-2331.	[bug]		Failure to regenerate any signatures was not being reported
-			or past back to the UPDATE client. [RT #17570]
+2331.	[bug]		Failure to regenerate any signatures was not being
+			reported or past back to the UPDATE client. [RT #17570]
 
 2330.	[bug]		Remove potential race condition when handling
 			over memory events. [RT #17572]
@@ -26,7 +26,7 @@
 
 	--- 9.5.0b2 released ---
 
-2324.	[bug]		Fix IPv6 matching against "any;" [RT #17533]
+2324.	[bug]		Fix IPv6 matching against "any;". [RT #17533]
 
 2323.	[port]		tru64: namespace clash. [RT #17547]
 
