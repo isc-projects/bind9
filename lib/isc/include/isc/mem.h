@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.76 2008/02/07 02:41:26 marka Exp $ */
+/* $Id: mem.h,v 1.77 2008/02/07 02:45:49 marka Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -350,7 +350,7 @@ isc_mem_setwater(isc_mem_t *mctx, isc_mem_water_t water, void *water_arg,
  *
  *	static void
  *	water(void *arg, int mark) {
- *		struct foo *foo = *arg;
+ *		struct foo *foo = arg;
  *
  *		LOCK(&foo->marklock);
  *		if (foo->mark != mark) {
