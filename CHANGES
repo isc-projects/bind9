@@ -1,3 +1,10 @@
+2330.	[bug]		Remove potential race condition when handling
+			over memory events. [RT #17572]
+
+			WARNING: API CHANGE: over memory callback
+			function now needs to call isc_mem_waterack().
+			See <isc/mem.h> for details.
+
 2329.	[bug]		Clearer help text for dig's '-x' and '-i' options.
 
 2328.	[bug]		Add AAAA addresses for A.ROOT-SERVERS.NET,

@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acache.c,v 1.3.2.16 2006/07/19 00:34:56 marka Exp $ */
+/* $Id: acache.c,v 1.3.2.17 2008/02/07 03:03:35 marka Exp $ */
 
 #include <config.h>
 
@@ -965,10 +965,14 @@ water(void *arg, int mark) {
 
 	LOCK(&acache->cleaner.lock);
 
-	acache->cleaner.overmem = overmem;
+	if (acache->cleaner.overmem != overmem) {
+		acache->cleaner.overmem = overmem;
 
-	if (acache->cleaner.overmem_event != NULL)
-		isc_task_send(acache->task, &acache->cleaner.overmem_event);
+		if (acache->cleaner.overmem_event != NULL)
+			isc_task_send(acache->task,
+				      &acache->cleaner.overmem_event);
+		isc_mem_waterack(acache->mctx, mark);
+	}
 
 	UNLOCK(&acache->cleaner.lock);
 }

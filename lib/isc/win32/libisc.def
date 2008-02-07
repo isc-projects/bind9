@@ -248,6 +248,7 @@ isc_mem_setdestroycheck
 isc_mem_setquota
 isc_mem_setwater
 isc_mem_stats
+isc_mem_waterack
 isc_mempool_associatelock
 isc_mempool_create
 isc_mempool_destroy
