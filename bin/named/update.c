@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.138.2.2 2008/01/17 23:46:36 tbox Exp $ */
+/* $Id: update.c,v 1.138.2.3 2008/02/07 03:14:57 marka Exp $ */
 
 #include <config.h>
 
@@ -1653,10 +1653,11 @@ ksk_sanity(dns_db_t *db, dns_dbversion_t *ver) {
  * Add RRSIG records for an RRset, recording the change in "diff".
  */
 static isc_result_t
-add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
-	 dns_rdatatype_t type, dns_diff_t *diff, dst_key_t **keys,
-	 unsigned int nkeys, isc_mem_t *mctx, isc_stdtime_t inception,
-	 isc_stdtime_t expire, isc_boolean_t check_ksk)
+add_sigs(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
+	 dns_dbversion_t *ver, dns_name_t *name, dns_rdatatype_t type,
+	 dns_diff_t *diff, dst_key_t **keys, unsigned int nkeys,
+	 isc_mem_t *mctx, isc_stdtime_t inception, isc_stdtime_t expire,
+	 isc_boolean_t check_ksk)
 {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
@@ -1665,6 +1666,7 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	isc_buffer_t buffer;
 	unsigned char data[1024]; /* XXX */
 	unsigned int i;
+	isc_boolean_t added_sig = ISC_FALSE;
 
 	dns_rdataset_init(&rdataset);
 	isc_buffer_init(&buffer, data, sizeof(data));
@@ -1694,6 +1696,13 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		CHECK(update_one_rr(db, ver, diff, DNS_DIFFOP_ADD, name,
 				    rdataset.ttl, &sig_rdata));
 		dns_rdata_reset(&sig_rdata);
+		added_sig = ISC_TRUE;
+	}
+	if (!added_sig) {
+		update_log(client, zone, ISC_LOG_ERROR,
+			   "found no private keys, "
+			   "unable to generate any signatures");
+		result = ISC_R_NOTFOUND;
 	}
 
  failure:
@@ -1825,9 +1834,9 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 			 */
 			CHECK(rrset_exists(db, newver, name, type, 0, &flag));
 			if (flag) {
-				CHECK(add_sigs(db, newver, name, type,
-					       &sig_diff, zone_keys, nkeys,
-					       client->mctx, inception,
+				CHECK(add_sigs(client, zone, db, newver, name,
+					       type, &sig_diff, zone_keys,
+					       nkeys, client->mctx, inception,
 					       expire, check_ksk));
 			}
 		skip:
@@ -2011,10 +2020,10 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 					dns_rdatatype_rrsig, dns_rdatatype_nsec,
 					NULL, &sig_diff));
 		} else if (t->op == DNS_DIFFOP_ADD) {
-			CHECK(add_sigs(db, newver, &t->name, dns_rdatatype_nsec,
-				       &sig_diff, zone_keys, nkeys,
-				       client->mctx, inception, expire,
-				       check_ksk));
+			CHECK(add_sigs(client, zone, db, newver, &t->name,
+				       dns_rdatatype_nsec, &sig_diff,
+				       zone_keys, nkeys, client->mctx,
+				       inception, expire, check_ksk));
 		} else {
 			INSIST(0);
 		}
