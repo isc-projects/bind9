@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,9 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.215.18.18 2008/02/07 03:03:35 marka Exp $ */
+/* $Id: adb.c,v 1.215.18.19 2008/02/07 23:45:56 tbox Exp $ */
 
-/*! \file 
+/*! \file
  *
  * \note
  * In finds, if task == NULL, no events will be generated, and no events
@@ -71,7 +71,7 @@
 #define DNS_ADBFETCH6_MAGIC	  ISC_MAGIC('a', 'd', 'F', '6')
 #define DNS_ADBFETCH6_VALID(x)	  ISC_MAGIC_VALID(x, DNS_ADBFETCH6_MAGIC)
 
-/*! 
+/*!
  * The number of buckets needs to be a prime (for good hashing).
  *
  * XXXRTH  How many buckets do we need?
@@ -119,7 +119,7 @@ struct dns_adb {
 
 	isc_mutex_t			lock;
 	isc_mutex_t			reflock; /*%< Covers irefcnt, erefcnt */
-        isc_mutex_t                     overmemlock; /*%< Covers overmem */
+	isc_mutex_t                     overmemlock; /*%< Covers overmem */
 	isc_mem_t		       *mctx;
 	dns_view_t		       *view;
 	isc_timermgr_t		       *timermgr;
@@ -1991,7 +1991,7 @@ destroy(dns_adb_t *adb) {
 	DESTROYLOCK(&adb->reflock);
 	DESTROYLOCK(&adb->lock);
 	DESTROYLOCK(&adb->mplock);
-        DESTROYLOCK(&adb->overmemlock);
+	DESTROYLOCK(&adb->overmemlock);
 
 	isc_mem_putanddetach(&adb->mctx, adb, sizeof(dns_adb_t));
 }
@@ -2062,9 +2062,9 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	if (result != ISC_R_SUCCESS)
 		goto fail0d;
 
-        result = isc_mutex_init(&adb->overmemlock);
-        if (result != ISC_R_SUCCESS)
-                goto fail0e;
+	result = isc_mutex_init(&adb->overmemlock);
+	if (result != ISC_R_SUCCESS)
+		goto fail0e;
 
 	/*
 	 * Initialize the bucket locks for names and elements.
@@ -2168,7 +2168,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	if (adb->afmp != NULL)
 		isc_mempool_destroy(&adb->afmp);
 
-        DESTROYLOCK(&adb->overmemlock);
+	DESTROYLOCK(&adb->overmemlock);
  fail0e:
 	DESTROYLOCK(&adb->reflock);
  fail0d:
