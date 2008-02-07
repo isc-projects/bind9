@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.233 2007/10/19 17:15:53 explorer Exp $ */
+/* $Id: adb.c,v 1.234 2008/02/07 02:41:26 marka Exp $ */
 
 /*! \file
  *
@@ -128,6 +128,7 @@ struct dns_adb {
 
         isc_mutex_t                     lock;
         isc_mutex_t                     reflock; /*%< Covers irefcnt, erefcnt */
+        isc_mutex_t                     overmemlock; /*%< Covers overmem */
         isc_mem_t                      *mctx;
         dns_view_t                     *view;
         isc_timermgr_t                 *timermgr;
@@ -2138,6 +2139,7 @@ destroy(dns_adb_t *adb) {
         DESTROYLOCK(&adb->reflock);
         DESTROYLOCK(&adb->lock);
         DESTROYLOCK(&adb->mplock);
+        DESTROYLOCK(&adb->overmemlock);
 
         isc_mem_putanddetach(&adb->mctx, adb, sizeof(dns_adb_t));
 }
@@ -2224,6 +2226,10 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
         result = isc_mutex_init(&adb->reflock);
         if (result != ISC_R_SUCCESS)
                 goto fail0d;
+
+        result = isc_mutex_init(&adb->overmemlock);
+        if (result != ISC_R_SUCCESS)
+                goto fail0e;
 
         /*
          * Initialize the bucket locks for names and elements.
@@ -2343,6 +2349,8 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
         if (adb->afmp != NULL)
                 isc_mempool_destroy(&adb->afmp);
 
+        DESTROYLOCK(&adb->overmemlock);
+ fail0e:
         DESTROYLOCK(&adb->reflock);
  fail0d:
         DESTROYLOCK(&adb->mplock);
@@ -3782,16 +3790,25 @@ water(void *arg, int mark) {
         DP(ISC_LOG_DEBUG(1),
            "adb reached %s water mark", overmem ? "high" : "low");
 
-        adb->overmem = overmem;
+	/*
+	 * We can't use adb->lock as there is potential for water
+	 * to be called when adb->lock is held.
+	 */
+	LOCK(&adb->overmemlock);
+	if (adb->overmem != overmem) {
+		adb->overmem = overmem;
 #if 0       /* we don't need this timer for the new cleaning policy. */
-        if (overmem) {
-                isc_interval_t interval;
+		if (overmem) {
+			isc_interval_t interval;
 
-                isc_interval_set(&interval, 0, 1);
-                (void)isc_timer_reset(adb->timer, isc_timertype_once, NULL,
-                                      &interval, ISC_TRUE);
-        }
+			isc_interval_set(&interval, 0, 1);
+			(void)isc_timer_reset(adb->timer, isc_timertype_once,
+					      NULL, &interval, ISC_TRUE);
+		}
 #endif
+		isc_mem_waterack(adb->mctx, mark);
+	}
+	UNLOCK(&adb->overmemlock);
 }
 
 void

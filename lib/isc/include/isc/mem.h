@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.75 2008/01/18 23:46:58 tbox Exp $ */
+/* $Id: mem.h,v 1.76 2008/02/07 02:41:26 marka Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -339,10 +339,27 @@ isc_mem_setwater(isc_mem_t *mctx, isc_mem_water_t water, void *water_arg,
 /*%<
  * Set high and low water marks for this memory context.
  *
- * When the memory
- * usage of 'mctx' exceeds 'hiwater', '(water)(water_arg, #ISC_MEM_HIWATER)'
- * will be called.  When the usage drops below 'lowater', 'water' will
- * again be called, this time with #ISC_MEM_LOWATER.
+ * When the memory usage of 'mctx' exceeds 'hiwater',
+ * '(water)(water_arg, #ISC_MEM_HIWATER)' will be called.  'water' needs to
+ * call isc_mem_waterack() with #ISC_MEM_HIWATER to acknowlege the state
+ * change.  'water' may be called multiple times.
+ *
+ * When the usage drops below 'lowater', 'water' will again be called, this
+ * time with #ISC_MEM_LOWATER.  'water' need to calls isc_mem_waterack() with
+ * #ISC_MEM_LOWATER to acknowlege the change.
+ *
+ *	static void
+ *	water(void *arg, int mark) {
+ *		struct foo *foo = *arg;
+ *
+ *		LOCK(&foo->marklock);
+ *		if (foo->mark != mark) {
+ * 			foo->mark = mark;
+ *			....
+ *			isc_mem_waterack(foo->mctx, mark);
+ *		}
+ *		UNLOCK(&foo->marklock);
+ *	}
  *
  * If 'water' is NULL then 'water_arg', 'hi_water' and 'lo_water' are
  * ignored and the state is reset.
@@ -351,6 +368,12 @@ isc_mem_setwater(isc_mem_t *mctx, isc_mem_water_t water, void *water_arg,
  *
  *	'water' is not NULL.
  *	hi_water >= lo_water
+ */
+
+void
+isc_mem_waterack(isc_mem_t *ctx, int mark);
+/*%<
+ * Called to acknowledge changes in signalled by calls to 'water'.
  */
 
 void
