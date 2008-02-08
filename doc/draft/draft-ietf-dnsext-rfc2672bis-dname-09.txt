@@ -5,12 +5,12 @@ DNS Extensions Working Group                                     S. Rose
 Internet-Draft                                                      NIST
 Updates: 2672,3363,4294                                    W. Wijngaards
 (if approved)                                                 NLnet Labs
-Intended status: Standards Track                        January 14, 2008
-Expires: July 17, 2008
+Intended status: Standards Track                        February 5, 2008
+Expires: August 8, 2008
 
 
                  Update to DNAME Redirection in the DNS
-                 draft-ietf-dnsext-rfc2672bis-dname-08
+                 draft-ietf-dnsext-rfc2672bis-dname-09
 
 Status of This Memo
 
@@ -35,7 +35,7 @@ Status of This Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on July 17, 2008.
+   This Internet-Draft will expire on August 8, 2008.
 
 Copyright Notice
 
@@ -52,9 +52,9 @@ Abstract
 
 
 
-Rose & Wijngaards         Expires July 17, 2008                 [Page 1]
+Rose & Wijngaards        Expires August 8, 2008                 [Page 1]
 
-Internet-Draft              DNAME Redirection               January 2008
+Internet-Draft              DNAME Redirection              February 2008
 
 
 Requirements Language
@@ -108,9 +108,9 @@ Table of Contents
 
 
 
-Rose & Wijngaards         Expires July 17, 2008                 [Page 2]
+Rose & Wijngaards        Expires August 8, 2008                 [Page 2]
 
-Internet-Draft              DNAME Redirection               January 2008
+Internet-Draft              DNAME Redirection              February 2008
 
 
 1.  Introduction
@@ -164,9 +164,9 @@ Internet-Draft              DNAME Redirection               January 2008
 
 
 
-Rose & Wijngaards         Expires July 17, 2008                 [Page 3]
+Rose & Wijngaards        Expires August 8, 2008                 [Page 3]
 
-Internet-Draft              DNAME Redirection               January 2008
+Internet-Draft              DNAME Redirection              February 2008
 
 
    The format of the DNAME record has not changed from the original
@@ -220,9 +220,9 @@ Internet-Draft              DNAME Redirection               January 2008
 
 
 
-Rose & Wijngaards         Expires July 17, 2008                 [Page 4]
+Rose & Wijngaards        Expires August 8, 2008                 [Page 4]
 
-Internet-Draft              DNAME Redirection               January 2008
+Internet-Draft              DNAME Redirection              February 2008
 
 
                    Table 1. DNAME Substitution Examples.
@@ -276,9 +276,9 @@ Internet-Draft              DNAME Redirection               January 2008
 
 
 
-Rose & Wijngaards         Expires July 17, 2008                 [Page 5]
+Rose & Wijngaards        Expires August 8, 2008                 [Page 5]
 
-Internet-Draft              DNAME Redirection               January 2008
+Internet-Draft              DNAME Redirection              February 2008
 
 
    name.  The owner name of a DNAME can only have one DNAME RR, and no
@@ -332,9 +332,9 @@ Internet-Draft              DNAME Redirection               January 2008
 
 
 
-Rose & Wijngaards         Expires July 17, 2008                 [Page 6]
+Rose & Wijngaards        Expires August 8, 2008                 [Page 6]
 
-Internet-Draft              DNAME Redirection               January 2008
+Internet-Draft              DNAME Redirection              February 2008
 
 
 3.2.  CNAME synthesis
@@ -388,17 +388,17 @@ Internet-Draft              DNAME Redirection               January 2008
 
 
 
-Rose & Wijngaards         Expires July 17, 2008                 [Page 7]
+Rose & Wijngaards        Expires August 8, 2008                 [Page 7]
 
-Internet-Draft              DNAME Redirection               January 2008
+Internet-Draft              DNAME Redirection              February 2008
 
 
    older data TTL times out.
 
-   DNS Caches MUST perform CNAME synthesis on behalf of DNAME-ignorant
-   clients.  A DNS Cache that understands DNAMEs can send out queries on
+   DNS caches MUST perform CNAME synthesis on behalf of DNAME-ignorant
+   clients.  A DNS cache that understands DNAMEs can send out queries on
    behalf of clients with the UD bit set.  After receiving the answers
-   the DNS Cache sends replies to DNAME ignorant clients that include
+   the DNS cache sends replies to DNAME ignorant clients that include
    DNAMEs and synthesized CNAMEs.
 
 3.4.  Server algorithm
@@ -444,9 +444,9 @@ Internet-Draft              DNAME Redirection               January 2008
 
 
 
-Rose & Wijngaards         Expires July 17, 2008                 [Page 8]
+Rose & Wijngaards        Expires August 8, 2008                 [Page 8]
 
-Internet-Draft              DNAME Redirection               January 2008
+Internet-Draft              DNAME Redirection              February 2008
 
 
        C.  If at some label, a match is impossible (i.e., the
@@ -500,9 +500,9 @@ Internet-Draft              DNAME Redirection               January 2008
 
 
 
-Rose & Wijngaards         Expires July 17, 2008                 [Page 9]
+Rose & Wijngaards        Expires August 8, 2008                 [Page 9]
 
-Internet-Draft              DNAME Redirection               January 2008
+Internet-Draft              DNAME Redirection              February 2008
 
 
    Note that there will be at most one ancestor with a DNAME as
@@ -556,9 +556,9 @@ Internet-Draft              DNAME Redirection               January 2008
 
 
 
-Rose & Wijngaards         Expires July 17, 2008                [Page 10]
+Rose & Wijngaards        Expires August 8, 2008                [Page 10]
 
-Internet-Draft              DNAME Redirection               January 2008
+Internet-Draft              DNAME Redirection              February 2008
 
 
    In [RFC4294], the reference to DNAME was left in as an editorial
@@ -603,18 +603,18 @@ Internet-Draft              DNAME Redirection               January 2008
    that would add a record or delegation with a name existing under a
    DNAME.
 
-   A server MUST return an error message with RCODE=REFUSED [RFC2136] in
-   response to a dynamic update message that would add a resource record
-   under a DNAME in the zone.
+   A server MUST return an error message with RCODE=YXDOMAIN [RFC2136]
+   in response to a dynamic update message that would add a resource
+   record under a DNAME in the zone.  This is similar to a dynamic
+   update request to add a resource record under a delegation NS in a
+   zone.
 
 
 
 
-
-
-Rose & Wijngaards         Expires July 17, 2008                [Page 11]
+Rose & Wijngaards        Expires August 8, 2008                [Page 11]
 
-Internet-Draft              DNAME Redirection               January 2008
+Internet-Draft              DNAME Redirection              February 2008
 
 
 5.3.  DNSSEC and DNAME
@@ -668,9 +668,9 @@ Internet-Draft              DNAME Redirection               January 2008
 
 
 
-Rose & Wijngaards         Expires July 17, 2008                [Page 12]
+Rose & Wijngaards        Expires August 8, 2008                [Page 12]
 
-Internet-Draft              DNAME Redirection               January 2008
+Internet-Draft              DNAME Redirection              February 2008
 
 
    ;; Header: QR AA DO RCODE=0(NOERROR)
@@ -724,12 +724,14 @@ Internet-Draft              DNAME Redirection               January 2008
 
 
 
-Rose & Wijngaards         Expires July 17, 2008                [Page 13]
+Rose & Wijngaards        Expires August 8, 2008                [Page 13]
 
-Internet-Draft              DNAME Redirection               January 2008
+Internet-Draft              DNAME Redirection              February 2008
 
 
-   type.
+   type.  The authors would also like to acknowledge Paul Vixie, Ed
+   Lewis, Mark Andrews, Mike StJohns and Niall O'Reilly for their review
+   and comments on this document.
 
 9.  References
 
@@ -775,16 +777,16 @@ Internet-Draft              DNAME Redirection               January 2008
               Errors", RFC 1912, February 1996.
 
    [RFC3363]  Bush, R., Durand, A., Fink, B., Gudmundsson, O., and T.
+
+
+
+Rose & Wijngaards        Expires August 8, 2008                [Page 14]
+
+Internet-Draft              DNAME Redirection              February 2008
+
+
               Hain, "Representing Internet Protocol version 6 (IPv6)
               Addresses in the Domain Name System (DNS)", RFC 3363,
-
-
-
-Rose & Wijngaards         Expires July 17, 2008                [Page 14]
-
-Internet-Draft              DNAME Redirection               January 2008
-
-
               August 2002.
 
    [RFC4294]  Loughney, J., "IPv6 Node Requirements", RFC 4294,
@@ -834,11 +836,9 @@ Authors' Addresses
 
 
 
-
-
-Rose & Wijngaards         Expires July 17, 2008                [Page 15]
+Rose & Wijngaards        Expires August 8, 2008                [Page 15]
 
-Internet-Draft              DNAME Redirection               January 2008
+Internet-Draft              DNAME Redirection              February 2008
 
 
 Full Copyright Statement
@@ -892,5 +892,5 @@ Acknowledgement
 
 
 
-Rose & Wijngaards         Expires July 17, 2008                [Page 16]
+Rose & Wijngaards        Expires August 8, 2008                [Page 16]
 
