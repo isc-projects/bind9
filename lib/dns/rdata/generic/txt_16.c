@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: txt_16.c,v 1.43 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: txt_16.c,v 1.43.128.1 2008/02/15 03:37:13 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 15:40:00 PST 2000 by bwelling */
 
@@ -142,7 +142,7 @@ fromstruct_txt(ARGS_FROMSTRUCT) {
 	while (region.length > 0) {
 		length = uint8_fromregion(&region);
 		isc_region_consume(&region, 1);
-		if (region.length <= length)
+		if (region.length < length)
 			return (ISC_R_UNEXPECTEDEND);
 		isc_region_consume(&region, length);
 	}
