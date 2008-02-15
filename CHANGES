@@ -1,3 +1,6 @@
+2333.	[bug]		Fix off by one error in isc_time_nowplusinterval().
+			[RT #17608]
+
 2332.	[contrib]	query-loc-0.4.0. [RT #17602]
 
 2331.	[bug]		Failure to regenerate any signatures was not being

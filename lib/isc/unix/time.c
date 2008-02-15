@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.54 2007/06/18 23:47:48 tbox Exp $ */
+/* $Id: time.c,v 1.55 2008/02/15 02:24:04 marka Exp $ */
 
 /*! \file */
 
@@ -227,7 +227,7 @@ isc_time_nowplusinterval(isc_time_t *t, const isc_interval_t *i) {
 
 	t->seconds = tv.tv_sec + i->seconds;
 	t->nanoseconds = tv.tv_usec * NS_PER_US + i->nanoseconds;
-	if (t->nanoseconds > NS_PER_S) {
+	if (t->nanoseconds >= NS_PER_S) {
 		t->seconds++;
 		t->nanoseconds -= NS_PER_S;
 	}
