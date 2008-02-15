@@ -1,3 +1,6 @@
+2334.	[bug]		Bad REQUIRES in fromstruct_in_naptr(),  off by one
+			bug in fromstruct_txt(). [RT #17609]
+			
 2333.	[bug]		Fix off by one error in isc_time_nowplusinterval().
 			[RT #17608]
 
