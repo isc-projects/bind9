@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: naptr_35.c,v 1.52 2008/02/15 03:28:49 marka Exp $ */
+/* $Id: naptr_35.c,v 1.53 2008/02/15 23:46:51 tbox Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -154,7 +154,7 @@ totext_in_naptr(ARGS_TOTEXT) {
 
 static inline isc_result_t
 fromwire_in_naptr(ARGS_FROMWIRE) {
-        dns_name_t name;
+	dns_name_t name;
 	isc_region_t sr;
 
 	REQUIRE(type == 35);
@@ -165,7 +165,7 @@ fromwire_in_naptr(ARGS_FROMWIRE) {
 
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
 
-        dns_name_init(&name, NULL);
+	dns_name_init(&name, NULL);
 
 	/*
 	 * Order, preference.
