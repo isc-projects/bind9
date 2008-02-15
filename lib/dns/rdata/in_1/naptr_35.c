@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: naptr_35.c,v 1.47.18.2 2005/04/29 00:16:42 marka Exp $ */
+/* $Id: naptr_35.c,v 1.47.18.3 2008/02/15 03:36:52 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -321,8 +321,8 @@ fromstruct_in_naptr(ARGS_FROMSTRUCT) {
 	REQUIRE(naptr->common.rdtype == type);
 	REQUIRE(naptr->common.rdclass == rdclass);
 	REQUIRE(naptr->flags != NULL || naptr->flags_len == 0);
-	REQUIRE(naptr->service != NULL && naptr->service_len == 0);
-	REQUIRE(naptr->regexp != NULL && naptr->regexp_len == 0);
+	REQUIRE(naptr->service != NULL || naptr->service_len == 0);
+	REQUIRE(naptr->regexp != NULL || naptr->regexp_len == 0);
 
 	UNUSED(type);
 	UNUSED(rdclass);
