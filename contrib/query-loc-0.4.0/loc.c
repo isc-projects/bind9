@@ -1,6 +1,6 @@
 #include "loc.h"
 
-/* $Id: loc.c,v 1.1 2008/02/15 01:47:15 marka Exp $ */
+/* $Id: loc.c,v 1.1.2.1 2008/02/15 02:11:57 marka Exp $ */
 
 /* Global variables */
 
