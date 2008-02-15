@@ -1,6 +1,6 @@
 	--- 9.3.5rc1 released ---
 
-2328.	[bug]		Add AAAA addresses for A.ROOT-SERVERS.NET,
+2328.	[maint]		Add AAAA addresses for A.ROOT-SERVERS.NET,
 			F.ROOT-SERVERS.NET, H.ROOT-SERVERS.NET,
 			J.ROOT-SERVERS.NET, K.ROOT-SERVERS.NET and
 			M.ROOT-SERVERS.NET.
@@ -128,7 +128,7 @@
 2256.	[bug]		win32: Correctly register the installation location of
 			bindevt.dll. [RT #17159]
 
-2255.	[bug]		L.ROOT-SERVERS.NET is now 199.7.83.42.
+2255.	[maint]		L.ROOT-SERVERS.NET is now 199.7.83.42.
 
 2254.	[bug]		timer.c:dispatch() failed to lock timer->lock
 			when reading timer->idle allowing it to see
@@ -1648,7 +1648,7 @@
 1568.	[bug]		nsupdate now reports that the update failed in
 			interactive mode. [RT# 10236]
 
-1567.	[bug]		B.ROOT-SERVERS.NET is now 192.228.79.201.
+1567.	[maint]		B.ROOT-SERVERS.NET is now 192.228.79.201.
 
 1566.	[port]		Support for the cmsg framework on Solaris and HP/UX.
 			This also solved the problem that match-destinations
@@ -2591,7 +2591,7 @@
 1399.	[bug]		Use serial number arithmetic when testing SIG
 			timestamps. [RT #4268]
 
-1397.	[bug]		J.ROOT-SERVERS.NET is now 192.58.128.30.
+1397.	[maint]		J.ROOT-SERVERS.NET is now 192.58.128.30.
 
 1389.	[bug]		named could fail to rotate long log files.  [RT #3666]
 
