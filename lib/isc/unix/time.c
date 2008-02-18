@@ -1,8 +1,8 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001, 2003  Internet Software Consortium.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.47.18.3 2008/02/17 23:47:36 marka Exp $ */
+/* $Id: time.c,v 1.47.18.4 2008/02/18 23:46:01 tbox Exp $ */
 
 /*! \file */
 
@@ -410,5 +410,5 @@ isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 		snprintf(buf + flen, len - flen,
 			 ".%03u", t->nanoseconds / 1000000);
 	else
-                snprintf(buf, len, "99-Bad-9999 99:99:99.999");
+		snprintf(buf, len, "99-Bad-9999 99:99:99.999");
 }
