@@ -1,3 +1,5 @@
+2237.	[bug]		BUILD_LDFLAGS was not being correctly set.  [RT #17614]
+
 2336.	[func]		If "named -6" is specified then listen on all IPv6
 			interfaces if there are not listen-on-v6 clauses in
 			named.conf.  [RT #17581]
