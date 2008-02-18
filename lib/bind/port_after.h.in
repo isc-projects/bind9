@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: port_after.h.in,v 1.53.128.3 2008/02/18 04:10:16 marka Exp $ */
+/* $Id: port_after.h.in,v 1.53.128.4 2008/02/18 23:46:30 tbox Exp $ */
 
 #ifndef port_after_h
 #define port_after_h
@@ -515,6 +515,6 @@ void perror(const char *);
  */
 char *vsprintf(char *, const char *, va_list);
 #endif
-#endif 
+#endif
 
 #endif
