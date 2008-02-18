@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print.c,v 1.33 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: print.c,v 1.33.128.1 2008/02/18 04:10:16 marka Exp $ */
 
 /*! \file */
 
@@ -246,8 +246,24 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 						head = "";
 					tmpui = tmpi;
 				}
-				sprintf(buf, "%" ISC_PRINT_QUADFORMAT "u",
-					tmpui);
+				if (tmpui <= 0xffffffffU)
+					sprintf(buf, "%lu",
+						(unsigned long)tmpui);
+				else {
+					unsigned long mid;
+					unsigned long lo;
+					unsigned long hi;
+					lo = tmpui % 1000000000;
+					tmpui /= 1000000000;
+					mid = tmpui % 1000000000;
+					hi = tmpui / 1000000000;
+					if (hi != 0)
+						sprintf(buf, "%lu", hi);
+					else
+						buf[0] = '\n';
+					sprintf(buf + strlen(buf), "%lu", mid);
+					sprintf(buf + strlen(buf), "%lu", lo);
+				}
 				goto printint;
 			case 'o':
 				if (q)
@@ -256,10 +272,29 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 					tmpui = va_arg(ap, long int);
 				else
 					tmpui = va_arg(ap, int);
-				sprintf(buf,
-					alt ? "%#" ISC_PRINT_QUADFORMAT "o"
-					    : "%" ISC_PRINT_QUADFORMAT "o",
-					tmpui);
+				if (tmpui <= 0xffffffffU)
+					sprintf(buf, alt ?  "%#lo" : "%lo",
+						(unsigned long)tmpui);
+				else {
+					unsigned long mid;
+					unsigned long lo;
+					unsigned long hi;
+					lo = tmpui % 010000000000;
+					tmpui /= 010000000000;
+					mid = tmpui % 010000000000;
+					hi = tmpui / 010000000000;
+					if (hi != 0) {
+						sprintf(buf,
+							alt ?  "%#lo" : "%lo",
+							hi);
+						sprintf(buf + strlen(buf),
+							"%lo", mid);
+					} else
+						sprintf(buf,
+							alt ?  "%#lo" : "%lo",
+							mid);
+					sprintf(buf + strlen(buf), "%lo", lo);
+				}
 				goto printint;
 			case 'u':
 				if (q)
@@ -268,8 +303,24 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 					tmpui = va_arg(ap, unsigned long int);
 				else
 					tmpui = va_arg(ap, unsigned int);
-				sprintf(buf, "%" ISC_PRINT_QUADFORMAT "u",
-					tmpui);
+				if (tmpui <= 0xffffffffU)
+					sprintf(buf, "%lu",
+						(unsigned long)tmpui);
+				else {
+					unsigned long mid;
+					unsigned long lo;
+					unsigned long hi;
+					lo = tmpui % 1000000000;
+					tmpui /= 1000000000;
+					mid = tmpui % 1000000000;
+					hi = tmpui / 1000000000;
+					if (hi != 0)
+						sprintf(buf, "%lu", hi);
+					else
+						buf[0] = '\n';
+					sprintf(buf + strlen(buf), "%lu", mid);
+					sprintf(buf + strlen(buf), "%lu", lo);
+				}
 				goto printint;
 			case 'x':
 				if (q)
@@ -283,8 +334,15 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 					if (precision > 2)
 						precision -= 2;
 				}
-				sprintf(buf, "%" ISC_PRINT_QUADFORMAT "x",
-					tmpui);
+				if (tmpui <= 0xffffffffU)
+					sprintf(buf, "%lx",
+						(unsigned long)tmpui);
+				else {
+					unsigned long hi = tmpui>>32;
+					unsigned long lo = tmpui & 0xffffffff;
+					sprintf(buf, "%lx", hi);
+					sprintf(buf + strlen(buf), "%lx", lo);
+				}
 				goto printint;
 			case 'X':
 				if (q)
@@ -298,8 +356,15 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 					if (precision > 2)
 						precision -= 2;
 				}
-				sprintf(buf, "%" ISC_PRINT_QUADFORMAT "X",
-					tmpui);
+				if (tmpui <= 0xffffffffU)
+					sprintf(buf, "%lX",
+						(unsigned long)tmpui);
+				else  {
+					unsigned long hi = tmpui>>32;
+					unsigned long lo = tmpui & 0xffffffff;
+					sprintf(buf, "%lX", hi);
+					sprintf(buf + strlen(buf), "%lX", lo);
+				}
 				goto printint;
 			printint:
 				if (precision != 0 || width != 0) {
