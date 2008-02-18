@@ -559,6 +559,9 @@ Building
 	on your system, and some require Perl; see bin/tests/system/README
 	for details.
 
+	SunOS 4 requires "printf" to be installed to make the shared
+	libraries.  sh-utils-1.16 provides a "printf" which compiles
+	on SunOS 4.
 
 Documentation
 
