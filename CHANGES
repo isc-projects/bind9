@@ -1,3 +1,6 @@
+2238.	[bug]		check_ds() could be called with a non DS rdataset.
+			[RT #17598]
+
 2237.	[bug]		BUILD_LDFLAGS was not being correctly set.  [RT #17614]
 
 2335.	[port]		sunos:  libbind and *printf() support for long long. 
