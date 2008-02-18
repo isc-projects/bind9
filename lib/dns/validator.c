@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.91.2.5.8.38 2008/01/17 23:45:28 tbox Exp $ */
+/* $Id: validator.c,v 1.91.2.5.8.39 2008/02/18 23:08:27 marka Exp $ */
 
 #include <config.h>
 
@@ -132,7 +132,8 @@ static isc_result_t
 nsecvalidate(dns_validator_t *val, isc_boolean_t resume);
 
 static isc_result_t
-proveunsecure(dns_validator_t *val, isc_boolean_t resume);
+proveunsecure(dns_validator_t *val, isc_boolean_t have_ds,
+	      isc_boolean_t resume);
 
 static void
 validator_logv(dns_validator_t *val, isc_logcategory_t *category,
@@ -398,7 +399,7 @@ dsfetched(isc_task_t *task, isc_event_t *event) {
 			      "falling back to insecurity proof (%s)",
 			      dns_result_totext(eresult));
 		val->attributes |= VALATTR_INSECURITY;
-		result = proveunsecure(val, ISC_FALSE);
+		result = proveunsecure(val, ISC_FALSE, ISC_FALSE);
 		if (result != DNS_R_WAIT)
 			validator_done(val, result);
 	} else {
@@ -477,7 +478,7 @@ dsfetched2(isc_task_t *task, isc_event_t *event) {
 					validator_done(val, result);
 			}
 		} else {
-			result = proveunsecure(val, ISC_TRUE);
+			result = proveunsecure(val, ISC_FALSE, ISC_TRUE);
 			if (result != DNS_R_WAIT)
 				validator_done(val, result);
 		}
@@ -490,7 +491,8 @@ dsfetched2(isc_task_t *task, isc_event_t *event) {
 		 * In either case we are still in a secure zone resume
 		 * validation.
 		 */
-		result = proveunsecure(val, ISC_TRUE);
+		result = proveunsecure(val, ISC_TF(eresult == ISC_R_SUCCESS),
+				       ISC_TRUE);
 		if (result != DNS_R_WAIT)
 			validator_done(val, result);
 	} else {
@@ -591,7 +593,7 @@ dsvalidated(isc_task_t *task, isc_event_t *event) {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "dsset with trust %d", val->frdataset.trust);
 		if ((val->attributes & VALATTR_INSECURITY) != 0)
-			result = proveunsecure(val, ISC_TRUE);
+			result = proveunsecure(val, ISC_TRUE, ISC_TRUE);
 		else
 			result = validatezonekey(val);
 		if (result != DNS_R_WAIT)
@@ -2181,7 +2183,7 @@ nsecvalidate(dns_validator_t *val, isc_boolean_t resume) {
 		      "nonexistence proof(s) not found");
 	val->attributes |= VALATTR_AUTHNONPENDING;
 	val->attributes |= VALATTR_INSECURITY;
-	return (proveunsecure(val, ISC_FALSE));
+	return (proveunsecure(val, ISC_FALSE, ISC_FALSE));
 }
 
 static isc_boolean_t
@@ -2454,7 +2456,8 @@ finddlvsep(dns_validator_t *val, isc_boolean_t resume) {
  * \li	DNS_R_NOTINSECURE
  */
 static isc_result_t
-proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
+proveunsecure(dns_validator_t *val, isc_result_t have_ds, isc_boolean_t resume)
+{
 	isc_result_t result;
 	dns_fixedname_t fixedsecroot;
 	dns_name_t *secroot;
@@ -2502,12 +2505,19 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 		val->labels = dns_name_countlabels(secroot) + 1;
 	} else {
 		validator_log(val, ISC_LOG_DEBUG(3), "resuming proveunsecure");
-		if (val->frdataset.trust >= dns_trust_secure &&
+		/*
+		 * If we have a DS rdataset and it is secure then check if
+		 * the DS rdataset has a supported algorithm combination.
+		 * If not this is a insecure delegation as far as this
+		 * resolver is concerned.  Fall back to DLV if available.
+		 */
+		if (have_ds && val->frdataset.trust >= dns_trust_secure &&
 		    !check_ds(val, dns_fixedname_name(&val->fname),
 			      &val->frdataset)) {
 			dns_name_format(dns_fixedname_name(&val->fname),
 					namebuf, sizeof(namebuf));
-			if (val->mustbesecure) {
+			if ((val->view->dlv == NULL || DLVTRIED(val)) &&
+			    val->mustbesecure) {
 				validator_log(val, ISC_LOG_WARNING,
 					      "must be secure failure at '%s'",
 					      namebuf);
@@ -2751,7 +2761,7 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "falling back to insecurity proof");
 			val->attributes |= VALATTR_INSECURITY;
-			result = proveunsecure(val, ISC_FALSE);
+			result = proveunsecure(val, ISC_FALSE, ISC_FALSE);
 			if (result == DNS_R_NOTINSECURE)
 				result = saved_result;
 		}
@@ -2765,7 +2775,7 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 			      "attempting insecurity proof");
 
 		val->attributes |= VALATTR_INSECURITY;
-		result = proveunsecure(val, ISC_FALSE);
+		result = proveunsecure(val, ISC_FALSE, ISC_FALSE);
 	} else if (val->event->rdataset == NULL &&
 		   val->event->sigrdataset == NULL)
 	{
