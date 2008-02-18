@@ -1,3 +1,6 @@
+2238.	[bug]		check_ds() could be called with a non DS rdataset.
+			[RT #17598]
+
 2237.	[bug]		BUILD_LDFLAGS was not being correctly set.  [RT #17614]
 
 2336.	[func]		If "named -6" is specified then listen on all IPv6
