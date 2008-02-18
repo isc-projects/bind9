@@ -1,3 +1,7 @@
+2336.	[func]		If "named -6" is specified then listen on all IPv6
+			interfaces if there are not listen-on-v6 clauses in
+			named.conf.  [RT #17581]
+
 2335.	[port]		sunos:  libbind and *printf() support for long long. 
 			[RT #17513]
 

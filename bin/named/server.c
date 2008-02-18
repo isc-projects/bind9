@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.501 2008/01/24 02:00:44 jinmei Exp $ */
+/* $Id: server.c,v 1.502 2008/02/18 04:43:47 marka Exp $ */
 
 /*! \file */
 
@@ -3105,11 +3105,13 @@ load_configuration(const char *filename, ns_server_t *server,
 							  ns_g_mctx,
 							  &listenon);
 		} else if (!ns_g_lwresdonly) {
+			isc_boolean_t enable;
 			/*
 			 * Not specified, use default.
 			 */
+			enable = ISC_TF(isc_net_probeipv4() != ISC_R_SUCCESS);
 			CHECK(ns_listenlist_default(ns_g_mctx, listen_port,
-						    ISC_FALSE, &listenon));
+						    enable, &listenon));
 		}
 		if (listenon != NULL) {
 			ns_interfacemgr_setlistenon6(server->interfacemgr,

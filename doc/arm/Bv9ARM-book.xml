@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.344 2008/01/18 01:59:07 jinmei Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.345 2008/02/18 04:43:47 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -6169,7 +6169,7 @@ listen-on port 1234 { !1.2.3.4; 1.2/16; };
 
           <para>
             If no <command>listen-on</command> is specified, the
-            server will listen on port 53 on all interfaces.
+            server will listen on port 53 on all IPv4 interfaces.
           </para>
 
           <para>
@@ -6227,8 +6227,10 @@ listen-on-v6 port 1234 { !2001:db8::/32; any; };
 
           <para>
             If no <command>listen-on-v6</command> option is
-            specified,
-            the server will not listen on any IPv6 address.
+            specified, the server will not listen on any IPv6 address
+	    unless <command>-6</command> is specified when named is
+	    invoked.  If <command>-6</command> is specified then
+	    named will listen on port 53 on all IPv6 interfaces by default.
           </para>
         </sect3>
 
