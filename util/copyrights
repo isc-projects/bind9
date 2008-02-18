@@ -1325,10 +1325,10 @@
 ./lib/bind/bsd/setitimer.c			X	2001,2005
 ./lib/bind/bsd/strcasecmp.c			X	2001,2005
 ./lib/bind/bsd/strdup.c				X	2001,2005
-./lib/bind/bsd/strerror.c			X	2001,2005
+./lib/bind/bsd/strerror.c			X	2001,2005,2008
 ./lib/bind/bsd/strpbrk.c			X	2001,2005
 ./lib/bind/bsd/strsep.c				X	2001,2005
-./lib/bind/bsd/strtoul.c			X	2001,2003,2005
+./lib/bind/bsd/strtoul.c			X	2001,2003,2005,2008
 ./lib/bind/bsd/utimes.c				X	2001,2004,2005
 ./lib/bind/bsd/writev.c				X	2001,2003,2005
 ./lib/bind/config.h.in				X	2001,2003,2004,2005,2006,2007,2008
@@ -1361,7 +1361,7 @@
 ./lib/bind/include/isc/list.h			X	2001,2002,2004,2005,2006
 ./lib/bind/include/isc/logging.h		X	2001,2003,2004,2005
 ./lib/bind/include/isc/memcluster.h		X	2001,2004,2005
-./lib/bind/include/isc/misc.h			X	2001,2003,2004,2005
+./lib/bind/include/isc/misc.h			X	2001,2003,2004,2005,2008
 ./lib/bind/include/isc/platform.h.in		C	2008
 ./lib/bind/include/isc/tree.h			X	2001,2003,2005
 ./lib/bind/include/netdb.h			X	2001,2003,2004,2005,2006
@@ -1424,7 +1424,7 @@
 ./lib/bind/irs/getservent_r.c			X	2001,2004,2005,2006
 ./lib/bind/irs/hesiod.c				X	2001,2003,2004,2005
 ./lib/bind/irs/hesiod_p.h			X	2001,2004,2005
-./lib/bind/irs/irp.c				X	2001,2003,2004,2005,2006
+./lib/bind/irs/irp.c				X	2001,2003,2004,2005,2006,2008
 ./lib/bind/irs/irp_gr.c				X	2001,2004,2005
 ./lib/bind/irs/irp_ho.c				X	2001,2004,2005
 ./lib/bind/irs/irp_ng.c				X	2001,2004,2005,2006
@@ -1465,10 +1465,10 @@
 ./lib/bind/isc/base64.c				X	2001,2004,2005
 ./lib/bind/isc/bitncmp.c			X	2001,2004,2005
 ./lib/bind/isc/bitncmp.mdoc			X	2001,2004
-./lib/bind/isc/ctl_clnt.c			X	2001,2003,2004,2005,2007
+./lib/bind/isc/ctl_clnt.c			X	2001,2003,2004,2005,2007,2008
 ./lib/bind/isc/ctl_p.c				X	2001,2004,2005
 ./lib/bind/isc/ctl_p.h				X	2001,2005
-./lib/bind/isc/ctl_srvr.c			X	2001,2003,2004,2005,2006
+./lib/bind/isc/ctl_srvr.c			X	2001,2003,2004,2005,2006,2008
 ./lib/bind/isc/ev_connects.c			X	2001,2004,2005,2006
 ./lib/bind/isc/ev_files.c			X	2001,2004,2003,2005
 ./lib/bind/isc/ev_streams.c			X	2001,2004,2005
@@ -2195,7 +2195,7 @@
 ./lib/isc/powerpc/include/isc/.cvsignore	X	2007
 ./lib/isc/powerpc/include/isc/Makefile.in	MAKE	2007
 ./lib/isc/powerpc/include/isc/atomic.h		C	2005,2007
-./lib/isc/print.c				C	1999,2000,2001,2003,2004,2005,2006,2007
+./lib/isc/print.c				C	1999,2000,2001,2003,2004,2005,2006,2007,2008
 ./lib/isc/pthreads/.cvsignore			X	1998,1999,2000,2001
 ./lib/isc/pthreads/Makefile.in			MAKE	1998,1999,2000,2001,2004,2007
 ./lib/isc/pthreads/condition.c			C	1998,1999,2000,2001,2004,2005,2007
@@ -2556,7 +2556,7 @@
 ./make/Makefile.in				MAKE	1998,1999,2000,2001,2004,2007
 ./make/includes.in				MAKE	1999,2000,2001,2004,2005,2007
 ./make/mkdep.in					X	1999,2000,2001,2006
-./make/rules.in					MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
+./make/rules.in					MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./mkinstalldirs					X	1996
 ./util/.cvsignore				X	2000,2001
 ./util/COPYRIGHT				X	1996,1997,1998,1999,2000,2001,2004,2007
