@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.155.52.4 2008/02/18 23:09:31 marka Exp $ */
+/* $Id: validator.c,v 1.155.52.5 2008/02/19 17:09:08 each Exp $ */
 
 #include <config.h>
 
@@ -2498,7 +2498,7 @@ finddlvsep(dns_validator_t *val, isc_boolean_t resume) {
  * \li	DNS_R_NOTINSECURE
  */
 static isc_result_t
-proveunsecure(dns_validator_t *val, isc_result_t have_ds, isc_boolean_t resume)
+proveunsecure(dns_validator_t *val, isc_boolean_t have_ds, isc_boolean_t resume)
 {
 	isc_result_t result;
 	dns_fixedname_t fixedsecroot;
