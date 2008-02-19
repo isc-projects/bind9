@@ -38,6 +38,7 @@ openssl_stub			open	marka
 resign				new	marka	// 2007-10-19 03:57 +0000
 rt10864				open	marka	// NSEC caching @ delegation
 rt1091				open	marka	// 2007-10-22 02:27 +0000
+rt1091a				new	marka	// 2007-11-19 03:11 +0000
 rt11398d			open	sra	// doxygen dev
 rt11398e			open	sra
 rt11543				open	jakob
