@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: FAQ.xml,v 1.34 2008/02/25 01:26:19 marka Exp $ -->
+<!-- $Id: FAQ.xml,v 1.35 2008/02/25 01:28:02 marka Exp $ -->
 
 <article class="faq">
   <title>Frequently Asked Questions about BIND 9</title>
@@ -1254,13 +1254,12 @@ named_cache_t: for files modifiable by named - $ROOTDIR/var/{tmp,named/{slaves,d
 	  in the chroot file system.
 	</para>
 	<para>
-	  This can be be made permanent by adding a second intance to
+	  This can be be made permanent by adding a second instance to
 	  /etc/fstab.
 	  <informalexample>
 	    <programlisting>
 proc /proc           proc defaults 0 0
-proc /var/named/proc proc defaults 0 0
-	    </programlisting>
+proc /var/named/proc proc defaults 0 0</programlisting>
 	  </informalexample>
 	</para>
       </answer>
