@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: FAQ.xml,v 1.4.6.19 2008/01/30 23:45:26 tbox Exp $ -->
+<!-- $Id: FAQ.xml,v 1.4.6.20 2008/02/25 05:07:58 marka Exp $ -->
 
 <article class="faq">
   <title>Frequently Asked Questions about BIND 9</title>
@@ -1237,6 +1237,30 @@ named_cache_t: for files modifiable by named - $ROOTDIR/var/{tmp,named/{slaves,d
 	<para>
 	  See these man-pages for more information : selinux(8),
 	  named_selinux(8), chcon(1), setsebool(8)
+	</para>
+      </answer>
+    </qandaentry>
+
+    <qandaentry>
+      <question>
+	<para>
+	  Listening on individual IPv6 interfaces does not work.
+	</para>
+      </question>
+      <answer>
+	<para>
+	  This is usually due to "/proc/net/if_inet6" not being available
+	  in the chroot file system.  Mount another instance of "proc"
+	  in the chroot file system.
+	</para>
+	<para>
+	  This can be be made permanent by adding a second instance to
+	  /etc/fstab.
+	  <informalexample>
+	    <programlisting>
+proc /proc           proc defaults 0 0
+proc /var/named/proc proc defaults 0 0</programlisting>
+	  </informalexample>
 	</para>
       </answer>
     </qandaentry>
