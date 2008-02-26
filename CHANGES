@@ -1,3 +1,5 @@
+2339.	[port]		tru64: support for libbind. [RT #17589]
+
 2338.	[bug]		check_ds() could be called with a non DS rdataset.
 			[RT #17598]
 
