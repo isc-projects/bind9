@@ -16,6 +16,10 @@
 #include <sys/select.h>
 #endif /* HAVE_SYS_SELECT_H */
 
+#ifdef REENABLE_SEND
+#undef send
+#endif
+
 @NEED_PSELECT@
 @HAVE_SA_LEN@
 @HAVE_MINIMUM_IFREQ@
@@ -394,10 +398,14 @@ int isc__gettimeofday(struct timeval *tvp, struct _TIMEZONE *tzp);
 int isc__gettimeofday(struct timeval *tp, struct timezone *tzp);
 #endif
 
-int getnetgrent(char **machinep, char **userp, char **domainp);
+@NGR_R_CONST@
+
+int getnetgrent(NGR_R_CONST char **machinep, NGR_R_CONST char **userp,
+	        NGR_R_CONST char **domainp);
 
 #ifdef NGR_R_ARGS
-int getnetgrent_r(char **machinep, char **userp, char **domainp, NGR_R_ARGS);
+int getnetgrent_r(NGR_R_CONST char **machinep, NGR_R_CONST char **userp, 
+		  NGR_R_CONST char **domainp, NGR_R_ARGS);
 #endif
 
 #ifdef SETNETGRENT_ARGS
