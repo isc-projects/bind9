@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2005-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: port_before.h.in,v 1.27.128.1 2008/02/27 00:05:45 marka Exp $ */
+/* $Id: port_before.h.in,v 1.27.128.2 2008/02/27 23:46:37 tbox Exp $ */
 
 #ifndef port_before_h
 #define port_before_h
@@ -34,8 +34,8 @@ struct timezone;        /* silence warning */
 #ifdef ISC_PLATFORM_NEEDTIMESPEC
 #include <time.h>		/* For time_t */
 struct timespec {
-        time_t  tv_sec;         /* seconds */
-        long    tv_nsec;        /* nanoseconds */
+	time_t  tv_sec;         /* seconds */
+	long    tv_nsec;        /* nanoseconds */
 };
 #endif
 #ifndef HAVE_MEMMOVE
@@ -158,11 +158,11 @@ struct timespec {
 
 
 #define DE_CONST(konst, var) \
-        do { \
-                union { const void *k; void *v; } _u; \
-                _u.k = konst; \
-                var = _u.v; \
-        } while (0)
+	do { \
+		union { const void *k; void *v; } _u; \
+		_u.k = konst; \
+		var = _u.v; \
+	} while (0)
 
 #define UNUSED(x) (x) = (x)
 
