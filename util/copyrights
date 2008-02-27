@@ -1414,8 +1414,8 @@
 ./lib/bind/irs/getnameinfo.c			X	2001,2002,2003,2004,2005,2006
 ./lib/bind/irs/getnetent.c			X	2001,2004,2005
 ./lib/bind/irs/getnetent_r.c			X	2001,2004,2005
-./lib/bind/irs/getnetgrent.c			X	2001,2003,2004,2005
-./lib/bind/irs/getnetgrent_r.c			X	2001,2003,2004,2005
+./lib/bind/irs/getnetgrent.c			X	2001,2003,2004,2005,2008
+./lib/bind/irs/getnetgrent_r.c			X	2001,2003,2004,2005,2008
 ./lib/bind/irs/getprotoent.c			X	2001,2004,2005
 ./lib/bind/irs/getprotoent_r.c			X	2001,2004,2005,2006
 ./lib/bind/irs/getpwent.c			X	2001,2004,2005
@@ -1711,7 +1711,7 @@
 ./lib/bind/port/unknown/include/.cvsignore	X	2001
 ./lib/bind/port/unknown/include/Makefile.in	MAKE	2001,2004,2005,2007
 ./lib/bind/port_after.h.in			C	2001,2002,2003,2004,2005,2006,2007,2008
-./lib/bind/port_before.h.in			C	2001,2005,2006,2007
+./lib/bind/port_before.h.in			C	2001,2005,2006,2007,2008
 ./lib/bind/resolv/.cvsignore			X	2001
 ./lib/bind/resolv/Makefile.in			MAKE	2001,2004,2005,2007
 ./lib/bind/resolv/herror.c			X	2001,2004,2005
