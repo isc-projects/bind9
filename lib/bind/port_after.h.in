@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: port_after.h.in,v 1.58 2008/02/26 23:57:38 marka Exp $ */
+/* $Id: port_after.h.in,v 1.59 2008/02/27 23:47:06 tbox Exp $ */
 
 #ifndef port_after_h
 #define port_after_h
@@ -420,10 +420,10 @@ int isc__gettimeofday(struct timeval *tp, struct timezone *tzp);
 @NGR_R_CONST@
 
 int getnetgrent(NGR_R_CONST char **machinep, NGR_R_CONST char **userp,
-	        NGR_R_CONST char **domainp);
+		NGR_R_CONST char **domainp);
 
 #ifdef NGR_R_ARGS
-int getnetgrent_r(NGR_R_CONST char **machinep, NGR_R_CONST char **userp, 
+int getnetgrent_r(NGR_R_CONST char **machinep, NGR_R_CONST char **userp,
 		  NGR_R_CONST char **domainp, NGR_R_ARGS);
 #endif
 
