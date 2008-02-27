@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.128.128.3 $)
+AC_REVISION($Revision: 1.128.128.4 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -987,6 +987,8 @@ AC_SUBST(ISC_PLATFORM_NEEDATON)
 #
 case "$host" in
 	*-dec-osf*)
+		# Tru64 broke send() by defining it to send_OBSOLETE
+		AC_DEFINE(REENABLE_SEND)
 		# Turn on 4.4BSD style sa_len support.
 		AC_DEFINE(_SOCKADDR_LEN)
 		;;
@@ -1911,12 +1913,16 @@ AC_TRY_COMPILE(
 [
 #undef __USE_MISC
 #define __USE_MISC
+#undef _REEENTRANT
+#define _REEENTRANT
 #include <netdb.h>
+#include <unistd.h>
 int getnetgrent_r(char **m, char **u, char **d, char *b, int l) {}
 ]
 ,
 [return (0);],
 [
+NGR_R_CONST="#define NGR_R_CONST"
 NGR_R_ARGS="#define NGR_R_ARGS char *buf, int buflen"
 NGR_R_BAD="#define NGR_R_BAD (0)"
 NGR_R_COPY="#define NGR_R_COPY buf, buflen"
@@ -1929,12 +1935,16 @@ AC_TRY_COMPILE(
 [
 #undef __USE_MISC
 #define __USE_MISC
+#undef _REEENTRANT
+#define _REEENTRANT
 #include <netdb.h>
+#include <unistd.h>
 int getnetgrent_r(char **m, char **u, char **d, char *b, size_t l) {}
 ]
 ,
 [return (0);],
 [
+NGR_R_CONST="#define NGR_R_CONST"
 NGR_R_ARGS="#define NGR_R_ARGS char *buf, size_t buflen"
 NGR_R_BAD="#define NGR_R_BAD (0)"
 NGR_R_COPY="#define NGR_R_COPY buf, buflen"
@@ -1947,12 +1957,16 @@ AC_TRY_COMPILE(
 [
 #undef __USE_MISC
 #define __USE_MISC
+#undef _REEENTRANT
+#define _REEENTRANT
 #include <netdb.h>
-extern int getnetgrent_r( char **, char **, char **, void **);
+#include <unistd.h>
+extern int getnetgrent_r(char **, char **, char **, void **);
 ]
 ,
 [return (0);],
 [
+NGR_R_CONST="#define NGR_R_CONST"
 NGR_R_ARGS="#define NGR_R_ARGS void **buf"
 NGR_R_BAD="#define NGR_R_BAD (0)"
 NGR_R_COPY="#define NGR_R_COPY buf"
@@ -1962,10 +1976,35 @@ NGR_R_RETURN="#define NGR_R_RETURN int"
 NGR_R_PRIVATE="#define NGR_R_PRIVATE 1"
 ]
 ,
+AC_TRY_COMPILE(
+[
+#undef __USE_MISC
+#define __USE_MISC
+#undef _REEENTRANT
+#define _REEENTRANT
+#include <netdb.h>
+#include <unistd.h>
+extern int getnetgrent_r(const char **, const char **, const char **, void *);
+]
+,
+[return (0);],
+[
+NGR_R_CONST="#define NGR_R_CONST const"
+NGR_R_ARGS="#define NGR_R_ARGS void *buf"
+NGR_R_BAD="#define NGR_R_BAD (0)"
+NGR_R_COPY="#define NGR_R_COPY buf"
+NGR_R_COPY_ARGS="#define NGR_R_COPY_ARGS NGR_R_ARGS"
+NGR_R_OK="#define NGR_R_OK 1"
+NGR_R_RETURN="#define NGR_R_RETURN int"
+NGR_R_PRIVATE="#define NGR_R_PRIVATE 2"
+]
+,
+)
 )
 )
 )
 ,
+NGR_R_CONST="#define NGR_R_CONST"
 NGR_R_ARGS="#define NGR_R_ARGS char *buf, int buflen"
 NGR_R_BAD="#define NGR_R_BAD (0)"
 NGR_R_COPY="#define NGR_R_COPY buf, buflen"
@@ -1974,6 +2013,7 @@ NGR_R_OK="#define NGR_R_OK 1"
 NGR_R_RETURN="#define NGR_R_RETURN int"
 )
 esac
+AC_SUBST(NGR_R_CONST)
 AC_SUBST(NGR_R_ARGS)
 AC_SUBST(NGR_R_BAD)
 AC_SUBST(NGR_R_COPY)
@@ -1987,7 +2027,10 @@ AC_TRY_COMPILE(
 [
 #undef __USE_MISC
 #define __USE_MISC
+#undef _REEENTRANT
+#define _REEENTRANT
 #include <netdb.h>
+#include <unistd.h>
 void endnetgrent_r(void **ptr);
 ]
 ,
@@ -1996,24 +2039,44 @@ void endnetgrent_r(void **ptr);
 [
 NGR_R_END_RESULT="#define NGR_R_END_RESULT(x)  /* empty */"
 NGR_R_END_RETURN="#define NGR_R_END_RETURN void"
-NGR_R_ENT_ARGS="#define NGR_R_ENT_ARGS NGR_R_ARGS"
+NGR_R_END_ARGS="#define NGR_R_END_ARGS NGR_R_ARGS"
+]
+,
+AC_TRY_COMPILE(
+[
+#undef __USE_MISC
+#define __USE_MISC
+#undef _REEENTRANT
+#define _REEENTRANT
+#include <netdb.h>
+#include <unistd.h>
+void endnetgrent_r(void *ptr);
+]
+,
+[return (0);]
+,
+[
+NGR_R_END_RESULT="#define NGR_R_END_RESULT(x)  /* empty */"
+NGR_R_END_RETURN="#define NGR_R_END_RETURN void"
+NGR_R_END_ARGS="#define NGR_R_END_ARGS void *buf"
 ]
 ,
 [
 NGR_R_END_RESULT="#define NGR_R_END_RESULT(x)  return (x)"
 NGR_R_END_RETURN="#define NGR_R_END_RETURN int"
-NGR_R_ENT_ARGS="#define NGR_R_ENT_ARGS NGR_R_ARGS"
+NGR_R_END_ARGS="#define NGR_R_END_ARGS NGR_R_ARGS"
 ]
+)
 )
 ,
 NGR_R_END_RESULT="#define NGR_R_END_RESULT(x)  /*empty*/"
 NGR_R_END_RETURN="#define NGR_R_END_RETURN void"
-NGR_R_ENT_ARGS="#undef NGR_R_ENT_ARGS /*empty*/"
+NGR_R_END_ARGS="#undef NGR_R_END_ARGS /*empty*/"
 AC_DEFINE(NEED_ENDNETGRENT_R)
 )
 AC_SUBST(NGR_R_END_RESULT)
 AC_SUBST(NGR_R_END_RETURN)
-AC_SUBST(NGR_R_ENT_ARGS)
+AC_SUBST(NGR_R_END_ARGS)
 
 AC_CHECK_FUNC(setnetgrent_r,
 [
@@ -2021,19 +2084,46 @@ case "$host" in
 *bsdi*)
 	NGR_R_SET_RESULT="#undef NGR_R_SET_RESULT /*empty*/"
 	NGR_R_SET_RETURN="#define NGR_R_SET_RETURN void"
+	NGR_R_SET_ARGS="#define NGR_R_SET_ARGS NGR_R_ARGS"
 	;;
 *)
-	NGR_R_SET_RESULT="#define NGR_R_SET_RESULT NGR_R_OK"
-	NGR_R_SET_RETURN="#define NGR_R_SET_RETURN int"
-	;;
+AC_TRY_COMPILE(
+[
+#undef __USE_MISC
+#define __USE_MISC
+#undef _REEENTRANT
+#define _REEENTRANT
+#include <netdb.h>
+#include <unistd.h>
+void setnetgrent_r(void **ptr);
+]
+,
+[return (0);]
+,
+[
+NGR_R_SET_RESULT="#undef NGR_R_SET_RESULT /* empty */"
+NGR_R_SET_RETURN="#define NGR_R_SET_RETURN void"
+NGR_R_SET_ARGS="#define NGR_R_SET_ARGS void **buf"
+]
+,
+[
+NGR_R_SET_RESULT="#define NGR_R_SET_RESULT NGR_R_OK"
+NGR_R_SET_RETURN="#define NGR_R_SET_RETURN int"
+NGR_R_SET_ARGS="#undef NGR_R_SET_ARGS"
+]
+)
+;;
 esac
 ]
 ,
 NGR_R_SET_RESULT="#undef NGR_R_SET_RESULT /*empty*/"
 NGR_R_SET_RETURN="#define NGR_R_SET_RETURN void"
+NGR_R_SET_ARGS="#undef NGR_R_SET_ARGS"
 )
+
 AC_SUBST(NGR_R_SET_RESULT)
 AC_SUBST(NGR_R_SET_RETURN)
+AC_SUBST(NGR_R_SET_ARGS)
 
 AC_CHECK_FUNC(innetgr_r,,AC_DEFINE(NEED_INNETGR_R))
 

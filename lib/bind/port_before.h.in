@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: port_before.h.in,v 1.27 2007/06/18 23:47:34 tbox Exp $ */
+/* $Id: port_before.h.in,v 1.27.128.1 2008/02/27 00:05:45 marka Exp $ */
 
 #ifndef port_before_h
 #define port_before_h
@@ -102,12 +102,17 @@ struct timespec {
 @NGR_R_COPY_ARGS@
 @NGR_R_END_RESULT@
 @NGR_R_END_RETURN@
-@NGR_R_ENT_ARGS@
+@NGR_R_END_ARGS@
 @NGR_R_OK@
 @NGR_R_RETURN@
 @NGR_R_SET_RESULT@
 @NGR_R_SET_RETURN@
+@NGR_R_SET_ARGS@
 @NGR_R_PRIVATE@
+
+#if !defined(NGR_R_SET_ARGS) && defined(NGR_R_END_ARGS)
+#define NGR_R_SET_ARGS NGR_R_END_ARGS
+#endif
 
 @PROTO_R_ARGS@
 @PROTO_R_BAD@
