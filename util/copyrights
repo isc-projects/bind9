@@ -1364,7 +1364,7 @@
 ./lib/bind/include/isc/misc.h			X	2001,2003,2004,2005,2008
 ./lib/bind/include/isc/platform.h.in		C	2008
 ./lib/bind/include/isc/tree.h			X	2001,2003,2005
-./lib/bind/include/netdb.h			X	2001,2003,2004,2005,2006
+./lib/bind/include/netdb.h			X	2001,2003,2004,2005,2006,2008
 ./lib/bind/include/netgroup.h			X	2001,2004,2005
 ./lib/bind/include/res_update.h			X	2001,2004,2005
 ./lib/bind/include/resolv.h			X	2001,2002,2003,2004,2005
@@ -1480,7 +1480,7 @@
 ./lib/bind/isc/heap.c				X	2001,2004,2005,2006
 ./lib/bind/isc/heap.mdoc			X	2001,2004
 ./lib/bind/isc/hex.c				X	2001,2004,2005,2006
-./lib/bind/isc/logging.c			X	2001,2003,2004,2005
+./lib/bind/isc/logging.c			X	2001,2003,2004,2005,2008
 ./lib/bind/isc/logging.mdoc			X	2001,2004
 ./lib/bind/isc/logging_p.h			X	2001,2004,2005
 ./lib/bind/isc/memcluster.c			X	2001,2004,2005,2006
