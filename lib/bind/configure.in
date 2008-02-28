@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.90.18.38 $)
+AC_REVISION($Revision: 1.90.18.39 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -2104,14 +2104,36 @@ void setnetgrent_r(void **ptr);
 NGR_R_SET_RESULT="#undef NGR_R_SET_RESULT /* empty */"
 NGR_R_SET_RETURN="#define NGR_R_SET_RETURN void"
 NGR_R_SET_ARGS="#define NGR_R_SET_ARGS void **buf"
+NGR_R_SET_CONST="#define NGR_R_SET_CONST"
+]
+,
+AC_TRY_COMPILE(
+[
+#undef __USE_MISC
+#define __USE_MISC
+#undef _REEENTRANT
+#define _REEENTRANT
+#include <netdb.h>
+#include <unistd.h>
+extern int setnetgrent_r(char *, void **);
+]
+,
+[return (0);]
+,
+[
+NGR_R_SET_RESULT="#define NGR_R_SET_RESULT NGR_R_OK"
+NGR_R_SET_RETURN="#define NGR_R_SET_RETURN int"
+NGR_R_SET_ARGS="#define NGR_R_SET_ARGS void **buf"
+NGR_R_SET_CONST="#define NGR_R_SET_CONST"
 ]
 ,
 [
 NGR_R_SET_RESULT="#define NGR_R_SET_RESULT NGR_R_OK"
 NGR_R_SET_RETURN="#define NGR_R_SET_RETURN int"
 NGR_R_SET_ARGS="#undef NGR_R_SET_ARGS"
+NGR_R_SET_CONST="#define NGR_R_SET_CONST const"
 ]
-)
+))
 ;;
 esac
 ]
@@ -2119,11 +2141,13 @@ esac
 NGR_R_SET_RESULT="#undef NGR_R_SET_RESULT /*empty*/"
 NGR_R_SET_RETURN="#define NGR_R_SET_RETURN void"
 NGR_R_SET_ARGS="#undef NGR_R_SET_ARGS"
+NGR_R_SET_CONST="#define NGR_R_SET_CONST const"
 )
 
 AC_SUBST(NGR_R_SET_RESULT)
 AC_SUBST(NGR_R_SET_RETURN)
 AC_SUBST(NGR_R_SET_ARGS)
+AC_SUBST(NGR_R_SET_CONST)
 
 AC_CHECK_FUNC(innetgr_r,,AC_DEFINE(NEED_INNETGR_R))
 

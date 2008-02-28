@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: getnetgrent_r.c,v 1.7.18.5 2008/02/27 00:08:30 marka Exp $";
+static const char rcsid[] = "$Id: getnetgrent_r.c,v 1.7.18.6 2008/02/28 05:49:37 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <port_before.h>
@@ -81,10 +81,10 @@ struct private {
 
 #endif
 NGR_R_SET_RETURN
-#ifdef NGR_R_ENT_ARGS
-setnetgrent_r(const char *netgroup, NGR_R_SET_ARGS)
+#ifdef NGR_R_SET_ARGS
+setnetgrent_r(NGR_R_SET_CONST char *netgroup, NGR_R_SET_ARGS)
 #else
-setnetgrent_r(const char *netgroup)
+setnetgrent_r(NGR_R_SET_CONST char *netgroup)
 #endif
 {
 #if NGR_R_PRIVATE == 2
@@ -117,7 +117,7 @@ setnetgrent_r(const char *netgroup)
 }
 
 NGR_R_END_RETURN
-#ifdef NGR_R_ENT_ARGS
+#ifdef NGR_R_END_ARGS
 endnetgrent_r(NGR_R_END_ARGS)
 #else
 endnetgrent_r(void)

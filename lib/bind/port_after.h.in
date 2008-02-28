@@ -323,16 +323,16 @@ innetgr_r(const char *, const char *, const char *, const char *);
 #endif
 
 #ifdef NEED_SETNETGRENT_R
-#ifdef NGR_R_ENT_ARGS
-NGR_R_SET_RETURN setnetgrent_r(const char *netgroup, NGR_R_ENT_ARGS);
+#ifdef NGR_R_SET_ARGS
+NGR_R_SET_RETURN setnetgrent_r(NGR_R_SET_CONST char *netgroup, NGR_R_SET_ARGS);
 #else
-NGR_R_SET_RETURN setnetgrent_r(const char *netgroup);
+NGR_R_SET_RETURN setnetgrent_r(NGR_R_SET_CONST char *netgroup);
 #endif
 #endif
 
 #ifdef NEED_ENDNETGRENT_R
-#ifdef NGR_R_ENT_ARGS
-NGR_R_END_RETURN endnetgrent_r(NGR_R_ENT_ARGS);
+#ifdef NGR_R_END_ARGS
+NGR_R_END_RETURN endnetgrent_r(NGR_R_END_ARGS);
 #else
 NGR_R_END_RETURN endnetgrent_r(void);
 #endif
@@ -398,8 +398,6 @@ int isc__gettimeofday(struct timeval *tvp, struct _TIMEZONE *tzp);
 int isc__gettimeofday(struct timeval *tp, struct timezone *tzp);
 #endif
 
-@NGR_R_CONST@
-
 int getnetgrent(NGR_R_CONST char **machinep, NGR_R_CONST char **userp,
 	        NGR_R_CONST char **domainp);
 
@@ -423,12 +421,12 @@ int innetgr(const char *netgroup, const char *machine,
 	    const char *user, const char *domain);
 #endif
 
-#ifdef NGR_R_ENT_ARGS
+#ifdef NGR_R_SET_ARGS
 NGR_R_SET_RETURN
-setnetgrent_r(const char *netgroup, NGR_R_ENT_ARGS);
+setnetgrent_r(NGR_R_SET_CONST char *netgroup, NGR_R_SET_ARGS);
 #else
 NGR_R_SET_RETURN
-setnetgrent_r(const char *netgroup);
+setnetgrent_r(NGR_R_SET_CONST char *netgroup);
 #endif
 
 #ifdef NEED_STRTOUL
