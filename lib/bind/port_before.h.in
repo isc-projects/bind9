@@ -15,11 +15,15 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: port_before.h.in,v 1.30 2008/02/28 05:34:17 marka Exp $ */
+/* $Id: port_before.h.in,v 1.31 2008/02/28 05:36:10 marka Exp $ */
 
 #ifndef port_before_h
 #define port_before_h
 #include <config.h>
+
+#ifdef NEED_SUN4PROTOS
+#define _PARAMS(x) x
+#endif
 
 struct group;           /* silence warning */
 struct passwd;          /* silence warning */
