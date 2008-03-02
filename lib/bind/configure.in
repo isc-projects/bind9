@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.90.18.39 $)
+AC_REVISION($Revision: 1.90.18.40 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1906,7 +1906,21 @@ AC_SUBST(SETGRENT_VOID)
 
 case $host in
 ia64-hp-hpux11.*)
+NGR_R_CONST="#define NGR_R_CONST"
 ;;
+*-hp-hpux11.*)
+#
+# HPUX doesn't have a prototype for getnetgrent_r().
+#
+NGR_R_CONST="#define NGR_R_CONST"
+NGR_R_ARGS="#define NGR_R_ARGS char *buf, int buflen"
+NGR_R_BAD="#define NGR_R_BAD (0)"
+NGR_R_COPY="#define NGR_R_COPY buf, buflen"
+NGR_R_COPY_ARGS="#define NGR_R_COPY_ARGS NGR_R_ARGS"
+NGR_R_OK="#define NGR_R_OK 1"
+NGR_R_RETURN="#define NGR_R_RETURN int"
+;;
+
 *)
 AC_CHECK_FUNC(getnetgrent_r,
 AC_TRY_COMPILE(
@@ -2082,9 +2096,22 @@ AC_CHECK_FUNC(setnetgrent_r,
 [
 case "$host" in
 *bsdi*)
+	#
+	# No prototype
+	#
 	NGR_R_SET_RESULT="#undef NGR_R_SET_RESULT /*empty*/"
 	NGR_R_SET_RETURN="#define NGR_R_SET_RETURN void"
 	NGR_R_SET_ARGS="#define NGR_R_SET_ARGS NGR_R_ARGS"
+	NGR_R_SET_CONST="#define NGR_R_SET_CONST"
+	;;
+*hpux*)
+	#
+	# No prototype
+	#
+	NGR_R_SET_RESULT="#define NGR_R_SET_RESULT NGR_R_OK"
+	NGR_R_SET_RETURN="#define NGR_R_SET_RETURN int"
+	NGR_R_SET_ARGS="#undef NGR_R_SET_ARGS /* empty */"
+	NGR_R_SET_CONST="#define NGR_R_SET_CONST"
 	;;
 *)
 AC_TRY_COMPILE(
