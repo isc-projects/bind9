@@ -18,7 +18,7 @@ and install.
 
 Index: README.idnkit
 --- /dev/null	2007-11-17 15:38:39.000000000 -0800
-+++ README.idnkit	2008-01-29 14:22:46.000000000 -0800
++++ README.idnkit	2008-03-03 17:41:42.000000000 -0800
 @@ -0,0 +1,112 @@
 +
 +			BIND-9 IDN patch
@@ -131,19 +131,19 @@ Index: README.idnkit
 +Bug reports and comments on this kit should be sent to
 +mdnkit-bugs@nic.ad.jp and idn-cmt@nic.ad.jp, respectively.
 +
-+; $Id: bind-9.3.5-patch,v 1.1.2.3 2008/01/30 00:04:17 each Exp $
++; $Id: bind-9.3.5-patch,v 1.1.2.4 2008/03/04 02:47:15 each Exp $
 Index: config.h.in
 ===================================================================
 RCS file: /proj/cvs/prod/bind9/config.h.in,v
 retrieving revision 1.47.2.3.2.32
 diff -U2 -r1.47.2.3.2.32 config.h.in
 --- config.h.in	11 Jan 2008 04:51:58 -0000	1.47.2.3.2.32
-+++ config.h.in	30 Jan 2008 00:00:50 -0000
++++ config.h.in	4 Mar 2008 02:44:14 -0000
 @@ -17,5 +17,5 @@
   */
  
--/* $Id: bind-9.3.5-patch,v 1.1.2.3 2008/01/30 00:04:17 each Exp $ */
-+/* $Id: bind-9.3.5-patch,v 1.1.2.3 2008/01/30 00:04:17 each Exp $ */
+-/* $Id: bind-9.3.5-patch,v 1.1.2.4 2008/03/04 02:47:15 each Exp $ */
++/* $Id: bind-9.3.5-patch,v 1.1.2.4 2008/03/04 02:47:15 each Exp $ */
  
  /***
 @@ -187,4 +187,7 @@
@@ -176,12 +176,12 @@ RCS file: /proj/cvs/prod/bind9/configure,v
 retrieving revision 1.284.2.19.2.74
 diff -U2 -r1.284.2.19.2.74 configure
 --- configure	11 Jan 2008 04:51:58 -0000	1.284.2.19.2.74
-+++ configure	30 Jan 2008 00:00:50 -0000
++++ configure	4 Mar 2008 02:44:38 -0000
 @@ -15,5 +15,5 @@
  # PERFORMANCE OF THIS SOFTWARE.
  #
--# $Id: bind-9.3.5-patch,v 1.1.2.3 2008/01/30 00:04:17 each Exp $
-+# $Id: bind-9.3.5-patch,v 1.1.2.3 2008/01/30 00:04:17 each Exp $
+-# $Id: bind-9.3.5-patch,v 1.1.2.4 2008/03/04 02:47:15 each Exp $
++# $Id: bind-9.3.5-patch,v 1.1.2.4 2008/03/04 02:47:15 each Exp $
  #
  # Portions Copyright (C) 1996-2001  Nominum, Inc.
 @@ -982,4 +982,5 @@
@@ -724,7 +724,7 @@ RCS file: /proj/cvs/prod/bind9/configure.in,v
 retrieving revision 1.294.2.23.2.82
 diff -U2 -r1.294.2.23.2.82 configure.in
 --- configure.in	11 Jan 2008 04:49:16 -0000	1.294.2.23.2.82
-+++ configure.in	30 Jan 2008 00:00:50 -0000
++++ configure.in	4 Mar 2008 02:44:39 -0000
 @@ -2044,4 +2044,80 @@
  
  #
@@ -812,7 +812,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/Makefile.in,v
 retrieving revision 1.25.12.15
 diff -U2 -r1.25.12.15 Makefile.in
 --- bin/dig/Makefile.in	28 Aug 2007 07:19:07 -0000	1.25.12.15
-+++ bin/dig/Makefile.in	30 Jan 2008 00:00:50 -0000
++++ bin/dig/Makefile.in	4 Mar 2008 02:44:39 -0000
 @@ -46,5 +46,5 @@
  
  LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} ${ISCLIBS} \
@@ -826,12 +826,12 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/dig.1,v
 retrieving revision 1.14.2.4.2.18
 diff -U2 -r1.14.2.4.2.18 dig.1
 --- bin/dig/dig.1	16 May 2007 06:10:54 -0000	1.14.2.4.2.18
-+++ bin/dig/dig.1	30 Jan 2008 00:00:50 -0000
++++ bin/dig/dig.1	4 Mar 2008 02:44:40 -0000
 @@ -14,25 +14,33 @@
  .\" PERFORMANCE OF THIS SOFTWARE.
  .\"
--.\" $Id: bind-9.3.5-patch,v 1.1.2.3 2008/01/30 00:04:17 each Exp $
-+.\" $Id: bind-9.3.5-patch,v 1.1.2.3 2008/01/30 00:04:17 each Exp $
+-.\" $Id: bind-9.3.5-patch,v 1.1.2.4 2008/03/04 02:47:15 each Exp $
++.\" $Id: bind-9.3.5-patch,v 1.1.2.4 2008/03/04 02:47:15 each Exp $
  .\"
  .hy 0
  .ad l
@@ -1495,7 +1495,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/dig.docbook,v
 retrieving revision 1.4.2.7.4.20
 diff -U2 -r1.4.2.7.4.20 dig.docbook
 --- bin/dig/dig.docbook	28 Aug 2007 07:19:07 -0000	1.4.2.7.4.20
-+++ bin/dig/dig.docbook	30 Jan 2008 00:00:50 -0000
++++ bin/dig/dig.docbook	4 Mar 2008 02:44:41 -0000
 @@ -617,4 +617,19 @@
  
  <refsect1>
@@ -1522,7 +1522,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/dighost.c,v
 retrieving revision 1.221.2.19.2.46
 diff -U2 -r1.221.2.19.2.46 dighost.c
 --- bin/dig/dighost.c	17 Jan 2008 23:45:26 -0000	1.221.2.19.2.46
-+++ bin/dig/dighost.c	30 Jan 2008 00:00:51 -0000
++++ bin/dig/dighost.c	4 Mar 2008 02:44:44 -0000
 @@ -33,4 +33,15 @@
  #include <limits.h>
  
@@ -1764,12 +1764,12 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/host.1,v
 retrieving revision 1.11.2.1.4.12
 diff -U2 -r1.11.2.1.4.12 host.1
 --- bin/dig/host.1	9 May 2007 03:32:36 -0000	1.11.2.1.4.12
-+++ bin/dig/host.1	30 Jan 2008 00:00:51 -0000
++++ bin/dig/host.1	4 Mar 2008 02:44:44 -0000
 @@ -14,180 +14,71 @@
  .\" PERFORMANCE OF THIS SOFTWARE.
  .\"
--.\" $Id: bind-9.3.5-patch,v 1.1.2.3 2008/01/30 00:04:17 each Exp $
-+.\" $Id: bind-9.3.5-patch,v 1.1.2.3 2008/01/30 00:04:17 each Exp $
+-.\" $Id: bind-9.3.5-patch,v 1.1.2.4 2008/03/04 02:47:15 each Exp $
++.\" $Id: bind-9.3.5-patch,v 1.1.2.4 2008/03/04 02:47:15 each Exp $
  .\"
  .hy 0
  .ad l
@@ -2009,7 +2009,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/host.docbook,v
 retrieving revision 1.2.2.2.4.12
 diff -U2 -r1.2.2.2.4.12 host.docbook
 --- bin/dig/host.docbook	28 Aug 2007 07:19:07 -0000	1.2.2.2.4.12
-+++ bin/dig/host.docbook	30 Jan 2008 00:00:51 -0000
++++ bin/dig/host.docbook	4 Mar 2008 02:44:44 -0000
 @@ -210,4 +210,19 @@
  
  <refsect1>
@@ -2036,7 +2036,7 @@ RCS file: /proj/cvs/prod/bind9/lib/dns/name.c,v
 retrieving revision 1.127.2.7.2.17
 diff -U2 -r1.127.2.7.2.17 name.c
 --- lib/dns/name.c	7 Dec 2006 07:02:45 -0000	1.127.2.7.2.17
-+++ lib/dns/name.c	30 Jan 2008 00:00:51 -0000
++++ lib/dns/name.c	4 Mar 2008 02:44:45 -0000
 @@ -183,4 +183,11 @@
  dns_fullname_hash(dns_name_t *name, isc_boolean_t case_sensitive);
  
@@ -2082,7 +2082,7 @@ RCS file: /proj/cvs/prod/bind9/lib/dns/include/dns/name.h,v
 retrieving revision 1.95.2.3.2.14
 diff -U2 -r1.95.2.3.2.14 name.h
 --- lib/dns/include/dns/name.h	2 Mar 2006 00:37:20 -0000	1.95.2.3.2.14
-+++ lib/dns/include/dns/name.h	30 Jan 2008 00:00:51 -0000
++++ lib/dns/include/dns/name.h	4 Mar 2008 02:44:46 -0000
 @@ -156,4 +156,15 @@
  #define DNS_NAME_MAXWIRE 255
  
