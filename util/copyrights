@@ -1352,6 +1352,7 @@
 ./lib/bind/include/hesiod.h			X	2001,2003,2004,2005
 ./lib/bind/include/irp.h			X	2001,2003,2004,2005
 ./lib/bind/include/irs.h			X	2001,2003,2004,2005
+./lib/bind/include/isc/.cvsignore		X	2008
 ./lib/bind/include/isc/assertions.h		X	2001,2004,2005
 ./lib/bind/include/isc/ctl.h			X	2001,2003,2004,2005
 ./lib/bind/include/isc/dst.h			X	2001,2002,2003,2005
