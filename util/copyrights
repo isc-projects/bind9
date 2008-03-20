@@ -290,7 +290,7 @@
 ./bin/tests/gxbn_test.c				C	2000,2001,2004,2005,2007
 ./bin/tests/hash_test.c				C	2000,2001,2004,2005,2006,2007
 ./bin/tests/headerdep_test.sh.in		SH	2000,2001,2004,2007
-./bin/tests/inter_test.c			C	2000,2001,2003,2004,2005,2007
+./bin/tests/inter_test.c			C	2000,2001,2003,2004,2005,2007,2008
 ./bin/tests/journalprint.c			C	2000,2001,2004,2005,2006,2007
 ./bin/tests/keyboard_test.c			C	2000,2001,2004,2005,2007
 ./bin/tests/lex_test.c				C	1998,1999,2000,2001,2004,2005,2007
@@ -1314,7 +1314,7 @@
 ./lib/bind/aclocal.m4				X	2001,2004
 ./lib/bind/api					X	2001,2006,2007
 ./lib/bind/bsd/.cvsignore			X	2001
-./lib/bind/bsd/Makefile.in			MAKE	2001,2004,2007
+./lib/bind/bsd/Makefile.in			MAKE	2001,2004,2007,2008
 ./lib/bind/bsd/daemon.c				X	2001,2005
 ./lib/bind/bsd/ftruncate.c			X	2001,2005
 ./lib/bind/bsd/gettimeofday.c			X	2001,2005
@@ -1335,7 +1335,7 @@
 ./lib/bind/configure				X	2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/bind/configure.in				SH	2001,2003,2004,2005,2006,2007,2008
 ./lib/bind/dst/.cvsignore			X	2001
-./lib/bind/dst/Makefile.in			MAKE	2001,2004,2007
+./lib/bind/dst/Makefile.in			MAKE	2001,2004,2007,2008
 ./lib/bind/dst/dst_api.c			X	2001,2002,2004,2005,2006,2007
 ./lib/bind/dst/dst_internal.h			X	2001,2004,2005
 ./lib/bind/dst/hmac_link.c			X	2001,2003,2005,2006,2007
@@ -1371,7 +1371,7 @@
 ./lib/bind/include/resolv.h			X	2001,2002,2003,2004,2005
 ./lib/bind/include/resolv_mt.h			X	2005
 ./lib/bind/inet/.cvsignore			X	2001
-./lib/bind/inet/Makefile.in			MAKE	2001,2004,2007
+./lib/bind/inet/Makefile.in			MAKE	2001,2004,2007,2008
 ./lib/bind/inet/inet_addr.c			X	2001,2004,2005
 ./lib/bind/inet/inet_cidr_ntop.c		X	2001,2004,2005,2006
 ./lib/bind/inet/inet_cidr_pton.c		X	2001,2004,2005
@@ -1388,7 +1388,7 @@
 ./lib/bind/inet/inet_pton.c			X	2001,2004,2005
 ./lib/bind/inet/nsap_addr.c			X	2001,2004,2005
 ./lib/bind/irs/.cvsignore			X	2001
-./lib/bind/irs/Makefile.in			MAKE	2001,2004,2007
+./lib/bind/irs/Makefile.in			MAKE	2001,2004,2007,2008
 ./lib/bind/irs/dns.c				X	2001,2004,2005,2006
 ./lib/bind/irs/dns_gr.c				X	2001,2004,2003,2005
 ./lib/bind/irs/dns_ho.c				X	2001,2004,2002,2003,2005,2006
@@ -1460,7 +1460,7 @@
 ./lib/bind/irs/pathnames.h			X	2001,2004,2005
 ./lib/bind/irs/util.c				X	2001,2004,2005
 ./lib/bind/isc/.cvsignore			X	2001
-./lib/bind/isc/Makefile.in			MAKE	2001,2004,2007
+./lib/bind/isc/Makefile.in			MAKE	2001,2004,2007,2008
 ./lib/bind/isc/assertions.c			X	2001,2004,2005
 ./lib/bind/isc/assertions.mdoc			X	2001,2004
 ./lib/bind/isc/base64.c				X	2001,2004,2005
@@ -1495,7 +1495,7 @@
 ./lib/bind/make/rules.in			MAKE	2001,2002,2004,2007
 ./lib/bind/mkinstalldirs			X	2001
 ./lib/bind/nameser/.cvsignore			X	2001
-./lib/bind/nameser/Makefile.in			MAKE	2001,2004,2007
+./lib/bind/nameser/Makefile.in			MAKE	2001,2004,2007,2008
 ./lib/bind/nameser/ns_date.c			X	2001,2004,2005
 ./lib/bind/nameser/ns_name.c			X	2001,2002,2003,2004,2005
 ./lib/bind/nameser/ns_netint.c			X	2001,2004,2005
@@ -1714,7 +1714,7 @@
 ./lib/bind/port_after.h.in			C	2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/bind/port_before.h.in			C	2001,2005,2006,2007,2008
 ./lib/bind/resolv/.cvsignore			X	2001
-./lib/bind/resolv/Makefile.in			MAKE	2001,2004,2005,2007
+./lib/bind/resolv/Makefile.in			MAKE	2001,2004,2005,2007,2008
 ./lib/bind/resolv/herror.c			X	2001,2004,2005
 ./lib/bind/resolv/mtctxres.c			X	2005,2006
 ./lib/bind/resolv/res_comp.c			X	2001,2003,2004,2005
@@ -2246,8 +2246,8 @@
 ./lib/isc/unix/errno2result.h			C	2000,2001,2004,2005,2007
 ./lib/isc/unix/file.c				C	2000,2001,2002,2004,2005,2007
 ./lib/isc/unix/fsaccess.c			C	2000,2001,2004,2005,2006,2007
-./lib/isc/unix/ifiter_getifaddrs.c		C	2003,2004,2005,2007
-./lib/isc/unix/ifiter_ioctl.c			C	1999,2000,2001,2002,2003,2004,2005,2006,2007
+./lib/isc/unix/ifiter_getifaddrs.c		C	2003,2004,2005,2007,2008
+./lib/isc/unix/ifiter_ioctl.c			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/isc/unix/ifiter_sysctl.c			C	1999,2000,2001,2002,2003,2004,2005,2007
 ./lib/isc/unix/include/.cvsignore		X	1998,1999,2000,2001
 ./lib/isc/unix/include/Makefile.in		MAKE	1998,1999,2000,2001,2004,2007
@@ -2264,7 +2264,7 @@
 ./lib/isc/unix/include/isc/strerror.h		C	2001,2004,2005,2007
 ./lib/isc/unix/include/isc/syslog.h		C	1999,2000,2001,2004,2005,2007
 ./lib/isc/unix/include/isc/time.h		C	1998,1999,2000,2001,2004,2005,2006,2007
-./lib/isc/unix/interfaceiter.c			C	1999,2000,2001,2002,2003,2004,2005,2007
+./lib/isc/unix/interfaceiter.c			C	1999,2000,2001,2002,2003,2004,2005,2007,2008
 ./lib/isc/unix/ipv6.c				C	1999,2000,2001,2004,2005,2006,2007
 ./lib/isc/unix/keyboard.c			C	2000,2001,2004,2007
 ./lib/isc/unix/net.c				C	1999,2000,2001,2002,2003,2004,2005,2007
