@@ -1,3 +1,6 @@
+2341.	[bug]		libbind: add missing -I../include for off source
+			tree builds. [RT #17606]
+
 2340.	[port]		openbsd: interface configuration. [RT #17700]
 
 2339.	[port]		tru64: support for libbind. [RT #17589]
