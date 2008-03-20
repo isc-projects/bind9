@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.59 2008/03/20 04:50:02 marka Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.60 2008/03/20 23:47:00 tbox Exp $ */
 
 /*! \file
  * \brief
@@ -100,7 +100,7 @@ struct isc_interfaceiter {
 #ifdef __linux
 #ifndef IF_NAMESIZE
 # ifdef IFNAMSIZ
-#  define IF_NAMESIZE  IFNAMSIZ  
+#  define IF_NAMESIZE  IFNAMSIZ
 # else
 #  define IF_NAMESIZE 16
 # endif
@@ -389,7 +389,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 		(void) close(iter->socket6);
   socket6_failure:
 #endif
- 
+
 	isc_mem_put(mctx, iter, sizeof(*iter));
 	return (result);
 }
@@ -841,7 +841,7 @@ internal_next6(isc_interfaceiter_t *iter) {
 #ifdef ISC_PLATFORM_HAVESALEN
 	struct LIFREQ *ifrp;
 #endif
-	
+
 	if (iter->result6 != ISC_R_SUCCESS && iter->result6 != ISC_R_IGNORE)
 		return (iter->result6);
 

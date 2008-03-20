@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_getifaddrs.c,v 1.10 2008/03/20 04:50:02 marka Exp $ */
+/* $Id: ifiter_getifaddrs.c,v 1.11 2008/03/20 23:47:00 tbox Exp $ */
 
 /*! \file
  * \brief
@@ -44,9 +44,9 @@ struct isc_interfaceiter {
 	isc_interface_t		current;	/*%< Current interface data. */
 	isc_result_t		result;		/*%< Last result code. */
 #ifdef  __linux
-        FILE *                  proc;
-        char                    entry[ISC_IF_INET6_SZ];
-        isc_result_t            valid;
+	FILE *                  proc;
+	char                    entry[ISC_IF_INET6_SZ];
+	isc_result_t            valid;
 #endif
 };
 
