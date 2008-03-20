@@ -1,3 +1,6 @@
+2343.	[bug]		(Seemingly) duplicate IPv6 entries could be
+			created in ADB. [RT #17837]
+
 2342.	[func]		Use getifaddrs() if available under Linux. [RT #17224]
 
 2341.	[bug]		libbind: add missing -I../include for off source
