@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.106 2008/03/27 21:08:51 jinmei Exp $ */
+/* $Id: task.c,v 1.107 2008/03/27 23:46:57 tbox Exp $ */
 
 /*! \file
  * \author Principal Author: Bob Halley
@@ -801,9 +801,9 @@ dispatch(isc_taskmgr_t *manager) {
 		 * task lock.
 		 */
 		while ((EMPTY(manager->ready_tasks) ||
-		        manager->exclusive_requested) &&
-		  	!FINISHED(manager)) 
-	  	{
+			manager->exclusive_requested) &&
+			!FINISHED(manager))
+		{
 			XTHREADTRACE(isc_msgcat_get(isc_msgcat,
 						    ISC_MSGSET_GENERAL,
 						    ISC_MSG_WAIT, "wait"));
@@ -1016,7 +1016,7 @@ manager_free(isc_taskmgr_t *manager) {
 	isc_mem_t *mctx;
 
 #ifdef ISC_PLATFORM_USETHREADS
-	(void)isc_condition_destroy(&manager->exclusive_granted);	
+	(void)isc_condition_destroy(&manager->exclusive_granted);
 	(void)isc_condition_destroy(&manager->work_available);
 	isc_mem_free(manager->mctx, manager->threads);
 #endif /* ISC_PLATFORM_USETHREADS */
@@ -1258,19 +1258,19 @@ isc__taskmgr_dispatch(void) {
 
 isc_result_t
 isc_task_beginexclusive(isc_task_t *task) {
-#ifdef ISC_PLATFORM_USETHREADS	
+#ifdef ISC_PLATFORM_USETHREADS
 	isc_taskmgr_t *manager = task->manager;
 	REQUIRE(task->state == task_state_running);
 	LOCK(&manager->lock);
 	if (manager->exclusive_requested) {
-		UNLOCK(&manager->lock);			
+		UNLOCK(&manager->lock);
 		return (ISC_R_LOCKBUSY);
 	}
 	manager->exclusive_requested = ISC_TRUE;
 	while (manager->tasks_running > 1) {
 		WAIT(&manager->exclusive_granted, &manager->lock);
 	}
-	UNLOCK(&manager->lock);	
+	UNLOCK(&manager->lock);
 #else
 	UNUSED(task);
 #endif
@@ -1279,7 +1279,7 @@ isc_task_beginexclusive(isc_task_t *task) {
 
 void
 isc_task_endexclusive(isc_task_t *task) {
-#ifdef ISC_PLATFORM_USETHREADS	
+#ifdef ISC_PLATFORM_USETHREADS
 	isc_taskmgr_t *manager = task->manager;
 	REQUIRE(task->state == task_state_running);
 	LOCK(&manager->lock);
