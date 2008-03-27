@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.275.10.3 2008/01/27 02:06:46 marka Exp $ */
+/* $Id: socket.c,v 1.275.10.4 2008/03/27 21:10:24 jinmei Exp $ */
 
 /*! \file */
 
@@ -64,12 +64,6 @@
 #ifndef ISC_PLATFORM_USETHREADS
 #include "socket_p.h"
 #endif /* ISC_PLATFORM_USETHREADS */
-
-/*
- * Support names for sockets.
- */
-#define ISC_SOCKET_NAMES 1
-
 
 #if defined(SO_BSDCOMPAT) && defined(__linux__)
 #include <sys/utsname.h>
@@ -166,11 +160,8 @@ struct isc_socket {
 	unsigned int		references;
 	int			fd;
 	int			pf;
-
-#ifdef ISC_SOCKET_NAMES
 	char				name[16];
 	void *				tag;
-#endif
 
 	ISC_LIST(isc_socketevent_t)		send_list;
 	ISC_LIST(isc_socketevent_t)		recv_list;
@@ -1696,10 +1687,8 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 	}
 #endif /* defined(USE_CMSG) || defined(SO_RCVBUF) */
 
-#ifdef ISC_SOCKET_NAMES
 	memset(sock->name, 0, sizeof(sock->name));
 	sock->tag = NULL;
-#endif
 
 	sock->references = 1;
 	*socketp = sock;
@@ -4048,17 +4037,11 @@ isc_socket_setname(isc_socket_t *socket, const char *name, void *tag) {
 
 	REQUIRE(VALID_SOCKET(socket));
 
-#ifdef ISC_SOCKET_NAMES
 	LOCK(&socket->lock);
 	memset(socket->name, 0, sizeof(socket->name));
 	strncpy(socket->name, name, sizeof(socket->name) - 1);
 	socket->tag = tag;
 	UNLOCK(&socket->lock);
-#else
-	UNUSED(name);
-	UNUSED(tag);
-#endif
-
 }
 
 const char *

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.105 2007/06/18 23:47:44 tbox Exp $ */
+/* $Id: task.c,v 1.105.128.1 2008/03/27 21:10:24 jinmei Exp $ */
 
 /*! \file
  * \author Principal Author: Bob Halley
@@ -43,8 +43,6 @@
 #ifndef ISC_PLATFORM_USETHREADS
 #include "task_p.h"
 #endif /* ISC_PLATFORM_USETHREADS */
-
-#define ISC_TASK_NAMES 1
 
 #ifdef ISC_TASK_TRACE
 #define XTRACE(m)		fprintf(stderr, "task %p thread %lu: %s\n", \
@@ -90,10 +88,8 @@ struct isc_task {
 	unsigned int			quantum;
 	unsigned int			flags;
 	isc_stdtime_t			now;
-#ifdef ISC_TASK_NAMES
 	char				name[16];
 	void *				tag;
-#endif
 	/* Locked by task manager lock. */
 	LINK(isc_task_t)		link;
 	LINK(isc_task_t)		ready_link;
@@ -203,10 +199,8 @@ isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,
 	task->quantum = quantum;
 	task->flags = 0;
 	task->now = 0;
-#ifdef ISC_TASK_NAMES
 	memset(task->name, 0, sizeof(task->name));
 	task->tag = NULL;
-#endif
 	INIT_LINK(task, link);
 	INIT_LINK(task, ready_link);
 
@@ -701,17 +695,11 @@ isc_task_setname(isc_task_t *task, const char *name, void *tag) {
 
 	REQUIRE(VALID_TASK(task));
 
-#ifdef ISC_TASK_NAMES
 	LOCK(&task->lock);
 	memset(task->name, 0, sizeof(task->name));
 	strncpy(task->name, name, sizeof(task->name) - 1);
 	task->tag = tag;
 	UNLOCK(&task->lock);
-#else
-	UNUSED(name);
-	UNUSED(tag);
-#endif
-
 }
 
 const char *
