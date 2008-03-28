@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.355.12.5 2008/03/28 17:20:51 jinmei Exp $ */
+/* $Id: resolver.c,v 1.355.12.6 2008/03/28 23:46:33 tbox Exp $ */
 
 /*! \file */
 
@@ -6354,7 +6354,7 @@ dns_resolver_create(dns_view_t *view,
 		/*
 		 * Use a separate memory context for each bucket to reduce
 		 * contention among multiple threads.  Do this only when
-		 * enabling threads because it will be require more memory.  
+		 * enabling threads because it will be require more memory.
 		 */
 		result = isc_mem_create(0, 0, &res->buckets[i].mctx);
 		if (result != ISC_R_SUCCESS) {
