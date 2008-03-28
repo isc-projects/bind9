@@ -24,7 +24,8 @@ key <string> {
 logging {
         category <string> { <string>; ... };
         channel <string> {
-                file <log_file>;
+                file <quoted_string> [ versions ( "unlimited" | <integer> )
+                    ] [ size <size> ];
                 null;
                 print-category <boolean>;
                 print-severity <boolean>;
@@ -43,8 +44,8 @@ lwres {
         view <string> <optional_class>;
 };
 
-masters <string> [ port <integer> ] { ( <masters> | <ipv4_address> [port
-    <integer>] | <ipv6_address> [port <integer>] ) [ key <string> ]; ... };
+masters <string> [ port <integer> ] { ( <masters> | <ipv4_address> [ port
+    <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ]; ... };
 
 options {
         acache-cleaning-interval <integer>;
@@ -93,9 +94,9 @@ options {
         dnssec-lookaside <string> trust-anchor <string>;
         dnssec-must-be-secure <string> <boolean>;
         dnssec-validation <boolean>;
-        dual-stack-servers [ port <integer> ] { ( <quoted_string> [port
-            <integer>] | <ipv4_address> [port <integer>] | <ipv6_address>
-            [port <integer>] ); ... };
+        dual-stack-servers [ port <integer> ] { ( <quoted_string> [ port
+            <integer> ] | <ipv4_address> [ port <integer> ] |
+            <ipv6_address> [ port <integer> ] ); ... };
         dump-file <quoted_string>;
         edns-udp-size <integer>;
         empty-contact <string>;
@@ -272,9 +273,9 @@ view <string> <optional_class> {
         dnssec-lookaside <string> trust-anchor <string>;
         dnssec-must-be-secure <string> <boolean>;
         dnssec-validation <boolean>;
-        dual-stack-servers [ port <integer> ] { ( <quoted_string> [port
-            <integer>] | <ipv4_address> [port <integer>] | <ipv6_address>
-            [port <integer>] ); ... };
+        dual-stack-servers [ port <integer> ] { ( <quoted_string> [ port
+            <integer> ] | <ipv4_address> [ port <integer> ] |
+            <ipv6_address> [ port <integer> ] ); ... };
         edns-udp-size <integer>;
         empty-contact <string>;
         empty-server <string>;
@@ -402,9 +403,9 @@ view <string> <optional_class> {
                 key-directory <quoted_string>;
                 maintain-ixfr-base <boolean>; // obsolete
                 masterfile-format ( text | raw );
-                masters [ port <integer> ] { ( <masters> | <ipv4_address>
-                    [port <integer>] | <ipv6_address> [port <integer>] ) [
-                    key <string> ]; ... };
+                masters [ port <integer> ] { ( <masters> | <ipv4_address> [
+                    port <integer> ] | <ipv6_address> [ port <integer> ] )
+                    [ key <string> ]; ... };
                 max-ixfr-log-size <size>; // obsolete
                 max-journal-size <size_no_default>;
                 max-refresh-time <integer>;
@@ -478,9 +479,9 @@ zone <string> <optional_class> {
         key-directory <quoted_string>;
         maintain-ixfr-base <boolean>; // obsolete
         masterfile-format ( text | raw );
-        masters [ port <integer> ] { ( <masters> | <ipv4_address> [port
-            <integer>] | <ipv6_address> [port <integer>] ) [ key <string>
-            ]; ... };
+        masters [ port <integer> ] { ( <masters> | <ipv4_address> [ port
+            <integer> ] | <ipv6_address> [ port <integer> ] ) [ key
+            <string> ]; ... };
         max-ixfr-log-size <size>; // obsolete
         max-journal-size <size_no_default>;
         max-refresh-time <integer>;
