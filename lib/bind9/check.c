@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.86 2007/12/14 01:27:12 marka Exp $ */
+/* $Id: check.c,v 1.87 2008/03/28 03:26:39 marka Exp $ */
 
 /*! \file */
 
@@ -222,13 +222,24 @@ check_dual_stack(const cfg_obj_t *options, isc_log_t *logctx) {
 }
 
 static isc_result_t
-check_forward(const cfg_obj_t *options, isc_log_t *logctx) {
+check_forward(const cfg_obj_t *options,  const cfg_obj_t *global,
+	      isc_log_t *logctx)
+{
 	const cfg_obj_t *forward = NULL;
 	const cfg_obj_t *forwarders = NULL;
 
 	(void)cfg_map_get(options, "forward", &forward);
 	(void)cfg_map_get(options, "forwarders", &forwarders);
 
+	if (forwarders != NULL && global != NULL) {
+		const char *file = cfg_obj_file(global);
+		unsigned int line = cfg_obj_line(global);
+		cfg_obj_log(forwarders, logctx, ISC_LOG_ERROR,
+			    "forwarders declared in root zone and "
+			    "in general configuration: %s:%u",
+			    file, line);
+		return (ISC_R_FAILURE);
+	}
 	if (forward != NULL && forwarders == NULL) {
 		cfg_obj_log(forward, logctx, ISC_LOG_ERROR,
 			    "no matching 'forwarders' statement");
@@ -978,6 +989,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	dns_rdataclass_t zclass;
 	dns_fixedname_t fixedname;
 	isc_buffer_t b;
+	isc_boolean_t root = ISC_FALSE;
 
 	static optionstable options[] = {
 	{ "allow-query", MASTERZONE | SLAVEZONE | STUBZONE | CHECKACL },
@@ -1096,7 +1108,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	isc_buffer_init(&b, zname, strlen(zname));
 	isc_buffer_add(&b, strlen(zname));
 	tresult = dns_name_fromtext(dns_fixedname_name(&fixedname), &b,
-				   dns_rootname, ISC_TRUE, NULL);
+				    dns_rootname, ISC_TRUE, NULL);
 	if (tresult != ISC_R_SUCCESS) {
 		cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
 			    "zone '%s': is not a valid name", zname);
@@ -1111,6 +1123,9 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 				    "previous definition: %s:%u", logctx, mctx);
 		if (tresult != ISC_R_SUCCESS)
 			result = tresult;
+		if (dns_name_equal(dns_fixedname_name(&fixedname),
+				   dns_rootname))
+			root = ISC_TRUE;
 	}
 
 	/*
@@ -1230,7 +1245,18 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	/*
 	 * Check that forwarding is reasonable.
 	 */
-	if (check_forward(zoptions, logctx) != ISC_R_SUCCESS)
+	obj = NULL;	
+	if (root) {
+		if (voptions != NULL)
+			(void)cfg_map_get(voptions, "forwarders", &obj);
+		if (obj == NULL) {
+			const cfg_obj_t *options = NULL;
+			(void)cfg_map_get(config, "options", &options);
+			if (options != NULL)
+				(void)cfg_map_get(options, "forwarders", &obj);
+		}
+	}
+	if (check_forward(zoptions, obj, logctx) != ISC_R_SUCCESS)
 		result = ISC_R_FAILURE;
 
 	/*
@@ -1626,10 +1652,11 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		const cfg_obj_t *options = NULL;
 		(void)cfg_map_get(config, "options", &options);
 		if (options != NULL)
-			if (check_forward(options, logctx) != ISC_R_SUCCESS)
+			if (check_forward(options, NULL,
+					  logctx) != ISC_R_SUCCESS)
 				result = ISC_R_FAILURE;
 	} else {
-		if (check_forward(voptions, logctx) != ISC_R_SUCCESS)
+		if (check_forward(voptions, NULL, logctx) != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}
 
