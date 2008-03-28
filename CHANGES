@@ -1,3 +1,7 @@
+2345.	[bug]		named-checkconf failed to detect when forwarders
+			were set at both the options/view level and in
+			a root zone. [RT #17671]
+
 2344.	[bug]		Improve "logging{ file ...; };" documentation.
 			[RT #17888]
 
