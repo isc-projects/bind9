@@ -15,12 +15,13 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.355.12.4 2008/01/17 23:46:37 tbox Exp $ */
+/* $Id: resolver.c,v 1.355.12.5 2008/03/28 17:20:51 jinmei Exp $ */
 
 /*! \file */
 
 #include <config.h>
 
+#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/string.h>
 #include <isc/random.h>
@@ -6349,12 +6350,21 @@ dns_resolver_create(dns_view_t *view,
 			goto cleanup_buckets;
 		}
 		res->buckets[i].mctx = NULL;
+#ifdef ISC_PLATFORM_USETHREADS
+		/*
+		 * Use a separate memory context for each bucket to reduce
+		 * contention among multiple threads.  Do this only when
+		 * enabling threads because it will be require more memory.  
+		 */
 		result = isc_mem_create(0, 0, &res->buckets[i].mctx);
 		if (result != ISC_R_SUCCESS) {
 			isc_task_detach(&res->buckets[i].task);
 			DESTROYLOCK(&res->buckets[i].lock);
 			goto cleanup_buckets;
 		}
+#else
+		isc_mem_attach(view->mctx, &res->buckets[i].mctx);
+#endif
 		snprintf(name, sizeof(name), "res%u", i);
 		isc_task_setname(res->buckets[i].task, name, res);
 		ISC_LIST_INIT(res->buckets[i].fctxs);
