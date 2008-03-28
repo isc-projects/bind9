@@ -1256,7 +1256,7 @@
 ./doc/misc/ipv6					TXT.BRIEF	2000,2001,2004
 ./doc/misc/migration				TXT.BRIEF	2000,2001,2003,2004,2007,2008
 ./doc/misc/migration-4to9			TXT.BRIEF	2001,2004
-./doc/misc/options				X	2000,2001,2002,2003,2004,2005,2006,2007
+./doc/misc/options				X	2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./doc/misc/rfc-compliance			TXT.BRIEF	2001,2004
 ./doc/misc/roadmap				TXT.BRIEF	2000,2001,2004
 ./doc/misc/sdb					TXT.BRIEF	2000,2001,2004
@@ -1717,7 +1717,7 @@
 ./lib/bind9/.cvsignore				X	2001
 ./lib/bind9/Makefile.in				MAKE	2001,2004
 ./lib/bind9/api					X	2001,2005,2006,2007
-./lib/bind9/check.c				C	2001,2002,2003,2004,2005,2006,2007
+./lib/bind9/check.c				C	2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/bind9/getaddresses.c			C	2001,2002,2004,2005
 ./lib/bind9/include/.cvsignore			X	2001
 ./lib/bind9/include/Makefile.in			MAKE	2001,2004
