@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.44.18.40 2008/03/28 23:46:04 tbox Exp $ */
+/* $Id: check.c,v 1.44.18.41 2008/03/29 23:46:10 tbox Exp $ */
 
 /*! \file */
 
@@ -1684,7 +1684,7 @@ bind9_check_logging(const cfg_obj_t *config, isc_log_t *logctx,
 			channel = cfg_listelt_value(delement);
 			channelname = cfg_obj_asstring(channel);
 			tresult = isc_symtab_lookup(symtab, channelname, 1,
-					  	    &symvalue);
+						    &symvalue);
 			if (tresult != ISC_R_SUCCESS) {
 				cfg_obj_log(channel, logctx, ISC_LOG_ERROR,
 					    "undefined channel: '%s'",
