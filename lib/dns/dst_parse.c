@@ -31,7 +31,7 @@
 
 /*%
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.13 2008/03/31 14:42:51 fdupont Exp $
+ * $Id: dst_parse.c,v 1.14 2008/03/31 23:47:11 tbox Exp $
  */
 
 #include <config.h>
@@ -149,12 +149,12 @@ check_rsa(const dst_private_t *priv) {
 	mask = ~0;
 	mask <<= sizeof(mask) * 8 - TAG_SHIFT;
 	mask >>= sizeof(mask) * 8 - TAG_SHIFT;
-	
+
 	if (have[TAG_RSA_ENGINE & mask])
 		ok = have[TAG_RSA_MODULUS & mask] &&
 		     have[TAG_RSA_PUBLICEXPONENT & mask] &&
 		     have[TAG_RSA_LABEL & mask];
-	else 
+	else
 		ok = have[TAG_RSA_MODULUS & mask] &&
 		     have[TAG_RSA_PUBLICEXPONENT & mask] &&
 		     have[TAG_RSA_PRIVATEEXPONENT & mask] &&
