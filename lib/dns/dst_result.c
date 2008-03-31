@@ -17,7 +17,7 @@
 
 /*%
  * Principal Author: Brian Wellington
- * $Id: dst_result.c,v 1.5 2007/06/19 23:47:16 tbox Exp $
+ * $Id: dst_result.c,v 1.6 2008/03/31 14:42:51 fdupont Exp $
  */
 
 #include <config.h>
@@ -49,7 +49,8 @@ static const char *text[DST_R_NRESULTS] = {
 	"not a key that can compute a secret",	/*%< 17 */
 	"failure computing a shared secret",	/*%< 18 */
 	"no randomness available",		/*%< 19 */
-	"bad key type"				/*%< 20 */
+	"bad key type",				/*%< 20 */
+	"no engine"				/*%< 21 */
 };
 
 #define DST_RESULT_RESULTSET			2

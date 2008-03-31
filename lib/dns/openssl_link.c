@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.16 2007/08/28 07:20:42 tbox Exp $
+ * $Id: openssl_link.c,v 1.17 2008/03/31 14:42:51 fdupont Exp $
  */
 #ifdef OPENSSL
 
@@ -60,6 +60,12 @@
 
 #ifdef USE_ENGINE
 #include <openssl/engine.h>
+
+#ifdef ENGINE_ID
+const char *engine_id = ENGINE_ID;
+#else
+const char *engine_id;
+#endif
 #endif
 
 static RAND_METHOD *rm = NULL;
@@ -69,6 +75,14 @@ static int nlocks;
 
 #ifdef USE_ENGINE
 static ENGINE *e;
+static ENGINE *he;
+#endif
+
+#ifdef USE_PKCS11
+static isc_result_t
+dst__openssl_load_engine(const char *name, const char *engine_id,
+	         	 const char **pre_cmds, int pre_num,
+		 	 const char **post_cmds, int post_num);
 #endif
 
 static int
@@ -151,6 +165,10 @@ mem_realloc(void *ptr, size_t size) {
 isc_result_t
 dst__openssl_init() {
 	isc_result_t result;
+#ifdef USE_ENGINE
+	/* const char  *name; */
+	ENGINE *re;
+#endif
 
 #ifdef  DNS_CRYPTO_LEAKS
 	CRYPTO_malloc_debug_init();
@@ -180,13 +198,82 @@ dst__openssl_init() {
 	rm->pseudorand = entropy_getpseudo;
 	rm->status = entropy_status;
 #ifdef USE_ENGINE
-	e = ENGINE_new();
-	if (e == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup_rm;
+	OPENSSL_config(NULL);
+#ifdef USE_PKCS11
+#ifndef PKCS11_SO_PATH
+#define PKCS11_SO_PATH		"/usr/local/lib/engines/engine_pkcs11.so"
+#endif
+#ifndef PKCS11_MODULE_PATH
+#define PKCS11_MODULE_PATH	"/usr/lib/libpkcs11.so"
+#endif
+	{
+		/*
+		 * to use this to config the PIN, add in openssl.cnf:
+		 *  - at the beginning: "openssl_conf = openssl_def"
+		 *  - at any place these sections:
+		 * [ openssl_def ]
+		 * engines = engine_section
+		 * [ engine_section ]
+		 * pkcs11 = pkcs11_section
+		 * [ pkcs11_section ]
+		 * PIN = my___pin
+		 */
+
+		const char *pre_cmds[] = {
+			"SO_PATH", PKCS11_SO_PATH,
+			"LOAD", NULL,
+			"MODULE_PATH", PKCS11_MODULE_PATH
+		};
+		const char *post_cmds[] = {
+			/* "PIN", "my___pin" */
+		};
+		result = dst__openssl_load_engine("pkcs11", "pkcs11",
+						  pre_cmds, 0,
+						  post_cmds, /*1*/ 0);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup_rm;
 	}
-	ENGINE_set_RAND(e, rm);
-	RAND_set_rand_method(rm);
+#endif /* USE_PKCS11 */
+	if (engine_id != NULL) {
+		e = ENGINE_by_id(engine_id);
+		if (e == NULL) {
+			result = ISC_R_NOTFOUND;
+			goto cleanup_rm;
+		}
+		if (!ENGINE_init(e)) {
+			result = ISC_R_FAILURE;
+			ENGINE_free(e);
+			goto cleanup_rm;
+		}
+		ENGINE_set_default(e, ENGINE_METHOD_ALL);
+		ENGINE_free(e);
+	} else {
+		ENGINE_register_all_complete();
+		for (e = ENGINE_get_first(); e != NULL; e = ENGINE_get_next(e)) {
+		
+			/*
+			 * Something wierd here. If we call ENGINE_finish()
+			 * ENGINE_get_default_RAND() will fail.
+			 */
+			if (ENGINE_init(e)) {
+				if (he == NULL)
+					he = e;
+			}
+		}
+	}
+	re = ENGINE_get_default_RAND();
+	if (re == NULL) {
+		re = ENGINE_new();
+		if (re == NULL) {
+			result = ISC_R_NOMEMORY;
+			goto cleanup_rm;
+		}
+		ENGINE_set_RAND(re, rm);
+		ENGINE_set_default_RAND(re);
+		ENGINE_free(re);
+	} else
+		ENGINE_finish(re);
+	
 #else
 	RAND_set_rand_method(rm);
 #endif /* USE_ENGINE */
@@ -214,8 +301,14 @@ dst__openssl_destroy() {
 	CONF_modules_unload(1);
 #endif
 	EVP_cleanup();
+#if defined(USE_ENGINE)
+	if (e != NULL) {
+		ENGINE_finish(e);
+		e = NULL;
+	}
 #if defined(USE_ENGINE) && OPENSSL_VERSION_NUMBER >= 0x00907000L
 	ENGINE_cleanup();
+#endif
 #endif
 #if (OPENSSL_VERSION_NUMBER >= 0x00907000L)
 	CRYPTO_cleanup_all_ex_data();
@@ -228,19 +321,6 @@ dst__openssl_destroy() {
 	CRYPTO_mem_leaks_fp(stderr);
 #endif
 
-#if 0
-	/*
-	 * The old error sequence that leaked.  Remove for 9.4.1 if
-	 * there are no issues by then.
-	 */
-	ERR_clear_error();
-#ifdef USE_ENGINE
-	if (e != NULL) {
-		ENGINE_free(e);
-		e = NULL;
-	}
-#endif
-#endif
 	if (rm != NULL) {
 #if OPENSSL_VERSION_NUMBER >= 0x00907000L
 		RAND_cleanup();
@@ -269,6 +349,86 @@ dst__openssl_toresult(isc_result_t fallback) {
 	ERR_clear_error();
 	return (result);
 }
+
+ENGINE *
+dst__openssl_getengine(const char *name) {
+
+	UNUSED(name);
+
+	return (he);
+}
+
+isc_result_t
+dst__openssl_setdefault(const char *name) {
+
+	UNUSED(name);
+
+	ENGINE_set_default(e, ENGINE_METHOD_ALL);
+	/*
+	 * XXXMPA If the engine does not have a default RAND method
+	 * restore our method.
+	 */
+	return (ISC_R_SUCCESS);
+}
+
+#ifdef USE_PKCS11
+/*
+ * 'name' is the name the engine is known by to the dst library.
+ * This may or may not match the name the engine is known by to
+ * openssl.  It is the name that is stored in the private key file.
+ *
+ * 'engine_id' is the openssl engine name.
+ *
+ * pre_cmds and post_cmds a sequence if command arguement pairs
+ * pre_num and post_num are a count of those pairs.
+ *
+ * "SO_PATH", PKCS11_SO_PATH ("/usr/local/lib/engines/engine_pkcs11.so")
+ * "LOAD", NULL
+ * "MODULE_PATH", PKCS11_MODULE_PATH ("/usr/lib/libpkcs11.so")
+ */
+static isc_result_t
+dst__openssl_load_engine(const char *name, const char *engine_id,
+	         	 const char **pre_cmds, int pre_num,
+		 	 const char **post_cmds, int post_num)
+{
+	ENGINE *e;
+
+	UNUSED(name);
+
+	if (!strcasecmp(engine_id, "dynamic"))
+		ENGINE_load_dynamic();
+	e = ENGINE_by_id(engine_id);
+	if (e == NULL)
+		return (ISC_R_NOTFOUND);
+	while (pre_num--) {
+		if (!ENGINE_ctrl_cmd_string(e, pre_cmds[0], pre_cmds[1], 0)) {
+			ENGINE_free(e);
+			return (ISC_R_FAILURE);
+		}
+		pre_cmds += 2;
+	}
+	if (!ENGINE_init(e)) {
+		ENGINE_free(e);
+		return (ISC_R_FAILURE);
+	}
+	/*
+	 * ENGINE_init() returned a functional reference, so free the
+	 * structural reference from ENGINE_by_id().
+	 */
+	ENGINE_free(e);
+	while (post_num--) {
+		if (!ENGINE_ctrl_cmd_string(e, post_cmds[0], post_cmds[1], 0)) {
+			ENGINE_free(e);
+			return (ISC_R_FAILURE);
+		}
+		post_cmds += 2;
+	}
+	if (he != NULL)
+		ENGINE_finish(he);
+	he = e;
+	return (ISC_R_SUCCESS);
+}
+#endif /* USE_PKCS11 */
 
 #else /* OPENSSL */
 

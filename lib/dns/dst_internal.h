@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_internal.h,v 1.9 2007/08/28 07:20:42 tbox Exp $ */
+/* $Id: dst_internal.h,v 1.10 2008/03/31 14:42:51 fdupont Exp $ */
 
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1
@@ -51,6 +51,7 @@
 #include <openssl/dh.h>
 #include <openssl/dsa.h>
 #include <openssl/err.h>
+#include <openssl/evp.h>
 #include <openssl/objects.h>
 #include <openssl/rsa.h>
 #endif
@@ -90,13 +91,18 @@ struct dst_key {
 	isc_uint16_t	key_bits;	/*%< hmac digest bits */
 	dns_rdataclass_t key_class;	/*%< class of the key record */
 	isc_mem_t	*mctx;		/*%< memory context */
+	char		*engine;	/*%< engine name (HSM) */
+	char		*label;		/*%< engine label (HSM) */
 	union {
 		void *generic;
 		gss_ctx_id_t gssctx;
 #ifdef OPENSSL
+#if USE_EVP_RSA
 		RSA *rsa;
+#endif
 		DSA *dsa;
 		DH *dh;
+		EVP_PKEY *pkey;
 #endif
 		dst_hmacmd5_key_t *hmacmd5;
 		dst_hmacsha1_key_t *hmacsha1;
@@ -124,6 +130,9 @@ struct dst_context {
 		isc_hmacsha256_t *hmacsha256ctx;
 		isc_hmacsha384_t *hmacsha384ctx;
 		isc_hmacsha512_t *hmacsha512ctx;
+#ifdef OPENSSL
+		EVP_MD_CTX *evp_md_ctx;
+#endif
 	} ctxdata;
 };
 
@@ -158,6 +167,9 @@ struct dst_func {
 
 	/* cleanup */
 	void (*cleanup)(void);
+
+	isc_result_t (*fromlabel)(dst_key_t *key, const char *engine,
+				  const char *label, const char *pin);
 };
 
 /*%

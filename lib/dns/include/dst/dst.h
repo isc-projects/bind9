@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.9 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: dst.h,v 1.10 2008/03/31 14:42:51 fdupont Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -433,6 +433,12 @@ dst_key_fromgssapi(dns_name_t *name, gss_ctx_id_t gssctx, isc_mem_t *mctx,
  *\li	If successful, *keyp will contain a valid key and be responsible for
  *	the context id.
  */
+
+isc_result_t
+dst_key_fromlabel(dns_name_t *name, int alg, unsigned int flags,
+                  unsigned int protocol, dns_rdataclass_t rdclass,
+                  const char *engine, const char *label, const char *pin,
+                  isc_mem_t *mctx, dst_key_t **keyp);
 
 isc_result_t
 dst_key_generate(dns_name_t *name, unsigned int alg,

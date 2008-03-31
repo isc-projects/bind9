@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_openssl.h,v 1.5 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: dst_openssl.h,v 1.6 2008/03/31 14:42:51 fdupont Exp $ */
 
 #ifndef DST_OPENSSL_H
 #define DST_OPENSSL_H 1
@@ -27,6 +27,12 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 dst__openssl_toresult(isc_result_t fallback);
+
+ENGINE *
+dst__openssl_getengine(const char *name);
+
+isc_result_t 
+dst__openssl_setdefault(const char *name);
 
 ISC_LANG_ENDDECLS
 

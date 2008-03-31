@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.346 2008/03/14 14:29:13 jreed Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.347 2008/03/31 14:42:50 fdupont Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -2356,6 +2356,12 @@ allow-update { key host1-host2. ;};
         <para>
           To generate another key with the same properties (but with
           a different key tag), repeat the above command.
+        </para>
+
+        <para>
+          The <command>dnssec-keyfromlabel</command> program is used
+          to get a key pair from a crypto hardware and build the key
+          files. Its usage is similar to <command>dnssec-keygen</command>.
         </para>
 
         <para>
@@ -12671,6 +12677,7 @@ zone "example.com" {
       <title>Manual pages</title>
       <xi:include href="../../bin/dig/dig.docbook"/>
       <xi:include href="../../bin/dig/host.docbook"/>
+      <xi:include href="../../bin/dnssec/dnssec-keyfromlabel.docbook"/>
       <xi:include href="../../bin/dnssec/dnssec-keygen.docbook"/>
       <xi:include href="../../bin/dnssec/dnssec-signzone.docbook"/>
       <xi:include href="../../bin/check/named-checkconf.docbook"/>

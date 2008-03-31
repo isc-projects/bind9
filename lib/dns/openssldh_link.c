@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.12 2007/08/28 07:20:42 tbox Exp $
+ * $Id: openssldh_link.c,v 1.13 2008/03/31 14:42:51 fdupont Exp $
  */
 
 #ifdef OPENSSL
@@ -608,6 +608,7 @@ static dst_func_t openssldh_functions = {
 	openssldh_tofile,
 	openssldh_parse,
 	openssldh_cleanup,
+	NULL, /*%< fromlabel */
 };
 
 isc_result_t

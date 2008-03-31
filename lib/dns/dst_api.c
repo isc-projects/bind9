@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.12 2008/03/31 05:00:30 marka Exp $
+ * $Id: dst_api.c,v 1.13 2008/03/31 14:42:51 fdupont Exp $
  */
 
 /*! \file */
@@ -291,6 +291,7 @@ dst_context_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	CHECKALG(key->key_alg);
 	if (key->keydata.generic == NULL)
 		return (DST_R_NULLKEY);
+
 	if (key->func->sign == NULL)
 		return (DST_R_NOTPRIVATEKEY);
 	if (key->func->isprivate == NULL ||
@@ -661,6 +662,48 @@ dst_key_fromgssapi(dns_name_t *name, gss_ctx_id_t gssctx, isc_mem_t *mctx,
 }
 
 isc_result_t
+dst_key_fromlabel(dns_name_t *name, int alg, unsigned int flags,
+		  unsigned int protocol, dns_rdataclass_t rdclass,
+		  const char *engine, const char *label, const char *pin,
+		  isc_mem_t *mctx, dst_key_t **keyp) 
+{
+	dst_key_t *key;
+	isc_result_t result;
+
+	REQUIRE(dst_initialized == ISC_TRUE);
+	REQUIRE(dns_name_isabsolute(name));
+	REQUIRE(mctx != NULL);
+	REQUIRE(keyp != NULL && *keyp == NULL);
+	REQUIRE(label != NULL);
+
+	CHECKALG(alg);
+
+	key = get_key_struct(name, alg, flags, protocol, 0, rdclass, mctx);
+	if (key == NULL)
+		return (ISC_R_NOMEMORY);
+
+	if (key->func->fromlabel == NULL) {
+		dst_key_free(&key);
+		return (DST_R_UNSUPPORTEDALG);
+	}
+
+	result = key->func->fromlabel(key, engine, label, pin);
+	if (result != ISC_R_SUCCESS) {
+		dst_key_free(&key);
+		return (result);
+	}
+
+	result = computeid(key);
+	if (result != ISC_R_SUCCESS) {
+		dst_key_free(&key);
+		return (result);
+	}
+
+	*keyp = key;
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
 dst_key_generate(dns_name_t *name, unsigned int alg,
 		 unsigned int bits, unsigned int param,
 		 unsigned int flags, unsigned int protocol,
@@ -760,7 +803,10 @@ dst_key_free(dst_key_t **keyp) {
 		INSIST(key->func->destroy != NULL);
 		key->func->destroy(key);
 	}
-
+	if (key->engine != NULL)
+		isc_mem_free(mctx, key->engine);
+	if (key->label != NULL)
+		isc_mem_free(mctx, key->label);
 	dns_name_free(key->key_name, mctx);
 	isc_mem_put(mctx, key->key_name, sizeof(dns_name_t));
 	memset(key, 0, sizeof(dst_key_t));

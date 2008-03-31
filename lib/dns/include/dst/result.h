@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.7 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: result.h,v 1.8 2008/03/31 14:42:51 fdupont Exp $ */
 
 #ifndef DST_RESULT_H
 #define DST_RESULT_H 1
@@ -54,8 +54,9 @@
 #define DST_R_COMPUTESECRETFAILURE	(ISC_RESULTCLASS_DST + 18)
 #define DST_R_NORANDOMNESS		(ISC_RESULTCLASS_DST + 19)
 #define DST_R_BADKEYTYPE		(ISC_RESULTCLASS_DST + 20)
+#define DST_R_NOENGINE			(ISC_RESULTCLASS_DST + 21)
 
-#define DST_R_NRESULTS			21	/* Number of results */
+#define DST_R_NRESULTS			22	/* Number of results */
 
 ISC_LANG_BEGINDECLS
 

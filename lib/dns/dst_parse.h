@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_parse.h,v 1.8 2007/08/28 07:20:42 tbox Exp $ */
+/* $Id: dst_parse.h,v 1.9 2008/03/31 14:42:51 fdupont Exp $ */
 
 /*! \file */
 #ifndef DST_DST_PARSE_H
@@ -50,7 +50,7 @@
 #define TAG(alg, off)		(((alg) << TAG_SHIFT) + (off))
 
 /* These are used by both RSA-MD5 and RSA-SHA1 */
-#define RSA_NTAGS		8
+#define RSA_NTAGS		11
 #define TAG_RSA_MODULUS		((DST_ALG_RSAMD5 << TAG_SHIFT) + 0)
 #define TAG_RSA_PUBLICEXPONENT	((DST_ALG_RSAMD5 << TAG_SHIFT) + 1)
 #define TAG_RSA_PRIVATEEXPONENT	((DST_ALG_RSAMD5 << TAG_SHIFT) + 2)
@@ -59,6 +59,9 @@
 #define TAG_RSA_EXPONENT1	((DST_ALG_RSAMD5 << TAG_SHIFT) + 5)
 #define TAG_RSA_EXPONENT2	((DST_ALG_RSAMD5 << TAG_SHIFT) + 6)
 #define TAG_RSA_COEFFICIENT	((DST_ALG_RSAMD5 << TAG_SHIFT) + 7)
+#define TAG_RSA_ENGINE		((DST_ALG_RSAMD5 << TAG_SHIFT) + 8)
+#define TAG_RSA_LABEL		((DST_ALG_RSAMD5 << TAG_SHIFT) + 9)
+#define TAG_RSA_PIN		((DST_ALG_RSAMD5 << TAG_SHIFT) + 10)
 
 #define DH_NTAGS		4
 #define TAG_DH_PRIME		((DST_ALG_DH << TAG_SHIFT) + 0)

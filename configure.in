@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.439 $)
+AC_REVISION($Revision: 1.440 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -544,6 +544,30 @@ esac
 AC_SUBST(USE_OPENSSL)
 AC_SUBST(DST_OPENSSL_INC)
 DNS_CRYPTO_LIBS="$DNS_CRYPTO_LIBS $DNS_OPENSSL_LIBS"
+
+#
+# PKCS11 (aka crypto hardware) support
+#
+# This works only with the right OpenSSL with PKCS11 engine!
+#
+
+AC_MSG_CHECKING(for PKCS11 support)
+AC_ARG_WITH(pkcs11,
+[  --with-pkcs11     Build with PKCS11 support],
+   use_pkcs11="yes", use_pkcs11="no")
+
+case "$use_pkcs11" in
+	no)
+		AC_MSG_RESULT(disabled)
+		USE_PKCS11=""
+		;;
+	yes)
+		AC_MSG_RESULT(using OpenSSL with PKCS11 support)
+		USE_PKCS11='-DUSE_PKCS11'
+		;;
+esac
+
+AC_SUBST(USE_PKCS11)
 
 AC_MSG_CHECKING(for GSSAPI library)
 AC_ARG_WITH(gssapi,
