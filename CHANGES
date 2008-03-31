@@ -1,3 +1,6 @@
+2346.	[func]		Memory statistics now cover all active memory contexts
+			in increased detail. [RT #17580]
+
 2345.	[bug]		named-checkconf failed to detect when forwarders
 			were set at both the options/view level and in
 			a root zone. [RT #17671]

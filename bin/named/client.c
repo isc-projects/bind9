@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.250 2007/11/26 04:47:17 marka Exp $ */
+/* $Id: client.c,v 1.250.16.1 2008/03/31 05:06:47 marka Exp $ */
 
 #include <config.h>
 
@@ -1851,6 +1851,7 @@ get_clientmctx(ns_clientmgr_t *manager, isc_mem_t **mctxp) {
 		result = isc_mem_create(0, 0, &clientmctx);
 		if (result != ISC_R_SUCCESS)
 			return (result);
+		isc_mem_setname(clientmctx, "client", NULL);
 
 		manager->mctxpool[manager->nextmctx] = clientmctx;
 	}

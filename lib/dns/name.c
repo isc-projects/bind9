@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.163 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: name.c,v 1.163.128.1 2008/03/31 05:06:47 marka Exp $ */
 
 /*! \file */
 
@@ -1303,6 +1303,7 @@ totext_filter_proc_key_init(void) {
 			result = isc_mem_create2(0, 0, &thread_key_mctx, 0);
 		if (result != ISC_R_SUCCESS)
 			goto unlock;
+		isc_mem_setname(thread_key_mctx, "threadkey", NULL);
 		isc_mem_setdestroycheck(thread_key_mctx, ISC_FALSE);
 		
 		if (!thread_key_initialized &&

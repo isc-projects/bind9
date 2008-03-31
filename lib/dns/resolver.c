@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.355.12.6 2008/03/28 23:46:33 tbox Exp $ */
+/* $Id: resolver.c,v 1.355.12.7 2008/03/31 05:06:47 marka Exp $ */
 
 /*! \file */
 
@@ -6367,6 +6367,7 @@ dns_resolver_create(dns_view_t *view,
 #endif
 		snprintf(name, sizeof(name), "res%u", i);
 		isc_task_setname(res->buckets[i].task, name, res);
+		isc_mem_setname(res->buckets[i].mctx, name, NULL);
 		ISC_LIST_INIT(res->buckets[i].fctxs);
 		res->buckets[i].exiting = ISC_FALSE;
 		buckets_created++;

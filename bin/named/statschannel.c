@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: statschannel.c,v 1.2.2.4 2008/01/24 02:29:56 jinmei Exp $ */
+/* $Id: statschannel.c,v 1.2.2.5 2008/03/31 05:06:47 marka Exp $ */
 
 /*! \file */
 
@@ -131,7 +131,7 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 	xmlTextWriterEndElement(writer); /* server */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "memory"));
-	isc_mem_renderxml(server->mctx, writer);
+	isc_mem_renderxml(writer);
 	TRY0(xmlTextWriterEndElement(writer)); /* memory */
 
 	TRY0(xmlTextWriterEndElement(writer)); /* statistics */

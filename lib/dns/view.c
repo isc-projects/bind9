@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.143 2007/06/18 23:47:42 tbox Exp $ */
+/* $Id: view.c,v 1.143.128.1 2008/03/31 05:06:47 marka Exp $ */
 
 /*! \file */
 
@@ -578,6 +578,7 @@ dns_view_createresolver(dns_view_t *view,
 	}
 
 	result = dns_adb_create(mctx, view, timermgr, taskmgr, &view->adb);
+	isc_mem_setname(mctx, "ADB", NULL);
 	isc_mem_detach(&mctx);
 	if (result != ISC_R_SUCCESS) {
 		dns_resolver_shutdown(view->resolver);
