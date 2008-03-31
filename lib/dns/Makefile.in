@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.159 2008/03/31 14:42:51 fdupont Exp $
+# $Id: Makefile.in,v 1.160 2008/03/31 21:28:16 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -29,11 +29,14 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_MAKE_INCLUDES@
 
+USE_ISC_SPNEG = @USE_ISC_SPNEGO@
+
 CINCLUDES =	-I. -Iinclude ${DNS_INCLUDES} \
 		${ISC_INCLUDES} @DST_OPENSSL_INC@ @DST_GSSAPI_INC@
 
 CDEFINES =	-DUSE_MD5 @USE_OPENSSL@ @USE_PKCS11@ @USE_GSSAPI@ \
-		@USE_ISC_SPNEGO@
+		${USE_ISC_SPNEGO}
+
 CWARNINGS =
 
 ISCLIBS =	../../lib/isc/libisc.@A@
