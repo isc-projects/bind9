@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.250.16.1 2008/03/31 05:06:47 marka Exp $ */
+/* $Id: client.c,v 1.250.16.2 2008/03/31 23:46:42 tbox Exp $ */
 
 #include <config.h>
 
@@ -132,7 +132,7 @@ struct ns_clientmgr {
 #define MANAGER_MAGIC			ISC_MAGIC('N', 'S', 'C', 'm')
 #define VALID_MANAGER(m)		ISC_MAGIC_VALID(m, MANAGER_MAGIC)
 
-/*! 
+/*!
  * Client object states.  Ordering is significant: higher-numbered
  * states are generally "more active", meaning that the client can
  * have more dynamically allocated data, outstanding events, etc.
@@ -286,7 +286,7 @@ exit_check(ns_client_t *client) {
 	 *
 	 * Keep the view attached until any outstanding updates complete.
 	 */
-	if (client->nupdates == 0 && 
+	if (client->nupdates == 0 &&
 	    client->newstate == NS_CLIENTSTATE_FREED && client->view != NULL)
 		dns_view_detach(&client->view);
 
@@ -834,7 +834,7 @@ client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
 	isc_buffer_usedregion(buffer, &r);
 
 	CTRACE("sendto");
-	
+
 	result = isc_socket_sendto2(socket, &r, client->task,
 				    address, pktinfo,
 				    client->sendevent, sockflags);
@@ -1108,8 +1108,8 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 	/*
 	 * FORMERR loop avoidance:  If we sent a FORMERR message
 	 * with the same ID to the same client less than two
-	 * seconds ago, assume that we are in an infinite error 
-	 * packet dialog with a server for some protocol whose 
+	 * seconds ago, assume that we are in an infinite error
+	 * packet dialog with a server for some protocol whose
 	 * error responses look enough like DNS queries to
 	 * elicit a FORMERR response.  Drop a packet to break
 	 * the loop.
@@ -1542,7 +1542,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	 * For IPv6 UDP queries, we get this from the pktinfo structure (if
 	 * supported).
 	 * If all the attempts fail (this can happen due to memory shortage,
-	 * etc), we regard this as an error for safety. 
+	 * etc), we regard this as an error for safety.
 	 */
 	if ((client->interface->flags & NS_INTERFACEFLAG_ANYADDR) == 0)
 		isc_netaddr_fromsockaddr(&destaddr, &client->interface->addr);
@@ -2491,12 +2491,12 @@ ns_client_checkaclsilent(ns_client_t *client, isc_sockaddr_t *sockaddr,
 			goto deny;
 	}
 
-  
+
 	if (sockaddr == NULL)
 		isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
 	else
 		isc_netaddr_fromsockaddr(&netaddr, sockaddr);
-  
+
 	result = dns_acl_match(&netaddr, client->signer, acl,
 			       &ns_g_server->aclenv,
 			       &match, NULL);
@@ -2522,7 +2522,7 @@ ns_client_checkacl(ns_client_t *client, isc_sockaddr_t *sockaddr,
 	isc_result_t result =
 		ns_client_checkaclsilent(client, sockaddr, acl, default_allow);
 
-	if (result == ISC_R_SUCCESS) 
+	if (result == ISC_R_SUCCESS)
 		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
 			      "%s approved", opname);
@@ -2578,7 +2578,7 @@ ns_client_log(ns_client_t *client, isc_logcategory_t *category,
 
 void
 ns_client_aclmsg(const char *msg, dns_name_t *name, dns_rdatatype_t type,
-		 dns_rdataclass_t rdclass, char *buf, size_t len) 
+		 dns_rdataclass_t rdclass, char *buf, size_t len)
 {
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char typebuf[DNS_RDATATYPE_FORMATSIZE];

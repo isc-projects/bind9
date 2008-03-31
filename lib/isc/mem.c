@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.137.16.3 2008/03/31 05:06:47 marka Exp $ */
+/* $Id: mem.c,v 1.137.16.4 2008/03/31 23:46:42 tbox Exp $ */
 
 /*! \file */
 
@@ -2043,7 +2043,7 @@ renderctx(isc_mem_t *ctx, summarystat_t *summary, xmlTextWriterPtr writer) {
 		ctx->basic_table_count * sizeof(char *);
 #if ISC_MEM_TRACKLINES
 	if (ctx->debuglist != NULL) {
-		summary->contextsize += 
+		summary->contextsize +=
 			(ctx->max_size + 1) * sizeof(debuglist_t) +
 			ctx->debuglistcnt * sizeof(debuglink_t);
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.143.128.1 2008/03/31 05:06:47 marka Exp $ */
+/* $Id: view.c,v 1.143.128.2 2008/03/31 23:46:42 tbox Exp $ */
 
 /*! \file */
 
@@ -322,7 +322,7 @@ destroy(dns_view_t *view) {
 			name = ISC_LIST_HEAD(view->rootexclude[i]);
 			while (name != NULL) {
 				ISC_LIST_UNLINK(view->rootexclude[i],
-					 	name, link);
+						name, link);
 				dns_name_free(name, view->mctx);
 				isc_mem_put(view->mctx, name, sizeof(*name));
 				name = ISC_LIST_HEAD(view->rootexclude[i]);
@@ -944,7 +944,7 @@ dns_view_simplefind(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 isc_result_t
 dns_view_findzonecut(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 		     isc_stdtime_t now, unsigned int options,
-		     isc_boolean_t use_hints, 
+		     isc_boolean_t use_hints,
 		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
 {
 	return(dns_view_findzonecut2(view, name, fname, now, options,
@@ -1158,8 +1158,8 @@ dns_viewlist_findzone(dns_viewlist_t *list, dns_name_t *name,
 
 	REQUIRE(list != NULL);
 	for (view = ISC_LIST_HEAD(*list);
-             view != NULL;
-             view = ISC_LIST_NEXT(view, link)) {
+	     view != NULL;
+	     view = ISC_LIST_NEXT(view, link)) {
 		if (allclasses == ISC_FALSE && view->rdclass != rdclass)
 			continue;
 		result = dns_zt_find(view->zonetable, name, 0, NULL,
@@ -1390,7 +1390,7 @@ dns_view_isdelegationonly(dns_view_t *view, dns_name_t *name) {
 	return (ISC_TRUE);
 }
 
-void 
+void
 dns_view_setrootdelonly(dns_view_t *view, isc_boolean_t value) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	view->rootdelonly = value;

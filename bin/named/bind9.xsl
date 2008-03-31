@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
- - Copyright (C) 2006, 2007  Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2006-2008  Internet Systems Consortium, Inc. ("ISC")
  -
  - Permission to use, copy, modify, and/or distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: bind9.xsl,v 1.13.130.1 2008/03/31 05:06:47 marka Exp $ -->
+<!-- $Id: bind9.xsl,v 1.13.130.2 2008/03/31 23:46:42 tbox Exp $ -->
 
 <xsl:stylesheet version="1.0"
    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
