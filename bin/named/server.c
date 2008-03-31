@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.502 2008/02/18 04:43:47 marka Exp $ */
+/* $Id: server.c,v 1.503 2008/03/31 05:00:29 marka Exp $ */
 
 /*! \file */
 
@@ -1042,6 +1042,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 		CHECK(isc_mem_create(0, 0, &cmctx));
 		CHECK(dns_acache_create(&view->acache, cmctx, ns_g_taskmgr,
 					ns_g_timermgr));
+		isc_mem_setname(cmctx, "acache", NULL);
 		isc_mem_detach(&cmctx);
 	}
 	if (view->acache != NULL) {
@@ -1162,6 +1163,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 		CHECK(isc_mem_create(0, 0, &cmctx));
 		CHECK(dns_cache_create(cmctx, ns_g_taskmgr, ns_g_timermgr,
 				       view->rdclass, "rbt", 0, NULL, &cache));
+		isc_mem_setname(cmctx, "cache", NULL);
 	}
 	dns_view_setcache(view, cache);
 

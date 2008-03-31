@@ -15,7 +15,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: bind9.xsl,v 1.13 2007/06/18 23:47:18 tbox Exp $ -->
+<!-- $Id: bind9.xsl,v 1.14 2008/03/31 05:00:29 marka Exp $ -->
 
 <xsl:stylesheet version="1.0"
    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -274,6 +274,70 @@ tr.lrow {
             </tr>
           </xsl:for-each>
         </table>
+	<br />
+	<table>
+          <tr class="rowh">
+            <th colspan="4">Memory Usage Summary</th>
+          </tr>
+	  <xsl:for-each select="memory/summary/*">
+	    <tr class="lrow">
+	      <td><xsl:value-of select="name()"/></td>
+	      <td><xsl:value-of select="."/></td>
+	    </tr>
+	  </xsl:for-each>
+	</table>
+	<br />
+	<table>
+          <tr class="rowh">
+            <th colspan="10">Memory Contexts</th>
+          </tr>
+	  <tr class="rowh">
+	    <th>ID</th>
+	    <th>Name</th>
+	    <th>References</th>
+	    <th>TotalUse</th>
+	    <th>InUse</th>
+	    <th>MaxUse</th>
+	    <th>BlockSize</th>
+	    <th>Pools</th>
+	    <th>HiWater</th>
+	    <th>LoWater</th>
+	  </tr>
+	  <xsl:for-each select="memory/contexts/context">
+	    <tr class="lrow">
+	      <td>
+		<xsl:value-of select="id"/>
+	      </td>
+              <td>
+                <xsl:value-of select="name"/>
+              </td>
+	      <td>
+		<xsl:value-of select="references"/>
+	      </td>
+	      <td>
+		<xsl:value-of select="total"/>
+	      </td>
+	      <td>
+		<xsl:value-of select="inuse"/>
+	      </td>
+	      <td>
+		<xsl:value-of select="maxinuse"/>
+	      </td>
+	      <td>
+		<xsl:value-of select="blocksize"/>
+	      </td>
+	      <td>
+		<xsl:value-of select="pools"/>
+	      </td>
+	      <td>
+		<xsl:value-of select="hiwater"/>
+	      </td>
+	      <td>
+		<xsl:value-of select="lowater"/>
+	      </td>
+	    </tr>
+	  </xsl:for-each>
+	</table>
 
       </body>
     </html>

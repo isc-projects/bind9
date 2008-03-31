@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.77 2008/02/07 02:45:49 marka Exp $ */
+/* $Id: mem.h,v 1.78 2008/03/31 05:00:30 marka Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -406,6 +406,59 @@ isc_mem_references(isc_mem_t *ctx);
  * Return the current reference count.
  */
 
+void
+isc_mem_setname(isc_mem_t *ctx, const char *name, void *tag);
+/*%<
+ * Name 'ctx'.
+ *
+ * Notes:
+ *
+ *\li	Only the first 15 characters of 'name' will be copied.
+ *
+ *\li	'tag' is for debugging purposes only.
+ *
+ * Requires:
+ *
+ *\li	'ctx' is a valid ctx.
+ */
+
+const char *
+isc_mem_getname(isc_mem_t *ctx);
+/*%<
+ * Get the name of 'ctx', as previously set using isc_mem_setname().
+ *
+ * Requires:
+ *\li	'ctx' is a valid ctx.
+ *
+ * Returns:
+ *\li	A non-NULL pointer to a null-terminated string.
+ * 	If the ctx has not been named, the string is
+ * 	empty.
+ */
+
+void *
+isc_mem_gettag(isc_mem_t *ctx);
+/*%<
+ * Get the tag value for  'task', as previously set using isc_mem_setname().
+ *
+ * Requires:
+ *\li	'ctx' is a valid ctx.
+ *
+ * Notes:
+ *\li	This function is for debugging purposes only.
+ *
+ * Requires:
+ *\li	'ctx' is a valid task.
+ */
+
+#ifdef HAVE_LIBXML2
+void
+isc_mem_renderxml(xmlTextWriterPtr writer);
+/*%<
+ * Render all contexts' statistics and status in XML for writer.
+ */
+#endif /* HAVE_LIBXML2 */
+
 /*
  * Memory pools
  */
@@ -567,11 +620,6 @@ void *
 isc__mempool_get(isc_mempool_t * _ISC_MEM_FLARG);
 void
 isc__mempool_put(isc_mempool_t *, void * _ISC_MEM_FLARG);
-
-#ifdef HAVE_LIBXML2
-void
-isc_mem_renderxml(isc_mem_t *mgr, xmlTextWriterPtr writer);
-#endif /* HAVE_LIBXML2 */
 
 ISC_LANG_ENDDECLS
 

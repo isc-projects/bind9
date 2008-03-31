@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.253 2008/01/18 23:46:57 tbox Exp $ */
+/* $Id: client.c,v 1.254 2008/03/31 05:00:29 marka Exp $ */
 
 #include <config.h>
 
@@ -1848,15 +1848,17 @@ client_timeout(isc_task_t *task, isc_event_t *event) {
 static isc_result_t
 get_clientmctx(ns_clientmgr_t *manager, isc_mem_t **mctxp) {
 	isc_mem_t *clientmctx;
-#if NMCTXS > 0
 	isc_result_t result;
-#endif
 
 	/*
 	 * Caller must be holding the manager lock.
 	 */
-	if (ns_g_clienttest)
-		return (isc_mem_create(0, 0, mctxp));
+	if (ns_g_clienttest) {
+		result = isc_mem_create(0, 0, mctxp);
+		if (result == ISC_R_SUCCESS)
+			isc_mem_setname(*mctxp, "client", NULL);
+		return (result);
+	}
 #if NMCTXS > 0
 	INSIST(manager->nextmctx < NMCTXS);
 	clientmctx = manager->mctxpool[manager->nextmctx];
@@ -1864,6 +1866,7 @@ get_clientmctx(ns_clientmgr_t *manager, isc_mem_t **mctxp) {
 		result = isc_mem_create(0, 0, &clientmctx);
 		if (result != ISC_R_SUCCESS)
 			return (result);
+		isc_mem_setname(clientmctx, "client", NULL);
 
 		manager->mctxpool[manager->nextmctx] = clientmctx;
 	}
