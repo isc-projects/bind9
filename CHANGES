@@ -1,3 +1,6 @@
+2347.	[bug]		Delete now traverses the RB tree in the canonical
+			order. [RT #17451]
+
 2346.	[func]		Memory statistics now cover all active memory contexts
 			in increased detail. [RT #17580]
 
