@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.84 2008/04/01 01:37:24 marka Exp $ */
+/* $Id: db.c,v 1.85 2008/04/01 03:02:20 marka Exp $ */
 
 /*! \file */
 
@@ -880,5 +880,5 @@ void
 dns_db_resigned(dns_db_t *db, dns_rdataset_t *rdataset, dns_dbversion_t *version)
 {
 	if (db->methods->resigned != NULL)
-		return ((db->methods->resigned)(db, rdataset, version));
+		(db->methods->resigned)(db, rdataset, version);
 }
