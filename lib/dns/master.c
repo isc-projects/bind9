@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.169 2008/01/18 23:46:58 tbox Exp $ */
+/* $Id: master.c,v 1.170 2008/04/01 01:37:24 marka Exp $ */
 
 /*! \file */
 
@@ -1738,8 +1738,7 @@ load_text(dns_loadctx_t *lctx) {
 			char namebuf[DNS_NAME_FORMATSIZE];
 			dns_name_format(ictx->current, namebuf,
 					sizeof(namebuf));
-			(*callbacks->error)(callbacks,
-					    "%s:%lu: SOA "
+			(*callbacks->error)(callbacks, "%s:%lu: SOA "
 					    "record not at top of zone (%s)",
 					    source, line, namebuf);
 			result = DNS_R_NOTZONETOP;
@@ -2700,6 +2699,29 @@ grow_rdata(int new_len, dns_rdata_t *old, int old_len,
 	return (new);
 }
 
+static isc_uint32_t
+resign_fromlist(dns_rdatalist_t *this) {
+	dns_rdata_t *rdata;
+	dns_rdata_rrsig_t sig;
+	isc_uint32_t when, delta;
+
+	rdata = ISC_LIST_HEAD(this->rdata);
+	INSIST(rdata != NULL);
+	(void)dns_rdata_tostruct(rdata, &sig, NULL);
+	delta = (sig.timeexpire - sig.timesigned)* 3 / 4;
+	when = sig.timesigned + delta;
+
+	rdata = ISC_LIST_NEXT(rdata, link);
+	while (rdata != NULL) {
+		(void)dns_rdata_tostruct(rdata, &sig, NULL);
+		delta = (sig.timeexpire - sig.timesigned)* 3 / 4;
+		if (sig.timesigned + delta < when)
+			when = sig.timesigned + delta;
+		rdata = ISC_LIST_NEXT(rdata, link);
+	}
+	return (when);
+}
+
 /*
  * Convert each element from a rdatalist_t to rdataset then call commit.
  * Unlink each element as we go.
@@ -2726,14 +2748,22 @@ commit(dns_rdatacallbacks_t *callbacks, dns_loadctx_t *lctx,
 		RUNTIME_CHECK(dns_rdatalist_tordataset(this, &dataset)
 			      == ISC_R_SUCCESS);
 		dataset.trust = dns_trust_ultimate;
+		/*
+		 * If this is a secure dynamic zone set the re-signing time.
+		 */
+		if (dataset.type == dns_rdatatype_rrsig &&
+		    (lctx->options & DNS_MASTER_RESIGN) != 0) {
+			dataset.attributes |= DNS_RDATASETATTR_RESIGN;
+			dns_name_format(owner, namebuf, sizeof(namebuf));
+			dataset.resign = resign_fromlist(this);
+		}
 		result = ((*callbacks->add)(callbacks->add_private, owner,
 					    &dataset));
 		if (result == ISC_R_NOMEMORY) {
 			(*error)(callbacks, "dns_master_load: %s",
 				 dns_result_totext(result));
 		} else if (result != ISC_R_SUCCESS) {
-			dns_name_format(owner, namebuf,
-					sizeof(namebuf));
+			dns_name_format(owner, namebuf, sizeof(namebuf));
 			if (source != NULL) {
 				(*error)(callbacks, "%s: %s:%lu: %s: %s",
 					 "dns_master_load", source, line,

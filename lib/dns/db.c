@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.83 2007/06/18 23:47:40 tbox Exp $ */
+/* $Id: db.c,v 1.84 2008/04/01 01:37:24 marka Exp $ */
 
 /*! \file */
 
@@ -226,6 +226,21 @@ dns_db_isstub(dns_db_t *db) {
 		return (ISC_TRUE);
 
 	return (ISC_FALSE);
+}
+
+isc_boolean_t
+dns_db_isdnssec(dns_db_t *db) {
+
+	/*
+	 * Is 'db' secure or partially secure?
+	 */
+
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE((db->attributes & DNS_DBATTR_CACHE) == 0);
+
+	if (db->methods->isdnssec != NULL)
+		return ((db->methods->isdnssec)(db));
+	return ((db->methods->issecure)(db));
 }
 
 isc_boolean_t
@@ -842,4 +857,28 @@ dns_db_getoriginnode(dns_db_t *db, dns_dbnode_t **nodep) {
 		return ((db->methods->getoriginnode)(db, nodep));
 
 	return (ISC_R_NOTFOUND);
+}
+
+isc_result_t
+dns_db_setsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
+		      isc_stdtime_t resign)
+{
+	if (db->methods->setsigningtime != NULL)
+		return ((db->methods->setsigningtime)(db, rdataset, resign));
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
+isc_result_t
+dns_db_getsigningtime(dns_db_t *db, dns_rdataset_t *rdataset, dns_name_t *name)
+{
+	if (db->methods->getsigningtime != NULL)
+		return ((db->methods->getsigningtime)(db, rdataset, name));
+	return (ISC_R_NOTFOUND);
+}
+
+void
+dns_db_resigned(dns_db_t *db, dns_rdataset_t *rdataset, dns_dbversion_t *version)
+{
+	if (db->methods->resigned != NULL)
+		return ((db->methods->resigned)(db, rdataset, version));
 }

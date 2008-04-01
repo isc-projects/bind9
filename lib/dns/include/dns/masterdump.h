@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.h,v 1.39 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: masterdump.h,v 1.40 2008/04/01 01:37:25 marka Exp $ */
 
 #ifndef DNS_MASTERDUMP_H
 #define DNS_MASTERDUMP_H 1
@@ -91,11 +91,14 @@ typedef struct dns_master_style dns_master_style_t;
 /*% Print negative caching entries. */
 #define	DNS_STYLEFLAG_NCACHE		0x00800000U
 
-/*% Never print the TTL */
+/*% Never print the TTL. */
 #define	DNS_STYLEFLAG_NO_TTL		0x01000000U
-                    
-/*% Never print the CLASS */
+
+/*% Never print the CLASS. */
 #define	DNS_STYLEFLAG_NO_CLASS		0x02000000U 
+
+/*% Report re-signing time. */
+#define	DNS_STYLEFLAG_RESIGN		0x04000000U 
 
 ISC_LANG_BEGINDECLS
 

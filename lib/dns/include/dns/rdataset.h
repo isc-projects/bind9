@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.h,v 1.62 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: rdataset.h,v 1.63 2008/04/01 01:37:25 marka Exp $ */
 
 #ifndef DNS_RDATASET_H
 #define DNS_RDATASET_H 1
@@ -140,6 +140,11 @@ struct dns_rdataset {
 	 * increment the counter.
 	 */
 	isc_uint32_t			count;
+	/*
+	 * This RRSIG RRset should be re-generated around this time.
+	 * Only valid if DNS_RDATASETATTR_RESIGN is set in attributes.
+	 */
+	isc_stdtime_t			resign;
 	/*@{*/
 	/*%
 	 * These are for use by the rdataset implementation, and MUST NOT
@@ -152,6 +157,7 @@ struct dns_rdataset {
 	void *				private5;
 	void *				private6;
 	/*@}*/
+	
 };
 
 /*!
@@ -184,6 +190,7 @@ struct dns_rdataset {
 #define DNS_RDATASETATTR_CHECKNAMES	0x00008000	/*%< Used by resolver. */
 #define DNS_RDATASETATTR_REQUIREDGLUE	0x00010000
 #define DNS_RDATASETATTR_LOADORDER	0x00020000
+#define DNS_RDATASETATTR_RESIGN		0x00040000
 
 /*%
  * _OMITDNSSEC:

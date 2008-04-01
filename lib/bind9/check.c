@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.89 2008/03/29 23:47:08 tbox Exp $ */
+/* $Id: check.c,v 1.90 2008/04/01 01:37:24 marka Exp $ */
 
 /*! \file */
 
@@ -654,6 +654,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 				if (tresult != ISC_R_SUCCESS &&
 				    result == ISC_R_SUCCESS)
 					result = tresult;
+				goto trust_anchor;
 			}
 			/*
 			 * XXXMPA to be removed when multiple lookaside
@@ -666,6 +667,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 				if (result == ISC_R_SUCCESS)
 					result = ISC_R_FAILURE;
 			}
+ trust_anchor:
 			dlv = cfg_obj_asstring(cfg_tuple_get(obj,
 					       "trust-anchor"));
 			isc_buffer_init(&b, dlv, strlen(dlv));

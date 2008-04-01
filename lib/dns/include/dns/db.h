@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.89 2007/06/18 23:47:42 tbox Exp $ */
+/* $Id: db.h,v 1.90 2008/04/01 01:37:25 marka Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -147,7 +147,16 @@ typedef struct dns_dbmethods {
 	void		(*settask)(dns_db_t *db, isc_task_t *);
 	isc_result_t	(*getoriginnode)(dns_db_t *db, dns_dbnode_t **nodep);
 	void		(*transfernode)(dns_db_t *db, dns_dbnode_t **sourcep,
-				        dns_dbnode_t **targetp);
+					dns_dbnode_t **targetp);
+	isc_result_t	(*setsigningtime)(dns_db_t *db,
+					  dns_rdataset_t *rdataset,
+					  isc_stdtime_t resign);
+	isc_result_t	(*getsigningtime)(dns_db_t *db,
+					  dns_rdataset_t *rdataset,
+					  dns_name_t *name);
+	void		(*resigned)(dns_db_t *db, dns_rdataset_t *rdataset,
+					   dns_dbversion_t *version);
+	isc_boolean_t	(*isdnssec)(dns_db_t *db);
 } dns_dbmethods_t;
 
 typedef isc_result_t
@@ -354,6 +363,20 @@ dns_db_issecure(dns_db_t *db);
  *
  * Returns:
  * \li	#ISC_TRUE	'db' is secure.
+ * \li	#ISC_FALSE	'db' is not secure.
+ */
+
+isc_boolean_t
+dns_db_isdnssec(dns_db_t *db);
+/*%<
+ * Is 'db' secure or partially secure?
+ *
+ * Requires:
+ *
+ * \li	'db' is a valid database with zone semantics.
+ *
+ * Returns:
+ * \li	#ISC_TRUE	'db' is secure or is partially.
  * \li	#ISC_FALSE	'db' is not secure.
  */
 
@@ -628,7 +651,7 @@ dns_db_findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
  *
  * \li	#ISC_R_SUCCESS
  * \li	#ISC_R_NOTFOUND			If !create and name not found.
- * \li	#ISC_R_NOMEMORY		        Can only happen if create is ISC_TRUE.
+ * \li	#ISC_R_NOMEMORY			Can only happen if create is ISC_TRUE.
  *
  * \li	Other results are possible, depending upon the database
  *	implementation used.
@@ -887,7 +910,7 @@ dns_db_detachnode(dns_db_t *db, dns_dbnode_t **nodep);
 
 void
 dns_db_transfernode(dns_db_t *db, dns_dbnode_t **sourcep, 
-                    dns_dbnode_t **targetp);
+		    dns_dbnode_t **targetp);
 /*%<
  * Transfer a node between pointer.
  *
@@ -1316,6 +1339,54 @@ dns_db_getoriginnode(dns_db_t *db, dns_dbnode_t **nodep);
  * \li	#ISC_R_SUCCESS
  * \li	#ISC_R_NOTFOUND - the DB implementation does not support this feature.
  */
+
+isc_result_t
+dns_db_setsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
+		      isc_stdtime_t resign);
+/*%<
+ * Sets the re-signing time associated with 'rdataset' to 'resign'.
+ *
+ * Requires:
+ * \li	'db' is a valid zone database.
+ * \li	'rdataset' to be associated with 'db'.
+ *
+ * Returns:
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_NOMEMORY
+ * \li	#ISC_R_NOTIMPLEMENTED - Not supported by this DB implementation.
+ */
+
+isc_result_t
+dns_db_getsigningtime(dns_db_t *db, dns_rdataset_t *rdataset, dns_name_t *name);
+/*%<
+ * Return the rdataset with the earliest signing time in the zone.
+ * Note: the rdataset is version agnostic.
+ *
+ * Requires:
+ * \li	'db' is a valid zone database.
+ * \li	'rdataset' to be initialized but not associated.
+ * \li	'name' to be NULL or have a buffer associated with it.
+ *
+ * Returns:
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_NOTFOUND - No dataset exists.
+ */
+
+void
+dns_db_resigned(dns_db_t *db, dns_rdataset_t *rdataset,
+		dns_dbversion_t *version);
+/*%<
+ * Mark 'rdataset' as not being available to be returned by
+ * dns_db_getsigningtime().  If the changes associated with 'version' 
+ * are committed this will be permanent.  If the version is not committed
+ * this change will be rolled back when the version is closed.
+ *
+ * Requires:
+ * \li	'db' is a valid zone database.
+ * \li	'rdataset' to be associated with 'db'.
+ * \li	'version' to be open for writing.
+ */
+
 
 ISC_LANG_ENDDECLS
 

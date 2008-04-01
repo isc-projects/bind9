@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.157 2008/01/18 23:46:57 tbox Exp $ */
+/* $Id: nsupdate.c,v 1.158 2008/04/01 01:37:24 marka Exp $ */
 
 /*! \file */
 
@@ -1032,7 +1032,7 @@ parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 		check_result(result, "isc_lex_openbuffer");
 		result = isc_buffer_allocate(mctx, &buf, MAXWIRE);
 		check_result(result, "isc_buffer_allocate");
-		result = dns_rdata_fromtext(rdata, rdataclass, rdatatype, lex,
+		result = dns_rdata_fromtext(NULL, rdataclass, rdatatype, lex,
 					    dns_rootname, 0, mctx, buf,
 					    &callbacks);
 		isc_lex_destroy(&lex);

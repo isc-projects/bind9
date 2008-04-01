@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.196 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: rdata.c,v 1.197 2008/04/01 01:37:25 marka Exp $ */
 
 /*! \file */
 
@@ -269,7 +269,7 @@ dns_rdata_init(dns_rdata_t *rdata) {
 	/* ISC_LIST_INIT(rdata->list); */
 }
 
-#if 0
+#if 1
 #define DNS_RDATA_INITIALIZED(rdata) \
 	((rdata)->data == NULL && (rdata)->length == 0 && \
 	 (rdata)->rdclass == 0 && (rdata)->type == 0 && (rdata)->flags == 0 && \
@@ -282,8 +282,9 @@ dns_rdata_init(dns_rdata_t *rdata) {
 #define DNS_RDATA_INITIALIZED(rdata) ISC_TRUE
 #endif
 #endif
+
 #define DNS_RDATA_VALIDFLAGS(rdata) \
-	(((rdata)->flags & ~DNS_RDATA_UPDATE) == 0)
+	(((rdata)->flags & ~(DNS_RDATA_UPDATE|DNS_RDATA_OFFLINE)) == 0)
 
 void
 dns_rdata_reset(dns_rdata_t *rdata) {

@@ -1,3 +1,6 @@
+2349.	[func]		Provide incremental re-signing support for secure
+			dynamic zones. [RT #1091]
+
 2348.	[func]		Use the EVP interface to OpenSSL. Add PKCS#11 support.
 			Documentation is in the new README.pkcs11 file.
 			[RT #16844]

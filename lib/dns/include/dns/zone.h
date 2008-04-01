@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.155 2008/01/24 23:47:00 tbox Exp $ */
+/* $Id: zone.h,v 1.156 2008/04/01 01:37:25 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -879,12 +879,16 @@ isc_boolean_t
 dns_zone_getupdatedisabled(dns_zone_t *zone);
 /*%<
  * Return update disabled.
+ * Transient unless called when running in isc_task_exclusive() mode.
  */
 
 void
 dns_zone_setupdatedisabled(dns_zone_t *zone, isc_boolean_t state);
 /*%<
  * Set update disabled.
+ * Should only be called only when running in isc_task_exclusive() mode.
+ * Failure to do so may result in updates being committed after the
+ * call has been made.
  */
 
 isc_boolean_t
@@ -1635,6 +1639,9 @@ dns_zone_setisself(dns_zone_t *zone, dns_isselffunc_t isself, void *arg);
  * 'destaddr' with optional key 'mykey' for class 'rdclass' would be
  * delivered to 'myview'.
  */
+
+isc_result_t
+dns_zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm, uint16_t keyid);
 
 #ifdef HAVE_LIBXML2
 

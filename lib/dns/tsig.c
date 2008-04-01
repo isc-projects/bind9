@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.133 2008/01/18 23:46:58 tbox Exp $
+ * $Id: tsig.c,v 1.134 2008/04/01 01:37:25 marka Exp $
  */
 /*! \file */
 #include <config.h>
@@ -445,7 +445,7 @@ cleanup_ring(dns_tsig_keyring_t *ring)
 		dns_rbtnodechain_current(&chain, &foundname, origin, &node);
 		tkey = node->data;
 		if (tkey != NULL) {
-			tsig_log(tkey, 2, "tsig expire: generated=%d, refs=%d, expire=%d)", tkey->generated, isc_refcount_current(&tkey->refs), now - tkey->expire);
+			tsig_log(tkey, 2, "tsig expire: generated=%d, refs=%d, expire=%d", tkey->generated, isc_refcount_current(&tkey->refs), now - tkey->expire);
 			if (tkey->generated
 			    && isc_refcount_current(&tkey->refs) == 1
 			    && tkey->inception != tkey->expire

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.89 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: masterdump.c,v 1.90 2008/04/01 01:37:24 marka Exp $ */
 
 /*! \file */
 
@@ -108,7 +108,8 @@ dns_master_style_default = {
 
 LIBDNS_EXTERNAL_DATA const dns_master_style_t
 dns_master_style_full = {
-	DNS_STYLEFLAG_COMMENT,
+	DNS_STYLEFLAG_COMMENT |
+	DNS_STYLEFLAG_RESIGN,
 	46, 46, 46, 64, 120, 8
 };
 
@@ -840,6 +841,15 @@ dump_rdatasets_text(isc_mem_t *mctx, dns_name_t *name,
 			if ((ctx->style.flags & DNS_STYLEFLAG_OMIT_OWNER) != 0)
 				name = NULL;
 		}
+		if (ctx->style.flags & DNS_STYLEFLAG_RESIGN &&
+		    rds->attributes & DNS_RDATASETATTR_RESIGN) {
+			isc_buffer_t b;
+			char buf[sizeof("YYYYMMDDHHMMSS")];
+			memset(buf, 0, sizeof(buf));
+			isc_buffer_init(&b, buf, sizeof(buf) - 1);
+			dns_time64_totext((isc_uint64_t)rds->resign, &b);
+			fprintf(f, "; resign=%s\n", buf);
+		}
 		dns_rdataset_disassociate(rds);
 	}
 
@@ -1077,7 +1087,7 @@ dns_dumpctx_version(dns_dumpctx_t *dctx) {
 
 dns_db_t *
 dns_dumpctx_db(dns_dumpctx_t *dctx) {
-        REQUIRE(DNS_DCTX_VALID(dctx));
+	REQUIRE(DNS_DCTX_VALID(dctx));
 	return (dctx->db);
 }
 
@@ -1703,10 +1713,10 @@ dns_master_dumpnode(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 
 isc_result_t
 dns_master_stylecreate(dns_master_style_t **stylep, unsigned int flags,
-                       unsigned int ttl_column, unsigned int class_column,
-                       unsigned int type_column, unsigned int rdata_column,
-                       unsigned int line_length, unsigned int tab_width,
-                       isc_mem_t *mctx)
+		       unsigned int ttl_column, unsigned int class_column,
+		       unsigned int type_column, unsigned int rdata_column,
+		       unsigned int line_length, unsigned int tab_width,
+		       isc_mem_t *mctx)
 {
 	dns_master_style_t *style;
 

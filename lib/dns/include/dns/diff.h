@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: diff.h,v 1.12 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: diff.h,v 1.13 2008/04/01 01:37:25 marka Exp $ */
 
 #ifndef DNS_DIFF_H
 #define DNS_DIFF_H 1
@@ -59,12 +59,16 @@
  * individual RRs of a "RRset exists (value dependent)"
  * prerequisite set.  In this case, op==DNS_DIFFOP_EXISTS,
  * and the TTL is ignored.
+ *
+ * DNS_DIFFOP_*RESIGN will cause the 'resign' attribute to be recomputed.
  */
 
 typedef enum {
-	DNS_DIFFOP_ADD,	        /*%< Add an RR. */
-	DNS_DIFFOP_DEL,		/*%< Delete an RR. */
-	DNS_DIFFOP_EXISTS	/*%< Assert RR existence. */
+	DNS_DIFFOP_ADD = 0,		/*%< Add an RR. */
+	DNS_DIFFOP_DEL = 1,		/*%< Delete an RR. */
+	DNS_DIFFOP_EXISTS = 2,		/*%< Assert RR existence. */
+	DNS_DIFFOP_ADDRESIGN = 4,	/*%< ADD + RESIGN. */
+	DNS_DIFFOP_DELRESIGN = 5,	/*%< DEL + RESIGN. */
 } dns_diffop_t;
 
 typedef struct dns_difftuple dns_difftuple_t;
@@ -73,7 +77,7 @@ typedef struct dns_difftuple dns_difftuple_t;
 #define DNS_DIFFTUPLE_VALID(t)	ISC_MAGIC_VALID(t, DNS_DIFFTUPLE_MAGIC)
 
 struct dns_difftuple {
-        unsigned int			magic;
+	unsigned int			magic;
 	isc_mem_t			*mctx;
 	dns_diffop_t			op;
 	dns_name_t			name;

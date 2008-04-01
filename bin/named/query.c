@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.303 2008/01/24 02:00:43 jinmei Exp $ */
+/* $Id: query.c,v 1.304 2008/04/01 01:37:24 marka Exp $ */
 
 /*! \file */
 
@@ -1087,8 +1087,12 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	result = dns_db_find(db, name, version, type, client->query.dboptions,
 			     client->now, &node, fname, rdataset,
 			     sigrdataset);
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS) {
+		if (sigrdataset != NULL && !dns_db_issecure(db) &&
+		    dns_rdataset_isassociated(sigrdataset))
+			dns_rdataset_disassociate(sigrdataset);
 		goto found;
+	}
 
 	if (dns_rdataset_isassociated(rdataset))
 		dns_rdataset_disassociate(rdataset);
@@ -2025,7 +2029,7 @@ query_addsoa(ns_client_t *client, dns_db_t *db, dns_dbversion_t *version,
 		eresult = DNS_R_SERVFAIL;
 		goto cleanup;
 	}
-	if (WANTDNSSEC(client)) {
+	if (WANTDNSSEC(client) && dns_db_issecure(db)) {
 		sigrdataset = query_newrdataset(client);
 		if (sigrdataset == NULL) {
 			eresult = DNS_R_SERVFAIL;
@@ -2143,7 +2147,7 @@ query_addns(ns_client_t *client, dns_db_t *db, dns_dbversion_t *version) {
 		eresult = DNS_R_SERVFAIL;
 		goto cleanup;
 	}
-	if (WANTDNSSEC(client)) {
+	if (WANTDNSSEC(client) && dns_db_issecure(db)) {
 		sigrdataset = query_newrdataset(client);
 		if (sigrdataset == NULL) {
 			CTRACE("query_addns: query_newrdataset failed");
@@ -3534,7 +3538,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		QUERY_ERROR(DNS_R_SERVFAIL);
 		goto cleanup;
 	}
-	if (WANTDNSSEC(client)) {
+	if (WANTDNSSEC(client) && (!is_zone || dns_db_issecure(db))) {
 		sigrdataset = query_newrdataset(client);
 		if (sigrdataset == NULL) {
 			QUERY_ERROR(DNS_R_SERVFAIL);
@@ -4173,7 +4177,16 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		result = dns_rdatasetiter_first(rdsiter);
 		while (result == ISC_R_SUCCESS) {
 			dns_rdatasetiter_current(rdsiter, rdataset);
-			if ((qtype == dns_rdatatype_any ||
+			if (is_zone && qtype == dns_rdatatype_any &&
+			    !dns_db_issecure(db) &&
+			    dns_rdatatype_isdnssec(rdataset->type)) {
+				/*
+				 * The zone is transitioning from insecure
+				 * to secure. Hide the dnssec records from
+				 * ANY queries.
+				 */
+				dns_rdataset_disassociate(rdataset);
+			} else if ((qtype == dns_rdatatype_any ||
 			     rdataset->type == qtype) && rdataset->type != 0) {
 				query_addrrset(client,
 					       fname != NULL ? &fname : &tname,

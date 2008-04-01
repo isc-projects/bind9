@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.h,v 1.48 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: master.h,v 1.49 2008/04/01 01:37:25 marka Exp $ */
 
 #ifndef DNS_MASTER_H
 #define DNS_MASTER_H 1
@@ -54,6 +54,8 @@
 #define DNS_MASTER_CHECKWILDCARD 0x00000400	/* Check for internal wildcards. */
 #define DNS_MASTER_CHECKMX	0x00000800
 #define DNS_MASTER_CHECKMXFAIL	0x00001000
+
+#define DNS_MASTER_RESIGN	0x00002000
 
 ISC_LANG_BEGINDECLS
 

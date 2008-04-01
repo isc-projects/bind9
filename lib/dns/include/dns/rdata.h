@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.h,v 1.67 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: rdata.h,v 1.68 2008/04/01 01:37:25 marka Exp $ */
 
 #ifndef DNS_RDATA_H
 #define DNS_RDATA_H 1
@@ -124,7 +124,13 @@ struct dns_rdata {
 
 #define DNS_RDATA_INIT { NULL, 0, 0, 0, 0, {(void*)(-1), (void *)(-1)}}
 
-#define DNS_RDATA_UPDATE	0x0001		/*%< update pseudo record */
+#define DNS_RDATA_UPDATE	0x0001		/*%< update pseudo record. */
+#define DNS_RDATA_OFFLINE	0x0002		/*%< RRSIG has a offline key. */
+#define DNS_RDATA_WARNMASK	0x001c		/*%< RRSIG(DNSKEY) expired
+						     warnings number mask. */
+#define DNS_RDATA_WARNSHIFT	2		/*%< How many bits to shift
+						     to find remaining
+						     expired warning number. */
 
 /*
  * Flags affecting rdata formatting style.  Flags 0xFFFF0000

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.79 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: rdataset.c,v 1.80 2008/04/01 01:37:25 marka Exp $ */
 
 /*! \file */
 
@@ -59,6 +59,7 @@ dns_rdataset_init(dns_rdataset_t *rdataset) {
 	rdataset->privateuint4 = 0;
 	rdataset->private5 = NULL;
 	rdataset->private6 = NULL;
+	rdataset->resign = 0;
 }
 
 void
@@ -620,7 +621,7 @@ dns_rdataset_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name) {
 
 isc_result_t
 dns_rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
-		        dns_rdataset_t *nsec, dns_rdataset_t *nsecsig)
+			dns_rdataset_t *nsec, dns_rdataset_t *nsecsig)
 {
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(rdataset->methods != NULL);
