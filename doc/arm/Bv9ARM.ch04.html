@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch04.html,v 1.83 2008/03/15 01:11:43 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch04.html,v 1.84 2008/04/01 01:11:50 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -65,13 +65,13 @@
 <dt><span class="sect1"><a href="Bv9ARM.ch04.html#DNSSEC">DNSSEC</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2571700">Generating Keys</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2571769">Signing the Zone</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2571848">Configuring Servers</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2571779">Signing the Zone</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2571858">Configuring Servers</a></span></dt>
 </dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2571923">IPv6 Support in <acronym class="acronym">BIND</acronym> 9</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2571932">IPv6 Support in <acronym class="acronym">BIND</acronym> 9</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2572189">Address Lookups Using AAAA Records</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2572211">Address to Name Lookups Using Nibble Format</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2572131">Address Lookups Using AAAA Records</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2572220">Address to Name Lookups Using Nibble Format</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -798,6 +798,11 @@ allow-update { key host1-host2. ;};
           a different key tag), repeat the above command.
         </p>
 <p>
+          The <span><strong class="command">dnssec-keyfromlabel</strong></span> program is used
+          to get a key pair from a crypto hardware and build the key
+          files. Its usage is similar to <span><strong class="command">dnssec-keygen</strong></span>.
+        </p>
+<p>
           The public keys should be inserted into the zone file by
           including the <code class="filename">.key</code> files using
           <span><strong class="command">$INCLUDE</strong></span> statements.
@@ -805,7 +810,7 @@ allow-update { key host1-host2. ;};
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2571769"></a>Signing the Zone</h3></div></div></div>
+<a name="id2571779"></a>Signing the Zone</h3></div></div></div>
 <p>
           The <span><strong class="command">dnssec-signzone</strong></span> program is used
           to
@@ -849,7 +854,7 @@ allow-update { key host1-host2. ;};
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2571848"></a>Configuring Servers</h3></div></div></div>
+<a name="id2571858"></a>Configuring Servers</h3></div></div></div>
 <p>
           To enable <span><strong class="command">named</strong></span> to respond appropriately
           to DNS requests from DNSSEC aware clients,
@@ -937,7 +942,7 @@ options {
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2571923"></a>IPv6 Support in <acronym class="acronym">BIND</acronym> 9</h2></div></div></div>
+<a name="id2571932"></a>IPv6 Support in <acronym class="acronym">BIND</acronym> 9</h2></div></div></div>
 <p>
         <acronym class="acronym">BIND</acronym> 9 fully supports all currently
         defined forms of IPv6
@@ -976,7 +981,7 @@ options {
       </p>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2572189"></a>Address Lookups Using AAAA Records</h3></div></div></div>
+<a name="id2572131"></a>Address Lookups Using AAAA Records</h3></div></div></div>
 <p>
           The IPv6 AAAA record is a parallel to the IPv4 A record,
           and, unlike the deprecated A6 record, specifies the entire
@@ -995,7 +1000,7 @@ host            3600    IN      AAAA    2001:db8::1
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2572211"></a>Address to Name Lookups Using Nibble Format</h3></div></div></div>
+<a name="id2572220"></a>Address to Name Lookups Using Nibble Format</h3></div></div></div>
 <p>
           When looking up an address in nibble format, the address
           components are simply reversed, just as in IPv4, and

@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: man.dnssec-keyfromlabel.html,v 1.2 2008/03/31 14:42:51 fdupont Exp $ -->
+<!-- $Id: man.dnssec-keyfromlabel.html,v 1.3 2008/04/01 01:11:50 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -50,29 +50,27 @@
 <div class="cmdsynopsis"><p><code class="command">dnssec-keyfromlabel</code>  {-a <em class="replaceable"><code>algorithm</code></em>} {-l <em class="replaceable"><code>label</code></em>} [<code class="option">-c <em class="replaceable"><code>class</code></em></code>] [<code class="option">-f <em class="replaceable"><code>flag</code></em></code>] [<code class="option">-k</code>] [<code class="option">-n <em class="replaceable"><code>nametype</code></em></code>] [<code class="option">-p <em class="replaceable"><code>protocol</code></em></code>] [<code class="option">-t <em class="replaceable"><code>type</code></em></code>] [<code class="option">-v <em class="replaceable"><code>level</code></em></code>] {name}</p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2570862"></a><h2>DESCRIPTION</h2>
+<a name="id2598636"></a><h2>DESCRIPTION</h2>
 <p><span><strong class="command">dnssec-keyfromlabel</strong></span>
       gets keys with the given label from a crypto hardware and builds
       key files for DNSSEC (Secure DNS), as defined in RFC 2535
-      and RFC 4034.  It can also build key files for use with
-      TSIG (Transaction Signatures), as defined in RFC 2845.
+      and RFC 4034.  
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2570882"></a><h2>OPTIONS</h2>
+<a name="id2598718"></a><h2>OPTIONS</h2>
 <div class="variablelist"><dl>
 <dt><span class="term">-a <em class="replaceable"><code>algorithm</code></em></span></dt>
 <dd>
 <p>
-            Selects the cryptographic algorithm.  The value of
-            <code class="option">algorithm</code> must be one of RSAMD5 (RSA) or RSASHA1,
-            	      DSA or DH (Diffie Hellman).  These values
-            are case insensitive.
-          </p>
+	    Selects the cryptographic algorithm.  The value of
+	    <code class="option">algorithm</code> must be one of RSAMD5 (RSA)
+	    or RSASHA1, DSA or DH (Diffie Hellman).  These values
+	    are case insensitive.
+	  </p>
 <p>
             Note 1: that for DNSSEC, RSASHA1 is a mandatory to implement
-            algorithm,
-            and DSA is recommended.
+            algorithm, and DSA is recommended.
           </p>
 <p>
             Note 2: DH automatically sets the -k flag.
@@ -101,7 +99,7 @@
 <dt><span class="term">-f <em class="replaceable"><code>flag</code></em></span></dt>
 <dd><p>
             Set the specified flag in the flag field of the KEY/DNSKEY record.
-            		The only recognized flag is KSK (Key Signing Key) DNSKEY.
+            The only recognized flag is KSK (Key Signing Key) DNSKEY.
           </p></dd>
 <dt><span class="term">-h</span></dt>
 <dd><p>
@@ -133,7 +131,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2579303"></a><h2>GENERATED KEY FILES</h2>
+<a name="id2598915"></a><h2>GENERATED KEY FILES</h2>
 <p>
       When <span><strong class="command">dnssec-keyfromlabel</strong></span> completes
       successfully,
@@ -174,7 +172,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2579414"></a><h2>SEE ALSO</h2>
+<a name="id2599009"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">dnssec-keygen</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">dnssec-signzone</span>(8)</span>,
       <em class="citetitle">BIND 9 Administrator Reference Manual</em>,
@@ -184,7 +182,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2579458"></a><h2>AUTHOR</h2>
+<a name="id2599116"></a><h2>AUTHOR</h2>
 <p><span class="corpauthor">Internet Systems Consortium</span>
     </p>
 </div>
