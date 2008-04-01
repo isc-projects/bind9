@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: diff.c,v 1.15 2008/04/01 01:37:24 marka Exp $ */
+/* $Id: diff.c,v 1.16 2008/04/01 23:47:10 tbox Exp $ */
 
 /*! \file */
 
@@ -212,7 +212,7 @@ setresign(dns_rdataset_t *modified, dns_diffop_t op) {
 		when = sig.timesigned + delta;
 	}
 	dns_rdata_reset(&rdata);
-		
+
 	result = dns_rdataset_next(modified);
 	while (result == ISC_R_SUCCESS) {
 		dns_rdataset_current(modified, &rdata);
@@ -320,7 +320,7 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver,
 						      sizeof(classbuf));
 				if (t->ttl != rdl.ttl && warn)
 					isc_log_write(DIFF_COMMON_LOGARGS,
-					      	ISC_LOG_WARNING,
+						ISC_LOG_WARNING,
 						"'%s/%s/%s': TTL differs in "
 						"rdataset, adjusting "
 						"%lu -> %lu",
@@ -384,7 +384,7 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver,
 							      resign);
 				}
 			} else if (result == DNS_R_UNCHANGED) {
-			  	/*
+				/*
 				 * This will not happen when executing a
 				 * dynamic update, because that code will
 				 * generate strictly minimal diffs.

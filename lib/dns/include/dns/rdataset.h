@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.h,v 1.63 2008/04/01 01:37:25 marka Exp $ */
+/* $Id: rdataset.h,v 1.64 2008/04/01 23:47:10 tbox Exp $ */
 
 #ifndef DNS_RDATASET_H
 #define DNS_RDATASET_H 1
@@ -157,7 +157,7 @@ struct dns_rdataset {
 	void *				private5;
 	void *				private6;
 	/*@}*/
-	
+
 };
 
 /*!
@@ -355,8 +355,8 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
  * Notes:
  *\li	The rdata cursor position will be changed.
  *
- *\li	The 'question' flag should normally be #ISC_FALSE.  If it is 
- *	#ISC_TRUE, the TTL and rdata fields are not printed.  This is 
+ *\li	The 'question' flag should normally be #ISC_FALSE.  If it is
+ *	#ISC_TRUE, the TTL and rdata fields are not printed.  This is
  *	for use when printing an rdata representing a question section.
  *
  *\li	This interface is deprecated; use dns_master_rdatasettottext()

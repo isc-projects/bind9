@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.18 2008/04/01 00:03:31 marka Exp $
+ * $Id: opensslrsa_link.c,v 1.19 2008/04/01 23:47:10 tbox Exp $
  */
 #ifdef OPENSSL
 #ifndef USE_EVP
@@ -57,7 +57,7 @@
 #ifdef WIN32
 #if !((OPENSSL_VERSION_NUMBER >= 0x009070cfL && \
        OPENSSL_VERSION_NUMBER < 0x00908000L) || \
-      OPENSSL_VERSION_NUMBER >= 0x0090804fL) 
+      OPENSSL_VERSION_NUMBER >= 0x0090804fL)
 #error Please upgrade OpenSSL to 0.9.8d/0.9.7l or greater.
 #endif
 #endif
@@ -196,7 +196,7 @@ static isc_result_t
 opensslrsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
 #if USE_EVP
 	EVP_MD_CTX *evp_md_ctx = dctx->ctxdata.evp_md_ctx;
-#endif 
+#endif
 
 	REQUIRE(dctx->key->key_alg == DST_ALG_RSAMD5 ||
 		dctx->key->key_alg == DST_ALG_RSASHA1);
@@ -427,7 +427,7 @@ opensslrsa_generate(dst_key_t *key, int exp) {
 		SET_FLAGS(rsa);
 #if USE_EVP
 		key->keydata.pkey = pkey;
-		
+
 		RSA_free(rsa);
 #else
 		key->keydata.rsa = rsa;
@@ -450,7 +450,7 @@ err:
 	unsigned long e;
 #if USE_EVP
 	EVP_PKEY *pkey = EVP_PKEY_new();
-	
+
 	if (pkey == NULL)
 		return (ISC_R_NOMEMORY);
 #endif
@@ -731,7 +731,7 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 		priv.elements[i].data = bufs[i];
 		i++;
 	}
-	
+
 	if (key->engine != NULL) {
 		priv.elements[i].tag = TAG_RSA_ENGINE;
 		priv.elements[i].length = strlen(key->engine) + 1;
@@ -820,7 +820,7 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer) {
 #endif
 		dst__privstruct_free(&priv, mctx);
 		return (ISC_R_SUCCESS);
-	} 
+	}
 
 	rsa = RSA_new();
 	if (rsa == NULL)
@@ -853,7 +853,7 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer) {
 				       priv.elements[i].length, NULL);
 			if (bn == NULL)
 				DST_RET(ISC_R_NOMEMORY);
-		} 
+		}
 
 		switch (priv.elements[i].tag) {
 			case TAG_RSA_MODULUS:

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.h,v 1.49 2008/04/01 01:37:25 marka Exp $ */
+/* $Id: master.h,v 1.50 2008/04/01 23:47:10 tbox Exp $ */
 
 #ifndef DNS_MASTER_H
 #define DNS_MASTER_H 1
@@ -42,7 +42,7 @@
 #define DNS_MASTER_HINT 	0x00000010	/*%< Loading a hint master file. */
 #define DNS_MASTER_SLAVE 	0x00000020	/*%< Loading a slave master file. */
 #define DNS_MASTER_CHECKNS 	0x00000040	/*%<
-						 * Check NS records to see 
+						 * Check NS records to see
 						 * if they are an address
 						 */
 #define DNS_MASTER_FATALNS 	0x00000080	/*%<

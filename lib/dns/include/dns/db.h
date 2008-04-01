@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.90 2008/04/01 01:37:25 marka Exp $ */
+/* $Id: db.h,v 1.91 2008/04/01 23:47:10 tbox Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -164,7 +164,7 @@ typedef isc_result_t
 		      dns_dbtype_t type, dns_rdataclass_t rdclass,
 		      unsigned int argc, char *argv[], void *driverarg,
 		      dns_db_t **dbp);
-					
+
 #define DNS_DB_MAGIC		ISC_MAGIC('D','N','S','D')
 #define DNS_DB_VALID(db)	ISC_MAGIC_VALID(db, DNS_DB_MAGIC)
 
@@ -811,7 +811,7 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *						the negative caching proof.
  *
  *	\li	#DNS_R_EMPTYNAME			The name exists but there is
- *						no data at the name. 
+ *						no data at the name.
  *
  *	\li	#DNS_R_COVERINGNSEC		The returned data is a NSEC
  *						that potentially covers 'name'.
@@ -909,7 +909,7 @@ dns_db_detachnode(dns_db_t *db, dns_dbnode_t **nodep);
  */
 
 void
-dns_db_transfernode(dns_db_t *db, dns_dbnode_t **sourcep, 
+dns_db_transfernode(dns_db_t *db, dns_dbnode_t **sourcep,
 		    dns_dbnode_t **targetp);
 /*%<
  * Transfer a node between pointer.
@@ -1377,7 +1377,7 @@ dns_db_resigned(dns_db_t *db, dns_rdataset_t *rdataset,
 		dns_dbversion_t *version);
 /*%<
  * Mark 'rdataset' as not being available to be returned by
- * dns_db_getsigningtime().  If the changes associated with 'version' 
+ * dns_db_getsigningtime().  If the changes associated with 'version'
  * are committed this will be permanent.  If the version is not committed
  * this change will be rolled back when the version is closed.
  *

@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_internal.h,v 1.10 2008/03/31 14:42:51 fdupont Exp $ */
+/* $Id: dst_internal.h,v 1.11 2008/04/01 23:47:10 tbox Exp $ */
 
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1
@@ -110,7 +110,7 @@ struct dst_key {
 		dst_hmacsha256_key_t *hmacsha256;
 		dst_hmacsha384_key_t *hmacsha384;
 		dst_hmacsha512_key_t *hmacsha512;
-		
+
 	} keydata;			/*%< pointer to key in crypto pkg fmt */
 	dst_func_t *	func;		/*%< crypto package specific functions */
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.90 2008/04/01 01:37:24 marka Exp $ */
+/* $Id: masterdump.c,v 1.91 2008/04/01 23:47:10 tbox Exp $ */
 
 /*! \file */
 
@@ -184,7 +184,7 @@ struct dns_dumpctx {
 					    isc_buffer_t *buffer, FILE *f);
 };
 
-#define NXDOMAIN(x) (((x)->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0) 
+#define NXDOMAIN(x) (((x)->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
 
 /*%
  * Output tabs and spaces to go from column '*current' to
@@ -1081,7 +1081,7 @@ dns_dumpctx_detach(dns_dumpctx_t **dctxp) {
 
 dns_dbversion_t *
 dns_dumpctx_version(dns_dumpctx_t *dctx) {
-        REQUIRE(DNS_DCTX_VALID(dctx));
+	REQUIRE(DNS_DCTX_VALID(dctx));
 	return (dctx->version);
 }
 

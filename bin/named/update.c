@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.143 2008/04/01 01:37:24 marka Exp $ */
+/* $Id: update.c,v 1.144 2008/04/01 23:47:10 tbox Exp $ */
 
 #include <config.h>
 
@@ -1591,7 +1591,7 @@ has_opt_bit(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node) {
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdataset_t rdataset;
 	isc_boolean_t has_bit = ISC_FALSE;
- 
+
 	dns_rdataset_init(&rdataset);
 	CHECK(dns_db_findrdataset(db, node, version, dns_rdatatype_nsec,
 				  dns_rdatatype_none, 0, &rdataset, NULL));
@@ -1843,7 +1843,7 @@ del_keysigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	isc_boolean_t found;
 
 fprintf(stderr, "del_keysigs\n");
- 
+
 	dns_rdataset_init(&rdataset);
 
 	result = dns_db_findnode(db, name, ISC_FALSE, &node);
@@ -1878,7 +1878,7 @@ fprintf(stderr, "del_keysigs\n");
 					 * Just skip the record for now.
 					 */
 					break;
-				} 
+				}
 				result = update_one_rr(db, ver, diff,
 						       DNS_DIFFOP_DEL, name,
 						       rdataset.ttl, &rdata);
@@ -2569,10 +2569,10 @@ add_signing_records(dns_db_t *db, dns_name_t *name, dns_dbversion_t *ver,
 		     (DNS_KEYFLAG_OWNERMASK|DNS_KEYTYPE_NOAUTH))
 			 != DNS_KEYOWNER_ZONE)
 			continue;
-	 
+
 		dns_rdata_toregion(&tuple->rdata, &r);
 		keyid = dst_region_computeid(&r, dnskey.algorithm);
-		
+
 		buf[0] = dnskey.algorithm;
 		buf[1] = (keyid & 0xff00) >> 8;
 		buf[2] = (keyid & 0xff);
@@ -3179,7 +3179,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			isc_region_t r;
 			dns_secalg_t algorithm;
 			isc_uint16_t keyid;
-			
+
 			if (tuple->rdata.type != dns_rdatatype_dnskey ||
 			    tuple->op != DNS_DIFFOP_ADD)
 				continue;
@@ -3193,7 +3193,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			dns_rdata_toregion(&tuple->rdata, &r);
 			algorithm = dnskey.algorithm;
 			keyid = dst_region_computeid(&r, algorithm);
-			
+
 			result = dns_zone_signwithkey(zone, algorithm, keyid);
 			if (result != ISC_R_SUCCESS) {
 				update_log(client, zone, ISC_LOG_ERROR,

@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.13 2008/03/31 14:42:51 fdupont Exp $
+ * $Id: dst_api.c,v 1.14 2008/04/01 23:47:10 tbox Exp $
  */
 
 /*! \file */
@@ -665,7 +665,7 @@ isc_result_t
 dst_key_fromlabel(dns_name_t *name, int alg, unsigned int flags,
 		  unsigned int protocol, dns_rdataclass_t rdclass,
 		  const char *engine, const char *label, const char *pin,
-		  isc_mem_t *mctx, dst_key_t **keyp) 
+		  isc_mem_t *mctx, dst_key_t **keyp)
 {
 	dst_key_t *key;
 	isc_result_t result;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_openssl.h,v 1.6 2008/03/31 14:42:51 fdupont Exp $ */
+/* $Id: dst_openssl.h,v 1.7 2008/04/01 23:47:10 tbox Exp $ */
 
 #ifndef DST_OPENSSL_H
 #define DST_OPENSSL_H 1
@@ -31,7 +31,7 @@ dst__openssl_toresult(isc_result_t fallback);
 ENGINE *
 dst__openssl_getengine(const char *name);
 
-isc_result_t 
+isc_result_t
 dst__openssl_setdefault(const char *name);
 
 ISC_LANG_ENDDECLS

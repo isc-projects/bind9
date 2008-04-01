@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.13 2008/03/31 14:42:51 fdupont Exp $
+ * $Id: openssldh_link.c,v 1.14 2008/04/01 23:47:10 tbox Exp $
  */
 
 #ifdef OPENSSL
@@ -152,7 +152,7 @@ openssldh_paramcompare(const dst_key_t *key1, const dst_key_t *key2) {
 static isc_result_t
 openssldh_generate(dst_key_t *key, int generator) {
 #if OPENSSL_VERSION_NUMBER > 0x00908000L
-        BN_GENCB cb;
+	BN_GENCB cb;
 #endif
 	DH *dh = NULL;
 

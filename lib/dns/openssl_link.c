@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.17 2008/03/31 14:42:51 fdupont Exp $
+ * $Id: openssl_link.c,v 1.18 2008/04/01 23:47:10 tbox Exp $
  */
 #ifdef OPENSSL
 
@@ -81,8 +81,8 @@ static ENGINE *he;
 #ifdef USE_PKCS11
 static isc_result_t
 dst__openssl_load_engine(const char *name, const char *engine_id,
-	         	 const char **pre_cmds, int pre_num,
-		 	 const char **post_cmds, int post_num);
+		 	 const char **pre_cmds, int pre_num,
+			 const char **post_cmds, int post_num);
 #endif
 
 static int
@@ -250,7 +250,7 @@ dst__openssl_init() {
 	} else {
 		ENGINE_register_all_complete();
 		for (e = ENGINE_get_first(); e != NULL; e = ENGINE_get_next(e)) {
-		
+
 			/*
 			 * Something wierd here. If we call ENGINE_finish()
 			 * ENGINE_get_default_RAND() will fail.
@@ -273,7 +273,7 @@ dst__openssl_init() {
 		ENGINE_free(re);
 	} else
 		ENGINE_finish(re);
-	
+
 #else
 	RAND_set_rand_method(rm);
 #endif /* USE_ENGINE */
@@ -388,8 +388,8 @@ dst__openssl_setdefault(const char *name) {
  */
 static isc_result_t
 dst__openssl_load_engine(const char *name, const char *engine_id,
-	         	 const char **pre_cmds, int pre_num,
-		 	 const char **post_cmds, int post_num)
+		 	 const char **pre_cmds, int pre_num,
+			 const char **post_cmds, int post_num)
 {
 	ENGINE *e;
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.473 2008/04/01 01:37:25 marka Exp $ */
+/* $Id: zone.c,v 1.474 2008/04/01 23:47:10 tbox Exp $ */
 
 /*! \file */
 
@@ -2036,20 +2036,20 @@ set_signingtime(dns_zone_t *zone) {
 
 	for (result = dns_rdataset_first(&rdataset);
 	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset)) 
+	     result = dns_rdataset_next(&rdataset))
 	{
 		dns_rdataset_current(&rdataset, &rdata);
 		if (rdata.length != 4 || rdata.data[3] != 0) {
 			dns_rdata_reset(&rdata);
 			continue;
 		}
-		
-		result = zone_signwithkey(zone, rdata.data[0], 
+
+		result = zone_signwithkey(zone, rdata.data[0],
 					  (rdata.data[1] << 8) | rdata.data[2]);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
-			             "dns_zone_signwithkey failed: %s",
-			             dns_result_totext(result));
+				     "dns_zone_signwithkey failed: %s",
+				     dns_result_totext(result));
 		}
 		dns_rdata_reset(&rdata);
 	}
@@ -2060,7 +2060,7 @@ set_signingtime(dns_zone_t *zone) {
 		dns_db_detachnode(zone->db, &node);
 	if (version != NULL)
 		dns_db_closeversion(zone->db, &version, ISC_FALSE);
-	
+
 }
 
 static void
@@ -2261,7 +2261,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 				     "1/4 sig-validity-interval less than "
 				     "3 * refresh.");
 		}
-		 
+
 		zone->serial = serial;
 		zone->refresh = RANGE(refresh,
 				      zone->minrefresh, zone->maxrefresh);
@@ -3199,18 +3199,18 @@ increment_soa_serial(dns_db_t *db, dns_dbversion_t *ver,
 	dns_difftuple_t *addtuple = NULL;
 	isc_uint32_t serial;
 	isc_result_t result;
-		
+
 	CHECK(dns_db_createsoatuple(db, ver, mctx, DNS_DIFFOP_DEL, &deltuple));
 	CHECK(dns_difftuple_copy(deltuple, &addtuple));
 	addtuple->op = DNS_DIFFOP_ADD;
 
 	serial = dns_soa_getserial(&addtuple->rdata);
-				
+
 	/* RFC1982 */
 	serial = (serial + 1) & 0xFFFFFFFF;
 	if (serial == 0)
 		serial = 1;
-			 
+
 	dns_soa_setserial(serial, &addtuple->rdata);
 	CHECK(do_one_tuple(&deltuple, db, ver, diff));
 	CHECK(do_one_tuple(&addtuple, db, ver, diff));
@@ -3286,7 +3286,7 @@ find_zone_keys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	const char *directory = dns_zone_getkeydirectory(zone);
 	CHECK(dns_db_findnode(db, dns_db_origin(db), ISC_FALSE, &node));
 	result = dns_dnssec_findzonekeys2(db, ver, node, dns_db_origin(db),
-				          directory, mctx, maxkeys, keys,
+					  directory, mctx, maxkeys, keys,
 					  nkeys);
 	if (result == ISC_R_NOTFOUND)
 		result = ISC_R_SUCCESS;
@@ -3298,7 +3298,7 @@ find_zone_keys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 
 static isc_result_t
 offline(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff, dns_name_t *name,
- 	dns_ttl_t ttl, dns_rdata_t *rdata)
+	dns_ttl_t ttl, dns_rdata_t *rdata)
 {
 	isc_result_t result;
 
@@ -3348,7 +3348,7 @@ set_key_expiry_warning(dns_zone_t *zone, isc_stdtime_t when, isc_stdtime_t now)
  * Delete expired RRsigs and any RRsigs we are about to re-sign.
  * See also update.c:del_keysigs().
  */
-static isc_result_t 
+static isc_result_t
 del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	 dns_rdatatype_t type, dns_diff_t *diff, dst_key_t **keys,
 	 unsigned int nkeys, isc_stdtime_t now)
@@ -3416,7 +3416,7 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 						    maybe > rrsig.timeexpire)
 							maybe =
 							     rrsig.timeexpire;
-						break; 
+						break;
 					}
 					if (warn == 0)
 						warn = maybe;
@@ -3456,7 +3456,7 @@ failure:
 	return (result);
 }
 
-static isc_result_t 
+static isc_result_t
 add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	 dns_rdatatype_t type, dns_diff_t *diff, dst_key_t **keys,
 	 unsigned int nkeys, isc_mem_t *mctx, isc_stdtime_t inception,
@@ -3502,7 +3502,7 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 				    name, rdataset.ttl, &sig_rdata));
 		dns_rdata_reset(&sig_rdata);
 	}
-	
+
  failure:
 	if (dns_rdataset_isassociated(&rdataset))
 		dns_rdataset_disassociate(&rdataset);
@@ -3533,7 +3533,7 @@ zone_resigninc(dns_zone_t *zone) {
 	dns_rdataset_init(&rdataset);
 	dns_fixedname_init(&fixed);
 	dns_diff_init(zone->mctx, &sig_diff);
-	
+
 	/*
 	 * Updates are disabled.  Pause for 5 minutes.
 	 */
@@ -3616,8 +3616,8 @@ zone_resigninc(dns_zone_t *zone) {
 				  zone_keys, nkeys, now);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
-			             "zone_resigninc:del_sigs -> %s\n",
-			             dns_result_totext(result));
+				     "zone_resigninc:del_sigs -> %s\n",
+				     dns_result_totext(result));
 			break;
 		}
 		result = add_sigs(db, version, name, covers, &sig_diff,
@@ -3625,8 +3625,8 @@ zone_resigninc(dns_zone_t *zone) {
 				  expire, check_ksk);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
-			             "zone_resigninc:add_sigs -> %s\n",
-			             dns_result_totext(result));
+				     "zone_resigninc:add_sigs -> %s\n",
+				     dns_result_totext(result));
 			break;
 		}
 		result  = dns_db_getsigningtime(db, &rdataset,
@@ -3684,7 +3684,7 @@ zone_resigninc(dns_zone_t *zone) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "zone_resigninc:dns_journal_open -> %s\n",
 				     dns_result_totext(result));
-			goto failure; 
+			goto failure;
 		}
 
 		result = dns_journal_write_transaction(journal, &sig_diff);
@@ -3768,10 +3768,10 @@ next_active(dns_db_t *db, dns_dbversion_t *version, dns_name_t *oldname,
 
 static void
 set_bit(unsigned char *array, unsigned int index) {
-        unsigned int shift, mask;
+	unsigned int shift, mask;
 
-        shift = 7 - (index % 8);
-        mask = 1 << shift;
+	shift = 7 - (index % 8);
+	mask = 1 << shift;
 
 	array[index / 8] |= mask;
 }
@@ -3784,7 +3784,7 @@ signed_with_key(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	dns_rdataset_t rdataset;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_rrsig_t rrsig;
-	
+
 	dns_rdataset_init(&rdataset);
 	result = dns_db_findrdataset(db, node, version, dns_rdatatype_rrsig,
 				     type, 0, &rdataset, NULL);
@@ -3986,10 +3986,10 @@ updatesignwithkey(dns_signing_t *signing, dns_dbversion_t *version,
 	unsigned char data[4];
 
 	dns_rdataset_init(&rdataset);
-	result = dns_db_getoriginnode(signing->db, &node); 
+	result = dns_db_getoriginnode(signing->db, &node);
 	if (result != ISC_R_SUCCESS)
 		goto failure;
-	
+
 	result = dns_db_findrdataset(signing->db, node, version, 0xffff,
 				     dns_rdatatype_none, 0, &rdataset, NULL);
 	if (result == ISC_R_NOTFOUND) {
@@ -4245,7 +4245,7 @@ fprintf(stderr, "zone_sign\n");
 				break;
 			} else if (result != ISC_R_SUCCESS) {
 				dns_zone_log(zone, ISC_LOG_ERROR,
-				        "zone_sign:dns_dbiterator_next -> %s\n",
+					"zone_sign:dns_dbiterator_next -> %s\n",
 					     dns_result_totext(result));
 				goto failure;
 			} else if (delegation) {
@@ -4264,13 +4264,13 @@ fprintf(stderr, "zone_sign\n");
 			signing = ISC_LIST_HEAD(zone->signing);
 		}
 	}
-	
+
 	if (secureupdated) {
 		/*
 		 * We have changed the NSEC RRset above so we need to update
 		 * the signatures.
 		 */
-		result = del_sigs(zone, db, version, &zone->origin, 
+		result = del_sigs(zone, db, version, &zone->origin,
 				  dns_rdatatype_nsec, &sig_diff, zone_keys,
 				  nkeys, now);
 		if (result != ISC_R_SUCCESS) {
@@ -4295,7 +4295,7 @@ fprintf(stderr, "zone_sign\n");
 		 * We have changed the RRset above so we need to update
 		 * the signatures.
 		 */
-		result = del_sigs(zone, db, version, &zone->origin, 
+		result = del_sigs(zone, db, version, &zone->origin,
 				  (dns_rdatatype_t)0xffff, &sig_diff,
 				   zone_keys, nkeys, now);
 		if (result != ISC_R_SUCCESS) {
@@ -4355,7 +4355,7 @@ fprintf(stderr, "zone_sign\n");
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "zone_sign:dns_journal_open -> %s\n",
 				     dns_result_totext(result));
-			goto failure; 
+			goto failure;
 		}
 
 		result = dns_journal_write_transaction(journal, &sig_diff);
@@ -4414,7 +4414,7 @@ fprintf(stderr, "zone_sign\n");
 		isc_interval_t i;
 		if (zone->update_disabled)
 			isc_interval_set(&i, 60, 0);		/* 1 minute */
-		else 
+		else
 			isc_interval_set(&i, 0, 10000000);	/* 10 ms */
 		isc_interval_set(&i, 120, 0);	   /* XXXMPA */
 		isc_time_nowplusinterval(&zone->signingtime, &i);
@@ -9811,7 +9811,7 @@ zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm, uint16_t keyid) {
 		dns_db_attach(zone->db, &signing->db);
 		result = dns_db_createiterator(signing->db, ISC_FALSE,
 					       &signing->dbiterator);
-		
+
 		if (result == ISC_R_SUCCESS)
 			result = dns_dbiterator_first(signing->dbiterator);
 		if (result == ISC_R_SUCCESS) {

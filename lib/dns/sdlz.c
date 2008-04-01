@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2005-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2005-2008  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdlz.c,v 1.15 2008/04/01 01:37:25 marka Exp $ */
+/* $Id: sdlz.c,v 1.16 2008/04/01 23:47:10 tbox Exp $ */
 
 /*! \file */
 
@@ -1332,7 +1332,7 @@ dns_sdlzallowzonexfr(void *driverarg, void *dbdata, isc_mem_t *mctx,
 		return (result);
 	isc_buffer_putuint8(&b2, 0);
 
-        /* make sure strings are always lowercase */
+	/* make sure strings are always lowercase */
 	dns_sdlz_tolower(namestr);
 	dns_sdlz_tolower(clientstr);
 
@@ -1445,7 +1445,7 @@ dns_sdlzfindzone(void *driverarg, void *dbdata, isc_mem_t *mctx,
 		return (result);
 	isc_buffer_putuint8(&b, 0);
 
-        /* make sure strings are always lowercase */
+	/* make sure strings are always lowercase */
 	dns_sdlz_tolower(namestr);
 
 	/* Call SDLZ driver's find zone method */
@@ -1576,7 +1576,7 @@ dns_sdlz_putrr(dns_sdlzlookup_t *lookup, const char *type, dns_ttl_t ttl,
 	return (ISC_R_SUCCESS);
 
  failure:
- 	if (rdatabuf != NULL)
+	if (rdatabuf != NULL)
 		isc_buffer_free(&rdatabuf);
 	if (lex != NULL)
 		isc_lex_destroy(&lex);

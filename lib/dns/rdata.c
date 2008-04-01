@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.197 2008/04/01 01:37:25 marka Exp $ */
+/* $Id: rdata.c,v 1.198 2008/04/01 23:47:10 tbox Exp $ */
 
 /*! \file */
 
@@ -111,7 +111,7 @@ typedef struct dns_rdata_textctx {
 	dns_name_t *origin;	/*%< Current origin, or NULL. */
 	unsigned int flags;	/*%< DNS_STYLEFLAG_*  */
 	unsigned int width;	/*%< Width of rdata column. */
-  	const char *linebreak;	/*%< Line break string. */
+	const char *linebreak;	/*%< Line break string. */
 } dns_rdata_textctx_t;
 
 static isc_result_t
@@ -533,7 +533,7 @@ unknown_fromtext(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	result = isc_buffer_allocate(mctx, &buf, token.value.as_ulong);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	
+
 	result = isc_hex_tobuffer(lexer, buf,
 				  (unsigned int)token.value.as_ulong);
 	if (result != ISC_R_SUCCESS)
@@ -1505,16 +1505,16 @@ byte_btoa(int c, isc_buffer_t *target, struct state *state) {
 			   /*
 			    * Because some don't support u_long.
 			    */
-		    	tmp = 32;
-		    	tmpword -= (isc_int32_t)(85 * 85 * 85 * 85 * 32);
+			tmp = 32;
+			tmpword -= (isc_int32_t)(85 * 85 * 85 * 85 * 32);
 		    }
 		    if (tmpword < 0) {
-		    	tmp = 64;
-		    	tmpword -= (isc_int32_t)(85 * 85 * 85 * 85 * 32);
+			tmp = 64;
+			tmpword -= (isc_int32_t)(85 * 85 * 85 * 85 * 32);
 		    }
 			if (tr.length < 5)
 				return (ISC_R_NOSPACE);
-		    	tr.base[0] = atob_digits[(tmpword /
+			tr.base[0] = atob_digits[(tmpword /
 					      (isc_int32_t)(85 * 85 * 85 * 85))
 						+ tmp];
 			tmpword %= (isc_int32_t)(85 * 85 * 85 * 85);
@@ -1597,7 +1597,7 @@ warn_badmx(isc_token_t *token, isc_lex_t *lexer,
 	if (lexer != NULL) {
 		file = isc_lex_getsourcename(lexer);
 		line = isc_lex_getsourceline(lexer);
-		(*callbacks->warn)(callbacks, "%s:%u: warning: '%s': %s", 
+		(*callbacks->warn)(callbacks, "%s:%u: warning: '%s': %s",
 				   file, line, DNS_AS_STR(*token),
 				   dns_result_totext(DNS_R_MXISADDRESS));
 	}
@@ -1610,12 +1610,12 @@ warn_badname(dns_name_t *name, isc_lex_t *lexer,
 	const char *file;
 	unsigned long line;
 	char namebuf[DNS_NAME_FORMATSIZE];
-	
+
 	if (lexer != NULL) {
 		file = isc_lex_getsourcename(lexer);
 		line = isc_lex_getsourceline(lexer);
 		dns_name_format(name, namebuf, sizeof(namebuf));
-		(*callbacks->warn)(callbacks, "%s:%u: warning: %s: %s", 
+		(*callbacks->warn)(callbacks, "%s:%u: warning: %s: %s",
 				   file, line, namebuf,
 				   dns_result_totext(DNS_R_BADNAME));
 	}

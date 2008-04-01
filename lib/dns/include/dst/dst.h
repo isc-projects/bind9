@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.10 2008/03/31 14:42:51 fdupont Exp $ */
+/* $Id: dst.h,v 1.11 2008/04/01 23:47:10 tbox Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -436,9 +436,9 @@ dst_key_fromgssapi(dns_name_t *name, gss_ctx_id_t gssctx, isc_mem_t *mctx,
 
 isc_result_t
 dst_key_fromlabel(dns_name_t *name, int alg, unsigned int flags,
-                  unsigned int protocol, dns_rdataclass_t rdclass,
-                  const char *engine, const char *label, const char *pin,
-                  isc_mem_t *mctx, dst_key_t **keyp);
+		  unsigned int protocol, dns_rdataclass_t rdclass,
+		  const char *engine, const char *label, const char *pin,
+		  isc_mem_t *mctx, dst_key_t **keyp);
 
 isc_result_t
 dst_key_generate(dns_name_t *name, unsigned int alg,
