@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.17 2008/03/31 14:42:51 fdupont Exp $
+ * $Id: opensslrsa_link.c,v 1.18 2008/04/01 00:03:31 marka Exp $
  */
 #ifdef OPENSSL
 #ifndef USE_EVP
@@ -110,14 +110,16 @@ static isc_result_t opensslrsa_todns(const dst_key_t *key, isc_buffer_t *data);
 
 static isc_result_t
 opensslrsa_createctx(dst_key_t *key, dst_context_t *dctx) {
+#if USE_EVP
+	EVP_MD_CTX *evp_md_ctx;
+	const EVP_MD *type;
+#endif
+
 	UNUSED(key);
 	REQUIRE(dctx->key->key_alg == DST_ALG_RSAMD5 ||
 		dctx->key->key_alg == DST_ALG_RSASHA1);
 
 #if USE_EVP
-	EVP_MD_CTX *evp_md_ctx;
-	const EVP_MD *type;
-
 	evp_md_ctx = EVP_MD_CTX_create();
 	if (evp_md_ctx == NULL)
 		return (ISC_R_NOMEMORY);
@@ -157,12 +159,14 @@ opensslrsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 
 static void
 opensslrsa_destroyctx(dst_context_t *dctx) {
+#if USE_EVP
+	EVP_MD_CTX *evp_md_ctx = dctx->ctxdata.evp_md_ctx;
+#endif
+
 	REQUIRE(dctx->key->key_alg == DST_ALG_RSAMD5 ||
 		dctx->key->key_alg == DST_ALG_RSASHA1);
 
 #if USE_EVP
-	EVP_MD_CTX *evp_md_ctx = dctx->ctxdata.evp_md_ctx;
-
 	if (evp_md_ctx != NULL) {
 		EVP_MD_CTX_destroy(evp_md_ctx);
 		dctx->ctxdata.evp_md_ctx = NULL;
@@ -190,12 +194,14 @@ opensslrsa_destroyctx(dst_context_t *dctx) {
 
 static isc_result_t
 opensslrsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
+#if USE_EVP
+	EVP_MD_CTX *evp_md_ctx = dctx->ctxdata.evp_md_ctx;
+#endif 
+
 	REQUIRE(dctx->key->key_alg == DST_ALG_RSAMD5 ||
 		dctx->key->key_alg == DST_ALG_RSASHA1);
 
 #if USE_EVP
-	EVP_MD_CTX *evp_md_ctx = dctx->ctxdata.evp_md_ctx;
-
 	if (!EVP_DigestUpdate(evp_md_ctx, data->base, data->length)) {
 		return (ISC_R_FAILURE);
 	}
