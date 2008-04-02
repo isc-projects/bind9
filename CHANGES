@@ -1,3 +1,5 @@
+2350.	[port]		win32: IPv6 support. [RT #17797]
+
 2347.	[bug]		Delete now traverses the RB tree in the canonical
 			order. [RT #17451]
 

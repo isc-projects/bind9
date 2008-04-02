@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.70 2008/01/17 23:45:58 tbox Exp $ */
+/* $Id: resolver.c,v 1.284.18.71 2008/04/02 03:09:08 marka Exp $ */
 
 /*! \file */
 
@@ -2168,6 +2168,13 @@ fctx_getaddresses(fetchctx_t *fctx) {
 	}
 
 	while (sa != NULL) {
+		if ((isc_sockaddr_pf(sa) == AF_INET &&
+			 fctx->res->dispatchv4 == NULL) ||
+		    (isc_sockaddr_pf(sa) == AF_INET6 &&
+			fctx->res->dispatchv6 == NULL)) {
+				sa = ISC_LIST_NEXT(sa, link);
+				continue;
+		}
 		ai = NULL;
 		result = dns_adb_findaddrinfo(fctx->adb,
 					      sa, &ai, 0);  /* XXXMLG */
