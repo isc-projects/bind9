@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h,v 1.14.128.1 2008/04/02 03:05:18 marka Exp $ */
+/* $Id: platform.h,v 1.14.128.2 2008/04/02 23:46:28 tbox Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -71,19 +71,19 @@
 #ifdef LIBISC_EXPORTS
 #define LIBISC_EXTERNAL_DATA __declspec(dllexport)
 #else
-#define LIBISC_EXTERNAL_DATA __declspec(dllimport) 
+#define LIBISC_EXTERNAL_DATA __declspec(dllimport)
 #endif
 
 #ifdef LIBISCCFG_EXPORTS
 #define LIBISCCFG_EXTERNAL_DATA __declspec(dllexport)
 #else
-#define LIBISCCFG_EXTERNAL_DATA __declspec(dllimport) 
+#define LIBISCCFG_EXTERNAL_DATA __declspec(dllimport)
 #endif
 
 #ifdef LIBISCCC_EXPORTS
 #define LIBISCCC_EXTERNAL_DATA __declspec(dllexport)
 #else
-#define LIBISCCC_EXTERNAL_DATA __declspec(dllimport) 
+#define LIBISCCC_EXTERNAL_DATA __declspec(dllimport)
 #endif
 
 #ifdef LIBDNS_EXPORTS
