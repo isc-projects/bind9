@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.36 2008/01/02 23:47:01 tbox Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.37 2008/04/02 02:37:41 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>Aug 13, 2004</date>
@@ -316,7 +316,12 @@ options {
 	max-refresh-time <replaceable>integer</replaceable>;
 	min-refresh-time <replaceable>integer</replaceable>;
 	multi-master <replaceable>boolean</replaceable>;
+
 	sig-validity-interval <replaceable>integer</replaceable>;
+	sig-re-signing-interval <replaceable>integer</replaceable>;
+	sig-signing-nodes <replaceable>integer</replaceable>;
+	sig-signing-signatures <replaceable>integer</replaceable>;
+	sig-signing-type <replaceable>integer</replaceable>;
 
 	transfer-source ( <replaceable>ipv4_address</replaceable> | * )
 		<optional> port ( <replaceable>integer</replaceable> | * ) </optional>;

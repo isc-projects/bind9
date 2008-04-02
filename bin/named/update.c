@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.144 2008/04/01 23:47:10 tbox Exp $ */
+/* $Id: update.c,v 1.145 2008/04/02 02:37:41 marka Exp $ */
 
 #include <config.h>
 
@@ -322,6 +322,7 @@ do_one_tuple(dns_difftuple_t **tuple, dns_db_t *db, dns_dbversion_t *ver,
 	 * Create a singleton diff.
 	 */
 	dns_diff_init(diff->mctx, &temp_diff);
+	temp_diff.resign = diff->resign;
 	ISC_LIST_APPEND(temp_diff.tuples, *tuple, link);
 
 	/*
@@ -1842,8 +1843,6 @@ del_keysigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	dns_rdata_rrsig_t rrsig;
 	isc_boolean_t found;
 
-fprintf(stderr, "del_keysigs\n");
-
 	dns_rdataset_init(&rdataset);
 
 	result = dns_db_findnode(db, name, ISC_FALSE, &node);
@@ -1944,6 +1943,7 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	dns_diff_init(client->mctx, &affected);
 
 	dns_diff_init(client->mctx, &sig_diff);
+	sig_diff.resign = dns_zone_getsigresigninginterval(zone);
 	dns_diff_init(client->mctx, &nsec_diff);
 	dns_diff_init(client->mctx, &nsec_mindiff);
 
@@ -2037,7 +2037,6 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 			 * Special case changes to the zone's DNSKEY records
 			 * to support offline KSKs.
 			 */
-fprintf(stderr, "delete signatures %u\n", type);
 			if (type == dns_rdatatype_dnskey)
 				del_keysigs(db, newver, name, &sig_diff,
 					    zone_keys, nkeys);
@@ -2547,7 +2546,7 @@ check_mx(ns_client_t *client, dns_zone_t *zone,
 
 static isc_result_t
 add_signing_records(dns_db_t *db, dns_name_t *name, dns_dbversion_t *ver,
-		    dns_diff_t *diff)
+		    dns_rdatatype_t privatetype, dns_diff_t *diff)
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_difftuple_t *tuple, *newtuple = NULL;
@@ -2579,7 +2578,7 @@ add_signing_records(dns_db_t *db, dns_name_t *name, dns_dbversion_t *ver,
 		buf[3] = 0;
 		rdata.data = buf;
 		rdata.length = sizeof(buf);
-		rdata.type = 0xFFFF;	/* XXXMPA make user settable */
+		rdata.type = privatetype;
 		rdata.rdclass = tuple->rdata.rdclass;
 
 		CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD, name,
@@ -2812,18 +2811,17 @@ update_action(isc_task_t *task, isc_event_t *event) {
 		 * "Unlike traditional dynamic update, the client
 		 * is forbidden from updating NSEC records."
 		 */
-		if (dns_db_isdnssec(db)) {
+		if (dns_db_issecure(db)) {
 			if (rdata.type == dns_rdatatype_nsec) {
 				FAILC(DNS_R_REFUSED,
 				      "explicit NSEC updates are not allowed "
 				      "in secure zones");
-			}
-			else if (rdata.type == dns_rdatatype_rrsig &&
-				 !dns_name_equal(name, zonename)) {
+			} else if (rdata.type == dns_rdatatype_rrsig &&
+				   !dns_name_equal(name, zonename)) {
 				FAILC(DNS_R_REFUSED,
 				      "explicit RRSIG updates are currently "
 				      "not supported in secure zones except "
-				      "at the apex.");
+				      "at the apex");
 			}
 		}
 
@@ -3113,7 +3111,9 @@ update_action(isc_task_t *task, isc_event_t *event) {
 
 		CHECK(remove_orphaned_ds(db, ver, &diff));
 
-		CHECK(add_signing_records(db, zonename, ver, &diff));
+		CHECK(add_signing_records(db, zonename, ver,
+					  dns_zone_getprivatetype(zone),
+					  &diff));
 
 		CHECK(rrset_exists(db, ver, zonename, dns_rdatatype_dnskey,
 				   0, &has_dnskey));

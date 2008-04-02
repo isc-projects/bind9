@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: diff.h,v 1.14 2008/04/01 23:47:10 tbox Exp $ */
+/* $Id: diff.h,v 1.15 2008/04/02 02:37:42 marka Exp $ */
 
 #ifndef DNS_DIFF_H
 #define DNS_DIFF_H 1
@@ -60,7 +60,9 @@
  * prerequisite set.  In this case, op==DNS_DIFFOP_EXISTS,
  * and the TTL is ignored.
  *
- * DNS_DIFFOP_*RESIGN will cause the 'resign' attribute to be recomputed.
+ * DNS_DIFFOP_*RESIGN will cause the 'resign' attribute of the resulting
+ * RRset to be recomputed to be 'resign' seconds before the earliest RRSIG
+ * timeexpire.
  */
 
 typedef enum {
@@ -100,6 +102,11 @@ typedef struct dns_diff dns_diff_t;
 struct dns_diff {
 	unsigned int			magic;
 	isc_mem_t *			mctx;
+	/*
+	 * Set the 'resign' attribute to this many second before the
+	 * earliest RRSIG timeexpire.
+	 */
+	isc_uint32_t			resign;
 	ISC_LIST(dns_difftuple_t)	tuples;
 };
 

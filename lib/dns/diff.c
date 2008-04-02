@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: diff.c,v 1.16 2008/04/01 23:47:10 tbox Exp $ */
+/* $Id: diff.c,v 1.17 2008/04/02 02:37:42 marka Exp $ */
 
 /*! \file */
 
@@ -121,6 +121,7 @@ dns_difftuple_copy(dns_difftuple_t *orig, dns_difftuple_t **copyp) {
 void
 dns_diff_init(isc_mem_t *mctx, dns_diff_t *diff) {
 	diff->mctx = mctx;
+	diff->resign = 0;
 	ISC_LIST_INIT(diff->tuples);
 	diff->magic = DNS_DIFF_MAGIC;
 }
@@ -194,23 +195,20 @@ dns_diff_appendminimal(dns_diff_t *diff, dns_difftuple_t **tuplep)
 }
 
 static isc_stdtime_t
-setresign(dns_rdataset_t *modified, dns_diffop_t op) {
+setresign(dns_rdataset_t *modified, isc_uint32_t delta) {
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_rrsig_t sig;
 	isc_stdtime_t when;
-	unsigned int delta;
 	isc_result_t result;
 
 	result = dns_rdataset_first(modified);
 	INSIST(result == ISC_R_SUCCESS);
 	dns_rdataset_current(modified, &rdata);
 	(void)dns_rdata_tostruct(&rdata, &sig, NULL);
-	if ((rdata.flags & DNS_RDATA_OFFLINE) != 0) {
+	if ((rdata.flags & DNS_RDATA_OFFLINE) != 0)
 		when = 0;
-	} else {
-		delta = (sig.timeexpire - sig.timesigned) * 3 / 4;
-		when = sig.timesigned + delta;
-	}
+	else
+		when = sig.timeexpire - delta;
 	dns_rdata_reset(&rdata);
 
 	result = dns_rdataset_next(modified);
@@ -220,22 +218,13 @@ setresign(dns_rdataset_t *modified, dns_diffop_t op) {
 		if ((rdata.flags & DNS_RDATA_OFFLINE) != 0) {
 			goto next_rr;
 		}
-		delta = (sig.timeexpire - sig.timesigned)* 3 / 4;
-		switch (op) {
-		case DNS_DIFFOP_ADDRESIGN:
-		case DNS_DIFFOP_DELRESIGN:
-			if (when == 0 || sig.timesigned + delta < when)
-				when = sig.timesigned + delta;
-			break;
-		default:
-			INSIST(0);
-		}
+		if (when == 0 || sig.timeexpire - delta < when)
+			when = sig.timeexpire - delta;
  next_rr:
 		dns_rdata_reset(&rdata);
 		result = dns_rdataset_next(modified);
 	}
 	INSIST(result == ISC_R_NOMORE);
-fprintf(stderr, "setresign %u %u\n", modified->covers, when);
 	return (when);
 }
 
@@ -327,10 +316,8 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver,
 						namebuf, typebuf, classbuf,
 						(unsigned long) t->ttl,
 						(unsigned long) rdl.ttl);
-				if (t->rdata.flags &DNS_RDATA_OFFLINE) {
-					fprintf(stderr, "diff_apply offline\n");
+				if (t->rdata.flags & DNS_RDATA_OFFLINE)
 					offline = ISC_TRUE;
-				}
 				ISC_LIST_APPEND(rdl.rdata, &t->rdata, link);
 				t = ISC_LIST_NEXT(t, link);
 			}
@@ -379,7 +366,8 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver,
 			if (result == ISC_R_SUCCESS) {
 				if (modified != NULL) {
 					isc_stdtime_t resign;
-					resign = setresign(modified, op);
+					resign = setresign(modified,
+							   diff->resign);
 					dns_db_setsigningtime(db, modified,
 							      resign);
 				}
@@ -409,8 +397,6 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver,
 			if (modified != NULL &&
 			    dns_rdataset_isassociated(modified))
 				dns_rdataset_disassociate(modified);
-			if (offline)
-				fprintf(stderr, "end offline\n");
 		}
 		dns_db_detachnode(db, &node);
 	}

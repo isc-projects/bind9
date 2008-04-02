@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwtest.c,v 1.31 2008/01/14 23:46:56 tbox Exp $ */
+/* $Id: lwtest.c,v 1.32 2008/04/02 02:37:42 marka Exp $ */
 
 #include <config.h>
 
@@ -764,7 +764,7 @@ main(void) {
 	test_getrrsetbyname("a.example1.", 1, 1, 1, 0, 1);
 	test_getrrsetbyname("e.example1.", 1, 1, 1, 1, 1);
 	test_getrrsetbyname("e.example1.", 1, 255, 1, 1, 0);
-	test_getrrsetbyname("e.example1.", 1, 46, 1, 0, 1);
+	test_getrrsetbyname("e.example1.", 1, 46, 2, 0, 1);
 	test_getrrsetbyname("", 1, 1, 0, 0, 0);
 
 	if (fails == 0)

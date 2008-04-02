@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.h,v 1.50 2008/04/01 23:47:10 tbox Exp $ */
+/* $Id: master.h,v 1.51 2008/04/02 02:37:42 marka Exp $ */
 
 #ifndef DNS_MASTER_H
 #define DNS_MASTER_H 1
@@ -115,6 +115,17 @@ dns_master_loadfile2(const char *master_file,
 		     dns_masterformat_t format);
 
 isc_result_t
+dns_master_loadfile3(const char *master_file,
+		     dns_name_t *top,
+		     dns_name_t *origin,
+		     dns_rdataclass_t zclass,
+		     unsigned int options,
+		     isc_uint32_t resign,
+		     dns_rdatacallbacks_t *callbacks,
+		     isc_mem_t *mctx,
+		     dns_masterformat_t format);
+
+isc_result_t
 dns_master_loadstream(FILE *stream,
 		      dns_name_t *top,
 		      dns_name_t *origin,
@@ -158,6 +169,19 @@ dns_master_loadfileinc2(const char *master_file,
 			dns_name_t *origin,
 			dns_rdataclass_t zclass,
 			unsigned int options,
+			dns_rdatacallbacks_t *callbacks,
+			isc_task_t *task,
+			dns_loaddonefunc_t done, void *done_arg,
+			dns_loadctx_t **ctxp, isc_mem_t *mctx,
+			dns_masterformat_t format);
+
+isc_result_t
+dns_master_loadfileinc3(const char *master_file,
+			dns_name_t *top,
+			dns_name_t *origin,
+			dns_rdataclass_t zclass,
+			unsigned int options,
+			isc_uint32_t resign,
 			dns_rdatacallbacks_t *callbacks,
 			isc_task_t *task,
 			dns_loaddonefunc_t done, void *done_arg,
@@ -213,6 +237,9 @@ dns_master_loadlexerinc(isc_lex_t *lex,
  * 'done' is called with 'done_arg' and a result code when the loading
  * is completed or has failed.  If the initial setup fails 'done' is
  * not called.
+ *
+ * 'resign' the number of seconds before a RRSIG expires that it should
+ * be re-signed.  0 is used if not provided.
  *
  * Requires:
  *\li	'master_file' points to a valid string.

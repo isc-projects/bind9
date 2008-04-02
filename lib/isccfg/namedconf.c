@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.85 2008/03/27 03:30:53 marka Exp $ */
+/* $Id: namedconf.c,v 1.86 2008/04/02 02:37:42 marka Exp $ */
 
 /*! \file */
 
@@ -810,6 +810,47 @@ view_only_clauses[] = {
 };
 
 /*%
+ * Sig-validity-interval.
+ */
+static isc_result_t
+parse_optional_uint32(cfg_parser_t *pctx, const cfg_type_t *type,
+		      cfg_obj_t **ret)
+{
+	isc_result_t result;
+	UNUSED(type);
+
+	CHECK(cfg_peektoken(pctx, ISC_LEXOPT_NUMBER | ISC_LEXOPT_CNUMBER));
+	if (pctx->token.type == isc_tokentype_number) {
+		CHECK(cfg_parse_obj(pctx, &cfg_type_uint32, ret));
+	} else {
+		CHECK(cfg_parse_obj(pctx, &cfg_type_void, ret));
+	}
+ cleanup:
+	return (result);
+}
+
+static void
+doc_optional_uint32(cfg_printer_t *pctx, const cfg_type_t *type) {
+	UNUSED(type);
+	cfg_print_chars(pctx, "[ <integer> ]", 13);
+}
+
+static cfg_type_t cfg_type_optional_uint32 = {
+	"optional_uint32", parse_optional_uint32, NULL, doc_optional_uint32,
+	NULL, NULL };
+
+static cfg_tuplefielddef_t validityinterval_fields[] = {
+	{ "validity", &cfg_type_uint32, 0 },
+	{ "re-sign", &cfg_type_optional_uint32, 0 },
+	{ NULL, NULL, 0 }
+};
+
+static cfg_type_t cfg_type_validityinterval = {
+	"validityinterval", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	&cfg_rep_tuple, validityinterval_fields
+};
+
+/*%
  * Clauses that can be found in a 'zone' statement,
  * with defaults in the 'view' or 'options' statement.
  */
@@ -852,7 +893,10 @@ zone_clauses[] = {
 	{ "notify-source", &cfg_type_sockaddr4wild, 0 },
 	{ "notify-source-v6", &cfg_type_sockaddr6wild, 0 },
 	{ "notify-to-soa", &cfg_type_boolean, 0 },
-	{ "sig-validity-interval", &cfg_type_uint32, 0 },
+	{ "sig-signing-nodes", &cfg_type_uint32, 0 },
+	{ "sig-signing-signatures", &cfg_type_uint32, 0 },
+	{ "sig-signing-type", &cfg_type_uint32, 0 },
+	{ "sig-validity-interval", &cfg_type_validityinterval, 0 },
 	{ "transfer-source", &cfg_type_sockaddr4wild, 0 },
 	{ "transfer-source-v6", &cfg_type_sockaddr6wild, 0 },
 	{ "try-tcp-refresh", &cfg_type_boolean, 0 },

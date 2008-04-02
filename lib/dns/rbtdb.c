@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.254 2008/04/01 23:47:10 tbox Exp $ */
+/* $Id: rbtdb.c,v 1.255 2008/04/02 02:37:42 marka Exp $ */
 
 /*! \file */
 
@@ -24,6 +24,8 @@
  */
 
 #include <config.h>
+
+#define inline
 
 #include <isc/event.h>
 #include <isc/heap.h>
@@ -690,7 +692,7 @@ set_ttl(dns_rbtdb_t *rbtdb, rdatasetheader_t *header, dns_ttl_t newttl) {
 }
 
 /*%
- * These functions allows the heap code to rank the priority of each
+ * These functions allow the heap code to rank the priority of each
  * element.  It returns ISC_TRUE if v1 happens "sooner" than v2.
  */
 static isc_boolean_t
@@ -5357,12 +5359,12 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 #endif
 			} else if (RESIGN(newheader))
 				resign_insert(rbtdb, idx, newheader);
-			}
-		} else {
-			/*
-			 * No non-IGNORED rdatasets of the given type exist at
-			 * this node.
-			 */
+		}
+	} else {
+		/*
+		 * No non-IGNORED rdatasets of the given type exist at
+		 * this node.
+		 */
 
 		/*
 		 * If we're trying to delete the type, don't bother.
@@ -6363,6 +6365,7 @@ dns_rbtdb_create
 	isc_result_t result;
 	int i;
 	dns_name_t name;
+	isc_boolean_t (*sooner)(void *, void *);
 
 	/* Keep the compiler happy. */
 	UNUSED(argc);
@@ -6418,9 +6421,8 @@ dns_rbtdb_create
 		}
 		for (i = 0; i < (int)rbtdb->node_lock_count; i++)
 			ISC_LIST_INIT(rbtdb->rdatasets[i]);
-	} else {
+	} else
 		rbtdb->rdatasets = NULL;
-	}
 
 	/*
 	 * Create the heaps.
@@ -6433,19 +6435,17 @@ dns_rbtdb_create
 	}
 	for (i = 0; i < (int)rbtdb->node_lock_count; i++)
 		rbtdb->heaps[i] = NULL;
-
+	sooner = IS_CACHE(rbtdb) ? ttl_sooner : resign_sooner;
 	for (i = 0; i < (int)rbtdb->node_lock_count; i++) {
-		if (IS_CACHE(rbtdb))
-			result = isc_heap_create(mctx, ttl_sooner, set_index,
-						 0, &rbtdb->heaps[i]);
-		else
-			result = isc_heap_create(mctx, resign_sooner,
-						 set_index, 0,
-						 &rbtdb->heaps[i]);
+		result = isc_heap_create(mctx, sooner, set_index, 0,
+					 &rbtdb->heaps[i]);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_heaps;
 	}
 
+	/*
+	 * Create deadnode lists.
+	 */
 	rbtdb->deadnodes = isc_mem_get(mctx, rbtdb->node_lock_count *
 				       sizeof(rbtnodelist_t));
 	if (rbtdb->deadnodes == NULL) {
@@ -6725,9 +6725,6 @@ rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 	raw += 2;
 #endif
 	if (rdataset->type == dns_rdatatype_rrsig) {
-		flags = ((*raw & DNS_RDATASLAB_WARNMASK)
-			  >> DNS_RDATASLAB_WARNSHIFT)
-			 << DNS_RDATA_WARNSHIFT;
 		if (*raw & DNS_RDATASLAB_OFFLINE)
 			flags |= DNS_RDATA_OFFLINE;
 		length--;

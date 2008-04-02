@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.45 2008/04/01 23:47:10 tbox Exp $ */
+/* $Id: rdataslab.c,v 1.46 2008/04/02 02:37:42 marka Exp $ */
 
 /*! \file */
 
@@ -171,8 +171,6 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 #if DNS_RDATASET_FIXED
 		x[i].order = i;
 #endif
-		if (x[i].rdata.flags & DNS_RDATA_OFFLINE)
-			fprintf(stderr, "OFFLINE\n");
 		result = dns_rdataset_next(rdataset);
 	}
 	if (result != ISC_R_NOMORE)
@@ -307,13 +305,8 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 		 * Store the per RR meta data.
 		 */
 		if (rdataset->type == dns_rdatatype_rrsig) {
-			*rawbuf = ((x[i].rdata.flags & DNS_RDATA_WARNMASK)
-				   >> DNS_RDATA_WARNSHIFT)
-				  << DNS_RDATASLAB_WARNSHIFT;
 			*rawbuf++ |= (x[i].rdata.flags & DNS_RDATA_OFFLINE) ?
 					    DNS_RDATASLAB_OFFLINE : 0;
-		if (x[i].rdata.flags & DNS_RDATA_OFFLINE)
-			fprintf(stderr, "set DNS_RDATASLAB_OFFLINE\n");
 		}
 		memcpy(rawbuf, x[i].rdata.data, x[i].rdata.length);
 		rawbuf += x[i].rdata.length;
@@ -402,9 +395,6 @@ rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 	raw += 2;
 #endif
 	if (rdataset->type == dns_rdatatype_rrsig) {
-		flags = ((*raw & DNS_RDATASLAB_WARNMASK)
-			  >> DNS_RDATASLAB_WARNSHIFT)
-			 << DNS_RDATA_WARNSHIFT;
 		if (*raw & DNS_RDATASLAB_OFFLINE)
 			flags |= DNS_RDATA_OFFLINE;
 		length--;
@@ -536,10 +526,8 @@ rdata_from_slab(unsigned char **current,
 	region.base = tcurrent;
 	tcurrent += region.length;
 	dns_rdata_fromregion(rdata, rdclass, type, &region);
-	if (offline) {
+	if (offline)
 		rdata->flags |= DNS_RDATA_OFFLINE;
-		fprintf(stderr, "rdata_from_slab: DNS_RDATA_OFFLINE\n");
-	}
 	*current = tcurrent;
 }
 

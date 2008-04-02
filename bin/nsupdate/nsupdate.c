@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.158 2008/04/01 01:37:24 marka Exp $ */
+/* $Id: nsupdate.c,v 1.159 2008/04/02 02:37:41 marka Exp $ */
 
 /*! \file */
 
@@ -1126,8 +1126,7 @@ make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 	result = dns_message_gettemprdata(updatemsg, &rdata);
 	check_result(result, "dns_message_gettemprdata");
 
-	rdata->data = NULL;
-	rdata->length = 0;
+	dns_rdata_init(rdata);
 
 	if (isrrset && ispositive) {
 		retval = parse_rdata(&cmdline, rdataclass, rdatatype,
@@ -1446,10 +1445,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	result = dns_message_gettemprdata(updatemsg, &rdata);
 	check_result(result, "dns_message_gettemprdata");
 
-	rdata->rdclass = 0;
-	rdata->type = 0;
-	rdata->data = NULL;
-	rdata->length = 0;
+	dns_rdata_init(rdata);
 
 	/*
 	 * If this is an add, read the TTL and verify that it's in range.

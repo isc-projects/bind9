@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.240 2008/01/18 23:46:58 tbox Exp $ */
+/* $Id: message.c,v 1.241 2008/04/02 02:37:42 marka Exp $ */
 
 /*! \file */
 
@@ -3022,6 +3022,7 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 		{
 			dst_key_t *key = NULL;
 
+			dns_rdata_reset(&rdata);
 			dns_rdataset_current(&keyset, &rdata);
 			isc_buffer_init(&b, rdata.data, rdata.length);
 			isc_buffer_add(&b, rdata.length);

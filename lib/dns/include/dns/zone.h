@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.157 2008/04/02 01:48:32 marka Exp $ */
+/* $Id: zone.h,v 1.158 2008/04/02 02:37:42 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1173,7 +1173,7 @@ dns_zone_getmgr(dns_zone_t *zone);
 void
 dns_zone_setsigvalidityinterval(dns_zone_t *zone, isc_uint32_t interval);
 /*%<
- * Set the zone's SIG validity interval.  This is the length of time
+ * Set the zone's RRSIG validity interval.  This is the length of time
  * for which DNSSEC signatures created as a result of dynamic updates
  * to secure zones will remain valid, in seconds.
  *
@@ -1184,7 +1184,26 @@ dns_zone_setsigvalidityinterval(dns_zone_t *zone, isc_uint32_t interval);
 isc_uint32_t
 dns_zone_getsigvalidityinterval(dns_zone_t *zone);
 /*%<
- * Get the zone's SIG validity interval.
+ * Get the zone's RRSIG validity interval.
+ *
+ * Requires:
+ * \li	'zone' to be a valid zone.
+ */
+
+void
+dns_zone_setsigresigninginterval(dns_zone_t *zone, isc_uint32_t interval);
+/*%<
+ * Set the zone's RRSIG re-signing interval.  A dynamic zone's RRSIG's
+ * will be re-signed 'interval' amount of time before they expire.
+ *
+ * Requires:
+ * \li	'zone' to be a valid zone.
+ */
+
+isc_uint32_t
+dns_zone_getsigresigninginterval(dns_zone_t *zone);
+/*%<
+ * Get the zone's RRSIG re-signing interval.
  *
  * Requires:
  * \li	'zone' to be a valid zone.
@@ -1640,9 +1659,34 @@ dns_zone_setisself(dns_zone_t *zone, dns_isselffunc_t isself, void *arg);
  * delivered to 'myview'.
  */
 
+void
+dns_zone_setnodes(dns_zone_t *zone, isc_uint32_t nodes);
+/*
+ * Set the number of nodes that will be checked per quantum.
+ */
+
+void
+dns_zone_setsignatures(dns_zone_t *zone, isc_uint32_t signatures);
+/*
+ * Set the number of signatures that will be generated per quantum.
+ */
+
 isc_result_t
 dns_zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm,
-                     isc_uint16_t keyid);
+		     isc_uint16_t keyid);
+/*
+ * Initiate/resume signing of the entire zone with the zone DNSKEY(s)
+ * that match the given algorithm and keyid.
+ */
+
+void
+dns_zone_setprivatetype(dns_zone_t *zone, dns_rdatatype_t type);
+dns_rdatatype_t
+dns_zone_getprivatetype(dns_zone_t *zone);
+/*
+ * Get/Set the private record type.  It is expected that these interfaces
+ * will not be permanent.
+ */
 
 #ifdef HAVE_LIBXML2
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.90 2008/04/01 01:37:24 marka Exp $ */
+/* $Id: check.c,v 1.91 2008/04/02 02:37:42 marka Exp $ */
 
 /*! \file */
 
@@ -508,6 +508,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 	isc_result_t tresult;
 	unsigned int i;
 	const cfg_obj_t *obj = NULL;
+	const cfg_obj_t *resignobj = NULL;
 	const cfg_listelt_t *element;
 	isc_symtab_t *symtab = NULL;
 	dns_fixedname_t fixed;
@@ -523,7 +524,6 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 	{ "max-transfer-idle-out", 60, 28 * 24 * 60 },	/* 28 days */
 	{ "max-transfer-time-in", 60, 28 * 24 * 60 },	/* 28 days */
 	{ "max-transfer-time-out", 60, 28 * 24 * 60 },	/* 28 days */
-	{ "sig-validity-interval", 86400, 10 * 366 },	/* 10 years */
 	{ "statistics-interval", 60, 28 * 24 * 60 },	/* 28 days */
 	};
 
@@ -551,6 +551,43 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 			result = ISC_R_RANGE;
 		}
 	}
+
+	obj = NULL;
+	cfg_map_get(options, "sig-validity-interval", &obj);
+	if (obj != NULL) {
+		isc_uint32_t validity, resign = 0;
+
+		validity = cfg_obj_asuint32(cfg_tuple_get(obj, "validity"));
+		resignobj = cfg_tuple_get(obj, "re-sign");
+		if (!cfg_obj_isvoid(resignobj))
+			resign = cfg_obj_asuint32(resignobj);
+
+		if (validity > 3660 || validity == 0) { /* 10 years */
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "%s '%u' is out of range (1..3660)",
+				    "sig-validity-interval", validity);
+			result = ISC_R_RANGE;
+		}
+
+		if (!cfg_obj_isvoid(resignobj)) {
+			if (resign > 3660 || resign == 0) { /* 10 years */
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "%s '%u' is out of range (1..3660)",
+					    "sig-validity-interval (re-sign)",
+					    validity);
+				result = ISC_R_RANGE;
+			} else if ((validity > 7 && validity < resign) ||
+				   (validity <= 7 && validity * 24 < resign)) {
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "validity interval (%u days) "
+					    "less than re-signing interval "
+					    "(%u %s)", validity, resign,
+					    (validity > 7) ? "days" : "hours");
+				result = ISC_R_RANGE;
+			}
+		}
+	}
+
 	obj = NULL;
 	(void)cfg_map_get(options, "preferred-glue", &obj);
 	if (obj != NULL) {
@@ -563,6 +600,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 				    "preferred-glue unexpected value '%s'",
 				    str);
 	}
+
 	obj = NULL;
 	(void)cfg_map_get(options, "root-delegation-only", &obj);
 	if (obj != NULL) {
@@ -654,7 +692,6 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 				if (tresult != ISC_R_SUCCESS &&
 				    result == ISC_R_SUCCESS)
 					result = tresult;
-				goto trust_anchor;
 			}
 			/*
 			 * XXXMPA to be removed when multiple lookaside
@@ -667,7 +704,6 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 				if (result == ISC_R_SUCCESS)
 					result = ISC_R_FAILURE;
 			}
- trust_anchor:
 			dlv = cfg_obj_asstring(cfg_tuple_get(obj,
 					       "trust-anchor"));
 			isc_buffer_init(&b, dlv, strlen(dlv));
@@ -1018,6 +1054,10 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	{ "max-refresh-time", SLAVEZONE | STUBZONE },
 	{ "min-refresh-time", SLAVEZONE | STUBZONE },
 	{ "sig-validity-interval", MASTERZONE },
+	{ "sig-re-signing-interval", MASTERZONE },
+	{ "sig-signing-nodes", MASTERZONE },
+	{ "sig-signing-type", MASTERZONE },
+	{ "sig-signing-signatures", MASTERZONE },
 	{ "zone-statistics", MASTERZONE | SLAVEZONE | STUBZONE },
 	{ "allow-update", MASTERZONE | CHECKACL },
 	{ "allow-update-forwarding", SLAVEZONE | CHECKACL },
@@ -1208,6 +1248,17 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		} else if (res2 == ISC_R_SUCCESS &&
 			   check_update_policy(obj, logctx) != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
+		obj = NULL;
+		res1 = cfg_map_get(zoptions, "sig-signing-type", &obj);
+		if (res1 == ISC_R_SUCCESS) {
+			isc_uint32_t type = cfg_obj_asuint32(obj);
+			if (type < 0xff00U || type > 0xffffU)
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "sig-signing-type: %u out of "
+					    "range [%u..%u]", type,
+					    0xff00U, 0xffffU);
+			result = ISC_R_FAILURE;
+		}
 	}
 
 	/*

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.84 2008/01/22 23:28:04 tbox Exp $ */
+/* $Id: config.c,v 1.85 2008/04/02 02:37:41 marka Exp $ */
 
 /*! \file */
 
@@ -172,6 +172,9 @@ options {\n\
 	min-refresh-time 300;\n\
 	multi-master no;\n\
 	sig-validity-interval 30; /* days */\n\
+	sig-signing-nodes 100;\n\
+	sig-signing-signatures 10;\n\
+	sig-signing-type 65535;\n\
 	zone-statistics false;\n\
 	max-journal-size unlimited;\n\
 	ixfr-from-differences false;\n\

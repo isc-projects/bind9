@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.142 2008/01/18 23:46:57 tbox Exp $ */
+/* $Id: zoneconf.c,v 1.143 2008/04/02 02:37:41 marka Exp $ */
 
 /*% */
 
@@ -365,6 +365,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	isc_boolean_t warn = ISC_FALSE, ignore = ISC_FALSE;
 	isc_boolean_t ixfrdiff;
 	dns_masterformat_t masterformat;
+	int seconds;
 
 	i = 0;
 	if (zconfig != NULL) {
@@ -665,8 +666,26 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		obj = NULL;
 		result = ns_config_get(maps, "sig-validity-interval", &obj);
 		INSIST(result == ISC_R_SUCCESS);
-		dns_zone_setsigvalidityinterval(zone,
-						cfg_obj_asuint32(obj) * 86400);
+		{
+			const cfg_obj_t *validity, *resign;
+
+			validity = cfg_tuple_get(obj, "validity");
+			seconds = cfg_obj_asuint32(validity) * 86400;
+			dns_zone_setsigvalidityinterval(zone, seconds);
+
+			resign = cfg_tuple_get(obj, "re-sign");
+			if (cfg_obj_isvoid(resign)) {
+				seconds /= 4;
+			} else {
+				if (seconds > 7 * 86400)
+					seconds = cfg_obj_asuint32(resign) *
+							86400;
+				else
+					seconds = cfg_obj_asuint32(resign) *
+							3600;
+			}
+			dns_zone_setsigresigninginterval(zone, seconds);
+		}
 
 		obj = NULL;
 		result = ns_config_get(maps, "key-directory", &obj);
@@ -681,6 +700,39 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			RETERR(dns_zone_setkeydirectory(zone, filename));
 		}
 
+		obj = NULL;
+		result = ns_config_get(maps, "sig-signing-signatures", &obj);
+		INSIST(result == ISC_R_SUCCESS);
+		dns_zone_setsignatures(zone, cfg_obj_asuint32(obj));
+
+		obj = NULL;
+		result = ns_config_get(maps, "sig-signing-nodes", &obj);
+		INSIST(result == ISC_R_SUCCESS);
+		dns_zone_setnodes(zone, cfg_obj_asuint32(obj));
+
+		obj = NULL;
+		result = ns_config_get(maps, "sig-signing-type", &obj);
+		INSIST(result == ISC_R_SUCCESS);
+		dns_zone_setprivatetype(zone, cfg_obj_asuint32(obj));
+
+		obj = NULL;
+		result = ns_config_get(maps, "update-check-ksk", &obj);
+		INSIST(result == ISC_R_SUCCESS);
+		dns_zone_setoption(zone, DNS_ZONEOPT_UPDATECHECKKSK,
+				   cfg_obj_asboolean(obj));
+
+	} else if (ztype == dns_zone_slave) {
+		RETERR(configure_zone_acl(zconfig, vconfig, config,
+					  "allow-update-forwarding", ac, zone,
+					  dns_zone_setforwardacl,
+					  dns_zone_clearforwardacl));
+	}
+
+
+	/*%
+	 * Primary master functionality.
+	 */
+	if (ztype == dns_zone_master) {
 		obj = NULL;
 		result = ns_config_get(maps, "check-wildcard", &obj);
 		if (result == ISC_R_SUCCESS)
@@ -739,59 +791,6 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			INSIST(0);
 		dns_zone_setoption(zone, DNS_ZONEOPT_WARNSRVCNAME, warn);
 		dns_zone_setoption(zone, DNS_ZONEOPT_IGNORESRVCNAME, ignore);
-
-		obj = NULL;
-		result = ns_config_get(maps, "update-check-ksk", &obj);
-		INSIST(result == ISC_R_SUCCESS);
-		dns_zone_setoption(zone, DNS_ZONEOPT_UPDATECHECKKSK,
-				   cfg_obj_asboolean(obj));
-	}
-
-	/*
-	 * Configure update-related options.  These apply to
-	 * primary masters only.
-	 */
-	if (ztype == dns_zone_master) {
-		dns_acl_t *updateacl;
-		RETERR(configure_zone_acl(zconfig, vconfig, config,
-					  "allow-update", ac, zone,
-					  dns_zone_setupdateacl,
-					  dns_zone_clearupdateacl));
-
-		updateacl = dns_zone_getupdateacl(zone);
-		if (updateacl != NULL  && dns_acl_isinsecure(updateacl))
-			isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_SECURITY,
-				      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
-				      "zone '%s' allows updates by IP "
-				      "address, which is insecure",
-				      zname);
-
-		RETERR(configure_zone_ssutable(zoptions, zone));
-
-		obj = NULL;
-		result = ns_config_get(maps, "sig-validity-interval", &obj);
-		INSIST(result == ISC_R_SUCCESS);
-		dns_zone_setsigvalidityinterval(zone,
-						cfg_obj_asuint32(obj) * 86400);
-
-		obj = NULL;
-		result = ns_config_get(maps, "key-directory", &obj);
-		if (result == ISC_R_SUCCESS) {
-			filename = cfg_obj_asstring(obj);
-			if (!isc_file_isabsolute(filename)) {
-				cfg_obj_log(obj, ns_g_lctx, ISC_LOG_ERROR,
-					    "key-directory '%s' "
-					    "is not absolute", filename);
-				return (ISC_R_FAILURE);
-			}
-			RETERR(dns_zone_setkeydirectory(zone, filename));
-		}
-
-	} else if (ztype == dns_zone_slave) {
-		RETERR(configure_zone_acl(zconfig, vconfig, config,
-					  "allow-update-forwarding", ac, zone,
-					  dns_zone_setforwardacl,
-					  dns_zone_clearforwardacl));
 	}
 
 	/*
