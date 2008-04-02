@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.474 2008/04/01 23:47:10 tbox Exp $ */
+/* $Id: zone.c,v 1.475 2008/04/02 01:48:32 marka Exp $ */
 
 /*! \file */
 
@@ -550,7 +550,7 @@ static isc_boolean_t dns_zonemgr_unreachable(dns_zonemgr_t *zmgr,
 					     isc_sockaddr_t *local,
 					     isc_time_t *now);
 static isc_result_t zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm,
-				     uint16_t keyid);
+				     isc_uint16_t keyid);
 
 #define ENTER zone_debuglog(zone, me, 1, "enter")
 
@@ -9775,7 +9775,8 @@ dns_zone_getnotifydelay(dns_zone_t *zone) {
 }
 
 isc_result_t
-dns_zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm, uint16_t keyid) {
+dns_zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm,
+                     isc_uint16_t keyid) {
 	isc_result_t result;
 	REQUIRE(DNS_ZONE_VALID(zone));
 

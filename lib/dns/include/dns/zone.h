@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.156 2008/04/01 01:37:25 marka Exp $ */
+/* $Id: zone.h,v 1.157 2008/04/02 01:48:32 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1641,7 +1641,8 @@ dns_zone_setisself(dns_zone_t *zone, dns_isselffunc_t isself, void *arg);
  */
 
 isc_result_t
-dns_zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm, uint16_t keyid);
+dns_zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm,
+                     isc_uint16_t keyid);
 
 #ifdef HAVE_LIBXML2
 
