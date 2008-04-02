@@ -79,7 +79,7 @@
 ./bin/dnssec/win32/signzone.dsp			X	2001,2004,2005,2006
 ./bin/dnssec/win32/signzone.dsw			X	2001
 ./bin/dnssec/win32/signzone.mak			X	2001,2004,2005,2006
-./bin/named/.cvsignore				X	1999,2000,2001,2007
+./bin/named/.cvsignore				X	1999,2000,2001,2007,2008
 ./bin/named/Makefile.in				MAKE	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008
 ./bin/named/bind9.xsl				SGML	2006,2007,2008
 ./bin/named/bind9.xsl.h				X	2007,2008
@@ -88,7 +88,7 @@
 ./bin/named/config.c				C	2001,2002,2003,2004,2005,2006,2007,2008
 ./bin/named/control.c				C	2001,2002,2003,2004,2005,2006,2007
 ./bin/named/controlconf.c			C	2001,2002,2003,2004,2005,2006,2007,2008
-./bin/named/convertxsl.pl			PERL	2006,2007
+./bin/named/convertxsl.pl			PERL	2006,2007,2008
 ./bin/named/include/named/builtin.h		C	2001,2004,2005,2007
 ./bin/named/include/named/client.h		C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./bin/named/include/named/config.h		C	2001,2002,2004,2005,2006,2007
@@ -875,7 +875,7 @@
 ./bin/win32/BINDInstall/resource.h		X	2001,2005
 ./config.guess					X	1998,1999,2000,2001,2004
 ./config.h.in					X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
-./config.h.win32				C	1999,2000,2001,2004,2006,2007
+./config.h.win32				C	1999,2000,2001,2004,2006,2007,2008
 ./config.sub					X	1998,1999,2000,2001,2004
 ./config.threads.in				X	2005,2006
 ./configure					X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
@@ -2032,7 +2032,7 @@
 ./lib/dns/win32/gen.dsw				X	2001
 ./lib/dns/win32/gen.mak				X	2001,2006
 ./lib/dns/win32/libdns.def			X	2001,2002,2003,2004,2005,2006,2007,2008
-./lib/dns/win32/libdns.dsp			X	2001,2002,2003,2004,2005,2006,2007
+./lib/dns/win32/libdns.dsp			X	2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/dns/win32/libdns.dsw			X	2001
 ./lib/dns/win32/libdns.mak			X	2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/win32/version.c			C	1998,1999,2000,2001,2004,2007
@@ -2307,7 +2307,7 @@
 ./lib/isc/win32/include/isc/ntpaths.h		C	2000,2001,2004,2007
 ./lib/isc/win32/include/isc/offset.h		C	2000,2001,2004,2007
 ./lib/isc/win32/include/isc/once.h		C	1999,2000,2001,2004,2007
-./lib/isc/win32/include/isc/platform.h		C	2001,2004,2005,2007
+./lib/isc/win32/include/isc/platform.h		C	2001,2004,2005,2007,2008
 ./lib/isc/win32/include/isc/stat.h		C	2000,2001,2003,2004,2007
 ./lib/isc/win32/include/isc/stdtime.h		C	1999,2000,2001,2004,2005,2007
 ./lib/isc/win32/include/isc/strerror.h		C	2001,2004,2007
@@ -2315,14 +2315,14 @@
 ./lib/isc/win32/include/isc/thread.h		C	1998,1999,2000,2001,2004,2005,2007
 ./lib/isc/win32/include/isc/time.h		C	1998,1999,2000,2001,2004,2006,2007
 ./lib/isc/win32/include/isc/win32os.h		C	2002,2004,2007
-./lib/isc/win32/interfaceiter.c			C	1999,2000,2001,2004,2007
+./lib/isc/win32/interfaceiter.c			C	1999,2000,2001,2004,2007,2008
 ./lib/isc/win32/ipv6.c				C	1999,2000,2001,2004,2007
 ./lib/isc/win32/keyboard.c			C	2000,2001,2004,2007
 ./lib/isc/win32/libisc.def			X	2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/isc/win32/libisc.dsp			X	2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/isc/win32/libisc.dsw			X	2001
 ./lib/isc/win32/libisc.mak			X	2001,2002,2003,2004,2005,2006,2007,2008
-./lib/isc/win32/net.c				C	1999,2000,2001,2002,2003,2004,2005,2007
+./lib/isc/win32/net.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2008
 ./lib/isc/win32/netdb.h				C	2000,2001,2004,2006,2007
 ./lib/isc/win32/ntgroups.c			C	2001,2004,2006,2007
 ./lib/isc/win32/ntpaths.c			C	2001,2004,2007
