@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.win32,v 1.16 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id: config.h.win32,v 1.17 2008/04/02 02:56:23 marka Exp $ */
 
 /*
  * win32 configuration file
@@ -123,9 +123,7 @@
 /* Define if you have DH_generate_parameters(). */
 #define HAVE_DH_GENERATE_PARAMETERS
 
-#define ISC_PLATFORM_NEEDSTRLCAT
-
-#define ISC_PLATFORM_NEEDSTRLCPY
+#define WANT_IPV6
 
 #define S_IFMT   _S_IFMT         /* file type mask */
 #define S_IFDIR  _S_IFDIR        /* directory */

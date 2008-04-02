@@ -1,3 +1,5 @@
+2350.	[port]		win32: IPv6 support. [RT #17797]
+
 2349.	[func]		Provide incremental re-signing support for secure
 			dynamic zones. [RT #1091]
 
