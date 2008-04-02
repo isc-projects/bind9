@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #
-# Copyright (C) 2006, 2007  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2006-2008  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,12 +14,12 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: convertxsl.pl,v 1.10 2008/04/02 03:35:13 marka Exp $
+# $Id: convertxsl.pl,v 1.11 2008/04/02 23:46:57 tbox Exp $
 
 use strict;
 use warnings;
 
-my $rev = '$Id: convertxsl.pl,v 1.10 2008/04/02 03:35:13 marka Exp $';
+my $rev = '$Id: convertxsl.pl,v 1.11 2008/04/02 23:46:57 tbox Exp $';
 $rev =~ s/\$//g;
 $rev =~ s/,v//g;
 $rev =~ s/Id: //;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.11 2008/04/02 02:56:23 marka Exp $ */
+/* $Id: interfaceiter.c,v 1.12 2008/04/02 23:46:57 tbox Exp $ */
 
 /*
  * Note that this code will need to be revisited to support IPv6 Interfaces.
@@ -106,7 +106,7 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src) {
 
 isc_result_t
 isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
-	char strbuf[ISC_STRERRORSIZE]; 
+	char strbuf[ISC_STRERRORSIZE];
 	isc_interfaceiter_t *iter;
 	isc_result_t result;
 	int error;
@@ -390,7 +390,7 @@ internal_current6(isc_interfaceiter_t *iter) {
 		sprintf(iter->current.name,
 			"TCP/IPv6 Interface %d", iter->pos6 + 1);
 
-	for (i = 0; i< 16; i++) 
+	for (i = 0; i< 16; i++)
 		iter->current.netmask.type.in6.s6_addr[i] = 0xff;
 	iter->current.netmask.family = AF_INET6;
 	return (ISC_R_SUCCESS);
@@ -414,7 +414,7 @@ internal_next(isc_interfaceiter_t *iter) {
 	 * Microsoft's implementation is peculiar for returning
 	 * the list in reverse order
 	 */
-	 
+
 	if (iter->numIF == 0)
 		iter->pos4 = (INTERFACE_INFO *)(iter->buf4 + (iter->v4IF));
 

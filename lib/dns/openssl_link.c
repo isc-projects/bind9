@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.18 2008/04/01 23:47:10 tbox Exp $
+ * $Id: openssl_link.c,v 1.19 2008/04/02 23:46:57 tbox Exp $
  */
 #ifdef OPENSSL
 
@@ -81,7 +81,7 @@ static ENGINE *he;
 #ifdef USE_PKCS11
 static isc_result_t
 dst__openssl_load_engine(const char *name, const char *engine_id,
-		 	 const char **pre_cmds, int pre_num,
+			 const char **pre_cmds, int pre_num,
 			 const char **post_cmds, int post_num);
 #endif
 
@@ -388,7 +388,7 @@ dst__openssl_setdefault(const char *name) {
  */
 static isc_result_t
 dst__openssl_load_engine(const char *name, const char *engine_id,
-		 	 const char **pre_cmds, int pre_num,
+			 const char **pre_cmds, int pre_num,
 			 const char **post_cmds, int post_num)
 {
 	ENGINE *e;
