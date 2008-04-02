@@ -1,3 +1,5 @@
+2351.	[bug]		convertxsl.pl generated very long lines. [RT #17906]
+
 2350.	[port]		win32: IPv6 support. [RT #17797]
 
 2347.	[bug]		Delete now traverses the RB tree in the canonical
