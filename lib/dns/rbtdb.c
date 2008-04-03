@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.255 2008/04/02 02:37:42 marka Exp $ */
+/* $Id: rbtdb.c,v 1.256 2008/04/03 04:00:38 marka Exp $ */
 
 /*! \file */
 
@@ -5782,6 +5782,9 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			newheader->count = 0;
 			newheader->additional_auth = NULL;
 			newheader->additional_glue = NULL;
+			newheader->node = rbtnode;
+			newheader->resign = 0;
+			newheader->last_used = 0;
 		} else {
 			free_rdataset(rbtdb, rbtdb->common.mctx, newheader);
 			goto unlock;
