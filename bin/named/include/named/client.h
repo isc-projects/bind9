@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.82.128.1 2008/04/03 02:12:21 marka Exp $ */
+/* $Id: client.h,v 1.82.128.2 2008/04/03 06:08:26 tbox Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file 
+/*! \file
  * \brief
  * This module defines two objects, ns_client_t and ns_clientmgr_t.
  *
@@ -359,8 +359,8 @@ ns_client_qnamereplace(ns_client_t *client, dns_name_t *name);
 
 isc_boolean_t
 ns_client_isself(dns_view_t *myview, dns_tsigkey_t *mykey,
-                 isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
-                 dns_rdataclass_t rdclass, void *arg);
+		 isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
+		 dns_rdataclass_t rdclass, void *arg);
 /*%
  * Isself callback.
  */
