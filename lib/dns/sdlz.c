@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdlz.c,v 1.14 2007/08/27 03:32:27 marka Exp $ */
+/* $Id: sdlz.c,v 1.14.94.1 2008/04/03 06:10:20 marka Exp $ */
 
 /*! \file */
 
@@ -1192,6 +1192,7 @@ static dns_rdatasetmethods_t rdataset_methods = {
 	isc__rdatalist_count,
 	isc__rdatalist_addnoqname,
 	isc__rdatalist_getnoqname,
+	NULL,
 	NULL,
 	NULL,
 	NULL

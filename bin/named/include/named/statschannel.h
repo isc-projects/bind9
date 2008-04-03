@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: statschannel.h,v 1.2 2008/01/17 00:15:13 jinmei Exp $ */
+/* $Id: statschannel.h,v 1.2.2.2 2008/04/03 06:10:19 marka Exp $ */
 
 #ifndef NAMED_STATSCHANNEL_H
 #define NAMED_STATSCHANNEL_H 1
@@ -50,6 +50,12 @@ void
 ns_statschannels_shutdown(ns_server_t *server);
 /*%<
  * Initiate shutdown of all the statistics channel listeners.
+ */
+
+isc_result_t
+ns_stats_dump(ns_server_t *server, FILE *fp);
+/*%<
+ * Dump statistics counters managed by the server to the file fp.
  */
 
 #endif	/* NAMED_STATSCHANNEL_H */

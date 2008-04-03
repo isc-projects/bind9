@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.89 2007/06/18 23:47:42 tbox Exp $ */
+/* $Id: db.h,v 1.89.128.1 2008/04/03 06:10:21 marka Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -148,6 +148,7 @@ typedef struct dns_dbmethods {
 	isc_result_t	(*getoriginnode)(dns_db_t *db, dns_dbnode_t **nodep);
 	void		(*transfernode)(dns_db_t *db, dns_dbnode_t **sourcep,
 				        dns_dbnode_t **targetp);
+	dns_stats_t	*(*getrrsetstats)(dns_db_t *db);
 } dns_dbmethods_t;
 
 typedef isc_result_t
@@ -1315,6 +1316,21 @@ dns_db_getoriginnode(dns_db_t *db, dns_dbnode_t **nodep);
  * Returns:
  * \li	#ISC_R_SUCCESS
  * \li	#ISC_R_NOTFOUND - the DB implementation does not support this feature.
+ */
+
+dns_stats_t *
+dns_db_getrrsetstats(dns_db_t *db);
+/*%<
+ * Get statistics information counting RRsets stored in the DB, when available.
+ * The statistics may not be available depending on the DB implementation.
+ *
+ * Requires:
+ *
+ * \li	'db' is a valid database (zone or cache).
+ *
+ * Returns:
+ * \li	when available, a pointer to a statistics object created by
+ *	dns_rdatasetstats_create(); otherwise NULL.
  */
 
 ISC_LANG_ENDDECLS

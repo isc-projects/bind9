@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.h,v 1.56 2007/06/26 02:52:15 marka Exp $ */
+/* $Id: dispatch.h,v 1.56.128.1 2008/04/03 06:10:21 marka Exp $ */
 
 #ifndef DNS_DISPATCH_H
 #define DNS_DISPATCH_H 1
@@ -206,7 +206,20 @@ dns_dispatchmgr_getblackportlist(dns_dispatchmgr_t *mgr);
  *\li	mgr is a valid dispatchmgr
  */
 
-
+void
+dns_dispatchmgr_setstats(dns_dispatchmgr_t *mgr, dns_stats_t *stats);
+/*%<
+ * Sets statistics counter for the dispatchmgr.  This function is expected to
+ * be called only on zone creation (when necessary).
+ * Once installed, it cannot be removed or replaced.  Also, there is no
+ * interface to get the installed stats from the zone; the caller must keep the
+ * stats to reference (e.g. dump) it later.
+ *
+ * Requires:
+ *\li	mgr is a valid dispatchmgr with no managed dispatch.
+ *\li	stats is a valid statistics supporting resolver statistics counters
+ *	(see dns/stats.h).
+ */
 
 isc_result_t
 dns_dispatch_getudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,

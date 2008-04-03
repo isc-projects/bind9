@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.139 2007/09/18 00:22:30 marka Exp $ */
+/* $Id: zoneconf.c,v 1.139.56.1 2008/04/03 06:10:19 marka Exp $ */
 
 /*% */
 
@@ -34,6 +34,7 @@
 #include <dns/name.h>
 #include <dns/rdatatype.h>
 #include <dns/ssu.h>
+#include <dns/stats.h>
 #include <dns/view.h>
 #include <dns/zone.h>
 
@@ -361,6 +362,8 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	isc_boolean_t warn = ISC_FALSE, ignore = ISC_FALSE;
 	isc_boolean_t ixfrdiff;
 	dns_masterformat_t masterformat;
+	dns_stats_t *zoneqrystats;
+	isc_boolean_t zonestats_on;
 
 	i = 0;
 	if (zconfig != NULL) {
@@ -488,7 +491,15 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	obj = NULL;
 	result = ns_config_get(maps, "zone-statistics", &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	RETERR(dns_zone_setstatistics(zone, cfg_obj_asboolean(obj)));
+	zonestats_on = cfg_obj_asboolean(obj);
+	zoneqrystats = NULL;
+	if (zonestats_on) {
+		RETERR(dns_generalstats_create(mctx, &zoneqrystats,
+					       dns_nsstatscounter_max));
+	}
+	dns_zone_setrequeststats(zone, zoneqrystats);
+	if (zoneqrystats != NULL)
+		dns_stats_detach(&zoneqrystats);
 
 	/*
 	 * Configure master functionality.  This applies

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.83 2007/06/18 23:47:40 tbox Exp $ */
+/* $Id: db.c,v 1.83.128.1 2008/04/03 06:10:19 marka Exp $ */
 
 /*! \file */
 
@@ -830,6 +830,16 @@ dns_db_unregister(dns_dbimplementation_t **dbimp) {
 	isc_mem_put(mctx, imp, sizeof(dns_dbimplementation_t));
 	isc_mem_detach(&mctx);
 	RWUNLOCK(&implock, isc_rwlocktype_write);
+}
+
+dns_stats_t *
+dns_db_getrrsetstats(dns_db_t *db) {
+	REQUIRE(DNS_DB_VALID(db));
+
+	if (db->methods->getrrsetstats != NULL)
+		return ((db->methods->getrrsetstats)(db));
+
+	return (NULL);
 }
 
 isc_result_t

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.470.12.3 2008/04/03 02:12:22 marka Exp $ */
+/* $Id: zone.c,v 1.470.12.4 2008/04/03 06:10:20 marka Exp $ */
 
 /*! \file */
 
@@ -33,7 +33,6 @@
 #include <isc/taskpool.h>
 #include <isc/timer.h>
 #include <isc/util.h>
-#include <isc/xml.h>
 
 #include <dns/acache.h>
 #include <dns/acl.h>
@@ -249,9 +248,15 @@ struct dns_zone {
 	ISC_LINK(dns_zone_t)	statelink;
 	dns_zonelist_t		*statelist;
 	/*%
-	 * Optional per-zone statistics counters (NULL if not present).
+	 * Statistics counters about zone management.
 	 */
-	dns_stats_t	    	*counters;
+	dns_stats_t	    	*stats;
+	/*%
+	 * Optional per-zone statistics counters.  Counted outside of this
+	 * module.
+	 */
+	isc_boolean_t	    	requeststats_on;
+	dns_stats_t	    	*requeststats;
 	isc_uint32_t		notifydelay;
 	dns_isselffunc_t	isself;
 	void			*isselfarg;
@@ -547,6 +552,15 @@ static const char *dbargv_default[] = { "rbt" };
 		} \
 	} while (0)
 
+/*%
+ * Increment resolver-related statistics counters.  Zone must be locked.
+ */
+static inline void
+inc_stats(dns_zone_t *zone, dns_statscounter_t counter) {
+	if (zone->stats != NULL)
+		dns_generalstats_increment(zone->stats, counter);
+}
+
 /***
  ***	Public functions.
  ***/
@@ -663,7 +677,9 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->checkns = NULL;
 	ISC_LINK_INIT(zone, statelink);
 	zone->statelist = NULL;
-	zone->counters = NULL;
+	zone->stats = NULL;
+	zone->requeststats_on = ISC_FALSE;
+	zone->requeststats = NULL;
 	zone->notifydelay = 5;
 	zone->isself = NULL;
 	zone->isselfarg = NULL;
@@ -735,8 +751,10 @@ zone_free(dns_zone_t *zone) {
 	if (zone->journal != NULL)
 		isc_mem_free(zone->mctx, zone->journal);
 	zone->journal = NULL;
-	if (zone->counters != NULL)
-		dns_stats_destroy(zone->mctx, &zone->counters);
+	if (zone->stats != NULL)
+		dns_stats_detach(&zone->stats);
+	if (zone->requeststats != NULL)
+		dns_stats_detach(&zone->requeststats);
 	if (zone->db != NULL)
 		zone_detachdb(zone);
 	if (zone->acache != NULL)
@@ -814,7 +832,7 @@ dns_zone_setclass(dns_zone_t *zone, dns_rdataclass_t rdclass) {
 }
 
 dns_rdataclass_t
-dns_zone_getclass(dns_zone_t *zone){
+dns_zone_getclass(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	return (zone->rdclass);
@@ -827,6 +845,19 @@ dns_zone_setnotifytype(dns_zone_t *zone, dns_notifytype_t notifytype) {
 	LOCK_ZONE(zone);
 	zone->notifytype = notifytype;
 	UNLOCK_ZONE(zone);
+}
+
+isc_uint32_t
+dns_zone_getserial(dns_zone_t *zone) {
+	isc_uint32_t serial;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	serial = zone->serial;
+	UNLOCK_ZONE(zone);
+
+	return (serial);
 }
 
 /*
@@ -3850,6 +3881,16 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 					timeout * 3, timeout,
 					notify->zone->task, notify_done,
 					notify, &notify->request);
+	if (result == ISC_R_SUCCESS) {
+		if (isc_sockaddr_pf(&notify->dst) == AF_INET) {
+			inc_stats(notify->zone,
+				  dns_zonestatscounter_notifyoutv4);
+		} else {
+			inc_stats(notify->zone,
+				  dns_zonestatscounter_notifyoutv6);
+		}
+	}
+
  cleanup_key:
 	if (key != NULL)
 		dns_tsigkey_detach(&key);
@@ -5123,6 +5164,11 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 			      "dns_request_createvia2() failed: %s",
 			      dns_result_totext(result));
 		goto cleanup;
+	} else {
+		if (isc_sockaddr_pf(&zone->masteraddr) == PF_INET)
+			inc_stats(zone, dns_zonestatscounter_soaoutv4);
+		else
+			inc_stats(zone, dns_zonestatscounter_soaoutv6);
 	}
 	cancel = ISC_FALSE;
 
@@ -5766,6 +5812,10 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	 *  We only handle NOTIFY (SOA) at the present.
 	 */
 	LOCK_ZONE(zone);
+	if (isc_sockaddr_pf(from) == PF_INET)
+		inc_stats(zone, dns_zonestatscounter_notifyinv4);
+	else
+		inc_stats(zone, dns_zonestatscounter_notifyinv6);
 	if (msg->counts[DNS_SECTION_QUESTION] == 0 ||
 	    dns_message_findname(msg, DNS_SECTION_QUESTION, &zone->origin,
 				 dns_rdatatype_soa, dns_rdatatype_none,
@@ -5820,6 +5870,7 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 		UNLOCK_ZONE(zone);
 		dns_zone_log(zone, ISC_LOG_INFO,
 			     "refused notify from non-master: %s", fromtext);
+		inc_stats(zone, dns_zonestatscounter_notifyrej);
 		return (DNS_R_REFUSED);
 	}
 
@@ -6788,6 +6839,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 					     dns_result_totext(result));
 		}
 
+		inc_stats(zone, dns_zonestatscounter_xfrsuccess);
 		break;
 
 	case DNS_R_BADIXFR:
@@ -6822,6 +6874,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_REFRESH);
 			again = ISC_TRUE;
 		}
+		inc_stats(zone, dns_zonestatscounter_xfrfail);
 		break;
 	}
 	zone_settimer(zone, &now);
@@ -7111,6 +7164,21 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 				   zone->tsigkey, zone->mctx,
 				   zone->zmgr->timermgr, zone->zmgr->socketmgr,
 				   zone->task, zone_xfrdone, &zone->xfr);
+	if (result == ISC_R_SUCCESS) {
+		LOCK_ZONE(zone);
+		if (xfrtype == dns_rdatatype_axfr) {
+			if (isc_sockaddr_pf(&masteraddr) == PF_INET)
+				inc_stats(zone, dns_zonestatscounter_axfrreqv4);
+			else
+				inc_stats(zone, dns_zonestatscounter_axfrreqv6);
+		} else if (xfrtype == dns_rdatatype_ixfr) {
+			if (isc_sockaddr_pf(&masteraddr) == PF_INET)
+				inc_stats(zone, dns_zonestatscounter_ixfrreqv4);
+			else
+				inc_stats(zone, dns_zonestatscounter_ixfrreqv6);
+		}
+		UNLOCK_ZONE(zone);
+	}
  cleanup:
 	/*
 	 * Any failure in this function is handled like a failed
@@ -8102,35 +8170,66 @@ dns_zone_isforced(dns_zone_t *zone) {
 
 isc_result_t
 dns_zone_setstatistics(dns_zone_t *zone, isc_boolean_t on) {
-	isc_result_t result = ISC_R_SUCCESS;
-
-	LOCK_ZONE(zone);
-	if (on) {
-		if (zone->counters != NULL)
-			goto done;
-		result = dns_stats_create(zone->mctx, &zone->counters);
-	} else {
-		if (zone->counters == NULL)
-			goto done;
-		dns_stats_destroy(zone->mctx, &zone->counters);
-	}
- done:
-	UNLOCK_ZONE(zone);
-	return (result);
+	/*
+	 * This function is obsoleted.
+	 */
+	UNUSED(zone);
+	UNUSED(on);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 isc_uint64_t *
 dns_zone_getstatscounters(dns_zone_t *zone) {
 	/*
-	 * This function is obsoleted by dns_zone_getstats().
+	 * This function is obsoleted.
 	 */
 	UNUSED(zone);
 	return (NULL);
 }
 
+void
+dns_zone_setstats(dns_zone_t *zone, dns_stats_t *stats) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(zone->stats == NULL);
+
+	LOCK_ZONE(zone);
+	zone->stats = NULL;
+	dns_stats_attach(stats, &zone->stats);
+	UNLOCK_ZONE(zone);
+}
+
+void
+dns_zone_setrequeststats(dns_zone_t *zone, dns_stats_t *stats) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	if (zone->requeststats_on && stats == NULL)
+		zone->requeststats_on = ISC_FALSE;
+	else if (!zone->requeststats_on && stats != NULL) {
+		if (zone->requeststats == NULL) {
+			dns_stats_attach(stats, &zone->requeststats);
+			zone->requeststats_on = ISC_TRUE;
+		}
+	}
+	UNLOCK_ZONE(zone);
+
+	return;
+}
+
 dns_stats_t *
-dns_zone_getstats(dns_zone_t *zone) {
-	return (zone->counters);
+dns_zone_getrequeststats(dns_zone_t *zone) {
+	/*
+	 * We don't lock zone for efficiency reason.  This is not catastrophic
+	 * because requeststats must always be valid when requeststats_on is
+	 * true.
+	 * Some counters may be incremented while requeststats_on is becoming
+	 * false, or some cannot be incremented just after the statistics are
+	 * installed, but it shouldn't matter much in practice.
+	 */
+	if (zone->requeststats_on)
+		return (zone->requeststats);
+	else
+		return (NULL);
 }
 
 void
@@ -8341,50 +8440,3 @@ dns_zone_getnotifydelay(dns_zone_t *zone) {
 
 	return (zone->notifydelay);
 }
-
-#ifdef HAVE_LIBXML2
-
-isc_result_t
-dns_zone_xmlrender(dns_zone_t *zone, xmlTextWriterPtr xml, int flags)
-{
-	int i;
-
-	/* XXXMLG render config data here */
-
-	if ((flags & ISC_XML_RENDERSTATS) != 0) {
-		xmlTextWriterStartElement(xml, ISC_XMLCHAR "zone");
-
-		xmlTextWriterStartElement(xml, ISC_XMLCHAR "name");
-		xmlTextWriterWriteString(xml, ISC_XMLCHAR zone->strname);
-		xmlTextWriterEndElement(xml);
-
-		xmlTextWriterStartElement(xml, ISC_XMLCHAR "rdataclass");
-		xmlTextWriterWriteString(xml, ISC_XMLCHAR zone->strrdclass);
-		xmlTextWriterEndElement(xml);
-
-		xmlTextWriterStartElement(xml, ISC_XMLCHAR "serial");
-		xmlTextWriterWriteFormatString(xml, "%u", zone->serial);
-		xmlTextWriterEndElement(xml);
-
-		if (zone->counters != NULL) {
-			isc_uint64_t counters[DNS_STATS_NCOUNTERS];
-
-			xmlTextWriterStartElement(xml, ISC_XMLCHAR "counters");
-			dns_stats_copy(zone->counters, counters);
-			for (i = 0 ; i < DNS_STATS_NCOUNTERS ; i++) {
-				xmlTextWriterStartElement(xml,
-					ISC_XMLCHAR dns_statscounter_names[i]);
-				xmlTextWriterWriteFormatString(xml,
-					       "%" ISC_PRINT_QUADFORMAT "u",
-					       counters[i]);
-				xmlTextWriterEndElement(xml);
-			}
-			xmlTextWriterEndElement(xml); /* counters */
-		}
-		xmlTextWriterEndElement(xml); /* zone */
-	}
-
-	return (ISC_R_SUCCESS);
-}
-
-#endif /* HAVE_LIBXML2 */

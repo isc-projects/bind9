@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.355.12.9 2008/04/03 02:12:22 marka Exp $ */
+/* $Id: resolver.c,v 1.355.12.10 2008/04/03 06:10:20 marka Exp $ */
 
 /*! \file */
 
@@ -54,6 +54,7 @@
 #include <dns/resolver.h>
 #include <dns/result.h>
 #include <dns/rootns.h>
+#include <dns/stats.h>
 #include <dns/tsig.h>
 #include <dns/validator.h>
 
@@ -419,6 +420,15 @@ static void maybe_destroy(fetchctx_t *fctx);
 static void timer_dump(isc_task_t *task, isc_event_t *ev);
 #endif
 
+/*%
+ * Increment resolver-related statistics counters.
+ */
+static inline void
+inc_stats(dns_resolver_t *res, dns_statscounter_t counter) {
+	if (res->view->resstats != NULL)
+		dns_generalstats_increment(res->view->resstats, counter);
+}
+
 static isc_result_t
 valcreate(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo, dns_name_t *name,
 	  dns_rdatatype_t type, dns_rdataset_t *rdataset,
@@ -445,6 +455,7 @@ valcreate(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo, dns_name_t *name,
 				      valoptions, task, validated, valarg,
 				      &validator);
 	if (result == ISC_R_SUCCESS) {
+		inc_stats(fctx->res, dns_resstatscounter_val);
 		if ((valoptions & DNS_VALIDATOR_DEFER) == 0) {
 			INSIST(fctx->validator == NULL);
 			fctx->validator  = validator;
@@ -1304,6 +1315,13 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 
 	ISC_LIST_APPEND(fctx->queries, query, link);
 	query->fctx->nqueries++;
+	if (isc_sockaddr_pf(&addrinfo->sockaddr) == PF_INET)
+		inc_stats(res, dns_resstatscounter_queryv4);
+	else
+		inc_stats(res, dns_resstatscounter_queryv6);
+	if (res->view->resquerystats != NULL)
+		dns_rdatatypestats_increment(res->view->resquerystats,
+					     fctx->type);
 
 	return (ISC_R_SUCCESS);
 
@@ -2667,6 +2685,9 @@ fctx_try(fetchctx_t *fctx) {
 
 	REQUIRE(!ADDRWAIT(fctx));
 
+	if (fctx->restarts > 0)
+		inc_stats(fctx->res, dns_resstatscounter_retry);
+
 	addrinfo = fctx_nextaddress(fctx);
 	if (addrinfo == NULL) {
 		/*
@@ -3597,6 +3618,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 
 	if (vevent->result != ISC_R_SUCCESS) {
 		FCTXTRACE("validation failed");
+		inc_stats(fctx->res, dns_resstatscounter_valfail);
 		result = ISC_R_NOTFOUND;
 		if (vevent->rdataset != NULL)
 			result = dns_db_findnode(fctx->cache, vevent->name,
@@ -3631,6 +3653,8 @@ validated(isc_task_t *task, isc_event_t *event) {
 		dns_rdatatype_t covers;
 		FCTXTRACE("nonexistence validation OK");
 
+		inc_stats(fctx->res, dns_resstatscounter_valnegsuccess);
+
 		if (fctx->rmessage->rcode == dns_rcode_nxdomain)
 			covers = dns_rdatatype_any;
 		else
@@ -3658,7 +3682,8 @@ validated(isc_task_t *task, isc_event_t *event) {
 		if (result != ISC_R_SUCCESS)
 			goto noanswer_response;
 		goto answer_response;
-	}
+	} else
+		inc_stats(fctx->res, dns_resstatscounter_valsuccess);
 
 	FCTXTRACE("validation OK");
 
@@ -5616,6 +5641,11 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 
 	QTRACE("response");
 
+	if (isc_sockaddr_pf(&query->addrinfo->sockaddr) == PF_INET)
+		inc_stats(fctx->res, dns_resstatscounter_responsev4);
+	else
+		inc_stats(fctx->res, dns_resstatscounter_responsev6);
+
 	(void)isc_timer_touch(fctx->timer);
 
 	keep_trying = ISC_FALSE;
@@ -5717,6 +5747,8 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 							query->addrinfo,
 							DNS_FETCHOPT_NOEDNS0,
 							DNS_FETCHOPT_NOEDNS0);
+					inc_stats(fctx->res,
+						 dns_resstatscounter_edns0fail);
 				} else {
 					broken_server = result;
 					keep_trying = ISC_TRUE;
@@ -5745,6 +5777,8 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 						    query->addrinfo,
 						    DNS_FETCHOPT_NOEDNS0,
 						    DNS_FETCHOPT_NOEDNS0);
+				inc_stats(fctx->res,
+						 dns_resstatscounter_edns0fail);
 			} else {
 				broken_server = DNS_R_UNEXPECTEDRCODE;
 				keep_trying = ISC_TRUE;
@@ -5800,6 +5834,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		truncated = ISC_TRUE;
 
 	if (truncated) {
+		inc_stats(fctx->res, dns_resstatscounter_truncated);
 		if ((options & DNS_FETCHOPT_TCP) != 0) {
 			broken_server = DNS_R_TRUNCATEDTCP;
 			keep_trying = ISC_TRUE;
@@ -5818,6 +5853,26 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		broken_server = DNS_R_UNEXPECTEDOPCODE;
 		keep_trying = ISC_TRUE;
 		goto done;
+	}
+
+	/*
+	 * Update statistics about erroneous responses.
+	 */
+	if (message->rcode != dns_rcode_noerror) {
+		switch (message->rcode) {
+		case dns_rcode_nxdomain:
+			inc_stats(fctx->res, dns_resstatscounter_nxdomain);
+			break;
+		case dns_rcode_servfail:
+			inc_stats(fctx->res, dns_resstatscounter_servfail);
+			break;
+		case dns_rcode_formerr:
+			inc_stats(fctx->res, dns_resstatscounter_formerr);
+			break;
+		default:
+			inc_stats(fctx->res, dns_resstatscounter_othererror);
+			break;
+		}
 	}
 
 	/*
@@ -5845,6 +5900,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				dns_adb_changeflags(fctx->adb, query->addrinfo,
 						    DNS_FETCHOPT_NOEDNS0,
 						    DNS_FETCHOPT_NOEDNS0);
+			inc_stats(fctx->res, dns_resstatscounter_edns0fail);
 		} else if (message->rcode == dns_rcode_formerr) {
 			if (ISFORWARDER(query->addrinfo)) {
 				/*
@@ -5918,6 +5974,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (fctx->res->lame_ttl != 0 && !ISFORWARDER(query->addrinfo) &&
 	    is_lame(fctx)) {
+		inc_stats(fctx->res, dns_resstatscounter_lame);
 		log_lame(fctx, query->addrinfo);
 		result = dns_adb_marklame(fctx->adb, query->addrinfo,
 					  &fctx->name, fctx->type,

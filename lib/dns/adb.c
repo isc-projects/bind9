@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.233.36.3 2008/03/20 22:42:16 jinmei Exp $ */
+/* $Id: adb.c,v 1.233.36.4 2008/04/03 06:10:19 marka Exp $ */
 
 /*! \file
  *
@@ -55,6 +55,7 @@
 #include <dns/rdatatype.h>
 #include <dns/resolver.h>
 #include <dns/result.h>
+#include <dns/stats.h>
 
 #define DNS_ADB_MAGIC             ISC_MAGIC('D', 'a', 'd', 'b')
 #define DNS_ADB_VALID(x)          ISC_MAGIC_VALID(x, DNS_ADB_MAGIC)
@@ -496,6 +497,15 @@ DP(int level, const char *format, ...) {
 		       DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_ADB,
 		       level, format, args);
 	va_end(args);
+}
+
+/*%
+ * Increment resolver-related statistics counters.
+ */
+static inline void
+inc_stats(dns_adb_t *adb, dns_statscounter_t counter) {
+	if (adb->view->resstats != NULL)
+		dns_generalstats_increment(adb->view->resstats, counter);
 }
 
 static inline dns_ttl_t
@@ -3394,6 +3404,7 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 				name->fetch_err = FIND_ERR_NXDOMAIN;
 			else
 				name->fetch_err = FIND_ERR_NXRRSET;
+			inc_stats(adb, dns_resstatscounter_gluefetchv4fail);
 		} else {
 			DP(NCACHE_LEVEL, "adb fetch name %p: "
 			   "caching negative entry for AAAA (ttl %u)",
@@ -3404,6 +3415,7 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 				name->fetch6_err = FIND_ERR_NXDOMAIN;
 			else
 				name->fetch6_err = FIND_ERR_NXRRSET;
+			inc_stats(adb, dns_resstatscounter_gluefetchv6fail);
 		}
 		goto out;
 	}
@@ -3443,9 +3455,11 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 		if (address_type == DNS_ADBFIND_INET) {
 			name->expire_v4 = ISC_MIN(name->expire_v4, now + 300);
 			name->fetch_err = FIND_ERR_FAILURE;
+			inc_stats(adb, dns_resstatscounter_gluefetchv4fail);
 		} else {
 			name->expire_v6 = ISC_MIN(name->expire_v6, now + 300);
 			name->fetch6_err = FIND_ERR_FAILURE;
+			inc_stats(adb, dns_resstatscounter_gluefetchv6fail);
 		}
 		goto out;
 	}
@@ -3530,10 +3544,13 @@ fetch_name(dns_adbname_t *adbname,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	if (type == dns_rdatatype_a)
+        if (type == dns_rdatatype_a) {
 		adbname->fetch_a = fetch;
-	else
+		inc_stats(adb, dns_resstatscounter_gluefetchv4);
+        } else {
 		adbname->fetch_aaaa = fetch;
+		inc_stats(adb, dns_resstatscounter_gluefetchv6);
+	}
 	fetch = NULL;  /* Keep us from cleaning this up below. */
 
  cleanup:

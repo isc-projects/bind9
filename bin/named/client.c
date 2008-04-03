@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.250.16.3 2008/04/03 02:12:21 marka Exp $ */
+/* $Id: client.c,v 1.250.16.4 2008/04/03 06:10:19 marka Exp $ */
 
 #include <config.h>
 
@@ -41,6 +41,7 @@
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/resolver.h>
+#include <dns/stats.h>
 #include <dns/tsig.h>
 #include <dns/view.h>
 #include <dns/zone.h>
@@ -907,6 +908,7 @@ ns_client_send(ns_client_t *client) {
 	unsigned char sendbuf[SEND_BUFFER_SIZE];
 	unsigned int dnssec_opts;
 	unsigned int preferred_glue;
+	isc_boolean_t opt_included = ISC_FALSE;
 
 	REQUIRE(NS_CLIENT_VALID(client));
 
@@ -947,6 +949,7 @@ ns_client_send(ns_client_t *client) {
 
 	if (client->opt != NULL) {
 		result = dns_message_setopt(client->message, client->opt);
+		opt_included = ISC_TRUE;
 		client->opt = NULL;
 		if (result != ISC_R_SUCCESS)
 			goto done;
@@ -1002,6 +1005,26 @@ ns_client_send(ns_client_t *client) {
 		result = client_sendpkg(client, &tcpbuffer);
 	} else
 		result = client_sendpkg(client, &buffer);
+
+	/* update statistics (XXXJT: is it okay to access message->xxxkey?) */
+	dns_generalstats_increment(ns_g_server->nsstats,
+				   dns_nsstatscounter_response);
+	if (opt_included) {
+		dns_generalstats_increment(ns_g_server->nsstats,
+					   dns_nsstatscounter_edns0out);
+	}
+	if (client->message->tsigkey != NULL) {
+		dns_generalstats_increment(ns_g_server->nsstats,
+					   dns_nsstatscounter_tsigout);
+	}
+	if (client->message->sig0key != NULL) {
+		dns_generalstats_increment(ns_g_server->nsstats,
+					   dns_nsstatscounter_sig0out);
+	}
+	if ((client->message->flags & DNS_MESSAGEFLAG_TC) != 0)
+		dns_generalstats_increment(ns_g_server->nsstats,
+					   dns_nsstatscounter_truncatedresp);
+
 	if (result == ISC_R_SUCCESS)
 		return;
 
@@ -1318,6 +1341,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_t tbuffer;
 	dns_view_t *view;
 	dns_rdataset_t *opt;
+	dns_name_t *signame;
 	isc_boolean_t ra;	/* Recursion available. */
 	isc_netaddr_t netaddr;
 	isc_netaddr_t destaddr;
@@ -1476,6 +1500,20 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	}
 
 	/*
+	 * Update some statistics counters.  Don't count responses.
+	 */
+	if (isc_sockaddr_pf(&client->peeraddr) == PF_INET) {
+		dns_generalstats_increment(ns_g_server->nsstats,
+					   dns_nsstatscounter_requestv4);
+	} else {
+		dns_generalstats_increment(ns_g_server->nsstats,
+					   dns_nsstatscounter_requestv6);
+	}
+	if (TCP_CLIENT(client))
+		dns_generalstats_increment(ns_g_server->nsstats,
+					   dns_nsstatscounter_tcp);
+
+	/*
 	 * Hash the incoming request here as it is after
 	 * dns_dispatch_importrecv().
 	 */
@@ -1496,6 +1534,8 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		goto cleanup;
 	}
 
+	dns_opcodestats_increment(ns_g_server->opcodestats,
+				  client->message->opcode);
 	switch (client->message->opcode) {
 	case dns_opcode_query:
 	case dns_opcode_update:
@@ -1543,6 +1583,8 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		 */
 		client->ednsversion = (opt->ttl & 0x00FF0000) >> 16;
 		if (client->ednsversion > 0) {
+			dns_generalstats_increment(ns_g_server->nsstats,
+						dns_nsstatscounter_badednsver);
 			result = client_addopt(client);
 			if (result == ISC_R_SUCCESS)
 				result = DNS_R_BADVERS;
@@ -1566,6 +1608,9 @@ client_request(isc_task_t *task, isc_event_t *event) {
 						NS_CLIENTATTR_WANTNSID;
 			}
 		}
+
+		dns_generalstats_increment(ns_g_server->nsstats,
+					   dns_nsstatscounter_edns0in);
 
 		/*
 		 * Create an OPT for our reply.
@@ -1711,6 +1756,17 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	client->signer = NULL;
 	dns_name_init(&client->signername, NULL);
 	result = dns_message_signer(client->message, &client->signername);
+	if (result != ISC_R_NOTFOUND) {
+		signame = NULL;
+		if (dns_message_gettsig(client->message, &signame) != NULL) {
+			dns_generalstats_increment(ns_g_server->nsstats,
+						   dns_nsstatscounter_tsigin);
+		} else {
+			dns_generalstats_increment(ns_g_server->nsstats,
+						   dns_nsstatscounter_sig0in);
+		}
+			
+	}
 	if (result == ISC_R_SUCCESS) {
 		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
@@ -1727,15 +1783,17 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	} else {
 		char tsigrcode[64];
 		isc_buffer_t b;
-		dns_name_t *name = NULL;
 		dns_rcode_t status;
 		isc_result_t tresult;
 
 		/* There is a signature, but it is bad. */
-		if (dns_message_gettsig(client->message, &name) != NULL) {
+		dns_generalstats_increment(ns_g_server->nsstats,
+					   dns_nsstatscounter_invalidsig);
+		signame = NULL;
+		if (dns_message_gettsig(client->message, &signame) != NULL) {
 			char namebuf[DNS_NAME_FORMATSIZE];
 			char cnamebuf[DNS_NAME_FORMATSIZE];
-			dns_name_format(name, namebuf, sizeof(namebuf));
+			dns_name_format(signame, namebuf, sizeof(namebuf));
 			status = client->message->tsigstatus;
 			isc_buffer_init(&b, tsigrcode, sizeof(tsigrcode) - 1);
 			tresult = dns_tsigrcode_totext(status, &b);

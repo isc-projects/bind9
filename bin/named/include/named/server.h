@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.88.10.3 2008/01/24 02:29:56 jinmei Exp $ */
+/* $Id: server.h,v 1.88.10.4 2008/04/03 06:10:19 marka Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -91,7 +91,11 @@ struct ns_server {
 	isc_boolean_t		flushonshutdown;
 	isc_boolean_t		log_queries;	/*%< For BIND 8 compatibility */
 
-	dns_stats_t *		querystats;	/*%< Query statistics counters */
+	dns_stats_t *		nsstats;	/*%< Server statistics */
+	dns_stats_t *		rcvquerystats;	/*% Incoming query statistics */
+	dns_stats_t *		opcodestats;	/*%< Incoming message statistics */
+	dns_stats_t *		zonestats;	/*% Zone management statistics */
+	dns_stats_t *		resolverstats;	/*% Resolver statistics */
 
 	ns_controls_t *		controls;	/*%< Control channels */
 	unsigned int		dispatchgen;
@@ -104,6 +108,55 @@ struct ns_server {
 
 #define NS_SERVER_MAGIC			ISC_MAGIC('S','V','E','R')
 #define NS_SERVER_VALID(s)		ISC_MAGIC_VALID(s, NS_SERVER_MAGIC)
+
+/*%
+ * Server statistics counters.  Used as dns_statscounter_t values.
+ */
+enum {
+	dns_nsstatscounter_requestv4 = 0,
+	dns_nsstatscounter_requestv6 = 1,
+	dns_nsstatscounter_edns0in = 2,
+	dns_nsstatscounter_badednsver = 3,
+	dns_nsstatscounter_tsigin = 4,
+	dns_nsstatscounter_sig0in = 5,
+	dns_nsstatscounter_invalidsig = 6,
+	dns_nsstatscounter_tcp = 7,
+
+	dns_nsstatscounter_authrej = 8,
+	dns_nsstatscounter_recurserej = 9,
+	dns_nsstatscounter_xfrrej = 10,
+	dns_nsstatscounter_updaterej = 11,
+
+	dns_nsstatscounter_response = 12,
+	dns_nsstatscounter_truncatedresp = 13,
+	dns_nsstatscounter_edns0out = 14,
+	dns_nsstatscounter_tsigout = 15,
+	dns_nsstatscounter_sig0out = 16,
+
+	dns_nsstatscounter_success = 17,
+	dns_nsstatscounter_authans = 18,
+	dns_nsstatscounter_nonauthans = 19,
+	dns_nsstatscounter_referral = 20,
+	dns_nsstatscounter_nxrrset = 21,
+	dns_nsstatscounter_servfail = 22,
+	dns_nsstatscounter_formerr = 23,
+	dns_nsstatscounter_nxdomain = 24,
+	dns_nsstatscounter_recursion = 25,
+	dns_nsstatscounter_duplicate = 26,
+	dns_nsstatscounter_dropped = 27,
+	dns_nsstatscounter_failure = 28,
+
+	dns_nsstatscounter_xfrdone = 29,
+
+	dns_nsstatscounter_updatereqfwd = 30,
+	dns_nsstatscounter_updaterespfwd = 31,
+	dns_nsstatscounter_updatefwdfail = 32,
+	dns_nsstatscounter_updatedone = 33,
+	dns_nsstatscounter_updatefail = 34,
+	dns_nsstatscounter_updatebadprereq = 35,
+
+	dns_nsstatscounter_max = 36
+};
 
 void
 ns_server_create(isc_mem_t *mctx, ns_server_t **serverp);

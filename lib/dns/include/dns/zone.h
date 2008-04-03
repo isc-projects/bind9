@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.153.56.2 2008/01/24 23:46:26 tbox Exp $ */
+/* $Id: zone.h,v 1.153.56.3 2008/04/03 06:10:21 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -31,7 +31,6 @@
 #include <isc/formatcheck.h>
 #include <isc/lang.h>
 #include <isc/rwlock.h>
-#include <isc/xml.h>
 
 #include <dns/masterdump.h>
 #include <dns/types.h>
@@ -143,6 +142,15 @@ dns_rdataclass_t
 dns_zone_getclass(dns_zone_t *zone);
 /*%<
  *	Returns the current zone class.
+ *
+ * Requires:
+ *\li	'zone' to be a valid zone.
+ */
+
+isc_uint32_t
+dns_zone_getserial(dns_zone_t *zone);
+/*%<
+ *	Returns the current serial number of the zone.
  *
  * Requires:
  *\li	'zone' to be a valid zone.
@@ -1479,28 +1487,55 @@ dns_zone_isforced(dns_zone_t *zone);
 isc_result_t
 dns_zone_setstatistics(dns_zone_t *zone, isc_boolean_t on);
 /*%<
- *      Make the zone keep or not keep an array of statistics
- * 	counter.
- *
- * Requires:
- *   \li   zone be a valid zone.
+ * This function is obsoleted by dns_zone_setrequeststats().
  */
 
 isc_uint64_t *
 dns_zone_getstatscounters(dns_zone_t *zone);
 /*%<
- * This function is obsoleted by dns_zone_getstats().
+ * This function is obsoleted by dns_zone_getrequeststats().
+ */
+
+void
+dns_zone_setstats(dns_zone_t *zone, dns_stats_t *stats);
+/*%<
+ * Set a general zone-maintenance statistics set 'stats' for 'zone'.  This
+ * function is expected to be called only on zone creation (when necessary).
+ * Once installed, it cannot be removed or replaced.  Also, there is no
+ * interface to get the installed stats from the zone; the caller must keep the
+ * stats to reference (e.g. dump) it later.
+ *
+ * Requires:
+ * \li	'zone' to be a valid zone and does not have a statistics set already
+ *	installed.
+ *
+ *\li	stats is a valid statistics supporting zone statistics counters
+ *	(see dns/stats.h).
+ */
+
+void
+dns_zone_setrequeststats(dns_zone_t *zone, dns_stats_t *stats);
+/*%<
+ * Set an additional statistics set to zone.  It is attached in the zone
+ * but is not counted in the zone module; only the caller updates the counters.
+ *
+ * Requires:
+ * \li	'zone' to be a valid zone.
+ *
+ *\li	stats is a valid statistics.
  */
 
 dns_stats_t *
-dns_zone_getstats(dns_zone_t *zone);
+dns_zone_getrequeststats(dns_zone_t *zone);
 /*%<
+ * Get the additional statistics for zone, if one is installed.
+ *
  * Requires:
- *      zone be a valid zone.
+ * \li	'zone' to be a valid zone.
  *
  * Returns:
- * \li     A pointer to the zone's array of statistics counters,
- *	or NULL if it has none.
+ * \li	when available, a pointer to the statistics set installed in zone;
+ *	otherwise NULL.
  */
 
 void
@@ -1635,13 +1670,6 @@ dns_zone_setisself(dns_zone_t *zone, dns_isselffunc_t isself, void *arg);
  * 'destaddr' with optional key 'mykey' for class 'rdclass' would be
  * delivered to 'myview'.
  */
-
-#ifdef HAVE_LIBXML2
-
-isc_result_t
-dns_zone_xmlrender(dns_zone_t *zone, xmlTextWriterPtr xml, int flags);
-
-#endif
 
 ISC_LANG_ENDDECLS
 

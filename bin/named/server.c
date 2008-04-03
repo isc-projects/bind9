@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.495.10.8 2008/04/03 02:12:21 marka Exp $ */
+/* $Id: server.c,v 1.495.10.9 2008/04/03 06:10:19 marka Exp $ */
 
 /*! \file */
 
@@ -942,6 +942,24 @@ check_dbtype(dns_zone_t **zonep, unsigned int dbtypec, const char **dbargv,
 	isc_mem_free(mctx, argv);
 }
 
+static isc_result_t
+setquerystats(dns_zone_t *zone, isc_mem_t *mctx, isc_boolean_t on) {
+	isc_result_t result;
+	dns_stats_t *zoneqrystats;
+
+	zoneqrystats = NULL;
+	if (on) {
+		result = dns_generalstats_create(mctx, &zoneqrystats,
+						 dns_nsstatscounter_max);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	}
+	dns_zone_setrequeststats(zone, zoneqrystats);
+	if (zoneqrystats != NULL)
+		dns_stats_detach(&zoneqrystats);
+
+	return (ISC_R_SUCCESS);
+}
 
 /*
  * Configure 'view' according to 'vconfig', taking defaults from 'config'
@@ -998,6 +1016,8 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	isc_boolean_t empty_zones_enable;
 	const cfg_obj_t *disablelist = NULL;
 	isc_uint32_t nqports, qports_updateinterval;
+	dns_stats_t *resstats = NULL;
+	dns_stats_t *resquerystats = NULL;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -1142,6 +1162,8 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	 * Configure the view's cache.  Try to reuse an existing
 	 * cache if possible, otherwise create a new cache.
 	 * Note that the ADB is not preserved in either case.
+	 * When a matching view is found, the associated statistics are
+	 * also retrieved and reused.
 	 *
 	 * XXX Determining when it is safe to reuse a cache is
 	 * tricky.  When the view's configuration changes, the cached
@@ -1163,6 +1185,8 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 			      "reusing existing cache");
 		reused_cache = ISC_TRUE;
 		dns_cache_attach(pview->cache, &cache);
+		dns_view_getresstats(pview, &resstats);
+		dns_view_getresquerystats(pview, &resquerystats);
 		dns_view_detach(&pview);
 	} else {
 		CHECK(isc_mem_create(0, 0, &cmctx));
@@ -1344,6 +1368,15 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 						      * 60));
 	}
 
+	if (resstats == NULL) {
+		CHECK(dns_generalstats_create(mctx, &resstats,
+					      dns_resstatscounter_max));
+	}
+	dns_view_setresstats(view, resstats);
+	if (resquerystats == NULL)
+		CHECK(dns_rdatatypestats_create(mctx, &resquerystats));
+	dns_view_setresquerystats(view, resquerystats);
+	
 	/*
 	 * Set the ADB cache size to 1/8th of the max-cache-size.
 	 */
@@ -1835,6 +1868,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 		const char *empty_dbtype[4] =
 				    { "_builtin", "empty", NULL, NULL };
 		int empty_dbtypec = 4;
+		isc_boolean_t zonestats_on;
 
 		dns_fixedname_init(&fixed);
 		name = dns_fixedname_name(&fixed);
@@ -1869,6 +1903,11 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 		} else
 			empty_dbtype[3] = ".";
 
+		obj = NULL;
+		result = ns_config_get(maps, "zone-statistics", &obj);
+		INSIST(result == ISC_R_SUCCESS);
+		zonestats_on = cfg_obj_asboolean(obj);
+
 		logit = ISC_TRUE;
 		for (empty = empty_zones[empty_zone].zone;
 		     empty != NULL;
@@ -1893,6 +1932,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 			 */
 			(void)dns_view_findzone(view, name, &zone);
 			if (zone != NULL) {
+				CHECK(setquerystats(zone, mctx, zonestats_on));
 				dns_zone_detach(&zone);
 				continue;
 			}
@@ -1943,6 +1983,8 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 				if (zone != NULL) {
 					dns_zone_setview(zone, view);
 					CHECK(dns_view_addzone(view, zone));
+					CHECK(setquerystats(zone, mctx,
+							    zonestats_on));
 					dns_zone_detach(&zone);
 					continue;
 				}
@@ -1954,6 +1996,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 			CHECK(dns_zonemgr_managezone(ns_g_server->zonemgr, zone));
 			dns_zone_setclass(zone, view->rdclass);
 			dns_zone_settype(zone, dns_zone_master);
+			dns_zone_setstats(zone, ns_g_server->zonestats);
 			CHECK(dns_zone_setdbtype(zone, empty_dbtypec,
 						 empty_dbtype));
 			if (view->queryacl != NULL)
@@ -1964,6 +2007,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 			dns_zone_setnotifytype(zone, dns_notifytype_no);
 			dns_zone_setoption(zone, DNS_ZONEOPT_NOCHECKNS,
 					   ISC_TRUE);
+			CHECK(setquerystats(zone, mctx, zonestats_on));
 			CHECK(dns_view_addzone(view, zone));
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
@@ -1982,6 +2026,10 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 		dns_dispatch_detach(&dispatch4);
 	if (dispatch6 != NULL)
 		dns_dispatch_detach(&dispatch6);
+	if (resstats != NULL)
+		dns_stats_detach(&resstats);
+	if (resquerystats != NULL)
+		dns_stats_detach(&resquerystats);
 	if (order != NULL)
 		dns_order_detach(&order);
 	if (cmctx != NULL)
@@ -2430,6 +2478,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 		if (view->acache != NULL)
 			dns_zone_setacache(zone, view->acache);
 		CHECK(dns_zonemgr_managezone(ns_g_server->zonemgr, zone));
+		dns_zone_setstats(zone, ns_g_server->zonestats);
 	}
 
 	/*
@@ -3611,6 +3660,8 @@ run_server(isc_task_t *task, isc_event_t *event) {
 					  &ns_g_dispatchmgr),
 		   "creating dispatch manager");
 
+	dns_dispatchmgr_setstats(ns_g_dispatchmgr, server->resolverstats);
+
 	CHECKFATAL(ns_interfacemgr_create(ns_g_mctx, ns_g_taskmgr,
 					  ns_g_socketmgr, ns_g_dispatchmgr,
 					  &server->interfacemgr),
@@ -3799,7 +3850,11 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->statsfile = isc_mem_strdup(server->mctx, "named.stats");
 	CHECKFATAL(server->statsfile == NULL ? ISC_R_NOMEMORY : ISC_R_SUCCESS,
 		   "isc_mem_strdup");
-	server->querystats = NULL;
+	server->nsstats = NULL;
+	server->rcvquerystats = NULL;
+	server->opcodestats = NULL;
+	server->zonestats = NULL;
+	server->resolverstats = NULL;
 
 	server->dumpfile = isc_mem_strdup(server->mctx, "named_dump.db");
 	CHECKFATAL(server->dumpfile == NULL ? ISC_R_NOMEMORY : ISC_R_SUCCESS,
@@ -3816,8 +3871,24 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->server_usehostname = ISC_FALSE;
 	server->server_id = NULL;
 
-	CHECKFATAL(dns_stats_create(ns_g_mctx, &server->querystats),
-		   "dns_stats_create");
+	CHECKFATAL(dns_generalstats_create(ns_g_mctx, &server->nsstats,
+					   dns_nsstatscounter_max),
+		   "dns_stats_create (server)");
+
+	CHECKFATAL(dns_rdatatypestats_create(ns_g_mctx, 
+					     &server->rcvquerystats),
+		   "dns_stats_create (rcvquery)");
+
+	CHECKFATAL(dns_opcodestats_create(ns_g_mctx, &server->opcodestats),
+		   "dns_stats_create (opcode)");
+
+	CHECKFATAL(dns_generalstats_create(ns_g_mctx, &server->zonestats,
+					   dns_zonestatscounter_max),
+		   "dns_stats_create (zone)");
+
+	CHECKFATAL(dns_generalstats_create(ns_g_mctx, &server->resolverstats,
+					   dns_resstatscounter_max),
+		   "dns_stats_create (resolver)");
 
 	server->flushonshutdown = ISC_FALSE;
 	server->log_queries = ISC_FALSE;
@@ -3841,7 +3912,11 @@ ns_server_destroy(ns_server_t **serverp) {
 
 	ns_controls_destroy(&server->controls);
 
-	dns_stats_destroy(server->mctx, &server->querystats);
+	dns_stats_detach(&server->nsstats);
+	dns_stats_detach(&server->rcvquerystats);
+	dns_stats_detach(&server->opcodestats);
+	dns_stats_detach(&server->zonestats);
+	dns_stats_detach(&server->resolverstats);
 
 	isc_mem_free(server->mctx, server->statsfile);
 	isc_mem_free(server->mctx, server->dumpfile);
@@ -4405,59 +4480,13 @@ ns_listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 isc_result_t
 ns_server_dumpstats(ns_server_t *server) {
 	isc_result_t result;
-	dns_zone_t *zone, *next;
-	isc_stdtime_t now;
 	FILE *fp = NULL;
-	int i;
-	int ncounters;
-	isc_uint64_t counters[DNS_STATS_NCOUNTERS];
-
-	isc_stdtime_get(&now);
 
 	CHECKMF(isc_stdio_open(server->statsfile, "a", &fp),
 		"could not open statistics dump file", server->statsfile);
 
-	ncounters = DNS_STATS_NCOUNTERS;
-	fprintf(fp, "+++ Statistics Dump +++ (%lu)\n", (unsigned long)now);
-
-	dns_stats_copy(server->querystats, counters);
-	for (i = 0; i < ncounters; i++)
-		fprintf(fp, "%s %" ISC_PRINT_QUADFORMAT "u\n",
-			dns_statscounter_names[i], counters[i]);
-
-	zone = NULL;
-	for (result = dns_zone_first(server->zonemgr, &zone);
-	     result == ISC_R_SUCCESS;
-	     next = NULL, result = dns_zone_next(zone, &next), zone = next)
-	{
-		dns_stats_t *zonestats = dns_zone_getstats(zone);
-		if (zonestats != NULL) {
-			char zonename[DNS_NAME_FORMATSIZE];
-			dns_view_t *view;
-			char *viewname;
-
-			dns_stats_copy(zonestats, counters);
-			dns_name_format(dns_zone_getorigin(zone),
-					zonename, sizeof(zonename));
-			view = dns_zone_getview(zone);
-			viewname = view->name;
-			for (i = 0; i < ncounters; i++) {
-				fprintf(fp, "%s %" ISC_PRINT_QUADFORMAT
-					"u %s",
-					dns_statscounter_names[i],
-					counters[i],
-					zonename);
-				if (strcmp(viewname, "_default") != 0)
-					fprintf(fp, " %s", viewname);
-				fprintf(fp, "\n");
-			}
-		}
-	}
-	if (result == ISC_R_NOMORE)
-		result = ISC_R_SUCCESS;
+	result = ns_stats_dump(server, fp);
 	CHECK(result);
-
-	fprintf(fp, "--- Statistics Dump --- (%lu)\n", (unsigned long)now);
 
  cleanup:
 	if (fp != NULL)
