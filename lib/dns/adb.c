@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.181.2.11.2.33 2008/04/03 00:17:07 each Exp $ */
+/* $Id: adb.c,v 1.181.2.11.2.34 2008/04/03 06:07:11 tbox Exp $ */
 
 /*
  * Implementation notes
