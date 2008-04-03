@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: spnego.c,v 1.5.128.1 2008/04/03 00:47:46 marka Exp $ */
+/* $Id: spnego.c,v 1.5.128.2 2008/04/03 02:13:29 marka Exp $ */
 
 /*! \file
  * \brief
@@ -1405,7 +1405,7 @@ gssapi_spnego_encapsulate(OM_uint32 * minor_status,
 	p = gssapi_mech_make_header(output_token->value, len, mech);
 	if (p == NULL) {
 		if (output_token->length != 0)
-			gss_release_buffer(&minor_status, output_token);
+			gss_release_buffer(minor_status, output_token);
 		return (GSS_S_FAILURE);
 	}
 	memcpy(p, buf, buf_size);
