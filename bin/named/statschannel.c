@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: statschannel.c,v 1.7 2008/04/03 05:55:51 marka Exp $ */
+/* $Id: statschannel.c,v 1.8 2008/04/03 06:09:04 tbox Exp $ */
 
 /*! \file */
 
@@ -80,7 +80,7 @@ generalstat_dump(dns_statscounter_t counter, isc_uint64_t val, void *arg) {
 
 	switch (dumparg->type) {
 	case statsformat_file:
-		fp = dumparg->arg; 
+		fp = dumparg->arg;
 		fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n", val,
 			dumparg->desc[counter]);
 		break;
@@ -888,9 +888,9 @@ static const char *resstats_desc[] = {
 	"truncated responses received",	/* dns_resstatscounter_truncated */
 	"lame delegations received",	/* dns_resstatscounter_lame */
 	"query retries",		/* dns_resstatscounter_retry */
- 	"IPv4 NS address fetches",	/* dns_resstatscounter_gluefetchv4 */
- 	"IPv6 NS address fetches",	/* dns_resstatscounter_gluefetchv6 */
- 	"IPv4 NS address fetch failed",	/* dns_resstatscounter_gluefetchv4fail */
+	"IPv4 NS address fetches",	/* dns_resstatscounter_gluefetchv4 */
+	"IPv6 NS address fetches",	/* dns_resstatscounter_gluefetchv6 */
+	"IPv4 NS address fetch failed",	/* dns_resstatscounter_gluefetchv4fail */
 	"IPv6 NS address fetch failed",	/* dns_resstatscounter_gluefetchv6fail */
 	"DNSSEC validation attempted",	/* dns_resstatscounter_val */
 	"DNSSEC validation failed",	/* dns_resstatscounter_valfail */

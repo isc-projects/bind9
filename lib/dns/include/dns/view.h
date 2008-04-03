@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.109 2008/04/03 05:55:52 marka Exp $ */
+/* $Id: view.h,v 1.110 2008/04/03 06:09:05 tbox Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -843,7 +843,7 @@ dns_view_getresstats(dns_view_t *view, dns_stats_t **statsp);
  * Requires:
  * \li	'view' is valid and is not frozen.
  *
- *\li	'statsp' != NULL && '*statsp' != NULL 
+ *\li	'statsp' != NULL && '*statsp' != NULL
  */
 
 void
@@ -869,7 +869,7 @@ dns_view_getresquerystats(dns_view_t *view, dns_stats_t **statsp);
  * Requires:
  * \li	'view' is valid and is not frozen.
  *
- *\li	'statsp' != NULL && '*statsp' != NULL 
+ *\li	'statsp' != NULL && '*statsp' != NULL
  */
 
 #endif /* DNS_VIEW_H */

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.505 2008/04/03 05:55:51 marka Exp $ */
+/* $Id: server.c,v 1.506 2008/04/03 06:09:04 tbox Exp $ */
 
 /*! \file */
 
@@ -1376,7 +1376,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	if (resquerystats == NULL)
 		CHECK(dns_rdatatypestats_create(mctx, &resquerystats));
 	dns_view_setresquerystats(view, resquerystats);
-	
+
 	/*
 	 * Set the ADB cache size to 1/8th of the max-cache-size.
 	 */
@@ -3877,7 +3877,7 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 					   dns_nsstatscounter_max),
 		   "dns_stats_create (server)");
 
-	CHECKFATAL(dns_rdatatypestats_create(ns_g_mctx, 
+	CHECKFATAL(dns_rdatatypestats_create(ns_g_mctx,
 					     &server->rcvquerystats),
 		   "dns_stats_create (rcvquery)");
 

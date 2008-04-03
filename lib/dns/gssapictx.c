@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gssapictx.c,v 1.11 2008/04/03 00:45:23 marka Exp $ */
+/* $Id: gssapictx.c,v 1.12 2008/04/03 06:09:04 tbox Exp $ */
 
 #include <config.h>
 
@@ -546,7 +546,7 @@ dst_gssapi_acceptctx(gss_cred_id_t cred,
 	isc_region_t r;
 	isc_buffer_t namebuf;
 	gss_buffer_desc gnamebuf = GSS_C_EMPTY_BUFFER, gintoken,
-		        gouttoken = GSS_C_EMPTY_BUFFER;
+			gouttoken = GSS_C_EMPTY_BUFFER;
 	OM_uint32 gret, minor;
 	gss_ctx_id_t context = GSS_C_NO_CONTEXT;
 	gss_name_t gname = NULL;
@@ -696,7 +696,7 @@ gss_error_tostring(isc_uint32_t major, isc_uint32_t minor,
 		   char *buf, size_t buflen) {
 #ifdef GSSAPI
 	gss_buffer_desc msg_minor = GSS_C_EMPTY_BUFFER,
-		        msg_major = GSS_C_EMPTY_BUFFER;
+			msg_major = GSS_C_EMPTY_BUFFER;
 	OM_uint32 msg_ctx, minor_stat;
 
 	/* Handle major status */

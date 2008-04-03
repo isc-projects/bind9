@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stats.c,v 1.15 2008/04/03 05:55:52 marka Exp $ */
+/* $Id: stats.c,v 1.16 2008/04/03 06:09:04 tbox Exp $ */
 
 /*! \file */
 
@@ -112,7 +112,7 @@ struct dns_stats {
 	 * XXX: this approach is weird for non-threaded build because the
 	 * additional memory and the copy overhead could be avoided.  We prefer
 	 * simplicity here, however, under the assumption that this function
-	 * should be only rarely called. 
+	 * should be only rarely called.
 	 */
 	isc_uint64_t	*copiedcounters;
 };
@@ -129,7 +129,7 @@ create_stats(isc_mem_t *mctx, dns_statstype_t type, int ncounters,
 	stats = isc_mem_get(mctx, sizeof(*stats));
 	if (stats == NULL)
 		return (ISC_R_NOMEMORY);
-	
+
 	result = isc_mutex_init(&stats->lock);
 	if (result != ISC_R_SUCCESS)
 		goto clean_stats;
@@ -287,7 +287,7 @@ decrementcounter(dns_stats_t *stats, int counter) {
 static void
 copy_counters(dns_stats_t *stats) {
 	int i;
-	
+
 #ifdef ISC_RWLOCK_USEATOMIC
 	/*
 	 * We use a "write" lock before "reading" the statistics counters as
