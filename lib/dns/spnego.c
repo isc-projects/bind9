@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: spnego.c,v 1.5 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: spnego.c,v 1.6 2008/04/03 00:45:23 marka Exp $ */
 
 /*! \file
  * \brief
@@ -168,88 +168,6 @@
  * The API we export
  */
 #include "spnego.h"
-
-/*
- * The isc_mem function keep track of allocation sizes, but we can't
- * get at that information, and we need to know sizes to implement a
- * realloc() clone.  So we use a little more memory to keep track of
- * sizes allocated here.
- *
- * These functions follow Harbison & Steele, 4th edition, particularly
- * with regard to realloc()'s behavior.
- */
-
-static void *
-spnego_malloc(size_t size, const char *file, int line)
-{
-	char *p;
-
-	if (size == 0)
-		return (NULL);
-	p = isc_mem_allocate(dst__memory_pool, size + sizeof(size_t));
-	if (p == NULL)
-		return NULL;
-	*(size_t *)p = size;
-	p += sizeof(size_t);
-#ifdef SPNEGO_ALLOC_DEBUG
-	printf("spnego_malloc(%lu) %lx %s %u\n",
-	       (unsigned long) size, (unsigned long) p, file, line);
-#else
-	(void)file;
-	(void)line;
-#endif
-	return (p);
-}
-	
-static void
-spnego_free(void *ptr, const char *file, int line)
-{
-	char *p = ptr;
-
-	if (p == NULL)
-		return;
-#ifdef SPNEGO_ALLOC_DEBUG
-	printf("spnego_free(%lx) %s %u\n",
-	       (unsigned long) p, file, line);
-#else
-	(void)file;
-	(void)line;
-#endif
-	p -= sizeof(size_t);
-	isc_mem_free(dst__memory_pool, p);
-}
-
-static void *
-spnego_realloc(void *old_ptr, size_t new_size, const char *file, int line)
-{
-	size_t *old_size;
-	void *new_ptr;
-
-	if (old_ptr == NULL)
-		return (spnego_malloc(new_size, file, line));
-
-	if (new_size == 0) {
-		spnego_free(old_ptr, file, line);
-		return (NULL);
-	}
-
-	old_size = old_ptr;
-	old_size--;
-	if (*old_size >= new_size)
-		return (old_ptr);
-
-	new_ptr = spnego_malloc(new_size, file, line);
-	if (new_ptr == NULL)
-		return (NULL);
-
-	memcpy(new_ptr, old_ptr, *old_size);
-	spnego_free(old_ptr, file, line);
-	return (new_ptr);
-}
-
-#define	malloc(x)	spnego_malloc(x,	__FILE__, __LINE__)
-#define	free(x)		spnego_free(x,		__FILE__, __LINE__)
-#define	realloc(x,y)	spnego_realloc(x, y,	__FILE__, __LINE__)
 
 /* asn1_err.h */
 /* Generated from ../../../lib/asn1/asn1_err.et */
@@ -756,7 +674,7 @@ gss_accept_sec_context_spnego(OM_uint32 *minor_status,
 		ot = &obuf;
 	}
 	ret = send_accept(&minor_status2, output_token, ot, pref);
-	if (ot != NULL)
+	if (ot != NULL && ot->length != 0)
 		gss_release_buffer(&minor_status2, ot);
 
 	return (ret);
@@ -1485,8 +1403,11 @@ gssapi_spnego_encapsulate(OM_uint32 * minor_status,
 		return (GSS_S_FAILURE);
 	}
 	p = gssapi_mech_make_header(output_token->value, len, mech);
-	if (p == NULL)
+	if (p == NULL) {
+		if (output_token->length != 0)
+			gss_release_buffer(&minor_status, output_token);
 		return (GSS_S_FAILURE);
+	}
 	memcpy(p, buf, buf_size);
 	return (GSS_S_COMPLETE);
 }
@@ -1659,8 +1580,8 @@ spnego_initial(OM_uint32 *minor_status,
 	ret = gssapi_spnego_encapsulate(minor_status,
 					buf + buf_size - len, len,
 					output_token, GSS_SPNEGO_MECH);
-
-	ret = major_status;
+	if (ret == GSS_S_COMPLETE)
+		ret = major_status;
 
 end:
 	if (token_init.mechToken != NULL) {
@@ -1668,7 +1589,7 @@ end:
 		token_init.mechToken = NULL;
 	}
 	free_NegTokenInit(&token_init);
-	if (krb5_output_token.length > 0)
+	if (krb5_output_token.length != 0)
 		gss_release_buffer(&minor_status2, &krb5_output_token);
 	if (buf)
 		free(buf);

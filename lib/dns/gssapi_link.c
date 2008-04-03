@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: gssapi_link.c,v 1.7 2007/06/19 23:47:16 tbox Exp $
+ * $Id: gssapi_link.c,v 1.8 2008/04/03 00:45:23 marka Exp $
  */
 
 #include <config.h>
@@ -174,7 +174,8 @@ gssapi_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	 * allocated space.
 	 */
 	isc_buffer_putmem(sig, gsig.value, gsig.length);
-	gss_release_buffer(&minor, &gsig);
+	if (gsig.length != 0)
+		gss_release_buffer(&minor, &gsig);
 
 	return (ISC_R_SUCCESS);
 }

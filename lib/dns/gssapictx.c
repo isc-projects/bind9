@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gssapictx.c,v 1.10 2008/01/22 23:28:04 tbox Exp $ */
+/* $Id: gssapictx.c,v 1.11 2008/04/03 00:45:23 marka Exp $ */
 
 #include <config.h>
 
@@ -175,11 +175,13 @@ log_cred(const gss_cred_id_t cred) {
 	}
 
 	if (gret == GSS_S_COMPLETE) {
-		gret = gss_release_buffer(&minor, &gbuffer);
-		if (gret != GSS_S_COMPLETE)
-			gss_log(3, "failed gss_release_buffer: %s",
-				gss_error_tostring(gret, minor, buf,
-						   sizeof(buf)));
+		if (gbuffer.length != 0) {
+			gret = gss_release_buffer(&minor, &gbuffer);
+			if (gret != GSS_S_COMPLETE)
+				gss_log(3, "failed gss_release_buffer: %s",
+					gss_error_tostring(gret, minor, buf,
+							   sizeof(buf)));
+		}
 	}
 
 	gret = gss_release_name(&minor, &gname);
@@ -459,7 +461,7 @@ dst_gssapi_initctx(dns_name_t *name, isc_buffer_t *intoken,
 	isc_buffer_t namebuf;
 	gss_name_t gname;
 	OM_uint32 gret, minor, ret_flags, flags;
-	gss_buffer_desc gintoken, *gintokenp, gouttoken;
+	gss_buffer_desc gintoken, *gintokenp, gouttoken = GSS_C_EMPTY_BUFFER;
 	isc_result_t result;
 	gss_buffer_desc gnamebuf;
 	unsigned char array[DNS_NAME_MAXTEXT + 1];
@@ -507,11 +509,15 @@ dst_gssapi_initctx(dns_name_t *name, isc_buffer_t *intoken,
 	 * MUTUAL and INTEG flags, fail if either not set.
 	 */
 
-	GBUFFER_TO_REGION(gouttoken, r);
-	RETERR(isc_buffer_copyregion(outtoken, &r));
-
+	/*
+	 * RFC 2744 states the a valid output token has a non-zero length.
+	 */
+	if (gouttoken.length != 0) {
+		GBUFFER_TO_REGION(gouttoken, r);
+		RETERR(isc_buffer_copyregion(outtoken, &r));
+		(void)gss_release_buffer(&minor, &gouttoken);
+	}
 	(void)gss_release_name(&minor, &gname);
-	(void)gss_release_buffer(&minor, &gouttoken);
 
 	if (gret == GSS_S_COMPLETE)
 		result = ISC_R_SUCCESS;
@@ -539,7 +545,8 @@ dst_gssapi_acceptctx(gss_cred_id_t cred,
 #ifdef GSSAPI
 	isc_region_t r;
 	isc_buffer_t namebuf;
-	gss_buffer_desc gnamebuf, gintoken, gouttoken;
+	gss_buffer_desc gnamebuf = GSS_C_EMPTY_BUFFER, gintoken,
+		        gouttoken = GSS_C_EMPTY_BUFFER;
 	OM_uint32 gret, minor;
 	gss_ctx_id_t context = GSS_C_NO_CONTEXT;
 	gss_name_t gname = NULL;
@@ -593,6 +600,7 @@ dst_gssapi_acceptctx(gss_cred_id_t cred,
 		RETERR(isc_buffer_allocate(mctx, outtoken, gouttoken.length));
 		GBUFFER_TO_REGION(gouttoken, r);
 		RETERR(isc_buffer_copyregion(*outtoken, &r));
+		(void)gss_release_buffer(&minor, &gouttoken);
 	}
 
 	if (gret == GSS_S_COMPLETE) {
@@ -624,11 +632,13 @@ dst_gssapi_acceptctx(gss_cred_id_t cred,
 		RETERR(dns_name_fromtext(principal, &namebuf, dns_rootname,
 					 ISC_FALSE, NULL));
 
-		gret = gss_release_buffer(&minor, &gnamebuf);
-		if (gret != GSS_S_COMPLETE)
-			gss_log(3, "failed gss_release_buffer: %s",
-				gss_error_tostring(gret, minor, buf,
-						   sizeof(buf)));
+		if (gnamebuf.length != 0) {
+			gret = gss_release_buffer(&minor, &gnamebuf);
+			if (gret != GSS_S_COMPLETE)
+				gss_log(3, "failed gss_release_buffer: %s",
+					gss_error_tostring(gret, minor, buf,
+							   sizeof(buf)));
+		}
 	}
 
 	*ctxout = context;
@@ -685,7 +695,8 @@ char *
 gss_error_tostring(isc_uint32_t major, isc_uint32_t minor,
 		   char *buf, size_t buflen) {
 #ifdef GSSAPI
-	gss_buffer_desc msg_minor, msg_major;
+	gss_buffer_desc msg_minor = GSS_C_EMPTY_BUFFER,
+		        msg_major = GSS_C_EMPTY_BUFFER;
 	OM_uint32 msg_ctx, minor_stat;
 
 	/* Handle major status */
@@ -701,8 +712,10 @@ gss_error_tostring(isc_uint32_t major, isc_uint32_t minor,
 	snprintf(buf, buflen, "GSSAPI error: Major = %s, Minor = %s.",
 		(char *)msg_major.value, (char *)msg_minor.value);
 
-	(void)gss_release_buffer(&minor_stat, &msg_major);
-	(void)gss_release_buffer(&minor_stat, &msg_minor);
+	if (msg_major.length != 0)
+		(void)gss_release_buffer(&minor_stat, &msg_major);
+	if (msg_minor.length != 0)
+		(void)gss_release_buffer(&minor_stat, &msg_minor);
 	return(buf);
 #else
 	snprintf(buf, buflen, "GSSAPI error: Major = %u, Minor = %u.",
