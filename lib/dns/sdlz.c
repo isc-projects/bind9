@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdlz.c,v 1.14.94.2 2008/04/03 06:20:34 tbox Exp $ */
+/* $Id: sdlz.c,v 1.14.94.3 2008/04/03 10:51:01 marka Exp $ */
 
 /*! \file */
 
@@ -1051,6 +1051,7 @@ static dns_dbmethods_t sdlzdb_methods = {
 	overmem,
 	settask,
 	NULL,
+	NULL,
 	NULL
 };
 
@@ -1192,7 +1193,6 @@ static dns_rdatasetmethods_t rdataset_methods = {
 	isc__rdatalist_count,
 	isc__rdatalist_addnoqname,
 	isc__rdatalist_getnoqname,
-	NULL,
 	NULL,
 	NULL,
 	NULL
