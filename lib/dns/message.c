@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.242 2008/04/03 02:01:08 marka Exp $ */
+/* $Id: message.c,v 1.243 2008/04/03 10:45:35 marka Exp $ */
 
 /*! \file */
 
@@ -3195,7 +3195,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 					isc_buffer_putmem(target, &optdata[i],
 							  1);
 				else
-					isc_buffer_putmem(target, ".", 1);
+					isc_buffer_putstr(target, ".");
 				ADD_STRING(target, ")");
 			}
 		}
