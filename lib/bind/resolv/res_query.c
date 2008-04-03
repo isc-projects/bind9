@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_query.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: res_query.c,v 1.8.672.1 2008/04/03 02:12:21 marka Exp $";
+static const char rcsid[] = "$Id: res_query.c,v 1.8.672.2 2008/04/03 10:49:22 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -136,7 +136,7 @@ again:
 	    (statp->options & (RES_USE_EDNS0|RES_USE_DNSSEC|RES_NSID))) {
 		n = res_nopt(statp, n, buf, sizeof(buf), anslen);
 		rdata = &buf[n];
-		if (n > 0 && (statp->options & RES_NSID) != 0) {
+		if (n > 0 && (statp->options & RES_NSID) != 0U) {
 			n = res_nopt_rdata(statp, n, buf, sizeof(buf), rdata,
 					   NS_OPT_NSID, 0, NULL);
 		}
