@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.87.2.2 2008/01/17 23:46:37 tbox Exp $
+ * $Id: tkey.c,v 1.87.2.3 2008/04/03 00:47:46 marka Exp $
  */
 /*! \file */
 #include <config.h>
@@ -69,7 +69,7 @@ tkey_log(const char *fmt, ...) {
 static void
 _dns_tkey_dumpmessage(dns_message_t *msg) {
 	isc_buffer_t outbuf;
-	unsigned char output[2048];
+	unsigned char output[4096];
 	isc_result_t result;
 
 	isc_buffer_init(&outbuf, output, sizeof(output));
@@ -846,7 +846,7 @@ buildquery(dns_message_t *msg, dns_name_t *name,
 	dns_rdataset_makequestion(question, dns_rdataclass_any,
 				  dns_rdatatype_tkey);
 
-	RETERR(isc_buffer_allocate(msg->mctx, &dynbuf, 2048));
+	RETERR(isc_buffer_allocate(msg->mctx, &dynbuf, 4096));
 	RETERR(dns_message_gettemprdata(msg, &rdata));
 
 	RETERR(dns_rdata_fromstruct(rdata, dns_rdataclass_any,
@@ -984,7 +984,7 @@ dns_tkey_buildgssquery(dns_message_t *msg, dns_name_t *name, dns_name_t *gname,
 	isc_result_t result;
 	isc_stdtime_t now;
 	isc_buffer_t token;
-	unsigned char array[2048];
+	unsigned char array[4096];
 
 	UNUSED(intoken);
 

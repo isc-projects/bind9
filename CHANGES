@@ -1,3 +1,5 @@
+2352.	[bug]		Various GSS_API fixups. [RT #17729]
+
 2351.	[bug]		convertxsl.pl generated very long lines. [RT #17906]
 
 2350.	[port]		win32: IPv6 support. [RT #17797]
