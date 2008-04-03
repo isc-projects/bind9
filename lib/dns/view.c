@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.145 2008/04/01 23:47:10 tbox Exp $ */
+/* $Id: view.c,v 1.146 2008/04/03 05:55:52 marka Exp $ */
 
 /*! \file */
 
@@ -25,7 +25,6 @@
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/task.h>
 #include <isc/util.h>
-#include <isc/xml.h>
 
 #include <dns/acache.h>
 #include <dns/acl.h>
@@ -44,6 +43,7 @@
 #include <dns/request.h>
 #include <dns/resolver.h>
 #include <dns/result.h>
+#include <dns/stats.h>
 #include <dns/tsig.h>
 #include <dns/zone.h>
 #include <dns/zt.h>
@@ -152,6 +152,8 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->delonly = NULL;
 	view->rootdelonly = ISC_FALSE;
 	view->rootexclude = NULL;
+	view->resstats = NULL;
+	view->resquerystats = NULL;
 
 	/*
 	 * Initialize configuration data with default values.
@@ -332,6 +334,10 @@ destroy(dns_view_t *view) {
 			    sizeof(dns_namelist_t) * DNS_VIEW_DELONLYHASH);
 		view->rootexclude = NULL;
 	}
+	if (view->resstats != NULL)
+		dns_stats_detach(&view->resstats);
+	if (view->resquerystats != NULL)
+		dns_stats_detach(&view->resquerystats);
 	dns_keytable_detach(&view->trustedkeys);
 	dns_keytable_detach(&view->secroots);
 	dns_fwdtable_destroy(&view->fwdtable);
@@ -1408,46 +1414,38 @@ dns_view_freezezones(dns_view_t *view, isc_boolean_t value) {
 	return (dns_zt_freezezones(view->zonetable, value));
 }
 
-#ifdef HAVE_LIBXML2
+void
+dns_view_setresstats(dns_view_t *view, dns_stats_t *stats) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(!view->frozen);
+	REQUIRE(view->resstats == NULL);
 
-struct xmlarg {
-	int flags;
-	xmlTextWriterPtr xml;
-};
-
-static isc_result_t
-zone_xmlrender(dns_zone_t *zone, void *arg) {
-	struct xmlarg *xmlarg = arg;
-
-	return (dns_zone_xmlrender(zone, xmlarg->xml, xmlarg->flags));
+	dns_stats_attach(stats, &view->resstats);
 }
 
-isc_result_t
-dns_view_xmlrender(dns_view_t *view, xmlTextWriterPtr xml, int flags)
-{
-	struct xmlarg xmlargs;
+void
+dns_view_getresstats(dns_view_t *view, dns_stats_t **statsp) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(statsp != NULL && *statsp == NULL);
 
-	xmlargs.flags = flags;
-	xmlargs.xml = xml;
-
-	/* XXXMLG render config data here */
-
-	if ((flags & ISC_XML_RENDERSTATS) != 0) {
-		xmlTextWriterStartElement(xml, ISC_XMLCHAR "view");
-
-		xmlTextWriterStartElement(xml, ISC_XMLCHAR "name");
-		xmlTextWriterWriteString(xml, ISC_XMLCHAR view->name);
-		xmlTextWriterEndElement(xml);
-
-		xmlTextWriterStartElement(xml, ISC_XMLCHAR "zones");
-		dns_zt_apply(view->zonetable, ISC_FALSE, zone_xmlrender,
-			     &xmlargs);
-		xmlTextWriterEndElement(xml);
-
-		xmlTextWriterEndElement(xml);
-	}
-
-	return (ISC_R_SUCCESS);
+	if (view->resstats != NULL)
+		dns_stats_attach(view->resstats, statsp);
 }
 
-#endif /* HAVE_LIBXML2 */
+void
+dns_view_setresquerystats(dns_view_t *view, dns_stats_t *stats) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(!view->frozen);
+	REQUIRE(view->resquerystats == NULL);
+
+	dns_stats_attach(stats, &view->resquerystats);
+}
+
+void
+dns_view_getresquerystats(dns_view_t *view, dns_stats_t **statsp) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(statsp != NULL && *statsp == NULL);
+
+	if (view->resquerystats != NULL)
+		dns_stats_attach(view->resquerystats, statsp);
+}

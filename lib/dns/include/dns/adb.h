@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.h,v 1.83 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: adb.h,v 1.84 2008/04/03 05:55:52 marka Exp $ */
 
 #ifndef DNS_ADB_H
 #define DNS_ADB_H 1
@@ -628,7 +628,6 @@ dns_adb_flushname(dns_adb_t *adb, dns_name_t *name);
  *\li	'adb' is valid.
  *\li	'name' is valid.
  */
-
 
 ISC_LANG_ENDDECLS
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.304 2008/04/01 01:37:24 marka Exp $ */
+/* $Id: query.c,v 1.305 2008/04/03 05:55:51 marka Exp $ */
 
 /*! \file */
 
@@ -128,35 +128,37 @@ static inline void
 inc_stats(ns_client_t *client, dns_statscounter_t counter) {
 	dns_zone_t *zone = client->query.authzone;
 
-	REQUIRE(counter < DNS_STATS_NCOUNTERS);
-
-	dns_stats_incrementcounter(ns_g_server->querystats, counter);
+	dns_generalstats_increment(ns_g_server->nsstats, counter);
 
 	if (zone != NULL) {
-		dns_stats_t *zonestats = dns_zone_getstats(zone);
+		dns_stats_t *zonestats = dns_zone_getrequeststats(zone);
 		if (zonestats != NULL)
-			dns_stats_incrementcounter(zonestats, counter);
+			dns_generalstats_increment(zonestats, counter);
 	}
 }
 
 static void
 query_send(ns_client_t *client) {
 	dns_statscounter_t counter;
+	if ((client->message->flags & DNS_MESSAGEFLAG_AA) == 0)
+		inc_stats(client, dns_nsstatscounter_nonauthans);
+	else
+		inc_stats(client, dns_nsstatscounter_authans);
 	if (client->message->rcode == dns_rcode_noerror) {
 		if (ISC_LIST_EMPTY(client->message->sections[DNS_SECTION_ANSWER])) {
 			if (client->query.isreferral) {
-				counter = dns_statscounter_referral;
+				counter = dns_nsstatscounter_referral;
 			} else {
-				counter = dns_statscounter_nxrrset;
+				counter = dns_nsstatscounter_nxrrset;
 			}
 		} else {
-			counter = dns_statscounter_success;
+			counter = dns_nsstatscounter_success;
 		}
 	} else if (client->message->rcode == dns_rcode_nxdomain) {
-		counter = dns_statscounter_nxdomain;
+		counter = dns_nsstatscounter_nxdomain;
 	} else {
 		/* We end up here in case of YXDOMAIN, and maybe others */
-		counter = dns_statscounter_failure;
+		counter = dns_nsstatscounter_failure;
 	}
 	inc_stats(client, counter);
 	ns_client_send(client);
@@ -164,18 +166,28 @@ query_send(ns_client_t *client) {
 
 static void
 query_error(ns_client_t *client, isc_result_t result) {
-	inc_stats(client, dns_statscounter_failure);
+	switch (result) {
+	case DNS_R_SERVFAIL:
+		inc_stats(client, dns_nsstatscounter_servfail);
+		break;
+	case DNS_R_FORMERR:
+		inc_stats(client, dns_nsstatscounter_formerr);
+		break;
+	default:
+		inc_stats(client, dns_nsstatscounter_failure);
+		break;
+	}
 	ns_client_error(client, result);
 }
 
 static void
 query_next(ns_client_t *client, isc_result_t result) {
 	if (result == DNS_R_DUPLICATE)
-		inc_stats(client, dns_statscounter_duplicate);
+		inc_stats(client, dns_nsstatscounter_duplicate);
 	else if (result == DNS_R_DROP)
-		inc_stats(client, dns_statscounter_dropped);
+		inc_stats(client, dns_nsstatscounter_dropped);
 	else
-		inc_stats(client, dns_statscounter_failure);
+		inc_stats(client, dns_nsstatscounter_failure);
 	ns_client_next(client, result);
 }
 
@@ -2935,7 +2947,7 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 	dns_rdataset_t *rdataset, *sigrdataset;
 	isc_sockaddr_t *peeraddr;
 
-	inc_stats(client, dns_statscounter_recursion);
+	inc_stats(client, dns_nsstatscounter_recursion);
 
 	/*
 	 * We are about to recurse, which means that this client will
@@ -3494,6 +3506,11 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	}
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_REFUSED) {
+			if (WANTRECURSION(client)) {
+				inc_stats(client,
+					  dns_nsstatscounter_recurserej);
+			} else
+				inc_stats(client, dns_nsstatscounter_authrej);
 			if (!PARTIALANSWER(client))
 				QUERY_ERROR(DNS_R_REFUSED);
 		} else
@@ -4550,6 +4567,7 @@ ns_query_start(ns_client_t *client) {
 	rdataset = ISC_LIST_HEAD(client->query.qname->list);
 	INSIST(rdataset != NULL);
 	qtype = rdataset->type;
+	dns_rdatatypestats_increment(ns_g_server->rcvquerystats, qtype);
 	if (dns_rdatatype_ismeta(qtype)) {
 		switch (qtype) {
 		case dns_rdatatype_any:

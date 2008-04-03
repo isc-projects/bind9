@@ -1,3 +1,6 @@
+2355.	[func]		Extend the number statistics counters available.
+			[RT #17590]
+
 2354.	[bug]		Failed to initialise sone rdatasetheader_t elements.
 			[RT #17927]
 

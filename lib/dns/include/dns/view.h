@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.108 2008/04/03 02:01:08 marka Exp $ */
+/* $Id: view.h,v 1.109 2008/04/03 05:55:52 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -70,7 +70,6 @@
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
 #include <isc/stdtime.h>
-#include <isc/xml.h>
 
 #include <dns/acl.h>
 #include <dns/fixedname.h>
@@ -101,6 +100,8 @@ struct dns_view {
 	isc_event_t			resevent;
 	isc_event_t			adbevent;
 	isc_event_t			reqevent;
+	dns_stats_t *			resstats;
+	dns_stats_t *			resquerystats;
 
 	/* Configurable data. */
 	dns_tsig_keyring_t *		statickeys;
@@ -820,11 +821,55 @@ dns_view_freezezones(dns_view_t *view, isc_boolean_t freeze);
  * \li	'view' is valid.
  */
 
-#ifdef HAVE_LIBXML2
+void
+dns_view_setresstats(dns_view_t *view, dns_stats_t *stats);
+/*%<
+ * Set a general resolver statistics counter set 'stats' for 'view'.
+ *
+ * Requires:
+ * \li	'view' is valid and is not frozen.
+ *
+ *\li	stats is a valid statistics supporting resolver statistics counters
+ *	(see dns/stats.h).
+ */
 
-isc_result_t
-dns_view_xmlrender(dns_view_t *view, xmlTextWriterPtr xml, int flags);
+void
+dns_view_getresstats(dns_view_t *view, dns_stats_t **statsp);
+/*%<
+ * Get the general statistics counter set for 'view'.  If a statistics set is
+ * set '*statsp' will be attached to the set; otherwise, '*statsp' will be
+ * untouched.
+ *
+ * Requires:
+ * \li	'view' is valid and is not frozen.
+ *
+ *\li	'statsp' != NULL && '*statsp' != NULL 
+ */
 
-#endif
+void
+dns_view_setresquerystats(dns_view_t *view, dns_stats_t *stats);
+/*%<
+ * Set a statistics counter set of rdata type, 'stats', for 'view'.  Once the
+ * statistic set is installed, view's resolver will count outgoing queries
+ * per rdata type.
+ *
+ * Requires:
+ * \li	'view' is valid and is not frozen.
+ *
+ *\li	stats is a valid statistics created by dns_rdatatypestats_create().
+ */
+
+void
+dns_view_getresquerystats(dns_view_t *view, dns_stats_t **statsp);
+/*%<
+ * Get the rdatatype statistics counter set for 'view'.  If a statistics set is
+ * set '*statsp' will be attached to the set; otherwise, '*statsp' will be
+ * untouched.
+ *
+ * Requires:
+ * \li	'view' is valid and is not frozen.
+ *
+ *\li	'statsp' != NULL && '*statsp' != NULL 
+ */
 
 #endif /* DNS_VIEW_H */

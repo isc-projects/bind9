@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.86 2008/04/01 23:47:10 tbox Exp $ */
+/* $Id: db.c,v 1.87 2008/04/03 05:55:52 marka Exp $ */
 
 /*! \file */
 
@@ -857,6 +857,16 @@ dns_db_getoriginnode(dns_db_t *db, dns_dbnode_t **nodep) {
 		return ((db->methods->getoriginnode)(db, nodep));
 
 	return (ISC_R_NOTFOUND);
+}
+
+dns_stats_t *
+dns_db_getrrsetstats(dns_db_t *db) {
+	REQUIRE(DNS_DB_VALID(db));
+
+	if (db->methods->getrrsetstats != NULL)
+		return ((db->methods->getrrsetstats)(db));
+
+	return (NULL);
 }
 
 isc_result_t

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.91 2008/04/01 23:47:10 tbox Exp $ */
+/* $Id: db.h,v 1.92 2008/04/03 05:55:52 marka Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -157,6 +157,7 @@ typedef struct dns_dbmethods {
 	void		(*resigned)(dns_db_t *db, dns_rdataset_t *rdataset,
 					   dns_dbversion_t *version);
 	isc_boolean_t	(*isdnssec)(dns_db_t *db);
+	dns_stats_t	*(*getrrsetstats)(dns_db_t *db);
 } dns_dbmethods_t;
 
 typedef isc_result_t
@@ -1387,6 +1388,21 @@ dns_db_resigned(dns_db_t *db, dns_rdataset_t *rdataset,
  * \li	'version' to be open for writing.
  */
 
+
+dns_stats_t *
+dns_db_getrrsetstats(dns_db_t *db);
+/*%<
+ * Get statistics information counting RRsets stored in the DB, when available.
+ * The statistics may not be available depending on the DB implementation.
+ *
+ * Requires:
+ *
+ * \li	'db' is a valid database (zone or cache).
+ *
+ * Returns:
+ * \li	when available, a pointer to a statistics object created by
+ *	dns_rdatasetstats_create(); otherwise NULL.
+ */
 
 ISC_LANG_ENDDECLS
 

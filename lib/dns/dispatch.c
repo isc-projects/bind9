@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.138 2008/04/03 02:01:08 marka Exp $ */
+/* $Id: dispatch.c,v 1.139 2008/04/03 05:55:52 marka Exp $ */
 
 /*! \file */
 
@@ -40,6 +40,7 @@
 #include <dns/log.h>
 #include <dns/message.h>
 #include <dns/portlist.h>
+#include <dns/stats.h>
 #include <dns/tcpmsg.h>
 #include <dns/types.h>
 
@@ -71,6 +72,7 @@ struct dns_dispatchmgr {
 	isc_mem_t		       *mctx;
 	dns_acl_t		       *blackhole;
 	dns_portlist_t		       *portlist;
+	dns_stats_t		       *stats;
 
 	/* Locked by "lock". */
 	isc_mutex_t			lock;
@@ -652,6 +654,8 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 		     bucket, (resp == NULL ? "not found" : "found"));
 
 	if (resp == NULL) {
+		dns_generalstats_increment(mgr->stats,
+					   dns_resstatscounter_mismatch);
 		free_buffer(disp, ev->region.base, ev->region.length);
 		goto unlock;
 	}
@@ -1056,6 +1060,9 @@ destroy_mgr(dns_dispatchmgr_t **mgrp) {
 	if (mgr->portlist != NULL)
 		dns_portlist_detach(&mgr->portlist);
 
+	if (mgr->stats != NULL)
+		dns_stats_detach(&mgr->stats);
+
 	isc_mem_put(mctx, mgr, sizeof(dns_dispatchmgr_t));
 	isc_mem_detach(&mctx);
 }
@@ -1110,6 +1117,7 @@ dns_dispatchmgr_create(isc_mem_t *mctx, isc_entropy_t *entropy,
 
 	mgr->blackhole = NULL;
 	mgr->portlist = NULL;
+	mgr->stats = NULL;
 
 	result = isc_mutex_init(&mgr->lock);
 	if (result != ISC_R_SUCCESS)
@@ -1303,6 +1311,15 @@ dns_dispatchmgr_destroy(dns_dispatchmgr_t **mgrp) {
 
 	if (killit)
 		destroy_mgr(&mgr);
+}
+
+void
+dns_dispatchmgr_setstats(dns_dispatchmgr_t *mgr, dns_stats_t *stats) {
+	REQUIRE(VALID_DISPATCHMGR(mgr));
+	REQUIRE(ISC_LIST_EMPTY(mgr->list));
+	REQUIRE(mgr->stats == NULL);
+
+	dns_stats_attach(stats, &mgr->stats);
 }
 
 static isc_boolean_t

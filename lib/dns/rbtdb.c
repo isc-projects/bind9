@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.256 2008/04/03 04:00:38 marka Exp $ */
+/* $Id: rbtdb.c,v 1.257 2008/04/03 05:55:52 marka Exp $ */
 
 /*! \file */
 
@@ -57,6 +57,7 @@
 #include <dns/rdatasetiter.h>
 #include <dns/rdataslab.h>
 #include <dns/result.h>
+#include <dns/stats.h>
 #include <dns/view.h>
 #include <dns/zone.h>
 #include <dns/zonekey.h>
@@ -277,6 +278,7 @@ typedef ISC_LIST(dns_rbtnode_t)         rbtnodelist_t;
 #define RDATASET_ATTR_RETAIN            0x0008
 #define RDATASET_ATTR_NXDOMAIN          0x0010
 #define RDATASET_ATTR_RESIGN            0x0020
+#define RDATASET_ATTR_STATCOUNT         0x0040
 #define RDATASET_ATTR_CACHE             0x1000 /* for debug */
 #define RDATASET_ATTR_CANCELED          0x2000 /* for debug */
 
@@ -399,6 +401,7 @@ typedef struct {
 	unsigned int                    node_lock_count;
 	rbtdb_nodelock_t *              node_locks;
 	dns_rbtnode_t *                 origin_node;
+	dns_stats_t *			rrsetstats; /* cache DB only */
 	/* Locked by lock. */
 	unsigned int                    active;
 	isc_refcount_t                  references;
@@ -662,6 +665,32 @@ free_rbtdb_callback(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
+update_rrsetstats(dns_rbtdb_t *rbtdb, rdatasetheader_t *header,
+		  isc_boolean_t increment)
+{
+	dns_rdatastatstype_t statattributes = 0;
+	dns_rdatastatstype_t base = 0;
+	dns_rdatastatstype_t type;
+
+	/* At the moment we count statistics only for cache DB */
+	INSIST(IS_CACHE(rbtdb));
+
+	if (NXDOMAIN(header))
+		statattributes = DNS_RDATASTATSTYPE_ATTR_NXDOMAIN;
+	else if (RBTDB_RDATATYPE_BASE(header->type) == 0) {
+		statattributes = DNS_RDATASTATSTYPE_ATTR_NXRRSET;
+		base = RBTDB_RDATATYPE_EXT(header->type);
+	} else
+		base = RBTDB_RDATATYPE_BASE(header->type);
+
+	type = DNS_RDATASTATSTYPE_VALUE(base, statattributes);
+	if (increment)
+		dns_rdatasetstats_increment(rbtdb->rrsetstats, type);
+	else
+		dns_rdatasetstats_decrement(rbtdb->rrsetstats, type);
+}
+
+static void
 set_ttl(dns_rbtdb_t *rbtdb, rdatasetheader_t *header, dns_ttl_t newttl) {
 	int idx;
 	isc_heap_t *heap;
@@ -886,6 +915,9 @@ free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log, isc_event_t *event) {
 			    rbtdb->node_lock_count *
 			    sizeof(isc_heap_t *));
 	}
+
+	if (rbtdb->rrsetstats != NULL)
+		dns_stats_detach(&rbtdb->rrsetstats);
 
 	isc_mem_put(rbtdb->common.mctx, rbtdb->node_locks,
 		    rbtdb->node_lock_count * sizeof(rbtdb_nodelock_t));
@@ -1197,6 +1229,11 @@ free_rdataset(dns_rbtdb_t *rbtdb, isc_mem_t *mctx, rdatasetheader_t *rdataset)
 {
 	unsigned int size;
 	int idx;
+
+	if (EXISTS(rdataset) &&
+	    (rdataset->attributes & RDATASET_ATTR_STATCOUNT) != 0) {
+		update_rrsetstats(rbtdb, rdataset, ISC_FALSE);
+	}
 
 #ifdef LRU_DEBUG
 	/*
@@ -5583,6 +5620,11 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	NODE_LOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
 		  isc_rwlocktype_write);
 
+	if (rbtdb->rrsetstats != NULL) {
+		newheader->attributes |= RDATASET_ATTR_STATCOUNT;
+		update_rrsetstats(rbtdb, newheader, ISC_TRUE);
+	}
+
 #ifdef LRU_DEBUG
 	/* for debug: statistics update */
 	if (IS_CACHE(rbtdb) && rdataset->rdclass == dns_rdataclass_in) {
@@ -6282,6 +6324,16 @@ resigned(dns_db_t *db, dns_rdataset_t *rdataset, dns_dbversion_t *version)
 	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_read);
 }
 
+static dns_stats_t *
+getrrsetstats(dns_db_t *db) {
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+	REQUIRE(IS_CACHE(rbtdb)); /* current restriction */
+
+	return (rbtdb->rrsetstats);
+}
+
 static dns_dbmethods_t zone_methods = {
 	attach,
 	detach,
@@ -6316,6 +6368,7 @@ static dns_dbmethods_t zone_methods = {
 	getsigningtime,
 	resigned,
 	isdnssec,
+	NULL
 };
 
 static dns_dbmethods_t cache_methods = {
@@ -6351,7 +6404,8 @@ static dns_dbmethods_t cache_methods = {
 	NULL,
 	NULL,
 	NULL,
-	isdnssec
+	isdnssec,
+	getrrsetstats
 };
 
 isc_result_t
@@ -6415,12 +6469,16 @@ dns_rbtdb_create
 		goto cleanup_tree_lock;
 	}
 
+	rbtdb->rrsetstats = NULL;
 	if (IS_CACHE(rbtdb)) {
+		result = dns_rdatasetstats_create(mctx, &rbtdb->rrsetstats);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup_node_locks;
 		rbtdb->rdatasets = isc_mem_get(mctx, rbtdb->node_lock_count *
 					       sizeof(rdatasetheaderlist_t));
 		if (rbtdb->rdatasets == NULL) {
 			result = ISC_R_NOMEMORY;
-			goto cleanup_node_locks;
+			goto cleanup_rrsetstats;
 		}
 		for (i = 0; i < (int)rbtdb->node_lock_count; i++)
 			ISC_LIST_INIT(rbtdb->rdatasets[i]);
@@ -6603,6 +6661,9 @@ dns_rbtdb_create
 	if (rbtdb->rdatasets != NULL)
 		isc_mem_put(mctx, rbtdb->rdatasets, rbtdb->node_lock_count *
 			    sizeof(rdatasetheaderlist_t));
+ cleanup_rrsetstats:
+	if (rbtdb->rrsetstats != NULL)
+		dns_stats_detach(&rbtdb->rrsetstats);
 
  cleanup_node_locks:
 	isc_mem_put(mctx, rbtdb->node_locks,
