@@ -1,3 +1,6 @@
+2354.	[bug]		Failed to initialise sone rdatasetheader_t elements.
+			[RT #17927]
+
 2353.	[func]		Add support for Name Server ID (RFC 5001).
 			'dig +nsid' requests NSID from server.
 			'request-nsid yes;' causes recursive server to send
