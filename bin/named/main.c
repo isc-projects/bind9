@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.158 2007/09/26 03:22:43 marka Exp $ */
+/* $Id: main.c,v 1.158.48.1 2008/04/03 23:16:50 jinmei Exp $ */
 
 /*! \file */
 
@@ -867,6 +867,7 @@ main(int argc, char *argv[]) {
 	if (result != ISC_R_SUCCESS)
 		ns_main_earlyfatal("isc_mem_create() failed: %s",
 				   isc_result_totext(result));
+	isc_mem_setname(ns_g_mctx, "main", NULL);
 
 	setup();
 
