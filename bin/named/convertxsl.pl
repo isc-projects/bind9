@@ -14,12 +14,12 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: convertxsl.pl,v 1.12 2008/04/03 05:55:51 marka Exp $
+# $Id: convertxsl.pl,v 1.13 2008/04/03 10:52:46 marka Exp $
 
 use strict;
 use warnings;
 
-my $rev = '$Id: convertxsl.pl,v 1.12 2008/04/03 05:55:51 marka Exp $';
+my $rev = '$Id: convertxsl.pl,v 1.13 2008/04/03 10:52:46 marka Exp $';
 $rev =~ s/\$//g;
 $rev =~ s/,v//g;
 $rev =~ s/Id: //;
@@ -64,6 +64,7 @@ print $lines;
 
 print ';', "\n";
 
+print '#ifdef HAVE_LIBXML2', "\n";
 print "static const char *nsstats_xmldesc[] = {";
 while (my $desc = shift(@nsstatsdesc)) {
 	print "\t\"$desc\"";
@@ -87,3 +88,4 @@ while (my $desc = shift(@resstatsdesc)) {
 	print "\n";
 }
 print "};\n";
+print '#endif', "\n";

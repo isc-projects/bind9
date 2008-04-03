@@ -621,6 +621,7 @@ static char xslmsg[] =
 	" </html>\n"
 	" </xsl:template>\n"
 	"</xsl:stylesheet>\n";
+#ifdef HAVE_LIBXML2
 static const char *nsstats_xmldesc[] = {	"Requestv4",
 	"Requestv6",
 	"ReqEdns0",
@@ -694,3 +695,4 @@ static const char *resstats_xmldesc[] = {	"Queryv4",
 	"ValNegOk",
 	"ValFail"
 };
+#endif
