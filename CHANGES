@@ -1,3 +1,10 @@
+2353.	[func]		Add support for Name Server ID (RFC 5001).
+			'dig +nsid' requests NSID from server.
+			'request-nsid yes;' causes recursive server to send
+			NSID requests to upstream servers.  Server responds
+			to NSID requests with the string configured by
+			'server-id' option.  [RT #17091]
+
 2352.	[bug]		Various GSS_API fixups. [RT #17729]
 
 2351.	[bug]		convertxsl.pl generated very long lines. [RT #17906]

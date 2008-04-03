@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.107 2007/06/18 23:47:42 tbox Exp $ */
+/* $Id: view.h,v 1.108 2008/04/03 02:01:08 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -124,6 +124,7 @@ struct dns_view {
 	dns_acl_t *			sortlist;
 	isc_boolean_t			requestixfr;
 	isc_boolean_t			provideixfr;
+	isc_boolean_t			requestnsid;
 	dns_ttl_t			maxcachettl;
 	dns_ttl_t			maxncachettl;
 	in_port_t			dstport;
@@ -596,7 +597,7 @@ dns_viewlist_find(dns_viewlist_t *list, const char *name,
 
 isc_result_t
 dns_viewlist_findzone(dns_viewlist_t *list, dns_name_t *name, isc_boolean_t allclasses,
-                      dns_rdataclass_t rdclass, dns_zone_t **zonep);
+		      dns_rdataclass_t rdclass, dns_zone_t **zonep);
 
 /*%<
  * Search zone with 'name' in view with 'rdclass' in viewlist 'list'
@@ -632,7 +633,7 @@ dns_view_loadnew(dns_view_t *view, isc_boolean_t stop);
 /*%<
  * Load zones attached to this view.  dns_view_load() loads
  * all zones whose master file has changed since the last
- * load; dns_view_loadnew() loads only zones that have never 
+ * load; dns_view_loadnew() loads only zones that have never
  * been loaded.
  *
  * If 'stop' is ISC_TRUE, stop on the first error and return it.
@@ -708,7 +709,7 @@ dns_view_dumpdbtostream(dns_view_t *view, FILE *fp);
  * easily obtainable by other means.
  *
  * Requires:
- * 	
+ *
  *\li	'view' is valid.
  *
  *\li	'fp' refers to a file open for writing.
@@ -751,7 +752,7 @@ isc_result_t
 dns_view_adddelegationonly(dns_view_t *view, dns_name_t *name);
 /*%<
  * Add the given name to the delegation only table.
- * 
+ *
  *
  * Requires:
  *\li	'view' is valid.
@@ -766,7 +767,7 @@ isc_result_t
 dns_view_excludedelegationonly(dns_view_t *view, dns_name_t *name);
 /*%<
  * Add the given name to be excluded from the root-delegation-only.
- * 
+ *
  *
  * Requires:
  *\li	'view' is valid.

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.476 2008/04/02 02:37:42 marka Exp $ */
+/* $Id: zone.c,v 1.477 2008/04/03 02:01:08 marka Exp $ */
 
 /*! \file */
 
@@ -6357,7 +6357,7 @@ create_query(dns_zone_t *zone, dns_rdatatype_t rdtype,
 }
 
 static isc_result_t
-add_opt(dns_message_t *message, isc_uint16_t udpsize) {
+add_opt(dns_message_t *message, isc_uint16_t udpsize, isc_boolean_t reqnsid) {
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdatalist_t *rdatalist = NULL;
 	dns_rdata_t *rdata = NULL;
@@ -6387,11 +6387,21 @@ add_opt(dns_message_t *message, isc_uint16_t udpsize) {
 	 */
 	rdatalist->ttl = 0;
 
-	/*
-	 * No EDNS options.
-	 */
-	rdata->data = NULL;
-	rdata->length = 0;
+	/* Set EDNS options if applicable */
+	if (reqnsid) {
+		unsigned char data[4];
+		isc_buffer_t buf;
+
+		isc_buffer_init(&buf, data, sizeof(data));
+		isc_buffer_putuint16(&buf, DNS_OPT_NSID);
+		isc_buffer_putuint16(&buf, 0);
+		rdata->data = data;
+		rdata->length = sizeof(data);
+	} else {
+		rdata->data = NULL;
+		rdata->length = 0;
+	}
+
 	rdata->rdclass = rdatalist->rdclass;
 	rdata->type = rdatalist->type;
 	rdata->flags = 0;
@@ -6426,7 +6436,7 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	isc_uint32_t options;
 	isc_boolean_t cancel = ISC_TRUE;
 	int timeout;
-	isc_boolean_t have_xfrsource;
+	isc_boolean_t have_xfrsource, reqnsid;
 	isc_uint16_t udpsize = SEND_BUFFER_SIZE;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -6495,6 +6505,9 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 				udpsize =
 				  dns_resolver_getudpsize(zone->view->resolver);
 			(void)dns_peer_getudpsize(peer, &udpsize);
+			result = dns_peer_getrequestnsid(peer, &reqnsid);
+			reqnsid = (result == ISC_R_SUCCESS && reqnsid) ||
+				  zone->view->requestnsid;
 		}
 	}
 
@@ -6526,7 +6539,7 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 		  DNS_REQUESTOPT_TCP : 0;
 
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS)) {
-		result = add_opt(message, udpsize);
+		result = add_opt(message, udpsize, reqnsid);
 		if (result != ISC_R_SUCCESS)
 			zone_debuglog(zone, me, 1,
 				      "unable to add opt record: %s",
@@ -6590,7 +6603,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	dns_tsigkey_t *key = NULL;
 	dns_dbnode_t *node = NULL;
 	int timeout;
-	isc_boolean_t have_xfrsource = ISC_FALSE;
+	isc_boolean_t have_xfrsource = ISC_FALSE, reqnsid;
 	isc_uint16_t udpsize = SEND_BUFFER_SIZE;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -6719,11 +6732,14 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 				udpsize =
 				  dns_resolver_getudpsize(zone->view->resolver);
 			(void)dns_peer_getudpsize(peer, &udpsize);
+			result = dns_peer_getrequestnsid(peer, &reqnsid);
+			reqnsid = (result == ISC_R_SUCCESS && reqnsid) ||
+				  zone->view->requestnsid;
 		}
 
 	}
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS)) {
-		result = add_opt(message, udpsize);
+		result = add_opt(message, udpsize, reqnsid);
 		if (result != ISC_R_SUCCESS)
 			zone_debuglog(zone, me, 1,
 				      "unable to add opt record: %s",

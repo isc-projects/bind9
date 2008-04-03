@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.503 2008/03/31 05:00:29 marka Exp $ */
+/* $Id: server.c,v 1.504 2008/04/03 02:01:08 marka Exp $ */
 
 /*! \file */
 
@@ -728,6 +728,11 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 	(void)cfg_map_get(cpeer, "request-ixfr", &obj);
 	if (obj != NULL)
 		CHECK(dns_peer_setrequestixfr(peer, cfg_obj_asboolean(obj)));
+
+	obj = NULL;
+	(void)cfg_map_get(cpeer, "request-nsid", &obj);
+	if (obj != NULL)
+		CHECK(dns_peer_setrequestnsid(peer, cfg_obj_asboolean(obj)));
 
 	obj = NULL;
 	(void)cfg_map_get(cpeer, "edns", &obj);
@@ -1655,6 +1660,11 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	result = ns_config_get(maps, "provide-ixfr", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	view->provideixfr = cfg_obj_asboolean(obj);
+
+	obj = NULL;
+	result = ns_config_get(maps, "request-nsid", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->requestnsid = cfg_obj_asboolean(obj);
 
 	obj = NULL;
 	result = ns_config_get(maps, "max-clients-per-query", &obj);
@@ -3465,8 +3475,12 @@ load_configuration(const char *filename, ns_server_t *server,
 	result = ns_config_get(maps, "server-id", &obj);
 	server->server_usehostname = ISC_FALSE;
 	if (result == ISC_R_SUCCESS && cfg_obj_isboolean(obj)) {
-		server->server_usehostname = ISC_TRUE;
+		/* The parser translates "hostname" to ISC_TRUE */
+		server->server_usehostname = cfg_obj_asboolean(obj);
+		result = setstring(server, &server->server_id, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	} else if (result == ISC_R_SUCCESS) {
+		/* Found a quoted string */
 		CHECKM(setoptstring(server, &server->server_id, obj), "strdup");
 	} else {
 		result = setstring(server, &server->server_id, NULL);

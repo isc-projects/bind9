@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: peer.h,v 1.31 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: peer.h,v 1.32 2008/04/03 02:01:08 marka Exp $ */
 
 #ifndef DNS_PEER_H
 #define DNS_PEER_H 1
@@ -73,10 +73,11 @@ struct dns_peer {
 	isc_boolean_t		provide_ixfr;
 	isc_boolean_t		request_ixfr;
 	isc_boolean_t		support_edns;
+	isc_boolean_t		request_nsid;
 	dns_name_t	       *key;
 	isc_sockaddr_t	       *transfer_source;
-	isc_sockaddr_t	       *notify_source;  
-	isc_sockaddr_t	       *query_source;  
+	isc_sockaddr_t	       *notify_source;
+	isc_sockaddr_t	       *query_source;
 	isc_uint16_t		udpsize;		/* recieve size */
 	isc_uint16_t		maxudp;			/* transmit size */
 
@@ -148,6 +149,12 @@ dns_peer_setprovideixfr(dns_peer_t *peer, isc_boolean_t newval);
 
 isc_result_t
 dns_peer_getprovideixfr(dns_peer_t *peer, isc_boolean_t *retval);
+
+isc_result_t
+dns_peer_setrequestnsid(dns_peer_t *peer, isc_boolean_t newval);
+
+isc_result_t
+dns_peer_getrequestnsid(dns_peer_t *peer, isc_boolean_t *retval);
 
 isc_result_t
 dns_peer_setsupportedns(dns_peer_t *peer, isc_boolean_t newval);

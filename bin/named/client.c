@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.254 2008/03/31 05:00:29 marka Exp $ */
+/* $Id: client.c,v 1.255 2008/04/03 02:01:08 marka Exp $ */
 
 #include <config.h>
 
@@ -48,6 +48,7 @@
 #include <named/interfacemgr.h>
 #include <named/log.h>
 #include <named/notify.h>
+#include <named/os.h>
 #include <named/server.h>
 #include <named/update.h>
 
@@ -954,11 +955,9 @@ ns_client_send(ns_client_t *client) {
 	result = dns_message_renderbegin(client->message, &cctx, &buffer);
 	if (result != ISC_R_SUCCESS)
 		goto done;
+
 	if (client->opt != NULL) {
 		result = dns_message_setopt(client->message, client->opt);
-		/*
-		 * XXXRTH dns_message_setopt() should probably do this...
-		 */
 		client->opt = NULL;
 		if (result != ISC_R_SUCCESS)
 			goto done;
@@ -1190,11 +1189,46 @@ client_addopt(ns_client_t *client) {
 	 */
 	rdatalist->ttl = (client->extflags & DNS_MESSAGEEXTFLAG_REPLYPRESERVE);
 
-	/*
-	 * No EDNS options in the default case.
-	 */
-	rdata->data = NULL;
-	rdata->length = 0;
+	/* Set EDNS options if applicable */
+	if (client->attributes & NS_CLIENTATTR_WANTNSID &&
+	    (ns_g_server->server_id != NULL ||
+	     ns_g_server->server_usehostname)) {
+		/*
+		 * Space required for NSID data:
+		 *   2 bytes for opt code
+		 * + 2 bytes for NSID length
+		 * + NSID itself
+		 */
+		char nsid[BUFSIZ];
+		isc_buffer_t *buffer = NULL;
+
+		if (ns_g_server->server_usehostname) {
+			isc_result_t result;
+			result = ns_os_gethostname(nsid, sizeof(nsid));
+			if (result != ISC_R_SUCCESS) {
+				goto no_nsid;
+			}
+		} else {
+			strncpy(nsid, ns_g_server->server_id, sizeof(nsid));
+		}
+
+		rdata->length = strlen(nsid) + 4;
+		result = isc_buffer_allocate(client->mctx, &buffer,
+					     rdata->length);
+		if (result != ISC_R_SUCCESS)
+			goto no_nsid;
+
+		isc_buffer_putuint16(buffer, DNS_OPT_NSID);
+		isc_buffer_putuint16(buffer, strlen(nsid));
+		isc_buffer_putstr(buffer, nsid);
+		rdata->data = buffer->base;
+		dns_message_takebuffer(client->message, &buffer);
+	} else {
+no_nsid:
+		rdata->data = NULL;
+		rdata->length = 0;
+	}
+
 	rdata->rdclass = rdatalist->rdclass;
 	rdata->type = rdatalist->type;
 	rdata->flags = 0;
@@ -1302,6 +1336,8 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	dns_messageid_t id;
 	unsigned int flags;
 	isc_boolean_t notimp;
+	dns_rdata_t rdata;
+	isc_uint16_t optcode;
 
 	REQUIRE(event != NULL);
 	client = event->ev_arg;
@@ -1524,6 +1560,24 @@ client_request(isc_task_t *task, isc_event_t *event) {
 			ns_client_error(client, result);
 			goto cleanup;
 		}
+
+		/* Check for NSID request */
+		result = dns_rdataset_first(opt);
+		if (result == ISC_R_SUCCESS) {
+			dns_rdata_init(&rdata);
+			dns_rdataset_current(opt, &rdata);
+			if (rdata.length >= 2) {
+				isc_buffer_t nsidbuf;
+				isc_buffer_init(&nsidbuf,
+						rdata.data, rdata.length);
+				isc_buffer_add(&nsidbuf, rdata.length);
+				optcode = isc_buffer_getuint16(&nsidbuf);
+				if (optcode == DNS_OPT_NSID)
+					client->attributes |=
+						NS_CLIENTATTR_WANTNSID;
+			}
+		}
+
 		/*
 		 * Create an OPT for our reply.
 		 */

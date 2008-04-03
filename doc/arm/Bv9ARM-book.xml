@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.348 2008/04/02 02:37:42 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.349 2008/04/03 02:01:08 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -7533,9 +7533,10 @@ query-source-v6 address * port *;
               <term><command>server-id</command></term>
               <listitem>
                 <para>
-                  The ID of the server should report via a query of
-                  the name <filename>ID.SERVER</filename>
-                  with type <command>TXT</command>, class <command>CHAOS</command>.
+                  The ID the server should report when receiving a Name
+                  Server Identifier (NSID) query, or a query of the name
+                  <filename>ID.SERVER</filename> with type
+                  <command>TXT</command>, class <command>CHAOS</command>.
                   The primary purpose of such queries is to
                   identify which of a group of anycast servers is actually
                   answering your queries.  Specifying <command>server-id none;</command>
