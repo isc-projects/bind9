@@ -110,6 +110,7 @@ rt17596a			new	fdupont	// 2008-02-28 08:16 +0000
 rt17598				new	marka	// 2008-02-17 23:24 +0000
 rt17671				new	marka	// 2008-02-27 01:39 +0000
 rt17729				new	marka	// 2008-03-06 03:56 +0000
+rt17729a			new	marka	// 2008-04-02 23:40 +0000
 shane_dbbackend			open	
 skan				open	explorer
 skan-metazones1			private	explorer
