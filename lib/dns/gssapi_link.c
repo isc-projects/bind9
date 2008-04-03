@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: gssapi_link.c,v 1.8 2008/04/03 00:45:23 marka Exp $
+ * $Id: gssapi_link.c,v 1.9 2008/04/03 02:09:18 marka Exp $
  */
 
 #include <config.h>
@@ -292,6 +292,7 @@ static dst_func_t gssapi_functions = {
 	NULL, /*%< tofile */
 	NULL, /*%< parse */
 	NULL, /*%< cleanup */
+	NULL
 };
 
 isc_result_t
