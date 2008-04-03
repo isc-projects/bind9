@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.304.12.4 2008/01/17 23:46:35 tbox Exp $ */
+/* $Id: dighost.c,v 1.304.12.5 2008/04/03 02:12:21 marka Exp $ */
 
 /*! \file
  *  \note
@@ -724,6 +724,7 @@ make_empty_lookup(void) {
 	looknew->servfail_stops = ISC_TRUE;
 	looknew->besteffort = ISC_TRUE;
 	looknew->dnssec = ISC_FALSE;
+	looknew->nsid = ISC_FALSE;
 #ifdef DIG_SIGCHASE
 	looknew->sigchase = ISC_FALSE;
 #if DIG_SIGCHASE_TD
@@ -803,6 +804,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->servfail_stops = lookold->servfail_stops;
 	looknew->besteffort = lookold->besteffort;
 	looknew->dnssec = lookold->dnssec;
+	looknew->nsid = lookold->nsid;
 #ifdef DIG_SIGCHASE
 	looknew->sigchase = lookold->sigchase;
 #if DIG_SIGCHASE_TD
@@ -1155,11 +1157,11 @@ setup_libs(void) {
 
 /*%
  * Add EDNS0 option record to a message.  Currently, the only supported
- * options are UDP buffer size and the DO bit.
+ * options are UDP buffer size, the DO bit, and NSID request.
  */
 static void
 add_opt(dns_message_t *msg, isc_uint16_t udpsize, isc_uint16_t edns,
-	isc_boolean_t dnssec)
+	isc_boolean_t dnssec, isc_boolean_t nsid)
 {
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdatalist_t *rdatalist = NULL;
@@ -1182,8 +1184,19 @@ add_opt(dns_message_t *msg, isc_uint16_t udpsize, isc_uint16_t edns,
 	rdatalist->ttl = edns << 16;
 	if (dnssec)
 		rdatalist->ttl |= DNS_MESSAGEEXTFLAG_DO;
-	rdata->data = NULL;
-	rdata->length = 0;
+	if (nsid) {
+		unsigned char data[4];
+		isc_buffer_t buf;
+
+		isc_buffer_init(&buf, data, sizeof(data));
+		isc_buffer_putuint16(&buf, DNS_OPT_NSID);
+		isc_buffer_putuint16(&buf, 0);
+		rdata->data = data;
+		rdata->length = sizeof(data);
+	} else {
+		rdata->data = NULL;
+		rdata->length = 0;
+	}
 	ISC_LIST_INIT(rdatalist->rdata);
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 	dns_rdatalist_tordataset(rdatalist, rdataset);
@@ -1998,7 +2011,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		if (lookup->edns < 0)
 			lookup->edns = 0;
 		add_opt(lookup->sendmsg, lookup->udpsize,
-			lookup->edns, lookup->dnssec);
+			lookup->edns, lookup->dnssec, lookup->nsid);
 	}
 
 	result = dns_message_rendersection(lookup->sendmsg,

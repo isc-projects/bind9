@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.218.12.2 2008/02/05 23:46:39 tbox Exp $ */
+/* $Id: dig.c,v 1.218.12.3 2008/04/03 02:12:21 marka Exp $ */
 
 /*! \file */
 
@@ -194,6 +194,7 @@ help(void) {
 "                 +[no]identify       (ID responders in short answers)\n"
 "                 +[no]trace          (Trace delegation down from root)\n"
 "                 +[no]dnssec         (Request DNSSEC records)\n"
+"                 +[no]nsid           (Request Name Server ID)\n"
 #ifdef DIG_SIGCHASE
 "                 +[no]sigchase       (Chase DNSSEC signatures)\n"
 "                 +trusted-key=####   (Trusted Key when chasing DNSSEC sigs)\n"
@@ -860,21 +861,33 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				goto invalid_option;
 			ndots = parse_uint(value, "ndots", MAXNDOTS);
 			break;
-		case 's': /* nssearch */
-			FULLCHECK("nssearch");
-			lookup->ns_search_only = state;
-			if (state) {
-				lookup->trace_root = ISC_TRUE;
-				lookup->recurse = ISC_TRUE;
-				lookup->identify = ISC_TRUE;
-				lookup->stats = ISC_FALSE;
-				lookup->comments = ISC_FALSE;
-				lookup->section_additional = ISC_FALSE;
-				lookup->section_authority = ISC_FALSE;
-				lookup->section_question = ISC_FALSE;
-				lookup->rdtype = dns_rdatatype_ns;
-				lookup->rdtypeset = ISC_TRUE;
-				short_form = ISC_TRUE;
+		case 's':
+			switch (cmd[2]) {
+			case 'i': /* nsid */
+				FULLCHECK("nsid");
+				if (state && lookup->edns == -1)
+					lookup->edns = 0;
+				lookup->nsid = state;
+				break;
+			case 's': /* nssearch */
+				FULLCHECK("nssearch");
+				lookup->ns_search_only = state;
+				if (state) {
+					lookup->trace_root = ISC_TRUE;
+					lookup->recurse = ISC_TRUE;
+					lookup->identify = ISC_TRUE;
+					lookup->stats = ISC_FALSE;
+					lookup->comments = ISC_FALSE;
+					lookup->section_additional = ISC_FALSE;
+					lookup->section_authority = ISC_FALSE;
+					lookup->section_question = ISC_FALSE;
+					lookup->rdtype = dns_rdatatype_ns;
+					lookup->rdtypeset = ISC_TRUE;
+					short_form = ISC_TRUE;
+				}
+				break;
+			default:
+				goto invalid_option;
 			}
 			break;
 		default:

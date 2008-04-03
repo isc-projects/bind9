@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.237.110.3 2008/01/17 23:46:37 tbox Exp $ */
+/* $Id: message.c,v 1.237.110.4 2008/04/03 02:12:22 marka Exp $ */
 
 /*! \file */
 
@@ -24,6 +24,7 @@
  ***/
 
 #include <config.h>
+#include <ctype.h>
 
 #include <isc/buffer.h>
 #include <isc/mem.h>
@@ -1488,14 +1489,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 				rdataset->ttl = ttl;
 		}
 
-		/*
-		 * XXXMLG Perform a totally ugly hack here to pull
-		 * the rdatalist out of the private field in the rdataset,
-		 * and append this rdata to the rdatalist's linked list
-		 * of rdata.
-		 */
-		rdatalist = (dns_rdatalist_t *)(rdataset->private1);
-
+		/* Append this rdata to the rdataset. */
+		dns_rdatalist_fromrdataset(rdataset, &rdatalist);
 		ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 
 		/*
@@ -3127,6 +3122,10 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 	isc_result_t result;
 	char buf[sizeof("1234567890")];
 	isc_uint32_t mbz;
+	dns_rdata_t rdata;
+	isc_buffer_t optbuf;
+	isc_uint16_t optcode, optlen;
+	unsigned char *optdata;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(target != NULL);
@@ -3156,6 +3155,50 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 			ADD_STRING(target, "; udp: ");
 		snprintf(buf, sizeof(buf), "%u\n", (unsigned int)ps->rdclass);
 		ADD_STRING(target, buf);
+
+		result = dns_rdataset_first(ps);
+		if (result != ISC_R_SUCCESS)
+			return (ISC_R_SUCCESS);
+
+		/* Print EDNS info, if any */
+		dns_rdata_init(&rdata);
+		dns_rdataset_current(ps, &rdata);
+		if (rdata.length < 4)
+			return (ISC_R_SUCCESS);
+
+		isc_buffer_init(&optbuf, rdata.data, rdata.length);
+		isc_buffer_add(&optbuf, rdata.length);
+		optcode = isc_buffer_getuint16(&optbuf);
+		optlen = isc_buffer_getuint16(&optbuf);
+
+		if (optcode == DNS_OPT_NSID) {
+			ADD_STRING(target, "; NSID");
+		} else {
+			ADD_STRING(target, "; OPT=");
+			sprintf(buf, "%u", optcode);
+			ADD_STRING(target, buf);
+		}
+
+		if (optlen != 0) {
+			int i;
+			ADD_STRING(target, ": ");
+
+			optdata = rdata.data + 4;
+			for (i = 0; i < optlen; i++) {
+				sprintf(buf, "%02x ", optdata[i]);
+				ADD_STRING(target, buf);
+			}
+			for (i = 0; i < optlen; i++) {
+				ADD_STRING(target, " (");
+				if (isprint(optdata[i]))
+					isc_buffer_putmem(target, &optdata[i],
+							  1);
+				else
+					isc_buffer_putmem(target, ".", 1);
+				ADD_STRING(target, ")");
+			}
+		}
+		ADD_STRING(target, "\n");
 		return (ISC_R_SUCCESS);
 	case DNS_PSEUDOSECTION_TSIG:
 		ps = dns_message_gettsig(msg, &name);

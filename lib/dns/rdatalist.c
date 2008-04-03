@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdatalist.c,v 1.33 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: rdatalist.c,v 1.33.128.1 2008/04/03 02:12:22 marka Exp $ */
 
 /*! \file */
 
@@ -84,6 +84,16 @@ dns_rdatalist_tordataset(dns_rdatalist_t *rdatalist,
 	rdataset->private3 = NULL;
 	rdataset->privateuint4 = 0;
 	rdataset->private5 = NULL;
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_rdatalist_fromrdataset(dns_rdataset_t *rdataset,
+			   dns_rdatalist_t **rdatalist)
+{
+	REQUIRE(rdatalist != NULL && rdataset != NULL);
+	*rdatalist = rdataset->private1;
 
 	return (ISC_R_SUCCESS);
 }
