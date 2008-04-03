@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.365 2008/04/03 05:55:52 marka Exp $ */
+/* $Id: resolver.c,v 1.366 2008/04/03 23:14:52 jinmei Exp $ */
 
 /*! \file */
 
@@ -6505,6 +6505,7 @@ dns_resolver_create(dns_view_t *view,
 			goto cleanup_buckets;
 		}
 		res->buckets[i].mctx = NULL;
+		snprintf(name, sizeof(name), "res%u", i);
 #ifdef ISC_PLATFORM_USETHREADS
 		/*
 		 * Use a separate memory context for each bucket to reduce
@@ -6517,12 +6518,11 @@ dns_resolver_create(dns_view_t *view,
 			DESTROYLOCK(&res->buckets[i].lock);
 			goto cleanup_buckets;
 		}
+		isc_mem_setname(res->buckets[i].mctx, name, NULL);
 #else
 		isc_mem_attach(view->mctx, &res->buckets[i].mctx);
 #endif
-		snprintf(name, sizeof(name), "res%u", i);
 		isc_task_setname(res->buckets[i].task, name, res);
-		isc_mem_setname(res->buckets[i].mctx, name, NULL);
 		ISC_LIST_INIT(res->buckets[i].fctxs);
 		res->buckets[i].exiting = ISC_FALSE;
 		buckets_created++;
