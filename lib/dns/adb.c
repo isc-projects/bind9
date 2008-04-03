@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.181.2.11.2.32 2008/03/20 23:45:32 tbox Exp $ */
+/* $Id: adb.c,v 1.181.2.11.2.33 2008/04/03 00:17:07 each Exp $ */
 
 /*
  * Implementation notes
@@ -488,7 +488,6 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 	isc_boolean_t new_addresses_added;
 	dns_rdatatype_t rdtype;
 	unsigned int findoptions;
-	dns_adbnamehooklist_t *hookhead;
 
 	INSIST(DNS_ADBNAME_VALID(adbname));
 	adb = adbname->adb;
@@ -513,12 +512,10 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 			INSIST(rdata.length == 4);
 			memcpy(&ina.s_addr, rdata.data, 4);
 			isc_sockaddr_fromin(&sockaddr, &ina, 0);
-			hookhead = &adbname->v4;
 		} else {
 			INSIST(rdata.length == 16);
 			memcpy(in6a.s6_addr, rdata.data, 16);
 			isc_sockaddr_fromin6(&sockaddr, &in6a, 0);
-			hookhead = &adbname->v6;
 		}
 
 		INSIST(nh == NULL);
@@ -547,7 +544,7 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 
 			link_entry(adb, addr_bucket, entry);
 		} else {
-			for (anh = ISC_LIST_HEAD(*hookhead);
+			for (anh = ISC_LIST_HEAD(adbname->v4);
 			     anh != NULL;
 			     anh = ISC_LIST_NEXT(anh, plink))
 				if (anh->entry == foundentry)
@@ -560,8 +557,12 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 		}
 
 		new_addresses_added = ISC_TRUE;
-		if (nh != NULL)
-			ISC_LIST_APPEND(*hookhead, nh, plink);
+		if (nh != NULL) {
+			if (rdtype == dns_rdatatype_a)
+				ISC_LIST_APPEND(adbname->v4, nh, plink);
+			else
+				ISC_LIST_APPEND(adbname->v6, nh, plink);
+		}
 		nh = NULL;
 		result = dns_rdataset_next(rdataset);
 	}
