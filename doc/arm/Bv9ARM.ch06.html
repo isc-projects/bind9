@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.175 2008/04/01 01:11:50 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.176 2008/04/03 01:09:59 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -74,29 +74,29 @@
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2576738"><span><strong class="command">options</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#options"><span><strong class="command">options</strong></span> Statement Definition and
           Usage</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2585275"><span><strong class="command">statistics-channels</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2585293"><span><strong class="command">statistics-channels</strong></span> Statement Definition and
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2585364"><span><strong class="command">statistics-channels</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2585382"><span><strong class="command">statistics-channels</strong></span> Statement Definition and
             Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#server_statement_grammar"><span><strong class="command">server</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#server_statement_definition_and_usage"><span><strong class="command">server</strong></span> Statement Definition and
             Usage</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2585977"><span><strong class="command">trusted-keys</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2586028"><span><strong class="command">trusted-keys</strong></span> Statement Definition
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2586066"><span><strong class="command">trusted-keys</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2586117"><span><strong class="command">trusted-keys</strong></span> Statement Definition
             and Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#view_statement_grammar"><span><strong class="command">view</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2586179"><span><strong class="command">view</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2586199"><span><strong class="command">view</strong></span> Statement Definition and Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#zone_statement_grammar"><span><strong class="command">zone</strong></span>
             Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2587671"><span><strong class="command">zone</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2587785"><span><strong class="command">zone</strong></span> Statement Definition and Usage</a></span></dt>
 </dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2590037">Zone File</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2590373">Zone File</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#types_of_resource_records_and_when_to_use_them">Types of Resource Records and When to Use Them</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592058">Discussion of MX Records</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592258">Discussion of MX Records</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#Setting_TTLs">Setting TTLs</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592746">Inverse Mapping in IPv4</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592873">Other Zone File Directives</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2593062"><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592946">Inverse Mapping in IPv4</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2593073">Other Zone File Directives</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2593261"><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#zonefile_format">Additional File Formats</a></span></dt>
 </dl></dd>
 </dl>
@@ -1898,6 +1898,10 @@ category notify { null; };
     [<span class="optional"> max-ncache-ttl <em class="replaceable"><code>number</code></em>; </span>]
     [<span class="optional"> max-cache-ttl <em class="replaceable"><code>number</code></em>; </span>]
     [<span class="optional"> sig-validity-interval <em class="replaceable"><code>number</code></em> ; </span>]
+    [<span class="optional"> sig-re-signing-interval <em class="replaceable"><code>number</code></em> ; </span>]
+    [<span class="optional"> sig-signing-nodes <em class="replaceable"><code>number</code></em> ; </span>]
+    [<span class="optional"> sig-signing-signatures <em class="replaceable"><code>number</code></em> ; </span>]
+    [<span class="optional"> sig-signing-type <em class="replaceable"><code>number</code></em> ; </span>]
     [<span class="optional"> min-roots <em class="replaceable"><code>number</code></em>; </span>]
     [<span class="optional"> use-ixfr <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
     [<span class="optional"> provide-ixfr <em class="replaceable"><code>yes_or_no</code></em>; </span>]
@@ -2886,7 +2890,7 @@ options {
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2580882"></a>Forwarding</h4></div></div></div>
+<a name="id2580907"></a>Forwarding</h4></div></div></div>
 <p>
             The forwarding facility can be used to create a large site-wide
             cache on a few servers, reducing traffic over links to external
@@ -2930,7 +2934,7 @@ options {
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2581009"></a>Dual-stack Servers</h4></div></div></div>
+<a name="id2581034"></a>Dual-stack Servers</h4></div></div></div>
 <p>
             Dual-stack servers are used as servers of last resort to work
             around
@@ -3126,7 +3130,7 @@ options {
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2581573"></a>Interfaces</h4></div></div></div>
+<a name="id2581530"></a>Interfaces</h4></div></div></div>
 <p>
             The interfaces and ports that the server will answer queries
             from may be specified using the <span><strong class="command">listen-on</strong></span> option. <span><strong class="command">listen-on</strong></span> takes
@@ -3512,7 +3516,7 @@ query-source-v6 address * port *;
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2582615"></a>Bad UDP Port Lists</h4></div></div></div>
+<a name="id2582572"></a>Bad UDP Port Lists</h4></div></div></div>
 <p><span><strong class="command">avoid-v4-udp-ports</strong></span>
             and <span><strong class="command">avoid-v6-udp-ports</strong></span> specify a list
             of IPv4 and IPv6 UDP ports that will not be used as system
@@ -3526,7 +3530,7 @@ query-source-v6 address * port *;
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2582630"></a>Operating System Resource Limits</h4></div></div></div>
+<a name="id2582587"></a>Operating System Resource Limits</h4></div></div></div>
 <p>
             The server's usage of many system resources can be limited.
             Scaled values are allowed when specifying resource limits.  For
@@ -3585,7 +3589,7 @@ query-source-v6 address * port *;
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2582813"></a>Server  Resource Limits</h4></div></div></div>
+<a name="id2582702"></a>Server  Resource Limits</h4></div></div></div>
 <p>
             The following options set limits on the server's
             resource consumption that are enforced internally by the
@@ -3661,7 +3665,7 @@ query-source-v6 address * port *;
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2582947"></a>Periodic Task Intervals</h4></div></div></div>
+<a name="id2582836"></a>Periodic Task Intervals</h4></div></div></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><span><strong class="command">cleaning-interval</strong></span></span></dt>
 <dd><p>
@@ -4008,17 +4012,59 @@ query-source-v6 address * port *;
 </div>
 </dd>
 <dt><span class="term"><span><strong class="command">sig-validity-interval</strong></span></span></dt>
+<dd>
+<p>
+                  Specifies the number of days into the future when
+                  DNSSEC signatures automatically generated as a
+                  result of dynamic updates (<a href="Bv9ARM.ch04.html#dynamic_update" title="Dynamic Update">the section called &#8220;Dynamic Update&#8221;</a>) will expire.  There
+                  is a optional second field which specifies how
+                  long before expiry that the signatures will be
+                  regenerated.  If not specified the signatures will
+                  be regenerated at 1/4 of base interval.  The second
+                  field is specified in days if the base interval is
+                  greater than 7 days otherwise it is specified in hours.
+                  The default base interval is <code class="literal">30</code> days
+                  giving a re-signing interval of 7 1/2 days .  The maximum
+                  values are 10 years (3660 days).
+                </p>
+<p>
+                  The signature inception time is unconditionally
+                  set to one hour before the current time to allow
+                  for a limited amount of clock skew.
+                </p>
+<p>
+                  The <span><strong class="command">sig-validity-interval</strong></span>
+                  should be, at least, several multiples of the SOA
+                  expire interval to allow for reasonable interaction
+                  between the various timer and expiry dates.
+                </p>
+</dd>
+<dt><span class="term"><span><strong class="command">sig-signing-nodes</strong></span></span></dt>
 <dd><p>
-                  Specifies the number of days into the
-                  future when DNSSEC signatures automatically generated as a
-                  result
-                  of dynamic updates (<a href="Bv9ARM.ch04.html#dynamic_update" title="Dynamic Update">the section called &#8220;Dynamic Update&#8221;</a>)
-                  will expire. The default is <code class="literal">30</code> days.
-                  The maximum value is 10 years (3660 days). The signature
-                  inception time is unconditionally set to one hour before the
-                  current time
-                  to allow for a limited amount of clock skew.
+                  Specify the number of maximum number nodes to be
+                  examined in each quantum when signing a zone with
+                  a new DNSKEY. The default is
+                  <code class="literal">100</code>.
                 </p></dd>
+<dt><span class="term"><span><strong class="command">sig-signing-signatures</strong></span></span></dt>
+<dd><p>
+                  Specify a threshold number of signatures that
+                  will terminate processing a quantum when signing
+                  a zone with a new DNSKEY.  The default is
+                  <code class="literal">10</code>.
+                </p></dd>
+<dt><span class="term"><span><strong class="command">sig-signing-type</strong></span></span></dt>
+<dd>
+<p>
+                  Specify a private rdata type to be used when generating
+                  key signing records.  The default is
+                  <code class="literal">65535</code>.
+                </p>
+<p>
+                  It is expected that this parameter may be removed
+                  in a future version once there is a standard type.
+                </p>
+</dd>
 <dt>
 <span class="term"><span><strong class="command">min-refresh-time</strong></span>, </span><span class="term"><span><strong class="command">max-refresh-time</strong></span>, </span><span class="term"><span><strong class="command">min-retry-time</strong></span>, </span><span class="term"><span><strong class="command">max-retry-time</strong></span></span>
 </dt>
@@ -4547,7 +4593,7 @@ query-source-v6 address * port *;
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2585275"></a><span><strong class="command">statistics-channels</strong></span> Statement Grammar</h3></div></div></div>
+<a name="id2585364"></a><span><strong class="command">statistics-channels</strong></span> Statement Grammar</h3></div></div></div>
 <pre class="programlisting"><span><strong class="command">statistics-channels</strong></span> {
    [ inet ( ip_addr | * ) [ port ip_port ] [allow { <em class="replaceable"><code> address_match_list </code></em> } ]; ]
    [ inet ...; ]
@@ -4556,7 +4602,7 @@ query-source-v6 address * port *;
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2585293"></a><span><strong class="command">statistics-channels</strong></span> Statement Definition and
+<a name="id2585382"></a><span><strong class="command">statistics-channels</strong></span> Statement Definition and
             Usage</h3></div></div></div>
 <p>
           The <span><strong class="command">statistics-channels</strong></span> statement
@@ -4801,7 +4847,7 @@ query-source-v6 address * port *;
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2585977"></a><span><strong class="command">trusted-keys</strong></span> Statement Grammar</h3></div></div></div>
+<a name="id2586066"></a><span><strong class="command">trusted-keys</strong></span> Statement Grammar</h3></div></div></div>
 <pre class="programlisting"><span><strong class="command">trusted-keys</strong></span> {
     <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>string</code></em> ;
     [<span class="optional"> <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>string</code></em> ; [<span class="optional">...</span>]</span>]
@@ -4810,7 +4856,7 @@ query-source-v6 address * port *;
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2586028"></a><span><strong class="command">trusted-keys</strong></span> Statement Definition
+<a name="id2586117"></a><span><strong class="command">trusted-keys</strong></span> Statement Definition
             and Usage</h3></div></div></div>
 <p>
             The <span><strong class="command">trusted-keys</strong></span> statement defines
@@ -4853,7 +4899,7 @@ query-source-v6 address * port *;
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2586179"></a><span><strong class="command">view</strong></span> Statement Definition and Usage</h3></div></div></div>
+<a name="id2586199"></a><span><strong class="command">view</strong></span> Statement Definition and Usage</h3></div></div></div>
 <p>
             The <span><strong class="command">view</strong></span> statement is a powerful
             feature
@@ -5005,6 +5051,10 @@ view "external" {
     [<span class="optional"> notify-source-v6 (<em class="replaceable"><code>ip6_addr</code></em> | <code class="constant">*</code>) [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] ; </span>]
     [<span class="optional"> zone-statistics <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
     [<span class="optional"> sig-validity-interval <em class="replaceable"><code>number</code></em> ; </span>]
+    [<span class="optional"> sig-re-signing-interval <em class="replaceable"><code>number</code></em> ; </span>]
+    [<span class="optional"> sig-signing-nodes <em class="replaceable"><code>number</code></em> ; </span>]
+    [<span class="optional"> sig-signing-signatures <em class="replaceable"><code>number</code></em> ; </span>]
+    [<span class="optional"> sig-signing-type <em class="replaceable"><code>number</code></em> ; </span>]
     [<span class="optional"> database <em class="replaceable"><code>string</code></em> ; </span>]
     [<span class="optional"> min-refresh-time <em class="replaceable"><code>number</code></em> ; </span>]
     [<span class="optional"> max-refresh-time <em class="replaceable"><code>number</code></em> ; </span>]
@@ -5112,10 +5162,10 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2587671"></a><span><strong class="command">zone</strong></span> Statement Definition and Usage</h3></div></div></div>
+<a name="id2587785"></a><span><strong class="command">zone</strong></span> Statement Definition and Usage</h3></div></div></div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2587678"></a>Zone Types</h4></div></div></div>
+<a name="id2587793"></a>Zone Types</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -5324,7 +5374,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2588098"></a>Class</h4></div></div></div>
+<a name="id2588144"></a>Class</h4></div></div></div>
 <p>
               The zone's name may optionally be followed by a class. If
               a class is not specified, class <code class="literal">IN</code> (for <code class="varname">Internet</code>),
@@ -5346,7 +5396,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2588131"></a>Zone Options</h4></div></div></div>
+<a name="id2588177"></a>Zone Options</h4></div></div></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><span><strong class="command">allow-notify</strong></span></span></dt>
 <dd><p>
@@ -5580,6 +5630,26 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 <dd><p>
                     See the description of
                     <span><strong class="command">sig-validity-interval</strong></span> in <a href="Bv9ARM.ch06.html#tuning" title="Tuning">the section called &#8220;Tuning&#8221;</a>.
+                  </p></dd>
+<dt><span class="term"><span><strong class="command">sig-re-signing-interval</strong></span></span></dt>
+<dd><p>
+                    See the description of
+                    <span><strong class="command">sig-re-signing-interval</strong></span> in <a href="Bv9ARM.ch06.html#tuning" title="Tuning">the section called &#8220;Tuning&#8221;</a>.
+                  </p></dd>
+<dt><span class="term"><span><strong class="command">sig-signing-nodes</strong></span></span></dt>
+<dd><p>
+                    See the description of
+                    <span><strong class="command">sig-signing-nodes</strong></span> in <a href="Bv9ARM.ch06.html#tuning" title="Tuning">the section called &#8220;Tuning&#8221;</a>.
+                  </p></dd>
+<dt><span class="term"><span><strong class="command">sig-signing-signatures</strong></span></span></dt>
+<dd><p>
+                    See the description of
+                    <span><strong class="command">sig-signing-signatures</strong></span> in <a href="Bv9ARM.ch06.html#tuning" title="Tuning">the section called &#8220;Tuning&#8221;</a>.
+                  </p></dd>
+<dt><span class="term"><span><strong class="command">sig-signing-type</strong></span></span></dt>
+<dd><p>
+                    See the description of
+                    <span><strong class="command">sig-signing-type</strong></span> in <a href="Bv9ARM.ch06.html#tuning" title="Tuning">the section called &#8220;Tuning&#8221;</a>.
                   </p></dd>
 <dt><span class="term"><span><strong class="command">transfer-source</strong></span></span></dt>
 <dd><p>
@@ -5898,7 +5968,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2590037"></a>Zone File</h2></div></div></div>
+<a name="id2590373"></a>Zone File</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="types_of_resource_records_and_when_to_use_them"></a>Types of Resource Records and When to Use Them</h3></div></div></div>
@@ -5911,7 +5981,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2590055"></a>Resource Records</h4></div></div></div>
+<a name="id2590459"></a>Resource Records</h4></div></div></div>
 <p>
               A domain name identifies a node.  Each node has a set of
               resource information, which may be empty.  The set of resource
@@ -6562,7 +6632,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2591538"></a>Textual expression of RRs</h4></div></div></div>
+<a name="id2591737"></a>Textual expression of RRs</h4></div></div></div>
 <p>
               RRs are represented in binary form in the packets of the DNS
               protocol, and are usually represented in highly encoded form
@@ -6765,7 +6835,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2592058"></a>Discussion of MX Records</h3></div></div></div>
+<a name="id2592258"></a>Discussion of MX Records</h3></div></div></div>
 <p>
             As described above, domain servers store information as a
             series of resource records, each of which contains a particular
@@ -7023,7 +7093,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2592746"></a>Inverse Mapping in IPv4</h3></div></div></div>
+<a name="id2592946"></a>Inverse Mapping in IPv4</h3></div></div></div>
 <p>
             Reverse name resolution (that is, translation from IP address
             to name) is achieved by means of the <span class="emphasis"><em>in-addr.arpa</em></span> domain
@@ -7084,7 +7154,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2592873"></a>Other Zone File Directives</h3></div></div></div>
+<a name="id2593073"></a>Other Zone File Directives</h3></div></div></div>
 <p>
             The Master File Format was initially defined in RFC 1035 and
             has subsequently been extended. While the Master File Format
@@ -7099,7 +7169,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2592896"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
+<a name="id2593095"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$ORIGIN</strong></span>
               <em class="replaceable"><code>domain-name</code></em>
@@ -7127,7 +7197,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2592956"></a>The <span><strong class="command">$INCLUDE</strong></span> Directive</h4></div></div></div>
+<a name="id2593156"></a>The <span><strong class="command">$INCLUDE</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$INCLUDE</strong></span>
               <em class="replaceable"><code>filename</code></em>
@@ -7163,7 +7233,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2593026"></a>The <span><strong class="command">$TTL</strong></span> Directive</h4></div></div></div>
+<a name="id2593225"></a>The <span><strong class="command">$TTL</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$TTL</strong></span>
               <em class="replaceable"><code>default-ttl</code></em>
@@ -7182,7 +7252,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2593062"></a><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</h3></div></div></div>
+<a name="id2593261"></a><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</h3></div></div></div>
 <p>
             Syntax: <span><strong class="command">$GENERATE</strong></span>
             <em class="replaceable"><code>range</code></em>

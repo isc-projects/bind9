@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.conf.5,v 1.33 2008/01/03 01:12:36 marka Exp $
+.\" $Id: named.conf.5,v 1.34 2008/04/03 01:09:59 tbox Exp $
 .\"
 .hy 0
 .ad l
@@ -283,6 +283,10 @@ options {
 	min\-refresh\-time \fIinteger\fR;
 	multi\-master \fIboolean\fR;
 	sig\-validity\-interval \fIinteger\fR;
+	sig\-re\-signing\-interval \fIinteger\fR;
+	sig\-signing\-nodes \fIinteger\fR;
+	sig\-signing\-signatures \fIinteger\fR;
+	sig\-signing\-type \fIinteger\fR;
 	transfer\-source ( \fIipv4_address\fR | * )
 		[ port ( \fIinteger\fR | * ) ];
 	transfer\-source\-v6 ( \fIipv6_address\fR | * )

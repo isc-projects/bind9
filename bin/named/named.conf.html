@@ -13,7 +13,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: named.conf.html,v 1.42 2008/01/03 01:12:36 marka Exp $ -->
+<!-- $Id: named.conf.html,v 1.43 2008/04/03 01:09:59 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -286,7 +286,12 @@ options {<br>
 	max-refresh-time <em class="replaceable"><code>integer</code></em>;<br>
 	min-refresh-time <em class="replaceable"><code>integer</code></em>;<br>
 	multi-master <em class="replaceable"><code>boolean</code></em>;<br>
+<br>
 	sig-validity-interval <em class="replaceable"><code>integer</code></em>;<br>
+	sig-re-signing-interval <em class="replaceable"><code>integer</code></em>;<br>
+	sig-signing-nodes <em class="replaceable"><code>integer</code></em>;<br>
+	sig-signing-signatures <em class="replaceable"><code>integer</code></em>;<br>
+	sig-signing-type <em class="replaceable"><code>integer</code></em>;<br>
 <br>
 	transfer-source ( <em class="replaceable"><code>ipv4_address</code></em> | * )<br>
 		[<span class="optional"> port ( <em class="replaceable"><code>integer</code></em> | * ) </span>];<br>
@@ -321,7 +326,7 @@ options {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544432"></a><h2>VIEW</h2>
+<a name="id2544444"></a><h2>VIEW</h2>
 <div class="literallayout"><p><br>
 view <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	match-clients { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
@@ -469,7 +474,7 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545093"></a><h2>ZONE</h2>
+<a name="id2545106"></a><h2>ZONE</h2>
 <div class="literallayout"><p><br>
 zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	type ( master | slave | stub | hint |<br>
@@ -559,12 +564,12 @@ zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545386"></a><h2>FILES</h2>
+<a name="id2545399"></a><h2>FILES</h2>
 <p><code class="filename">/etc/named.conf</code>
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545398"></a><h2>SEE ALSO</h2>
+<a name="id2545411"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">named-checkconf</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">rndc</span>(8)</span>,
