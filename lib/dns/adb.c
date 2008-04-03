@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.233.36.4 2008/04/03 06:10:19 marka Exp $ */
+/* $Id: adb.c,v 1.233.36.5 2008/04/03 06:20:34 tbox Exp $ */
 
 /*! \file
  *
@@ -3544,10 +3544,10 @@ fetch_name(dns_adbname_t *adbname,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-        if (type == dns_rdatatype_a) {
+	if (type == dns_rdatatype_a) {
 		adbname->fetch_a = fetch;
 		inc_stats(adb, dns_resstatscounter_gluefetchv4);
-        } else {
+	} else {
 		adbname->fetch_aaaa = fetch;
 		inc_stats(adb, dns_resstatscounter_gluefetchv6);
 	}

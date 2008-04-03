@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stats.h,v 1.13.128.3 2008/04/03 06:10:21 marka Exp $ */
+/* $Id: stats.h,v 1.13.128.4 2008/04/03 06:20:34 tbox Exp $ */
 
 #ifndef DNS_STATS_H
 #define DNS_STATS_H 1
@@ -75,7 +75,7 @@ enum {
 	dns_zonestatscounter_max = 13,
 
 	/*%
- 	* Query statistics counters (obsolete).
+	* Query statistics counters (obsolete).
 	*/
 	dns_statscounter_success = 0,    /*%< Successful lookup */
 	dns_statscounter_referral = 1,   /*%< Referral result */
@@ -222,7 +222,7 @@ dns_stats_detach(dns_stats_t **statsp);
 void
 dns_generalstats_increment(dns_stats_t *stats, dns_statscounter_t counter);
 /*%<
- * Increment the counter-th counter of stats. 
+ * Increment the counter-th counter of stats.
  *
  * Requires:
  *\li	'stats' is a valid dns_stats_t created by dns_generalstats_create().

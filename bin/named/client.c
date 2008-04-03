@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.250.16.4 2008/04/03 06:10:19 marka Exp $ */
+/* $Id: client.c,v 1.250.16.5 2008/04/03 06:20:33 tbox Exp $ */
 
 #include <config.h>
 
@@ -1765,7 +1765,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 			dns_generalstats_increment(ns_g_server->nsstats,
 						   dns_nsstatscounter_sig0in);
 		}
-			
+
 	}
 	if (result == ISC_R_SUCCESS) {
 		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,

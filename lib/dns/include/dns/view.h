@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.107.128.3 2008/04/03 06:10:21 marka Exp $ */
+/* $Id: view.h,v 1.107.128.4 2008/04/03 06:20:34 tbox Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -843,7 +843,7 @@ dns_view_getresstats(dns_view_t *view, dns_stats_t **statsp);
  * Requires:
  * \li	'view' is valid and is not frozen.
  *
- *\li	'statsp' != NULL && '*statsp' != NULL 
+ *\li	'statsp' != NULL && '*statsp' != NULL
  */
 
 void
@@ -869,7 +869,7 @@ dns_view_getresquerystats(dns_view_t *view, dns_stats_t **statsp);
  * Requires:
  * \li	'view' is valid and is not frozen.
  *
- *\li	'statsp' != NULL && '*statsp' != NULL 
+ *\li	'statsp' != NULL && '*statsp' != NULL
  */
 
 #endif /* DNS_VIEW_H */
