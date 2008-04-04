@@ -40,7 +40,7 @@
 ./bin/dig/dighost.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./bin/dig/host.1				MAN	DOCBOOK
 ./bin/dig/host.c				C	2000,2001,2002,2003,2004,2005,2006,2007
-./bin/dig/host.docbook				SGML	2000,2001,2002,2004,2005,2007
+./bin/dig/host.docbook				SGML	2000,2001,2002,2004,2005,2007,2008
 ./bin/dig/host.html				HTML	DOCBOOK
 ./bin/dig/include/dig/dig.h			C	2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./bin/dig/nslookup.1				MAN	DOCBOOK
@@ -1840,6 +1840,7 @@
 ./lib/dns/include/dns/name.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/include/dns/ncache.h			C	1999,2000,2001,2002,2004,2005,2006,2007
 ./lib/dns/include/dns/nsec.h			C	1999,2000,2001,2003,2004,2005,2006,2007
+./lib/dns/include/dns/nsec3.h			C	2008
 ./lib/dns/include/dns/opcode.h			C	2002,2004,2005,2006,2007
 ./lib/dns/include/dns/order.h			C	2002,2004,2005,2006,2007
 ./lib/dns/include/dns/peer.h			C	2000,2001,2003,2004,2005,2006,2007,2008
@@ -2071,6 +2072,7 @@
 ./lib/isc/alpha/include/isc/atomic.h		C	2005,2007
 ./lib/isc/api					X	1999,2000,2001,2006
 ./lib/isc/assertions.c				C	1997,1998,1999,2000,2001,2004,2005,2007
+./lib/isc/base32.c				C	2008
 ./lib/isc/base64.c				C	1998,1999,2000,2001,2003,2004,2005,2007
 ./lib/isc/bitstring.c				C	1999,2000,2001,2004,2005,2007
 ./lib/isc/buffer.c				C	1998,1999,2000,2001,2002,2004,2005,2006,2007
@@ -2168,6 +2170,7 @@
 ./lib/isc/inet_aton.c				C.PORTION	1996,1997,1998,1999,2000,2001,2004,2005,2007
 ./lib/isc/inet_ntop.c				C	1996,1997,1998,1999,2000,2001,2004,2005,2007
 ./lib/isc/inet_pton.c				C	1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2007
+./lib/isc/iterated_hash.c			C	2008
 ./lib/isc/lex.c					C	1998,1999,2000,2001,2002,2003,2004,2005,2007
 ./lib/isc/lfsr.c				C	1999,2000,2001,2002,2004,2005,2007
 ./lib/isc/lib.c					C	1999,2000,2001,2004,2005,2007
@@ -2228,7 +2231,7 @@
 ./lib/isc/pthreads/include/isc/mutex.h		C	1998,1999,2000,2001,2002,2004,2005,2007
 ./lib/isc/pthreads/include/isc/once.h		C	1999,2000,2001,2004,2005,2007
 ./lib/isc/pthreads/include/isc/thread.h		C	1998,1999,2000,2001,2004,2005,2007
-./lib/isc/pthreads/mutex.c			C	2000,2001,2002,2004,2005,2007
+./lib/isc/pthreads/mutex.c			C	2000,2001,2002,2004,2005,2007,2008
 ./lib/isc/pthreads/thread.c			C	2000,2001,2003,2004,2005,2007
 ./lib/isc/quota.c				C	2000,2001,2004,2005,2007
 ./lib/isc/radix.c				C	2007,2008
