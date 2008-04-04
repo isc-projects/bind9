@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: host.docbook,v 1.5.18.11 2007/08/28 07:19:55 tbox Exp $ -->
+<!-- $Id: host.docbook,v 1.5.18.12 2008/04/04 23:30:56 marka Exp $ -->
 <refentry id="man.host">
 
   <refentryinfo>
@@ -199,7 +199,7 @@
       NS, SOA, SIG, KEY, AXFR, etc.  When no query type is specified,
       <command>host</command> automatically selects an appropriate
       query
-      type.  By default it looks for A records, but if the
+      type.  By default it looks for A, AAAA, and MX records, but if the
       <option>-C</option> option was given, queries will be made for SOA
       records, and if <parameter>name</parameter> is a
       dotted-decimal IPv4

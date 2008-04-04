@@ -1,3 +1,5 @@
+2358.	[doc]		Update host's default query description. [RT #17934]
+
 2356.	[bug]		Builtin mutex profiler was not scalable enough.
 			[RT #17436]
 
