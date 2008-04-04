@@ -1,8 +1,7 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 1998-2001, 2003  Internet Software Consortium.
+ * Copyright (C) 2008  Internet Systems Consortium, Inc. ("ISC")
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: base32.c,v 1.2 2008/04/04 05:34:06 marka Exp $ */
+/* $Id: base32.c,v 1.3 2008/04/04 23:47:01 tbox Exp $ */
 
 /*! \file */
 
@@ -66,7 +65,7 @@ base32_totext(isc_region_t *source, int wordlength, const char *wordbreak,
 	memset(buf, 0, sizeof(buf));
 	while (source->length > 0) {
 		buf[0] = base[((source->base[0]>>3)&0x1f)];	/* 5 + */
-		if (source->length == 1) { 
+		if (source->length == 1) {
 			buf[1] = base[(source->base[0]<<2)&0x1c];
 			buf[2] = buf[3] = buf[4] = '=';
 			buf[5] = buf[6] = buf[7] = '=';
@@ -253,7 +252,7 @@ base32_decode_finish(base32_decode_ctx_t *ctx) {
 static isc_result_t
 base32_tobuffer(isc_lex_t *lexer, const char base[], isc_buffer_t *target,
 		int length)
-{ 
+{
 	base32_decode_ctx_t ctx;
 	isc_textregion_t *tr;
 	isc_token_t token;
@@ -305,7 +304,7 @@ base32_decodestring(const char *cstr, const char base[], isc_buffer_t *target) {
 			continue;
 		RETERR(base32_decode_char(&ctx, c));
 	}
-	RETERR(base32_decode_finish(&ctx));	
+	RETERR(base32_decode_finish(&ctx));
 	return (ISC_R_SUCCESS);
 }
 
@@ -329,7 +328,7 @@ base32_decoderegion(isc_region_t *source, const char base[], isc_buffer_t *targe
 		RETERR(base32_decode_char(&ctx, c));
 		isc_region_consume(source, 1);
 	}
-	RETERR(base32_decode_finish(&ctx));	
+	RETERR(base32_decode_finish(&ctx));
 	return (ISC_R_SUCCESS);
 }
 

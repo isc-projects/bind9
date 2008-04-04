@@ -1,8 +1,7 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
+ * Copyright (C) 2008  Internet Systems Consortium, Inc. ("ISC")
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3.h,v 1.2 2008/04/04 05:34:05 marka Exp $ */
+/* $Id: nsec3.h,v 1.3 2008/04/04 23:47:01 tbox Exp $ */
 
 #ifndef DNS_NSEC3_H
 #define DNS_NSEC3_H 1
@@ -43,7 +42,7 @@ isc_result_t
 dns_nsec3_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 		     dns_dbnode_t *node, unsigned int hashalg,
 		     unsigned int optin, unsigned int iterations,
-		     const unsigned char *salt, size_t salt_length, 
+		     const unsigned char *salt, size_t salt_length,
 		     const unsigned char *nexthash, size_t hash_length,
 		     unsigned char *buffer, dns_rdata_t *rdata);
 /*
