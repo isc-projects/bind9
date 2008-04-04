@@ -1,3 +1,6 @@
+2357.	[port]		Don't use OpenSSL's engine support in versions before
+			OpenSSL 0.9.7f. [RT #17922]
+
 2356.	[bug]		Builtin mutex profiler was not scalable enough.
 			[RT #17436]
 
