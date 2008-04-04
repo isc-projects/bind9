@@ -1,3 +1,6 @@
+2356.	[bug]		Builtin mutex profiler was not scalable enough.
+			[RT #17436]
+
 2353.	[func]		libbind: nsid support. [RT #17091]
 
 2350.	[port]		win32: IPv6 support. [RT #17797]
