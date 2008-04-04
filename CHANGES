@@ -1,3 +1,6 @@
+2356.	[bug]		Builtin mutex profiler was not scalable enough.
+			[RT #17436]
+
 2355.	[func]		Extend the number statistics counters available.
 			[RT #17590]
 
