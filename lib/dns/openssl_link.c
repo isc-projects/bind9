@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.20 2008/04/04 22:10:49 marka Exp $
+ * $Id: openssl_link.c,v 1.21 2008/04/05 02:35:24 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -355,7 +355,12 @@ dst__openssl_getengine(const char *name) {
 
 	UNUSED(name);
 
+
+#if defined(USE_ENGINE)
 	return (he);
+#else
+	return (NULL);
+#endif 
 }
 
 isc_result_t
@@ -363,7 +368,9 @@ dst__openssl_setdefault(const char *name) {
 
 	UNUSED(name);
 
+#if defined(USE_ENGINE)
 	ENGINE_set_default(e, ENGINE_METHOD_ALL);
+#endif
 	/*
 	 * XXXMPA If the engine does not have a default RAND method
 	 * restore our method.
