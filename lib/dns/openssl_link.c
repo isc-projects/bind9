@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.21 2008/04/05 02:35:24 marka Exp $
+ * $Id: openssl_link.c,v 1.22 2008/04/05 23:47:11 tbox Exp $
  */
 #ifdef OPENSSL
 
@@ -360,7 +360,7 @@ dst__openssl_getengine(const char *name) {
 	return (he);
 #else
 	return (NULL);
-#endif 
+#endif
 }
 
 isc_result_t
