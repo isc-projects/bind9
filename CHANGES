@@ -1,3 +1,5 @@
+2359.	[bug]		Fix NSID bug. [RT #17942]
+
 2358.	[doc]		Update host's default query description. [RT #17934]
 
 2357.	[port]		Don't use OpenSSL's engine support in versions before

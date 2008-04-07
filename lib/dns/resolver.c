@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.366 2008/04/03 23:14:52 jinmei Exp $ */
+/* $Id: resolver.c,v 1.367 2008/04/07 05:32:52 marka Exp $ */
 
 /*! \file */
 
@@ -1581,7 +1581,7 @@ resquery_send(resquery_t *query) {
 			unsigned int version = 0;       /* Default version. */
 			unsigned int flags;
 			isc_uint16_t udpsize = res->udpsize;
-			isc_boolean_t reqnsid = ISC_FALSE;
+			isc_boolean_t reqnsid = res->view->requestnsid;
 
 			flags = query->addrinfo->flags;
 			if ((flags & DNS_FETCHOPT_EDNSVERSIONSET) != 0) {
@@ -1596,8 +1596,6 @@ resquery_send(resquery_t *query) {
 			/* request NSID for current view or peer? */
 			if (peer != NULL)
 				(void) dns_peer_getrequestnsid(peer, &reqnsid);
-			reqnsid = (reqnsid || res->view->requestnsid);
-
 			result = fctx_addopt(fctx->qmessage, version,
 					     udpsize, reqnsid);
 			if (reqnsid && result == ISC_R_SUCCESS) {
