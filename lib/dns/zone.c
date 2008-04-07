@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.470.12.4 2008/04/03 06:10:20 marka Exp $ */
+/* $Id: zone.c,v 1.470.12.5 2008/04/07 05:30:58 marka Exp $ */
 
 /*! \file */
 
@@ -5091,6 +5091,7 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 		(void)dns_view_getpeertsig(zone->view, &masterip, &key);
 
 	have_xfrsource = ISC_FALSE;
+	reqnsid = zone->view->requestnsid;
 	if (zone->view->peers != NULL) {
 		dns_peer_t *peer = NULL;
 		isc_boolean_t edns;
@@ -5108,9 +5109,7 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 				udpsize =
 				  dns_resolver_getudpsize(zone->view->resolver);
 			(void)dns_peer_getudpsize(peer, &udpsize);
-			result = dns_peer_getrequestnsid(peer, &reqnsid);
-			reqnsid = (result == ISC_R_SUCCESS && reqnsid) ||
-				  zone->view->requestnsid;
+			(void)dns_peer_getrequestnsid(peer, &reqnsid);
 		}
 	}
 
@@ -5323,6 +5322,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	if (key == NULL)
 		(void)dns_view_getpeertsig(zone->view, &masterip, &key);
 
+	reqnsid = zone->view->requestnsid;
 	if (zone->view->peers != NULL) {
 		dns_peer_t *peer = NULL;
 		isc_boolean_t edns;
@@ -5340,9 +5340,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 				udpsize =
 				  dns_resolver_getudpsize(zone->view->resolver);
 			(void)dns_peer_getudpsize(peer, &udpsize);
-			result = dns_peer_getrequestnsid(peer, &reqnsid);
-			reqnsid = (result == ISC_R_SUCCESS && reqnsid) ||
-				  zone->view->requestnsid;
+			(void)dns_peer_getrequestnsid(peer, &reqnsid);
 		}
 
 	}
