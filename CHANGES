@@ -1,3 +1,5 @@
+	--- 9.5.0b3 released ---
+
 2359.	[bug]		Fix NSID bug. [RT #17942]
 
 2358.	[doc]		Update host's default query description. [RT #17934]
