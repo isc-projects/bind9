@@ -100,6 +100,7 @@ dns_db_findnode
 dns_db_findrdataset
 dns_db_findzonecut
 dns_db_getoriginnode
+dns_db_getrrsetstats
 dns_db_getsoaserial
 dns_db_iscache
 dns_db_ispersistent
@@ -172,6 +173,7 @@ dns_dispatchmgr_destroy
 dns_dispatchmgr_getblackhole
 dns_dispatchmgr_setblackhole
 dns_dispatchmgr_setblackportlist
+dns_dispatchmgr_setstats
 dns_dlzallowzonexfr
 dns_dlzcreate
 dns_dlzdestroy
@@ -194,6 +196,9 @@ dns_fwdtable_add
 dns_fwdtable_create
 dns_fwdtable_destroy
 dns_fwdtable_find
+dns_generalstats_create
+dns_generalstats_dump
+dns_generalstats_increment
 dns_iptable_addprefix
 dns_iptable_attach
 dns_iptable_create
@@ -348,6 +353,9 @@ dns_ncache_towire
 dns_nsec_build
 dns_nsec_buildrdata
 dns_nsec_typepresent
+dns_opcodestats_create
+dns_opcodestats_dump
+dns_opcodestats_increment
 dns_order_add
 dns_order_attach
 dns_order_create
@@ -434,6 +442,7 @@ dns_rdataclass_format
 dns_rdataclass_fromtext
 dns_rdataclass_ismeta
 dns_rdataclass_totext
+dns_rdatalist_fromrdataset
 dns_rdatalist_init
 dns_rdatalist_tordataset
 dns_rdataset_additionaldata
@@ -454,6 +463,10 @@ dns_rdataset_setadditional
 dns_rdataset_totext
 dns_rdataset_towire
 dns_rdataset_towiresorted
+dns_rdatasetstats_create
+dns_rdatasetstats_decrement
+dns_rdatasetstats_dump
+dns_rdatasetstats_increment
 dns_rdatasetiter_current
 dns_rdatasetiter_destroy
 dns_rdatasetiter_first
@@ -475,6 +488,9 @@ dns_rdatatype_iszonecutauth
 dns_rdatatype_notquestion
 dns_rdatatype_questiononly
 dns_rdatatype_totext
+dns_rdatatypestats_create
+dns_rdatatypestats_dump
+dns_rdatatypestats_increment
 dns_request_cancel
 dns_request_create
 dns_request_createraw
@@ -548,9 +564,10 @@ dns_ssutable_checkrules
 dns_ssutable_create
 dns_ssutable_detach
 dns_stats_alloccounters
+dns_stats_attach
 dns_stats_copy
-dns_stats_create
 dns_stats_destroy
+dns_stats_detach
 dns_stats_freecounters
 dns_stats_incrementcounter
 dns_tcpmsg_cancelread
@@ -610,6 +627,8 @@ dns_view_flushname
 dns_view_freeze
 dns_view_freezezones
 dns_view_getpeertsig
+dns_view_getresstats
+dns_view_getresquerystats
 dns_view_gettsig
 dns_view_load
 dns_view_loadnew
@@ -617,6 +636,8 @@ dns_view_setcache
 dns_view_setdstport
 dns_view_sethints
 dns_view_setkeyring
+dns_view_setresstats
+dns_view_setresquerystats
 dns_view_setrootdelonly
 dns_view_simplefind
 dns_view_weakattach
@@ -667,6 +688,8 @@ dns_zone_getnotifysrc6
 dns_zone_getoptions
 dns_zone_getorigin
 dns_zone_getqueryacl
+dns_zone_getrequeststats
+dns_zone_getserial
 dns_zone_getsigvalidityinterval
 dns_zone_getssutable
 dns_zone_getstats
@@ -731,8 +754,10 @@ dns_zone_setoption
 dns_zone_setorigin
 dns_zone_setqueryacl
 dns_zone_setqueryonacl
+dns_zone_setrequeststats
 dns_zone_setsigvalidityinterval
 dns_zone_setssutable
+dns_zone_setstats
 dns_zone_setstatistics
 dns_zone_settask
 dns_zone_settype
