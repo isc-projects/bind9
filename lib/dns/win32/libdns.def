@@ -353,6 +353,7 @@ dns_ncache_towire
 dns_nsec_build
 dns_nsec_buildrdata
 dns_nsec_typepresent
+dns_opcode_totext
 dns_opcodestats_create
 dns_opcodestats_dump
 dns_opcodestats_increment
@@ -368,6 +369,7 @@ dns_peer_getkey
 dns_peer_getmaxudp
 dns_peer_getprovideixfr
 dns_peer_getrequestixfr
+dns_peer_getrequestnsid
 dns_peer_getsupportedns
 dns_peer_gettransferformat
 dns_peer_gettransfers
@@ -381,6 +383,7 @@ dns_peer_setnotifysource
 dns_peer_setprovideixfr
 dns_peer_setquerysource
 dns_peer_setrequestixfr
+dns_peer_setrequestnsid
 dns_peer_setsupportedns
 dns_peer_settransferformat
 dns_peer_settransfers
