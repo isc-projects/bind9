@@ -1,3 +1,6 @@
+2360.	[bug]		Fix a condition where we release a database version
+			(which may acquire a lock) while holding the lock.
+
 2359.	[bug]		Fix NSID bug. [RT #17942]
 
 2358.	[doc]		Update host's default query description. [RT #17934]
