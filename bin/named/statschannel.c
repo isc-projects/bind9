@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: statschannel.c,v 1.9 2008/04/09 22:48:17 jinmei Exp $ */
+/* $Id: statschannel.c,v 1.10 2008/04/09 22:53:36 tbox Exp $ */
 
 /*! \file */
 
@@ -852,7 +852,7 @@ init_desc() {
 
 	/* Initialize name server statistics */
 	memset(nsstats_desc, 0,
-	       dns_nsstatscounter_max * sizeof(nsstats_desc[0])); 
+	       dns_nsstatscounter_max * sizeof(nsstats_desc[0]));
 	set_desc(dns_nsstatscounter_requestv4, dns_nsstatscounter_max,
 		 "IPv4 requests received", nsstats_desc);
 	set_desc(dns_nsstatscounter_requestv6, dns_nsstatscounter_max,
@@ -929,7 +929,7 @@ init_desc() {
 
 	/* Initialize resolver statistics */
 	memset(resstats_desc, 0,
-	       dns_resstatscounter_max * sizeof(resstats_desc[0])); 
+	       dns_resstatscounter_max * sizeof(resstats_desc[0]));
 	set_desc(dns_resstatscounter_queryv4, dns_resstatscounter_max,
 		 "IPv4 queries sent", resstats_desc);
 	set_desc(dns_resstatscounter_queryv6, dns_resstatscounter_max,
@@ -956,11 +956,11 @@ init_desc() {
 		 "lame delegations received", resstats_desc);
 	set_desc(dns_resstatscounter_retry, dns_resstatscounter_max,
 		 "query retries", resstats_desc);
- 	set_desc(dns_resstatscounter_gluefetchv4, dns_resstatscounter_max,
+	set_desc(dns_resstatscounter_gluefetchv4, dns_resstatscounter_max,
 		 "IPv4 NS address fetches", resstats_desc);
- 	set_desc(dns_resstatscounter_gluefetchv6, dns_resstatscounter_max,
+	set_desc(dns_resstatscounter_gluefetchv6, dns_resstatscounter_max,
 		 "IPv6 NS address fetches", resstats_desc);
- 	set_desc(dns_resstatscounter_gluefetchv4fail, dns_resstatscounter_max,
+	set_desc(dns_resstatscounter_gluefetchv4fail, dns_resstatscounter_max,
 		 "IPv4 NS address fetch failed", resstats_desc);
 	set_desc(dns_resstatscounter_gluefetchv6fail, dns_resstatscounter_max,
 		 "IPv6 NS address fetch failed", resstats_desc);
@@ -975,7 +975,7 @@ init_desc() {
 
 	/* Initialize zone statistics */
 	memset(zonestats_desc, 0,
-	       dns_zonestatscounter_max * sizeof(zonestats_desc[0])); 
+	       dns_zonestatscounter_max * sizeof(zonestats_desc[0]));
 	set_desc(dns_zonestatscounter_notifyoutv4, dns_zonestatscounter_max,
 		 "IPv4 notifies sent", zonestats_desc);
 	set_desc(dns_zonestatscounter_notifyoutv6, dns_zonestatscounter_max,
