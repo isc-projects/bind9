@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.257 2008/04/03 05:55:52 marka Exp $ */
+/* $Id: rbtdb.c,v 1.258 2008/04/09 04:31:11 marka Exp $ */
 
 /*! \file */
 
@@ -25,7 +25,7 @@
 
 #include <config.h>
 
-#define inline
+/* #define inline */
 
 #include <isc/event.h>
 #include <isc/heap.h>
