@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.479 2008/04/07 05:32:52 marka Exp $ */
+/* $Id: zone.c,v 1.480 2008/04/09 04:29:16 marka Exp $ */
 
 /*! \file */
 
@@ -3779,7 +3779,7 @@ next_active(dns_db_t *db, dns_dbversion_t *version, dns_name_t *oldname,
 
 	CHECK(dns_db_createiterator(db, ISC_FALSE, &dbit));
 	CHECK(dns_dbiterator_seek(dbit, oldname));
-	while (1) {
+	do {
 		result = dns_dbiterator_next(dbit);
 		if (result == ISC_R_NOMORE)
 			CHECK(dns_dbiterator_first(dbit));
@@ -3798,7 +3798,7 @@ next_active(dns_db_t *db, dns_dbversion_t *version, dns_name_t *oldname,
 		dns_rdatasetiter_destroy(&rdsit);
 		if (result != ISC_R_NOMORE)
 			break;
-	}
+	} while (1);
  failure:
 	if (node != NULL)
 		dns_db_detachnode(db, &node);
