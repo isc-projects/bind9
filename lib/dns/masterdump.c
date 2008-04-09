@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.91 2008/04/01 23:47:10 tbox Exp $ */
+/* $Id: masterdump.c,v 1.92 2008/04/09 21:39:46 explorer Exp $ */
 
 /*! \file */
 
@@ -1030,9 +1030,9 @@ dumpctx_destroy(dns_dumpctx_t *dctx) {
 
 	dctx->magic = 0;
 	DESTROYLOCK(&dctx->lock);
+	dns_dbiterator_destroy(&dctx->dbiter);
 	if (dctx->version != NULL)
 		dns_db_closeversion(dctx->db, &dctx->version, ISC_FALSE);
-	dns_dbiterator_destroy(&dctx->dbiter);
 	dns_db_detach(&dctx->db);
 	if (dctx->task != NULL)
 		isc_task_detach(&dctx->task);
