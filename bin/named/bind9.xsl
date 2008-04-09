@@ -15,7 +15,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: bind9.xsl,v 1.16 2008/04/03 05:55:51 marka Exp $ -->
+<!-- $Id: bind9.xsl,v 1.17 2008/04/09 22:48:17 jinmei Exp $ -->
 
 <xsl:stylesheet version="1.0"
    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -147,7 +147,7 @@ td, th {
 	<table>
 	  <tr class="rowh"><th colspan="10">Server Statistics</th></tr>
           <tr class="rowh">
-	    <!-- The ordering of the following items must be consisten
+	    <!-- The ordering of the following items must be consistent
 	    with dns_nsstatscounter_xxx -->
 	    <th>Requestv4</th>
 	    <th>Requestv6</th>
@@ -251,7 +251,7 @@ td, th {
 	<table>
 	  <tr class="rowh"><th colspan="10">Zone Maintenance Statistics</th></tr>
           <tr class="rowh">
-	    <!-- The ordering of the following items must be consisten
+	    <!-- The ordering of the following items must be consistent
 	    with dns_zonestatscounter_xxx -->
 	    <th>NotifyOutv4</th>
 	    <th>NotifyOutv6</th>
@@ -310,7 +310,7 @@ td, th {
 	      <th colspan="10">Resolver Statistics for View <xsl:value-of select="name"/></th>
 	    </tr>
 	    <tr class="rowh">
-	    <!-- The ordering of the following items must be consisten
+	    <!-- The ordering of the following items must be consistent
 	    with dns_resstatscounter_xxx -->
 	      <th>Queryv4</th>
 	      <th>Queryv6</th>

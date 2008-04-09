@@ -54,6 +54,8 @@ BIND 9.5.0
 
 	Experimental http server and statistics support for named via xml.
 
+	More detailed statistics counters including those supported in BIND 8.
+
 	Faster ACL processing.
 
 	Use Doxygen to generate internal documentation.
