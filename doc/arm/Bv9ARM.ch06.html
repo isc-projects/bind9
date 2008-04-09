@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.168.18.6 2008/04/03 04:11:03 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.168.18.7 2008/04/09 23:37:46 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -74,31 +74,33 @@
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2576660"><span><strong class="command">options</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#options"><span><strong class="command">options</strong></span> Statement Definition and
           Usage</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2585190"><span><strong class="command">statistics-channels</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2585208"><span><strong class="command">statistics-channels</strong></span> Statement Definition and
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#statschannels"><span><strong class="command">statistics-channels</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2584704"><span><strong class="command">statistics-channels</strong></span> Statement Definition and
             Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#server_statement_grammar"><span><strong class="command">server</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#server_statement_definition_and_usage"><span><strong class="command">server</strong></span> Statement Definition and
             Usage</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2585824"><span><strong class="command">trusted-keys</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2585943"><span><strong class="command">trusted-keys</strong></span> Statement Definition
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2585456"><span><strong class="command">trusted-keys</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2585507"><span><strong class="command">trusted-keys</strong></span> Statement Definition
             and Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#view_statement_grammar"><span><strong class="command">view</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2586025"><span><strong class="command">view</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2585589"><span><strong class="command">view</strong></span> Statement Definition and Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#zone_statement_grammar"><span><strong class="command">zone</strong></span>
             Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2587517"><span><strong class="command">zone</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2587149"><span><strong class="command">zone</strong></span> Statement Definition and Usage</a></span></dt>
 </dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2589864">Zone File</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2589428">Zone File</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#types_of_resource_records_and_when_to_use_them">Types of Resource Records and When to Use Them</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2591885">Discussion of MX Records</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2591381">Discussion of MX Records</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#Setting_TTLs">Setting TTLs</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592505">Inverse Mapping in IPv4</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592700">Other Zone File Directives</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592889"><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592137">Inverse Mapping in IPv4</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592332">Other Zone File Directives</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592589"><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#zonefile_format">Additional File Formats</a></span></dt>
 </dl></dd>
+<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2592989">BIND9 Statistics</a></span></dt>
+<dd><dl><dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2593338">Statistics Counters</a></span></dt></dl></dd>
 </dl>
 </div>
 <p>
@@ -4301,159 +4303,6 @@ query-source-v6 address * port *;
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="statsfile"></a>The Statistics File</h4></div></div></div>
-<p>
-            The statistics file generated by <acronym class="acronym">BIND</acronym> 9
-            is similar, but not identical, to that
-            generated by <acronym class="acronym">BIND</acronym> 8.
-          </p>
-<p>
-            The statistics dump begins with a line, like:
-          </p>
-<p>
-            <span><strong class="command">+++ Statistics Dump +++ (973798949)</strong></span>
-          </p>
-<p>
-            The number in parentheses is a standard
-            Unix-style timestamp, measured as seconds since January 1, 1970.
-            Following
-            that line are a series of lines containing a counter type, the
-            value of the
-            counter, optionally a zone name, and optionally a view name.
-            The lines without view and zone listed are global statistics for
-            the entire server.
-            Lines with a zone and view name for the given view and zone (the
-            view name is
-            omitted for the default view).
-          </p>
-<p>
-            The statistics dump ends with the line where the
-            number is identical to the number in the beginning line; for example:
-          </p>
-<p>
-            <span><strong class="command">--- Statistics Dump --- (973798949)</strong></span>
-          </p>
-<p>
-            The following statistics counters are maintained:
-          </p>
-<div class="informaltable"><table border="1">
-<colgroup>
-<col>
-<col>
-</colgroup>
-<tbody>
-<tr>
-<td>
-                    <p><span><strong class="command">success</strong></span></p>
-                  </td>
-<td>
-                    <p>
-                      The number of
-                      successful queries made to the server or zone.  A
-                      successful query
-                      is defined as query which returns a NOERROR response
-                      with at least
-                      one answer RR.
-                    </p>
-                  </td>
-</tr>
-<tr>
-<td>
-                    <p><span><strong class="command">referral</strong></span></p>
-                  </td>
-<td>
-                    <p>
-                      The number of queries which resulted
-                      in referral responses.
-                    </p>
-                  </td>
-</tr>
-<tr>
-<td>
-                    <p><span><strong class="command">nxrrset</strong></span></p>
-                  </td>
-<td>
-                    <p>
-                      The number of queries which resulted in
-                      NOERROR responses with no data.
-                    </p>
-                  </td>
-</tr>
-<tr>
-<td>
-                    <p><span><strong class="command">nxdomain</strong></span></p>
-                  </td>
-<td>
-                    <p>
-                      The number
-                      of queries which resulted in NXDOMAIN responses.
-                    </p>
-                  </td>
-</tr>
-<tr>
-<td>
-                    <p><span><strong class="command">failure</strong></span></p>
-                  </td>
-<td>
-                    <p>
-                      The number of queries which resulted in a
-                      failure response other than those above.
-                    </p>
-                  </td>
-</tr>
-<tr>
-<td>
-                    <p><span><strong class="command">recursion</strong></span></p>
-                  </td>
-<td>
-                    <p>
-                      The number of queries which caused the server
-                      to perform recursion in order to find the final answer.
-                    </p>
-                  </td>
-</tr>
-<tr>
-<td>
-                    <p><span><strong class="command">duplicate</strong></span></p>
-                  </td>
-<td>
-                    <p>
-                      The number of queries which the server attempted to
-                      recurse but discover a existing query with the same
-                      IP address, port, query id, name, type and class
-                      already being processed.
-                    </p>
-                  </td>
-</tr>
-<tr>
-<td>
-                    <p><span><strong class="command">dropped</strong></span></p>
-                  </td>
-<td>
-                    <p>
-                      The number of queries for which the server
-                      discovered a excessive number of existing
-                      recursive queries for the same name, type and
-                      class and were subsequently dropped.
-                    </p>
-                  </td>
-</tr>
-</tbody>
-</table></div>
-<p>
-            Each query received by the server will cause exactly one of
-            <span><strong class="command">success</strong></span>,
-            <span><strong class="command">referral</strong></span>,
-            <span><strong class="command">nxrrset</strong></span>,
-            <span><strong class="command">nxdomain</strong></span>, or
-            <span><strong class="command">failure</strong></span>
-            to be incremented, and may additionally cause the
-            <span><strong class="command">recursion</strong></span> counter to be
-            incremented.
-          </p>
-</div>
-<div class="sect3" lang="en">
-<div class="titlepage"><div><div><h4 class="title">
 <a name="acache"></a>Additional Section Caching</h4></div></div></div>
 <p>
             The additional section cache, also called <span><strong class="command">acache</strong></span>,
@@ -4546,7 +4395,7 @@ query-source-v6 address * port *;
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2585190"></a><span><strong class="command">statistics-channels</strong></span> Statement Grammar</h3></div></div></div>
+<a name="statschannels"></a><span><strong class="command">statistics-channels</strong></span> Statement Grammar</h3></div></div></div>
 <pre class="programlisting"><span><strong class="command">statistics-channels</strong></span> {
    [ inet ( ip_addr | * ) [ port ip_port ] [allow { <em class="replaceable"><code> address_match_list </code></em> } ]; ]
    [ inet ...; ]
@@ -4555,7 +4404,7 @@ query-source-v6 address * port *;
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2585208"></a><span><strong class="command">statistics-channels</strong></span> Statement Definition and
+<a name="id2584704"></a><span><strong class="command">statistics-channels</strong></span> Statement Definition and
             Usage</h3></div></div></div>
 <p>
           The <span><strong class="command">statistics-channels</strong></span> statement
@@ -4800,7 +4649,7 @@ query-source-v6 address * port *;
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2585824"></a><span><strong class="command">trusted-keys</strong></span> Statement Grammar</h3></div></div></div>
+<a name="id2585456"></a><span><strong class="command">trusted-keys</strong></span> Statement Grammar</h3></div></div></div>
 <pre class="programlisting"><span><strong class="command">trusted-keys</strong></span> {
     <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>string</code></em> ;
     [<span class="optional"> <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>string</code></em> ; [<span class="optional">...</span>]</span>]
@@ -4809,7 +4658,7 @@ query-source-v6 address * port *;
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2585943"></a><span><strong class="command">trusted-keys</strong></span> Statement Definition
+<a name="id2585507"></a><span><strong class="command">trusted-keys</strong></span> Statement Definition
             and Usage</h3></div></div></div>
 <p>
             The <span><strong class="command">trusted-keys</strong></span> statement defines
@@ -4852,7 +4701,7 @@ query-source-v6 address * port *;
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2586025"></a><span><strong class="command">view</strong></span> Statement Definition and Usage</h3></div></div></div>
+<a name="id2585589"></a><span><strong class="command">view</strong></span> Statement Definition and Usage</h3></div></div></div>
 <p>
             The <span><strong class="command">view</strong></span> statement is a powerful
             feature
@@ -5111,10 +4960,10 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2587517"></a><span><strong class="command">zone</strong></span> Statement Definition and Usage</h3></div></div></div>
+<a name="id2587149"></a><span><strong class="command">zone</strong></span> Statement Definition and Usage</h3></div></div></div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2587525"></a>Zone Types</h4></div></div></div>
+<a name="id2587157"></a>Zone Types</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -5323,7 +5172,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2588012"></a>Class</h4></div></div></div>
+<a name="id2587644"></a>Class</h4></div></div></div>
 <p>
               The zone's name may optionally be followed by a class. If
               a class is not specified, class <code class="literal">IN</code> (for <code class="varname">Internet</code>),
@@ -5345,7 +5194,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2588045"></a>Zone Options</h4></div></div></div>
+<a name="id2587677"></a>Zone Options</h4></div></div></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><span><strong class="command">allow-notify</strong></span></span></dt>
 <dd><p>
@@ -5846,7 +5695,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2589864"></a>Zone File</h2></div></div></div>
+<a name="id2589428"></a>Zone File</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="types_of_resource_records_and_when_to_use_them"></a>Types of Resource Records and When to Use Them</h3></div></div></div>
@@ -5859,7 +5708,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2589882"></a>Resource Records</h4></div></div></div>
+<a name="id2589446"></a>Resource Records</h4></div></div></div>
 <p>
               A domain name identifies a node.  Each node has a set of
               resource information, which may be empty.  The set of resource
@@ -6510,7 +6359,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2591297"></a>Textual expression of RRs</h4></div></div></div>
+<a name="id2590929"></a>Textual expression of RRs</h4></div></div></div>
 <p>
               RRs are represented in binary form in the packets of the DNS
               protocol, and are usually represented in highly encoded form
@@ -6713,7 +6562,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2591885"></a>Discussion of MX Records</h3></div></div></div>
+<a name="id2591381"></a>Discussion of MX Records</h3></div></div></div>
 <p>
             As described above, domain servers store information as a
             series of resource records, each of which contains a particular
@@ -6971,7 +6820,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2592505"></a>Inverse Mapping in IPv4</h3></div></div></div>
+<a name="id2592137"></a>Inverse Mapping in IPv4</h3></div></div></div>
 <p>
             Reverse name resolution (that is, translation from IP address
             to name) is achieved by means of the <span class="emphasis"><em>in-addr.arpa</em></span> domain
@@ -7032,7 +6881,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2592700"></a>Other Zone File Directives</h3></div></div></div>
+<a name="id2592332"></a>Other Zone File Directives</h3></div></div></div>
 <p>
             The Master File Format was initially defined in RFC 1035 and
             has subsequently been extended. While the Master File Format
@@ -7047,7 +6896,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2592723"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
+<a name="id2592355"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$ORIGIN</strong></span>
               <em class="replaceable"><code>domain-name</code></em>
@@ -7075,7 +6924,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2592784"></a>The <span><strong class="command">$INCLUDE</strong></span> Directive</h4></div></div></div>
+<a name="id2592484"></a>The <span><strong class="command">$INCLUDE</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$INCLUDE</strong></span>
               <em class="replaceable"><code>filename</code></em>
@@ -7111,7 +6960,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2592853"></a>The <span><strong class="command">$TTL</strong></span> Directive</h4></div></div></div>
+<a name="id2592553"></a>The <span><strong class="command">$TTL</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$TTL</strong></span>
               <em class="replaceable"><code>default-ttl</code></em>
@@ -7130,7 +6979,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2592889"></a><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</h3></div></div></div>
+<a name="id2592589"></a><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</h3></div></div></div>
 <p>
             Syntax: <span><strong class="command">$GENERATE</strong></span>
             <em class="replaceable"><code>range</code></em>
@@ -7331,6 +7180,1224 @@ $GENERATE 1-127 $ CNAME $.0</pre>
              portable backup of the file, it is recommended to
              convert the file to the standard textual representation.
           </p>
+</div>
+</div>
+<div class="sect1" lang="en">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="id2592989"></a>BIND9 Statistics</h2></div></div></div>
+<p>
+          <acronym class="acronym">BIND</acronym> 9 maintains lots of statistics
+          information and provides several interfaces for users to
+          get access to the statistics.
+          The available statistics include all statistics counters
+          that were available in <acronym class="acronym">BIND</acronym> 8 and
+          are meaningful in <acronym class="acronym">BIND</acronym> 9,
+          and other information that is considered useful.
+        </p>
+<p>
+          The statistics information is categorized into the following
+          sections.
+        </p>
+<div class="informaltable"><table border="1">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td>
+                  <p>Incoming Requests</p>
+                </td>
+<td>
+                  <p>
+                    The number of incoming DNS requests for each OPCODE.
+                  </p>
+                </td>
+</tr>
+<tr>
+<td>
+                  <p>Incoming Queries</p>
+                </td>
+<td>
+                  <p>
+                    The number of incoming queries for each RR type.
+                  </p>
+                </td>
+</tr>
+<tr>
+<td>
+                  <p>Outgoing Queries</p>
+                </td>
+<td>
+                  <p>
+                    The number of outgoing queries for each RR
+                    type sent from the internal resolver.
+                    Maintained per view.
+                  </p>
+                </td>
+</tr>
+<tr>
+<td>
+                  <p>Name Server Statistics</p>
+                </td>
+<td>
+                  <p>
+                    Statistics counters about incoming request processing.
+                  </p>
+                </td>
+</tr>
+<tr>
+<td>
+                  <p>Zone Maintenance Statistics</p>
+                </td>
+<td>
+                  <p>
+                    Statistics counters regarding zone maintenance
+                    operations such as zone transfers.
+                  </p>
+                </td>
+</tr>
+<tr>
+<td>
+                  <p>Resolver Statistics</p>
+                </td>
+<td>
+                  <p>
+                    Statistics counters about name resolution
+                    performed in the internal resolver.
+                    Maintained per view.
+                  </p>
+                </td>
+</tr>
+<tr>
+<td>
+                  <p>Cache DB RRsets</p>
+                </td>
+<td>
+                  <p>
+                    The number of RRsets per RR type (positive
+                    or negative) and nonexistent names stored in the
+                    cache database.
+                    Maintained per view.
+                  </p>
+                </td>
+</tr>
+</tbody>
+</table></div>
+<p>
+          A subset of Name Server Statistics is collected and shown
+          per zone for which the server has the authority when
+          <span><strong class="command">zone-statistics</strong></span> is set to
+          <strong class="userinput"><code>yes</code></strong>.
+          These statistics counters are shown with their zone and view
+          names.
+          In some cases the view names are omitted for the default view.
+        </p>
+<p>
+          There are currently two user interfaces to get access to the
+          statistics.
+          One is in the plain text format dumped to the file specified
+          by the <span><strong class="command">statistics-file</strong></span> configuration option.
+          The other is remotely accessible via a statistics channel
+          when the <span><strong class="command">statistics-channels</strong></span> statement
+          is specified in the configuration file
+          (see <a href="Bv9ARM.ch06.html#statschannels" title="statistics-channels Statement Grammar">the section called &#8220;<span><strong class="command">statistics-channels</strong></span> Statement Grammar&#8221;</a>.)
+        </p>
+<div class="sect3" lang="en">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="statsfile"></a>The Statistics File</h4></div></div></div>
+<p>
+            The text format statistics dump begins with a line, like:
+          </p>
+<p>
+            <span><strong class="command">+++ Statistics Dump +++ (973798949)</strong></span>
+          </p>
+<p>
+            The number in parentheses is a standard
+            Unix-style timestamp, measured as seconds since January 1, 1970.
+
+            Following
+            that line is a set of statistics information, which is categorized
+            as described above.
+            Each section begins with a line, like:
+          </p>
+<p>
+            <span><strong class="command">++ Name Server Statistics ++</strong></span>
+          </p>
+<p>
+            Each section consists of lines, each containing the statistics
+            counter value followed by its textual description.
+            See below for available counters.
+            For brevity, counters that have a value of 0 are not shown
+            in the statistics file.
+          </p>
+<p>
+            The statistics dump ends with the line where the
+            number is identical to the number in the beginning line; for example:
+          </p>
+<p>
+            <span><strong class="command">--- Statistics Dump --- (973798949)</strong></span>
+          </p>
+</div>
+<div class="sect2" lang="en">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="id2593338"></a>Statistics Counters</h3></div></div></div>
+<p>
+            The following tables summarize statistics counters that
+            <acronym class="acronym">BIND</acronym> 9 provides.
+            For each row of the tables, the leftmost column is the
+            abbreviated symbol name of that counter.
+            These symbols are shown in the statistics information
+            accessed via an HTTP statistics channel.
+            The rightmost column gives the description of the counter,
+            which is also shown in the statistics file
+            (but, in this document, possibly with slight modification
+            for better readability).
+            Additional notes may also be provided in this column.
+            When a middle column exists between these two columns,
+            it gives the corresponding counter name of the
+            <acronym class="acronym">BIND</acronym> 8 statistics, if applicable.
+          </p>
+<div class="sect3" lang="en">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="id2593354"></a>Name Server Statistics Counters</h4></div></div></div>
+<div class="informaltable"><table border="1">
+<colgroup>
+<col>
+<col>
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td>
+                      <p>
+                        <span class="emphasis"><em>Symbol</em></span>
+                      </p>
+                    </td>
+<td>
+                      <p>
+                        <span class="emphasis"><em>BIND8 Symbol</em></span>
+                      </p>
+                    </td>
+<td>
+                      <p>
+                        <span class="emphasis"><em>Description</em></span>
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">Requestv4</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command">RQ</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        IPv4 requests received.
+                        Note: this also counts non query requests.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">Requestv6</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command">RQ</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        IPv6 requests received.
+                        Note: this also counts non query requests.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">ReqEdns0</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Requests with EDNS(0) received.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">ReqBadEDNSVer</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Requests with unsupported EDNS version received.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">ReqTSIG</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Requests with TSIG received.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">ReqSIG0</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Requests with SIG(0) received.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">ReqBadSIG</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Requests with invalid (TSIG or SIG(0)) signature.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">ReqTCP</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command">RTCP</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        TCP requests received.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">AuthQryRej</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command">RUQ</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Authoritative (non recursive) queries rejected.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">RecQryRej</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command">RURQ</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Recursive queries rejected.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">XfrRej</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command">RUXFR</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Zone transfer requests rejected.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">UpdateRej</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command">RUUpd</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Dynamic update requests rejected.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">Response</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command">SAns</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Responses sent.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">RespTruncated</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Truncated responses sent.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">RespEDNS0</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Responses with EDNS(0) sent.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">RespTSIG</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Responses with TSIG sent.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">RespSIG0</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Responses with SIG(0) sent.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">QrySuccess</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Queries resulted in a successful answer.
+                        This means the query which returns a NOERROR response
+                        with at least one answer RR.
+                        This corresponds to the
+                        <span><strong class="command">success</strong></span> counter
+                        of previous versions of
+                        <acronym class="acronym">BIND</acronym> 9.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">QryAuthAns</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Queries resulted in authoritative answer.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">QryNoauthAns</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command">SNaAns</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Queries resulted in non authoritative answer.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">QryReferral</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Queries resulted in referral answer.
+                        This corresponds to the
+                        <span><strong class="command">referral</strong></span> counter
+                        of previous versions of
+                        <acronym class="acronym">BIND</acronym> 9.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">QryNxrrset</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Queries resulted in NOERROR responses with no data.
+                        This corresponds to the
+                        <span><strong class="command">nxrrset</strong></span> counter
+                        of previous versions of
+                        <acronym class="acronym">BIND</acronym> 9.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">QrySERVFAIL</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command">SFail</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Queries resulted in SERVFAIL.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">QryFORMERR</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command">SFErr</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Queries resulted in FORMERR.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">QryNXDOMAIN</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command">SNXD</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Queries resulted in NXDOMAIN.
+                        This corresponds to the
+                        <span><strong class="command">nxdomain</strong></span> counter
+                        of previous versions of
+                        <acronym class="acronym">BIND</acronym> 9.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">QryRecursion</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command">RFwdQ</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Queries which caused the server
+                        to perform recursion in order to find the final answer.
+                        This corresponds to the
+                        <span><strong class="command">recursion</strong></span> counter
+                        of previous versions of
+                        <acronym class="acronym">BIND</acronym> 9.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">QryDuplicate</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command">RDupQ</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Queries which the server attempted to
+                        recurse but discovered an existing query with the same
+                        IP address, port, query ID, name, type and class
+                        already being processed.
+                        This corresponds to the
+                        <span><strong class="command">duplicate</strong></span> counter
+                        of previous versions of
+                        <acronym class="acronym">BIND</acronym> 9.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">QryDropped</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Queries for which the server
+                        discovered an excessive number of existing
+                        recursive queries for the same name, type and
+                        class and were subsequently dropped.
+                        This corresponds to the
+                        <span><strong class="command">dropped</strong></span> counter
+                        of previous versions of
+                        <acronym class="acronym">BIND</acronym> 9.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">QryFailure</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Other query failures.
+                        This corresponds to the
+                        <span><strong class="command">failure</strong></span> counter
+                        of previous versions of
+                        <acronym class="acronym">BIND</acronym> 9.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">XfrReqDone</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Requested zone transfers completed.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">UpdateReqFwd</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Update requests forwarded.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">UpdateRespFwd</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Update responses forwarded.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">UpdateFwdFail</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Dynamic update forward failed.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">UpdateDone</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Dynamic updates completed.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">UpdateFail</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Dynamic updates failed.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">UpdateBadPrereq</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Dynamic updates rejected due to prerequisite failure.
+                      </p>
+                    </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="sect3" lang="en">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="id2594877"></a>Zone Maintenance Statistics Counters</h4></div></div></div>
+<div class="informaltable"><table border="1">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td>
+                      <p>
+                        <span class="emphasis"><em>Symbol</em></span>
+                      </p>
+                    </td>
+<td>
+                      <p>
+                        <span class="emphasis"><em>Description</em></span>
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">NotifyOutv4</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        IPv4 notifies sent.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">NotifyOutv6</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        IPv6 notifies sent.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">NotifyInv4</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        IPv4 notifies received.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">NotifyInv6</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        IPv6 notifies received.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">NotifyRej</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Incoming notifies rejected.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">SOAOutv4</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        IPv4 SOA queries sent.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">SOAOutv6</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        IPv6 SOA queries sent.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">AXFRReqv4</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        IPv4 AXFR requested.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">AXFRReqv6</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        IPv6 AXFR requested.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">IXFRReqv4</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        IPv4 IXFR requested.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">IXFRReqv6</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        IPv6 IXFR requested.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">XfrSuccess</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Zone transfer requests succeeded.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">XfrFail</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Zone transfer requests failed.
+                      </p>
+                    </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="sect3" lang="en">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="id2595260"></a>Resolver Statistics Counters</h4></div></div></div>
+<div class="informaltable"><table border="1">
+<colgroup>
+<col>
+<col>
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td>
+                      <p>
+                        <span class="emphasis"><em>Symbol</em></span>
+                      </p>
+                    </td>
+<td>
+                      <p>
+                        <span class="emphasis"><em>BIND8 Symbol</em></span>
+                      </p>
+                    </td>
+<td>
+                      <p>
+                        <span class="emphasis"><em>Description</em></span>
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">Queryv4</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command">SFwdQ</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        IPv4 queries sent.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">Queryv6</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command">SFwdQ</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        IPv6 queries sent.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">Responsev4</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command">RR</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        IPv4 responses received.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">Responsev6</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command">RR</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        IPv6 responses received.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">NXDOMAIN</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command">RNXD</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        NXDOMAIN received.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">SERVFAIL</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command">RFail</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        SERVFAIL received.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">FORMERR</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command">RFErr</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        FORMERR received.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">OtherError</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command">RErr</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Other errors received.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">EDNS0Fail</strong></span></p>
+                                                 </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        EDNS(0) query failures.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">Mismatch</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command">RDupR</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Mismatch responses received.
+                        When shown via an HTTP statistics channel,
+                        this counter is shown in the
+                        Name Server Statistics section for brevity.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">Truncated</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Truncated responses received.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">Lame</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command">RLame</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Lame delegations received.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">Retry</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command">SDupQ</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Query retries performed.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">GlueFetchv4</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command">SSysQ</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        IPv4 NS address fetches invoked.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">GlueFetchv6</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command">SSysQ</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        IPv6 NS address fetches invoked.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">GlueFetchv4Fail</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        IPv4 NS address fetch failed.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">GlueFetchv6Fail</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        IPv6 NS address fetch failed.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">ValAttempt</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        DNSSEC validation attempted.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">ValOk</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        DNSSEC validation succeeded.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">ValNegOk</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        DNSSEC validation on negative information succeeded.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">ValFail</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        DNSSEC validation failed.
+                      </p>
+                    </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="sect3" lang="en">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="id2596182"></a>Compatibility with <span class="emphasis"><em>BIND</em></span> 8 Counters</h4></div></div></div>
+<p>
+              Most statistics counters that were available
+              in <span><strong class="command">BIND</strong></span> 8 are also supported in
+              <span><strong class="command">BIND</strong></span> 9 as shown in the above tables.
+              Here are notes about other counters that do not appear
+              in these tables.
+            </p>
+<div class="variablelist"><dl>
+<dt><span class="term"><span><strong class="command">RFwdR,SFwdR</strong></span></span></dt>
+<dd><p>
+                    These counters are not supported
+                    because <span><strong class="command">BIND</strong></span> 9 does not adopt
+                    the notion of <span class="emphasis"><em>forwarding</em></span>
+                    as <span><strong class="command">BIND</strong></span> 8 did.
+                  </p></dd>
+<dt><span class="term"><span><strong class="command">RAXFR</strong></span></span></dt>
+<dd><p>
+                    This counter is accessible in the Incoming Queries section.
+                  </p></dd>
+<dt><span class="term"><span><strong class="command">RIQ</strong></span></span></dt>
+<dd><p>
+                    This counter is accessible in the Incoming Requests section.
+                  </p></dd>
+<dt><span class="term"><span><strong class="command">ROpts</strong></span></span></dt>
+<dd><p>
+                    This counter is not supported
+                    because <span><strong class="command">BIND</strong></span> 9 does not care
+                    about IP options in the first place.
+                  </p></dd>
+<dt><span class="term"><span><strong class="command">SErr</strong></span></span></dt>
+<dd><p>
+                    This counter could be implemented, but is not yet
+                    supported.
+                  </p></dd>
+</dl></div>
+</div>
 </div>
 </div>
 </div>
