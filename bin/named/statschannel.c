@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: statschannel.c,v 1.2.2.7 2008/04/03 06:20:33 tbox Exp $ */
+/* $Id: statschannel.c,v 1.2.2.8 2008/04/09 22:49:37 jinmei Exp $ */
 
 /*! \file */
 
@@ -23,6 +23,7 @@
 #include <isc/buffer.h>
 #include <isc/httpd.h>
 #include <isc/mem.h>
+#include <isc/once.h>
 #include <isc/print.h>
 #include <isc/socket.h>
 #include <isc/task.h>
@@ -67,6 +68,8 @@ stats_dumparg {
 	const char	**desc;		/* used for general statistics */
 	int		ncounters;	/* used for general statistics */
 } stats_dumparg_t;
+
+static isc_once_t once = ISC_ONCE_INIT;
 
 static void
 generalstat_dump(dns_statscounter_t counter, isc_uint64_t val, void *arg) {
@@ -539,7 +542,7 @@ destroy_listener(void *arg) {
 	REQUIRE(listener != NULL);
 	REQUIRE(!ISC_LINK_LINKED(listener, link));
 
-	/* We don't to have acquire the lock here since it's already unlinked */
+	/* We don't have to acquire the lock here since it's already unlinked */
 	dns_acl_detach(&listener->acl);
 
 	DESTROYLOCK(&listener->lock);
@@ -824,96 +827,190 @@ ns_statschannels_shutdown(ns_server_t *server) {
 	}
 }
 
-/* name server statistics */
-static const char *nsstats_desc[] = {
-	"IPv4 requests received",	  /* dns_nsstatscounter_requestv4 */
-	"IPv6 requests received",	  /* dns_nsstatscounter_requestv6 */
-	"requests with EDNS(0) received", /* dns_nsstatscounter_edns0in */
-	"requests with unsupported EDNS "
-	"version received",		/* dns_nsstatscounter_badednsver */
-	"requests with TSIG received",	  /* dns_nsstatscounter_tsigin */
-	"requests with SIG(0) received",  /* dns_nsstatscounter_sig0in */
-	"requests with invalid signature",/* dns_nsstatscounter_invalidsig */
-	"TCP requests received",	  /* dns_nsstatscounter_tcp */
+/*%
+ * Statistics descriptions.  These could be statistically initialized at
+ * compile time, but we configure them run time in the init_desc() function
+ * below so that they'll be less susceptible to counter name changes.
+ * Note that bind9.xsl must still be updated consistently with the counter
+ * numbering.
+ */
+static const char *nsstats_desc[dns_nsstatscounter_max];
+static const char *resstats_desc[dns_resstatscounter_max];
+static const char *zonestats_desc[dns_zonestatscounter_max];
 
-	"auth queries rejected",	  /* dns_nsstatscounter_authrej */
-	"recursive queries rejected",	  /* dns_nsstatscounter_recurserej */
-	"transfer requests rejected",	  /* dns_nsstatscounter_xfrrej */
-	"update requests rejected",	  /* dns_nsstatscounter_updaterej */
+static inline void
+set_desc(int counter, int maxcounter, const char *desc, const char **descs) {
+	REQUIRE(counter < maxcounter);
+	REQUIRE(descs[counter] == NULL);
 
-	"responses sent",		  /* dns_nsstatscounter_response */
-	"truncated responses sent",	/* dns_nsstatscounter_truncatedresp */
-	"responses with EDNS(0) sent",	  /* dns_nsstatscounter_edns0out */
-	"responses with TSIG sent",	  /* dns_nsstatscounter_tsigout */
-	"responses with SIG(0) sent",	  /* dns_nsstatscounter_sig0out */
+	descs[counter] = desc;
+}
 
-	"queries resulted in successful answer",/* dns_nsstatscounter_success */
-	"queries resulted in "
-	"authoritative answer",		/* dns_nsstatscounter_authans */
-	"queries resulted in non "
-	"authoritative answer",		/* dns_nsstatscounter_nonauthans */
-	"queries resulted in referral answer", /* dns_nsstatscounter_referral */
-	"queries resulted in nxrrset",	  /* dns_nsstatscounter_nxrrset */
-	"queries resulted in SERVFAIL",	  /* dns_nsstatscounter_servfail */
-	"queries resulted in FORMERR",	  /* dns_nsstatscounter_formerr */
-	"queries resulted in NXDOMAIN",	  /* dns_nsstatscounter_nxdomain */
-	"queries caused recursion",	  /* dns_nsstatscounter_recursion */
-	"duplicate queries received",	  /* dns_nsstatscounter_duplicate */
-	"queries dropped",		  /* dns_nsstatscounter_dropped */
-	"other query failures",		  /* dns_nsstatscounter_failure */
+static void
+init_desc() {
+	int i;
 
-	"requested transfers completed",  /* dns_nsstatscounter_xfrdone */
+	/* Initialize name server statistics */
+	memset(nsstats_desc, 0,
+	       dns_nsstatscounter_max * sizeof(nsstats_desc[0])); 
+	set_desc(dns_nsstatscounter_requestv4, dns_nsstatscounter_max,
+		 "IPv4 requests received", nsstats_desc);
+	set_desc(dns_nsstatscounter_requestv6, dns_nsstatscounter_max,
+		 "IPv6 requests received", nsstats_desc);
+	set_desc(dns_nsstatscounter_edns0in, dns_nsstatscounter_max,
+		 "requests with EDNS(0) received", nsstats_desc);
+	set_desc(dns_nsstatscounter_badednsver, dns_nsstatscounter_max,
+		 "requests with unsupported EDNS version received",
+		 nsstats_desc);
+	set_desc(dns_nsstatscounter_tsigin, dns_nsstatscounter_max,
+		 "requests with TSIG received", nsstats_desc);
+	set_desc(dns_nsstatscounter_sig0in, dns_nsstatscounter_max,
+		 "requests with SIG(0) received", nsstats_desc);
+	set_desc(dns_nsstatscounter_invalidsig, dns_nsstatscounter_max,
+		 "requests with invalid signature", nsstats_desc);
+	set_desc(dns_nsstatscounter_tcp, dns_nsstatscounter_max,
+		 "TCP requests received", nsstats_desc);
+	set_desc(dns_nsstatscounter_authrej, dns_nsstatscounter_max,
+		 "auth queries rejected", nsstats_desc);
+	set_desc(dns_nsstatscounter_recurserej, dns_nsstatscounter_max,
+		 "recursive queries rejected", nsstats_desc);
+	set_desc(dns_nsstatscounter_xfrrej, dns_nsstatscounter_max,
+		 "transfer requests rejected", nsstats_desc);
+	set_desc(dns_nsstatscounter_updaterej, dns_nsstatscounter_max,
+		 "update requests rejected", nsstats_desc);
+	set_desc(dns_nsstatscounter_response, dns_nsstatscounter_max,
+		 "responses sent", nsstats_desc);
+	set_desc(dns_nsstatscounter_truncatedresp, dns_nsstatscounter_max,
+		 "truncated responses sent", nsstats_desc);
+	set_desc(dns_nsstatscounter_edns0out, dns_nsstatscounter_max,
+		 "responses with EDNS(0) sent", nsstats_desc);
+	set_desc(dns_nsstatscounter_tsigout, dns_nsstatscounter_max,
+		 "responses with TSIG sent", nsstats_desc);
+	set_desc(dns_nsstatscounter_sig0out, dns_nsstatscounter_max,
+		 "responses with SIG(0) sent", nsstats_desc);
+	set_desc(dns_nsstatscounter_success, dns_nsstatscounter_max,
+		 "queries resulted in successful answer", nsstats_desc);
+	set_desc(dns_nsstatscounter_authans, dns_nsstatscounter_max,
+		 "queries resulted in authoritative answer", nsstats_desc);
+	set_desc(dns_nsstatscounter_nonauthans, dns_nsstatscounter_max,
+		 "queries resulted in non authoritative answer", nsstats_desc);
+	set_desc(dns_nsstatscounter_referral, dns_nsstatscounter_max,
+		 "queries resulted in referral answer", nsstats_desc);
+	set_desc(dns_nsstatscounter_nxrrset, dns_nsstatscounter_max,
+		 "queries resulted in nxrrset", nsstats_desc);
+	set_desc(dns_nsstatscounter_servfail, dns_nsstatscounter_max,
+		 "queries resulted in SERVFAIL", nsstats_desc);
+	set_desc(dns_nsstatscounter_formerr, dns_nsstatscounter_max,
+		 "queries resulted in FORMERR", nsstats_desc);
+	set_desc(dns_nsstatscounter_nxdomain, dns_nsstatscounter_max,
+		 "queries resulted in NXDOMAIN", nsstats_desc);
+	set_desc(dns_nsstatscounter_recursion, dns_nsstatscounter_max,
+		 "queries caused recursion", nsstats_desc);
+	set_desc(dns_nsstatscounter_duplicate, dns_nsstatscounter_max,
+		 "duplicate queries received", nsstats_desc);
+	set_desc(dns_nsstatscounter_dropped, dns_nsstatscounter_max,
+		 "queries dropped", nsstats_desc);
+	set_desc(dns_nsstatscounter_failure, dns_nsstatscounter_max,
+		 "other query failures", nsstats_desc);
+	set_desc(dns_nsstatscounter_xfrdone, dns_nsstatscounter_max,
+		 "requested transfers completed", nsstats_desc);
+	set_desc(dns_nsstatscounter_updatereqfwd, dns_nsstatscounter_max,
+		 "update requests forwarded", nsstats_desc);
+	set_desc(dns_nsstatscounter_updaterespfwd, dns_nsstatscounter_max,
+		 "update responses forwarded", nsstats_desc);
+	set_desc(dns_nsstatscounter_updatefwdfail, dns_nsstatscounter_max,
+		 "update forward failed", nsstats_desc);
+	set_desc(dns_nsstatscounter_updatedone, dns_nsstatscounter_max,
+		 "updates completed", nsstats_desc);
+	set_desc(dns_nsstatscounter_updatefail, dns_nsstatscounter_max,
+		 "updates failed", nsstats_desc);
+	set_desc(dns_nsstatscounter_updatebadprereq, dns_nsstatscounter_max,
+		 "updates rejected due to prerequisite failure", nsstats_desc);
 
-	"update requests forwarded",	/* dns_nsstatscounter_updatereqfwd */
-	"update responses forwarded",	/* dns_nsstatscounter_updaterespfwd */
-	"update forward failed",	/* dns_nsstatscounter_updatefwdfail */
-	"updates completed",		/* dns_nsstatscounter_updatedone */
-	"updates failed",		/* dns_nsstatscounter_updatefail */
-	"updates rejected due to "
-	"prerequisite failure"		/* dns_nsstatscounter_updatebadprereq */
-};
+	/* Initialize resolver statistics */
+	memset(resstats_desc, 0,
+	       dns_resstatscounter_max * sizeof(resstats_desc[0])); 
+	set_desc(dns_resstatscounter_queryv4, dns_resstatscounter_max,
+		 "IPv4 queries sent", resstats_desc);
+	set_desc(dns_resstatscounter_queryv6, dns_resstatscounter_max,
+		 "IPv6 queries sent", resstats_desc);
+	set_desc(dns_resstatscounter_responsev4, dns_resstatscounter_max,
+		 "IPv4 responses received", resstats_desc);
+	set_desc(dns_resstatscounter_responsev6, dns_resstatscounter_max,
+		 "IPv6 responses received", resstats_desc);
+	set_desc(dns_resstatscounter_nxdomain, dns_resstatscounter_max,
+		 "NXDOMAIN received", resstats_desc);
+	set_desc(dns_resstatscounter_servfail, dns_resstatscounter_max,
+		 "SERVFAIL received", resstats_desc);
+	set_desc(dns_resstatscounter_formerr, dns_resstatscounter_max,
+		 "FORMERR received", resstats_desc);
+	set_desc(dns_resstatscounter_othererror, dns_resstatscounter_max,
+		 "other errors received", resstats_desc);
+	set_desc(dns_resstatscounter_edns0fail, dns_resstatscounter_max,
+		 "EDNS(0) query failures", resstats_desc);
+	set_desc(dns_resstatscounter_mismatch, dns_resstatscounter_max,
+		 "mismatch responses received", resstats_desc);
+	set_desc(dns_resstatscounter_truncated, dns_resstatscounter_max,
+		 "truncated responses received", resstats_desc);
+	set_desc(dns_resstatscounter_lame, dns_resstatscounter_max,
+		 "lame delegations received", resstats_desc);
+	set_desc(dns_resstatscounter_retry, dns_resstatscounter_max,
+		 "query retries", resstats_desc);
+ 	set_desc(dns_resstatscounter_gluefetchv4, dns_resstatscounter_max,
+		 "IPv4 NS address fetches", resstats_desc);
+ 	set_desc(dns_resstatscounter_gluefetchv6, dns_resstatscounter_max,
+		 "IPv6 NS address fetches", resstats_desc);
+ 	set_desc(dns_resstatscounter_gluefetchv4fail, dns_resstatscounter_max,
+		 "IPv4 NS address fetch failed", resstats_desc);
+	set_desc(dns_resstatscounter_gluefetchv6fail, dns_resstatscounter_max,
+		 "IPv6 NS address fetch failed", resstats_desc);
+	set_desc(dns_resstatscounter_val, dns_resstatscounter_max,
+		 "DNSSEC validation attempted", resstats_desc);
+	set_desc(dns_resstatscounter_valsuccess, dns_resstatscounter_max,
+		 "DNSSEC validation succeeded", resstats_desc);
+	set_desc(dns_resstatscounter_valnegsuccess, dns_resstatscounter_max,
+		 "DNSSEC NX validation succeeded", resstats_desc);
+	set_desc(dns_resstatscounter_valfail, dns_resstatscounter_max,
+		 "DNSSEC validation failed", resstats_desc);
 
-/* resolver statistics */
-static const char *resstats_desc[] = {
-	"IPv4 queries sent",		/* dns_resstatscounter_queryv4 */
-	"IPv6 queries sent",		/* dns_resstatscounter_queryv6 */
-	"IPv4 responses received",	/* dns_resstatscounter_responsev4 */
-	"IPv6 responses received",	/* dns_resstatscounter_responsev6 */
-	"NXDOMAIN received",		/* dns_resstatscounter_nxdomain */
-	"SERVFAIL received",		/* dns_resstatscounter_servfail */
-	"FORMERR received",		/* dns_resstatscounter_formerr */
-	"other errors received",	/* dns_resstatscounter_othererror */
-	"EDNS(0) query failures",	/* dns_resstatscounter_edns0fail */
-	"mismatch responses received",	/* dns_resstatscounter_mismatch */
-	"truncated responses received",	/* dns_resstatscounter_truncated */
-	"lame delegations received",	/* dns_resstatscounter_lame */
-	"query retries",		/* dns_resstatscounter_retry */
-	"IPv4 NS address fetches",	/* dns_resstatscounter_gluefetchv4 */
-	"IPv6 NS address fetches",	/* dns_resstatscounter_gluefetchv6 */
-	"IPv4 NS address fetch failed",	/* dns_resstatscounter_gluefetchv4fail */
-	"IPv6 NS address fetch failed",	/* dns_resstatscounter_gluefetchv6fail */
-	"DNSSEC validation attempted",	/* dns_resstatscounter_val */
-	"DNSSEC validation failed",	/* dns_resstatscounter_valfail */
-	"DNSSEC validation succeeded",	/* dns_resstatscounter_valsuccess */
-	"DNSSEC NX validation succeeded"/* dns_resstatscounter_valnegsuccess */
-};
+	/* Initialize zone statistics */
+	memset(zonestats_desc, 0,
+	       dns_zonestatscounter_max * sizeof(zonestats_desc[0])); 
+	set_desc(dns_zonestatscounter_notifyoutv4, dns_zonestatscounter_max,
+		 "IPv4 notifies sent", zonestats_desc);
+	set_desc(dns_zonestatscounter_notifyoutv6, dns_zonestatscounter_max,
+		 "IPv6 notifies sent", zonestats_desc);
+	set_desc(dns_zonestatscounter_notifyinv4, dns_zonestatscounter_max,
+		 "IPv4 notifies received", zonestats_desc);
+	set_desc(dns_zonestatscounter_notifyinv6, dns_zonestatscounter_max,
+		 "IPv6 notifies received", zonestats_desc);
+	set_desc(dns_zonestatscounter_notifyrej, dns_zonestatscounter_max,
+		 "notifies rejected", zonestats_desc);
+	set_desc(dns_zonestatscounter_soaoutv4, dns_zonestatscounter_max,
+		 "IPv4 SOA queries sent", zonestats_desc);
+	set_desc(dns_zonestatscounter_soaoutv6, dns_zonestatscounter_max,
+		 "IPv6 SOA queries sent", zonestats_desc);
+	set_desc(dns_zonestatscounter_axfrreqv4, dns_zonestatscounter_max,
+		 "IPv4 AXFR requested", zonestats_desc);
+	set_desc(dns_zonestatscounter_axfrreqv6, dns_zonestatscounter_max,
+		 "IPv6 AXFR requested", zonestats_desc);
+	set_desc(dns_zonestatscounter_ixfrreqv4, dns_zonestatscounter_max,
+		 "IPv4 IXFR requested", zonestats_desc);
+	set_desc(dns_zonestatscounter_ixfrreqv6, dns_zonestatscounter_max,
+		 "IPv6 IXFR requested", zonestats_desc);
+	set_desc(dns_zonestatscounter_xfrsuccess, dns_zonestatscounter_max,
+		 "transfer requests succeeded", zonestats_desc);
+	set_desc(dns_zonestatscounter_xfrfail, dns_zonestatscounter_max,
+		 "transfer requests failed", zonestats_desc);
 
-/* zone statistics */
-static const char *zonestats_desc[] = {
-	"IPv4 notifies sent",		/* dns_zonestatscounter_notifyoutv4 */
-	"IPv6 notifies sent",		/* dns_zonestatscounter_notifyoutv6 */
-	"IPv4 notifies received",	/* dns_zonestatscounter_notifyinv4 */
-	"IPv6 notifies received",	/* dns_zonestatscounter_notifyinv6 */
-	"notifies rejected",		/* dns_zonestatscounter_notifyrej */
-	"IPv4 SOA queries sent",	/* dns_zonestatscounter_soaoutv4 */
-	"IPv6 SOA queries sent",	/* dns_zonestatscounter_soaoutv6 */
-	"IPv4 AXFR requested",		/* dns_zonestatscounter_axfrreqv4 */
-	"IPv6 AXFR requested",		/* dns_zonestatscounter_axfrreqv6 */
-	"IPv4 IXFR requested",		/* dns_zonestatscounter_ixfrreqv4 */
-	"IPv6 IXFR requested",		/* dns_zonestatscounter_ixfrreqv6 */
-	"transfer requests succeeded",	/* dns_zonestatscounter_xfrsuccess */
-	"transfer requests failed"	/* dns_zonestatscounter_xfrfail */
-};
+	/* Sanity check */
+	for (i = 0; i < dns_nsstatscounter_max; i++)
+		INSIST(nsstats_desc[i] != NULL);
+	for (i = 0; i < dns_resstatscounter_max; i++)
+		INSIST(resstats_desc[i] != NULL);
+	for (i = 0; i < dns_zonestatscounter_max; i++)
+		INSIST(zonestats_desc[i] != NULL);
+}
 
 isc_result_t
 ns_stats_dump(ns_server_t *server, FILE *fp) {
@@ -923,6 +1020,8 @@ ns_stats_dump(ns_server_t *server, FILE *fp) {
 	dns_zone_t *zone, *next;
 	stats_dumparg_t dumparg;
 
+	RUNTIME_CHECK(isc_once_do(&once, init_desc) == ISC_R_SUCCESS);
+
 	/* Set common fields */
 	dumparg.type = statsformat_file;
 	dumparg.arg = fp;
@@ -931,8 +1030,7 @@ ns_stats_dump(ns_server_t *server, FILE *fp) {
 	fprintf(fp, "+++ Statistics Dump +++ (%lu)\n", (unsigned long)now);
 
 	fprintf(fp, "++ Incoming Requests ++\n");
-	dns_opcodestats_dump(server->opcodestats, opcodestat_dump, &dumparg,
-			     0);
+	dns_opcodestats_dump(server->opcodestats, opcodestat_dump, &dumparg, 0);
 
 	fprintf(fp, "++ Incoming Queries ++\n");
 	dns_rdatatypestats_dump(server->rcvquerystats, rdtypestat_dump,
