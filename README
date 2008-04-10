@@ -62,6 +62,8 @@ BIND 9.5.0
 
         Efficient LRU cache-cleaning mechanism.
 
+        NSID support.
+
 BIND 9.4.0
 
 	BIND 9.4.0 has a number of new features over 9.3,
