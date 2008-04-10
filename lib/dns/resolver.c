@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.355.12.12 2008/04/07 05:30:58 marka Exp $ */
+/* $Id: resolver.c,v 1.355.12.13 2008/04/10 07:20:27 marka Exp $ */
 
 /*! \file */
 
@@ -1600,7 +1600,7 @@ resquery_send(resquery_t *query) {
 					     udpsize, reqnsid);
 			if (reqnsid && result == ISC_R_SUCCESS) {
 				query->options |= DNS_FETCHOPT_WANTNSID;
-			} else {
+			} else if (result != ISC_R_SUCCESS) {
 				/*
 				 * We couldn't add the OPT, but we'll press on.
 				 * We're not using EDNS0, so set the NOEDNS0
