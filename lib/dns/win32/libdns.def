@@ -360,6 +360,7 @@ dns_peer_getsupportedns
 dns_peer_gettransferformat
 dns_peer_gettransfers
 dns_peer_new
+dns_peer_newprefix
 dns_peer_setbogus
 dns_peer_setkey
 dns_peer_setkeybycharp
