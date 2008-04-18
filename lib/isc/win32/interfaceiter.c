@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.8.18.5 2008/04/02 23:45:58 tbox Exp $ */
+/* $Id: interfaceiter.c,v 1.8.18.6 2008/04/18 19:44:38 each Exp $ */
 
 /*
  * Note that this code will need to be revisited to support IPv6 Interfaces.
@@ -429,6 +429,7 @@ internal_next(isc_interfaceiter_t *iter) {
 	return (ISC_R_SUCCESS);
 }
 
+static isc_result_t
 internal_next6(isc_interfaceiter_t *iter) {
 	if (iter->pos6 == 0)
 		return (ISC_R_NOMORE);
