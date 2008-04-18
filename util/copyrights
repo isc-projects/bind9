@@ -1206,7 +1206,7 @@
 ./doc/arm/Bv9ARM.ch09.html			X	2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./doc/arm/Bv9ARM.ch10.html			X	2005,2006,2007,2008
 ./doc/arm/Bv9ARM.html				X	2000,2001,2002,2003,2004,2005,2006,2007,2008
-./doc/arm/Bv9ARM.pdf				X	2005,2006,2007
+./doc/arm/Bv9ARM.pdf				X	2005,2006,2007,2008
 ./doc/arm/Makefile.in				MAKE	2001,2002,2004,2005,2006,2007
 ./doc/arm/README-SGML				TXT.BRIEF	2000,2001,2004
 ./doc/arm/isc-logo.eps				X	2005
@@ -1295,7 +1295,7 @@
 ./lib/bind/Makefile.in				MAKE	2001,2002,2003,2004,2005,2006
 ./lib/bind/README				X	2001
 ./lib/bind/aclocal.m4				X	2001,2004
-./lib/bind/api					X	2001,2005,2006,2007
+./lib/bind/api					X	2001,2005,2006,2007,2008
 ./lib/bind/bsd/.cvsignore			X	2001
 ./lib/bind/bsd/Makefile.in			MAKE	2001,2004,2008
 ./lib/bind/bsd/daemon.c				X	2001,2005
@@ -1716,7 +1716,7 @@
 ./lib/bind/resolv/res_update.c			X	2001,2002,2003,2004,2005
 ./lib/bind9/.cvsignore				X	2001
 ./lib/bind9/Makefile.in				MAKE	2001,2004
-./lib/bind9/api					X	2001,2005,2006,2007
+./lib/bind9/api					X	2001,2005,2006,2007,2008
 ./lib/bind9/check.c				C	2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/bind9/getaddresses.c			C	2001,2002,2004,2005
 ./lib/bind9/include/.cvsignore			X	2001
@@ -1738,7 +1738,7 @@
 ./lib/dns/acache.c				C	2004,2005,2006,2008
 ./lib/dns/acl.c					C	1999,2000,2001,2002,2004,2005,2006
 ./lib/dns/adb.c					C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
-./lib/dns/api					X	1999,2000,2001,2005,2006,2007
+./lib/dns/api					X	1999,2000,2001,2005,2006,2007,2008
 ./lib/dns/byaddr.c				C	2000,2001,2002,2003,2004,2005
 ./lib/dns/cache.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2008
 ./lib/dns/callbacks.c				C	1999,2000,2001,2004,2005
@@ -2005,7 +2005,7 @@
 ./lib/dns/win32/gen.dsp				X	2001
 ./lib/dns/win32/gen.dsw				X	2001
 ./lib/dns/win32/gen.mak				X	2001,2006
-./lib/dns/win32/libdns.def			X	2001,2002,2003,2004,2005,2006,2007
+./lib/dns/win32/libdns.def			X	2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/dns/win32/libdns.dsp			X	2001,2002,2003,2004,2005,2006
 ./lib/dns/win32/libdns.dsw			X	2001
 ./lib/dns/win32/libdns.mak			X	2001,2002,2003,2004,2005,2006
@@ -2023,7 +2023,7 @@
 ./lib/isc/alpha/include/isc/.cvsignore		X	2007
 ./lib/isc/alpha/include/isc/Makefile.in		MAKE	2007
 ./lib/isc/alpha/include/isc/atomic.h		C	2005
-./lib/isc/api					X	1999,2000,2001,2005,2006,2007
+./lib/isc/api					X	1999,2000,2001,2005,2006,2007,2008
 ./lib/isc/assertions.c				C	1997,1998,1999,2000,2001,2004,2005
 ./lib/isc/base64.c				C	1998,1999,2000,2001,2003,2004,2005
 ./lib/isc/bitstring.c				C	1999,2000,2001,2004,2005
@@ -2361,7 +2361,7 @@
 ./lib/isccfg/.cvsignore				X	2001
 ./lib/isccfg/Makefile.in			MAKE	2001,2002,2003,2004,2005
 ./lib/isccfg/aclconf.c				C	1999,2000,2001,2002,2004,2005,2006
-./lib/isccfg/api				X	2001,2005,2006,2007
+./lib/isccfg/api				X	2001,2005,2006,2007,2008
 ./lib/isccfg/include/.cvsignore			X	2001
 ./lib/isccfg/include/Makefile.in		MAKE	2001,2004
 ./lib/isccfg/include/isccfg/.cvsignore		X	2001
@@ -2384,7 +2384,7 @@
 ./lib/isccfg/win32/version.c			C	1998,1999,2000,2001,2004
 ./lib/lwres/.cvsignore				X	2000,2001
 ./lib/lwres/Makefile.in				MAKE	2000,2001,2004,2005
-./lib/lwres/api					X	2000,2001,2005,2006,2007
+./lib/lwres/api					X	2000,2001,2005,2006,2007,2008
 ./lib/lwres/assert_p.h				C	2000,2001,2004,2005
 ./lib/lwres/context.c				C	2000,2001,2003,2004,2005,2007
 ./lib/lwres/context_p.h				C	2000,2001,2004,2005
@@ -2554,7 +2554,7 @@
 ./util/tabify-changes				SH	2004
 ./util/update-drafts.pl				PERL	2000,2001,2004
 ./util/update_copyrights			PERL	1998,1999,2000,2001,2004,2005,2006,2007,2008
-./version					X	1998,1999,2000,2001,2002,2003,2005,2006,2007
+./version					X	1998,1999,2000,2001,2002,2003,2005,2006,2007,2008
 ./win32utils/BINDBuild.dsw			X	2001,2005,2006
 ./win32utils/BuildAll.bat			BAT	2001,2002,2004,2005,2006,2007
 ./win32utils/BuildOpenSSL.bat			BAT	2007
