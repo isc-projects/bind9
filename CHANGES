@@ -1,3 +1,6 @@
+2361.	[bug]		"recursion" statistics counter could be counted
+			multiple times for a single query.  [RT #17990]
+
 	--- 9.4.3b1 released ---
 
 2358.	[doc]		Update host's default query description. [RT #17934]
