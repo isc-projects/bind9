@@ -1,3 +1,7 @@
+2362.   [cleanup]       Make "rrset-order fixed" a compile-time option.
+                        settable by "./configure --enable-fixed-rrset".
+                        Disabled by default. [rt17977]
+
 2361.	[bug]		"recursion" statistics counter could be counted
 			multiple times for a single query.  [RT #17990]
 

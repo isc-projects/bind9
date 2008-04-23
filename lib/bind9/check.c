@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.91 2008/04/02 02:37:42 marka Exp $ */
+/* $Id: check.c,v 1.92 2008/04/23 21:32:01 each Exp $ */
 
 /*! \file */
 
@@ -45,10 +45,6 @@
 #include <isccfg/cfg.h>
 
 #include <bind9/check.h>
-
-#ifndef DNS_RDATASET_FIXED
-#define DNS_RDATASET_FIXED 1
-#endif
 
 static void
 freekey(char *key, unsigned int type, isc_symvalue_t value, void *userarg) {
@@ -128,7 +124,8 @@ check_orderent(const cfg_obj_t *ent, isc_log_t *logctx) {
 	} else if (strcasecmp(cfg_obj_asstring(obj), "fixed") == 0) {
 #if !DNS_RDATASET_FIXED
 		cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
-			    "rrset-order: order 'fixed' not fully implemented");
+			    "rrset-order: order 'fixed' was disabled at "
+			    "compilation time");
 #endif
 	} else if (strcasecmp(cfg_obj_asstring(obj), "random") != 0 &&
 		   strcasecmp(cfg_obj_asstring(obj), "cyclic") != 0) {

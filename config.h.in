@@ -16,7 +16,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.96 2008/03/20 04:51:00 marka Exp $ */
+/* $Id: config.h.in,v 1.97 2008/04/23 21:32:01 each Exp $ */
 
 /*! \file */
 
@@ -326,3 +326,6 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to empty if the keyword `volatile' does not work. Warning: valid
    code using `volatile' can become incorrect without. Disable with care. */
 #undef volatile
+
+/* Define to enable "rrset-order fixed" syntax. */
+#undef DNS_RDATASET_FIXED

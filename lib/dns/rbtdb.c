@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.258 2008/04/09 04:31:11 marka Exp $ */
+/* $Id: rbtdb.c,v 1.259 2008/04/23 21:32:01 each Exp $ */
 
 /*! \file */
 
@@ -184,10 +184,6 @@ typedef isc_mutex_t nodelock_t;
 #define NODE_WEAKLOCK(l, t)     ((void)0)
 #define NODE_WEAKUNLOCK(l, t)   ((void)0)
 #define NODE_WEAKDOWNGRADE(l)   ((void)0)
-#endif
-
-#ifndef DNS_RDATASET_FIXED
-#define DNS_RDATASET_FIXED 1
 #endif
 
 /*
