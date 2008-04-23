@@ -1,3 +1,6 @@
+2361.	[bug]		"recursion" statistics counter could be counted
+			multiple times for a single query.  [RT #17990]
+
 	--- 9.5.0b3 released ---
 
 2360.	[bug]		Fix a condition where we release a database version

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.298.48.5 2008/04/03 06:10:19 marka Exp $ */
+/* $Id: query.c,v 1.298.48.6 2008/04/23 01:18:33 jinmei Exp $ */
 
 /*! \file */
 
@@ -2937,13 +2937,14 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 
 static isc_result_t
 query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
-	      dns_rdataset_t *nameservers)
+	      dns_rdataset_t *nameservers, isc_boolean_t resuming)
 {
 	isc_result_t result;
 	dns_rdataset_t *rdataset, *sigrdataset;
 	isc_sockaddr_t *peeraddr;
 
-	inc_stats(client, dns_nsstatscounter_recursion);
+	if (!resuming)
+		inc_stats(client, dns_nsstatscounter_recursion);
 
 	/*
 	 * We are about to recurse, which means that this client will
@@ -3348,6 +3349,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	unsigned int options;
 	isc_boolean_t empty_wild;
 	dns_rdataset_t *noqname;
+	isc_boolean_t resuming;
 
 	CTRACE("query_find");
 
@@ -3373,6 +3375,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	need_wildcardproof = ISC_FALSE;
 	empty_wild = ISC_FALSE;
 	options = 0;
+	resuming = ISC_FALSE;
 
 	if (event != NULL) {
 		/*
@@ -3415,6 +3418,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		}
 
 		result = event->result;
+		resuming = ISC_TRUE;
 
 		goto resume;
 	}
@@ -3620,7 +3624,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			 */
 			if (RECURSIONOK(client)) {
 				result = query_recurse(client, qtype,
-						       NULL, NULL);
+						       NULL, NULL, resuming);
 				if (result == ISC_R_SUCCESS)
 					client->query.attributes |=
 						NS_QUERYATTR_RECURSING;
@@ -3791,10 +3795,12 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				 */
 				if (dns_rdatatype_atparent(type))
 					result = query_recurse(client, qtype,
-							       NULL, NULL);
+							       NULL, NULL,
+							       resuming);
 				else
 					result = query_recurse(client, qtype,
-							       fname, rdataset);
+							       fname, rdataset,
+							       resuming);
 				if (result == ISC_R_SUCCESS)
 					client->query.attributes |=
 						NS_QUERYATTR_RECURSING;
@@ -4238,7 +4244,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 						result = query_recurse(client,
 								       qtype,
 								       NULL,
-								       NULL);
+								       NULL,
+								       resuming);
 						if (result == ISC_R_SUCCESS)
 						    client->query.attributes |=
 							NS_QUERYATTR_RECURSING;
