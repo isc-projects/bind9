@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.43 2007/06/18 23:47:41 tbox Exp $ */
+/* $Id: rdataslab.c,v 1.43.128.1 2008/04/23 21:43:58 each Exp $ */
 
 /*! \file */
 
@@ -32,10 +32,6 @@
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
 #include <dns/rdataslab.h>
-
-#ifndef DNS_RDATASET_FIXED
-#define DNS_RDATASET_FIXED 1
-#endif
 
 /*
  * The rdataslab structure allows iteration to occur in both load order
@@ -799,8 +795,8 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 #if DNS_RDATASET_FIXED
 	unsigned char *offsetbase;
 	unsigned int *offsettable;
-#endif
 	unsigned int order;
+#endif
 
 	REQUIRE(tslabp != NULL && *tslabp == NULL);
 	REQUIRE(mslab != NULL && sslab != NULL);

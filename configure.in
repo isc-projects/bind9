@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.432.60.6 $)
+AC_REVISION($Revision: 1.432.60.7 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -2253,6 +2253,25 @@ AC_SUBST(ISC_PLATFORM_USEMACASM)
 
 ISC_ARCH_DIR=$arch
 AC_SUBST(ISC_ARCH_DIR)
+
+#
+# Activate "rrset-order fixed" or not?
+#
+AC_ARG_ENABLE(fixed-rrset,
+	[  --enable-fixed-rrset        enable fixed rrset ordering
+			[[default=no]]],
+			enable_fixed="$enableval",
+			enable_fixed="no")
+case "$enable_fixed" in
+	yes)
+		AC_DEFINE(DNS_RDATASET_FIXED, 1,
+                          [Define to enable "rrset-order fixed" syntax.])
+		;;
+	no)
+		;;
+	*)
+		;;
+esac
 
 #
 #  The following sets up how non-blocking i/o is established.
