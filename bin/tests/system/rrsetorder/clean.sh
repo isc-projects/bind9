@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2006, 2007  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2006-2008  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.6.46.1 2008/04/24 21:52:18 each Exp $
+# $Id: clean.sh,v 1.6.46.2 2008/04/24 23:46:29 tbox Exp $
 
 rm -f dig.out.cyclic dig.out.fixed dig.out.random
 rm -f dig.out.0 dig.out.1 dig.out.2 dig.out.3
