@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.90.18.40 $)
+AC_REVISION($Revision: 1.90.18.41 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -677,6 +677,14 @@ AC_SUBST(PURIFY)
 #
 # GNU libtool support
 #
+case $host in
+sunos*)
+    # Just set the maximum command line length for sunos as it otherwise
+    # takes a exceptionally long time to work it out. Required for libtool.
+    lt_cv_sys_max_cmd_len=4096;
+    ;;
+esac
+
 AC_ARG_WITH(libtool,
 	    [  --with-libtool	use GNU libtool (following indented options supported)],
 	    use_libtool="$withval", use_libtool="no")
