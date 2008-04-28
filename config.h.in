@@ -16,7 +16,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.90.60.6 2008/04/23 21:43:57 each Exp $ */
+/* $Id: config.h.in,v 1.90.60.7 2008/04/28 23:51:45 marka Exp $ */
 
 /*! \file */
 
@@ -156,6 +156,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define if you cannot bind() before connect() for TCP sockets. */
 #undef BROKEN_TCP_BIND_BEFORE_CONNECT
+
+/* Define to enable "rrset-order fixed" syntax. */
+#undef DNS_RDATASET_FIXED
 
 /* Define to 1 if you have the `capset' function. */
 #undef HAVE_CAPSET
@@ -326,6 +329,3 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to empty if the keyword `volatile' does not work. Warning: valid
    code using `volatile' can become incorrect without. Disable with care. */
 #undef volatile
-
-/* Define to enable "rrset-order fixed" syntax. */
-#undef DNS_RDATASET_FIXED
