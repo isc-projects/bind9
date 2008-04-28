@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.win32,v 1.6.12.11 2007/08/28 07:19:07 tbox Exp $ */
+/* $Id: config.h.win32,v 1.6.12.12 2008/04/28 05:35:44 marka Exp $ */
 
 /*
  * win32 configuration file
@@ -123,9 +123,7 @@
 /* Define if libcrypto has DH_generate_parameters */
 #define HAVE_DH_GENERATE_PARAMETERS
 
-#define ISC_PLATFORM_NEEDSTRLCAT
-
-#define ISC_PLATFORM_NEEDSTRLCPY
+#define WANT_IPV6
 
 #define S_IFMT   _S_IFMT         /* file type mask */
 #define S_IFDIR  _S_IFDIR        /* directory */
