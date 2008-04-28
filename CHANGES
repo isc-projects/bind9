@@ -10,6 +10,9 @@
 2343.	[bug]		(Seemingly) duplicate IPv6 entries could be
 			created in ADB. [RT #17837]
 
+2335.	[port]		sunos:  libbind and *printf() support for long long. 
+			[RT #17513]
+
 2334.	[bug]		Bad REQUIRES in fromstruct_in_naptr(),  off by one
 			bug in fromstruct_txt(). [RT #17609]
 			
