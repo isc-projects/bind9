@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.37.6.39 2007/12/14 01:28:26 marka Exp $ */
+/* $Id: check.c,v 1.37.6.40 2008/04/28 05:22:33 marka Exp $ */
 
 #include <config.h>
 
@@ -213,13 +213,24 @@ check_dual_stack(const cfg_obj_t *options, isc_log_t *logctx) {
 }
 
 static isc_result_t
-check_forward(const cfg_obj_t *options, isc_log_t *logctx) {
+check_forward(const cfg_obj_t *options,  const cfg_obj_t *global,
+	      isc_log_t *logctx)
+{
 	const cfg_obj_t *forward = NULL;
 	const cfg_obj_t *forwarders = NULL;
 
 	(void)cfg_map_get(options, "forward", &forward);
 	(void)cfg_map_get(options, "forwarders", &forwarders);
 
+	if (forwarders != NULL && global != NULL) {
+		const char *file = cfg_obj_file(global);
+		unsigned int line = cfg_obj_line(global);
+		cfg_obj_log(forwarders, logctx, ISC_LOG_ERROR,
+			    "forwarders declared in root zone and "
+			    "in general configuration: %s:%u",
+			    file, line);
+		return (ISC_R_FAILURE);
+	}
 	if (forward != NULL && forwarders == NULL) {
 		cfg_obj_log(forward, logctx, ISC_LOG_ERROR,
 			    "no matching 'forwarders' statement");
@@ -693,9 +704,9 @@ typedef struct {
 } optionstable;
 
 static isc_result_t
-check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *config,
-	       isc_symtab_t *symtab, dns_rdataclass_t defclass,
-	       isc_log_t *logctx, isc_mem_t *mctx)
+check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
+	       const cfg_obj_t *config, isc_symtab_t *symtab,
+	       dns_rdataclass_t defclass, isc_log_t *logctx, isc_mem_t *mctx)
 {
 	const char *zname;
 	const char *typestr;
@@ -708,6 +719,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *config,
 	dns_rdataclass_t zclass;
 	dns_fixedname_t fixedname;
 	isc_buffer_t b;
+	isc_boolean_t root = ISC_FALSE;
 
 	static optionstable options[] = {
 	{ "allow-query", MASTERZONE | SLAVEZONE | STUBZONE },
@@ -817,7 +829,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *config,
 	isc_buffer_init(&b, zname, strlen(zname));
 	isc_buffer_add(&b, strlen(zname));
 	tresult = dns_name_fromtext(dns_fixedname_name(&fixedname), &b,
-				   dns_rootname, ISC_TRUE, NULL);
+				    dns_rootname, ISC_TRUE, NULL);
 	if (tresult != ISC_R_SUCCESS) {
 		cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
 			    "zone '%s': is not a valid name", zname);
@@ -832,6 +844,9 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *config,
 				    "previous definition: %s:%u", logctx, mctx);
 		if (tresult != ISC_R_SUCCESS)
 			result = tresult;
+		if (dns_name_equal(dns_fixedname_name(&fixedname),
+				   dns_rootname))
+			root = ISC_TRUE;
 	}
 
 	/*
@@ -938,7 +953,18 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *config,
 	/*
 	 * Check that forwarding is reasonable.
 	 */
-	if (check_forward(zoptions, logctx) != ISC_R_SUCCESS)
+	obj = NULL;	
+	if (root) {
+		if (voptions != NULL)
+			(void)cfg_map_get(voptions, "forwarders", &obj);
+		if (obj == NULL) {
+			const cfg_obj_t *options = NULL;
+			(void)cfg_map_get(config, "options", &options);
+			if (options != NULL)
+				(void)cfg_map_get(options, "forwarders", &obj);
+		}
+	}
+	if (check_forward(zoptions, obj, logctx) != ISC_R_SUCCESS)
 		result = ISC_R_FAILURE;
 
 	/*
@@ -1096,7 +1122,7 @@ check_servers(const cfg_obj_t *servers, isc_log_t *logctx) {
 }
 		
 static isc_result_t
-check_viewconf(const cfg_obj_t *config, const cfg_obj_t *vconfig,
+check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	       dns_rdataclass_t vclass, isc_log_t *logctx, isc_mem_t *mctx)
 {
 	const cfg_obj_t *servers = NULL;
@@ -1116,8 +1142,8 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	if (tresult != ISC_R_SUCCESS)
 		return (ISC_R_NOMEMORY);
 
-	if (vconfig != NULL)
-		(void)cfg_map_get(vconfig, "zone", &zones);
+	if (voptions != NULL)
+		(void)cfg_map_get(voptions, "zone", &zones);
 	else
 		(void)cfg_map_get(config, "zone", &zones);
 
@@ -1128,7 +1154,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		isc_result_t tresult;
 		const cfg_obj_t *zone = cfg_listelt_value(element);
 
-		tresult = check_zoneconf(zone, config, symtab, vclass,
+		tresult = check_zoneconf(zone, voptions, config, symtab, vclass,
 					 logctx, mctx);
 		if (tresult != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
@@ -1153,9 +1179,9 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		return (tresult);
 	}
 	
-	if (vconfig != NULL) {
+	if (voptions != NULL) {
 		keys = NULL;
-		(void)cfg_map_get(vconfig, "key", &keys);
+		(void)cfg_map_get(voptions, "key", &keys);
 		tresult = check_keylist(keys, symtab, logctx);
 		if (tresult == ISC_R_EXISTS)
 			result = ISC_R_FAILURE;
@@ -1170,47 +1196,48 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	/*
 	 * Check that forwarding is reasonable.
 	 */
-	if (vconfig == NULL) {
+	if (voptions == NULL) {
 		const cfg_obj_t *options = NULL;
 		(void)cfg_map_get(config, "options", &options);
 		if (options != NULL)
-			if (check_forward(options, logctx) != ISC_R_SUCCESS)
+			if (check_forward(options, NULL,
+					  logctx) != ISC_R_SUCCESS)
 				result = ISC_R_FAILURE;
 	} else {
-		if (check_forward(vconfig, logctx) != ISC_R_SUCCESS)
+		if (check_forward(voptions, NULL, logctx) != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}
 	/*
 	 * Check that dual-stack-servers is reasonable.
 	 */
-	if (vconfig == NULL) {
+	if (voptions == NULL) {
 		const cfg_obj_t *options = NULL;
 		(void)cfg_map_get(config, "options", &options);
 		if (options != NULL)
 			if (check_dual_stack(options, logctx) != ISC_R_SUCCESS)
 				result = ISC_R_FAILURE;
 	} else {
-		if (check_dual_stack(vconfig, logctx) != ISC_R_SUCCESS)
+		if (check_dual_stack(voptions, logctx) != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}
 
 	/*
 	 * Check that rrset-order is reasonable.
 	 */
-	if (vconfig != NULL) {
-		if (check_order(vconfig, logctx) != ISC_R_SUCCESS)
+	if (voptions != NULL) {
+		if (check_order(voptions, logctx) != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}
 
-	if (vconfig != NULL) {
-		(void)cfg_map_get(vconfig, "server", &servers);
+	if (voptions != NULL) {
+		(void)cfg_map_get(voptions, "server", &servers);
 		if (servers != NULL &&
 		    check_servers(servers, logctx) != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}
 
-	if (vconfig != NULL)
-		tresult = check_options(vconfig, logctx, mctx);
+	if (voptions != NULL)
+		tresult = check_options(voptions, logctx, mctx);
 	else
 		tresult = check_options(config, logctx, mctx);
 	if (tresult != ISC_R_SUCCESS)
