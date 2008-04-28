@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.181.2.11.2.36 2008/04/28 03:18:35 marka Exp $ */
+/* $Id: adb.c,v 1.181.2.11.2.37 2008/04/28 23:45:37 tbox Exp $ */
 
 /*
  * Implementation notes
@@ -1983,7 +1983,7 @@ destroy(dns_adb_t *adb) {
 	DESTROYLOCK(&adb->reflock);
 	DESTROYLOCK(&adb->lock);
 	DESTROYLOCK(&adb->mplock);
-        DESTROYLOCK(&adb->overmemlock);
+	DESTROYLOCK(&adb->overmemlock);
 
 	isc_mem_putanddetach(&adb->mctx, adb, sizeof(dns_adb_t));
 }
@@ -2054,9 +2054,9 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	if (result != ISC_R_SUCCESS)
 		goto fail0d;
 
-        result = isc_mutex_init(&adb->overmemlock);
-        if (result != ISC_R_SUCCESS)
-                goto fail0e;
+	result = isc_mutex_init(&adb->overmemlock);
+	if (result != ISC_R_SUCCESS)
+		goto fail0e;
 
 	/*
 	 * Initialize the bucket locks for names and elements.
@@ -2160,7 +2160,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	if (adb->afmp != NULL)
 		isc_mempool_destroy(&adb->afmp);
 
-        DESTROYLOCK(&adb->overmemlock);
+	DESTROYLOCK(&adb->overmemlock);
  fail0e:
 	DESTROYLOCK(&adb->reflock);
  fail0d:

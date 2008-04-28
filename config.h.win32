@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2006, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2006-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.win32,v 1.6.12.12 2008/04/28 05:35:44 marka Exp $ */
+/* $Id: config.h.win32,v 1.6.12.13 2008/04/28 23:45:35 tbox Exp $ */
 
 /*
  * win32 configuration file
@@ -119,7 +119,7 @@
 
 /* Define if libcrypto has DSA_generate_parameters */
 #define HAVE_DSA_GENERATE_PARAMETERS
- 
+
 /* Define if libcrypto has DH_generate_parameters */
 #define HAVE_DH_GENERATE_PARAMETERS
 
@@ -144,7 +144,7 @@
 
 /* open() under unix allows setting of read/write permissions
  * at the owner, group and other levels.  These don't exist in NT
- * We'll just map them all to the NT equivalent 
+ * We'll just map them all to the NT equivalent
  */
 
 #define S_IRUSR _S_IREAD	/* Owner read permission */
@@ -194,7 +194,7 @@ typedef long off_t;
  */
 #include <versions.h>
 
-/* We actually are using the CryptAPI and not a device */ 
+/* We actually are using the CryptAPI and not a device */
 #define PATH_RANDOMDEV		"CryptAPI"
 
 #include <stddef.h>

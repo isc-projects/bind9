@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1997-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.98.2.7.2.13 2008/04/28 03:18:36 marka Exp $ */
+/* $Id: mem.c,v 1.98.2.7.2.14 2008/04/28 23:45:37 tbox Exp $ */
 
 #include <config.h>
 
@@ -604,7 +604,7 @@ mem_get(isc_mem_t *ctx, size_t size) {
 
 	ret = (ctx->memalloc)(ctx->arg, size);
 	if (ret == NULL)
-		ctx->memalloc_failures++;	
+		ctx->memalloc_failures++;
 
 #if ISC_MEM_FILL
 	if (ret != NULL)
@@ -1077,7 +1077,7 @@ isc__mem_put(isc_mem_t *ctx, void *ptr, size_t size FLARG)
 	 * when the context was pushed over hi_water but then had
 	 * isc_mem_setwater() called with 0 for hi_water and lo_water.
 	 */
-	if (ctx->hi_called && 
+	if (ctx->hi_called &&
 	    (ctx->inuse < ctx->lo_water || ctx->lo_water == 0U)) {
 		if (ctx->water != NULL)
 			call_water = ISC_TRUE;
@@ -1119,7 +1119,7 @@ print_active(isc_mem_t *mctx, FILE *out) {
 					"\tptr %p size %u file %s line %u\n");
 		for (i = 0; i <= mctx->max_size; i++) {
 			dl = ISC_LIST_HEAD(mctx->debuglist[i]);
-			
+
 			if (dl != NULL)
 				found = ISC_TRUE;
 
