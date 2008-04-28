@@ -10,6 +10,9 @@
 2343.	[bug]		(Seemingly) duplicate IPv6 entries could be
 			created in ADB. [RT #17837]
 
+2341.	[bug]		libbind: add missing -I../include for off source
+			tree builds. [RT #17606]
+
 2340.	[port]		openbsd: interface configuration. [RT #17700]
 
 2335.	[port]		sunos:  libbind and *printf() support for long long. 
