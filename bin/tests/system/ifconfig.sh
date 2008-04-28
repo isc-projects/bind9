@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: ifconfig.sh,v 1.35.2.8.2.8 2004/10/05 03:18:16 marka Exp $
+# $Id: ifconfig.sh,v 1.35.2.8.2.9 2008/04/28 04:32:48 marka Exp $
 
 #
 # Set up interface aliases for bind9 system tests.
@@ -85,6 +85,9 @@ case "$1" in
 		    *-unknown-netbsd*)
 			ifconfig lo0 10.53.0.$ns alias netmask 255.255.255.0
 			;;
+		    *-unknown-openbsd*)
+			ifconfig lo0 10.53.0.$ns alias netmask 255.255.255.0
+			;;
 		    *-*-bsdi[3-5].*)
 			ifconfig lo0 add 10.53.0.$ns netmask 255.255.255.0
 			;;
@@ -143,6 +146,9 @@ case "$1" in
 			ifconfig lo0 10.53.0.$ns delete
 			;;
 		    *-unknown-netbsd*)
+			ifconfig lo0 10.53.0.$ns delete
+			;;
+		    *-unknown-openbsd*)
 			ifconfig lo0 10.53.0.$ns delete
 			;;
 		    *-*-bsdi[3-5].*)
