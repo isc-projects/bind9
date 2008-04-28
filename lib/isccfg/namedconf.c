@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.21.44.36 2008/01/24 23:45:28 tbox Exp $ */
+/* $Id: namedconf.c,v 1.21.44.37 2008/04/28 04:54:26 marka Exp $ */
 
 #include <config.h>
 
@@ -1564,6 +1564,7 @@ static isc_result_t
 parse_logversions(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	return (parse_enum_or_other(pctx, type, &cfg_type_uint32, ret));
 }
+
 static cfg_type_t cfg_type_logversions = {
 	"logversions", parse_logversions, cfg_print_ustring, cfg_doc_terminal,
 	&cfg_rep_string, logversions_enums
@@ -1637,8 +1638,19 @@ print_logfile(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	}
 }
 
+
+static void
+doc_logfile(cfg_printer_t *pctx, const cfg_type_t *type) {
+	UNUSED(type);
+	cfg_print_cstr(pctx, "<quoted_string>");
+	cfg_print_chars(pctx, " ", 1);
+	cfg_print_cstr(pctx, "[ versions ( \"unlimited\" | <integer> ) ]");
+	cfg_print_chars(pctx, " ", 1);
+	cfg_print_cstr(pctx, "[ size <size> ]");
+}
+
 static cfg_type_t cfg_type_logfile = {
-	"log_file", parse_logfile, print_logfile, cfg_doc_terminal,
+	"log_file", parse_logfile, print_logfile, doc_logfile,
 	&cfg_rep_tuple, logfile_fields
 };
 
@@ -1670,8 +1682,8 @@ static cfg_type_t cfg_type_lwres_view = {
 };
 
 static cfg_type_t cfg_type_lwres_searchlist = {
-	"lwres_searchlist", cfg_parse_bracketed_list, cfg_print_bracketed_list, cfg_doc_bracketed_list,
-	&cfg_rep_list, &cfg_type_astring };
+	"lwres_searchlist", cfg_parse_bracketed_list, cfg_print_bracketed_list,
+	cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_astring };
 
 static cfg_clausedef_t
 lwres_clauses[] = {
@@ -1783,15 +1795,15 @@ doc_sockaddrnameport(cfg_printer_t *pctx, const cfg_type_t *type) {
 	cfg_print_chars(pctx, "( ", 2);
 	cfg_print_cstr(pctx, "<quoted_string>");
 	cfg_print_chars(pctx, " ", 1);
-	cfg_print_cstr(pctx, "[port <integer>]");
+	cfg_print_cstr(pctx, "[ port <integer> ]");
 	cfg_print_chars(pctx, " | ", 3);
 	cfg_print_cstr(pctx, "<ipv4_address>");
 	cfg_print_chars(pctx, " ", 1);
-	cfg_print_cstr(pctx, "[port <integer>]");
+	cfg_print_cstr(pctx, "[ port <integer> ]");
 	cfg_print_chars(pctx, " | ", 3);
 	cfg_print_cstr(pctx, "<ipv6_address>");
 	cfg_print_chars(pctx, " ", 1);
-	cfg_print_cstr(pctx, "[port <integer>]");
+	cfg_print_cstr(pctx, "[ port <integer> ]");
 	cfg_print_chars(pctx, " )", 2);
 }
 
@@ -1869,11 +1881,11 @@ doc_masterselement(cfg_printer_t *pctx, const cfg_type_t *type) {
 	cfg_print_chars(pctx, " | ", 3);
 	cfg_print_cstr(pctx, "<ipv4_address>");
 	cfg_print_chars(pctx, " ", 1);
-	cfg_print_cstr(pctx, "[port <integer>]");
+	cfg_print_cstr(pctx, "[ port <integer> ]");
 	cfg_print_chars(pctx, " | ", 3);
 	cfg_print_cstr(pctx, "<ipv6_address>");
 	cfg_print_chars(pctx, " ", 1);
-	cfg_print_cstr(pctx, "[port <integer>]");
+	cfg_print_cstr(pctx, "[ port <integer> ]");
 	cfg_print_chars(pctx, " )", 2);
 }
 

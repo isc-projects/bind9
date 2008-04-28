@@ -7,6 +7,9 @@
 2347.	[bug]		Delete now traverses the RB tree in the canonical
 			order. [RT #17451]
 
+2344.	[bug]		Improve "logging{ file ...; };" documentation.
+			[RT #17888]
+
 2343.	[bug]		(Seemingly) duplicate IPv6 entries could be
 			created in ADB. [RT #17837]
 
