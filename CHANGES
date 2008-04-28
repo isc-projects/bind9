@@ -23,6 +23,8 @@
 
 2329.	[bug]		Clearer help text for dig's '-x' and '-i' options.
 
+2325.	[port]		Linux: use capset() function if available. [RT #17557]
+
 	--- 9.3.5 released ---
 
 	--- 9.3.5rc2 released ---
