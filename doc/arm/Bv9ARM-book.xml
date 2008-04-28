@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.88 2008/01/18 23:45:32 tbox Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.89 2008/04/28 04:47:35 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -5873,7 +5873,7 @@ delegation.</para>
 $GENERATE 1-2 0 NS SERVER$.EXAMPLE.
 $GENERATE 1-127 $ CNAME $.0</programlisting>
 <para>is equivalent to</para>
-<programlisting>0.0.0.192.IN-ADDR.ARPA NS SERVER1.EXAMPLE.
+<programlisting>0.0.0.192.IN-ADDR.ARPA. NS SERVER1.EXAMPLE.
 0.0.0.192.IN-ADDR.ARPA. NS SERVER2.EXAMPLE.
 1.0.0.192.IN-ADDR.ARPA. CNAME 1.0.0.0.192.IN-ADDR.ARPA.
 2.0.0.192.IN-ADDR.ARPA. CNAME 2.0.0.0.192.IN-ADDR.ARPA.
