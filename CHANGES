@@ -1,3 +1,6 @@
+2363.	[port]		sunos: pre-set "lt_cv_sys_max_cmd_len=4096;".
+			[RT #17513]
+
 2361.	[bug]		"recursion" statistics counter could be counted
 			multiple times for a single query.  [RT #17990]
 
