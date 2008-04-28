@@ -1,3 +1,6 @@
+2363.	[port]		sunos: pre-set "lt_cv_sys_max_cmd_len=4096;".
+			[RT #17513]
+
 2362.   [cleanup]       Make "rrset-order fixed" a compile-time option.
                         settable by "./configure --enable-fixed-rrset".
                         Disabled by default. [rt17977]
