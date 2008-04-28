@@ -1,14 +1,14 @@
 2361.	[bug]		"recursion" statistics counter could be counted
 			multiple times for a single query.  [RT #17990]
 
+2356.	[bug]		Builtin mutex profiler was not scalable enough.
+			[RT #17436]
+
 2347.	[bug]		Delete now traverses the RB tree in the canonical
 			order. [RT #17451]
 
 2343.	[bug]		(Seemingly) duplicate IPv6 entries could be
 			created in ADB. [RT #17837]
-
-2355.	[func]		Extend the number statistics counters available.
-			[RT #17590]
 
 	--- 9.3.5 released ---
 
