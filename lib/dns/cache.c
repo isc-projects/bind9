@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.45.2.4.8.15 2006/08/01 01:07:05 marka Exp $ */
+/* $Id: cache.c,v 1.45.2.4.8.16 2008/04/28 03:18:36 marka Exp $ */
 
 #include <config.h>
 
@@ -909,8 +909,11 @@ water(void *arg, int mark) {
 
 	LOCK(&cache->cleaner.lock);
 	
-	dns_db_overmem(cache->db, overmem);
-	cache->cleaner.overmem = overmem;
+	if (overmem != cache->cleaner.overmem) {
+		dns_db_overmem(cache->db, overmem);
+		cache->cleaner.overmem = overmem;
+		isc_mem_waterack(cache->mctx, mark);
+	}
 
 	if (cache->cleaner.overmem_event != NULL)
 		isc_task_send(cache->cleaner.task,
