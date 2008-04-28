@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.157.2.13.2.35 2007/08/28 07:19:07 tbox Exp $ */
+/* $Id: dig.c,v 1.157.2.13.2.36 2008/04/28 02:47:56 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -136,8 +136,8 @@ help(void) {
 "        q-type   is one of (a,any,mx,ns,soa,hinfo,axfr,txt,...) [default:a]\n"
 "                 (Use ixfr=version for type ixfr)\n"
 "        q-opt    is one of:\n"
-"                 -x dot-notation     (shortcut for in-addr lookups)\n"
-"                 -i                  (IP6.INT reverse IPv6 lookups)\n"
+"                 -x dot-notation     (shortcut for reverse lookups)\n"
+"                 -i                  (use IP6.INT for IPv6 reverse lookups)\n"
 "                 -f filename         (batch mode)\n"
 "                 -b address[#port]   (bind to source address/port)\n"
 "                 -p port             (specify port number)\n"

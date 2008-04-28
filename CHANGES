@@ -10,6 +10,8 @@
 2343.	[bug]		(Seemingly) duplicate IPv6 entries could be
 			created in ADB. [RT #17837]
 
+2329.	[bug]		Clearer help text for dig's '-x' and '-i' options.
+
 	--- 9.3.5 released ---
 
 	--- 9.3.5rc2 released ---
