@@ -49,7 +49,8 @@
 2332.	[contrib]	query-loc-0.4.0. [RT #17602]
 
 2331.	[bug]		Failure to regenerate any signatures was not being
-			report or past back to the UPDATE client. [RT #17570]
+			reported nor being past back to the UPDATE client.
+			[RT #17570]
 
 2330.	[bug]		Remove potential race condition when handling
 			over memory events. [RT #17572]
