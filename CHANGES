@@ -10,6 +10,10 @@
 2343.	[bug]		(Seemingly) duplicate IPv6 entries could be
 			created in ADB. [RT #17837]
 
+2331.	[bug]		Failure to regenerate any signatures was not being
+		        reported nor being past back to the UPDATE client.
+			[RT #17570]
+
 2330.	[bug]		Remove potential race condition when handling
 			over memory events. [RT #17572]
 
