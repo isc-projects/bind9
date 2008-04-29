@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.13.4.54 2008/04/23 01:19:50 jinmei Exp $ */
+/* $Id: query.c,v 1.198.2.13.4.55 2008/04/29 00:52:03 marka Exp $ */
 
 #include <config.h>
 
@@ -1900,6 +1900,13 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 						   &olabels);
 			(void)dns_name_fullcompare(name, &nsec.next, &order,
 						   &nlabels);
+			/*
+			 * Check for a pathological condition created when
+			 * serving some malformed signed zones and bail out.
+			 */
+			if (dns_name_countlabels(name) == nlabels)
+				goto cleanup;
+
 			if (olabels > nlabels)
 				dns_name_split(name, olabels, NULL, wname);
 			else
