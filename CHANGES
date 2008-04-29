@@ -1,4 +1,4 @@
-2365.   [bug]           Fix an bug that caused dns_acl_isany() to return
+2365.   [bug]           Fix a bug that caused dns_acl_isany() to return
                         spurious results. [RT #18000]
 
 2364.	[bug]		named could trigger a assertion when serving a
