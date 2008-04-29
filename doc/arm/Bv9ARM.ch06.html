@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.56.2.12.2.54 2008/01/19 01:52:14 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.56.2.12.2.55 2008/04/29 01:21:30 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -3898,7 +3898,7 @@ delegation.</p>
 $GENERATE 1-2 0 NS SERVER$.EXAMPLE.
 $GENERATE 1-127 $ CNAME $.0</pre>
 <p>is equivalent to</p>
-<pre class="programlisting">0.0.0.192.IN-ADDR.ARPA NS SERVER1.EXAMPLE.
+<pre class="programlisting">0.0.0.192.IN-ADDR.ARPA. NS SERVER1.EXAMPLE.
 0.0.0.192.IN-ADDR.ARPA. NS SERVER2.EXAMPLE.
 1.0.0.192.IN-ADDR.ARPA. CNAME 1.0.0.0.192.IN-ADDR.ARPA.
 2.0.0.192.IN-ADDR.ARPA. CNAME 2.0.0.0.192.IN-ADDR.ARPA.
