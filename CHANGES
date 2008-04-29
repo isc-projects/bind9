@@ -1,3 +1,6 @@
+2365.   [bug]           Fix an bug that caused dns_acl_isany() to return
+                        spurious results. [RT #18000]
+
 2364.	[bug]		named could trigger a assertion when serving a
 			malformed signed zone. [RT #17828]
 
@@ -6,7 +9,7 @@
 
 2362.   [cleanup]       Make "rrset-order fixed" a compile-time option.
                         settable by "./configure --enable-fixed-rrset".
-                        Disabled by default. [rt17977]
+                        Disabled by default. [RT #17977]
 
 2361.	[bug]		"recursion" statistics counter could be counted
 			multiple times for a single query.  [RT #17990]
