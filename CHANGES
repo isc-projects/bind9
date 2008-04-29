@@ -1,3 +1,6 @@
+2364.	[bug]		named could trigger a assertion when serving a
+			malformed signed zone. [RT #17828]
+
 2363.	[port]		sunos: pre-set "lt_cv_sys_max_cmd_len=4096;".
 			[RT #17513]
 
