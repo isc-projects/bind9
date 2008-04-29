@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.c,v 1.37.2.6 2008/01/27 02:12:51 marka Exp $ */
+/* $Id: acl.c,v 1.37.2.7 2008/04/29 01:04:14 each Exp $ */
 
 /*! \file */
 
@@ -148,7 +148,7 @@ dns_acl_isanyornone(dns_acl_t *acl, isc_boolean_t pos)
 		return (ISC_FALSE);
 
 	if (acl->iptable->radix->head->prefix->bitlen == 0 &&
-	    *(isc_boolean_t *) (acl->iptable->radix->head->data) == pos)
+	    *(isc_boolean_t *) (acl->iptable->radix->head->data[0]) == pos)
 		return (ISC_TRUE);
 
 	return (ISC_FALSE); /* All others */
