@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.368 2008/04/10 07:20:11 marka Exp $ */
+/* $Id: resolver.c,v 1.369 2008/05/01 18:23:07 jinmei Exp $ */
 
 /*! \file */
 
@@ -353,11 +353,7 @@ struct dns_resolver {
 	isc_timer_t *			spillattimer;
 	isc_boolean_t			zero_no_soa_ttl;
 	isc_timer_t *			disppooltimer;
-#ifdef LRU_DEBUG
-#define DUMP_INTERVAL 30        /* seconds */
-	isc_timer_t *			dumptimer;
-	isc_time_t			dump_time;
-#endif
+
 	/* Locked by lock. */
 	unsigned int			references;
 	isc_boolean_t			exiting;
@@ -373,15 +369,6 @@ struct dns_resolver {
 	/* Locked by poollock. */
 	dns_dispatch_t **		dispatchv4pool;
 	dns_dispatch_t **		dispatchv6pool;
-
-#ifdef LRU_DEBUG
-	/* Unlocked: just for debug */
-	unsigned int			extqueries;
-	unsigned int			extqueries_ns;
-	unsigned int			extqueries_soa;
-	unsigned int			extqueries_a;
-	unsigned int			extqueries_aaaa;
-#endif
 };
 
 #define RES_MAGIC			ISC_MAGIC('R', 'e', 's', '!')
@@ -415,10 +402,6 @@ static isc_result_t ncache_adderesult(dns_message_t *message,
 				      isc_result_t *eresultp);
 static void validated(isc_task_t *task, isc_event_t *event);
 static void maybe_destroy(fetchctx_t *fctx);
-
-#ifdef LRU_DEBUG
-static void timer_dump(isc_task_t *task, isc_event_t *ev);
-#endif
 
 /*%
  * Increment resolver-related statistics counters.
@@ -1706,23 +1689,6 @@ resquery_send(resquery_t *query) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_message;
 
-#ifdef LRU_DEBUG
-	res->extqueries++;
-	switch (fctx->type) {
-	case dns_rdatatype_ns:
-		res->extqueries_ns++;
-		break;
-	case dns_rdatatype_soa:
-		res->extqueries_soa++;
-		break;
-	case dns_rdatatype_a:
-		res->extqueries_a++;
-		break;
-	case dns_rdatatype_aaaa:
-		res->extqueries_aaaa++;
-		break;
-	}
-#endif
 	query->sends++;
 
 	QTRACE("sent");
@@ -6291,16 +6257,6 @@ destroy(dns_resolver_t *res) {
 
 	INSIST(res->nfctx == 0);
 
-#ifdef LRU_DEBUG
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-		      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
-		      "destroying resolver %p: external queries "
-		      "total/NS/SOA/A/AAAA=%u/%u/%u/%u/%u",
-		      res, res->extqueries, res->extqueries_ns,
-		      res->extqueries_soa, res->extqueries_a,
-		      res->extqueries_aaaa);
-#endif
-
 	RES_DESTROYLOCK(&res->poollock);
 	DESTROYLOCK(&res->primelock);
 	DESTROYLOCK(&res->nlock);
@@ -6338,10 +6294,6 @@ destroy(dns_resolver_t *res) {
 	}
 	if (res->disppooltimer != NULL)
 		isc_timer_detach(&res->disppooltimer);
-#ifdef LRU_DEBUG
-	if (res->dumptimer != NULL)
-		isc_timer_detach(&res->dumptimer);
-#endif
 	dns_resolver_reset_algorithms(res);
 	dns_resolver_resetmustbesecure(res);
 #if USE_ALGLOCK
@@ -6475,15 +6427,6 @@ dns_resolver_create(dns_view_t *view,
 	res->dispatchv4pool = NULL;
 	res->dispatchv6pool = NULL;
 	res->disppooltimer = NULL;
-#ifdef LRU_DEBUG
-	res->dumptimer = NULL;
-	res->extqueries = 0;
-	res->extqueries_ns = 0;
-	res->extqueries_soa = 0;
-	res->extqueries_a = 0;
-	res->extqueries_aaaa = 0;
-#endif
-
 	res->nbuckets = ntasks;
 	res->activebuckets = ntasks;
 	res->buckets = isc_mem_get(view->mctx,
@@ -6566,22 +6509,6 @@ dns_resolver_create(dns_view_t *view,
 	result = isc_timer_create(timermgr, isc_timertype_inactive, NULL, NULL,
 				  task, spillattimer_countdown, res,
 				  &res->spillattimer);
-
-#ifdef LRU_DEBUG
-	{
-		isc_interval_t interval;
-
-		interval.seconds = DUMP_INTERVAL;
-		interval.nanoseconds = 0;
-		RUNTIME_CHECK(isc_time_nowplusinterval(&res->dump_time,
-						       &interval) ==
-			      ISC_R_SUCCESS);
-
-		result = isc_timer_create(timermgr, isc_timertype_once,
-					  &res->dump_time, NULL, task,
-					  timer_dump, res, &res->dumptimer);
-	}
-#endif
 	isc_task_detach(&task);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_poollock;
@@ -7769,38 +7696,3 @@ dns_resolver_createdispatchpool(dns_resolver_t *res, unsigned int ndisps,
 
 	return (result);
 }
-
-#ifdef LRU_DEBUG
-static void
-timer_dump(isc_task_t *task, isc_event_t *ev) {
-	dns_resolver_t *res;
-	isc_interval_t interval;
-	isc_time_t nexttime;
-
-	UNUSED(task);
-
-	res = ev->ev_arg;
-	INSIST(VALID_RESOLVER(res));
-
-	if (res->extqueries > 0) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-			      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
-			      "resolver dump %p: external queries "
-			      "total/NS/SOA/A/AAAA=%u/%u/%u/%u/%u",
-			      res, res->extqueries, res->extqueries_ns,
-			      res->extqueries_soa, res->extqueries_a,
-			      res->extqueries_aaaa);
-	}
-
-	interval.seconds = DUMP_INTERVAL;
-	interval.nanoseconds = 0;
-
-	RUNTIME_CHECK(isc_time_add(&res->dump_time, &interval, &nexttime) ==
-		      ISC_R_SUCCESS); /* XXX: this is not always true */
-	res->dump_time = nexttime;
-	(void)isc_timer_reset(res->dumptimer, isc_timertype_once,
-			      &res->dump_time, NULL, ISC_FALSE);
-
-	isc_event_free(&ev);
-}
-#endif
