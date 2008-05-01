@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.233.36.5 2008/04/03 06:20:34 tbox Exp $ */
+/* $Id: adb.c,v 1.233.36.6 2008/05/01 18:32:31 jinmei Exp $ */
 
 /*! \file
  *
@@ -26,13 +26,6 @@
  *
  */
 
-/*%
- * After we have cleaned all buckets, dump the database contents.
- */
-#if 0
-#define DUMP_ADB_AFTER_CLEANING
-#endif
-
 #include <config.h>
 
 #include <limits.h>
@@ -42,7 +35,6 @@
 #include <isc/random.h>
 #include <isc/string.h>         /* Required for HP/UX (and others?) */
 #include <isc/task.h>
-#include <isc/timer.h>
 #include <isc/util.h>
 
 #include <dns/adb.h>
@@ -90,16 +82,6 @@
 #define ADB_ENTRY_WINDOW        1800    /*%< seconds */
 
 /*%
- * Wake up every CLEAN_SECONDS and clean CLEAN_BUCKETS buckets, so that all
- * buckets are cleaned in CLEAN_PERIOD seconds.
- */
-#define CLEAN_PERIOD            3600
-/*% See #CLEAN_PERIOD */
-#define CLEAN_SECONDS           30
-/*% See #CLEAN_PERIOD */
-#define CLEAN_BUCKETS           ((NBUCKETS * CLEAN_SECONDS) / CLEAN_PERIOD)
-
-/*%
  * The period in seconds after which an ADB name entry is regarded as stale
  * and forced to be cleaned up.
  * TODO: This should probably be configurable at run-time.
@@ -132,14 +114,6 @@ struct dns_adb {
 	isc_mutex_t                     overmemlock; /*%< Covers overmem */
 	isc_mem_t                      *mctx;
 	dns_view_t                     *view;
-	isc_timermgr_t                 *timermgr;
-	isc_timer_t                    *timer;
-
-#ifdef LRU_DEBUG
-	isc_timer_t                    *dump_timer; /* for test */
-	isc_time_t                      dump_time; /* for test */
-#define DUMP_INTERVAL 30        /* seconds */
-#endif
 
 	isc_taskmgr_t                  *taskmgr;
 	isc_task_t                     *task;
@@ -187,17 +161,6 @@ struct dns_adb {
 	isc_boolean_t                   cevent_sent;
 	isc_boolean_t                   shutting_down;
 	isc_eventlist_t                 whenshutdown;
-
-#ifdef LRU_DEBUG
-	unsigned int                    stale_purge;
-	unsigned int                    stale_scan;
-	unsigned int                    stale_expire;
-	unsigned int                    stale_lru;
-
-	unsigned int                    nname, nname_total;
-	unsigned int                    nentry, nentry_total;
-	unsigned int                    nameuses, entryuses;
-#endif
 };
 
 /*
@@ -344,7 +307,6 @@ static isc_result_t dbfind_name(dns_adbname_t *, isc_stdtime_t,
 static isc_result_t fetch_name(dns_adbname_t *, isc_boolean_t,
 			       dns_rdatatype_t);
 static inline void check_exit(dns_adb_t *);
-static void timer_cleanup(isc_task_t *, isc_event_t *);
 static void destroy(dns_adb_t *);
 static isc_boolean_t shutdown_names(dns_adb_t *);
 static isc_boolean_t shutdown_entries(dns_adb_t *);
@@ -356,10 +318,6 @@ static isc_boolean_t kill_name(dns_adbname_t **, isc_eventtype_t,
 			       isc_boolean_t);
 static void water(void *, int);
 static void dump_entry(FILE *, dns_adbentry_t *, isc_boolean_t, isc_stdtime_t);
-
-#ifdef LRU_DEBUG
-static void timer_dump(isc_task_t *, isc_event_t *);
-#endif
 
 /*
  * MUST NOT overlap DNS_ADBFIND_* flags!
@@ -1332,11 +1290,6 @@ free_adbname(dns_adb_t *adb, dns_adbname_t **name) {
 	INSIST(n->lock_bucket == DNS_ADB_INVALIDBUCKET);
 	INSIST(n->adb == adb);
 
-#ifdef LRU_DEBUG
-	adb->nname--;           /* XXX: omit ADB lock for brevity */
-	INSIST((int)adb->nname >= 0);
-#endif
-
 	n->magic = 0;
 	dns_name_free(&n->name, adb->mctx);
 
@@ -1430,11 +1383,6 @@ new_adbentry(dns_adb_t *adb) {
 	ISC_LIST_INIT(e->lameinfo);
 	ISC_LINK_INIT(e, plink);
 
-#ifdef LRU_DEBUG
-	adb->nentry++;  /* XXX: omit ADB lock for brevity */
-	adb->nentry_total++;
-#endif
-
 	return (e);
 }
 
@@ -1459,11 +1407,6 @@ free_adbentry(dns_adb_t *adb, dns_adbentry_t **entry) {
 		free_adblameinfo(adb, &li);
 		li = ISC_LIST_HEAD(e->lameinfo);
 	}
-
-#ifdef LRU_DEBUG
-	adb->nentry--;  /* XXX: omit ADB lock for brevity */
-	INSIST((int)adb->nentry >= 0);
-#endif
 
 	isc_mempool_put(adb->emp, e);
 }
@@ -1608,10 +1551,6 @@ new_adbaddrinfo(dns_adb_t *adb, dns_adbentry_t *entry, in_port_t port) {
 	ai->flags = entry->flags;
 	ai->entry = entry;
 	ISC_LINK_INIT(ai, publink);
-
-#ifdef LRU_DEBUG
-	adb->entryuses++;       /* for debug */
-#endif
 
 	return (ai);
 }
@@ -1832,18 +1771,6 @@ shutdown_task(isc_task_t *task, isc_event_t *ev) {
 	adb = ev->ev_arg;
 	INSIST(DNS_ADB_VALID(adb));
 
-	/*
-	 * Kill the timer, and then the ADB itself.  Note that this implies
-	 * that this task was the one scheduled to get timer events.  If
-	 * this is not true (and it is unfortunate there is no way to INSIST()
-	 * this) badness will occur.
-	 */
-	LOCK(&adb->lock);
-	isc_timer_detach(&adb->timer);
-#ifdef LRU_DEBUG
-	isc_timer_detach(&adb->dump_timer);
-#endif
-	UNLOCK(&adb->lock);
 	isc_event_free(&ev);
 	destroy(adb);
 }
@@ -1928,9 +1855,6 @@ check_stale_name(dns_adb_t *adb, int bucket, isc_stdtime_t now) {
 
 		result = check_expire_name(&victim, now);
 		if (victim == NULL) {
-#ifdef LRU_DEBUG
-			adb->stale_expire++;
-#endif
 			victims++;
 			goto next;
 		}
@@ -1941,9 +1865,6 @@ check_stale_name(dns_adb_t *adb, int bucket, isc_stdtime_t now) {
 						DNS_EVENT_ADBCANCELED,
 						ISC_TRUE) ==
 				      ISC_FALSE);
-#ifdef LRU_DEBUG
-			adb->stale_lru++;
-#endif
 			victims++;
 		}
 
@@ -1951,12 +1872,6 @@ check_stale_name(dns_adb_t *adb, int bucket, isc_stdtime_t now) {
 		if (!overmem)
 			break;
 	}
-
-#ifdef LRU_DEBUG
-	/* XXX: omit lock for brevity */
-	adb->stale_scan += scans;
-	adb->stale_purge += victims;
-#endif
 }
 
 /*
@@ -2042,96 +1957,10 @@ cleanup_entries(dns_adb_t *adb, int bucket, isc_stdtime_t now) {
 	return (result);
 }
 
-#if 1
-static void
-timer_cleanup(isc_task_t *task, isc_event_t *ev) {
-	UNUSED(task);
-
-	isc_event_free(&ev);
-}
-#else
-static void
-timer_cleanup(isc_task_t *task, isc_event_t *ev) {
-	dns_adb_t *adb;
-	isc_stdtime_t now;
-	unsigned int i;
-	isc_interval_t interval;
-
-	UNUSED(task);
-
-	adb = ev->ev_arg;
-	INSIST(DNS_ADB_VALID(adb));
-
-	LOCK(&adb->lock);
-
-	isc_stdtime_get(&now);
-
-	for (i = 0; i < CLEAN_BUCKETS; i++) {
-		/*
-		 * Call our cleanup routines.
-		 */
-		RUNTIME_CHECK(cleanup_names(adb, adb->next_cleanbucket, now) ==
-			      ISC_FALSE);
-		RUNTIME_CHECK(cleanup_entries(adb, adb->next_cleanbucket, now)
-			      == ISC_FALSE);
-
-		/*
-		 * Set the next bucket to be cleaned.
-		 */
-		adb->next_cleanbucket++;
-		if (adb->next_cleanbucket >= NBUCKETS) {
-			adb->next_cleanbucket = 0;
-#ifdef DUMP_ADB_AFTER_CLEANING
-			dump_adb(adb, stdout, ISC_TRUE, now);
-#endif
-		}
-	}
-
-	/*
-	 * Reset the timer.
-	 * XXXDCL isc_timer_reset might return ISC_R_UNEXPECTED or
-	 * ISC_R_NOMEMORY, but it isn't clear what could be done here
-	 * if either one of those things happened.
-	 */
-	interval = adb->tick_interval;
-	if (adb->overmem)
-		isc_interval_set(&interval, 0, 1);
-	(void)isc_timer_reset(adb->timer, isc_timertype_once, NULL,
-			      &interval, ISC_FALSE);
-
-	UNLOCK(&adb->lock);
-
-	isc_event_free(&ev);
-}
-#endif
-
 static void
 destroy(dns_adb_t *adb) {
 	adb->magic = 0;
 
-#ifdef LRU_DEBUG
-	/* for debug: print statistics */
-	if (adb->nname_total > 0) {
-		INSIST(adb->nname == 0 && adb->nentry == 0);
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			      DNS_LOGMODULE_ADB, ISC_LOG_INFO,
-			      "ADB %p name hit %.2f, entry hit %.2f", adb,
-			      (double)adb->nameuses /
-			      (adb->nname_total + adb->nameuses),
-			      adb->entryuses > 0 ?
-			      (double)adb->entryuses /
-			      (adb->nentry_total + adb->entryuses) : 0);
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			      DNS_LOGMODULE_ADB, ISC_LOG_INFO,
-			      "ADB %p stale name purges: %u(%u,%u)/%u",
-			      adb, adb->stale_purge, adb->stale_expire,
-			      adb->stale_lru, adb->stale_scan);
-	}
-#endif
-
-	/*
-	 * The timer is already dead, from the task's shutdown callback.
-	 */
 	isc_task_detach(&adb->task);
 
 	isc_mempool_destroy(&adb->nmp);
@@ -2168,9 +1997,11 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 
 	REQUIRE(mem != NULL);
 	REQUIRE(view != NULL);
-	REQUIRE(timermgr != NULL);
+	REQUIRE(timermgr != NULL); /* this is actually unused */
 	REQUIRE(taskmgr != NULL);
 	REQUIRE(newadb != NULL && *newadb == NULL);
+
+	UNUSED(timermgr);
 
 	adb = isc_mem_get(mem, sizeof(dns_adb_t));
 	if (adb == NULL)
@@ -2191,13 +2022,8 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	adb->aimp = NULL;
 	adb->afmp = NULL;
 	adb->task = NULL;
-	adb->timer = NULL;
-#ifdef LRU_DEBUG
-	adb->dump_timer = NULL;
-#endif
 	adb->mctx = NULL;
 	adb->view = view;
-	adb->timermgr = timermgr;
 	adb->taskmgr = taskmgr;
 	adb->next_cleanbucket = 0;
 	ISC_EVENT_INIT(&adb->cevent, sizeof(adb->cevent), 0, NULL,
@@ -2207,20 +2033,6 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	adb->shutting_down = ISC_FALSE;
 	adb->overmem = ISC_FALSE;
 	ISC_LIST_INIT(adb->whenshutdown);
-
-#ifdef LRU_DEBUG
-	/* for debug */
-	adb->nname = 0;
-	adb->nname_total = 0;
-	adb->nentry = 0;
-	adb->nentry_total = 0;
-	adb->stale_purge = 0;
-	adb->stale_scan = 0;
-	adb->stale_expire = 0;
-	adb->stale_lru = 0;
-	adb->nameuses = 0;
-	adb->entryuses = 0;
-#endif
 
 	isc_mem_attach(mem, &adb->mctx);
 
@@ -2287,41 +2099,12 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 #undef MPINIT
 
 	/*
-	 * Allocate a timer and a task for our periodic cleanup.
+	 * Allocate an internal task.
 	 */
 	result = isc_task_create(adb->taskmgr, 0, &adb->task);
 	if (result != ISC_R_SUCCESS)
 		goto fail3;
 	isc_task_setname(adb->task, "ADB", adb);
-	/*
-	 * XXXMLG When this is changed to be a config file option,
-	 */
-	isc_interval_set(&adb->tick_interval, CLEAN_SECONDS, 0);
-	result = isc_timer_create(adb->timermgr, isc_timertype_once,
-				  NULL, &adb->tick_interval, adb->task,
-				  timer_cleanup, adb, &adb->timer);
-	if (result != ISC_R_SUCCESS)
-		goto fail3;
-
-#ifdef LRU_DEBUG
-	{
-		isc_interval_t interval;
-
-		interval.seconds = DUMP_INTERVAL;
-		interval.nanoseconds = 0;
-		RUNTIME_CHECK(isc_time_nowplusinterval(&adb->dump_time,
-						       &interval) ==
-			      ISC_R_SUCCESS);
-
-		result = isc_timer_create(adb->timermgr, isc_timertype_once,
-					  &adb->dump_time, NULL, adb->task,
-					  timer_dump, adb, &adb->dump_timer);
-	}
-#endif
-
-	DP(ISC_LOG_DEBUG(5), "cleaning interval for adb: "
-	   "%u buckets every %u seconds, %u buckets in system, %u cl.interval",
-	   CLEAN_BUCKETS, CLEAN_SECONDS, NBUCKETS, CLEAN_PERIOD);
 
 	/*
 	 * Normal return.
@@ -2333,8 +2116,6 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
  fail3:
 	if (adb->task != NULL)
 		isc_task_detach(&adb->task);
-	if (adb->timer != NULL)
-		isc_timer_detach(&adb->timer);
 
 	/* clean up entrylocks */
 	DESTROYMUTEXBLOCK(adb->entrylocks, NBUCKETS);
@@ -2578,18 +2359,10 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 			adbname->flags |= NAME_GLUE_OK;
 		if (FIND_STARTATZONE(find))
 			adbname->flags |= NAME_STARTATZONE;
-
-#ifdef LRU_DEBUG
-		adb->nname++;   /* XXX: omit ADB lock for brevity */
-		adb->nname_total++;
-#endif
 	} else {
 		/* Move this name forward in the LRU list */
 		ISC_LIST_UNLINK(adb->names[bucket], adbname, plink);
 		ISC_LIST_PREPEND(adb->names[bucket], adbname, plink);
-#ifdef LRU_DEBUG
-		adb->nameuses++;
-#endif
 	}
 	adbname->last_used = now;
 
@@ -3813,15 +3586,6 @@ water(void *arg, int mark) {
 	LOCK(&adb->overmemlock);
 	if (adb->overmem != overmem) {
 		adb->overmem = overmem;
-#if 0       /* we don't need this timer for the new cleaning policy. */
-		if (overmem) {
-			isc_interval_t interval;
-
-			isc_interval_set(&interval, 0, 1);
-			(void)isc_timer_reset(adb->timer, isc_timertype_once,
-					      NULL, &interval, ISC_TRUE);
-		}
-#endif
 		isc_mem_waterack(adb->mctx, mark);
 	}
 	UNLOCK(&adb->overmemlock);
@@ -3845,47 +3609,3 @@ dns_adb_setadbsize(dns_adb_t *adb, isc_uint32_t size) {
 	else
 		isc_mem_setwater(adb->mctx, water, adb, hiwater, lowater);
 }
-
-#ifdef LRU_DEBUG
-/*
- * Periodic dumping of the internal state of the statistics.
- * This will dump the cache contents, uses, record types, etc.
- */
-static void
-timer_dump(isc_task_t *task, isc_event_t *ev) {
-	dns_adb_t *adb;
-	isc_interval_t interval;
-	isc_time_t nexttime;
-
-	UNUSED(task);
-
-	adb = ev->ev_arg;
-	INSIST(DNS_ADB_VALID(adb));
-
-	LOCK(&adb->lock);
-	if (adb->nname > 0 || adb->nentry > 0) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			      DNS_LOGMODULE_ADB, ISC_LOG_INFO,
-			      "ADB memory usage %p: mem inuse %lu, "
-			      "%u/%u names, %u/%u entries, "
-			      "purge/scan=%u(%u,%u)/%u, overmem=%d",
-			      adb, (unsigned long)isc_mem_inuse(adb->mctx),
-			      adb->nname, adb->nname_total,
-			      adb->nentry, adb->nentry_total,
-			      adb->stale_purge, adb->stale_expire,
-			      adb->stale_lru, adb->stale_scan, adb->overmem);
-	}
-
-	interval.seconds = DUMP_INTERVAL;
-	interval.nanoseconds = 0;
-
-	RUNTIME_CHECK(isc_time_add(&adb->dump_time, &interval, &nexttime) ==
-		      ISC_R_SUCCESS); /* XXX: this is not always true */
-	adb->dump_time = nexttime;
-	(void)isc_timer_reset(adb->dump_timer, isc_timertype_once,
-			      &adb->dump_time, NULL, ISC_FALSE);
-	UNLOCK(&adb->lock);
-
-	isc_event_free(&ev);
-}
-#endif

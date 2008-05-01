@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.82.38.3 2008/04/03 02:12:21 marka Exp $ */
+/* $Id: config.c,v 1.82.38.4 2008/05/01 18:32:31 jinmei Exp $ */
 
 /*! \file */
 
@@ -124,7 +124,7 @@ options {\n\
 	query-source-v6 address *;\n\
 	notify-source *;\n\
 	notify-source-v6 *;\n\
-	cleaning-interval 60;\n\
+	cleaning-interval 0;  /* now meaningless */\n\
 	min-roots 2;\n\
 	lame-ttl 600;\n\
 	max-ncache-ttl 10800; /* 3 hours */\n\

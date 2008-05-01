@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.248.12.7 2008/04/23 21:43:58 each Exp $ */
+/* $Id: rbtdb.c,v 1.248.12.8 2008/05/01 18:32:31 jinmei Exp $ */
 
 /*! \file */
 
@@ -270,8 +270,6 @@ typedef ISC_LIST(dns_rbtnode_t)         rbtnodelist_t;
 #define RDATASET_ATTR_NXDOMAIN          0x0010
 #define RDATASET_ATTR_RESIGN            0x0020
 #define RDATASET_ATTR_STATCOUNT         0x0040
-#define RDATASET_ATTR_CACHE             0x1000 /* for debug */
-#define RDATASET_ATTR_CANCELED          0x2000 /* for debug */
 
 typedef struct acache_cbarg {
 	dns_rdatasetadditional_t        type;
@@ -344,33 +342,6 @@ typedef struct rbtdb_version {
 
 typedef ISC_LIST(rbtdb_version_t)       rbtdb_versionlist_t;
 
-#ifdef LRU_DEBUG
-/* statistics info for testing */
-struct cachestat {
-	unsigned int    cache_total;
-	int             cache_current;
-	unsigned int    ncache_total;
-	int             ncache_current;
-	unsigned int    a_total;
-	int             a_current;
-	unsigned int    aaaa_total;
-	int             aaaa_current;
-	unsigned int    ns_total;
-	int             ns_current;
-	unsigned int    ptr_total;
-	int             ptr_current;
-	unsigned int    glue_total;
-	int             glue_current;
-	unsigned int    additional_total;
-	int             additional_current;
-
-	unsigned int    stale_purge;
-	unsigned int    stale_scan;
-	unsigned int    stale_expire;
-	unsigned int    stale_lru;
-};
-#endif
-
 typedef struct {
 	/* Unlocked. */
 	dns_db_t                        common;
@@ -423,9 +394,6 @@ typedef struct {
 
 	/* Unlocked */
 	unsigned int                    quantum;
-#ifdef LRU_DEBUG
-	struct cachestat                cachestat;
-#endif
 } dns_rbtdb_t;
 
 #define RBTDB_ATTR_LOADED               0x01
@@ -893,41 +861,6 @@ free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log, isc_event_t *event) {
 	if (rbtdb->task != NULL)
 		isc_task_detach(&rbtdb->task);
 
-#ifdef LRU_DEBUG
-	/* Experimental logging about memory usage */
-	if (IS_CACHE(rbtdb) && rbtdb->common.rdclass == dns_rdataclass_in) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			      DNS_LOGMODULE_CACHE, ISC_LOG_INFO,
-			      "cache DB %p: mem inuse %lu, XXX node, "
-			      "%d/%u current/total cache, %d/%u neg, %d/%u A, %d/%u AAAA, "
-			      "%d/%u NS, %d/%u PTR, %d/%u glue, "
-			      "%d/%u  additional, purge/scan=%u(%u expiry, %u lru)/%u, "
-			      "overmem=%d",
-			      rbtdb,
-			      (unsigned long)isc_mem_inuse(rbtdb->common.mctx),
-			      rbtdb->cachestat.cache_current, rbtdb->cachestat.cache_total,
-			      rbtdb->cachestat.ncache_current, rbtdb->cachestat.ncache_total,
-			      rbtdb->cachestat.a_current, rbtdb->cachestat.a_total,
-			      rbtdb->cachestat.aaaa_current, rbtdb->cachestat.aaaa_total,
-			      rbtdb->cachestat.ns_current, rbtdb->cachestat.ns_total,
-			      rbtdb->cachestat.ptr_current, rbtdb->cachestat.ptr_total,
-			      rbtdb->cachestat.glue_current, rbtdb->cachestat.glue_total,
-			      rbtdb->cachestat.additional_current,
-			      rbtdb->cachestat.additional_total,
-			      rbtdb->cachestat.stale_purge, rbtdb->cachestat.stale_expire,
-			      rbtdb->cachestat.stale_lru, rbtdb->cachestat.stale_scan,
-			      rbtdb->overmem);
-		INSIST(rbtdb->cachestat.cache_current == 0);
-		INSIST(rbtdb->cachestat.ncache_current == 0);
-		INSIST(rbtdb->cachestat.a_current == 0);
-		INSIST(rbtdb->cachestat.aaaa_current == 0);
-		INSIST(rbtdb->cachestat.ns_current == 0);
-		INSIST(rbtdb->cachestat.ptr_current == 0);
-		INSIST(rbtdb->cachestat.glue_current == 0);
-		INSIST(rbtdb->cachestat.additional_current == 0);
-	}
-#endif
-
 	RBTDB_DESTROYLOCK(&rbtdb->lock);
 	rbtdb->common.magic = 0;
 	rbtdb->common.impmagic = 0;
@@ -1199,69 +1132,6 @@ free_rdataset(dns_rbtdb_t *rbtdb, isc_mem_t *mctx, rdatasetheader_t *rdataset)
 	    (rdataset->attributes & RDATASET_ATTR_STATCOUNT) != 0) {
 		update_rrsetstats(rbtdb, rdataset, ISC_FALSE);
 	}
-
-#ifdef LRU_DEBUG
-	/*
-	 * for debug: statistics update.
-	 * Nothing in this block should have any side-effects.
-	 */
-	if (EXISTS(rdataset) &&
-	    (rdataset->attributes & RDATASET_ATTR_CACHE) != 0) {
-		rbtdb->cachestat.cache_current--;
-		if ((rdataset->attributes & RDATASET_ATTR_CANCELED) != 0)
-			rbtdb->cachestat.cache_total--;
-		if (RBTDB_RDATATYPE_BASE(rdataset->type) == 0) {
-			rbtdb->cachestat.ncache_current--;
-			INSIST(rbtdb->cachestat.ncache_current >= 0);
-			if ((rdataset->attributes & RDATASET_ATTR_CANCELED)
-			    != 0)
-				rbtdb->cachestat.ncache_total--;
-		}
-		if (rdataset->type == dns_rdatatype_a) {
-			rbtdb->cachestat.a_current--;
-			INSIST(rbtdb->cachestat.a_current >= 0);
-			if ((rdataset->attributes & RDATASET_ATTR_CANCELED)
-			    != 0)
-				rbtdb->cachestat.a_total--;
-		} else if (rdataset->type == dns_rdatatype_aaaa) {
-			rbtdb->cachestat.aaaa_current--;
-			INSIST(rbtdb->cachestat.aaaa_current >= 0);
-			if ((rdataset->attributes & RDATASET_ATTR_CANCELED)
-			    != 0)
-				rbtdb->cachestat.aaaa_total--;
-		} else if (rdataset->type == dns_rdatatype_ptr) {
-			rbtdb->cachestat.ptr_current--;
-			INSIST(rbtdb->cachestat.ptr_current >= 0);
-			if ((rdataset->attributes & RDATASET_ATTR_CANCELED)
-			    != 0)
-				rbtdb->cachestat.ptr_total--;
-		} else if (rdataset->type == dns_rdatatype_ns) {
-			rbtdb->cachestat.ns_current--;
-			INSIST(rbtdb->cachestat.ns_current >= 0);
-			if ((rdataset->attributes & RDATASET_ATTR_CANCELED)
-			    != 0)
-				rbtdb->cachestat.ns_total--;
-		}
-		if (rdataset->trust == dns_trust_glue &&
-		    (rdataset->type == dns_rdatatype_a ||
-		     rdataset->type == dns_rdatatype_aaaa)) {
-			rbtdb->cachestat.glue_current--;
-			INSIST(rbtdb->cachestat.glue_current >= 0);
-			if ((rdataset->attributes & RDATASET_ATTR_CANCELED)
-			    != 0)
-				rbtdb->cachestat.glue_total--;
-		}
-		if (rdataset->trust == dns_trust_additional &&
-		    (rdataset->type == dns_rdatatype_a ||
-		     rdataset->type == dns_rdatatype_aaaa)) {
-			rbtdb->cachestat.additional_current--;
-			INSIST(rbtdb->cachestat.additional_current >= 0);
-			if ((rdataset->attributes & RDATASET_ATTR_CANCELED)
-			    != 0)
-				rbtdb->cachestat.additional_total--;
-		}
-	}
-#endif
 
 	if (IS_CACHE(rbtdb) && ISC_LINK_LINKED(rdataset, lru_link)) {
 		int idx = rdataset->node->locknum;
@@ -3031,8 +2901,8 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		    (search.options & DNS_DBFIND_FORCENSEC) != 0)
 		{
 			result = find_closest_nsec(&search, nodep, foundname,
-						  rdataset, sigrdataset,
-						  search.rbtdb->secure);
+						   rdataset, sigrdataset,
+						   search.rbtdb->secure);
 			if (result == ISC_R_SUCCESS)
 				result = active ? DNS_R_EMPTYNAME :
 						  DNS_R_NXDOMAIN;
@@ -4515,40 +4385,8 @@ static void
 overmem(dns_db_t *db, isc_boolean_t overmem) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 
-#ifdef LRU_DEBUG
-	/* XXX: see cache.c:timer_dump() */
-	if ((int)overmem == -1) {
-		if (!IS_CACHE(rbtdb) || db->rdclass != dns_rdataclass_in)
-			return; /* for brevity */
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			      DNS_LOGMODULE_CACHE, ISC_LOG_INFO,
-			      "cache DB %p: mem inuse %lu, %u node, "
-			      "%d/%u current/total cache, %d/%u neg, %d/%u A, %d/%u AAAA, "
-			      "%d/%u NS, %d/%u PTR, %d/%u glue, "
-			      "%d/%u  additional, purge/scan=%u(%u expiry, %u lru)/%u, "
-			      "overmem=%d",
-			      rbtdb,
-			      (unsigned long)isc_mem_inuse(rbtdb->common.mctx),
-			      dns_rbt_nodecount(rbtdb->tree),
-			      rbtdb->cachestat.cache_current, rbtdb->cachestat.cache_total,
-			      rbtdb->cachestat.ncache_current, rbtdb->cachestat.ncache_total,
-			      rbtdb->cachestat.a_current, rbtdb->cachestat.a_total,
-			      rbtdb->cachestat.aaaa_current, rbtdb->cachestat.aaaa_total,
-			      rbtdb->cachestat.ns_current, rbtdb->cachestat.ns_total,
-			      rbtdb->cachestat.ptr_current, rbtdb->cachestat.ptr_total,
-			      rbtdb->cachestat.glue_current, rbtdb->cachestat.glue_total,
-			      rbtdb->cachestat.additional_current,
-			      rbtdb->cachestat.additional_total,
-			      rbtdb->cachestat.stale_purge, rbtdb->cachestat.stale_expire,
-			      rbtdb->cachestat.stale_lru, rbtdb->cachestat.stale_scan,
-			      rbtdb->overmem);
-		return;
-	}
-#endif
-
-	if (IS_CACHE(rbtdb)) {
+	if (IS_CACHE(rbtdb))
 		rbtdb->overmem = overmem;
-	}
 }
 
 static void
@@ -4943,38 +4781,6 @@ cname_and_other_data(dns_rbtnode_t *node, rbtdb_serial_t serial) {
 	return (ISC_FALSE);
 }
 
-#ifdef LRU_DEBUG
-static void
-cachestat_update(dns_rbtdb_t *rbtdb, rdatasetheader_t *header) {
-	if ((header->attributes & RDATASET_ATTR_CACHE) == 0)
-		return;
-
-	/* XXX: don't use lock for brevity */
-	rbtdb->cachestat.cache_total++;
-	if (RBTDB_RDATATYPE_BASE(header->type) == 0)
-			rbtdb->cachestat.ncache_total++;
-	if (header->type == dns_rdatatype_a)
-			rbtdb->cachestat.a_total++;
-	else if (header->type == dns_rdatatype_aaaa)
-		rbtdb->cachestat.aaaa_total++;
-	else if (header->type == dns_rdatatype_ns)
-		rbtdb->cachestat.ns_total++;
-	else if (header->type == dns_rdatatype_ptr)
-		rbtdb->cachestat.ptr_total++;
-
-	if (header->trust == dns_trust_glue &&
-	    (header->type == dns_rdatatype_a ||
-	     header->type == dns_rdatatype_aaaa)) {
-		rbtdb->cachestat.glue_total++;
-	}
-	if (header->trust == dns_trust_additional &&
-	    (header->type == dns_rdatatype_a ||
-	     header->type == dns_rdatatype_aaaa)) {
-		rbtdb->cachestat.additional_total++;
-	}
-}
-#endif
-
 static isc_result_t
 add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
     rdatasetheader_t *newheader, unsigned int options, isc_boolean_t loading,
@@ -5079,9 +4885,6 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 					 * The NXDOMAIN/NODATA(QTYPE=ANY)
 					 * is more trusted.
 					 */
-					/* set the flag for debug */
-					newheader->attributes |=
-						RDATASET_ATTR_CANCELED;
 					free_rdataset(rbtdb,
 						      rbtdb->common.mctx,
 						      newheader);
@@ -5140,7 +4943,6 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		 */
 		if (rbtversion == NULL && trust < header->trust &&
 		    (header->rdh_ttl > now || header_nx)) {
-			newheader->attributes |= RDATASET_ATTR_CANCELED;
 			free_rdataset(rbtdb, rbtdb->common.mctx, newheader);
 			if (addedrdataset != NULL)
 				bind_rdataset(rbtdb, rbtnode, header, now,
@@ -5225,7 +5027,6 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				header->noqname = newheader->noqname;
 				newheader->noqname = NULL;
 			}
-			newheader->attributes |= RDATASET_ATTR_CANCELED;
 			free_rdataset(rbtdb, rbtdb->common.mctx, newheader);
 			if (addedrdataset != NULL)
 				bind_rdataset(rbtdb, rbtnode, header, now,
@@ -5251,7 +5052,6 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				header->noqname = newheader->noqname;
 				newheader->noqname = NULL;
 			}
-			newheader->attributes |= RDATASET_ATTR_CANCELED;
 			free_rdataset(rbtdb, rbtdb->common.mctx, newheader);
 			if (addedrdataset != NULL)
 				bind_rdataset(rbtdb, rbtnode, header, now,
@@ -5299,9 +5099,6 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				 */
 				isc_heap_insert(rbtdb->heaps[idx], newheader);
 			}
-#ifdef LRU_DEBUG
-			cachestat_update(rbtdb, newheader);
-#endif
 		}
 	} else {
 		/*
@@ -5353,9 +5150,6 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 					 newheader, lru_link);
 			isc_heap_insert(rbtdb->heaps[idx], newheader);
 		}
-#ifdef LRU_DEBUG
-		cachestat_update(rbtdb, newheader);
-#endif
 	}
 
 	/*
@@ -5522,45 +5316,6 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		newheader->attributes |= RDATASET_ATTR_STATCOUNT;
 		update_rrsetstats(rbtdb, newheader, ISC_TRUE);
 	}
-
-#ifdef LRU_DEBUG
-	/* for debug: statistics update */
-	if (IS_CACHE(rbtdb) && rdataset->rdclass == dns_rdataclass_in) {
-		/* XXX: don't use lock for brevity */
-		newheader->attributes |= RDATASET_ATTR_CACHE;
-		rbtdb->cachestat.cache_total++;
-		rbtdb->cachestat.cache_current++;
-		if (rdataset->type == 0) {
-			rbtdb->cachestat.ncache_total++;
-			rbtdb->cachestat.ncache_current++;
-		}
-		if (rdataset->type == dns_rdatatype_a) {
-			rbtdb->cachestat.a_total++;
-			rbtdb->cachestat.a_current++;
-		} else if (rdataset->type == dns_rdatatype_aaaa) {
-			rbtdb->cachestat.aaaa_total++;
-			rbtdb->cachestat.aaaa_current++;
-		} else if (rdataset->type == dns_rdatatype_ns) {
-			rbtdb->cachestat.ns_total++;
-			rbtdb->cachestat.ns_current++;
-		} else if (rdataset->type == dns_rdatatype_ptr) {
-			rbtdb->cachestat.ptr_total++;
-			rbtdb->cachestat.ptr_current++;
-		}
-		if (rdataset->trust == dns_trust_glue &&
-		    (rdataset->type == dns_rdatatype_a ||
-		     rdataset->type == dns_rdatatype_aaaa)) {
-			rbtdb->cachestat.glue_total++;
-			rbtdb->cachestat.glue_current++;
-		}
-		if (rdataset->trust == dns_trust_additional &&
-		    (rdataset->type == dns_rdatatype_a ||
-		     rdataset->type == dns_rdatatype_aaaa)) {
-			rbtdb->cachestat.additional_total++;
-			rbtdb->cachestat.additional_current++;
-		}
-	}
-#endif
 
 	if (IS_CACHE(rbtdb)) {
 		if (tree_locked)
@@ -7628,7 +7383,6 @@ check_stale_cache(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode,
 {
 	rdatasetheader_t *victim;
 	isc_boolean_t overmem = rbtdb->overmem;
-	int scans = 0;          /* for debug */
 	int victims = 0;
 
 	/*
@@ -7637,11 +7391,6 @@ check_stale_cache(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode,
 	victim = isc_heap_element(rbtdb->heaps[rbtnode->locknum], 1);
 	if (victim != NULL && victim->rdh_ttl <= now - RBTDB_VIRTUAL) {
 		INSIST(victim->node->locknum == rbtnode->locknum);
-
-#ifdef LRU_DEBUG
-		/* for debug */
-		rbtdb->cachestat.stale_expire++;
-#endif
 		victims++;
 
 		set_ttl(rbtdb, victim, 0);
@@ -7670,13 +7419,7 @@ check_stale_cache(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode,
 	victim = ISC_LIST_TAIL(rbtdb->rdatasets[rbtnode->locknum]);
 	if (victim != NULL && overmem) {
 		INSIST(victim->node->locknum == rbtnode->locknum);
-
-#ifdef LRU_DEBUG
-		/* for debug */
-		rbtdb->cachestat.stale_lru++;
-#endif
 		victims++;
-		scans++;
 
 		set_ttl(rbtdb, victim, 0);
 		victim->attributes |= RDATASET_ATTR_STALE;
@@ -7697,10 +7440,4 @@ check_stale_cache(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode,
 					    isc_rwlocktype_none);
 		}
 	}
-
-#ifdef LRU_DEBUG
-	/* update statistics for debug (no lock for brevity) */
-	rbtdb->cachestat.stale_scan += scans;
-	rbtdb->cachestat.stale_purge += victims;
-#endif
 }

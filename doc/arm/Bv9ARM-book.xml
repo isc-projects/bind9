@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.7 2008/04/09 22:53:50 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.8 2008/05/01 18:32:31 jinmei Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -6858,11 +6858,14 @@ query-source-v6 address * port *;
               <term><command>cleaning-interval</command></term>
               <listitem>
                 <para>
-                  The server will remove expired resource records
+		  This interval is effectively obsolete.  Previously,
+		  the server would remove expired resource records
                   from the cache every <command>cleaning-interval</command> minutes.
-                  The default is 60 minutes.  The maximum value is 28 days
-                  (40320 minutes).
-                  If set to 0, no periodic cleaning will occur.
+		  <acronym>BIND</acronym> 9 now manages cache
+		  memory in a more sophisticated manner and does not
+		  rely on the periodic cleaning any more.
+		  Specifying this option therefore has no effect on
+		  the server's behavior.
                 </para>
               </listitem>
             </varlistentry>
