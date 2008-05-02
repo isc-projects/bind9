@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.233.36.6 2008/05/01 18:32:31 jinmei Exp $ */
+/* $Id: adb.c,v 1.233.36.7 2008/05/02 04:42:32 marka Exp $ */
 
 /*! \file
  *
@@ -1234,7 +1234,7 @@ dec_entry_refcnt(dns_adb_t *adb, dns_adbentry_t *entry, isc_boolean_t lock) {
 
 	free_adbentry(adb, &entry);
 	if (result)
-		result =dec_adb_irefcnt(adb);
+		result = dec_adb_irefcnt(adb);
 
 	return (result);
 }
@@ -1772,6 +1772,8 @@ shutdown_task(isc_task_t *task, isc_event_t *ev) {
 	INSIST(DNS_ADB_VALID(adb));
 
 	isc_event_free(&ev);
+	LOCK(&adb->lock);
+	UNLOCK(&adb->lock);
 	destroy(adb);
 }
 
