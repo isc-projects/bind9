@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.240 2008/05/02 04:40:12 marka Exp $ */
+/* $Id: adb.c,v 1.241 2008/05/03 05:07:13 marka Exp $ */
 
 /*! \file
  *
@@ -1772,6 +1772,9 @@ shutdown_task(isc_task_t *task, isc_event_t *ev) {
 	INSIST(DNS_ADB_VALID(adb));
 
 	isc_event_free(&ev);
+	/*
+	 * Wait for lock around check_exit() call to be released.
+	 */
 	LOCK(&adb->lock);
 	UNLOCK(&adb->lock);
 	destroy(adb);
