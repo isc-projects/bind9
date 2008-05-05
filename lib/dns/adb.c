@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.181.2.11.2.38 2008/05/05 01:49:39 marka Exp $ */
+/* $Id: adb.c,v 1.181.2.11.2.39 2008/05/05 23:45:30 tbox Exp $ */
 
 /*
  * Implementation notes
@@ -1765,9 +1765,9 @@ shutdown_task(isc_task_t *task, isc_event_t *ev) {
 	adb = ev->ev_arg;
 	INSIST(DNS_ADB_VALID(adb));
 
-        /*
-         * Wait for lock around check_exit() call to be released.
-         */
+	/*
+	 * Wait for lock around check_exit() call to be released.
+	 */
 	LOCK(&adb->lock);
 	/*
 	 * Kill the timer, and then the ADB itself.  Note that this implies
