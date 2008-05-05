@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.181.2.11.2.37 2008/04/28 23:45:37 tbox Exp $ */
+/* $Id: adb.c,v 1.181.2.11.2.38 2008/05/05 01:49:39 marka Exp $ */
 
 /*
  * Implementation notes
@@ -1765,13 +1765,16 @@ shutdown_task(isc_task_t *task, isc_event_t *ev) {
 	adb = ev->ev_arg;
 	INSIST(DNS_ADB_VALID(adb));
 
+        /*
+         * Wait for lock around check_exit() call to be released.
+         */
+	LOCK(&adb->lock);
 	/*
 	 * Kill the timer, and then the ADB itself.  Note that this implies
 	 * that this task was the one scheduled to get timer events.  If
 	 * this is not true (and it is unfortunate there is no way to INSIST()
 	 * this) badness will occur.
 	 */
-	LOCK(&adb->lock);
 	isc_timer_detach(&adb->timer);
 	UNLOCK(&adb->lock);
 	isc_event_free(&ev);
