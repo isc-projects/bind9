@@ -62,6 +62,8 @@ BIND 9.5.0
 
         Efficient LRU cache-cleaning mechanism.
 
+        NSID support.
+
 BIND 9.4.0
 
 	BIND 9.4.0 has a number of new features over 9.3,
@@ -431,8 +433,6 @@ Building
 				    -DDIG_SIGCHASE_BU=1)
 		Disable dropping queries from particular well known ports.
 		  -DNS_CLIENT_DROPPORT=0
-		Disable support for "rrset-order fixed".
-		  -DDNS_RDATASET_FIXED=0
 
 	    LDFLAGS
 		Linker flags. Defaults to empty string.
@@ -467,6 +467,11 @@ Building
 	by specifying "--enable-threads" or "--disable-threads"
 	on the configure command line.  The default is operating
 	system dependent.
+
+        Support for the "fixed" rrset-order option can be enabled
+        or disabled by specifying "--enable-fixed-rrset" or
+        "--disable-fixed-rrset" on the configure command line.
+        The default is "disabled", to reduce memory footprint.
 
 	If your operating system has integrated support for IPv6, it
 	will be used automatically.  If you have installed KAME IPv6

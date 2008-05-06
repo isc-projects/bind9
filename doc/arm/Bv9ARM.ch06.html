@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.179 2008/05/02 01:11:50 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.180 2008/05/06 01:09:00 each Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -3935,8 +3935,13 @@ query-source-v6 address * port *;
                   </td>
 <td>
                     <p>
-                      Records are returned in a round-robin
-                      order.
+                      Records are returned in a round-robin order.
+                    </p>
+                    <p>
+                      If <acronym class="acronym">BIND</acronym>is
+                      configured with the "--enable-fixed-rrset" option
+                      at compile time, then the initial ordering of the
+                      RRset will match the one specified in the zone file.
                     </p>
                   </td>
 </tr>
@@ -3964,9 +3969,11 @@ query-source-v6 address * port *;
 <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>
 <p>
-              The <span><strong class="command">rrset-order</strong></span> statement
-              is not yet fully implemented in <acronym class="acronym">BIND</acronym> 9.
-              BIND 9 currently does not fully support "fixed" ordering.
+              In this release of <acronym class="acronym">BIND</acronym> 9,
+              the <span><strong class="command">rrset-order</strong></span>
+              statement does not support "fixed" ordering by default.
+              Fixed ordering can be enabled at compile time by specifying
+              "--enable-fixed-rrset" on the "configure" command line.
             </p>
 </div>
 </div>
