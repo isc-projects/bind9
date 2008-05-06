@@ -62,7 +62,7 @@ BIND 9.5.0
 
         Efficient LRU cache-cleaning mechanism.
 
-        NSID support.
+        NSID support (RFC 5001).
 
 BIND 9.4.0
 
