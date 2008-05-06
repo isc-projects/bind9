@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.355.12.14 2008/05/01 18:32:32 jinmei Exp $ */
+/* $Id: resolver.c,v 1.355.12.15 2008/05/06 01:11:30 each Exp $ */
 
 /*! \file */
 
@@ -392,7 +392,7 @@ static void empty_bucket(dns_resolver_t *res);
 static isc_result_t resquery_send(resquery_t *query);
 static void resquery_response(isc_task_t *task, isc_event_t *event);
 static void resquery_connected(isc_task_t *task, isc_event_t *event);
-static void fctx_try(fetchctx_t *fctx);
+static void fctx_try(fetchctx_t *fctx, isc_boolean_t retrying);
 static isc_boolean_t fctx_destroy(fetchctx_t *fctx);
 static isc_result_t ncache_adderesult(dns_message_t *message,
 				      dns_db_t *cache, dns_dbnode_t *node,
@@ -983,7 +983,7 @@ resquery_senddone(isc_task_t *task, isc_event_t *event) {
 		if (result != ISC_R_SUCCESS)
 			fctx_done(fctx, result);
 		else
-			fctx_try(fctx);
+			fctx_try(fctx, ISC_TRUE);
 	}
 }
 
@@ -1823,7 +1823,7 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 		if (result != ISC_R_SUCCESS)
 			fctx_done(fctx, result);
 		else
-			fctx_try(fctx);
+			fctx_try(fctx, ISC_TRUE);
 	}
 }
 
@@ -1882,7 +1882,7 @@ fctx_finddone(isc_task_t *task, isc_event_t *event) {
 	dns_adb_destroyfind(&find);
 
 	if (want_try)
-		fctx_try(fctx);
+		fctx_try(fctx, ISC_TRUE);
 	else if (want_done)
 		fctx_done(fctx, ISC_R_FAILURE);
 	else if (bucket_empty)
@@ -2641,16 +2641,13 @@ fctx_nextaddress(fetchctx_t *fctx) {
 }
 
 static void
-fctx_try(fetchctx_t *fctx) {
+fctx_try(fetchctx_t *fctx, isc_boolean_t retrying) {
 	isc_result_t result;
 	dns_adbaddrinfo_t *addrinfo;
 
 	FCTXTRACE("try");
 
 	REQUIRE(!ADDRWAIT(fctx));
-
-	if (fctx->restarts > 0)
-		inc_stats(fctx->res, dns_resstatscounter_retry);
 
 	addrinfo = fctx_nextaddress(fctx);
 	if (addrinfo == NULL) {
@@ -2692,6 +2689,8 @@ fctx_try(fetchctx_t *fctx) {
 	result = fctx_query(fctx, addrinfo, fctx->options);
 	if (result != ISC_R_SUCCESS)
 		fctx_done(fctx, result);
+	else if (retrying)
+		inc_stats(fctx->res, dns_resstatscounter_retry);
 }
 
 static isc_boolean_t
@@ -2809,7 +2808,7 @@ fctx_timeout(isc_task_t *task, isc_event_t *event) {
 			/*
 			 * Keep trying.
 			 */
-			fctx_try(fctx);
+			fctx_try(fctx, ISC_TRUE);
 	}
 
 	isc_event_free(&event);
@@ -2979,7 +2978,7 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 		if (result != ISC_R_SUCCESS)
 			fctx_done(fctx, result);
 		else
-			fctx_try(fctx);
+			fctx_try(fctx, ISC_FALSE);
 	} else if (bucket_empty)
 		empty_bucket(res);
 }
@@ -3607,7 +3606,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 		} else if (sentresponse)
 			fctx_done(fctx, result);        /* Locks bucket. */
 		else
-			fctx_try(fctx);                 /* Locks bucket. */
+			fctx_try(fctx, ISC_TRUE);       /* Locks bucket. */
 		return;
 	}
 
@@ -5376,7 +5375,7 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 		/*
 		 * Try again.
 		 */
-		fctx_try(fctx);
+		fctx_try(fctx, ISC_TRUE);
 	} else {
 		unsigned int n;
 		dns_rdataset_t *nsrdataset = NULL;
@@ -6182,12 +6181,13 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		/*
 		 * Try again.
 		 */
-		fctx_try(fctx);
+		fctx_try(fctx, !get_nameservers);
 	} else if (resend) {
 		/*
 		 * Resend (probably with changed options).
 		 */
 		FCTXTRACE("resend");
+		inc_stats(fctx->res, dns_resstatscounter_retry);
 		result = fctx_query(fctx, addrinfo, options);
 		if (result != ISC_R_SUCCESS)
 			fctx_done(fctx, result);
