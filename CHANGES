@@ -1,3 +1,6 @@
+2368.   [port]          Linux: use libcap for capability management if
+                        possible. [RT# 18026]
+
 2367.   [bug]           Improve counting of dns_resstatscounter_retry
                         [RT #18030]
 
