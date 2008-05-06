@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.442 $)
+AC_REVISION($Revision: 1.443 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -1891,7 +1891,7 @@ AC_ARG_ENABLE(linux-caps,
 case "$enable_linux_caps" in
 	yes|'')
 		AC_CHECK_HEADERS(linux/capability.h sys/capability.h)
-		AC_CHECK_FUNCS(capset)
+		AC_CHECK_LIB(cap, cap_set_proc)
 		;;
 	no)
 		;;
