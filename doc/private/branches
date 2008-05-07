@@ -91,7 +91,7 @@ rt17374				open	each	// 2007-12-19 05:51 +0000
 rt17375				open	each	// 2007-12-20 16:47 +0000
 rt17435				new	
 rt17441				new	marka	// 2008-01-08 03:41 +0000
-rt17451				new	fdupont	// 2008-03-17 13:44 +0000
+rt17451				new	fdupont	// Delete RB tree order
 rt17455				new	each	// 2008-01-10 00:20 +0000
 rt17460				new	marka	// 2008-01-11 03:44 +0000
 rt17462				new	each	// 2008-01-11 17:47 +0000
@@ -117,8 +117,8 @@ rt17828				new	marka	// 2008-04-09 23:06 +0000
 rt17949				new	
 rt17977				new	each	// 2008-04-23 00:29 +0000
 rt18018				new	
-rt18020				new	fdupont	// 2008-05-01 07:57 +0000
-rt18033				new	fdupont	// 2008-05-06 15:54 +0000
+rt18020				new	fdupont	// FIPS 140-2
+rt18033				new	fdupont	// HSM maintenance
 shane_dbbackend			open	
 skan				open	explorer
 skan-metazones1			private	explorer
