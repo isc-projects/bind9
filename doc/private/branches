@@ -120,6 +120,7 @@ rt17977				new	each	// 2008-04-23 00:29 +0000
 rt18018				new	
 rt18020				new	fdupont	// FIPS 140-2
 rt18033				new	fdupont	// HSM maintenance
+rt18040				new	marka	// 2008-05-08 02:25 +0000
 shane_dbbackend			open	
 skan				open	explorer
 skan-metazones1			private	explorer
