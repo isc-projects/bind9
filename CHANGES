@@ -1,3 +1,6 @@
+2369.	[bug]		libbind: Array bounds overrun on read in bitncmp().
+			[RT #18054]
+
 2364.	[bug]		named could trigger a assertion when serving a
 			malformed signed zone. [RT #17828]
 
