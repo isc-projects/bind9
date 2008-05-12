@@ -1480,7 +1480,7 @@
 ./lib/bind/isc/assertions.c			X	2001,2004,2005
 ./lib/bind/isc/assertions.mdoc			X	2001,2004
 ./lib/bind/isc/base64.c				X	2001,2004,2005
-./lib/bind/isc/bitncmp.c			X	2001,2004,2005
+./lib/bind/isc/bitncmp.c			X	2001,2004,2005,2008
 ./lib/bind/isc/bitncmp.mdoc			X	2001,2004
 ./lib/bind/isc/ctl_clnt.c			X	2001,2003,2004,2005,2007,2008
 ./lib/bind/isc/ctl_p.c				X	2001,2004,2005
