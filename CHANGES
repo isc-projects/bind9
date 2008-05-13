@@ -1,3 +1,6 @@
+2370.   [bug]           "rndc freeze" could trigger an assertion in named
+                        when called on a nonexistent zone. [RT #18050]
+
 	--- 9.5.0rc1 released ---
 
 2368.   [port]          Linux: use libcap for capability management if
