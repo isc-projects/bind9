@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.38 2007/06/18 23:47:17 tbox Exp $ -->
+<!-- $Id: dig.docbook,v 1.39 2008/05/13 23:59:18 each Exp $ -->
 <refentry id="man.dig">
 
   <refentryinfo>
@@ -829,6 +829,14 @@
           </listitem>
         </varlistentry>
 
+        <varlistentry>
+          <term><option>+[no]nsid</option></term>
+          <listitem>
+            <para>
+              Include an EDNS name server ID request when sending a query.
+            </para>
+          </listitem>
+        </varlistentry>
 
 
       </variablelist>
