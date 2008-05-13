@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.146 2008/04/03 05:55:52 marka Exp $ */
+/* $Id: view.c,v 1.147 2008/05/13 01:20:24 each Exp $ */
 
 /*! \file */
 
@@ -1161,6 +1161,7 @@ dns_viewlist_findzone(dns_viewlist_t *list, dns_name_t *name,
 	dns_view_t *view;
 	isc_result_t result;
 	dns_zone_t *zone1 = NULL, *zone2 = NULL;
+	dns_zone_t **zp = NULL;;
 
 	REQUIRE(list != NULL);
 	for (view = ISC_LIST_HEAD(*list);
@@ -1168,9 +1169,23 @@ dns_viewlist_findzone(dns_viewlist_t *list, dns_name_t *name,
 	     view = ISC_LIST_NEXT(view, link)) {
 		if (allclasses == ISC_FALSE && view->rdclass != rdclass)
 			continue;
-		result = dns_zt_find(view->zonetable, name, 0, NULL,
-				    (zone1 == NULL) ? &zone1 : &zone2);
-		INSIST(result == ISC_R_SUCCESS || result == ISC_R_NOTFOUND);
+
+		/*
+		 * If the zone is defined in more than one view, 
+		 * treat it as not found.
+		 */
+		zp = (zone1 == NULL) ? &zone1 : &zone2;
+		result = dns_zt_find(view->zonetable, name, 0, NULL, zp);
+		INSIST(result == ISC_R_SUCCESS ||
+		       result == ISC_R_NOTFOUND ||
+		       result == DNS_R_PARTIALMATCH);
+
+		/* Treat a partial match as no match */
+		if (result == DNS_R_PARTIALMATCH) {
+			dns_zone_detach(zp);
+			result = ISC_R_NOTFOUND;
+		}
+
 		if (zone2 != NULL) {
 			dns_zone_detach(&zone1);
 			dns_zone_detach(&zone2);

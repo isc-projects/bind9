@@ -1,3 +1,6 @@
+2370.   [bug]           "rndc freeze" could trigger an assertion in named
+                        when called on a nonexistent zone. [RT #18050]
+
 2369.	[bug]		libbind: Array bounds overrun on read in bitncmp().
 			[RT #18054]
 
