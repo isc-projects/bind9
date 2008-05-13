@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.147 2008/05/13 01:20:24 each Exp $ */
+/* $Id: view.c,v 1.148 2008/05/13 23:47:01 tbox Exp $ */
 
 /*! \file */
 
@@ -1171,7 +1171,7 @@ dns_viewlist_findzone(dns_viewlist_t *list, dns_name_t *name,
 			continue;
 
 		/*
-		 * If the zone is defined in more than one view, 
+		 * If the zone is defined in more than one view,
 		 * treat it as not found.
 		 */
 		zp = (zone1 == NULL) ? &zone1 : &zone2;
