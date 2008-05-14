@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: dig.html,v 1.41 2007/05/16 06:12:01 marka Exp $ -->
+<!-- $Id: dig.html,v 1.41.150.1 2008/05/14 01:42:16 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -539,13 +539,17 @@
               validation.
               Requires dig be compiled with -DDIG_SIGCHASE.
             </p></dd>
+<dt><span class="term"><code class="option">+[no]nsid</code></span></dt>
+<dd><p>
+              Include an EDNS name server ID request when sending a query.
+            </p></dd>
 </dl></div>
 <p>
 
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545128"></a><h2>MULTIPLE QUERIES</h2>
+<a name="id2545142"></a><h2>MULTIPLE QUERIES</h2>
 <p>
       The BIND 9 implementation of <span><strong class="command">dig </strong></span>
       supports
@@ -591,7 +595,7 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545258"></a><h2>IDN SUPPORT</h2>
+<a name="id2545272"></a><h2>IDN SUPPORT</h2>
 <p>
       If <span><strong class="command">dig</strong></span> has been built with IDN (internationalized
       domain name) support, it can accept and display non-ASCII domain names.
@@ -605,14 +609,14 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545281"></a><h2>FILES</h2>
+<a name="id2545294"></a><h2>FILES</h2>
 <p><code class="filename">/etc/resolv.conf</code>
     </p>
 <p><code class="filename">${HOME}/.digrc</code>
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545298"></a><h2>SEE ALSO</h2>
+<a name="id2545312"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">host</span>(1)</span>,
       <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">dnssec-keygen</span>(8)</span>,
@@ -620,7 +624,7 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545335"></a><h2>BUGS</h2>
+<a name="id2545349"></a><h2>BUGS</h2>
 <p>
       There are probably too many query options.
     </p>
