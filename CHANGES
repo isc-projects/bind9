@@ -1,3 +1,5 @@
+2372.   [bug]           fixed incorrect TAG_HMACSHA256_BITS value [RT #18047]
+
 2369.	[bug]		libbind: Array bounds overrun on read in bitncmp().
 			[RT #18054]
 
