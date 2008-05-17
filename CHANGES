@@ -1,3 +1,5 @@
+	--- 9.5.0 released ---
+
 2372.   [bug]           fixed incorrect TAG_HMACSHA256_BITS value [RT #18047]
 
 2371.   [doc]           add +nsid option to dig man page. [RT #18039]
