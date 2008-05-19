@@ -278,7 +278,7 @@
 ./bin/tests/dst/Ktest.+003+23616.key		X	2001,2004
 ./bin/tests/dst/Ktest.+003+23616.private	X	2001
 ./bin/tests/dst/Ktest.+003+49667.key		X	2001,2004
-./bin/tests/dst/Makefile.in			MAKE	1999,2000,2001,2002,2004,2006,2007
+./bin/tests/dst/Makefile.in			MAKE	1999,2000,2001,2002,2004,2006,2007,2008
 ./bin/tests/dst/dst_2_data			X	1999,2000,2001
 ./bin/tests/dst/dst_test.c			C	1999,2000,2001,2004,2005,2007
 ./bin/tests/dst/gsstest.c			C	2006,2007
