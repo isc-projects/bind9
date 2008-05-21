@@ -1,3 +1,6 @@
+2374.   [bug]           "blackhole" ACLs could cause named to segfault due
+			to some uninitialized memory. [RT #18095]
+
 2373.	[bug]           Default values of zone ACLs were re-parsed each time a
 			new zone was configured, causing an overconsumption
 			of memory. [RT #18092]
