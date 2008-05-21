@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.507 2008/05/21 23:17:20 each Exp $ */
+/* $Id: server.c,v 1.508 2008/05/21 23:47:00 tbox Exp $ */
 
 /*! \file */
 
@@ -1684,11 +1684,11 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	CHECK(configure_view_sortlist(vconfig, config, actx, ns_g_mctx,
 				      &view->sortlist));
 
-        /*
-         * Configure default allow-transfer, allow-notify, allow-update
-         * and allow-update-forwarding ACLs, if set, so they can be
-         * inherited by zones.
-         */
+	/*
+	 * Configure default allow-transfer, allow-notify, allow-update
+	 * and allow-update-forwarding ACLs, if set, so they can be
+	 * inherited by zones.
+	 */
 	if (view->notifyacl == NULL)
 		CHECK(configure_view_acl(NULL, ns_g_config,
 					 "allow-notify", actx,
