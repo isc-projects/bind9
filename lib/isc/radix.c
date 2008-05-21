@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.c,v 1.9.6.4 2008/01/27 23:46:52 tbox Exp $ */
+/* $Id: radix.c,v 1.9.6.5 2008/05/21 23:26:11 each Exp $ */
 
 /*
  * This source was adapted from MRT's RCS Ids:
@@ -323,6 +323,7 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 		if (node == NULL)
 			return (ISC_R_NOMEMORY);
 		node->bit = bitlen;
+		node->node_num[0] = node->node_num[1] = -1;
 		result = _ref_prefix(radix->mctx, &node->prefix, prefix);
 		if (result != ISC_R_SUCCESS) {
 			isc_mem_put(radix->mctx, node,
@@ -351,7 +352,6 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 		} else {
 			node->node_num[ISC_IS6(family)] =
 				++radix->num_added_node;
-			node->node_num[!ISC_IS6(family)] = -1;
 			node->data[0] = NULL;
 			node->data[1] = NULL;
 		}

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.139.56.2 2008/04/03 06:20:33 tbox Exp $ */
+/* $Id: zoneconf.c,v 1.139.56.3 2008/05/21 23:26:11 each Exp $ */
 
 /*% */
 
@@ -752,48 +752,6 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		INSIST(result == ISC_R_SUCCESS);
 		dns_zone_setoption(zone, DNS_ZONEOPT_UPDATECHECKKSK,
 				   cfg_obj_asboolean(obj));
-	}
-
-	/*
-	 * Configure update-related options.  These apply to
-	 * primary masters only.
-	 */
-	if (ztype == dns_zone_master) {
-		dns_acl_t *updateacl;
-		RETERR(configure_zone_acl(zconfig, vconfig, config,
-					  "allow-update", ac, zone,
-					  dns_zone_setupdateacl,
-					  dns_zone_clearupdateacl));
-
-		updateacl = dns_zone_getupdateacl(zone);
-		if (updateacl != NULL  && dns_acl_isinsecure(updateacl))
-			isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_SECURITY,
-				      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
-				      "zone '%s' allows updates by IP "
-				      "address, which is insecure",
-				      zname);
-
-		RETERR(configure_zone_ssutable(zoptions, zone));
-
-		obj = NULL;
-		result = ns_config_get(maps, "sig-validity-interval", &obj);
-		INSIST(result == ISC_R_SUCCESS);
-		dns_zone_setsigvalidityinterval(zone,
-						cfg_obj_asuint32(obj) * 86400);
-
-		obj = NULL;
-		result = ns_config_get(maps, "key-directory", &obj);
-		if (result == ISC_R_SUCCESS) {
-			filename = cfg_obj_asstring(obj);
-			if (!isc_file_isabsolute(filename)) {
-				cfg_obj_log(obj, ns_g_lctx, ISC_LOG_ERROR,
-					    "key-directory '%s' "
-					    "is not absolute", filename);
-				return (ISC_R_FAILURE);
-			}
-			RETERR(dns_zone_setkeydirectory(zone, filename));
-		}
-
 	} else if (ztype == dns_zone_slave) {
 		RETERR(configure_zone_acl(zconfig, vconfig, config,
 					  "allow-update-forwarding", ac, zone,

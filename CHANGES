@@ -1,5 +1,8 @@
 	--- 9.5.0 released ---
 
+2374.   [bug]           "blackhole" ACLs could cause named to segfault due
+			to some uninitialized memory. [RT #18095]
+
 2372.   [bug]           fixed incorrect TAG_HMACSHA256_BITS value [RT #18047]
 
 2371.   [doc]           add +nsid option to dig man page. [RT #18039]
