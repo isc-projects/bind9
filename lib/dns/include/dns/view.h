@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.110 2008/04/03 06:09:05 tbox Exp $ */
+/* $Id: view.h,v 1.111 2008/05/21 23:17:21 each Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -123,6 +123,10 @@ struct dns_view {
 	dns_acl_t *			recursionacl;
 	dns_acl_t *			recursiononacl;
 	dns_acl_t *			sortlist;
+	dns_acl_t *			notifyacl;
+	dns_acl_t *			transferacl;
+	dns_acl_t *			updateacl;
+	dns_acl_t *			upfwdacl;
 	isc_boolean_t			requestixfr;
 	isc_boolean_t			provideixfr;
 	isc_boolean_t			requestnsid;

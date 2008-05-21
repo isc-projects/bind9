@@ -1,6 +1,10 @@
-2372.   [bug]           fixed incorrect TAG_HMACSHA256_BITS value [RT #18047]
+2373.	[bug]           Default values of zone ACLs were re-parsed each time a
+			new zone was configured, causing an overconsumption
+			of memory. [RT #18092]
 
-2371.   [doc]           add +nsid option to dig man page. [RT #18039]
+2372.   [bug]           Fixed incorrect TAG_HMACSHA256_BITS value [RT #18047]
+
+2371.   [doc]           Add +nsid option to dig man page. [RT #18039]
 
 2370.   [bug]           "rndc freeze" could trigger an assertion in named
                         when called on a nonexistent zone. [RT #18050]
