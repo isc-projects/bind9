@@ -82,7 +82,7 @@
 ./bin/named/.cvsignore				X	1999,2000,2001
 ./bin/named/Makefile.in				MAKE	1998,1999,2000,2001,2002,2004,2005
 ./bin/named/builtin.c				C	2001,2002,2003,2004,2005
-./bin/named/client.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
+./bin/named/client.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./bin/named/config.c				C	2001,2002,2003,2004,2005,2006,2007
 ./bin/named/control.c				C	2001,2002,2003,2004,2005,2006,2007
 ./bin/named/controlconf.c			C	2001,2002,2003,2004,2005,2006,2008
@@ -1747,7 +1747,7 @@
 ./lib/dns/dbiterator.c				C	1999,2000,2001,2004,2005
 ./lib/dns/dbtable.c				C	1999,2000,2001,2004,2005
 ./lib/dns/diff.c				C	2000,2001,2002,2003,2004,2005
-./lib/dns/dispatch.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
+./lib/dns/dispatch.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/dns/dlz.c					C.PORTION	1999,2000,2001,2005
 ./lib/dns/dnssec.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/ds.c					C	2002,2003,2004,2005,2006
@@ -1782,7 +1782,7 @@
 ./lib/dns/include/dns/dbiterator.h		C	1999,2000,2001,2004,2005
 ./lib/dns/include/dns/dbtable.h			C	1999,2000,2001,2004,2005
 ./lib/dns/include/dns/diff.h			C	2000,2001,2004,2005
-./lib/dns/include/dns/dispatch.h		C	1999,2000,2001,2002,2003,2004,2005,2007
+./lib/dns/include/dns/dispatch.h		C	1999,2000,2001,2002,2003,2004,2005,2007,2008
 ./lib/dns/include/dns/dlz.h			C.PORTION	1999,2000,2001,2005
 ./lib/dns/include/dns/dnssec.h			C	1999,2000,2001,2002,2004,2005
 ./lib/dns/include/dns/ds.h			C	2002,2004,2005,2006
