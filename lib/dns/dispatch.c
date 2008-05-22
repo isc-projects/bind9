@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2006, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2006-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.101.2.6.2.22 2008/05/22 20:46:35 each Exp $ */
+/* $Id: dispatch.c,v 1.101.2.6.2.23 2008/05/22 23:45:34 tbox Exp $ */
 
 #include <config.h>
 
@@ -708,7 +708,7 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	isc_netaddr_fromsockaddr(&netaddr, &ev->address);
 	if (disp->mgr->blackhole != NULL &&
 	    dns_acl_match(&netaddr, NULL, disp->mgr->blackhole,
-		    	  NULL, &match, NULL) == ISC_R_SUCCESS &&
+			  NULL, &match, NULL) == ISC_R_SUCCESS &&
 	    match > 0)
 	{
 		if (isc_log_wouldlog(dns_lctx, LVL(10))) {
@@ -761,7 +761,7 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	if (resp == NULL) {
 		free_buffer(disp, ev->region.base, ev->region.length);
 		goto unlock;
-	} 
+	}
 
 	/*
 	 * Now that we have the original dispatch the query was sent
@@ -771,7 +771,7 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	if (disp != resp->disp) {
 		isc_sockaddr_t a1;
 		isc_sockaddr_t a2;
-		
+
 		/*
 		 * Check that the socket types and ports match.
 		 */
@@ -784,11 +784,11 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 
 		/*
 		 * If both dispatches are bound to an address then fail as
-		 * the addresses can't be equal (enforced by the IP stack).  
+		 * the addresses can't be equal (enforced by the IP stack).
 		 *
 		 * Note under Linux a packet can be sent out via IPv4 socket
 		 * and the response be received via a IPv6 socket.
-		 * 
+		 *
 		 * Requests sent out via IPv6 should always come back in
 		 * via IPv6.
 		 */
@@ -909,7 +909,7 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 		switch (tcpmsg->result) {
 		case ISC_R_CANCELED:
 			break;
-			
+
 		case ISC_R_EOF:
 			dispatch_log(disp, LVL(90), "shutting down on EOF");
 			do_cancel(disp);
@@ -2410,7 +2410,7 @@ dns_dispatch_importrecv(dns_dispatch_t *disp, isc_event_t *event) {
 	newsevent->timestamp = sevent->timestamp;
 	newsevent->pktinfo = sevent->pktinfo;
 	newsevent->attributes = sevent->attributes;
-	
+
 	isc_task_send(disp->task, ISC_EVENT_PTR(&newsevent));
 }
 
