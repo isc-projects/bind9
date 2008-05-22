@@ -1,5 +1,4 @@
-                            ISC BIND 9.5.0
-                         List of Known Defects
+                    Known defects in ISC BIND 9.5.0
 
 Just before the 9.5.0 release of BIND it was determined that some of
 the changes in this release have caused an overuse of memory on systems
@@ -10,9 +9,8 @@ allow-update, and allow-update-forwarding, that are defined in the
 "view" or "options" block of named.conf, should be parsed and loaded
 once, and then referenced by the zones that use them; however, they
 are currently parsed and loaded into memory separately by each zone.  On
-systems with hundreds or thousands of master zones, this can rapidly
-consume a huge amount of memory--especially when the ACLs being copied
-are also large.
+systems with hundreds or thousands of zones, this can consume a huge
+amount of memory--especially when the ACLs being copied are also large.
 
 There is a fix for this problem, but it was developed too late in the
 the test/release cycle for inclusion in BIND 9.5.0 as part of the mainline
