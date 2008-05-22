@@ -160,9 +160,11 @@ v9_3_0base			active		// security fixes 9.3.0 only
 v9_3_2_patch			active		// security fixes 9.3.2 only	
 v9_3_4-cisco			active	
 v9_3_4_patch			active		// security fixes 9.3.4 only
+v9_3_5_P1			new	each	// 2008-05-22 20:42 +0000
 v9_4				active	
 v9_4_1_P1_lruttl		active	
 v9_4_1_patch			active		// security fixes 9.4.1 only
+v9_4_2_P1			new	each	// 2008-05-22 21:12 +0000
 v9_5				new	marka	// 2008-01-02 04:47 +0000
 
 
