@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.78.46.6 2008/04/03 02:12:22 marka Exp $ */
+/* $Id: namedconf.c,v 1.78.46.7 2008/05/27 22:36:11 each Exp $ */
 
 /*! \file */
 
@@ -781,8 +781,9 @@ view_clauses[] = {
 	 */
 	{ "query-source", &cfg_type_querysource4, 0 },
 	{ "query-source-v6", &cfg_type_querysource6, 0 },
-	{ "queryport-pool-ports", &cfg_type_uint32, 0 },
-	{ "queryport-pool-updateinterval", &cfg_type_uint32, 0 },
+	{ "queryport-pool-ports", &cfg_type_uint32, CFG_CLAUSEFLAG_OBSOLETE },
+	{ "queryport-pool-updateinterval", &cfg_type_uint32,
+	  CFG_CLAUSEFLAG_OBSOLETE},
 	{ "recursion", &cfg_type_boolean, 0 },
 	{ "request-ixfr", &cfg_type_boolean, 0 },
 	{ "request-nsid", &cfg_type_boolean, 0 },
@@ -793,7 +794,7 @@ view_clauses[] = {
 	{ "suppress-initial-notify", &cfg_type_boolean, CFG_CLAUSEFLAG_NYI },
 	{ "topology", &cfg_type_bracketed_aml, CFG_CLAUSEFLAG_NOTIMP },
 	{ "transfer-format", &cfg_type_transferformat, 0 },
-	{ "use-queryport-pool", &cfg_type_boolean, 0 },
+	{ "use-queryport-pool", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "zero-no-soa-ttl-cache", &cfg_type_boolean, 0 },
 	{ NULL, NULL, 0 }
 };
