@@ -121,10 +121,8 @@ dns_decompress_init
 dns_decompress_invalidate
 dns_decompress_setmethods
 dns_decompress_type
-dns_dispatch_hash
 dns_rdatacallbacks_init
 dns_rdatacallbacks_init_stdio
-
 dns_difftuple_create
 dns_difftuple_free
 dns_difftuple_copy
