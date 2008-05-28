@@ -13,6 +13,7 @@ custom_AFILIAS_v9_4_1_P1	private	marka	// 2007-08-30 01:11 +0000
 custom_AFIS_v9_4_0		private	marka	// 2007-04-23 05:08 +0000
 custom_ALLIANZ_v9_4_1_P1	private	marka	// 2007-08-03 04:51 +0000
 custom_ALLIANZ_v9_4_2		private	marka	// 2007-11-23 04:32 +0000
+custom_ALLIANZ_v9_4_2_P1	new	each	// 2008-05-27 23:33 +0000
 custom_CISCO_v9_3_4_P1		private	marka	// 2007-11-23 04:19 +0000
 custom_NOM_v9_5_0a7		private	
 custom_NOM_v9_5_0b2		new	marka	// 2008-03-06 06:45 +0000
