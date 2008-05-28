@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.352 2008/05/06 01:08:59 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.353 2008/05/28 21:02:45 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -5651,7 +5651,7 @@ options {
                   Enable DNSSEC validation in named.
 		  Note <command>dnssec-enable</command> also needs to be
 		  set to <userinput>yes</userinput> to be effective.
-                  The default is <userinput>no</userinput>.
+                  The default is <userinput>yes</userinput>.
                 </para>
               </listitem>
             </varlistentry>
