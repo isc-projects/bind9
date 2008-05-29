@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.139.56.4 2008/05/29 22:54:01 each Exp $ */
+/* $Id: zoneconf.c,v 1.139.56.5 2008/05/29 23:46:34 tbox Exp $ */
 
 /*% */
 
@@ -80,39 +80,39 @@ configure_zone_acl(const cfg_obj_t *zconfig, const cfg_obj_t *vconfig,
 	int i = 0;
 	dns_acl_t **aclp = NULL, *acl = NULL;
 	const char *aclname;
-        dns_view_t *view;
+	dns_view_t *view;
 
-        view = dns_zone_getview(zone);
+	view = dns_zone_getview(zone);
 
 	switch (acltype) {
 	    case allow_notify:
-                if (view != NULL)
-                        aclp = &view->notifyacl;
+		if (view != NULL)
+			aclp = &view->notifyacl;
 		aclname = "allow-notify";
 		break;
 	    case allow_query:
-                if (view != NULL)
-                        aclp = &view->queryacl;
+		if (view != NULL)
+			aclp = &view->queryacl;
 		aclname = "allow-query";
 		break;
 	    case allow_transfer:
-                if (view != NULL)
-                        aclp = &view->transferacl;
+		if (view != NULL)
+			aclp = &view->transferacl;
 		aclname = "allow-transfer";
 		break;
 	    case allow_update:
-                if (view != NULL)
-                        aclp = &view->updateacl;
+		if (view != NULL)
+			aclp = &view->updateacl;
 		aclname = "allow-update";
 		break;
 	    case allow_update_forwarding:
-                if (view != NULL)
-                        aclp = &view->upfwdacl;
+		if (view != NULL)
+			aclp = &view->upfwdacl;
 		aclname = "allow-update-forwarding";
 		break;
-            default:
-                INSIST(0);
-                return (ISC_R_FAILURE);
+	    default:
+		INSIST(0);
+		return (ISC_R_FAILURE);
 	}
 
 	/* First check to see if ACL is defined within the zone */
@@ -156,7 +156,7 @@ parse_acl:
 		return (result);
 	(*setzacl)(zone, acl);
 
-        /* Set the view default now */
+	/* Set the view default now */
 	if (aclp != NULL)
 		dns_acl_attach(acl, aclp);
 
