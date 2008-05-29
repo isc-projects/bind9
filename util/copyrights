@@ -2388,7 +2388,7 @@
 ./lib/isccc/win32/version.c			C	2001,2004,2007
 ./lib/isccfg/.cvsignore				X	2001
 ./lib/isccfg/Makefile.in			MAKE	2001,2002,2003,2004,2005,2007
-./lib/isccfg/aclconf.c				C	1999,2000,2001,2002,2004,2005,2006,2007
+./lib/isccfg/aclconf.c				C	1999,2000,2001,2002,2004,2005,2006,2007,2008
 ./lib/isccfg/api				X	2001,2006,2008
 ./lib/isccfg/include/.cvsignore			X	2001
 ./lib/isccfg/include/Makefile.in		MAKE	2001,2004,2007
