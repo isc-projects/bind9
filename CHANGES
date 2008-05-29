@@ -1,32 +1,34 @@
-2375.	[bug]		Change #2144 was not complete.
+2376.	[bug]		Change #2144 was not complete.
 
-2374.   [bug]           "blackhole" ACLs could cause named to segfault due
+2375.	[placeholder]
+
+2374.	[bug]		"blackhole" ACLs could cause named to segfault due
 			to some uninitialized memory. [RT #18095]
 
-2373.	[bug]           Default values of zone ACLs were re-parsed each time a
+2373.	[bug]		Default values of zone ACLs were re-parsed each time a
 			new zone was configured, causing an overconsumption
 			of memory. [RT #18092]
 
-2372.   [bug]           Fixed incorrect TAG_HMACSHA256_BITS value [RT #18047]
+2372.	[bug]		Fixed incorrect TAG_HMACSHA256_BITS value [RT #18047]
 
-2371.   [doc]           Add +nsid option to dig man page. [RT #18039]
+2371.	[doc]		Add +nsid option to dig man page. [RT #18039]
 
-2370.   [bug]           "rndc freeze" could trigger an assertion in named
-                        when called on a nonexistent zone. [RT #18050]
+2370.	[bug]		"rndc freeze" could trigger an assertion in named
+			when called on a nonexistent zone. [RT #18050]
 
 2369.	[bug]		libbind: Array bounds overrun on read in bitncmp().
 			[RT #18054]
 
-2368.   [port]          Linux: use libcap for capability management if
-                        possible. [RT# 18026]
+2368.	[port]		Linux: use libcap for capability management if
+			possible. [RT# 18026]
 
-2367.   [bug]           Improve counting of dns_resstatscounter_retry
-                        [RT #18030]
+2367.	[bug]		Improve counting of dns_resstatscounter_retry
+			[RT #18030]
 
 2366.	[bug]		Adb shutdown race. [RT #18021]
 
-2365.   [bug]           Fix a bug that caused dns_acl_isany() to return
-                        spurious results. [RT #18000]
+2365.	[bug]		Fix a bug that caused dns_acl_isany() to return
+			spurious results. [RT #18000]
 
 2364.	[bug]		named could trigger a assertion when serving a
 			malformed signed zone. [RT #17828]
@@ -34,9 +36,9 @@
 2363.	[port]		sunos: pre-set "lt_cv_sys_max_cmd_len=4096;".
 			[RT #17513]
 
-2362.   [cleanup]       Make "rrset-order fixed" a compile-time option.
-                        settable by "./configure --enable-fixed-rrset".
-                        Disabled by default. [RT #17977]
+2362.   [cleanup]	Make "rrset-order fixed" a compile-time option.
+			settable by "./configure --enable-fixed-rrset".
+			Disabled by default. [RT #17977]
 
 2361.	[bug]		"recursion" statistics counter could be counted
 			multiple times for a single query.  [RT #17990]
