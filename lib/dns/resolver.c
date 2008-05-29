@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.72 2008/05/22 21:16:05 each Exp $ */
+/* $Id: resolver.c,v 1.284.18.73 2008/05/29 05:30:30 marka Exp $ */
 
 /*! \file */
 
@@ -1928,7 +1928,7 @@ add_bad(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo, isc_result_t reason) {
 		return;
 
 	if (reason == DNS_R_UNEXPECTEDRCODE &&
-	    fctx->rmessage->opcode == dns_rcode_servfail &&
+	    fctx->rmessage->rcode == dns_rcode_servfail &&
 	    ISFORWARDER(addrinfo))
 		return;
 
