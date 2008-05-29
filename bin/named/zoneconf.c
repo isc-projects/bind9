@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.139.56.3 2008/05/21 23:26:11 each Exp $ */
+/* $Id: zoneconf.c,v 1.139.56.4 2008/05/29 22:54:01 each Exp $ */
 
 /*% */
 
@@ -45,6 +45,15 @@
 #include <named/server.h>
 #include <named/zoneconf.h>
 
+/* ACLs associated with zone */
+typedef enum {
+	allow_notify,
+	allow_query,
+	allow_transfer,
+	allow_update,
+	allow_update_forwarding
+} acl_type_t;
+
 /*%
  * These are BIND9 server defaults, not necessarily identical to the
  * library defaults defined in zone.c.
@@ -60,19 +69,69 @@
  */
 static isc_result_t
 configure_zone_acl(const cfg_obj_t *zconfig, const cfg_obj_t *vconfig,
-		   const cfg_obj_t *config, const char *aclname,
+		   const cfg_obj_t *config, acl_type_t acltype,
 		   cfg_aclconfctx_t *actx, dns_zone_t *zone,
 		   void (*setzacl)(dns_zone_t *, dns_acl_t *),
 		   void (*clearzacl)(dns_zone_t *))
 {
 	isc_result_t result;
-	const cfg_obj_t *maps[5];
+	const cfg_obj_t *maps[5] = {NULL, NULL, NULL, NULL, NULL};
 	const cfg_obj_t *aclobj = NULL;
 	int i = 0;
-	dns_acl_t *dacl = NULL;
+	dns_acl_t **aclp = NULL, *acl = NULL;
+	const char *aclname;
+        dns_view_t *view;
 
-	if (zconfig != NULL)
-		maps[i++] = cfg_tuple_get(zconfig, "options");
+        view = dns_zone_getview(zone);
+
+	switch (acltype) {
+	    case allow_notify:
+                if (view != NULL)
+                        aclp = &view->notifyacl;
+		aclname = "allow-notify";
+		break;
+	    case allow_query:
+                if (view != NULL)
+                        aclp = &view->queryacl;
+		aclname = "allow-query";
+		break;
+	    case allow_transfer:
+                if (view != NULL)
+                        aclp = &view->transferacl;
+		aclname = "allow-transfer";
+		break;
+	    case allow_update:
+                if (view != NULL)
+                        aclp = &view->updateacl;
+		aclname = "allow-update";
+		break;
+	    case allow_update_forwarding:
+                if (view != NULL)
+                        aclp = &view->upfwdacl;
+		aclname = "allow-update-forwarding";
+		break;
+            default:
+                INSIST(0);
+                return (ISC_R_FAILURE);
+	}
+
+	/* First check to see if ACL is defined within the zone */
+	if (zconfig != NULL) {
+		maps[0] = cfg_tuple_get(zconfig, "options");
+		ns_config_get(maps, aclname, &aclobj);
+		if (aclobj != NULL) {
+			aclp = NULL;
+			goto parse_acl;
+		}
+	}
+
+	/* Failing that, see if there's a default ACL already in the view */
+	if (aclp != NULL && *aclp != NULL) {
+		(*setzacl)(zone, *aclp);
+		return (ISC_R_SUCCESS);
+	}
+
+	/* Check for default ACLs that haven't been parsed yet */
 	if (vconfig != NULL)
 		maps[i++] = cfg_tuple_get(vconfig, "options");
 	if (config != NULL) {
@@ -90,12 +149,18 @@ configure_zone_acl(const cfg_obj_t *zconfig, const cfg_obj_t *vconfig,
 		return (ISC_R_SUCCESS);
 	}
 
+parse_acl:
 	result = cfg_acl_fromconfig(aclobj, config, ns_g_lctx, actx,
-				    dns_zone_getmctx(zone), 0, &dacl);
+				    dns_zone_getmctx(zone), 0, &acl);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	(*setzacl)(zone, dacl);
-	dns_acl_detach(&dacl);
+	(*setzacl)(zone, acl);
+
+        /* Set the view default now */
+	if (aclp != NULL)
+		dns_acl_attach(acl, aclp);
+
+	dns_acl_detach(&acl);
 	return (ISC_R_SUCCESS);
 }
 
@@ -454,14 +519,14 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 
 	if (ztype == dns_zone_slave)
 		RETERR(configure_zone_acl(zconfig, vconfig, config,
-					  "allow-notify", ac, zone,
+					  allow_notify, ac, zone,
 					  dns_zone_setnotifyacl,
 					  dns_zone_clearnotifyacl));
 	/*
 	 * XXXAG This probably does not make sense for stubs.
 	 */
 	RETERR(configure_zone_acl(zconfig, vconfig, config,
-				  "allow-query", ac, zone,
+				  allow_query, ac, zone,
 				  dns_zone_setqueryacl,
 				  dns_zone_clearqueryacl));
 
@@ -564,7 +629,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		dns_zone_setisself(zone, ns_client_isself, NULL);
 
 		RETERR(configure_zone_acl(zconfig, vconfig, config,
-					  "allow-transfer", ac, zone,
+					  allow_transfer, ac, zone,
 					  dns_zone_setxfracl,
 					  dns_zone_clearxfracl));
 
@@ -655,7 +720,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	if (ztype == dns_zone_master) {
 		dns_acl_t *updateacl;
 		RETERR(configure_zone_acl(zconfig, vconfig, config,
-					  "allow-update", ac, zone,
+					  allow_update, ac, zone,
 					  dns_zone_setupdateacl,
 					  dns_zone_clearupdateacl));
 
@@ -754,7 +819,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 				   cfg_obj_asboolean(obj));
 	} else if (ztype == dns_zone_slave) {
 		RETERR(configure_zone_acl(zconfig, vconfig, config,
-					  "allow-update-forwarding", ac, zone,
+					  allow_update_forwarding, ac, zone,
 					  dns_zone_setforwardacl,
 					  dns_zone_clearforwardacl));
 	}

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.495.10.11 2008/05/27 22:36:09 each Exp $ */
+/* $Id: server.c,v 1.495.10.12 2008/05/29 22:54:01 each Exp $ */
 
 /*! \file */
 
@@ -1643,6 +1643,28 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	 */
 	CHECK(configure_view_sortlist(vconfig, config, actx, ns_g_mctx,
 				      &view->sortlist));
+
+        /*
+         * Configure default allow-transfer, allow-notify, allow-update
+         * and allow-update-forwarding ACLs, if set, so they can be
+         * inherited by zones.
+         */
+	if (view->notifyacl == NULL)
+		CHECK(configure_view_acl(NULL, ns_g_config,
+					 "allow-notify", actx,
+					 ns_g_mctx, &view->notifyacl));
+	if (view->transferacl == NULL)
+		CHECK(configure_view_acl(NULL, ns_g_config,
+					 "allow-transfer", actx,
+					 ns_g_mctx, &view->transferacl));
+	if (view->updateacl == NULL)
+		CHECK(configure_view_acl(NULL, ns_g_config,
+					 "allow-update", actx,
+					 ns_g_mctx, &view->updateacl));
+	if (view->upfwdacl == NULL)
+		CHECK(configure_view_acl(NULL, ns_g_config,
+					 "allow-update-forwarding", actx,
+					 ns_g_mctx, &view->upfwdacl));
 
 	obj = NULL;
 	result = ns_config_get(maps, "request-ixfr", &obj);
