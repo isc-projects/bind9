@@ -1,3 +1,5 @@
+2375.	[bug]		Change #2144 was not complete.
+
 2374.   [bug]           "blackhole" ACLs could cause named to segfault due
 			to some uninitialized memory. [RT #18095]
 
