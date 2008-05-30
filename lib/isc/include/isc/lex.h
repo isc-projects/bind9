@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.h,v 1.35 2007/06/19 23:47:18 tbox Exp $ */
+/* $Id: lex.h,v 1.36 2008/05/30 18:27:27 jinmei Exp $ */
 
 #ifndef ISC_LEX_H
 #define ISC_LEX_H 1
@@ -86,7 +86,7 @@ ISC_LANG_BEGINDECLS
 #define ISC_LEXOPT_DNSMULTILINE		0x20	/*%< Handle '(' and ')'. */
 #define ISC_LEXOPT_NOMORE		0x40	/*%< Want "no more" token. */
 
-#define ISC_LEXOPT_CNUMBER		0x80    /*%< Regognize octal and hex. */
+#define ISC_LEXOPT_CNUMBER		0x80    /*%< Recognize octal and hex. */
 #define ISC_LEXOPT_ESCAPE		0x100	/*%< Recognize escapes. */
 #define ISC_LEXOPT_QSTRINGMULTILINE	0x200	/*%< Allow multiline "" strings */
 #define ISC_LEXOPT_OCTAL		0x400	/*%< Expect a octal number. */
