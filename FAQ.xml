@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: FAQ.xml,v 1.36 2008/05/31 00:54:50 marka Exp $ -->
+<!-- $Id: FAQ.xml,v 1.37 2008/05/31 00:55:42 marka Exp $ -->
 
 <article class="faq">
   <title>Frequently Asked Questions about BIND 9</title>
@@ -1023,7 +1023,7 @@ client: UDP client handler shutting down due to fatal receive error: unexpected 
       </question>
       <answer>
 	<para>
-	  This is due to a kernel bug where the fact the a socket is marked
+	  This is due to a kernel bug where the fact that a socket is marked
 	  non-blocking is ignored.  It is reported that setting
 	  xfrm_larval_drop to 1 helps but this may have negative side effects.
 	  See:
