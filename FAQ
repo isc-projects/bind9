@@ -571,6 +571,18 @@ A: This is the result of a Linux kernel bug.
 
    See: http://marc.theaimsgroup.com/?l=linux-netdev&m=113081708031466&w=2
 
+Q: Why does named lock up when it attempts to connect over IPSEC tunnels?
+
+A: This is due to a kernel bug where the fact that a socket is marked
+   non-blocking is ignored. It is reported that setting xfrm_larval_drop
+   to 1 helps but this may have negative side effects. See: https://
+   bugzilla.redhat.com/show_bug.cgi?id=427629 and http://lkml.org/lkml/
+   2007/12/4/260
+
+   xfrm_larval_drop can be set to 1 by the following proceedure:
+
+   echo "1" > proc/sys/net/core/xfrm_larval_drop
+
 Q: Why do I see 5 (or more) copies of named on Linux?
 
 A: Linux threads each show up as a process under ps. The approximate
