@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: FAQ.xml,v 1.4.6.20 2008/02/25 05:07:58 marka Exp $ -->
+<!-- $Id: FAQ.xml,v 1.4.6.21 2008/05/31 01:21:10 tbox Exp $ -->
 
 <article class="faq">
   <title>Frequently Asked Questions about BIND 9</title>
@@ -1011,6 +1011,30 @@ client: UDP client handler shutting down due to fatal receive error: unexpected 
 	<para>
 	  See:
 	  <ulink url="http://marc.theaimsgroup.com/?l=linux-netdev&amp;m=113081708031466&amp;w=2">http://marc.theaimsgroup.com/?l=linux-netdev&amp;m=113081708031466&amp;w=2</ulink>
+	</para>
+      </answer>
+    </qandaentry>
+
+    <qandaentry>
+      <question>
+	<para>
+	  Why does named lock up when it attempts to connect over IPSEC tunnels?
+	</para>
+      </question>
+      <answer>
+	<para>
+	  This is due to a kernel bug where the fact that a socket is marked
+	  non-blocking is ignored.  It is reported that setting
+	  xfrm_larval_drop to 1 helps but this may have negative side effects.
+	  See:
+<ulink url="https://bugzilla.redhat.com/show_bug.cgi?id=427629">https://bugzilla.redhat.com/show_bug.cgi?id=427629</ulink>
+	  and
+<ulink url="http://lkml.org/lkml/2007/12/4/260">http://lkml.org/lkml/2007/12/4/260</ulink>
+	</para>
+	<para>
+	xfrm_larval_drop can be set to 1 by the following proceedure:
+<programlisting>
+echo "1" &gt; proc/sys/net/core/xfrm_larval_drop</programlisting>
 	</para>
       </answer>
     </qandaentry>
