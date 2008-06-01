@@ -396,8 +396,8 @@ A: Someone is trying to update your DNS data using the RFC2136 Dynamic
    Update protocol. Windows 2000 machines have a habit of sending dynamic
    update requests to DNS servers without being specifically configured to
    do so. If the update requests are coming from a Windows 2000 machine,
-   see http://support.microsoft.com/support/kb/articles/q246/8/04.asp for
-   information about how to turn them off.
+   see <http://support.microsoft.com/support/kb/articles/q246/8/04.asp>
+   for information about how to turn them off.
 
 Q: When I do a "dig . ns", many of the A records for the root servers are
    missing. Why?
@@ -468,7 +468,7 @@ A: If the IN-ADDR.ARPA name covered refers to a internal address space you
    are using then you have failed to follow RFC 1918 usage rules and are
    leaking queries to the Internet. You should establish your own zones
    for these addresses to prevent you querying the Internet's name servers
-   for these addresses. Please see http://as112.net/ for details of the
+   for these addresses. Please see <http://as112.net/> for details of the
    problems you are causing and the counter measures that have had to be
    deployed.
 
@@ -569,17 +569,18 @@ Q: Why do I get the following errors:
 
 A: This is the result of a Linux kernel bug.
 
-   See: http://marc.theaimsgroup.com/?l=linux-netdev&m=113081708031466&w=2
+   See: <http://marc.theaimsgroup.com/?l=linux-netdev&m=113081708031466&w=
+   2>
 
 Q: Why does named lock up when it attempts to connect over IPSEC tunnels?
 
 A: This is due to a kernel bug where the fact that a socket is marked
    non-blocking is ignored. It is reported that setting xfrm_larval_drop
-   to 1 helps but this may have negative side effects. See: https://
-   bugzilla.redhat.com/show_bug.cgi?id=427629 and http://lkml.org/lkml/
-   2007/12/4/260
+   to 1 helps but this may have negative side effects. See: <https://
+   bugzilla.redhat.com/show_bug.cgi?id=427629> and <http://lkml.org/lkml/
+   2007/12/4/260>.
 
-   xfrm_larval_drop can be set to 1 by the following proceedure:
+   xfrm_larval_drop can be set to 1 by the following procedure:
 
    echo "1" > proc/sys/net/core/xfrm_larval_drop
 
@@ -625,7 +626,7 @@ Q: I'm running BIND on Red Hat Enterprise Linux or Fedora Core -
 A: Red Hat Security Enhanced Linux (SELinux) policy security protections :
 
    Red Hat have adopted the National Security Agency's SELinux security
-   policy ( see http://www.nsa.gov/selinux ) and recommendations for BIND
+   policy (see <http://www.nsa.gov/selinux>) and recommendations for BIND
    security , which are more secure than running named in a chroot and
    make use of the bind-chroot environment unnecessary .
 
@@ -765,7 +766,7 @@ A: /dev/random is not configured. Use rndcontrol(8) to tell the kernel to
    /etc/rc.conf
    rand_irqs="3 14 15"
 
-   See also http://people.freebsd.org/~dougb/randomness.html
+   See also <http://people.freebsd.org/~dougb/randomness.html>.
 
 4.5. Solaris
 
@@ -773,7 +774,7 @@ Q: How do I integrate BIND 9 and Solaris SMF
 
 A: Sun has a blog entry describing how to do this.
 
-   http://blogs.sun.com/roller/page/anay/Weblog?catname=%2FSolaris
+   <http://blogs.sun.com/roller/page/anay/Weblog?catname=%2FSolaris>
 
 4.6. Apple Mac OS X
 
