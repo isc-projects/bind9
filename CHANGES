@@ -1,8 +1,10 @@
+2377.	[bug]		Address race condition in dnssec-signzone. [RT #18142]
+
+2376.	[bug]		Change #2144 was not complete.
+
 2373.	[bug]		Default values of zone ACLs were re-parsed each time a
 			new zone was configured, causing an overconsumption
 			of memory. [RT #18092]
-
-2376.	[bug]		Change #2144 was not complete.
 
 	--- 9.5.0-P1 released ---
 
