@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.177.18.24 2007/08/28 07:20:00 tbox Exp $ */
+/* $Id: dnssec-signzone.c,v 1.177.18.25 2008/06/02 00:27:00 marka Exp $ */
 
 /*! \file */
 
@@ -128,7 +128,6 @@ static dns_name_t *gorigin;		/* The database origin */
 static isc_task_t *master = NULL;
 static unsigned int ntasks = 0;
 static isc_boolean_t shuttingdown = ISC_FALSE, finished = ISC_FALSE;
-static unsigned int assigned = 0, completed = 0;
 static isc_boolean_t nokeys = ISC_FALSE;
 static isc_boolean_t removefile = ISC_FALSE;
 static isc_boolean_t generateds = ISC_FALSE;
@@ -1224,16 +1223,19 @@ assignwork(isc_task_t *task, isc_task_t *worker) {
 	dns_rdataset_t nsec;
 	isc_boolean_t found;
 	isc_result_t result;
+	static unsigned int ended = 0;		/* Protected by namelock. */
 
 	if (shuttingdown)
 		return;
 
+	LOCK(&namelock);
 	if (finished) {
-		if (assigned == completed) {
+		ended++;
+		if (ended == ntasks) {
 			isc_task_detach(&task);
 			isc_app_shutdown();
 		}
-		return;
+		goto unlock;
 	}
 
 	fname = isc_mem_get(mctx, sizeof(dns_fixedname_t));
@@ -1243,7 +1245,6 @@ assignwork(isc_task_t *task, isc_task_t *worker) {
 	name = dns_fixedname_name(fname);
 	node = NULL;
 	found = ISC_FALSE;
-	LOCK(&namelock);
 	while (!found) {
 		result = dns_dbiterator_current(gdbiter, &node, name);
 		if (result != ISC_R_SUCCESS)
@@ -1270,14 +1271,14 @@ assignwork(isc_task_t *task, isc_task_t *worker) {
 			fatal("failure iterating database: %s",
 			      isc_result_totext(result));
 	}
-	UNLOCK(&namelock);
 	if (!found) {
-		if (assigned == completed) {
+		ended++;
+		if (ended == ntasks) {
 			isc_task_detach(&task);
 			isc_app_shutdown();
 		}
 		isc_mem_put(mctx, fname, sizeof(dns_fixedname_t));
-		return;
+		goto unlock;
 	}
 	sevent = (sevent_t *)
 		 isc_event_allocate(mctx, task, SIGNER_EVENT_WORK,
@@ -1288,7 +1289,8 @@ assignwork(isc_task_t *task, isc_task_t *worker) {
 	sevent->node = node;
 	sevent->fname = fname;
 	isc_task_send(worker, ISC_EVENT_PTR(&sevent));
-	assigned++;
+ unlock:
+	UNLOCK(&namelock);
 }
 
 /*%
@@ -1311,7 +1313,6 @@ writenode(isc_task_t *task, isc_event_t *event) {
 	isc_task_t *worker;
 	sevent_t *sevent = (sevent_t *)event;
 
-	completed++;
 	worker = (isc_task_t *)event->ev_sender;
 	dumpnode(dns_fixedname_name(sevent->fname), sevent->node);
 	cleannode(gdb, gversion, sevent->node);
