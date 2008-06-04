@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.260 2008/05/01 18:23:07 jinmei Exp $ */
+/* $Id: rbtdb.c,v 1.261 2008/06/04 01:11:05 jinmei Exp $ */
 
 /*! \file */
 
@@ -2059,7 +2059,7 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 	need_relock = ISC_FALSE;
 	NODE_WEAKLOCK(&rbtdb->node_locks[node->locknum].lock,
 		      isc_rwlocktype_read);
-	if (ISC_LINK_LINKED(node, deadlink) && isc_rwlocktype_write)
+	if (ISC_LINK_LINKED(node, deadlink))
 		need_relock = ISC_TRUE;
 	else if (!ISC_LIST_EMPTY(rbtdb->deadnodes[node->locknum]) &&
 		 locktype == isc_rwlocktype_write)
