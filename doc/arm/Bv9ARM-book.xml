@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.353 2008/05/28 21:02:45 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.354 2008/06/06 18:27:59 jreed Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -10950,7 +10950,7 @@ $GENERATE 1-127 $ CNAME $.0</programlisting>
 	</sect2>
       </sect1>
 
-      <sect1>
+      <sect1 id="statistics">
         <title>BIND9 Statistics</title>
         <para>
 	  <acronym>BIND</acronym> 9 maintains lots of statistics
@@ -11122,7 +11122,7 @@ $GENERATE 1-127 $ CNAME $.0</programlisting>
           </para>
 	</sect3>
 
-        <sect2>
+        <sect2 id="statistics_counters">
 	  <title>Statistics Counters</title>
 	  <para>
 	    The following tables summarize statistics counters that
