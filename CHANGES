@@ -1,3 +1,6 @@
+2379.	[contrib]	queryperf/gen-data-queryperf.py: removed redundant
+			TLDs and supported RRs with TTLs [RT #17972]
+
 2378.	[bug]		gssapi_functions{} had a redundant member in BIND 9.5.
 			[RT #18169]
 
