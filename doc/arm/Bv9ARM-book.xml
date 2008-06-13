@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.354 2008/06/06 18:27:59 jreed Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.355 2008/06/13 19:36:12 jreed Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -1360,6 +1360,21 @@ zone "eng.example.com" {
                       <para>
                         Dump the list of queries named is currently recursing
                         on.
+                      </para>
+                    </listitem>
+                  </varlistentry>
+
+                  <varlistentry>
+                    <term><userinput>validation
+                        <optional>on|off</optional>
+                        <optional><replaceable>view ...</replaceable></optional>
+                    </userinput></term>
+                    <listitem>
+                      <para>
+                        Enable or disable DNSSEC validation.
+                        Note <command>dnssec-enable</command> also needs to be
+                        set to <userinput>yes</userinput> to be effective.
+                        It defaults to enabled.
                       </para>
                     </listitem>
                   </varlistentry>
