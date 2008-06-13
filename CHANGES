@@ -1,3 +1,6 @@
+2378.	[bug]		gssapi_functions{} had a redundant member in BIND 9.5.
+			[RT #18169]
+
 2377.	[bug]		Address race condition in dnssec-signzone. [RT #18142]
 
 2376.	[bug]		Change #2144 was not complete.
