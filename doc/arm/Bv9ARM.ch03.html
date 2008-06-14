@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch03.html,v 1.69 2008/03/15 01:11:43 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch03.html,v 1.70 2008/06/14 01:12:10 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -54,7 +54,7 @@
 <dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2568423">Name Server Operations</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2568428">Tools for Use With the Name Server Daemon</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2570142">Signals</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2570172">Signals</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -589,6 +589,16 @@ zone "eng.example.com" {
                         Dump the list of queries named is currently recursing
                         on.
                       </p></dd>
+<dt><span class="term"><strong class="userinput"><code>validation
+                        [<span class="optional">on|off</span>]
+                        [<span class="optional"><em class="replaceable"><code>view ...</code></em></span>]
+                    </code></strong></span></dt>
+<dd><p>
+                        Enable or disable DNSSEC validation.
+                        Note <span><strong class="command">dnssec-enable</strong></span> also needs to be
+                        set to <strong class="userinput"><code>yes</code></strong> to be effective.
+                        It defaults to enabled.
+                      </p></dd>
 </dl></div>
 <p>
                   A configuration file is required, since all
@@ -739,7 +749,7 @@ controls {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2570142"></a>Signals</h3></div></div></div>
+<a name="id2570172"></a>Signals</h3></div></div></div>
 <p>
           Certain UNIX signals cause the name server to take specific
           actions, as described in the following table.  These signals can
