@@ -1,3 +1,7 @@
+2381.	[port]		dlz/mysql: support multiple install layouts for
+			mysql.  <prefix>/include/{,mysql/}mysql.h and
+			<prefix>/lib/{,mysql/}. [RT #18152]
+
 2380.	[bug]		dns_view_find() was not returning NXDOMAIN/NXRRSET
 			proofs which, in turn, caused validation failures
 			for insecure zones immediately below a secure zone
