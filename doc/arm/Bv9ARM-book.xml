@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.86 2008/05/22 21:16:04 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.87 2008/06/17 06:48:20 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -9418,6 +9418,19 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                   <row rowsep="0">
                     <entry colname="1">
                       <para>
+                        IPSECKEY
+                      </para>
+                    </entry>
+                    <entry colname="2">
+                      <para>
+			Provides a method for storing IPsec keying material in
+			DNS.  Described in RFC 4025.
+                      </para>
+                    </entry>
+                  </row>
+                  <row rowsep="0">
+                    <entry colname="1">
+                      <para>
                         ISDN
                       </para>
                     </entry>
@@ -9656,6 +9669,19 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                   <row rowsep="0">
                     <entry colname="1">
                       <para>
+                        SPF
+                      </para>
+                    </entry>
+                    <entry colname="2">
+                      <para>
+			Contains the Sender Policy Framework information
+			for a given email domain.  Described in RFC 4408.
+                      </para>
+                    </entry>
+                  </row>
+                  <row rowsep="0">
+                    <entry colname="1">
+                      <para>
                         SRV
                       </para>
                     </entry>
@@ -9663,6 +9689,19 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                       <para>
                         Information about well known network
                         services (replaces WKS).  Described in RFC 2782.
+                      </para>
+                    </entry>
+                  </row>
+                  <row rowsep="0">
+                    <entry colname="1">
+                      <para>
+                        SSHFP
+                      </para>
+                    </entry>
+                    <entry colname="2">
+                      <para>
+			Provides a way to securly publish a secure shell key's
+			fingerprint.  Described in RFC 4255.
                       </para>
                     </entry>
                   </row>
