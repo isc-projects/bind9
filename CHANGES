@@ -1,3 +1,6 @@
+2382.	[doc]		Add descriptions of DHCID, IPSECKEY, SPF and SSHFP
+			to ARM.
+
 2381.	[port]		dlz/mysql: support multiple install layouts for
 			mysql.  <prefix>/include/{,mysql/}mysql.h and
 			<prefix>/lib/{,mysql/}. [RT #18152]
