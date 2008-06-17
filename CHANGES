@@ -1,3 +1,6 @@
+2383.	[bug]		named could double queries when they resulted in
+			SERVFAIL due to overkilling EDNS0 failure detection.
+
 2382.	[doc]		Add descriptions of DHCID, IPSECKEY, SPF and SSHFP
 			to ARM.
 

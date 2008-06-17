@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.371 2008/05/29 04:46:32 marka Exp $ */
+/* $Id: resolver.c,v 1.372 2008/06/17 22:35:08 jinmei Exp $ */
 
 /*! \file */
 
@@ -5843,12 +5843,17 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (message->rcode != dns_rcode_noerror &&
 	    message->rcode != dns_rcode_nxdomain) {
-		if ((message->rcode == dns_rcode_formerr ||
-		     message->rcode == dns_rcode_notimp ||
-		     message->rcode == dns_rcode_servfail) &&
+		if (((message->rcode == dns_rcode_formerr ||
+		     message->rcode == dns_rcode_notimp) ||
+		    (message->rcode == dns_rcode_servfail &&
+		     dns_message_getopt(message) == NULL)) &&
 		    (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
 			/*
 			 * It's very likely they don't like EDNS0.
+			 * If the response code is SERVFAIL, also check if the
+			 * response contains an OPT RR and don't cache the
+			 * failure since it can be returned for various other
+			 * reasons.
 			 *
 			 * XXXRTH  We should check if the question
 			 *		we're asking requires EDNS0, and
