@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.357 2008/06/17 13:24:20 jreed Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.358 2008/06/17 14:15:58 jreed Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -1070,7 +1070,7 @@ zone "eng.example.com" {
                 </cmdsynopsis>
               </listitem>
             </varlistentry>
-	    <varlistentry id="named-compilezone" xreflabel="Zone Compilation aplication">
+	    <varlistentry id="named-compilezone" xreflabel="Zone Compilation application">
 	      <term><command>named-compilezone</command></term>
 	      <listitem>
 		<para>
@@ -3121,7 +3121,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	  </para>
 
           <para>
-            Order of insertion is signficant.  If more than one element
+            Order of insertion is significant.  If more than one element
             in an ACL is found to match a given IP address or prefix,
             preference will be given to the one that came
             <emphasis>first</emphasis> in the ACL definition.
@@ -4973,7 +4973,7 @@ options {
               <term><command>memstatistics</command></term>
               <listitem>
                 <para>
-		  Write memory statistics to the file specfied by
+		  Write memory statistics to the file specified by
 		  <command>memstatistics-file</command> at exit.
 		  The default is <userinput>no</userinput> unless
 		  '-m record' is specified on the command line in
@@ -7588,7 +7588,7 @@ query-source-v6 address * port *;
 	    these cover the reverse namespace for addresses from RFC 1918 and
 	    RFC 3330.  They also include the reverse namespace for IPv6 local
 	    address (locally assigned), IPv6 link local addresses, the IPv6
-	    loopback address and the IPv6 unknown addresss.
+	    loopback address and the IPv6 unknown address.
 	  </para>
 	  <para>
 	    Named will attempt to determine if a built in zone already exists
@@ -10050,7 +10050,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                     </entry>
                     <entry colname="2">
                       <para>
-			Provides a way to securly publish a secure shell key's
+			Provides a way to securely publish a secure shell key's
 			fingerprint.  Described in RFC 4255.
                       </para>
                     </entry>
