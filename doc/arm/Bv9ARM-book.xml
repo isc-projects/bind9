@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.90 2008/05/22 20:46:34 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.91 2008/06/17 06:53:24 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -5526,6 +5526,11 @@ Described in RFC 1035.</para></entry>
 <entry colname = "1"><para>SRV</para></entry>
 <entry colname = "2"><para>information about well known network
 services (replaces WKS).  Described in RFC 2782.</para></entry>
+</row>
+<row rowsep="0">
+<entry colname="1"><para>SSHFP</para></entry>
+<entry colname="2"><para>Provides a way to securly publish a secure shell
+key's fingerprint.  Described in RFC 4255.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>TXT</para></entry>

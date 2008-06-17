@@ -1,3 +1,5 @@
+2382.	[doc]		Add a description SSHFP to ARM.
+
 2380.	[bug]		dns_view_find() was not returning NXDOMAIN/NXRRSET
 			proofs which, in turn, caused validation failures
 			for insecure zones immediately below a secure zone
