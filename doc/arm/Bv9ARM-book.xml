@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.358 2008/06/17 14:15:58 jreed Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.359 2008/06/17 20:59:25 jreed Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -13980,7 +13980,7 @@ zone "example.com" {
       <xi:include href="../../bin/check/named-checkzone.docbook"/>
       <xi:include href="../../bin/named/named.docbook"/>
       <!-- named.conf.docbook and others? -->
-      <!-- nsupdate gives db2latex indigestion, markup problems? -->
+      <xi:include href="../../bin/nsupdate/nsupdate.docbook"/>
       <xi:include href="../../bin/rndc/rndc.docbook"/>
       <xi:include href="../../bin/rndc/rndc.conf.docbook"/>
       <xi:include href="../../bin/rndc/rndc-confgen.docbook"/>

@@ -18,18 +18,18 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: nsupdate.docbook,v 1.29 2007/09/15 14:46:03 marka Exp $ -->
-<refentry>
+<!-- $Id: nsupdate.docbook,v 1.30 2008/06/17 20:59:25 jreed Exp $ -->
+<refentry id="man.nsupdate">
   <refentryinfo>
     <date>Jun 30, 2000</date>
   </refentryinfo>
   <refmeta>
-    <refentrytitle>nsupdate</refentrytitle>
+    <refentrytitle><application>nsupdate</application></refentrytitle>
     <manvolnum>8</manvolnum>
     <refmiscinfo>BIND9</refmiscinfo>
   </refmeta>
   <refnamediv>
-    <refname>nsupdate</refname>
+    <refname><application>nsupdate</application></refname>
     <refpurpose>Dynamic DNS update utility</refpurpose>
   </refnamediv>
 
