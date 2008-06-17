@@ -897,7 +897,7 @@
 ./contrib/dlz/bin/dlzbdb/.cvsignore		X	2005
 ./contrib/dlz/bin/dlzbdb/Makefile.in		X	2005,2007
 ./contrib/dlz/bin/dlzbdb/dlzbdb.c		X	2005
-./contrib/dlz/config.dlz.in			X	2005,2006
+./contrib/dlz/config.dlz.in			X	2005,2006,2008
 ./contrib/dlz/drivers/.cvsignore		X	2005
 ./contrib/dlz/drivers/dlz_bdb_driver.c		X	2005
 ./contrib/dlz/drivers/dlz_bdbhpt_driver.c	X	2005
@@ -2000,7 +2000,7 @@
 ./lib/dns/ttl.c					C	1999,2000,2001,2004,2005
 ./lib/dns/validator.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/dns/version.c				C	1998,1999,2000,2001,2004,2005
-./lib/dns/view.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
+./lib/dns/view.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/dns/win32/DLLMain.c			C	2001,2004,2007
 ./lib/dns/win32/gen.dsp				X	2001
 ./lib/dns/win32/gen.dsw				X	2001
