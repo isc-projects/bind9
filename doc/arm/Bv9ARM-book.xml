@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.356 2008/06/17 06:38:58 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.357 2008/06/17 13:24:20 jreed Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -8133,6 +8133,9 @@ query-source-v6 address * port *;
 	    multiple key entries, each consisting of the key's
 	    domain name, flags, protocol, algorithm, and the Base-64
 	    representation of the key data.
+	    Spaces, tabs, newlines and carriage returns are ignored
+	    in the key data, so the configuration may be split up into
+	    multiple lines.
 	  </para>
 	</sect2>
 
