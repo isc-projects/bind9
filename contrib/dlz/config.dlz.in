@@ -157,7 +157,7 @@ then
 	done
 elif test "$use_dlz_mysql" != "no"
 then
-	d = $use_dlz_mysql
+	d=$use_dlz_mysql
 	if test -f $d/include/mysql/mysql.h
 	then
 		mysql_include=$d/include/mysql
