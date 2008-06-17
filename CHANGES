@@ -1,3 +1,7 @@
+2383.	[bug]		named could double queries when they resulted in
+			SERVFAIL due to overkilling EDNS0 failure detection.
+			[RT #18182]
+
 2382.	[doc]		Add a description SSHFP to ARM.
 
 2380.	[bug]		dns_view_find() was not returning NXDOMAIN/NXRRSET
