@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.103.2.5.2.17 2007/08/28 07:19:14 tbox Exp $ */
+/* $Id: view.c,v 1.103.2.5.2.18 2008/06/17 03:30:30 marka Exp $ */
 
 #include <config.h>
 
@@ -822,17 +822,6 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	}
 
  cleanup:
-	if (result == DNS_R_NXDOMAIN || result == DNS_R_NXRRSET) {
-		/*
-		 * We don't care about any DNSSEC proof data in these cases.
-		 */
-		if (dns_rdataset_isassociated(rdataset))
-			dns_rdataset_disassociate(rdataset);
-		if (sigrdataset != NULL &&
-		    dns_rdataset_isassociated(sigrdataset))
-			dns_rdataset_disassociate(sigrdataset);
-	}
-
 	if (dns_rdataset_isassociated(&zrdataset)) {
 		dns_rdataset_disassociate(&zrdataset);
 		if (dns_rdataset_isassociated(&zsigrdataset))
