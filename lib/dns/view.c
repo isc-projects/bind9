@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.143.128.6 2008/05/29 22:54:02 each Exp $ */
+/* $Id: view.c,v 1.143.128.7 2008/06/17 03:22:24 marka Exp $ */
 
 /*! \file */
 
@@ -872,17 +872,6 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	}
 
  cleanup:
-	if (result == DNS_R_NXDOMAIN || result == DNS_R_NXRRSET) {
-		/*
-		 * We don't care about any DNSSEC proof data in these cases.
-		 */
-		if (dns_rdataset_isassociated(rdataset))
-			dns_rdataset_disassociate(rdataset);
-		if (sigrdataset != NULL &&
-		    dns_rdataset_isassociated(sigrdataset))
-			dns_rdataset_disassociate(sigrdataset);
-	}
-
 	if (dns_rdataset_isassociated(&zrdataset)) {
 		dns_rdataset_disassociate(&zrdataset);
 		if (dns_rdataset_isassociated(&zsigrdataset))
