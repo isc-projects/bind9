@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.11 2008/05/28 21:00:24 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.12 2008/06/17 06:44:09 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -9512,6 +9512,19 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                   <row rowsep="0">
                     <entry colname="1">
                       <para>
+                        DHCID
+                      </para>
+                    </entry>
+                    <entry colname="2">
+                      <para>
+			Is used for identifying which DHCP client is
+			associated with this name.  Described in RFC 4701.
+                      </para>
+                    </entry>
+                  </row>
+                  <row rowsep="0">
+                    <entry colname="1">
+                      <para>
                         DNAME
                       </para>
                     </entry>
@@ -9575,6 +9588,19 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                       <para>
                         Identifies the CPU and OS used by a host.
                         Described in RFC 1035.
+                      </para>
+                    </entry>
+                  </row>
+                  <row rowsep="0">
+                    <entry colname="1">
+                      <para>
+                        IPSECKEY
+                      </para>
+                    </entry>
+                    <entry colname="2">
+                      <para>
+			Provides a method for storing IPsec keying material in
+			DNS.  Described in RFC 4025.
                       </para>
                     </entry>
                   </row>
@@ -9819,6 +9845,19 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                   <row rowsep="0">
                     <entry colname="1">
                       <para>
+                        SPF
+                      </para>
+                    </entry>
+                    <entry colname="2">
+                      <para>
+			Contains the Sender Policy Framework information
+			for a given email domain.  Described in RFC 4408.
+                      </para>
+                    </entry>
+                  </row>
+                  <row rowsep="0">
+                    <entry colname="1">
+                      <para>
                         SRV
                       </para>
                     </entry>
@@ -9826,6 +9865,19 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                       <para>
                         Information about well known network
                         services (replaces WKS).  Described in RFC 2782.
+                      </para>
+                    </entry>
+                  </row>
+                  <row rowsep="0">
+                    <entry colname="1">
+                      <para>
+                        SSHFP
+                      </para>
+                    </entry>
+                    <entry colname="2">
+                      <para>
+			Provides a way to securly publish a secure shell key's
+			fingerprint.  Described in RFC 4255.
                       </para>
                     </entry>
                   </row>
