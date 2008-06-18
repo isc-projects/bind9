@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.168.18.15 2008/06/04 02:51:12 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.168.18.16 2008/06/18 01:42:45 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -92,15 +92,15 @@
 <dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2589434">Zone File</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#types_of_resource_records_and_when_to_use_them">Types of Resource Records and When to Use Them</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2591456">Discussion of MX Records</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2591549">Discussion of MX Records</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#Setting_TTLs">Setting TTLs</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592075">Inverse Mapping in IPv4</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592339">Other Zone File Directives</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592596"><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592169">Inverse Mapping in IPv4</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592433">Other Zone File Directives</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592690"><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#zonefile_format">Additional File Formats</a></span></dt>
 </dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2592996">BIND9 Statistics</a></span></dt>
-<dd><dl><dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2593345">Statistics Counters</a></span></dt></dl></dd>
+<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2593158">BIND9 Statistics</a></span></dt>
+<dd><dl><dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2593438">Statistics Counters</a></span></dt></dl></dd>
 </dl>
 </div>
 <p>
@@ -5914,6 +5914,19 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 <tr>
 <td>
                       <p>
+                        DHCID
+                      </p>
+                    </td>
+<td>
+                      <p>
+                        Is used for identifying which DHCP client is
+                        associated with this name.  Described in RFC 4701.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p>
                         DNAME
                       </p>
                     </td>
@@ -5977,6 +5990,19 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
                       <p>
                         Identifies the CPU and OS used by a host.
                         Described in RFC 1035.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p>
+                        IPSECKEY
+                      </p>
+                    </td>
+<td>
+                      <p>
+                        Provides a method for storing IPsec keying material in
+                        DNS.  Described in RFC 4025.
                       </p>
                     </td>
 </tr>
@@ -6221,6 +6247,19 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 <tr>
 <td>
                       <p>
+                        SPF
+                      </p>
+                    </td>
+<td>
+                      <p>
+                        Contains the Sender Policy Framework information
+                        for a given email domain.  Described in RFC 4408.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p>
                         SRV
                       </p>
                     </td>
@@ -6228,6 +6267,19 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
                       <p>
                         Information about well known network
                         services (replaces WKS).  Described in RFC 2782.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p>
+                        SSHFP
+                      </p>
+                    </td>
+<td>
+                      <p>
+                        Provides a way to securly publish a secure shell key's
+                        fingerprint.  Described in RFC 4255.
                       </p>
                     </td>
 </tr>
@@ -6370,7 +6422,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2590867"></a>Textual expression of RRs</h4></div></div></div>
+<a name="id2591029"></a>Textual expression of RRs</h4></div></div></div>
 <p>
               RRs are represented in binary form in the packets of the DNS
               protocol, and are usually represented in highly encoded form
@@ -6573,7 +6625,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2591456"></a>Discussion of MX Records</h3></div></div></div>
+<a name="id2591549"></a>Discussion of MX Records</h3></div></div></div>
 <p>
             As described above, domain servers store information as a
             series of resource records, each of which contains a particular
@@ -6831,7 +6883,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2592075"></a>Inverse Mapping in IPv4</h3></div></div></div>
+<a name="id2592169"></a>Inverse Mapping in IPv4</h3></div></div></div>
 <p>
             Reverse name resolution (that is, translation from IP address
             to name) is achieved by means of the <span class="emphasis"><em>in-addr.arpa</em></span> domain
@@ -6892,7 +6944,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2592339"></a>Other Zone File Directives</h3></div></div></div>
+<a name="id2592433"></a>Other Zone File Directives</h3></div></div></div>
 <p>
             The Master File Format was initially defined in RFC 1035 and
             has subsequently been extended. While the Master File Format
@@ -6907,7 +6959,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2592429"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
+<a name="id2592455"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$ORIGIN</strong></span>
               <em class="replaceable"><code>domain-name</code></em>
@@ -6935,7 +6987,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2592490"></a>The <span><strong class="command">$INCLUDE</strong></span> Directive</h4></div></div></div>
+<a name="id2592584"></a>The <span><strong class="command">$INCLUDE</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$INCLUDE</strong></span>
               <em class="replaceable"><code>filename</code></em>
@@ -6971,7 +7023,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2592560"></a>The <span><strong class="command">$TTL</strong></span> Directive</h4></div></div></div>
+<a name="id2592653"></a>The <span><strong class="command">$TTL</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$TTL</strong></span>
               <em class="replaceable"><code>default-ttl</code></em>
@@ -6990,7 +7042,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2592596"></a><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</h3></div></div></div>
+<a name="id2592690"></a><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</h3></div></div></div>
 <p>
             Syntax: <span><strong class="command">$GENERATE</strong></span>
             <em class="replaceable"><code>range</code></em>
@@ -7195,7 +7247,7 @@ $GENERATE 1-127 $ CNAME $.0</pre>
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2592996"></a>BIND9 Statistics</h2></div></div></div>
+<a name="id2593158"></a>BIND9 Statistics</h2></div></div></div>
 <p>
           <acronym class="acronym">BIND</acronym> 9 maintains lots of statistics
           information and provides several interfaces for users to
@@ -7352,7 +7404,7 @@ $GENERATE 1-127 $ CNAME $.0</pre>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2593345"></a>Statistics Counters</h3></div></div></div>
+<a name="id2593438"></a>Statistics Counters</h3></div></div></div>
 <p>
             The following tables summarize statistics counters that
             <acronym class="acronym">BIND</acronym> 9 provides.
@@ -7371,7 +7423,7 @@ $GENERATE 1-127 $ CNAME $.0</pre>
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2593361"></a>Name Server Statistics Counters</h4></div></div></div>
+<a name="id2593454"></a>Name Server Statistics Counters</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -7912,7 +7964,7 @@ $GENERATE 1-127 $ CNAME $.0</pre>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2594884"></a>Zone Maintenance Statistics Counters</h4></div></div></div>
+<a name="id2594978"></a>Zone Maintenance Statistics Counters</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -8066,7 +8118,7 @@ $GENERATE 1-127 $ CNAME $.0</pre>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2595335"></a>Resolver Statistics Counters</h4></div></div></div>
+<a name="id2595429"></a>Resolver Statistics Counters</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -8372,7 +8424,7 @@ $GENERATE 1-127 $ CNAME $.0</pre>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2596188"></a>Compatibility with <span class="emphasis"><em>BIND</em></span> 8 Counters</h4></div></div></div>
+<a name="id2596282"></a>Compatibility with <span class="emphasis"><em>BIND</em></span> 8 Counters</h4></div></div></div>
 <p>
               Most statistics counters that were available
               in <span><strong class="command">BIND</strong></span> 8 are also supported in
