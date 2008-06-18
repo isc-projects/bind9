@@ -1241,6 +1241,7 @@
 ./doc/arm/man.named-checkconf.html		X	2005,2006,2007,2008
 ./doc/arm/man.named-checkzone.html		X	2005,2006,2007,2008
 ./doc/arm/man.named.html			X	2005,2006,2007,2008
+./doc/arm/man.nsupdate.html			HTML	2008
 ./doc/arm/man.rndc-confgen.html			X	2005,2006,2007,2008
 ./doc/arm/man.rndc.conf.html			X	2005,2006,2007,2008
 ./doc/arm/man.rndc.html				X	2005,2006,2007,2008
