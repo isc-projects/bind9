@@ -1,3 +1,6 @@
+2384.	[security]	Fully randomize UDP query ports to improve
+			forgery resilience. [RT #17949, #18098]
+
 2383.	[bug]		named could double queries when they resulted in
 			SERVFAIL due to overkilling EDNS0 failure detection.
 			[RT #18182]
@@ -24,8 +27,7 @@
 
 2376.	[bug]		Change #2144 was not complete.
 
-2375.	[security]	Fully randomize UDP query ports to improve
-			forgery resilience. [RT #17949, #18098]
+2375.	[placeholder]
 
 2374.	[bug]		"blackhole" ACLs could cause named to segfault due
 			to some uninitialized memory. [RT #18095]
