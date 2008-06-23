@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.509 2008/06/23 19:41:18 jinmei Exp $ */
+/* $Id: server.c,v 1.510 2008/06/23 23:15:59 jinmei Exp $ */
 
 /*! \file */
 
@@ -612,7 +612,7 @@ get_view_querysource_dispatch(const cfg_obj_t **maps,
 		}
 		maxdispatchbuffers = 1000;
 	}
-	
+
 	attrmask = 0;
 	attrmask |= DNS_DISPATCHATTR_UDP;
 	attrmask |= DNS_DISPATCHATTR_TCP;
