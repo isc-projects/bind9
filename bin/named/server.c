@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.495.10.13 2008/05/29 23:46:34 tbox Exp $ */
+/* $Id: server.c,v 1.495.10.14 2008/06/23 23:30:59 jinmei Exp $ */
 
 /*! \file */
 
@@ -1336,6 +1336,15 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 				      ns_g_socketmgr, ns_g_timermgr,
 				      resopts, ns_g_dispatchmgr,
 				      dispatch4, dispatch6));
+
+	if (resstats == NULL) {
+		CHECK(dns_generalstats_create(mctx, &resstats,
+					      dns_resstatscounter_max));
+	}
+	dns_view_setresstats(view, resstats);
+	if (resquerystats == NULL)
+		CHECK(dns_rdatatypestats_create(mctx, &resquerystats));
+	dns_view_setresquerystats(view, resquerystats);
 
 	/*
 	 * Set the ADB cache size to 1/8th of the max-cache-size.
