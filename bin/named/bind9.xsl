@@ -15,7 +15,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: bind9.xsl,v 1.17 2008/04/09 22:48:17 jinmei Exp $ -->
+<!-- $Id: bind9.xsl,v 1.18 2008/06/23 19:41:18 jinmei Exp $ -->
 
 <xsl:stylesheet version="1.0"
    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -86,7 +86,6 @@ td, th {
       </head>
       <body>
         <div class="header">Bind 9 Configuration and Statistics</div>
-
 	<br/>
 
 	<table>

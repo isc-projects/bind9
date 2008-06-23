@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.257 2008/04/03 06:09:04 tbox Exp $ */
+/* $Id: client.c,v 1.258 2008/06/23 19:41:18 jinmei Exp $ */
 
 #include <config.h>
 
@@ -1523,14 +1523,6 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	if (TCP_CLIENT(client))
 		dns_generalstats_increment(ns_g_server->nsstats,
 					   dns_nsstatscounter_tcp);
-
-	/*
-	 * Hash the incoming request here as it is after
-	 * dns_dispatch_importrecv().
-	 */
-	dns_dispatch_hash(&client->now, sizeof(client->now));
-	dns_dispatch_hash(isc_buffer_base(buffer),
-			  isc_buffer_usedlength(buffer));
 
 	/*
 	 * It's a request.  Parse it.

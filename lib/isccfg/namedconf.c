@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.87 2008/04/03 02:01:08 marka Exp $ */
+/* $Id: namedconf.c,v 1.88 2008/06/23 19:41:20 jinmei Exp $ */
 
 /*! \file */
 
@@ -547,11 +547,19 @@ static cfg_type_t cfg_type_serverid = {
 /*%
  * Port list.
  */
-static isc_result_t
-parse_port(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
-	isc_result_t result;
+static cfg_tuplefielddef_t porttuple_fields[] = {
+	{ "loport", &cfg_type_uint32, 0 },
+	{ "hiport", &cfg_type_uint32, 0 },
+	{ NULL, NULL, 0 }
+};
+static cfg_type_t cfg_type_porttuple = {
+	"porttuple", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	&cfg_rep_tuple, porttuple_fields
+};
 
-	UNUSED(type);
+static isc_result_t
+parse_port(cfg_parser_t *pctx, cfg_obj_t **ret) {
+	isc_result_t result;
 
 	CHECK(cfg_parse_uint32(pctx, NULL, ret));
 	if ((*ret)->value.uint32 > 0xffff) {
@@ -559,18 +567,60 @@ parse_port(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 		cfg_obj_destroy(pctx, ret);
 		result = ISC_R_RANGE;
 	}
+	
  cleanup:
 	return (result);
 }
 
-static cfg_type_t cfg_type_port = {
-	"port", parse_port, NULL, cfg_doc_terminal,
+static isc_result_t
+parse_portrange(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
+	isc_result_t result;
+	cfg_obj_t *obj = NULL;
+
+	UNUSED(type);
+
+	CHECK(cfg_peektoken(pctx, ISC_LEXOPT_NUMBER | ISC_LEXOPT_CNUMBER));
+	if (pctx->token.type == isc_tokentype_number)
+		CHECK(parse_port(pctx, ret));
+	else {
+		CHECK(cfg_gettoken(pctx, 0));
+		if (pctx->token.type != isc_tokentype_string ||
+		    strcasecmp(TOKEN_STRING(pctx), "range") != 0) {
+			cfg_parser_error(pctx, CFG_LOG_NEAR,
+					 "expected integer or 'range'");
+			return (ISC_R_UNEXPECTEDTOKEN);
+		}
+		CHECK(cfg_create_tuple(pctx, &cfg_type_porttuple, &obj));
+		CHECK(parse_port(pctx, &obj->value.tuple[0]));
+		CHECK(parse_port(pctx, &obj->value.tuple[1]));
+		if (obj->value.tuple[0]->value.uint32 >
+		    obj->value.tuple[1]->value.uint32) {
+			cfg_parser_error(pctx, CFG_LOG_NOPREP,
+					 "low port '%u' must not be larger "
+					 "than high port",
+					 obj->value.tuple[0]->value.uint32);
+			result = ISC_R_RANGE;
+			goto cleanup;
+		}
+		*ret = obj;
+		obj = NULL;
+	}
+
+ cleanup:
+	if (obj != NULL)
+		cfg_obj_destroy(pctx, &obj);
+	return (result);
+}
+
+static cfg_type_t cfg_type_portrange = {
+	"portrange", parse_portrange, NULL, cfg_doc_terminal,
 	NULL, NULL
 };
 
 static cfg_type_t cfg_type_bracketed_portlist = {
-	"bracketed_sockaddrlist", cfg_parse_bracketed_list, cfg_print_bracketed_list, cfg_doc_bracketed_list,
-	&cfg_rep_list, &cfg_type_port
+	"bracketed_sockaddrlist", cfg_parse_bracketed_list,
+	cfg_print_bracketed_list, cfg_doc_bracketed_list,
+	&cfg_rep_list, &cfg_type_portrange
 };
 
 /*%
@@ -611,6 +661,8 @@ namedconf_or_view_clauses[] = {
  */
 static cfg_clausedef_t
 options_clauses[] = {
+	{ "use-v4-udp-ports", &cfg_type_bracketed_portlist, 0 },
+	{ "use-v6-udp-ports", &cfg_type_bracketed_portlist, 0 },
 	{ "avoid-v4-udp-ports", &cfg_type_bracketed_portlist, 0 },
 	{ "avoid-v6-udp-ports", &cfg_type_bracketed_portlist, 0 },
 	{ "blackhole", &cfg_type_bracketed_aml, 0 },
@@ -782,8 +834,9 @@ view_clauses[] = {
 	 */
 	{ "query-source", &cfg_type_querysource4, 0 },
 	{ "query-source-v6", &cfg_type_querysource6, 0 },
-	{ "queryport-pool-ports", &cfg_type_uint32, 0 },
-	{ "queryport-pool-updateinterval", &cfg_type_uint32, 0 },
+	{ "queryport-pool-ports", &cfg_type_uint32, CFG_CLAUSEFLAG_OBSOLETE },
+	{ "queryport-pool-updateinterval", &cfg_type_uint32,
+	  CFG_CLAUSEFLAG_OBSOLETE },
 	{ "recursion", &cfg_type_boolean, 0 },
 	{ "request-ixfr", &cfg_type_boolean, 0 },
 	{ "request-nsid", &cfg_type_boolean, 0 },
@@ -794,7 +847,7 @@ view_clauses[] = {
 	{ "suppress-initial-notify", &cfg_type_boolean, CFG_CLAUSEFLAG_NYI },
 	{ "topology", &cfg_type_bracketed_aml, CFG_CLAUSEFLAG_NOTIMP },
 	{ "transfer-format", &cfg_type_transferformat, 0 },
-	{ "use-queryport-pool", &cfg_type_boolean, 0 },
+	{ "use-queryport-pool", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "zero-no-soa-ttl-cache", &cfg_type_boolean, 0 },
 	{ NULL, NULL, 0 }
 };

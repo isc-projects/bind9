@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.372 2008/06/17 22:35:08 jinmei Exp $ */
+/* $Id: resolver.c,v 1.373 2008/06/23 19:41:19 jinmei Exp $ */
 
 /*! \file */
 
@@ -124,6 +124,7 @@ typedef struct query {
 	isc_mem_t *			mctx;
 	dns_dispatchmgr_t *		dispatchmgr;
 	dns_dispatch_t *		dispatch;
+	isc_boolean_t			exclusivesocket;
 	dns_adbaddrinfo_t *		addrinfo;
 	isc_socket_t *			tcpsocket;
 	isc_time_t			start;
@@ -294,24 +295,6 @@ typedef struct alternate {
 	ISC_LINK(struct alternate)      link;
 } alternate_t;
 
-#ifdef ISC_RWLOCK_USEATOMIC
-#define DNS_RESOLVER_USERWLOCK 1
-#else
-#define DNS_RESOLVER_USERWLOCK 0
-#endif
-
-#if DNS_RESOLVER_USERWLOCK
-#define RES_INITLOCK(l)		isc_rwlock_init((l), 0, 0)
-#define RES_DESTROYLOCK(l)      isc_rwlock_destroy(l)
-#define RES_LOCK(l, t)		RWLOCK((l), (t))
-#define RES_UNLOCK(l, t)	RWUNLOCK((l), (t))
-#else
-#define RES_INITLOCK(l)		isc_mutex_init(l)
-#define RES_DESTROYLOCK(l)      DESTROYLOCK(l)
-#define RES_LOCK(l, t)		LOCK(l)
-#define RES_UNLOCK(l, t)	UNLOCK(l)
-#endif
-
 struct dns_resolver {
 	/* Unlocked. */
 	unsigned int			magic;
@@ -319,11 +302,6 @@ struct dns_resolver {
 	isc_mutex_t			lock;
 	isc_mutex_t			nlock;
 	isc_mutex_t			primelock;
-#if DNS_RESOLVER_USERWLOCK
-	isc_rwlock_t			poollock;
-#else
-	isc_mutex_t			poollock;
-#endif
 	dns_rdataclass_t		rdclass;
 	isc_socketmgr_t *		socketmgr;
 	isc_timermgr_t *		timermgr;
@@ -333,7 +311,9 @@ struct dns_resolver {
 	unsigned int			options;
 	dns_dispatchmgr_t *		dispatchmgr;
 	dns_dispatch_t *		dispatchv4;
+	isc_boolean_t			exclusivev4;
 	dns_dispatch_t *		dispatchv6;
+	isc_boolean_t			exclusivev6;
 	unsigned int			ndisps;
 	unsigned int			nbuckets;
 	fctxbucket_t *			buckets;
@@ -352,7 +332,6 @@ struct dns_resolver {
 	unsigned int			spillatmin;
 	isc_timer_t *			spillattimer;
 	isc_boolean_t			zero_no_soa_ttl;
-	isc_timer_t *			disppooltimer;
 
 	/* Locked by lock. */
 	unsigned int			references;
@@ -366,9 +345,6 @@ struct dns_resolver {
 	dns_fetch_t *			primefetch;
 	/* Locked by nlock. */
 	unsigned int			nfctx;
-	/* Locked by poollock. */
-	dns_dispatch_t **		dispatchv4pool;
-	dns_dispatch_t **		dispatchv6pool;
 };
 
 #define RES_MAGIC			ISC_MAGIC('R', 'e', 's', '!')
@@ -603,6 +579,7 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 	unsigned int factor;
 	dns_adbfind_t *find;
 	dns_adbaddrinfo_t *addrinfo;
+	isc_socket_t *socket;
 
 	query = *queryp;
 	fctx = query->fctx;
@@ -684,6 +661,38 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 							   0, factor);
 	}
 
+	/*
+	 * Check for any outstanding socket events.  If they exist, cancel
+	 * them and let the event handlers finish the cleanup.  The resolver
+	 * only needs to worry about managing the connect and send events;
+	 * the dispatcher manages the recv events.
+	 */
+	if (RESQUERY_CONNECTING(query)) {
+		/*
+		 * Cancel the connect.
+		 */
+		if (query->tcpsocket != NULL) {
+			isc_socket_cancel(query->tcpsocket, NULL,
+					  ISC_SOCKCANCEL_CONNECT);
+		} else if (query->dispentry != NULL) {
+			INSIST(query->exclusivesocket);
+			socket = dns_dispatch_getentrysocket(query->dispentry);
+			if (socket != NULL)
+				isc_socket_cancel(socket, NULL,
+						  ISC_SOCKCANCEL_CONNECT);
+		}
+	} else if (RESQUERY_SENDING(query)) {
+		/*
+		 * Cancel the pending send.
+		 */
+		if (query->exclusivesocket && query->dispentry != NULL)
+			socket = dns_dispatch_getentrysocket(query->dispentry);
+		else
+			socket = dns_dispatch_getsocket(query->dispatch);
+		if (socket != NULL)
+			isc_socket_cancel(socket, NULL, ISC_SOCKCANCEL_SEND);
+	}
+
 	if (query->dispentry != NULL)
 		dns_dispatch_removeresponse(&query->dispentry, deventp);
 
@@ -694,25 +703,6 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 
 	if (query->tsigkey != NULL)
 		dns_tsigkey_detach(&query->tsigkey);
-
-	/*
-	 * Check for any outstanding socket events.  If they exist, cancel
-	 * them and let the event handlers finish the cleanup.  The resolver
-	 * only needs to worry about managing the connect and send events;
-	 * the dispatcher manages the recv events.
-	 */
-	if (RESQUERY_CONNECTING(query))
-		/*
-		 * Cancel the connect.
-		 */
-		isc_socket_cancel(query->tcpsocket, NULL,
-				  ISC_SOCKCANCEL_CONNECT);
-	else if (RESQUERY_SENDING(query))
-		/*
-		 * Cancel the pending send.
-		 */
-		isc_socket_cancel(dns_dispatch_getsocket(query->dispatch),
-				  NULL, ISC_SOCKCANCEL_SEND);
 
 	if (query->dispatch != NULL)
 		dns_dispatch_detach(&query->dispatch);
@@ -912,43 +902,25 @@ fctx_done(fetchctx_t *fctx, isc_result_t result) {
 }
 
 static void
-resquery_senddone(isc_task_t *task, isc_event_t *event) {
+process_sendevent(resquery_t *query, isc_event_t *event) {
 	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
-	resquery_t *query = event->ev_arg;
 	isc_boolean_t retry = ISC_FALSE;
 	isc_result_t result;
 	fetchctx_t *fctx;
 
-	REQUIRE(event->ev_type == ISC_SOCKEVENT_SENDDONE);
-
-	QTRACE("senddone");
-
-	/*
-	 * XXXRTH
-	 *
-	 * Currently we don't wait for the senddone event before retrying
-	 * a query.  This means that if we get really behind, we may end
-	 * up doing extra work!
-	 */
-
-	UNUSED(task);
-
-	INSIST(RESQUERY_SENDING(query));
-
-	query->sends--;
 	fctx = query->fctx;
 
 	if (RESQUERY_CANCELED(query)) {
-		if (query->sends == 0) {
+		if (query->sends == 0 && query->connects == 0) {
 			/*
 			 * This query was canceled while the
-			 * isc_socket_sendto() was in progress.
+			 * isc_socket_sendto/connect() was in progress.
 			 */
 			if (query->tcpsocket != NULL)
 				isc_socket_detach(&query->tcpsocket);
 			resquery_destroy(&query);
 		}
-	} else
+	} else {
 		switch (sevent->result) {
 		case ISC_R_SUCCESS:
 			break;
@@ -970,6 +942,7 @@ resquery_senddone(isc_task_t *task, isc_event_t *event) {
 			fctx_cancelquery(&query, NULL, NULL, ISC_FALSE);
 			break;
 		}
+	}
 
 	isc_event_free(&event);
 
@@ -985,6 +958,48 @@ resquery_senddone(isc_task_t *task, isc_event_t *event) {
 		else
 			fctx_try(fctx, ISC_TRUE);
 	}
+}
+
+static void
+resquery_udpconnected(isc_task_t *task, isc_event_t *event) {
+	resquery_t *query = event->ev_arg;
+
+	REQUIRE(event->ev_type == ISC_SOCKEVENT_CONNECT);
+
+	QTRACE("udpconnected");
+
+	UNUSED(task);
+
+	INSIST(RESQUERY_CONNECTING(query));
+
+	query->connects--;
+
+	process_sendevent(query, event);
+}
+
+static void
+resquery_senddone(isc_task_t *task, isc_event_t *event) {
+	resquery_t *query = event->ev_arg;
+
+	REQUIRE(event->ev_type == ISC_SOCKEVENT_SENDDONE);
+
+	QTRACE("senddone");
+
+	/*
+	 * XXXRTH
+	 *
+	 * Currently we don't wait for the senddone event before retrying
+	 * a query.  This means that if we get really behind, we may end
+	 * up doing extra work!
+	 */
+
+	UNUSED(task);
+
+	INSIST(RESQUERY_SENDING(query));
+
+	query->sends--;
+
+	process_sendevent(query, event);
 }
 
 static inline isc_result_t
@@ -1139,6 +1154,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	 */
 	query->dispatchmgr = res->dispatchmgr;
 	query->dispatch = NULL;
+	query->exclusivesocket = ISC_FALSE;
 	query->tcpsocket = NULL;
 	if (res->view->peers != NULL) {
 		dns_peer_t *peer = NULL;
@@ -1221,39 +1237,16 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 			if (result != ISC_R_SUCCESS)
 				goto cleanup_query;
 		} else {
-			int did = 0;
-			isc_uint32_t val;
-
-			if (res->ndisps > 0) {
-				isc_random_get(&val);
-				did = val % res->ndisps;
-			}
 			switch (isc_sockaddr_pf(&addrinfo->sockaddr)) {
 			case PF_INET:
-				if (res->dispatchv4pool != NULL) {
-					RES_LOCK(&res->poollock,
-						 isc_rwlocktype_read);
-					dns_dispatch_attach(res->dispatchv4pool[did],
-							    &query->dispatch);
-					RES_UNLOCK(&res->poollock,
-						   isc_rwlocktype_read);
-				} else {
-					dns_dispatch_attach(res->dispatchv4,
-							    &query->dispatch);
-				}
+				dns_dispatch_attach(res->dispatchv4,
+						    &query->dispatch);
+				query->exclusivesocket = res->exclusivev4;
 				break;
 			case PF_INET6:
-				if (res->dispatchv6pool != NULL) {
-					RES_LOCK(&res->poollock,
-						 isc_rwlocktype_read);
-					dns_dispatch_attach(res->dispatchv6pool[did],
-							    &query->dispatch);
-					RES_UNLOCK(&res->poollock,
-						   isc_rwlocktype_read);
-				} else {
-					dns_dispatch_attach(res->dispatchv6,
-							    &query->dispatch);
-				}
+				dns_dispatch_attach(res->dispatchv6,
+						    &query->dispatch);
+				query->exclusivesocket = res->exclusivev6;
 				break;
 			default:
 				result = ISC_R_NOTIMPLEMENTED;
@@ -1449,13 +1442,14 @@ resquery_send(resquery_t *query) {
 	/*
 	 * Get a query id from the dispatch.
 	 */
-	result = dns_dispatch_addresponse(query->dispatch,
-					  &query->addrinfo->sockaddr,
-					  task,
-					  resquery_response,
-					  query,
-					  &query->id,
-					  &query->dispentry);
+	result = dns_dispatch_addresponse2(query->dispatch,
+					   &query->addrinfo->sockaddr,
+					   task,
+					   resquery_response,
+					   query,
+					   &query->id,
+					   &query->dispentry,
+					   res->socketmgr);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_temps;
 
@@ -1672,12 +1666,24 @@ resquery_send(resquery_t *query) {
 	 */
 	dns_message_reset(fctx->qmessage, DNS_MESSAGE_INTENTRENDER);
 
-	socket = dns_dispatch_getsocket(query->dispatch);
+	if (query->exclusivesocket)
+		socket = dns_dispatch_getentrysocket(query->dispentry);
+	else
+		socket = dns_dispatch_getsocket(query->dispatch);
 	/*
 	 * Send the query!
 	 */
-	if ((query->options & DNS_FETCHOPT_TCP) == 0)
+	if ((query->options & DNS_FETCHOPT_TCP) == 0) {
 		address = &query->addrinfo->sockaddr;
+		if (query->exclusivesocket) {
+			result = isc_socket_connect(socket, address, task,
+						    resquery_udpconnected,
+						    query);
+			if (result != ISC_R_SUCCESS)
+				goto cleanup_message;
+			query->connects++;
+		}
+	}
 	isc_buffer_usedregion(buffer, &r);
 
 	/*
@@ -2779,6 +2785,8 @@ fctx_destroy(fetchctx_t *fctx) {
 static void
 fctx_timeout(isc_task_t *task, isc_event_t *event) {
 	fetchctx_t *fctx = event->ev_arg;
+	isc_timerevent_t *tevent = (isc_timerevent_t *)event;
+	resquery_t *query;
 
 	REQUIRE(VALID_FCTX(fctx));
 
@@ -2794,8 +2802,18 @@ fctx_timeout(isc_task_t *task, isc_event_t *event) {
 		fctx->timeouts++;
 		/*
 		 * We could cancel the running queries here, or we could let
-		 * them keep going.  Right now we choose the latter...
+		 * them keep going.  Since we normally use separate sockets for
+		 * different queries, we adopt the former approach to reduce
+		 * the number of open sockets: cancel the oldest query if it
+		 * expired before the query had started (this is usually the
+		 * case but is not always so, depending on the task schedule
+		 * timing).
 		 */
+		query = ISC_LIST_HEAD(fctx->queries);
+		if (query != NULL &&
+		    isc_time_compare(&tevent->due, &query->start) >= 0) {
+			fctx_cancelquery(&query, NULL, NULL, ISC_TRUE);
+		}
 		fctx->attributes &= ~FCTX_ATTR_ADDRWAIT;
 		/*
 		 * Our timer has triggered.  Reestablish the fctx lifetime
@@ -5659,6 +5677,19 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			 * There's no hope for this query.
 			 */
 			keep_trying = ISC_TRUE;
+
+			/*
+			 * If this is a network error on an exclusive query
+			 * socket, mark the server as bad so that we won't try
+			 * it for this fetch again.
+			 */
+			if (query->exclusivesocket &&
+			    (devent->result == ISC_R_HOSTUNREACH ||
+			     devent->result == ISC_R_NETUNREACH ||
+			     devent->result == ISC_R_CONNREFUSED ||
+			     devent->result == ISC_R_CANCELED)) {
+				    broken_server = devent->result;
+			}
 		}
 		goto done;
 	}
@@ -6262,7 +6293,6 @@ destroy(dns_resolver_t *res) {
 
 	INSIST(res->nfctx == 0);
 
-	RES_DESTROYLOCK(&res->poollock);
 	DESTROYLOCK(&res->primelock);
 	DESTROYLOCK(&res->nlock);
 	DESTROYLOCK(&res->lock);
@@ -6279,26 +6309,12 @@ destroy(dns_resolver_t *res) {
 		dns_dispatch_detach(&res->dispatchv4);
 	if (res->dispatchv6 != NULL)
 		dns_dispatch_detach(&res->dispatchv6);
-	if (res->dispatchv4pool != NULL) {
-		for (i = 0; i < res->ndisps; i++)
-			dns_dispatch_detach(&res->dispatchv4pool[i]);
-		isc_mem_put(res->mctx, res->dispatchv4pool,
-			    res->ndisps * sizeof(dns_dispatch_t *));
-	}
-	if (res->dispatchv6pool != NULL) {
-		for (i = 0; i < res->ndisps; i++)
-			dns_dispatch_detach(&res->dispatchv6pool[i]);
-		isc_mem_put(res->mctx, res->dispatchv6pool,
-			    res->ndisps * sizeof(dns_dispatch_t *));
-	}
 	while ((a = ISC_LIST_HEAD(res->alternates)) != NULL) {
 		ISC_LIST_UNLINK(res->alternates, a, link);
 		if (!a->isaddress)
 			dns_name_free(&a->_u._n.name, res->mctx);
 		isc_mem_put(res->mctx, a, sizeof(*a));
 	}
-	if (res->disppooltimer != NULL)
-		isc_timer_detach(&res->disppooltimer);
 	dns_resolver_reset_algorithms(res);
 	dns_resolver_resetmustbesecure(res);
 #if USE_ALGLOCK
@@ -6395,6 +6411,7 @@ dns_resolver_create(dns_view_t *view,
 	unsigned int i, buckets_created = 0;
 	isc_task_t *task = NULL;
 	char name[16];
+	unsigned dispattr;
 
 	/*
 	 * Create a resolver.
@@ -6429,9 +6446,6 @@ dns_resolver_create(dns_view_t *view,
 	res->zero_no_soa_ttl = ISC_FALSE;
 	res->ndisps = 0;
 	res->nextdisp = 0; /* meaningless at this point, but init it */
-	res->dispatchv4pool = NULL;
-	res->dispatchv6pool = NULL;
-	res->disppooltimer = NULL;
 	res->nbuckets = ntasks;
 	res->activebuckets = ntasks;
 	res->buckets = isc_mem_get(view->mctx,
@@ -6475,12 +6489,20 @@ dns_resolver_create(dns_view_t *view,
 	}
 
 	res->dispatchv4 = NULL;
-	if (dispatchv4 != NULL)
-			dns_dispatch_attach(dispatchv4, &res->dispatchv4);
+	if (dispatchv4 != NULL) {
+		dns_dispatch_attach(dispatchv4, &res->dispatchv4);
+		dispattr = dns_dispatch_getattributes(dispatchv4);
+		res->exclusivev4 =
+			ISC_TF((dispattr & DNS_DISPATCHATTR_EXCLUSIVE) != 0);
+	}
 
 	res->dispatchv6 = NULL;
-	if (dispatchv6 != NULL)
+	if (dispatchv6 != NULL) {
 		dns_dispatch_attach(dispatchv6, &res->dispatchv6);
+		dispattr = dns_dispatch_getattributes(dispatchv6);
+		res->exclusivev6 =
+			ISC_TF((dispattr & DNS_DISPATCHATTR_EXCLUSIVE) != 0);
+	}
 
 	res->references = 1;
 	res->exiting = ISC_FALSE;
@@ -6502,21 +6524,17 @@ dns_resolver_create(dns_view_t *view,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_nlock;
 
-	result = RES_INITLOCK(&res->poollock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_primelock;
-
 	task = NULL;
 	result = isc_task_create(taskmgr, 0, &task);
 	if (result != ISC_R_SUCCESS)
-		goto cleanup_poollock;
+		goto cleanup_primelock;
 
 	result = isc_timer_create(timermgr, isc_timertype_inactive, NULL, NULL,
 				  task, spillattimer_countdown, res,
 				  &res->spillattimer);
 	isc_task_detach(&task);
 	if (result != ISC_R_SUCCESS)
-		goto cleanup_poollock;
+		goto cleanup_primelock;
 
 #if USE_ALGLOCK
 	result = isc_rwlock_init(&res->alglock, 0, 0);
@@ -6545,9 +6563,6 @@ dns_resolver_create(dns_view_t *view,
  cleanup_spillattimer:
 	isc_timer_detach(&res->spillattimer);
 #endif
-
- cleanup_poollock:
-	RES_DESTROYLOCK(&res->poollock);
 
  cleanup_primelock:
 	DESTROYLOCK(&res->primelock);
@@ -6770,12 +6785,12 @@ dns_resolver_shutdown(dns_resolver_t *res) {
 			     fctx != NULL;
 			     fctx = ISC_LIST_NEXT(fctx, link))
 				fctx_shutdown(fctx);
-			if (res->dispatchv4 != NULL) {
+			if (res->dispatchv4 != NULL && !res->exclusivev4) {
 				sock = dns_dispatch_getsocket(res->dispatchv4);
 				isc_socket_cancel(sock, res->buckets[i].task,
 						  ISC_SOCKCANCEL_ALL);
 			}
-			if (res->dispatchv6 != NULL) {
+			if (res->dispatchv6 != NULL && !res->exclusivev6) {
 				sock = dns_dispatch_getsocket(res->dispatchv6);
 				isc_socket_cancel(sock, res->buckets[i].task,
 						  ISC_SOCKCANCEL_ALL);
@@ -7458,246 +7473,4 @@ dns_resolver_getoptions(dns_resolver_t *resolver) {
 	REQUIRE(VALID_RESOLVER(resolver));
 
 	return (resolver->options);
-}
-
-static void
-disppooltimer_update(isc_task_t *task, isc_event_t *event) {
-	dns_resolver_t *res = event->ev_arg;
-	isc_sockaddr_t addr4, addr6;
-	dns_dispatch_t *disp4 = NULL, *disp6 = NULL;
-	isc_result_t result;
-	unsigned int nxt;
-	unsigned int attrs_base, attrs, attrmask;
-
-	REQUIRE(VALID_RESOLVER(res));
-	REQUIRE((res->options & DNS_RESOLVER_USEDISPATCHPOOL4) != 0 ||
-		(res->options & DNS_RESOLVER_USEDISPATCHPOOL6) != 0);
-
-	UNUSED(task);
-	isc_event_free(&event);
-
-	LOCK(&res->lock);
-	nxt = res->nextdisp++;
-	if (res->nextdisp == res->ndisps)
-		res->nextdisp = 0;
-	UNLOCK(&res->lock);
-
-	attrs_base = 0;
-	attrs_base |= DNS_DISPATCHATTR_UDP;
-	attrs_base |= DNS_DISPATCHATTR_RANDOMPORT;
-
-	attrmask = 0;
-	attrmask |= DNS_DISPATCHATTR_UDP;
-	attrmask |= DNS_DISPATCHATTR_TCP;
-	attrmask |= DNS_DISPATCHATTR_IPV4;
-	attrmask |= DNS_DISPATCHATTR_IPV6;
-
-	RES_LOCK(&res->poollock, isc_rwlocktype_read);
-	if ((res->options & DNS_RESOLVER_USEDISPATCHPOOL4) != 0) {
-		result = dns_dispatch_getlocaladdress(res->dispatchv4pool[nxt],
-						      &addr4);
-		INSIST(result == ISC_R_SUCCESS);
-	}
-	if ((res->options & DNS_RESOLVER_USEDISPATCHPOOL6) != 0) {
-		result = dns_dispatch_getlocaladdress(res->dispatchv6pool[nxt],
-						      &addr6);
-		INSIST(result == ISC_R_SUCCESS);
-	}
-	RES_UNLOCK(&res->poollock, isc_rwlocktype_read);
-
-	if ((res->options & DNS_RESOLVER_USEDISPATCHPOOL4) != 0) {
-		attrs = attrs_base;
-		attrs |= DNS_DISPATCHATTR_IPV4;
-
-		result = dns_dispatch_getudp(res->dispatchmgr,
-					     res->socketmgr,
-					     res->taskmgr, &addr4,
-					     4096, 1000, 32768, 16411,
-					     16433, attrs, attrmask,
-					     &disp4);
-		if (result != ISC_R_SUCCESS) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-				      DNS_LOGMODULE_RESOLVER, ISC_LOG_ERROR,
-				      "could not update an IPv4 random query "
-				      "port: %s",
-				      isc_result_totext(result));
-			/* keep the old one */
-		}
-
-		/*
-		 * We don't try to ensure the new dispatch is unique (see the
-		 * comments in dns_resolver_createdispatchpool()).
-		 */
-	}
-	if ((res->options & DNS_RESOLVER_USEDISPATCHPOOL6) != 0) {
-		attrs = attrs_base;
-		attrs |= DNS_DISPATCHATTR_IPV6;
-
-		result = dns_dispatch_getudp(res->dispatchmgr,
-					     res->socketmgr,
-					     res->taskmgr, &addr6,
-					     4096, 1000, 32768, 16411,
-					     16433, attrs, attrmask,
-					     &disp6);
-		if (result != ISC_R_SUCCESS) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-				      DNS_LOGMODULE_RESOLVER, ISC_LOG_ERROR,
-				      "could not update an IPv6 random query "
-				      "port: %s",
-				      isc_result_totext(result));
-		}
-	}
-
-	RES_LOCK(&res->poollock, isc_rwlocktype_write);
-	if (disp4 != NULL) {
-		dns_dispatch_detach(&res->dispatchv4pool[nxt]);
-		res->dispatchv4pool[nxt] = disp4;
-	}
-	if (disp6 != NULL) {
-		dns_dispatch_detach(&res->dispatchv6pool[nxt]);
-		res->dispatchv6pool[nxt] = disp6;
-	}
-	RES_UNLOCK(&res->poollock, isc_rwlocktype_write);
-
-	return;
-}
-
-isc_result_t
-dns_resolver_createdispatchpool(dns_resolver_t *res, unsigned int ndisps,
-				unsigned int tick)
-{
-	unsigned int i;
-	isc_result_t result = ISC_R_SUCCESS;
-	unsigned int attrs_base, attrs, attrmask;
-	isc_sockaddr_t addr4, addr6;
-	dns_dispatch_t *disp;
-	isc_task_t *task;
-	isc_interval_t interval;
-
-	REQUIRE(VALID_RESOLVER(res));
-	REQUIRE(!res->frozen);  /* meaning we don't have to lock res */
-	REQUIRE(ndisps > 0);
-	REQUIRE((res->options & DNS_RESOLVER_USEDISPATCHPOOL4) != 0 ||
-		(res->options & DNS_RESOLVER_USEDISPATCHPOOL6) != 0);
-
-	attrs_base = 0;
-	attrs_base |= DNS_DISPATCHATTR_UDP;
-	attrs_base |= DNS_DISPATCHATTR_RANDOMPORT;
-
-	attrmask = 0;
-	attrmask |= DNS_DISPATCHATTR_UDP;
-	attrmask |= DNS_DISPATCHATTR_TCP;
-	attrmask |= DNS_DISPATCHATTR_IPV4;
-	attrmask |= DNS_DISPATCHATTR_IPV6;
-
-	if ((res->options & DNS_RESOLVER_USEDISPATCHPOOL4) != 0) {
-		INSIST(res->dispatchv4 != NULL);
-		result = dns_dispatch_getlocaladdress(res->dispatchv4, &addr4);
-		INSIST(result == ISC_R_SUCCESS &&
-		       isc_sockaddr_getport(&addr4) == 0);
-		res->dispatchv4pool = isc_mem_get(res->mctx,
-						  sizeof(dns_dispatch_t *) *
-						  ndisps);
-		if (res->dispatchv4pool == NULL)
-			return (ISC_R_NOMEMORY);
-		for (i = 0; i < ndisps; i++)
-			res->dispatchv4pool[i] = NULL;
-	}
-	if ((res->options & DNS_RESOLVER_USEDISPATCHPOOL6) != 0) {
-		INSIST(res->dispatchv6 != NULL);
-		result = dns_dispatch_getlocaladdress(res->dispatchv6, &addr6);
-		INSIST(result == ISC_R_SUCCESS &&
-		       isc_sockaddr_getport(&addr6) == 0);
-		res->dispatchv6pool = isc_mem_get(res->mctx,
-						  sizeof(dns_dispatch_t *) *
-						  ndisps);
-		if (res->dispatchv6pool == NULL) {
-			isc_mem_put(res->mctx, res->dispatchv4pool,
-				    sizeof(dns_dispatch_t *) * ndisps);
-			res->dispatchv4pool = NULL;
-			return (ISC_R_NOMEMORY);
-		}
-		for (i = 0; i < ndisps; i++)
-			res->dispatchv6pool[i] = NULL;
-	}
-
-	for (i = 0; i < ndisps; i++) {
-		if ((res->options & DNS_RESOLVER_USEDISPATCHPOOL4) != 0) {
-			attrs = attrs_base;
-			attrs |= DNS_DISPATCHATTR_IPV4;
-
-			disp = NULL;
-			result = dns_dispatch_getudp(res->dispatchmgr,
-						     res->socketmgr,
-						     res->taskmgr, &addr4,
-						     4096, 1000, 32768, 16411,
-						     16433, attrs, attrmask,
-						     &disp);
-			if (result != ISC_R_SUCCESS)
-				goto cleanup;
-			res->dispatchv4pool[i] = disp;
-
-			/*
-			 * It might be better to ensure all ports are
-			 * different, but in practice it's probably okay to
-			 * assume dns_dispatch_getudp() made reasonable
-			 * choices.
-			 */
-		}
-		if ((res->options & DNS_RESOLVER_USEDISPATCHPOOL6) != 0) {
-			attrs = attrs_base;
-			attrs |= DNS_DISPATCHATTR_IPV6;
-
-			disp = NULL;
-			result = dns_dispatch_getudp(res->dispatchmgr,
-						     res->socketmgr,
-						     res->taskmgr, &addr6,
-						     4096, 1000, 32768, 16411,
-						     16433, attrs, attrmask,
-						     &disp);
-			if (result != ISC_R_SUCCESS)
-				goto cleanup;
-
-			res->dispatchv6pool[i] = disp;
-		}
-	}
-
-	/* start update timer */
-	if (tick != 0) {
-		task = NULL;
-		result = isc_task_create(res->taskmgr, 0, &task);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
-		isc_interval_set(&interval, tick, 0);
-		result = isc_timer_create(res->timermgr, isc_timertype_ticker,
-					  NULL, &interval, task,
-					  disppooltimer_update,
-					  res, &res->disppooltimer);
-		isc_task_detach(&task);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
-	}
-
-	res->ndisps = ndisps;
-	res->nextdisp = 0;
-
-	return (result);
-
-  cleanup:
-	if (res->dispatchv4pool != NULL) {
-		for (i = 0; i < ndisps; i++)
-			if (res->dispatchv4pool[i] != NULL)
-				dns_dispatch_detach(&res->dispatchv4pool[i]);
-		isc_mem_put(res->mctx, res->dispatchv4pool,
-			    sizeof(dns_dispatch_t *) * ndisps);
-	}
-	if (res->dispatchv6pool != NULL) {
-		for (i = 0; i < ndisps; i++)
-			if (res->dispatchv6pool[i] != NULL)
-				dns_dispatch_detach(&res->dispatchv6pool[i]);
-		isc_mem_put(res->mctx, res->dispatchv6pool,
-			    sizeof(dns_dispatch_t *) * ndisps);
-	}
-
-	return (result);
 }

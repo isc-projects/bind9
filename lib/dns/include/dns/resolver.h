@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.58 2008/04/03 06:09:05 tbox Exp $ */
+/* $Id: resolver.h,v 1.59 2008/06/23 19:41:19 jinmei Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
@@ -107,8 +107,6 @@ typedef struct dns_fetchevent {
 
 #define DNS_RESOLVER_CHECKNAMES		0x01
 #define DNS_RESOLVER_CHECKNAMESFAIL	0x02
-#define DNS_RESOLVER_USEDISPATCHPOOL4	0x04
-#define DNS_RESOLVER_USEDISPATCHPOOL6	0x08
 
 isc_result_t
 dns_resolver_create(dns_view_t *view,
