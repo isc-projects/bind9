@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.47 2008/06/23 19:41:20 jinmei Exp $ */
+/* $Id: net.h,v 1.48 2008/06/23 23:47:11 tbox Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
@@ -104,7 +104,7 @@
 /*%
  * Required for some pre RFC2133 implementations.
  * IN6ADDR_ANY_INIT and IN6ADDR_LOOPBACK_INIT were added in
- * draft-ietf-ipngwg-bsd-api-04.txt or draft-ietf-ipngwg-bsd-api-05.txt.  
+ * draft-ietf-ipngwg-bsd-api-04.txt or draft-ietf-ipngwg-bsd-api-05.txt.
  * If 's6_addr' is defined then assume that there is a union and three
  * levels otherwise assume two levels required.
  */
@@ -202,7 +202,7 @@ extern const struct in6_addr isc_net_in6addrloop;
 
 #ifdef ISC_PLATFORM_FIXIN6ISADDR
 #undef  IN6_IS_ADDR_GEOGRAPHIC
-/*! 
+/*!
  * \brief
  * Fix UnixWare 7.1.1's broken IN6_IS_ADDR_* definitions.
  */
