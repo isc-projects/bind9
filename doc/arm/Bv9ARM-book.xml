@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.360 2008/06/23 19:41:18 jinmei Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.361 2008/06/23 22:20:05 jinmei Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -6332,7 +6332,7 @@ query-source-v6 address * port *;
 	    <command>named</command> will use the corresponding system
 	    default range; otherwise, it will use its own defaults:
          </para>
-	    
+
 <programlisting>use-v4-udp-ports { range 1024 65535; };
 use-v6-udp-ports { range 1024 65535; };
 </programlisting>
