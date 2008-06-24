@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.304 2007/12/03 00:21:48 marka Exp $ */
+/* $Id: dighost.c,v 1.303 2007/06/18 23:47:17 tbox Exp $ */
 
 /*! \file
  *  \note
@@ -1950,15 +1950,12 @@ setup_lookup(dig_lookup_t *lookup) {
 
 	if ((lookup->rdtype == dns_rdatatype_axfr) ||
 	    (lookup->rdtype == dns_rdatatype_ixfr)) {
+		lookup->doing_xfr = ISC_TRUE;
 		/*
-		 * Force TCP mode if we're doing an axfr.
+		 * Force TCP mode if we're doing an xfr.
+		 * XXX UDP ixfr's would be useful
 		 */
-		if (lookup->rdtype == dns_rdatatype_axfr) {
-			lookup->doing_xfr = ISC_TRUE;
-			lookup->tcp_mode = ISC_TRUE;
-		} else if (lookup->tcp_mode) {
-			lookup->doing_xfr = ISC_TRUE;
-		}
+		lookup->tcp_mode = ISC_TRUE;
 	}
 
 	add_question(lookup->sendmsg, lookup->name, lookup->rdclass,

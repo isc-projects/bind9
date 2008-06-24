@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.c,v 1.9 2007/12/20 01:48:29 marka Exp $ */
+/* $Id: radix.c,v 1.8 2007/11/27 19:14:45 each Exp $ */
 
 /*
  * This source was adapted from MRT's RCS Ids:
@@ -115,9 +115,9 @@ _ref_prefix(isc_mem_t *mctx, isc_prefix_t **target, isc_prefix_t *prefix) {
 static int 
 _comp_with_mask(void *addr, void *dest, u_int mask) {
 
-	/* Mask length of zero matches everything */
-	if (mask == 0)
-		return (1);
+        /* Mask length of zero matches everything */
+        if (mask == 0)
+                return (1);
 
 	if (memcmp(addr, dest, mask / 8) == 0) {
 		int n = mask / 8;
@@ -315,20 +315,7 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 		node->parent = NULL;
 		node->l = node->r = NULL;
 		node->data = NULL;
-		if (source != NULL) {
-			/*
-			 * If source is non-NULL, then we're merging in a
-			 * node from an existing radix tree.  To keep
-			 * the node_num values consistent, the calling
-			 * function will add the total number of nodes
-			 * added to num_added_node at the end of
-			 * the merge operation--we don't do it here.
-			 */
-			node->node_num = radix->num_added_node +
-					 source->node_num;
-		} else {
-			node->node_num = ++radix->num_added_node;
-		}
+		node->node_num = ++radix->num_added_node;
 		radix->head = node;
 		radix->num_active_node++;
 		*target = node;
@@ -395,13 +382,7 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		INSIST(node->data == NULL && node->node_num == -1);
-		if (source != NULL) {
-			/* Merging node */
-			node->node_num = radix->num_added_node +
-					 source->node_num;
-		} else {
-			node->node_num = ++radix->num_added_node;
-		}
+		node->node_num = ++radix->num_added_node;
 		*target = node;
 		return (ISC_R_SUCCESS);
 	}
@@ -431,7 +412,17 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 	radix->num_active_node++;
 
 	if (source != NULL) {
-		/* Merging node */
+		/*
+		 * If source is non-NULL, then we're merging in a node
+		 * from an existing radix tree.  Node_num values have to
+		 * remain consistent; they can't just be added in whatever
+		 * order came from walking the tree.  So we don't increment
+		 * num_added_node here; instead, we add it to the node-num
+		 * values for each node from the nested tree, and then when
+		 * the whole tree is done, the calling function will bump
+		 * num_added_node by the highest value of node_num in the
+		 * tree.
+		 */
 		new_node->node_num = radix->num_added_node + source->node_num;
 		new_node->data = source->data;
 	} else {

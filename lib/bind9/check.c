@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.86 2007/12/14 01:27:12 marka Exp $ */
+/* $Id: check.c,v 1.84 2007/11/26 01:51:32 marka Exp $ */
 
 /*! \file */
 
@@ -632,7 +632,6 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 					    "bad domain name '%s'", dlv);
 				result = tresult;
-				continue;
 			}
 			if (symtab != NULL) {
 				tresult = nameexist(obj, dlv, 1, symtab,
@@ -1097,18 +1096,18 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	isc_buffer_add(&b, strlen(zname));
 	tresult = dns_name_fromtext(dns_fixedname_name(&fixedname), &b,
 				   dns_rootname, ISC_TRUE, NULL);
-	if (tresult != ISC_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS) {
 		cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
 			    "zone '%s': is not a valid name", zname);
-		result = ISC_R_FAILURE;
+		tresult = ISC_R_FAILURE;
 	} else {
 		char namebuf[DNS_NAME_FORMATSIZE];
 
 		dns_name_format(dns_fixedname_name(&fixedname),
 				namebuf, sizeof(namebuf));
 		tresult = nameexist(zconfig, namebuf, ztype == HINTZONE ? 1 : 2,
-				    symtab, "zone '%s': already exists "
-				    "previous definition: %s:%u", logctx, mctx);
+				   symtab, "zone '%s': already exists "
+				   "previous definition: %s:%u", logctx, mctx);
 		if (tresult != ISC_R_SUCCESS)
 			result = tresult;
 	}

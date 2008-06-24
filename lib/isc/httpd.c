@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: httpd.c,v 1.12 2007/12/02 21:34:20 explorer Exp $ */
+/* $Id: httpd.c,v 1.11 2007/08/27 03:32:27 marka Exp $ */
 
 /*! \file */
 
@@ -682,6 +682,7 @@ isc_httpd_recvdone(isc_task_t *task, isc_event_t *ev)
 	if (isc_buffer_length(&httpd->bodybuffer) > 0)
 		ISC_LIST_APPEND(httpd->bufflist, &httpd->bodybuffer, link);
 
+	httpd->freecb = NULL;
 	result = isc_socket_sendv(httpd->sock, &httpd->bufflist, task,
 				  isc_httpd_senddone, httpd);
 

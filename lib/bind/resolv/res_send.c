@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_send.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: res_send.c,v 1.18 2007/12/14 03:52:40 marka Exp $";
+static const char rcsid[] = "$Id: res_send.c,v 1.17 2006/10/16 22:54:38 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /*! \file
@@ -601,9 +601,6 @@ send_vc(res_state statp,
 	u_short len;
 	u_char *cp;
 	void *tmp;
-#ifdef SO_NOSIGPIPE
-	int on = 1;
-#endif
 
 	nsap = get_nsaddr(statp, ns);
 	nsaplen = get_salen(nsap);
@@ -649,17 +646,6 @@ send_vc(res_state statp,
 				return (-1);
 			}
 		}
-#ifdef SO_NOSIGPIPE
-		/*
-		 * Disable generation of SIGPIPE when writing to a closed
-		 * socket.  Write should return -1 and set errno to EPIPE
-		 * instead. 
-		 *
-		 * Push on even if setsockopt(SO_NOSIGPIPE) fails.
-		 */
-		(void)setsockopt(statp->_vcsock, SOL_SOCKET, SO_NOSIGPIPE, &on,
-			         sizeof(on));
-#endif
 		errno = 0;
 		if (connect(statp->_vcsock, nsap, nsaplen) < 0) {
 			*terrno = errno;

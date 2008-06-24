@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.495 2007/12/14 04:01:20 marka Exp $ */
+/* $Id: server.c,v 1.493 2007/11/26 02:43:53 marka Exp $ */
 
 /*! \file */
 
@@ -201,7 +201,6 @@ static const struct {
 #endif
 
 	/* RFC 3330 */
-	{ "0.IN-ADDR.ARPA", ISC_FALSE },	/* THIS NETWORK */
 	{ "127.IN-ADDR.ARPA", ISC_FALSE },	/* LOOPBACK */
 	{ "254.169.IN-ADDR.ARPA", ISC_FALSE },	/* LINK LOCAL */
 	{ "2.0.192.IN-ADDR.ARPA", ISC_FALSE },	/* TEST NET */
@@ -222,8 +221,8 @@ static const struct {
 
 #ifdef HAVE_LIBXML2
 
-static isc_result_t
-server_httpd_create(ns_server_t *server, int pf);
+void
+server_httpd_create(ns_server_t *server);
 
 static isc_result_t
 render_index(const char *url, const char *querystring, void *args,
@@ -2992,37 +2991,24 @@ load_configuration(const char *filename, ns_server_t *server,
 	 * XXXMLG this will have to change later.  Eventually, we will want
 	 * XXXMLG to start it once, and add/remove listener ports as the
 	 * XXXMLG user wants, which will allow more than one.
-	 * XXXMLG We will also want to support some form of ACL.
+	 * XXXMLG We will also want to support IPv6 and some form of ACL.
 	 */
 	obj = NULL;
 	result = ns_config_get(maps, "stats-server", &obj);
 
 	if (result == ISC_R_SUCCESS && obj != NULL) {
 		if (!isc_sockaddr_equal(cfg_obj_assockaddr(obj),
-					&server->httpd_sockaddr4)) {
-			if (server->httpd4 != NULL)
-				isc_httpdmgr_shutdown(&server->httpd4);
-			server->httpd_sockaddr4 = *cfg_obj_assockaddr(obj);
-			CHECKM(server_httpd_create(server, AF_INET),
-			       "stats-server");
-		}
-	} else if (server->httpd4 != NULL)
-			isc_httpdmgr_shutdown(&server->httpd4);
+					&server->httpd_sockaddr)) {
+			if (server->httpd != NULL)
+				isc_httpdmgr_shutdown(&server->httpd);
+			server->httpd_sockaddr = *cfg_obj_assockaddr(obj);
+			server_httpd_create(server);
 
-	obj = NULL;
-	result = ns_config_get(maps, "stats-server-v6", &obj);
-
-	if (result == ISC_R_SUCCESS && obj != NULL) {
-		if (!isc_sockaddr_equal(cfg_obj_assockaddr(obj),
-					&server->httpd_sockaddr6)) {
-			if (server->httpd6 != NULL)
-				isc_httpdmgr_shutdown(&server->httpd6);
-			server->httpd_sockaddr6 = *cfg_obj_assockaddr(obj);
-			CHECKM(server_httpd_create(server, AF_INET6),
-			       "stats-server-v6");
 		}
-	} else if (server->httpd6 != NULL)
-			isc_httpdmgr_shutdown(&server->httpd6);
+	} else {
+		if (server->httpd != NULL)
+			isc_httpdmgr_shutdown(&server->httpd);
+	}
 #endif
 
 	v4ports = NULL;
@@ -3702,10 +3688,8 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 		      flush ? ": flushing changes" : "");
 
 #ifdef HAVE_LIBXML2
-	if (server->httpd4 != NULL)
-		isc_httpdmgr_shutdown(&server->httpd4);
-	if (server->httpd6 != NULL)
-		isc_httpdmgr_shutdown(&server->httpd6);
+	if (server->httpd != NULL)
+		isc_httpdmgr_shutdown(&server->httpd);
 #endif
 
 	ns_controls_shutdown(server->controls);
@@ -3750,12 +3734,12 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 
 #ifdef HAVE_LIBXML2
 
-static isc_result_t
-server_httpd_create(ns_server_t *server, int pf) {
+void
+server_httpd_create(ns_server_t *server)
+{
 	isc_socket_t *sock;
 	isc_task_t *task;
 	isc_result_t result;
-	isc_httpdmgr_t *httpd;
 
 	task = NULL;
 	result = isc_task_create(ns_g_taskmgr, 0, &task);
@@ -3763,42 +3747,24 @@ server_httpd_create(ns_server_t *server, int pf) {
 	isc_task_setname(task, "httpd", NULL);
 
 	sock = NULL;
-	result = isc_socket_create(ns_g_socketmgr, pf, isc_sockettype_tcp,
-				   &sock);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	result = isc_socket_create(ns_g_socketmgr, PF_INET,
+				   isc_sockettype_tcp, &sock);
+	INSIST(result == ISC_R_SUCCESS);
 	isc_socket_setname(sock, "httpd", NULL);
 
-#ifndef ISC_ALLOW_MAPPED
-	isc_socket_ipv6only(sock, ISC_TRUE);
-#endif
+	result = isc_socket_bind(sock, &server->httpd_sockaddr);
+	INSIST(result == ISC_R_SUCCESS);
 
-	if (pf == AF_INET)
-		result = isc_socket_bind(sock, &server->httpd_sockaddr4);
-	else
-		result = isc_socket_bind(sock, &server->httpd_sockaddr6);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-
-	httpd = NULL;
+	server->httpd = NULL;
 	result = isc_httpdmgr_create(ns_g_mctx, sock, task, ns_g_timermgr,
-				     &httpd);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+				     &server->httpd);
+	INSIST(result == ISC_R_SUCCESS);
 
-	isc_httpdmgr_addurl(httpd, "/", render_index, server);
-	isc_httpdmgr_addurl(httpd, "/bind9.xsl", render_xsl, server);
+	isc_httpdmgr_addurl(server->httpd, "/", render_index, server);
+	isc_httpdmgr_addurl(server->httpd, "/bind9.xsl", render_xsl, server);
 
-	if (pf == AF_INET)
-		server->httpd4 = httpd;
-	else
-		server->httpd6 = httpd;
-
-cleanup:
 	isc_task_detach(&task);
 	isc_socket_detach(&sock);
-
-	return (result);
 }
 
 #endif
@@ -3915,10 +3881,7 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	/*
 	 * HTTP server configuration.
 	 */
-	server->httpd4 = NULL;
-	isc_sockaddr_any(&server->httpd_sockaddr4);
-	server->httpd6 = NULL;
-	isc_sockaddr_any6(&server->httpd_sockaddr6);
+	server->httpd = NULL;
 
 	server->magic = NS_SERVER_MAGIC;
 	*serverp = server;
