@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.88 2008/06/24 02:02:49 jinmei Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.89 2008/06/24 22:23:13 jinmei Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -6086,7 +6086,7 @@ listen-on-v6 port 1234 { !2001:db8::/32; any; };
           </para>
         </sect3>
 
-        <sect3>
+        <sect3 id="query_address">
           <title>Query Address</title>
           <para>
             If the server doesn't know the answer to a question, it will
