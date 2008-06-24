@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.282 2008/06/23 23:47:11 tbox Exp $ */
+/* $Id: socket.c,v 1.283 2008/06/24 01:58:16 jinmei Exp $ */
 
 /*! \file */
 
@@ -3325,6 +3325,7 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
 	char strbuf[ISC_STRERRORSIZE];
 #endif
 	isc_result_t result;
+
 	REQUIRE(managerp != NULL && *managerp == NULL);
 
 #ifndef ISC_PLATFORM_USETHREADS
