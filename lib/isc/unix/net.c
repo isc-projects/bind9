@@ -15,12 +15,14 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.c,v 1.36.60.1 2008/06/24 00:09:12 jinmei Exp $ */
+/* $Id: net.c,v 1.36.60.2 2008/06/24 01:43:40 jinmei Exp $ */
 
 #include <config.h>
 
 #include <sys/types.h>
+#ifdef HAVE_SYS_SYSCTL_H
 #include <sys/sysctl.h>
+#endif
 
 #include <errno.h>
 #include <unistd.h>
