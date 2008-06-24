@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.74 2008/06/17 22:39:53 jinmei Exp $ */
+/* $Id: resolver.c,v 1.284.18.75 2008/06/24 02:02:50 jinmei Exp $ */
 
 /*! \file */
 
@@ -121,6 +121,7 @@ typedef struct query {
 	isc_mem_t *			mctx;
 	dns_dispatchmgr_t *		dispatchmgr;
 	dns_dispatch_t *		dispatch;
+	isc_boolean_t			exclusivesocket;
 	dns_adbaddrinfo_t *		addrinfo;
 	isc_socket_t *			tcpsocket;
 	isc_time_t			start;
@@ -307,7 +308,9 @@ struct dns_resolver {
 	unsigned int			options;
 	dns_dispatchmgr_t *		dispatchmgr;
 	dns_dispatch_t *		dispatchv4;
+	isc_boolean_t			exclusivev4;
 	dns_dispatch_t *		dispatchv6;
+	isc_boolean_t			exclusivev6;
 	unsigned int			nbuckets;
 	fctxbucket_t *			buckets;
 	isc_uint32_t			lame_ttl;
@@ -562,6 +565,7 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 	unsigned int factor;
 	dns_adbfind_t *find;
 	dns_adbaddrinfo_t *addrinfo;
+	isc_socket_t *socket;
 
 	query = *queryp;
 	fctx = query->fctx;
@@ -643,6 +647,38 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 							   0, factor);
 	}
 
+	/*
+	 * Check for any outstanding socket events.  If they exist, cancel
+	 * them and let the event handlers finish the cleanup.  The resolver
+	 * only needs to worry about managing the connect and send events;
+	 * the dispatcher manages the recv events.
+	 */
+	if (RESQUERY_CONNECTING(query)) {
+		/*
+		 * Cancel the connect.
+		 */
+		if (query->tcpsocket != NULL) {
+			isc_socket_cancel(query->tcpsocket, NULL,
+					  ISC_SOCKCANCEL_CONNECT);
+		} else if (query->dispentry != NULL) {
+			INSIST(query->exclusivesocket);
+			socket = dns_dispatch_getentrysocket(query->dispentry);
+			if (socket != NULL)
+				isc_socket_cancel(socket, NULL,
+						  ISC_SOCKCANCEL_CONNECT);
+		}
+	} else if (RESQUERY_SENDING(query)) {
+		/*
+		 * Cancel the pending send.
+		 */
+		if (query->exclusivesocket && query->dispentry != NULL)
+			socket = dns_dispatch_getentrysocket(query->dispentry);
+		else
+			socket = dns_dispatch_getsocket(query->dispatch);
+		if (socket != NULL)
+			isc_socket_cancel(socket, NULL, ISC_SOCKCANCEL_SEND);
+	}
+
 	if (query->dispentry != NULL)
 		dns_dispatch_removeresponse(&query->dispentry, deventp);
 
@@ -653,25 +689,6 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 
 	if (query->tsigkey != NULL)
 		dns_tsigkey_detach(&query->tsigkey);
-
-	/*
-	 * Check for any outstanding socket events.  If they exist, cancel
-	 * them and let the event handlers finish the cleanup.  The resolver
-	 * only needs to worry about managing the connect and send events;
-	 * the dispatcher manages the recv events.
-	 */
-	if (RESQUERY_CONNECTING(query))
-		/*
-		 * Cancel the connect.
-		 */
-		isc_socket_cancel(query->tcpsocket, NULL,
-				  ISC_SOCKCANCEL_CONNECT);
-	else if (RESQUERY_SENDING(query))
-		/*
-		 * Cancel the pending send.
-		 */
-		isc_socket_cancel(dns_dispatch_getsocket(query->dispatch),
-				  NULL, ISC_SOCKCANCEL_SEND);
 
 	if (query->dispatch != NULL)
 		dns_dispatch_detach(&query->dispatch);
@@ -870,43 +887,25 @@ fctx_done(fetchctx_t *fctx, isc_result_t result) {
 }
 
 static void
-resquery_senddone(isc_task_t *task, isc_event_t *event) {
+process_sendevent(resquery_t *query, isc_event_t *event) {
 	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
-	resquery_t *query = event->ev_arg;
 	isc_boolean_t retry = ISC_FALSE;
 	isc_result_t result;
 	fetchctx_t *fctx;
 
-	REQUIRE(event->ev_type == ISC_SOCKEVENT_SENDDONE);
-
-	QTRACE("senddone");
-
-	/*
-	 * XXXRTH
-	 *
-	 * Currently we don't wait for the senddone event before retrying
-	 * a query.  This means that if we get really behind, we may end
-	 * up doing extra work!
-	 */
-
-	UNUSED(task);
-
-	INSIST(RESQUERY_SENDING(query));
-
-	query->sends--;
 	fctx = query->fctx;
 
 	if (RESQUERY_CANCELED(query)) {
-		if (query->sends == 0) {
+		if (query->sends == 0 && query->connects == 0) {
 			/*
 			 * This query was canceled while the
-			 * isc_socket_sendto() was in progress.
+			 * isc_socket_sendto/connect() was in progress.
 			 */
 			if (query->tcpsocket != NULL)
 				isc_socket_detach(&query->tcpsocket);
 			resquery_destroy(&query);
 		}
-	} else
+	} else {
 		switch (sevent->result) {
 		case ISC_R_SUCCESS:
 			break;
@@ -928,6 +927,7 @@ resquery_senddone(isc_task_t *task, isc_event_t *event) {
 			fctx_cancelquery(&query, NULL, NULL, ISC_FALSE);
 			break;
 		}
+	}
 
 	isc_event_free(&event);
 
@@ -943,6 +943,48 @@ resquery_senddone(isc_task_t *task, isc_event_t *event) {
 		else
 			fctx_try(fctx);
 	}
+}
+
+static void
+resquery_udpconnected(isc_task_t *task, isc_event_t *event) {
+	resquery_t *query = event->ev_arg;
+
+	REQUIRE(event->ev_type == ISC_SOCKEVENT_CONNECT);
+
+	QTRACE("udpconnected");
+
+	UNUSED(task);
+
+	INSIST(RESQUERY_CONNECTING(query));
+
+	query->connects--;
+
+	process_sendevent(query, event);
+}
+
+static void
+resquery_senddone(isc_task_t *task, isc_event_t *event) {
+	resquery_t *query = event->ev_arg;
+
+	REQUIRE(event->ev_type == ISC_SOCKEVENT_SENDDONE);
+
+	QTRACE("senddone");
+
+	/*
+	 * XXXRTH
+	 *
+	 * Currently we don't wait for the senddone event before retrying
+	 * a query.  This means that if we get really behind, we may end
+	 * up doing extra work!
+	 */
+
+	UNUSED(task);
+
+	INSIST(RESQUERY_SENDING(query));
+
+	query->sends--;
+
+	process_sendevent(query, event);
 }
 
 static inline isc_result_t
@@ -1083,6 +1125,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	 */
 	query->dispatchmgr = res->dispatchmgr;
 	query->dispatch = NULL;
+	query->exclusivesocket = ISC_FALSE;
 	query->tcpsocket = NULL;
 	if (res->view->peers != NULL) {
 		dns_peer_t *peer = NULL;
@@ -1165,52 +1208,20 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 			if (result != ISC_R_SUCCESS)
 				goto cleanup_query;
 		} else {
-			isc_sockaddr_t localaddr;
-			unsigned int attrs, attrmask;
-			dns_dispatch_t *disp_base;
-
-			attrs = 0;
-			attrs |= DNS_DISPATCHATTR_UDP;
-			attrs |= DNS_DISPATCHATTR_RANDOMPORT;
-
-			attrmask = 0;
-			attrmask |= DNS_DISPATCHATTR_UDP;
-			attrmask |= DNS_DISPATCHATTR_TCP;
-			attrmask |= DNS_DISPATCHATTR_IPV4;
-			attrmask |= DNS_DISPATCHATTR_IPV6;
-
 			switch (isc_sockaddr_pf(&addrinfo->sockaddr)) {
-			case AF_INET:
-				disp_base = res->dispatchv4;
-				attrs |= DNS_DISPATCHATTR_IPV4;
+			case PF_INET:
+				dns_dispatch_attach(res->dispatchv4,
+						    &query->dispatch);
+				query->exclusivesocket = res->exclusivev4;
 				break;
-			case AF_INET6:
-				disp_base = res->dispatchv6;
-				attrs |= DNS_DISPATCHATTR_IPV6;
+			case PF_INET6:
+				dns_dispatch_attach(res->dispatchv6,
+						    &query->dispatch);
+				query->exclusivesocket = res->exclusivev6;
 				break;
 			default:
 				result = ISC_R_NOTIMPLEMENTED;
 				goto cleanup_query;
-			}
-
-			result = dns_dispatch_getlocaladdress(disp_base,
-							      &localaddr);
-			if (result != ISC_R_SUCCESS)
-				goto cleanup_query;
-			if (isc_sockaddr_getport(&localaddr) == 0) {
-				result = dns_dispatch_getudp(res->dispatchmgr,
-							     res->socketmgr,
-							     res->taskmgr,
-							     &localaddr,
-							     4096, 1000, 32768,
-							     16411, 16433,
-							     attrs, attrmask,
-							     &query->dispatch);
-				if (result != ISC_R_SUCCESS)
-					goto cleanup_query;
-			} else {
-				dns_dispatch_attach(disp_base,
-						    &query->dispatch);
 			}
 		}
 		/*
@@ -1384,13 +1395,14 @@ resquery_send(resquery_t *query) {
 	/*
 	 * Get a query id from the dispatch.
 	 */
-	result = dns_dispatch_addresponse(query->dispatch,
-					  &query->addrinfo->sockaddr,
-					  task,
-					  resquery_response,
-					  query,
-					  &query->id,
-					  &query->dispentry);
+	result = dns_dispatch_addresponse2(query->dispatch,
+					   &query->addrinfo->sockaddr,
+					   task,
+					   resquery_response,
+					   query,
+					   &query->id,
+					   &query->dispentry,
+					   res->socketmgr);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_temps;
 
@@ -1599,12 +1611,24 @@ resquery_send(resquery_t *query) {
 	 */
 	dns_message_reset(fctx->qmessage, DNS_MESSAGE_INTENTRENDER);
 
-	socket = dns_dispatch_getsocket(query->dispatch);
+	if (query->exclusivesocket)
+		socket = dns_dispatch_getentrysocket(query->dispentry);
+	else
+		socket = dns_dispatch_getsocket(query->dispatch);
 	/*
 	 * Send the query!
 	 */
-	if ((query->options & DNS_FETCHOPT_TCP) == 0)
+	if ((query->options & DNS_FETCHOPT_TCP) == 0) {
 		address = &query->addrinfo->sockaddr;
+		if (query->exclusivesocket) {
+			result = isc_socket_connect(socket, address, task,
+						    resquery_udpconnected,
+						    query);
+			if (result != ISC_R_SUCCESS)
+				goto cleanup_message;
+			query->connects++;
+		}
+	}
 	isc_buffer_usedregion(buffer, &r);
 
 	/*
@@ -2702,6 +2726,8 @@ fctx_destroy(fetchctx_t *fctx) {
 static void
 fctx_timeout(isc_task_t *task, isc_event_t *event) {
 	fetchctx_t *fctx = event->ev_arg;
+	isc_timerevent_t *tevent = (isc_timerevent_t *)event;
+	resquery_t *query;
 
 	REQUIRE(VALID_FCTX(fctx));
 
@@ -2717,8 +2743,18 @@ fctx_timeout(isc_task_t *task, isc_event_t *event) {
 		fctx->timeouts++;
 		/*
 		 * We could cancel the running queries here, or we could let
-		 * them keep going.  Right now we choose the latter...
+		 * them keep going.  Since we normally use separate sockets for
+		 * different queries, we adopt the former approach to reduce
+		 * the number of open sockets: cancel the oldest query if it
+		 * expired before the query had started (this is usually the
+		 * case but is not always so, depending on the task schedule
+		 * timing).
 		 */
+		query = ISC_LIST_HEAD(fctx->queries);
+		if (query != NULL &&
+		    isc_time_compare(&tevent->due, &query->start) >= 0) {
+			fctx_cancelquery(&query, NULL, NULL, ISC_TRUE);
+		}
 		fctx->attributes &= ~FCTX_ATTR_ADDRWAIT;
 		/*
 		 * Our timer has triggered.  Reestablish the fctx lifetime
@@ -5513,6 +5549,19 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			 * There's no hope for this query.
 			 */
 			keep_trying = ISC_TRUE;
+
+			/*
+			 * If this is a network error on an exclusive query
+			 * socket, mark the server as bad so that we won't try
+			 * it for this fetch again.
+			 */
+			if (query->exclusivesocket &&
+			    (devent->result == ISC_R_HOSTUNREACH ||
+			     devent->result == ISC_R_NETUNREACH ||
+			     devent->result == ISC_R_CONNREFUSED ||
+			     devent->result == ISC_R_CANCELED)) {
+				    broken_server = devent->result;
+			}
 		}
 		goto done;
 	}
@@ -6199,6 +6248,7 @@ dns_resolver_create(dns_view_t *view,
 	unsigned int i, buckets_created = 0;
 	isc_task_t *task = NULL;
 	char name[16];
+	unsigned dispattr;
 
 	/*
 	 * Create a resolver.
@@ -6265,11 +6315,20 @@ dns_resolver_create(dns_view_t *view,
 	}
 
 	res->dispatchv4 = NULL;
-	if (dispatchv4 != NULL)
+	if (dispatchv4 != NULL) {
 		dns_dispatch_attach(dispatchv4, &res->dispatchv4);
+		dispattr = dns_dispatch_getattributes(dispatchv4);
+		res->exclusivev4 =
+			ISC_TF((dispattr & DNS_DISPATCHATTR_EXCLUSIVE) != 0);
+	}
+
 	res->dispatchv6 = NULL;
-	if (dispatchv6 != NULL)
+	if (dispatchv6 != NULL) {
 		dns_dispatch_attach(dispatchv6, &res->dispatchv6);
+		dispattr = dns_dispatch_getattributes(dispatchv6);
+		res->exclusivev6 =
+			ISC_TF((dispattr & DNS_DISPATCHATTR_EXCLUSIVE) != 0);
+	}
 
 	res->references = 1;
 	res->exiting = ISC_FALSE;
@@ -6552,12 +6611,12 @@ dns_resolver_shutdown(dns_resolver_t *res) {
 			     fctx != NULL;
 			     fctx = ISC_LIST_NEXT(fctx, link))
 				fctx_shutdown(fctx);
-			if (res->dispatchv4 != NULL) {
+			if (res->dispatchv4 != NULL && !res->exclusivev4) {
 				sock = dns_dispatch_getsocket(res->dispatchv4);
 				isc_socket_cancel(sock, res->buckets[i].task,
 						  ISC_SOCKCANCEL_ALL);
 			}
-			if (res->dispatchv6 != NULL) {
+			if (res->dispatchv6 != NULL && !res->exclusivev6) {
 				sock = dns_dispatch_getsocket(res->dispatchv6);
 				isc_socket_cancel(sock, res->buckets[i].task,
 						  ISC_SOCKCANCEL_ALL);

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.50.18.5 2008/01/17 23:46:05 tbox Exp $ */
+/* $Id: app.c,v 1.50.18.6 2008/06/24 02:02:51 jinmei Exp $ */
 
 /*! \file */
 
@@ -30,6 +30,9 @@
 #include <unistd.h>
 #include <signal.h>
 #include <sys/time.h>
+#ifdef HAVE_EPOLL
+#include <sys/epoll.h>
+#endif
 
 #include <isc/app.h>
 #include <isc/boolean.h>
@@ -303,8 +306,7 @@ evloop() {
 		int n;
 		isc_time_t when, now;
 		struct timeval tv, *tvp;
-		fd_set readfds, writefds;
-		int maxfd;
+		isc_socketwait_t *swait;
 		isc_boolean_t readytasks;
 		isc_boolean_t call_timer_dispatch = ISC_FALSE;
 
@@ -331,8 +333,8 @@ evloop() {
 			}
 		}
 
-		isc__socketmgr_getfdsets(&readfds, &writefds, &maxfd);
-		n = select(maxfd, &readfds, &writefds, NULL, tvp);
+		swait = NULL;
+		n = isc__socketmgr_waitevents(tvp, &swait);
 
 		if (n == 0 || call_timer_dispatch) {
 			/*
@@ -352,8 +354,7 @@ evloop() {
 			isc__timermgr_dispatch();
 		}
 		if (n > 0)
-			(void)isc__socketmgr_dispatch(&readfds, &writefds,
-						      maxfd);
+			(void)isc__socketmgr_dispatch(swait);
 		(void)isc__taskmgr_dispatch();
 
 		if (want_reload) {

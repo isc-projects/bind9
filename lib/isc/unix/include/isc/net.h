@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.39.18.4 2005/04/27 05:02:37 sra Exp $ */
+/* $Id: net.h,v 1.39.18.5 2008/06/24 02:02:51 jinmei Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
@@ -322,6 +322,23 @@ isc_result_t
 isc_net_probeunix(void);
 /*
  * Returns whether UNIX domain sockets are supported.
+ */
+
+isc_result_t
+isc_net_getudpportrange(int af, in_port_t *low, in_port_t *high);
+/*%<
+ * Returns system's default range of ephemeral UDP ports, if defined.
+ * If the range is not available or unknown, ISC_NET_PORTRANGELOW and
+ * ISC_NET_PORTRANGEHIGH will be returned.
+ *
+ * Requires:
+ *
+ *\li	'low' and 'high' must be non NULL.
+ *
+ * Returns:
+ *
+ *\li	*low and *high will be the ports specifying the low and high ends of
+ *	the range.
  */
 
 #ifdef ISC_PLATFORM_NEEDNTOP

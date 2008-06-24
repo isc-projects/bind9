@@ -1,3 +1,7 @@
+2384.	[security]	Additional support for query port randomization (change
+			#2375) including performance improvement and port range
+			specification.  [RT #17949, #18098]
+
 2383.	[bug]		named could double queries when they resulted in
 			SERVFAIL due to overkilling EDNS0 failure detection.
 			[RT #18182]
