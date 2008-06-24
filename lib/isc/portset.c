@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: portset.c,v 1.2.2.1 2008/06/24 00:09:12 jinmei Exp $ */
+/* $Id: portset.c,v 1.2.2.2 2008/06/24 21:43:44 marka Exp $ */
 
 /*! \file */
 #include <isc/mem.h>
@@ -35,12 +35,12 @@ struct isc_portset {
 	isc_uint32_t buf[ISC_PORTSET_BUFSIZE];
 };
 
-static inline isc_boolean_t
+inline isc_boolean_t
 portset_isset(isc_portset_t *portset, in_port_t port) {
 	return (ISC_TF((portset->buf[port >> 5] & (1 << (port & 31))) != 0));
 }
 
-static inline void
+inline void
 portset_add(isc_portset_t *portset, in_port_t port) {
 	if (!portset_isset(portset, port)) {
 		portset->nports++;
@@ -48,7 +48,7 @@ portset_add(isc_portset_t *portset, in_port_t port) {
 	}
 }
 
-static inline void
+inline void
 portset_remove(isc_portset_t *portset, in_port_t port) {
 	if (portset_isset(portset, port)) {
 		portset->nports--;
