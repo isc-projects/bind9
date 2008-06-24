@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: portset.c,v 1.2 2008/06/23 19:41:19 jinmei Exp $ */
+/* $Id: portset.c,v 1.2.2.1 2008/06/24 00:09:12 jinmei Exp $ */
 
 /*! \file */
 #include <isc/mem.h>

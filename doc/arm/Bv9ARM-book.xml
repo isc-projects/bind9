@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.12 2008/06/17 06:44:09 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.13 2008/06/24 00:09:11 jinmei Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -2937,6 +2937,33 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
             <row rowsep="0">
               <entry colname="1">
                 <para>
+                  <varname>port_list</varname>
+                </para>
+              </entry>
+              <entry colname="2">
+                <para>
+		  A list of an <varname>ip_port</varname> or a port
+		  range.
+		  A port range is specified in the form of
+		  <userinput>range</userinput> followed by
+		  two <varname>ip_port</varname>s,
+		  <varname>port_low</varname> and
+		  <varname>port_high</varname>, which represents
+		  port numbers from <varname>port_low</varname> through
+		  <varname>port_high</varname>, inclusive.
+		  <varname>port_low</varname> must not be larger than
+		  <varname>port_high</varname>.
+		  For example,
+		  <userinput>range 1024 65535</userinput> represents
+		  ports from 1024 through 65535.
+		  In either case an asterisk (`*') character is not
+		  allowed as a valid <varname>ip_port</varname>.
+                </para>
+              </entry>
+            </row>
+            <row rowsep="0">
+              <entry colname="1">
+                <para>
                   <varname>size_spec</varname>
                 </para>
               </entry>
@@ -4492,7 +4519,9 @@ category notify { null; };
     <optional> try-tcp-refresh <replaceable>yes_or_no</replaceable>; </optional>
     <optional> allow-v6-synthesis { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> blackhole { <replaceable>address_match_list</replaceable> }; </optional>
+    <optional> use-v4-udp-ports { <replaceable>port_list</replaceable> }; </optional>
     <optional> avoid-v4-udp-ports { <replaceable>port_list</replaceable> }; </optional>
+    <optional> use-v6-udp-ports { <replaceable>port_list</replaceable> }; </optional>
     <optional> avoid-v6-udp-ports { <replaceable>port_list</replaceable> }; </optional>
     <optional> listen-on <optional> port <replaceable>ip_port</replaceable> </optional> { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> listen-on-v6 <optional> port <replaceable>ip_port</replaceable> </optional> { <replaceable>address_match_list</replaceable> }; </optional>
@@ -6242,28 +6271,97 @@ listen-on-v6 port 1234 { !2001:db8::/32; any; };
             If <command>address</command> is <command>*</command> (asterisk) or is omitted,
             a wildcard IP address (<command>INADDR_ANY</command>)
             will be used.
+	  </para>
+
+	  <para>
             If <command>port</command> is <command>*</command> or is omitted,
-	    a random unprivileged port number is picked up and will be
-            used for each query.
-	    Previously, the <command>use-queryport-pool</command> was provided
-	    to support a pool of such random ports, but this option is now
-	    obsolete because reusing the same ports in the pool is not
-            sufficiently secure.
-	    For the same reason, it is generally strongly discouraged to
-            specify a particular port for the
-	    <command>query-source</command> or
-	    <command>query-source-v6</command> options;
-	    it implicitly disables the use of randomized port numbers.
-	    The <command>avoid-v4-udp-ports</command>
-            and <command>avoid-v6-udp-ports</command> options can be used
-            to prevent named
-            from selecting certain ports.
-	    The defaults are:
+	    a random port number from a pre-configured
+	    range is picked up and will be used for each query.
+	    The port range(s) is that specified in
+	    the <command>use-v4-udp-ports</command> (for IPv4)
+            and <command>use-v6-udp-ports</command> (for IPv6)
+	    options, excluding the ranges specified in
+	    the <command>avoid-v4-udp-ports</command>
+            and <command>avoid-v6-udp-ports</command> options, respectively.
+	  </para>
+
+          <para>
+	    The defaults of the <command>query-source</command> and
+	    <command>query-source-v6</command> options
+	    are:
           </para>
 
 <programlisting>query-source address * port *;
 query-source-v6 address * port *;
 </programlisting>
+
+          <para>
+	    If <command>use-v4-udp-ports</command> or
+            <command>use-v6-udp-ports</command> is unspecified,
+	    <command>named</command> will check if the operating
+	    system provides a programming interface to retrieve the
+	    system's default range for ephemeral ports.
+	    If such an interface is available,
+	    <command>named</command> will use the corresponding system
+	    default range; otherwise, it will use its own defaults:
+         </para>
+
+<programlisting>use-v4-udp-ports { range 1024 65535; };
+use-v6-udp-ports { range 1024 65535; };
+</programlisting>
+
+          <para>
+	    Note: make sure the ranges be sufficiently large for
+	    security.  A desirable size depends on various parameters,
+	    but we generally recommend it contain at least 16384 ports
+	    (14 bits of entropy).
+	    Note also that the system's default range when used may be
+	    too small for this purpose, and that the range may even be
+	    changed while <command>named</command> is running; the new
+	    range will automatically be applied when <command>named</command>
+	    is reloaded.
+	    It is encouraged to
+	    configure <command>use-v4-udp-ports</command> and
+            <command>use-v6-udp-ports</command> explicitly so that the
+            ranges are sufficiently large and are reasonably
+            independent from the ranges used by other applications.
+          </para>
+
+	  <para>
+	    Note: the operational configuration
+	    where <command>named</command> runs may prohibit the use
+	    of some ports.  For example, UNIX systems will not allow
+	    <command>named</command> running without a root privilege
+	    to use ports less than 1024.
+	    If such ports are included in the specified (or detected)
+	    set of query ports, the corresponding query attempts will
+	    fail, resulting in resolution failures or delay.
+	    It is therefore important to configure the set of ports
+	    that can be safely used in the expected operational environment.
+	  </para>
+
+          <para>
+	    The defaults of the <command>avoid-v4-udp-ports</command> and
+	    <command>avoid-v6-udp-ports</command> options
+	    are:
+          </para>
+
+<programlisting>avoid-v4-udp-ports {};
+avoid-v6-udp-ports {};
+</programlisting>
+
+	  <para>
+	    Note: BIND 9.5.0 introduced
+	    the <command>use-queryport-pool</command> 
+	    option to support a pool of such random ports, but this
+	    option is now obsolete because reusing the same ports in
+	    the pool may not be sufficiently secure.
+	    For the same reason, it is generally strongly discouraged to
+            specify a particular port for the
+	    <command>query-source</command> or
+	    <command>query-source-v6</command> options;
+	    it implicitly disables the use of randomized port numbers.
+          </para>
 
           <variablelist>
             <varlistentry>
@@ -6638,17 +6736,48 @@ query-source-v6 address * port *;
         </sect3>
 
         <sect3>
-          <title>Bad UDP Port Lists</title>
-          <para><command>avoid-v4-udp-ports</command>
-	    and <command>avoid-v6-udp-ports</command> specify a list
-            of IPv4 and IPv6 UDP ports that will not be used as system
-            assigned source ports for UDP sockets.  These lists
-            prevent named from choosing as its random source port a
-            port that is blocked by your firewall.  If a query went
-            out with such a source port, the answer would not get by
-            the firewall and the name server would have to query
-            again.
+          <title>UDP Port Lists</title>
+          <para>
+	    <command>use-v4-udp-ports</command>,
+	    <command>avoid-v4-udp-ports</command>,
+	    <command>use-v6-udp-ports</command>, and
+	    <command>avoid-v6-udp-ports</command>
+	    specify a list of IPv4 and IPv6 UDP ports that will be
+	    used or not used as source ports for UDP messages.
+	    See <xref linkend="query_address"/> about how the
+	    available ports are determined.
+	    For example, with the following configuration
           </para>
+
+<programlisting>
+use-v6-udp-ports { range 32768 65535; };
+avoid-v6-udp-ports { 40000; range 50000 60000; };
+</programlisting>
+
+	   <para>
+	     UDP ports of IPv6 messages sent
+	     from <command>named</command> will be in one
+	     of the following ranges: 32768 to 39999, 40001 to 49999,
+	     and 60001 to 65535.
+	   </para>
+
+	   <para>
+	     <command>avoid-v4-udp-ports</command> and
+	     <command>avoid-v6-udp-ports</command> can be used
+             to prevent <command>named</command> from choosing as its random source port a
+             port that is blocked by your firewall or a port that is
+             used by other applications;
+	     if a query went out with a source port blocked by a
+             firewall, the
+	     answer would not get by the firewall and the name server would
+             have to query again.
+	     Note: the desired range can also be represented only with
+	     <command>use-v4-udp-ports</command> and
+	     <command>use-v6-udp-ports</command>, and the
+	     <command>avoid-</command> options are redundant in that
+	     sense; they are provided for backward compatibility and
+	     to possibly simplify the port specification.
+	   </para>
         </sect3>
 
         <sect3>

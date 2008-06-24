@@ -91,7 +91,6 @@ static char xslmsg[] =
 	" </head>\n"
 	" <body>\n"
 	" <div class=\"header\">Bind 9 Configuration and Statistics</div>\n"
-	"\n"
 	" <br/>\n"
 	"\n"
 	" <table>\n"

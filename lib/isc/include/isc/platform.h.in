@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.45.60.2 2008/01/24 23:46:26 tbox Exp $ */
+/* $Id: platform.h.in,v 1.45.60.3 2008/06/24 00:09:12 jinmei Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -135,6 +135,21 @@
  * IN6_IS_ADDR_* macros.
  */
 @ISC_PLATFORM_FIXIN6ISADDR@
+
+/*! \brief
+ * Define if the system supports kqueue multiplexing
+ */
+@ISC_PLATFORM_HAVEKQUEUE@
+
+/*! \brief
+ * Define if the system supports epoll multiplexing
+ */
+@ISC_PLATFORM_HAVEEPOLL@
+
+/*! \brief
+ * Define if the system supports /dev/poll multiplexing
+ */
+@ISC_PLATFORM_HAVEDEVPOLL@
 
 /*
  *** Printing.

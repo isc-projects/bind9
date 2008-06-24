@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.432.60.9 $)
+AC_REVISION($Revision: 1.432.60.10 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -317,6 +317,43 @@ lifconf.lifc_len = 0;
 		ISC_PLATFORM_HAVELIFCONF="#undef ISC_PLATFORM_HAVELIFCONF"])
 AC_SUBST(ISC_PLATFORM_HAVELIFCONF)
 
+#
+# check if we have kqueue
+#
+AC_CHECK_FUNC(kqueue, ac_cv_have_kqueue=yes, ac_cv_have_kqueue=no)
+case $ac_cv_have_kqueue in
+yes)
+	ISC_PLATFORM_HAVEKQUEUE="#define ISC_PLATFORM_HAVEKQUEUE 1"
+	;;
+*)
+	ISC_PLATFORM_HAVEKQUEUE="#undef ISC_PLATFORM_HAVEKQUEUE"
+	;;
+esac
+AC_SUBST(ISC_PLATFORM_HAVEKQUEUE)
+
+#
+# check if we have epoll
+#
+AC_CHECK_FUNC(epoll_create, ac_cv_have_epoll=yes, ac_cv_have_epoll=no)
+case $ac_cv_have_epoll in
+yes)
+	ISC_PLATFORM_HAVEEPOLL="#define ISC_PLATFORM_HAVEEPOLL 1"
+	;;
+*)
+	ISC_PLATFORM_HAVEEPOLL="#undef ISC_PLATFORM_HAVEEPOLL"
+	;;
+esac
+AC_SUBST(ISC_PLATFORM_HAVEEPOLL)
+
+#
+# check if we support /dev/poll
+#
+AC_CHECK_HEADERS(sys/devpoll.h,
+ISC_PLATFORM_HAVEDEVPOLL="#define ISC_PLATFORM_HAVEDEVPOLL 1"
+,
+ISC_PLATFORM_HAVEDEVPOLL="#undef ISC_PLATFORM_HAVEDEVPOLL"
+)
+AC_SUBST(ISC_PLATFORM_HAVEDEVPOLL)
 
 #
 # check if we need to #include sys/select.h explicitly

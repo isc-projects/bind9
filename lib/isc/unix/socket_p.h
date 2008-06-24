@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket_p.h,v 1.11 2007/06/19 23:47:18 tbox Exp $ */
+/* $Id: socket_p.h,v 1.11.128.1 2008/06/24 00:09:12 jinmei Exp $ */
 
 #ifndef ISC_SOCKET_P_H
 #define ISC_SOCKET_P_H
@@ -26,10 +26,7 @@
 #include <sys/select.h>
 #endif
 
-void
-isc__socketmgr_getfdsets(fd_set *readset, fd_set *writeset, int *maxfd);
-
-isc_result_t
-isc__socketmgr_dispatch(fd_set *readset, fd_set *writeset, int maxfd);
-
+typedef struct isc_socketwait isc_socketwait_t;
+int isc__socketmgr_waitevents(struct timeval *, isc_socketwait_t **);
+isc_result_t isc__socketmgr_dispatch(isc_socketwait_t *);
 #endif /* ISC_SOCKET_P_H */
