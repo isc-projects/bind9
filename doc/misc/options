@@ -69,8 +69,8 @@ options {
         alt-transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> |
             * ) ];
         auth-nxdomain <boolean>; // default changed
-        avoid-v4-udp-ports { <port>; ... };
-        avoid-v6-udp-ports { <port>; ... };
+        avoid-v4-udp-ports { <portrange>; ... };
+        avoid-v6-udp-ports { <portrange>; ... };
         blackhole { <address_match_element>; ... };
         cache-file <quoted_string>;
         check-integrity <boolean>;
@@ -198,6 +198,8 @@ options {
         use-id-pool <boolean>; // obsolete
         use-ixfr <boolean>;
         use-queryport-pool <boolean>; // obsolete
+        use-v4-udp-ports { <portrange>; ... };
+        use-v6-udp-ports { <portrange>; ... };
         version ( <quoted_string> | none );
         zero-no-soa-ttl <boolean>;
         zero-no-soa-ttl-cache <boolean>;
