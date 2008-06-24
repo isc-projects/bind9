@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.72.128.3 2008/06/24 00:09:12 jinmei Exp $ */
+/* $Id: socket.h,v 1.72.128.4 2008/06/24 23:46:26 tbox Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -396,7 +396,7 @@ isc_socket_close(isc_socket_t *sock);
  * \li	There must be no other reference to this socket.
  *
  * \li	There must be no pending I/O requests.
- *		
+ *
  */
 
 isc_result_t

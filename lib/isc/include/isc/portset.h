@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: portset.h,v 1.3.2.1 2008/06/24 00:09:12 jinmei Exp $ */
+/* $Id: portset.h,v 1.3.2.2 2008/06/24 23:46:26 tbox Exp $ */
 
 /*! \file isc/portset.h
  * \brief Transport Protocol Port Manipuration Module
@@ -47,7 +47,7 @@ isc_result_t
 isc_portset_create(isc_mem_t *mctx, isc_portset_t **portsetp);
 /*%<
  * Create a port set and initialize it as an empty set.
- * 
+ *
  * Requires:
  *\li	'mctx' to be valid.
  *\li	'portsetp' to be non NULL and '*portsetp' to be NULL;
@@ -61,7 +61,7 @@ void
 isc_portset_destroy(isc_mem_t *mctx, isc_portset_t **portsetp);
 /*%<
  * Destroy a port set.
- * 
+ *
  * Requires:
  *\li	'mctx' to be valid and must be the same context given when the port set
  *       was created.
@@ -72,7 +72,7 @@ isc_boolean_t
 isc_portset_isset(isc_portset_t *portset, in_port_t port);
 /*%<
  * Test whether the given port is stored in the portset.
- * 
+ *
  * Requires:
  *\li	'portset' to be a valid set.
  *
@@ -84,7 +84,7 @@ unsigned int
 isc_portset_nports(isc_portset_t *portset);
 /*%<
  * Provides the number of ports stored in the given portset.
- * 
+ *
  * Requires:
  *\li	'portset' to be a valid set.
  *
