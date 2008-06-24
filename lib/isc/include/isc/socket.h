@@ -1,8 +1,8 @@
 /*
- * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2002  Internet Software Consortium.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.57.18.7 2008/06/24 02:02:51 jinmei Exp $ */
+/* $Id: socket.h,v 1.57.18.8 2008/06/24 23:45:55 tbox Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -347,7 +347,7 @@ isc_socket_close(isc_socket_t *sock);
  * \li	There must be no other reference to this socket.
  *
  * \li	There must be no pending I/O requests.
- *		
+ *
  */
 
 isc_result_t
@@ -770,7 +770,7 @@ isc_socket_cleanunix(isc_sockaddr_t *addr, isc_boolean_t active);
 
 isc_result_t
 isc_socket_permunix(isc_sockaddr_t *sockaddr, isc_uint32_t perm,
-                    isc_uint32_t owner, isc_uint32_t group);
+		    isc_uint32_t owner, isc_uint32_t group);
 /*%<
  * Set ownership and file permissions on the UNIX domain socket.
  *

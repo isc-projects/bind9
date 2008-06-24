@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.116.18.22 2008/06/24 02:02:50 jinmei Exp $ */
+/* $Id: dispatch.c,v 1.116.18.23 2008/06/24 23:45:55 tbox Exp $ */
 
 /*! \file */
 
@@ -2890,8 +2890,8 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 			 isc_task_t *task, isc_taskaction_t action, void *arg,
 			 dns_messageid_t *idp, dns_dispentry_t **resp)
 {
-        REQUIRE(VALID_DISPATCH(disp));
-        REQUIRE((disp->attributes & DNS_DISPATCHATTR_EXCLUSIVE) == 0); 
+	REQUIRE(VALID_DISPATCH(disp));
+	REQUIRE((disp->attributes & DNS_DISPATCHATTR_EXCLUSIVE) == 0);
 
 	return (dns_dispatch_addresponse2(disp, dest, task, action, arg,
 					  idp, resp, NULL));

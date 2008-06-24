@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.73.18.8 2008/06/24 02:02:51 jinmei Exp $ */
+/* $Id: timer.c,v 1.73.18.9 2008/06/24 23:45:55 tbox Exp $ */
 
 /*! \file */
 
@@ -225,7 +225,7 @@ schedule(isc_timer_t *timer, isc_time_t *now, isc_boolean_t signal_ok) {
 				      "*** POKED TIMER ***");
 		}
 	}
-		
+
 	if (timer->index == 1 && signal_ok) {
 		XTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_TIMER,
 				      ISC_MSG_SIGNALSCHED,
