@@ -1,8 +1,8 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.31.2.2.10.9 2008/06/25 00:03:29 jinmei Exp $ */
+/* $Id: net.h,v 1.31.2.2.10.10 2008/06/25 23:45:37 tbox Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
@@ -101,7 +101,7 @@
 /*
  * Required for some pre RFC2133 implementations.
  * IN6ADDR_ANY_INIT and IN6ADDR_LOOPBACK_INIT were added in
- * draft-ietf-ipngwg-bsd-api-04.txt or draft-ietf-ipngwg-bsd-api-05.txt.  
+ * draft-ietf-ipngwg-bsd-api-04.txt or draft-ietf-ipngwg-bsd-api-05.txt.
  * If 's6_addr' is defined then assume that there is a union and three
  * levels otherwise assume two levels required.
  */

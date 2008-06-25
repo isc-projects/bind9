@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.54.12.8 2008/06/25 00:03:29 jinmei Exp $ */
+/* $Id: socket.h,v 1.54.12.9 2008/06/25 23:45:37 tbox Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -341,7 +341,7 @@ isc_socket_close(isc_socket_t *sock);
  * \li	There must be no other reference to this socket.
  *
  * \li	There must be no pending I/O requests.
- *		
+ *
  */
 
 isc_result_t

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.207.2.19.2.38 2008/06/25 22:58:06 jinmei Exp $ */
+/* $Id: socket.c,v 1.207.2.19.2.39 2008/06/25 23:45:37 tbox Exp $ */
 
 #include <config.h>
 
@@ -72,7 +72,7 @@
 #endif /* ISC_PLATFORM_USETHREADS */
 
 /*
- * Choose the most preferable multiplex method. 
+ * Choose the most preferable multiplex method.
  */
 #ifdef ISC_PLATFORM_HAVEKQUEUE
 #define USE_KQUEUE
@@ -544,7 +544,7 @@ unwatch_fd(isc_socketmgr_t *manager, int fd, int msg) {
 		writelen += sizeof(pfds[1]);
 	}
 
-	if (write(manager->devpoll_fd, pfds, writelen) == -1) 
+	if (write(manager->devpoll_fd, pfds, writelen) == -1)
 		result = isc__errno2result(errno);
 	else {
 		if (msg == SELECT_POKE_READ)
@@ -2963,7 +2963,7 @@ setup_watcher(isc_mem_t *mctx, isc_socketmgr_t *manager) {
 			    sizeof(struct kevent) * manager->nevents);
 		return (result);
 	}
-	
+
 #ifdef ISC_PLATFORM_USETHREADS
 	result = watch_fd(manager, manager->pipe_fds[0], SELECT_POKE_READ);
 	if (result != ISC_R_SUCCESS) {

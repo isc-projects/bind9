@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.h,v 1.45.2.2.4.8 2008/06/25 00:03:28 jinmei Exp $ */
+/* $Id: dispatch.h,v 1.45.2.2.4.9 2008/06/25 23:45:37 tbox Exp $ */
 
 #ifndef DNS_DISPATCH_H
 #define DNS_DISPATCH_H 1
@@ -119,7 +119,7 @@ struct dns_dispatchevent {
  *	is obsoleted.
  *
  * _EXCLUSIVE
- *	A separate socket will be used on-demand for each transaction. 
+ *	A separate socket will be used on-demand for each transaction.
  */
 #define DNS_DISPATCHATTR_PRIVATE	0x00000001U
 #define DNS_DISPATCHATTR_TCP		0x00000002U
@@ -436,7 +436,7 @@ unsigned int
 dns_dispatch_getattributes(dns_dispatch_t *disp);
 /*
  * Return the attributes (DNS_DISPATCHATTR_xxx) of this dispatch.  Only the
- * non-changeable attributes are expected to be referenced by the caller. 
+ * non-changeable attributes are expected to be referenced by the caller.
  *
  * Requires:
  *\li	disp is valid.

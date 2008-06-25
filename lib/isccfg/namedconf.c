@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.21.44.38 2008/06/25 00:03:29 jinmei Exp $ */
+/* $Id: namedconf.c,v 1.21.44.39 2008/06/25 23:45:37 tbox Exp $ */
 
 #include <config.h>
 
@@ -533,7 +533,7 @@ parse_port(cfg_parser_t *pctx, cfg_obj_t **ret) {
 		cfg_obj_destroy(pctx, ret);
 		result = ISC_R_RANGE;
 	}
-	
+
  cleanup:
 	return (result);
 }
