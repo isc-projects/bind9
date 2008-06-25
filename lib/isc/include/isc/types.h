@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.32.2.3.2.1 2004/03/06 08:14:50 marka Exp $ */
+/* $Id: types.h,v 1.32.2.3.2.2 2008/06/25 00:03:29 jinmei Exp $ */
 
 #ifndef ISC_TYPES_H
 #define ISC_TYPES_H 1
@@ -66,6 +66,7 @@ typedef struct isc_mempool		isc_mempool_t;
 typedef struct isc_msgcat		isc_msgcat_t;
 typedef struct isc_ondestroy		isc_ondestroy_t;
 typedef struct isc_netaddr		isc_netaddr_t;
+typedef struct isc_portset		isc_portset_t;
 typedef struct isc_quota		isc_quota_t;
 typedef struct isc_random		isc_random_t;
 typedef struct isc_ratelimiter		isc_ratelimiter_t;
