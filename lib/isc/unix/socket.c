@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.275.10.7 2008/06/24 23:46:26 tbox Exp $ */
+/* $Id: socket.c,v 1.275.10.8 2008/06/25 00:10:40 jinmei Exp $ */
 
 /*! \file */
 
@@ -4279,7 +4279,7 @@ isc_socket_listen(isc_socket_t *sock, unsigned int backlog) {
 }
 
 /*
- * This should try to do agressive accept() XXXMLG
+ * This should try to do aggressive accept() XXXMLG
  */
 isc_result_t
 isc_socket_accept(isc_socket_t *sock,
