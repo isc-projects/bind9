@@ -1,3 +1,6 @@
+2385.	[bug]		A condition variable in socket.c could leak in
+			rare error handling [RT #17968].
+
 2384.	[security]	Additional support for query port randomization (change
 			#2375) including performance improvement and port range
 			specification.  [RT #17949, #18098]
