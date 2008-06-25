@@ -1886,7 +1886,7 @@
 ./lib/dns/rdataset.c				C	1999,2000,2001,2002,2003,2004,2006
 ./lib/dns/rdatasetiter.c			C	1999,2000,2001,2004
 ./lib/dns/rdataslab.c				C	1999,2000,2001,2002,2003,2004
-./lib/dns/request.c				C	2000,2001,2002,2003,2004,2006,2007
+./lib/dns/request.c				C	2000,2001,2002,2003,2004,2006,2007,2008
 ./lib/dns/resolver.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/dns/result.c				C	1998,1999,2000,2001,2002,2003,2004
 ./lib/dns/rootns.c				C	1999,2000,2001,2002,2003,2004,2007,2008
@@ -1917,7 +1917,7 @@
 ./lib/dns/zonekey.c				C	2001,2003,2004
 ./lib/dns/zt.c					C	1999,2000,2001,2002,2003,2004,2007
 ./lib/isc/.cvsignore				X	1998,1999,2000,2001
-./lib/isc/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004
+./lib/isc/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2008
 ./lib/isc/api					X	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/isc/assertions.c				C	1997,1998,1999,2000,2001,2004
 ./lib/isc/base64.c				C	1998,1999,2000,2001,2003,2004
@@ -1975,7 +1975,8 @@
 ./lib/isc/include/isc/ondestroy.h		C	2000,2001,2004
 ./lib/isc/include/isc/os.h			C	2000,2001,2004
 ./lib/isc/include/isc/parseint.h		C	2001,2002,2003,2004,2007
-./lib/isc/include/isc/platform.h.in		C	1999,2000,2001,2002,2003,2004,2007
+./lib/isc/include/isc/platform.h.in		C	1999,2000,2001,2002,2003,2004,2007,2008
+./lib/isc/include/isc/portset.h			C	2008
 ./lib/isc/include/isc/print.h			C	1999,2000,2001,2003,2004,2005
 ./lib/isc/include/isc/quota.h			C	2000,2001,2003,2004,2005,2007
 ./lib/isc/include/isc/random.h			C	1999,2000,2001,2004
@@ -1989,15 +1990,15 @@
 ./lib/isc/include/isc/serial.h			C	1999,2000,2001,2004
 ./lib/isc/include/isc/sha1.h			C	2000,2001,2004
 ./lib/isc/include/isc/sockaddr.h		C	1998,1999,2000,2001,2002,2003,2004,2005,2006
-./lib/isc/include/isc/socket.h			C	1998,1999,2000,2001,2002,2003,2004,2007
+./lib/isc/include/isc/socket.h			C	1998,1999,2000,2001,2002,2003,2004,2007,2008
 ./lib/isc/include/isc/stdio.h			C	2000,2001,2004
 ./lib/isc/include/isc/stdlib.h			C	2003,2004
 ./lib/isc/include/isc/string.h			C	2000,2001,2003,2004,2007
 ./lib/isc/include/isc/symtab.h			C	1996,1997,1998,1999,2000,2001,2004,2006
 ./lib/isc/include/isc/task.h			C	1998,1999,2000,2001,2003,2004
 ./lib/isc/include/isc/taskpool.h		C	1999,2000,2001,2004
-./lib/isc/include/isc/timer.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2007
-./lib/isc/include/isc/types.h			C	1999,2000,2001,2002,2003,2004
+./lib/isc/include/isc/timer.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2007,2008
+./lib/isc/include/isc/types.h			C	1999,2000,2001,2002,2003,2004,2008
 ./lib/isc/include/isc/util.h			C	1998,1999,2000,2001,2003,2004,2007
 ./lib/isc/include/isc/version.h			C	2001,2003,2004,2007
 ./lib/isc/inet_aton.c				C.PORTION	1996,1997,1998,1999,2000,2001,2003,2004,2007
@@ -2030,6 +2031,7 @@
 ./lib/isc/nothreads/thread.c			C	2000,2001,2004
 ./lib/isc/ondestroy.c				C	2000,2001,2004
 ./lib/isc/parseint.c				C	2001,2002,2003,2004
+./lib/isc/portset.c				C	2008
 ./lib/isc/print.c				C	1999,2000,2001,2003,2004,2005,2006,2008
 ./lib/isc/pthreads/.cvsignore			X	1998,1999,2000,2001
 ./lib/isc/pthreads/Makefile.in			MAKE	1998,1999,2000,2001,2004
@@ -2059,7 +2061,7 @@
 ./lib/isc/task.c				C	1998,1999,2000,2001,2002,2003,2004
 ./lib/isc/task_p.h				C	2000,2001,2004
 ./lib/isc/taskpool.c				C	1999,2000,2001,2003,2004,2006,2007
-./lib/isc/timer.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
+./lib/isc/timer.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/isc/timer_p.h				C	2000,2001,2003,2004,2007
 ./lib/isc/unix/.cvsignore			X	1998,1999,2000,2001
 ./lib/isc/unix/Makefile.in			MAKE	1998,1999,2000,2001,2003,2004,2007
@@ -2080,7 +2082,7 @@
 ./lib/isc/unix/include/isc/dir.h		C	1999,2000,2001,2003,2004,2007
 ./lib/isc/unix/include/isc/int.h		C	1999,2000,2001,2004
 ./lib/isc/unix/include/isc/keyboard.h		C	2000,2001,2004
-./lib/isc/unix/include/isc/net.h		C	1999,2000,2001,2002,2003,2004
+./lib/isc/unix/include/isc/net.h		C	1999,2000,2001,2002,2003,2004,2008
 ./lib/isc/unix/include/isc/netdb.h		C	1999,2000,2001,2004
 ./lib/isc/unix/include/isc/offset.h		C	2000,2001,2004
 ./lib/isc/unix/include/isc/stat.h		C	2003,2004
@@ -2091,11 +2093,11 @@
 ./lib/isc/unix/interfaceiter.c			C	1999,2000,2001,2002,2003,2004
 ./lib/isc/unix/ipv6.c				C	1999,2000,2001,2004,2006
 ./lib/isc/unix/keyboard.c			C	2000,2001,2003,2004,2007
-./lib/isc/unix/net.c				C	1999,2000,2001,2002,2003,2004,2005,2007
+./lib/isc/unix/net.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2008
 ./lib/isc/unix/os.c				C	2000,2001,2003,2004,2005,2007
 ./lib/isc/unix/resource.c			C	2000,2001,2004,2008
 ./lib/isc/unix/socket.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
-./lib/isc/unix/socket_p.h			C	2000,2001,2004
+./lib/isc/unix/socket_p.h			C	2000,2001,2004,2008
 ./lib/isc/unix/stdio.c				C	2000,2001,2004
 ./lib/isc/unix/stdtime.c			C	1999,2000,2001,2003,2004,2005,2007
 ./lib/isc/unix/strerror.c			C	2001,2003,2004,2007
@@ -2153,7 +2155,7 @@
 ./lib/isc/win32/once.c				C	1999,2000,2001,2004,2007
 ./lib/isc/win32/os.c				C	2000,2001,2002,2003,2004,2007
 ./lib/isc/win32/resource.c			C	2000,2001,2003,2004,2007
-./lib/isc/win32/socket.c			C	2000,2001,2002,2003,2004,2005,2006,2007
+./lib/isc/win32/socket.c			C	2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/isc/win32/stdio.c				C	2000,2001,2004
 ./lib/isc/win32/stdtime.c			C	1999,2000,2001,2004
 ./lib/isc/win32/strerror.c			C	2001,2002,2003,2004,2007
