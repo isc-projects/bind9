@@ -1,3 +1,6 @@
+2385.	[bug]		A condition variable in socket.c could leak in
+			rare error handling [RT #17968].
+
 2384.	[security]	Fully randomize UDP query ports to improve
 			forgery resilience. [RT #17949, #18098]
 
