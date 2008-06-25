@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.207.2.19.2.36 2008/06/25 00:03:29 jinmei Exp $ */
+/* $Id: socket.c,v 1.207.2.19.2.37 2008/06/25 00:11:22 jinmei Exp $ */
 
 #include <config.h>
 
@@ -3858,7 +3858,7 @@ isc_socket_listen(isc_socket_t *sock, unsigned int backlog) {
 }
 
 /*
- * This should try to do agressive accept() XXXMLG
+ * This should try to do aggressive accept() XXXMLG
  */
 isc_result_t
 isc_socket_accept(isc_socket_t *sock,
