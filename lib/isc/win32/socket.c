@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.54 2008/03/27 23:46:57 tbox Exp $ */
+/* $Id: socket.c,v 1.55 2008/06/25 23:13:51 jinmei Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -2841,6 +2841,7 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
 	 */
 	result = event_thread_create(&evthread, manager);
 	if (result != ISC_R_SUCCESS) {
+		isc_condition_destroy(&manager->shutdown_ok);
 		DESTROYLOCK(&manager->lock);
 		isc_mem_put(mctx, manager, sizeof(*manager));
 		return (result);
