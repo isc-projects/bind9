@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.237.18.36 2008/06/25 00:11:05 jinmei Exp $ */
+/* $Id: socket.c,v 1.237.18.37 2008/06/25 22:57:37 jinmei Exp $ */
 
 /*! \file */
 
@@ -4206,6 +4206,16 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 	sock->address = *addr;
 	cc = connect(sock->fd, &addr->type.sa, addr->length);
 	if (cc < 0) {
+		/*
+		 * HP-UX "fails" to connect a UDP socket and sets errno to
+		 * EINPROGRESS if it's non-blocking.  We'd rather regard this as
+		 * a success and let the user detect it if it's really an error
+		 * at the time of sending a packet on the socket.
+		 */
+		if (sock->type == isc_sockettype_udp && errno == EINPROGRESS) {
+			cc = 0;
+			goto success;
+		}
 		if (SOFT_ERROR(errno) || errno == EINPROGRESS)
 			goto queue;
 
@@ -4247,6 +4257,7 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 	/*
 	 * If connect completed, fire off the done event.
 	 */
+ success:
 	if (cc == 0) {
 		sock->connected = 1;
 		sock->bound = 1;
