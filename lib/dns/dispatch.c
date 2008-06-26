@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.137.128.6 2008/06/24 23:46:26 tbox Exp $ */
+/* $Id: dispatch.c,v 1.137.128.7 2008/06/26 22:16:58 jinmei Exp $ */
 
 /*! \file */
 
@@ -2022,18 +2022,17 @@ local_addr_match(dns_dispatch_t *disp, isc_sockaddr_t *addr) {
 	isc_sockaddr_t sockaddr;
 	isc_result_t result;
 
+	REQUIRE(disp->socket != NULL);
+
 	if (addr == NULL)
 		return (ISC_TRUE);
 
 	/*
 	 * Don't match wildcard ports unless the port is available in the
-	 * current configuration.  We can skip this check when disp->socket is
-	 * NULL because such a dispatcher will choose ports on-demand from
-	 * the available set.
+	 * current configuration.
 	 */
 	if (isc_sockaddr_getport(addr) == 0 &&
 	    isc_sockaddr_getport(&disp->local) == 0 &&
-	    disp->socket != NULL &&
 	    !portavailable(disp->mgr, disp->socket, NULL)) {
 		return (ISC_FALSE);
 	}
@@ -2078,10 +2077,10 @@ dispatch_find(dns_dispatchmgr_t *mgr, isc_sockaddr_t *local,
 	isc_result_t result;
 
 	/*
-	 * Make certain that we will not match a private dispatch.
+	 * Make certain that we will not match a private or exclusive dispatch.
 	 */
-	attributes &= ~DNS_DISPATCHATTR_PRIVATE;
-	mask |= DNS_DISPATCHATTR_PRIVATE;
+	attributes &= ~(DNS_DISPATCHATTR_PRIVATE|DNS_DISPATCHATTR_EXCLUSIVE);
+	mask |= (DNS_DISPATCHATTR_PRIVATE|DNS_DISPATCHATTR_EXCLUSIVE);
 
 	disp = ISC_LIST_HEAD(mgr->list);
 	while (disp != NULL) {
