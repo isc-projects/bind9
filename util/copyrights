@@ -2272,7 +2272,7 @@
 ./lib/isc/win32/include/isc/ipv6.h		C	1999,2000,2001,2002,2004,2005,2007
 ./lib/isc/win32/include/isc/keyboard.h		C	2000,2001,2004
 ./lib/isc/win32/include/isc/mutex.h		C	1998,1999,2000,2001,2004
-./lib/isc/win32/include/isc/net.h		C	1999,2000,2001,2002,2003,2004,2005
+./lib/isc/win32/include/isc/net.h		C	1999,2000,2001,2002,2003,2004,2005,2008
 ./lib/isc/win32/include/isc/netdb.h		C	1999,2000,2001,2004
 ./lib/isc/win32/include/isc/ntgroups.h		C	2001,2004
 ./lib/isc/win32/include/isc/ntpaths.h		C	2000,2001,2004
@@ -2290,9 +2290,9 @@
 ./lib/isc/win32/ipv6.c				C	1999,2000,2001,2004
 ./lib/isc/win32/keyboard.c			C	2000,2001,2004
 ./lib/isc/win32/libisc.def			X	2001,2002,2003,2004,2005,2006,2007,2008
-./lib/isc/win32/libisc.dsp			X	2001,2002,2003,2004,2005,2006
+./lib/isc/win32/libisc.dsp			X	2001,2002,2003,2004,2005,2006,2008
 ./lib/isc/win32/libisc.dsw			X	2001
-./lib/isc/win32/libisc.mak			X	2001,2002,2003,2004,2005,2006
+./lib/isc/win32/libisc.mak			X	2001,2002,2003,2004,2005,2006,2008
 ./lib/isc/win32/net.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2008
 ./lib/isc/win32/netdb.h				C	2000,2001,2004
 ./lib/isc/win32/ntgroups.c			C	2001,2004,2006
