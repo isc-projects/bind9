@@ -515,7 +515,6 @@ dns_resolver_algorithm_supported
 dns_resolver_attach
 dns_resolver_cancelfetch
 dns_resolver_create
-dns_resolver_createdispatchpool
 dns_resolver_createfetch
 dns_resolver_createfetch2
 dns_resolver_destroyfetch
