@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.5.2.13.2.26 2008/06/25 23:45:37 tbox Exp $ */
+/* $Id: socket.c,v 1.5.2.13.2.27 2008/07/01 05:40:13 jinmei Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -1166,7 +1166,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 
 	memset(msg, 0, sizeof(*msg));
 
-	if (sock->type == isc_sockettype_udp) {
+	if (!sock->connected) {
 		msg->msg_name = (void *)&dev->address.type.sa;
 		msg->msg_namelen = dev->address.length;
 	} else {
@@ -1855,16 +1855,8 @@ free_socket(isc_socket_t **socketp) {
 	*socketp = NULL;
 }
 
-/*
- * Create a new 'type' socket managed by 'manager'.  Events
- * will be posted to 'task' and when dispatched 'action' will be
- * called with 'arg' as the arg value.  The new socket is returned
- * in 'socketp'.
- */
-isc_result_t
-isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
-		  isc_socket_t **socketp) {
-	isc_socket_t *sock = NULL;
+static isc_result_t
+internal_open(isc_socketmgr_t *manager, isc_socket_t *sock) {
 	isc_result_t result;
 #if defined(USE_CMSG)
 	int on = 1;
@@ -1872,17 +1864,9 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 	int socket_errno;
 	char strbuf[ISC_STRERRORSIZE];
 
-	REQUIRE(VALID_MANAGER(manager));
-	REQUIRE(socketp != NULL && *socketp == NULL);
-
-	result = allocate_socket(manager, type, &sock);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	sock->pf = pf;
-	switch (type) {
+	switch (sock->type) {
 	case isc_sockettype_udp:
-		sock->fd = socket(pf, SOCK_DGRAM, IPPROTO_UDP);
+		sock->fd = socket(sock->pf, SOCK_DGRAM, IPPROTO_UDP);
 		if (sock->fd != INVALID_SOCKET) {
 			result = connection_reset_fix(sock->fd);
 			if (result != ISC_R_SUCCESS) {
@@ -1893,13 +1877,12 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		}
 		break;
 	case isc_sockettype_tcp:
-		sock->fd = socket(pf, SOCK_STREAM, IPPROTO_TCP);
+		sock->fd = socket(sock->pf, SOCK_STREAM, IPPROTO_TCP);
 		break;
 	}
 
 	if (sock->fd == INVALID_SOCKET) {
 		socket_errno = WSAGetLastError();
-		free_socket(&sock);
 
 		switch (socket_errno) {
 		case WSAEMFILE:
@@ -1927,18 +1910,17 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 	result = make_nonblock(sock->fd);
 	if (result != ISC_R_SUCCESS) {
 		closesocket(sock->fd);
-		free_socket(&sock);
 		return (result);
 	}
 
 
 #if defined(USE_CMSG)
-	if (type == isc_sockettype_udp) {
+	if (sock->type == isc_sockettype_udp) {
 
 #if defined(ISC_PLATFORM_HAVEIPV6)
 #ifdef IPV6_RECVPKTINFO
 		/* 2292bis */
-		if ((pf == AF_INET6)
+		if ((sock->pf == AF_INET6)
 		    && (setsockopt(sock->fd, IPPROTO_IPV6, IPV6_RECVPKTINFO,
 				   (void *)&on, sizeof(on)) < 0)) {
 			isc__strerror(WSAGetLastError(), strbuf, sizeof(strbuf));
@@ -1953,7 +1935,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		}
 #else
 		/* 2292 */
-		if ((pf == AF_INET6)
+		if ((sock->pf == AF_INET6)
 		    && (setsockopt(sock->fd, IPPROTO_IPV6, IPV6_PKTINFO,
 				   (void *)&on, sizeof(on)) < 0)) {
 			isc__strerror(WSAGetLastError(), strbuf, sizeof(strbuf));
@@ -1969,7 +1951,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 #endif /* IPV6_RECVPKTINFO */
 #ifdef IPV6_USE_MIN_MTU	/*2292bis, not too common yet*/
 		/* use minimum MTU */
-		if (pf == AF_INET6) {
+		if (sock->pf == AF_INET6) {
 			(void)setsockopt(sock->fd, IPPROTO_IPV6,
 					 IPV6_USE_MIN_MTU,
 					 (void *)&on, sizeof(on));
@@ -1979,6 +1961,36 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 
 	}
 #endif /* USE_CMSG */
+
+	return (ISC_R_SUCCESS);
+}
+
+
+/*
+ * Create a new 'type' socket managed by 'manager'.  Events
+ * will be posted to 'task' and when dispatched 'action' will be
+ * called with 'arg' as the arg value.  The new socket is returned
+ * in 'socketp'.
+ */
+isc_result_t
+isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
+		  isc_socket_t **socketp) {
+	isc_socket_t *sock = NULL;
+	isc_result_t result;
+
+	REQUIRE(VALID_MANAGER(manager));
+	REQUIRE(socketp != NULL && *socketp == NULL);
+
+	result = allocate_socket(manager, type, &sock);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	sock->pf = pf;
+	result = internal_open(manager, sock);
+	if (result != ISC_R_SUCCESS) {
+		free_socket(&sock);
+		return (result);
+	}
 
 	sock->references = 1;
 	*socketp = sock;
@@ -1997,6 +2009,29 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		   ISC_MSG_CREATED, "created %u", sock->fd);
 
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_socket_open(isc_socket_t *sock) {
+	isc_result_t result;
+
+	REQUIRE(VALID_SOCKET(sock));
+
+	LOCK(&sock->lock);
+	REQUIRE(sock->references == 1);
+	UNLOCK(&sock->lock);
+
+	/*
+	 * We don't need to retain the lock hereafter, since no one else has
+	 * this socket.
+	 */
+	REQUIRE(sock->fd == -1);
+
+	result = internal_open(sock->manager, sock);
+	if (result != ISC_R_SUCCESS)
+		sock->fd = -1;
+
+	return (result);
 }
 
 /*
@@ -2038,6 +2073,38 @@ isc_socket_detach(isc_socket_t **socketp) {
 		destroy_socket(&sock);
 
 	*socketp = NULL;
+}
+
+void
+isc_socket_close(isc_socket_t *sock) {
+	REQUIRE(VALID_SOCKET(sock));
+
+	LOCK(&sock->lock);
+	REQUIRE(sock->references == 1);
+	UNLOCK(&sock->lock);
+	/*
+	 * We don't need to retain the lock hereafter, since no one else has
+	 * this socket.
+	 */
+	REQUIRE(sock->fd >= 0);
+
+	INSIST(!sock->connecting);
+	INSIST(!sock->pending_recv);
+	INSIST(!sock->pending_send);
+	INSIST(!sock->pending_accept);
+	INSIST(ISC_LIST_EMPTY(sock->recv_list));
+	INSIST(ISC_LIST_EMPTY(sock->send_list));
+	INSIST(ISC_LIST_EMPTY(sock->accept_list));
+	INSIST(sock->connect_ev == NULL);
+
+	sock->fd = -1;
+	sock->listener = 0;
+	sock->connected = 0;
+	sock->connecting = 0;
+	sock->bound = 0;
+	isc_sockaddr_any(&sock->address);
+
+	socket_close(sock);
 }
 
 /*
