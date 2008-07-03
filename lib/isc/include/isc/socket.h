@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.54.12.9 2008/06/25 23:45:37 tbox Exp $ */
+/* $Id: socket.h,v 1.54.12.10 2008/07/03 00:15:08 each Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -314,7 +314,8 @@ isc_socket_open(isc_socket_t *sock);
  * avoid overhead of destroying and creating sockets when many short-lived
  * sockets are frequently opened and closed.  When the efficiency is not an
  * issue, it should be safer to detach the unused socket and re-create a new
- * one.
+ * one.  This optimization may not be available for some systems, in which
+ * case this function will return ISC_R_NOTIMPLEMENTED and must not be used.
  *
  * Requires:
  *
@@ -324,15 +325,18 @@ isc_socket_open(isc_socket_t *sock);
  *
  * Returns:
  *	Same as isc_socket_create().
+ * \li	ISC_R_NOTIMPLEMENTED
  */
 
-void
+isc_result_t
 isc_socket_close(isc_socket_t *sock);
 /*
  * Close a socket file descriptor of the given socket structure.  This function
  * is provided as an alternative to destroying an unused socket when overhead
  * destroying/re-creating sockets can be significant, and is expected to be
- * used with isc_socket_open().
+ * used with isc_socket_open().  This optimization may not be available for some
+ * systems, in which case this function will return ISC_R_NOTIMPLEMENTED and
+ * must not be used.
  *
  * Requires:
  *
@@ -342,6 +346,8 @@ isc_socket_close(isc_socket_t *sock);
  *
  * \li	There must be no pending I/O requests.
  *
+ * Returns:
+ * \li	#ISC_R_NOTIMPLEMENTED
  */
 
 isc_result_t

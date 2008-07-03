@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.207.2.19.2.39 2008/06/25 23:45:37 tbox Exp $ */
+/* $Id: socket.c,v 1.207.2.19.2.40 2008/07/03 00:15:09 each Exp $ */
 
 #include <config.h>
 
@@ -2068,7 +2068,7 @@ isc_socket_detach(isc_socket_t **socketp) {
 	*socketp = NULL;
 }
 
-void
+isc_result_t
 isc_socket_close(isc_socket_t *sock) {
 	int fd;
 
@@ -2102,6 +2102,8 @@ isc_socket_close(isc_socket_t *sock) {
 	isc_sockaddr_any(&sock->address);
 
 	closesocket(sock->manager, sock->type, fd);
+
+	return (ISC_R_SUCCESS);
 }
 
 /*
