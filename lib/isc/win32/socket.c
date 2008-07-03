@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.5.2.13.2.28 2008/07/03 00:15:09 each Exp $ */
+/* $Id: socket.c,v 1.5.2.13.2.29 2008/07/03 23:45:37 tbox Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -1927,7 +1927,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 	result = make_nonblock(sock->fd);
 	if (result != ISC_R_SUCCESS) {
 		closesocket(sock->fd);
- 		free_socket(&sock);
+		free_socket(&sock);
 		return (result);
 	}
 
