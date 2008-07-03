@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.237.18.37 2008/06/25 22:57:37 jinmei Exp $ */
+/* $Id: socket.c,v 1.237.18.38 2008/07/03 00:14:40 each Exp $ */
 
 /*! \file */
 
@@ -2113,7 +2113,7 @@ isc_socket_detach(isc_socket_t **socketp) {
 	*socketp = NULL;
 }
 
-void
+isc_result_t
 isc_socket_close(isc_socket_t *sock) {
 	int fd;
 
@@ -2147,6 +2147,8 @@ isc_socket_close(isc_socket_t *sock) {
 	isc_sockaddr_any(&sock->address);
 
 	closesocket(sock->manager, sock->type, fd);
+
+	return (ISC_R_SUCCESS);
 }
 
 /*

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.116.18.24 2008/06/26 22:18:18 jinmei Exp $ */
+/* $Id: dispatch.c,v 1.116.18.25 2008/07/03 00:14:39 each Exp $ */
 
 /*! \file */
 
@@ -801,6 +801,8 @@ destroy_dispsocket(dns_dispatch_t *disp, dispsocket_t **dispsockp) {
  */
 static void
 deactivate_dispsocket(dns_dispatch_t *disp, dispsocket_t *dispsock) {
+	isc_result_t result;
+
 	/*
 	 * The dispatch must be locked.
 	 */
@@ -813,8 +815,18 @@ deactivate_dispsocket(dns_dispatch_t *disp, dispsocket_t *dispsock) {
 	if (disp->nsockets > DNS_DISPATCH_POOLSOCKS)
 		destroy_dispsocket(disp, &dispsock);
 	else {
-		isc_socket_close(dispsock->socket);
-		ISC_LIST_APPEND(disp->inactivesockets, dispsock, link);
+		result = isc_socket_close(dispsock->socket);
+		if (result == ISC_R_SUCCESS)
+			ISC_LIST_APPEND(disp->inactivesockets, dispsock, link);
+		else {
+			/*
+			 * If the underlying system does not allow this
+			 * optimization, destroy this temporary structure (and
+			 * create a new one for a new transaction).
+			 */
+			INSIST(result == ISC_R_NOTIMPLEMENTED);
+			destroy_dispsocket(disp, &dispsock);
+		}
 	}
 }
 
