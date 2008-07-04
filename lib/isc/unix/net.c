@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.c,v 1.22.2.2.10.14 2008/07/04 05:51:43 each Exp $ */
+/* $Id: net.c,v 1.22.2.2.10.15 2008/07/04 23:45:39 tbox Exp $ */
 
 #include <config.h>
 
@@ -89,7 +89,7 @@
 #define SYSCTL_V6PORTRANGE_LOW	SYSCTL_V4PORTRANGE_LOW
 #define SYSCTL_V6PORTRANGE_HIGH	SYSCTL_V4PORTRANGE_HIGH
 #endif
-  
+
 #endif /* HAVE_SYSCTLBYNAME */
 
 #if defined(ISC_PLATFORM_HAVEIPV6)
