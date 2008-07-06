@@ -81,14 +81,11 @@
 ./bin/dnssec/win32/signzone.mak			X	2001,2004,2005,2006
 ./bin/named/.cvsignore				X	1999,2000,2001
 ./bin/named/Makefile.in				MAKE	1998,1999,2000,2001,2002,2004,2005
-./bin/named/bind9.xsl				SGML	2008
-./bin/named/bind9.xsl.h				C	2008
 ./bin/named/builtin.c				C	2001,2002,2003,2004,2005
 ./bin/named/client.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./bin/named/config.c				C	2001,2002,2003,2004,2005,2006,2007
 ./bin/named/control.c				C	2001,2002,2003,2004,2005,2006,2007
 ./bin/named/controlconf.c			C	2001,2002,2003,2004,2005,2006,2008
-./bin/named/convertxsl.pl			PERL	2008
 ./bin/named/include/named/builtin.h		C	2001,2004,2005
 ./bin/named/include/named/client.h		C	1999,2000,2001,2002,2003,2004,2005,2006
 ./bin/named/include/named/config.h		C	2001,2002,2004,2005,2006
