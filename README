@@ -43,6 +43,14 @@ BIND 9
 		Nominum, Inc.
 
 
+BIND 9.3.6
+
+        BIND 9.3.6 is a maintenance release, containing fixes for
+        a number of bugs in previous releases.
+        
+        The major change since 9.3.5 is query port randomization,
+        to improve resilience against cache poisoning attacks.
+
 BIND 9.3.2
 
         BIND 9.3.2 is a maintenance release, containing fixes for

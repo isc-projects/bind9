@@ -1,3 +1,5 @@
+	--- 9.3.6b1 released ---
+
 2385.	[bug]		A condition variable in socket.c could leak in
 			rare error handling [RT #17968].
 
@@ -29,7 +31,7 @@
 2369.	[bug]		libbind: Array bounds overrun on read in bitncmp().
 			[RT #18054]
 
-2364.	[bug]		named could trigger a assertion when serving a
+2364.	[bug]		named could trigger an assertion when serving a
 			malformed signed zone. [RT #17828]
 
 2363.	[port]		sunos: pre-set "lt_cv_sys_max_cmd_len=4096;".
