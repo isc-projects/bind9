@@ -397,6 +397,10 @@ SOURCE=..\include\isc\parseint.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\isc\portset.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\isc\os.h
 # End Source File
 # Begin Source File
@@ -642,6 +646,10 @@ SOURCE=..\ondestroy.c
 # Begin Source File
 
 SOURCE=..\parseint.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\portset.c
 # End Source File
 # Begin Source File
 
