@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resource.h,v 1.12 2008/07/11 23:05:46 jinmei Exp $ */
+/* $Id: resource.h,v 1.13 2008/07/11 23:47:09 tbox Exp $ */
 
 #ifndef ISC_RESOURCE_H
 #define ISC_RESOURCE_H 1
@@ -84,7 +84,7 @@ isc_resource_getlimit(isc_resource_t resource, isc_resourcevalue_t *value);
 isc_result_t
 isc_resource_getcurlimit(isc_resource_t resource, isc_resourcevalue_t *value);
 /*%<
- * Same as isc_resource_getlimit(), but returns the current (soft) limit. 
+ * Same as isc_resource_getlimit(), but returns the current (soft) limit.
  *
  * Returns:
  *\li	#ISC_R_SUCCESS		Success.
