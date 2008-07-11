@@ -1,5 +1,5 @@
-2386.	[bug]		Add warning about too small 'open files' limit
-			[RT #18269].
+2386.	[func]		Add warning about too small 'open files' limit.
+			[RT #18269]
 
 2385.	[bug]		A condition variable in socket.c could leak in
 			rare error handling [RT #17968].
