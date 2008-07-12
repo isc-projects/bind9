@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.511 2008/07/11 23:05:45 jinmei Exp $ */
+/* $Id: server.c,v 1.512 2008/07/12 05:58:08 jinmei Exp $ */
 
 /*! \file */
 
@@ -3007,7 +3007,7 @@ load_configuration(const char *filename, ns_server_t *server,
 
 		result = isc_socketmgr_getmaxsockets(ns_g_socketmgr, &maxsocks);
 		if (result == ISC_R_SUCCESS &&
-		    ((isc_resourcevalue_t)maxsocks > nfiles) {
+		    (isc_resourcevalue_t)maxsocks > nfiles) {
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
 				      "max open files "
