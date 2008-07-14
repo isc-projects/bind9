@@ -1,6 +1,6 @@
 INTERNET-DRAFT                                            Edward Lewis
-draft-ietf-dnsext-axfr-clarify-08.txt                    NeuStar, Inc.
-DNSEXT WG                                                    June 2008
+draft-ietf-dnsext-axfr-clarify-09.txt                    NeuStar, Inc.
+DNSEXT WG                                                    July 2008
 Updates: 1034, 1035 (if approved)     Intended status: Standards Track
 
                       DNS Zone Transfer Protocol (AXFR)
@@ -27,7 +27,7 @@ http://www.ietf.org/ietf/1id-abstracts.txt.
 The list of Internet-Draft Shadow Directories can be accessed at
 http://www.ietf.org/shadow.html.
 
-This Internet-Draft will expire on December 1, 2008.
+This Internet-Draft will expire on December 31, 2008.
 
 Copyright Notice
 
@@ -35,17 +35,15 @@ Copyright (C) The IETF Trust (2008).
 
 Abstract
 
-The Domain Name System standard facilities for maintaining coherent
-servers for a zone consist of three elements.  The Authoritative
-Transfer (AXFR) is defined in RFC 1034 and RFC 1035.  The Incremental
-Zone Transfer (IXFR) is defined in RFC 1995.  A mechanism for prompt
-notification of zone changes (NOTIFY) is defined in RFC 1996.  The base
-definition of these facilities, that of the AXFR, has proven
-insufficient in detail, resulting in no implementation complying with
-it. Yet today we have a satisfactory set of implementations that do
-interoperate. This document is a new definition of the AXFR, new in the
-sense that is it recording an accurate definition of an interoperable
-AXFR mechanism.
+The Domain Name System standard mechanisms for maintaining coherent
+servers for a zone consist of three elements.  One mechanism is the
+Authoritative Transfer (AXFR) is defined in RFC 1034 and RFC 1035.
+The definition of AXFR, has proven insufficient in detail, forcing
+implementations intended to be compliant to make assumptions, impeding
+interoperability. Yet today we have a satisfactory set of
+implementations that do interoperate. This document is a new
+definition of the AXFR, new in the sense that is it recording an
+accurate definition of an interoperable AXFR mechanism.
 
 1 Introduction
 
@@ -83,9 +81,9 @@ DNS implementations that assemble answers from data stored in
 relational databases (as opposed to master files) relying on the
 database's non-DNS means to synchronize the database instances.  Some
 of these non-DNS solutions interoperate in some fashion.  As far as
-it is known, AXFR, IXFR and NOTIFY are the only mechanisms that
-provide an interoperable solution to the desire for coherency within
-the definition of DNS, they certainly are the only mechanisms
+it is known, AXFR, IXFR and NOTIFY are the only in-band mechanisms
+that provide an interoperable solution to the desire for coherency
+within the definition of DNS, they certainly are the only mechanisms
 documented by the IETF.
 
 This document does not cover incoherent DNS situations.  There are
@@ -101,14 +99,16 @@ offerings.
 
 "Turnkey DNS implementation" refers to custom made, single use
 implementations of DNS.  Such implementations consist of software
-that employes the DNS protocol message format yet do not conform to
+that employs the DNS protocol message format yet do not conform to
 the entire range of DNS functionality.
 
 A DNS implementation is not required to support AXFR, IXFR and NOTIFY.
 A DNS implementation SHOULD have some means for maintaining name server
-coherency.  A general purpose DNS implementation SHOULD include AXFR,
-IXFR and NOTIFY, but turnkey DNS implementations MAY operate without
-it.
+coherency.  A general purpose DNS implementation SHOULD include AXFR
+(and in the same vein IXFR and NOTIFY), but turnkey DNS implementations
+MAY exist without AXFR.  (An editorial note to readers of this section.
+The mention of IXFR and NOTIFY is for context and illustration, this
+document does not make any normative comments on those mechanisms.)
 
 1.3 Context
 
@@ -130,6 +130,36 @@ invalidate at least one part of that definition.  The goal of this
 document is to define AXFR as it exists, or is supposed to exist,
 currently.
 
+1.4 Coverage and Relationship to Original AXFR Specification
+ 
+This document concentrates on just the definition of AXFR.  Any effort
+to update the IXFR or NOTIFY mechanisms would be done in different
+documents.
+
+The original "specification" of the AXFR sub-protocol is scattered
+through RFC 1034 and RFC 1035.  Section 2.2 of RFC 1035 on page 5
+depicts the scenario for which AXFR has been designed.  Section 4.3.5
+of RFC 1034 describes the zone synchronisation strategies in general
+and rules for the invocation of a full zone transfer via AXFR; the
+fifth paragraph of that section contains a very short sketch of the
+AXFR protocol.  Section 3.2.3 of RFC 1035 has assigned the code point
+for the AXFR QTYPE (see section 2.1.2 below for more details).
+Section 4.2 of RFC 1035 discusses the transport layer use of DNS and
+shortly explains why UDP transport is deemed inappropriate for AXFR;
+the last paragraph of Section 4.2.2 gives details for the TCP
+connection management with AXFR.  Finally, the second paragraph of
+Section 6.3 in RFC 1035 mandates server behavior when zone data
+changes occur during an ongoing zone transfer using AXFR.
+
+This document will update the specification of AXFR in fully
+specifying the record formats and processing rules for AXFR, largely
+expanding on paragraph 5 of Section 4.3.5 of RFC 1034, and detailing
+the transport considerations for AXFR, thus amending Section 4.2.2 of
+RFC 1035.  Furthermore, it discusses backward compatibility issues
+and provides policy/management considerations as well as specific
+Security Considerations for AXFR.  The goal of this document is to
+define AXFR as it exists, or is supposed to exist, currently.
+
 2 AXFR Messages
 
 An AXFR message exchange (or session) consists of an AXFR query message
@@ -142,7 +172,7 @@ fit into the limited permissible size of a DNS message.
 
 An important aspect to keep in mind is that the definition of AXFR is
 restricted to TCP [RFC0793].  The design of the AXFR process has
-certain inherit features that are not easily ported to UDP [RFC0768].
+certain inherent features that are not easily ported to UDP [RFC0768].
 
 The basic format of an AXFR message is the DNS message as defined in
 RFC 1035, Section 4 ("MESSAGES") [RFC1035], updated by the following:
@@ -190,17 +220,26 @@ ANCOUNT     MUST be 0
 NSCOUNT     MUST be 0
 ARCOUNT     See note 2.1.1.d
 
-Note 2.1.1.a Set to any value that the client desires.  There
-is no specific means for selecting the value in this field.
-(Recall that AXFR is done only via TCP connections.)
+Note 2.1.1.a Set to any value that the client is not already using
+with the same server.  There is no specific means for selecting the
+value in this field.  (Recall that AXFR is done only via TCP
+connections.)
+
+A server MUST reply using messages that use the same message ID to
+allow a client to meaningfully have multiple AXFR queries outstanding.
 
 Note 2.1.1.b The value in this field has no meaning in the context of
 AXFR query messages.  For the client, it is RECOMMENDED that the
 value be zero.  The server MUST ignore this value.
 
-Note 2.1.1.c The client MUST set to 0, the server MUST ignore.
+Note 2.1.1.c The client MUST set this bit to 0, the server MUST ignore
+it.
 
-Note 2.1.1.d The value MAY be 0, 1 or 2.  If it is 2, the additional
+Note 2.1.1.d The client MUST set this field to be the number of
+resource records appearing in the additional section.  See Section
+2.1.5 "Additional Section" for details.
+
+The value MAY be 0, 1 or 2.  If it is 2, the additional
 section MUST contain both an EDNS0 [RFC2671] OPT resource record and
 a record carrying transaction integrity and authentication data,
 currently a choice of TSIG [RFC2845] and SIG(0) [RFC2931].  If the
@@ -208,16 +247,6 @@ value is 1, then the additional section MUST contain either only an
 EDNS0 OPT resource record or a record carrying transaction integrity
 and authentication data.  If the value is 0, the additional section
 MUST be empty.
-
-A note on "future proofing" this document.  It is possible that in the
-future more records might be introduced that share the property of
-being placed in the additional section.  Such records might be other
-options to, say, TSIG and SIG(0) for message authentication or may
-be completely unrelated to that service.  In any case, each new record
-that might appear in the additional section might expand the range of
-values that this field can take on.  As predicting the future is still
-an unproven field, further details are not available.  Check back
-later for updates.
 
 2.1.2 Query Section
 
@@ -238,123 +267,151 @@ MUST be empty.
 
 2.1.5 Additional Section
 
-The client MAY include an EDNS0 OPT resource record.  If the server
-has indicated that it does not support EDNS0, the client MUST send
-this section without an EDNS0 OPT resource record if there is a retry.
-Indication that a server does not support EDNS0 is not an explicit
-element in the protocol, it is up to the client to interpret.  Most
-likely, the server will return a FORMERR which might be related to
+The client MAY include an EDNS0 OPT [RFC2671] resource record.  If the
+server has indicated that it does not support EDNS0, the client MUST
+send this section without an EDNS0 OPT resource record if there is a
+retry.  Indication that a server does not support EDNS0 is not an
+explicit element in the protocol, it is up to the client to interpret. 
+Most likely, the server will return a FORMERR which might be related to
 the OPT resource record.
 
 The client MAY include a transaction integrity and authentication
-resource record, currently a choice of TSIG or SIG(0).  If the server
-has indicated that it does not recognize the resource record, and
-that the error is indeed caused by the resource record, the client
-probably ought not try again.  Removing the security data in the
-face of an obstacle ought to only be done with full awareness of the
-implication of doing so.
+resource record, currently a choice of TSIG [RFC2845] or SIG(0)
+[RFC2931].  If the server has indicated that it does not recognize the
+resource record, and that the error is indeed caused by the resource
+record, the client probably ought not try again.  Removing the security
+data in the face of an obstacle ought to only be done with full
+awareness of the implication of doing so.
 
 In general, if an AXFR client is aware that an AXFR server does not
 support a particular mechanism, the client SHOULD NOT attempt to engage
-the server using the mechanism (or at all).  A client MAY become aware
-of a server's abilities via a configuration setting.
+the server using the mechanism (or at all).  A client could become
+aware of a server's abilities via a configuration setting or via some
+other (as yet) undefined means.
+
+The range of permissible resource records that MAY appear in the
+additional section might change over time.  If either a change to an
+existing resource record (like the OPT RR for EDNS0) is made or
+a new additional section record is created, the new definitions ought
+to include a discussion on the impact upon AXFR.  Although this is not
+predictale, future additional section residing records may have an
+effect that is orthogonal to AXFR, so can ride through the session as
+opaque data.  In this case, a "wise" implementation ought to be able
+to pass these records through without disruption.
 
 2.2 AXFR response
 
-The AXFR response will consist of 0 or more messages.
-
-A 0 message response is very exceptional.  It is unhealthy for there
-to be 0 responses in a protocol that is designed around a query -
-response paradigm.  A 0 message response is reserved for situations in
-which the server has a reason to suspect that the query is sent for
-the purpose of abuse.  Therefore any earnest query has the expectation
-of some response.
+The AXFR response will consist of 0 or more messages.  A "0 message"
+response is covered in section 2.2.1.
 
 An AXFR response that is transferring the zone's contents will consist
-of a series of DNS messages bounded in size by the limited permissible
-size.  In such a series, the first message MUST begin with the SOA
+of a series (which could be a series of length 1) of DNS messages.
+In such a series, the first message MUST begin with the SOA
 resource record of the zone, the last message MUST conclude with the
-same SOA resource record.  Intermediate message MUST NOT contain the
+same SOA resource record.  Intermediate messages MUST NOT contain the
 SOA resource record.  The first message MUST copy the Query Section
 from the corresponding AXFR query message in to the first response
 message's query section.  Subsequent messages MAY do the same.
-
-Editorial note "MAY" or SHOULD/are RECOMMENDED TO
 
 An AXFR response that is indicating an error MUST consist of a single
 DNS message with the return code set to the appropriate value for the
 condition encountered - once the error condition is detected.  Such
 a message MUST copy the AXFR query Query Section into its Query
-Section.
+Section.  The inclusion of the terminating SOA resource record is not
+necessary.
 
 An AXFR client might receive a number of AXFR response messages
-free of an error condition before the message indicating the error
+free of an error condition before the message indicating an error
 is received.  But once an error is reported, the AXFR client can
-assume this the reporting message is the last.
+assume that the error reporting message is the last.
 
-An AXFR client MUST be able to react to no AXFR response messages from
-the server. An AXFR server MAY elect to silently discard the AXFR
-query but this is only RECOMMENDED if the server has reasons to deduce
-that the query was sent maliciously.
+2.2.1 "0 Message" Response
 
-An AXFR server MAY elect to close the underlying TCP connection in
-response to an AXFR query.  Because this action could impact other
-DNS queries and responses, it is RECOMMENDED that this tactic only be
-employed when there are strong indications of malicious activity.
-Still, an AXFR client MUST be able to adequately react to this
-situation.
+A legitimate "0 message" response, i.e., the client sees no response
+whatsoever, is very exceptional and controversial.  Unquestionably it
+is unhealthy for there to be 0 responses in a protocol that is designed
+around a query - response paradigm over an unreliable transport.  The
+lack of a response could be a sign of underlying network problems and
+cause the protocol state machine to react accordingly.  However, AXFR
+uses TCP and not UDP, eliminating undetected network errors.
 
-2.2.1 Header Values
+A "0 message response" is reserved for situations in which the server
+has a reason to suspect that the query is sent for the purpose of
+abuse.  Due to the use of this being so controversial, a "0 message
+response" is not being defined as a legitimate part of the protocol
+but the use of it is being acknowledge as a warning to AXFR client
+implementations.  Any earnest query has the expectation of some
+response but may not get one.
 
-ID          See note 2.2.1.a
+If an AXFR client sends a query on a TCP connection and the connection
+is closed at any point, the AXFR client MUST consider the session
+terminated.  The message ID MAY be used again on a new connection,
+even if the question and AXFR server are the same.  Facing a dropped
+connection a client SHOULD try to make some determination whether the
+connection closure was the result of network activity or a decision
+by the AXFR server.  This determination is not an exact science.  It
+is up to the AXFR client implementor to react, but the reaction
+SHOULD NOT be an endless cycle of retires nor an increasing (in
+frequency) retry rate.
+
+An AXFR server implementor SHOULD take into consideration what this
+dilemma described above when a connection is closed with an outstanding
+query in the pipeline.  For this reason, a server ought to reserve
+this course of action for situations in which it believes beyond a
+doubt that the AXFR client is attemping abusive behavior.
+
+2.2.2 Header Values
+
+ID          See note 2.2.2.a
 QR          MUST be 1 (Response)
 OPCODE      MUST be 0 (Standard Query)
-AA          See note 2.2.1.b
+AA          See note 2.2.2.b
 TC          MUST be 0 (Not truncated)
 RD          RECOMMENDED copy request's value, MAY be set to 0
-RA          See note 2.2.1.c
-Z           See note 2.2.1.d
-AD          See note 2.2.1.e
-CD          See note 2.2.1.e
-RCODE       See note 2.2.1.f
+RA          See note 2.2.2.c
+Z           See note 2.2.2.d
+AD          See note 2.2.2.e
+CD          See note 2.2.2.e
+RCODE       See note 2.2.2.f
 QDCOUNT     MUST be 1 in the first message; MUST be 0 or 1 in all
             following
-ANCOUNT     See note 2.2.1.g
+ANCOUNT     See note 2.2.2.g
 NSCOUNT     MUST be 0
-ARCOUNT     See note 2.2.1.h
+ARCOUNT     See note 2.2.2.h
 
-Note 2.2.1.a Because of old implementations, the requirement
-on this section is stated in detail.  New DNS servers MUST set this
-field to the value of the AXFR query ID in each AXFR response message
-for the session.  New AXFR clients MUST be able to accept sessions in
-which the responses do not have the same ID field.
+Note 2.2.2.a Because some old implementations behave differently than
+is now desired, the requirement on this field is stated in detail. 
+New DNS servers MUST set this field to the value of the AXFR query
+ID in each AXFR response message for the session.  AXFR clients MUST
+be able to manage sessions resulting from the issuance of multiple
+outstanding queries, whether AXFR queries or other DNS queries.  A
+client SHOULD discard responses that do not correspond (via the
+message ID) to any outstanding queries.
 
-If a client detects or is aware that the server is new, that is, all of
-the responses have the same ID value as the query, the client MAY issue
-other DNS queries (of any type) to the server using the same transport.
 Unless the client is sure that the server will consistently set the ID
 field to the query's ID, the client is NOT RECOMMENDED to issue any
 other queries until the end of the zone transfer.  A client MAY become
 aware of a server's abilities via a configuration setting.
 
-Note 2.2.1.b If the RCODE is 0 (no error), then the AA bit MUST be 1.
+Note 2.2.2.b If the RCODE is 0 (no error), then the AA bit MUST be 1.
 For any other value of RCODE, the AA bit MUST be set according to rules
-for that error code.  If in doubt, it is RECOMMENDED that is be set
+for that error code.  If in doubt, it is RECOMMENDED that it be set
 to 1.  It is RECOMMENDED that the value be ignored by the AXFR client.
 
-Note 2.2.1.c It is RECOMMENDED that the server set the value to 0,
+Note 2.2.2.c It is RECOMMENDED that the server set the value to 0,
 the client MUST ignore this value.
 
 The server MAY set this value according to the local policy regarding
 recursive service, but doing so might confuse the interpretation of the
 response as AXFR can not be retrieved recursively.  A client MAY note
-the server's policy regarding recursive from this value, but SHOULD NOT
-conclude that the AXFR response was obtained recursively even if the RD
-bit was 1 in the query.
+the server's policy regarding recursive service from this value, but
+SHOULD NOT conclude that the AXFR response was obtained recursively
+even if the RD bit was 1 in the query.
 
-Note 2.2.1.d The server MUST set to 0, and the client MUST ignore.
+Note 2.2.2.d The server MUST set this bit to 0, the client MUST ignore
+it.
 
-Note 2.2.1.e If the implementation supports the DNS Security Extensions
+Note 2.2.2.e If the implementation supports the DNS Security Extensions
 (see below) then this value MUST be set according to the rules in RFC
 4035, section 3.1.6, "The AD and CD Bits in an Authoritative Response".
 If the implementation does not support the DNS Security Extensions,
@@ -366,7 +423,7 @@ documents:
 - "Resource Records for the DNS Security Extensions" [RFC4034]
 - "Protocol Modifications for the DNS Security Extensions" [RFC4035]
 
-Note 2.2.1.f In the absence of an error, the server MUST set the value
+Note 2.2.2.f In the absence of an error, the server MUST set the value
 of this field to NoError.  If a server is not authoritative for the
 queried zone, the server SHOULD set the value to NotAuth.  (Reminder,
 consult the appropriate IANA registry [DNSVALS].)  If a client
@@ -376,32 +433,17 @@ OPT resource record sent to an old server will garner a FormErr value.
 This value is not set as part of the AXFR response processing.  The
 same is true for other error-indicating values.
 
-Note 2.2.1.g The count of answer records MUST equal the number of
+Note 2.2.2.g The count of answer records MUST equal the number of
 resource records in the AXFR Answer Section.  When a server is aware
 that a client will only accept one resource record per response
 message, then the value MUST be 1.  A server MAY be made aware of a
 client's limitations via configuration data.
 
-Note 2.2.1.h The value MAY be 0, 1 or 2.  If it is 2, the additional
-section MUST contain both an EDNS0 [RFC2671] OPT resource record and
-a record carrying transaction integrity and authentication data,
-currently a choice of TSIG [RFC2845] and SIG(0) [RFC2931].  If the
-value is 1, then the additional section MUST contain either only an
-EDNS0 OPT resource record or a record carrying transaction integrity
-and authentication data.  If the value is 0, the additional section
-MUST be empty.
+Note 2.2.2.h The client MUST set this field to be the number of
+resource records appearing in the additional section.  See Section
+2.1.5 "Additional Section" for details.
 
-A note on "future proofing" this document.  It is possible that in the
-future more records might be introduced that share the property of
-being placed in the additional section.  Such records might be other
-options to, say, TSIG and SIG(0), for message authentication or may
-be completely unrelated to that service.  In any case, each new record
-that might appear in the additional section might expand the range of
-values that this field can take on.  As predicting the future is still
-an unproven field, further details are not available.  Check back
-later for updates.
-
-2.2.2 Query Section
+2.2.3 Query Section
 
 In the first response message, this section MUST be copied from the
 query.  In subsequent messages this section MAY be copied from the
@@ -409,20 +451,27 @@ query, MAY be empty.  The content of this section MAY be used to
 determine the context of the message, that is, the name of the zone
 being transferred.
 
-2.2.3 Answer Section
+2.2.4 Answer Section
 
 MUST be populated with the zone contents.  See later section on
 encoding zone contents.
 
-2.2.4 Authority Section
+2.2.5 Authority Section
 
 MUST be empty.
 
 2.2.5 Additional Section
 
 The contents of this section MUST follow the guidelines for EDNS0,
-TSIG, SIG(0), or what ever other future record is possible here.  See
-the appropriate specifications for instructions and restrictions.
+TSIG, SIG(0), or what ever other future record is possible here.  The
+contents of section 2.1.5 apply here as well.
+
+Note that TSIG and SIG(0), if in use, will treat each individual
+AXFR response message within a session as a unit of data.  That is,
+each message will have a TSIG or SIG(0) (if in use) and the
+crytpographic check will cover just that message.  The same rule
+will apply to future alternatives and documents covering them ought
+to consider the impact on AXFR response messages.
 
 3 Zone Contents
 
@@ -441,17 +490,10 @@ of what belongs in a zone is described in RFC 1034, Section 4.2, "How
 the database is divided into zones", and in particular, section 4.2.1,
 "Technical considerations".
 
-The first resource record of the first AXFR response message sent by
-the AXFR server MUST be the zone's SOA resource record.   The last
-resource record of the final AXFR response message sent by the AXFR
-server MUST be the zone's SOA resource record.  The order and grouping
-of all other records in the AXFR is arbitrary, but the AXFR server
-SHOULD group resource record sets together.
-
 Unless the AXFR server knows that the AXFR client expects just one
 resource record per AXFR response message, an AXFR server SHOULD
 populate an AXFR response message with as many complete resource
-records as will fit within the limited permissible message size.
+records as will fit within a DNS message.
 
 Zones for which it is impractical to list the entire zones for a serial
 number (because changes happen too quickly) are not suitable for AXFR
@@ -612,7 +654,7 @@ zone to transfer before the next could begin.  The desire here is to
 tighten the specification, not a change, but adding words to the
 unclear areas, to define what is needed to permit two servers to
 share a TCP connection among concurrent AXFR sessions.  The challenge
-is to design this in a way that can fallback to the old behavior if
+is to design this in a way that can fall back to the old behavior if
 either the AXFR client or AXFR server is incapable of performing
 multiple concurrent AXFR sessions.
 
@@ -620,9 +662,7 @@ With the addition of EDNS0 and applications which require many
 small zones such as in web hosting and some ENUM scenarios, AXFR
 sessions on UDP are now possible and desirable.  However, there
 are still some aspects of the AXFR session that are not easily
-translated to UDP.  This document leaves AXFR over UDP undefined,
-with the issue to be discussed and possibly appear in a separate
-definition.
+translated to UDP.  This document leaves AXFR over UDP undefined.
 
 4.1 TCP
 
@@ -648,8 +688,8 @@ specification for an older server.
 An AXFR client MAY request an connection to an AXFR server for any
 reason.  An AXFR client SHOULD close the connection when there is
 no apparent need to use the connection for some time period. The
-AXFR server ought not to maintain idle connections, the burden of
-connection closure ought to be on the client.  Apparent need for
+AXFR server ought not have to maintain idle connections, the burden
+of connection closure ought to be on the client.  Apparent need for
 the connection is a judgement for the AXFR client and the DNS
 client. If the connection is used for multiple sessions, or it is
 known sessions will be coming or is there is other query/response
@@ -675,7 +715,7 @@ clear (momentary disruption, failure, policy).
 
 An AXFR client MAY use an already opened TCP connection to start an
 AXFR session.  Using an existing open connection is RECOMMENDED over
-opening a new connection.  (Non AXFR session traffic can also use an
+opening a new connection.  (Non-AXFR session traffic can also use an
 open connection.)  If in doing so the AXFR client realizes that
 the responses cannot be properly differentiated (lack of matching
 query IDs for example) or the connection is terminated for a remote
