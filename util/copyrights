@@ -1824,8 +1824,8 @@
 ./lib/dns/rdata/generic/mx_15.h			C	1998,1999,2000,2001,2004
 ./lib/dns/rdata/generic/ns_2.c			C	1998,1999,2000,2001,2004
 ./lib/dns/rdata/generic/ns_2.h			C	1998,1999,2000,2001,2004
-./lib/dns/rdata/generic/nsec_47.c		C	2003,2004
-./lib/dns/rdata/generic/nsec_47.h		C	2003,2004
+./lib/dns/rdata/generic/nsec_47.c		C	2003,2004,2008
+./lib/dns/rdata/generic/nsec_47.h		C	2003,2004,2008
 ./lib/dns/rdata/generic/null_10.c		C	1998,1999,2000,2001,2002,2003,2004,2007
 ./lib/dns/rdata/generic/null_10.h		C	1998,1999,2000,2001,2004
 ./lib/dns/rdata/generic/nxt_30.c		C	1999,2000,2001,2002,2003,2004
