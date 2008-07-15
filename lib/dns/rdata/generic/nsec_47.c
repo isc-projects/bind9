@@ -15,11 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec_47.c,v 1.9 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: nsec_47.c,v 1.9.128.1 2008/07/15 05:47:40 marka Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
-/* draft-ietf-dnsext-nsec-rdata-01.txt */
+/* RFC 3845 */
 
 #ifndef RDATA_GENERIC_NSEC_47_C
 #define RDATA_GENERIC_NSEC_47_C
