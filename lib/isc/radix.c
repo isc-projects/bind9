@@ -14,13 +14,15 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.c,v 1.14 2008/05/21 23:21:33 each Exp $ */
+/* $Id: radix.c,v 1.15 2008/07/15 00:21:16 marka Exp $ */
 
 /*
  * This source was adapted from MRT's RCS Ids:
  * Id: radix.c,v 1.10.2.1 1999/11/29 05:16:24 masaki Exp
  * Id: prefix.c,v 1.37.2.9 2000/03/10 02:53:19 labovit Exp
  */
+
+#include <config.h>
 
 #include <isc/mem.h>
 #include <isc/types.h>
@@ -233,7 +235,8 @@ isc_radix_search(isc_radix_tree_t *radix, isc_radix_node_t **target,
 	isc_radix_node_t *node;
 	isc_radix_node_t *stack[RADIX_MAXBITS + 1];
 	u_char *addr;
-	isc_uint32_t bitlen, family, tfamily = -1;
+	isc_uint32_t bitlen;
+	int family, tfamily = -1;
 	int cnt = 0;
 
 	REQUIRE(radix != NULL);

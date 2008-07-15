@@ -1,3 +1,6 @@
+2387.	[bug]		Silence compiler warnings in lib/isc/radix.c.
+			[RT #18147] [RT #18258]
+
 2386.	[func]		Add warning about too small 'open files' limit.
 			[RT #18269]
 
