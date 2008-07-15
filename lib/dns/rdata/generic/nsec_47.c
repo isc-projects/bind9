@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec_47.c,v 1.10 2008/07/15 05:45:34 marka Exp $ */
+/* $Id: nsec_47.c,v 1.11 2008/07/15 23:47:21 tbox Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -255,7 +255,7 @@ fromstruct_nsec(ARGS_FROMSTRUCT) {
 		window = nsec->typebits[i];
 		len = nsec->typebits[i+1];
 		i += 2;
-		INSIST(first || window > lastwindow); 
+		INSIST(first || window > lastwindow);
 		INSIST(len > 0 && len <= 32);
 		INSIST(i + len <= nsec->len);
 		INSIST(nsec->typebits[i + len - 1] != 0);
