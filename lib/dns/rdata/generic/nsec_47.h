@@ -1,8 +1,8 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2003  Internet Software Consortium.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -18,7 +18,7 @@
 #ifndef GENERIC_NSEC_47_H
 #define GENERIC_NSEC_47_H 1
 
-/* $Id: nsec_47.h,v 1.4.20.3 2008/07/15 05:48:07 marka Exp $ */
+/* $Id: nsec_47.h,v 1.4.20.4 2008/07/15 23:46:14 tbox Exp $ */
 
 /*!
  * \brief Per RFC 3845 */
