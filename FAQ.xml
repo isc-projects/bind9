@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: FAQ.xml,v 1.40 2008/07/17 00:00:34 marka Exp $ -->
+<!-- $Id: FAQ.xml,v 1.41 2008/07/17 00:12:41 marka Exp $ -->
 
 <article class="faq">
   <title>Frequently Asked Questions about BIND 9</title>
@@ -717,7 +717,17 @@ zone "list.dsbl.org" {
 	  Step 10: Increment the serial number and wait for the change to
 	  be visible in all nameservers for the zone.  This ensures that
 	  zone transfers are still working after the old servers are
-	  decommision.
+	  decommissioned.
+	</para>
+	<para>
+	  Note: the above proceedure is designed to be transparent
+	  to dns clients.  Decommisioning the old servers too early
+	  will result in some clients not being able to look up
+	  answers in the zone.
+	</para>
+	<para>
+	  Note: while it is possible to run the addition and removal
+	  stages together it is not recommended.
 	</para>
       </answer>
     </qandaentry>
