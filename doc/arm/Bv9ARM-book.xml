@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.13 2008/06/24 00:09:11 jinmei Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.14 2008/07/17 23:50:58 jinmei Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -12020,9 +12020,6 @@ $GENERATE 1-127 $ CNAME $.0</programlisting>
 		    <entry colname="3">
 		      <para>
 			Mismatch responses received.
-			When shown via an HTTP statistics channel,
-			this counter is shown in the
-			Name Server Statistics section for brevity.
 		      </para>
 		    </entry>
 		  </row>
