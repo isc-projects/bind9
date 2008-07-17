@@ -582,6 +582,7 @@
 ./bin/tests/system/limits/tests.sh		SH	2000,2001,2004,2007
 ./bin/tests/system/lwresd/.cvsignore		X	2000,2001
 ./bin/tests/system/lwresd/Makefile.in		MAKE	2000,2001,2002,2004,2007
+./bin/tests/system/lwresd/clean.sh		SH	2008
 ./bin/tests/system/lwresd/lwresd1/.cvsignore	X	2000,2001
 ./bin/tests/system/lwresd/lwresd1/lwresd.conf	CONF-C	2000,2001,2004,2007
 ./bin/tests/system/lwresd/lwresd1/resolv.conf	CONF-SH	2000,2001,2004,2007
@@ -662,6 +663,7 @@
 ./bin/tests/system/resolver/ans2/ans.pl		PERL	2000,2001,2004,2007
 ./bin/tests/system/resolver/ans3/.cvsignore	X	2001
 ./bin/tests/system/resolver/ans3/ans.pl		PERL	2000,2001,2004,2007
+./bin/tests/system/resolver/clean.sh		SH	2008
 ./bin/tests/system/resolver/ns1/.cvsignore	X	2001
 ./bin/tests/system/resolver/ns1/named.conf	CONF-C	2000,2001,2004,2007
 ./bin/tests/system/resolver/ns1/root.hint	ZONE	2000,2001,2004,2007
