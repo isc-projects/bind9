@@ -1,3 +1,6 @@
+2388.	[bug]		Avoid using tables for layout purposes in
+			statistics XSL [RT #18159].
+
 2387.	[bug]		Silence compiler warnings in lib/isc/radix.c.
 			[RT #18147] [RT #18258]
 
