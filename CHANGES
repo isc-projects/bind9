@@ -1,3 +1,6 @@
+2389	[bug]		Move the working directory writable to after the
+			ns_os_changeuser() call. [RT #18326]
+
 	--- 9.4.3b2 released ---
 
 2385.	[bug]		A condition variable in socket.c could leak in
