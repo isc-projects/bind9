@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.101.2.6.2.29 2008/07/18 06:04:34 marka Exp $ */
+/* $Id: dispatch.c,v 1.101.2.6.2.30 2008/07/18 23:45:28 tbox Exp $ */
 
 #include <config.h>
 
@@ -1024,7 +1024,7 @@ udp_recv(isc_event_t *ev_in, dns_dispatch_t *disp, dispsocket_t *dispsock) {
 
 	if ((disp->attributes & DNS_DISPATCHATTR_EXCLUSIVE) != 0) {
 		if (dispsock != NULL) {
-	    		resp = dispsock->resp;
+			resp = dispsock->resp;
 			id = resp->id;
 			if (ev->result != ISC_R_SUCCESS) {
 				/*
