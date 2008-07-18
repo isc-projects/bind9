@@ -1,3 +1,6 @@
+2389	[bug]		Move the working directory writable to after the
+			ns_os_changeuser() call. [RT #18326]
+
 2388.	[bug]		Avoid using tables for layout purposes in
 			statistics XSL [RT #18159].
 

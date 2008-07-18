@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.495.10.15 2008/06/24 00:09:10 jinmei Exp $ */
+/* $Id: server.c,v 1.495.10.16 2008/07/18 01:33:54 marka Exp $ */
 
 /*! \file */
 
@@ -2965,15 +2965,6 @@ load_configuration(const char *filename, ns_server_t *server,
 	CHECK(result);
 
 	/*
-	 * Check that the working directory is writable.
-	 */
-	if (access(".", W_OK) != 0) {
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
-			      "the working directory is not writable");
-	}
-
-	/*
 	 * Check the validity of the configuration.
 	 */
 	CHECK(bind9_check_namedconf(config, ns_g_lctx, ns_g_mctx));
@@ -3385,6 +3376,15 @@ load_configuration(const char *filename, ns_server_t *server,
 	 */
 	if (first_time)
 		ns_os_changeuser();
+
+	/*
+	 * Check that the working directory is writable.
+	 */
+	if (access(".", W_OK) != 0) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "the working directory is not writable");
+	}
 
 	/*
 	 * Configure the logging system.
