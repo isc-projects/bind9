@@ -1,3 +1,6 @@
+2400	[port]		hpux: cover additional recvmsg() error codes.
+			[RT #18301]
+
 2390	[bug]		dispatch.c could make a false warning on 'odd socket'.
 			[RT #18301].
 
