@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.275.10.10 2008/07/03 00:14:13 each Exp $ */
+/* $Id: socket.c,v 1.275.10.11 2008/07/18 02:45:18 jinmei Exp $ */
 
 /*! \file */
 
@@ -1297,6 +1297,12 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 		/* HPUX 11.11 can return EADDRNOTAVAIL. */
 		SOFT_OR_HARD(EADDRNOTAVAIL, ISC_R_ADDRNOTAVAIL);
 		ALWAYS_HARD(ENOBUFS, ISC_R_NORESOURCES);
+		/*
+		 * HPUX returns EPROTO and EINVAL on receiving some ICMP/ICMPv6
+		 * errors.
+		 */
+		SOFT_OR_HARD(EPROTO, ISC_R_HOSTUNREACH);
+		SOFT_OR_HARD(EINVAL, ISC_R_HOSTUNREACH);
 
 #undef SOFT_OR_HARD
 #undef ALWAYS_HARD
