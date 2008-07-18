@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.101.2.6.2.28 2008/07/18 02:41:12 jinmei Exp $ */
+/* $Id: dispatch.c,v 1.101.2.6.2.29 2008/07/18 06:04:34 marka Exp $ */
 
 #include <config.h>
 
@@ -1036,6 +1036,8 @@ udp_recv(isc_event_t *ev_in, dns_dispatch_t *disp, dispsocket_t *dispsock) {
 				goto sendresponse;
 			}
 		} else {
+			free_buffer(disp, ev->region.base, ev->region.length);
+
 			UNLOCK(&disp->lock);
 			isc_event_free(&ev_in);
 			return;
