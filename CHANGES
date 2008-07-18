@@ -1,5 +1,5 @@
-2389	[bug]		Move the working directory writable to after the
-			ns_os_changeuser() call. [RT #18326]
+2389	[bug]		Move the "working directory writable" check to after
+			the ns_os_changeuser() call. [RT #18326]
 
 	--- 9.3.6b1 released ---
 
