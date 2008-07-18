@@ -1,3 +1,6 @@
+2390	[bug]		dispatch.c could make a false warning on 'odd socket'.
+			[RT #18301].
+
 2389	[bug]		Move the "working directory writable" check to after
 			the ns_os_changeuser() call. [RT #18326]
 
