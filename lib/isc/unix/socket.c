@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.207.2.19.2.41 2008/07/18 02:46:27 jinmei Exp $ */
+/* $Id: socket.c,v 1.207.2.19.2.42 2008/07/18 03:47:22 marka Exp $ */
 
 #include <config.h>
 
@@ -1267,7 +1267,9 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 		 * HPUX returns EPROTO and EINVAL on receiving some ICMP/ICMPv6
 		 * errors.
 		 */
+#ifdef EPROTO
 		SOFT_OR_HARD(EPROTO, ISC_R_HOSTUNREACH);
+#endif
 		SOFT_OR_HARD(EINVAL, ISC_R_HOSTUNREACH);
 
 #undef SOFT_OR_HARD
