@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.116.18.26 2008/07/18 02:38:32 jinmei Exp $ */
+/* $Id: dispatch.c,v 1.116.18.27 2008/07/18 06:07:14 marka Exp $ */
 
 /*! \file */
 
@@ -1038,6 +1038,8 @@ udp_recv(isc_event_t *ev_in, dns_dispatch_t *disp, dispsocket_t *dispsock) {
 				goto sendresponse;
 			}
 		} else {
+			free_buffer(disp, ev->region.base, ev->region.length);
+
 			UNLOCK(&disp->lock);
 			isc_event_free(&ev_in);
 			return;
