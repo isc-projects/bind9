@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.144 2008/07/03 00:13:25 each Exp $ */
+/* $Id: dispatch.c,v 1.145 2008/07/18 02:35:42 jinmei Exp $ */
 
 /*! \file */
 
@@ -1026,18 +1026,23 @@ udp_recv(isc_event_t *ev_in, dns_dispatch_t *disp, dispsocket_t *dispsock) {
 		return;
 	}
 
-	if (dispsock != NULL &&
-	    (disp->attributes & DNS_DISPATCHATTR_EXCLUSIVE) != 0) {
-		resp = dispsock->resp;
-		id = resp->id;
-		if (ev->result != ISC_R_SUCCESS) {
-			/*
-			 * This is most likely a network error on a connected
-			 * socket.  It makes no sense to check the address or
-			 * parse the packet, but it will help to return the
-			 * error to the caller.
-			 */
-			goto sendresponse;
+	if ((disp->attributes & DNS_DISPATCHATTR_EXCLUSIVE) != 0) {
+		if (dispsock != NULL) {
+	    		resp = dispsock->resp;
+			id = resp->id;
+			if (ev->result != ISC_R_SUCCESS) {
+				/*
+				 * This is most likely a network error on a
+				 * connected socket.  It makes no sense to
+				 * check the address or parse the packet, but it
+				 * will help to return the error to the caller.
+				 */
+				goto sendresponse;
+			}
+		} else {
+			UNLOCK(&disp->lock);
+			isc_event_free(&ev_in);
+			return;
 		}
 	} else if (ev->result != ISC_R_SUCCESS) {
 		free_buffer(disp, ev->region.base, ev->region.length);
