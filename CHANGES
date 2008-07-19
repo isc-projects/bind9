@@ -1,10 +1,13 @@
-2391	[port]		hpux: cover additional recvmsg() error codes.
+2392.   [bug]           remove 'grep -q' from acl test script, some platforms
+                        don't support it. [RT #18253]
+
+2391.	[port]		hpux: cover additional recvmsg() error codes.
 			[RT #18301]
 
-2390	[bug]		dispatch.c could make a false warning on 'odd socket'.
+2390.	[bug]		dispatch.c could make a false warning on 'odd socket'.
 			[RT #18301].
 
-2389	[bug]		Move the "working directory writable" check to after
+2389.	[bug]		Move the "working directory writable" check to after
 			the ns_os_changeuser() call. [RT #18326]
 
 2388.	[bug]		Avoid using tables for layout purposes in
