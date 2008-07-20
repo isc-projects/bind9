@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2006, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2006-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.11.2.4.8.37 2008/07/20 10:20:02 fdupont Exp $ */
+/* $Id: config.c,v 1.11.2.4.8.38 2008/07/20 23:45:41 tbox Exp $ */
 
 #include <config.h>
 
@@ -501,7 +501,7 @@ ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 			tresult = get_masters_def(config, listname, &list);
 			if (tresult == ISC_R_NOTFOUND) {
 				cfg_obj_log(addr, ns_g_lctx, ISC_LOG_ERROR,
-                                    "masters \"%s\" not found", listname);
+				    "masters \"%s\" not found", listname);
 
 				result = tresult;
 				goto cleanup;
@@ -579,7 +579,7 @@ ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 		if (keys[i] == NULL)
 			goto cleanup;
 		dns_name_init(keys[i], NULL);
-		
+
 		keystr = cfg_obj_asstring(key);
 		isc_buffer_init(&b, keystr, strlen(keystr));
 		isc_buffer_add(&b, strlen(keystr));
@@ -635,7 +635,7 @@ ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 		isc_mem_put(mctx, lists, listcount * sizeof(*lists));
 	if (stack != NULL)
 		isc_mem_put(mctx, stack, stackcount * sizeof(*stack));
-	
+
 	INSIST(keycount == addrcount);
 
 	*addrsp = addrs;
