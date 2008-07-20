@@ -1,3 +1,7 @@
+2394.	[bug]		Default configuration options set the limit for
+			open files to 'unlimited' as described in the
+			documentation. [RT #18331]
+
 2391	[port]		hpux: cover additional recvmsg() error codes.
 			[RT #18301]
 
