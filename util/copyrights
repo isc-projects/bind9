@@ -84,7 +84,7 @@
 ./bin/named/aclconf.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./bin/named/builtin.c				C	2001,2002,2003,2004
 ./bin/named/client.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
-./bin/named/config.c				C	2001,2002,2003,2004,2006,2007
+./bin/named/config.c				C	2001,2002,2003,2004,2006,2007,2008
 ./bin/named/control.c				C	2001,2002,2003,2004,2005,2007
 ./bin/named/controlconf.c			C	2001,2002,2003,2004,2006,2008
 ./bin/named/include/named/aclconf.h		C	1999,2000,2001,2004,2006
