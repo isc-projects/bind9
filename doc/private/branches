@@ -142,6 +142,7 @@ rt18331				new	fdupont	// 2008-07-19 14:53 +0000
 rt18332				new	fdupont	// 2008-07-20 13:11 +0000
 rt18332_v9_3_5_P1		new	fdupont	// 2008-07-20 13:16 +0000
 rt18335				new	fdupont	// 2008-07-20 11:50 +0000
+rt18336				new	fdupont	// 2008-07-21 13:51 +0000
 shane_dbbackend			open	
 skan				open	explorer
 skan-metazones1			private	explorer
@@ -175,11 +176,14 @@ v9_3_2_patch			active		// security fixes 9.3.2 only
 v9_3_4-cisco			active	
 v9_3_4_patch			active		// security fixes 9.3.4 only
 v9_3_5_P1			new	each	// 2008-05-22 20:42 +0000
+v9_3_5_patch			new	
 v9_4				active	
 v9_4_1_P1_lruttl		active	
 v9_4_1_patch			active		// security fixes 9.4.1 only
 v9_4_2_P1			new	each	// 2008-05-22 21:12 +0000
+v9_4_2_patch			new	
 v9_5				new	marka	// 2008-01-02 04:47 +0000
+v9_5_0_patch			new	
 
 
 a6_remove			closed
