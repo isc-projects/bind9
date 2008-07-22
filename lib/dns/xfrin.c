@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.157.12.1 2008/07/22 03:46:44 marka Exp $ */
+/* $Id: xfrin.c,v 1.157.12.2 2008/07/22 23:46:34 tbox Exp $ */
 
 /*! \file */
 
@@ -253,7 +253,7 @@ static isc_result_t
 axfr_init(dns_xfrin_ctx_t *xfr) {
 	isc_result_t result;
 
- 	xfr->is_ixfr = ISC_FALSE;
+	xfr->is_ixfr = ISC_FALSE;
 
 	if (xfr->db != NULL)
 		dns_db_detach(&xfr->db);
@@ -902,8 +902,8 @@ render(dns_message_t *msg, isc_mem_t *mctx, isc_buffer_t *buf) {
 	CHECK(dns_message_renderend(msg));
 	result = ISC_R_SUCCESS;
  failure:
- 	if (cleanup_cctx)
-	 	dns_compress_invalidate(&cctx);
+	if (cleanup_cctx)
+		dns_compress_invalidate(&cctx);
 	return (result);
 }
 
@@ -1409,7 +1409,7 @@ maybe_free(dns_xfrin_ctx_t *xfr) {
 	if (msecs == 0)
 		msecs = 1;
 	persec = (xfr->nbytes * 1000) / msecs;
-	xfrin_log(xfr, ISC_LOG_INFO, 
+	xfrin_log(xfr, ISC_LOG_INFO,
 		  "Transfer completed: %d messages, %d records, "
 		  "%" ISC_PRINT_QUADFORMAT "u bytes, "
 		  "%u.%03u secs (%u bytes/sec)",
