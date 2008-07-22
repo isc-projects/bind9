@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.118 2007/06/18 23:47:25 tbox Exp $ */
+/* $Id: rndc.c,v 1.119 2008/07/22 03:43:04 marka Exp $ */
 
 /*! \file */
 
@@ -400,10 +400,10 @@ rndc_startconnect(isc_sockaddr_t *addr, isc_task_t *task) {
 	DO("create socket", isc_socket_create(socketmgr, pf, type, &sock));
 	switch (isc_sockaddr_pf(addr)) {
 	case AF_INET:
-		DO("bind socket", isc_socket_bind(sock, &local4));
+		DO("bind socket", isc_socket_bind(sock, &local4, 1));
 		break;
 	case AF_INET6:
-		DO("bind socket", isc_socket_bind(sock, &local6));
+		DO("bind socket", isc_socket_bind(sock, &local6, 1));
 		break;
 	default:
 		break;

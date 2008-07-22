@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.58 2008/01/18 23:46:57 tbox Exp $ */
+/* $Id: controlconf.c,v 1.59 2008/07/22 03:43:04 marka Exp $ */
 
 /*! \file */
 
@@ -1150,7 +1150,7 @@ add_listener(ns_controls_t *cp, controllistener_t **listenerp,
 
 	if (result == ISC_R_SUCCESS)
 		result = isc_socket_bind(listener->sock,
-					 &listener->address);
+					 &listener->address, 1);
 
 	if (result == ISC_R_SUCCESS && type == isc_sockettype_unix) {
 		listener->perm = cfg_obj_asuint32(cfg_tuple_get(control,
