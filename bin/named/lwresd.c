@@ -1,8 +1,8 @@
 /*
- * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,9 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.46.18.8 2008/07/22 03:51:44 marka Exp $ */
+/* $Id: lwresd.c,v 1.46.18.9 2008/07/22 23:46:04 tbox Exp $ */
 
-/*! \file 
+/*! \file
  * \brief
  * Main program for the Lightweight Resolver Daemon.
  *
@@ -224,7 +224,7 @@ ns_lwresd_parseeresolvconf(isc_mem_t *mctx, cfg_parser_t *pctx,
 			for (i = 0; i < lwc->searchnxt; i++) {
 				CHECK(buffer_putstr(&b, "\t\t\""));
 				CHECK(buffer_putstr(&b, lwc->search[i]));
-			        CHECK(buffer_putstr(&b, "\";\n"));
+				CHECK(buffer_putstr(&b, "\";\n"));
 			}
 			CHECK(buffer_putstr(&b, "\t};\n"));
 		}
