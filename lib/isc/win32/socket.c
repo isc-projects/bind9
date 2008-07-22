@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.30.18.20 2007/08/28 07:20:06 tbox Exp $ */
+/* $Id: socket.c,v 1.30.18.20.12.1 2008/07/22 04:26:23 marka Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -3283,7 +3283,7 @@ isc_socket_sendto2(isc_socket_t *sock, isc_region_t *region,
 }
 
 isc_result_t
-isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr) {
+isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr, int reuseaddr) {
 	int bind_errno;
 	char strbuf[ISC_STRERRORSIZE];
 	int on = 1;
@@ -3299,7 +3299,8 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr) {
 	/*
 	 * Only set SO_REUSEADDR when we want a specific port.
 	 */
-	if (isc_sockaddr_getport(sockaddr) != (in_port_t)0 &&
+	if (reuseaddr &&
+	    isc_sockaddr_getport(sockaddr) != (in_port_t)0 &&
 	    setsockopt(sock->fd, SOL_SOCKET, SO_REUSEADDR, (void *)&on,
 		       sizeof(on)) < 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,

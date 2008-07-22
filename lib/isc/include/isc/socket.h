@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.57.18.6 2006/06/07 00:29:45 marka Exp $ */
+/* $Id: socket.h,v 1.57.18.6.46.1 2008/07/22 04:26:23 marka Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -312,7 +312,7 @@ isc_socket_detach(isc_socket_t **socketp);
  */
 
 isc_result_t
-isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *addressp);
+isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *addressp, int reuseaddr);
 /*%<
  * Bind 'socket' to '*addressp'.
  *
@@ -322,6 +322,8 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *addressp);
  *
  * \li	'addressp' points to a valid isc_sockaddr.
  *
+ * \li	'reuseaddr' asks to set SO_REUSEADDR (if the port is not 0).
+
  * Returns:
  *
  * \li	ISC_R_SUCCESS
