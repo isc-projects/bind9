@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.207.2.19.2.42 2008/07/18 03:47:22 marka Exp $ */
+/* $Id: socket.c,v 1.207.2.19.2.43 2008/07/22 04:00:37 marka Exp $ */
 
 #include <config.h>
 
@@ -3747,7 +3747,7 @@ isc_socket_sendto2(isc_socket_t *sock, isc_region_t *region,
 }
 
 isc_result_t
-isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr) {
+isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr, int reuseaddr) {
 	char strbuf[ISC_STRERRORSIZE];
 	int on = 1;
 
@@ -3762,7 +3762,8 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr) {
 	/*
 	 * Only set SO_REUSEADDR when we want a specific port.
 	 */
-	if (isc_sockaddr_getport(sockaddr) != (in_port_t)0 &&
+	if (reuseaddr &&
+	    isc_sockaddr_getport(sockaddr) != (in_port_t)0 &&
 	    setsockopt(sock->fd, SOL_SOCKET, SO_REUSEADDR, (void *)&on,
 		       sizeof(on)) < 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,

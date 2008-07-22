@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.37.2.2.2.8 2006/02/28 06:32:53 marka Exp $ */
+/* $Id: lwresd.c,v 1.37.2.2.2.9 2008/07/22 04:00:37 marka Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
@@ -569,7 +569,7 @@ listener_bind(ns_lwreslistener_t *listener, isc_sockaddr_t *address) {
 		return (result);
 	}
 
-	result = isc_socket_bind(sock, &listener->address);
+	result = isc_socket_bind(sock, &listener->address, 1);
 	if (result != ISC_R_SUCCESS) {
 		char socktext[ISC_SOCKADDR_FORMATSIZE];
 		isc_sockaddr_format(&listener->address, socktext,

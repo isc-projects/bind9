@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.18.4.82 2008/06/25 00:03:28 jinmei Exp $ */
+/* $Id: resolver.c,v 1.218.2.18.4.83 2008/07/22 04:00:37 marka Exp $ */
 
 #include <config.h>
 
@@ -1104,7 +1104,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 			goto cleanup_query;
 
 #ifndef BROKEN_TCP_BIND_BEFORE_CONNECT
-		result = isc_socket_bind(query->tcpsocket, &addr);
+		result = isc_socket_bind(query->tcpsocket, &addr, 0);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_socket;
 #endif
