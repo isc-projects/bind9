@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.79.128.2 2008/06/24 23:46:26 tbox Exp $ */
+/* $Id: request.c,v 1.79.128.3 2008/07/22 03:46:43 marka Exp $ */
 
 /*! \file */
 
@@ -528,11 +528,11 @@ create_tcp_dispatch(dns_requestmgr_t *requestmgr, isc_sockaddr_t *srcaddr,
 	if (srcaddr == NULL) {
 		isc_sockaddr_anyofpf(&bind_any,
 				     isc_sockaddr_pf(destaddr));
-		result = isc_socket_bind(socket, &bind_any);
+		result = isc_socket_bind(socket, &bind_any, 0);
 	} else {
 		src = *srcaddr;
 		isc_sockaddr_setport(&src, 0);
-		result = isc_socket_bind(socket, &src);
+		result = isc_socket_bind(socket, &src, 0);
 	}
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;

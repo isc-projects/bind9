@@ -1,3 +1,6 @@
+2396.	[bug]		Don't set SO_REUSEADDR for randomized ports.
+			[RT #18336]
+
 2395.	[port]		Avoid warning and no effect from "files unlimited"
 			on Linux when running as root. [RT #18335]
 
