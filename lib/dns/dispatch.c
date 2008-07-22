@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.101.2.6.2.21.4.1 2008/05/22 21:11:15 each Exp $ */
+/* $Id: dispatch.c,v 1.101.2.6.2.21.4.2 2008/07/22 04:16:13 marka Exp $ */
 
 #include <config.h>
 
@@ -1167,7 +1167,7 @@ destroy_mgr(dns_dispatchmgr_t **mgrp) {
 
 static isc_result_t
 create_socket(isc_socketmgr_t *mgr, isc_sockaddr_t *local,
-	      isc_socket_t **sockp)
+	      int reuseaddr, isc_socket_t **sockp)
 {
 	isc_socket_t *sock;
 	isc_result_t result;
@@ -1181,7 +1181,7 @@ create_socket(isc_socketmgr_t *mgr, isc_sockaddr_t *local,
 #ifndef ISC_ALLOW_MAPPED
 	isc_socket_ipv6only(sock, ISC_TRUE);
 #endif
-	result = isc_socket_bind(sock, local);
+	result = isc_socket_bind(sock, local, reuseaddr);
 	if (result != ISC_R_SUCCESS) {
 		isc_socket_detach(&sock);
 		return (result);
@@ -1913,7 +1913,7 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 				attributes &= ~DNS_DISPATCHATTR_RANDOMPORT;
 			goto getsocket;
 		}
-		result = create_socket(sockmgr, &localaddr_bound, &sock);
+		result = create_socket(sockmgr, &localaddr_bound, 0, &sock);
 		if (result == ISC_R_ADDRINUSE) {
 			if (++k == 1024)
 				attributes &= ~DNS_DISPATCHATTR_RANDOMPORT;
@@ -1921,7 +1921,7 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 		}
 		localport = prt;
 	} else
-		result = create_socket(sockmgr, localaddr, &sock);
+		result = create_socket(sockmgr, localaddr, 1, &sock);
 	if (result != ISC_R_SUCCESS)
 		goto deallocate_dispatch;
 	if ((attributes & DNS_DISPATCHATTR_RANDOMPORT) == 0 &&

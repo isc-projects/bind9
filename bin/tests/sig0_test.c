@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sig0_test.c,v 1.9.12.8 2007/08/28 07:19:09 tbox Exp $ */
+/* $Id: sig0_test.c,v 1.9.12.8.4.1 2008/07/22 04:16:13 marka Exp $ */
 
 #include <config.h>
 
@@ -189,7 +189,7 @@ buildquery(void) {
 
 	isc_buffer_usedregion(&qbuffer, &r);
 	isc_sockaddr_any(&sa);
-	result = isc_socket_bind(s, &sa);
+	result = isc_socket_bind(s, &sa, 0);
 	CHECK("isc_socket_bind", result);
 	result = isc_socket_sendto(s, &r, task1, senddone, NULL, &address,
 				   NULL);

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.28.2.9.2.13 2008/01/17 23:45:27 tbox Exp $ */
+/* $Id: controlconf.c,v 1.28.2.9.2.13.4.1 2008/07/22 04:16:13 marka Exp $ */
 
 #include <config.h>
 
@@ -1107,7 +1107,7 @@ add_listener(ns_controls_t *cp, controllistener_t **listenerp,
 
 	if (result == ISC_R_SUCCESS)
 		result = isc_socket_bind(listener->sock,
-					 &listener->address);
+					 &listener->address, 1);
 
 	if (result == ISC_R_SUCCESS)
 		result = control_listen(listener);
