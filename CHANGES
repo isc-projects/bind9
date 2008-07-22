@@ -1,3 +1,6 @@
+2396.	[bug]		Don't set SO_REUSEADDR for randomized ports.
+			[RT #18336]
+
 	--- 9.5.0-P1 released ---
 
 2375.   [security]      Fully randomize UDP query ports to improve
