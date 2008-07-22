@@ -111,7 +111,7 @@
 ./bin/named/include/named/update.h		C	1999,2000,2001,2004,2005
 ./bin/named/include/named/xfrout.h		C	1999,2000,2001,2004,2005
 ./bin/named/include/named/zoneconf.h		C	1999,2000,2001,2002,2004,2005,2006
-./bin/named/interfacemgr.c			C	1999,2000,2001,2002,2004,2005,2006
+./bin/named/interfacemgr.c			C	1999,2000,2001,2002,2004,2005,2006,2008
 ./bin/named/listenlist.c			C	2000,2001,2004,2005
 ./bin/named/log.c				C	1999,2000,2001,2002,2004,2005,2006
 ./bin/named/logconf.c				C	1999,2000,2001,2004,2005,2006
@@ -123,7 +123,7 @@
 ./bin/named/lwdgrbn.c				C	2000,2001,2003,2004,2005,2006
 ./bin/named/lwdnoop.c				C	2000,2001,2004,2005,2008
 ./bin/named/lwresd.8				MAN	DOCBOOK
-./bin/named/lwresd.c				C	2000,2001,2002,2003,2004,2005,2006
+./bin/named/lwresd.c				C	2000,2001,2002,2003,2004,2005,2006,2008
 ./bin/named/lwresd.docbook			SGML	2000,2001,2004,2005,2007
 ./bin/named/lwresd.html				HTML	DOCBOOK
 ./bin/named/lwsearch.c				C	2000,2001,2004,2005
@@ -171,7 +171,7 @@
 ./bin/rndc/rndc-confgen.docbook			SGML	2001,2003,2004,2005,2007
 ./bin/rndc/rndc-confgen.html			HTML	DOCBOOK
 ./bin/rndc/rndc.8				MAN	DOCBOOK
-./bin/rndc/rndc.c				C	2000,2001,2002,2003,2004,2005,2006
+./bin/rndc/rndc.c				C	2000,2001,2002,2003,2004,2005,2006,2008
 ./bin/rndc/rndc.conf				CONF-C	2000,2001,2004
 ./bin/rndc/rndc.conf.5				MAN	DOCBOOK
 ./bin/rndc/rndc.conf.docbook			SGML	2000,2001,2004,2005,2007
@@ -405,8 +405,8 @@
 ./bin/tests/rwlock_test.c			C	1998,1999,2000,2001,2004,2005
 ./bin/tests/serial_test.c			C	1999,2000,2001,2003,2004
 ./bin/tests/shutdown_test.c			C	1998,1999,2000,2001,2004
-./bin/tests/sig0_test.c				C	2000,2001,2004,2005
-./bin/tests/sock_test.c				C	1998,1999,2000,2001,2004
+./bin/tests/sig0_test.c				C	2000,2001,2004,2005,2008
+./bin/tests/sock_test.c				C	1998,1999,2000,2001,2004,2008
 ./bin/tests/sockaddr/.cvsignore			X	1999,2000,2001
 ./bin/tests/sockaddr/Makefile.in		MAKE	1999,2000,2001,2002,2004
 ./bin/tests/sockaddr/t_sockaddr.c		C	1999,2000,2001,2004
@@ -2010,7 +2010,7 @@
 ./lib/dns/win32/libdns.dsw			X	2001
 ./lib/dns/win32/libdns.mak			X	2001,2002,2003,2004,2005,2006
 ./lib/dns/win32/version.c			C	1998,1999,2000,2001,2004
-./lib/dns/xfrin.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
+./lib/dns/xfrin.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/dns/zone.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/zonekey.c				C	2001,2003,2004,2005
 ./lib/dns/zt.c					C	1999,2000,2001,2002,2004,2005
