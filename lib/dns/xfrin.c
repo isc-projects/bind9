@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.135.18.16 2007/10/31 01:59:47 marka Exp $ */
+/* $Id: xfrin.c,v 1.135.18.17 2008/07/22 03:51:44 marka Exp $ */
 
 /*! \file */
 
@@ -862,7 +862,7 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 				isc_sockettype_tcp,
 				&xfr->socket));
 #ifndef BROKEN_TCP_BIND_BEFORE_CONNECT
-	CHECK(isc_socket_bind(xfr->socket, &xfr->sourceaddr));
+	CHECK(isc_socket_bind(xfr->socket, &xfr->sourceaddr, 1));
 #endif
 	CHECK(isc_socket_connect(xfr->socket, &xfr->masteraddr, xfr->task,
 				 xfrin_connect_done, xfr));

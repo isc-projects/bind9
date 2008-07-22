@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.116.18.28 2008/07/18 23:45:58 tbox Exp $ */
+/* $Id: dispatch.c,v 1.116.18.29 2008/07/22 03:51:44 marka Exp $ */
 
 /*! \file */
 
@@ -302,7 +302,7 @@ static isc_result_t qid_allocate(dns_dispatchmgr_t *mgr, unsigned int buckets,
 				 isc_boolean_t needaddrtable);
 static void qid_destroy(isc_mem_t *mctx, dns_qid_t **qidp);
 static isc_result_t open_socket(isc_socketmgr_t *mgr, isc_sockaddr_t *local,
-				isc_socket_t **sockp);
+				int reuseaddr, isc_socket_t **sockp);
 static isc_boolean_t portavailable(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 				   isc_sockaddr_t *sockaddrp);
 
@@ -745,7 +745,7 @@ get_dispsocket(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 			continue;
 		}
 
-		result = open_socket(sockmgr, &localaddr, &sock);
+		result = open_socket(sockmgr, &localaddr, 0, &sock);
 		if (result == ISC_R_SUCCESS || result != ISC_R_ADDRINUSE)
 			break;
 	}
@@ -1577,7 +1577,7 @@ destroy_mgr(dns_dispatchmgr_t **mgrp) {
 }
 
 static isc_result_t
-open_socket(isc_socketmgr_t *mgr, isc_sockaddr_t *local,
+open_socket(isc_socketmgr_t *mgr, isc_sockaddr_t *local, int reuseaddr,
 	    isc_socket_t **sockp)
 {
 	isc_socket_t *sock;
@@ -1598,7 +1598,7 @@ open_socket(isc_socketmgr_t *mgr, isc_sockaddr_t *local,
 #ifndef ISC_ALLOW_MAPPED
 	isc_socket_ipv6only(sock, ISC_TRUE);
 #endif
-	result = isc_socket_bind(sock, local);
+	result = isc_socket_bind(sock, local, reuseaddr);
 	if (result != ISC_R_SUCCESS) {
 		if (*sockp == NULL)
 			isc_socket_detach(&sock);
@@ -2516,7 +2516,8 @@ get_udpsocket(dns_dispatchmgr_t *mgr, dns_dispatch_t *disp,
 					DISP_ARC4CTX(disp),
 					nports)];
 			isc_sockaddr_setport(&localaddr_bound, prt);
-			result = open_socket(sockmgr, &localaddr_bound, &sock);
+			result = open_socket(sockmgr, &localaddr_bound,
+					     0, &sock);
 			if (result == ISC_R_SUCCESS ||
 			    result != ISC_R_ADDRINUSE) {
 				disp->localport = prt;
@@ -2535,7 +2536,7 @@ get_udpsocket(dns_dispatchmgr_t *mgr, dns_dispatch_t *disp,
 	i = 0;
 
 	for (j = 0; j < maxtry; j++) {
-		result = open_socket(sockmgr, localaddr, &sock);
+		result = open_socket(sockmgr, localaddr, 0, &sock);
 		if (result != ISC_R_SUCCESS)
 			goto end;
 		else if (!anyport)
