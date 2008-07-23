@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resource.c,v 1.12 2004/03/05 05:11:46 marka Exp $ */
+/* $Id: resource.c,v 1.12.944.1 2008/07/23 11:30:56 marka Exp $ */
 
 #include <config.h>
 
@@ -27,6 +27,10 @@
 #include <isc/resource.h>
 #include <isc/result.h>
 #include <isc/util.h>
+
+#ifdef __linux__
+#include <linux/fs.h>	/* To get the large NR_OPEN. */
+#endif
 
 #include "errno2result.h"
 
@@ -182,8 +186,34 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 
 	if (unixresult == 0)
 		return (ISC_R_SUCCESS);
-	else
-		return (isc__errno2result(errno));
+
+#if defined(OPEN_MAX) && defined(__APPLE__)
+	/*
+	 * The Darwin kernel doesn't accept RLIM_INFINITY for rlim_cur; the
+	 * maximum possible value is OPEN_MAX.  BIND8 used to use
+	 * sysconf(_SC_OPEN_MAX) for such a case, but this value is much
+	 * smaller than OPEN_MAX and is not really effective.
+	 */
+	if (resource == isc_resource_openfiles && rlim_value == RLIM_INFINITY) {
+		rl.rlim_cur = OPEN_MAX;
+		unixresult = setrlimit(unixresource, &rl);
+		if (unixresult == 0)
+			return (ISC_R_SUCCESS);
+	}
+#elif defined(NR_OPEN) && defined(__linux__)
+	/*
+	 * Some Linux kernels don't accept RLIM_INFINIT; the maximum
+	 * possible value is the NR_OPEN defined in linux/fs.h.
+	 */
+	if (resource == isc_resource_openfiles && rlim_value == RLIM_INFINITY) {
+		rl.rlim_cur = rl.rlim_max = NR_OPEN;
+		unixresult = setrlimit(unixresource, &rl);
+		if (unixresult == 0)
+			return (ISC_R_SUCCESS);
+	}
+#endif
+
+	return (isc__errno2result(errno));
 }
 
 isc_result_t
