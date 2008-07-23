@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.101.2.6.2.31 2008/07/22 04:00:37 marka Exp $ */
+/* $Id: dispatch.c,v 1.101.2.6.2.32 2008/07/23 23:36:22 marka Exp $ */
 
 #include <config.h>
 
@@ -300,7 +300,7 @@ static isc_result_t qid_allocate(dns_dispatchmgr_t *mgr, unsigned int buckets,
 				 isc_boolean_t needaddrtable);
 static void qid_destroy(isc_mem_t *mctx, dns_qid_t **qidp);
 static isc_result_t open_socket(isc_socketmgr_t *mgr, isc_sockaddr_t *local,
-				int reuseaddr, isc_socket_t **sockp);
+				unsigned int options, isc_socket_t **sockp);
 static isc_boolean_t portavailable(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 				   isc_sockaddr_t *sockaddrp);
 
@@ -1572,8 +1572,8 @@ destroy_mgr(dns_dispatchmgr_t **mgrp) {
 }
 
 static isc_result_t
-open_socket(isc_socketmgr_t *mgr, isc_sockaddr_t *local, int reuseaddr,
-	    isc_socket_t **sockp)
+open_socket(isc_socketmgr_t *mgr, isc_sockaddr_t *local,
+	    unsigned int options, isc_socket_t **sockp)
 {
 	isc_socket_t *sock;
 	isc_result_t result;
@@ -1593,7 +1593,7 @@ open_socket(isc_socketmgr_t *mgr, isc_sockaddr_t *local, int reuseaddr,
 #ifndef ISC_ALLOW_MAPPED
 	isc_socket_ipv6only(sock, ISC_TRUE);
 #endif
-	result = isc_socket_bind(sock, local, reuseaddr);
+	result = isc_socket_bind(sock, local, options);
 	if (result != ISC_R_SUCCESS) {
 		if (*sockp == NULL)
 			isc_socket_detach(&sock);

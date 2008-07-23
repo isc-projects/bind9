@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.221.2.19.2.47 2008/07/22 04:00:36 marka Exp $ */
+/* $Id: dighost.c,v 1.221.2.19.2.48 2008/07/23 23:36:21 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2047,7 +2047,8 @@ send_tcp_connect(dig_query_t *query) {
 	sockcount++;
 	debug("sockcount=%d", sockcount);
 	if (specified_source)
-		result = isc_socket_bind(query->sock, &bind_address, 1);
+		result = isc_socket_bind(query->sock, &bind_address,
+					 ISC_SOCKET_REUSEADDRESS);
 	else {
 		if ((isc_sockaddr_pf(&query->sockaddr) == AF_INET) &&
 		    have_ipv4)
@@ -2101,8 +2102,8 @@ send_udp(dig_query_t *query) {
 		sockcount++;
 		debug("sockcount=%d", sockcount);
 		if (specified_source) {
-			result = isc_socket_bind(query->sock,
-						 &bind_address, 1);
+			result = isc_socket_bind(query->sock, &bind_address,
+						 ISC_SOCKET_REUSEADDRESS);
 		} else {
 			isc_sockaddr_anyofpf(&bind_any,
 					isc_sockaddr_pf(&query->sockaddr));
