@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.5.2.13.2.24.4.2 2008/07/23 07:28:12 tbox Exp $ */
+/* $Id: socket.c,v 1.5.2.13.2.24.4.3 2008/07/23 12:03:53 marka Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -3805,4 +3805,10 @@ isc_socket_ipv6only(isc_socket_t *sock, isc_boolean_t yes) {
 				 (void *)&onoff, sizeof(onoff));
 	}
 #endif
+}
+
+void
+isc__socketmgr_setreserved(isc_socketmgr_t *manager, isc_uint32_t reserved) {
+	UNUSED(manager);
+	UNUSED(reserved);
 }
