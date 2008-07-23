@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sock_test.c,v 1.52.128.2 2008/07/22 23:46:34 tbox Exp $ */
+/* $Id: sock_test.c,v 1.52.128.3 2008/07/23 23:31:17 marka Exp $ */
 
 #include <config.h>
 
@@ -321,7 +321,7 @@ main(int argc, char *argv[]) {
 	}
 	RUNTIME_CHECK(isc_socket_create(socketmgr, pf, isc_sockettype_tcp,
 					&so1) == ISC_R_SUCCESS);
-	result = isc_socket_bind(so1, &sockaddr, 1);
+	result = isc_socket_bind(so1, &sockaddr, ISC_SOCKET_REUSEADDRESS);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_socket_listen(so1, 0) == ISC_R_SUCCESS);
 

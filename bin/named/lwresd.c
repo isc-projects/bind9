@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.55.130.2 2008/07/22 23:46:34 tbox Exp $ */
+/* $Id: lwresd.c,v 1.55.130.3 2008/07/23 23:31:17 marka Exp $ */
 
 /*! \file
  * \brief
@@ -576,7 +576,8 @@ listener_bind(ns_lwreslistener_t *listener, isc_sockaddr_t *address) {
 		return (result);
 	}
 
-	result = isc_socket_bind(sock, &listener->address, 1);
+	result = isc_socket_bind(sock, &listener->address,
+				 ISC_SOCKET_REUSEADDRESS);
 	if (result != ISC_R_SUCCESS) {
 		char socktext[ISC_SOCKADDR_FORMATSIZE];
 		isc_sockaddr_format(&listener->address, socktext,
