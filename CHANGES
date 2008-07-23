@@ -1,3 +1,5 @@
+2398.	[placeholder]
+
 2397.	[bug]		gssapi_functions had too many elements. [RT #18355]
 
 2396.	[bug]		Don't set SO_REUSEADDR for randomized ports.
