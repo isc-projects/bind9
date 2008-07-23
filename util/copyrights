@@ -83,7 +83,7 @@
 ./bin/named/Makefile.in				MAKE	1998,1999,2000,2001,2002,2004,2005
 ./bin/named/builtin.c				C	2001,2002,2003,2004,2005
 ./bin/named/client.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
-./bin/named/config.c				C	2001,2002,2003,2004,2005,2006,2007
+./bin/named/config.c				C	2001,2002,2003,2004,2005,2006,2007,2008
 ./bin/named/control.c				C	2001,2002,2003,2004,2005,2006,2007
 ./bin/named/controlconf.c			C	2001,2002,2003,2004,2005,2006,2008
 ./bin/named/include/named/builtin.h		C	2001,2004,2005
@@ -130,7 +130,7 @@
 ./bin/named/main.c				C	1999,2000,2001,2002,2003,2004,2005,2006
 ./bin/named/named.8				MAN	DOCBOOK
 ./bin/named/named.conf.5			MAN	DOCBOOK
-./bin/named/named.conf.docbook			SGML	2004,2005,2006,2007
+./bin/named/named.conf.docbook			SGML	2004,2005,2006,2007,2008
 ./bin/named/named.conf.html			HTML	DOCBOOK
 ./bin/named/named.docbook			SGML	2000,2001,2003,2004,2005,2006,2007
 ./bin/named/named.html				HTML	DOCBOOK
@@ -2085,7 +2085,7 @@
 ./lib/isc/include/isc/ratelimiter.h		C	1999,2000,2001,2002,2004,2005
 ./lib/isc/include/isc/refcount.h		C	2001,2003,2004,2005
 ./lib/isc/include/isc/region.h			C	1998,1999,2000,2001,2002,2004,2005
-./lib/isc/include/isc/resource.h		C	2000,2001,2004,2005
+./lib/isc/include/isc/resource.h		C	2000,2001,2004,2005,2008
 ./lib/isc/include/isc/result.h			C	1998,1999,2000,2001,2003,2004,2005
 ./lib/isc/include/isc/resultclass.h		C	1999,2000,2001,2004,2005
 ./lib/isc/include/isc/rwlock.h			C	1998,1999,2000,2001,2003,2004,2005
@@ -2227,7 +2227,7 @@
 ./lib/isc/unix/keyboard.c			C	2000,2001,2004
 ./lib/isc/unix/net.c				C	1999,2000,2001,2002,2003,2004,2005,2007
 ./lib/isc/unix/os.c				C	2000,2001,2004,2005
-./lib/isc/unix/resource.c			C	2000,2001,2004
+./lib/isc/unix/resource.c			C	2000,2001,2004,2008
 ./lib/isc/unix/socket.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/isc/unix/socket_p.h			C	2000,2001,2004,2005
 ./lib/isc/unix/stdio.c				C	2000,2001,2004
@@ -2276,7 +2276,7 @@
 ./lib/isc/win32/interfaceiter.c			C	1999,2000,2001,2004,2007
 ./lib/isc/win32/ipv6.c				C	1999,2000,2001,2004
 ./lib/isc/win32/keyboard.c			C	2000,2001,2004
-./lib/isc/win32/libisc.def			X	2001,2002,2003,2004,2005,2006,2007
+./lib/isc/win32/libisc.def			X	2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/isc/win32/libisc.dsp			X	2001,2002,2003,2004,2005,2006
 ./lib/isc/win32/libisc.dsw			X	2001
 ./lib/isc/win32/libisc.mak			X	2001,2002,2003,2004,2005,2006
@@ -2286,7 +2286,7 @@
 ./lib/isc/win32/ntpaths.c			C	2001,2004,2007
 ./lib/isc/win32/once.c				C	1999,2000,2001,2004,2007
 ./lib/isc/win32/os.c				C	2000,2001,2002,2004
-./lib/isc/win32/resource.c			C	2000,2001,2004
+./lib/isc/win32/resource.c			C	2000,2001,2004,2008
 ./lib/isc/win32/socket.c			C	2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/isc/win32/stdio.c				C	2000,2001,2004
 ./lib/isc/win32/stdtime.c			C	1999,2000,2001,2004
@@ -2362,7 +2362,7 @@
 ./lib/isccfg/include/isccfg/namedconf.h		C	2002,2004,2005
 ./lib/isccfg/include/isccfg/version.h		C	2001,2004,2005
 ./lib/isccfg/log.c				C	2001,2004,2005
-./lib/isccfg/namedconf.c			C	2002,2003,2004,2005,2006
+./lib/isccfg/namedconf.c			C	2002,2003,2004,2005,2006,2008
 ./lib/isccfg/parser.c				C	2000,2001,2002,2003,2004,2005,2006
 ./lib/isccfg/version.c				C	1998,1999,2000,2001,2004,2005
 ./lib/isccfg/win32/DLLMain.c			C	2001,2004,2007
