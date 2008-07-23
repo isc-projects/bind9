@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.5.2.13.2.24.4.1 2008/07/22 04:16:14 marka Exp $ */
+/* $Id: socket.c,v 1.5.2.13.2.24.4.2 2008/07/23 07:28:12 tbox Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -498,7 +498,7 @@ iocompletionport_init(isc_socketmgr_t *manager) {
 
 	/*
 	 * Worker threads for servicing the I/O
- 	 */
+	 */
 	iocompletionport_createthreads(manager->maxIOCPThreads, manager);
 }
 
@@ -653,7 +653,7 @@ socket_eventlist_add(event_change_t *evchange, sock_event_list *evlist,
  */
 isc_boolean_t
 socket_eventlist_delete(event_change_t *evchange, sock_event_list *evlist,
-		        isc_socketmgr_t *manager)
+			isc_socketmgr_t *manager)
 {
 	int i;
 	WSAEVENT hEvent;
@@ -936,7 +936,7 @@ initialise(void) {
 void
 InitSockets(void) {
 	RUNTIME_CHECK(isc_once_do(&initialise_once,
-                                  initialise) == ISC_R_SUCCESS);
+				  initialise) == ISC_R_SUCCESS);
 	if (!initialised)
 		exit(1);
 }
