@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.57.18.11 2008/07/23 23:33:03 marka Exp $ */
+/* $Id: socket.h,v 1.57.18.12 2008/07/23 23:46:04 tbox Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -364,7 +364,7 @@ isc_socket_close(isc_socket_t *sock);
 
 isc_result_t
 isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *addressp,
-	        unsigned int options);
+		unsigned int options);
 /*%<
  * Bind 'socket' to '*addressp'.
  *
