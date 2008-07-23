@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.30.18.20.12.2 2008/07/23 07:28:57 tbox Exp $ */
+/* $Id: socket.c,v 1.30.18.20.12.3 2008/07/23 12:04:32 marka Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -3848,4 +3848,10 @@ isc_socket_permunix(isc_sockaddr_t *addr, isc_uint32_t perm,
 	UNUSED(owner);
 	UNUSED(group);
 	return (ISC_R_NOTIMPLEMENTED);
+}
+
+void
+isc__socketmgr_setreserved(isc_socketmgr_t *manager, isc_uint32_t reserved) {
+	UNUSED(manager);
+	UNUSED(reserved);
 }

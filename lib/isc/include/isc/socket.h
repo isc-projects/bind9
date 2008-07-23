@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.57.18.6.46.2 2008/07/23 07:28:57 tbox Exp $ */
+/* $Id: socket.h,v 1.57.18.6.46.3 2008/07/23 12:04:32 marka Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -747,6 +747,12 @@ isc_socket_permunix(isc_sockaddr_t *sockaddr, isc_uint32_t perm,
  * Returns:
  * \li	#ISC_R_SUCCESS
  * \li	#ISC_R_FAILURE
+ */
+
+void
+isc__socketmgr_setreserved(isc_socketmgr_t *mgr, isc_uint32_t);
+/*%<
+ * Temporary.  For use by named only.
  */
 
 ISC_LANG_ENDDECLS
