@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.275.10.14 2008/07/23 23:31:18 marka Exp $ */
+/* $Id: socket.c,v 1.275.10.15 2008/07/23 23:46:35 tbox Exp $ */
 
 /*! \file */
 
@@ -4160,7 +4160,7 @@ isc_socket_permunix(isc_sockaddr_t *sockaddr, isc_uint32_t perm,
 }
 
 isc_result_t
-isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr, 
+isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr,
 		unsigned int options) {
 	char strbuf[ISC_STRERRORSIZE];
 	int on = 1;
