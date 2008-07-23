@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.82.38.5.2.1 2008/07/23 11:11:41 marka Exp $ */
+/* $Id: config.c,v 1.82.38.5.2.2 2008/07/23 11:46:01 marka Exp $ */
 
 /*! \file */
 
@@ -100,6 +100,7 @@ options {\n\
 	edns-udp-size 4096;\n\
 	max-udp-size 4096;\n\
 	request-nsid false;\n\
+	reserved-sockets 512;\n\
 \n\
 	/* view */\n\
 	allow-notify {none;};\n\

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.78.46.7 2008/05/27 22:36:11 each Exp $ */
+/* $Id: namedconf.c,v 1.78.46.7.2.1 2008/07/23 11:46:02 marka Exp $ */
 
 /*! \file */
 
@@ -639,6 +639,7 @@ options_clauses[] = {
 	{ "recursing-file", &cfg_type_qstring, 0 },
 	{ "random-device", &cfg_type_qstring, 0 },
 	{ "recursive-clients", &cfg_type_uint32, 0 },
+	{ "reserved-sockets", &cfg_type_uint32, 0 },
 	{ "serial-queries", &cfg_type_uint32, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "serial-query-rate", &cfg_type_uint32, 0 },
 	{ "server-id", &cfg_type_serverid, 0 },

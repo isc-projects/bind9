@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.275.10.4.4.1 2008/07/22 04:03:53 marka Exp $ */
+/* $Id: socket.c,v 1.275.10.4.4.2 2008/07/23 11:46:02 marka Exp $ */
 
 /*! \file */
 
@@ -216,6 +216,7 @@ struct isc_socketmgr {
 	isc_socket_t	       *fds[FD_SETSIZE];
 	int			fdstate[FD_SETSIZE];
 	int			maxfd;
+	int			reserved; 	/* unlocked */
 #ifdef ISC_PLATFORM_USETHREADS
 	isc_thread_t		watcher;
 	isc_condition_t		shutdown_ok;
@@ -1496,9 +1497,18 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 
 #ifdef F_DUPFD
 	/*
-	 * Leave a space for stdio to work in.
+	 * Leave a space for stdio and TCP to work in.
 	 */
-	if (sock->fd >= 0 && sock->fd < 20) {
+	if (manager->reserved != 0 && type == isc_sockettype_udp &&
+	    sock->fd >= 0 && sock->fd < manager->reserved) {
+		int new, tmp;
+		new = fcntl(sock->fd, F_DUPFD, manager->reserved);
+		tmp = errno;
+		(void)close(sock->fd);
+		errno = tmp;
+		sock->fd = new;
+		err = "isc_socket_create: fcntl/reserved";
+	} else if (sock->fd >= 0 && sock->fd < 20) {
 		int new, tmp;
 		new = fcntl(sock->fd, F_DUPFD, 20);
 		tmp = errno;
@@ -2598,6 +2608,14 @@ watcher(void *uap) {
 }
 #endif /* ISC_PLATFORM_USETHREADS */
 
+void
+isc__socketmgr_setreserved(isc_socketmgr_t *manager, isc_uint32_t reserved) {
+
+	REQUIRE(VALID_MANAGER(manager));
+
+	manager->reserved = reserved;
+}
+
 /*
  * Create a new socket manager.
  */
@@ -2679,6 +2697,7 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
 #else /* ISC_PLATFORM_USETHREADS */
 	manager->maxfd = 0;
 #endif /* ISC_PLATFORM_USETHREADS */
+	manager->reserved = 0;
 	memset(manager->fdstate, 0, sizeof(manager->fdstate));
 
 #ifdef ISC_PLATFORM_USETHREADS
