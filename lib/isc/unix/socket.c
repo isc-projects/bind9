@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.207.2.19.2.44 2008/07/23 23:36:22 marka Exp $ */
+/* $Id: socket.c,v 1.207.2.19.2.45 2008/07/23 23:45:35 tbox Exp $ */
 
 #include <config.h>
 
@@ -3747,7 +3747,7 @@ isc_socket_sendto2(isc_socket_t *sock, isc_region_t *region,
 }
 
 isc_result_t
-isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr, 
+isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr,
 		unsigned int options) {
 	char strbuf[ISC_STRERRORSIZE];
 	int on = 1;
