@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.72.226.3 2008/07/23 11:46:02 marka Exp $ */
+/* $Id: socket.h,v 1.72.226.4 2008/07/23 12:05:20 marka Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -815,18 +815,18 @@ void *isc_socket_gettag(isc_socket_t *socket);
  * Get the tag associated with a socket, if any.
  */
 
+void
+isc__socketmgr_setreserved(isc_socketmgr_t *mgr, isc_uint32_t);
+/*%<
+ * Temporary.  For use by named only.
+ */
+
 #ifdef HAVE_LIBXML2
 
 void
 isc_socketmgr_renderxml(isc_socketmgr_t *mgr, xmlTextWriterPtr writer);
 /*%<
  * Render internal statistics and other state into the XML document.
- */
-
-void
-isc__socketmgr_setreserved(isc_socketmgr_t *mgr, isc_uint32_t);
-/*%<
- * Temporary.  For use by named only.
  */
 
 #endif /* HAVE_LIBXML2 */
