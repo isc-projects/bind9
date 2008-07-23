@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.82.38.5 2008/05/28 21:00:24 each Exp $ */
+/* $Id: config.c,v 1.82.38.5.2.1 2008/07/23 11:11:41 marka Exp $ */
 
 /*! \file */
 
@@ -52,7 +52,7 @@ options {\n\
 #ifndef WIN32
 "	coresize default;\n\
 	datasize default;\n\
-	files default;\n\
+	files unlimited;\n\
 	stacksize default;\n"
 #endif
 "	deallocate-on-exit true;\n\
