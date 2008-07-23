@@ -1,6 +1,11 @@
 2396.	[bug]		Don't set SO_REUSEADDR for randomized ports.
 			[RT #18336]
 
+2394.	[bug]		Default configuration options set the limit for
+			open files to 'unlimited' as described in the
+			documentation. [RT #18331]
+
+
 	--- 9.3.5-P1 released ---
 
 2375.   [security]      Fully randomize UDP query ports to improve
