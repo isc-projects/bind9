@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.59.2.5.8.21.4.2 2008/07/23 07:28:11 tbox Exp $ */
+/* $Id: interfacemgr.c,v 1.59.2.5.8.21.4.3 2008/07/23 23:16:25 marka Exp $ */
 
 #include <config.h>
 
@@ -298,7 +298,8 @@ ns_interface_accepttcp(ns_interface_t *ifp) {
 #ifndef ISC_ALLOW_MAPPED
 	isc_socket_ipv6only(ifp->tcpsocket, ISC_TRUE);
 #endif
-	result = isc_socket_bind(ifp->tcpsocket, &ifp->addr, 1);
+	result = isc_socket_bind(ifp->tcpsocket, &ifp->addr,
+				 ISC_SOCKET_REUSEADDRESS);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
 				 "binding TCP socket: %s",
