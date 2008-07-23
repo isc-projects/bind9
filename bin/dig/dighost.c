@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.259.18.43.10.2 2008/07/23 07:28:54 tbox Exp $ */
+/* $Id: dighost.c,v 1.259.18.43.10.3 2008/07/23 23:16:43 marka Exp $ */
 
 /*! \file
  *  \note
@@ -2217,7 +2217,8 @@ send_tcp_connect(dig_query_t *query) {
 	sockcount++;
 	debug("sockcount=%d", sockcount);
 	if (specified_source)
-		result = isc_socket_bind(query->sock, &bind_address, 1);
+		result = isc_socket_bind(query->sock, &bind_address,
+					 ISC_SOCKET_REUSEADDRESS);
 	else {
 		if ((isc_sockaddr_pf(&query->sockaddr) == AF_INET) &&
 		    have_ipv4)
@@ -2271,8 +2272,8 @@ send_udp(dig_query_t *query) {
 		sockcount++;
 		debug("sockcount=%d", sockcount);
 		if (specified_source) {
-			result = isc_socket_bind(query->sock,
-						 &bind_address, 1);
+			result = isc_socket_bind(query->sock, &bind_address,
+						 ISC_SOCKET_REUSEADDRESS);
 		} else {
 			isc_sockaddr_anyofpf(&bind_any,
 					isc_sockaddr_pf(&query->sockaddr));

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.237.18.29.10.3 2008/07/23 12:04:32 marka Exp $ */
+/* $Id: socket.c,v 1.237.18.29.10.4 2008/07/23 23:16:44 marka Exp $ */
 
 /*! \file */
 
@@ -3184,7 +3184,8 @@ isc_socket_permunix(isc_sockaddr_t *sockaddr, isc_uint32_t perm,
 }
 
 isc_result_t
-isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr, int reuseaddr) {
+isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr, 
+		unsigned int options) {
 	char strbuf[ISC_STRERRORSIZE];
 	int on = 1;
 
@@ -3203,7 +3204,7 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr, int reuseaddr) {
 	if (sock->pf == AF_UNIX)
 		goto bind_socket;
 #endif
-	if (reuseaddr &&
+	if ((options & ISC_SOCKET_REUSEADDRESS) != 0 &&
 	    isc_sockaddr_getport(sockaddr) != (in_port_t)0 &&
 	    setsockopt(sock->fd, SOL_SOCKET, SO_REUSEADDR, (void *)&on,
 		       sizeof(on)) < 0) {

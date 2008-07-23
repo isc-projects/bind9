@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.116.18.19.12.4 2008/07/23 07:28:56 tbox Exp $ */
+/* $Id: dispatch.c,v 1.116.18.19.12.5 2008/07/23 23:16:43 marka Exp $ */
 
 /*! \file */
 
@@ -1191,7 +1191,7 @@ destroy_mgr(dns_dispatchmgr_t **mgrp) {
 
 static isc_result_t
 create_socket(isc_socketmgr_t *mgr, isc_sockaddr_t *local,
-	      int reuseaddr, isc_socket_t **sockp)
+	      unsigned int options, isc_socket_t **sockp)
 {
 	isc_socket_t *sock;
 	isc_result_t result;
@@ -1205,7 +1205,7 @@ create_socket(isc_socketmgr_t *mgr, isc_sockaddr_t *local,
 #ifndef ISC_ALLOW_MAPPED
 	isc_socket_ipv6only(sock, ISC_TRUE);
 #endif
-	result = isc_socket_bind(sock, local, reuseaddr);
+	result = isc_socket_bind(sock, local, options);
 	if (result != ISC_R_SUCCESS) {
 		isc_socket_detach(&sock);
 		return (result);
@@ -1944,7 +1944,8 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 		}
 		localport = prt;
 	} else
-		result = create_socket(sockmgr, localaddr, 1, &sock);
+		result = create_socket(sockmgr, localaddr,
+				       ISC_SOCKET_REUSEADDRESS, &sock);
 	if (result != ISC_R_SUCCESS)
 		goto deallocate_dispatch;
 	if ((attributes & DNS_DISPATCHATTR_RANDOMPORT) == 0 &&
