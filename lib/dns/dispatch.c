@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.116.18.19.12.2 2008/07/22 04:26:22 marka Exp $ */
+/* $Id: dispatch.c,v 1.116.18.19.12.3 2008/07/23 02:32:36 jinmei Exp $ */
 
 /*! \file */
 
@@ -276,7 +276,26 @@ request_log(dns_dispatch_t *disp, dns_dispentry_t *resp,
 }
 
 /*
- * ARC4 random number generator obtained from OpenBSD
+ * ARC4 random number generator derived from OpenBSD.
+ * Only dispatch_arc4random() and dispatch_arc4uniformrandom() are expected
+ * to be called from general dispatch routines; the rest of them are subroutines
+ * for these two.
+ *
+ * The original copyright follows:
+ * Copyright (c) 1996, David Mazieres <dm@uun.org>
+ * Copyright (c) 2008, Damien Miller <djm@openbsd.org>
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 static void
 dispatch_arc4init(arc4ctx_t *actx) {
