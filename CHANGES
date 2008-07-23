@@ -1,3 +1,5 @@
+2397.	[bug]		gssapi_functions bad declaration. [RT #18355]
+
 2396.	[bug]		Don't set SO_REUSEADDR for randomized ports.
 			[RT #18336]
 
