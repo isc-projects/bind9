@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resource.c,v 1.14.128.3 2008/01/26 23:46:50 tbox Exp $ */
+/* $Id: resource.c,v 1.14.128.3.12.1 2008/07/23 11:34:17 marka Exp $ */
 
 #include <config.h>
 
@@ -27,6 +27,10 @@
 #include <isc/resource.h>
 #include <isc/result.h>
 #include <isc/util.h>
+
+#ifdef __linux__
+#include <linux/fs.h>	/* To get the large NR_OPEN. */
+#endif
 
 #include "errno2result.h"
 
@@ -147,6 +151,17 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 	 */
 	if (resource == isc_resource_openfiles && rlim_value == RLIM_INFINITY) {
 		rl.rlim_cur = OPEN_MAX;
+		unixresult = setrlimit(unixresource, &rl);
+		if (unixresult == 0)
+			return (ISC_R_SUCCESS);
+	}
+#elif defined(NR_OPEN) && defined(__linux__)
+	/*
+	 * Some Linux kernels don't accept RLIM_INFINIT; the maximum
+	 * possible value is the NR_OPEN defined in linux/fs.h.
+	 */
+	if (resource == isc_resource_openfiles && rlim_value == RLIM_INFINITY) {
+		rl.rlim_cur = rl.rlim_max = NR_OPEN;
 		unixresult = setrlimit(unixresource, &rl);
 		if (unixresult == 0)
 			return (ISC_R_SUCCESS);
