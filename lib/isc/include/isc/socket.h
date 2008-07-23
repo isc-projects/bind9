@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.79 2008/07/22 03:43:04 marka Exp $ */
+/* $Id: socket.h,v 1.80 2008/07/23 23:27:54 marka Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -77,6 +77,12 @@ ISC_LANG_BEGINDECLS
  * system in use must support at least this number (plus one on some.)
  */
 #define ISC_SOCKET_MAXSCATTERGATHER	8
+
+/*%
+ * In isc_socket_bind() set socket option SO_REUSEADDR prior to calling
+ * bind() if a non zero port is specified (AF_INET and AF_INET6).
+ */
+#define ISC_SOCKET_REUSEADDRESS		0x01U
 
 /***
  *** Types
@@ -406,7 +412,8 @@ isc_socket_close(isc_socket_t *sock);
  */
 
 isc_result_t
-isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *addressp, int reuseaddr);
+isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *addressp,
+	        unsigned int options);
 /*%<
  * Bind 'socket' to '*addressp'.
  *
@@ -416,8 +423,6 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *addressp, int reuseaddr);
  *
  * \li	'addressp' points to a valid isc_sockaddr.
  *
- * \li	'reuseaddr' asks to set SO_REUSEADDR (if the port is not 0).
-
  * Returns:
  *
  * \li	ISC_R_SUCCESS

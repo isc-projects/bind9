@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: statschannel.c,v 1.12 2008/07/22 03:43:04 marka Exp $ */
+/* $Id: statschannel.c,v 1.13 2008/07/23 23:27:54 marka Exp $ */
 
 /*! \file */
 
@@ -919,7 +919,7 @@ add_listener(ns_server_t *server, ns_statschannel_t **listenerp,
 	isc_socket_ipv6only(sock, ISC_TRUE);
 #endif
 
-	result = isc_socket_bind(sock, addr, 1);
+	result = isc_socket_bind(sock, addr, ISC_SOCKET_REUSEADDRESS);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
