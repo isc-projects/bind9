@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.5.2.13.2.24.4.4 2008/07/23 23:16:27 marka Exp $ */
+/* $Id: socket.c,v 1.5.2.13.2.24.4.5 2008/07/23 23:47:49 tbox Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -3258,7 +3258,7 @@ isc_socket_sendto2(isc_socket_t *sock, isc_region_t *region,
 
 isc_result_t
 isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr,
-	        unsigned int options) {
+		unsigned int options) {
 	int bind_errno;
 	char strbuf[ISC_STRERRORSIZE];
 	int on = 1;
