@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.495.10.11.2.1 2008/07/23 11:46:01 marka Exp $ */
+/* $Id: server.c,v 1.495.10.11.2.2 2008/07/23 23:48:45 tbox Exp $ */
 
 /*! \file */
 
@@ -3008,12 +3008,12 @@ load_configuration(const char *filename, ns_server_t *server,
 		reserved = 128;
 	if (reserved + 128U > files) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-                              NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
 			      "less than 128 UDP sockets available after "
 			      "applying 'reserved-sockets' and 'files'");
 	}
 	isc__socketmgr_setreserved(ns_g_socketmgr, reserved);
-	
+
 	/*
 	 * Configure various server options.
 	 */
