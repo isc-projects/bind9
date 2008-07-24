@@ -1,3 +1,6 @@
+2401.	[bug]		Expect to get E[MN]FILE errno internal_accept()
+			(from accept() or fcntl() system calls). [RT #18358]
+
 2400.	[bug]		Log if kqueue()/epoll_create()/open(/dev/poll) fails.
 			[RT #18297]
 
