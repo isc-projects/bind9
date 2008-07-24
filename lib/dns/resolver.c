@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.66.8.3 2008/07/23 07:28:56 tbox Exp $ */
+/* $Id: resolver.c,v 1.284.18.66.8.4 2008/07/24 05:00:48 jinmei Exp $ */
 
 /*! \file */
 
@@ -2689,6 +2689,8 @@ fctx_destroy(fetchctx_t *fctx) {
 static void
 fctx_timeout(isc_task_t *task, isc_event_t *event) {
 	fetchctx_t *fctx = event->ev_arg;
+	isc_timerevent_t *tevent = (isc_timerevent_t *)event;
+	resquery_t *query;
 
 	REQUIRE(VALID_FCTX(fctx));
 
@@ -2704,8 +2706,18 @@ fctx_timeout(isc_task_t *task, isc_event_t *event) {
 		fctx->timeouts++;
 		/*
 		 * We could cancel the running queries here, or we could let
-		 * them keep going.  Right now we choose the latter...
+		 * them keep going.  Since we normally use separate sockets for
+		 * different queries, we adopt the former approach to reduce
+		 * the number of open sockets: cancel the oldest query if it
+		 * expired after the query had started (this is usually the
+		 * case but is not always so, depending on the task schedule
+		 * timing).
 		 */
+		query = ISC_LIST_HEAD(fctx->queries);
+		if (query != NULL &&
+		    isc_time_compare(&tevent->due, &query->start) >= 0) {
+			fctx_cancelquery(&query, NULL, NULL, ISC_TRUE);
+		}
 		fctx->attributes &= ~FCTX_ATTR_ADDRWAIT;
 		/*
 		 * Our timer has triggered.  Reestablish the fctx lifetime
