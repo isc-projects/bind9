@@ -1,3 +1,6 @@
+2400.	[bug]		Log if kqueue()/epoll_create()/opne(devpoll) fails.
+			[RT #18297]
+
 2399.	[placeholder]
 
 2398.	[placeholder]
