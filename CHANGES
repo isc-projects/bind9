@@ -1,3 +1,6 @@
+2400.	[bug]		Log if kqueue()/epoll_create()/open(/dev/poll) fails.
+			[RT #18297]
+
 2397.	[bug]		gssapi_functions bad declaration. [RT #18355]
 
 2396.	[bug]		Don't set SO_REUSEADDR for randomized ports.
