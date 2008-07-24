@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.374 2008/07/22 03:43:04 marka Exp $ */
+/* $Id: resolver.c,v 1.375 2008/07/24 04:54:44 jinmei Exp $ */
 
 /*! \file */
 
@@ -2805,7 +2805,7 @@ fctx_timeout(isc_task_t *task, isc_event_t *event) {
 		 * them keep going.  Since we normally use separate sockets for
 		 * different queries, we adopt the former approach to reduce
 		 * the number of open sockets: cancel the oldest query if it
-		 * expired before the query had started (this is usually the
+		 * expired after the query had started (this is usually the
 		 * case but is not always so, depending on the task schedule
 		 * timing).
 		 */
