@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.207.2.19.2.35.4.4 2008/07/23 23:47:49 tbox Exp $ */
+/* $Id: socket.c,v 1.207.2.19.2.35.4.5 2008/07/24 10:35:48 fdupont Exp $ */
 
 #include <config.h>
 
@@ -1939,7 +1939,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		(void)close(fd);
 		errno = tmp;
 		fd = new;
-		err = "fcntl";
+		err = "accept/fcntl";
 	}
 #endif
 
@@ -1947,8 +1947,17 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		if (SOFT_ERROR(errno))
 			goto soft_error;
 		switch (errno) {
-		case ENOBUFS:
 		case ENFILE:
+		case EMFILE:
+			isc_log_iwrite(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+				       ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
+				       isc_msgcat, ISC_MSGSET_SOCKET,
+				       ISC_MSG_TOOMANYFDS,
+				       "%s: too many open file descriptors",
+				       err);
+			goto soft_error;
+
+		case ENOBUFS:
 		case ENOMEM:
 		case ECONNRESET:
 		case ECONNABORTED:
