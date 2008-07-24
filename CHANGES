@@ -17,6 +17,9 @@
 			open files to 'unlimited' as described in the
 			documentation. [RT #18331]
 
+2393.   [bug]           nested acls containing keys could trigger an
+                        assertion in acl.c. [RT #18166]
+
 2387.	[bug]		Silence compiler warnings in lib/isc/radix.c.
 			[RT #18147] [RT #18258]
 

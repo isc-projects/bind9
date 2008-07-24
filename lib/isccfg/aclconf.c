@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.c,v 1.17 2007/12/21 06:46:47 marka Exp $ */
+/* $Id: aclconf.c,v 1.17.100.1 2008/07/24 07:18:04 marka Exp $ */
 
 #include <config.h>
 
@@ -287,6 +287,7 @@ nested_acl:
 			} else {
 				dns_acl_merge(dacl, inneracl,
 					      ISC_TF(!neg));
+				de += inneracl->length;  /* elements added */
 				dns_acl_detach(&inneracl);
 				continue;
 			}
