@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.h,v 1.28.12.9 2007/08/28 07:19:15 tbox Exp $ */
+/* $Id: timer.h,v 1.28.12.9.4.1 2008/07/24 05:00:46 jinmei Exp $ */
 
 #ifndef ISC_TIMER_H
 #define ISC_TIMER_H 1
@@ -80,6 +80,7 @@
 #include <isc/event.h>
 #include <isc/eventclass.h>
 #include <isc/lang.h>
+#include <isc/time.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -96,6 +97,7 @@ typedef enum {
 
 typedef struct isc_timerevent {
 	struct isc_event	common;
+	isc_time_t		due;
 } isc_timerevent_t;
 
 #define ISC_TIMEREVENT_FIRSTEVENT	(ISC_EVENTCLASS_TIMER + 0)

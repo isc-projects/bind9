@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.64.12.17 2007/10/24 01:08:01 marka Exp $ */
+/* $Id: timer.c,v 1.64.12.17.4.1 2008/07/24 05:00:46 jinmei Exp $ */
 
 #include <config.h>
 
@@ -578,7 +578,7 @@ isc_timer_detach(isc_timer_t **timerp) {
 static void
 dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 	isc_boolean_t done = ISC_FALSE, post_event, need_schedule;
-	isc_event_t *event;
+	isc_timerevent_t *event;
 	isc_eventtype_t type = 0;
 	isc_timer_t *timer;
 	isc_result_t result;
@@ -651,16 +651,17 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 				/*
 				 * XXX We could preallocate this event.
 				 */
-				event = isc_event_allocate(manager->mctx,
+				event = (isc_timerevent_t *)isc_event_allocate(manager->mctx,
 							   timer,
 							   type,
 							   timer->action,
 							   timer->arg,
 							   sizeof(*event));
 
-				if (event != NULL)
+				if (event != NULL) {
+					event->due = timer->due;
 					isc_task_send(timer->task, &event);
-				else
+				} else
 					UNEXPECTED_ERROR(__FILE__, __LINE__,
 						 isc_msgcat_get(isc_msgcat,
 							 ISC_MSGSET_TIMER,
