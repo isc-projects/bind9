@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.207.2.19.2.45 2008/07/23 23:45:35 tbox Exp $ */
+/* $Id: socket.c,v 1.207.2.19.2.46 2008/07/24 05:28:05 jinmei Exp $ */
 
 #include <config.h>
 
@@ -2959,6 +2959,9 @@ watcher(void *uap) {
 static isc_result_t
 setup_watcher(isc_mem_t *mctx, isc_socketmgr_t *manager) {
 	isc_result_t result;
+#if defined(USE_KQUEUE) || defined(USE_EPOLL) || defined(USE_DEVPOLL)
+	char strbuf[ISC_STRERRORSIZE];
+#endif
 
 #ifdef USE_KQUEUE
 	manager->nevents = ISC_SOCKET_MAXEVENTS;
@@ -2969,6 +2972,12 @@ setup_watcher(isc_mem_t *mctx, isc_socketmgr_t *manager) {
 	manager->kqueue_fd = kqueue();
 	if (manager->kqueue_fd == -1) {
 		result = isc__errno2result(errno);
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "kqueue %s: %s",
+				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+						ISC_MSG_FAILED, "failed"),
+				 strbuf);
 		isc_mem_put(mctx, manager->events,
 			    sizeof(struct kevent) * manager->nevents);
 		return (result);
@@ -2992,6 +3001,12 @@ setup_watcher(isc_mem_t *mctx, isc_socketmgr_t *manager) {
 	manager->epoll_fd = epoll_create(manager->nevents);
 	if (manager->epoll_fd == -1) {
 		result = isc__errno2result(errno);
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "epoll_create %s: %s",
+				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+						ISC_MSG_FAILED, "failed"),
+				 strbuf);
 		isc_mem_put(mctx, manager->events,
 			    sizeof(struct epoll_event) * manager->nevents);
 		return (result);
@@ -3030,6 +3045,12 @@ setup_watcher(isc_mem_t *mctx, isc_socketmgr_t *manager) {
 	manager->devpoll_fd = open("/dev/poll", O_RDWR);
 	if (manager->devpoll_fd == -1) {
 		result = isc__errno2result(errno);
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "open(/dev/poll) %s: %s",
+				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+						ISC_MSG_FAILED, "failed"),
+				 strbuf);
 		isc_mem_put(mctx, manager->events,
 			    sizeof(struct pollfd) * manager->nevents);
 		isc_mem_put(mctx, manager->fdpollinfo,

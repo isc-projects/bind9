@@ -1,3 +1,6 @@
+2399.	[bug]		Abort timeout queries to reduce the number of open
+			UDP sockets. [RT #18367]
+
 2396.	[bug]		Don't set SO_REUSEADDR for randomized ports.
 			[RT #18336]
 
