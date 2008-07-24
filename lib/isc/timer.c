@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.73.18.7.10.1 2008/07/24 05:00:48 jinmei Exp $ */
+/* $Id: timer.c,v 1.73.18.7.10.2 2008/07/24 23:48:09 tbox Exp $ */
 
 /*! \file */
 
