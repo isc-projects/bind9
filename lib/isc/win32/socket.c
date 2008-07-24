@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.5.2.13.2.32 2008/07/23 23:45:35 tbox Exp $ */
+/* $Id: socket.c,v 1.5.2.13.2.33 2008/07/24 10:14:49 fdupont Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -2207,7 +2207,16 @@ internal_accept(isc_socket_t *sock, int accept_errno) {
 		    (void *)&addrlen);
 	if (fd == INVALID_SOCKET) {
 		accept_errno = WSAGetLastError();
-		if (SOFT_ERROR(accept_errno) || accept_errno == WSAECONNRESET) {
+		if (accept_errno == WSAEMFILE) {
+			isc_log_iwrite(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+				       ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
+				       isc_msgcat, ISC_MSGSET_SOCKET,
+				       ISC_MSG_TOOMANYFDS,
+				       "%s: too many open file descriptors",
+				       "accept");
+			goto soft_error;
+		} else if (SOFT_ERROR(accept_errno) ||
+			   accept_errno == WSAECONNRESET) {
 			goto soft_error;
 		} else {
 			isc__strerror(accept_errno, strbuf, sizeof(strbuf));
