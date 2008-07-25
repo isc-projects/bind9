@@ -1,3 +1,5 @@
+2402.	[port]		Support Solaris 2.11 and over. [RT #18362]
+
 2401.	[bug]		Expect to get E[MN]FILE errno internal_accept()
 			(from accept() or fcntl() system calls). [RT #18358]
 
