@@ -16,6 +16,9 @@
 			open files to 'unlimited' as described in the
 			documentation. [RT #18331]
 
+2392.	[bug]		remove 'grep -q' from acl test script, some platforms
+			don't support it. [RT #18253]
+
 2391	[port]		hpux: cover additional recvmsg() error codes.
 			[RT #18301]
 
