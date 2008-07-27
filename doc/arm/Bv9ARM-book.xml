@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.92 2008/06/25 00:03:28 jinmei Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.93 2008/07/27 04:46:38 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -4840,7 +4840,7 @@ a client request will be resolved in the context of the first
 <command>view</command> that it matches.</para>
 
 <para>Zones defined within a <command>view</command> statement will
-be only be accessible to clients that match the <command>view</command>.
+only be accessible to clients that match the <command>view</command>.
  By defining a zone of the same name in multiple views, different
 zone data can be given to different clients, for example, "internal"
 and "external" clients in a split DNS setup.</para>
