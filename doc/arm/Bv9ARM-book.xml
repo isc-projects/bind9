@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.14 2008/07/17 23:50:58 jinmei Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.15 2008/07/27 04:42:14 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -8244,7 +8244,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
           <para>
             Zones defined within a <command>view</command>
             statement will
-            be only be accessible to clients that match the <command>view</command>.
+            only be accessible to clients that match the <command>view</command>.
             By defining a zone of the same name in multiple views, different
             zone data can be given to different clients, for example,
             "internal"
