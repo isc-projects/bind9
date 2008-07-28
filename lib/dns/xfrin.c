@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.161 2008/07/28 08:39:52 marka Exp $ */
+/* $Id: xfrin.c,v 1.162 2008/07/28 23:47:22 tbox Exp $ */
 
 /*! \file */
 
@@ -1215,7 +1215,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 
 	msg->tsigctx = xfr->tsigctx;
 	xfr->tsigctx = NULL;
-	
+
 	if (xfr->nmsg > 0)
 		msg->tcp_continuation = 1;
 
