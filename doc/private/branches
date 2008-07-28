@@ -146,6 +146,8 @@ rt18336				new	fdupont	// 2008-07-21 13:51 +0000
 rt18336p1			new	
 rt18344				new	
 rt18358				new	fdupont	// 2008-07-23 22:35 +0000
+rt18374				new	mayer	// 2008-07-28 02:48 +0000
+rt18374_v9_5			new	mayer	// 2008-07-28 13:32 +0000
 shane_dbbackend			open	
 skan				open	explorer
 skan-metazones1			private	explorer
