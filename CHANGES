@@ -1,3 +1,5 @@
+2404.	[port]		hpux: files unlimited support.
+
 2403.	[bug]		TSIG context leak. [RT #18341]
 
 2402.	[port]		Support Solaris 2.11 and over. [RT #18362]
