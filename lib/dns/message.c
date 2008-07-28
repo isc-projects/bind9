@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.243 2008/04/03 10:45:35 marka Exp $ */
+/* $Id: message.c,v 1.244 2008/07/28 08:39:52 marka Exp $ */
 
 /*! \file */
 
@@ -621,6 +621,9 @@ msgreset(dns_message_t *msg, isc_boolean_t everything) {
 		dns_tsigkey_detach(&msg->tsigkey);
 		msg->tsigkey = NULL;
 	}
+
+	if (msg->tsigctx != NULL)
+		dst_context_destroy(&msg->tsigctx);
 
 	if (msg->query.base != NULL) {
 		if (msg->free_query != 0)
