@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resource.c,v 1.14.128.4 2008/07/21 03:39:59 marka Exp $ */
+/* $Id: resource.c,v 1.14.128.5 2008/07/28 23:00:11 marka Exp $ */
 
 #include <config.h>
 
@@ -30,6 +30,10 @@
 
 #ifdef __linux__
 #include <linux/fs.h>	/* To get the large NR_OPEN. */
+#endif
+
+#ifdef __hpux
+#include <sys/dyntune.h>
 #endif
 
 #include "errno2result.h"
@@ -166,7 +170,25 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 		if (unixresult == 0)
 			return (ISC_R_SUCCESS);
 	}
+#elif defined(__hpux)
+	if (resource == isc_resource_openfiles && rlim_value == RLIM_INFINITY) {
+		uint64_t maxfiles;
+		if (gettune("maxfiles_lim", &maxfiles) == 0) {
+			rl.rlim_cur = rl.rlim_max = maxfiles;
+			unixresult = setrlimit(unixresource, &rl);
+			if (unixresult == 0)
+				return (ISC_R_SUCCESS);
+		}
+	}
 #endif
+	if (resource == isc_resource_openfiles && rlim_value == RLIM_INFINITY) {
+		if (getrlimit(unixresource, &rl) == 0) {
+			rl.rlim_cur = rl.rlim_max;
+			unixresult = setrlimit(unixresource, &rl);
+			if (unixresult == 0)
+				return (ISC_R_SUCCESS);
+		}
+	}
 	return (isc__errno2result(errno));
 }
 
