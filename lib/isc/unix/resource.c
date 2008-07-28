@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resource.c,v 1.14.128.3.12.2 2008/07/23 11:46:02 marka Exp $ */
+/* $Id: resource.c,v 1.14.128.3.12.3 2008/07/28 22:38:55 marka Exp $ */
 
 #include <config.h>
 
@@ -30,6 +30,10 @@
 
 #ifdef __linux__
 #include <linux/fs.h>	/* To get the large NR_OPEN. */
+#endif
+
+#ifdef __hpux
+#include <sys/dyntune.h>
 #endif
 
 #include "errno2result.h"
@@ -136,11 +140,32 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 		rlim_value = value;
 	}
 
-	rl.rlim_cur = rl.rlim_max = rlim_value;
+	/*
+	 * Don't lower maximum value.
+	 * Allow the maximum value to rise if running as root.
+	 */
+	unixresult = getrlimit(unixresource, &rl);
+	if (unixresult == 0 && rlim_value < rl.rlim_max)
+		rl.rlim_cur = rlim_value;
+	else
+		rl.rlim_cur = rl.rlim_max = rlim_value;
 	unixresult = setrlimit(unixresource, &rl);
 
 	if (unixresult == 0)
 		return (ISC_R_SUCCESS);
+
+	if (errno == EPERM) {
+		/*
+		 * Not running as root.  Raise the limit as far as possible.
+		 */
+		unixresult = getrlimit(unixresource, &rl);
+		if (unixresult != 0 & rlim_value > rl.rlim_max) {
+			rl.rlim_cur = rl.rlim_max;
+			unixresult = setrlimit(unixresource, &rl);
+			if (unixresult == 0)
+				return (ISC_R_SUCCESS);
+		}
+	}
 
 #if defined(OPEN_MAX) && defined(__APPLE__)
 	/*
@@ -166,7 +191,25 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 		if (unixresult == 0)
 			return (ISC_R_SUCCESS);
 	}
+#elif defined(__hpux)
+	if (resource == isc_resource_openfiles && rlim_value == RLIM_INFINITY) {
+		uint64_t maxfiles;
+		if (gettune("maxfiles_lim", &maxfiles) == 0) {
+			rl.rlim_cur = rl.rlim_max = maxfiles;
+			unixresult = setrlimit(unixresource, &rl);
+			if (unixresult == 0)
+				return (ISC_R_SUCCESS);
+		}
+	}
 #endif
+	if (resource == isc_resource_openfiles && rlim_value == RLIM_INFINITY) {
+		if (getrlimit(unixresource, &rl) == 0) {
+			rl.rlim_cur = rl.rlim_max;
+			unixresult = setrlimit(unixresource, &rl);
+			if (unixresult == 0)
+				return (ISC_R_SUCCESS);
+		}
+	}
 	return (isc__errno2result(errno));
 }
 
