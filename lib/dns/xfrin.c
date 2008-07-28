@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.157.116.3 2008/07/23 22:51:53 marka Exp $ */
+/* $Id: xfrin.c,v 1.157.116.4 2008/07/28 08:36:27 marka Exp $ */
 
 /*! \file */
 
@@ -1075,6 +1075,8 @@ xfrin_send_request(dns_xfrin_ctx_t *xfr) {
 	xfr->nbytes = 0;
 	isc_time_now(&xfr->start);
 	msg->id = xfr->id;
+	if (xfr->tsigctx != NULL)
+		dst_context_destroy(&xfr->tsigctx);
 
 	CHECK(render(msg, xfr->mctx, &xfr->qbuffer));
 
@@ -1210,7 +1212,10 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 
 	CHECK(dns_message_settsigkey(msg, xfr->tsigkey));
 	CHECK(dns_message_setquerytsig(msg, xfr->lasttsig));
+
 	msg->tsigctx = xfr->tsigctx;
+	xfr->tsigctx = NULL;
+	
 	if (xfr->nmsg > 0)
 		msg->tcp_continuation = 1;
 
@@ -1328,9 +1333,11 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 	xfr->nbytes += tcpmsg->buffer.used;
 
 	/*
-	 * Copy the context back.
+	 * Take the context back.
 	 */
+	INSIST(xfr->tsigctx == NULL);
 	xfr->tsigctx = msg->tsigctx;
+	msg->tsigctx = NULL;
 
 	dns_message_destroy(&msg);
 
@@ -1443,6 +1450,9 @@ maybe_free(dns_xfrin_ctx_t *xfr) {
 
 	if (xfr->tcpmsg_valid)
 		dns_tcpmsg_invalidate(&xfr->tcpmsg);
+
+	if (xfr->tsigctx != NULL)
+		dst_context_destroy(&xfr->tsigctx);
 
 	if ((xfr->name.attributes & DNS_NAMEATTR_DYNAMIC) != 0)
 		dns_name_free(&xfr->name, xfr->mctx);
