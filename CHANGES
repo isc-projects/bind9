@@ -1,3 +1,11 @@
+2405.   [cleanup]       The default value for dnssec-validation was changed to
+                        "yes" in 9.5.0-P1 and all subsequent releases; this
+                        was inadvertently omitted from CHANGES at the time.
+
+2404.	[port]		hpux: files unlimited support.
+
+2403.	[bug]		TSIG context leak. [RT #18341]
+
 2402.	[port]		Support Solaris 2.11 and over. [RT #18362]
 
 2401.	[bug]		Expect to get E[MN]FILE errno internal_accept()
@@ -901,7 +909,7 @@
 2111.	[bug]		Fix a number of errors reported by Coverity.
 			[RT #16507]
 
-2110.	[bug]		"minimal-response yes;" interacted badly with BIND 8
+2110.	[bug]		"minimal-responses yes;" interacted badly with BIND 8
 			priming queries. [RT #16491]
 
 2109.	[port]		libbind: silence aix 5.3 compiler warnings. [RT #16502]
