@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resource.c,v 1.14.128.3.12.4 2008/07/28 22:54:50 marka Exp $ */
+/* $Id: resource.c,v 1.14.128.3.12.5 2008/07/29 07:04:16 jinmei Exp $ */
 
 #include <config.h>
 
@@ -139,6 +139,12 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 
 		rlim_value = value;
 	}
+
+	rl.rlim_cur = rl.rlim_max = rlim_value;
+	unixresult = setrlimit(unixresource, &rl);
+
+	if (unixresult == 0)
+		return (ISC_R_SUCCESS);
 
 #if defined(OPEN_MAX) && defined(__APPLE__)
 	/*
