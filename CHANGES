@@ -1,3 +1,5 @@
+	--- 9.4.2-P2 released ---
+
 2406.   [bug]           Some operating systems have FD_SETSIZE set to a
 			low value by default, which can cause resource
 			exhaustion when many simultaneous connections are
