@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.81.132.2 2008/07/24 23:48:39 tbox Exp $ */
+/* $Id: timer.c,v 1.81.132.3 2008/07/29 18:37:25 jinmei Exp $ */
 
 /*! \file */
 
@@ -659,7 +659,8 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 
 				if (event != NULL) {
 					event->due = timer->due;
-					isc_task_send(timer->task, &event);
+					isc_task_send(timer->task,
+						      ISC_EVENT_PTR(&event));
 				} else
 					UNEXPECTED_ERROR(__FILE__, __LINE__,
 						 isc_msgcat_get(isc_msgcat,
