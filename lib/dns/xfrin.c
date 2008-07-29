@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.157 2007/12/02 23:55:01 marka Exp $ */
+/* $Id: xfrin.c,v 1.157.116.5 2008/07/28 23:48:57 tbox Exp $ */
 
 /*! \file */
 
@@ -253,7 +253,7 @@ static isc_result_t
 axfr_init(dns_xfrin_ctx_t *xfr) {
 	isc_result_t result;
 
- 	xfr->is_ixfr = ISC_FALSE;
+	xfr->is_ixfr = ISC_FALSE;
 
 	if (xfr->db != NULL)
 		dns_db_detach(&xfr->db);
@@ -873,7 +873,8 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 				&xfr->socket));
 	isc_socket_setname(xfr->socket, "xfrin", NULL);
 #ifndef BROKEN_TCP_BIND_BEFORE_CONNECT
-	CHECK(isc_socket_bind(xfr->socket, &xfr->sourceaddr));
+	CHECK(isc_socket_bind(xfr->socket, &xfr->sourceaddr,
+			      ISC_SOCKET_REUSEADDRESS));
 #endif
 	CHECK(isc_socket_connect(xfr->socket, &xfr->masteraddr, xfr->task,
 				 xfrin_connect_done, xfr));
@@ -902,8 +903,8 @@ render(dns_message_t *msg, isc_mem_t *mctx, isc_buffer_t *buf) {
 	CHECK(dns_message_renderend(msg));
 	result = ISC_R_SUCCESS;
  failure:
- 	if (cleanup_cctx)
-	 	dns_compress_invalidate(&cctx);
+	if (cleanup_cctx)
+		dns_compress_invalidate(&cctx);
 	return (result);
 }
 
@@ -1074,6 +1075,8 @@ xfrin_send_request(dns_xfrin_ctx_t *xfr) {
 	xfr->nbytes = 0;
 	isc_time_now(&xfr->start);
 	msg->id = xfr->id;
+	if (xfr->tsigctx != NULL)
+		dst_context_destroy(&xfr->tsigctx);
 
 	CHECK(render(msg, xfr->mctx, &xfr->qbuffer));
 
@@ -1209,7 +1212,10 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 
 	CHECK(dns_message_settsigkey(msg, xfr->tsigkey));
 	CHECK(dns_message_setquerytsig(msg, xfr->lasttsig));
+
 	msg->tsigctx = xfr->tsigctx;
+	xfr->tsigctx = NULL;
+
 	if (xfr->nmsg > 0)
 		msg->tcp_continuation = 1;
 
@@ -1327,9 +1333,11 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 	xfr->nbytes += tcpmsg->buffer.used;
 
 	/*
-	 * Copy the context back.
+	 * Take the context back.
 	 */
+	INSIST(xfr->tsigctx == NULL);
 	xfr->tsigctx = msg->tsigctx;
+	msg->tsigctx = NULL;
 
 	dns_message_destroy(&msg);
 
@@ -1409,7 +1417,7 @@ maybe_free(dns_xfrin_ctx_t *xfr) {
 	if (msecs == 0)
 		msecs = 1;
 	persec = (xfr->nbytes * 1000) / msecs;
-	xfrin_log(xfr, ISC_LOG_INFO, 
+	xfrin_log(xfr, ISC_LOG_INFO,
 		  "Transfer completed: %d messages, %d records, "
 		  "%" ISC_PRINT_QUADFORMAT "u bytes, "
 		  "%u.%03u secs (%u bytes/sec)",
@@ -1442,6 +1450,9 @@ maybe_free(dns_xfrin_ctx_t *xfr) {
 
 	if (xfr->tcpmsg_valid)
 		dns_tcpmsg_invalidate(&xfr->tcpmsg);
+
+	if (xfr->tsigctx != NULL)
+		dst_context_destroy(&xfr->tsigctx);
 
 	if ((xfr->name.attributes & DNS_NAMEATTR_DYNAMIC) != 0)
 		dns_name_free(&xfr->name, xfr->mctx);

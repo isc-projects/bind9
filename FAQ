@@ -1,6 +1,6 @@
 Frequently Asked Questions about BIND 9
 
-Copyright © 2004-2007 Internet Systems Consortium, Inc. ("ISC")
+Copyright © 2004-2008 Internet Systems Consortium, Inc. ("ISC")
 
 Copyright © 2000-2003 Internet Software Consortium.
 
@@ -594,7 +594,12 @@ Q: I get the error message "named: capset failed: Operation not permitted"
    when starting named.
 
 A: The capability module, part of "Linux Security Modules/LSM", has not
-   been loaded into the kernel. See insmod(8).
+   been loaded into the kernel. See insmod(8), modprobe(8).
+
+   The relevant modules can be loaded by running:
+
+   modprobe commoncap
+   modprobe capability
 
 Q: I'm running BIND on Red Hat Enterprise Linux or Fedora Core -
 
@@ -698,6 +703,18 @@ A: Red Hat Security Enhanced Linux (SELinux) policy security protections :
 
    See these man-pages for more information : selinux(8), named_selinux
    (8), chcon(1), setsebool(8)
+
+Q: Listening on individual IPv6 interfaces does not work.
+
+A: This is usually due to "/proc/net/if_inet6" not being available in the
+   chroot file system. Mount another instance of "proc" in the chroot file
+   system.
+
+   This can be be made permanent by adding a second instance to /etc/
+   fstab.
+
+   proc /proc           proc defaults 0 0
+   proc /var/named/proc proc defaults 0 0
 
 4.3. Windows
 

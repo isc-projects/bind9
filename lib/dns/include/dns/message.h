@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.123 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: message.h,v 1.123.128.2 2008/04/03 06:08:27 tbox Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -101,7 +101,11 @@
 #define DNS_MESSAGEFLAG_AD		0x0020U
 #define DNS_MESSAGEFLAG_CD		0x0010U
 
+/*%< EDNS0 extended message flags */
 #define DNS_MESSAGEEXTFLAG_DO		0x8000U
+
+/*%< EDNS0 extended OPT codes */
+#define DNS_OPT_NSID		0x0003		/*%< NSID opt code */
 
 #define DNS_MESSAGE_REPLYPRESERVE	(DNS_MESSAGEFLAG_RD|DNS_MESSAGEFLAG_CD)
 #define DNS_MESSAGEEXTFLAG_REPLYPRESERVE (DNS_MESSAGEEXTFLAG_DO)
@@ -771,7 +775,7 @@ dns_message_addname(dns_message_t *msg, dns_name_t *name,
 
 void
 dns_message_removename(dns_message_t *msg, dns_name_t *name,
-                       dns_section_t section);
+		       dns_section_t section);
 /*%<
  * Remove a existing name from a given section.
  *
@@ -1031,7 +1035,7 @@ dns_message_setopt(dns_message_t *msg, dns_rdataset_t *opt);
  *\li	The OPT record has either been freed or ownership of it has
  *	been transferred to the message.
  *
- *\li	If ISC_R_SUCCESS was returned, the OPT record will be rendered 
+ *\li	If ISC_R_SUCCESS was returned, the OPT record will be rendered
  *	when dns_message_renderend() is called.
  *
  * Returns:
@@ -1315,7 +1319,7 @@ dns_message_setsortorder(dns_message_t *msg, dns_rdatasetorderfunc_t order,
  *\li	order_arg is NULL if and only if order is NULL.
  */
 
-void 
+void
 dns_message_settimeadjust(dns_message_t *msg, int timeadjust);
 /*%<
  * Adjust the time used to sign/verify a message by timeadjust.
@@ -1325,7 +1329,7 @@ dns_message_settimeadjust(dns_message_t *msg, int timeadjust);
  *\li	msg be a valid message.
  */
 
-int 
+int
 dns_message_gettimeadjust(dns_message_t *msg);
 /*%<
  * Return the current time adjustment.

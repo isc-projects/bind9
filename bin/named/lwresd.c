@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,9 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.55 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id: lwresd.c,v 1.55.234.3 2008/07/23 22:51:52 marka Exp $ */
 
-/*! \file 
+/*! \file
  * \brief
  * Main program for the Lightweight Resolver Daemon.
  *
@@ -224,7 +224,7 @@ ns_lwresd_parseeresolvconf(isc_mem_t *mctx, cfg_parser_t *pctx,
 			for (i = 0; i < lwc->searchnxt; i++) {
 				CHECK(buffer_putstr(&b, "\t\t\""));
 				CHECK(buffer_putstr(&b, lwc->search[i]));
-			        CHECK(buffer_putstr(&b, "\";\n"));
+				CHECK(buffer_putstr(&b, "\";\n"));
 			}
 			CHECK(buffer_putstr(&b, "\t};\n"));
 		}
@@ -576,7 +576,8 @@ listener_bind(ns_lwreslistener_t *listener, isc_sockaddr_t *address) {
 		return (result);
 	}
 
-	result = isc_socket_bind(sock, &listener->address);
+	result = isc_socket_bind(sock, &listener->address,
+				 ISC_SOCKET_REUSEADDRESS);
 	if (result != ISC_R_SUCCESS) {
 		char socktext[ISC_SOCKADDR_FORMATSIZE];
 		isc_sockaddr_format(&listener->address, socktext,

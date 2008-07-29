@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: gssapi_link.c,v 1.7 2007/06/19 23:47:16 tbox Exp $
+ * $Id: gssapi_link.c,v 1.7.128.3.4.1 2008/07/23 10:35:04 marka Exp $
  */
 
 #include <config.h>
@@ -174,7 +174,8 @@ gssapi_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	 * allocated space.
 	 */
 	isc_buffer_putmem(sig, gsig.value, gsig.length);
-	gss_release_buffer(&minor, &gsig);
+	if (gsig.length != 0)
+		gss_release_buffer(&minor, &gsig);
 
 	return (ISC_R_SUCCESS);
 }
@@ -290,7 +291,7 @@ static dst_func_t gssapi_functions = {
 	NULL, /*%< fromdns */
 	NULL, /*%< tofile */
 	NULL, /*%< parse */
-	NULL, /*%< cleanup */
+	NULL /*%< cleanup */
 };
 
 isc_result_t

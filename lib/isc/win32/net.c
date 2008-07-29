@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.c,v 1.14 2007/06/18 23:47:49 tbox Exp $ */
+/* $Id: net.c,v 1.14.128.2 2008/04/02 23:46:28 tbox Exp $ */
 
 #include <config.h>
 
@@ -51,7 +51,7 @@ try_proto(int domain) {
 	char strbuf[ISC_STRERRORSIZE];
 	int errval;
 
-	s = socket(domain, SOCK_STREAM, 0);
+	s = socket(domain, SOCK_STREAM, IPPROTO_TCP);
 	if (s == INVALID_SOCKET) {
 		errval = WSAGetLastError();
 		switch (errval) {
@@ -72,53 +72,9 @@ try_proto(int domain) {
 		}
 	}
 
-#ifdef ISC_PLATFORM_HAVEIPV6
-#ifdef WANT_IPV6
-#ifdef ISC_PLATFORM_HAVEIN6PKTINFO
-	if (domain == PF_INET6) {
-		struct sockaddr_in6 sin6;
-		unsigned int len;
-
-		/*
-		 * Check to see if IPv6 is broken, as is common on Linux.
-		 */
-		len = sizeof(sin6);
-		if (getsockname(s, (struct sockaddr *)&sin6, (void *)&len) < 0)
-		{
-			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
-				      ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
-				      "retrieving the address of an IPv6 "
-				      "socket from the kernel failed.");
-			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
-				      ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
-				      "IPv6 support is disabled.");
-			result = ISC_R_NOTFOUND;
-		} else {
-			if (len == sizeof(struct sockaddr_in6))
-				result = ISC_R_SUCCESS;
-			else {
-				isc_log_write(isc_lctx,
-					      ISC_LOGCATEGORY_GENERAL,
-					      ISC_LOGMODULE_SOCKET,
-					      ISC_LOG_ERROR,
-					      "IPv6 structures in kernel and "
-					      "user space do not match.");
-				isc_log_write(isc_lctx,
-					      ISC_LOGCATEGORY_GENERAL,
-					      ISC_LOGMODULE_SOCKET,
-					      ISC_LOG_ERROR,
-					      "IPv6 support is disabled.");
-				result = ISC_R_NOTFOUND;
-			}
-		}
-	}
-#endif
-#endif
-#endif
-
 	closesocket(s);
 
-	return (result);
+	return (ISC_R_SUCCESS);
 }
 
 static void
@@ -198,7 +154,7 @@ try_ipv6only(void) {
 		goto close;
 	}
 
-	close(s);
+	closesocket(s);
 
 	/* check for UDP sockets */
 	s = socket(PF_INET6, SOCK_DGRAM, 0);
@@ -221,12 +177,10 @@ try_ipv6only(void) {
 		goto close;
 	}
 
-	close(s);
-
 	ipv6only_result = ISC_R_SUCCESS;
 
 close:
-	close(s);
+	closeocket(s);
 	return;
 #endif /* IPV6_V6ONLY */
 }
@@ -252,7 +206,7 @@ try_ipv6pktinfo(void) {
 
 	/* we only use this for UDP sockets */
 	s = socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-	if (s == -1) {
+	if (s == INVALID_SOCKET) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "socket() %s: %s",
@@ -276,11 +230,10 @@ try_ipv6pktinfo(void) {
 		goto close;
 	}
 
-	close(s);
 	ipv6pktinfo_result = ISC_R_SUCCESS;
 
 close:
-	close(s);
+	closesocket(s);
 	return;
 }
 

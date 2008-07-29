@@ -1,12 +1,10 @@
 The following machines, at least today seem to have LOC
 records:
 
-*.cpod.fr (for instance www.cpod.fr)
+147.210.73.0/24 (note the two /25 have different LOC, inherited differently)
 130.104.3.*
-195.202.193.*
 Melanie.Tolna.Net
 204.92.254.*
-mail.vitts.com
 alink.net
 caida.org
 ckdhr.com
@@ -15,4 +13,4 @@ nikhef.nl
 yahoo.com
 nic.af
 
-$Id: ADDRESSES,v 1.1 2005/04/01 05:34:59 marka Exp $
+$Id: ADDRESSES,v 1.1.2.1 2008/02/15 02:11:57 marka Exp $

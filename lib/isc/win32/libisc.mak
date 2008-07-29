@@ -134,6 +134,7 @@ CLEAN :
 	-@erase "$(INTDIR)\hex.obj"
 	-@erase "$(INTDIR)\hmacmd5.obj"
 	-@erase "$(INTDIR)\hmacsha.obj"
+	-@erase "$(INTDIR)\httpd.obj"
 	-@erase "$(INTDIR)\inet_aton.obj"
 	-@erase "$(INTDIR)\inet_ntop.obj"
 	-@erase "$(INTDIR)\inet_pton.obj"
@@ -240,6 +241,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\hex.obj" \
 	"$(INTDIR)\hmacmd5.obj" \
 	"$(INTDIR)\hmacsha.obj" \
+	"$(INTDIR)\httpd.obj" \
 	"$(INTDIR)\inet_aton.obj" \
 	"$(INTDIR)\inet_ntop.obj" \
 	"$(INTDIR)\inet_pton.obj" \
@@ -332,6 +334,8 @@ CLEAN :
 	-@erase "$(INTDIR)\hmacmd5.sbr"
 	-@erase "$(INTDIR)\hmacsha.obj"
 	-@erase "$(INTDIR)\hmacsha.sbr"
+	-@erase "$(INTDIR)\httpd.obj"
+	-@erase "$(INTDIR)\httpd.sbr"
 	-@erase "$(INTDIR)\inet_aton.obj"
 	-@erase "$(INTDIR)\inet_aton.sbr"
 	-@erase "$(INTDIR)\inet_ntop.obj"
@@ -485,6 +489,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\hex.sbr" \
 	"$(INTDIR)\hmacmd5.sbr" \
 	"$(INTDIR)\hmacsha.sbr" \
+	"$(INTDIR)\httpd.sbr" \
 	"$(INTDIR)\inet_aton.sbr" \
 	"$(INTDIR)\inet_ntop.sbr" \
 	"$(INTDIR)\inet_pton.sbr" \
@@ -565,6 +570,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\hex.obj" \
 	"$(INTDIR)\hmacmd5.obj" \
 	"$(INTDIR)\hmacsha.obj" \
+	"$(INTDIR)\httpd.obj" \
 	"$(INTDIR)\inet_aton.obj" \
 	"$(INTDIR)\inet_ntop.obj" \
 	"$(INTDIR)\inet_pton.obj" \
@@ -1275,6 +1281,24 @@ SOURCE=..\hmacsha.c
 
 
 "$(INTDIR)\hmacsha.obj"	"$(INTDIR)\hmacsha.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\httpd.c
+
+!IF  "$(CFG)" == "libisc - Win32 Release"
+
+
+"$(INTDIR)\httpd.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libisc - Win32 Debug"
+
+
+"$(INTDIR)\httpd.obj"	"$(INTDIR)\httpd.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 

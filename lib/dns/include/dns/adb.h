@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.h,v 1.83 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: adb.h,v 1.83.128.2 2008/04/03 06:20:34 tbox Exp $ */
 
 #ifndef DNS_ADB_H
 #define DNS_ADB_H 1
@@ -99,7 +99,7 @@ ISC_LANG_BEGINDECLS
 
 typedef struct dns_adbname		dns_adbname_t;
 
-/*! 
+/*!
  *\brief
  * Represents a lookup for a single name.
  *
@@ -220,7 +220,7 @@ struct dns_adbaddrinfo {
 	ISC_LINK(dns_adbaddrinfo_t)	publink;
 };
 
-/*!< 
+/*!<
  * The event sent to the caller task is just a plain old isc_event_t.  It
  * contains no data other than a simple status, passed in the "type" field
  * to indicate that another address resolved, or all partially resolved
@@ -520,7 +520,7 @@ void
 dns_adb_adjustsrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 		   unsigned int rtt, unsigned int factor);
 /*%<
- * Mix the round trip time into the existing smoothed rtt.  
+ * Mix the round trip time into the existing smoothed rtt.
 
  * The formula used
  * (where srtt is the existing rtt value, and rtt and factor are arguments to
@@ -623,12 +623,11 @@ void
 dns_adb_flushname(dns_adb_t *adb, dns_name_t *name);
 /*%<
  * Flush 'name' from the adb cache.
- * 
+ *
  * Requires:
  *\li	'adb' is valid.
  *\li	'name' is valid.
  */
-
 
 ISC_LANG_ENDDECLS
 

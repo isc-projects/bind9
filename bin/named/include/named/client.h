@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.82 2007/06/18 23:47:19 tbox Exp $ */
+/* $Id: client.h,v 1.82.128.2 2008/04/03 06:08:26 tbox Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file 
+/*! \file
  * \brief
  * This module defines two objects, ns_client_t and ns_clientmgr_t.
  *
@@ -159,6 +159,7 @@ struct ns_client {
 #define NS_CLIENTATTR_PKTINFO		0x04 /*%< pktinfo is valid */
 #define NS_CLIENTATTR_MULTICAST		0x08 /*%< recv'd from multicast */
 #define NS_CLIENTATTR_WANTDNSSEC	0x10 /*%< include dnssec records */
+#define NS_CLIENTATTR_WANTNSID          0x20 /*%< include nameserver ID */
 
 extern unsigned int ns_client_requests;
 
@@ -358,8 +359,8 @@ ns_client_qnamereplace(ns_client_t *client, dns_name_t *name);
 
 isc_boolean_t
 ns_client_isself(dns_view_t *myview, dns_tsigkey_t *mykey,
-                 isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
-                 dns_rdataclass_t rdclass, void *arg);
+		 isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
+		 dns_rdataclass_t rdclass, void *arg);
 /*%
  * Isself callback.
  */

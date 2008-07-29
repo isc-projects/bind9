@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdatalist.h,v 1.20 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: rdatalist.h,v 1.20.128.2 2008/04/03 06:08:27 tbox Exp $ */
 
 #ifndef DNS_RDATALIST_H
 #define DNS_RDATALIST_H 1
@@ -93,6 +93,27 @@ dns_rdatalist_tordataset(dns_rdatalist_t *rdatalist,
  *	on success,
  *
  *\li		'rdataset' is associated with the rdata in rdatalist.
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS
+ */
+
+isc_result_t
+dns_rdatalist_fromrdataset(dns_rdataset_t *rdataset,
+			   dns_rdatalist_t **rdatalist);
+/*%<
+ * Point 'rdatalist' to the rdatalist in 'rdataset'.
+ *
+ * Requires:
+ *
+ *\li	'rdatalist' is a pointer to a NULL dns_rdatalist_t pointer.
+ *
+ *\li	'rdataset' is a valid rdataset associated with an rdatalist.
+ *
+ * Ensures,
+ *	on success,
+ *
+ *\li		'rdatalist' is pointed to the rdatalist in rdataset.
  *
  * Returns:
  *\li	#ISC_R_SUCCESS

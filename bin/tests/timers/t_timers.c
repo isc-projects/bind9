@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_timers.c,v 1.26 2007/06/19 23:47:07 tbox Exp $ */
+/* $Id: t_timers.c,v 1.26.128.2 2008/01/12 23:46:43 tbox Exp $ */
 
 #include <config.h>
 
@@ -256,7 +256,7 @@ t_timers_x(isc_timertype_t timertype, isc_time_t *expires,
 		return;
 	}
 
-	isc_mutex_lock(&Tx_mx);
+	isc_result = isc_mutex_lock(&Tx_mx);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_mutex_lock failed %s\n",
 		       isc_result_totext(isc_result));

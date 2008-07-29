@@ -1,6 +1,6 @@
 #include "loc.h"
 
-/* $Id: loc.c,v 1.1 2005/04/01 05:35:00 marka Exp $ */
+/* $Id: loc.c,v 1.1.2.1 2008/02/15 02:11:57 marka Exp $ */
 
 /* Global variables */
 
@@ -175,20 +175,24 @@ getlocbyaddr (addr, mask)
       if (IN_CLASSA (a))
 	{
 	  netaddr.s_addr = htonl (a & IN_CLASSA_NET);
+	  themask.s_addr = htonl(IN_CLASSA_NET);
 	}
       else if (IN_CLASSB (a))
 	{
 	  netaddr.s_addr = htonl (a & IN_CLASSB_NET);
+	  themask.s_addr = htonl(IN_CLASSB_NET);
 	}
       else if (IN_CLASSC (a))
 	{
 	  netaddr.s_addr = htonl (a & IN_CLASSC_NET);
+	  themask.s_addr = htonl(IN_CLASSC_NET);
 	}
       else
 	{
 	  /* Error */
+	  return NULL;
 	}
-      return getlocbynet (in_addr_arpa (inet_ntoa (netaddr)), addr, mask);
+      return getlocbynet (in_addr_arpa (inet_ntoa (netaddr)), addr, &themask);
     }
   else
     {
@@ -209,10 +213,49 @@ getlocbynet (name, addr, mask)
      struct in_addr *mask;
 {
   char *network;
-  char *result, *result_int;
+  char *result;
   struct list_in_addr *list;
+  struct in_addr newmask;
+  u_int32_t a;
+  char newname[4 * 4 + sizeof (ARPA_ROOT) + 2];
+  
   if (debug >= 2)
-    printf ("Testing network %s\n", name);
+    printf ("Testing network %s with mask %s\n", name, inet_ntoa(*mask));
+  
+  /* Check if this network has an A RR */
+  list = findA (name);
+  if (list != NULL)
+    {
+      /* Yes, it does. This A record will be used as the
+       * new mask for recursion if it is longer than
+       * the actual mask. */
+      if (mask != NULL && mask->s_addr < list->addr.s_addr)
+	{
+	  /* compute the new arguments for recursion 
+	   * - compute the new network by applying the new mask
+	   *   to the address and get the in_addr_arpa representation
+	   *   of it.
+	   * - the address remains unchanged
+	   * - the new mask is the one given in the A record
+	   */
+	  a = ntohl(addr.s_addr);        /* start from host address */
+	  a &= ntohl(list->addr.s_addr); /* apply new mask */
+	  newname[sizeof newname - 1] = 0;
+	  strncpy(
+		 newname,
+		 in_addr_arpa(inet_ntoa(inet_makeaddr(a, 0))),
+		 sizeof newname);
+	  newmask = inet_makeaddr(ntohl(list->addr.s_addr), 0);
+	  result = getlocbynet (newname, addr, &newmask);
+	  if (result != NULL)
+	    {
+	      return result;
+	    }
+	}
+      /* couldn't find a LOC. Fall through and try with name */
+    }
+
+  /* Check if this network has a name */
   network = findRR (name, T_PTR);
   if (network == NULL)
     {
@@ -222,26 +265,7 @@ getlocbynet (name, addr, mask)
     }
   else
     {
-      result = getlocbyname (network, TRUE);
-      list = findA (network);
-      if (list == NULL)
-	{
-	  return result;
-	}
-      else if ((mask != NULL) &&
-	       ((mask->s_addr) == (list->addr.s_addr)))
-	{
-	  /* Already checked */
-	  return result;
-	}
-      else
-	{
-	  result_int = getlocbyaddr (addr, &list->addr);
-	  if (result_int == NULL)
-	    return result;
-	  else
-	    return result_int;
-	}
+      return getlocbyname (network, TRUE);
     }
 }
 
@@ -414,7 +438,7 @@ int responseLen;		/* buffer length */
 	      if (dn_expand (response.buf,	/* Start of the packet   */
 			     endOfMsg,	/* End of the packet     */
 			     cp,	/* Position in the packet */
-			     (u_char *) ptrList[ptrNum],	/* Result    */
+			     (char *) ptrList[ptrNum],	/* Result    */
 			     MAXDNAME)	/* size of ptrList buffer */
 		  < 0)
 		{		/* Negative: error    */

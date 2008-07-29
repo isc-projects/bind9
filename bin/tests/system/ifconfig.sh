@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000-2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: ifconfig.sh,v 1.51 2007/06/19 23:47:00 tbox Exp $
+# $Id: ifconfig.sh,v 1.51.128.2.10.1 2008/07/25 20:52:09 fdupont Exp $
 
 #
 # Set up interface aliases for bind9 system tests.
@@ -72,7 +72,7 @@ case "$1" in
 		    *-sun-solaris2.[6-7])
 			ifconfig lo0:$int 10.53.0.$ns netmask 0xffffffff up
 			;;
-		    *-*-solaris2.[8-9]|*-*-solaris2.10)
+		    *-*-solaris2.[8-9]|*-*-solaris2.1[0-9])
     			/sbin/ifconfig lo0:$int plumb
 			/sbin/ifconfig lo0:$int 10.53.0.$ns up
 			;;
@@ -83,6 +83,9 @@ case "$1" in
 			ifconfig lo0 10.53.0.$ns alias netmask 0xffffffff
 			;;
 		    *-unknown-netbsd*)
+			ifconfig lo0 10.53.0.$ns alias netmask 255.255.255.0
+			;;
+		    *-unknown-openbsd*)
 			ifconfig lo0 10.53.0.$ns alias netmask 255.255.255.0
 			;;
 		    *-*-bsdi[3-5].*)
@@ -132,7 +135,7 @@ case "$1" in
 		    *-sun-solaris2.[6-7])
 			ifconfig lo0:$int 10.53.0.$ns down
 			;;
-		    *-*-solaris2.[8-9]|*-*-solaris2.10)
+		    *-*-solaris2.[8-9]|*-*-solaris2.1[0-9])
 			ifconfig lo0:$int 10.53.0.$ns down
 			ifconfig lo0:$int 10.53.0.$ns unplumb
 			;;
@@ -143,6 +146,9 @@ case "$1" in
 			ifconfig lo0 10.53.0.$ns delete
 			;;
 		    *-unknown-netbsd*)
+			ifconfig lo0 10.53.0.$ns delete
+			;;
+		    *-unknown-openbsd*)
 			ifconfig lo0 10.53.0.$ns delete
 			;;
 		    *-*-bsdi[3-5].*)

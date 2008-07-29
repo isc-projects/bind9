@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.43 2007/06/19 23:47:18 tbox Exp $ */
+/* $Id: types.h,v 1.43.128.2 2008/01/17 23:46:37 tbox Exp $ */
 
 #ifndef ISC_TYPES_H
 #define ISC_TYPES_H 1
@@ -53,8 +53,10 @@ typedef unsigned int			isc_eventtype_t;	/*%< Event Type */
 typedef isc_uint32_t			isc_fsaccess_t;		/*%< FS Access */
 typedef struct isc_hash			isc_hash_t;		/*%< Hash */
 typedef struct isc_httpd		isc_httpd_t;		/*%< HTTP client */
+typedef void (isc_httpdfree_t)(isc_buffer_t *, void *);		/*%< HTTP free function */
 typedef struct isc_httpdmgr		isc_httpdmgr_t;		/*%< HTTP manager */
 typedef struct isc_httpdurl		isc_httpdurl_t;		/*%< HTTP URL */
+typedef void (isc_httpdondestroy_t)(void *);			/*%< Callback on destroying httpd */
 typedef struct isc_interface		isc_interface_t;	/*%< Interface */
 typedef struct isc_interfaceiter	isc_interfaceiter_t;	/*%< Interface Iterator */
 typedef struct isc_interval		isc_interval_t;		/*%< Interval */
@@ -90,7 +92,8 @@ typedef struct isc_timermgr		isc_timermgr_t;		/*%< Timer Manager */
 
 typedef void (*isc_taskaction_t)(isc_task_t *, isc_event_t *);
 typedef int (*isc_sockfdwatch_t)(isc_task_t *, isc_socket_t *, void *);
-typedef void (isc_httpdfree_t)(isc_buffer_t *, void *);	/*%< HTTP free function */
+
+/* The following cannot be listed alphabetically due to forward reference */
 typedef isc_result_t (isc_httpdaction_t)(const char *url,
 					 const char *querystring,
 					 void *arg,
@@ -100,6 +103,7 @@ typedef isc_result_t (isc_httpdaction_t)(const char *url,
 					 isc_buffer_t *body,
 					 isc_httpdfree_t **freecb,
 					 void **freecb_args);
+typedef isc_boolean_t (isc_httpdclientok_t)(const isc_sockaddr_t *, void *);
 
 /*% Resource */
 typedef enum {

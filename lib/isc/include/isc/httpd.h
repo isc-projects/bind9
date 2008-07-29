@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006-2008  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: httpd.h,v 1.6 2007/06/19 23:47:18 tbox Exp $ */
+/* $Id: httpd.h,v 1.6.128.2 2008/01/17 23:46:37 tbox Exp $ */
 
 #ifndef ISC_HTTPD_H
 #define ISC_HTTPD_H 1
@@ -37,7 +37,9 @@
  * a http-like header followed by HTTP data.
  */
 isc_result_t
-isc_httpdmgr_create(isc_mem_t *mctx, isc_socket_t *socket, isc_task_t *task,
+isc_httpdmgr_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
+		    isc_httpdclientok_t *client_ok,
+		    isc_httpdondestroy_t *ondestory, void *cb_arg,
 		    isc_timermgr_t *tmgr, isc_httpdmgr_t **httpdp);
 
 void

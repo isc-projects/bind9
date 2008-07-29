@@ -16,7 +16,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.90 2007/09/14 03:40:36 marka Exp $ */
+/* $Id: config.h.in,v 1.90.60.8 2008/05/06 01:32:51 each Exp $ */
 
 /*! \file */
 
@@ -157,6 +157,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define if you cannot bind() before connect() for TCP sockets. */
 #undef BROKEN_TCP_BIND_BEFORE_CONNECT
 
+/* Define to enable "rrset-order fixed" syntax. */
+#undef DNS_RDATASET_FIXED
+
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
@@ -174,6 +177,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to 1 if you have the `c' library (-lc). */
 #undef HAVE_LIBC
+
+/* Define to 1 if you have the `cap' library (-lcap). */
+#undef HAVE_LIBCAP
 
 /* Define to 1 if you have the `c_r' library (-lc_r). */
 #undef HAVE_LIBC_R
@@ -222,6 +228,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
+
+/* Define to 1 if you have the <sys/capability.h> header file. */
+#undef HAVE_SYS_CAPABILITY_H
 
 /* Define to 1 if you have the <sys/param.h> header file. */
 #undef HAVE_SYS_PARAM_H
@@ -316,3 +325,7 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to `unsigned long' if <sys/types.h> does not define. */
 #undef uintptr_t
+
+/* Define to empty if the keyword `volatile' does not work. Warning: valid
+   code using `volatile' can become incorrect without. Disable with care. */
+#undef volatile

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.143 2007/06/18 23:47:42 tbox Exp $ */
+/* $Id: view.c,v 1.143.128.5 2008/05/13 23:46:31 tbox Exp $ */
 
 /*! \file */
 
@@ -25,7 +25,6 @@
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/task.h>
 #include <isc/util.h>
-#include <isc/xml.h>
 
 #include <dns/acache.h>
 #include <dns/acl.h>
@@ -44,6 +43,7 @@
 #include <dns/request.h>
 #include <dns/resolver.h>
 #include <dns/result.h>
+#include <dns/stats.h>
 #include <dns/tsig.h>
 #include <dns/zone.h>
 #include <dns/zt.h>
@@ -152,6 +152,8 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->delonly = NULL;
 	view->rootdelonly = ISC_FALSE;
 	view->rootexclude = NULL;
+	view->resstats = NULL;
+	view->resquerystats = NULL;
 
 	/*
 	 * Initialize configuration data with default values.
@@ -322,7 +324,7 @@ destroy(dns_view_t *view) {
 			name = ISC_LIST_HEAD(view->rootexclude[i]);
 			while (name != NULL) {
 				ISC_LIST_UNLINK(view->rootexclude[i],
-					 	name, link);
+						name, link);
 				dns_name_free(name, view->mctx);
 				isc_mem_put(view->mctx, name, sizeof(*name));
 				name = ISC_LIST_HEAD(view->rootexclude[i]);
@@ -332,6 +334,10 @@ destroy(dns_view_t *view) {
 			    sizeof(dns_namelist_t) * DNS_VIEW_DELONLYHASH);
 		view->rootexclude = NULL;
 	}
+	if (view->resstats != NULL)
+		dns_stats_detach(&view->resstats);
+	if (view->resquerystats != NULL)
+		dns_stats_detach(&view->resquerystats);
 	dns_keytable_detach(&view->trustedkeys);
 	dns_keytable_detach(&view->secroots);
 	dns_fwdtable_destroy(&view->fwdtable);
@@ -578,6 +584,7 @@ dns_view_createresolver(dns_view_t *view,
 	}
 
 	result = dns_adb_create(mctx, view, timermgr, taskmgr, &view->adb);
+	isc_mem_setname(mctx, "ADB", NULL);
 	isc_mem_detach(&mctx);
 	if (result != ISC_R_SUCCESS) {
 		dns_resolver_shutdown(view->resolver);
@@ -943,7 +950,7 @@ dns_view_simplefind(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 isc_result_t
 dns_view_findzonecut(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 		     isc_stdtime_t now, unsigned int options,
-		     isc_boolean_t use_hints, 
+		     isc_boolean_t use_hints,
 		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
 {
 	return(dns_view_findzonecut2(view, name, fname, now, options,
@@ -1154,16 +1161,31 @@ dns_viewlist_findzone(dns_viewlist_t *list, dns_name_t *name,
 	dns_view_t *view;
 	isc_result_t result;
 	dns_zone_t *zone1 = NULL, *zone2 = NULL;
+	dns_zone_t **zp = NULL;;
 
 	REQUIRE(list != NULL);
 	for (view = ISC_LIST_HEAD(*list);
-             view != NULL;
-             view = ISC_LIST_NEXT(view, link)) {
+	     view != NULL;
+	     view = ISC_LIST_NEXT(view, link)) {
 		if (allclasses == ISC_FALSE && view->rdclass != rdclass)
 			continue;
-		result = dns_zt_find(view->zonetable, name, 0, NULL,
-				    (zone1 == NULL) ? &zone1 : &zone2);
-		INSIST(result == ISC_R_SUCCESS || result == ISC_R_NOTFOUND);
+
+		/*
+		 * If the zone is defined in more than one view,
+		 * treat it as not found.
+		 */
+		zp = (zone1 == NULL) ? &zone1 : &zone2;
+		result = dns_zt_find(view->zonetable, name, 0, NULL, zp);
+		INSIST(result == ISC_R_SUCCESS ||
+		       result == ISC_R_NOTFOUND ||
+		       result == DNS_R_PARTIALMATCH);
+
+		/* Treat a partial match as no match */
+		if (result == DNS_R_PARTIALMATCH) {
+			dns_zone_detach(zp);
+			result = ISC_R_NOTFOUND;
+		}
+
 		if (zone2 != NULL) {
 			dns_zone_detach(&zone1);
 			dns_zone_detach(&zone2);
@@ -1389,7 +1411,7 @@ dns_view_isdelegationonly(dns_view_t *view, dns_name_t *name) {
 	return (ISC_TRUE);
 }
 
-void 
+void
 dns_view_setrootdelonly(dns_view_t *view, isc_boolean_t value) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	view->rootdelonly = value;
@@ -1407,46 +1429,38 @@ dns_view_freezezones(dns_view_t *view, isc_boolean_t value) {
 	return (dns_zt_freezezones(view->zonetable, value));
 }
 
-#ifdef HAVE_LIBXML2
+void
+dns_view_setresstats(dns_view_t *view, dns_stats_t *stats) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(!view->frozen);
+	REQUIRE(view->resstats == NULL);
 
-struct xmlarg {
-	int flags;
-	xmlTextWriterPtr xml;
-};
-
-static isc_result_t
-zone_xmlrender(dns_zone_t *zone, void *arg) {
-	struct xmlarg *xmlarg = arg;
-
-	return (dns_zone_xmlrender(zone, xmlarg->xml, xmlarg->flags));
+	dns_stats_attach(stats, &view->resstats);
 }
 
-isc_result_t
-dns_view_xmlrender(dns_view_t *view, xmlTextWriterPtr xml, int flags)
-{
-	struct xmlarg xmlargs;
+void
+dns_view_getresstats(dns_view_t *view, dns_stats_t **statsp) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(statsp != NULL && *statsp == NULL);
 
-	xmlargs.flags = flags;
-	xmlargs.xml = xml;
-
-	/* XXXMLG render config data here */
-
-	if ((flags & ISC_XML_RENDERSTATS) != 0) {
-		xmlTextWriterStartElement(xml, ISC_XMLCHAR "view");
-
-		xmlTextWriterStartElement(xml, ISC_XMLCHAR "name");
-		xmlTextWriterWriteString(xml, ISC_XMLCHAR view->name);
-		xmlTextWriterEndElement(xml);
-
-		xmlTextWriterStartElement(xml, ISC_XMLCHAR "zones");
-		dns_zt_apply(view->zonetable, ISC_FALSE, zone_xmlrender,
-			     &xmlargs);
-		xmlTextWriterEndElement(xml);
-
-		xmlTextWriterEndElement(xml);
-	}
-
-	return (ISC_R_SUCCESS);
+	if (view->resstats != NULL)
+		dns_stats_attach(view->resstats, statsp);
 }
 
-#endif /* HAVE_LIBXML2 */
+void
+dns_view_setresquerystats(dns_view_t *view, dns_stats_t *stats) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(!view->frozen);
+	REQUIRE(view->resquerystats == NULL);
+
+	dns_stats_attach(stats, &view->resquerystats);
+}
+
+void
+dns_view_getresquerystats(dns_view_t *view, dns_stats_t **statsp) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(statsp != NULL && *statsp == NULL);
+
+	if (view->resquerystats != NULL)
+		dns_stats_attach(view->resquerystats, statsp);
+}

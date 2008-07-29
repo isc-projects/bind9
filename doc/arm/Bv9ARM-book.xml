@@ -2,7 +2,7 @@
               "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd"
 	       [<!ENTITY mdash "&#8212;">]>
 <!--
- - Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  - Copyright (C) 2000-2003  Internet Software Consortium.
  -
  - Permission to use, copy, modify, and/or distribute this software for any
@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.340 2007/11/05 17:05:03 explorer Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.11.2.1 2008/07/23 11:46:01 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -28,6 +28,7 @@
       <year>2005</year>
       <year>2006</year>
       <year>2007</year>
+      <year>2008</year>
       <holder>Internet Systems Consortium, Inc. ("ISC")</holder>
     </copyright>
     <copyright>
@@ -66,7 +67,7 @@
       </para>
 
       <para>
-        This version of the manual corresponds to BIND version 9.4.
+        This version of the manual corresponds to BIND version 9.5.
       </para>
 
     </sect1>
@@ -3321,6 +3322,17 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
             </row>
             <row rowsep="0">
               <entry colname="1">
+                <para><command>statistics-channels</command></para>
+              </entry>
+              <entry colname="2">
+                <para>
+		  declares communication channels to get access to
+		  <command>named</command> statistics.
+                </para>
+              </entry>
+            </row>
+            <row rowsep="0">
+              <entry colname="1">
                 <para><command>server</command></para>
               </entry>
               <entry colname="2">
@@ -3594,7 +3606,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
       </sect2>
       <sect2>
         <title><command>include</command> Statement Grammar</title>
-        <programlisting>include <replaceable>filename</replaceable>;</programlisting>
+        <programlisting><command>include</command> <replaceable>filename</replaceable>;</programlisting>
       </sect2>
       <sect2>
         <title><command>include</command> Statement Definition and
@@ -3615,7 +3627,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
       <sect2>
         <title><command>key</command> Statement Grammar</title>
 
-<programlisting>key <replaceable>key_id</replaceable> {
+<programlisting><command>key</command> <replaceable>key_id</replaceable> {
     algorithm <replaceable>string</replaceable>;
     secret <replaceable>string</replaceable>;
 };
@@ -4413,7 +4425,7 @@ category notify { null; };
           statement in the <filename>named.conf</filename> file:
         </para>
 
-<programlisting>options {
+<programlisting><command>options</command> {
     <optional> version <replaceable>version_string</replaceable>; </optional>
     <optional> hostname <replaceable>hostname_string</replaceable>; </optional>
     <optional> server-id <replaceable>server_id_string</replaceable>; </optional>
@@ -4500,6 +4512,7 @@ category notify { null; };
     <optional> max-transfer-idle-in <replaceable>number</replaceable>; </optional>
     <optional> max-transfer-idle-out <replaceable>number</replaceable>; </optional>
     <optional> tcp-clients <replaceable>number</replaceable>; </optional>
+    <optional> reserved-sockets <replaceable>number</replaceable>; </optional>
     <optional> recursive-clients <replaceable>number</replaceable>; </optional>
     <optional> serial-query-rate <replaceable>number</replaceable>; </optional>
     <optional> serial-queries <replaceable>number</replaceable>; </optional>
@@ -4568,7 +4581,6 @@ category notify { null; };
     <optional> disable-empty-zone <replaceable>zone_name</replaceable> ; </optional>
     <optional> zero-no-soa-ttl <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> zero-no-soa-ttl-cache <replaceable>yes_or_no</replaceable> ; </optional>
-    <optional> stats-server address <replacable> ip_address </replacable> port <replacable> ip_port </replacable> ; </optional>
 };
 </programlisting>
 
@@ -5630,7 +5642,7 @@ options {
                   Enable DNSSEC validation in named.
 		  Note <command>dnssec-enable</command> also needs to be
 		  set to <userinput>yes</userinput> to be effective.
-                  The default is <userinput>no</userinput>.
+                  The default is <userinput>yes</userinput>.
                 </para>
               </listitem>
             </varlistentry>
@@ -6232,11 +6244,17 @@ listen-on-v6 port 1234 { !2001:db8::/32; any; };
             a wildcard IP address (<command>INADDR_ANY</command>)
             will be used.
             If <command>port</command> is <command>*</command> or is omitted,
-            a pool of random unprivileged ports will be used.  See the
-	    <command>use-queryport-pool</command>,
-	    <command>queryport-pool-ports</command> and
-	    <command>queryport-pool-updateinterval</command> options below for how the pool
-	    is configured.
+	    a random unprivileged port number is picked up and will be
+            used for each query.
+	    Previously, the <command>use-queryport-pool</command> was provided
+	    to support a pool of such random ports, but this option is now
+	    obsolete because reusing the same ports in the pool is not
+            sufficiently secure.
+	    For the same reason, it is generally strongly discouraged to
+            specify a particular port for the
+	    <command>query-source</command> or
+	    <command>query-source-v6</command> options;
+	    it implicitly disables the use of randomized port numbers.
 	    The <command>avoid-v4-udp-ports</command>
             and <command>avoid-v6-udp-ports</command> options can be used
             to prevent named
@@ -6253,10 +6271,7 @@ query-source-v6 address * port *;
               <term><command>use-queryport-pool</command></term>
               <listitem>
                 <para>
-		  Enable the use of query port pools.  By default query port
-		  pools are enabled unless there is a explicit port defined
-		  in <command>query-source</command> or
-		  <command>query-source-v6</command>.
+		  This option is obsolete.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -6265,7 +6280,7 @@ query-source-v6 address * port *;
               <term><command>queryport-pool-ports</command></term>
               <listitem>
                 <para>
-		  Specify how many pool ports to use.  The default is 8.
+		  This option is obsolete.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -6274,9 +6289,7 @@ query-source-v6 address * port *;
               <term><command>queryport-pool-updateinterval</command></term>
               <listitem>
                 <para>
-		  Specify how often, in minutes, that the queryport pool
-		  should be recreated (new ports selected).  The default
-		  is 15 minutes.
+		  This option is obsolete.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -6802,6 +6815,23 @@ query-source-v6 address * port *;
             </varlistentry>
 
             <varlistentry>
+              <term><command>reserved-sockets</command></term>
+              <listitem>
+                <para>
+		  The number of file descriptors reserved for TCP, stdio,
+		  etc.  This needs to be big enough to cover the number of
+		  interfaces named listens on, tcp-clients as well as
+		  to provide room for outgoing TCP queries and incoming zone
+		  transfers.  The default is <literal>512</literal>.
+		  The minimum value is <literal>128</literal> and the
+		  maximum value is <literal>128</literal> less than
+		  'files' or FD_SETSIZE (whichever is smaller).  This
+		  option may be removed in the future.
+                </para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
               <term><command>max-cache-size</command></term>
               <listitem>
                 <para>
@@ -6839,33 +6869,6 @@ query-source-v6 address * port *;
         </sect3>
 
         <sect3>
-          <title>Statistics Server</title>
-          <variablelist>
-
-            <varlistentry>
-              <term><command>stats-server</command></term>
-              <listitem>
-                <para>
-                  Start a HTTP-based statistics server on the given IP address and port.
-                  At this time, no client authentication is performed.
-                  Using the IPv4 wildcard address (0.0.0.0) will cause the stats-server to listen
-                  on all available IP addresses.  Listing a single address (10.1.2.3) will listen
-                  only on that address.  Please use a caution in enabling this option and limit
-                  connections to it via standard firewall techniques.
-                </para>
-                <para>
-                  At this time, the stats-server can only listen on one IP address and port, or on all addresses.
-                </para>
-		<para>
-		  This option requires that BIND 9 be compiled with libxml2.
-		</para>
-              </listitem>
-            </varlistentry>
-
-          </variablelist>
-        </sect3>
-
-        <sect3>
           <title>Periodic Task Intervals</title>
 
           <variablelist>
@@ -6874,11 +6877,14 @@ query-source-v6 address * port *;
               <term><command>cleaning-interval</command></term>
               <listitem>
                 <para>
-                  The server will remove expired resource records
+		  This interval is effectively obsolete.  Previously,
+		  the server would remove expired resource records
                   from the cache every <command>cleaning-interval</command> minutes.
-                  The default is 60 minutes.  The maximum value is 28 days
-                  (40320 minutes).
-                  If set to 0, no periodic cleaning will occur.
+		  <acronym>BIND</acronym> 9 now manages cache
+		  memory in a more sophisticated manner and does not
+		  rely on the periodic cleaning any more.
+		  Specifying this option therefore has no effect on
+		  the server's behavior.
                 </para>
               </listitem>
             </varlistentry>
@@ -7160,8 +7166,13 @@ query-source-v6 address * port *;
                   </entry>
                   <entry colname="2">
                     <para>
-                      Records are returned in a round-robin
-                      order.
+                      Records are returned in a cyclic round-robin order.
+                    </para>
+                    <para>
+                      If <acronym>BIND</acronym> is configured with the
+                      "--enable-fixed-rrset" option at compile time, then
+                      the initial ordering of the RRset will match the
+                      one specified in the zone file.
                     </para>
                   </entry>
                 </row>
@@ -7192,9 +7203,11 @@ query-source-v6 address * port *;
 
           <note>
             <simpara>
-              The <command>rrset-order</command> statement
-              is not yet fully implemented in <acronym>BIND</acronym> 9.
-              BIND 9 currently does not fully support "fixed" ordering.
+              In this release of <acronym>BIND</acronym> 9, the
+              <command>rrset-order</command> statement does not support
+              "fixed" ordering by default.  Fixed ordering can be enabled
+              at compile time by specifying "--enable-fixed-rrset" on
+              the "configure" command line.
             </simpara>
           </note>
         </sect3>
@@ -7483,9 +7496,10 @@ query-source-v6 address * port *;
               <term><command>server-id</command></term>
               <listitem>
                 <para>
-                  The ID of the server should report via a query of
-                  the name <filename>ID.SERVER</filename>
-                  with type <command>TXT</command>, class <command>CHAOS</command>.
+                  The ID the server should report when receiving a Name
+                  Server Identifier (NSID) query, or a query of the name
+                  <filename>ID.SERVER</filename> with type
+                  <command>TXT</command>, class <command>CHAOS</command>.
                   The primary purpose of such queries is to
                   identify which of a group of anycast servers is actually
                   answering your queries.  Specifying <command>server-id none;</command>
@@ -7621,162 +7635,6 @@ query-source-v6 address * port *;
 	    </varlistentry>
           </variablelist>
         </sect3>
-  
-        <sect3 id="statsfile">
-          <title>The Statistics File</title>
-
-          <para>
-            The statistics file generated by <acronym>BIND</acronym> 9
-            is similar, but not identical, to that
-            generated by <acronym>BIND</acronym> 8.
-          </para>
-          <para>
-            The statistics dump begins with a line, like:
-	  </para>
-          <para>
-	    <command>+++ Statistics Dump +++ (973798949)</command>
-	  </para>
-	  <para>
-	    The number in parentheses is a standard
-            Unix-style timestamp, measured as seconds since January 1, 1970.
-            Following
-            that line are a series of lines containing a counter type, the
-            value of the
-            counter, optionally a zone name, and optionally a view name.
-            The lines without view and zone listed are global statistics for
-            the entire server.
-            Lines with a zone and view name for the given view and zone (the
-            view name is
-            omitted for the default view).
-	  </para>
-	  <para>
-	    The statistics dump ends with the line where the
-            number is identical to the number in the beginning line; for example:
-          </para>
-          <para>
-	    <command>--- Statistics Dump --- (973798949)</command>
-          </para>
-          <para>
-            The following statistics counters are maintained:
-          </para>
-          <informaltable colsep="0" rowsep="0">
-            <tgroup cols="2" colsep="0" rowsep="0" tgroupstyle="4Level-table">
-              <colspec colname="1" colnum="1" colsep="0" colwidth="1.150in"/>
-              <colspec colname="2" colnum="2" colsep="0" colwidth="3.350in"/>
-              <tbody>
-                <row rowsep="0">
-                  <entry colname="1">
-                    <para><command>success</command></para>
-                  </entry>
-                  <entry colname="2">
-                    <para>
-                      The number of
-                      successful queries made to the server or zone.  A
-                      successful query
-                      is defined as query which returns a NOERROR response
-                      with at least
-                      one answer RR.
-                    </para>
-                  </entry>
-                </row>
-                <row rowsep="0">
-                  <entry colname="1">
-                    <para><command>referral</command></para>
-                  </entry>
-                  <entry colname="2">
-                    <para>
-                      The number of queries which resulted
-                      in referral responses.
-                    </para>
-                  </entry>
-                </row>
-                <row rowsep="0">
-                  <entry colname="1">
-                    <para><command>nxrrset</command></para>
-                  </entry>
-                  <entry colname="2">
-                    <para>
-                      The number of queries which resulted in
-                      NOERROR responses with no data.
-                    </para>
-                  </entry>
-                </row>
-                <row rowsep="0">
-                  <entry colname="1">
-                    <para><command>nxdomain</command></para>
-                  </entry>
-                  <entry colname="2">
-                    <para>
-                      The number
-                      of queries which resulted in NXDOMAIN responses.
-                    </para>
-                  </entry>
-                </row>
-                <row rowsep="0">
-                  <entry colname="1">
-                    <para><command>failure</command></para>
-                  </entry>
-                  <entry colname="2">
-                    <para>
-                      The number of queries which resulted in a
-                      failure response other than those above.
-                    </para>
-                  </entry>
-                </row>
-                <row rowsep="0">
-                  <entry colname="1">
-                    <para><command>recursion</command></para>
-                  </entry>
-                  <entry colname="2">
-                    <para>
-                      The number of queries which caused the server
-                      to perform recursion in order to find the final answer.
-                    </para>
-                  </entry>
-                </row>
-                <row rowsep="0">
-                  <entry colname="1">
-                    <para><command>duplicate</command></para>
-                  </entry>
-                  <entry colname="2">
-                    <para>
-                      The number of queries which the server attempted to
-		      recurse but discover a existing query with the same
-		      IP address, port, query id, name, type and class
-		      already being processed.
-                    </para>
-                  </entry>
-                </row>
-                <row rowsep="0">
-                  <entry colname="1">
-                    <para><command>dropped</command></para>
-                  </entry>
-                  <entry colname="2">
-                    <para>
-		      The number of queries for which the server
-		      discovered a excessive number of existing
-		      recursive queries for the same name, type and
-		      class and were subsequently dropped.
-		    </para>
-		  </entry>
-		</row>
-              </tbody>
-            </tgroup>
-          </informaltable>
-
-          <para>
-            Each query received by the server will cause exactly one of
-            <command>success</command>,
-            <command>referral</command>,
-            <command>nxrrset</command>,
-            <command>nxdomain</command>, or
-            <command>failure</command>
-            to be incremented, and may additionally cause the
-            <command>recursion</command> counter to be
-            incremented.
-          </para>
-
-        </sect3>
 
         <sect3 id="acache">
           <title>Additional Section Caching</title>
@@ -7895,10 +7753,78 @@ query-source-v6 address * port *;
 
       </sect2>
 
+      <sect2 id="statschannels">
+        <title><command>statistics-channels</command> Statement Grammar</title>
+
+<programlisting><command>statistics-channels</command> {
+   [ inet ( ip_addr | * ) [ port ip_port ] [allow { <replaceable> address_match_list </replaceable> } ]; ]
+   [ inet ...; ]
+};
+</programlisting>
+      </sect2>
+
+      <sect2>
+          <title><command>statistics-channels</command> Statement Definition and
+            Usage</title>
+
+        <para>
+          The <command>statistics-channels</command> statement
+	  declares communication channels to be used by system
+	  administrators to get access to statistics information of
+	  the name server.
+        </para>
+
+        <para>
+	  This statement intends to be flexible to support multiple
+	  communication protocols in the future, but currently only
+	  HTTP access is supported.
+	  It requires that BIND 9 be compiled with libxml2;
+	  the <command>statistics-channels</command> statement is
+	  still accepted even if it is built without the library,
+	  but any HTTP access will fail with an error.
+        </para>
+
+        <para>
+          An <command>inet</command> control channel is a TCP socket
+	  listening at the specified <command>ip_port</command> on the
+	  specified <command>ip_addr</command>, which can be an IPv4 or IPv6
+	  address.  An <command>ip_addr</command> of <literal>*</literal> (asterisk) is
+	  interpreted as the IPv4 wildcard address; connections will be
+	  accepted on any of the system's IPv4 addresses.
+	  To listen on the IPv6 wildcard address,
+          use an <command>ip_addr</command> of <literal>::</literal>.
+        </para>
+
+        <para>
+          If no port is specified, port 80 is used for HTTP channels.
+	  The asterisk "<literal>*</literal>" cannot be used for
+	  <command>ip_port</command>.
+        </para>
+
+        <para>
+          The attempt of opening a statistics channel is
+          restricted by the optional <command>allow</command> clause.
+	  Connections to the statistics channel are permitted based on the
+          <command>address_match_list</command>.
+	  If no <command>allow</command> clause is present,
+	  <command>named</command> accepts connection
+	  attempts from any address; since the statistics may
+	  contain sensitive internal information, it is highly
+	  recommended to restrict the source of connection requests
+	  appropriately.
+        </para>
+
+        <para>
+          If no <command>statistics-channels</command> statement is present,
+          <command>named</command> will not open any communication channels.
+        </para>
+
+      </sect2>
+
       <sect2 id="server_statement_grammar">
         <title><command>server</command> Statement Grammar</title>
 
-<programlisting>server <replaceable>ip_addr[/prefixlen]</replaceable> {
+<programlisting><command>server</command> <replaceable>ip_addr[/prefixlen]</replaceable> {
     <optional> bogus <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> provide-ixfr <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> request-ixfr <replaceable>yes_or_no</replaceable> ; </optional>
@@ -8110,7 +8036,7 @@ query-source-v6 address * port *;
         <sect2>
           <title><command>trusted-keys</command> Statement Grammar</title>
 
-<programlisting>trusted-keys {
+<programlisting><command>trusted-keys</command> {
     <replaceable>string</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>string</replaceable> ;
     <optional> <replaceable>string</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>string</replaceable> ; <optional>...</optional></optional>
 };
@@ -8151,7 +8077,7 @@ query-source-v6 address * port *;
         <sect2 id="view_statement_grammar">
           <title><command>view</command> Statement Grammar</title>
 
-<programlisting>view <replaceable>view_name</replaceable>
+<programlisting><command>view</command> <replaceable>view_name</replaceable>
       <optional><replaceable>class</replaceable></optional> {
       match-clients { <replaceable>address_match_list</replaceable> };
       match-destinations { <replaceable>address_match_list</replaceable> };
@@ -8292,7 +8218,7 @@ view "external" {
           <title><command>zone</command>
             Statement Grammar</title>
 
-<programlisting>zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replaceable></optional> {
+<programlisting><command>zone</command> <replaceable>zone_name</replaceable> <optional><replaceable>class</replaceable></optional> {
     type master;
     <optional> allow-query { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-query-on { <replaceable>address_match_list</replaceable> }; </optional>
@@ -10706,7 +10632,7 @@ $GENERATE 1-127 $ CNAME $.0</programlisting>
             is equivalent to
           </para>
 
-<programlisting>0.0.0.192.IN-ADDR.ARPA NS SERVER1.EXAMPLE.
+<programlisting>0.0.0.192.IN-ADDR.ARPA. NS SERVER1.EXAMPLE.
 0.0.0.192.IN-ADDR.ARPA. NS SERVER2.EXAMPLE.
 1.0.0.192.IN-ADDR.ARPA. CNAME 1.0.0.0.192.IN-ADDR.ARPA.
 2.0.0.192.IN-ADDR.ARPA. CNAME 2.0.0.0.192.IN-ADDR.ARPA.
@@ -10885,6 +10811,1275 @@ $GENERATE 1-127 $ CNAME $.0</programlisting>
 	  </para>
 	</sect2>
       </sect1>
+
+      <sect1>
+        <title>BIND9 Statistics</title>
+        <para>
+	  <acronym>BIND</acronym> 9 maintains lots of statistics
+	  information and provides several interfaces for users to
+	  get access to the statistics.
+	  The available statistics include all statistics counters
+	  that were available in <acronym>BIND</acronym> 8 and
+	  are meaningful in <acronym>BIND</acronym> 9,
+	  and other information that is considered useful.
+        </para>
+
+        <para>
+	  The statistics information is categorized into the following
+	  sections.
+        </para>
+
+	<informaltable frame="all">
+          <tgroup cols="2">
+            <colspec colname="1" colnum="1" colsep="0" colwidth="3.300in"/>
+            <colspec colname="2" colnum="2" colsep="0" colwidth="2.625in"/>
+            <tbody>
+
+	      <row rowsep="0">
+                <entry colname="1">
+                  <para>Incoming Requests</para>
+                </entry>
+                <entry colname="2">
+                  <para>
+                    The number of incoming DNS requests for each OPCODE.
+                  </para>
+                </entry>
+	      </row>
+
+	      <row rowsep="0">
+                <entry colname="1">
+                  <para>Incoming Queries</para>
+                </entry>
+                <entry colname="2">
+                  <para>
+		    The number of incoming queries for each RR type.
+                  </para>
+                </entry>
+	      </row>
+
+	      <row rowsep="0">
+                <entry colname="1">
+                  <para>Outgoing Queries</para>
+                </entry>
+                <entry colname="2">
+                  <para>
+                    The number of outgoing queries for each RR
+                    type sent from the internal resolver.
+		    Maintained per view.
+                  </para>
+                </entry>
+	      </row>
+
+	      <row rowsep="0">
+                <entry colname="1">
+                  <para>Name Server Statistics</para>
+                </entry>
+                <entry colname="2">
+                  <para>
+                    Statistics counters about incoming request processing.
+                  </para>
+                </entry>
+	      </row>
+
+	      <row rowsep="0">
+                <entry colname="1">
+                  <para>Zone Maintenance Statistics</para>
+                </entry>
+                <entry colname="2">
+                  <para>
+                    Statistics counters regarding zone maintenance
+                    operations such as zone transfers.
+                  </para>
+                </entry>
+	      </row>
+
+	      <row rowsep="0">
+                <entry colname="1">
+                  <para>Resolver Statistics</para>
+                </entry>
+                <entry colname="2">
+                  <para>
+                    Statistics counters about name resolution
+                    performed in the internal resolver.
+		    Maintained per view.
+                  </para>
+                </entry>
+	      </row>
+
+	      <row rowsep="0">
+                <entry colname="1">
+                  <para>Cache DB RRsets</para>
+                </entry>
+                <entry colname="2">
+                  <para>
+                    The number of RRsets per RR type (positive
+                    or negative) and nonexistent names stored in the
+                    cache database.
+		    Maintained per view.
+                  </para>
+                </entry>
+	      </row>
+
+	    </tbody>
+	  </tgroup>
+	</informaltable>
+
+	<para>
+	  A subset of Name Server Statistics is collected and shown
+	  per zone for which the server has the authority when
+	  <command>zone-statistics</command> is set to
+	  <userinput>yes</userinput>.
+	  These statistics counters are shown with their zone and view
+	  names.
+	  In some cases the view names are omitted for the default view.
+	</para>
+
+	<para>
+	  There are currently two user interfaces to get access to the
+	  statistics.
+	  One is in the plain text format dumped to the file specified
+	  by the <command>statistics-file</command> configuration option.
+	  The other is remotely accessible via a statistics channel
+	  when the <command>statistics-channels</command> statement
+	  is specified in the configuration file
+	  (see <xref linkend="statschannels"/>.)
+	</para>
+
+        <sect3 id="statsfile">
+          <title>The Statistics File</title>
+          <para>
+            The text format statistics dump begins with a line, like:
+	  </para>
+          <para>
+	    <command>+++ Statistics Dump +++ (973798949)</command>
+	  </para>
+	  <para>
+	    The number in parentheses is a standard
+            Unix-style timestamp, measured as seconds since January 1, 1970.
+
+            Following
+            that line is a set of statistics information, which is categorized
+            as described above.
+	    Each section begins with a line, like:
+	  </para>
+
+	  <para>
+	    <command>++ Name Server Statistics ++</command>
+	  </para>
+
+	  <para>
+	    Each section consists of lines, each containing the statistics
+	    counter value followed by its textual description.
+	    See below for available counters.
+	    For brevity, counters that have a value of 0 are not shown
+	    in the statistics file.
+	  </para>
+
+	  <para>
+	    The statistics dump ends with the line where the
+            number is identical to the number in the beginning line; for example:
+          </para>
+          <para>
+	    <command>--- Statistics Dump --- (973798949)</command>
+          </para>
+	</sect3>
+
+        <sect2>
+	  <title>Statistics Counters</title>
+	  <para>
+	    The following tables summarize statistics counters that
+	    <acronym>BIND</acronym> 9 provides.
+	    For each row of the tables, the leftmost column is the
+	    abbreviated symbol name of that counter.
+	    These symbols are shown in the statistics information
+	    accessed via an HTTP statistics channel.
+	    The rightmost column gives the description of the counter,
+	    which is also shown in the statistics file
+	    (but, in this document, possibly with slight modification
+	    for better readability).
+	    Additional notes may also be provided in this column.
+	    When a middle column exists between these two columns,
+	    it gives the corresponding counter name of the
+	    <acronym>BIND</acronym> 8 statistics, if applicable.
+	  </para>
+
+	  <sect3>
+            <title>Name Server Statistics Counters</title>
+
+            <informaltable colsep="0" rowsep="0">
+              <tgroup cols="3" colsep="0" rowsep="0" tgroupstyle="4Level-table">
+		<colspec colname="1" colnum="1" colsep="0" colwidth="1.150in"/>
+		<colspec colname="2" colnum="2" colsep="0" colwidth="1.150in"/>
+		<colspec colname="3" colnum="3" colsep="0" colwidth="3.350in"/>
+		<tbody>
+		  <row>
+		    <entry colname="1">
+                      <para>
+			<emphasis>Symbol</emphasis>
+                      </para>
+		    </entry>
+		    <entry colname="2">
+                      <para>
+			<emphasis>BIND8 Symbol</emphasis>
+                      </para>
+		    </entry>
+		    <entry colname="3">
+                      <para>
+			<emphasis>Description</emphasis>
+                      </para>
+		    </entry>
+		  </row>
+
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>Requestv4</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command>RQ</command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			IPv4 requests received.
+			Note: this also counts non query requests.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>Requestv6</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command>RQ</command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			IPv6 requests received.
+			Note: this also counts non query requests.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>ReqEdns0</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Requests with EDNS(0) received.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>ReqBadEDNSVer</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Requests with unsupported EDNS version received.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>ReqTSIG</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Requests with TSIG received.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>ReqSIG0</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Requests with SIG(0) received.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>ReqBadSIG</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Requests with invalid (TSIG or SIG(0)) signature.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>ReqTCP</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command>RTCP</command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			TCP requests received.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>AuthQryRej</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command>RUQ</command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Authoritative (non recursive) queries rejected.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>RecQryRej</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command>RURQ</command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Recursive queries rejected.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>XfrRej</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command>RUXFR</command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Zone transfer requests rejected.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>UpdateRej</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command>RUUpd</command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Dynamic update requests rejected.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>Response</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command>SAns</command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Responses sent.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>RespTruncated</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Truncated responses sent.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>RespEDNS0</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Responses with EDNS(0) sent.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>RespTSIG</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Responses with TSIG sent.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>RespSIG0</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Responses with SIG(0) sent.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>QrySuccess</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Queries resulted in a successful answer.
+			This means the query which returns a NOERROR response
+			with at least one answer RR.
+			This corresponds to the
+			<command>success</command> counter
+			of previous versions of
+			<acronym>BIND</acronym> 9.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>QryAuthAns</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Queries resulted in authoritative answer.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>QryNoauthAns</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command>SNaAns</command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Queries resulted in non authoritative answer.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>QryReferral</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Queries resulted in referral answer.
+			This corresponds to the
+			<command>referral</command> counter
+			of previous versions of
+			<acronym>BIND</acronym> 9.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>QryNxrrset</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Queries resulted in NOERROR responses with no data.
+			This corresponds to the
+			<command>nxrrset</command> counter
+			of previous versions of
+			<acronym>BIND</acronym> 9.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>QrySERVFAIL</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command>SFail</command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Queries resulted in SERVFAIL.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>QryFORMERR</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command>SFErr</command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Queries resulted in FORMERR.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>QryNXDOMAIN</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command>SNXD</command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Queries resulted in NXDOMAIN.
+			This corresponds to the
+			<command>nxdomain</command> counter
+			of previous versions of
+			<acronym>BIND</acronym> 9.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>QryRecursion</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command>RFwdQ</command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Queries which caused the server
+			to perform recursion in order to find the final answer.
+			This corresponds to the
+			<command>recursion</command> counter
+			of previous versions of
+			<acronym>BIND</acronym> 9.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>QryDuplicate</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command>RDupQ</command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Queries which the server attempted to
+			recurse but discovered an existing query with the same
+			IP address, port, query ID, name, type and class
+			already being processed.
+			This corresponds to the
+			<command>duplicate</command> counter
+			of previous versions of
+			<acronym>BIND</acronym> 9.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>QryDropped</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Queries for which the server
+			discovered an excessive number of existing
+			recursive queries for the same name, type and
+			class and were subsequently dropped.
+			This corresponds to the
+			<command>dropped</command> counter
+			of previous versions of
+			<acronym>BIND</acronym> 9.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>QryFailure</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Other query failures.
+			This corresponds to the
+			<command>failure</command> counter
+			of previous versions of
+			<acronym>BIND</acronym> 9.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>XfrReqDone</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Requested zone transfers completed.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>UpdateReqFwd</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Update requests forwarded.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>UpdateRespFwd</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Update responses forwarded.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>UpdateFwdFail</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Dynamic update forward failed.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>UpdateDone</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Dynamic updates completed.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>UpdateFail</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Dynamic updates failed.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>UpdateBadPrereq</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Dynamic updates rejected due to prerequisite failure.
+		      </para>
+		    </entry>
+		  </row>
+		</tbody>
+              </tgroup>
+            </informaltable>
+          </sect3>
+
+	  <sect3>
+            <title>Zone Maintenance Statistics Counters</title>
+
+            <informaltable colsep="0" rowsep="0">
+              <tgroup cols="2" colsep="0" rowsep="0" tgroupstyle="4Level-table">
+		<colspec colname="1" colnum="1" colsep="0" colwidth="1.150in"/>
+		<colspec colname="2" colnum="2" colsep="0" colwidth="3.350in"/>
+		<tbody>
+		  <row>
+		    <entry colname="1">
+                      <para>
+			<emphasis>Symbol</emphasis>
+                      </para>
+		    </entry>
+		    <entry colname="2">
+                      <para>
+			<emphasis>Description</emphasis>
+                      </para>
+		    </entry>
+		  </row>
+
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>NotifyOutv4</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			IPv4 notifies sent.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>NotifyOutv6</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			IPv6 notifies sent.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>NotifyInv4</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			IPv4 notifies received.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>NotifyInv6</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			IPv6 notifies received.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>NotifyRej</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Incoming notifies rejected.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>SOAOutv4</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			IPv4 SOA queries sent.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>SOAOutv6</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			IPv6 SOA queries sent.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>AXFRReqv4</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			IPv4 AXFR requested.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>AXFRReqv6</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			IPv6 AXFR requested.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>IXFRReqv4</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			IPv4 IXFR requested.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>IXFRReqv6</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			IPv6 IXFR requested.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>XfrSuccess</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Zone transfer requests succeeded.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>XfrFail</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Zone transfer requests failed.
+		      </para>
+		    </entry>
+		  </row>
+		</tbody>
+              </tgroup>
+            </informaltable>
+	  </sect3>
+
+	  <sect3>
+            <title>Resolver Statistics Counters</title>
+
+            <informaltable colsep="0" rowsep="0">
+              <tgroup cols="3" colsep="0" rowsep="0" tgroupstyle="4Level-table">
+		<colspec colname="1" colnum="1" colsep="0" colwidth="1.150in"/>
+		<colspec colname="2" colnum="2" colsep="0" colwidth="1.150in"/>
+		<colspec colname="3" colnum="3" colsep="0" colwidth="3.350in"/>
+		<tbody>
+		  <row>
+		    <entry colname="1">
+                      <para>
+			<emphasis>Symbol</emphasis>
+                      </para>
+		    </entry>
+		    <entry colname="2">
+                      <para>
+			<emphasis>BIND8 Symbol</emphasis>
+                      </para>
+		    </entry>
+		    <entry colname="3">
+                      <para>
+			<emphasis>Description</emphasis>
+                      </para>
+		    </entry>
+		  </row>
+
+
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>Queryv4</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command>SFwdQ</command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			IPv4 queries sent.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>Queryv6</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command>SFwdQ</command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			IPv6 queries sent.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>Responsev4</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command>RR</command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			IPv4 responses received.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>Responsev6</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command>RR</command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			IPv6 responses received.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>NXDOMAIN</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command>RNXD</command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			NXDOMAIN received.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>SERVFAIL</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command>RFail</command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			SERVFAIL received.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>FORMERR</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command>RFErr</command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			FORMERR received.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>OtherError</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command>RErr</command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Other errors received.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>EDNS0Fail</command></para>
+						 </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			EDNS(0) query failures.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>Mismatch</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command>RDupR</command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Mismatch responses received.
+			When shown via an HTTP statistics channel,
+			this counter is shown in the
+			Name Server Statistics section for brevity.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>Truncated</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Truncated responses received.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>Lame</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command>RLame</command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Lame delegations received.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>Retry</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command>SDupQ</command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Query retries performed.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>GlueFetchv4</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command>SSysQ</command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			IPv4 NS address fetches invoked.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>GlueFetchv6</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command>SSysQ</command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			IPv6 NS address fetches invoked.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>GlueFetchv4Fail</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			IPv4 NS address fetch failed.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>GlueFetchv6Fail</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			IPv6 NS address fetch failed.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>ValAttempt</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			DNSSEC validation attempted.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>ValOk</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			DNSSEC validation succeeded.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>ValNegOk</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			DNSSEC validation on negative information succeeded.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>ValFail</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			DNSSEC validation failed.
+		      </para>
+		    </entry>
+		  </row>
+
+		</tbody>
+              </tgroup>
+            </informaltable>
+
+	  </sect3>
+
+	  <sect3>
+            <title>Compatibility with <emphasis>BIND</emphasis> 8 Counters</title>
+	    <para>
+	      Most statistics counters that were available
+	      in <command>BIND</command> 8 are also supported in
+	      <command>BIND</command> 9 as shown in the above tables.
+	      Here are notes about other counters that do not appear
+	      in these tables.
+	    </para>
+
+            <variablelist>
+              <varlistentry>
+		<term><command>RFwdR,SFwdR</command></term>
+		<listitem>
+		  <para>
+		    These counters are not supported
+		    because <command>BIND</command> 9 does not adopt
+		    the notion of <emphasis>forwarding</emphasis>
+		    as <command>BIND</command> 8 did.
+		  </para>
+		</listitem>
+	      </varlistentry>
+
+              <varlistentry>
+		<term><command>RAXFR</command></term>
+		<listitem>
+		  <para>
+		    This counter is accessible in the Incoming Queries section.
+		  </para>
+		</listitem>
+	      </varlistentry>
+
+              <varlistentry>
+		<term><command>RIQ</command></term>
+		<listitem>
+		  <para>
+		    This counter is accessible in the Incoming Requests section.
+		  </para>
+		</listitem>
+	      </varlistentry>
+
+              <varlistentry>
+		<term><command>ROpts</command></term>
+		<listitem>
+		  <para>
+		    This counter is not supported
+		    because <command>BIND</command> 9 does not care
+		    about IP options in the first place.
+		  </para>
+		</listitem>
+	      </varlistentry>
+
+              <varlistentry>
+		<term><command>SErr</command></term>
+		<listitem>
+		  <para>
+		    This counter could be implemented, but is not yet
+		    supported.
+		  </para>
+		</listitem>
+	      </varlistentry>
+
+	    </variablelist>
+	  </sect3>
+        </sect2>
+      </sect1>
+
     </chapter>
     <chapter id="Bv9ARM.ch07">
       <title><acronym>BIND</acronym> 9 Security Considerations</title>

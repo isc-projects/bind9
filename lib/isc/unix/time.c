@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.54 2007/06/18 23:47:48 tbox Exp $ */
+/* $Id: time.c,v 1.54.128.2 2008/02/18 23:46:30 tbox Exp $ */
 
 /*! \file */
 
@@ -227,7 +227,7 @@ isc_time_nowplusinterval(isc_time_t *t, const isc_interval_t *i) {
 
 	t->seconds = tv.tv_sec + i->seconds;
 	t->nanoseconds = tv.tv_usec * NS_PER_US + i->nanoseconds;
-	if (t->nanoseconds > NS_PER_S) {
+	if (t->nanoseconds >= NS_PER_S) {
 		t->seconds++;
 		t->nanoseconds -= NS_PER_S;
 	}
@@ -410,7 +410,7 @@ isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 		snprintf(buf + flen, len - flen,
 			 ".%03u", t->nanoseconds / 1000000);
 	else
-                snprintf(buf, len, "99-Bad-9999 99:99:99.999");
+		snprintf(buf, len, "99-Bad-9999 99:99:99.999");
 }
 
 void

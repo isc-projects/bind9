@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000-2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: conf.sh.in,v 1.37 2007/06/19 23:47:00 tbox Exp $
+# $Id: conf.sh.in,v 1.37.128.2 2008/01/10 23:46:34 tbox Exp $
 
 #
 # Common configuration data for system tests, to be sourced into
@@ -43,7 +43,7 @@ CHECKCONF=$TOP/bin/check/named-checkconf
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
 # v6synth
-SUBDIRS="cacheclean checkconf checknames dnssec forward glue ixfr limits
+SUBDIRS="acl cacheclean checkconf checknames dnssec forward glue ixfr limits
     lwresd masterfile masterformat notify nsupdate resolver rrsetorder
     sortlist stub tkey unknown upforwd views xfer xferquota zonechecks"
 

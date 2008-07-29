@@ -1,4 +1,4 @@
-# Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.12 2007/06/19 23:47:13 tbox Exp $
+# $Id: Makefile.in,v 1.12.128.2 2008/03/20 23:46:31 tbox Exp $
 
 srcdir=		@srcdir@
 VPATH =         @srcdir@
@@ -65,6 +65,6 @@ WANT_IRS_THREADSGR_OBJS=getgrent_r.@O@
 
 TARGETS= ${OBJS}
 
-CINCLUDES= -I.. -I${srcdir}/../include
+CINCLUDES= -I.. -I../include -I${srcdir}/../include
 
 @BIND9_MAKE_RULES@

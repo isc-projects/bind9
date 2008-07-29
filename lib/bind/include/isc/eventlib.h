@@ -18,7 +18,7 @@
 /* eventlib.h - exported interfaces for eventlib
  * vix 09sep95 [initial]
  *
- * $Id: eventlib.h,v 1.5 2005/07/28 06:51:47 marka Exp $
+ * $Id: eventlib.h,v 1.5.574.1 2008/01/23 02:08:11 marka Exp $
  */
 
 #ifndef _EVENTLIB_H
@@ -28,6 +28,8 @@
 #include <sys/uio.h>
 #include <sys/time.h>
 #include <stdio.h>
+
+#include <isc/platform.h>
 
 #ifndef __P
 # define __EVENTLIB_P_DEFINED

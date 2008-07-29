@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.h,v 1.56 2007/06/26 02:52:15 marka Exp $ */
+/* $Id: dispatch.h,v 1.56.128.3 2008/05/27 22:36:11 each Exp $ */
 
 #ifndef DNS_DISPATCH_H
 #define DNS_DISPATCH_H 1
@@ -115,7 +115,7 @@ struct dns_dispatchevent {
  *	accept replies from them.
  *
  * _RANDOMPORT
- *	TBD
+ *	Allocate UDP port randomly.
  */
 #define DNS_DISPATCHATTR_PRIVATE	0x00000001U
 #define DNS_DISPATCHATTR_TCP		0x00000002U
@@ -187,7 +187,7 @@ dns_dispatchmgr_getblackhole(dns_dispatchmgr_t *mgr);
 
 void
 dns_dispatchmgr_setblackportlist(dns_dispatchmgr_t *mgr,
-                                 dns_portlist_t *portlist);
+				 dns_portlist_t *portlist);
 /*%<
  * Sets a list of UDP ports that won't be used when creating a udp
  * dispatch with a wildcard port.
@@ -206,7 +206,20 @@ dns_dispatchmgr_getblackportlist(dns_dispatchmgr_t *mgr);
  *\li	mgr is a valid dispatchmgr
  */
 
-
+void
+dns_dispatchmgr_setstats(dns_dispatchmgr_t *mgr, dns_stats_t *stats);
+/*%<
+ * Sets statistics counter for the dispatchmgr.  This function is expected to
+ * be called only on zone creation (when necessary).
+ * Once installed, it cannot be removed or replaced.  Also, there is no
+ * interface to get the installed stats from the zone; the caller must keep the
+ * stats to reference (e.g. dump) it later.
+ *
+ * Requires:
+ *\li	mgr is a valid dispatchmgr with no managed dispatch.
+ *\li	stats is a valid statistics supporting resolver statistics counters
+ *	(see dns/stats.h).
+ */
 
 isc_result_t
 dns_dispatch_getudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
@@ -367,7 +380,7 @@ dns_dispatch_removeresponse(dns_dispentry_t **resp,
  *\li	"resp" != NULL and "*resp" contain a value previously allocated
  *	by dns_dispatch_addresponse();
  *
- *\li	May only be called from within the task given as the 'task' 
+ *\li	May only be called from within the task given as the 'task'
  * 	argument to dns_dispatch_addresponse() when allocating '*resp'.
  */
 
@@ -384,7 +397,7 @@ dns_dispatch_getsocket(dns_dispatch_t *disp);
  *\li	The socket the dispatcher is using.
  */
 
-isc_result_t 
+isc_result_t
 dns_dispatch_getlocaladdress(dns_dispatch_t *disp, isc_sockaddr_t *addrp);
 /*%<
  * Return the local address for this dispatch.
@@ -395,7 +408,7 @@ dns_dispatch_getlocaladdress(dns_dispatch_t *disp, isc_sockaddr_t *addrp);
  *\li	addrp to be non null.
  *
  * Returns:
- *\li	ISC_R_SUCCESS	
+ *\li	ISC_R_SUCCESS
  *\li	ISC_R_NOTIMPLEMENTED
  */
 
@@ -421,7 +434,7 @@ dns_dispatch_changeattributes(dns_dispatch_t *disp,
  *	new = (old & ~mask) | (attributes & mask)
  * \endcode
  *
- * This function has a side effect when #DNS_DISPATCHATTR_NOLISTEN changes. 
+ * This function has a side effect when #DNS_DISPATCHATTR_NOLISTEN changes.
  * When the flag becomes off, the dispatch will start receiving on the
  * corresponding socket.  When the flag becomes on, receive events on the
  * corresponding socket will be canceled.
@@ -443,13 +456,6 @@ dns_dispatch_importrecv(dns_dispatch_t *disp, isc_event_t *event);
  * Requires:
  *\li 	disp is valid, and the attribute DNS_DISPATCHATTR_NOLISTEN is set.
  * 	event != NULL
- */
-
-void
-dns_dispatch_hash(void *data, size_t len);
-/*%<
- * Feed 'data' to the dispatch query id generator where 'len' is the size
- * of 'data'.
  */
 
 ISC_LANG_ENDDECLS

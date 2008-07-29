@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.126 2007/09/12 01:09:08 each Exp $ */
+/* $Id: types.h,v 1.126.62.3 2008/04/03 06:10:21 marka Exp $ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
@@ -106,6 +106,9 @@ typedef isc_uint8_t				dns_secproto_t;
 typedef struct dns_signature			dns_signature_t;
 typedef struct dns_ssurule			dns_ssurule_t;
 typedef struct dns_ssutable			dns_ssutable_t;
+typedef struct dns_stats			dns_stats_t;
+typedef int					dns_statscounter_t;
+typedef isc_uint32_t				dns_rdatastatstype_t;
 typedef struct dns_tkeyctx			dns_tkeyctx_t;
 typedef isc_uint16_t				dns_trust_t;
 typedef struct dns_tsig_keyring			dns_tsig_keyring_t;
@@ -259,7 +262,7 @@ enum {
 	dns_trust_additional = 2,
 #define dns_trust_additional		((dns_trust_t)dns_trust_additional)
 
-	/* Received in a referral response. */ 
+	/* Received in a referral response. */
 	dns_trust_glue = 3,
 #define dns_trust_glue			((dns_trust_t)dns_trust_glue)
 
@@ -276,7 +279,7 @@ enum {
 	dns_trust_authanswer = 6,
 #define dns_trust_authanswer		((dns_trust_t)dns_trust_authanswer)
 
-	/* Successfully DNSSEC validated */	
+	/* Successfully DNSSEC validated */
 	dns_trust_secure = 7,
 #define dns_trust_secure		((dns_trust_t)dns_trust_secure)
 
@@ -318,7 +321,7 @@ typedef void
 typedef void
 (*dns_updatecallback_t)(void *, isc_result_t, dns_message_t *);
 
-typedef int 
+typedef int
 (*dns_rdatasetorderfunc_t)(const dns_rdata_t *, const void *);
 
 typedef isc_boolean_t

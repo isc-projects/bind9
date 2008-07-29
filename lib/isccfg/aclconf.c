@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.c,v 1.17 2007/12/21 06:46:47 marka Exp $ */
+/* $Id: aclconf.c,v 1.17.100.2 2008/07/24 23:48:39 tbox Exp $ */
 
 #include <config.h>
 
@@ -31,7 +31,7 @@
 #include <dns/fixedname.h>
 #include <dns/log.h>
 
-#define LOOP_MAGIC ISC_MAGIC('L','O','O','P') 
+#define LOOP_MAGIC ISC_MAGIC('L','O','O','P')
 
 void
 cfg_aclconfctx_init(cfg_aclconfctx_t *ctx) {
@@ -59,7 +59,7 @@ get_acl_def(const cfg_obj_t *cctx, const char *name, const cfg_obj_t **ret) {
 	isc_result_t result;
 	const cfg_obj_t *acls = NULL;
 	const cfg_listelt_t *elt;
-	
+
 	result = cfg_map_get(cctx, "acl", &acls);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -287,6 +287,7 @@ nested_acl:
 			} else {
 				dns_acl_merge(dacl, inneracl,
 					      ISC_TF(!neg));
+				de += inneracl->length;  /* elements added */
 				dns_acl_detach(&inneracl);
 				continue;
 			}
@@ -363,7 +364,7 @@ nested_acl:
 		/*
 		 * This should only be reached for localhost, localnets
 		 * and keyname elements, and nested ACLs if nest_level is
-		 * nonzero (i.e., in sortlists). 
+		 * nonzero (i.e., in sortlists).
 		 */
 		if (de->nestedacl != NULL &&
 		    de->type != dns_aclelementtype_nestedacl)

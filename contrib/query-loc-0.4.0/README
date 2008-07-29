@@ -9,12 +9,13 @@
    It is under the General Public Licence (GPL, which
    you can fetch from <http://www.gnu.org/copyleft/gpl.html>.
 
-   Copyright Stéphane Bortzmeyer <bortzmeyer@debian.org>, 1998.
+   Copyright Stéphane Bortzmeyer <bortzmeyer@sources.org>, 1998-2007.
 
    Thanks to Paul Vixie for the RFC and its encouragements. Thanks
    to Björn Augustsson  for the xtraceroute program 
-   <http://www.dtek.chalmers.se/~d3august/xt/>.
+   <http://www.dtek.chalmers.se/~d3august/xt/>. Thanks to Roland
+   Dirlewanger for extensive patching.
 
-$Id: README,v 1.1 2005/04/01 05:34:59 marka Exp $
+$Id: README,v 1.1.2.1 2008/02/15 02:11:57 marka Exp $
 
 

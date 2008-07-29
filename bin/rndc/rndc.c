@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.118 2007/06/18 23:47:25 tbox Exp $ */
+/* $Id: rndc.c,v 1.118.232.3 2008/07/23 22:51:53 marka Exp $ */
 
 /*! \file */
 
@@ -93,7 +93,7 @@ static void
 usage(int status) {
 	fprintf(stderr, "\
 Usage: %s [-c config] [-s server] [-p port]\n\
-        [-k key-file ] [-y key] [-V] command\n\
+	[-k key-file ] [-y key] [-V] command\n\
 \n\
 command is one of the following:\n\
 \n\
@@ -106,10 +106,10 @@ command is one of the following:\n\
 		Retransfer a single zone without checking serial number.\n\
   freeze	Suspend updates to all dynamic zones.\n\
   freeze zone [class [view]]\n\
-  		Suspend updates to a dynamic zone.\n\
+		Suspend updates to a dynamic zone.\n\
   thaw		Enable updates to all dynamic zones and reload them.\n\
   thaw zone [class [view]]\n\
-  		Enable updates to a frozen dynamic zone and reload it.\n\
+		Enable updates to a frozen dynamic zone and reload it.\n\
   notify zone [class [view]]\n\
 		Resend NOTIFY messages for the zone.\n\
   reconfig	Reload configuration file and new zones only.\n\
@@ -152,7 +152,7 @@ get_addresses(const char *host, in_port_t port) {
 		result = isc_sockaddr_frompath(&serveraddrs[nserveraddrs],
 					       host);
 		if (result == ISC_R_SUCCESS)
-			nserveraddrs++; 
+			nserveraddrs++;
 	} else {
 		count = SERVERADDRS - nserveraddrs;
 		result = bind9_getaddresses(host, port,
@@ -400,10 +400,10 @@ rndc_startconnect(isc_sockaddr_t *addr, isc_task_t *task) {
 	DO("create socket", isc_socket_create(socketmgr, pf, type, &sock));
 	switch (isc_sockaddr_pf(addr)) {
 	case AF_INET:
-		DO("bind socket", isc_socket_bind(sock, &local4));
+		DO("bind socket", isc_socket_bind(sock, &local4, 0));
 		break;
 	case AF_INET6:
-		DO("bind socket", isc_socket_bind(sock, &local6));
+		DO("bind socket", isc_socket_bind(sock, &local6, 0));
 		break;
 	default:
 		break;
@@ -485,7 +485,7 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 		(void)cfg_map_get(config, "server", &servers);
 		if (servers != NULL) {
 			for (elt = cfg_list_first(servers);
-			     elt != NULL; 
+			     elt != NULL;
 			     elt = cfg_list_next(elt))
 			{
 				const char *name;
@@ -521,7 +521,7 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 	else {
 		DO("get config key list", cfg_map_get(config, "key", &keys));
 		for (elt = cfg_list_first(keys);
-		     elt != NULL; 
+		     elt != NULL;
 		     elt = cfg_list_next(elt))
 		{
 			key = cfg_listelt_value(elt);
@@ -599,7 +599,7 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 					get_addresses(name, (in_port_t) myport);
 				else
 					fprintf(stderr, "too many address: "
-					        "%s: dropped\n", name);
+						"%s: dropped\n", name);
 				continue;
 			}
 			sa = *cfg_obj_assockaddr(address);
@@ -741,7 +741,7 @@ main(int argc, char **argv) {
 		case 'y':
 			keyname = isc_commandline_argument;
 			break;
- 
+
 		case '?':
 			if (isc_commandline_option != '?') {
 				fprintf(stderr, "%s: invalid argument -%c\n",
@@ -754,7 +754,7 @@ main(int argc, char **argv) {
 		default:
 			fprintf(stderr, "%s: unhandled option -%c\n",
 				program, isc_commandline_option);
-                        exit(1);
+			exit(1);
 		}
 	}
 
@@ -780,7 +780,7 @@ main(int argc, char **argv) {
 	logdest.file.maximum_size = 0;
 	DO("creating log channel",
 	   isc_log_createchannel(logconfig, "stderr",
-		   		 ISC_LOG_TOFILEDESC, ISC_LOG_INFO, &logdest,
+				 ISC_LOG_TOFILEDESC, ISC_LOG_INFO, &logdest,
 				 ISC_LOG_PRINTTAG|ISC_LOG_PRINTLEVEL));
 	DO("enabling log channel", isc_log_usechannel(logconfig, "stderr",
 						      NULL, NULL));

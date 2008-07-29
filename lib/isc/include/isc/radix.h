@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.h,v 1.5 2007/09/28 00:11:32 each Exp $ */
+/* $Id: radix.h,v 1.5.46.4 2008/01/21 23:46:23 tbox Exp $ */
 
 /*
  * This source was adapted from MRT's RCS Ids:
@@ -36,13 +36,18 @@
 
 #define NETADDR_TO_PREFIX_T(na,pt,bits) \
 	do { \
-	        memset(&(pt), 0, sizeof(pt)); \
-                if((bits) && (na) != NULL) { \
-		        memcpy(&(pt).add.sin, &(na)->type.in, ((bits)+7)/8); \
-		        (pt).bitlen = (bits); \
-		        (pt).family = (na)->family; \
-                } else \
-		        (pt).family = AF_INET; \
+		memset(&(pt), 0, sizeof(pt)); \
+		if((bits) && (na) != NULL) { \
+			(pt).family = (na)->family; \
+			(pt).bitlen = (bits); \
+			if ((pt).family == AF_INET6) { \
+				memcpy(&(pt).add.sin6, &(na)->type.in6, \
+				       ((bits)+7)/8); \
+			} else \
+				memcpy(&(pt).add.sin, &(na)->type.in, \
+				       ((bits)+7)/8); \
+		} else \
+			(pt).family = AF_INET; \
 		isc_refcount_init(&(pt).refcount, 0); \
 	} while(0)
 
@@ -57,7 +62,7 @@ typedef struct isc_prefix {
 } isc_prefix_t;
 
 typedef void (*isc_radix_destroyfunc_t)(void *);
-typedef void (*isc_radix_processfunc_t)(isc_prefix_t *, void *);
+typedef void (*isc_radix_processfunc_t)(isc_prefix_t *, void **);
 
 #define isc_prefix_tochar(prefix) ((char *)&(prefix)->add.sin)
 #define isc_prefix_touchar(prefix) ((u_char *)&(prefix)->add.sin)
@@ -67,20 +72,29 @@ typedef void (*isc_radix_processfunc_t)(isc_prefix_t *, void *);
 /*
  * We need "first match" when we search the radix tree to preserve
  * compatibility with the existing ACL implementation. Radix trees
- * naturally lend themselves to "best match". In order to get "first
- * match" behavior, we remember the entries are added to the tree,
- * and when a search is made, we find all matching entries, and return
- * the one that was added first.
+ * naturally lend themselves to "best match". In order to get "first match"
+ * behavior, we keep track of the order in which entries are added to the
+ * tree--and when a search is made, we find all matching entries, and
+ * return the one that was added first.
+ *
+ * An IPv4 prefix and an IPv6 prefix may share a radix tree node if they
+ * have the same length and bit pattern (e.g., 127/8 and 7f::/8).  To
+ * disambiguate between them, node_num and data are two-element arrays;
+ * node_num[0] and data[0] are used for IPv4 addresses, node_num[1]
+ * and data[1] for IPv6 addresses.  The only exception is a prefix of
+ * 0/0 (aka "any" or "none"), which is always stored as IPv4 but matches
+ * IPv6 addresses too.
  */
 
+#define ISC_IS6(family) ((family) == AF_INET6 ? 1 : 0)
 typedef struct isc_radix_node {
    isc_uint32_t bit;			/* bit length of the prefix */
    isc_prefix_t *prefix;		/* who we are in radix tree */
    struct isc_radix_node *l, *r;	/* left and right children */
    struct isc_radix_node *parent;	/* may be used */
-   void *data;				/* pointer to data */
-   int node_num;			/* which node this was in the tree, 
-   					   or -1 for glue nodes */
+   void *data[2];			/* pointers to IPv4 and IPV6 data */
+   int node_num[2];			/* which node this was in the tree,
+					   or -1 for glue nodes */
 } isc_radix_node_t;
 
 #define RADIX_TREE_MAGIC         ISC_MAGIC('R','d','x','T');
@@ -124,18 +138,18 @@ isc_radix_process(isc_radix_tree_t *radix, isc_radix_processfunc_t func);
 
 #define RADIX_WALK(Xhead, Xnode) \
     do { \
-        isc_radix_node_t *Xstack[RADIX_MAXBITS+1]; \
-        isc_radix_node_t **Xsp = Xstack; \
-        isc_radix_node_t *Xrn = (Xhead); \
-        while ((Xnode = Xrn)) { \
-            if (Xnode->prefix)
+	isc_radix_node_t *Xstack[RADIX_MAXBITS+1]; \
+	isc_radix_node_t **Xsp = Xstack; \
+	isc_radix_node_t *Xrn = (Xhead); \
+	while ((Xnode = Xrn)) { \
+	    if (Xnode->prefix)
 
 #define RADIX_WALK_ALL(Xhead, Xnode) \
 do { \
-        isc_radix_node_t *Xstack[RADIX_MAXBITS+1]; \
-        isc_radix_node_t **Xsp = Xstack; \
-        isc_radix_node_t *Xrn = (Xhead); \
-        while ((Xnode = Xrn)) { \
+	isc_radix_node_t *Xstack[RADIX_MAXBITS+1]; \
+	isc_radix_node_t **Xsp = Xstack; \
+	isc_radix_node_t *Xrn = (Xhead); \
+	while ((Xnode = Xrn)) { \
 	    if (1)
 
 #define RADIX_WALK_BREAK { \
@@ -147,19 +161,19 @@ do { \
 	    continue; }
 
 #define RADIX_WALK_END \
-            if (Xrn->l) { \
-                if (Xrn->r) { \
-                    *Xsp++ = Xrn->r; \
-                } \
-                Xrn = Xrn->l; \
-            } else if (Xrn->r) { \
-                Xrn = Xrn->r; \
-            } else if (Xsp != Xstack) { \
-                Xrn = *(--Xsp); \
-            } else { \
-                Xrn = (isc_radix_node_t *) 0; \
-            } \
-        } \
+	    if (Xrn->l) { \
+		if (Xrn->r) { \
+		    *Xsp++ = Xrn->r; \
+		} \
+		Xrn = Xrn->l; \
+	    } else if (Xrn->r) { \
+		Xrn = Xrn->r; \
+	    } else if (Xsp != Xstack) { \
+		Xrn = *(--Xsp); \
+	    } else { \
+		Xrn = (isc_radix_node_t *) 0; \
+	    } \
+	} \
     } while (0)
 
 #endif /* _RADIX_H */

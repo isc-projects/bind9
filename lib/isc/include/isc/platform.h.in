@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.45 2007/09/13 04:45:18 each Exp $ */
+/* $Id: platform.h.in,v 1.45.60.2 2008/01/24 23:46:26 tbox Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -108,13 +108,13 @@
  * for IPv6.
  */
 @ISC_PLATFORM_HAVELIFCONF@
- 
+
 /*! \brief
  * Define if the system has struct if_laddrconf which is a extended struct
  * ifconf for IPv6.
  */
 @ISC_PLATFORM_HAVEIF_LADDRCONF@
- 
+
 /*! \brief
  * Define if the system has struct if_laddrreq.
  */
@@ -168,17 +168,17 @@
  * If the system needs strlcpy(), ISC_PLATFORM_NEEDSTRLCPY will be defined.
  */
 @ISC_PLATFORM_NEEDSTRLCPY@
- 
+
 /*
  * If the system needs strlcat(), ISC_PLATFORM_NEEDSTRLCAT will be defined.
  */
 @ISC_PLATFORM_NEEDSTRLCAT@
- 
+
 /*
  * Define if this system needs strtoul.
  */
 @ISC_PLATFORM_NEEDSTRTOUL@
- 
+
 /*
  * Define if this system needs memmove.
  */
@@ -187,28 +187,28 @@
 /***
  *** Miscellaneous.
  ***/
- 
+
 /*
  * Defined if we are using threads.
  */
 @ISC_PLATFORM_USETHREADS@
- 
+
 /*
  * Defined if unistd.h does not cause fd_set to be delared.
  */
 @ISC_PLATFORM_NEEDSYSSELECTH@
- 
+
 /*
  * Defined to <gssapi.h> or <gssapi/gssapi.h> for how to include
  * the GSSAPI header.
  */
 @ISC_PLATFORM_GSSAPIHEADER@
- 
+
 /*
  * Type used for resource limits.
  */
 @ISC_PLATFORM_RLIMITTYPE@
- 
+
 /*
  * Define if your compiler supports "long long int".
  */
@@ -232,19 +232,25 @@
 
 /*
  * If the "xadd" operation is available on this architecture,
- * ISC_PLATFORM_HAVEXADD will be defined. 
+ * ISC_PLATFORM_HAVEXADD will be defined.
  */
 @ISC_PLATFORM_HAVEXADD@
 
 /*
+ * If the "xaddq" operation (64bit xadd) is available on this architecture,
+ * ISC_PLATFORM_HAVEXADDQ will be defined.
+ */
+@ISC_PLATFORM_HAVEXADDQ@
+
+/*
  * If the "atomic swap" operation is available on this architecture,
- * ISC_PLATFORM_HAVEATOMICSTORE" will be defined. 
+ * ISC_PLATFORM_HAVEATOMICSTORE" will be defined.
  */
 @ISC_PLATFORM_HAVEATOMICSTORE@
 
 /*
  * If the "compare-and-exchange" operation is available on this architecture,
- * ISC_PLATFORM_HAVECMPXCHG will be defined. 
+ * ISC_PLATFORM_HAVECMPXCHG will be defined.
  */
 @ISC_PLATFORM_HAVECMPXCHG@
 

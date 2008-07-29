@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: atomic.h,v 1.8 2007/07/27 14:22:53 explorer Exp $ */
+/* $Id: atomic.h,v 1.8.118.2 2008/01/24 23:46:26 tbox Exp $ */
 
 #ifndef ISC_ATOMIC_H
 #define ISC_ATOMIC_H 1
@@ -43,6 +43,24 @@ isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
 	return (prev);
 }
 
+#ifdef ISC_PLATFORM_HAVEXADDQ
+static __inline__ isc_int64_t
+isc_atomic_xaddq(isc_int64_t *p, isc_int64_t val) {
+	isc_int64_t prev = val;
+
+	__asm__ volatile(
+#ifdef ISC_PLATFORM_USETHREADS
+	    "lock;"
+#endif
+	    "xaddq %0, %1"
+	    :"=q"(prev)
+	    :"m"(*p), "0"(prev)
+	    :"memory", "cc");
+
+	return (prev);
+}
+#endif /* ISC_PLATFORM_HAVEXADDQ */
+
 /*
  * This routine atomically stores the value 'val' in 'p'.
  */
@@ -54,7 +72,7 @@ isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
 		 * xchg should automatically lock memory, but we add it
 		 * explicitly just in case (it at least doesn't harm)
 		 */
-		"lock;"		
+		"lock;"
 #endif
 
 		"xchgl %1, %0"

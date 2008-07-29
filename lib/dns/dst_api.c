@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.11 2007/08/28 07:20:42 tbox Exp $
+ * $Id: dst_api.c,v 1.11.92.2 2008/03/31 23:46:42 tbox Exp $
  */
 
 /*! \file */
@@ -162,6 +162,7 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 				  NULL, &dst__memory_pool, 0);
 	if (result != ISC_R_SUCCESS)
 		return (result);
+	isc_mem_setname(dst__memory_pool, "dst", NULL);
 	isc_mem_setdestroycheck(dst__memory_pool, ISC_FALSE);
 #else
 	isc_mem_attach(mctx, &dst__memory_pool);

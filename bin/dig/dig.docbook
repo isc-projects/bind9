@@ -2,7 +2,7 @@
                "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd"
 	       [<!ENTITY mdash "&#8212;">]>
 <!--
- - Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  - Copyright (C) 2000-2003  Internet Software Consortium.
  -
  - Permission to use, copy, modify, and/or distribute this software for any
@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.38 2007/06/18 23:47:17 tbox Exp $ -->
+<!-- $Id: dig.docbook,v 1.38.130.2 2008/05/14 23:46:33 tbox Exp $ -->
 <refentry id="man.dig">
 
   <refentryinfo>
@@ -42,6 +42,7 @@
       <year>2005</year>
       <year>2006</year>
       <year>2007</year>
+      <year>2008</year>
       <holder>Internet Systems Consortium, Inc. ("ISC")</holder>
     </copyright>
     <copyright>
@@ -829,6 +830,14 @@
           </listitem>
         </varlistentry>
 
+        <varlistentry>
+          <term><option>+[no]nsid</option></term>
+          <listitem>
+            <para>
+              Include an EDNS name server ID request when sending a query.
+            </para>
+          </listitem>
+        </varlistentry>
 
 
       </variablelist>

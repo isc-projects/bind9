@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.89 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: masterdump.c,v 1.89.128.2 2008/04/09 22:53:06 tbox Exp $ */
 
 /*! \file */
 
@@ -183,7 +183,7 @@ struct dns_dumpctx {
 					    isc_buffer_t *buffer, FILE *f);
 };
 
-#define NXDOMAIN(x) (((x)->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0) 
+#define NXDOMAIN(x) (((x)->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
 
 /*%
  * Output tabs and spaces to go from column '*current' to
@@ -1020,9 +1020,9 @@ dumpctx_destroy(dns_dumpctx_t *dctx) {
 
 	dctx->magic = 0;
 	DESTROYLOCK(&dctx->lock);
+	dns_dbiterator_destroy(&dctx->dbiter);
 	if (dctx->version != NULL)
 		dns_db_closeversion(dctx->db, &dctx->version, ISC_FALSE);
-	dns_dbiterator_destroy(&dctx->dbiter);
 	dns_db_detach(&dctx->db);
 	if (dctx->task != NULL)
 		isc_task_detach(&dctx->task);
@@ -1071,13 +1071,13 @@ dns_dumpctx_detach(dns_dumpctx_t **dctxp) {
 
 dns_dbversion_t *
 dns_dumpctx_version(dns_dumpctx_t *dctx) {
-        REQUIRE(DNS_DCTX_VALID(dctx));
+	REQUIRE(DNS_DCTX_VALID(dctx));
 	return (dctx->version);
 }
 
 dns_db_t *
 dns_dumpctx_db(dns_dumpctx_t *dctx) {
-        REQUIRE(DNS_DCTX_VALID(dctx));
+	REQUIRE(DNS_DCTX_VALID(dctx));
 	return (dctx->db);
 }
 
@@ -1703,10 +1703,10 @@ dns_master_dumpnode(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 
 isc_result_t
 dns_master_stylecreate(dns_master_style_t **stylep, unsigned int flags,
-                       unsigned int ttl_column, unsigned int class_column,
-                       unsigned int type_column, unsigned int rdata_column,
-                       unsigned int line_length, unsigned int tab_width,
-                       isc_mem_t *mctx)
+		       unsigned int ttl_column, unsigned int class_column,
+		       unsigned int type_column, unsigned int rdata_column,
+		       unsigned int line_length, unsigned int tab_width,
+		       isc_mem_t *mctx)
 {
 	dns_master_style_t *style;
 

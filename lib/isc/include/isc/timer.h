@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.h,v 1.38 2007/06/19 23:47:18 tbox Exp $ */
+/* $Id: timer.h,v 1.38.228.2 2008/07/24 23:48:39 tbox Exp $ */
 
 #ifndef ISC_TIMER_H
 #define ISC_TIMER_H 1
@@ -76,6 +76,7 @@
 #include <isc/event.h>
 #include <isc/eventclass.h>
 #include <isc/lang.h>
+#include <isc/time.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -93,6 +94,7 @@ typedef enum {
 
 typedef struct isc_timerevent {
 	struct isc_event	common;
+	isc_time_t		due;
 } isc_timerevent_t;
 
 #define ISC_TIMEREVENT_FIRSTEVENT	(ISC_EVENTCLASS_TIMER + 0)

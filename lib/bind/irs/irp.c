@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: irp.c,v 1.9 2006/03/09 23:57:56 marka Exp $";
+static const char rcsid[] = "$Id: irp.c,v 1.9.394.2 2008/02/28 05:46:12 marka Exp $";
 #endif
 
 /* Imports */
@@ -528,7 +528,8 @@ irs_irp_send_command(struct irp_p *pvt, const char *fmt, ...) {
 	}
 
 	va_start(ap, fmt);
-	todo = vsprintf(buffer, fmt, ap);
+	(void) vsprintf(buffer, fmt, ap);
+	todo = strlen(buffer);
 	va_end(ap);
 	if (todo > (int)sizeof(buffer) - 3) {
 		syslog(LOG_CRIT, "memory overrun in irs_irp_send_command()");

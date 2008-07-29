@@ -297,6 +297,10 @@ SOURCE=..\include\isc\hmacsha.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\isc\httpd.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\include\isc\int.h
 # End Source File
 # Begin Source File
@@ -602,6 +606,10 @@ SOURCE=..\hmacmd5.c
 # Begin Source File
 
 SOURCE=..\hmacsha.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\httpd.c
 # End Source File
 # Begin Source File
 

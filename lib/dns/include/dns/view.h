@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.107 2007/06/18 23:47:42 tbox Exp $ */
+/* $Id: view.h,v 1.107.128.4 2008/04/03 06:20:34 tbox Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -70,7 +70,6 @@
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
 #include <isc/stdtime.h>
-#include <isc/xml.h>
 
 #include <dns/acl.h>
 #include <dns/fixedname.h>
@@ -101,6 +100,8 @@ struct dns_view {
 	isc_event_t			resevent;
 	isc_event_t			adbevent;
 	isc_event_t			reqevent;
+	dns_stats_t *			resstats;
+	dns_stats_t *			resquerystats;
 
 	/* Configurable data. */
 	dns_tsig_keyring_t *		statickeys;
@@ -124,6 +125,7 @@ struct dns_view {
 	dns_acl_t *			sortlist;
 	isc_boolean_t			requestixfr;
 	isc_boolean_t			provideixfr;
+	isc_boolean_t			requestnsid;
 	dns_ttl_t			maxcachettl;
 	dns_ttl_t			maxncachettl;
 	in_port_t			dstport;
@@ -596,7 +598,7 @@ dns_viewlist_find(dns_viewlist_t *list, const char *name,
 
 isc_result_t
 dns_viewlist_findzone(dns_viewlist_t *list, dns_name_t *name, isc_boolean_t allclasses,
-                      dns_rdataclass_t rdclass, dns_zone_t **zonep);
+		      dns_rdataclass_t rdclass, dns_zone_t **zonep);
 
 /*%<
  * Search zone with 'name' in view with 'rdclass' in viewlist 'list'
@@ -632,7 +634,7 @@ dns_view_loadnew(dns_view_t *view, isc_boolean_t stop);
 /*%<
  * Load zones attached to this view.  dns_view_load() loads
  * all zones whose master file has changed since the last
- * load; dns_view_loadnew() loads only zones that have never 
+ * load; dns_view_loadnew() loads only zones that have never
  * been loaded.
  *
  * If 'stop' is ISC_TRUE, stop on the first error and return it.
@@ -708,7 +710,7 @@ dns_view_dumpdbtostream(dns_view_t *view, FILE *fp);
  * easily obtainable by other means.
  *
  * Requires:
- * 	
+ *
  *\li	'view' is valid.
  *
  *\li	'fp' refers to a file open for writing.
@@ -751,7 +753,7 @@ isc_result_t
 dns_view_adddelegationonly(dns_view_t *view, dns_name_t *name);
 /*%<
  * Add the given name to the delegation only table.
- * 
+ *
  *
  * Requires:
  *\li	'view' is valid.
@@ -766,7 +768,7 @@ isc_result_t
 dns_view_excludedelegationonly(dns_view_t *view, dns_name_t *name);
 /*%<
  * Add the given name to be excluded from the root-delegation-only.
- * 
+ *
  *
  * Requires:
  *\li	'view' is valid.
@@ -819,11 +821,55 @@ dns_view_freezezones(dns_view_t *view, isc_boolean_t freeze);
  * \li	'view' is valid.
  */
 
-#ifdef HAVE_LIBXML2
+void
+dns_view_setresstats(dns_view_t *view, dns_stats_t *stats);
+/*%<
+ * Set a general resolver statistics counter set 'stats' for 'view'.
+ *
+ * Requires:
+ * \li	'view' is valid and is not frozen.
+ *
+ *\li	stats is a valid statistics supporting resolver statistics counters
+ *	(see dns/stats.h).
+ */
 
-isc_result_t
-dns_view_xmlrender(dns_view_t *view, xmlTextWriterPtr xml, int flags);
+void
+dns_view_getresstats(dns_view_t *view, dns_stats_t **statsp);
+/*%<
+ * Get the general statistics counter set for 'view'.  If a statistics set is
+ * set '*statsp' will be attached to the set; otherwise, '*statsp' will be
+ * untouched.
+ *
+ * Requires:
+ * \li	'view' is valid and is not frozen.
+ *
+ *\li	'statsp' != NULL && '*statsp' != NULL
+ */
 
-#endif
+void
+dns_view_setresquerystats(dns_view_t *view, dns_stats_t *stats);
+/*%<
+ * Set a statistics counter set of rdata type, 'stats', for 'view'.  Once the
+ * statistic set is installed, view's resolver will count outgoing queries
+ * per rdata type.
+ *
+ * Requires:
+ * \li	'view' is valid and is not frozen.
+ *
+ *\li	stats is a valid statistics created by dns_rdatatypestats_create().
+ */
+
+void
+dns_view_getresquerystats(dns_view_t *view, dns_stats_t **statsp);
+/*%<
+ * Get the rdatatype statistics counter set for 'view'.  If a statistics set is
+ * set '*statsp' will be attached to the set; otherwise, '*statsp' will be
+ * untouched.
+ *
+ * Requires:
+ * \li	'view' is valid and is not frozen.
+ *
+ *\li	'statsp' != NULL && '*statsp' != NULL
+ */
 
 #endif /* DNS_VIEW_H */

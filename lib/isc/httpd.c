@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006-2008  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: httpd.c,v 1.12 2007/12/02 21:34:20 explorer Exp $ */
+/* $Id: httpd.c,v 1.12.12.2 2008/01/17 23:46:37 tbox Exp $ */
 
 /*! \file */
 
@@ -32,7 +32,7 @@
  * TODO:
  *
  *  o  Put in better checks to make certain things are passed in correctly.
- *     This includes a magic number for externally-visable structures,
+ *     This includes a magic number for externally-visible structures,
  *     checking for NULL-ness before dereferencing, etc.
  *  o  Make the URL processing external functions which will fill-in a buffer
  *     structure we provide, or return an error and we will render a generic
@@ -138,6 +138,10 @@ struct isc_httpdmgr {
 	isc_task_t	       *task;		/*%< owning task */
 	isc_timermgr_t	       *timermgr;
 
+	isc_httpdclientok_t    *client_ok;	/*%< client validator */
+	isc_httpdondestroy_t   *ondestroy;	/*%< cleanup callback */
+	void		       *cb_arg;		/*%< argument for the above */
+
 	unsigned int		flags;
 	ISC_LIST(isc_httpd_t)	running;	/*%< running clients */
 
@@ -242,7 +246,9 @@ destroy_client(isc_httpd_t **httpdp)
 
 isc_result_t
 isc_httpdmgr_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
-		  isc_timermgr_t *tmgr, isc_httpdmgr_t **httpdp)
+		    isc_httpdclientok_t *client_ok,
+		    isc_httpdondestroy_t *ondestroy, void *cb_arg,
+		    isc_timermgr_t *tmgr, isc_httpdmgr_t **httpdp)
 {
 	isc_result_t result;
 	isc_httpdmgr_t *httpd;
@@ -269,27 +275,40 @@ isc_httpdmgr_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	httpd->task = NULL;
 	isc_task_attach(task, &httpd->task);
 	httpd->timermgr = tmgr; /* XXXMLG no attach function? */
+	httpd->client_ok = client_ok;
+	httpd->ondestroy = ondestroy;
+	httpd->cb_arg = cb_arg;
 
 	ISC_LIST_INIT(httpd->running);
 	ISC_LIST_INIT(httpd->urls);
 
 	/* XXXMLG ignore errors on isc_socket_listen() */
-	(void)isc_socket_listen(sock, SOMAXCONN);
+	result = isc_socket_listen(sock, SOMAXCONN);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_socket_listen() failed: %s",
+				 isc_result_totext(result));
+		goto cleanup;
+	}
+
+	(void)isc_socket_filter(sock, "httpready");
 
 	result = isc_socket_accept(sock, task, isc_httpd_accept, httpd);
-	if (result != ISC_R_SUCCESS) {
-		isc_task_detach(&httpd->task);
-		isc_socket_detach(&httpd->sock);
-		isc_mem_detach(&httpd->mctx);
-		isc_mutex_destroy(&httpd->lock);
-		isc_mem_put(mctx, httpd, sizeof(isc_httpdmgr_t));
-		return (result);
-	}
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
 
 	httpd->render_404 = render_404;
 
 	*httpdp = httpd;
 	return (ISC_R_SUCCESS);
+
+  cleanup:
+	isc_task_detach(&httpd->task);
+	isc_socket_detach(&httpd->sock);
+	isc_mem_detach(&httpd->mctx);
+	isc_mutex_destroy(&httpd->lock);
+	isc_mem_put(mctx, httpd, sizeof(isc_httpdmgr_t));
+	return (result);
 }
 
 static void
@@ -337,6 +356,9 @@ httpdmgr_destroy(isc_httpdmgr_t *httpdmgr)
 
 	UNLOCK(&httpdmgr->lock);
 	isc_mutex_destroy(&httpdmgr->lock);
+
+	if (httpdmgr->ondestroy != NULL)
+		(httpdmgr->ondestroy)(httpdmgr->cb_arg);
 
 	mctx = httpdmgr->mctx;
 	isc_mem_putanddetach(&mctx, httpdmgr, sizeof(isc_httpdmgr_t));
@@ -489,6 +511,7 @@ isc_httpd_accept(isc_task_t *task, isc_event_t *ev)
 	isc_httpd_t *httpd;
 	isc_region_t r;
 	isc_socket_newconnev_t *nev = (isc_socket_newconnev_t *)ev;
+	isc_sockaddr_t peeraddr;
 
 	ENTER("accept");
 
@@ -509,10 +532,18 @@ isc_httpd_accept(isc_task_t *task, isc_event_t *ev)
 		goto requeue;
 	}
 
+	(void)isc_socket_getpeername(nev->newsocket, &peeraddr);
+	if (httpdmgr->client_ok != NULL &&
+	    !(httpdmgr->client_ok)(&peeraddr, httpdmgr->cb_arg)) {
+		isc_socket_detach(&nev->newsocket);
+		goto requeue;
+	}
+
 	httpd = isc_mem_get(httpdmgr->mctx, sizeof(isc_httpd_t));
 	if (httpd == NULL) {
 		/* XXXMLG log failure */
 		NOTICE("accept failed to allocate memory, goto requeue");
+		isc_socket_detach(&nev->newsocket);
 		goto requeue;
 	}
 
@@ -530,6 +561,7 @@ isc_httpd_accept(isc_task_t *task, isc_event_t *ev)
 	httpd->headerdata = isc_mem_get(httpdmgr->mctx, HTTP_SENDGROW);
 	if (httpd->headerdata == NULL) {
 		isc_mem_put(httpdmgr->mctx, httpd, sizeof(isc_httpd_t));
+		isc_socket_detach(&nev->newsocket);
 		goto requeue;
 	}
 	httpd->headerlen = HTTP_SENDGROW;
@@ -660,7 +692,7 @@ isc_httpd_recvdone(isc_task_t *task, isc_event_t *ev)
 		destroy_client(&httpd);
 		goto out;
 	}
-	
+
 	isc_httpd_response(httpd);
 	isc_httpd_addheader(httpd, "Content-Type", httpd->mimetype);
 	isc_httpd_addheader(httpd, "Date", datebuf);

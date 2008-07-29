@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006-2008  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: spnego.c,v 1.5 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: spnego.c,v 1.5.128.3 2008/04/03 06:08:27 tbox Exp $ */
 
 /*! \file
  * \brief
@@ -59,21 +59,21 @@
  * Copyright (c) 2004 Masarykova universita
  * (Masaryk University, Brno, Czech Republic)
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice,
  *    this list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the University nor the names of its contributors may
  *    be used to endorse or promote products derived from this software
  *    without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -89,35 +89,35 @@
  * ----------------------------------------------------------------
  *
  * Copyright (c) 1997 - 2003 Kungliga Tekniska Högskolan
- * (Royal Institute of Technology, Stockholm, Sweden). 
- * All rights reserved. 
+ * (Royal Institute of Technology, Stockholm, Sweden).
+ * All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without 
- * modification, are permitted provided that the following conditions 
- * are met: 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
  *
- * 1. Redistributions of source code must retain the above copyright 
- *    notice, this list of conditions and the following disclaimer. 
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
  *
- * 2. Redistributions in binary form must reproduce the above copyright 
- *    notice, this list of conditions and the following disclaimer in the 
- *    documentation and/or other materials provided with the distribution. 
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the Institute nor the names of its contributors 
- *    may be used to endorse or promote products derived from this software 
- *    without specific prior written permission. 
+ * 3. Neither the name of the Institute nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND 
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE 
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS 
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY 
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
- * SUCH DAMAGE. 
+ * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
  */
 
 /*
@@ -168,88 +168,6 @@
  * The API we export
  */
 #include "spnego.h"
-
-/*
- * The isc_mem function keep track of allocation sizes, but we can't
- * get at that information, and we need to know sizes to implement a
- * realloc() clone.  So we use a little more memory to keep track of
- * sizes allocated here.
- *
- * These functions follow Harbison & Steele, 4th edition, particularly
- * with regard to realloc()'s behavior.
- */
-
-static void *
-spnego_malloc(size_t size, const char *file, int line)
-{
-	char *p;
-
-	if (size == 0)
-		return (NULL);
-	p = isc_mem_allocate(dst__memory_pool, size + sizeof(size_t));
-	if (p == NULL)
-		return NULL;
-	*(size_t *)p = size;
-	p += sizeof(size_t);
-#ifdef SPNEGO_ALLOC_DEBUG
-	printf("spnego_malloc(%lu) %lx %s %u\n",
-	       (unsigned long) size, (unsigned long) p, file, line);
-#else
-	(void)file;
-	(void)line;
-#endif
-	return (p);
-}
-	
-static void
-spnego_free(void *ptr, const char *file, int line)
-{
-	char *p = ptr;
-
-	if (p == NULL)
-		return;
-#ifdef SPNEGO_ALLOC_DEBUG
-	printf("spnego_free(%lx) %s %u\n",
-	       (unsigned long) p, file, line);
-#else
-	(void)file;
-	(void)line;
-#endif
-	p -= sizeof(size_t);
-	isc_mem_free(dst__memory_pool, p);
-}
-
-static void *
-spnego_realloc(void *old_ptr, size_t new_size, const char *file, int line)
-{
-	size_t *old_size;
-	void *new_ptr;
-
-	if (old_ptr == NULL)
-		return (spnego_malloc(new_size, file, line));
-
-	if (new_size == 0) {
-		spnego_free(old_ptr, file, line);
-		return (NULL);
-	}
-
-	old_size = old_ptr;
-	old_size--;
-	if (*old_size >= new_size)
-		return (old_ptr);
-
-	new_ptr = spnego_malloc(new_size, file, line);
-	if (new_ptr == NULL)
-		return (NULL);
-
-	memcpy(new_ptr, old_ptr, *old_size);
-	spnego_free(old_ptr, file, line);
-	return (new_ptr);
-}
-
-#define	malloc(x)	spnego_malloc(x,	__FILE__, __LINE__)
-#define	free(x)		spnego_free(x,		__FILE__, __LINE__)
-#define	realloc(x,y)	spnego_realloc(x, y,	__FILE__, __LINE__)
 
 /* asn1_err.h */
 /* Generated from ../../../lib/asn1/asn1_err.et */
@@ -318,31 +236,31 @@ enum {
 
 #define ASN1_INDEFINITE 0xdce0deed
 
-static int 
+static int
 der_get_length(const unsigned char *p, size_t len,
 	       size_t * val, size_t * size);
 
-static int 
+static int
 der_get_octet_string(const unsigned char *p, size_t len,
 		     octet_string * data, size_t * size);
-static int 
+static int
 der_get_oid(const unsigned char *p, size_t len,
 	    oid * data, size_t * size);
-static int 
+static int
 der_get_tag(const unsigned char *p, size_t len,
 	    Der_class * class, Der_type * type,
 	    int *tag, size_t * size);
 
-static int 
+static int
 der_match_tag(const unsigned char *p, size_t len,
 	      Der_class class, Der_type type,
 	      int tag, size_t * size);
-static int 
+static int
 der_match_tag_and_length(const unsigned char *p, size_t len,
 			 Der_class class, Der_type type, int tag,
 			 size_t * length_ret, size_t * size);
 
-static int 
+static int
 decode_oid(const unsigned char *p, size_t len,
 	   oid * k, size_t * size);
 
@@ -359,27 +277,27 @@ der_put_int(unsigned char *p, size_t len, int val, size_t *);
 static int
 der_put_length(unsigned char *p, size_t len, size_t val, size_t *);
 
-static int 
+static int
 der_put_octet_string(unsigned char *p, size_t len,
 		     const octet_string * data, size_t *);
-static int 
+static int
 der_put_oid(unsigned char *p, size_t len,
 	    const oid * data, size_t * size);
-static int 
+static int
 der_put_tag(unsigned char *p, size_t len, Der_class class, Der_type type,
 	    int tag, size_t *);
-static int 
+static int
 der_put_length_and_tag(unsigned char *, size_t, size_t,
 		       Der_class, Der_type, int, size_t *);
 
-static int 
+static int
 encode_enumerated(unsigned char *p, size_t len,
 		  const unsigned *data, size_t *);
 
-static int 
+static int
 encode_octet_string(unsigned char *p, size_t len,
 		    const octet_string * k, size_t *);
-static int 
+static int
 encode_oid(unsigned char *p, size_t len,
 	   const oid * k, size_t *);
 
@@ -756,7 +674,7 @@ gss_accept_sec_context_spnego(OM_uint32 *minor_status,
 		ot = &obuf;
 	}
 	ret = send_accept(&minor_status2, output_token, ot, pref);
-	if (ot != NULL)
+	if (ot != NULL && ot->length != 0)
 		gss_release_buffer(&minor_status2, ot);
 
 	return (ret);
@@ -1485,8 +1403,11 @@ gssapi_spnego_encapsulate(OM_uint32 * minor_status,
 		return (GSS_S_FAILURE);
 	}
 	p = gssapi_mech_make_header(output_token->value, len, mech);
-	if (p == NULL)
+	if (p == NULL) {
+		if (output_token->length != 0)
+			gss_release_buffer(minor_status, output_token);
 		return (GSS_S_FAILURE);
+	}
 	memcpy(p, buf, buf_size);
 	return (GSS_S_COMPLETE);
 }
@@ -1550,7 +1471,7 @@ gssapi_krb5_get_mech(const u_char *ptr,
 	return (mech_len);
 }
 
-static OM_uint32 
+static OM_uint32
 spnego_initial(OM_uint32 *minor_status,
 	       const gss_cred_id_t initiator_cred_handle,
 	       gss_ctx_id_t *context_handle,
@@ -1659,16 +1580,16 @@ spnego_initial(OM_uint32 *minor_status,
 	ret = gssapi_spnego_encapsulate(minor_status,
 					buf + buf_size - len, len,
 					output_token, GSS_SPNEGO_MECH);
-
-	ret = major_status;
+	if (ret == GSS_S_COMPLETE)
+		ret = major_status;
 
 end:
 	if (token_init.mechToken != NULL) {
-	  	free(token_init.mechToken);
+		free(token_init.mechToken);
 		token_init.mechToken = NULL;
 	}
 	free_NegTokenInit(&token_init);
-	if (krb5_output_token.length > 0)
+	if (krb5_output_token.length != 0)
 		gss_release_buffer(&minor_status2, &krb5_output_token);
 	if (buf)
 		free(buf);
@@ -1711,7 +1632,7 @@ spnego_reply(OM_uint32 *minor_status,
 	 * SPNEGO doesn't include gss wrapping on SubsequentContextToken
 	 * like the Kerberos 5 mech does. But lets check for it anyway.
 	 */
-    
+
 	mech_len = gssapi_krb5_get_mech(input_token->value,
 					input_token->length,
 					&p);
@@ -1766,7 +1687,7 @@ spnego_reply(OM_uint32 *minor_status,
 		free_NegTokenResp(&resp);
 		return (GSS_S_BAD_MECH);
 	}
-    
+
 	ret = der_put_oid(oidbuf + sizeof(oidbuf) - 1,
 			  sizeof(oidbuf),
 			  resp.supportedMech,
@@ -1819,7 +1740,7 @@ spnego_reply(OM_uint32 *minor_status,
 
 
 
-OM_uint32 
+OM_uint32
 gss_init_sec_context_spnego(OM_uint32 *minor_status,
 			    const gss_cred_id_t initiator_cred_handle,
 			    gss_ctx_id_t *context_handle,

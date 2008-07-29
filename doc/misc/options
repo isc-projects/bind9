@@ -24,7 +24,8 @@ key <string> {
 logging {
         category <string> { <string>; ... };
         channel <string> {
-                file <log_file>;
+                file <quoted_string> [ versions ( "unlimited" | <integer> )
+                    ] [ size <size> ];
                 null;
                 print-category <boolean>;
                 print-severity <boolean>;
@@ -43,8 +44,8 @@ lwres {
         view <string> <optional_class>;
 };
 
-masters <string> [ port <integer> ] { ( <masters> | <ipv4_address> [port
-    <integer>] | <ipv6_address> [port <integer>] ) [ key <string> ]; ... };
+masters <string> [ port <integer> ] { ( <masters> | <ipv4_address> [ port
+    <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ]; ... };
 
 options {
         acache-cleaning-interval <integer>;
@@ -93,9 +94,9 @@ options {
         dnssec-lookaside <string> trust-anchor <string>;
         dnssec-must-be-secure <string> <boolean>;
         dnssec-validation <boolean>;
-        dual-stack-servers [ port <integer> ] { ( <quoted_string> [port
-            <integer>] | <ipv4_address> [port <integer>] | <ipv6_address>
-            [port <integer>] ); ... };
+        dual-stack-servers [ port <integer> ] { ( <quoted_string> [ port
+            <integer> ] | <ipv4_address> [ port <integer> ] |
+            <ipv6_address> [ port <integer> ] ); ... };
         dump-file <quoted_string>;
         edns-udp-size <integer>;
         empty-contact <string>;
@@ -123,7 +124,7 @@ options {
         masterfile-format ( text | raw );
         match-mapped-addresses <boolean>;
         max-acache-size <size_no_default>;
-        max-cache-size <size_no_default>;
+        max-cache-size <size>;
         max-cache-ttl <integer>;
         max-clients-per-query <integer>;
         max-ixfr-log-size <size>; // obsolete
@@ -164,6 +165,7 @@ options {
         recursion <boolean>;
         recursive-clients <integer>;
         request-ixfr <boolean>;
+        request-nsid <boolean>;
         rfc2308-type1 <boolean>; // not yet implemented
         root-delegation-only [ exclude { <quoted_string>; ... } ];
         rrset-order { [ class <string> ] [ type <string> ] [ name
@@ -176,8 +178,6 @@ options {
         stacksize <size>;
         statistics-file <quoted_string>;
         statistics-interval <integer>; // not yet implemented
-        stats-server <addrport4>;
-        stats-server-v6 <addrport6>;
         suppress-initial-notify <boolean>; // not yet implemented
         tcp-clients <integer>;
         tcp-listen-queue <integer>;
@@ -221,6 +221,11 @@ server <netprefix> {
         transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
         transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
         transfers <integer>;
+};
+
+statistics-channels {
+        inet ( <ipv4_address> | <ipv6_address> | * ) [ port ( <integer> | *
+            ) ] [ allow { <address_match_element>; ... } ];
 };
 
 trusted-keys { <string> <integer> <integer> <integer> <quoted_string>; ... };
@@ -269,9 +274,9 @@ view <string> <optional_class> {
         dnssec-lookaside <string> trust-anchor <string>;
         dnssec-must-be-secure <string> <boolean>;
         dnssec-validation <boolean>;
-        dual-stack-servers [ port <integer> ] { ( <quoted_string> [port
-            <integer>] | <ipv4_address> [port <integer>] | <ipv6_address>
-            [port <integer>] ); ... };
+        dual-stack-servers [ port <integer> ] { ( <quoted_string> [ port
+            <integer> ] | <ipv4_address> [ port <integer> ] |
+            <ipv6_address> [ port <integer> ] ); ... };
         edns-udp-size <integer>;
         empty-contact <string>;
         empty-server <string>;
@@ -293,7 +298,7 @@ view <string> <optional_class> {
         match-destinations { <address_match_element>; ... };
         match-recursive-only <boolean>;
         max-acache-size <size_no_default>;
-        max-cache-size <size_no_default>;
+        max-cache-size <size>;
         max-cache-ttl <integer>;
         max-clients-per-query <integer>;
         max-ixfr-log-size <size>; // obsolete
@@ -324,6 +329,7 @@ view <string> <optional_class> {
         queryport-pool-updateinterval <integer>;
         recursion <boolean>;
         request-ixfr <boolean>;
+        request-nsid <boolean>;
         rfc2308-type1 <boolean>; // not yet implemented
         root-delegation-only [ exclude { <quoted_string>; ... } ];
         rrset-order { [ class <string> ] [ type <string> ] [ name
@@ -399,9 +405,9 @@ view <string> <optional_class> {
                 key-directory <quoted_string>;
                 maintain-ixfr-base <boolean>; // obsolete
                 masterfile-format ( text | raw );
-                masters [ port <integer> ] { ( <masters> | <ipv4_address>
-                    [port <integer>] | <ipv6_address> [port <integer>] ) [
-                    key <string> ]; ... };
+                masters [ port <integer> ] { ( <masters> | <ipv4_address> [
+                    port <integer> ] | <ipv6_address> [ port <integer> ] )
+                    [ key <string> ]; ... };
                 max-ixfr-log-size <size>; // obsolete
                 max-journal-size <size_no_default>;
                 max-refresh-time <integer>;
@@ -475,9 +481,9 @@ zone <string> <optional_class> {
         key-directory <quoted_string>;
         maintain-ixfr-base <boolean>; // obsolete
         masterfile-format ( text | raw );
-        masters [ port <integer> ] { ( <masters> | <ipv4_address> [port
-            <integer>] | <ipv6_address> [port <integer>] ) [ key <string>
-            ]; ... };
+        masters [ port <integer> ] { ( <masters> | <ipv4_address> [ port
+            <integer> ] | <ipv6_address> [ port <integer> ] ) [ key
+            <string> ]; ... };
         max-ixfr-log-size <size>; // obsolete
         max-journal-size <size_no_default>;
         max-refresh-time <integer>;

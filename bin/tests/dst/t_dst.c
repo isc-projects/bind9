@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_dst.c,v 1.53 2007/06/19 23:47:00 tbox Exp $ */
+/* $Id: t_dst.c,v 1.53.128.2 2008/01/12 23:46:43 tbox Exp $ */
 
 #include <config.h>
 
@@ -377,7 +377,7 @@ t1(void) {
 		t_result(T_UNRESOLVED);
 		return;
 	}
-	result = isc_entropy_createfilesource(ectx, "randomfile");
+	isc_result = isc_entropy_createfilesource(ectx, "randomfile");
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_entropy_create failed %s\n",
 		       isc_result_totext(isc_result));
@@ -876,7 +876,7 @@ t2_vfy(char **av) {
 		       isc_result_totext(isc_result));
 		return(T_UNRESOLVED);
 	}
-	result = isc_entropy_createfilesource(ectx, "randomfile");
+	isc_result = isc_entropy_createfilesource(ectx, "randomfile");
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_entropy_create failed %s\n",
 		       isc_result_totext(isc_result));

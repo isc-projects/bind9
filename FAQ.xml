@@ -1,7 +1,7 @@
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
        "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd" []>
 <!--
- - Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  - Copyright (C) 2000-2003  Internet Software Consortium.
  -
  - Permission to use, copy, modify, and/or distribute this software for any
@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: FAQ.xml,v 1.30 2007/11/02 00:25:41 marka Exp $ -->
+<!-- $Id: FAQ.xml,v 1.30.26.3 2008/02/25 05:08:10 marka Exp $ -->
 
 <article class="faq">
   <title>Frequently Asked Questions about BIND 9</title>
@@ -27,6 +27,7 @@
       <year>2005</year>
       <year>2006</year>
       <year>2007</year>
+      <year>2008</year>
       <holder>Internet Systems Consortium, Inc. ("ISC")</holder>
     </copyright>
     <copyright>
@@ -1064,7 +1065,13 @@ client: UDP client handler shutting down due to fatal receive error: unexpected 
       <answer>
 	<para>
 	  The capability module, part of "Linux Security Modules/LSM",
-	  has not been loaded into the kernel.  See insmod(8).
+	  has not been loaded into the kernel.  See insmod(8), modprobe(8).
+	</para>
+	<para>
+	  The relevant modules can be loaded by running:
+<programlisting>
+modprobe commoncap
+modprobe capability</programlisting>
 	</para>
       </answer>
     </qandaentry>
@@ -1230,6 +1237,30 @@ named_cache_t: for files modifiable by named - $ROOTDIR/var/{tmp,named/{slaves,d
 	<para>
 	  See these man-pages for more information : selinux(8),
 	  named_selinux(8), chcon(1), setsebool(8)
+	</para>
+      </answer>
+    </qandaentry>
+
+    <qandaentry>
+      <question>
+	<para>
+	  Listening on individual IPv6 interfaces does not work.
+	</para>
+      </question>
+      <answer>
+	<para>
+	  This is usually due to "/proc/net/if_inet6" not being available
+	  in the chroot file system.  Mount another instance of "proc"
+	  in the chroot file system.
+	</para>
+	<para>
+	  This can be be made permanent by adding a second instance to
+	  /etc/fstab.
+	  <informalexample>
+	    <programlisting>
+proc /proc           proc defaults 0 0
+proc /var/named/proc proc defaults 0 0</programlisting>
+	  </informalexample>
 	</para>
       </answer>
     </qandaentry>
