@@ -1,3 +1,7 @@
+2405.   [cleanup]       The default value for dnssec-validation was changed to
+                        "yes" in 9.5.0-P1 and all subsequent releases; this
+                        was inadvertently omitted from CHANGES at the time.
+
 2404.	[port]		hpux: files unlimited support.
 
 2403.	[bug]		TSIG context leak. [RT #18341]
