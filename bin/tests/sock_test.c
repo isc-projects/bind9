@@ -1,8 +1,8 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sock_test.c,v 1.49.18.1 2004/08/28 06:17:30 marka Exp $ */
+/* $Id: sock_test.c,v 1.49.18.1.52.3 2008/07/23 23:16:43 marka Exp $ */
 
 #include <config.h>
 
@@ -321,7 +321,7 @@ main(int argc, char *argv[]) {
 	}
 	RUNTIME_CHECK(isc_socket_create(socketmgr, pf, isc_sockettype_tcp,
 					&so1) == ISC_R_SUCCESS);
-	result = isc_socket_bind(so1, &sockaddr);
+	result = isc_socket_bind(so1, &sockaddr, ISC_SOCKET_REUSEADDRESS);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_socket_listen(so1, 0) == ISC_R_SUCCESS);
 
