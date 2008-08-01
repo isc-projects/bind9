@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.275.10.18 2008/08/01 01:58:15 jinmei Exp $ */
+/* $Id: socket.c,v 1.275.10.19 2008/08/01 19:05:03 jinmei Exp $ */
 
 /*! \file */
 
@@ -333,7 +333,6 @@ static isc_socketmgr_t *socketmgr = NULL;
 #define CLOSED			0	/* this one must be zero */
 #define MANAGED			1
 #define CLOSE_PENDING		2
-#define MANAGER_CLOSE_PENDING	3
 
 /*
  * send() and recv() iovec counts
@@ -589,7 +588,6 @@ unwatch_fd(isc_socketmgr_t *manager, int fd, int msg) {
 static void
 wakeup_socket(isc_socketmgr_t *manager, int fd, int msg) {
 	isc_result_t result;
-	isc_boolean_t needclose;
 	int lockid = FDLOCK_ID(fd);
 
 	/*
@@ -600,11 +598,18 @@ wakeup_socket(isc_socketmgr_t *manager, int fd, int msg) {
 
 	INSIST(fd >= 0 && fd < (int)manager->maxsocks);
 
-	LOCK(&manager->fdlock[lockid]);
-	if (manager->fdstate[fd] == CLOSE_PENDING
-	    || manager->fdstate[fd] == MANAGER_CLOSE_PENDING) {
-		needclose = ISC_TF(manager->fdstate[fd] == CLOSE_PENDING);
+	if (msg == SELECT_POKE_CLOSE) {
+		/* No one should be updating fdstate, so no need to lock it */
+		INSIST(manager->fdstate[fd] == CLOSE_PENDING);
 		manager->fdstate[fd] = CLOSED;
+		(void)unwatch_fd(manager, fd, SELECT_POKE_READ);
+		(void)unwatch_fd(manager, fd, SELECT_POKE_WRITE);
+		(void)close(fd);
+		return;
+	}
+
+	LOCK(&manager->fdlock[lockid]);
+	if (manager->fdstate[fd] == CLOSE_PENDING) {
 		UNLOCK(&manager->fdlock[lockid]);
 
 		/*
@@ -617,8 +622,6 @@ wakeup_socket(isc_socketmgr_t *manager, int fd, int msg) {
 		 */
 		(void)unwatch_fd(manager, fd, SELECT_POKE_READ);
 		(void)unwatch_fd(manager, fd, SELECT_POKE_WRITE);
-		if (needclose)
-			(void)close(fd);
 		return;
 	}
 	if (manager->fdstate[fd] != MANAGED) {
@@ -1520,11 +1523,24 @@ closesocket(isc_socketmgr_t *manager, isc_sockettype_t type, int fd) {
 	LOCK(&manager->fdlock[lockid]);
 	manager->fds[fd] = NULL;
 	if (type == isc_sockettype_fdwatch)
-		manager->fdstate[fd] = MANAGER_CLOSE_PENDING;
+		manager->fdstate[fd] = CLOSED;
 	else
 		manager->fdstate[fd] = CLOSE_PENDING;
 	UNLOCK(&manager->fdlock[lockid]);
-	select_poke(manager, fd, SELECT_POKE_CLOSE);
+	if (type == isc_sockettype_fdwatch) {
+		/*
+		 * The caller may close the socket once this function returns,
+		 * and `fd' may be reassigned for a new socket.  So we do
+		 * unwatch_fd() here, rather than defer it via select_poke().
+		 * Note: this may complicate data protection among threads and
+		 * may reduce performance due to additional locks.  One way to
+		 * solve this would be to dup() the watched descriptor, but we
+		 * take a simpler approach at this moment.
+		 */
+		(void)unwatch_fd(manager, fd, SELECT_POKE_READ);
+		(void)unwatch_fd(manager, fd, SELECT_POKE_WRITE);
+	} else
+		select_poke(manager, fd, SELECT_POKE_CLOSE);
 
 	/*
 	 * update manager->maxfd here (XXX: this should be implemented more
@@ -2255,15 +2271,7 @@ dispatch_recv(isc_socket_t *sock) {
 	isc_socketevent_t *ev;
 	isc_task_t *sender;
 
-#if 0
-	/*
-	 * XXXJT: this assertion seems to strong, but leave it here for
-	 * reference.
-	 */
 	INSIST(!sock->pending_recv);
-#endif
-	if (sock->pending_recv != 0)
-		return;
 
 	if (sock->type != isc_sockettype_fdwatch) {
 		ev = ISC_LIST_HEAD(sock->recv_list);
@@ -2880,23 +2888,17 @@ process_fd(isc_socketmgr_t *manager, int fd, isc_boolean_t readable,
 {
 	isc_socket_t *sock;
 	isc_boolean_t unlock_sock;
-	isc_boolean_t needclose;
 	int lockid = FDLOCK_ID(fd);
 
 	/*
-	 * If we need to close the socket, do it now.
+	 * If the socket is going to be closed, don't do more I/O.
 	 */
 	LOCK(&manager->fdlock[lockid]);
-	if (manager->fdstate[fd] == CLOSE_PENDING
-	    || manager->fdstate[fd] == MANAGER_CLOSE_PENDING) {
-		needclose = ISC_TF(manager->fdstate[fd] == CLOSE_PENDING);
-		manager->fdstate[fd] = CLOSED;
+	if (manager->fdstate[fd] == CLOSE_PENDING) {
 		UNLOCK(&manager->fdlock[lockid]);
 
 		(void)unwatch_fd(manager, fd, SELECT_POKE_READ);
 		(void)unwatch_fd(manager, fd, SELECT_POKE_WRITE);
-		if (needclose)
-			(void)close(fd);
 		return;
 	}
 
@@ -2946,6 +2948,9 @@ process_fds(isc_socketmgr_t *manager, struct kevent *events, int nevents) {
 	int i;
 	isc_boolean_t readable, writable;
 	isc_boolean_t done = ISC_FALSE;
+#ifdef ISC_PLATFORM_USETHREADS
+	isc_boolean_t have_ctlevent = ISC_FALSE;
+#endif
 
 	if (nevents == manager->nevents) {
 		/*
@@ -2963,7 +2968,7 @@ process_fds(isc_socketmgr_t *manager, struct kevent *events, int nevents) {
 		REQUIRE(events[i].ident < manager->maxsocks);
 #ifdef ISC_PLATFORM_USETHREADS
 		if (events[i].ident == (uintptr_t)manager->pipe_fds[0]) {
-			done = process_ctlfd(manager);
+			have_ctlevent = ISC_TRUE;
 			continue;
 		}
 #endif
@@ -2972,6 +2977,11 @@ process_fds(isc_socketmgr_t *manager, struct kevent *events, int nevents) {
 		process_fd(manager, events[i].ident, readable, writable);
 	}
 
+#ifdef ISC_PLATFORM_USETHREADS
+	if (have_ctlevent)
+		done = process_ctlfd(manager);
+#endif
+
 	return (done);
 }
 #elif defined(USE_EPOLL)
@@ -2979,6 +2989,9 @@ static isc_boolean_t
 process_fds(isc_socketmgr_t *manager, struct epoll_event *events, int nevents) {
 	int i;
 	isc_boolean_t done = ISC_FALSE;
+#ifdef ISC_PLATFORM_USETHREADS
+	isc_boolean_t have_ctlevent = ISC_FALSE;
+#endif
 
 	if (nevents == manager->nevents) {
 		manager_log(manager, ISC_LOGCATEGORY_GENERAL,
@@ -2991,7 +3004,7 @@ process_fds(isc_socketmgr_t *manager, struct epoll_event *events, int nevents) {
 		REQUIRE(events[i].data.fd < (int)manager->maxsocks);
 #ifdef ISC_PLATFORM_USETHREADS
 		if (events[i].data.fd == manager->pipe_fds[0]) {
-			done = process_ctlfd(manager);
+			have_ctlevent = ISC_TRUE;
 			continue;
 		}
 #endif
@@ -3011,6 +3024,11 @@ process_fds(isc_socketmgr_t *manager, struct epoll_event *events, int nevents) {
 			   (events[i].events & EPOLLOUT) != 0);
 	}
 
+#ifdef ISC_PLATFORM_USETHREADS
+	if (have_ctlevent)
+		done = process_ctlfd(manager);
+#endif
+
 	return (done);
 }
 #elif defined(USE_DEVPOLL)
@@ -3018,6 +3036,9 @@ static isc_boolean_t
 process_fds(isc_socketmgr_t *manager, struct pollfd *events, int nevents) {
 	int i;
 	isc_boolean_t done = ISC_FALSE;
+#ifdef ISC_PLATFORM_USETHREADS
+	isc_boolean_t have_ctlevent = ISC_FALSE;
+#endif
 
 	if (nevents == manager->nevents) {
 		manager_log(manager, ISC_LOGCATEGORY_GENERAL,
@@ -3030,7 +3051,7 @@ process_fds(isc_socketmgr_t *manager, struct pollfd *events, int nevents) {
 		REQUIRE(events[i].fd < (int)manager->maxsocks);
 #ifdef ISC_PLATFORM_USETHREADS
 		if (events[i].fd == manager->pipe_fds[0]) {
-			done = process_ctlfd(manager);
+			have_ctlevent = ISC_TRUE;
 			continue;
 		}
 #endif
@@ -3038,6 +3059,11 @@ process_fds(isc_socketmgr_t *manager, struct pollfd *events, int nevents) {
 			   (events[i].events & POLLIN) != 0,
 			   (events[i].events & POLLOUT) != 0);
 	}
+
+#ifdef ISC_PLATFORM_USETHREADS
+	if (have_ctlevent)
+		done = process_ctlfd(manager);
+#endif
 
 	return (done);
 }
@@ -3172,13 +3198,13 @@ watcher(void *uap) {
 #if defined(USE_KQUEUE) || defined (USE_EPOLL) || defined (USE_DEVPOLL)
 		done = process_fds(manager, manager->events, cc);
 #elif defined(USE_SELECT)
+		process_fds(manager, maxfd, &readfds, &writefds);
+
 		/*
 		 * Process reads on internal, control fd.
 		 */
 		if (FD_ISSET(ctlfd, &readfds))
 			done = process_ctlfd(manager);
-
-		process_fds(manager, maxfd, &readfds, &writefds);
 #endif
 	}
 
@@ -3684,7 +3710,7 @@ socket_recv(isc_socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
 		 * Enqueue the request.  If the socket was previously not being
 		 * watched, poke the watcher to start paying attention to it.
 		 */
-		if (ISC_LIST_EMPTY(sock->recv_list))
+		if (ISC_LIST_EMPTY(sock->recv_list) && !sock->pending_recv)
 			select_poke(sock->manager, sock->fd, SELECT_POKE_READ);
 		ISC_LIST_ENQUEUE(sock->recv_list, dev, ev_link);
 
@@ -3881,7 +3907,8 @@ socket_send(isc_socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
 			 * not being watched, poke the watcher to start
 			 * paying attention to it.
 			 */
-			if (ISC_LIST_EMPTY(sock->send_list))
+			if (ISC_LIST_EMPTY(sock->send_list) &&
+			    !sock->pending_send)
 				select_poke(sock->manager, sock->fd,
 					    SELECT_POKE_WRITE);
 			ISC_LIST_ENQUEUE(sock->send_list, dev, ev_link);
