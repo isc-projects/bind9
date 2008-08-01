@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.30.18.28 2008/07/24 10:06:50 fdupont Exp $ */
+/* $Id: socket.c,v 1.30.18.29 2008/08/01 02:00:42 jinmei Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -2878,6 +2878,14 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
 	*managerp = manager;
 
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_socketmgr_getmaxsockets(isc_socketmgr_t *manager, unsigned int *nsockp) {
+	REQUIRE(VALID_MANAGER(manager));
+	REQUIRE(nsockp != NULL);
+
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 void

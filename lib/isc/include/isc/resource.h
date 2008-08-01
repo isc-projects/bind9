@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resource.h,v 1.5.18.2 2005/04/29 00:17:02 marka Exp $ */
+/* $Id: resource.h,v 1.5.18.3 2008/08/01 02:00:41 jinmei Exp $ */
 
 #ifndef ISC_RESOURCE_H
 #define ISC_RESOURCE_H 1
@@ -75,6 +75,16 @@ isc_resource_getlimit(isc_resource_t resource, isc_resourcevalue_t *value);
  *
  * Requires:
  *\li	'resource' is a valid member of the isc_resource_t enumeration.
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS		Success.
+ *\li	#ISC_R_NOTIMPLEMENTED	'resource' is not a type known by the OS.
+ */
+
+isc_result_t
+isc_resource_getcurlimit(isc_resource_t resource, isc_resourcevalue_t *value);
+/*%<
+ * Same as isc_resource_getlimit(), but returns the current (soft) limit. 
  *
  * Returns:
  *\li	#ISC_R_SUCCESS		Success.

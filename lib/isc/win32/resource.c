@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resource.c,v 1.6 2004/03/05 05:11:58 marka Exp $ */
+/* $Id: resource.c,v 1.6.18.1 2008/08/01 02:00:42 jinmei Exp $ */
 
 #include <config.h>
 
@@ -64,4 +64,9 @@ isc_resource_getlimit(isc_resource_t resource, isc_resourcevalue_t *value) {
 
 	*value = WIN32_MAX_OPEN_FILES;
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_resource_getcurlimit(isc_resource_t resource, isc_resourcevalue_t *value) {
+	return (isc_resource_getlimit(resource, value));
 }

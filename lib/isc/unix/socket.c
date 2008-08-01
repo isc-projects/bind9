@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.237.18.44 2008/07/24 10:06:50 fdupont Exp $ */
+/* $Id: socket.c,v 1.237.18.45 2008/08/01 02:00:42 jinmei Exp $ */
 
 /*! \file */
 
@@ -3349,6 +3349,16 @@ free_manager:
 	isc_mem_put(mctx, manager, sizeof(*manager));
 
 	return (result);
+}
+
+isc_result_t
+isc_socketmgr_getmaxsockets(isc_socketmgr_t *manager, unsigned int *nsockp) {
+	REQUIRE(VALID_MANAGER(manager));
+	REQUIRE(nsockp != NULL);
+
+	*nsockp = manager->maxsocks;
+
+	return (ISC_R_SUCCESS);
 }
 
 void
