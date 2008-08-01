@@ -32,6 +32,9 @@
 2389	[bug]		Move the "working directory writable" check to after
 			the ns_os_changeuser() call. [RT #18326]
 
+2386.	[func]		Add warning about too small 'open files' limit.
+			[RT #18269]
+
 	--- 9.3.6b1 released ---
 
 2385.	[bug]		A condition variable in socket.c could leak in

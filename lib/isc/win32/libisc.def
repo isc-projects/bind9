@@ -298,6 +298,7 @@ isc_ratelimiter_setpertic
 isc_ratelimiter_shutdown
 isc_region_compare
 isc_resource_getlimit
+isc_resource_getcurlimit
 isc_resource_setlimit
 isc_result_register
 isc_result_totext
@@ -362,6 +363,7 @@ isc_socket_sendtov
 isc_socket_sendv
 isc_socketmgr_create
 isc_socketmgr_destroy
+isc_socketmgr_getmaxsockets
 isc_stdio_close
 isc_stdio_flush
 isc_stdio_open

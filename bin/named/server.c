@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.81 2008/07/18 01:41:01 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.82 2008/08/01 02:12:46 jinmei Exp $ */
 
 #include <config.h>
 
@@ -2204,6 +2204,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	in_port_t listen_port, udpport_low, udpport_high;
 	isc_portset_t *v4portset = NULL;
 	isc_portset_t *v6portset = NULL;
+	isc_resourcevalue_t nfiles;
 	int i;
 
 	ns_aclconfctx_init(&aclconfctx);
@@ -2283,6 +2284,28 @@ load_configuration(const char *filename, ns_server_t *server,
 	 * Set process limits, which (usually) needs to be done as root.
 	 */
 	set_limits(maps);
+
+	/*
+	 * Check if max number of open sockets that the system allows is
+	 * sufficiently large.  Failing this condition is not necessarily fatal,
+	 * but may cause subsequent runtime failures for a busy recursive
+	 * server.
+	 */
+	result = isc_resource_getcurlimit(isc_resource_openfiles, &nfiles);
+	if (result == ISC_R_SUCCESS) {
+		unsigned int maxsocks;
+
+		result = isc_socketmgr_getmaxsockets(ns_g_socketmgr, &maxsocks);
+		if (result == ISC_R_SUCCESS &&
+		    (isc_resourcevalue_t)maxsocks > nfiles) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+				      "max open files "
+				      "(%" ISC_PRINT_QUADFORMAT "u)"
+				      " is smaller than max sockets (%u)",
+				      nfiles, maxsocks);
+		}
+	}
 
 	/*
 	 * Configure various server options.
