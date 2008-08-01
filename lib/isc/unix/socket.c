@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.237.18.46 2008/08/01 19:24:53 jinmei Exp $ */
+/* $Id: socket.c,v 1.237.18.47 2008/08/01 19:35:30 jinmei Exp $ */
 
 /*! \file */
 
@@ -2702,7 +2702,7 @@ process_fd(isc_socketmgr_t *manager, int fd, isc_boolean_t readable,
 	int lockid = FDLOCK_ID(fd);
 
 	/*
-	 * If we the socket is going to be closed, don't do more I/O.
+	 * If the socket is going to be closed, don't do more I/O.
 	 */
 	LOCK(&manager->fdlock[lockid]);
 	if (manager->fdstate[fd] == CLOSE_PENDING) {
@@ -2870,11 +2870,6 @@ process_fds(isc_socketmgr_t *manager, struct pollfd *events, int nevents) {
 			   (events[i].events & POLLIN) != 0,
 			   (events[i].events & POLLOUT) != 0);
 	}
-
-#ifdef ISC_PLATFORM_USETHREADS
-	if (have_ctlevent)
-		done = process_ctlfd(manager);
-#endif
 
 #ifdef ISC_PLATFORM_USETHREADS
 	if (have_ctlevent)
