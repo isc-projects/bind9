@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.116.18.31 2008/08/01 02:00:41 jinmei Exp $ */
+/* $Id: dispatch.c,v 1.116.18.32 2008/08/01 02:11:20 jinmei Exp $ */
 
 /*! \file */
 
@@ -852,10 +852,7 @@ bucket_search(dns_qid_t *qid, dns_displist_t *table, isc_sockaddr_t *dest,
 		    res->port == port) {
 			return (res);
 		}
-		if (table == qid->qid_table)
-			res = ISC_LIST_NEXT(res, link);
-		else
-			res = ISC_LIST_NEXT(res, alink);
+		res = ISC_LIST_NEXT(res, link);
 	}
 
 	return (NULL);
