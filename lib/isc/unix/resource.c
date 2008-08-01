@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resource.c,v 1.14.128.5 2008/07/28 23:00:11 marka Exp $ */
+/* $Id: resource.c,v 1.14.128.6 2008/08/01 01:58:15 jinmei Exp $ */
 
 #include <config.h>
 
@@ -204,6 +204,23 @@ isc_resource_getlimit(isc_resource_t resource, isc_resourcevalue_t *value) {
 		unixresult = getrlimit(unixresource, &rl);
 		INSIST(unixresult == 0);
 		*value = rl.rlim_max;
+	}
+
+	return (result);
+}
+
+isc_result_t
+isc_resource_getcurlimit(isc_resource_t resource, isc_resourcevalue_t *value) {
+	int unixresult;
+	int unixresource;
+	struct rlimit rl;
+	isc_result_t result;
+
+	result = resource2rlim(resource, &unixresource);
+	if (result == ISC_R_SUCCESS) {
+		unixresult = getrlimit(unixresource, &rl);
+		INSIST(unixresult == 0);
+		*value = rl.rlim_cur;
 	}
 
 	return (result);

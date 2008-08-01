@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.72.128.8 2008/07/23 23:46:28 tbox Exp $ */
+/* $Id: socket.h,v 1.72.128.9 2008/08/01 01:58:15 jinmei Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -760,6 +760,22 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp);
  *\li	#ISC_R_SUCCESS
  *\li	#ISC_R_NOMEMORY
  *\li	#ISC_R_UNEXPECTED
+ */
+
+isc_result_t
+isc_socketmgr_getmaxsockets(isc_socketmgr_t *manager, unsigned int *nsockp);
+/*%<
+ * Returns in "*nsockp" the maximum number of sockets this manager may open.
+ *
+ * Requires:
+ *
+ *\li	'*manager' is a valid isc_socketmgr_t.
+ *\li	'nsockp' is not NULL.
+ *
+ * Returns:
+ *
+ *\li	#ISC_R_SUCCESS
+ *\li	#ISC_R_NOTIMPLEMENTED
  */
 
 void

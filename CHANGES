@@ -44,6 +44,9 @@
 2388.	[bug]		Avoid using tables for layout purposes in
 			statistics XSL [RT #18159].
 
+2386.	[func]		Add warning about too small 'open files' limit.
+			[RT #18269]
+
 	--- 9.5.1b1 released ---
 
 2385.	[bug]		A condition variable in socket.c could leak in
