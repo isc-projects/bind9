@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.207.2.19.2.48 2008/08/01 02:12:46 jinmei Exp $ */
+/* $Id: socket.c,v 1.207.2.19.2.49 2008/08/01 19:43:58 jinmei Exp $ */
 
 #include <config.h>
 
@@ -580,11 +580,19 @@ wakeup_socket(isc_socketmgr_t *manager, int fd, int msg) {
 
 	INSIST(fd >= 0 && fd < (int)manager->maxsocks);
 
+	if (msg == SELECT_POKE_CLOSE) {
+		/* No one should be updating fdstate, so no need to lock it */
+		INSIST(manager->fdstate[fd] == CLOSE_PENDING);
+		manager->fdstate[fd] = CLOSED;
+		(void)unwatch_fd(manager, fd, SELECT_POKE_READ);
+		(void)unwatch_fd(manager, fd, SELECT_POKE_WRITE);
+		(void)close(fd);
+		return;
+	}
+
 	LOCK(&manager->fdlock[lockid]);
 	if (manager->fdstate[fd] == CLOSE_PENDING) {
-		manager->fdstate[fd] = CLOSED;
 		UNLOCK(&manager->fdlock[lockid]);
-
 		/*
 		 * We accept (and ignore) any error from unwatch_fd() as we are
 		 * closing the socket, hoping it doesn't leave dangling state in
@@ -595,7 +603,6 @@ wakeup_socket(isc_socketmgr_t *manager, int fd, int msg) {
 		 */
 		(void)unwatch_fd(manager, fd, SELECT_POKE_READ);
 		(void)unwatch_fd(manager, fd, SELECT_POKE_WRITE);
-		(void)close(fd);
 		return;
 	}
 	if (manager->fdstate[fd] != MANAGED) {
@@ -2127,15 +2134,7 @@ dispatch_recv(isc_socket_t *sock) {
 	intev_t *iev;
 	isc_socketevent_t *ev;
 
-#if 0
-	/*
-	 * XXXJT: this assertion seems to strong, but leave it here for
-	 * reference.
-	 */
 	INSIST(!sock->pending_recv);
-#endif
-	if (sock->pending_recv != 0)
-		return;
 
 	ev = ISC_LIST_HEAD(sock->recv_list);
 	if (ev == NULL)
@@ -2658,16 +2657,14 @@ process_fd(isc_socketmgr_t *manager, int fd, isc_boolean_t readable,
 	int lockid = FDLOCK_ID(fd);
 
 	/*
-	 * If we need to close the socket, do it now.
+	 * If the socket is going to be closed, don't do more I/O.
 	 */
 	LOCK(&manager->fdlock[lockid]);
 	if (manager->fdstate[fd] == CLOSE_PENDING) {
-		manager->fdstate[fd] = CLOSED;
 		UNLOCK(&manager->fdlock[lockid]);
 
 		(void)unwatch_fd(manager, fd, SELECT_POKE_READ);
 		(void)unwatch_fd(manager, fd, SELECT_POKE_WRITE);
-		(void)close(fd);
 		return;
 	}
 
@@ -2717,6 +2714,9 @@ process_fds(isc_socketmgr_t *manager, struct kevent *events, int nevents) {
 	int i;
 	isc_boolean_t readable, writable;
 	isc_boolean_t done = ISC_FALSE;
+#ifdef ISC_PLATFORM_USETHREADS
+	isc_boolean_t have_ctlevent = ISC_FALSE;
+#endif
 
 	if (nevents == manager->nevents) {
 		/*
@@ -2734,7 +2734,7 @@ process_fds(isc_socketmgr_t *manager, struct kevent *events, int nevents) {
 		REQUIRE(events[i].ident < manager->maxsocks);
 #ifdef ISC_PLATFORM_USETHREADS
 		if (events[i].ident == (uintptr_t)manager->pipe_fds[0]) {
-			done = process_ctlfd(manager);
+			have_ctlevent = ISC_TRUE;
 			continue;
 		}
 #endif
@@ -2743,6 +2743,11 @@ process_fds(isc_socketmgr_t *manager, struct kevent *events, int nevents) {
 		process_fd(manager, events[i].ident, readable, writable);
 	}
 
+#ifdef ISC_PLATFORM_USETHREADS
+	if (have_ctlevent)
+		done = process_ctlfd(manager);
+#endif
+
 	return (done);
 }
 #elif defined(USE_EPOLL)
@@ -2750,6 +2755,9 @@ static isc_boolean_t
 process_fds(isc_socketmgr_t *manager, struct epoll_event *events, int nevents) {
 	int i;
 	isc_boolean_t done = ISC_FALSE;
+#ifdef ISC_PLATFORM_USETHREADS
+	isc_boolean_t have_ctlevent = ISC_FALSE;
+#endif
 
 	if (nevents == manager->nevents) {
 		manager_log(manager, ISC_LOGCATEGORY_GENERAL,
@@ -2762,7 +2770,7 @@ process_fds(isc_socketmgr_t *manager, struct epoll_event *events, int nevents) {
 		REQUIRE(events[i].data.fd < (int)manager->maxsocks);
 #ifdef ISC_PLATFORM_USETHREADS
 		if (events[i].data.fd == manager->pipe_fds[0]) {
-			done = process_ctlfd(manager);
+			have_ctlevent = ISC_TRUE;
 			continue;
 		}
 #endif
@@ -2782,6 +2790,11 @@ process_fds(isc_socketmgr_t *manager, struct epoll_event *events, int nevents) {
 			   (events[i].events & EPOLLOUT) != 0);
 	}
 
+#ifdef ISC_PLATFORM_USETHREADS
+	if (have_ctlevent)
+		done = process_ctlfd(manager);
+#endif
+
 	return (done);
 }
 #elif defined(USE_DEVPOLL)
@@ -2789,6 +2802,9 @@ static isc_boolean_t
 process_fds(isc_socketmgr_t *manager, struct pollfd *events, int nevents) {
 	int i;
 	isc_boolean_t done = ISC_FALSE;
+#ifdef ISC_PLATFORM_USETHREADS
+	isc_boolean_t have_ctlevent = ISC_FALSE;
+#endif
 
 	if (nevents == manager->nevents) {
 		manager_log(manager, ISC_LOGCATEGORY_GENERAL,
@@ -2801,7 +2817,7 @@ process_fds(isc_socketmgr_t *manager, struct pollfd *events, int nevents) {
 		REQUIRE(events[i].fd < (int)manager->maxsocks);
 #ifdef ISC_PLATFORM_USETHREADS
 		if (events[i].fd == manager->pipe_fds[0]) {
-			done = process_ctlfd(manager);
+			have_ctlevent = ISC_TRUE;
 			continue;
 		}
 #endif
@@ -2809,6 +2825,11 @@ process_fds(isc_socketmgr_t *manager, struct pollfd *events, int nevents) {
 			   (events[i].events & POLLIN) != 0,
 			   (events[i].events & POLLOUT) != 0);
 	}
+
+#ifdef ISC_PLATFORM_USETHREADS
+	if (have_ctlevent)
+		done = process_ctlfd(manager);
+#endif
 
 	return (done);
 }
@@ -2943,13 +2964,13 @@ watcher(void *uap) {
 #if defined(USE_KQUEUE) || defined (USE_EPOLL) || defined (USE_DEVPOLL)
 		done = process_fds(manager, manager->events, cc);
 #elif defined(USE_SELECT)
+		process_fds(manager, maxfd, &readfds, &writefds);
+
 		/*
 		 * Process reads on internal, control fd.
 		 */
 		if (FD_ISSET(ctlfd, &readfds))
 			done = process_ctlfd(manager);
-
-		process_fds(manager, maxfd, &readfds, &writefds);
 #endif
 	}
 
@@ -3455,7 +3476,7 @@ socket_recv(isc_socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
 		 * Enqueue the request.  If the socket was previously not being
 		 * watched, poke the watcher to start paying attention to it.
 		 */
-		if (ISC_LIST_EMPTY(sock->recv_list))
+		if (ISC_LIST_EMPTY(sock->recv_list) && !sock->pending_recv)
 			select_poke(sock->manager, sock->fd, SELECT_POKE_READ);
 		ISC_LIST_ENQUEUE(sock->recv_list, dev, ev_link);
 
@@ -3652,7 +3673,8 @@ socket_send(isc_socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
 			 * not being watched, poke the watcher to start
 			 * paying attention to it.
 			 */
-			if (ISC_LIST_EMPTY(sock->send_list))
+			if (ISC_LIST_EMPTY(sock->send_list) &&
+			    !sock->pending_send)
 				select_poke(sock->manager, sock->fd,
 					    SELECT_POKE_WRITE);
 			ISC_LIST_ENQUEUE(sock->send_list, dev, ev_link);

@@ -1,3 +1,6 @@
+2406.	[bug]		Sockets could be closed too early, leading to
+			inconsistent states in the socket module. [RT #18298]
+
 2404.	[port]		hpux: files unlimited support.
 
 2403.	[bug]		TSIG context leak. [RT #18341]
