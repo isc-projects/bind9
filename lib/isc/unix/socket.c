@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.237.18.45 2008/08/01 02:00:42 jinmei Exp $ */
+/* $Id: socket.c,v 1.237.18.46 2008/08/01 19:24:53 jinmei Exp $ */
 
 /*! \file */
 
@@ -2179,16 +2179,7 @@ dispatch_recv(isc_socket_t *sock) {
 	intev_t *iev;
 	isc_socketevent_t *ev;
 
-#if 1
-	/*
-	 * XXXJT: this assertion seems to strong, but leave it here for
-	 * reference.
-	 */
 	INSIST(!sock->pending_recv);
-#else
-	if (sock->pending_recv != 0)
-		return;
-#endif
 
 	ev = ISC_LIST_HEAD(sock->recv_list);
 	if (ev == NULL)
@@ -2716,6 +2707,7 @@ process_fd(isc_socketmgr_t *manager, int fd, isc_boolean_t readable,
 	LOCK(&manager->fdlock[lockid]);
 	if (manager->fdstate[fd] == CLOSE_PENDING) {
 		UNLOCK(&manager->fdlock[lockid]);
+
 		(void)unwatch_fd(manager, fd, SELECT_POKE_READ);
 		(void)unwatch_fd(manager, fd, SELECT_POKE_WRITE);
 		return;
@@ -2884,6 +2876,11 @@ process_fds(isc_socketmgr_t *manager, struct pollfd *events, int nevents) {
 		done = process_ctlfd(manager);
 #endif
 
+#ifdef ISC_PLATFORM_USETHREADS
+	if (have_ctlevent)
+		done = process_ctlfd(manager);
+#endif
+
 	return (done);
 }
 #elif defined(USE_SELECT)
@@ -3017,13 +3014,13 @@ watcher(void *uap) {
 #if defined(USE_KQUEUE) || defined (USE_EPOLL) || defined (USE_DEVPOLL)
 		done = process_fds(manager, manager->events, cc);
 #elif defined(USE_SELECT)
+		process_fds(manager, maxfd, &readfds, &writefds);
+
 		/*
 		 * Process reads on internal, control fd.
 		 */
 		if (FD_ISSET(ctlfd, &readfds))
 			done = process_ctlfd(manager);
-
-		process_fds(manager, maxfd, &readfds, &writefds);
 #endif
 	}
 
