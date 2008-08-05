@@ -1,3 +1,7 @@
+2408.	[bug]		A duplicate TCP dispatch event could be sent, which
+			could then trigger an assertion failure in
+			resquery_response().  [RT #18275]
+
 2407.	[port]		hpux: test for sys/dyntune.h. [RT #18421]
 
 2406.	[bug]		Sockets could be closed too early, leading to
