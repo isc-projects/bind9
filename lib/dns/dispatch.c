@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.101.2.6.2.32 2008/07/23 23:36:22 marka Exp $ */
+/* $Id: dispatch.c,v 1.101.2.6.2.33 2008/08/05 19:20:39 jinmei Exp $ */
 
 #include <config.h>
 
@@ -3062,7 +3062,7 @@ do_cancel(dns_dispatch_t *disp) {
 	 */
 	LOCK(&qid->lock);
 	for (resp = linear_first(qid);
-	     resp != NULL && !resp->item_out;
+	     resp != NULL && resp->item_out;
 	     /* Empty. */)
 		resp = linear_next(qid, resp);
 
