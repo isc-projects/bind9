@@ -16,7 +16,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.100 2008/08/05 07:04:49 marka Exp $ */
+/* $Id: config.h.in,v 1.105 2008/09/25 04:25:52 marka Exp $ */
 
 /*! \file */
 
@@ -231,6 +231,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to 1 if you have the <sys/capability.h> header file. */
 #undef HAVE_SYS_CAPABILITY_H
+
+/* Define to 1 if you have the <sys/devpoll.h> header file. */
+#undef HAVE_SYS_DEVPOLL_H
 
 /* Define to 1 if you have the <sys/dyntune.h> header file. */
 #undef HAVE_SYS_DYNTUNE_H
