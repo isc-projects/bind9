@@ -15,6 +15,7 @@ custom_AFIS_v9_4_0		private	marka	// 2007-04-23 05:08 +0000
 custom_ALLIANZ_v9_4_1_P1	private	marka	// 2007-08-03 04:51 +0000
 custom_ALLIANZ_v9_4_2		private	marka	// 2007-11-23 04:32 +0000
 custom_ALLIANZ_v9_4_2_P1	new	each	// 2008-05-27 23:33 +0000
+custom_ALLIANZ_v9_4_2_P2	new	each	// 2008-08-05 21:28 +0000
 custom_CISCO_v9_3_4_P1		private	marka	// 2007-11-23 04:19 +0000
 custom_NOM_v9_5_0a7		private	
 custom_NOM_v9_5_0b2		new	marka	// 2008-03-06 06:45 +0000
@@ -30,6 +31,7 @@ custom_WFB_v9_4_1_P1		private	marka	// 2007-08-01 22:49 +0000
 custom_WFB_v9_4_2		private	each	// 2007-12-05 18:10 +0000
 custom_WFB_v9_4_2_P1		new	each	// 2008-05-27 22:59 +0000
 custom_WFB_v9_5_0_P1		new	marka	// 2008-07-15 00:05 +0000
+custom_WFB_v9_5_0_P2		new	each	// 2008-08-05 21:06 +0000
 gsstsig4			open	sra	// head + gsstsig as of 12 may 2006
 gsstsig4_win32			open	danny	// sub-branch off gsstsig4 for windows development
 ietf71				new	marka	// 2008-03-12 04:10 +0000
