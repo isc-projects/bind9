@@ -1,3 +1,5 @@
+2407.	[port]		hpux: test for sys/dyntune.h. [RT #18421]
+
 2406.	[bug]		Sockets could be closed too early, leading to
 			inconsistent states in the socket module. [RT #18298]
 

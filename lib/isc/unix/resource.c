@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resource.c,v 1.14.128.6 2008/08/01 01:58:15 jinmei Exp $ */
+/* $Id: resource.c,v 1.14.128.7 2008/08/05 07:13:06 marka Exp $ */
 
 #include <config.h>
 
@@ -32,7 +32,7 @@
 #include <linux/fs.h>	/* To get the large NR_OPEN. */
 #endif
 
-#ifdef __hpux
+#if defined(__hpux) && defined(HAVE_SYS_DYNTUNE_H)
 #include <sys/dyntune.h>
 #endif
 
@@ -170,7 +170,7 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 		if (unixresult == 0)
 			return (ISC_R_SUCCESS);
 	}
-#elif defined(__hpux)
+#elif defined(__hpux) && defined(HAVE_SYS_DYNTUNE_H)
 	if (resource == isc_resource_openfiles && rlim_value == RLIM_INFINITY) {
 		uint64_t maxfiles;
 		if (gettune("maxfiles_lim", &maxfiles) == 0) {

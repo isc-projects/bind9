@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.432.60.11 $)
+AC_REVISION($Revision: 1.432.60.12 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -2008,6 +2008,18 @@ AC_MSG_RESULT(cannot determine type of rlim_cur when cross compiling - assuming 
 AC_SUBST(ISC_PLATFORM_RLIMITTYPE)
 
 #
+# Older HP-UX doesn't have gettune
+#
+case "$host" in
+  	*-hp-hpux*)
+		AC_CHECK_HEADERS(sys/dyntune.h)
+		;;
+	*)
+		;;
+esac
+
+
+#
 # Compaq TruCluster requires more code for handling cluster IP aliases
 #
 case "$host" in
@@ -2065,7 +2077,7 @@ case "$host" in
 	[*-solaris2.[89]])
 		hack_shutup_pthreadonceinit=yes
 		;;
-	*-solaris2.1[0-9])
+	*-solaris2.1[[0-9]])
 		hack_shutup_pthreadonceinit=yes
 		;;
 esac
