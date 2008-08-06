@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.355.12.22 2008/08/06 06:14:15 marka Exp $ */
+/* $Id: resolver.c,v 1.355.12.23 2008/08/06 14:17:44 each Exp $ */
 
 /*! \file */
 
@@ -893,7 +893,7 @@ log_edns(fetchctx_t *fctx) {
 	dns_name_format(&fctx->domain, domainbuf, sizeof(domainbuf));
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_EDNS_DISABLED,
 		      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
-		      "too many timeouts resolving '%s' (in '%s'?): %s"
+		      "too many timeouts resolving '%s' (in '%s'?): %s",
 		      fctx->info, domainbuf, fctx->reason);
 
 	fctx->reason = NULL;
