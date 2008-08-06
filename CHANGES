@@ -1,3 +1,6 @@
+2409.	[func]		Only log that we disabled EDNS processing if we were
+			subsequently successful.  [RT #18029]
+
 2408.	[bug]		A duplicate TCP dispatch event could be sent, which
 			could then trigger an assertion failure in
 			resquery_response().  [RT #18275]
