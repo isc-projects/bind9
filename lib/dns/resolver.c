@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.355.12.21 2008/07/24 04:56:55 jinmei Exp $ */
+/* $Id: resolver.c,v 1.355.12.22 2008/08/06 06:14:15 marka Exp $ */
 
 /*! \file */
 
@@ -233,6 +233,12 @@ struct fetchctx {
 	 * Number of queries that reference this context.
 	 */
 	unsigned int			nqueries;
+
+	/*%
+	 * The reason to print when logging a successful
+	 * response to a query.
+	 */
+	const char *			reason;
 };
 
 #define FCTX_MAGIC			ISC_MAGIC('F', '!', '!', '!')
@@ -877,6 +883,22 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 	}
 }
 
+static inline void
+log_edns(fetchctx_t *fctx) {
+	char domainbuf[DNS_NAME_FORMATSIZE];
+
+	if (fctx->reason == NULL)
+		return;
+
+	dns_name_format(&fctx->domain, domainbuf, sizeof(domainbuf));
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_EDNS_DISABLED,
+		      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
+		      "too many timeouts resolving '%s' (in '%s'?): %s"
+		      fctx->info, domainbuf, fctx->reason);
+
+	fctx->reason = NULL;
+}
+
 static void
 fctx_done(fetchctx_t *fctx, isc_result_t result) {
 	dns_resolver_t *res;
@@ -886,10 +908,16 @@ fctx_done(fetchctx_t *fctx, isc_result_t result) {
 
 	res = fctx->res;
 
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS) {
+		/*%
+		 * Log any deferred EDNS timeout messages.
+		 */
+		log_edns(fctx);
 		no_response = ISC_TRUE;
-	else
+	 } else
 		no_response = ISC_FALSE;
+
+	fctx->reason = NULL;
 	fctx_stopeverything(fctx, no_response);
 
 	LOCK(&res->buckets[fctx->bucketnum].lock);
@@ -1379,17 +1407,6 @@ add_triededns512(fetchctx_t *fctx, isc_sockaddr_t *address) {
 	ISC_LIST_INITANDAPPEND(fctx->edns512, sa, link);
 }
 
-static inline void
-log_edns(fetchctx_t *fctx) {
-	char domainbuf[DNS_NAME_FORMATSIZE];
-
-	dns_name_format(&fctx->domain, domainbuf, sizeof(domainbuf));
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_EDNS_DISABLED,
-		      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
-		      "too many timeouts resolving '%s' (in '%s'?): "
-		      "disabling EDNS", fctx->info, domainbuf);
-}
-
 static isc_result_t
 resquery_send(resquery_t *query) {
 	fetchctx_t *fctx;
@@ -1530,11 +1547,14 @@ resquery_send(resquery_t *query) {
 	    !useedns)
 	{
 		query->options |= DNS_FETCHOPT_NOEDNS0;
-		dns_adb_changeflags(fctx->adb,
-				    query->addrinfo,
+		dns_adb_changeflags(fctx->adb, query->addrinfo,
 				    DNS_FETCHOPT_NOEDNS0,
 				    DNS_FETCHOPT_NOEDNS0);
 	}
+
+	/* Sync NOEDNS0 flag in addrinfo->flags and options now */
+	if ((query->addrinfo->flags & DNS_FETCHOPT_NOEDNS0) != 0)
+		query->options |= DNS_FETCHOPT_NOEDNS0;
 
 	/*
 	 * Use EDNS0, unless the caller doesn't want it, or we know that
@@ -1545,12 +1565,12 @@ resquery_send(resquery_t *query) {
 	     fctx->timeouts >= (MAX_EDNS0_TIMEOUTS * 2)) &&
 	    (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
 		query->options |= DNS_FETCHOPT_NOEDNS0;
-		log_edns(fctx);
+		fctx->reason = "disabling EDNS";
 	} else if ((triededns(fctx, &query->addrinfo->sockaddr) ||
 		    fctx->timeouts >= MAX_EDNS0_TIMEOUTS) &&
 		   (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
 		query->options |= DNS_FETCHOPT_EDNS512;
-		FCTXTRACE("too many timeouts, setting EDNS size to 512");
+		fctx->reason = "reducing UDP packet size to 512";
 	}
 
 	if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
@@ -2795,6 +2815,7 @@ fctx_timeout(isc_task_t *task, isc_event_t *event) {
 	FCTXTRACE("timeout");
 
 	if (event->ev_type == ISC_TIMEREVENT_LIFE) {
+		fctx->reason = NULL;
 		fctx_done(fctx, ISC_R_TIMEDOUT);
 	} else {
 		isc_result_t result;
@@ -3130,6 +3151,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	fctx->attributes = 0;
 	fctx->spilled = ISC_FALSE;
 	fctx->nqueries = 0;
+	fctx->reason = NULL;
 
 	dns_name_init(&fctx->nsname, NULL);
 	fctx->nsfetch = NULL;
