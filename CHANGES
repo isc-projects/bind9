@@ -1,4 +1,4 @@
-2409.	[func]		Only log that we disabled EDNS processing if we were
+2409.	[bug]		Only log that we disabled EDNS processing if we were
 			subsequently successful.  [RT #18029]
 
 2408.	[bug]		A duplicate TCP dispatch event could be sent, which
