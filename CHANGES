@@ -1,3 +1,5 @@
+2410.	[bug]		Correctly delete m_versionInfo. [RT #18432]
+
 2408.	[bug]		A duplicate TCP dispatch event could be sent, which
 			could then trigger an assertion failure in
 			resquery_response().  [RT #18275]
