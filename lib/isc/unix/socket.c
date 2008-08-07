@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.207.2.19.2.49 2008/08/01 19:43:58 jinmei Exp $ */
+/* $Id: socket.c,v 1.207.2.19.2.50 2008/08/07 21:32:29 jinmei Exp $ */
 
 #include <config.h>
 
@@ -95,8 +95,8 @@ struct isc_socketwait {
 };
 #elif defined (USE_SELECT)
 struct isc_socketwait {
-	fd_set readset;
-	fd_set writeset;
+	fd_set *readset;
+	fd_set *writeset;
 	int nfds;
 	int maxfd;
 };
@@ -105,14 +105,42 @@ struct isc_socketwait {
 
 /*
  * Maximum number of allowable open sockets.  This is also the maximum
- * allowable socket file descriptor.  This definition is meaningless with
- * USE_SELECT due to the API limitation of select(2).
+ * allowable socket file descriptor.
+ *
+ * Care should be taken before modifying this value for select():
+ * The API standard doesn't ensure select() accept more than (the system default
+ * of) FD_SETSIZE descriptors, and the default size should in fact be fine in
+ * the vast majority of cases.  This constant should therefore be increased only
+ * when absolutely necessary and possible, i.e., the server is exhausting all   
+ * available file descriptors (up to FD_SETSIZE) and the select() function
+ * and FD_xxx macros support larger values than FD_SETSIZE (which may not
+ * always by true, but we keep using some of them to ensure as much
+ * portability as possible).  Note also that overall server performance
+ * may be rather worsened with a larger value of this constant due to
+ * inherent scalability problems of select().
+ *
+ * As a special note, this value shouldn't have to be touched if
+ * this is a build for an authoritative only DNS server.
  */
-#if defined(USE_KQUEUE) || defined(USE_EPOLL) || defined(USE_DEVPOLL)
 #ifndef ISC_SOCKET_MAXSOCKETS
+#if defined(USE_KQUEUE) || defined(USE_EPOLL) || defined(USE_DEVPOLL)
 #define ISC_SOCKET_MAXSOCKETS 4096
-#endif
-#endif	/* USE_KQUEUE || USE_EPOLL || USE_DEVPOLL */
+#elif defined(USE_SELECT)
+#define ISC_SOCKET_MAXSOCKETS FD_SETSIZE
+#endif	/* USE_KQUEUE... */
+#endif	/* ISC_SOCKET_MAXSOCKETS */
+
+#ifdef USE_SELECT
+/*%
+ * Mac OS X needs a special definition to support larger values in select()
+ */
+#if ISC_SOCKET_MAXSOCKETS > FD_SETSIZE
+#ifdef __APPLE__
+#define _DARWIN_UNLIMITED_SELECT
+#endif	/* __APPLE__ */
+#endif	/* ISC_SOCKET_MAXSOCKETS > FD_SETSIZE */
+#endif	/* USE_SELECT */
+
 
 /*
  * Size of per-FD lock buckets.
@@ -283,6 +311,9 @@ struct isc_socketmgr {
 	int			nevents;
 	struct pollfd		*events;
 #endif	/* USE_DEVPOLL */
+#ifdef USE_SELECT
+	int			fd_bufsize;
+#endif	/* USE_SELECT */
 	unsigned int		maxsocks;
 #ifdef ISC_PLATFORM_USETHREADS
 	int			pipe_fds[2];
@@ -298,8 +329,10 @@ struct isc_socketmgr {
 	/* Locked by manager lock. */
 	ISC_LIST(isc_socket_t)	socklist;
 #ifdef USE_SELECT
-	fd_set			read_fds;
-	fd_set			write_fds;
+	fd_set			*read_fds;
+	fd_set			*read_fds_copy;
+	fd_set			*write_fds;
+	fd_set			*write_fds_copy;
 	int			maxfd;
 #endif	/* USE_SELECT */
 #ifdef ISC_PLATFORM_USETHREADS
@@ -472,9 +505,9 @@ watch_fd(isc_socketmgr_t *manager, int fd, int msg) {
 #elif defined(USE_SELECT)
 	LOCK(&manager->lock);
 	if (msg == SELECT_POKE_READ)
-		FD_SET(fd, &manager->read_fds);
+		FD_SET(fd, manager->read_fds);
 	if (msg == SELECT_POKE_WRITE)
-		FD_SET(fd, &manager->write_fds);
+		FD_SET(fd, manager->write_fds);
 	UNLOCK(&manager->lock);
 
 	return (result);
@@ -558,9 +591,9 @@ unwatch_fd(isc_socketmgr_t *manager, int fd, int msg) {
 #elif defined(USE_SELECT)
 	LOCK(&manager->lock);
 	if (msg == SELECT_POKE_READ)
-		FD_CLR(fd, &manager->read_fds);
+		FD_CLR(fd, manager->read_fds);
 	else if (msg == SELECT_POKE_WRITE)
-		FD_CLR(fd, &manager->write_fds);
+		FD_CLR(fd, manager->write_fds);
 	UNLOCK(&manager->lock);
 
 	return (result);
@@ -2916,8 +2949,6 @@ watcher(void *uap) {
 	struct dvpoll dvp;
 #elif defined (USE_SELECT)
 	const char *fnname = "select()";
-	fd_set readfds;
-	fd_set writefds;
 	int maxfd;
 #endif
 	char strbuf[ISC_STRERRORSIZE];
@@ -2942,12 +2973,15 @@ watcher(void *uap) {
 			cc = ioctl(manager->devpoll_fd, DP_POLL, &dvp);
 #elif defined(USE_SELECT)
 			LOCK(&manager->lock);
-			readfds = manager->read_fds;
-			writefds = manager->write_fds;
+			memcpy(manager->read_fds_copy, manager->read_fds,
+			       manager->fd_bufsize);
+			memcpy(manager->write_fds_copy, manager->write_fds,
+			       manager->fd_bufsize);
 			maxfd = manager->maxfd + 1;
 			UNLOCK(&manager->lock);
 
-			cc = select(maxfd, &readfds, &writefds, NULL, NULL);
+			cc = select(maxfd, manager->read_fds_copy,
+				    manager->write_fds_copy, NULL, NULL);
 #endif	/* USE_KQUEUE */
 
 			if (cc < 0 && !SOFT_ERROR(errno)) {
@@ -2964,12 +2998,13 @@ watcher(void *uap) {
 #if defined(USE_KQUEUE) || defined (USE_EPOLL) || defined (USE_DEVPOLL)
 		done = process_fds(manager, manager->events, cc);
 #elif defined(USE_SELECT)
-		process_fds(manager, maxfd, &readfds, &writefds);
+		process_fds(manager, maxfd, manager->read_fds_copy,
+			    manager->write_fds_copy);
 
 		/*
 		 * Process reads on internal, control fd.
 		 */
-		if (FD_ISSET(ctlfd, &readfds))
+		if (FD_ISSET(ctlfd, manager->read_fds_copy))
 			done = process_ctlfd(manager);
 #endif
 	}
@@ -3099,11 +3134,52 @@ setup_watcher(isc_mem_t *mctx, isc_socketmgr_t *manager) {
 	}
 #endif	/* ISC_PLATFORM_USETHREADS */
 #elif defined(USE_SELECT)
-	UNUSED(mctx);
 	UNUSED(result);
 
-	FD_ZERO(&manager->read_fds);
-	FD_ZERO(&manager->write_fds);
+#if ISC_SOCKET_MAXSOCKETS > FD_SETSIZE
+	/*
+	 * Note: this code should also cover the case of MAXSOCKETS <=
+	 * FD_SETSIZE, but we separate the cases to avoid possible portability
+	 * issues regarding howmany() and the actual representation of fd_set.
+	 */
+	manager->fd_bufsize = howmany(manager->maxsocks, NFDBITS) *
+		sizeof(fd_mask);
+#else
+	manager->fd_bufsize = sizeof(fd_set);
+#endif
+
+	manager->read_fds = NULL;
+	manager->read_fds_copy = NULL;
+	manager->write_fds = NULL;
+	manager->write_fds_copy = NULL;
+
+	manager->read_fds = isc_mem_get(mctx, manager->fd_bufsize);
+	if (manager->read_fds != NULL)
+		manager->read_fds_copy = isc_mem_get(mctx, manager->fd_bufsize);
+	if (manager->read_fds_copy != NULL)
+		manager->write_fds = isc_mem_get(mctx, manager->fd_bufsize);
+	if (manager->write_fds != NULL) {
+		manager->write_fds_copy = isc_mem_get(mctx,
+						      manager->fd_bufsize);
+	}
+	if (manager->write_fds_copy == NULL) {
+		if (manager->write_fds != NULL) {
+			isc_mem_put(mctx, manager->write_fds,
+				    manager->fd_bufsize);
+		}
+		if (manager->read_fds_copy != NULL) {
+			isc_mem_put(mctx, manager->read_fds_copy,
+				    manager->fd_bufsize);
+		}
+		if (manager->read_fds != NULL) {
+			isc_mem_put(mctx, manager->read_fds,
+				    manager->fd_bufsize);
+		}
+		return (ISC_R_NOMEMORY);
+	}
+	memset(manager->read_fds, 0, manager->fd_bufsize);
+	memset(manager->write_fds, 0, manager->fd_bufsize);
+
 #ifdef ISC_PLATFORM_USETHREADS
 	(void)watch_fd(manager, manager->pipe_fds[0], SELECT_POKE_READ);
 	manager->maxfd = manager->pipe_fds[0];
@@ -3144,8 +3220,14 @@ cleanup_watcher(isc_mem_t *mctx, isc_socketmgr_t *manager) {
 	isc_mem_put(mctx, manager->fdpollinfo,
 		    sizeof(pollinfo_t) * manager->maxsocks);
 #elif defined(USE_SELECT)
-	UNUSED(mctx);
-	UNUSED(manager);
+	if (manager->read_fds != NULL)
+		isc_mem_put(mctx, manager->read_fds, manager->fd_bufsize);
+	if (manager->read_fds_copy != NULL)
+		isc_mem_put(mctx, manager->read_fds_copy, manager->fd_bufsize);
+	if (manager->write_fds != NULL)
+		isc_mem_put(mctx, manager->write_fds, manager->fd_bufsize);
+	if (manager->write_fds_copy != NULL)
+		isc_mem_put(mctx, manager->write_fds_copy, manager->fd_bufsize);
 #endif	/* USE_KQUEUE */
 }
 
@@ -3174,13 +3256,7 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
 
 	/* zero-clear so that necessary cleanup on failure will be easy */
 	memset(manager, 0, sizeof(*manager));
-
-#if defined(USE_KQUEUE) || defined(USE_EPOLL) || defined(USE_DEVPOLL)
 	manager->maxsocks = ISC_SOCKET_MAXSOCKETS;
-#elif defined (USE_SELECT)
-	manager->maxsocks = FD_SETSIZE;
-#endif
-
 	manager->fds = isc_mem_get(mctx,
 				   manager->maxsocks * sizeof(isc_socket_t *));
 	if (manager->fds == NULL) {
@@ -4513,12 +4589,17 @@ isc__socketmgr_waitevents(struct timeval *tvp, isc_socketwait_t **swaitp) {
 	swait_private.nevents = ioctl(socketmgr->devpoll_fd, DP_POLL, &dvp);
 	n = swait_private.nevents;
 #elif defined(USE_SELECT)
-	swait_private.readset = socketmgr->read_fds;
-	swait_private.writeset = socketmgr->write_fds;
+	memcpy(socketmgr->read_fds_copy, socketmgr->read_fds,
+	       socketmgr->fd_bufsize);
+	memcpy(socketmgr->write_fds_copy, socketmgr->write_fds,
+	       socketmgr->fd_bufsize);
+
+	swait_private.readset = socketmgr->read_fds_copy;
+	swait_private.writeset = socketmgr->write_fds_copy;
 	swait_private.maxfd = socketmgr->maxfd + 1;
 
-	n = select(swait_private.maxfd, &swait_private.readset,
-		   &swait_private.writeset, NULL, tvp);
+	n = select(swait_private.maxfd, swait_private.readset,
+		   swait_private.writeset, NULL, tvp);
 #endif
 
 	*swaitp = &swait_private;
@@ -4536,7 +4617,7 @@ isc__socketmgr_dispatch(isc_socketwait_t *swait) {
 	(void)process_fds(socketmgr, socketmgr->events, swait->nevents);
 	return (ISC_R_SUCCESS);
 #elif defined(USE_SELECT)
-	process_fds(socketmgr, swait->maxfd, &swait->readset, &swait->writeset);
+	process_fds(socketmgr, swait->maxfd, swait->readset, swait->writeset);
 	return (ISC_R_SUCCESS);
 #endif
 }
