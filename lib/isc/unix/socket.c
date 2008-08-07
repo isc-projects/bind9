@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.237.18.48 2008/08/07 21:30:50 jinmei Exp $ */
+/* $Id: socket.c,v 1.237.18.49 2008/08/07 23:46:21 tbox Exp $ */
 
 /*! \file */
 
@@ -114,7 +114,7 @@ struct isc_socketwait {
  * The API standard doesn't ensure select() accept more than (the system default
  * of) FD_SETSIZE descriptors, and the default size should in fact be fine in
  * the vast majority of cases.  This constant should therefore be increased only
- * when absolutely necessary and possible, i.e., the server is exhausting all   
+ * when absolutely necessary and possible, i.e., the server is exhausting all
  * available file descriptors (up to FD_SETSIZE) and the select() function
  * and FD_xxx macros support larger values than FD_SETSIZE (which may not
  * always by true, but we keep using some of them to ensure as much
