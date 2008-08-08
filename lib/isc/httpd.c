@@ -14,9 +14,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: httpd.c,v 1.12.12.2 2008/01/17 23:46:37 tbox Exp $ */
+/* $Id: httpd.c,v 1.12.12.3 2008/08/08 05:10:34 marka Exp $ */
 
 /*! \file */
+
+#include <config.h>
 
 #include <isc/buffer.h>
 #include <isc/httpd.h>

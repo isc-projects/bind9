@@ -1,3 +1,5 @@
+2412.	[bug]		win32: address a resourse leak. [RT #18374]
+
 2411.	[bug]		Allow using a larger number of sockets than FD_SETSIZE
 			for select().  To enable this, set ISC_SOCKET_MAXSOCKETS
 			at compilation time.  [RT #18433]

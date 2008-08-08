@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.c,v 1.14.128.3 2008/07/01 02:09:10 each Exp $ */
+/* $Id: net.c,v 1.14.128.4 2008/08/08 05:10:34 marka Exp $ */
 
 #include <config.h>
 
@@ -242,7 +242,8 @@ try_ipv6pktinfo(void) {
 	optname = IPV6_PKTINFO;
 #endif
 	on = 1;
-	if (setsockopt(s, IPPROTO_IPV6, optname, &on, sizeof(on)) < 0) {
+	if (setsockopt(s, IPPROTO_IPV6, optname, (const char *) &on,
+		       sizeof(on)) < 0) {
 		ipv6pktinfo_result = ISC_R_NOTFOUND;
 		goto close;
 	}

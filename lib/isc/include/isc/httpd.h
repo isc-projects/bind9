@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: httpd.h,v 1.6.128.2 2008/01/17 23:46:37 tbox Exp $ */
+/* $Id: httpd.h,v 1.6.128.3 2008/08/08 05:10:34 marka Exp $ */
 
 #ifndef ISC_HTTPD_H
 #define ISC_HTTPD_H 1
@@ -47,7 +47,7 @@ isc_httpdmgr_shutdown(isc_httpdmgr_t **httpdp);
 
 isc_result_t
 isc_httpdmgr_addurl(isc_httpdmgr_t *httpdmgr, const char *url,
-		    isc_httpdaction_t func, void *arg);
+		    isc_httpdaction_t *func, void *arg);
 
 isc_result_t
 isc_httpd_response(isc_httpd_t *httpd);
