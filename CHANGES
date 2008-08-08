@@ -1,3 +1,14 @@
+2412.	[bug]		win32: address a resourse leak. [RT #18374]
+
+2411.	[bug]		Allow using a larger number of sockets than FD_SETSIZE
+			for select().  To enable this, set ISC_SOCKET_MAXSOCKETS
+			at compilation time.  [RT #18433]
+
+2410.	[bug]		Correctly delete m_versionInfo. [RT #18432]
+
+2409.	[bug]		Only log that we disabled EDNS processing if we were
+			subsequently successful.  [RT #18029]
+
 2408.	[bug]		A duplicate TCP dispatch event could be sent, which
 			could then trigger an assertion failure in
 			resquery_response().  [RT #18275]
