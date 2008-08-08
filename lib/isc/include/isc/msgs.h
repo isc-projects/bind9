@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: msgs.h,v 1.15.128.1 2008/08/08 05:10:34 marka Exp $ */
+/* $Id: msgs.h,v 1.15.128.2 2008/08/08 06:28:28 tbox Exp $ */
 
 #ifndef ISC_MSGS_H
 #define ISC_MSGS_H 1
@@ -57,7 +57,7 @@
 
 /*@{*/
 /*!
- * Message numbers  
+ * Message numbers
  * are only required to be unique per message set,
  * but are unique throughout the entire catalog to not be as confusing when
  * debugging.
