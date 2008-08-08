@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: errno2result.c,v 1.9.18.3 2005/09/01 03:04:30 marka Exp $ */
+/* $Id: errno2result.c,v 1.9.18.4 2008/08/08 05:15:09 marka Exp $ */
 
 #include <config.h>
 
@@ -61,14 +61,24 @@ isc__errno2resultx(int posixerrno, const char *file, int line) {
 	case EMFILE:
 	case WSAEMFILE:
 		return (ISC_R_TOOMANYOPENFILES);
-	case ERROR_OPERATION_ABORTED:
-		return (ISC_R_CONNECTIONRESET);
-	case ERROR_PORT_UNREACHABLE:
-		return (ISC_R_HOSTUNREACH);
+	case ERROR_CANCELLED:
+		return (ISC_R_CANCELED);
+	case ERROR_CONNECTION_REFUSED:
+		return (ISC_R_CONNREFUSED);
+	case ERROR_CONNECTION_INVALID:
+		return (ISC_R_NOTCONNECTED);
 	case ERROR_HOST_UNREACHABLE:
 		return (ISC_R_HOSTUNREACH);
 	case ERROR_NETWORK_UNREACHABLE:
 		return (ISC_R_NETUNREACH);
+	case ERROR_NO_NETWORK:
+		return (ISC_R_NETUNREACH);
+	case ERROR_OPERATION_ABORTED:
+		return (ISC_R_CONNECTIONRESET);
+	case ERROR_PORT_UNREACHABLE:
+		return (ISC_R_HOSTUNREACH);
+	case ERROR_REQUEST_ABORTED:
+		return (ISC_R_CONNECTIONRESET);
 	case WSAEADDRNOTAVAIL:
 		return (ISC_R_ADDRNOTAVAIL);
 	case WSAEHOSTUNREACH:
