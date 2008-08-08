@@ -1969,7 +1969,7 @@
 ./lib/isc/include/isc/md5.h			C	2000,2001,2004
 ./lib/isc/include/isc/mem.h			C	1997,1998,1999,2000,2001,2003,2004,2007,2008
 ./lib/isc/include/isc/msgcat.h			C	1999,2000,2001,2004
-./lib/isc/include/isc/msgs.h			C	2000,2001,2002,2003,2004
+./lib/isc/include/isc/msgs.h			C	2000,2001,2002,2003,2004,2008
 ./lib/isc/include/isc/mutexblock.h		C	1999,2000,2001,2004
 ./lib/isc/include/isc/netaddr.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2007
 ./lib/isc/include/isc/netscope.h		C	2002,2003,2004,2007
@@ -2112,7 +2112,7 @@
 ./lib/isc/win32/condition.c			C	1998,1999,2000,2001,2004,2006,2007
 ./lib/isc/win32/dir.c				C	1999,2000,2001,2003,2004,2007
 ./lib/isc/win32/entropy.c			C	2000,2001,2002,2003,2004,2007
-./lib/isc/win32/errno2result.c			C	2000,2001,2002,2003,2004,2005,2007
+./lib/isc/win32/errno2result.c			C	2000,2001,2002,2003,2004,2005,2007,2008
 ./lib/isc/win32/errno2result.h			C	2000,2001,2003,2004,2005,2007
 ./lib/isc/win32/file.c				C	2000,2001,2002,2003,2004,2007
 ./lib/isc/win32/fsaccess.c			C	2000,2001,2002,2003,2004,2007
