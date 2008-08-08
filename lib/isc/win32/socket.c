@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.5.2.13.2.35 2008/08/08 06:00:42 marka Exp $ */
+/* $Id: socket.c,v 1.5.2.13.2.36 2008/08/08 06:27:25 tbox Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -562,9 +562,9 @@ socket_event_minit(sock_event_list *evlist) {
 				ISC_LOGCATEGORY_GENERAL,
 				ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
 				isc_msgcat, ISC_MSGSET_SOCKET,
-			        ISC_MSG_TOOMANYHANDLES,
+				ISC_MSG_TOOMANYHANDLES,
 				"%s: too many open WSA event handles: %s",
-			        "WSACreateEvent", strbuf);
+				"WSACreateEvent", strbuf);
 		return (ISC_R_UNEXPECTED);
 	}
 
@@ -895,9 +895,9 @@ socket_event_add(isc_socket_t *sock, long type) {
 				ISC_LOGCATEGORY_GENERAL,
 				ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
 				isc_msgcat, ISC_MSGSET_SOCKET,
-			        ISC_MSG_TOOMANYHANDLES,
+				ISC_MSG_TOOMANYHANDLES,
 				"%s: too many open WSA event handles: %s",
-			        "WSACreateEvent", strbuf);
+				"WSACreateEvent", strbuf);
 		return (ISC_R_UNEXPECTED);
 	}
 	if (WSAEventSelect(sock->fd, hEvent, type) != 0) {
@@ -2244,15 +2244,15 @@ internal_accept(isc_socket_t *sock, int accept_errno) {
 					ISC_LOGCATEGORY_GENERAL,
 					ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
 					isc_msgcat, ISC_MSGSET_SOCKET,
-				        ISC_MSG_TOOMANYFDS,
-				        "%s: too many open file descriptors",
-				        "accept");
+					ISC_MSG_TOOMANYFDS,
+					"%s: too many open file descriptors",
+					"accept");
 				goto soft_error;
 			} else if (SOFT_ERROR(accept_errno) ||
 				   accept_errno == WSAECONNRESET) {
 				goto soft_error;
 			} else {
-				isc__strerror(accept_errno, strbuf, 
+				isc__strerror(accept_errno, strbuf,
 					      sizeof(strbuf));
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "internal_accept: accept() %s: %s",
