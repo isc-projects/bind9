@@ -1,8 +1,8 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: msgs.h,v 1.9.18.3 2008/08/08 05:15:08 marka Exp $ */
+/* $Id: msgs.h,v 1.9.18.4 2008/08/08 06:27:56 tbox Exp $ */
 
 #ifndef ISC_MSGS_H
 #define ISC_MSGS_H 1
@@ -57,7 +57,7 @@
 
 /*@{*/
 /*!
- * Message numbers  
+ * Message numbers
  * are only required to be unique per message set,
  * but are unique throughout the entire catalog to not be as confusing when
  * debugging.
