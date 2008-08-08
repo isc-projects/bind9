@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: statschannel.c,v 1.13 2008/07/23 23:27:54 marka Exp $ */
+/* $Id: statschannel.c,v 1.14 2008/08/08 05:06:49 marka Exp $ */
 
 /*! \file */
 
@@ -110,7 +110,7 @@ set_desc(int counter, int maxcounter, const char *fdesc, const char **fdescs,
 }
 
 static void
-init_desc() {
+init_desc(void) {
 	int i;
 
 	/* Initialize name server statistics */
