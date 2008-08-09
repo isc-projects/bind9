@@ -148,6 +148,7 @@ rt18335				new	fdupont	// 2008-07-20 11:50 +0000
 rt18336				new	fdupont	// 2008-07-21 13:51 +0000
 rt18336p1			new	
 rt18344				new	
+rt18348				new	fdupont	// 2008-08-09 08:31 +0000
 rt18358				new	fdupont	// 2008-07-23 22:35 +0000
 rt18370				new	mayer	// 2008-07-29 01:55 +0000
 rt18374				new	mayer	// 2008-07-28 02:48 +0000
@@ -191,6 +192,7 @@ v9_4				active
 v9_4_1_P1_lruttl		active	
 v9_4_1_patch			active		// security fixes 9.4.1 only
 v9_4_2_P1			new	each	// 2008-05-22 21:12 +0000
+v9_4_2_P2_W1			new	mayer	// 2008-08-09 19:33 +0000
 v9_4_2_patch			new	
 v9_5				new	marka	// 2008-01-02 04:47 +0000
 v9_5_0_patch			new	
