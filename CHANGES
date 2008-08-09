@@ -1,3 +1,5 @@
+2413.	[bug]		Fixed an unreachable code path in socket.c. [RT #18442]
+
 2412.	[bug]		win32: address a resourse leak. [RT #18374]
 
 2411.	[bug]		Allow using a larger number of sockets than FD_SETSIZE

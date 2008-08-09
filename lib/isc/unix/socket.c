@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.275.10.21 2008/08/07 23:47:04 tbox Exp $ */
+/* $Id: socket.c,v 1.275.10.22 2008/08/09 19:02:57 jinmei Exp $ */
 
 /*! \file */
 
@@ -3138,7 +3138,7 @@ process_ctlfd(isc_socketmgr_t *manager) {
 		 * Nothing to read?
 		 */
 		if (msg == SELECT_POKE_NOTHING)
-			return (ISC_FALSE);
+			break;
 
 		/*
 		 * Handle shutdown message.  We really should
