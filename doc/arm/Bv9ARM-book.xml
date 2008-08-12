@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.363 2008/07/24 21:31:09 jreed Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.364 2008/08/12 14:40:26 jreed Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -7430,7 +7430,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  field is specified in days if the base interval is
 		  greater than 7 days otherwise it is specified in hours.
 		  The default base interval is <literal>30</literal> days
-		  giving a re-signing interval of 7 1/2 days .  The maximum
+		  giving a re-signing interval of 7 1/2 days.  The maximum
 		  values are 10 years (3660 days).
 		</para>
 		<para>
@@ -7451,7 +7451,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      <term><command>sig-signing-nodes</command></term>
 	      <listitem>
 		<para>
-		  Specify the number of maximum number nodes to be
+		  Specify the maximum number of nodes to be
 		  examined in each quantum when signing a zone with
 		  a new DNSKEY. The default is
 		  <literal>100</literal>.
@@ -7475,7 +7475,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      <term><command>sig-signing-type</command></term>
 	      <listitem>
 		<para>
-		  Specify a private rdata type to be used when generating
+		  Specify a private RDATA type to be used when generating
 		  key signing records.  The default is
 		  <literal>65535</literal>.
 		</para>
@@ -7584,7 +7584,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
               <listitem>
 		<para>These set the
 		  initial value (minimum) and maximum number of recursive
-		  simultanious clients for any given query
+		  simultaneous clients for any given query
 		  (&lt;qname,qtype,qclass&gt;) that the server will accept
 		  before dropping additional clients.  named will attempt to
 		  self tune this value and changes will be logged.  The
