@@ -1,3 +1,7 @@
+2414.	[bug]		A masterdump context held the database lock too long,
+			causing various troubles such as dead lock and
+			recursive lock acquisition. [RT #18311, #18456]
+
 2413.	[bug]		Fixed an unreachable code path in socket.c. [RT #18442]
 
 2412.	[bug]		win32: address a resourse leak. [RT #18374]
