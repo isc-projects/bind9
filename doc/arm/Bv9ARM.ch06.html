@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.188 2008/07/25 01:12:09 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.189 2008/08/13 01:12:16 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -4154,7 +4154,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   field is specified in days if the base interval is
                   greater than 7 days otherwise it is specified in hours.
                   The default base interval is <code class="literal">30</code> days
-                  giving a re-signing interval of 7 1/2 days .  The maximum
+                  giving a re-signing interval of 7 1/2 days.  The maximum
                   values are 10 years (3660 days).
                 </p>
 <p>
@@ -4171,7 +4171,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 </dd>
 <dt><span class="term"><span><strong class="command">sig-signing-nodes</strong></span></span></dt>
 <dd><p>
-                  Specify the number of maximum number nodes to be
+                  Specify the maximum number of nodes to be
                   examined in each quantum when signing a zone with
                   a new DNSKEY. The default is
                   <code class="literal">100</code>.
@@ -4186,7 +4186,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 <dt><span class="term"><span><strong class="command">sig-signing-type</strong></span></span></dt>
 <dd>
 <p>
-                  Specify a private rdata type to be used when generating
+                  Specify a private RDATA type to be used when generating
                   key signing records.  The default is
                   <code class="literal">65535</code>.
                 </p>
@@ -4274,7 +4274,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 <dd>
 <p>These set the
                   initial value (minimum) and maximum number of recursive
-                  simultanious clients for any given query
+                  simultaneous clients for any given query
                   (&lt;qname,qtype,qclass&gt;) that the server will accept
                   before dropping additional clients.  named will attempt to
                   self tune this value and changes will be logged.  The
