@@ -1,3 +1,6 @@
+2416.	[func]		Log file descriptors that cause exceeding the
+			internal maximum. [RT #18460]
+
 2415.	[bug]		'rndc dumpdb' could trigger various assertion failures
 			in rbtdb.c. [RT #18455]
 
