@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.275.10.22 2008/08/09 19:02:57 jinmei Exp $ */
+/* $Id: socket.c,v 1.275.10.23 2008/08/13 23:45:05 jinmei Exp $ */
 
 /*! \file */
 
@@ -1874,7 +1874,8 @@ opensocket(isc_socketmgr_t *manager, isc_socket_t *sock) {
 			       ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
 			       isc_msgcat, ISC_MSGSET_SOCKET,
 			       ISC_MSG_TOOMANYFDS,
-			       "%s: too many open file descriptors", "socket");
+			       "socket: file descriptor exceeds limit (%d/%u)",
+			       sock->fd, manager->maxsocks);
 		return (ISC_R_NORESOURCES);
 	}
 
@@ -2625,8 +2626,9 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 				       ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
 				       isc_msgcat, ISC_MSGSET_SOCKET,
 				       ISC_MSG_TOOMANYFDS,
-				       "%s: too many open file descriptors",
-				       "accept");
+				       "accept: "
+				       "file descriptor exceeds limit (%d/%u)",
+				       fd, manager->maxsocks);
 			(void)close(fd);
 			goto soft_error;
 		}
