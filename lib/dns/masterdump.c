@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.73.18.14 2006/08/08 06:39:36 marka Exp $ */
+/* $Id: masterdump.c,v 1.73.18.15 2008/08/13 02:21:37 jinmei Exp $ */
 
 /*! \file */
 
@@ -1412,12 +1412,11 @@ dumptostreaminc(dns_dumpctx_t *dctx) {
 				      "dumptostreaminc(%p) new nodes -> %d\n",
 				      dctx, dctx->nodes);
 		}
-		result = dns_dbiterator_pause(dctx->dbiter);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		result = DNS_R_CONTINUE;
 	} else if (result == ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;
  fail:
+	RUNTIME_CHECK(dns_dbiterator_pause(dctx->dbiter) == ISC_R_SUCCESS);
 	isc_mem_put(dctx->mctx, buffer.base, buffer.length);
 	return (result);
 }
