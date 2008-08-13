@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.248.12.9 2008/06/04 01:12:20 jinmei Exp $ */
+/* $Id: rbtdb.c,v 1.248.12.10 2008/08/13 02:29:53 jinmei Exp $ */
 
 /*! \file */
 
@@ -1412,6 +1412,49 @@ new_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 }
 
 /*
+ * This function is assumed to be called when a node is newly referenced
+ * and can be in the deadnode list.  In that case the node must be retrieved
+ * from the list because the it is going to be used.  In addition, if the caller
+ * happens to hold a write lock on the tree, it's a good chance to purge dead
+ * nodes.
+ * Note: while a new reference is gained in multiple places, there are only very
+ * few cases where the node can be in the deadnode list (only empty nodes can
+ * have been added to the list).
+ */
+static inline void
+reactivate_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
+		isc_rwlocktype_t treelocktype)
+{
+	isc_boolean_t need_relock = ISC_FALSE;
+
+	NODE_STRONGLOCK(&rbtdb->node_locks[node->locknum].lock);
+	new_reference(rbtdb, node);
+
+	NODE_WEAKLOCK(&rbtdb->node_locks[node->locknum].lock,
+		      isc_rwlocktype_read);
+	if (ISC_LINK_LINKED(node, deadlink))
+		need_relock = ISC_TRUE;
+	else if (!ISC_LIST_EMPTY(rbtdb->deadnodes[node->locknum]) &&
+		 treelocktype == isc_rwlocktype_write)
+		need_relock = ISC_TRUE;
+	NODE_WEAKUNLOCK(&rbtdb->node_locks[node->locknum].lock,
+			isc_rwlocktype_read);
+	if (need_relock) {
+		NODE_WEAKLOCK(&rbtdb->node_locks[node->locknum].lock,
+			      isc_rwlocktype_write);
+		if (ISC_LINK_LINKED(node, deadlink))
+			ISC_LIST_UNLINK(rbtdb->deadnodes[node->locknum],
+					node, deadlink);
+		if (treelocktype == isc_rwlocktype_write)
+			cleanup_dead_nodes(rbtdb, node->locknum);
+		NODE_WEAKUNLOCK(&rbtdb->node_locks[node->locknum].lock,
+				isc_rwlocktype_write);
+	}
+
+	NODE_STRONGUNLOCK(&rbtdb->node_locks[node->locknum].lock);
+}
+
+/*
  * Caller must be holding the node lock; either the "strong", read or write
  * lock.  Note that the lock must be held even when node references are
  * atomically modified; in that case the decrement operation itself does not
@@ -1533,6 +1576,7 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 							   sizeof(printname)));
 		}
 
+		INSIST(!ISC_LINK_LINKED(node, deadlink));
 		result = dns_rbt_deletenode(rbtdb->tree, node, ISC_FALSE);
 		if (result != ISC_R_SUCCESS)
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
@@ -1935,7 +1979,6 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 	dns_name_t nodename;
 	isc_result_t result;
 	isc_rwlocktype_t locktype = isc_rwlocktype_read;
-	isc_boolean_t need_relock;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
@@ -1980,40 +2023,7 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 			return (result);
 		}
 	}
-	NODE_STRONGLOCK(&rbtdb->node_locks[node->locknum].lock);
-	new_reference(rbtdb, node);
-
-	/*
-	 * If the node just found is in the deadnode list, we need to retrieve
-	 * it from the list because we are going to use the node.  There are
-	 * other cases where a node is newly referenced, but this should be
-	 * the only case where it can be in the deadnode list.  Also, if we
-	 * happen to hold a write lock on the tree, it's a good chance to purge
-	 * dead nodes.
-	 */
-	need_relock = ISC_FALSE;
-	NODE_WEAKLOCK(&rbtdb->node_locks[node->locknum].lock,
-		      isc_rwlocktype_read);
-	if (ISC_LINK_LINKED(node, deadlink))
-		need_relock = ISC_TRUE;
-	else if (!ISC_LIST_EMPTY(rbtdb->deadnodes[node->locknum]) &&
-		 locktype == isc_rwlocktype_write)
-		need_relock = ISC_TRUE;
-	NODE_WEAKUNLOCK(&rbtdb->node_locks[node->locknum].lock,
-			isc_rwlocktype_read);
-	if (need_relock) {
-		NODE_WEAKLOCK(&rbtdb->node_locks[node->locknum].lock,
-			      isc_rwlocktype_write);
-		if (ISC_LINK_LINKED(node, deadlink))
-			ISC_LIST_UNLINK(rbtdb->deadnodes[node->locknum],
-					node, deadlink);
-		if (locktype == isc_rwlocktype_write)
-			cleanup_dead_nodes(rbtdb, node->locknum);
-		NODE_WEAKUNLOCK(&rbtdb->node_locks[node->locknum].lock,
-				isc_rwlocktype_write);
-	}
-
-	NODE_STRONGUNLOCK(&rbtdb->node_locks[node->locknum].lock);
+	reactivate_node(rbtdb, node, locktype);
 	RWUNLOCK(&rbtdb->tree_lock, locktype);
 
 	*nodep = (dns_dbnode_t *)node;
@@ -3401,6 +3411,7 @@ cache_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 		 * search->zonecut_rdataset will still be valid later.
 		 */
 		new_reference(search->rbtdb, node);
+		INSIST(!ISC_LINK_LINKED(node, deadlink));
 		search->zonecut = node;
 		search->zonecut_rdataset = dname_header;
 		search->zonecut_sigrdataset = sigdname_header;
@@ -3945,6 +3956,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		if (nsheader != NULL) {
 			if (nodep != NULL) {
 				new_reference(search.rbtdb, node);
+				INSIST(!ISC_LINK_LINKED(node, deadlink));
 				*nodep = node;
 			}
 			bind_rdataset(search.rbtdb, node, nsheader, search.now,
@@ -3974,6 +3986,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 
 	if (nodep != NULL) {
 		new_reference(search.rbtdb, node);
+		INSIST(!ISC_LINK_LINKED(node, deadlink));
 		*nodep = node;
 	}
 
@@ -4187,6 +4200,7 @@ cache_findzonecut(dns_db_t *db, dns_name_t *name, unsigned int options,
 
 	if (nodep != NULL) {
 		new_reference(search.rbtdb, node);
+		INSIST(!ISC_LINK_LINKED(node, deadlink));
 		*nodep = node;
 	}
 
@@ -6546,9 +6560,7 @@ reference_iter_node(rbtdb_dbiterator_t *rbtdbiter) {
 		return;
 
 	INSIST(rbtdbiter->tree_locked != isc_rwlocktype_none);
-	NODE_STRONGLOCK(&rbtdb->node_locks[node->locknum].lock);
-	new_reference(rbtdb, node);
-	NODE_STRONGUNLOCK(&rbtdb->node_locks[node->locknum].lock);
+	reactivate_node(rbtdb, node, rbtdbiter->tree_locked);
 }
 
 static inline void
