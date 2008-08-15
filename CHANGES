@@ -1,3 +1,6 @@
+2418.	[bug]		AXFR request on a DLZ could trigger a REQUIRE failure
+			[RT #18430]
+
 2417.	[bug]		Connecting UDP sockets for outgoing queries could
 			unexpectedly fail with an 'address already in use'
 			error. [RT #18411]

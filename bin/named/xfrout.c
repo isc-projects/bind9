@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.126.128.2 2008/04/03 06:20:33 tbox Exp $ */
+/* $Id: xfrout.c,v 1.126.128.3 2008/08/15 19:38:27 jinmei Exp $ */
 
 #include <config.h>
 
@@ -1333,7 +1333,8 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	xfr->zone = NULL;
 	xfr->db = NULL;
 	xfr->ver = NULL;
-	dns_zone_attach(zone, &xfr->zone);
+	if (zone != NULL)	/* zone will be NULL if it's DLZ */
+		dns_zone_attach(zone, &xfr->zone);
 	dns_db_attach(db, &xfr->db);
 	dns_db_attachversion(db, ver, &xfr->ver);
 	xfr->end_of_stream = ISC_FALSE;
