@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.137.128.15 2008/08/15 17:31:05 jinmei Exp $ */
+/* $Id: dispatch.c,v 1.137.128.16 2008/08/15 17:46:55 jinmei Exp $ */
 
 /*! \file */
 
@@ -2205,7 +2205,7 @@ qid_allocate(dns_dispatchmgr_t *mgr, unsigned int buckets,
 	if (result != ISC_R_SUCCESS) {
 		if (qid->sock_table != NULL) {
 			isc_mem_put(mgr->mctx, qid->sock_table,
-				    buckets * sizeof(dns_displist_t));
+				    buckets * sizeof(dispsocketlist_t));
 		}
 		isc_mem_put(mgr->mctx, qid->qid_table,
 			    buckets * sizeof(dns_displist_t));
@@ -2241,7 +2241,7 @@ qid_destroy(isc_mem_t *mctx, dns_qid_t **qidp) {
 		    qid->qid_nbuckets * sizeof(dns_displist_t));
 	if (qid->sock_table != NULL) {
 		isc_mem_put(mctx, qid->sock_table,
-			    qid->qid_nbuckets * sizeof(dns_displist_t));
+			    qid->qid_nbuckets * sizeof(dispsocketlist_t));
 	}
 	DESTROYLOCK(&qid->lock);
 	isc_mem_put(mctx, qid, sizeof(*qid));
