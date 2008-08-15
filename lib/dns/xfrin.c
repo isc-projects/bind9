@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.163 2008/08/15 17:47:18 jinmei Exp $ */
+/* $Id: xfrin.c,v 1.164 2008/08/15 17:52:53 jinmei Exp $ */
 
 /*! \file */
 
@@ -874,7 +874,6 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 	isc_socket_setname(xfr->socket, "xfrin", NULL);
 #ifndef BROKEN_TCP_BIND_BEFORE_CONNECT
 	CHECK(isc_socket_bind(xfr->socket, &xfr->sourceaddr,
-
 			      ISC_SOCKET_REUSEADDRESS));
 #endif
 	CHECK(isc_socket_connect(xfr->socket, &xfr->masteraddr, xfr->task,
