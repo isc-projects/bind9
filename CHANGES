@@ -1,3 +1,7 @@
+2417.	[bug]		Connecting UDP sockets for outgoing queries could
+			unexpectedly fail with an 'address already in use'
+			error. [RT #18411]
+
 2416.	[func]		Log file descriptors that cause exceeding the
 			internal maximum. [RT #18460]
 
