@@ -154,6 +154,8 @@ rt18370				new	mayer	// 2008-07-29 01:55 +0000
 rt18374				new	mayer	// 2008-07-28 02:48 +0000
 rt18374_v9_5			new	mayer	// 2008-07-28 13:32 +0000
 rt18411				new	
+rt18441				new	each	// 2008-08-15 17:02 +0000
+rt18493				new	
 shane_dbbackend			open	
 skan				open	explorer
 skan-metazones1			private	explorer
