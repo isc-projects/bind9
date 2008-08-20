@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.300 2008/08/20 06:16:05 marka Exp $ */
+/* $Id: socket.c,v 1.301 2008/08/20 23:57:59 jinmei Exp $ */
 
 /*! \file */
 
@@ -140,15 +140,13 @@ struct isc_socketwait {
 
 #ifdef USE_SELECT
 /*%
- * Mac OS X needs a special definition to support larger values in select()
+ * Mac OS X needs a special definition to support larger values in select().
+ * We always define this because a larger value can be specified run-time.
  */
-#if ISC_SOCKET_MAXSOCKETS > FD_SETSIZE
 #ifdef __APPLE__
 #define _DARWIN_UNLIMITED_SELECT
 #endif	/* __APPLE__ */
-#endif	/* ISC_SOCKET_MAXSOCKETS > FD_SETSIZE */
 #endif	/* USE_SELECT */
-
 
 /*%
  * Size of per-FD lock buckets.
@@ -3475,6 +3473,13 @@ cleanup_watcher(isc_mem_t *mctx, isc_socketmgr_t *manager) {
 
 isc_result_t
 isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
+	return (isc_socketmgr_create2(mctx, managerp, 0));
+}
+
+isc_result_t
+isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
+		      unsigned int maxsocks)
+{
 	int i;
 	isc_socketmgr_t *manager;
 #ifdef ISC_PLATFORM_USETHREADS
@@ -3486,11 +3491,18 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
 
 #ifndef ISC_PLATFORM_USETHREADS
 	if (socketmgr != NULL) {
+		/* Don't allow maxsocks to be updated */
+		if (maxsocks > 0 && socketmgr->maxsocks != maxsocks)
+			return (ISC_R_EXISTS);
+
 		socketmgr->refs++;
 		*managerp = socketmgr;
 		return (ISC_R_SUCCESS);
 	}
 #endif /* ISC_PLATFORM_USETHREADS */
+
+	if (maxsocks == 0)
+		maxsocks = ISC_SOCKET_MAXSOCKETS;
 
 	manager = isc_mem_get(mctx, sizeof(*manager));
 	if (manager == NULL)
@@ -3498,7 +3510,7 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
 
 	/* zero-clear so that necessary cleanup on failure will be easy */
 	memset(manager, 0, sizeof(*manager));
-	manager->maxsocks = ISC_SOCKET_MAXSOCKETS;
+	manager->maxsocks = maxsocks;
 	manager->fds = isc_mem_get(mctx,
 				   manager->maxsocks * sizeof(isc_socket_t *));
 	if (manager->fds == NULL) {
