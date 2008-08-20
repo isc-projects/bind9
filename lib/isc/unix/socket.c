@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.275.10.23 2008/08/13 23:45:05 jinmei Exp $ */
+/* $Id: socket.c,v 1.275.10.24 2008/08/20 06:20:15 marka Exp $ */
 
 /*! \file */
 
@@ -1847,7 +1847,10 @@ opensocket(isc_socketmgr_t *manager, isc_socket_t *sock) {
 		sock->fd = socket(sock->pf, SOCK_STREAM, 0);
 		break;
 	case isc_sockettype_fdwatch:
-		INSIST(sock->type != isc_sockettype_fdwatch);
+		/*
+		 * We should not be called for isc_sockettype_fdwatch sockets.
+		 */
+		INSIST(0);
 		break;
 	}
 	if (sock->fd == -1 && errno == EINTR && tries++ < 42)
@@ -2062,6 +2065,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(socketp != NULL && *socketp == NULL);
+	REQUIRE(type != isc_sockettype_fdwatch);
 
 	result = allocate_socket(manager, type, &sock);
 	if (result != ISC_R_SUCCESS)
@@ -2117,6 +2121,7 @@ isc_socket_open(isc_socket_t *sock) {
 
 	LOCK(&sock->lock);
 	REQUIRE(sock->references == 1);
+	REQUIRE(sock->type != isc_sockettype_fdwatch);
 	UNLOCK(&sock->lock);
 	/*
 	 * We don't need to retain the lock hereafter, since no one else has
@@ -2261,6 +2266,7 @@ isc_socket_close(isc_socket_t *sock) {
 
 	LOCK(&sock->lock);
 	REQUIRE(sock->references == 1);
+	REQUIRE(sock->type != isc_sockettype_fdwatch);
 	UNLOCK(&sock->lock);
 	/*
 	 * We don't need to retain the lock hereafter, since no one else has
