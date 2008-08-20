@@ -1,3 +1,7 @@
+2419.	[cleanup]	Document that isc_socket_create() and isc_socket_open()
+			should not be used for isc_sockettype_fdwatch sockets.
+			[RT #18521]
+
 2418.	[bug]		AXFR request on a DLZ could trigger a REQUIRE failure
 			[RT #18430]
 
@@ -36,6 +40,10 @@
 
 2406.	[bug]		Sockets could be closed too early, leading to
 			inconsistent states in the socket module. [RT #18298]
+
+xxxx.	[bug]		Connecting UDP sockets for outgoing queries could
+			unexpectedly fail with an 'address already in use'
+			error.
 
 2405.   [cleanup]       The default value for dnssec-validation was changed to
                         "yes" in 9.5.0-P1 and all subsequent releases; this

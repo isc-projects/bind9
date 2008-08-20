@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.81 2008/07/23 23:47:07 tbox Exp $ */
+/* $Id: socket.h,v 1.82 2008/08/20 06:16:05 marka Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -245,6 +245,9 @@ isc_socket_create(isc_socketmgr_t *manager,
 /*%<
  * Create a new 'type' socket managed by 'manager'.
  *
+ * For isc_sockettype_fdwatch sockets you should use isc_socket_fdwatchcreate()
+ * rather than isc_socket_create().
+ *
  * Note:
  *
  *\li	'pf' is the desired protocol family, e.g. PF_INET or PF_INET6.
@@ -254,6 +257,8 @@ isc_socket_create(isc_socketmgr_t *manager,
  *\li	'manager' is a valid manager
  *
  *\li	'socketp' is a valid pointer, and *socketp == NULL
+ *
+ *\li	'type' is not isc_sockettype_fdwatch
  *
  * Ensures:
  *
@@ -378,11 +383,16 @@ isc_socket_open(isc_socket_t *sock);
  * one.  This optimization may not be available for some systems, in which
  * case this function will return ISC_R_NOTIMPLEMENTED and must not be used.
  *
+ * isc_socket_open() should not be called on sockets created by
+ * isc_socket_fdwatchcreate().
+ *
  * Requires:
  *
  * \li	there must be no other reference to this socket.
  *
  * \li	'socket' is a valid and previously closed by isc_socket_close()
+ *
+ * \li  'sock->type' is not isc_sockettype_fdwatch
  *
  * Returns:
  *	Same as isc_socket_create().
@@ -399,6 +409,9 @@ isc_socket_close(isc_socket_t *sock);
  * systems, in which case this function will return ISC_R_NOTIMPLEMENTED and
  * must not be used.
  *
+ * isc_socket_close() should not be called on sockets created by
+ * isc_socket_fdwatchcreate().
+ *
  * Requires:
  *
  * \li	The socket must have a valid descriptor.
@@ -406,6 +419,8 @@ isc_socket_close(isc_socket_t *sock);
  * \li	There must be no other reference to this socket.
  *
  * \li	There must be no pending I/O requests.
+ *
+ * \li  'sock->type' is not isc_sockettype_fdwatch
  *
  * Returns:
  * \li	#ISC_R_NOTIMPLEMENTED

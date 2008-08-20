@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.64 2008/08/08 06:28:59 tbox Exp $ */
+/* $Id: socket.c,v 1.65 2008/08/20 06:16:05 marka Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -1949,6 +1949,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(socketp != NULL && *socketp == NULL);
+	REQUIRE(type != isc_sockettype_fdwatch);
 
 	result = allocate_socket(manager, type, &sock);
 	if (result != ISC_R_SUCCESS)
@@ -2090,6 +2091,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 isc_result_t
 isc_socket_open(isc_socket_t *sock) {
 	REQUIRE(VALID_SOCKET(sock));
+	REQUIRE(sock->type != isc_sockettype_fdwatch);
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
@@ -2135,6 +2137,7 @@ isc_socket_detach(isc_socket_t **socketp) {
 isc_result_t
 isc_socket_close(isc_socket_t *sock) {
 	REQUIRE(VALID_SOCKET(sock));
+	REQUIRE(sock->type != isc_sockettype_fdwatch);
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
