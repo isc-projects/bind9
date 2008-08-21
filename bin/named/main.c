@@ -1,8 +1,8 @@
 /*
- * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.119.2.3.2.26 2008/08/21 00:13:49 jinmei Exp $ */
+/* $Id: main.c,v 1.119.2.3.2.27 2008/08/21 23:45:31 tbox Exp $ */
 
 #include <config.h>
 
@@ -667,7 +667,7 @@ setup(void) {
 					       sizeof(absolute_conffile));
 		if (result != ISC_R_SUCCESS)
 			ns_main_earlyfatal("could not construct absolute path of "
-					   "configuration file: %s", 
+					   "configuration file: %s",
 					   isc_result_totext(result));
 		ns_g_conffile = absolute_conffile;
 	}
@@ -740,7 +740,7 @@ ns_smf_get_instance(char **ins_name, int debug, isc_mem_t *mctx) {
 		if (debug)
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "scf_handle_create() failed: %s",
-			 		 scf_strerror(scf_error()));
+					 scf_strerror(scf_error()));
 		return (ISC_R_FAILURE);
 	}
 
