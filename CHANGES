@@ -1,3 +1,8 @@
+2420.	[func]		Add new command line option '-S' for named to specify
+			the max number of sockets. [RT #18493]
+			Use caution: this option may not work for some
+			operating systems without rebuilding named.
+
 2419.	[cleanup]	Document that isc_socket_create() and isc_socket_open()
 			should not be used for isc_sockettype_fdwatch sockets.
 			[RT #18521]

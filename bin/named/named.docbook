@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.docbook,v 1.19 2007/06/19 06:58:03 marka Exp $ -->
+<!-- $Id: named.docbook,v 1.19.130.1 2008/08/21 00:01:02 jinmei Exp $ -->
 <refentry id="man.named">
   <refentryinfo>
     <date>June 30, 2000</date>
@@ -64,6 +64,7 @@
       <arg><option>-n <replaceable class="parameter">#cpus</replaceable></option></arg>
       <arg><option>-p <replaceable class="parameter">port</replaceable></option></arg>
       <arg><option>-s</option></arg>
+      <arg><option>-S <replaceable class="parameter">#max-socks</replaceable></option></arg>
       <arg><option>-t <replaceable class="parameter">directory</replaceable></option></arg>
       <arg><option>-u <replaceable class="parameter">user</replaceable></option></arg>
       <arg><option>-v</option></arg>
@@ -212,6 +213,33 @@
             </para>
           </note>
         </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-S <replaceable class="parameter">#max-socks</replaceable></term>
+        <listitem>
+	  <para>
+	    Allow <command>named</command> to use up to
+	    <replaceable class="parameter">#max-socks</replaceable> sockets.
+	  </para>
+          <warning>
+            <para>
+              This option should be unnecessary for the vast majority
+              of users.
+	      The use of this option could even be harmful because the
+              specified value may exceed the limitation of the
+              underlying system API.
+	      It is therefore set only when the default configuration
+              causes exhaustion of file descriptors and the
+              operational environment is known to support the
+              specified number of sockets.
+	      Note also that the actual maximum number is normally a little
+              fewer than the specified value because
+	      <command>named</command> reserves some file descriptors
+	      for its internal use.
+            </para>
+          </warning>
+	</listitem>
       </varlistentry>
 
       <varlistentry>

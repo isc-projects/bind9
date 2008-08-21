@@ -430,6 +430,7 @@ isc_socket_sendtov
 isc_socket_sendv
 isc_socket_setname
 isc_socketmgr_create
+isc_socketmgr_create2
 isc_socketmgr_destroy
 isc_socketmgr_getmaxsockets
 isc_stdio_close
