@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.30.18.31 2008/08/08 06:27:56 tbox Exp $ */
+/* $Id: socket.c,v 1.30.18.32 2008/08/21 00:03:25 jinmei Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -2901,11 +2901,21 @@ event_wait(void *uap) {
  */
 isc_result_t
 isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
+	return (isc_socketmgr_create2(mctx, managerp, maxsocks));
+}
+
+isc_result_t
+isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
+		     unsigned int maxsocks)
+{
 	isc_socketmgr_t *manager;
 	events_thread_t *evthread = NULL;
 	isc_result_t result;
 
 	REQUIRE(managerp != NULL && *managerp == NULL);
+
+	if (maxsocks != 0)
+		return (ISC_R_NOTIMPLEMENTED);
 
 	manager = isc_mem_get(mctx, sizeof(*manager));
 	if (manager == NULL)
