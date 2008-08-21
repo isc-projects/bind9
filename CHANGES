@@ -1,11 +1,11 @@
 	--- 9.4.2-P2-W1 released ---
 
-2420.	[bug]		Windows socket handling cleanup.  Let the io
+2420.	[bug]		Windows socket handling cleanup.  Let the IO
 			completion event send out cancelled read/write
-			done events, which keeps us from writing to memeory
-			we no longer have ownership of.  Add debugging
-			socket_log() function.  Rework TCP socket handling
-			to not leak sockets.
+			done events, which keeps us from writing to memory
+			we no longer own.  Add debugging socket_log()
+                        function.  Rework TCP socket handling to avoid
+                        leaking sockets.
 
 	--- 9.4.2-P2 released ---
 
