@@ -191,6 +191,7 @@ v9_3_4_patch			active		// security fixes 9.3.4 only
 v9_3_5_P1			new	each	// 2008-05-22 20:42 +0000
 v9_3_5_P2_W1			new	mayer	// 2008-08-16 03:50 +0000
 v9_3_5_P2_danny			new	
+v9_3_5_P2_win32			new	each	// 2008-08-21 02:21 +0000
 v9_3_5_patch			new	
 v9_4				active	
 v9_4_1_P1_lruttl		active	
@@ -198,6 +199,7 @@ v9_4_1_patch			active		// security fixes 9.4.1 only
 v9_4_2_P1			new	each	// 2008-05-22 21:12 +0000
 v9_4_2_P2_W1			new	mayer	// 2008-08-09 19:33 +0000
 v9_4_2_P2_danny			new	
+v9_4_2_P2_win32			new	each	// 2008-08-21 00:20 +0000
 v9_4_2_patch			new	
 v9_5				new	marka	// 2008-01-02 04:47 +0000
 v9_5_0_P2_W1			new	mayer	// 2008-08-16 21:14 +0000
