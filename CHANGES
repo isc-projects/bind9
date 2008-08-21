@@ -1,3 +1,12 @@
+	--- 9.4.2-P2-W1 released ---
+
+2420.	[bug]		Windows socket handling cleanup.  Let the io
+			completion event send out cancelled read/write
+			done events, which keeps us from writing to memeory
+			we no longer have ownership of.  Add debugging
+			socket_log() function.  Rework TCP socket handling
+			to not leak sockets.
+
 	--- 9.4.2-P2 released ---
 
 2406.   [bug]           Some operating systems have FD_SETSIZE set to a

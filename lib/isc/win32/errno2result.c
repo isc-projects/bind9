@@ -2,7 +2,7 @@
  * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2002  Internet Software Consortium.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: errno2result.c,v 1.9.18.3 2005/09/01 03:04:30 marka Exp $ */
+/* $Id: errno2result.c,v 1.9.18.3.62.1 2008/08/21 00:50:09 each Exp $ */
 
 #include <config.h>
 
@@ -61,14 +61,24 @@ isc__errno2resultx(int posixerrno, const char *file, int line) {
 	case EMFILE:
 	case WSAEMFILE:
 		return (ISC_R_TOOMANYOPENFILES);
-	case ERROR_OPERATION_ABORTED:
-		return (ISC_R_CONNECTIONRESET);
-	case ERROR_PORT_UNREACHABLE:
-		return (ISC_R_HOSTUNREACH);
+	case ERROR_CANCELLED:
+		return (ISC_R_CANCELED);
+	case ERROR_CONNECTION_REFUSED:
+		return (ISC_R_CONNREFUSED);
+	case ERROR_CONNECTION_INVALID:
+		return (ISC_R_NOTCONNECTED);
 	case ERROR_HOST_UNREACHABLE:
 		return (ISC_R_HOSTUNREACH);
 	case ERROR_NETWORK_UNREACHABLE:
 		return (ISC_R_NETUNREACH);
+	case ERROR_NO_NETWORK:
+		return (ISC_R_NETUNREACH);
+	case ERROR_OPERATION_ABORTED:
+		return (ISC_R_CONNECTIONRESET);
+	case ERROR_PORT_UNREACHABLE:
+		return (ISC_R_HOSTUNREACH);
+	case ERROR_REQUEST_ABORTED:
+		return (ISC_R_CONNECTIONRESET);
 	case WSAEADDRNOTAVAIL:
 		return (ISC_R_ADDRNOTAVAIL);
 	case WSAEHOSTUNREACH:

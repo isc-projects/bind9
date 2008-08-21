@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: msgs.h,v 1.9.18.2 2005/04/29 00:16:59 marka Exp $ */
+/* $Id: msgs.h,v 1.9.18.2.62.1 2008/08/21 00:50:09 each Exp $ */
 
 #ifndef ISC_MSGS_H
 #define ISC_MSGS_H 1
@@ -153,7 +153,8 @@
 #define ISC_MSG_ACCEPTRETURNED 1418 /*%< accept() returned %d/%s */
 #define ISC_MSG_TOOMANYFDS     1419 /*%< %s: too many open file descriptors */
 #define ISC_MSG_ZEROPORT       1420 /*%< dropping source port zero packet */
-#define ISC_MSG_FILTER	       1420 /*%< setsockopt(SO_ACCEPTFILTER): %s */
+#define ISC_MSG_FILTER	       1421 /*%< setsockopt(SO_ACCEPTFILTER): %s */
+#define ISC_MSG_TOOMANYHANDLES 1422 /*%< %s: too many open WSA event handles: %s */
 
 #define ISC_MSG_AWAKE	       1502 /*%< "awake" */
 #define ISC_MSG_WORKING	       1503 /*%< "working" */
