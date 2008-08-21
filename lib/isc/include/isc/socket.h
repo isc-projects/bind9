@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.54.12.13 2008/08/01 02:12:46 jinmei Exp $ */
+/* $Id: socket.h,v 1.54.12.14 2008/08/21 00:13:49 jinmei Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -669,6 +669,7 @@ isc_socket_sendto2(isc_socket_t *sock, isc_region_t *region,
  *	ISC_R_INPROGRESS
  *	ISC_R_NOMEMORY
  *	ISC_R_UNEXPECTED
+ *	ISC_R_NOTIMPLEMENTED
  *
  * Event results:
  *
@@ -679,8 +680,14 @@ isc_socket_sendto2(isc_socket_t *sock, isc_region_t *region,
 
 isc_result_t
 isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp);
+
+isc_result_t
+isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
+		      unsigned int maxsocks);
 /*
- * Create a socket manager.
+ * Create a socket manager.  If "maxsocks" is non-zero, it specifies the
+ * maximum number of sockets that the created manager should handle.
+ * isc_socketmgr_create() is equivalent of isc_socketmgr_create2() with
  *
  * Notes:
  *
