@@ -1,10 +1,12 @@
-2421.	[bug]		Handle the special return value of a empty node as
+2422.	[bug]		Handle the special return value of a empty node as
 			if it was a NXRRSET in the validator. [RT #18447]
 
-2420.	[func]		Add new command line option '-S' for named to specify
+2421.	[func]		Add new command line option '-S' for named to specify
 			the max number of sockets. [RT #18493]
 			Use caution: this option may not work for some
 			operating systems without rebuilding named.
+
+2420.   [placeholder]
 
 2417.	[bug]		Connecting UDP sockets for outgoing queries could
 			unexpectedly fail with an 'address already in use'
