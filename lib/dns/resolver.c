@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.376 2008/08/06 06:11:15 marka Exp $ */
+/* $Id: resolver.c,v 1.377 2008/08/22 04:16:17 each Exp $ */
 
 /*! \file */
 
@@ -239,6 +239,12 @@ struct fetchctx {
 	 * response to a query.
 	 */
 	const char *			reason;
+
+	/*%
+	 * Random numbers to use for mixing up server addresses.
+	 */
+	isc_uint32_t                    rand_buf;
+	isc_uint32_t                    rand_bits;
 };
 
 #define FCTX_MAGIC			ISC_MAGIC('F', '!', '!', '!')
@@ -362,10 +368,13 @@ struct dns_resolver {
  */
 #define FCTX_ADDRINFO_MARK              0x0001
 #define FCTX_ADDRINFO_FORWARDER         0x1000
+#define FCTX_ADDRINFO_TRIED             0x2000
 #define UNMARKED(a)                     (((a)->flags & FCTX_ADDRINFO_MARK) \
 					 == 0)
 #define ISFORWARDER(a)                  (((a)->flags & \
 					 FCTX_ADDRINFO_FORWARDER) != 0)
+#define TRIED(a)                        (((a)->flags & \
+					 FCTX_ADDRINFO_TRIED) != 0)
 
 #define NXDOMAIN(r) (((r)->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
 
@@ -624,6 +633,12 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 			factor = DNS_ADB_RTTADJREPLACE;
 		}
 		dns_adb_adjustsrtt(fctx->adb, query->addrinfo, rtt, factor);
+	}
+
+	/* Remember that the server has been tried. */
+	if (!TRIED(query->addrinfo)) {
+		dns_adb_changeflags(fctx->adb, query->addrinfo,
+				    FCTX_ADDRINFO_TRIED, FCTX_ADDRINFO_TRIED);
 	}
 
 	/*
@@ -2061,15 +2076,79 @@ add_bad(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo, isc_result_t reason) {
 		      namebuf, typebuf, classbuf, addrbuf);
 }
 
+/*
+ * Return 'bits' bits of random entropy from fctx->rand_buf,
+ * refreshing it by calling isc_random_get() whenever the requested
+ * number of bits is greater than the number in the buffer.
+ */
+static inline isc_uint32_t
+random_bits(fetchctx_t *fctx, isc_uint32_t bits) {
+	isc_uint32_t ret = 0;
+
+	REQUIRE(VALID_FCTX(fctx));
+	REQUIRE(bits <= 32);
+	if (bits == 0)
+		return (0);
+
+	if (bits >= fctx->rand_bits) {
+		/* if rand_bits == 0, this is unnecessary but harmless */
+		bits -= fctx->rand_bits;
+		ret = fctx->rand_buf << bits;
+
+		/* refresh random buffer now */
+		isc_random_get(&fctx->rand_buf);
+		fctx->rand_bits = sizeof(fctx->rand_buf) * CHAR_BIT;
+	}
+
+	if (bits > 0) {
+		isc_uint32_t mask = 0xffffffff;
+		if (bits < 32) {
+			mask = (1 << bits) - 1;
+		}
+
+		ret |= fctx->rand_buf & mask;
+		fctx->rand_buf >>= bits;
+		fctx->rand_bits -= bits;
+	}
+
+	return (ret);
+}
+
+/*
+ * Add some random jitter to a server's RTT value so that the
+ * order of queries will be unpredictable.
+ * 
+ * RTT values of servers which have been tried are fuzzed by 128 ms.
+ * Servers that haven't been tried yet have their RTT set to a random 
+ * value between 0 ms and 7 ms; they should get to go first, but in
+ * unpredictable order.
+ */
+static inline void
+randomize_srtt(fetchctx_t *fctx, dns_adbaddrinfo_t *ai) {
+	if (TRIED(ai)) {
+		ai->srtt >>= 10; /* convert to milliseconds, near enough */
+		ai->srtt |= (ai->srtt & 0x80) | random_bits(fctx, 7);
+		ai->srtt <<= 10; /* now back to microseconds */
+	} else
+		ai->srtt = random_bits(fctx, 3) << 10;
+}
+
+/*
+ * Sort addrinfo list by RTT (with random jitter)
+ */
 static void
-sort_adbfind(dns_adbfind_t *find) {
+sort_adbfind(fetchctx_t *fctx, dns_adbfind_t *find) {
 	dns_adbaddrinfo_t *best, *curr;
 	dns_adbaddrinfolist_t sorted;
 
-	/*
-	 * Lame N^2 bubble sort.
-	 */
+	/* Add jitter to SRTT values */
+	curr = ISC_LIST_HEAD(find->list);
+	while (curr != NULL) {
+		randomize_srtt(fctx, curr);
+		curr = ISC_LIST_NEXT(curr, publink);
+	}
 
+	/* Lame N^2 bubble sort. */
 	ISC_LIST_INIT(sorted);
 	while (!ISC_LIST_EMPTY(find->list)) {
 		best = ISC_LIST_HEAD(find->list);
@@ -2085,19 +2164,25 @@ sort_adbfind(dns_adbfind_t *find) {
 	find->list = sorted;
 }
 
+/*
+ * Sort a list of finds by server RTT (with random jitter)
+ */
 static void
-sort_finds(fetchctx_t *fctx) {
+sort_finds(fetchctx_t *fctx, dns_adbfindlist_t *findlist) {
 	dns_adbfind_t *best, *curr;
 	dns_adbfindlist_t sorted;
 	dns_adbaddrinfo_t *addrinfo, *bestaddrinfo;
 
-	/*
-	 * Lame N^2 bubble sort.
-	 */
+	/* Sort each find's addrinfo list by SRTT (after adding jitter) */
+	for (curr = ISC_LIST_HEAD(*findlist);
+	     curr != NULL;
+	     curr = ISC_LIST_NEXT(curr, publink))
+		sort_adbfind(fctx, curr);
 
+	/* Lame N^2 bubble sort. */
 	ISC_LIST_INIT(sorted);
-	while (!ISC_LIST_EMPTY(fctx->finds)) {
-		best = ISC_LIST_HEAD(fctx->finds);
+	while (!ISC_LIST_EMPTY(*findlist)) {
+		best = ISC_LIST_HEAD(*findlist);
 		bestaddrinfo = ISC_LIST_HEAD(best->list);
 		INSIST(bestaddrinfo != NULL);
 		curr = ISC_LIST_NEXT(best, publink);
@@ -2110,30 +2195,10 @@ sort_finds(fetchctx_t *fctx) {
 			}
 			curr = ISC_LIST_NEXT(curr, publink);
 		}
-		ISC_LIST_UNLINK(fctx->finds, best, publink);
+		ISC_LIST_UNLINK(*findlist, best, publink);
 		ISC_LIST_APPEND(sorted, best, publink);
 	}
-	fctx->finds = sorted;
-
-	ISC_LIST_INIT(sorted);
-	while (!ISC_LIST_EMPTY(fctx->altfinds)) {
-		best = ISC_LIST_HEAD(fctx->altfinds);
-		bestaddrinfo = ISC_LIST_HEAD(best->list);
-		INSIST(bestaddrinfo != NULL);
-		curr = ISC_LIST_NEXT(best, publink);
-		while (curr != NULL) {
-			addrinfo = ISC_LIST_HEAD(curr->list);
-			INSIST(addrinfo != NULL);
-			if (addrinfo->srtt < bestaddrinfo->srtt) {
-				best = curr;
-				bestaddrinfo = addrinfo;
-			}
-			curr = ISC_LIST_NEXT(curr, publink);
-		}
-		ISC_LIST_UNLINK(fctx->altfinds, best, publink);
-		ISC_LIST_APPEND(sorted, best, publink);
-	}
-	fctx->altfinds = sorted;
+	*findlist = sorted;
 }
 
 static void
@@ -2184,7 +2249,6 @@ findname(fetchctx_t *fctx, dns_name_t *name, in_port_t port,
 		 * name.
 		 */
 		INSIST((find->options & DNS_ADBFIND_WANTEVENT) == 0);
-		sort_adbfind(find);
 		if (flags != 0 || port != 0) {
 			for (ai = ISC_LIST_HEAD(find->list);
 			     ai != NULL;
@@ -2453,7 +2517,8 @@ fctx_getaddresses(fetchctx_t *fctx) {
 		 * We've found some addresses.  We might still be looking
 		 * for more addresses.
 		 */
-		sort_finds(fctx);
+		sort_finds(fctx, &fctx->finds);
+		sort_finds(fctx, &fctx->altfinds);
 		result = ISC_R_SUCCESS;
 	}
 
@@ -3152,6 +3217,8 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	fctx->spilled = ISC_FALSE;
 	fctx->nqueries = 0;
 	fctx->reason = NULL;
+	fctx->rand_buf = 0;
+	fctx->rand_bits = 0;
 
 	dns_name_init(&fctx->nsname, NULL);
 	fctx->nsfetch = NULL;
