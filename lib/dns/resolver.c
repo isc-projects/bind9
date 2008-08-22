@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.355.12.23 2008/08/06 14:17:44 each Exp $ */
+/* $Id: resolver.c,v 1.355.12.24 2008/08/22 05:02:02 marka Exp $ */
 
 /*! \file */
 
@@ -1570,7 +1570,8 @@ resquery_send(resquery_t *query) {
 		    fctx->timeouts >= MAX_EDNS0_TIMEOUTS) &&
 		   (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
 		query->options |= DNS_FETCHOPT_EDNS512;
-		fctx->reason = "reducing UDP packet size to 512";
+		fctx->reason = "reducing the advertised EDNS UDP packet "
+			       "size to 512 octets";
 	}
 
 	if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
