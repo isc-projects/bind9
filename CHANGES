@@ -1,3 +1,8 @@
+2424.	[port]		configure now probes for a working epoll
+			implementation.  Allow the use of kqueue,
+			epoll and /dev/poll to be selected at compile
+			time. [RT #18277]
+			
 2422.	[bug]		Handle the special return value of a empty node as
 			if it was a NXRRSET in the validator. [RT #18447]
 
