@@ -1,3 +1,8 @@
+2424.	[port]		configure now probes for a working epoll
+			implementation.  Allow the use of kqueue,
+			epoll and /dev/poll to be selected at compile
+			time. [RT #18277]
+			
 2423.   [security]      Randomize server selection on queries, so as to
                         make forgery a little more difficult.  Instead of
                         always preferring the server with the lowest RTT,
