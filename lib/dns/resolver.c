@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.378 2008/08/22 05:00:29 marka Exp $ */
+/* $Id: resolver.c,v 1.379 2008/08/22 23:47:17 tbox Exp $ */
 
 /*! \file */
 
@@ -2118,9 +2118,9 @@ random_bits(fetchctx_t *fctx, isc_uint32_t bits) {
 /*
  * Add some random jitter to a server's RTT value so that the
  * order of queries will be unpredictable.
- * 
+ *
  * RTT values of servers which have been tried are fuzzed by 128 ms.
- * Servers that haven't been tried yet have their RTT set to a random 
+ * Servers that haven't been tried yet have their RTT set to a random
  * value between 0 ms and 7 ms; they should get to go first, but in
  * unpredictable order.
  */
