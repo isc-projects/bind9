@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.307 2008/04/29 00:54:28 marka Exp $ */
+/* $Id: query.c,v 1.308 2008/08/26 06:09:18 marka Exp $ */
 
 /*! \file */
 
@@ -4608,6 +4608,13 @@ ns_query_start(ns_client_t *client) {
 			return;
 		}
 	}
+
+	/*
+	 * Turn on minimal response for DNSKEY queries.
+	 */
+	if (qtype == dns_rdatatype_dnskey)
+		client->query.attributes |= (NS_QUERYATTR_NOAUTHORITY |
+					     NS_QUERYATTR_NOADDITIONAL);
 
 	/*
 	 * If the client has requested that DNSSEC checking be disabled,

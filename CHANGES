@@ -1,3 +1,6 @@
+2427.	[func]		Treat DNSKEY queries as if "minimal-response yes;"
+			was set. [RT #18528]
+
 2426.	[bug]		libbind: inet_net_pton() can sometimes return the
 			wrong value if excessively large netmasks are
 			supplied. [RT #18512]
