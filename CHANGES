@@ -1,3 +1,6 @@
+2425.	[bug]		named didn't detect unavailable query source addresses
+			at load time. [RT #18536]
+
 2424.	[port]		configure now probes for a working epoll
 			implementation.  Allow the use of kqueue,
 			epoll and /dev/poll to be selected at compile
