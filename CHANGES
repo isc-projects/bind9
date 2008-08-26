@@ -18,8 +18,6 @@
 			Use caution: this option may not work for some
 			operating systems without rebuilding named.
 
-2420.   [placeholder]
-
 2417.	[bug]		Connecting UDP sockets for outgoing queries could
 			unexpectedly fail with an 'address already in use'
 			error. [RT #18411]
