@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.137.128.16 2008/08/15 17:46:55 jinmei Exp $ */
+/* $Id: dispatch.c,v 1.137.128.17 2008/08/26 02:05:56 jinmei Exp $ */
 
 /*! \file */
 
@@ -2654,6 +2654,23 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 				       0xffffU);
 		if (result != ISC_R_SUCCESS)
 			goto deallocate_dispatch;
+	} else {
+		isc_sockaddr_t sa_any;
+
+		/*
+		 * For dispatches using exclusive sockets with a specific
+		 * source address, we only check if the specified address is
+		 * available on the system.  Query sockets will be created later
+		 * on demand.
+		 */
+		isc_sockaddr_anyofpf(&sa_any, isc_sockaddr_pf(localaddr));
+		if (!isc_sockaddr_eqaddr(&sa_any, localaddr)) {
+			result = open_socket(sockmgr, localaddr, 0, &sock);
+			if (sock != NULL)
+				isc_socket_detach(&sock);
+			if (result != ISC_R_SUCCESS)
+				goto deallocate_dispatch;
+		}
 	}
 	disp->socktype = isc_sockettype_udp;
 	disp->socket = sock;
