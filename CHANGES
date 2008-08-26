@@ -1,3 +1,7 @@
+2426.	[bug]		libbind: inet_net_pton() can sometimes return the
+			wrong value if excessively large netmasks are
+			supplied. [RT #18512]
+
 2425.	[bug]		named didn't detect unavailable query source addresses
 			at load time. [RT #18536]
 
