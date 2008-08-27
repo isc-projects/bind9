@@ -1,3 +1,6 @@
+2428.	[bug]		dns_iptable_merge() mishandled merges of negative
+			tables. [RT #18409]
+
 2426.	[bug]		libbind: inet_net_pton() can sometimes return the
 			wrong value if excessively large netmasks are
 			supplied. [RT #18512]
