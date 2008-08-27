@@ -1,3 +1,6 @@
+2428.	[bug]		dns_iptable_merge() mishandled merges of negative
+			tables. [RT #18409]
+
 2427.	[func]		Treat DNSKEY queries as if "minimal-response yes;"
 			was set. [RT #18528]
 

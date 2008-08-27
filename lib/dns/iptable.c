@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: iptable.c,v 1.9 2008/01/21 20:38:54 each Exp $ */
+/* $Id: iptable.c,v 1.10 2008/08/27 04:44:18 marka Exp $ */
 
 #include <isc/mem.h>
 #include <isc/radix.h>
@@ -62,7 +62,7 @@ dns_iptable_addprefix(dns_iptable_t *tab, isc_netaddr_t *addr,
 {
 	isc_result_t result;
 	isc_prefix_t pfx;
-	isc_radix_node_t *node;
+	isc_radix_node_t *node = NULL;
 	int family;
 
 	INSIST(DNS_IPTABLE_VALID(tab));
@@ -100,6 +100,7 @@ dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, isc_boolean_t pos)
 	int max_node = 0;
 
 	RADIX_WALK (source->radix->head, node) {
+		new_node = NULL;
 		result = isc_radix_insert (tab->radix, &new_node, node, NULL);
 
 		if (result != ISC_R_SUCCESS)
@@ -117,14 +118,10 @@ dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, isc_boolean_t pos)
 			if (node->data[0] &&
 			    *(isc_boolean_t *) node->data[0] == ISC_TRUE)
 				new_node->data[0] = &dns_iptable_neg;
-			else
-				new_node->data[0] = node->data[0];
 
 			if (node->data[1] &&
 			    *(isc_boolean_t *) node->data[1] == ISC_TRUE)
 				new_node->data[1] = &dns_iptable_neg;
-			else
-				new_node->data[1] = node->data[0];
 		}
 
 		if (node->node_num[0] > max_node)
