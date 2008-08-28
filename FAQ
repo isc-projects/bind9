@@ -205,6 +205,8 @@ A: These indicate a malformed master zone. You can identify the exact
 Q: I get error messages like "named.conf:99: unexpected end of input"
    where 99 is the last line of named.conf.
 
+A: There are unbalanced quotes in named.conf.
+
 A: Some text editors (notepad and wordpad) fail to put a line title
    indication (e.g. CR/LF) on the last line of a text file. This can be
    fixed by "adding" a blank line to the end of the file. Named expects to
@@ -374,6 +376,15 @@ A: When reloading a zone named my have multiple copies of the zone in
    The new strategy also allows the master to recover from syntax and
    other errors in the master file as it still has an in-core copy of the
    old contents.
+
+Q: I want to use IPv6 locally but I don't have a external IPv6 connection.
+   External lookups are slow.
+
+A: You can use server clauses to stop named making external lookups over
+   IPv6.
+
+   server fd81:ec6c:bd62::/48 { bogus no; }; // site ULA prefix
+   server ::/0 { bogus yes; };
 
 3. Operations Questions
 

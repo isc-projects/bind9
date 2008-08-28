@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: FAQ.xml,v 1.4.6.23 2008/07/17 01:21:35 tbox Exp $ -->
+<!-- $Id: FAQ.xml,v 1.4.6.24 2008/08/28 01:21:46 tbox Exp $ -->
 
 <article class="faq">
   <title>Frequently Asked Questions about BIND 9</title>
@@ -393,6 +393,11 @@ named-checkzone example.com tmp</programlisting>
       </question>
       <answer>
 	<para>
+	  There are unbalanced quotes in named.conf.
+	</para>
+      </answer>
+      <answer>
+	<para>
 	  Some text editors (notepad and wordpad) fail to put a line
 	  title indication (e.g. CR/LF) on the last line of a
 	  text file.  This can be fixed by "adding" a blank line to
@@ -659,6 +664,25 @@ zone "list.dsbl.org" {
 	  syntax and other errors in the master file as it still
 	  has an in-core copy of the old contents.
 	</para>
+      </answer>
+    </qandaentry>
+
+    <qandaentry>
+      <question>
+	<para>
+	  I want to use IPv6 locally but I don't have a external IPv6
+	  connection.  External lookups are slow.
+	</para>
+      </question>
+      <answer>
+	<para>
+	  You can use server clauses to stop named making external lookups
+	  over IPv6.
+	</para>
+        <programlisting>
+server fd81:ec6c:bd62::/48 { bogus no; }; // site ULA prefix
+server ::/0 { bogus yes; };
+</programlisting>
       </answer>
     </qandaentry>
     
