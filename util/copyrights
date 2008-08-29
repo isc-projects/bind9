@@ -166,7 +166,7 @@
 ./bin/named/zoneconf.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./bin/nsupdate/.cvsignore			X	2000,2001
 ./bin/nsupdate/Makefile.in			MAKE	2000,2001,2002,2004,2006,2007
-./bin/nsupdate/nsupdate.8			MAN	DOCBOOK
+./bin/nsupdate/nsupdate.1			MAN	DOCBOOK
 ./bin/nsupdate/nsupdate.c			C	2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./bin/nsupdate/nsupdate.docbook			SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./bin/nsupdate/nsupdate.html			HTML	DOCBOOK
