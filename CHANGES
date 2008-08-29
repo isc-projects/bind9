@@ -1,3 +1,7 @@
+2430.	[bug]		win32: isc_interval_set() could round down to
+			zero if the input was less than NS_INTERVAL
+			nanoseconds.  Round up instead. [RT #18549]
+
 2429.	[doc]		nsupdate should be in section 1 of the man pages.
 			[RT #18283]
 
