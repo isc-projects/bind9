@@ -18,14 +18,14 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: nsupdate.docbook,v 1.18.18.10 2007/08/28 07:20:01 tbox Exp $ -->
+<!-- $Id: nsupdate.docbook,v 1.18.18.11 2008/08/29 03:22:04 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>Jun 30, 2000</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>nsupdate</refentrytitle>
-    <manvolnum>8</manvolnum>
+    <manvolnum>1</manvolnum>
     <refmiscinfo>BIND9</refmiscinfo>
   </refmeta>
   <refnamediv>

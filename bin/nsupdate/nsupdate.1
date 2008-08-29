@@ -1,4 +1,4 @@
-.\" Copyright (C) 2004-2008 Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (C) 2004-2007 Internet Systems Consortium, Inc. ("ISC")
 .\" Copyright (C) 2000-2003 Internet Software Consortium.
 .\" 
 .\" Permission to use, copy, modify, and distribute this software for any
@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: nsupdate.1,v 1.1 2008/08/29 03:16:14 marka Exp $
+.\" $Id: nsupdate.1,v 1.1.4.1 2008/08/29 03:22:04 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -189,7 +189,7 @@
 nsupdate \- Dynamic DNS update utility
 .SH "Synopsis"
 .HP 9
-\fBnsupdate\fR [\fB\-d\fR] [[\fB\-y\ \fR\fB\fI[hmac:]\fR\fIkeyname:secret\fR\fR] | [\fB\-k\ \fR\fB\fIkeyfile\fR\fR]] [\fB\-t\ \fR\fB\fItimeout\fR\fR] [\fB\-u\ \fR\fB\fIudptimeout\fR\fR] [\fB\-r\ \fR\fB\fIudpretries\fR\fR] [\fB\-R\ \fR\fB\fIrandomdev\fR\fR] [\fB\-v\fR] [filename]
+\fBnsupdate\fR [\fB\-d\fR] [[\fB\-y\ \fR\fB\fI[hmac:]\fR\fIkeyname:secret\fR\fR] | [\fB\-k\ \fR\fB\fIkeyfile\fR\fR]] [\fB\-t\ \fR\fB\fItimeout\fR\fR] [\fB\-u\ \fR\fB\fIudptimeout\fR\fR] [\fB\-r\ \fR\fB\fIudpretries\fR\fR] [\fB\-v\fR] [filename]
 .SH "DESCRIPTION"
 .PP
 \fBnsupdate\fR
@@ -271,16 +271,6 @@ option sets the UDP retry interval\&. The default is 3 seconds\&. If zero, the i
 The
 \fB\-r\fR
 option sets the number of UDP retries\&. The default is 3\&. If zero, only one update request will be made\&.
-.PP
-The
-\fB\-R \fR\fB\fIrandomdev\fR\fR
-option specifies a source of randomness\&. If the operating system does not provide a
-\FC/dev/random\F[]
-or equivalent device, the default source of randomness is keyboard input\&.
-\FCrandomdev\F[]
-specifies the name of a character device or file containing random data to be used instead of the default\&. The special value
-\FCkeyboard\F[]
-indicates that keyboard input should be used\&. This option may be specified multiple times\&.
 .SH "INPUT FORMAT"
 .PP
 \fBnsupdate\fR
@@ -541,7 +531,7 @@ base\-64 encoding of HMAC\-MD5 key created by
 The TSIG key is redundantly stored in two separate files\&. This is a consequence of nsupdate using the DST library for its cryptographic operations, and may change in future releases\&.
 .SH "Copyright"
 .br
-Copyright \(co 2004-2008 Internet Systems Consortium, Inc. ("ISC")
+Copyright \(co 2004-2007 Internet Systems Consortium, Inc. ("ISC")
 .br
 Copyright \(co 2000-2003 Internet Software Consortium.
 .br
