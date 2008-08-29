@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2006, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2006-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.43.128.1 2008/08/29 04:06:22 marka Exp $ */
+/* $Id: time.c,v 1.43.128.2 2008/08/29 23:46:52 tbox Exp $ */
 
 #include <config.h>
 
@@ -235,9 +235,9 @@ isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 	SYSTEMTIME st;
 	char DateBuf[50];
 	char TimeBuf[50];
-	
+
 	static const char badtime[] = "99-Bad-9999 99:99:99.999";
-	
+
 	REQUIRE(len > 0);
 	if (FileTimeToLocalFileTime(&t->absolute, &localft) &&
 	    FileTimeToSystemTime(&localft, &st)) {
@@ -245,10 +245,10 @@ isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 			      DateBuf, 50);
 		GetTimeFormat(LOCALE_USER_DEFAULT, TIME_NOTIMEMARKER|
 			      TIME_FORCE24HOURFORMAT, &st, NULL, TimeBuf, 50);
-		
+
 		snprintf(buf, len, "%s %s.%03u", DateBuf, TimeBuf,
 			 st.wMilliseconds);
-		
+
 	} else
 		snprintf(buf, len, badtime);
 }
@@ -258,7 +258,7 @@ isc_time_formathttptimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 	SYSTEMTIME st;
 	char DateBuf[50];
 	char TimeBuf[50];
-	
+
 	REQUIRE(len > 0);
 	if (FileTimeToSystemTime(&t->absolute, &st)) {
 		GetDateFormat(LOCALE_USER_DEFAULT, 0, &st, "ddd',', dd-MMM-yyyy",
@@ -266,7 +266,7 @@ isc_time_formathttptimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 		GetTimeFormat(LOCALE_USER_DEFAULT,
 			      TIME_NOTIMEMARKER | TIME_FORCE24HOURFORMAT,
 			      &st, "hh':'mm':'ss", TimeBuf, 50);
-		
+
 		snprintf(buf, len, "%s %s GMT", DateBuf, TimeBuf);
 	} else {
 		buf[0] = 0;
