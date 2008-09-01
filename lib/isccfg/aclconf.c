@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.c,v 1.17.2.3 2008/07/19 00:09:17 each Exp $ */
+/* $Id: aclconf.c,v 1.17.2.4 2008/09/01 05:40:22 marka Exp $ */
 
 #include <config.h>
 
@@ -175,7 +175,6 @@ cfg_acl_fromconfig(const cfg_obj_t *caml,
 	const cfg_listelt_t *elt;
 	dns_iptable_t *iptab;
 	int new_nest_level = 0;
-	int nelem;
 
 	if (nest_level != 0)
 		new_nest_level = nest_level - 1;
@@ -206,8 +205,6 @@ cfg_acl_fromconfig(const cfg_obj_t *caml,
 		if (result != ISC_R_SUCCESS)
 			return (result);
 	}
-
-	nelem = cfg_list_length(caml, ISC_FALSE);
 
 	de = dacl->elements;
 	for (elt = cfg_list_first(caml);
@@ -353,16 +350,6 @@ nested_acl:
 							   &inneracl);
 				if (result != ISC_R_SUCCESS)
 					goto cleanup;
-
-				/*
-				 * There was only one element and it was
-				 * a nested named ACL; attach it to the
-				 * target and let's go home.
-				 */
-				if (nelem == 1) {
-					dns_acl_attach(inneracl, target);
-					goto cleanup;
-				}
 
 				goto nested_acl;
 			}
