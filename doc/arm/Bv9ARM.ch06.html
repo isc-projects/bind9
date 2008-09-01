@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.168.18.17 2008/06/24 01:42:14 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.168.18.18 2008/09/01 02:40:04 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -4870,7 +4870,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 <p>
             Zones defined within a <span><strong class="command">view</strong></span>
             statement will
-            be only be accessible to clients that match the <span><strong class="command">view</strong></span>.
+            only be accessible to clients that match the <span><strong class="command">view</strong></span>.
             By defining a zone of the same name in multiple views, different
             zone data can be given to different clients, for example,
             "internal"
@@ -8387,9 +8387,6 @@ $GENERATE 1-127 $ CNAME $.0</pre>
 <td>
                       <p>
                         Mismatch responses received.
-                        When shown via an HTTP statistics channel,
-                        this counter is shown in the
-                        Name Server Statistics section for brevity.
                       </p>
                     </td>
 </tr>
