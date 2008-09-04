@@ -1,3 +1,5 @@
+2433.	[tuning]	Set initial timeout to 800ms.
+
 2430.	[bug]		win32: isc_interval_set() could round down to
 			zero if the input was less than NS_INTERVAL
 			nanoseconds.  Round up instead. [RT #18549]
@@ -66,6 +68,10 @@
 
 2399.	[bug]		Abort timeout queries to reduce the number of open
 			UDP sockets. [RT #18367]
+
+	[bug]           Improve file descriptor management.  New,
+			temporary, named.conf option reserved-sockets,
+			default 512. [RT #18344]
 
 2396.	[bug]		Don't set SO_REUSEADDR for randomized ports.
 			[RT #18336]

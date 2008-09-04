@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.77 2008/07/24 04:59:00 jinmei Exp $ */
+/* $Id: resolver.c,v 1.284.18.78 2008/09/04 04:56:52 marka Exp $ */
 
 /*! \file */
 
@@ -1049,9 +1049,9 @@ fctx_setretryinterval(fetchctx_t *fctx, unsigned int rtt) {
 	 * list, and then we do exponential back-off.
 	 */
 	if (fctx->restarts < 3)
-		us = 500000;
+		us = 800000;
 	else
-		us = (500000 << (fctx->restarts - 2));
+		us = (800000 << (fctx->restarts - 2));
 
 	/*
 	 * Double the round-trip time.
