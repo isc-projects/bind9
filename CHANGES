@@ -1,3 +1,5 @@
+2433.	[tuning]	Set initial timeout to 800ms.
+
 2432.   [placeholder]
 
 2431.	[bug]		Acl processing could leak memory. [RT #18323]
@@ -107,6 +109,10 @@
 2398.	[placeholder]
 
 2397.	[bug]		gssapi_functions had too many elements. [RT #18355]
+
+	[bug]           Improve file descriptor management.  New,
+			temporary, named.conf option reserved-sockets,
+			default 512. [RT #18344]
 
 2396.	[bug]		Don't set SO_REUSEADDR for randomized ports.
 			[RT #18336]
