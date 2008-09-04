@@ -1,3 +1,5 @@
+2433.	[tuning]	Set initial timeout to 800ms.
+
 2431.	[bug]		Acl processing could leak memory. [RT #18323]
 
 2430.	[bug]		win32: isc_interval_set() could round down to
@@ -96,6 +98,10 @@ xxxx.	[bug]		Connecting UDP sockets for outgoing queries could
 			[RT #18297]
 
 2397.	[bug]		gssapi_functions bad declaration. [RT #18355]
+
+	[bug]           Improve file descriptor management.  New,
+			temporary, named.conf option reserved-sockets,
+			default 512. [RT #18344]
 
 2396.	[bug]		Don't set SO_REUSEADDR for randomized ports.
 			[RT #18336]
