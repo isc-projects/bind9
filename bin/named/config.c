@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.47.18.34 2008/07/20 23:46:12 tbox Exp $ */
+/* $Id: config.c,v 1.47.18.35 2008/09/04 08:03:07 marka Exp $ */
 
 /*! \file */
 
@@ -99,6 +99,7 @@ options {\n\
 	use-ixfr true;\n\
 	edns-udp-size 4096;\n\
 	max-udp-size 4096;\n\
+	reserved-sockets 512;\n\
 \n\
 	/* view */\n\
 	allow-notify {none;};\n\

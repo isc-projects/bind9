@@ -69,7 +69,7 @@
 2399.	[bug]		Abort timeout queries to reduce the number of open
 			UDP sockets. [RT #18367]
 
-	[bug]           Improve file descriptor management.  New,
+2398.	[bug]           Improve file descriptor management.  New,
 			temporary, named.conf option reserved-sockets,
 			default 512. [RT #18344]
 
