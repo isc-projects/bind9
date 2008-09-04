@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.11.2.4.8.38 2008/07/20 23:45:41 tbox Exp $ */
+/* $Id: config.c,v 1.11.2.4.8.39 2008/09/04 08:11:24 marka Exp $ */
 
 #include <config.h>
 
@@ -94,6 +94,7 @@ options {\n\
 	use-id-pool true;\n\
 	use-ixfr true;\n\
 	edns-udp-size 4096;\n\
+	reserved-sockets 512;\n\
 \n\
 	/* view */\n\
 	allow-notify {none;};\n\

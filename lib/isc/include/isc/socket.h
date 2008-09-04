@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.54.12.14 2008/08/21 00:13:49 jinmei Exp $ */
+/* $Id: socket.h,v 1.54.12.15 2008/09/04 08:11:24 marka Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -772,6 +772,12 @@ isc_socket_ipv6only(isc_socket_t *sock, isc_boolean_t yes);
  *
  * Requires:
  *	'sock' is a valid socket.
+ */
+
+void
+isc__socketmgr_setreserved(isc_socketmgr_t *mgr, isc_uint32_t);
+/*%<
+ * Temporary.  For use by named only.
  */
 
 ISC_LANG_ENDDECLS

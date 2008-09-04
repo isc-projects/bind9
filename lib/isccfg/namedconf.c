@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.21.44.39 2008/06/25 23:45:37 tbox Exp $ */
+/* $Id: namedconf.c,v 1.21.44.40 2008/09/04 08:11:25 marka Exp $ */
 
 #include <config.h>
 
@@ -653,6 +653,7 @@ options_clauses[] = {
 	{ "recursing-file", &cfg_type_qstring, 0 },
 	{ "random-device", &cfg_type_qstring, 0 },
 	{ "recursive-clients", &cfg_type_uint32, 0 },
+	{ "reserved-sockets", &cfg_type_uint32, 0 },
 	{ "serial-queries", &cfg_type_uint32, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "serial-query-rate", &cfg_type_uint32, 0 },
 	{ "server-id", &cfg_type_serverid, 0 },

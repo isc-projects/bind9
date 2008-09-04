@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.5.2.13.2.37 2008/08/21 00:13:49 jinmei Exp $ */
+/* $Id: socket.c,v 1.5.2.13.2.38 2008/09/04 08:11:25 marka Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -3445,6 +3445,13 @@ isc_socket_filter(isc_socket_t *sock, const char *filter) {
 	REQUIRE(VALID_SOCKET(sock));
 	return (ISC_R_NOTIMPLEMENTED);
 }
+
+void
+isc__socketmgr_setreserved(isc_socketmgr_t *manager, isc_uint32_t reserved) {
+	UNUSED(manager);
+	UNUSED(reserved);
+}
+
 
 /*
  * Set up to listen on a given socket.  We do this by creating an internal

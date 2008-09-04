@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.93 2008/07/27 04:46:38 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.94 2008/09/04 08:11:24 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2907,6 +2907,7 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> max-transfer-idle-in <replaceable>number</replaceable>; </optional>
     <optional> max-transfer-idle-out <replaceable>number</replaceable>; </optional>
     <optional> tcp-clients <replaceable>number</replaceable>; </optional>
+    <optional> reserved-sockets <replaceable>number</replaceable>; </optional>
     <optional> recursive-clients <replaceable>number</replaceable>; </optional>
     <optional> serial-query-rate <replaceable>number</replaceable>; </optional>
     <optional> serial-queries <replaceable>number</replaceable>; </optional>
@@ -4204,6 +4205,25 @@ on hosts with limited memory.
 connections that the server will accept.
 The default is <literal>100</literal>.</para>
 </listitem></varlistentry>
+
+	      <varlistentry>
+		<term><command>reserved-sockets</command></term>
+		<listitem>
+		  <para>
+		  The number of file descriptors reserved for TCP, stdio,
+		  etc.  This needs to be big enough to cover the number of
+		  interfaces named listens on, tcp-clients as well as
+		  to provide room for outgoing TCP queries and incoming zone
+		  transfers.  The default is <literal>512</literal>.
+		  The minimum value is <literal>128</literal> and the
+		  maximum value is <literal>128</literal> less than
+		  maxsockets (-S).  This option may be removed in the future.
+		  </para>
+		  <para>
+		  This option has little effect on Windows.
+		  </para>
+		</listitem>
+	      </varlistentry>
 
 <varlistentry><term><command>max-cache-size</command></term>
 <listitem><para>The maximum amount of memory to use for the
