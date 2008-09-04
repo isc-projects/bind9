@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.72.128.11 2008/08/21 00:01:02 jinmei Exp $ */
+/* $Id: socket.h,v 1.72.128.12 2008/09/04 07:58:07 marka Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -902,6 +902,12 @@ const char *isc_socket_getname(isc_socket_t *socket);
 void *isc_socket_gettag(isc_socket_t *socket);
 /*%<
  * Get the tag associated with a socket, if any.
+ */
+
+void
+isc__socketmgr_setreserved(isc_socketmgr_t *mgr, isc_uint32_t);
+/*%<
+ * Temporary.  For use by named only.
  */
 
 #ifdef HAVE_LIBXML2

@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.15 2008/07/27 04:42:14 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.16 2008/09/04 07:58:06 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4541,6 +4541,7 @@ category notify { null; };
     <optional> max-transfer-idle-in <replaceable>number</replaceable>; </optional>
     <optional> max-transfer-idle-out <replaceable>number</replaceable>; </optional>
     <optional> tcp-clients <replaceable>number</replaceable>; </optional>
+    <optional> reserved-sockets <replaceable>number</replaceable>; </optional>
     <optional> recursive-clients <replaceable>number</replaceable>; </optional>
     <optional> serial-query-rate <replaceable>number</replaceable>; </optional>
     <optional> serial-queries <replaceable>number</replaceable>; </optional>
@@ -6938,6 +6939,25 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   The maximum number of simultaneous client TCP
                   connections that the server will accept.
                   The default is <literal>100</literal>.
+                </para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term><command>reserved-sockets</command></term>
+              <listitem>
+                <para>
+		  The number of file descriptors reserved for TCP, stdio,
+		  etc.  This needs to be big enough to cover the number of
+		  interfaces named listens on, tcp-clients as well as
+		  to provide room for outgoing TCP queries and incoming zone
+		  transfers.  The default is <literal>512</literal>.
+		  The minimum value is <literal>128</literal> and the
+		  maximum value is <literal>128</literal> less than
+		  maxsockets (-S).  This option may be removed in the future.
+                </para>
+                <para>
+		  This option has little effect on Windows.
                 </para>
               </listitem>
             </varlistentry>
