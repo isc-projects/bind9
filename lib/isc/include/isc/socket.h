@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.54.12.7.4.4 2008/07/23 23:16:27 marka Exp $ */
+/* $Id: socket.h,v 1.54.12.7.4.4.4.1 2008/09/04 16:42:46 each Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -103,6 +103,7 @@ struct isc_socketevent {
 	isc_time_t		timestamp;	/* timestamp of packet recv */
 	struct in6_pktinfo	pktinfo;	/* ipv6 pktinfo */
 	isc_uint32_t		attributes;	/* see below */
+	isc_eventdestructor_t	destroy;	/* original destructor */
 };
 
 typedef struct isc_socket_newconnev isc_socket_newconnev_t;

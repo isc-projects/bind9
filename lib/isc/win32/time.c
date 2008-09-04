@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.24.2.3.10.4 2004/03/11 05:58:42 marka Exp $ */
+/* $Id: time.c,v 1.24.2.3.10.4.40.1 2008/09/04 16:42:46 each Exp $ */
 
 #include <config.h>
 
@@ -65,7 +65,7 @@ isc_interval_set(isc_interval_t *i, unsigned int seconds,
 	REQUIRE(nanoseconds < NS_PER_S);
 
 	i->interval = (LONGLONG)seconds * INTERVALS_PER_S
-		+ nanoseconds / NS_INTERVAL;
+		+ (nanoseconds + NS_INTERVAL - 1) / NS_INTERVAL;
 }
 
 isc_boolean_t

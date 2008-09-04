@@ -1,15 +1,23 @@
-	--- 9.3.5-P2-W1 released ---
+	--- 9.3.5-P2 released ---
 
-2420.	[bug]		Windows socket handling cleanup.  Let the IO
+2432.	[bug]		More Windows socket handling improvements.  Stop
+			using I/O events and use IO Completion Ports
+			throughout.  Rewrite the receive path logic to make
+			it easier to support multiple simultaneous
+			requestrs in the future.  Add stricter consistency
+			checking as a compile-time option (define
+			ISC_SOCKET_CONSISTENCY_CHECKS; defaults to off).
+
+2420.	[bug]		Windows socket handling cleanup.  Let the io
 			completion event send out cancelled read/write
-			done events, which keeps us from writing to memory
-			we no longer own.  Add debugging socket_log()
-                        function.  Rework TCP socket handling to avoid
-                        leaking sockets.
+			done events, which keeps us from writing to memeory
+			we no longer have ownership of.  Add debugging
+			socket_log() function.  Rework TCP socket handling
+			to not leak sockets.
 
 	--- 9.3.5-P2 released ---
 
-2406.   [bug]           Some operating systems have FD_SETSIZE set to a
+2406.   [bug]		Some operating systems have FD_SETSIZE set to a
 			low value by default, which can cause resource
 			exhaustion when many simultaneous connections are
 			open.  Linux in particular makes it difficult to
@@ -31,7 +39,7 @@
 2399.	[bug]		Abort timeout queries to reduce the number of open
 			UDP sockets. [RT #18367]
 
-2398.	[bug]           Improve file descriptor management.  New,
+2398.	[bug]		Improve file descriptor management.  New,
 			temporary, named.conf option reserved-sockets,
 			default 512. [RT #18344]
 
@@ -50,7 +58,7 @@
 
 	--- 9.3.5-P1 released ---
 
-2375.   [security]      Fully randomize UDP query ports to improve
+2375.   [security]	Fully randomize UDP query ports to improve
 			forgery resilience. [RT #17949]
 
 	--- 9.3.5 released ---
