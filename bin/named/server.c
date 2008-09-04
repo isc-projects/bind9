@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.67 2008/09/04 08:03:07 marka Exp $ */
+/* $Id: server.c,v 1.419.18.68 2008/09/04 23:46:08 tbox Exp $ */
 
 /*! \file */
 
@@ -2875,7 +2875,7 @@ load_configuration(const char *filename, ns_server_t *server,
 			      "applying 'reserved-sockets' and 'maxsockets'");
 	}
 	isc__socketmgr_setreserved(ns_g_socketmgr, reserved);
-	
+
 	/*
 	 * Configure various server options.
 	 */
