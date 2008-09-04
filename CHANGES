@@ -5,8 +5,8 @@
 			throughout.  Rewrite the receive path logic to make
 			it easier to support multiple simultaneous
 			requestrs in the future.  Add stricter consistency
-                        checking as a compile-time option (define
-                        ISC_SOCKET_CONSISTENCY_CHECKS; defaults to off).
+			checking as a compile-time option (define
+			ISC_SOCKET_CONSISTENCY_CHECKS; defaults to off).
 
 2420.	[bug]		Windows socket handling cleanup.  Let the io
 			completion event send out cancelled read/write
