@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.72.226.6 2008/07/23 23:48:45 tbox Exp $ */
+/* $Id: socket.h,v 1.72.226.6.6.1 2008/09/04 06:23:15 marka Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -167,6 +167,8 @@ typedef enum {
 /*@{*/
 /*!
  * What I/O events to cancel in isc_socket_cancel() calls.
+ * ISC_SOCKCANCEL_ALL *must* contain all the possible bits,
+ * and only those bits.
  */
 #define ISC_SOCKCANCEL_RECV	0x00000001	/*%< cancel recv */
 #define ISC_SOCKCANCEL_SEND	0x00000002	/*%< cancel send */

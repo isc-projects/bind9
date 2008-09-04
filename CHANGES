@@ -1,3 +1,20 @@
+	--- 9.5.0-P2-W1 released ---
+
+2432.	[bug]		More Windows socket handling improvements.  Stop
+			using I/O events and use IO Completion Ports
+			throughout.  Rewrite the receive path logic to make
+			it easier to support multiple simultaneous
+			requestrs in the future.  Add stricter consistency
+                        checking as a compile-time option (define
+                        ISC_SOCKET_CONSISTENCY_CHECKS; defaults to off).
+
+2420.	[bug]		Windows socket handling cleanup.  Let the io
+			completion event send out cancelled read/write
+			done events, which keeps us from writing to memeory
+			we no longer have ownership of.  Add debugging
+			socket_log() function.  Rework TCP socket handling
+			to not leak sockets.
+
 	--- 9.5.0-P2 released ---
 
 2406.   [bug]           Some operating systems have FD_SETSIZE set to a

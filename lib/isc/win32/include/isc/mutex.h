@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mutex.h,v 1.19 2007/06/19 23:47:20 tbox Exp $ */
+/* $Id: mutex.h,v 1.19.274.1 2008/09/04 06:23:15 marka Exp $ */
 
 #ifndef ISC_MUTEX_H
 #define ISC_MUTEX_H 1
@@ -27,10 +27,14 @@
 
 typedef CRITICAL_SECTION isc_mutex_t;
 
-/* This definition is here since WINBASE.H omits it for some reason */
-
+/* 
+ * This definition is here since somve versions of WINBASE.H
+ * omits it for some reason
+ */
+#if(_WIN32_WINNT < 0x0400)
 WINBASEAPI BOOL WINAPI
 TryEnterCriticalSection(LPCRITICAL_SECTION lpCriticalSection);
+#endif /* _WIN32_WINNT < 0x0400 */
 
 #define isc_mutex_init(mp) \
 	(InitializeCriticalSection((mp)), ISC_R_SUCCESS)
@@ -46,6 +50,6 @@ TryEnterCriticalSection(LPCRITICAL_SECTION lpCriticalSection);
 /*
  * This is a placeholder for now since we are not keeping any mutex stats
  */
-#define isc_mutex_stats(fp)
+#define isc_mutex_stats(fp) do {} while (0)
 
 #endif /* ISC_MUTEX_H */
