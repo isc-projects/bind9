@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.301 2008/08/20 23:57:59 jinmei Exp $ */
+/* $Id: socket.c,v 1.302 2008/09/04 05:56:43 marka Exp $ */
 
 /*! \file */
 
@@ -349,6 +349,7 @@ struct isc_socketmgr {
 	fd_set			*write_fds_copy;
 	int			maxfd;
 #endif	/* USE_SELECT */
+	int			reserved;	/* unlocked */
 #ifdef ISC_PLATFORM_USETHREADS
 	isc_thread_t		watcher;
 	isc_condition_t		shutdown_ok;
@@ -1856,9 +1857,18 @@ opensocket(isc_socketmgr_t *manager, isc_socket_t *sock) {
 
 #ifdef F_DUPFD
 	/*
-	 * Leave a space for stdio to work in.
+	 * Leave a space for stdio and TCP to work in.
 	 */
-	if (sock->fd >= 0 && sock->fd < 20) {
+	if (manager->reserved != 0 && sock->type == isc_sockettype_udp &&
+	    sock->fd >= 0 && sock->fd < manager->reserved) {
+		int new, tmp;
+		new = fcntl(sock->fd, F_DUPFD, manager->reserved);
+		tmp = errno;
+		(void)close(sock->fd);
+		errno = tmp;
+		sock->fd = new;
+		err = "isc_socket_create: fcntl/reserved";
+	} else if (sock->fd >= 0 && sock->fd < 20) {
 		int new, tmp;
 		new = fcntl(sock->fd, F_DUPFD, 20);
 		tmp = errno;
@@ -3257,6 +3267,14 @@ watcher(void *uap) {
 }
 #endif /* ISC_PLATFORM_USETHREADS */
 
+void
+isc__socketmgr_setreserved(isc_socketmgr_t *manager, isc_uint32_t reserved) {
+
+	REQUIRE(VALID_MANAGER(manager));
+
+	manager->reserved = reserved;
+}
+
 /*
  * Create a new socket manager.
  */
@@ -3511,6 +3529,7 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 	/* zero-clear so that necessary cleanup on failure will be easy */
 	memset(manager, 0, sizeof(*manager));
 	manager->maxsocks = maxsocks;
+	manager->reserved = 0;
 	manager->fds = isc_mem_get(mctx,
 				   manager->maxsocks * sizeof(isc_socket_t *));
 	if (manager->fds == NULL) {
@@ -3587,7 +3606,6 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	memset(manager->fdstate, 0, manager->maxsocks * sizeof(int));
-
 #ifdef ISC_PLATFORM_USETHREADS
 	/*
 	 * Start up the select/poll thread.

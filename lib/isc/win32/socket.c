@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.66 2008/08/20 23:57:59 jinmei Exp $ */
+/* $Id: socket.c,v 1.67 2008/09/04 05:56:43 marka Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -4005,4 +4005,10 @@ isc_socket_getname(isc_socket_t *socket) {
 void *
 isc_socket_gettag(isc_socket_t *socket) {
 	return (socket->tag);
+}
+
+void
+isc__socketmgr_setreserved(isc_socketmgr_t *manager, isc_uint32_t reserved) {
+	UNUSED(manager);
+	UNUSED(reserved);
 }

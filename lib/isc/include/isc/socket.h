@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.83 2008/08/20 23:57:59 jinmei Exp $ */
+/* $Id: socket.h,v 1.84 2008/09/04 05:56:43 marka Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -910,6 +910,12 @@ void
 isc_socketmgr_renderxml(isc_socketmgr_t *mgr, xmlTextWriterPtr writer);
 /*%<
  * Render internal statistics and other state into the XML document.
+ */
+
+void
+isc__socketmgr_setreserved(isc_socketmgr_t *mgr, isc_uint32_t);
+/*%<
+ * Temporary.  For use by named only.
  */
 
 #endif /* HAVE_LIBXML2 */

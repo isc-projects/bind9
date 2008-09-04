@@ -106,13 +106,11 @@
 
 2399.	[placeholder]
 
-2398.	[placeholder]
-
-2397.	[bug]		gssapi_functions had too many elements. [RT #18355]
-
-	[bug]           Improve file descriptor management.  New,
+2398.	[bug]           Improve file descriptor management.  New,
 			temporary, named.conf option reserved-sockets,
 			default 512. [RT #18344]
+
+2397.	[bug]		gssapi_functions had too many elements. [RT #18355]
 
 2396.	[bug]		Don't set SO_REUSEADDR for randomized ports.
 			[RT #18336]
