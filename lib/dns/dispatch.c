@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.101.2.6.2.35 2008/08/26 02:08:04 jinmei Exp $ */
+/* $Id: dispatch.c,v 1.101.2.6.2.36 2008/09/04 00:25:40 jinmei Exp $ */
 
 #include <config.h>
 
@@ -286,8 +286,7 @@ static isc_result_t get_udpsocket(dns_dispatchmgr_t *mgr,
 				  dns_dispatch_t *disp,
 				  isc_socketmgr_t *sockmgr,
 				  isc_sockaddr_t *localaddr,
-				  isc_socket_t **sockp,
-				  unsigned int maxtry);
+				  isc_socket_t **sockp);
 static isc_result_t dispatch_createudp(dns_dispatchmgr_t *mgr,
 				       isc_socketmgr_t *sockmgr,
 				       isc_taskmgr_t *taskmgr,
@@ -2513,7 +2512,7 @@ dns_dispatch_getudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 static isc_result_t
 get_udpsocket(dns_dispatchmgr_t *mgr, dns_dispatch_t *disp,
 	      isc_socketmgr_t *sockmgr, isc_sockaddr_t *localaddr,
-	      isc_socket_t **sockp, unsigned int maxtry)
+	      isc_socket_t **sockp)
 {
 	unsigned int i, j;
 	isc_socket_t *held[DNS_DISPATCH_HELD];
@@ -2571,7 +2570,7 @@ get_udpsocket(dns_dispatchmgr_t *mgr, dns_dispatch_t *disp,
 	memset(held, 0, sizeof(held));
 	i = 0;
 
-	for (j = 0; j < maxtry; j++) {
+	for (j = 0; j < 0xffffU; j++) {
 		result = open_socket(sockmgr, localaddr, 0, &sock);
 		if (result != ISC_R_SUCCESS)
 			goto end;
@@ -2586,7 +2585,7 @@ get_udpsocket(dns_dispatchmgr_t *mgr, dns_dispatch_t *disp,
 		if (i == DNS_DISPATCH_HELD)
 			i = 0;
 	}
-	if (j == maxtry) {
+	if (j == 0xffffU) {
 		mgr_log(mgr, ISC_LOG_ERROR,
 			"avoid-v%s-udp-ports: unable to allocate "
 			"an available port",
@@ -2627,8 +2626,7 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 		return (result);
 
 	if ((attributes & DNS_DISPATCHATTR_EXCLUSIVE) == 0) {
-		result = get_udpsocket(mgr, disp, sockmgr, localaddr, &sock,
-				       0xffffU);
+		result = get_udpsocket(mgr, disp, sockmgr, localaddr, &sock);
 		if (result != ISC_R_SUCCESS)
 			goto deallocate_dispatch;
 	} else {
