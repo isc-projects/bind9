@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.514 2008/09/04 05:56:42 marka Exp $ */
+/* $Id: server.c,v 1.515 2008/09/04 07:45:15 marka Exp $ */
 
 /*! \file */
 
@@ -31,12 +31,12 @@
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/httpd.h>
-#include <isc/socket.h>
 #include <isc/lex.h>
 #include <isc/parseint.h>
 #include <isc/portset.h>
 #include <isc/print.h>
 #include <isc/resource.h>
+#include <isc/socket.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/task.h>
