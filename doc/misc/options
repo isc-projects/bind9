@@ -158,6 +158,7 @@ options {
         recursion <boolean>;
         recursive-clients <integer>;
         request-ixfr <boolean>;
+        reserved-sockets <integer>;
         rfc2308-type1 <boolean>; // not yet implemented
         root-delegation-only [ exclude { <quoted_string>; ... } ];
         rrset-order { [ class <string> ] [ type <string> ] [ name
