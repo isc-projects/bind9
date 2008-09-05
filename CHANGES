@@ -1,5 +1,7 @@
 	--- 9.5.0-P2-W1 released ---
 
+2435.	[bug]		Fixed an ACL memory leak affecting win32.
+
 2434.	[bug]		Fixed a minor error-reporting bug in
 			lib/isc/win32/socket.c.
 

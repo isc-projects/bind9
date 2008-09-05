@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: iptable.c,v 1.5.46.3 2008/01/21 21:02:24 each Exp $ */
+/* $Id: iptable.c,v 1.5.46.3.30.1 2008/09/05 21:09:56 each Exp $ */
 
 #include <isc/mem.h>
 #include <isc/radix.h>
@@ -75,8 +75,10 @@ dns_iptable_addprefix(dns_iptable_t *tab, isc_netaddr_t *addr,
 
 	result = isc_radix_insert(tab->radix, &node, NULL, &pfx);
 
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
+		isc_refcount_destroy(&pfx.refcount);
 		return(result);
+	}
 
 	/* If the node already contains data, don't overwrite it */
 	if (node->data[ISC_IS6(family)] == NULL) {
@@ -86,6 +88,7 @@ dns_iptable_addprefix(dns_iptable_t *tab, isc_netaddr_t *addr,
 			node->data[ISC_IS6(family)] = &dns_iptable_neg;
 	}
 
+	isc_refcount_destroy(&pfx.refcount);
 	return (ISC_R_SUCCESS);
 }
 
