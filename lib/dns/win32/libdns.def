@@ -168,8 +168,6 @@ dns_dispatch_removeresponse
 dns_dispatch_starttcp
 dns_dispatchmgr_create
 dns_dispatchmgr_destroy
-dns_dispatchmgr_detach
-dns_dispatchmgr_detach
 dns_dispatchmgr_getblackhole
 dns_dispatchmgr_setavailports
 dns_dispatchmgr_setblackhole
@@ -615,8 +613,6 @@ dns_view_flushname
 dns_view_freeze
 dns_view_freezezones
 dns_view_getpeertsig
-dns_view_getrequeststats
-dns_view_getrequeststats
 dns_view_getresquerystats
 dns_view_getresstats
 dns_view_gettsig
@@ -626,13 +622,9 @@ dns_view_setcache
 dns_view_setdstport
 dns_view_sethints
 dns_view_setkeyring
-dns_view_setrequeststats
-dns_view_setrequeststats
 dns_view_setresquerystats
 dns_view_setresstats
 dns_view_setrootdelonly
-dns_view_setstats
-dns_view_setstats
 dns_view_simplefind
 dns_view_weakattach
 dns_view_weakdetach
