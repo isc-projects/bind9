@@ -684,6 +684,7 @@ dns_zone_getorigin
 dns_zone_getprivatetype
 dns_zone_getqueryacl
 dns_zone_getrequeststats
+dns_zone_getsigresigninginterval
 dns_zone_getsigvalidityinterval
 dns_zone_getssutable
 dns_zone_getstatscounters
