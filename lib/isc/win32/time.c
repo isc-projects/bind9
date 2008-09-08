@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.47 2008/09/08 08:28:08 marka Exp $ */
+/* $Id: time.c,v 1.48 2008/09/08 23:47:10 tbox Exp $ */
 
 #include <config.h>
 
@@ -88,9 +88,9 @@ isc_time_set(isc_time_t *t, unsigned int seconds, unsigned int nanoseconds) {
 
 	REQUIRE(t != NULL);
 	REQUIRE(nanoseconds < NS_PER_S);
-	
+
 	SystemTimeToFileTime(&epoch, &temp);
- 
+
 	i1.LowPart = t->absolute.dwLowDateTime;
 	i1.HighPart = t->absolute.dwHighDateTime;
 

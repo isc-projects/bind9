@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.h,v 1.37 2008/09/08 06:51:10 marka Exp $ */
+/* $Id: time.h,v 1.38 2008/09/08 23:47:10 tbox Exp $ */
 
 #ifndef ISC_TIME_H
 #define ISC_TIME_H 1
@@ -29,7 +29,7 @@
  *** Intervals
  ***/
 
-/*! 
+/*!
  *  \brief
  * The contents of this structure are private, and MUST NOT be accessed
  * directly by callers.
