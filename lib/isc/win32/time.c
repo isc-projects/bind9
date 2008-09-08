@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.46 2008/09/08 06:53:10 marka Exp $ */
+/* $Id: time.c,v 1.47 2008/09/08 08:28:08 marka Exp $ */
 
 #include <config.h>
 
@@ -95,7 +95,7 @@ isc_time_set(isc_time_t *t, unsigned int seconds, unsigned int nanoseconds) {
 	i1.HighPart = t->absolute.dwHighDateTime;
 
 	i1.QuadPart += (unsigned __int64)nanoseconds/100;
-	i1.QuadPart += (unsigned __int64)seconds*10000000);
+	i1.QuadPart += (unsigned __int64)seconds*10000000;
 
 	t->absolute.dwLowDateTime = i1.LowPart;
 	t->absolute.dwHighDateTime = i1.HighPart;
