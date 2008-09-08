@@ -168,9 +168,12 @@ dns_dispatch_removeresponse
 dns_dispatch_starttcp
 dns_dispatchmgr_create
 dns_dispatchmgr_destroy
+dns_dispatchmgr_detach
 dns_dispatchmgr_getblackhole
+dns_dispatchmgr_setavailports
 dns_dispatchmgr_setblackhole
 dns_dispatchmgr_setblackportlist
+dns_dispatchmgr_setstats
 dns_dlzallowzonexfr
 dns_dlzcreate
 dns_dlzdestroy
@@ -193,6 +196,9 @@ dns_fwdtable_add
 dns_fwdtable_create
 dns_fwdtable_destroy
 dns_fwdtable_find
+dns_generalstats_create
+dns_generalstats_dump
+dns_generalstats_increment
 dns_iptable_addprefix
 dns_iptable_attach
 dns_iptable_create
@@ -347,6 +353,8 @@ dns_ncache_towire
 dns_nsec_build
 dns_nsec_buildrdata
 dns_nsec_typepresent
+dns_opcodestats_create
+dns_opcodestats_dump
 dns_order_add
 dns_order_attach
 dns_order_create
@@ -457,6 +465,7 @@ dns_rdatasetiter_current
 dns_rdatasetiter_destroy
 dns_rdatasetiter_first
 dns_rdatasetiter_next
+dns_rdatasetstats_dump
 dns_rdataslab_equal
 dns_rdataslab_fromrdataset
 dns_rdataslab_merge
@@ -474,6 +483,7 @@ dns_rdatatype_iszonecutauth
 dns_rdatatype_notquestion
 dns_rdatatype_questiononly
 dns_rdatatype_totext
+dns_rdatatypestats_dump
 dns_request_cancel
 dns_request_create
 dns_request_createraw
@@ -604,6 +614,9 @@ dns_view_flushname
 dns_view_freeze
 dns_view_freezezones
 dns_view_getpeertsig
+dns_view_getrequeststats
+dns_view_getresquerystats
+dns_view_getresstats
 dns_view_gettsig
 dns_view_load
 dns_view_loadnew
@@ -611,7 +624,11 @@ dns_view_setcache
 dns_view_setdstport
 dns_view_sethints
 dns_view_setkeyring
+dns_view_setrequeststats
+dns_view_setresquerystats
+dns_view_setresstats
 dns_view_setrootdelonly
+dns_view_setstats
 dns_view_simplefind
 dns_view_weakattach
 dns_view_weakdetach
@@ -661,6 +678,7 @@ dns_zone_getnotifysrc6
 dns_zone_getoptions
 dns_zone_getorigin
 dns_zone_getqueryacl
+dns_zone_getrequeststats
 dns_zone_getsigvalidityinterval
 dns_zone_getssutable
 dns_zone_getstatscounters
@@ -727,6 +745,7 @@ dns_zone_setqueryonacl
 dns_zone_setsigvalidityinterval
 dns_zone_setssutable
 dns_zone_setstatistics
+dns_zone_setstats
 dns_zone_settask
 dns_zone_settype
 dns_zone_setupdateacl
