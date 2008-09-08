@@ -316,7 +316,7 @@ isc_portset_add
 isc_portset_addrange
 isc_portset_create
 isc_portset_destroy
-isc_portset_issset
+isc_portset_isset
 isc_portset_nports
 isc_portset_remove
 isc_portset_removerange
