@@ -100,8 +100,10 @@ dns_db_findnode
 dns_db_findrdataset
 dns_db_findzonecut
 dns_db_getoriginnode
+dns_db_getrrsetstats
 dns_db_getsoaserial
 dns_db_iscache
+dns_db_isdnssec
 dns_db_ispersistent
 dns_db_issecure
 dns_db_isstub
@@ -352,8 +354,10 @@ dns_ncache_towire
 dns_nsec_build
 dns_nsec_buildrdata
 dns_nsec_typepresent
+dns_opcode_totext
 dns_opcodestats_create
 dns_opcodestats_dump
+dns_opcodestats_increment
 dns_order_add
 dns_order_attach
 dns_order_create
@@ -379,6 +383,7 @@ dns_peer_setnotifysource
 dns_peer_setprovideixfr
 dns_peer_setquerysource
 dns_peer_setrequestixfr
+dns_peer_setrequestnsid
 dns_peer_setsupportedns
 dns_peer_settransferformat
 dns_peer_settransfers
@@ -482,7 +487,9 @@ dns_rdatatype_iszonecutauth
 dns_rdatatype_notquestion
 dns_rdatatype_questiononly
 dns_rdatatype_totext
+dns_rdatatypestats_create
 dns_rdatatypestats_dump
+dns_rdatatypestats_increment
 dns_request_cancel
 dns_request_create
 dns_request_createraw
@@ -555,6 +562,7 @@ dns_ssutable_checkrules
 dns_ssutable_create
 dns_ssutable_detach
 dns_stats_alloccounters
+dns_stats_detach
 dns_stats_freecounters
 dns_tcpmsg_cancelread
 dns_tcpmsg_init
@@ -673,8 +681,10 @@ dns_zone_getnotifysrc4
 dns_zone_getnotifysrc6
 dns_zone_getoptions
 dns_zone_getorigin
+dns_zone_getprivatetype
 dns_zone_getqueryacl
 dns_zone_getrequeststats
+dns_zone_getresigninginterval
 dns_zone_getsigvalidityinterval
 dns_zone_getssutable
 dns_zone_getstatscounters
@@ -729,6 +739,7 @@ dns_zone_setmaxxfrin
 dns_zone_setmaxxfrout
 dns_zone_setminrefreshtime
 dns_zone_setminretrytime
+dns_zone_setnodes
 dns_zone_setnotifyacl
 dns_zone_setnotifydelay
 dns_zone_setnotifysrc4
@@ -736,8 +747,12 @@ dns_zone_setnotifysrc6
 dns_zone_setnotifytype
 dns_zone_setoption
 dns_zone_setorigin
+dns_zone_setprivatetype
 dns_zone_setqueryacl
 dns_zone_setqueryonacl
+dns_zone_setrequeststats
+dns_zone_setresigninginterval
+dns_zone_setsignatures
 dns_zone_setsigvalidityinterval
 dns_zone_setssutable
 dns_zone_setstatistics
@@ -751,6 +766,7 @@ dns_zone_setxfracl
 dns_zone_setxfrsource4
 dns_zone_setxfrsource6
 dns_zone_setzeronosoattl
+dns_zone_signwithkey
 dns_zone_unload
 dns_zonekey_iszonekey
 dns_zonemgr_attach
