@@ -2,11 +2,11 @@ Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
 Copyright (C) 2001, 2003  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: readme1st.txt,v 1.12.18.5 2007/05/02 23:46:24 tbox Exp $
+$Id: readme1st.txt,v 1.12.18.5.28.1 2008/09/10 23:34:55 marka Exp $
 
-	   Release of BIND 9.4 for Window 2000/XP/2003
+	   Release of BIND 9.4 for Window XP/2003
 
-This is a release of BIND 9.4 for Window 2000/XP/2003.
+This is a release of BIND 9.4 for Window XP/2003.
 Only IPv4 stacks are supported on the box running this version of BIND.
 IPv6 stacks will be supported in a future release.
   

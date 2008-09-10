@@ -1,3 +1,7 @@
+	--- 9.4.2-P2-W2 released ---
+
+2436.	[security]	win32: UDP client handler can be shutdown. [RT #18576]
+
 	--- 9.4.2-P2-W1 released ---
 
 2432.	[bug]		More Windows socket handling improvements.  Stop
