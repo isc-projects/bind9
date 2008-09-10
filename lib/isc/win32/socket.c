@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.30.18.20.12.5.6.2 2008/09/04 05:47:09 each Exp $ */
+/* $Id: socket.c,v 1.30.18.20.12.5.6.3 2008/09/10 21:37:15 explorer Exp $ */
 
 /* This code uses functions which are only available on Server 2003 and
  * higher, and Windows XP and higher.
@@ -2166,7 +2166,7 @@ internal_recv(isc_socket_t *sock, int nbytes)
 	 * We do check for a recv() of 0 bytes on a TCP stream.  This means the remote end
 	 * has closed.
 	 */
-	if (nbytes == 0) {
+	if (nbytes == 0 && sock->type == isc_sockettype_tcp) {
 		send_recvdone_abort(sock, ISC_R_EOF);
 		maybe_free_socket(&sock, __LINE__);
 		return;
