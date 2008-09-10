@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.c,v 1.45 2008/04/29 01:01:42 each Exp $ */
+/* $Id: acl.c,v 1.46 2008/09/10 21:52:49 each Exp $ */
 
 /*! \file */
 
@@ -234,8 +234,10 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
 		dns_aclelement_t *e = &acl->elements[i];
 
 		/* Already found a better match? */
-		if (match_num != -1 && match_num < e->node_num)
+		if (match_num != -1 && match_num < e->node_num) {
+			isc_refcount_destroy(&pfx.refcount);
 			return (ISC_R_SUCCESS);
+		}
 
 		if (dns_aclelement_match(reqaddr, reqsigner,
 					 e, env, matchelt)) {
@@ -245,10 +247,12 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
 				else
 					*match = e->node_num;
 			}
+			isc_refcount_destroy(&pfx.refcount);
 			return (ISC_R_SUCCESS);
 		}
 	}
 
+	isc_refcount_destroy(&pfx.refcount);
 	return (ISC_R_SUCCESS);
 }
 
