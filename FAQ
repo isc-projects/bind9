@@ -596,6 +596,13 @@ A: No. The BIND 9 bug database is kept closed for a number of reasons.
    that have been fixed post release. That is as close as we can get to
    providing a bug database.
 
+Q: Why do queries for NSEC3 records fail to return the NSEC3 record?
+
+A: NSEC3 records are strictly meta data and can only be returned in the
+   authority section. This is done so that signing the zone using NSEC3
+   records does not bring names into existance that do not exist in the
+   unsigned version of the zone.
+
 5. Operating-System Specific Questions
 
 5.1. HPUX
