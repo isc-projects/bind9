@@ -1,3 +1,5 @@
+2435.	[bug]		Fixed an ACL memory leak affecting win32.
+
 2433.	[tuning]	Set initial timeout to 800ms.
 
 2431.	[bug]		Acl processing could leak memory. [RT #18323]
