@@ -1,4 +1,17 @@
+2437.	[bug]		Sockets could be closed too early, leading to
+			inconsistent states in the socket module. [RT #18298]
+
+2436.	[security]	win32: UDP client handler can be shutdown. [RT #18576]
+
 2433.	[tuning]	Set initial timeout to 800ms.
+
+2432.	[bug]		More Windows socket handling improvements.  Stop
+			using I/O events and use IO Completion Ports
+			throughout.  Rewrite the receive path logic to make
+			it easier to support multiple simultaneous
+			requestrs in the future.  Add stricter consistency
+			checking as a compile-time option (define
+			ISC_SOCKET_CONSISTENCY_CHECKS; defaults to off).
 
 2430.	[bug]		win32: isc_interval_set() could round down to
 			zero if the input was less than NS_INTERVAL
@@ -27,6 +40,13 @@
 			Use caution: this option may not work for some
 			operating systems without rebuilding named.
 
+2420.	[bug]		Windows socket handling cleanup.  Let the io
+			completion event send out cancelled read/write
+			done events, which keeps us from writing to memeory
+			we no longer have ownership of.  Add debugging
+			socket_log() function.  Rework TCP socket handling
+			to not leak sockets.
+
 2417.	[bug]		Connecting UDP sockets for outgoing queries could
 			unexpectedly fail with an 'address already in use'
 			error. [RT #18411]
@@ -53,9 +73,6 @@
 			resquery_response().  [RT #18275]
 
 2407.	[port]		hpux: test for sys/dyntune.h. [RT #18421]
-
-2406.	[bug]		Sockets could be closed too early, leading to
-			inconsistent states in the socket module. [RT #18298]
 
 2404.	[port]		hpux: files unlimited support.
 
