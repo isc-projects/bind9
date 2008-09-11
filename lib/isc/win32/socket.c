@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.5.2.13.2.39 2008/09/11 06:14:46 each Exp $ */
+/* $Id: socket.c,v 1.5.2.13.2.40 2008/09/11 07:20:11 marka Exp $ */
 
 /* This code uses functions which are only available on Server 2003 and
  * higher, and Windows XP and higher.
@@ -208,15 +208,15 @@ enum {
  * Used value-result for recvmsg, value only for sendmsg.
  */
 struct msghdr {
-	SOCKADDR to_addr;		/* UDP send/recv address */
+	SOCKADDR_STORAGE to_addr;	/* UDP send/recv address */
 	int      to_addr_len;		/* length of the address */
-        WSABUF  *msg_iov;		/* scatter/gather array */
-        u_int   msg_iovlen;             /* # elements in msg_iov */
-        void	*msg_control;           /* ancillary data, see below */
-        u_int   msg_controllen;         /* ancillary data buffer len */
+	WSABUF  *msg_iov;		/* scatter/gather array */
+	u_int   msg_iovlen;             /* # elements in msg_iov */
+	void	*msg_control;           /* ancillary data, see below */
+	u_int   msg_controllen;         /* ancillary data buffer len */
 	int	msg_totallen;		/* total length of this message */
 } msghdr;
-	
+
 /*
  * The size to raise the receive buffer to.
  */
@@ -252,7 +252,7 @@ struct isc_socket {
 	 * calls.  It also allows us to read-ahead in some cases.
 	 */
 	struct {
-		SOCKADDR	from_addr;	   // UDP send/recv address
+		SOCKADDR_STORAGE	from_addr;	   // UDP send/recv address
 		int		from_addr_len;	   // length of the address
 		char		*base;		   // the base of the buffer
 		char		*consume_position; // where to start copying data from next
@@ -271,8 +271,7 @@ struct isc_socket {
 				connected : 1,
 				pending_connect : 1, /* connect pending */
 				bound : 1;	/* bound to local addr */
-
-	unsigned int		pending_iocp;  /* Should equal the counters below. Debug. */
+	unsigned int		pending_iocp;	/* Should equal the counters below. Debug. */
 	unsigned int		pending_recv;  /* Number of outstanding recv() calls. */
 	unsigned int		pending_send;  /* Number of outstanding send() calls. */
 	unsigned int		pending_accept; /* Number of outstanding accept() calls. */
@@ -531,7 +530,7 @@ iocompletionport_init(isc_socketmgr_t *manager) {
 
 	/*
 	 * Worker threads for servicing the I/O
- 	 */
+	 */
 	iocompletionport_createthreads(manager->maxIOCPThreads, manager);
 }
 
@@ -662,7 +661,7 @@ initialise(void) {
 void
 InitSockets(void) {
 	RUNTIME_CHECK(isc_once_do(&initialise_once,
-                                  initialise) == ISC_R_SUCCESS);
+				  initialise) == ISC_R_SUCCESS);
 	if (!initialised)
 		exit(1);
 }
@@ -679,7 +678,7 @@ internal_sendmsg(isc_socket_t *sock, IoCompletionInfo *lpo,
 	*Error = 0;
 	Result = WSASendTo(sock->fd, messagehdr->msg_iov,
 			   messagehdr->msg_iovlen, &BytesSent,
-			   Flags, &messagehdr->to_addr,
+			   Flags, (SOCKADDR *)&messagehdr->to_addr,
 			   messagehdr->to_addr_len, (LPWSAOVERLAPPED)lpo,
 			   NULL);
 
@@ -753,7 +752,7 @@ queue_receive_request(isc_socket_t *sock) {
 	Error = 0;
 	Result = WSARecvFrom((SOCKET)sock->fd, iov, 1,
 			     &NumBytes, &Flags,
-			     &sock->recvbuf.from_addr,
+			     (SOCKADDR *)&sock->recvbuf.from_addr,
 			     &sock->recvbuf.from_addr_len,
 			     (LPWSAOVERLAPPED)lpo, NULL);
 
@@ -768,7 +767,7 @@ queue_receive_request(isc_socket_t *sock) {
 			break;
 
 		default:
-			isc_result = isc__errno2result(Result);
+			isc_result = isc__errno2result(Error);
 			if (isc_result == ISC_R_UNEXPECTED)
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
 					"WSARecvFrom: Windows error code: %d, isc result %d",
@@ -1035,10 +1034,15 @@ static void
 set_dev_address(isc_sockaddr_t *address, isc_socket_t *sock,
 		isc_socketevent_t *dev)
 {
-	if (address != NULL)
-		dev->address = *address;
-	else
+	if (sock->type == isc_sockettype_udp) {
+		if (address != NULL)
+			dev->address = *address;
+		else
+			dev->address = sock->address;
+	} else if (sock->type == isc_sockettype_tcp) {
+		INSIST(address == NULL);
 		dev->address = sock->address;
+	}
 }
 
 static void
@@ -1952,9 +1956,9 @@ internal_accept(isc_socket_t *sock, IoCompletionInfo *lpo, int accept_errno) {
 	isc_socket_newconnev_t *adev;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_socket_t *nsock;
-	struct sockaddr_in *localaddr;
+	struct sockaddr *localaddr;
 	int localaddr_len = sizeof(*localaddr);
-	struct sockaddr_in *remoteaddr;
+	struct sockaddr *remoteaddr;
 	int remoteaddr_len = sizeof(*remoteaddr);
 
 	INSIST(VALID_SOCKET(sock));
@@ -1992,7 +1996,7 @@ internal_accept(isc_socket_t *sock, IoCompletionInfo *lpo, int accept_errno) {
 	 * and return the new socket.
 	 */
 	ISCGetAcceptExSockaddrs(lpo->acceptbuffer, 0,
-		sizeof(SOCKADDR) + 16, sizeof(SOCKADDR) + 16,
+		sizeof(SOCKADDR_STORAGE) + 16, sizeof(SOCKADDR_STORAGE) + 16,
 		(LPSOCKADDR *)&localaddr, &localaddr_len,
 		(LPSOCKADDR *)&remoteaddr, &remoteaddr_len);
 	memcpy(&adev->address.type, remoteaddr, remoteaddr_len);
@@ -3018,7 +3022,7 @@ isc_socket_sendto2(isc_socket_t *sock, isc_region_t *region,
 
 isc_result_t
 isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr,
-	        unsigned int options) {
+		unsigned int options) {
 	int bind_errno;
 	char strbuf[ISC_STRERRORSIZE];
 	int on = 1;
@@ -3232,7 +3236,7 @@ isc_socket_accept(isc_socket_t *sock,
 					    sizeof(IoCompletionInfo));
 	RUNTIME_CHECK(lpo != NULL);
 	lpo->acceptbuffer = (void *)HeapAlloc(hHeapHandle, HEAP_ZERO_MEMORY,
-		(sizeof(SOCKADDR) + 16) * 2);
+		(sizeof(SOCKADDR_STORAGE) + 16) * 2);
 	RUNTIME_CHECK(lpo->acceptbuffer != NULL);
 
 	lpo->adev = adev;
@@ -3242,8 +3246,8 @@ isc_socket_accept(isc_socket_t *sock,
 		    nsock->fd,				/* Accepted Socket */
 		    lpo->acceptbuffer,			/* Buffer for initial Recv */
 		    0,					/* Length of Buffer */
-		    sizeof(SOCKADDR) + 16,		/* Local address length + 16 */
-		    sizeof(SOCKADDR) + 16,		/* Remote address lengh + 16 */
+		    sizeof(SOCKADDR_STORAGE) + 16,		/* Local address length + 16 */
+		    sizeof(SOCKADDR_STORAGE) + 16,		/* Remote address lengh + 16 */
 		    (LPDWORD)&lpo->received_bytes,	/* Bytes Recved */
 		    (LPOVERLAPPED)lpo			/* Overlapped structure */
 		    );
