@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.30.18.34 2008/09/11 05:43:32 each Exp $ */
+/* $Id: socket.c,v 1.30.18.35 2008/09/11 06:08:34 each Exp $ */
 
 /* This code uses functions which are only available on Server 2003 and
  * higher, and Windows XP and higher.
@@ -3647,12 +3647,6 @@ isc_socket_permunix(isc_sockaddr_t *addr, isc_uint32_t perm,
 	UNUSED(owner);
 	UNUSED(group);
 	return (ISC_R_NOTIMPLEMENTED);
-}
-
-void
-isc__socketmgr_setreserved(isc_socketmgr_t *manager, isc_uint32_t reserved) {
-	UNUSED(manager);
-	UNUSED(reserved);
 }
 
 void
