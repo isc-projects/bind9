@@ -1,3 +1,6 @@
+2437.	[bug]		Sockets could be closed too early, leading to
+			inconsistent states in the socket module. [RT #18298]
+
 2436.	[placeholder]
 
 2435.	[bug]		Fixed an ACL memory leak affecting win32.
@@ -91,8 +94,7 @@
 
 2407.	[port]		hpux: test for sys/dyntune.h. [RT #18421]
 
-2406.	[bug]		Sockets could be closed too early, leading to
-			inconsistent states in the socket module. [RT #18298]
+2406.	[placeholder]
 
 2405.   [cleanup]       The default value for dnssec-validation was changed to
                         "yes" in 9.5.0-P1 and all subsequent releases; this
