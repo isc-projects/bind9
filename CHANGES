@@ -1,3 +1,5 @@
+	--- 9.5.1b2 released ---
+
 2438.	[bug]		Timeouts could be logged incorrectly under win32.
 			[RT #18617]
 

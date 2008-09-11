@@ -371,7 +371,7 @@ Building
 		OpenBSD 3.3 and up
 		Solaris 8, 9, 9 (x86), 10
 		Ubuntu 7.04, 7.10
-		Windows NT/2000/XP/2003
+		Windows XP/2003/2008
 
 	We have recent reports from the user community that a supported
 	version of BIND will build and run on the following systems:
