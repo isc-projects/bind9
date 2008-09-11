@@ -1,3 +1,6 @@
+2437.	[bug]		Sockets could be closed too early, leading to
+			inconsistent states in the socket module. [RT #18298]
+
 2430.	[bug]		win32: isc_interval_set() could round down to
 			zero if the input was less than NS_INTERVAL
 			nanoseconds.  Round up instead. [RT #18549]
@@ -51,9 +54,6 @@
 			resquery_response().  [RT #18275]
 
 2407.	[port]		hpux: test for sys/dyntune.h. [RT #18421]
-
-2406.	[bug]		Sockets could be closed too early, leading to
-			inconsistent states in the socket module. [RT #18298]
 
 2404.	[port]		hpux: files unlimited support.
 
