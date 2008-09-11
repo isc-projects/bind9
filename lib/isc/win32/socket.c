@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.52.94.20 2008/09/11 06:09:02 each Exp $ */
+/* $Id: socket.c,v 1.52.94.21 2008/09/11 07:06:27 marka Exp $ */
 
 /* This code uses functions which are only available on Server 2003 and
  * higher, and Windows XP and higher.
@@ -1498,7 +1498,7 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 }
 
 /*
- * Verify that the socket state is CONSISTENT.
+ * Verify that the socket state is consistent.
  */
 static void
 consistent(isc_socket_t *sock) {
