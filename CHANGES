@@ -1,3 +1,6 @@
+2437.	[bug]		Sockets could be closed too early, leading to
+			inconsistent states in the socket module. [RT #18298]
+
 2436.	[security]	win32: UDP client handler can be shutdown. [RT #18576]
 
 2435.	[bug]		Fixed an ACL memory leak affecting win32.
@@ -93,9 +96,6 @@
 			resquery_response().  [RT #18275]
 
 2407.	[port]		hpux: test for sys/dyntune.h. [RT #18421]
-
-2406.	[bug]		Sockets could be closed too early, leading to
-			inconsistent states in the socket module. [RT #18298]
 
 xxxx.	[bug]		Connecting UDP sockets for outgoing queries could
 			unexpectedly fail with an 'address already in use'
