@@ -1,3 +1,5 @@
+2438.   [placeholder]
+
 2437.	[bug]		Sockets could be closed too early, leading to
 			inconsistent states in the socket module. [RT #18298]
 
