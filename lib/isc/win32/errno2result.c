@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: errno2result.c,v 1.14.128.3 2008/09/11 02:23:55 each Exp $ */
+/* $Id: errno2result.c,v 1.14.128.4 2008/09/11 21:02:43 each Exp $ */
 
 #include <config.h>
 
@@ -79,6 +79,8 @@ isc__errno2resultx(int posixerrno, const char *file, int line) {
 		return (ISC_R_NETUNREACH);
 	case ERROR_PORT_UNREACHABLE:
 		return (ISC_R_HOSTUNREACH);
+	case ERROR_SEM_TIMEOUT:
+		return (ISC_R_TIMEDOUT);
 	case WSAECONNRESET:
 	case WSAENETRESET:
 	case WSAECONNABORTED:

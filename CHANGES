@@ -1,3 +1,6 @@
+2438.	[bug]		Timeouts could be logged incorrectly under win32.
+			[RT #18617]
+
 2437.	[bug]		Sockets could be closed too early, leading to
 			inconsistent states in the socket module. [RT #18298]
 
