@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.5.2.13.2.41 2008/09/11 07:24:49 marka Exp $ */
+/* $Id: socket.c,v 1.5.2.13.2.42 2008/09/11 12:29:20 marka Exp $ */
 
 /* This code uses functions which are only available on Server 2003 and
  * higher, and Windows XP and higher.
@@ -3094,13 +3094,6 @@ isc_socket_filter(isc_socket_t *sock, const char *filter) {
 	REQUIRE(VALID_SOCKET(sock));
 	return (ISC_R_NOTIMPLEMENTED);
 }
-
-void
-isc__socketmgr_setreserved(isc_socketmgr_t *manager, isc_uint32_t reserved) {
-	UNUSED(manager);
-	UNUSED(reserved);
-}
-
 
 /*
  * Set up to listen on a given socket.  We do this by creating an internal
