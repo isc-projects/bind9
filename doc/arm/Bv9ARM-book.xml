@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.94 2008/09/04 08:11:24 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.95 2008/09/11 23:03:06 each Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -436,9 +436,11 @@ as none of the name servers share their cached data.</para></sect1>
 
 <sect1><title>Supported Operating Systems</title>
 <para>ISC <acronym>BIND</acronym> 9 compiles and runs on a large number
-of Unix-like operating system and on Windows NT / 2000.  For an up-to-date
+of Unix-like operating systems, and on some versions of Microsoft Windows
+including Windows XP, Windows 2003, and Windows 2008.  For an up-to-date
 list of supported systems, see the README file in the top level directory
-of the BIND 9 source distribution.</para>
+of the BIND 9 source distribution.
+</para>
 </sect1>
 </chapter>
 
