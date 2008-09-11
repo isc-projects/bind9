@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.52.94.19 2008/09/11 04:25:29 each Exp $ */
+/* $Id: socket.c,v 1.52.94.20 2008/09/11 06:09:02 each Exp $ */
 
 /* This code uses functions which are only available on Server 2003 and
  * higher, and Windows XP and higher.
@@ -3685,12 +3685,6 @@ isc_socket_getname(isc_socket_t *socket) {
 void *
 isc_socket_gettag(isc_socket_t *socket) {
 	return (socket->tag);
-}
-
-void
-isc__socketmgr_setreserved(isc_socketmgr_t *manager, isc_uint32_t reserved) {
-	UNUSED(manager);
-	UNUSED(reserved);
 }
 
 void
