@@ -2127,7 +2127,7 @@
 ./lib/isc/win32/include/isc/int.h		C	1999,2000,2001,2004
 ./lib/isc/win32/include/isc/ipv6.h		C	1999,2000,2001,2002,2003,2004,2005,2007
 ./lib/isc/win32/include/isc/keyboard.h		C	2000,2001,2004
-./lib/isc/win32/include/isc/mutex.h		C	1998,1999,2000,2001,2004
+./lib/isc/win32/include/isc/mutex.h		C	1998,1999,2000,2001,2004,2008
 ./lib/isc/win32/include/isc/net.h		C	1999,2000,2001,2002,2003,2004,2008
 ./lib/isc/win32/include/isc/netdb.h		C	1999,2000,2001,2004
 ./lib/isc/win32/include/isc/ntgroups.h		C	2001,2003,2004,2007
@@ -2404,6 +2404,6 @@
 ./win32utils/index.html				HTML	2006
 ./win32utils/makedefs.pl			PERL	2001,2004
 ./win32utils/makeversion.pl			PERL	2001,2003,2004,2007
-./win32utils/readme1st.txt			TXT.BRIEF	2001,2003,2004,2005,2007
+./win32utils/readme1st.txt			TXT.BRIEF	2001,2003,2004,2005,2007,2008
 ./win32utils/updateopenssl.pl			PERL	2006,2007
 ./win32utils/win32-build.txt			TXT.BRIEF	2001,2002,2003,2004,2005,2007
