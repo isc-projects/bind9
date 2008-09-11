@@ -1,8 +1,8 @@
-Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
 Copyright (C) 2001, 2003  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: readme1st.txt,v 1.7.2.4.4.7 2008/09/11 06:14:47 each Exp $
+$Id: readme1st.txt,v 1.7.2.4.4.8 2008/09/11 23:45:32 tbox Exp $
 
 	   Release of BIND 9.3 for Window XP/2003
 
