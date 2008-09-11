@@ -428,7 +428,7 @@ Building
 		NetBSD 1.5
 		Slackware Linux 8.1
 		Solaris 8, 9, 9 (x86)
-		Windows NT/2000/XP/2003
+		Windows XP/2003/2008
 
 	Additionally, we have unverified reports of success building
 	previous versions of BIND 9 from users of the following systems:
