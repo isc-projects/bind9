@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.5.2.13.2.40 2008/09/11 07:20:11 marka Exp $ */
+/* $Id: socket.c,v 1.5.2.13.2.41 2008/09/11 07:24:49 marka Exp $ */
 
 /* This code uses functions which are only available on Server 2003 and
  * higher, and Windows XP and higher.
@@ -2457,7 +2457,7 @@ SocketIoThread(LPVOID ThreadContext) {
  */
 isc_result_t
 isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
-	return (isc_socketmgr_create2(mctx, managerp, maxsocks));
+	return (isc_socketmgr_create2(mctx, managerp, 0));
 }
 
 isc_result_t
