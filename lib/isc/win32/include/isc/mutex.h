@@ -1,8 +1,8 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mutex.h,v 1.16.206.1 2004/03/06 08:15:15 marka Exp $ */
+/* $Id: mutex.h,v 1.16.206.2 2008/09/11 07:16:33 marka Exp $ */
 
 #ifndef ISC_MUTEX_H
 #define ISC_MUTEX_H 1
@@ -27,10 +27,14 @@
 
 typedef CRITICAL_SECTION isc_mutex_t;
 
-/* This definition is here since WINBASE.H omits it for some reason */
-
+/*
+ * This definition is here since somve versions of WINBASE.H
+ * omits it for some reason.
+ */
+#if (_WIN32_WINNT < 0x0400)
 WINBASEAPI BOOL WINAPI
 TryEnterCriticalSection(LPCRITICAL_SECTION lpCriticalSection);
+#endif /* _WIN32_WINNT < 0x0400 */
 
 #define isc_mutex_init(mp) \
 	(InitializeCriticalSection((mp)), ISC_R_SUCCESS)
@@ -46,6 +50,6 @@ TryEnterCriticalSection(LPCRITICAL_SECTION lpCriticalSection);
 /*
  * This is a placeholder for now since we are not keeping any mutex stats
  */
-#define isc_mutex_stats(fp)
+#define isc_mutex_stats(fp) do {} while (0)
 
 #endif /* ISC_MUTEX_H */
