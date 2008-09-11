@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.5.2.13.2.24.4.6.4.4 2008/09/11 04:04:10 marka Exp $ */
+/* $Id: socket.c,v 1.5.2.13.2.24.4.6.4.5 2008/09/11 04:10:49 marka Exp $ */
 
 /* This code uses functions which are only available on Server 2003 and
  * higher, and Windows XP and higher.
@@ -3265,8 +3265,8 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 	if (!sock->bound) {
 		isc_sockaddr_t any;
 
-		isc_sockaddr_anyofpf(&any, isc_sockaddr_pf(sock));
-		if (bind(sock->fd, &any->type.sa, any->length) < 0) {
+		isc_sockaddr_anyofpf(&any, isc_sockaddr_pf(addr));
+		if (bind(sock->fd, &any.type.sa, any.length) < 0) {
 			bind_errno = WSAGetLastError();
 			UNLOCK(&sock->lock);
 			switch (bind_errno) {
