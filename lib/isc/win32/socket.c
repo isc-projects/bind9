@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.52.94.18 2008/09/11 04:10:17 each Exp $ */
+/* $Id: socket.c,v 1.52.94.19 2008/09/11 04:25:29 each Exp $ */
 
 /* This code uses functions which are only available on Server 2003 and
  * higher, and Windows XP and higher.
@@ -2128,7 +2128,6 @@ internal_connect(isc_socket_t *sock, IoCompletionInfo *lpo, int connect_errno) {
 		INSIST(setsockopt(sock->fd, SOL_SOCKET, SO_UPDATE_CONNECT_CONTEXT, NULL, 0) == 0);
  		cdev->result = ISC_R_SUCCESS;
 		sock->connected = 1;
-		sock->bound = 1;
 		socket_log(__LINE__, sock, &sock->address, IOEVENT,
 			   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_ACCEPTEDCXN,
 			   "internal_connect: success");
@@ -3274,10 +3273,12 @@ isc_result_t
 isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 		   isc_task_t *task, isc_taskaction_t action, const void *arg)
 {
+	char strbuf[ISC_STRERRORSIZE];
 	isc_socket_connev_t *cdev;
 	isc_task_t *ntask = NULL;
 	isc_socketmgr_t *manager;
 	IoCompletionInfo *lpo;
+	int bind_errno;
 
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(addr != NULL);
@@ -3300,6 +3301,36 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 	if (sock->fd == INVALID_SOCKET) {
 		UNLOCK(&sock->lock);
 		return (ISC_R_CONNREFUSED);
+	}
+
+	/*
+	 * Windows sockets won't connect unless the socket is bound.
+	 */
+	if (!sock->bound) {
+		isc_sockaddr_t any;
+
+		isc_sockaddr_anyofpf(&any, isc_sockaddr_pf(addr));
+		if (bind(sock->fd, &any.type.sa, any.length) < 0) {
+			bind_errno = WSAGetLastError();
+			UNLOCK(&sock->lock);
+			switch (bind_errno) {
+			case WSAEACCES:
+				return (ISC_R_NOPERM);
+			case WSAEADDRNOTAVAIL:
+				return (ISC_R_ADDRNOTAVAIL);
+			case WSAEADDRINUSE:
+				return (ISC_R_ADDRINUSE);
+			case WSAEINVAL:
+				return (ISC_R_BOUND);
+			default:
+				isc__strerror(bind_errno, strbuf,
+					      sizeof(strbuf));
+				UNEXPECTED_ERROR(__FILE__, __LINE__,
+						 "bind: %s", strbuf);
+				return (ISC_R_UNEXPECTED);
+			}
+		}
+		sock->bound = 1;
 	}
 
 	REQUIRE(!sock->pending_connect);
