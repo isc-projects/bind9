@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.52.94.22 2008/09/11 08:02:53 marka Exp $ */
+/* $Id: socket.c,v 1.52.94.23 2008/09/11 23:46:38 tbox Exp $ */
 
 /* This code uses functions which are only available on Server 2003 and
  * higher, and Windows XP and higher.
@@ -557,10 +557,10 @@ iocompletionport_update(isc_socket_t *sock) {
 				ISC_LOGCATEGORY_GENERAL,
 				ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
 				isc_msgcat, ISC_MSGSET_SOCKET,
-			        ISC_MSG_TOOMANYHANDLES,
+				ISC_MSG_TOOMANYHANDLES,
 				"iocompletionport_update: failed to open"
 				" io completion port: %s",
-			        strbuf);
+				strbuf);
 
 		/* XXXMLG temporary hack to make failures detected.
 		 * This function should return errors to the caller, not
@@ -953,7 +953,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 
 	memcpy(&msg->to_addr, &dev->address.type, dev->address.length);
 	msg->to_addr_len = dev->address.length;
-	
+
 	buffer = ISC_LIST_HEAD(dev->bufferlist);
 	write_count = 0;
 	iovcount = 0;
@@ -1537,7 +1537,7 @@ consistent(isc_socket_t *sock) {
 	if (crash) {
 		socket_log(__LINE__, sock, NULL, CREATION, isc_msgcat, ISC_MSGSET_SOCKET,
 			   ISC_MSG_DESTROYING, "SOCKET INCONSISTENT: %s",
-		           crash_reason);
+			   crash_reason);
 		sock_dump(sock);
 		INSIST(crash == ISC_FALSE);
 	}
@@ -2018,7 +2018,7 @@ internal_accept(isc_socket_t *sock, IoCompletionInfo *lpo, int accept_errno) {
 	result = make_nonblock(adev->newsocket->fd);
 	INSIST(result == ISC_R_SUCCESS);
 
-	INSIST(setsockopt(nsock->fd, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, 
+	INSIST(setsockopt(nsock->fd, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT,
 	       (char *)&sock->fd, sizeof(sock->fd)) == 0);
 
 	/*
@@ -2126,7 +2126,7 @@ internal_connect(isc_socket_t *sock, IoCompletionInfo *lpo, int connect_errno) {
 		}
 	} else {
 		INSIST(setsockopt(sock->fd, SOL_SOCKET, SO_UPDATE_CONNECT_CONTEXT, NULL, 0) == 0);
- 		cdev->result = ISC_R_SUCCESS;
+		cdev->result = ISC_R_SUCCESS;
 		sock->connected = 1;
 		socket_log(__LINE__, sock, &sock->address, IOEVENT,
 			   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_ACCEPTEDCXN,
@@ -2348,7 +2348,7 @@ SocketIoThread(LPVOID ThreadContext) {
 						     INFINITE);
 		if (lpo == NULL) /* Received request to exit */
 			break;
-		
+
 		REQUIRE(VALID_SOCKET(sock));
 
 		request = lpo->request_type;
@@ -2652,7 +2652,7 @@ socket_recv(isc_socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
 
 	/*
 	 * If there are more receivers waiting for data, queue another receive
-	 * here.  If the 
+	 * here.  If the
 	 */
 	queue_receive_request(sock);
 
@@ -2763,7 +2763,7 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 
 	ret = isc_socket_recv2(sock, region, minimum, task, dev, 0);
 	UNLOCK(&sock->lock);
-	return (ret);	
+	return (ret);
 }
 
 isc_result_t
@@ -3243,7 +3243,7 @@ isc_socket_accept(isc_socket_t *sock,
 	lpo->adev = adev;
 	lpo->request_type = SOCKET_ACCEPT;
 
-	ISCAcceptEx(sock->fd, 
+	ISCAcceptEx(sock->fd,
 		    nsock->fd,				/* Accepted Socket */
 		    lpo->acceptbuffer,			/* Buffer for initial Recv */
 		    0,					/* Length of Buffer */
