@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: errno2result.c,v 1.16 2008/08/08 06:28:59 tbox Exp $ */
+/* $Id: errno2result.c,v 1.17 2008/09/12 04:46:25 marka Exp $ */
 
 #include <config.h>
 
@@ -64,29 +64,38 @@ isc__errno2resultx(int posixerrno, const char *file, int line) {
 	case ERROR_CANCELLED:
 		return (ISC_R_CANCELED);
 	case ERROR_CONNECTION_REFUSED:
+	case WSAECONNREFUSED:
 		return (ISC_R_CONNREFUSED);
+	case WSAENOTCONN:
 	case ERROR_CONNECTION_INVALID:
 		return (ISC_R_NOTCONNECTED);
 	case ERROR_HOST_UNREACHABLE:
+	case WSAEHOSTUNREACH:
 		return (ISC_R_HOSTUNREACH);
 	case ERROR_NETWORK_UNREACHABLE:
+	case WSAENETUNREACH:
 		return (ISC_R_NETUNREACH);
 	case ERROR_NO_NETWORK:
 		return (ISC_R_NETUNREACH);
-	case ERROR_OPERATION_ABORTED:
-		return (ISC_R_CONNECTIONRESET);
 	case ERROR_PORT_UNREACHABLE:
 		return (ISC_R_HOSTUNREACH);
+	case ERROR_SEM_TIMEOUT:
+		return (ISC_R_TIMEDOUT);
+	case WSAECONNRESET:
+	case WSAENETRESET:
+	case WSAECONNABORTED:
+	case WSAEDISCON:
+	case ERROR_OPERATION_ABORTED:
+	case ERROR_CONNECTION_ABORTED:
 	case ERROR_REQUEST_ABORTED:
 		return (ISC_R_CONNECTIONRESET);
 	case WSAEADDRNOTAVAIL:
 		return (ISC_R_ADDRNOTAVAIL);
-	case WSAEHOSTUNREACH:
-		return (ISC_R_HOSTUNREACH);
+	case ERROR_NETNAME_DELETED:
+	case WSAENETDOWN:
+		return (ISC_R_NETUNREACH);
 	case WSAEHOSTDOWN:
 		return (ISC_R_HOSTUNREACH);
-	case WSAENETUNREACH:
-		return (ISC_R_NETUNREACH);
 	case WSAENOBUFS:
 		return (ISC_R_NORESOURCES);
 	default:

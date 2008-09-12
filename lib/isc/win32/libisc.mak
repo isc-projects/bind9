@@ -158,7 +158,6 @@ CLEAN :
 	-@erase "$(INTDIR)\os.obj"
 	-@erase "$(INTDIR)\parseint.obj"
 	-@erase "$(INTDIR)\portset.obj"
-	-@erase "$(INTDIR)\portset.obj"
 	-@erase "$(INTDIR)\quota.obj"
 	-@erase "$(INTDIR)\random.obj"
 	-@erase "$(INTDIR)\ratelimiter.obj"
