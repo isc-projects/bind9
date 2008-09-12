@@ -42,7 +42,6 @@ BIND 9
 		Stichting NLnet - NLnet Foundation
 		Nominum, Inc.
 
-
 BIND 9.5.0
 
 	BIND 9.5.0 has a number of new features over 9.4,
@@ -304,7 +303,7 @@ BIND 9.2.0
 	    This does not apply to the use of TSIG, which does not
 	    require OpenSSL.
 
-	  - The source distribution now builds on Windows NT/2000.
+	  - The source distribution now builds on Windows.
 	    See win32utils/readme1.txt and win32utils/win32-build.txt
 	    for details.
 
@@ -353,8 +352,8 @@ BIND 9.2.0
 
 		--with-libtool does not work on AIX.
 
-	A bug in the Windows 2000 DNS server can cause zone transfers
-	from a BIND 9 server to a W2K server to fail.  For details,
+	A bug in some versions of the Microsoft DNS server can cause zone
+        transfers from a BIND 9 server to a W2K server to fail.  For details,
 	see the "Zone Transfers" section in doc/misc/migration.
 
 	For a detailed list of user-visible changes from
@@ -377,7 +376,11 @@ Building
 		OpenBSD 3.3 and up
 		Solaris 8, 9, 9 (x86), 10
 		Ubuntu 7.04, 7.10
-		Windows NT/2000/XP/2003
+		Windows XP/2003/2008
+
+        NOTE:  As of BIND 9.5.1, 9.4.3, and 9.3.6, older versions of
+        Windows, including Windows NT and Windows 2000, are no longer
+        supported.
 
 	We have recent reports from the user community that a supported
 	version of BIND will build and run on the following systems:
