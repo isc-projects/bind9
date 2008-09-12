@@ -1,3 +1,6 @@
+2439.   [bug]           Potential NULL dereference in dns_acl_isanyornone().
+                        [RT #18559]
+        
 2438.   [bug]		Timeouts could be logged incorrectly under win32.
 
 2437.	[bug]		Sockets could be closed too early, leading to
