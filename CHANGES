@@ -1,6 +1,12 @@
-2439.   [bug]           Potential NULL dereference in dns_acl_isanyornone().
-                        [RT #18559]
-        
+2441.   [bug]           isc_radix_insert() could copy radix tree nodes
+			incompletely. [RT #18573]
+
+2440.   [bug]		named-checkconf used an incorrect test to determine
+			if an ACL was set to none.
+
+2439.   [bug]		Potential NULL dereference in dns_acl_isanyornone().
+			[RT #18559]
+
 2438.   [bug]		Timeouts could be logged incorrectly under win32.
 
 2437.	[bug]		Sockets could be closed too early, leading to
@@ -50,7 +56,7 @@
 			epoll and /dev/poll to be selected at compile
 			time. [RT #18277]
 			
-2423.   [security]      Randomize server selection on queries, so as to
+2423.   [security]	Randomize server selection on queries, so as to
                         make forgery a little more difficult.  Instead of
                         always preferring the server with the lowest RTT,
                         pick a server with RTT within the same 128
