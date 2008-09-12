@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.86.10.4 2008/04/23 21:43:57 each Exp $ */
+/* $Id: check.c,v 1.86.10.5 2008/09/12 06:03:22 each Exp $ */
 
 /*! \file */
 
@@ -476,10 +476,7 @@ check_recursionacls(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 		if (acl == NULL)
 			continue;
 
-		if (recursion == ISC_FALSE &&
-		    (acl->length != 1 ||
-		     acl->elements[0].type != dns_aclelementtype_any ||
-		     acl->elements[0].negative != ISC_TRUE)) {
+		if (recursion == ISC_FALSE && !dns_acl_isnone(acl)) {
 			cfg_obj_log(aclobj, logctx, ISC_LOG_WARNING,
 				    "both \"recursion no;\" and "
 				    "\"%s\" active%s%s",

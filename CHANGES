@@ -1,5 +1,11 @@
 	--- 9.5.1b2 released ---
 
+2441.   [bug]           isc_radix_insert() could copy radix tree nodes
+			incompletely. [RT #18573]
+
+2440.   [bug]		named-checkconf used an incorrect test to determine
+			if an ACL was set to none.
+
 2439.   [bug]           Potential NULL dereference in dns_acl_isanyornone().
                         [RT #18559]
         
