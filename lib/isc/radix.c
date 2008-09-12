@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.c,v 1.9.6.6 2008/09/12 06:03:22 each Exp $ */
+/* $Id: radix.c,v 1.9.6.7 2008/09/12 23:46:45 tbox Exp $ */
 
 /*
  * This source was adapted from MRT's RCS Ids:
@@ -414,49 +414,49 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 	if (differ_bit == bitlen && node->bit == bitlen) {
 		if (node->prefix != NULL) {
 			/* Set node_num only if it hasn't been set before */
-                        if (source != NULL) {
-                                /* Merging node */
-                                if (node->node_num[0] == -1 &&
-                                    source->node_num[0] != -1) {
-                                        node->node_num[0] =
-                                                radix->num_added_node +
-                                                source->node_num[0];
-                                        node->data[0] = source->data[0];
-                                }
-                                if (node->node_num[1] == -1 &&
-                                    source->node_num[0] != -1) {
-                                        node->node_num[1] =
-                                                radix->num_added_node +
-                                                source->node_num[1];
-                                        node->data[1] = source->data[1];
-                                }
-                        } else {
-                                if (node->node_num[ISC_IS6(family)] == -1)
-                                        node->node_num[ISC_IS6(family)] =
-                                                 ++radix->num_added_node;
-                        }
+			if (source != NULL) {
+				/* Merging node */
+				if (node->node_num[0] == -1 &&
+				    source->node_num[0] != -1) {
+					node->node_num[0] =
+						radix->num_added_node +
+						source->node_num[0];
+					node->data[0] = source->data[0];
+				}
+				if (node->node_num[1] == -1 &&
+				    source->node_num[0] != -1) {
+					node->node_num[1] =
+						radix->num_added_node +
+						source->node_num[1];
+					node->data[1] = source->data[1];
+				}
+			} else {
+				if (node->node_num[ISC_IS6(family)] == -1)
+					node->node_num[ISC_IS6(family)] =
+						 ++radix->num_added_node;
+			}
 			*target = node;
 			return (ISC_R_SUCCESS);
-                } else {
-                        result =
-                                _ref_prefix(radix->mctx, &node->prefix, prefix);
-                        if (result != ISC_R_SUCCESS)
-                                return (result);
-                }
+		} else {
+			result =
+				_ref_prefix(radix->mctx, &node->prefix, prefix);
+			if (result != ISC_R_SUCCESS)
+				return (result);
+		}
 		INSIST(node->data[0] == NULL && node->node_num[0] == -1 &&
 		       node->data[1] == NULL && node->node_num[1] == -1);
 		if (source != NULL) {
 			/* Merging node */
-                        if (source->node_num[0] != -1) {
-                                node->node_num[0] = radix->num_added_node +
-                                                    source->node_num[0];
-                                node->data[0] = source->data[0];
-                        }
-                        if (source->node_num[1] != -1) {
-                                node->node_num[1] = radix->num_added_node +
-                                                    source->node_num[1];
-                                node->data[1] = source->data[1];
-                        }
+			if (source->node_num[0] != -1) {
+				node->node_num[0] = radix->num_added_node +
+						    source->node_num[0];
+				node->data[0] = source->data[0];
+			}
+			if (source->node_num[1] != -1) {
+				node->node_num[1] = radix->num_added_node +
+						    source->node_num[1];
+				node->data[1] = source->data[1];
+			}
 		} else {
 			node->node_num[ISC_IS6(family)] =
 				++radix->num_added_node;
