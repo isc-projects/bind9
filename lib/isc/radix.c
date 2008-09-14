@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.c,v 1.9.6.7 2008/09/12 23:46:45 tbox Exp $ */
+/* $Id: radix.c,v 1.9.6.8 2008/09/14 04:58:05 marka Exp $ */
 
 /*
  * This source was adapted from MRT's RCS Ids:
@@ -96,13 +96,15 @@ _ref_prefix(isc_mem_t *mctx, isc_prefix_t **target, isc_prefix_t *prefix) {
 	       (prefix->family == AF_INET6 && prefix->bitlen <= 128));
 	REQUIRE(target != NULL);
 
-	/* If this prefix is a static allocation, copy it into new memory */
+	/*
+	 * If this prefix is a static allocation, copy it into new memory.
+	 * (Note, the refcount still has to be destroyed by the calling
+	 * routine.)
+	 */
 	if (isc_refcount_current(&prefix->refcount) == 0) {
 		isc_result_t ret;
 		ret = _new_prefix(mctx, target, prefix->family,
 				  &prefix->add, prefix->bitlen);
-		if (ret == ISC_R_SUCCESS)
-			isc_refcount_destroy(&prefix->refcount);
 		return ret;
 	}
 
