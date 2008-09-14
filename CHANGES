@@ -1,3 +1,5 @@
+2442.	[bug]		A lock could be destroyed twice. [RT# 18626]
+
 2441.   [bug]           isc_radix_insert() could copy radix tree nodes
 			incompletely. [RT #18573]
 
