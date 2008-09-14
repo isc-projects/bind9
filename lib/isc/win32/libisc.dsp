@@ -1,7 +1,7 @@
 # Microsoft Developer Studio Project File - Name="libisc" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
 # ** DO NOT EDIT **
-     
+
 # TARGTYPE "Win32 (x86) Dynamic-Link Library" 0x0102
 
 CFG=libisc - Win32 Debug
@@ -405,6 +405,10 @@ SOURCE=..\include\isc\parseint.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\isc\portset.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\isc\os.h
 # End Source File
 # Begin Source File
@@ -670,6 +674,10 @@ SOURCE=..\ondestroy.c
 # Begin Source File
 
 SOURCE=..\parseint.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\portset.c
 # End Source File
 # Begin Source File
 

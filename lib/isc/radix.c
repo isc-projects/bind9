@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.c,v 1.15 2008/07/15 00:21:16 marka Exp $ */
+/* $Id: radix.c,v 1.18 2008/09/14 04:54:49 marka Exp $ */
 
 /*
  * This source was adapted from MRT's RCS Ids:
@@ -98,13 +98,15 @@ _ref_prefix(isc_mem_t *mctx, isc_prefix_t **target, isc_prefix_t *prefix) {
 	       (prefix->family == AF_INET6 && prefix->bitlen <= 128));
 	REQUIRE(target != NULL);
 
-	/* If this prefix is a static allocation, copy it into new memory */
+	/*
+	 * If this prefix is a static allocation, copy it into new memory.
+	 * (Note, the refcount still has to be destroyed by the calling
+	 * routine.)
+	 */
 	if (isc_refcount_current(&prefix->refcount) == 0) {
 		isc_result_t ret;
 		ret = _new_prefix(mctx, target, prefix->family,
 				  &prefix->add, prefix->bitlen);
-		if (ret == ISC_R_SUCCESS)
-			isc_refcount_destroy(&prefix->refcount);
 		return ret;
 	}
 
@@ -417,22 +419,49 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 	if (differ_bit == bitlen && node->bit == bitlen) {
 		if (node->prefix != NULL) {
 			/* Set node_num only if it hasn't been set before */
-			if (node->node_num[ISC_IS6(family)] == -1)
-				node->node_num[ISC_IS6(family)] =
-					 ++radix->num_added_node;
+			if (source != NULL) {
+				/* Merging node */
+				if (node->node_num[0] == -1 &&
+				    source->node_num[0] != -1) {
+					node->node_num[0] =
+						radix->num_added_node +
+						source->node_num[0];
+					node->data[0] = source->data[0];
+				}
+				if (node->node_num[1] == -1 &&
+				    source->node_num[0] != -1) {
+					node->node_num[1] =
+						radix->num_added_node +
+						source->node_num[1];
+					node->data[1] = source->data[1];
+				}
+			} else {
+				if (node->node_num[ISC_IS6(family)] == -1)
+					node->node_num[ISC_IS6(family)] =
+						 ++radix->num_added_node;
+			}
 			*target = node;
 			return (ISC_R_SUCCESS);
+		} else {
+			result =
+				_ref_prefix(radix->mctx, &node->prefix, prefix);
+			if (result != ISC_R_SUCCESS)
+				return (result);
 		}
-		result = _ref_prefix(radix->mctx, &node->prefix, prefix);
-		if (result != ISC_R_SUCCESS)
-			return (result);
 		INSIST(node->data[0] == NULL && node->node_num[0] == -1 &&
 		       node->data[1] == NULL && node->node_num[1] == -1);
 		if (source != NULL) {
 			/* Merging node */
-			node->node_num[ISC_IS6(family)] =
-				radix->num_added_node +
-				source->node_num[ISC_IS6(family)];
+			if (source->node_num[0] != -1) {
+				node->node_num[0] = radix->num_added_node +
+						    source->node_num[0];
+				node->data[0] = source->data[0];
+			}
+			if (source->node_num[1] != -1) {
+				node->node_num[1] = radix->num_added_node +
+						    source->node_num[1];
+				node->data[1] = source->data[1];
+			}
 		} else {
 			node->node_num[ISC_IS6(family)] =
 				++radix->num_added_node;

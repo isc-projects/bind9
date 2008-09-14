@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.c,v 1.45 2008/04/29 01:01:42 each Exp $ */
+/* $Id: acl.c,v 1.47 2008/09/12 04:54:39 each Exp $ */
 
 /*! \file */
 
@@ -144,10 +144,11 @@ dns_acl_isanyornone(dns_acl_t *acl, isc_boolean_t pos)
 	    acl->iptable->radix->head->prefix == NULL)
 		return (ISC_FALSE);
 
-	if (acl->length != 0 && acl->node_count != 1)
+	if (acl->length != 0 || acl->node_count != 1)
 		return (ISC_FALSE);
 
 	if (acl->iptable->radix->head->prefix->bitlen == 0 &&
+	    acl->iptable->radix->head->data[0] != NULL &&
 	    *(isc_boolean_t *) (acl->iptable->radix->head->data[0]) == pos)
 		return (ISC_TRUE);
 
@@ -234,8 +235,10 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
 		dns_aclelement_t *e = &acl->elements[i];
 
 		/* Already found a better match? */
-		if (match_num != -1 && match_num < e->node_num)
+		if (match_num != -1 && match_num < e->node_num) {
+			isc_refcount_destroy(&pfx.refcount);
 			return (ISC_R_SUCCESS);
+		}
 
 		if (dns_aclelement_match(reqaddr, reqsigner,
 					 e, env, matchelt)) {
@@ -245,10 +248,12 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
 				else
 					*match = e->node_num;
 			}
+			isc_refcount_destroy(&pfx.refcount);
 			return (ISC_R_SUCCESS);
 		}
 	}
 
+	isc_refcount_destroy(&pfx.refcount);
 	return (ISC_R_SUCCESS);
 }
 

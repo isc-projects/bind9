@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.45 2008/08/29 23:47:22 tbox Exp $ */
+/* $Id: time.c,v 1.48 2008/09/08 23:47:10 tbox Exp $ */
 
 #include <config.h>
 
@@ -78,6 +78,27 @@ isc_interval_iszero(const isc_interval_t *i) {
 		return (ISC_TRUE);
 
 	return (ISC_FALSE);
+}
+
+void
+isc_time_set(isc_time_t *t, unsigned int seconds, unsigned int nanoseconds) {
+	SYSTEMTIME epoch = { 1970, 1, 4, 1, 0, 0, 0, 0 };
+	FILETIME temp;
+	ULARGE_INTEGER i1;
+
+	REQUIRE(t != NULL);
+	REQUIRE(nanoseconds < NS_PER_S);
+
+	SystemTimeToFileTime(&epoch, &temp);
+
+	i1.LowPart = t->absolute.dwLowDateTime;
+	i1.HighPart = t->absolute.dwHighDateTime;
+
+	i1.QuadPart += (unsigned __int64)nanoseconds/100;
+	i1.QuadPart += (unsigned __int64)seconds*10000000;
+
+	t->absolute.dwLowDateTime = i1.LowPart;
+	t->absolute.dwHighDateTime = i1.HighPart;
 }
 
 void

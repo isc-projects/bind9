@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stats.h,v 1.17 2008/04/03 06:09:05 tbox Exp $ */
+/* $Id: stats.h,v 1.18 2008/09/08 05:59:11 marka Exp $ */
 
 #ifndef DNS_STATS_H
 #define DNS_STATS_H 1
@@ -320,18 +320,6 @@ dns_opcodestats_dump(dns_stats_t *stats, dns_opcodestats_dumper_t dump_fn,
  *
  * Requires:
  *\li	'stats' is a valid dns_stats_t created by dns_generalstats_create().
- */
-
-void
-dns_stats_incrementcounter(dns_stats_t *stat, dns_statscounter_t counter);
-/*%<
- * Increment a counter field of 'stat' specified by 'counter'.
- *
- * Requires:
- *
- *\li	'stat' be a valid dns_stats_t.
- *
- *\li	counter < DNS_STATS_NCOUNTERS
  */
 
 isc_result_t

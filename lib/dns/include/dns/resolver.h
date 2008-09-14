@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.59 2008/06/23 19:41:19 jinmei Exp $ */
+/* $Id: resolver.h,v 1.60 2008/09/08 05:41:22 marka Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
@@ -475,33 +475,6 @@ dns_resolver_setzeronosoattl(dns_resolver_t *resolver, isc_boolean_t state);
 
 unsigned int
 dns_resolver_getoptions(dns_resolver_t *resolver);
-
-isc_result_t
-dns_resolver_createdispatchpool(dns_resolver_t *res, unsigned int ndisps,
-				unsigned int interval);
-/*%<
- * Create a pool of dispatches
- *
- * Notes:
- *
- *\li	Generally, applications should not create a resolver directly, but
- *	should instead call dns_view_createresolver().
- *
- * Requires:
- *
- *\li	'res' is a valid resolver that has not been frozen.  Also it must have
- *	either the _USEDISPATCHPOOL4 or _USEDISPATCHPOOL6 option.
- *
- *\li	'taskmgr' is a valid task manager.
- *
- *\li	'ndisps' > 0.
- *
- * Returns:
- *
- *\li	#ISC_R_SUCCESS				On success.
- *
- *\li	Anything else				Failure.
- */
 
 ISC_LANG_ENDDECLS
 

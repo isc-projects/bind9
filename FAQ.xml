@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: FAQ.xml,v 1.44 2008/08/27 02:34:48 marka Exp $ -->
+<!-- $Id: FAQ.xml,v 1.46 2008/09/09 05:42:17 marka Exp $ -->
 
 <article class="faq">
   <title>Frequently Asked Questions about BIND 9</title>
@@ -1052,6 +1052,23 @@ empty:
 	  The release pages for each version contain up to date
 	  lists of bugs that have been fixed post release.  That
 	  is as close as we can get to providing a bug database.
+	</para>
+      </answer>
+    </qandaentry>
+
+    <qandaentry>
+      <question>
+	<para>
+	  Why do queries for NSEC3 records fail to return the NSEC3 record?
+	</para>
+      </question>
+      <answer>
+	<para>
+	  NSEC3 records are strictly meta data and can only be
+	  returned in the authority section.  This is done so that
+	  signing the zone using NSEC3 records does not bring names
+	  into existance that do not exist in the unsigned version
+	  of the zone.
 	</para>
       </answer>
     </qandaentry>

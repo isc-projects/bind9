@@ -2287,7 +2287,7 @@
 ./lib/isc/unix/include/isc/stdtime.h		C	1999,2000,2001,2004,2005,2007
 ./lib/isc/unix/include/isc/strerror.h		C	2001,2004,2005,2007
 ./lib/isc/unix/include/isc/syslog.h		C	1999,2000,2001,2004,2005,2007
-./lib/isc/unix/include/isc/time.h		C	1998,1999,2000,2001,2004,2005,2006,2007
+./lib/isc/unix/include/isc/time.h		C	1998,1999,2000,2001,2004,2005,2006,2007,2008
 ./lib/isc/unix/interfaceiter.c			C	1999,2000,2001,2002,2003,2004,2005,2007,2008
 ./lib/isc/unix/ipv6.c				C	1999,2000,2001,2004,2005,2006,2007
 ./lib/isc/unix/keyboard.c			C	2000,2001,2004,2007
@@ -2324,7 +2324,7 @@
 ./lib/isc/win32/include/isc/int.h		C	1999,2000,2001,2004,2007
 ./lib/isc/win32/include/isc/ipv6.h		C	1999,2000,2001,2002,2004,2005,2007
 ./lib/isc/win32/include/isc/keyboard.h		C	2000,2001,2004,2007
-./lib/isc/win32/include/isc/mutex.h		C	1998,1999,2000,2001,2004,2007
+./lib/isc/win32/include/isc/mutex.h		C	1998,1999,2000,2001,2004,2007,2008
 ./lib/isc/win32/include/isc/net.h		C	1999,2000,2001,2002,2003,2004,2005,2007,2008
 ./lib/isc/win32/include/isc/netdb.h		C	1999,2000,2001,2004,2007
 ./lib/isc/win32/include/isc/ntgroups.h		C	2001,2004,2007
@@ -2337,7 +2337,7 @@
 ./lib/isc/win32/include/isc/strerror.h		C	2001,2004,2007
 ./lib/isc/win32/include/isc/syslog.h		C	1999,2000,2001,2004,2007
 ./lib/isc/win32/include/isc/thread.h		C	1998,1999,2000,2001,2004,2005,2007
-./lib/isc/win32/include/isc/time.h		C	1998,1999,2000,2001,2004,2006,2007
+./lib/isc/win32/include/isc/time.h		C	1998,1999,2000,2001,2004,2006,2007,2008
 ./lib/isc/win32/include/isc/win32os.h		C	2002,2004,2007
 ./lib/isc/win32/interfaceiter.c			C	1999,2000,2001,2004,2007,2008
 ./lib/isc/win32/ipv6.c				C	1999,2000,2001,2004,2007

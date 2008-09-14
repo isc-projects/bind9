@@ -1,8 +1,35 @@
-2434.	[placeholder]
+2442.	[bug]		A lock could be destroyed twice. [RT# 18626]
+
+2441.   [bug]           isc_radix_insert() could copy radix tree nodes
+			incompletely. [RT #18573]
+
+2440.   [bug]		named-checkconf used an incorrect test to determine
+			if an ACL was set to none.
+
+2439.   [bug]		Potential NULL dereference in dns_acl_isanyornone().
+			[RT #18559]
+
+2438.   [bug]		Timeouts could be logged incorrectly under win32.
+
+2437.	[bug]		Sockets could be closed too early, leading to
+			inconsistent states in the socket module. [RT #18298]
+
+2436.	[security]	win32: UDP client handler can be shutdown. [RT #18576]
+
+2435.	[bug]		Fixed an ACL memory leak affecting win32.
+
+2434.	[bug]		Fixed a minor error-reporting bug in
+			lib/isc/win32/socket.c.
 
 2433.	[tuning]	Set initial timeout to 800ms.
 
-2432.   [placeholder]
+2432.   [bug]		More Windows socket handling improvements.  Stop
+			using I/O events and use IO Completion Ports
+			throughout.  Rewrite the receive path logic to make
+			it easier to support multiple simultaneous
+			requestrs in the future.  Add stricter consistency
+			checking as a compile-time option (define
+			ISC_SOCKET_CONSISTENCY_CHECKS; defaults to off).
 
 2431.	[bug]		Acl processing could leak memory. [RT #18323]
 
@@ -31,7 +58,7 @@
 			epoll and /dev/poll to be selected at compile
 			time. [RT #18277]
 			
-2423.   [security]      Randomize server selection on queries, so as to
+2423.   [security]	Randomize server selection on queries, so as to
                         make forgery a little more difficult.  Instead of
                         always preferring the server with the lowest RTT,
                         pick a server with RTT within the same 128
@@ -45,7 +72,12 @@
 			Use caution: this option may not work for some
 			operating systems without rebuilding named.
 
-2420.   [placeholder]
+2420.   [bug]		Windows socket handling cleanup.  Let the io
+			completion event send out cancelled read/write
+			done events, which keeps us from writing to memeory
+			we no longer have ownership of.  Add debugging
+			socket_log() function.  Rework TCP socket handling
+			to not leak sockets.
 
 2419.	[cleanup]	Document that isc_socket_create() and isc_socket_open()
 			should not be used for isc_sockettype_fdwatch sockets.
@@ -87,8 +119,7 @@
 
 2407.	[port]		hpux: test for sys/dyntune.h. [RT #18421]
 
-2406.	[bug]		Sockets could be closed too early, leading to
-			inconsistent states in the socket module. [RT #18298]
+2406.	[placeholder]
 
 2405.   [cleanup]       The default value for dnssec-validation was changed to
                         "yes" in 9.5.0-P1 and all subsequent releases; this

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2006, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2006-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.h,v 1.31 2007/06/19 23:47:20 tbox Exp $ */
+/* $Id: time.h,v 1.33 2008/09/08 23:47:10 tbox Exp $ */
 
 #ifndef ISC_TIME_H
 #define ISC_TIME_H 1
@@ -83,6 +83,17 @@ struct isc_time {
 };
 
 LIBISC_EXTERNAL_DATA extern isc_time_t *isc_time_epoch;
+
+void
+isc_time_set(isc_time_t *t, unsigned int seconds, unsigned int nanoseconds);
+/*%<
+ * Set 't' to a value which represents the given number of seconds and
+ * nanoseconds since 00:00:00 January 1, 1970, UTC.
+ *
+ * Requires:
+ *\li   't' is a valid pointer.
+ *\li   nanoseconds < 1000000000.
+ */
 
 void
 isc_time_settoepoch(isc_time_t *t);

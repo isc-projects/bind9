@@ -248,11 +248,14 @@ isc_mem_createx
 isc_mem_createx2
 isc_mem_destroy
 isc_mem_detach
+isc_mem_getname
 isc_mem_getquota
+isc_mem_gettag
 isc_mem_inuse
 isc_mem_ondestroy
 isc_mem_references
 isc_mem_setdestroycheck
+isc_mem_setname
 isc_mem_setquota
 isc_mem_setwater
 isc_mem_stats
@@ -311,6 +314,14 @@ isc_os_ncpus
 isc_parse_uint16
 isc_parse_uint32
 isc_parse_uint8
+isc_portset_add
+isc_portset_addrange
+isc_portset_create
+isc_portset_destroy
+isc_portset_isset
+isc_portset_nports
+isc_portset_remove
+isc_portset_removerange
 isc_quota_attach
 isc_quota_destroy
 isc_quota_detach
@@ -488,6 +499,7 @@ isc_time_nanoseconds
 isc_time_now
 isc_time_nowplusinterval
 isc_time_seconds
+isc_time_set
 isc_time_settoepoch
 isc_time_subtract
 isc_timer_attach
@@ -505,7 +517,6 @@ isc_win32os_servicepackminor
 isc_win32os_versioncheck
 openlog
 syslog
-
 
 ; Exported Data
 
