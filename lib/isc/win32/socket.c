@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.5.2.13.2.43 2008/09/11 23:45:32 tbox Exp $ */
+/* $Id: socket.c,v 1.5.2.13.2.44 2008/09/16 17:15:46 explorer Exp $ */
 
 /* This code uses functions which are only available on Server 2003 and
  * higher, and Windows XP and higher.
@@ -85,14 +85,6 @@
 LPFN_CONNECTEX ISCConnectEx;
 LPFN_ACCEPTEX ISCAcceptEx;
 LPFN_GETACCEPTEXSOCKADDRS ISCGetAcceptExSockaddrs;
-
-/*
- * 0 = no debugging, 1 = write to file "socket.log" in working directory.
- */
-#define XXXMLG_DEBUG 0
-#if XXXMLG_DEBUG
-FILE *logfile = NULL;
-#endif
 
 /*
  * Run expensive internal consistancy checks.
@@ -821,20 +813,10 @@ socket_log(int lineno, isc_socket_t *sock, isc_sockaddr_t *address,
 	char msgbuf[2048];
 	char peerbuf[256];
 	va_list ap;
-#if XXXMLG_DEBUG
-	char timebuf[128];
-	isc_time_t now;
-#endif
 
-#if XXXMLG_DEBUG
-	isc_time_now(&now);
-	isc_time_formattimestamp(&now, timebuf, sizeof timebuf);
-#endif
 
-#if XXXMLG_DEBUG == 0
 	if (!isc_log_wouldlog(isc_lctx, level))
 		return;
-#endif
 
 	va_start(ap, fmt);
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
@@ -844,28 +826,14 @@ socket_log(int lineno, isc_socket_t *sock, isc_sockaddr_t *address,
 		isc_log_iwrite(isc_lctx, category, module, level,
 			       msgcat, msgset, message,
 			       "socket %p line %d: %s", sock, lineno, msgbuf);
-#if XXXMLG_DEBUG
-		if (logfile)
-			fprintf(logfile, "%s socket %p line %d: %s:\n",
-				timebuf, sock, lineno, msgbuf);
-#endif
 	} else {
 		isc_sockaddr_format(address, peerbuf, sizeof(peerbuf));
 		isc_log_iwrite(isc_lctx, category, module, level,
 			       msgcat, msgset, message,
 				   "socket %p line %d peer %s: %s", sock, lineno,
 				   peerbuf, msgbuf);
-#if XXXMLG_DEBUG
-		if (logfile)
-			fprintf(logfile, "%s socket %p line %d: %s: %s\n",
-			timebuf, sock, lineno, peerbuf, msgbuf);
-#endif
 	}
 
-#if XXXMLG_DEBUG
-	if (logfile)
-		fflush(logfile);
-#endif
 }
 
 /*
@@ -2472,10 +2440,6 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 	if (maxsocks != 0)
 		return (ISC_R_NOTIMPLEMENTED);
 
-#if XXXMLG_DEBUG
-	logfile = fopen("socket.log", "w");
-#endif
-
 	manager = isc_mem_get(mctx, sizeof(*manager));
 	if (manager == NULL)
 		return (ISC_R_NOMEMORY);
@@ -2526,11 +2490,6 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	isc_socketmgr_t *manager;
 	int i;
 	isc_mem_t *mctx;
-
-#if XXXMLG_DEBUG
-	if (logfile)
-		fclose(logfile);
-#endif
 
 	/*
 	 * Destroy a socket manager.
@@ -3337,34 +3296,39 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 	}
 	ISC_LINK_INIT(cdev, ev_link);
 
-	/*
-	 * Queue io completion for an accept().
-	 */
-	lpo = (IoCompletionInfo *)HeapAlloc(hHeapHandle,
-					    HEAP_ZERO_MEMORY,
-					    sizeof(IoCompletionInfo));
-	lpo->cdev = cdev;
-	lpo->request_type = SOCKET_CONNECT;
+	if (sock->type == isc_sockettype_tcp) {
+		/*
+		 * Queue io completion for an accept().
+		 */
+		lpo = (IoCompletionInfo *)HeapAlloc(hHeapHandle,
+						    HEAP_ZERO_MEMORY,
+						    sizeof(IoCompletionInfo));
+		lpo->cdev = cdev;
+		lpo->request_type = SOCKET_CONNECT;
 
-	sock->address = *addr;
-	ISCConnectEx(sock->fd, &addr->type.sa, addr->length,
-		NULL, 0, NULL, (LPOVERLAPPED)lpo);
+		sock->address = *addr;
+		ISCConnectEx(sock->fd, &addr->type.sa, addr->length,
+			NULL, 0, NULL, (LPOVERLAPPED)lpo);
 
-	/*
-	 * Attach to task.
-	 */
-	isc_task_attach(task, &ntask);
-	cdev->ev_sender = ntask;
+		/*
+		 * Attach to task.
+		 */
+		isc_task_attach(task, &ntask);
+		cdev->ev_sender = ntask;
 
-	sock->pending_connect = 1;
-	_set_state(sock, SOCK_CONNECT);
+		sock->pending_connect = 1;
+		_set_state(sock, SOCK_CONNECT);
 
-	/*
-	 * Enqueue the request.
-	 */
-	sock->connect_ev = cdev;
-	sock->pending_iocp++;
-
+		/*
+		 * Enqueue the request.
+		 */
+		sock->connect_ev = cdev;
+		sock->pending_iocp++;
+	} else {
+		WSAConnect(sock->fd, &addr->type.sa, addr->length, NULL, NULL, NULL, NULL);
+		cdev->result = ISC_R_SUCCESS;
+		isc_task_send(task, (isc_event_t **)&cdev);
+	}
 	CONSISTENT(sock);
 	UNLOCK(&sock->lock);
 

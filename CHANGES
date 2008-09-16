@@ -1,3 +1,8 @@
+2443.	[bug]		win32: UDP connect() would not generate an event,
+			and so connected UDP sockets would never clean up.
+			Fix this by doing an immediate WSAConnect() rather
+			than an io completion port type for UDP.
+
 	--- 9.3.6b1 released ---
 
 2438.	[bug]		Timeouts could be logged incorrectly under win32.
