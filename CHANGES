@@ -125,10 +125,6 @@
 
 2407.	[port]		hpux: test for sys/dyntune.h. [RT #18421]
 
-xxxx.	[bug]		Connecting UDP sockets for outgoing queries could
-			unexpectedly fail with an 'address already in use'
-			error.
-
 2405.   [cleanup]       The default value for dnssec-validation was changed to
                         "yes" in 9.5.0-P1 and all subsequent releases; this
                         was inadvertently omitted from CHANGES at the time.
