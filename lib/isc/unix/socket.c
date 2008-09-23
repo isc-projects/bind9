@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.207.2.19.2.55 2008/09/04 08:11:25 marka Exp $ */
+/* $Id: socket.c,v 1.207.2.19.2.56 2008/09/23 02:46:01 marka Exp $ */
 
 #include <config.h>
 
@@ -1976,6 +1976,27 @@ opensocket(isc_socketmgr_t *manager, isc_socket_t *sock) {
 #endif
 #endif /* ISC_PLATFORM_HAVEIPV6 */
 #endif /* defined(USE_CMSG) */
+  
+#if defined(IP_MTU_DISCOVER) && defined(IP_PMTUDISC_DONT)
+		/*
+		 * Turn off Path MTU discovery on IPv4/UDP sockets.
+		 */
+		if (sock->pf == AF_INET) {
+			int action = IP_PMTUDISC_DONT;
+			(void)setsockopt(sock->fd, IPPROTO_IP, IP_MTU_DISCOVER,
+					 &action, sizeof(action));
+		}
+#endif
+#if defined(IP_DONTFRAG)
+		/*
+		 * Turn off Path MTU discovery on IPv4/UDP sockets.
+		 */
+		if (sock->pf == AF_INET) {
+			int off = 0;
+			(void)setsockopt(sock->fd, IPPROTO_IP, IP_DONTFRAG,
+					 &off, sizeof(off));
+		}
+#endif
 	}
 #endif /* defined(USE_CMSG) || defined(SO_RCVBUF) */
 
