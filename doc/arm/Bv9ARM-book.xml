@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.92 2008/09/11 23:00:19 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.93 2008/09/23 04:02:08 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -7449,9 +7449,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	  <para>
 	    The current list of empty zones is:
 	    <itemizedlist>
+<!-- XXX: The RFC1918 addresses are #defined out in sources currently.
 	      <listitem>10.IN-ADDR.ARPA</listitem>
-	      <listitem>127.IN-ADDR.ARPA</listitem>
-	      <listitem>254.169.IN-ADDR.ARPA</listitem>
 	      <listitem>16.172.IN-ADDR.ARPA</listitem>
 	      <listitem>17.172.IN-ADDR.ARPA</listitem>
 	      <listitem>18.172.IN-ADDR.ARPA</listitem>
@@ -7469,7 +7468,12 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      <listitem>30.172.IN-ADDR.ARPA</listitem>
 	      <listitem>31.172.IN-ADDR.ARPA</listitem>
 	      <listitem>168.192.IN-ADDR.ARPA</listitem>
+XXX: end of RFC1918 addresses #defined out -->
+	      <listitem>0.IN-ADDR.ARPA</listitem>
+	      <listitem>127.IN-ADDR.ARPA</listitem>
+	      <listitem>254.169.IN-ADDR.ARPA</listitem>
 	      <listitem>2.0.192.IN-ADDR.ARPA</listitem>
+	      <listitem>255.255.255.255.IN-ADDR.ARPA</listitem>
 	      <listitem>0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.IP6.ARPA</listitem>
 	      <listitem>1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.IP6.ARPA</listitem>
 	      <listitem>D.F.IP6.ARPA</listitem>
