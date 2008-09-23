@@ -1,3 +1,6 @@
+2444.	[port]		Linux, FreeBSD, AIX: Turn off path mtu discovery
+			(clear DF) for UDP responses and requests.
+
 	--- 9.5.1b2 released ---
 
 2443.	[bug]		win32: UDP connect() would not generate an event,
