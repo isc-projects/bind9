@@ -1,3 +1,7 @@
+2445.	[doc]		ARM out-of-date on empty reverse zones (list includes
+			RFC1918 address, but these are not yet compiled in).
+			[RT #18578]
+
 2444.	[port]		Linux, FreeBSD, AIX: Turn off path mtu discovery
 			(clear DF) for UDP responses and requests.
 
