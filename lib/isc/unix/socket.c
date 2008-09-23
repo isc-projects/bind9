@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.207.2.19.2.56 2008/09/23 02:46:01 marka Exp $ */
+/* $Id: socket.c,v 1.207.2.19.2.57 2008/09/23 23:45:31 tbox Exp $ */
 
 #include <config.h>
 
@@ -1976,7 +1976,7 @@ opensocket(isc_socketmgr_t *manager, isc_socket_t *sock) {
 #endif
 #endif /* ISC_PLATFORM_HAVEIPV6 */
 #endif /* defined(USE_CMSG) */
-  
+
 #if defined(IP_MTU_DISCOVER) && defined(IP_PMTUDISC_DONT)
 		/*
 		 * Turn off Path MTU discovery on IPv4/UDP sockets.
