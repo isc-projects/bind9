@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.docbook,v 1.21 2008/08/21 23:47:18 tbox Exp $ -->
+<!-- $Id: named.docbook,v 1.22 2008/09/23 17:25:47 jinmei Exp $ -->
 <refentry id="man.named">
   <refentryinfo>
     <date>June 30, 2000</date>
@@ -69,6 +69,7 @@
       <arg><option>-t <replaceable class="parameter">directory</replaceable></option></arg>
       <arg><option>-u <replaceable class="parameter">user</replaceable></option></arg>
       <arg><option>-v</option></arg>
+      <arg><option>-V</option></arg>
       <arg><option>-x <replaceable class="parameter">cache-file</replaceable></option></arg>
     </cmdsynopsis>
   </refsynopsisdiv>
@@ -295,6 +296,15 @@
         <listitem>
           <para>
             Report the version number and exit.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-V</term>
+        <listitem>
+          <para>
+            Report the version number and build options, and exit.
           </para>
         </listitem>
       </varlistentry>

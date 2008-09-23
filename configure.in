@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.447 $)
+AC_REVISION($Revision: 1.448 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -2661,6 +2661,18 @@ BIND9_MAKE_RULES=$BIND9_TOP_BUILDDIR/make/rules
 . $srcdir/version
 BIND9_VERSION="VERSION=${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}"
 AC_SUBST(BIND9_VERSION)
+
+if test -z "$ac_configure_args"; then
+	BIND9_CONFIGARGS="defaults"
+else
+	for a in $ac_configure_args
+	do
+		BIND9_CONFIGARGS="$BIND9_CONFIGARGS $a"
+	done
+fi
+BIND9_CONFIGARGS="`echo $BIND9_CONFIGARGS | sed 's/^ //'`"
+BIND9_CONFIGARGS="CONFIGARGS=${BIND9_CONFIGARGS}"
+AC_SUBST(BIND9_CONFIGARGS)
 
 AC_SUBST_FILE(LIBISC_API)
 LIBISC_API=$srcdir/lib/isc/api

@@ -13,13 +13,15 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.100 2008/03/31 05:00:29 marka Exp $
+# $Id: Makefile.in,v 1.101 2008/09/23 17:25:47 jinmei Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
 
 @BIND9_VERSION@
+
+@BIND9_CONFIGARGS@
 
 @BIND9_MAKE_INCLUDES@
 
@@ -105,6 +107,7 @@ MANOBJS =	${MANPAGES} ${HTMLPAGES}
 main.@O@: main.c
 	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} \
 		-DVERSION=\"${VERSION}\" \
+		-DCONFIGARGS="\"${CONFIGARGS}\"" \
 		-DNS_LOCALSTATEDIR=\"${localstatedir}\" \
 		-DNS_SYSCONFDIR=\"${sysconfdir}\" -c ${srcdir}/main.c
 

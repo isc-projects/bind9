@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: globals.h,v 1.75 2008/01/02 23:47:01 tbox Exp $ */
+/* $Id: globals.h,v 1.76 2008/09/23 17:25:47 jinmei Exp $ */
 
 #ifndef NAMED_GLOBALS_H
 #define NAMED_GLOBALS_H 1
@@ -58,6 +58,7 @@ EXTERN isc_timermgr_t *		ns_g_timermgr		INIT(NULL);
 EXTERN isc_socketmgr_t *	ns_g_socketmgr		INIT(NULL);
 EXTERN cfg_parser_t *		ns_g_parser		INIT(NULL);
 EXTERN const char *		ns_g_version		INIT(VERSION);
+EXTERN const char *		ns_g_configargs		INIT(CONFIGARGS);
 EXTERN in_port_t		ns_g_port		INIT(0);
 EXTERN in_port_t		lwresd_g_listenport	INIT(0);
 

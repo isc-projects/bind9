@@ -1,3 +1,7 @@
+2446.	[func]		Add a new log message about build options on startup.
+			A new command-line option '-V' for named is also
+			provided to show this information. [RT# 18645]
+
 2445.	[doc]		ARM out-of-date on empty reverse zones (list includes
 			RFC1918 address, but these are not yet compiled in).
 			[RT #18578]

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.163 2008/08/20 23:57:59 jinmei Exp $ */
+/* $Id: main.c,v 1.164 2008/09/23 17:25:47 jinmei Exp $ */
 
 /*! \file */
 
@@ -358,7 +358,7 @@ parse_command_line(int argc, char *argv[]) {
 	isc_commandline_errprint = ISC_FALSE;
 	while ((ch = isc_commandline_parse(argc, argv,
 					   "46c:C:d:fgi:lm:n:N:p:P:"
-					   "sS:t:T:u:vx:")) != -1) {
+					   "sS:t:T:u:vVx:")) != -1) {
 		switch (ch) {
 		case '4':
 			if (disable4)
@@ -461,6 +461,10 @@ parse_command_line(int argc, char *argv[]) {
 			break;
 		case 'v':
 			printf("BIND %s\n", ns_g_version);
+			exit(0);
+		case 'V':
+			printf("BIND %s built with %s\n", ns_g_version,
+				ns_g_configargs);
 			exit(0);
 		case '?':
 			usage();
@@ -668,6 +672,9 @@ setup(void) {
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "starting BIND %s%s", ns_g_version,
 		      saved_command_line);
+
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "built with %s", ns_g_configargs);
 
 	/*
 	 * Get the initial resource limits.
