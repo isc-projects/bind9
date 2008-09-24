@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.92 2008/04/03 05:55:52 marka Exp $ */
+/* $Id: db.h,v 1.93 2008/09/24 02:46:22 marka Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -111,8 +111,7 @@ typedef struct dns_dbmethods {
 				      isc_stdtime_t now);
 	void		(*printnode)(dns_db_t *db, dns_dbnode_t *node,
 				     FILE *out);
-	isc_result_t 	(*createiterator)(dns_db_t *db,
-					  isc_boolean_t relative_names,
+	isc_result_t 	(*createiterator)(dns_db_t *db, unsigned int options,
 					  dns_dbiterator_t **iteratorp);
 	isc_result_t	(*findrdataset)(dns_db_t *db, dns_dbnode_t *node,
 					dns_dbversion_t *version,
@@ -148,6 +147,16 @@ typedef struct dns_dbmethods {
 	isc_result_t	(*getoriginnode)(dns_db_t *db, dns_dbnode_t **nodep);
 	void		(*transfernode)(dns_db_t *db, dns_dbnode_t **sourcep,
 					dns_dbnode_t **targetp);
+	isc_result_t    (*getnsec3parameters)(dns_db_t *db,
+					      dns_dbversion_t *version,
+					      dns_hash_t *hash,
+					      isc_uint8_t *flags,
+					      isc_uint16_t *iterations,
+					      unsigned char *salt,
+					      size_t *salt_len);
+	isc_result_t    (*findnsec3node)(dns_db_t *db, dns_name_t *name,
+					 isc_boolean_t create,
+					 dns_dbnode_t **nodep);
 	isc_result_t	(*setsigningtime)(dns_db_t *db,
 					  dns_rdataset_t *rdataset,
 					  isc_stdtime_t resign);
@@ -203,6 +212,7 @@ struct dns_db {
 #define DNS_DBFIND_NOEXACT		0x10
 #define DNS_DBFIND_FORCENSEC		0x20
 #define DNS_DBFIND_COVERINGNSEC		0x40
+#define DNS_DBFIND_FORCENSEC3		0x80
 /*@}*/
 
 /*@{*/
@@ -219,6 +229,15 @@ struct dns_db {
  * Options that can be specified for dns_db_subtractrdataset().
  */
 #define DNS_DBSUB_EXACT			0x01
+
+/*@{*/
+/*%
+ * Iterator options
+ */
+#define DNS_DB_RELATIVENAMES	0x1
+#define DNS_DB_NSEC3ONLY	0x2
+#define DNS_DB_NONSEC3		0x4
+/*@}*/
 
 /*****
  ***** Methods
@@ -811,7 +830,7 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *						name, and 'rdataset' contains
  *						the negative caching proof.
  *
- *	\li	#DNS_R_EMPTYNAME			The name exists but there is
+ *	\li	#DNS_R_EMPTYNAME		The name exists but there is
  *						no data at the name.
  *
  *	\li	#DNS_R_COVERINGNSEC		The returned data is a NSEC
@@ -964,16 +983,17 @@ dns_db_printnode(dns_db_t *db, dns_dbnode_t *node, FILE *out);
  ***/
 
 isc_result_t
-dns_db_createiterator(dns_db_t *db, isc_boolean_t relative_names,
+dns_db_createiterator(dns_db_t *db, unsigned int options,
 		      dns_dbiterator_t **iteratorp);
 /*%<
  * Create an iterator for version 'version' of 'db'.
  *
  * Notes:
  *
- * \li	If 'relative_names' is ISC_TRUE, then node names returned by the
- *	iterator will be relative to the iterator's current origin.  If
- *	#ISC_FALSE, then the node names will be absolute.
+ * \li	One or more of the following options can be set.
+ *	#DNS_DB_RELATIVENAMES
+ *	#DNS_DB_NSEC3ONLY
+ *	#DNS_DB_NONSEC3
  *
  * Requires:
  *
@@ -1342,6 +1362,55 @@ dns_db_getoriginnode(dns_db_t *db, dns_dbnode_t **nodep);
  */
 
 isc_result_t
+dns_db_getnsec3parameters(dns_db_t *db, dns_dbversion_t *version,
+			  dns_hash_t *hash, isc_uint8_t *flags,
+			  isc_uint16_t *interations,
+			  unsigned char *salt, size_t *salt_length);
+/*%<
+ * Get the NSEC3 parameters that are associated with this zone.
+ *
+ * Requires:
+ * \li	'db' is a valid zone database.
+ *
+ * Returns:
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_NOTFOUND - the DB implementation does not support this feature
+ *			  or this zone does not have NSEC3 records.
+ */
+
+isc_result_t
+dns_db_findnsec3node(dns_db_t *db, dns_name_t *name,
+		     isc_boolean_t create, dns_dbnode_t **nodep);
+/*%<
+ * Find the NSEC3 node with name 'name'.
+ *
+ * Notes:
+ * \li	If 'create' is ISC_TRUE and no node with name 'name' exists, then
+ *	such a node will be created.
+ *
+ * Requires:
+ *
+ * \li	'db' is a valid database.
+ *
+ * \li	'name' is a valid, non-empty, absolute name.
+ *
+ * \li	nodep != NULL && *nodep == NULL
+ *
+ * Ensures:
+ *
+ * \li	On success, *nodep is attached to the node with name 'name'.
+ *
+ * Returns:
+ *
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_NOTFOUND			If !create and name not found.
+ * \li	#ISC_R_NOMEMORY			Can only happen if create is ISC_TRUE.
+ *
+ * \li	Other results are possible, depending upon the database
+ *	implementation used.
+ */
+
+isc_result_t
 dns_db_setsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
 		      isc_stdtime_t resign);
 /*%<
@@ -1387,7 +1456,6 @@ dns_db_resigned(dns_db_t *db, dns_rdataset_t *rdataset,
  * \li	'rdataset' to be associated with 'db'.
  * \li	'version' to be open for writing.
  */
-
 
 dns_stats_t *
 dns_db_getrrsetstats(dns_db_t *db);

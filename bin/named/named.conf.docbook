@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.38 2008/09/04 05:56:42 marka Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.39 2008/09/24 02:46:21 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>Aug 13, 2004</date>
@@ -341,6 +341,8 @@ options {
 	zero-no-soa-ttl <replaceable>boolean</replaceable>;
 	zero-no-soa-ttl-cache <replaceable>boolean</replaceable>;
 
+	nsec3-test-zone <replaceable>boolean</replaceable>;  // testing only
+
 	allow-v6-synthesis { <replaceable>address_match_element</replaceable>; ... }; // obsolete
 	deallocate-on-exit <replaceable>boolean</replaceable>; // obsolete
 	fake-iquery <replaceable>boolean</replaceable>; // obsolete
@@ -587,6 +589,8 @@ zone <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	zone-statistics <replaceable>boolean</replaceable>;
 	try-tcp-refresh <replaceable>boolean</replaceable>;
 	key-directory <replaceable>quoted_string</replaceable>;
+
+	nsec3-test-zone <replaceable>boolean</replaceable>;  // testing only
 
 	ixfr-base <replaceable>quoted_string</replaceable>; // obsolete
 	ixfr-tmp-file <replaceable>quoted_string</replaceable>; // obsolete

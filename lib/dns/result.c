@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.123 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: result.c,v 1.124 2008/09/24 02:46:22 marka Exp $ */
 
 /*! \file */
 
@@ -155,7 +155,8 @@ static const char *text[DNS_R_NRESULTS] = {
 	"must-be-secure",		       /*%< 100 DNS_R_MUSTBESECURE */
 	"covering NSEC record returned",       /*%< 101 DNS_R_COVERINGNSEC */
 	"MX is an address",		       /*%< 102 DNS_R_MXISADDRESS */
-	"duplicate query"		       /*%< 103 DNS_R_DUPLICATE */
+	"duplicate query",		       /*%< 103 DNS_R_DUPLICATE */
+	"invalid NSEC3 owner name (wildcard)", /*%< 104 DNS_R_INVALIDNSEC3 */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {

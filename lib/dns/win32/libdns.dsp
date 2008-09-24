@@ -246,6 +246,10 @@ SOURCE=..\include\dns\nsec.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\dns\nsec3.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\dns\order.h
 # End Source File
 # Begin Source File
@@ -527,6 +531,10 @@ SOURCE=..\ncache.c
 # Begin Source File
 
 SOURCE=..\nsec.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\nsec3.c
 # End Source File
 # Begin Source File
 

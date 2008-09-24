@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zonetodb.c,v 1.18 2007/06/18 23:47:33 tbox Exp $ */
+/* $Id: zonetodb.c,v 1.19 2008/09/24 02:46:21 marka Exp $ */
 
 #include <stdlib.h>
 #include <string.h>
@@ -230,7 +230,7 @@ main(int argc, char **argv) {
 	PQclear(res);
 
 	dbiter = NULL;
-	result = dns_db_createiterator(db, ISC_FALSE, &dbiter);
+	result = dns_db_createiterator(db, 0, &dbiter);
 	check_result(result, "dns_db_createiterator()");
 
 	result = dns_dbiterator_first(dbiter);

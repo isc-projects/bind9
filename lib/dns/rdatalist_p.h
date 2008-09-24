@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdatalist_p.h,v 1.9 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: rdatalist_p.h,v 1.10 2008/09/24 02:46:22 marka Exp $ */
 
 #ifndef DNS_RDATALIST_P_H
 #define DNS_RDATALIST_P_H
@@ -50,7 +50,14 @@ isc__rdatalist_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name);
 
 isc_result_t
 isc__rdatalist_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
-			  dns_rdataset_t *nsec, dns_rdataset_t *nsecsig);
+			  dns_rdataset_t *neg, dns_rdataset_t *negsig);
+
+isc_result_t
+isc__rdatalist_addclosest(dns_rdataset_t *rdataset, dns_name_t *name);
+
+isc_result_t
+isc__rdatalist_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
+			  dns_rdataset_t *neg, dns_rdataset_t *negsig);
 
 ISC_LANG_ENDDECLS
 

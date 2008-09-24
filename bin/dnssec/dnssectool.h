@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.h,v 1.20 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id: dnssectool.h,v 1.21 2008/09/24 02:46:21 marka Exp $ */
 
 #ifndef DNSSECTOOL_H
 #define DNSSECTOOL_H 1
@@ -41,7 +41,7 @@ vbprintf(int level, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
 
 void
 type_format(const dns_rdatatype_t type, char *cp, unsigned int size);
-#define TYPE_FORMATSIZE 10
+#define TYPE_FORMATSIZE 20
 
 void
 alg_format(const dns_secalg_t alg, char *cp, unsigned int size);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone2bdb.c,v 1.1 2002/05/16 04:25:22 marka Exp $ */
+/* $Id: zone2bdb.c,v 1.2 2008/09/24 02:46:21 marka Exp $ */
 
 #include <stdio.h>
 
@@ -144,7 +144,7 @@ main(int argc, char *argv[])
 
 	REQUIRE(dns_db_load(db, argv[2]) == ISC_R_SUCCESS);
 
-	REQUIRE(dns_db_createiterator(db, ISC_FALSE, &dbiter) == ISC_R_SUCCESS);
+	REQUIRE(dns_db_createiterator(db, 0, &dbiter) == ISC_R_SUCCESS);
 
 	dns_rdataset_init(&rdataset);
 	dns_rdata_init(&rdata);

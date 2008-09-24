@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone2sqlite.c,v 1.1 2007/03/05 05:30:22 marka Exp $ */
+/* $Id: zone2sqlite.c,v 1.2 2008/09/24 02:46:21 marka Exp $ */
 
 #include <stdlib.h>
 #include <string.h>
@@ -238,7 +238,7 @@ main(int argc, char *argv[])
     }
     
     dbiter = NULL;
-    result = dns_db_createiterator(db, ISC_FALSE, &dbiter);
+    result = dns_db_createiterator(db, 0, &dbiter);
     check_result(result, "dns_db_createiterator()");
     
     result = dns_dbiterator_first(dbiter);

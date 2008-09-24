@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.380 2008/09/04 04:23:43 marka Exp $ */
+/* $Id: resolver.c,v 1.381 2008/09/24 02:46:22 marka Exp $ */
 
 /*! \file */
 
@@ -389,6 +389,7 @@ static isc_result_t ncache_adderesult(dns_message_t *message,
 				      dns_db_t *cache, dns_dbnode_t *node,
 				      dns_rdatatype_t covers,
 				      isc_stdtime_t now, dns_ttl_t maxttl,
+				      isc_boolean_t optout,
 				      dns_rdataset_t *ardataset,
 				      isc_result_t *eresultp);
 static void validated(isc_task_t *task, isc_event_t *event);
@@ -1157,13 +1158,18 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	resquery_t *query;
 	isc_sockaddr_t addr;
 	isc_boolean_t have_addr = ISC_FALSE;
+	unsigned int srtt;
 
 	FCTXTRACE("query");
 
 	res = fctx->res;
 	task = res->buckets[fctx->bucketnum].task;
 
-	fctx_setretryinterval(fctx, addrinfo->srtt);
+	srtt = addrinfo->srtt;
+	if (ISFORWARDER(addrinfo) && srtt < 1000000)
+		srtt = 1000000;
+
+	fctx_setretryinterval(fctx, srtt);
 	result = fctx_startidletimer(fctx);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -3748,7 +3754,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 			ttl = 0;
 
 		result = ncache_adderesult(fctx->rmessage, fctx->cache, node,
-					   covers, now, ttl,
+					   covers, now, ttl, vevent->optout,
 					   ardataset, &eresult);
 		if (result != ISC_R_SUCCESS)
 			goto noanswer_response;
@@ -3765,6 +3771,11 @@ validated(isc_task_t *task, isc_event_t *event) {
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		INSIST(vevent->sigrdataset != NULL);
 		vevent->sigrdataset->ttl = vevent->rdataset->ttl;
+		if (vevent->proofs[DNS_VALIDATOR_CLOSESTENCLOSER] != NULL) {
+			result = dns_rdataset_addclosest(vevent->rdataset,
+				 vevent->proofs[DNS_VALIDATOR_CLOSESTENCLOSER]);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		}
 	}
 
 	/*
@@ -4305,12 +4316,12 @@ cache_message(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo, isc_stdtime_t now)
 }
 
 /*
- * Do what dns_ncache_add() does, and then compute an appropriate eresult.
+ * Do what dns_ncache_addoptout() does, and then compute an appropriate eresult.
  */
 static isc_result_t
 ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 		  dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t maxttl,
-		  dns_rdataset_t *ardataset,
+		  isc_boolean_t optout, dns_rdataset_t *ardataset,
 		  isc_result_t *eresultp)
 {
 	isc_result_t result;
@@ -4320,8 +4331,8 @@ ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 		dns_rdataset_init(&rdataset);
 		ardataset = &rdataset;
 	}
-	result = dns_ncache_add(message, cache, node, covers, now,
-				maxttl, ardataset);
+	result = dns_ncache_addoptout(message, cache, node, covers, now,
+				     maxttl, optout, ardataset);
 	if (result == DNS_R_UNCHANGED || result == ISC_R_SUCCESS) {
 		/*
 		 * If the cache now contains a negative entry and we
@@ -4485,7 +4496,8 @@ ncache_message(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		ttl = 0;
 
 	result = ncache_adderesult(fctx->rmessage, fctx->cache, node,
-				   covers, now, ttl, ardataset, &eresult);
+				   covers, now, ttl, ISC_FALSE,
+				   ardataset, &eresult);
 	if (result != ISC_R_SUCCESS)
 		goto unlock;
 
@@ -4860,7 +4872,8 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 				type = rdataset->type;
 				if (type == dns_rdatatype_rrsig)
 					type = rdataset->covers;
-				if (type == dns_rdatatype_nsec) {
+				if (type == dns_rdatatype_nsec ||
+				    type == dns_rdatatype_nsec3) {
 					/*
 					 * NSEC or RRSIG NSEC.
 					 */
@@ -4869,7 +4882,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 							DNS_NAMEATTR_NCACHE;
 						rdataset->attributes |=
 							DNS_RDATASETATTR_NCACHE;
-					} else {
+					} else if (type == dns_rdatatype_nsec) {
 						name->attributes |=
 							DNS_NAMEATTR_CACHE;
 						rdataset->attributes |=
@@ -5081,6 +5094,13 @@ answer_response(fetchctx_t *fctx) {
 				found = ISC_FALSE;
 				want_chaining = ISC_FALSE;
 				aflag = 0;
+				if (rdataset->type == dns_rdatatype_nsec3) {
+					/*
+					 * NSEC3 records are not allowed to
+					 * appear in the answer section.
+					 */
+					return (DNS_R_FORMERR);
+				}
 				if (rdataset->type == type && !found_cname) {
 					/*
 					 * We've found an ordinary answer.

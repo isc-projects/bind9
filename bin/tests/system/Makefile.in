@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.29 2007/06/19 23:47:00 tbox Exp $
+# $Id: Makefile.in,v 1.30 2008/09/24 02:46:21 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -34,7 +34,7 @@ check: test
 test: subdirs
 	if test -f ./runall.sh; then sh ./runall.sh; fi
 
-clean distclean::
+testclean clean distclean::
 	if test -f ./cleanall.sh; then sh ./cleanall.sh; fi
 
 distclean::

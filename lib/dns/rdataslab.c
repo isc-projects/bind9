@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.47 2008/04/23 21:32:01 each Exp $ */
+/* $Id: rdataslab.c,v 1.48 2008/09/24 02:46:22 marka Exp $ */
 
 /*! \file */
 
@@ -430,6 +430,8 @@ static dns_rdatasetmethods_t rdataset_methods = {
 	rdataset_current,
 	rdataset_clone,
 	rdataset_count,
+	NULL,
+	NULL,
 	NULL,
 	NULL,
 	NULL,

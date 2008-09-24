@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.244 2008/07/28 08:39:52 marka Exp $ */
+/* $Id: message.c,v 1.245 2008/09/24 02:46:22 marka Exp $ */
 
 /*! \file */
 
@@ -94,6 +94,8 @@ hexdump(const char *msg, const char *msg2, void *base, size_t len) {
 				       isc_buffer_putstr(b, s);}
 #define VALID_PSEUDOSECTION(s)	(((s) >= DNS_PSEUDOSECTION_ANY) \
 				 && ((s) < DNS_PSEUDOSECTION_MAX))
+
+#define OPTOUT(x) (((x)->attributes & DNS_RDATASETATTR_OPTOUT) != 0)
 
 /*%
  * This is the size of each individual scratchpad buffer, and the numbers
@@ -1987,6 +1989,8 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 				if (rdataset->trust != dns_trust_secure &&
 				    (sectionid == DNS_SECTION_ANSWER ||
 				     sectionid == DNS_SECTION_AUTHORITY))
+					msg->flags &= ~DNS_MESSAGEFLAG_AD;
+				if (OPTOUT(rdataset))
 					msg->flags &= ~DNS_MESSAGEFLAG_AD;
 
 				rdataset->attributes |=

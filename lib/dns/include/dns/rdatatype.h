@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdatatype.h,v 1.24 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: rdatatype.h,v 1.25 2008/09/24 02:46:23 marka Exp $ */
 
 #ifndef DNS_RDATATYPE_H
 #define DNS_RDATATYPE_H 1
@@ -71,7 +71,8 @@ dns_rdatatype_format(dns_rdatatype_t rdtype,
  * The resulting string is guaranteed to be null-terminated.
  */
 
-#define DNS_RDATATYPE_FORMATSIZE sizeof("TYPE65535")
+#define DNS_RDATATYPE_FORMATSIZE sizeof("NSEC3PARAM")
+
 /*%<
  * Minimum size of array to pass to dns_rdatatype_format().
  * May need to be adjusted if a new RR type with a very long

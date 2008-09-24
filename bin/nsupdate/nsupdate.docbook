@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: nsupdate.docbook,v 1.32 2008/08/29 03:16:14 marka Exp $ -->
+<!-- $Id: nsupdate.docbook,v 1.33 2008/09/24 02:46:21 marka Exp $ -->
 <refentry id="man.nsupdate">
   <refentryinfo>
     <date>Jun 30, 2000</date>
@@ -55,6 +55,7 @@
     <cmdsynopsis>
       <command>nsupdate</command>
       <arg><option>-d</option></arg>
+      <arg><option>-D</option></arg>
       <group>
         <arg><option>-y <replaceable class="parameter"><optional>hmac:</optional>keyname:secret</replaceable></option></arg>
         <arg><option>-k <replaceable class="parameter">keyfile</replaceable></option></arg>
@@ -101,6 +102,10 @@
       operate in debug mode.
       This provides tracing information about the update requests that are
       made and the replies received from the name server.
+    </para>
+    <para>
+      The <option>-D</option> option makes <command>nsupdate</command>
+      report additional debugging information to <option>-d</option>.
     </para>
     <para>
       Transaction signatures can be used to authenticate the Dynamic DNS

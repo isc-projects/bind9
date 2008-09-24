@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: grammar.h,v 1.15 2007/06/19 23:47:22 tbox Exp $ */
+/* $Id: grammar.h,v 1.16 2008/09/24 02:46:23 marka Exp $ */
 
 #ifndef ISCCFG_GRAMMAR_H
 #define ISCCFG_GRAMMAR_H 1
@@ -51,6 +51,8 @@
  * "directory" option.
  */
 #define CFG_CLAUSEFLAG_CALLBACK		0x00000020
+/*% A option that is only used in testing. */
+#define CFG_CLAUSEFLAG_TESTONLY		0x00000040
 
 typedef struct cfg_clausedef cfg_clausedef_t;
 typedef struct cfg_tuplefielddef cfg_tuplefielddef_t;

@@ -151,6 +151,7 @@ options {
         notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
         notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
         notify-to-soa <boolean>;
+        nsec3-test-zone <boolean>; // test only
         pid-file ( <quoted_string> | none );
         port <integer>;
         preferred-glue <string>;
@@ -327,6 +328,7 @@ view <string> <optional_class> {
         notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
         notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
         notify-to-soa <boolean>;
+        nsec3-test-zone <boolean>; // test only
         preferred-glue <string>;
         provide-ixfr <boolean>;
         query-source <querysource4>;
@@ -435,6 +437,7 @@ view <string> <optional_class> {
                 notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer>
                     | * ) ];
                 notify-to-soa <boolean>;
+                nsec3-test-zone <boolean>; // test only
                 pubkey <integer> <integer> <integer>
                     <quoted_string>; // obsolete
                 sig-signing-nodes <integer>;
@@ -512,6 +515,7 @@ zone <string> <optional_class> {
         notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
         notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
         notify-to-soa <boolean>;
+        nsec3-test-zone <boolean>; // test only
         pubkey <integer> <integer> <integer> <quoted_string>; // obsolete
         sig-signing-nodes <integer>;
         sig-signing-signatures <integer>;

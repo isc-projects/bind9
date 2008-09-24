@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.129 2008/08/15 19:36:49 jinmei Exp $ */
+/* $Id: xfrout.c,v 1.130 2008/09/24 02:46:21 marka Exp $ */
 
 #include <config.h>
 
@@ -169,7 +169,7 @@ db_rr_iterator_init(db_rr_iterator_t *it, dns_db_t *db, dns_dbversion_t *ver,
 	it->ver = ver;
 	it->now = now;
 	it->node = NULL;
-	result = dns_db_createiterator(it->db, ISC_FALSE, &it->dbit);
+	result = dns_db_createiterator(it->db, 0, &it->dbit);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	it->rdatasetit = NULL;

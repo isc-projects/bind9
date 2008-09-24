@@ -133,6 +133,10 @@ SOURCE=.\ipv6.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\iterated_hash.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\keyboard.c
 # End Source File
 # Begin Source File
@@ -198,6 +202,10 @@ SOURCE=.\include\isc\app.h
 # Begin Source File
 
 SOURCE=..\include\isc\assertions.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\isc\base32.h
 # End Source File
 # Begin Source File
 
@@ -310,6 +318,10 @@ SOURCE=..\include\isc\interfaceiter.h
 # Begin Source File
 
 SOURCE=..\include\isc\ipv6.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\isc\iterated_hash.h
 # End Source File
 # Begin Source File
 
@@ -562,6 +574,10 @@ SOURCE=..\..\..\versions.h
 # Begin Source File
 
 SOURCE=..\assertions.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\base32.c
 # End Source File
 # Begin Source File
 

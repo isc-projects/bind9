@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec.h,v 1.10 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: nsec.h,v 1.11 2008/09/24 02:46:23 marka Exp $ */
 
 #ifndef DNS_NSEC_H
 #define DNS_NSEC_H 1
@@ -62,6 +62,17 @@ dns_nsec_typepresent(dns_rdata_t *nsec, dns_rdatatype_t type);
  *
  * Requires:
  *\li	'nsec' points to a valid rdataset of type NSEC
+ */
+
+isc_result_t 
+dns_nsec_nseconly(dns_db_t *db, dns_dbversion_t *version,
+                  isc_boolean_t *answer);
+/*
+ * Report whether the DNSKEY RRset has a NSEC only algorithm.  Unknown
+ * algorithms are assumed to support NSEC3.
+ * 
+ * Requires:
+ * 	'answer' to be non NULL.
  */
 
 ISC_LANG_ENDDECLS

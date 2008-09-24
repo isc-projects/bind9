@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: diff.c,v 1.17 2008/04/02 02:37:42 marka Exp $ */
+/* $Id: diff.c,v 1.18 2008/09/24 02:46:22 marka Exp $ */
 
 /*! \file */
 
@@ -256,8 +256,6 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver,
 		 * but such diffs should never be created in the first
 		 * place.
 		 */
-		node = NULL;
-		CHECK(dns_db_findnode(db, name, ISC_TRUE, &node));
 
 		while (t != NULL && dns_name_equal(&t->name, name)) {
 			dns_rdatatype_t type, covers;
@@ -293,6 +291,15 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver,
 			rdl.ttl = t->ttl;
 			ISC_LIST_INIT(rdl.rdata);
 			ISC_LINK_INIT(&rdl, link);
+
+			node = NULL;
+			if (type != dns_rdatatype_nsec3 &&
+			    covers != dns_rdatatype_nsec3)
+				CHECK(dns_db_findnode(db, name, ISC_TRUE,
+						      &node));
+			else
+				CHECK(dns_db_findnsec3node(db, name, ISC_TRUE,
+							   &node));
 
 			offline = ISC_FALSE;
 			while (t != NULL &&
@@ -394,11 +401,11 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver,
 					dns_rdataset_disassociate(modified);
 				CHECK(result);
 			}
+			dns_db_detachnode(db, &node);
 			if (modified != NULL &&
 			    dns_rdataset_isassociated(modified))
 				dns_rdataset_disassociate(modified);
 		}
-		dns_db_detachnode(db, &node);
 	}
 	return (ISC_R_SUCCESS);
 

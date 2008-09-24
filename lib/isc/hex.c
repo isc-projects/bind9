@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hex.c,v 1.18 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: hex.c,v 1.19 2008/09/24 02:46:23 marka Exp $ */
 
 /*! \file */
 
@@ -156,7 +156,7 @@ isc_hex_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length) {
 }
 
 isc_result_t
-isc_hex_decodestring(char *cstr, isc_buffer_t *target) {
+isc_hex_decodestring(const char *cstr, isc_buffer_t *target) {
 	hex_decode_ctx_t ctx;
 
 	hex_decode_init(&ctx, -1, target);
@@ -168,7 +168,7 @@ isc_hex_decodestring(char *cstr, isc_buffer_t *target) {
 			continue;
 		RETERR(hex_decode_char(&ctx, c));
 	}
-	RETERR(hex_decode_finish(&ctx));	
+	RETERR(hex_decode_finish(&ctx));
 	return (ISC_R_SUCCESS);
 }
 

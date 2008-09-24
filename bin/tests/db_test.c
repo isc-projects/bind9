@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db_test.c,v 1.64 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id: db_test.c,v 1.65 2008/09/24 02:46:21 marka Exp $ */
 
 /*! \file 
  * \author
@@ -177,8 +177,7 @@ list(dbinfo *dbi, char *seektext) {
 				dns_db_currentversion(dbi->db, &dbi->iversion);
 		}
 
-		result = dns_db_createiterator(dbi->db, ISC_FALSE,
-					       &dbi->dbiterator);
+		result = dns_db_createiterator(dbi->db, 0, &dbi->dbiterator);
 		if (result == ISC_R_SUCCESS) {
 			if (seektext != NULL) {
 				len = strlen(seektext);

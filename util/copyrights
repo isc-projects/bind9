@@ -379,6 +379,7 @@
 ./bin/tests/net/netaddr_multicast.c		C	2000,2001,2004,2007
 ./bin/tests/net/sockaddr_multicast.c		C	2000,2001,2004,2007
 ./bin/tests/net/testsuite.h			C	2000,2001,2004,2007
+./bin/tests/nsec3hash.c				C	2006
 ./bin/tests/nsecify.c				C	1999,2000,2001,2003,2004,2007
 ./bin/tests/printmsg.c				C	1998,1999,2000,2001,2004,2007
 ./bin/tests/printmsg.h				C	1998,1999,2000,2001,2004,2007
@@ -505,6 +506,8 @@
 ./bin/tests/system/dnssec/ns1/root.db.in	ZONE	2000,2001,2004,2007
 ./bin/tests/system/dnssec/ns1/sign.sh		SH	2000,2001,2002,2003,2004,2006,2007
 ./bin/tests/system/dnssec/ns2/.cvsignore	X	2000,2001
+./bin/tests/system/dnssec/ns2/child.nsec3.example.db	ZONE	2006
+./bin/tests/system/dnssec/ns2/child.optout.example.db	ZONE	2006
 ./bin/tests/system/dnssec/ns2/dlv.db.in		ZONE	2004,2007
 ./bin/tests/system/dnssec/ns2/dst.example.db.in	ZONE	2004,2007
 ./bin/tests/system/dnssec/ns2/example.db.in	ZONE	2000,2001,2002,2004,2007
@@ -518,7 +521,12 @@
 ./bin/tests/system/dnssec/ns3/dynamic.example.db.in	ZONE	2002,2004,2007
 ./bin/tests/system/dnssec/ns3/insecure.example.db	ZONE	2000,2001,2004,2007
 ./bin/tests/system/dnssec/ns3/keyless.example.db.in	ZONE	2001,2002,2004,2007
+./bin/tests/system/dnssec/ns3/multiple.example.db.in	ZONE	2006
 ./bin/tests/system/dnssec/ns3/named.conf	CONF-C	2000,2001,2002,2004,2006,2007
+./bin/tests/system/dnssec/ns3/nsec3-unknown.example.db.in	ZONE	2006
+./bin/tests/system/dnssec/ns3/nsec3.example.db.in	ZONE	2006
+./bin/tests/system/dnssec/ns3/optout-unknown.example.db.in	ZONE	2006
+./bin/tests/system/dnssec/ns3/optout.example.db.in	ZONE	2006
 ./bin/tests/system/dnssec/ns3/secure.example.db.in	ZONE	2000,2001,2004,2007
 ./bin/tests/system/dnssec/ns3/sign.sh		SH	2000,2001,2002,2004,2006,2007
 ./bin/tests/system/dnssec/ns4/.cvsignore	X	2000,2001
@@ -527,6 +535,7 @@
 ./bin/tests/system/dnssec/ns5/named.conf	CONF-C	2000,2001,2004,2006,2007
 ./bin/tests/system/dnssec/ns5/trusted.conf.bad	CONF-C	2000,2001,2004,2007
 ./bin/tests/system/dnssec/ns6/named.conf	CONF-C	2004,2006,2007
+./bin/tests/system/dnssec/ns7/named.conf	CONF-C	2006
 ./bin/tests/system/dnssec/prereq.sh		SH	2000,2001,2002,2004,2006,2007
 ./bin/tests/system/dnssec/setup.sh		SH	2000,2001,2004,2007
 ./bin/tests/system/dnssec/tests.sh		SH	2000,2001,2002,2004,2005,2006,2007
@@ -1482,6 +1491,7 @@
 ./lib/bind/isc/Makefile.in			MAKE	2001,2004,2007,2008
 ./lib/bind/isc/assertions.c			X	2001,2004,2005
 ./lib/bind/isc/assertions.mdoc			X	2001,2004
+./lib/bind/isc/base32.c				X	2006
 ./lib/bind/isc/base64.c				X	2001,2004,2005
 ./lib/bind/isc/bitncmp.c			X	2001,2004,2005,2008
 ./lib/bind/isc/bitncmp.mdoc			X	2001,2004
@@ -1897,6 +1907,7 @@
 ./lib/dns/name.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/dns/ncache.c				C	1999,2000,2001,2002,2003,2004,2005,2007
 ./lib/dns/nsec.c				C	1999,2000,2001,2003,2004,2005,2007
+./lib/dns/nsec3.c				C	2006
 ./lib/dns/openssl_link.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/dns/openssldh_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008
 ./lib/dns/openssldsa_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008
@@ -2170,7 +2181,7 @@
 ./lib/isc/inet_aton.c				C.PORTION	1996,1997,1998,1999,2000,2001,2004,2005,2007
 ./lib/isc/inet_ntop.c				C	1996,1997,1998,1999,2000,2001,2004,2005,2007
 ./lib/isc/inet_pton.c				C	1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2007
-./lib/isc/iterated_hash.c			C	2008
+./lib/isc/iterated_hash.c			C	2006,2008
 ./lib/isc/lex.c					C	1998,1999,2000,2001,2002,2003,2004,2005,2007
 ./lib/isc/lfsr.c				C	1999,2000,2001,2002,2004,2005,2007
 ./lib/isc/lib.c					C	1999,2000,2001,2004,2005,2007

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.90 2008/09/04 05:56:42 marka Exp $ */
+/* $Id: config.c,v 1.91 2008/09/24 02:46:21 marka Exp $ */
 
 /*! \file */
 
@@ -145,6 +145,7 @@ options {\n\
 	clients-per-query 10;\n\
 	max-clients-per-query 100;\n\
 	zero-no-soa-ttl-cache no;\n\
+	nsec3-test-zone no;\n\
 "
 
 "	/* zone */\n\

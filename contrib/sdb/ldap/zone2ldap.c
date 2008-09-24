@@ -211,7 +211,7 @@ main (int *argc, char **argv)
   result = dns_db_load (db, zonefile);
   isc_result_check (result, "Check Zone Syntax: dns_db_load");
 
-  result = dns_db_createiterator (db, ISC_FALSE, &dbit);
+  result = dns_db_createiterator (db, 0, &dbit);
   isc_result_check (result, "dns_db_createiterator");
 
   result = dns_dbiterator_first (dbit);

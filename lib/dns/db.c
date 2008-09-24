@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.87 2008/04/03 05:55:52 marka Exp $ */
+/* $Id: db.c,v 1.88 2008/09/24 02:46:22 marka Exp $ */
 
 /*! \file */
 
@@ -465,6 +465,21 @@ dns_db_findnode(dns_db_t *db, dns_name_t *name,
 }
 
 isc_result_t
+dns_db_findnsec3node(dns_db_t *db, dns_name_t *name,
+		     isc_boolean_t create, dns_dbnode_t **nodep)
+{
+
+	/*
+	 * Find the node with name 'name'.
+	 */
+
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE(nodep != NULL && *nodep == NULL);
+
+	return ((db->methods->findnsec3node)(db, name, create, nodep));
+}
+
+isc_result_t
 dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	    dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
 	    dns_dbnode_t **nodep, dns_name_t *foundname,
@@ -598,7 +613,7 @@ dns_db_printnode(dns_db_t *db, dns_dbnode_t *node, FILE *out) {
  ***/
 
 isc_result_t
-dns_db_createiterator(dns_db_t *db, isc_boolean_t relative_names,
+dns_db_createiterator(dns_db_t *db, unsigned int flags,
 		      dns_dbiterator_t **iteratorp)
 {
 	/*
@@ -608,7 +623,7 @@ dns_db_createiterator(dns_db_t *db, isc_boolean_t relative_names,
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(iteratorp != NULL && *iteratorp == NULL);
 
-	return (db->methods->createiterator(db, relative_names, iteratorp));
+	return (db->methods->createiterator(db, flags, iteratorp));
 }
 
 /***
@@ -867,6 +882,23 @@ dns_db_getrrsetstats(dns_db_t *db) {
 		return ((db->methods->getrrsetstats)(db));
 
 	return (NULL);
+}
+
+isc_result_t
+dns_db_getnsec3parameters(dns_db_t *db, dns_dbversion_t *version,
+			  dns_hash_t *hash, isc_uint8_t *flags,
+			  isc_uint16_t *iterations,
+			  unsigned char *salt, size_t *salt_length)
+{
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE(dns_db_iszone(db) == ISC_TRUE);
+
+	if (db->methods->getnsec3parameters != NULL)
+		return ((db->methods->getnsec3parameters)(db, version, hash,
+							  flags, iterations,
+							  salt, salt_length));
+
+	return (ISC_R_NOTFOUND);
 }
 
 isc_result_t

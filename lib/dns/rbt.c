@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.141 2008/03/31 13:11:32 fdupont Exp $ */
+/* $Id: rbt.c,v 1.142 2008/09/24 02:46:22 marka Exp $ */
 
 /*! \file */
 
@@ -527,6 +527,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				 * current node.
 				 */
 				new_current->is_root = current->is_root;
+				new_current->nsec3 = current->nsec3;
 				PARENT(new_current)  = PARENT(current);
 				LEFT(new_current)    = LEFT(current);
 				RIGHT(new_current)   = RIGHT(current);
@@ -1445,6 +1446,7 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 	DIRTY(node) = 0;
 	dns_rbtnode_refinit(node, 0);
 	node->find_callback = 0;
+	node->nsec3 = 0;
 
 	MAKE_BLACK(node);
 
@@ -2353,6 +2355,113 @@ dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
 			result = dns_rbtnodechain_current(chain, name, NULL,
 							  NULL);
 
+	} else
+		result = ISC_R_NOMORE;
+
+	return (result);
+}
+
+isc_result_t
+dns_rbtnodechain_down(dns_rbtnodechain_t *chain, dns_name_t *name,
+		      dns_name_t *origin)
+{
+	dns_rbtnode_t *current, *successor;
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_boolean_t new_origin = ISC_FALSE;
+
+	REQUIRE(VALID_CHAIN(chain) && chain->end != NULL);
+
+	successor = NULL;
+
+	current = chain->end;
+
+	if (DOWN(current) != NULL) {
+		/*
+		 * Don't declare an origin change when the new origin is "."
+		 * at the second level tree, because "." is already declared
+		 * as the origin for the top level tree.
+		 */
+		if (chain->level_count > 0 ||
+		    OFFSETLEN(current) > 1)
+			new_origin = ISC_TRUE;
+
+		ADD_LEVEL(chain, current);
+		current = DOWN(current);
+
+		while (LEFT(current) != NULL)
+			current = LEFT(current);
+
+		successor = current;
+	}
+
+	if (successor != NULL) {
+		chain->end = successor;
+
+		/*
+		 * It is not necessary to use dns_rbtnodechain_current like
+		 * the other functions because this function will never
+		 * find a node in the topmost level.  This is because the
+		 * root level will never be more than one name, and everything
+		 * in the megatree is a successor to that node, down at
+		 * the second level or below.
+		 */
+
+		if (name != NULL)
+			NODENAME(chain->end, name);
+
+		if (new_origin) {
+			if (origin != NULL)
+				result = chain_name(chain, origin, ISC_FALSE);
+
+			if (result == ISC_R_SUCCESS)
+				result = DNS_R_NEWORIGIN;
+
+		} else
+			result = ISC_R_SUCCESS;
+
+	} else
+		result = ISC_R_NOMORE;
+
+	return (result);
+}
+
+isc_result_t
+dns_rbtnodechain_nextflat(dns_rbtnodechain_t *chain, dns_name_t *name) {
+	dns_rbtnode_t *current, *previous, *successor;
+	isc_result_t result = ISC_R_SUCCESS;
+
+	REQUIRE(VALID_CHAIN(chain) && chain->end != NULL);
+
+	successor = NULL;
+
+	current = chain->end;
+
+	if (RIGHT(current) == NULL) {
+		while (! IS_ROOT(current)) {
+			previous = current;
+			current = PARENT(current);
+
+			if (LEFT(current) == previous) {
+				successor = current;
+				break;
+			}
+		}
+	} else {
+		current = RIGHT(current);
+
+		while (LEFT(current) != NULL)
+			current = LEFT(current);
+
+		successor = current;
+	}
+
+	if (successor != NULL) {
+		chain->end = successor;
+
+		if (name != NULL)
+			NODENAME(chain->end, name);
+
+		result = ISC_R_SUCCESS;
 	} else
 		result = ISC_R_NOMORE;
 

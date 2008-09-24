@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.146 2008/05/21 23:47:00 tbox Exp $ */
+/* $Id: zoneconf.c,v 1.147 2008/09/24 02:46:21 marka Exp $ */
 
 /*% */
 
@@ -716,6 +716,12 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		result = ns_config_get(maps, "zero-no-soa-ttl", &obj);
 		INSIST(result == ISC_R_SUCCESS);
 		dns_zone_setzeronosoattl(zone, cfg_obj_asboolean(obj));
+
+		obj = NULL;
+		result = ns_config_get(maps, "nsec3-test-zone", &obj);
+		INSIST(result == ISC_R_SUCCESS);
+		dns_zone_setoption(zone, DNS_ZONEOPT_NSEC3TESTZONE,
+				   cfg_obj_asboolean(obj));
 	}
 
 	/*

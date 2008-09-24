@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.79 2007/08/28 07:20:42 tbox Exp $ */
+/* $Id: dnssec-keygen.c,v 1.80 2008/09/24 02:46:21 marka Exp $ */
 
 /*! \file */
 
@@ -62,8 +62,9 @@
 const char *program = "dnssec-keygen";
 int verbose;
 
-static const char *algs = "RSA | RSAMD5 | DH | DSA | RSASHA1 | HMAC-MD5 |"
-			  " HMAC-SHA1 | HMAC-SHA224 | HMAC-SHA256 | "
+static const char *algs = "RSA | RSAMD5 | DH | DSA | RSASHA1 | NSEC3DSA |"
+			  " NSEC3RSASHA1 | HMAC-MD5 |"
+			  " HMAC-SHA1 | HMAC-SHA224 | HMAC-SHA256 |"
 			  " HMAC-SHA384 | HMAC-SHA512";
 
 static isc_boolean_t
@@ -82,8 +83,10 @@ usage(void) {
 	fprintf(stderr, "    -b key size, in bits:\n");
 	fprintf(stderr, "        RSAMD5:\t\t[512..%d]\n", MAX_RSA);
 	fprintf(stderr, "        RSASHA1:\t\t[512..%d]\n", MAX_RSA);
+	fprintf(stderr, "        NSEC3RSASHA1:\t\t[512..%d]\n", MAX_RSA);
 	fprintf(stderr, "        DH:\t\t[128..4096]\n");
 	fprintf(stderr, "        DSA:\t\t[512..1024] and divisible by 64\n");
+	fprintf(stderr, "        NSEC3DSA:\t\t[512..1024] and divisible by 64\n");
 	fprintf(stderr, "        HMAC-MD5:\t[1..512]\n");
 	fprintf(stderr, "        HMAC-SHA1:\t[1..160]\n");
 	fprintf(stderr, "        HMAC-SHA224:\t[1..224]\n");
@@ -303,6 +306,7 @@ main(int argc, char **argv) {
 	switch (alg) {
 	case DNS_KEYALG_RSAMD5:
 	case DNS_KEYALG_RSASHA1:
+	case DNS_KEYALG_NSEC3RSASHA1:
 		if (size != 0 && (size < 512 || size > MAX_RSA))
 			fatal("RSA key size %d out of range", size);
 		break;
@@ -311,6 +315,7 @@ main(int argc, char **argv) {
 			fatal("DH key size %d out of range", size);
 		break;
 	case DNS_KEYALG_DSA:
+	case DNS_KEYALG_NSEC3DSA:
 		if (size != 0 && !dsa_size_ok(size))
 			fatal("invalid DSS key size: %d", size);
 		break;
@@ -370,8 +375,8 @@ main(int argc, char **argv) {
 		break;
 	}
 
-	if (!(alg == DNS_KEYALG_RSAMD5 || alg == DNS_KEYALG_RSASHA1) &&
-	    rsa_exp != 0)
+	if (!(alg == DNS_KEYALG_RSAMD5 || alg == DNS_KEYALG_RSASHA1 ||
+	      alg == DNS_KEYALG_NSEC3RSASHA1) && rsa_exp != 0)
 		fatal("specified RSA exponent for a non-RSA key");
 
 	if (alg != DNS_KEYALG_DH && generator != 0)

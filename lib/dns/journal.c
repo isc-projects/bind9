@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.101 2008/04/01 23:47:10 tbox Exp $ */
+/* $Id: journal.c,v 1.102 2008/09/24 02:46:22 marka Exp $ */
 
 #include <config.h>
 
@@ -1887,10 +1887,10 @@ dns_db_diff(isc_mem_t *mctx,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = dns_db_createiterator(db[0], ISC_FALSE, &dbit[0]);
+	result = dns_db_createiterator(db[0], 0, &dbit[0]);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_journal;
-	result = dns_db_createiterator(db[1], ISC_FALSE, &dbit[1]);
+	result = dns_db_createiterator(db[1], 0, &dbit[1]);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_interator0;
 

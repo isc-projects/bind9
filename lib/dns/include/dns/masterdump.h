@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.h,v 1.41 2008/04/01 23:47:10 tbox Exp $ */
+/* $Id: masterdump.h,v 1.42 2008/09/24 02:46:23 marka Exp $ */
 
 #ifndef DNS_MASTERDUMP_H
 #define DNS_MASTERDUMP_H 1
@@ -331,6 +331,9 @@ dns_master_stylecreate(dns_master_style_t **style, unsigned int flags,
 
 void
 dns_master_styledestroy(dns_master_style_t **style, isc_mem_t *mctx);
+
+const char *
+dns_trust_totext(dns_trust_t trust);
 
 ISC_LANG_ENDDECLS
 

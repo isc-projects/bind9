@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rcode.h,v 1.19 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: rcode.h,v 1.20 2008/09/24 02:46:23 marka Exp $ */
 
 #ifndef DNS_RCODE_H
 #define DNS_RCODE_H 1
@@ -91,6 +91,21 @@ isc_result_t dns_tsigrcode_totext(dns_rcode_t rcode, isc_buffer_t *target);
  * Returns:
  *\li	#ISC_R_SUCCESS			on success
  *\li	#ISC_R_NOSPACE			target buffer is too small
+ */
+
+isc_result_t
+dns_hashalg_fromtext(unsigned char *hashalg, isc_textregion_t *source);
+/*%<
+ * Convert the text 'source' refers to into a has algorithm value.
+ *
+ * Requires:
+ *\li	'hashalg' is a valid pointer.
+ *
+ *\li	'source' is a valid text region.
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS			on success
+ *\li	#DNS_R_UNKNOWN			type is unknown
  */
 
 ISC_LANG_ENDDECLS

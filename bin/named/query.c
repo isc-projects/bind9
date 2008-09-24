@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.308 2008/08/26 06:09:18 marka Exp $ */
+/* $Id: query.c,v 1.309 2008/09/24 02:46:21 marka Exp $ */
 
 /*! \file */
 
@@ -25,6 +25,7 @@
 
 #include <isc/mem.h>
 #include <isc/util.h>
+#include <isc/hex.h>
 
 #include <dns/adb.h>
 #include <dns/byaddr.h>
@@ -36,6 +37,7 @@
 #include <dns/events.h>
 #include <dns/message.h>
 #include <dns/ncache.h>
+#include <dns/nsec3.h>
 #include <dns/order.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
@@ -89,6 +91,10 @@
 #define SECURE(c)		(((c)->query.attributes & \
 				  NS_QUERYATTR_SECURE) != 0)
 
+/*% No QNAME Proof? */
+#define NOQNAME(r)		(((r)->attributes & \
+				  DNS_RDATASETATTR_NOQNAME) != 0)
+
 #if 0
 #define CTRACE(m)       isc_log_write(ns_g_lctx, \
 				      NS_LOGCATEGORY_CLIENT, \
@@ -120,6 +126,13 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype);
 static isc_boolean_t
 validate(ns_client_t *client, dns_db_t *db, dns_name_t *name,
 	 dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
+
+static void
+query_findclosestnsec3(dns_name_t *qname, dns_db_t *db,
+		       dns_dbversion_t *version, ns_client_t *client,
+		       dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
+		       dns_name_t *fname, isc_boolean_t exact,
+		       dns_name_t *found);
 
 /*%
  * Increment query statistics counters.
@@ -2285,7 +2298,8 @@ query_addcnamelike(ns_client_t *client, dns_name_t *qname, dns_name_t *tname,
  */
 static void
 mark_secure(ns_client_t *client, dns_db_t *db, dns_name_t *name,
-	    dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
+	    isc_uint32_t ttl, dns_rdataset_t *rdataset,
+	    dns_rdataset_t *sigrdataset)
 {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
@@ -2299,6 +2313,18 @@ mark_secure(ns_client_t *client, dns_db_t *db, dns_name_t *name,
 	result = dns_db_findnode(db, name, ISC_TRUE, &node);
 	if (result != ISC_R_SUCCESS)
 		return;
+	/*
+	 * Bound the validated ttls then minimise.
+	 */
+	if (sigrdataset->ttl > ttl)
+		sigrdataset->ttl = ttl;
+	if (rdataset->ttl > ttl)
+		rdataset->ttl = ttl;
+	if (rdataset->ttl > sigrdataset->ttl)
+		rdataset->ttl = sigrdataset->ttl;
+	else
+		sigrdataset->ttl = rdataset->ttl;
+	
 	(void)dns_db_addrdataset(db, node, NULL, client->now, rdataset,
 				 0, NULL);
 	(void)dns_db_addrdataset(db, node, NULL, client->now, sigrdataset,
@@ -2422,8 +2448,9 @@ validate(ns_client_t *client, dns_db_t *db, dns_name_t *name,
 				   client->view->acceptexpired)) {
 				dst_key_free(&key);
 				dns_rdataset_disassociate(&keyrdataset);
-				mark_secure(client, db, name, rdataset,
-					    sigrdataset);
+				mark_secure(client, db, name,
+					    rrsig.originalttl,
+					    rdataset, sigrdataset);
 				return (ISC_TRUE);
 			}
 			dst_key_free(&key);
@@ -2609,12 +2636,36 @@ query_addbestns(ns_client_t *client) {
 }
 
 static void
-query_addds(ns_client_t *client, dns_db_t *db, dns_dbnode_t *node,
-	    dns_dbversion_t *version)
+fixrdataset(ns_client_t *client, dns_rdataset_t **rdataset) {
+	if (*rdataset == NULL)
+		*rdataset = query_newrdataset(client);
+	else  if (dns_rdataset_isassociated(*rdataset))
+		dns_rdataset_disassociate(*rdataset);
+}
+
+static void
+fixfname(ns_client_t *client, dns_name_t **fname, isc_buffer_t **dbuf,
+	 isc_buffer_t *nbuf)
 {
+	if (*fname == NULL) {
+		*dbuf = query_getnamebuf(client);
+		if (*dbuf == NULL)
+			return;
+		*fname = query_newname(client, *dbuf, nbuf);
+	}
+}
+
+static void
+query_addds(ns_client_t *client, dns_db_t *db, dns_dbnode_t *node,
+	    dns_dbversion_t *version, dns_name_t *name)
+{
+	dns_fixedname_t fixed;
+	dns_name_t *fname = NULL;
 	dns_name_t *rname;
 	dns_rdataset_t *rdataset, *sigrdataset;
+	isc_buffer_t *dbuf, b;
 	isc_result_t result;
+	unsigned int count;
 
 	CTRACE("query_addds");
 	rname = NULL;
@@ -2635,16 +2686,17 @@ query_addds(ns_client_t *client, dns_db_t *db, dns_dbnode_t *node,
 	result = dns_db_findrdataset(db, node, version, dns_rdatatype_ds, 0,
 				     client->now, rdataset, sigrdataset);
 	/*
-	 * If we didn't find it, look for an NSEC. */
+	 * If we didn't find it, look for an NSEC.
+	 */
 	if (result == ISC_R_NOTFOUND)
 		result = dns_db_findrdataset(db, node, version,
 					     dns_rdatatype_nsec, 0, client->now,
 					     rdataset, sigrdataset);
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND)
-		goto cleanup;
+		goto addnsec3;
 	if (!dns_rdataset_isassociated(rdataset) ||
 	    !dns_rdataset_isassociated(sigrdataset))
-		goto cleanup;
+		goto addnsec3;
 
 	/*
 	 * We've already added the NS record, so if the name's not there,
@@ -2666,12 +2718,54 @@ query_addds(ns_client_t *client, dns_db_t *db, dns_dbnode_t *node,
 	ISC_LIST_APPEND(rname->list, sigrdataset, link);
 	rdataset = NULL;
 	sigrdataset = NULL;
+	return;
+
+   addnsec3:
+	/*
+	 * Add the NSEC3 which proves the DS does not exist.
+	 */
+	dbuf = query_getnamebuf(client);
+	if (dbuf == NULL)
+		goto cleanup;
+	fname = query_newname(client, dbuf, &b);
+	dns_fixedname_init(&fixed);
+	query_findclosestnsec3(name, db, version, client, rdataset,
+			       sigrdataset, fname, ISC_TRUE,
+			       dns_fixedname_name(&fixed));
+	if (!dns_rdataset_isassociated(rdataset))
+		goto cleanup;
+	query_addrrset(client, &fname, &rdataset, &sigrdataset, dbuf,
+		       DNS_SECTION_AUTHORITY);
+	/*
+	 * Did we find the closest provable encloser instead?
+	 * If so add the nearest to the closest provable encloser.
+	 */
+	if (!dns_name_equal(name, dns_fixedname_name(&fixed))) {
+		count = dns_name_countlabels(dns_fixedname_name(&fixed)) + 1;
+		dns_name_getlabelsequence(name,
+					  dns_name_countlabels(name) - count,
+					  count, dns_fixedname_name(&fixed));
+		fixfname(client, &fname, &dbuf, &b);
+		fixrdataset(client, &rdataset);
+		fixrdataset(client, &sigrdataset);
+		if (fname == NULL || rdataset == NULL || sigrdataset == NULL)
+				goto cleanup;
+		query_findclosestnsec3(dns_fixedname_name(&fixed), db, version,
+				       client, rdataset, sigrdataset, fname,
+				       ISC_FALSE, NULL);
+		if (!dns_rdataset_isassociated(rdataset))
+			goto cleanup;
+		query_addrrset(client, &fname, &rdataset, &sigrdataset, dbuf,
+			       DNS_SECTION_AUTHORITY);
+	}
 
  cleanup:
 	if (rdataset != NULL)
 		query_putrdataset(client, &rdataset);
 	if (sigrdataset != NULL)
 		query_putrdataset(client, &sigrdataset);
+	if (fname != NULL)
+		query_releasename(client, &fname);
 }
 
 static void
@@ -2686,12 +2780,14 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 	dns_name_t *wname;
 	dns_dbnode_t *node;
 	unsigned int options;
-	unsigned int olabels, nlabels;
+	unsigned int olabels, nlabels, labels;
 	isc_result_t result;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_nsec_t nsec;
 	isc_boolean_t have_wname;
 	int order;
+	dns_fixedname_t cfixed;
+	dns_name_t *cname;
 
 	CTRACE("query_addwildcardproof");
 	fname = NULL;
@@ -2762,7 +2858,99 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 			     0, &node, fname, rdataset, sigrdataset);
 	if (node != NULL)
 		dns_db_detachnode(db, &node);
-	if (result == DNS_R_NXDOMAIN) {
+
+	if (!dns_rdataset_isassociated(rdataset)) {
+		/*
+		 * fname contains the closest encloser.
+		 */
+		dns_fixedname_init(&cfixed);
+		cname = dns_fixedname_name(&cfixed);
+		dns_name_copy(fname, cname, NULL);
+
+		/*
+		 * Add closest (provable) encloser NSEC3.
+		 */
+		query_findclosestnsec3(cname, db, NULL, client, rdataset,
+				       sigrdataset, fname, ISC_TRUE, cname);
+		if (!dns_rdataset_isassociated(rdataset))
+			goto cleanup;
+		query_addrrset(client, &fname, &rdataset, &sigrdataset,
+			       dbuf, DNS_SECTION_AUTHORITY);
+
+		if (fname == NULL) {
+			dbuf = query_getnamebuf(client);
+			if (dbuf == NULL)
+				goto cleanup;
+			fname = query_newname(client, dbuf, &b);
+		}
+
+		if (rdataset == NULL)
+			rdataset = query_newrdataset(client);
+		else if (dns_rdataset_isassociated(rdataset))
+			dns_rdataset_disassociate(rdataset);
+
+		if (sigrdataset == NULL)
+			sigrdataset = query_newrdataset(client);
+		else if (dns_rdataset_isassociated(sigrdataset))
+			dns_rdataset_disassociate(sigrdataset);
+
+		if (fname == NULL || rdataset == NULL || sigrdataset == NULL)
+			goto cleanup;
+		/*
+		 * Add no qname proof.
+		 */
+		labels = dns_name_countlabels(cname) + 1;
+		if (dns_name_countlabels(name) == labels)
+			dns_name_copy(name, wname, NULL);
+		else
+			dns_name_split(name, labels, NULL, wname);
+
+		query_findclosestnsec3(wname, db, NULL, client, rdataset,
+				       sigrdataset, fname, ISC_FALSE, NULL);
+		if (!dns_rdataset_isassociated(rdataset))
+			goto cleanup;
+		query_addrrset(client, &fname, &rdataset, &sigrdataset,
+			       dbuf, DNS_SECTION_AUTHORITY);
+
+		if (ispositive)
+			goto cleanup;
+
+		/*
+		 * Add the no wildcard proof.
+		 */
+		if (fname == NULL) {
+			dbuf = query_getnamebuf(client);
+			if (dbuf == NULL)
+				goto cleanup;
+			fname = query_newname(client, dbuf, &b);
+		}
+
+		if (rdataset == NULL)
+			rdataset = query_newrdataset(client);
+		else if (dns_rdataset_isassociated(rdataset))
+			dns_rdataset_disassociate(rdataset);
+
+		if (sigrdataset == NULL)
+			sigrdataset = query_newrdataset(client);
+		else if (dns_rdataset_isassociated(sigrdataset))
+			dns_rdataset_disassociate(sigrdataset);
+
+		if (fname == NULL || rdataset == NULL || sigrdataset == NULL)
+			goto cleanup;
+		result = dns_name_concatenate(dns_wildcardname,
+					      cname, wname, NULL);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
+
+		query_findclosestnsec3(wname, db, NULL, client, rdataset,
+				       sigrdataset, fname, ISC_FALSE, NULL);
+		if (!dns_rdataset_isassociated(rdataset))
+			goto cleanup;
+		query_addrrset(client, &fname, &rdataset, &sigrdataset,
+			       dbuf, DNS_SECTION_AUTHORITY);
+
+		goto cleanup;
+	} else if (result == DNS_R_NXDOMAIN) {
 		if (!ispositive)
 			result = dns_rdataset_first(rdataset);
 		if (result == ISC_R_SUCCESS) {
@@ -2839,6 +3027,7 @@ query_addnxrrsetnsec(ns_client_t *client, dns_db_t *db,
 
 	if (sigrdatasetp == NULL)
 		return;
+
 	sigrdataset = *sigrdatasetp;
 	if (sigrdataset == NULL || !dns_rdataset_isassociated(sigrdataset))
 		return;
@@ -3161,35 +3350,60 @@ static void
 query_addnoqnameproof(ns_client_t *client, dns_rdataset_t *rdataset) {
 	isc_buffer_t *dbuf, b;
 	dns_name_t *fname;
-	dns_rdataset_t *nsec, *nsecsig;
+	dns_rdataset_t *neg, *negsig;
 	isc_result_t result = ISC_R_NOMEMORY;
 
 	CTRACE("query_addnoqnameproof");
 
 	fname = NULL;
-	nsec = NULL;
-	nsecsig = NULL;
+	neg = NULL;
+	negsig = NULL;
 
 	dbuf = query_getnamebuf(client);
 	if (dbuf == NULL)
 		goto cleanup;
 	fname = query_newname(client, dbuf, &b);
-	nsec = query_newrdataset(client);
-	nsecsig = query_newrdataset(client);
-	if (fname == NULL || nsec == NULL || nsecsig == NULL)
+	neg = query_newrdataset(client);
+	negsig = query_newrdataset(client);
+	if (fname == NULL || neg == NULL || negsig == NULL)
 		goto cleanup;
 
-	result = dns_rdataset_getnoqname(rdataset, fname, nsec, nsecsig);
+	result = dns_rdataset_getnoqname(rdataset, fname, neg, negsig);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-	query_addrrset(client, &fname, &nsec, &nsecsig, dbuf,
+	query_addrrset(client, &fname, &neg, &negsig, dbuf,
+		       DNS_SECTION_AUTHORITY);
+
+	if ((rdataset->attributes & DNS_RDATASETATTR_CLOSEST) == 0)
+		goto cleanup;
+
+	if (fname == NULL) {
+		dbuf = query_getnamebuf(client);
+		if (dbuf == NULL)
+			goto cleanup;
+		fname = query_newname(client, dbuf, &b);
+	}
+	if (neg == NULL)
+		neg = query_newrdataset(client);
+	else if (dns_rdataset_isassociated(neg))
+		dns_rdataset_disassociate(neg);
+	if (negsig == NULL)
+		negsig = query_newrdataset(client);
+	else if (dns_rdataset_isassociated(negsig))
+		dns_rdataset_disassociate(negsig);
+	if (fname == NULL || neg == NULL || negsig == NULL)
+		goto cleanup;
+	result = dns_rdataset_getclosest(rdataset, fname, neg, negsig);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+	query_addrrset(client, &fname, &neg, &negsig, dbuf,
 		       DNS_SECTION_AUTHORITY);
 
  cleanup:
-	if (nsec != NULL)
-		query_putrdataset(client, &nsec);
-	if (nsecsig != NULL)
-		query_putrdataset(client, &nsecsig);
+	if (neg != NULL)
+		query_putrdataset(client, &neg);
+	if (negsig != NULL)
+		query_putrdataset(client, &negsig);
 	if (fname != NULL)
 		query_releasename(client, &fname);
 }
@@ -3327,6 +3541,95 @@ warn_rfc1918(ns_client_t *client, dns_name_t *fname, dns_rdataset_t *rdataset) {
 	}
 }
 
+static void
+query_findclosestnsec3(dns_name_t *qname, dns_db_t *db,
+		       dns_dbversion_t *version, ns_client_t *client,
+		       dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
+		       dns_name_t *fname, isc_boolean_t exact,
+		       dns_name_t *found)
+{
+	unsigned char salt[256];
+	size_t salt_length = sizeof(salt);
+	isc_uint16_t iterations;
+	isc_result_t result;
+	unsigned int dboptions;
+	dns_fixedname_t fixed;
+	dns_hash_t hash;
+	dns_name_t name;
+	int order;
+	unsigned int count;
+	dns_rdata_nsec3_t nsec3;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	isc_boolean_t optout;
+
+	salt_length = sizeof(salt);
+	result = dns_db_getnsec3parameters(db, version, &hash, NULL,
+					   &iterations, salt, &salt_length);
+	if (result != ISC_R_SUCCESS)
+		return;
+
+	dns_name_init(&name, NULL);
+	dns_name_clone(qname, &name);
+
+	/*
+	 * Map unknown algorithm to known value.
+	 */
+	if (hash == DNS_NSEC3_UNKNOWNALG)
+		hash = 1;
+
+ again:
+	dns_fixedname_init(&fixed);
+	result = dns_nsec3_hashname(&fixed, NULL, NULL, &name,
+				    dns_db_origin(db), hash,
+				    iterations, salt, salt_length);
+	if (result != ISC_R_SUCCESS)
+		return;
+
+	dboptions = client->query.dboptions | DNS_DBFIND_FORCENSEC3;
+	result = dns_db_find(db, dns_fixedname_name(&fixed), version,
+			     dns_rdatatype_nsec3, dboptions, client->now,
+			     NULL, fname, rdataset, sigrdataset);
+
+	if (result == DNS_R_NXDOMAIN) {
+		if (!dns_rdataset_isassociated(rdataset)) {
+			return;
+		}
+		result = dns_rdataset_first(rdataset);
+		INSIST(result == ISC_R_SUCCESS);
+		dns_rdataset_current(rdataset, &rdata);
+		dns_rdata_tostruct(&rdata, &nsec3, NULL);
+		dns_rdata_reset(&rdata);
+		optout = ISC_TF((nsec3.flags & DNS_NSEC3FLAG_OPTOUT) != 0);
+		if (found != NULL && optout &&
+		    dns_name_fullcompare(&name, dns_db_origin(db), &order,
+					 &count) == dns_namereln_subdomain) {
+			dns_rdataset_disassociate(rdataset);
+			if (dns_rdataset_isassociated(sigrdataset))
+				dns_rdataset_disassociate(sigrdataset);
+			count = dns_name_countlabels(&name) - 1;
+			dns_name_getlabelsequence(&name, 1, count, &name);
+			ns_client_log(client, DNS_LOGCATEGORY_DNSSEC,
+				      NS_LOGMODULE_QUERY, ISC_LOG_DEBUG(3),
+				      "looking for closest provable encloser");
+			goto again;
+		}
+		if (exact)
+			ns_client_log(client, DNS_LOGCATEGORY_DNSSEC,
+				      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
+				      "expected a exact match NSEC3, got "
+				      "a covering record");
+
+	} else if (result != ISC_R_SUCCESS) {
+		return;
+	} else if (!exact)
+		ns_client_log(client, DNS_LOGCATEGORY_DNSSEC,
+			      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
+			      "expected covering NSEC3, got an exact match");
+	if (found != NULL)
+		dns_name_copy(&name, found, NULL);
+	return;
+}
+
 /*
  * Do the bulk of query processing for the current query of 'client'.
  * If 'event' is non-NULL, we are returning from recursion and 'qtype'
@@ -3353,7 +3656,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	isc_result_t result, eresult;
 	dns_fixedname_t fixed;
 	dns_fixedname_t wildcardname;
-	dns_dbversion_t *version;
+	dns_dbversion_t *version, *zversion;
 	dns_zone_t *zone;
 	dns_rdata_cname_t cname;
 	dns_rdata_dname_t dname;
@@ -3378,6 +3681,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	zrdataset = NULL;
 	sigrdataset = NULL;
 	zsigrdataset = NULL;
+	zversion = NULL;
 	node = NULL;
 	db = NULL;
 	zdb = NULL;
@@ -3707,6 +4011,12 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			 * We're authoritative for an ancestor of QNAME.
 			 */
 			if (!USECACHE(client) || !RECURSIONOK(client)) {
+				dns_fixedname_t fixed;
+
+				dns_fixedname_init(&fixed);
+				dns_name_copy(fname,
+					      dns_fixedname_name(&fixed), NULL);
+
 				/*
 				 * If we don't have a cache, this is the best
 				 * answer.
@@ -3740,8 +4050,9 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 					       &rdataset, sigrdatasetp,
 					       dbuf, DNS_SECTION_AUTHORITY);
 				client->query.gluedb = NULL;
-				if (WANTDNSSEC(client) && dns_db_issecure(db))
-					query_addds(client, db, node, version);
+				if (WANTDNSSEC(client))
+					query_addds(client, db, node, version,
+						   dns_fixedname_name(&fixed));
 			} else {
 				/*
 				 * We might have a better answer or delegation
@@ -3760,6 +4071,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				zsigrdataset = sigrdataset;
 				sigrdataset = NULL;
 				dns_db_detachnode(db, &node);
+				zversion = version;
 				version = NULL;
 				db = NULL;
 				dns_db_attach(client->view->cachedb, &db);
@@ -3793,6 +4105,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				zrdataset = NULL;
 				sigrdataset = zsigrdataset;
 				zsigrdataset = NULL;
+				version = zversion;
+				zversion = NULL;
 				/*
 				 * We don't clean up zdb here because we
 				 * may still need it.  It will get cleaned
@@ -3821,6 +4135,11 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				else
 					QUERY_ERROR(DNS_R_SERVFAIL);
 			} else {
+				dns_fixedname_t fixed;
+
+				dns_fixedname_init(&fixed);
+				dns_name_copy(fname,
+					      dns_fixedname_name(&fixed), NULL);
 				/*
 				 * This is the best answer.
 				 */
@@ -3847,7 +4166,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				client->query.attributes &=
 					~NS_QUERYATTR_CACHEGLUEOK;
 				if (WANTDNSSEC(client))
-					query_addds(client, db, node, version);
+					query_addds(client, db, node, version,
+						   dns_fixedname_name(&fixed));
 			}
 		}
 		goto cleanup;
@@ -3856,6 +4176,80 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		/* FALLTHROUGH */
 	case DNS_R_NXRRSET:
 		INSIST(is_zone);
+		/*
+		 * Look for a NSEC3 record if we don't have a NSEC record.
+		 */
+		if (!dns_rdataset_isassociated(rdataset) &&
+		     WANTDNSSEC(client)) {
+			if ((fname->attributes & DNS_NAMEATTR_WILDCARD) == 0) {
+				dns_name_t *found;
+				dns_name_t *qname;
+
+				dns_fixedname_init(&fixed);
+				found = dns_fixedname_name(&fixed);
+				qname = client->query.qname;
+
+				query_findclosestnsec3(qname, db, version,
+						       client, rdataset,
+						       sigrdataset, fname,
+						       ISC_TRUE, found);
+				/*
+				 * Did we find the closest provable encloser
+				 * instead? If so add the nearest to the
+				 * closest provable encloser.
+				 */
+				if (found &&
+				    dns_rdataset_isassociated(rdataset) &&
+				    !dns_name_equal(qname, found))
+				{ 
+					unsigned int count;
+					unsigned int skip;
+
+					/*
+					 * Add the closest provable encloser.
+					 */
+					query_addrrset(client, &fname,
+						       &rdataset, &sigrdataset,
+						       dbuf,
+						       DNS_SECTION_AUTHORITY);
+
+					count = dns_name_countlabels(found)
+							 + 1;
+					skip = dns_name_countlabels(qname) -
+							 count;
+					dns_name_getlabelsequence(qname, skip,
+								  count,
+								  found);
+
+					fixfname(client, &fname, &dbuf, &b);
+					fixrdataset(client, &rdataset);
+					fixrdataset(client, &sigrdataset);
+					if (fname == NULL ||
+					    rdataset == NULL ||
+					    sigrdataset == NULL) {
+						QUERY_ERROR(DNS_R_SERVFAIL);
+						goto cleanup;
+					}
+					/*
+					 * 'nearest' doesn't exist so
+					 * 'exist' is set to ISC_FALSE.
+					 */
+				        query_findclosestnsec3(found, db,
+							       version,
+							       client,
+							       rdataset,
+							       sigrdataset,
+							       fname,
+							       ISC_FALSE,
+							       NULL);
+				}
+			} else {
+				query_releasename(client, &fname);
+				query_addwildcardproof(client, db, version,
+						       client->query.qname,
+						       ISC_FALSE);
+			}
+		}
 		if (dns_rdataset_isassociated(rdataset)) {
 			/*
 			 * If we've got a NSEC record, we need to save the
@@ -3863,7 +4257,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			 * below, and it needs to use the name buffer.
 			 */
 			query_keepname(client, fname, dbuf);
-		} else {
+		} else if (fname != NULL) {
 			/*
 			 * We're not going to use fname, and need to release
 			 * our hold on the name buffer so query_addsoa()
@@ -3889,9 +4283,11 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 						     &sigrdataset);
 		}
 		goto cleanup;
+
 	case DNS_R_EMPTYWILD:
 		empty_wild = ISC_TRUE;
 		/* FALLTHROUGH */
+
 	case DNS_R_NXDOMAIN:
 		INSIST(is_zone);
 		if (dns_rdataset_isassociated(rdataset)) {
@@ -3901,7 +4297,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			 * below, and it needs to use the name buffer.
 			 */
 			query_keepname(client, fname, dbuf);
-		} else {
+		} else if (fname != NULL) {
 			/*
 			 * We're not going to use fname, and need to release
 			 * our hold on the name buffer so query_addsoa()
@@ -3927,19 +4323,19 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			QUERY_ERROR(result);
 			goto cleanup;
 		}
-		/*
-		 * Add NSEC record if we found one.
-		 */
-		if (dns_rdataset_isassociated(rdataset)) {
-			if (WANTDNSSEC(client)) {
+
+		if (WANTDNSSEC(client)) {
+			/*
+			 * Add NSEC record if we found one.
+			 */
+			if (dns_rdataset_isassociated(rdataset))
 				query_addrrset(client, &fname, &rdataset,
 					       &sigrdataset,
 					       NULL, DNS_SECTION_AUTHORITY);
-				query_addwildcardproof(client, db, version,
-						       client->query.qname,
-						       ISC_FALSE);
-			}
+			query_addwildcardproof(client, db, version,
+					       client->query.qname, ISC_FALSE);
 		}
+
 		/*
 		 * Set message rcode.
 		 */
@@ -3948,6 +4344,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		else
 			client->message->rcode = dns_rcode_nxdomain;
 		goto cleanup;
+
 	case DNS_R_NCACHENXDOMAIN:
 	case DNS_R_NCACHENXRRSET:
 		INSIST(!is_zone);
@@ -3976,6 +4373,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		fname = NULL;
 		rdataset = NULL;
 		goto cleanup;
+
 	case DNS_R_CNAME:
 		/*
 		 * Keep a copy of the rdataset.  We have to do this because
@@ -3998,8 +4396,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				      NULL);
 			need_wildcardproof = ISC_TRUE;
 		}
-		if ((rdataset->attributes & DNS_RDATASETATTR_NOQNAME) != 0 &&
-		     WANTDNSSEC(client))
+		if (NOQNAME(rdataset) && WANTDNSSEC(client))
 			noqname = rdataset;
 		else
 			noqname = NULL;
@@ -4218,15 +4615,21 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				dns_rdataset_disassociate(rdataset);
 			} else if ((qtype == dns_rdatatype_any ||
 			     rdataset->type == qtype) && rdataset->type != 0) {
+				if (NOQNAME(rdataset) && WANTDNSSEC(client))
+					noqname = rdataset;
+				else
+					noqname = NULL;
 				query_addrrset(client,
 					       fname != NULL ? &fname : &tname,
 					       &rdataset, NULL,
 					       NULL, DNS_SECTION_ANSWER);
+				if (noqname != NULL)
+					query_addnoqnameproof(client, noqname);
 				n++;
 				INSIST(tname != NULL);
 				/*
-				 * rdataset is non-NULL only in certain pathological
-				 * cases involving DNAMEs.
+				 * rdataset is non-NULL only in certain
+				 * pathological cases involving DNAMEs.
 				 */
 				if (rdataset != NULL)
 					query_putrdataset(client, &rdataset);
@@ -4245,7 +4648,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		if (fname != NULL)
 			dns_message_puttempname(client->message, &fname);
 
-		if (n == 0) {
+		if (n == 0 && is_zone) {
 			/*
 			 * We didn't match any rdatasets.
 			 */
@@ -4306,8 +4709,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			sigrdatasetp = &sigrdataset;
 		else
 			sigrdatasetp = NULL;
-		if ((rdataset->attributes & DNS_RDATASETATTR_NOQNAME) != 0 &&
-		     WANTDNSSEC(client))
+		if (NOQNAME(rdataset) && WANTDNSSEC(client))
 			noqname = rdataset;
 		else
 			noqname = NULL;

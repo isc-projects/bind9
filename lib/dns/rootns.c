@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rootns.c,v 1.35 2008/04/01 01:37:25 marka Exp $ */
+/* $Id: rootns.c,v 1.36 2008/09/24 02:46:22 marka Exp $ */
 
 /*! \file */
 
@@ -159,7 +159,7 @@ check_hints(dns_db_t *db) {
 	dns_rdataset_init(&rootns);
 	(void)dns_db_find(db, dns_rootname, NULL, dns_rdatatype_ns, 0,
 			  now, NULL, name, &rootns, NULL);
-	result = dns_db_createiterator(db, ISC_FALSE, &dbiter);
+	result = dns_db_createiterator(db, 0, &dbiter);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	result = dns_dbiterator_first(dbiter);

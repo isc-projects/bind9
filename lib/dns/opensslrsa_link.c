@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.19 2008/04/01 23:47:10 tbox Exp $
+ * $Id: opensslrsa_link.c,v 1.20 2008/09/24 02:46:22 marka Exp $
  */
 #ifdef OPENSSL
 #ifndef USE_EVP
@@ -117,7 +117,8 @@ opensslrsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 
 	UNUSED(key);
 	REQUIRE(dctx->key->key_alg == DST_ALG_RSAMD5 ||
-		dctx->key->key_alg == DST_ALG_RSASHA1);
+		dctx->key->key_alg == DST_ALG_RSASHA1 ||
+		dctx->key->key_alg == DST_ALG_NSEC3RSASHA1);
 
 #if USE_EVP
 	evp_md_ctx = EVP_MD_CTX_create();
@@ -164,7 +165,8 @@ opensslrsa_destroyctx(dst_context_t *dctx) {
 #endif
 
 	REQUIRE(dctx->key->key_alg == DST_ALG_RSAMD5 ||
-		dctx->key->key_alg == DST_ALG_RSASHA1);
+		dctx->key->key_alg == DST_ALG_RSASHA1 ||
+		dctx->key->key_alg == DST_ALG_NSEC3RSASHA1);
 
 #if USE_EVP
 	if (evp_md_ctx != NULL) {
@@ -199,7 +201,8 @@ opensslrsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
 #endif
 
 	REQUIRE(dctx->key->key_alg == DST_ALG_RSAMD5 ||
-		dctx->key->key_alg == DST_ALG_RSASHA1);
+		dctx->key->key_alg == DST_ALG_RSASHA1 ||
+		dctx->key->key_alg == DST_ALG_NSEC3RSASHA1);
 
 #if USE_EVP
 	if (!EVP_DigestUpdate(evp_md_ctx, data->base, data->length)) {
@@ -239,7 +242,8 @@ opensslrsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 #endif
 
 	REQUIRE(dctx->key->key_alg == DST_ALG_RSAMD5 ||
-		dctx->key->key_alg == DST_ALG_RSASHA1);
+		dctx->key->key_alg == DST_ALG_RSASHA1 ||
+		dctx->key->key_alg == DST_ALG_NSEC3RSASHA1);
 
 	isc_buffer_availableregion(sig, &r);
 
@@ -297,7 +301,8 @@ opensslrsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 #endif
 
 	REQUIRE(dctx->key->key_alg == DST_ALG_RSAMD5 ||
-		dctx->key->key_alg == DST_ALG_RSASHA1);
+		dctx->key->key_alg == DST_ALG_RSASHA1 ||
+		dctx->key->key_alg == DST_ALG_NSEC3RSASHA1);
 
 #if USE_EVP
 	status = EVP_VerifyFinal(evp_md_ctx, sig->base, sig->length, pkey);

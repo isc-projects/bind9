@@ -46,6 +46,14 @@ isc_app_start
 isc_app_unblock
 isc_assertion_setcallback
 isc_assertion_typetotext
+isc_base32_decoderegion
+isc_base32_decodestring
+isc_base32_tobuffer
+isc_base32_totext
+isc_base32hex_decoderegion
+isc_base32hex_decodestring
+isc_base32hex_tobuffer
+isc_base32hex_totext
 isc_base64_decodestring
 isc_base64_tobuffer
 isc_base64_totext
@@ -179,6 +187,7 @@ isc_interfaceiter_first
 isc_interfaceiter_next
 isc_interval_iszero
 isc_interval_set
+isc_iterated_hash
 isc_keyboard_canceled
 isc_keyboard_close
 isc_keyboard_getchar

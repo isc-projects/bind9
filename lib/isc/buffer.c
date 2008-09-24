@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: buffer.c,v 1.47 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: buffer.c,v 1.48 2008/09/24 02:46:23 marka Exp $ */
 
 /*! \file */
 
@@ -316,6 +316,14 @@ isc__buffer_putuint16(isc_buffer_t *b, isc_uint16_t val) {
 	ISC__BUFFER_PUTUINT16(b, val);
 }
 
+void
+isc__buffer_putuint24(isc_buffer_t *b, isc_uint32_t val) {
+	REQUIRE(ISC_BUFFER_VALID(b));
+	REQUIRE(b->used + 3 <= b->length);
+
+	ISC__BUFFER_PUTUINT24(b, val);
+}
+
 isc_uint32_t
 isc_buffer_getuint32(isc_buffer_t *b) {
 	unsigned char *cp;
@@ -429,7 +437,7 @@ isc_buffer_copyregion(isc_buffer_t *b, const isc_region_t *r) {
 	 */
 	base = isc_buffer_used(b);
 	available = isc_buffer_availablelength(b);
-        if (r->length > available)
+	if (r->length > available)
 		return (ISC_R_NOSPACE);
 	memcpy(base, r->base, r->length);
 	b->used += r->length;

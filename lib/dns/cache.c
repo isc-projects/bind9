@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.79 2008/05/01 18:23:07 jinmei Exp $ */
+/* $Id: cache.c,v 1.80 2008/09/24 02:46:22 marka Exp $ */
 
 /*! \file */
 
@@ -861,7 +861,7 @@ dns_cache_clean(dns_cache_t *cache, isc_stdtime_t now) {
 
 	REQUIRE(VALID_CACHE(cache));
 
-	result = dns_db_createiterator(cache->db, ISC_FALSE, &iterator);
+	result = dns_db_createiterator(cache->db, 0, &iterator);
 	if (result != ISC_R_SUCCESS)
 		return result;
 

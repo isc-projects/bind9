@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.93 2008/08/13 02:20:09 jinmei Exp $ */
+/* $Id: masterdump.c,v 1.94 2008/09/24 02:46:22 marka Exp $ */
 
 /*! \file */
 
@@ -785,6 +785,13 @@ static const char *trustnames[] = {
 	"local" /* aka ultimate */
 };
 
+const char *
+dns_trust_totext(dns_trust_t trust) {
+	if (trust >= sizeof(trustnames)/sizeof(*trustnames))
+		return ("bad");
+	return (trustnames[trust]);
+}
+
 static isc_result_t
 dump_rdatasets_text(isc_mem_t *mctx, dns_name_t *name,
 		    dns_rdatasetiter_t *rdsiter, dns_totext_ctx_t *ctx,
@@ -1187,7 +1194,7 @@ dumpctx_create(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 {
 	dns_dumpctx_t *dctx;
 	isc_result_t result;
-	isc_boolean_t relative;
+	unsigned int options;
 
 	dctx = isc_mem_get(mctx, sizeof(*dctx));
 	if (dctx == NULL)
@@ -1234,10 +1241,10 @@ dumpctx_create(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 
 	if (dctx->format == dns_masterformat_text &&
 	    (dctx->tctx.style.flags & DNS_STYLEFLAG_REL_OWNER) != 0) {
-		relative = ISC_TRUE;
+		options = DNS_DB_RELATIVENAMES;
 	} else
-		relative = ISC_FALSE;
-	result = dns_db_createiterator(dctx->db, relative, &dctx->dbiter);
+		options = 0;
+	result = dns_db_createiterator(dctx->db, options, &dctx->dbiter);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 

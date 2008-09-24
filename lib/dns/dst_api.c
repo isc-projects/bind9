@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.14 2008/04/01 23:47:10 tbox Exp $
+ * $Id: dst_api.c,v 1.15 2008/09/24 02:46:22 marka Exp $
  */
 
 /*! \file */
@@ -183,8 +183,10 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 	RETERR(dst__openssl_init());
 	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSAMD5]));
 	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA1]));
+	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_NSEC3RSASHA1]));
 #ifdef HAVE_OPENSSL_DSA
 	RETERR(dst__openssldsa_init(&dst_t_func[DST_ALG_DSA]));
+	RETERR(dst__openssldsa_init(&dst_t_func[DST_ALG_NSEC3DSA]));
 #endif
 	RETERR(dst__openssldh_init(&dst_t_func[DST_ALG_DH]));
 #endif /* OPENSSL */
@@ -843,9 +845,11 @@ dst_key_sigsize(const dst_key_t *key, unsigned int *n) {
 	switch (key->key_alg) {
 	case DST_ALG_RSAMD5:
 	case DST_ALG_RSASHA1:
+	case DST_ALG_NSEC3RSASHA1:
 		*n = (key->key_size + 7) / 8;
 		break;
 	case DST_ALG_DSA:
+	case DST_ALG_NSEC3DSA:
 		*n = DNS_SIG_DSASIGSIZE;
 		break;
 	case DST_ALG_HMACMD5:
@@ -1058,7 +1062,9 @@ issymmetric(const dst_key_t *key) {
 	switch (key->key_alg) {
 	case DST_ALG_RSAMD5:
 	case DST_ALG_RSASHA1:
+	case DST_ALG_NSEC3RSASHA1:
 	case DST_ALG_DSA:
+	case DST_ALG_NSEC3DSA:
 	case DST_ALG_DH:
 		return (ISC_FALSE);
 	case DST_ALG_HMACMD5:
@@ -1256,7 +1262,8 @@ algorithm_status(unsigned int alg) {
 #ifndef OPENSSL
 	if (alg == DST_ALG_RSAMD5 || alg == DST_ALG_RSASHA1 ||
 	    alg == DST_ALG_DSA || alg == DST_ALG_DH ||
-	    alg == DST_ALG_HMACMD5)
+	    alg == DST_ALG_HMACMD5 || alg == DST_ALG_NSEC3DSA ||
+	    alg == DST_ALG_NSEC3RSASHA1)
 		return (DST_R_NOCRYPTO);
 #endif
 	return (DST_R_UNSUPPORTEDALG);

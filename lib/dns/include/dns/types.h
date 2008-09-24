@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.129 2008/04/03 05:55:52 marka Exp $ */
+/* $Id: types.h,v 1.130 2008/09/24 02:46:23 marka Exp $ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
@@ -69,6 +69,7 @@ typedef struct dns_fixedname			dns_fixedname_t;
 typedef struct dns_forwarders			dns_forwarders_t;
 typedef struct dns_fwdtable			dns_fwdtable_t;
 typedef struct dns_iptable			dns_iptable_t;
+typedef isc_uint32_t				dns_iterations_t;
 typedef isc_uint16_t				dns_keyflags_t;
 typedef struct dns_keynode			dns_keynode_t;
 typedef struct dns_keytable			dns_keytable_t;
@@ -130,6 +131,10 @@ typedef struct not_defined_gss_cred_id *gss_cred_id_t;
 typedef struct not_defined_gss_ctx *gss_ctx_id_t;
 #endif
 typedef struct dst_gssapi_signverifyctx dst_gssapi_signverifyctx_t;
+
+typedef enum {
+	dns_hash_sha1 = 1
+} dns_hash_t;
 
 typedef enum {
 	dns_fwdpolicy_none = 0,

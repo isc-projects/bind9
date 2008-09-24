@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hex.h,v 1.11 2007/06/19 23:47:18 tbox Exp $ */
+/* $Id: hex.h,v 1.12 2008/09/24 02:46:23 marka Exp $ */
 
 #ifndef ISC_HEX_H
 #define ISC_HEX_H 1
@@ -56,7 +56,7 @@ isc_hex_totext(isc_region_t *source, int wordlength,
  */
 
 isc_result_t
-isc_hex_decodestring(char *cstr, isc_buffer_t *target);
+isc_hex_decodestring(const char *cstr, isc_buffer_t *target);
 /*!<
  * \brief Decode a null-terminated hex string.
  *

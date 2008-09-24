@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.159 2008/04/02 02:37:41 marka Exp $ */
+/* $Id: nsupdate.c,v 1.160 2008/09/24 02:46:21 marka Exp $ */
 
 /*! \file */
 
@@ -162,6 +162,8 @@ static unsigned int udp_retries = 3;
 static dns_rdataclass_t defaultclass = dns_rdataclass_in;
 static dns_rdataclass_t zoneclass = dns_rdataclass_none;
 static dns_message_t *answer = NULL;
+static isc_uint32_t default_ttl = 0;
+static isc_boolean_t default_ttl_set = ISC_FALSE;
 
 typedef struct nsu_requestinfo {
 	dns_message_t *msg;
@@ -1387,6 +1389,33 @@ evaluate_zone(char *cmdline) {
 }
 
 static isc_uint16_t
+evaluate_ttl(char *cmdline) {
+	char *word;
+	isc_result_t result;
+	isc_uint32_t ttl;
+
+	word = nsu_strsep(&cmdline, " \t\r\n");
+	if (*word == 0) {
+		fprintf(stderr, "could not ttl\n");
+		return (STATUS_SYNTAX);
+	}
+
+	result = isc_parse_uint32(&ttl, word, 10);
+	if (result != ISC_R_SUCCESS)
+		return (STATUS_SYNTAX);
+
+	if (ttl > TTL_MAX) {
+		fprintf(stderr, "ttl '%s' is out of range (0 to %u)\n",
+			word, TTL_MAX);
+		return (STATUS_SYNTAX);
+	}
+	default_ttl = ttl;
+	default_ttl_set = ISC_TRUE;
+	
+	return (STATUS_MORE);
+}
+
+static isc_uint16_t
 evaluate_class(char *cmdline) {
 	char *word;
 	isc_textregion_t r;
@@ -1469,6 +1498,9 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	if (result != ISC_R_SUCCESS) {
 		if (isdelete) {
 			ttl = 0;
+			goto parseclass;
+		} else if (default_ttl_set) {
+			ttl = default_ttl;
 			goto parseclass;
 		} else {
 			fprintf(stderr, "ttl '%s': %s\n", word,
@@ -1718,6 +1750,15 @@ get_next_command(void) {
 		return (evaluate_class(cmdline));
 	if (strcasecmp(word, "send") == 0)
 		return (STATUS_SEND);
+	if (strcasecmp(word, "debug") == 0) {
+		if (debugging)
+			ddebugging = ISC_TRUE;
+		else
+			debugging = ISC_TRUE;
+		return (STATUS_MORE);
+	}
+	if (strcasecmp(word, "ttl") == 0)
+		return (evaluate_ttl(cmdline));
 	if (strcasecmp(word, "show") == 0) {
 		show_message(stdout, updatemsg, "Outgoing update query:");
 		return (STATUS_MORE);

@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.23 2007/06/19 23:47:02 tbox Exp $
+# $Id: sign.sh,v 1.24 2008/09/24 02:46:21 marka Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -53,3 +53,4 @@ cp trusted.conf ../ns2/trusted.conf
 cp trusted.conf ../ns3/trusted.conf
 cp trusted.conf ../ns4/trusted.conf
 cp trusted.conf ../ns6/trusted.conf
+cp trusted.conf ../ns7/trusted.conf

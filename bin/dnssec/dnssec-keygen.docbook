@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-keygen.docbook,v 1.19 2007/06/18 23:47:17 tbox Exp $ -->
+<!-- $Id: dnssec-keygen.docbook,v 1.20 2008/09/24 02:46:21 marka Exp $ -->
 <refentry id="man.dnssec-keygen">
   <refentryinfo>
     <date>June 30, 2000</date>
@@ -91,13 +91,13 @@
           <para>
             Selects the cryptographic algorithm.  The value of
             <option>algorithm</option> must be one of RSAMD5 (RSA) or RSASHA1,
-            	      DSA, DH (Diffie Hellman), or HMAC-MD5.  These values
-            are case insensitive.
+	    DSA, NSEC3RSASHA1, NSEC3DSA, DH (Diffie Hellman), or HMAC-MD5.
+	    These values are case insensitive.
           </para>
           <para>
             Note 1: that for DNSSEC, RSASHA1 is a mandatory to implement
-            algorithm,
-            and DSA is recommended.  For TSIG, HMAC-MD5 is mandatory.
+            algorithm, and DSA is recommended.  For TSIG, HMAC-MD5 is
+	    mandatory.
           </para>
           <para>
             Note 2: HMAC-MD5 and DH automatically set the -k flag.

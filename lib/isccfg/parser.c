@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.127 2007/10/12 04:17:18 each Exp $ */
+/* $Id: parser.c,v 1.128 2008/09/24 02:46:23 marka Exp $ */
 
 /*! \file */
 
@@ -1477,6 +1477,7 @@ static struct flagtext {
 	{ CFG_CLAUSEFLAG_NYI, "not yet implemented" },
 	{ CFG_CLAUSEFLAG_OBSOLETE, "obsolete" },
 	{ CFG_CLAUSEFLAG_NEWDEFAULT, "default changed" },
+	{ CFG_CLAUSEFLAG_TESTONLY, "test only" },
 	{ 0, NULL }
 };
 

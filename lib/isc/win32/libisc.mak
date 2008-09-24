@@ -115,6 +115,7 @@ ALL : "..\..\..\Build\Release\libisc.dll"
 CLEAN :
 	-@erase "$(INTDIR)\app.obj"
 	-@erase "$(INTDIR)\assertions.obj"
+	-@erase "$(INTDIR)\base32.obj"
 	-@erase "$(INTDIR)\base64.obj"
 	-@erase "$(INTDIR)\bitstring.obj"
 	-@erase "$(INTDIR)\buffer.obj"
@@ -140,6 +141,7 @@ CLEAN :
 	-@erase "$(INTDIR)\inet_pton.obj"
 	-@erase "$(INTDIR)\interfaceiter.obj"
 	-@erase "$(INTDIR)\ipv6.obj"
+	-@erase "$(INTDIR)\iterated_hash.obj"
 	-@erase "$(INTDIR)\keyboard.obj"
 	-@erase "$(INTDIR)\lex.obj"
 	-@erase "$(INTDIR)\lfsr.obj"
@@ -214,6 +216,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\fsaccess.obj" \
 	"$(INTDIR)\interfaceiter.obj" \
 	"$(INTDIR)\ipv6.obj" \
+	"$(INTDIR)\iterated_hash.obj" \
 	"$(INTDIR)\keyboard.obj" \
 	"$(INTDIR)\net.obj" \
 	"$(INTDIR)\ntpaths.obj" \
@@ -230,6 +233,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\version.obj" \
 	"$(INTDIR)\win32os.obj" \
 	"$(INTDIR)\assertions.obj" \
+	"$(INTDIR)\base32.obj" \
 	"$(INTDIR)\base64.obj" \
 	"$(INTDIR)\bitstring.obj" \
 	"$(INTDIR)\buffer.obj" \
@@ -298,6 +302,8 @@ CLEAN :
 	-@erase "$(INTDIR)\app.sbr"
 	-@erase "$(INTDIR)\assertions.obj"
 	-@erase "$(INTDIR)\assertions.sbr"
+	-@erase "$(INTDIR)\base32.obj"
+	-@erase "$(INTDIR)\base32.sbr"
 	-@erase "$(INTDIR)\base64.obj"
 	-@erase "$(INTDIR)\base64.sbr"
 	-@erase "$(INTDIR)\bitstring.obj"
@@ -348,6 +354,8 @@ CLEAN :
 	-@erase "$(INTDIR)\interfaceiter.sbr"
 	-@erase "$(INTDIR)\ipv6.obj"
 	-@erase "$(INTDIR)\ipv6.sbr"
+	-@erase "$(INTDIR)\iterated_hash.obj"
+	-@erase "$(INTDIR)\iterated_hash.sbr"
 	-@erase "$(INTDIR)\keyboard.obj"
 	-@erase "$(INTDIR)\keyboard.sbr"
 	-@erase "$(INTDIR)\lex.obj"
@@ -465,6 +473,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\fsaccess.sbr" \
 	"$(INTDIR)\interfaceiter.sbr" \
 	"$(INTDIR)\ipv6.sbr" \
+	"$(INTDIR)\iterated_hash.sbr" \
 	"$(INTDIR)\keyboard.sbr" \
 	"$(INTDIR)\net.sbr" \
 	"$(INTDIR)\ntpaths.sbr" \
@@ -481,6 +490,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\version.sbr" \
 	"$(INTDIR)\win32os.sbr" \
 	"$(INTDIR)\assertions.sbr" \
+	"$(INTDIR)\base32.sbr" \
 	"$(INTDIR)\base64.sbr" \
 	"$(INTDIR)\bitstring.sbr" \
 	"$(INTDIR)\buffer.sbr" \
@@ -547,6 +557,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\fsaccess.obj" \
 	"$(INTDIR)\interfaceiter.obj" \
 	"$(INTDIR)\ipv6.obj" \
+	"$(INTDIR)\iterated_hash.obj" \
 	"$(INTDIR)\keyboard.obj" \
 	"$(INTDIR)\net.obj" \
 	"$(INTDIR)\ntpaths.obj" \
@@ -563,6 +574,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\version.obj" \
 	"$(INTDIR)\win32os.obj" \
 	"$(INTDIR)\assertions.obj" \
+	"$(INTDIR)\base32.obj" \
 	"$(INTDIR)\base64.obj" \
 	"$(INTDIR)\bitstring.obj" \
 	"$(INTDIR)\buffer.obj" \
@@ -814,6 +826,23 @@ SOURCE=.\ipv6.c
 
 
 "$(INTDIR)\ipv6.obj"	"$(INTDIR)\ipv6.sbr" : $(SOURCE) "$(INTDIR)"
+
+
+!ENDIF 
+
+
+SOURCE=..\iterated_hash.c
+
+!IF  "$(CFG)" == "libisc - Win32 Release"
+
+
+"$(INTDIR)\iterated_hash.obj" : $(SOURCE) "$(INTDIR)"
+
+
+!ELSEIF  "$(CFG)" == "libisc - Win32 Debug"
+
+
+"$(INTDIR)\iterated_hash.obj"	"$(INTDIR)\iterated_hash.sbr" : $(SOURCE) "$(INTDIR)"
 
 
 !ENDIF 
@@ -1071,6 +1100,24 @@ SOURCE=..\assertions.c
 
 
 "$(INTDIR)\assertions.obj"	"$(INTDIR)\assertions.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\base32.c
+
+!IF  "$(CFG)" == "libisc - Win32 Release"
+
+
+"$(INTDIR)\base32.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libisc - Win32 Debug"
+
+
+"$(INTDIR)\base32.obj"	"$(INTDIR)\base32.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
