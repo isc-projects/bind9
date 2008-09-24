@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3.c,v 1.2 2008/09/24 02:46:22 marka Exp $ */
+/* $Id: nsec3.c,v 1.3 2008/09/24 16:33:27 each Exp $ */
 
 #include <config.h>
 
@@ -541,7 +541,7 @@ dns_nsec3_addnsec3(dns_db_t *db, dns_dbversion_t *version,
 	unsigned char nsec3buf[DNS_NSEC3_BUFFERSIZE];
 	unsigned int iterations;
 	unsigned int labels;
-	unsigned int next_length;
+	size_t next_length;
 	unsigned int old_length;
 	unsigned int salt_length;
 
@@ -967,7 +967,7 @@ dns_nsec3_delnsec3(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 	unsigned char nsec3buf[DNS_NSEC3_BUFFERSIZE];
 	unsigned int iterations;
 	unsigned int labels;
-	unsigned int next_length;
+	size_t next_length;
 	unsigned int salt_length;
 
 	dns_fixedname_init(&fixed);
