@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.50 2007/09/03 00:36:53 marka Exp $
+# $Id: Makefile.in,v 1.51 2008/09/24 02:13:02 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -21,17 +21,10 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_VERSION@
 
-SUBDIRS =	make lib bin doc @LIBBIND@
+SUBDIRS =	make lib bin doc
 TARGETS =
 
 @BIND9_MAKE_RULES@
-
-distclean::
-	@if [ "X@LIBBIND@" = "X" ] ; then \
-		i=lib/bind; \
-		echo "making $@ in `pwd`/$$i"; \
-		(cd $$i; ${MAKE} ${MAKEDEFS} $@) || exit 1; \
-	fi
 
 distclean::
 	rm -f config.cache config.h config.log config.status TAGS

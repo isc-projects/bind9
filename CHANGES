@@ -1,3 +1,5 @@
+2447.	[cleanup]	libbind has been split out as a seperate produce.
+
 2446.	[func]		Add a new log message about build options on startup.
 			A new command-line option '-V' for named is also
 			provided to show this information. [RT# 18645]
