@@ -42,6 +42,18 @@ BIND 9
 		Stichting NLnet - NLnet Foundation
 		Nominum, Inc.
 
+BIND 9.6.0
+
+        BIND 9.6.0 includes a number of changes from BIND 9.5 and earlier
+        releases, including:
+
+        Full NSEC3 support
+
+        Automatic zone re-signing
+
+        The BIND 8 resolver library, libbind, has been removed from the
+        BIND 9 distribution and is now available as a separate download.
+
 BIND 9.5.0
 
 	BIND 9.5.0 has a number of new features over 9.4,
@@ -457,9 +469,6 @@ Building
 	configure command line.  If OpenSSL is installed under
 	a nonstandard prefix, you can tell configure where to
 	look for it using "--with-openssl=/prefix".
-
-	To build libbind (the BIND 8 resolver library), specify
-	"--enable-libbind" on the configure command line.
 
 	On some platforms, BIND 9 can be built with multithreading
 	support, allowing it to take advantage of multiple CPUs.

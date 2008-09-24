@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: altbuild.sh,v 1.17 2007/06/19 23:47:24 tbox Exp $
+# $Id: altbuild.sh,v 1.18 2008/09/24 04:16:53 each Exp $
 
 #
 # "Alternative build" test.
@@ -77,7 +77,7 @@ cd $builddir || exit 1
 
 CFLAGS="-g -DISC_CHECK_NONE -DISC_MEM_FILL=0 -DISC_LIST_CHECKINIT" \
     sh $srcdir/bind-*/configure --with-libtool \
-	--disable-threads --with-openssl --enable-libbind --prefix=$instdir
+	--disable-threads --with-openssl --prefix=$instdir
 gmake clean
 gmake
 gmake install

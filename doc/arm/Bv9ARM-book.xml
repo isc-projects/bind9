@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.367 2008/09/23 03:59:16 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.368 2008/09/24 04:16:52 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -253,8 +253,10 @@
           more <emphasis>name servers</emphasis> and interprets the responses.
           The <acronym>BIND</acronym> 9 software distribution
           contains a
-          name server, <command>named</command>, and two resolver
-          libraries, <command>liblwres</command> and <command>libbind</command>.
+          name server, <command>named</command>, and a resolver
+          library, <command>liblwres</command>.  The older
+          <command>libbind</command> resolver library is also available
+          from ISC as a separate download.
         </para>
 
         </sect2><sect2>
