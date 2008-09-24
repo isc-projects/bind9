@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.65 2008/09/24 02:46:22 marka Exp $ */
+/* $Id: sdb.c,v 1.66 2008/09/24 03:16:58 tbox Exp $ */
 
 /*! \file */
 
@@ -1049,7 +1049,7 @@ createiterator(dns_db_t *db, unsigned int options, dns_dbiterator_t **iteratorp)
 
 	if ((options & DNS_DB_NSEC3ONLY) != 0 ||
 	    (options & DNS_DB_NONSEC3) != 0)
-                return (ISC_R_NOTIMPLEMENTED);
+		return (ISC_R_NOTIMPLEMENTED);
 
 	sdbiter = isc_mem_get(sdb->common.mctx, sizeof(sdb_dbiterator_t));
 	if (sdbiter == NULL)

@@ -1,8 +1,7 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
+ * Copyright (C) 2008  Internet Systems Consortium, Inc. ("ISC")
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3.h,v 1.4 2008/09/24 02:46:23 marka Exp $ */
+/* $Id: nsec3.h,v 1.5 2008/09/24 03:16:58 tbox Exp $ */
 
 #ifndef DNS_NSEC3_H
 #define DNS_NSEC3_H 1
@@ -50,7 +49,7 @@ isc_result_t
 dns_nsec3_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 		     dns_dbnode_t *node, unsigned int hashalg,
 		     unsigned int optin, unsigned int iterations,
-		     const unsigned char *salt, size_t salt_length, 
+		     const unsigned char *salt, size_t salt_length,
 		     const unsigned char *nexthash, size_t hash_length,
 		     unsigned char *buffer, dns_rdata_t *rdata);
 /*%<
@@ -102,13 +101,13 @@ dns_nsec3_supportedhash(dns_hash_t hash);
 
 isc_result_t
 dns_nsec3_addnsec3(dns_db_t *db, dns_dbversion_t *version,
-                   dns_name_t *name, const dns_rdata_nsec3param_t *nsec3param,
+		   dns_name_t *name, const dns_rdata_nsec3param_t *nsec3param,
 		   dns_ttl_t nsecttl, isc_boolean_t unsecure, dns_diff_t *diff);
 
 isc_result_t
 dns_nsec3_addnsec3s(dns_db_t *db, dns_dbversion_t *version,
-                    dns_name_t *name, dns_ttl_t nsecttl,
-                    isc_boolean_t unsecure, dns_diff_t *diff);
+		    dns_name_t *name, dns_ttl_t nsecttl,
+		    isc_boolean_t unsecure, dns_diff_t *diff);
 /*%<
  * Add NSEC3 records for 'name', recording the change in 'diff'.
  * Adjust previous NSEC3 records, if any, to reflect the addition.
@@ -139,11 +138,11 @@ dns_nsec3_addnsec3s(dns_db_t *db, dns_dbversion_t *version,
 
 isc_result_t
 dns_nsec3_delnsec3(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
-                   const dns_rdata_nsec3param_t *nsec3param, dns_diff_t *diff);
+		   const dns_rdata_nsec3param_t *nsec3param, dns_diff_t *diff);
 
 isc_result_t
 dns_nsec3_delnsec3s(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
-                    dns_diff_t *diff);
+		    dns_diff_t *diff);
 /*%<
  * Remove NSEC3 records for 'name', recording the change in 'diff'.
  * Adjust previous NSEC3 records, if any, to reflect the removal.
@@ -164,8 +163,8 @@ dns_nsec3_delnsec3s(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
  */
 
 isc_result_t
-dns_nsec3_active(dns_db_t *db, dns_dbversion_t *version, 
-                 isc_boolean_t complete, isc_boolean_t *answer);
+dns_nsec3_active(dns_db_t *db, dns_dbversion_t *version,
+		 isc_boolean_t complete, isc_boolean_t *answer);
 /*%<
  * Check if there are any complete/to be built NSEC3 chains.
  * If 'complete' is ISC_TRUE only complete chains will be recognised.
@@ -178,7 +177,7 @@ dns_nsec3_active(dns_db_t *db, dns_dbversion_t *version,
 
 isc_result_t
 dns_nsec3_maxiterations(dns_db_t *db, dns_dbversion_t *version,
-                        isc_mem_t *mctx, unsigned int *iterationsp);
+			isc_mem_t *mctx, unsigned int *iterationsp);
 /*%<
  * Find the maximum permissible number of iterations allowed based on
  * the key strength.
