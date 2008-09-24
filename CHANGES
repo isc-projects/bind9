@@ -1,3 +1,6 @@
+2449.	[bug]		libbind: Out of bounds reference in dns_ho.c:addrsort.
+			[RT #18044]
+
 2445.	[doc]		ARM out-of-date on empty reverse zones (list includes
 			RFC1918 address, but these are not yet compiled in).
 			[RT #18578]
