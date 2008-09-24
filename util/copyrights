@@ -1374,7 +1374,7 @@
 ./lib/bind/irs/Makefile.in			MAKE	2001,2004,2008
 ./lib/bind/irs/dns.c				X	2001,2004,2005,2006
 ./lib/bind/irs/dns_gr.c				X	2001,2003,2004,2005
-./lib/bind/irs/dns_ho.c				X	2001,2002,2003,2004,2005,2006
+./lib/bind/irs/dns_ho.c				X	2001,2002,2003,2004,2005,2006,2008
 ./lib/bind/irs/dns_nw.c				X	2001,2002,2003,2004,2005
 ./lib/bind/irs/dns_p.h				X	2001,2004,2005
 ./lib/bind/irs/dns_pr.c				X	2001,2004,2005
