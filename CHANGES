@@ -1,3 +1,6 @@
+2449.	[bug]		libbind: Out of bounds reference in dns_ho.c:addrsort.
+			[RT #18044]
+
 2444.	[port]		Linux, FreeBSD, AIX: Turn off path mtu discovery
 			(clear DF) for UDP responses and requests.
 
