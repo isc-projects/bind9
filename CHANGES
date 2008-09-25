@@ -1,3 +1,5 @@
+2451.	[port]		solaris: handle runtime linking better. [RT #18356]
+
 2450.	[doc]		Fix lwresd docbook problem for manual page.
 			[RT #18672]
 
