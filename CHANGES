@@ -1,3 +1,6 @@
+2453.	[bug]		Remove NULL pointer dereference in dns_journal_print().
+			[RT #18316]
+
 2449.	[bug]		libbind: Out of bounds reference in dns_ho.c:addrsort.
 			[RT #18044]
 
