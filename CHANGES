@@ -1,3 +1,5 @@
+2454.	[func]		nsupdate: you can now set a default ttl. [RT #18317]
+
 2453.	[bug]		Remove NULL pointer dereference in dns_journal_print().
 			[RT #18316]
 

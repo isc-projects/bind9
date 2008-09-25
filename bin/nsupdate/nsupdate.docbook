@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: nsupdate.docbook,v 1.33 2008/09/24 02:46:21 marka Exp $ -->
+<!-- $Id: nsupdate.docbook,v 1.34 2008/09/25 02:20:27 marka Exp $ -->
 <refentry id="man.nsupdate">
   <refentryinfo>
     <date>Jun 30, 2000</date>
@@ -325,6 +325,20 @@
 
         <varlistentry>
           <term>
+              <command>ttl</command>
+              <arg choice="req">seconds</arg>
+            </term>
+          <listitem>
+            <para>
+              Specify the default time to live for records to be added.
+	      The value <parameter>none</parameter> will clear the default
+	      ttl.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
               <command>key</command>
               <arg choice="req">name</arg>
               <arg choice="req">secret</arg>
@@ -524,6 +538,17 @@
           <listitem>
             <para>
               Displays the answer.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+              <command>debug</command>
+            </term>
+          <listitem>
+            <para>
+              Turn on debugging.
             </para>
           </listitem>
         </varlistentry>
