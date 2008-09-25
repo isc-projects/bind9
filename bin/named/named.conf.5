@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.conf.5,v 1.35 2008/09/05 01:12:05 tbox Exp $
+.\" $Id: named.conf.5,v 1.36 2008/09/25 04:45:04 tbox Exp $
 .\"
 .hy 0
 .ad l
@@ -302,6 +302,7 @@ options {
 	try\-tcp\-refresh \fIboolean\fR;
 	zero\-no\-soa\-ttl \fIboolean\fR;
 	zero\-no\-soa\-ttl\-cache \fIboolean\fR;
+	nsec3\-test\-zone \fIboolean\fR;  // testing only
 	allow\-v6\-synthesis { \fIaddress_match_element\fR; ... }; // obsolete
 	deallocate\-on\-exit \fIboolean\fR; // obsolete
 	fake\-iquery \fIboolean\fR; // obsolete
@@ -524,6 +525,7 @@ zone \fIstring\fR \fIoptional_class\fR {
 	zone\-statistics \fIboolean\fR;
 	try\-tcp\-refresh \fIboolean\fR;
 	key\-directory \fIquoted_string\fR;
+	nsec3\-test\-zone \fIboolean\fR;  // testing only
 	ixfr\-base \fIquoted_string\fR; // obsolete
 	ixfr\-tmp\-file \fIquoted_string\fR; // obsolete
 	maintain\-ixfr\-base \fIboolean\fR; // obsolete

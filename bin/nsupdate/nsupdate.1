@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: nsupdate.1,v 1.2 2008/09/01 01:44:30 tbox Exp $
+.\" $Id: nsupdate.1,v 1.3 2008/09/25 04:45:04 tbox Exp $
 .\"
 .hy 0
 .ad l
@@ -33,7 +33,7 @@
 nsupdate \- Dynamic DNS update utility
 .SH "SYNOPSIS"
 .HP 9
-\fBnsupdate\fR [\fB\-d\fR] [[\fB\-y\ \fR\fB\fI[hmac:]\fR\fIkeyname:secret\fR\fR] | [\fB\-k\ \fR\fB\fIkeyfile\fR\fR]] [\fB\-t\ \fR\fB\fItimeout\fR\fR] [\fB\-u\ \fR\fB\fIudptimeout\fR\fR] [\fB\-r\ \fR\fB\fIudpretries\fR\fR] [\fB\-R\ \fR\fB\fIrandomdev\fR\fR] [\fB\-v\fR] [filename]
+\fBnsupdate\fR [\fB\-d\fR] [\fB\-D\fR] [[\fB\-y\ \fR\fB\fI[hmac:]\fR\fIkeyname:secret\fR\fR] | [\fB\-k\ \fR\fB\fIkeyfile\fR\fR]] [\fB\-t\ \fR\fB\fItimeout\fR\fR] [\fB\-u\ \fR\fB\fIudptimeout\fR\fR] [\fB\-r\ \fR\fB\fIudpretries\fR\fR] [\fB\-R\ \fR\fB\fIrandomdev\fR\fR] [\fB\-v\fR] [filename]
 .SH "DESCRIPTION"
 .PP
 \fBnsupdate\fR
@@ -52,6 +52,13 @@ The
 option makes
 \fBnsupdate\fR
 operate in debug mode. This provides tracing information about the update requests that are made and the replies received from the name server.
+.PP
+The
+\fB\-D\fR
+option makes
+\fBnsupdate\fR
+report additional debugging information to
+\fB\-d\fR.
 .PP
 Transaction signatures can be used to authenticate the Dynamic DNS updates. These use the TSIG resource record type described in RFC2845 or the SIG(0) record described in RFC3535 and RFC2931. TSIG relies on a shared secret that should only be known to
 \fBnsupdate\fR
@@ -178,6 +185,13 @@ is specified, the default class is
 \fIIN\fR.
 .RE
 .PP
+\fBttl\fR {seconds}
+.RS 4
+Specify the default time to live for records to be added. The value
+\fInone\fR
+will clear the default ttl.
+.RE
+.PP
 \fBkey\fR {name} {secret}
 .RS 4
 Specifies that all updates are to be TSIG\-signed using the
@@ -279,6 +293,11 @@ Sends the current message. This is equivalent to entering a blank line.
 \fBanswer\fR
 .RS 4
 Displays the answer.
+.RE
+.PP
+\fBdebug\fR
+.RS 4
+Turn on debugging.
 .RE
 .PP
 Lines beginning with a semicolon are comments and are ignored.
