@@ -18,13 +18,12 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.451 $)
+AC_REVISION($Revision: 1.452 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
 
 AC_CONFIG_HEADER(config.h)
-AC_CONFIG_SUBDIRS(lib/bind)
 
 AC_CANONICAL_HOST
 
