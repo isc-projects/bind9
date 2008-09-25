@@ -1,3 +1,8 @@
+2453.	[bug]		Remove NULL pointer dereference in dns_journal_print().
+			[RT #18316]
+
+2452.	[func]		Improve bin/test/journalprint. [RT #18316]
+
 2451.	[port]		solaris: handle runtime linking better. [RT #18356]
 
 2450.	[doc]		Fix lwresd docbook problem for manual page.
