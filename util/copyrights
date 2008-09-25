@@ -1347,7 +1347,7 @@
 ./lib/Makefile.in				MAKE	1998,1999,2000,2001,2003,2004,2007
 ./lib/bind9/.cvsignore				X	2001
 ./lib/bind9/Makefile.in				MAKE	2001,2004,2007
-./lib/bind9/api					X	2001,2006
+./lib/bind9/api					X	2001,2006,2008
 ./lib/bind9/check.c				C	2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/bind9/getaddresses.c			C	2001,2002,2004,2005,2007
 ./lib/bind9/include/.cvsignore			X	2001
@@ -1369,7 +1369,7 @@
 ./lib/dns/acache.c				C	2004,2005,2006,2007,2008
 ./lib/dns/acl.c					C	1999,2000,2001,2002,2004,2005,2006,2007,2008
 ./lib/dns/adb.c					C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
-./lib/dns/api					X	1999,2000,2001,2006
+./lib/dns/api					X	1999,2000,2001,2006,2008
 ./lib/dns/byaddr.c				C	2000,2001,2002,2003,2004,2005,2007
 ./lib/dns/cache.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/dns/callbacks.c				C	1999,2000,2001,2004,2005,2007
@@ -1669,7 +1669,7 @@
 ./lib/isc/alpha/include/isc/.cvsignore		X	2007
 ./lib/isc/alpha/include/isc/Makefile.in		MAKE	2007
 ./lib/isc/alpha/include/isc/atomic.h		C	2005,2007
-./lib/isc/api					X	1999,2000,2001,2006
+./lib/isc/api					X	1999,2000,2001,2006,2008
 ./lib/isc/assertions.c				C	1997,1998,1999,2000,2001,2004,2005,2007
 ./lib/isc/base32.c				C	2008
 ./lib/isc/base64.c				C	1998,1999,2000,2001,2003,2004,2005,2007
@@ -1983,7 +1983,7 @@
 ./lib/isccc/.cvsignore				X	2001
 ./lib/isccc/Makefile.in				MAKE	2001,2003,2004,2007
 ./lib/isccc/alist.c				C.NOM	2001,2004,2005,2007
-./lib/isccc/api					X	2001,2006
+./lib/isccc/api					X	2001,2006,2008
 ./lib/isccc/base64.c				C.NOM	2001,2004,2005,2007
 ./lib/isccc/cc.c				C.NOM	2001,2002,2003,2004,2005,2006,2007
 ./lib/isccc/ccmsg.c				C.NOM	2001,2004,2005,2007
@@ -2018,7 +2018,7 @@
 ./lib/isccfg/.cvsignore				X	2001
 ./lib/isccfg/Makefile.in			MAKE	2001,2002,2003,2004,2005,2007
 ./lib/isccfg/aclconf.c				C	1999,2000,2001,2002,2004,2005,2006,2007,2008
-./lib/isccfg/api				X	2001,2006
+./lib/isccfg/api				X	2001,2006,2008
 ./lib/isccfg/include/.cvsignore			X	2001
 ./lib/isccfg/include/Makefile.in		MAKE	2001,2004,2007
 ./lib/isccfg/include/isccfg/.cvsignore		X	2001
@@ -2041,7 +2041,7 @@
 ./lib/isccfg/win32/version.c			C	1998,1999,2000,2001,2004,2007
 ./lib/lwres/.cvsignore				X	2000,2001
 ./lib/lwres/Makefile.in				MAKE	2000,2001,2004,2005,2007
-./lib/lwres/api					X	2000,2001,2006
+./lib/lwres/api					X	2000,2001,2006,2008
 ./lib/lwres/assert_p.h				C	2000,2001,2004,2005,2007
 ./lib/lwres/context.c				C	2000,2001,2003,2004,2005,2007
 ./lib/lwres/context_p.h				C	2000,2001,2004,2005,2007
