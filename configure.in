@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.432.60.14 $)
+AC_REVISION($Revision: 1.432.60.15 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -2741,6 +2741,9 @@ for e in $BUILD_LDFLAGS ; do
 		    ee=`echo $e | sed -e 's%^-L%-Wl,-rpath,%'`
 		    NEWFLAGS="$NEWFLAGS $e $ee"
 		    ;;
+		solaris*)
+		    ee=echo $e | sed -e 's%^-L%-R%'`
+		    NEWFLAGS="$NEWFLAGS $e $ee"
 		*)
 		    NEWFLAGS="$NEWFLAGS $e"
 		    ;;
@@ -2793,10 +2796,6 @@ for e in $DNS_CRYPTO_LIBS ; do
 		    ;;
 		freebsd*)
 		    ee=`echo $e | sed -e 's%^-L%-Wl,-rpath,%'`
-		    NEWFLAGS="$NEWFLAGS $e $ee"
-		    ;;
-		solaris*)
-		    ee=echo $e | sed -e 's%^-L%-R%'`
 		    NEWFLAGS="$NEWFLAGS $e $ee"
 		    ;;
 		solaris*)
