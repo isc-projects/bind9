@@ -1846,7 +1846,7 @@
 ./lib/dns/include/dst/gssapi.h			C	2000,2001,2004,2005
 ./lib/dns/include/dst/lib.h			C	1999,2000,2001,2004,2005
 ./lib/dns/include/dst/result.h			C	1999,2000,2001,2004,2005
-./lib/dns/journal.c				C	1999,2000,2001,2002,2004,2005,2007
+./lib/dns/journal.c				C	1999,2000,2001,2002,2004,2005,2007,2008
 ./lib/dns/key.c					C	2001,2004,2005,2006
 ./lib/dns/keytable.c				C	2000,2001,2004,2005
 ./lib/dns/lib.c					C	1999,2000,2001,2004,2005
