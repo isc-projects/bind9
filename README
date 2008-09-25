@@ -51,6 +51,10 @@ BIND 9.6.0
 
         Automatic zone re-signing
 
+	NSID support
+
+	New update-policy methods tcp-self and 6to4-self
+
         The BIND 8 resolver library, libbind, has been removed from the
         BIND 9 distribution and is now available as a separate download.
 
