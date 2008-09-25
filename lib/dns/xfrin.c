@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.124.2.4.2.26 2008/07/28 23:45:48 tbox Exp $ */
+/* $Id: xfrin.c,v 1.124.2.4.2.27 2008/09/25 03:56:05 marka Exp $ */
 
 #include <config.h>
 
@@ -423,6 +423,9 @@ xfr_rr(dns_xfrin_ctx_t *xfr, dns_name_t *name, isc_uint32_t ttl,
        dns_rdata_t *rdata)
 {
 	isc_result_t result;
+
+	if (rdata->type == 0 || dns_rdatatype_ismeta(rdata->type))
+		FAIL(DNS_R_FORMERR);
 
  redo:
 	switch (xfr->state) {
