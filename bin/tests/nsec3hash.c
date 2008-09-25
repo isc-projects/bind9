@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006, 2008  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3hash.c,v 1.2 2008/09/24 02:46:21 marka Exp $ */
+/* $Id: nsec3hash.c,v 1.3 2008/09/25 04:02:38 tbox Exp $ */
 
 #include <config.h>
 
@@ -38,20 +38,20 @@ const char *program = "nsec3hash";
 
 static void
 fatal(const char *format, ...) {
-        va_list args;
+	va_list args;
 
-        fprintf(stderr, "%s: ", program);
-        va_start(args, format);
-        vfprintf(stderr, format, args);
-        va_end(args);
-        fprintf(stderr, "\n");
-        exit(1);
+	fprintf(stderr, "%s: ", program);
+	va_start(args, format);
+	vfprintf(stderr, format, args);
+	va_end(args);
+	fprintf(stderr, "\n");
+	exit(1);
 }
 
 static void
 check_result(isc_result_t result, const char *message) {
-        if (result != ISC_R_SUCCESS)
-                fatal("%s: %s", message, isc_result_totext(result));
+	if (result != ISC_R_SUCCESS)
+		fatal("%s: %s", message, isc_result_totext(result));
 }
 
 static void
@@ -59,7 +59,7 @@ usage() {
 	fatal("salt hash iterations domain");
 }
 
-int 
+int
 main(int argc, char **argv) {
 	dns_fixedname_t fixed;
 	dns_name_t *name;
@@ -112,6 +112,6 @@ main(int argc, char **argv) {
 	isc_buffer_init(&buffer, text, sizeof(text));
 	isc_base32hex_totext(&region, 1, "", &buffer);
 	fprintf(stdout, "%.*s (salt=%s, hash=%u, iterations=%u)\n",
-	        (int)isc_buffer_usedlength(&buffer), text, argv[1], hash_alg, iterations);
+		(int)isc_buffer_usedlength(&buffer), text, argv[1], hash_alg, iterations);
 	exit(0);
 }

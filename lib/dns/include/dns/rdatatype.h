@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdatatype.h,v 1.25 2008/09/24 02:46:23 marka Exp $ */
+/* $Id: rdatatype.h,v 1.26 2008/09/25 04:02:39 tbox Exp $ */
 
 #ifndef DNS_RDATATYPE_H
 #define DNS_RDATATYPE_H 1

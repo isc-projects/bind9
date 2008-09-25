@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journalprint.c,v 1.13 2008/09/25 02:01:45 marka Exp $ */
+/* $Id: journalprint.c,v 1.14 2008/09/25 04:02:38 tbox Exp $ */
 
 /*! \file */
 #include <config.h>
@@ -50,9 +50,9 @@ setup_logging(isc_mem_t *mctx, FILE *errout, isc_log_t **logp) {
 	destination.file.versions = ISC_LOG_ROLLNEVER;
 	destination.file.maximum_size = 0;
 	RUNTIME_CHECK(isc_log_createchannel(logconfig, "stderr",
-				            ISC_LOG_TOFILEDESC,
-				            ISC_LOG_DYNAMIC,
-			                    &destination, 0) == ISC_R_SUCCESS);
+					    ISC_LOG_TOFILEDESC,
+					    ISC_LOG_DYNAMIC,
+					    &destination, 0) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_log_usechannel(logconfig, "stderr",
 					 NULL, NULL) == ISC_R_SUCCESS);
 

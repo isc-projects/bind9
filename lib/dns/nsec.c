@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec.c,v 1.10 2008/09/24 02:46:22 marka Exp $ */
+/* $Id: nsec.c,v 1.11 2008/09/25 04:02:38 tbox Exp $ */
 
 /*! \file */
 
@@ -240,7 +240,7 @@ dns_nsec_nseconly(dns_db_t *db, dns_dbversion_t *version,
 	result = dns_db_getoriginnode(db, &node);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	
+
 	result = dns_db_findrdataset(db, node, version, dns_rdatatype_dnskey,
 				     0, 0, &rdataset, NULL);
 	dns_db_detachnode(db, &node);

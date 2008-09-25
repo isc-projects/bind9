@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2002, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: grammar.h,v 1.16 2008/09/24 02:46:23 marka Exp $ */
+/* $Id: grammar.h,v 1.17 2008/09/25 04:02:39 tbox Exp $ */
 
 #ifndef ISCCFG_GRAMMAR_H
 #define ISCCFG_GRAMMAR_H 1
@@ -186,8 +186,8 @@ struct cfg_parser {
 	/*%
 	 * The stack of currently active files, represented
 	 * as a configuration list of configuration strings.
-	 * The head is the top-level file, subsequent elements 
-	 * (if any) are the nested include files, and the 
+	 * The head is the top-level file, subsequent elements
+	 * (if any) are the nested include files, and the
 	 * last element is the file currently being parsed.
 	 */
 	cfg_obj_t *	open_files;
@@ -435,7 +435,7 @@ cfg_doc_terminal(cfg_printer_t *pctx, const cfg_type_t *type);
 void
 cfg_parser_error(cfg_parser_t *pctx, unsigned int flags,
 		 const char *fmt, ...) ISC_FORMAT_PRINTF(3, 4);
-/*! 
+/*!
  * Pass one of these flags to cfg_parser_error() to include the
  * token text in log message.
  */
