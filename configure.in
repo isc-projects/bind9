@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.432.60.16 $)
+AC_REVISION($Revision: 1.432.60.17 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -2744,6 +2744,7 @@ for e in $BUILD_LDFLAGS ; do
 		solaris*)
 		    ee=`echo $e | sed -e 's%^-L%-R%'`
 		    NEWFLAGS="$NEWFLAGS $e $ee"
+		    ;;
 		*)
 		    NEWFLAGS="$NEWFLAGS $e"
 		    ;;
