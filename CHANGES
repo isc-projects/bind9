@@ -1,3 +1,6 @@
+2453.	[bug]		Remove NULL pointer dereference in dns_journal_print().
+			[RT #18316]
+
 2451.	[port]		solaris: handle runtime linking better. [RT #18356]
 
 2449.	[bug]		libbind: Out of bounds reference in dns_ho.c:addrsort.

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.99 2007/09/07 05:14:33 marka Exp $ */
+/* $Id: journal.c,v 1.99.70.1 2008/09/25 02:07:56 marka Exp $ */
 
 #include <config.h>
 
@@ -1367,7 +1367,7 @@ dns_journal_print(isc_mem_t *mctx, const char *filename, FILE *file) {
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 			      "journal open failure: %s: %s",
-			      isc_result_totext(result), j->filename);
+			      isc_result_totext(result), filename);
 		return (result);
 	}
 
@@ -1405,9 +1405,9 @@ dns_journal_print(isc_mem_t *mctx, const char *filename, FILE *file) {
 		if (n_soa == 3)
 			n_soa = 1;
 		if (n_soa == 0) {
-		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
-					 "%s: journal file corrupt: missing "
-					 "initial SOA", j->filename);
+			isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
+				      "%s: journal file corrupt: missing "
+				      "initial SOA", j->filename);
 			FAIL(ISC_R_UNEXPECTED);
 		}
 		CHECK(dns_difftuple_create(diff.mctx, n_soa == 1 ?
