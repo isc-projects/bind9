@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3hash.c,v 1.3 2008/09/25 04:02:38 tbox Exp $ */
+/* $Id: nsec3hash.c,v 1.4 2008/09/26 01:31:19 marka Exp $ */
 
 #include <config.h>
 
@@ -113,5 +113,5 @@ main(int argc, char **argv) {
 	isc_base32hex_totext(&region, 1, "", &buffer);
 	fprintf(stdout, "%.*s (salt=%s, hash=%u, iterations=%u)\n",
 		(int)isc_buffer_usedlength(&buffer), text, argv[1], hash_alg, iterations);
-	exit(0);
+	return(0);
 }
