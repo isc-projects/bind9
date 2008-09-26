@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3.c,v 1.4 2008/09/25 04:02:38 tbox Exp $ */
+/* $Id: nsec3.c,v 1.5 2008/09/26 01:24:55 marka Exp $ */
 
 #include <config.h>
 
@@ -93,8 +93,8 @@ dns_nsec3_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 	dns_rdatasetiter_t *rdsiter;
 	unsigned char *p;
 
-	REQUIRE(salt_length < 256);
-	REQUIRE(hash_length < 256);
+	REQUIRE(salt_length < 256U);
+	REQUIRE(hash_length < 256U);
 	REQUIRE(flags <= 0xffU);
 	REQUIRE(hashalg <= 0xffU);
 	REQUIRE(iterations <= 0xffffU);
@@ -264,7 +264,7 @@ dns_nsec3_hashname(dns_fixedname_t *result,
 	/* hash the node name */
 	len = isc_iterated_hash(rethash, hashalg, iterations, salt, saltlength,
 				downcased->ndata, downcased->length);
-	if (len == 0)
+	if (len == 0U)
 		return (DNS_R_BADALG);
 
 	if (hash_length != NULL)
