@@ -1,3 +1,7 @@
+2456.	[bug]		In ACLs, ::/0 and 0.0.0.0/0 would both match any
+			address, regardless of family.  They now correctly
+			distinguish IPv4 from IPv6.  [RT #18559]
+                        
 	--- 9.6.0a1 released ---
 
 2455.	[bug]		Stop metadata being transfered via axfr/ixfr.
