@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.h,v 1.5.46.4 2008/01/21 23:46:23 tbox Exp $ */
+/* $Id: radix.h,v 1.5.46.5 2008/09/26 21:17:48 each Exp $ */
 
 /*
  * This source was adapted from MRT's RCS Ids:
@@ -37,7 +37,7 @@
 #define NETADDR_TO_PREFIX_T(na,pt,bits) \
 	do { \
 		memset(&(pt), 0, sizeof(pt)); \
-		if((bits) && (na) != NULL) { \
+		if((na) != NULL) { \
 			(pt).family = (na)->family; \
 			(pt).bitlen = (bits); \
 			if ((pt).family == AF_INET6) { \
@@ -46,14 +46,16 @@
 			} else \
 				memcpy(&(pt).add.sin, &(na)->type.in, \
 				       ((bits)+7)/8); \
-		} else \
-			(pt).family = AF_INET; \
+		} else { \
+			(pt).family = AF_UNSPEC; \
+			(pt).bitlen = 0; \
+		} \
 		isc_refcount_init(&(pt).refcount, 0); \
 	} while(0)
 
 typedef struct isc_prefix {
-    unsigned int family;	/* AF_INET | AF_INET6 */
-    unsigned int bitlen;
+    unsigned int family;	/* AF_INET | AF_INET6, or AF_UNSPEC for "any" */
+    unsigned int bitlen;	/* 0 for "any" */
     isc_refcount_t refcount;
     union {
 		struct in_addr sin;
