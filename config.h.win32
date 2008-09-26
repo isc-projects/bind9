@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.win32,v 1.18 2008/04/02 23:46:57 tbox Exp $ */
+/* $Id: config.h.win32,v 1.19 2008/09/25 07:44:12 marka Exp $ */
 
 /*
  * win32 configuration file
@@ -229,3 +229,8 @@ typedef long off_t;
 
 #define FD_SETSIZE 16384
 #include <windows.h>
+
+/*
+ * Windows doesn't use configure so just set "default" here.
+ */
+#define CONFIGARGS "default"

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.164 2008/08/15 17:52:53 jinmei Exp $ */
+/* $Id: xfrin.c,v 1.166 2008/09/25 04:12:39 marka Exp $ */
 
 /*! \file */
 
@@ -432,6 +432,10 @@ xfr_rr(dns_xfrin_ctx_t *xfr, dns_name_t *name, isc_uint32_t ttl,
 	isc_result_t result;
 
 	xfr->nrecs++;
+
+	if (rdata->type == dns_rdatatype_none ||
+	    dns_rdatatype_ismeta(rdata->type))
+		FAIL(DNS_R_FORMERR);
 
  redo:
 	switch (xfr->state) {

@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-keyfromlabel.8,v 1.3 2008/04/01 01:11:50 tbox Exp $
+.\" $Id: dnssec-keyfromlabel.8,v 1.4 2008/09/25 04:45:04 tbox Exp $
 .\"
 .hy 0
 .ad l
@@ -43,7 +43,7 @@ gets keys with the given label from a crypto hardware and builds key files for D
 .RS 4
 Selects the cryptographic algorithm. The value of
 \fBalgorithm\fR
-must be one of RSAMD5 (RSA) or RSASHA1, DSA or DH (Diffie Hellman). These values are case insensitive.
+must be one of RSAMD5 (RSA) or RSASHA1, DSA, NSEC3RSASHA1, NSEC3DSA or DH (Diffie Hellman). These values are case insensitive.
 .sp
 Note 1: that for DNSSEC, RSASHA1 is a mandatory to implement algorithm, and DSA is recommended.
 .sp

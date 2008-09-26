@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.147 2008/09/24 02:46:21 marka Exp $ */
+/* $Id: update.c,v 1.148 2008/09/24 03:16:57 tbox Exp $ */
 
 #include <config.h>
 
@@ -1158,7 +1158,7 @@ replaces_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
 		 * Replace records added in this UPDATE request.
 		 */
 		if (db_rr->data[0] == update_rr->data[0] &&
-	 	    db_rr->data[1] & DNS_NSEC3FLAG_UPDATE &&
+		    db_rr->data[1] & DNS_NSEC3FLAG_UPDATE &&
 		    update_rr->data[1] & DNS_NSEC3FLAG_UPDATE &&
 		    memcmp(db_rr->data+2, update_rr->data+2,
 			   update_rr->length - 2) == 0)
@@ -1584,7 +1584,7 @@ is_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 					dns_fixedname_name(&foundname),
 					NULL, NULL) == DNS_R_NXRRSET)
 				*unsecure = ISC_TRUE;
-			else 
+			else
 				*unsecure = ISC_FALSE;
 		}
 		return (ISC_R_SUCCESS);
@@ -2896,12 +2896,12 @@ check_dnssec(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	isc_boolean_t flag;
 	isc_result_t result;
 	unsigned int iterations = 0, max;
-	
+
 	dns_diff_init(diff->mctx, &temp_diff);
 
 	CHECK(dns_nsec_nseconly(db, ver, &flag));
 
-	if (flag) 
+	if (flag)
 		CHECK(dns_nsec3_active(db, ver, ISC_FALSE, &flag));
 	if (flag) {
 		update_log(client, zone, ISC_LOG_WARNING,
@@ -2992,9 +2992,9 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 				unsigned char *next_data = next->rdata.data;
 				unsigned char *tuple_data = tuple->rdata.data;
 				if (next_data[0] != tuple_data[0] ||
-				        /* Ignore flags. */
+					/* Ignore flags. */
 				    next_data[2] != tuple_data[2] ||
-			 	    next_data[3] != tuple_data[3] ||
+				    next_data[3] != tuple_data[3] ||
 				    next_data[4] != tuple_data[4] ||
 				    !memcmp(&next_data[5], &tuple_data[5],
 					    tuple_data[4])) {
@@ -3172,11 +3172,11 @@ add_signing_records(dns_db_t *db, dns_name_t *name, dns_dbversion_t *ver,
  failure:
 	return (result);
 }
-			
+
 #ifdef ALLOW_NSEC3PARAM_UPDATE
 /*
  * Mark all NSEC3 chains for deletion without creating a NSEC chain as
- * a side effect of deleting the last chain. 
+ * a side effect of deleting the last chain.
  */
 static isc_result_t
 delete_chains(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
@@ -3190,7 +3190,7 @@ delete_chains(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 	isc_boolean_t flag;
 	isc_result_t result = ISC_R_SUCCESS;
 	unsigned char buf[DNS_NSEC3PARAM_BUFFERSIZE];
-	
+
 	dns_name_init(&next, NULL);
 	dns_rdataset_init(&rdataset);
 
@@ -3214,7 +3214,7 @@ delete_chains(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 		dns_rdataset_current(&rdataset, &rdata);
 		INSIST(rdata.length <= sizeof(buf));
 		memcpy(buf, rdata.data, rdata.length);
-		
+
 		if (buf[1] == (DNS_NSEC3FLAG_REMOVE | DNS_NSEC3FLAG_NONSEC)) {
 			dns_rdata_reset(&rdata);
 			continue;
@@ -3662,7 +3662,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			}
 #else
 			if (rdata.type == dns_rdatatype_nsec3param) {
-				update_log(client, zone, LOGLEVEL_PROTOCOL, 
+				update_log(client, zone, LOGLEVEL_PROTOCOL,
 					   "attempt to add NSEC3PARAM "
 					   "record ignored");
 				continue;
@@ -3974,7 +3974,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			keyid = dst_region_computeid(&r, algorithm);
 
 			result = dns_zone_signwithkey(zone, algorithm, keyid,
-				        ISC_TF(tuple->op == DNS_DIFFOP_DEL));
+					ISC_TF(tuple->op == DNS_DIFFOP_DEL));
 			if (result != ISC_R_SUCCESS) {
 				update_log(client, zone, ISC_LOG_ERROR,
 					   "dns_zone_signwithkey failed: %s",
@@ -3985,7 +3985,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 #ifdef ALLOW_NSEC3PARAM_UPDATE
 		/*
 		 * Cause the zone to add/delete NSEC3 chains for the
-		 * defered NSEC3PARAM changes. 
+		 * defered NSEC3PARAM changes.
 		 *
 		 * Note: we are already committed to this course of action.
 		 */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,9 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db_test.c,v 1.65 2008/09/24 02:46:21 marka Exp $ */
+/* $Id: db_test.c,v 1.66 2008/09/25 04:02:38 tbox Exp $ */
 
-/*! \file 
+/*! \file
  * \author
  * Principal Author: Bob Halley
  */
@@ -385,7 +385,7 @@ main(int argc, char *argv[]) {
 	RUNTIME_CHECK(dns_dbtable_create(mctx, dns_rdataclass_in, &dbtable) ==
 		      ISC_R_SUCCESS);
 
-	
+
 
 	strcpy(dbtype, "rbt");
 	while ((ch = isc_commandline_parse(argc, argv, "c:d:t:z:P:Q:glpqvT"))
@@ -404,7 +404,7 @@ main(int argc, char *argv[]) {
 		case 'g':
 			options |= (DNS_DBFIND_GLUEOK|DNS_DBFIND_VALIDATEGLUE);
 			break;
-        	case 'l':
+		case 'l':
 			RUNTIME_CHECK(isc_log_create(mctx, &lctx,
 						     NULL) == ISC_R_SUCCESS);
 			isc_log_setcontext(lctx);

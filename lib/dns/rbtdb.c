@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.263 2008/09/24 02:46:22 marka Exp $ */
+/* $Id: rbtdb.c,v 1.264 2008/09/24 03:16:57 tbox Exp $ */
 
 /*! \file */
 
@@ -1913,7 +1913,7 @@ setnsec3parameters(dns_db_t *db, rbtdb_version_t *version,
 				if ((nsec3param.flags & ~DNS_NSEC3FLAG_OPTOUT)
 				    != 0)
 					continue;
-#endif 
+#endif
 
 				INSIST(nsec3param.salt_length <=
 				       sizeof(version->salt));
@@ -7687,7 +7687,7 @@ dbiterator_seek(dns_dbiterator_t *iterator, dns_name_t *name) {
 		}
 	} else if (result == DNS_R_PARTIALMATCH) {
 		result = ISC_R_NOTFOUND;
-		rbtdbiter->node = NULL; 
+		rbtdbiter->node = NULL;
 	}
 
 	rbtdbiter->result = result;

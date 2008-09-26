@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.207 2008/09/24 02:46:21 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.208 2008/09/26 01:27:08 marka Exp $ */
 
 /*! \file */
 
@@ -646,7 +646,7 @@ hashlist_hasdup(hashlist_t *l) {
 	/*
 	 * Skip initial speculative wild card hashs.
 	 */
-	while (entries > 0 && next[l->length-1] != 0) {
+	while (entries > 0U && next[l->length-1] != 0U) {
 		next += l->length;
 		entries--;
 	}

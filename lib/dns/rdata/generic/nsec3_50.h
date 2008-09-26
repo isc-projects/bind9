@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2004  Nominet, Ltd.
+ * Copyright (C) 2008  Internet Systems Consortium, Inc. ("ISC")
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
- * THE SOFTWARE IS PROVIDED "AS IS" AND NOMINET DISCLAIMS ALL WARRANTIES WITH
+ * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
  * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
  * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
@@ -18,7 +18,7 @@
 #ifndef GENERIC_NSEC3_50_H
 #define GENERIC_NSEC3_50_H 1
 
-/* $Id: nsec3_50.h,v 1.3 2008/09/24 02:46:23 marka Exp $ */
+/* $Id: nsec3_50.h,v 1.4 2008/09/25 04:02:39 tbox Exp $ */
 
 /*!
  * \brief Per RFC 5155 */
@@ -77,7 +77,7 @@ typedef struct dns_rdata_nsec3 {
 /*%
  * Non-standard, NSEC3PARAM only.
  *
- * Used to identify NSEC3PARAM records added in this UPDATE request. 
+ * Used to identify NSEC3PARAM records added in this UPDATE request.
  */
 #define DNS_NSEC3FLAG_UPDATE 0x20U
 

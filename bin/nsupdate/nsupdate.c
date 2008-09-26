@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.160 2008/09/24 02:46:21 marka Exp $ */
+/* $Id: nsupdate.c,v 1.163 2008/09/25 04:02:38 tbox Exp $ */
 
 /*! \file */
 
@@ -1400,6 +1400,12 @@ evaluate_ttl(char *cmdline) {
 		return (STATUS_SYNTAX);
 	}
 
+	if (!strcasecmp(word, "none")) {
+		default_ttl = 0;
+		default_ttl_set = ISC_FALSE;
+		return (STATUS_MORE);
+	}
+
 	result = isc_parse_uint32(&ttl, word, 10);
 	if (result != ISC_R_SUCCESS)
 		return (STATUS_SYNTAX);
@@ -1411,7 +1417,7 @@ evaluate_ttl(char *cmdline) {
 	}
 	default_ttl = ttl;
 	default_ttl_set = ISC_TRUE;
-	
+
 	return (STATUS_MORE);
 }
 

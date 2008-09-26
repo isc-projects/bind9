@@ -13,7 +13,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: named.conf.html,v 1.44 2008/09/05 01:12:05 tbox Exp $ -->
+<!-- $Id: named.conf.html,v 1.45 2008/09/25 04:45:04 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -311,6 +311,8 @@ options {<br>
 	zero-no-soa-ttl <em class="replaceable"><code>boolean</code></em>;<br>
 	zero-no-soa-ttl-cache <em class="replaceable"><code>boolean</code></em>;<br>
 <br>
+	nsec3-test-zone <em class="replaceable"><code>boolean</code></em>;  // testing only<br>
+<br>
 	allow-v6-synthesis { <em class="replaceable"><code>address_match_element</code></em>; ... }; // obsolete<br>
 	deallocate-on-exit <em class="replaceable"><code>boolean</code></em>; // obsolete<br>
 	fake-iquery <em class="replaceable"><code>boolean</code></em>; // obsolete<br>
@@ -327,7 +329,7 @@ options {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544448"></a><h2>VIEW</h2>
+<a name="id2544452"></a><h2>VIEW</h2>
 <div class="literallayout"><p><br>
 view <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	match-clients { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
@@ -475,7 +477,7 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545109"></a><h2>ZONE</h2>
+<a name="id2545113"></a><h2>ZONE</h2>
 <div class="literallayout"><p><br>
 zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	type ( master | slave | stub | hint |<br>
@@ -556,6 +558,8 @@ zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 	try-tcp-refresh <em class="replaceable"><code>boolean</code></em>;<br>
 	key-directory <em class="replaceable"><code>quoted_string</code></em>;<br>
 <br>
+	nsec3-test-zone <em class="replaceable"><code>boolean</code></em>;  // testing only<br>
+<br>
 	ixfr-base <em class="replaceable"><code>quoted_string</code></em>; // obsolete<br>
 	ixfr-tmp-file <em class="replaceable"><code>quoted_string</code></em>; // obsolete<br>
 	maintain-ixfr-base <em class="replaceable"><code>boolean</code></em>; // obsolete<br>
@@ -565,12 +569,12 @@ zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545402"></a><h2>FILES</h2>
+<a name="id2545410"></a><h2>FILES</h2>
 <p><code class="filename">/etc/named.conf</code>
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2545414"></a><h2>SEE ALSO</h2>
+<a name="id2545421"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">named-checkconf</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">rndc</span>(8)</span>,

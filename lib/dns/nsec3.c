@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006, 2008  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3.c,v 1.2 2008/09/24 02:46:22 marka Exp $ */
+/* $Id: nsec3.c,v 1.5 2008/09/26 01:24:55 marka Exp $ */
 
 #include <config.h>
 
@@ -93,15 +93,15 @@ dns_nsec3_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 	dns_rdatasetiter_t *rdsiter;
 	unsigned char *p;
 
-	REQUIRE(salt_length < 256);
-	REQUIRE(hash_length < 256);
+	REQUIRE(salt_length < 256U);
+	REQUIRE(hash_length < 256U);
 	REQUIRE(flags <= 0xffU);
 	REQUIRE(hashalg <= 0xffU);
 	REQUIRE(iterations <= 0xffffU);
 
 	switch (hashalg) {
 	case dns_hash_sha1:
-		REQUIRE(hash_length == ISC_SHA1_DIGESTLENGTH); 
+		REQUIRE(hash_length == ISC_SHA1_DIGESTLENGTH);
 		break;
 	}
 
@@ -215,7 +215,7 @@ dns_nsec3_typepresent(dns_rdata_t *rdata, dns_rdatatype_t type) {
 	/* This should never fail */
 	result = dns_rdata_tostruct(rdata, &nsec3, NULL);
 	INSIST(result == ISC_R_SUCCESS);
-	
+
 	present = ISC_FALSE;
 	for (i = 0; i < nsec3.len; i += len) {
 		INSIST(i + 2 <= nsec3.len);
@@ -264,7 +264,7 @@ dns_nsec3_hashname(dns_fixedname_t *result,
 	/* hash the node name */
 	len = isc_iterated_hash(rethash, hashalg, iterations, salt, saltlength,
 				downcased->ndata, downcased->length);
-	if (len == 0)
+	if (len == 0U)
 		return (DNS_R_BADALG);
 
 	if (hash_length != NULL)
@@ -309,7 +309,7 @@ dns_nsec3_supportedhash(dns_hash_t hash) {
  */
 static isc_result_t
 do_one_tuple(dns_difftuple_t **tuple, dns_db_t *db, dns_dbversion_t *ver,
-             dns_diff_t *diff)
+	     dns_diff_t *diff)
 {
 	dns_diff_t temp_diff;
 	isc_result_t result;
@@ -347,9 +347,9 @@ do_one_tuple(dns_difftuple_t **tuple, dns_db_t *db, dns_dbversion_t *ver,
  */
 static isc_result_t
 name_exists(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
-            isc_boolean_t *exists)
+	    isc_boolean_t *exists)
 {
-        isc_result_t result;
+	isc_result_t result;
 	dns_dbnode_t *node = NULL;
 	dns_rdatasetiter_t *iter = NULL;
 
@@ -383,7 +383,7 @@ name_exists(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 
 static isc_boolean_t
 match_nsec3param(const dns_rdata_nsec3_t *nsec3,
-	         const dns_rdata_nsec3param_t *nsec3param)
+		 const dns_rdata_nsec3param_t *nsec3param)
 {
 	if (nsec3->hash == nsec3param->hash &&
 	    nsec3->iterations == nsec3param->iterations &&
@@ -415,7 +415,7 @@ delete(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 
 	dns_rdataset_init(&rdataset);
 	result = dns_db_findrdataset(db, node, version, dns_rdatatype_nsec3, 0,
-                                     (isc_stdtime_t) 0, &rdataset, NULL);
+				     (isc_stdtime_t) 0, &rdataset, NULL);
 
 	if (result == ISC_R_NOTFOUND) {
 		result = ISC_R_SUCCESS;
@@ -434,7 +434,7 @@ delete(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 
 		if (!match_nsec3param(&nsec3, nsec3param))
 			continue;
-		
+
 		result = dns_difftuple_create(diff->mctx, DNS_DIFFOP_DEL, name,
 					      rdataset.ttl, &rdata, &tuple);
 		if (result != ISC_R_SUCCESS)
@@ -541,7 +541,7 @@ dns_nsec3_addnsec3(dns_db_t *db, dns_dbversion_t *version,
 	unsigned char nsec3buf[DNS_NSEC3_BUFFERSIZE];
 	unsigned int iterations;
 	unsigned int labels;
-	unsigned int next_length;
+	size_t next_length;
 	unsigned int old_length;
 	unsigned int salt_length;
 
@@ -718,7 +718,7 @@ dns_nsec3_addnsec3(dns_db_t *db, dns_dbversion_t *version,
 				   salt, salt_length, nexthash, next_length,
 				   nsec3buf, &rdata));
 	dns_db_detachnode(db, &node);
-	
+
 	/*
 	 * Delete the old NSEC3 and record the change.
 	 */
@@ -943,7 +943,7 @@ dns_nsec3_addnsec3s(dns_db_t *db, dns_dbversion_t *version,
 
 isc_result_t
 dns_nsec3_delnsec3(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
-                   const dns_rdata_nsec3param_t *nsec3param, dns_diff_t *diff)
+		   const dns_rdata_nsec3param_t *nsec3param, dns_diff_t *diff)
 {
 	dns_dbiterator_t *dbit = NULL;
 	dns_dbnode_t *node = NULL;
@@ -967,7 +967,7 @@ dns_nsec3_delnsec3(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 	unsigned char nsec3buf[DNS_NSEC3_BUFFERSIZE];
 	unsigned int iterations;
 	unsigned int labels;
-	unsigned int next_length;
+	size_t next_length;
 	unsigned int salt_length;
 
 	dns_fixedname_init(&fixed);
@@ -1119,7 +1119,7 @@ dns_nsec3_delnsec3(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 		if (result != ISC_R_SUCCESS)
 			goto failure;
 
-		result = find_nsec3(&nsec3, &rdataset, nsec3param); 
+		result = find_nsec3(&nsec3, &rdataset, nsec3param);
 		if (result == ISC_R_SUCCESS) {
 			next_length = nsec3.next_length;
 			INSIST(next_length <= sizeof(nexthash));
@@ -1147,7 +1147,7 @@ dns_nsec3_delnsec3(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 			dns_db_detachnode(db, &node);
 			if (result != ISC_R_SUCCESS)
 				continue;
-			result = find_nsec3(&nsec3, &rdataset, nsec3param); 
+			result = find_nsec3(&nsec3, &rdataset, nsec3param);
 			if (result == ISC_R_NOMORE) {
 				dns_rdataset_disassociate(&rdataset);
 				continue;

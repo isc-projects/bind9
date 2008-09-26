@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.309 2008/09/24 02:46:21 marka Exp $ */
+/* $Id: query.c,v 1.310 2008/09/24 03:16:57 tbox Exp $ */
 
 /*! \file */
 
@@ -2324,7 +2324,7 @@ mark_secure(ns_client_t *client, dns_db_t *db, dns_name_t *name,
 		rdataset->ttl = sigrdataset->ttl;
 	else
 		sigrdataset->ttl = rdataset->ttl;
-	
+
 	(void)dns_db_addrdataset(db, node, NULL, client->now, rdataset,
 				 0, NULL);
 	(void)dns_db_addrdataset(db, node, NULL, client->now, sigrdataset,
@@ -4201,7 +4201,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				if (found &&
 				    dns_rdataset_isassociated(rdataset) &&
 				    !dns_name_equal(qname, found))
-				{ 
+				{
 					unsigned int count;
 					unsigned int skip;
 
@@ -4234,7 +4234,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 					 * 'nearest' doesn't exist so
 					 * 'exist' is set to ISC_FALSE.
 					 */
-				        query_findclosestnsec3(found, db,
+					query_findclosestnsec3(found, db,
 							       version,
 							       client,
 							       rdataset,

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hex.h,v 1.12 2008/09/24 02:46:23 marka Exp $ */
+/* $Id: hex.h,v 1.13 2008/09/25 04:02:39 tbox Exp $ */
 
 #ifndef ISC_HEX_H
 #define ISC_HEX_H 1

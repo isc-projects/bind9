@@ -1,8 +1,7 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 2003  Internet Software Consortium.
+ * Copyright (C) 2008  Internet Systems Consortium, Inc. ("ISC")
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -14,6 +13,8 @@
  * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
+
+/* $Id: nsec3_50.c,v 1.4 2008/09/25 04:02:39 tbox Exp $ */
 
 /*
  * Copyright (C) 2004  Nominet, Ltd.
@@ -170,7 +171,7 @@ totext_nsec3(ARGS_TOTEXT) {
 	j = uint8_fromregion(&sr);
 	isc_region_consume(&sr, 1);
 	INSIST(j <= sr.length);
-	
+
 	if (j != 0) {
 		i = sr.length;
 		sr.length = j;
@@ -356,7 +357,7 @@ fromstruct_nsec3(ARGS_FROMSTRUCT) {
 		window = nsec3->typebits[i];
 		len = nsec3->typebits[i+1];
 		i += 2;
-		INSIST(first || window > lastwindow); 
+		INSIST(first || window > lastwindow);
 		INSIST(len > 0 && len <= 32);
 		INSIST(i + len <= nsec3->len);
 		INSIST(nsec3->typebits[i + len - 1] != 0);
