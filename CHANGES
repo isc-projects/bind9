@@ -19,6 +19,9 @@
 2387.	[bug]		Silence compiler warnings in lib/isc/radix.c.
 			[RT #18147] [RT #18258]
 
+2369.	[bug]		libbind: Array bounds overrun on read in bitncmp().
+			[RT #18054]
+
 	--- 9.5.1b2 released ---
 
 2443.	[bug]		win32: UDP connect() would not generate an event,
