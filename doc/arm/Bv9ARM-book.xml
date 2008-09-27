@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.93 2008/09/23 04:02:08 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.94 2008/09/27 23:42:17 jinmei Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -7700,8 +7700,10 @@ XXX: end of RFC1918 addresses #defined out -->
             <command>success</command>,
             <command>referral</command>,
             <command>nxrrset</command>,
-            <command>nxdomain</command>, or
-            <command>failure</command>
+            <command>nxdomain</command>,
+            <command>failure</command>,
+            <command>duplicate</command>, or
+            <command>dropped</command>
             to be incremented, and may additionally cause the
             <command>recursion</command> counter to be
             incremented.
