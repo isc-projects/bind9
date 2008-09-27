@@ -1,3 +1,6 @@
+2458.	[doc]		ARM: update and correction for max-cache-size.
+			[RT #18294]
+
 2455.	[bug]		Stop metadata being transfered via axfr/ixfr.
 			[RT #18639]
 
