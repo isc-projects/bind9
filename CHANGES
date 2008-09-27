@@ -3,7 +3,7 @@
 
 2457.	[tuning]	max-cache-size is reverted to 0, the previous
 			default.  It should be safe because expired cache
-			entries are also purged.
+			entries are also purged. [RT #18684]
 
 2456.	[bug]		In ACLs, ::/0 and 0.0.0.0/0 would both match any
 			address, regardless of family.  They now correctly
