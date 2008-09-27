@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.95 2008/09/11 23:03:06 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.96 2008/09/27 23:50:37 jinmei Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -4228,13 +4228,25 @@ The default is <literal>100</literal>.</para>
 	      </varlistentry>
 
 <varlistentry><term><command>max-cache-size</command></term>
-<listitem><para>The maximum amount of memory to use for the
-server's cache, in bytes.  When the amount of data in the cache
+<listitem><para>
+The maximum amount of memory to use for the
+server's cache, in bytes.
+When the amount of data in the cache
 reaches this limit, the server will cause records to expire
-prematurely so that the limit is not exceeded.  In a server with
-multiple views, the limit applies separately to the cache of each
-view.  The default is <literal>unlimited</literal>, meaning that 
-records are purged from the cache only when their TTLs expire.
+prematurely so that the limit is not exceeded.
+A value of 0 is special, meaning that
+records are purged from the cache only when their
+TTLs expire.
+Another special keyword <literal>unlimited</literal>
+means the maximum value of 32-bit unsigned integers
+(0xffffffff), which may not have the same effect as
+0 on machines that support more than 32 bits of
+memory space.
+Any positive values less than 2MB will be ignored reset
+to 2MB.
+In a server with multiple views, the limit applies
+separately to the cache of each view.
+The default is 0.
 </para>
 </listitem></varlistentry>
 
