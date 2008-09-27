@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.82.38.7 2008/09/04 07:58:06 marka Exp $ */
+/* $Id: config.c,v 1.82.38.8 2008/09/27 23:39:42 jinmei Exp $ */
 
 /*! \file */
 
@@ -131,7 +131,7 @@ options {\n\
 	max-ncache-ttl 10800; /* 3 hours */\n\
 	max-cache-ttl 604800; /* 1 week */\n\
 	transfer-format many-answers;\n\
-#	max-cache-size default; /* set default in server.c */\n\
+	max-cache-size 0;\n\
 	check-names master fail;\n\
 	check-names slave warn;\n\
 	check-names response ignore;\n\
