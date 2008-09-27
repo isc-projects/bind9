@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.372 2008/09/27 23:35:31 jinmei Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.373 2008/09/27 23:38:28 jinmei Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -7007,7 +7007,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   (0xffffffff), which may not have the same effect as
                   0 on machines that support more than 32 bits of
                   memory space.
-		  Any positive values less than 2MB will be ignored reset
+                  Any positive values less than 2MB will be ignored reset
                   to 2MB.
                   In a server with multiple views, the limit applies
                   separately to the cache of each view.
