@@ -1,3 +1,6 @@
+2458.	[doc]		ARM: update and correction for max-cache-size.
+			[RT #18294]
+
 2457.	[tuning]	max-cache-size is reverted to 0, the previous
 			default.  It should be safe because expired cache
 			entries are also purged.
