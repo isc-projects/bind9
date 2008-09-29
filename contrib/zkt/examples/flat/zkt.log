@@ -1,0 +1,2501 @@
+2008-06-10 00:36:45.086: warning: zone "sub.example.net.": lifetime of key signing key 54876 exceeded
+2008-06-10 00:37:09.073: warning: zone "sub.example.net.": lifetime of key signing key 54876 exceeded
+2008-06-10 00:37:09.074: error: zone "example.net.": couldn't increment serialno in file ./example.net./zone.db: not enough space left for serialno
+2008-06-10 00:37:24.586: warning: zone "sub.example.net.": lifetime of key signing key 54876 exceeded
+2008-06-10 00:37:24.588: error: zone "example.net.": couldn't increment serialno in file ./example.net./zone.db: not enough space left for serialno
+2008-06-10 00:38:02.499: warning: zone "sub.example.net.": lifetime of key signing key 54876 exceeded
+2008-06-10 00:38:14.016: warning: zone "sub.example.net.": lifetime of key signing key 54876 exceeded
+2008-06-10 00:38:14.018: error: zone "example.net.": couldn't increment serialno in file ./example.net./zone.db: couldn't find serialnumber in zone file
+2008-06-10 00:38:40.235: warning: zone "sub.example.net.": lifetime of key signing key 54876 exceeded
+2008-06-10 00:38:40.236: error: zone "example.net.": couldn't increment serialno in file ./example.net./zone.db: unexpected end of file
+2008-06-10 00:38:49.975: warning: zone "sub.example.net.": lifetime of key signing key 54876 exceeded
+2008-06-11 13:47:16.909: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded ()
+2008-06-11 13:51:06.959: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded -16781202()
+2008-06-11 13:54:29.680: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded (27w5d5h30m5s)
+2008-06-11 13:56:36.990: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 27w5d5h32m12s
+2008-06-11 22:39:48.053: notice: running as ../../dnssec-signer -v -v
+2008-06-11 22:39:48.056: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 27w5d14h15m24s
+2008-06-11 22:39:48.056: notice: "sub.example.net.": lifetime of zone signing key 44833 exceeded since 2h30m54s: ZSK rollover done
+2008-06-11 22:39:48.143: notice: "sub.example.net.": re-signing triggered: New zone key
+2008-06-11 22:39:48.617: notice: end of run: 0 errors occured
+2008-06-11 22:41:14.103: notice: running as ../../dnssec-signer -v -v
+2008-06-11 22:41:14.106: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 27w5d14h16m50s
+2008-06-11 22:41:14.106: notice: end of run: 0 errors occured
+2008-06-11 22:48:18.445: notice: running as ../../dnssec-signer -v -v
+2008-06-11 22:48:18.448: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 27w5d14h23m54s
+2008-06-11 22:48:18.448: notice: "sub.example.net.": re-signing triggered: New zone key
+2008-06-11 22:48:19.087: notice: end of run: 0 errors occured
+2008-06-11 22:56:53.295: notice: running as ../../dnssec-signer -v -v
+2008-06-11 22:56:53.297: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 27w5d14h32m29s
+2008-06-11 22:56:53.297: notice: end of run: 0 errors occured
+2008-06-11 23:01:41.451: notice: running as ../../dnssec-signer -v -v
+2008-06-11 23:01:41.454: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 27w5d14h37m17s
+2008-06-11 23:01:41.454: notice: end of run: 0 errors occured
+2008-06-11 23:04:25.909: notice: running as ../../dnssec-signer -c dnssec.conf -v -v
+2008-06-11 23:04:25.911: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 27w5d14h40m1s
+2008-06-11 23:04:25.911: notice: end of run: 0 errors occured
+2008-06-12 13:06:54.007: notice: running as ../../dnssec-signer -v -v
+2008-06-12 13:06:54.055: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 27w6d4h42m30s
+2008-06-12 13:06:54.056: notice: end of run: 0 errors occured
+2008-06-12 13:07:45.126: notice: running as ../../dnssec-signer -v -v
+2008-06-12 13:07:45.129: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+
+2008-06-12 13:07:45.129: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 27w6d4h43m21s
+2008-06-12 13:07:45.130: debug: parsing zone "example.net." in dir "./example.net."
+
+2008-06-12 13:07:45.130: notice: end of run: 0 errors occured
+2008-06-12 13:22:02.251: notice: running as ../../dnssec-signer -v -v
+2008-06-12 13:22:02.253: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+
+2008-06-12 13:22:02.253: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 27w6d4h57m38s
+2008-06-12 13:22:02.253: debug: parsing zone "example.net." in dir "./example.net."
+
+2008-06-12 13:22:02.253: notice: end of run: 0 errors occured
+2008-06-12 13:24:37.956: notice: running as ../../dnssec-signer -v -v
+2008-06-12 13:24:37.958: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-06-12 13:24:37.958: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 27w6d5h13s
+2008-06-12 13:24:37.958: debug: parsing zone "example.net." in dir "./example.net."
+2008-06-12 13:24:37.958: notice: end of run: 0 errors occured
+2008-06-12 13:25:32.993: notice: running as ../../dnssec-signer --config-option verboselog: 0; -v -v
+2008-06-12 13:25:32.997: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 27w6d5h1m8s
+2008-06-12 13:25:32.997: notice: end of run: 0 errors occured
+2008-06-12 13:26:49.861: notice: running as ../../dnssec-signer -O verboselog: 0; -v -v
+2008-06-12 13:26:49.864: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 27w6d5h2m25s
+2008-06-12 13:26:49.864: notice: end of run: 0 errors occured
+2008-06-12 16:28:01.977: notice: running as ../../dnssec-signer --config-option verboselog: 0; -v -v
+2008-06-12 16:28:01.979: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 27w6d8h3m37s
+2008-06-12 16:28:01.979: notice: end of run: 0 errors occured
+2008-06-12 16:28:13.626: notice: running as ../../dnssec-signer --config-option verboselog: 0; -v
+2008-06-12 16:28:13.629: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 27w6d8h3m49s
+2008-06-12 16:28:13.630: notice: end of run: 0 errors occured
+2008-06-12 16:28:30.318: notice: running as ../../dnssec-signer --config-option verboselog: 0; -v -v
+2008-06-12 16:28:30.320: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 27w6d8h4m6s
+2008-06-12 16:28:30.320: notice: end of run: 0 errors occured
+2008-06-12 16:34:06.968: notice: running as ../../dnssec-signer -v -v
+2008-06-12 16:34:06.971: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-06-12 16:34:06.971: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 27w6d8h9m42s
+2008-06-12 16:34:06.972: debug: parsing zone "example.net." in dir "./example.net."
+2008-06-12 16:34:06.972: notice: end of run: 0 errors occured
+2008-06-12 16:34:15.816: notice: running as ../../dnssec-signer
+2008-06-12 16:34:15.818: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-06-12 16:34:15.818: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 27w6d8h9m51s
+2008-06-12 16:34:15.818: debug: parsing zone "example.net." in dir "./example.net."
+2008-06-12 16:34:15.818: notice: end of run: 0 errors occured
+2008-06-12 16:35:27.777: notice: running as ../../dnssec-signer --config-option verboselog: 0; -v -v
+2008-06-12 16:35:27.780: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 27w6d8h11m3s
+2008-06-12 16:35:27.780: notice: end of run: 0 errors occured
+2008-06-12 16:44:56.266: notice: running as ../../dnssec-signer -v -v
+2008-06-12 16:44:56.269: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-06-12 16:44:56.269: debug: 		->ksk5011status returns 0
+2008-06-12 16:44:56.269: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 27w6d8h20m32s
+2008-06-12 16:44:56.269: debug: 	Re-signing not necessary!
+2008-06-12 16:44:56.269: debug: parsing zone "example.net." in dir "./example.net."
+2008-06-12 16:44:56.269: debug: 		->ksk5011status returns 2
+2008-06-12 16:44:56.269: debug: 	Re-signing not necessary!
+2008-06-12 16:44:56.270: notice: end of run: 0 errors occured
+2008-06-12 16:49:23.380: notice: running as ../../dnssec-signer -v -v
+2008-06-12 16:49:23.385: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-06-12 16:49:23.385: debug: 		->ksk5011status returns 0
+2008-06-12 16:49:23.386: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 27w6d8h24m59s
+2008-06-12 16:49:23.386: debug: 	Re-signing not necessary!
+2008-06-12 16:49:23.386: debug: parsing zone "example.net." in dir "./example.net."
+2008-06-12 16:49:23.386: debug: 		->ksk5011status returns 2
+2008-06-12 16:49:23.386: debug: 	Re-signing not necessary!
+2008-06-12 16:49:23.386: notice: end of run: 0 errors occured
+2008-06-12 16:49:28.284: notice: running as ../../dnssec-signer -r -v -v
+2008-06-12 16:49:28.288: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-06-12 16:49:28.288: debug: 		->ksk5011status returns 0
+2008-06-12 16:49:28.288: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 27w6d8h25m4s
+2008-06-12 16:49:28.288: debug: 	Re-signing not necessary!
+2008-06-12 16:49:28.288: debug: parsing zone "example.net." in dir "./example.net."
+2008-06-12 16:49:28.288: debug: 		->ksk5011status returns 2
+2008-06-12 16:49:28.288: debug: 	Re-signing not necessary!
+2008-06-12 16:49:28.288: notice: end of run: 0 errors occured
+2008-06-12 16:49:32.079: notice: running as ../../dnssec-signer -f -v -v
+2008-06-12 16:49:32.081: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-06-12 16:49:32.081: debug: 		->ksk5011status returns 0
+2008-06-12 16:49:32.081: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 27w6d8h25m8s
+2008-06-12 16:49:32.082: debug: 	Re-signing necessary: Option -f
+2008-06-12 16:49:32.082: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-06-12 16:49:32.082: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-06-12 16:49:32.082: debug: 	Signing zone "sub.example.net."
+2008-06-12 16:49:32.082: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone -p -d ../keysets -o sub.example.net. -e +172800 -g -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-06-12 16:49:32.222: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-06-12 16:49:32.222: debug: 	Signing completed after 0s.
+2008-06-12 16:49:32.222: debug: 
+2008-06-12 16:49:32.222: debug: parsing zone "example.net." in dir "./example.net."
+2008-06-12 16:49:32.222: debug: 		->ksk5011status returns 2
+2008-06-12 16:49:32.223: debug: 	Re-signing necessary: Option -f
+2008-06-12 16:49:32.223: notice: "example.net.": re-signing triggered: Option -f
+2008-06-12 16:49:32.223: debug: 	Writing key file "./example.net./dnskey.db"
+2008-06-12 16:49:32.223: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-06-12 16:49:32.223: debug: 	Signing zone "example.net."
+2008-06-12 16:49:32.223: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone -p -d ../keysets -o example.net. -e +518400 -g  zone.db K*.private"
+2008-06-12 16:49:32.335: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-06-12 16:49:32.335: debug: 	Signing completed after 0s.
+2008-06-12 16:49:32.335: debug: 
+2008-06-12 16:49:32.335: notice: end of run: 0 errors occured
+2008-06-12 17:02:15.076: notice: running as ../../dnssec-signer -f -v -v
+2008-06-12 17:02:15.078: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-06-12 17:02:15.078: debug: 	Check RFC5011 status
+2008-06-12 17:02:15.078: debug: 		->ksk5011status returns 0
+2008-06-12 17:02:15.078: debug: 	Check ksk status
+2008-06-12 17:02:15.078: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 27w6d8h37m51s
+2008-06-12 17:02:15.078: debug: 	Re-signing necessary: Option -f
+2008-06-12 17:02:15.078: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-06-12 17:02:15.078: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-06-12 17:02:15.079: debug: 	Signing zone "sub.example.net."
+2008-06-12 17:02:15.079: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone -p -d ../keysets -o sub.example.net. -e +172800 -g -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-06-12 17:02:15.254: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-06-12 17:02:15.254: debug: 	Signing completed after 0s.
+2008-06-12 17:02:15.254: debug: 
+2008-06-12 17:02:15.254: debug: parsing zone "example.net." in dir "./example.net."
+2008-06-12 17:02:15.255: debug: 	Check RFC5011 status
+2008-06-12 17:02:15.255: debug: 		->ksk5011status returns 2
+2008-06-12 17:02:15.255: debug: 	Re-signing necessary: Option -f
+2008-06-12 17:02:15.255: notice: "example.net.": re-signing triggered: Option -f
+2008-06-12 17:02:15.255: debug: 	Writing key file "./example.net./dnskey.db"
+2008-06-12 17:02:15.255: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-06-12 17:02:15.255: debug: 	Signing zone "example.net."
+2008-06-12 17:02:15.255: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone -p -d ../keysets -o example.net. -e +518400 -g  zone.db K*.private"
+2008-06-12 17:02:15.368: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-06-12 17:02:15.368: debug: 	Signing completed after 0s.
+2008-06-12 17:02:15.368: debug: 
+2008-06-12 17:02:15.368: notice: end of run: 0 errors occured
+2008-06-12 17:43:50.388: notice: running as ../../dnssec-signer -f -f
+2008-06-12 17:43:50.390: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-06-12 17:43:50.390: debug: 	Check RFC5011 status
+2008-06-12 17:43:50.390: debug: 		->ksk5011status returns 0
+2008-06-12 17:43:50.390: debug: 	Check ksk status
+2008-06-12 17:43:50.390: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 27w6d9h19m26s
+2008-06-12 17:43:50.390: debug: 	Re-signing necessary: Option -f
+2008-06-12 17:43:50.390: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-06-12 17:43:50.390: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-06-12 17:43:50.390: debug: 	Signing zone "sub.example.net."
+2008-06-12 17:43:50.390: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone -p -d ../keysets -o sub.example.net. -e +172800 -g -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-06-12 17:43:50.533: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-06-12 17:43:50.533: debug: 	Signing completed after 0s.
+2008-06-12 17:43:50.533: debug: 
+2008-06-12 17:43:50.533: debug: parsing zone "example.net." in dir "./example.net."
+2008-06-12 17:43:50.533: debug: 	Check RFC5011 status
+2008-06-12 17:43:50.533: debug: 		->ksk5011status returns 2
+2008-06-12 17:43:50.533: debug: 	Re-signing necessary: Option -f
+2008-06-12 17:43:50.533: notice: "example.net.": re-signing triggered: Option -f
+2008-06-12 17:43:50.533: debug: 	Writing key file "./example.net./dnskey.db"
+2008-06-12 17:43:50.534: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-06-12 17:43:50.534: debug: 	Signing zone "example.net."
+2008-06-12 17:43:50.534: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone -p -d ../keysets -o example.net. -e +518400 -g  zone.db K*.private"
+2008-06-12 17:43:50.645: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-06-12 17:43:50.645: debug: 	Signing completed after 0s.
+2008-06-12 17:43:50.645: debug: 
+2008-06-12 17:43:50.645: notice: end of run: 0 errors occured
+2008-06-12 17:49:43.188: notice: running as ../../dnssec-signer -O verboselog: 2 -v -v
+2008-06-12 17:49:43.190: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-06-12 17:49:43.190: debug: 	Check RFC5011 status
+2008-06-12 17:49:43.190: debug: 		->ksk5011status returns 0
+2008-06-12 17:49:43.190: debug: 	Check ksk status
+2008-06-12 17:49:43.190: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 27w6d9h25m19s
+2008-06-12 17:49:43.190: debug: 	Re-signing not necessary!
+2008-06-12 17:49:43.190: debug: parsing zone "example.net." in dir "./example.net."
+2008-06-12 17:49:43.190: debug: 	Check RFC5011 status
+2008-06-12 17:49:43.190: debug: 		->ksk5011status returns 2
+2008-06-12 17:49:43.190: debug: 	Re-signing not necessary!
+2008-06-12 17:49:43.190: notice: end of run: 0 errors occured
+2008-06-12 17:50:09.325: notice: running as ../../dnssec-signer -v -v
+2008-06-12 17:50:09.327: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-06-12 17:50:09.327: debug: 	Check RFC5011 status
+2008-06-12 17:50:09.327: debug: 		->ksk5011status returns 0
+2008-06-12 17:50:09.327: debug: 	Check ksk status
+2008-06-12 17:50:09.327: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 27w6d9h25m45s
+2008-06-12 17:50:09.327: debug: 	Re-signing not necessary!
+2008-06-12 17:50:09.327: debug: parsing zone "example.net." in dir "./example.net."
+2008-06-12 17:50:09.327: debug: 	Check RFC5011 status
+2008-06-12 17:50:09.327: debug: 		->ksk5011status returns 2
+2008-06-12 17:50:09.327: debug: 	Re-signing not necessary!
+2008-06-12 17:50:09.327: notice: end of run: 0 errors occured
+2008-06-12 17:52:29.309: notice: running as ../../dnssec-signer -v -v
+2008-06-12 17:52:29.311: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-06-12 17:52:29.312: debug: 	Check RFC5011 status
+2008-06-12 17:52:29.312: debug: 		->ksk5011status returns 0
+2008-06-12 17:52:29.312: debug: 	Check ksk status
+2008-06-12 17:52:29.312: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 27w6d9h28m5s
+2008-06-12 17:52:29.312: debug: 	Re-signing not necessary!
+2008-06-12 17:52:29.312: debug: parsing zone "example.net." in dir "./example.net."
+2008-06-12 17:52:29.313: debug: 	Check RFC5011 status
+2008-06-12 17:52:29.313: debug: 		->ksk5011status returns 2
+2008-06-12 17:52:29.313: debug: 	Re-signing not necessary!
+2008-06-12 17:52:29.313: notice: end of run: 0 errors occured
+2008-06-12 18:24:57.405: notice: running as ../../dnssec-signer -v -v
+2008-06-12 18:24:57.409: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-06-12 18:24:57.409: debug: 	Check RFC5011 status
+2008-06-12 18:24:57.409: debug: 		->ksk5011status returns 0
+2008-06-12 18:24:57.409: debug: 	Check ksk status
+2008-06-12 18:24:57.409: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 27w6d10h33s
+2008-06-12 18:24:57.409: debug: 	Re-signing not necessary!
+2008-06-12 18:24:57.409: debug: parsing zone "example.net." in dir "./example.net."
+2008-06-12 18:24:57.409: debug: 	Check RFC5011 status
+2008-06-12 18:24:57.409: debug: 		->ksk5011status returns 2
+2008-06-12 18:24:57.410: debug: 	Re-signing not necessary!
+2008-06-12 18:24:57.410: notice: end of run: 0 errors occured
+2008-06-16 23:12:32.309: notice: 
+2008-06-16 23:12:32.309: notice:  running as ../../dnssec-signer -v -v 
+2008-06-16 23:12:32.654: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-06-16 23:12:32.654: debug: 	Check RFC5011 status
+2008-06-16 23:12:32.654: debug: 		->ksk5011status returns 0
+2008-06-16 23:12:32.654: debug: 	Check ksk status
+2008-06-16 23:12:32.654: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 28w3d14h48m8s
+2008-06-16 23:12:32.654: debug: 	Lifetime(259200 +/-150 sec) of active key 44833 exceeded (433964 sec)
+2008-06-16 23:12:32.654: debug: 		->depreciate it
+2008-06-16 23:12:32.654: debug: 		->activate pre-publish key 55267
+2008-06-16 23:12:32.654: notice: "sub.example.net.": lifetime of zone signing key 55267 exceeded since 2d32m44s: ZSK rollover done
+2008-06-16 23:12:32.654: debug: 	New pre-publish key needed
+2008-06-16 23:12:32.790: debug: 		->creating new pre-publish key 56149
+2008-06-16 23:12:32.791: debug: 	Re-signing necessary: New zone key
+2008-06-16 23:12:32.791: notice: "sub.example.net.": re-signing triggered: New zone key
+2008-06-16 23:12:32.791: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-06-16 23:12:32.792: debug: 	Signing zone "sub.example.net."
+2008-06-16 23:12:32.792: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone -p -d ../keysets -o sub.example.net. -e +172800 -g -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-06-16 23:12:33.022: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-06-16 23:12:33.022: debug: 	Signing completed after 1s.
+2008-06-16 23:12:33.022: debug: 
+2008-06-16 23:12:33.023: debug: parsing zone "example.net." in dir "./example.net."
+2008-06-16 23:12:33.023: debug: 	Check RFC5011 status
+2008-06-16 23:12:33.023: debug: 		->ksk5011status returns 2
+2008-06-16 23:12:33.023: debug: 	Re-signing necessary: re-signing interval (2d) reached
+2008-06-16 23:12:33.023: notice: "example.net.": re-signing triggered: re-signing interval (2d) reached
+2008-06-16 23:12:33.023: debug: 	Writing key file "./example.net./dnskey.db"
+2008-06-16 23:12:33.024: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-06-16 23:12:33.024: debug: 	Signing zone "example.net."
+2008-06-16 23:12:33.024: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone -p -d ../keysets -o example.net. -e +518400 -g  zone.db K*.private"
+2008-06-16 23:12:33.169: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-06-16 23:12:33.170: debug: 	Signing completed after 0s.
+2008-06-16 23:12:33.170: debug: 
+2008-06-16 23:12:33.170: notice: end of run: 0 errors occured
+2008-06-16 23:13:24.119: notice: ===> running as ../../dnssec-signer -v -v <===
+2008-06-16 23:13:24.121: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-06-16 23:13:24.121: debug: 	Check RFC5011 status
+2008-06-16 23:13:24.121: debug: 		->ksk5011status returns 0
+2008-06-16 23:13:24.121: debug: 	Check ksk status
+2008-06-16 23:13:24.121: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 28w3d14h49m
+2008-06-16 23:13:24.121: debug: 	Re-signing not necessary!
+2008-06-16 23:13:24.121: debug: parsing zone "example.net." in dir "./example.net."
+2008-06-16 23:13:24.121: debug: 	Check RFC5011 status
+2008-06-16 23:13:24.121: debug: 		->ksk5011status returns 2
+2008-06-16 23:13:24.121: debug: 	Re-signing not necessary!
+2008-06-16 23:13:24.121: notice: end of run: 0 errors occured
+2008-06-16 23:13:56.970: notice: =====> running as ../../dnssec-signer -v -v <=====
+2008-06-16 23:13:56.972: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-06-16 23:13:56.972: debug: 	Check RFC5011 status
+2008-06-16 23:13:56.972: debug: 		->ksk5011status returns 0
+2008-06-16 23:13:56.972: debug: 	Check ksk status
+2008-06-16 23:13:56.973: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 28w3d14h49m32s
+2008-06-16 23:13:56.973: debug: 	Re-signing not necessary!
+2008-06-16 23:13:56.973: debug: parsing zone "example.net." in dir "./example.net."
+2008-06-16 23:13:56.973: debug: 	Check RFC5011 status
+2008-06-16 23:13:56.973: debug: 		->ksk5011status returns 2
+2008-06-16 23:13:56.973: debug: 	Re-signing not necessary!
+2008-06-16 23:13:56.973: notice: end of run: 0 errors occured
+2008-06-16 23:15:16.980: notice: ------------------------------------------------------------
+2008-06-16 23:15:16.982: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-06-16 23:15:16.982: debug: 	Check RFC5011 status
+2008-06-16 23:15:16.982: debug: 		->ksk5011status returns 0
+2008-06-16 23:15:16.982: debug: 	Check ksk status
+2008-06-16 23:15:16.982: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 28w3d14h50m52s
+2008-06-16 23:15:16.982: debug: 	Re-signing not necessary!
+2008-06-16 23:15:16.982: debug: parsing zone "example.net." in dir "./example.net."
+2008-06-16 23:15:16.982: debug: 	Check RFC5011 status
+2008-06-16 23:15:16.982: debug: 		->ksk5011status returns 2
+2008-06-16 23:15:16.982: debug: 	Re-signing not necessary!
+2008-06-16 23:15:16.983: notice: end of run: 0 errors occured
+2008-06-16 23:18:48.101: notice: ------------------------------------------------------------
+2008-06-16 23:18:48.101: notice:  running as ../../dnssec-signer -v -v 
+2008-06-16 23:18:48.103: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-06-16 23:18:48.103: debug: 	Check RFC5011 status
+2008-06-16 23:18:48.103: debug: 		->ksk5011status returns 0
+2008-06-16 23:18:48.103: debug: 	Check ksk status
+2008-06-16 23:18:48.103: warning: "sub.example.net.": lifetime of key signing key 54876 exceeded since 28w3d14h54m24s
+2008-06-16 23:18:48.103: debug: 	Re-signing not necessary!
+2008-06-16 23:18:48.103: debug: 
+2008-06-16 23:18:48.103: debug: parsing zone "example.net." in dir "./example.net."
+2008-06-16 23:18:48.104: debug: 	Check RFC5011 status
+2008-06-16 23:18:48.104: debug: 		->ksk5011status returns 2
+2008-06-16 23:18:48.104: debug: 	Re-signing not necessary!
+2008-06-16 23:18:48.104: debug: 
+2008-06-16 23:18:48.104: notice: end of run: 0 errors occured
+2008-06-24 14:55:16.347: notice: ------------------------------------------------------------
+2008-06-24 14:55:16.347: notice: running ../../dnssec-signer -v -v 
+2008-06-24 14:55:16.349: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-06-24 14:55:16.349: debug: 	Check RFC5011 status
+2008-06-24 14:55:16.349: debug: 		->ksk5011status returns 0
+2008-06-24 14:55:16.349: debug: 	Check ksk status
+2008-06-24 14:55:16.349: debug: 	Lifetime(390 sec) of depreciated key 44833 exceeded (483774 sec)
+2008-06-24 14:55:16.350: debug: 		->remove it
+2008-06-24 14:55:16.350: debug: 	Lifetime(259200 +/-150 sec) of active key 55267 exceeded (483774 sec)
+2008-06-24 14:55:16.350: debug: 		->depreciate it
+2008-06-24 14:55:16.350: debug: 		->activate pre-publish key 56149
+2008-06-24 14:55:16.350: notice: "sub.example.net.": lifetime of zone signing key 55267 exceeded: ZSK rollover done
+2008-06-24 14:55:16.350: notice: "sub.example.net.": lifetime of zone signing key 56149 exceeded since 2d14h22m54s: ZSK rollover deferred: waiting for pre-publish key
+2008-06-24 14:55:16.350: debug: 	New pre-publish key needed
+2008-06-24 14:55:16.532: debug: 		->creating new pre-publish key 2338
+2008-06-24 14:55:16.532: debug: 	Re-signing necessary: New zone key
+2008-06-24 14:55:16.533: notice: "sub.example.net.": re-signing triggered: New zone key
+2008-06-24 14:55:16.533: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-06-24 14:55:16.533: debug: 	Signing zone "sub.example.net."
+2008-06-24 14:55:16.533: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -p -d ../keysets -o sub.example.net. -e +172800 -g -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-06-24 14:55:16.776: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-06-24 14:55:16.776: debug: 	Signing completed after 0s.
+2008-06-24 14:55:16.776: debug: 
+2008-06-24 14:55:16.776: debug: parsing zone "example.net." in dir "./example.net."
+2008-06-24 14:55:16.776: debug: 	Check RFC5011 status
+2008-06-24 14:55:16.776: debug: 		->ksk5011status returns 2
+2008-06-24 14:55:16.776: debug: 	Re-signing necessary: re-signing interval (2d) reached
+2008-06-24 14:55:16.776: notice: "example.net.": re-signing triggered: re-signing interval (2d) reached
+2008-06-24 14:55:16.776: debug: 	Writing key file "./example.net./dnskey.db"
+2008-06-24 14:55:16.777: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-06-24 14:55:16.777: debug: 	Signing zone "example.net."
+2008-06-24 14:55:16.777: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -p -d ../keysets -o example.net. -e +518400 -g  zone.db K*.private"
+2008-06-24 14:55:16.922: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-06-24 14:55:16.922: debug: 	Signing completed after 0s.
+2008-06-24 14:55:16.922: debug: 
+2008-06-24 14:55:16.922: notice: end of run: 0 errors occured
+2008-06-24 14:57:56.093: notice: ------------------------------------------------------------
+2008-06-24 14:57:56.094: notice: running ../../dnssec-signer -v -v 
+2008-06-24 14:57:56.096: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-06-24 14:57:56.096: debug: 	Check RFC5011 status
+2008-06-24 14:57:56.096: debug: 		->ksk5011status returns 0
+2008-06-24 14:57:56.096: debug: 	Check ksk status
+2008-06-24 14:57:56.097: debug: 	Re-signing not necessary!
+2008-06-24 14:57:56.097: debug: 
+2008-06-24 14:57:56.097: debug: parsing zone "example.net." in dir "./example.net."
+2008-06-24 14:57:56.097: debug: 	Check RFC5011 status
+2008-06-24 14:57:56.097: debug: 		->ksk5011status returns 2
+2008-06-24 14:57:56.097: debug: 	Re-signing not necessary!
+2008-06-24 14:57:56.097: debug: 
+2008-06-24 14:57:56.098: notice: end of run: 0 errors occured
+2008-06-24 23:26:12.632: notice: ------------------------------------------------------------
+2008-06-24 23:26:12.632: notice: running ../../dnssec-signer -v -v 
+2008-06-24 23:26:12.648: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-06-24 23:26:12.648: debug: 	Check RFC5011 status
+2008-06-24 23:26:12.648: debug: 		->ksk5011status returns 0
+2008-06-24 23:26:12.648: debug: 	Check ksk status
+2008-06-24 23:26:12.648: debug: 	Lifetime(390 sec) of depreciated key 55267 exceeded (30656 sec)
+2008-06-24 23:26:12.648: debug: 		->remove it
+2008-06-24 23:26:12.648: debug: 	Re-signing necessary: New zone key
+2008-06-24 23:26:12.649: notice: "sub.example.net.": re-signing triggered: New zone key
+2008-06-24 23:26:12.649: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-06-24 23:26:12.655: debug: 	Signing zone "sub.example.net."
+2008-06-24 23:26:12.655: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -p -d ../keysets -o sub.example.net. -e +172800 -g -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-06-24 23:26:13.030: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-06-24 23:26:13.030: debug: 	Signing completed after 1s.
+2008-06-24 23:26:13.030: debug: 
+2008-06-24 23:26:13.030: debug: parsing zone "example.net." in dir "./example.net."
+2008-06-24 23:26:13.030: debug: 	Check RFC5011 status
+2008-06-24 23:26:13.030: debug: 		->ksk5011status returns 2
+2008-06-24 23:26:13.030: debug: 	Re-signing not necessary!
+2008-06-24 23:26:13.030: debug: 
+2008-06-24 23:26:13.030: notice: end of run: 0 errors occured
+2008-07-08 00:53:55.013: notice: ------------------------------------------------------------
+2008-07-08 00:53:55.013: notice: running ../../dnssec-signer -v -v 
+2008-07-08 00:53:55.015: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-08 00:53:55.015: debug: 	Check RFC5011 status
+2008-07-08 00:53:55.015: debug: 		->ksk5011status returns 0
+2008-07-08 00:53:55.015: debug: 	Check KSK status
+2008-07-08 00:53:55.015: debug: 	Check ZSK status
+2008-07-08 00:53:55.015: debug: 	Lifetime(259200 +/-150 sec) of active key 56149 exceeded (1159119 sec)
+2008-07-08 00:53:55.015: debug: 		->depreciate it
+2008-07-08 00:53:55.015: debug: 		->activate pre-publish key 2338
+2008-07-08 00:53:55.018: notice: "sub.example.net.": lifetime of zone signing key 56149 exceeded: ZSK rollover done
+2008-07-08 00:53:55.018: debug: 	New pre-publish key needed
+2008-07-08 00:53:55.547: debug: 		->creating new pre-publish key 9198
+2008-07-08 00:53:55.547: info: "sub.example.net.": new pre-publish key 9198 created
+2008-07-08 00:53:55.547: debug: 	Re-signing necessary: New zone key
+2008-07-08 00:53:55.548: notice: "sub.example.net.": re-signing triggered: New zone key
+2008-07-08 00:53:55.548: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-08 00:53:55.578: debug: 	Signing zone "sub.example.net."
+2008-07-08 00:53:55.578: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-08 00:53:55.708: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-08 00:53:55.708: debug: 	Signing completed after 0s.
+2008-07-08 00:53:55.708: debug: 
+2008-07-08 00:53:55.708: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-08 00:53:55.708: debug: 	Check RFC5011 status
+2008-07-08 00:53:55.708: debug: 		->ksk5011status returns 2
+2008-07-08 00:53:55.708: debug: 	Check ZSK status
+2008-07-08 00:53:55.708: debug: 	Lifetime(1209600 +/-150 sec) of active key 14939 exceeded (1642893 sec)
+2008-07-08 00:53:55.708: debug: 		->waiting for pre-publish key
+2008-07-08 00:53:55.708: notice: "example.net.": lifetime of zone signing key 14939 exceeded since 5d21m33s: ZSK rollover deferred: waiting for pre-publish key
+2008-07-08 00:53:55.708: debug: 	New pre-publish key needed
+2008-07-08 00:53:55.747: debug: 		->creating new pre-publish key 16682
+2008-07-08 00:53:55.747: info: "example.net.": new pre-publish key 16682 created
+2008-07-08 00:53:55.747: debug: 	Re-signing necessary: New zone key
+2008-07-08 00:53:55.747: notice: "example.net.": re-signing triggered: New zone key
+2008-07-08 00:53:55.747: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-08 00:53:55.748: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-08 00:53:55.748: debug: 	Signing zone "example.net."
+2008-07-08 00:53:55.748: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-08 00:53:55.899: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-08 00:53:55.899: debug: 	Signing completed after 0s.
+2008-07-08 00:53:55.899: debug: 
+2008-07-08 00:53:55.899: notice: end of run: 0 errors occured
+2008-07-08 00:53:57.597: notice: ------------------------------------------------------------
+2008-07-08 00:53:57.597: notice: running ../../dnssec-signer -v -v 
+2008-07-08 00:53:57.599: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-08 00:53:57.599: debug: 	Check RFC5011 status
+2008-07-08 00:53:57.599: debug: 		->ksk5011status returns 0
+2008-07-08 00:53:57.599: debug: 	Check KSK status
+2008-07-08 00:53:57.599: debug: 	Check ZSK status
+2008-07-08 00:53:57.599: debug: 	Re-signing not necessary!
+2008-07-08 00:53:57.599: debug: 	Check if there is a parent file to copy
+2008-07-08 00:53:57.599: debug: 
+2008-07-08 00:53:57.599: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-08 00:53:57.599: debug: 	Check RFC5011 status
+2008-07-08 00:53:57.599: debug: 		->ksk5011status returns 2
+2008-07-08 00:53:57.599: debug: 	Check ZSK status
+2008-07-08 00:53:57.599: debug: 	Lifetime(1209600 +/-150 sec) of active key 14939 exceeded (1642895 sec)
+2008-07-08 00:53:57.599: debug: 		->waiting for pre-publish key
+2008-07-08 00:53:57.600: notice: "example.net.": lifetime of zone signing key 14939 exceeded since 5d21m35s: ZSK rollover deferred: waiting for pre-publish key
+2008-07-08 00:53:57.600: debug: 	Re-signing not necessary!
+2008-07-08 00:53:57.600: debug: 	Check if there is a parent file to copy
+2008-07-08 00:53:57.600: debug: 
+2008-07-08 00:53:57.600: notice: end of run: 0 errors occured
+2008-07-08 20:28:20.476: notice: ------------------------------------------------------------
+2008-07-08 20:28:20.476: notice: running ../../dnssec-signer -v -v -N named.conf 
+2008-07-08 20:28:20.476: debug: parsing zone "sub.example.net." in dir "././sub.example.net."
+2008-07-08 20:28:20.476: debug: 	Check RFC5011 status
+2008-07-08 20:28:20.476: debug: 		->ksk5011status returns 0
+2008-07-08 20:28:20.476: debug: 	Check KSK status
+2008-07-08 20:28:20.476: debug: 	Check ZSK status
+2008-07-08 20:28:20.476: debug: 	Lifetime(390 sec) of depreciated key 56149 exceeded (70465 sec)
+2008-07-08 20:28:20.476: info: "sub.example.net.": removed old ZSK 56149
+
+2008-07-08 20:28:20.656: debug: 		->remove it
+2008-07-08 20:28:20.656: debug: 	Re-signing necessary: New zone key
+2008-07-08 20:28:20.656: notice: "sub.example.net.": re-signing triggered: New zone key
+2008-07-08 20:28:20.656: debug: 	Writing key file "././sub.example.net./dnskey.db"
+2008-07-08 20:28:20.656: debug: 	Signing zone "sub.example.net."
+2008-07-08 20:28:20.656: debug: 	  Run cmd "cd ././sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-08 20:28:20.990: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-08 20:28:20.990: debug: 	Signing completed after 0s.
+2008-07-08 20:28:20.990: debug: 
+2008-07-08 20:28:20.990: debug: parsing zone "example.net." in dir "././example.net."
+2008-07-08 20:28:20.990: debug: 	Check RFC5011 status
+2008-07-08 20:28:20.990: debug: 		->ksk5011status returns 2
+2008-07-08 20:28:20.990: debug: 	Check ZSK status
+2008-07-08 20:28:20.990: debug: 	Lifetime(1209600 +/-150 sec) of active key 14939 exceeded (1713358 sec)
+2008-07-08 20:28:20.990: debug: 		->depreciate it
+2008-07-08 20:28:20.990: debug: 		->activate pre-publish key 16682
+2008-07-08 20:28:20.990: notice: "example.net.": lifetime of zone signing key 14939 exceeded: ZSK rollover done
+2008-07-08 20:28:20.990: debug: 	Re-signing necessary: New zone key
+2008-07-08 20:28:20.990: notice: "example.net.": re-signing triggered: New zone key
+2008-07-08 20:28:20.990: debug: 	Writing key file "././example.net./dnskey.db"
+2008-07-08 20:28:20.991: debug: 	Incrementing serial number in file "././example.net./zone.db"
+2008-07-08 20:28:20.991: debug: 	Signing zone "example.net."
+2008-07-08 20:28:20.991: debug: 	  Run cmd "cd ././example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-08 20:28:21.112: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-08 20:28:21.112: debug: 	Signing completed after 1s.
+2008-07-08 20:28:21.112: debug: 
+2008-07-08 20:28:21.113: notice: end of run: 0 errors occured
+2008-07-08 20:32:23.121: notice: ------------------------------------------------------------
+2008-07-08 20:32:23.121: notice: running ../../dnssec-signer -v -v 
+2008-07-08 20:32:23.123: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-08 20:32:23.123: debug: 	Check RFC5011 status
+2008-07-08 20:32:23.124: debug: 		->ksk5011status returns 0
+2008-07-08 20:32:23.124: debug: 	Check KSK status
+2008-07-08 20:32:23.124: debug: 	Check ZSK status
+2008-07-08 20:32:23.124: debug: 	Re-signing not necessary!
+2008-07-08 20:32:23.124: debug: 	Check if there is a parent file to copy
+2008-07-08 20:32:23.124: debug: 
+2008-07-08 20:32:23.124: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-08 20:32:23.124: debug: 	Check RFC5011 status
+2008-07-08 20:32:23.124: debug: 		->ksk5011status returns 2
+2008-07-08 20:32:23.124: debug: 	Check ZSK status
+2008-07-08 20:32:23.124: debug: 	Re-signing not necessary!
+2008-07-08 20:32:23.124: debug: 	Check if there is a parent file to copy
+2008-07-08 20:32:23.124: debug: 
+2008-07-08 20:32:23.124: notice: end of run: 0 errors occured
+2008-07-08 20:32:30.246: notice: ------------------------------------------------------------
+2008-07-08 20:32:30.246: notice: running ../../dnssec-signer -v -v -N named.conf 
+2008-07-08 20:32:30.246: debug: parsing zone "sub.example.net." in dir "././sub.example.net."
+2008-07-08 20:32:30.246: debug: 	Check RFC5011 status
+2008-07-08 20:32:30.246: debug: 		->ksk5011status returns 0
+2008-07-08 20:32:30.246: debug: 	Check KSK status
+2008-07-08 20:32:30.246: debug: 	Check ZSK status
+2008-07-08 20:32:30.246: debug: 	Re-signing not necessary!
+2008-07-08 20:32:30.246: debug: 	Check if there is a parent file to copy
+2008-07-08 20:32:30.246: debug: 
+2008-07-08 20:32:30.246: debug: parsing zone "example.net." in dir "././example.net."
+2008-07-08 20:32:30.246: debug: 	Check RFC5011 status
+2008-07-08 20:32:30.246: debug: 		->ksk5011status returns 2
+2008-07-08 20:32:30.247: debug: 	Check ZSK status
+2008-07-08 20:32:30.247: debug: 	Re-signing not necessary!
+2008-07-08 20:32:30.247: debug: 	Check if there is a parent file to copy
+2008-07-08 20:32:30.247: debug: 
+2008-07-08 20:32:30.247: notice: end of run: 0 errors occured
+2008-07-08 20:35:51.512: notice: ------------------------------------------------------------
+2008-07-08 20:35:51.512: notice: running ../../dnssec-signer -v -v -N named.conf 
+2008-07-08 20:35:51.512: debug: parsing zone "sub.example.net." in dir "././sub.example.net."
+2008-07-08 20:35:51.512: debug: 	Check RFC5011 status
+2008-07-08 20:35:51.512: debug: 		->ksk5011status returns 0
+2008-07-08 20:35:51.513: debug: 	Check KSK status
+2008-07-08 20:35:51.513: debug: 	Check ZSK status
+2008-07-08 20:35:51.513: debug: 	Re-signing not necessary!
+2008-07-08 20:35:51.513: debug: 	Check if there is a parent file to copy
+2008-07-08 20:35:51.513: debug: 
+2008-07-08 20:35:51.513: debug: parsing zone "example.net." in dir "././example.net."
+2008-07-08 20:35:51.513: debug: 	Check RFC5011 status
+2008-07-08 20:35:51.513: debug: 		->ksk5011status returns 2
+2008-07-08 20:35:51.513: debug: 	Check ZSK status
+2008-07-08 20:35:51.513: debug: 	Re-signing not necessary!
+2008-07-08 20:35:51.513: debug: 	Check if there is a parent file to copy
+2008-07-08 20:35:51.513: debug: 
+2008-07-08 20:35:51.513: notice: end of run: 0 errors occured
+2008-07-08 20:37:16.569: notice: ------------------------------------------------------------
+2008-07-08 20:37:16.569: notice: running ../../dnssec-signer -v -v -N named.conf 
+2008-07-08 20:37:16.569: debug: parsing zone "sub.example.net." in dir "././sub.example.net."
+2008-07-08 20:37:16.569: debug: 	Check RFC5011 status
+2008-07-08 20:37:16.569: debug: 		->ksk5011status returns 0
+2008-07-08 20:37:16.570: debug: 	Check KSK status
+2008-07-08 20:37:16.570: debug: 	Check ZSK status
+2008-07-08 20:37:16.570: debug: 	Re-signing not necessary!
+2008-07-08 20:37:16.570: debug: 	Check if there is a parent file to copy
+2008-07-08 20:37:16.570: debug: 
+2008-07-08 20:37:16.570: debug: parsing zone "example.net." in dir "././example.net."
+2008-07-08 20:37:16.570: debug: 	Check RFC5011 status
+2008-07-08 20:37:16.570: debug: 		->ksk5011status returns 2
+2008-07-08 20:37:16.570: debug: 	Check ZSK status
+2008-07-08 20:37:16.570: debug: 	Re-signing not necessary!
+2008-07-08 20:37:16.570: debug: 	Check if there is a parent file to copy
+2008-07-08 20:37:16.570: debug: 
+2008-07-08 20:37:16.570: notice: end of run: 0 errors occured
+2008-07-08 20:37:29.134: notice: ------------------------------------------------------------
+2008-07-08 20:37:29.134: notice: running ../../dnssec-signer -v -v 
+2008-07-08 20:37:29.137: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-08 20:37:29.137: debug: 	Check RFC5011 status
+2008-07-08 20:37:29.137: debug: 		->ksk5011status returns 0
+2008-07-08 20:37:29.137: debug: 	Check KSK status
+2008-07-08 20:37:29.137: debug: 	Check ZSK status
+2008-07-08 20:37:29.137: debug: 	Re-signing not necessary!
+2008-07-08 20:37:29.138: debug: 	Check if there is a parent file to copy
+2008-07-08 20:37:29.138: debug: 
+2008-07-08 20:37:29.138: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-08 20:37:29.138: debug: 	Check RFC5011 status
+2008-07-08 20:37:29.138: debug: 		->ksk5011status returns 2
+2008-07-08 20:37:29.138: debug: 	Check ZSK status
+2008-07-08 20:37:29.138: debug: 	Re-signing not necessary!
+2008-07-08 20:37:29.139: debug: 	Check if there is a parent file to copy
+2008-07-08 20:37:29.139: debug: 
+2008-07-08 20:37:29.139: notice: end of run: 0 errors occured
+2008-07-08 20:39:39.895: notice: ------------------------------------------------------------
+2008-07-08 20:39:39.895: notice: running ../../dnssec-signer -N named.conf -v -v 
+2008-07-08 20:39:39.895: debug: parsing zone "sub.example.net." in dir "././sub.example.net."
+2008-07-08 20:39:39.895: debug: 	Check RFC5011 status
+2008-07-08 20:39:39.895: debug: 		->ksk5011status returns 0
+2008-07-08 20:39:39.895: debug: 	Check KSK status
+2008-07-08 20:39:39.895: debug: 	Check ZSK status
+2008-07-08 20:39:39.895: debug: 	Re-signing not necessary!
+2008-07-08 20:39:39.895: debug: 	Check if there is a parent file to copy
+2008-07-08 20:39:39.895: debug: 
+2008-07-08 20:39:39.895: debug: parsing zone "example.net." in dir "././example.net."
+2008-07-08 20:39:39.895: debug: 	Check RFC5011 status
+2008-07-08 20:39:39.895: debug: 		->ksk5011status returns 2
+2008-07-08 20:39:39.895: debug: 	Check ZSK status
+2008-07-08 20:39:39.895: debug: 	Re-signing not necessary!
+2008-07-08 20:39:39.895: debug: 	Check if there is a parent file to copy
+2008-07-08 20:39:39.895: debug: 
+2008-07-08 20:39:39.895: notice: end of run: 0 errors occured
+2008-07-08 20:42:54.377: notice: ------------------------------------------------------------
+2008-07-08 20:42:54.377: notice: running ../../dnssec-signer -v -v -D . 
+2008-07-08 20:42:54.377: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-08 20:42:54.377: debug: 	Check RFC5011 status
+2008-07-08 20:42:54.377: debug: 		->ksk5011status returns 0
+2008-07-08 20:42:54.377: debug: 	Check KSK status
+2008-07-08 20:42:54.377: debug: 	Check ZSK status
+2008-07-08 20:42:54.377: debug: 	Re-signing not necessary!
+2008-07-08 20:42:54.377: debug: 	Check if there is a parent file to copy
+2008-07-08 20:42:54.377: debug: 
+2008-07-08 20:42:54.377: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-08 20:42:54.378: debug: 	Check RFC5011 status
+2008-07-08 20:42:54.378: debug: 		->ksk5011status returns 2
+2008-07-08 20:42:54.378: debug: 	Check ZSK status
+2008-07-08 20:42:54.378: debug: 	Re-signing not necessary!
+2008-07-08 20:42:54.378: debug: 	Check if there is a parent file to copy
+2008-07-08 20:42:54.378: debug: 
+2008-07-08 20:42:54.378: notice: end of run: 0 errors occured
+2008-07-08 20:53:40.414: notice: ------------------------------------------------------------
+2008-07-08 20:53:40.414: notice: running ../../dnssec-signer -v -v -D . 
+2008-07-08 20:53:40.417: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-08 20:53:40.417: debug: 	Check RFC5011 status
+2008-07-08 20:53:40.417: debug: 		->ksk5011status returns 0
+2008-07-08 20:53:40.417: debug: 	Check KSK status
+2008-07-08 20:53:40.417: debug: 	Check ZSK status
+2008-07-08 20:53:40.417: debug: 	Re-signing not necessary!
+2008-07-08 20:53:40.417: debug: 	Check if there is a parent file to copy
+2008-07-08 20:53:40.417: debug: 
+2008-07-08 20:53:40.417: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-08 20:53:40.417: debug: 	Check RFC5011 status
+2008-07-08 20:53:40.417: debug: 		->ksk5011status returns 2
+2008-07-08 20:53:40.417: debug: 	Check ZSK status
+2008-07-08 20:53:40.417: debug: 	Re-signing not necessary!
+2008-07-08 20:53:40.418: debug: 	Check if there is a parent file to copy
+2008-07-08 20:53:40.418: debug: 
+2008-07-08 20:53:40.418: notice: end of run: 0 errors occured
+2008-07-08 20:53:49.488: notice: ------------------------------------------------------------
+2008-07-08 20:53:49.488: notice: running ../../dnssec-signer -v -v -N named.conf 
+2008-07-08 20:53:49.490: debug: parsing zone "sub.example.net." in dir "././sub.example.net."
+2008-07-08 20:53:49.490: debug: 	Check RFC5011 status
+2008-07-08 20:53:49.490: debug: 		->ksk5011status returns 0
+2008-07-08 20:53:49.491: debug: 	Check KSK status
+2008-07-08 20:53:49.491: debug: 	Check ZSK status
+2008-07-08 20:53:49.491: debug: 	Re-signing not necessary!
+2008-07-08 20:53:49.491: debug: 	Check if there is a parent file to copy
+2008-07-08 20:53:49.491: debug: 
+2008-07-08 20:53:49.491: debug: parsing zone "example.net." in dir "././example.net."
+2008-07-08 20:53:49.492: debug: 	Check RFC5011 status
+2008-07-08 20:53:49.492: debug: 		->ksk5011status returns 2
+2008-07-08 20:53:49.492: debug: 	Check ZSK status
+2008-07-08 20:53:49.492: debug: 	Re-signing not necessary!
+2008-07-08 20:53:49.492: debug: 	Check if there is a parent file to copy
+2008-07-08 20:53:49.492: debug: 
+2008-07-08 20:53:49.492: notice: end of run: 0 errors occured
+2008-07-09 00:42:08.103: notice: ------------------------------------------------------------
+2008-07-09 00:42:08.103: notice: running ../../dnssec-signer -v -v 
+2008-07-09 00:42:08.106: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-09 00:42:08.106: debug: 	Check RFC5011 status
+2008-07-09 00:42:08.106: debug: 		->ksk5011status returns 0
+2008-07-09 00:42:08.106: debug: 	Check KSK status
+2008-07-09 00:42:08.106: debug: ksk_rollover
+2008-07-09 00:42:08.106: debug: 	Check ZSK status
+2008-07-09 00:42:08.106: debug: 	Re-signing not necessary!
+2008-07-09 00:42:08.106: debug: 	Check if there is a parent file to copy
+2008-07-09 00:42:08.106: debug: 
+2008-07-09 00:42:08.106: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-09 00:42:08.106: debug: 	Check RFC5011 status
+2008-07-09 00:42:08.106: debug: 		->ksk5011status returns 2
+2008-07-09 00:42:08.106: debug: 	Check ZSK status
+2008-07-09 00:42:08.106: debug: 	Re-signing not necessary!
+2008-07-09 00:42:08.106: debug: 	Check if there is a parent file to copy
+2008-07-09 00:42:08.106: debug: 
+2008-07-09 00:42:08.106: notice: end of run: 0 errors occured
+2008-07-09 00:45:19.663: notice: ------------------------------------------------------------
+2008-07-09 00:45:19.663: notice: running ../../dnssec-signer -v -v 
+2008-07-09 00:45:19.665: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-09 00:45:19.665: debug: 	Check RFC5011 status
+2008-07-09 00:45:19.665: debug: 		->ksk5011status returns 0
+2008-07-09 00:45:19.665: debug: 	Check KSK status
+2008-07-09 00:45:19.665: debug: 	Check ZSK status
+2008-07-09 00:45:19.665: debug: 	Re-signing not necessary!
+2008-07-09 00:45:19.665: debug: 	Check if there is a parent file to copy
+2008-07-09 00:45:19.665: debug: 
+2008-07-09 00:45:19.665: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-09 00:45:19.665: debug: 	Check RFC5011 status
+2008-07-09 00:45:19.665: debug: 		->ksk5011status returns 2
+2008-07-09 00:45:19.665: debug: 	Check ZSK status
+2008-07-09 00:45:19.665: debug: 	Re-signing not necessary!
+2008-07-09 00:45:19.665: debug: 	Check if there is a parent file to copy
+2008-07-09 00:45:19.665: debug: 
+2008-07-09 00:45:19.665: notice: end of run: 0 errors occured
+2008-07-09 23:46:12.682: notice: ------------------------------------------------------------
+2008-07-09 23:46:12.682: notice: running ../../dnssec-signer -v -v -D /home/hoz/named/dnssec-signer/zkt-0.97/examples/flat/ 
+2008-07-09 23:46:12.702: debug: parsing zone "sub.example.net." in dir "/home/hoz/named/dnssec-signer/zkt-0.97/examples/flat/sub.example.net."
+2008-07-09 23:46:12.702: debug: 	Check RFC5011 status
+2008-07-09 23:46:12.702: debug: 		->ksk5011status returns 0
+2008-07-09 23:46:12.702: debug: 	Check KSK status
+2008-07-09 23:46:12.702: debug: 	Check ZSK status
+2008-07-09 23:46:12.702: debug: 	Re-signing necessary: re-signing interval (1d) reached
+2008-07-09 23:46:12.702: notice: "sub.example.net.": re-signing triggered: re-signing interval (1d) reached
+2008-07-09 23:46:12.702: debug: 	Writing key file "/home/hoz/named/dnssec-signer/zkt-0.97/examples/flat/sub.example.net./dnskey.db"
+2008-07-09 23:46:12.702: debug: 	Signing zone "sub.example.net."
+2008-07-09 23:46:12.702: debug: 	  Run cmd "cd /home/hoz/named/dnssec-signer/zkt-0.97/examples/flat/sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-09 23:46:13.222: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-09 23:46:13.222: debug: 	Signing completed after 1s.
+2008-07-09 23:46:13.222: debug: 
+2008-07-09 23:46:13.222: debug: parsing zone "example.net." in dir "/home/hoz/named/dnssec-signer/zkt-0.97/examples/flat/example.net."
+2008-07-09 23:46:13.222: debug: 	Check RFC5011 status
+2008-07-09 23:46:13.222: debug: 		->ksk5011status returns 2
+2008-07-09 23:46:13.222: debug: 	Check ZSK status
+2008-07-09 23:46:13.222: debug: 	Lifetime(29100 sec) of depreciated key 14939 exceeded (98273 sec)
+2008-07-09 23:46:13.222: info: "example.net.": removed old ZSK 14939
+
+2008-07-09 23:46:13.222: debug: 		->remove it
+2008-07-09 23:46:13.222: debug: 	Re-signing necessary: New zone key
+2008-07-09 23:46:13.222: notice: "example.net.": re-signing triggered: New zone key
+2008-07-09 23:46:13.222: debug: 	Writing key file "/home/hoz/named/dnssec-signer/zkt-0.97/examples/flat/example.net./dnskey.db"
+2008-07-09 23:46:13.223: debug: 	Incrementing serial number in file "/home/hoz/named/dnssec-signer/zkt-0.97/examples/flat/example.net./zone.db"
+2008-07-09 23:46:13.223: debug: 	Signing zone "example.net."
+2008-07-09 23:46:13.223: debug: 	  Run cmd "cd /home/hoz/named/dnssec-signer/zkt-0.97/examples/flat/example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-09 23:46:13.374: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-09 23:46:13.374: debug: 	Signing completed after 0s.
+2008-07-09 23:46:13.374: debug: 
+2008-07-09 23:46:13.374: notice: end of run: 0 errors occured
+2008-07-15 00:21:04.641: notice: ------------------------------------------------------------
+2008-07-15 00:21:04.641: notice: running ../../dnssec-signer -r -v -v 
+2008-07-15 00:21:05.071: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-15 00:21:05.071: debug: 	Check RFC5011 status
+2008-07-15 00:21:05.071: debug: 		->ksk5011status returns 0
+2008-07-15 00:21:05.071: debug: 	Check KSK status
+2008-07-15 00:21:05.071: debug: 	Check ZSK status
+2008-07-15 00:21:05.071: debug: 	Lifetime(259200 +/-150 sec) of active key 2338 exceeded (602830 sec)
+2008-07-15 00:21:05.071: debug: 		->depreciate it
+2008-07-15 00:21:05.072: debug: 		->activate published key 9198
+2008-07-15 00:21:05.072: notice: "sub.example.net.": lifetime of zone signing key 2338 exceeded: ZSK rollover done
+2008-07-15 00:21:05.072: debug: 	New published key needed
+2008-07-15 00:21:05.128: debug: 		->creating new published key 8397
+2008-07-15 00:21:05.128: info: "sub.example.net.": new published key 8397 created
+2008-07-15 00:21:05.128: debug: 	Re-signing necessary: New zone key
+2008-07-15 00:21:05.128: notice: "sub.example.net.": re-signing triggered: New zone key
+2008-07-15 00:21:05.129: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-15 00:21:05.129: debug: 	Signing zone "sub.example.net."
+2008-07-15 00:21:05.129: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-15 00:21:05.274: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-15 00:21:05.274: debug: 	Signing completed after 0s.
+2008-07-15 00:21:05.274: notice: "sub.example.net.": distribution triggered
+2008-07-15 00:21:05.275: debug: 	Distribute zone "sub.example.net."
+2008-07-15 00:21:05.275: debug: 	  Run cmd "./dist.sh reload sub.example.net."
+2008-07-15 00:21:05.279: debug: 
+2008-07-15 00:21:05.279: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-15 00:21:05.279: debug: 	Check RFC5011 status
+2008-07-15 00:21:05.279: debug: 		->ksk5011status returns 2
+2008-07-15 00:21:05.279: debug: 	Check ZSK status
+2008-07-15 00:21:05.279: debug: 	Re-signing necessary: re-signing interval (2d) reached
+2008-07-15 00:21:05.279: notice: "example.net.": re-signing triggered: re-signing interval (2d) reached
+2008-07-15 00:21:05.279: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-15 00:21:05.280: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-15 00:21:05.280: debug: 	Signing zone "example.net."
+2008-07-15 00:21:05.280: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-15 00:21:05.418: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-15 00:21:05.419: debug: 	Signing completed after 0s.
+2008-07-15 00:21:05.419: notice: "example.net.": distribution triggered
+2008-07-15 00:21:05.419: debug: 	Distribute zone "example.net."
+2008-07-15 00:21:05.419: debug: 	  Run cmd "./dist.sh reload example.net."
+2008-07-15 00:21:05.423: debug: 
+2008-07-15 00:21:05.423: notice: end of run: 0 errors occured
+2008-07-15 00:21:18.128: notice: ------------------------------------------------------------
+2008-07-15 00:21:18.128: notice: running ../../dnssec-signer -r -v -v 
+2008-07-15 00:21:18.130: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-15 00:21:18.130: debug: 	Check RFC5011 status
+2008-07-15 00:21:18.130: debug: 		->ksk5011status returns 0
+2008-07-15 00:21:18.130: debug: 	Check KSK status
+2008-07-15 00:21:18.130: debug: 	Check ZSK status
+2008-07-15 00:21:18.130: debug: 	Re-signing not necessary!
+2008-07-15 00:21:18.130: debug: 	Check if there is a parent file to copy
+2008-07-15 00:21:18.130: debug: 
+2008-07-15 00:21:18.130: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-15 00:21:18.131: debug: 	Check RFC5011 status
+2008-07-15 00:21:18.131: debug: 		->ksk5011status returns 2
+2008-07-15 00:21:18.131: debug: 	Check ZSK status
+2008-07-15 00:21:18.131: debug: 	Re-signing not necessary!
+2008-07-15 00:21:18.131: debug: 	Check if there is a parent file to copy
+2008-07-15 00:21:18.131: debug: 
+2008-07-15 00:21:18.131: notice: end of run: 0 errors occured
+2008-07-15 00:21:26.360: notice: ------------------------------------------------------------
+2008-07-15 00:21:26.360: notice: running ../../dnssec-signer -f -r -v -v 
+2008-07-15 00:21:26.362: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-15 00:21:26.362: debug: 	Check RFC5011 status
+2008-07-15 00:21:26.362: debug: 		->ksk5011status returns 0
+2008-07-15 00:21:26.362: debug: 	Check KSK status
+2008-07-15 00:21:26.362: debug: 	Check ZSK status
+2008-07-15 00:21:26.362: debug: 	Re-signing necessary: Option -f
+2008-07-15 00:21:26.362: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-15 00:21:26.362: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-15 00:21:26.363: debug: 	Signing zone "sub.example.net."
+2008-07-15 00:21:26.363: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-15 00:21:26.978: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-15 00:21:26.978: debug: 	Signing completed after 0s.
+2008-07-15 00:21:26.978: notice: "sub.example.net.": distribution triggered
+2008-07-15 00:21:26.978: debug: 	Distribute zone "sub.example.net."
+2008-07-15 00:21:26.978: debug: 	  Run cmd "./dist.sh reload sub.example.net."
+2008-07-15 00:21:26.983: debug: 
+2008-07-15 00:21:26.983: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-15 00:21:26.983: debug: 	Check RFC5011 status
+2008-07-15 00:21:26.983: debug: 		->ksk5011status returns 2
+2008-07-15 00:21:26.983: debug: 	Check ZSK status
+2008-07-15 00:21:26.983: debug: 	Re-signing necessary: Option -f
+2008-07-15 00:21:26.983: notice: "example.net.": re-signing triggered: Option -f
+2008-07-15 00:21:26.983: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-15 00:21:26.983: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-15 00:21:26.983: debug: 	Signing zone "example.net."
+2008-07-15 00:21:26.983: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-15 00:21:27.122: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-15 00:21:27.122: debug: 	Signing completed after 1s.
+2008-07-15 00:21:27.122: notice: "example.net.": distribution triggered
+2008-07-15 00:21:27.122: debug: 	Distribute zone "example.net."
+2008-07-15 00:21:27.122: debug: 	  Run cmd "./dist.sh reload example.net."
+2008-07-15 00:21:27.127: debug: 
+2008-07-15 00:21:27.127: notice: end of run: 0 errors occured
+2008-07-15 00:21:52.947: notice: ------------------------------------------------------------
+2008-07-15 00:21:52.947: notice: running ../../dnssec-signer -f -r -v -v 
+2008-07-15 00:21:52.951: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-15 00:21:52.951: debug: 	Check RFC5011 status
+2008-07-15 00:21:52.951: debug: 		->ksk5011status returns 0
+2008-07-15 00:21:52.951: debug: 	Check KSK status
+2008-07-15 00:21:52.951: debug: 	Check ZSK status
+2008-07-15 00:21:52.951: debug: 	Re-signing necessary: Option -f
+2008-07-15 00:21:52.951: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-15 00:21:52.951: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-15 00:21:52.952: debug: 	Signing zone "sub.example.net."
+2008-07-15 00:21:52.952: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-15 00:21:53.119: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-15 00:21:53.119: debug: 	Signing completed after 1s.
+2008-07-15 00:21:53.120: notice: "sub.example.net.": distribution triggered
+2008-07-15 00:21:53.120: debug: 	Distribute zone "sub.example.net."
+2008-07-15 00:21:53.120: debug: 	  Run cmd "./dist.sh reload sub.example.net."
+2008-07-15 00:21:53.126: debug: 
+2008-07-15 00:21:53.126: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-15 00:21:53.126: debug: 	Check RFC5011 status
+2008-07-15 00:21:53.126: debug: 		->ksk5011status returns 2
+2008-07-15 00:21:53.126: debug: 	Check ZSK status
+2008-07-15 00:21:53.126: debug: 	Re-signing necessary: Option -f
+2008-07-15 00:21:53.126: notice: "example.net.": re-signing triggered: Option -f
+2008-07-15 00:21:53.126: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-15 00:21:53.126: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-15 00:21:53.126: debug: 	Signing zone "example.net."
+2008-07-15 00:21:53.126: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-15 00:21:53.262: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-15 00:21:53.262: debug: 	Signing completed after 0s.
+2008-07-15 00:21:53.262: notice: "example.net.": distribution triggered
+2008-07-15 00:21:53.262: debug: 	Distribute zone "example.net."
+2008-07-15 00:21:53.262: debug: 	  Run cmd "./dist.sh reload example.net."
+2008-07-15 00:21:53.268: debug: 
+2008-07-15 00:21:53.268: notice: end of run: 0 errors occured
+2008-07-15 00:23:40.781: notice: ------------------------------------------------------------
+2008-07-15 00:23:40.781: notice: running ../../dnssec-signer -f -r -v -v 
+2008-07-15 00:23:40.783: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-15 00:23:40.783: debug: 	Check RFC5011 status
+2008-07-15 00:23:40.783: debug: 		->ksk5011status returns 0
+2008-07-15 00:23:40.783: debug: 	Check KSK status
+2008-07-15 00:23:40.783: debug: 	Check ZSK status
+2008-07-15 00:23:40.783: debug: 	Re-signing necessary: Option -f
+2008-07-15 00:23:40.783: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-15 00:23:40.783: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-15 00:23:40.786: debug: 	Signing zone "sub.example.net."
+2008-07-15 00:23:40.786: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-15 00:23:41.281: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-15 00:23:41.281: debug: 	Signing completed after 1s.
+2008-07-15 00:23:41.281: notice: "sub.example.net.": distribution triggered
+2008-07-15 00:23:41.281: debug: 	Distribute zone "sub.example.net."
+2008-07-15 00:23:41.281: debug: 	  Run cmd "./dist.sh reload sub.example.net."
+2008-07-15 00:23:41.287: debug: 
+2008-07-15 00:23:41.287: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-15 00:23:41.287: debug: 	Check RFC5011 status
+2008-07-15 00:23:41.287: debug: 		->ksk5011status returns 2
+2008-07-15 00:23:41.287: debug: 	Check ZSK status
+2008-07-15 00:23:41.287: debug: 	Re-signing necessary: Option -f
+2008-07-15 00:23:41.287: notice: "example.net.": re-signing triggered: Option -f
+2008-07-15 00:23:41.288: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-15 00:23:41.288: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-15 00:23:41.288: debug: 	Signing zone "example.net."
+2008-07-15 00:23:41.289: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-15 00:23:41.561: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-15 00:23:41.561: debug: 	Signing completed after 0s.
+2008-07-15 00:23:41.561: notice: "example.net.": distribution triggered
+2008-07-15 00:23:41.561: debug: 	Distribute zone "example.net."
+2008-07-15 00:23:41.561: debug: 	  Run cmd "./dist.sh reload example.net."
+2008-07-15 00:23:41.566: debug: 
+2008-07-15 00:23:41.567: notice: end of run: 0 errors occured
+2008-07-15 00:31:10.917: notice: ------------------------------------------------------------
+2008-07-15 00:31:10.917: notice: running ../../dnssec-signer -f -r -v -v 
+2008-07-15 00:31:10.923: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-15 00:31:10.923: debug: 	Check RFC5011 status
+2008-07-15 00:31:10.923: debug: 		->ksk5011status returns 0
+2008-07-15 00:31:10.923: debug: 	Check KSK status
+2008-07-15 00:31:10.923: debug: 	Check ZSK status
+2008-07-15 00:31:10.923: debug: 	Lifetime(390 sec) of depreciated key 2338 exceeded (605 sec)
+2008-07-15 00:31:10.923: info: "sub.example.net.": removed old ZSK 2338
+
+2008-07-15 00:31:10.924: debug: 		->remove it
+2008-07-15 00:31:10.924: debug: 	Re-signing necessary: Option -f
+2008-07-15 00:31:10.924: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-15 00:31:10.924: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-15 00:31:11.347: debug: 	Signing zone "sub.example.net."
+2008-07-15 00:31:11.347: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-15 00:31:11.571: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-15 00:31:11.571: debug: 	Signing completed after 0s.
+2008-07-15 00:31:11.571: notice: "sub.example.net.": distribution triggered
+2008-07-15 00:31:11.571: debug: 	Distribute zone "sub.example.net."
+2008-07-15 00:31:11.571: debug: 	  Run cmd "./dist.sh reload sub.example.net. ./sub.example.net./zone.db.signed"
+2008-07-15 00:31:11.579: debug: 	  ./dist.sh reload return: "scp ./sub.example.net./zone.db.signed :/sub.example.net."
+2008-07-15 00:31:11.579: debug: 
+2008-07-15 00:31:11.580: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-15 00:31:11.580: debug: 	Check RFC5011 status
+2008-07-15 00:31:11.580: debug: 		->ksk5011status returns 2
+2008-07-15 00:31:11.580: debug: 	Check ZSK status
+2008-07-15 00:31:11.580: debug: 	Re-signing necessary: Option -f
+2008-07-15 00:31:11.580: notice: "example.net.": re-signing triggered: Option -f
+2008-07-15 00:31:11.580: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-15 00:31:11.581: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-15 00:31:11.581: debug: 	Signing zone "example.net."
+2008-07-15 00:31:11.581: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-15 00:31:11.698: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-15 00:31:11.698: debug: 	Signing completed after 0s.
+2008-07-15 00:31:11.698: notice: "example.net.": distribution triggered
+2008-07-15 00:31:11.698: debug: 	Distribute zone "example.net."
+2008-07-15 00:31:11.698: debug: 	  Run cmd "./dist.sh reload example.net. ./example.net./zone.db.signed"
+2008-07-15 00:31:11.704: debug: 	  ./dist.sh reload return: "scp ./example.net./zone.db.signed :/example.net."
+2008-07-15 00:31:11.704: debug: 
+2008-07-15 00:31:11.704: notice: end of run: 0 errors occured
+2008-07-15 00:32:00.676: notice: ------------------------------------------------------------
+2008-07-15 00:32:00.676: notice: running ../../dnssec-signer -f -r -v -v 
+2008-07-15 00:32:00.678: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-15 00:32:00.678: debug: 	Check RFC5011 status
+2008-07-15 00:32:00.678: debug: 		->ksk5011status returns 0
+2008-07-15 00:32:00.678: debug: 	Check KSK status
+2008-07-15 00:32:00.678: debug: 	Check ZSK status
+2008-07-15 00:32:00.678: debug: 	Re-signing necessary: Option -f
+2008-07-15 00:32:00.678: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-15 00:32:00.678: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-15 00:32:00.679: debug: 	Signing zone "sub.example.net."
+2008-07-15 00:32:00.679: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-15 00:32:01.282: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-15 00:32:01.282: debug: 	Signing completed after 1s.
+2008-07-15 00:32:01.282: notice: "sub.example.net.": distribution triggered
+2008-07-15 00:32:01.282: debug: 	Distribute zone "sub.example.net."
+2008-07-15 00:32:01.282: debug: 	  Run cmd "./dist.sh reload sub.example.net. ./sub.example.net./zone.db.signed"
+2008-07-15 00:32:01.289: debug: 	  ./dist.sh reload return: "scp ./sub.example.net./zone.db.signed localhost:/sub.example.net."
+2008-07-15 00:32:01.289: debug: 
+2008-07-15 00:32:01.289: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-15 00:32:01.289: debug: 	Check RFC5011 status
+2008-07-15 00:32:01.289: debug: 		->ksk5011status returns 2
+2008-07-15 00:32:01.289: debug: 	Check ZSK status
+2008-07-15 00:32:01.290: debug: 	Re-signing necessary: Option -f
+2008-07-15 00:32:01.290: notice: "example.net.": re-signing triggered: Option -f
+2008-07-15 00:32:01.290: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-15 00:32:01.291: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-15 00:32:01.291: debug: 	Signing zone "example.net."
+2008-07-15 00:32:01.291: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-15 00:32:01.405: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-15 00:32:01.405: debug: 	Signing completed after 0s.
+2008-07-15 00:32:01.406: notice: "example.net.": distribution triggered
+2008-07-15 00:32:01.406: debug: 	Distribute zone "example.net."
+2008-07-15 00:32:01.406: debug: 	  Run cmd "./dist.sh reload example.net. ./example.net./zone.db.signed"
+2008-07-15 00:32:01.412: debug: 	  ./dist.sh reload return: "scp ./example.net./zone.db.signed localhost:/example.net."
+2008-07-15 00:32:01.412: debug: 
+2008-07-15 00:32:01.412: notice: end of run: 0 errors occured
+2008-07-15 00:33:00.866: notice: ------------------------------------------------------------
+2008-07-15 00:33:00.867: notice: running ../../dnssec-signer -f -r -v -v 
+2008-07-15 00:33:00.869: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-15 00:33:00.869: debug: 	Check RFC5011 status
+2008-07-15 00:33:00.869: debug: 		->ksk5011status returns 0
+2008-07-15 00:33:00.869: debug: 	Check KSK status
+2008-07-15 00:33:00.869: debug: 	Check ZSK status
+2008-07-15 00:33:00.869: debug: 	Re-signing necessary: Option -f
+2008-07-15 00:33:00.870: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-15 00:33:00.870: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-15 00:33:00.870: debug: 	Signing zone "sub.example.net."
+2008-07-15 00:33:00.870: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-15 00:33:01.531: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-15 00:33:01.531: debug: 	Signing completed after 1s.
+2008-07-15 00:33:01.531: notice: "sub.example.net.": distribution triggered
+2008-07-15 00:33:01.531: debug: 	Distribute zone "sub.example.net."
+2008-07-15 00:33:01.531: debug: 	  Run cmd "./dist.sh reload sub.example.net. ./sub.example.net./zone.db.signed"
+2008-07-15 00:33:01.537: debug: 	  ./dist.sh reload return: "scp ./sub.example.net./zone.db.signed localhost:/var/named/sub.example.net."
+2008-07-15 00:33:01.537: debug: 
+2008-07-15 00:33:01.537: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-15 00:33:01.538: debug: 	Check RFC5011 status
+2008-07-15 00:33:01.538: debug: 		->ksk5011status returns 2
+2008-07-15 00:33:01.538: debug: 	Check ZSK status
+2008-07-15 00:33:01.538: debug: 	Re-signing necessary: Option -f
+2008-07-15 00:33:01.538: notice: "example.net.": re-signing triggered: Option -f
+2008-07-15 00:33:01.538: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-15 00:33:01.539: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-15 00:33:01.539: debug: 	Signing zone "example.net."
+2008-07-15 00:33:01.539: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-15 00:33:01.655: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-15 00:33:01.655: debug: 	Signing completed after 0s.
+2008-07-15 00:33:01.655: notice: "example.net.": distribution triggered
+2008-07-15 00:33:01.655: debug: 	Distribute zone "example.net."
+2008-07-15 00:33:01.656: debug: 	  Run cmd "./dist.sh reload example.net. ./example.net./zone.db.signed"
+2008-07-15 00:33:01.661: debug: 	  ./dist.sh reload return: "scp ./example.net./zone.db.signed localhost:/var/named/example.net."
+2008-07-15 00:33:01.662: debug: 
+2008-07-15 00:33:01.662: notice: end of run: 0 errors occured
+2008-07-15 00:34:09.259: notice: ------------------------------------------------------------
+2008-07-15 00:34:09.259: notice: running ../../dnssec-signer -f -r -v -v 
+2008-07-15 00:34:09.261: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-15 00:34:09.261: debug: 	Check RFC5011 status
+2008-07-15 00:34:09.261: debug: 		->ksk5011status returns 0
+2008-07-15 00:34:09.261: debug: 	Check KSK status
+2008-07-15 00:34:09.261: debug: 	Check ZSK status
+2008-07-15 00:34:09.261: debug: 	Re-signing necessary: Option -f
+2008-07-15 00:34:09.261: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-15 00:34:09.261: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-15 00:34:09.261: debug: 	Signing zone "sub.example.net."
+2008-07-15 00:34:09.261: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-15 00:34:10.245: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-15 00:34:10.245: debug: 	Signing completed after 1s.
+2008-07-15 00:34:10.245: notice: "sub.example.net.": distribution triggered
+2008-07-15 00:34:10.245: debug: 	Distribute zone "sub.example.net."
+2008-07-15 00:34:10.245: debug: 	  Run cmd "./dist.sh reload sub.example.net. ./sub.example.net./zone.db.signed"
+2008-07-15 00:34:10.251: debug: 	  ./dist.sh reload return: "scp ./sub.example.net./zone.db.signed localhost:/var/named/sub.example.net./"
+2008-07-15 00:34:10.252: debug: 
+2008-07-15 00:34:10.252: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-15 00:34:10.252: debug: 	Check RFC5011 status
+2008-07-15 00:34:10.252: debug: 		->ksk5011status returns 2
+2008-07-15 00:34:10.252: debug: 	Check ZSK status
+2008-07-15 00:34:10.252: debug: 	Re-signing necessary: Option -f
+2008-07-15 00:34:10.252: notice: "example.net.": re-signing triggered: Option -f
+2008-07-15 00:34:10.252: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-15 00:34:10.252: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-15 00:34:10.252: debug: 	Signing zone "example.net."
+2008-07-15 00:34:10.252: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-15 00:34:10.369: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-15 00:34:10.369: debug: 	Signing completed after 0s.
+2008-07-15 00:34:10.369: notice: "example.net.": distribution triggered
+2008-07-15 00:34:10.369: debug: 	Distribute zone "example.net."
+2008-07-15 00:34:10.369: debug: 	  Run cmd "./dist.sh reload example.net. ./example.net./zone.db.signed"
+2008-07-15 00:34:10.375: debug: 	  ./dist.sh reload return: "scp ./example.net./zone.db.signed localhost:/var/named/example.net./"
+2008-07-15 00:34:10.375: debug: 
+2008-07-15 00:34:10.375: notice: end of run: 0 errors occured
+2008-07-18 00:38:52.860: notice: ------------------------------------------------------------
+2008-07-18 00:38:52.860: notice: running ../../dnssec-signer -v -v 
+2008-07-18 00:38:52.862: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-18 00:38:52.862: debug: 	Check RFC5011 status
+2008-07-18 00:38:52.862: debug: 		->ksk5011status returns 0
+2008-07-18 00:38:52.862: debug: 	Check KSK status
+2008-07-18 00:38:52.862: debug: 	Check ZSK status
+2008-07-18 00:38:52.862: debug: 	Lifetime(259200 +/-150 sec) of active key 9198 exceeded (260267 sec)
+2008-07-18 00:38:52.862: debug: 		->depreciate it
+2008-07-18 00:38:52.862: debug: 		->activate published key 8397
+2008-07-18 00:38:52.862: notice: "sub.example.net.": lifetime of zone signing key 9198 exceeded: ZSK rollover done
+2008-07-18 00:38:52.862: debug: 	New published key needed
+2008-07-18 00:38:53.418: debug: 		->creating new published key 31081
+2008-07-18 00:38:53.418: info: "sub.example.net.": new key 31081 generated for publishing
+2008-07-18 00:38:53.418: debug: 	Re-signing necessary: New zone key
+2008-07-18 00:38:53.418: notice: "sub.example.net.": re-signing triggered: New zone key
+2008-07-18 00:38:53.418: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-18 00:38:53.419: debug: 	Signing zone "sub.example.net."
+2008-07-18 00:38:53.419: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-18 00:38:53.556: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-18 00:38:53.556: debug: 	Signing completed after 0s.
+2008-07-18 00:38:53.556: debug: 
+2008-07-18 00:38:53.556: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-18 00:38:53.557: debug: 	Check RFC5011 status
+2008-07-18 00:38:53.557: debug: 		->ksk5011status returns 2
+2008-07-18 00:38:53.557: debug: 	Check ZSK status
+2008-07-18 00:38:53.557: debug: 	Re-signing necessary: re-signing interval (2d) reached
+2008-07-18 00:38:53.557: notice: "example.net.": re-signing triggered: re-signing interval (2d) reached
+2008-07-18 00:38:53.557: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-18 00:38:53.558: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-18 00:38:53.558: debug: 	Signing zone "example.net."
+2008-07-18 00:38:53.559: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-18 00:38:53.715: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-18 00:38:53.715: debug: 	Signing completed after 0s.
+2008-07-18 00:38:53.715: debug: 
+2008-07-18 00:38:53.716: notice: end of run: 0 errors occured
+2008-07-18 00:39:29.824: notice: ------------------------------------------------------------
+2008-07-18 00:39:29.824: notice: running ../../dnssec-signer -r -v -v 
+2008-07-18 00:39:29.827: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-18 00:39:29.827: debug: 	Check RFC5011 status
+2008-07-18 00:39:29.827: debug: 		->ksk5011status returns 0
+2008-07-18 00:39:29.827: debug: 	Check KSK status
+2008-07-18 00:39:29.827: debug: 	Check ZSK status
+2008-07-18 00:39:29.827: debug: 	Re-signing not necessary!
+2008-07-18 00:39:29.827: debug: 	Check if there is a parent file to copy
+2008-07-18 00:39:29.827: debug: 
+2008-07-18 00:39:29.827: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-18 00:39:29.827: debug: 	Check RFC5011 status
+2008-07-18 00:39:29.827: debug: 		->ksk5011status returns 2
+2008-07-18 00:39:29.827: debug: 	Check ZSK status
+2008-07-18 00:39:29.827: debug: 	Re-signing not necessary!
+2008-07-18 00:39:29.827: debug: 	Check if there is a parent file to copy
+2008-07-18 00:39:29.827: debug: 
+2008-07-18 00:39:29.828: notice: end of run: 0 errors occured
+2008-07-18 00:39:36.641: notice: ------------------------------------------------------------
+2008-07-18 00:39:36.641: notice: running ../../dnssec-signer -r -f -v -v 
+2008-07-18 00:39:36.644: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-18 00:39:36.644: debug: 	Check RFC5011 status
+2008-07-18 00:39:36.644: debug: 		->ksk5011status returns 0
+2008-07-18 00:39:36.644: debug: 	Check KSK status
+2008-07-18 00:39:36.644: debug: 	Check ZSK status
+2008-07-18 00:39:36.644: debug: 	Re-signing necessary: Option -f
+2008-07-18 00:39:36.644: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-18 00:39:36.644: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-18 00:39:36.644: debug: 	Signing zone "sub.example.net."
+2008-07-18 00:39:36.644: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-18 00:39:37.144: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-18 00:39:37.144: debug: 	Signing completed after 1s.
+2008-07-18 00:39:37.144: notice: "sub.example.net.": distribution triggered
+2008-07-18 00:39:37.144: debug: 	Distribute zone "sub.example.net."
+2008-07-18 00:39:37.144: debug: 	  Run cmd "./dist.sh reload sub.example.net. ./sub.example.net./zone.db.signed"
+2008-07-18 00:39:37.151: debug: 	  ./dist.sh reload return: "scp ./sub.example.net./zone.db.signed localhost:/var/named/sub.example.net./"
+2008-07-18 00:39:37.151: debug: 
+2008-07-18 00:39:37.151: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-18 00:39:37.151: debug: 	Check RFC5011 status
+2008-07-18 00:39:37.151: debug: 		->ksk5011status returns 2
+2008-07-18 00:39:37.151: debug: 	Check ZSK status
+2008-07-18 00:39:37.151: debug: 	Re-signing necessary: Option -f
+2008-07-18 00:39:37.151: notice: "example.net.": re-signing triggered: Option -f
+2008-07-18 00:39:37.151: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-18 00:39:37.152: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-18 00:39:37.152: debug: 	Signing zone "example.net."
+2008-07-18 00:39:37.152: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-18 00:39:37.313: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-18 00:39:37.313: debug: 	Signing completed after 0s.
+2008-07-18 00:39:37.313: notice: "example.net.": distribution triggered
+2008-07-18 00:39:37.313: debug: 	Distribute zone "example.net."
+2008-07-18 00:39:37.313: debug: 	  Run cmd "./dist.sh reload example.net. ./example.net./zone.db.signed"
+2008-07-18 00:39:37.319: debug: 	  ./dist.sh reload return: "scp ./example.net./zone.db.signed localhost:/var/named/example.net./"
+2008-07-18 00:39:37.319: debug: 
+2008-07-18 00:39:37.319: notice: end of run: 0 errors occured
+2008-07-18 00:42:39.912: notice: ------------------------------------------------------------
+2008-07-18 00:42:39.912: notice: running ../../dnssec-signer -v -v 
+2008-07-18 00:42:39.914: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-18 00:42:39.914: debug: 	Check RFC5011 status
+2008-07-18 00:42:39.914: debug: 		->ksk5011status returns 0
+2008-07-18 00:42:39.914: debug: 	Check KSK status
+2008-07-18 00:42:39.914: debug: 	Check ZSK status
+2008-07-18 00:42:39.914: debug: 	Re-signing not necessary!
+2008-07-18 00:42:39.914: debug: 	Check if there is a parent file to copy
+2008-07-18 00:42:39.914: debug: 
+2008-07-18 00:42:39.914: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-18 00:42:39.914: debug: 	Check RFC5011 status
+2008-07-18 00:42:39.914: debug: 		->ksk5011status returns 2
+2008-07-18 00:42:39.914: debug: 	Check ZSK status
+2008-07-18 00:42:39.914: debug: 	Re-signing not necessary!
+2008-07-18 00:42:39.914: debug: 	Check if there is a parent file to copy
+2008-07-18 00:42:39.914: debug: 
+2008-07-18 00:42:39.914: notice: end of run: 0 errors occured
+2008-07-22 00:10:38.346: notice: ------------------------------------------------------------
+2008-07-22 00:10:38.346: notice: running ../../dnssec-signer -v -v 
+2008-07-22 00:10:38.349: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-22 00:10:38.349: debug: 	Check RFC5011 status
+2008-07-22 00:10:38.349: debug: 		->ksk5011status returns 0
+2008-07-22 00:10:38.349: debug: 	Check KSK status
+2008-07-22 00:10:38.349: debug: 	Check ZSK status
+2008-07-22 00:10:38.349: debug: 	Lifetime(390 sec) of depreciated key 9198 exceeded (343906 sec)
+2008-07-22 00:10:38.349: info: "sub.example.net.": removed old ZSK 9198
+
+2008-07-22 00:10:38.349: debug: 		->remove it
+2008-07-22 00:10:38.349: debug: 	Lifetime(259200 +/-150 sec) of active key 8397 exceeded (343906 sec)
+2008-07-22 00:10:38.349: debug: 		->depreciate it
+2008-07-22 00:10:38.349: debug: 		->activate published key 31081
+2008-07-22 00:10:38.349: notice: "sub.example.net.": lifetime of zone signing key 8397 exceeded: ZSK rollover done
+2008-07-22 00:10:38.349: debug: 	New published key needed
+2008-07-22 00:10:38.870: debug: 		->creating new published key 3615
+2008-07-22 00:10:38.870: info: "sub.example.net.": new key 3615 generated for publishing
+2008-07-22 00:10:38.870: debug: 	Re-signing necessary: New zone key
+2008-07-22 00:10:38.870: notice: "sub.example.net.": re-signing triggered: New zone key
+2008-07-22 00:10:38.870: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-22 00:10:38.871: debug: 	Signing zone "sub.example.net."
+2008-07-22 00:10:38.871: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-22 00:10:39.208: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-22 00:10:39.208: debug: 	Signing completed after 1s.
+2008-07-22 00:10:39.208: debug: 
+2008-07-22 00:10:39.208: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-22 00:10:39.208: debug: 	Check RFC5011 status
+2008-07-22 00:10:39.208: debug: 		->ksk5011status returns 2
+2008-07-22 00:10:39.208: debug: 	Check ZSK status
+2008-07-22 00:10:39.208: debug: 	New published key needed
+2008-07-22 00:10:39.255: debug: 		->creating new published key 41300
+2008-07-22 00:10:39.255: info: "example.net.": new key 41300 generated for publishing
+2008-07-22 00:10:39.255: debug: 	Re-signing necessary: New zone key
+2008-07-22 00:10:39.255: notice: "example.net.": re-signing triggered: New zone key
+2008-07-22 00:10:39.255: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-22 00:10:39.256: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-22 00:10:39.256: debug: 	Signing zone "example.net."
+2008-07-22 00:10:39.256: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-22 00:10:39.414: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-22 00:10:39.414: debug: 	Signing completed after 0s.
+2008-07-22 00:10:39.414: debug: 
+2008-07-22 00:10:39.414: notice: end of run: 0 errors occured
+2008-07-22 00:16:04.680: notice: ------------------------------------------------------------
+2008-07-22 00:16:04.680: notice: running ../../dnssec-signer -v -v 
+2008-07-22 00:16:04.682: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-22 00:16:04.682: debug: 	Check RFC5011 status
+2008-07-22 00:16:04.682: debug: 		->ksk5011status returns 0
+2008-07-22 00:16:04.683: debug: 	Check KSK status
+2008-07-22 00:16:04.683: debug: 	Check ZSK status
+2008-07-22 00:16:04.683: debug: 	Re-signing not necessary!
+2008-07-22 00:16:04.683: debug: 	Check if there is a parent file to copy
+2008-07-22 00:16:04.683: debug: 
+2008-07-22 00:16:04.683: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-22 00:16:04.683: debug: 	Check RFC5011 status
+2008-07-22 00:16:04.683: debug: 		->ksk5011status returns 2
+2008-07-22 00:16:04.684: debug: 	Check ZSK status
+2008-07-22 00:16:04.684: debug: 	Re-signing not necessary!
+2008-07-22 00:16:04.684: debug: 	Check if there is a parent file to copy
+2008-07-22 00:16:04.684: debug: 
+2008-07-22 00:16:04.684: notice: end of run: 0 errors occured
+2008-07-22 00:16:09.309: notice: ------------------------------------------------------------
+2008-07-22 00:16:09.309: notice: running ../../dnssec-signer -r -v -v 
+2008-07-22 00:16:09.311: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-22 00:16:09.311: debug: 	Check RFC5011 status
+2008-07-22 00:16:09.311: debug: 		->ksk5011status returns 0
+2008-07-22 00:16:09.312: debug: 	Check KSK status
+2008-07-22 00:16:09.312: debug: 	Check ZSK status
+2008-07-22 00:16:09.312: debug: 	Re-signing not necessary!
+2008-07-22 00:16:09.312: debug: 	Check if there is a parent file to copy
+2008-07-22 00:16:09.312: debug: 
+2008-07-22 00:16:09.312: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-22 00:16:09.312: debug: 	Check RFC5011 status
+2008-07-22 00:16:09.312: debug: 		->ksk5011status returns 2
+2008-07-22 00:16:09.313: debug: 	Check ZSK status
+2008-07-22 00:16:09.313: debug: 	Re-signing not necessary!
+2008-07-22 00:16:09.313: debug: 	Check if there is a parent file to copy
+2008-07-22 00:16:09.313: debug: 
+2008-07-22 00:16:09.313: notice: end of run: 0 errors occured
+2008-07-22 00:16:13.285: notice: ------------------------------------------------------------
+2008-07-22 00:16:13.285: notice: running ../../dnssec-signer -r -f -v -v 
+2008-07-22 00:16:13.287: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-22 00:16:13.287: debug: 	Check RFC5011 status
+2008-07-22 00:16:13.287: debug: 		->ksk5011status returns 0
+2008-07-22 00:16:13.287: debug: 	Check KSK status
+2008-07-22 00:16:13.287: debug: 	Check ZSK status
+2008-07-22 00:16:13.287: debug: 	Re-signing necessary: Option -f
+2008-07-22 00:16:13.287: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-22 00:16:13.287: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-22 00:16:13.287: debug: 	Signing zone "sub.example.net."
+2008-07-22 00:16:13.287: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-22 00:16:13.822: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-22 00:16:13.822: debug: 	Signing completed after 0s.
+2008-07-22 00:16:13.822: notice: "sub.example.net.": distribution triggered
+2008-07-22 00:16:13.822: debug: 	Distribute zone "sub.example.net."
+2008-07-22 00:16:13.822: debug: 	  Run cmd "./dist.sh reload sub.example.net. ./sub.example.net./zone.db.signed"
+2008-07-22 00:16:13.828: debug: 	  ./dist.sh reload return: "scp ./sub.example.net./zone.db.signed localhost:/var/named/sub.example.net./"
+2008-07-22 00:16:13.828: debug: 
+2008-07-22 00:16:13.829: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-22 00:16:13.829: debug: 	Check RFC5011 status
+2008-07-22 00:16:13.829: debug: 		->ksk5011status returns 2
+2008-07-22 00:16:13.829: debug: 	Check ZSK status
+2008-07-22 00:16:13.829: debug: 	Re-signing necessary: Option -f
+2008-07-22 00:16:13.829: notice: "example.net.": re-signing triggered: Option -f
+2008-07-22 00:16:13.829: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-22 00:16:13.830: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-22 00:16:13.830: debug: 	Signing zone "example.net."
+2008-07-22 00:16:13.830: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-22 00:16:13.976: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-22 00:16:13.976: debug: 	Signing completed after 0s.
+2008-07-22 00:16:13.977: notice: "example.net.": distribution triggered
+2008-07-22 00:16:13.977: debug: 	Distribute zone "example.net."
+2008-07-22 00:16:13.977: debug: 	  Run cmd "./dist.sh reload example.net. ./example.net./zone.db.signed"
+2008-07-22 00:16:13.983: debug: 	  ./dist.sh reload return: "scp ./example.net./zone.db.signed localhost:/var/named/example.net./"
+2008-07-22 00:16:13.983: debug: 
+2008-07-22 00:16:13.983: notice: end of run: 0 errors occured
+2008-07-22 00:20:56.119: notice: ------------------------------------------------------------
+2008-07-22 00:20:56.119: notice: running ../../dnssec-signer -r -f -v -v 
+2008-07-22 00:20:56.121: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-22 00:20:56.121: debug: 	Check RFC5011 status
+2008-07-22 00:20:56.121: debug: 		->ksk5011status returns 0
+2008-07-22 00:20:56.121: debug: 	Check KSK status
+2008-07-22 00:20:56.121: debug: 	Check ZSK status
+2008-07-22 00:20:56.121: debug: 	Lifetime(390 sec) of depreciated key 8397 exceeded (618 sec)
+2008-07-22 00:20:56.121: info: "sub.example.net.": removed old ZSK 8397
+
+2008-07-22 00:20:56.122: debug: 		->remove it
+2008-07-22 00:20:56.122: debug: 	Re-signing necessary: Option -f
+2008-07-22 00:20:56.122: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-22 00:20:56.122: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-22 00:20:56.122: debug: 	Signing zone "sub.example.net."
+2008-07-22 00:20:56.122: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-22 00:20:56.627: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-22 00:20:56.627: debug: 	Signing completed after 0s.
+2008-07-22 00:20:56.627: notice: "sub.example.net.": distribution triggered
+2008-07-22 00:20:56.627: debug: 	Distribute zone "sub.example.net."
+2008-07-22 00:20:56.627: debug: 	  Run cmd "./dist.sh reload sub.example.net. ./sub.example.net./zone.db.signed"
+2008-07-22 00:20:56.634: debug: 	  ./dist.sh reload return: "scp ./sub.example.net./zone.db.signed localhost:/var/named/sub.example.net./"
+2008-07-22 00:20:56.635: debug: 
+2008-07-22 00:20:56.635: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-22 00:20:56.635: debug: 	Check RFC5011 status
+2008-07-22 00:20:56.635: debug: 		->ksk5011status returns 2
+2008-07-22 00:20:56.635: debug: 	Check ZSK status
+2008-07-22 00:20:56.635: debug: 	Re-signing necessary: Option -f
+2008-07-22 00:20:56.635: notice: "example.net.": re-signing triggered: Option -f
+2008-07-22 00:20:56.635: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-22 00:20:56.636: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-22 00:20:56.636: debug: 	Signing zone "example.net."
+2008-07-22 00:20:56.637: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-22 00:20:56.760: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-22 00:20:56.760: debug: 	Signing completed after 0s.
+2008-07-22 00:20:56.760: notice: "example.net.": distribution triggered
+2008-07-22 00:20:56.760: debug: 	Distribute zone "example.net."
+2008-07-22 00:20:56.760: debug: 	  Run cmd "./dist.sh reload example.net. ./example.net./zone.db.signed"
+2008-07-22 00:20:56.768: debug: 	  ./dist.sh reload return: "scp ./example.net./zone.db.signed localhost:/var/named/example.net./"
+2008-07-22 00:20:56.769: debug: 
+2008-07-22 00:20:56.769: notice: end of run: 0 errors occured
+2008-07-22 00:23:51.528: notice: ------------------------------------------------------------
+2008-07-22 00:23:51.528: notice: running ../../dnssec-signer -r -f -v -v 
+2008-07-22 00:23:51.530: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-22 00:23:51.530: debug: 	Check RFC5011 status
+2008-07-22 00:23:51.530: debug: 		->ksk5011status returns 0
+2008-07-22 00:23:51.531: debug: 	Check KSK status
+2008-07-22 00:23:51.531: debug: 	Check ZSK status
+2008-07-22 00:23:51.531: debug: 	Re-signing necessary: Option -f
+2008-07-22 00:23:51.531: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-22 00:23:51.531: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-22 00:23:51.531: debug: 	Signing zone "sub.example.net."
+2008-07-22 00:23:51.532: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-22 00:23:52.042: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-22 00:23:52.042: debug: 	Signing completed after 1s.
+2008-07-22 00:23:52.042: notice: "sub.example.net.": distribution triggered
+2008-07-22 00:23:52.042: debug: 	Distribute zone "sub.example.net."
+2008-07-22 00:23:52.043: debug: 	  Run cmd "./dist.sh reload sub.example.net. ./sub.example.net./zone.db.signed"
+2008-07-22 00:23:52.049: debug: 	  ./dist.sh reload return: "scp ./sub.example.net./zone.db.signed localhost:/var/named/sub.example.net./"
+2008-07-22 00:23:52.049: debug: 
+2008-07-22 00:23:52.049: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-22 00:23:52.049: debug: 	Check RFC5011 status
+2008-07-22 00:23:52.049: debug: 		->ksk5011status returns 2
+2008-07-22 00:23:52.049: debug: 	Check ZSK status
+2008-07-22 00:23:52.049: debug: 	Re-signing necessary: Option -f
+2008-07-22 00:23:52.049: notice: "example.net.": re-signing triggered: Option -f
+2008-07-22 00:23:52.049: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-22 00:23:52.050: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-22 00:23:52.050: debug: 	Signing zone "example.net."
+2008-07-22 00:23:52.050: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-22 00:23:52.176: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-22 00:23:52.176: debug: 	Signing completed after 0s.
+2008-07-22 00:23:52.176: notice: "example.net.": distribution triggered
+2008-07-22 00:23:52.176: debug: 	Distribute zone "example.net."
+2008-07-22 00:23:52.176: debug: 	  Run cmd "./dist.sh reload example.net. ./example.net./zone.db.signed"
+2008-07-22 00:23:52.185: debug: 	  ./dist.sh reload return: "scp ./example.net./zone.db.signed localhost:/var/named/example.net./"
+2008-07-22 00:23:52.185: debug: 
+2008-07-22 00:23:52.185: notice: end of run: 0 errors occured
+2008-07-22 00:24:09.609: notice: ------------------------------------------------------------
+2008-07-22 00:24:09.609: notice: running ../../dnssec-signer -r -f -v -v 
+2008-07-22 00:24:09.614: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-22 00:24:09.614: debug: 	Check RFC5011 status
+2008-07-22 00:24:09.614: debug: 		->ksk5011status returns 0
+2008-07-22 00:24:09.614: debug: 	Check KSK status
+2008-07-22 00:24:09.614: debug: 	Check ZSK status
+2008-07-22 00:24:09.614: debug: 	Re-signing necessary: Option -f
+2008-07-22 00:24:09.614: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-22 00:24:09.614: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-22 00:24:09.614: debug: 	Signing zone "sub.example.net."
+2008-07-22 00:24:09.614: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-22 00:24:10.692: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-22 00:24:10.692: debug: 	Signing completed after 1s.
+2008-07-22 00:24:10.692: notice: "sub.example.net.": distribution triggered
+2008-07-22 00:24:10.692: debug: 	Distribute zone "sub.example.net."
+2008-07-22 00:24:10.692: debug: 	  Run cmd "./dist.sh reload sub.example.net. ./sub.example.net./zone.db.signed"
+2008-07-22 00:24:10.698: debug: 	  ./dist.sh reload return: "scp ./sub.example.net./zone.db.signed localhost:/var/named/sub.example.net./"
+2008-07-22 00:24:10.698: debug: 
+2008-07-22 00:24:10.698: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-22 00:24:10.698: debug: 	Check RFC5011 status
+2008-07-22 00:24:10.698: debug: 		->ksk5011status returns 2
+2008-07-22 00:24:10.698: debug: 	Check ZSK status
+2008-07-22 00:24:10.698: debug: 	Re-signing necessary: Option -f
+2008-07-22 00:24:10.698: notice: "example.net.": re-signing triggered: Option -f
+2008-07-22 00:24:10.698: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-22 00:24:10.699: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-22 00:24:10.699: debug: 	Signing zone "example.net."
+2008-07-22 00:24:10.699: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-22 00:24:10.883: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-22 00:24:10.883: debug: 	Signing completed after 0s.
+2008-07-22 00:24:10.883: notice: "example.net.": distribution triggered
+2008-07-22 00:24:10.883: debug: 	Distribute zone "example.net."
+2008-07-22 00:24:10.883: debug: 	  Run cmd "./dist.sh reload example.net. ./example.net./zone.db.signed"
+2008-07-22 00:24:10.889: debug: 	  ./dist.sh reload return: "scp ./example.net./zone.db.signed localhost:/var/named/example.net./"
+2008-07-22 00:24:10.889: debug: 
+2008-07-22 00:24:10.889: notice: end of run: 0 errors occured
+2008-07-22 00:28:44.300: notice: ------------------------------------------------------------
+2008-07-22 00:28:44.300: notice: running ../../dnssec-signer -r -f -v -v 
+2008-07-22 00:28:44.302: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-22 00:28:44.302: debug: 	Check RFC5011 status
+2008-07-22 00:28:44.302: debug: 		->ksk5011status returns 0
+2008-07-22 00:28:44.302: debug: 	Check KSK status
+2008-07-22 00:28:44.302: debug: 	Check ZSK status
+2008-07-22 00:28:44.302: debug: 	Re-signing necessary: Option -f
+2008-07-22 00:28:44.302: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-22 00:28:44.302: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-22 00:28:44.306: debug: 	Signing zone "sub.example.net."
+2008-07-22 00:28:44.306: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-22 00:28:44.898: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-22 00:28:44.898: debug: 	Signing completed after 0s.
+2008-07-22 00:28:44.898: notice: "sub.example.net.": distribution triggered
+2008-07-22 00:28:44.899: debug: 	Distribute zone "sub.example.net."
+2008-07-22 00:28:44.899: debug: 	  Run cmd "./dist.sh reload sub.example.net. ./sub.example.net./zone.db.signed"
+2008-07-22 00:28:44.904: debug: 	  ./dist.sh reload return: "scp ./sub.example.net./zone.db.signed localhost:/var/named/sub.example.net./"
+2008-07-22 00:28:44.905: debug: 
+2008-07-22 00:28:44.905: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-22 00:28:44.905: debug: 	Check RFC5011 status
+2008-07-22 00:28:44.905: debug: 		->ksk5011status returns 2
+2008-07-22 00:28:44.905: debug: 	Check ZSK status
+2008-07-22 00:28:44.905: debug: 	Re-signing necessary: Option -f
+2008-07-22 00:28:44.905: notice: "example.net.": re-signing triggered: Option -f
+2008-07-22 00:28:44.905: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-22 00:28:44.906: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-22 00:28:44.906: debug: 	Signing zone "example.net."
+2008-07-22 00:28:44.907: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-22 00:28:45.039: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-22 00:28:45.039: debug: 	Signing completed after 1s.
+2008-07-22 00:28:45.039: notice: "example.net.": distribution triggered
+2008-07-22 00:28:45.039: debug: 	Distribute zone "example.net."
+2008-07-22 00:28:45.040: debug: 	  Run cmd "./dist.sh reload example.net. ./example.net./zone.db.signed"
+2008-07-22 00:28:45.046: debug: 	  ./dist.sh reload return: "scp ./example.net./zone.db.signed localhost:/var/named/example.net./"
+2008-07-22 00:28:45.046: debug: 
+2008-07-22 00:28:45.046: notice: end of run: 0 errors occured
+2008-07-22 00:39:15.968: notice: ------------------------------------------------------------
+2008-07-22 00:39:15.968: notice: running ../../dnssec-signer -r -v -v 
+2008-07-22 00:39:16.005: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-22 00:39:16.006: debug: 	Check RFC5011 status
+2008-07-22 00:39:16.006: debug: 		->ksk5011status returns 0
+2008-07-22 00:39:16.006: debug: 	Check KSK status
+2008-07-22 00:39:16.006: debug: 	Check ZSK status
+2008-07-22 00:39:16.006: debug: 	Re-signing not necessary!
+2008-07-22 00:39:16.006: debug: 	Check if there is a parent file to copy
+2008-07-22 00:39:16.006: debug: 
+2008-07-22 00:39:16.006: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-22 00:39:16.006: debug: 	Check RFC5011 status
+2008-07-22 00:39:16.006: debug: 		->ksk5011status returns 2
+2008-07-22 00:39:16.007: debug: 	Check ZSK status
+2008-07-22 00:39:16.007: debug: 	Re-signing not necessary!
+2008-07-22 00:39:16.007: debug: 	Check if there is a parent file to copy
+2008-07-22 00:39:16.007: debug: 
+2008-07-22 00:39:16.007: notice: end of run: 0 errors occured
+2008-07-22 00:39:31.578: notice: ------------------------------------------------------------
+2008-07-22 00:39:31.578: notice: running ../../dnssec-signer -r -f -v -v 
+2008-07-22 00:39:31.580: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-22 00:39:31.580: debug: 	Check RFC5011 status
+2008-07-22 00:39:31.580: debug: 		->ksk5011status returns 0
+2008-07-22 00:39:31.580: debug: 	Check KSK status
+2008-07-22 00:39:31.581: debug: 	Check ZSK status
+2008-07-22 00:39:31.581: debug: 	Re-signing necessary: Option -f
+2008-07-22 00:39:31.581: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-22 00:39:31.581: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-22 00:39:31.581: debug: 	Signing zone "sub.example.net."
+2008-07-22 00:39:31.582: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-22 00:39:32.216: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-22 00:39:32.216: debug: 	Signing completed after 1s.
+2008-07-22 00:39:32.216: notice: "sub.example.net.": distribution triggered
+2008-07-22 00:39:32.216: debug: 	Distribute zone "sub.example.net."
+2008-07-22 00:39:32.217: debug: 	  Run cmd "./dist.sh reload sub.example.net. ./sub.example.net./zone.db.signed"
+2008-07-22 00:39:32.223: debug: 	  ./dist.sh reload return: "scp ./sub.example.net./zone.db.signed localhost:/var/named/sub.example.net./"
+2008-07-22 00:39:32.223: debug: 
+2008-07-22 00:39:32.223: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-22 00:39:32.223: debug: 	Check RFC5011 status
+2008-07-22 00:39:32.223: debug: 		->ksk5011status returns 2
+2008-07-22 00:39:32.223: debug: 	Check ZSK status
+2008-07-22 00:39:32.223: debug: 	Re-signing necessary: Option -f
+2008-07-22 00:39:32.223: notice: "example.net.": re-signing triggered: Option -f
+2008-07-22 00:39:32.223: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-22 00:39:32.224: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-22 00:39:32.224: debug: 	Signing zone "example.net."
+2008-07-22 00:39:32.225: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-22 00:39:32.360: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-22 00:39:32.361: debug: 	Signing completed after 0s.
+2008-07-22 00:39:32.361: notice: "example.net.": distribution triggered
+2008-07-22 00:39:32.361: debug: 	Distribute zone "example.net."
+2008-07-22 00:39:32.361: debug: 	  Run cmd "./dist.sh reload example.net. ./example.net./zone.db.signed"
+2008-07-22 00:39:32.367: debug: 	  ./dist.sh reload return: "scp ./example.net./zone.db.signed localhost:/var/named/example.net./"
+2008-07-22 00:39:32.367: debug: 
+2008-07-22 00:39:32.367: notice: end of run: 0 errors occured
+2008-07-22 00:41:53.710: notice: ------------------------------------------------------------
+2008-07-22 00:41:53.710: notice: running ../../dnssec-signer -r -f -v -v 
+2008-07-22 00:41:53.712: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-22 00:41:53.712: debug: 	Check RFC5011 status
+2008-07-22 00:41:53.712: debug: 		->ksk5011status returns 0
+2008-07-22 00:41:53.712: debug: 	Check KSK status
+2008-07-22 00:41:53.712: debug: 	Check ZSK status
+2008-07-22 00:41:53.712: debug: 	Re-signing necessary: Option -f
+2008-07-22 00:41:53.712: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-22 00:41:53.712: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-22 00:41:53.712: debug: 	Signing zone "sub.example.net."
+2008-07-22 00:41:53.713: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-22 00:41:53.866: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-22 00:41:53.866: debug: 	Signing completed after 0s.
+2008-07-22 00:41:53.866: notice: "sub.example.net.": distribution triggered
+2008-07-22 00:41:53.866: debug: 	Distribute zone "sub.example.net."
+2008-07-22 00:41:53.867: debug: 	  Run cmd "./dist.sh reload sub.example.net. ./sub.example.net./zone.db.signed"
+2008-07-22 00:41:53.873: debug: 	  ./dist.sh reload return: "scp ./sub.example.net./zone.db.signed localhost:/var/named/sub.example.net./"
+2008-07-22 00:41:53.873: debug: 
+2008-07-22 00:41:53.873: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-22 00:41:53.873: debug: 	Check RFC5011 status
+2008-07-22 00:41:53.873: debug: 		->ksk5011status returns 2
+2008-07-22 00:41:53.873: debug: 	Check ZSK status
+2008-07-22 00:41:53.873: debug: 	Re-signing necessary: Option -f
+2008-07-22 00:41:53.873: notice: "example.net.": re-signing triggered: Option -f
+2008-07-22 00:41:53.873: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-22 00:41:53.873: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-22 00:41:53.873: debug: 	Signing zone "example.net."
+2008-07-22 00:41:53.873: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-22 00:41:53.989: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-22 00:41:53.989: debug: 	Signing completed after 0s.
+2008-07-22 00:41:53.989: notice: "example.net.": distribution triggered
+2008-07-22 00:41:53.989: debug: 	Distribute zone "example.net."
+2008-07-22 00:41:53.989: debug: 	  Run cmd "./dist.sh reload example.net. ./example.net./zone.db.signed"
+2008-07-22 00:41:53.995: debug: 	  ./dist.sh reload return: "scp ./example.net./zone.db.signed localhost:/var/named/example.net./"
+2008-07-22 00:41:53.995: debug: 
+2008-07-22 00:41:53.995: notice: end of run: 0 errors occured
+2008-07-22 00:45:46.509: notice: ------------------------------------------------------------
+2008-07-22 00:45:46.509: notice: running ../../dnssec-signer -r -f -v -v 
+2008-07-22 00:45:46.511: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-22 00:45:46.512: debug: 	Check RFC5011 status
+2008-07-22 00:45:46.512: debug: 		->ksk5011status returns 0
+2008-07-22 00:45:46.512: debug: 	Check KSK status
+2008-07-22 00:45:46.512: debug: 	Check ZSK status
+2008-07-22 00:45:46.512: debug: 	Re-signing necessary: Option -f
+2008-07-22 00:45:46.512: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-22 00:45:46.512: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-22 00:45:46.513: debug: 	Signing zone "sub.example.net."
+2008-07-22 00:45:46.513: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-22 00:45:46.734: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-22 00:45:46.734: debug: 	Signing completed after 0s.
+2008-07-22 00:45:46.734: notice: "sub.example.net.": distribution triggered
+2008-07-22 00:45:46.734: debug: 	Distribute zone "sub.example.net."
+2008-07-22 00:45:46.734: debug: 	  Run cmd "./dist.sh reload sub.example.net. ./sub.example.net./zone.db.signed"
+2008-07-22 00:45:46.740: debug: 	  ./dist.sh reload return: "scp ./sub.example.net./zone.db.signed localhost:/var/named/sub.example.net./"
+2008-07-22 00:45:46.740: debug: 
+2008-07-22 00:45:46.740: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-22 00:45:46.740: debug: 	Check RFC5011 status
+2008-07-22 00:45:46.741: debug: 		->ksk5011status returns 2
+2008-07-22 00:45:46.741: debug: 	Check ZSK status
+2008-07-22 00:45:46.741: debug: 	Re-signing necessary: Option -f
+2008-07-22 00:45:46.741: notice: "example.net.": re-signing triggered: Option -f
+2008-07-22 00:45:46.741: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-22 00:45:46.742: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-22 00:45:46.742: debug: 	Signing zone "example.net."
+2008-07-22 00:45:46.742: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-22 00:45:47.013: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-22 00:45:47.013: debug: 	Signing completed after 1s.
+2008-07-22 00:45:47.013: notice: "example.net.": distribution triggered
+2008-07-22 00:45:47.013: debug: 	Distribute zone "example.net."
+2008-07-22 00:45:47.013: debug: 	  Run cmd "./dist.sh reload example.net. ./example.net./zone.db.signed"
+2008-07-22 00:45:47.019: debug: 	  ./dist.sh reload return: "scp ./example.net./zone.db.signed localhost:/var/named/example.net./"
+2008-07-22 00:45:47.019: debug: 
+2008-07-22 00:45:47.019: notice: end of run: 0 errors occured
+2008-07-22 00:48:02.761: notice: ------------------------------------------------------------
+2008-07-22 00:48:02.761: notice: running ../../dnssec-signer -r -f -v -v 
+2008-07-22 00:48:02.763: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-22 00:48:02.763: debug: 	Check RFC5011 status
+2008-07-22 00:48:02.763: debug: 		->ksk5011status returns 0
+2008-07-22 00:48:02.763: debug: 	Check KSK status
+2008-07-22 00:48:02.763: debug: 	Check ZSK status
+2008-07-22 00:48:02.763: debug: 	Re-signing necessary: Option -f
+2008-07-22 00:48:02.763: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-22 00:48:02.763: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-22 00:48:02.763: debug: 	Signing zone "sub.example.net."
+2008-07-22 00:48:02.763: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-22 00:48:02.907: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-22 00:48:02.907: debug: 	Signing completed after 0s.
+2008-07-22 00:48:02.907: notice: "sub.example.net.": distribution triggered
+2008-07-22 00:48:02.907: debug: 	Distribute zone "sub.example.net."
+2008-07-22 00:48:02.907: debug: 
+2008-07-22 00:48:02.907: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-22 00:48:02.907: debug: 	Check RFC5011 status
+2008-07-22 00:48:02.907: debug: 		->ksk5011status returns 2
+2008-07-22 00:48:02.907: debug: 	Check ZSK status
+2008-07-22 00:48:02.907: debug: 	Re-signing necessary: Option -f
+2008-07-22 00:48:02.907: notice: "example.net.": re-signing triggered: Option -f
+2008-07-22 00:48:02.907: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-22 00:48:02.908: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-22 00:48:02.908: debug: 	Signing zone "example.net."
+2008-07-22 00:48:02.908: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-22 00:48:03.029: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-22 00:48:03.029: debug: 	Signing completed after 1s.
+2008-07-22 00:48:03.029: notice: "example.net.": distribution triggered
+2008-07-22 00:48:03.029: debug: 	Distribute zone "example.net."
+2008-07-22 00:48:03.029: debug: 
+2008-07-22 00:48:03.029: notice: end of run: 0 errors occured
+2008-07-22 00:48:56.098: notice: ------------------------------------------------------------
+2008-07-22 00:48:56.098: notice: running ../../dnssec-signer -r -f -v -v 
+2008-07-22 00:48:56.100: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-22 00:48:56.101: debug: 	Check RFC5011 status
+2008-07-22 00:48:56.101: debug: 		->ksk5011status returns 0
+2008-07-22 00:48:56.101: debug: 	Check KSK status
+2008-07-22 00:48:56.101: debug: 	Check ZSK status
+2008-07-22 00:48:56.101: debug: 	Re-signing necessary: Option -f
+2008-07-22 00:48:56.101: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-22 00:48:56.101: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-22 00:48:56.102: debug: 	Signing zone "sub.example.net."
+2008-07-22 00:48:56.102: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-22 00:48:56.244: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-22 00:48:56.244: debug: 	Signing completed after 0s.
+2008-07-22 00:48:56.244: notice: "sub.example.net.": distribution triggered
+2008-07-22 00:48:56.244: debug: 	Distribute zone "sub.example.net."
+2008-07-22 00:48:56.245: debug: 
+2008-07-22 00:48:56.245: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-22 00:48:56.245: debug: 	Check RFC5011 status
+2008-07-22 00:48:56.245: debug: 		->ksk5011status returns 2
+2008-07-22 00:48:56.245: debug: 	Check ZSK status
+2008-07-22 00:48:56.245: debug: 	Re-signing necessary: Option -f
+2008-07-22 00:48:56.245: notice: "example.net.": re-signing triggered: Option -f
+2008-07-22 00:48:56.246: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-22 00:48:56.246: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-22 00:48:56.246: debug: 	Signing zone "example.net."
+2008-07-22 00:48:56.247: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-22 00:48:56.367: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-22 00:48:56.367: debug: 	Signing completed after 0s.
+2008-07-22 00:48:56.367: notice: "example.net.": distribution triggered
+2008-07-22 00:48:56.367: debug: 	Distribute zone "example.net."
+2008-07-22 00:48:56.367: debug: 
+2008-07-22 00:48:56.367: notice: end of run: 0 errors occured
+2008-07-22 08:07:30.993: notice: ------------------------------------------------------------
+2008-07-22 08:07:30.993: notice: running ../../dnssec-signer -r -f -v -v 
+2008-07-22 08:07:30.995: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-22 08:07:30.995: debug: 	Check RFC5011 status
+2008-07-22 08:07:30.995: debug: 		->ksk5011status returns 0
+2008-07-22 08:07:30.995: debug: 	Check KSK status
+2008-07-22 08:07:30.995: debug: 	Check ZSK status
+2008-07-22 08:07:30.995: debug: 	Re-signing necessary: Option -f
+2008-07-22 08:07:30.996: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-22 08:07:30.996: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-22 08:07:30.996: debug: 	Signing zone "sub.example.net."
+2008-07-22 08:07:30.996: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-22 08:07:31.454: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-22 08:07:31.454: debug: 	Signing completed after 1s.
+2008-07-22 08:07:31.454: notice: "sub.example.net.": distribution triggered
+2008-07-22 08:07:31.454: debug: 	Distribute zone "sub.example.net."
+2008-07-22 08:07:31.454: debug: 
+2008-07-22 08:07:31.454: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-22 08:07:31.454: debug: 	Check RFC5011 status
+2008-07-22 08:07:31.454: debug: 		->ksk5011status returns 2
+2008-07-22 08:07:31.454: debug: 	Check ZSK status
+2008-07-22 08:07:31.454: debug: 	Re-signing necessary: Option -f
+2008-07-22 08:07:31.454: notice: "example.net.": re-signing triggered: Option -f
+2008-07-22 08:07:31.454: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-22 08:07:31.454: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-22 08:07:31.454: debug: 	Signing zone "example.net."
+2008-07-22 08:07:31.455: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-22 08:07:31.588: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-22 08:07:31.589: debug: 	Signing completed after 0s.
+2008-07-22 08:07:31.589: notice: "example.net.": distribution triggered
+2008-07-22 08:07:31.589: debug: 	Distribute zone "example.net."
+2008-07-22 08:07:31.589: debug: 
+2008-07-22 08:07:31.589: notice: end of run: 0 errors occured
+2008-07-22 08:08:09.237: notice: ------------------------------------------------------------
+2008-07-22 08:08:09.237: notice: running ../../dnssec-signer -r -f -v -v 
+2008-07-22 08:08:09.239: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-22 08:08:09.239: debug: 	Check RFC5011 status
+2008-07-22 08:08:09.239: debug: 		->ksk5011status returns 0
+2008-07-22 08:08:09.239: debug: 	Check KSK status
+2008-07-22 08:08:09.239: debug: 	Check ZSK status
+2008-07-22 08:08:09.239: debug: 	Re-signing necessary: Option -f
+2008-07-22 08:08:09.239: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-22 08:08:09.239: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-22 08:08:09.240: debug: 	Signing zone "sub.example.net."
+2008-07-22 08:08:09.240: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-22 08:08:09.506: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-22 08:08:09.507: debug: 	Signing completed after 0s.
+2008-07-22 08:08:09.507: notice: "sub.example.net.": distribution triggered
+2008-07-22 08:08:09.507: debug: 	Distribute zone "sub.example.net."
+2008-07-22 08:10:10.328: notice: ------------------------------------------------------------
+2008-07-22 08:10:10.328: notice: running ../../dnssec-signer -r -f -v -v 
+2008-07-22 08:10:10.330: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-22 08:10:10.330: debug: 	Check RFC5011 status
+2008-07-22 08:10:10.330: debug: 		->ksk5011status returns 0
+2008-07-22 08:10:10.330: debug: 	Check KSK status
+2008-07-22 08:10:10.330: debug: 	Check ZSK status
+2008-07-22 08:10:10.330: debug: 	Re-signing necessary: Option -f
+2008-07-22 08:10:10.330: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-22 08:10:10.330: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-22 08:10:10.331: debug: 	Signing zone "sub.example.net."
+2008-07-22 08:10:10.331: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-22 08:10:10.950: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-22 08:10:10.950: debug: 	Signing completed after 0s.
+2008-07-22 08:10:10.950: notice: "sub.example.net.": distribution triggered
+2008-07-22 08:10:10.950: debug: 	Distribute zone "sub.example.net."
+2008-07-22 08:11:17.247: notice: ------------------------------------------------------------
+2008-07-22 08:11:17.247: notice: running ../../dnssec-signer -r -f -v -v 
+2008-07-22 08:11:17.249: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-22 08:11:17.250: debug: 	Check RFC5011 status
+2008-07-22 08:11:17.250: debug: 		->ksk5011status returns 0
+2008-07-22 08:11:17.250: debug: 	Check KSK status
+2008-07-22 08:11:17.250: debug: 	Check ZSK status
+2008-07-22 08:11:17.250: debug: 	Re-signing necessary: Option -f
+2008-07-22 08:11:17.250: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-22 08:11:17.250: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-22 08:11:17.251: debug: 	Signing zone "sub.example.net."
+2008-07-22 08:11:17.251: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-22 08:11:17.883: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-22 08:11:17.883: debug: 	Signing completed after 0s.
+2008-07-22 08:11:17.883: notice: "sub.example.net.": distribution triggered
+2008-07-22 08:11:17.883: debug: 	Distribute zone "sub.example.net."
+2008-07-22 08:11:17.883: debug: 
+2008-07-22 08:11:17.883: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-22 08:11:17.884: debug: 	Check RFC5011 status
+2008-07-22 08:11:17.884: debug: 		->ksk5011status returns 2
+2008-07-22 08:11:17.884: debug: 	Check ZSK status
+2008-07-22 08:11:17.884: debug: 	Re-signing necessary: Option -f
+2008-07-22 08:11:17.884: notice: "example.net.": re-signing triggered: Option -f
+2008-07-22 08:11:17.884: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-22 08:11:17.884: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-22 08:11:17.884: debug: 	Signing zone "example.net."
+2008-07-22 08:11:17.884: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-22 08:11:18.005: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-22 08:11:18.005: debug: 	Signing completed after 1s.
+2008-07-22 08:11:18.006: notice: "example.net.": distribution triggered
+2008-07-22 08:11:18.006: debug: 	Distribute zone "example.net."
+2008-07-22 08:11:18.006: debug: 
+2008-07-22 08:11:18.006: notice: end of run: 0 errors occured
+2008-07-24 00:13:56.493: notice: ------------------------------------------------------------
+2008-07-24 00:13:56.493: notice: running ../../dnssec-signer -v -v 
+2008-07-24 00:13:56.495: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-24 00:13:56.495: debug: 	Check RFC5011 status
+2008-07-24 00:13:56.495: debug: 		->ksk5011status returns 0
+2008-07-24 00:13:56.495: debug: 	Check KSK status
+2008-07-24 00:13:56.495: debug: 	Check ZSK status
+2008-07-24 00:13:56.495: debug: 	Re-signing necessary: re-signing interval (1d) reached
+2008-07-24 00:13:56.495: notice: "sub.example.net.": re-signing triggered: re-signing interval (1d) reached
+2008-07-24 00:13:56.495: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-24 00:13:56.495: debug: 	Signing zone "sub.example.net."
+2008-07-24 00:13:56.495: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-24 00:13:57.439: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-24 00:13:57.439: debug: 	Signing completed after 1s.
+2008-07-24 00:13:57.439: debug: 
+2008-07-24 00:13:57.439: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-24 00:13:57.439: debug: 	Check RFC5011 status
+2008-07-24 00:13:57.439: debug: 		->ksk5011status returns 2
+2008-07-24 00:13:57.439: debug: 	Check ZSK status
+2008-07-24 00:13:57.440: debug: 	Lifetime(1209600 +/-150 sec) of active key 16682 exceeded (1309537 sec)
+2008-07-24 00:13:57.440: debug: 		->depreciate it
+2008-07-24 00:13:57.440: debug: 		->activate published key 41300
+2008-07-24 00:13:57.440: notice: "example.net.": lifetime of zone signing key 16682 exceeded: ZSK rollover done
+2008-07-24 00:13:57.440: debug: 	Re-signing necessary: New zone key
+2008-07-24 00:13:57.440: notice: "example.net.": re-signing triggered: New zone key
+2008-07-24 00:13:57.441: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-24 00:13:57.441: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-24 00:13:57.441: debug: 	Signing zone "example.net."
+2008-07-24 00:13:57.442: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-24 00:13:57.562: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-24 00:13:57.562: debug: 	Signing completed after 0s.
+2008-07-24 00:13:57.562: debug: 
+2008-07-24 00:13:57.562: notice: end of run: 0 errors occured
+2008-07-24 00:14:08.862: notice: ------------------------------------------------------------
+2008-07-24 00:14:08.862: notice: running ../../dnssec-signer -r -v -v 
+2008-07-24 00:14:08.864: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-24 00:14:08.864: debug: 	Check RFC5011 status
+2008-07-24 00:14:08.864: debug: 		->ksk5011status returns 0
+2008-07-24 00:14:08.864: debug: 	Check KSK status
+2008-07-24 00:14:08.864: debug: 	Check ZSK status
+2008-07-24 00:14:08.864: debug: 	Re-signing not necessary!
+2008-07-24 00:14:08.864: debug: 	Check if there is a parent file to copy
+2008-07-24 00:14:08.864: debug: 
+2008-07-24 00:14:08.864: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-24 00:14:08.864: debug: 	Check RFC5011 status
+2008-07-24 00:14:08.864: debug: 		->ksk5011status returns 2
+2008-07-24 00:14:08.864: debug: 	Check ZSK status
+2008-07-24 00:14:08.864: debug: 	Re-signing not necessary!
+2008-07-24 00:14:08.864: debug: 	Check if there is a parent file to copy
+2008-07-24 00:14:08.864: debug: 
+2008-07-24 00:14:08.864: notice: end of run: 0 errors occured
+2008-07-24 00:14:12.963: notice: ------------------------------------------------------------
+2008-07-24 00:14:12.963: notice: running ../../dnssec-signer -r -f -v -v 
+2008-07-24 00:14:12.965: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-24 00:14:12.965: debug: 	Check RFC5011 status
+2008-07-24 00:14:12.965: debug: 		->ksk5011status returns 0
+2008-07-24 00:14:12.965: debug: 	Check KSK status
+2008-07-24 00:14:12.965: debug: 	Check ZSK status
+2008-07-24 00:14:12.965: debug: 	Re-signing necessary: Option -f
+2008-07-24 00:14:12.965: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-24 00:14:12.966: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-24 00:14:12.966: debug: 	Signing zone "sub.example.net."
+2008-07-24 00:14:12.966: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-24 00:14:13.488: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-24 00:14:13.488: debug: 	Signing completed after 1s.
+2008-07-24 00:14:13.488: error: exec of distribution command Ìö÷¿ forbidden due to strange file mode settings
+2008-07-24 00:14:13.488: debug: 
+2008-07-24 00:14:13.488: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-24 00:14:13.488: debug: 	Check RFC5011 status
+2008-07-24 00:14:13.488: debug: 		->ksk5011status returns 2
+2008-07-24 00:14:13.488: debug: 	Check ZSK status
+2008-07-24 00:14:13.488: debug: 	Re-signing necessary: Option -f
+2008-07-24 00:14:13.488: notice: "example.net.": re-signing triggered: Option -f
+2008-07-24 00:14:13.488: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-24 00:14:13.489: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-24 00:14:13.489: debug: 	Signing zone "example.net."
+2008-07-24 00:14:13.489: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-24 00:14:13.601: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-24 00:14:13.601: debug: 	Signing completed after 0s.
+2008-07-24 00:14:13.601: error: exec of distribution command Ìö÷¿ forbidden due to strange file mode settings
+2008-07-24 00:14:13.602: debug: 
+2008-07-24 00:14:13.602: notice: end of run: 2 errors occured
+2008-07-24 00:15:38.304: notice: ------------------------------------------------------------
+2008-07-24 00:15:38.304: notice: running ../../dnssec-signer -f -v -v 
+2008-07-24 00:15:38.306: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-24 00:15:38.306: debug: 	Check RFC5011 status
+2008-07-24 00:15:38.307: debug: 		->ksk5011status returns 0
+2008-07-24 00:15:38.307: debug: 	Check KSK status
+2008-07-24 00:15:38.307: debug: 	Check ZSK status
+2008-07-24 00:15:38.307: debug: 	Re-signing necessary: Option -f
+2008-07-24 00:15:38.307: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-24 00:15:38.307: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-24 00:15:38.308: debug: 	Signing zone "sub.example.net."
+2008-07-24 00:15:38.308: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-24 00:15:39.280: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-24 00:15:39.280: debug: 	Signing completed after 1s.
+2008-07-24 00:15:39.281: debug: 
+2008-07-24 00:15:39.281: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-24 00:15:39.281: debug: 	Check RFC5011 status
+2008-07-24 00:15:39.281: debug: 		->ksk5011status returns 2
+2008-07-24 00:15:39.281: debug: 	Check ZSK status
+2008-07-24 00:15:39.281: debug: 	Re-signing necessary: Option -f
+2008-07-24 00:15:39.281: notice: "example.net.": re-signing triggered: Option -f
+2008-07-24 00:15:39.281: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-24 00:15:39.282: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-24 00:15:39.282: debug: 	Signing zone "example.net."
+2008-07-24 00:15:39.282: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-24 00:15:39.402: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-24 00:15:39.402: debug: 	Signing completed after 0s.
+2008-07-24 00:15:39.403: debug: 
+2008-07-24 00:15:39.403: notice: end of run: 0 errors occured
+2008-07-24 00:18:59.568: notice: ------------------------------------------------------------
+2008-07-24 00:18:59.568: notice: running ../../dnssec-signer -r -f -v -v 
+2008-07-24 00:18:59.570: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-24 00:18:59.573: debug: 	Check RFC5011 status
+2008-07-24 00:18:59.573: debug: 		->ksk5011status returns 0
+2008-07-24 00:18:59.573: debug: 	Check KSK status
+2008-07-24 00:18:59.573: debug: 	Check ZSK status
+2008-07-24 00:18:59.573: debug: 	Re-signing necessary: Option -f
+2008-07-24 00:18:59.573: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-24 00:18:59.573: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-24 00:18:59.573: debug: 	Signing zone "sub.example.net."
+2008-07-24 00:18:59.573: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-24 00:19:00.167: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-24 00:19:00.167: debug: 	Signing completed after 1s.
+2008-07-24 00:19:00.168: error: exec of distribution command ./dist.sh forbidden due to strange file mode settings
+2008-07-24 00:19:00.168: debug: 
+2008-07-24 00:19:00.168: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-24 00:19:00.168: debug: 	Check RFC5011 status
+2008-07-24 00:19:00.168: debug: 		->ksk5011status returns 2
+2008-07-24 00:19:00.168: debug: 	Check ZSK status
+2008-07-24 00:19:00.168: debug: 	Re-signing necessary: Option -f
+2008-07-24 00:19:00.168: notice: "example.net.": re-signing triggered: Option -f
+2008-07-24 00:19:00.168: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-24 00:19:00.169: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-24 00:19:00.169: debug: 	Signing zone "example.net."
+2008-07-24 00:19:00.169: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-24 00:19:00.280: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-24 00:19:00.280: debug: 	Signing completed after 0s.
+2008-07-24 00:19:00.280: error: exec of distribution command ./dist.sh forbidden due to strange file mode settings
+2008-07-24 00:19:00.280: debug: 
+2008-07-24 00:19:00.280: notice: end of run: 2 errors occured
+2008-07-24 00:22:24.567: notice: ------------------------------------------------------------
+2008-07-24 00:22:24.567: notice: running ../../dnssec-signer -r -f -v -v 
+2008-07-24 00:22:24.569: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-24 00:22:24.569: debug: 	Check RFC5011 status
+2008-07-24 00:22:24.569: debug: 		->ksk5011status returns 0
+2008-07-24 00:22:24.569: debug: 	Check KSK status
+2008-07-24 00:22:24.570: debug: 	Check ZSK status
+2008-07-24 00:22:24.570: debug: 	Re-signing necessary: Option -f
+2008-07-24 00:22:24.570: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-24 00:22:24.570: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-24 00:22:24.570: debug: 	Signing zone "sub.example.net."
+2008-07-24 00:22:24.571: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-24 00:22:25.147: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-24 00:22:25.148: debug: 	Signing completed after 1s.
+2008-07-24 00:22:25.148: error: exec of distribution command ./dist.sh forbidden due to strange file mode settings
+2008-07-24 00:22:25.148: debug: 	not running distribution command ./dist.sh because of strange file mode settings
+2008-07-24 00:22:25.148: debug: 
+2008-07-24 00:22:25.148: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-24 00:22:25.148: debug: 	Check RFC5011 status
+2008-07-24 00:22:25.148: debug: 		->ksk5011status returns 2
+2008-07-24 00:22:25.148: debug: 	Check ZSK status
+2008-07-24 00:22:25.149: debug: 	Re-signing necessary: Option -f
+2008-07-24 00:22:25.149: notice: "example.net.": re-signing triggered: Option -f
+2008-07-24 00:22:25.149: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-24 00:22:25.150: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-24 00:22:25.150: debug: 	Signing zone "example.net."
+2008-07-24 00:22:25.150: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-24 00:22:25.271: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-24 00:22:25.271: debug: 	Signing completed after 0s.
+2008-07-24 00:22:25.271: error: exec of distribution command ./dist.sh forbidden due to strange file mode settings
+2008-07-24 00:22:25.271: debug: 	not running distribution command ./dist.sh because of strange file mode settings
+2008-07-24 00:22:25.271: debug: 
+2008-07-24 00:22:25.271: notice: end of run: 2 errors occured
+2008-07-24 00:23:08.907: notice: ------------------------------------------------------------
+2008-07-24 00:23:08.907: notice: running ../../dnssec-signer -r -f -v -v 
+2008-07-24 00:23:08.909: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-24 00:23:08.909: debug: 	Check RFC5011 status
+2008-07-24 00:23:08.909: debug: 		->ksk5011status returns 0
+2008-07-24 00:23:08.909: debug: 	Check KSK status
+2008-07-24 00:23:08.909: debug: 	Check ZSK status
+2008-07-24 00:23:08.909: debug: 	Re-signing necessary: Option -f
+2008-07-24 00:23:08.909: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-24 00:23:08.909: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-24 00:23:08.910: debug: 	Signing zone "sub.example.net."
+2008-07-24 00:23:08.910: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-24 00:23:09.510: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-24 00:23:09.510: debug: 	Signing completed after 1s.
+2008-07-24 00:23:09.511: notice: "sub.example.net.": distribution triggered
+2008-07-24 00:23:09.511: debug: 	Distribute zone "sub.example.net."
+2008-07-24 00:23:09.511: debug: 	  Run cmd "./dist.sh reload sub.example.net. ./sub.example.net./zone.db.signed"
+2008-07-24 00:23:09.517: debug: 	  ./dist.sh reload return: "scp ./sub.example.net./zone.db.signed localhost:/var/named/sub.example.net./"
+2008-07-24 00:23:09.517: debug: 
+2008-07-24 00:23:09.517: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-24 00:23:09.517: debug: 	Check RFC5011 status
+2008-07-24 00:23:09.517: debug: 		->ksk5011status returns 2
+2008-07-24 00:23:09.517: debug: 	Check ZSK status
+2008-07-24 00:23:09.517: debug: 	Re-signing necessary: Option -f
+2008-07-24 00:23:09.517: notice: "example.net.": re-signing triggered: Option -f
+2008-07-24 00:23:09.517: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-24 00:23:09.518: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-24 00:23:09.518: debug: 	Signing zone "example.net."
+2008-07-24 00:23:09.518: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-24 00:23:09.633: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-24 00:23:09.633: debug: 	Signing completed after 0s.
+2008-07-24 00:23:09.634: notice: "example.net.": distribution triggered
+2008-07-24 00:23:09.634: debug: 	Distribute zone "example.net."
+2008-07-24 00:23:09.634: debug: 	  Run cmd "./dist.sh reload example.net. ./example.net./zone.db.signed"
+2008-07-24 00:23:09.640: debug: 	  ./dist.sh reload return: "scp ./example.net./zone.db.signed localhost:/var/named/example.net./"
+2008-07-24 00:23:09.640: debug: 
+2008-07-24 00:23:09.640: notice: end of run: 0 errors occured
+2008-07-24 00:33:30.818: notice: ------------------------------------------------------------
+2008-07-24 00:33:30.818: notice: running ../../dnssec-signer -r -f -v -v 
+2008-07-24 00:33:30.820: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-24 00:33:30.820: debug: 	Check RFC5011 status
+2008-07-24 00:33:30.821: debug: 		->ksk5011status returns 0
+2008-07-24 00:33:30.821: debug: 	Check KSK status
+2008-07-24 00:33:30.821: debug: 	Check ZSK status
+2008-07-24 00:33:30.821: debug: 	Re-signing necessary: Option -f
+2008-07-24 00:33:30.821: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-24 00:33:30.821: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-24 00:33:30.822: debug: 	Signing zone "sub.example.net."
+2008-07-24 00:33:30.822: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-24 00:33:31.320: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-24 00:33:31.320: debug: 	Signing completed after 1s.
+2008-07-24 00:33:31.320: error: exec of distribution command ./dist.sh forbidden due to running as root
+2008-07-24 00:33:31.320: debug: 	Not running distribution command ./dist.sh as root
+2008-07-24 00:33:31.320: debug: 
+2008-07-24 00:33:31.320: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-24 00:33:31.320: debug: 	Check RFC5011 status
+2008-07-24 00:33:31.320: debug: 		->ksk5011status returns 2
+2008-07-24 00:33:31.320: debug: 	Check ZSK status
+2008-07-24 00:33:31.320: debug: 	Re-signing necessary: Option -f
+2008-07-24 00:33:31.320: notice: "example.net.": re-signing triggered: Option -f
+2008-07-24 00:33:31.320: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-24 00:33:31.321: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-24 00:33:31.321: debug: 	Signing zone "example.net."
+2008-07-24 00:33:31.321: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-24 00:33:31.443: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-24 00:33:31.443: debug: 	Signing completed after 0s.
+2008-07-24 00:33:31.443: error: exec of distribution command ./dist.sh forbidden due to running as root
+2008-07-24 00:33:31.443: debug: 	Not running distribution command ./dist.sh as root
+2008-07-24 00:33:31.443: debug: 
+2008-07-24 00:33:31.443: notice: end of run: 2 errors occured
+2008-07-24 23:21:55.189: notice: ------------------------------------------------------------
+2008-07-24 23:21:55.189: notice: running ../../dnssec-signer -r -v -v 
+2008-07-24 23:21:55.196: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-24 23:21:55.196: debug: 	Check RFC5011 status
+2008-07-24 23:21:55.196: debug: 		->not a rfc5011 zone, looking for a regular ksk rollover
+2008-07-24 23:21:55.196: debug: 	Check KSK status
+2008-07-24 23:21:55.196: debug: 	Check ZSK status
+2008-07-24 23:21:55.196: debug: 	Re-signing not necessary!
+2008-07-24 23:21:55.196: debug: 	Check if there is a parent file to copy
+2008-07-24 23:21:55.196: debug: 
+2008-07-24 23:21:55.196: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-24 23:21:55.196: debug: 	Check RFC5011 status
+2008-07-24 23:21:55.196: debug: 	Check ZSK status
+2008-07-24 23:21:55.196: debug: 	Lifetime(29100 sec) of depreciated key 16682 exceeded (83278 sec)
+2008-07-24 23:21:55.196: info: "example.net.": old ZSK 16682 removed
+2008-07-24 23:21:55.196: debug: 		->remove it
+2008-07-24 23:21:55.196: debug: 	Re-signing necessary: New zone key
+2008-07-24 23:21:55.197: notice: "example.net.": re-signing triggered: New zone key
+2008-07-24 23:21:55.197: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-24 23:21:55.197: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-24 23:21:55.197: debug: 	Signing zone "example.net."
+2008-07-24 23:21:55.197: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-24 23:21:55.873: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-24 23:21:55.873: debug: 	Signing completed after 0s.
+2008-07-24 23:21:55.873: debug: 	Distribution command ./dist.sh not run as root
+2008-07-24 23:21:55.873: error: exec of distribution command ./dist.sh suppressed because of security reasons
+2008-07-24 23:21:55.873: debug: 
+2008-07-24 23:21:55.874: notice: end of run: 1 error occured
+2008-07-24 23:23:06.278: notice: ------------------------------------------------------------
+2008-07-24 23:23:06.278: notice: running ../../dnssec-signer -r -v -v 
+2008-07-24 23:23:06.279: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-24 23:23:06.280: debug: 	Check RFC5011 status
+2008-07-24 23:23:06.280: debug: 		->not a rfc5011 zone, looking for a regular ksk rollover
+2008-07-24 23:23:06.280: debug: 	Check KSK status
+2008-07-24 23:23:06.280: debug: 	Check ZSK status
+2008-07-24 23:23:06.280: debug: 	Re-signing not necessary!
+2008-07-24 23:23:06.280: debug: 	Check if there is a parent file to copy
+2008-07-24 23:23:06.280: debug: 
+2008-07-24 23:23:06.280: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-24 23:23:06.280: debug: 	Check RFC5011 status
+2008-07-24 23:23:06.280: debug: 	Check ZSK status
+2008-07-24 23:23:06.280: debug: 	Re-signing not necessary!
+2008-07-24 23:23:06.280: debug: 	Check if there is a parent file to copy
+2008-07-24 23:23:06.280: debug: 
+2008-07-24 23:23:06.280: notice: end of run: 0 errors occured
+2008-07-24 23:25:21.930: notice: ------------------------------------------------------------
+2008-07-24 23:25:21.930: notice: running ../../dnssec-signer -r -v -v 
+2008-07-24 23:25:21.932: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-24 23:25:21.932: debug: 	Check RFC5011 status
+2008-07-24 23:25:21.932: debug: 		->not a rfc5011 zone, looking for a regular ksk rollover
+2008-07-24 23:25:21.932: debug: 	Check KSK status
+2008-07-24 23:25:21.932: debug: 	Check ZSK status
+2008-07-24 23:25:21.932: debug: 	Re-signing not necessary!
+2008-07-24 23:25:21.932: debug: 	Check if there is a parent file to copy
+2008-07-24 23:25:21.932: debug: 
+2008-07-24 23:25:21.932: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-24 23:25:21.932: debug: 	Check RFC5011 status
+2008-07-24 23:25:21.932: debug: 	Check ZSK status
+2008-07-24 23:25:21.932: debug: 	Re-signing not necessary!
+2008-07-24 23:25:21.932: debug: 	Check if there is a parent file to copy
+2008-07-24 23:25:21.932: debug: 
+2008-07-24 23:25:21.932: notice: end of run: 0 errors occured
+2008-07-24 23:25:39.009: notice: ------------------------------------------------------------
+2008-07-24 23:25:39.009: notice: running ../../dnssec-signer -f -r -v -v 
+2008-07-24 23:25:39.011: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-24 23:25:39.011: debug: 	Check RFC5011 status
+2008-07-24 23:25:39.011: debug: 		->not a rfc5011 zone, looking for a regular ksk rollover
+2008-07-24 23:25:39.011: debug: 	Check KSK status
+2008-07-24 23:25:39.011: debug: 	Check ZSK status
+2008-07-24 23:25:39.011: debug: 	Re-signing necessary: Option -f
+2008-07-24 23:25:39.011: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-24 23:25:39.011: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-24 23:25:39.011: debug: 	Signing zone "sub.example.net."
+2008-07-24 23:25:39.012: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-24 23:25:39.591: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-24 23:25:39.591: debug: 	Signing completed after 0s.
+2008-07-24 23:25:39.591: debug: 	Distribution command ./dist.sh not run as root
+2008-07-24 23:25:39.591: error: exec of distribution command ./dist.sh suppressed because of security reasons
+2008-07-24 23:25:39.592: debug: 
+2008-07-24 23:25:39.592: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-24 23:25:39.592: debug: 	Check RFC5011 status
+2008-07-24 23:25:39.592: debug: 	Check ZSK status
+2008-07-24 23:25:39.592: debug: 	Re-signing necessary: Option -f
+2008-07-24 23:25:39.592: notice: "example.net.": re-signing triggered: Option -f
+2008-07-24 23:25:39.592: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-24 23:25:39.592: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-24 23:25:39.592: debug: 	Signing zone "example.net."
+2008-07-24 23:25:39.592: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-24 23:25:39.703: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-24 23:25:39.703: debug: 	Signing completed after 0s.
+2008-07-24 23:25:39.703: debug: 	Distribution command ./dist.sh not run as root
+2008-07-24 23:25:39.703: error: exec of distribution command ./dist.sh suppressed because of security reasons
+2008-07-24 23:25:39.703: debug: 
+2008-07-24 23:25:39.703: notice: end of run: 2 errors occured
+2008-07-24 23:28:16.436: notice: ------------------------------------------------------------
+2008-07-24 23:28:16.436: notice: running ../../dnssec-signer -r -f -v -v 
+2008-07-24 23:28:16.438: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-24 23:28:16.438: debug: 	Check RFC5011 status
+2008-07-24 23:28:16.438: debug: 		->not a rfc5011 zone, looking for a regular ksk rollover
+2008-07-24 23:28:16.438: debug: 	Check KSK status
+2008-07-24 23:28:16.438: debug: 	Check ZSK status
+2008-07-24 23:28:16.438: debug: 	Re-signing necessary: Option -f
+2008-07-24 23:28:16.438: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-24 23:28:16.438: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-24 23:28:16.438: debug: 	Signing zone "sub.example.net."
+2008-07-24 23:28:16.439: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-24 23:28:17.008: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-24 23:28:17.008: debug: 	Signing completed after 1s.
+2008-07-24 23:28:17.009: notice: "sub.example.net.": distribution triggered
+2008-07-24 23:28:17.009: debug: 	Distribute zone "sub.example.net."
+2008-07-24 23:28:17.009: debug: 	  Run cmd "./dist.sh reload sub.example.net. ./sub.example.net./zone.db.signed"
+2008-07-24 23:28:17.015: debug: 	  ./dist.sh reload return: "scp ./sub.example.net./zone.db.signed localhost:/var/named/sub.example.net./"
+2008-07-24 23:28:17.015: debug: 
+2008-07-24 23:28:17.015: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-24 23:28:17.015: debug: 	Check RFC5011 status
+2008-07-24 23:28:17.015: debug: 	Check ZSK status
+2008-07-24 23:28:17.015: debug: 	Re-signing necessary: Option -f
+2008-07-24 23:28:17.015: notice: "example.net.": re-signing triggered: Option -f
+2008-07-24 23:28:17.015: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-24 23:28:17.016: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-24 23:28:17.016: debug: 	Signing zone "example.net."
+2008-07-24 23:28:17.016: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-24 23:28:17.132: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-24 23:28:17.132: debug: 	Signing completed after 0s.
+2008-07-24 23:28:17.132: notice: "example.net.": distribution triggered
+2008-07-24 23:28:17.132: debug: 	Distribute zone "example.net."
+2008-07-24 23:28:17.132: debug: 	  Run cmd "./dist.sh reload example.net. ./example.net./zone.db.signed"
+2008-07-24 23:28:17.138: debug: 	  ./dist.sh reload return: "scp ./example.net./zone.db.signed localhost:/var/named/example.net./"
+2008-07-24 23:28:17.138: debug: 
+2008-07-24 23:28:17.138: notice: end of run: 0 errors occured
+2008-07-24 23:31:17.354: notice: ------------------------------------------------------------
+2008-07-24 23:31:17.354: notice: running ../../dnssec-signer -r -f -v -v 
+2008-07-24 23:31:17.364: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-24 23:31:17.364: debug: 	Check RFC5011 status
+2008-07-24 23:31:17.364: debug: 		->not a rfc5011 zone, looking for a regular ksk rollover
+2008-07-24 23:31:17.364: debug: 	Check KSK status
+2008-07-24 23:31:17.364: debug: 	Check ZSK status
+2008-07-24 23:31:17.364: debug: 	Re-signing necessary: Option -f
+2008-07-24 23:31:17.364: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-24 23:31:17.364: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-24 23:31:17.364: debug: 	Signing zone "sub.example.net."
+2008-07-24 23:31:17.364: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-24 23:31:18.032: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-24 23:31:18.032: debug: 	Signing completed after 1s.
+2008-07-24 23:31:18.032: notice: "sub.example.net.": distribution triggered
+2008-07-24 23:31:18.032: debug: 	Distribute zone "sub.example.net."
+2008-07-24 23:31:18.032: debug: 	  Run cmd "./dist.sh reload sub.example.net. ./sub.example.net./zone.db.signed"
+2008-07-24 23:31:18.039: debug: 	  ./dist.sh reload return: "rndc reload  "
+2008-07-24 23:31:18.039: debug: 
+2008-07-24 23:31:18.039: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-24 23:31:18.039: debug: 	Check RFC5011 status
+2008-07-24 23:31:18.039: debug: 	Check ZSK status
+2008-07-24 23:31:18.039: debug: 	Re-signing necessary: Option -f
+2008-07-24 23:31:18.039: notice: "example.net.": re-signing triggered: Option -f
+2008-07-24 23:31:18.039: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-24 23:31:18.040: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-24 23:31:18.040: debug: 	Signing zone "example.net."
+2008-07-24 23:31:18.040: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-24 23:31:18.155: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-24 23:31:18.155: debug: 	Signing completed after 0s.
+2008-07-24 23:31:18.155: notice: "example.net.": distribution triggered
+2008-07-24 23:31:18.155: debug: 	Distribute zone "example.net."
+2008-07-24 23:31:18.155: debug: 	  Run cmd "./dist.sh reload example.net. ./example.net./zone.db.signed"
+2008-07-24 23:31:18.161: debug: 	  ./dist.sh reload return: "rndc reload  "
+2008-07-24 23:31:18.161: debug: 
+2008-07-24 23:31:18.162: notice: end of run: 0 errors occured
+2008-07-24 23:31:28.467: notice: ------------------------------------------------------------
+2008-07-24 23:31:28.467: notice: running ../../dnssec-signer -r -f -v -v 
+2008-07-24 23:31:28.470: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-24 23:31:28.470: debug: 	Check RFC5011 status
+2008-07-24 23:31:28.470: debug: 		->not a rfc5011 zone, looking for a regular ksk rollover
+2008-07-24 23:31:28.470: debug: 	Check KSK status
+2008-07-24 23:31:28.470: debug: 	Check ZSK status
+2008-07-24 23:31:28.470: debug: 	Re-signing necessary: Option -f
+2008-07-24 23:31:28.470: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-24 23:31:28.470: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-24 23:31:28.471: debug: 	Signing zone "sub.example.net."
+2008-07-24 23:31:28.471: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-24 23:31:29.058: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-24 23:31:29.059: debug: 	Signing completed after 1s.
+2008-07-24 23:31:29.059: notice: "sub.example.net.": distribution triggered
+2008-07-24 23:31:29.059: debug: 	Distribute zone "sub.example.net."
+2008-07-24 23:31:29.059: debug: 	  Run cmd "./dist.sh distribute sub.example.net. ./sub.example.net./zone.db.signed"
+2008-07-24 23:31:29.066: debug: 	  ./dist.sh distribute return: "scp ./sub.example.net./zone.db.signed localhost:/var/named/sub.example.net./"
+2008-07-24 23:31:29.066: notice: scp ./sub.example.net./zone.db.signed localhost:/var/named/sub.example.net./: distribution triggered
+2008-07-24 23:31:29.066: debug: 	Distribute zone scp ./sub.example.net./zone.db.signed localhost:/var/named/sub.example.net./
+2008-07-24 23:31:29.066: debug: 	  Run cmd "./dist.sh reload sub.example.net. ./sub.example.net./zone.db.signed"
+2008-07-24 23:31:29.072: debug: 	  ./dist.sh reload return: "rndc reload  "
+2008-07-24 23:31:29.072: debug: 
+2008-07-24 23:31:29.073: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-24 23:31:29.073: debug: 	Check RFC5011 status
+2008-07-24 23:31:29.073: debug: 	Check ZSK status
+2008-07-24 23:31:29.073: debug: 	Re-signing necessary: Option -f
+2008-07-24 23:31:29.073: notice: "example.net.": re-signing triggered: Option -f
+2008-07-24 23:31:29.073: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-24 23:31:29.074: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-24 23:31:29.074: debug: 	Signing zone "example.net."
+2008-07-24 23:31:29.075: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-24 23:31:29.204: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-24 23:31:29.204: debug: 	Signing completed after 0s.
+2008-07-24 23:31:29.204: notice: "example.net.": distribution triggered
+2008-07-24 23:31:29.204: debug: 	Distribute zone "example.net."
+2008-07-24 23:31:29.205: debug: 	  Run cmd "./dist.sh distribute example.net. ./example.net./zone.db.signed"
+2008-07-24 23:31:29.211: debug: 	  ./dist.sh distribute return: "scp ./example.net./zone.db.signed localhost:/var/named/example.net./"
+2008-07-24 23:31:29.211: notice: scp ./example.net./zone.db.signed localhost:/var/named/example.net./: distribution triggered
+2008-07-24 23:31:29.211: debug: 	Distribute zone scp ./example.net./zone.db.signed localhost:/var/named/example.net./
+2008-07-24 23:31:29.211: debug: 	  Run cmd "./dist.sh reload example.net. ./example.net./zone.db.signed"
+2008-07-24 23:31:29.217: debug: 	  ./dist.sh reload return: "rndc reload  "
+2008-07-24 23:31:29.217: debug: 
+2008-07-24 23:31:29.217: notice: end of run: 0 errors occured
+2008-07-24 23:35:48.844: notice: ------------------------------------------------------------
+2008-07-24 23:35:48.844: notice: running ../../dnssec-signer -r -f -v -v 
+2008-07-24 23:35:48.846: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-24 23:35:48.846: debug: 	Check RFC5011 status
+2008-07-24 23:35:48.846: debug: 		->not a rfc5011 zone, looking for a regular ksk rollover
+2008-07-24 23:35:48.846: debug: 	Check KSK status
+2008-07-24 23:35:48.846: debug: 	Check ZSK status
+2008-07-24 23:35:48.846: debug: 	Re-signing necessary: Option -f
+2008-07-24 23:35:48.846: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-24 23:35:48.846: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-24 23:35:48.846: debug: 	Signing zone "sub.example.net."
+2008-07-24 23:35:48.846: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-24 23:35:49.455: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-24 23:35:49.455: debug: 	Signing completed after 1s.
+2008-07-24 23:35:49.455: notice: "sub.example.net.": distribution triggered
+2008-07-24 23:35:49.455: debug: 	Distribute zone "sub.example.net."
+2008-07-24 23:35:49.455: debug: 	  Run cmd "./dist.sh distribute sub.example.net. ./sub.example.net./zone.db.signed"
+2008-07-24 23:35:49.462: notice: "sub.example.net.": distribution triggered
+2008-07-24 23:35:49.462: debug: 	Distribute zone "sub.example.net."
+2008-07-24 23:35:49.462: debug: 	  ./dist.sh distribute return: "scp ./sub.example.net./zone.db.signed localhost:/var/named/sub.example.net./"
+2008-07-24 23:35:49.462: debug: 	  Run cmd "./dist.sh reload sub.example.net. ./sub.example.net./zone.db.signed"
+2008-07-24 23:35:49.468: notice: "sub.example.net.": reload triggered
+2008-07-24 23:35:49.468: debug: 	Reload zone "sub.example.net."
+2008-07-24 23:35:49.468: debug: 	  ./dist.sh reload return: "rndc reload  "
+2008-07-24 23:35:49.468: debug: 
+2008-07-24 23:35:49.468: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-24 23:35:49.468: debug: 	Check RFC5011 status
+2008-07-24 23:35:49.469: debug: 	Check ZSK status
+2008-07-24 23:35:49.469: debug: 	Re-signing necessary: Option -f
+2008-07-24 23:35:49.469: notice: "example.net.": re-signing triggered: Option -f
+2008-07-24 23:35:49.469: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-24 23:35:49.470: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-24 23:35:49.470: debug: 	Signing zone "example.net."
+2008-07-24 23:35:49.470: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-24 23:35:49.600: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-24 23:35:49.600: debug: 	Signing completed after 0s.
+2008-07-24 23:35:49.600: notice: "example.net.": distribution triggered
+2008-07-24 23:35:49.600: debug: 	Distribute zone "example.net."
+2008-07-24 23:35:49.600: debug: 	  Run cmd "./dist.sh distribute example.net. ./example.net./zone.db.signed"
+2008-07-24 23:35:49.606: notice: "example.net.": distribution triggered
+2008-07-24 23:35:49.606: debug: 	Distribute zone "example.net."
+2008-07-24 23:35:49.606: debug: 	  ./dist.sh distribute return: "scp ./example.net./zone.db.signed localhost:/var/named/example.net./"
+2008-07-24 23:35:49.606: debug: 	  Run cmd "./dist.sh reload example.net. ./example.net./zone.db.signed"
+2008-07-24 23:35:49.613: notice: "example.net.": reload triggered
+2008-07-24 23:35:49.613: debug: 	Reload zone "example.net."
+2008-07-24 23:35:49.613: debug: 	  ./dist.sh reload return: "rndc reload  "
+2008-07-24 23:35:49.613: debug: 
+2008-07-24 23:35:49.613: notice: end of run: 0 errors occured
+2008-07-24 23:37:41.081: notice: ------------------------------------------------------------
+2008-07-24 23:37:41.081: notice: running ../../dnssec-signer -r -f -v -v 
+2008-07-24 23:37:41.083: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-24 23:37:41.083: debug: 	Check RFC5011 status
+2008-07-24 23:37:41.083: debug: 		->not a rfc5011 zone, looking for a regular ksk rollover
+2008-07-24 23:37:41.083: debug: 	Check KSK status
+2008-07-24 23:37:41.083: debug: 	Check ZSK status
+2008-07-24 23:37:41.083: debug: 	Re-signing necessary: Option -f
+2008-07-24 23:37:41.083: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-24 23:37:41.083: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-24 23:37:41.084: debug: 	Signing zone "sub.example.net."
+2008-07-24 23:37:41.084: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-24 23:37:41.688: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-24 23:37:41.688: debug: 	Signing completed after 0s.
+2008-07-24 23:37:41.689: notice: "sub.example.net.": distribution triggered
+2008-07-24 23:37:41.689: debug: 	Distribute zone "sub.example.net."
+2008-07-24 23:37:41.689: debug: 	  Run cmd "./dist.sh distribute sub.example.net. ./sub.example.net./zone.db.signed"
+2008-07-24 23:37:41.695: debug: 	  ./dist.sh distribute return: "scp ./sub.example.net./zone.db.signed localhost:/var/named/sub.example.net./"
+2008-07-24 23:37:41.695: notice: "sub.example.net.": reload triggered
+2008-07-24 23:37:41.695: debug: 	Reload zone "sub.example.net."
+2008-07-24 23:37:41.695: debug: 	  Run cmd "./dist.sh reload sub.example.net. ./sub.example.net./zone.db.signed"
+2008-07-24 23:37:41.701: debug: 	  ./dist.sh reload return: "rndc reload  "
+2008-07-24 23:37:41.701: debug: 
+2008-07-24 23:37:41.701: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-24 23:37:41.701: debug: 	Check RFC5011 status
+2008-07-24 23:37:41.701: debug: 	Check ZSK status
+2008-07-24 23:37:41.701: debug: 	Re-signing necessary: Option -f
+2008-07-24 23:37:41.701: notice: "example.net.": re-signing triggered: Option -f
+2008-07-24 23:37:41.701: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-24 23:37:41.702: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-24 23:37:41.702: debug: 	Signing zone "example.net."
+2008-07-24 23:37:41.702: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-24 23:37:41.823: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-24 23:37:41.824: debug: 	Signing completed after 0s.
+2008-07-24 23:37:41.824: notice: "example.net.": distribution triggered
+2008-07-24 23:37:41.824: debug: 	Distribute zone "example.net."
+2008-07-24 23:37:41.824: debug: 	  Run cmd "./dist.sh distribute example.net. ./example.net./zone.db.signed"
+2008-07-24 23:37:41.830: debug: 	  ./dist.sh distribute return: "scp ./example.net./zone.db.signed localhost:/var/named/example.net./"
+2008-07-24 23:37:41.831: notice: "example.net.": reload triggered
+2008-07-24 23:37:41.831: debug: 	Reload zone "example.net."
+2008-07-24 23:37:41.831: debug: 	  Run cmd "./dist.sh reload example.net. ./example.net./zone.db.signed"
+2008-07-24 23:37:41.837: debug: 	  ./dist.sh reload return: "rndc reload  "
+2008-07-24 23:37:41.837: debug: 
+2008-07-24 23:37:41.837: notice: end of run: 0 errors occured
+2008-07-24 23:37:51.742: notice: ------------------------------------------------------------
+2008-07-24 23:37:51.742: notice: running ../../dnssec-signer -r -f -v 
+2008-07-24 23:37:51.744: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-24 23:37:51.744: debug: 	Check RFC5011 status
+2008-07-24 23:37:51.744: debug: 		->not a rfc5011 zone, looking for a regular ksk rollover
+2008-07-24 23:37:51.744: debug: 	Check KSK status
+2008-07-24 23:37:51.744: debug: 	Check ZSK status
+2008-07-24 23:37:51.744: debug: 	Re-signing necessary: Option -f
+2008-07-24 23:37:51.744: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-24 23:37:51.744: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-24 23:37:51.745: debug: 	Signing zone "sub.example.net."
+2008-07-24 23:37:51.745: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-24 23:37:52.263: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-24 23:37:52.264: debug: 	Signing completed after 1s.
+2008-07-24 23:37:52.264: notice: "sub.example.net.": distribution triggered
+2008-07-24 23:37:52.264: debug: 	Distribute zone "sub.example.net."
+2008-07-24 23:37:52.264: debug: 	  Run cmd "./dist.sh distribute sub.example.net. ./sub.example.net./zone.db.signed"
+2008-07-24 23:37:52.270: debug: 	  ./dist.sh distribute return: "scp ./sub.example.net./zone.db.signed localhost:/var/named/sub.example.net./"
+2008-07-24 23:37:52.271: notice: "sub.example.net.": reload triggered
+2008-07-24 23:37:52.271: debug: 	Reload zone "sub.example.net."
+2008-07-24 23:37:52.271: debug: 	  Run cmd "./dist.sh reload sub.example.net. ./sub.example.net./zone.db.signed"
+2008-07-24 23:37:52.276: debug: 	  ./dist.sh reload return: "rndc reload  "
+2008-07-24 23:37:52.277: debug: 
+2008-07-24 23:37:52.277: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-24 23:37:52.277: debug: 	Check RFC5011 status
+2008-07-24 23:37:52.277: debug: 	Check ZSK status
+2008-07-24 23:37:52.277: debug: 	Re-signing necessary: Option -f
+2008-07-24 23:37:52.277: notice: "example.net.": re-signing triggered: Option -f
+2008-07-24 23:37:52.277: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-24 23:37:52.277: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-24 23:37:52.277: debug: 	Signing zone "example.net."
+2008-07-24 23:37:52.277: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-24 23:37:52.397: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-24 23:37:52.398: debug: 	Signing completed after 0s.
+2008-07-24 23:37:52.398: notice: "example.net.": distribution triggered
+2008-07-24 23:37:52.398: debug: 	Distribute zone "example.net."
+2008-07-24 23:37:52.398: debug: 	  Run cmd "./dist.sh distribute example.net. ./example.net./zone.db.signed"
+2008-07-24 23:37:52.404: debug: 	  ./dist.sh distribute return: "scp ./example.net./zone.db.signed localhost:/var/named/example.net./"
+2008-07-24 23:37:52.404: notice: "example.net.": reload triggered
+2008-07-24 23:37:52.404: debug: 	Reload zone "example.net."
+2008-07-24 23:37:52.404: debug: 	  Run cmd "./dist.sh reload example.net. ./example.net./zone.db.signed"
+2008-07-24 23:37:52.410: debug: 	  ./dist.sh reload return: "rndc reload  "
+2008-07-24 23:37:52.410: debug: 
+2008-07-24 23:37:52.410: notice: end of run: 0 errors occured
+2008-07-24 23:44:51.717: notice: ------------------------------------------------------------
+2008-07-24 23:44:51.717: notice: running ../../dnssec-signer -n -r -f -v 
+2008-07-24 23:44:51.719: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-24 23:44:51.719: debug: 	Check RFC5011 status
+2008-07-24 23:44:51.719: debug: 		->not a rfc5011 zone, looking for a regular ksk rollover
+2008-07-24 23:44:51.719: debug: 	Check KSK status
+2008-07-24 23:44:51.720: debug: 	Check ZSK status
+2008-07-24 23:44:51.720: debug: 	Re-signing necessary: Option -f
+2008-07-24 23:44:51.720: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-24 23:44:51.720: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-24 23:44:51.720: debug: 	Signing zone "sub.example.net."
+2008-07-24 23:44:51.720: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-24 23:44:51.720: debug: 	  Cmd dnssec-signzone return: ""
+2008-07-24 23:44:51.720: debug: 	Signing completed after 0s.
+2008-07-24 23:44:51.721: notice: "sub.example.net.": distribution triggered
+2008-07-24 23:44:51.721: debug: 	Distribute zone "sub.example.net."
+2008-07-24 23:44:51.721: debug: 	  Run cmd "./dist.sh distribute sub.example.net. ./sub.example.net./zone.db.signed"
+2008-07-24 23:44:51.721: debug: 	  ./dist.sh distribute return: ""
+2008-07-24 23:44:51.721: notice: "sub.example.net.": reload triggered
+2008-07-24 23:44:51.721: debug: 	Reload zone "sub.example.net."
+2008-07-24 23:44:51.721: debug: 	  Run cmd "./dist.sh reload sub.example.net. ./sub.example.net./zone.db.signed"
+2008-07-24 23:44:51.721: debug: 	  ./dist.sh reload return: ""
+2008-07-24 23:44:51.721: debug: 
+2008-07-24 23:44:51.721: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-24 23:44:51.721: debug: 	Check RFC5011 status
+2008-07-24 23:44:51.721: debug: 	Check ZSK status
+2008-07-24 23:44:51.721: debug: 	Re-signing necessary: Option -f
+2008-07-24 23:44:51.722: notice: "example.net.": re-signing triggered: Option -f
+2008-07-24 23:44:51.722: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-24 23:44:51.722: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-24 23:44:51.722: notice: "example.net.": distribution triggered
+2008-07-24 23:44:51.722: debug: 	Distribute zone "example.net."
+2008-07-24 23:44:51.722: debug: 	  Run cmd "./dist.sh distribute example.net. ./example.net./zone.db.signed"
+2008-07-24 23:44:51.722: debug: 	  ./dist.sh distribute return: ""
+2008-07-24 23:44:51.722: notice: "example.net.": reload triggered
+2008-07-24 23:44:51.722: debug: 	Reload zone "example.net."
+2008-07-24 23:44:51.722: debug: 	  Run cmd "./dist.sh reload example.net. ./example.net./zone.db.signed"
+2008-07-24 23:44:51.722: debug: 	  ./dist.sh reload return: ""
+2008-07-24 23:44:51.723: debug: 
+2008-07-24 23:44:51.723: notice: end of run: 0 errors occured
+2008-07-24 23:44:57.039: notice: ------------------------------------------------------------
+2008-07-24 23:44:57.040: notice: running ../../dnssec-signer -n -r -f -v -v 
+2008-07-24 23:44:57.042: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-24 23:44:57.042: debug: 	Check RFC5011 status
+2008-07-24 23:44:57.042: debug: 		->not a rfc5011 zone, looking for a regular ksk rollover
+2008-07-24 23:44:57.042: debug: 	Check KSK status
+2008-07-24 23:44:57.042: debug: 	Check ZSK status
+2008-07-24 23:44:57.042: debug: 	Re-signing necessary: Option -f
+2008-07-24 23:44:57.042: notice: "sub.example.net.": re-signing triggered: Option -f
+2008-07-24 23:44:57.042: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-24 23:44:57.042: debug: 	Signing zone "sub.example.net."
+2008-07-24 23:44:57.042: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-24 23:44:57.042: debug: 	  Cmd dnssec-signzone return: ""
+2008-07-24 23:44:57.042: debug: 	Signing completed after 0s.
+2008-07-24 23:44:57.042: notice: "sub.example.net.": distribution triggered
+2008-07-24 23:44:57.042: debug: 	Distribute zone "sub.example.net."
+2008-07-24 23:44:57.042: debug: 	  Run cmd "./dist.sh distribute sub.example.net. ./sub.example.net./zone.db.signed"
+2008-07-24 23:44:57.042: debug: 	  ./dist.sh distribute return: ""
+2008-07-24 23:44:57.043: notice: "sub.example.net.": reload triggered
+2008-07-24 23:44:57.043: debug: 	Reload zone "sub.example.net."
+2008-07-24 23:44:57.043: debug: 	  Run cmd "./dist.sh reload sub.example.net. ./sub.example.net./zone.db.signed"
+2008-07-24 23:44:57.043: debug: 	  ./dist.sh reload return: ""
+2008-07-24 23:44:57.043: debug: 
+2008-07-24 23:44:57.043: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-24 23:44:57.043: debug: 	Check RFC5011 status
+2008-07-24 23:44:57.043: debug: 	Check ZSK status
+2008-07-24 23:44:57.043: debug: 	Re-signing necessary: Option -f
+2008-07-24 23:44:57.043: notice: "example.net.": re-signing triggered: Option -f
+2008-07-24 23:44:57.043: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-24 23:44:57.043: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-24 23:44:57.043: notice: "example.net.": distribution triggered
+2008-07-24 23:44:57.043: debug: 	Distribute zone "example.net."
+2008-07-24 23:44:57.043: debug: 	  Run cmd "./dist.sh distribute example.net. ./example.net./zone.db.signed"
+2008-07-24 23:44:57.043: debug: 	  ./dist.sh distribute return: ""
+2008-07-24 23:44:57.043: notice: "example.net.": reload triggered
+2008-07-24 23:44:57.043: debug: 	Reload zone "example.net."
+2008-07-24 23:44:57.043: debug: 	  Run cmd "./dist.sh reload example.net. ./example.net./zone.db.signed"
+2008-07-24 23:44:57.043: debug: 	  ./dist.sh reload return: ""
+2008-07-24 23:44:57.043: debug: 
+2008-07-24 23:44:57.043: notice: end of run: 0 errors occured
+2008-07-25 23:31:07.235: notice: ------------------------------------------------------------
+2008-07-25 23:31:07.236: notice: running ../../dnssec-signer -v -v 
+2008-07-25 23:31:07.238: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-25 23:31:07.238: debug: 	Check RFC5011 status
+2008-07-25 23:31:07.238: debug: 		->not a rfc5011 zone, looking for a regular ksk rollover
+2008-07-25 23:31:07.238: debug: 	Check KSK status
+2008-07-25 23:31:07.238: debug: 	Check ZSK status
+2008-07-25 23:31:07.238: debug: 	Lifetime(259200 +/-150 sec) of active key 31081 exceeded (343229 sec)
+2008-07-25 23:31:07.239: debug: 		->depreciate it
+2008-07-25 23:31:07.239: debug: 		->activate published key 3615
+2008-07-25 23:31:07.239: notice: "sub.example.net.": lifetime of zone signing key 31081 exceeded: ZSK rollover done
+2008-07-25 23:31:07.239: debug: 	New published key needed
+2008-07-25 23:31:07.397: debug: 		->creating new published key 4254
+2008-07-25 23:31:07.397: info: "sub.example.net.": new key 4254 generated for publishing
+2008-07-25 23:31:07.397: debug: 	Re-signing necessary: New zone key
+2008-07-25 23:31:07.397: notice: "sub.example.net.": re-signing triggered: New zone key
+2008-07-25 23:31:07.398: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-25 23:31:07.398: debug: 	Signing zone "sub.example.net."
+2008-07-25 23:31:07.398: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-25 23:31:07.639: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-25 23:31:07.639: debug: 	Signing completed after 0s.
+2008-07-25 23:31:07.639: debug: 
+2008-07-25 23:31:07.639: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-25 23:31:07.639: debug: 	Check RFC5011 status
+2008-07-25 23:31:07.639: debug: 	Check ZSK status
+2008-07-25 23:31:07.639: debug: 	Re-signing necessary: Modified keys
+2008-07-25 23:31:07.639: notice: "example.net.": re-signing triggered: Modified keys
+2008-07-25 23:31:07.639: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-25 23:31:07.640: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-25 23:31:07.640: debug: 	Signing zone "example.net."
+2008-07-25 23:31:07.640: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-25 23:31:07.783: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-25 23:31:07.783: debug: 	Signing completed after 0s.
+2008-07-25 23:31:07.783: debug: 
+2008-07-25 23:31:07.783: notice: end of run: 0 errors occured
+2008-07-25 23:32:27.052: notice: ------------------------------------------------------------
+2008-07-25 23:32:27.052: notice: running ../../dnssec-signer -v -v 
+2008-07-25 23:32:27.054: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-25 23:32:27.054: debug: 	Check RFC5011 status
+2008-07-25 23:32:27.054: debug: 		->not a rfc5011 zone, looking for a regular ksk rollover
+2008-07-25 23:32:27.054: debug: 	Check KSK status
+2008-07-25 23:32:27.054: debug: 	Check ZSK status
+2008-07-25 23:32:27.054: debug: 	Re-signing not necessary!
+2008-07-25 23:32:27.054: debug: 	Check if there is a parent file to copy
+2008-07-25 23:32:27.054: debug: 
+2008-07-25 23:32:27.054: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-25 23:32:27.054: debug: 	Check RFC5011 status
+2008-07-25 23:32:27.054: debug: 	Check ZSK status
+2008-07-25 23:32:27.054: debug: 	Re-signing not necessary!
+2008-07-25 23:32:27.054: debug: 	Check if there is a parent file to copy
+2008-07-25 23:32:27.057: debug: 
+2008-07-25 23:32:27.057: notice: end of run: 0 errors occured
+2008-07-31 00:25:52.601: notice: ------------------------------------------------------------
+2008-07-31 00:25:52.601: notice: running ../../dnssec-signer -v -v 
+2008-07-31 00:25:52.604: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-31 00:25:52.604: debug: 	Check RFC5011 status
+2008-07-31 00:25:52.604: debug: 		->not a rfc5011 zone, looking for a regular ksk rollover
+2008-07-31 00:25:52.604: debug: 	Check KSK status
+2008-07-31 00:25:52.604: debug: 	Check ZSK status
+2008-07-31 00:25:52.604: debug: 	Lifetime(390 sec) of depreciated key 31081 exceeded (435285 sec)
+2008-07-31 00:25:52.604: info: "sub.example.net.": old ZSK 31081 removed
+2008-07-31 00:25:52.605: debug: 		->remove it
+2008-07-31 00:25:52.605: debug: 	Lifetime(259200 +/-150 sec) of active key 3615 exceeded (435285 sec)
+2008-07-31 00:25:52.605: debug: 		->depreciate it
+2008-07-31 00:25:52.605: debug: 		->activate published key 4254
+2008-07-31 00:25:52.605: notice: "sub.example.net.": lifetime of zone signing key 3615 exceeded: ZSK rollover done
+2008-07-31 00:25:52.605: debug: 	New key for publishing needed
+2008-07-31 00:25:53.128: debug: 		->creating new key 56744
+2008-07-31 00:25:53.128: info: "sub.example.net.": new key 56744 generated for publishing
+2008-07-31 00:25:53.128: debug: 	Re-signing necessary: New zone key
+2008-07-31 00:25:53.128: notice: "sub.example.net.": re-signing triggered: New zone key
+2008-07-31 00:25:53.128: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-31 00:25:53.128: debug: 	Signing zone "sub.example.net."
+2008-07-31 00:25:53.128: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-31 00:25:53.332: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-31 00:25:53.332: debug: 	Signing completed after 0s.
+2008-07-31 00:25:53.332: debug: 
+2008-07-31 00:25:53.332: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-31 00:25:53.332: debug: 	Check RFC5011 status
+2008-07-31 00:25:53.332: debug: 	Check ZSK status
+2008-07-31 00:25:53.332: debug: 	Re-signing necessary: re-signing interval (2d) reached
+2008-07-31 00:25:53.332: notice: "example.net.": re-signing triggered: re-signing interval (2d) reached
+2008-07-31 00:25:53.332: debug: 	Writing key file "./example.net./dnskey.db"
+2008-07-31 00:25:53.333: debug: 	Incrementing serial number in file "./example.net./zone.db"
+2008-07-31 00:25:53.333: debug: 	Signing zone "example.net."
+2008-07-31 00:25:53.333: debug: 	  Run cmd "cd ./example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o example.net. -e +518400  zone.db K*.private"
+2008-07-31 00:25:53.477: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-31 00:25:53.477: debug: 	Signing completed after 0s.
+2008-07-31 00:25:53.477: debug: 
+2008-07-31 00:25:53.477: notice: end of run: 0 errors occured
+2008-07-31 13:19:17.447: notice: ------------------------------------------------------------
+2008-07-31 13:19:17.447: notice: running ../../dnssec-signer -v -v 
+2008-07-31 13:19:17.449: debug: parsing zone "sub.example.net." in dir "./sub.example.net."
+2008-07-31 13:19:17.449: debug: 	Check RFC5011 status
+2008-07-31 13:19:17.450: debug: 		->not a rfc5011 zone, looking for a regular ksk rollover
+2008-07-31 13:19:17.450: debug: 	Check KSK status
+2008-07-31 13:19:17.450: debug: 	Check ZSK status
+2008-07-31 13:19:17.450: debug: 	Lifetime(390 sec) of depreciated key 3615 exceeded (46405 sec)
+2008-07-31 13:19:17.450: info: "sub.example.net.": old ZSK 3615 removed
+2008-07-31 13:19:17.450: debug: 		->remove it
+2008-07-31 13:19:17.450: debug: 	Re-signing necessary: New zone key
+2008-07-31 13:19:17.451: notice: "sub.example.net.": re-signing triggered: New zone key
+2008-07-31 13:19:17.451: debug: 	Writing key file "./sub.example.net./dnskey.db"
+2008-07-31 13:19:17.451: debug: 	Signing zone "sub.example.net."
+2008-07-31 13:19:17.451: debug: 	  Run cmd "cd ./sub.example.net.; /usr/local/sbin/dnssec-signzone  -g -p -d ../keysets -o sub.example.net. -e +172800 -l dlv.trusted-keys.de -N unixtime zone.db K*.private"
+2008-07-31 13:19:17.943: debug: 	  Cmd dnssec-signzone return: "zone.db.signed"
+2008-07-31 13:19:17.944: debug: 	Signing completed after 0s.
+2008-07-31 13:19:17.944: debug: 
+2008-07-31 13:19:17.944: debug: parsing zone "example.net." in dir "./example.net."
+2008-07-31 13:19:17.944: debug: 	Check RFC5011 status
+2008-07-31 13:19:17.944: debug: 	Check ZSK status
+2008-07-31 13:19:17.944: debug: 	Re-signing not necessary!
+2008-07-31 13:19:17.944: debug: 	Check if there is a parent file to copy
+2008-07-31 13:19:17.944: debug: 
+2008-07-31 13:19:17.945: notice: end of run: 0 errors occured
