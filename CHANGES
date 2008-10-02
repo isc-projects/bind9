@@ -1,3 +1,5 @@
+2459.	[contrib]	Import dnssec-zkt to contrib/zkt. [RT #18448]
+
 2458.	[doc]		ARM: update and correction for max-cache-size.
 			[RT #18294]
 
