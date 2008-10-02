@@ -1,3 +1,8 @@
+	--- 9.6.0a1 released ---
+
+2460.	[bug]		Don't call dns_db_getnsec3parameters() on the cache.
+			[RT #18697]
+
 2459.	[contrib]	Import dnssec-zkt to contrib/zkt. [RT #18448]
 
 2458.	[doc]		ARM: update and correction for max-cache-size.
@@ -11,8 +16,6 @@
 			address, regardless of family.  They now correctly
 			distinguish IPv4 from IPv6.  [RT #18559]
                         
-	--- 9.6.0a1 released ---
-
 2455.	[bug]		Stop metadata being transfered via axfr/ixfr.
 			[RT #18639]
 
