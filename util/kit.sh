@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: kit.sh,v 1.31 2007/06/19 23:47:24 tbox Exp $
+# $Id: kit.sh,v 1.32 2008/10/02 06:31:59 marka Exp $
 
 # Make a release kit
 #
@@ -122,9 +122,12 @@ rm -rf TODO EXCLUDED conftools util doc/design doc/dev doc/expired \
 find . -name .cvsignore -print | xargs rm
 
 # The following files should be executable.
-chmod +x configure install-sh mkinstalldirs \
-	 lib/bind/configure lib/bind/mkinstalldirs \
-	 bin/tests/system/ifconfig.sh
+chmod +x configure install-sh mkinstalldirs bin/tests/system/ifconfig.sh
+# Fix up releases with libbind.
+if test -f lib/bind/configure
+then
+	 chmod +x lib/bind/configure lib/bind/mkinstalldirs
+fi
 
 # Fix files which should be using DOS style newlines
 windirs=`find lib bin -type d -name win32`
