@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.17.18.21 2007/08/28 07:19:55 tbox Exp $ -->
+<!-- $Id: dig.docbook,v 1.17.18.22 2008/10/03 22:09:56 marka Exp $ -->
 <refentry id="man.dig">
 
   <refentryinfo>
@@ -118,8 +118,8 @@
     </para>
 
     <para>
-      When no command line arguments or options are given, will perform an
-      NS query for "." (the root).
+      When no command line arguments or options are given,
+      <command>dig</command> will perform an NS query for "." (the root).
     </para>
 
     <para>
@@ -132,8 +132,8 @@
     <para>
       The IN and CH class names overlap with the IN and CH top level
       domains names.  Either use the <option>-t</option> and
-      <option>-c</option> options to specify the type and class or
-      use the <option>-q</option> the specify the domain name or
+      <option>-c</option> options to specify the type and class, 
+      use the <option>-q</option> the specify the domain name, or
       use "IN." and "CH." when looking up these top level domains.
     </para>
 
