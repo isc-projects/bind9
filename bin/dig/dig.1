@@ -1,4 +1,4 @@
-.\" Copyright (C) 2004-2007 Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (C) 2004-2008 Internet Systems Consortium, Inc. ("ISC")
 .\" Copyright (C) 2000-2003 Internet Software Consortium.
 .\" 
 .\" Permission to use, copy, modify, and distribute this software for any
@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dig.1,v 1.14.2.4.2.18 2007/05/16 06:10:54 marka Exp $
+.\" $Id: dig.1,v 1.14.2.4.2.19 2008/10/04 01:20:09 tbox Exp $
 .\"
 .hy 0
 .ad l
@@ -59,7 +59,9 @@ Unless it is told to query a specific name server,
 will try each of the servers listed in
 \fI/etc/resolv.conf\fR.
 .PP
-When no command line arguments or options are given, will perform an NS query for "." (the root).
+When no command line arguments or options are given,
+\fBdig\fR
+will perform an NS query for "." (the root).
 .PP
 It is possible to set per\-user defaults for
 \fBdig\fR
@@ -70,7 +72,7 @@ The IN and CH class names overlap with the IN and CH top level domains names. Ei
 \fB\-t\fR
 and
 \fB\-c\fR
-options to specify the type and class or use "IN." and "CH." when looking up these top level domains.
+options to specify the type and class, or use "IN." and "CH." when looking up these top level domains.
 .SH "SIMPLE USAGE"
 .PP
 A typical invocation of
@@ -517,7 +519,7 @@ RFC1035.
 .PP
 There are probably too many query options.
 .SH "COPYRIGHT"
-Copyright \(co 2004\-2007 Internet Systems Consortium, Inc. ("ISC")
+Copyright \(co 2004\-2008 Internet Systems Consortium, Inc. ("ISC")
 .br
 Copyright \(co 2000\-2003 Internet Software Consortium.
 .br
