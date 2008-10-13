@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.452 $)
+AC_REVISION($Revision: 1.453 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -1206,7 +1206,7 @@ AC_SUBST(PURIFY)
 # GNU libtool support
 #
 case $host in
-sunos*)
+*-sunos*)
     # Just set the maximum command line length for sunos as it otherwise
     # takes a exceptionally long time to work it out. Required for libtool.
     lt_cv_sys_max_cmd_len=4096;

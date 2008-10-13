@@ -1,3 +1,5 @@
+2461.	[port]		sunos: Change #2363 was not complete. [RT #17513]
+
 	--- 9.6.0a1 released ---
 
 2460.	[bug]		Don't call dns_db_getnsec3parameters() on the cache.
