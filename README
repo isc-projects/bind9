@@ -307,6 +307,10 @@ Building
 	To build libbind (the BIND 8 resolver library), specify
 	"--enable-libbind" on the configure command line.
 
+	On some platforms it is necessary to explictly request large
+	file support to handle files bigger than 2GB.  This can be
+	done by "--enable-largefile" on the configure command line.
+
 	On some platforms, BIND 9 can be built with multithreading
 	support, allowing it to take advantage of multiple CPUs.
 	You can specify whether to build a multithreaded BIND 9 
