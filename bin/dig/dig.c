@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.157.2.13.2.37 2008/04/28 23:45:35 tbox Exp $ */
+/* $Id: dig.c,v 1.157.2.13.2.38 2008/10/14 00:55:00 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -147,6 +147,7 @@ help(void) {
 "                 -y name:key         (specify named base64 tsig key)\n"
 "                 -4                  (use IPv4 query transport only)\n"
 "                 -6                  (use IPv6 query transport only)\n"
+"                 -m                  (enable memory usage debugging)\n"
 "        d-opt    is of the form +keyword[=value], where keyword is:\n"
 "                 +[no]vc             (TCP mode)\n"
 "                 +[no]tcp            (TCP mode, alternate syntax)\n"

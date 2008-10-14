@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.4.2.7.4.22 2008/10/03 23:45:29 tbox Exp $ -->
+<!-- $Id: dig.docbook,v 1.4.2.7.4.23 2008/10/14 00:55:01 marka Exp $ -->
 
 <refentry>
 
@@ -63,6 +63,7 @@
 <arg><option>-c <replaceable class="parameter">class</replaceable></option></arg>
 <arg><option>-f <replaceable class="parameter">filename</replaceable></option></arg>
 <arg><option>-k <replaceable class="parameter">filename</replaceable></option></arg>
+<arg><option>-m</option></arg>
 <arg><option>-p <replaceable class="parameter">port#</replaceable></option></arg>
 <arg><option>-t <replaceable class="parameter">type</replaceable></option></arg>
 <arg><option>-x <replaceable class="parameter">addr</replaceable></option></arg>
@@ -200,6 +201,12 @@ queries, one per line.  Each entry in the file should be organized in
 the same way they would be presented as queries to
 <command>dig</command> using the command-line interface.
 </para>
+
+      <para>
+	The <option>-m</option> option enables memory usage debugging.
+	<!-- It enables ISC_MEM_DEBUGTRACE and ISC_MEM_DEBUGRECORD
+	     documented in include/isc/mem.h -->
+      </para>
 
 <para>
 If a non-standard port number is to be queried, the
