@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.186.18.31 2008/02/05 23:46:09 tbox Exp $ */
+/* $Id: dig.c,v 1.186.18.32 2008/10/14 00:54:40 marka Exp $ */
 
 /*! \file */
 
@@ -156,6 +156,7 @@ help(void) {
 "                 -y [hmac:]name:key  (specify named base64 tsig key)\n"
 "                 -4                  (use IPv4 query transport only)\n"
 "                 -6                  (use IPv6 query transport only)\n"
+"                 -m                  (enable memory usage debugging)\n"
 "        d-opt    is of the form +keyword[=value], where keyword is:\n"
 "                 +[no]vc             (TCP mode)\n"
 "                 +[no]tcp            (TCP mode, alternate syntax)\n"
