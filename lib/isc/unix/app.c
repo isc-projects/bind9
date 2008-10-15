@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.58 2008/06/23 19:41:19 jinmei Exp $ */
+/* $Id: app.c,v 1.59 2008/10/15 03:21:22 marka Exp $ */
 
 /*! \file */
 
@@ -435,10 +435,10 @@ isc_app_run(void) {
 #ifdef ISC_PLATFORM_USETHREADS
 	sigset_t sset;
 	char strbuf[ISC_STRERRORSIZE];
-#endif /* ISC_PLATFORM_USETHREADS */
 #ifdef HAVE_SIGWAIT
 	int sig;
 #endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 #ifdef HAVE_LINUXTHREADS
 	REQUIRE(main_thread == pthread_self());
