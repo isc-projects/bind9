@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.215.18.22 2008/05/05 23:46:05 tbox Exp $ */
+/* $Id: adb.c,v 1.215.18.23 2008/10/15 04:26:22 marka Exp $ */
 
 /*! \file
  *
@@ -3143,8 +3143,10 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 		address_type = DNS_ADBFIND_INET6;
 		fetch = name->fetch_aaaa;
 		name->fetch_aaaa = NULL;
-	}
-	INSIST(address_type != 0);
+	} else
+		fetch = NULL;
+
+	INSIST(address_type != 0 && fetch != NULL);
 
 	dns_resolver_destroyfetch(&fetch->fetch);
 	dev->fetch = NULL;
