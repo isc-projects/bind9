@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-keygen.docbook,v 1.19 2007/06/18 23:47:17 tbox Exp $ -->
+<!-- $Id: dnssec-keygen.docbook,v 1.19.130.1 2008/10/15 01:16:59 marka Exp $ -->
 <refentry id="man.dnssec-keygen">
   <refentryinfo>
     <date>June 30, 2000</date>
@@ -340,9 +340,9 @@
         <refentrytitle>dnssec-signzone</refentrytitle><manvolnum>8</manvolnum>
       </citerefentry>,
       <citetitle>BIND 9 Administrator Reference Manual</citetitle>,
-      <citetitle>RFC 2535</citetitle>,
+      <citetitle>RFC 2539</citetitle>,
       <citetitle>RFC 2845</citetitle>,
-      <citetitle>RFC 2539</citetitle>.
+      <citetitle>RFC 4033</citetitle>.
     </para>
   </refsect1>
 
