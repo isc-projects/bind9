@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.95 2008/09/27 23:47:40 jinmei Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.96 2008/10/15 22:27:52 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -5654,11 +5654,12 @@ options {
 		  to address (A or AAAA) records and that glue
 		  address records exist for delegated zones.  For
 		  MX and SRV records only in-zone hostnames are
-		  checked (for out-of-zone hostnames use named-checkzone).
+		  checked (for out-of-zone hostnames use
+		  <command>named-checkzone</command>).
 		  For NS records only names below top of zone are
 		  checked (for out-of-zone names and glue consistency
-		  checks use named-checkzone).  The default is
-		  <command>yes</command>.
+		  checks use <command>named-checkzone</command>).
+	          The default is <command>yes</command>.
 		</para>
 	      </listitem>
 	    </varlistentry>
