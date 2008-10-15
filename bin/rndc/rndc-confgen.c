@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc-confgen.c,v 1.24 2007/06/18 23:47:25 tbox Exp $ */
+/* $Id: rndc-confgen.c,v 1.25 2008/10/15 03:03:57 marka Exp $ */
 
 /*! \file */
 
@@ -62,7 +62,7 @@
 #define DEFAULT_PORT		953
 
 static char program[256];
-char *progname;
+const char *progname;
 
 isc_boolean_t verbose = ISC_FALSE;
 
