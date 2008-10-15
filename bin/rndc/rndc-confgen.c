@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc-confgen.c,v 1.9.2.6.2.5 2004/09/28 07:14:57 marka Exp $ */
+/* $Id: rndc-confgen.c,v 1.9.2.6.2.6 2008/10/15 03:08:15 marka Exp $ */
 
 #include <config.h>
 
@@ -51,7 +51,7 @@
 #define DEFAULT_PORT		953
 
 static char program[256];
-char *progname;
+const char *progname;
 
 isc_boolean_t verbose = ISC_FALSE;
 

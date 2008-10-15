@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.77.2.5.2.19 2006/08/04 03:03:08 marka Exp $ */
+/* $Id: rndc.c,v 1.77.2.5.2.20 2008/10/15 03:08:15 marka Exp $ */
 
 /*
  * Principal Author: DCL
@@ -56,7 +56,7 @@
 
 #define SERVERADDRS 10
 
-char *progname;
+const char *progname;
 isc_boolean_t verbose;
 
 static const char *admin_conffile;
