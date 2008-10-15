@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: assertions.h,v 1.24 2007/06/19 23:47:18 tbox Exp $
+ * $Id: assertions.h,v 1.25 2008/10/15 03:29:13 marka Exp $
  */
 /*! \file isc/assertions.h
  */
@@ -40,6 +40,7 @@ typedef enum {
 typedef void (*isc_assertioncallback_t)(const char *, int, isc_assertiontype_t,
 					const char *);
 
+/* coverity[+kill] */
 LIBISC_EXTERNAL_DATA extern isc_assertioncallback_t isc_assertion_failed;
 
 void
@@ -48,14 +49,14 @@ isc_assertion_setcallback(isc_assertioncallback_t);
 const char *
 isc_assertion_typetotext(isc_assertiontype_t type);
 
-#ifdef ISC_CHECK_ALL
+#if defined(ISC_CHECK_ALL) || defined(__COVERITY__)
 #define ISC_CHECK_REQUIRE		1
 #define ISC_CHECK_ENSURE		1
 #define ISC_CHECK_INSIST		1
 #define ISC_CHECK_INVARIANT		1
 #endif
 
-#ifdef ISC_CHECK_NONE
+#if defined(ISC_CHECK_NONE) && !defined(__COVERITY__)
 #define ISC_CHECK_REQUIRE		0
 #define ISC_CHECK_ENSURE		0
 #define ISC_CHECK_INSIST		0
