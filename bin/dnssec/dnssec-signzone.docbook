@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.docbook,v 1.2.2.2.4.16 2007/08/28 07:19:07 tbox Exp $ -->
+<!-- $Id: dnssec-signzone.docbook,v 1.2.2.2.4.17 2008/10/15 01:18:46 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -366,7 +366,7 @@ db.example.com.signed
 	<manvolnum>8</manvolnum>
       </citerefentry>,
       <citetitle>BIND 9 Administrator Reference Manual</citetitle>,
-      <citetitle>RFC 2535</citetitle>.
+      <citetitle>RFC 4033</citetitle>.
     </para>
   </refsect1>
 
