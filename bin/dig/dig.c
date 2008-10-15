@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.157.2.13.2.38 2008/10/14 00:55:00 marka Exp $ */
+/* $Id: dig.c,v 1.157.2.13.2.39 2008/10/15 02:20:32 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -67,7 +67,7 @@ static isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE,
 	ip6_int = ISC_FALSE, plusquest = ISC_FALSE, pluscomm = ISC_FALSE,
 	multiline = ISC_FALSE, nottl = ISC_FALSE, noclass = ISC_FALSE;
 
-static const char *opcodetext[] = {
+static const char * const opcodetext[] = {
 	"QUERY",
 	"IQUERY",
 	"STATUS",
@@ -86,7 +86,7 @@ static const char *opcodetext[] = {
 	"RESERVED15"
 };
 
-static const char *rcodetext[] = {
+static const char * const rcodetext[] = {
 	"NOERROR",
 	"FORMERR",
 	"SERVFAIL",
