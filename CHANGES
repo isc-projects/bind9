@@ -1,3 +1,6 @@
+2464.	[port]		linux: check that a capability is present before
+			trying to set it. [RT #18135]
+
 2463.   [port]          linux: POSIX doesn't include the IPv6 Advanced Socket
 			API and glibc hides parts of the IPv6 Advanced Socket
 			API as a result.  This is stupid as it breaks how the
