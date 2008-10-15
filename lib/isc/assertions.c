@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: assertions.c,v 1.17.18.2 2005/04/29 00:16:44 marka Exp $ */
+/* $Id: assertions.c,v 1.17.18.3 2008/10/15 03:31:03 marka Exp $ */
 
 /*! \file */
 
@@ -30,6 +30,7 @@
 /*%
  * Forward.
  */
+/* coverity[+kill] */
 static void
 default_callback(const char *, int, isc_assertiontype_t, const char *);
 
