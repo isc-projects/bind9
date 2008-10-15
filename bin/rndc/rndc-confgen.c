@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc-confgen.c,v 1.25 2008/10/15 03:03:57 marka Exp $ */
+/* $Id: rndc-confgen.c,v 1.26 2008/10/15 23:47:31 tbox Exp $ */
 
 /*! \file */
 
@@ -148,7 +148,7 @@ main(int argc, char **argv) {
 	isc_boolean_t keyonly = ISC_FALSE;
 	int len;
 
- 	keydef = keyfile = RNDC_KEYFILE;
+	keydef = keyfile = RNDC_KEYFILE;
 
 	result = isc_file_progname(*argv, program, sizeof(program));
 	if (result != ISC_R_SUCCESS)
@@ -293,7 +293,7 @@ main(int argc, char **argv) {
 				fatal("isc_mem_get(%d) failed\n", len);
 			snprintf(buf, len, "%s%s%s", chrootdir,
 				 (*keyfile != '/') ? "/" : "", keyfile);
-			
+
 			write_key_file(buf, user, keyname, &key_txtbuffer);
 			isc_mem_put(mctx, buf, len);
 		}
