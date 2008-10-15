@@ -178,7 +178,7 @@
 ./bin/rndc/Makefile.in				MAKE	2000,2001,2002,2004,2007
 ./bin/rndc/include/rndc/os.h			C	2001,2004,2005,2007
 ./bin/rndc/rndc-confgen.8			MAN	DOCBOOK
-./bin/rndc/rndc-confgen.c			C	2001,2003,2004,2005,2007
+./bin/rndc/rndc-confgen.c			C	2001,2003,2004,2005,2007,2008
 ./bin/rndc/rndc-confgen.docbook			SGML	2001,2003,2004,2005,2007
 ./bin/rndc/rndc-confgen.html			HTML	DOCBOOK
 ./bin/rndc/rndc.8				MAN	DOCBOOK
@@ -1827,7 +1827,7 @@
 ./lib/isc/alpha/include/isc/Makefile.in		MAKE	2007
 ./lib/isc/alpha/include/isc/atomic.h		C	2005,2007
 ./lib/isc/api					X	1999,2000,2001,2006,2008
-./lib/isc/assertions.c				C	1997,1998,1999,2000,2001,2004,2005,2007
+./lib/isc/assertions.c				C	1997,1998,1999,2000,2001,2004,2005,2007,2008
 ./lib/isc/base32.c				C	2008
 ./lib/isc/base64.c				C	1998,1999,2000,2001,2003,2004,2005,2007
 ./lib/isc/bitstring.c				C	1999,2000,2001,2004,2005,2007
@@ -1856,7 +1856,7 @@
 ./lib/isc/include/isc/.cvsignore		X	1998,1999,2000,2001
 ./lib/isc/include/isc/Makefile.in		MAKE	1998,1999,2000,2001,2003,2004,2005,2006,2007
 ./lib/isc/include/isc/app.h			C	1999,2000,2001,2004,2005,2006,2007
-./lib/isc/include/isc/assertions.h		C	1997,1998,1999,2000,2001,2004,2005,2006,2007
+./lib/isc/include/isc/assertions.h		C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2008
 ./lib/isc/include/isc/base32.h			C	2008
 ./lib/isc/include/isc/base64.h			C	1999,2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/bitstring.h		C	1999,2000,2001,2004,2005,2006,2007
