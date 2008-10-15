@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.50.18.7 2008/10/15 03:20:45 marka Exp $ */
+/* $Id: app.c,v 1.50.18.8 2008/10/15 03:41:17 marka Exp $ */
 
 /*! \file */
 
@@ -300,7 +300,7 @@ isc_app_onrun(isc_mem_t *mctx, isc_task_t *task, isc_taskaction_t action,
  * Event loop for nonthreaded programs.
  */
 static isc_result_t
-evloop() {
+evloop(void) {
 	isc_result_t result;
 	while (!want_shutdown) {
 		int n;
