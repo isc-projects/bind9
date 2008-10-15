@@ -1,3 +1,10 @@
+2463.   [port]          linux: POSIX doesn't include the IPv6 Advanced Socket
+			API and glibc hides parts of the IPv6 Advanced Socket
+			API as a result.  This is stupid as it breaks how the
+			two halves (Basic and Advanced) of the IPv6 Socket API				were designed to be used but we have to live with it.
+			Define _GNU_SOURCE to pull in the IPv6 Advanced Socket
+			API. [RT #18388]
+
 2462.	[doc]		Document -m (enable memory usage debugging)
 			option for dig. [RT #18757]
 
