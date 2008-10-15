@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.186.18.32 2008/10/14 00:54:40 marka Exp $ */
+/* $Id: dig.c,v 1.186.18.33 2008/10/15 02:19:18 marka Exp $ */
 
 /*! \file */
 
@@ -71,7 +71,7 @@ static isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE,
 	multiline = ISC_FALSE, nottl = ISC_FALSE, noclass = ISC_FALSE;
 
 /*% opcode text */
-static const char *opcodetext[] = {
+static const char * const opcodetext[] = {
 	"QUERY",
 	"IQUERY",
 	"STATUS",
@@ -91,7 +91,7 @@ static const char *opcodetext[] = {
 };
 
 /*% return code text */
-static const char *rcodetext[] = {
+static const char * const rcodetext[] = {
 	"NOERROR",
 	"FORMERR",
 	"SERVFAIL",
