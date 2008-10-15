@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.96.18.20 2008/07/23 23:33:02 marka Exp $ */
+/* $Id: rndc.c,v 1.96.18.21 2008/10/15 03:07:19 marka Exp $ */
 
 /*! \file */
 
@@ -61,7 +61,7 @@
 
 #define SERVERADDRS 10
 
-char *progname;
+const char *progname;
 isc_boolean_t verbose;
 
 static const char *admin_conffile;
