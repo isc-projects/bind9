@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.298.48.7 2008/04/29 00:56:50 marka Exp $ */
+/* $Id: query.c,v 1.298.48.8 2008/10/15 22:40:34 marka Exp $ */
 
 /*! \file */
 
@@ -3383,6 +3383,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	empty_wild = ISC_FALSE;
 	options = 0;
 	resuming = ISC_FALSE;
+	is_zone = ISC_FALSE;
 
 	if (event != NULL) {
 		/*
@@ -3392,7 +3393,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 
 		want_restart = ISC_FALSE;
 		authoritative = ISC_FALSE;
-		is_zone = ISC_FALSE;
 
 		qtype = event->qtype;
 		if (qtype == dns_rdatatype_rrsig || qtype == dns_rdatatype_sig)
