@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.310 2008/09/24 03:16:57 tbox Exp $ */
+/* $Id: query.c,v 1.312 2008/10/15 02:37:11 marka Exp $ */
 
 /*! \file */
 
@@ -2721,6 +2721,8 @@ query_addds(ns_client_t *client, dns_db_t *db, dns_dbnode_t *node,
 	return;
 
    addnsec3:
+	if (dns_db_iscache(db))
+		goto cleanup;
 	/*
 	 * Add the NSEC3 which proves the DS does not exist.
 	 */
@@ -3691,6 +3693,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	empty_wild = ISC_FALSE;
 	options = 0;
 	resuming = ISC_FALSE;
+	is_zone = ISC_FALSE;
 
 	if (event != NULL) {
 		/*
@@ -3700,7 +3703,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 
 		want_restart = ISC_FALSE;
 		authoritative = ISC_FALSE;
-		is_zone = ISC_FALSE;
 
 		qtype = event->qtype;
 		if (qtype == dns_rdatatype_rrsig || qtype == dns_rdatatype_sig)

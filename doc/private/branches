@@ -157,6 +157,8 @@ rt18374_v9_5			new	mayer	// 2008-07-28 13:32 +0000
 rt18411				new	
 rt18441				new	each	// 2008-08-15 17:02 +0000
 rt18493				new	
+rt18516				new	
+rt18559				new	each	// 2008-09-26 03:54 +0000
 rt18578				new	dhankins	// 2008-09-05 18:56 +0000
 rt18632				new	mayer	// 2008-09-24 03:10 +0000
 rt18634				new	mayer	// 2008-09-16 03:47 +0000
@@ -207,6 +209,7 @@ v9_4_2_P2_danny			new
 v9_4_2_P2_michael		new	
 v9_4_2_P2_win32			new	each	// 2008-08-21 00:20 +0000
 v9_4_2_patch			new	
+v9_4_2_patch_attservfail	new	
 v9_5				new	marka	// 2008-01-02 04:47 +0000
 v9_5_0_P2_W1			new	mayer	// 2008-08-16 21:14 +0000
 v9_5_0_P2_danny			new	

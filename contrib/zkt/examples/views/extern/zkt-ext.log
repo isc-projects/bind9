@@ -1,0 +1,28 @@
+2008-06-12 17:59:04.194: notice: running as ../../dnssec-signer -V extern -v -v
+2008-06-12 17:59:04.195: debug: parsing zone "example.net." in dir "extern/example.net."
+2008-06-12 17:59:04.196: debug: 	Check RFC5011 status
+2008-06-12 17:59:04.196: debug: 		->ksk5011status returns 0
+2008-06-12 17:59:04.196: debug: 	Check ksk status
+2008-06-12 17:59:04.196: debug: 	Re-signing not necessary!
+2008-06-12 17:59:04.196: notice: end of run: 0 errors occured
+2008-06-12 17:59:17.435: notice: running as ../../dnssec-signer -V extern -v -v
+2008-06-12 17:59:17.436: debug: parsing zone "example.net." in dir "extern/example.net."
+2008-06-12 17:59:17.436: debug: 	Check RFC5011 status
+2008-06-12 17:59:17.436: debug: 		->ksk5011status returns 0
+2008-06-12 17:59:17.436: debug: 	Check ksk status
+2008-06-12 17:59:17.436: debug: 	Re-signing not necessary!
+2008-06-12 17:59:17.436: notice: end of run: 0 errors occured
+2008-06-12 18:00:07.818: notice: running as ../../dnssec-signer -V extern -v -v
+2008-06-12 18:00:07.819: debug: parsing zone "example.net." in dir "extern/example.net."
+2008-06-12 18:00:07.819: debug: 	Check RFC5011 status
+2008-06-12 18:00:07.819: debug: 		->ksk5011status returns 0
+2008-06-12 18:00:07.819: debug: 	Check ksk status
+2008-06-12 18:00:07.819: debug: 	Re-signing not necessary!
+2008-06-12 18:00:07.819: notice: end of run: 0 errors occured
+2008-06-12 18:00:39.019: notice: running as ../../dnssec-signer -V extern -v -v
+2008-06-12 18:00:39.020: debug: parsing zone "example.net." in dir "extern/example.net."
+2008-06-12 18:00:39.020: debug: 	Check RFC5011 status
+2008-06-12 18:00:39.020: debug: 		->ksk5011status returns 0
+2008-06-12 18:00:39.020: debug: 	Check ksk status
+2008-06-12 18:00:39.020: debug: 	Re-signing not necessary!
+2008-06-12 18:00:39.020: notice: end of run: 0 errors occured

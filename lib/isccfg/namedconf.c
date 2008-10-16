@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.91 2008/09/24 02:46:23 marka Exp $ */
+/* $Id: namedconf.c,v 1.92 2008/09/27 23:35:31 jinmei Exp $ */
 
 /*! \file */
 
@@ -820,7 +820,7 @@ view_clauses[] = {
 	{ "ixfr-from-differences", &cfg_type_ixfrdifftype, 0 },
 	{ "lame-ttl", &cfg_type_uint32, 0 },
 	{ "max-acache-size", &cfg_type_sizenodefault, 0 },
-	{ "max-cache-size", &cfg_type_size, 0 },
+	{ "max-cache-size", &cfg_type_sizenodefault, 0 },
 	{ "max-cache-ttl", &cfg_type_uint32, 0 },
 	{ "max-clients-per-query", &cfg_type_uint32, 0 },
 	{ "max-ncache-ttl", &cfg_type_uint32, 0 },

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.c,v 1.48 2008/09/26 16:44:49 each Exp $ */
+/* $Id: acl.c,v 1.50 2008/09/26 23:47:06 tbox Exp $ */
 
 /*! \file */
 
@@ -150,7 +150,7 @@ dns_acl_isanyornone(dns_acl_t *acl, isc_boolean_t pos)
 	if (acl->iptable->radix->head->prefix->bitlen == 0 &&
 	    acl->iptable->radix->head->data[0] != NULL &&
 	    acl->iptable->radix->head->data[0] ==
-                    acl->iptable->radix->head->data[1] &&
+		    acl->iptable->radix->head->data[1] &&
 	    *(isc_boolean_t *) (acl->iptable->radix->head->data[0]) == pos)
 		return (ISC_TRUE);
 
@@ -223,8 +223,6 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
 
 	/* Found a match. */
 	if (result == ISC_R_SUCCESS && node != NULL) {
-		if (node->bit == 0)
-			family = AF_INET;
 		match_num = node->node_num[ISC_IS6(family)];
 		if (*(isc_boolean_t *) node->data[ISC_IS6(family)] == ISC_TRUE)
 			*match = match_num;
@@ -498,9 +496,8 @@ is_insecure(isc_prefix_t *prefix, void **data) {
 	isc_boolean_t secure;
 	int bitlen, family;
 
-	/* Bitlen 0 means "any" or "none", which is always treated as IPv4 */
 	bitlen = prefix->bitlen;
-	family = bitlen ? prefix->family : AF_INET;
+	family = prefix->family;
 
 	/* Negated entries are always secure. */
 	secure = * (isc_boolean_t *)data[ISC_IS6(family)];

@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-keyfromlabel.docbook,v 1.4 2008/09/24 02:46:21 marka Exp $ -->
+<!-- $Id: dnssec-keyfromlabel.docbook,v 1.5 2008/10/14 14:32:50 jreed Exp $ -->
 <refentry id="man.dnssec-keyfromlabel">
   <refentryinfo>
     <date>february 8, 2008</date>
@@ -246,9 +246,9 @@
         <refentrytitle>dnssec-signzone</refentrytitle><manvolnum>8</manvolnum>
       </citerefentry>,
       <citetitle>BIND 9 Administrator Reference Manual</citetitle>,
-      <citetitle>RFC 2535</citetitle>,
+      <citetitle>RFC 2539</citetitle>,
       <citetitle>RFC 2845</citetitle>,
-      <citetitle>RFC 2539</citetitle>.
+      <citetitle>RFC 4033</citetitle>.
     </para>
   </refsect1>
 
