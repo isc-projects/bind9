@@ -124,7 +124,7 @@
 ./bin/named/lwdnoop.c				C	2000,2001,2004,2005,2008
 ./bin/named/lwresd.8				MAN	DOCBOOK
 ./bin/named/lwresd.c				C	2000,2001,2002,2003,2004,2005,2006,2008
-./bin/named/lwresd.docbook			SGML	2000,2001,2004,2005,2007
+./bin/named/lwresd.docbook			SGML	2000,2001,2004,2005,2007,2008
 ./bin/named/lwresd.html				HTML	DOCBOOK
 ./bin/named/lwsearch.c				C	2000,2001,2004,2005
 ./bin/named/main.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2008
