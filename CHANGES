@@ -1,18 +1,3 @@
-2464.	[port]		linux: check that a capability is present before
-			trying to set it. [RT #18135]
-
-2463.   [port]          linux: POSIX doesn't include the IPv6 Advanced Socket
-			API and glibc hides parts of the IPv6 Advanced Socket
-			API as a result.  This is stupid as it breaks how the
-			two halves (Basic and Advanced) of the IPv6 Socket API				were designed to be used but we have to live with it.
-			Define _GNU_SOURCE to pull in the IPv6 Advanced Socket
-			API. [RT #18388]
-
-2462.	[doc]		Document -m (enable memory usage debugging)
-			option for dig. [RT #18757]
-
-2461.	[port]		sunos: Change #2363 was not complete. [RT #17513]
-
 	--- 9.6.0a1 released ---
 
 2460.	[bug]		Don't call dns_db_getnsec3parameters() on the cache.

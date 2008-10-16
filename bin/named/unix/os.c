@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.85 2008/10/15 05:00:57 marka Exp $ */
+/* $Id: os.c,v 1.84 2008/05/06 01:30:26 each Exp $ */
 
 /*! \file */
 
@@ -194,20 +194,16 @@ linux_setcaps(cap_t caps) {
 #define SET_CAP(flag) \
 	do { \
 		capval = (flag); \
-		cap_flag_value_t curval; \
-		err = cap_get_flag(cap_get_proc(), capval, CAP_PERMITTED, &curval); \
-		if (err != -1 && curval) { \
-			err = cap_set_flag(caps, CAP_EFFECTIVE, 1, &capval, CAP_SET); \
-			if (err == -1) { \
-				isc__strerror(errno, strbuf, sizeof(strbuf)); \
-				ns_main_earlyfatal("cap_set_proc failed: %s", strbuf); \
-			} \
-			\
-			err = cap_set_flag(caps, CAP_PERMITTED, 1, &capval, CAP_SET); \
-			if (err == -1) { \
-				isc__strerror(errno, strbuf, sizeof(strbuf)); \
-				ns_main_earlyfatal("cap_set_proc failed: %s", strbuf); \
-			} \
+		err = cap_set_flag(caps, CAP_EFFECTIVE, 1, &capval, CAP_SET); \
+		if (err == -1) { \
+			isc__strerror(errno, strbuf, sizeof(strbuf)); \
+			ns_main_earlyfatal("cap_set_proc failed: %s", strbuf); \
+		} \
+		\
+		err = cap_set_flag(caps, CAP_PERMITTED, 1, &capval, CAP_SET); \
+		if (err == -1) { \
+			isc__strerror(errno, strbuf, sizeof(strbuf)); \
+			ns_main_earlyfatal("cap_set_proc failed: %s", strbuf); \
 		} \
 	} while (0)
 #define INIT_CAP \

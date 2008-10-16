@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.223 2008/10/15 02:16:51 marka Exp $ */
+/* $Id: dig.c,v 1.221 2008/04/03 02:01:08 marka Exp $ */
 
 /*! \file */
 
@@ -71,7 +71,7 @@ static isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE,
 	multiline = ISC_FALSE, nottl = ISC_FALSE, noclass = ISC_FALSE;
 
 /*% opcode text */
-static const char * const opcodetext[] = {
+static const char *opcodetext[] = {
 	"QUERY",
 	"IQUERY",
 	"STATUS",
@@ -91,7 +91,7 @@ static const char * const opcodetext[] = {
 };
 
 /*% return code text */
-static const char * const rcodetext[] = {
+static const char *rcodetext[] = {
 	"NOERROR",
 	"FORMERR",
 	"SERVFAIL",
@@ -156,7 +156,6 @@ help(void) {
 "                 -y [hmac:]name:key  (specify named base64 tsig key)\n"
 "                 -4                  (use IPv4 query transport only)\n"
 "                 -6                  (use IPv6 query transport only)\n"
-"                 -m                  (enable memory usage debugging)\n"
 "        d-opt    is of the form +keyword[=value], where keyword is:\n"
 "                 +[no]vc             (TCP mode)\n"
 "                 +[no]tcp            (TCP mode, alternate syntax)\n"
