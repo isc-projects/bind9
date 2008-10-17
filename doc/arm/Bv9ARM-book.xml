@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.374 2008/10/15 13:42:44 jreed Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.375 2008/10/17 19:27:52 jreed Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -7425,6 +7425,10 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  Sets the maximum time for which the server will
                   cache ordinary (positive) answers. The default is
                   one week (7 days).
+		  A value of zero may cause all queries to return
+		  SERVFAIL, because of lost caches of intermediate
+		  RRsets (such as NS and glue AAAA/A records) in the
+		  resolution process.
                 </para>
               </listitem>
             </varlistentry>
