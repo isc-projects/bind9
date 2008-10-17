@@ -1,3 +1,6 @@
+2465.	[bug]		Adb's handling of lame addresses was different
+			for IPv4 and IPv6. [RT #18738]
+
 2463.   [port]          linux: POSIX doesn't include the IPv6 Advanced Socket
 			API and glibc hides parts of the IPv6 Advanced Socket
 			API as a result.  This is stupid as it breaks how the

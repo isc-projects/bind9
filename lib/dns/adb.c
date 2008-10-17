@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.181.2.11.2.40 2008/10/15 04:26:35 marka Exp $ */
+/* $Id: adb.c,v 1.181.2.11.2.41 2008/10/17 03:34:53 marka Exp $ */
 
 /*
  * Implementation notes
@@ -1731,8 +1731,11 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find, dns_name_t *zone,
 			bucket = entry->lock_bucket;
 			LOCK(&adb->entrylocks[bucket]);
 
-			if (entry_is_bad_for_zone(adb, entry, zone, now))
+			if (!FIND_RETURNLAME(find)
+			    && entry_is_bad_for_zone(adb, entry, zone, now)) {
+				find->options |= DNS_ADBFIND_LAMEPRUNED;
 				goto nextv6;
+			}
 			addrinfo = new_adbaddrinfo(adb, entry, find->port);
 			if (addrinfo == NULL) {
 				find->partial_result |= DNS_ADBFIND_INET6;
