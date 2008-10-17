@@ -1,3 +1,5 @@
+2467.	[bug]		Failure of fcntl(F_DUPFD) wasn't logged. [RT #18740]
+
 2466.	[doc]		ARM: explain max-cache-ttl 0 SERVFAIL issue.
 			[RT #18302]
 
