@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.18.4.84 2008/07/24 05:01:50 jinmei Exp $ */
+/* $Id: resolver.c,v 1.218.2.18.4.85 2008/10/17 22:03:37 jinmei Exp $ */
 
 #include <config.h>
 
@@ -363,6 +363,8 @@ static isc_result_t ncache_adderesult(dns_message_t *message,
 				      isc_result_t *eresultp);
 static void validated(isc_task_t *task, isc_event_t *event);
 static void maybe_destroy(fetchctx_t *fctx);
+static void add_bad(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
+		    isc_result_t reason);
 
 static isc_result_t
 valcreate(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo, dns_name_t *name,
@@ -873,6 +875,7 @@ process_sendevent(resquery_t *query, isc_event_t *event) {
 			/*
 			 * No route to remote.
 			 */
+			add_bad(fctx, query->addrinfo, sevent->result);
 			fctx_cancelquery(&query, NULL, NULL, ISC_TRUE);
 			retry = ISC_TRUE;
 			break;
