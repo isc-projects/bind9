@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.242 2008/10/15 04:22:30 marka Exp $ */
+/* $Id: adb.c,v 1.243 2008/10/17 03:23:13 marka Exp $ */
 
 /*! \file
  *
@@ -1737,8 +1737,11 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find, dns_name_t *qname,
 			bucket = entry->lock_bucket;
 			LOCK(&adb->entrylocks[bucket]);
 
-			if (entry_is_lame(adb, entry, qname, qtype, now))
+			if (!FIND_RETURNLAME(find)
+			    && entry_is_lame(adb, entry, qname, qtype, now)) {
+				find->options |= DNS_ADBFIND_LAMEPRUNED;
 				goto nextv6;
+			}
 			addrinfo = new_adbaddrinfo(adb, entry, find->port);
 			if (addrinfo == NULL) {
 				find->partial_result |= DNS_ADBFIND_INET6;
