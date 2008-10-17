@@ -1,3 +1,6 @@
+2468.	[bug]		Resolver could try unreachable servers multiple times.
+			[RT #18739]
+
 2467.	[bug]		Failure of fcntl(F_DUPFD) wasn't logged. [RT #18740]
 
 2466.	[doc]		ARM: explain max-cache-ttl 0 SERVFAIL issue.
