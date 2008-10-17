@@ -1,3 +1,6 @@
+2465.	[bug]		Adb's handling of lame addresses was different
+			for IPv4 and IPv6. [RT #18738]
+
 2464.	[port]		linux: check that a capability is present before
 			trying to set it. [RT #18135]
 
