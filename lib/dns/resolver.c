@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.355.12.25 2008/09/04 04:28:31 marka Exp $ */
+/* $Id: resolver.c,v 1.355.12.26 2008/10/17 22:01:00 jinmei Exp $ */
 
 /*! \file */
 
@@ -384,6 +384,8 @@ static isc_result_t ncache_adderesult(dns_message_t *message,
 				      isc_result_t *eresultp);
 static void validated(isc_task_t *task, isc_event_t *event);
 static void maybe_destroy(fetchctx_t *fctx);
+static void add_bad(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
+		    isc_result_t reason);
 
 /*%
  * Increment resolver-related statistics counters.
@@ -962,6 +964,7 @@ process_sendevent(resquery_t *query, isc_event_t *event) {
 			/*
 			 * No route to remote.
 			 */
+			add_bad(fctx, query->addrinfo, sevent->result);
 			fctx_cancelquery(&query, NULL, NULL, ISC_TRUE);
 			retry = ISC_TRUE;
 			break;
