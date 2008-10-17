@@ -1,3 +1,6 @@
+2466.	[doc]		ARM: explain max-cache-ttl 0 SERVFAIL issue.
+			[RT #18302]
+
 2465.	[bug]		Adb's handling of lame addresses was different
 			for IPv4 and IPv6. [RT #18738]
 
