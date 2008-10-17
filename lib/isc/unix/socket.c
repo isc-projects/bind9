@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.207.2.19.2.57 2008/09/23 23:45:31 tbox Exp $ */
+/* $Id: socket.c,v 1.207.2.19.2.58 2008/10/17 21:53:54 jinmei Exp $ */
 
 #include <config.h>
 
@@ -1841,6 +1841,13 @@ opensocket(isc_socketmgr_t *manager, isc_socket_t *sock) {
 		switch (errno) {
 		case EMFILE:
 		case ENFILE:
+			isc__strerror(errno, strbuf, sizeof(strbuf));
+			isc_log_iwrite(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+				       ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
+				       isc_msgcat, ISC_MSGSET_SOCKET,
+				       ISC_MSG_TOOMANYFDS,
+				       "%s: %s", err, strbuf);
+			/* fallthrough */
 		case ENOBUFS:
 			return (ISC_R_NORESOURCES);
 

@@ -1,3 +1,5 @@
+2467.	[bug]		Failure of fcntl(F_DUPFD) wasn't logged. [RT #18740]
+
 2465.	[bug]		Adb's handling of lame addresses was different
 			for IPv4 and IPv6. [RT #18738]
 
