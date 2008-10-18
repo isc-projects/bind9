@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.168.18.22 2008/10/16 01:39:58 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.168.18.23 2008/10/18 01:40:15 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -4147,6 +4147,10 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   Sets the maximum time for which the server will
                   cache ordinary (positive) answers. The default is
                   one week (7 days).
+                  A value of zero may cause all queries to return
+                  SERVFAIL, because of lost caches of intermediate
+                  RRsets (such as NS and glue AAAA/A records) in the
+                  resolution process.
                 </p></dd>
 <dt><span class="term"><span><strong class="command">min-roots</strong></span></span></dt>
 <dd>
@@ -6551,7 +6555,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2591438"></a>Textual expression of RRs</h4></div></div></div>
+<a name="id2591507"></a>Textual expression of RRs</h4></div></div></div>
 <p>
               RRs are represented in binary form in the packets of the DNS
               protocol, and are usually represented in highly encoded form
