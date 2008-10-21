@@ -16,7 +16,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.90.60.9 2008/08/05 07:13:54 marka Exp $ */
+/* $Id: config.h.in,v 1.90.60.12 2008/10/21 02:46:16 marka Exp $ */
 
 /*! \file */
 
@@ -159,6 +159,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to enable "rrset-order fixed" syntax. */
 #undef DNS_RDATASET_FIXED
+
+/* Solaris hack to get select_large_fdset. */
+#undef FD_SETSIZE
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
