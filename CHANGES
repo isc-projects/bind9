@@ -1,3 +1,6 @@
+2469.	[port]		solaris: Work around Solaris's select() limitations.
+			[RT #18769]
+
 2468.	[bug]		Resolver could try unreachable servers multiple times.
 			[RT #18739]
 

@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.455 $)
+AC_REVISION($Revision: 1.456 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -1167,6 +1167,16 @@ case "$host" in
 		AC_CHECK_LIB(socket, socket)
 		AC_CHECK_LIB(nsl, inet_ntoa)
 		;;
+esac
+
+#
+# Work around Solaris's select() limitations.
+#
+case "$host" in
+	*-solaris2.[[89]]|*-solaris2.1?)
+	AC_DEFINE(FD_SETSIZE, 65536,
+		  [Solaris hack to get select_large_fdset.])
+	;;
 esac
 
 #
