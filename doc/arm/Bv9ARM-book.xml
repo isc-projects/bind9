@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.375 2008/10/17 19:27:52 jreed Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.376 2008/10/21 05:25:59 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4598,7 +4598,6 @@ category notify { null; };
     <optional> max-ncache-ttl <replaceable>number</replaceable>; </optional>
     <optional> max-cache-ttl <replaceable>number</replaceable>; </optional>
     <optional> sig-validity-interval <replaceable>number</replaceable> ; </optional>
-    <optional> sig-re-signing-interval <replaceable>number</replaceable> ; </optional>
     <optional> sig-signing-nodes <replaceable>number</replaceable> ; </optional>
     <optional> sig-signing-signatures <replaceable>number</replaceable> ; </optional>
     <optional> sig-signing-type <replaceable>number</replaceable> ; </optional>
@@ -8484,7 +8483,6 @@ view "external" {
     <optional> notify-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> zone-statistics <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> sig-validity-interval <replaceable>number</replaceable> ; </optional>
-    <optional> sig-re-signing-interval <replaceable>number</replaceable> ; </optional>
     <optional> sig-signing-nodes <replaceable>number</replaceable> ; </optional>
     <optional> sig-signing-signatures <replaceable>number</replaceable> ; </optional>
     <optional> sig-signing-type <replaceable>number</replaceable> ; </optional>
@@ -9231,16 +9229,6 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                   <para>
                     See the description of
                     <command>sig-validity-interval</command> in <xref linkend="tuning"/>.
-                  </para>
-                </listitem>
-              </varlistentry>
-
-              <varlistentry>
-                <term><command>sig-re-signing-interval</command></term>
-                <listitem>
-                  <para>
-                    See the description of
-                    <command>sig-re-signing-interval</command> in <xref linkend="tuning"/>.
                   </para>
                 </listitem>
               </varlistentry>
