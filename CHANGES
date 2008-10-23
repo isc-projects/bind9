@@ -1,5 +1,5 @@
 2470.	[bug]		Elements of the isc_radix_node_t could be incorrectly
-			overwritten.  [RE# 18719]
+			overwritten.  [RT# 18719]
 
 2469.	[port]		solaris: Work around Solaris's select() limitations.
 			[RT #18769]
