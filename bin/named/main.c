@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.158.48.4 2008/10/24 01:11:41 marka Exp $ */
+/* $Id: main.c,v 1.158.48.5 2008/10/24 01:28:28 marka Exp $ */
 
 /*! \file */
 
@@ -33,6 +33,7 @@
 #include <isc/hash.h>
 #include <isc/os.h>
 #include <isc/platform.h>
+#include <isc/print.h>
 #include <isc/resource.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
@@ -561,6 +562,7 @@ destroy_managers(void) {
 static void
 setup(void) {
 	isc_result_t result;
+	isc_resourcevalue_t old_openfiles;
 #ifdef HAVE_LIBSCF
 	char *instance = NULL;
 #endif
@@ -672,6 +674,23 @@ setup(void) {
 				    &ns_g_initcoresize);
 	(void)isc_resource_getlimit(isc_resource_openfiles,
 				    &ns_g_initopenfiles);
+
+	/*
+	 * System resources cannot effectively be tuned on some systems.
+	 * Raise the limit in such cases for safety.
+	 */
+	old_openfiles = ns_g_initopenfiles;
+	ns_os_adjustnofile();
+	(void)isc_resource_getlimit(isc_resource_openfiles,
+				    &ns_g_initopenfiles);
+	if (old_openfiles != ns_g_initopenfiles) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+			      "adjusted limit on open files from "
+			      "%" ISC_PRINT_QUADFORMAT "u to "
+			      "%" ISC_PRINT_QUADFORMAT "u",
+			      old_openfiles, ns_g_initopenfiles);
+	}
 
 	/*
 	 * If the named configuration filename is relative, prepend the current
