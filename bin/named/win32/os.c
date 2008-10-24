@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.5.2.3.8.18 2008/01/17 23:45:27 tbox Exp $ */
+/* $Id: os.c,v 1.5.2.3.8.19 2008/10/24 01:28:55 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -163,6 +163,10 @@ ns_os_inituserinfo(const char *username) {
 
 void
 ns_os_changeuser(void) {
+}
+
+void
+ns_os_adjustnofile(void) {
 }
 
 void
