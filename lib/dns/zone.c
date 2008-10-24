@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.410.18.53 2007/12/02 22:31:35 marka Exp $ */
+/* $Id: zone.c,v 1.410.18.54 2008/10/24 00:38:01 marka Exp $ */
 
 /*! \file */
 
@@ -1660,14 +1660,16 @@ zone_check_glue(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 	if (result == DNS_R_NXRRSET || result == DNS_R_NXDOMAIN ||
 	    result == DNS_R_EMPTYNAME || result == DNS_R_DELEGATION) {
 		const char *what;
-		if (dns_name_issubdomain(name, owner))
+		isc_boolean_t required = ISC_FALSE;
+		if (dns_name_issubdomain(name, owner)) {
 			what = "REQUIRED GLUE ";
-		else if (result == DNS_R_DELEGATION)
+			required = ISC_TRUE;
+		 } else if (result == DNS_R_DELEGATION)
 			what = "SIBLING GLUE ";
 		else
 			what = "";
 
-		if (result != DNS_R_DELEGATION ||
+		if (result != DNS_R_DELEGATION || required ||
 		    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKSIBLING)) {
 			dns_zone_log(zone, level, "%s/NS '%s' has no %s"
 				     "address records (A or AAAA)",
