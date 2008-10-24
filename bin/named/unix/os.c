@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.85 2008/10/15 05:00:57 marka Exp $ */
+/* $Id: os.c,v 1.86 2008/10/24 01:24:54 marka Exp $ */
 
 /*! \file */
 
@@ -42,6 +42,7 @@
 #include <isc/buffer.h>
 #include <isc/file.h>
 #include <isc/print.h>
+#include <isc/resource.h>
 #include <isc/result.h>
 #include <isc/strerror.h>
 #include <isc/string.h>
@@ -568,6 +569,24 @@ ns_os_changeuser(void) {
 #if defined(HAVE_LINUX_CAPABILITY_H) && !defined(HAVE_LINUXTHREADS)
 	linux_minprivs();
 #endif
+}
+
+void
+ns_os_adjustnofile() {
+#ifdef HAVE_LINUXTHREADS
+	isc_result_t result;
+	isc_resourcevalue_t newvalue;
+
+	/*
+	 * Linux: max number of open files specified by one thread doesn't seem
+	 * to apply to other threads on Linux.
+	 */
+	newvalue = ISC_RESOURCE_UNLIMITED;
+
+	result = isc_resource_setlimit(isc_resource_openfiles, newvalue);
+	if (result != ISC_R_SUCCESS)
+		ns_main_earlywarning("couldn't adjust limit on open files");
+#endif 
 }
 
 void
