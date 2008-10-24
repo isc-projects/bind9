@@ -1,3 +1,6 @@
+2474.	[bug]		ACL structures could be allocated with insufficient
+			space, causing an array overrun. [RT #18765]
+
 2473.	[port]		linux: raise the limit on open files to the possible
 			maximum value before spawning threads; 'files'
 		        specified in named.conf doesn't seem to work with
