@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.49.130.1 2008/10/24 00:57:14 marka Exp $ */
+/* $Id: named-checkzone.c,v 1.49.130.2 2008/10/24 01:44:15 tbox Exp $ */
 
 /*! \file */
 
@@ -231,7 +231,7 @@ main(int argc, char **argv) {
 				zone_options &= ~DNS_ZONEOPT_FATALNS;
 			} else if (ARGCMP("fail")) {
 				zone_options |= DNS_ZONEOPT_CHECKNS|
-					        DNS_ZONEOPT_FATALNS;
+						DNS_ZONEOPT_FATALNS;
 			} else {
 				fprintf(stderr, "invalid argument to -n: %s\n",
 					isc_commandline_argument);
@@ -355,7 +355,7 @@ main(int argc, char **argv) {
 
 		default:
 			fprintf(stderr, "%s: unhandled option -%c\n",
-                                prog_name, isc_commandline_option);
+				prog_name, isc_commandline_option);
 			exit(1);
 		}
 	}

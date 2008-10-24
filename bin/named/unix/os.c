@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.79.128.7 2008/10/24 01:28:28 marka Exp $ */
+/* $Id: os.c,v 1.79.128.8 2008/10/24 01:44:15 tbox Exp $ */
 
 /*! \file */
 
@@ -586,7 +586,7 @@ ns_os_adjustnofile() {
 	result = isc_resource_setlimit(isc_resource_openfiles, newvalue);
 	if (result != ISC_R_SUCCESS)
 		ns_main_earlywarning("couldn't adjust limit on open files");
-#endif 
+#endif
 }
 
 void
