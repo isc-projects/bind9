@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.29.18.19 2007/08/28 07:19:55 tbox Exp $ */
+/* $Id: named-checkzone.c,v 1.29.18.20 2008/10/24 00:57:38 marka Exp $ */
 
 /*! \file */
 
@@ -77,8 +77,9 @@ usage(void) {
 		"[-f inputformat] [-F outputformat] "
 		"[-t directory] [-w directory] [-k (ignore|warn|fail)] "
 		"[-n (ignore|warn|fail)] [-m (ignore|warn|fail)] "
-		"[-i (full|local|none)] [-M (ignore|warn|fail)] "
-		"[-S (ignore|warn|fail)] [-W (ignore|warn)] "
+		"[-i (full|full-sibling|local|local-sibling|none)] "
+		"[-M (ignore|warn|fail)] [-S (ignore|warn|fail)] "
+		"[-W (ignore|warn)] "
 		"zonename filename\n", prog_name);
 	exit(1);
 }
