@@ -1,3 +1,6 @@
+2472.	[port]		linux: check the number of available cpu's before
+			calling chroot as it depends on "/proc". [RT #16923]
+
 2471.	[bug]		named-checkzone was not reporting missing manditory
 			glue when sibling checks were disabled. [RT #18768]
 
