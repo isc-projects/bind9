@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.c,v 1.10.18.19 2008/10/24 00:38:02 marka Exp $ */
+/* $Id: check-tool.c,v 1.10.18.20 2008/10/24 01:43:17 tbox Exp $ */
 
 /*! \file */
 
@@ -67,7 +67,7 @@
 		result = (r); \
 		if (result != ISC_R_SUCCESS) \
 			goto cleanup; \
-	} while (0)   
+	} while (0)
 
 static const char *dbtype[] = { "rbt" };
 
@@ -82,7 +82,7 @@ isc_boolean_t docheckmx = ISC_FALSE;
 isc_boolean_t dochecksrv = ISC_FALSE;
 isc_boolean_t docheckns = ISC_FALSE;
 #endif
-unsigned int zone_options = DNS_ZONEOPT_CHECKNS | 
+unsigned int zone_options = DNS_ZONEOPT_CHECKNS |
 			    DNS_ZONEOPT_CHECKMX |
 			    DNS_ZONEOPT_MANYERRORS |
 			    DNS_ZONEOPT_CHECKNAMES |
@@ -142,7 +142,7 @@ checkns(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner,
 	if (dns_name_countlabels(name) > 1U)
 		strcat(namebuf, ".");
 	dns_name_format(owner, ownerbuf, sizeof(ownerbuf));
-	
+
 	result = getaddrinfo(namebuf, NULL, &hints, &ai);
 	dns_name_format(name, namebuf, sizeof(namebuf) - 1);
 	switch (result) {
@@ -314,7 +314,7 @@ checkmx(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner) {
 	if (dns_name_countlabels(name) > 1U)
 		strcat(namebuf, ".");
 	dns_name_format(owner, ownerbuf, sizeof(ownerbuf));
-	
+
 	result = getaddrinfo(namebuf, NULL, &hints, &ai);
 	dns_name_format(name, namebuf, sizeof(namebuf) - 1);
 	switch (result) {
@@ -387,7 +387,7 @@ checksrv(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner) {
 	if (dns_name_countlabels(name) > 1U)
 		strcat(namebuf, ".");
 	dns_name_format(owner, ownerbuf, sizeof(ownerbuf));
-	
+
 	result = getaddrinfo(namebuf, NULL, &hints, &ai);
 	dns_name_format(name, namebuf, sizeof(namebuf) - 1);
 	switch (result) {
