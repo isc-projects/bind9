@@ -486,6 +486,10 @@ Building
 		  -DNS_CLIENT_DROPPORT=0
 		Disable support for "rrset-order fixed".
 		  -DDNS_RDATASET_FIXED=0
+		Sibling glue checking in named-checkzone is enabled by default.
+		To disable the default check set.  -DCHECK_SIBLING=0
+		named-checkzone checks out-of-zone addresses by default.
+		To disable this default set.  -DCHECK_LOCAL=0
 
 	    LDFLAGS
 		Linker flags. Defaults to empty string.
