@@ -17,8 +17,8 @@ and install.
 
 
 Index: README.idnkit
---- /dev/null	2008-02-28 09:16:26.000000000 -0800
-+++ README.idnkit	2008-09-16 15:35:19.000000000 -0700
+--- /dev/null	2008-10-24 03:33:00.000000000 +0000
++++ README.idnkit	2008-10-24 03:00:32.000000000 +0000
 @@ -0,0 +1,112 @@
 +
 +			BIND-9 IDN patch
@@ -135,18 +135,18 @@ Index: README.idnkit
 Index: config.h.in
 ===================================================================
 RCS file: /proj/cvs/prod/bind9/config.h.in,v
-retrieving revision 1.47.2.3.2.35
-diff -U2 -r1.47.2.3.2.35 config.h.in
---- config.h.in	5 Aug 2008 07:24:40 -0000	1.47.2.3.2.35
-+++ config.h.in	16 Sep 2008 23:05:37 -0000
+retrieving revision 1.47.2.3.2.36
+diff -U2 -r1.47.2.3.2.36 config.h.in
+--- config.h.in	21 Oct 2008 02:48:34 -0000	1.47.2.3.2.36
++++ config.h.in	24 Oct 2008 03:33:52 -0000
 @@ -17,5 +17,5 @@
   */
  
--/* $Id: config.h.in,v 1.47.2.3.2.35 2008/08/05 07:24:40 marka Exp $ */
+-/* $Id: config.h.in,v 1.47.2.3.2.36 2008/10/21 02:48:34 marka Exp $ */
 +/* $Id: acconfig.h,v 1.35.2.4.2.10 2004/12/04 06:50:02 marka Exp $ */
  
  /***
-@@ -190,4 +190,7 @@
+@@ -193,4 +193,7 @@
  #undef HAVE_LINUX_CAPABILITY_H
  
 +/* Define to 1 if you have the <locale.h> header file. */
@@ -154,7 +154,7 @@ diff -U2 -r1.47.2.3.2.35 config.h.in
 +
  /* Define to 1 if you have the <memory.h> header file. */
  #undef HAVE_MEMORY_H
-@@ -196,4 +199,7 @@
+@@ -199,4 +202,7 @@
  #undef HAVE_NET_IF6_H
  
 +/* Define to 1 if you have the `setlocale' function. */
@@ -162,7 +162,7 @@ diff -U2 -r1.47.2.3.2.35 config.h.in
 +
  /* Define to 1 if you have the <stdint.h> header file. */
  #undef HAVE_STDINT_H
-@@ -279,4 +285,7 @@
+@@ -282,4 +288,7 @@
  #undef USE_FIONBIO_IOCTL
  
 +/* define if idnkit support is to be included. */
@@ -173,14 +173,14 @@ diff -U2 -r1.47.2.3.2.35 config.h.in
 Index: configure
 ===================================================================
 RCS file: /proj/cvs/prod/bind9/configure,v
-retrieving revision 1.284.2.19.2.80
-diff -U2 -r1.284.2.19.2.80 configure
---- configure	22 Aug 2008 13:26:42 -0000	1.284.2.19.2.80
-+++ configure	16 Sep 2008 23:06:01 -0000
+retrieving revision 1.284.2.19.2.83
+diff -U2 -r1.284.2.19.2.83 configure
+--- configure	21 Oct 2008 02:48:34 -0000	1.284.2.19.2.83
++++ configure	24 Oct 2008 03:33:52 -0000
 @@ -15,5 +15,5 @@
  # PERFORMANCE OF THIS SOFTWARE.
  #
--# $Id: configure,v 1.284.2.19.2.80 2008/08/22 13:26:42 marka Exp $
+-# $Id: configure,v 1.284.2.19.2.83 2008/10/21 02:48:34 marka Exp $
 +# $Id: COPYRIGHT,v 1.6.2.2.8.7 2008/01/02 23:45:32 tbox Exp $
  #
  # Portions Copyright (C) 1996-2001  Nominum, Inc.
@@ -199,176 +199,176 @@ diff -U2 -r1.284.2.19.2.80 configure
 +  --with-idnlib=ARG    specify libidnkit
  
  Some influential environment variables:
-@@ -9526,5 +9531,5 @@
+@@ -9548,5 +9553,5 @@
  *-*-irix6*)
    # Find out which ABI we are using.
--  echo '#line 9528 "configure"' > conftest.$ac_ext
-+  echo '#line 9533 "configure"' > conftest.$ac_ext
+-  echo '#line 9550 "configure"' > conftest.$ac_ext
++  echo '#line 9555 "configure"' > conftest.$ac_ext
    if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
    (eval $ac_compile) 2>&5
-@@ -11648,9 +11653,9 @@
+@@ -11670,9 +11675,9 @@
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:11650: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:11655: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:11672: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:11677: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
--   echo "$as_me:11654: \$? = $ac_status" >&5
-+   echo "$as_me:11659: \$? = $ac_status" >&5
+-   echo "$as_me:11676: \$? = $ac_status" >&5
++   echo "$as_me:11681: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
-@@ -11891,9 +11896,9 @@
+@@ -11913,9 +11918,9 @@
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:11893: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:11898: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:11915: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:11920: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
--   echo "$as_me:11897: \$? = $ac_status" >&5
-+   echo "$as_me:11902: \$? = $ac_status" >&5
+-   echo "$as_me:11919: \$? = $ac_status" >&5
++   echo "$as_me:11924: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
-@@ -11951,9 +11956,9 @@
+@@ -11973,9 +11978,9 @@
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:11953: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:11958: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:11975: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:11980: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
--   echo "$as_me:11957: \$? = $ac_status" >&5
-+   echo "$as_me:11962: \$? = $ac_status" >&5
+-   echo "$as_me:11979: \$? = $ac_status" >&5
++   echo "$as_me:11984: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
-@@ -14099,5 +14104,5 @@
+@@ -14121,5 +14126,5 @@
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<EOF
--#line 14101 "configure"
-+#line 14106 "configure"
+-#line 14123 "configure"
++#line 14128 "configure"
  #include "confdefs.h"
  
-@@ -14197,5 +14202,5 @@
+@@ -14219,5 +14224,5 @@
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<EOF
--#line 14199 "configure"
-+#line 14204 "configure"
+-#line 14221 "configure"
++#line 14226 "configure"
  #include "confdefs.h"
  
-@@ -16390,9 +16395,9 @@
+@@ -16412,9 +16417,9 @@
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:16392: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:16397: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:16414: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:16419: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
--   echo "$as_me:16396: \$? = $ac_status" >&5
-+   echo "$as_me:16401: \$? = $ac_status" >&5
+-   echo "$as_me:16418: \$? = $ac_status" >&5
++   echo "$as_me:16423: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
-@@ -16450,9 +16455,9 @@
+@@ -16472,9 +16477,9 @@
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:16452: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:16457: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:16474: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:16479: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
--   echo "$as_me:16456: \$? = $ac_status" >&5
-+   echo "$as_me:16461: \$? = $ac_status" >&5
+-   echo "$as_me:16478: \$? = $ac_status" >&5
++   echo "$as_me:16483: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
-@@ -17778,5 +17783,5 @@
+@@ -17800,5 +17805,5 @@
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<EOF
--#line 17780 "configure"
-+#line 17785 "configure"
+-#line 17802 "configure"
++#line 17807 "configure"
  #include "confdefs.h"
  
-@@ -17876,5 +17881,5 @@
+@@ -17898,5 +17903,5 @@
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<EOF
--#line 17878 "configure"
-+#line 17883 "configure"
+-#line 17900 "configure"
++#line 17905 "configure"
  #include "confdefs.h"
  
-@@ -18713,9 +18718,9 @@
+@@ -18735,9 +18740,9 @@
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:18715: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:18720: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:18737: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:18742: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
--   echo "$as_me:18719: \$? = $ac_status" >&5
-+   echo "$as_me:18724: \$? = $ac_status" >&5
+-   echo "$as_me:18741: \$? = $ac_status" >&5
++   echo "$as_me:18746: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
-@@ -18773,9 +18778,9 @@
+@@ -18795,9 +18800,9 @@
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:18775: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:18780: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:18797: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:18802: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
--   echo "$as_me:18779: \$? = $ac_status" >&5
-+   echo "$as_me:18784: \$? = $ac_status" >&5
+-   echo "$as_me:18801: \$? = $ac_status" >&5
++   echo "$as_me:18806: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
-@@ -20807,9 +20812,9 @@
+@@ -20829,9 +20834,9 @@
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:20809: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:20814: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:20831: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:20836: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
--   echo "$as_me:20813: \$? = $ac_status" >&5
-+   echo "$as_me:20818: \$? = $ac_status" >&5
+-   echo "$as_me:20835: \$? = $ac_status" >&5
++   echo "$as_me:20840: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
-@@ -21050,9 +21055,9 @@
+@@ -21072,9 +21077,9 @@
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:21052: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:21057: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:21074: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:21079: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
--   echo "$as_me:21056: \$? = $ac_status" >&5
-+   echo "$as_me:21061: \$? = $ac_status" >&5
+-   echo "$as_me:21078: \$? = $ac_status" >&5
++   echo "$as_me:21083: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
-@@ -21110,9 +21115,9 @@
+@@ -21132,9 +21137,9 @@
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:21112: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:21117: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:21134: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:21139: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
--   echo "$as_me:21116: \$? = $ac_status" >&5
-+   echo "$as_me:21121: \$? = $ac_status" >&5
+-   echo "$as_me:21138: \$? = $ac_status" >&5
++   echo "$as_me:21143: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
-@@ -23258,5 +23263,5 @@
+@@ -23280,5 +23285,5 @@
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<EOF
--#line 23260 "configure"
-+#line 23265 "configure"
+-#line 23282 "configure"
++#line 23287 "configure"
  #include "confdefs.h"
  
-@@ -23356,5 +23361,5 @@
+@@ -23378,5 +23383,5 @@
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<EOF
--#line 23358 "configure"
-+#line 23363 "configure"
+-#line 23380 "configure"
++#line 23385 "configure"
  #include "confdefs.h"
  
-@@ -29349,4 +29354,336 @@
+@@ -29371,4 +29376,336 @@
  
  #
 +# IDN support
@@ -705,13 +705,13 @@ diff -U2 -r1.284.2.19.2.80 configure
 +#
  # Substitutions
  #
-@@ -30426,4 +30763,5 @@
+@@ -30448,4 +30785,5 @@
  XSLT_DB2LATEX_STYLE!$XSLT_DB2LATEX_STYLE$ac_delim
  XSLT_DB2LATEX_ADMONITIONS!$XSLT_DB2LATEX_ADMONITIONS$ac_delim
 +IDNLIBS!$IDNLIBS$ac_delim
  BIND9_TOP_BUILDDIR!$BIND9_TOP_BUILDDIR$ac_delim
  BIND9_ISC_BUILDINCLUDE!$BIND9_ISC_BUILDINCLUDE$ac_delim
-@@ -30443,5 +30781,5 @@
+@@ -30465,5 +30803,5 @@
  _ACEOF
  
 -  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 31; then
@@ -721,11 +721,11 @@ diff -U2 -r1.284.2.19.2.80 configure
 Index: configure.in
 ===================================================================
 RCS file: /proj/cvs/prod/bind9/configure.in,v
-retrieving revision 1.294.2.23.2.88
-diff -U2 -r1.294.2.23.2.88 configure.in
---- configure.in	22 Aug 2008 13:25:44 -0000	1.294.2.23.2.88
-+++ configure.in	16 Sep 2008 23:06:03 -0000
-@@ -2137,4 +2137,80 @@
+retrieving revision 1.294.2.23.2.92
+diff -U2 -r1.294.2.23.2.92 configure.in
+--- configure.in	21 Oct 2008 02:48:12 -0000	1.294.2.23.2.92
++++ configure.in	24 Oct 2008 03:33:52 -0000
+@@ -2156,4 +2156,80 @@
  
  #
 +# IDN support
@@ -812,7 +812,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/Makefile.in,v
 retrieving revision 1.25.12.15
 diff -U2 -r1.25.12.15 Makefile.in
 --- bin/dig/Makefile.in	28 Aug 2007 07:19:07 -0000	1.25.12.15
-+++ bin/dig/Makefile.in	16 Sep 2008 23:06:03 -0000
++++ bin/dig/Makefile.in	24 Oct 2008 03:33:52 -0000
 @@ -46,5 +46,5 @@
  
  LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} ${ISCLIBS} \
@@ -823,680 +823,34 @@ diff -U2 -r1.25.12.15 Makefile.in
 Index: bin/dig/dig.1
 ===================================================================
 RCS file: /proj/cvs/prod/bind9/bin/dig/dig.1,v
-retrieving revision 1.14.2.4.2.18
-diff -U2 -r1.14.2.4.2.18 dig.1
---- bin/dig/dig.1	16 May 2007 06:10:54 -0000	1.14.2.4.2.18
-+++ bin/dig/dig.1	16 Sep 2008 23:06:03 -0000
-@@ -14,25 +14,33 @@
- .\" PERFORMANCE OF THIS SOFTWARE.
- .\"
--.\" $Id: dig.1,v 1.14.2.4.2.18 2007/05/16 06:10:54 marka Exp $
-+.\" $Id$
- .\"
- .hy 0
- .ad l
--.\"     Title: dig
--.\"    Author: 
--.\" Generator: DocBook XSL Stylesheets v1.71.1 <http://docbook.sf.net/>
--.\"      Date: Jun 30, 2000
--.\"    Manual: BIND9
--.\"    Source: BIND9
--.\"
--.TH "DIG" "1" "Jun 30, 2000" "BIND9" "BIND9"
--.\" disable hyphenation
--.nh
--.\" disable justification (adjust text to left margin only)
--.ad l
--.SH "NAME"
-+.\"Generated by db2man.xsl. Don't modify this, modify the source.
-+.de Sh \" Subsection
-+.br
-+.if t .Sp
-+.ne 5
-+.PP
-+\fB\\$1\fR
-+.PP
-+..
-+.de Sp \" Vertical space (when we can't use .PP)
-+.if t .sp .5v
-+.if n .sp
-+..
-+.de Ip \" List item
-+.br
-+.ie \\n(.$>=3 .ne \\$3
-+.el .ne 3
-+.IP "\\$1" \\$2
-+..
-+.TH "DIG" 1 "Jun 30, 2000" "" ""
-+.SH NAME
- dig \- DNS lookup utility
- .SH "SYNOPSIS"
- .HP 4
--\fBdig\fR [@server] [\fB\-b\ \fR\fB\fIaddress\fR\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-f\ \fR\fB\fIfilename\fR\fR] [\fB\-k\ \fR\fB\fIfilename\fR\fR] [\fB\-p\ \fR\fB\fIport#\fR\fR] [\fB\-t\ \fR\fB\fItype\fR\fR] [\fB\-x\ \fR\fB\fIaddr\fR\fR] [\fB\-y\ \fR\fB\fIname:key\fR\fR] [\fB\-4\fR] [\fB\-6\fR] [name] [type] [class] [queryopt...]
-+\fBdig\fR [@server] [\fB\-b\ \fIaddress\fR\fR] [\fB\-c\ \fIclass\fR\fR] [\fB\-f\ \fIfilename\fR\fR] [\fB\-k\ \fIfilename\fR\fR] [\fB\-p\ \fIport#\fR\fR] [\fB\-t\ \fItype\fR\fR] [\fB\-x\ \fIaddr\fR\fR] [\fB\-y\ \fIname:key\fR\fR] [\fB\-4\fR] [\fB\-6\fR] [name] [type] [class] [queryopt...]
- .HP 4
- \fBdig\fR [\fB\-h\fR]
-@@ -41,483 +49,192 @@
- .SH "DESCRIPTION"
- .PP
--\fBdig\fR
--(domain information groper) is a flexible tool for interrogating DNS name servers. It performs DNS lookups and displays the answers that are returned from the name server(s) that were queried. Most DNS administrators use
--\fBdig\fR
--to troubleshoot DNS problems because of its flexibility, ease of use and clarity of output. Other lookup tools tend to have less functionality than
--\fBdig\fR.
--.PP
--Although
--\fBdig\fR
--is normally used with command\-line arguments, it also has a batch mode of operation for reading lookup requests from a file. A brief summary of its command\-line arguments and options is printed when the
--\fB\-h\fR
--option is given. Unlike earlier versions, the BIND 9 implementation of
--\fBdig\fR
--allows multiple lookups to be issued from the command line.
--.PP
--Unless it is told to query a specific name server,
--\fBdig\fR
--will try each of the servers listed in
--\fI/etc/resolv.conf\fR.
--.PP
--When no command line arguments or options are given, will perform an NS query for "." (the root).
--.PP
--It is possible to set per\-user defaults for
--\fBdig\fR
--via
--\fI${HOME}/.digrc\fR. This file is read and any options in it are applied before the command line arguments.
--.PP
--The IN and CH class names overlap with the IN and CH top level domains names. Either use the
--\fB\-t\fR
--and
--\fB\-c\fR
--options to specify the type and class or use "IN." and "CH." when looking up these top level domains.
-+ \fBdig\fR (domain information groper) is a flexible tool for interrogating DNS name servers\&. It performs DNS lookups and displays the answers that are returned from the name server(s) that were queried\&. Most DNS administrators use \fBdig\fR to troubleshoot DNS problems because of its flexibility, ease of use and clarity of output\&. Other lookup tools tend to have less functionality than \fBdig\fR\&.
-+.PP
-+Although \fBdig\fR is normally used with command\-line arguments, it also has a batch mode of operation for reading lookup requests from a file\&. A brief summary of its command\-line arguments and options is printed when the \fB\-h\fR option is given\&. Unlike earlier versions, the BIND 9 implementation of \fBdig\fR allows multiple lookups to be issued from the command line\&.
-+.PP
-+Unless it is told to query a specific name server, \fBdig\fR will try each of the servers listed in \fI/etc/resolv\&.conf\fR\&.
-+.PP
-+When no command line arguments or options are given, will perform an NS query for "\&." (the root)\&.
-+.PP
-+It is possible to set per\-user defaults for \fBdig\fR via \fI${HOME}/\&.digrc\fR\&. This file is read and any options in it are applied before the command line arguments\&.
-+.PP
-+The IN and CH class names overlap with the IN and CH top level domains names\&. Either use the \fB\-t\fR and \fB\-c\fR options to specify the type and class or use "IN\&." and "CH\&." when looking up these top level domains\&.
- .SH "SIMPLE USAGE"
- .PP
--A typical invocation of
--\fBdig\fR
--looks like:
--.sp
--.RS 4
-+A typical invocation of \fBdig\fR looks like: 
- .nf
-  dig @server name type 
- .fi
--.RE
--.sp
--where:
--.PP
-+ where: 
-+.TP
- \fBserver\fR
--.RS 4
--is the name or IP address of the name server to query. This can be an IPv4 address in dotted\-decimal notation or an IPv6 address in colon\-delimited notation. When the supplied
--\fIserver\fR
--argument is a hostname,
--\fBdig\fR
--resolves that name before querying that name server. If no
--\fIserver\fR
--argument is provided,
--\fBdig\fR
--consults
--\fI/etc/resolv.conf\fR
--and queries the name servers listed there. The reply from the name server that responds is displayed.
--.RE
--.PP
-+is the name or IP address of the name server to query\&. This can be an IPv4 address in dotted\-decimal notation or an IPv6 address in colon\-delimited notation\&. When the supplied \fIserver\fR argument is a hostname, \fBdig\fR resolves that name before querying that name server\&. If no \fIserver\fR argument is provided, \fBdig\fR consults \fI/etc/resolv\&.conf\fR and queries the name servers listed there\&. The reply from the name server that responds is displayed\&.
-+.TP
- \fBname\fR
--.RS 4
--is the name of the resource record that is to be looked up.
--.RE
--.PP
-+is the name of the resource record that is to be looked up\&.
-+.TP
- \fBtype\fR
--.RS 4
--indicates what type of query is required \(em ANY, A, MX, SIG, etc.
--\fItype\fR
--can be any valid query type. If no
--\fItype\fR
--argument is supplied,
--\fBdig\fR
--will perform a lookup for an A record.
--.RE
-+indicates what type of query is required -- ANY, A, MX, SIG, etc\&. \fItype\fR can be any valid query type\&. If no \fItype\fR argument is supplied, \fBdig\fR will perform a lookup for an A record\&.
- .SH "OPTIONS"
- .PP
--The
--\fB\-b\fR
--option sets the source IP address of the query to
--\fIaddress\fR. This must be a valid address on one of the host's network interfaces or "0.0.0.0" or "::". An optional port may be specified by appending "#<port>"
--.PP
--The default query class (IN for internet) is overridden by the
--\fB\-c\fR
--option.
--\fIclass\fR
--is any valid class, such as HS for Hesiod records or CH for Chaosnet records.
--.PP
--The
--\fB\-f\fR
--option makes
--\fBdig \fR
--operate in batch mode by reading a list of lookup requests to process from the file
--\fIfilename\fR. The file contains a number of queries, one per line. Each entry in the file should be organized in the same way they would be presented as queries to
--\fBdig\fR
--using the command\-line interface.
--.PP
--If a non\-standard port number is to be queried, the
--\fB\-p\fR
--option is used.
--\fIport#\fR
--is the port number that
--\fBdig\fR
--will send its queries instead of the standard DNS port number 53. This option would be used to test a name server that has been configured to listen for queries on a non\-standard port number.
--.PP
--The
--\fB\-4\fR
--option forces
--\fBdig\fR
--to only use IPv4 query transport. The
--\fB\-6\fR
--option forces
--\fBdig\fR
--to only use IPv6 query transport.
--.PP
--The
--\fB\-t\fR
--option sets the query type to
--\fItype\fR. It can be any valid query type which is supported in BIND 9. The default query type is "A", unless the
--\fB\-x\fR
--option is supplied to indicate a reverse lookup. A zone transfer can be requested by specifying a type of AXFR. When an incremental zone transfer (IXFR) is required,
--\fItype\fR
--is set to
--ixfr=N. The incremental zone transfer will contain the changes made to the zone since the serial number in the zone's SOA record was
--\fIN\fR.
--.PP
--Reverse lookups \(em mapping addresses to names \(em are simplified by the
--\fB\-x\fR
--option.
--\fIaddr\fR
--is an IPv4 address in dotted\-decimal notation, or a colon\-delimited IPv6 address. When this option is used, there is no need to provide the
--\fIname\fR,
--\fIclass\fR
--and
--\fItype\fR
--arguments.
--\fBdig\fR
--automatically performs a lookup for a name like
--11.12.13.10.in\-addr.arpa
--and sets the query type and class to PTR and IN respectively. By default, IPv6 addresses are looked up using nibble format under the IP6.ARPA domain. To use the older RFC1886 method using the IP6.INT domain specify the
--\fB\-i\fR
--option. Bit string labels (RFC2874) are now experimental and are not attempted.
--.PP
--To sign the DNS queries sent by
--\fBdig\fR
--and their responses using transaction signatures (TSIG), specify a TSIG key file using the
--\fB\-k\fR
--option. You can also specify the TSIG key itself on the command line using the
--\fB\-y\fR
--option;
--\fIname\fR
--is the name of the TSIG key and
--\fIkey\fR
--is the actual key. The key is a base\-64 encoded string, typically generated by
--\fBdnssec\-keygen\fR(8). Caution should be taken when using the
--\fB\-y\fR
--option on multi\-user systems as the key can be visible in the output from
--\fBps\fR(1 )
--or in the shell's history file. When using TSIG authentication with
--\fBdig\fR, the name server that is queried needs to know the key and algorithm that is being used. In BIND, this is done by providing appropriate
--\fBkey\fR
--and
--\fBserver\fR
--statements in
--\fInamed.conf\fR.
--.SH "QUERY OPTIONS"
-+The \fB\-b\fR option sets the source IP address of the query to \fIaddress\fR\&. This must be a valid address on one of the host's network interfaces or "0\&.0\&.0\&.0" or "::"\&. An optional port may be specified by appending "#<port>"
- .PP
--\fBdig\fR
--provides a number of query options which affect the way in which lookups are made and the results displayed. Some of these set or reset flag bits in the query header, some determine which sections of the answer get printed, and others determine the timeout and retry strategies.
-+The default query class (IN for internet) is overridden by the \fB\-c\fR option\&. \fIclass\fR is any valid class, such as HS for Hesiod records or CH for Chaosnet records\&.
- .PP
--Each query option is identified by a keyword preceded by a plus sign (+). Some keywords set or reset an option. These may be preceded by the string
--no
--to negate the meaning of that keyword. Other keywords assign values to options like the timeout interval. They have the form
--\fB+keyword=value\fR. The query options are:
-+The \fB\-f\fR option makes \fBdig \fR operate in batch mode by reading a list of lookup requests to process from the file \fIfilename\fR\&. The file contains a number of queries, one per line\&. Each entry in the file should be organized in the same way they would be presented as queries to \fBdig\fR using the command\-line interface\&.
- .PP
--\fB+[no]tcp\fR
--.RS 4
--Use [do not use] TCP when querying name servers. The default behavior is to use UDP unless an AXFR or IXFR query is requested, in which case a TCP connection is used.
--.RE
-+If a non\-standard port number is to be queried, the \fB\-p\fR option is used\&. \fIport#\fR is the port number that \fBdig\fR will send its queries instead of the standard DNS port number 53\&. This option would be used to test a name server that has been configured to listen for queries on a non\-standard port number\&.
- .PP
--\fB+[no]vc\fR
--.RS 4
--Use [do not use] TCP when querying name servers. This alternate syntax to
--\fI+[no]tcp\fR
--is provided for backwards compatibility. The "vc" stands for "virtual circuit".
--.RE
-+The \fB\-4\fR option forces \fBdig\fR to only use IPv4 query transport\&. The \fB\-6\fR option forces \fBdig\fR to only use IPv6 query transport\&.
- .PP
--\fB+[no]ignore\fR
--.RS 4
--Ignore truncation in UDP responses instead of retrying with TCP. By default, TCP retries are performed.
--.RE
-+The \fB\-t\fR option sets the query type to \fItype\fR\&. It can be any valid query type which is supported in BIND 9\&. The default query type is "A", unless the \fB\-x\fR option is supplied to indicate a reverse lookup\&. A zone transfer can be requested by specifying a type of AXFR\&. When an incremental zone transfer (IXFR) is required, \fItype\fR is set to ixfr=N\&. The incremental zone transfer will contain the changes made to the zone since the serial number in the zone's SOA record was \fIN\fR\&.
- .PP
--\fB+domain=somename\fR
--.RS 4
--Set the search list to contain the single domain
--\fIsomename\fR, as if specified in a
--\fBdomain\fR
--directive in
--\fI/etc/resolv.conf\fR, and enable search list processing as if the
--\fI+search\fR
--option were given.
--.RE
-+Reverse lookups -- mapping addresses to names -- are simplified by the \fB\-x\fR option\&. \fIaddr\fR is an IPv4 address in dotted\-decimal notation, or a colon\-delimited IPv6 address\&. When this option is used, there is no need to provide the \fIname\fR, \fIclass\fR and \fItype\fR arguments\&. \fBdig\fR automatically performs a lookup for a name like 11\&.12\&.13\&.10\&.in\-addr\&.arpa and sets the query type and class to PTR and IN respectively\&. By default, IPv6 addresses are looked up using nibble format under the IP6\&.ARPA domain\&. To use the older RFC1886 method using the IP6\&.INT domain specify the \fB\-i\fR option\&. Bit string labels (RFC2874) are now experimental and are not attempted\&.
- .PP
--\fB+[no]search\fR
--.RS 4
--Use [do not use] the search list defined by the searchlist or domain directive in
--\fIresolv.conf\fR
--(if any). The search list is not used by default.
--.RE
-+To sign the DNS queries sent by \fBdig\fR and their responses using transaction signatures (TSIG), specify a TSIG key file using the \fB\-k\fR option\&. You can also specify the TSIG key itself on the command line using the \fB\-y\fR option; \fIname\fR is the name of the TSIG key and \fIkey\fR is the actual key\&. The key is a base\-64 encoded string, typically generated by \fBdnssec\-keygen\fR(8)\&. Caution should be taken when using the \fB\-y\fR option on multi\-user systems as the key can be visible in the output from \fBps\fR(1 ) or in the shell's history file\&. When using TSIG authentication with \fBdig\fR, the name server that is queried needs to know the key and algorithm that is being used\&. In BIND, this is done by providing appropriate \fBkey\fR and \fBserver\fR statements in \fInamed\&.conf\fR\&.
-+.SH "QUERY OPTIONS"
- .PP
--\fB+[no]defname\fR
--.RS 4
--Deprecated, treated as a synonym for
--\fI+[no]search\fR
--.RE
-+ \fBdig\fR provides a number of query options which affect the way in which lookups are made and the results displayed\&. Some of these set or reset flag bits in the query header, some determine which sections of the answer get printed, and others determine the timeout and retry strategies\&.
- .PP
-+Each query option is identified by a keyword preceded by a plus sign (+)\&. Some keywords set or reset an option\&. These may be preceded by the string no to negate the meaning of that keyword\&. Other keywords assign values to options like the timeout interval\&. They have the form \fB+keyword=value\fR\&. The query options are: 
-+.TP
-+\fB+[no]tcp\fR
-+Use [do not use] TCP when querying name servers\&. The default behavior is to use UDP unless an AXFR or IXFR query is requested, in which case a TCP connection is used\&.
-+.TP
-+\fB+[no]vc\fR
-+Use [do not use] TCP when querying name servers\&. This alternate syntax to \fI+[no]tcp\fR is provided for backwards compatibility\&. The "vc" stands for "virtual circuit"\&.
-+.TP
-+\fB+[no]ignore\fR
-+Ignore truncation in UDP responses instead of retrying with TCP\&. By default, TCP retries are performed\&.
-+.TP
-+\fB+domain=somename\fR
-+Set the search list to contain the single domain \fIsomename\fR, as if specified in a \fBdomain\fR directive in \fI/etc/resolv\&.conf\fR, and enable search list processing as if the \fI+search\fR option were given\&.
-+.TP
-+\fB+[no]search\fR
-+Use [do not use] the search list defined by the searchlist or domain directive in \fIresolv\&.conf\fR (if any)\&. The search list is not used by default\&.
-+.TP
-+\fB+[no]defname\fR
-+Deprecated, treated as a synonym for \fI+[no]search\fR 
-+.TP
- \fB+[no]aaonly\fR
--.RS 4
--Sets the "aa" flag in the query.
--.RE
--.PP
-+Sets the "aa" flag in the query\&.
-+.TP
- \fB+[no]aaflag\fR
--.RS 4
--A synonym for
--\fI+[no]aaonly\fR.
--.RE
--.PP
-+A synonym for \fI+[no]aaonly\fR\&.
-+.TP
- \fB+[no]adflag\fR
--.RS 4
--Set [do not set] the AD (authentic data) bit in the query. The AD bit currently has a standard meaning only in responses, not in queries, but the ability to set the bit in the query is provided for completeness.
--.RE
--.PP
-+Set [do not set] the AD (authentic data) bit in the query\&. The AD bit currently has a standard meaning only in responses, not in queries, but the ability to set the bit in the query is provided for completeness\&.
-+.TP
- \fB+[no]cdflag\fR
--.RS 4
--Set [do not set] the CD (checking disabled) bit in the query. This requests the server to not perform DNSSEC validation of responses.
--.RE
--.PP
-+Set [do not set] the CD (checking disabled) bit in the query\&. This requests the server to not perform DNSSEC validation of responses\&.
-+.TP
- \fB+[no]cl\fR
--.RS 4
--Display [do not display] the CLASS when printing the record.
--.RE
--.PP
-+Display [do not display] the CLASS when printing the record\&.
-+.TP
- \fB+[no]ttlid\fR
--.RS 4
--Display [do not display] the TTL when printing the record.
--.RE
--.PP
-+Display [do not display] the TTL when printing the record\&.
-+.TP
- \fB+[no]recurse\fR
--.RS 4
--Toggle the setting of the RD (recursion desired) bit in the query. This bit is set by default, which means
--\fBdig\fR
--normally sends recursive queries. Recursion is automatically disabled when the
--\fI+nssearch\fR
--or
--\fI+trace\fR
--query options are used.
--.RE
--.PP
-+Toggle the setting of the RD (recursion desired) bit in the query\&. This bit is set by default, which means \fBdig\fR normally sends recursive queries\&. Recursion is automatically disabled when the \fI+nssearch\fR or \fI+trace\fR query options are used\&.
-+.TP
- \fB+[no]nssearch\fR
--.RS 4
--When this option is set,
--\fBdig\fR
--attempts to find the authoritative name servers for the zone containing the name being looked up and display the SOA record that each name server has for the zone.
--.RE
--.PP
-+When this option is set, \fBdig\fR attempts to find the authoritative name servers for the zone containing the name being looked up and display the SOA record that each name server has for the zone\&.
-+.TP
- \fB+[no]trace\fR
--.RS 4
--Toggle tracing of the delegation path from the root name servers for the name being looked up. Tracing is disabled by default. When tracing is enabled,
--\fBdig\fR
--makes iterative queries to resolve the name being looked up. It will follow referrals from the root servers, showing the answer from each server that was used to resolve the lookup.
--.RE
--.PP
-+Toggle tracing of the delegation path from the root name servers for the name being looked up\&. Tracing is disabled by default\&. When tracing is enabled, \fBdig\fR makes iterative queries to resolve the name being looked up\&. It will follow referrals from the root servers, showing the answer from each server that was used to resolve the lookup\&.
-+.TP
- \fB+[no]cmd\fR
--.RS 4
--Toggles the printing of the initial comment in the output identifying the version of
--\fBdig\fR
--and the query options that have been applied. This comment is printed by default.
--.RE
--.PP
-+Toggles the printing of the initial comment in the output identifying the version of \fBdig\fR and the query options that have been applied\&. This comment is printed by default\&.
-+.TP
- \fB+[no]short\fR
--.RS 4
--Provide a terse answer. The default is to print the answer in a verbose form.
--.RE
--.PP
-+Provide a terse answer\&. The default is to print the answer in a verbose form\&.
-+.TP
- \fB+[no]identify\fR
--.RS 4
--Show [or do not show] the IP address and port number that supplied the answer when the
--\fI+short\fR
--option is enabled. If short form answers are requested, the default is not to show the source address and port number of the server that provided the answer.
--.RE
--.PP
-+Show [or do not show] the IP address and port number that supplied the answer when the \fI+short\fR option is enabled\&. If short form answers are requested, the default is not to show the source address and port number of the server that provided the answer\&.
-+.TP
- \fB+[no]comments\fR
--.RS 4
--Toggle the display of comment lines in the output. The default is to print comments.
--.RE
--.PP
-+Toggle the display of comment lines in the output\&. The default is to print comments\&.
-+.TP
- \fB+[no]stats\fR
--.RS 4
--This query option toggles the printing of statistics: when the query was made, the size of the reply and so on. The default behavior is to print the query statistics.
--.RE
--.PP
-+This query option toggles the printing of statistics: when the query was made, the size of the reply and so on\&. The default behavior is to print the query statistics\&.
-+.TP
- \fB+[no]qr\fR
--.RS 4
--Print [do not print] the query as it is sent. By default, the query is not printed.
--.RE
--.PP
-+Print [do not print] the query as it is sent\&. By default, the query is not printed\&.
-+.TP
- \fB+[no]question\fR
--.RS 4
--Print [do not print] the question section of a query when an answer is returned. The default is to print the question section as a comment.
--.RE
--.PP
-+Print [do not print] the question section of a query when an answer is returned\&. The default is to print the question section as a comment\&.
-+.TP
- \fB+[no]answer\fR
--.RS 4
--Display [do not display] the answer section of a reply. The default is to display it.
--.RE
--.PP
-+Display [do not display] the answer section of a reply\&. The default is to display it\&.
-+.TP
- \fB+[no]authority\fR
--.RS 4
--Display [do not display] the authority section of a reply. The default is to display it.
--.RE
--.PP
-+Display [do not display] the authority section of a reply\&. The default is to display it\&.
-+.TP
- \fB+[no]additional\fR
--.RS 4
--Display [do not display] the additional section of a reply. The default is to display it.
--.RE
--.PP
-+Display [do not display] the additional section of a reply\&. The default is to display it\&.
-+.TP
- \fB+[no]all\fR
--.RS 4
--Set or clear all display flags.
--.RE
--.PP
-+Set or clear all display flags\&.
-+.TP
- \fB+time=T\fR
--.RS 4
--Sets the timeout for a query to
--\fIT\fR
--seconds. The default timeout is 5 seconds. An attempt to set
--\fIT\fR
--to less than 1 will result in a query timeout of 1 second being applied.
--.RE
--.PP
-+Sets the timeout for a query to \fIT\fR seconds\&. The default timeout is 5 seconds\&. An attempt to set \fIT\fR to less than 1 will result in a query timeout of 1 second being applied\&.
-+.TP
- \fB+tries=T\fR
--.RS 4
--Sets the number of times to try UDP queries to server to
--\fIT\fR
--instead of the default, 3. If
--\fIT\fR
--is less than or equal to zero, the number of tries is silently rounded up to 1.
--.RE
--.PP
-+Sets the number of times to try UDP queries to server to \fIT\fR instead of the default, 3\&. If \fIT\fR is less than or equal to zero, the number of tries is silently rounded up to 1\&.
-+.TP
- \fB+retry=T\fR
--.RS 4
--Sets the number of times to retry UDP queries to server to
--\fIT\fR
--instead of the default, 2. Unlike
--\fI+tries\fR, this does not include the initial query.
--.RE
--.PP
-+Sets the number of times to retry UDP queries to server to \fIT\fR instead of the default, 2\&. Unlike \fI+tries\fR, this does not include the initial query\&.
-+.TP
- \fB+ndots=D\fR
--.RS 4
--Set the number of dots that have to appear in
--\fIname\fR
--to
--\fID\fR
--for it to be considered absolute. The default value is that defined using the ndots statement in
--\fI/etc/resolv.conf\fR, or 1 if no ndots statement is present. Names with fewer dots are interpreted as relative names and will be searched for in the domains listed in the
--\fBsearch\fR
--or
--\fBdomain\fR
--directive in
--\fI/etc/resolv.conf\fR.
--.RE
--.PP
-+Set the number of dots that have to appear in \fIname\fR to \fID\fR for it to be considered absolute\&. The default value is that defined using the ndots statement in \fI/etc/resolv\&.conf\fR, or 1 if no ndots statement is present\&. Names with fewer dots are interpreted as relative names and will be searched for in the domains listed in the \fBsearch\fR or \fBdomain\fR directive in \fI/etc/resolv\&.conf\fR\&.
-+.TP
- \fB+bufsize=B\fR
--.RS 4
--Set the UDP message buffer size advertised using EDNS0 to
--\fIB\fR
--bytes. The maximum and minimum sizes of this buffer are 65535 and 0 respectively. Values outside this range are rounded up or down appropriately.
--.RE
--.PP
-+Set the UDP message buffer size advertised using EDNS0 to \fIB\fR bytes\&. The maximum and minimum sizes of this buffer are 65535 and 0 respectively\&. Values outside this range are rounded up or down appropriately\&.
-+.TP
- \fB+[no]multiline\fR
--.RS 4
--Print records like the SOA records in a verbose multi\-line format with human\-readable comments. The default is to print each record on a single line, to facilitate machine parsing of the
--\fBdig\fR
--output.
--.RE
--.PP
-+Print records like the SOA records in a verbose multi\-line format with human\-readable comments\&. The default is to print each record on a single line, to facilitate machine parsing of the \fBdig\fR output\&.
-+.TP
- \fB+[no]fail\fR
--.RS 4
--Do not try the next server if you receive a SERVFAIL. The default is to not try the next server which is the reverse of normal stub resolver behavior.
--.RE
--.PP
-+Do not try the next server if you receive a SERVFAIL\&. The default is to not try the next server which is the reverse of normal stub resolver behavior\&.
-+.TP
- \fB+[no]besteffort\fR
--.RS 4
--Attempt to display the contents of messages which are malformed. The default is to not display malformed answers.
--.RE
--.PP
-+Attempt to display the contents of messages which are malformed\&. The default is to not display malformed answers\&.
-+.TP
- \fB+[no]dnssec\fR
--.RS 4
--Requests DNSSEC records be sent by setting the DNSSEC OK bit (DO) in the OPT record in the additional section of the query.
--.RE
--.PP
-+Requests DNSSEC records be sent by setting the DNSSEC OK bit (DO) in the OPT record in the additional section of the query\&.
-+.TP
- \fB+[no]sigchase\fR
--.RS 4
--Chase DNSSEC signature chains. Requires dig be compiled with \-DDIG_SIGCHASE.
--.RE
--.PP
-+Chase DNSSEC signature chains\&. Requires dig be compiled with \-DDIG_SIGCHASE\&.
-+.TP
- \fB+trusted\-key=####\fR
--.RS 4
--Specifies a file containing trusted keys to be used with
--\fB+sigchase\fR. Each DNSKEY record must be on its own line.
--.sp
--If not specified
--\fBdig\fR
--will look for
--\fI/etc/trusted\-key.key\fR
--then
--\fItrusted\-key.key\fR
--in the current directory.
--.sp
--Requires dig be compiled with \-DDIG_SIGCHASE.
--.RE
--.PP
-+Specifies a file containing trusted keys to be used with \fB+sigchase\fR\&. Each DNSKEY record must be on its own line\&.
-+If not specified \fBdig\fR will look for \fI/etc/trusted\-key\&.key\fR then \fItrusted\-key\&.key\fR in the current directory\&.
-+Requires dig be compiled with \-DDIG_SIGCHASE\&.
-+.TP
- \fB+[no]topdown\fR
--.RS 4
--When chasing DNSSEC signature chains perform a top\-down validation. Requires dig be compiled with \-DDIG_SIGCHASE.
--.RE
-+When chasing DNSSEC signature chains perform a top\-down validation\&. Requires dig be compiled with \-DDIG_SIGCHASE\&.
- .SH "MULTIPLE QUERIES"
- .PP
--The BIND 9 implementation of
--\fBdig \fR
--supports specifying multiple queries on the command line (in addition to supporting the
--\fB\-f\fR
--batch file option). Each of those queries can be supplied with its own set of flags, options and query options.
--.PP
--In this case, each
--\fIquery\fR
--argument represent an individual query in the command\-line syntax described above. Each consists of any of the standard options and flags, the name to be looked up, an optional query type and class and any query options that should be applied to that query.
-+The BIND 9 implementation of \fBdig \fR supports specifying multiple queries on the command line (in addition to supporting the \fB\-f\fR batch file option)\&. Each of those queries can be supplied with its own set of flags, options and query options\&.
- .PP
--A global set of query options, which should be applied to all queries, can also be supplied. These global query options must precede the first tuple of name, class, type, options, flags, and query options supplied on the command line. Any global query options (except the
--\fB+[no]cmd\fR
--option) can be overridden by a query\-specific set of query options. For example:
--.sp
--.RS 4
-+In this case, each \fIquery\fR argument represent an individual query in the command\-line syntax described above\&. Each consists of any of the standard options and flags, the name to be looked up, an optional query type and class and any query options that should be applied to that query\&.
-+.PP
-+A global set of query options, which should be applied to all queries, can also be supplied\&. These global query options must precede the first tuple of name, class, type, options, flags, and query options supplied on the command line\&. Any global query options (except the \fB+[no]cmd\fR option) can be overridden by a query\-specific set of query options\&. For example: 
- .nf
--dig +qr www.isc.org any \-x 127.0.0.1 isc.org ns +noqr
-+dig +qr www\&.isc\&.org any \-x 127\&.0\&.0\&.1 isc\&.org ns +noqr
- .fi
--.RE
--.sp
--shows how
--\fBdig\fR
--could be used from the command line to make three lookups: an ANY query for
--www.isc.org, a reverse lookup of 127.0.0.1 and a query for the NS records of
--isc.org. A global query option of
--\fI+qr\fR
--is applied, so that
--\fBdig\fR
--shows the initial query it made for each lookup. The final query has a local query option of
--\fI+noqr\fR
--which means that
--\fBdig\fR
--will not print the initial query when it looks up the NS records for
--isc.org.
-+ shows how \fBdig\fR could be used from the command line to make three lookups: an ANY query for www\&.isc\&.org, a reverse lookup of 127\&.0\&.0\&.1 and a query for the NS records of isc\&.org\&. A global query option of \fI+qr\fR is applied, so that \fBdig\fR shows the initial query it made for each lookup\&. The final query has a local query option of \fI+noqr\fR which means that \fBdig\fR will not print the initial query when it looks up the NS records for isc\&.org\&.
+retrieving revision 1.14.2.4.2.20
+diff -U2 -r1.14.2.4.2.20 dig.1
+--- bin/dig/dig.1	14 Oct 2008 01:20:30 -0000	1.14.2.4.2.20
++++ bin/dig/dig.1	24 Oct 2008 03:33:52 -0000
+@@ -509,4 +509,15 @@
+ will not print the initial query when it looks up the NS records for
+ isc.org.
 +.SH "IDN SUPPORT"
 +.PP
-+If \fBdig\fR has been built with IDN (internationalized domain name) support, it can accept and display non\-ASCII domain names\&. \fBdig\fR appropriately converts character encoding of domain name before sending a request to DNS server or displaying a reply from the server\&. If you'd like to turn off the IDN support for some reason, defines the \fBIDN_DISABLE\fR environment variable\&. The IDN support is disabled if the the variable is set when \fBdig\fR runs\&.
++If
++\fBdig\fR
++has been built with IDN (internationalized domain name) support, it can accept and display non\-ASCII domain names.
++\fBdig\fR
++appropriately converts character encoding of domain name before sending a request to DNS server or displaying a reply from the server. If you'd like to turn off the IDN support for some reason, defines the
++\fBIDN_DISABLE\fR
++environment variable. The IDN support is disabled if the the variable is set when
++\fBdig\fR
++runs.
  .SH "FILES"
  .PP
--\fI/etc/resolv.conf\fR
-+ \fI/etc/resolv\&.conf\fR 
- .PP
--\fI${HOME}/.digrc\fR
-+ \fI${HOME}/\&.digrc\fR 
- .SH "SEE ALSO"
- .PP
--\fBhost\fR(1),
--\fBnamed\fR(8),
--\fBdnssec\-keygen\fR(8),
--RFC1035.
--.SH "BUGS"
--.PP
--There are probably too many query options.
--.SH "COPYRIGHT"
--Copyright \(co 2004\-2007 Internet Systems Consortium, Inc. ("ISC")
--.br
--Copyright \(co 2000\-2003 Internet Software Consortium.
--.br
-+ \fBhost\fR(1), \fBnamed\fR(8), \fBdnssec\-keygen\fR(8), RFC1035\&.
-+.SH "BUGS "
-+.PP
-+There are probably too many query options\&.
 Index: bin/dig/dig.docbook
 ===================================================================
 RCS file: /proj/cvs/prod/bind9/bin/dig/dig.docbook,v
-retrieving revision 1.4.2.7.4.20
-diff -U2 -r1.4.2.7.4.20 dig.docbook
---- bin/dig/dig.docbook	28 Aug 2007 07:19:07 -0000	1.4.2.7.4.20
-+++ bin/dig/dig.docbook	16 Sep 2008 23:06:03 -0000
-@@ -617,4 +617,19 @@
+retrieving revision 1.4.2.7.4.23
+diff -U2 -r1.4.2.7.4.23 dig.docbook
+--- bin/dig/dig.docbook	14 Oct 2008 00:55:01 -0000	1.4.2.7.4.23
++++ bin/dig/dig.docbook	24 Oct 2008 03:33:52 -0000
+@@ -625,4 +625,19 @@
  
  <refsect1>
 +<title>IDN SUPPORT</title>
@@ -1522,7 +876,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/dighost.c,v
 retrieving revision 1.221.2.19.2.48
 diff -U2 -r1.221.2.19.2.48 dighost.c
 --- bin/dig/dighost.c	23 Jul 2008 23:36:21 -0000	1.221.2.19.2.48
-+++ bin/dig/dighost.c	16 Sep 2008 23:06:07 -0000
++++ bin/dig/dighost.c	24 Oct 2008 03:33:52 -0000
 @@ -33,4 +33,15 @@
  #include <limits.h>
  
@@ -1764,252 +1118,30 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/host.1,v
 retrieving revision 1.11.2.1.4.13
 diff -U2 -r1.11.2.1.4.13 host.1
 --- bin/dig/host.1	29 Apr 2008 01:21:29 -0000	1.11.2.1.4.13
-+++ bin/dig/host.1	16 Sep 2008 23:06:07 -0000
-@@ -14,180 +14,71 @@
- .\" PERFORMANCE OF THIS SOFTWARE.
- .\"
--.\" $Id: host.1,v 1.11.2.1.4.13 2008/04/29 01:21:29 tbox Exp $
-+.\" $Id$
- .\"
- .hy 0
- .ad l
--.\"     Title: host
--.\"    Author: 
--.\" Generator: DocBook XSL Stylesheets v1.71.1 <http://docbook.sf.net/>
--.\"      Date: Jun 30, 2000
--.\"    Manual: BIND9
--.\"    Source: BIND9
--.\"
--.TH "HOST" "1" "Jun 30, 2000" "BIND9" "BIND9"
--.\" disable hyphenation
--.nh
--.\" disable justification (adjust text to left margin only)
--.ad l
--.SH "NAME"
-+.\"Generated by db2man.xsl. Don't modify this, modify the source.
-+.de Sh \" Subsection
-+.br
-+.if t .Sp
-+.ne 5
-+.PP
-+\fB\\$1\fR
-+.PP
-+..
-+.de Sp \" Vertical space (when we can't use .PP)
-+.if t .sp .5v
-+.if n .sp
-+..
-+.de Ip \" List item
-+.br
-+.ie \\n(.$>=3 .ne \\$3
-+.el .ne 3
-+.IP "\\$1" \\$2
-+..
-+.TH "HOST" 1 "Jun 30, 2000" "" ""
-+.SH NAME
- host \- DNS lookup utility
- .SH "SYNOPSIS"
- .HP 5
--\fBhost\fR [\fB\-aCdlnrTwv\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-N\ \fR\fB\fIndots\fR\fR] [\fB\-R\ \fR\fB\fInumber\fR\fR] [\fB\-t\ \fR\fB\fItype\fR\fR] [\fB\-W\ \fR\fB\fIwait\fR\fR] [\fB\-4\fR] [\fB\-6\fR] {name} [server]
-+\fBhost\fR [\fB\-aCdlnrTwv\fR] [\fB\-c\ \fIclass\fR\fR] [\fB\-N\ \fIndots\fR\fR] [\fB\-R\ \fInumber\fR\fR] [\fB\-t\ \fItype\fR\fR] [\fB\-W\ \fIwait\fR\fR] [\fB\-4\fR] [\fB\-6\fR] {name} [server]
- .SH "DESCRIPTION"
- .PP
--\fBhost\fR
--is a simple utility for performing DNS lookups. It is normally used to convert names to IP addresses and vice versa. When no arguments or options are given,
--\fBhost\fR
--prints a short summary of its command line arguments and options.
--.PP
--\fIname\fR
--is the domain name that is to be looked up. It can also be a dotted\-decimal IPv4 address or a colon\-delimited IPv6 address, in which case
--\fBhost\fR
--will by default perform a reverse lookup for that address.
--\fIserver\fR
--is an optional argument which is either the name or IP address of the name server that
--\fBhost\fR
--should query instead of the server or servers listed in
--\fI/etc/resolv.conf\fR.
--.PP
--The
--\fB\-a\fR
--(all) option is equivalent to setting the
--\fB\-v\fR
--option and asking
--\fBhost\fR
--to make a query of type ANY.
--.PP
--When the
--\fB\-C\fR
--option is used,
--\fBhost\fR
--will attempt to display the SOA records for zone
--\fIname\fR
--from all the listed authoritative name servers for that zone. The list of name servers is defined by the NS records that are found for the zone.
--.PP
--The
--\fB\-c\fR
--option instructs to make a DNS query of class
--\fIclass\fR. This can be used to lookup Hesiod or Chaosnet class resource records. The default class is IN (Internet).
--.PP
--Verbose output is generated by
--\fBhost\fR
--when the
--\fB\-d\fR
--or
--\fB\-v\fR
--option is used. The two options are equivalent. They have been provided for backwards compatibility. In previous versions, the
--\fB\-d\fR
--option switched on debugging traces and
--\fB\-v\fR
--enabled verbose output.
--.PP
--List mode is selected by the
--\fB\-l\fR
--option. This makes
--\fBhost\fR
--perform a zone transfer for zone
--\fIname\fR. Transfer the zone printing out the NS, PTR and address records (A/AAAA). If combined with
--\fB\-a\fR
--all records will be printed.
--.PP
--The
--\fB\-i\fR
--option specifies that reverse lookups of IPv6 addresses should use the IP6.INT domain as defined in RFC1886. The default is to use IP6.ARPA.
--.PP
--The
--\fB\-N\fR
--option sets the number of dots that have to be in
--\fIname\fR
--for it to be considered absolute. The default value is that defined using the ndots statement in
--\fI/etc/resolv.conf\fR, or 1 if no ndots statement is present. Names with fewer dots are interpreted as relative names and will be searched for in the domains listed in the
--\fBsearch\fR
--or
--\fBdomain\fR
--directive in
--\fI/etc/resolv.conf\fR.
--.PP
--The number of UDP retries for a lookup can be changed with the
--\fB\-R\fR
--option.
--\fInumber\fR
--indicates how many times
--\fBhost\fR
--will repeat a query that does not get answered. The default number of retries is 1. If
--\fInumber\fR
--is negative or zero, the number of retries will default to 1.
--.PP
--Non\-recursive queries can be made via the
--\fB\-r\fR
--option. Setting this option clears the
--\fBRD\fR
--\(em recursion desired \(em bit in the query which
--\fBhost\fR
--makes. This should mean that the name server receiving the query will not attempt to resolve
--\fIname\fR. The
--\fB\-r\fR
--option enables
--\fBhost\fR
--to mimic the behavior of a name server by making non\-recursive queries and expecting to receive answers to those queries that are usually referrals to other name servers.
--.PP
--By default
--\fBhost\fR
--uses UDP when making queries. The
--\fB\-T\fR
--option makes it use a TCP connection when querying the name server. TCP will be automatically selected for queries that require it, such as zone transfer (AXFR) requests.
--.PP
--The
--\fB\-4\fR
--option forces
--\fBhost\fR
--to only use IPv4 query transport. The
--\fB\-6\fR
--option forces
--\fBhost\fR
--to only use IPv6 query transport.
--.PP
--The
--\fB\-t\fR
--option is used to select the query type.
--\fItype\fR
--can be any recognized query type: CNAME, NS, SOA, SIG, KEY, AXFR, etc. When no query type is specified,
--\fBhost\fR
--automatically selects an appropriate query type. By default it looks for A, AAAA, and MX records, but if the
--\fB\-C\fR
--option was given, queries will be made for SOA records, and if
--\fIname\fR
--is a dotted\-decimal IPv4 address or colon\-delimited IPv6 address,
--\fBhost\fR
--will query for PTR records. If a query type of IXFR is chosen the starting serial number can be specified by appending an equal followed by the starting serial number (e.g. \-t IXFR=12345678).
--.PP
--The time to wait for a reply can be controlled through the
--\fB\-W\fR
--and
--\fB\-w\fR
--options. The
--\fB\-W\fR
--option makes
--\fBhost\fR
--wait for
--\fIwait\fR
--seconds. If
--\fIwait\fR
--is less than one, the wait interval is set to one second. When the
--\fB\-w\fR
--option is used,
--\fBhost\fR
--will effectively wait forever for a reply. The time to wait for a response will be set to the number of seconds given by the hardware's maximum value for an integer quantity.
-+ \fBhost\fR is a simple utility for performing DNS lookups\&. It is normally used to convert names to IP addresses and vice versa\&. When no arguments or options are given, \fBhost\fR prints a short summary of its command line arguments and options\&.
-+.PP
-+ \fIname\fR is the domain name that is to be looked up\&. It can also be a dotted\-decimal IPv4 address or a colon\-delimited IPv6 address, in which case \fBhost\fR will by default perform a reverse lookup for that address\&. \fIserver\fR is an optional argument which is either the name or IP address of the name server that \fBhost\fR should query instead of the server or servers listed in \fI/etc/resolv\&.conf\fR\&.
-+.PP
-+The \fB\-a\fR (all) option is equivalent to setting the \fB\-v\fR option and asking \fBhost\fR to make a query of type ANY\&.
-+.PP
-+When the \fB\-C\fR option is used, \fBhost\fR will attempt to display the SOA records for zone \fIname\fR from all the listed authoritative name servers for that zone\&. The list of name servers is defined by the NS records that are found for the zone\&.
-+.PP
-+The \fB\-c\fR option instructs to make a DNS query of class \fIclass\fR\&. This can be used to lookup Hesiod or Chaosnet class resource records\&. The default class is IN (Internet)\&.
-+.PP
-+Verbose output is generated by \fBhost\fR when the \fB\-d\fR or \fB\-v\fR option is used\&. The two options are equivalent\&. They have been provided for backwards compatibility\&. In previous versions, the \fB\-d\fR option switched on debugging traces and \fB\-v\fR enabled verbose output\&.
-+.PP
-+List mode is selected by the \fB\-l\fR option\&. This makes \fBhost\fR perform a zone transfer for zone \fIname\fR\&. Transfer the zone printing out the NS, PTR and address records (A/AAAA)\&. If combined with \fB\-a\fR all records will be printed\&.
-+.PP
-+The \fB\-i\fR option specifies that reverse lookups of IPv6 addresses should use the IP6\&.INT domain as defined in RFC1886\&. The default is to use IP6\&.ARPA\&.
-+.PP
-+The \fB\-N\fR option sets the number of dots that have to be in \fIname\fR for it to be considered absolute\&. The default value is that defined using the ndots statement in \fI/etc/resolv\&.conf\fR, or 1 if no ndots statement is present\&. Names with fewer dots are interpreted as relative names and will be searched for in the domains listed in the \fBsearch\fR or \fBdomain\fR directive in \fI/etc/resolv\&.conf\fR\&.
-+.PP
-+The number of UDP retries for a lookup can be changed with the \fB\-R\fR option\&. \fInumber\fR indicates how many times \fBhost\fR will repeat a query that does not get answered\&. The default number of retries is 1\&. If \fInumber\fR is negative or zero, the number of retries will default to 1\&.
-+.PP
-+Non\-recursive queries can be made via the \fB\-r\fR option\&. Setting this option clears the \fBRD\fR -- recursion desired -- bit in the query which \fBhost\fR makes\&. This should mean that the name server receiving the query will not attempt to resolve \fIname\fR\&. The \fB\-r\fR option enables \fBhost\fR to mimic the behavior of a name server by making non\-recursive queries and expecting to receive answers to those queries that are usually referrals to other name servers\&.
-+.PP
-+By default \fBhost\fR uses UDP when making queries\&. The \fB\-T\fR option makes it use a TCP connection when querying the name server\&. TCP will be automatically selected for queries that require it, such as zone transfer (AXFR) requests\&.
-+.PP
-+The \fB\-4\fR option forces \fBhost\fR to only use IPv4 query transport\&. The \fB\-6\fR option forces \fBhost\fR to only use IPv6 query transport\&.
-+.PP
-+The \fB\-t\fR option is used to select the query type\&. \fItype\fR can be any recognized query type: CNAME, NS, SOA, SIG, KEY, AXFR, etc\&. When no query type is specified, \fBhost\fR automatically selects an appropriate query type\&. By default it looks for A, AAAA, and MX records, but if the \fB\-C\fR option was given, queries will be made for SOA records, and if \fIname\fR is a dotted\-decimal IPv4 address or colon\-delimited IPv6 address, \fBhost\fR will query for PTR records\&. If a query type of IXFR is chosen the starting serial number can be specified by appending an equal followed by the starting serial number (e\&.g\&. \-t IXFR=12345678)\&.
-+.PP
-+The time to wait for a reply can be controlled through the \fB\-W\fR and \fB\-w\fR options\&. The \fB\-W\fR option makes \fBhost\fR wait for \fIwait\fR seconds\&. If \fIwait\fR is less than one, the wait interval is set to one second\&. When the \fB\-w\fR option is used, \fBhost\fR will effectively wait forever for a reply\&. The time to wait for a response will be set to the number of seconds given by the hardware's maximum value for an integer quantity\&.
++++ bin/dig/host.1	24 Oct 2008 03:33:52 -0000
+@@ -180,4 +180,15 @@
+ \fBhost\fR
+ will effectively wait forever for a reply. The time to wait for a response will be set to the number of seconds given by the hardware's maximum value for an integer quantity.
 +.SH "IDN SUPPORT"
 +.PP
-+If \fBhost\fR has been built with IDN (internationalized domain name) support, it can accept and display non\-ASCII domain names\&. \fBhost\fR appropriately converts character encoding of domain name before sending a request to DNS server or displaying a reply from the server\&. If you'd like to turn off the IDN support for some reason, defines the \fBIDN_DISABLE\fR environment variable\&. The IDN support is disabled if the the variable is set when \fBhost\fR runs\&.
++If
++\fBhost\fR
++has been built with IDN (internationalized domain name) support, it can accept and display non\-ASCII domain names.
++\fBhost\fR
++appropriately converts character encoding of domain name before sending a request to DNS server or displaying a reply from the server. If you'd like to turn off the IDN support for some reason, defines the
++\fBIDN_DISABLE\fR
++environment variable. The IDN support is disabled if the the variable is set when
++\fBhost\fR
++runs.
  .SH "FILES"
  .PP
--\fI/etc/resolv.conf\fR
-+ \fI/etc/resolv\&.conf\fR 
- .SH "SEE ALSO"
- .PP
--\fBdig\fR(1),
--\fBnamed\fR(8).
--.SH "COPYRIGHT"
--Copyright \(co 2004, 2005, 2007, 2008 Internet Systems Consortium, Inc. ("ISC")
--.br
--Copyright \(co 2000\-2003 Internet Software Consortium.
--.br
-+ \fBdig\fR(1), \fBnamed\fR(8)\&.
 Index: bin/dig/host.docbook
 ===================================================================
 RCS file: /proj/cvs/prod/bind9/bin/dig/host.docbook,v
 retrieving revision 1.2.2.2.4.14
 diff -U2 -r1.2.2.2.4.14 host.docbook
 --- bin/dig/host.docbook	28 Apr 2008 23:45:35 -0000	1.2.2.2.4.14
-+++ bin/dig/host.docbook	16 Sep 2008 23:06:07 -0000
++++ bin/dig/host.docbook	24 Oct 2008 03:33:52 -0000
 @@ -211,4 +211,19 @@
  
  <refsect1>
@@ -2036,7 +1168,7 @@ RCS file: /proj/cvs/prod/bind9/lib/dns/name.c,v
 retrieving revision 1.127.2.7.2.17
 diff -U2 -r1.127.2.7.2.17 name.c
 --- lib/dns/name.c	7 Dec 2006 07:02:45 -0000	1.127.2.7.2.17
-+++ lib/dns/name.c	16 Sep 2008 23:06:08 -0000
++++ lib/dns/name.c	24 Oct 2008 03:33:52 -0000
 @@ -183,4 +183,11 @@
  dns_fullname_hash(dns_name_t *name, isc_boolean_t case_sensitive);
  
@@ -2082,7 +1214,7 @@ RCS file: /proj/cvs/prod/bind9/lib/dns/include/dns/name.h,v
 retrieving revision 1.95.2.3.2.14
 diff -U2 -r1.95.2.3.2.14 name.h
 --- lib/dns/include/dns/name.h	2 Mar 2006 00:37:20 -0000	1.95.2.3.2.14
-+++ lib/dns/include/dns/name.h	16 Sep 2008 23:06:09 -0000
++++ lib/dns/include/dns/name.h	24 Oct 2008 03:33:52 -0000
 @@ -156,4 +156,15 @@
  #define DNS_NAME_MAXWIRE 255
  
