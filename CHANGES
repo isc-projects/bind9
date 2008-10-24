@@ -1,3 +1,6 @@
+2472.	[port]		linux: check the number of available cpu's before
+			calling chroot as it depends on "/proc". [RT #16923]
+
 2469.	[port]		solaris: Work around Solaris's select() limitations.
 			[RT #18769]
 
