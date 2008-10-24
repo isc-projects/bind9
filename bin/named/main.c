@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.164 2008/09/23 17:25:47 jinmei Exp $ */
+/* $Id: main.c,v 1.165 2008/10/24 01:08:21 marka Exp $ */
 
 /*! \file */
 
@@ -490,17 +490,13 @@ static isc_result_t
 create_managers(void) {
 	isc_result_t result;
 	unsigned int socks;
-#ifdef ISC_PLATFORM_USETHREADS
-	unsigned int cpus_detected;
-#endif
 
 #ifdef ISC_PLATFORM_USETHREADS
-	cpus_detected = isc_os_ncpus();
 	if (ns_g_cpus == 0)
-		ns_g_cpus = cpus_detected;
+		ns_g_cpus = ns_g_cpus_detected;
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 		      ISC_LOG_INFO, "found %u CPU%s, using %u worker thread%s",
-		      cpus_detected, cpus_detected == 1 ? "" : "s",
+		      ns_g_cpus_detected, ns_g_cpus_detected == 1 ? "" : "s",
 		      ns_g_cpus, ns_g_cpus == 1 ? "" : "s");
 #else
 	ns_g_cpus = 1;
@@ -631,6 +627,13 @@ setup(void) {
 			isc_entropy_detach(&ns_g_fallbackentropy);
 		}
 	}
+#endif
+
+#ifdef ISC_PLATFORM_USETHREADS
+	/*
+	 * Check for the number of cpu's before ns_os_chroot().
+	 */
+	ns_g_cpus_detected = isc_os_ncpus();
 #endif
 
 	ns_os_chroot(ns_g_chrootdir);

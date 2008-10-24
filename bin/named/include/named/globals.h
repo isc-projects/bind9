@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: globals.h,v 1.76 2008/09/23 17:25:47 jinmei Exp $ */
+/* $Id: globals.h,v 1.77 2008/10/24 01:08:21 marka Exp $ */
 
 #ifndef NAMED_GLOBALS_H
 #define NAMED_GLOBALS_H 1
@@ -48,6 +48,7 @@ EXTERN isc_taskmgr_t *		ns_g_taskmgr		INIT(NULL);
 EXTERN dns_dispatchmgr_t *	ns_g_dispatchmgr	INIT(NULL);
 EXTERN isc_entropy_t *		ns_g_entropy		INIT(NULL);
 EXTERN isc_entropy_t *		ns_g_fallbackentropy	INIT(NULL);
+EXTERN unsigned int		ns_g_cpus_detected	INIT(1);
 
 /*
  * XXXRTH  We're going to want multiple timer managers eventually.  One
