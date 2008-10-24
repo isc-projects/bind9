@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.h,v 1.9.18.1 2004/09/29 06:43:54 marka Exp $ */
+/* $Id: os.h,v 1.9.18.2 2008/10/24 01:28:08 marka Exp $ */
 
 #ifndef NS_OS_H
 #define NS_OS_H 1
@@ -42,6 +42,9 @@ ns_os_inituserinfo(const char *username);
 
 void
 ns_os_changeuser(void);
+
+void
+ns_os_adjustnofile(void);
 
 void
 ns_os_minprivs(void);
