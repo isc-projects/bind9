@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.c,v 1.19 2008/09/26 21:12:02 each Exp $ */
+/* $Id: radix.c,v 1.20 2008/10/23 00:00:58 marka Exp $ */
 
 /*
  * This source was adapted from MRT's RCS Ids:
@@ -446,7 +446,7 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 						radix->num_added_node = next;
 					}
 					if (node->node_num[1] == -1) {
-						node->node_num[2] = next;
+						node->node_num[1] = next;
 						radix->num_added_node = next;
 					}
 				} else {

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.264 2008/09/24 03:16:57 tbox Exp $ */
+/* $Id: rbtdb.c,v 1.265 2008/10/24 00:11:17 marka Exp $ */
 
 /*! \file */
 
@@ -340,6 +340,12 @@ typedef struct rbtdb_changed {
 
 typedef ISC_LIST(rbtdb_changed_t)       rbtdb_changedlist_t;
 
+typedef enum {
+	dns_db_insecure,
+	dns_db_partial,
+	dns_db_secure
+} dns_db_secure_t;
+
 typedef struct rbtdb_version {
 	/* Not locked */
 	rbtdb_serial_t                  serial;
@@ -355,7 +361,7 @@ typedef struct rbtdb_version {
 	rbtdb_changedlist_t             changed_list;
 	rdatasetheaderlist_t		resigned_list;
 	ISC_LINK(struct rbtdb_version)  link;
-	isc_boolean_t			secure;
+	dns_db_secure_t			secure;
 	isc_boolean_t			havensec3;
 	/* NSEC3 parameters */
 	dns_hash_t			hash;
@@ -366,12 +372,6 @@ typedef struct rbtdb_version {
 } rbtdb_version_t;
 
 typedef ISC_LIST(rbtdb_version_t)       rbtdb_versionlist_t;
-
-typedef enum {
-	dns_db_insecure,
-	dns_db_partial,
-	dns_db_secure
-} dns_db_secure_t;
 
 typedef struct {
 	/* Unlocked. */
