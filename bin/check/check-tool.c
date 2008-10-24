@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.c,v 1.34 2008/01/18 23:46:57 tbox Exp $ */
+/* $Id: check-tool.c,v 1.35 2008/10/24 00:28:00 marka Exp $ */
 
 /*! \file */
 
@@ -47,6 +47,14 @@
 
 #include <isccfg/log.h>
 
+#ifndef CHECK_SIBLING
+#define CHECK_SIBLING 1
+#endif
+
+#ifndef CHECK_LOCAL
+#define CHECK_LOCAL 1
+#endif
+
 #ifdef HAVE_ADDRINFO
 #ifdef HAVE_GETADDRINFO
 #ifdef HAVE_GAISTRERROR
@@ -75,14 +83,23 @@ static const char *dbtype[] = { "rbt" };
 
 int debug = 0;
 isc_boolean_t nomerge = ISC_TRUE;
+#if CHECK_LOCAL
 isc_boolean_t docheckmx = ISC_TRUE;
 isc_boolean_t dochecksrv = ISC_TRUE;
 isc_boolean_t docheckns = ISC_TRUE;
+#else
+isc_boolean_t docheckmx = ISC_FALSE;
+isc_boolean_t dochecksrv = ISC_FALSE;
+isc_boolean_t docheckns = ISC_FALSE;
+#endif
 unsigned int zone_options = DNS_ZONEOPT_CHECKNS |
 			    DNS_ZONEOPT_CHECKMX |
 			    DNS_ZONEOPT_MANYERRORS |
 			    DNS_ZONEOPT_CHECKNAMES |
 			    DNS_ZONEOPT_CHECKINTEGRITY |
+#if CHECK_SIBLING
+			    DNS_ZONEOPT_CHECKSIBLING |
+#endif
 			    DNS_ZONEOPT_CHECKWILDCARD |
 			    DNS_ZONEOPT_WARNMXCNAME |
 			    DNS_ZONEOPT_WARNSRVCNAME;
