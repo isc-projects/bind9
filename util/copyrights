@@ -21,7 +21,7 @@
 ./bin/check/named-checkconf.docbook		SGML	2000,2001,2002,2004,2005,2007
 ./bin/check/named-checkconf.html		HTML	DOCBOOK
 ./bin/check/named-checkzone.8			MAN	DOCBOOK
-./bin/check/named-checkzone.c			C	1999,2000,2001,2002,2003,2004,2005,2006,2007
+./bin/check/named-checkzone.c			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./bin/check/named-checkzone.docbook		SGML	2000,2001,2002,2004,2005,2006,2007
 ./bin/check/named-checkzone.html		HTML	DOCBOOK
 ./bin/check/win32/checktool.dsp			X	2006
@@ -153,11 +153,11 @@
 ./bin/named/tsigconf.c				C	1999,2000,2001,2004,2005,2006,2007
 ./bin/named/unix/.cvsignore			X	1999,2000,2001
 ./bin/named/unix/Makefile.in			MAKE	1999,2000,2001,2004,2007
-./bin/named/unix/include/named/os.h		C	1999,2000,2001,2002,2004,2005,2007
+./bin/named/unix/include/named/os.h		C	1999,2000,2001,2002,2004,2005,2007,2008
 ./bin/named/unix/os.c				C	1999,2000,2001,2002,2004,2005,2006,2007,2008
 ./bin/named/update.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./bin/named/win32/include/named/ntservice.h	C	1999,2000,2001,2002,2003,2004,2007
-./bin/named/win32/include/named/os.h		C	1999,2000,2001,2002,2004,2007
+./bin/named/win32/include/named/os.h		C	1999,2000,2001,2002,2004,2007,2008
 ./bin/named/win32/named.dsp			X	2001,2004,2005,2008
 ./bin/named/win32/named.dsw			X	2001
 ./bin/named/win32/named.mak			X	2001,2002,2004,2005,2006,2008
