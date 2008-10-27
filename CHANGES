@@ -1,3 +1,6 @@
+2475.	[bug]		LRU cache cleanup under overmem condition could purge
+			particular entries more aggresively. [RT #17628]
+
 2474.	[bug]		ACL structures could be allocated with insufficient
 			space, causing an array overrun. [RT #18765]
 
