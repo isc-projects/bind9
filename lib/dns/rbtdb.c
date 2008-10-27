@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.248.12.11 2008/10/27 03:56:45 marka Exp $ */
+/* $Id: rbtdb.c,v 1.248.12.12 2008/10/27 22:44:48 jinmei Exp $ */
 
 /*! \file */
 
@@ -5995,11 +5995,20 @@ dns_rbtdb_create
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_lock;
 
+	/*
+	 * Initialize node_lock_count in a generic way to support future
+	 * extension which allows the user to specify this value on creation.
+	 * Note that when specified for a cache DB it must be larger than 1
+	 * as commented with the definition of DEFAULT_CACHE_NODE_LOCK_COUNT.
+	 */
 	if (rbtdb->node_lock_count == 0) {
 		if (IS_CACHE(rbtdb))
 			rbtdb->node_lock_count = DEFAULT_CACHE_NODE_LOCK_COUNT;
 		else
 			rbtdb->node_lock_count = DEFAULT_NODE_LOCK_COUNT;
+	} else if (rbtdb->node_lock_count < 2 && IS_CACHE(rbtdb)) {
+		result = ISC_R_RANGE;
+		goto cleanup_tree_lock;
 	}
 	INSIST(rbtdb->node_lock_count < (1 << DNS_RBT_LOCKLENGTH));
 	rbtdb->node_locks = isc_mem_get(mctx, rbtdb->node_lock_count *
