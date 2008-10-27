@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.21 2008/10/17 19:38:56 jreed Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.22 2008/10/27 16:10:29 jreed Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4484,6 +4484,7 @@ category notify { null; };
     <optional> rfc2308-type1 <replaceable>yes_or_no</replaceable>; </optional>
     <optional> use-id-pool <replaceable>yes_or_no</replaceable>; </optional>
     <optional> maintain-ixfr-base <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> ixfr-from-differences (<replaceable>yes_or_no</replaceable> | <constant>master</constant> | <constant>slave</constant>); </optional>
     <optional> dnssec-enable <replaceable>yes_or_no</replaceable>; </optional>
     <optional> dnssec-validation <replaceable>yes_or_no</replaceable>; </optional>
     <optional> dnssec-lookaside <replaceable>domain</replaceable> trust-anchor <replaceable>domain</replaceable>; </optional>
@@ -5629,9 +5630,10 @@ options {
 		  also accepts <command>master</command> and
                   <command>slave</command> at the view and options
                   levels which causes
-                  <command>ixfr-from-differences</command> to apply to
+                  <command>ixfr-from-differences</command> to be enabled for
                   all <command>master</command> or
                   <command>slave</command> zones respectively.
+                  It is off by default.
                 </para>
               </listitem>
             </varlistentry>
@@ -6864,7 +6866,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 
         </sect3>
 
-        <sect3>
+        <sect3 id="server_resource_limits">
           <title>Server  Resource Limits</title>
 
           <para>
@@ -6898,6 +6900,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   journal
                   will be automatically removed.  The default is
                   <literal>unlimited</literal>.
+                  This may also be set on a per-zone basis.
                 </para>
               </listitem>
             </varlistentry>
@@ -8382,9 +8385,11 @@ view "external" {
     <optional> file <replaceable>string</replaceable> ; </optional>
     <optional> masterfile-format (<constant>text</constant>|<constant>raw</constant>) ; </optional>
     <optional> journal <replaceable>string</replaceable> ; </optional>
+    <optional> max-journal-size <replaceable>size_spec</replaceable>; </optional>
     <optional> forward (<constant>only</constant>|<constant>first</constant>) ; </optional>
     <optional> forwarders { <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
     <optional> ixfr-base <replaceable>string</replaceable> ; </optional>
+    <optional> ixfr-from-differences <replaceable>yes_or_no</replaceable>; </optional>
     <optional> ixfr-tmp-file <replaceable>string</replaceable> ; </optional>
     <optional> maintain-ixfr-base <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> max-ixfr-log-size <replaceable>number</replaceable> ; </optional>
@@ -8422,9 +8427,11 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
     <optional> file <replaceable>string</replaceable> ; </optional>
     <optional> masterfile-format (<constant>text</constant>|<constant>raw</constant>) ; </optional>
     <optional> journal <replaceable>string</replaceable> ; </optional>
+    <optional> max-journal-size <replaceable>size_spec</replaceable>; </optional>
     <optional> forward (<constant>only</constant>|<constant>first</constant>) ; </optional>
     <optional> forwarders { <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
     <optional> ixfr-base <replaceable>string</replaceable> ; </optional>
+    <optional> ixfr-from-differences <replaceable>yes_or_no</replaceable>; </optional>
     <optional> ixfr-tmp-file <replaceable>string</replaceable> ; </optional>
     <optional> maintain-ixfr-base <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> masters <optional>port <replaceable>ip_port</replaceable></optional> { ( <replaceable>masters_list</replaceable> | <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> <optional>key <replaceable>key</replaceable></optional> ) ; <optional>...</optional> }; </optional>
@@ -9038,6 +9045,16 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
               </varlistentry>
 
               <varlistentry>
+                <term><command>max-journal-size</command></term>
+                <listitem>
+                  <para>
+                    See the description of
+                    <command>max-journal-size</command> in <xref linkend="server_resource_limits"/>.
+                  </para>
+                </listitem>
+              </varlistentry>
+
+              <varlistentry>
                 <term><command>max-transfer-time-in</command></term>
                 <listitem>
                   <para>
@@ -9234,6 +9251,10 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                   <para>
                     See the description of
                     <command>ixfr-from-differences</command> in <xref linkend="boolean_options"/>.
+		    (Note that the <command>ixfr-from-differences</command>
+		    <userinput>master</userinput> and
+		    <userinput>slave</userinput> choices are not
+		    available at the zone level.)
                   </para>
                 </listitem>
               </varlistentry>
