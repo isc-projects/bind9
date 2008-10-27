@@ -1,3 +1,6 @@
+
+	--- 9.5.1b3 released ---
+
 2475.	[bug]		LRU cache cleanup under overmem condition could purge
 			particular entries more aggresively. [RT #17628]
 
