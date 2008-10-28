@@ -1,4 +1,7 @@
-2477	[bug]		dig: the global option to print the command line is
+2478.	[bug]		'addresses' could be used uninitalized in
+			configure_forward(). [RT 18800]
+	
+2477.	[bug]		dig: the global option to print the command line is
 			+cmd not print_cmd.  Update the output to reflect
 			this. [RT #17008]
 

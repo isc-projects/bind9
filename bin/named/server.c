@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.517 2008/09/27 23:35:31 jinmei Exp $ */
+/* $Id: server.c,v 1.518 2008/10/28 05:17:40 marka Exp $ */
 
 /*! \file */
 
@@ -2100,6 +2100,8 @@ configure_forward(const cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
 	isc_result_t result;
 	in_port_t port;
 
+	ISC_LIST_INIT(addresses);
+
 	/*
 	 * Determine which port to send forwarded requests to.
 	 */
@@ -2124,8 +2126,6 @@ configure_forward(const cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
 	faddresses = NULL;
 	if (forwarders != NULL)
 		faddresses = cfg_tuple_get(forwarders, "addresses");
-
-	ISC_LIST_INIT(addresses);
 
 	for (element = cfg_list_first(faddresses);
 	     element != NULL;
