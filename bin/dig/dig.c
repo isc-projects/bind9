@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.223 2008/10/15 02:16:51 marka Exp $ */
+/* $Id: dig.c,v 1.224 2008/10/28 03:32:59 marka Exp $ */
 
 /*! \file */
 
@@ -641,9 +641,9 @@ printgreeting(int argc, char **argv, dig_lookup_t *lookup) {
 		}
 		if (first) {
 			snprintf(append, sizeof(append),
-				 ";; global options: %s %s\n",
-			       short_form ? "short_form" : "",
-			       printcmd ? "printcmd" : "");
+				 ";; global options:%s%s\n",
+			         short_form ? " +short" : "",
+			         printcmd ? " +cmd" : "");
 			first = ISC_FALSE;
 			remaining = sizeof(lookup->cmdline) -
 				    strlen(lookup->cmdline) - 1;

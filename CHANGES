@@ -1,3 +1,7 @@
+2477	[bug]		dig: the global option to print the command line is
+			+cmd not print_cmd.  Update the output to reflect
+			this. [RT #17008]
+
 2476.	[doc]		ARM: improve documentation for max-journal-size and
 			ixfr-from-differences. [RT #15909] [RT #18541]
 
