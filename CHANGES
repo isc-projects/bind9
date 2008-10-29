@@ -1,5 +1,16 @@
+
+	--- 9.6.0b1 released ---
+
+2481.	[bug]		rbtdb.c:matchparams() failed to handle NSEC3 chain
+			collisions.  [RT #18812]
+
+2480.	[bug]		named could fail to emit all the required NSEC3
+			records.  [RT #18812]
+
+2479.	[bug]		xfrout:covers was not properly initalized. [RT #18801]
+
 2478.	[bug]		'addresses' could be used uninitalized in
-			configure_forward(). [RT 18800]
+			configure_forward(). [RT #18800]
 	
 2477.	[bug]		dig: the global option to print the command line is
 			+cmd not print_cmd.  Update the output to reflect
@@ -9,7 +20,7 @@
 			ixfr-from-differences. [RT #15909] [RT #18541]
 
 2475.	[bug]		LRU cache cleanup under overmem condition could purge
-			particular entries more aggresively. [RT #17628]
+			particular entries more aggressively. [RT #17628]
 
 2474.	[bug]		ACL structures could be allocated with insufficient
 			space, causing an array overrun. [RT #18765]
@@ -22,7 +33,7 @@
 2472.	[port]		linux: check the number of available cpu's before
 			calling chroot as it depends on "/proc". [RT #16923]
 
-2471.	[bug]		named-checkzone was not reporting missing manditory
+2471.	[bug]		named-checkzone was not reporting missing mandatory
 			glue when sibling checks were disabled. [RT #18768]
 
 2470.	[bug]		Elements of the isc_radix_node_t could be incorrectly
@@ -75,7 +86,7 @@
 			address, regardless of family.  They now correctly
 			distinguish IPv4 from IPv6.  [RT #18559]
                         
-2455.	[bug]		Stop metadata being transfered via axfr/ixfr.
+2455.	[bug]		Stop metadata being transferred via axfr/ixfr.
 			[RT #18639]
 
 2454.	[func]		nsupdate: you can now set a default ttl. [RT #18317]
@@ -94,7 +105,7 @@
 
 2448.	[func]		Add NSEC3 support. [RT #15452]
 
-2447.	[cleanup]	libbind has been split out as a seperate product.
+2447.	[cleanup]	libbind has been split out as a separate product.
 
 2446.	[func]		Add a new log message about build options on startup.
 			A new command-line option '-V' for named is also
@@ -141,7 +152,7 @@
 			using I/O events and use IO Completion Ports
 			throughout.  Rewrite the receive path logic to make
 			it easier to support multiple simultaneous
-			requestrs in the future.  Add stricter consistency
+			requesters in the future.  Add stricter consistency
 			checking as a compile-time option (define
 			ISC_SOCKET_CONSISTENCY_CHECKS; defaults to off).
 
@@ -161,7 +172,7 @@
 			was set. [RT #18528]
 
 2426.	[bug]		libbind: inet_net_pton() can sometimes return the
-			wrong value if excessively large netmasks are
+			wrong value if excessively large net masks are
 			supplied. [RT #18512]
 
 2425.	[bug]		named didn't detect unavailable query source addresses
@@ -188,7 +199,7 @@
 
 2420.   [bug]		Windows socket handling cleanup.  Let the io
 			completion event send out cancelled read/write
-			done events, which keeps us from writing to memeory
+			done events, which keeps us from writing to memory
 			we no longer have ownership of.  Add debugging
 			socket_log() function.  Rework TCP socket handling
 			to not leak sockets.
