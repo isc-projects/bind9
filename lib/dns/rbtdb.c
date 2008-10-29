@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.267 2008/10/27 22:43:34 jinmei Exp $ */
+/* $Id: rbtdb.c,v 1.268 2008/10/29 04:54:00 marka Exp $ */
 
 /*! \file */
 
@@ -3053,23 +3053,28 @@ matchparams(rdatasetheader_t *header, rbtdb_search_t *search)
 #else
 	raw += 2;
 #endif
-	rdlen = raw[0] * 256 + raw[1];
+	while (count-- > 0) {
+		rdlen = raw[0] * 256 + raw[1];
 #if DNS_RDATASET_FIXED
-	raw += 4;
+		raw += 4;
 #else
-	raw += 2;
+		raw += 2;
 #endif
-	region.base = raw;
-	region.length = rdlen;
-	dns_rdata_fromregion(&rdata, search->rbtdb->common.rdclass,
-			     dns_rdatatype_nsec3, &region);
-	result = dns_rdata_tostruct(&rdata, &nsec3, NULL);
-	INSIST(result == ISC_R_SUCCESS);
-	if (nsec3.hash == search->rbtversion->hash &&
-	    nsec3.iterations == search->rbtversion->iterations &&
-	    nsec3.salt_length == search->rbtversion->salt_length &&
-	    memcmp(nsec3.salt, search->rbtversion->salt, nsec3.salt_length) == 0)
-		return (ISC_TRUE);
+		region.base = raw;
+		region.length = rdlen;
+		dns_rdata_fromregion(&rdata, search->rbtdb->common.rdclass,
+				     dns_rdatatype_nsec3, &region);
+		raw += rdlen;
+		result = dns_rdata_tostruct(&rdata, &nsec3, NULL);
+		INSIST(result == ISC_R_SUCCESS);
+		if (nsec3.hash == search->rbtversion->hash &&
+		    nsec3.iterations == search->rbtversion->iterations &&
+		    nsec3.salt_length == search->rbtversion->salt_length &&
+		    memcmp(nsec3.salt, search->rbtversion->salt,
+			   nsec3.salt_length) == 0)
+			return (ISC_TRUE);
+		dns_rdata_reset(&rdata);
+	}
 	return (ISC_FALSE);
 }
 
@@ -3176,6 +3181,9 @@ find_closest_nsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 				result = dns_name_concatenate(name, origin,
 							      foundname, NULL);
 				if (result == ISC_R_SUCCESS) {
+char namebuf[DNS_NAME_FORMATSIZE];
+dns_name_format(foundname, namebuf, DNS_NAME_FORMATSIZE);
+fprintf(stderr, "%s\n", namebuf);
 					if (nodep != NULL) {
 						new_reference(search->rbtdb,
 							      node);
@@ -3225,7 +3233,8 @@ find_closest_nsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 	if (result == ISC_R_NOMORE && wraps) {
 		result = dns_rbtnodechain_last(&search->chain, tree,
 					       NULL, NULL);
-		if (result == ISC_R_SUCCESS) {
+fprintf(stderr, "dns_rbtnodechain_last -> %s\n", dns_result_totext(result));
+		if (result == ISC_R_SUCCESS || result == DNS_R_NEWORIGIN) {
 			wraps = ISC_FALSE;
 			goto again;
 		}
@@ -3312,6 +3321,9 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 				  &search.chain, DNS_RBTFIND_EMPTYDATA,
 				  zone_zonecut_callback, &search);
 
+char namebuf[DNS_NAME_FORMATSIZE];
+dns_name_format(name, namebuf, DNS_NAME_FORMATSIZE);
+fprintf(stderr, "%s\n", namebuf);
 	if (result == DNS_R_PARTIALMATCH) {
 	partial_match:
 		if (search.zonecut != NULL) {

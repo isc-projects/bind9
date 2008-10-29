@@ -1,3 +1,9 @@
+2481.	[bug]		rbtdb.c:matchparams() failed to handle NSEC3 chain
+			collisions.  [RT #18812]
+
+2480.	[bug]		named could fail to emit all the required NSEC3
+			records.  [RT #18812]
+
 2479.	[bug]		xfrout:covers was not properly initalized. [RT #18801]
 
 2478.	[bug]		'addresses' could be used uninitalized in
