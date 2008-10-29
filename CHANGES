@@ -1,3 +1,5 @@
+2482.	[port]		libxml2: support versions 2.7.* in addition
+			to 2.6.*. [RT #18806]
 
 	--- 9.6.0b1 released ---
 
