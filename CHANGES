@@ -1,3 +1,6 @@
+
+	--- 9.6.0b1 released ---
+
 2481.	[bug]		rbtdb.c:matchparams() failed to handle NSEC3 chain
 			collisions.  [RT #18812]
 
