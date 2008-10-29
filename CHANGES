@@ -1,3 +1,5 @@
+2479.	[bug]		xfrout:covers was not properly initalized. [RT 18801]
+
 2478.	[bug]		'addresses' could be used uninitalized in
 			configure_forward(). [RT 18800]
 	
