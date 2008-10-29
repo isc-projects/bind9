@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.268 2008/10/29 04:54:00 marka Exp $ */
+/* $Id: rbtdb.c,v 1.269 2008/10/29 05:53:12 marka Exp $ */
 
 /*! \file */
 
@@ -3181,9 +3181,6 @@ find_closest_nsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 				result = dns_name_concatenate(name, origin,
 							      foundname, NULL);
 				if (result == ISC_R_SUCCESS) {
-char namebuf[DNS_NAME_FORMATSIZE];
-dns_name_format(foundname, namebuf, DNS_NAME_FORMATSIZE);
-fprintf(stderr, "%s\n", namebuf);
 					if (nodep != NULL) {
 						new_reference(search->rbtdb,
 							      node);
@@ -3233,7 +3230,6 @@ fprintf(stderr, "%s\n", namebuf);
 	if (result == ISC_R_NOMORE && wraps) {
 		result = dns_rbtnodechain_last(&search->chain, tree,
 					       NULL, NULL);
-fprintf(stderr, "dns_rbtnodechain_last -> %s\n", dns_result_totext(result));
 		if (result == ISC_R_SUCCESS || result == DNS_R_NEWORIGIN) {
 			wraps = ISC_FALSE;
 			goto again;
@@ -3321,9 +3317,6 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 				  &search.chain, DNS_RBTFIND_EMPTYDATA,
 				  zone_zonecut_callback, &search);
 
-char namebuf[DNS_NAME_FORMATSIZE];
-dns_name_format(name, namebuf, DNS_NAME_FORMATSIZE);
-fprintf(stderr, "%s\n", namebuf);
 	if (result == DNS_R_PARTIALMATCH) {
 	partial_match:
 		if (search.zonecut != NULL) {
