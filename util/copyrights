@@ -2066,7 +2066,7 @@
 ./lib/isc/win32/Makefile.in			MAKE	1999,2000,2001,2004,2007
 ./lib/isc/win32/app.c				C	1999,2000,2001,2004,2007
 ./lib/isc/win32/condition.c			C	1998,1999,2000,2001,2004,2006,2007
-./lib/isc/win32/dir.c				C	1999,2000,2001,2004,2007
+./lib/isc/win32/dir.c				C	1999,2000,2001,2004,2007,2008
 ./lib/isc/win32/entropy.c			C	2000,2001,2002,2004,2007
 ./lib/isc/win32/errno2result.c			C	2000,2001,2002,2004,2005,2007,2008
 ./lib/isc/win32/errno2result.h			C	2000,2001,2004,2005,2007
