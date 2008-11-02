@@ -15,14 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dir.c,v 1.14 2007/06/19 23:47:19 tbox Exp $ */
+/* $Id: dir.c,v 1.15 2008/11/02 12:48:39 fdupont Exp $ */
 
 /* Principal Authors: DCL */
-
-/*
- * isc_dir_chroot is currently stubbed out for Win32
- * This will need to be revisited
- */
 
 #include <config.h>
 
@@ -242,7 +237,7 @@ isc_dir_chdir(const char *dirname) {
 
 isc_result_t
 isc_dir_chroot(const char *dirname) {
-	return (ISC_R_SUCCESS);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 isc_result_t

@@ -1,3 +1,5 @@
+2483.	[port]		win32: chroot() is not supported. [RT #18805]
+
 2482.	[port]		libxml2: support versions 2.7.* in addition
 			to 2.6.*. [RT #18806]
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.29 2008/10/24 01:24:54 marka Exp $ */
+/* $Id: os.c,v 1.30 2008/11/02 12:48:39 fdupont Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -155,6 +155,7 @@ ns_os_closedevnull(void) {
 
 void
 ns_os_chroot(const char *root) {
+	ns_main_earlyfatal("chroot(): isn't supported by Win32 API");
 }
 
 void
