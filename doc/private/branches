@@ -30,11 +30,11 @@ custom_WFB_v9_4_1		private	marka	// 2007-04-30 01:53 +0000
 custom_WFB_v9_4_1_P1		private	marka	// 2007-08-01 22:49 +0000
 custom_WFB_v9_4_2		private	each	// 2007-12-05 18:10 +0000
 custom_WFB_v9_4_2_P1		new	each	// 2008-05-27 22:59 +0000
-custom_WFB_v9_5_0_P1		new	marka	// 2008-07-15 00:05 +0000
+custom_WFB_v9_5_0_P1		private	marka	// 2008-07-15 00:05 +0000
 custom_WFB_v9_5_0_P2		new	each	// 2008-08-05 21:06 +0000
 gsstsig4			open	sra	// head + gsstsig as of 12 may 2006
 gsstsig4_win32			open	danny	// sub-branch off gsstsig4 for windows development
-ietf71				new	marka	// 2008-03-12 04:10 +0000
+ietf71				closed	marka	// 2008-03-12 04:10 +0000
 jinmei-mmapzone-test		open		// mmap based zone file. very experimental, just for reference purposes
 jinmei_libdnsng			open	
 jinmei_lrucache			open	
@@ -44,10 +44,10 @@ marka_libdnsng			open
 mlg-20000518			open	explorer
 newresolver0			open	
 openssl_stub			open	marka
-resign				new	marka	// 2007-10-19 03:57 +0000
+resign				closed	marka	// 2007-10-19 03:57 +0000
 rt10864				open	marka	// NSEC caching @ delegation
-rt1091				open	marka	// 2007-10-22 02:27 +0000
-rt1091a				new	marka	// 2007-11-19 03:11 +0000
+rt1091				closed	marka	// 2007-10-22 02:27 +0000
+rt1091a				closed	marka	// 2007-11-19 03:11 +0000
 rt11398d			open	sra	// doxygen dev
 rt11398e			open	sra
 rt11543				open	jakob
@@ -220,13 +220,13 @@ v9_4_2_P2_W1			new	mayer	// 2008-08-09 19:33 +0000
 v9_4_2_P2_danny			new	
 v9_4_2_P2_michael		new	
 v9_4_2_P2_win32			new	each	// 2008-08-21 00:20 +0000
-v9_4_2_patch			new	
+v9_4_2_patch			active		// security fixes 9.4.2 only	
 v9_4_2_patch_attservfail	new	
-v9_5				new	marka	// 2008-01-02 04:47 +0000
+v9_5				active
 v9_5_0_P2_W1			new	mayer	// 2008-08-16 21:14 +0000
 v9_5_0_P2_danny			new	
 v9_5_0_P2_win32			new	marka	// 2008-09-04 05:59 +0000
-v9_5_0_patch			new	
+v9_5_0_patch			active		// security fixes 9.5.0 only
 
 
 a6_remove			closed
