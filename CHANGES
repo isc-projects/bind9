@@ -1,3 +1,7 @@
+2484.	[bug]		It was possible to trigger a REQUIRE failure when
+			adding NSEC3 proofs to the response in
+			query_addwildcardproof().  [RT #18828]
+
 2483.	[port]		win32: chroot() is not supported. [RT #18805]
 
 2482.	[port]		libxml2: support versions 2.7.* in addition

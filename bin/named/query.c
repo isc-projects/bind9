@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.312 2008/10/15 02:37:11 marka Exp $ */
+/* $Id: query.c,v 1.313 2008/11/03 23:57:22 marka Exp $ */
 
 /*! \file */
 
@@ -2863,12 +2863,22 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 
 	if (!dns_rdataset_isassociated(rdataset)) {
 		/*
-		 * fname contains the closest encloser.
+		 * No NSEC proof available, return NSEC3 proofs instead.
 		 */
 		dns_fixedname_init(&cfixed);
 		cname = dns_fixedname_name(&cfixed);
-		dns_name_copy(fname, cname, NULL);
-
+		/*
+		 * Find the closest encloser.
+		 */
+		dns_name_copy(name, cname, NULL);
+		while (result == DNS_R_NXDOMAIN) {
+			labels = dns_name_countlabels(cname) - 1;
+			dns_name_split(cname, labels, NULL, cname);
+			result = dns_db_find(db, cname, version,
+					     dns_rdatatype_nsec,
+					     options, 0, NULL, fname,
+					     NULL, NULL);
+		}
 		/*
 		 * Add closest (provable) encloser NSEC3.
 		 */
@@ -2879,6 +2889,9 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 		query_addrrset(client, &fname, &rdataset, &sigrdataset,
 			       dbuf, DNS_SECTION_AUTHORITY);
 
+		/*
+		 * Replace resources which were consumed by query_addrrset.
+		 */
 		if (fname == NULL) {
 			dbuf = query_getnamebuf(client);
 			if (dbuf == NULL)
@@ -2918,7 +2931,7 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 			goto cleanup;
 
 		/*
-		 * Add the no wildcard proof.
+		 * Replace resources which were consumed by query_addrrset.
 		 */
 		if (fname == NULL) {
 			dbuf = query_getnamebuf(client);
@@ -2939,6 +2952,9 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 
 		if (fname == NULL || rdataset == NULL || sigrdataset == NULL)
 			goto cleanup;
+		/*
+		 * Add the no wildcard proof.
+		 */
 		result = dns_name_concatenate(dns_wildcardname,
 					      cname, wname, NULL);
 		if (result != ISC_R_SUCCESS)
