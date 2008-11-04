@@ -34,7 +34,6 @@ custom_WFB_v9_5_0_P1		private	marka	// 2008-07-15 00:05 +0000
 custom_WFB_v9_5_0_P2		new	each	// 2008-08-05 21:06 +0000
 gsstsig4			open	sra	// head + gsstsig as of 12 may 2006
 gsstsig4_win32			open	danny	// sub-branch off gsstsig4 for windows development
-ietf71				closed	marka	// 2008-03-12 04:10 +0000
 jinmei-mmapzone-test		open		// mmap based zone file. very experimental, just for reference purposes
 jinmei_libdnsng			open	
 jinmei_lrucache			open	
@@ -44,10 +43,7 @@ marka_libdnsng			open
 mlg-20000518			open	explorer
 newresolver0			open	
 openssl_stub			open	marka
-resign				closed	marka	// 2007-10-19 03:57 +0000
 rt10864				open	marka	// NSEC caching @ delegation
-rt1091				closed	marka	// 2007-10-22 02:27 +0000
-rt1091a				closed	marka	// 2007-11-19 03:11 +0000
 rt11398d			open	sra	// doxygen dev
 rt11398e			open	sra
 rt11543				open	jakob
@@ -175,6 +171,7 @@ rt18793				new	fdupont	// 2008-10-25 11:56 +0000
 rt18795				new	marka	// 2008-10-27 00:04 +0000
 rt18802				new	
 rt18815				new	fdupont	// 2008-10-28 12:34 +0000
+rt18828				new	marka	// 2008-11-04 06:17 +0000
 shane_dbbackend			open	
 skan				open	explorer
 skan-metazones1			private	explorer
@@ -222,7 +219,7 @@ v9_4_2_P2_michael		new
 v9_4_2_P2_win32			new	each	// 2008-08-21 00:20 +0000
 v9_4_2_patch			active		// security fixes 9.4.2 only	
 v9_4_2_patch_attservfail	new	
-v9_5				active
+v9_5				active	
 v9_5_0_P2_W1			new	mayer	// 2008-08-16 21:14 +0000
 v9_5_0_P2_danny			new	
 v9_5_0_P2_win32			new	marka	// 2008-09-04 05:59 +0000
@@ -251,6 +248,7 @@ edns_size			closed
 gssapi3-skan			closed
 gsstsig2			closed		// old (circa 9.3.0) gss-tsig, finally worked with hacked heimdal spnego
 gsstsig3			closed
+ietf71				closed		// 2008-03-12 04:10 +0000
 ifiter_getifaddrs		closed
 ipl				closed
 ipv6-improvements		closed
@@ -263,6 +261,7 @@ optin				closed		// aborted DNSSEC OPTIN code
 peter				closed		// hostname.bind for 9.2.x
 queryperf-v6			closed		// IPv6 transport support for queryperf
 rdata_split			closed
+resign				closed		// 2007-10-19 03:57 +0000
 rt10038				closed
 rt10049				closed
 rt10105				closed
@@ -301,6 +300,8 @@ rt10764				closed		// empty
 rt10838				closed
 rt10847				closed
 rt10861				closed
+rt1091				closed		// 2007-10-22 02:27 +0000
+rt1091a				closed		// 2007-11-19 03:11 +0000
 rt10920				closed
 rt10925				closed
 rt10929				closed
