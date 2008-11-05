@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.168.18.25 2008/10/30 01:40:09 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.168.18.26 2008/11/05 01:40:01 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -1107,7 +1107,7 @@
 <a name="id2575092"></a><span><strong class="command">logging</strong></span> Statement Grammar</h3></div></div></div>
 <pre class="programlisting"><span><strong class="command">logging</strong></span> {
    [ <span><strong class="command">channel</strong></span> <em class="replaceable"><code>channel_name</code></em> {
-     ( <span><strong class="command">file</strong></span> <em class="replaceable"><code>path name</code></em>
+     ( <span><strong class="command">file</strong></span> <em class="replaceable"><code>path_name</code></em>
          [ <span><strong class="command">versions</strong></span> ( <em class="replaceable"><code>number</code></em> | <span><strong class="command">unlimited</strong></span> ) ]
          [ <span><strong class="command">size</strong></span> <em class="replaceable"><code>size spec</code></em> ]
        | <span><strong class="command">syslog</strong></span> <em class="replaceable"><code>syslog_facility</code></em>
@@ -1670,7 +1670,7 @@ category notify { null; };
                   </td>
 <td>
                     <p>
-                      Delegation only.  Logs queries that have have
+                      Delegation only.  Logs queries that have
                       been forced to NXDOMAIN as the result of a
                       delegation-only zone or
                       a <span><strong class="command">delegation-only</strong></span> in a
@@ -4374,7 +4374,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 <p>
             Named will attempt to determine if a built in zone already exists
             or is active (covered by a forward-only forwarding declaration)
-            and will not not create a empty zone in that case.
+            and will not create a empty zone in that case.
           </p>
 <p>
             The current list of empty zones is:
