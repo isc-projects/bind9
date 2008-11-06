@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: lwresd.docbook,v 1.17 2008/09/25 04:02:38 tbox Exp $ -->
+<!-- $Id: lwresd.docbook,v 1.18 2008/11/06 05:30:24 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>June 30, 2000</date>
@@ -199,7 +199,7 @@
           <para>
             Use <replaceable class="parameter">pid-file</replaceable> as the
             PID file instead of the default,
-            <filename>/var/run/lwresd.pid</filename>.
+            <filename>/var/run/lwresd/lwresd.pid</filename>.
           </para>
         </listitem>
       </varlistentry>

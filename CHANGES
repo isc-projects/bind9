@@ -1,3 +1,12 @@
+2486.	[func]		The default locations for named.pid and lwresd.pid
+			are now /var/run/named/named.pid and
+			/var/run/lwresd/lwresd.pid respectively.
+
+			This allows the owner of the containing directory
+			to be set, for "named -u" support, and allows there
+			to be a permanent symbolic link in the path, for
+			"named -t" support.  [RT #18306]
+
 2485.	[bug]		Change update's the handling of obscured RRSIG
 			records.  Not all orphand DS records were being
 			removed. [RT #18828]

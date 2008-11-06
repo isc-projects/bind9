@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.docbook,v 1.22 2008/09/23 17:25:47 jinmei Exp $ -->
+<!-- $Id: named.docbook,v 1.23 2008/11/06 05:30:24 marka Exp $ -->
 <refentry id="man.named">
   <refentryinfo>
     <date>June 30, 2000</date>
@@ -391,7 +391,7 @@
       </varlistentry>
 
       <varlistentry>
-        <term><filename>/var/run/named.pid</filename></term>
+        <term><filename>/var/run/named/named.pid</filename></term>
         <listitem>
           <para>
             The default process-id file.

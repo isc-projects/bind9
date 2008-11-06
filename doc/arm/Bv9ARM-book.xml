@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.378 2008/11/04 01:55:59 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.379 2008/11/06 05:30:24 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4797,7 +4797,8 @@ category notify { null; };
             <listitem>
               <para>
                 The pathname of the file the server writes its process ID
-                in. If not specified, the default is <filename>/var/run/named.pid</filename>.
+                in. If not specified, the default is
+		<filename>/var/run/named/named.pid</filename>.
                 The pid-file is used by programs that want to send signals to
                 the running
                 name server. Specifying <command>pid-file none</command> disables the

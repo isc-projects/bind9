@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.87 2008/10/24 01:44:48 tbox Exp $ */
+/* $Id: os.c,v 1.88 2008/11/06 05:30:24 marka Exp $ */
 
 /*! \file */
 
@@ -645,6 +645,9 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 	pid_t pid;
 	char strbuf[ISC_STRERRORSIZE];
 	void (*report)(const char *, ...);
+	unsigned int mode;
+	char *slash;
+	int n;
 
 	/*
 	 * The caller must ensure any required synchronization.
@@ -666,6 +669,27 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 	}
 	/* This is safe. */
 	strcpy(pidfile, filename);
+
+	/*
+	 * Make the containing directory if it doesn't exist.
+	 */
+	slash = strrchr(pidfile, '/');
+	if (slash != NULL && slash != pidfile) {
+		*slash = '\0';
+		mode = S_IRUSR | S_IWUSR | S_IXUSR;	/* u=rwx */
+		mode |= S_IRGRP | S_IXGRP;		/* g=rx */
+		mode |= S_IROTH | S_IXOTH;		/* o=rx */
+		n = mkdir(pidfile, mode);
+		if (n == -1 && errno != EEXIST) {
+			isc__strerror(errno, strbuf, sizeof(strbuf));
+			(*report)("couldn't mkdir %s': %s", filename,
+				  strbuf);
+			free(pidfile);
+			pidfile = NULL;
+			return;
+		}
+		*slash = '/';
+	}
 
 	fd = safe_open(filename, ISC_FALSE);
 	if (fd < 0) {

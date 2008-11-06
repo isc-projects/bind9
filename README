@@ -56,6 +56,9 @@ BIND 9.6.0
         The BIND 8 resolver library, libbind, has been removed from the
         BIND 9 distribution and is now available as a separate download.
 
+	Change the default pid file location from /var/run to
+	/var/run/{named,lwresd} for improved chroot/setuid support.
+
 BIND 9.5.0
 
 	BIND 9.5.0 has a number of new features over 9.4,
@@ -451,6 +454,9 @@ Building
 		To disable the default check set.  -DCHECK_SIBLING=0
 		named-checkzone checks out-of-zone addresses by default.
 		To disable this default set.  -DCHECK_LOCAL=0
+		To create the default pid files in ${localstatedir}/run rather
+		than ${localstatedir}/run/{named,lwresd}/ set.
+		  -DNS_RUN_PID_DIR=0
 
 	    LDFLAGS
 		Linker flags. Defaults to empty string.

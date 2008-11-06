@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.92 2008/09/27 23:35:31 jinmei Exp $ */
+/* $Id: config.c,v 1.93 2008/11/06 05:30:24 marka Exp $ */
 
 /*! \file */
 
@@ -69,7 +69,7 @@ options {\n\
 	memstatistics-file \"named.memstats\";\n\
 	multiple-cnames no;\n\
 #	named-xfer <obsolete>;\n\
-#	pid-file \"" NS_LOCALSTATEDIR "/named.pid\"; /* or /lwresd.pid */\n\
+#	pid-file \"" NS_LOCALSTATEDIR "/run/named/named.pid\"; /* or /lwresd.pid */\n\
 	port 53;\n\
 	recursing-file \"named.recursing\";\n\
 "
