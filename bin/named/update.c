@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.149 2008/11/06 02:31:41 marka Exp $ */
+/* $Id: update.c,v 1.150 2008/11/06 23:47:06 tbox Exp $ */
 
 #include <config.h>
 
@@ -2029,7 +2029,7 @@ failure:
 
 static isc_result_t
 add_exposed_sigs(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
-	         dns_dbversion_t *ver, dns_name_t *name, isc_boolean_t cut,
+		 dns_dbversion_t *ver, dns_name_t *name, isc_boolean_t cut,
 		 dns_diff_t *diff, dst_key_t **keys, unsigned int nkeys,
 		 isc_stdtime_t inception, isc_stdtime_t expire,
 		 isc_boolean_t check_ksk)
