@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.355.12.26 2008/10/17 22:01:00 jinmei Exp $ */
+/* $Id: resolver.c,v 1.355.12.27 2008/11/06 02:18:34 marka Exp $ */
 
 /*! \file */
 
@@ -1105,7 +1105,7 @@ fctx_setretryinterval(fetchctx_t *fctx, unsigned int rtt) {
 	unsigned int us;
 
 	/*
-	 * We retry every .5 seconds the first two times through the address
+	 * We retry every .8 seconds the first two times through the address
 	 * list, and then we do exponential back-off.
 	 */
 	if (fctx->restarts < 3)
