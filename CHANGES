@@ -1,3 +1,5 @@
+2487.	[bug]		Give TCP connections longer to complete. [RT #18675]
+
 2485.	[bug]		Change update's the handling of obscured RRSIG
 			records.  Not all orphand DS records were being
 			removed. [RT #18828]
