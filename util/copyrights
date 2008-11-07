@@ -61,6 +61,10 @@
 ./bin/dig/win32/nslookup.mak			X	2001,2002,2004,2005,2006
 ./bin/dnssec/.cvsignore				X	2000,2001,2008
 ./bin/dnssec/Makefile.in			MAKE	2000,2001,2002,2004,2005,2007,2008
+./bin/dnssec/dnssec-dsfromkey.8			MAN	2008
+./bin/dnssec/dnssec-dsfromkey.c			C	2008
+./bin/dnssec/dnssec-dsfromkey.docbook		SGML	2008
+./bin/dnssec/dnssec-dsfromkey.html		HTML	2008
 ./bin/dnssec/dnssec-keyfromlabel.8		MAN	DOCBOOK
 ./bin/dnssec/dnssec-keyfromlabel.c		C	2007,2008
 ./bin/dnssec/dnssec-keyfromlabel.docbook	SGML	2008
@@ -1411,6 +1415,7 @@
 ./doc/arm/isc-logo.pdf				X	2005
 ./doc/arm/latex-fixup.pl			PERL	2005,2007
 ./doc/arm/man.dig.html				X	2005,2006,2007,2008
+./doc/arm/man.dnssec-dsfromkey.html		HTML	2008
 ./doc/arm/man.dnssec-keyfromlabel.html		X	2008
 ./doc/arm/man.dnssec-keygen.html		X	2005,2006,2007,2008
 ./doc/arm/man.dnssec-signzone.html		X	2005,2006,2007,2008
