@@ -1,3 +1,5 @@
+2487.	[bug]		Give TCP connections longer to complete. [RT #18675]
+
 2486.	[func]		The default locations for named.pid and lwresd.pid
 			are now /var/run/named/named.pid and
 			/var/run/lwresd/lwresd.pid respectively.

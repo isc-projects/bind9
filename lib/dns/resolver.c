@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.383 2008/11/06 02:20:14 marka Exp $ */
+/* $Id: resolver.c,v 1.384 2008/11/07 00:52:34 marka Exp $ */
 
 /*! \file */
 
@@ -552,14 +552,13 @@ fctx_stoptimer(fetchctx_t *fctx) {
 
 
 static inline isc_result_t
-fctx_startidletimer(fetchctx_t *fctx) {
+fctx_startidletimer(fetchctx_t *fctx, isc_interval_t *interval) {
 	/*
 	 * Start the idle timer for fctx.  The lifetime timer continues
 	 * to be in effect.
 	 */
 	return (isc_timer_reset(fctx->timer, isc_timertype_once,
-				&fctx->expires, &fctx->interval,
-				ISC_FALSE));
+				&fctx->expires, interval, ISC_FALSE));
 }
 
 /*
@@ -1173,7 +1172,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		srtt = 1000000;
 
 	fctx_setretryinterval(fctx, srtt);
-	result = fctx_startidletimer(fctx);
+	result = fctx_startidletimer(fctx, &fctx->interval);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -1771,6 +1770,7 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
 	resquery_t *query = event->ev_arg;
 	isc_boolean_t retry = ISC_FALSE;
+	isc_interval_t interval;
 	isc_result_t result;
 	unsigned int attrs;
 	fetchctx_t *fctx;
@@ -1803,6 +1803,20 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 	} else {
 		switch (sevent->result) {
 		case ISC_R_SUCCESS:
+
+			/*
+			 * Extend the idle timer for TCP.  20 seconds
+			 * should be long enough for a TCP connection to be
+			 * established, a single DNS request to be sent,
+			 * and the response received.
+			 */
+			isc_interval_set(&interval, 20, 0);
+			result = fctx_startidletimer(query->fctx, &interval);
+			if (result != ISC_R_SUCCESS) {
+				fctx_cancelquery(&query, NULL, NULL, ISC_FALSE);
+				fctx_done(fctx, result);
+				break;
+			}
 			/*
 			 * We are connected.  Create a dispatcher and
 			 * send the query.
@@ -1835,8 +1849,7 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 				result = resquery_send(query);
 
 			if (result != ISC_R_SUCCESS) {
-				fctx_cancelquery(&query, NULL, NULL,
-						 ISC_FALSE);
+				fctx_cancelquery(&query, NULL, NULL, ISC_FALSE);
 				fctx_done(fctx, result);
 			}
 			break;
