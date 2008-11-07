@@ -17,10 +17,10 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-keyfromlabel.docbook,v 1.5 2008/10/14 14:32:50 jreed Exp $ -->
+<!-- $Id: dnssec-keyfromlabel.docbook,v 1.6 2008/11/07 13:54:11 jreed Exp $ -->
 <refentry id="man.dnssec-keyfromlabel">
   <refentryinfo>
-    <date>february 8, 2008</date>
+    <date>February 8, 2008</date>
   </refentryinfo>
 
   <refmeta>
