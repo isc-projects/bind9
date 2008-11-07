@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.34 2008/04/01 23:47:10 tbox Exp $
+# $Id: Makefile.in,v 1.35 2008/11/07 02:28:49 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -40,21 +40,26 @@ LIBS =		${DNSLIBS} ${ISCLIBS} @LIBS@
 
 # Alphabetically
 TARGETS =	dnssec-keygen@EXEEXT@ dnssec-signzone@EXEEXT@ \
-		dnssec-keyfromlabel@EXEEXT@
+		dnssec-keyfromlabel@EXEEXT@ dnssec-dsfromkey@EXEEXT@
 
 OBJS =		dnssectool.@O@
 
-SRCS =		dnssec-keyfromlabel.c dnssec-keygen.c dnssec-signzone.c \
-		dnssectool.c
+SRCS =		dnssec-dsfromkey.c dnssec-keyfromlabel.c dnssec-keygen.c \
+		dnssec-signzone.c dnssectool.c
 
-MANPAGES =	dnssec-keyfromlabel.8 dnssec-keygen.8 dnssec-signzone.8
+MANPAGES =	dnssec-dsfromkey.8 dnssec-keyfromlabel.8 dnssec-keygen.8 \
+		dnssec-signzone.8
 
-HTMLPAGES =	dnssec-keyfromlabel.html dnssec-keygen.html \
-		dnssec-signzone.html
+HTMLPAGES =	dnssec-dsfromkey.html dnssec-keyfromlabel.html \
+		dnssec-keygen.html dnssec-signzone.html 
 
 MANOBJS =	${MANPAGES} ${HTMLPAGES}
 
 @BIND9_MAKE_RULES@
+
+dnssec-dsfromkey@EXEEXT@: dnssec-dsfromkey.@O@ ${OBJS} ${DEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+	dnssec-dsfromkey.@O@ ${OBJS} ${LIBS}
 
 dnssec-keyfromlabel@EXEEXT@: dnssec-keyfromlabel.@O@ ${OBJS} ${DEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
