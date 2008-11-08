@@ -457,6 +457,10 @@ Building
 		To create the default pid files in ${localstatedir}/run rather
 		than ${localstatedir}/run/{named,lwresd}/ set.
 		  -DNS_RUN_PID_DIR=0
+		Enabling workaround for Solaris kernel bug about /dev/poll
+		  -DISC_SOCKET_USE_POLLWATCH=1
+		  The watch timeout is also configurable, e.g.,
+		  -DISC_SOCKET_POLLWATCH_TIMEOUT=20
 
 	    LDFLAGS
 		Linker flags. Defaults to empty string.
