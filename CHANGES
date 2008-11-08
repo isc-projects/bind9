@@ -1,3 +1,9 @@
+2489.	[port]		solaris: Workaround Solaris's kernel bug about
+			/dev/poll:
+			http://bugs.opensolaris.org/view_bug.do?bug_id=6724237
+			Define ISC_SOCKET_USE_POLLWATCH at build time to enable
+			this workaround. [RT #18870]
+
 2487.	[bug]		Give TCP connections longer to complete. [RT #18675]
 
 2485.	[bug]		Change update's the handling of obscured RRSIG

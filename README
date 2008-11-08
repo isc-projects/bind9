@@ -432,6 +432,10 @@ Building
 		To disable the default check set.  -DCHECK_SIBLING=0
 		named-checkzone checks out-of-zone addresses by default.
 		To disable this default set.  -DCHECK_LOCAL=0
+		Enabling workaround for Solaris kernel bug about /dev/poll
+		  -DISC_SOCKET_USE_POLLWATCH=1
+		  The watch timeout is also configurable, e.g.,
+		  -DISC_SOCKET_POLLWATCH_TIMEOUT=20
 
 	    LDFLAGS
 		Linker flags. Defaults to empty string.
