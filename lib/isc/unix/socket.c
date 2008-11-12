@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.275.10.29 2008/11/08 22:38:11 jinmei Exp $ */
+/* $Id: socket.c,v 1.275.10.30 2008/11/12 03:56:19 marka Exp $ */
 
 /*! \file */
 
@@ -492,6 +492,38 @@ socket_log(isc_socket_t *sock, isc_sockaddr_t *address,
 			       "socket %p %s: %s", sock, peerbuf, msgbuf);
 	}
 }
+
+#if defined(_AIX) && defined(ISC_NET_BSD44MSGHDR) && \
+    defined(USE_CMSG) && defined(IPV6_RECVPKTINFO)
+/*
+ * AIX has a kernel bug where IPV6_RECVPKTINFO gets cleared by
+ * setting IPV6_V6ONLY.
+ */
+static void
+FIX_IPV6_RECVPKTINFO(isc_socket_t *sock)
+{
+	char strbuf[ISC_STRERRORSIZE];
+	int on = 1;
+
+	if (sock->pf != AF_INET6 || sock->type != isc_sockettype_udp)
+		return;
+
+	if (setsockopt(sock->fd, IPPROTO_IPV6, IPV6_RECVPKTINFO,
+		       (void *)&on, sizeof(on)) < 0) {
+	
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "setsockopt(%d, IPV6_RECVPKTINFO) "
+				 "%s: %s", sock->fd,
+				 isc_msgcat_get(isc_msgcat,
+						ISC_MSGSET_GENERAL,
+						ISC_MSG_FAILED,
+						"failed"),
+				 strbuf);
+	}
+}
+#else
+#define FIX_IPV6_RECVPKTINFO(sock) (void)0
+#endif
 
 static inline isc_result_t
 watch_fd(isc_socketmgr_t *manager, int fd, int msg) {
@@ -1285,15 +1317,17 @@ dump_msg(struct msghdr *msg) {
 	unsigned int i;
 
 	printf("MSGHDR %p\n", msg);
-	printf("\tname %p, namelen %d\n", msg->msg_name, msg->msg_namelen);
-	printf("\tiov %p, iovlen %d\n", msg->msg_iov, msg->msg_iovlen);
+	printf("\tname %p, namelen %ld\n", msg->msg_name,
+	       (long) msg->msg_namelen);
+	printf("\tiov %p, iovlen %ld\n", msg->msg_iov,
+	       (long) msg->msg_iovlen);
 	for (i = 0; i < (unsigned int)msg->msg_iovlen; i++)
-		printf("\t\t%d\tbase %p, len %d\n", i,
+		printf("\t\t%d\tbase %p, len %ld\n", i,
 		       msg->msg_iov[i].iov_base,
-		       msg->msg_iov[i].iov_len);
+		       (long) msg->msg_iov[i].iov_len);
 #ifdef ISC_NET_BSD44MSGHDR
-	printf("\tcontrol %p, controllen %d\n", msg->msg_control,
-	       msg->msg_controllen);
+	printf("\tcontrol %p, controllen %ld\n", msg->msg_control,
+	       (long) msg->msg_controllen);
 #endif
 }
 #endif
@@ -5088,9 +5122,21 @@ isc_socket_ipv6only(isc_socket_t *sock, isc_boolean_t yes) {
 
 #ifdef IPV6_V6ONLY
 	if (sock->pf == AF_INET6) {
-		(void)setsockopt(sock->fd, IPPROTO_IPV6, IPV6_V6ONLY,
-				 (void *)&onoff, sizeof(onoff));
+		if (setsockopt(sock->fd, IPPROTO_IPV6, IPV6_V6ONLY,
+			       (void *)&onoff, sizeof(int)) < 0) {
+			char strbuf[ISC_STRERRORSIZE];
+	
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "setsockopt(%d, IPV6_V6ONLY) "
+					 "%s: %s", sock->fd,
+					 isc_msgcat_get(isc_msgcat,
+							ISC_MSGSET_GENERAL,
+							ISC_MSG_FAILED,
+							"failed"),
+					 strbuf);
+		}
 	}
+	FIX_IPV6_RECVPKTINFO(sock);	/* AIX */
 #endif
 }
 
