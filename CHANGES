@@ -1,3 +1,6 @@
+2491.	[func]		Attempt to re-use a local port if we are already using
+			the port. [RT #18548]
+
 2490.	[port]		aix: work around a kernel bug where IPV6_RECVPKTINFO
 			is cleared when IPV6_V6ONLY is set. [RT #18785]
 
