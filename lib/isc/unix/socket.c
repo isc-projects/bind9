@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.237.18.56 2008/11/12 03:58:36 marka Exp $ */
+/* $Id: socket.c,v 1.237.18.57 2008/11/12 23:45:57 tbox Exp $ */
 
 /*! \file */
 
@@ -501,7 +501,7 @@ FIX_IPV6_RECVPKTINFO(isc_socket_t *sock)
 
 	if (setsockopt(sock->fd, IPPROTO_IPV6, IPV6_RECVPKTINFO,
 		       (void *)&on, sizeof(on)) < 0) {
-	
+
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "setsockopt(%d, IPV6_RECVPKTINFO) "
 				 "%s: %s", sock->fd,
@@ -4902,7 +4902,7 @@ isc_socket_ipv6only(isc_socket_t *sock, isc_boolean_t yes) {
 		if (setsockopt(sock->fd, IPPROTO_IPV6, IPV6_V6ONLY,
 			       (void *)&onoff, sizeof(int)) < 0) {
 			char strbuf[ISC_STRERRORSIZE];
-	
+
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "setsockopt(%d, IPV6_V6ONLY) "
 					 "%s: %s", sock->fd,
