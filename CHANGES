@@ -1,3 +1,6 @@
+2494.	[bug]		isc/radix.h, dns/sdlz.h and dns/dlz.h were not being
+			installed. [RT #18826]
+
 2493.	[bug]		The linux capabilites code was not correctly cleaning
 			up after itself. [RT #18767]
 
