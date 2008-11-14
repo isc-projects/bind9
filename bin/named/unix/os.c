@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.79.128.8 2008/10/24 01:44:15 tbox Exp $ */
+/* $Id: os.c,v 1.79.128.9 2008/11/14 05:11:42 marka Exp $ */
 
 /*! \file */
 
@@ -196,7 +196,7 @@ linux_setcaps(cap_t caps) {
 	do { \
 		capval = (flag); \
 		cap_flag_value_t curval; \
-		err = cap_get_flag(cap_get_proc(), capval, CAP_PERMITTED, &curval); \
+		err = cap_get_flag(curcaps, capval, CAP_PERMITTED, &curval); \
 		if (err != -1 && curval) { \
 			err = cap_set_flag(caps, CAP_EFFECTIVE, 1, &capval, CAP_SET); \
 			if (err == -1) { \
@@ -218,16 +218,27 @@ linux_setcaps(cap_t caps) {
 			isc__strerror(errno, strbuf, sizeof(strbuf)); \
 			ns_main_earlyfatal("cap_init failed: %s", strbuf); \
 		} \
+		curcaps = cap_get_proc(); \
+		if (curcaps == NULL) { \
+			isc__strerror(errno, strbuf, sizeof(strbuf)); \
+			ns_main_earlyfatal("cap_get_proc failed: %s", strbuf); \
+		} \
+	} while (0)
+#define FREE_CAP \
+	{ \
+		cap_free(caps); \
+		cap_free(curcaps); \
 	} while (0)
 #else
-#define SET_CAP(flag) { caps |= (1 << (flag)); }
-#define INIT_CAP { caps = 0; }
+#define SET_CAP(flag) do { caps |= (1 << (flag)); } while (0)
+#define INIT_CAP do { caps = 0; } while (0)
 #endif /* HAVE_LIBCAP */
 
 static void
 linux_initialprivs(void) {
 	cap_t caps;
 #ifdef HAVE_LIBCAP
+	cap_t curcaps;
 	cap_value_t capval;
 	char strbuf[ISC_STRERRORSIZE];
 	int err;
@@ -281,12 +292,17 @@ linux_initialprivs(void) {
 	SET_CAP(CAP_SYS_RESOURCE);
 
 	linux_setcaps(caps);
+
+#ifdef HAVE_LIBCAP
+	FREE_CAP;
+#endif
 }
 
 static void
 linux_minprivs(void) {
 	cap_t caps;
 #ifdef HAVE_LIBCAP
+	cap_t curcaps;
 	cap_value_t capval;
 	char strbuf[ISC_STRERRORSIZE];
 	int err;
@@ -313,6 +329,10 @@ linux_minprivs(void) {
 	SET_CAP(CAP_SYS_RESOURCE);
 
 	linux_setcaps(caps);
+
+#ifdef HAVE_LIBCAP
+	FREE_CAP;
+#endif
 }
 
 #ifdef HAVE_SYS_PRCTL_H
