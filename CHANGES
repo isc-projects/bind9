@@ -1,3 +1,5 @@
+2495.	[bug]		Tighten RRSIG checks. [RT #18795]
+
 2494.	[bug]		isc/radix.h, dns/sdlz.h and dns/dlz.h were not being
 			installed. [RT #18826]
 

@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.15 2008/09/24 02:46:22 marka Exp $
+ * $Id: dst_api.c,v 1.16 2008/11/14 22:53:46 marka Exp $
  */
 
 /*! \file */
@@ -997,6 +997,13 @@ dst_key_read_public(const char *filename, int type,
 	NEXTTOKEN(lex, opt, &token);
 	if (token.type != isc_tokentype_string)
 		BADTOKEN();
+
+	/*
+	 * We don't support "@" in .key files.
+	 */
+	if (!strcmp(DST_AS_STR(token), "@"))
+		BADTOKEN();
+
 	dns_fixedname_init(&name);
 	isc_buffer_init(&b, DST_AS_STR(token), strlen(DST_AS_STR(token)));
 	isc_buffer_add(&b, strlen(DST_AS_STR(token)));
