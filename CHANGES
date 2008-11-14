@@ -1,4 +1,4 @@
-2492.	[func]		Rndc status new reports the number of cpus discovered
+2492.	[func]		Rndc status now reports the number of cpus discovered
 			and the number of worker threads when running
 			multi-threaded. [RT #18273]
 
