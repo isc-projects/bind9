@@ -1542,7 +1542,7 @@
 ./lib/dns/diff.c				C	2000,2001,2002,2003,2004,2005,2007,2008
 ./lib/dns/dispatch.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/dns/dlz.c					C.PORTION	1999,2000,2001,2005,2007
-./lib/dns/dnssec.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
+./lib/dns/dnssec.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/dns/ds.c					C	2002,2003,2004,2005,2006,2007
 ./lib/dns/dst_api.c				C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/dns/dst_internal.h			C.NAI	2000,2001,2002,2004,2005,2006,2007,2008
@@ -1561,7 +1561,7 @@
 ./lib/dns/include/.cvsignore			X	1998,1999,2000,2001
 ./lib/dns/include/Makefile.in			MAKE	1998,1999,2000,2001,2004,2007
 ./lib/dns/include/dns/.cvsignore		X	1998,1999,2000,2001
-./lib/dns/include/dns/Makefile.in		MAKE	1998,1999,2000,2001,2002,2003,2004,2007
+./lib/dns/include/dns/Makefile.in		MAKE	1998,1999,2000,2001,2002,2003,2004,2007,2008
 ./lib/dns/include/dns/acache.h			C	2004,2006,2007
 ./lib/dns/include/dns/acl.h			C	1999,2000,2001,2002,2004,2005,2006,2007
 ./lib/dns/include/dns/adb.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
@@ -1859,7 +1859,7 @@
 ./lib/isc/include/.cvsignore			X	1998,1999,2000,2001
 ./lib/isc/include/Makefile.in			MAKE	1998,1999,2000,2001,2004,2007
 ./lib/isc/include/isc/.cvsignore		X	1998,1999,2000,2001
-./lib/isc/include/isc/Makefile.in		MAKE	1998,1999,2000,2001,2003,2004,2005,2006,2007
+./lib/isc/include/isc/Makefile.in		MAKE	1998,1999,2000,2001,2003,2004,2005,2006,2007,2008
 ./lib/isc/include/isc/app.h			C	1999,2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/assertions.h		C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2008
 ./lib/isc/include/isc/base32.h			C	2008
