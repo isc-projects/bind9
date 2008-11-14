@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.91 2007/09/14 04:32:50 marka Exp $
+ * $Id: dnssec.c,v 1.91.58.1 2008/11/14 22:57:29 marka Exp $
  */
 
 /*! \file */
@@ -366,6 +366,9 @@ dns_dnssec_verify2(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
+	if (set->type != sig.covered)
+		return (DNS_R_SIGINVALID);
+
 	if (isc_serial_lt(sig.timeexpire, sig.timesigned))
 		return (DNS_R_SIGINVALID);
 
@@ -379,6 +382,27 @@ dns_dnssec_verify2(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 			return (DNS_R_SIGFUTURE);
 		else if (isc_serial_lt(sig.timeexpire, (isc_uint32_t)now))
 			return (DNS_R_SIGEXPIRED);
+	}
+
+	/*
+	 * NS, SOA and DNSSKEY records are signed by their owner.
+	 * DS records are signed by the parent.
+	 */
+	switch (set->type) {
+	case dns_rdatatype_ns:
+	case dns_rdatatype_soa:
+	case dns_rdatatype_dnskey:
+		if (!dns_name_equal(name, &sig.signer))
+			return (DNS_R_SIGINVALID);
+		break;
+	case dns_rdatatype_ds:
+		if (dns_name_equal(name, &sig.signer))
+			return (DNS_R_SIGINVALID);
+		/* FALLTHROUGH */
+	default:
+		if (!dns_name_issubdomain(name, &sig.signer))
+			return (DNS_R_SIGINVALID);
+		break;
 	}
 
 	/*
@@ -540,6 +564,9 @@ dns_dnssec_findzonekeys2(dns_db_t *db, dns_dbversion_t *ver,
 		RETERR(dns_dnssec_keyfromrdata(name, &rdata, mctx, &pubkey));
 		if (!is_zone_key(pubkey) ||
 		    (dst_key_flags(pubkey) & DNS_KEYTYPE_NOAUTH) != 0)
+			goto next;
+		/* Corrupted .key file? */
+		if (!dns_name_equal(name, dst_key_name(pubkey)))
 			goto next;
 		keys[count] = NULL;
 		result = dst_key_fromfile(dst_key_name(pubkey),
