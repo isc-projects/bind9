@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.518 2008/10/28 05:17:40 marka Exp $ */
+/* $Id: server.c,v 1.519 2008/11/14 04:57:04 marka Exp $ */
 
 /*! \file */
 
@@ -5091,9 +5091,14 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 					    DNS_ZONESTATE_XFERDEFERRED);
 	soaqueries = dns_zonemgr_getcount(server->zonemgr,
 					  DNS_ZONESTATE_SOAQUERY);
+
 	n = snprintf((char *)isc_buffer_used(text),
 		     isc_buffer_availablelength(text),
 		     "version: %s%s%s%s\n"
+#ifdef ISC_PLATFORM_USETHREADS 
+		     "CPUs found: %u\n"
+		     "worker threads: %u\n"
+#endif
 		     "number of zones: %u\n"
 		     "debug level: %d\n"
 		     "xfers running: %u\n"
@@ -5104,6 +5109,9 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 		     "tcp clients: %d/%d\n"
 		     "server is up and running",
 		     ns_g_version, ob, alt, cb,
+#ifdef ISC_PLATFORM_USETHREADS 
+		     ns_g_cpus_detected, ns_g_cpus,
+#endif
 		     zonecount, ns_g_debuglevel, xferrunning, xferdeferred,
 		     soaqueries, server->log_queries ? "ON" : "OFF",
 		     server->recursionquota.used, server->recursionquota.soft,
