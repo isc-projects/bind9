@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.91.58.1 2008/11/14 22:57:29 marka Exp $
+ * $Id: dnssec.c,v 1.91.58.2 2008/11/14 23:46:41 tbox Exp $
  */
 
 /*! \file */
@@ -431,7 +431,7 @@ dns_dnssec_verify2(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	dns_fixedname_init(&fnewname);
 	labels = dns_name_countlabels(name) - 1;
 	RUNTIME_CHECK(dns_name_downcase(name, dns_fixedname_name(&fnewname),
-				        NULL) == ISC_R_SUCCESS);
+					NULL) == ISC_R_SUCCESS);
 	if (labels - sig.labels > 0)
 		dns_name_split(dns_fixedname_name(&fnewname), sig.labels + 1,
 			       NULL, dns_fixedname_name(&fnewname));
@@ -511,9 +511,9 @@ cleanup_struct:
 	dns_rdata_freestruct(&sig);
 
 	if (ret == ISC_R_SUCCESS && labels - sig.labels > 0) {
-		if (wild != NULL) 
+		if (wild != NULL)
 			RUNTIME_CHECK(dns_name_concatenate(dns_wildcardname,
-					         dns_fixedname_name(&fnewname),
+						 dns_fixedname_name(&fnewname),
 						 wild, NULL) == ISC_R_SUCCESS);
 		ret = DNS_R_FROMWILDCARD;
 	}
@@ -829,7 +829,7 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 	RETERR(dst_context_create(key, mctx, &ctx));
 
 	/*
- 	 * Digest the SIG(0) record, except for the signature.
+	 * Digest the SIG(0) record, except for the signature.
 	 */
 	dns_rdata_toregion(&rdata, &r);
 	r.length -= sig.siglen;
