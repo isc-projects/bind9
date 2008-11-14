@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.269 2008/10/29 05:53:12 marka Exp $ */
+/* $Id: rbtdb.c,v 1.270 2008/11/14 14:07:48 marka Exp $ */
 
 /*! \file */
 
@@ -3082,7 +3082,7 @@ static inline isc_result_t
 find_closest_nsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 		  dns_name_t *foundname, dns_rdataset_t *rdataset,
 		  dns_rdataset_t *sigrdataset, dns_rbt_t *tree,
-		  isc_boolean_t need_sig)
+		  dns_db_secure_t secure)
 {
 	dns_rbtnode_t *node;
 	rdatasetheader_t *header, *header_next, *found, *foundsig;
@@ -3093,6 +3093,7 @@ find_closest_nsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 	dns_rdatatype_t type;
 	rbtdb_rdatatype_t sigtype;
 	isc_boolean_t wraps;
+	isc_boolean_t need_sig = ISC_TF(secure == dns_db_secure);
 
 	if (tree == search->rbtdb->nsec3) {
 		type = dns_rdatatype_nsec3;
@@ -3351,7 +3352,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		 * If we're here, then the name does not exist, is not
 		 * beneath a zonecut, and there's no matching wildcard.
 		 */
-		if ((search.rbtversion->secure &&
+		if ((search.rbtversion->secure == dns_db_secure &&
 		     !search.rbtversion->havensec3) ||
 		    (search.options & DNS_DBFIND_FORCENSEC) != 0 ||
 		    (search.options & DNS_DBFIND_FORCENSEC3) != 0)
@@ -3592,7 +3593,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		 * The desired type doesn't exist.
 		 */
 		result = DNS_R_NXRRSET;
-		if (search.rbtversion->secure &&
+		if (search.rbtversion->secure == dns_db_secure &&
 		    !search.rbtversion->havensec3 &&
 		    (nsecheader == NULL || nsecsig == NULL)) {
 			/*
@@ -3628,7 +3629,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 			new_reference(search.rbtdb, node);
 			*nodep = node;
 		}
-		if ((search.rbtversion->secure &&
+		if ((search.rbtversion->secure == dns_db_secure &&
 		     !search.rbtversion->havensec3) ||
 		    (search.options & DNS_DBFIND_FORCENSEC) != 0)
 		{
@@ -6963,7 +6964,7 @@ dns_rbtdb_create
 		free_rbtdb(rbtdb, ISC_FALSE, NULL);
 		return (ISC_R_NOMEMORY);
 	}
-	rbtdb->current_version->secure = ISC_FALSE;
+	rbtdb->current_version->secure = dns_db_insecure;
 	rbtdb->current_version->havensec3 = ISC_FALSE;
 	rbtdb->current_version->flags = 0;
 	rbtdb->current_version->iterations = 0;
