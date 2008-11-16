@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: globals.h,v 1.79 2008/11/06 23:47:06 tbox Exp $ */
+/* $Id: globals.h,v 1.80 2008/11/16 22:49:18 marka Exp $ */
 
 #ifndef NAMED_GLOBALS_H
 #define NAMED_GLOBALS_H 1
@@ -112,18 +112,20 @@ EXTERN const char *		ns_g_chrootdir		INIT(NULL);
 EXTERN isc_boolean_t		ns_g_foreground		INIT(ISC_FALSE);
 EXTERN isc_boolean_t		ns_g_logstderr		INIT(ISC_FALSE);
 
-EXTERN const char *		ns_g_defaultpidfile 	INIT(NS_LOCALSTATEDIR
-							     "/run/"
 #if NS_RUN_PID_DIR
-							     "named/"
-#endif
+EXTERN const char *		ns_g_defaultpidfile 	INIT(NS_LOCALSTATEDIR
+							     "/run/named/"
 							     "named.pid");
 EXTERN const char *		lwresd_g_defaultpidfile INIT(NS_LOCALSTATEDIR
-							     "/run/"
-#if NS_RUN_PID_DIR
-							     "lwresd/"
-#endif
+							     "/run/lwresd/"
 							     "lwresd.pid");
+#else
+EXTERN const char *		ns_g_defaultpidfile 	INIT(NS_LOCALSTATEDIR
+							     "/run/named.pid");
+EXTERN const char *		lwresd_g_defaultpidfile INIT(NS_LOCALSTATEDIR
+							     "/run/lwresd.pid");
+#endif
+
 EXTERN const char *		ns_g_username		INIT(NULL);
 
 EXTERN int			ns_g_listen		INIT(3);
