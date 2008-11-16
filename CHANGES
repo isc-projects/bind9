@@ -1,3 +1,6 @@
+
+	--- 9.5.1rc1 released ---
+
 2496.	[bug]		Add sanity length checks to NSID option. [RT #18813]
 
 2495.	[bug]		Tighten RRSIG checks. [RT #18795]
