@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.250.16.6 2008/05/27 22:36:09 each Exp $ */
+/* $Id: client.c,v 1.250.16.7 2008/11/16 21:04:02 marka Exp $ */
 
 #include <config.h>
 
@@ -1211,7 +1211,7 @@ client_addopt(ns_client_t *client) {
 		 * + 2 bytes for NSID length
 		 * + NSID itself
 		 */
-		char nsid[BUFSIZ];
+		char nsid[BUFSIZ], *nsidp;
 		isc_buffer_t *buffer = NULL;
 
 		if (ns_g_server->server_usehostname) {
@@ -1220,19 +1220,19 @@ client_addopt(ns_client_t *client) {
 			if (result != ISC_R_SUCCESS) {
 				goto no_nsid;
 			}
-		} else {
-			strncpy(nsid, ns_g_server->server_id, sizeof(nsid));
-		}
+			nsidp = nsid;
+		} else
+			nsidp = ns_g_server->server_id;
 
-		rdata->length = strlen(nsid) + 4;
+		rdata->length = strlen(nsidp) + 4;
 		result = isc_buffer_allocate(client->mctx, &buffer,
 					     rdata->length);
 		if (result != ISC_R_SUCCESS)
 			goto no_nsid;
 
 		isc_buffer_putuint16(buffer, DNS_OPT_NSID);
-		isc_buffer_putuint16(buffer, strlen(nsid));
-		isc_buffer_putstr(buffer, nsid);
+		isc_buffer_putuint16(buffer, strlen(nsidp));
+		isc_buffer_putstr(buffer, nsidp);
 		rdata->data = buffer->base;
 		dns_message_takebuffer(client->message, &buffer);
 	} else {
