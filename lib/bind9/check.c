@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.93 2008/09/12 06:02:31 each Exp $ */
+/* $Id: check.c,v 1.94 2008/11/16 20:57:55 marka Exp $ */
 
 /*! \file */
 
@@ -790,6 +790,19 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 				    str);
 			result = ISC_R_FAILURE;
 		}
+	}
+
+	/*
+	 * Check that server-id is not too long.
+	 * 1024 bytes should be big enough.
+	 */
+	obj = NULL;
+	(void)cfg_map_get(options, "server-id", &obj);
+	if (obj != NULL && cfg_obj_isstring(obj) &&
+	    strlen(cfg_obj_asstring(obj)) > 1024) {
+		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+			    "'server-id' too big (>1024 bytes)");
+		result = ISC_R_FAILURE;
 	}
 
 	return (result);
