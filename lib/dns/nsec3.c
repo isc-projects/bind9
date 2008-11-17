@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3.c,v 1.5 2008/09/26 01:24:55 marka Exp $ */
+/* $Id: nsec3.c,v 1.6 2008/11/17 23:46:42 marka Exp $ */
 
 #include <config.h>
 
@@ -152,7 +152,9 @@ dns_nsec3_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 			if (rdataset.type > max_type)
 				max_type = rdataset.type;
 			set_bit(bm, rdataset.type, 1);
-			found = ISC_TRUE;
+			/* Don't set RRSIG for insecure delegation. */
+			if (rdataset.type != dns_rdatatype_ns)
+				found = ISC_TRUE;
 		}
 		dns_rdataset_disassociate(&rdataset);
 	}
