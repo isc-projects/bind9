@@ -11,7 +11,7 @@
 2494.	[bug]		isc/radix.h, dns/sdlz.h and dns/dlz.h were not being
 			installed. [RT #18826]
 
-2493.	[bug]		The linux capabilites code was not correctly cleaning
+2493.	[bug]		The linux capabilities code was not correctly cleaning
 			up after itself. [RT #18767]
 
 2492.	[func]		Rndc status now reports the number of cpus discovered
@@ -45,7 +45,7 @@
 			"named -t" support.  [RT #18306]
 
 2485.	[bug]		Change update's the handling of obscured RRSIG
-			records.  Not all orphand DS records were being
+			records.  Not all orphaned DS records were being
 			removed. [RT #18828]
 
 2484.	[bug]		It was possible to trigger a REQUIRE failure when
@@ -65,9 +65,9 @@
 2480.	[bug]		named could fail to emit all the required NSEC3
 			records.  [RT #18812]
 
-2479.	[bug]		xfrout:covers was not properly initalized. [RT #18801]
+2479.	[bug]		xfrout:covers was not properly initialized. [RT #18801]
 
-2478.	[bug]		'addresses' could be used uninitalized in
+2478.	[bug]		'addresses' could be used uninitialized in
 			configure_forward(). [RT #18800]
 	
 2477.	[bug]		dig: the global option to print the command line is
@@ -257,7 +257,7 @@
 			operating systems without rebuilding named.
 
 2420.   [bug]		Windows socket handling cleanup.  Let the io
-			completion event send out cancelled read/write
+			completion event send out canceled read/write
 			done events, which keeps us from writing to memory
 			we no longer have ownership of.  Add debugging
 			socket_log() function.  Rework TCP socket handling
@@ -286,7 +286,7 @@
 
 2413.	[bug]		Fixed an unreachable code path in socket.c. [RT #18442]
 
-2412.	[bug]		win32: address a resourse leak. [RT #18374]
+2412.	[bug]		win32: address a resource leak. [RT #18374]
 
 2411.	[bug]		Allow using a larger number of sockets than FD_SETSIZE
 			for select().  To enable this, set ISC_SOCKET_MAXSOCKETS
@@ -1664,7 +1664,7 @@
 1966.	[bug]		Don't set CD when we have fallen back to plain DNS.
 			[RT #15727]
 
-1965.	[func]		Suppress spurious "recusion requested but not
+1965.	[func]		Suppress spurious "recursion requested but not
 			available" warning with 'dig +qr'. [RT #15780].
 
 1964.	[func]		Separate out MX and SRV to CNAME checks. [RT #15723]
@@ -4668,7 +4668,7 @@
  963.	[bug]		Bad ISC_LANG_ENDDECLS. [RT #1645]
 
  962.	[bug]		libbind: bad "#undef", don't attempt to install
-			non-existant nlist.h. [RT #1640]
+			non-existent nlist.h. [RT #1640]
 
  961.	[bug]		Tried to use a IPV6 feature when ISC_PLATFORM_HAVEIPV6
 			was not defined. [RT #1482]
@@ -7306,7 +7306,7 @@
  188.	[func]		Log a warning message when an incoming zone transfer
 			contains out-of-zone data.
 
- 187.	[func]		isc_ratelimter_enqueue() has an additional argument
+ 187.	[func]		isc_ratelimiter_enqueue() has an additional argument
 			'task'.
 
  186.	[func]		dns_request_getresponse() has an additional argument
@@ -7449,7 +7449,7 @@
 
 				masters [ port xxx ] { y.y.y.y [ port zzz ] ; }
 
- 149.	[cleanup]	Removed usused argument 'olist' from
+ 149.	[cleanup]	Removed unused argument 'olist' from
 			dns_c_view_unsetordering().
 
  148.	[cleanup]	Stop issuing some warnings about some configuration
@@ -7525,7 +7525,7 @@
  128.	[cleanup]	<isc/dir.h> had ISC_LANG_BEGINDECLS instead of
 			ISC_LANG_ENDDECLS at end of header.
 
- 127.	[cleanup]	The contracts for the comparision routines
+ 127.	[cleanup]	The contracts for the comparison routines
 			dns_name_fullcompare(), dns_name_compare(),
 			dns_name_rdatacompare(), and dns_rdata_compare() now
 			specify that the order value returned is < 0, 0, or > 0
