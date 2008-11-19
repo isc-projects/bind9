@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.138.2.6 2008/11/06 23:46:35 tbox Exp $ */
+/* $Id: update.c,v 1.138.2.7 2008/11/19 06:20:58 marka Exp $ */
 
 #include <config.h>
 
@@ -1550,6 +1550,13 @@ is_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 			*unsecure = ISC_FALSE;
 		return (ISC_R_SUCCESS);
 	} else {
+		/*
+		 * Silence compiler.
+		 */
+		*flag = ISC_FALSE;
+		*cut = ISC_FALSE;
+		if (unsecure != NULL)
+			*unsecure = ISC_FALSE;
 		return (result);
 	}
 }
