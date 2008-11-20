@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.237.18.57 2008/11/12 23:45:57 tbox Exp $ */
+/* $Id: socket.c,v 1.237.18.58 2008/11/20 00:07:00 jinmei Exp $ */
 
 /*! \file */
 
@@ -3163,7 +3163,6 @@ watcher(void *uap) {
 						    ISC_LOGCATEGORY_GENERAL,
 						    ISC_LOGMODULE_SOCKET,
 						    ISC_LOG_DEBUG(1),
-						    ISC_LOG_INFO,
 						    "unexpected POLL timeout");
 				}
 				pollstate = poll_active;
