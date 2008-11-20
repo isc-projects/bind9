@@ -1,6 +1,11 @@
 
 	--- 9.6.0rc1 released ---
 
+2498.	[bug]		Removed a bogus function argument used with
+			ISC_SOCKET_USE_POLLWATCH: it could cause compiler
+			warning or crash named with the debug 1 level
+			of logging. [RT #18917]
+
 2497.	[bug]		Don't add RRSIG bit to NSEC3 bit map for insecure
 			delegation.
 
