@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.119.18.41 2008/08/21 04:59:42 marka Exp $ */
+/* $Id: validator.c,v 1.119.18.42 2008/11/20 02:02:44 marka Exp $ */
 
 /*! \file */
 
@@ -1132,6 +1132,23 @@ get_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo) {
 		 */
 		if (dns_rdatatype_atparent(val->event->rdataset->type))
 			return (DNS_R_CONTINUE);
+	} else {
+		/*
+		 * SOA and NS RRsets can only be signed by a key with	
+		 * the same name.
+		 */
+		if (val->event->rdataset->type == dns_rdatatype_soa ||
+		    val->event->rdataset->type == dns_rdatatype_ns) {
+			const char *typename;
+
+			if (val->event->rdataset->type == dns_rdatatype_soa)
+				typename = "SOA";
+			else
+				typename = "NS";
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "%s signer mismatch", typename);
+			return (DNS_R_CONTINUE);
+		}
 	}
 
 	/*
@@ -1703,6 +1720,10 @@ validatezonekey(dns_validator_t *val) {
 					     &sigrdata);
 			result = dns_rdata_tostruct(&sigrdata, &sig, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+			if (!dns_name_equal(val->event->name, &sig.signer))
+				continue;
+
 			result = dns_keytable_findkeynode(val->keytable,
 							  val->event->name,
 							  sig.algorithm,
@@ -1943,7 +1964,11 @@ validatezonekey(dns_validator_t *val) {
 			if (ds.key_tag != sig.keyid ||
 			    ds.algorithm != sig.algorithm)
 				continue;
-
+			if (!dns_name_equal(val->event->name, &sig.signer)) {
+				validator_log(val, ISC_LOG_DEBUG(3),
+					      "DNSKEY signer mismatch");
+				continue;
+			}
 			dstkey = NULL;
 			result = dns_dnssec_keyfromrdata(val->event->name,
 							 &keyrdata,

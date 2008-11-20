@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.177.18.26 2008/06/02 23:46:01 tbox Exp $ */
+/* $Id: dnssec-signzone.c,v 1.177.18.27 2008/11/20 02:02:44 marka Exp $ */
 
 /*! \file */
 
@@ -2106,6 +2106,9 @@ main(int argc, char *argv[]) {
 				fatal("cannot load dnskey %s: %s", argv[i],
 				      isc_result_totext(result));
 
+			if (!dns_name_equal(gorigin, dst_key_name(newkey)))
+				fatal("key %s not at origin\n", argv[i]);
+
 			key = ISC_LIST_HEAD(keylist);
 			while (key != NULL) {
 				dst_key_t *dkey = key->key;
@@ -2142,6 +2145,9 @@ main(int argc, char *argv[]) {
 		if (result != ISC_R_SUCCESS)
 			fatal("cannot load dnskey %s: %s", dskeyfile[i],
 			      isc_result_totext(result));
+
+		if (!dns_name_equal(gorigin, dst_key_name(newkey)))
+			fatal("key %s not at origin\n", dskeyfile[i]);
 
 		key = ISC_LIST_HEAD(keylist);
 		while (key != NULL) {
