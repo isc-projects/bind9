@@ -8,6 +8,9 @@
 2478.	[bug]		'addresses' could be used uninitalized in
 			configure_forward(). [RT #18800]
 	
+2476.	[doc]		ARM: improve documentation for max-journal-size and
+			ixfr-from-differences. [RT #15909] [RT #18541]
+
 	--- 9.4.3 released ---
 
 2490.	[port]		aix: work around a kernel bug where IPV6_RECVPKTINFO
