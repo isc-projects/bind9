@@ -3,8 +3,10 @@
 			warning or crash named with the debug 1 level
 			of logging. [RT #18917]
 
+2479.	[bug]		xfrout:covers was not properly initalized. [RT #18801]
+
 2478.	[bug]		'addresses' could be used uninitalized in
-			configure_forward(). [RT 18800]
+			configure_forward(). [RT #18800]
 	
 	--- 9.4.3 released ---
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.115.18.8 2006/03/05 23:58:51 marka Exp $ */
+/* $Id: xfrout.c,v 1.115.18.9 2008/11/20 00:54:45 marka Exp $ */
 
 #include <config.h>
 
@@ -303,6 +303,11 @@ log_rr(dns_name_t *name, dns_rdata_t *rdata, isc_uint32_t ttl) {
 	rdl.type = rdata->type;
 	rdl.rdclass = rdata->rdclass;
 	rdl.ttl = ttl;
+	if (rdata->type == dns_rdatatype_sig ||
+	    rdata->type == dns_rdatatype_rrsig)
+		rdl.covers = dns_rdata_covers(rdata);
+	else
+		rdl.covers = dns_rdatatype_none;
 	ISC_LIST_INIT(rdl.rdata);
 	ISC_LINK_INIT(&rdl, link);
 	dns_rdataset_init(&rds);
@@ -1573,6 +1578,11 @@ sendstream(xfrout_ctx_t *xfr) {
 		msgrdl->type = rdata->type;
 		msgrdl->rdclass = rdata->rdclass;
 		msgrdl->ttl = ttl;
+		if (rdata->type == dns_rdatatype_sig ||
+		    rdata->type == dns_rdatatype_rrsig)
+			msgrdl->covers = dns_rdata_covers(rdata);
+		else
+			msgrdl->covers = dns_rdatatype_none;
 		ISC_LINK_INIT(msgrdl, link);
 		ISC_LIST_INIT(msgrdl->rdata);
 		ISC_LIST_APPEND(msgrdl->rdata, msgrdata, link);
