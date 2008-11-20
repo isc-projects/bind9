@@ -3,6 +3,9 @@
 			warning or crash named with the debug 1 level
 			of logging. [RT #18917]
 
+2494.	[bug]		dns/sdlz.h and dns/dlz.h were not being installed.
+			[RT #18826]
+
 2487.	[bug]		Give TCP connections longer to complete. [RT #18675]
 
 2485.	[bug]		Change update's the handling of obscured RRSIG
