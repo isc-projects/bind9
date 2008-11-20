@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.82.18.88 2008/10/18 01:29:58 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.82.18.89 2008/11/20 01:29:54 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -77,23 +77,23 @@
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#server_statement_grammar"><span><strong class="command">server</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#server_statement_definition_and_usage"><span><strong class="command">server</strong></span> Statement Definition and
             Usage</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2585614"><span><strong class="command">trusted-keys</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2585666"><span><strong class="command">trusted-keys</strong></span> Statement Definition
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2585628"><span><strong class="command">trusted-keys</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2585680"><span><strong class="command">trusted-keys</strong></span> Statement Definition
             and Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#view_statement_grammar"><span><strong class="command">view</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2585748"><span><strong class="command">view</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2585762"><span><strong class="command">view</strong></span> Statement Definition and Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#zone_statement_grammar"><span><strong class="command">zone</strong></span>
             Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2587332"><span><strong class="command">zone</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2587303"><span><strong class="command">zone</strong></span> Statement Definition and Usage</a></span></dt>
 </dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2589477">Zone File</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2589480">Zone File</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#types_of_resource_records_and_when_to_use_them">Types of Resource Records and When to Use Them</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2591500">Discussion of MX Records</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2591504">Discussion of MX Records</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#Setting_TTLs">Setting TTLs</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592188">Inverse Mapping in IPv4</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592384">Other Zone File Directives</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592572"><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592192">Inverse Mapping in IPv4</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592387">Other Zone File Directives</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592576"><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#zonefile_format">Additional File Formats</a></span></dt>
 </dl></dd>
 </dl>
@@ -1085,7 +1085,7 @@
 <a name="id2574958"></a><span><strong class="command">logging</strong></span> Statement Grammar</h3></div></div></div>
 <pre class="programlisting"><span><strong class="command">logging</strong></span> {
    [ <span><strong class="command">channel</strong></span> <em class="replaceable"><code>channel_name</code></em> {
-     ( <span><strong class="command">file</strong></span> <em class="replaceable"><code>path name</code></em>
+     ( <span><strong class="command">file</strong></span> <em class="replaceable"><code>path_name</code></em>
          [ <span><strong class="command">versions</strong></span> ( <em class="replaceable"><code>number</code></em> | <span><strong class="command">unlimited</strong></span> ) ]
          [ <span><strong class="command">size</strong></span> <em class="replaceable"><code>size spec</code></em> ]
        | <span><strong class="command">syslog</strong></span> <em class="replaceable"><code>syslog_facility</code></em>
@@ -1645,7 +1645,7 @@ category notify { null; };
                   </td>
 <td>
                     <p>
-                      Delegation only.  Logs queries that have have
+                      Delegation only.  Logs queries that have
                       been forced to NXDOMAIN as the result of a
                       delegation-only zone or
                       a <span><strong class="command">delegation-only</strong></span> in a
@@ -1778,6 +1778,7 @@ category notify { null; };
     [<span class="optional"> rfc2308-type1 <em class="replaceable"><code>yes_or_no</code></em>; </span>]
     [<span class="optional"> use-id-pool <em class="replaceable"><code>yes_or_no</code></em>; </span>]
     [<span class="optional"> maintain-ixfr-base <em class="replaceable"><code>yes_or_no</code></em>; </span>]
+    [<span class="optional"> ixfr-from-differences (<em class="replaceable"><code>yes_or_no</code></em> | <code class="constant">master</code> | <code class="constant">slave</code>); </span>]
     [<span class="optional"> dnssec-enable <em class="replaceable"><code>yes_or_no</code></em>; </span>]
     [<span class="optional"> dnssec-validation <em class="replaceable"><code>yes_or_no</code></em>; </span>]
     [<span class="optional"> dnssec-lookaside <em class="replaceable"><code>domain</code></em> trust-anchor <em class="replaceable"><code>domain</code></em>; </span>]
@@ -2675,9 +2676,10 @@ options {
                   also accepts <span><strong class="command">master</strong></span> and
                   <span><strong class="command">slave</strong></span> at the view and options
                   levels which causes
-                  <span><strong class="command">ixfr-from-differences</strong></span> to apply to
+                  <span><strong class="command">ixfr-from-differences</strong></span> to be enabled for
                   all <span><strong class="command">master</strong></span> or
                   <span><strong class="command">slave</strong></span> zones respectively.
+                  It is off by default.
                 </p>
 </dd>
 <dt><span class="term"><span><strong class="command">multi-master</strong></span></span></dt>
@@ -2737,7 +2739,7 @@ options {
                   from RFC 952 and RFC 821 as modified by RFC 1123.
                 </p>
 <p><span><strong class="command">check-names</strong></span>
-                  applies to the owner names of A, AAA and MX records.
+                  applies to the owner names of A, AAAA and MX records.
                   It also applies to the domain names in the RDATA of NS, SOA
                   and MX records.
                   It also applies to the RDATA of PTR records where the owner
@@ -2796,7 +2798,7 @@ options {
 <dt><span class="term"><span><strong class="command">zero-no-soa-ttl</strong></span></span></dt>
 <dd><p>
                   When returning authoritative negative responses to
-                  SOA queries set the TTL of the SOA recored returned in
+                  SOA queries set the TTL of the SOA record returned in
                   the authority section to zero.
                   The default is <span><strong class="command">yes</strong></span>.
                 </p></dd>
@@ -2820,7 +2822,7 @@ options {
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2580525"></a>Forwarding</h4></div></div></div>
+<a name="id2580537"></a>Forwarding</h4></div></div></div>
 <p>
             The forwarding facility can be used to create a large site-wide
             cache on a few servers, reducing traffic over links to external
@@ -2864,7 +2866,7 @@ options {
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2580721"></a>Dual-stack Servers</h4></div></div></div>
+<a name="id2580664"></a>Dual-stack Servers</h4></div></div></div>
 <p>
             Dual-stack servers are used as servers of last resort to work
             around
@@ -3019,7 +3021,7 @@ options {
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2581142"></a>Interfaces</h4></div></div></div>
+<a name="id2581154"></a>Interfaces</h4></div></div></div>
 <p>
             The interfaces and ports that the server will answer queries
             from may be specified using the <span><strong class="command">listen-on</strong></span> option. <span><strong class="command">listen-on</strong></span> takes
@@ -3447,7 +3449,7 @@ avoid-v6-udp-ports {};
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2582140"></a>UDP Port Lists</h4></div></div></div>
+<a name="id2582152"></a>UDP Port Lists</h4></div></div></div>
 <p>
             <span><strong class="command">use-v4-udp-ports</strong></span>,
             <span><strong class="command">avoid-v4-udp-ports</strong></span>,
@@ -3489,7 +3491,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2582200"></a>Operating System Resource Limits</h4></div></div></div>
+<a name="id2582212"></a>Operating System Resource Limits</h4></div></div></div>
 <p>
             The server's usage of many system resources can be limited.
             Scaled values are allowed when specifying resource limits.  For
@@ -3548,7 +3550,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2582452"></a>Server  Resource Limits</h4></div></div></div>
+<a name="server_resource_limits"></a>Server  Resource Limits</h4></div></div></div>
 <p>
             The following options set limits on the server's
             resource consumption that are enforced internally by the
@@ -3571,6 +3573,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   journal
                   will be automatically removed.  The default is
                   <code class="literal">unlimited</code>.
+                  This may also be set on a per-zone basis.
                 </p></dd>
 <dt><span class="term"><span><strong class="command">host-statistics-max</strong></span></span></dt>
 <dd><p>
@@ -3649,7 +3652,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2582682"></a>Periodic Task Intervals</h4></div></div></div>
+<a name="id2582696"></a>Periodic Task Intervals</h4></div></div></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><span><strong class="command">cleaning-interval</strong></span></span></dt>
 <dd><p>
@@ -4202,7 +4205,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 <p>
             Named will attempt to determine if a built in zone already exists
             or is active (covered by a forward-only forwarding declaration)
-            and will not not create a empty zone in that case.
+            and will not create a empty zone in that case.
           </p>
 <p>
             The current list of empty zones is:
@@ -4719,7 +4722,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2585614"></a><span><strong class="command">trusted-keys</strong></span> Statement Grammar</h3></div></div></div>
+<a name="id2585628"></a><span><strong class="command">trusted-keys</strong></span> Statement Grammar</h3></div></div></div>
 <pre class="programlisting"><span><strong class="command">trusted-keys</strong></span> {
     <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>string</code></em> ;
     [<span class="optional"> <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>string</code></em> ; [<span class="optional">...</span>]</span>]
@@ -4728,7 +4731,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2585666"></a><span><strong class="command">trusted-keys</strong></span> Statement Definition
+<a name="id2585680"></a><span><strong class="command">trusted-keys</strong></span> Statement Definition
             and Usage</h3></div></div></div>
 <p>
             The <span><strong class="command">trusted-keys</strong></span> statement defines
@@ -4771,7 +4774,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2585748"></a><span><strong class="command">view</strong></span> Statement Definition and Usage</h3></div></div></div>
+<a name="id2585762"></a><span><strong class="command">view</strong></span> Statement Definition and Usage</h3></div></div></div>
 <p>
             The <span><strong class="command">view</strong></span> statement is a powerful
             feature
@@ -4906,9 +4909,11 @@ view "external" {
     [<span class="optional"> file <em class="replaceable"><code>string</code></em> ; </span>]
     [<span class="optional"> masterfile-format (<code class="constant">text</code>|<code class="constant">raw</code>) ; </span>]
     [<span class="optional"> journal <em class="replaceable"><code>string</code></em> ; </span>]
+    [<span class="optional"> max-journal-size <em class="replaceable"><code>size_spec</code></em>; </span>]
     [<span class="optional"> forward (<code class="constant">only</code>|<code class="constant">first</code>) ; </span>]
     [<span class="optional"> forwarders { [<span class="optional"> <em class="replaceable"><code>ip_addr</code></em> [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] ; ... </span>] }; </span>]
     [<span class="optional"> ixfr-base <em class="replaceable"><code>string</code></em> ; </span>]
+    [<span class="optional"> ixfr-from-differences <em class="replaceable"><code>yes_or_no</code></em>; </span>]
     [<span class="optional"> ixfr-tmp-file <em class="replaceable"><code>string</code></em> ; </span>]
     [<span class="optional"> maintain-ixfr-base <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
     [<span class="optional"> max-ixfr-log-size <em class="replaceable"><code>number</code></em> ; </span>]
@@ -4943,9 +4948,11 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
     [<span class="optional"> file <em class="replaceable"><code>string</code></em> ; </span>]
     [<span class="optional"> masterfile-format (<code class="constant">text</code>|<code class="constant">raw</code>) ; </span>]
     [<span class="optional"> journal <em class="replaceable"><code>string</code></em> ; </span>]
+    [<span class="optional"> max-journal-size <em class="replaceable"><code>size_spec</code></em>; </span>]
     [<span class="optional"> forward (<code class="constant">only</code>|<code class="constant">first</code>) ; </span>]
     [<span class="optional"> forwarders { [<span class="optional"> <em class="replaceable"><code>ip_addr</code></em> [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] ; ... </span>] }; </span>]
     [<span class="optional"> ixfr-base <em class="replaceable"><code>string</code></em> ; </span>]
+    [<span class="optional"> ixfr-from-differences <em class="replaceable"><code>yes_or_no</code></em>; </span>]
     [<span class="optional"> ixfr-tmp-file <em class="replaceable"><code>string</code></em> ; </span>]
     [<span class="optional"> maintain-ixfr-base <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
     [<span class="optional"> masters [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] { ( <em class="replaceable"><code>masters_list</code></em> | <em class="replaceable"><code>ip_addr</code></em> [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] [<span class="optional">key <em class="replaceable"><code>key</code></em></span>] ) ; [<span class="optional">...</span>] }; </span>]
@@ -5023,10 +5030,10 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2587332"></a><span><strong class="command">zone</strong></span> Statement Definition and Usage</h3></div></div></div>
+<a name="id2587303"></a><span><strong class="command">zone</strong></span> Statement Definition and Usage</h3></div></div></div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2587339"></a>Zone Types</h4></div></div></div>
+<a name="id2587310"></a>Zone Types</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -5235,7 +5242,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2587690"></a>Class</h4></div></div></div>
+<a name="id2587661"></a>Class</h4></div></div></div>
 <p>
               The zone's name may optionally be followed by a class. If
               a class is not specified, class <code class="literal">IN</code> (for <code class="varname">Internet</code>),
@@ -5257,7 +5264,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2587723"></a>Zone Options</h4></div></div></div>
+<a name="id2587694"></a>Zone Options</h4></div></div></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><span><strong class="command">allow-notify</strong></span></span></dt>
 <dd><p>
@@ -5424,6 +5431,11 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
                     The default is the zone's filename with "<code class="filename">.jnl</code>" appended.
                     This is applicable to <span><strong class="command">master</strong></span> and <span><strong class="command">slave</strong></span> zones.
                   </p></dd>
+<dt><span class="term"><span><strong class="command">max-journal-size</strong></span></span></dt>
+<dd><p>
+                    See the description of
+                    <span><strong class="command">max-journal-size</strong></span> in <a href="Bv9ARM.ch06.html#server_resource_limits" title="Server  Resource Limits">the section called &#8220;Server  Resource Limits&#8221;</a>.
+                  </p></dd>
 <dt><span class="term"><span><strong class="command">max-transfer-time-in</strong></span></span></dt>
 <dd><p>
                     See the description of
@@ -5521,6 +5533,10 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 <dd><p>
                     See the description of
                     <span><strong class="command">ixfr-from-differences</strong></span> in <a href="Bv9ARM.ch06.html#boolean_options" title="Boolean Options">the section called &#8220;Boolean Options&#8221;</a>.
+                    (Note that the <span><strong class="command">ixfr-from-differences</strong></span>
+                    <strong class="userinput"><code>master</code></strong> and
+                    <strong class="userinput"><code>slave</code></strong> choices are not
+                    available at the zone level.)
                   </p></dd>
 <dt><span class="term"><span><strong class="command">key-directory</strong></span></span></dt>
 <dd><p>
@@ -5745,7 +5761,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2589477"></a>Zone File</h2></div></div></div>
+<a name="id2589480"></a>Zone File</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="types_of_resource_records_and_when_to_use_them"></a>Types of Resource Records and When to Use Them</h3></div></div></div>
@@ -5758,7 +5774,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2589495"></a>Resource Records</h4></div></div></div>
+<a name="id2589498"></a>Resource Records</h4></div></div></div>
 <p>
               A domain name identifies a node.  Each node has a set of
               resource information, which may be empty.  The set of resource
@@ -6448,7 +6464,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2590912"></a>Textual expression of RRs</h4></div></div></div>
+<a name="id2590983"></a>Textual expression of RRs</h4></div></div></div>
 <p>
               RRs are represented in binary form in the packets of the DNS
               protocol, and are usually represented in highly encoded form
@@ -6651,7 +6667,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2591500"></a>Discussion of MX Records</h3></div></div></div>
+<a name="id2591504"></a>Discussion of MX Records</h3></div></div></div>
 <p>
             As described above, domain servers store information as a
             series of resource records, each of which contains a particular
@@ -6909,7 +6925,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2592188"></a>Inverse Mapping in IPv4</h3></div></div></div>
+<a name="id2592192"></a>Inverse Mapping in IPv4</h3></div></div></div>
 <p>
             Reverse name resolution (that is, translation from IP address
             to name) is achieved by means of the <span class="emphasis"><em>in-addr.arpa</em></span> domain
@@ -6970,7 +6986,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2592384"></a>Other Zone File Directives</h3></div></div></div>
+<a name="id2592387"></a>Other Zone File Directives</h3></div></div></div>
 <p>
             The Master File Format was initially defined in RFC 1035 and
             has subsequently been extended. While the Master File Format
@@ -6985,7 +7001,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2592406"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
+<a name="id2592409"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$ORIGIN</strong></span>
               <em class="replaceable"><code>domain-name</code></em>
@@ -7013,7 +7029,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2592467"></a>The <span><strong class="command">$INCLUDE</strong></span> Directive</h4></div></div></div>
+<a name="id2592470"></a>The <span><strong class="command">$INCLUDE</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$INCLUDE</strong></span>
               <em class="replaceable"><code>filename</code></em>
@@ -7049,7 +7065,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2592536"></a>The <span><strong class="command">$TTL</strong></span> Directive</h4></div></div></div>
+<a name="id2592539"></a>The <span><strong class="command">$TTL</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$TTL</strong></span>
               <em class="replaceable"><code>default-ttl</code></em>
@@ -7068,7 +7084,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2592572"></a><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</h3></div></div></div>
+<a name="id2592576"></a><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</h3></div></div></div>
 <p>
             Syntax: <span><strong class="command">$GENERATE</strong></span>
             <em class="replaceable"><code>range</code></em>
