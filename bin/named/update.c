@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.109.18.28 2008/11/20 01:24:16 marka Exp $ */
+/* $Id: update.c,v 1.109.18.29 2008/11/20 23:46:03 tbox Exp $ */
 
 #include <config.h>
 
@@ -1792,7 +1792,7 @@ add_sigs(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 
 static isc_result_t
 add_exposed_sigs(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
-	         dns_dbversion_t *ver, dns_name_t *name, isc_boolean_t cut,
+		 dns_dbversion_t *ver, dns_name_t *name, isc_boolean_t cut,
 		 dns_diff_t *diff, dst_key_t **keys, unsigned int nkeys,
 		 isc_stdtime_t inception, isc_stdtime_t expire,
 		 isc_boolean_t check_ksk)
@@ -2115,7 +2115,7 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 				CHECK(add_placeholder_nsec(db, newver, &t->name,
 							  diff));
 			CHECK(add_exposed_sigs(client, zone, db, newver, name,
-				               cut, diff, zone_keys, nkeys,
+					       cut, diff, zone_keys, nkeys,
 					       inception, expire, check_ksk));
 		}
 	}

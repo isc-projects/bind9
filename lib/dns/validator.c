@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.119.18.42 2008/11/20 02:02:44 marka Exp $ */
+/* $Id: validator.c,v 1.119.18.43 2008/11/20 23:46:03 tbox Exp $ */
 
 /*! \file */
 
@@ -1134,7 +1134,7 @@ get_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo) {
 			return (DNS_R_CONTINUE);
 	} else {
 		/*
-		 * SOA and NS RRsets can only be signed by a key with	
+		 * SOA and NS RRsets can only be signed by a key with
 		 * the same name.
 		 */
 		if (val->event->rdataset->type == dns_rdatatype_soa ||

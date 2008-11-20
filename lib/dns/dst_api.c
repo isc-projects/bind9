@@ -1,9 +1,9 @@
 /*
- * Portions Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2006, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2003  Internet Software Consortium.
  * Portions Copyright (C) 1995-2000 by Network Associates, Inc.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -18,7 +18,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.1.6.8 2008/11/20 02:02:44 marka Exp $
+ * $Id: dst_api.c,v 1.1.6.9 2008/11/20 23:46:03 tbox Exp $
  */
 
 /*! \file */
@@ -112,16 +112,16 @@ static isc_result_t	addsuffix(char *filename, unsigned int len,
 
 static void *
 default_memalloc(void *arg, size_t size) {
-        UNUSED(arg);
-        if (size == 0U)
-                size = 1;
-        return (malloc(size));
+	UNUSED(arg);
+	if (size == 0U)
+		size = 1;
+	return (malloc(size));
 }
 
 static void
 default_memfree(void *arg, void *ptr) {
-        UNUSED(arg);
-        free(ptr);
+	UNUSED(arg);
+	free(ptr);
 }
 
 isc_result_t
