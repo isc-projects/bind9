@@ -3,6 +3,10 @@
 			warning or crash named with the debug 1 level
 			of logging. [RT #18917]
 
+2485.	[bug]		Change update's the handling of obscured RRSIG
+			records.  Not all orphand DS records were being
+			removed. [RT #18828]
+
 2479.	[bug]		xfrout:covers was not properly initalized. [RT #18801]
 
 2478.	[bug]		'addresses' could be used uninitalized in
@@ -52,7 +56,8 @@
 2463.   [port]          linux: POSIX doesn't include the IPv6 Advanced Socket
 			API and glibc hides parts of the IPv6 Advanced Socket
 			API as a result.  This is stupid as it breaks how the
-			two halves (Basic and Advanced) of the IPv6 Socket API				were designed to be used but we have to live with it.
+			two halves (Basic and Advanced) of the IPv6 Socket API
+			were designed to be used but we have to live with it.
 			Define _GNU_SOURCE to pull in the IPv6 Advanced Socket
 			API. [RT #18388]
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.109.18.27 2008/02/07 03:16:08 marka Exp $ */
+/* $Id: update.c,v 1.109.18.28 2008/11/20 01:24:16 marka Exp $ */
 
 #include <config.h>
 
@@ -620,6 +620,45 @@ rrset_exists(dns_db_t *db, dns_dbversion_t *ver,
 }
 
 /*%
+ * Set '*visible' to true if the RRset exists and is part of the
+ * visible zone.  Otherwise '*visible' is set to false unless a
+ * error occurs.
+ */
+static isc_result_t
+rrset_visible(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
+	      dns_rdatatype_t type, isc_boolean_t *visible)
+{
+	isc_result_t result;
+	dns_fixedname_t fixed;
+
+	dns_fixedname_init(&fixed);
+	result = dns_db_find(db, name, ver, type, DNS_DBFIND_NOWILD,
+			     (isc_stdtime_t) 0, NULL,
+			     dns_fixedname_name(&fixed), NULL, NULL);
+	switch (result) {
+	case ISC_R_SUCCESS:
+		*visible = ISC_TRUE;
+		break;
+	/*
+	 * Glue, obsured, deleted or replaced records.
+	 */
+	case DNS_R_DELEGATION:
+	case DNS_R_DNAME:
+	case DNS_R_CNAME:
+	case DNS_R_NXDOMAIN:
+	case DNS_R_NXRRSET:
+	case DNS_R_EMPTYNAME:
+	case DNS_R_COVERINGNSEC:
+		*visible = ISC_FALSE;
+		result = ISC_R_SUCCESS;
+		break;
+	default:
+		break;
+	}
+	return (result);
+}
+
+/*%
  * Helper function for cname_incompatible_rrset_exists.
  */
 static isc_result_t
@@ -1005,6 +1044,16 @@ true_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
 	UNUSED(update_rr);
 	UNUSED(db_rr);
 	return (ISC_TRUE);
+}
+
+/*%
+ * Return true if the record is a RRSIG.
+ */
+static isc_boolean_t
+rrsig_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
+	UNUSED(update_rr);
+	return ((db_rr->type == dns_rdatatype_rrsig) ?
+		ISC_TRUE : ISC_FALSE);
 }
 
 /*%
@@ -1425,10 +1474,9 @@ uniqify_name_list(dns_diff_t *list) {
 	return (result);
 }
 
-
 static isc_result_t
-is_glue(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
-	isc_boolean_t *flag)
+is_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
+	  isc_boolean_t *flag, isc_boolean_t *cut, isc_boolean_t *unsecure)
 {
 	isc_result_t result;
 	dns_fixedname_t foundname;
@@ -1438,8 +1486,11 @@ is_glue(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 			     (isc_stdtime_t) 0, NULL,
 			     dns_fixedname_name(&foundname),
 			     NULL, NULL);
-	if (result == ISC_R_SUCCESS) {
+	if (result == ISC_R_SUCCESS || result == DNS_R_EMPTYNAME) {
 		*flag = ISC_FALSE;
+		*cut = ISC_FALSE;
+		if (unsecure != NULL)
+			*unsecure = ISC_FALSE;
 		return (ISC_R_SUCCESS);
 	} else if (result == DNS_R_ZONECUT) {
 		/*
@@ -1447,11 +1498,36 @@ is_glue(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		 * non-delegation will be omitted from the type bit map.
 		 */
 		*flag = ISC_FALSE;
+		*cut = ISC_TRUE;
+		if (unsecure != NULL) {
+			/*
+			 * We are at the zonecut.  Check to see if there
+			 * is a DS RRset.
+			 */
+			if (dns_db_find(db, name, ver, dns_rdatatype_ds, 0,
+					(isc_stdtime_t) 0, NULL,
+					dns_fixedname_name(&foundname),
+					NULL, NULL) == DNS_R_NXRRSET)
+				*unsecure = ISC_TRUE;
+			else
+				*unsecure = ISC_FALSE;
+		}
 		return (ISC_R_SUCCESS);
-	} else if (result == DNS_R_GLUE || result == DNS_R_DNAME) {
-		*flag = ISC_TRUE;
+	} else if (result == DNS_R_GLUE || result == DNS_R_DNAME ||
+		   result == DNS_R_DELEGATION || result == DNS_R_NXDOMAIN) {
+		*flag = ISC_FALSE;
+		*cut = ISC_FALSE;
+		if (unsecure != NULL)
+			*unsecure = ISC_FALSE;
 		return (ISC_R_SUCCESS);
 	} else {
+		/*
+		 * Silence compiler.
+		 */
+		*flag = ISC_FALSE;
+		*cut = ISC_FALSE;
+		if (unsecure != NULL)
+			*unsecure = ISC_FALSE;
 		return (result);
 	}
 }
@@ -1655,7 +1731,7 @@ static isc_result_t
 add_sigs(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	 dns_dbversion_t *ver, dns_name_t *name, dns_rdatatype_t type,
 	 dns_diff_t *diff, dst_key_t **keys, unsigned int nkeys,
-	 isc_mem_t *mctx, isc_stdtime_t inception, isc_stdtime_t expire,
+	 isc_stdtime_t inception, isc_stdtime_t expire,
 	 isc_boolean_t check_ksk)
 {
 	isc_result_t result;
@@ -1666,6 +1742,7 @@ add_sigs(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	unsigned char data[1024]; /* XXX */
 	unsigned int i;
 	isc_boolean_t added_sig = ISC_FALSE;
+	isc_mem_t *mctx = client->mctx;
 
 	dns_rdataset_init(&rdataset);
 	isc_buffer_init(&buffer, data, sizeof(data));
@@ -1713,6 +1790,73 @@ add_sigs(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	return (result);
 }
 
+static isc_result_t
+add_exposed_sigs(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
+	         dns_dbversion_t *ver, dns_name_t *name, isc_boolean_t cut,
+		 dns_diff_t *diff, dst_key_t **keys, unsigned int nkeys,
+		 isc_stdtime_t inception, isc_stdtime_t expire,
+		 isc_boolean_t check_ksk)
+{
+	isc_result_t result;
+	dns_dbnode_t *node;
+	dns_rdatasetiter_t *iter;
+
+	node = NULL;
+	result = dns_db_findnode(db, name, ISC_FALSE, &node);
+	if (result == ISC_R_NOTFOUND)
+		return (ISC_R_SUCCESS);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	iter = NULL;
+	result = dns_db_allrdatasets(db, node, ver,
+				     (isc_stdtime_t) 0, &iter);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_node;
+
+	for (result = dns_rdatasetiter_first(iter);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdatasetiter_next(iter))
+	{
+		dns_rdataset_t rdataset;
+		dns_rdatatype_t type;
+		isc_boolean_t flag;
+
+		dns_rdataset_init(&rdataset);
+		dns_rdatasetiter_current(iter, &rdataset);
+		type = rdataset.type;
+		dns_rdataset_disassociate(&rdataset);
+
+		/*
+		 * We don't need to sign unsigned NSEC records at the cut
+		 * as they are handled elsewhere.
+		 */
+		if ((type == dns_rdatatype_rrsig) ||
+		    (cut && type != dns_rdatatype_ds))
+			continue;
+		result = rrset_exists(db, ver, name, dns_rdatatype_rrsig,
+				      type, &flag);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup_iterator;
+		if (flag)
+			continue;;
+		result = add_sigs(client, zone, db, ver, name, type, diff,
+				  keys, nkeys, inception, expire, check_ksk);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup_iterator;
+	}
+	if (result == ISC_R_NOMORE)
+		result = ISC_R_SUCCESS;
+
+ cleanup_iterator:
+	dns_rdatasetiter_destroy(&iter);
+
+ cleanup_node:
+	dns_db_detachnode(db, &node);
+
+	return (result);
+}
+
 /*%
  * Update RRSIG and NSEC records affected by an update.  The original
  * update, including the SOA serial update but exluding the RRSIG & NSEC
@@ -1747,6 +1891,7 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	dns_rdataset_t rdataset;
 	dns_dbnode_t *node = NULL;
 	isc_boolean_t check_ksk;
+	isc_boolean_t cut;
 
 	dns_diff_init(client->mctx, &diffnames);
 	dns_diff_init(client->mctx, &affected);
@@ -1829,15 +1974,15 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 					NULL, &sig_diff));
 
 			/*
-			 * If this RRset still exists after the update,
+			 * If this RRset is still visible after the update,
 			 * add a new signature for it.
 			 */
-			CHECK(rrset_exists(db, newver, name, type, 0, &flag));
+			CHECK(rrset_visible(db, newver, name, type, &flag));
 			if (flag) {
 				CHECK(add_sigs(client, zone, db, newver, name,
 					       type, &sig_diff, zone_keys,
-					       nkeys, client->mctx, inception,
-					       expire, check_ksk));
+					       nkeys, inception, expire,
+					       check_ksk));
 			}
 		skip:
 			/* Skip any other updates to the same RRset. */
@@ -1944,27 +2089,34 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	     t = ISC_LIST_NEXT(t, link))
 	{
 		isc_boolean_t exists;
-		CHECK(name_exists(db, newver, &t->name, &exists));
+		dns_name_t *name = &t->name;
+
+		CHECK(name_exists(db, newver, name, &exists));
 		if (! exists)
 			continue;
-		CHECK(is_glue(db, newver, &t->name, &flag));
-		if (flag) {
+		CHECK(is_active(db, newver, name, &flag, &cut, NULL));
+		if (!flag) {
 			/*
 			 * This name is obscured.  Delete any
 			 * existing NSEC record.
 			 */
-			CHECK(delete_if(true_p, db, newver, &t->name,
+			CHECK(delete_if(true_p, db, newver, name,
 					dns_rdatatype_nsec, 0,
 					NULL, &nsec_diff));
+			CHECK(delete_if(rrsig_p, db, newver, name,
+					dns_rdatatype_any, 0, NULL, diff));
 		} else {
 			/*
 			 * This name is not obscured.  It should have a NSEC.
 			 */
-			CHECK(rrset_exists(db, newver, &t->name,
+			CHECK(rrset_exists(db, newver, name,
 					   dns_rdatatype_nsec, 0, &flag));
 			if (! flag)
 				CHECK(add_placeholder_nsec(db, newver, &t->name,
 							  diff));
+			CHECK(add_exposed_sigs(client, zone, db, newver, name,
+				               cut, diff, zone_keys, nkeys,
+					       inception, expire, check_ksk));
 		}
 	}
 
@@ -2022,8 +2174,8 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 		} else if (t->op == DNS_DIFFOP_ADD) {
 			CHECK(add_sigs(client, zone, db, newver, &t->name,
 				       dns_rdatatype_nsec, &sig_diff,
-				       zone_keys, nkeys, client->mctx,
-				       inception, expire, check_ksk));
+				       zone_keys, nkeys, inception, expire,
+				       check_ksk));
 		} else {
 			INSIST(0);
 		}
@@ -2197,22 +2349,20 @@ ns_update_start(ns_client_t *client, isc_result_t sigresult) {
 static isc_result_t
 remove_orphaned_ds(dns_db_t *db, dns_dbversion_t *newver, dns_diff_t *diff) {
 	isc_result_t result;
-	isc_boolean_t ns_exists, ds_exists;
+	isc_boolean_t ns_exists;
 	dns_difftuple_t *t;
 
 	for (t = ISC_LIST_HEAD(diff->tuples);
 	     t != NULL;
 	     t = ISC_LIST_NEXT(t, link)) {
-		if (t->op != DNS_DIFFOP_ADD ||
-		    t->rdata.type != dns_rdatatype_ns)
+		if (!((t->op == DNS_DIFFOP_DEL &&
+		       t->rdata.type == dns_rdatatype_ns) ||
+		      (t->op == DNS_DIFFOP_ADD &&
+		       t->rdata.type == dns_rdatatype_ds)))
 			continue;
 		CHECK(rrset_exists(db, newver, &t->name, dns_rdatatype_ns, 0,
 				   &ns_exists));
-		if (ns_exists)
-			continue;
-		CHECK(rrset_exists(db, newver, &t->name, dns_rdatatype_ds, 0,
-				   &ds_exists));
-		if (!ds_exists)
+		if (ns_exists && !dns_name_equal(&t->name, dns_db_origin(db)))
 			continue;
 		CHECK(delete_if(true_p, db, newver, &t->name,
 				dns_rdatatype_ds, 0, NULL, diff));
