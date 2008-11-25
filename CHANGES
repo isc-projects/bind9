@@ -1,3 +1,5 @@
+2499.	[port]		solaris: lib/lwres/getaddrinfo.c namespace clash.
+			[RT #18837]
 
 	--- 9.5.1rc1 released ---
 

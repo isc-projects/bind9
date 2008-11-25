@@ -18,7 +18,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddrinfo.c,v 1.52 2007/09/13 04:45:18 each Exp $ */
+/* $Id: getaddrinfo.c,v 1.52.60.1 2008/11/25 05:44:06 marka Exp $ */
 
 /*! \file */
 
@@ -145,7 +145,7 @@
 #define SA(addr)	((struct sockaddr *)(addr))
 #define SIN(addr)	((struct sockaddr_in *)(addr))
 #define SIN6(addr)	((struct sockaddr_in6 *)(addr))
-#define SUN(addr)	((struct sockaddr_un *)(addr))
+#define SLOCAL(addr)	((struct sockaddr_un *)(addr))
 
 /*! \struct addrinfo
  */
@@ -709,17 +709,17 @@ lwres_freeaddrinfo(struct addrinfo *ai) {
 static int
 get_local(const char *name, int socktype, struct addrinfo **res) {
 	struct addrinfo *ai;
-	struct sockaddr_un *sun;
+	struct sockaddr_un *slocal;
 
 	if (socktype == 0)
 		return (EAI_SOCKTYPE);
 
-	ai = ai_alloc(AF_LOCAL, sizeof(*sun));
+	ai = ai_alloc(AF_LOCAL, sizeof(*slocal));
 	if (ai == NULL)
 		return (EAI_MEMORY);
 
-	sun = SUN(ai->ai_addr);
-	strncpy(sun->sun_path, name, sizeof(sun->sun_path));
+	slocal = SLOCAL(ai->ai_addr);
+	strncpy(slocal->sun_path, name, sizeof(slocal->sun_path));
 
 	ai->ai_socktype = socktype;
 	/*
