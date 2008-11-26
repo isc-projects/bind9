@@ -482,7 +482,10 @@
 
 2348.	[func]		Use the EVP interface to OpenSSL. Add PKCS#11 support.
 			Documentation is in the new README.pkcs11 file.
-			[RT #16844]
+			New tool, dnssec-keyfromlabel, which takes the
+			label of a key pair in the HSM and constructs a DNS
+			key pair for use by named and dnssec-signzone which
+			uses it.  [RT #16844]
 
 2347.	[bug]		Delete now traverses the RB tree in the canonical
 			order. [RT #17451]
