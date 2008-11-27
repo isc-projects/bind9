@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zonetodb.c,v 1.18 2007/06/18 23:47:33 tbox Exp $ */
+/* $Id: zonetodb.c,v 1.18.128.1 2008/11/27 06:16:11 marka Exp $ */
 
 #include <stdlib.h>
 #include <string.h>
@@ -165,10 +165,10 @@ main(int argc, char **argv) {
 	check_result(result, "isc_mem_create");
 
 	result = isc_entropy_create(mctx, &ectx);
-	result_check (result, "isc_entropy_create");
+	check_result(result, "isc_entropy_create");
 
 	result = isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE);
-	check_result (result, "isc_hash_create");
+	check_result(result, "isc_hash_create");
 
 	isc_buffer_init(&b, porigin, strlen(porigin));
 	isc_buffer_add(&b, strlen(porigin));
