@@ -899,7 +899,7 @@
 ./contrib/dlz/bin/dlzbdb/dlzbdb.c		X	2005
 ./contrib/dlz/config.dlz.in			X	2005,2006,2008
 ./contrib/dlz/drivers/.cvsignore		X	2005
-./contrib/dlz/drivers/dlz_bdb_driver.c		X	2005
+./contrib/dlz/drivers/dlz_bdb_driver.c		X	2005,2008
 ./contrib/dlz/drivers/dlz_bdbhpt_driver.c	X	2005
 ./contrib/dlz/drivers/dlz_drivers.c		X	2005
 ./contrib/dlz/drivers/dlz_filesystem_driver.c	X	2005
@@ -1181,7 +1181,7 @@
 ./contrib/sdb/ldap/zone2ldap.c			X	2001,2005
 ./contrib/sdb/pgsql/pgsqldb.c			C	2000,2001,2004
 ./contrib/sdb/pgsql/pgsqldb.h			C	2000,2001,2004
-./contrib/sdb/pgsql/zonetodb.c			C	2000,2001,2002,2004,2005,2007
+./contrib/sdb/pgsql/zonetodb.c			C	2000,2001,2002,2004,2005,2007,2008
 ./contrib/sdb/sqlite/README.sdb_sqlite		X	2007
 ./contrib/sdb/sqlite/sqlitedb.c			X	2007
 ./contrib/sdb/sqlite/sqlitedb.h			X	2007
