@@ -931,7 +931,7 @@
 ./contrib/dlz/bin/dlzbdb/dlzbdb.c		X	2005
 ./contrib/dlz/config.dlz.in			X	2005,2006,2008
 ./contrib/dlz/drivers/.cvsignore		X	2005
-./contrib/dlz/drivers/dlz_bdb_driver.c		X	2005
+./contrib/dlz/drivers/dlz_bdb_driver.c		X	2005,2008
 ./contrib/dlz/drivers/dlz_bdbhpt_driver.c	X	2005
 ./contrib/dlz/drivers/dlz_drivers.c		X	2005
 ./contrib/dlz/drivers/dlz_filesystem_driver.c	X	2005
