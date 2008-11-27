@@ -558,8 +558,6 @@ bdb_lookup(const char *zone, const char *name, void *driverarg,
 		host_cursor->c_close(host_cursor);
 
 	return result;
-
-	return ISC_R_NOTFOUND;
 }
 
 
