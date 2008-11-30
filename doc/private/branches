@@ -232,6 +232,7 @@ v9_5_0_P2_W1			new	mayer	// 2008-08-16 21:14 +0000
 v9_5_0_P2_danny			new	
 v9_5_0_P2_win32			new	marka	// 2008-09-04 05:59 +0000
 v9_5_0_patch			active		// security fixes 9.5.0 only
+v9_6				new	marka	// 2008-11-30 22:53 +0000
 
 
 a6_remove			closed
