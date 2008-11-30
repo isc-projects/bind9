@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.380 2008/11/07 02:28:49 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.381 2008/11/30 23:49:21 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -11045,7 +11045,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
           </para>
 
 <programlisting>$ORIGIN 0.0.192.IN-ADDR.ARPA.
-$GENERATE 1-2 0 NS SERVER$.EXAMPLE.
+$GENERATE 1-2 @ NS SERVER$.EXAMPLE.
 $GENERATE 1-127 $ CNAME $.0</programlisting>
 
           <para>
@@ -11058,6 +11058,32 @@ $GENERATE 1-127 $ CNAME $.0</programlisting>
 2.0.0.192.IN-ADDR.ARPA. CNAME 2.0.0.0.192.IN-ADDR.ARPA.
 ...
 127.0.0.192.IN-ADDR.ARPA. CNAME 127.0.0.0.192.IN-ADDR.ARPA.
+</programlisting>
+
+	   <para>
+	    Generate a set of A and MX records.  Note the MX's right hand
+	    side is a quoted string.  The quotes will be stripped when the
+	    right hand side is processed.
+	   </para>
+
+<programlisting>
+$ORIGIN EXAMPLE.
+$GENERATE 1-127 HOST-$ A 1.2.3.$
+$GENERATE 1-127 HOST-$ MX "0 ."</programlisting>
+
+          <para>
+            is equivalent to
+          </para>
+
+<programlisting>HOST-1.EXAMPLE.   A  1.2.3.1
+HOST-1.EXAMPLE.   MX 0 .
+HOST-2.EXAMPLE.   A  1.2.3.2
+HOST-2.EXAMPLE.   MX 0 .
+HOST-3.EXAMPLE.   A  1.2.3.3
+HOST-3.EXAMPLE.   MX 0 .
+...
+HOST-127.EXAMPLE. A  1.2.3.127
+HOST-127.EXAMPLE. MX 0 .
 </programlisting>
 
           <informaltable colsep="0" rowsep="0">
@@ -11161,8 +11187,7 @@ $GENERATE 1-127 $ CNAME $.0</programlisting>
                   </entry>
                   <entry colname="2">
                     <para>
-                      At present the only supported types are
-                      PTR, CNAME, DNAME, A, AAAA and NS.
+		      Any valid type.
                     </para>
                   </entry>
                 </row>
@@ -11172,8 +11197,7 @@ $GENERATE 1-127 $ CNAME $.0</programlisting>
                   </entry>
                   <entry colname="2">
                     <para>
-                      <command>rhs</command> is a domain name. It is processed
-                      similarly to lhs.
+                      <command>rhs</command>, optionally, quoted string.
                     </para>
                   </entry>
                 </row>

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.171 2008/04/02 02:37:42 marka Exp $ */
+/* $Id: master.c,v 1.172 2008/11/30 23:49:21 marka Exp $ */
 
 /*! \file */
 
@@ -85,7 +85,11 @@
  */
 #define TOKENSIZ (8*1024)
 
-#define DNS_MASTER_BUFSZ 2048
+/*%
+ * Buffers sizes for $GENERATE.
+ */
+#define DNS_MASTER_LHS 2048
+#define DNS_MASTER_RHS MINTSIZ
 
 typedef ISC_LIST(dns_rdatalist_t) rdatalist_head_t;
 
@@ -746,8 +750,8 @@ generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 	ISC_LIST_INIT(head);
 
 	target_mem = isc_mem_get(lctx->mctx, target_size);
-	rhsbuf = isc_mem_get(lctx->mctx, DNS_MASTER_BUFSZ);
-	lhsbuf = isc_mem_get(lctx->mctx, DNS_MASTER_BUFSZ);
+	rhsbuf = isc_mem_get(lctx->mctx, DNS_MASTER_RHS);
+	lhsbuf = isc_mem_get(lctx->mctx, DNS_MASTER_LHS);
 	if (target_mem == NULL || rhsbuf == NULL || lhsbuf == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto error_cleanup;
@@ -778,35 +782,13 @@ generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 		goto insist_cleanup;
 	}
 
-	switch (type) {
-	case dns_rdatatype_ns:
-	case dns_rdatatype_ptr:
-	case dns_rdatatype_cname:
-	case dns_rdatatype_dname:
-		break;
-
-	case dns_rdatatype_a:
-	case dns_rdatatype_aaaa:
-		if (lctx->zclass == dns_rdataclass_in ||
-		    lctx->zclass == dns_rdataclass_ch ||
-		    lctx->zclass == dns_rdataclass_hs)
-			break;
-		/* FALLTHROUGH */
-	default:
-	       (*callbacks->error)(callbacks,
-				  "%s: %s:%lu: unsupported type '%s'",
-				  "$GENERATE", source, line, gtype);
-		result = ISC_R_NOTIMPLEMENTED;
-		goto error_cleanup;
-	}
-
 	ISC_LIST_INIT(rdatalist.rdata);
 	ISC_LINK_INIT(&rdatalist, link);
 	for (i = start; i <= stop; i += step) {
-		result = genname(lhs, i, lhsbuf, DNS_MASTER_BUFSZ);
+		result = genname(lhs, i, lhsbuf, DNS_MASTER_LHS);
 		if (result != ISC_R_SUCCESS)
 			goto error_cleanup;
-		result = genname(rhs, i, rhsbuf, DNS_MASTER_BUFSZ);
+		result = genname(rhs, i, rhsbuf, DNS_MASTER_RHS);
 		if (result != ISC_R_SUCCESS)
 			goto error_cleanup;
 
@@ -880,9 +862,9 @@ generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 	if (target_mem != NULL)
 		isc_mem_put(lctx->mctx, target_mem, target_size);
 	if (lhsbuf != NULL)
-		isc_mem_put(lctx->mctx, lhsbuf, DNS_MASTER_BUFSZ);
+		isc_mem_put(lctx->mctx, lhsbuf, DNS_MASTER_LHS);
 	if (rhsbuf != NULL)
-		isc_mem_put(lctx->mctx, rhsbuf, DNS_MASTER_BUFSZ);
+		isc_mem_put(lctx->mctx, rhsbuf, DNS_MASTER_RHS);
 	return (result);
 }
 
@@ -1270,7 +1252,8 @@ load_text(dns_loadctx_t *lctx) {
 					goto log_and_cleanup;
 				}
 				/* RHS */
-				GETTOKEN(lctx->lex, 0, &token, ISC_FALSE);
+				GETTOKEN(lctx->lex, ISC_LEXOPT_QSTRING,
+					 &token, ISC_FALSE);
 				rhs = isc_mem_strdup(mctx, DNS_AS_STR(token));
 				if (rhs == NULL) {
 					result = ISC_R_NOMEMORY;
