@@ -8,7 +8,7 @@
 ./README					X	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./README.idnkit					X	2005
 ./README.pkcs11					X	2008
-./acconfig.h					C	1999,2000,2001,2002,2003,2004,2005,2007
+./acconfig.h					C	1999,2000,2001,2002,2003,2004,2005,2007,2008
 ./aclocal.m4					X	1999,2000,2001
 ./bin/.cvsignore				X	1998,1999,2000,2001
 ./bin/Makefile.in				MAKE	1998,1999,2000,2001,2004,2007
@@ -1931,7 +1931,7 @@
 ./lib/isc/include/isc/util.h			C	1998,1999,2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/version.h			C	2001,2004,2005,2006,2007
 ./lib/isc/include/isc/xml.h			C	2006,2007
-./lib/isc/inet_aton.c				C.PORTION	1996,1997,1998,1999,2000,2001,2004,2005,2007
+./lib/isc/inet_aton.c				C.PORTION	1996,1997,1998,1999,2000,2001,2004,2005,2007,2008
 ./lib/isc/inet_ntop.c				C	1996,1997,1998,1999,2000,2001,2004,2005,2007
 ./lib/isc/inet_pton.c				C	1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2007
 ./lib/isc/iterated_hash.c			C	2006,2008
@@ -2028,8 +2028,8 @@
 ./lib/isc/unix/.cvsignore			X	1998,1999,2000,2001
 ./lib/isc/unix/Makefile.in			MAKE	1998,1999,2000,2001,2004,2007
 ./lib/isc/unix/app.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2008
-./lib/isc/unix/dir.c				C	1999,2000,2001,2004,2005,2007
-./lib/isc/unix/entropy.c			C	2000,2001,2002,2003,2004,2005,2006,2007
+./lib/isc/unix/dir.c				C	1999,2000,2001,2004,2005,2007,2008
+./lib/isc/unix/entropy.c			C	2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/isc/unix/errno2result.c			C	2000,2001,2002,2004,2005,2007
 ./lib/isc/unix/errno2result.h			C	2000,2001,2004,2005,2007
 ./lib/isc/unix/file.c				C	2000,2001,2002,2004,2005,2007
@@ -2046,10 +2046,10 @@
 ./lib/isc/unix/include/isc/keyboard.h		C	2000,2001,2004,2005,2007
 ./lib/isc/unix/include/isc/net.h		C	1999,2000,2001,2002,2003,2004,2005,2007,2008
 ./lib/isc/unix/include/isc/netdb.h		C	1999,2000,2001,2004,2005,2007
-./lib/isc/unix/include/isc/offset.h		C	2000,2001,2004,2005,2007
+./lib/isc/unix/include/isc/offset.h		C	2000,2001,2004,2005,2007,2008
 ./lib/isc/unix/include/isc/stat.h		C	2004,2007
 ./lib/isc/unix/include/isc/stdtime.h		C	1999,2000,2001,2004,2005,2007
-./lib/isc/unix/include/isc/strerror.h		C	2001,2004,2005,2007
+./lib/isc/unix/include/isc/strerror.h		C	2001,2004,2005,2007,2008
 ./lib/isc/unix/include/isc/syslog.h		C	1999,2000,2001,2004,2005,2007
 ./lib/isc/unix/include/isc/time.h		C	1998,1999,2000,2001,2004,2005,2006,2007,2008
 ./lib/isc/unix/interfaceiter.c			C	1999,2000,2001,2002,2003,2004,2005,2007,2008
