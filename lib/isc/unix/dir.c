@@ -1,8 +1,8 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dir.c,v 1.20.18.4 2008/12/01 04:02:15 marka Exp $ */
+/* $Id: dir.c,v 1.20.18.5 2008/12/01 23:45:57 tbox Exp $ */
 
 /*! \file
  * \author  Principal Authors: DCL */
@@ -93,7 +93,7 @@ isc_dir_open(isc_dir_t *dir, const char *dirname) {
 }
 
 /*!
- * \brief Return previously retrieved file or get next one.  
+ * \brief Return previously retrieved file or get next one.
 
  * Unix's dirent has
  * separate open and read functions, but the Win32 and DOS interfaces open
