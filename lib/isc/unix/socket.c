@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.308 2008/11/20 00:04:17 jinmei Exp $ */
+/* $Id: socket.c,v 1.309 2008/12/01 00:15:37 marka Exp $ */
 
 /*! \file */
 
@@ -3664,7 +3664,7 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 		goto free_manager;
 	}
 	manager->fdstate = isc_mem_get(mctx, manager->maxsocks * sizeof(int));
-	if (manager->fds == NULL) {
+	if (manager->fdstate == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto free_manager;
 	}
