@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.201 2008/11/07 01:11:19 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.202 2008/12/01 01:11:33 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -7364,7 +7364,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
             Classless IN-ADDR.ARPA delegation.
           </p>
 <pre class="programlisting">$ORIGIN 0.0.192.IN-ADDR.ARPA.
-$GENERATE 1-2 0 NS SERVER$.EXAMPLE.
+$GENERATE 1-2 @ NS SERVER$.EXAMPLE.
 $GENERATE 1-127 $ CNAME $.0</pre>
 <p>
             is equivalent to
@@ -7375,6 +7375,28 @@ $GENERATE 1-127 $ CNAME $.0</pre>
 2.0.0.192.IN-ADDR.ARPA. CNAME 2.0.0.0.192.IN-ADDR.ARPA.
 ...
 127.0.0.192.IN-ADDR.ARPA. CNAME 127.0.0.0.192.IN-ADDR.ARPA.
+</pre>
+<p>
+            Generate a set of A and MX records.  Note the MX's right hand
+            side is a quoted string.  The quotes will be stripped when the
+            right hand side is processed.
+           </p>
+<pre class="programlisting">
+$ORIGIN EXAMPLE.
+$GENERATE 1-127 HOST-$ A 1.2.3.$
+$GENERATE 1-127 HOST-$ MX "0 ."</pre>
+<p>
+            is equivalent to
+          </p>
+<pre class="programlisting">HOST-1.EXAMPLE.   A  1.2.3.1
+HOST-1.EXAMPLE.   MX 0 .
+HOST-2.EXAMPLE.   A  1.2.3.2
+HOST-2.EXAMPLE.   MX 0 .
+HOST-3.EXAMPLE.   A  1.2.3.3
+HOST-3.EXAMPLE.   MX 0 .
+...
+HOST-127.EXAMPLE. A  1.2.3.127
+HOST-127.EXAMPLE. MX 0 .
 </pre>
 <div class="informaltable"><table border="1">
 <colgroup>
@@ -7478,8 +7500,7 @@ $GENERATE 1-127 $ CNAME $.0</pre>
                   </td>
 <td>
                     <p>
-                      At present the only supported types are
-                      PTR, CNAME, DNAME, A, AAAA and NS.
+                      Any valid type.
                     </p>
                   </td>
 </tr>
@@ -7489,8 +7510,7 @@ $GENERATE 1-127 $ CNAME $.0</pre>
                   </td>
 <td>
                     <p>
-                      <span><strong class="command">rhs</strong></span> is a domain name. It is processed
-                      similarly to lhs.
+                      <span><strong class="command">rhs</strong></span>, optionally, quoted string.
                     </p>
                   </td>
 </tr>
@@ -7725,7 +7745,7 @@ $GENERATE 1-127 $ CNAME $.0</pre>
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2594562"></a>Name Server Statistics Counters</h4></div></div></div>
+<a name="id2594578"></a>Name Server Statistics Counters</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -8266,7 +8286,7 @@ $GENERATE 1-127 $ CNAME $.0</pre>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2596153"></a>Zone Maintenance Statistics Counters</h4></div></div></div>
+<a name="id2596101"></a>Zone Maintenance Statistics Counters</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -8420,7 +8440,7 @@ $GENERATE 1-127 $ CNAME $.0</pre>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2596604"></a>Resolver Statistics Counters</h4></div></div></div>
+<a name="id2596552"></a>Resolver Statistics Counters</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -8723,7 +8743,7 @@ $GENERATE 1-127 $ CNAME $.0</pre>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2597389"></a>Compatibility with <span class="emphasis"><em>BIND</em></span> 8 Counters</h4></div></div></div>
+<a name="id2597337"></a>Compatibility with <span class="emphasis"><em>BIND</em></span> 8 Counters</h4></div></div></div>
 <p>
               Most statistics counters that were available
               in <span><strong class="command">BIND</strong></span> 8 are also supported in
