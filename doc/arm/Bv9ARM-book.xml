@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.381 2008/11/30 23:49:21 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.382 2008/12/01 17:11:54 jreed Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -11356,9 +11356,12 @@ HOST-127.EXAMPLE. MX 0 .
                 </entry>
                 <entry colname="2">
                   <para>
-                    The number of RRsets per RR type (positive
-                    or negative) and nonexistent names stored in the
-                    cache database.
+		    The number of RRsets per RR type and nonexistent
+		    names stored in the cache database.
+		    If the exclamation mark (!) is printed for a RR
+		    type, it means that particular type of RRset is
+		    known to be nonexistent (this is also known as
+		    "NXRRSET").
 		    Maintained per view.
                   </para>
                 </entry>
