@@ -16,7 +16,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.107 2008/12/01 03:53:32 marka Exp $ */
+/* $Id: config.h.in,v 1.108 2008/12/01 07:50:17 marka Exp $ */
 
 /*! \file */
 
@@ -183,6 +183,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to 1 if you have the `c_r' library (-lc_r). */
 #undef HAVE_LIBC_R
+
+/* Define to 1 if you have the `nsl' library (-lnsl). */
+#undef HAVE_LIBNSL
 
 /* Define to 1 if you have the `pthread' library (-lpthread). */
 #undef HAVE_LIBPTHREAD
