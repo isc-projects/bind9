@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.81 2008/12/01 03:51:47 marka Exp $ */
+/* $Id: entropy.c,v 1.82 2008/12/01 23:47:45 tbox Exp $ */
 
 /* \file unix/entropy.c
  * \brief
@@ -156,12 +156,12 @@ get_from_usocketsource(isc_entropysource_t *source, isc_uint32_t desired) {
 				source->sources.usocket.status =
 					isc_usocketsource_ndesired;
 				goto eagain_loop;
-			}	
+			}
 			INSIST(n == 2);
 			source->sources.usocket.status =
 						isc_usocketsource_wrote;
 			/*FALLTHROUGH*/
-		
+
 		case isc_usocketsource_wrote:
 			if (recvfrom(fd, buf, 1, 0, NULL, NULL) != 1) {
 				if (errno == EAGAIN) {
@@ -169,11 +169,11 @@ get_from_usocketsource(isc_entropysource_t *source, isc_uint32_t desired) {
 					 * The problem of EAGAIN (try again
 					 * later) is a major issue on HP-UX.
 					 * Solaris actually tries the recvfrom
-					 * call again, while HP-UX just dies. 
+					 * call again, while HP-UX just dies.
 					 * This code is an attempt to let the
 					 * entropy pool fill back up (at least
 					 * that's what I think the problem is.)
-					 * We go to eagain_loop because if we 
+					 * We go to eagain_loop because if we
 					 * just "break", then the "desired"
 					 * amount gets borked.
 					 */
@@ -212,7 +212,7 @@ get_from_usocketsource(isc_entropysource_t *source, isc_uint32_t desired) {
 			} else
 				n = 0;
 			break;
-		
+
 		default:
 			goto err;
 		}
@@ -502,7 +502,7 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname) {
 		ret = isc__errno2result(errno);
 		goto errout;
 	}
-	/* 
+	/*
 	 * Solaris 2.5.1 does not have support for sockets (S_IFSOCK),
 	 * but it does return type S_IFIFO (the OS believes that
 	 * the socket is a fifo).  This may be an issue if we tell
