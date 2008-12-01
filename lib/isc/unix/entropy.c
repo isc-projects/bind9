@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.80 2007/06/19 23:47:18 tbox Exp $ */
+/* $Id: entropy.c,v 1.81 2008/12/01 03:51:47 marka Exp $ */
 
 /* \file unix/entropy.c
  * \brief
@@ -31,6 +31,9 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
+#ifdef HAVE_NANOSLEEP
+#include <time.h>
+#endif
 #include <unistd.h>
 
 #include <isc/platform.h>
@@ -174,7 +177,15 @@ get_from_usocketsource(isc_entropysource_t *source, isc_uint32_t desired) {
 					 * just "break", then the "desired"
 					 * amount gets borked.
 					 */
+#ifdef HAVE_NANOSLEEP
+					struct timespec ts;
+
+					ts.tv_sec = 0;
+					ts.tv_nsec = 1000000;
+					nanosleep(&ts, NULL);
+#else
 					usleep(1000);
+#endif
 					goto eagain_loop;
 				}
 				if (errno == EWOULDBLOCK || errno == EINTR)
