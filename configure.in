@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.355.18.86 $)
+AC_REVISION($Revision: 1.355.18.87 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -973,8 +973,11 @@ AC_CHECK_FUNC(catgets, AC_DEFINE(HAVE_CATGETS),)
 case "$host" in
 	mips-sgi-irix*)
 		;;
+	*-linux*)
+		;;
 	*)
 		AC_CHECK_LIB(socket, socket)
+		AC_CHECK_LIB(nsl, inet_addr)
 		;;
 esac
 
