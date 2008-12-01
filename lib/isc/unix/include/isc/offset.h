@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: offset.h,v 1.11.18.2 2005/04/29 00:17:10 marka Exp $ */
+/* $Id: offset.h,v 1.11.18.3 2008/12/01 04:02:15 marka Exp $ */
 
 #ifndef ISC_OFFSET_H
 #define ISC_OFFSET_H 1
@@ -26,6 +26,7 @@
  */
 #include <limits.h>             /* Required for CHAR_BIT. */
 #include <sys/types.h>
+#include <stddef.h>		/* For Linux Standard Base. */
 
 typedef off_t isc_offset_t;
 

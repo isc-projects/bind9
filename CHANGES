@@ -1,3 +1,6 @@
+2503.	[port]		linux: improve compatibility with Linux Standard
+			Base. [RT #18793]
+
 2500.	[contrib]	contrib/sdb/pgsql/zonetodb.c called non-existant
 			function. [RT #18582]
 
