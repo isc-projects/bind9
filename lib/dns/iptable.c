@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: iptable.c,v 1.12 2008/09/26 21:12:02 each Exp $ */
+/* $Id: iptable.c,v 1.13 2008/12/01 00:04:21 marka Exp $ */
 
 #include <isc/mem.h>
 #include <isc/radix.h>
@@ -36,6 +36,7 @@ dns_iptable_create(isc_mem_t *mctx, dns_iptable_t **target) {
 		return (ISC_R_NOMEMORY);
 	tab->mctx = mctx;
 	isc_refcount_init(&tab->refcount, 1);
+	tab->radix = NULL;
 	tab->magic = DNS_IPTABLE_MAGIC;
 
 	result = isc_radix_create(mctx, &tab->radix, RADIX_MAXBITS);
