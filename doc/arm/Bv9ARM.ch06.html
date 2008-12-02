@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.202 2008/12/01 01:11:33 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.203 2008/12/02 01:11:45 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -7660,9 +7660,12 @@ HOST-127.EXAMPLE. MX 0 .
                 </td>
 <td>
                   <p>
-                    The number of RRsets per RR type (positive
-                    or negative) and nonexistent names stored in the
-                    cache database.
+                    The number of RRsets per RR type and nonexistent
+                    names stored in the cache database.
+                    If the exclamation mark (!) is printed for a RR
+                    type, it means that particular type of RRset is
+                    known to be nonexistent (this is also known as
+                    "NXRRSET").
                     Maintained per view.
                   </p>
                 </td>
@@ -8286,7 +8289,7 @@ HOST-127.EXAMPLE. MX 0 .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2596101"></a>Zone Maintenance Statistics Counters</h4></div></div></div>
+<a name="id2596169"></a>Zone Maintenance Statistics Counters</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -8440,7 +8443,7 @@ HOST-127.EXAMPLE. MX 0 .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2596552"></a>Resolver Statistics Counters</h4></div></div></div>
+<a name="id2596620"></a>Resolver Statistics Counters</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -8743,7 +8746,7 @@ HOST-127.EXAMPLE. MX 0 .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2597337"></a>Compatibility with <span class="emphasis"><em>BIND</em></span> 8 Counters</h4></div></div></div>
+<a name="id2597405"></a>Compatibility with <span class="emphasis"><em>BIND</em></span> 8 Counters</h4></div></div></div>
 <p>
               Most statistics counters that were available
               in <span><strong class="command">BIND</strong></span> 8 are also supported in
