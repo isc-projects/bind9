@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.237.18.60 2008/12/03 02:28:42 marka Exp $ */
+/* $Id: socket.c,v 1.237.18.61 2008/12/03 23:45:59 tbox Exp $ */
 
 /*! \file */
 
@@ -2286,7 +2286,7 @@ isc_socket_close(isc_socket_t *sock) {
 	sock->bound = 0;
 	isc_sockaddr_any(&sock->address);
 	UNLOCK(&sock->lock);
- 
+
 	closesocket(manager, type, fd);
 
 	return (ISC_R_SUCCESS);
