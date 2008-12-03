@@ -1,3 +1,5 @@
+2504.	[bug]		Address race condition in the socket code. [RT #18899]
+
 2500.	[contrib]	contrib/sdb/pgsql/zonetodb.c called non-existant
 			function. [RT #18582]
 
