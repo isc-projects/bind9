@@ -1,3 +1,4 @@
+2504.	[bug]		Address race condition in the socket code. [RT #18899]
 
 	--- 9.5.1rc1 released ---
 
