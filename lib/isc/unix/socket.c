@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.310 2008/12/03 02:03:47 marka Exp $ */
+/* $Id: socket.c,v 1.311 2008/12/03 02:11:32 marka Exp $ */
 
 /*! \file */
 
@@ -3051,7 +3051,7 @@ process_fd(isc_socketmgr_t *manager, int fd, isc_boolean_t readable,
 			goto check_write;
 		}
 		unlock_sock = ISC_TRUE;
-		LOCK(&sock->lock);		/* XXXMPA */
+		LOCK(&sock->lock);
 		if (!SOCK_DEAD(sock)) {
 			if (sock->listener)
 				dispatch_accept(sock);
