@@ -1,3 +1,5 @@
+2504.	[bug]		Address race condition in the socket code. [RT #18899]
+
 2503.	[port]		linux: improve compatibility with Linux Standard
 			Base. [RT #18793]
 
