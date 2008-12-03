@@ -180,6 +180,7 @@ rt18802				new
 rt18815				new	fdupont	// 2008-10-28 12:34 +0000
 rt18828				new	marka	// 2008-11-04 06:17 +0000
 rt18884				new	marka	// 2008-11-11 02:16 +0000
+rt19027				new	
 shane_dbbackend			open	
 skan				open	explorer
 skan-metazones1			private	explorer
@@ -232,6 +233,7 @@ v9_5_0_P2_W1			new	mayer	// 2008-08-16 21:14 +0000
 v9_5_0_P2_danny			new	
 v9_5_0_P2_win32			new	marka	// 2008-09-04 05:59 +0000
 v9_5_0_patch			active		// security fixes 9.5.0 only
+v9_5_1_patch			new	marka	// 2008-12-03 02:07 +0000
 v9_6				new	marka	// 2008-11-30 22:53 +0000
 
 
