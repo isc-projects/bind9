@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.237.18.59 2008/12/01 00:18:14 marka Exp $ */
+/* $Id: socket.c,v 1.237.18.60 2008/12/03 02:28:42 marka Exp $ */
 
 /*! \file */
 
@@ -2257,17 +2257,14 @@ isc_socket_detach(isc_socket_t **socketp) {
 isc_result_t
 isc_socket_close(isc_socket_t *sock) {
 	int fd;
+	isc_socketmgr_t *manager;
+	isc_sockettype_t type;
 
 	REQUIRE(VALID_SOCKET(sock));
 
 	LOCK(&sock->lock);
-	REQUIRE(sock->references == 1);
-	UNLOCK(&sock->lock);
-	/*
-	 * We don't need to retain the lock hereafter, since no one else has
-	 * this socket.
-	 */
 
+	REQUIRE(sock->references == 1);
 	REQUIRE(sock->fd >= 0 && sock->fd < (int)sock->manager->maxsocks);
 
 	INSIST(!sock->connecting);
@@ -2279,6 +2276,8 @@ isc_socket_close(isc_socket_t *sock) {
 	INSIST(ISC_LIST_EMPTY(sock->accept_list));
 	INSIST(sock->connect_ev == NULL);
 
+	manager = sock->manager;
+	type = sock->type;
 	fd = sock->fd;
 	sock->fd = -1;
 	sock->listener = 0;
@@ -2286,8 +2285,9 @@ isc_socket_close(isc_socket_t *sock) {
 	sock->connecting = 0;
 	sock->bound = 0;
 	isc_sockaddr_any(&sock->address);
-
-	closesocket(sock->manager, sock->type, fd);
+	UNLOCK(&sock->lock);
+ 
+	closesocket(manager, type, fd);
 
 	return (ISC_R_SUCCESS);
 }
@@ -2826,6 +2826,7 @@ process_fd(isc_socketmgr_t *manager, int fd, isc_boolean_t readable,
 {
 	isc_socket_t *sock;
 	isc_boolean_t unlock_sock;
+	isc_boolean_t unwatch_read = ISC_FALSE, unwatch_write = ISC_FALSE;
 	int lockid = FDLOCK_ID(fd);
 
 	/*
@@ -2841,11 +2842,10 @@ process_fd(isc_socketmgr_t *manager, int fd, isc_boolean_t readable,
 	}
 
 	sock = manager->fds[fd];
-	UNLOCK(&manager->fdlock[lockid]);
 	unlock_sock = ISC_FALSE;
 	if (readable) {
 		if (sock == NULL) {
-			(void)unwatch_fd(manager, fd, SELECT_POKE_READ);
+			unwatch_read = ISC_TRUE;
 			goto check_write;
 		}
 		unlock_sock = ISC_TRUE;
@@ -2856,13 +2856,13 @@ process_fd(isc_socketmgr_t *manager, int fd, isc_boolean_t readable,
 			else
 				dispatch_recv(sock);
 		}
-		(void)unwatch_fd(manager, fd, SELECT_POKE_READ);
+		unwatch_read = ISC_TRUE;
 	}
 check_write:
 	if (writeable) {
 		if (sock == NULL) {
-			(void)unwatch_fd(manager, fd, SELECT_POKE_WRITE);
-			return;
+			unwatch_write = ISC_TRUE;
+			goto unlock_fd;
 		}
 		if (!unlock_sock) {
 			unlock_sock = ISC_TRUE;
@@ -2874,10 +2874,18 @@ check_write:
 			else
 				dispatch_send(sock);
 		}
-		(void)unwatch_fd(manager, fd, SELECT_POKE_WRITE);
+		unwatch_write = ISC_TRUE;
 	}
 	if (unlock_sock)
 		UNLOCK(&sock->lock);
+
+ unlock_fd:
+	UNLOCK(&manager->fdlock[lockid]);
+	if (unwatch_read)
+		(void)unwatch_fd(manager, fd, SELECT_POKE_READ);
+	if (unwatch_write)
+		(void)unwatch_fd(manager, fd, SELECT_POKE_WRITE);
+
 }
 
 #ifdef USE_KQUEUE
