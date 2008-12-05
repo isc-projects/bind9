@@ -1,3 +1,6 @@
+2505.	[port]		Treat amd64 similarly to x86_64 when determining
+			atomic operation support. [RT #19031]
+
 2504.	[bug]		Address race condition in the socket code. [RT #18899]
 
 2500.	[contrib]	contrib/sdb/pgsql/zonetodb.c called non-existant
