@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.355.18.87 $)
+AC_REVISION($Revision: 1.355.18.88 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -2058,7 +2058,7 @@ main() {
 		[arch=x86_32],
 	        [arch=x86_32])
 	;;
-	x86_64-*)
+	x86_64-*|amd64-*)
 		arch=x86_64
 	;;
 	alpha*-*)
