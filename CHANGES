@@ -1,3 +1,7 @@
+2507.	[func]		Log the recursion quota values when killing the
+			oldest query or refusing to recurse due to quota.
+			[RT #19022]
+
 2506.	[port]		solaris: Check at configure time if 
 			hack_shutup_pthreadonceinit is needed. [RT #19037]
 
