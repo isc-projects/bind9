@@ -952,6 +952,7 @@
 ./contrib/dlz/drivers/include/dlz/sdlz_helper.h	X	2005
 ./contrib/dlz/drivers/rules.in			X	2005
 ./contrib/dlz/drivers/sdlz_helper.c		X	2005
+./contrib/dnssec-tools/README			X	2008
 ./contrib/idn/idnkit-1.0-src/ChangeLog		X	2003
 ./contrib/idn/idnkit-1.0-src/DISTFILES		X	2003
 ./contrib/idn/idnkit-1.0-src/INSTALL		X	2003
