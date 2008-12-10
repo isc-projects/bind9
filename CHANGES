@@ -1,3 +1,6 @@
+2509.	[bug]		Specifying a fixed query source port was broken.
+			[RT #19051]
+
 2504.	[bug]		Address race condition in the socket code. [RT #18899]
 
 	--- 9.6.0rc1 released ---
