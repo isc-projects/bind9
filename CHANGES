@@ -1,3 +1,6 @@
+2509.	[bug]		Specifying a fixed query source port was broken.
+			[RT #19051]
+
 2508.	[placeholder]
 
 2507.	[func]		Log the recursion quota values when killing the
