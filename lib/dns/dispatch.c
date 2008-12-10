@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.116.18.37 2008/09/04 00:24:41 jinmei Exp $ */
+/* $Id: dispatch.c,v 1.116.18.38 2008/12/10 12:47:05 marka Exp $ */
 
 /*! \file */
 
@@ -2569,6 +2569,15 @@ get_udpsocket(dns_dispatchmgr_t *mgr, dns_dispatch_t *disp,
 		 * If this fails 1024 times, we then ask the kernel for
 		 * choosing one.
 		 */
+	} else {
+		/* Allow to reuse address for non-random ports. */
+		result = open_socket(sockmgr, localaddr,
+				     ISC_SOCKET_REUSEADDRESS, &sock);
+ 
+		if (result == ISC_R_SUCCESS)
+			*sockp = sock;
+ 
+		return (result);
 	}
 
 	memset(held, 0, sizeof(held));
