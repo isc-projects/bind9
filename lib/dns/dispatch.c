@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.116.18.38 2008/12/10 12:47:05 marka Exp $ */
+/* $Id: dispatch.c,v 1.116.18.39 2008/12/10 23:46:03 tbox Exp $ */
 
 /*! \file */
 
@@ -2573,10 +2573,10 @@ get_udpsocket(dns_dispatchmgr_t *mgr, dns_dispatch_t *disp,
 		/* Allow to reuse address for non-random ports. */
 		result = open_socket(sockmgr, localaddr,
 				     ISC_SOCKET_REUSEADDRESS, &sock);
- 
+
 		if (result == ISC_R_SUCCESS)
 			*sockp = sock;
- 
+
 		return (result);
 	}
 
