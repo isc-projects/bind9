@@ -1,3 +1,6 @@
+2509.	[bug]		Specifying a fixed query source port was broken.
+			[RT #19051]
+
 2506.	[port]		solaris: Check at configure time if 
 			hack_shutup_pthreadonceinit is needed. [RT #19037]
 
