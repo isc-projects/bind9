@@ -1,3 +1,5 @@
+2510.	[bug]		dig +sigchase could trigger REQUIREs. [RT #19033]
+
 2509.	[bug]		Specifying a fixed query source port was broken.
 			[RT #19051]
 
