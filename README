@@ -43,6 +43,9 @@ BIND 9
 		Nominum, Inc.
 
 
+BIND 9.5.1
+	BIND 9.5.1 is a maintence release for BIND 9.5.
+
 BIND 9.5.0
 
 	BIND 9.5.0 has a number of new features over 9.4,

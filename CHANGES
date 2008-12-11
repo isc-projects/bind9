@@ -1,3 +1,6 @@
+
+	--- 9.5.1rc2 released ---
+
 2510.	[bug]		"dig +sigchase" could trigger REQUIRE failures.
 			[RT #19033]
 
