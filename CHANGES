@@ -1,22 +1,24 @@
-2510.	[bug]		"dig +sigchase" could trigger REQUIRE failures.
-			[RT #19033]
-
-2509.	[bug]		Specifying a fixed query source port was broken.
-			[RT #19051]
-
 2506.	[port]		solaris: Check at configure time if 
 			hack_shutup_pthreadonceinit is needed. [RT #19037]
 
 2505.	[port]		Treat amd64 similarly to x86_64 when determining
 			atomic operation support. [RT #19031]
 
-2504.	[bug]		Address race condition in the socket code. [RT #18899]
-
 2500.	[contrib]	contrib/sdb/pgsql/zonetodb.c called non-existant
 			function. [RT #18582]
 
 2499.	[port]		solaris: lib/lwres/getaddrinfo.c namespace clash.
 			[RT #18837]
+
+	--- 9.5.1rc2 released ---
+
+2510.	[bug]		"dig +sigchase" could trigger REQUIRE failures.
+			[RT #19033]
+
+2509.	[bug]		Specifying a fixed query source port was broken.
+			[RT #19051]
+
+2504.	[bug]		Address race condition in the socket code. [RT #18899]
 
 	--- 9.5.1rc1 released ---
 
