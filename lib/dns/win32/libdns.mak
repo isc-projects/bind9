@@ -145,6 +145,7 @@ CLEAN :
 	-@erase "$(INTDIR)\gssapictx.obj"
 	-@erase "$(INTDIR)\spnego.obj"
 	-@erase "$(INTDIR)\hmac_link.obj"
+	-@erase "$(INTDIR)\iptable.obj"
 	-@erase "$(INTDIR)\journal.obj"
 	-@erase "$(INTDIR)\key.obj"
 	-@erase "$(INTDIR)\keytable.obj"
@@ -267,6 +268,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\dnssec.obj" \
 	"$(INTDIR)\ds.obj" \
 	"$(INTDIR)\forward.obj" \
+	"$(INTDIR)\iptable.obj" \
 	"$(INTDIR)\journal.obj" \
 	"$(INTDIR)\keytable.obj" \
 	"$(INTDIR)\lib.obj" \
@@ -407,6 +409,8 @@ CLEAN :
 	-@erase "$(INTDIR)\spnego.sbr"
 	-@erase "$(INTDIR)\hmac_link.obj"
 	-@erase "$(INTDIR)\hmac_link.sbr"
+	-@erase "$(INTDIR)\iptable.obj"
+	-@erase "$(INTDIR)\iptable.sbr"
 	-@erase "$(INTDIR)\journal.obj"
 	-@erase "$(INTDIR)\journal.sbr"
 	-@erase "$(INTDIR)\key.obj"
@@ -579,6 +583,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\dnssec.sbr" \
 	"$(INTDIR)\ds.sbr" \
 	"$(INTDIR)\forward.sbr" \
+	"$(INTDIR)\iptable.sbr" \
 	"$(INTDIR)\journal.sbr" \
 	"$(INTDIR)\keytable.sbr" \
 	"$(INTDIR)\lib.sbr" \
@@ -666,6 +671,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\dnssec.obj" \
 	"$(INTDIR)\ds.obj" \
 	"$(INTDIR)\forward.obj" \
+	"$(INTDIR)\iptable.obj" \
 	"$(INTDIR)\journal.obj" \
 	"$(INTDIR)\keytable.obj" \
 	"$(INTDIR)\lib.obj" \
