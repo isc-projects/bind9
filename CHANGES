@@ -1,3 +1,6 @@
+2512.	[func]		Print a summary of the cached records which make up
+			the negative response.  [RT #18885]
+
 2511.	[cleanup]	dns_rdata_tofmttext() add const to linebreak.
 			[RT #18885]
 
