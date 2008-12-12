@@ -1808,7 +1808,7 @@
 ./lib/dns/include/dns/portlist.h		C	2003,2004,2005
 ./lib/dns/include/dns/rbt.h			C	1999,2000,2001,2002,2004,2005
 ./lib/dns/include/dns/rcode.h			C	1999,2000,2001,2004,2005
-./lib/dns/include/dns/rdata.h			C	1998,1999,2000,2001,2002,2003,2004,2005
+./lib/dns/include/dns/rdata.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2008
 ./lib/dns/include/dns/rdataclass.h		C	1998,1999,2000,2001,2004,2005
 ./lib/dns/include/dns/rdatalist.h		C	1999,2000,2001,2004,2005
 ./lib/dns/include/dns/rdataset.h		C	1999,2000,2001,2002,2003,2004,2005,2006
@@ -1871,7 +1871,7 @@
 ./lib/dns/rbtdb64.c				C	1999,2000,2001,2004,2005
 ./lib/dns/rbtdb64.h				C	1999,2000,2001,2004,2005
 ./lib/dns/rcode.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006
-./lib/dns/rdata.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006
+./lib/dns/rdata.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2008
 ./lib/dns/rdata/any_255/tsig_250.c		C	1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/rdata/any_255/tsig_250.h		C	1999,2000,2001,2004,2005
 ./lib/dns/rdata/ch_3/a_1.c			C	2005
