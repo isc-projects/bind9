@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.h,v 1.67.128.1 2008/12/12 04:45:18 marka Exp $ */
+/* $Id: rdata.h,v 1.67.128.2 2008/12/12 23:46:38 tbox Exp $ */
 
 #ifndef DNS_RDATA_H
 #define DNS_RDATA_H 1
@@ -327,11 +327,11 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
  *\li	'target' is a valid region.
  *
  *\li	'origin' if non NULL it must be absolute.
- *	
+ *
  *\li	'callbacks' to be NULL or callbacks->warn and callbacks->error be
  *	initialized.
  *
- * Ensures, 
+ * Ensures,
  *	if result is success:
  *\li	 	If 'rdata' is not NULL, it is attached to the target.
 
