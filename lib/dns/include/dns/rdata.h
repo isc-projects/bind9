@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.h,v 1.67 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: rdata.h,v 1.67.128.1 2008/12/12 04:45:18 marka Exp $ */
 
 #ifndef DNS_RDATA_H
 #define DNS_RDATA_H 1
@@ -384,7 +384,8 @@ dns_rdata_totext(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target);
 
 isc_result_t
 dns_rdata_tofmttext(dns_rdata_t *rdata, dns_name_t *origin, unsigned int flags,
-		    unsigned int width, char *linebreak, isc_buffer_t *target);
+		    unsigned int width, const char *linebreak,
+		    isc_buffer_t *target);
 /*%<
  * Like dns_rdata_totext, but do formatted output suitable for
  * database dumps.  This is intended for use by dns_db_dump();

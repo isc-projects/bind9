@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.196 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: rdata.c,v 1.196.128.1 2008/12/12 04:45:18 marka Exp $ */
 
 /*! \file */
 
@@ -728,7 +728,7 @@ dns_rdata_totext(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target)
 isc_result_t
 dns_rdata_tofmttext(dns_rdata_t *rdata, dns_name_t *origin,
 		    unsigned int flags, unsigned int width,
-		    char *linebreak, isc_buffer_t *target)
+		    const char *linebreak, isc_buffer_t *target)
 {
 	dns_rdata_textctx_t tctx;
 
