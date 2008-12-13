@@ -159,6 +159,7 @@ CLEAN :
 	-@erase "$(INTDIR)\parseint.obj"
 	-@erase "$(INTDIR)\portset.obj"
 	-@erase "$(INTDIR)\quota.obj"
+	-@erase "$(INTDIR)\radix.obj"
 	-@erase "$(INTDIR)\random.obj"
 	-@erase "$(INTDIR)\ratelimiter.obj"
 	-@erase "$(INTDIR)\refcount.obj"
@@ -258,6 +259,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\netscope.obj" \
 	"$(INTDIR)\ondestroy.obj" \
 	"$(INTDIR)\quota.obj" \
+	"$(INTDIR)\radix.obj" \
 	"$(INTDIR)\random.obj" \
 	"$(INTDIR)\ratelimiter.obj" \
 	"$(INTDIR)\refcount.obj" \
@@ -386,6 +388,8 @@ CLEAN :
 	-@erase "$(INTDIR)\portset.sbr"
 	-@erase "$(INTDIR)\quota.obj"
 	-@erase "$(INTDIR)\quota.sbr"
+	-@erase "$(INTDIR)\radix.obj"
+	-@erase "$(INTDIR)\radix.sbr"
 	-@erase "$(INTDIR)\random.obj"
 	-@erase "$(INTDIR)\random.sbr"
 	-@erase "$(INTDIR)\ratelimiter.obj"
@@ -509,6 +513,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\netscope.sbr" \
 	"$(INTDIR)\ondestroy.sbr" \
 	"$(INTDIR)\quota.sbr" \
+	"$(INTDIR)\radix.sbr" \
 	"$(INTDIR)\random.sbr" \
 	"$(INTDIR)\ratelimiter.sbr" \
 	"$(INTDIR)\refcount.sbr" \
@@ -591,6 +596,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\netscope.obj" \
 	"$(INTDIR)\ondestroy.obj" \
 	"$(INTDIR)\quota.obj" \
+	"$(INTDIR)\radix.obj" \
 	"$(INTDIR)\random.obj" \
 	"$(INTDIR)\ratelimiter.obj" \
 	"$(INTDIR)\refcount.obj" \
@@ -1359,6 +1365,24 @@ SOURCE=..\inet_pton.c
 
 
 "$(INTDIR)\inet_pton.obj"	"$(INTDIR)\inet_pton.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\iterated_hash.c
+
+!IF  "$(CFG)" == "libisc - Win32 Release"
+
+
+"$(INTDIR)\iterated_hash.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libisc - Win32 Debug"
+
+
+"$(INTDIR)\iterated_hash.obj"	"$(INTDIR)\iterated_hash.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 

@@ -1,6 +1,8 @@
 
 	--- 9.5.1rc2 released ---
 
+2513	[bug]		Fix windows cli build. [RT #19062]
+
 2510.	[bug]		"dig +sigchase" could trigger REQUIRE failures.
 			[RT #19033]
 
