@@ -1,3 +1,5 @@
+2513	[bug]		Fix windows cli build. [RT #19062]
+
 2512.	[func]		Print a summary of the cached records which make up
 			the negative response.  [RT #18885]
 
