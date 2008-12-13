@@ -1,3 +1,7 @@
+2514.	[bug]		dig/host failed with -4 or -6 when resolv.conf contains
+			a nameserver of the unsupported address family.
+			[RT #18848]
+
 2511.	[cleanup]	dns_rdata_tofmttext() add const to linebreak.
 			[RT #18885]
 

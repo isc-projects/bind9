@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.304.12.8 2008/12/10 23:27:54 marka Exp $ */
+/* $Id: dighost.c,v 1.304.12.9 2008/12/13 04:42:59 jinmei Exp $ */
 
 /*! \file
  *  \note
@@ -583,6 +583,11 @@ copy_server_list(lwres_conf_t *confdata, dig_serverlist_t *dest) {
 	for (i = 0; i < confdata->nsnext; i++) {
 		af = addr2af(confdata->nameservers[i].family);
 
+		if (af == AF_INET && !have_ipv4)
+			continue;
+		if (af == AF_INET6 && !have_ipv6)
+			continue;
+
 		lwres_net_ntop(af, confdata->nameservers[i].address,
 				   tmp, sizeof(tmp));
 		newsrv = make_server(tmp, tmp);
@@ -1035,8 +1040,10 @@ setup_system(void) {
 		debug("ndots is %d.", ndots);
 	}
 
+	copy_server_list(lwconf, &server_list);
+
 	/* If we don't find a nameserver fall back to localhost */
-	if (lwconf->nsnext == 0) {
+	if (ISC_LIST_EMPTY(server_list)) {
 		if (have_ipv4) {
 			lwresult = add_nameserver(lwconf, "127.0.0.1", AF_INET);
 			if (lwresult != ISC_R_SUCCESS)
@@ -1047,10 +1054,9 @@ setup_system(void) {
 			if (lwresult != ISC_R_SUCCESS)
 				fatal("add_nameserver failed");
 		}
-	}
 
-	if (ISC_LIST_EMPTY(server_list))
 		copy_server_list(lwconf, &server_list);
+	}
 
 #ifdef WITH_IDN
 	initialize_idn();
