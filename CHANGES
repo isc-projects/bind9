@@ -1,6 +1,9 @@
 
 	--- 9.6.0rc2 released ---
 
+2515.	[port]		win32: build dnssec-dsfromkey and dnssec-keyfromlabel.
+			[RT #19063]
+
 2513	[bug]		Fix windows cli build. [RT #19062]
 
 2510.	[bug]		"dig +sigchase" could trigger REQUIRE failures.
