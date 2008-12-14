@@ -1,3 +1,6 @@
+2515.	[port]		win32: build dnssec-dsfromkey and dnssec-keyfromlabel.
+			[RT #19063]
+
 2514.	[bug]		dig/host failed with -4 or -6 when resolv.conf contains
 			a nameserver of the unsupported address family.
 			[RT #18848]
