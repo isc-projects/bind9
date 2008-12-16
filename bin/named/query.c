@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.298.48.8 2008/10/15 22:40:34 marka Exp $ */
+/* $Id: query.c,v 1.298.48.9 2008/12/16 02:45:05 jinmei Exp $ */
 
 /*! \file */
 
@@ -4423,7 +4423,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		 * is in the glue sort it to the start of the additional
 		 * section.
 		 */
-		if (client->message->counts[DNS_SECTION_ANSWER] == 0 &&
+		if (ISC_LIST_EMPTY(client->message->sections[DNS_SECTION_ANSWER]) &&
 		    client->message->rcode == dns_rcode_noerror &&
 		    (qtype == dns_rdatatype_a || qtype == dns_rdatatype_aaaa))
 			answer_in_glue(client, qtype);

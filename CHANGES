@@ -1,3 +1,6 @@
+2516.	[bug]		glue sort for responses was performed even when not
+			needed. [RT #19039]
+
 2514.	[bug]		dig/host failed with -4 or -6 when resolv.conf contains
 			a nameserver of the unsupported address family.
 			[RT #18848]
