@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.101.18.15 2007/08/28 07:19:55 tbox Exp $ */
+/* $Id: nslookup.c,v 1.101.18.16 2008/12/16 03:00:06 jinmei Exp $ */
 
 #include <config.h>
 
@@ -441,13 +441,16 @@ show_settings(isc_boolean_t full, isc_boolean_t serv_only) {
 	dig_server_t *srv;
 	isc_sockaddr_t sockaddr;
 	dig_searchlist_t *listent;
+	isc_result_t result;
 
 	srv = ISC_LIST_HEAD(server_list);
 
 	while (srv != NULL) {
 		char sockstr[ISC_SOCKADDR_FORMATSIZE];
 
-		get_address(srv->servername, port, &sockaddr);
+		result = get_address(srv->servername, port, &sockaddr);
+		check_result(result, "get_address");
+
 		isc_sockaddr_format(&sockaddr, sockstr, sizeof(sockstr));
 		printf("Default server: %s\nAddress: %s\n",
 			srv->userarg, sockstr);
