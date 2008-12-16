@@ -1,3 +1,6 @@
+2518.	[func]		Add support for the new CERT types from RFC 4398.
+			[RT #19077]
+
 2517.	[bug]		dig +trace with -4 or -6 failed when it chose a
 			nameserver address of the unsupported address.
 			[RT #18843]

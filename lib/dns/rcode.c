@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rcode.c,v 1.8 2008/09/25 04:02:38 tbox Exp $ */
+/* $Id: rcode.c,v 1.9 2008/12/16 05:04:47 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -79,12 +79,17 @@
 	{ dns_tsigerror_badtrunc, "BADTRUNC", 0}, \
 	{ 0, NULL, 0 }
 
-/* RFC2538 section 2.1 */
+/* RFC4398 section 2.1 */
 
 #define CERTNAMES \
 	{ 1, "PKIX", 0}, \
 	{ 2, "SPKI", 0}, \
 	{ 3, "PGP", 0}, \
+	{ 4, "IPKIX", 0}, \
+	{ 5, "ISPKI", 0}, \
+	{ 6, "IPGP", 0}, \
+	{ 7, "ACPKIX", 0}, \
+	{ 8, "IACPKIX", 0}, \
 	{ 253, "URI", 0}, \
 	{ 254, "OID", 0}, \
 	{ 0, NULL, 0}
