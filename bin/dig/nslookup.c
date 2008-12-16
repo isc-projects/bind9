@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.117.130.1 2008/12/16 02:59:46 jinmei Exp $ */
+/* $Id: nslookup.c,v 1.117.130.2 2008/12/16 23:46:45 tbox Exp $ */
 
 #include <config.h>
 
@@ -385,14 +385,14 @@ trying(char *frm, dig_lookup_t *lookup) {
 
 isc_result_t
 printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
-	char servtext[ISC_SOCKADDR_FORMATSIZE];	
+	char servtext[ISC_SOCKADDR_FORMATSIZE];
 
 	debug("printmessage()");
 
 	isc_sockaddr_format(&query->sockaddr, servtext, sizeof(servtext));
 	printf("Server:\t\t%s\n", query->userarg);
 	printf("Address:\t%s\n", servtext);
-	
+
 	puts("");
 
 	if (!short_form) {
@@ -508,7 +508,7 @@ testclass(char *typetext) {
 	tr.base = typetext;
 	tr.length = strlen(typetext);
 	result = dns_rdataclass_fromtext(&rdclass, &tr);
-	if (result == ISC_R_SUCCESS) 
+	if (result == ISC_R_SUCCESS)
 		return (ISC_TRUE);
 	else {
 		printf("unknown query class: %s\n", typetext);
@@ -606,7 +606,7 @@ setoption(char *opt) {
 		set_timeout(&opt[8]);
 	} else if (strncasecmp(opt, "t=", 2) == 0) {
 		set_timeout(&opt[2]);
- 	} else if (strncasecmp(opt, "rec", 3) == 0) {
+	} else if (strncasecmp(opt, "rec", 3) == 0) {
 		recurse = ISC_TRUE;
 	} else if (strncasecmp(opt, "norec", 5) == 0) {
 		recurse = ISC_FALSE;
@@ -614,21 +614,21 @@ setoption(char *opt) {
 		set_tries(&opt[6]);
 	} else if (strncasecmp(opt, "ret=", 4) == 0) {
 		set_tries(&opt[4]);
- 	} else if (strncasecmp(opt, "def", 3) == 0) {
+	} else if (strncasecmp(opt, "def", 3) == 0) {
 		usesearch = ISC_TRUE;
 	} else if (strncasecmp(opt, "nodef", 5) == 0) {
 		usesearch = ISC_FALSE;
- 	} else if (strncasecmp(opt, "vc", 3) == 0) {
+	} else if (strncasecmp(opt, "vc", 3) == 0) {
 		tcpmode = ISC_TRUE;
 	} else if (strncasecmp(opt, "novc", 5) == 0) {
 		tcpmode = ISC_FALSE;
- 	} else if (strncasecmp(opt, "deb", 3) == 0) {
+	} else if (strncasecmp(opt, "deb", 3) == 0) {
 		short_form = ISC_FALSE;
 		showsearch = ISC_TRUE;
 	} else if (strncasecmp(opt, "nodeb", 5) == 0) {
 		short_form = ISC_TRUE;
 		showsearch = ISC_FALSE;
- 	} else if (strncasecmp(opt, "d2", 2) == 0) {
+	} else if (strncasecmp(opt, "d2", 2) == 0) {
 		debugging = ISC_TRUE;
 	} else if (strncasecmp(opt, "nod2", 4) == 0) {
 		debugging = ISC_FALSE;
@@ -643,7 +643,7 @@ setoption(char *opt) {
 	} else if (strncasecmp(opt, "nofail", 3) == 0) {
 		nofail=ISC_TRUE;
 	} else {
-		printf("*** Invalid option: %s\n", opt);	
+		printf("*** Invalid option: %s\n", opt);
 	}
 }
 
