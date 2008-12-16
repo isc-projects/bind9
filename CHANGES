@@ -1,3 +1,6 @@
+2516.	[bug]		glue sort for responses was performed even when not
+			needed. [RT #19039]
+
 2515.	[port]		win32: build dnssec-dsfromkey and dnssec-keyfromlabel.
 			[RT #19063]
 
