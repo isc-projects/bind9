@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,9 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: context.c,v 1.45.18.8 2008/12/17 19:23:27 jinmei Exp $ */
+/* $Id: context.c,v 1.45.18.9 2008/12/17 23:46:00 tbox Exp $ */
 
-/*! \file context.c 
+/*! \file context.c
    lwres_context_create() creates a #lwres_context_t structure for use in
    lightweight resolver operations. It holds a socket and other data
    needed for communicating with a resolver daemon. The new
@@ -204,9 +204,9 @@ lwres_context_create(lwres_context_t **contextp, void *arg,
 }
 
 /*%
-Destroys a #lwres_context_t, closing its socket. 
-contextp is a pointer to a pointer to the context that is 
-to be destroyed. The pointer will be set to NULL 
+Destroys a #lwres_context_t, closing its socket.
+contextp is a pointer to a pointer to the context that is
+to be destroyed. The pointer will be set to NULL
 when the context has been destroyed.
  */
 void
@@ -459,7 +459,7 @@ lwres_context_sendrecv(lwres_context_t *ctx,
 	struct timeval timeout;
 
 	/*
-	 * Type of tv_sec is 32 bits long. 
+	 * Type of tv_sec is 32 bits long.
 	 */
 	if (ctx->timeout <= 0x7FFFFFFFU)
 		timeout.tv_sec = (int)ctx->timeout;
@@ -475,7 +475,7 @@ lwres_context_sendrecv(lwres_context_t *ctx,
 	FD_ZERO(&readfds);
 	FD_SET(ctx->sock, &readfds);
 	ret2 = select(ctx->sock + 1, &readfds, NULL, NULL, &timeout);
-	
+
 	/*
 	 * What happened with select?
 	 */
@@ -487,6 +487,6 @@ lwres_context_sendrecv(lwres_context_t *ctx,
 	result = lwres_context_recv(ctx, recvbase, recvlen, recvd_len);
 	if (result == LWRES_R_RETRY)
 		goto again;
-	
+
 	return (result);
 }
