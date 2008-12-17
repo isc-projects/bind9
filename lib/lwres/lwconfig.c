@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.46 2007/06/19 23:47:22 tbox Exp $ */
+/* $Id: lwconfig.c,v 1.47 2008/12/17 19:19:29 jinmei Exp $ */
 
 /*! \file */
 
@@ -313,8 +313,11 @@ lwres_conf_parsenameserver(lwres_context_t *ctx,  FILE *fp) {
 		return (LWRES_R_FAILURE); /* Extra junk on line. */
 
 	res = lwres_create_addr(word, &address, 1);
-	if (res == LWRES_R_SUCCESS)
+	if (res == LWRES_R_SUCCESS &&
+	    ((address.family == LWRES_ADDRTYPE_V4 && ctx->use_ipv4 == 1) ||
+	     (address.family == LWRES_ADDRTYPE_V6 && ctx->use_ipv6 == 1))) {
 		confdata->nameservers[confdata->nsnext++] = address;
+	}
 
 	return (LWRES_R_SUCCESS);
 }

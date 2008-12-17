@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.314 2008/12/16 02:57:24 jinmei Exp $ */
+/* $Id: dighost.c,v 1.315 2008/12/17 19:19:29 jinmei Exp $ */
 
 /*! \file
  *  \note
@@ -1011,10 +1011,18 @@ void
 setup_system(void) {
 	dig_searchlist_t *domain = NULL;
 	lwres_result_t lwresult;
+	unsigned int lwresflags;
 
 	debug("setup_system()");
 
-	lwresult = lwres_context_create(&lwctx, mctx, mem_alloc, mem_free, 1);
+	lwresflags = LWRES_CONTEXT_SERVERMODE;
+	if (have_ipv4)
+		lwresflags |= LWRES_CONTEXT_USEIPV4;
+	if (have_ipv6)
+		lwresflags |= LWRES_CONTEXT_USEIPV6;
+
+	lwresult = lwres_context_create(&lwctx, mctx, mem_alloc, mem_free,
+					lwresflags);
 	if (lwresult != LWRES_R_SUCCESS)
 		fatal("lwres_context_create failed");
 

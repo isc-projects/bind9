@@ -1,8 +1,12 @@
+2519.	[bug]		dig/host with -4 or -6 didn't work if more than two
+			nameserver addresses of the excluded address family
+			preceded in resolv.conf. [RT #19081]
+
 2518.	[func]		Add support for the new CERT types from RFC 4398.
 			[RT #19077]
 
 2517.	[bug]		dig +trace with -4 or -6 failed when it chose a
-			nameserver address of the unsupported address.
+			nameserver address of the excluded address.
 			[RT #18843]
 
 2516.	[bug]		glue sort for responses was performed even when not
@@ -12,7 +16,7 @@
 			[RT #19063]
 
 2514.	[bug]		dig/host failed with -4 or -6 when resolv.conf contains
-			a nameserver of the unsupported address family.
+			a nameserver of the excluded address family.
 			[RT #18848]
 
 2513.	[bug]		Fix windows cli build. [RT #19062]
