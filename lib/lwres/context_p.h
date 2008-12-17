@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: context_p.h,v 1.17 2007/06/19 23:47:22 tbox Exp $ */
+/* $Id: context_p.h,v 1.17.128.1 2008/12/17 19:21:25 jinmei Exp $ */
 
 #ifndef LWRES_CONTEXT_P_H
 #define LWRES_CONTEXT_P_H 1
@@ -46,6 +46,8 @@ struct lwres_context {
 	 */
 	int			sock;		/*%< socket to send on */
 	lwres_addr_t		address;	/*%< address to send to */
+	int			use_ipv4;	/*%< use IPv4 transaction */
+	int			use_ipv6;	/*%< use IPv6 transaction */
 
 	/*@{*/
 	/*

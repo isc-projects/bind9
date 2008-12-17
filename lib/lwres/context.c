@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: context.c,v 1.50 2007/06/18 23:47:51 tbox Exp $ */
+/* $Id: context.c,v 1.50.128.1 2008/12/17 19:21:25 jinmei Exp $ */
 
 /*! \file context.c 
    lwres_context_create() creates a #lwres_context_t structure for use in
@@ -156,7 +156,6 @@ lwres_context_create(lwres_context_t **contextp, void *arg,
 	lwres_context_t *ctx;
 
 	REQUIRE(contextp != NULL && *contextp == NULL);
-	UNUSED(flags);
 
 	/*
 	 * If we were not given anything special to use, use our own
@@ -183,6 +182,17 @@ lwres_context_create(lwres_context_t **contextp, void *arg,
 
 	ctx->timeout = LWRES_DEFAULT_TIMEOUT;
 	ctx->serial = time(NULL); /* XXXMLG or BEW */
+
+	ctx->use_ipv4 = 1;
+	ctx->use_ipv6 = 1;
+	if ((flags & (LWRES_CONTEXT_USEIPV4 | LWRES_CONTEXT_USEIPV6)) ==
+	    LWRES_CONTEXT_USEIPV6) {
+		ctx->use_ipv4 = 0;
+	}
+	if ((flags & (LWRES_CONTEXT_USEIPV4 | LWRES_CONTEXT_USEIPV6)) ==
+	    LWRES_CONTEXT_USEIPV4) {
+		ctx->use_ipv6 = 0;
+	}
 
 	/*
 	 * Init resolv.conf bits.
