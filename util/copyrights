@@ -2211,8 +2211,8 @@
 ./lib/lwres/Makefile.in				MAKE	2000,2001,2004,2005,2007
 ./lib/lwres/api					X	2000,2001,2006,2008
 ./lib/lwres/assert_p.h				C	2000,2001,2004,2005,2007
-./lib/lwres/context.c				C	2000,2001,2003,2004,2005,2007
-./lib/lwres/context_p.h				C	2000,2001,2004,2005,2007
+./lib/lwres/context.c				C	2000,2001,2003,2004,2005,2007,2008
+./lib/lwres/context_p.h				C	2000,2001,2004,2005,2007,2008
 ./lib/lwres/gai_strerror.c			C	2000,2001,2004,2005,2006,2007
 ./lib/lwres/getaddrinfo.c			C.BSDI	1999,2000,2001,2004,2005,2006,2007,2008
 ./lib/lwres/gethost.c				C	2000,2001,2004,2005,2007
@@ -2224,7 +2224,7 @@
 ./lib/lwres/include/Makefile.in			MAKE	2000,2001,2004,2007
 ./lib/lwres/include/lwres/.cvsignore		X	2000,2001
 ./lib/lwres/include/lwres/Makefile.in		MAKE	2000,2001,2004,2007
-./lib/lwres/include/lwres/context.h		C	2000,2001,2004,2005,2006,2007
+./lib/lwres/include/lwres/context.h		C	2000,2001,2004,2005,2006,2007,2008
 ./lib/lwres/include/lwres/int.h			C	2000,2001,2004,2005,2006,2007
 ./lib/lwres/include/lwres/ipv6.h		C	2000,2001,2004,2005,2006,2007
 ./lib/lwres/include/lwres/lang.h		C	2000,2001,2004,2005,2006,2007
@@ -2238,7 +2238,7 @@
 ./lib/lwres/include/lwres/stdlib.h		C	2003,2004,2005,2006,2007
 ./lib/lwres/include/lwres/version.h		C	2001,2004,2005,2006,2007
 ./lib/lwres/lwbuffer.c				C	2000,2001,2004,2005,2007
-./lib/lwres/lwconfig.c				C	2000,2001,2002,2003,2004,2005,2006,2007
+./lib/lwres/lwconfig.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/lwres/lwinetaton.c			C.PORTION	1996,1997,1998,1999,2000,2001,2003,2004,2005,2007
 ./lib/lwres/lwinetntop.c			C	1996,1997,1998,1999,2000,2001,2003,2004,2005,2007
 ./lib/lwres/lwinetpton.c			C	1996,1997,1998,1999,2000,2001,2004,2005,2007
