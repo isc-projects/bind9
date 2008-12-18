@@ -1,3 +1,6 @@
+2520.	[bug]		Update xml statistics version number to 2.0.
+			[RT #19080]
+
 2519.	[bug]		dig/host with -4 or -6 didn't work if more than two
 			nameserver addresses of the excluded address family
 			preceded in resolv.conf. [RT #19081]
