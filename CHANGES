@@ -314,6 +314,10 @@
 			for select().  To enable this, set ISC_SOCKET_MAXSOCKETS
 			at compilation time.  [RT #18433]
 
+			Note: with changes #2469 and #2421 above, there is no
+			need to tweak ISC_SOCKET_MAXSOCKETS at compilation time
+			any more.
+
 2410.	[bug]		Correctly delete m_versionInfo. [RT #18432]
 
 2409.	[bug]		Only log that we disabled EDNS processing if we were
