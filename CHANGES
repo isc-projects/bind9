@@ -1,3 +1,6 @@
+
+	--- 9.5.1 released ---
+
 2520.	[bug]		Update xml statistics version number to 2.0 as change
 			#2388 made the schema incompatible to the previous
 			version. [RT #19080]
