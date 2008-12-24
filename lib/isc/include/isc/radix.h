@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.h,v 1.5.46.6 2008/12/24 05:09:26 marka Exp $ */
+/* $Id: radix.h,v 1.5.46.7 2008/12/24 23:46:32 tbox Exp $ */
 
 /*
  * This source was adapted from MRT's RCS Ids:
@@ -130,7 +130,7 @@ isc_radix_search(isc_radix_tree_t *radix, isc_radix_node_t **target,
 
 isc_result_t
 isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
-	         isc_radix_node_t *source, isc_prefix_t *prefix);
+		 isc_radix_node_t *source, isc_prefix_t *prefix);
 /*%<
  * Insert 'source' or 'prefix' into the radix tree 'radix'.
  * Return the node added in 'target'.
