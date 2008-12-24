@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: openssldsa_link.c,v 1.11 2007/08/28 07:20:42 tbox Exp $ */
+/* $Id: openssldsa_link.c,v 1.11.178.1 2008/12/24 00:20:59 marka Exp $ */
 
 #ifdef OPENSSL
 
@@ -146,7 +146,7 @@ openssldsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 
 	status = DSA_do_verify(digest, ISC_SHA1_DIGESTLENGTH, dsasig, dsa);
 	DSA_SIG_free(dsasig);
-	if (status == 0)
+	if (status != 1)
 		return (dst__openssl_toresult(DST_R_VERIFYFAILURE));
 
 	return (ISC_R_SUCCESS);
