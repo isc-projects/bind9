@@ -830,6 +830,7 @@ dst_key_frombuffer
 dst_key_fromdns
 dst_key_fromfile
 dst_key_fromgssapi
+dst_key_fromlabel
 dst_key_fromnamedfile
 dst_key_generate
 dst_key_id

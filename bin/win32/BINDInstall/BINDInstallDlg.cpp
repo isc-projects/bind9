@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.cpp,v 1.37 2007/10/31 01:34:19 marka Exp $ */
+/* $Id: BINDInstallDlg.cpp,v 1.37.228.2 2008/12/14 21:33:07 tbox Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -76,7 +76,7 @@ static char THIS_FILE[] = __FILE__;
 typedef struct _xexception
 {
 	_xexception(UINT string, ...);
-	
+
 	CString resString;
 } Exception;
 
@@ -140,6 +140,8 @@ const FileData installFiles[] =
 	{"rndc-confgen.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"dnssec-keygen.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"dnssec-signzone.exe", FileData::BinDir, FileData::Normal, FALSE},
+	{"dnssec-dsfromkey.exe", FileData::BinDir, FileData::Normal, FALSE},
+	{"dnssec-keyfromlabel.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"named-checkconf.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"named-checkzone.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"named-compilezone.exe", FileData::BinDir, FileData::Normal, FALSE},
@@ -231,7 +233,7 @@ BOOL CBINDInstallDlg::OnInitDialog() {
 	dirname[index] = '\0';
 	CString Dirname(dirname);
 	m_currentDir = Dirname;
-	
+
 	CVersionInfo bindInst(filename);
 	if(bindInst.IsValid())
 		m_version.Format(IDS_VERSION, bindInst.GetFileVersionString());
@@ -254,7 +256,7 @@ BOOL CBINDInstallDlg::OnInitDialog() {
 			&dwBufLen) == ERROR_SUCCESS)
 			if (strcmp(buf, ""))
 				m_defaultDir = buf;
-		
+
 		RegCloseKey(hKey);
 	}
 	m_targetDir = m_defaultDir;
@@ -316,14 +318,14 @@ void CBINDInstallDlg::OnBrowse() {
  * User pressed the exit button
  */
 void CBINDInstallDlg::OnExit() {
-	EndDialog(0);	
+	EndDialog(0);
 }
 
 /*
  * User pressed the uninstall button.  Make it go.
  */
 void CBINDInstallDlg::OnUninstall() {
-	UpdateData();	
+	UpdateData();
 
 	if (MsgBox(IDS_UNINSTALL, MB_YESNO) == IDYES) {
 		if (CheckBINDService())
@@ -335,7 +337,7 @@ void CBINDInstallDlg::OnUninstall() {
 			MsgBox(IDS_ERR_OPEN_SCM, GetErrMessage());
 			return;
 		}
-		
+
 		SC_HANDLE hService = OpenService(hSCManager, BIND_SERVICE_NAME,
 					      SERVICE_ALL_ACCESS);
 		if (!hService && GetLastError() != ERROR_SERVICE_DOES_NOT_EXIST){
@@ -347,7 +349,7 @@ void CBINDInstallDlg::OnUninstall() {
 		QueryServiceStatus(hService, &ss);
 		if (ss.dwCurrentState == SERVICE_RUNNING) {
 			BOOL rc = ControlService(hService,
-					         SERVICE_CONTROL_STOP, &ss);
+						 SERVICE_CONTROL_STOP, &ss);
 			if (rc == FALSE || ss.dwCurrentState != SERVICE_STOPPED) {
 				MsgBox(IDS_ERR_STOP_SERVICE, GetErrMessage());
 				return;
@@ -356,7 +358,7 @@ void CBINDInstallDlg::OnUninstall() {
 		}
 		CloseServiceHandle(hService);
 		CloseServiceHandle(hSCManager);
-		
+
 		// Directories
 		m_etcDir = m_targetDir + "\\etc";
 		m_binDir = m_targetDir + "\\bin";
@@ -370,12 +372,12 @@ void CBINDInstallDlg::OnUninstall() {
 		else
 			GetDlgItem(IDC_CREATE_DIR)->SetWindowText("Not Removed");
 
-		
+
 		// Delete registry keys for named
 		RegDeleteKey(HKEY_LOCAL_MACHINE, BIND_SESSION_SUBKEY);
 		RegDeleteKey(HKEY_LOCAL_MACHINE, BIND_SUBKEY);
 		RegDeleteKey(HKEY_LOCAL_MACHINE, BIND_UNINSTALL_SUBKEY);
-	
+
 		ProgramGroup(FALSE);
 
 		SetCurrent(IDS_UNINSTALL_DONE);
@@ -402,7 +404,7 @@ void CBINDInstallDlg::OnInstall() {
 
 	/*
 	 * Check that the Passwords entered match.
-	 */ 
+	 */
 	if (m_accountPassword != m_accountPasswordConfirm) {
 		MsgBox(IDS_ERR_PASSWORD);
 		return;
@@ -420,7 +422,7 @@ void CBINDInstallDlg::OnInstall() {
 		MsgBox(IDS_ERR_WHITESPACE);
 		return;
 	}
-	
+
 	/*
 	 * Check the entered account name.
 	 */
@@ -495,7 +497,7 @@ void CBINDInstallDlg::OnInstall() {
 #endif
 	try {
 		CreateDirs();
- 		CopyFiles();
+		CopyFiles();
 		RegisterService();
 		RegisterMessages();
 
@@ -512,7 +514,7 @@ void CBINDInstallDlg::OnInstall() {
 			RegCloseKey(hKey);
 		}
 
-		
+
 		SetCurrent(IDS_ADD_REMOVE);
 		if (RegCreateKey(HKEY_LOCAL_MACHINE, BIND_UNINSTALL_SUBKEY,
 				 &hKey) == ERROR_SUCCESS) {
@@ -526,9 +528,9 @@ void CBINDInstallDlg::OnInstall() {
 					(LPBYTE)(LPCTSTR)buf, buf.GetLength());
 			RegCloseKey(hKey);
 		}
-	
+
 		ProgramGroup(FALSE);
-		
+
 		if (m_startOnInstall)
 			StartBINDService();
 	}
@@ -569,7 +571,7 @@ void CBINDInstallDlg::CreateDirs() {
 	SetCurrent(IDS_CREATE_DIR, m_binDir);
 	if (!CreateDirectory(m_binDir, NULL) && GetLastError() != ERROR_ALREADY_EXISTS)
 		throw(Exception(IDS_ERR_CREATE_DIR, m_binDir, GetErrMessage()));
-		
+
 	SetItemStatus(IDC_CREATE_DIR);
 }
 
@@ -603,7 +605,7 @@ void CBINDInstallDlg::CopyFiles() {
 				   installFiles[i].filename;
 		CString filespec = m_currentDir + "\\" + installFiles[i].filename;
 		CVersionInfo bindFile(destFile);
-		
+
 		CVersionInfo origFile(filespec);
 		if (!origFile.IsValid() && installFiles[i].checkVer) {
 			if (MsgBox(IDS_FILE_BAD, MB_YESNO,
@@ -612,9 +614,9 @@ void CBINDInstallDlg::CopyFiles() {
 					installFiles[i].filename,
 					GetErrMessage()));
 		}
-		
+
 		try {
-/* 
+/*
  * Ignore Version checking.  We need to make sure that all files get copied regardless
  * of whether or not they are earlier or later versions since we cannot guarantee
  * that we have either backward or forward compatibility between versions.
@@ -623,7 +625,7 @@ void CBINDInstallDlg::CopyFiles() {
 		}
 		catch(...) {
 			if (installFiles[i].importance != FileData::Trivial) {
-				if (installFiles[i].importance == 
+				if (installFiles[i].importance ==
 					FileData::Critical ||
 					MsgBox(IDS_ERR_NONCRIT_FILE, MB_YESNO,
 					installFiles[i].filename,
@@ -650,10 +652,10 @@ void CBINDInstallDlg::DeleteFiles(BOOL uninstall) {
 
 		destFile = DestDir(installFiles[i].destination) + "\\" +
 				   installFiles[i].filename;
-	
+
 		if (uninstall)
 			SetCurrent(IDS_DELETE_FILE, installFiles[i].filename);
-		
+
 		DeleteFile(destFile);
 	}
 
@@ -662,10 +664,10 @@ void CBINDInstallDlg::DeleteFiles(BOOL uninstall) {
 		CString file = m_etcDir + "\\*.*";
 		BOOL rc;
 		HANDLE hFile;
-			
+
 		hFile = FindFirstFile(file, &findData);
 		rc = hFile != INVALID_HANDLE_VALUE;
-		
+
 		while (rc == TRUE) {
 			if (strcmp(findData.cFileName, ".") &&
 			    strcmp(findData.cFileName, "..")) {
@@ -680,7 +682,7 @@ void CBINDInstallDlg::DeleteFiles(BOOL uninstall) {
 
 	if (uninstall)
 		SetItemStatus(IDC_COPY_FILE, TRUE);
-}	
+}
 
 /*
  * Get the service account name out of the registry, if any
@@ -702,7 +704,7 @@ CBINDInstallDlg::GetCurrentServiceAccountName() {
 	else {
 		m_serviceExists = FALSE;
 	}
-	
+
 	if (keyFound == TRUE) {
 		/* Get the named service account, if one was specified */
 		if (RegQueryValueEx(hKey, "ObjectName", NULL, NULL,
@@ -810,8 +812,8 @@ CBINDInstallDlg::RegisterService() {
 	hService = CreateService(hSCManager, BIND_SERVICE_NAME,
 		BIND_DISPLAY_NAME, SERVICE_ALL_ACCESS, dwServiceType, dwStart,
 		SERVICE_ERROR_NORMAL, namedLoc, NULL, NULL, NULL, StartName,
-		m_accountPassword);	
-	
+		m_accountPassword);
+
 	if (!hService && GetLastError() != ERROR_SERVICE_EXISTS)
 		throw(Exception(IDS_ERR_CREATE_SERVICE, GetErrMessage()));
 
@@ -936,7 +938,7 @@ void CBINDInstallDlg::RegisterMessages() {
 	if (RegCreateKey(HKEY_LOCAL_MACHINE, BIND_MESSAGE_SUBKEY, &hKey)
 		!= ERROR_SUCCESS)
 		throw(Exception(IDS_ERR_CREATE_KEY, GetErrMessage()));
-	
+
 	/* Add the Event-ID message-file name to the subkey. */
 	if (RegSetValueEx(hKey, "EventMessageFile", 0, REG_EXPAND_SZ,
 		(LPBYTE)pszMsgDLL, strlen(pszMsgDLL) + 1) != ERROR_SUCCESS)
@@ -949,7 +951,7 @@ void CBINDInstallDlg::RegisterMessages() {
 		throw(Exception(IDS_ERR_SET_VALUE, GetErrMessage()));
 
 	RegCloseKey(hKey);
-			
+
 	SetItemStatus(IDC_REG_MESSAGE);
 }
 
@@ -967,7 +969,7 @@ void CBINDInstallDlg::UnregisterMessages(BOOL uninstall) {
 		/* Remove named from the list of messages sources */
 		if (RegDeleteKey(hKey, BIND_MESSAGE_NAME) != ERROR_SUCCESS)
 			break;
-		
+
 		rc = TRUE;
 		break;
 	}
@@ -994,7 +996,7 @@ void CBINDInstallDlg::FailedInstall() {
  */
 void CBINDInstallDlg::InstallTags() {
 	CString tag;
-	
+
 	tag.LoadString(IDS_INSTALL_FILE);
 	GetDlgItem(IDC_COPY_TAG)->SetWindowText(tag);
 	GetDlgItem(IDC_COPY_FILE)->SetWindowText("");
@@ -1006,7 +1008,7 @@ void CBINDInstallDlg::InstallTags() {
 
 	tag.LoadString(IDS_INSTALL_SERVICE);
 	GetDlgItem(IDC_SERVICE_TAG)->SetWindowText(tag);
-	
+
 	tag.LoadString(IDS_INSTALL_MESSAGE);
 	GetDlgItem(IDC_MESSAGE_TAG)->SetWindowText(tag);
 	GetDlgItem(IDC_REG_MESSAGE)->SetWindowText("");
@@ -1017,7 +1019,7 @@ void CBINDInstallDlg::InstallTags() {
  */
 void CBINDInstallDlg::UninstallTags() {
 	CString tag;
-	
+
 	tag.LoadString(IDS_UNINSTALL_FILES);
 	GetDlgItem(IDC_COPY_TAG)->SetWindowText(tag);
 	GetDlgItem(IDC_COPY_FILE)->SetWindowText("");
@@ -1029,7 +1031,7 @@ void CBINDInstallDlg::UninstallTags() {
 	tag.LoadString(IDS_UNINSTALL_SERVICE);
 	GetDlgItem(IDC_SERVICE_TAG)->SetWindowText(tag);
 	GetDlgItem(IDC_REG_SERVICE)->SetWindowText("");
-	
+
 	tag.LoadString(IDS_UNINSTALL_MESSAGE);
 	GetDlgItem(IDC_MESSAGE_TAG)->SetWindowText(tag);
 	GetDlgItem(IDC_REG_MESSAGE)->SetWindowText("");
@@ -1054,7 +1056,7 @@ void CBINDInstallDlg::SetCurrent(int id, ...) {
 	va_start(va, id);
 	vsprintf(buf, format, va);
 	va_end(va);
-	
+
 	m_current.Format("%s", buf);
 	UpdateData(FALSE);
 }
@@ -1064,20 +1066,20 @@ void CBINDInstallDlg::SetCurrent(int id, ...) {
  */
 void CBINDInstallDlg::StopBINDService() {
 	SERVICE_STATUS svcStatus;
-	
+
 	SetCurrent(IDS_STOP_SERVICE);
 
 	SC_HANDLE hSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
 	if (!hSCManager) {
 		MsgBox(IDS_ERR_OPEN_SCM, GetErrMessage());
 	}
-	
+
 	SC_HANDLE hBINDSvc = OpenService(hSCManager, BIND_SERVICE_NAME,
 				      SERVICE_ALL_ACCESS);
 	if (!hBINDSvc) {
 		MsgBox(IDS_ERR_OPEN_SERVICE, GetErrMessage());
 	}
-	
+
 	BOOL rc = ControlService(hBINDSvc, SERVICE_CONTROL_STOP, &svcStatus);
 }
 
@@ -1091,7 +1093,7 @@ void CBINDInstallDlg::StartBINDService() {
 	if (!hSCManager) {
 		MsgBox(IDS_ERR_OPEN_SCM, GetErrMessage());
 	}
-	
+
 	SC_HANDLE hBINDSvc = OpenService(hSCManager, BIND_SERVICE_NAME,
 				      SERVICE_ALL_ACCESS);
 	if (!hBINDSvc) {
@@ -1124,7 +1126,7 @@ BOOL CBINDInstallDlg::CheckBINDService() {
 
 /*
  * Display message boxes with variable args, using string table strings
- * for the format specifiers 
+ * for the format specifiers
  */
 int CBINDInstallDlg::MsgBox(int id, ...) {
 	CString format;
@@ -1159,10 +1161,10 @@ int CBINDInstallDlg::MsgBox(int id, UINT type, ...) {
 /*
  * Call GetLastError(), retrieve the message associated with the error
  */
-CString CBINDInstallDlg::GetErrMessage(DWORD err) {	
+CString CBINDInstallDlg::GetErrMessage(DWORD err) {
 	LPVOID msgBuf;
 	static char buf[BUFSIZ];
-	
+
 	DWORD len = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
 		NULL, err == -1 ? GetLastError() : err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR) &msgBuf, 0, NULL );
 
@@ -1176,8 +1178,8 @@ CString CBINDInstallDlg::GetErrMessage(DWORD err) {
 
 void CBINDInstallDlg::ProgramGroup(BOOL create) {
 	TCHAR path[MAX_PATH], commonPath[MAX_PATH], fileloc[MAX_PATH], linkpath[MAX_PATH];
-	HRESULT hres; 
-	IShellLink *psl = NULL; 
+	HRESULT hres;
+	IShellLink *psl = NULL;
 	LPMALLOC pMalloc = NULL;
 	ITEMIDLIST *itemList = NULL;
 
@@ -1195,60 +1197,60 @@ void CBINDInstallDlg::ProgramGroup(BOOL create) {
 		}
 		return;
 	}
-	
+
 	hr = SHGetPathFromIDList(itemList, commonPath);
 	pMalloc->Free(itemList);
 
 	if (create) {
 		sprintf(path, "%s\\ISC", commonPath);
 		CreateDirectory(path, NULL);
-		
+
 		sprintf(path, "%s\\ISC\\BIND", commonPath);
 		CreateDirectory(path, NULL);
 
 		hres = CoInitialize(NULL);
 
-		if (SUCCEEDED(hres)) { 
-			// Get a pointer to the IShellLink interface. 
-			hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (LPVOID *)&psl); 
+		if (SUCCEEDED(hres)) {
+			// Get a pointer to the IShellLink interface.
+			hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (LPVOID *)&psl);
 			if (SUCCEEDED(hres))
-			{ 
-				IPersistFile* ppf; 
+			{
+				IPersistFile* ppf;
 				sprintf(linkpath, "%s\\BINDCtrl.lnk", path);
 				sprintf(fileloc, "%s\\BINDCtrl.exe", m_binDir);
-			
-				psl->SetPath(fileloc); 
-				psl->SetDescription("BIND Control Panel"); 
 
-				hres = psl->QueryInterface(IID_IPersistFile, (void **)&ppf); 
-				if (SUCCEEDED(hres)) { 
-					WCHAR wsz[MAX_PATH]; 
+				psl->SetPath(fileloc);
+				psl->SetDescription("BIND Control Panel");
 
-					MultiByteToWideChar(CP_ACP, 0, linkpath, -1, wsz, MAX_PATH); 
-					hres = ppf->Save(wsz, TRUE); 
-					ppf->Release(); 
-				} 
+				hres = psl->QueryInterface(IID_IPersistFile, (void **)&ppf);
+				if (SUCCEEDED(hres)) {
+					WCHAR wsz[MAX_PATH];
+
+					MultiByteToWideChar(CP_ACP, 0, linkpath, -1, wsz, MAX_PATH);
+					hres = ppf->Save(wsz, TRUE);
+					ppf->Release();
+				}
 
 				if (GetFileAttributes("readme.txt") != -1) {
 					sprintf(fileloc, "%s\\Readme.txt", m_targetDir);
 					sprintf(linkpath, "%s\\Readme.lnk", path);
 
-					psl->SetPath(fileloc); 
-					psl->SetDescription("BIND Readme"); 
+					psl->SetPath(fileloc);
+					psl->SetDescription("BIND Readme");
 
-					hres = psl->QueryInterface(IID_IPersistFile, (void **)&ppf); 
-					if (SUCCEEDED(hres)) { 
-						WCHAR wsz[MAX_PATH]; 
+					hres = psl->QueryInterface(IID_IPersistFile, (void **)&ppf);
+					if (SUCCEEDED(hres)) {
+						WCHAR wsz[MAX_PATH];
 
-						MultiByteToWideChar(CP_ACP, 0, linkpath, -1, wsz, MAX_PATH); 
-						hres = ppf->Save(wsz, TRUE); 
-						ppf->Release(); 
-					} 
-					psl->Release(); 
+						MultiByteToWideChar(CP_ACP, 0, linkpath, -1, wsz, MAX_PATH);
+						hres = ppf->Save(wsz, TRUE);
+						ppf->Release();
+					}
+					psl->Release();
 				}
 			}
 			CoUninitialize();
-		} 
+		}
 	}
 	else {
 		TCHAR filename[MAX_PATH];
