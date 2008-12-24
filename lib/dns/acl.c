@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.c,v 1.37.2.11 2008/09/26 23:46:32 tbox Exp $ */
+/* $Id: acl.c,v 1.37.2.12 2008/12/24 05:09:26 marka Exp $ */
 
 /*! \file */
 
@@ -191,7 +191,7 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
 {
 	isc_uint16_t bitlen, family;
 	isc_prefix_t pfx;
-	isc_radix_node_t *node;
+	isc_radix_node_t *node = NULL;
 	const isc_netaddr_t *addr;
 	isc_netaddr_t v4addr;
 	isc_result_t result;
