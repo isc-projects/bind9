@@ -1,3 +1,5 @@
+2502.	[cleanup]	isc_radix: Improve compliance with coding style,
+			document function in <isc/radix.h>. [RT #18534]
 
 	--- 9.6.0 released ---
 

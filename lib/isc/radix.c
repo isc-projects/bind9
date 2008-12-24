@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.c,v 1.20 2008/10/23 00:00:58 marka Exp $ */
+/* $Id: radix.c,v 1.20.36.1 2008/12/24 00:17:11 marka Exp $ */
 
 /*
  * This source was adapted from MRT's RCS Ids:
@@ -98,7 +98,7 @@ _ref_prefix(isc_mem_t *mctx, isc_prefix_t **target, isc_prefix_t *prefix) {
 	INSIST((prefix->family == AF_INET && prefix->bitlen <= 32) ||
 	       (prefix->family == AF_INET6 && prefix->bitlen <= 128) ||
 	       (prefix->family == AF_UNSPEC && prefix->bitlen == 0));
-	REQUIRE(target != NULL);
+	REQUIRE(target != NULL && *target == NULL);
 
 	/*
 	 * If this prefix is a static allocation, copy it into new memory.
@@ -140,7 +140,7 @@ isc_result_t
 isc_radix_create(isc_mem_t *mctx, isc_radix_tree_t **target, int maxbits) {
 	isc_radix_tree_t *radix;
 
-	REQUIRE(target != NULL);
+	REQUIRE(target != NULL && *target == NULL);
 
 	radix = isc_mem_get(mctx, sizeof(isc_radix_tree_t));
 	if (radix == NULL)
@@ -235,7 +235,8 @@ isc_radix_process(isc_radix_tree_t *radix, isc_radix_processfunc_t func)
 
 isc_result_t
 isc_radix_search(isc_radix_tree_t *radix, isc_radix_node_t **target,
-		 isc_prefix_t *prefix) {
+		 isc_prefix_t *prefix)
+{
 	isc_radix_node_t *node;
 	isc_radix_node_t *stack[RADIX_MAXBITS + 1];
 	u_char *addr;
@@ -245,6 +246,7 @@ isc_radix_search(isc_radix_tree_t *radix, isc_radix_node_t **target,
 
 	REQUIRE(radix != NULL);
 	REQUIRE(prefix != NULL);
+	REQUIRE(target != NULL && *target == NULL);
 	RUNTIME_CHECK(prefix->bitlen <= radix->maxbits);
 
 	*target = NULL;
@@ -256,7 +258,6 @@ isc_radix_search(isc_radix_tree_t *radix, isc_radix_node_t **target,
 	node = radix->head;
 	addr = isc_prefix_touchar(prefix);
 	bitlen = prefix->bitlen;
-
 
 	while (node->bit < bitlen) {
 		if (node->prefix)
@@ -308,6 +309,7 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 	isc_result_t result;
 
 	REQUIRE(radix != NULL);
+	REQUIRE(target != NULL && *target == NULL);
 	REQUIRE(prefix != NULL || (source != NULL && source->prefix != NULL));
 	RUNTIME_CHECK(prefix == NULL || prefix->bitlen <= radix->maxbits);
 
@@ -325,6 +327,7 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 			return (ISC_R_NOMEMORY);
 		node->bit = bitlen;
 		node->node_num[0] = node->node_num[1] = -1;
+		node->prefix = NULL;
 		result = _ref_prefix(radix->mctx, &node->prefix, prefix);
 		if (result != ISC_R_SUCCESS) {
 			isc_mem_put(radix->mctx, node,
@@ -503,6 +506,7 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 		}
 	}
 	new_node->bit = bitlen;
+	new_node->prefix = NULL;
 	result = _ref_prefix(radix->mctx, &new_node->prefix, prefix);
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(radix->mctx, new_node, sizeof(isc_radix_node_t));
