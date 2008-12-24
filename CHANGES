@@ -1,3 +1,6 @@
+        --- 9.6.0-P1 released ---
+
+2522.	[security]	Handle -1 from DSA_do_verify() and EVP_verify().
 
 	--- 9.6.0 released ---
 
