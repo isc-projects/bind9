@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: openssldsa_link.c,v 1.11.178.1 2008/12/24 00:20:59 marka Exp $ */
+/* $Id: openssldsa_link.c,v 1.11.178.2 2008/12/24 23:48:29 tbox Exp $ */
 
 #ifdef OPENSSL
 
@@ -185,7 +185,7 @@ openssldsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 static isc_result_t
 openssldsa_generate(dst_key_t *key, int unused) {
 #if OPENSSL_VERSION_NUMBER > 0x00908000L
-        BN_GENCB cb;
+	BN_GENCB cb;
 #endif
 	DSA *dsa;
 	unsigned char rand_array[ISC_SHA1_DIGESTLENGTH];
@@ -199,12 +199,12 @@ openssldsa_generate(dst_key_t *key, int unused) {
 		return (result);
 
 #if OPENSSL_VERSION_NUMBER > 0x00908000L
-        dsa = DSA_new();
+	dsa = DSA_new();
 	if (dsa == NULL)
 		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 
 	BN_GENCB_set_old(&cb, NULL, NULL);
-  
+
 	if (!DSA_generate_parameters_ex(dsa, key->key_size, rand_array,
 					ISC_SHA1_DIGESTLENGTH,  NULL, NULL,
 					&cb))
