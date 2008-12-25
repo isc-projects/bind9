@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.520.12.1 2008/12/25 02:01:09 jinmei Exp $ */
+/* $Id: server.c,v 1.520.12.2 2008/12/25 02:02:56 jinmei Exp $ */
 
 /*! \file */
 
@@ -256,7 +256,6 @@ static void
 end_reserved_dispatches(ns_server_t *server, isc_boolean_t all);
 
 /*%
- * Configure a single view ACL at '*aclp'.  Get its configuration by
  * Configure a single view ACL at '*aclp'.  Get its configuration from
  * 'vconfig' (for per-view configuration) and maybe from 'config'
  */
