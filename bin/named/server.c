@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.69 2008/11/20 00:50:57 marka Exp $ */
+/* $Id: server.c,v 1.419.18.70 2008/12/25 02:03:26 jinmei Exp $ */
 
 /*! \file */
 
@@ -251,9 +251,8 @@ static void
 end_reserved_dispatches(ns_server_t *server, isc_boolean_t all);
 
 /*%
- * Configure a single view ACL at '*aclp'.  Get its configuration by
- * calling 'getvcacl' (for per-view configuration) and maybe 'getscacl'
- * (for a global default).
+ * Configure a single view ACL at '*aclp'.  Get its configuration from
+ * 'vconfig' (for per-view configuration) and maybe from 'config'
  */
 static isc_result_t
 configure_view_acl(const cfg_obj_t *vconfig, const cfg_obj_t *config,
