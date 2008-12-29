@@ -1,3 +1,7 @@
+2519.	[bug]		dig/host with -4 or -6 didn't work if more than two
+			nameserver addresses of the excluded address family
+			preceded in resolv.conf. [RT #19081]
+
 2516.	[bug]		glue sort for responses was performed even when not
 			needed. [RT #19039]
 
