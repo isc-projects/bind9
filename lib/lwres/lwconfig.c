@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.46.332.1 2008/12/29 23:56:08 jinmei Exp $ */
+/* $Id: lwconfig.c,v 1.46.332.2 2008/12/30 23:46:49 tbox Exp $ */
 
 /*! \file */
 
@@ -24,32 +24,32 @@
  *
  *    lwres_conf_init() creates an empty lwres_conf_t structure for
  *    lightweight resolver context ctx.
- * 
+ *
  *    lwres_conf_clear() frees up all the internal memory used by that
  *    lwres_conf_t structure in resolver context ctx.
- * 
+ *
  *    lwres_conf_parse() opens the file filename and parses it to initialise
  *    the resolver context ctx's lwres_conf_t structure.
- * 
+ *
  *    lwres_conf_print() prints the lwres_conf_t structure for resolver
  *    context ctx to the FILE fp.
- * 
+ *
  * \section lwconfig_return Return Values
- * 
+ *
  *    lwres_conf_parse() returns #LWRES_R_SUCCESS if it successfully read and
  *    parsed filename. It returns #LWRES_R_FAILURE if filename could not be
  *    opened or contained incorrect resolver statements.
- * 
+ *
  *    lwres_conf_print() returns #LWRES_R_SUCCESS unless an error occurred
  *    when converting the network addresses to a numeric host address
  *    string. If this happens, the function returns #LWRES_R_FAILURE.
- * 
+ *
  * \section lwconfig_see See Also
- * 
+ *
  *    stdio(3), \link resolver resolver \endlink
- * 
+ *
  * \section files Files
- * 
+ *
  *    /etc/resolv.conf
  */
 

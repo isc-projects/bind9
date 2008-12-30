@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: context.h,v 1.21.332.1 2008/12/29 23:56:08 jinmei Exp $ */
+/* $Id: context.h,v 1.21.332.2 2008/12/30 23:46:49 tbox Exp $ */
 
 #ifndef LWRES_CONTEXT_H
 #define LWRES_CONTEXT_H 1
