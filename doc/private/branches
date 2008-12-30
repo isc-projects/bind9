@@ -133,6 +133,7 @@ rt18020a			new	fdupont	// 2008-05-15 14:50 +0000
 rt18029				new	each	// 2008-05-30 05:02 +0000
 rt18029a			new	marka	// 2008-08-06 05:31 +0000
 rt18033				new	fdupont	// HSM maintenance
+rt18033a			new	fdupont	// 2008-12-30 12:49 +0000
 rt18040				new	marka	// 2008-05-08 02:25 +0000
 rt18042				new	fdupont	// 2008-05-09 13:27 +0000
 rt18046				new	fdupont	// 2008-05-09 06:56 +0000
@@ -182,6 +183,7 @@ rt18802				new
 rt18815				new	fdupont	// 2008-10-28 12:34 +0000
 rt18828				new	marka	// 2008-11-04 06:17 +0000
 rt18884				new	marka	// 2008-11-11 02:16 +0000
+rt18905				new	jinmei	// 2008-12-30 01:46 +0000
 rt19027				new	
 rt19063				new	marka	// 2008-12-13 01:45 +0000
 shane_dbbackend			open	
