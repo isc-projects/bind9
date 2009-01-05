@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.47.18.3 2005/04/29 00:16:58 marka Exp $ */
+/* $Id: log.h,v 1.47.18.4 2009/01/05 23:22:25 jinmei Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -633,7 +633,7 @@ isc_log_vwrite1(isc_log_t *lctx, isc_logcategory_t *category,
 ISC_FORMAT_PRINTF(5, 0);
 
 /*%
- * These are four internationalized versions of the the isc_log_[v]write[1]
+ * These are four internationalized versions of the isc_log_[v]write[1]
  * functions.  
  *
  * The only difference is that they take arguments for a message

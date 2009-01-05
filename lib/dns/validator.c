@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.119.18.43 2008/11/20 23:46:03 tbox Exp $ */
+/* $Id: validator.c,v 1.119.18.44 2009/01/05 23:22:25 jinmei Exp $ */
 
 /*! \file */
 
@@ -1110,7 +1110,7 @@ get_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo) {
 	 * Is the signer name appropriate for this signature?
 	 *
 	 * The signer name must be at the same level as the owner name
-	 * or closer to the the DNS root.
+	 * or closer to the DNS root.
 	 */
 	namereln = dns_name_fullcompare(val->event->name, &siginfo->signer,
 					&order, &nlabels);

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.115.18.10 2008/11/20 23:46:03 tbox Exp $ */
+/* $Id: xfrout.c,v 1.115.18.11 2009/01/05 23:22:25 jinmei Exp $ */
 
 #include <config.h>
 
@@ -1196,7 +1196,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	}
 
 	/*
-	 * Bracket the the data stream with SOAs.
+	 * Bracket the data stream with SOAs.
 	 */
 	CHECK(soa_rrstream_create(mctx, db, ver, &soa_stream));
 	CHECK(compound_rrstream_create(mctx, &soa_stream, &data_stream,

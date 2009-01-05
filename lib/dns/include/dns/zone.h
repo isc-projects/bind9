@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.126.18.19 2006/08/01 03:45:21 marka Exp $ */
+/* $Id: zone.h,v 1.126.18.20 2009/01/05 23:22:25 jinmei Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1336,7 +1336,7 @@ dns_zonemgr_settransfersin(dns_zonemgr_t *zmgr, isc_uint32_t value);
 isc_uint32_t
 dns_zonemgr_getttransfersin(dns_zonemgr_t *zmgr);
 /*%<
- *	Return the the maximum number of simultaneous transfers in allowed.
+ *	Return the maximum number of simultaneous transfers in allowed.
  *
  * Requires:
  *\li	'zmgr' to be a valid zone manager.

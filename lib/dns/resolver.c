@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.81 2008/11/20 01:29:33 marka Exp $ */
+/* $Id: resolver.c,v 1.284.18.82 2009/01/05 23:22:25 jinmei Exp $ */
 
 /*! \file */
 
@@ -5170,7 +5170,7 @@ answer_response(fetchctx_t *fctx) {
 					 */
 					if (found_dname) {
 						/*
-						 * Copy the the dname into the
+						 * Copy the dname into the
 						 * qname fixed name.
 						 *
 						 * Although we check for

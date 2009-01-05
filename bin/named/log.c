@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.37.18.6 2006/06/09 00:54:08 marka Exp $ */
+/* $Id: log.c,v 1.37.18.7 2009/01/05 23:22:25 jinmei Exp $ */
 
 /*! \file */
 
@@ -120,7 +120,7 @@ ns_log_setdefaultchannels(isc_logconfig_t *lcfg) {
 	/*
 	 * By default, the logging library makes "default_debug" log to
 	 * stderr.  In BIND, we want to override this and log to named.run
-	 * instead, unless the the -g option was given.
+	 * instead, unless the -g option was given.
 	 */
 	if (! ns_g_logstderr) {
 		destination.file.stream = NULL;

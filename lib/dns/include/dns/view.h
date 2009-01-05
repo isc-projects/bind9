@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.91.18.9 2006/03/09 23:38:21 marka Exp $ */
+/* $Id: view.h,v 1.91.18.10 2009/01/05 23:22:25 jinmei Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -771,7 +771,7 @@ dns_view_isdelegationonly(dns_view_t *view, dns_name_t *name);
  *\li	'name' is valid.
  *
  * Returns:
- *\li	#ISC_TRUE if the name is is the table.
+ *\li	#ISC_TRUE if the name is the table.
  *\li	#ISC_FALSE othewise.
  */
 
