@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.70 2008/09/16 17:19:01 explorer Exp $ */
+/* $Id: socket.c,v 1.70.54.1 2009/01/05 23:20:58 jinmei Exp $ */
 
 /* This code uses functions which are only available on Server 2003 and
  * higher, and Windows XP and higher.
@@ -574,7 +574,7 @@ iocompletionport_update(isc_socket_t *sock) {
  * Routine to cleanup and then close the socket.
  * Only close the socket here if it is NOT associated
  * with an event, otherwise the WSAWaitForMultipleEvents
- * may fail due to the fact that the the Wait should not
+ * may fail due to the fact that the Wait should not
  * be running while closing an event or a socket.
  * The socket is locked before calling this function
  */
@@ -1924,7 +1924,7 @@ send_connectdone_event(isc_socket_t *sock, isc_socket_connev_t **cdev) {
  * the done event we want to send.  If the list is empty, this is a no-op,
  * so just close the new connection, unlock, and return.
  *
- * Note the the socket is locked before entering here
+ * Note the socket is locked before entering here
  */
 static void
 internal_accept(isc_socket_t *sock, IoCompletionInfo *lpo, int accept_errno) {
