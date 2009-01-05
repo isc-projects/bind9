@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: diff.c,v 1.18 2008/09/24 02:46:22 marka Exp $ */
+/* $Id: diff.c,v 1.19 2009/01/05 23:20:21 jinmei Exp $ */
 
 /*! \file */
 
@@ -533,7 +533,7 @@ dns_diff_sort(dns_diff_t *diff, dns_diff_compare_func *compare) {
 
 /*
  * Create an rdataset containing the single RR of the given
- * tuple.  The caller must allocate the the rdata, rdataset and
+ * tuple.  The caller must allocate the rdata, rdataset and
  * an rdatalist structure for it to refer to.
  */
 

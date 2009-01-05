@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.94 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: log.c,v 1.95 2009/01/05 23:20:22 jinmei Exp $ */
 
 /*! \file
  * \author  Principal Authors: DCL */
@@ -128,7 +128,7 @@ struct isc_logconfig {
  * This isc_log structure provides the context for the isc_log functions.
  * The log context locks itself in isc_log_doit, the internal backend to
  * isc_log_write.  The locking is necessary both to provide exclusive access
- * to the the buffer into which the message is formatted and to guard against
+ * to the buffer into which the message is formatted and to guard against
  * competing threads trying to write to the same syslog resource.  (On
  * some systems, such as BSD/OS, stdio is thread safe but syslog is not.)
  * Unfortunately, the lock cannot guard against a _different_ logging
