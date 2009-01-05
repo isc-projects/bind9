@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.76.18.11 2009/01/05 23:22:25 jinmei Exp $ */
+/* $Id: db.h,v 1.76.18.12 2009/01/05 23:46:20 tbox Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
