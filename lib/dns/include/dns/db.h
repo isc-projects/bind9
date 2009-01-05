@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.89.128.2 2008/04/03 06:20:34 tbox Exp $ */
+/* $Id: db.h,v 1.89.128.3 2009/01/05 23:21:49 jinmei Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -1286,7 +1286,7 @@ dns_db_register(const char *name, dns_dbcreatefunc_t create, void *driverarg,
 void
 dns_db_unregister(dns_dbimplementation_t **dbimp);
 /*%<
- * Remove a database implementation from the the list of supported
+ * Remove a database implementation from the list of supported
  * implementations.  No databases of this type can be active when this
  * is called.
  *

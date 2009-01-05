@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.h,v 1.31 2007/06/19 23:47:20 tbox Exp $ */
+/* $Id: time.h,v 1.31.128.1 2009/01/05 23:21:50 jinmei Exp $ */
 
 #ifndef ISC_TIME_H
 #define ISC_TIME_H 1
@@ -219,7 +219,7 @@ isc_time_nanoseconds(const isc_time_t *t);
  * Return the number of nanoseconds stored in a time structure.
  *
  * Notes:
- *	This is the number of nanoseconds in excess of the the number
+ *	This is the number of nanoseconds in excess of the number
  *	of seconds since the epoch; it will always be less than one
  *	full second.
  *

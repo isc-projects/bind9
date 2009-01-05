@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.h,v 1.39 2007/09/19 03:38:56 marka Exp $ */
+/* $Id: validator.h,v 1.39.52.1 2009/01/05 23:21:49 jinmei Exp $ */
 
 #ifndef DNS_VALIDATOR_H
 #define DNS_VALIDATOR_H 1
@@ -74,7 +74,7 @@
  * caller so that they may be freed.
  *
  * If the RESULT is ISC_R_SUCCESS and the answer is secure then
- * proofs[] will contain the the names of the NSEC records that hold the
+ * proofs[] will contain the names of the NSEC records that hold the
  * various proofs.  Note the same name may appear multiple times.
  */
 typedef struct dns_validatorevent {
