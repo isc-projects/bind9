@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.209 2008/11/14 22:53:46 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.209.12.1 2009/01/06 09:13:05 fdupont Exp $ */
 
 /*! \file */
 
@@ -53,6 +53,7 @@
 #include <isc/random.h>
 #include <isc/serial.h>
 #include <isc/stdio.h>
+#include <isc/stdlib.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/time.h>
