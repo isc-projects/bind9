@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec.c,v 1.5.20.2 2005/04/29 00:15:59 marka Exp $ */
+/* $Id: nsec.c,v 1.5.20.3 2009/01/06 09:01:49 fdupont Exp $ */
 
 /*! \file */
 
@@ -215,6 +215,6 @@ dns_nsec_typepresent(dns_rdata_t *nsec, dns_rdatatype_t type) {
 						   type % 256));
 		break;
 	}
-	dns_rdata_freestruct(&nsec);
+	dns_rdata_freestruct(&nsecstruct);
 	return (present);
 }
