@@ -1,3 +1,5 @@
+2524.	[port]		sunos: dnssec-signzone needs strtoul(). [RT #19129]
+
 2523.	[bug]		Random type rdata freed by dns_nsec_typepresent().
 			[RT #19112]
 
