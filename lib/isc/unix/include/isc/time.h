@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.h,v 1.36.128.2 2009/01/05 23:46:59 tbox Exp $ */
+/* $Id: time.h,v 1.36.128.3 2009/01/06 23:46:48 tbox Exp $ */
 
 #ifndef ISC_TIME_H
 #define ISC_TIME_H 1
@@ -29,7 +29,7 @@
  *** Intervals
  ***/
 
-/*! 
+/*!
  *  \brief
  * The contents of this structure are private, and MUST NOT be accessed
  * directly by callers.

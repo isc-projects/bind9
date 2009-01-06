@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec.c,v 1.9.128.1 2009/01/06 09:03:24 fdupont Exp $ */
+/* $Id: nsec.c,v 1.9.128.2 2009/01/06 23:46:47 tbox Exp $ */
 
 /*! \file */
 
@@ -197,7 +197,7 @@ dns_nsec_typepresent(dns_rdata_t *nsec, dns_rdatatype_t type) {
 	/* This should never fail */
 	result = dns_rdata_tostruct(nsec, &nsecstruct, NULL);
 	INSIST(result == ISC_R_SUCCESS);
-	
+
 	present = ISC_FALSE;
 	for (i = 0; i < nsecstruct.len; i += len) {
 		INSIST(i + 2 <= nsecstruct.len);
