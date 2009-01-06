@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.91.18.11 2009/01/05 23:46:20 tbox Exp $ */
+/* $Id: view.h,v 1.91.18.12 2009/01/06 23:45:57 tbox Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -615,7 +615,7 @@ dns_view_loadnew(dns_view_t *view, isc_boolean_t stop);
 /*%<
  * Load zones attached to this view.  dns_view_load() loads
  * all zones whose master file has changed since the last
- * load; dns_view_loadnew() loads only zones that have never 
+ * load; dns_view_loadnew() loads only zones that have never
  * been loaded.
  *
  * If 'stop' is ISC_TRUE, stop on the first error and return it.
@@ -691,7 +691,7 @@ dns_view_dumpdbtostream(dns_view_t *view, FILE *fp);
  * easily obtainable by other means.
  *
  * Requires:
- * 	
+ *
  *\li	'view' is valid.
  *
  *\li	'fp' refers to a file open for writing.
@@ -734,7 +734,7 @@ isc_result_t
 dns_view_adddelegationonly(dns_view_t *view, dns_name_t *name);
 /*%<
  * Add the given name to the delegation only table.
- * 
+ *
  *
  * Requires:
  *\li	'view' is valid.
@@ -749,7 +749,7 @@ isc_result_t
 dns_view_excludedelegationonly(dns_view_t *view, dns_name_t *name);
 /*%<
  * Add the given name to be excluded from the root-delegation-only.
- * 
+ *
  *
  * Requires:
  *\li	'view' is valid.

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.47.18.5 2009/01/05 23:46:21 tbox Exp $ */
+/* $Id: log.h,v 1.47.18.6 2009/01/06 23:45:57 tbox Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -86,7 +86,7 @@
 /*@}*/
 
 /*!
- * \brief Used to name the categories used by a library.  
+ * \brief Used to name the categories used by a library.
  *
  * An array of isc_logcategory
  * structures names each category, and the id value is initialized by calling
@@ -107,13 +107,13 @@ struct isc_logmodule {
 
 /*%
  * The isc_logfile structure is initialized as part of an isc_logdestination
- * before calling isc_log_createchannel().  
+ * before calling isc_log_createchannel().
  *
  * When defining an #ISC_LOG_TOFILE
  * channel the name, versions and maximum_size should be set before calling
  * isc_log_createchannel().  To define an #ISC_LOG_TOFILEDESC channel set only
  * the stream before the call.
- * 
+ *
  * Setting maximum_size to zero implies no maximum.
  */
 typedef struct isc_logfile {
@@ -527,7 +527,7 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
  */
 
 /* Attention: next four comments PRECEED code */
-/*! 
+/*!
  *   \brief
  * Write a message to the log channels.
  *
@@ -634,7 +634,7 @@ ISC_FORMAT_PRINTF(5, 0);
 
 /*%
  * These are four internationalized versions of the isc_log_[v]write[1]
- * functions.  
+ * functions.
  *
  * The only difference is that they take arguments for a message
  * catalog, message set, and message number, all immediately preceding the

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: diff.c,v 1.9.18.5 2009/01/05 23:46:19 tbox Exp $ */
+/* $Id: diff.c,v 1.9.18.6 2009/01/06 23:45:56 tbox Exp $ */
 
 /*! \file */
 
@@ -269,7 +269,7 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver,
 						      sizeof(classbuf));
 				if (t->ttl != rdl.ttl && warn)
 					isc_log_write(DIFF_COMMON_LOGARGS,
-					      	ISC_LOG_WARNING,
+						ISC_LOG_WARNING,
 						"'%s/%s/%s': TTL differs in "
 						"rdataset, adjusting "
 						"%lu -> %lu",
@@ -306,7 +306,7 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver,
 				INSIST(0);
 			}
 			if (result == DNS_R_UNCHANGED) {
-			  	/*
+				/*
 				 * This will not happen when executing a
 				 * dynamic update, because that code will
 				 * generate strictly minimal diffs.

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.76.18.12 2009/01/05 23:46:20 tbox Exp $ */
+/* $Id: db.h,v 1.76.18.13 2009/01/06 23:45:57 tbox Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -153,7 +153,7 @@ typedef isc_result_t
 		      dns_dbtype_t type, dns_rdataclass_t rdclass,
 		      unsigned int argc, char *argv[], void *driverarg,
 		      dns_db_t **dbp);
-					
+
 #define DNS_DB_MAGIC		ISC_MAGIC('D','N','S','D')
 #define DNS_DB_VALID(db)	ISC_MAGIC_VALID(db, DNS_DB_MAGIC)
 
@@ -786,7 +786,7 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *						the negative caching proof.
  *
  *	\li	#DNS_R_EMPTYNAME			The name exists but there is
- *						no data at the name. 
+ *						no data at the name.
  *
  *	\li	#DNS_R_COVERINGNSEC		The returned data is a NSEC
  *						that potentially covers 'name'.

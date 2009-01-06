@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -w
 #
-# Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 1998-2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_copyrights,v 1.32.18.16 2009/01/06 04:01:45 marka Exp $
+# $Id: update_copyrights,v 1.32.18.17 2009/01/06 23:45:57 tbox Exp $
 
 require 5.002;
 
