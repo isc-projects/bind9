@@ -18,6 +18,9 @@
 			a nameserver of the excluded address family.
 			[RT #18848]
 
+2505.	[port]		Treat amd64 similarly to x86_64 when determining
+			atomic operation support. [RT #19031]
+
 2502.	[cleanup]	isc_radix: Improve compliance with coding style,
 			document function in <isc/radix.h>. [RT #18534]
 
