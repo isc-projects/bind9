@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.96 2009/01/05 23:47:53 tbox Exp $ */
+/* $Id: log.c,v 1.97 2009/01/06 23:47:57 tbox Exp $ */
 
 /*! \file
  * \author  Principal Authors: DCL */
@@ -1448,7 +1448,7 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 	LOCK(&lctx->lock);
 
 	lctx->buffer[0] = '\0';
-	
+
 	lcfg = lctx->logconfig;
 
 	category_channels = ISC_LIST_HEAD(lcfg->channellists[category->id]);
@@ -1507,7 +1507,7 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 		if ((channel->flags & ISC_LOG_PRINTTIME) != 0 &&
 		    time_string[0] == '\0') {
 			isc_time_t isctime;
-			
+
 			TIME_NOW(&isctime);
 			isc_time_formattimestamp(&isctime, time_string,
 						 sizeof(time_string));
@@ -1518,9 +1518,9 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 			if (level < ISC_LOG_CRITICAL)
 				snprintf(level_string, sizeof(level_string),
 					 isc_msgcat_get(isc_msgcat,
-						        ISC_MSGSET_LOG,
-						        ISC_MSG_LEVEL,
-						        "level %d: "),
+							ISC_MSGSET_LOG,
+							ISC_MSG_LEVEL,
+							"level %d: "),
 					 level);
 			else if (level > ISC_LOG_DYNAMIC)
 				snprintf(level_string, sizeof(level_string),
@@ -1700,8 +1700,8 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 				printcategory ? category->name	: "",
 				printcategory ? ": "		: "",
 				printmodule   ? (module != NULL ? module->name
-						 		: "no_module")
-					      			: "",
+								: "no_module")
+								: "",
 				printmodule   ? ": "		: "",
 				printlevel    ? level_string	: "",
 				lctx->buffer);
@@ -1743,8 +1743,8 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 			       printcategory ? category->name	: "",
 			       printcategory ? ": "		: "",
 			       printmodule   ? (module != NULL	? module->name
-						 		: "no_module")
-					      			: "",
+								: "no_module")
+								: "",
 			       printmodule   ? ": "		: "",
 			       printlevel    ? level_string	: "",
 			       lctx->buffer);
