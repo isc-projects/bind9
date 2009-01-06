@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.311.70.3 2008/12/29 23:56:08 jinmei Exp $ */
+/* $Id: dighost.c,v 1.311.70.4 2009/01/06 19:39:24 jinmei Exp $ */
 
 /*! \file
  *  \note
@@ -2205,6 +2205,21 @@ bringup_timer(dig_query_t *query, unsigned int default_timeout) {
 }
 
 static void
+force_timeout(dig_lookup_t *l, dig_query_t *query) {
+	isc_event_t *event;
+
+	event = isc_event_allocate(mctx, query, ISC_TIMEREVENT_IDLE,
+				   connect_timeout, l,
+				   sizeof(isc_event_t));
+	if (event == NULL) {
+		fatal("isc_event_allocate: %s",
+		      isc_result_totext(ISC_R_NOMEMORY));
+	}
+	isc_task_send(global_task, &event);
+}
+
+
+static void
 connect_done(isc_task_t *task, isc_event_t *event);
 
 /*%
@@ -2223,7 +2238,16 @@ send_tcp_connect(dig_query_t *query) {
 	l = query->lookup;
 	query->waiting_connect = ISC_TRUE;
 	query->lookup->current_query = query;
-	get_address(query->servname, port, &query->sockaddr);
+	result = get_address(query->servname, port, &query->sockaddr);
+	if (result == ISC_R_NOTFOUND) {
+		/*
+		 * This servname doesn't have an address.  Try the next server
+		 * by triggering an immediate 'timeout' (we lie, but the effect
+		 * is the same).
+		 */
+		force_timeout(l, query);
+		return;
+	}
 
 	if (specified_source &&
 	    (isc_sockaddr_pf(&query->sockaddr) !=
@@ -2296,7 +2320,12 @@ send_udp(dig_query_t *query) {
 	if (!query->recv_made) {
 		/* XXX Check the sense of this, need assertion? */
 		query->waiting_connect = ISC_FALSE;
-		get_address(query->servname, port, &query->sockaddr);
+		result = get_address(query->servname, port, &query->sockaddr);
+		if (result == ISC_R_NOTFOUND) {
+			/* This servname doesn't have an address. */
+			force_timeout(l, query);
+			return;
+		}
 
 		result = isc_socket_create(socketmgr,
 					   isc_sockaddr_pf(&query->sockaddr),
@@ -3249,7 +3278,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
  * used in looking up server names, etc... and needs to use system-supplied
  * routines, since they may be using a non-DNS system for these lookups.
  */
-void
+isc_result_t
 get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 	int count;
 	isc_result_t result;
@@ -3258,9 +3287,11 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 	result = bind9_getaddresses(host, port, sockaddr, 1, &count);
 	isc_app_unblock();
 	if (result != ISC_R_SUCCESS)
-		fatal("couldn't get address for '%s': %s",
-		      host, isc_result_totext(result));
+		return (result);
+
 	INSIST(count == 1);
+
+	return (ISC_R_SUCCESS);
 }
 
 /*%

@@ -7,6 +7,10 @@
 			nameserver addresses of the excluded address family
 			preceded in resolv.conf. [RT #19081]
 
+2517.	[bug]		dig +trace with -4 or -6 failed when it chose a
+			nameserver address of the excluded address.
+			[RT #18843]
+
 2516.	[bug]		glue sort for responses was performed even when not
 			needed. [RT #19039]
 
