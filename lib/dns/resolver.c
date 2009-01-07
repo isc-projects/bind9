@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.384.14.3 2009/01/07 01:50:15 jinmei Exp $ */
+/* $Id: resolver.c,v 1.384.14.4 2009/01/07 23:47:16 tbox Exp $ */
 
 /*! \file */
 
@@ -868,7 +868,7 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result, int line) {
 	FCTXTRACE("sendevents");
 
 	/*
-	 * Keep some record of fetch result for logging later (if required). 
+	 * Keep some record of fetch result for logging later (if required).
 	 */
 	fctx->result = result;
 	fctx->exitline = line;
