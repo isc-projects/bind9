@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.c,v 1.35 2008/10/24 00:28:00 marka Exp $ */
+/* $Id: check-tool.c,v 1.36 2009/01/07 01:46:40 jinmei Exp $ */
 
 /*! \file */
 
@@ -115,6 +115,7 @@ static isc_logcategory_t categories[] = {
 	{ "queries",	     0 },
 	{ "unmatched", 	     0 },
 	{ "update-security", 0 },
+	{ "query-errors",    0 },
 	{ NULL,		     0 }
 };
 

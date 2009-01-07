@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.60 2008/09/08 05:41:22 marka Exp $ */
+/* $Id: resolver.h,v 1.61 2009/01/07 01:46:40 jinmei Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
@@ -345,6 +345,23 @@ dns_resolver_destroyfetch(dns_fetch_t **fetchp);
  * Ensures:
  *
  *\li	*fetchp == NULL.
+ */
+
+void
+dns_resolver_logfetch(dns_fetch_t *fetch, isc_log_t *lctx,
+		      isc_logcategory_t *category, isc_logmodule_t *module,
+		      int level, isc_boolean_t duplicateok);
+/*%<
+ * Dump a log message on internal state at the completion of given 'fetch'.
+ * 'lctx', 'category', 'module', and 'level' are used to write the log message.
+ * By default, only one log message is written even if the corresponding fetch
+ * context serves multiple clients; if 'duplicateok' is true the suppression
+ * is disabled and the message can be written every time this function is
+ * called.
+ *
+ * Requires:
+ *
+ *\li	'fetch' is a valid fetch, and has completed.
  */
 
 dns_dispatchmgr_t *
