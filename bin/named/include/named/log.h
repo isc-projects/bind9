@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.25 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id: log.h,v 1.25.332.1 2009/01/07 01:50:15 jinmei Exp $ */
 
 #ifndef NAMED_LOG_H
 #define NAMED_LOG_H 1
@@ -36,6 +36,7 @@
 #define NS_LOGCATEGORY_QUERIES		(&ns_g_categories[4])
 #define NS_LOGCATEGORY_UNMATCHED	(&ns_g_categories[5])
 #define NS_LOGCATEGORY_UPDATE_SECURITY	(&ns_g_categories[6])
+#define NS_LOGCATEGORY_QUERY_EERRORS	(&ns_g_categories[7])
 
 /*
  * Backwards compatibility.

@@ -1,3 +1,7 @@
+2525.	[experimental]	New logging category "query-errors" to provide detailed
+			internal information about query failures, especially
+			about server failures. [RT #19027]
+
 2524.	[port]		sunos: dnssec-signzone needs strtoul(). [RT #19129]
 
 2523.	[bug]		Random type rdata freed by dns_nsec_typepresent().

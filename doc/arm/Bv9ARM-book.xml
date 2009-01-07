@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.380 2008/11/07 02:28:49 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.380.14.1 2009/01/07 01:50:15 jinmei Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4289,6 +4289,17 @@ category notify { null; };
                 </row>
                 <row rowsep="0">
                   <entry colname="1">
+                    <para><command>query-errors</command></para>
+                  </entry>
+                  <entry colname="2">
+                    <para>
+                      Information about queries that resulted in some
+                      failure.
+		    </para>
+		  </entry>
+		</row>
+                <row rowsep="0">
+                  <entry colname="1">
                     <para><command>dispatch</command></para>
                   </entry>
                   <entry colname="2">
@@ -4372,6 +4383,226 @@ category notify { null; };
 	      </tbody>
 	    </tgroup>
 	  </informaltable>
+	</sect3>
+	<sect3>
+	  <title>The <command>query-errors</command> Category</title>
+	  <para>
+	    The <command>query-errors</command> category is
+	    specifically intended for debugging purposes: To identify
+	    why and how specific queries result in responses which
+	    indicate an error.
+	    Messages of this category are therefore only logged
+	    with <command>debug</command> levels.
+	  </para>
+
+	  <para>
+	    At the debug levels of 1 or higher, each response with the
+	    rcode of SERVFAIL is logged as follows:
+	  </para>
+	  <para>
+	    <computeroutput>client 127.0.0.1#61502: query failed (SERVFAIL) for www.example.com/IN/AAAA at query.c:3880</computeroutput>
+	  </para>
+	  <para>
+	    This means an error resulting in SERVFAIL was
+	    detected at line 3880 of source file
+	    <filename>query.c</filename>.
+	    Log messages of this level will particularly
+	    help identify the cause of SERVFAIL for an
+	    authoritative server.
+	  </para>
+	  <para>
+	    At the debug levels of 2 or higher, detailed context
+	    information of recursive resolutions that resulted in
+	    SERVFAIL is logged.
+	    The log message will look like as follows:
+	  </para>
+	  <para>
+	    <computeroutput>fetch completed at resolver.c:2970 for www.example.com/A in 30.000183: timed out/success [domain:example.com,referral:2,restart:7,qrysent:8,timeout:5,lame:0,neterr:0,badresp:1,adberr:0,findfail:0,valfail:0]</computeroutput>
+	  </para>
+	  <para>
+	    The first part before the colon shows that a recursive
+	    resolution for AAAA records of www.example.com completed
+	    in 30.000183 seconds and the final result that led to the
+	    SERVFAIL was determined at line 2970 of source file
+	    <filename>resolver.c</filename>.
+	  </para>
+	  <para>
+	    The following part shows the detected final result and the
+	    latest result of DNSSEC validation.
+	    The latter is always success when no validation attempt
+	    is made.
+	    In this example, this query resulted in SERVFAIL probably
+	    because all name servers are down or unreachable, leading
+	    to a timeout in 30 seconds.
+	    DNSSEC validation was probably not attempted.
+	  </para>
+	  <para>
+	    The last part enclosed in square brackets shows statistics
+	    information collected for this particular resolution
+	    attempt.
+	    The <varname>domain</varname> field shows the deepest zone
+	    that the resolver reached;
+	    it is the zone where the error was finally detected.
+	    The meaning of the other fields is summarized in the
+	    following table.
+	  </para>
+
+          <informaltable colsep="0" rowsep="0">
+            <tgroup cols="2" colsep="0" rowsep="0" tgroupstyle="4Level-table">
+              <colspec colname="1" colnum="1" colsep="0" />
+              <colspec colname="2" colnum="2" colsep="0" />
+              <tbody>
+                <row rowsep="0">
+                  <entry colname="1">
+                    <para><varname>referral</varname></para>
+                  </entry>
+                  <entry colname="2">
+                    <para>
+		      The number of referrals the resolver received
+		      throughout the resolution process.
+		      In the above example this is 2, which are most
+		      likely com and example.com.
+                    </para>
+                  </entry>
+                </row>
+                <row rowsep="0">
+                  <entry colname="1">
+                    <para><varname>restart</varname></para>
+                  </entry>
+                  <entry colname="2">
+                    <para>
+		      The number of cycles that the resolver tried
+		      remote servers at the <varname>domain</varname>
+		      zone.
+		      In each cycle the resolver sends one query
+		      (possibly resending it, depending on the response)
+		      to each known name server of
+		      the <varname>domain</varname> zone.
+                    </para>
+                  </entry>
+                </row>
+                <row rowsep="0">
+                  <entry colname="1">
+                    <para><varname>qrysent</varname></para>
+                  </entry>
+                  <entry colname="2">
+                    <para>
+		      The number of queries the resolver sent at the
+		      <varname>domain</varname> zone.
+                    </para>
+                  </entry>
+                </row>
+                <row rowsep="0">
+                  <entry colname="1">
+                    <para><varname>timeout</varname></para>
+                  </entry>
+                  <entry colname="2">
+                    <para>
+		      The number of timeouts since the resolver
+		      received the last response.
+		    </para>
+		  </entry>
+		</row>
+                <row rowsep="0">
+                  <entry colname="1">
+                    <para><varname>lame</varname></para>
+                  </entry>
+                  <entry colname="2">
+                    <para>
+		      The number of lame servers the resolver detected
+		      at the <varname>domain</varname> zone.
+		      A server is detected to be lame either by an
+		      invalid response or as a result of lookup in
+		      BIND9's address database (ADB), where lame
+		      servers are cached.
+		    </para>
+		  </entry>
+		</row>
+                <row rowsep="0">
+                  <entry colname="1">
+                    <para><varname>neterr</varname></para>
+                  </entry>
+                  <entry colname="2">
+                    <para>
+		      The number of erroneous results that the
+		      resolver encountered in sending queries
+		      at the <varname>domain</varname> zone.
+		      One common case is the remote server is
+		      unreachable and the resolver receives an ICMP
+		      unreachable error message.
+		    </para>
+		  </entry>
+		</row>
+                <row rowsep="0">
+                  <entry colname="1">
+                    <para><varname>badresp</varname></para>
+                  </entry>
+                  <entry colname="2">
+                    <para>
+		      The number of unexpected responses (other than
+		      <varname>lame</varname>) to queries sent by the
+		      resolver at the <varname>domain</varname> zone.
+		    </para>
+		  </entry>
+		</row>
+                <row rowsep="0">
+                  <entry colname="1">
+                    <para><varname>adberr</varname></para>
+                  </entry>
+                  <entry colname="2">
+                    <para>
+		      Failures in finding remote server addresses
+		      of the <varname>domain</varname> zone in the ADB.
+		      One common case of this is that the remote
+		      server's name does not have any address records.
+		    </para>
+		  </entry>
+		</row>
+                <row rowsep="0">
+                  <entry colname="1">
+                    <para><varname>findfail</varname></para>
+                  </entry>
+                  <entry colname="2">
+                    <para>
+		      Failures of resolving remote server addresses.
+		      This is a total number of failures throughout
+		      the resolution process.
+		    </para>
+		  </entry>
+		</row>
+                <row rowsep="0">
+                  <entry colname="1">
+                    <para><varname>valfail</varname></para>
+                  </entry>
+                  <entry colname="2">
+                    <para>
+		      Failures of DNSSEC validation.
+		      Validation failures are counted throughout
+		      the resolution process (not limited to
+		      the <varname>domain</varname> zone), but should
+		      only happen in <varname>domain</varname>.
+		    </para>
+		  </entry>
+		</row>
+	      </tbody>
+	    </tgroup>
+	  </informaltable>
+	  <para>
+	    At the debug levels of 3 or higher, the same messages
+	    as those at the debug 1 level are logged for other errors
+	    than SERVFAIL.
+	    Note that negative responses such as NXDOMAIN are not
+	    regarded as errors here.
+	  </para>
+	  <para>
+	    At the debug levels of 4 or higher, the same messages
+	    as those at the debug 2 level are logged for other errors
+	    than SERVFAIL.
+	    Unlike the above case of level 3, messages are logged for
+	    negative responses.
+	    This is because any unexpected results can be difficult to
+	    debug in the recursion case.
+	  </para>
 	</sect3>
       </sect2>
 

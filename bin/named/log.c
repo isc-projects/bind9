@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.46.334.2 2009/01/05 23:47:22 tbox Exp $ */
+/* $Id: log.c,v 1.46.334.3 2009/01/07 01:50:14 jinmei Exp $ */
 
 /*! \file */
 
@@ -44,6 +44,7 @@ static isc_logcategory_t categories[] = {
 	{ "queries",	 		0 },
 	{ "unmatched",	 		0 },
 	{ "update-security",		0 },
+	{ "query-errors",		0 },
 	{ NULL, 			0 }
 };
 
