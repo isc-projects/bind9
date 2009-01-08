@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.384 2009/01/07 23:47:46 tbox Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.385 2009/01/08 14:19:05 jreed Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -1808,7 +1808,7 @@ controls {
         and <filename>site2.example.com</filename>, to the servers
         in the
         DMZ. These internal servers will have complete sets of information
-        for <filename>site1.example.com</filename>, <filename>site2.example.com</filename>,<emphasis/> <filename>site1.internal</filename>,
+        for <filename>site1.example.com</filename>, <filename>site2.example.com</filename>, <filename>site1.internal</filename>,
         and <filename>site2.internal</filename>.
       </para>
       <para>
