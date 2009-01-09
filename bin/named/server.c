@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.495.10.24 2009/01/09 22:40:09 jinmei Exp $ */
+/* $Id: server.c,v 1.495.10.25 2009/01/09 23:46:32 tbox Exp $ */
 
 /*! \file */
 
@@ -1189,7 +1189,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 
 	/*
 	 * Obtain configuration parameters that affect the decision of whether
-	 * we can reuse/share an existing cache. 
+	 * we can reuse/share an existing cache.
 	 */
 	/* Check-names. */
 	obj = NULL;
