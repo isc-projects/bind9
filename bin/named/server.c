@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.70 2008/12/25 02:03:26 jinmei Exp $ */
+/* $Id: server.c,v 1.419.18.71 2009/01/09 22:50:58 jinmei Exp $ */
 
 /*! \file */
 
@@ -901,6 +901,23 @@ check_dbtype(dns_zone_t **zonep, unsigned int dbtypec, const char **dbargv,
 }
 
 
+static isc_boolean_t
+cache_reusable(dns_view_t *originview, dns_view_t *view,
+	       isc_boolean_t new_zero_no_soattl)
+{
+	if (originview->checknames != view->checknames ||
+	    dns_resolver_getzeronosoattl(originview->resolver) !=
+	    new_zero_no_soattl ||
+	    originview->acceptexpired != view->acceptexpired ||
+	    originview->enablevalidation != view->enablevalidation ||
+	    originview->maxcachettl != view->maxcachettl ||
+	    originview->maxncachettl != view->maxncachettl) {
+		return (ISC_FALSE);
+	}
+
+	return (ISC_TRUE);
+}
+
 /*
  * Configure 'view' according to 'vconfig', taking defaults from 'config'
  * where values are missing in 'vconfig'.
@@ -955,6 +972,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	isc_boolean_t rfc1918;
 	isc_boolean_t empty_zones_enable;
 	const cfg_obj_t *disablelist = NULL;
+	isc_boolean_t zero_no_soattl;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -1095,6 +1113,55 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 #endif
 
 	/*
+	 * Obtain configuration parameters that affect the decision of whether
+	 * we can reuse/share an existing cache. 
+	 */
+	/* Check-names. */
+	obj = NULL;
+	result = ns_checknames_get(maps, "response", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+
+	str = cfg_obj_asstring(obj);
+	if (strcasecmp(str, "fail") == 0) {
+		check |= DNS_RESOLVER_CHECKNAMES |
+			DNS_RESOLVER_CHECKNAMESFAIL;
+		view->checknames = ISC_TRUE;
+	} else if (strcasecmp(str, "warn") == 0) {
+		check |= DNS_RESOLVER_CHECKNAMES;
+		view->checknames = ISC_FALSE;
+	} else if (strcasecmp(str, "ignore") == 0) {
+		view->checknames = ISC_FALSE;
+	} else
+		INSIST(0);
+
+	obj = NULL;
+	result = ns_config_get(maps, "zero-no-soa-ttl-cache", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	zero_no_soattl = cfg_obj_asboolean(obj);
+
+	obj = NULL;
+	result = ns_config_get(maps, "dnssec-accept-expired", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->acceptexpired = cfg_obj_asboolean(obj);
+
+	obj = NULL;
+	result = ns_config_get(maps, "dnssec-validation", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->enablevalidation = cfg_obj_asboolean(obj);
+
+	obj = NULL;
+	result = ns_config_get(maps, "max-cache-ttl", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->maxcachettl = cfg_obj_asuint32(obj);
+
+	obj = NULL;
+	result = ns_config_get(maps, "max-ncache-ttl", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->maxncachettl = cfg_obj_asuint32(obj);
+	if (view->maxncachettl > 7 * 24 * 3600)
+		view->maxncachettl = 7 * 24 * 3600;
+
+	/*
 	 * Configure the view's cache.  Try to reuse an existing
 	 * cache if possible, otherwise create a new cache.
 	 * Note that the ADB is not preserved in either case.
@@ -1113,14 +1180,23 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	if (result != ISC_R_NOTFOUND && result != ISC_R_SUCCESS)
 		goto cleanup;
 	if (pview != NULL) {
-		INSIST(pview->cache != NULL);
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_DEBUG(3),
-			      "reusing existing cache");
-		reused_cache = ISC_TRUE;
-		dns_cache_attach(pview->cache, &cache);
+		if (cache_reusable(pview, view, zero_no_soattl)) {
+			INSIST(pview->cache != NULL);
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_DEBUG(3),
+				      "reusing existing cache");
+			reused_cache = ISC_TRUE;
+			dns_cache_attach(pview->cache, &cache);
+		} else {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_DEBUG(1),
+				      "cache cannot be reused for view %s "
+				      "due to configuration parameter mismatch",
+				      view->name);
+		}
 		dns_view_detach(&pview);
-	} else {
+	}
+	if (cache == NULL) {
 		CHECK(isc_mem_create(0, 0, &cmctx));
 		CHECK(dns_cache_create(cmctx, ns_g_taskmgr, ns_g_timermgr,
 				       view->rdclass, "rbt", 0, NULL, &cache));
@@ -1233,11 +1309,6 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	if (lame_ttl > 1800)
 		lame_ttl = 1800;
 	dns_resolver_setlamettl(view->resolver, lame_ttl);
-
-	obj = NULL;
-	result = ns_config_get(maps, "zero-no-soa-ttl-cache", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	dns_resolver_setzeronosoattl(view->resolver, cfg_obj_asboolean(obj));
 
 	/*
 	 * Set the resolver's EDNS UDP size.
@@ -1538,16 +1609,6 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	view->enablednssec = cfg_obj_asboolean(obj);
 
 	obj = NULL;
-	result = ns_config_get(maps, "dnssec-accept-expired", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	view->acceptexpired = cfg_obj_asboolean(obj);
-
-	obj = NULL;
-	result = ns_config_get(maps, "dnssec-validation", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	view->enablevalidation = cfg_obj_asboolean(obj);
-
-	obj = NULL;
 	result = ns_config_get(maps, "dnssec-lookaside", &obj);
 	if (result == ISC_R_SUCCESS) {
 		for (element = cfg_list_first(obj);
@@ -1600,18 +1661,6 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	result = ns_config_get(maps, "dnssec-must-be-secure", &obj);
 	if (result == ISC_R_SUCCESS)
 		CHECK(mustbesecure(obj, view->resolver));
-
-	obj = NULL;
-	result = ns_config_get(maps, "max-cache-ttl", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	view->maxcachettl = cfg_obj_asuint32(obj);
-
-	obj = NULL;
-	result = ns_config_get(maps, "max-ncache-ttl", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	view->maxncachettl = cfg_obj_asuint32(obj);
-	if (view->maxncachettl > 7 * 24 * 3600)
-		view->maxncachettl = 7 * 24 * 3600;
 
 	obj = NULL;
 	result = ns_config_get(maps, "preferred-glue", &obj);
