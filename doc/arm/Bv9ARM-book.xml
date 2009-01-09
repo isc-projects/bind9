@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.385 2009/01/08 14:19:05 jreed Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.386 2009/01/09 22:24:36 jinmei Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4706,6 +4706,7 @@ category notify { null; };
         </para>
 
 <programlisting><command>options</command> {
+    <optional> attach-cache <replaceable>cache_name</replaceable>; </optional>
     <optional> version <replaceable>version_string</replaceable>; </optional>
     <optional> hostname <replaceable>hostname_string</replaceable>; </optional>
     <optional> server-id <replaceable>server_id_string</replaceable>; </optional>
@@ -4887,6 +4888,102 @@ category notify { null; };
         </para>
 
         <variablelist>
+
+            <varlistentry>
+              <term><command>attach-cache</command></term>
+              <listitem>
+                <para>
+		  Allows multiple views to share a single cache
+		  database.
+		  Each view has its own cache database by default, but
+		  if multiple views have the same operational policy
+		  for name resolution and caching, those views can
+		  share a single cache to save memory and possibly
+		  improve resolution efficiency by using this option.
+                </para>
+
+                <para>
+                  The <command>attach-cache</command> option
+                  may also be specified in <command>view</command>
+                  statements, in which case it overrides the
+                  global <command>attach-cache</command> option.
+                </para>
+
+		<para>
+		  The <replaceable>cache_name</replaceable> specifies
+		  the cache to be shared.
+		  When the <command>named</command> server configures
+		  views which are supposed to share a cache, it
+		  creates a cache with the specified name for the
+		  first view of these sharing views.
+		  The rest of the views will simply refer to the
+		  already created cache.
+		</para>
+
+		<para>
+		  One common configuration to share a cache would be to
+		  allow all views to share a single cache.
+		  This can be done by specifying
+		  the <command>attach-cache</command> as a global
+		  option with an arbitrary name.
+		</para>
+
+		<para>
+		  Another possible operation is to allow a subset of
+		  all views to share a cache while the others to
+		  retain their own caches.
+		  For example, if there are three views A, B, and C,
+		  and only A and B should share a cache, specify the
+		  <command>attach-cache</command> option as a view A (or
+		  B)'s option, referring to the other view name:
+		</para>
+
+<programlisting>
+  view "A" {
+    // this view has its own cache
+    ...
+  };
+  view "B" {
+    // this view refers to A's cache
+    attach-cache "A";
+  };
+  view "C" {
+    // this view has its own cache
+    ...
+  };
+</programlisting>
+
+		<para>
+		  Views that share a cache must have the same policy
+		  on configurable parameters that may affect caching.
+		  The current implementation requires the following
+		  configurable options be consistent among these
+		  views:
+		  <command>check-names</command>,
+		  <command>cleaning-interval</command>,
+		  <command>dnssec-accept-expired</command>,
+		  <command>dnssec-validation</command>,
+		  <command>max-cache-ttl</command>,
+		  <command>max-ncache-ttl</command>,
+		  <command>max-cache-size</command>, and
+		  <command>zero-no-soa-ttl</command>.
+		</para>
+
+		<para>
+		  Note that there may be other parameters that may
+		  cause confusion if they are inconsistent for
+		  different views that share a single cache.
+		  For example, if these views define different sets of
+		  forwarders that can return different answers for the
+		  same question, sharing the answer does not make
+		  sense or could even be harmful.
+		  It is administrator's responsibility to ensure
+		  configuration differences in different views do
+		  not cause disruption with a shared cache.
+		</para>
+              </listitem>
+
+            </varlistentry>
 
           <varlistentry>
             <term><command>directory</command></term>

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.80 2008/09/24 02:46:22 marka Exp $ */
+/* $Id: cache.c,v 1.81 2009/01/09 22:24:36 jinmei Exp $ */
 
 /*! \file */
 
@@ -122,6 +122,7 @@ struct dns_cache {
 	isc_mutex_t		lock;
 	isc_mutex_t		filelock;
 	isc_mem_t		*mctx;
+	char			*name;
 
 	/* Locked by 'lock'. */
 	int			references;
@@ -132,6 +133,7 @@ struct dns_cache {
 	char			*db_type;
 	int			db_argc;
 	char			**db_argv;
+	isc_uint32_t		size;
 
 	/* Locked by 'filelock'. */
 	char			*filename;
@@ -171,6 +173,16 @@ dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		 const char *db_type, unsigned int db_argc, char **db_argv,
 		 dns_cache_t **cachep)
 {
+	return (dns_cache_create2(mctx, taskmgr, timermgr, rdclass, "",
+				  db_type, db_argc, db_argv, cachep));
+}
+
+isc_result_t
+dns_cache_create2(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
+		  isc_timermgr_t *timermgr, dns_rdataclass_t rdclass,
+		  const char *cachename, const char *db_type,
+		  unsigned int db_argc, char **db_argv, dns_cache_t **cachep)
+{
 	isc_result_t result;
 	dns_cache_t *cache;
 	int i;
@@ -178,6 +190,7 @@ dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	REQUIRE(cachep != NULL);
 	REQUIRE(*cachep == NULL);
 	REQUIRE(mctx != NULL);
+	REQUIRE(cachename != NULL);
 
 	cache = isc_mem_get(mctx, sizeof(*cache));
 	if (cache == NULL)
@@ -185,6 +198,15 @@ dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 
 	cache->mctx = NULL;
 	isc_mem_attach(mctx, &cache->mctx);
+
+	cache->name = NULL;
+	if (cachename != NULL) {
+		cache->name = isc_mem_strdup(mctx, cachename);
+		if (cache->name == NULL) {
+			result = ISC_R_NOMEMORY;
+			goto cleanup_mem;
+		}
+	}
 
 	result = isc_mutex_init(&cache->lock);
 	if (result != ISC_R_SUCCESS)
@@ -266,6 +288,8 @@ dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
  cleanup_lock:
 	DESTROYLOCK(&cache->lock);
  cleanup_mem:
+	if (cache->name != NULL)
+		isc_mem_free(mctx, cache->name);
 	isc_mem_put(mctx, cache, sizeof(*cache));
 	isc_mem_detach(&mctx);
 	return (result);
@@ -313,6 +337,9 @@ cache_free(dns_cache_t *cache) {
 
 	if (cache->db_type != NULL)
 		isc_mem_free(cache->mctx, cache->db_type);
+
+	if (cache->name != NULL)
+		isc_mem_free(cache->mctx, cache->name);
 
 	DESTROYLOCK(&cache->lock);
 	DESTROYLOCK(&cache->filelock);
@@ -484,6 +511,26 @@ dns_cache_setcleaninginterval(dns_cache_t *cache, unsigned int t) {
 	UNLOCK(&cache->lock);
 }
 
+unsigned int
+dns_cache_getcleaninginterval(dns_cache_t *cache) {
+	unsigned int t;
+
+	REQUIRE(VALID_CACHE(cache));
+
+	LOCK(&cache->lock);
+	t = cache->cleaner.cleaning_interval;
+	UNLOCK(&cache->lock);
+
+	return (t);
+}
+
+const char *
+dns_cache_getname(dns_cache_t *cache) {
+	REQUIRE(VALID_CACHE(cache));
+
+	return (cache->name);
+}
+
 /*
  * Initialize the cache cleaner object at *cleaner.
  * Space for the object must be allocated by the caller.
@@ -510,6 +557,7 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 	cleaner->cleaning_timer = NULL;
 	cleaner->resched_event = NULL;
 	cleaner->overmem_event = NULL;
+	cleaner->cleaning_interval = 0; /* Initially turned off. */
 
 	result = dns_db_createiterator(cleaner->cache->db, ISC_FALSE,
 				       &cleaner->iterator);
@@ -538,7 +586,6 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 			goto cleanup;
 		}
 
-		cleaner->cleaning_interval = 0; /* Initially turned off. */
 		result = isc_timer_create(timermgr, isc_timertype_inactive,
 					   NULL, NULL, cleaner->task,
 					   cleaning_timer_action, cleaner,
@@ -940,6 +987,10 @@ dns_cache_setcachesize(dns_cache_t *cache, isc_uint32_t size) {
 	if (size != 0 && size < DNS_CACHE_MINSIZE)
 		size = DNS_CACHE_MINSIZE;
 
+	LOCK(&cache->lock);
+	cache->size = size;
+	UNLOCK(&cache->lock);
+
 	hiwater = size - (size >> 3);	/* Approximately 7/8ths. */
 	lowater = size - (size >> 2);	/* Approximately 3/4ths. */
 
@@ -961,6 +1012,19 @@ dns_cache_setcachesize(dns_cache_t *cache, isc_uint32_t size) {
 		 * time, or replacing other limits).
 		 */
 		isc_mem_setwater(cache->mctx, water, cache, hiwater, lowater);
+}
+
+isc_uint32_t
+dns_cache_getcachesize(dns_cache_t *cache) {
+	isc_uint32_t size;
+
+	REQUIRE(VALID_CACHE(cache));
+
+	LOCK(&cache->lock);
+	size = cache->size;
+	UNLOCK(&cache->lock);
+
+	return (size);
 }
 
 /*

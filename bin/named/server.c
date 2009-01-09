@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.522 2008/12/25 02:02:39 jinmei Exp $ */
+/* $Id: server.c,v 1.523 2009/01/09 22:24:36 jinmei Exp $ */
 
 /*! \file */
 
@@ -142,11 +142,27 @@
 			fatal(msg, result);			  \
 	} while (0)						  \
 
+/*%
+ * Maximum ADB size for views that share a cache.  Use this limit to suppress
+ * the total of memory footprint, which should be the main reason for sharing
+ * a cache.  Only effective when a finite max-cache-size is specified.
+ * This is currently defined to be 8MB.
+ */
+#define MAX_ADB_SIZE_FOR_CACHESHARE 	8388608
+
 struct ns_dispatch {
 	isc_sockaddr_t			addr;
 	unsigned int			dispatchgen;
 	dns_dispatch_t			*dispatch;
 	ISC_LINK(struct ns_dispatch)	link;
+};
+
+struct ns_cache {
+	dns_cache_t			*cache;
+	dns_view_t			*primaryview;
+	isc_boolean_t			needflush;
+	isc_boolean_t			adbsizeadjusted;
+	ISC_LINK(ns_cache_t)		link;
 };
 
 struct dumpcontext {
@@ -973,6 +989,63 @@ setquerystats(dns_zone_t *zone, isc_mem_t *mctx, isc_boolean_t on) {
 	return (ISC_R_SUCCESS);
 }
 
+static ns_cache_t *
+cachelist_find(ns_cachelist_t *cachelist, const char *cachename) {
+	ns_cache_t *nsc;
+
+	for (nsc = ISC_LIST_HEAD(*cachelist);
+	     nsc != NULL;
+	     nsc = ISC_LIST_NEXT(nsc, link)) {
+		if (strcmp(dns_cache_getname(nsc->cache), cachename) == 0)
+			return (nsc);
+	}
+
+	return (NULL);
+}
+
+static isc_boolean_t
+cache_reusable(dns_view_t *originview, dns_view_t *view,
+	       isc_boolean_t new_zero_no_soattl)
+{
+	if (originview->checknames != view->checknames ||
+	    dns_resolver_getzeronosoattl(originview->resolver) !=
+	    new_zero_no_soattl ||
+	    originview->acceptexpired != view->acceptexpired ||
+	    originview->enablevalidation != view->enablevalidation ||
+	    originview->maxcachettl != view->maxcachettl ||
+	    originview->maxncachettl != view->maxncachettl) {
+		return (ISC_FALSE);
+	}
+
+	return (ISC_TRUE);
+}
+
+static isc_boolean_t
+cache_sharable(dns_view_t *originview, dns_view_t *view,
+	       isc_boolean_t new_zero_no_soattl,
+	       unsigned int new_cleaning_interval,
+	       isc_uint32_t new_max_cache_size)
+{
+	/*
+	 * If the cache cannot even reused for the same view, it cannot be
+	 * shared with other views.
+	 */
+	if (!cache_reusable(originview, view, new_zero_no_soattl))
+		return (ISC_FALSE);
+
+	/*
+	 * Check other cache related parameters that must be consistent among
+	 * the sharing views.
+	 */
+	if (dns_cache_getcleaninginterval(originview->cache) !=
+	    new_cleaning_interval ||
+	    dns_cache_getcachesize(originview->cache) != new_max_cache_size) {
+		return (ISC_FALSE);
+	}
+
+	return (ISC_TRUE);
+}
+
 /*
  * Configure 'view' according to 'vconfig', taking defaults from 'config'
  * where values are missing in 'vconfig'.
@@ -982,8 +1055,9 @@ setquerystats(dns_zone_t *zone, isc_mem_t *mctx, isc_boolean_t on) {
  */
 static isc_result_t
 configure_view(dns_view_t *view, const cfg_obj_t *config,
-	       const cfg_obj_t *vconfig, isc_mem_t *mctx,
-	       cfg_aclconfctx_t *actx, isc_boolean_t need_hints)
+	       const cfg_obj_t *vconfig, ns_cachelist_t *cachelist,
+	       isc_mem_t *mctx, cfg_aclconfctx_t *actx,
+	       isc_boolean_t need_hints)
 {
 	const cfg_obj_t *maps[4];
 	const cfg_obj_t *cfgmaps[3];
@@ -1005,6 +1079,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	dns_cache_t *cache = NULL;
 	isc_result_t result;
 	isc_uint32_t max_adb_size;
+	unsigned int cleaning_interval;
 	isc_uint32_t max_cache_size;
 	isc_uint32_t max_acache_size;
 	isc_uint32_t lame_ttl;
@@ -1014,8 +1089,10 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	dns_dispatch_t *dispatch4 = NULL;
 	dns_dispatch_t *dispatch6 = NULL;
 	isc_boolean_t reused_cache = ISC_FALSE;
+	isc_boolean_t shared_cache = ISC_FALSE;
 	int i;
 	const char *str;
+	const char *cachename = NULL;
 	dns_order_t *order = NULL;
 	isc_uint32_t udpsize;
 	unsigned int resopts = 0;
@@ -1029,6 +1106,8 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	const cfg_obj_t *disablelist = NULL;
 	dns_stats_t *resstats = NULL;
 	dns_stats_t *resquerystats = NULL;
+	ns_cache_t *nsc;
+	isc_boolean_t zero_no_soattl;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -1170,59 +1249,13 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 #endif
 
 	/*
-	 * Configure the view's cache.  Try to reuse an existing
-	 * cache if possible, otherwise create a new cache.
-	 * Note that the ADB is not preserved in either case.
-	 * When a matching view is found, the associated statistics are
-	 * also retrieved and reused.
-	 *
-	 * XXX Determining when it is safe to reuse a cache is
-	 * tricky.  When the view's configuration changes, the cached
-	 * data may become invalid because it reflects our old
-	 * view of the world.  As more view attributes become
-	 * configurable, we will have to add code here to check
-	 * whether they have changed in ways that could
-	 * invalidate the cache.
+	 * Obtain configuration parameters that affect the decision of whether
+	 * we can reuse/share an existing cache. 
 	 */
-	result = dns_viewlist_find(&ns_g_server->viewlist,
-				   view->name, view->rdclass,
-				   &pview);
-	if (result != ISC_R_NOTFOUND && result != ISC_R_SUCCESS)
-		goto cleanup;
-	if (pview != NULL) {
-		INSIST(pview->cache != NULL);
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_DEBUG(3),
-			      "reusing existing cache");
-		reused_cache = ISC_TRUE;
-		dns_cache_attach(pview->cache, &cache);
-		dns_view_getresstats(pview, &resstats);
-		dns_view_getresquerystats(pview, &resquerystats);
-		dns_view_detach(&pview);
-	} else {
-		CHECK(isc_mem_create(0, 0, &cmctx));
-		CHECK(dns_cache_create(cmctx, ns_g_taskmgr, ns_g_timermgr,
-				       view->rdclass, "rbt", 0, NULL, &cache));
-		isc_mem_setname(cmctx, "cache", NULL);
-	}
-	dns_view_setcache(view, cache);
-
-	/*
-	 * cache-file cannot be inherited if views are present, but this
-	 * should be caught by the configuration checking stage.
-	 */
-	obj = NULL;
-	result = ns_config_get(maps, "cache-file", &obj);
-	if (result == ISC_R_SUCCESS && strcmp(view->name, "_bind") != 0) {
-		CHECK(dns_cache_setfilename(cache, cfg_obj_asstring(obj)));
-		if (!reused_cache)
-			CHECK(dns_cache_load(cache));
-	}
-
 	obj = NULL;
 	result = ns_config_get(maps, "cleaning-interval", &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	dns_cache_setcleaninginterval(cache, cfg_obj_asuint32(obj) * 60);
+	cleaning_interval = cfg_obj_asuint32(obj) * 60;
 
 	obj = NULL;
 	result = ns_config_get(maps, "max-cache-size", &obj);
@@ -1244,13 +1277,8 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 		}
 		max_cache_size = (isc_uint32_t)value;
 	}
-	dns_cache_setcachesize(cache, max_cache_size);
 
-	dns_cache_detach(&cache);
-
-	/*
-	 * Check-names.
-	 */
+	/* Check-names. */
 	obj = NULL;
 	result = ns_checknames_get(maps, "response", &obj);
 	INSIST(result == ISC_R_SUCCESS);
@@ -1267,6 +1295,159 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 		view->checknames = ISC_FALSE;
 	} else
 		INSIST(0);
+
+	obj = NULL;
+	result = ns_config_get(maps, "zero-no-soa-ttl-cache", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	zero_no_soattl = cfg_obj_asboolean(obj);
+
+	obj = NULL;
+	result = ns_config_get(maps, "dnssec-accept-expired", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->acceptexpired = cfg_obj_asboolean(obj);
+
+	obj = NULL;
+	result = ns_config_get(maps, "dnssec-validation", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->enablevalidation = cfg_obj_asboolean(obj);
+
+	obj = NULL;
+	result = ns_config_get(maps, "max-cache-ttl", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->maxcachettl = cfg_obj_asuint32(obj);
+
+	obj = NULL;
+	result = ns_config_get(maps, "max-ncache-ttl", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->maxncachettl = cfg_obj_asuint32(obj);
+	if (view->maxncachettl > 7 * 24 * 3600)
+		view->maxncachettl = 7 * 24 * 3600;
+
+	/*
+	 * Configure the view's cache.
+	 *
+	 * First, check to see if there are any attach-cache options.  If yes,
+	 * attempt to lookup an existing cache at attach it to the view.  If
+	 * there is not one, then try to reuse an existing cache if possible;
+	 * otherwise create a new cache.
+	 *
+	 * Note that the ADB is not preserved or shared in either case.
+	 *
+	 * When a matching view is found, the associated statistics are also
+	 * retrieved and reused.
+	 *
+	 * XXX Determining when it is safe to reuse or share a cache is tricky.
+	 * When the view's configuration changes, the cached data may become
+	 * invalid because it reflects our old view of the world.  We check
+	 * some of the configuration parameters that could invalidate the cache
+	 * or otherwise make it unsharable, but there are other configuration
+	 * options that should be checked.  For example, if a view uses a
+	 * forwarder, changes in the forwarder configuration may invalidate
+	 * the cache.  At the moment, it's the administrator's responsibility to
+	 * ensure these configuration options don't invalidate reusing/sharing.
+	 */
+	obj = NULL;
+	result = ns_config_get(maps, "attach-cache", &obj);
+	if (result == ISC_R_SUCCESS)
+		cachename = cfg_obj_asstring(obj);
+	else
+		cachename = view->name;
+	cache = NULL;
+	nsc = cachelist_find(cachelist, cachename);
+	if (nsc != NULL) {
+		if (!cache_sharable(nsc->primaryview, view, zero_no_soattl,
+				    cleaning_interval, max_cache_size)) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      "views %s and %s can't share the cache "
+				      "due to configuration parameter mismatch",
+				      nsc->primaryview->name, view->name);
+			result = ISC_R_FAILURE;
+			goto cleanup;
+		}
+		dns_cache_attach(nsc->cache, &cache);
+		shared_cache = ISC_TRUE;
+	} else {
+		if (strcmp(cachename, view->name) == 0) {
+			result = dns_viewlist_find(&ns_g_server->viewlist,
+						   cachename, view->rdclass,
+						   &pview);
+			if (result != ISC_R_NOTFOUND && result != ISC_R_SUCCESS)
+				goto cleanup;
+			if (pview != NULL) {
+				if (cache_reusable(pview, view,
+						   zero_no_soattl)) {
+					isc_log_write(ns_g_lctx,
+						      NS_LOGCATEGORY_GENERAL,
+						      NS_LOGMODULE_SERVER,
+						      ISC_LOG_DEBUG(1),
+						      "cache cannot be reused "
+						      "for view %s due to "
+						      "configuration parameter "
+						      "mismatch", view->name);
+				} else {
+					INSIST(pview->cache != NULL);
+					isc_log_write(ns_g_lctx,
+						      NS_LOGCATEGORY_GENERAL,
+						      NS_LOGMODULE_SERVER,
+						      ISC_LOG_DEBUG(3),
+						      "reusing existing cache");
+					reused_cache = ISC_TRUE;
+					dns_cache_attach(pview->cache, &cache);
+				}
+				dns_view_getresstats(pview, &resstats);
+				dns_view_getresquerystats(pview,
+							  &resquerystats);
+				dns_view_detach(&pview);
+			}
+		}
+		if (cache == NULL) {
+			/*
+			 * Create a cache with the desired name.  This normally
+			 * equals the view name, but may also be a forward
+			 * reference to a view that share the cache with this
+			 * view but is not yet configured.  If it is not the
+			 * view name but not a forward reference either, then it
+			 * is simply a named cache that is not shared.
+			 */
+			CHECK(isc_mem_create(0, 0, &cmctx));
+			isc_mem_setname(cmctx, "cache", NULL);
+			CHECK(dns_cache_create2(cmctx, ns_g_taskmgr,
+						ns_g_timermgr, view->rdclass,
+						cachename, "rbt", 0, NULL,
+						&cache));
+		}
+		nsc = isc_mem_get(mctx, sizeof(*nsc));
+		if (nsc == NULL) {
+			result = ISC_R_NOMEMORY;
+			goto cleanup;
+		}
+		nsc->cache = NULL;
+		dns_cache_attach(cache, &nsc->cache);
+		nsc->primaryview = view;
+		nsc->needflush = ISC_FALSE;
+		nsc->adbsizeadjusted = ISC_FALSE;
+		ISC_LINK_INIT(nsc, link);
+		ISC_LIST_APPEND(*cachelist, nsc, link);
+	}
+	dns_view_setcache2(view, cache, shared_cache);
+
+	/*
+	 * cache-file cannot be inherited if views are present, but this
+	 * should be caught by the configuration checking stage.
+	 */
+	obj = NULL;
+	result = ns_config_get(maps, "cache-file", &obj);
+	if (result == ISC_R_SUCCESS && strcmp(view->name, "_bind") != 0) {
+		CHECK(dns_cache_setfilename(cache, cfg_obj_asstring(obj)));
+		if (!reused_cache && !shared_cache)
+			CHECK(dns_cache_load(cache));
+	}
+
+	dns_cache_setcleaninginterval(cache, cleaning_interval);
+	dns_cache_setcachesize(cache, max_cache_size);
+
+	dns_cache_detach(&cache);
 
 	/*
 	 * Resolver.
@@ -1301,13 +1482,23 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	dns_view_setresquerystats(view, resquerystats);
 
 	/*
-	 * Set the ADB cache size to 1/8th of the max-cache-size.
+	 * Set the ADB cache size to 1/8th of the max-cache-size or
+	 * MAX_ADB_SIZE_FOR_CACHESHARE when the cache is shared.
 	 */
 	max_adb_size = 0;
 	if (max_cache_size != 0) {
 		max_adb_size = max_cache_size / 8;
 		if (max_adb_size == 0)
 			max_adb_size = 1;	/* Force minimum. */
+		if (view != nsc->primaryview &&
+		    max_adb_size > MAX_ADB_SIZE_FOR_CACHESHARE) {
+			max_adb_size = MAX_ADB_SIZE_FOR_CACHESHARE;
+			if (!nsc->adbsizeadjusted) {
+				dns_adb_setadbsize(nsc->primaryview->adb,
+						   MAX_ADB_SIZE_FOR_CACHESHARE);
+				nsc->adbsizeadjusted = ISC_TRUE;
+			}
+		}
 	}
 	dns_adb_setadbsize(view->adb, max_adb_size);
 
@@ -1322,10 +1513,8 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 		lame_ttl = 1800;
 	dns_resolver_setlamettl(view->resolver, lame_ttl);
 
-	obj = NULL;
-	result = ns_config_get(maps, "zero-no-soa-ttl-cache", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	dns_resolver_setzeronosoattl(view->resolver, cfg_obj_asboolean(obj));
+	/* Specify whether to use 0-TTL for negative response for SOA query */
+	dns_resolver_setzeronosoattl(view->resolver, zero_no_soattl);
 
 	/*
 	 * Set the resolver's EDNS UDP size.
@@ -1662,16 +1851,6 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	view->enablednssec = cfg_obj_asboolean(obj);
 
 	obj = NULL;
-	result = ns_config_get(maps, "dnssec-accept-expired", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	view->acceptexpired = cfg_obj_asboolean(obj);
-
-	obj = NULL;
-	result = ns_config_get(maps, "dnssec-validation", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	view->enablevalidation = cfg_obj_asboolean(obj);
-
-	obj = NULL;
 	result = ns_config_get(maps, "dnssec-lookaside", &obj);
 	if (result == ISC_R_SUCCESS) {
 		for (element = cfg_list_first(obj);
@@ -1724,18 +1903,6 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	result = ns_config_get(maps, "dnssec-must-be-secure", &obj);
 	if (result == ISC_R_SUCCESS)
 		CHECK(mustbesecure(obj, view->resolver));
-
-	obj = NULL;
-	result = ns_config_get(maps, "max-cache-ttl", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	view->maxcachettl = cfg_obj_asuint32(obj);
-
-	obj = NULL;
-	result = ns_config_get(maps, "max-ncache-ttl", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	view->maxncachettl = cfg_obj_asuint32(obj);
-	if (view->maxncachettl > 7 * 24 * 3600)
-		view->maxncachettl = 7 * 24 * 3600;
 
 	obj = NULL;
 	result = ns_config_get(maps, "preferred-glue", &obj);
@@ -2893,10 +3060,13 @@ load_configuration(const char *filename, ns_server_t *server,
 	isc_uint32_t interface_interval;
 	isc_uint32_t reserved;
 	isc_uint32_t udpsize;
+	ns_cachelist_t cachelist, tmpcachelist;
 	unsigned int maxsocks;
+	ns_cache_t *nsc;
 
 	cfg_aclconfctx_init(&aclconfctx);
 	ISC_LIST_INIT(viewlist);
+	ISC_LIST_INIT(cachelist);
 
 	/* Ensure exclusive access to configuration data. */
 	result = isc_task_beginexclusive(server->task);
@@ -3283,7 +3453,7 @@ load_configuration(const char *filename, ns_server_t *server,
 
 		CHECK(create_view(vconfig, &viewlist, &view));
 		INSIST(view != NULL);
-		CHECK(configure_view(view, config, vconfig,
+		CHECK(configure_view(view, config, vconfig, &cachelist,
 				     ns_g_mctx, &aclconfctx, ISC_TRUE));
 		dns_view_freeze(view);
 		dns_view_detach(&view);
@@ -3301,7 +3471,7 @@ load_configuration(const char *filename, ns_server_t *server,
 		 * In either case, we need to configure and freeze it.
 		 */
 		CHECK(create_view(NULL, &viewlist, &view));
-		CHECK(configure_view(view, config, NULL, ns_g_mctx,
+		CHECK(configure_view(view, config, NULL, &cachelist, ns_g_mctx,
 				     &aclconfctx, ISC_TRUE));
 		dns_view_freeze(view);
 		dns_view_detach(&view);
@@ -3320,8 +3490,8 @@ load_configuration(const char *filename, ns_server_t *server,
 	{
 		const cfg_obj_t *vconfig = cfg_listelt_value(element);
 		CHECK(create_view(vconfig, &viewlist, &view));
-		CHECK(configure_view(view, config, vconfig, ns_g_mctx,
-				     &aclconfctx, ISC_FALSE));
+		CHECK(configure_view(view, config, vconfig, &cachelist,
+				     ns_g_mctx, &aclconfctx, ISC_FALSE));
 		dns_view_freeze(view);
 		dns_view_detach(&view);
 		view = NULL;
@@ -3333,6 +3503,13 @@ load_configuration(const char *filename, ns_server_t *server,
 	tmpviewlist = server->viewlist;
 	server->viewlist = viewlist;
 	viewlist = tmpviewlist;
+
+	/*
+	 * Swap our new cache list with the production one.
+	 */
+	tmpcachelist = server->cachelist;
+	server->cachelist = cachelist;
+	cachelist = tmpcachelist;
 
 	/*
 	 * Load the TKEY information from the configuration.
@@ -3625,6 +3802,13 @@ load_configuration(const char *filename, ns_server_t *server,
 		dns_view_detach(&view);
 	}
 
+	/* Same cleanup for cache list. */
+	while ((nsc = ISC_LIST_HEAD(cachelist)) != NULL) {
+		ISC_LIST_UNLINK(cachelist, nsc, link);
+		dns_cache_detach(&nsc->cache);
+		isc_mem_put(server->mctx, nsc, sizeof(*nsc));
+	}
+
 	/*
 	 * Adjust the listening interfaces in accordance with the source
 	 * addresses specified in views and zones.
@@ -3770,6 +3954,7 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	dns_view_t *view, *view_next;
 	ns_server_t *server = (ns_server_t *)event->ev_arg;
 	isc_boolean_t flush = server->flushonshutdown;
+	ns_cache_t *nsc;
 
 	UNUSED(task);
 	INSIST(task == server->task);
@@ -3797,6 +3982,12 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 			dns_view_flushanddetach(&view);
 		else
 			dns_view_detach(&view);
+	}
+
+	while ((nsc = ISC_LIST_HEAD(server->cachelist)) != NULL) {
+		ISC_LIST_UNLINK(server->cachelist, nsc, link);
+		dns_cache_detach(&nsc->cache);
+		isc_mem_put(server->mctx, nsc, sizeof(*nsc));
 	}
 
 	isc_timer_detach(&server->interface_timer);
@@ -3953,6 +4144,8 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 
 	ISC_LIST_INIT(server->statschannels);
 
+	ISC_LIST_INIT(server->cachelist);
+
 	server->magic = NS_SERVER_MAGIC;
 	*serverp = server;
 }
@@ -3991,6 +4184,7 @@ ns_server_destroy(ns_server_t **serverp) {
 	isc_event_free(&server->reload_event);
 
 	INSIST(ISC_LIST_EMPTY(server->viewlist));
+	INSIST(ISC_LIST_EMPTY(server->cachelist));
 
 	dns_aclenv_destroy(&server->aclenv);
 
@@ -4652,15 +4846,23 @@ dumpdone(void *arg, isc_result_t result) {
  nextview:
 	fprintf(dctx->fp, ";\n; Start view %s\n;\n", dctx->view->view->name);
  resume:
-	if (dctx->zone == NULL && dctx->cache == NULL && dctx->dumpcache) {
+	if (dctx->dumpcache && dns_view_iscacheshared(dctx->view->view)) {
+		fprintf(dctx->fp,
+			";\n; Cache of view '%s' is shared as '%s'\n",
+			dctx->view->view->name,
+			dns_cache_getname(dctx->view->view->cache));
+	} else if (dctx->zone == NULL && dctx->cache == NULL &&
+		   dctx->dumpcache)
+	{
 		style = &dns_master_style_cache;
 		/* start cache dump */
 		if (dctx->view->view->cachedb != NULL)
 			dns_db_attach(dctx->view->view->cachedb, &dctx->cache);
 		if (dctx->cache != NULL) {
-
-			fprintf(dctx->fp, ";\n; Cache dump of view '%s'\n;\n",
-				dctx->view->view->name);
+			fprintf(dctx->fp,
+				";\n; Cache dump of view '%s' (cache %s)\n;\n",
+				dctx->view->view->name,
+				dns_cache_getname(dctx->view->view->cache));
 			result = dns_master_dumptostreaminc(dctx->mctx,
 							    dctx->cache, NULL,
 							    style, dctx->fp,
@@ -4937,6 +5139,7 @@ ns_server_flushcache(ns_server_t *server, char *args) {
 	isc_boolean_t flushed;
 	isc_boolean_t found;
 	isc_result_t result;
+	ns_cache_t *nsc;
 
 	/* Skip the command name. */
 	ptr = next_token(&args, " \t");
@@ -4950,22 +5153,96 @@ ns_server_flushcache(ns_server_t *server, char *args) {
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	flushed = ISC_TRUE;
 	found = ISC_FALSE;
-	for (view = ISC_LIST_HEAD(server->viewlist);
-	     view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
-		if (viewname != NULL && strcasecmp(viewname, view->name) != 0)
-			continue;
+
+	/*
+	 * Flushing a cache is tricky when caches are shared by multiple views.
+	 * We first identify which caches should be flushed in the local cache
+	 * list, flush these caches, and then update other views that refer to
+	 * the flushed cache DB.
+	 */
+	if (viewname != NULL) {
+		/*
+		 * Mark caches that need to be flushed.  This is an O(#view^2)
+		 * operation in the very worst case, but should be normally
+		 * much more lightweight because only a few (most typically just
+		 * one) views will match.
+		 */
+		for (view = ISC_LIST_HEAD(server->viewlist);
+		     view != NULL;
+		     view = ISC_LIST_NEXT(view, link))
+		{
+			if (strcasecmp(viewname, view->name) != 0)
+				continue;
+			found = ISC_TRUE;
+			for (nsc = ISC_LIST_HEAD(server->cachelist);
+			     nsc != NULL;
+			     nsc = ISC_LIST_NEXT(nsc, link)) {
+				if (nsc->cache == view->cache)
+					break;
+			}
+			INSIST(nsc != NULL);
+			nsc->needflush = ISC_TRUE;
+		}
+	} else
 		found = ISC_TRUE;
-		result = dns_view_flushcache(view);
+
+	/* Perform flush */
+	for (nsc = ISC_LIST_HEAD(server->cachelist);
+	     nsc != NULL;
+	     nsc = ISC_LIST_NEXT(nsc, link)) {
+		if (viewname != NULL && !nsc->needflush)
+			continue;
+		nsc->needflush = ISC_TRUE;
+		result = dns_view_flushcache2(nsc->primaryview, ISC_FALSE);
 		if (result != ISC_R_SUCCESS) {
 			flushed = ISC_FALSE;
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 				      "flushing cache in view '%s' failed: %s",
-				      view->name, isc_result_totext(result));
+				      nsc->primaryview->name,
+				      isc_result_totext(result));
 		}
 	}
+
+	/*
+	 * Fix up views that share a flushed cache: let the views update the
+	 * cache DB they're referring to.  This could also be an expensive
+	 * operation, but should typically be marginal: the inner loop is only
+	 * necessary for views that share a cache, and if there are many such
+	 * views the number of shared cache should normally be small.
+	 * A worst case is that we have n views and n/2 caches, each shared by
+	 * two views.  Then this will be a O(n^2/4) operation.
+	 */
+	for (view = ISC_LIST_HEAD(server->viewlist);
+	     view != NULL;
+	     view = ISC_LIST_NEXT(view, link))
+	{
+		if (!dns_view_iscacheshared(view))
+			continue;
+		for (nsc = ISC_LIST_HEAD(server->cachelist);
+		     nsc != NULL;
+		     nsc = ISC_LIST_NEXT(nsc, link)) {
+			if (!nsc->needflush || nsc->cache != view->cache)
+				continue;
+			result = dns_view_flushcache2(view, ISC_TRUE);
+			if (result != ISC_R_SUCCESS) {
+				flushed = ISC_FALSE;
+				isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+					      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+					      "fixing cache in view '%s' "
+					      "failed: %s", view->name,
+					      isc_result_totext(result));
+			}
+		}
+	}
+
+	/* Cleanup the cache list. */
+	for (nsc = ISC_LIST_HEAD(server->cachelist);
+	     nsc != NULL;
+	     nsc = ISC_LIST_NEXT(nsc, link)) {
+		nsc->needflush = ISC_FALSE;
+	}
+
 	if (flushed && found) {
 		if (viewname != NULL)
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
@@ -5034,6 +5311,11 @@ ns_server_flushname(ns_server_t *server, char *args) {
 		if (viewname != NULL && strcasecmp(viewname, view->name) != 0)
 			continue;
 		found = ISC_TRUE;
+		/*
+		 * It's a little inefficient to try flushing name for all views
+		 * if some of the views share a single cache.  But since the
+		 * operation is lightweight we prefer simplicity here.
+		 */
 		result = dns_view_flushname(view, name);
 		if (result != ISC_R_SUCCESS) {
 			flushed = ISC_FALSE;

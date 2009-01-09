@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.113 2009/01/05 23:47:53 tbox Exp $ */
+/* $Id: view.h,v 1.114 2009/01/09 22:24:37 jinmei Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -102,6 +102,7 @@ struct dns_view {
 	isc_event_t			reqevent;
 	dns_stats_t *			resstats;
 	dns_stats_t *			resquerystats;
+	isc_boolean_t			cacheshared;
 
 	/* Configurable data. */
 	dns_tsig_keyring_t *		statickeys;
@@ -308,8 +309,12 @@ dns_view_createresolver(dns_view_t *view,
 
 void
 dns_view_setcache(dns_view_t *view, dns_cache_t *cache);
+void
+dns_view_setcache2(dns_view_t *view, dns_cache_t *cache, isc_boolean_t shared);
 /*%<
- * Set the view's cache database.
+ * Set the view's cache database.  If 'shared' is true, this means the cache
+ * is created by another view and is shared with that view.  dns_view_setcache()
+ * is a backward compatible version equivalent to setcache2(..., ISC_FALSE).
  *
  * Requires:
  *
@@ -726,8 +731,14 @@ dns_view_dumpdbtostream(dns_view_t *view, FILE *fp);
 
 isc_result_t
 dns_view_flushcache(dns_view_t *view);
+isc_result_t
+dns_view_flushcache2(dns_view_t *view, isc_boolean_t fixuponly);
 /*%<
- * Flush the view's cache (and ADB).
+ * Flush the view's cache (and ADB).  If 'fixuponly' is true, it only updates
+ * the internal reference to the cache DB with omitting actual flush operation.
+ * 'fixuponly' is intended to be used for a view that shares a cache with
+ * a different view.  dns_view_flushcache() is a backward compatible version
+ * that always sets fixuponly to false.
  *
  * Requires:
  * 	'view' is valid.
@@ -874,6 +885,19 @@ dns_view_getresquerystats(dns_view_t *view, dns_stats_t **statsp);
  * \li	'view' is valid and is not frozen.
  *
  *\li	'statsp' != NULL && '*statsp' != NULL
+ */
+
+isc_boolean_t
+dns_view_iscacheshared(dns_view_t *view);
+/*%<
+ * Check if the view shares the cache created by another view.
+ *
+ * Requires:
+ * \li	'view' is valid.
+ *
+ * Returns:
+ *\li	#ISC_TRUE if the cache is shared.
+ *\li	#ISC_FALSE othewise.
  */
 
 #endif /* DNS_VIEW_H */

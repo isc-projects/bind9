@@ -1,3 +1,7 @@
+2526.	[func]		New named option "attach-cache" that allows multiple
+			views to share a single cache to save memory and
+			improve lookup efficiency. [RT 18905]
+
 2525.	[func]		New logging category "query-errors" to provide detailed
 			internal information about query failures, especially
 			about server failures. [RT #19027]

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.150 2008/06/17 03:14:20 marka Exp $ */
+/* $Id: view.c,v 1.151 2009/01/09 22:24:36 jinmei Exp $ */
 
 /*! \file */
 
@@ -154,6 +154,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->rootexclude = NULL;
 	view->resstats = NULL;
 	view->resquerystats = NULL;
+	view->cacheshared = ISC_FALSE;
 
 	/*
 	 * Initialize configuration data with default values.
@@ -626,9 +627,15 @@ dns_view_createresolver(dns_view_t *view,
 
 void
 dns_view_setcache(dns_view_t *view, dns_cache_t *cache) {
+	dns_view_setcache2(view, cache, ISC_FALSE);
+}
+
+void
+dns_view_setcache2(dns_view_t *view, dns_cache_t *cache, isc_boolean_t shared) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
 
+	view->cacheshared = shared;
 	if (view->cache != NULL) {
 		if (view->acache != NULL)
 			dns_acache_putdb(view->acache, view->cachedb);
@@ -641,6 +648,13 @@ dns_view_setcache(dns_view_t *view, dns_cache_t *cache) {
 
 	if (view->acache != NULL)
 		dns_acache_setdb(view->acache, view->cachedb);
+}
+
+isc_boolean_t
+dns_view_iscacheshared(dns_view_t *view) {
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	return (view->cacheshared);
 }
 
 void
@@ -1278,15 +1292,22 @@ dns_view_dumpdbtostream(dns_view_t *view, FILE *fp) {
 
 isc_result_t
 dns_view_flushcache(dns_view_t *view) {
+	return (dns_view_flushcache2(view, ISC_FALSE));
+}
+
+isc_result_t
+dns_view_flushcache2(dns_view_t *view, isc_boolean_t fixuponly) {
 	isc_result_t result;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
 	if (view->cachedb == NULL)
 		return (ISC_R_SUCCESS);
-	result = dns_cache_flush(view->cache);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	if (!fixuponly) {
+		result = dns_cache_flush(view->cache);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	}
 	if (view->acache != NULL)
 		dns_acache_putdb(view->acache, view->cachedb);
 	dns_db_detach(&view->cachedb);

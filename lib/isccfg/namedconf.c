@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.92 2008/09/27 23:35:31 jinmei Exp $ */
+/* $Id: namedconf.c,v 1.93 2009/01/09 22:24:37 jinmei Exp $ */
 
 /*! \file */
 
@@ -797,6 +797,7 @@ view_clauses[] = {
 	{ "allow-recursion-on", &cfg_type_bracketed_aml, 0 },
 	{ "allow-v6-synthesis", &cfg_type_bracketed_aml,
 	  CFG_CLAUSEFLAG_OBSOLETE },
+	{ "attach-cache", &cfg_type_astring, 0 },
 	{ "auth-nxdomain", &cfg_type_boolean, CFG_CLAUSEFLAG_NEWDEFAULT },
 	{ "cache-file", &cfg_type_qstring, 0 },
 	{ "check-names", &cfg_type_checknames, CFG_CLAUSEFLAG_MULTI },
