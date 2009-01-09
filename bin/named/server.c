@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.523 2009/01/09 22:24:36 jinmei Exp $ */
+/* $Id: server.c,v 1.524 2009/01/09 23:47:45 tbox Exp $ */
 
 /*! \file */
 
@@ -1250,7 +1250,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 
 	/*
 	 * Obtain configuration parameters that affect the decision of whether
-	 * we can reuse/share an existing cache. 
+	 * we can reuse/share an existing cache.
 	 */
 	obj = NULL;
 	result = ns_config_get(maps, "cleaning-interval", &obj);
