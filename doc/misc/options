@@ -68,6 +68,7 @@ options {
         alt-transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
         alt-transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> |
             * ) ];
+        attach-cache <string>;
         auth-nxdomain <boolean>; // default changed
         avoid-v4-udp-ports { <portrange>; ... };
         avoid-v6-udp-ports { <portrange>; ... };
@@ -258,6 +259,7 @@ view <string> <optional_class> {
         alt-transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
         alt-transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> |
             * ) ];
+        attach-cache <string>;
         auth-nxdomain <boolean>; // default changed
         cache-file <quoted_string>;
         check-integrity <boolean>;
