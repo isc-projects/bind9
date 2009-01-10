@@ -5,7 +5,7 @@
 ./FAQ.xml					SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./Makefile.in					MAKE	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008
 ./NSEC3-NOTES					X	2008
-./README					X	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
+./README					X	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./README.idnkit					X	2005
 ./README.pkcs11					X	2008
 ./acconfig.h					C	1999,2000,2001,2002,2003,2004,2005,2007,2008
@@ -1474,13 +1474,13 @@
 ./doc/misc/ipv6					TXT.BRIEF	2000,2001,2004
 ./doc/misc/migration				TXT.BRIEF	2000,2001,2003,2004,2007,2008
 ./doc/misc/migration-4to9			TXT.BRIEF	2001,2004
-./doc/misc/options				X	2000,2001,2002,2003,2004,2005,2006,2007,2008
+./doc/misc/options				X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./doc/misc/rfc-compliance			TXT.BRIEF	2001,2004
 ./doc/misc/roadmap				TXT.BRIEF	2000,2001,2004
 ./doc/misc/sdb					TXT.BRIEF	2000,2001,2004
 ./doc/misc/sort-options.pl			PERL	2007
 ./doc/private/CHANGES				X	2000,2001
-./doc/private/branches				X	2002,2003,2004,2005,2006,2007,2008
+./doc/private/branches				X	2002,2003,2004,2005,2006,2007,2008,2009
 ./doc/private/bugfix-by-assertion		X	2001
 ./doc/private/delete-list			X	2005,2006,2007,2008
 ./doc/private/options				TXT.BRIEF	2000,2001,2004
@@ -2351,7 +2351,7 @@
 ./make/Makefile.in				MAKE	1998,1999,2000,2001,2004,2007
 ./make/includes.in				MAKE	1999,2000,2001,2004,2005,2007
 ./make/mkdep.in					X	1999,2000,2001,2006
-./make/rules.in					MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
+./make/rules.in					MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./mkinstalldirs					X	1996
 ./util/.cvsignore				X	2000,2001
 ./util/COPYRIGHT				X	1996,1997,1998,1999,2000,2001,2004,2007
