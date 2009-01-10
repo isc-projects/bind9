@@ -1,3 +1,6 @@
+2528.   [cleanup]       Silence spurious configure warning about
+                        --datarootdir [RT #19096]
+
 2527.	[placeholder]
 
 2526.	[func]		New named option "attach-cache" that allows multiple
