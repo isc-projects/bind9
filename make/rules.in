@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: rules.in,v 1.47.18.15 2008/02/18 23:46:01 tbox Exp $
+# $Id: rules.in,v 1.47.18.16 2009/01/10 02:01:46 each Exp $
 
 ###
 ### Common Makefile rules for BIND 9.
@@ -34,6 +34,7 @@ libdir =	@libdir@
 sysconfdir =	@sysconfdir@
 localstatedir =	@localstatedir@
 mandir =	@mandir@
+datarootdir =   @datarootdir@
 
 DESTDIR =
 
