@@ -1,3 +1,6 @@
+2528.   [cleanup]       Silence spurious configure warning about
+                        --datarootdir [RT #19096]
+
 2527.	[bug]		named could reuse cache on reload with
 			enabling/disabling validation. [RT #19119]
 
