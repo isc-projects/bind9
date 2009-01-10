@@ -42,6 +42,18 @@ BIND 9
 		Stichting NLnet - NLnet Foundation
 		Nominum, Inc.
 
+BIND 9.7.0
+
+        BIND 9.7.0 includes a number of changes from BIND 9.6 and earlier
+        releases, including:
+
+	New named option "attach-cache" that allows multiple views to
+	share a single cache.
+
+	New logging category "query-errors" to provide detailed
+	internal information about query failures, especially about
+	server failures.
+
 BIND 9.6.0
 
         BIND 9.6.0 includes a number of changes from BIND 9.5 and earlier
