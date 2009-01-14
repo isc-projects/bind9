@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.20.50.1 2009/01/14 17:35:38 fdupont Exp $
+ * $Id: opensslrsa_link.c,v 1.20.50.2 2009/01/14 23:47:26 tbox Exp $
  */
 #ifdef OPENSSL
 #ifndef USE_EVP
