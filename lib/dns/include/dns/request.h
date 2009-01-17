@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.h,v 1.27 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: request.h,v 1.28 2009/01/17 13:08:53 fdupont Exp $ */
 
 #ifndef DNS_REQUEST_H
 #define DNS_REQUEST_H 1
@@ -344,7 +344,7 @@ dns_request_usedtcp(dns_request_t *request);
 /*%<
  * Return whether this query used TCP or not.  Setting #DNS_REQUESTOPT_TCP
  * in the call to dns_request_create() will cause the function to return
- * #ISC_TRUE, othewise the result is based on the query message size.
+ * #ISC_TRUE, otherwise the result is based on the query message size.
  *
  * Requires:
  *\li	'request' is a valid request.

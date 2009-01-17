@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.h,v 1.21 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: sdb.h,v 1.22 2009/01/17 13:11:50 fdupont Exp $ */
 
 #ifndef DNS_SDB_H
 #define DNS_SDB_H 1
@@ -132,7 +132,7 @@ dns_sdb_register(const char *drivername, const dns_sdbmethods_t *methods,
  *
  * The create function will be called for each zone configured
  * into the name server using this database type.  It can be used
- * to create a "database object" containg zone specific data,
+ * to create a "database object" containing zone specific data,
  * which can make use of the database arguments specified in the
  * name server configuration.
  *

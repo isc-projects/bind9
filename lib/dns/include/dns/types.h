@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.130 2008/09/24 02:46:23 marka Exp $ */
+/* $Id: types.h,v 1.131 2009/01/17 13:19:31 fdupont Exp $ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
@@ -271,7 +271,7 @@ enum {
 	dns_trust_glue = 3,
 #define dns_trust_glue			((dns_trust_t)dns_trust_glue)
 
-	/* Answser from a non-authoritative server */
+	/* Answer from a non-authoritative server */
 	dns_trust_answer = 4,
 #define dns_trust_answer		((dns_trust_t)dns_trust_answer)
 
@@ -280,7 +280,7 @@ enum {
 	dns_trust_authauthority = 5,
 #define dns_trust_authauthority		((dns_trust_t)dns_trust_authauthority)
 
-	/* Answser from an authoritative server */
+	/* Answer from an authoritative server */
 	dns_trust_authanswer = 6,
 #define dns_trust_authanswer		((dns_trust_t)dns_trust_authanswer)
 
@@ -294,7 +294,7 @@ enum {
 };
 
 /*%
- * Name checking severites.
+ * Name checking severities.
  */
 typedef enum {
 	dns_severity_ignore,

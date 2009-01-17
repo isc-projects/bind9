@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkey.h,v 1.26 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: tkey.h,v 1.27 2009/01/17 13:17:25 fdupont Exp $ */
 
 #ifndef DNS_TKEY_H
 #define DNS_TKEY_H 1
@@ -219,7 +219,7 @@ dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 		      isc_boolean_t win2k);
 
 /*
- *	Client side negotiation of GSS-TSIG.  Process the respsonse
+ *	Client side negotiation of GSS-TSIG.  Process the response
  *	to a TKEY, and establish a TSIG key if negotiation was successful.
  *	Build a response to the input TKEY message.  Can take multiple
  *	calls to successfully establish the context.
