@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ipseckey_45.c,v 1.4 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: ipseckey_45.c,v 1.5 2009/01/17 13:42:39 fdupont Exp $ */
 
 #ifndef RDATA_GENERIC_IPSECKEY_45_C
 #define RDATA_GENERIC_IPSECKEY_45_C
@@ -139,7 +139,7 @@ totext_ipseckey(ARGS_TOTEXT) {
                 RETERR(str_totext("( ", target));
 
 	/*
-	 * Precendence.
+	 * Precedence.
 	 */
 	dns_rdata_toregion(rdata, &region);
 	num = uint8_fromregion(&region);
