@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.524 2009/01/09 23:47:45 tbox Exp $ */
+/* $Id: server.c,v 1.525 2009/01/17 11:22:01 fdupont Exp $ */
 
 /*! \file */
 
@@ -230,7 +230,7 @@ static const struct {
 	/* Local IPv6 Unicast Addresses */
 	{ "0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.IP6.ARPA", ISC_FALSE },
 	{ "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.IP6.ARPA", ISC_FALSE },
-	/* LOCALLY ASSIGNED LOCAL ADDRES S SCOPE */
+	/* LOCALLY ASSIGNED LOCAL ADDRESS SCOPE */
 	{ "D.F.IP6.ARPA", ISC_FALSE },
 	{ "8.E.F.IP6.ARPA", ISC_FALSE },	/* LINK LOCAL */
 	{ "9.E.F.IP6.ARPA", ISC_FALSE },	/* LINK LOCAL */
