@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hash.h,v 1.10 2007/06/19 23:47:18 tbox Exp $ */
+/* $Id: hash.h,v 1.11 2009/01/17 23:12:09 fdupont Exp $ */
 
 #ifndef ISC_HASH_H
 #define ISC_HASH_H 1
@@ -36,7 +36,7 @@
  *	in the random vector are unpredictable, the probability of hash
  *	collision between arbitrary two different values is at most 1/2^16.
  *
- *	Altough the API is generic about the hash keys, it mainly expects
+ *	Although the API is generic about the hash keys, it mainly expects
  *	DNS names (and sometimes IPv4/v6 addresses) as inputs.  It has an
  *	upper limit of the input length, and may run slow to calculate the
  *	hash values for large inputs.

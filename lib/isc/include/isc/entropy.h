@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.h,v 1.32 2007/06/19 23:47:18 tbox Exp $ */
+/* $Id: entropy.h,v 1.33 2009/01/17 23:04:25 fdupont Exp $ */
 
 #ifndef ISC_ENTROPY_H
 #define ISC_ENTROPY_H 1
@@ -103,7 +103,7 @@ typedef void (*isc_entropystop_t)(isc_entropysource_t *source, void *arg);
 /*!
  * \brief
  *	Estimate the amount of entropy contained in the sample pool.
- *	If this is not set, the source will be gathered and perodically
+ *	If this is not set, the source will be gathered and periodically
  *	mixed into the entropy pool, but no increment in contained entropy
  *	will be assumed.  This flag only makes sense on sample sources.
  */

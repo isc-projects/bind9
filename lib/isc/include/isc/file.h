@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.h,v 1.33 2007/06/19 23:47:18 tbox Exp $ */
+/* $Id: file.h,v 1.34 2009/01/17 23:06:37 fdupont Exp $ */
 
 #ifndef ISC_FILE_H
 #define ISC_FILE_H 1
@@ -35,7 +35,7 @@ isc_file_settime(const char *file, isc_time_t *time);
 isc_result_t
 isc_file_getmodtime(const char *file, isc_time_t *time);
 /*!<
- * \brief Get the time of last modication of a file.
+ * \brief Get the time of last modification of a file.
  *
  * Notes:
  *\li	The time that is set is relative to the (OS-specific) epoch, as are
