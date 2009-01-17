@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.h,v 1.9 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id: os.h,v 1.10 2009/01/17 10:37:05 fdupont Exp $ */
 
 /*! \file */
 
@@ -35,7 +35,7 @@ FILE *safe_create(const char *filename);
 
 int set_user(FILE *fd, const char *user);
 /*%<
- * Set the owner of the file refernced by 'fd' to 'user'.
+ * Set the owner of the file referenced by 'fd' to 'user'.
  * Returns:
  *   0 		success
  *   -1 	insufficient permissions, or 'user' does not exist.
