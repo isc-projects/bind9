@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.31 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: time.c,v 1.32 2009/01/17 15:06:49 fdupont Exp $ */
 
 /*! \file */
 
@@ -145,7 +145,7 @@ dns_time64_fromtext(const char *source, isc_int64_t *target) {
 	RANGE(0, 60, second);		/* 60 == leap second. */
 
 	/*
-	 * Calulate seconds since epoch.
+	 * Calculate seconds since epoch.
 	 */
 	value = second + (60 * minute) + (3600 * hour) + ((day - 1) * 86400);
 	for (i = 0; i < (month - 1); i++)
