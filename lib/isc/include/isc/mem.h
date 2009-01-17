@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.78 2008/03/31 05:00:30 marka Exp $ */
+/* $Id: mem.h,v 1.79 2009/01/17 23:22:35 fdupont Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -94,7 +94,7 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_debugging;
 /*!<
  * The variable isc_mem_debugging holds a set of flags for
  * turning certain memory debugging options on or off at
- * runtime.  Its is intialized to the value ISC_MEM_DEGBUGGING,
+ * runtime.  It is initialized to the value ISC_MEM_DEGBUGGING,
  * which is 0 by default but may be overridden at compile time.
  * The following flags can be specified:
  *
@@ -106,7 +106,7 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_debugging;
  *	Crash if a free doesn't match an allocation.
  *
  * \li #ISC_MEM_DEBUGUSAGE
- *	If a hi_water mark is set, print the maximium inuse memory
+ *	If a hi_water mark is set, print the maximum inuse memory
  *	every time it is raised once it exceeds the hi_water mark.
  *
  * \li #ISC_MEM_DEBUGSIZE
@@ -158,7 +158,7 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_debugging;
 #define isc_mempool_get(c)	isc__mempool_get((c) _ISC_MEM_FILELINE)
 
 /*%
- * isc_mem_putanddetach() is a convienence function for use where you
+ * isc_mem_putanddetach() is a convenience function for use where you
  * have a structure with an attached memory context.
  *
  * Given:
@@ -341,12 +341,12 @@ isc_mem_setwater(isc_mem_t *mctx, isc_mem_water_t water, void *water_arg,
  *
  * When the memory usage of 'mctx' exceeds 'hiwater',
  * '(water)(water_arg, #ISC_MEM_HIWATER)' will be called.  'water' needs to
- * call isc_mem_waterack() with #ISC_MEM_HIWATER to acknowlege the state
+ * call isc_mem_waterack() with #ISC_MEM_HIWATER to acknowledge the state
  * change.  'water' may be called multiple times.
  *
  * When the usage drops below 'lowater', 'water' will again be called, this
  * time with #ISC_MEM_LOWATER.  'water' need to calls isc_mem_waterack() with
- * #ISC_MEM_LOWATER to acknowlege the change.
+ * #ISC_MEM_LOWATER to acknowledge the change.
  *
  *	static void
  *	water(void *arg, int mark) {
@@ -373,7 +373,7 @@ isc_mem_setwater(isc_mem_t *mctx, isc_mem_water_t water, void *water_arg,
 void
 isc_mem_waterack(isc_mem_t *ctx, int mark);
 /*%<
- * Called to acknowledge changes in signalled by calls to 'water'.
+ * Called to acknowledge changes in signaled by calls to 'water'.
  */
 
 void
@@ -512,7 +512,7 @@ isc_mempool_associatelock(isc_mempool_t *mpctx, isc_mutex_t *lock);
  * and it is also used to set or get internal state via the isc_mempool_get*()
  * and isc_mempool_set*() set of functions.
  *
- * Mutiple pools can each share a single lock.  For instance, if "manager"
+ * Multiple pools can each share a single lock.  For instance, if "manager"
  * type object contained pools for various sizes of events, and each of
  * these pools used a common lock.  Note that this lock must NEVER be used
  * by other than mempool routines once it is given to a pool, since that can
