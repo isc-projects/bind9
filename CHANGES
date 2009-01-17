@@ -84,7 +84,7 @@
 			rdata types need to be quoted.  See the ARM for
 			details. [RT #18368]
 
-2500.	[contrib]	contrib/sdb/pgsql/zonetodb.c called non-existant
+2500.	[contrib]	contrib/sdb/pgsql/zonetodb.c called non-existent
 			function. [RT #18582]
 
 2499.	[port]		solaris: lib/lwres/getaddrinfo.c namespace clash.
