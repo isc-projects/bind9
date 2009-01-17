@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.h,v 1.28 2009/01/17 13:08:53 fdupont Exp $ */
+/* $Id: request.h,v 1.29 2009/01/17 23:47:43 tbox Exp $ */
 
 #ifndef DNS_REQUEST_H
 #define DNS_REQUEST_H 1
@@ -49,7 +49,7 @@
 #define DNS_REQUESTOPT_TCP 0x00000001U
 
 typedef struct dns_requestevent {
-        ISC_EVENT_COMMON(struct dns_requestevent);
+	ISC_EVENT_COMMON(struct dns_requestevent);
 	isc_result_t result;
 	dns_request_t *request;
 } dns_requestevent_t;
@@ -217,7 +217,7 @@ dns_request_createvia3(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		       unsigned int udpretries, isc_task_t *task,
 		       isc_taskaction_t action, void *arg,
 		       dns_request_t **requestp);
-/*%< 
+/*%<
  * Create and send a request.
  *
  * Notes:
@@ -271,7 +271,7 @@ dns_request_createraw3(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 		       unsigned int udptimeout, unsigned int udpretries,
 		       isc_task_t *task, isc_taskaction_t action, void *arg,
 		       dns_request_t **requestp);
-/*!< 
+/*!<
  * \brief Create and send a request.
  *
  * Notes:
@@ -280,7 +280,7 @@ dns_request_createraw3(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
  *	#DNS_REQUESTOPT_TCP option is set, TCP will be used.  The request
  *	will timeout after 'timeout' seconds.   UDP requests will be resent
  *	at 'udptimeout' intervals if non-zero or if 'udpretries' is not zero.
- *	
+ *
  *\li	When the request completes, successfully, due to a timeout, or
  *	because it was canceled, a completion event will be sent to 'task'.
  *

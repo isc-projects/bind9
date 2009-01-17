@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dlz.c,v 1.6 2009/01/17 14:18:27 fdupont Exp $ */
+/* $Id: dlz.c,v 1.7 2009/01/17 23:47:42 tbox Exp $ */
 
 /*! \file */
 
@@ -126,7 +126,7 @@ dns_dlzallowzonexfr(dns_view_t *view, dns_name_t *name,
 	dlzdatabase = view->dlzdatabase;
 	allowzonexfr = dlzdatabase->implementation->methods->allowzonexfr;
 	result = (*allowzonexfr)(dlzdatabase->implementation->driverarg,
-			         dlzdatabase->dbdata, dlzdatabase->mctx,
+				 dlzdatabase->dbdata, dlzdatabase->mctx,
 				 view->rdclass, name, clientaddr, dbp);
 
 	if (result == ISC_R_NOTIMPLEMENTED)

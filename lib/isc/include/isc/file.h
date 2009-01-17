@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.h,v 1.34 2009/01/17 23:06:37 fdupont Exp $ */
+/* $Id: file.h,v 1.35 2009/01/17 23:47:43 tbox Exp $ */
 
 #ifndef ISC_FILE_H
 #define ISC_FILE_H 1
@@ -204,7 +204,7 @@ isc_result_t
 isc_file_progname(const char *filename, char *buf, size_t buflen);
 /*!<
  * \brief Given an operating system specific file name "filename"
- * referring to a program, return the canonical program name. 
+ * referring to a program, return the canonical program name.
  *
  *
  * Any directory prefix or executable file name extension (if

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.h,v 1.34 2009/01/17 12:41:50 fdupont Exp $ */
+/* $Id: journal.h,v 1.35 2009/01/17 23:47:43 tbox Exp $ */
 
 #ifndef DNS_JOURNAL_H
 #define DNS_JOURNAL_H 1

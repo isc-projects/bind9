@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hash.h,v 1.11 2009/01/17 23:12:09 fdupont Exp $ */
+/* $Id: hash.h,v 1.12 2009/01/17 23:47:43 tbox Exp $ */
 
 #ifndef ISC_HASH_H
 #define ISC_HASH_H 1
@@ -135,7 +135,7 @@ isc_hash_ctxinit(isc_hash_t *hctx);
 void
 isc_hash_init(void);
 /*!<
- * \brief Initialize a hash object.  
+ * \brief Initialize a hash object.
  *
  * It fills in the random vector with a proper
  * source of entropy, which is typically from the entropy object specified

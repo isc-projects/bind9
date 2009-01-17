@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.h,v 1.36 2009/01/17 23:25:02 fdupont Exp $ */
+/* $Id: netaddr.h,v 1.37 2009/01/17 23:47:43 tbox Exp $ */
 
 #ifndef ISC_NETADDR_H
 #define ISC_NETADDR_H 1
@@ -36,7 +36,7 @@ ISC_LANG_BEGINDECLS
 struct isc_netaddr {
 	unsigned int family;
 	union {
-    		struct in_addr in;
+		struct in_addr in;
 		struct in6_addr in6;
 #ifdef ISC_PLATFORM_HAVESYSUNH
 		char un[sizeof(((struct sockaddr_un *)0)->sun_path)];

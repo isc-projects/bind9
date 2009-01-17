@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.43 2009/01/17 12:44:18 fdupont Exp $ */
+/* $Id: log.h,v 1.44 2009/01/17 23:47:43 tbox Exp $ */
 
 /*! \file dns/log.h
  * \author  Principal Authors: DCL */

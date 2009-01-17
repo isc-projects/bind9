@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddresses.h,v 1.10 2009/01/17 11:47:13 fdupont Exp $ */
+/* $Id: getaddresses.h,v 1.11 2009/01/17 23:47:42 tbox Exp $ */
 
 #ifndef BIND9_GETADDRESSES_H
 #define BIND9_GETADDRESSES_H 1
@@ -48,7 +48,7 @@ bind9_getaddresses(const char *hostname, in_port_t port,
  *\li	'addrsize' > 0
  *\li	'addrcount' is not NULL.
  *
- * 
+ *
  * Returns:
  *\li	#ISC_R_SUCCESS
  *\li	#ISC_R_NOTFOUND

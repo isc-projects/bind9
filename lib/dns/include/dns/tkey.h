@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkey.h,v 1.27 2009/01/17 13:17:25 fdupont Exp $ */
+/* $Id: tkey.h,v 1.28 2009/01/17 23:47:43 tbox Exp $ */
 
 #ifndef DNS_TKEY_H
 #define DNS_TKEY_H 1
@@ -162,7 +162,7 @@ dns_tkey_builddeletequery(dns_message_t *msg, dns_tsigkey_t *key);
 
 isc_result_t
 dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
-                           dst_key_t *key, isc_buffer_t *nonce,
+			   dst_key_t *key, isc_buffer_t *nonce,
 			   dns_tsigkey_t **outkey, dns_tsig_keyring_t *ring);
 /*%<
  *	Processes a response to a query containing a TKEY that was

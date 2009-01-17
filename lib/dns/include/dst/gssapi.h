@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gssapi.h,v 1.10 2009/01/17 13:33:29 fdupont Exp $ */
+/* $Id: gssapi.h,v 1.11 2009/01/17 23:47:43 tbox Exp $ */
 
 #ifndef DST_GSSAPI_H
 #define DST_GSSAPI_H 1
@@ -161,7 +161,7 @@ gss_log(int level, const char *fmt, ...)
 ISC_FORMAT_PRINTF(2, 3);
 /*
  * Logging function for GSS.
- *  
+ *
  *  Requires
  *      'level' is the log level to be used, as an integer
  *      'fmt'   is a printf format specifier

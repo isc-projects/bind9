@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2008, 2009  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3_50.c,v 1.5 2009/01/17 13:50:58 fdupont Exp $ */
+/* $Id: nsec3_50.c,v 1.6 2009/01/17 23:47:43 tbox Exp $ */
 
 /*
  * Copyright (C) 2004  Nominet, Ltd.
