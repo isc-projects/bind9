@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.86 2008/04/03 02:01:08 marka Exp $ */
+/* $Id: client.h,v 1.87 2009/01/17 10:54:14 fdupont Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -162,7 +162,7 @@ struct ns_client {
 #define NS_CLIENT_VALID(c)		ISC_MAGIC_VALID(c, NS_CLIENT_MAGIC)
 
 #define NS_CLIENTATTR_TCP		0x01
-#define NS_CLIENTATTR_RA		0x02 /*%< Client gets recusive service */
+#define NS_CLIENTATTR_RA		0x02 /*%< Client gets recursive service */
 #define NS_CLIENTATTR_PKTINFO		0x04 /*%< pktinfo is valid */
 #define NS_CLIENTATTR_MULTICAST		0x08 /*%< recv'd from multicast */
 #define NS_CLIENTATTR_WANTDNSSEC	0x10 /*%< include dnssec records */
