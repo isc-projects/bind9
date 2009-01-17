@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dlz.c,v 1.5 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: dlz.c,v 1.6 2009/01/17 14:18:27 fdupont Exp $ */
 
 /*! \file */
 
@@ -275,7 +275,7 @@ dns_dlzfindzone(dns_view_t *view, dns_name_t *name, unsigned int minlabels,
 	 * trying shorter names portions of the name until we find a
 	 * match, have an error, or are below the 'minlabels'
 	 * threshold.  minlabels is 0, if the standard database didn't
-	 * have a zone name match.  Otherwise minlables is the number
+	 * have a zone name match.  Otherwise minlabels is the number
 	 * of labels in that name.  We need to beat that for a
 	 * "better" match for the DLZ database to be authoritative
 	 * instead of the standard database.
