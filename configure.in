@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.462 $)
+AC_REVISION($Revision: 1.463 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -53,7 +53,7 @@ esac
 #
 # Make very sure that these are the first files processed by
 # config.status, since we use the processed output as the input for
-# AC_SUBST_FILE() subsitutions in other files.
+# AC_SUBST_FILE() substitutions in other files.
 #
 AC_CONFIG_FILES([make/rules make/includes])
 
@@ -227,7 +227,7 @@ fi
 # OS dependent CC flags
 #
 case "$host" in
-	# OSF 5.0: recv/send are only avaliable with -D_POSIX_PII_SOCKET or
+	# OSF 5.0: recv/send are only available with -D_POSIX_PII_SOCKET or
 	# -D_XOPEN_SOURCE_EXTENDED.
 	*-dec-osf*)
 		STD_CDEFINES="$STD_CDEFINES -D_POSIX_PII_SOCKET"
@@ -1289,7 +1289,7 @@ AC_SUBST(LIBTOOL_IN_MAIN)
 
 #
 # Here begins a very long section to determine the system's networking
-# capabilities.  The order of the tests is signficant.
+# capabilities.  The order of the tests is significant.
 #
 
 #
@@ -1925,7 +1925,7 @@ AC_SUBST(DST_EXTRA_SRCS)
 # values of type isc_int64_t. This will normally be "ll", but where
 # the compiler treats "long long" as a alias for "long" and printf
 # doesn't know about "long long" use "l".  Hopefully the sprintf
-# will produce a inconsistant result in the later case.  If the compiler
+# will produce a inconsistent result in the later case.  If the compiler
 # fails due to seeing "%lld" we fall back to "l".
 #
 # Digital Unix 4.0 (gcc?) (long long) is 64 bits as is its long. It uses
@@ -2007,7 +2007,7 @@ esac
 #
 AC_CHECK_FUNC(tzset, AC_DEFINE(HAVE_TZSET))
 
-AC_MSG_CHECKING(for optarg decarartion)
+AC_MSG_CHECKING(for optarg declaration)
 AC_TRY_COMPILE([
 #include <unistd.h>
 ],
