@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.126 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: name.h,v 1.127 2009/01/17 12:51:59 fdupont Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -243,7 +243,7 @@ dns_name_setbuffer(dns_name_t *name, isc_buffer_t *buffer);
  *
  * Notes:
  * \li	Specification of a target buffer in dns_name_fromwire(),
- *	dns_name_fromtext(), and dns_name_concatentate() is optional if
+ *	dns_name_fromtext(), and dns_name_concatenate() is optional if
  *	'name' has a dedicated buffer.
  *
  * \li	The caller must not write to buffer until the name has been
@@ -1083,7 +1083,7 @@ dns_name_dynamic(dns_name_t *name);
  *
  * Returns:
  *
- *\li	'ISC_TRUE' if the name is dynamic othewise 'ISC_FALSE'.
+ *\li	'ISC_TRUE' if the name is dynamic otherwise 'ISC_FALSE'.
  */
 
 isc_result_t
@@ -1221,7 +1221,7 @@ dns_name_destroy(void);
 ISC_LANG_ENDDECLS
 
 /*
- *** High Peformance Macros
+ *** High Performance Macros
  ***/
 
 /*

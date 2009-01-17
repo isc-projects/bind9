@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.95 2009/01/05 23:47:53 tbox Exp $ */
+/* $Id: db.h,v 1.96 2009/01/17 12:31:49 fdupont Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -1072,7 +1072,7 @@ isc_result_t
 dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		    isc_stdtime_t now, dns_rdatasetiter_t **iteratorp);
 /*%<
- * Make '*iteratorp' an rdataset iteratator for all rdatasets at 'node' in
+ * Make '*iteratorp' an rdataset iterator for all rdatasets at 'node' in
  * version 'version' of 'db'.
  *
  * Notes:
@@ -1259,7 +1259,7 @@ dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, isc_uint32_t *serialp);
 void
 dns_db_overmem(dns_db_t *db, isc_boolean_t overmem);
 /*%<
- * Enable / disable agressive cache cleaning.
+ * Enable / disable aggressive cache cleaning.
  */
 
 unsigned int
