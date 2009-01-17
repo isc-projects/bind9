@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.172 2008/11/30 23:49:21 marka Exp $ */
+/* $Id: master.c,v 1.173 2009/01/17 14:32:33 fdupont Exp $ */
 
 /*! \file */
 
@@ -1818,7 +1818,7 @@ load_text(dns_loadctx_t *lctx) {
 		/*
 		 * Find type in rdatalist.
 		 * If it does not exist create new one and prepend to list
-		 * as this will mimimise list traversal.
+		 * as this will minimise list traversal.
 		 */
 		if (ictx->glue != NULL)
 			this = ISC_LIST_HEAD(glue_list);

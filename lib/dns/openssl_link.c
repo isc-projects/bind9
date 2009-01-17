@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.22 2008/04/05 23:47:11 tbox Exp $
+ * $Id: openssl_link.c,v 1.23 2009/01/17 14:39:28 fdupont Exp $
  */
 #ifdef OPENSSL
 
@@ -252,7 +252,7 @@ dst__openssl_init() {
 		for (e = ENGINE_get_first(); e != NULL; e = ENGINE_get_next(e)) {
 
 			/*
-			 * Something wierd here. If we call ENGINE_finish()
+			 * Something weird here. If we call ENGINE_finish()
 			 * ENGINE_get_default_RAND() will fail.
 			 */
 			if (ENGINE_init(e)) {
@@ -386,7 +386,7 @@ dst__openssl_setdefault(const char *name) {
  *
  * 'engine_id' is the openssl engine name.
  *
- * pre_cmds and post_cmds a sequence if command arguement pairs
+ * pre_cmds and post_cmds a sequence if command argument pairs
  * pre_num and post_num are a count of those pairs.
  *
  * "SO_PATH", PKCS11_SO_PATH ("/usr/local/lib/engines/engine_pkcs11.so")
