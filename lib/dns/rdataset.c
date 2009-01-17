@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.82 2008/09/24 02:46:22 marka Exp $ */
+/* $Id: rdataset.c,v 1.83 2009/01/17 14:53:36 fdupont Exp $ */
 
 /*! \file */
 
@@ -342,7 +342,7 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	}
 
 	/*
-	 * Do we want to shuffle this anwer?
+	 * Do we want to shuffle this answer?
 	 */
 	if (!question && count > 1 &&
 	    (!WANT_FIXED(rdataset) || order != NULL) &&
