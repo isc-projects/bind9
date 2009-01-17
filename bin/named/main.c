@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.166 2008/10/24 01:24:54 marka Exp $ */
+/* $Id: main.c,v 1.167 2009/01/17 11:12:10 fdupont Exp $ */
 
 /*! \file */
 
@@ -139,7 +139,7 @@ assertion_failed(const char *file, int line, isc_assertiontype_t type,
 
 	if (ns_g_lctx != NULL) {
 		/*
-		 * Reset the assetion callback in case it is the log
+		 * Reset the assertion callback in case it is the log
 		 * routines causing the assertion.
 		 */
 		isc_assertion_setcallback(NULL);
@@ -747,7 +747,7 @@ setup(void) {
 
 #ifdef DLZ
 	/*
-	 * Registyer any DLZ drivers.
+	 * Register any DLZ drivers.
 	 */
 	result = dlz_drivers_init();
 	if (result != ISC_R_SUCCESS)
