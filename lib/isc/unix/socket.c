@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.311 2008/12/03 02:11:32 marka Exp $ */
+/* $Id: socket.c,v 1.312 2009/01/18 00:06:06 fdupont Exp $ */
 
 /*! \file */
 
@@ -268,7 +268,7 @@ typedef isc_event_t intev_t;
 #endif
 
 /*%
- * The size to raise the recieve buffer to (from BIND 8).
+ * The size to raise the receive buffer to (from BIND 8).
  */
 #define RCVBUFSIZE (32*1024)
 
@@ -1129,7 +1129,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 
 /*
  * Construct an iov array and attach it to the msghdr passed in.  This is
- * the RECV constructor, which will use the avialable region of the buffer
+ * the RECV constructor, which will use the available region of the buffer
  * (if using a buffer list) or will use the internal region (if a single
  * buffer I/O is requested).
  *
@@ -2639,7 +2639,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 	 * a documented error for accept().  ECONNABORTED has been
 	 * reported for Solaris 8.  The rest are thrown in not because
 	 * we have seen them but because they are ignored by other
-	 * deamons such as BIND 8 and Apache.
+	 * daemons such as BIND 8 and Apache.
 	 */
 
 	addrlen = sizeof(dev->newsocket->peer_address.type);

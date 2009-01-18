@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.60 2008/03/20 23:47:00 tbox Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.61 2009/01/18 00:01:26 fdupont Exp $ */
 
 /*! \file
  * \brief
@@ -122,7 +122,7 @@ getbuf4(isc_interfaceiter_t *iter) {
 		iter->ifc.ifc_len = iter->bufsize;
 		iter->ifc.ifc_buf = iter->buf;
 		/*
-		 * Ignore the HP/UX warning about "interger overflow during
+		 * Ignore the HP/UX warning about "integer overflow during
 		 * conversion".  It comes from its own macro definition,
 		 * and is really hard to shut up.
 		 */
@@ -202,7 +202,7 @@ getbuf6(isc_interfaceiter_t *iter) {
 		iter->lifc.lifc_len = iter->bufsize6;
 		iter->lifc.lifc_buf = iter->buf6;
 		/*
-		 * Ignore the HP/UX warning about "interger overflow during
+		 * Ignore the HP/UX warning about "integer overflow during
 		 * conversion".  It comes from its own macro definition,
 		 * and is really hard to shut up.
 		 */
@@ -496,7 +496,7 @@ internal_current4(isc_interfaceiter_t *iter) {
 	iter->current.flags = 0;
 
 	/*
-	 * Ignore the HP/UX warning about "interger overflow during
+	 * Ignore the HP/UX warning about "integer overflow during
 	 * conversion.  It comes from its own macro definition,
 	 * and is really hard to shut up.
 	 */
@@ -574,7 +574,7 @@ internal_current4(isc_interfaceiter_t *iter) {
 	 */
 	if ((iter->current.flags & INTERFACE_F_POINTTOPOINT) != 0) {
 		/*
-		 * Ignore the HP/UX warning about "interger overflow during
+		 * Ignore the HP/UX warning about "integer overflow during
 		 * conversion.  It comes from its own macro definition,
 		 * and is really hard to shut up.
 		 */
@@ -601,7 +601,7 @@ internal_current4(isc_interfaceiter_t *iter) {
 	memset(&ifreq, 0, sizeof(ifreq));
 	memcpy(&ifreq, ifrp, sizeof(ifreq));
 	/*
-	 * Ignore the HP/UX warning about "interger overflow during
+	 * Ignore the HP/UX warning about "integer overflow during
 	 * conversion.  It comes from its own macro definition,
 	 * and is really hard to shut up.
 	 */
@@ -684,7 +684,7 @@ internal_current6(isc_interfaceiter_t *iter) {
 		fd = iter->socket;
 
 	/*
-	 * Ignore the HP/UX warning about "interger overflow during
+	 * Ignore the HP/UX warning about "integer overflow during
 	 * conversion.  It comes from its own macro definition,
 	 * and is really hard to shut up.
 	 */
@@ -713,7 +713,7 @@ internal_current6(isc_interfaceiter_t *iter) {
 	 */
 	if ((iter->current.flags & INTERFACE_F_POINTTOPOINT) != 0) {
 		/*
-		 * Ignore the HP/UX warning about "interger overflow during
+		 * Ignore the HP/UX warning about "integer overflow during
 		 * conversion.  It comes from its own macro definition,
 		 * and is really hard to shut up.
 		 */
@@ -763,7 +763,7 @@ internal_current6(isc_interfaceiter_t *iter) {
 #endif
 
 	/*
-	 * Ignore the HP/UX warning about "interger overflow during
+	 * Ignore the HP/UX warning about "integer overflow during
 	 * conversion.  It comes from its own macro definition,
 	 * and is really hard to shut up.
 	 */
