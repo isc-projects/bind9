@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: FAQ.xml,v 1.30.26.6 2008/09/10 01:43:22 tbox Exp $ -->
+<!-- $Id: FAQ.xml,v 1.30.26.7 2009/01/18 01:40:13 tbox Exp $ -->
 
 <article class="faq">
   <title>Frequently Asked Questions about BIND 9</title>
@@ -1067,7 +1067,7 @@ empty:
 	  NSEC3 records are strictly meta data and can only be
 	  returned in the authority section.  This is done so that
 	  signing the zone using NSEC3 records does not bring names
-	  into existance that do not exist in the unsigned version
+	  into existence that do not exist in the unsigned version
 	  of the zone.
 	</para>
       </answer>
