@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.163.48.1 2009/01/18 23:25:15 marka Exp $ */
+/* $Id: nsupdate.c,v 1.163.48.2 2009/01/18 23:47:34 tbox Exp $ */
 
 /*! \file */
 

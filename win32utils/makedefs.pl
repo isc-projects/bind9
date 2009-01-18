@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: makedefs.pl,v 1.8.332.1 2009/01/18 23:25:18 marka Exp $
+# $Id: makedefs.pl,v 1.8.332.2 2009/01/18 23:47:41 tbox Exp $
 
 # makedefs.pl
 # This script goes through all of the lib header files and creates a .def file

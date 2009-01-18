@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.85.58.1 2009/01/18 23:25:17 marka Exp $ */
+/* $Id: socket.h,v 1.85.58.2 2009/01/18 23:47:41 tbox Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1

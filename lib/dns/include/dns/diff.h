@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: diff.h,v 1.15.120.1 2009/01/18 23:25:17 marka Exp $ */
+/* $Id: diff.h,v 1.15.120.2 2009/01/18 23:47:41 tbox Exp $ */
 
 #ifndef DNS_DIFF_H
 #define DNS_DIFF_H 1

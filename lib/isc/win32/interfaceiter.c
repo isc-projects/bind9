@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.13.110.1 2009/01/18 23:25:17 marka Exp $ */
+/* $Id: interfaceiter.c,v 1.13.110.2 2009/01/18 23:47:41 tbox Exp $ */
 
 /*
  * Note that this code will need to be revisited to support IPv6 Interfaces.
