@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.h,v 1.55 2007/06/18 23:47:44 tbox Exp $ */
+/* $Id: sockaddr.h,v 1.55.332.1 2009/01/18 23:25:17 marka Exp $ */
 
 #ifndef ISC_SOCKADDR_H
 #define ISC_SOCKADDR_H 1
@@ -210,7 +210,7 @@ isc_sockaddr_isexperimental(const isc_sockaddr_t *sa);
 isc_boolean_t
 isc_sockaddr_islinklocal(const isc_sockaddr_t *sa);
 /*%<
- * Returns ISC_TRUE if the address is a link local addresss.
+ * Returns ISC_TRUE if the address is a link local address.
  */
 
 isc_boolean_t

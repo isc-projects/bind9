@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: heap.h,v 1.24 2007/06/19 23:47:18 tbox Exp $ */
+/* $Id: heap.h,v 1.24.332.1 2009/01/18 23:25:17 marka Exp $ */
 
 #ifndef ISC_HEAP_H
 #define ISC_HEAP_H 1
@@ -28,7 +28,7 @@
 ISC_LANG_BEGINDECLS
 
 /*%
- * The comparision function returns ISC_TRUE if the first argument has
+ * The comparison function returns ISC_TRUE if the first argument has
  * higher priority than the second argument, and ISC_FALSE otherwise.
  */
 typedef isc_boolean_t (*isc_heapcompare_t)(void *, void *);

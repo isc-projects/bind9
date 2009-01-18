@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.225 2008/10/28 23:47:06 tbox Exp $ */
+/* $Id: dig.c,v 1.225.26.1 2009/01/18 23:25:14 marka Exp $ */
 
 /*! \file */
 
@@ -843,7 +843,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			lookup->identify = state;
 			break;
 		case 'g': /* ignore */
-		default: /* Inherets default for compatibility */
+		default: /* Inherits default for compatibility */
 			FULLCHECK("ignore");
 			lookup->ignore = ISC_TRUE;
 		}

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.155.12.2 2008/12/10 23:48:13 tbox Exp $ */
+/* $Id: dispatch.c,v 1.155.12.3 2009/01/18 23:25:16 marka Exp $ */
 
 /*! \file */
 
@@ -2419,7 +2419,7 @@ dispatch_allocate(dns_dispatchmgr_t *mgr, unsigned int maxrequests,
 
 
 /*
- * MUST be unlocked, and not used by anthing.
+ * MUST be unlocked, and not used by anything.
  */
 static void
 dispatch_free(dns_dispatch_t **dispp)

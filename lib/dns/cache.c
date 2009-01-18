@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.80 2008/09/24 02:46:22 marka Exp $ */
+/* $Id: cache.c,v 1.80.50.1 2009/01/18 23:25:16 marka Exp $ */
 
 /*! \file */
 
@@ -61,7 +61,7 @@
  ***/
 
 /*
- * A cache_cleaner_t encapsulsates the state of the periodic
+ * A cache_cleaner_t encapsulates the state of the periodic
  * cache cleaning.
  */
 
@@ -934,7 +934,7 @@ dns_cache_setcachesize(dns_cache_t *cache, isc_uint32_t size) {
 	REQUIRE(VALID_CACHE(cache));
 
 	/*
-	 * Impose a minumum cache size; pathological things happen if there
+	 * Impose a minimum cache size; pathological things happen if there
 	 * is too little room.
 	 */
 	if (size != 0 && size < DNS_CACHE_MINSIZE)

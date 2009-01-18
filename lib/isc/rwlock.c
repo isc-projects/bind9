@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock.c,v 1.44 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: rwlock.c,v 1.44.332.1 2009/01/18 23:25:17 marka Exp $ */
 
 /*! \file */
 
@@ -45,7 +45,7 @@
 
 #ifdef ISC_RWLOCK_TRACE
 #include <stdio.h>		/* Required for fprintf/stderr. */
-#include <isc/thread.h>		/* Requried for isc_thread_self(). */
+#include <isc/thread.h>		/* Required for isc_thread_self(). */
 
 static void
 print_lock(const char *operation, isc_rwlock_t *rwl, isc_rwlocktype_t type) {

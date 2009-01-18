@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.70.54.2 2009/01/05 23:47:23 tbox Exp $ */
+/* $Id: socket.c,v 1.70.54.3 2009/01/18 23:25:17 marka Exp $ */
 
 /* This code uses functions which are only available on Server 2003 and
  * higher, and Windows XP and higher.
@@ -87,7 +87,7 @@ LPFN_ACCEPTEX ISCAcceptEx;
 LPFN_GETACCEPTEXSOCKADDRS ISCGetAcceptExSockaddrs;
 
 /*
- * Run expensive internal consistancy checks.
+ * Run expensive internal consistency checks.
  */
 #ifdef ISC_SOCKET_CONSISTENCY_CHECKS
 #define CONSISTENT(sock) consistent(sock)
@@ -489,7 +489,7 @@ iocompletionport_init(isc_socketmgr_t *manager) {
 	REQUIRE(VALID_MANAGER(manager));
 	/*
 	 * Create a private heap to handle the socket overlapped structure
-	 * The miniumum number of structures is 10, there is no maximum
+	 * The minimum number of structures is 10, there is no maximum
 	 */
 	hHeapHandle = HeapCreate(0, 10 * sizeof(IoCompletionInfo), 0);
 	if (hHeapHandle == NULL) {
@@ -1514,7 +1514,7 @@ consistent(isc_socket_t *sock) {
 /*
  * Maybe free the socket.
  *
- * This function will veriy tht the socket is no longer in use in any way,
+ * This function will verify tht the socket is no longer in use in any way,
  * either internally or externally.  This is the only place where this
  * check is to be made; if some bit of code believes that IT is done with
  * the socket (e.g., some reference counter reaches zero), it should call
@@ -1722,7 +1722,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		}
 #endif
 #endif /* ISC_PLATFORM_HAVEIPV6 */
-#endif /* definef(USE_CMSG) */
+#endif /* defined(USE_CMSG) */
 
 #if defined(SO_RCVBUF)
 	       optlen = sizeof(size);
@@ -2355,7 +2355,7 @@ SocketIoThread(LPVOID ThreadContext) {
 				if (senddone_is_active(sock, lpo->dev)) {
 					lpo->dev->result = isc_result;
 					socket_log(__LINE__, sock, NULL, EVENT, NULL, 0, 0,
-						"cancelled_send");
+						"canceled_send");
 					send_senddone_event(sock, &lpo->dev);
 				}
 				break;
@@ -2372,7 +2372,7 @@ SocketIoThread(LPVOID ThreadContext) {
 					free_socket(&lpo->adev->newsocket, __LINE__);
 					lpo->adev->result = isc_result;
 					socket_log(__LINE__, sock, NULL, EVENT, NULL, 0, 0,
-						"cancelled_accept");
+						"canceled_accept");
 					send_acceptdone_event(sock, &lpo->adev);
 				}
 				break;
@@ -2385,7 +2385,7 @@ SocketIoThread(LPVOID ThreadContext) {
 				if (connectdone_is_active(sock, lpo->cdev)) {
 					lpo->cdev->result = isc_result;
 					socket_log(__LINE__, sock, NULL, EVENT, NULL, 0, 0,
-						"cancelled_connect");
+						"canceled_connect");
 					send_connectdone_event(sock, &lpo->cdev);
 				}
 				break;
@@ -3115,7 +3115,7 @@ isc_socket_listen(isc_socket_t *sock, unsigned int backlog) {
 }
 
 /*
- * This should try to do agressive accept() XXXMLG
+ * This should try to do aggressive accept() XXXMLG
  */
 isc_result_t
 isc_socket_accept(isc_socket_t *sock,

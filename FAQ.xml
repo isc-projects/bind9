@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: FAQ.xml,v 1.46.56.1 2009/01/18 01:51:13 tbox Exp $ -->
+<!-- $Id: FAQ.xml,v 1.46.56.2 2009/01/18 23:25:14 marka Exp $ -->
 
 <article class="faq">
   <title>Frequently Asked Questions about BIND 9</title>
@@ -28,6 +28,7 @@
       <year>2006</year>
       <year>2007</year>
       <year>2008</year>
+      <year>2009</year>
       <holder>Internet Systems Consortium, Inc. ("ISC")</holder>
     </copyright>
     <copyright>

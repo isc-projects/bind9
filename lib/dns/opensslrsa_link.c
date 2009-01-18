@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.20.50.2 2009/01/14 23:47:26 tbox Exp $
+ * $Id: opensslrsa_link.c,v 1.20.50.3 2009/01/18 23:25:16 marka Exp $
  */
 #ifdef OPENSSL
 #ifndef USE_EVP
@@ -64,8 +64,8 @@
 
 
 	/*
-	 * XXXMPA  Temporarially disable RSA_BLINDING as it requires
-	 * good quality random data that cannot currently be guarenteed.
+	 * XXXMPA  Temporarily disable RSA_BLINDING as it requires
+	 * good quality random data that cannot currently be guaranteed.
 	 * XXXMPA  Find which versions of openssl use pseudo random data
 	 * and set RSA_FLAG_BLINDING for those.
 	 */

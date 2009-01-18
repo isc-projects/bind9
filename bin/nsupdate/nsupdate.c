@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.163 2008/09/25 04:02:38 tbox Exp $ */
+/* $Id: nsupdate.c,v 1.163.48.1 2009/01/18 23:25:15 marka Exp $ */
 
 /*! \file */
 
@@ -2505,7 +2505,7 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 		 * not a security issue), and Windows clients don't
 		 * seem to work if named complies with the spec and
 		 * includes the gratuitous TSIG.  So we're in the
-		 * bizzare situation of having to choose between
+		 * bizarre situation of having to choose between
 		 * complying with a useless requirement in the spec
 		 * and interoperating.  This is nuts.  If we can
 		 * confirm this behavior, we should ask the WG to

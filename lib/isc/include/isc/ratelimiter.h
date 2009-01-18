@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ratelimiter.h,v 1.21 2007/06/19 23:47:18 tbox Exp $ */
+/* $Id: ratelimiter.h,v 1.21.332.1 2009/01/18 23:25:17 marka Exp $ */
 
 #ifndef ISC_RATELIMITER_H
 #define ISC_RATELIMITER_H 1
@@ -53,7 +53,7 @@ isc_ratelimiter_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
 isc_result_t
 isc_ratelimiter_setinterval(isc_ratelimiter_t *rl, isc_interval_t *interval);
 /*!<
- * Set the mininum interval between event executions.
+ * Set the minimum interval between event executions.
  * The interval value is copied, so the caller need not preserve it.
  *
  * Requires:
@@ -102,7 +102,7 @@ isc_ratelimiter_shutdown(isc_ratelimiter_t *ratelimiter);
  *\li	Further attempts to enqueue events will fail with
  * 	#ISC_R_SHUTTINGDOWN.
  *
- *\li	The reatelimiter is no longer attached to its task.
+ *\li	The rate limiter is no longer attached to its task.
  */
 
 void

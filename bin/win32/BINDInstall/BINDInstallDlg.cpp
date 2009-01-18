@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.cpp,v 1.37.228.2 2008/12/14 21:33:07 tbox Exp $ */
+/* $Id: BINDInstallDlg.cpp,v 1.37.228.3 2009/01/18 23:25:15 marka Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -412,7 +412,7 @@ void CBINDInstallDlg::OnInstall() {
 
 	/*
 	 * Check that there is not leading / trailing whitespace.
-	 * This is for compatability with the standard password dialog.
+	 * This is for compatibility with the standard password dialog.
 	 * Passwords really should be treated as opaque blobs.
 	 */
 	oldlen = m_accountPassword.GetLength();

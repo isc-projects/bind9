@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: loc_29.c,v 1.45 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: loc_29.c,v 1.45.332.1 2009/01/18 23:25:17 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 18:13:09 PST 2000 by explorer */
 
@@ -616,7 +616,7 @@ fromwire_loc(ARGS_FROMWIRE) {
 		return (ISC_R_RANGE);
 
 	/*
-	 * Altitiude.
+	 * Altitude.
 	 * All values possible.
 	 */
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.18 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: entropy.c,v 1.18.332.1 2009/01/18 23:25:17 marka Exp $ */
 
 /*! \file
  * \brief
@@ -290,7 +290,7 @@ entropypool_add_word(isc_entropypool_t *rp, isc_uint32_t val) {
 	 * If we have looped around the pool, increment the rotate
 	 * variable so the next value will get xored in rotated to
 	 * a different position.
-	 * Increment by a value that is relativly prime to the word size
+	 * Increment by a value that is relatively prime to the word size
 	 * to try to spread the bits throughout the pool quickly when the
 	 * pool is empty.
 	 */

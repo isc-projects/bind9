@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hash.h,v 1.10 2007/06/19 23:47:18 tbox Exp $ */
+/* $Id: hash.h,v 1.10.332.1 2009/01/18 23:25:17 marka Exp $ */
 
 #ifndef ISC_HASH_H
 #define ISC_HASH_H 1
@@ -36,7 +36,7 @@
  *	in the random vector are unpredictable, the probability of hash
  *	collision between arbitrary two different values is at most 1/2^16.
  *
- *	Altough the API is generic about the hash keys, it mainly expects
+ *	Although the API is generic about the hash keys, it mainly expects
  *	DNS names (and sometimes IPv4/v6 addresses) as inputs.  It has an
  *	upper limit of the input length, and may run slow to calculate the
  *	hash values for large inputs.
@@ -135,7 +135,7 @@ isc_hash_ctxinit(isc_hash_t *hctx);
 void
 isc_hash_init(void);
 /*!<
- * \brief Initialize a hash object.  
+ * \brief Initialize a hash object.
  *
  * It fills in the random vector with a proper
  * source of entropy, which is typically from the entropy object specified

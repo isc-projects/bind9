@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.c,v 1.50.44.1 2008/12/24 00:17:11 marka Exp $ */
+/* $Id: acl.c,v 1.50.44.2 2009/01/18 23:25:16 marka Exp $ */
 
 /*! \file */
 
@@ -264,7 +264,7 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
  * If pos is set to false, then the nested ACL is to be negated.  This
  * means reverse the sense of each *positive* element or IP table node,
  * but leave negatives alone, so as to prevent a double-negative causing
- * an unexpected postive match in the parent ACL.
+ * an unexpected positive match in the parent ACL.
  */
 isc_result_t
 dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, isc_boolean_t pos)
@@ -360,7 +360,7 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, isc_boolean_t pos)
  * Like dns_acl_match, but matches against the single ACL element 'e'
  * rather than a complete ACL, and returns ISC_TRUE iff it matched.
  *
- * To determine whether the match was prositive or negative, the
+ * To determine whether the match was positive or negative, the
  * caller should examine e->negative.  Since the element 'e' may be
  * a reference to a named ACL or a nested ACL, a matching element
  * returned through 'matchelt' is not necessarily 'e' itself.

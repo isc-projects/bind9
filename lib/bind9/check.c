@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.95 2008/11/19 05:38:49 marka Exp $ */
+/* $Id: check.c,v 1.95.12.1 2009/01/18 23:25:16 marka Exp $ */
 
 /*! \file */
 
@@ -1150,7 +1150,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 
 	/*
 	 * Look for an already existing zone.
-	 * We need to make this cannonical as isc_symtab_define()
+	 * We need to make this canonical as isc_symtab_define()
 	 * deals with strings.
 	 */
 	dns_fixedname_init(&fixedname);

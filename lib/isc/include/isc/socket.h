@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.85 2008/09/04 07:46:02 marka Exp $ */
+/* $Id: socket.h,v 1.85.58.1 2009/01/18 23:25:17 marka Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -876,7 +876,7 @@ isc_socket_permunix(isc_sockaddr_t *sockaddr, isc_uint32_t perm,
  * Set ownership and file permissions on the UNIX domain socket.
  *
  * Note: On Solaris and SunOS this secures the directory containing
- *       the socket as Solaris and SunOS do not honour the filesytem
+ *       the socket as Solaris and SunOS do not honour the filesystem
  *	 permissions on the socket.
  *
  * Requires:

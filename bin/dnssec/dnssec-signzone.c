@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.209.12.2 2009/01/06 23:47:26 tbox Exp $ */
+/* $Id: dnssec-signzone.c,v 1.209.12.3 2009/01/18 23:25:15 marka Exp $ */
 
 /*! \file */
 
@@ -2376,7 +2376,7 @@ usage(void) {
 	fprintf(stderr, "\t-k key_signing_key\n");
 	fprintf(stderr, "\t-l lookasidezone\n");
 	fprintf(stderr, "\t-3 salt (NSEC3 salt)\n");
-	fprintf(stderr, "\t-H interations (NSEC3 interations)\n");
+	fprintf(stderr, "\t-H iterations (NSEC3 iterations)\n");
 	fprintf(stderr, "\t-A (NSEC3 optout)\n");
 	fprintf(stderr, "\t-z:\t");
 	fprintf(stderr, "ignore KSK flag in DNSKEYs");
@@ -2451,7 +2451,7 @@ main(int argc, char *argv[]) {
 #define CMDLINE_FLAGS "3:aAc:d:e:f:ghH:i:I:j:k:l:m:n:N:o:O:pr:s:StUv:z"
 
 	/*
-	 * Process memory debugging arguement first.
+	 * Process memory debugging argument first.
 	 */
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
@@ -2866,7 +2866,7 @@ main(int argc, char *argv[]) {
 		result = dns_nsec3_maxiterations(gdb, NULL, mctx, &max);
 		check_result(result, "dns_nsec3_maxiterations()");
 		if (iterations > max)
-			fatal("NSEC3 interations too big for weakest DNSKEY "
+			fatal("NSEC3 iterations too big for weakest DNSKEY "
 			      "strength. Maximum iterations allowed %u.", max);
 	}
 

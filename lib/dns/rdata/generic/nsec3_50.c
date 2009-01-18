@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3_50.c,v 1.4 2008/09/25 04:02:39 tbox Exp $ */
+/* $Id: nsec3_50.c,v 1.4.48.1 2009/01/18 23:25:17 marka Exp $ */
 
 /*
  * Copyright (C) 2004  Nominet, Ltd.
@@ -238,7 +238,7 @@ fromwire_nsec3(ARGS_FROMWIRE) {
 	isc_buffer_activeregion(source, &sr);
 	rr = sr;
 
-	/* hash(1), flags(1), interation(2), saltlen(1) */
+	/* hash(1), flags(1), iteration(2), saltlen(1) */
 	if (sr.length < 5U)
 		RETERR(DNS_R_FORMERR);
 	saltlen = sr.base[4];

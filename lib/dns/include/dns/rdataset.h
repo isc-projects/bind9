@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.h,v 1.65 2008/09/24 02:46:23 marka Exp $ */
+/* $Id: rdataset.h,v 1.65.50.1 2009/01/18 23:25:17 marka Exp $ */
 
 #ifndef DNS_RDATASET_H
 #define DNS_RDATASET_H 1
@@ -427,7 +427,7 @@ dns_rdataset_towiresorted(dns_rdataset_t *rdataset,
 			  unsigned int *countp);
 /*%<
  * Like dns_rdataset_towire(), but sorting the rdatasets according to
- * the integer value returned by 'order' when called witih the rdataset
+ * the integer value returned by 'order' when called with the rdataset
  * and 'order_arg' as arguments.
  *
  * Requires:
