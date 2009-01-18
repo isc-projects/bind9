@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: base32.c,v 1.3 2008/04/04 23:47:01 tbox Exp $ */
+/* $Id: base32.c,v 1.4 2009/01/18 00:32:04 fdupont Exp $ */
 
 /*! \file */
 
@@ -171,7 +171,7 @@ base32_decode_char(base32_decode_ctx_t *ctx, int c) {
 	if (last > 32)
 		last -= 33;
 	/*
-	 * Check that padding is contigious.
+	 * Check that padding is contiguous.
 	 */
 	if (last != 32 && ctx->seen_32 != 0)
 		return (ISC_R_BADBASE32);
