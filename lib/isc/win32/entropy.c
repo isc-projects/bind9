@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.9 2009/01/18 00:18:17 fdupont Exp $ */
+/* $Id: entropy.c,v 1.10 2009/01/18 23:48:14 tbox Exp $ */
 
 /*
  * This is the system dependent part of the ISC entropy API.

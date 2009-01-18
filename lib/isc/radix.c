@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2007-2009  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.c,v 1.22 2009/01/18 00:46:01 fdupont Exp $ */
+/* $Id: radix.c,v 1.23 2009/01/18 23:48:14 tbox Exp $ */
 
 /*
  * This source was adapted from MRT's RCS Ids:

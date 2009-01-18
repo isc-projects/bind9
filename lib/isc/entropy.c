@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.19 2009/01/18 00:34:19 fdupont Exp $ */
+/* $Id: entropy.c,v 1.20 2009/01/18 23:48:14 tbox Exp $ */
 
 /*! \file
  * \brief
@@ -1262,7 +1262,7 @@ isc_entropy_usebestsource(isc_entropy_t *ectx, isc_entropysource_t **source,
 
 		if (final_result != ISC_R_SUCCESS)
 			final_result = result;
-	}	
+	}
 
 	/*
 	 * final_result is ISC_R_SUCCESS if at least one source of entropy
