@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.h,v 1.22.18.4 2006/03/02 00:37:21 marka Exp $ */
+/* $Id: acl.h,v 1.22.18.5 2009/01/19 00:36:28 marka Exp $ */
 
 #ifndef DNS_ACL_H
 #define DNS_ACL_H 1
@@ -139,7 +139,7 @@ dns_acl_isinsecure(const dns_acl_t *a);
 /*%<
  * Return #ISC_TRUE iff the acl 'a' is considered insecure, that is,
  * if it contains IP addresses other than those of the local host.
- * This is intended for applications such as printing warning 
+ * This is intended for applications such as printing warning
  * messages for suspect ACLs; it is not intended for making access
  * control decisions.  We make no guarantee that an ACL for which
  * this function returns #ISC_FALSE is safe.
@@ -194,7 +194,8 @@ dns_aclelement_match(const isc_netaddr_t *reqaddr,
 /*%<
  * Like dns_acl_match, but matches against the single ACL element 'e'
  * rather than a complete list and returns ISC_TRUE iff it matched.
- * To determine whether the match was prositive or negative, the 
+ *
+ * To determine whether the match was positive or negative, the 
  * caller should examine e->negative.  Since the element 'e' may be
  * a reference to a named ACL or a nested ACL, the matching element
  * returned through 'matchelt' is not necessarily 'e' itself.

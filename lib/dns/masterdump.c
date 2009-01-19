@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.73.18.16 2008/08/13 23:46:04 tbox Exp $ */
+/* $Id: masterdump.c,v 1.73.18.17 2009/01/19 00:36:27 marka Exp $ */
 
 /*! \file */
 
@@ -283,7 +283,7 @@ totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx) {
 		/*
 		 * Do not return ISC_R_NOSPACE if the line break string
 		 * buffer is too small, because that would just make
-		 * dump_rdataset() retry indenfinitely with ever
+		 * dump_rdataset() retry indefinitely with ever
 		 * bigger target buffers.  That's a different buffer,
 		 * so it won't help.  Use DNS_R_TEXTTOOLONG as a substitute.
 		 */

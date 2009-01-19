@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.35.18.8 2007/08/28 07:20:05 tbox Exp $ */
+/* $Id: rdataslab.c,v 1.35.18.9 2009/01/19 00:36:27 marka Exp $ */
 
 /*! \file */
 
@@ -65,7 +65,7 @@
  *
  * DNSSEC order traversal is performed by walking the data records.
  *
- * The order is stored with record to allow for efficient reconstuction of
+ * The order is stored with record to allow for efficient reconstruction
  * of the offset table following a merge or subtraction.
  *
  * The iterator methods here currently only support DNSSEC order iteration.

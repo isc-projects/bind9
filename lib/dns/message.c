@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.222.18.16 2008/07/28 23:46:20 tbox Exp $ */
+/* $Id: message.c,v 1.222.18.17 2009/01/19 00:36:27 marka Exp $ */
 
 /*! \file */
 
@@ -138,7 +138,7 @@ static const char *rcodetext[] = {
 /*%
  * "helper" type, which consists of a block of some type, and is linkable.
  * For it to work, sizeof(dns_msgblock_t) must be a multiple of the pointer
- * size, or the allocated elements will not be alligned correctly.
+ * size, or the allocated elements will not be aligned correctly.
  */
 struct dns_msgblock {
 	unsigned int			count;
@@ -1934,7 +1934,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 				 *
 				 * XXXMLG Need to change this when
 				 * dns_rdataset_towire() can render partial
-				 * sets starting at some arbitary point in the
+				 * sets starting at some arbitrary point in the
 				 * set.  This will include setting a bit in the
 				 * rdataset to indicate that a partial
 				 * rendering was done, and some state saved

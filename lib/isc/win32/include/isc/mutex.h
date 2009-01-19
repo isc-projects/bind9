@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mutex.h,v 1.17.18.3 2008/09/11 23:46:08 tbox Exp $ */
+/* $Id: mutex.h,v 1.17.18.4 2009/01/19 00:36:29 marka Exp $ */
 
 #ifndef ISC_MUTEX_H
 #define ISC_MUTEX_H 1
@@ -28,7 +28,7 @@
 typedef CRITICAL_SECTION isc_mutex_t;
 
 /*
- * This definition is here since somve versions of WINBASE.H
+ * This definition is here since some versions of WINBASE.H
  * omits it for some reason.
  */
 #if (_WIN32_WINNT < 0x0400)

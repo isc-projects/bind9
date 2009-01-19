@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.h,v 1.27.18.2 2005/04/29 00:16:54 marka Exp $ */
+/* $Id: file.h,v 1.27.18.3 2009/01/19 00:36:28 marka Exp $ */
 
 #ifndef ISC_FILE_H
 #define ISC_FILE_H 1
@@ -35,7 +35,7 @@ isc_file_settime(const char *file, isc_time_t *time);
 isc_result_t
 isc_file_getmodtime(const char *file, isc_time_t *time);
 /*!<
- * \brief Get the time of last modication of a file.
+ * \brief Get the time of last modification of a file.
  *
  * Notes:
  *\li	The time that is set is relative to the (OS-specific) epoch, as are
@@ -204,7 +204,7 @@ isc_result_t
 isc_file_progname(const char *filename, char *buf, size_t buflen);
 /*!<
  * \brief Given an operating system specific file name "filename"
- * referring to a program, return the canonical program name. 
+ * referring to a program, return the canonical program name.
  *
  *
  * Any directory prefix or executable file name extension (if

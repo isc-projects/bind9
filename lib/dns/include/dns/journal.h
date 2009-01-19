@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.h,v 1.25.18.2 2005/04/29 00:16:13 marka Exp $ */
+/* $Id: journal.h,v 1.25.18.3 2009/01/19 00:36:28 marka Exp $ */
 
 #ifndef DNS_JOURNAL_H
 #define DNS_JOURNAL_H 1
@@ -26,7 +26,7 @@
 
 /*! \file
  * \brief
- * Database journalling.
+ * Database journaling.
  */
 
 /***
@@ -188,7 +188,7 @@ dns_journal_iter_init(dns_journal_t *j,
  * Returns:
  *\li	ISC_R_SUCCESS
  *\li	ISC_R_RANGE	begin_serial is outside the addressable range.
- *\li	ISC_R_NOTFOUND	begin_serial is within the range of adressable
+ *\li	ISC_R_NOTFOUND	begin_serial is within the range of addressable
  *			serial numbers covered by the journal, but
  *			this particular serial number does not exist.
  */

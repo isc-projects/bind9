@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.115.18.12 2009/01/05 23:46:19 tbox Exp $ */
+/* $Id: xfrout.c,v 1.115.18.13 2009/01/19 00:36:26 marka Exp $ */
 
 #include <config.h>
 
@@ -1404,7 +1404,7 @@ failure:
  *
  * Requires:
  *	The stream iterator is initialized and points at an RR,
- *      or possiby at the end of the stream (that is, the
+ *      or possibly at the end of the stream (that is, the
  *      _first method of the iterator has been called).
  */
 static void

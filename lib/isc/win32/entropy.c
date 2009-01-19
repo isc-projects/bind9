@@ -15,10 +15,10 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.6 2004/03/05 05:11:56 marka Exp $ */
+/* $Id: entropy.c,v 1.6.18.1 2009/01/19 00:36:28 marka Exp $ */
 
 /*
- * This is the system depenedent part of the ISC entropy API.
+ * This is the system dependent part of the ISC entropy API.
  */
 
 #include <config.h>

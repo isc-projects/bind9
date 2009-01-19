@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sha2.c,v 1.2.2.12 2006/08/16 03:18:14 marka Exp $ */
+/* $Id: sha2.c,v 1.2.2.13 2009/01/19 00:36:28 marka Exp $ */
 
 /*	$FreeBSD: src/sys/crypto/sha2/sha2.c,v 1.2.2.2 2002/03/05 08:36:47 ume Exp $	*/
 /*	$KAME: sha2.c,v 1.8 2001/11/08 01:07:52 itojun Exp $	*/
@@ -83,7 +83,7 @@
  * Please make sure that your system defines BYTE_ORDER.  If your
  * architecture is little-endian, make sure it also defines
  * LITTLE_ENDIAN and that the two (BYTE_ORDER and LITTLE_ENDIAN) are
- * equivilent.
+ * equivalent.
  *
  * If your system does not define the above, then you can do so by
  * hand like this:

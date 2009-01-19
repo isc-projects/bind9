@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.257.18.47 2008/12/16 02:21:19 jinmei Exp $ */
+/* $Id: query.c,v 1.257.18.48 2009/01/19 00:36:26 marka Exp $ */
 
 /*! \file */
 
@@ -940,7 +940,7 @@ query_getdb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 				 zonep, dbp, versionp);
 #endif
 
-	/* If successfull, Transfer ownership of zone. */
+	/* If successful, Transfer ownership of zone. */
 	if (result == ISC_R_SUCCESS) {
 #ifdef DLZ
 		*zonep = zone;
@@ -1157,7 +1157,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 		goto cleanup;
 
 	/*
-	 * Don't poision caches using the bailiwick protection model.
+	 * Don't poison caches using the bailiwick protection model.
 	 */
 	if (!dns_name_issubdomain(name, dns_db_origin(client->query.gluedb)))
 		goto cleanup;
@@ -1631,7 +1631,7 @@ query_addadditional2(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 		goto cleanup;
 
 	/*
-	 * Don't poision caches using the bailiwick protection model.
+	 * Don't poison caches using the bailiwick protection model.
 	 */
 	if (!dns_name_issubdomain(name, dns_db_origin(client->query.gluedb)))
 		goto cleanup;
@@ -2291,7 +2291,7 @@ mark_secure(ns_client_t *client, dns_db_t *db, dns_name_t *name,
 
 /*
  * Find the secure key that corresponds to rrsig.
- * Note: 'keyrdataset' maintains state between sucessive calls,
+ * Note: 'keyrdataset' maintains state between successive calls,
  * there may be multiple keys with the same keyid.
  * Return ISC_FALSE if we have exhausted all the possible keys.
  */
@@ -2683,7 +2683,7 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 	node = NULL;
 
 	/*
-	 * Get the NOQNAME proof then if !ispositve
+	 * Get the NOQNAME proof then if !ispositive
 	 * get the NOWILDCARD proof.
 	 *
 	 * DNS_DBFIND_NOWILD finds the NSEC records that covers the
@@ -2863,7 +2863,7 @@ static void
 query_resume(isc_task_t *task, isc_event_t *event) {
 	dns_fetchevent_t *devent = (dns_fetchevent_t *)event;
 	ns_client_t *client;
-	isc_boolean_t fetch_cancelled, client_shuttingdown;
+	isc_boolean_t fetch_canceled, client_shuttingdown;
 
 	/*
 	 * Resume a query after recursion.
@@ -2884,17 +2884,17 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 		 */
 		INSIST(devent->fetch == client->query.fetch);
 		client->query.fetch = NULL;
-		fetch_cancelled = ISC_FALSE;
+		fetch_canceled = ISC_FALSE;
 		/*
 		 * Update client->now.
 		 */
 		isc_stdtime_get(&client->now);
 	} else {
 		/*
-		 * This is a fetch completion event for a cancelled fetch.
+		 * This is a fetch completion event for a canceled fetch.
 		 * Clean up and don't resume the find.
 		 */
-		fetch_cancelled = ISC_TRUE;
+		fetch_canceled = ISC_TRUE;
 	}
 	UNLOCK(&client->query.fetchlock);
 	INSIST(client->query.fetch == NULL);
@@ -2907,7 +2907,7 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 	 * has timed out, do not resume the find.
 	 */
 	client_shuttingdown = ns_client_shuttingdown(client);
-	if (fetch_cancelled || client_shuttingdown) {
+	if (fetch_canceled || client_shuttingdown) {
 		if (devent->node != NULL)
 			dns_db_detachnode(devent->db, &devent->node);
 		if (devent->db != NULL)
@@ -2916,7 +2916,7 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 		if (devent->sigrdataset != NULL)
 			query_putrdataset(client, &devent->sigrdataset);
 		isc_event_free(&event);
-		if (fetch_cancelled)
+		if (fetch_canceled)
 			query_error(client, DNS_R_SERVFAIL);
 		else
 			query_next(client, ISC_R_CANCELED);

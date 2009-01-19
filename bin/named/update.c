@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.109.18.29 2008/11/20 23:46:03 tbox Exp $ */
+/* $Id: update.c,v 1.109.18.30 2009/01/19 00:36:26 marka Exp $ */
 
 #include <config.h>
 
@@ -640,7 +640,7 @@ rrset_visible(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		*visible = ISC_TRUE;
 		break;
 	/*
-	 * Glue, obsured, deleted or replaced records.
+	 * Glue, obscured, deleted or replaced records.
 	 */
 	case DNS_R_DELEGATION:
 	case DNS_R_DNAME:
@@ -777,8 +777,8 @@ ssu_checkall(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
  * In the RFC2136 section 3.2.5, this is the pseudocode involving
  * a variable called "temp", a mapping of <name, type> tuples to rrsets.
  *
- * Here, we represent the "temp" data structure as (non-minimial) "dns_diff_t"
- * where each typle has op==DNS_DIFFOP_EXISTS.
+ * Here, we represent the "temp" data structure as (non-minimal) "dns_diff_t"
+ * where each tuple has op==DNS_DIFFOP_EXISTS.
  */
 
 
@@ -1859,7 +1859,7 @@ add_exposed_sigs(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 
 /*%
  * Update RRSIG and NSEC records affected by an update.  The original
- * update, including the SOA serial update but exluding the RRSIG & NSEC
+ * update, including the SOA serial update but excluding the RRSIG & NSEC
  * changes, is in "diff" and has already been applied to "newver" of "db".
  * The database version prior to the update is "oldver".
  *
@@ -1915,7 +1915,7 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	/*
 	 * Do we look at the KSK flag on the DNSKEY to determining which
 	 * keys sign which RRsets?  First check the zone option then
-	 * check the keys flags to make sure atleast one has a ksk set
+	 * check the keys flags to make sure at least one has a ksk set
 	 * and one doesn't.
 	 */
 	check_ksk = ISC_TF((dns_zone_getoptions(zone) &

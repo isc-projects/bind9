@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: diff.h,v 1.6.18.2 2005/04/29 00:16:12 marka Exp $ */
+/* $Id: diff.h,v 1.6.18.3 2009/01/19 00:36:28 marka Exp $ */
 
 #ifndef DNS_DIFF_H
 #define DNS_DIFF_H 1
@@ -99,7 +99,7 @@ struct dns_diff {
 	ISC_LIST(dns_difftuple_t)	tuples;
 };
 
-/* Type of comparision function for sorting diffs. */
+/* Type of comparison function for sorting diffs. */
 typedef int dns_diff_compare_func(const void *, const void *);
 
 /***
@@ -110,7 +110,7 @@ ISC_LANG_BEGINDECLS
 
 /**************************************************************************/
 /*
- * Maniuplation of diffs and tuples.
+ * Manipulation of diffs and tuples.
  */
 
 isc_result_t

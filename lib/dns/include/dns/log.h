@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.33.18.4 2005/09/05 00:18:27 marka Exp $ */
+/* $Id: log.h,v 1.33.18.5 2009/01/19 00:36:28 marka Exp $ */
 
 /*! \file
  * \author  Principal Authors: DCL */
@@ -87,7 +87,7 @@ dns_log_init(isc_log_t *lctx);
  *\li	dns_log_init() is called only once.
  *
  * Ensures:
- * \li	The catgories and modules defined above are available for
+ * \li	The categories and modules defined above are available for
  * 	use by isc_log_usechannnel() and isc_log_write().
  */
 

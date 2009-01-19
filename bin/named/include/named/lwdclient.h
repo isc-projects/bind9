@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdclient.h,v 1.14.18.2 2005/04/29 00:15:36 marka Exp $ */
+/* $Id: lwdclient.h,v 1.14.18.3 2009/01/19 00:36:26 marka Exp $ */
 
 #ifndef NAMED_LWDCLIENT_H
 #define NAMED_LWDCLIENT_H 1
@@ -39,7 +39,7 @@
 
 #define LWRD_SHUTDOWN		(LWRD_EVENTCLASS + 0x0001)
 
-/*% Lighweight Resolver Daemon Client */
+/*% Lightweight Resolver Daemon Client */
 struct ns_lwdclient {
 	isc_sockaddr_t		address;	/*%< where to reply */
 	struct in6_pktinfo	pktinfo;

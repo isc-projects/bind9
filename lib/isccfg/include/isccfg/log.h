@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.6.18.2 2005/04/29 00:17:16 marka Exp $ */
+/* $Id: log.h,v 1.6.18.3 2009/01/19 00:36:29 marka Exp $ */
 
 #ifndef ISCCFG_LOG_H
 #define ISCCFG_LOG_H 1
@@ -46,7 +46,7 @@ cfg_log_init(isc_log_t *lctx);
  *\li	cfg_log_init() is called only once.
  *
  * Ensures:
- * \li	The catgories and modules defined above are available for
+ * \li	The categories and modules defined above are available for
  * 	use by isc_log_usechannnel() and isc_log_write().
  */
 

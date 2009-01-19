@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.91.18.12 2009/01/06 23:45:57 tbox Exp $ */
+/* $Id: view.h,v 1.91.18.13 2009/01/19 00:36:28 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -224,7 +224,7 @@ void
 dns_view_flushanddetach(dns_view_t **viewp);
 /*%<
  * Detach '*viewp' from its view.  If this was the last reference
- * uncommited changed in zones will be flushed to disk.
+ * uncommitted changed in zones will be flushed to disk.
  *
  * Requires:
  *
@@ -363,7 +363,7 @@ dns_view_setdstport(dns_view_t *view, in_port_t dstport);
  *\li      'dstport' is a valid TCP/UDP port number.
  *
  * Ensures:
- *\li	External name servers will be assumed to be listning
+ *\li	External name servers will be assumed to be listening
  *	on 'dstport'.  For servers whose address has already
  *	obtained obtained at the time of the call, the view may
  *	continue to use the previously set port until the address
@@ -633,7 +633,7 @@ dns_view_gettsig(dns_view_t *view, dns_name_t *keyname,
  * Find the TSIG key configured in 'view' with name 'keyname',
  * if any.
  *
- * Reqires:
+ * Requires:
  *\li	keyp points to a NULL dns_tsigkey_t *.
  *
  * Returns:
@@ -649,7 +649,7 @@ dns_view_getpeertsig(dns_view_t *view, isc_netaddr_t *peeraddr,
  * Find the TSIG key configured in 'view' for the server whose
  * address is 'peeraddr', if any.
  *
- * Reqires:
+ * Requires:
  *	keyp points to a NULL dns_tsigkey_t *.
  *
  * Returns:
@@ -772,7 +772,7 @@ dns_view_isdelegationonly(dns_view_t *view, dns_name_t *name);
  *
  * Returns:
  *\li	#ISC_TRUE if the name is the table.
- *\li	#ISC_FALSE othewise.
+ *\li	#ISC_FALSE otherwise.
  */
 
 void

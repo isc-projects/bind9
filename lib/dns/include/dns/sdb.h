@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.h,v 1.15.18.2 2005/04/29 00:16:21 marka Exp $ */
+/* $Id: sdb.h,v 1.15.18.3 2009/01/19 00:36:28 marka Exp $ */
 
 #ifndef DNS_SDB_H
 #define DNS_SDB_H 1
@@ -127,12 +127,12 @@ dns_sdb_register(const char *drivername, const dns_sdbmethods_t *methods,
  * The allnodes function, if non-NULL, fills in an opaque structure to be
  * used by a database iterator.  This allows the zone to be transferred.
  * This may use a considerable amount of memory for large zones, and the
- * zone transfer may not be fully RFC1035 compliant if the zone is 
+ * zone transfer may not be fully RFC1035 compliant if the zone is
  * frequently changed.
  *
  * The create function will be called for each zone configured
  * into the name server using this database type.  It can be used
- * to create a "database object" containg zone specific data,
+ * to create a "database object" containing zone specific data,
  * which can make use of the database arguments specified in the
  * name server configuration.
  *

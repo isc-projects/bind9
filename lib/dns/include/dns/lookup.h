@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lookup.h,v 1.6.18.2 2005/04/29 00:16:15 marka Exp $ */
+/* $Id: lookup.h,v 1.6.18.3 2009/01/19 00:36:28 marka Exp $ */
 
 #ifndef DNS_LOOKUP_H
 #define DNS_LOOKUP_H 1
@@ -27,8 +27,8 @@
 /*! \file
  * \brief
  * The lookup module performs simple DNS lookups.  It implements
- * the full resolver algorithm, both looking for local data and 
- * resoving external names as necessary.
+ * the full resolver algorithm, both looking for local data and
+ * resolving external names as necessary.
  *
  * MP:
  *\li	The module ensures appropriate synchronization of data structures it

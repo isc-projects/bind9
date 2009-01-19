@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: notify.h,v 1.10.18.2 2005/04/29 00:15:37 marka Exp $ */
+/* $Id: notify.h,v 1.10.18.3 2009/01/19 00:36:26 marka Exp $ */
 
 #ifndef NAMED_NOTIFY_H
 #define NAMED_NOTIFY_H 1
@@ -41,7 +41,7 @@ void
 ns_notify_start(ns_client_t *client);
 
 /*%<
- *	Examines the incoming message to determine apporiate zone.
+ *	Examines the incoming message to determine appropriate zone.
  *	Returns FORMERR if there is not exactly one question.
  *	Returns REFUSED if we do not serve the listed zone.
  *	Pass the message to the zone module for processing

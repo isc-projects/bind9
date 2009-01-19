@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkey.h,v 1.19.18.2 2005/04/29 00:16:23 marka Exp $ */
+/* $Id: tkey.h,v 1.19.18.3 2009/01/19 00:36:28 marka Exp $ */
 
 #ifndef DNS_TKEY_H
 #define DNS_TKEY_H 1
@@ -144,7 +144,7 @@ dns_tkey_builddeletequery(dns_message_t *msg, dns_tsigkey_t *key);
 
 isc_result_t
 dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
-                           dst_key_t *key, isc_buffer_t *nonce,
+			   dst_key_t *key, isc_buffer_t *nonce,
 			   dns_tsigkey_t **outkey, dns_tsig_keyring_t *ring);
 /*%<
  *	Processes a response to a query containing a TKEY that was

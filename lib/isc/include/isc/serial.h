@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: serial.h,v 1.10.18.2 2005/04/29 00:17:02 marka Exp $ */
+/* $Id: serial.h,v 1.10.18.3 2009/01/19 00:36:28 marka Exp $ */
 
 #ifndef ISC_SERIAL_H
 #define ISC_SERIAL_H 1
@@ -23,8 +23,8 @@
 #include <isc/lang.h>
 #include <isc/types.h>
 
-/*! \file
- *	\brief Implement 32 bit serial space arithmetic comparision functions.
+/*! \file isc/serial.h
+ *	\brief Implement 32 bit serial space arithmetic comparison functions.
  *	Note: Undefined results are returned as ISC_FALSE.
  */
 

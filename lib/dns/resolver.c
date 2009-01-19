@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.83 2009/01/05 23:46:19 tbox Exp $ */
+/* $Id: resolver.c,v 1.284.18.84 2009/01/19 00:36:27 marka Exp $ */
 
 /*! \file */
 
@@ -3603,7 +3603,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 		/*
 		 * If we are asking for a SOA record set the cache time
 		 * to zero to facilitate locating the containing zone of
-		 * a arbitary zone.
+		 * a arbitrary zone.
 		 */
 		ttl = fctx->res->view->maxncachettl;
 		if (fctx->type == dns_rdatatype_soa &&
@@ -4024,7 +4024,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 					 * Defer any further validations.
 					 * This prevents multiple validators
 					 * from manipulating fctx->rmessage
-					 * simultaniously.
+					 * simultaneously.
 					 */
 					valoptions |= DNS_VALIDATOR_DEFER;
 				}
@@ -4340,7 +4340,7 @@ ncache_message(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	/*
 	 * If we are asking for a SOA record set the cache time
 	 * to zero to facilitate locating the containing zone of
-	 * a arbitary zone.
+	 * a arbitrary zone.
 	 */
 	ttl = fctx->res->view->maxncachettl;
 	if (fctx->type == dns_rdatatype_soa &&

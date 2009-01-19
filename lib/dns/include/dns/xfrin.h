@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.h,v 1.20.18.5 2006/07/20 01:10:30 marka Exp $ */
+/* $Id: xfrin.h,v 1.20.18.6 2009/01/19 00:36:28 marka Exp $ */
 
 #ifndef DNS_XFRIN_H
 #define DNS_XFRIN_H 1
@@ -90,7 +90,7 @@ dns_xfrin_shutdown(dns_xfrin_ctx_t *xfr);
 /*%<
  * If the zone transfer 'xfr' has already finished,
  * do nothing.  Otherwise, abort it and cause it to call
- * its done callback with a status of ISC_R_CANCELLED.
+ * its done callback with a status of ISC_R_CANCELED.
  */
 
 void

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netdb.h,v 1.3 2004/03/05 05:11:58 marka Exp $ */
+/* $Id: netdb.h,v 1.3.18.1 2009/01/19 00:36:28 marka Exp $ */
 
 #ifndef NETDB_H
 #define NETDB_H 1
@@ -60,7 +60,7 @@ struct addrinfo {
 #define	NETDB_INTERNAL	-1	/* see errno */
 #define	NETDB_SUCCESS	0	/* no problem */
 #define	HOST_NOT_FOUND	1 /* Authoritative Answer Host not found */
-#define	TRY_AGAIN	2 /* Non-Authoritive Host not found, or SERVERFAIL */
+#define	TRY_AGAIN	2 /* Non-Authoritative Host not found, or SERVERFAIL */
 #define	NO_RECOVERY	3 /* Non recoverable errors, FORMERR, REFUSED, NOTIMP */
 #define	NO_DATA		4 /* Valid name, no data record of requested type */
 #define	NO_ADDRESS	NO_DATA		/* no address, look for MX record */

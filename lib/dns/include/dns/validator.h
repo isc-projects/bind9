@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.h,v 1.27.18.12 2009/01/05 23:46:20 tbox Exp $ */
+/* $Id: validator.h,v 1.27.18.13 2009/01/19 00:36:28 marka Exp $ */
 
 #ifndef DNS_VALIDATOR_H
 #define DNS_VALIDATOR_H 1
@@ -202,7 +202,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
  * options:
  * If DNS_VALIDATOR_DLV is set the caller knows there is not a
  * trusted key and the validator should immediately attempt to validate
- * the answer by looking for a appopriate DLV RRset.
+ * the answer by looking for an appropriate DLV RRset.
  */
 
 void
