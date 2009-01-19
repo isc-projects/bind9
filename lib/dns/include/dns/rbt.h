@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.h,v 1.69.36.1 2009/01/19 00:01:11 marka Exp $ */
+/* $Id: rbt.h,v 1.69.36.2 2009/01/19 23:47:03 tbox Exp $ */
 
 #ifndef DNS_RBT_H
 #define DNS_RBT_H 1
@@ -72,69 +72,69 @@ ISC_LANG_BEGINDECLS
 typedef struct dns_rbtnode dns_rbtnode_t;
 struct dns_rbtnode {
 #if DNS_RBT_USEMAGIC
-        unsigned int magic;
+	unsigned int magic;
 #endif
-        dns_rbtnode_t *parent;
-        dns_rbtnode_t *left;
-        dns_rbtnode_t *right;
-        dns_rbtnode_t *down;
+	dns_rbtnode_t *parent;
+	dns_rbtnode_t *left;
+	dns_rbtnode_t *right;
+	dns_rbtnode_t *down;
 #ifdef DNS_RBT_USEHASH
-        dns_rbtnode_t *hashnext;
+	dns_rbtnode_t *hashnext;
 #endif
 
-        /*%
-         * Used for LRU cache.  This linked list is used to mark nodes which
-         * have no data any longer, but we cannot unlink at that exact moment
-         * because we did not or could not obtain a write lock on the tree.
-         */
-        ISC_LINK(dns_rbtnode_t) deadlink;
+	/*%
+	 * Used for LRU cache.  This linked list is used to mark nodes which
+	 * have no data any longer, but we cannot unlink at that exact moment
+	 * because we did not or could not obtain a write lock on the tree.
+	 */
+	ISC_LINK(dns_rbtnode_t) deadlink;
 
-        /*@{*/
-        /*!
-         * The following bitfields add up to a total bitwidth of 32.
-         * The range of values necessary for each item is indicated,
+	/*@{*/
+	/*!
+	 * The following bitfields add up to a total bitwidth of 32.
+	 * The range of values necessary for each item is indicated,
 	 * but in the case of "attributes" the field is wider to accommodate
-         * possible future expansion.  "offsetlen" could be one bit
-         * narrower by always adjusting its value by 1 to find the real
-         * offsetlen, but doing so does not gain anything (except perhaps
-         * another bit for "attributes", which doesn't yet need any more).
-         *
-         * In each case below the "range" indicated is what's _necessary_ for
-         * the bitfield to hold, not what it actually _can_ hold.
-         */
-        unsigned int is_root : 1;       /*%< range is 0..1 */
-        unsigned int color : 1;         /*%< range is 0..1 */
-        unsigned int find_callback : 1; /*%< range is 0..1 */
-        unsigned int attributes : 4;    /*%< range is 0..2 */
-        unsigned int namelen : 8;       /*%< range is 1..255 */
-        unsigned int offsetlen : 8;     /*%< range is 1..128 */
-        unsigned int padbytes : 9;      /*%< range is 0..380 */
-        /*@}*/
+	 * possible future expansion.  "offsetlen" could be one bit
+	 * narrower by always adjusting its value by 1 to find the real
+	 * offsetlen, but doing so does not gain anything (except perhaps
+	 * another bit for "attributes", which doesn't yet need any more).
+	 *
+	 * In each case below the "range" indicated is what's _necessary_ for
+	 * the bitfield to hold, not what it actually _can_ hold.
+	 */
+	unsigned int is_root : 1;       /*%< range is 0..1 */
+	unsigned int color : 1;         /*%< range is 0..1 */
+	unsigned int find_callback : 1; /*%< range is 0..1 */
+	unsigned int attributes : 4;    /*%< range is 0..2 */
+	unsigned int namelen : 8;       /*%< range is 1..255 */
+	unsigned int offsetlen : 8;     /*%< range is 1..128 */
+	unsigned int padbytes : 9;      /*%< range is 0..380 */
+	/*@}*/
 
 #ifdef DNS_RBT_USEHASH
-        unsigned int hashval;
+	unsigned int hashval;
 #endif
 
-        /*@{*/
-        /*!
-         * These values are used in the RBT DB implementation.  The appropriate
-         * node lock must be held before accessing them.
-         */
-        void *data;
-        unsigned int dirty:1;
-        unsigned int wild:1;
-        unsigned int locknum:DNS_RBT_LOCKLENGTH;
+	/*@{*/
+	/*!
+	 * These values are used in the RBT DB implementation.  The appropriate
+	 * node lock must be held before accessing them.
+	 */
+	void *data;
+	unsigned int dirty:1;
+	unsigned int wild:1;
+	unsigned int locknum:DNS_RBT_LOCKLENGTH;
 #ifndef DNS_RBT_USEISCREFCOUNT
-        unsigned int references:DNS_RBT_REFLENGTH;
+	unsigned int references:DNS_RBT_REFLENGTH;
 #else
-        isc_refcount_t references; /* note that this is not in the bitfield */
+	isc_refcount_t references; /* note that this is not in the bitfield */
 #endif
-        /*@}*/
+	/*@}*/
 };
 
 typedef isc_result_t (*dns_rbtfindcallback_t)(dns_rbtnode_t *node,
-                                              dns_name_t *name,
-                                              void *callback_arg);
+					      dns_name_t *name,
+					      void *callback_arg);
 
 /*****
  *****  Chain Info
@@ -191,41 +191,41 @@ typedef isc_result_t (*dns_rbtfindcallback_t)(dns_rbtnode_t *node,
 #define DNS_RBT_LEVELBLOCK 254
 
 typedef struct dns_rbtnodechain {
-        unsigned int            magic;
-        isc_mem_t *             mctx;
-        /*%
-         * The terminal node of the chain.  It is not in levels[].
-         * This is ostensibly private ... but in a pinch it could be
-         * used tell that the chain points nowhere without needing to
-         * call dns_rbtnodechain_current().
-         */
-        dns_rbtnode_t *         end;
-        /*%
-         * The maximum number of labels in a name is 128; bitstrings mean
-         * a conceptually very large number (which I have not bothered to
-         * compute) of logical levels because splitting can potentially occur
-         * at each bit.  However, DNSSEC restricts the number of "logical"
-         * labels in a name to 255, meaning only 254 pointers are needed
-         * in the worst case.
-         */
-        dns_rbtnode_t *         levels[DNS_RBT_LEVELBLOCK];
-        /*%
-         * level_count indicates how deep the chain points into the
-         * tree of trees, and is the index into the levels[] array.
-         * Thus, levels[level_count - 1] is the last level node stored.
-         * A chain that points to the top level of the tree of trees has
-         * a level_count of 0, the first level has a level_count of 1, and
-         * so on.
-         */
-        unsigned int            level_count;
-        /*%
-         * level_matches tells how many levels matched above the node
-         * returned by dns_rbt_findnode().  A match (partial or exact) found
-         * in the first level thus results in level_matches being set to 1.
-         * This is used by the rbtdb to set the start point for a recursive
-         * search of superdomains until the RR it is looking for is found.
-         */
-        unsigned int            level_matches;
+	unsigned int            magic;
+	isc_mem_t *             mctx;
+	/*%
+	 * The terminal node of the chain.  It is not in levels[].
+	 * This is ostensibly private ... but in a pinch it could be
+	 * used tell that the chain points nowhere without needing to
+	 * call dns_rbtnodechain_current().
+	 */
+	dns_rbtnode_t *         end;
+	/*%
+	 * The maximum number of labels in a name is 128; bitstrings mean
+	 * a conceptually very large number (which I have not bothered to
+	 * compute) of logical levels because splitting can potentially occur
+	 * at each bit.  However, DNSSEC restricts the number of "logical"
+	 * labels in a name to 255, meaning only 254 pointers are needed
+	 * in the worst case.
+	 */
+	dns_rbtnode_t *         levels[DNS_RBT_LEVELBLOCK];
+	/*%
+	 * level_count indicates how deep the chain points into the
+	 * tree of trees, and is the index into the levels[] array.
+	 * Thus, levels[level_count - 1] is the last level node stored.
+	 * A chain that points to the top level of the tree of trees has
+	 * a level_count of 0, the first level has a level_count of 1, and
+	 * so on.
+	 */
+	unsigned int            level_count;
+	/*%
+	 * level_matches tells how many levels matched above the node
+	 * returned by dns_rbt_findnode().  A match (partial or exact) found
+	 * in the first level thus results in level_matches being set to 1.
+	 * This is used by the rbtdb to set the start point for a recursive
+	 * search of superdomains until the RR it is looking for is found.
+	 */
+	unsigned int            level_matches;
 } dns_rbtnodechain_t;
 
 /*****
@@ -233,7 +233,7 @@ typedef struct dns_rbtnodechain {
  *****/
 isc_result_t
 dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *),
-               void *deleter_arg, dns_rbt_t **rbtp);
+	       void *deleter_arg, dns_rbt_t **rbtp);
 /*%<
  * Initialize a red-black tree of trees.
  *
@@ -337,7 +337,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep);
 
 isc_result_t
 dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name, unsigned int options,
-                 dns_name_t *foundname, void **data);
+		 dns_name_t *foundname, void **data);
 /*%<
  * Get the data pointer associated with 'name'.
  *
@@ -376,9 +376,9 @@ dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name, unsigned int options,
 
 isc_result_t
 dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
-                 dns_rbtnode_t **node, dns_rbtnodechain_t *chain,
-                 unsigned int options, dns_rbtfindcallback_t callback,
-                 void *callback_arg);
+		 dns_rbtnode_t **node, dns_rbtnodechain_t *chain,
+		 unsigned int options, dns_rbtfindcallback_t callback,
+		 void *callback_arg);
 /*%<
  * Find the node for 'name'.
  *
@@ -604,7 +604,7 @@ dns_rbt_fullnamefromnode(dns_rbtnode_t *node, dns_name_t *name);
 
 char *
 dns_rbt_formatnodename(dns_rbtnode_t *node, char *printname,
-                       unsigned int size);
+		       unsigned int size);
 /*%<
  * Format the full name of a node for printing, using dns_name_format().
  *
@@ -717,7 +717,7 @@ dns_rbtnodechain_invalidate(dns_rbtnodechain_t *chain);
 
 isc_result_t
 dns_rbtnodechain_current(dns_rbtnodechain_t *chain, dns_name_t *name,
-                         dns_name_t *origin, dns_rbtnode_t **node);
+			 dns_name_t *origin, dns_rbtnode_t **node);
 /*%<
  * Provide the name, origin and node to which the chain is currently pointed.
  *
@@ -757,7 +757,7 @@ dns_rbtnodechain_current(dns_rbtnodechain_t *chain, dns_name_t *name,
 
 isc_result_t
 dns_rbtnodechain_first(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
-                       dns_name_t *name, dns_name_t *origin);
+		       dns_name_t *name, dns_name_t *origin);
 /*%<
  * Set the chain to the lexically first node in the tree of trees.
  *
@@ -783,7 +783,7 @@ dns_rbtnodechain_first(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
 
 isc_result_t
 dns_rbtnodechain_last(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
-                       dns_name_t *name, dns_name_t *origin);
+		       dns_name_t *name, dns_name_t *origin);
 /*%<
  * Set the chain to the lexically last node in the tree of trees.
  *
@@ -805,7 +805,7 @@ dns_rbtnodechain_last(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
 
 isc_result_t
 dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
-                      dns_name_t *origin);
+		      dns_name_t *origin);
 /*%<
  * Adjusts chain to point the DNSSEC predecessor of the name to which it
  * is currently pointed.
@@ -835,7 +835,7 @@ dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
 
 isc_result_t
 dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
-                      dns_name_t *origin);
+		      dns_name_t *origin);
 /*%<
  * Adjusts chain to point the DNSSEC successor of the name to which it
  * is currently pointed.
@@ -872,52 +872,52 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
  */
 #ifdef DNS_RBT_USEISCREFCOUNT
 #define dns_rbtnode_refinit(node, n)                            \
-        do {                                                    \
-                isc_refcount_init(&(node)->references, (n));    \
-        } while (0)
+	do {                                                    \
+		isc_refcount_init(&(node)->references, (n));    \
+	} while (0)
 #define dns_rbtnode_refdestroy(node)                            \
-        do {                                                    \
-                isc_refcount_destroy(&(node)->references);      \
-        } while (0)
+	do {                                                    \
+		isc_refcount_destroy(&(node)->references);      \
+	} while (0)
 #define dns_rbtnode_refcurrent(node)                            \
-        isc_refcount_current(&(node)->references)
+	isc_refcount_current(&(node)->references)
 #define dns_rbtnode_refincrement0(node, refs)                   \
-        do {                                                    \
-                isc_refcount_increment0(&(node)->references, (refs)); \
-        } while (0)
+	do {                                                    \
+		isc_refcount_increment0(&(node)->references, (refs)); \
+	} while (0)
 #define dns_rbtnode_refincrement(node, refs)                    \
-        do {                                                    \
-                isc_refcount_increment(&(node)->references, (refs)); \
-        } while (0)
+	do {                                                    \
+		isc_refcount_increment(&(node)->references, (refs)); \
+	} while (0)
 #define dns_rbtnode_refdecrement(node, refs)                    \
-        do {                                                    \
-                isc_refcount_decrement(&(node)->references, (refs)); \
-        } while (0)
+	do {                                                    \
+		isc_refcount_decrement(&(node)->references, (refs)); \
+	} while (0)
 #else  /* DNS_RBT_USEISCREFCOUNT */
 #define dns_rbtnode_refinit(node, n)    ((node)->references = (n))
 #define dns_rbtnode_refdestroy(node)    (REQUIRE((node)->references == 0))
 #define dns_rbtnode_refcurrent(node)    ((node)->references)
 #define dns_rbtnode_refincrement0(node, refs)                   \
-        do {                                                    \
-                unsigned int *_tmp = (unsigned int *)(refs);    \
-                (node)->references++;                           \
-                if ((_tmp) != NULL)                             \
-                        (*_tmp) = (node)->references;           \
-        } while (0)
+	do {                                                    \
+		unsigned int *_tmp = (unsigned int *)(refs);    \
+		(node)->references++;                           \
+		if ((_tmp) != NULL)                             \
+			(*_tmp) = (node)->references;           \
+	} while (0)
 #define dns_rbtnode_refincrement(node, refs)                    \
-        do {                                                    \
-                REQUIRE((node)->references > 0);                \
-                (node)->references++;                           \
-                if ((refs) != NULL)                             \
-                        (*refs) = (node)->references;           \
-        } while (0)
+	do {                                                    \
+		REQUIRE((node)->references > 0);                \
+		(node)->references++;                           \
+		if ((refs) != NULL)                             \
+			(*refs) = (node)->references;           \
+	} while (0)
 #define dns_rbtnode_refdecrement(node, refs)                    \
-        do {                                                    \
-                REQUIRE((node)->references > 0);                \
-                (node)->references--;                           \
-                if ((refs) != NULL)                             \
-                        (*refs) = (node)->references;           \
-        } while (0)
+	do {                                                    \
+		REQUIRE((node)->references > 0);                \
+		(node)->references--;                           \
+		if ((refs) != NULL)                             \
+			(*refs) = (node)->references;           \
+	} while (0)
 #endif /* DNS_RBT_USEISCREFCOUNT */
 
 ISC_LANG_ENDDECLS

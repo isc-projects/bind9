@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.h,v 1.61.128.1 2009/01/19 00:01:12 marka Exp $ */
+/* $Id: task.h,v 1.61.128.2 2009/01/19 23:47:03 tbox Exp $ */
 
 #ifndef ISC_TASK_H
 #define ISC_TASK_H 1
@@ -26,7 +26,7 @@
 
 /*! \file isc/task.h
  * \brief The task system provides a lightweight execution context, which is
- * basically an event queue.  
+ * basically an event queue.
 
  * When a task's event queue is non-empty, the
  * task is runnable.  A small work crew of threads, typically one per CPU,
@@ -498,7 +498,7 @@ isc_task_beginexclusive(isc_task_t *task);
  * current event, and prevents any new events from executing in any of the
  * tasks sharing a task manager with 'task'.
  *
- * The exclusive access must be relinquished by calling 
+ * The exclusive access must be relinquished by calling
  * isc_task_endexclusive() before returning from the current event handler.
  *
  * Requires:
@@ -513,7 +513,7 @@ isc_task_beginexclusive(isc_task_t *task);
 void
 isc_task_endexclusive(isc_task_t *task);
 /*%<
- * Relinquish the exclusive access obtained by isc_task_beginexclusive(), 
+ * Relinquish the exclusive access obtained by isc_task_beginexclusive(),
  * allowing other tasks to execute.
  *
  * Requires:

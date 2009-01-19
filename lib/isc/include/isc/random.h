@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: random.h,v 1.18.128.1 2009/01/19 00:01:12 marka Exp $ */
+/* $Id: random.h,v 1.18.128.2 2009/01/19 23:47:03 tbox Exp $ */
 
 #ifndef ISC_RANDOM_H
 #define ISC_RANDOM_H 1

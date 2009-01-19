@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: diff.h,v 1.12.128.1 2009/01/19 00:01:11 marka Exp $ */
+/* $Id: diff.h,v 1.12.128.2 2009/01/19 23:47:03 tbox Exp $ */
 
 #ifndef DNS_DIFF_H
 #define DNS_DIFF_H 1
@@ -73,7 +73,7 @@ typedef struct dns_difftuple dns_difftuple_t;
 #define DNS_DIFFTUPLE_VALID(t)	ISC_MAGIC_VALID(t, DNS_DIFFTUPLE_MAGIC)
 
 struct dns_difftuple {
-        unsigned int			magic;
+	unsigned int			magic;
 	isc_mem_t			*mctx;
 	dns_diffop_t			op;
 	dns_name_t			name;

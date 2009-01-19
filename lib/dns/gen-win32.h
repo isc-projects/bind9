@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -48,7 +48,7 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: gen-win32.h,v 1.23.128.1 2009/01/19 00:01:10 marka Exp $ */
+/* $Id: gen-win32.h,v 1.23.128.2 2009/01/19 23:47:02 tbox Exp $ */
 
 /*! \file
  * \author Principal Authors: Computer Systems Research Group at UC Berkeley

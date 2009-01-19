@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.79.128.1 2009/01/19 00:01:11 marka Exp $ */
+/* $Id: rdataset.c,v 1.79.128.2 2009/01/19 23:47:02 tbox Exp $ */
 
 /*! \file */
 
@@ -137,7 +137,7 @@ question_disassociate(dns_rdataset_t *rdataset) {
 static isc_result_t
 question_cursor(dns_rdataset_t *rdataset) {
 	UNUSED(rdataset);
-	
+
 	return (ISC_R_NOMORE);
 }
 
@@ -148,7 +148,7 @@ question_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 	 */
 	UNUSED(rdataset);
 	UNUSED(rdata);
-	
+
 	REQUIRE(0);
 }
 
@@ -445,7 +445,7 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 		/*
 		 * Copy out the name, type, class, ttl.
 		 */
-		
+
 		rrbuffer = *target;
 		dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 		result = dns_name_towire(owner_name, cctx, target);
@@ -620,7 +620,7 @@ dns_rdataset_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name) {
 
 isc_result_t
 dns_rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
-		        dns_rdataset_t *nsec, dns_rdataset_t *nsecsig)
+			dns_rdataset_t *nsec, dns_rdataset_t *nsecsig)
 {
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(rdataset->methods != NULL);

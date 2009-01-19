@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hash.h,v 1.10.128.1 2009/01/19 00:01:11 marka Exp $ */
+/* $Id: hash.h,v 1.10.128.2 2009/01/19 23:47:03 tbox Exp $ */
 
 #ifndef ISC_HASH_H
 #define ISC_HASH_H 1
