@@ -906,11 +906,11 @@
 ./bin/win32/BINDInstall/res/BINDInstall.rc2	X	2001
 ./bin/win32/BINDInstall/resource.h		X	2001,2005
 ./config.guess					X	1998,1999,2000,2001,2004,2009
-./config.h.in					X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
+./config.h.in					X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./config.h.win32				C	1999,2000,2001,2004,2006,2007,2008
 ./config.sub					X	1998,1999,2000,2001,2004
 ./config.threads.in				X	2005,2006
-./configure					X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
+./configure					X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./configure.in					SH	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./conftools/perllib/dnsconf/DNSConf-macros.h	C	2000,2001,2004,2007
 ./conftools/perllib/dnsconf/DNSConf.i		C	2000,2001,2004,2007
@@ -2346,8 +2346,8 @@
 ./lib/win32/bindevt/bindevt.dsw			X	2001
 ./lib/win32/bindevt/bindevt.mak			X	2001,2006
 ./lib/win32/bindevt/bindevt.mc			MC	2001,2004,2007
-./libtool.m4					X	2000,2001,2003,2004,2006
-./ltmain.sh					X	1999,2000,2001,2003,2004,2006
+./libtool.m4					X	2000,2001,2003,2004,2006,2009
+./ltmain.sh					X	1999,2000,2001,2003,2004,2006,2009
 ./make/.cvsignore				X	1998,1999,2000,2001
 ./make/Makefile.in				MAKE	1998,1999,2000,2001,2004,2007
 ./make/includes.in				MAKE	1999,2000,2001,2004,2005,2007
