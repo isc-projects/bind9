@@ -1,8 +1,8 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.h,v 1.25.18.3 2009/01/19 00:36:28 marka Exp $ */
+/* $Id: journal.h,v 1.25.18.4 2009/01/19 23:46:16 tbox Exp $ */
 
 #ifndef DNS_JOURNAL_H
 #define DNS_JOURNAL_H 1
@@ -264,7 +264,7 @@ dns_db_diff(isc_mem_t *mctx,
 
 isc_result_t
 dns_journal_compact(isc_mem_t *mctx, char *filename, isc_uint32_t serial,
-                    isc_uint32_t target_size);
+		    isc_uint32_t target_size);
 /*%<
  * Attempt to compact the journal if it is greater that 'target_size'.
  * Changes from 'serial' onwards will be preserved.  If the journal

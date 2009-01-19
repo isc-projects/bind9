@@ -1,8 +1,8 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.h,v 1.59.18.6 2009/01/19 00:36:28 marka Exp $ */
+/* $Id: rbt.h,v 1.59.18.7 2009/01/19 23:46:16 tbox Exp $ */
 
 #ifndef DNS_RBT_H
 #define DNS_RBT_H 1
@@ -624,14 +624,14 @@ dns_rbt_destroy(dns_rbt_t **rbtp);
 isc_result_t
 dns_rbt_destroy2(dns_rbt_t **rbtp, unsigned int quantum);
 /*%<
- * Stop working with a red-black tree of trees. 
+ * Stop working with a red-black tree of trees.
  * If 'quantum' is zero then the entire tree will be destroyed.
  * If 'quantum' is non zero then up to 'quantum' nodes will be destroyed
  * allowing the rbt to be incrementally destroyed by repeated calls to
  * dns_rbt_destroy2().  Once dns_rbt_destroy2() has been called no other
  * operations than dns_rbt_destroy()/dns_rbt_destroy2() should be
  * performed on the tree of trees.
- * 
+ *
  * Requires:
  * \li	*rbt is a valid rbt manager.
  *
@@ -864,26 +864,26 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 #ifdef DNS_RBT_USEISCREFCOUNT
 #define dns_rbtnode_refinit(node, n)				\
 	do {							\
- 		isc_refcount_init(&(node)->references, (n));	\
-	} while (0) 
+		isc_refcount_init(&(node)->references, (n));	\
+	} while (0)
 #define dns_rbtnode_refdestroy(node)				\
 	do {							\
 		isc_refcount_destroy(&(node)->references);	\
-	} while (0) 
+	} while (0)
 #define dns_rbtnode_refcurrent(node)				\
 	isc_refcount_current(&(node)->references)
 #define dns_rbtnode_refincrement0(node, refs)			\
 	do {							\
 		isc_refcount_increment0(&(node)->references, (refs)); \
-	} while (0) 
+	} while (0)
 #define dns_rbtnode_refincrement(node, refs)			\
 	do {							\
 		isc_refcount_increment(&(node)->references, (refs)); \
-	} while (0) 
+	} while (0)
 #define dns_rbtnode_refdecrement(node, refs)			\
 	do {							\
 		isc_refcount_decrement(&(node)->references, (refs)); \
-	} while (0) 
+	} while (0)
 #else  /* DNS_RBT_USEISCREFCOUNT */
 #define dns_rbtnode_refinit(node, n)	((node)->references = (n))
 #define dns_rbtnode_refdestroy(node)	(REQUIRE((node)->references == 0))
@@ -894,21 +894,21 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 		(node)->references++;				\
 		if ((_tmp) != NULL)				\
 			(*_tmp) = (node)->references;		\
-	} while (0) 
+	} while (0)
 #define dns_rbtnode_refincrement(node, refs)			\
 	do {							\
 		REQUIRE((node)->references > 0);		\
 		(node)->references++;				\
 		if ((refs) != NULL)				\
 			(*refs) = (node)->references;		\
-	} while (0) 
+	} while (0)
 #define dns_rbtnode_refdecrement(node, refs)			\
 	do {							\
 		REQUIRE((node)->references > 0);		\
 		(node)->references--;				\
 		if ((refs) != NULL)				\
 			(*refs) = (node)->references;		\
-	} while (0) 
+	} while (0)
 #endif /* DNS_RBT_USEISCREFCOUNT */
 
 ISC_LANG_ENDDECLS

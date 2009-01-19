@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2008, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.h,v 1.60.18.6 2009/01/19 00:36:28 marka Exp $ */
+/* $Id: rdata.h,v 1.60.18.7 2009/01/19 23:46:16 tbox Exp $ */
 
 #ifndef DNS_RDATA_H
 #define DNS_RDATA_H 1
