@@ -1,3 +1,6 @@
+2529.	[cleanup]	Upgrade libtool to silence complaints from recent
+			version of autoconf. [RT #18657]
+
 2528.   [cleanup]       Silence spurious configure warning about
                         --datarootdir [RT #19096]
 
