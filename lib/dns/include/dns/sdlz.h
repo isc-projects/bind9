@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdlz.h,v 1.7 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: sdlz.h,v 1.7.128.1 2009/01/19 00:01:11 marka Exp $ */
 
 /*! \file dns/sdlz.h */
 
@@ -148,7 +148,7 @@ typedef void
 /*%<
  * Method prototype.  Drivers implementing the SDLZ interface may
  * supply a destroy method.  This method is called when the DNS server
- * is shuting down and no longer needs the driver.  A SDLZ driver does
+ * is shutting down and no longer needs the driver.  A SDLZ driver does
  * not have to implement a destroy method.
  */
 
@@ -173,7 +173,7 @@ typedef isc_result_t
  * \li	3) we run out of domain name labels. I.E. we have tried the
  *	   shortest domain name
  *
- * \li	4) the number of labels in the domain name is less than min_lables
+ * \li	4) the number of labels in the domain name is less than min_labels
  *	   for dns_dlzfindzone
  *
  * The driver's find zone method should return ISC_R_SUCCESS if the

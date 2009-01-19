@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: statschannel.c,v 1.2.2.14 2008/12/18 02:37:23 marka Exp $ */
+/* $Id: statschannel.c,v 1.2.2.15 2009/01/19 00:01:09 marka Exp $ */
 
 /*! \file */
 
@@ -49,7 +49,7 @@ struct ns_statschannel {
 	isc_mem_t				*mctx;
 
 	/*
-	 * Locked by channel lock: can be refererenced and modified by both
+	 * Locked by channel lock: can be referenced and modified by both
 	 * the server task and the channel task.
 	 */
 	isc_mutex_t				lock;

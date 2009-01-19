@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkey.h,v 1.26 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: tkey.h,v 1.26.128.1 2009/01/19 00:01:11 marka Exp $ */
 
 #ifndef DNS_TKEY_H
 #define DNS_TKEY_H 1
@@ -162,7 +162,7 @@ dns_tkey_builddeletequery(dns_message_t *msg, dns_tsigkey_t *key);
 
 isc_result_t
 dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
-                           dst_key_t *key, isc_buffer_t *nonce,
+			   dst_key_t *key, isc_buffer_t *nonce,
 			   dns_tsigkey_t **outkey, dns_tsig_keyring_t *ring);
 /*%<
  *	Processes a response to a query containing a TKEY that was
@@ -219,7 +219,7 @@ dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 		      isc_boolean_t win2k);
 
 /*
- *	Client side negotiation of GSS-TSIG.  Process the respsonse
+ *	Client side negotiation of GSS-TSIG.  Process the response
  *	to a TKEY, and establish a TSIG key if negotiation was successful.
  *	Build a response to the input TKEY message.  Can take multiple
  *	calls to successfully establish the context.

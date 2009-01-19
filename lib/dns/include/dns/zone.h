@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.153.56.5 2009/01/05 23:46:59 tbox Exp $ */
+/* $Id: zone.h,v 1.153.56.6 2009/01/19 00:01:11 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -417,7 +417,7 @@ dns_zone_refresh(dns_zone_t *zone);
 isc_result_t
 dns_zone_flush(dns_zone_t *zone);
 /*%<
- *	Write the zone to database if there are uncommited changes.
+ *	Write the zone to database if there are uncommitted changes.
  *
  * Require:
  *\li	'zone' to be a valid zone.
@@ -469,7 +469,7 @@ dns_zone_fulldumptostream(dns_zone_t *zone, FILE *fd);
 void
 dns_zone_maintenance(dns_zone_t *zone);
 /*%<
- *	Perform regular maintenace on the zone.  This is called as a
+ *	Perform regular maintenance on the zone.  This is called as a
  *	result of a zone being managed.
  *
  * Require
@@ -514,7 +514,7 @@ dns_zone_setalsonotify(dns_zone_t *zone, const isc_sockaddr_t *notify,
  * Require:
  *\li	'zone' to be a valid zone.
  *\li	'notify' to be non-NULL if count != 0.
- *\li	'count' to be the number of notifyees.
+ *\li	'count' to be the number of notifiees.
  *
  * Returns:
  *\li	#ISC_R_SUCCESS
@@ -948,13 +948,13 @@ isc_result_t
 dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 		       dns_message_t *msg);
 /*%<
- *	Tell the zone that it has recieved a NOTIFY message from another
- *	server.  This may cause some zone maintainence activity to occur.
+ *	Tell the zone that it has received a NOTIFY message from another
+ *	server.  This may cause some zone maintenance activity to occur.
  *
  * Requires:
  *\li	'zone' to be a valid zone.
  *\li	'*from' to contain the address of the server from which 'msg'
- *		was recieved.
+ *		was received.
  *\li	'msg' a message with opcode NOTIFY and qr clear.
  *
  * Returns:
@@ -1079,7 +1079,7 @@ dns_zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump);
  * If "dump" is ISC_TRUE, then the new zone contents are dumped
  * into to the zone's master file for persistence.  When replacing
  * a zone database by one just loaded from a master file, set
- * "dump" to ISC_FALSE to avoid a redunant redump of the data just
+ * "dump" to ISC_FALSE to avoid a redundant redump of the data just
  * loaded.  Otherwise, it should be set to ISC_TRUE.
  *
  * If the "diff-on-reload" option is enabled in the configuration file,
@@ -1091,7 +1091,7 @@ dns_zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump);
  *
  * Returns:
  * \li	DNS_R_SUCCESS
- * \li	DNS_R_BADZONE	zone failed basic consistancy checks:
+ * \li	DNS_R_BADZONE	zone failed basic consistency checks:
  *			* a single SOA must exist
  *			* some NS records must exist.
  *	Others
@@ -1205,7 +1205,7 @@ dns_zone_forwardupdate(dns_zone_t *zone, dns_message_t *msg,
 		       dns_updatecallback_t callback, void *callback_arg);
 /*%<
  * Forward 'msg' to each master in turn until we get an answer or we
- * have exausted the list of masters. 'callback' will be called with
+ * have exhausted the list of masters. 'callback' will be called with
  * ISC_R_SUCCESS if we get an answer and the returned message will be
  * passed as 'answer_message', otherwise a non ISC_R_SUCCESS result code
  * will be passed and answer_message will be NULL.  The callback function
@@ -1312,7 +1312,7 @@ isc_result_t
 dns_zonemgr_forcemaint(dns_zonemgr_t *zmgr);
 /*%<
  * Force zone maintenance of all zones managed by 'zmgr' at its
- * earliest conveniene.
+ * earliest convenience.
  */
 
 void

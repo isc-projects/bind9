@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.c,v 1.9.6.12 2008/12/24 05:09:26 marka Exp $ */
+/* $Id: radix.c,v 1.9.6.13 2009/01/19 00:01:11 marka Exp $ */
 
 /*
  * This source was adapted from MRT's RCS Ids:
@@ -619,7 +619,7 @@ isc_radix_remove(isc_radix_tree_t *radix, isc_radix_node_t *node) {
 	if (node->r && node->l) {
 		/*
 		 * This might be a placeholder node -- have to check and
-		 * make sure there is a prefix aossciated with it!
+		 * make sure there is a prefix associated with it!
 		 */
 		if (node->prefix != NULL)
 			_deref_prefix(radix->mctx, node->prefix);

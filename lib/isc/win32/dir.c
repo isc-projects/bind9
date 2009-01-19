@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dir.c,v 1.14 2007/06/19 23:47:19 tbox Exp $ */
+/* $Id: dir.c,v 1.14.128.1 2009/01/19 00:01:12 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -123,7 +123,7 @@ isc_dir_read(isc_dir_t *dir) {
 				 &dir->entry.find_data) == FALSE)
 			/*
 			 * Either the last file has been processed or
-			 * an error has occured.  The former is not
+			 * an error has occurred.  The former is not
 			 * really an error, but the latter is.
 			 */
 			if (GetLastError() == ERROR_NO_MORE_FILES)

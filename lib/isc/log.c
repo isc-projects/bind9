@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.94.128.3 2009/01/06 23:46:48 tbox Exp $ */
+/* $Id: log.c,v 1.94.128.4 2009/01/19 00:01:11 marka Exp $ */
 
 /*! \file
  * \author  Principal Authors: DCL */
@@ -61,7 +61,7 @@
  * This is the structure that holds each named channel.  A simple linked
  * list chains all of the channels together, so an individual channel is
  * found by doing strcmp()s with the names down the list.  Their should
- * be no peformance penalty from this as it is expected that the number
+ * be no performance penalty from this as it is expected that the number
  * of named channels will be no more than a dozen or so, and name lookups
  * from the head of the list are only done when isc_log_usechannel() is
  * called, which should also be very infrequent.

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.54.128.3 2009/01/06 23:46:48 tbox Exp $ */
+/* $Id: log.h,v 1.54.128.4 2009/01/19 00:01:11 marka Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -477,7 +477,7 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
  *	number of named channels.)  When multiple channels of the same
  *	name are defined, the most recent definition is found.
  *
- *\li	Specifing a very large number of channels for a category will have
+ *\li	Specifying a very large number of channels for a category will have
  *	a moderate impact on performance in isc_log_write(), as each
  *	call looks up the category for the start of a linked list, which
  *	it follows all the way to the end to find matching modules.  The
@@ -546,7 +546,7 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
  *\li	lctx is a valid logging context.
  *
  *\li	The category and module arguments must have ids that are in the
- *	range of known ids, as estabished by isc_log_registercategories()
+ *	range of known ids, as established by isc_log_registercategories()
  *	and isc_log_registermodules().
  *
  *\li	level != #ISC_LOG_DYNAMIC.  ISC_LOG_DYNAMIC is used only to define
@@ -585,7 +585,7 @@ ISC_FORMAT_PRINTF(5, 6);
  *\li	lctx is a valid logging context.
  *
  *\li	The category and module arguments must have ids that are in the
- *	range of known ids, as estabished by isc_log_registercategories()
+ *	range of known ids, as established by isc_log_registercategories()
  *	and isc_log_registermodules().
  *
  *\li	level != #ISC_LOG_DYNAMIC.  ISC_LOG_DYNAMIC is used only to define
@@ -824,7 +824,7 @@ isc_log_opensyslog(const char *tag, int options, int facility);
  *			declared facility.
  * \endcode
  *
- *\li	Zero effort has been made (yet) to accomodate systems with openlog()
+ *\li	Zero effort has been made (yet) to accommodate systems with openlog()
  *	that only takes two arguments, or to identify valid syslog
  *	facilities or options for any given architecture.
  *

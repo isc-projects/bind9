@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.c,v 1.17.2.5 2008/10/24 02:27:46 each Exp $ */
+/* $Id: aclconf.c,v 1.17.2.6 2009/01/19 00:01:12 marka Exp $ */
 
 #include <config.h>
 
@@ -240,7 +240,7 @@ cfg_acl_fromconfig(const cfg_obj_t *caml,
 		/*
 		 * Need to allocate a new ACL structure.  Count the items
 		 * in the ACL definition that will require space in the
-		 * elemnts table.  (Note that if nest_level is nonzero,
+		 * elements table.  (Note that if nest_level is nonzero,
 		 * *everything* goes in the elements table.)
 		 */
 		int nelem;

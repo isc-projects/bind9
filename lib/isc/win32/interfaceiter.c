@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.10.128.3 2008/04/18 19:47:26 each Exp $ */
+/* $Id: interfaceiter.c,v 1.10.128.4 2009/01/19 00:01:12 marka Exp $ */
 
 /*
  * Note that this code will need to be revisited to support IPv6 Interfaces.
@@ -46,7 +46,7 @@ void InitSockets(void);
 /*
  * Extract the network address part from a "struct sockaddr".
  *
- * The address family is given explicity
+ * The address family is given explicitly
  * instead of using src->sa_family, because the latter does not work
  * for copying a network mask obtained by SIOCGIFNETMASK (it does
  * not have a valid address family).

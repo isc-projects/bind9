@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: symtab.h,v 1.24 2007/06/19 23:47:18 tbox Exp $ */
+/* $Id: symtab.h,v 1.24.128.1 2009/01/19 00:01:12 marka Exp $ */
 
 #ifndef ISC_SYMTAB_H
 #define ISC_SYMTAB_H 1
@@ -27,7 +27,7 @@
 /*! \file isc/symtab.h
  * \brief Provides a simple memory-based symbol table.
  *
- * Keys are C strings, and key comparisons are case-insenstive.  A type may
+ * Keys are C strings, and key comparisons are case-insensitive.  A type may
  * be specified when looking up, defining, or undefining.  A type value of
  * 0 means "match any type"; any other value will only match the given
  * type.

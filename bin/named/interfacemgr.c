@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.90.64.3 2008/07/23 23:31:17 marka Exp $ */
+/* $Id: interfacemgr.c,v 1.90.64.4 2009/01/19 00:01:09 marka Exp $ */
 
 /*! \file */
 
@@ -518,7 +518,7 @@ setup_locals(ns_interfacemgr_t *mgr, isc_interface_t *interface) {
 	result = isc_netaddr_masktoprefixlen(&interface->netmask,
 					     &prefixlen);
 
-	/* Non contigious netmasks not allowed by IPv6 arch. */
+	/* Non contiguous netmasks not allowed by IPv6 arch. */
 	if (result != ISC_R_SUCCESS && netaddr->family == AF_INET6)
 		return (result);
 

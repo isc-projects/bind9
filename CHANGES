@@ -38,7 +38,7 @@
 2502.	[cleanup]	isc_radix: Improve compliance with coding style,
 			document function in <isc/radix.h>. [RT #18534]
 
-2500.	[contrib]	contrib/sdb/pgsql/zonetodb.c called non-existant
+2500.	[contrib]	contrib/sdb/pgsql/zonetodb.c called non-existent
 			function. [RT #18582]
 
 2499.	[port]		solaris: lib/lwres/getaddrinfo.c namespace clash.

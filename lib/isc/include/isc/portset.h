@@ -14,10 +14,10 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: portset.h,v 1.3.2.2 2008/06/24 23:46:26 tbox Exp $ */
+/* $Id: portset.h,v 1.3.2.3 2009/01/19 00:01:12 marka Exp $ */
 
 /*! \file isc/portset.h
- * \brief Transport Protocol Port Manipuration Module
+ * \brief Transport Protocol Port Manipulation Module
  *
  * This module provides simple utilities to handle a set of transport protocol
  * (UDP or TCP) port numbers, e.g., for creating an ACL list.  An isc_portset_t

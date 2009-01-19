@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.218.12.5 2008/10/15 02:18:45 marka Exp $ */
+/* $Id: dig.c,v 1.218.12.6 2009/01/19 00:01:09 marka Exp $ */
 
 /*! \file */
 
@@ -843,7 +843,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			lookup->identify = state;
 			break;
 		case 'g': /* ignore */
-		default: /* Inherets default for compatibility */
+		default: /* Inherits default for compatibility */
 			FULLCHECK("ignore");
 			lookup->ignore = ISC_TRUE;
 		}

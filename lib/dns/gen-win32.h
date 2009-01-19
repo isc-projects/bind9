@@ -48,7 +48,7 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: gen-win32.h,v 1.23 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: gen-win32.h,v 1.23.128.1 2009/01/19 00:01:10 marka Exp $ */
 
 /*! \file
  * \author Principal Authors: Computer Systems Research Group at UC Berkeley
@@ -66,7 +66,7 @@
  * directly portable between Unix-like systems and Windows NT, option
  * parsing and directory scanning.  It is here because it was decided
  * that the "gen" build utility was not to depend on libisc.a, so
- * the functions delcared in isc/commandline.h and isc/dir.h could not
+ * the functions declared in isc/commandline.h and isc/dir.h could not
  * be used.
  *
  * The commandline stuff is pretty much a straight copy from the initial

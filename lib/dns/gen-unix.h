@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gen-unix.h,v 1.19 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: gen-unix.h,v 1.19.128.1 2009/01/19 00:01:10 marka Exp $ */
 
 /*! \file
  * \brief
@@ -23,7 +23,7 @@
  * directly portable between Unix-like systems and Windows NT, option
  * parsing and directory scanning.  It is here because it was decided
  * that the "gen" build utility was not to depend on libisc.a, so
- * the functions delcared in isc/commandline.h and isc/dir.h could not
+ * the functions declared in isc/commandline.h and isc/dir.h could not
  * be used.
  *
  * The commandline stuff is really just a wrapper around getopt().

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.h,v 1.67.128.2 2008/12/12 23:46:38 tbox Exp $ */
+/* $Id: rdata.h,v 1.67.128.3 2009/01/19 00:01:11 marka Exp $ */
 
 #ifndef DNS_RDATA_H
 #define DNS_RDATA_H 1
@@ -49,7 +49,7 @@
  *	build process from a set of source files, one per rdata type.  For
  *	portability, it's probably best that the building be done by a C
  *	program.  Adding a new rdata type will be a simple matter of adding
- *	a file to a directory and rebuilding the server.  *All* knowlege of
+ *	a file to a directory and rebuilding the server.  *All* knowledge of
  *	the format of a particular rdata type is in this file.
  *
  * MP:
