@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.386 2009/01/09 22:24:36 jinmei Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.387 2009/01/20 19:59:25 jreed Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -11270,6 +11270,16 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
             and <command>$TTL.</command>
           </para>
           <sect3>
+            <title>The <command>@</command> (at-sign)</title>
+            <para>
+              When used in the label (or name) field, the asperand or
+              at-sign (@) symbol represents the current origin.
+              At the start of the zone file, it is the 
+              &lt;<varname>zone_name</varname>&gt; (followed by
+              trailing dot).
+            </para>
+          </sect3>
+          <sect3>
             <title>The <command>$ORIGIN</command> Directive</title>
             <para>
               Syntax: <command>$ORIGIN</command>
@@ -11280,7 +11290,8 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
 	      sets the domain name that will be appended to any
               unqualified records. When a zone is first read in there
               is an implicit <command>$ORIGIN</command>
-              &lt;<varname>zone-name</varname>&gt;<command>.</command>
+              &lt;<varname>zone_name</varname>&gt;<command>.</command>
+              (followed by trailing dot).
               The current <command>$ORIGIN</command> is appended to
               the domain specified in the <command>$ORIGIN</command>
               argument if it is not absolute.
