@@ -1,3 +1,5 @@
+2531.	[bug]		Change #2207 was incomplete. [RT #19098]
+
 2530.	[bug]		named failed to reject insecure to secure transitions
 			via UPDATE. [RT #19101]
 
