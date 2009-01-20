@@ -12,7 +12,7 @@
 ./bin/Makefile.in				MAKE	1998,1999,2000,2001,2004
 ./bin/check/.cvsignore				X	2000,2001
 ./bin/check/Makefile.in				MAKE	2000,2001,2002,2003,2004,2005,2006
-./bin/check/check-tool.c			C	2000,2001,2002,2004,2005,2006,2007,2008
+./bin/check/check-tool.c			C	2000,2001,2002,2004,2005,2006,2007,2008,2009
 ./bin/check/check-tool.h			C	2000,2001,2002,2004,2005
 ./bin/check/named-checkconf.8			MAN	DOCBOOK
 ./bin/check/named-checkconf.c			C	1999,2000,2001,2002,2004,2005,2006,2007
