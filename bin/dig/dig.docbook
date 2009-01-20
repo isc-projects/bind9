@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.42 2008/10/13 21:18:56 jreed Exp $ -->
+<!-- $Id: dig.docbook,v 1.43 2009/01/20 20:06:29 jreed Exp $ -->
 <refentry id="man.dig">
 
   <refentryinfo>
@@ -816,7 +816,7 @@
 	      on its own line.
             </para>
 	    <para>
-	      If not specified <command>dig</command> will look for
+	      If not specified, <command>dig</command> will look for
 	      <filename>/etc/trusted-key.key</filename> then
 	      <filename>trusted-key.key</filename> in the current directory.
 	    </para>
