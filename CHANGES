@@ -1,3 +1,6 @@
+2532.	[bug]		dig: check the question section of the response to
+			see if it matches the asked question. [RT #18495]
+
 2531.	[bug]		Change #2207 was incomplete. [RT #19098]
 
 2530.	[bug]		named failed to reject insecure to secure transitions

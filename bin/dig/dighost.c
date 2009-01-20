@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.311.70.6 2009/01/18 23:25:15 marka Exp $ */
+/* $Id: dighost.c,v 1.311.70.7 2009/01/20 05:04:24 marka Exp $ */
 
 /*! \file
  *  \note
@@ -2951,18 +2951,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	if (result == ISC_R_SUCCESS && (msgflags & DNS_MESSAGEFLAG_QR) == 0)
 		printf(";; Warning: query response not set\n");
 
-	if (!match) {
-		isc_buffer_invalidate(&query->recvbuf);
-		isc_buffer_init(&query->recvbuf, query->recvspace, COMMSIZE);
-		ISC_LIST_ENQUEUE(query->recvlist, &query->recvbuf, link);
-		result = isc_socket_recvv(query->sock, &query->recvlist, 1,
-					  global_task, recv_done, query);
-		check_result(result, "isc_socket_recvv");
-		recvcount++;
-		isc_event_free(&event);
-		UNLOCK_LOOKUP;
-		return;
-	}
+	if (!match)
+		goto udp_mismatch;
 
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &msg);
 	check_result(result, "dns_message_create");
@@ -3016,6 +3006,52 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		check_next_lookup(l);
 		UNLOCK_LOOKUP;
 		return;
+	}
+	if (msg->counts[DNS_SECTION_QUESTION] != 0) {
+		match = ISC_TRUE;
+		for (result = dns_message_firstname(msg, DNS_SECTION_QUESTION);
+		     result == ISC_R_SUCCESS && match;
+		     result = dns_message_nextname(msg, DNS_SECTION_QUESTION)) {
+			dns_name_t *name = NULL;
+			dns_rdataset_t *rdataset;
+
+			dns_message_currentname(msg, DNS_SECTION_QUESTION,
+						&name);
+			for (rdataset = ISC_LIST_HEAD(name->list);
+			     rdataset != NULL;
+			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+				if (l->rdtype != rdataset->type ||
+				    l->rdclass != rdataset->rdclass ||
+				    !dns_name_equal(l->name, name)) {
+					char namestr[DNS_NAME_FORMATSIZE];
+					char typebuf[DNS_RDATATYPE_FORMATSIZE];
+					char classbuf[DNS_RDATACLASS_FORMATSIZE];
+					dns_name_format(name, namestr,
+							sizeof(namestr));
+					dns_rdatatype_format(rdataset->type,
+							     typebuf,
+							     sizeof(typebuf));
+					dns_rdataclass_format(rdataset->rdclass,
+							      classbuf,
+							      sizeof(classbuf));
+					printf(";; Question section mismatch: "
+					       "got %s/%s/%s\n",
+					       namestr, typebuf, classbuf);
+					match = ISC_FALSE;
+				}
+			}
+		}
+		if (!match) {
+			dns_message_destroy(&msg);
+			if (l->tcp_mode) {
+				isc_event_free(&event);
+				clear_query(query);
+				check_next_lookup(l);
+				UNLOCK_LOOKUP;
+				return;
+			} else
+				goto udp_mismatch;
+		}
 	}
 	if ((msg->flags & DNS_MESSAGEFLAG_TC) != 0 &&
 	    !l->ignore && !l->tcp_mode) {
@@ -3271,6 +3307,19 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	}
 	isc_event_free(&event);
 	UNLOCK_LOOKUP;
+	return;
+
+ udp_mismatch:
+	isc_buffer_invalidate(&query->recvbuf);
+	isc_buffer_init(&query->recvbuf, query->recvspace, COMMSIZE);
+	ISC_LIST_ENQUEUE(query->recvlist, &query->recvbuf, link);
+	result = isc_socket_recvv(query->sock, &query->recvlist, 1,
+				  global_task, recv_done, query);
+	check_result(result, "isc_socket_recvv");
+	recvcount++;
+	isc_event_free(&event);
+	UNLOCK_LOOKUP;
+	return;
 }
 
 /*%
