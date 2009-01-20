@@ -22,7 +22,7 @@
 ./bin/check/named-checkconf.html		HTML	DOCBOOK
 ./bin/check/named-checkzone.8			MAN	DOCBOOK
 ./bin/check/named-checkzone.c			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
-./bin/check/named-checkzone.docbook		SGML	2000,2001,2002,2004,2005,2006,2007
+./bin/check/named-checkzone.docbook		SGML	2000,2001,2002,2004,2005,2006,2007,2009
 ./bin/check/named-checkzone.html		HTML	DOCBOOK
 ./bin/check/win32/checktool.dsp			X	2006
 ./bin/check/win32/checktool.dsw			X	2006
@@ -36,12 +36,12 @@
 ./bin/dig/Makefile.in				MAKE	2000,2001,2002,2004,2005,2007
 ./bin/dig/dig.1					MAN	DOCBOOK
 ./bin/dig/dig.c					C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
-./bin/dig/dig.docbook				SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008
+./bin/dig/dig.docbook				SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./bin/dig/dig.html				HTML	DOCBOOK
 ./bin/dig/dighost.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./bin/dig/host.1				MAN	DOCBOOK
 ./bin/dig/host.c				C	2000,2001,2002,2003,2004,2005,2006,2007
-./bin/dig/host.docbook				SGML	2000,2001,2002,2004,2005,2007,2008
+./bin/dig/host.docbook				SGML	2000,2001,2002,2004,2005,2007,2008,2009
 ./bin/dig/host.html				HTML	DOCBOOK
 ./bin/dig/include/dig/dig.h			C	2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./bin/dig/nslookup.1				MAN	DOCBOOK
@@ -144,7 +144,7 @@
 ./bin/named/lwdnoop.c				C	2000,2001,2004,2005,2007,2008
 ./bin/named/lwresd.8				MAN	DOCBOOK
 ./bin/named/lwresd.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008
-./bin/named/lwresd.docbook			SGML	2000,2001,2004,2005,2007,2008
+./bin/named/lwresd.docbook			SGML	2000,2001,2004,2005,2007,2008,2009
 ./bin/named/lwresd.html				HTML	DOCBOOK
 ./bin/named/lwsearch.c				C	2000,2001,2004,2005,2007
 ./bin/named/main.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
@@ -179,7 +179,7 @@
 ./bin/nsupdate/Makefile.in			MAKE	2000,2001,2002,2004,2006,2007,2008
 ./bin/nsupdate/nsupdate.1			MAN	DOCBOOK
 ./bin/nsupdate/nsupdate.c			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
-./bin/nsupdate/nsupdate.docbook			SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008
+./bin/nsupdate/nsupdate.docbook			SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./bin/nsupdate/nsupdate.html			HTML	DOCBOOK
 ./bin/nsupdate/win32/nsupdate.dsp		X	2001,2004,2005
 ./bin/nsupdate/win32/nsupdate.dsw		X	2001
