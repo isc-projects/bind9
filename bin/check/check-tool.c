@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.c,v 1.31.62.2 2008/10/24 01:44:15 tbox Exp $ */
+/* $Id: check-tool.c,v 1.31.62.3 2009/01/20 03:13:00 marka Exp $ */
 
 /*! \file */
 
@@ -217,8 +217,8 @@ checkns(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner,
 		while (cur != NULL && cur->ai_canonname == NULL &&
 		       cur->ai_next != NULL)
 			cur = cur->ai_next;
-		if (ai != NULL && cur->ai_canonname != NULL &&
-		    strcasecmp(ai->ai_canonname, namebuf) != 0 &&
+		if (cur != NULL && cur->ai_canonname != NULL &&
+		    strcasecmp(cur->ai_canonname, namebuf) != 0 &&
 		    !logged(namebuf, ERR_IS_CNAME)) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "%s/NS '%s' (out of zone) "

@@ -1,3 +1,5 @@
+2531.	[bug]		Change #2207 was incomplete. [RT #19098]
+
 2529.	[cleanup]	Upgrade libtool to silence complaints from recent
 			version of autoconf. [RT #18657]
 
