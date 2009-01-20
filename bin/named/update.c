@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.151.12.2 2009/01/18 23:47:34 tbox Exp $ */
+/* $Id: update.c,v 1.151.12.3 2009/01/20 01:46:23 marka Exp $ */
 
 #include <config.h>
 
@@ -3971,7 +3971,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 		}
 #endif
 #ifndef ALLOW_INSECURE_TO_SECURE
-		if (had_dnskey && !has_dnskey) {
+		if (!had_dnskey && has_dnskey) {
 			update_log(client, zone, LOGLEVEL_PROTOCOL,
 				   "update rejected: DNSKEY record added");
 			result = DNS_R_REFUSED;
