@@ -40,7 +40,7 @@ mr02.example.		3600	IN	MR	.
 mx01.example.		3600	IN	MX	10 mail.example.
 mx02.example.		3600	IN	MX	10 .
 naptr01.example.	3600	IN	NAPTR	0 0 "" "" "" .
-naptr02.example.	3600	IN	NAPTR	65535 65535 "blurgh" "blorf" "blegh" foo.
+naptr02.example.	3600	IN	NAPTR	65535 65535 "blurgh" "blorf" "blllbb" foo.
 ns2.example.		3600	IN	A	10.53.0.2
 ns3.example.		3600	IN	A	10.53.0.3
 nsap-ptr01.example.	3600	IN	NSAP-PTR .

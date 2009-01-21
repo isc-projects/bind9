@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: genzone.sh,v 1.8 2007/06/19 23:47:00 tbox Exp $
+# $Id: genzone.sh,v 1.9 2009/01/21 05:36:44 marka Exp $
 
 #
 # Set up a test zone
@@ -193,8 +193,8 @@ srv02			SRV 65535 65535 65535  old-slow-box
 
 ; type 35
 naptr01			NAPTR   0 0 "" "" "" . 
-naptr02			NAPTR   65535 65535 blurgh blorf blegh foo.
-naptr02			NAPTR   65535 65535 "blurgh" "blorf" "blegh" foo.
+naptr02			NAPTR   65535 65535 blurgh blorf blllbb foo.
+naptr02			NAPTR   65535 65535 "blurgh" "blorf" "blllbb" foo.
 
 ; type 36
 kx01			KX	10 kdc

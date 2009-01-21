@@ -1,3 +1,7 @@
+2534.	[func]		Check NAPTR records regular expressions and
+			replacement strings to ensure they are syntaxically
+			valid and consistant. [RT #18168]
+
 2533.	[doc]		ARM: document @ (at-sign). [RT #17144]
 
 2532.	[bug]		dig: check the question section of the response to
