@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_tasks.c,v 1.40.332.1 2009/01/22 05:50:19 marka Exp $ */
+/* $Id: t_tasks.c,v 1.40.332.2 2009/01/22 23:47:05 tbox Exp $ */
 
 #include <config.h>
 
@@ -1990,7 +1990,7 @@ static const char *a11 =
 static void
 t11(void) {
 	t_assert("tasks", 11, T_REQUIRED, "%s", a11);
-	
+
 	if (threaded)
 		t_result(t_tasks11(1));
 	else
@@ -2144,7 +2144,7 @@ t14_callback(isc_task_t *task, isc_event_t *event) {
 	int taskno = *(int *)(event->ev_arg);
 
 
-	t_info("task enter %d\n", taskno);	
+	t_info("task enter %d\n", taskno);
 	if (taskno == T14_EXCLTASK) {
 		int	i;
 		t14_exclusiveerror = isc_task_beginexclusive(task);
@@ -2154,7 +2154,7 @@ t14_callback(isc_task_t *task, isc_event_t *event) {
 			t_info("task %d failed to got exclusive access: %d\n",
 				taskno, t14_exclusiveerror);
 		for (i = 0; i < T14_NTASKS; i++) {
-   		        t_info("task %d state %d\n", i , t14_active[i]);
+			t_info("task %d state %d\n", i , t14_active[i]);
 			if (t14_active[i])
 				t14_error++;
 		}
@@ -2272,8 +2272,8 @@ static void
 t14(void) {
 	int	result;
 
-	t_assert("tasks", 14, T_REQUIRED, "%s", 
-                 "isc_task_beginexclusive() gets exclusive access");
+	t_assert("tasks", 14, T_REQUIRED, "%s",
+		 "isc_task_beginexclusive() gets exclusive access");
 	result = t_tasks14();
 	t_result(result);
 }
