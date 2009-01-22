@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_mem.c,v 1.11 2004/03/05 04:58:53 marka Exp $ */
+/* $Id: t_mem.c,v 1.11.18.1 2009/01/22 05:55:29 marka Exp $ */
 
 #include <config.h>
 
@@ -190,7 +190,7 @@ t1(void) {
 	int	rval;
 	int	result;
 
-	t_assert("mem", 1, T_REQUIRED, a1);
+	t_assert("mem", 1, T_REQUIRED, "%s", a1);
 
 	rval = memtest();
 

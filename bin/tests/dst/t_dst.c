@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_dst.c,v 1.48.18.5 2008/01/12 23:46:06 tbox Exp $ */
+/* $Id: t_dst.c,v 1.48.18.6 2009/01/22 05:55:29 marka Exp $ */
 
 #include <config.h>
 
@@ -357,7 +357,7 @@ t1(void) {
 	dns_name_t	*name;
 	isc_buffer_t	b;
 
-	t_assert("dst", 1, T_REQUIRED, a1);
+	t_assert("dst", 1, T_REQUIRED, "%s", a1);
 
 	nfails = 0;
 	nprobs = 0;
@@ -920,7 +920,7 @@ t2_vfy(char **av) {
 static void
 t2(void) {
 	int	result;
-	t_assert("dst", 2, T_REQUIRED, a2);
+	t_assert("dst", 2, T_REQUIRED, "%s", a2);
 	result = t_eval("dst_2_data", t2_vfy, 6);
 	t_result(result);
 }
