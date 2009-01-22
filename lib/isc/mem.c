@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.145 2008/04/02 02:37:42 marka Exp $ */
+/* $Id: mem.c,v 1.146 2009/01/22 05:39:29 marka Exp $ */
 
 /*! \file */
 
@@ -1191,7 +1191,7 @@ print_active(isc_mem_t *mctx, FILE *out) {
 		const char *format;
 		isc_boolean_t found;
 
-		fprintf(out, isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
+		fprintf(out, "%s", isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
 					    ISC_MSG_DUMPALLOC,
 					    "Dump of all outstanding "
 					    "memory allocations:\n"));
@@ -1217,7 +1217,7 @@ print_active(isc_mem_t *mctx, FILE *out) {
 			}
 		}
 		if (!found)
-			fprintf(out, isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
+			fprintf(out, "%s", isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
 						    ISC_MSG_NONE, "\tNone.\n"));
 	}
 }
@@ -1259,7 +1259,7 @@ isc_mem_stats(isc_mem_t *ctx, FILE *out) {
 	 */
 	pool = ISC_LIST_HEAD(ctx->pools);
 	if (pool != NULL) {
-		fprintf(out, isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
+		fprintf(out, "%s", isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
 					    ISC_MSG_POOLSTATS,
 					    "[Pool statistics]\n"));
 		fprintf(out, "%15s %10s %10s %10s %10s %10s %10s %10s %1s\n",

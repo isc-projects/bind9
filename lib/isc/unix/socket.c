@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.313 2009/01/18 23:48:14 tbox Exp $ */
+/* $Id: socket.c,v 1.314 2009/01/22 05:39:29 marka Exp $ */
 
 /*! \file */
 
@@ -3394,7 +3394,7 @@ watcher(void *uap) {
 #endif
 	}
 
-	manager_log(manager, TRACE,
+	manager_log(manager, TRACE, "%s", 
 		    isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
 				   ISC_MSG_EXITING, "watcher exiting"));
 
@@ -3841,7 +3841,7 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	 * Wait for all sockets to be destroyed.
 	 */
 	while (!ISC_LIST_EMPTY(manager->socklist)) {
-		manager_log(manager, CREATION,
+		manager_log(manager, CREATION, "%s", 
 			    isc_msgcat_get(isc_msgcat, ISC_MSGSET_SOCKET,
 					   ISC_MSG_SOCKETSREMAIN,
 					   "sockets exist"));
@@ -3852,7 +3852,7 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	 * Hope all sockets have been destroyed.
 	 */
 	if (!ISC_LIST_EMPTY(manager->socklist)) {
-		manager_log(manager, CREATION,
+		manager_log(manager, CREATION, "%s",
 			    isc_msgcat_get(isc_msgcat, ISC_MSGSET_SOCKET,
 					   ISC_MSG_SOCKETSREMAIN,
 					   "sockets exist"));
