@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named-checkzone.docbook,v 1.11.18.21 2007/08/28 07:19:55 tbox Exp $ -->
+<!-- $Id: named-checkzone.docbook,v 1.11.18.22 2009/01/22 02:09:14 marka Exp $ -->
 <refentry id="man.named-checkzone">
   <refentryinfo>
     <date>June 13, 2000</date>
@@ -168,7 +168,7 @@
         <term>-c <replaceable class="parameter">class</replaceable></term>
         <listitem>
           <para>
-            Specify the class of the zone.  If not specified "IN" is assumed.
+            Specify the class of the zone.  If not specified, "IN" is assumed.
           </para>
         </listitem>
       </varlistentry>
