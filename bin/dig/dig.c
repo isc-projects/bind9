@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.225.26.2 2009/01/18 23:47:34 tbox Exp $ */
+/* $Id: dig.c,v 1.225.26.3 2009/01/22 05:19:47 marka Exp $ */
 
 /*! \file */
 
@@ -801,7 +801,9 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		switch (cmd[1]) {
 		case 'e': /* defname */
 			FULLCHECK("defname");
-			usesearch = state;
+			if (!lookup->trace) {
+				usesearch = state;
+			}
 			break;
 		case 'n': /* dnssec */
 			FULLCHECK("dnssec");
@@ -941,7 +943,9 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		switch (cmd[1]) {
 		case 'e': /* search */
 			FULLCHECK("search");
-			usesearch = state;
+			if (!lookup->trace) {
+				usesearch = state;
+			}
 			break;
 		case 'h':
 			if (cmd[2] != 'o')
@@ -962,8 +966,10 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				break;
 			case 'w': /* showsearch */
 				FULLCHECK("showsearch");
-				showsearch = state;
-				usesearch = state;
+				if (!lookup->trace) {
+					showsearch = state;
+					usesearch = state;
+				}
 				break;
 			default:
 				goto invalid_option;
@@ -1022,6 +1028,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 					lookup->section_additional = ISC_FALSE;
 					lookup->section_authority = ISC_TRUE;
 					lookup->section_question = ISC_FALSE;
+					usesearch = ISC_FALSE;
 				}
 				break;
 			case 'i': /* tries */
