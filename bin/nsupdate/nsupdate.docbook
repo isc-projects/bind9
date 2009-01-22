@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: nsupdate.docbook,v 1.29.56.2 2008/08/29 23:46:52 tbox Exp $ -->
+<!-- $Id: nsupdate.docbook,v 1.29.56.3 2009/01/22 02:09:47 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>Jun 30, 2000</date>
@@ -160,7 +160,7 @@
       specified is not an HMAC-MD5 key.
     </para>
     <para>
-      By default
+      By default,
       <command>nsupdate</command>
       uses UDP to send update requests to the name server unless they are too
       large to fit in a UDP request in which case TCP will be used.

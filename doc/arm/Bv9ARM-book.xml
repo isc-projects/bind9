@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.24 2008/11/04 02:10:41 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.25 2009/01/22 02:09:47 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -7769,7 +7769,7 @@ XXX: end of RFC1918 addresses #defined out -->
 	      <term><command>empty-zones-enable</command></term>
 	      <listitem>
 	        <para>
-		  Enable or disable all empty zones.  By default they
+		  Enable or disable all empty zones.  By default, they
 		  are enabled.
 	        </para>
 	      </listitem>
@@ -7779,7 +7779,7 @@ XXX: end of RFC1918 addresses #defined out -->
 	    <term><command>disable-empty-zone</command></term>
 	      <listitem>
 	        <para>
-		  Disable individual empty zones.  By default none are
+		  Disable individual empty zones.  By default, none are
 		  disabled.  This option can be specified multiple times.
 	        </para>
 	      </listitem>
