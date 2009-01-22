@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.81.32.3 2008/08/22 05:58:45 marka Exp $ */
+/* $Id: timer.c,v 1.81.32.4 2009/01/22 05:53:42 marka Exp $ */
 
 /*! \file */
 
@@ -662,7 +662,7 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 					isc_task_send(timer->task,
 						      ISC_EVENT_PTR(&event));
 				} else
-					UNEXPECTED_ERROR(__FILE__, __LINE__,
+					UNEXPECTED_ERROR(__FILE__, __LINE__, "%s", 
 						 isc_msgcat_get(isc_msgcat,
 							 ISC_MSGSET_TIMER,
 							 ISC_MSG_EVENTNOTALLOC,
@@ -677,7 +677,7 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 			if (need_schedule) {
 				result = schedule(timer, now, ISC_FALSE);
 				if (result != ISC_R_SUCCESS)
-					UNEXPECTED_ERROR(__FILE__, __LINE__,
+					UNEXPECTED_ERROR(__FILE__, __LINE__, "%s", 
 						isc_msgcat_get(isc_msgcat,
 							ISC_MSGSET_TIMER,
 							ISC_MSG_SCHEDFAIL,
