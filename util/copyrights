@@ -22,7 +22,7 @@
 ./bin/check/named-checkconf.html		HTML	DOCBOOK
 ./bin/check/named-checkzone.8			MAN	DOCBOOK
 ./bin/check/named-checkzone.c			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
-./bin/check/named-checkzone.docbook		SGML	2000,2001,2002,2004,2005,2006,2007
+./bin/check/named-checkzone.docbook		SGML	2000,2001,2002,2004,2005,2006,2007,2009
 ./bin/check/named-checkzone.html		HTML	DOCBOOK
 ./bin/check/win32/checktool.dsp			X	2006
 ./bin/check/win32/checktool.dsw			X	2006
@@ -36,12 +36,12 @@
 ./bin/dig/Makefile.in				MAKE	2000,2001,2002,2004,2005,2007
 ./bin/dig/dig.1					MAN	DOCBOOK
 ./bin/dig/dig.c					C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
-./bin/dig/dig.docbook				SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008
+./bin/dig/dig.docbook				SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./bin/dig/dig.html				HTML	DOCBOOK
 ./bin/dig/dighost.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./bin/dig/host.1				MAN	DOCBOOK
 ./bin/dig/host.c				C	2000,2001,2002,2003,2004,2005,2006,2007
-./bin/dig/host.docbook				SGML	2000,2001,2002,2004,2005,2007,2008
+./bin/dig/host.docbook				SGML	2000,2001,2002,2004,2005,2007,2008,2009
 ./bin/dig/host.html				HTML	DOCBOOK
 ./bin/dig/include/dig/dig.h			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./bin/dig/nslookup.1				MAN	DOCBOOK
@@ -144,7 +144,7 @@
 ./bin/named/lwdnoop.c				C	2000,2001,2004,2005,2007,2008
 ./bin/named/lwresd.8				MAN	DOCBOOK
 ./bin/named/lwresd.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008
-./bin/named/lwresd.docbook			SGML	2000,2001,2004,2005,2007,2008
+./bin/named/lwresd.docbook			SGML	2000,2001,2004,2005,2007,2008,2009
 ./bin/named/lwresd.html				HTML	DOCBOOK
 ./bin/named/lwsearch.c				C	2000,2001,2004,2005,2007
 ./bin/named/main.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
@@ -179,7 +179,7 @@
 ./bin/nsupdate/Makefile.in			MAKE	2000,2001,2002,2004,2006,2007,2008
 ./bin/nsupdate/nsupdate.1			MAN	DOCBOOK
 ./bin/nsupdate/nsupdate.c			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
-./bin/nsupdate/nsupdate.docbook			SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008
+./bin/nsupdate/nsupdate.docbook			SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./bin/nsupdate/nsupdate.html			HTML	DOCBOOK
 ./bin/nsupdate/win32/nsupdate.dsp		X	2001,2004,2005
 ./bin/nsupdate/win32/nsupdate.dsw		X	2001
@@ -276,7 +276,7 @@
 ./bin/tests/db/dns_db_newversion_data		X	1999,2000,2001
 ./bin/tests/db/dns_db_origin_1.data		X	1999,2000,2001
 ./bin/tests/db/dns_db_origin_data		X	1999,2000,2001
-./bin/tests/db/t_db.c				C	1999,2000,2001,2004,2005,2007
+./bin/tests/db/t_db.c				C	1999,2000,2001,2004,2005,2007,2009
 ./bin/tests/db_test.c				C	1999,2000,2001,2004,2005,2007,2008
 ./bin/tests/dst/.cvsignore			X	1999,2000,2001,2006
 ./bin/tests/dst/Kdh.+002+18602.key		X	2001
@@ -297,7 +297,7 @@
 ./bin/tests/dst/t2_data_2			X	1999,2000,2001
 ./bin/tests/dst/t2_dsasig			X	1999,2000,2001
 ./bin/tests/dst/t2_rsasig			X	1999,2000,2001
-./bin/tests/dst/t_dst.c				C	1999,2000,2001,2004,2005,2007,2008
+./bin/tests/dst/t_dst.c				C	1999,2000,2001,2004,2005,2007,2008,2009
 ./bin/tests/entropy2_test.c			C	2000,2001,2004,2005,2007
 ./bin/tests/entropy_test.c			C	2000,2001,2004,2005,2007
 ./bin/tests/fsaccess_test.c			C	2000,2001,2004,2005,2007
@@ -338,11 +338,11 @@
 ./bin/tests/master/master7.data			X	1999,2000,2001,2003
 ./bin/tests/master/master8.data			X	2000,2001
 ./bin/tests/master/master9.data			X	2000,2001
-./bin/tests/master/t_master.c			C	1998,1999,2000,2001,2003,2004,2005,2007
+./bin/tests/master/t_master.c			C	1998,1999,2000,2001,2003,2004,2005,2007,2009
 ./bin/tests/master_test.c			C	1999,2000,2001,2004,2007
 ./bin/tests/mem/.cvsignore			X	1999,2000,2001
 ./bin/tests/mem/Makefile.in			MAKE	1998,1999,2000,2001,2002,2004,2005,2007
-./bin/tests/mem/t_mem.c				C	1999,2000,2001,2004,2007
+./bin/tests/mem/t_mem.c				C	1999,2000,2001,2004,2007,2009
 ./bin/tests/mempool_test.c			C	1999,2000,2001,2004,2007
 ./bin/tests/name_test.c				C	1998,1999,2000,2001,2003,2004,2005,2007
 ./bin/tests/named.conf				CONF-C	1999,2000,2001,2004,2007
@@ -371,7 +371,7 @@
 ./bin/tests/names/dns_name_totext_data		X	1999,2000,2001
 ./bin/tests/names/dns_name_towire_1_data	X	1999,2000,2001
 ./bin/tests/names/dns_name_towire_2_data	X	1999,2000,2001
-./bin/tests/names/t_names.c			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
+./bin/tests/names/t_names.c			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./bin/tests/names/wire_test1.data		X	1999,2000,2001
 ./bin/tests/names/wire_test2.data		X	1999,2000,2001
 ./bin/tests/names/wire_test3_1.data		X	1999,2000,2001
@@ -419,7 +419,7 @@
 ./bin/tests/rbt/dns_rbtnodechain_next_data	X	1999,2000,2001
 ./bin/tests/rbt/dns_rbtnodechain_prev.data	X	1999,2000,2001
 ./bin/tests/rbt/dns_rbtnodechain_prev_data	X	1999,2000,2001
-./bin/tests/rbt/t_rbt.c				C	1998,1999,2000,2001,2003,2004,2005,2007
+./bin/tests/rbt/t_rbt.c				C	1998,1999,2000,2001,2003,2004,2005,2007,2009
 ./bin/tests/rbt_test.c				C	1999,2000,2001,2004,2005,2007
 ./bin/tests/rbt_test.out			X	1999,2000,2001
 ./bin/tests/rbt_test.txt			SH	1999,2000,2001,2004,2007
@@ -875,11 +875,11 @@
 ./bin/tests/task_test.c				C	1998,1999,2000,2001,2004,2007
 ./bin/tests/tasks/.cvsignore			X	1999,2000,2001
 ./bin/tests/tasks/Makefile.in			MAKE	1998,1999,2000,2001,2002,2004,2007
-./bin/tests/tasks/t_tasks.c			C	1998,1999,2000,2001,2004,2005,2007
+./bin/tests/tasks/t_tasks.c			C	1998,1999,2000,2001,2004,2005,2007,2009
 ./bin/tests/timer_test.c			C	1998,1999,2000,2001,2004,2007
 ./bin/tests/timers/.cvsignore			X	1999,2000,2001
 ./bin/tests/timers/Makefile.in			MAKE	1999,2000,2001,2002,2004,2007
-./bin/tests/timers/t_timers.c			C	1999,2000,2001,2004,2007,2008
+./bin/tests/timers/t_timers.c			C	1999,2000,2001,2004,2007,2008,2009
 ./bin/tests/wire_test.c				C	1999,2000,2001,2004,2005,2007
 ./bin/tests/wire_test.data			X	1999,2000,2001
 ./bin/tests/wire_test.data2			X	1999,2000,2001
@@ -1947,7 +1947,7 @@
 ./lib/isc/lib.c					C	1999,2000,2001,2004,2005,2007
 ./lib/isc/log.c					C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2009
 ./lib/isc/md5.c					C	2000,2001,2004,2005,2007
-./lib/isc/mem.c					C	1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
+./lib/isc/mem.c					C	1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./lib/isc/mips/.cvsignore			X	2007
 ./lib/isc/mips/Makefile.in			MAKE	2007
 ./lib/isc/mips/include/.cvsignore		X	2007
@@ -2030,7 +2030,7 @@
 ./lib/isc/task.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/isc/task_p.h				C	2000,2001,2004,2005,2007
 ./lib/isc/taskpool.c				C	1999,2000,2001,2004,2005,2007
-./lib/isc/timer.c				C	1998,1999,2000,2001,2002,2004,2005,2007,2008
+./lib/isc/timer.c				C	1998,1999,2000,2001,2002,2004,2005,2007,2008,2009
 ./lib/isc/timer_p.h				C	2000,2001,2004,2005,2007
 ./lib/isc/unix/.cvsignore			X	1998,1999,2000,2001
 ./lib/isc/unix/Makefile.in			MAKE	1998,1999,2000,2001,2004,2007
