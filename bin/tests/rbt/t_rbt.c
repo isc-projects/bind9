@@ -1,8 +1,8 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001, 2003  Internet Software Consortium.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_rbt.c,v 1.25.18.4 2009/01/22 05:55:29 marka Exp $ */
+/* $Id: t_rbt.c,v 1.25.18.5 2009/01/22 23:46:00 tbox Exp $ */
 
 #include <config.h>
 
@@ -194,7 +194,7 @@ t1_add(char *name, dns_rbt_t *rbt, isc_mem_t *mctx, isc_result_t *dns_result) {
 			if (*dns_result != ISC_R_SUCCESS) {
 				delete_name(dns_name, mctx);
 				t_info("dns_rbt_addname failed %s\n",
-		       		       dns_result_totext(*dns_result));
+				       dns_result_totext(*dns_result));
 				++nprobs;
 			}
 		} else {
@@ -275,7 +275,7 @@ rbt_init(char *filename, dns_rbt_t **rbt, isc_mem_t *mctx) {
 	dns_result = dns_rbt_create(mctx, delete_name, mctx, rbt);
 	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_rbt_create failed %s\n",
-		       		dns_result_totext(dns_result));
+				dns_result_totext(dns_result));
 		fclose(fp);
 		return(1);
 	}
@@ -684,7 +684,7 @@ t9_walkchain(dns_rbtnodechain_t *chain, dns_rbt_t *rbt) {
 			dns_result = dns_name_concatenate(
 			       dns_fixedname_name(&name),
 			       dns_name_isabsolute(dns_fixedname_name(&name)) ?
-			                    NULL : dns_fixedname_name(&origin),
+					    NULL : dns_fixedname_name(&origin),
 			       dns_fixedname_name(&fullname2), NULL);
 			if (dns_result != ISC_R_SUCCESS) {
 				t_info("dns_name_concatenate failed %s\n",
