@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.81.32.4 2009/01/22 05:53:42 marka Exp $ */
+/* $Id: timer.c,v 1.81.32.5 2009/01/22 23:46:36 tbox Exp $ */
 
 /*! \file */
 
@@ -662,7 +662,7 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 					isc_task_send(timer->task,
 						      ISC_EVENT_PTR(&event));
 				} else
-					UNEXPECTED_ERROR(__FILE__, __LINE__, "%s", 
+					UNEXPECTED_ERROR(__FILE__, __LINE__, "%s",
 						 isc_msgcat_get(isc_msgcat,
 							 ISC_MSGSET_TIMER,
 							 ISC_MSG_EVENTNOTALLOC,
@@ -677,7 +677,7 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 			if (need_schedule) {
 				result = schedule(timer, now, ISC_FALSE);
 				if (result != ISC_R_SUCCESS)
-					UNEXPECTED_ERROR(__FILE__, __LINE__, "%s", 
+					UNEXPECTED_ERROR(__FILE__, __LINE__, "%s",
 						isc_msgcat_get(isc_msgcat,
 							ISC_MSGSET_TIMER,
 							ISC_MSG_SCHEDFAIL,
