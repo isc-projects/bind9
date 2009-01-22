@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: host.docbook,v 1.18 2008/04/04 23:47:01 tbox Exp $ -->
+<!-- $Id: host.docbook,v 1.18.114.1 2009/01/22 02:10:21 marka Exp $ -->
 <refentry id="man.host">
 
   <refentryinfo>
@@ -180,7 +180,7 @@
     </para>
 
     <para>
-      By default <command>host</command> uses UDP when making
+      By default, <command>host</command> uses UDP when making
       queries.  The
       <option>-T</option> option makes it use a TCP connection when querying
       the name server.  TCP will be automatically selected for queries that
@@ -200,7 +200,7 @@
       NS, SOA, SIG, KEY, AXFR, etc.  When no query type is specified,
       <command>host</command> automatically selects an appropriate
       query
-      type.  By default it looks for A, AAAA, and MX records, but if the
+      type.  By default, it looks for A, AAAA, and MX records, but if the
       <option>-C</option> option was given, queries will be made for SOA
       records, and if <parameter>name</parameter> is a
       dotted-decimal IPv4

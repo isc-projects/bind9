@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.380.14.2 2009/01/07 23:47:16 tbox Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.380.14.3 2009/01/22 02:10:21 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -7695,7 +7695,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  linkend="dynamic_update"/>) will expire.  There
 		  is a optional second field which specifies how
 		  long before expiry that the signatures will be
-		  regenerated.  If not specified the signatures will
+		  regenerated.  If not specified, the signatures will
 		  be regenerated at 1/4 of base interval.  The second
 		  field is specified in days if the base interval is
 		  greater than 7 days otherwise it is specified in hours.
@@ -8084,7 +8084,7 @@ XXX: end of RFC1918 addresses #defined out -->
 	      <term><command>empty-zones-enable</command></term>
 	      <listitem>
 	        <para>
-		  Enable or disable all empty zones.  By default they
+		  Enable or disable all empty zones.  By default, they
 		  are enabled.
 	        </para>
 	      </listitem>
@@ -8094,7 +8094,7 @@ XXX: end of RFC1918 addresses #defined out -->
 	    <term><command>disable-empty-zone</command></term>
 	      <listitem>
 	        <para>
-		  Disable individual empty zones.  By default none are
+		  Disable individual empty zones.  By default, none are
 		  disabled.  This option can be specified multiple times.
 	        </para>
 	      </listitem>
