@@ -1,3 +1,5 @@
+2535.	[bug]		dig +showsearh and +trace interacted badly. [RT #19091]
+
 2534.	[func]		Check NAPTR records regular expressions and
 			replacement strings to ensure they are syntactically
 			valid and consistant. [RT #18168]
