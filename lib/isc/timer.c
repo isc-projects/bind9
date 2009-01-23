@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.88 2009/01/23 01:27:12 marka Exp $ */
+/* $Id: timer.c,v 1.89 2009/01/23 23:47:54 tbox Exp $ */
 
 /*! \file */
 
@@ -683,7 +683,7 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 							ISC_MSGSET_TIMER,
 							ISC_MSG_SCHEDFAIL,
 							"couldn't schedule "
-						        "timer"),
+							"timer"),
 							 result);
 			}
 		} else {
