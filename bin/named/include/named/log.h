@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.25.128.1 2009/01/27 21:17:39 jinmei Exp $ */
+/* $Id: log.h,v 1.25.128.2 2009/01/27 23:46:49 tbox Exp $ */
 
 #ifndef NAMED_LOG_H
 #define NAMED_LOG_H 1
