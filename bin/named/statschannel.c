@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: statschannel.c,v 1.19 2009/01/27 22:29:58 jinmei Exp $ */
+/* $Id: statschannel.c,v 1.20 2009/01/27 23:47:54 tbox Exp $ */
 
 /*! \file */
 
@@ -141,7 +141,7 @@ init_desc(void) {
 	do { \
 		set_desc(dns_nsstatscounter_ ## counterid, \
 			 dns_nsstatscounter_max, \
-		 	 desc, nsstats_desc, xmldesc, nsstats_xmldesc); \
+			 desc, nsstats_desc, xmldesc, nsstats_xmldesc); \
 		nsstats_index[i++] = dns_nsstatscounter_ ## counterid; \
 	} while (0)
 
@@ -209,7 +209,7 @@ init_desc(void) {
 	do { \
 		set_desc(dns_resstatscounter_ ## counterid, \
 			 dns_resstatscounter_max, \
-		 	 desc, resstats_desc, xmldesc, resstats_xmldesc); \
+			 desc, resstats_desc, xmldesc, resstats_xmldesc); \
 		resstats_index[i++] = dns_resstatscounter_ ## counterid; \
 	} while (0)
 
@@ -266,7 +266,7 @@ init_desc(void) {
 			DNS_RESOLVER_QRYRTTCLASS4STR "ms",
 			"QryRTT" DNS_RESOLVER_QRYRTTCLASS4STR "+");
 	INSIST(i == dns_resstatscounter_max);
-	
+
 	/* Initialize zone statistics */
 	memset(zonestats_desc, 0,
 	       dns_zonestatscounter_max * sizeof(zonestats_desc[0]));
@@ -279,7 +279,7 @@ init_desc(void) {
 	do { \
 		set_desc(dns_zonestatscounter_ ## counterid, \
 			 dns_zonestatscounter_max, \
-		 	 desc, zonestats_desc, xmldesc, zonestats_xmldesc); \
+			 desc, zonestats_desc, xmldesc, zonestats_xmldesc); \
 		zonestats_index[i++] = dns_zonestatscounter_ ## counterid; \
 	} while (0)
 
@@ -311,20 +311,20 @@ init_desc(void) {
 	do { \
 		set_desc(isc_sockstatscounter_ ## counterid, \
 			 isc_sockstatscounter_max, \
-		 	 desc, sockstats_desc, xmldesc, sockstats_xmldesc); \
+			 desc, sockstats_desc, xmldesc, sockstats_xmldesc); \
 		sockstats_index[i++] = isc_sockstatscounter_ ## counterid; \
 	} while (0)
 
 	i = 0;
-	SET_SOCKSTATDESC(udp4open, "UDP/IPv4 sockets opened", "UDP4Open"); 
-	SET_SOCKSTATDESC(udp6open, "UDP/IPv6 sockets opened", "UDP6Open"); 
+	SET_SOCKSTATDESC(udp4open, "UDP/IPv4 sockets opened", "UDP4Open");
+	SET_SOCKSTATDESC(udp6open, "UDP/IPv6 sockets opened", "UDP6Open");
 	SET_SOCKSTATDESC(tcp4open, "TCP/IPv4 sockets opened", "TCP4Open");
 	SET_SOCKSTATDESC(tcp6open, "TCP/IPv6 sockets opened", "TCP6Open");
 	SET_SOCKSTATDESC(unixopen, "Unix domain sockets opened", "UnixOpen");
 	SET_SOCKSTATDESC(udp4openfail, "UDP/IPv4 socket open failures",
-			 "UDP4OpenFail"); 
+			 "UDP4OpenFail");
 	SET_SOCKSTATDESC(udp6openfail, "UDP/IPv6 socket open failures",
-			 "UDP6OpenFail"); 
+			 "UDP6OpenFail");
 	SET_SOCKSTATDESC(tcp4openfail, "TCP/IPv4 socket open failures",
 			 "TCP4OpenFail");
 	SET_SOCKSTATDESC(tcp6openfail, "TCP/IPv6 socket open failures",
@@ -1278,7 +1278,7 @@ ns_stats_dump(ns_server_t *server, FILE *fp) {
 	dump_counters(server->nsstats, statsformat_file, fp, NULL,
 		      nsstats_desc, dns_nsstatscounter_max, nsstats_index,
 		      nsstat_values, 0);
- 
+
 	fprintf(fp, "++ Zone Maintenance Statistics ++\n");
 	dump_counters(server->zonestats, statsformat_file, fp, NULL,
 		      zonestats_desc, dns_zonestatscounter_max,
