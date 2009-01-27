@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.73 2009/01/18 00:27:17 fdupont Exp $ */
+/* $Id: socket.c,v 1.74 2009/01/27 22:30:00 jinmei Exp $ */
 
 /* This code uses functions which are only available on Server 2003 and
  * higher, and Windows XP and higher.
@@ -65,6 +65,7 @@
 #include <isc/print.h>
 #include <isc/region.h>
 #include <isc/socket.h>
+#include <isc/stats.h>
 #include <isc/strerror.h>
 #include <isc/syslog.h>
 #include <isc/task.h>
@@ -318,6 +319,8 @@ struct isc_socketmgr {
 	unsigned int			magic;
 	isc_mem_t		       *mctx;
 	isc_mutex_t			lock;
+	isc_stats_t		       *stats;
+
 	/* Locked by manager lock. */
 	ISC_LIST(isc_socket_t)		socklist;
 	isc_boolean_t			bShutdown;
@@ -2455,6 +2458,7 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 
 	manager->magic = SOCKET_MANAGER_MAGIC;
 	manager->mctx = NULL;
+	manager->stats = NULL;
 	ISC_LIST_INIT(manager->socklist);
 	result = isc_mutex_init(&manager->lock);
 	if (result != ISC_R_SUCCESS) {
@@ -2490,6 +2494,16 @@ isc_socketmgr_getmaxsockets(isc_socketmgr_t *manager, unsigned int *nsockp) {
 	REQUIRE(nsockp != NULL);
 
 	return (ISC_R_NOTIMPLEMENTED);
+}
+
+void
+isc_socketmgr_setstats(isc_socketmgr_t *manager, isc_stats_t *stats) {
+	REQUIRE(VALID_MANAGER(manager));
+	REQUIRE(ISC_LIST_EMPTY(manager->socklist));
+	REQUIRE(manager->stats == NULL);
+	REQUIRE(isc_stats_ncounters(stats) == isc_sockstatscounter_max);
+
+	isc_stats_attach(stats, &manager->stats);
 }
 
 void
@@ -2548,6 +2562,8 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	(void)isc_condition_destroy(&manager->shutdown_ok);
 
 	DESTROYLOCK(&manager->lock);
+	if (manager->stats != NULL)
+		isc_stats_detach(&manager->stats);
 	manager->magic = 0;
 	mctx= manager->mctx;
 	isc_mem_put(mctx, manager, sizeof(*manager));

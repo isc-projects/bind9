@@ -15,13 +15,14 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.152 2009/01/09 23:47:45 tbox Exp $ */
+/* $Id: view.c,v 1.153 2009/01/27 22:29:59 jinmei Exp $ */
 
 /*! \file */
 
 #include <config.h>
 
 #include <isc/hash.h>
+#include <isc/stats.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/task.h>
 #include <isc/util.h>
@@ -348,7 +349,7 @@ destroy(dns_view_t *view) {
 		view->rootexclude = NULL;
 	}
 	if (view->resstats != NULL)
-		dns_stats_detach(&view->resstats);
+		isc_stats_detach(&view->resstats);
 	if (view->resquerystats != NULL)
 		dns_stats_detach(&view->resquerystats);
 	dns_keytable_detach(&view->trustedkeys);
@@ -1452,21 +1453,21 @@ dns_view_freezezones(dns_view_t *view, isc_boolean_t value) {
 }
 
 void
-dns_view_setresstats(dns_view_t *view, dns_stats_t *stats) {
+dns_view_setresstats(dns_view_t *view, isc_stats_t *stats) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
 	REQUIRE(view->resstats == NULL);
 
-	dns_stats_attach(stats, &view->resstats);
+	isc_stats_attach(stats, &view->resstats);
 }
 
 void
-dns_view_getresstats(dns_view_t *view, dns_stats_t **statsp) {
+dns_view_getresstats(dns_view_t *view, isc_stats_t **statsp) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
 	if (view->resstats != NULL)
-		dns_stats_attach(view->resstats, statsp);
+		isc_stats_attach(view->resstats, statsp);
 }
 
 void

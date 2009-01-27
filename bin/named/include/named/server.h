@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.95 2009/01/09 23:47:45 tbox Exp $ */
+/* $Id: server.h,v 1.96 2009/01/27 22:29:58 jinmei Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -92,11 +92,12 @@ struct ns_server {
 	isc_boolean_t		log_queries;	/*%< For BIND 8 compatibility */
 
 	ns_cachelist_t		cachelist;	/*%< Possibly shared caches */
-	dns_stats_t *		nsstats;	/*%< Server statistics */
-	dns_stats_t *		rcvquerystats;	/*% Incoming query statistics */
-	dns_stats_t *		opcodestats;	/*%< Incoming message statistics */
-	dns_stats_t *		zonestats;	/*% Zone management statistics */
-	dns_stats_t *		resolverstats;	/*% Resolver statistics */
+	isc_stats_t *		nsstats;	/*%< Server stats */
+	dns_stats_t *		rcvquerystats;	/*% Incoming query stats */
+	dns_stats_t *		opcodestats;	/*%< Incoming message stats */
+	isc_stats_t *		zonestats;	/*% Zone management stats */
+	isc_stats_t  *		resolverstats;	/*% Resolver stats */
+	isc_stats_t *		sockstats;	/*%< Socket stats */
 
 	ns_controls_t *		controls;	/*%< Control channels */
 	unsigned int		dispatchgen;
@@ -111,7 +112,7 @@ struct ns_server {
 #define NS_SERVER_VALID(s)		ISC_MAGIC_VALID(s, NS_SERVER_MAGIC)
 
 /*%
- * Server statistics counters.  Used as dns_statscounter_t values.
+ * Server statistics counters.  Used as isc_statscounter_t values.
  */
 enum {
 	dns_nsstatscounter_requestv4 = 0,

@@ -15,7 +15,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: bind9.xsl,v 1.19 2008/07/17 23:43:26 jinmei Exp $ -->
+<!-- $Id: bind9.xsl,v 1.20 2009/01/27 22:29:58 jinmei Exp $ -->
 
 <xsl:stylesheet version="1.0"
    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -247,6 +247,17 @@ div.statcounter br {
 	  </table>
 	  <br/>
 	</xsl:for-each>
+
+	<div class="statcounter">
+	  <h2>Socket I/O Statistics</h2>
+	  <xsl:for-each select="server/sockstat">
+	    <dl>
+	      <dt><xsl:value-of select="name"/></dt>
+	      <dd><xsl:value-of select="counter"/></dd>
+	    </dl>
+	  </xsl:for-each>
+	  <br/>
+	</div>
 
 	<br/>
 

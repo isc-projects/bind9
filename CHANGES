@@ -1,3 +1,6 @@
+2537.	[func]		Added more statistics counters including those on socket
+			I/O events and query RTT histograms.  [RT #18802]
+
 2536.	[cleanup]	Silence some warnings when -Werror=format-security is
 			specified. [RT #19083]
 
