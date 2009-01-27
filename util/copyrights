@@ -97,8 +97,8 @@
 ./bin/dnssec/win32/signzone.mak			X	2001,2004,2005,2006
 ./bin/named/.cvsignore				X	1999,2000,2001,2007,2008
 ./bin/named/Makefile.in				MAKE	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008
-./bin/named/bind9.xsl				SGML	2006,2007,2008
-./bin/named/bind9.xsl.h				X	2007,2008
+./bin/named/bind9.xsl				SGML	2006,2007,2008,2009
+./bin/named/bind9.xsl.h				X	2007,2008,2009
 ./bin/named/builtin.c				C	2001,2002,2003,2004,2005,2007
 ./bin/named/client.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./bin/named/config.c				C	2001,2002,2003,2004,2005,2006,2007,2008
@@ -174,7 +174,7 @@
 ./bin/named/win32/ntservice.c			C	1999,2000,2001,2002,2004,2006,2007
 ./bin/named/win32/os.c				C	1999,2000,2001,2002,2004,2005,2007,2008
 ./bin/named/xfrout.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
-./bin/named/zoneconf.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
+./bin/named/zoneconf.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./bin/nsupdate/.cvsignore			X	2000,2001
 ./bin/nsupdate/Makefile.in			MAKE	2000,2001,2002,2004,2006,2007,2008
 ./bin/nsupdate/nsupdate.1			MAN	DOCBOOK
@@ -1536,7 +1536,7 @@
 ./lib/dns/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/dns/acache.c				C	2004,2005,2006,2007,2008
 ./lib/dns/acl.c					C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009
-./lib/dns/adb.c					C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
+./lib/dns/adb.c					C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./lib/dns/api					X	1999,2000,2001,2006,2008,2009
 ./lib/dns/byaddr.c				C	2000,2001,2002,2003,2004,2005,2007
 ./lib/dns/cache.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
@@ -1581,7 +1581,7 @@
 ./lib/dns/include/dns/dbiterator.h		C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/dbtable.h			C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/diff.h			C	2000,2001,2004,2005,2006,2007,2008,2009
-./lib/dns/include/dns/dispatch.h		C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
+./lib/dns/include/dns/dispatch.h		C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./lib/dns/include/dns/dlz.h			C.PORTION	1999,2000,2001,2005,2006,2007,2009
 ./lib/dns/include/dns/dnssec.h			C	1999,2000,2001,2002,2004,2005,2006,2007
 ./lib/dns/include/dns/ds.h			C	2002,2004,2005,2006,2007
@@ -1626,7 +1626,7 @@
 ./lib/dns/include/dns/secproto.h		C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/soa.h			C	2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/ssu.h			C	2000,2001,2003,2004,2005,2006,2007,2008
-./lib/dns/include/dns/stats.h			C	2000,2001,2004,2005,2006,2007,2008
+./lib/dns/include/dns/stats.h			C	2000,2001,2004,2005,2006,2007,2008,2009
 ./lib/dns/include/dns/tcpmsg.h			C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/time.h			C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/timer.h			C	2000,2001,2004,2005,2006,2007
@@ -1805,7 +1805,7 @@
 ./lib/dns/spnego_asn1.c				C	2006,2007
 ./lib/dns/spnego_asn1.pl			PERL	2006,2007
 ./lib/dns/ssu.c					C	2000,2001,2003,2004,2005,2006,2007,2008
-./lib/dns/stats.c				C	2000,2001,2004,2005,2007,2008
+./lib/dns/stats.c				C	2000,2001,2004,2005,2007,2008,2009
 ./lib/dns/tcpmsg.c				C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/time.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2007,2009
 ./lib/dns/timer.c				C	2000,2001,2004,2005,2007
@@ -1829,7 +1829,7 @@
 ./lib/dns/zonekey.c				C	2001,2003,2004,2005,2007
 ./lib/dns/zt.c					C	1999,2000,2001,2002,2004,2005,2006,2007
 ./lib/isc/.cvsignore				X	1998,1999,2000,2001
-./lib/isc/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
+./lib/isc/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./lib/isc/alpha/.cvsignore			X	2007
 ./lib/isc/alpha/Makefile.in			MAKE	2007
 ./lib/isc/alpha/include/.cvsignore		X	2007
@@ -1926,6 +1926,7 @@
 ./lib/isc/include/isc/sha2.h			C	2005,2006,2007
 ./lib/isc/include/isc/sockaddr.h		C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2009
 ./lib/isc/include/isc/socket.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009
+./lib/isc/include/isc/stats.h			C	2009
 ./lib/isc/include/isc/stdio.h			C	2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/stdlib.h			C	2003,2004,2005,2006,2007
 ./lib/isc/include/isc/string.h			C	2000,2001,2003,2004,2005,2006,2007
@@ -1933,7 +1934,7 @@
 ./lib/isc/include/isc/task.h			C	1998,1999,2000,2001,2003,2004,2005,2006,2007,2009
 ./lib/isc/include/isc/taskpool.h		C	1999,2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/timer.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008
-./lib/isc/include/isc/types.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
+./lib/isc/include/isc/types.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./lib/isc/include/isc/util.h			C	1998,1999,2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/version.h			C	2001,2004,2005,2006,2007
 ./lib/isc/include/isc/xml.h			C	2006,2007
@@ -2023,6 +2024,7 @@
 ./lib/isc/sparc64/include/isc/.cvsignore	X	2007
 ./lib/isc/sparc64/include/isc/Makefile.in	MAKE	2007
 ./lib/isc/sparc64/include/isc/atomic.h		C	2005,2007
+./lib/isc/stats.c				C	2009
 ./lib/isc/string.c				C	1999,2000,2001,2003,2004,2005,2006,2007
 ./lib/isc/strtoul.c				C	2003,2004,2005,2007
 ./lib/isc/symtab.c				C	1996,1997,1998,1999,2000,2001,2004,2005,2007
@@ -2112,7 +2114,7 @@
 ./lib/isc/win32/interfaceiter.c			C	1999,2000,2001,2004,2007,2008,2009
 ./lib/isc/win32/ipv6.c				C	1999,2000,2001,2004,2007
 ./lib/isc/win32/keyboard.c			C	2000,2001,2004,2007
-./lib/isc/win32/libisc.def			X	2001,2002,2003,2004,2005,2006,2007,2008
+./lib/isc/win32/libisc.def			X	2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./lib/isc/win32/libisc.dsp			X	2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/isc/win32/libisc.dsw			X	2001
 ./lib/isc/win32/libisc.mak			X	2001,2002,2003,2004,2005,2006,2007,2008
