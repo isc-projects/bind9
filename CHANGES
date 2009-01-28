@@ -1,3 +1,7 @@
+2538.	[bug]		cache/ADB memory could grow over max-cache-size,
+			especially with threads and smaller max-cache-size
+			values. [RT #19240]
+
 2536.	[cleanup]	Silence some warnings when -Werror=format-security is
 			specified. [RT #19083]
 
