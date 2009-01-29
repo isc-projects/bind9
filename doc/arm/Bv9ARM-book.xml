@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.380.14.3 2009/01/22 02:10:21 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.380.14.4 2009/01/29 22:40:34 jinmei Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -11572,6 +11572,17 @@ $GENERATE 1-127 $ CNAME $.0</programlisting>
                 </entry>
 	      </row>
 
+	      <row rowsep="0">
+                <entry colname="1">
+                  <para>Socket I/O Statistics</para>
+                </entry>
+                <entry colname="2">
+                  <para>
+                    Statistics counters about network related events.
+                  </para>
+                </entry>
+	      </row>
+
 	    </tbody>
 	  </tgroup>
 	</informaltable>
@@ -12381,7 +12392,6 @@ $GENERATE 1-127 $ CNAME $.0</programlisting>
 		    </entry>
 		  </row>
 
-
 		  <row rowsep="0">
 		    <entry colname="1">
 		      <para><command>Queryv4</command></para>
@@ -12553,6 +12563,48 @@ $GENERATE 1-127 $ CNAME $.0</programlisting>
 		  </row>
 		  <row rowsep="0">
 		    <entry colname="1">
+		      <para><command>QueryAbort</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Queries aborted due to quota control.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>QuerySockFail</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Failures in opening query sockets.
+			One common reason for such failures is a
+			failure of opening a new socket due to a
+			limitation on file descriptors.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>QueryTimeout</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Query timeouts.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
 		      <para><command>GlueFetchv4</command></para>
 		    </entry>
 		    <entry colname="2">
@@ -12655,13 +12707,200 @@ $GENERATE 1-127 $ CNAME $.0</programlisting>
 		      </para>
 		    </entry>
 		  </row>
-
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>QryRTTnn</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para><command></command></para>
+		    </entry>
+		    <entry colname="3">
+		      <para>
+			Frequency table on round trip times (RTTs) of
+			queries.
+			Each <command>nn</command> specifies the corresponding
+			frequency.
+			In the sequence of
+			<command>nn_1</command>,
+			<command>nn_2</command>,
+			...,
+			<command>nn_m</command>,
+			the value of <command>nn_i</command> is the
+			number of queries whose RTTs are between
+			<command>nn_(i-1)</command> (inclusive) and
+			<command>nn_i</command> (exclusive) milliseconds.
+			For the sake of convenience we define
+			<command>nn_0</command> to be 0.
+			The last entry should be represented as
+			<command>nn_m+</command>, which means the
+			number of queries whose RTTs are equal to or over
+			<command>nn_m</command> milliseconds.
+		      </para>
+		    </entry>
+		  </row>
 		</tbody>
               </tgroup>
             </informaltable>
 
 	  </sect3>
 
+	  <sect3>
+            <title>Socket I/O Statistics Counters</title>
+
+	    <para>
+	      Socket I/O statistics counters are defined per socket
+	      types, which are
+	      <command>UDP4</command> (UDP/IPv4),
+	      <command>UDP6</command> (UDP/IPv6),
+	      <command>TCP4</command> (TCP/IPv4),
+	      <command>TCP6</command> (TCP/IPv6),
+	      <command>Unix</command> (Unix Domain), and
+	      <command>FDwatch</command> (sockets opened outside the
+	      socket module).
+	      In the following table <command>&lt;TYPE&gt;</command>
+	      represents a socket type.
+	      Not all counters are available for all socket types;
+	      exceptions are noted in the description field.
+	    </para>
+
+	    <informaltable colsep="0" rowsep="0">
+              <tgroup cols="2" colsep="0" rowsep="0" tgroupstyle="4Level-table">
+		<colspec colname="1" colnum="1" colsep="0" colwidth="1.150in"/>
+		<colspec colname="2" colnum="2" colsep="0" colwidth="3.350in"/>
+		<tbody>
+		  <row>
+		    <entry colname="1">
+                      <para>
+			<emphasis>Symbol</emphasis>
+                      </para>
+		    </entry>
+		    <entry colname="2">
+                      <para>
+			<emphasis>Description</emphasis>
+                      </para>
+		    </entry>
+		  </row>
+
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>&lt;TYPE&gt;Open</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Sockets opened successfully.
+			This counter is not applicable to the
+			<command>FDwatch</command> type.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>&lt;TYPE&gt;OpenFail</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Failures of opening sockets.
+			This counter is not applicable to the
+			<command>FDwatch</command> type.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>&lt;TYPE&gt;Close</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Sockets closed.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>&lt;TYPE&gt;BindFail</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Failures of binding sockets.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>&lt;TYPE&gt;ConnFail</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Failures of connecting sockets.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>&lt;TYPE&gt;Conn</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Connections established successfully.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>&lt;TYPE&gt;AcceptFail</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Failures of accepting incoming connection requests.
+			This counter is not applicable to the
+			<command>UDP</command> and
+			<command>FDwatch</command> types.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>&lt;TYPE&gt;Accept</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Incoming connections successfully accepted.
+			This counter is not applicable to the
+			<command>UDP</command> and
+			<command>FDwatch</command> types.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>&lt;TYPE&gt;SendErr</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Errors in socket send operations.
+			This counter corresponds
+			to <command>SErr</command> counter of
+			<command>BIND</command> 8.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para><command>&lt;TYPE&gt;RecvErr</command></para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Errors in socket receive operations.
+			This includes errors of send operations on a
+			connected UDP socket notified by an ICMP error
+			message.
+		      </para>
+		    </entry>
+		  </row>
+		</tbody>
+              </tgroup>
+	    </informaltable>
+	  </sect3>
 	  <sect3>
             <title>Compatibility with <emphasis>BIND</emphasis> 8 Counters</title>
 	    <para>
@@ -12713,17 +12952,6 @@ $GENERATE 1-127 $ CNAME $.0</programlisting>
 		  </para>
 		</listitem>
 	      </varlistentry>
-
-              <varlistentry>
-		<term><command>SErr</command></term>
-		<listitem>
-		  <para>
-		    This counter could be implemented, but is not yet
-		    supported.
-		  </para>
-		</listitem>
-	      </varlistentry>
-
 	    </variablelist>
 	  </sect3>
         </sect2>

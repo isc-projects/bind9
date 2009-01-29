@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.313.20.4 2009/01/18 23:25:15 marka Exp $ */
+/* $Id: query.c,v 1.313.20.5 2009/01/29 22:40:33 jinmei Exp $ */
 
 /*! \file */
 
@@ -23,9 +23,10 @@
 
 #include <string.h>
 
-#include <isc/mem.h>
-#include <isc/util.h>
 #include <isc/hex.h>
+#include <isc/mem.h>
+#include <isc/stats.h>
+#include <isc/util.h>
 
 #include <dns/adb.h>
 #include <dns/byaddr.h>
@@ -141,21 +142,21 @@ log_queryerror(ns_client_t *client, isc_result_t result, int line, int level);
  * Increment query statistics counters.
  */
 static inline void
-inc_stats(ns_client_t *client, dns_statscounter_t counter) {
+inc_stats(ns_client_t *client, isc_statscounter_t counter) {
 	dns_zone_t *zone = client->query.authzone;
 
-	dns_generalstats_increment(ns_g_server->nsstats, counter);
+	isc_stats_increment(ns_g_server->nsstats, counter);
 
 	if (zone != NULL) {
-		dns_stats_t *zonestats = dns_zone_getrequeststats(zone);
+		isc_stats_t *zonestats = dns_zone_getrequeststats(zone);
 		if (zonestats != NULL)
-			dns_generalstats_increment(zonestats, counter);
+			isc_stats_increment(zonestats, counter);
 	}
 }
 
 static void
 query_send(ns_client_t *client) {
-	dns_statscounter_t counter;
+	isc_statscounter_t counter;
 	if ((client->message->flags & DNS_MESSAGEFLAG_AA) == 0)
 		inc_stats(client, dns_nsstatscounter_nonauthans);
 	else

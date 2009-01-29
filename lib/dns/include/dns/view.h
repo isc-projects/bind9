@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.111.88.3 2009/01/18 23:25:17 marka Exp $ */
+/* $Id: view.h,v 1.111.88.4 2009/01/29 22:40:35 jinmei Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -100,7 +100,7 @@ struct dns_view {
 	isc_event_t			resevent;
 	isc_event_t			adbevent;
 	isc_event_t			reqevent;
-	dns_stats_t *			resstats;
+	isc_stats_t *			resstats;
 	dns_stats_t *			resquerystats;
 
 	/* Configurable data. */
@@ -826,7 +826,7 @@ dns_view_freezezones(dns_view_t *view, isc_boolean_t freeze);
  */
 
 void
-dns_view_setresstats(dns_view_t *view, dns_stats_t *stats);
+dns_view_setresstats(dns_view_t *view, isc_stats_t *stats);
 /*%<
  * Set a general resolver statistics counter set 'stats' for 'view'.
  *
@@ -838,7 +838,7 @@ dns_view_setresstats(dns_view_t *view, dns_stats_t *stats);
  */
 
 void
-dns_view_getresstats(dns_view_t *view, dns_stats_t **statsp);
+dns_view_getresstats(dns_view_t *view, isc_stats_t **statsp);
 /*%<
  * Get the general statistics counter set for 'view'.  If a statistics set is
  * set '*statsp' will be attached to the set; otherwise, '*statsp' will be

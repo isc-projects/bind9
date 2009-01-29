@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.520.12.5 2009/01/18 23:25:15 marka Exp $ */
+/* $Id: server.c,v 1.520.12.6 2009/01/29 22:40:33 jinmei Exp $ */
 
 /*! \file */
 
@@ -37,6 +37,7 @@
 #include <isc/print.h>
 #include <isc/resource.h>
 #include <isc/socket.h>
+#include <isc/stats.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/task.h>
@@ -957,18 +958,18 @@ check_dbtype(dns_zone_t **zonep, unsigned int dbtypec, const char **dbargv,
 static isc_result_t
 setquerystats(dns_zone_t *zone, isc_mem_t *mctx, isc_boolean_t on) {
 	isc_result_t result;
-	dns_stats_t *zoneqrystats;
+	isc_stats_t *zoneqrystats;
 
 	zoneqrystats = NULL;
 	if (on) {
-		result = dns_generalstats_create(mctx, &zoneqrystats,
-						 dns_nsstatscounter_max);
+		result = isc_stats_create(mctx, &zoneqrystats,
+					  dns_nsstatscounter_max);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 	}
 	dns_zone_setrequeststats(zone, zoneqrystats);
 	if (zoneqrystats != NULL)
-		dns_stats_detach(&zoneqrystats);
+		isc_stats_detach(&zoneqrystats);
 
 	return (ISC_R_SUCCESS);
 }
@@ -1044,7 +1045,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	isc_boolean_t rfc1918;
 	isc_boolean_t empty_zones_enable;
 	const cfg_obj_t *disablelist = NULL;
-	dns_stats_t *resstats = NULL;
+	isc_stats_t *resstats = NULL;
 	dns_stats_t *resquerystats = NULL;
 	isc_boolean_t zero_no_soattl;
 
@@ -1350,8 +1351,8 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 				      dispatch4, dispatch6));
 
 	if (resstats == NULL) {
-		CHECK(dns_generalstats_create(mctx, &resstats,
-					      dns_resstatscounter_max));
+		CHECK(isc_stats_create(mctx, &resstats,
+				       dns_resstatscounter_max));
 	}
 	dns_view_setresstats(view, resstats);
 	if (resquerystats == NULL)
@@ -2003,7 +2004,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	if (dispatch6 != NULL)
 		dns_dispatch_detach(&dispatch6);
 	if (resstats != NULL)
-		dns_stats_detach(&resstats);
+		isc_stats_detach(&resstats);
 	if (resquerystats != NULL)
 		dns_stats_detach(&resquerystats);
 	if (order != NULL)
@@ -3938,6 +3939,11 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->opcodestats = NULL;
 	server->zonestats = NULL;
 	server->resolverstats = NULL;
+	server->sockstats = NULL;
+	CHECKFATAL(isc_stats_create(server->mctx, &server->sockstats,
+				    isc_sockstatscounter_max),
+		   "isc_stats_create");
+	isc_socketmgr_setstats(ns_g_socketmgr, server->sockstats);
 
 	server->dumpfile = isc_mem_strdup(server->mctx, "named_dump.db");
 	CHECKFATAL(server->dumpfile == NULL ? ISC_R_NOMEMORY : ISC_R_SUCCESS,
@@ -3954,8 +3960,8 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->server_usehostname = ISC_FALSE;
 	server->server_id = NULL;
 
-	CHECKFATAL(dns_generalstats_create(ns_g_mctx, &server->nsstats,
-					   dns_nsstatscounter_max),
+	CHECKFATAL(isc_stats_create(ns_g_mctx, &server->nsstats,
+				    dns_nsstatscounter_max),
 		   "dns_stats_create (server)");
 
 	CHECKFATAL(dns_rdatatypestats_create(ns_g_mctx,
@@ -3965,12 +3971,12 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	CHECKFATAL(dns_opcodestats_create(ns_g_mctx, &server->opcodestats),
 		   "dns_stats_create (opcode)");
 
-	CHECKFATAL(dns_generalstats_create(ns_g_mctx, &server->zonestats,
-					   dns_zonestatscounter_max),
+	CHECKFATAL(isc_stats_create(ns_g_mctx, &server->zonestats,
+				    dns_zonestatscounter_max),
 		   "dns_stats_create (zone)");
 
-	CHECKFATAL(dns_generalstats_create(ns_g_mctx, &server->resolverstats,
-					   dns_resstatscounter_max),
+	CHECKFATAL(isc_stats_create(ns_g_mctx, &server->resolverstats,
+				    dns_resstatscounter_max),
 		   "dns_stats_create (resolver)");
 
 	server->flushonshutdown = ISC_FALSE;
@@ -3995,11 +4001,12 @@ ns_server_destroy(ns_server_t **serverp) {
 
 	ns_controls_destroy(&server->controls);
 
-	dns_stats_detach(&server->nsstats);
+	isc_stats_detach(&server->nsstats);
 	dns_stats_detach(&server->rcvquerystats);
 	dns_stats_detach(&server->opcodestats);
-	dns_stats_detach(&server->zonestats);
-	dns_stats_detach(&server->resolverstats);
+	isc_stats_detach(&server->zonestats);
+	isc_stats_detach(&server->resolverstats);
+	isc_stats_detach(&server->sockstats);
 
 	isc_mem_free(server->mctx, server->statsfile);
 	isc_mem_free(server->mctx, server->dumpfile);

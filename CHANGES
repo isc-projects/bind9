@@ -2,6 +2,9 @@
 			especially with threads and smaller max-cache-size
 			values. [RT #19240]
 
+2537.	[experimental]	Added more statistics counters including those on socket
+			I/O events and query RTT histograms. [RT #18802]
+
 2536.	[cleanup]	Silence some warnings when -Werror=format-security is
 			specified. [RT #19083]
 

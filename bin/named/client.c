@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.259.12.2 2009/01/18 23:47:34 tbox Exp $ */
+/* $Id: client.c,v 1.259.12.3 2009/01/29 22:40:33 jinmei Exp $ */
 
 #include <config.h>
 
@@ -24,6 +24,7 @@
 #include <isc/once.h>
 #include <isc/platform.h>
 #include <isc/print.h>
+#include <isc/stats.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/task.h>
@@ -1018,23 +1019,22 @@ ns_client_send(ns_client_t *client) {
 		result = client_sendpkg(client, &buffer);
 
 	/* update statistics (XXXJT: is it okay to access message->xxxkey?) */
-	dns_generalstats_increment(ns_g_server->nsstats,
-				   dns_nsstatscounter_response);
+	isc_stats_increment(ns_g_server->nsstats, dns_nsstatscounter_response);
 	if (opt_included) {
-		dns_generalstats_increment(ns_g_server->nsstats,
-					   dns_nsstatscounter_edns0out);
+		isc_stats_increment(ns_g_server->nsstats,
+				    dns_nsstatscounter_edns0out);
 	}
 	if (client->message->tsigkey != NULL) {
-		dns_generalstats_increment(ns_g_server->nsstats,
-					   dns_nsstatscounter_tsigout);
+		isc_stats_increment(ns_g_server->nsstats,
+				    dns_nsstatscounter_tsigout);
 	}
 	if (client->message->sig0key != NULL) {
-		dns_generalstats_increment(ns_g_server->nsstats,
-					   dns_nsstatscounter_sig0out);
+		isc_stats_increment(ns_g_server->nsstats,
+				    dns_nsstatscounter_sig0out);
 	}
 	if ((client->message->flags & DNS_MESSAGEFLAG_TC) != 0)
-		dns_generalstats_increment(ns_g_server->nsstats,
-					   dns_nsstatscounter_truncatedresp);
+		isc_stats_increment(ns_g_server->nsstats,
+				    dns_nsstatscounter_truncatedresp);
 
 	if (result == ISC_R_SUCCESS)
 		return;
@@ -1514,15 +1514,15 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	 * Update some statistics counters.  Don't count responses.
 	 */
 	if (isc_sockaddr_pf(&client->peeraddr) == PF_INET) {
-		dns_generalstats_increment(ns_g_server->nsstats,
-					   dns_nsstatscounter_requestv4);
+		isc_stats_increment(ns_g_server->nsstats,
+				    dns_nsstatscounter_requestv4);
 	} else {
-		dns_generalstats_increment(ns_g_server->nsstats,
-					   dns_nsstatscounter_requestv6);
+		isc_stats_increment(ns_g_server->nsstats,
+				    dns_nsstatscounter_requestv6);
 	}
 	if (TCP_CLIENT(client))
-		dns_generalstats_increment(ns_g_server->nsstats,
-					   dns_nsstatscounter_tcp);
+		isc_stats_increment(ns_g_server->nsstats,
+				    dns_nsstatscounter_tcp);
 
 	/*
 	 * It's a request.  Parse it.
@@ -1586,8 +1586,8 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		 */
 		client->ednsversion = (opt->ttl & 0x00FF0000) >> 16;
 		if (client->ednsversion > 0) {
-			dns_generalstats_increment(ns_g_server->nsstats,
-						dns_nsstatscounter_badednsver);
+			isc_stats_increment(ns_g_server->nsstats,
+					    dns_nsstatscounter_badednsver);
 			result = client_addopt(client);
 			if (result == ISC_R_SUCCESS)
 				result = DNS_R_BADVERS;
@@ -1612,8 +1612,8 @@ client_request(isc_task_t *task, isc_event_t *event) {
 			}
 		}
 
-		dns_generalstats_increment(ns_g_server->nsstats,
-					   dns_nsstatscounter_edns0in);
+		isc_stats_increment(ns_g_server->nsstats,
+				    dns_nsstatscounter_edns0in);
 
 		/*
 		 * Create an OPT for our reply.
@@ -1762,11 +1762,11 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	if (result != ISC_R_NOTFOUND) {
 		signame = NULL;
 		if (dns_message_gettsig(client->message, &signame) != NULL) {
-			dns_generalstats_increment(ns_g_server->nsstats,
-						   dns_nsstatscounter_tsigin);
+			isc_stats_increment(ns_g_server->nsstats,
+					    dns_nsstatscounter_tsigin);
 		} else {
-			dns_generalstats_increment(ns_g_server->nsstats,
-						   dns_nsstatscounter_sig0in);
+			isc_stats_increment(ns_g_server->nsstats,
+					    dns_nsstatscounter_sig0in);
 		}
 
 	}
@@ -1790,8 +1790,8 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		isc_result_t tresult;
 
 		/* There is a signature, but it is bad. */
-		dns_generalstats_increment(ns_g_server->nsstats,
-					   dns_nsstatscounter_invalidsig);
+		isc_stats_increment(ns_g_server->nsstats,
+				    dns_nsstatscounter_invalidsig);
 		signame = NULL;
 		if (dns_message_gettsig(client->message, &signame) != NULL) {
 			char namebuf[DNS_NAME_FORMATSIZE];

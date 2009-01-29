@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.160.50.3 2009/01/18 23:25:17 marka Exp $ */
+/* $Id: zone.h,v 1.160.50.4 2009/01/29 22:40:35 jinmei Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1522,7 +1522,7 @@ dns_zone_getstatscounters(dns_zone_t *zone);
  */
 
 void
-dns_zone_setstats(dns_zone_t *zone, dns_stats_t *stats);
+dns_zone_setstats(dns_zone_t *zone, isc_stats_t *stats);
 /*%<
  * Set a general zone-maintenance statistics set 'stats' for 'zone'.  This
  * function is expected to be called only on zone creation (when necessary).
@@ -1539,7 +1539,7 @@ dns_zone_setstats(dns_zone_t *zone, dns_stats_t *stats);
  */
 
 void
-dns_zone_setrequeststats(dns_zone_t *zone, dns_stats_t *stats);
+dns_zone_setrequeststats(dns_zone_t *zone, isc_stats_t *stats);
 /*%<
  * Set an additional statistics set to zone.  It is attached in the zone
  * but is not counted in the zone module; only the caller updates the counters.
@@ -1550,7 +1550,7 @@ dns_zone_setrequeststats(dns_zone_t *zone, dns_stats_t *stats);
  *\li	stats is a valid statistics.
  */
 
-dns_stats_t *
+isc_stats_t *
 dns_zone_getrequeststats(dns_zone_t *zone);
 /*%<
  * Get the additional statistics for zone, if one is installed.

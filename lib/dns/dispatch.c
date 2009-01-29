@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.155.12.4 2009/01/18 23:47:35 tbox Exp $ */
+/* $Id: dispatch.c,v 1.155.12.5 2009/01/29 22:40:34 jinmei Exp $ */
 
 /*! \file */
 
@@ -32,6 +32,7 @@
 #include <isc/portset.h>
 #include <isc/print.h>
 #include <isc/random.h>
+#include <isc/stats.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/time.h>
@@ -80,7 +81,7 @@ struct dns_dispatchmgr {
 	isc_mem_t		       *mctx;
 	dns_acl_t		       *blackhole;
 	dns_portlist_t		       *portlist;
-	dns_stats_t		       *stats;
+	isc_stats_t		       *stats;
 	isc_entropy_t		       *entropy; /*%< entropy source */
 
 	/* Locked by "lock". */
@@ -1262,8 +1263,8 @@ udp_recv(isc_event_t *ev_in, dns_dispatch_t *disp, dispsocket_t *dispsock) {
 			     bucket, (resp == NULL ? "not found" : "found"));
 
 		if (resp == NULL) {
-			dns_generalstats_increment(mgr->stats,
-						 dns_resstatscounter_mismatch);
+			isc_stats_increment(mgr->stats,
+					    dns_resstatscounter_mismatch);
 			free_buffer(disp, ev->region.base, ev->region.length);
 			goto unlock;
 		}
@@ -1271,8 +1272,7 @@ udp_recv(isc_event_t *ev_in, dns_dispatch_t *disp, dispsocket_t *dispsock) {
 							 &resp->host)) {
 		dispatch_log(disp, LVL(90),
 			     "response to an exclusive socket doesn't match");
-		dns_generalstats_increment(mgr->stats,
-					   dns_resstatscounter_mismatch);
+		isc_stats_increment(mgr->stats, dns_resstatscounter_mismatch);
 		free_buffer(disp, ev->region.base, ev->region.length);
 		goto unlock;
 	}
@@ -1709,7 +1709,7 @@ destroy_mgr(dns_dispatchmgr_t **mgrp) {
 		dns_acl_detach(&mgr->blackhole);
 
 	if (mgr->stats != NULL)
-		dns_stats_detach(&mgr->stats);
+		isc_stats_detach(&mgr->stats);
 
 	if (mgr->v4ports != NULL) {
 		isc_mem_put(mctx, mgr->v4ports,
@@ -2112,12 +2112,12 @@ dns_dispatchmgr_destroy(dns_dispatchmgr_t **mgrp) {
 }
 
 void
-dns_dispatchmgr_setstats(dns_dispatchmgr_t *mgr, dns_stats_t *stats) {
+dns_dispatchmgr_setstats(dns_dispatchmgr_t *mgr, isc_stats_t *stats) {
 	REQUIRE(VALID_DISPATCHMGR(mgr));
 	REQUIRE(ISC_LIST_EMPTY(mgr->list));
 	REQUIRE(mgr->stats == NULL);
 
-	dns_stats_attach(stats, &mgr->stats);
+	isc_stats_attach(stats, &mgr->stats);
 }
 
 static int
@@ -2986,6 +2986,8 @@ dns_dispatch_addresponse2(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 				oldestresp->item_out = ISC_TRUE;
 				isc_task_send(oldestresp->task,
 					      ISC_EVENT_PTR(&rev));
+				isc_stats_increment(disp->mgr->stats,
+					    dns_resstatscounter_dispabort);
 			}
 		}
 
@@ -3009,6 +3011,8 @@ dns_dispatch_addresponse2(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 		if (result != ISC_R_SUCCESS) {
 			UNLOCK(&qid->lock);
 			UNLOCK(&disp->lock);
+			isc_stats_increment(disp->mgr->stats,
+					    dns_resstatscounter_dispsockfail);
 			return (result);
 		}
 	} else {

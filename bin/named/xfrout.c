@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.131.26.3 2009/01/18 23:25:15 marka Exp $ */
+/* $Id: xfrout.c,v 1.131.26.4 2009/01/29 22:40:34 jinmei Exp $ */
 
 #include <config.h>
 
@@ -23,6 +23,7 @@
 #include <isc/mem.h>
 #include <isc/timer.h>
 #include <isc/print.h>
+#include <isc/stats.h>
 #include <isc/util.h>
 
 #include <dns/db.h>
@@ -150,12 +151,12 @@ static void
 db_rr_iterator_destroy(db_rr_iterator_t *it);
 
 static inline void
-inc_stats(dns_zone_t *zone, dns_statscounter_t counter) {
-	dns_generalstats_increment(ns_g_server->nsstats, counter);
+inc_stats(dns_zone_t *zone, isc_statscounter_t counter) {
+	isc_stats_increment(ns_g_server->nsstats, counter);
 	if (zone != NULL) {
-		dns_stats_t *zonestats = dns_zone_getrequeststats(zone);
+		isc_stats_t *zonestats = dns_zone_getrequeststats(zone);
 		if (zonestats != NULL)
-			dns_generalstats_increment(zonestats, counter);
+			isc_stats_increment(zonestats, counter);
 	}
 }
 
