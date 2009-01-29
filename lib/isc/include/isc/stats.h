@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stats.h,v 1.3 2009/01/27 23:47:54 tbox Exp $ */
+/* $Id: stats.h,v 1.4 2009/01/29 01:03:56 jinmei Exp $ */
 
 #ifndef ISC_STATS_H
 #define ISC_STATS_H 1
@@ -22,6 +22,8 @@
 /*! \file isc/stats.h */
 
 #include <isc/types.h>
+
+ISC_LANG_BEGINDECLS
 
 /*%<
  * Flag(s) for isc_stats_dump().
