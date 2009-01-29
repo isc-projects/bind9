@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.355.12.33 2009/01/27 23:46:49 tbox Exp $ */
+/* $Id: resolver.c,v 1.355.12.34 2009/01/29 22:41:45 jinmei Exp $ */
 
 /*! \file */
 
@@ -26,6 +26,7 @@
 #include <isc/string.h>
 #include <isc/random.h>
 #include <isc/task.h>
+#include <isc/stats.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 
@@ -415,9 +416,9 @@ static void add_bad(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
  * Increment resolver-related statistics counters.
  */
 static inline void
-inc_stats(dns_resolver_t *res, dns_statscounter_t counter) {
+inc_stats(dns_resolver_t *res, isc_statscounter_t counter) {
 	if (res->view->resstats != NULL)
-		dns_generalstats_increment(res->view->resstats, counter);
+		isc_stats_increment(res->view->resstats, counter);
 }
 
 static isc_result_t
@@ -606,7 +607,7 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 {
 	fetchctx_t *fctx;
 	resquery_t *query;
-	unsigned int rtt;
+	unsigned int rtt, rttms;
 	unsigned int factor;
 	dns_adbfind_t *find;
 	dns_adbaddrinfo_t *addrinfo;
@@ -633,6 +634,27 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 			rtt = (unsigned int)isc_time_microdiff(finish,
 							       &query->start);
 			factor = DNS_ADB_RTTADJDEFAULT;
+
+			rttms = rtt / 1000;
+			if (rttms < DNS_RESOLVER_QRYRTTCLASS0) {
+				inc_stats(fctx->res,
+					  dns_resstatscounter_queryrtt0);
+			} else if (rttms < DNS_RESOLVER_QRYRTTCLASS1) {
+				inc_stats(fctx->res,
+					  dns_resstatscounter_queryrtt1);
+			} else if (rttms < DNS_RESOLVER_QRYRTTCLASS2) {
+				inc_stats(fctx->res,
+					  dns_resstatscounter_queryrtt2);
+			} else if (rttms < DNS_RESOLVER_QRYRTTCLASS3) {
+				inc_stats(fctx->res,
+					  dns_resstatscounter_queryrtt3);
+			} else if (rttms < DNS_RESOLVER_QRYRTTCLASS4) {
+				inc_stats(fctx->res,
+					  dns_resstatscounter_queryrtt4);
+			} else {
+				inc_stats(fctx->res,
+					  dns_resstatscounter_queryrtt5);
+			}
 		} else {
 			/*
 			 * We don't have an RTT for this query.  Maybe the
@@ -2893,6 +2915,8 @@ fctx_timeout(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	FCTXTRACE("timeout");
+
+	inc_stats(fctx->res, dns_resstatscounter_querytimeout);
 
 	if (event->ev_type == ISC_TIMEREVENT_LIFE) {
 		fctx->reason = NULL;

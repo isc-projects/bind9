@@ -15,11 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.138.2.9 2009/01/19 23:47:01 tbox Exp $ */
+/* $Id: update.c,v 1.138.2.10 2009/01/29 22:41:44 jinmei Exp $ */
 
 #include <config.h>
 
 #include <isc/print.h>
+#include <isc/stats.h>
 #include <isc/string.h>
 #include <isc/taskpool.h>
 #include <isc/util.h>
@@ -41,7 +42,6 @@
 #include <dns/rdatatype.h>
 #include <dns/soa.h>
 #include <dns/ssu.h>
-#include <dns/stats.h>
 #include <dns/view.h>
 #include <dns/zone.h>
 #include <dns/zt.h>
@@ -262,13 +262,13 @@ update_log(ns_client_t *client, dns_zone_t *zone,
  * Increment updated-related statistics counters.
  */
 static inline void
-inc_stats(dns_zone_t *zone, dns_statscounter_t counter) {
-	dns_generalstats_increment(ns_g_server->nsstats, counter);
+inc_stats(dns_zone_t *zone, isc_statscounter_t counter) {
+	isc_stats_increment(ns_g_server->nsstats, counter);
 
 	if (zone != NULL) {
-		dns_stats_t *zonestats = dns_zone_getrequeststats(zone);
+		isc_stats_t *zonestats = dns_zone_getrequeststats(zone);
 		if (zonestats != NULL)
-			dns_generalstats_increment(zonestats, counter);
+			isc_stats_increment(zonestats, counter);
 	}
 }
 

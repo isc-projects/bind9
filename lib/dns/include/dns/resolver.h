@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.56.128.6 2009/01/27 23:46:50 tbox Exp $ */
+/* $Id: resolver.h,v 1.56.128.7 2009/01/29 22:41:45 jinmei Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
@@ -99,6 +99,21 @@ typedef struct dns_fetchevent {
 #define	DNS_FETCHOPT_EDNSVERSIONSET	0x00800000
 #define	DNS_FETCHOPT_EDNSVERSIONMASK	0xff000000
 #define	DNS_FETCHOPT_EDNSVERSIONSHIFT	24
+
+/*
+ * Upper bounds of class of query RTT (ms).  Corresponds to
+ * dns_resstatscounter_queryrttX statistics counters.
+ */
+#define DNS_RESOLVER_QRYRTTCLASS0	10
+#define DNS_RESOLVER_QRYRTTCLASS0STR	"10"
+#define DNS_RESOLVER_QRYRTTCLASS1	100
+#define DNS_RESOLVER_QRYRTTCLASS1STR	"100"
+#define DNS_RESOLVER_QRYRTTCLASS2	500
+#define DNS_RESOLVER_QRYRTTCLASS2STR	"500"
+#define DNS_RESOLVER_QRYRTTCLASS3	800
+#define DNS_RESOLVER_QRYRTTCLASS3STR	"800"
+#define DNS_RESOLVER_QRYRTTCLASS4	1600
+#define DNS_RESOLVER_QRYRTTCLASS4STR	"1600"
 
 /*
  * XXXRTH  Should this API be made semi-private?  (I.e.

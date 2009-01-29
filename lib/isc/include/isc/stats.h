@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2008  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stats.h,v 1.4 2009/01/29 01:03:56 jinmei Exp $ */
+/* $Id: stats.h,v 1.4.4.1 2009/01/29 22:41:45 jinmei Exp $ */
 
 #ifndef ISC_STATS_H
 #define ISC_STATS_H 1

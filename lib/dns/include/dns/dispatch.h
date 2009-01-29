@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.h,v 1.56.128.5 2008/06/24 23:46:26 tbox Exp $ */
+/* $Id: dispatch.h,v 1.56.128.6 2009/01/29 22:41:45 jinmei Exp $ */
 
 #ifndef DNS_DISPATCH_H
 #define DNS_DISPATCH_H 1
@@ -55,7 +55,7 @@
 #include <isc/buffer.h>
 #include <isc/lang.h>
 #include <isc/socket.h>
-#include <dns/types.h>
+#include <isc/types.h>
 
 #include <dns/types.h>
 
@@ -223,7 +223,7 @@ dns_dispatchmgr_setavailports(dns_dispatchmgr_t *mgr, isc_portset_t *v4portset,
  */
 
 void
-dns_dispatchmgr_setstats(dns_dispatchmgr_t *mgr, dns_stats_t *stats);
+dns_dispatchmgr_setstats(dns_dispatchmgr_t *mgr, isc_stats_t *stats);
 /*%<
  * Sets statistics counter for the dispatchmgr.  This function is expected to
  * be called only on zone creation (when necessary).

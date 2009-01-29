@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.470.12.8 2009/01/19 23:47:02 tbox Exp $ */
+/* $Id: zone.c,v 1.470.12.9 2009/01/29 22:41:45 jinmei Exp $ */
 
 /*! \file */
 
@@ -29,6 +29,7 @@
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
 #include <isc/serial.h>
+#include <isc/stats.h>
 #include <isc/string.h>
 #include <isc/taskpool.h>
 #include <isc/timer.h>
@@ -250,13 +251,13 @@ struct dns_zone {
 	/*%
 	 * Statistics counters about zone management.
 	 */
-	dns_stats_t	    	*stats;
+	isc_stats_t	    	*stats;
 	/*%
 	 * Optional per-zone statistics counters.  Counted outside of this
 	 * module.
 	 */
 	isc_boolean_t	    	requeststats_on;
-	dns_stats_t	    	*requeststats;
+	isc_stats_t	    	*requeststats;
 	isc_uint32_t		notifydelay;
 	dns_isselffunc_t	isself;
 	void			*isselfarg;
@@ -556,9 +557,9 @@ static const char *dbargv_default[] = { "rbt" };
  * Increment resolver-related statistics counters.  Zone must be locked.
  */
 static inline void
-inc_stats(dns_zone_t *zone, dns_statscounter_t counter) {
+inc_stats(dns_zone_t *zone, isc_statscounter_t counter) {
 	if (zone->stats != NULL)
-		dns_generalstats_increment(zone->stats, counter);
+		isc_stats_increment(zone->stats, counter);
 }
 
 /***
@@ -752,9 +753,9 @@ zone_free(dns_zone_t *zone) {
 		isc_mem_free(zone->mctx, zone->journal);
 	zone->journal = NULL;
 	if (zone->stats != NULL)
-		dns_stats_detach(&zone->stats);
+		isc_stats_detach(&zone->stats);
 	if (zone->requeststats != NULL)
-		dns_stats_detach(&zone->requeststats);
+		isc_stats_detach(&zone->requeststats);
 	if (zone->db != NULL)
 		zone_detachdb(zone);
 	if (zone->acache != NULL)
@@ -8188,18 +8189,18 @@ dns_zone_getstatscounters(dns_zone_t *zone) {
 }
 
 void
-dns_zone_setstats(dns_zone_t *zone, dns_stats_t *stats) {
+dns_zone_setstats(dns_zone_t *zone, isc_stats_t *stats) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(zone->stats == NULL);
 
 	LOCK_ZONE(zone);
 	zone->stats = NULL;
-	dns_stats_attach(stats, &zone->stats);
+	isc_stats_attach(stats, &zone->stats);
 	UNLOCK_ZONE(zone);
 }
 
 void
-dns_zone_setrequeststats(dns_zone_t *zone, dns_stats_t *stats) {
+dns_zone_setrequeststats(dns_zone_t *zone, isc_stats_t *stats) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
@@ -8207,7 +8208,7 @@ dns_zone_setrequeststats(dns_zone_t *zone, dns_stats_t *stats) {
 		zone->requeststats_on = ISC_FALSE;
 	else if (!zone->requeststats_on && stats != NULL) {
 		if (zone->requeststats == NULL) {
-			dns_stats_attach(stats, &zone->requeststats);
+			isc_stats_attach(stats, &zone->requeststats);
 			zone->requeststats_on = ISC_TRUE;
 		}
 	}
@@ -8216,7 +8217,7 @@ dns_zone_setrequeststats(dns_zone_t *zone, dns_stats_t *stats) {
 	return;
 }
 
-dns_stats_t *
+isc_stats_t *
 dns_zone_getrequeststats(dns_zone_t *zone) {
 	/*
 	 * We don't lock zone for efficiency reason.  This is not catastrophic

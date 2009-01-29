@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.233.36.12 2009/01/28 23:46:50 tbox Exp $ */
+/* $Id: adb.c,v 1.233.36.13 2009/01/29 22:41:44 jinmei Exp $ */
 
 /*! \file
  *
@@ -33,6 +33,7 @@
 #include <isc/mutexblock.h>
 #include <isc/netaddr.h>
 #include <isc/random.h>
+#include <isc/stats.h>
 #include <isc/string.h>         /* Required for HP/UX (and others?) */
 #include <isc/task.h>
 #include <isc/util.h>
@@ -470,9 +471,9 @@ DP(int level, const char *format, ...) {
  * Increment resolver-related statistics counters.
  */
 static inline void
-inc_stats(dns_adb_t *adb, dns_statscounter_t counter) {
+inc_stats(dns_adb_t *adb, isc_statscounter_t counter) {
 	if (adb->view->resstats != NULL)
-		dns_generalstats_increment(adb->view->resstats, counter);
+		isc_stats_increment(adb->view->resstats, counter);
 }
 
 static inline dns_ttl_t

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.139.56.5 2008/05/29 23:46:34 tbox Exp $ */
+/* $Id: zoneconf.c,v 1.139.56.6 2009/01/29 22:41:44 jinmei Exp $ */
 
 /*% */
 
@@ -25,6 +25,7 @@
 #include <isc/file.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/stats.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/util.h>
 
@@ -427,7 +428,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	isc_boolean_t warn = ISC_FALSE, ignore = ISC_FALSE;
 	isc_boolean_t ixfrdiff;
 	dns_masterformat_t masterformat;
-	dns_stats_t *zoneqrystats;
+	isc_stats_t *zoneqrystats;
 	isc_boolean_t zonestats_on;
 
 	i = 0;
@@ -559,12 +560,12 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	zonestats_on = cfg_obj_asboolean(obj);
 	zoneqrystats = NULL;
 	if (zonestats_on) {
-		RETERR(dns_generalstats_create(mctx, &zoneqrystats,
-					       dns_nsstatscounter_max));
+		RETERR(isc_stats_create(mctx, &zoneqrystats,
+					dns_nsstatscounter_max));
 	}
 	dns_zone_setrequeststats(zone, zoneqrystats);
 	if (zoneqrystats != NULL)
-		dns_stats_detach(&zoneqrystats);
+		isc_stats_detach(&zoneqrystats);
 
 	/*
 	 * Configure master functionality.  This applies

@@ -434,6 +434,14 @@ isc_socketmgr_create
 isc_socketmgr_create2
 isc_socketmgr_destroy
 isc_socketmgr_getmaxsockets
+isc_socketmgr_setstats
+isc_stats_create
+isc_stats_attach
+isc_stats_detach
+isc_stats_ncounters
+isc_stats_increment
+isc_stats_decrement
+isc_stats_dump
 isc_stdio_close
 isc_stdio_flush
 isc_stdio_open
