@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: statschannel.c,v 1.20 2009/01/27 23:47:54 tbox Exp $ */
+/* $Id: statschannel.c,v 1.21 2009/01/29 05:11:29 marka Exp $ */
 
 /*! \file */
 
@@ -449,6 +449,10 @@ dump_counters(isc_stats_t *stats, statsformat_t type, void *arg,
 	FILE *fp;
 #ifdef HAVE_LIBXML2
 	xmlTextWriterPtr writer;
+#endif
+
+#ifndef HAVE_LIBXML2
+	UNUSED(category);
 #endif
 
 	dumparg.type = type;
