@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.h,v 1.56.128.6 2009/01/29 22:41:45 jinmei Exp $ */
+/* $Id: dispatch.h,v 1.56.128.7 2009/01/29 23:47:13 tbox Exp $ */
 
 #ifndef DNS_DISPATCH_H
 #define DNS_DISPATCH_H 1
