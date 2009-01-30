@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.174 2009/01/17 23:47:42 tbox Exp $ */
+/* $Id: master.c,v 1.175 2009/01/30 04:35:44 marka Exp $ */
 
 /*! \file */
 
@@ -618,6 +618,57 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx,
 	return (result);
 }
 
+static const char *hex = "0123456789abcdef0123456789ABCDEF";
+
+/*%
+ * Convert value into a nibble sequence from least significant to most
+ * significant nibble.  Zero fill upper most significant nibbles if
+ * required to make the width.
+ *
+ * Returns the number of characters that should have been written without
+ * counting the terminating NUL.
+ */
+static unsigned int
+nibbles(char *numbuf, size_t length, unsigned int width, char mode, int value) {
+	unsigned int count = 0;
+
+	/*
+	 * This reserve space for the NUL string terminator.
+	 */
+	if (length > 0) {
+		*numbuf = '\0';
+		length--;
+	}
+	do {
+		char val = hex[(value & 0x0f) + ((mode == 'n') ? 0 : 16)];
+		value >>= 4;
+		if (length > 0) {
+			*numbuf++ = val;
+			*numbuf = '\0';
+			length--;
+		}
+		if (width > 0)
+			width--;
+		count++;
+		/*
+		 * If width is non zero then we need to add a label seperator.
+		 * If value is non zero then we need to add another label and
+		 * that requires a label seperator.
+		 */
+		if (width > 0 || value != 0) {
+			if (length > 0) {
+				*numbuf++ = '.';
+				*numbuf = '\0';
+				length--;
+			}
+			if (width > 0)
+				width--;
+			count++;
+		}
+	} while (value != 0 || width > 0);
+	return (count);
+}
+
 static isc_result_t
 genname(char *name, int it, char *buffer, size_t length) {
 	char fmt[sizeof("%04000000000d")];
@@ -628,6 +679,7 @@ genname(char *name, int it, char *buffer, size_t length) {
 	isc_textregion_t r;
 	unsigned int n;
 	unsigned int width;
+	isc_boolean_t nibblemode;
 
 	r.base = buffer;
 	r.length = length;
@@ -642,10 +694,11 @@ genname(char *name, int it, char *buffer, size_t length) {
 				isc_textregion_consume(&r, 1);
 				continue;
 			}
+			nibblemode = ISC_FALSE;
 			strcpy(fmt, "%d");
 			/* Get format specifier. */
 			if (*name == '{' ) {
-				n = sscanf(name, "{%d,%u,%1[doxX]}",
+				n = sscanf(name, "{%d,%u,%1[doxXnN]}",
 					   &delta, &width, mode);
 				switch (n) {
 				case 1:
@@ -655,6 +708,8 @@ genname(char *name, int it, char *buffer, size_t length) {
 						     "%%0%ud", width);
 					break;
 				case 3:
+					if (mode[0] == 'n' || mode[0] == 'N')
+						nibblemode = ISC_TRUE;
 					n = snprintf(fmt, sizeof(fmt),
 						     "%%0%u%c", width, mode[0]);
 					break;
@@ -667,7 +722,12 @@ genname(char *name, int it, char *buffer, size_t length) {
 				while (*name != '\0' && *name++ != '}')
 					continue;
 			}
-			n = snprintf(numbuf, sizeof(numbuf), fmt, it + delta);
+			if (nibblemode)
+				n = nibbles(numbuf, sizeof(numbuf), width,
+					    mode[0], it + delta);
+			else
+				n = snprintf(numbuf, sizeof(numbuf), fmt,
+					     it + delta);
 			if (n >= sizeof(numbuf))
 				return (ISC_R_NOSPACE);
 			cp = numbuf;

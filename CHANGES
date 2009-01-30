@@ -1,3 +1,5 @@
+2540.	[func]		Add a nibble mode to $GENERATE. [RT #18872]
+
 2539.	[security]	Update the interaction between recursion, allow-query,
 			allow-query-cache and allow-recursion.  [RT #19198]
 
