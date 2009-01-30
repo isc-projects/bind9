@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named.conf.in,v 1.6 2007/06/19 23:47:06 tbox Exp $ */
+/* $Id: named.conf.in,v 1.6.332.1 2009/01/30 08:21:03 marka Exp $ */
 
 controls { /* empty */ };
 
@@ -31,6 +31,7 @@ options {
 	notify no;
 	tkey-domain "server";
 	tkey-dhkey "server" KEYID;
+	allow-query-cache { any; };
 };
 
 key "tkeytest." {
