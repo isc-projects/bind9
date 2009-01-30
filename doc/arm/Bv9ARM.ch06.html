@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.168.18.28 2009/01/28 01:41:29 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.168.18.29 2009/01/30 01:40:51 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -100,7 +100,7 @@
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#zonefile_format">Additional File Formats</a></span></dt>
 </dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2594178">BIND9 Statistics</a></span></dt>
-<dd><dl><dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2594526">Statistics Counters</a></span></dt></dl></dd>
+<dd><dl><dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2594549">Statistics Counters</a></span></dt></dl></dd>
 </dl>
 </div>
 <p>
@@ -7724,6 +7724,16 @@ $GENERATE 1-127 $ CNAME $.0</pre>
                   </p>
                 </td>
 </tr>
+<tr>
+<td>
+                  <p>Socket I/O Statistics</p>
+                </td>
+<td>
+                  <p>
+                    Statistics counters about network related events.
+                  </p>
+                </td>
+</tr>
 </tbody>
 </table></div>
 <p>
@@ -7783,7 +7793,7 @@ $GENERATE 1-127 $ CNAME $.0</pre>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2594526"></a>Statistics Counters</h3></div></div></div>
+<a name="id2594549"></a>Statistics Counters</h3></div></div></div>
 <p>
             The following tables summarize statistics counters that
             <acronym class="acronym">BIND</acronym> 9 provides.
@@ -7802,7 +7812,7 @@ $GENERATE 1-127 $ CNAME $.0</pre>
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2594542"></a>Name Server Statistics Counters</h4></div></div></div>
+<a name="id2594565"></a>Name Server Statistics Counters</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -8343,7 +8353,7 @@ $GENERATE 1-127 $ CNAME $.0</pre>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2596066"></a>Zone Maintenance Statistics Counters</h4></div></div></div>
+<a name="id2596088"></a>Zone Maintenance Statistics Counters</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -8497,7 +8507,7 @@ $GENERATE 1-127 $ CNAME $.0</pre>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2596517"></a>Resolver Statistics Counters</h4></div></div></div>
+<a name="id2596539"></a>Resolver Statistics Counters</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -8693,6 +8703,48 @@ $GENERATE 1-127 $ CNAME $.0</pre>
 </tr>
 <tr>
 <td>
+                      <p><span><strong class="command">QueryAbort</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Queries aborted due to quota control.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">QuerySockFail</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Failures in opening query sockets.
+                        One common reason for such failures is a
+                        failure of opening a new socket due to a
+                        limitation on file descriptors.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">QueryTimeout</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Query timeouts.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
                       <p><span><strong class="command">GlueFetchv4</strong></span></p>
                     </td>
 <td>
@@ -8795,12 +8847,198 @@ $GENERATE 1-127 $ CNAME $.0</pre>
                       </p>
                     </td>
 </tr>
+<tr>
+<td>
+                      <p><span><strong class="command">QryRTTnn</strong></span></p>
+                    </td>
+<td>
+                      <p><span><strong class="command"></strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Frequency table on round trip times (RTTs) of
+                        queries.
+                        Each <span><strong class="command">nn</strong></span> specifies the corresponding
+                        frequency.
+                        In the sequence of
+                        <span><strong class="command">nn_1</strong></span>,
+                        <span><strong class="command">nn_2</strong></span>,
+                        ...,
+                        <span><strong class="command">nn_m</strong></span>,
+                        the value of <span><strong class="command">nn_i</strong></span> is the
+                        number of queries whose RTTs are between
+                        <span><strong class="command">nn_(i-1)</strong></span> (inclusive) and
+                        <span><strong class="command">nn_i</strong></span> (exclusive) milliseconds.
+                        For the sake of convenience we define
+                        <span><strong class="command">nn_0</strong></span> to be 0.
+                        The last entry should be represented as
+                        <span><strong class="command">nn_m+</strong></span>, which means the
+                        number of queries whose RTTs are equal to or over
+                        <span><strong class="command">nn_m</strong></span> milliseconds.
+                      </p>
+                    </td>
+</tr>
 </tbody>
 </table></div>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2597302"></a>Compatibility with <span class="emphasis"><em>BIND</em></span> 8 Counters</h4></div></div></div>
+<a name="id2597490"></a>Socket I/O Statistics Counters</h4></div></div></div>
+<p>
+              Socket I/O statistics counters are defined per socket
+              types, which are
+              <span><strong class="command">UDP4</strong></span> (UDP/IPv4),
+              <span><strong class="command">UDP6</strong></span> (UDP/IPv6),
+              <span><strong class="command">TCP4</strong></span> (TCP/IPv4),
+              <span><strong class="command">TCP6</strong></span> (TCP/IPv6),
+              <span><strong class="command">Unix</strong></span> (Unix Domain), and
+              <span><strong class="command">FDwatch</strong></span> (sockets opened outside the
+              socket module).
+              In the following table <span><strong class="command">&lt;TYPE&gt;</strong></span>
+              represents a socket type.
+              Not all counters are available for all socket types;
+              exceptions are noted in the description field.
+            </p>
+<div class="informaltable"><table border="1">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td>
+                      <p>
+                        <span class="emphasis"><em>Symbol</em></span>
+                      </p>
+                    </td>
+<td>
+                      <p>
+                        <span class="emphasis"><em>Description</em></span>
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">&lt;TYPE&gt;Open</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Sockets opened successfully.
+                        This counter is not applicable to the
+                        <span><strong class="command">FDwatch</strong></span> type.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">&lt;TYPE&gt;OpenFail</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Failures of opening sockets.
+                        This counter is not applicable to the
+                        <span><strong class="command">FDwatch</strong></span> type.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">&lt;TYPE&gt;Close</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Sockets closed.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">&lt;TYPE&gt;BindFail</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Failures of binding sockets.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">&lt;TYPE&gt;ConnFail</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Failures of connecting sockets.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">&lt;TYPE&gt;Conn</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Connections established successfully.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">&lt;TYPE&gt;AcceptFail</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Failures of accepting incoming connection requests.
+                        This counter is not applicable to the
+                        <span><strong class="command">UDP</strong></span> and
+                        <span><strong class="command">FDwatch</strong></span> types.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">&lt;TYPE&gt;Accept</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Incoming connections successfully accepted.
+                        This counter is not applicable to the
+                        <span><strong class="command">UDP</strong></span> and
+                        <span><strong class="command">FDwatch</strong></span> types.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">&lt;TYPE&gt;SendErr</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Errors in socket send operations.
+                        This counter corresponds
+                        to <span><strong class="command">SErr</strong></span> counter of
+                        <span><strong class="command">BIND</strong></span> 8.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p><span><strong class="command">&lt;TYPE&gt;RecvErr</strong></span></p>
+                    </td>
+<td>
+                      <p>
+                        Errors in socket receive operations.
+                        This includes errors of send operations on a
+                        connected UDP socket notified by an ICMP error
+                        message.
+                      </p>
+                    </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="sect3" lang="en">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="id2597931"></a>Compatibility with <span class="emphasis"><em>BIND</em></span> 8 Counters</h4></div></div></div>
 <p>
               Most statistics counters that were available
               in <span><strong class="command">BIND</strong></span> 8 are also supported in
@@ -8829,11 +9067,6 @@ $GENERATE 1-127 $ CNAME $.0</pre>
                     This counter is not supported
                     because <span><strong class="command">BIND</strong></span> 9 does not care
                     about IP options in the first place.
-                  </p></dd>
-<dt><span class="term"><span><strong class="command">SErr</strong></span></span></dt>
-<dd><p>
-                    This counter could be implemented, but is not yet
-                    supported.
                   </p></dd>
 </dl></div>
 </div>
