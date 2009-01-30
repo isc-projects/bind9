@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.526 2009/01/27 22:29:58 jinmei Exp $ */
+/* $Id: server.c,v 1.527 2009/01/30 03:48:54 marka Exp $ */
 
 /*! \file */
 
@@ -1766,10 +1766,11 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	 */
 	if (view->queryacl == NULL && view->recursionacl != NULL)
 		dns_acl_attach(view->recursionacl, &view->queryacl);
-	if (view->queryacl == NULL)
+	if (view->queryacl == NULL && view->recursion)
 		CHECK(configure_view_acl(vconfig, config, "allow-query",
 					 actx, ns_g_mctx, &view->queryacl));
-	if (view->recursionacl == NULL && view->queryacl != NULL)
+	if (view->recursion &&
+	    view->recursionacl == NULL && view->queryacl != NULL)
 		dns_acl_attach(view->queryacl, &view->recursionacl);
 
 	/*
@@ -1786,10 +1787,17 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 					 "allow-recursion-on",
 					 actx, ns_g_mctx,
 					 &view->recursiononacl));
-	if (view->queryacl == NULL)
-		CHECK(configure_view_acl(NULL, ns_g_config,
-					 "allow-query-cache", actx,
-					 ns_g_mctx, &view->queryacl));
+	if (view->queryacl == NULL) {
+		if (view->recursion)
+			CHECK(configure_view_acl(NULL, ns_g_config,
+						 "allow-query-cache", actx,
+						 ns_g_mctx, &view->queryacl));
+		else {
+			if (view->queryacl != NULL)
+				dns_acl_detach(&view->queryacl);
+			CHECK(dns_acl_none(ns_g_mctx, &view->queryacl));
+		}
+	}
 
 	/*
 	 * Configure sortlist, if set

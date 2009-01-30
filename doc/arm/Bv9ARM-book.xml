@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.389 2009/01/27 22:29:58 jinmei Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.390 2009/01/30 03:48:54 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -6390,8 +6390,9 @@ options {
 		  from the cache.  If <command>allow-query-cache</command>
 		  is not set then <command>allow-recursion</command>
 		  is used if set, otherwise <command>allow-query</command>
-		  is used if set, otherwise the default
-		  (<command>localnets;</command>
+		  is used if set unless <command>recursion no;</command> is
+		  set in which case <command>none;</command> is used,
+		  otherwise the default (<command>localnets;</command>
 		  <command>localhost;</command>) is used.
 		</para>
 	      </listitem>
