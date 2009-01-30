@@ -4,7 +4,7 @@
 ./FAQ						X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./FAQ.xml					SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./Makefile.in					MAKE	1998,1999,2000,2001,2002,2004,2005,2006,2007
-./README					X	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
+./README					X	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./README.idnkit					X	2005,2009
 ./acconfig.h					C	1999,2000,2001,2002,2003,2004,2005,2007
 ./aclocal.m4					X	1999,2000,2001
@@ -548,7 +548,7 @@
 ./bin/tests/system/glue/ns1/.cvsignore		X	2000,2001
 ./bin/tests/system/glue/ns1/cache.in		ZONE	2000,2001,2004,2007
 ./bin/tests/system/glue/ns1/mil.db		ZONE	2000,2001,2004,2007
-./bin/tests/system/glue/ns1/named.conf		CONF-C	2000,2001,2004,2005,2007
+./bin/tests/system/glue/ns1/named.conf		CONF-C	2000,2001,2004,2005,2007,2009
 ./bin/tests/system/glue/ns1/net.db		ZONE	2000,2001,2004,2007
 ./bin/tests/system/glue/ns1/root-servers.nil.db	ZONE	2000,2001,2004,2007
 ./bin/tests/system/glue/ns1/root.db		ZONE	2000,2001,2004,2007
@@ -739,7 +739,7 @@
 ./bin/tests/system/tkey/keycreate.c		C	2001,2004,2005,2007
 ./bin/tests/system/tkey/keydelete.c		C	2001,2004,2005,2007
 ./bin/tests/system/tkey/ns1/.cvsignore		X	2001
-./bin/tests/system/tkey/ns1/named.conf.in	CONF-C	2001,2004,2007
+./bin/tests/system/tkey/ns1/named.conf.in	CONF-C	2001,2004,2007,2009
 ./bin/tests/system/tkey/ns1/setup.sh		SH	2001,2004,2007
 ./bin/tests/system/tkey/prereq.sh		SH	2001,2004,2006,2007
 ./bin/tests/system/tkey/setup.sh		SH	2001,2004,2007
