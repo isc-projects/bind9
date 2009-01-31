@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.161 2009/01/31 00:10:24 marka Exp $ */
+/* $Id: dispatch.c,v 1.162 2009/01/31 00:37:04 marka Exp $ */
 
 /*! \file */
 
@@ -355,7 +355,7 @@ mgr_log(dns_dispatchmgr_t *mgr, int level, const char *fmt, ...) {
 }
 
 static inline void
-inc_stats(dns_dispatchmgr_t *mgr, dns_statscounter_t counter) {
+inc_stats(dns_dispatchmgr_t *mgr, isc_statscounter_t counter) {
 	if (mgr->stats != NULL)
 		isc_stats_increment(mgr->stats, counter);
 }
