@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.137.128.23 2009/01/29 22:41:44 jinmei Exp $ */
+/* $Id: dispatch.c,v 1.137.128.24 2009/01/31 00:44:43 marka Exp $ */
 
 /*! \file */
 
@@ -331,6 +331,12 @@ mgr_log(dns_dispatchmgr_t *mgr, int level, const char *fmt, ...) {
 	isc_log_write(dns_lctx,
 		      DNS_LOGCATEGORY_DISPATCH, DNS_LOGMODULE_DISPATCH,
 		      level, "dispatchmgr %p: %s", mgr, msgbuf);
+}
+
+static inline void
+inc_stats(dns_dispatchmgr_t *mgr, isc_statscounter_t counter) {
+	if (mgr->stats != NULL)
+		isc_stats_increment(mgr->stats, counter);
 }
 
 static void
@@ -1164,8 +1170,7 @@ udp_recv(isc_event_t *ev_in, dns_dispatch_t *disp, dispsocket_t *dispsock) {
 			     bucket, (resp == NULL ? "not found" : "found"));
 
 		if (resp == NULL) {
-			isc_stats_increment(mgr->stats,
-					    dns_resstatscounter_mismatch);
+			inc_stats(mgr, dns_resstatscounter_mismatch);
 			free_buffer(disp, ev->region.base, ev->region.length);
 			goto unlock;
 		}
@@ -1173,7 +1178,7 @@ udp_recv(isc_event_t *ev_in, dns_dispatch_t *disp, dispsocket_t *dispsock) {
 							 &resp->host)) {
 		dispatch_log(disp, LVL(90),
 			     "response to an exclusive socket doesn't match");
-		isc_stats_increment(mgr->stats, dns_resstatscounter_mismatch);
+		inc_stats(mgr, dns_resstatscounter_mismatch);
 		free_buffer(disp, ev->region.base, ev->region.length);
 		goto unlock;
 	}
@@ -2857,8 +2862,8 @@ dns_dispatch_addresponse2(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 				oldestresp->item_out = ISC_TRUE;
 				isc_task_send(oldestresp->task,
 					      ISC_EVENT_PTR(&rev));
-				isc_stats_increment(disp->mgr->stats,
-					    dns_resstatscounter_dispabort);
+				inc_stats(disp->mgr,
+					  dns_resstatscounter_dispabort);
 			}
 		}
 
@@ -2882,8 +2887,7 @@ dns_dispatch_addresponse2(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 		if (result != ISC_R_SUCCESS) {
 			UNLOCK(&qid->lock);
 			UNLOCK(&disp->lock);
-			isc_stats_increment(disp->mgr->stats,
-					    dns_resstatscounter_dispsockfail);
+			inc_stats(disp->mgr, dns_resstatscounter_dispsockfail);
 			return (result);
 		}
 	} else {
