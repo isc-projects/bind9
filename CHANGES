@@ -1,4 +1,4 @@
-2542.	[doc]		Update the description of dig +adflag. RT #19290]
+2542.	[doc]		Update the description of dig +adflag. [RT #19290]
 
 2539.	[security]	Update the interaction between recursion, allow-query,
 			allow-query-cache and allow-recursion.  [RT #19198]
