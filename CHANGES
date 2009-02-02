@@ -1,3 +1,5 @@
+2542.	[doc]		Update the description of dig +adflag. RT #19290]
+
 2541.	[bug]		Conditionally update dispatch manager statistics.
 			[RT #19247]
 
