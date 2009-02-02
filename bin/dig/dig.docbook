@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.38.130.6 2009/01/22 23:46:35 tbox Exp $ -->
+<!-- $Id: dig.docbook,v 1.38.130.7 2009/02/02 04:44:14 marka Exp $ -->
 <refentry id="man.dig">
 
   <refentryinfo>
@@ -450,17 +450,19 @@
 
         <varlistentry>
           <term><option>+[no]adflag</option></term>
-          <listitem>
-            <para>
-              Set [do not set] the AD (authentic data) bit in the query.  The
-              AD bit
-              currently has a standard meaning only in responses, not in
-              queries,
-              but the ability to set the bit in the query is provided for
-              completeness.
-            </para>
-          </listitem>
-        </varlistentry>
+	  <listitem>
+	    <para>
+	      Set [do not set] the AD (authentic data) bit in the
+	      query.  This requests the server to return whether
+	      all of the answer and authority sections have all
+	      been validated as secure according to the security
+	      policy of the server.  AD=1 indicates that all records
+	      have been validated as secure and the answer is not
+	      from a OPT-OUT range.  AD=0 indicate that some part
+	      of the answer was insecure or not validated.
+	    </para>
+	  </listitem>
+	</varlistentry>
 
         <varlistentry>
           <term><option>+[no]cdflag</option></term>
