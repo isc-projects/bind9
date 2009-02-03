@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: man.dig.html,v 1.60.18.30 2009/01/31 02:00:22 tbox Exp $ -->
+<!-- $Id: man.dig.html,v 1.60.18.31 2009/02/03 01:40:49 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -326,13 +326,15 @@
             </p></dd>
 <dt><span class="term"><code class="option">+[no]adflag</code></span></dt>
 <dd><p>
-              Set [do not set] the AD (authentic data) bit in the query.  The
-              AD bit
-              currently has a standard meaning only in responses, not in
-              queries,
-              but the ability to set the bit in the query is provided for
-              completeness.
-            </p></dd>
+	      Set [do not set] the AD (authentic data) bit in the
+	      query.  This requests the server to return whether
+	      all of the answer and authority sections have all
+	      been validated as secure according to the security
+	      policy of the server.  AD=1 indicates that all records
+	      have been validated as secure and the answer is not
+	      from a OPT-OUT range.  AD=0 indicate that some part
+	      of the answer was insecure or not validated.
+	    </p></dd>
 <dt><span class="term"><code class="option">+[no]cdflag</code></span></dt>
 <dd><p>
               Set [do not set] the CD (checking disabled) bit in the query.
