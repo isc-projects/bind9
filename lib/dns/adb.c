@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.233.36.13 2009/01/29 22:41:44 jinmei Exp $ */
+/* $Id: adb.c,v 1.233.36.14 2009/02/03 22:35:00 jinmei Exp $ */
 
 /*! \file
  *
@@ -199,8 +199,6 @@ struct dns_adbname {
 /*% The adbfetch structure */
 struct dns_adbfetch {
 	unsigned int                    magic;
-	dns_adbnamehook_t              *namehook;
-	dns_adbentry_t                 *entry;
 	dns_fetch_t                    *fetch;
 	dns_rdataset_t                  rdataset;
 };
@@ -1496,31 +1494,13 @@ new_adbfetch(dns_adb_t *adb) {
 		return (NULL);
 
 	f->magic = 0;
-	f->namehook = NULL;
-	f->entry = NULL;
 	f->fetch = NULL;
-
-	f->namehook = new_adbnamehook(adb, NULL);
-	if (f->namehook == NULL)
-		goto err;
-
-	f->entry = new_adbentry(adb);
-	if (f->entry == NULL)
-		goto err;
 
 	dns_rdataset_init(&f->rdataset);
 
 	f->magic = DNS_ADBFETCH_MAGIC;
 
 	return (f);
-
- err:
-	if (f->namehook != NULL)
-		free_adbnamehook(adb, &f->namehook);
-	if (f->entry != NULL)
-		free_adbentry(adb, &f->entry);
-	isc_mempool_put(adb->afmp, f);
-	return (NULL);
 }
 
 static inline void
@@ -1532,11 +1512,6 @@ free_adbfetch(dns_adb_t *adb, dns_adbfetch_t **fetch) {
 	*fetch = NULL;
 
 	f->magic = 0;
-
-	if (f->namehook != NULL)
-		free_adbnamehook(adb, &f->namehook);
-	if (f->entry != NULL)
-		free_adbentry(adb, &f->entry);
 
 	if (dns_rdataset_isassociated(&f->rdataset))
 		dns_rdataset_disassociate(&f->rdataset);
@@ -2974,8 +2949,8 @@ print_namehook_list(FILE *f, const char *legend, dns_adbnamehooklist_t *list,
 
 static inline void
 print_fetch(FILE *f, dns_adbfetch_t *ft, const char *type) {
-	fprintf(f, "\t\tFetch(%s): %p -> { nh %p, entry %p, fetch %p }\n",
-		type, ft, ft->namehook, ft->entry, ft->fetch);
+	fprintf(f, "\t\tFetch(%s): %p -> { fetch %p }\n",
+		type, ft, ft->fetch);
 }
 
 static void
