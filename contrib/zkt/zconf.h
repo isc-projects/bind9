@@ -73,6 +73,7 @@
 # define	ZSK_ALGO	(DK_ALGO_RSASHA1)
 # define	ZSK_BITS	(512)
 # define	ZSK_RANDOM	"/dev/urandom"
+# define	SALTLEN		24		/* salt length in bits (resolution is 4 bits)*/
 
 # define	ZONEDIR		"."
 # define	RECURSIVE	0
@@ -89,7 +90,7 @@
 # define	DNSKEYFILE	"dnskey.db"
 # define	LOOKASIDEDOMAIN	""	/* "dlv.trusted-keys.de" */
 # define	SIG_RANDOM	NULL	/* "/dev/urandom" */
-# define	SIG_PSEUDO	1
+# define	SIG_PSEUDO	0
 # define	SIG_GENDS	1
 # define	SIG_PARAM	""
 # define	DIST_CMD	NULL	/* default is to run "rndc reload" */
@@ -143,6 +144,7 @@ typedef	struct zconf	{
 	int	z_algo;
 	int	z_bits;
 	char	*z_random;
+	int	saltbits;
 
 	char	*view;
 	// char	*errlog;

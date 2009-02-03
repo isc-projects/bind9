@@ -60,6 +60,8 @@
 # define	DK_ALGO_DSA	3	/* RFC2536 (mandatory) */
 # define	DK_ALGO_EC	4	/* */
 # define	DK_ALGO_RSASHA1	5	/* RFC3110 */
+# define	DK_ALGO_NSEC3DSA	6	/* symlink to alg 3 RFC5155 */
+# define	DK_ALGO_NSEC3RSASHA1	7	/* symlink to alg 5 RFC5155 */
 
 /* protocol types */
 # define	DK_PROTO_DNS	3
@@ -180,6 +182,7 @@ extern	const dki_t	*dki_find (const dki_t *list, int ksk, int status, int first)
 extern	void	dki_free (dki_t *dkp);
 extern	void	dki_freelist (dki_t **listp);
 extern	char	*dki_algo2str (int algo);
+extern	char	*dki_algo2sstr (int algo);
 extern	const char	*dki_geterrstr (void);
 
 #endif
