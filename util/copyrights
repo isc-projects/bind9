@@ -2068,7 +2068,7 @@
 ./lib/isc/ia64/include/Makefile.in		MAKE	2007
 ./lib/isc/ia64/include/isc/.cvsignore		X	2007
 ./lib/isc/ia64/include/isc/Makefile.in		MAKE	2007
-./lib/isc/ia64/include/isc/atomic.h		C	2006,2007
+./lib/isc/ia64/include/isc/atomic.h		C	2006,2007,2009
 ./lib/isc/include/.cvsignore			X	1998,1999,2000,2001
 ./lib/isc/include/Makefile.in			MAKE	1998,1999,2000,2001,2004,2007
 ./lib/isc/include/isc/.cvsignore		X	1998,1999,2000,2001
