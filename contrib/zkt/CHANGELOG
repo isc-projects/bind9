@@ -1,4 +1,49 @@
-zkt 0.97 -- 
+zkt 0.98 -- 30. Dec 2008
+
+* misc 	Target "install-man" added to Makefile
+	man files moved to sub directory "man"
+
+* func	If a BIND version greater equal 9.6.0 is used, option -d doesn't
+	initiate a resigning of a zone. It's just for key rollover.
+
+* func	New pseudo algorithms for NSEC3 DNSKEYS added.
+	Support of NSEC3 hashing if a BIND version greater equal 9.6.0
+	is used. New parameter "SaltBits" added to the config file to
+	set the salt length in bits (default is 24 which means 6 hex nibbles). 
+	The number of hash iterations is set to the default value of
+	dnssec-signzone which depends on key size.
+
+* misc	Renaming of all example zone directories so that the directory
+	name does not end with a dot (Necessary for installing the
+	source tree in an MS-Windows environment).
+	str_tolowerdup() renamed to domain_canonicdup() and code added
+	to append a dot to the domain name if it's not already there.
+
+* misc	Add 'sec' (second) qualifier to debug output in kskrollover().
+
+* bug	Remove a trailing '/' at the -D argument.
+
+* misc	Configure script now uses the BIND_UTIL_PATH out of config_zkt.h
+	if the BIND dnssec-signzone command is not found
+
+* bug	A zone with only a standby key signing key (which means w/o an
+	active ksk) aborts the dnssec-signer command.
+	Fixed by Shane Kerr.
+
+* func	Changed inc_serial() so that the SOA record parser accepts a label
+	other than '@' and an optional ttl value before the class and SOA
+	RR identifier (Both are case insensitive). Thanks to Shane Kerr 
+	for the suggestion.
+
+* bug	Change of global configured key liftetime during a zone signing
+	key rollover results in unnecessary additional pre-published
+	zone signing keys (Thanks to Frank Behrens for the patch)
+
+* misc	Sig_Random config file parameter defaults now to false
+
+* bug	The man page refers the wrong licence (GPL instead of BSD)
+
+zkt 0.97 -- 5. Aug 2008
 
 * bug	LG_* logging level wasn't mapped to syslog level in lg_mesg().
 	gettock() in ncparse.c did not recognize C single line comments "//"
@@ -111,7 +156,7 @@ zkt 0.95 -- 19. April 2008
 	commandline option -O (--option or --config-option)
 
 * misc	Function fatal() now has an exit code of 127.
-	This is neccessary because values from 1 to 64 are
+	This is necessary because values from 1 to 64 are
 	reflecting the number of errors occured.
 
 * func	Errorlog functionality added

@@ -1,5 +1,7 @@
 2544.	[cleanup]	Removed unused structure members in adb.c. [RT #19225]
 
+2543.	[contrib]	Update contrib/zkt to version 0.98. [RT #19113]
+
 2542.	[doc]		Update the description of dig +adflag. [RT #19290]
 
 2541.	[bug]		Conditionally update dispatch manager statistics.

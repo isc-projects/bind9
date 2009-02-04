@@ -3,7 +3,7 @@
 **	@(#) dnssec-signer.c  (c) Jan 2005  Holger Zuleger hznet.de
 **
 **	A wrapper around the BIND dnssec-signzone command which is able
-**	to resign a zone if neccessary and doing a zone or key signing key rollover.
+**	to resign a zone if necessary and doing a zone or key signing key rollover.
 **
 **	Copyright (c) 2005 - 2008, Holger Zuleger HZnet. All rights reserved.
 **	This software is open source.
@@ -125,6 +125,12 @@ static	int	dynamic_zone = 0;	/* dynamic zone ? */
 static	zone_t	*zonelist = NULL;	/* must be static global because add2zonelist use it */
 static	zconf_t	*config;
 
+/**	macros **/
+#define	set_bind94_dynzone(dz)	((dz) = 1)
+#define	set_bind96_dynzone(dz)	((dz) = 6)
+#define	bind94_dynzone(dz)	( (dz) > 0 && (dz) < 6 )
+#define	bind96_dynzone(dz)	( (dz) >= 6 )
+
 int	main (int argc, char *const argv[])
 {
 	int	c;
@@ -196,7 +202,11 @@ int	main (int argc, char *const argv[])
 			break;
 #if defined(BIND_VERSION) && BIND_VERSION >= 940
 		case 'd':
-			dynamic_zone = 1;
+#if BIND_VERSION >= 960
+			set_bind96_dynzone (dynamic_zone);
+#else
+			set_bind94_dynzone(dynamic_zone);
+#endif
 			/* dynamic zone requires a name server reload... */
 			reloadflag = 0;		/* ...but "rndc thaw" reloads the zone anyway */
 			break;
@@ -242,16 +252,18 @@ int	main (int argc, char *const argv[])
 
 	if ( origin )		/* option -o ? */
 	{
+		int	ret;
+
 		if ( (argc - optind) <= 0 )	/* no arguments left ? */
-			zone_readdir (".", origin, NULL, &zonelist, config, dynamic_zone);
+			ret = zone_readdir (".", origin, NULL, &zonelist, config, dynamic_zone);
 		else
-			zone_readdir (".", origin, argv[optind], &zonelist, config, dynamic_zone);
+			ret = zone_readdir (".", origin, argv[optind], &zonelist, config, dynamic_zone);
 
 		/* anyway, "delete" all (remaining) arguments */
 		optind = argc;
 
 		/* complain if nothing could read in */
-		if ( zonelist == NULL )
+		if ( ret != 1 || zonelist == NULL )
 		{
 			lg_mesg (LG_FATAL, "\"%s\": couldn't read", origin);
 			fatal ("Couldn't read zone \"%s\"\n", origin);
@@ -271,10 +283,19 @@ int	main (int argc, char *const argv[])
 	}
 	if ( dirname )		/* option -D ? */
 	{
-		if ( !parsedir (dirname, &zonelist, config) )
-			fatal ("Can't read directory tree %s\n", dirname);
+		char	*dir = strdup (dirname);
+
+		p = dir + strlen (dir);
+		if ( p > dir )
+			p--;
+		if ( *p == '/' )
+			*p = '\0';	/* remove trailing path seperator */
+
+		if ( !parsedir (dir, &zonelist, config) )
+			fatal ("Can't read directory tree %s\n", dir);
 		if ( zonelist == NULL )
-			fatal ("No signed zone found in directory tree %s\n", dirname);
+			fatal ("No signed zone found in directory tree %s\n", dir);
+		free (dir);
 	}
 
 	/* none of the above: read current directory tree */
@@ -452,13 +473,13 @@ static	int	dosigning (zone_t *zonelist, zone_t *zp)
 	zfile_time = file_mtime (path);
 	currtime = time (NULL);
 
-	/* check rfc5011 key signing keys, create new one if neccessary */
+	/* check rfc5011 key signing keys, create new one if necessary */
 	dbg_msg("parsezonedir check rfc 5011 ksk ");
 	newkey = ksk5011status (&zp->keys, zp->dir, zp->zone, zp->conf);
 	if ( (newkey & 02) != 02 )	/* not a rfc 5011 zone ? */
 	{
 		verbmesg (2, zp->conf, "\t\t->not a rfc5011 zone, looking for a regular ksk rollover\n");
-		/* check key signing keys, create new one if neccessary */
+		/* check key signing keys, create new one if necessary */
 		dbg_msg("parsezonedir check ksk ");
 		newkey |= kskstatus (zonelist, zp);
 	}
@@ -493,7 +514,7 @@ static	int	dosigning (zone_t *zonelist, zone_t *zp)
 	if ( force )
 		snprintf (mesg, sizeof(mesg), "Option -f"); 
 	else if ( newkey )
-		snprintf (mesg, sizeof(mesg), "New zone key"); 
+		snprintf (mesg, sizeof(mesg), "Modfied zone key set"); 
 	else if ( newkeysetfile )
 		snprintf (mesg, sizeof(mesg), "Modified KSK in delegated domain"); 
 	else if ( file_mtime (path) > zfilesig_time )
@@ -503,7 +524,7 @@ static	int	dosigning (zone_t *zonelist, zone_t *zp)
 	else if ( (currtime - zfilesig_time) > zp->conf->resign - (OFFSET) )
 		snprintf (mesg, sizeof(mesg), "re-signing interval (%s) reached",
 						str_delspace (age2str (zp->conf->resign)));
-	else if ( dynamic_zone )
+	else if ( bind94_dynzone (dynamic_zone) )
 		snprintf (mesg, sizeof(mesg), "dynamic zone");
 
 	if ( *mesg )
@@ -517,7 +538,8 @@ static	int	dosigning (zone_t *zonelist, zone_t *zp)
 	dbg_line ();
 	if ( !(force || newkey || newkeysetfile || zfile_time > zfilesig_time ||	
 	     file_mtime (path) > zfilesig_time ||
-	     (currtime - zfilesig_time) > zp->conf->resign - (OFFSET) || dynamic_zone) )
+	     (currtime - zfilesig_time) > zp->conf->resign - (OFFSET) ||
+	      bind94_dynzone (dynamic_zone)) )
 	{
 		verbmesg (2, zp->conf, "\tCheck if there is a parent file to copy\n");
 		if ( zp->conf->keysetdir && strcmp (zp->conf->keysetdir, "..") == 0 )
@@ -541,7 +563,7 @@ static	int	dosigning (zone_t *zonelist, zone_t *zp)
 	use_unixtime = ( zp->conf->serialform == Unixtime );
 	dbg_val1 ("Use unixtime = %d\n", use_unixtime);
 #if defined(BIND_VERSION) && BIND_VERSION >= 940
-	if ( !dynamic_zone && !use_unixtime ) /* increment serial no in static zone files */
+	if ( !dynamic_zone && !use_unixtime ) /* increment serial number in static zone files */
 #else
 	if ( !dynamic_zone ) /* increment serial no in static zone files */
 #endif
@@ -746,9 +768,10 @@ static	int	writekeyfile (const char *fname, const dki_t *list, int key_ttl)
 
 static	int	sign_zone (const char *dir, const char *domain, const char *file, const zconf_t *conf)
 {
-	char	cmd[1023+1];
+	char	cmd[2047+1];
 	char	str[1023+1];
 	char	rparam[254+1];
+	char	nsec3param[637+1];
 	char	keysetdir[254+1];
 	const	char	*gends;
 	const	char	*pseudo;
@@ -782,6 +805,32 @@ static	int	sign_zone (const char *dir, const char *domain, const char *file, con
 	if ( conf->sig_param && conf->sig_param[0] )
 		param = conf->sig_param;
 
+	nsec3param[0] = '\0';
+#if defined(BIND_VERSION) && BIND_VERSION >= 960
+	if ( conf->z_algo == DK_ALGO_NSEC3DSA || conf->z_algo == DK_ALGO_NSEC3RSASHA1 )
+	{
+		static	char	hexstr[] = "0123456789ABCDEF";
+		static	int	seed = 0;
+		char	salt[510+1];	/* salt has a maximum of 255 bytes == 510 hex nibbles */
+		int	saltlen = 0;	/* current length of salt in hex nibbles */
+		int	i;
+		int	hex;
+
+		if ( seed == 0 )
+			srandom (seed = (unsigned int)time (NULL));
+
+		saltlen = conf->saltbits / 4;
+		for ( i = 0; i < saltlen; i++ )
+		{
+			hex = random () % 16;
+			assert ( hex >= 0 && hex < 16 );
+			salt[i] = hexstr[hex];
+		}
+		salt[i] = '\0';
+		snprintf (nsec3param, sizeof (nsec3param), "-3 %s ", salt);
+	}
+#endif
+
 	dbg_line();
 	rparam[0] = '\0';
 	if ( conf->sig_random && conf->sig_random[0] )
@@ -802,8 +851,8 @@ static	int	sign_zone (const char *dir, const char *domain, const char *file, con
 			dir, SIGNCMD, param, gends, pseudo, rparam, keysetdir, domain, conf->sigvalidity, str, file, file);
 	else
 #endif
-		snprintf (cmd, sizeof (cmd), "cd %s; %s %s %s%s%s%s-o %s -e +%d %s %s K*.private",
-			dir, SIGNCMD, param, gends, pseudo, rparam, keysetdir, domain, conf->sigvalidity, str, file);
+		snprintf (cmd, sizeof (cmd), "cd %s; %s %s %s%s%s%s%s-o %s -e +%d %s %s K*.private",
+			dir, SIGNCMD, param, nsec3param, gends, pseudo, rparam, keysetdir, domain, conf->sigvalidity, str, file);
 	verbmesg (2, conf, "\t  Run cmd \"%s\"\n", cmd);
 	*str = '\0';
 	if ( noexec == 0 )
