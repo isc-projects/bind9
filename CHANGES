@@ -1,3 +1,6 @@
+2545.	[doc]		ARM: Legal hostname checking (check-names) is
+			for SRV RDATA too. [RT #19304]
+
 2544.	[cleanup]	Removed unused structure members in adb.c. [RT #19225]
 
 2543.	[contrib]	Update contrib/zkt to version 0.98. [RT #19113]

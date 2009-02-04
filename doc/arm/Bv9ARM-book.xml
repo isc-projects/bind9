@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.391 2009/01/30 04:35:44 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.392 2009/02/04 21:33:54 jreed Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -6078,8 +6078,8 @@ options {
                 </para>
                 <para><command>check-names</command>
 		  applies to the owner names of A, AAAA and MX records.
-		  It also applies to the domain names in the RDATA of NS, SOA
-		  and MX records.
+		  It also applies to the domain names in the RDATA of NS, SOA,
+		  MX, and SRV records.
 		  It also applies to the RDATA of PTR records where the owner
 		  name indicated that it is a reverse lookup of a hostname
 		  (the owner name ends in IN-ADDR.ARPA, IP6.ARPA, or IP6.INT).
