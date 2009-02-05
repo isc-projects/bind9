@@ -33,6 +33,7 @@ custom_WFB_v9_4_2_P1		new	each	// 2008-05-27 22:59 +0000
 custom_WFB_v9_5_0_P1		private	marka	// 2008-07-15 00:05 +0000
 custom_WFB_v9_5_0_P2		new	each	// 2008-08-05 21:06 +0000
 custom_WFB_v9_5_0_P2_1_servfail	new	jinmei	// 2008-12-08 22:38 +0000
+custom_WFB_v9_6_0_P1		new	marka	// 2009-02-05 07:00 +0000
 gsstsig4			open	sra	// head + gsstsig as of 12 may 2006
 gsstsig4_win32			open	danny	// sub-branch off gsstsig4 for windows development
 jinmei-mmapzone-test		open		// mmap based zone file. very experimental, just for reference purposes
@@ -189,6 +190,7 @@ rt19027				new
 rt19063				new	marka	// 2008-12-13 01:45 +0000
 rt19113				new	fdupont	// 2009-01-10 17:53 +0000
 rt19198				new	marka	// 2009-01-23 02:19 +0000
+rt19209				new	marka	// 2009-02-05 01:10 +0000
 rt19240				new	jinmei	// 2009-01-26 23:31 +0000
 rt19248				new	each	// 2009-01-28 00:25 +0000
 rt19256				new	jinmei	// 2009-01-29 00:55 +0000
