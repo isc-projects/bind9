@@ -1,3 +1,7 @@
+2546.	[func]		Add --enable-openssl-hash configure flag to use
+			OpenSSL (in place of internal routine) for hash
+			functions (MD5, SHA[12] and HMAC). [RT #18815]
+
 2545.	[doc]		ARM: Legal hostname checking (check-names) is
 			for SRV RDATA too. [RT #19304]
 
