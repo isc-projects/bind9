@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hmacmd5.c,v 1.15 2009/02/06 12:26:22 fdupont Exp $ */
+/* $Id: hmacmd5.c,v 1.16 2009/02/06 23:47:42 tbox Exp $ */
 
 /*! \file
  * This code implements the HMAC-MD5 keyed hash algorithm

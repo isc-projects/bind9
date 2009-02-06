@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2005-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hmacsha.c,v 1.9 2009/02/06 12:26:23 fdupont Exp $ */
+/* $Id: hmacsha.c,v 1.10 2009/02/06 23:47:42 tbox Exp $ */
 
 /*
  * This code implements the HMAC-SHA1, HMAC-SHA224, HMAC-SHA256, HMAC-SHA384

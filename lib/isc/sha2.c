@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sha2.c,v 1.16 2009/02/06 12:26:23 fdupont Exp $ */
+/* $Id: sha2.c,v 1.17 2009/02/06 23:47:42 tbox Exp $ */
 
 /*	$FreeBSD: src/sys/crypto/sha2/sha2.c,v 1.2.2.2 2002/03/05 08:36:47 ume Exp $	*/
 /*	$KAME: sha2.c,v 1.8 2001/11/08 01:07:52 itojun Exp $	*/
@@ -73,7 +73,7 @@ isc_sha224_init(isc_sha224_t *context) {
 	EVP_DigestInit(context, EVP_sha224());
 }
 
-void 
+void
 isc_sha224_update(isc_sha224_t *context, const isc_uint8_t* data, size_t len) {
 	if (len == 0U) {
 		/* Calling with no data is valid - we do nothing */
@@ -86,7 +86,7 @@ isc_sha224_update(isc_sha224_t *context, const isc_uint8_t* data, size_t len) {
 	EVP_DigestUpdate(context, (const void *) data, len);
 }
 
-void 
+void
 isc_sha224_final(isc_uint8_t digest[], isc_sha224_t *context) {
 	/* Sanity check: */
 	REQUIRE(context != (isc_sha224_t *)0);
@@ -173,7 +173,7 @@ isc_sha384_init(isc_sha384_t *context) {
 	EVP_DigestInit(context, EVP_sha384());
 }
 
-void 
+void
 isc_sha384_update(isc_sha384_t *context, const isc_uint8_t* data, size_t len) {
 	if (len == 0U) {
 		/* Calling with no data is valid - we do nothing */
@@ -186,7 +186,7 @@ isc_sha384_update(isc_sha384_t *context, const isc_uint8_t* data, size_t len) {
 	EVP_DigestUpdate(context, (const void *) data, len);
 }
 
-void 
+void
 isc_sha384_final(isc_uint8_t digest[], isc_sha384_t *context) {
 	/* Sanity check: */
 	REQUIRE(context != (isc_sha384_t *)0);
@@ -1261,7 +1261,7 @@ isc_sha224_end(isc_sha224_t *context, char buffer[]) {
 
 char *
 isc_sha224_data(const isc_uint8_t *data, size_t len,
-	        char digest[ISC_SHA224_DIGESTSTRINGLENGTH])
+		char digest[ISC_SHA224_DIGESTSTRINGLENGTH])
 {
 	isc_sha224_t context;
 
@@ -1365,7 +1365,7 @@ isc_sha384_end(isc_sha384_t *context, char buffer[]) {
 			d++;
 		}
 		*buffer = (char)0;
-	} else {	
+	} else {
 #ifdef ISC_PLATFORM_OPENSSLHASH
 		EVP_MD_CTX_cleanup(context);
 #else
