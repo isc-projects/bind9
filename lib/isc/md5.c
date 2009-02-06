@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: md5.c,v 1.14 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: md5.c,v 1.15 2009/02/06 12:26:23 fdupont Exp $ */
 
 /*! \file
  * This code implements the MD5 message-digest algorithm.
@@ -38,9 +38,34 @@
 
 #include <isc/assertions.h>
 #include <isc/md5.h>
+#include <isc/platform.h>
 #include <isc/string.h>
 #include <isc/types.h>
 #include <isc/util.h>
+
+#ifdef ISC_PLATFORM_OPENSSLHASH
+
+void
+isc_md5_init(isc_md5_t *ctx) {
+	EVP_DigestInit(ctx, EVP_md5());
+}
+
+void
+isc_md5_invalidate(isc_md5_t *ctx) {
+	EVP_MD_CTX_cleanup(ctx);
+}
+
+void
+isc_md5_update(isc_md5_t *ctx, const unsigned char *buf, unsigned int len) {
+	EVP_DigestUpdate(ctx, (const void *) buf, (size_t) len);
+}
+
+void
+isc_md5_final(isc_md5_t *ctx, unsigned char *digest) {
+	EVP_DigestFinal(ctx, digest, NULL);
+}
+
+#else
 
 static void
 byteSwap(isc_uint32_t *buf, unsigned words)
@@ -249,3 +274,4 @@ isc_md5_final(isc_md5_t *ctx, unsigned char *digest) {
 	memcpy(digest, ctx->buf, 16);
 	memset(ctx, 0, sizeof(isc_md5_t));	/* In case it's sensitive */
 }
+#endif

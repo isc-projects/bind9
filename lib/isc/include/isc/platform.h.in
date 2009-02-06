@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.49 2008/12/01 03:51:47 marka Exp $ */
+/* $Id: platform.h.in,v 1.50 2009/02/06 12:26:23 fdupont Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -283,6 +283,11 @@
  * Define if the platform has <strings.h>.
  */
 @ISC_PLATFORM_HAVESTRINGSH@
+
+/*
+ * Define if the hash functions must be provided by OpenSSL.
+ */
+@ISC_PLATFORM_OPENSSLHASH@
 
 /***
  ***	Windows dll support.

@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.131 2008/09/25 04:02:38 tbox Exp $
+# $Id: Makefile.in,v 1.132 2009/02/06 12:26:22 fdupont Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -28,7 +28,7 @@ CDEFINES =
 CWARNINGS =
 
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
-ISCLIBS =	../../lib/isc/libisc.@A@
+ISCLIBS =	../../lib/isc/libisc.@A@ @DNS_CRYPTO_LIBS@
 ISCCFGLIBS = 	../../lib/isccfg/libisccfg.@A@
 LWRESLIBS =	../../lib/lwres/liblwres.@A@
 
