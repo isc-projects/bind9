@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.116.18.23 2009/01/22 23:46:01 tbox Exp $ */
+/* $Id: mem.c,v 1.116.18.24 2009/02/11 03:11:39 jinmei Exp $ */
 
 /*! \file */
 
@@ -1345,6 +1345,40 @@ isc__mem_allocate(isc_mem_t *ctx, size_t size FLARG) {
 		(ctx->water)(ctx->water_arg, ISC_MEM_HIWATER);
 
 	return (si);
+}
+
+void *
+isc__mem_reallocate(isc_mem_t *ctx, void *ptr, size_t size FLARG) {
+	void *new_ptr = NULL;
+	size_t oldsize, copysize;
+
+	REQUIRE(VALID_CONTEXT(ctx));
+
+	/*
+	 * This function emulates the realloc(3) standard library function:
+	 * - if size > 0, allocate new memory; and if ptr is non NULL, copy
+	 *   as much of the old contents to the new buffer and free the old one.
+	 *   Note that when allocation fails the original pointer is intact;
+	 *   the caller must free it.
+	 * - if size is 0 and ptr is non NULL, simply free the given ptr.
+	 * - this function returns:
+	 *     pointer to the newly allocated memory, or
+	 *     NULL if allocation fails or doesn't happen.
+	 */
+	if (size > 0U) {
+		new_ptr = isc__mem_allocate(ctx, size FLARG_PASS);
+		if (new_ptr != NULL && ptr != NULL) {
+			oldsize = (((size_info *)ptr)[-1]).u.size;
+			INSIST(oldsize >= ALIGNMENT_SIZE);
+			oldsize -= ALIGNMENT_SIZE;
+			copysize = oldsize > size ? size : oldsize;
+			memcpy(new_ptr, ptr, copysize);
+			isc__mem_free(ctx, ptr FLARG_PASS);
+		}
+	} else if (ptr != NULL)
+		isc__mem_free(ctx, ptr FLARG_PASS);
+
+	return (new_ptr);
 }
 
 void
