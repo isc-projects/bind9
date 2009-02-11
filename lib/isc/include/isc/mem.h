@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.80 2009/01/17 23:47:43 tbox Exp $ */
+/* $Id: mem.h,v 1.81 2009/02/11 03:04:18 jinmei Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -154,6 +154,7 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_debugging;
 
 #define isc_mem_get(c, s)	isc__mem_get((c), (s) _ISC_MEM_FILELINE)
 #define isc_mem_allocate(c, s)	isc__mem_allocate((c), (s) _ISC_MEM_FILELINE)
+#define isc_mem_reallocate(c, p, s) isc__mem_reallocate((c), (p), (s) _ISC_MEM_FILELINE)
 #define isc_mem_strdup(c, p)	isc__mem_strdup((c), (p) _ISC_MEM_FILELINE)
 #define isc_mempool_get(c)	isc__mempool_get((c) _ISC_MEM_FILELINE)
 
@@ -612,6 +613,8 @@ void
 isc__mem_put(isc_mem_t *, void *, size_t _ISC_MEM_FLARG);
 void *
 isc__mem_allocate(isc_mem_t *, size_t _ISC_MEM_FLARG);
+void *
+isc__mem_reallocate(isc_mem_t *, void *, size_t _ISC_MEM_FLARG);
 void
 isc__mem_free(isc_mem_t *, void * _ISC_MEM_FLARG);
 char *

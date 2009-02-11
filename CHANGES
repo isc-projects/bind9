@@ -1,3 +1,8 @@
+2547.	[bug]		openssl_link.c:mem_realloc() could reference an
+			out-of-range area of the source buffer.  New public
+			function isc_mem_reallocate() was introduced to address
+			this bug. [RT #19313]
+
 2546.	[func]		Add --enable-openssl-hash configure flag to use
 			OpenSSL (in place of internal routine) for hash
 			functions (MD5, SHA[12] and HMAC). [RT #18815]
