@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.22.112.2 2009/01/18 23:47:40 tbox Exp $
+ * $Id: openssl_link.c,v 1.22.112.3 2009/02/11 03:07:01 jinmei Exp $
  */
 #ifdef OPENSSL
 
@@ -148,18 +148,8 @@ mem_free(void *ptr) {
 
 static void *
 mem_realloc(void *ptr, size_t size) {
-	void *p;
-
 	INSIST(dst__memory_pool != NULL);
-	p = NULL;
-	if (size > 0U) {
-		p = mem_alloc(size);
-		if (p != NULL && ptr != NULL)
-			memcpy(p, ptr, size);
-	}
-	if (ptr != NULL)
-		mem_free(ptr);
-	return (p);
+	return (isc_mem_reallocate(dst__memory_pool, ptr, size));
 }
 
 isc_result_t
