@@ -3,19 +3,17 @@
 
 DNSOP                                                        W. Hardaker
 Internet-Draft                                              Sparta, Inc.
-Intended status: Informational                         September 3, 2008
-Expires: March 7, 2009
+Intended status: Informational                         February 12, 2009
+Expires: August 16, 2009
 
 
         Requirements for Management of Name Servers for the DNS
-          draft-ietf-dnsop-name-server-management-reqs-01.txt
+          draft-ietf-dnsop-name-server-management-reqs-02.txt
 
 Status of this Memo
 
-   By submitting this Internet-Draft, each author represents that any
-   applicable patent or other IPR claims of which he or she is aware
-   have been or will be disclosed, and any of which he or she becomes
-   aware will be disclosed, in accordance with Section 6 of BCP 79.
+   This Internet-Draft is submitted to IETF in full conformance with the
+   provisions of BCP 78 and BCP 79.
 
    Internet-Drafts are working documents of the Internet Engineering
    Task Force (IETF), its areas, and its working groups.  Note that
@@ -33,12 +31,32 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on March 7, 2009.
+   This Internet-Draft will expire on August 16, 2009.
+
+Copyright Notice
+
+   Copyright (c) 2009 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.
 
 Abstract
 
    Management of name servers for the Domain Name Service (DNS) has
    traditionally been done using vendor-specific monitoring,
+
+
+
+Hardaker                 Expires August 16, 2009                [Page 1]
+
+Internet-Draft     Name Server Management Requirements     February 2009
+
+
    configuration and control methods.  Although some service monitoring
    platforms can test the functionality of the DNS itself there is not a
    interoperable way to manage (monitor, control and configure) the
@@ -47,14 +65,6 @@ Abstract
    This document discusses the requirements of a management system for
    DNS name servers.  A management solution that is designed to manage
    the DNS can use this document as a shopping list of needed features.
-
-
-
-
-
-Hardaker                  Expires March 7, 2009                 [Page 1]
-
-Internet-Draft     Name Server Management Requirements    September 2008
 
 
 Table of Contents
@@ -94,7 +104,15 @@ Table of Contents
      5.1.  Extensibility  . . . . . . . . . . . . . . . . . . . . . . 12
        5.1.1.  Vendor Extensions  . . . . . . . . . . . . . . . . . . 13
        5.1.2.  Extension Identification . . . . . . . . . . . . . . . 13
-       5.1.3.  Namespace Collision Protection . . . . . . . . . . . . 13
+       5.1.3.  Name-Space Collision Protection  . . . . . . . . . . . 13
+
+
+
+Hardaker                 Expires August 16, 2009                [Page 2]
+
+Internet-Draft     Name Server Management Requirements     February 2009
+
+
    6.  Security Considerations  . . . . . . . . . . . . . . . . . . . 13
    7.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 13
    8.  Document History . . . . . . . . . . . . . . . . . . . . . . . 13
@@ -105,17 +123,8 @@ Table of Contents
    Appendix A.  Deployment Scenarios  . . . . . . . . . . . . . . . . 15
      A.1.  Non-Standard Zones . . . . . . . . . . . . . . . . . . . . 16
      A.2.  Redundancy Sharing . . . . . . . . . . . . . . . . . . . . 16
-
-
-
-Hardaker                  Expires March 7, 2009                 [Page 2]
-
-Internet-Draft     Name Server Management Requirements    September 2008
-
-
      A.3.  DNSSEC Management  . . . . . . . . . . . . . . . . . . . . 16
    Author's Address . . . . . . . . . . . . . . . . . . . . . . . . . 17
-   Intellectual Property and Copyright Statements . . . . . . . . . . 18
 
 
 
@@ -155,18 +164,9 @@ Internet-Draft     Name Server Management Requirements    September 2008
 
 
 
-
-
-
-
-
-
-
-
-
-Hardaker                  Expires March 7, 2009                 [Page 3]
+Hardaker                 Expires August 16, 2009                [Page 3]
 
-Internet-Draft     Name Server Management Requirements    September 2008
+Internet-Draft     Name Server Management Requirements     February 2009
 
 
 1.  Introduction
@@ -220,9 +220,9 @@ Internet-Draft     Name Server Management Requirements    September 2008
 
 
 
-Hardaker                  Expires March 7, 2009                 [Page 4]
+Hardaker                 Expires August 16, 2009                [Page 4]
 
-Internet-Draft     Name Server Management Requirements    September 2008
+Internet-Draft     Name Server Management Requirements     February 2009
 
 
 1.1.1.  Terminology
@@ -276,9 +276,9 @@ Internet-Draft     Name Server Management Requirements    September 2008
 
 
 
-Hardaker                  Expires March 7, 2009                 [Page 5]
+Hardaker                 Expires August 16, 2009                [Page 5]
 
-Internet-Draft     Name Server Management Requirements    September 2008
+Internet-Draft     Name Server Management Requirements     February 2009
 
 
    Level Domains (TLDs)) as well as name servers that are serving a very
@@ -332,9 +332,9 @@ Internet-Draft     Name Server Management Requirements    September 2008
 
 
 
-Hardaker                  Expires March 7, 2009                 [Page 6]
+Hardaker                 Expires August 16, 2009                [Page 6]
 
-Internet-Draft     Name Server Management Requirements    September 2008
+Internet-Draft     Name Server Management Requirements     February 2009
 
 
    model is needed for of the operations discussion in Section 3.  Note
@@ -370,9 +370,8 @@ Internet-Draft     Name Server Management Requirements    September 2008
    might implement, as defined in section 2 of [RFC4033].  These sub-
    roles are also important to support within any management solution.
 
-   The requirements in this document explicitly exclude dealing with
-   management of stub resolvers.  Management of stub resolvers is
-   considered specifically out of scope of this document.
+   As stated earlier, the management of stub resolvers is considered out
+   of scope for this documents.
 
 
 3.  Management Operation Types
@@ -384,16 +383,15 @@ Internet-Draft     Name Server Management Requirements    September 2008
 
    o  Configuration
 
-
-
-
-
-Hardaker                  Expires March 7, 2009                 [Page 7]
-
-Internet-Draft     Name Server Management Requirements    September 2008
-
-
    o  Health and Monitoring
+
+
+
+
+Hardaker                 Expires August 16, 2009                [Page 7]
+
+Internet-Draft     Name Server Management Requirements     February 2009
+
 
    o  Alarms and Events
 
@@ -444,9 +442,11 @@ Internet-Draft     Name Server Management Requirements    September 2008
 
 
 
-Hardaker                  Expires March 7, 2009                 [Page 8]
+
+
+Hardaker                 Expires August 16, 2009                [Page 8]
 
-Internet-Draft     Name Server Management Requirements    September 2008
+Internet-Draft     Name Server Management Requirements     February 2009
 
 
 3.2.  Configuration Requirements
@@ -500,9 +500,9 @@ Internet-Draft     Name Server Management Requirements    September 2008
 
 
 
-Hardaker                  Expires March 7, 2009                 [Page 9]
+Hardaker                 Expires August 16, 2009                [Page 9]
 
-Internet-Draft     Name Server Management Requirements    September 2008
+Internet-Draft     Name Server Management Requirements     February 2009
 
 
    confuse this with the ability to manage the authorization associated
@@ -556,9 +556,9 @@ Internet-Draft     Name Server Management Requirements    September 2008
 
 
 
-Hardaker                  Expires March 7, 2009                [Page 10]
+Hardaker                 Expires August 16, 2009               [Page 10]
 
-Internet-Draft     Name Server Management Requirements    September 2008
+Internet-Draft     Name Server Management Requirements     February 2009
 
 
    management solution SHOULD include support for delivery of alarm
@@ -612,9 +612,9 @@ Internet-Draft     Name Server Management Requirements    September 2008
 
 
 
-Hardaker                  Expires March 7, 2009                [Page 11]
+Hardaker                 Expires August 16, 2009               [Page 11]
 
-Internet-Draft     Name Server Management Requirements    September 2008
+Internet-Draft     Name Server Management Requirements     February 2009
 
 
    completed system.  This authorization differs from the authorization
@@ -668,9 +668,9 @@ Internet-Draft     Name Server Management Requirements    September 2008
 
 
 
-Hardaker                  Expires March 7, 2009                [Page 12]
+Hardaker                 Expires August 16, 2009               [Page 12]
 
-Internet-Draft     Name Server Management Requirements    September 2008
+Internet-Draft     Name Server Management Requirements     February 2009
 
 
 5.1.1.  Vendor Extensions
@@ -689,7 +689,7 @@ Internet-Draft     Name Server Management Requirements    September 2008
    extension data without needing to understand the extension data
    itself.
 
-5.1.3.  Namespace Collision Protection
+5.1.3.  Name-Space Collision Protection
 
    It MUST be possible to protect against multiple extensions
    conflicting with each other.  The use of name-space protection
@@ -724,9 +724,9 @@ Internet-Draft     Name Server Management Requirements    September 2008
 
 
 
-Hardaker                  Expires March 7, 2009                [Page 13]
+Hardaker                 Expires August 16, 2009               [Page 13]
 
-Internet-Draft     Name Server Management Requirements    September 2008
+Internet-Draft     Name Server Management Requirements     February 2009
 
 
    compilation of the results of those discussions as well as
@@ -753,7 +753,7 @@ Internet-Draft     Name Server Management Requirements    September 2008
       Phil Regnauld
 
    Further editing contributions and wording suggestions were made by:
-   Alfred Hines.
+   Alfred Hoenes.
 
 
 10.  References
@@ -780,9 +780,9 @@ Internet-Draft     Name Server Management Requirements    September 2008
 
 
 
-Hardaker                  Expires March 7, 2009                [Page 14]
+Hardaker                 Expires August 16, 2009               [Page 14]
 
-Internet-Draft     Name Server Management Requirements    September 2008
+Internet-Draft     Name Server Management Requirements     February 2009
 
 
               Wellington, "Secret Key Transaction Authentication for DNS
@@ -836,9 +836,9 @@ Appendix A.  Deployment Scenarios
 
 
 
-Hardaker                  Expires March 7, 2009                [Page 15]
+Hardaker                 Expires August 16, 2009               [Page 15]
 
-Internet-Draft     Name Server Management Requirements    September 2008
+Internet-Draft     Name Server Management Requirements     February 2009
 
 
    guidance to protocol developers as data points of real-world name
@@ -847,7 +847,7 @@ Internet-Draft     Name Server Management Requirements    September 2008
 A.1.  Non-Standard Zones
 
    If an organization uses non-standard zones (for example a purely-
-   local TLD), synchronizing all the nameservers for these zones is
+   local TLD), synchronizing all the name servers for these zones is
    usually a time-consuming task.  It is made worse when two
    organizations with conflicting zones merge.  This situation is not a
    recommended deployment scenario (and is even heavily discouraged) but
@@ -892,9 +892,9 @@ A.3.  DNSSEC Management
 
 
 
-Hardaker                  Expires March 7, 2009                [Page 16]
+Hardaker                 Expires August 16, 2009               [Page 16]
 
-Internet-Draft     Name Server Management Requirements    September 2008
+Internet-Draft     Name Server Management Requirements     February 2009
 
 
    strategies.
@@ -948,61 +948,5 @@ Author's Address
 
 
 
-Hardaker                  Expires March 7, 2009                [Page 17]
-
-Internet-Draft     Name Server Management Requirements    September 2008
-
-
-Full Copyright Statement
-
-   Copyright (C) The IETF Trust (2008).
-
-   This document is subject to the rights, licenses and restrictions
-   contained in BCP 78, and except as set forth therein, the authors
-   retain all their rights.
-
-   This document and the information contained herein are provided on an
-   "AS IS" basis and THE CONTRIBUTOR, THE ORGANIZATION HE/SHE REPRESENTS
-   OR IS SPONSORED BY (IF ANY), THE INTERNET SOCIETY, THE IETF TRUST AND
-   THE INTERNET ENGINEERING TASK FORCE DISCLAIM ALL WARRANTIES, EXPRESS
-   OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF
-   THE INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
-   WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
-
-
-Intellectual Property
-
-   The IETF takes no position regarding the validity or scope of any
-   Intellectual Property Rights or other rights that might be claimed to
-   pertain to the implementation or use of the technology described in
-   this document or the extent to which any license under such rights
-   might or might not be available; nor does it represent that it has
-   made any independent effort to identify any such rights.  Information
-   on the procedures with respect to rights in RFC documents can be
-   found in BCP 78 and BCP 79.
-
-   Copies of IPR disclosures made to the IETF Secretariat and any
-   assurances of licenses to be made available, or the result of an
-   attempt made to obtain a general license or permission for the use of
-   such proprietary rights by implementers or users of this
-   specification can be obtained from the IETF on-line IPR repository at
-   http://www.ietf.org/ipr.
-
-   The IETF invites any interested party to bring to its attention any
-   copyrights, patents or patent applications, or other proprietary
-   rights that may cover technology that may be required to implement
-   this standard.  Please address the information to the IETF at
-   ietf-ipr@ietf.org.
-
-
-
-
-
-
-
-
-
-
-
-Hardaker                  Expires March 7, 2009                [Page 18]
+Hardaker                 Expires August 16, 2009               [Page 17]
 
