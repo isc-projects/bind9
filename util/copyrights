@@ -1209,7 +1209,7 @@
 ./doc/arm/Bv9ARM.ch10.html			X	2005,2006,2007,2008,2009
 ./doc/arm/Bv9ARM.html				X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./doc/arm/Bv9ARM.pdf				X	2007,2008
-./doc/arm/Makefile.in				MAKE	2001,2002,2004,2005,2006,2007
+./doc/arm/Makefile.in				MAKE	2001,2002,2004,2005,2006,2007,2009
 ./doc/arm/README-SGML				TXT.BRIEF	2000,2001,2004
 ./doc/arm/isc-logo.eps				X	2005
 ./doc/arm/isc-logo.pdf				X	2005
@@ -2027,7 +2027,7 @@
 ./lib/dns/win32/gen.dsp				X	2001
 ./lib/dns/win32/gen.dsw				X	2001
 ./lib/dns/win32/gen.mak				X	2001,2006
-./lib/dns/win32/libdns.def			X	2001,2002,2003,2004,2005,2006,2007,2008
+./lib/dns/win32/libdns.def			X	2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./lib/dns/win32/libdns.dsp			X	2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/dns/win32/libdns.dsw			X	2001
 ./lib/dns/win32/libdns.mak			X	2001,2002,2003,2004,2005,2006,2007,2008
@@ -2319,9 +2319,9 @@
 ./lib/isc/win32/ipv6.c				C	1999,2000,2001,2004,2007
 ./lib/isc/win32/keyboard.c			C	2000,2001,2004,2007
 ./lib/isc/win32/libisc.def			X	2001,2002,2003,2004,2005,2006,2007,2008,2009
-./lib/isc/win32/libisc.dsp			X	2001,2002,2003,2004,2005,2006,2007,2008
+./lib/isc/win32/libisc.dsp			X	2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./lib/isc/win32/libisc.dsw			X	2001
-./lib/isc/win32/libisc.mak			X	2001,2002,2003,2004,2005,2006,2007,2008
+./lib/isc/win32/libisc.mak			X	2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./lib/isc/win32/net.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2008
 ./lib/isc/win32/netdb.h				C	2000,2001,2004,2006,2007,2009
 ./lib/isc/win32/ntgroups.c			C	2001,2004,2006,2007
