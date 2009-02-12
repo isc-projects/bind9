@@ -30,6 +30,7 @@ isc__mem_free
 isc__mem_get
 isc__mem_put
 isc__mem_putanddetach
+isc__mem_reallocate
 isc__mem_strdup
 isc__mempool_get
 isc__mempool_put
