@@ -536,6 +536,7 @@ dns_resolver_getlamettl
 dns_resolver_getoptions
 dns_resolver_getudpsize
 dns_resolver_getzeronosoattl
+dns_resolver_logfetch
 dns_resolver_nrunning
 dns_resolver_prime
 dns_resolver_reset_algorithms
