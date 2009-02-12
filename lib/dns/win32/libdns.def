@@ -57,9 +57,13 @@ dns_cache_attach
 dns_cache_attachdb
 dns_cache_clean
 dns_cache_create
+dns_cache_create2
 dns_cache_detach
 dns_cache_dump
 dns_cache_flush
+dns_cache_getcachesize
+dns_cache_getcleaninginterval
+dns_cache_getname
 dns_cache_load
 dns_cache_setcachesize
 dns_cache_setcleaninginterval
@@ -536,6 +540,7 @@ dns_resolver_getlamettl
 dns_resolver_getoptions
 dns_resolver_getudpsize
 dns_resolver_getzeronosoattl
+dns_resolver_logfetch
 dns_resolver_nrunning
 dns_resolver_prime
 dns_resolver_reset_algorithms
@@ -632,6 +637,7 @@ dns_view_findzone
 dns_view_findzonecut
 dns_view_flushanddetach
 dns_view_flushcache
+dns_view_flushcache2
 dns_view_flushname
 dns_view_freeze
 dns_view_freezezones
@@ -639,9 +645,11 @@ dns_view_getpeertsig
 dns_view_getresquerystats
 dns_view_getresstats
 dns_view_gettsig
+dns_view_iscacheshared
 dns_view_load
 dns_view_loadnew
 dns_view_setcache
+dns_view_setcache2
 dns_view_setdstport
 dns_view_sethints
 dns_view_setkeyring
