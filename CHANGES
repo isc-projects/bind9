@@ -1,3 +1,6 @@
+2549.	[port]		linux: define NR_OPEN if not currently defined.
+			[RT #19344]
+
 2548.	[bug]		Install iterated_hash.h. [RT #19335]
 
 2547.	[bug]		openssl_link.c:mem_realloc() could reference an
