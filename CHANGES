@@ -1,3 +1,6 @@
+2549.	[port]		linux: define NR_OPEN if not currently defined.
+			[RT #19344]
+
 2547.	[bug]		openssl_link.c:mem_realloc() could reference an
 			out-of-range area of the source buffer.  New public
 			function isc_mem_reallocate() was introduced to address
