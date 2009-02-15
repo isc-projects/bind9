@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.298.48.13 2009/01/29 22:41:43 jinmei Exp $ */
+/* $Id: query.c,v 1.298.48.14 2009/02/15 23:07:53 marka Exp $ */
 
 /*! \file */
 
@@ -3335,8 +3335,7 @@ warn_rfc1918(ns_client_t *client, dns_name_t *fname, dns_rdataset_t *rdataset) {
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			dns_rdataset_current(&found, &rdata);
 			result = dns_rdata_tostruct(&rdata, &soa, NULL);
-			if (result != ISC_R_SUCCESS)
-				return;
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			if (dns_name_equal(&soa.origin, &prisoner) &&
 			    dns_name_equal(&soa.contact, &hostmaster)) {
 				char buf[DNS_NAME_FORMATSIZE];
