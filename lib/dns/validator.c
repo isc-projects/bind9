@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.155.52.11 2009/01/19 00:01:11 marka Exp $ */
+/* $Id: validator.c,v 1.155.52.12 2009/02/15 23:39:34 marka Exp $ */
 
 #include <config.h>
 
@@ -1604,6 +1604,7 @@ dlv_validatezonekey(dns_validator_t *val) {
 				break;
 		}
 		if (result != ISC_R_SUCCESS) {
+			dns_rdataset_disassociate(&trdataset);
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "no DNSKEY matching DLV");
 			continue;
@@ -1945,6 +1946,7 @@ validatezonekey(dns_validator_t *val) {
 				break;
 		}
 		if (result != ISC_R_SUCCESS) {
+			dns_rdataset_disassociate(&trdataset);
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "no DNSKEY matching DS");
 			continue;
