@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.355.12.34 2009/01/29 22:41:45 jinmei Exp $ */
+/* $Id: resolver.c,v 1.355.12.35 2009/02/15 23:15:31 marka Exp $ */
 
 /*! \file */
 
@@ -4532,7 +4532,8 @@ ncache_message(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	 */
 	ttl = fctx->res->view->maxncachettl;
 	if (fctx->type == dns_rdatatype_soa &&
-	    covers == dns_rdatatype_any)
+	    covers == dns_rdatatype_any &&
+	    fctx->res->zero_no_soa_ttl)
 		ttl = 0;
 
 	result = ncache_adderesult(fctx->rmessage, fctx->cache, node,
