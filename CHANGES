@@ -1,3 +1,6 @@
+2552.	[bug]		zero-no-soa-ttl-cache was not being honoured.
+			[RT #19340]
+
 2551.	[bug]		Potential Reference leak on return. [RT #19341]
 
 2550.	[bug]		Check --with-openssl=<path> finds <openssl/opensslv.h>.
