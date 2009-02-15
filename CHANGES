@@ -1,3 +1,5 @@
+2551.	[bug]		Potential Reference leak on return. [RT #19341]
+
 2550.	[bug]		Check --with-openssl=<path> finds <openssl/opensslv.h>.
 			[RT #19343]
 
