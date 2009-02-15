@@ -1,3 +1,5 @@
+2553.	[bug]		Reference leak on DNSSEC validation errors. [RT #19291]
+
 2552.	[bug]		zero-no-soa-ttl-cache was not being honoured.
 			[RT #19340]
 
