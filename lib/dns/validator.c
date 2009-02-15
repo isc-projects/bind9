@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.168 2009/02/15 23:37:29 marka Exp $ */
+/* $Id: validator.c,v 1.169 2009/02/15 23:46:23 marka Exp $ */
 
 #include <config.h>
 
@@ -226,6 +226,7 @@ static isc_boolean_t
 isdelegation(dns_name_t *name, dns_rdataset_t *rdataset,
 	     isc_result_t dbresult)
 {
+	dns_fixedname_t fixed;
 	dns_label_t hashlabel;
 	dns_name_t nsec3name;
 	dns_rdata_nsec3_t nsec3;
@@ -272,6 +273,9 @@ isdelegation(dns_name_t *name, dns_rdataset_t *rdataset,
 	 */
 	found = ISC_FALSE;
 	dns_name_init(&nsec3name, NULL);
+	dns_fixedname_init(&fixed);
+	dns_name_downcase(name, dns_fixedname_name(&fixed), NULL);
+	name = dns_fixedname_name(&fixed);
 	result = dns_rdataset_first(rdataset);
 	for (result = dns_rdataset_first(rdataset);
 	     result == ISC_R_SUCCESS;
