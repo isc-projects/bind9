@@ -15,11 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.410.18.57 2009/01/19 23:46:15 tbox Exp $ */
+/* $Id: zone.c,v 1.410.18.58 2009/02/16 02:12:58 marka Exp $ */
 
 /*! \file */
 
 #include <config.h>
+#include <errno.h>
 
 #include <isc/file.h>
 #include <isc/mutex.h>
@@ -29,6 +30,7 @@
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
 #include <isc/serial.h>
+#include <isc/strerror.h>
 #include <isc/string.h>
 #include <isc/taskpool.h>
 #include <isc/timer.h>
@@ -6411,7 +6413,17 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_ZONE, ISC_LOG_DEBUG(3),
 				      "removing journal file");
-			(void)remove(zone->journal);
+			if (remove(zone->journal) < 0) {
+				char strbuf[ISC_STRERRORSIZE];
+				isc__strerror(errno, strbuf, sizeof(strbuf));
+				isc_log_write(dns_lctx,
+					      DNS_LOGCATEGORY_GENERAL,
+					      DNS_LOGMODULE_ZONE,
+					      ISC_LOG_WARNING,
+					      "unable to remove journal "
+					      "'%s': '%s'",
+					      zone->journal, strbuf);
+			}
 		}
 	}
 

@@ -48,7 +48,7 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: file.c,v 1.47.18.2 2005/04/29 00:17:07 marka Exp $ */
+/* $Id: file.c,v 1.47.18.3 2009/02/16 02:12:58 marka Exp $ */
 
 /*! \file */
 
@@ -67,6 +67,7 @@
 
 #include <isc/dir.h>
 #include <isc/file.h>
+#include <isc/log.h>
 #include <isc/random.h>
 #include <isc/string.h>
 #include <isc/time.h>
@@ -235,7 +236,9 @@ isc_file_renameunique(const char *file, char *templet) {
 			}
 		}
 	}
-	(void)unlink(file);
+	if (unlink(file) < 0)
+		if (errno != ENOENT)
+			return (isc__errno2result(errno));
 	return (ISC_R_SUCCESS);
 }
 
@@ -287,7 +290,11 @@ isc_file_openunique(char *templet, FILE **fp) {
 	f = fdopen(fd, "w+");
 	if (f == NULL) {
 		result = isc__errno2result(errno);
-		(void)remove(templet);
+		if (remove(templet) < 0) {
+			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+				      ISC_LOGMODULE_FILE, ISC_LOG_ERROR,
+				      "remove '%s': failed", templet);
+		}
 		(void)close(fd);
 	} else
 		*fp = f;
