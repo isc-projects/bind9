@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.93 2009/02/16 05:08:43 marka Exp $ */
+/* $Id: os.c,v 1.94 2009/02/16 23:48:04 tbox Exp $ */
 
 /*! \file */
 
@@ -682,7 +682,7 @@ mkdirpath(char *filename, void (*report)(const char *, ...)) {
 					  strbuf);
 				goto error;
 			}
-			if (mkdirpath(filename, report) == -1) 
+			if (mkdirpath(filename, report) == -1)
 				goto error;
 			mode = S_IRUSR | S_IWUSR | S_IXUSR;	/* u=rwx */
 			mode |= S_IRGRP | S_IXGRP;		/* g=rx */

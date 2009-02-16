@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -48,7 +48,7 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: file.c,v 1.52 2009/02/16 02:01:16 marka Exp $ */
+/* $Id: file.c,v 1.53 2009/02/16 23:48:04 tbox Exp $ */
 
 /*! \file */
 
@@ -393,7 +393,7 @@ isc_file_progname(const char *filename, char *buf, size_t buflen) {
 
 /*
  * Put the absolute name of the current directory into 'dirname', which is
- * a buffer of at least 'length' characters.  End the string with the 
+ * a buffer of at least 'length' characters.  End the string with the
  * appropriate path separator, such that the final product could be
  * concatenated with a relative pathname to make a valid pathname string.
  */
@@ -438,7 +438,7 @@ isc_result_t
 isc_file_truncate(const char *filename, isc_offset_t size) {
 	isc_result_t result = ISC_R_SUCCESS;
 
-	if (truncate(filename, size) < 0) 
+	if (truncate(filename, size) < 0)
 		result = isc__errno2result(errno);
 	return (result);
 }

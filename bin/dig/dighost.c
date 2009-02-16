@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.319 2009/02/16 00:01:37 marka Exp $ */
+/* $Id: dighost.c,v 1.320 2009/02/16 23:48:04 tbox Exp $ */
 
 /*! \file
  *  \note
@@ -406,7 +406,7 @@ hex_dump(isc_buffer_t *b) {
 			for (i = len - 15; i <= len; i++) {
 				if (r.base[i] >= '!' && r.base[i] <= '}')
 					putchar(r.base[i]);
-				else 
+				else
 					putchar('.');
 			}
 			printf("\n");
@@ -419,7 +419,7 @@ hex_dump(isc_buffer_t *b) {
 		for (i = ((len>>4)<<4); i < len; i++) {
 			if (r.base[i] >= '!' && r.base[i] <= '}')
 				putchar(r.base[i]);
-			else 
+			else
 				putchar('.');
 		}
 		printf("\n");
