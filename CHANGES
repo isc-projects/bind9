@@ -95,6 +95,9 @@
 			a nameserver of the excluded address family.
 			[RT #18848]
 
+2511.	[cleanup]	dns_rdata_tofmttext() add const to linebreak.
+			[RT #18885]
+
 2505.	[port]		Treat amd64 similarly to x86_64 when determining
 			atomic operation support. [RT #19031]
 
