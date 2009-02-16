@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.527 2009/01/30 03:48:54 marka Exp $ */
+/* $Id: server.c,v 1.528 2009/02/16 05:08:43 marka Exp $ */
 
 /*! \file */
 
@@ -3589,6 +3589,17 @@ load_configuration(const char *filename, ns_server_t *server,
 		}
 	}
 
+	obj = NULL;
+	if (ns_config_get(maps, "pid-file", &obj) == ISC_R_SUCCESS)
+		if (cfg_obj_isvoid(obj))
+			ns_os_writepidfile(NULL, first_time);
+		else
+			ns_os_writepidfile(cfg_obj_asstring(obj), first_time);
+	else if (ns_g_lwresdonly)
+		ns_os_writepidfile(lwresd_g_defaultpidfile, first_time);
+	else
+		ns_os_writepidfile(ns_g_defaultpidfile, first_time);
+
 	/*
 	 * Relinquish root privileges.
 	 */
@@ -3687,16 +3698,6 @@ load_configuration(const char *filename, ns_server_t *server,
 		}
 	}
 
-	obj = NULL;
-	if (ns_config_get(maps, "pid-file", &obj) == ISC_R_SUCCESS)
-		if (cfg_obj_isvoid(obj))
-			ns_os_writepidfile(NULL, first_time);
-		else
-			ns_os_writepidfile(cfg_obj_asstring(obj), first_time);
-	else if (ns_g_lwresdonly)
-		ns_os_writepidfile(lwresd_g_defaultpidfile, first_time);
-	else
-		ns_os_writepidfile(ns_g_defaultpidfile, first_time);
 
 	obj = NULL;
 	if (options != NULL &&
