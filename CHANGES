@@ -1,3 +1,6 @@
+2554.	[func]		dig: when emitting a hex dump also display the
+			corresponding characters. [RT #19258]
+
 2554.	[bug]		Validation of uppercase queries from NSEC3 zones could
 			fail. [RT #19297]
 
