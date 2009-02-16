@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: strerror.c,v 1.8 2007/06/19 23:47:18 tbox Exp $ */
+/* $Id: strerror.c,v 1.9 2009/02/16 02:01:16 marka Exp $ */
 
 /*! \file */
 
@@ -47,7 +47,7 @@ void
 isc__strerror(int num, char *buf, size_t size) {
 #ifdef HAVE_STRERROR
 	char *msg;
-	unsigned int unum = num;
+	unsigned int unum = (unsigned int)num;
 	static isc_once_t once = ISC_ONCE_INIT;
 
 	REQUIRE(buf != NULL);
@@ -62,7 +62,7 @@ isc__strerror(int num, char *buf, size_t size) {
 		snprintf(buf, size, "Unknown error: %u", unum);
 	UNLOCK(&isc_strerror_lock);
 #else
-	unsigned int unum = num;
+	unsigned int unum = (unsigned int)num;
 
 	REQUIRE(buf != NULL);
 

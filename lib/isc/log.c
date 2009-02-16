@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.98 2009/01/18 00:41:42 fdupont Exp $ */
+/* $Id: log.c,v 1.99 2009/02/16 02:01:16 marka Exp $ */
 
 /*! \file
  * \author  Principal Authors: DCL */
@@ -204,6 +204,7 @@ LIBISC_EXTERNAL_DATA isc_logmodule_t isc_modules[] = {
 	{ "time", 0 },
 	{ "interface", 0 },
 	{ "timer", 0 },
+	{ "file", 0 },
 	{ NULL, 0 }
 };
 
