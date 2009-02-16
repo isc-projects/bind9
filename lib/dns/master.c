@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.175 2009/01/30 04:35:44 marka Exp $ */
+/* $Id: master.c,v 1.176 2009/02/16 03:19:40 marka Exp $ */
 
 /*! \file */
 
@@ -635,14 +635,14 @@ nibbles(char *numbuf, size_t length, unsigned int width, char mode, int value) {
 	/*
 	 * This reserve space for the NUL string terminator.
 	 */
-	if (length > 0) {
+	if (length > 0U) {
 		*numbuf = '\0';
 		length--;
 	}
 	do {
 		char val = hex[(value & 0x0f) + ((mode == 'n') ? 0 : 16)];
 		value >>= 4;
-		if (length > 0) {
+		if (length > 0U) {
 			*numbuf++ = val;
 			*numbuf = '\0';
 			length--;
@@ -656,7 +656,7 @@ nibbles(char *numbuf, size_t length, unsigned int width, char mode, int value) {
 		 * that requires a label seperator.
 		 */
 		if (width > 0 || value != 0) {
-			if (length > 0) {
+			if (length > 0U) {
 				*numbuf++ = '.';
 				*numbuf = '\0';
 				length--;
