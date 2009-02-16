@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h,v 1.14.128.2 2008/04/02 23:46:28 tbox Exp $ */
+/* $Id: platform.h,v 1.14.128.3 2009/02/16 00:53:58 marka Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -39,7 +39,6 @@
 #undef MSG_TRUNC
 #define ISC_PLATFORM_NEEDNTOP
 #define ISC_PLATFORM_NEEDPTON
-#define ISC_PLATFORM_NEEDATON
 
 #define ISC_PLATFORM_QUADFORMAT "I64"
 
