@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: soa_6.c,v 1.61 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: soa_6.c,v 1.61.128.1 2009/02/16 02:10:58 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 15:18:32 PST 2000 by explorer */
 
@@ -101,7 +101,11 @@ totext_soa(ARGS_TOTEXT) {
 	REQUIRE(rdata->length != 0);
 
 	multiline = ISC_TF((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0);
-	comment = ISC_TF((tctx->flags & DNS_STYLEFLAG_COMMENT) != 0);
+	if (multiline)
+		comment = ISC_TF((tctx->flags & DNS_STYLEFLAG_COMMENT) != 0);
+	else
+		comment = ISC_FALSE;
+	
 
 	dns_name_init(&mname, NULL);
 	dns_name_init(&rname, NULL);
@@ -128,16 +132,13 @@ totext_soa(ARGS_TOTEXT) {
 	RETERR(str_totext(tctx->linebreak, target));
 
 	for (i = 0; i < 5; i++) {
-		char buf[sizeof("2147483647")];
+		char buf[sizeof("0123456789 ; ")];
 		unsigned long num;
-		unsigned int numlen;
 		num = uint32_fromregion(&dregion);
 		isc_region_consume(&dregion, 4);
-		numlen = sprintf(buf, "%lu", num);
-		INSIST(numlen > 0 && numlen < sizeof("2147483647"));
+		sprintf(buf, comment ? "%-10lu ; " : "%lu", num);
 		RETERR(str_totext(buf, target));
-		if (multiline && comment) {
-			RETERR(str_totext("           ; " + numlen, target));
+		if (comment) {
 			RETERR(str_totext(soa_fieldnames[i], target));
 			/* Print times in week/day/hour/minute/second form */
 			if (i >= 1) {
@@ -147,7 +148,7 @@ totext_soa(ARGS_TOTEXT) {
 			}
 			RETERR(str_totext(tctx->linebreak, target));
 		} else if (i < 4) {
-			RETERR(str_totext(tctx->linebreak, target));			
+			RETERR(str_totext(tctx->linebreak, target));
 		}
 	}
 

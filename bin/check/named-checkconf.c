@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.46 2007/11/26 02:12:45 marka Exp $ */
+/* $Id: named-checkconf.c,v 1.46.18.1 2009/02/16 02:10:57 marka Exp $ */
 
 /*! \file */
 
@@ -416,12 +416,6 @@ main(int argc, char **argv) {
 			result = isc_dir_chroot(isc_commandline_argument);
 			if (result != ISC_R_SUCCESS) {
 				fprintf(stderr, "isc_dir_chroot: %s\n",
-					isc_result_totext(result));
-				exit(1);
-			}
-			result = isc_dir_chdir("/");
-			if (result != ISC_R_SUCCESS) {
-				fprintf(stderr, "isc_dir_chdir: %s\n",
 					isc_result_totext(result));
 				exit(1);
 			}

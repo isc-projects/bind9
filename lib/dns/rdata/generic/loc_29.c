@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: loc_29.c,v 1.45.128.2 2009/01/19 23:47:03 tbox Exp $ */
+/* $Id: loc_29.c,v 1.45.128.3 2009/02/16 02:10:58 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 18:13:09 PST 2000 by explorer */
 
@@ -482,16 +482,19 @@ totext_loc(ARGS_TOTEXT) {
 
 	/* version = sr.base[0]; */
 	size = sr.base[1];
+	INSIST((size&0x0f) < 10 && (size>>4) < 10);
 	if ((size&0x0f)> 1)
 		sprintf(sbuf, "%lum", (size>>4) * poweroften[(size&0x0f)-2]);
 	else
 		sprintf(sbuf, "0.%02lum", (size>>4) * poweroften[(size&0x0f)]);
 	hp = sr.base[2];
+	INSIST((hp&0x0f) < 10 && (hp>>4) < 10);
 	if ((hp&0x0f)> 1)
 		sprintf(hbuf, "%lum", (hp>>4) * poweroften[(hp&0x0f)-2]);
 	else
 		sprintf(hbuf, "0.%02lum", (hp>>4) * poweroften[(hp&0x0f)]);
 	vp = sr.base[3];
+	INSIST((vp&0x0f) < 10 && (vp>>4) < 10);
 	if ((vp&0x0f)> 1)
 		sprintf(vbuf, "%lum", (vp>>4) * poweroften[(vp&0x0f)-2]);
 	else
@@ -514,6 +517,7 @@ totext_loc(ARGS_TOTEXT) {
 	m1 = (int)(latitude % 60);
 	latitude /= 60;
 	d1 = (int)latitude;
+	INSIST(latitude <= 90);
 
 	longitude = uint32_fromregion(&sr);
 	isc_region_consume(&sr, 4);
@@ -531,6 +535,7 @@ totext_loc(ARGS_TOTEXT) {
 	m2 = (int)(longitude % 60);
 	longitude /= 60;
 	d2 = (int)longitude;
+	INSIST(longitude <= 180);
 
 	altitude = uint32_fromregion(&sr);
 	isc_region_consume(&sr, 4);

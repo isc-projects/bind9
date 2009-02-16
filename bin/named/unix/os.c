@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.79.128.10 2009/02/16 00:53:58 marka Exp $ */
+/* $Id: os.c,v 1.79.128.11 2009/02/16 02:10:57 marka Exp $ */
 
 /*! \file */
 
@@ -645,7 +645,8 @@ safe_open(const char *filename, isc_boolean_t append) {
 		fd = open(filename, O_WRONLY|O_CREAT|O_APPEND,
 			  S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
 	else {
-		(void)unlink(filename);
+		if (unlink(filename) < 0 && errno != ENOENT)
+			return (-1);
 		fd = open(filename, O_WRONLY|O_CREAT|O_EXCL,
 			  S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
 	}
@@ -654,8 +655,11 @@ safe_open(const char *filename, isc_boolean_t append) {
 
 static void
 cleanup_pidfile(void) {
+	int n;
 	if (pidfile != NULL) {
-		(void)unlink(pidfile);
+		n = unlink(pidfile);
+		if (n == -1 && errno != ENOENT)
+			ns_main_earlywarning("unlink '%s': failed", pidfile);
 		free(pidfile);
 	}
 	pidfile = NULL;

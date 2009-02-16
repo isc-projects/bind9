@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dir.c,v 1.25.128.1 2009/02/16 00:53:58 marka Exp $ */
+/* $Id: dir.c,v 1.25.128.2 2009/02/16 02:10:58 marka Exp $ */
 
 /*! \file
  * \author  Principal Authors: DCL */
@@ -172,7 +172,7 @@ isc_dir_chroot(const char *dirname) {
 	REQUIRE(dirname != NULL);
 
 #ifdef HAVE_CHROOT
-	if (chroot(dirname) < 0)
+	if (chroot(dirname) < 0 || chdir("/") < 0)
 		return (isc__errno2result(errno));
 
 	return (ISC_R_SUCCESS);

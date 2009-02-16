@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.49.130.2 2008/10/24 01:44:15 tbox Exp $ */
+/* $Id: named-checkzone.c,v 1.49.130.3 2009/02/16 02:10:57 marka Exp $ */
 
 /*! \file */
 
@@ -265,12 +265,6 @@ main(int argc, char **argv) {
 			if (result != ISC_R_SUCCESS) {
 				fprintf(stderr, "isc_dir_chroot: %s: %s\n",
 					isc_commandline_argument,
-					isc_result_totext(result));
-				exit(1);
-			}
-			result = isc_dir_chdir("/");
-			if (result != ISC_R_SUCCESS) {
-				fprintf(stderr, "isc_dir_chdir: %s\n",
 					isc_result_totext(result));
 				exit(1);
 			}
