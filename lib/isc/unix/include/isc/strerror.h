@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: strerror.h,v 1.8 2007/06/19 23:47:19 tbox Exp $ */
+/* $Id: strerror.h,v 1.8.332.1 2009/02/16 01:02:58 marka Exp $ */
 
 #ifndef ISC_STRERROR_H
 #define ISC_STRERROR_H
@@ -32,7 +32,7 @@ ISC_LANG_BEGINDECLS
 #define ISC_STRERRORSIZE 128
 
 /*%
- * Provide a thread safe wrapper to strerrror().
+ * Provide a thread safe wrapper to strerror().
  *
  * Requires:
  * 	'buf' to be non NULL.

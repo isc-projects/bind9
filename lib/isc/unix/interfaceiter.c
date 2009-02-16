@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.44 2008/03/20 23:47:00 tbox Exp $ */
+/* $Id: interfaceiter.c,v 1.44.120.1 2009/02/16 01:02:58 marka Exp $ */
 
 /*! \file */
 
@@ -217,8 +217,8 @@ linux_if_inet6_current(isc_interfaceiter_t *iter) {
 	for (i = 0; i < 16; i++) {
 		unsigned char byte;
 		static const char hex[] = "0123456789abcdef";
-		byte = ((index(hex, address[i * 2]) - hex) << 4) |
-		       (index(hex, address[i * 2 + 1]) - hex);
+		byte = ((strchr(hex, address[i * 2]) - hex) << 4) |
+		       (strchr(hex, address[i * 2 + 1]) - hex);
 		addr6.s6_addr[i] = byte;
 	}
 	iter->current.af = AF_INET6;

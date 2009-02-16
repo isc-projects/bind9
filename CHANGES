@@ -101,6 +101,9 @@
 2505.	[port]		Treat amd64 similarly to x86_64 when determining
 			atomic operation support. [RT #19031]
 
+2503.	[port]		linux: improve compatibility with Linux Standard
+			Base. [RT #18793]
+
 2502.	[cleanup]	isc_radix: Improve compliance with coding style,
 			document function in <isc/radix.h>. [RT #18534]
 

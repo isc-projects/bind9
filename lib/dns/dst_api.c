@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.16 2008/11/14 22:53:46 marka Exp $
+ * $Id: dst_api.c,v 1.16.12.1 2009/02/16 01:02:58 marka Exp $
  */
 
 /*! \file */
@@ -125,6 +125,7 @@ static isc_result_t	addsuffix(char *filename, unsigned int len,
 			return (_r);		\
 	} while (0);				\
 
+#ifdef OPENSSL
 static void *
 default_memalloc(void *arg, size_t size) {
 	UNUSED(arg);
@@ -138,6 +139,7 @@ default_memfree(void *arg, void *ptr) {
 	UNUSED(arg);
 	free(ptr);
 }
+#endif
 
 isc_result_t
 dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
