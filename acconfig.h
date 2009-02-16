@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acconfig.h,v 1.51.130.1 2009/02/16 00:53:58 marka Exp $ */
+/* $Id: acconfig.h,v 1.51.130.2 2009/02/16 23:46:44 tbox Exp $ */
 
 /*! \file */
 
@@ -109,7 +109,7 @@ int sigwait(const unsigned int *set, int *sig);
  * The silly continuation line is to keep configure from
  * commenting out the #undef.
  */
- 
+
 #undef \
 	va_start
 #define	va_start(ap, last) \

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.28.128.3 2009/02/16 00:53:58 marka Exp $ */
+/* $Id: net.h,v 1.28.128.4 2009/02/16 23:46:45 tbox Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1

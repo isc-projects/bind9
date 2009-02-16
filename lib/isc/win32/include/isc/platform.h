@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h,v 1.14.128.3 2009/02/16 00:53:58 marka Exp $ */
+/* $Id: platform.h,v 1.14.128.4 2009/02/16 23:46:45 tbox Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1

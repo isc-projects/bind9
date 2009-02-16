@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: strerror.c,v 1.8.128.1 2009/02/16 02:10:58 marka Exp $ */
+/* $Id: strerror.c,v 1.8.128.2 2009/02/16 23:46:44 tbox Exp $ */
 
 /*! \file */
 
