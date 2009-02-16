@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.145.120.3 2009/02/11 03:07:01 jinmei Exp $ */
+/* $Id: mem.c,v 1.145.120.4 2009/02/16 03:17:05 marka Exp $ */
 
 /*! \file */
 
@@ -52,7 +52,7 @@ LIBISC_EXTERNAL_DATA unsigned int isc_mem_debugging = ISC_MEM_DEBUGGING;
 
 #define DEF_MAX_SIZE		1100
 #define DEF_MEM_TARGET		4096
-#define ALIGNMENT_SIZE		8		/*%< must be a power of 2 */
+#define ALIGNMENT_SIZE		8U		/*%< must be a power of 2 */
 #define NUM_BASIC_BLOCKS	64		/*%< must be > 1 */
 #define TABLE_INCREMENT		1024
 #define DEBUGLIST_COUNT		1024
