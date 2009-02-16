@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: soa_6.c,v 1.61.332.1 2009/02/16 02:04:05 marka Exp $ */
+/* $Id: soa_6.c,v 1.61.332.2 2009/02/16 23:47:15 tbox Exp $ */
 
 /* Reviewed: Thu Mar 16 15:18:32 PST 2000 by explorer */
 
@@ -105,7 +105,7 @@ totext_soa(ARGS_TOTEXT) {
 		comment = ISC_TF((tctx->flags & DNS_STYLEFLAG_COMMENT) != 0);
 	else
 		comment = ISC_FALSE;
-	
+
 
 	dns_name_init(&mname, NULL);
 	dns_name_init(&rname, NULL);
@@ -160,8 +160,8 @@ totext_soa(ARGS_TOTEXT) {
 
 static inline isc_result_t
 fromwire_soa(ARGS_FROMWIRE) {
-        dns_name_t mname;
-        dns_name_t rname;
+	dns_name_t mname;
+	dns_name_t rname;
 	isc_region_t sregion;
 	isc_region_t tregion;
 
@@ -172,11 +172,11 @@ fromwire_soa(ARGS_FROMWIRE) {
 
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
 
-        dns_name_init(&mname, NULL);
-        dns_name_init(&rname, NULL);
+	dns_name_init(&mname, NULL);
+	dns_name_init(&rname, NULL);
 
-        RETERR(dns_name_fromwire(&mname, source, dctx, options, target));
-        RETERR(dns_name_fromwire(&rname, source, dctx, options, target));
+	RETERR(dns_name_fromwire(&mname, source, dctx, options, target));
+	RETERR(dns_name_fromwire(&rname, source, dctx, options, target));
 
 	isc_buffer_activeregion(source, &sregion);
 	isc_buffer_availableregion(target, &tregion);
