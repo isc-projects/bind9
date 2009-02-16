@@ -15,11 +15,11 @@
 ./bin/check/check-tool.c			C	2000,2001,2002,2004,2005,2006,2007,2008,2009
 ./bin/check/check-tool.h			C	2000,2001,2002,2004,2005
 ./bin/check/named-checkconf.8			MAN	DOCBOOK
-./bin/check/named-checkconf.c			C	1999,2000,2001,2002,2004,2005,2006,2007
+./bin/check/named-checkconf.c			C	1999,2000,2001,2002,2004,2005,2006,2007,2009
 ./bin/check/named-checkconf.docbook		SGML	2000,2001,2002,2004,2005,2007
 ./bin/check/named-checkconf.html		HTML	DOCBOOK
 ./bin/check/named-checkzone.8			MAN	DOCBOOK
-./bin/check/named-checkzone.c			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
+./bin/check/named-checkzone.c			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./bin/check/named-checkzone.docbook		SGML	2000,2001,2002,2004,2005,2006,2007,2009
 ./bin/check/named-checkzone.html		HTML	DOCBOOK
 ./bin/check/win32/checktool.dsp			X	2006
@@ -143,7 +143,7 @@
 ./bin/named/unix/.cvsignore			X	1999,2000,2001
 ./bin/named/unix/Makefile.in			MAKE	1999,2000,2001,2004
 ./bin/named/unix/include/named/os.h		C	1999,2000,2001,2002,2004,2005,2008
-./bin/named/unix/os.c				C	1999,2000,2001,2002,2004,2005,2006,2008
+./bin/named/unix/os.c				C	1999,2000,2001,2002,2004,2005,2006,2008,2009
 ./bin/named/update.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./bin/named/win32/include/named/ntservice.h	C	1999,2000,2001,2002,2003,2004
 ./bin/named/win32/include/named/os.h		C	1999,2000,2001,2002,2004,2008
@@ -1938,7 +1938,7 @@
 ./lib/dns/rdata/generic/rt_21.h			C	1999,2000,2001,2004,2005
 ./lib/dns/rdata/generic/sig_24.c		C	1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/rdata/generic/sig_24.h		C	1999,2000,2001,2004,2005
-./lib/dns/rdata/generic/soa_6.c			C	1998,1999,2000,2001,2002,2004
+./lib/dns/rdata/generic/soa_6.c			C	1998,1999,2000,2001,2002,2004,2009
 ./lib/dns/rdata/generic/soa_6.h			C	1998,1999,2000,2001,2004,2005
 ./lib/dns/rdata/generic/spf_99.c		C	1998,1999,2000,2001,2002,2004,2005
 ./lib/dns/rdata/generic/spf_99.h		C	1998,1999,2000,2001,2004,2005
@@ -1974,7 +1974,7 @@
 ./lib/dns/rdata/in_1/px_26.h			C	1999,2000,2001,2004,2005
 ./lib/dns/rdata/in_1/srv_33.c			C	1999,2000,2001,2003,2004,2005
 ./lib/dns/rdata/in_1/srv_33.h			C	1999,2000,2001,2004,2005
-./lib/dns/rdata/in_1/wks_11.c			C	1999,2000,2001,2002,2004
+./lib/dns/rdata/in_1/wks_11.c			C	1999,2000,2001,2002,2004,2009
 ./lib/dns/rdata/in_1/wks_11.h			C	1999,2000,2001,2004
 ./lib/dns/rdata/rdatastructpre.h		C	1999,2000,2001,2004
 ./lib/dns/rdata/rdatastructsuf.h		C	1999,2000,2001,2004
@@ -2211,11 +2211,11 @@
 ./lib/isc/unix/.cvsignore			X	1998,1999,2000,2001
 ./lib/isc/unix/Makefile.in			MAKE	1998,1999,2000,2001,2004
 ./lib/isc/unix/app.c				C	1999,2000,2001,2002,2003,2004,2005,2008
-./lib/isc/unix/dir.c				C	1999,2000,2001,2004,2005,2008
+./lib/isc/unix/dir.c				C	1999,2000,2001,2004,2005,2008,2009
 ./lib/isc/unix/entropy.c			C	2000,2001,2002,2003,2004,2005,2006,2008
 ./lib/isc/unix/errno2result.c			C	2000,2001,2002,2004,2005
 ./lib/isc/unix/errno2result.h			C	2000,2001,2004,2005
-./lib/isc/unix/file.c				C	2000,2001,2002,2004,2005
+./lib/isc/unix/file.c				C	2000,2001,2002,2004,2005,2009
 ./lib/isc/unix/fsaccess.c			C	2000,2001,2004,2005,2006
 ./lib/isc/unix/ifiter_getifaddrs.c		C	2003,2004,2005,2007
 ./lib/isc/unix/ifiter_ioctl.c			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
@@ -2245,7 +2245,7 @@
 ./lib/isc/unix/socket_p.h			C	2000,2001,2004,2005,2008
 ./lib/isc/unix/stdio.c				C	2000,2001,2004
 ./lib/isc/unix/stdtime.c			C	1999,2000,2001,2004,2005
-./lib/isc/unix/strerror.c			C	2001,2004,2005
+./lib/isc/unix/strerror.c			C	2001,2004,2005,2009
 ./lib/isc/unix/syslog.c				C	2001,2004,2005,2007
 ./lib/isc/unix/time.c				C	1998,1999,2000,2001,2003,2004,2005,2008
 ./lib/isc/version.c				C	1998,1999,2000,2001,2004,2005
