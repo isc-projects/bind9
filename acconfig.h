@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acconfig.h,v 1.51 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id: acconfig.h,v 1.51.130.1 2009/02/16 00:53:58 marka Exp $ */
 
 /*! \file */
 
@@ -24,9 +24,6 @@
  *** it does not get installed.
  ***/
 @TOP@
-
-/** define to `int' if <sys/types.h> doesn't define.  */
-#undef ssize_t
 
 /** define on DEC OSF to enable 4.4BSD style sa_len support */
 #undef _SOCKADDR_LEN
@@ -60,9 +57,6 @@
 
 /** define if you have the NET_RT_IFLIST sysctl variable and sys/sysctl.h */
 #undef HAVE_IFLIST_SYSCTL
-
-/** define if chroot() is available */
-#undef HAVE_CHROOT
 
 /** define if tzset() is available */
 #undef HAVE_TZSET
