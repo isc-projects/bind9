@@ -1,3 +1,7 @@
+2555.	[port]		Solaris: mkdir(2) on tmpfs filesystems does not do the
+			error checks in the correct order resulting in the
+			wrong error code sometimes being returned. [RT #19249]
+			
 2554.	[func]		dig: when emitting a hex dump also display the
 			corresponding characters. [RT #19258]
 

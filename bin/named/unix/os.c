@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.90 2008/12/01 03:51:47 marka Exp $ */
+/* $Id: os.c,v 1.91 2009/02/16 00:13:02 marka Exp $ */
 
 /*! \file */
 
@@ -661,6 +661,44 @@ cleanup_pidfile(void) {
 	pidfile = NULL;
 }
 
+static int
+mkdirpath(char *filename, void (*report)(const char *, ...)) {
+	char *slash = strrchr(filename, '/');
+	char strbuf[ISC_STRERRORSIZE];
+	unsigned int mode;
+
+	if (slash != NULL && slash != filename) {
+		struct stat sb;
+		*slash = '\0';
+
+		if (stat(filename, &sb) == -1) {
+			if (errno != ENOENT) {
+				isc__strerror(errno, strbuf, sizeof(strbuf));
+				(*report)("couldn't stat '%s': %s", filename,
+					  strbuf);
+				goto error;
+			}
+			if (mkdirpath(filename, report) == -1) 
+				goto error;
+			mode = S_IRUSR | S_IWUSR | S_IXUSR;	/* u=rwx */
+			mode |= S_IRGRP | S_IXGRP;		/* g=rx */
+			mode |= S_IROTH | S_IXOTH;		/* o=rx */
+			if (mkdir(filename, mode) == -1) {
+				isc__strerror(errno, strbuf, sizeof(strbuf));
+				(*report)("couldn't mkdir '%s': %s", filename,
+					  strbuf);
+				goto error;
+			}
+		}
+		*slash = '/';
+	}
+	return (0);
+
+ error:
+	*slash = '/';
+	return (-1);
+}
+
 void
 ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 	int fd;
@@ -669,9 +707,6 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 	pid_t pid;
 	char strbuf[ISC_STRERRORSIZE];
 	void (*report)(const char *, ...);
-	unsigned int mode;
-	char *slash;
-	int n;
 
 	/*
 	 * The caller must ensure any required synchronization.
@@ -691,28 +726,17 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 		(*report)("couldn't malloc '%s': %s", filename, strbuf);
 		return;
 	}
+
 	/* This is safe. */
 	strcpy(pidfile, filename);
 
 	/*
 	 * Make the containing directory if it doesn't exist.
 	 */
-	slash = strrchr(pidfile, '/');
-	if (slash != NULL && slash != pidfile) {
-		*slash = '\0';
-		mode = S_IRUSR | S_IWUSR | S_IXUSR;	/* u=rwx */
-		mode |= S_IRGRP | S_IXGRP;		/* g=rx */
-		mode |= S_IROTH | S_IXOTH;		/* o=rx */
-		n = mkdir(pidfile, mode);
-		if (n == -1 && errno != EEXIST) {
-			isc__strerror(errno, strbuf, sizeof(strbuf));
-			(*report)("couldn't mkdir %s': %s", filename,
-				  strbuf);
-			free(pidfile);
-			pidfile = NULL;
-			return;
-		}
-		*slash = '/';
+	if (mkdirpath(pidfile, report) == -1) {
+		free(pidfile);
+		pidfile = NULL;
+		return;
 	}
 
 	fd = safe_open(filename, ISC_FALSE);
