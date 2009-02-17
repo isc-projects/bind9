@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.95.12.2 2009/01/18 23:47:35 tbox Exp $ */
+/* $Id: check.c,v 1.95.12.3 2009/02/17 03:43:07 marka Exp $ */
 
 /*! \file */
 
@@ -909,8 +909,11 @@ validate_masters(const cfg_obj_t *obj, const cfg_obj_t *config,
 			if (new == NULL)
 				goto cleanup;
 			if (stackcount != 0) {
+				void *ptr;
+
+				DE_CONST(stack, ptr);
 				memcpy(new, stack, oldsize);
-				isc_mem_put(mctx, stack, oldsize);
+				isc_mem_put(mctx, ptr, oldsize);
 			}
 			stack = new;
 			stackcount = newlen;
@@ -923,8 +926,12 @@ validate_masters(const cfg_obj_t *obj, const cfg_obj_t *config,
 		goto resume;
 	}
  cleanup:
-	if (stack != NULL)
-		isc_mem_put(mctx, stack, stackcount * sizeof(*stack));
+	if (stack != NULL) {
+		void *ptr;
+
+		DE_CONST(stack, ptr);
+		isc_mem_put(mctx, ptr, stackcount * sizeof(*stack));
+	}
 	isc_symtab_destroy(&symtab);
 	*countp = count;
 	return (result);
