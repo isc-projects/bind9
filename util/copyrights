@@ -62,7 +62,7 @@
 ./bin/dnssec/.cvsignore				X	2000,2001,2008
 ./bin/dnssec/Makefile.in			MAKE	2000,2001,2002,2004,2005,2007,2008
 ./bin/dnssec/dnssec-dsfromkey.8			MAN	2008
-./bin/dnssec/dnssec-dsfromkey.c			C	2008
+./bin/dnssec/dnssec-dsfromkey.c			C	2008,2009
 ./bin/dnssec/dnssec-dsfromkey.docbook		SGML	2008
 ./bin/dnssec/dnssec-dsfromkey.html		HTML	2008
 ./bin/dnssec/dnssec-keyfromlabel.8		MAN	DOCBOOK
