@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: loc_29.c,v 1.48 2009/02/16 02:01:16 marka Exp $ */
+/* $Id: loc_29.c,v 1.49 2009/02/17 05:53:13 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 18:13:09 PST 2000 by explorer */
 
@@ -517,7 +517,7 @@ totext_loc(ARGS_TOTEXT) {
 	m1 = (int)(latitude % 60);
 	latitude /= 60;
 	d1 = (int)latitude;
-	INSIST(latitude <= 90);
+	INSIST(latitude <= 90U);
 
 	longitude = uint32_fromregion(&sr);
 	isc_region_consume(&sr, 4);
@@ -535,7 +535,7 @@ totext_loc(ARGS_TOTEXT) {
 	m2 = (int)(longitude % 60);
 	longitude /= 60;
 	d2 = (int)longitude;
-	INSIST(longitude <= 180);
+	INSIST(longitude <= 180U);
 
 	altitude = uint32_fromregion(&sr);
 	isc_region_consume(&sr, 4);
