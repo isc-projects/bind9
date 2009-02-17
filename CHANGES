@@ -1,3 +1,6 @@
+2559.	[bug]		dnssec-dsfromkey could compute bad DS records when
+			reading from a K* files.  [RT #19357]
+
 2558.	[func]		Set the ownership of missing directories created
 			for pid-file if -u has been specified on the command
 			line. [RT #19328]
