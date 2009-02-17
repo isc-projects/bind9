@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2008, 2009  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-dsfromkey.c,v 1.2.14.1 2009/02/17 00:18:27 marka Exp $ */
+/* $Id: dnssec-dsfromkey.c,v 1.2.14.2 2009/02/17 23:47:15 tbox Exp $ */
 
 /*! \file */
 
