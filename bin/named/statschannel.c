@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: statschannel.c,v 1.21 2009/01/29 05:11:29 marka Exp $ */
+/* $Id: statschannel.c,v 1.22 2009/02/17 03:40:28 marka Exp $ */
 
 /*! \file */
 
@@ -130,10 +130,10 @@ init_desc(void) {
 	int i;
 
 	/* Initialize name server statistics */
-	memset(nsstats_desc, 0,
+	memset((void *)nsstats_desc, 0,
 	       dns_nsstatscounter_max * sizeof(nsstats_desc[0]));
 #ifdef HAVE_LIBXML2
-	memset(nsstats_xmldesc, 0,
+	memset((void *)nsstats_xmldesc, 0,
 	       dns_nsstatscounter_max * sizeof(nsstats_xmldesc[0]));
 #endif
 
@@ -198,10 +198,10 @@ init_desc(void) {
 	INSIST(i == dns_nsstatscounter_max);
 
 	/* Initialize resolver statistics */
-	memset(resstats_desc, 0,
+	memset((void *)resstats_desc, 0,
 	       dns_resstatscounter_max * sizeof(resstats_desc[0]));
 #ifdef  HAVE_LIBXML2
-	memset(resstats_xmldesc, 0,
+	memset((void *)resstats_xmldesc, 0,
 	       dns_resstatscounter_max * sizeof(resstats_xmldesc[0]));
 #endif
 
@@ -268,10 +268,10 @@ init_desc(void) {
 	INSIST(i == dns_resstatscounter_max);
 
 	/* Initialize zone statistics */
-	memset(zonestats_desc, 0,
+	memset((void *)zonestats_desc, 0,
 	       dns_zonestatscounter_max * sizeof(zonestats_desc[0]));
 #ifdef  HAVE_LIBXML2
-	memset(zonestats_xmldesc, 0,
+	memset((void *)zonestats_xmldesc, 0,
 	       dns_zonestatscounter_max * sizeof(zonestats_xmldesc[0]));
 #endif
 
@@ -300,10 +300,10 @@ init_desc(void) {
 	INSIST(i == dns_zonestatscounter_max);
 
 	/* Initialize socket statistics */
-	memset(sockstats_desc, 0,
+	memset((void *)sockstats_desc, 0,
 	       isc_sockstatscounter_max * sizeof(sockstats_desc[0]));
 #ifdef  HAVE_LIBXML2
-	memset(sockstats_xmldesc, 0,
+	memset((void *)sockstats_xmldesc, 0,
 	       isc_sockstatscounter_max * sizeof(sockstats_xmldesc[0]));
 #endif
 
