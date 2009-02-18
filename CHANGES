@@ -1,3 +1,5 @@
+2660.	[bug]		Add #include <config.h> to iptable.c. [RET #18258]
+
 2559.	[bug]		dnssec-dsfromkey could compute bad DS records when
 			reading from a K* files.  [RT #19357]
 
