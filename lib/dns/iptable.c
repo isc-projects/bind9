@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2007-2009  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: iptable.c,v 1.5.46.8 2009/02/18 05:57:31 marka Exp $ */
+/* $Id: iptable.c,v 1.5.46.9 2009/02/18 23:46:34 tbox Exp $ */
 
 #include <config.h>
 
