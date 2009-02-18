@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: builtin.c,v 1.12 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id: builtin.c,v 1.13 2009/02/18 22:41:57 jreed Exp $ */
 
 /*! \file
  * \brief
@@ -136,6 +136,7 @@ do_authors_lookup(dns_sdblookup_t *lookup) {
 		"Danny Mayer",
 		"Damien Neil",
 		"Matt Nelson",
+		"Jeremy C. Reed",
 		"Michael Sawyer",
 		"Brian Wellington",
 		NULL
