@@ -14,7 +14,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: iptable.c,v 1.12.44.1 2008/12/24 00:17:11 marka Exp $ */
+/* $Id: iptable.c,v 1.12.44.2 2009/02/18 05:41:32 marka Exp $ */
+
+#include <config.h>
 
 #include <isc/mem.h>
 #include <isc/radix.h>
