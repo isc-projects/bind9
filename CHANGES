@@ -1,3 +1,5 @@
+2661.	[doc]		Add isc-config.sh(1) man page. [RT #16378]
+
 2660.	[bug]		Add #include <config.h> to iptable.c. [RT #18258]
 
 2559.	[bug]		dnssec-dsfromkey could compute bad DS records when
