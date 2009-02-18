@@ -124,6 +124,9 @@
 2476.	[doc]		ARM: improve documentation for max-journal-size and
 			ixfr-from-differences. [RT #15909] [RT #18541]
 
+2400.	[bug]		Log if kqueue()/epoll_create()/open(/dev/poll) fails.
+			[RT #18297]
+
 	--- 9.4.3 released ---
 
 2490.	[port]		aix: work around a kernel bug where IPV6_RECVPKTINFO
