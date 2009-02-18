@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: builtin.c,v 1.13 2009/02/18 22:41:57 jreed Exp $ */
+/* $Id: builtin.c,v 1.14 2009/02/18 23:47:48 tbox Exp $ */
 
 /*! \file
  * \brief
@@ -95,7 +95,7 @@ put_txt(dns_sdblookup_t *lookup, const char *text) {
 
 static isc_result_t
 do_version_lookup(dns_sdblookup_t *lookup) {
-	if (ns_g_server->version_set) {	
+	if (ns_g_server->version_set) {
 		if (ns_g_server->version == NULL)
 			return (ISC_R_SUCCESS);
 		else
@@ -199,7 +199,7 @@ builtin_authority(const char *zone, void *dbdata, dns_sdblookup_t *lookup) {
 		if (b->contact != NULL)
 			contact = b->contact;
 	}
-	
+
 	result = dns_sdb_putsoa(lookup, server, contact, 0);
 	if (result != ISC_R_SUCCESS)
 		return (ISC_R_FAILURE);
@@ -234,7 +234,7 @@ builtin_create(const char *zone, int argc, char **argv,
 		*dbdata = &authors_builtin;
 	else if (strcmp(argv[0], "id") == 0)
 		*dbdata = &id_builtin;
-	else if (strcmp(argv[0], "empty") == 0) { 
+	else if (strcmp(argv[0], "empty") == 0) {
 		builtin_t *empty;
 		char *server;
 		char *contact;
