@@ -825,7 +825,6 @@ A: /dev/random is not configured. Use rndcontrol(8) to tell the kernel to
    use certain interrupts as a source of random events. You can make this
    permanent by setting rand_irqs in /etc/rc.conf.
 
-   /etc/rc.conf
    rand_irqs="3 14 15"
 
    See also <http://people.freebsd.org/~dougb/randomness.html>.
