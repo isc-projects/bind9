@@ -3,7 +3,7 @@
 ./COPYRIGHT					TXT	1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./FAQ						X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./FAQ.xml					SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
-./Makefile.in					MAKE	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008
+./Makefile.in					MAKE	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009
 ./NSEC3-NOTES					X	2008
 ./README					X	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./README.idnkit					X	2005,2009
@@ -1536,6 +1536,9 @@
 ./docutil/patch-db2latex-nested-param-bug	X	2007
 ./docutil/patch-db2latex-xsltproc-title-bug	X	2007
 ./install-sh					X	1998,1999,2000,2001
+./isc-config.sh.1				MAN	2009
+./isc-config.sh.docbook				SGML	2009
+./isc-config.sh.html				HTML	2009
 ./isc-config.sh.in				SH	2000,2001,2003,2004,2007
 ./lib/.cvsignore				X	1998,1999,2000,2001
 ./lib/Makefile.in				MAKE	1998,1999,2000,2001,2003,2004,2007
