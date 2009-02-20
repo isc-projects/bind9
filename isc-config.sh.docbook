@@ -2,7 +2,7 @@
                "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd"
 	       [<!ENTITY mdash "&#8212;">]>
 <!--
- - Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2008  Internet Systems Consortium, Inc. ("ISC")
  -
  - Permission to use, copy, modify, and/or distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: isc-config.sh.docbook,v 1.2 2009/02/18 23:47:48 tbox Exp $ -->
+<!-- $Id: isc-config.sh.docbook,v 1.2.10.1 2009/02/20 22:44:07 jreed Exp $ -->
 <refentry id="man.isc-config.sh">
   <refentryinfo>
     <date>December 19, 2008</date>
@@ -31,7 +31,7 @@
 
   <docinfo>
     <copyright>
-      <year>2009</year>
+      <year>2008</year>
       <holder>Internet Systems Consortium, Inc. ("ISC")</holder>
     </copyright>
   </docinfo>
