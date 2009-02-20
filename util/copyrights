@@ -1535,7 +1535,9 @@
 ./docutil/patch-db2latex-nested-param-bug	X	2007
 ./docutil/patch-db2latex-xsltproc-title-bug	X	2007
 ./install-sh					X	1998,1999,2000,2001
+./isc-config.sh.1				MAN	2009
 ./isc-config.sh.docbook				SGML	2009
+./isc-config.sh.html				HTML	2009
 ./isc-config.sh.in				SH	2000,2001,2003,2004,2007
 ./lib/.cvsignore				X	1998,1999,2000,2001
 ./lib/Makefile.in				MAKE	1998,1999,2000,2001,2003,2004,2007
