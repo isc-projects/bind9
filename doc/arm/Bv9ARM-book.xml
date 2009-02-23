@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.392 2009/02/04 21:33:54 jreed Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.393 2009/02/23 19:51:38 jreed Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -643,9 +643,9 @@
       <para>
         ISC <acronym>BIND</acronym> 9 compiles and runs on a large
         number
-        of Unix-like operating systems and on NT-derived versions of
-        Microsoft Windows such as Windows 2000 and Windows XP.  For an
-        up-to-date
+        of Unix-like operating systems and on 
+        Microsoft Windows Server 2003 and 2008, and Windows XP and Vista.
+        For an up-to-date
         list of supported systems, see the README file in the top level
         directory
         of the BIND 9 source distribution.
