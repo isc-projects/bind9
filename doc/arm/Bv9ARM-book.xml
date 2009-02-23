@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.394 2009/02/23 21:32:23 jreed Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.395 2009/02/23 22:29:00 jreed Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -3371,23 +3371,23 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
             </row>
             <row rowsep="0">
               <entry colname="1">
-                <para><command>statistics-channels</command></para>
-              </entry>
-              <entry colname="2">
-                <para>
-		  declares communication channels to get access to
-		  <command>named</command> statistics.
-                </para>
-              </entry>
-            </row>
-            <row rowsep="0">
-              <entry colname="1">
                 <para><command>server</command></para>
               </entry>
               <entry colname="2">
                 <para>
                   sets certain configuration options on
                   a per-server basis.
+                </para>
+              </entry>
+            </row>
+            <row rowsep="0">
+              <entry colname="1">
+                <para><command>statistics-channels</command></para>
+              </entry>
+              <entry colname="2">
+                <para>
+		  declares communication channels to get access to
+		  <command>named</command> statistics.
                 </para>
               </entry>
             </row>
@@ -8317,74 +8317,6 @@ XXX: end of RFC1918 addresses #defined out -->
 
       </sect2>
 
-      <sect2 id="statschannels">
-        <title><command>statistics-channels</command> Statement Grammar</title>
-
-<programlisting><command>statistics-channels</command> {
-   [ inet ( ip_addr | * ) [ port ip_port ] [allow { <replaceable> address_match_list </replaceable> } ]; ]
-   [ inet ...; ]
-};
-</programlisting>
-      </sect2>
-
-      <sect2>
-          <title><command>statistics-channels</command> Statement Definition and
-            Usage</title>
-
-        <para>
-          The <command>statistics-channels</command> statement
-	  declares communication channels to be used by system
-	  administrators to get access to statistics information of
-	  the name server.
-        </para>
-
-        <para>
-	  This statement intends to be flexible to support multiple
-	  communication protocols in the future, but currently only
-	  HTTP access is supported.
-	  It requires that BIND 9 be compiled with libxml2;
-	  the <command>statistics-channels</command> statement is
-	  still accepted even if it is built without the library,
-	  but any HTTP access will fail with an error.
-        </para>
-
-        <para>
-          An <command>inet</command> control channel is a TCP socket
-	  listening at the specified <command>ip_port</command> on the
-	  specified <command>ip_addr</command>, which can be an IPv4 or IPv6
-	  address.  An <command>ip_addr</command> of <literal>*</literal> (asterisk) is
-	  interpreted as the IPv4 wildcard address; connections will be
-	  accepted on any of the system's IPv4 addresses.
-	  To listen on the IPv6 wildcard address,
-          use an <command>ip_addr</command> of <literal>::</literal>.
-        </para>
-
-        <para>
-          If no port is specified, port 80 is used for HTTP channels.
-	  The asterisk "<literal>*</literal>" cannot be used for
-	  <command>ip_port</command>.
-        </para>
-
-        <para>
-          The attempt of opening a statistics channel is
-          restricted by the optional <command>allow</command> clause.
-	  Connections to the statistics channel are permitted based on the
-          <command>address_match_list</command>.
-	  If no <command>allow</command> clause is present,
-	  <command>named</command> accepts connection
-	  attempts from any address; since the statistics may
-	  contain sensitive internal information, it is highly
-	  recommended to restrict the source of connection requests
-	  appropriately.
-        </para>
-
-        <para>
-          If no <command>statistics-channels</command> statement is present,
-          <command>named</command> will not open any communication channels.
-        </para>
-
-      </sect2>
-
       <sect2 id="server_statement_grammar">
         <title><command>server</command> Statement Grammar</title>
 
@@ -8596,6 +8528,74 @@ XXX: end of RFC1918 addresses #defined out -->
 	  </para>
 
         </sect2>
+
+      <sect2 id="statschannels">
+        <title><command>statistics-channels</command> Statement Grammar</title>
+
+<programlisting><command>statistics-channels</command> {
+   [ inet ( ip_addr | * ) [ port ip_port ] [allow { <replaceable> address_match_list </replaceable> } ]; ]
+   [ inet ...; ]
+};
+</programlisting>
+      </sect2>
+
+      <sect2>
+          <title><command>statistics-channels</command> Statement Definition and
+            Usage</title>
+
+        <para>
+          The <command>statistics-channels</command> statement
+	  declares communication channels to be used by system
+	  administrators to get access to statistics information of
+	  the name server.
+        </para>
+
+        <para>
+	  This statement intends to be flexible to support multiple
+	  communication protocols in the future, but currently only
+	  HTTP access is supported.
+	  It requires that BIND 9 be compiled with libxml2;
+	  the <command>statistics-channels</command> statement is
+	  still accepted even if it is built without the library,
+	  but any HTTP access will fail with an error.
+        </para>
+
+        <para>
+          An <command>inet</command> control channel is a TCP socket
+	  listening at the specified <command>ip_port</command> on the
+	  specified <command>ip_addr</command>, which can be an IPv4 or IPv6
+	  address.  An <command>ip_addr</command> of <literal>*</literal> (asterisk) is
+	  interpreted as the IPv4 wildcard address; connections will be
+	  accepted on any of the system's IPv4 addresses.
+	  To listen on the IPv6 wildcard address,
+          use an <command>ip_addr</command> of <literal>::</literal>.
+        </para>
+
+        <para>
+          If no port is specified, port 80 is used for HTTP channels.
+	  The asterisk "<literal>*</literal>" cannot be used for
+	  <command>ip_port</command>.
+        </para>
+
+        <para>
+          The attempt of opening a statistics channel is
+          restricted by the optional <command>allow</command> clause.
+	  Connections to the statistics channel are permitted based on the
+          <command>address_match_list</command>.
+	  If no <command>allow</command> clause is present,
+	  <command>named</command> accepts connection
+	  attempts from any address; since the statistics may
+	  contain sensitive internal information, it is highly
+	  recommended to restrict the source of connection requests
+	  appropriately.
+        </para>
+
+        <para>
+          If no <command>statistics-channels</command> statement is present,
+          <command>named</command> will not open any communication channels.
+        </para>
+
+      </sect2>
 
         <sect2>
           <title><command>trusted-keys</command> Statement Grammar</title>
