@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.396 2009/02/24 14:59:02 jreed Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.397 2009/02/24 15:50:48 jreed Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -933,7 +933,7 @@ zone "eng.example.com" {
                   <arg>%<replaceable>comment</replaceable></arg>
                 </cmdsynopsis>
                 <para>
-                  The usual simple use of dig will take the form
+                  The usual simple use of <command>dig</command> will take the form
                 </para>
                 <simpara>
                   <command>dig @server domain query-type query-class</command>
@@ -1276,8 +1276,8 @@ zone "eng.example.com" {
                         Stop the server, making sure any recent changes
                         made through dynamic update or IXFR are first saved to
                         the master files of the updated zones.
-			If -p is specified named's process id is returned.
-			This allows an external process to determine when named
+			If <option>-p</option> is specified <command>named</command>'s process id is returned.
+			This allows an external process to determine when <command>named</command>
 			had completed stopping.
                       </para>
                     </listitem>
@@ -1291,8 +1291,8 @@ zone "eng.example.com" {
                         made through dynamic update or IXFR are not saved to
                         the master files, but will be rolled forward from the
 			journal files when the server is restarted.
-			If -p is specified named's process id is returned.
-			This allows an external process to determine when named
+			If <option>-p</option> is specified <command>named</command>'s process id is returned.
+			This allows an external process to determine when <command>named</command>
 			had completed halting.
                       </para>
                     </listitem>
@@ -1361,7 +1361,7 @@ zone "eng.example.com" {
                     <term><userinput>recursing</userinput></term>
                     <listitem>
                       <para>
-                        Dump the list of queries named is currently recursing
+                        Dump the list of queries <command>named</command> is currently recursing
                         on.
                       </para>
                     </listitem>
@@ -1446,7 +1446,7 @@ zone "eng.example.com" {
                   with
                   <command>named</command>.  Its syntax is
                   identical to the
-                  <command>key</command> statement in named.conf.
+                  <command>key</command> statement in <filename>named.conf</filename>.
                   The keyword <userinput>key</userinput> is
                   followed by a key name, which must be a valid
                   domain name, though it need not actually be hierarchical;
@@ -1619,10 +1619,10 @@ controls {
       </para>
 
       <note>
-	As a slave zone can also be a master to other slaves, named,
+	As a slave zone can also be a master to other slaves, <command>named</command>,
         by default, sends <command>NOTIFY</command> messages for every zone
 	it loads.  Specifying <command>notify master-only;</command> will
-	cause named to only send <command>NOTIFY</command> for master
+	cause <command>named</command> to only send <command>NOTIFY</command> for master
 	zones that it loads.
       </note>
 
@@ -2482,7 +2482,7 @@ allow-update { key host1-host2. ;};
 	  more public keys for the root.  This allows answers from
 	  outside the organization to be validated.  It will also
 	  have several keys for parts of the namespace the organization
-	  controls.  These are here to ensure that named is immune
+	  controls.  These are here to ensure that <command>named</command> is immune
 	  to compromises in the DNSSEC components of the security
 	  of parent zones.
 	</para>
@@ -3970,7 +3970,7 @@ notrace</command>. All debugging messages in the server have a debug
             the date and time will be logged. <command>print-time</command> may
             be specified for a <command>syslog</command> channel,
             but is usually
-            pointless since <command>syslog</command> also prints
+            pointless since <command>syslog</command> also logs
             the date and
             time. If <command>print-category</command> is
             requested, then the
@@ -4216,7 +4216,7 @@ category notify { null; };
                   </entry>
                   <entry colname="2">
                     <para>
-                      Messages that named was unable to determine the
+                      Messages that <command>named</command> was unable to determine the
                       class of or for which there was no matching <command>view</command>.
                       A one line summary is also logged to the <command>client</command> category.
                       This category is best sent to a file or stderr, by
@@ -4371,7 +4371,7 @@ category notify { null; };
 		      number of false-positive reports.
 		    </para>
 		    <para>
-		      Note: eventually named will have to stop
+		      Note: eventually <command>named</command> will have to stop
 		      treating such timeouts as due to RFC 1034 non
 		      compliance and start treating it as plain
 		      packet loss.  Falsely classifying packet
@@ -5263,7 +5263,7 @@ options {
                 top of a zone.  When a DNSKEY is at or below a domain
                 specified by the
                 deepest <command>dnssec-lookaside</command>, and
-                the normal dnssec validation
+                the normal DNSSEC validation
                 has left the key untrusted, the trust-anchor will be append to
                 the key
                 name and a DLV record will be looked up to see if it can
@@ -5281,10 +5281,10 @@ options {
               <para>
                 Specify hierarchies which must be or may not be secure (signed and
                 validated).
-                If <userinput>yes</userinput>, then named will only accept
+                If <userinput>yes</userinput>, then <command>named</command> will only accept
                 answers if they
                 are secure.
-                If <userinput>no</userinput>, then normal dnssec validation
+                If <userinput>no</userinput>, then normal DNSSEC validation
                 applies
                 allowing for insecure answers to be accepted.
                 The specified domain must be under a <command>trusted-key</command> or
@@ -6000,9 +6000,9 @@ options {
                 <para>
                   This should be set when you have multiple masters for a zone
                   and the
-                  addresses refer to different machines.  If <userinput>yes</userinput>, named will
+                  addresses refer to different machines.  If <userinput>yes</userinput>, <command>named</command> will
                   not log
-                  when the serial number on the master is less than what named
+                  when the serial number on the master is less than what <command>named</command>
                   currently
                   has.  The default is <userinput>no</userinput>.
                 </para>
@@ -6013,8 +6013,8 @@ options {
               <term><command>dnssec-enable</command></term>
               <listitem>
                 <para>
-                  Enable DNSSEC support in named.  Unless set to <userinput>yes</userinput>,
-                  named behaves as if it does not support DNSSEC.
+                  Enable DNSSEC support in <command>named</command>.  Unless set to <userinput>yes</userinput>,
+                  <command>named</command> behaves as if it does not support DNSSEC.
                   The default is <userinput>yes</userinput>.
                 </para>
               </listitem>
@@ -6024,7 +6024,7 @@ options {
               <term><command>dnssec-validation</command></term>
               <listitem>
                 <para>
-                  Enable DNSSEC validation in named.
+                  Enable DNSSEC validation in <command>named</command>.
 		  Note <command>dnssec-enable</command> also needs to be
 		  set to <userinput>yes</userinput> to be effective.
                   The default is <userinput>yes</userinput>.
@@ -6038,7 +6038,7 @@ options {
                 <para>
 		  Accept expired signatures when verifying DNSSEC signatures.
                   The default is <userinput>no</userinput>.
-		  Setting this option to "yes" leaves named vulnerable to replay attacks.
+		  Setting this option to "yes" leaves <command>named</command> vulnerable to replay attacks.
                 </para>
               </listitem>
             </varlistentry>
@@ -6047,7 +6047,7 @@ options {
               <term><command>querylog</command></term>
               <listitem>
                 <para>
-                  Specify whether query logging should be started when named
+                  Specify whether query logging should be started when <command>named</command>
                   starts.
                   If <command>querylog</command> is not specified,
                   then the query logging
@@ -6616,9 +6616,9 @@ listen-on-v6 port 1234 { !2001:db8::/32; any; };
           <para>
             If no <command>listen-on-v6</command> option is
             specified, the server will not listen on any IPv6 address
-	    unless <command>-6</command> is specified when named is
+	    unless <command>-6</command> is specified when <command>named</command> is
 	    invoked.  If <command>-6</command> is specified then
-	    named will listen on port 53 on all IPv6 interfaces by default.
+	    <command>named</command> will listen on port 53 on all IPv6 interfaces by default.
           </para>
         </sect3>
 
@@ -7315,7 +7315,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                 <para>
 		  The number of file descriptors reserved for TCP, stdio,
 		  etc.  This needs to be big enough to cover the number of
-		  interfaces named listens on, tcp-clients as well as
+		  interfaces <command>named</command> listens on, <command>tcp-clients</command> as well as
 		  to provide room for outgoing TCP queries and incoming zone
 		  transfers.  The default is <literal>512</literal>.
 		  The minimum value is <literal>128</literal> and the
@@ -7907,7 +7907,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
               <term><command>max-udp-size</command></term>
               <listitem>
                 <para>
-		  Sets the maximum EDNS UDP message size named will
+		  Sets the maximum EDNS UDP message size <command>named</command> will
 		  send in bytes.  Valid values are 512 to 4096 (values outside
 		  this range will be silently adjusted).  The default
 		  value is 4096.  The usual reason for setting
@@ -7959,14 +7959,14 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  initial value (minimum) and maximum number of recursive
 		  simultaneous clients for any given query
 		  (&lt;qname,qtype,qclass&gt;) that the server will accept
-		  before dropping additional clients.  named will attempt to
+		  before dropping additional clients.  <command>named</command> will attempt to
 		  self tune this value and changes will be logged.  The
 		  default values are 10 and 100.
 		</para>
 		<para>
 	          This value should reflect how many queries come in for
 		  a given name in the time it takes to resolve that name.
-		  If the number of queries exceed this value, named will
+		  If the number of queries exceed this value, <command>named</command> will
 		  assume that it is dealing with a non-responsive zone
 		  and will drop additional queries.  If it gets a response
 		  after dropping queries, it will raise the estimate.  The
@@ -8069,7 +8069,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   identify which of a group of anycast servers is actually
                   answering your queries.  Specifying <command>server-id none;</command>
                   disables processing of the queries.
-                  Specifying <command>server-id hostname;</command> will cause named to
+                  Specifying <command>server-id hostname;</command> will cause <command>named</command> to
                   use the hostname as found by the gethostname() function.
                   The default <command>server-id</command> is <command>none</command>.
                 </para>
@@ -8435,7 +8435,7 @@ XXX: end of RFC1918 addresses #defined out -->
 
           <para>
             The <command>edns-udp-size</command> option sets the EDNS UDP size
-	    that is advertised by named when querying the remote server.
+	    that is advertised by <command>named</command> when querying the remote server.
 	    Valid values are 512 to 4096 bytes (values outside this range will be
 	    silently adjusted).  This option is useful when you wish to
 	    advertises a different value to this server than the value you
@@ -8445,11 +8445,11 @@ XXX: end of RFC1918 addresses #defined out -->
 
           <para>
 	    The <command>max-udp-size</command> option sets the
-	    maximum EDNS UDP message size named will send.  Valid
+	    maximum EDNS UDP message size <command>named</command> will send.  Valid
 	    values are 512 to 4096 bytes (values outside this range will
 	    be silently adjusted).  This option is useful when you
 	    know that there is a firewall that is blocking large
-	    replies from named.
+	    replies from <command>named</command>.
 	  </para>
 
           <para>
