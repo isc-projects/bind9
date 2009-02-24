@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.210 2009/02/05 01:11:55 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.211 2009/02/24 01:12:23 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -74,11 +74,11 @@
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2577577"><span><strong class="command">options</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#options"><span><strong class="command">options</strong></span> Statement Definition and
           Usage</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#statschannels"><span><strong class="command">statistics-channels</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2586176"><span><strong class="command">statistics-channels</strong></span> Statement Definition and
-            Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#server_statement_grammar"><span><strong class="command">server</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#server_statement_definition_and_usage"><span><strong class="command">server</strong></span> Statement Definition and
+            Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#statschannels"><span><strong class="command">statistics-channels</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2586978"><span><strong class="command">statistics-channels</strong></span> Statement Definition and
             Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2587064"><span><strong class="command">trusted-keys</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2587115"><span><strong class="command">trusted-keys</strong></span> Statement Definition
@@ -764,23 +764,23 @@
 </tr>
 <tr>
 <td>
-                <p><span><strong class="command">statistics-channels</strong></span></p>
-              </td>
-<td>
-                <p>
-                  declares communication channels to get access to
-                  <span><strong class="command">named</strong></span> statistics.
-                </p>
-              </td>
-</tr>
-<tr>
-<td>
                 <p><span><strong class="command">server</strong></span></p>
               </td>
 <td>
                 <p>
                   sets certain configuration options on
                   a per-server basis.
+                </p>
+              </td>
+</tr>
+<tr>
+<td>
+                <p><span><strong class="command">statistics-channels</strong></span></p>
+              </td>
+<td>
+                <p>
+                  declares communication channels to get access to
+                  <span><strong class="command">named</strong></span> statistics.
                 </p>
               </td>
 </tr>
@@ -4907,66 +4907,6 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="statschannels"></a><span><strong class="command">statistics-channels</strong></span> Statement Grammar</h3></div></div></div>
-<pre class="programlisting"><span><strong class="command">statistics-channels</strong></span> {
-   [ inet ( ip_addr | * ) [ port ip_port ] [allow { <em class="replaceable"><code> address_match_list </code></em> } ]; ]
-   [ inet ...; ]
-};
-</pre>
-</div>
-<div class="sect2" lang="en">
-<div class="titlepage"><div><div><h3 class="title">
-<a name="id2586176"></a><span><strong class="command">statistics-channels</strong></span> Statement Definition and
-            Usage</h3></div></div></div>
-<p>
-          The <span><strong class="command">statistics-channels</strong></span> statement
-          declares communication channels to be used by system
-          administrators to get access to statistics information of
-          the name server.
-        </p>
-<p>
-          This statement intends to be flexible to support multiple
-          communication protocols in the future, but currently only
-          HTTP access is supported.
-          It requires that BIND 9 be compiled with libxml2;
-          the <span><strong class="command">statistics-channels</strong></span> statement is
-          still accepted even if it is built without the library,
-          but any HTTP access will fail with an error.
-        </p>
-<p>
-          An <span><strong class="command">inet</strong></span> control channel is a TCP socket
-          listening at the specified <span><strong class="command">ip_port</strong></span> on the
-          specified <span><strong class="command">ip_addr</strong></span>, which can be an IPv4 or IPv6
-          address.  An <span><strong class="command">ip_addr</strong></span> of <code class="literal">*</code> (asterisk) is
-          interpreted as the IPv4 wildcard address; connections will be
-          accepted on any of the system's IPv4 addresses.
-          To listen on the IPv6 wildcard address,
-          use an <span><strong class="command">ip_addr</strong></span> of <code class="literal">::</code>.
-        </p>
-<p>
-          If no port is specified, port 80 is used for HTTP channels.
-          The asterisk "<code class="literal">*</code>" cannot be used for
-          <span><strong class="command">ip_port</strong></span>.
-        </p>
-<p>
-          The attempt of opening a statistics channel is
-          restricted by the optional <span><strong class="command">allow</strong></span> clause.
-          Connections to the statistics channel are permitted based on the
-          <span><strong class="command">address_match_list</strong></span>.
-          If no <span><strong class="command">allow</strong></span> clause is present,
-          <span><strong class="command">named</strong></span> accepts connection
-          attempts from any address; since the statistics may
-          contain sensitive internal information, it is highly
-          recommended to restrict the source of connection requests
-          appropriately.
-        </p>
-<p>
-          If no <span><strong class="command">statistics-channels</strong></span> statement is present,
-          <span><strong class="command">named</strong></span> will not open any communication channels.
-        </p>
-</div>
-<div class="sect2" lang="en">
-<div class="titlepage"><div><div><h3 class="title">
 <a name="server_statement_grammar"></a><span><strong class="command">server</strong></span> Statement Grammar</h3></div></div></div>
 <pre class="programlisting"><span><strong class="command">server</strong></span> <em class="replaceable"><code>ip_addr[/prefixlen]</code></em> {
     [<span class="optional"> bogus <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
@@ -5158,6 +5098,66 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
             be specified.  Similarly, for an IPv6 remote server,
             only <span><strong class="command">query-source-v6</strong></span> can be specified.
           </p>
+</div>
+<div class="sect2" lang="en">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="statschannels"></a><span><strong class="command">statistics-channels</strong></span> Statement Grammar</h3></div></div></div>
+<pre class="programlisting"><span><strong class="command">statistics-channels</strong></span> {
+   [ inet ( ip_addr | * ) [ port ip_port ] [allow { <em class="replaceable"><code> address_match_list </code></em> } ]; ]
+   [ inet ...; ]
+};
+</pre>
+</div>
+<div class="sect2" lang="en">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="id2586978"></a><span><strong class="command">statistics-channels</strong></span> Statement Definition and
+            Usage</h3></div></div></div>
+<p>
+          The <span><strong class="command">statistics-channels</strong></span> statement
+          declares communication channels to be used by system
+          administrators to get access to statistics information of
+          the name server.
+        </p>
+<p>
+          This statement intends to be flexible to support multiple
+          communication protocols in the future, but currently only
+          HTTP access is supported.
+          It requires that BIND 9 be compiled with libxml2;
+          the <span><strong class="command">statistics-channels</strong></span> statement is
+          still accepted even if it is built without the library,
+          but any HTTP access will fail with an error.
+        </p>
+<p>
+          An <span><strong class="command">inet</strong></span> control channel is a TCP socket
+          listening at the specified <span><strong class="command">ip_port</strong></span> on the
+          specified <span><strong class="command">ip_addr</strong></span>, which can be an IPv4 or IPv6
+          address.  An <span><strong class="command">ip_addr</strong></span> of <code class="literal">*</code> (asterisk) is
+          interpreted as the IPv4 wildcard address; connections will be
+          accepted on any of the system's IPv4 addresses.
+          To listen on the IPv6 wildcard address,
+          use an <span><strong class="command">ip_addr</strong></span> of <code class="literal">::</code>.
+        </p>
+<p>
+          If no port is specified, port 80 is used for HTTP channels.
+          The asterisk "<code class="literal">*</code>" cannot be used for
+          <span><strong class="command">ip_port</strong></span>.
+        </p>
+<p>
+          The attempt of opening a statistics channel is
+          restricted by the optional <span><strong class="command">allow</strong></span> clause.
+          Connections to the statistics channel are permitted based on the
+          <span><strong class="command">address_match_list</strong></span>.
+          If no <span><strong class="command">allow</strong></span> clause is present,
+          <span><strong class="command">named</strong></span> accepts connection
+          attempts from any address; since the statistics may
+          contain sensitive internal information, it is highly
+          recommended to restrict the source of connection requests
+          appropriately.
+        </p>
+<p>
+          If no <span><strong class="command">statistics-channels</strong></span> statement is present,
+          <span><strong class="command">named</strong></span> will not open any communication channels.
+        </p>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
