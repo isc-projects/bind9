@@ -1,3 +1,6 @@
+2563.	[bug]		Dig could leak a socket causing it to wait forever
+			to exit. [RT #19359]
+
 2561.	[doc]		Add isc-config.sh(1) man page. [RT #16378]
 
 2557.	[cleanup]	PCI compliance:
