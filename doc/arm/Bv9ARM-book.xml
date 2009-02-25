@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.398 2009/02/25 15:40:41 jreed Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.399 2009/02/25 17:39:30 jreed Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -75,23 +75,23 @@
     <sect1>
       <title>Organization of This Document</title>
       <para>
-        In this document, <emphasis>Section 1</emphasis> introduces
-        the basic <acronym>DNS</acronym> and <acronym>BIND</acronym> concepts. <emphasis>Section 2</emphasis>
+        In this document, <emphasis>Chapter 1</emphasis> introduces
+        the basic <acronym>DNS</acronym> and <acronym>BIND</acronym> concepts. <emphasis>Chapter 2</emphasis>
         describes resource requirements for running <acronym>BIND</acronym> in various
-        environments. Information in <emphasis>Section 3</emphasis> is
+        environments. Information in <emphasis>Chapter 3</emphasis> is
         <emphasis>task-oriented</emphasis> in its presentation and is
         organized functionally, to aid in the process of installing the
         <acronym>BIND</acronym> 9 software. The task-oriented
         section is followed by
-        <emphasis>Section 4</emphasis>, which contains more advanced
+        <emphasis>Chapter 4</emphasis>, which contains more advanced
         concepts that the system administrator may need for implementing
-        certain options. <emphasis>Section 5</emphasis>
+        certain options. <emphasis>Chapter 5</emphasis>
         describes the <acronym>BIND</acronym> 9 lightweight
-        resolver.  The contents of <emphasis>Section 6</emphasis> are
+        resolver.  The contents of <emphasis>Chapter 6</emphasis> are
         organized as in a reference manual to aid in the ongoing
-        maintenance of the software. <emphasis>Section 7</emphasis> addresses
+        maintenance of the software. <emphasis>Chapter 7</emphasis> addresses
         security considerations, and
-        <emphasis>Section 8</emphasis> contains troubleshooting help. The
+        <emphasis>Chapter 8</emphasis> contains troubleshooting help. The
         main body of the document is followed by several
         <emphasis>appendices</emphasis> which contain useful reference
         information, such as a <emphasis>bibliography</emphasis> and
@@ -656,7 +656,7 @@
   <chapter id="Bv9ARM.ch03">
     <title>Name Server Configuration</title>
     <para>
-      In this section we provide some suggested configurations along
+      In this chapter we provide some suggested configurations along
       with guidelines for their use.  We suggest reasonable values for
       certain option settings.
     </para>
