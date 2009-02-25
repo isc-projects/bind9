@@ -1,3 +1,6 @@
+2563.	[bug]		Dig could leak a socket causing it to wait forever
+			to exit. [RT #19359]
+
 2562.	[doc]		ARM: miscellaneous improvements and reorganization
 			and some new content.
 
