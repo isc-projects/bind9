@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.355.12.35 2009/02/15 23:15:31 marka Exp $ */
+/* $Id: resolver.c,v 1.355.12.36 2009/02/25 22:50:34 marka Exp $ */
 
 /*! \file */
 
@@ -1613,28 +1613,44 @@ resquery_send(resquery_t *query) {
 				    DNS_FETCHOPT_NOEDNS0);
 	}
 
-	/* Sync NOEDNS0 flag in addrinfo->flags and options now */
+	/* Sync NOEDNS0 flag in addrinfo->flags and options now. */
 	if ((query->addrinfo->flags & DNS_FETCHOPT_NOEDNS0) != 0)
 		query->options |= DNS_FETCHOPT_NOEDNS0;
+
+	/*
+	 * Handle UDP timeouts by reducing the UDP response size to 512
+	 * bytes then if that doesn't work disabling EDNS (includes DO)
+	 * and CD.
+	 *
+	 * These timeout can be due to:
+	 *	* broken nameservers that don't respond to EDNS queries.
+	 *	* broken/misconfigured firewalls and NAT implementations
+	 *	  that don't handle IP fragmentation.
+	 *	* broken/misconfigured firewalls that don't handle responses
+	 *	  greater than 512 bytes.
+	 *	* broken/misconfigured firewalls that don't handle EDNS, DO
+	 *	  or CD.
+	 *	* packet loss / link outage.
+	 */
+	if ((query->options & DNS_FETCHOPT_TCP) == 0) {
+		if ((triededns512(fctx, &query->addrinfo->sockaddr) ||
+		     fctx->timeouts >= (MAX_EDNS0_TIMEOUTS * 2)) &&
+		    (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
+			query->options |= DNS_FETCHOPT_NOEDNS0;
+			fctx->reason = "disabling EDNS";
+		} else if ((triededns(fctx, &query->addrinfo->sockaddr) ||
+			    fctx->timeouts >= MAX_EDNS0_TIMEOUTS) &&
+			   (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
+			query->options |= DNS_FETCHOPT_EDNS512;
+			fctx->reason = "reducing the advertised EDNS UDP "
+				       "packet size to 512 octets";
+		}
+	}
 
 	/*
 	 * Use EDNS0, unless the caller doesn't want it, or we know that
 	 * the remote server doesn't like it.
 	 */
-
-	if ((triededns512(fctx, &query->addrinfo->sockaddr) ||
-	     fctx->timeouts >= (MAX_EDNS0_TIMEOUTS * 2)) &&
-	    (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
-		query->options |= DNS_FETCHOPT_NOEDNS0;
-		fctx->reason = "disabling EDNS";
-	} else if ((triededns(fctx, &query->addrinfo->sockaddr) ||
-		    fctx->timeouts >= MAX_EDNS0_TIMEOUTS) &&
-		   (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
-		query->options |= DNS_FETCHOPT_EDNS512;
-		fctx->reason = "reducing the advertised EDNS UDP packet "
-			       "size to 512 octets";
-	}
-
 	if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
 		if ((query->addrinfo->flags & DNS_FETCHOPT_NOEDNS0) == 0) {
 			unsigned int version = 0;       /* Default version. */
