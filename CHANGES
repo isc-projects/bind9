@@ -1,3 +1,7 @@
+2565.	[func]		Add support for HIP record.  Includes new functions
+			dns_rdata_hip_first(), dns_rdata_hip_next()
+			and dns_rdata_hip_current().  [RT #19384]
+
 2564.	[bug]		'named' was treating a TCP retry as a timeout when
 			deciding whether to perform a EDNS fallback step.
 			[RT #19393]
