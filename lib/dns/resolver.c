@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.85 2009/02/15 23:15:40 marka Exp $ */
+/* $Id: resolver.c,v 1.284.18.86 2009/02/27 23:13:03 marka Exp $ */
 
 /*! \file */
 
@@ -219,6 +219,7 @@ struct fetchctx {
 	 * is used for EDNS0 black hole detection.
 	 */
 	unsigned int			timeouts;
+
 	/*%
 	 * Look aside state for DS lookups.
 	 */
@@ -230,6 +231,7 @@ struct fetchctx {
 	 * Number of queries that reference this context.
 	 */
 	unsigned int			nqueries;
+	isc_boolean_t			timeout;
 };
 
 #define FCTX_MAGIC			ISC_MAGIC('F', '!', '!', '!')
@@ -1492,20 +1494,31 @@ resquery_send(resquery_t *query) {
 	}
 
 	/*
-	 * Use EDNS0, unless the caller doesn't want it, or we know that
-	 * the remote server doesn't like it.
+	 * Handle timeouts by reducing the UDP response size to 512 bytes
+	 * then if that doesn't work disabling EDNS (includes DO) and CD.
+	 *
+	 * These timeout can be due to:
+	 *	* broken nameservers that don't respond to EDNS queries.
+	 *	* broken/misconfigured firewalls and NAT implementations
+	 *	  that don't handle IP fragmentation.
+	 *	* broken/misconfigured firewalls that don't handle responses
+	 *	  greater than 512 bytes.
+	 *	* broken/misconfigured firewalls that don't handle EDNS, DO
+	 *	  or CD.
+	 *	* packet loss / link outage.
 	 */
-
-	if ((triededns512(fctx, &query->addrinfo->sockaddr) ||
-	     fctx->timeouts >= (MAX_EDNS0_TIMEOUTS * 2)) &&
-	    (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
-		query->options |= DNS_FETCHOPT_NOEDNS0;
-		FCTXTRACE("too many timeouts, disabling EDNS0");
-	} else if ((triededns(fctx, &query->addrinfo->sockaddr) ||
-		    fctx->timeouts >= MAX_EDNS0_TIMEOUTS) &&
-		   (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
-		query->options |= DNS_FETCHOPT_EDNS512;
-		FCTXTRACE("too many timeouts, setting EDNS size to 512");
+	if (fctx->timeout) {
+		if ((triededns512(fctx, &query->addrinfo->sockaddr) ||
+		     fctx->timeouts >= (MAX_EDNS0_TIMEOUTS * 2)) &&
+		    (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
+			query->options |= DNS_FETCHOPT_NOEDNS0;
+			FCTXTRACE("too many timeouts, disabling EDNS0");
+		} else if ((triededns(fctx, &query->addrinfo->sockaddr) ||
+			    fctx->timeouts >= MAX_EDNS0_TIMEOUTS) &&
+			   (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
+			query->options |= DNS_FETCHOPT_EDNS512;
+			FCTXTRACE("too many timeouts, setting EDNS size to 512");
+		}
 	}
 
 	if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
@@ -1630,6 +1643,7 @@ resquery_send(resquery_t *query) {
 				goto cleanup_message;
 			query->connects++;
 		}
+		fctx->timeout = ISC_FALSE;
 	}
 	isc_buffer_usedregion(buffer, &r);
 
@@ -2757,6 +2771,7 @@ fctx_timeout(isc_task_t *task, isc_event_t *event) {
 		isc_result_t result;
 
 		fctx->timeouts++;
+		fctx->timeout = ISC_TRUE;
 		/*
 		 * We could cancel the running queries here, or we could let
 		 * them keep going.  Since we normally use separate sockets for
@@ -3087,6 +3102,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	fctx->attributes = 0;
 	fctx->spilled = ISC_FALSE;
 	fctx->nqueries = 0;
+	fctx->timeout = ISC_FALSE;
 
 	dns_name_init(&fctx->nsname, NULL);
 	fctx->nsfetch = NULL;
@@ -5531,6 +5547,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	}
 
 	fctx->timeouts = 0;
+	fctx->timeout = ISC_FALSE;
 
 	/*
 	 * XXXRTH  We should really get the current time just once.  We
