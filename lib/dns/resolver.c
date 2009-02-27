@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.392 2009/02/25 22:46:05 marka Exp $ */
+/* $Id: resolver.c,v 1.393 2009/02/27 23:01:48 marka Exp $ */
 
 /*! \file */
 
@@ -229,6 +229,7 @@ struct fetchctx {
 	 * is used for EDNS0 black hole detection.
 	 */
 	unsigned int			timeouts;
+
 	/*%
 	 * Look aside state for DS lookups.
 	 */
@@ -270,6 +271,7 @@ struct fetchctx {
 	unsigned int			adberr;
 	unsigned int			findfail;
 	unsigned int			valfail;
+	isc_boolean_t			timeout;
 };
 
 #define FCTX_MAGIC			ISC_MAGIC('F', '!', '!', '!')
@@ -1639,9 +1641,8 @@ resquery_send(resquery_t *query) {
 		query->options |= DNS_FETCHOPT_NOEDNS0;
 
 	/*
-	 * Handle UDP timeouts by reducing the UDP response size to 512
-	 * bytes then if that doesn't work disabling EDNS (includes DO)
-	 * and CD.
+	 * Handle timeouts by reducing the UDP response size to 512 bytes
+	 * then if that doesn't work disabling EDNS (includes DO) and CD.
 	 *
 	 * These timeout can be due to:
 	 *	* broken nameservers that don't respond to EDNS queries.
@@ -1653,7 +1654,7 @@ resquery_send(resquery_t *query) {
 	 *	  or CD.
 	 *	* packet loss / link outage.
 	 */
-	if ((query->options & DNS_FETCHOPT_TCP) == 0) {
+	if (fctx->timeout) {
 		if ((triededns512(fctx, &query->addrinfo->sockaddr) ||
 		     fctx->timeouts >= (MAX_EDNS0_TIMEOUTS * 2)) &&
 		    (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
@@ -1666,6 +1667,7 @@ resquery_send(resquery_t *query) {
 			fctx->reason = "reducing the advertised EDNS UDP "
 				       "packet size to 512 octets";
 		}
+		fctx->timeout = ISC_FALSE;
 	}
 
 	/*
@@ -3012,6 +3014,7 @@ fctx_timeout(isc_task_t *task, isc_event_t *event) {
 		isc_result_t result;
 
 		fctx->timeouts++;
+		fctx->timeout = ISC_TRUE;
 		/*
 		 * We could cancel the running queries here, or we could let
 		 * them keep going.  Since we normally use separate sockets for
@@ -3358,6 +3361,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	fctx->reason = NULL;
 	fctx->rand_buf = 0;
 	fctx->rand_bits = 0;
+	fctx->timeout = ISC_FALSE;
 
 	dns_name_init(&fctx->nsname, NULL);
 	fctx->nsfetch = NULL;
@@ -5888,6 +5892,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	}
 
 	fctx->timeouts = 0;
+	fctx->timeout = ISC_FALSE;
 
 	/*
 	 * XXXRTH  We should really get the current time just once.  We

@@ -2,9 +2,8 @@
 			dns_rdata_hip_first(), dns_rdata_hip_next()
 			and dns_rdata_hip_current().  [RT #19384]
 
-2564.	[bug]		'named' was treating a TCP retry as a timeout when
-			deciding whether to perform a EDNS fallback step.
-			[RT #19393]
+2564.	[bug]		Only take EDNS fallback steps when processing timeouts.
+			[RT #19405]
 
 2563.	[bug]		Dig could leak a socket causing it to wait forever
 			to exit. [RT #19359]
