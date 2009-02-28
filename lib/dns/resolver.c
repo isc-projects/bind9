@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.86 2009/02/27 23:13:03 marka Exp $ */
+/* $Id: resolver.c,v 1.284.18.87 2009/02/28 05:39:35 marka Exp $ */
 
 /*! \file */
 
@@ -1519,6 +1519,7 @@ resquery_send(resquery_t *query) {
 			query->options |= DNS_FETCHOPT_EDNS512;
 			FCTXTRACE("too many timeouts, setting EDNS size to 512");
 		}
+		fctx->timeout = ISC_FALSE;
 	}
 
 	if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
@@ -1643,7 +1644,6 @@ resquery_send(resquery_t *query) {
 				goto cleanup_message;
 			query->connects++;
 		}
-		fctx->timeout = ISC_FALSE;
 	}
 	isc_buffer_usedregion(buffer, &r);
 
