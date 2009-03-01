@@ -1,3 +1,8 @@
+2566.	[cleanup]	Clarify logged message when an insecure DNSSEC
+			response arrives from a zone thought to be secure:
+			"insecurity proof failed" instead of "not
+			insecure". [RT #19400]
+
 2565.	[func]		Add support for HIP record.  Includes new functions
 			dns_rdata_hip_first(), dns_rdata_hip_next()
 			and dns_rdata_hip_current().  [RT #19384]

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.169 2009/02/15 23:46:23 marka Exp $ */
+/* $Id: validator.c,v 1.170 2009/03/01 02:45:38 each Exp $ */
 
 #include <config.h>
 
@@ -3222,7 +3222,7 @@ proveunsecure(dns_validator_t *val, isc_boolean_t have_ds, isc_boolean_t resume)
 		/*
 		 * If we have a DS rdataset and it is secure then check if
 		 * the DS rdataset has a supported algorithm combination.
-		 * If not this is a insecure delegation as far as this
+		 * If not this is an insecure delegation as far as this
 		 * resolver is concerned.  Fall back to DLV if available.
 		 */
 		if (have_ds && val->frdataset.trust >= dns_trust_secure &&
@@ -3276,7 +3276,7 @@ proveunsecure(dns_validator_t *val, isc_boolean_t have_ds, isc_boolean_t resume)
 		if (result == DNS_R_NXRRSET || result == DNS_R_NCACHENXRRSET) {
 			/*
 			 * There is no DS.  If this is a delegation,
-			 * we maybe done.
+			 * we may be done.
 			 */
 			if (val->frdataset.trust == dns_trust_pending) {
 				result = create_fetch(val, tname,
@@ -3394,9 +3394,9 @@ proveunsecure(dns_validator_t *val, isc_boolean_t have_ds, isc_boolean_t resume)
 		return (nsecvalidate(val, ISC_FALSE));
 	}
 */
-
+	/* Couldn't complete insecurity proof */
 	validator_log(val, ISC_LOG_DEBUG(3), "insecurity proof failed");
-	return (DNS_R_NOTINSECURE); /* Couldn't complete insecurity proof */
+	return (DNS_R_NOTINSECURE);
 
  out:
 	if (dns_rdataset_isassociated(&val->frdataset))
@@ -3435,7 +3435,7 @@ dlv_validator_start(dns_validator_t *val) {
  * \li	3. a negative answer (secure or unsecure).
  *
  * Note a answer that appears to be a secure positive answer may actually
- * be a unsecure positive answer.
+ * be an unsecure positive answer.
  */
 static void
 validator_start(isc_task_t *task, isc_event_t *event) {
@@ -3500,6 +3500,10 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 
 		val->attributes |= VALATTR_INSECURITY;
 		result = proveunsecure(val, ISC_FALSE, ISC_FALSE);
+		if (result != DNS_R_NOTINSECURE)
+			validator_log(val, ISC_LOG_INFO,
+				      "got insecure response; "
+				      "could not prove it was valid");
 	} else if (val->event->rdataset == NULL &&
 		   val->event->sigrdataset == NULL)
 	{

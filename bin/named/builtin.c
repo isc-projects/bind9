@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: builtin.c,v 1.14 2009/02/18 23:47:48 tbox Exp $ */
+/* $Id: builtin.c,v 1.15 2009/03/01 02:45:38 each Exp $ */
 
 /*! \file
  * \brief
@@ -132,6 +132,7 @@ do_authors_lookup(dns_sdblookup_t *lookup) {
 		"Michael Graff",
 		"Andreas Gustafsson",
 		"Bob Halley",
+		"Evan Hunt",
 		"David Lawrence",
 		"Danny Mayer",
 		"Damien Neil",

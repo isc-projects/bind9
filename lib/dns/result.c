@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.125 2008/09/25 04:02:38 tbox Exp $ */
+/* $Id: result.c,v 1.126 2009/03/01 02:45:38 each Exp $ */
 
 /*! \file */
 
@@ -105,7 +105,7 @@ static const char *text[DNS_R_NRESULTS] = {
 	"no valid RRSIG",		       /*%< 59 DNS_R_NOVALIDSIG */
 
 	"no valid NSEC",		       /*%< 60 DNS_R_NOVALIDNSEC */
-	"not insecure",			       /*%< 61 DNS_R_NOTINSECURE */
+	"insecurity proof failed",	       /*%< 61 DNS_R_NOTINSECURE */
 	"unknown service",		       /*%< 62 DNS_R_UNKNOWNSERVICE */
 	"recoverable error occurred",	       /*%< 63 DNS_R_RECOVERABLE */
 	"unknown opt attribute record",	       /*%< 64 DNS_R_UNKNOWNOPT */

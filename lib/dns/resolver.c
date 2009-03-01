@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.393 2009/02/27 23:01:48 marka Exp $ */
+/* $Id: resolver.c,v 1.394 2009/03/01 02:45:38 each Exp $ */
 
 /*! \file */
 
@@ -2126,7 +2126,7 @@ add_bad(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo, isc_result_t reason,
 	char code[64];
 	isc_buffer_t b;
 	isc_sockaddr_t *sa;
-	const char *sep1, *sep2;
+	const char *spc = "";
 	isc_sockaddr_t *address = &addrinfo->sockaddr;
 
 	if (reason == DNS_R_LAME)
@@ -2172,18 +2172,14 @@ add_bad(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo, isc_result_t reason,
 		isc_buffer_init(&b, code, sizeof(code) - 1);
 		dns_rcode_totext(fctx->rmessage->rcode, &b);
 		code[isc_buffer_usedlength(&b)] = '\0';
-		sep1 = "(";
-		sep2 = ") ";
+		spc = " ";
 	} else if (reason == DNS_R_UNEXPECTEDOPCODE) {
 		isc_buffer_init(&b, code, sizeof(code) - 1);
 		dns_opcode_totext((dns_opcode_t)fctx->rmessage->opcode, &b);
 		code[isc_buffer_usedlength(&b)] = '\0';
-		sep1 = "(";
-		sep2 = ") ";
+		spc = " ";
 	} else {
 		code[0] = '\0';
-		sep1 = "";
-		sep2 = "";
 	}
 	dns_name_format(&fctx->name, namebuf, sizeof(namebuf));
 	dns_rdatatype_format(fctx->type, typebuf, sizeof(typebuf));
@@ -2191,8 +2187,8 @@ add_bad(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo, isc_result_t reason,
 	isc_sockaddr_format(address, addrbuf, sizeof(addrbuf));
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_LAME_SERVERS,
 		      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
-		      "%s %s%s%sresolving '%s/%s/%s': %s",
-		      dns_result_totext(reason), sep1, code, sep2,
+		      "error (%s%s%s) resolving '%s/%s/%s': %s",
+		      dns_result_totext(reason), spc, code,
 		      namebuf, typebuf, classbuf, addrbuf);
 }
 
