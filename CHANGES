@@ -1,3 +1,6 @@
+2568.	[bug]		Report when write to indicate a otherwise successful
+			start fail. [RT #19360]
+
 2567.	[bug]		dst__privstruct_writefile() could miss write errors.
 			write_public_key() could miss write errors.
 			dnssec-dsfromkey could miss write errors.
