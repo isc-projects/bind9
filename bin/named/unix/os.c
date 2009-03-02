@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.94 2009/02/16 23:48:04 tbox Exp $ */
+/* $Id: os.c,v 1.95 2009/03/02 03:08:22 marka Exp $ */
 
 /*! \file */
 
@@ -462,10 +462,12 @@ ns_os_started(void) {
 	char buf = 0;
 
 	/*
-	 * Signal to the parent that we stated successfully.
+	 * Signal to the parent that we started successfully.
 	 */
 	if (dfd[0] != -1 && dfd[1] != -1) {
-		write(dfd[1], &buf, 1);
+		if (write(dfd[1], &buf, 1) != 1)
+			ns_main_earlyfatal("unable to signal parent that we "
+					   "otherwise started successfully.");
 		close(dfd[1]);
 		dfd[0] = dfd[1] = -1;
 	}
