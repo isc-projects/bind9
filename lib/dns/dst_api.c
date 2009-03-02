@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.11.92.5 2009/02/16 23:46:44 tbox Exp $
+ * $Id: dst_api.c,v 1.11.92.6 2009/03/02 02:34:12 marka Exp $
  */
 
 /*! \file */
@@ -1111,9 +1111,12 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 	fwrite(r.base, 1, r.length, fp);
 
 	fputc('\n', fp);
+	fflush(fp);
+	if (ferror(fp))
+		ret = DST_R_WRITEERROR;
 	fclose(fp);
 
-	return (ISC_R_SUCCESS);
+	return (ret);
 }
 
 static isc_result_t
