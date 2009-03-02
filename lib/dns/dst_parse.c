@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2006, 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2006, 2008, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2002  Internet Software Consortium.
  * Portions Copyright (C) 1995-2000 by Network Associates, Inc.
  *
@@ -18,7 +18,7 @@
 
 /*%
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.1.6.10 2009/03/02 02:59:09 marka Exp $
+ * $Id: dst_parse.c,v 1.1.6.11 2009/03/02 23:45:58 tbox Exp $
  */
 
 #include <config.h>
