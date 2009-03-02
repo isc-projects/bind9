@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001, 2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg_test.c,v 1.20 2009/03/02 02:42:50 marka Exp $ */
+/* $Id: cfg_test.c,v 1.21 2009/03/02 23:47:43 tbox Exp $ */
 
 /*! \file */
 
@@ -70,7 +70,7 @@ main(int argc, char **argv) {
 	cfg_obj_t *cfg = NULL;
 	cfg_type_t *type = NULL;
 	isc_boolean_t grammar = ISC_FALSE;
-	isc_boolean_t memstats = ISC_FALSE;	
+	isc_boolean_t memstats = ISC_FALSE;
 	char *filename = NULL;
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
@@ -116,7 +116,7 @@ main(int argc, char **argv) {
 		} else {
 			filename = argv[1];
 		}
-		argv++, argc--;       
+		argv++, argc--;
 	}
 
 	if (grammar) {
