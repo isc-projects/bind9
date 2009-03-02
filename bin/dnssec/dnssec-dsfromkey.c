@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-dsfromkey.c,v 1.2.14.2 2009/02/17 23:47:15 tbox Exp $ */
+/* $Id: dnssec-dsfromkey.c,v 1.2.14.3 2009/03/02 02:54:15 marka Exp $ */
 
 /*! \file */
 
@@ -387,5 +387,10 @@ main(int argc, char **argv) {
 		isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);
 
-	return (0);
+	fflush(stdout);
+	if (ferror(stdout)) {
+		fprintf(stderr, "write error\n");
+		return (1);
+	} else
+		return (0);
 }

@@ -1,4 +1,6 @@
 2567.	[bug]		dst__privstruct_writefile() could miss write errors.
+			write_public_key() could miss write errors.
+			dnssec-dsfromkey could miss write errors.
 			[RT #19360]
 
 2564.	[bug]		Only take EDNS fallback steps when processing timeouts.
