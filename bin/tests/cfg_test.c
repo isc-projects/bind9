@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg_test.c,v 1.15.18.2 2005/04/29 00:15:43 marka Exp $ */
+/* $Id: cfg_test.c,v 1.15.18.3 2009/03/02 02:43:34 marka Exp $ */
 
 /*! \file */
 
@@ -147,5 +147,10 @@ main(int argc, char **argv) {
 		isc_mem_stats(mctx, stderr);
 	isc_mem_destroy(&mctx);
 
-	return (0);
+	fflush(stdout);
+	if (ferror(stdout)) {
+		fprintf(stderr, "write error\n");
+		return (1);
+	} else
+		return (0);
 }
