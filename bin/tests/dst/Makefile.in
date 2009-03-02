@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.46 2008/05/19 23:47:03 tbox Exp $
+# $Id: Makefile.in,v 1.47 2009/03/02 03:53:29 each Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -58,7 +58,7 @@ gsstest@EXEEXT@: gsstest.@O@ ${DEPLIBS}
 		gsstest.@O@ ${LIBS}
 
 test: t_dst@EXEEXT@
-	../genrandom@EXEEXT@ 100 randomfile
+	../../tools/genrandom@EXEEXT@ 100 randomfile
 	-@ ./t_dst@EXEEXT@ -b @srcdir@ -q 1800 -a
 
 clean distclean::

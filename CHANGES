@@ -1,3 +1,7 @@
+2569.	[func]		Move journalprint, nsec3hash, and genrandom
+			commands from bin/tests into bin/tools; 
+			"make install" will put them in $sbindir. [RT #19301]
+
 2568.	[bug]		Report when the write to indicate a otherwise					successful start fails. [RT #19360]
 
 2567.	[bug]		dst__privstruct_writefile() could miss write errors.

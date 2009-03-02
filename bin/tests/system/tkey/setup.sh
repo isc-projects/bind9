@@ -15,10 +15,10 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.5 2007/06/19 23:47:06 tbox Exp $
+# $Id: setup.sh,v 1.6 2009/03/02 03:53:29 each Exp $
 
 RANDFILE=random.data
 
-../../genrandom 100 $RANDFILE
+../../../tools/genrandom 100 $RANDFILE
 
 cd ns1 && sh setup.sh

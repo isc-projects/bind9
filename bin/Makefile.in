@@ -13,13 +13,13 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.25 2007/06/19 23:46:59 tbox Exp $
+# $Id: Makefile.in,v 1.26 2009/03/02 03:53:29 each Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
 
-SUBDIRS =	named rndc dig dnssec tests nsupdate check
+SUBDIRS =	named rndc dig dnssec tests tools nsupdate check
 TARGETS =
 
 @BIND9_MAKE_RULES@
