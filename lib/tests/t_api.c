@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_api.c,v 1.52.18.9 2008/01/17 23:46:05 tbox Exp $ */
+/* $Id: t_api.c,v 1.52.18.10 2009/03/02 01:58:06 marka Exp $ */
 
 /*! \file */
 
@@ -224,8 +224,10 @@ main(int argc, char **argv) {
 	 * Set cwd.
 	 */
 
-	if (T_dir != NULL)
-		(void) chdir(T_dir);
+	if (T_dir != NULL && chdir(T_dir) != 0) {
+		fprintf(stderr, "chdir %s failed\n", T_dir);
+		exit(1);
+	}
 
 	/*
 	 * We don't want buffered output.
