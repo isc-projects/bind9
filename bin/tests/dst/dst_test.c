@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_test.c,v 1.43 2007/06/19 23:47:00 tbox Exp $ */
+/* $Id: dst_test.c,v 1.43.332.1 2009/03/02 02:46:26 marka Exp $ */
 
 #include <config.h>
 
@@ -245,7 +245,10 @@ main(void) {
 	current = isc_mem_get(mctx, 256);
 	if (current == NULL)
 		return (1);
-	getcwd(current, 256);
+	if (getcwd(current, 256) == NULL) {
+		perror("getcwd");
+		return (1);
+	}
 
 	dns_result_register();
 
