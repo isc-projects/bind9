@@ -1,4 +1,6 @@
 2567.	[bug]		dst__privstruct_writefile() could miss write errors.
+			write_public_key() could miss write errors.
+			dnssec-dsfromkey could miss write errors.
 			[RT #19360]
 
 2566.	[cleanup]	Clarify logged message when an insecure DNSSEC
