@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.263 2009/03/03 01:36:17 marka Exp $ */
+/* $Id: client.c,v 1.264 2009/03/03 23:48:02 tbox Exp $ */
 
 #include <config.h>
 
@@ -1672,7 +1672,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 					    &client->pktinfo.ipi6_addr);
 			if (IN6_IS_ADDR_LINKLOCAL(&client->pktinfo.ipi6_addr))
 				isc_netaddr_setzone(&client->destaddr,
-					        client->pktinfo.ipi6_ifindex);
+						client->pktinfo.ipi6_ifindex);
 			result = ISC_R_SUCCESS;
 		}
 		if (result != ISC_R_SUCCESS) {
@@ -2637,7 +2637,7 @@ ns_client_checkacl(ns_client_t *client, isc_sockaddr_t *sockaddr,
 {
 	isc_result_t result;
 	isc_netaddr_t netaddr;
-	
+
 	if (sockaddr != NULL)
 		isc_netaddr_fromsockaddr(&netaddr, sockaddr);
 
