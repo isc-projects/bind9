@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.320 2009/02/15 23:04:38 marka Exp $ */
+/* $Id: query.c,v 1.321 2009/03/03 01:36:17 marka Exp $ */
 
 /*! \file */
 
@@ -4927,6 +4927,7 @@ log_query(ns_client_t *client, unsigned int flags, unsigned int extflags) {
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char typename[DNS_RDATATYPE_FORMATSIZE];
 	char classname[DNS_RDATACLASS_FORMATSIZE];
+	char onbuf[ISC_NETADDR_FORMATSIZE];
 	dns_rdataset_t *rdataset;
 	int level = ISC_LOG_INFO;
 
@@ -4938,14 +4939,16 @@ log_query(ns_client_t *client, unsigned int flags, unsigned int extflags) {
 	dns_name_format(client->query.qname, namebuf, sizeof(namebuf));
 	dns_rdataclass_format(rdataset->rdclass, classname, sizeof(classname));
 	dns_rdatatype_format(rdataset->type, typename, sizeof(typename));
+	isc_netaddr_format(&client->destaddr, onbuf, sizeof(onbuf));
 
 	ns_client_log(client, NS_LOGCATEGORY_QUERIES, NS_LOGMODULE_QUERY,
-		      level, "query: %s %s %s %s%s%s%s%s", namebuf, classname,
-		      typename, WANTRECURSION(client) ? "+" : "-",
+		      level, "query: %s %s %s %s%s%s%s%s (%s)", namebuf,
+		      classname, typename, WANTRECURSION(client) ? "+" : "-",
 		      (client->signer != NULL) ? "S": "",
 		      (client->opt != NULL) ? "E" : "",
 		      ((extflags & DNS_MESSAGEEXTFLAG_DO) != 0) ? "D" : "",
-		      ((flags & DNS_MESSAGEFLAG_CD) != 0) ? "C" : "");
+		      ((flags & DNS_MESSAGEFLAG_CD) != 0) ? "C" : "",
+		      onbuf);
 }
 
 static inline void

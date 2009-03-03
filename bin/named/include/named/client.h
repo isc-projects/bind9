@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.88 2009/01/17 23:47:42 tbox Exp $ */
+/* $Id: client.h,v 1.89 2009/03/03 01:36:17 marka Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -138,6 +138,7 @@ struct ns_client {
 	ns_interface_t		*interface;
 	isc_sockaddr_t		peeraddr;
 	isc_boolean_t		peeraddr_valid;
+	isc_netaddr_t		destaddr;
 	struct in6_pktinfo	pktinfo;
 	isc_event_t		ctlevent;
 	/*%
@@ -274,10 +275,8 @@ ns_client_getsockaddr(ns_client_t *client);
  */
 
 isc_result_t
-ns_client_checkaclsilent(ns_client_t *client,
-			 isc_sockaddr_t *sockaddr,
-			 dns_acl_t *acl,
-			 isc_boolean_t default_allow);
+ns_client_checkaclsilent(ns_client_t *client, isc_netaddr_t *netaddr,
+			 dns_acl_t *acl, isc_boolean_t default_allow);
 
 /*%
  * Convenience function for client request ACL checking.
@@ -296,7 +295,7 @@ ns_client_checkaclsilent(ns_client_t *client,
  *
  * Requires:
  *\li	'client' points to a valid client.
- *\li	'sockaddr' points to a valid address, or is NULL.
+ *\li	'netaddr' points to a valid address, or is NULL.
  *\li	'acl' points to a valid ACL, or is NULL.
  *
  * Returns:

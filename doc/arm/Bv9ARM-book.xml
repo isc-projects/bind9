@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.399 2009/02/25 17:39:30 jreed Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.400 2009/03/03 01:36:17 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4268,12 +4268,13 @@ category notify { null; };
 		    <para>
 		      The query log entry reports the client's IP
 		      address and port number, and the query name,
-		      class and type.  It also reports whether the
+		      class and type.  Next it reports whether the
 		      Recursion Desired flag was set (+ if set, -
 		      if not set), if the query was signed (S),
 		      EDNS was in use (E), if DO (DNSSEC Ok) was
 		      set (D), or if CD (Checking Disabled) was set
-		      (C).
+		      (C).  After this the destination address the
+		      query was sent to is reported.
 		    </para>
 
                     <para>

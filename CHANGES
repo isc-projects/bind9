@@ -1,3 +1,6 @@
+2570.	[func]		Log the destination address the query was sent to.
+			[RT #19209]
+
 2569.	[func]		Move journalprint, nsec3hash, and genrandom
 			commands from bin/tests into bin/tools; 
 			"make install" will put them in $sbindir. [RT #19301]
