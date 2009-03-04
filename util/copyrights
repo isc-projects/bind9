@@ -869,6 +869,7 @@
 ./bin/win32/BINDInstall/res/BINDInstall.ico	X	2001
 ./bin/win32/BINDInstall/res/BINDInstall.rc2	X	2001
 ./bin/win32/BINDInstall/resource.h		X	2001,2005
+./bind.keys					X	2009
 ./config.guess					X	1998,1999,2000,2001,2004,2009
 ./config.h.in					X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./config.h.win32				C	1999,2000,2001,2004,2006,2007,2008
