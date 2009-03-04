@@ -14,7 +14,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: arpaname.c,v 1.1 2009/03/04 01:30:27 marka Exp $ */
+/* $Id: arpaname.c,v 1.2 2009/03/04 02:23:36 marka Exp $ */
+
+#include "config.h"
 
 #include <sys/types.h>
 #include <sys/socket.h>
