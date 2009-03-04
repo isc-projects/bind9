@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.529 2009/03/04 02:42:30 each Exp $ */
+/* $Id: server.c,v 1.530 2009/03/04 23:48:01 tbox Exp $ */
 
 /*! \file */
 
@@ -494,7 +494,7 @@ configure_view_dnsseckeylist(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
  * from 'vconfig' and 'config'.	 The variable to be configured is '*target'.
  */
 static isc_result_t
-configure_view_dnsseckeys(const cfg_obj_t *vconfig, const cfg_obj_t *config, 
+configure_view_dnsseckeys(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 			  const cfg_obj_t *bindkeys, isc_boolean_t auto_dlv,
 			  isc_mem_t *mctx, dns_keytable_t **target)
 {
@@ -1105,8 +1105,8 @@ cache_sharable(dns_view_t *originview, dns_view_t *view,
 static isc_result_t
 configure_view(dns_view_t *view, const cfg_obj_t *config,
 	       const cfg_obj_t *vconfig, ns_cachelist_t *cachelist,
-               const cfg_obj_t *bindkeys, isc_mem_t *mctx,
-               cfg_aclconfctx_t *actx, isc_boolean_t need_hints)
+	       const cfg_obj_t *bindkeys, isc_mem_t *mctx,
+	       cfg_aclconfctx_t *actx, isc_boolean_t need_hints)
 {
 	const cfg_obj_t *maps[4];
 	const cfg_obj_t *cfgmaps[3];
@@ -1923,7 +1923,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 		dlvobj = cfg_listelt_value(cfg_list_first(obj));
 		if (!strcmp(cfg_obj_asstring(cfg_tuple_get(dlvobj, "domain")),
 			    "auto") &&
-                    cfg_obj_isvoid(cfg_tuple_get(dlvobj, "trust-anchor"))) {
+		    cfg_obj_isvoid(cfg_tuple_get(dlvobj, "trust-anchor"))) {
 			auto_dlv = ISC_TRUE;
 			obj = NULL;
 			result = cfg_map_get(ns_g_defaults,

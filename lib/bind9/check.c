@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.99 2009/03/04 02:42:31 each Exp $ */
+/* $Id: check.c,v 1.100 2009/03/04 23:48:02 tbox Exp $ */
 
 /*! \file */
 
@@ -671,9 +671,9 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 			anchor = cfg_tuple_get(obj, "trust-anchor");
 
 			/*
-                         * If domain is "auto" and trust anchor is missing,
-                         * skip remaining tests
-                         */
+			 * If domain is "auto" and trust anchor is missing,
+			 * skip remaining tests
+			 */
 			if (!strcmp(dlv, "auto") && cfg_obj_isvoid(anchor))
 				continue;
 
