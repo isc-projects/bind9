@@ -1,3 +1,7 @@
+2571.	[func]		Add a new tool "arpaname" which translates IP addresses
+			to the corresponding IN-ADDR.ARPA or IP6.ARPA name.
+			[RT #18976]
+
 2570.	[func]		Log the destination address the query was sent to.
 			[RT #19209]
 
