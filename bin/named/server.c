@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.528 2009/02/16 05:08:43 marka Exp $ */
+/* $Id: server.c,v 1.529 2009/03/04 02:42:30 each Exp $ */
 
 /*! \file */
 
@@ -458,58 +458,106 @@ configure_view_dnsseckey(const cfg_obj_t *vconfig, const cfg_obj_t *key,
 	return (result);
 }
 
-/*%
- * Configure DNSSEC keys for a view.  Currently used only for
- * the security roots.
- *
- * The per-view configuration values and the server-global defaults are read
- * from 'vconfig' and 'config'.	 The variable to be configured is '*target'.
- */
-static isc_result_t
-configure_view_dnsseckeys(const cfg_obj_t *vconfig, const cfg_obj_t *config,
-			  isc_mem_t *mctx, dns_keytable_t **target)
+
+static void
+configure_view_dnsseckeylist(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
+			     dns_keytable_t *keytable, isc_mem_t *mctx)
 {
-	isc_result_t result;
-	const cfg_obj_t *keys = NULL;
-	const cfg_obj_t *voptions = NULL;
-	const cfg_listelt_t *element, *element2;
-	const cfg_obj_t *keylist;
+	const cfg_listelt_t *elt, *elt2;
 	const cfg_obj_t *key;
-	dns_keytable_t *keytable = NULL;
+	const cfg_obj_t *keylist;
+	isc_result_t result;
 
-	CHECK(dns_keytable_create(mctx, &keytable));
+	for (elt = cfg_list_first(keys);
+	     elt != NULL;
+	     elt = cfg_list_next(elt)) {
+		keylist = cfg_listelt_value(elt);
 
-	if (vconfig != NULL)
-		voptions = cfg_tuple_get(vconfig, "options");
-
-	keys = NULL;
-	if (voptions != NULL)
-		(void)cfg_map_get(voptions, "trusted-keys", &keys);
-	if (keys == NULL)
-		(void)cfg_map_get(config, "trusted-keys", &keys);
-
-	for (element = cfg_list_first(keys);
-	     element != NULL;
-	     element = cfg_list_next(element))
-	{
-		keylist = cfg_listelt_value(element);
-		for (element2 = cfg_list_first(keylist);
-		     element2 != NULL;
-		     element2 = cfg_list_next(element2))
-		{
-			key = cfg_listelt_value(element2);
+		for (elt2 = cfg_list_first(keylist);
+		     elt2 != NULL;
+		     elt2 = cfg_list_next(elt2)) {
+			key = cfg_listelt_value(elt2);
 			CHECK(configure_view_dnsseckey(vconfig, key,
 						       keytable, mctx));
 		}
 	}
 
+ cleanup:
+	return;
+}
+
+/*%
+ * Configure DNSSEC keys for a view.  Currently used only for the security
+ * roots.
+ *
+ * The per-view configuration values and the server-global defaults are read
+ * from 'vconfig' and 'config'.	 The variable to be configured is '*target'.
+ */
+static isc_result_t
+configure_view_dnsseckeys(const cfg_obj_t *vconfig, const cfg_obj_t *config, 
+			  const cfg_obj_t *bindkeys, isc_boolean_t auto_dlv,
+			  isc_mem_t *mctx, dns_keytable_t **target)
+{
+	const cfg_obj_t *view_keys = NULL;
+	const cfg_obj_t *global_keys = NULL;
+	const cfg_obj_t *builtin_keys = NULL;
+	const cfg_obj_t *maps[4];
+	const cfg_obj_t *voptions = NULL;
+	const cfg_obj_t *options = NULL;
+	dns_keytable_t *keytable = NULL;
+	isc_result_t result;
+	int i = 0;
+
+	CHECK(dns_keytable_create(mctx, &keytable));
+
+	if (vconfig != NULL) {
+		voptions = cfg_tuple_get(vconfig, "options");
+		if (voptions != NULL) {
+			(void)cfg_map_get(voptions, "trusted-keys", &view_keys);
+			maps[i++] = voptions;
+		}
+	}
+
+	if (config != NULL) {
+		(void)cfg_map_get(config, "trusted-keys", &global_keys);
+		(void)cfg_map_get(config, "options", &options);
+		if (options != NULL) {
+			maps[i++] = options;
+		}
+	}
+
+	maps[i++] = ns_g_defaults;
+	maps[i] = NULL;
+
+	if (auto_dlv) {
+		isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_SECURITY,
+			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+			      "using built-in trusted-keys");
+
+		/*
+		 * If bind.keys exists, it overrides the trusted-keys
+		 * clause hard-coded in ns_g_config.
+		 */
+		if (bindkeys != NULL)
+			(void)cfg_map_get(bindkeys, "trusted-keys",
+					  &builtin_keys);
+		else
+			(void)cfg_map_get(ns_g_config, "trusted-keys",
+					  &builtin_keys);
+
+		configure_view_dnsseckeylist(builtin_keys, vconfig,
+					     keytable, mctx);
+	}
+
+	configure_view_dnsseckeylist(global_keys, vconfig, keytable, mctx);
+	configure_view_dnsseckeylist(view_keys, vconfig, keytable, mctx);
+
 	dns_keytable_detach(target);
 	*target = keytable; /* Transfer ownership. */
 	keytable = NULL;
-	result = ISC_R_SUCCESS;
 
  cleanup:
-	return (result);
+	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
@@ -1057,11 +1105,12 @@ cache_sharable(dns_view_t *originview, dns_view_t *view,
 static isc_result_t
 configure_view(dns_view_t *view, const cfg_obj_t *config,
 	       const cfg_obj_t *vconfig, ns_cachelist_t *cachelist,
-	       isc_mem_t *mctx, cfg_aclconfctx_t *actx,
-	       isc_boolean_t need_hints)
+               const cfg_obj_t *bindkeys, isc_mem_t *mctx,
+               cfg_aclconfctx_t *actx, isc_boolean_t need_hints)
 {
 	const cfg_obj_t *maps[4];
 	const cfg_obj_t *cfgmaps[3];
+	const cfg_obj_t *optionmaps[3];
 	const cfg_obj_t *options = NULL;
 	const cfg_obj_t *voptions = NULL;
 	const cfg_obj_t *forwardtype;
@@ -1091,7 +1140,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	dns_dispatch_t *dispatch6 = NULL;
 	isc_boolean_t reused_cache = ISC_FALSE;
 	isc_boolean_t shared_cache = ISC_FALSE;
-	int i;
+	int i = 0, j = 0, k = 0;
 	const char *str;
 	const char *cachename = NULL;
 	dns_order_t *order = NULL;
@@ -1107,6 +1156,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	const cfg_obj_t *disablelist = NULL;
 	isc_stats_t *resstats = NULL;
 	dns_stats_t *resquerystats = NULL;
+	isc_boolean_t auto_dlv = ISC_FALSE;
 	ns_cache_t *nsc;
 	isc_boolean_t zero_no_soattl;
 
@@ -1117,22 +1167,28 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	if (config != NULL)
 		(void)cfg_map_get(config, "options", &options);
 
-	i = 0;
+	/*
+	 * maps: view options, options, defaults
+	 * cfgmaps: view options, config
+	 * optionmaps: view options, options
+	 */
 	if (vconfig != NULL) {
 		voptions = cfg_tuple_get(vconfig, "options");
 		maps[i++] = voptions;
+		optionmaps[j++] = voptions;
+		cfgmaps[k++] = voptions;
 	}
-	if (options != NULL)
+	if (options != NULL) {
 		maps[i++] = options;
+		optionmaps[j++] = options;
+	}
+
 	maps[i++] = ns_g_defaults;
 	maps[i] = NULL;
-
-	i = 0;
-	if (voptions != NULL)
-		cfgmaps[i++] = voptions;
+	optionmaps[j] = NULL;
 	if (config != NULL)
-		cfgmaps[i++] = config;
-	cfgmaps[i] = NULL;
+		cfgmaps[k++] = config;
+	cfgmaps[k] = NULL;
 
 	if (!strcmp(viewname, "_default")) {
 		sep = "";
@@ -1860,7 +1916,21 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	view->enablednssec = cfg_obj_asboolean(obj);
 
 	obj = NULL;
-	result = ns_config_get(maps, "dnssec-lookaside", &obj);
+	result = ns_config_get(optionmaps, "dnssec-lookaside", &obj);
+	if (result == ISC_R_SUCCESS) {
+		/* If set to "auto", use the version from the defaults */
+		const cfg_obj_t *dlvobj;
+		dlvobj = cfg_listelt_value(cfg_list_first(obj));
+		if (!strcmp(cfg_obj_asstring(cfg_tuple_get(dlvobj, "domain")),
+			    "auto") &&
+                    cfg_obj_isvoid(cfg_tuple_get(dlvobj, "trust-anchor"))) {
+			auto_dlv = ISC_TRUE;
+			obj = NULL;
+			result = cfg_map_get(ns_g_defaults,
+					     "dnssec-lookaside", &obj);
+		}
+	}
+
 	if (result == ISC_R_SUCCESS) {
 		for (element = cfg_list_first(obj);
 		     element != NULL;
@@ -1905,8 +1975,8 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	 * For now, there is only one kind of trusted keys, the
 	 * "security roots".
 	 */
-	CHECK(configure_view_dnsseckeys(vconfig, config, mctx,
-					&view->secroots));
+	CHECK(configure_view_dnsseckeys(vconfig, config, bindkeys, auto_dlv,
+					mctx, &view->secroots));
 	dns_resolver_resetmustbesecure(view->resolver);
 	obj = NULL;
 	result = ns_config_get(maps, "dnssec-must-be-secure", &obj);
@@ -2475,7 +2545,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	ztypestr = cfg_obj_asstring(typeobj);
 
 	/*
-	 * "hints zones" aren't zones.  If we've got one,
+	 * "hints zones" aren't zones.	If we've got one,
 	 * configure it and return.
 	 */
 	if (strcasecmp(ztypestr, "hint") == 0) {
@@ -3045,8 +3115,8 @@ load_configuration(const char *filename, ns_server_t *server,
 		   isc_boolean_t first_time)
 {
 	cfg_aclconfctx_t aclconfctx;
-	cfg_obj_t *config;
-	cfg_parser_t *parser = NULL;
+	cfg_obj_t *config = NULL, *bindkeys = NULL;
+	cfg_parser_t *conf_parser = NULL, *bindkeys_parser = NULL;
 	const cfg_listelt_t *element;
 	const cfg_obj_t *builtin_views;
 	const cfg_obj_t *maps[3];
@@ -3087,8 +3157,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	if (first_time) {
 		CHECK(ns_config_parsedefaults(ns_g_parser, &ns_g_config));
 		RUNTIME_CHECK(cfg_map_get(ns_g_config, "options",
-					  &ns_g_defaults) ==
-			      ISC_R_SUCCESS);
+					  &ns_g_defaults) == ISC_R_SUCCESS);
 	}
 
 	/*
@@ -3105,10 +3174,10 @@ load_configuration(const char *filename, ns_server_t *server,
 			      NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 			      ISC_LOG_INFO, "loading configuration from '%s'",
 			      filename);
-		CHECK(cfg_parser_create(ns_g_mctx, ns_g_lctx, &parser));
-		cfg_parser_setcallback(parser, directory_callback, NULL);
-		result = cfg_parse_file(parser, filename, &cfg_type_namedconf,
-					&config);
+		CHECK(cfg_parser_create(ns_g_mctx, ns_g_lctx, &conf_parser));
+		cfg_parser_setcallback(conf_parser, directory_callback, NULL);
+		result = cfg_parse_file(conf_parser, filename,
+					&cfg_type_namedconf, &config);
 	}
 
 	/*
@@ -3123,10 +3192,10 @@ load_configuration(const char *filename, ns_server_t *server,
 			      NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 			      ISC_LOG_INFO, "loading configuration from '%s'",
 			      lwresd_g_resolvconffile);
-		if (parser != NULL)
-			cfg_parser_destroy(&parser);
-		CHECK(cfg_parser_create(ns_g_mctx, ns_g_lctx, &parser));
-		result = ns_lwresd_parseeresolvconf(ns_g_mctx, parser,
+		if (conf_parser != NULL)
+			cfg_parser_destroy(&conf_parser);
+		CHECK(cfg_parser_create(ns_g_mctx, ns_g_lctx, &conf_parser));
+		result = ns_lwresd_parseeresolvconf(ns_g_mctx, conf_parser,
 						    &config);
 	}
 	CHECK(result);
@@ -3148,13 +3217,38 @@ load_configuration(const char *filename, ns_server_t *server,
 	maps[i++] = NULL;
 
 	/*
+	 * If bind.keys exists, load it.  If "dnssec-lookaside auto"
+	 * is turned on, the keys found there will be used as default
+	 * trust anchors.
+	 */
+	obj = NULL;
+	result = ns_config_get(maps, "bindkeys-file", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	CHECKM(setstring(server, &server->bindkeysfile,
+	       cfg_obj_asstring(obj)), "strdup");
+
+	if (access(server->bindkeysfile, R_OK) == 0) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+			      "reading built-in trusted "
+			      "keys from file '%s'", server->bindkeysfile);
+
+		CHECK(cfg_parser_create(ns_g_mctx, ns_g_lctx,
+					&bindkeys_parser));
+
+		result = cfg_parse_file(bindkeys_parser, server->bindkeysfile,
+					&cfg_type_bindkeys, &bindkeys);
+		CHECK(result);
+	}
+
+	/*
 	 * Set process limits, which (usually) needs to be done as root.
 	 */
 	set_limits(maps);
 
 	/*
 	 * Check if max number of open sockets that the system allows is
-	 * sufficiently large.  Failing this condition is not necessarily fatal,
+	 * sufficiently large.	Failing this condition is not necessarily fatal,
 	 * but may cause subsequent runtime failures for a busy recursive
 	 * server.
 	 */
@@ -3462,7 +3556,8 @@ load_configuration(const char *filename, ns_server_t *server,
 
 		CHECK(create_view(vconfig, &viewlist, &view));
 		INSIST(view != NULL);
-		CHECK(configure_view(view, config, vconfig, &cachelist,
+		CHECK(configure_view(view, config, vconfig,
+				     &cachelist, bindkeys,
 				     ns_g_mctx, &aclconfctx, ISC_TRUE));
 		dns_view_freeze(view);
 		dns_view_detach(&view);
@@ -3480,8 +3575,9 @@ load_configuration(const char *filename, ns_server_t *server,
 		 * In either case, we need to configure and freeze it.
 		 */
 		CHECK(create_view(NULL, &viewlist, &view));
-		CHECK(configure_view(view, config, NULL, &cachelist, ns_g_mctx,
-				     &aclconfctx, ISC_TRUE));
+		CHECK(configure_view(view, config, NULL,
+				     &cachelist, bindkeys,
+				     ns_g_mctx, &aclconfctx, ISC_TRUE));
 		dns_view_freeze(view);
 		dns_view_detach(&view);
 	}
@@ -3499,7 +3595,8 @@ load_configuration(const char *filename, ns_server_t *server,
 	{
 		const cfg_obj_t *vconfig = cfg_listelt_value(element);
 		CHECK(create_view(vconfig, &viewlist, &view));
-		CHECK(configure_view(view, config, vconfig, &cachelist,
+		CHECK(configure_view(view, config, vconfig,
+				     &cachelist, bindkeys,
 				     ns_g_mctx, &aclconfctx, ISC_FALSE));
 		dns_view_freeze(view);
 		dns_view_detach(&view);
@@ -3786,10 +3883,16 @@ load_configuration(const char *filename, ns_server_t *server,
 
 	cfg_aclconfctx_destroy(&aclconfctx);
 
-	if (parser != NULL) {
+	if (conf_parser != NULL) {
 		if (config != NULL)
-			cfg_obj_destroy(parser, &config);
-		cfg_parser_destroy(&parser);
+			cfg_obj_destroy(conf_parser, &config);
+		cfg_parser_destroy(&conf_parser);
+	}
+
+	if (bindkeys_parser != NULL) {
+		if (bindkeys  != NULL)
+			cfg_obj_destroy(bindkeys_parser, &bindkeys);
+		cfg_parser_destroy(&bindkeys_parser);
 	}
 
 	if (view != NULL)
@@ -4114,6 +4217,11 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 		   "isc_stats_create");
 	isc_socketmgr_setstats(ns_g_socketmgr, server->sockstats);
 
+	server->bindkeysfile = isc_mem_strdup(server->mctx, "bind.keys");
+	CHECKFATAL(server->bindkeysfile == NULL ? ISC_R_NOMEMORY :
+						  ISC_R_SUCCESS,
+		   "isc_mem_strdup");
+
 	server->dumpfile = isc_mem_strdup(server->mctx, "named_dump.db");
 	CHECKFATAL(server->dumpfile == NULL ? ISC_R_NOMEMORY : ISC_R_SUCCESS,
 		   "isc_mem_strdup");
@@ -4180,6 +4288,7 @@ ns_server_destroy(ns_server_t **serverp) {
 	isc_stats_detach(&server->sockstats);
 
 	isc_mem_free(server->mctx, server->statsfile);
+	isc_mem_free(server->mctx, server->bindkeysfile);
 	isc_mem_free(server->mctx, server->dumpfile);
 	isc_mem_free(server->mctx, server->recfile);
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.168 2009/01/17 23:47:42 tbox Exp $ */
+/* $Id: main.c,v 1.169 2009/03/04 02:42:30 each Exp $ */
 
 /*! \file */
 
@@ -719,8 +719,8 @@ setup(void) {
 					       absolute_conffile,
 					       sizeof(absolute_conffile));
 		if (result != ISC_R_SUCCESS)
-			ns_main_earlyfatal("could not construct absolute path of "
-					   "configuration file: %s",
+			ns_main_earlyfatal("could not construct absolute path "
+					   "of configuration file: %s",
 					   isc_result_totext(result));
 		ns_g_conffile = absolute_conffile;
 	}

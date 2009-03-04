@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.96 2009/01/27 22:29:58 jinmei Exp $ */
+/* $Id: server.h,v 1.97 2009/03/04 02:42:30 each Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -54,6 +54,7 @@ struct ns_server {
 	dns_acl_t		*blackholeacl;
 	char *			statsfile;	/*%< Statistics file name */
 	char *			dumpfile;	/*%< Dump file name */
+	char *			bindkeysfile;	/*%< bind.keys file name */
 	char *			recfile;	/*%< Recursive file name */
 	isc_boolean_t		version_set;	/*%< User has set version */
 	char *			version;	/*%< User-specified version */

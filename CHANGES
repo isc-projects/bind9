@@ -1,3 +1,15 @@
+2572.	[func]		Simplify DLV configuration, with a new option
+			"dnssec-lookaside auto;"  This is the equivalent
+			of "dnssec-lookaside . trust-anchor dlv.isc.org;"
+			plus setting a trusted-key for dlv.isc.org.
+
+			Note: The trusted key is hard-coded into named,
+			but is also stored in (and can be overridden
+			by) $sysconfdir/bind.keys.  As the ISC DLV key
+			rolls over it can be kept up to date by replacing
+			the bind.keys file with a key downloaded from
+			https://www.isc.org/solutions/dlv. [RT #18685]
+
 2571.	[func]		Add a new tool "arpaname" which translates IP addresses
 			to the corresponding IN-ADDR.ARPA or IP6.ARPA name.
 			[RT #18976]

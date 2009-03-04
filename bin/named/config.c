@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.93 2008/11/06 05:30:24 marka Exp $ */
+/* $Id: config.c,v 1.94 2009/03/04 02:42:30 each Exp $ */
 
 /*! \file */
 
@@ -45,6 +45,8 @@
 #include <named/config.h>
 #include <named/globals.h>
 
+#include "bind.keys.h"
+
 /*% default configuration */
 static char defaultconf[] = "\
 options {\n\
@@ -70,6 +72,7 @@ options {\n\
 	multiple-cnames no;\n\
 #	named-xfer <obsolete>;\n\
 #	pid-file \"" NS_LOCALSTATEDIR "/run/named/named.pid\"; /* or /lwresd.pid */\n\
+	bindkeys-file \"" NS_SYSCONFDIR "/bind.keys\";\n\
 	port 53;\n\
 	recursing-file \"named.recursing\";\n\
 "
@@ -101,6 +104,9 @@ options {\n\
 	max-udp-size 4096;\n\
 	request-nsid false;\n\
 	reserved-sockets 512;\n\
+\n\
+	/* DLV */\n\
+	dnssec-lookaside . trust-anchor dlv.isc.org;\n\
 \n\
 	/* view */\n\
 	allow-notify {none;};\n\
@@ -218,6 +224,19 @@ view \"_bind\" chaos {\n\
 		database \"_builtin id\";\n\
 	};\n\
 };\n\
+"
+
+"#\n\
+#  Default trusted key(s) for builtin DLV support\n\
+#  (used if \"dnssec-lookaside auto;\" is set and\n\
+#  sysconfdir/bind.keys doesn't exist).\n\
+#\n\
+# BEGIN TRUSTED KEYS\n"
+
+/* Imported from bind.keys.h: */
+TRUSTED_KEYS
+
+"# END TRUSTED KEYS\n\
 ";
 
 isc_result_t

@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.101 2008/09/23 17:25:47 jinmei Exp $
+# $Id: Makefile.in,v 1.102 2009/03/04 02:42:30 each Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -111,10 +111,14 @@ main.@O@: main.c
 		-DNS_LOCALSTATEDIR=\"${localstatedir}\" \
 		-DNS_SYSCONFDIR=\"${sysconfdir}\" -c ${srcdir}/main.c
 
-config.@O@: config.c
+bind.keys.h: ${top_srcdir}/bind.keys
+	${PERL} ${srcdir}/bindkeys.pl < $< > $@
+
+config.@O@: config.c bind.keys.h
 	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} \
 		-DVERSION=\"${VERSION}\" \
 		-DNS_LOCALSTATEDIR=\"${localstatedir}\" \
+		-DNS_SYSCONFDIR=\"${sysconfdir}\" \
 		-c ${srcdir}/config.c
 
 named@EXEEXT@: ${OBJS} ${UOBJS} ${DEPLIBS}
@@ -131,7 +135,7 @@ docclean manclean maintainer-clean::
 	rm -f ${MANOBJS}
 
 clean distclean maintainer-clean::
-	rm -f ${TARGETS} ${OBJS}
+	rm -f ${TARGETS} ${OBJS} bind.keys.h
 
 bind9.xsl.h: bind9.xsl convertxsl.pl
 	${PERL} ${srcdir}/convertxsl.pl < ${srcdir}/bind9.xsl > bind9.xsl.h

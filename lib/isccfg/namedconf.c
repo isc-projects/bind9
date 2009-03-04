@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.94 2009/01/09 23:47:46 tbox Exp $ */
+/* $Id: namedconf.c,v 1.95 2009/03/04 02:42:31 each Exp $ */
 
 /*! \file */
 
@@ -657,6 +657,15 @@ namedconf_or_view_clauses[] = {
 };
 
 /*%
+ * Clauses that can occur in the bind.keys file.
+ */
+static cfg_clausedef_t
+bindkeys_clauses[] = {
+	{ "trusted-keys", &cfg_type_trustedkeys, CFG_CLAUSEFLAG_MULTI },
+	{ NULL, NULL, 0 }
+};
+
+/*%
  * Clauses that can be found within the 'options' statement.
  */
 static cfg_clausedef_t
@@ -665,6 +674,7 @@ options_clauses[] = {
 	{ "use-v6-udp-ports", &cfg_type_bracketed_portlist, 0 },
 	{ "avoid-v4-udp-ports", &cfg_type_bracketed_portlist, 0 },
 	{ "avoid-v6-udp-ports", &cfg_type_bracketed_portlist, 0 },
+	{ "bindkeys-file", &cfg_type_qstring, 0 },
 	{ "blackhole", &cfg_type_bracketed_aml, 0 },
 	{ "coresize", &cfg_type_size, 0 },
 	{ "datasize", &cfg_type_size, 0 },
@@ -764,14 +774,14 @@ static cfg_type_t cfg_type_masterformat = {
 
 static keyword_type_t trustanchor_kw = { "trust-anchor", &cfg_type_astring };
 
-static cfg_type_t cfg_type_trustanchor = {
-	"trust-anchor", parse_keyvalue, print_keyvalue, doc_keyvalue,
-	&cfg_rep_string, &trustanchor_kw
+static cfg_type_t cfg_type_optional_trustanchor = {
+	"optional_trustanchor", parse_optional_keyvalue, print_keyvalue,
+	doc_keyvalue, &cfg_rep_string, &trustanchor_kw
 };
 
 static cfg_tuplefielddef_t lookaside_fields[] = {
 	{ "domain", &cfg_type_astring, 0 },
-	{ "trust-anchor", &cfg_type_trustanchor, 0 },
+	{ "trust-anchor", &cfg_type_optional_trustanchor, 0 },
 	{ NULL, NULL, 0 }
 };
 
@@ -999,10 +1009,20 @@ namedconf_clausesets[] = {
 	namedconf_or_view_clauses,
 	NULL
 };
-
 LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_namedconf = {
 	"namedconf", cfg_parse_mapbody, cfg_print_mapbody, cfg_doc_mapbody,
 	&cfg_rep_map, namedconf_clausesets
+};
+
+/*% The bind.keys syntax (trusted-keys only). */
+static cfg_clausedef_t *
+bindkeys_clausesets[] = {
+	bindkeys_clauses,
+	NULL
+};
+LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_bindkeys = {
+	"bindkeys", cfg_parse_mapbody, cfg_print_mapbody, cfg_doc_mapbody,
+	&cfg_rep_map, bindkeys_clausesets
 };
 
 /*% The "options" statement syntax. */

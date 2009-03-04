@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: globals.h,v 1.80 2008/11/16 22:49:18 marka Exp $ */
+/* $Id: globals.h,v 1.81 2009/03/04 02:42:30 each Exp $ */
 
 #ifndef NAMED_GLOBALS_H
 #define NAMED_GLOBALS_H 1
@@ -86,6 +86,7 @@ EXTERN cfg_obj_t *		ns_g_config		INIT(NULL);
 EXTERN const cfg_obj_t *	ns_g_defaults		INIT(NULL);
 EXTERN const char *		ns_g_conffile		INIT(NS_SYSCONFDIR
 							     "/named.conf");
+EXTERN cfg_obj_t *		ns_g_bindkeys		INIT(NULL);
 EXTERN const char *		ns_g_keyfile		INIT(NS_SYSCONFDIR
 							     "/rndc.key");
 EXTERN const char *		lwresd_g_conffile	INIT(NS_SYSCONFDIR

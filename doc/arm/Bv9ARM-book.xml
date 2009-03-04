@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.400 2009/03/03 01:36:17 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.401 2009/03/04 02:42:30 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4715,6 +4715,7 @@ category notify { null; };
     <optional> tkey-dhkey <replaceable>key_name</replaceable> <replaceable>key_tag</replaceable>; </optional>
     <optional> cache-file <replaceable>path_name</replaceable>; </optional>
     <optional> dump-file <replaceable>path_name</replaceable>; </optional>
+    <optional> bindkeys-file <replaceable>path_name</replaceable>; </optional>
     <optional> memstatistics <replaceable>yes_or_no</replaceable>; </optional>
     <optional> memstatistics-file <replaceable>path_name</replaceable>; </optional>
     <optional> pid-file <replaceable>path_name</replaceable>; </optional>
@@ -4740,7 +4741,7 @@ category notify { null; };
     <optional> ixfr-from-differences (<replaceable>yes_or_no</replaceable> | <constant>master</constant> | <constant>slave</constant>); </optional>
     <optional> dnssec-enable <replaceable>yes_or_no</replaceable>; </optional>
     <optional> dnssec-validation <replaceable>yes_or_no</replaceable>; </optional>
-    <optional> dnssec-lookaside <replaceable>domain</replaceable> trust-anchor <replaceable>domain</replaceable>; </optional>
+    <optional> dnssec-lookaside ( <replaceable>auto</replaceable> | <replaceable>domain</replaceable> trust-anchor <replaceable>domain</replaceable> ); </optional>
     <optional> dnssec-must-be-secure <replaceable>domain yes_or_no</replaceable>; </optional>
     <optional> dnssec-accept-expired <replaceable>yes_or_no</replaceable>; </optional>
     <optional> forward ( <replaceable>only</replaceable> | <replaceable>first</replaceable> ); </optional>
@@ -5164,6 +5165,19 @@ category notify { null; };
           </varlistentry>
 
           <varlistentry>
+            <term><command>bindkeys-file</command></term>
+            <listitem>
+              <para>
+                The pathname of a file to override the built-in trusted
+		keys provided by named.  See the discussion of
+		<command>dnssec-lookaside</command> for details.
+                If not specified, the default is
+		<filename>/etc/bind.keys</filename>.
+              </para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
             <term><command>port</command></term>
             <listitem>
               <para>
@@ -5253,21 +5267,27 @@ options {
             <term><command>dnssec-lookaside</command></term>
             <listitem>
               <para>
-                When set, <command>dnssec-lookaside</command>
-                provides the
-                validator with an alternate method to validate DNSKEY records
-                at the
-                top of a zone.  When a DNSKEY is at or below a domain
-                specified by the
-                deepest <command>dnssec-lookaside</command>, and
-                the normal DNSSEC validation
-                has left the key untrusted, the trust-anchor will be append to
-                the key
-                name and a DLV record will be looked up to see if it can
-                validate the
-                key.  If the DLV record validates a DNSKEY (similarly to the
-                way a DS
-                record does) the DNSKEY RRset is deemed to be trusted.
+		When set, <command>dnssec-lookaside</command> provides the
+		validator with an alternate method to validate DNSKEY
+		records at the top of a zone.  When a DNSKEY is at or
+		below a domain specified by the deepest
+		<command>dnssec-lookaside</command>, and the normal dnssec
+		validation has left the key untrusted, the trust-anchor
+		will be append to the key name and a DLV record will be
+		looked up to see if it can validate the key.  If the DLV
+		record validates a DNSKEY (similarly to the way a DS record
+		does) the DNSKEY RRset is deemed to be trusted.
+	      </para>
+	      <para>
+		If <command>dnssec-lookaside</command> is set to
+		"auto", then built-in default values for
+		the domain and trust anchor will be used, along
+		with a built-in key for validation.
+	      </para>
+	      <para>
+		NOTE: Since the built-in key may expire, it can be
+		overridden without recompiling named by placing a new key
+		in the file <filename>bind.keys</command>.
               </para>
             </listitem>
           </varlistentry>
@@ -5276,17 +5296,14 @@ options {
             <term><command>dnssec-must-be-secure</command></term>
             <listitem>
               <para>
-                Specify hierarchies which must be or may not be secure (signed and
-                validated).
-                If <userinput>yes</userinput>, then <command>named</command> will only accept
-                answers if they
-                are secure.
-                If <userinput>no</userinput>, then normal DNSSEC validation
-                applies
-                allowing for insecure answers to be accepted.
-                The specified domain must be under a <command>trusted-key</command> or
-                <command>dnssec-lookaside</command> must be
-                active.
+                Specify hierarchies which must be or may not be secure
+                (signed and validated).  If <userinput>yes</userinput>,
+                then <command>named</command> will only accept answers if
+                they are secure.  If <userinput>no</userinput>, then normal
+                DNSSEC validation applies allowing for insecure answers to
+                be accepted.  The specified domain must be under a
+                <command>trusted-key</command> or
+                <command>dnssec-lookaside</command> must be active.
               </para>
             </listitem>
           </varlistentry>
@@ -8641,6 +8658,19 @@ XXX: end of RFC1918 addresses #defined out -->
 	    Spaces, tabs, newlines and carriage returns are ignored
 	    in the key data, so the configuration may be split up into
 	    multiple lines.
+	  </para>
+	  <para>
+	    <command>trusted-keys</command> may be set at the top level
+	    of <filename>named.conf</filename> or within a view.  If it is
+	    set in both places, they are additive: keys defined at the top
+	    level are inherited by all views, but keys defined in a view
+	    are only used within that view.
+	  </para>
+	  <para>
+	    In addition to keys specified in
+	    <command>trusted-keys</command> statements, if the
+	    <command>dnssec-lookaside</command> option is set to "auto",
+	    named will also load a built-in trusted key for dlv.isc.org.
 	  </para>
 	</sect2>
 

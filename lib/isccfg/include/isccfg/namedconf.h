@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.h,v 1.9 2007/06/19 23:47:22 tbox Exp $ */
+/* $Id: namedconf.h,v 1.10 2009/03/04 02:42:31 each Exp $ */
 
 #ifndef ISCCFG_NAMEDCONF_H
 #define ISCCFG_NAMEDCONF_H 1
@@ -32,6 +32,9 @@
  */
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_namedconf;
 /*%< A complete named.conf file. */
+
+LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_bindkeys;
+/*%< A bind.keys file. */
 
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_rndcconf;
 /*%< A complete rndc.conf file. */

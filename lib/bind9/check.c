@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.98 2009/02/17 03:40:28 marka Exp $ */
+/* $Id: check.c,v 1.99 2009/03/04 02:42:31 each Exp $ */
 
 /*! \file */
 
@@ -663,10 +663,20 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 		     element = cfg_list_next(element))
 		{
 			const char *dlv;
+			const cfg_obj_t *anchor;
 
 			obj = cfg_listelt_value(element);
 
 			dlv = cfg_obj_asstring(cfg_tuple_get(obj, "domain"));
+			anchor = cfg_tuple_get(obj, "trust-anchor");
+
+			/*
+                         * If domain is "auto" and trust anchor is missing,
+                         * skip remaining tests
+                         */
+			if (!strcmp(dlv, "auto") && cfg_obj_isvoid(anchor))
+				continue;
+
 			isc_buffer_init(&b, dlv, strlen(dlv));
 			isc_buffer_add(&b, strlen(dlv));
 			tresult = dns_name_fromtext(name, &b, dns_rootname,
@@ -698,19 +708,31 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 				if (result == ISC_R_SUCCESS)
 					result = ISC_R_FAILURE;
 			}
-			dlv = cfg_obj_asstring(cfg_tuple_get(obj,
-					       "trust-anchor"));
-			isc_buffer_init(&b, dlv, strlen(dlv));
-			isc_buffer_add(&b, strlen(dlv));
-			tresult = dns_name_fromtext(name, &b, dns_rootname,
-						    ISC_TRUE, NULL);
-			if (tresult != ISC_R_SUCCESS) {
+
+			if(!cfg_obj_isvoid(anchor)) {
+				dlv = cfg_obj_asstring(anchor);
+				isc_buffer_init(&b, dlv, strlen(dlv));
+				isc_buffer_add(&b, strlen(dlv));
+				tresult = dns_name_fromtext(name, &b,
+							    dns_rootname,
+							    ISC_TRUE, NULL);
+				if (tresult != ISC_R_SUCCESS) {
+					cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+						    "bad domain name '%s'",
+						    dlv);
+					if (result == ISC_R_SUCCESS)
+						result = tresult;
+				}
+			} else {
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-					    "bad domain name '%s'", dlv);
+					"dnssec-lookaside requires "
+					"either 'auto' or a domain and "
+					"trust anchor");
 				if (result == ISC_R_SUCCESS)
-					result = tresult;
+					result = ISC_R_FAILURE;
 			}
 		}
+
 		if (symtab != NULL)
 			isc_symtab_destroy(&symtab);
 	}
