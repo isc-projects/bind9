@@ -1,3 +1,6 @@
+2573.	[bug]		Replacing a non-CNAME record with a CNAME record in a
+			single transaction in a signed zone failed. [RT #19397]
+
 2568.	[bug]		Report when the write to indicate a otherwise
 			successful start fails. [RT #19360]
 
