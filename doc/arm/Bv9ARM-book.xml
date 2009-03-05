@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.102 2009/02/05 00:36:24 jreed Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.103 2009/03/05 04:30:06 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -10713,7 +10713,7 @@ $GENERATE 1-127 $ CNAME $.0</programlisting>
 		      describes the owner name of the resource records
                       to be created.  Any single <command>$</command>
                       (dollar sign)
-                      symbols within the <command>lhs</command> side
+                      symbols within the <command>lhs</command> string
                       are replaced by the iterator value.
 
                       To get a $ in the output, you need to escape the
