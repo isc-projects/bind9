@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.402 2009/03/05 02:09:40 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.403 2009/03/05 04:32:34 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -11485,7 +11485,7 @@ HOST-127.EXAMPLE. MX 0 .
 		      describes the owner name of the resource records
                       to be created.  Any single <command>$</command>
                       (dollar sign)
-                      symbols within the <command>lhs</command> side
+                      symbols within the <command>lhs</command> string
                       are replaced by the iterator value.
 
                       To get a $ in the output, you need to escape the
