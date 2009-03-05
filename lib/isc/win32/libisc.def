@@ -35,6 +35,7 @@ isc__mem_reallocate
 isc__mem_strdup
 isc__mempool_get
 isc__mempool_put
+isc__socketmgr_maxudp
 isc__socketmgr_setreserved
 isc__strerror
 isc_app_block

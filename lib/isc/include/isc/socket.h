@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.88 2009/01/27 22:29:59 jinmei Exp $ */
+/* $Id: socket.h,v 1.89 2009/03/05 03:13:55 marka Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -990,6 +990,12 @@ void
 isc__socketmgr_setreserved(isc_socketmgr_t *mgr, isc_uint32_t);
 /*%<
  * Temporary.  For use by named only.
+ */
+
+void
+isc__socketmgr_maxudp(isc_socketmgr_t *mgr, int maxudp);
+/*%<
+ * Test interface. Drop UDP packet > 'maxudp'.
  */
 
 #ifdef HAVE_LIBXML2

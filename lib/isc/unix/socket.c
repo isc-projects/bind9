@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.316 2009/01/27 22:30:00 jinmei Exp $ */
+/* $Id: socket.c,v 1.317 2009/03/05 03:13:55 marka Exp $ */
 
 /*! \file */
 
@@ -388,6 +388,7 @@ struct isc_socketmgr {
 #else /* ISC_PLATFORM_USETHREADS */
 	unsigned int		refs;
 #endif /* ISC_PLATFORM_USETHREADS */
+	int			maxudp;
 };
 
 #ifndef ISC_PLATFORM_USETHREADS
@@ -1538,6 +1539,12 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 			}
 			return (DOIO_SOFT);
 		}
+		/*
+		 * Simulate a firewall blocking UDP responses bigger than
+		 * 512 bytes.
+		 */
+		if (sock->manager->maxudp != 0 && cc > sock->manager->maxudp)
+			return (DOIO_SOFT);
 	}
 
 	socket_log(sock, &dev->address, IOEVENT,
@@ -3556,6 +3563,13 @@ isc__socketmgr_setreserved(isc_socketmgr_t *manager, isc_uint32_t reserved) {
 	manager->reserved = reserved;
 }
 
+void
+isc__socketmgr_maxudp(isc_socketmgr_t *manager, int maxudp) {
+	REQUIRE(VALID_MANAGER(manager));
+
+	manager->maxudp = maxudp;
+}
+
 /*
  * Create a new socket manager.
  */
@@ -3811,6 +3825,7 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 	memset(manager, 0, sizeof(*manager));
 	manager->maxsocks = maxsocks;
 	manager->reserved = 0;
+	manager->maxudp = 0;
 	manager->fds = isc_mem_get(mctx,
 				   manager->maxsocks * sizeof(isc_socket_t *));
 	if (manager->fds == NULL) {

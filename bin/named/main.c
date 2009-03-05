@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.169 2009/03/04 02:42:30 each Exp $ */
+/* $Id: main.c,v 1.170 2009/03/05 03:13:55 marka Exp $ */
 
 /*! \file */
 
@@ -87,6 +87,7 @@ static char		absolute_conffile[ISC_DIR_PATHMAX];
 static char		saved_command_line[512];
 static char		version[512];
 static unsigned int	maxsocks = 0;
+static int		maxudp = 0;
 
 void
 ns_main_earlywarning(const char *format, ...) {
@@ -451,8 +452,12 @@ parse_command_line(int argc, char *argv[]) {
 			 * clienttest: make clients single shot with their
 			 * 	       own memory context.
 			 */
-			if (strcmp(isc_commandline_argument, "clienttest") == 0)
+			if (!strcmp(isc_commandline_argument, "clienttest"))
 				ns_g_clienttest = ISC_TRUE;
+			else if (!strcmp(isc_commandline_argument, "maxudp512"))
+				maxudp = 512;
+			else if (!strcmp(isc_commandline_argument, "maxudp1460"))
+				maxudp = 1460;
 			else
 				fprintf(stderr, "unknown -T flag '%s\n",
 					isc_commandline_argument);
@@ -525,6 +530,7 @@ create_managers(void) {
 				 isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	}
+	isc__socketmgr_maxudp(ns_g_socketmgr, maxudp);
 	result = isc_socketmgr_getmaxsockets(ns_g_socketmgr, &socks);
 	if (result == ISC_R_SUCCESS) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
