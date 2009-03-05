@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.401 2009/03/04 02:42:30 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.402 2009/03/05 02:09:40 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -5287,7 +5287,7 @@ options {
 	      <para>
 		NOTE: Since the built-in key may expire, it can be
 		overridden without recompiling named by placing a new key
-		in the file <filename>bind.keys</command>.
+		in the file <filename>bind.keys</filename>.
               </para>
             </listitem>
           </varlistentry>
