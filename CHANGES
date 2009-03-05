@@ -1,3 +1,6 @@
+2573.	[bug]		Replacing a non-CNAME record with a CNAME record in a
+			single transaction in a signed zone failed. [RT #19397]
+
 2572.	[func]		Simplify DLV configuration, with a new option
 			"dnssec-lookaside auto;"  This is the equivalent
 			of "dnssec-lookaside . trust-anchor dlv.isc.org;"
