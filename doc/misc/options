@@ -72,6 +72,7 @@ options {
         auth-nxdomain <boolean>; // default changed
         avoid-v4-udp-ports { <portrange>; ... };
         avoid-v6-udp-ports { <portrange>; ... };
+        bindkeys-file <quoted_string>;
         blackhole { <address_match_element>; ... };
         cache-file <quoted_string>;
         check-integrity <boolean>;
