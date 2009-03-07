@@ -900,7 +900,7 @@
 ./bin/tools/journalprint.docbook		SGML	2009
 ./bin/tools/journalprint.html			HTML	2009
 ./bin/tools/nsec3hash.8				MAN	2009
-./bin/tools/nsec3hash.c				C	2006,2008
+./bin/tools/nsec3hash.c				C	2006,2008,2009
 ./bin/tools/nsec3hash.docbook			SGML	2009
 ./bin/tools/nsec3hash.html			HTML	2009
 ./bin/win32/BINDInstall/AccountInfo.cpp		C.PORTION	2001,2002,2004,2007
