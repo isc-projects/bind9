@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: genrandom.c,v 1.3 2009/03/02 23:47:43 tbox Exp $ */
+/* $Id: genrandom.c,v 1.4 2009/03/07 23:47:45 tbox Exp $ */
 
 /*! \file */
 #include <config.h>
