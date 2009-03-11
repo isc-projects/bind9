@@ -1,3 +1,8 @@
+2575.	[func]		New functions dns_name_fromstring() and
+			dns_name_tostring(), to simplify conversion
+			of a string to a dns_name structure and vice
+			versa. [RT #19451]
+
 2574.	[doc]		Document nsupdate -g and -o. [RT #19351]
 
 2573.	[bug]		Replacing a non-CNAME record with a CNAME record in a
