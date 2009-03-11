@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.166 2009/03/11 07:02:34 each Exp $ */
+/* $Id: name.c,v 1.167 2009/03/11 23:47:35 tbox Exp $ */
 
 /*! \file */
 
@@ -2353,7 +2353,7 @@ dns_name_tostring(dns_name_t *name, char **target, isc_mem_t *mctx) {
 	char *p, txt[DNS_NAME_FORMATSIZE];
 
 	REQUIRE(VALID_NAME(name));
-        REQUIRE(target != NULL && *target == NULL);
+	REQUIRE(target != NULL && *target == NULL);
 
 	isc_buffer_init(&buf, txt, sizeof(txt));
 	result = dns_name_totext(name, ISC_FALSE, &buf);
