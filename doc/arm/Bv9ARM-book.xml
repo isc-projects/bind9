@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.31 2009/03/05 04:30:56 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.32 2009/03/13 01:53:07 jinmei Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -7766,7 +7766,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      </listitem>
 	    </varlistentry>
 
-	    <varlistentry>
+	    <varlistentry id="clients-per-query">
 	      <term><command>clients-per-query</command></term>
 	      <term><command>max-clients-per-query</command></term>
               <listitem>
@@ -11887,10 +11887,18 @@ $GENERATE 1-127 $ CNAME $.0</programlisting>
 		    </entry>
 		    <entry colname="3">
 		      <para>
-			Queries for which the server
+			Recursive queries for which the server
 			discovered an excessive number of existing
 			recursive queries for the same name, type and
 			class and were subsequently dropped.
+			This is the number of dropped queries due to
+			the reason explained with the
+			<command>clients-per-query</command>
+			and
+			<command>max-clients-per-query</command>
+			options
+			(see the description about
+			<xref linkend="clients-per-query"/>.)
 			This corresponds to the
 			<command>dropped</command> counter
 			of previous versions of
@@ -11912,6 +11920,14 @@ $GENERATE 1-127 $ CNAME $.0</programlisting>
 			<command>failure</command> counter
 			of previous versions of
 			<acronym>BIND</acronym> 9.
+			Note: this counter is provided mainly for
+			backward compatibility with the previous versions.
+			Normally a more fine-grained counters such as
+			<command>AuthQryRej</command> and
+			<command>RecQryRej</command>
+			that would also fall into this counter are provided,
+			and so this counter would not be of much
+			interest in practice.
 		      </para>
 		    </entry>
 		  </row>
