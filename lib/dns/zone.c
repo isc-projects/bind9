@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.487 2009/02/16 02:01:15 marka Exp $ */
+/* $Id: zone.c,v 1.488 2009/03/13 01:35:18 marka Exp $ */
 
 /*! \file */
 
@@ -4250,7 +4250,9 @@ sign_a_node(dns_db_t *db, dns_name_t *name, dns_dbnode_t *node,
 			goto next_rdataset;
 		if (is_ksk && rdataset.type != dns_rdatatype_dnskey)
 			goto next_rdataset;
-		if (*delegation && !dns_rdatatype_atparent(rdataset.type))
+		if (*delegation &&
+		    rdataset.type != dns_rdatatype_ds &&
+		    rdataset.type != dns_rdatatype_nsec)
 			goto next_rdataset;
 		if (signed_with_key(db, node, version, rdataset.type, key))
 			goto next_rdataset;

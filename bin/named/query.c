@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.321 2009/03/03 01:36:17 marka Exp $ */
+/* $Id: query.c,v 1.322 2009/03/13 01:35:18 marka Exp $ */
 
 /*! \file */
 
@@ -2741,6 +2741,10 @@ query_addds(ns_client_t *client, dns_db_t *db, dns_dbnode_t *node,
 		goto cleanup;
 	fname = query_newname(client, dbuf, &b);
 	dns_fixedname_init(&fixed);
+	if (dns_rdataset_isassociated(rdataset))
+		dns_rdataset_disassociate(rdataset);
+	if (dns_rdataset_isassociated(sigrdataset))
+		dns_rdataset_disassociate(sigrdataset);
 	query_findclosestnsec3(name, db, version, client, rdataset,
 			       sigrdataset, fname, ISC_TRUE,
 			       dns_fixedname_name(&fixed));
