@@ -1545,7 +1545,7 @@
 ./lib/Makefile.in				MAKE	1998,1999,2000,2001,2003,2004,2007
 ./lib/bind9/.cvsignore				X	2001
 ./lib/bind9/Makefile.in				MAKE	2001,2004,2007
-./lib/bind9/api					X	2001,2006,2008
+./lib/bind9/api					X	2001,2006,2008,2009
 ./lib/bind9/check.c				C	2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./lib/bind9/getaddresses.c			C	2001,2002,2004,2005,2007
 ./lib/bind9/include/.cvsignore			X	2001
@@ -1867,7 +1867,7 @@
 ./lib/isc/alpha/include/isc/.cvsignore		X	2007
 ./lib/isc/alpha/include/isc/Makefile.in		MAKE	2007
 ./lib/isc/alpha/include/isc/atomic.h		C	2005,2007
-./lib/isc/api					X	1999,2000,2001,2006,2008
+./lib/isc/api					X	1999,2000,2001,2006,2008,2009
 ./lib/isc/assertions.c				C	1997,1998,1999,2000,2001,2004,2005,2007,2008
 ./lib/isc/base32.c				C	2008,2009
 ./lib/isc/base64.c				C	1998,1999,2000,2001,2003,2004,2005,2007
@@ -2241,7 +2241,7 @@
 ./lib/isccfg/win32/version.c			C	1998,1999,2000,2001,2004,2007
 ./lib/lwres/.cvsignore				X	2000,2001
 ./lib/lwres/Makefile.in				MAKE	2000,2001,2004,2005,2007
-./lib/lwres/api					X	2000,2001,2006,2008
+./lib/lwres/api					X	2000,2001,2006,2008,2009
 ./lib/lwres/assert_p.h				C	2000,2001,2004,2005,2007
 ./lib/lwres/context.c				C	2000,2001,2003,2004,2005,2007,2008
 ./lib/lwres/context_p.h				C	2000,2001,2004,2005,2007,2008
@@ -2413,7 +2413,7 @@
 ./util/update-drafts.pl				PERL	2000,2001,2004,2007
 ./util/update_branches				PERL	2005,2007
 ./util/update_copyrights			PERL	1998,1999,2000,2001,2004,2005,2006,2007,2008,2009
-./version					X	1998,1999,2000,2001,2003,2005,2006,2007,2008
+./version					X	1998,1999,2000,2001,2003,2005,2006,2007,2008,2009
 ./win32utils/BINDBuild.dsw			X	2001,2005,2006,2008
 ./win32utils/BuildAll.bat			BAT	2001,2002,2004,2005,2006,2007,2008
 ./win32utils/BuildOpenSSL.bat			BAT	2007
