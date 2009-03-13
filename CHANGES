@@ -1,3 +1,5 @@
+	--- 9.6.1b1 released ---
+
 2577.	[doc]		Clarified some statistics counters. [RT #19454]
 
 2576.	[bug]		NSEC record were not being correctly signed when
