@@ -1,3 +1,5 @@
+2577.	[doc]		Clarified some statistics counters. [RT #19454]
+
 2576.	[bug]		NSEC record were not being correctly signed when
 			a zone transitions from insecure to secure.
 			Handle such incorrectly signed zones. [RT #19114]
