@@ -1,6 +1,6 @@
 2576.	[bug]		NSEC record were not being correctly signed when
 			a zone transitions from insecure to secure.
-			Handle such incorrectly signed zones. [RET #19114]
+			Handle such incorrectly signed zones. [RT #19114]
 
 2575.	[func]		New functions dns_name_fromstring() and
 			dns_name_tostring(), to simplify conversion
