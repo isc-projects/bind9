@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.93 2008/11/06 05:30:24 marka Exp $ */
+/* $Id: config.c,v 1.93.14.1 2009/03/16 23:43:10 each Exp $ */
 
 /*! \file */
 
@@ -177,7 +177,7 @@ options {\n\
 	sig-validity-interval 30; /* days */\n\
 	sig-signing-nodes 100;\n\
 	sig-signing-signatures 10;\n\
-	sig-signing-type 65535;\n\
+	sig-signing-type 65534;\n\
 	zone-statistics false;\n\
 	max-journal-size unlimited;\n\
 	ixfr-from-differences false;\n\
