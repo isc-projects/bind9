@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.95 2009/03/05 23:47:35 tbox Exp $ */
+/* $Id: config.c,v 1.96 2009/03/16 23:41:21 each Exp $ */
 
 /*! \file */
 
@@ -183,7 +183,7 @@ options {\n\
 	sig-validity-interval 30; /* days */\n\
 	sig-signing-nodes 100;\n\
 	sig-signing-signatures 10;\n\
-	sig-signing-type 65535;\n\
+	sig-signing-type 65534;\n\
 	zone-statistics false;\n\
 	max-journal-size unlimited;\n\
 	ixfr-from-differences false;\n\

@@ -1,3 +1,6 @@
+2578.	[bug]		Changed default sig-signing-type to 65534, because
+			65535 turns out to be reserved.  [RT #19477]
+
 2577.	[doc]		Clarified some statistics counters. [RT #19454]
 
 2576.	[bug]		NSEC record were not being correctly signed when
