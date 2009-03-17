@@ -1,4 +1,7 @@
 2573.	[bug]		Replacing a non-CNAME record with a CNAME record in a
+2579.	[bug]		DNSSEC lookaside validation failed to handle unknown
+			algorithms. [RT #19479]
+
 			single transaction in a signed zone failed. [RT #19397]
 
 2568.	[bug]		Report when the write to indicate a otherwise
