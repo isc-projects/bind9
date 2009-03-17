@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.119.18.48 2009/03/17 01:32:04 marka Exp $ */
+/* $Id: validator.c,v 1.119.18.49 2009/03/17 23:46:05 tbox Exp $ */
 
 /*! \file */
 
@@ -2451,7 +2451,7 @@ startfinddlvsep(dns_validator_t *val, dns_name_t *unsecure) {
 		validator_log(val, ISC_LOG_DEBUG(3), "DLV %s found", namebuf);
 		dlv_validator_start(val);
 		return (DNS_R_WAIT);
-	} 
+	}
 	validator_log(val, ISC_LOG_DEBUG(3), "DLV %s found with no supported "
 		      "algorithms", namebuf);
 	markanswer(val);
