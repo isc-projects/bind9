@@ -101,7 +101,7 @@
 ./bin/named/bind9.xsl.h				X	2007,2008,2009
 ./bin/named/builtin.c				C	2001,2002,2003,2004,2005,2007
 ./bin/named/client.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
-./bin/named/config.c				C	2001,2002,2003,2004,2005,2006,2007,2008
+./bin/named/config.c				C	2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./bin/named/control.c				C	2001,2002,2003,2004,2005,2006,2007
 ./bin/named/controlconf.c			C	2001,2002,2003,2004,2005,2006,2007,2008
 ./bin/named/convertxsl.pl			PERL	2006,2007,2008
