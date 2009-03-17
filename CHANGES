@@ -1,4 +1,7 @@
 2578.	[bug]		Changed default sig-signing-type to 65534, because
+2579.	[bug]		DNSSEC lookaside validation failed to handle unknown
+			algorithms. [RT #19479]
+
 			65535 turns out to be reserved.  [RT #19477]
 
 2577.	[doc]		Clarified some statistics counters. [RT #19454]
