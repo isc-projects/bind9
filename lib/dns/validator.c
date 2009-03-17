@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.155.52.8 2008/11/14 23:46:41 tbox Exp $ */
+/* $Id: validator.c,v 1.155.52.8.2.1 2009/03/17 02:11:19 marka Exp $ */
 
 #include <config.h>
 
@@ -207,6 +207,37 @@ exit_check(dns_validator_t *val) {
 		return (ISC_FALSE);
 
 	return (ISC_TRUE);
+}
+
+/*
+ * Check that we have atleast one supported algorithm in the DLV RRset.
+ */
+static inline isc_boolean_t
+dlv_algorithm_supported(dns_validator_t *val) {
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdata_dlv_t dlv;
+	isc_result_t result;
+
+	for (result = dns_rdataset_first(&val->dlv);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(&val->dlv)) {
+		dns_rdata_reset(&rdata);
+		dns_rdataset_current(&val->dlv, &rdata);
+		result = dns_rdata_tostruct(&rdata, &dlv, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+		if (!dns_resolver_algorithm_supported(val->view->resolver,
+						      val->event->name,
+						      dlv.algorithm))
+			continue;
+
+		if (dlv.digest_type != DNS_DSDIGEST_SHA256 &&
+		    dlv.digest_type != DNS_DSDIGEST_SHA1)
+			continue;
+
+		return (ISC_TRUE);
+	}
+	return (ISC_FALSE);
 }
 
 /*%
@@ -2320,19 +2351,36 @@ dlvfetched(isc_task_t *task, isc_event_t *event) {
 				sizeof(namebuf));
 		dns_rdataset_clone(&val->frdataset, &val->dlv);
 		val->havedlvsep = ISC_TRUE;
-		validator_log(val, ISC_LOG_DEBUG(3), "DLV %s found", namebuf);
-		dlv_validator_start(val);
+		if (dlv_algorithm_supported(val)) {
+			validator_log(val, ISC_LOG_DEBUG(3), "DLV %s found",
+				      namebuf);
+			dlv_validator_start(val);
+		} else {
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "DLV %s found with no supported algorithms",
+				      namebuf);
+			markanswer(val);
+			validator_done(val, ISC_R_SUCCESS);
+		}
 	} else if (eresult == DNS_R_NXRRSET ||
 		   eresult == DNS_R_NXDOMAIN ||
 		   eresult == DNS_R_NCACHENXRRSET ||
 		   eresult == DNS_R_NCACHENXDOMAIN) {
-		   result = finddlvsep(val, ISC_TRUE);
+		result = finddlvsep(val, ISC_TRUE);
 		if (result == ISC_R_SUCCESS) {
-			dns_name_format(dns_fixedname_name(&val->dlvsep),
-					namebuf, sizeof(namebuf));
-			validator_log(val, ISC_LOG_DEBUG(3), "DLV %s found",
-				      namebuf);
-			dlv_validator_start(val);
+			if (dlv_algorithm_supported(val)) {
+				dns_name_format(dns_fixedname_name(&val->dlvsep),
+						namebuf, sizeof(namebuf));
+				validator_log(val, ISC_LOG_DEBUG(3),
+					      "DLV %s found", namebuf);
+				dlv_validator_start(val);
+			} else {
+				validator_log(val, ISC_LOG_DEBUG(3),
+					      "DLV %s found with no supported "
+					      "algorithms", namebuf);
+				markanswer(val);
+				validator_done(val, ISC_R_SUCCESS);
+			}
 		} else if (result == ISC_R_NOTFOUND) {
 			validator_log(val, ISC_LOG_DEBUG(3), "DLV not found");
 			markanswer(val);
@@ -2395,9 +2443,16 @@ startfinddlvsep(dns_validator_t *val, dns_name_t *unsecure) {
 	}
 	dns_name_format(dns_fixedname_name(&val->dlvsep), namebuf,
 			sizeof(namebuf));
-	validator_log(val, ISC_LOG_DEBUG(3), "DLV %s found", namebuf);
-	dlv_validator_start(val);
-	return (DNS_R_WAIT);
+	if (dlv_algorithm_supported(val)) {
+		validator_log(val, ISC_LOG_DEBUG(3), "DLV %s found", namebuf);
+		dlv_validator_start(val);
+		return (DNS_R_WAIT);
+	} 
+	validator_log(val, ISC_LOG_DEBUG(3), "DLV %s found with no supported "
+		      "algorithms", namebuf);
+	markanswer(val);
+	validator_done(val, ISC_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 /*%
