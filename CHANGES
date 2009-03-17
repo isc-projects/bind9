@@ -1,3 +1,6 @@
+2579.	[bug]		DNSSEC lookaside validation failed to handle unknown
+			algorithms. [RT #19479]
+
 2577.	[doc]		Clarified some statistics counters. [RT #19454]
 
 2573.	[bug]		Replacing a non-CNAME record with a CNAME record in a
