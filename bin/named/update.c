@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.155 2009/01/27 22:29:58 jinmei Exp $ */
+/* $Id: update.c,v 1.156 2009/03/18 22:17:24 jinmei Exp $ */
 
 #include <config.h>
 
@@ -4126,9 +4126,6 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	goto common;
 
  failure:
-	if (result == DNS_R_REFUSED)
-		inc_stats(zone, dns_nsstatscounter_updaterej);
-
 	/*
 	 * The reason for failure should have been logged at this point.
 	 */

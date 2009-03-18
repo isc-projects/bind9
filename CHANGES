@@ -1,3 +1,6 @@
+2580.	[bug]		UpdateRej statistics counter could be incremented twice
+			for one rejection. [RT #19476]
+
 2579.	[bug]		DNSSEC lookaside validation failed to handle unknown
 			algorithms. [RT #19479]
 
