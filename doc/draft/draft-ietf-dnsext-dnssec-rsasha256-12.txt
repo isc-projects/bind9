@@ -3,13 +3,13 @@
 
 DNS Extensions working group                                   J. Jansen
 Internet-Draft                                                NLnet Labs
-Intended status: Standards Track                       February 27, 2009
-Expires: August 31, 2009
+Intended status: Standards Track                          March 23, 2009
+Expires: September 24, 2009
 
 
  Use of SHA-2 algorithms with RSA in DNSKEY and RRSIG Resource Records
                                for DNSSEC
-                 draft-ietf-dnsext-dnssec-rsasha256-11
+                 draft-ietf-dnsext-dnssec-rsasha256-12
 
 Status of this Memo
 
@@ -32,7 +32,7 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on August 31, 2009.
+   This Internet-Draft will expire on September 24, 2009.
 
 Copyright Notice
 
@@ -52,9 +52,9 @@ Abstract
 
 
 
-Jansen                   Expires August 31, 2009                [Page 1]
+Jansen                 Expires September 24, 2009               [Page 1]
 
-Internet-Draft              DNSSEC RSA/SHA-2               February 2009
+Internet-Draft              DNSSEC RSA/SHA-2                  March 2009
 
 
    Security Extensions (DNSSEC, RFC 4033, RFC 4034, and RFC 4035).
@@ -108,9 +108,9 @@ Table of Contents
 
 
 
-Jansen                   Expires August 31, 2009                [Page 2]
+Jansen                 Expires September 24, 2009               [Page 2]
 
-Internet-Draft              DNSSEC RSA/SHA-2               February 2009
+Internet-Draft              DNSSEC RSA/SHA-2                  March 2009
 
 
 1.  Introduction
@@ -164,9 +164,9 @@ Internet-Draft              DNSSEC RSA/SHA-2               February 2009
 
 
 
-Jansen                   Expires August 31, 2009                [Page 3]
+Jansen                 Expires September 24, 2009               [Page 3]
 
-Internet-Draft              DNSSEC RSA/SHA-2               February 2009
+Internet-Draft              DNSSEC RSA/SHA-2                  March 2009
 
 
 2.2.  RSA/SHA-512 DNSKEY Resource Records
@@ -220,9 +220,9 @@ Internet-Draft              DNSSEC RSA/SHA-2               February 2009
 
 
 
-Jansen                   Expires August 31, 2009                [Page 4]
+Jansen                 Expires September 24, 2009               [Page 4]
 
-Internet-Draft              DNSSEC RSA/SHA-2               February 2009
+Internet-Draft              DNSSEC RSA/SHA-2                  March 2009
 
 
 3.2.  RSA/SHA-512 RRSIG Resource Records
@@ -250,8 +250,8 @@ Internet-Draft              DNSSEC RSA/SHA-2               February 2009
    In this family of signing algorithms, the size of signatures is
    related to the size of the key, and not the hashing algorithm used in
    the signing process.  Therefore, RRSIG resource records produced with
-   RSA/SHA256 or RSA/SHA512 will have the same size as those produced
-   with RSA/SHA1, if the keys have the same length.
+   RSA/SHA-256 or RSA/SHA-512 will have the same size as those produced
+   with RSA/SHA-1, if the keys have the same length.
 
 
 5.  Implementation Considerations
@@ -264,10 +264,10 @@ Internet-Draft              DNSSEC RSA/SHA-2               February 2009
 
 5.2.  Support for NSEC3 Denial of Existence
 
-   RFC5155 [RFC5155] defines new algorithm identifiers for existing
+   RFC 5155 [RFC5155] defines new algorithm identifiers for existing
    signing algorithms, to indicate that zones signed with these
-   algorithm identifiers use NSEC3 instead of NSEC records to provide
-   denial of existence.  That mechanism was chosen to protect
+   algorithm identifiers can use NSEC3 as well as NSEC records to
+   provide denial of existence.  That mechanism was chosen to protect
    implementations predating RFC5155 from encountering resource records
    they could not know about.  This document does not define such
    algorithm aliases, and support for NSEC3 denial of existence is
@@ -276,22 +276,22 @@ Internet-Draft              DNSSEC RSA/SHA-2               February 2009
 
 
 
-Jansen                   Expires August 31, 2009                [Page 5]
+Jansen                 Expires September 24, 2009               [Page 5]
 
-Internet-Draft              DNSSEC RSA/SHA-2               February 2009
+Internet-Draft              DNSSEC RSA/SHA-2                  March 2009
 
 
 5.2.1.  NSEC3 in Authoritative servers
 
    An authoritative server that does not implement NSEC3 MAY still serve
-   zones that use RSA/SHA2 with NSEC denial of existence.
+   zones that use RSA/SHA-2 with NSEC denial of existence.
 
 5.2.2.  NSEC3 in Validators
 
-   A DNSSEC validator that implements RSA/SHA2 MUST be able to handle
+   A DNSSEC validator that implements RSA/SHA-2 MUST be able to handle
    both NSEC and NSEC3 [RFC5155] negative answers.  If this is not the
-   case, the validator MUST treat a zone signed with RSA/SHA256 or RSA/
-   SHA512 as signed with an unknown algorithm, and thus as insecure.
+   case, the validator MUST treat a zone signed with RSA/SHA-256 or RSA/
+   SHA-512 as signed with an unknown algorithm, and thus as insecure.
 
 
 6.  IANA Considerations
@@ -301,11 +301,13 @@ Internet-Draft              DNSSEC RSA/SHA-2               February 2009
    (http://www.iana.org/assignments/dns-sec-alg-numbers).  The following
    entries are added to the registry:
 
-                                                     Zone
-   Value      Algorithm               Mnemonic    Signing  References
-   {TBA1}   RSA/SHA-256              RSASHA256          y {this memo}
-   {TBA2}   RSA/SHA-512              RSASHA512          y {this memo}
+                                           Zone  Trans.
+  Value   Description       Mnemonic    Signing    Sec.   References
+ {TBA1}   RSA/SHA-256      RSASHA256          y      *   {this memo}
+ {TBA2}   RSA/SHA-512      RSASHA512          y      *   {this memo}
 
+ * There has been no determination of standardization of the use of this
+   algorithm with Transaction Security.
 
 
 7.  Security Considerations
@@ -330,11 +332,9 @@ Internet-Draft              DNSSEC RSA/SHA-2               February 2009
 
 
 
-
-
-Jansen                   Expires August 31, 2009                [Page 6]
+Jansen                 Expires September 24, 2009               [Page 6]
 
-Internet-Draft              DNSSEC RSA/SHA-2               February 2009
+Internet-Draft              DNSSEC RSA/SHA-2                  March 2009
 
 
 7.2.  Signature Type Downgrade Attacks
@@ -388,9 +388,9 @@ Internet-Draft              DNSSEC RSA/SHA-2               February 2009
 
 
 
-Jansen                   Expires August 31, 2009                [Page 7]
+Jansen                 Expires September 24, 2009               [Page 7]
 
-Internet-Draft              DNSSEC RSA/SHA-2               February 2009
+Internet-Draft              DNSSEC RSA/SHA-2                  March 2009
 
 
 9.2.  Informative References
@@ -444,5 +444,5 @@ Author's Address
 
 
 
-Jansen                   Expires August 31, 2009                [Page 8]
+Jansen                 Expires September 24, 2009               [Page 8]
 
