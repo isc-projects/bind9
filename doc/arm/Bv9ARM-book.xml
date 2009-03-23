@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.404 2009/03/13 01:51:50 jinmei Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.405 2009/03/23 22:30:56 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -2445,14 +2445,17 @@ allow-update { key host1-host2. ;};
 	  To enable <command>named</command> to respond appropriately
 	  to DNS requests from DNSSEC aware clients,
 	  <command>dnssec-enable</command> must be set to yes.
+          (This is the default setting.)
         </para>
 
 	<para>
 	  To enable <command>named</command> to validate answers from
-	  other servers both <command>dnssec-enable</command> and
-	  <command>dnssec-validation</command> must be set and some
-	  <command>trusted-keys</command> must be configured
-	  into <filename>named.conf</filename>.
+	  other servers, the <command>dnssec-enable</command> and
+	  <command>dnssec-validation</command> options must both be
+          set to yes (the default setting in <acronym>BIND</acronym> 9.5
+          and later), and at least one trust anchor must be configured
+          with a <command>trusted-keys</command> statement in
+          <filename>named.conf</filename>.
         </para>
 	  
 	<para>
@@ -2531,6 +2534,41 @@ options {
 	  the root key is not valid.
 	</note>
 
+	<para>
+	  When DNSSEC validation is enabled and properly configured,
+	  the resolver will reject any answers from signed, secure zones
+	  which fail to validate, and will return SERVFAIL to the client.
+	</para>
+
+	<para>
+	  Responses may fail to validate for any of several reasons,
+	  including missing, expired, or invalid signatures, a key which
+	  does not match the DS RRset in the parent zone, or an insecure
+	  response from a zone which, according to its parent, should have
+	  been secure.  
+	</para>
+
+	<note>
+	  <para>
+	    When the validator receives a response from an unsigned zone
+	    that has a signed parent, it must confirm with the parent
+	    that the zone was intentionally left unsigned.  It does
+	    this by verifying, via signed and validated NSEC/NSEC3 records,
+	    that the parent zone contains no DS records for the child.
+	  </para>
+	  <para>
+	    If the validator <emphasis>can</emphasis> prove that the zone
+	    is insecure, then the response is accepted.  However, if it
+	    cannot, then it must assume an insecure response to be a
+	    forgery; it rejects the response and logs an error.
+	  </para>
+	  <para>
+            The logged error reads "insecurity proof failed" and
+            "got insecure response; parent indicates it should be secure".
+	    (Prior to BIND 9.7, the logged error was "not insecure".
+            This referred to the zone, not the response.)
+	  </para>
+	</note>
       </sect2>
 
     </sect1>
@@ -2539,10 +2577,9 @@ options {
 
       <para>
         <acronym>BIND</acronym> 9 fully supports all currently
-        defined forms of IPv6
-        name to address and address to name lookups.  It will also use
-        IPv6 addresses to make queries when running on an IPv6 capable
-        system.
+        defined forms of IPv6 name to address and address to name
+        lookups.  It will also use IPv6 addresses to make queries when
+        running on an IPv6 capable system.
       </para>
 
       <para>
@@ -4325,8 +4362,7 @@ category notify { null; };
                     <para>
                       Lame servers.  These are misconfigurations
                       in remote servers, discovered by BIND 9 when trying to
-                      query
-                      those servers during resolution.
+                      query those servers during resolution.
                     </para>
                   </entry>
                 </row>

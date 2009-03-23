@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.172 2009/03/17 23:48:02 tbox Exp $ */
+/* $Id: validator.c,v 1.173 2009/03/23 22:30:57 each Exp $ */
 
 #include <config.h>
 
@@ -3558,7 +3558,7 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 		if (result != DNS_R_NOTINSECURE)
 			validator_log(val, ISC_LOG_INFO,
 				      "got insecure response; "
-				      "could not prove it was valid");
+				      "parent indicates it should be secure");
 	} else if (val->event->rdataset == NULL &&
 		   val->event->sigrdataset == NULL)
 	{
