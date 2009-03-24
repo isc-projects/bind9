@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch04.html,v 1.92 2009/02/26 01:12:16 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch04.html,v 1.93 2009/03/24 01:12:41 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -68,10 +68,10 @@
 <dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2571923">Signing the Zone</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2572004">Configuring Servers</a></span></dt>
 </dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2572082">IPv6 Support in <acronym class="acronym">BIND</acronym> 9</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2572242">IPv6 Support in <acronym class="acronym">BIND</acronym> 9</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2572280">Address Lookups Using AAAA Records</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2572301">Address to Name Lookups Using Nibble Format</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2572304">Address Lookups Using AAAA Records</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2572325">Address to Name Lookups Using Nibble Format</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -857,13 +857,16 @@ allow-update { key host1-host2. ;};
           To enable <span><strong class="command">named</strong></span> to respond appropriately
           to DNS requests from DNSSEC aware clients,
           <span><strong class="command">dnssec-enable</strong></span> must be set to yes.
+          (This is the default setting.)
         </p>
 <p>
           To enable <span><strong class="command">named</strong></span> to validate answers from
-          other servers both <span><strong class="command">dnssec-enable</strong></span> and
-          <span><strong class="command">dnssec-validation</strong></span> must be set and some
-          <span><strong class="command">trusted-keys</strong></span> must be configured
-          into <code class="filename">named.conf</code>.
+          other servers, the <span><strong class="command">dnssec-enable</strong></span> and
+          <span><strong class="command">dnssec-validation</strong></span> options must both be
+          set to yes (the default setting in <acronym class="acronym">BIND</acronym> 9.5
+          and later), and at least one trust anchor must be configured
+          with a <span><strong class="command">trusted-keys</strong></span> statement in
+          <code class="filename">named.conf</code>.
         </p>
 <p>
           <span><strong class="command">trusted-keys</strong></span> are copies of DNSKEY RRs
@@ -936,17 +939,50 @@ options {
           None of the keys listed in this example are valid.  In particular,
           the root key is not valid.
         </div>
+<p>
+          When DNSSEC validation is enabled and properly configured,
+          the resolver will reject any answers from signed, secure zones
+          which fail to validate, and will return SERVFAIL to the client.
+        </p>
+<p>
+          Responses may fail to validate for any of several reasons,
+          including missing, expired, or invalid signatures, a key which
+          does not match the DS RRset in the parent zone, or an insecure
+          response from a zone which, according to its parent, should have
+          been secure.  
+        </p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Note</h3>
+<p>
+            When the validator receives a response from an unsigned zone
+            that has a signed parent, it must confirm with the parent
+            that the zone was intentionally left unsigned.  It does
+            this by verifying, via signed and validated NSEC/NSEC3 records,
+            that the parent zone contains no DS records for the child.
+          </p>
+<p>
+            If the validator <span class="emphasis"><em>can</em></span> prove that the zone
+            is insecure, then the response is accepted.  However, if it
+            cannot, then it must assume an insecure response to be a
+            forgery; it rejects the response and logs an error.
+          </p>
+<p>
+            The logged error reads "insecurity proof failed" and
+            "got insecure response; parent indicates it should be secure".
+            (Prior to BIND 9.7, the logged error was "not insecure".
+            This referred to the zone, not the response.)
+          </p>
+</div>
 </div>
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2572082"></a>IPv6 Support in <acronym class="acronym">BIND</acronym> 9</h2></div></div></div>
+<a name="id2572242"></a>IPv6 Support in <acronym class="acronym">BIND</acronym> 9</h2></div></div></div>
 <p>
         <acronym class="acronym">BIND</acronym> 9 fully supports all currently
-        defined forms of IPv6
-        name to address and address to name lookups.  It will also use
-        IPv6 addresses to make queries when running on an IPv6 capable
-        system.
+        defined forms of IPv6 name to address and address to name
+        lookups.  It will also use IPv6 addresses to make queries when
+        running on an IPv6 capable system.
       </p>
 <p>
         For forward lookups, <acronym class="acronym">BIND</acronym> 9 supports
@@ -979,7 +1015,7 @@ options {
       </p>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2572280"></a>Address Lookups Using AAAA Records</h3></div></div></div>
+<a name="id2572304"></a>Address Lookups Using AAAA Records</h3></div></div></div>
 <p>
           The IPv6 AAAA record is a parallel to the IPv4 A record,
           and, unlike the deprecated A6 record, specifies the entire
@@ -998,7 +1034,7 @@ host            3600    IN      AAAA    2001:db8::1
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2572301"></a>Address to Name Lookups Using Nibble Format</h3></div></div></div>
+<a name="id2572325"></a>Address to Name Lookups Using Nibble Format</h3></div></div></div>
 <p>
           When looking up an address in nibble format, the address
           components are simply reversed, just as in IPv4, and
