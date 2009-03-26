@@ -1,3 +1,6 @@
+2582.	[bug]		Don't emit warning log message when we attempt to
+			remove non-existant journal. [RT #19516]
+
 2579.	[bug]		DNSSEC lookaside validation failed to handle unknown
 			algorithms. [RT #19479]
 
