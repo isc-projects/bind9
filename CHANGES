@@ -1,3 +1,6 @@
+2581.	[contrib]	dlz/mysql set MYSQL_OPT_RECONNECT option on connection.
+			Requires MySQL 5.0.19 or later. [RT #19084]
+
 2579.	[bug]		DNSSEC lookaside validation failed to handle unknown
 			algorithms. [RT #19479]
 
