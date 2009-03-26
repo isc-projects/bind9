@@ -1,3 +1,6 @@
+2582.	[bug]		Don't emit warning log message when we attempt to
+			remove non-existant journal. [RT #19516]
+
 2581.	[contrib]	dlz/mysql set MYSQL_OPT_RECONNECT option on connection.
 			Requires MySQL 5.0.19 or later. [RT #19084]
 
