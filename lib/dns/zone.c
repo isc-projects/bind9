@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.410.18.58 2009/02/16 02:12:58 marka Exp $ */
+/* $Id: zone.c,v 1.410.18.59 2009/03/26 23:00:22 marka Exp $ */
 
 /*! \file */
 
@@ -6413,7 +6413,7 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_ZONE, ISC_LOG_DEBUG(3),
 				      "removing journal file");
-			if (remove(zone->journal) < 0) {
+			if (remove(zone->journal) < 0 && errno != ENOENT) {
 				char strbuf[ISC_STRERRORSIZE];
 				isc__strerror(errno, strbuf, sizeof(strbuf));
 				isc_log_write(dns_lctx,
