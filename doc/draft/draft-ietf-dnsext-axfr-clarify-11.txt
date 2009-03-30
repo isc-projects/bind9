@@ -1,36 +1,38 @@
-DNS Extensions Working Group                                Edward Lewis
-INTERNET-DRAFT                                             NeuStar, Inc.
-Expires: July 1, 2009                                       January 2009
+DNS Extensions Working Group                               Edward Lewis
+INTERNET-DRAFT                                            NeuStar, Inc.
+Expires: Octopber 1, 2009                                  April 2009
 Updates: 1034, 1035 (if approved)
 Intended status: Standards Track
 
                     DNS Zone Transfer Protocol (AXFR)
-                  draft-ietf-dnsext-axfr-clarify-10.txt
+                  draft-ietf-dnsext-axfr-clarify-11.txt
 
 Status of this Memo
 
-   This Internet-Draft is submitted to IETF in full conformance with the
-   provisions of BCP 78 and BCP 79.
+  This Internet-Draft is submitted to IETF in full conformance with the
+  provisions of BCP 78 and BCP 79.
 
-   Internet-Drafts are working documents of the Internet Engineering
-   Task Force (IETF), its areas, and its working groups.  Note that
-   other groups may also distribute working documents as Internet-
-   Drafts.
+  Internet-Drafts are working documents of the Internet Engineering
+  Task Force (IETF), its areas, and its working groups.  Note that
+  other groups may also distribute working documents as Internet-
+  Drafts.
 
-   Internet-Drafts are draft documents valid for a maximum of six months
-   and may be updated, replaced, or obsoleted by other documents at any
-   time.  It is inappropriate to use Internet-Drafts as reference
-   material or to cite them other than as "work in progress."
+  Internet-Drafts are draft documents valid for a maximum of six months
+  and may be updated, replaced, or obsoleted by other documents at any
+  time.  It is inappropriate to use Internet-Drafts as reference
+  material or to cite them other than as "work in progress."
 
-   The list of current Internet-Drafts can be accessed at
-   http://www.ietf.org/1id-abstracts.html
+  The list of current Internet-Drafts can be accessed at
+  http://www.ietf.org/1id-abstracts.html
 
-   The list of Internet-Draft Shadow Directories can be accessed at
-   http://www.ietf.org/shadow.html
+  The list of Internet-Draft Shadow Directories can be accessed at
+  http://www.ietf.org/shadow.html
+
+  This Internet-Draft will expire on October 1, 2009.
 
 Copyright Notice
 
-   Copyright (c) 2008 IETF Trust and the persons identified as the
+   Copyright (c) 2009 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
@@ -127,16 +129,6 @@ appeared on the access to an entire zone's contents.  In this document,
 the basic mechanisms will be discussed separately from the permission
 to use these mechanisms.
 
-1.4 Coverage
-
-This document concentrates on just the definition of AXFR.  Any effort
-to update the IXFR or NOTIFY mechanisms would be done in different
-documents.  This is not strictly a clarification of the definition in
-RFC 1034 and RFC 1035.  This document will update those sections, and
-invalidate at least one part of that definition.  The goal of this
-document is to define AXFR as it exists, or is supposed to exist,
-currently.
-
 1.4 Coverage and Relationship to Original AXFR Specification
  
 This document concentrates on just the definition of AXFR.  Any effort
@@ -149,13 +141,14 @@ depicts the scenario for which AXFR has been designed.  Section 4.3.5
 of RFC 1034 describes the zone synchronization strategies in general
 and rules for the invocation of a full zone transfer via AXFR; the
 fifth paragraph of that section contains a very short sketch of the
-AXFR protocol.  Section 3.2.3 of RFC 1035 has assigned the code point
-for the AXFR QTYPE (see section 2.1.2 below for more details).
-Section 4.2 of RFC 1035 discusses the transport layer use of DNS and
-shortly explains why UDP transport is deemed inappropriate for AXFR;
-the last paragraph of Section 4.2.2 gives details for the TCP
-connection management with AXFR.  Finally, the second paragraph of
-Section 6.3 in RFC 1035 mandates server behavior when zone data
+AXFR protocol; Section 5.5 of RFC 2181 has corrected a significant
+flaw in that specification.  Section 3.2.3 of RFC 1035 has assigned
+the code point for the AXFR QTYPE (see section 2.1.2 below for more
+details).  Section 4.2 of RFC 1035 discusses the transport layer use
+of DNS and shortly explains why UDP transport is deemed inappropriate
+for AXFR; the last paragraph of Section 4.2.2 gives details for the
+TCP connection management with AXFR.  Finally, the second paragraph
+of Section 6.3 in RFC 1035 mandates server behavior when zone data
 changes occur during an ongoing zone transfer using AXFR.
 
 This document will update the specification of AXFR in fully
@@ -169,12 +162,12 @@ define AXFR as it exists, or is supposed to exist, currently.
 
 2 AXFR Messages
 
-An AXFR session consists of an exchange of a AXFR query message and a
-set of AXFR response messages.  In this document, the AXFR client is
-the sender of the AXFR query and the AXFR server is the responder. 
-(Use of terms such as master, slave, primary, secondary are not
-important to defining AXFR.)  The use of the word "session" without
-qualification refers to an AXFR session.
+An AXFR session consists of an AXFR query message and the sequence of
+AXFR response messages returned for it.  In this document, the AXFR
+client is the sender of the AXFR query and the AXFR server is the
+responder.  (Use of terms such as master, slave, primary, secondary
+are not important to defining AXFR.)  The use of the word "session"
+without qualification refers to an AXFR session.
 
 An important aspect to keep in mind is that the definition of AXFR is
 restricted to TCP [RFC0793].  The design of the AXFR process has
@@ -185,13 +178,26 @@ RFC 1035, Section 4 ("MESSAGES") [RFC1035], updated by the following:
 - "A Mechanism for Prompt Notification of Zone Changes (...)" [RFC1996]
 - "Domain Name System (DNS) IANA Considerations" [RFC5395]
 - "Dynamic Updates in the Domain Name System (DNS UPDATE)" [RFC2136]
+- "Clarifications to the DNS Specification" [RFC2181]
 - "Extension Mechanisms for DNS (EDNS0)" [RFC2671]
 - "Secret Key Transaction Authentication for DNS (TSIG)" [RFC2845]
 - "Secret Key Establishment for DNS (TKEY RR)" [RFC2930]
 - "Obsoleting IQUERY" [RFC3425]
 - "Handling of Unknown DNS Resource Record (RR) Types" [RFC3597]
+- "Resource Records for the DNS Security Extensions" [RFC4034]
 - "Protocol Modifications for the DNS Security Extensions" [RFC4035]
+- "Use of SHA-256 in DNSSEC ... (DS) ... (RRs)" [RFC4509]
 - "HMAC SHA TSIG Algorithm Identifiers" [RFC4635]
+- "... (DNSSEC) Hashed Authenticated Denial of Existence" [RFC5155]
+
+For completeness, the following, in process, documents contain
+information about the DNS message.  These documents ought not interfere
+with AXFR but these documents are helpful in understanding what will
+be carried via AXFR.
+
+- "Use of SHA-2 algorithms with RSA in DNSKEY and RRSIG Resource
+  Records for DNSSEC" [DRAFT1]
+- "Clarifications and Implementation Notes for DNSSECbis" [DRAFT2]
 
 The upper limit on the permissible size of a DNS message over TCP is
 only restricted by the TCP framing defined in RFC 1035, section 4.2.2
@@ -199,6 +205,8 @@ which specifies a two-octet message length field, understood to be
 unsigned, and thus causing a limit of 65535 octets.  Unlike DNS
 messages over UDP, this limit is not changed by EDNS0.
 
+Note that the TC (truncation) bit is never set by an AXFR server nor
+considered/read by an AXFR client.
 
 Field names used in this document will correspond to the names as they
 appear in the IANA registry for DNS Header Flags [DNSFLGS].
@@ -208,6 +216,12 @@ appear in the IANA registry for DNS Header Flags [DNSFLGS].
 An AXFR query is sent by a client whenever there is a reason to ask.
 This might be because of zone maintenance activities or as a result of
 a command line request, say for debugging.
+
+An AXFR query is sent by a client whenever there is a reason to ask.
+This might be because of scheduled or triggered zone maintenance
+activities (see section 4.3.5 of RFC 1034 and DNS NOTIFY [RFC1996],
+respectively) or as a result of a command line request, say for
+debugging.
 
 2.1.1 Header Values
 
@@ -324,16 +338,14 @@ message's query section.  Subsequent messages MAY do the same.
 
 An AXFR response that is indicating an error MUST consist of a single
 DNS message with the return code set to the appropriate value for the
-condition encountered - once the error condition is detected.  Such
-a message MUST copy the AXFR query Query Section into its Query
-Section.  The inclusion of the terminating SOA resource record is not
-necessary.
+condition encountered - once the error condition is detected. Such
+a message MUST terminate the AXFR session; it MUST copy the Query
+Section from the AXFR query into its Query Section, but the inclusion
+of the terminating SOA resource record is not necessary.
 
 An AXFR client might receive a number of AXFR response messages
 free of an error condition before the message indicating an error
-is received.  But once an error is reported, the AXFR client can
-assume that the error reporting message is the last message sent by
-the AXFR server in the current AXFR session.
+is received.
 
 2.2.1 "0 Message" Response
 
@@ -415,6 +427,14 @@ documents:
 - "DNS Security Introduction and Requirements" [RFC4033]
 - "Resource Records for the DNS Security Extensions" [RFC4034]
 - "Protocol Modifications for the DNS Security Extensions" [RFC4035]
+- "Use of SHA-256 in DNSSEC Delegation Signer RRs" [RFC4509]
+- "DNS Security Hashed Authenticated Denial of Existence" [RFC5155]
+
+as well pending documents, such as these:
+
+- "Use of SHA-2 algorithms with RSA in DNSKEY and RRSIG Resource
+  Records for DNSSEC" [DRAFT1]
+- "Clarifications and Implementation Notes for DNSSECbis" [DRAFT2]
 
 Note 2.2.2.f In the absence of an error, the server MUST set the value
 of this field to NoError.  If a server is not authoritative for the
@@ -423,8 +443,8 @@ consult the appropriate IANA registry [DNSVALS].)  If a client
 receives any other value in response, it MUST act according to the
 error.  For example, a malformed AXFR query or the presence of an EDNS0
 OPT resource record sent to an old server will garner a FormErr value.
-This value is not set as part of the AXFR response processing.  The
-same is true for other error-indicating values.
+This value is not set as part of the AXFR-specific response processing.
+The same is true for other error-indicating values.
 
 Note 2.2.2.g The count of answer records MUST equal the number of
 resource records in the AXFR Answer Section.  When a server is aware
@@ -433,8 +453,9 @@ message, then the value MUST be 1.  A server MAY be made aware of a
 client's limitations via configuration data.
 
 Note 2.2.2.h The client MUST set this field to be the number of
-resource records appearing in the additional section.  See Section
-2.1.5 "Additional Section" for details.
+resource records appearing in the additional section.  The
+considerations in Note 2.1.1.d above apply equally; see Section
+2.2.6 "Additional Section" below for more details.
 
 2.2.3 Query Section
 
@@ -443,9 +464,6 @@ query.  In subsequent messages, this section MAY be copied from the
 query or it MAY be empty.  The content of this section MAY be used to
 determine the context of the message, that is, the name of the zone
 being transferred.
-
->|  [...].  In subsequent messages, this section MAY be copied from the
->|  query, or it MAY be empty.  [...]
 
 2.2.4 Answer Section
 
@@ -461,13 +479,6 @@ MUST be empty.
 The contents of this section MUST follow the guidelines for EDNS0,
 TSIG, SIG(0), or what ever other future record is possible here.  The
 contents of section 2.1.5 apply here as well.
-
-Note that TSIG and SIG(0), if in use, will treat each individual
-AXFR response message within a session as a unit of data.  That is,
-each message will have a TSIG or SIG(0) (if in use) and the
-cryptographic check will cover just that message.  The same rule
-will apply to future alternatives and documents covering them ought
-to consider the impact on AXFR response messages.
 
 2.3 TCP Connection Aborts
 
@@ -491,32 +502,32 @@ that the AXFR client is attempting abusive behavior.
 3 Zone Contents
 
 The objective of the AXFR session is to request and transfer the
-contents of a zone.  The objective is to permit the client to
+contents of a zone.  The objective is to permit the AXFR client to
 reconstruct the zone as it exists at the server for the given zone
-serial number.  Over time the definition of a zone has evolved from a
-static set of records to a dynamically updated set of records to a
-continually regenerated set of records.
+serial number.  Over time the definition of a zone has evolved from
+denoting a static set of records to also cover a dynamically updated
+set of records, and then a potentially continually regenerated set of
+records as well.
 
 3.1 Records to Include
 
 In the answer section of AXFR response messages the resource records
 within a zone for the given serial number MUST appear.  The definition
 of what belongs in a zone is described in RFC 1034, Section 4.2, "How
-the database is divided into zones", and in particular, section 4.2.1,
-"Technical considerations".
+the database is divided into zones", in particular, section 4.2.1,
+"Technical considerations", and it has been clarified in Section 6 of
+RFC 2181.
 
-Unless the AXFR server knows that the AXFR client expects just one
-resource record per AXFR response message, an AXFR server SHOULD
-populate an AXFR response message with as many complete resource
-records as will fit within a DNS message.
+Unless the AXFR server knows that the AXFR client is old and expects
+just one resource record per AXFR response message, an AXFR server
+SHOULD populate an AXFR response message with as many complete
+resource record sets as will fit within a DNS message.
 
 Zones for which it is impractical to list the entire zones for a serial
-number (because changes happen too quickly) are not suitable for AXFR
-retrieval.  A typical (but not limiting) description of such a zone
-is a zone consisting of responses generated via other database lookups
-and/or computed based upon ever changing data.  In essence, if the
-zone changes (on average) more frequently than and AXFR session can be
-finished, the zone is not a good candidate for AXFR.
+number are not suitable for AXFR retrieval.  A typical (but not
+limiting) description of such a zone is a zone consisting of responses
+generated via other database lookups and/or computed based upon ever
+changing data.
 
 3.2 Delegation Records
 
@@ -528,14 +539,38 @@ over this statement and the impact on which NS resource records are
 included in a zone transfer.
 
 The phrase "that describe cuts" is a reference to the NS set and
-applicable glue records.  It does not mean that the cut points and the
-apex resource records are identical.  For example, the SOA resource
-record is only found at the apex, as well as DNSSEC resource records.
-The is even a DNSSEC resource record found only at the zone cut and not
-at the corresponding apex.  There are also some DNSSEC resource record
-sets that are explicitly different between the cut point and the apex. 
-The discussion here is restricted to just the NS resource record set
-and glue as these "describe cuts."
+applicable glue records.  It does not mean that the cut point and apex
+resource records are identical.  For example, the SOA resource record
+is only found at the apex.  The discussion here is restricted to just
+the NS resource record set and glue as these "describe cuts".
+
+DNSSEC resource records have special specifications regarding their
+occurrence at a zone cut and the apex of a zone.  This has for the
+first time been described in Sections 5.3 ff. and 6.2 of RFC 2181
+(for the initial specification of DNSSEC), which now is historical.
+The current DNSSEC core document set (see Note 2.2.2.e above) gives
+the full details for DNSSEC(bis) resource record placement, and
+Section 3.1.5 of RFC 4035 normatively specifies their treatment during
+AXFR; the alternate NSEC3 resource record defined later in RFC 5155
+behaves identically as the NSEC RR, for the purpose of AXFR.
+
+Informally:
+o  The DS RRSet only occurs at the parental side of a zone cut and is
+   authoritative data in the parent zone, not the secure child zone.
+o  The DNSKEY RRSet only occurs at the APEX of a signed zone and is
+   authoritative part of the zone it serves.
+o  Independent RRSIG RRSets occur at the signed parent side and of a
+   zone cut and at the apex of a signed zone; they are authoritative
+   part of the respective zone; simple queries for RRSIG resource
+   records may return bth RRSets at once if the same server is
+   authoritative for the parent zone and the child zone (Section
+   3.1.5 of RFC 4035 describes how to distinguish these RRs); this
+   seeming ambiguity does not occur for AXFR, since each such RRSIG
+   RRset belongs to a single zone.
+o  Different NSEC [RFC4034] or NSEC3 [RFC5155] resource records
+   equally may occur at the parental siede of a zone cut and at the
+   apex of a zone; each such resource record belongs to exactly one
+   of these zones and is to be included in the AXFR of that zone.
 
 The issue is that in operations there are times when the NS resource
 records for a zone might be different at a cut point in the parent and
@@ -585,16 +620,26 @@ authoritative set, concealing the error.)
 3) The inconsistent NS resource record set might indicate a problem
 in a registration database.
 
-4) Beginning with an error state of two servers for a zone having
-inconsistent zone contents for a given zone serial number, if a client
-requests and receives an IXFR transfer from one server followed by 
-another IXFR transfer from the other server, the client can encounter
-an IXFR protocol error state where an attempt is made to incrementally
-add a record that already exists or to delete a record that does not
-exist.
+4) This requirement is necessary to ensure that retrieving a given
+(zone,serial) pair by AXFR yields the exact same set of resource
+records no matter which of the zone's authoritative servers is
+chosen as the source of the transfer.
 
-(Editorial note, the 4th reason was suggested, but I don't see how
-it relates.  A nudge for updated text on this.)
+If an AXFR server were allowed to respond with the authoritative
+NS RRset of a child zone instead of a glue NS RRset in the zone
+being transferred, the set of records returned could vary depending
+on whether or not the server happens to also be authoritative for 
+the child zone.
+
+The property that a given (zone,serial) pair corresponds to a
+single, well-defined set of records is necessary for the correct
+operation of incremental transfer protocols such as IXFR
+[RFC1995].  For example, a client may retrieve a zone by AXFR from
+one server, and then apply an incremental change obtained by IXFR
+from a different server.  If the two servers have different ideas
+of the zone contents, the client can end up attempting to
+incrementally add records that already exist or to delete records
+that do not exist.
 
 3.3 Glue Records
 
@@ -635,12 +680,13 @@ Compression."
 
 3.5 Occluded Names
 
-Dynamic Update [RFC2136] (and including DNAME [RFC2672]) operations can
-have a side effect of occluding names in a zone.  The addition of a
-delegation point via dynamic update will render all subordinate domain
-names to be in a limbo, still part of the zone but not available
-to the lookup process.  The addition of a DNAME resource record has the
-same impact.  The subordinate names are said to be "occluded."
+Dynamic Update [RFC2136] operations, and in particular its interaction
+with DNAME [RFC2672], can have a side effect of occluding names in a
+zone.  The addition of a delegation point via dynamic update will
+render all subordinate domain names to be in a limbo, still part of
+the zone but not available to the lookup process.  The addition of a
+DNAME resource record has the same impact.  The subordinate names are
+said to be "occluded."
 
 Occluded names MUST be included in AXFR responses.  An AXFR client MUST
 be able to identify and handle occluded names.  The rationale for this
@@ -662,7 +708,7 @@ query for the zone's SOA resource record first, and so on.  Note that
 this is documented as a most common scenario.
 
 The assumption that a TCP connection is dedicated to the single AXFR
-session is incorrect, this as has led to implementation choices that
+session is incorrect, this has led to implementation choices that
 prevent either multiple concurrent zone transfers or the use of the
 open connection for other queries.
 
@@ -680,8 +726,8 @@ multiple concurrent AXFR sessions.
 
 With the addition of EDNS0 and applications which require many
 small zones such as in web hosting and some ENUM scenarios, AXFR
-sessions on UDP are now possible and desirable.  However, there
-are still some aspects of the AXFR session that are not easily
+sessions on UDP would now be possible and seem desirable.  However,
+there are still some aspects of the AXFR session that are not easily
 translated to UDP.  This document leaves AXFR over UDP undefined.
 
 4.1 TCP
@@ -698,14 +744,14 @@ The guidance given here is intended to enable better performance of
 the AXFR exchange as well as guidelines on interactions with older
 software.  Better performance includes being able to multiplex DNS
 message exchanges including zone transfer sessions.  Guidelines for
-interacting with older software are generally applicable to AXFR
-clients as reversing the situation, older AXFR client and newer
-AXFR server ought to induce the server to operate within the
-specification for an older server.
+interacting with older software are generally applicable to new AXFR
+clients.  In the reverse situation, older AXFR client and newer AXFR
+server ought to induce the server to operate within the specification
+for an older server.
 
 4.1.1 AXFR client TCP
 
-An AXFR client MAY request an connection to an AXFR server for any
+An AXFR client MAY request a connection to an AXFR server for any
 reason.  An AXFR client SHOULD close the connection when there is
 no apparent need to use the connection for some time period. The
 AXFR server ought not have to maintain idle connections, the burden
@@ -723,16 +769,17 @@ an AXFR response can be cancelled.
 
 When a TCP connection is closed remotely (relative to the client),
 whether by the AXFR server or due to a network event, the AXFR client
-MUST cancel all outstanding sessions.  Recovery from this situation
-is not straightforward.  If the disruption was a spurious event,
-attempting to restart the connection would be proper.  If the
-disruption was caused by a medium or long term disruption, the AXFR
-client would be wise to not spend too many resources trying to rebuild
-the connection.  Finally, if the connection was dropped because of a
-policy at the AXFR server (as can be the case with older AXFR servers),
-the AXFR client would be wise to not retry the connection. 
-Unfortunately, knowing which of the three cases above applies is not
-clear (momentary disruption, failure, policy).
+MUST cancel all outstanding sessions and non-AXFR transactions. 
+Recovery from this situation is not straightforward.  If the disruption
+was a spurious event, attempting to restart the connection would be
+proper.  If the disruption was caused by a medium or long term
+disruption, the AXFR client would be wise to not spend too many
+resources trying to rebuild the connection.  Finally, if the connection
+was dropped because of a policy at the AXFR server (as can be the case
+with older AXFR servers), the AXFR client would be wise to not retry
+the connection.  Unfortunately, knowing which of the three cases above
+(momentary disruption, failure, policy) applies is not possible with
+certainty, and can only be assessed by heuristics.
 
 An AXFR client MAY use an already opened TCP connection to start an
 AXFR session.  Using an existing open connection is RECOMMENDED over
@@ -748,14 +795,15 @@ protocol).
 4.1.2  AXFR server TCP
 
 An AXFR server MUST be able to handle multiple AXFR sessions on a
-single TCP connection, as well as handle other query/response sessions.
+single TCP connection, as well as handle other query/response 
+transactions.
 
 If a TCP connection is closed remotely, the AXFR server MUST cancel
-all AXFR sessions in place.  No retry activity is necessary, that is
+all AXFR sessions in place.  No retry activity is necessary; that is
 initiated by the AXFR client.
 
 Local policy MAY dictate that a TCP connection is to be closed.  Such
-as action SHOULD be in reaction to limits such as those placed on
+an action SHOULD be in reaction to limits such as those placed on
 the number of outstanding open connections.  Closing a connection in
 response to a suspected security event SHOULD be done only in extreme
 cases, when the server is certain the action is warranted.  An
@@ -798,7 +846,8 @@ AXFR query to be granted.
 
 A general purpose implementation SHOULD NOT have a default policy
 for AXFR requests to be "open to all."  For example, a default could
-be to restrict transfers to loopback address(es) and such.
+be to restrict transfers to addresses selected by the DNS
+administrator(s) for zones on the server.
 
 6 Zone Integrity
 
@@ -820,8 +869,11 @@ if it did before.  The externally visible behavior of an AXFR client
 implementation MUST be equivalent to that of this two-stage model.
 
 If a server rejects data contained in an AXFR session, the server
-SHOULD remember the serial number and not attempt to retrieve the
-same zone version again.
+SHOULD remember the serial number and MAY attempt to retrieve the
+same zone version again.  The reason the same retrieval could make
+sense is that the reason for the rejection could be rooted in an
+implementation detail of one AXFR server used for the zone and not
+in another AXFR server used for the zone.
 
 Ensuring that an AXFR client does not accept a forged copy of a zone is
 important to the security of a zone.  If a zone operator has the
@@ -830,49 +882,22 @@ or virtual via a VPN among the authoritative servers.  But there are
 instances in which zone operators have no choice but to run AXFR
 sessions over the global public Internet.
 
-Besides best attempts at securing TCP sessions, DNS implementations
+Besides best attempts at securing TCP connections, DNS implementations
 SHOULD provide means to make use of "Secret Key Transaction
 Authentication for DNS" [RFC2845] and/or "DNS Request and Transaction
 Signatures ( SIG(0)s )" [RFC2931] to allow AXFR clients to verify the
 contents.  These techniques MAY also be used for authorization.
 
-7 Zone Expiry Timer
-
-Section 4.3.5 of RFC 1034 contains the following paragraph:
-
-"The periodic polling of the secondary servers is controlled by
-parameters in the SOA RR for the zone, which set the minimum acceptable
-polling intervals.  The parameters are called REFRESH, RETRY, and
-EXPIRE.  Whenever a new zone is loaded in a secondary, the secondary
-waits REFRESH seconds before checking with the primary for a new serial.
-If this check cannot be completed, new checks are started every RETRY
-seconds.  The check is a simple query to the primary for the SOA RR of
-the zone.  If the serial field in the secondary's zone copy is equal to
-the serial returned by the primary, then no changes have occurred, and
-the REFRESH interval wait is restarted.  If the secondary finds it
-impossible to perform a serial check for the EXPIRE interval, it must
-assume that its copy of the zone is obsolete an discard it."
-
-Perhaps what is not clear in the paragraph regarding the EXPIRE
-interval timer is that it is only reset to the EXPIRE parameter when
-a new zone is loaded.  A new zone means a zone with a higher serial
-number than the most recently loaded zone.  The EXPIRE interval timer
-is not reset automatically as a result of a zone transfer as a zone
-could be (mistakenly) transferred with the same or lower serial number.
-
-I.e., successively transferring a zone from server to server does not
-permit the zone to avoid expiration.
-
-8 Backwards Compatibility
+7 Backwards Compatibility
 
 Describing backwards compatibility is difficult because of the lack of
 specifics in the original definition.  In this section some hints at
 building in backwards compatibility are given, mostly repeated from the
 earlier sections.
 
-Backwards compatibility is not necessary, but the greater extent of an
-implementation's compatibility increases it's interoperability.  For
-turnkey implementations this is not usually a concern.  For general
+Backwards compatibility is not necessary, but the greater the extent of
+an implementation's compatibility the greater it's interoperability. 
+For turnkey implementations this is not usually a concern.  For general
 purpose implementations this takes on varying levels of importance
 depending on the implementer's desire to maintain interoperability.
 
@@ -882,7 +907,7 @@ implementation SHOULD, in it's documentation, encourage operators to
 periodically review AXFR clients and servers it has made notes about as
 old software periodically gets updated.
 
-8.1 Server
+7.1 Server
 
 An AXFR server has the luxury of being able to react to an AXFR
 client's abilities with the exception of knowing if the client can
@@ -890,38 +915,41 @@ accept multiple resource records per AXFR response message.  The
 knowledge that a client is so restricted apparently cannot be
 discovered, hence it has to be set by configuration.
 
-An implementation of an AXFR server SHOULD permit configuring, on a per
+An implementation of an AXFR server MAY permit configuring, on a per
 AXFR client basis, a need to revert to single resource record per
-message.  The default SHOULD be to use multiple records per message.
+message; in that case, the default SHOULD be to use multiple records
 
-8.2 Client
+7.2 Client
 
-An AXFR client has the opportunity to try extensions when querying
-an AXFR server.
+An AXFR client has the opportunity to try other features (i.e., those
+not defined by this document) when querying an AXFR server.
 
 Attempting to issue multiple DNS queries over a TCP transport for an
-AXFR session SHOULD be aborted if it interrupts the original request
+AXFR session SHOULD be aborted if it interrupts the original request,
 and SHOULD take into consideration whether the AXFR server intends to
 close the connection immediately upon completion of the original
 (connection-causing) zone transfer.
 
-9 Security Considerations
+8 Security Considerations
 
 Concerns regarding authorization, traffic flooding, and message
 integrity are mentioned in "Authorization" (section 5), "TCP" (section
 4.2) and "Zone Integrity" (section 6).
 
-10 IANA Considerations
+9 IANA Considerations
 
 No new registries or new registrations are included in this document.
 
-11 Internationalization Considerations
+10 Internationalization Considerations
 
-It is assumed that supporting of international domain names has been
+The AXFR protocol is transparent to the parts of DNS zone content that
+can possibly be subject to Internationalization considerations.
+It is assumed that for DNS labels and domain names, the issue has been
 solved via "Internationalizing Domain Names in Applications (IDNA)"
 [RFC3490].
 
-12 Acknowledgements
+
+11 Acknowledgements
 
 Earlier editions of this document have been edited by Andreas
 Gustafsson. In his latest version, this acknowledgement appeared.
@@ -935,9 +963,9 @@ and Brian Wellington."
 Comments since the -05 version have come from these individuals:
 Alfred Hoenes, Mark Andrews, Paul Vixie, Wouter Wijngaards, Iain
 Calder, Tony Finch, Ian Jackson, Andreas Gustafsson, Brian Wellington,
-...
+and other participants of the DNSEXT working group.
 
-13 References
+12 References
 
 All references prefixed by "RFC" can be obtained from the RFC Editor
 web site at the URLs:   http://rfc-editor.org/rfc.html
@@ -945,7 +973,7 @@ or                      http://rfc-editor.org/rfcsearch.html ;
 information regarding this organization can be found at the following
 URL:                    http://rfc-editor.org/
 
-13.1 Normative
+12.1 Normative
 
 [RFC0793] Postel, J., "Transmission Control Protocol", STD 7, RFC 793,
           September 1981.
@@ -964,6 +992,8 @@ URL:                    http://rfc-editor.org/
 [RFC2136] Vixie, P., Ed., Thomson, S., Rekhter, Y., and J. Bound,
           "Dynamic Updates in the Domain Name System (DNS UPDATE)", RFC
           2136, April 1997.
+[RFC2181] Elz, R. and R. Bush, "Clarifications to the DNS
+          Specification", RFC 2181, July 1997.
 [RFC2671] Vixie, P., "Extension Mechanisms for DNS (EDNS0)", RFC 2671,
           August 1999.
 [RFC2672] Crawford, M., "Non-Terminal DNS Name Redirection", RFC 2672,
@@ -986,6 +1016,11 @@ URL:                    http://rfc-editor.org/
 [RFC4034] Arends, R., Austein, R., Larson, M., Massey, D., and S.
           Rose, "Resource Records for the DNS Security Extensions",
           RFC 4034, March 2005.
+[RFC4509] Hardaker, W., "Use of SHA-256 in DNSSEC Delegation Signer
+          (DS) Resource Records (RRs)", RFC 4509, May 2006
+[RFC5155] Laurie, B., Sisson, G., Arends, R., and D. Blacka, "DNS
+          Security (DNSSEC) Hashed Authenticated Denial of Existence",
+          RFC 5155, March 2008
 [RFC4035] Arends, R., Austein, R., Larson, M., Massey, D., and S.
           Rose, "Protocol Modifications for the DNS Security
           Extensions", RFC 4035, March 2005.
@@ -995,7 +1030,7 @@ URL:                    http://rfc-editor.org/
 [DNSFLGS] http://www.iana.org/assignments/dns-header-flags
 [DNSVALS] http://www.iana.org/assignments/dns-parameters
 
-13.2 Informative
+12.2 Informative
 
 [BCP14]   Bradner, S., "Key words for use in RFCs to Indicate
           Requirement Levels", BCP 14, RFC 2119, March 1997.
@@ -1007,16 +1042,17 @@ URL:                    http://rfc-editor.org/
 [RFC3490] Faltstrom, P., Hoffman, P., and A. Costello,
           "Internationalizing Domain Names in Applications (IDNA)", RFC
           3490, March 2003.
+[DRAFT1]  Jansen, J., "Use of SHA-2 algorithms with RSA in DNSKEY and
+          RRSIG Resource Records for DNSSEC",
+          draft-ietf-dnsext-dnssec-rsasha256-12, work in progress.
+[DRAFT2]  Weiler, S., and D. Blacka, "Clarifications and Implementation
+          Notes for DNSSECbis",
+          draft-ietf-dnsext-dnssec-bis-updates-08, work in progress.
 
-14 Editor's Address
+13 Editor's Address
 
 Edward Lewis
 46000 Center Oak Plaza
 Sterling, VA, 22033, US
 +1-571-434-5468
 ed.lewis@neustar.biz
-
-Acknowledgment
-
-Funding for the RFC Editor function is provided by the IETF
-Administrative Support Activity (IASA).
