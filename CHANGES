@@ -7,6 +7,9 @@
 2578.	[bug]		Changed default sig-signing-type to 65534, because
 			65535 turns out to be reserved.  [RT #19477]
 
+2499.	[port]		solaris: lib/lwres/getaddrinfo.c namespace clash.
+			[RT #18837]
+
 	--- 9.6.1b1 released ---
 
 2577.	[doc]		Clarified some statistics counters. [RT #19454]
