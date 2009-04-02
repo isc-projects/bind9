@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.34 2009/04/02 14:23:29 jreed Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.35 2009/04/02 14:46:34 jreed Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -6670,7 +6670,12 @@ avoid-v6-udp-ports {};
                   zone is loaded, in addition to the servers listed in the
                   zone's NS records.
                   This helps to ensure that copies of the zones will
-                  quickly converge on stealth servers. If an <command>also-notify</command> list
+                  quickly converge on stealth servers.
+                  Optionally, a port may be specified with each
+                  <command>also-notify</command> address to send
+                  the notify messages to a port other than the
+                  default of 53.
+                  If an <command>also-notify</command> list
                   is given in a <command>zone</command> statement,
                   it will override
                   the <command>options also-notify</command>
