@@ -75,7 +75,7 @@
 2563.	[bug]		Dig could leak a socket causing it to wait forever
 			to exit. [RT #19359]
 
-2562.	[doc]		ARM: miscellaneous improvements and reorganization
+2562.	[doc]		ARM: miscellaneous improvements, reorganization,
 			and some new content.
 
 2561.	[doc]		Add isc-config.sh(1) man page. [RT #16378]
