@@ -37,6 +37,9 @@
 2563.	[bug]		Dig could leak a socket causing it to wait forever
 			to exit. [RT #19359]
 
+2562.	[doc]		ARM: miscellaneous improvements, reorganization,
+			and some new content.
+
 2561.	[doc]		Add isc-config.sh(1) man page. [RT #16378]
 
 2560.	[bug]		Add #include <config.h> to iptable.c. [RT #18258]
