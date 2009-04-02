@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.32 2009/03/13 01:53:07 jinmei Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.33 2009/04/02 14:18:38 jreed Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -2242,7 +2242,7 @@ allow-update { key host1-host2. ;};
 
       <para>
         <acronym>BIND</acronym> 9 partially supports DNSSEC SIG(0)
-            transaction signatures as specified in RFC 2535 and RFC2931.
+            transaction signatures as specified in RFC 2535 and RFC 2931.
         SIG(0)
         uses public/private keys to authenticate messages.  Access control
         is performed in the same manner as TSIG keys; privileges can be
