@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.380.14.12 2009/04/02 15:06:01 jreed Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.380.14.13 2009/04/02 15:19:47 jreed Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -2111,7 +2111,7 @@ key host1-host2. {
 </programlisting>
 
         <para>
-          The algorithm, hmac-md5, is the only one supported by <acronym>BIND</acronym>.
+          The algorithm, <literal>hmac-md5</literal>, is the only one supported by <acronym>BIND</acronym>.
           The secret is the one generated above. Since this is a secret, it
           is recommended that either <filename>named.conf</filename> be non-world
           readable, or the key directive be added to a non-world readable
@@ -2171,7 +2171,7 @@ server 10.1.2.3 {
           be denoted <command>key host1-host2.</command>
         </para>
         <para>
-          An example of an allow-update directive would be:
+          An example of an <command>allow-update</command> directive would be:
         </para>
 
 <programlisting>
@@ -3124,8 +3124,8 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 
           <para>
             The interpretation of a match depends on whether the list is being
-            used for access control, defining listen-on ports, or in a
-            sortlist, and whether the element was negated.
+            used for access control, defining <command>listen-on</command> ports, or in a
+            <command>sortlist</command>, and whether the element was negated.
           </para>
 
 	  <para>
@@ -3143,7 +3143,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	    <command>allow-update</command>,
 	    <command>allow-update-forwarding</command>, and
 	    <command>blackhole</command> all use address match
-	    lists.  Similarly, the listen-on option will cause the
+	    lists.  Similarly, the <command>listen-on</command> option will cause the
 	    server to refuse queries on any of the machine's
 	    addresses which do not match the list.
 	  </para>
@@ -3218,8 +3218,6 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
             slash) and continue to the end of the physical line. They cannot
             be continued across multiple physical lines; to have one logical
             comment span multiple lines, each line must use the // pair.
-          </para>
-          <para>
             For example:
           </para>
           <para>
@@ -3235,8 +3233,6 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
             with the character <literal>#</literal> (number sign)
             and continue to the end of the
             physical line, as in C++ comments.
-          </para>
-          <para>
             For example:
           </para>
 
@@ -4963,7 +4959,7 @@ category notify { null; };
 		client requests a <command>TKEY</command> exchange,
 		it may or may not specify the desired name for the
 		key. If present, the name of the shared key will
-		will be <varname>client specified part</varname> +
+		be <varname>client specified part</varname> +
 		<varname>tkey-domain</varname>.  Otherwise, the
 		name of the shared key will be <varname>random hex
 		digits</varname> + <varname>tkey-domain</varname>.
@@ -5031,7 +5027,7 @@ category notify { null; };
                 The pathname of the file the server writes its process ID
                 in. If not specified, the default is
 		<filename>/var/run/named/named.pid</filename>.
-                The pid-file is used by programs that want to send signals to
+                The PID file is used by programs that want to send signals to
                 the running
                 name server. Specifying <command>pid-file none</command> disables the
                 use of a PID file &mdash; no file will be written and any
@@ -6438,7 +6434,7 @@ options {
           <para>
             The interfaces and ports that the server will answer queries
             from may be specified using the <command>listen-on</command> option. <command>listen-on</command> takes
-            an optional port, and an <varname>address_match_list</varname>.
+            an optional port and an <varname>address_match_list</varname>.
             The server will listen on all interfaces allowed by the address
             match list. If a port is not specified, port 53 will be used.
           </para>
@@ -6933,7 +6929,7 @@ avoid-v6-udp-ports {};
 		  to be used, you should set
 		  <command>use-alt-transfer-source</command>
 		  appropriately and you should not depend upon
-		  getting a answer back to the first refresh
+		  getting an answer back to the first refresh
 		  query.
 		</note>
               </listitem>
@@ -7794,14 +7790,15 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
               <term><command>edns-udp-size</command></term>
               <listitem>
                 <para>
-		  Sets the advertised EDNS UDP buffer size in bytes.  Valid
-                  values are 512 to 4096 (values outside this range
-                  will be silently adjusted).  The default value is
-                  4096.  The usual reason for setting edns-udp-size to
-                  a non-default value is to get UDP answers to pass
-                  through broken firewalls that block fragmented
-                  packets and/or block UDP packets that are greater
-                  than 512 bytes.
+		  Sets the advertised EDNS UDP buffer size in bytes
+                  to control the size of packets received.
+                  Valid values are 512 to 4096 (values outside this range
+		  will be silently adjusted).  The default value
+		  is 4096.  The usual reason for setting
+		  <command>edns-udp-size</command> to a non-default
+		  value is to get UDP answers to pass through broken
+		  firewalls that block fragmented packets and/or
+		  block UDP packets that are greater than 512 bytes.
                 </para>
               </listitem>
             </varlistentry>
@@ -7814,7 +7811,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  send in bytes.  Valid values are 512 to 4096 (values outside
 		  this range will be silently adjusted).  The default
 		  value is 4096.  The usual reason for setting
-		  max-udp-size to a non-default value is to get UDP
+		  <command>max-udp-size</command> to a non-default value is to get UDP
 		  answers to pass through broken firewalls that
 		  block fragmented packets and/or block UDP packets
 		  that are greater than 512 bytes.
@@ -7997,7 +7994,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	    loopback address and the IPv6 unknown address.
 	  </para>
 	  <para>
-	    Named will attempt to determine if a built in zone already exists
+	    Named will attempt to determine if a built-in zone already exists
 	    or is active (covered by a forward-only forwarding declaration)
 	    and will not create a empty zone in that case.
 	  </para>
@@ -8060,7 +8057,7 @@ XXX: end of RFC1918 addresses #defined out -->
 	  <note>
 	    The real parent servers for these zones should disable all
 	    empty zone under the parent zone they serve.  For the real
-	    root servers, this is all built in empty zones.  This will
+	    root servers, this is all built-in empty zones.  This will
 	    enable them to return referrals to deeper in the tree.
 	  </note>
           <variablelist>
@@ -8905,7 +8902,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                         <filename>ex/example.com</filename> where <filename>ex/</filename> is
                         just the first two letters of the zone name. (Most
                         operating systems
-                        behave very slowly if you put 100 000 files into
+                        behave very slowly if you put 100000 files into
                         a single directory.)
                       </para>
                     </entry>
@@ -10885,8 +10882,6 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
             the mail will be delivered to the server specified in the MX
             record
             pointed to by the CNAME.
-          </para>
-	  <para>
             For example:
           </para>
           <informaltable colsep="0" rowsep="0">
@@ -11369,7 +11364,7 @@ $GENERATE 1-127 $ CNAME $.0</programlisting>
                     <para>
 		      Specifies the time-to-live of the generated records. If
                       not specified this will be inherited using the
-                      normal ttl inheritance rules.
+                      normal TTL inheritance rules.
                     </para>
                     <para><command>class</command>
 		      and <command>ttl</command> can be
@@ -12985,7 +12980,7 @@ $GENERATE 1-127 $ CNAME $.0</programlisting>
       <sect1 id="Access_Control_Lists">
         <title>Access Control Lists</title>
         <para>
-          Access Control Lists (ACLs), are address match lists that
+          Access Control Lists (ACLs) are address match lists that
           you can set up and nickname for future use in <command>allow-notify</command>,
           <command>allow-query</command>, <command>allow-query-on</command>,
 	  <command>allow-recursion</command>, <command>allow-recursion-on</command>,
@@ -13050,11 +13045,13 @@ zone "example.com" {
       <sect1>
         <title><command>Chroot</command> and <command>Setuid</command></title>
         <para>
-          On UNIX servers, it is possible to run <acronym>BIND</acronym> in a <emphasis>chrooted</emphasis> environment
-          (using the <command>chroot()</command> function) by specifying the "<option>-t</option>"
-          option. This can help improve system security by placing <acronym>BIND</acronym> in
-          a "sandbox", which will limit the damage done if a server is
-          compromised.
+	  On UNIX servers, it is possible to run <acronym>BIND</acronym>
+	  in a <emphasis>chrooted</emphasis> environment (using
+	  the <command>chroot()</command> function) by specifying
+	  the "<option>-t</option>" option for <command>named</command>.
+	  This can help improve system security by placing
+	  <acronym>BIND</acronym> in a "sandbox", which will limit
+	  the damage done if a server is compromised.
         </para>
         <para>
           Another useful feature in the UNIX version of <acronym>BIND</acronym> is the
@@ -13067,7 +13064,7 @@ zone "example.com" {
           user 202:
         </para>
         <para>
-          <userinput>/usr/local/bin/named -u 202 -t /var/named</userinput>
+          <userinput>/usr/local/sbin/named -u 202 -t /var/named</userinput>
         </para>
 
         <sect2>
@@ -13333,11 +13330,9 @@ zone "example.com" {
 	    BIND architecture.
           </para>
           <para>
-	    BIND version 4 is officially deprecated and BIND version
-	    8 development is considered maintenance-only in favor
-	    of BIND version 9. No additional development is done
-	    on BIND version 4 or BIND version 8 other than for
-	    security-related patches.
+	    BIND versions 4 and 8 are officially deprecated.
+	    No additional development is done
+	    on BIND version 4 or BIND version 8.
           </para>
           <para>
             <acronym>BIND</acronym> development work is made
