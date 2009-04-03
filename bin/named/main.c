@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.166.34.2 2009/01/18 23:47:34 tbox Exp $ */
+/* $Id: main.c,v 1.166.34.3 2009/04/03 20:18:59 marka Exp $ */
 
 /*! \file */
 
@@ -879,10 +879,10 @@ main(int argc, char *argv[]) {
 	 * strings named.core | grep "named version:"
 	 */
 	strlcat(version,
-#ifdef __DATE__
-		"named version: BIND " VERSION " (" __DATE__ ")",
-#else
+#if defined(NO_VERSION_DATE) || !defined(__DATE__)
 		"named version: BIND " VERSION,
+#else
+		"named version: BIND " VERSION " (" __DATE__ ")",
 #endif
 		sizeof(version));
 	result = isc_file_progname(*argv, program_name, sizeof(program_name));
