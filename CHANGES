@@ -1,3 +1,6 @@
+2583.	[port]		netbsd: provide a control to not add the compile
+			date to the version string, -DNO_VERSION_DATE.
+
 2582.	[bug]		Don't emit warning log message when we attempt to
 			remove non-existant journal. [RT #19516]
 
