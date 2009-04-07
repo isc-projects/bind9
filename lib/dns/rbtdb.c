@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.274 2009/03/05 04:54:33 marka Exp $ */
+/* $Id: rbtdb.c,v 1.275 2009/04/07 02:49:37 jinmei Exp $ */
 
 /*! \file */
 
@@ -344,7 +344,7 @@ struct acachectl {
  */
 #ifdef DNS_RBTDB_CACHE_NODE_LOCK_COUNT
 #if DNS_RBTDB_CACHE_NODE_LOCK_COUNT <= 1
-#error "DNS_RBTDB_CACHE_NODE_LOCK_COUNT must be larger 1"
+#error "DNS_RBTDB_CACHE_NODE_LOCK_COUNT must be larger than 1"
 #else
 #define DEFAULT_CACHE_NODE_LOCK_COUNT DNS_RBTDB_CACHE_NODE_LOCK_COUNT
 #endif
