@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: atomic.h,v 1.5.332.1 2009/04/08 05:48:43 jinmei Exp $ */
+/* $Id: atomic.h,v 1.5.332.2 2009/04/08 06:47:32 tbox Exp $ */
 
 /*
  * This code was written based on FreeBSD's kernel source whose copyright
@@ -66,7 +66,7 @@
  * can be critical, so we add explicit memory block instructions at the
  * beginning and the end of it (same for other functions).
  */
-static inline isc_int32_t 
+static inline isc_int32_t
 isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
 	return (asm("mb;"
 		    "1:"
@@ -116,7 +116,7 @@ isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
 		   p, cmpval, val));
 }
 #elif defined (ISC_PLATFORM_USEGCCASM)
-static inline isc_int32_t 
+static inline isc_int32_t
 isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
 	isc_int32_t temp, prev;
 
