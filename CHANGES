@@ -1,3 +1,6 @@
+2584.	[bug]		alpha: gcc optimization could break atomic operations.
+			[RT #19227]
+
 2583.	[port]		netbsd: provide a control to not add the compile
 			date to the version string, -DNO_VERSION_DATE.
 
