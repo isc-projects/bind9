@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.405 2009/03/23 22:30:56 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.406 2009/04/08 20:06:06 jreed Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4816,12 +4816,12 @@ category notify { null; };
     <optional> listen-on-v6 <optional> port <replaceable>ip_port</replaceable> </optional> { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> query-source ( ( <replaceable>ip4_addr</replaceable> | <replaceable>*</replaceable> )
         <optional> port ( <replaceable>ip_port</replaceable> | <replaceable>*</replaceable> ) </optional> |
-	<optional> address ( <replaceable>ip4_addr</replaceable> | <replaceable>*</replaceable> ) </optional>
-	<optional> port ( <replaceable>ip_port</replaceable> | <replaceable>*</replaceable> ) </optional> ) ; </optional>
+        <optional> address ( <replaceable>ip4_addr</replaceable> | <replaceable>*</replaceable> ) </optional>
+        <optional> port ( <replaceable>ip_port</replaceable> | <replaceable>*</replaceable> ) </optional> ) ; </optional>
     <optional> query-source-v6 ( ( <replaceable>ip6_addr</replaceable> | <replaceable>*</replaceable> )
-	<optional> port ( <replaceable>ip_port</replaceable> | <replaceable>*</replaceable> ) </optional> | 
-	<optional> address ( <replaceable>ip6_addr</replaceable> | <replaceable>*</replaceable> ) </optional> 
-	<optional> port ( <replaceable>ip_port</replaceable> | <replaceable>*</replaceable> ) </optional> ) ; </optional>
+        <optional> port ( <replaceable>ip_port</replaceable> | <replaceable>*</replaceable> ) </optional> | 
+        <optional> address ( <replaceable>ip6_addr</replaceable> | <replaceable>*</replaceable> ) </optional> 
+        <optional> port ( <replaceable>ip_port</replaceable> | <replaceable>*</replaceable> ) </optional> ) ; </optional>
     <optional> use-queryport-pool <replaceable>yes_or_no</replaceable>; </optional>
     <optional> queryport-pool-ports <replaceable>number</replaceable>; </optional>
     <optional> queryport-pool-interval <replaceable>number</replaceable>; </optional>
