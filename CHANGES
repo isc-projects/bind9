@@ -1,3 +1,6 @@
+
+	--- 9.6.1b1 released ---
+
 2584.	[bug]		alpha: gcc optimization could break atomic operations.
 			[RT #19227]
 
