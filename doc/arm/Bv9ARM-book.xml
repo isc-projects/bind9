@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.406 2009/04/08 20:06:06 jreed Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.407 2009/04/16 18:05:30 jreed Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -12748,6 +12748,13 @@ HOST-127.EXAMPLE. MX 0 .
 		    <entry colname="3">
 		      <para>
 			Mismatch responses received.
+			The DNS ID, response's source address,
+			and/or the response's source port does not
+			match what was expected.
+			(The port must be 53 or as defined by
+			the <command>port</command> option.)
+			This may be an indication of a cache
+			poisoning attempt.
 		      </para>
 		    </entry>
 		  </row>
