@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.218 2009/04/09 01:12:31 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.219 2009/04/17 01:12:41 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -8987,6 +8987,13 @@ HOST-127.EXAMPLE. MX 0 .
 <td>
                       <p>
                         Mismatch responses received.
+                        The DNS ID, response's source address,
+                        and/or the response's source port does not
+                        match what was expected.
+                        (The port must be 53 or as defined by
+                        the <span><strong class="command">port</strong></span> option.)
+                        This may be an indication of a cache
+                        poisoning attempt.
                       </p>
                     </td>
 </tr>
@@ -9211,7 +9218,7 @@ HOST-127.EXAMPLE. MX 0 .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2598770"></a>Socket I/O Statistics Counters</h4></div></div></div>
+<a name="id2598773"></a>Socket I/O Statistics Counters</h4></div></div></div>
 <p>
               Socket I/O statistics counters are defined per socket
               types, which are
@@ -9366,7 +9373,7 @@ HOST-127.EXAMPLE. MX 0 .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2599143"></a>Compatibility with <span class="emphasis"><em>BIND</em></span> 8 Counters</h4></div></div></div>
+<a name="id2599146"></a>Compatibility with <span class="emphasis"><em>BIND</em></span> 8 Counters</h4></div></div></div>
 <p>
               Most statistics counters that were available
               in <span><strong class="command">BIND</strong></span> 8 are also supported in
