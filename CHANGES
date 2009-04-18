@@ -1,3 +1,7 @@
+2585.	[bug]		Uninitialized socket name could be referenced via a
+			statistics channel, triggering an assertion failure in
+			XML rendering. [RT #19427]
+
 2584.	[bug]		alpha: gcc optimization could break atomic operations.
 			[RT #19227]
 
