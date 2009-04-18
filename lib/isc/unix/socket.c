@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.308.12.7 2009/02/16 00:24:04 marka Exp $ */
+/* $Id: socket.c,v 1.308.12.8 2009/04/18 01:29:26 jinmei Exp $ */
 
 /*! \file */
 
@@ -1878,6 +1878,9 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 			goto error;
 	}
 
+	memset(sock->name, 0, sizeof(sock->name));
+	sock->tag = NULL;
+
 	/*
 	 * set up list of readers and writers to be initially empty
 	 */
@@ -2317,9 +2320,6 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		return (result);
 	}
 
-	memset(sock->name, 0, sizeof(sock->name));
-	sock->tag = NULL;
-
 	sock->references = 1;
 	*socketp = sock;
 
@@ -2525,11 +2525,14 @@ isc_socket_close(isc_socket_t *sock) {
 	type = sock->type;
 	fd = sock->fd;
 	sock->fd = -1;
+	memset(sock->name, 0, sizeof(sock->name));
+	sock->tag = NULL;
 	sock->listener = 0;
 	sock->connected = 0;
 	sock->connecting = 0;
 	sock->bound = 0;
 	isc_sockaddr_any(&sock->peer_address);
+
 	UNLOCK(&sock->lock);
 
 	closesocket(manager, sock, fd);

@@ -1,3 +1,6 @@
+2585.	[bug]		Uninitialized socket name could be referenced via a
+			statistics channel, triggering an assertion failure in
+			XML rendering. [RT #19427]
 
 	--- 9.6.1b1 released ---
 
