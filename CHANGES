@@ -1,3 +1,6 @@
+2586.	[bug]		Missing cleanup of SIG rdataset in searching a DLZ DB
+			or SDB. [RT #19577]
+
 2585.	[bug]		Uninitialized socket name could be referenced via a
 			statistics channel, triggering an assertion failure in
 			XML rendering. [RT #19427]
