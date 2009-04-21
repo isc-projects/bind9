@@ -5,7 +5,7 @@
 			statistics channel, triggering an assertion failure in
 			XML rendering. [RT #19427]
 
-	--- 9.6.1b1 released ---
+	--- 9.6.1rc1 released ---
 
 2584.	[bug]		alpha: gcc optimization could break atomic operations.
 			[RT #19227]
