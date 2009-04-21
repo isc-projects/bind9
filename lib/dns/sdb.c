@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.66.48.1 2009/04/21 00:42:21 jinmei Exp $ */
+/* $Id: sdb.c,v 1.66.48.2 2009/04/21 23:47:18 tbox Exp $ */
 
 /*! \file */
 
@@ -882,7 +882,7 @@ find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 					dns_rdataset_disassociate(rdataset);
 					if (sigrdataset != NULL &&
 					    dns_rdataset_isassociated
-						        (sigrdataset)) {
+							(sigrdataset)) {
 						dns_rdataset_disassociate
 								(sigrdataset);
 					}
