@@ -1,3 +1,6 @@
+2586.	[bug]		Missing cleanup of SIG rdataset in searching a DLZ DB
+			or SDB. [RT #19577]
+
 2584.	[bug]		alpha: gcc optimization could break atomic operations.
 			[RT #19227]
 
