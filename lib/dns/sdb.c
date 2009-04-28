@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.59.94.5 2008/04/03 10:51:01 marka Exp $ */
+/* $Id: sdb.c,v 1.59.94.6 2009/04/28 21:41:54 jinmei Exp $ */
 
 /*! \file */
 
@@ -880,9 +880,12 @@ find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 				{
 					result = DNS_R_ZONECUT;
 					dns_rdataset_disassociate(rdataset);
-					if (sigrdataset != NULL)
+					if (sigrdataset != NULL &&
+					    dns_rdataset_isassociated
+						        (sigrdataset)) {
 						dns_rdataset_disassociate
 								(sigrdataset);
+					}
 				} else
 					result = DNS_R_DELEGATION;
 				break;
