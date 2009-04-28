@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.155.12.6 2009/01/31 00:38:25 marka Exp $ */
+/* $Id: dispatch.c,v 1.155.12.7 2009/04/28 21:39:45 jinmei Exp $ */
 
 /*! \file */
 
@@ -808,7 +808,7 @@ get_dispsocket(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 	dispsocket_t *dispsock;
 	unsigned int nports;
 	in_port_t *ports;
-	unsigned int bindoptions = 0;
+	unsigned int bindoptions;
 	dispportentry_t *portentry = NULL;
 
 	if (isc_sockaddr_pf(&disp->local) == AF_INET) {
@@ -858,6 +858,7 @@ get_dispsocket(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 		bucket = dns_hash(qid, dest, 0, port);
 		if (socket_search(qid, dest, port, bucket) != NULL)
 			continue;
+		bindoptions = 0;
 		portentry = port_search(disp, port);
 		if (portentry != NULL)
 			bindoptions |= ISC_SOCKET_REUSEADDRESS;

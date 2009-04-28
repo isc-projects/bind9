@@ -1,3 +1,8 @@
+2588.	[bug]		SO_REUSEADDR could be set unconditionally after failure
+			of bind(2) call.  This should be rare and mostly
+			harmless, but may cause interference with other
+			processes that happen to use the same port. [RT #19642]
+
 2586.	[bug]		Missing cleanup of SIG rdataset in searching a DLZ DB
 			or SDB. [RT #19577]
 
