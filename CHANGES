@@ -1,3 +1,7 @@
+2587.	[func]		Improve logging by reporting serial numbers for
+			when zone serial has gone backwards or unchanged.
+			[RT #19506]
+
 2586.	[bug]		Missing cleanup of SIG rdataset in searching a DLZ DB
 			or SDB. [RT #19577]
 

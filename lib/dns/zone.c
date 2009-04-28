@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.489 2009/03/26 22:51:54 marka Exp $ */
+/* $Id: zone.c,v 1.490 2009/04/28 12:48:34 jreed Exp $ */
 
 /*! \file */
 
@@ -2562,12 +2562,13 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 				goto cleanup;
 			} else if (!isc_serial_ge(serial, zone->serial))
 				dns_zone_log(zone, ISC_LOG_ERROR,
-					     "zone serial has gone backwards");
+					     "zone serial (%u/%u) has gone "
+				 	     "backwards", serial, zone->serial);
 			else if (serial == zone->serial && !hasinclude)
 				dns_zone_log(zone, ISC_LOG_ERROR,
-					     "zone serial unchanged. "
+					     "zone serial (%u) unchanged. "
 					     "zone may fail to transfer "
-					     "to slaves.");
+					     "to slaves.", serial);
 		}
 
 		if (zone->type == dns_zone_master &&
