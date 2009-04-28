@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.490 2009/04/28 12:48:34 jreed Exp $ */
+/* $Id: zone.c,v 1.491 2009/04/28 23:48:01 tbox Exp $ */
 
 /*! \file */
 
@@ -2563,7 +2563,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			} else if (!isc_serial_ge(serial, zone->serial))
 				dns_zone_log(zone, ISC_LOG_ERROR,
 					     "zone serial (%u/%u) has gone "
-				 	     "backwards", serial, zone->serial);
+					     "backwards", serial, zone->serial);
 			else if (serial == zone->serial && !hasinclude)
 				dns_zone_log(zone, ISC_LOG_ERROR,
 					     "zone serial (%u) unchanged. "
