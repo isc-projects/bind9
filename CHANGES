@@ -1,3 +1,6 @@
+2589.	[bug]		dns_db_unregister() failed to clear '*dbimp'.
+		        [RT #19626]
+
 2586.	[bug]		Missing cleanup of SIG rdataset in searching a DLZ DB
 			or SDB. [RT #19577]
 

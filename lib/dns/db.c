@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.83.128.2 2008/04/03 06:20:34 tbox Exp $ */
+/* $Id: db.c,v 1.83.128.3 2009/04/29 22:22:32 marka Exp $ */
 
 /*! \file */
 
@@ -824,12 +824,14 @@ dns_db_unregister(dns_dbimplementation_t **dbimp) {
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 
 	imp = *dbimp;
+	*dbimp = NULL;
 	RWLOCK(&implock, isc_rwlocktype_write);
 	ISC_LIST_UNLINK(implementations, imp, link);
 	mctx = imp->mctx;
 	isc_mem_put(mctx, imp, sizeof(dns_dbimplementation_t));
 	isc_mem_detach(&mctx);
 	RWUNLOCK(&implock, isc_rwlocktype_write);
+	ENSURE(*dbimp == NULL);
 }
 
 dns_stats_t *
