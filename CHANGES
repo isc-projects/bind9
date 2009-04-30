@@ -1,3 +1,6 @@
+2591.	[bug]		named could die when processing a update in
+			removed_orphaned_ds(). [RT #19507]
+
 2590.	[func]		Report zone/class of "update with no effect".
 			[RT #19542]
 
