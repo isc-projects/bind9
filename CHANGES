@@ -1,3 +1,5 @@
+2590.	[func]		Report zone/class of "diff with no effect". [RT #19542]
+
 2589.	[bug]		dns_db_unregister() failed to clear '*dbimp'.
 		        [RT #19626]
 
