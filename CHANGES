@@ -1,3 +1,6 @@
+2591.	[bug]		named could die when processing a update in
+			removed_orphaned_ds(). [RT #19507]
+
 2588.	[bug]		SO_REUSEADDR could be set unconditionally after failure
 			of bind(2) call.  This should be rare and mostly
 			harmless, but may cause interference with other
