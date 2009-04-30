@@ -1,3 +1,5 @@
+2592.	[bug]		Treat "any" as a type in nsupdate. [RT #19455]
+
 2591.	[bug]		named could die when processing a update in
 			removed_orphaned_ds(). [RT #19507]
 
