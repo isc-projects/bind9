@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.130.18.22 2008/01/17 23:45:58 tbox Exp $ */
+/* $Id: nsupdate.c,v 1.130.18.23 2009/04/30 07:12:31 marka Exp $ */
 
 /*! \file */
 
@@ -1328,8 +1328,9 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	}
 	region.base = word;
 	region.length = strlen(word);
+	rdataclass = dns_rdataclass_any;
 	result = dns_rdataclass_fromtext(&rdataclass, &region);
-	if (result == ISC_R_SUCCESS) {
+	if (result == ISC_R_SUCCESS && rdataclass != dns_rdataclass_any) {
 		if (!setzoneclass(rdataclass)) {
 			fprintf(stderr, "class mismatch: %s\n", word);
 			goto failure;
