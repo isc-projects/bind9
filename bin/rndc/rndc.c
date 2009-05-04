@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.124 2009/01/17 23:47:42 tbox Exp $ */
+/* $Id: rndc.c,v 1.125 2009/05/04 17:38:56 jreed Exp $ */
 
 /*! \file */
 
@@ -79,6 +79,7 @@ static unsigned char databuf[2048];
 static isccc_ccmsg_t ccmsg;
 static isccc_region_t secret;
 static isc_boolean_t failed = ISC_FALSE;
+static isc_boolean_t c_flag = ISC_FALSE;
 static isc_mem_t *mctx;
 static int sends, recvs, connects;
 static char *command;
@@ -455,6 +456,10 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 			fatal("neither %s nor %s was found",
 			      admin_conffile, admin_keyfile);
 		key_only = ISC_TRUE;
+	} else if (! c_flag && isc_file_exists(admin_keyfile)) {
+		fprintf(stderr, "WARNING: key file (%s) exists, but using "
+			"default configuration file (%s)\n",
+			admin_keyfile, admin_conffile);
 	}
 
 	DO("create parser", cfg_parser_create(mctx, log, pctxp));
@@ -709,6 +714,7 @@ main(int argc, char **argv) {
 
 		case 'c':
 			admin_conffile = isc_commandline_argument;
+			c_flag = ISC_TRUE;
 			break;
 
 		case 'k':
