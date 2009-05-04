@@ -1,5 +1,5 @@
-2594.	[func]		Have rndc warn if using its default configuration file
-			when the key file also exists. [RT #19424]
+2594.	[func]		Have rndc warn if using its default configuration
+			file when the key file also exists. [RT #19424]
 
 2593.	[bug]		Improve a corner source of SERVFAILs [RT #19632]
 
