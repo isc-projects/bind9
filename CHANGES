@@ -1,3 +1,5 @@
+2595.	[bug]		Fix unknown extended rcodes in dig. [RT #19625]
+
 2592.	[bug]		Treat "any" as a type in nsupdate. [RT #19455]
 
 2591.	[bug]		named could die when processing a update in

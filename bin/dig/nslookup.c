@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.101.18.17 2008/12/16 23:46:02 tbox Exp $ */
+/* $Id: nslookup.c,v 1.101.18.18 2009/05/06 10:21:00 fdupont Exp $ */
 
 #include <config.h>
 
@@ -128,6 +128,23 @@ static const char *rtypetext[] = {
 
 static void flush_lookup_list(void);
 static void getinput(isc_task_t *task, isc_event_t *event);
+
+static char *
+rcode_totext(dns_rcode_t rcode)
+{
+	static char buf[sizeof("?65535")];
+	union {
+		const char *consttext;
+		char *deconsttext;
+	} totext;
+
+	if (rcode >= (sizeof(rcodetext)/sizeof(rcodetext[0]))) {
+		snprintf(buf, sizeof(buf), "?%u", rcode);
+		totext.deconsttext = buf;
+	} else
+		totext.consttext = rcodetext[rcode];
+	return totext.deconsttext;
+}
 
 void
 dighost_shutdown(void) {
@@ -412,7 +429,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 				nametext, sizeof(nametext));
 		printf("** server can't find %s: %s\n",
 		       (msg->rcode != dns_rcode_nxdomain) ? nametext :
-		       query->lookup->textname, rcodetext[msg->rcode]);
+		       query->lookup->textname, rcode_totext(msg->rcode));
 		debug("returning with rcode == 0");
 		return (ISC_R_SUCCESS);
 	}
