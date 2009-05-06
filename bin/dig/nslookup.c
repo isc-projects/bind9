@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.117.334.3 2009/05/06 10:18:33 fdupont Exp $ */
+/* $Id: nslookup.c,v 1.117.334.4 2009/05/06 11:41:57 fdupont Exp $ */
 
 #include <config.h>
 
@@ -26,6 +26,7 @@
 #include <isc/commandline.h>
 #include <isc/event.h>
 #include <isc/parseint.h>
+#include <isc/print.h>
 #include <isc/string.h>
 #include <isc/timer.h>
 #include <isc/util.h>
