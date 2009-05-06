@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.225.26.3 2009/01/22 05:19:47 marka Exp $ */
+/* $Id: dig.c,v 1.225.26.4 2009/05/06 10:18:33 fdupont Exp $ */
 
 /*! \file */
 
@@ -110,6 +110,24 @@ static const char * const rcodetext[] = {
 	"RESERVED15",
 	"BADVERS"
 };
+
+/*% safe rcodetext[] */
+static char *
+rcode_totext(dns_rcode_t rcode)
+{
+	static char buf[sizeof("?65535")];
+	union {
+		const char *consttext;
+		char *deconsttext;
+	} totext;
+
+	if (rcode >= (sizeof(rcodetext)/sizeof(rcodetext[0]))) {
+		snprintf(buf, sizeof(buf), "?%u", rcode);
+		totext.deconsttext = buf;
+	} else
+		totext.consttext = rcodetext[rcode];
+	return totext.deconsttext;
+}
 
 /*% print usage */
 static void
@@ -469,7 +487,8 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 		if (headers) {
 			printf(";; ->>HEADER<<- opcode: %s, status: %s, "
 			       "id: %u\n",
-			       opcodetext[msg->opcode], rcodetext[msg->rcode],
+			       opcodetext[msg->opcode],
+			       rcode_totext(msg->rcode),
 			       msg->id);
 			printf(";; flags:");
 			if ((msg->flags & DNS_MESSAGEFLAG_QR) != 0)
