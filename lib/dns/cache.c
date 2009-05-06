@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.80.50.2 2009/01/18 23:47:35 tbox Exp $ */
+/* $Id: cache.c,v 1.80.50.3 2009/05/06 23:34:30 jinmei Exp $ */
 
 /*! \file */
 
@@ -174,6 +174,7 @@ dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	isc_result_t result;
 	dns_cache_t *cache;
 	int i;
+	isc_task_t *dbtask;
 
 	REQUIRE(cachep != NULL);
 	REQUIRE(*cachep == NULL);
@@ -229,6 +230,14 @@ dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	result = cache_create_db(cache, &cache->db);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_dbargv;
+	if (taskmgr != NULL) {
+		dbtask = NULL;
+		result = isc_task_create(taskmgr, 1, &dbtask);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup_db;
+		dns_db_settask(cache->db, dbtask);
+		isc_task_detach(&dbtask);
+	}
 
 	cache->filename = NULL;
 
