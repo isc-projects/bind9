@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hash.c,v 1.13 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: hash.c,v 1.13.128.1 2009/05/06 23:34:48 jinmei Exp $ */
 
 /*! \file
  * Some portion of this code was derived from universal hash function
@@ -293,6 +293,7 @@ static void
 destroy(isc_hash_t **hctxp) {
 	isc_hash_t *hctx;
 	isc_mem_t *mctx;
+	unsigned char canary0[4], canary1[4];
 
 	REQUIRE(hctxp != NULL && *hctxp != NULL);
 	hctx = *hctxp;
@@ -312,7 +313,10 @@ destroy(isc_hash_t **hctxp) {
 
 	DESTROYLOCK(&hctx->lock);
 
+	memcpy(canary0, hctx + 1, sizeof(canary0));
 	memset(hctx, 0, sizeof(isc_hash_t));
+	memcpy(canary1, hctx + 1, sizeof(canary1));
+	INSIST(memcmp(canary0, canary1, sizeof(canary0)) == 0);
 	isc_mem_put(mctx, hctx, sizeof(isc_hash_t));
 	isc_mem_detach(&mctx);
 }
