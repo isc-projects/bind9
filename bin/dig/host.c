@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.94.18.20 2009/05/06 10:21:00 fdupont Exp $ */
+/* $Id: host.c,v 1.94.18.21 2009/05/06 23:45:59 tbox Exp $ */
 
 /*! \file */
 
@@ -287,10 +287,10 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 			if (query->lookup->rdtype == dns_rdatatype_axfr &&
 			    !((!list_addresses &&
 			       (list_type == dns_rdatatype_any ||
-			        rdataset->type == list_type)) ||
+				rdataset->type == list_type)) ||
 			      (list_addresses &&
 			       (rdataset->type == dns_rdatatype_a ||
-			        rdataset->type == dns_rdatatype_aaaa ||
+				rdataset->type == dns_rdatatype_aaaa ||
 				rdataset->type == dns_rdatatype_ns ||
 				rdataset->type == dns_rdatatype_ptr))))
 				continue;
@@ -394,7 +394,7 @@ chase_cnamechain(dns_message_t *msg, dns_name_t *qname) {
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	unsigned int i = msg->counts[DNS_SECTION_ANSWER];
 
- 	while (i-- > 0) {
+	while (i-- > 0) {
 		rdataset = NULL;
 		result = dns_message_findname(msg, DNS_SECTION_ANSWER, qname,
 					      dns_rdatatype_cname, 0, NULL,
@@ -468,7 +468,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 				sizeof(lookup->textname));
 			lookup->textname[sizeof(lookup->textname)-1] = 0;
 			lookup->rdtype = dns_rdatatype_aaaa;
-                        lookup->rdtypeset = ISC_TRUE;
+			lookup->rdtypeset = ISC_TRUE;
 			lookup->origin = NULL;
 			lookup->retries = tries;
 			ISC_LIST_APPEND(lookup_list, lookup, link);
@@ -479,7 +479,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 				sizeof(lookup->textname));
 			lookup->textname[sizeof(lookup->textname)-1] = 0;
 			lookup->rdtype = dns_rdatatype_mx;
-                        lookup->rdtypeset = ISC_TRUE;
+			lookup->rdtypeset = ISC_TRUE;
 			lookup->origin = NULL;
 			lookup->retries = tries;
 			ISC_LIST_APPEND(lookup_list, lookup, link);
@@ -854,7 +854,7 @@ main(int argc, char **argv) {
 	ISC_LIST_INIT(lookup_list);
 	ISC_LIST_INIT(server_list);
 	ISC_LIST_INIT(search_list);
-	
+
 	fatalexit = 1;
 #ifdef WITH_IDN
 	idnoptions = IDN_ASCCHECK;
