@@ -1,3 +1,7 @@
+2596.	[bug]		Stale tree nodes of cache/dynamic rbtdb could stay
+			long, leading to inefficient memory usage or rejecting
+			newer cache entries in the worst case. [RT #19563]
+
 2595.	[bug]		Fix unknown extended rcodes in dig. [RT #19625]
 
 2594.	[func]		Have rndc warn if using its default configuration
