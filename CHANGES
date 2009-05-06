@@ -1,3 +1,5 @@
+2595.	[bug]		Fix unknown extended rcodes in dig. [RT #19625]
+
 2594.	[func]		Have rndc warn if using its default configuration
 			file when the key file also exists. [RT #19424]
 
