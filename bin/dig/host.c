@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.116 2007/12/03 00:21:48 marka Exp $ */
+/* $Id: host.c,v 1.116.12.1 2009/05/06 10:19:49 fdupont Exp $ */
 
 /*! \file */
 
@@ -123,6 +123,23 @@ struct rtype rtypes[] = {
 	{ 29,	"location" },
 	{ 0, NULL }
 };
+
+static char *
+rcode_totext(dns_rcode_t rcode)
+{
+	static char buf[sizeof("?65535")];
+	union {
+		const char *consttext;
+		char *deconsttext;
+	} totext;
+
+	if (rcode >= (sizeof(rcodetext)/sizeof(rcodetext[0]))) {
+		snprintf(buf, sizeof(buf), "?%u", rcode);
+		totext.deconsttext = buf;
+	} else
+		totext.consttext = rcodetext[rcode];
+	return totext.deconsttext;
+}
 
 static void
 show_usage(void) {
@@ -429,7 +446,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 		printf("Host %s not found: %d(%s)\n",
 		       (msg->rcode != dns_rcode_nxdomain) ? namestr :
 		       query->lookup->textname, msg->rcode,
-		       rcodetext[msg->rcode]);
+		       rcode_totext(msg->rcode));
 		return (ISC_R_SUCCESS);
 	}
 
@@ -471,7 +488,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 
 	if (!short_form) {
 		printf(";; ->>HEADER<<- opcode: %s, status: %s, id: %u\n",
-		       opcodetext[msg->opcode], rcodetext[msg->rcode],
+		       opcodetext[msg->opcode], rcode_totext(msg->rcode),
 		       msg->id);
 		printf(";; flags: ");
 		if ((msg->flags & DNS_MESSAGEFLAG_QR) != 0) {
