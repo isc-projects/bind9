@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.171 2009/04/03 19:55:59 marka Exp $ */
+/* $Id: main.c,v 1.172 2009/05/07 09:33:52 fdupont Exp $ */
 
 /*! \file */
 
@@ -359,7 +359,7 @@ parse_command_line(int argc, char *argv[]) {
 
 	isc_commandline_errprint = ISC_FALSE;
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "46c:C:d:fgi:lm:n:N:p:P:"
+					   "46c:C:d:fFgi:lm:n:N:p:P:"
 					   "sS:t:T:u:vVx:")) != -1) {
 		switch (ch) {
 		case '4':
@@ -472,12 +472,16 @@ parse_command_line(int argc, char *argv[]) {
 			printf("BIND %s built with %s\n", ns_g_version,
 				ns_g_configargs);
 			exit(0);
+		case 'F':
+			/* Reserved for FIPS mode */
+			/* FALLTHROUGH */
 		case '?':
 			usage();
 			if (isc_commandline_option == '?')
 				exit(0);
 			ns_main_earlyfatal("unknown option '-%c'",
 					   isc_commandline_option);
+			/* FALLTHROUGH */
 		default:
 			ns_main_earlyfatal("parsing options returned %d", ch);
 		}

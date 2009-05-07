@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.212 2009/01/17 10:26:17 fdupont Exp $ */
+/* $Id: dnssec-signzone.c,v 1.213 2009/05/07 09:33:52 fdupont Exp $ */
 
 /*! \file */
 
@@ -2448,7 +2448,7 @@ main(int argc, char *argv[]) {
 	unsigned char saltbuf[255];
 	hashlist_t hashlist;
 
-#define CMDLINE_FLAGS "3:aAc:d:e:f:ghH:i:I:j:k:l:m:n:N:o:O:pr:s:StUv:z"
+#define CMDLINE_FLAGS "3:aAc:d:e:f:FghH:i:I:j:k:l:m:n:N:o:O:pr:s:StUv:z"
 
 	/*
 	 * Process memory debugging argument first.
@@ -2535,10 +2535,14 @@ main(int argc, char *argv[]) {
 			generateds = ISC_TRUE;
 			break;
 
+		case 'F':
+			/* Reserved for FIPS mode */
+			/* FALLTHROUGH */
 		case '?':
 			if (isc_commandline_option != '?')
 				fprintf(stderr, "%s: invalid argument -%c\n",
 					program, isc_commandline_option);
+			/* FALLTHROUGH */
 		case 'h':
 			usage();
 			break;

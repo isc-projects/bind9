@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.81 2008/09/25 04:02:38 tbox Exp $ */
+/* $Id: dnssec-keygen.c,v 1.82 2009/05/07 09:33:52 fdupont Exp $ */
 
 /*! \file */
 
@@ -154,7 +154,7 @@ main(int argc, char **argv) {
 	isc_commandline_errprint = ISC_FALSE;
 
 	while ((ch = isc_commandline_parse(argc, argv,
-					 "a:b:c:d:ef:g:kn:t:p:s:r:v:h")) != -1)
+					"a:b:c:d:ef:g:kn:t:p:s:r:v:Fh")) != -1)
 	{
 	    switch (ch) {
 		case 'a':
@@ -220,11 +220,14 @@ main(int argc, char **argv) {
 			if (*endp != '\0')
 				fatal("-v must be followed by a number");
 			break;
-
+		case 'F':
+			/* Reserved for FIPS mode */
+			/* FALLTHROUGH */
 		case '?':
 			if (isc_commandline_option != '?')
 				fprintf(stderr, "%s: invalid argument -%c\n",
 					program, isc_commandline_option);
+			/* FALLTHROUGH */
 		case 'h':
 			usage();
 

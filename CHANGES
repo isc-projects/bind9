@@ -1,3 +1,5 @@
+2598.	[func]		Reserve the -F flag. [RT #19657]
+
 2597.	[bug]		Handle a validation failure with a insecure delegation
 			from a NSEC3 signed master/slave zone.  [RT #19464]
 
