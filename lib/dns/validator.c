@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.173 2009/03/23 22:30:57 each Exp $ */
+/* $Id: validator.c,v 1.174 2009/05/07 02:34:19 marka Exp $ */
 
 #include <config.h>
 
@@ -3232,9 +3232,13 @@ proveunsecure(dns_validator_t *val, isc_boolean_t have_ds, isc_boolean_t resume)
 	dns_name_t *secroot;
 	dns_name_t *tname;
 	char namebuf[DNS_NAME_FORMATSIZE];
+	dns_name_t *found;
+	dns_fixedname_t fixedfound;
 
 	dns_fixedname_init(&fixedsecroot);
 	secroot = dns_fixedname_name(&fixedsecroot);
+	dns_fixedname_init(&fixedfound);
+	found = dns_fixedname_name(&fixedfound);
 	if (val->havedlvsep)
 		dns_name_copy(dns_fixedname_name(&val->dlvsep), secroot, NULL);
 	else {
@@ -3341,6 +3345,28 @@ proveunsecure(dns_validator_t *val, isc_boolean_t have_ds, isc_boolean_t resume)
 				if (result != ISC_R_SUCCESS)
 					goto out;
 				return (DNS_R_WAIT);
+			}
+			/*
+			 * Zones using NSEC3 don't return a NSEC RRset so
+			 * we need to use dns_view_findzonecut2 to find
+			 * the zone cut.
+			 */
+			if (result == DNS_R_NXRRSET &&
+			    !dns_rdataset_isassociated(&val->frdataset) &&
+			    dns_view_findzonecut2(val->view, tname, found,
+					          0, 0, ISC_FALSE, ISC_FALSE,
+						  NULL, NULL) == ISC_R_SUCCESS &&
+			    dns_name_equal(tname, found)) {
+				if (val->mustbesecure) {
+					validator_log(val, ISC_LOG_WARNING,
+						      "must be secure failure");
+					return (DNS_R_MUSTBESECURE);
+				}
+				if (val->view->dlv == NULL || DLVTRIED(val)) {
+					markanswer(val);
+					return (ISC_R_SUCCESS);
+				}
+				return (startfinddlvsep(val, tname));
 			}
 			if (val->frdataset.trust < dns_trust_secure) {
 				/*
