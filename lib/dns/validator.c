@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.175 2009/05/07 09:41:22 fdupont Exp $ */
+/* $Id: validator.c,v 1.176 2009/05/07 23:47:44 tbox Exp $ */
 
 #include <config.h>
 
@@ -3353,7 +3353,7 @@ proveunsecure(dns_validator_t *val, isc_boolean_t have_ds, isc_boolean_t resume)
 			if (result == DNS_R_NXRRSET &&
 			    !dns_rdataset_isassociated(&val->frdataset) &&
 			    dns_view_findzonecut2(val->view, tname, found,
-					          0, 0, ISC_FALSE, ISC_FALSE,
+						  0, 0, ISC_FALSE, ISC_FALSE,
 						  NULL, NULL) == ISC_R_SUCCESS &&
 			    dns_name_equal(tname, found)) {
 				if (val->mustbesecure) {
