@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,11 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hash.c,v 1.13.128.2 2009/05/06 23:38:35 jinmei Exp $ */
+/* $Id: hash.c,v 1.13.128.3 2009/05/07 23:46:32 tbox Exp $ */
 
 /*! \file
  * Some portion of this code was derived from universal hash function
- * libraries of Rice University. 
+ * libraries of Rice University.
 \section license UH Universal Hashing Library
 
 Copyright ((c)) 2002, Rice University
@@ -244,7 +244,7 @@ isc_hash_ctxinit(isc_hash_t *hctx) {
 		goto out;
 
 	if (hctx->entropy) {
-		result = isc_entropy_getdata(hctx->entropy, 
+		result = isc_entropy_getdata(hctx->entropy,
 					     hctx->rndvector, hctx->vectorlen,
 					     NULL, 0);
 		INSIST(result == ISC_R_SUCCESS);
@@ -276,7 +276,7 @@ isc_hash_ctxinit(isc_hash_t *hctx) {
 void
 isc_hash_init() {
 	INSIST(hash != NULL && VALID_HASH(hash));
-	
+
 	isc_hash_ctxinit(hash);
 }
 
