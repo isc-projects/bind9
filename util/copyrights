@@ -66,11 +66,11 @@
 ./bin/dnssec/dnssec-dsfromkey.docbook		SGML	2008
 ./bin/dnssec/dnssec-dsfromkey.html		HTML	2008
 ./bin/dnssec/dnssec-keyfromlabel.8		MAN	DOCBOOK
-./bin/dnssec/dnssec-keyfromlabel.c		C	2007,2008
+./bin/dnssec/dnssec-keyfromlabel.c		C	2007,2008,2009
 ./bin/dnssec/dnssec-keyfromlabel.docbook	SGML	2008
 ./bin/dnssec/dnssec-keyfromlabel.html		HTML	DOCBOOK
 ./bin/dnssec/dnssec-keygen.8			MAN	DOCBOOK
-./bin/dnssec/dnssec-keygen.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
+./bin/dnssec/dnssec-keygen.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./bin/dnssec/dnssec-keygen.docbook		SGML	2000,2001,2002,2003,2004,2005,2007,2008
 ./bin/dnssec/dnssec-keygen.html			HTML	DOCBOOK
 ./bin/dnssec/dnssec-signzone.8			MAN	DOCBOOK
