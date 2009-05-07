@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.491 2009/04/28 23:48:01 tbox Exp $ */
+/* $Id: zone.c,v 1.492 2009/05/07 09:41:22 fdupont Exp $ */
 
 /*! \file */
 
@@ -8686,7 +8686,7 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	/*
-	 * If type != T_SOA return DNS_R_REFUSED.  We don't yet support
+	 * If type != T_SOA return DNS_R_NOTIMP.  We don't yet support
 	 * ROLLOVER.
 	 *
 	 * SOA:	RFC1996

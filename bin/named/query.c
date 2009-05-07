@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.323 2009/04/30 11:45:10 fdupont Exp $ */
+/* $Id: query.c,v 1.324 2009/05/07 09:41:22 fdupont Exp $ */
 
 /*! \file */
 
@@ -2851,7 +2851,7 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 	 *  j.example -> z.i.example NSEC example
 	 *	owner common example
 	 *	next common example
-	 *	wild *.f.example
+	 *	wild *.example
 	 */
 	options = client->query.dboptions | DNS_DBFIND_NOWILD;
 	dns_fixedname_init(&wfixed);

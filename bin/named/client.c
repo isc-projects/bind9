@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.264 2009/03/03 23:48:02 tbox Exp $ */
+/* $Id: client.c,v 1.265 2009/05/07 09:41:21 fdupont Exp $ */
 
 #include <config.h>
 
@@ -1472,7 +1472,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 
 	/*
 	 * Silently drop multicast requests for the present.
-	 * XXXMPA look at when/if mDNS spec stabilizes.
+	 * XXXMPA revisit this as mDNS spec was published.
 	 */
 	if ((client->attributes & NS_CLIENTATTR_MULTICAST) != 0) {
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.394 2009/03/01 02:45:38 each Exp $ */
+/* $Id: resolver.c,v 1.395 2009/05/07 09:41:22 fdupont Exp $ */
 
 /*! \file */
 
@@ -5039,7 +5039,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 					 *
 					 * These should only be here if
 					 * this is a referral, and there
-					 * should only be one DS.
+					 * should only be one DS RRset.
 					 */
 					if (ns_name == NULL)
 						return (DNS_R_FORMERR);

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.89 2009/03/03 01:36:17 marka Exp $ */
+/* $Id: client.h,v 1.90 2009/05/07 09:41:22 fdupont Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -300,7 +300,7 @@ ns_client_checkaclsilent(ns_client_t *client, isc_netaddr_t *netaddr,
  *
  * Returns:
  *\li	ISC_R_SUCCESS	if the request should be allowed
- * \li	ISC_R_REFUSED	if the request should be denied
+ * \li	DNS_R_REFUSED	if the request should be denied
  *\li	No other return values are possible.
  */
 

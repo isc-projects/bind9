@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.174 2009/05/07 02:34:19 marka Exp $ */
+/* $Id: validator.c,v 1.175 2009/05/07 09:41:22 fdupont Exp $ */
 
 #include <config.h>
 
@@ -368,7 +368,7 @@ isdelegation(dns_name_t *name, dns_rdataset_t *rdataset,
 }
 
 /*%
- * We have been asked to to look for a key.
+ * We have been asked to look for a key.
  * If found resume the validation process.
  * If not found fail the validation process.
  */
@@ -1014,7 +1014,7 @@ nsec3noexistnodata(dns_validator_t *val, dns_name_t* name,
 			if (ns && !soa) {
 				if (!atparent) {
 					/*
-					 * This NSEC record is from somewhere
+					 * This NSEC3 record is from somewhere
 					 * higher in the DNS, and at the
 					 * parent of a delegation. It can not
 					 * be legitimately used here.
@@ -1025,7 +1025,7 @@ nsec3noexistnodata(dns_validator_t *val, dns_name_t* name,
 				}
 			} else if (atparent && ns && soa) {
 				/*
-				 * This NSEC record is from the child.
+				 * This NSEC3 record is from the child.
 				 * It can not be legitimately used here.
 				 */
 				validator_log(val, ISC_LOG_DEBUG(3),
@@ -2921,7 +2921,6 @@ nsecvalidate(dns_validator_t *val, isc_boolean_t resume) {
 			      "nonexistence proof(s) found");
 		return (ISC_R_SUCCESS);
 	}
-		findnsec3proofs(val);
 
 	validator_log(val, ISC_LOG_DEBUG(3),
 		      "nonexistence proof(s) not found");

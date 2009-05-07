@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.96 2009/01/17 12:31:49 fdupont Exp $ */
+/* $Id: db.h,v 1.97 2009/05/07 09:41:23 fdupont Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -835,6 +835,9 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *
  *	\li	#DNS_R_COVERINGNSEC		The returned data is a NSEC
  *						that potentially covers 'name'.
+ *
+ *	\li	#DNS_R_EMPTYWILD		The name is a wildcard without
+ *						resource records.
  *
  *	Error results:
  *
