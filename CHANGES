@@ -1,3 +1,6 @@
+2597.	[bug]		Handle a validation failure with a insecure delegation
+			from a NSEC3 signed master/slave zone.  [RT #19464]
+
 2596.	[bug]		Stale tree nodes of cache/dynamic rbtdb could stay
 			long, leading to inefficient memory usage or rejecting
 			newer cache entries in the worst case. [RT #19563]
