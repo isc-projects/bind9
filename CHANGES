@@ -1,3 +1,6 @@
+2599.	[bug]		Address rapid memory growth when validation fails.
+			[RT #19654]
+
 2598.	[func]		Reserve the -F flag. [RT #19657]
 
 2597.	[bug]		Handle a validation failure with a insecure delegation
