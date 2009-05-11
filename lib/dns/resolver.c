@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.355.12.38 2009/05/11 02:27:26 marka Exp $ */
+/* $Id: resolver.c,v 1.355.12.39 2009/05/11 02:29:53 marka Exp $ */
 
 /*! \file */
 
@@ -4161,7 +4161,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 					    ardataset != NULL &&
 					    ardataset->type == 0) {
 						/*
-						 * The answer in the cache isi
+						 * The answer in the cache is
 						 * better than the answer we
 						 * found, and is a negative
 						 * cache entry, so we must set
