@@ -1,3 +1,6 @@
+2599.	[bug]		Address rapid memory growth when validation fails.
+			[RT #19654]
+
 2595.	[bug]		Fix unknown extended rcodes in dig. [RT #19625]
 
 2592.	[bug]		Treat "any" as a type in nsupdate. [RT #19455]

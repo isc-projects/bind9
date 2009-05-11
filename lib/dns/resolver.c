@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.87 2009/02/28 05:39:35 marka Exp $ */
+/* $Id: resolver.c,v 1.284.18.88 2009/05/11 02:32:43 marka Exp $ */
 
 /*! \file */
 
@@ -3958,53 +3958,53 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 			rdataset->trust = dns_trust_pending;
 			if (sigrdataset != NULL)
 				sigrdataset->trust = dns_trust_pending;
-			if (!need_validation)
+			if (!need_validation || !ANSWER(rdataset)) {
 				addedrdataset = ardataset;
-			else
-				addedrdataset = NULL;
-			result = dns_db_addrdataset(fctx->cache, node, NULL,
-						    now, rdataset, 0,
-						    addedrdataset);
-			if (result == DNS_R_UNCHANGED) {
-				result = ISC_R_SUCCESS;
-				if (!need_validation &&
-				    ardataset != NULL &&
-				    ardataset->type == 0) {
-					/*
-					 * The answer in the cache is better
-					 * than the answer we found, and is
-					 * a negative cache entry, so we
-					 * must set eresult appropriately.
-					 */
-					if (NXDOMAIN(ardataset))
-						eresult = DNS_R_NCACHENXDOMAIN;
-					else
-						eresult = DNS_R_NCACHENXRRSET;
-					/*
-					 * We have a negative response from
-					 * the cache so don't attempt to
-					 * add the RRSIG rrset.
-					 */
-					continue;
-				}
-			}
-			if (result != ISC_R_SUCCESS)
-				break;
-			if (sigrdataset != NULL) {
-				if (!need_validation)
-					addedrdataset = asigrdataset;
-				else
-					addedrdataset = NULL;
-				result = dns_db_addrdataset(fctx->cache,
-							    node, NULL, now,
-							    sigrdataset, 0,
-							    addedrdataset);
-				if (result == DNS_R_UNCHANGED)
+				result = dns_db_addrdataset(fctx->cache, node,
+							    NULL, now, rdataset,
+							    0, addedrdataset);
+				if (result == DNS_R_UNCHANGED) {
 					result = ISC_R_SUCCESS;
+					if (!need_validation &&
+					    ardataset != NULL &&
+					    ardataset->type == 0) {
+						/*
+						 * The answer in the cache is
+						 * better than the answer we
+						 * found, and is a negative
+						 * cache entry, so we must set
+						 * eresult appropriately.
+						 */
+						if (NXDOMAIN(ardataset))
+							eresult =
+							   DNS_R_NCACHENXDOMAIN;
+						else
+							eresult =
+							   DNS_R_NCACHENXRRSET;
+						/*
+						 * We have a negative response
+						 * from the cache so don't
+						 * attempt to add the RRSIG
+						 * rrset.
+						 */
+						continue;
+					}
+				}
 				if (result != ISC_R_SUCCESS)
 					break;
-			} else if (!ANSWER(rdataset))
-				continue;
+				if (sigrdataset != NULL) {
+					addedrdataset = asigrdataset;
+					result = dns_db_addrdataset(fctx->cache,
+								node, NULL, now,
+								sigrdataset, 0,
+								addedrdataset);
+					if (result == DNS_R_UNCHANGED)
+						result = ISC_R_SUCCESS;
+					if (result != ISC_R_SUCCESS)
+						break;
+				} else if (!ANSWER(rdataset))
+					continue;
+			} 
 
 			if (ANSWER(rdataset) && need_validation) {
 				if (fctx->type != dns_rdatatype_any &&
