@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.88 2009/05/11 02:32:43 marka Exp $ */
+/* $Id: resolver.c,v 1.284.18.89 2009/05/11 02:36:58 tbox Exp $ */
 
 /*! \file */
 
@@ -4004,7 +4004,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 						break;
 				} else if (!ANSWER(rdataset))
 					continue;
-			} 
+			}
 
 			if (ANSWER(rdataset) && need_validation) {
 				if (fctx->type != dns_rdatatype_any &&
