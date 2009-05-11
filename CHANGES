@@ -1,3 +1,6 @@
+2599.	[bug]		Address rapid memory growth when validation fails.
+			[RT #19654]
+
 2596.	[bug]		Stale tree nodes of cache/dynamic rbtdb could stay
 			long, leading to inefficient memory usage or rejecting
 			newer cache entries in the worst case. [RT #19563]
