@@ -1,4 +1,7 @@
 2597.	[bug]		Handle a validation failure with a insecure delegation
+2599.	[bug]		Address rapid memory growth when validation fails.
+			[RT #19654]
+
 			from a NSEC3 signed master/slave zone.  [RT #19464]
 
 2596.	[bug]		Stale tree nodes of cache/dynamic rbtdb could stay
