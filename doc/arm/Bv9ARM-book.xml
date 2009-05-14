@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.408 2009/05/14 20:24:14 jreed Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.409 2009/05/14 20:46:04 jreed Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4488,7 +4488,13 @@ category notify { null; };
 	    The log message will look like as follows:
 	  </para>
 	  <para>
-	    <computeroutput>fetch completed at resolver.c:2970 for www.example.com/A in 30.000183: timed out/success [domain:example.com,referral:2,restart:7,qrysent:8,timeout:5,lame:0,neterr:0,badresp:1,adberr:0,findfail:0,valfail:0]</computeroutput>
+<!-- NOTE: newlines and some spaces added so this would fit on page -->
+            <programlisting>
+fetch completed at resolver.c:2970 for www.example.com/A
+in 30.000183: timed out/success [domain:example.com,
+referral:2,restart:7,qrysent:8,timeout:5,lame:0,neterr:0,
+badresp:1,adberr:0,findfail:0,valfail:0]
+            </programlisting>
 	  </para>
 	  <para>
 	    The first part before the colon shows that a recursive
@@ -4520,8 +4526,8 @@ category notify { null; };
 
           <informaltable colsep="0" rowsep="0">
             <tgroup cols="2" colsep="0" rowsep="0" tgroupstyle="4Level-table">
-              <colspec colname="1" colnum="1" colsep="0" />
-              <colspec colname="2" colnum="2" colsep="0" />
+              <colspec colname="1" colnum="1" colsep="0" colwidth="1.150in"/>
+              <colspec colname="2" colnum="2" colsep="0" colwidth="3.350in"/>
               <tbody>
                 <row rowsep="0">
                   <entry colname="1">
