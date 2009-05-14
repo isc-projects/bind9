@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.407 2009/04/16 18:05:30 jreed Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.408 2009/05/14 20:24:14 jreed Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -679,10 +679,13 @@
 // Two corporate subnets we wish to allow queries from.
 acl corpnets { 192.168.4.0/24; 192.168.7.0/24; };
 options {
-     directory "/etc/namedb";           // Working directory
+     // Working directory
+     directory "/etc/namedb";
+
      allow-query { corpnets; };
 };
-// Provide a reverse mapping for the loopback address 127.0.0.1
+// Provide a reverse mapping for the loopback
+// address 127.0.0.1
 zone "0.0.127.in-addr.arpa" {
      type master;
      file "localhost.rev";
@@ -702,13 +705,18 @@ zone "0.0.127.in-addr.arpa" {
 
 <programlisting>
 options {
-     directory "/etc/namedb";           // Working directory
-     allow-query-cache { none; };       // Do not allow access to cache
-     allow-query { any; };              // This is the default
-     recursion no;                      // Do not provide recursive service
+     // Working directory
+     directory "/etc/namedb";
+     // Do not allow access to cache
+     allow-query-cache { none; };
+     // This is the default
+     allow-query { any; };
+     // Do not provide recursive service
+     recursion no;
 };
 
-// Provide a reverse mapping for the loopback address 127.0.0.1
+// Provide a reverse mapping for the loopback
+// address 127.0.0.1
 zone "0.0.127.in-addr.arpa" {
      type master;
      file "localhost.rev";
@@ -718,7 +726,8 @@ zone "0.0.127.in-addr.arpa" {
 zone "example.com" {
      type master;
      file "example.com.db";
-     // IP addresses of slave servers allowed to transfer example.com
+     // IP addresses of slave servers allowed to
+     // transfer example.com
      allow-transfer {
           192.168.4.14;
           192.168.5.53;
@@ -1487,7 +1496,8 @@ zone "eng.example.com" {
 <programlisting>
 key rndc_key {
      algorithm "hmac-md5";
-     secret "c3Ryb25nIGVub3VnaCBmb3IgYSBtYW4gYnV0IG1hZGUgZm9yIGEgd29tYW4K";
+     secret
+       "c3Ryb25nIGVub3VnaCBmb3IgYSBtYW4gYnV0IG1hZGUgZm9yIGEgd29tYW4K";
 };
 options {
      default-server 127.0.0.1;
@@ -1513,7 +1523,8 @@ options {
 
 <programlisting>
 controls {
-        inet 127.0.0.1 allow { localhost; } keys { rndc_key; };
+        inet 127.0.0.1
+            allow { localhost; } keys { rndc_key; };
 };
 </programlisting>
 
@@ -1921,26 +1932,32 @@ options {
     ...
     ...
     forward only;
-    forwarders {                                // forward to external servers
+    // forward to external servers
+    forwarders {
         <varname>bastion-ips-go-here</varname>;
     };
-    allow-transfer { none; };                   // sample allow-transfer (no one)
-    allow-query { internals; externals; };      // restrict query access
-    allow-recursion { internals; };             // restrict recursion
+    // sample allow-transfer (no one)
+    allow-transfer { none; };
+    // restrict query access
+    allow-query { internals; externals; };
+    // restrict recursion
+    allow-recursion { internals; };
     ...
     ...
 };
 
-zone "site1.example.com" {                      // sample master zone
+// sample master zone
+zone "site1.example.com" {
   type master;
   file "m/site1.example.com";
-  forwarders { };                               // do normal iterative
-                                                // resolution (do not forward)
+  // do normal iterative resolution (do not forward)
+  forwarders { };
   allow-query { internals; externals; };
   allow-transfer { internals; };
 };
 
-zone "site2.example.com" {                      // sample slave zone
+// sample slave zone
+zone "site2.example.com" {
   type slave;
   file "s/site2.example.com";
   masters { 172.16.72.3; };
@@ -1979,15 +1996,20 @@ acl externals { bastion-ips-go-here; };
 options {
   ...
   ...
-  allow-transfer { none; };                     // sample allow-transfer (no one)
-  allow-query { any; };                         // default query access
-  allow-query-cache { internals; externals; };  // restrict cache access
-  allow-recursion { internals; externals; };    // restrict recursion
+  // sample allow-transfer (no one)
+  allow-transfer { none; };
+  // default query access
+  allow-query { any; };
+  // restrict cache access
+  allow-query-cache { internals; externals; };
+  // restrict recursion
+  allow-recursion { internals; externals; };
   ...
   ...
 };
 
-zone "site1.example.com" {                      // sample slave zone
+// sample slave zone
+zone "site1.example.com" {
   type master;
   file "m/site1.foo.com";
   allow-transfer { internals; externals; };
@@ -2494,32 +2516,45 @@ allow-update { key host1-host2. ;};
 trusted-keys {
 
 	/* Root Key */
-"." 257 3 3 "BNY4wrWM1nCfJ+CXd0rVXyYmobt7sEEfK3clRbGaTwSJxrGkxJWoZu6I7PzJu/
-	     E9gx4UC1zGAHlXKdE4zYIpRhaBKnvcC2U9mZhkdUpd1Vso/HAdjNe8LmMlnzY3
-	     zy2Xy4klWOADTPzSv9eamj8V18PHGjBLaVtYvk/ln5ZApjYghf+6fElrmLkdaz
-	     MQ2OCnACR817DF4BBa7UR/beDHyp5iWTXWSi6XmoJLbG9Scqc7l70KDqlvXR3M
-	     /lUUVRbkeg1IPJSidmK3ZyCllh4XSKbje/45SKucHgnwU5jefMtq66gKodQj+M
-	     iA21AfUVe7u99WzTLzY3qlxDhxYQQ20FQ97S+LKUTpQcq27R7AT3/V5hRQxScI
-	     Nqwcz4jYqZD2fQdgxbcDTClU0CRBdiieyLMNzXG3";
+"." 257 3 3 "BNY4wrWM1nCfJ+CXd0rVXyYmobt7sEEfK3clRbGaTwS
+             JxrGkxJWoZu6I7PzJu/E9gx4UC1zGAHlXKdE4zYIpRh
+             aBKnvcC2U9mZhkdUpd1Vso/HAdjNe8LmMlnzY3zy2Xy
+             4klWOADTPzSv9eamj8V18PHGjBLaVtYvk/ln5ZApjYg
+             hf+6fElrmLkdaz MQ2OCnACR817DF4BBa7UR/beDHyp
+             5iWTXWSi6XmoJLbG9Scqc7l70KDqlvXR3M/lUUVRbke
+             g1IPJSidmK3ZyCllh4XSKbje/45SKucHgnwU5jefMtq
+             66gKodQj+MiA21AfUVe7u99WzTLzY3qlxDhxYQQ20FQ
+             97S+LKUTpQcq27R7AT3/V5hRQxScINqwcz4jYqZD2fQ
+             dgxbcDTClU0CRBdiieyLMNzXG3";
 
 /* Key for our organization's forward zone */
-example.com. 257 3 5 "AwEAAaxPMcR2x0HbQV4WeZB6oEDX+r0QM65KbhTjrW1ZaARmPhEZZe
-                      3Y9ifgEuq7vZ/zGZUdEGNWy+JZzus0lUptwgjGwhUS1558Hb4JKUbb
-	              OTcM8pwXlj0EiX3oDFVmjHO444gLkBO UKUf/mC7HvfwYH/Be22GnC
-		      lrinKJp1Og4ywzO9WglMk7jbfW33gUKvirTHr25GL7STQUzBb5Usxt
-		      8lgnyTUHs1t3JwCY5hKZ6CqFxmAVZP20igTixin/1LcrgX/KMEGd/b
-		      iuvF4qJCyduieHukuY3H4XMAcR+xia2 nIUPvm/oyWR8BW/hWdzOvn
-		      SCThlHf3xiYleDbt/o1OTQ09A0=";
+example.com. 257 3 5 "AwEAAaxPMcR2x0HbQV4WeZB6oEDX+r0QM6
+                      5KbhTjrW1ZaARmPhEZZe3Y9ifgEuq7vZ/z
+                      GZUdEGNWy+JZzus0lUptwgjGwhUS1558Hb
+                      4JKUbbOTcM8pwXlj0EiX3oDFVmjHO444gL
+                      kBOUKUf/mC7HvfwYH/Be22GnClrinKJp1O
+                      g4ywzO9WglMk7jbfW33gUKvirTHr25GL7S
+                      TQUzBb5Usxt8lgnyTUHs1t3JwCY5hKZ6Cq
+                      FxmAVZP20igTixin/1LcrgX/KMEGd/biuv
+                      F4qJCyduieHukuY3H4XMAcR+xia2nIUPvm
+                      /oyWR8BW/hWdzOvnSCThlHf3xiYleDbt/o
+                      1OTQ09A0=";
 
 /* Key for our reverse zone. */
-2.0.192.IN-ADDRPA.NET. 257 3 5 "AQOnS4xn/IgOUpBPJ3bogzwcxOdNax071L18QqZnQQQA
-                                VVr+iLhGTnNGp3HoWQLUIzKrJVZ3zggy3WwNT6kZo6c0
-				tszYqbtvchmgQC8CzKojM/W16i6MG/ea fGU3siaOdS0
-				yOI6BgPsw+YZdzlYMaIJGf4M4dyoKIhzdZyQ2bYQrjyQ
-				4LB0lC7aOnsMyYKHHYeRv PxjIQXmdqgOJGq+vsevG06
-			        zW+1xgYJh9rCIfnm1GX/KMgxLPG2vXTD/RnLX+D3T3UL
-				7HJYHJhAZD5L59VvjSPsZJHeDCUyWYrvPZesZDIRvhDD
-				52SKvbheeTJUm6EhkzytNN2SN96QRk8j/iI8ib";
+2.0.192.IN-ADDRPA.NET. 257 3 5 "AQOnS4xn/IgOUpBPJ3bogzwc
+                               xOdNax071L18QqZnQQQAVVr+i
+                               LhGTnNGp3HoWQLUIzKrJVZ3zg
+                               gy3WwNT6kZo6c0tszYqbtvchm
+                               gQC8CzKojM/W16i6MG/eafGU3
+                               siaOdS0yOI6BgPsw+YZdzlYMa
+                               IJGf4M4dyoKIhzdZyQ2bYQrjy
+                               Q4LB0lC7aOnsMyYKHHYeRvPxj
+                               IQXmdqgOJGq+vsevG06zW+1xg
+                               YJh9rCIfnm1GX/KMgxLPG2vXT
+                               D/RnLX+D3T3UL7HJYHJhAZD5L
+                               59VvjSPsZJHeDCUyWYrvPZesZ
+                               DIRvhDD52SKvbheeTJUm6Ehkz
+                               ytNN2SN96QRk8j/iI8ib";
 };
 
 options {
@@ -2650,7 +2685,8 @@ host            3600    IN      AAAA    2001:db8::1
 
 <programlisting>
 $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
-1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   14400 IN      PTR     host.example.com.
+1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0  14400   IN    PTR    (
+                                    host.example.com. )
 </programlisting>
 
       </sect2>
@@ -3221,7 +3257,8 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
           <para>
             <programlisting>/* This is a <acronym>BIND</acronym> comment as in C */</programlisting>
             <programlisting>// This is a <acronym>BIND</acronym> comment as in C++</programlisting>
-            <programlisting># This is a <acronym>BIND</acronym> comment as in common UNIX shells and perl</programlisting>
+            <programlisting># This is a <acronym>BIND</acronym> comment as in common UNIX shells
+# and perl</programlisting>
           </para>
         </sect3>
         <sect3>
@@ -3556,10 +3593,12 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
         <title><command>controls</command> Statement Grammar</title>
 
 <programlisting><command>controls</command> {
-   [ inet ( ip_addr | * ) [ port ip_port ] allow { <replaceable> address_match_list </replaceable> }
+   [ inet ( ip_addr | * ) [ port ip_port ]
+                allow { <replaceable> address_match_list </replaceable> }
                 keys { <replaceable>key_list</replaceable> }; ]
    [ inet ...; ]
-   [ unix <replaceable>path</replaceable> perm <replaceable>number</replaceable> owner <replaceable>number</replaceable> group <replaceable>number</replaceable> keys { <replaceable>key_list</replaceable> }; ]
+   [ unix <replaceable>path</replaceable> perm <replaceable>number</replaceable> owner <replaceable>number</replaceable> group <replaceable>number</replaceable>
+     keys { <replaceable>key_list</replaceable> }; ]
    [ unix ...; ]
 };
 </programlisting>
@@ -4028,32 +4067,30 @@ notrace</command>. All debugging messages in the server have a debug
           </para>
 
 <programlisting>channel default_syslog {
-    syslog daemon;                      // send to syslog's daemon
-                                        // facility
-    severity info;                      // only send priority info
-                                        // and higher
-};
+    // send to syslog's daemon facility
+    syslog daemon;
+    // only send priority info and higher
+    severity info;
 
 channel default_debug {
-    file "named.run";                   // write to named.run in
-                                        // the working directory
-                                        // Note: stderr is used instead
-                                        // of "named.run"
-                                        // if the server is started
-                                        // with the '-f' option.
-    severity dynamic;                   // log at the server's
-                                        // current debug level
+    // write to named.run in the working directory
+    // Note: stderr is used instead of "named.run" if
+    // the server is started with the '-f' option.
+    file "named.run";
+    // log at the server's current debug level
+    severity dynamic;
 };
 
 channel default_stderr {
-    stderr;                             // writes to stderr
-    severity info;                      // only send priority info
-                                        // and higher
+    // writes to stderr
+    stderr;
+    // only send priority info and higher
+    severity info;
 };
 
 channel null {
-   null;                                // toss anything sent to
-                                        // this channel
+   // toss anything sent to this channel
+   null;
 };
 </programlisting>
 
@@ -4649,7 +4686,8 @@ category notify { null; };
         </para>
 
 <programlisting><command>lwres</command> {
-    <optional> listen-on { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
+    <optional> listen-on { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ;
+                <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
     <optional> view <replaceable>view_name</replaceable>; </optional>
     <optional> search { <replaceable>domain_name</replaceable> ; <optional> <replaceable>domain_name</replaceable> ; ... </optional> }; </optional>
     <optional> ndots <replaceable>number</replaceable>; </optional>
@@ -4716,7 +4754,8 @@ category notify { null; };
         <title><command>masters</command> Statement Grammar</title>
 
 <programlisting>
-<command>masters</command> <replaceable>name</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> { ( <replaceable>masters_list</replaceable> | <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> <optional>key <replaceable>key</replaceable></optional> ) ; <optional>...</optional> };
+<command>masters</command> <replaceable>name</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> { ( <replaceable>masters_list</replaceable> | 
+      <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> <optional>key <replaceable>key</replaceable></optional> ) ; <optional>...</optional> };
 </programlisting>
 
       </sect2>
@@ -4777,7 +4816,8 @@ category notify { null; };
     <optional> ixfr-from-differences (<replaceable>yes_or_no</replaceable> | <constant>master</constant> | <constant>slave</constant>); </optional>
     <optional> dnssec-enable <replaceable>yes_or_no</replaceable>; </optional>
     <optional> dnssec-validation <replaceable>yes_or_no</replaceable>; </optional>
-    <optional> dnssec-lookaside ( <replaceable>auto</replaceable> | <replaceable>domain</replaceable> trust-anchor <replaceable>domain</replaceable> ); </optional>
+    <optional> dnssec-lookaside ( <replaceable>auto</replaceable> | 
+                        <replaceable>domain</replaceable> trust-anchor <replaceable>domain</replaceable> ); </optional>
     <optional> dnssec-must-be-secure <replaceable>domain yes_or_no</replaceable>; </optional>
     <optional> dnssec-accept-expired <replaceable>yes_or_no</replaceable>; </optional>
     <optional> forward ( <replaceable>only</replaceable> | <replaceable>first</replaceable> ); </optional>
@@ -4842,13 +4882,15 @@ category notify { null; };
     <optional> transfer-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> alt-transfer-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
-    <optional> alt-transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
+    <optional> alt-transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>)
+                             <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> use-alt-transfer-source <replaceable>yes_or_no</replaceable>; </optional>
     <optional> notify-delay <replaceable>seconds</replaceable> ; </optional>
     <optional> notify-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> notify-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> notify-to-soa <replaceable>yes_or_no</replaceable> ; </optional>
-    <optional> also-notify { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
+    <optional> also-notify { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ;
+                  <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
     <optional> max-ixfr-log-size <replaceable>number</replaceable>; </optional>
     <optional> max-journal-size <replaceable>size_spec</replaceable>; </optional>
     <optional> coresize <replaceable>size_spec</replaceable> ; </optional>
@@ -4889,7 +4931,8 @@ category notify { null; };
     <optional> max-udp-size <replaceable>number</replaceable>; </optional>
     <optional> root-delegation-only <optional> exclude { <replaceable>namelist</replaceable> } </optional> ; </optional>
     <optional> querylog <replaceable>yes_or_no</replaceable> ; </optional>
-    <optional> disable-algorithms <replaceable>domain</replaceable> { <replaceable>algorithm</replaceable>; <optional> <replaceable>algorithm</replaceable>; </optional> }; </optional>
+    <optional> disable-algorithms <replaceable>domain</replaceable> { <replaceable>algorithm</replaceable>;
+                                <optional> <replaceable>algorithm</replaceable>; </optional> }; </optional>
     <optional> acache-enable <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> acache-cleaning-interval <replaceable>number</replaceable>; </optional>
     <optional> max-acache-size <replaceable>size_spec</replaceable> ; </optional>
@@ -7623,20 +7666,26 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
           </para>
 
 <programlisting>sortlist {
-    { localhost;                                   // IF   the local host
-        { localnets;                               // THEN first fit on the
-            192.168.1/24;                          //   following nets
+    // IF the local host
+    // THEN first fit on the following nets
+    { localhost;
+        { localnets;
+            192.168.1/24;
             { 192.168.2/24; 192.168.3/24; }; }; };
-    { 192.168.1/24;                                // IF   on class C 192.168.1
-        { 192.168.1/24;                            // THEN use .1, or .2 or .3
+    // IF on class C 192.168.1 THEN use .1, or .2 or .3
+    { 192.168.1/24;
+        { 192.168.1/24;
             { 192.168.2/24; 192.168.3/24; }; }; };
-    { 192.168.2/24;                                // IF   on class C 192.168.2
-        { 192.168.2/24;                            // THEN use .2, or .1 or .3
+    // IF on class C 192.168.2 THEN use .2, or .1 or .3
+    { 192.168.2/24;
+        { 192.168.2/24;
             { 192.168.1/24; 192.168.3/24; }; }; };
-    { 192.168.3/24;                                // IF   on class C 192.168.3
-        { 192.168.3/24;                            // THEN use .3, or .1 or .2
+    // IF on class C 192.168.3 THEN use .3, or .1 or .2
+    { 192.168.3/24;
+        { 192.168.3/24;
             { 192.168.1/24; 192.168.2/24; }; }; };
-    { { 192.168.4/24; 192.168.5/24; };             // if .4 or .5, prefer that net
+    // IF .4 or .5 THEN prefer that net
+    { { 192.168.4/24; 192.168.5/24; };
     };
 };</programlisting>
 
@@ -8390,8 +8439,10 @@ XXX: end of RFC1918 addresses #defined out -->
     <optional> transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> notify-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> notify-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
-    <optional> query-source <optional> address ( <replaceable>ip_addr</replaceable> | <replaceable>*</replaceable> ) </optional> <optional> port ( <replaceable>ip_port</replaceable> | <replaceable>*</replaceable> ) </optional>; </optional>
-    <optional> query-source-v6 <optional> address ( <replaceable>ip_addr</replaceable> | <replaceable>*</replaceable> ) </optional> <optional> port ( <replaceable>ip_port</replaceable> | <replaceable>*</replaceable> ) </optional>; </optional>
+    <optional> query-source <optional> address ( <replaceable>ip_addr</replaceable> | <replaceable>*</replaceable> ) </optional>
+                  <optional> port ( <replaceable>ip_port</replaceable> | <replaceable>*</replaceable> ) </optional>; </optional>
+    <optional> query-source-v6 <optional> address ( <replaceable>ip_addr</replaceable> | <replaceable>*</replaceable> ) </optional>
+                     <optional> port ( <replaceable>ip_port</replaceable> | <replaceable>*</replaceable> ) </optional>; </optional>
     <optional> use-queryport-pool <replaceable>yes_or_no</replaceable>; </optional>
     <optional> queryport-pool-ports <replaceable>number</replaceable>; </optional>
     <optional> queryport-pool-interval <replaceable>number</replaceable>; </optional>
@@ -8589,7 +8640,8 @@ XXX: end of RFC1918 addresses #defined out -->
         <title><command>statistics-channels</command> Statement Grammar</title>
 
 <programlisting><command>statistics-channels</command> {
-   [ inet ( ip_addr | * ) [ port ip_port ] [allow { <replaceable> address_match_list </replaceable> } ]; ]
+   [ inet ( ip_addr | * ) [ port ip_port ]
+   [ allow { <replaceable> address_match_list </replaceable> } ]; ]
    [ inet ...; ]
 };
 </programlisting>
@@ -8822,11 +8874,12 @@ XXX: end of RFC1918 addresses #defined out -->
       // This should match our internal networks.
       match-clients { 10.0.0.0/8; };
 
-      // Provide recursive service to internal clients only.
+      // Provide recursive service to internal
+      // clients only.
       recursion yes;
 
-      // Provide a complete view of the example.com zone
-      // including addresses of internal hosts.
+      // Provide a complete view of the example.com
+      // zone including addresses of internal hosts.
       zone "example.com" {
             type master;
             file "example-internal.db";
@@ -8834,14 +8887,15 @@ XXX: end of RFC1918 addresses #defined out -->
 };
 
 view "external" {
-      // Match all clients not matched by the previous view.
+      // Match all clients not matched by the
+      // previous view.
       match-clients { any; };
 
       // Refuse recursive service to external clients.
       recursion no;
 
-      // Provide a restricted view of the example.com zone
-      // containing only publicly accessible hosts.
+      // Provide a restricted view of the example.com
+      // zone containing only publicly accessible hosts.
       zone "example.com" {
            type master;
            file "example-external.db";
@@ -8861,7 +8915,8 @@ view "external" {
     <optional> allow-transfer { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-update { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> update-policy { <replaceable>update_policy_rule</replaceable> <optional>...</optional> }; </optional>
-    <optional> also-notify { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
+    <optional> also-notify { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ;
+                  <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
     <optional> check-names (<constant>warn</constant>|<constant>fail</constant>|<constant>ignore</constant>) ; </optional>
     <optional> check-mx (<constant>warn</constant>|<constant>fail</constant>|<constant>ignore</constant>) ; </optional>
     <optional> check-wildcard <replaceable>yes_or_no</replaceable>; </optional>
@@ -8909,7 +8964,8 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
     <optional> allow-update-forwarding { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> update-check-ksk <replaceable>yes_or_no</replaceable>; </optional>
     <optional> try-tcp-refresh <replaceable>yes_or_no</replaceable>; </optional>
-    <optional> also-notify { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
+    <optional> also-notify { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ;
+                  <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
     <optional> check-names (<constant>warn</constant>|<constant>fail</constant>|<constant>ignore</constant>) ; </optional>
     <optional> dialup <replaceable>dialup_option</replaceable> ; </optional>
     <optional> file <replaceable>string</replaceable> ; </optional>
@@ -8922,7 +8978,9 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
     <optional> ixfr-from-differences <replaceable>yes_or_no</replaceable>; </optional>
     <optional> ixfr-tmp-file <replaceable>string</replaceable> ; </optional>
     <optional> maintain-ixfr-base <replaceable>yes_or_no</replaceable> ; </optional>
-    <optional> masters <optional>port <replaceable>ip_port</replaceable></optional> { ( <replaceable>masters_list</replaceable> | <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> <optional>key <replaceable>key</replaceable></optional> ) ; <optional>...</optional> }; </optional>
+    <optional> masters <optional>port <replaceable>ip_port</replaceable></optional> { ( <replaceable>masters_list</replaceable> | <replaceable>ip_addr</replaceable>
+                              <optional>port <replaceable>ip_port</replaceable></optional>
+                              <optional>key <replaceable>key</replaceable></optional> ) ; <optional>...</optional> }; </optional>
     <optional> max-ixfr-log-size <replaceable>number</replaceable> ; </optional>
     <optional> max-transfer-idle-in <replaceable>number</replaceable> ; </optional>
     <optional> max-transfer-idle-out <replaceable>number</replaceable> ; </optional>
@@ -8935,7 +8993,8 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
     <optional> transfer-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> alt-transfer-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
-    <optional> alt-transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
+    <optional> alt-transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>)
+                             <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> use-alt-transfer-source <replaceable>yes_or_no</replaceable>; </optional>
     <optional> notify-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> notify-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
@@ -8953,7 +9012,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
     type hint;
     file <replaceable>string</replaceable> ;
     <optional> delegation-only <replaceable>yes_or_no</replaceable> ; </optional>
-    <optional> check-names (<constant>warn</constant>|<constant>fail</constant>|<constant>ignore</constant>) ; // Not Implemented. </optional>
+    <optional> check-names (<constant>warn</constant>|<constant>fail</constant>|<constant>ignore</constant>) ; </optional> // Not Implemented.
 };
 
 zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replaceable></optional> {
@@ -8967,14 +9026,18 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
     <optional> masterfile-format (<constant>text</constant>|<constant>raw</constant>) ; </optional>
     <optional> forward (<constant>only</constant>|<constant>first</constant>) ; </optional>
     <optional> forwarders { <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
-    <optional> masters <optional>port <replaceable>ip_port</replaceable></optional> { ( <replaceable>masters_list</replaceable> | <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> <optional>key <replaceable>key</replaceable></optional> ) ; <optional>...</optional> }; </optional>
+    <optional> masters <optional>port <replaceable>ip_port</replaceable></optional> { ( <replaceable>masters_list</replaceable> | <replaceable>ip_addr</replaceable>
+                              <optional>port <replaceable>ip_port</replaceable></optional>
+                              <optional>key <replaceable>key</replaceable></optional> ) ; <optional>...</optional> }; </optional>
     <optional> max-transfer-idle-in <replaceable>number</replaceable> ; </optional>
     <optional> max-transfer-time-in <replaceable>number</replaceable> ; </optional>
     <optional> pubkey <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>string</replaceable> ; </optional>
     <optional> transfer-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
-    <optional> transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
+    <optional> transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>)
+                         <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> alt-transfer-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
-    <optional> alt-transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
+    <optional> alt-transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>)
+                            <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> use-alt-transfer-source <replaceable>yes_or_no</replaceable>; </optional>
     <optional> zone-statistics <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> database <replaceable>string</replaceable> ; </optional>
@@ -13222,14 +13285,17 @@ HOST-127.EXAMPLE. MX 0 .
         </para>
 
 <programlisting>
-// Set up an ACL named "bogusnets" that will block RFC1918 space
-// and some reserved space, which is commonly used in spoofing attacks.
+// Set up an ACL named "bogusnets" that will block
+// RFC1918 space and some reserved space, which is
+// commonly used in spoofing attacks.
 acl bogusnets {
-	0.0.0.0/8; 1.0.0.0/8; 2.0.0.0/8; 192.0.2.0/24; 224.0.0.0/3;
-	10.0.0.0/8; 172.16.0.0/12; 192.168.0.0/16;
+        0.0.0.0/8; 1.0.0.0/8; 2.0.0.0/8; 192.0.2.0/24;
+        224.0.0.0/3; 10.0.0.0/8; 172.16.0.0/12;
+        192.168.0.0/16;
 };
 
-// Set up an ACL called our-nets. Replace this with the real IP numbers.
+// Set up an ACL called our-nets. Replace this with the
+// real IP numbers.
 acl our-nets { x.x.x.x/24; x.x.x.x/21; };
 options {
   ...

@@ -1,3 +1,6 @@
+2600.	[doc]		ARM: miscellaneous reformatting for different
+			page widths. [RT #19574]
+
 2599.	[bug]		Address rapid memory growth when validation fails.
 			[RT #19654]
 
