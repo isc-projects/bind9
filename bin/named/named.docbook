@@ -18,10 +18,10 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.docbook,v 1.23 2008/11/06 05:30:24 marka Exp $ -->
+<!-- $Id: named.docbook,v 1.24 2009/05/21 19:54:28 jreed Exp $ -->
 <refentry id="man.named">
   <refentryinfo>
-    <date>June 30, 2000</date>
+    <date>May 21, 2009</date>
   </refentryinfo>
 
   <refmeta>
@@ -374,6 +374,16 @@
       in the
       <citetitle>BIND 9 Administrator Reference Manual</citetitle>.
     </para>
+
+    <para>
+      <command>named</command> inherits the <function>umask</function>
+      (file creation mode mask) from the parent process. If files
+      created by <command>named</command>, such as journal files,
+      need to have custom permissions, the <function>umask</function>
+      should be set explicitly in the script used to start the
+      <command>named</command> process.
+    </para>
+
   </refsect1>
 
   <refsect1>

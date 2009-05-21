@@ -1,3 +1,6 @@
+2601.	[doc]		Mention file creation mode mask in the
+			named manual page.
+
 2600.	[doc]		ARM: miscellaneous reformatting for different
 			page widths. [RT #19574]
 
