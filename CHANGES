@@ -1,3 +1,6 @@
+2602.	[port]		win32: fix debugging command line build of libisccfg.
+			[RT #19767]
+
 2601.	[doc]		Mention file creation mode mask in the
 			named manual page.
 
