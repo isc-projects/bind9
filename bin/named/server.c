@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.531 2009/05/29 22:22:35 jinmei Exp $ */
+/* $Id: server.c,v 1.532 2009/05/29 23:47:48 tbox Exp $ */
 
 /*! \file */
 
@@ -434,7 +434,7 @@ configure_view_nametable(const cfg_obj_t *vconfig, const cfg_obj_t *config,
   cleanup:
 	dns_rbt_destroy(rbtp);
 	return (result);
-	
+
 }
 
 static isc_result_t

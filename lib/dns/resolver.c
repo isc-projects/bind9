@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.399 2009/05/29 22:22:36 jinmei Exp $ */
+/* $Id: resolver.c,v 1.400 2009/05/29 23:47:49 tbox Exp $ */
 
 /*! \file */
 
@@ -4865,7 +4865,7 @@ is_answeraddress_allowed(dns_view_t *view, dns_name_t *name,
 
 		result = dns_rbt_findnode(view->answeracl_exclude, name, NULL,
 					  &node, NULL, 0, NULL, NULL);
-					  
+
 		if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
 			return (ISC_TRUE);
 	}
