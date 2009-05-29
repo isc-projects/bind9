@@ -1,3 +1,8 @@
+2604.	[func]		Add support for DNS rebinding attack prevention through
+			new options, deny-answer-addresses and
+			deny-answer-aliases.  Based on contributed code from
+			JD Nurmi, Google. [RT #18192]
+
 2603.	[port]		win32: handle .exe extension of named-checkzone and
 			named-comilezone argv[0] names under windows.
 			[RT #19767]

@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.409 2009/05/14 20:46:04 jreed Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.410 2009/05/29 22:22:36 jinmei Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -2864,6 +2864,19 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
             <row rowsep="0">
               <entry colname="1">
                 <para>
+                  <varname>namelist</varname>
+                </para>
+              </entry>
+              <entry colname="2">
+                <para>
+                  A list of one or more <varname>domain_name</varname>
+                  elements.
+                </para>
+              </entry>
+            </row>
+            <row rowsep="0">
+              <entry colname="1">
+                <para>
                   <varname>dotted_decimal</varname>
                 </para>
               </entry>
@@ -4951,6 +4964,8 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> disable-empty-zone <replaceable>zone_name</replaceable> ; </optional>
     <optional> zero-no-soa-ttl <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> zero-no-soa-ttl-cache <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> deny-answer-addresses { <replaceable>address_match_list</replaceable> } <optional> except-from { <replaceable>namelist</replaceable> } </optional>;</optional>
+    <optional> deny-answer-aliases { <replaceable>namelist</replaceable> } <optional> except-from { <replaceable>namelist</replaceable> } </optional>;</optional>
 };
 </programlisting>
 
@@ -8426,6 +8441,142 @@ XXX: end of RFC1918 addresses #defined out -->
 
         </sect3>
 
+        <sect3>
+          <title>Content Filtering</title>
+	  <para>
+	    <acronym>BIND</acronym> 9 provides the ability to filter
+	    out DNS responses from external DNS servers containing
+	    certain types of data in the answer section.
+	    Specifically, it can reject address (A or AAAA) records if
+	    the corresponding IPv4 or IPv6 addresses match the given
+	    <varname>address_match_list</varname> of the
+	    <command>deny-answer-addresses</command> option.
+	    It can also reject CNAME or DNAME records if the "alias"
+	    name (i.e., the CNAME alias or the substituted query name
+	    due to DNAME) matches the
+	    given <varname>namelist</varname> of the
+	    <command>deny-answer-aliases</command> option, where
+	    "match" means the alias name is a subdomain of one of
+	    the <varname>name_list</varname> elements.
+	    If the optional <varname>namelist</varname> is specified
+	    with <command>except-from</command>, records whose query name
+	    matches the list will be accepted regardless of the filter
+	    setting.
+	    Likewise, if the alias name is a subdomain of the
+	    corresponding zone, the <command>deny-answer-aliases</command>
+	    filter will not apply;
+	    for example, even if "example.com" is specified for
+	    <command>deny-answer-aliases</command>,
+	  </para>
+<programlisting>www.example.com. CNAME xxx.example.com.</programlisting>
+
+	  <para>
+	    returned by an "example.com" server will be accepted.
+	  </para>
+
+	  <para>
+	    In the <varname>address_match_list</varname> of the
+	    <command>deny-answer-addresses</command> option, only
+            <varname>ip_addr</varname>
+	    and <varname>ip_prefix</varname>
+	    are meaningful;
+	    any <varname>key_id</varname> will be silently ignored.
+	  </para>
+
+	  <para>
+	    If a response message is rejected due to the filtering,
+	    the entire message is discarded without being cached, and
+	    a SERVFAIL error will be returned to the client.
+	  </para>
+
+	  <para>
+	    This filtering is intended to prevent "DNS rebinding attacks," in
+	    which an attacker, in response to a query for a domain name the
+	    attacker controls, returns an IP address within your own network or
+	    an alias name within your own domain.
+	    A naive web browser or script could then serve as an
+	    unintended proxy, allowing the attacker
+	    to get access to an internal node of your local network
+	    that couldn't be externally accessed otherwise.
+	    See the paper available at
+	    <ulink>
+	    http://portal.acm.org/citation.cfm?id=1315245.1315298
+	    </ulink>
+	    for more details about the attacks.
+	  </para>
+
+	  <para>
+	    For example, if you own a domain named "example.net" and
+	    your internal network uses an IPv4 prefix 192.0.2.0/24,
+	    you might specify the following rules:
+	  </para>
+
+<programlisting>deny-answer-addresses { 192.0.2.0/24; } except-from { "example.net"; };
+deny-answer-aliases { "example.net"; };
+</programlisting>
+
+	  <para>
+	    If an external attacker lets a web browser in your local
+	    network look up an IPv4 address of "attacker.example.com",
+	    the attacker's DNS server would return a response like this:
+	  </para>
+
+<programlisting>attacker.example.com. A 192.0.2.1</programlisting>
+
+	  <para>
+	    in the answer section.
+	    Since the rdata of this record (the IPv4 address) matches
+	    the specified prefix 192.0.2.0/24, this response will be
+	    ignored.
+	  </para>
+
+	  <para>
+	    On the other hand, if the browser looks up a legitimate
+	    internal web server "www.example.net" and the
+	    following response is returned to
+	    the <acronym>BIND</acronym> 9 server
+	  </para>
+
+<programlisting>www.example.net. A 192.0.2.2</programlisting>
+
+	  <para>
+	    it will be accepted since the owner name "www.example.net"
+	    matches the <command>except-from</command> element,
+	    "example.net".
+	  </para>
+
+	  <para>
+	    Note that this is not really an attack on the DNS per se.
+	    In fact, there is nothing wrong for an "external" name to
+	    be mapped to your "internal" IP address or domain name
+	    from the DNS point of view.
+	    It might actually be provided for a legitimate purpose,
+	    such as for debugging.
+	    As long as the mapping is provided by the correct owner,
+	    it is not possible or does not make sense to detect
+	    whether the intent of the mapping is legitimate or not
+	    within the DNS.
+	    The "rebinding" attack must primarily be protected at the
+	    application that uses the DNS.
+	    For a large site, however, it may be difficult to protect
+	    all possible applications at once.
+	    This filtering feature is provided only to help such an
+	    operational environment;
+	    it is generally discouraged to turn it on unless you are
+	    very sure you have no other choice and the attack is a
+	    real threat for your applications.
+	  </para>
+
+	  <para>
+	    Care should be particularly taken if you want to use this
+	    option for addresses within 127.0.0.0/8.
+	    These addresses are obviously "internal", but many
+	    applications conventionally rely on a DNS mapping from
+	    some name to such an address.
+	    Filtering out DNS records containing this address
+	    spuriously can break such applications.
+	  </para>
+	</sect3>
       </sect2>
 
       <sect2 id="server_statement_grammar">

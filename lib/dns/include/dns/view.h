@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.116 2009/01/27 22:29:59 jinmei Exp $ */
+/* $Id: view.h,v 1.117 2009/05/29 22:22:37 jinmei Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -128,6 +128,10 @@ struct dns_view {
 	dns_acl_t *			transferacl;
 	dns_acl_t *			updateacl;
 	dns_acl_t *			upfwdacl;
+	dns_acl_t *			denyansweracl;
+	dns_rbt_t *			answeracl_exclude;
+	dns_rbt_t *			denyanswernames;
+	dns_rbt_t *			answernames_exclude;
 	isc_boolean_t			requestixfr;
 	isc_boolean_t			provideixfr;
 	isc_boolean_t			requestnsid;

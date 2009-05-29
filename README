@@ -54,6 +54,8 @@ BIND 9.7.0
 	internal information about query failures, especially about
 	server failures.
 
+	Add support for DNS rebinding attack prevention.
+
 BIND 9.6.0
 
         BIND 9.6.0 includes a number of changes from BIND 9.5 and earlier

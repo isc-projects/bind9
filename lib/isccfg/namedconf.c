@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.95 2009/03/04 02:42:31 each Exp $ */
+/* $Id: namedconf.c,v 1.96 2009/05/29 22:22:37 jinmei Exp $ */
 
 /*! \file */
 
@@ -736,6 +736,34 @@ static cfg_type_t cfg_type_optional_exclude = {
 	"optional_exclude", parse_optional_keyvalue, print_keyvalue,
 	doc_optional_keyvalue, &cfg_rep_list, &exclude_kw };
 
+static keyword_type_t exceptionnames_kw = { "except-from", &cfg_type_namelist };
+
+static cfg_type_t cfg_type_optional_exceptionnames = {
+	"optional_allow", parse_optional_keyvalue, print_keyvalue,
+	doc_optional_keyvalue, &cfg_rep_list, &exceptionnames_kw };
+
+static cfg_tuplefielddef_t denyaddresses_fields[] = {
+	{ "acl", &cfg_type_bracketed_aml, 0 },
+	{ "except-from", &cfg_type_optional_exceptionnames, 0 },
+	{ NULL, NULL, 0 }
+};
+
+static cfg_type_t cfg_type_denyaddresses = {
+	"denyaddresses", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	&cfg_rep_tuple, denyaddresses_fields
+};
+
+static cfg_tuplefielddef_t denyaliases_fields[] = {
+	{ "name", &cfg_type_namelist, 0 },
+	{ "except-from", &cfg_type_optional_exceptionnames, 0 },
+	{ NULL, NULL, 0 }
+};
+
+static cfg_type_t cfg_type_denyaliases = {
+	"denyaliases", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	&cfg_rep_tuple, denyaliases_fields
+};
+
 static cfg_type_t cfg_type_algorithmlist = {
 	"algorithmlist", cfg_parse_bracketed_list, cfg_print_bracketed_list,
 	cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_astring };
@@ -813,6 +841,8 @@ view_clauses[] = {
 	{ "check-names", &cfg_type_checknames, CFG_CLAUSEFLAG_MULTI },
 	{ "cleaning-interval", &cfg_type_uint32, 0 },
 	{ "clients-per-query", &cfg_type_uint32, 0 },
+	{ "deny-answer-addresses", &cfg_type_denyaddresses, 0 },
+	{ "deny-answer-aliases", &cfg_type_denyaliases, 0 },
 	{ "disable-algorithms", &cfg_type_disablealgorithm,
 	  CFG_CLAUSEFLAG_MULTI },
 	{ "disable-empty-zone", &cfg_type_astring, CFG_CLAUSEFLAG_MULTI },

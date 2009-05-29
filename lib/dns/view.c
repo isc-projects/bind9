@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.153 2009/01/27 22:29:59 jinmei Exp $ */
+/* $Id: view.c,v 1.154 2009/05/29 22:22:37 jinmei Exp $ */
 
 /*! \file */
 
@@ -40,6 +40,7 @@
 #include <dns/masterdump.h>
 #include <dns/order.h>
 #include <dns/peer.h>
+#include <dns/rbt.h>
 #include <dns/rdataset.h>
 #include <dns/request.h>
 #include <dns/resolver.h>
@@ -178,6 +179,10 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->notifyacl = NULL;
 	view->updateacl = NULL;
 	view->upfwdacl = NULL;
+	view->denyansweracl = NULL;
+	view->answeracl_exclude = NULL;
+	view->denyanswernames = NULL;
+	view->answernames_exclude = NULL;
 	view->requestixfr = ISC_TRUE;
 	view->provideixfr = ISC_TRUE;
 	view->maxcachettl = 7 * 24 * 3600;
@@ -313,6 +318,14 @@ destroy(dns_view_t *view) {
 		dns_acl_detach(&view->updateacl);
 	if (view->upfwdacl != NULL)
 		dns_acl_detach(&view->upfwdacl);
+	if (view->denyansweracl != NULL)
+		dns_acl_detach(&view->denyansweracl);
+	if (view->answeracl_exclude != NULL)
+		dns_rbt_destroy(&view->answeracl_exclude);
+	if (view->denyanswernames != NULL)
+		dns_rbt_destroy(&view->denyanswernames);
+	if (view->answernames_exclude != NULL)
+		dns_rbt_destroy(&view->answernames_exclude);
 	if (view->delonly != NULL) {
 		dns_name_t *name;
 		int i;

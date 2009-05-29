@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.398 2009/05/11 02:38:35 tbox Exp $ */
+/* $Id: resolver.c,v 1.399 2009/05/29 22:22:36 jinmei Exp $ */
 
 /*! \file */
 
@@ -4837,6 +4837,134 @@ dname_target(dns_rdataset_t *rdataset, dns_name_t *qname, dns_name_t *oname,
 	return (result);
 }
 
+static isc_boolean_t
+is_answeraddress_allowed(dns_view_t *view, dns_name_t *name,
+			 dns_rdataset_t *rdataset)
+{
+	isc_result_t result;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	struct in_addr ina;
+	struct in6_addr in6a;
+	isc_netaddr_t netaddr;
+	char addrbuf[ISC_NETADDR_FORMATSIZE];
+	char namebuf[DNS_NAME_FORMATSIZE];
+	char classbuf[64];
+	char typebuf[64];
+	int match;
+
+	/* By default, we allow any addresses. */
+	if (view->denyansweracl == NULL)
+		return (ISC_TRUE);
+
+	/*
+	 * If the owner name matches one in the exclusion list, either exactly
+	 * or partially, allow it.
+	 */
+	if (view->answeracl_exclude != NULL) {
+		dns_rbtnode_t *node = NULL;
+
+		result = dns_rbt_findnode(view->answeracl_exclude, name, NULL,
+					  &node, NULL, 0, NULL, NULL);
+					  
+		if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
+			return (ISC_TRUE);
+	}
+
+	/*
+	 * Otherwise, search the filter list for a match for each address
+	 * record.  If a match is found, the address should be filtered,
+	 * so should the entire answer.
+	 */
+	for (result = dns_rdataset_first(rdataset);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(rdataset)) {
+		dns_rdata_reset(&rdata);
+		dns_rdataset_current(rdataset, &rdata);
+		if (rdataset->type == dns_rdatatype_a) {
+			INSIST(rdata.length == sizeof(ina.s_addr));
+			memcpy(&ina.s_addr, rdata.data, sizeof(ina.s_addr));
+			isc_netaddr_fromin(&netaddr, &ina);
+		} else {
+			INSIST(rdata.length == sizeof(in6a.s6_addr));
+			memcpy(in6a.s6_addr, rdata.data, sizeof(in6a.s6_addr));
+			isc_netaddr_fromin6(&netaddr, &in6a);
+		}
+
+		result = dns_acl_match(&netaddr, NULL, view->denyansweracl,
+				       &view->aclenv, &match, NULL);
+
+		if (result == ISC_R_SUCCESS && match > 0) {
+			isc_netaddr_format(&netaddr, addrbuf, sizeof(addrbuf));
+			dns_name_format(name, namebuf, sizeof(namebuf));
+			dns_rdatatype_format(rdataset->type, typebuf,
+					     sizeof(typebuf));
+			dns_rdataclass_format(rdataset->rdclass, classbuf,
+					      sizeof(classbuf));
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+				      DNS_LOGMODULE_RESOLVER, ISC_LOG_NOTICE,
+				      "answer address %s denied for %s/%s/%s",
+				      addrbuf, namebuf, typebuf, classbuf);
+			return (ISC_FALSE);
+		}
+	}
+
+	return (ISC_TRUE);
+}
+
+static isc_boolean_t
+is_answertarget_allowed(dns_view_t *view, dns_name_t *name,
+			dns_rdatatype_t type, dns_name_t *tname,
+			dns_name_t *domain)
+{
+	isc_result_t result;
+	dns_rbtnode_t *node = NULL;
+	char qnamebuf[DNS_NAME_FORMATSIZE];
+	char tnamebuf[DNS_NAME_FORMATSIZE];
+	char classbuf[64];
+	char typebuf[64];
+
+	/* By default, we allow any target name. */
+	if (view->denyanswernames == NULL)
+		return (ISC_TRUE);
+
+	/*
+	 * If the owner name matches one in the exclusion list, either exactly
+	 * or partially, allow it.
+	 */
+	if (view->answernames_exclude != NULL) {
+		result = dns_rbt_findnode(view->answernames_exclude, name, NULL,
+					  &node, NULL, 0, NULL, NULL);
+		if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
+			return (ISC_TRUE);
+	}
+
+	/*
+	 * If the target name is a subdomain of the search domain, allow it.
+	 */
+	if (dns_name_issubdomain(tname, domain))
+		return (ISC_TRUE);
+
+	/*
+	 * Otherwise, apply filters.
+	 */
+	result = dns_rbt_findnode(view->denyanswernames, tname, NULL, &node,
+				  NULL, 0, NULL, NULL);
+	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
+		dns_name_format(name, qnamebuf, sizeof(qnamebuf));
+		dns_name_format(tname, tnamebuf, sizeof(tnamebuf));
+		dns_rdatatype_format(type, typebuf, sizeof(typebuf));
+		dns_rdataclass_format(view->rdclass, classbuf,
+				      sizeof(classbuf));
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			      DNS_LOGMODULE_RESOLVER, ISC_LOG_NOTICE,
+			      "%s target %s denied for %s/%s",
+			      typebuf, tnamebuf, qnamebuf, classbuf);
+		return (ISC_FALSE);
+	}
+
+	return (ISC_TRUE);
+}
+
 /*
  * Handle a no-answer response (NXDOMAIN, NXRRSET, or referral).
  * If bind8_ns_resp is ISC_TRUE, this is a suspected BIND 8
@@ -5194,6 +5322,7 @@ answer_response(fetchctx_t *fctx) {
 	unsigned int aflag;
 	dns_rdatatype_t type;
 	dns_fixedname_t dname, fqname;
+	dns_view_t *view;
 
 	FCTXTRACE("answer_response");
 
@@ -5216,6 +5345,7 @@ answer_response(fetchctx_t *fctx) {
 		aa = ISC_FALSE;
 	qname = &fctx->name;
 	type = fctx->type;
+	view = fctx->res->view;
 	result = dns_message_firstname(message, DNS_SECTION_ANSWER);
 	while (!done && result == ISC_R_SUCCESS) {
 		name = NULL;
@@ -5236,6 +5366,18 @@ answer_response(fetchctx_t *fctx) {
 					 */
 					return (DNS_R_FORMERR);
 				}
+
+				/*
+				 * Apply filters, if given, on answers to reject
+				 * a malicious attempt of rebinding.
+				 */
+				if ((rdataset->type == dns_rdatatype_a ||
+				     rdataset->type == dns_rdatatype_aaaa) &&
+				    !is_answeraddress_allowed(view, name,
+							      rdataset)) {
+					return (DNS_R_SERVFAIL);
+				}
+
 				if (rdataset->type == type && !found_cname) {
 					/*
 					 * We've found an ordinary answer.
@@ -5284,6 +5426,14 @@ answer_response(fetchctx_t *fctx) {
 							      &tname);
 					if (result != ISC_R_SUCCESS)
 						return (result);
+					/* Apply filters on the target name. */
+					if (!is_answertarget_allowed(view,
+							name,
+							rdataset->type,
+							&tname,
+							&fctx->domain)) {
+						return (DNS_R_SERVFAIL);
+					}
 				} else if (rdataset->type == dns_rdatatype_rrsig
 					   && rdataset->covers ==
 					   dns_rdatatype_cname
@@ -5386,6 +5536,8 @@ answer_response(fetchctx_t *fctx) {
 			     rdataset != NULL;
 			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 				isc_boolean_t found_dname = ISC_FALSE;
+				dns_name_t *dname_name;
+
 				found = ISC_FALSE;
 				aflag = 0;
 				if (rdataset->type == dns_rdatatype_dname) {
@@ -5415,6 +5567,15 @@ answer_response(fetchctx_t *fctx) {
 						return (result);
 					else
 						found_dname = ISC_TRUE;
+
+					dname_name = dns_fixedname_name(&dname);
+					if (!is_answertarget_allowed(view,
+							qname,
+							rdataset->type,
+							dname_name,
+							&fctx->domain)) {
+						return (DNS_R_SERVFAIL);
+					}
 				} else if (rdataset->type == dns_rdatatype_rrsig
 					   && rdataset->covers ==
 					   dns_rdatatype_dname) {
