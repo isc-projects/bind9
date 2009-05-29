@@ -2386,7 +2386,7 @@
 ./lib/isccfg/win32/libisccfg.def		X	2001,2002,2005
 ./lib/isccfg/win32/libisccfg.dsp		X	2001,2002,2004,2005
 ./lib/isccfg/win32/libisccfg.dsw		X	2001
-./lib/isccfg/win32/libisccfg.mak		X	2001,2002,2004,2005,2006
+./lib/isccfg/win32/libisccfg.mak		X	2001,2002,2004,2005,2006,2009
 ./lib/isccfg/win32/version.c			C	1998,1999,2000,2001,2004
 ./lib/lwres/.cvsignore				X	2000,2001
 ./lib/lwres/Makefile.in				MAKE	2000,2001,2004,2005
