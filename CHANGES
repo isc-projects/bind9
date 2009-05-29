@@ -1,3 +1,5 @@
+2602.	[port]		win32: fix debugging command line build of libisccfg.
+			[RT #19767]
 
 	--- 9.6.1rc1 released ---
 
