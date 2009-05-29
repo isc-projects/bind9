@@ -1,3 +1,7 @@
+2603.	[port]		win32: handle .exe extension of named-checkzone and
+			named-comilezone argv[0] names under windows.
+			[RT #19767]
+
 2602.	[port]		win32: fix debugging command line build of libisccfg.
 			[RT #19767]
 
