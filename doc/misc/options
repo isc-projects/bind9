@@ -87,6 +87,10 @@ options {
         coresize <size>;
         datasize <size>;
         deallocate-on-exit <boolean>; // obsolete
+        deny-answer-addresses { <address_match_element>; ... } [
+            except-from { <quoted_string>; ... } ];
+        deny-answer-aliases { <quoted_string>; ... } [ except-from {
+            <quoted_string>; ... } ];
         dialup <dialuptype>;
         directory <quoted_string>;
         disable-algorithms <string> { <string>; ... };
@@ -273,6 +277,10 @@ view <string> <optional_class> {
         cleaning-interval <integer>;
         clients-per-query <integer>;
         database <string>;
+        deny-answer-addresses { <address_match_element>; ... } [
+            except-from { <quoted_string>; ... } ];
+        deny-answer-aliases { <quoted_string>; ... } [ except-from {
+            <quoted_string>; ... } ];
         dialup <dialuptype>;
         disable-algorithms <string> { <string>; ... };
         disable-empty-zone <string>;
