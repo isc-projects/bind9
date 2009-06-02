@@ -1,3 +1,6 @@
+2605.	[bug]		Accept DS responses from delegation only zones.
+			[RT # 19296]
+
 2604.	[func]		Add support for DNS rebinding attack prevention through
 			new options, deny-answer-addresses and
 			deny-answer-aliases.  Based on contributed code from
