@@ -1,3 +1,6 @@
+2605.	[bug]		Accept DS responses from delegation only zones.
+			[RT # 19296]
+
 2603.	[port]		win32: handle .exe extension of named-checkzone and
 			named-comilezone argv[0] names under windows.
 			[RT #19767]
