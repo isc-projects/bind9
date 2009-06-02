@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.355.12.41 2009/06/02 06:00:40 marka Exp $ */
+/* $Id: resolver.c,v 1.355.12.42 2009/06/02 23:46:44 tbox Exp $ */
 
 /*! \file */
 
@@ -477,7 +477,7 @@ rrsig_fromchildzone(fetchctx_t *fctx, dns_rdataset_t *rdataset) {
 		result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		namereln = dns_name_fullcompare(&rrsig.signer, &fctx->domain,
-					        &order, &labels);
+						&order, &labels);
 		if (namereln == dns_namereln_subdomain)
 			return (ISC_TRUE);
 		dns_rdata_reset(&rdata);
@@ -543,7 +543,7 @@ fix_mustbedelegationornxdomain(dns_message_t *message, fetchctx_t *fctx) {
 			for (rdataset = ISC_LIST_HEAD(name->list);
 			     rdataset != NULL;
 			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
-			        if (!dns_name_equal(name, &fctx->name))
+				if (!dns_name_equal(name, &fctx->name))
 					continue;
 				type = rdataset->type;
 				/*
