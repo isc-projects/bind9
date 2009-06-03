@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.82.18.94 2009/04/03 01:31:35 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.82.18.95 2009/06/03 01:32:20 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -77,23 +77,23 @@
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#server_statement_grammar"><span><strong class="command">server</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#server_statement_definition_and_usage"><span><strong class="command">server</strong></span> Statement Definition and
             Usage</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2585692"><span><strong class="command">trusted-keys</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2585744"><span><strong class="command">trusted-keys</strong></span> Statement Definition
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2585636"><span><strong class="command">trusted-keys</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2585755"><span><strong class="command">trusted-keys</strong></span> Statement Definition
             and Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#view_statement_grammar"><span><strong class="command">view</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2585962"><span><strong class="command">view</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2585906"><span><strong class="command">view</strong></span> Statement Definition and Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#zone_statement_grammar"><span><strong class="command">zone</strong></span>
             Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2587367"><span><strong class="command">zone</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2587379"><span><strong class="command">zone</strong></span> Statement Definition and Usage</a></span></dt>
 </dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2589544">Zone File</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2589641">Zone File</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#types_of_resource_records_and_when_to_use_them">Types of Resource Records and When to Use Them</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2591704">Discussion of MX Records</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2591733">Discussion of MX Records</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#Setting_TTLs">Setting TTLs</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592251">Inverse Mapping in IPv4</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592446">Other Zone File Directives</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592772"><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592280">Inverse Mapping in IPv4</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592475">Other Zone File Directives</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592801"><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#zonefile_format">Additional File Formats</a></span></dt>
 </dl></dd>
 </dl>
@@ -1641,11 +1641,11 @@ category notify { null; };
                   </td>
 <td>
                     <p>
-                      Delegation only.  Logs queries that have
-                      been forced to NXDOMAIN as the result of a
-                      delegation-only zone or
-                      a <span><strong class="command">delegation-only</strong></span> in a
-                      hint or stub zone declaration.
+                      Delegation only.  Logs queries that have been
+                      forced to NXDOMAIN as the result of a
+                      delegation-only zone or a
+                      <span><strong class="command">delegation-only</strong></span> in a hint
+                      or stub zone declaration.
                     </p>
                   </td>
 </tr>
@@ -2059,16 +2059,46 @@ digits</code>" + "<code class="varname">tkey-domain</code>". In most cases,
                 in the additional section of a query response.
                 The default is not to prefer any type (NONE).
               </p></dd>
-<dt><span class="term"><span><strong class="command">root-delegation-only</strong></span></span></dt>
+<dt>
+<a name="root_delegation_only"></a><span class="term"><span><strong class="command">root-delegation-only</strong></span></span>
+</dt>
 <dd>
 <p>
-                Turn on enforcement of delegation-only in TLDs (top level domains) and root zones
-                with an optional
+                Turn on enforcement of delegation-only in TLDs
+                (top level domains) and root zones with an optional
                 exclude list.
               </p>
 <p>
-                Note some TLDs are not delegation only (e.g. "DE", "LV", "US"
-                and "MUSEUM").
+                DS queries are expected to be made to and be answered by
+                delegation only zones.  Such queries and responses are
+                treated as a exception to delegation-only processing
+                and are not converted to NXDOMAIN responses provided
+                a CNAME is not discovered at the query name.
+              </p>
+<p>
+                If a delegation only zone server also serves a child
+                zone it is not always possible to determine whether
+                a answer comes from the delegation only zone or the
+                child zone.  SOA NS and DNSKEY records are apex
+                only records and a matching response that contains
+                these records or DS is treated as coming from a
+                child zone.  RRSIG records are also examined to see
+                if they are signed by a child zone or not.  The
+                authority section is also examined to see if there
+                is evidence that the answer is from the child zone.
+                Answers that are determined to be from a child zone
+                are not converted to NXDOMAIN responses.  Despite
+                all these checks there is still a possibility of
+                false negatives when a child zone is being served.
+              </p>
+<p>
+                Similarly false positives can arise from empty nodes
+                (no records at the name) in the delegation only zone
+                when the query type is not ANY.
+              </p>
+<p>
+                Note some TLDs are not delegation only (e.g. "DE", "LV",
+                "US" and "MUSEUM").  This list is not exhaustive.
               </p>
 <pre class="programlisting">
 options {
@@ -2818,7 +2848,7 @@ options {
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2580688"></a>Forwarding</h4></div></div></div>
+<a name="id2580699"></a>Forwarding</h4></div></div></div>
 <p>
             The forwarding facility can be used to create a large site-wide
             cache on a few servers, reducing traffic over links to external
@@ -2862,7 +2892,7 @@ options {
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2580746"></a>Dual-stack Servers</h4></div></div></div>
+<a name="id2580826"></a>Dual-stack Servers</h4></div></div></div>
 <p>
             Dual-stack servers are used as servers of last resort to work
             around
@@ -3018,7 +3048,7 @@ options {
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2581245"></a>Interfaces</h4></div></div></div>
+<a name="id2581257"></a>Interfaces</h4></div></div></div>
 <p>
             The interfaces and ports that the server will answer queries
             from may be specified using the <span><strong class="command">listen-on</strong></span> option. <span><strong class="command">listen-on</strong></span> takes
@@ -3451,7 +3481,7 @@ avoid-v6-udp-ports {};
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2582247"></a>UDP Port Lists</h4></div></div></div>
+<a name="id2582259"></a>UDP Port Lists</h4></div></div></div>
 <p>
             <span><strong class="command">use-v4-udp-ports</strong></span>,
             <span><strong class="command">avoid-v4-udp-ports</strong></span>,
@@ -3493,7 +3523,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2582375"></a>Operating System Resource Limits</h4></div></div></div>
+<a name="id2582318"></a>Operating System Resource Limits</h4></div></div></div>
 <p>
             The server's usage of many system resources can be limited.
             Scaled values are allowed when specifying resource limits.  For
@@ -3654,7 +3684,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2582729"></a>Periodic Task Intervals</h4></div></div></div>
+<a name="id2582809"></a>Periodic Task Intervals</h4></div></div></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><span><strong class="command">cleaning-interval</strong></span></span></dt>
 <dd><p>
@@ -4725,7 +4755,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2585692"></a><span><strong class="command">trusted-keys</strong></span> Statement Grammar</h3></div></div></div>
+<a name="id2585636"></a><span><strong class="command">trusted-keys</strong></span> Statement Grammar</h3></div></div></div>
 <pre class="programlisting"><span><strong class="command">trusted-keys</strong></span> {
     <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>string</code></em> ;
     [<span class="optional"> <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>string</code></em> ; [<span class="optional">...</span>]</span>]
@@ -4734,7 +4764,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2585744"></a><span><strong class="command">trusted-keys</strong></span> Statement Definition
+<a name="id2585755"></a><span><strong class="command">trusted-keys</strong></span> Statement Definition
             and Usage</h3></div></div></div>
 <p>
             The <span><strong class="command">trusted-keys</strong></span> statement defines
@@ -4777,7 +4807,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2585962"></a><span><strong class="command">view</strong></span> Statement Definition and Usage</h3></div></div></div>
+<a name="id2585906"></a><span><strong class="command">view</strong></span> Statement Definition and Usage</h3></div></div></div>
 <p>
             The <span><strong class="command">view</strong></span> statement is a powerful
             feature
@@ -5033,10 +5063,10 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2587367"></a><span><strong class="command">zone</strong></span> Statement Definition and Usage</h3></div></div></div>
+<a name="id2587379"></a><span><strong class="command">zone</strong></span> Statement Definition and Usage</h3></div></div></div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2587374"></a>Zone Types</h4></div></div></div>
+<a name="id2587386"></a>Zone Types</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -5225,18 +5255,20 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 <td>
                       <p>
                         This is used to enforce the delegation-only
-                        status of infrastructure zones (e.g. COM, NET, ORG).
-                        Any answer that
-                        is received without an explicit or implicit delegation
-                        in the authority
-                        section will be treated as NXDOMAIN.  This does not
-                        apply to the zone
-                        apex.  This should not be applied to leaf zones.
+                        status of infrastructure zones (e.g. COM,
+                        NET, ORG).  Any answer that is received
+                        without an explicit or implicit delegation
+                        in the authority section will be treated
+                        as NXDOMAIN.  This does not apply to the
+                        zone apex.  This should not be applied to
+                        leaf zones.
                       </p>
                       <p>
                         <code class="varname">delegation-only</code> has no
-                        effect on answers received
-                        from forwarders.
+                        effect on answers received from forwarders.
+                      </p>
+                      <p>
+                        See caveats in <a href="Bv9ARM.ch06.html#root_delegation_only"><span><strong class="command">root-delegation-only</strong></span></a>.
                       </p>
                     </td>
 </tr>
@@ -5245,7 +5277,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2587794"></a>Class</h4></div></div></div>
+<a name="id2587882"></a>Class</h4></div></div></div>
 <p>
               The zone's name may optionally be followed by a class. If
               a class is not specified, class <code class="literal">IN</code> (for <code class="varname">Internet</code>),
@@ -5267,7 +5299,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2587827"></a>Zone Options</h4></div></div></div>
+<a name="id2587915"></a>Zone Options</h4></div></div></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><span><strong class="command">allow-notify</strong></span></span></dt>
 <dd><p>
@@ -5390,12 +5422,16 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
                     <span><strong class="command">dialup</strong></span> in <a href="Bv9ARM.ch06.html#boolean_options" title="Boolean Options">the section called &#8220;Boolean Options&#8221;</a>.
                   </p></dd>
 <dt><span class="term"><span><strong class="command">delegation-only</strong></span></span></dt>
-<dd><p>
+<dd>
+<p>
                     The flag only applies to hint and stub zones.  If set
                     to <strong class="userinput"><code>yes</code></strong>, then the zone will also be
-                    treated as if it
-                    is also a delegation-only type zone.
-                  </p></dd>
+                    treated as if it is also a delegation-only type zone.
+                  </p>
+<p>
+                    See caveats in <a href="Bv9ARM.ch06.html#root_delegation_only"><span><strong class="command">root-delegation-only</strong></span></a>.
+                  </p>
+</dd>
 <dt><span class="term"><span><strong class="command">forward</strong></span></span></dt>
 <dd><p>
                     Only meaningful if the zone has a forwarders
@@ -5764,7 +5800,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2589544"></a>Zone File</h2></div></div></div>
+<a name="id2589641"></a>Zone File</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="types_of_resource_records_and_when_to_use_them"></a>Types of Resource Records and When to Use Them</h3></div></div></div>
@@ -5777,7 +5813,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2589562"></a>Resource Records</h4></div></div></div>
+<a name="id2589659"></a>Resource Records</h4></div></div></div>
 <p>
               A domain name identifies a node.  Each node has a set of
               resource information, which may be empty.  The set of resource
@@ -6467,7 +6503,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2591047"></a>Textual expression of RRs</h4></div></div></div>
+<a name="id2591212"></a>Textual expression of RRs</h4></div></div></div>
 <p>
               RRs are represented in binary form in the packets of the DNS
               protocol, and are usually represented in highly encoded form
@@ -6670,7 +6706,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2591704"></a>Discussion of MX Records</h3></div></div></div>
+<a name="id2591733"></a>Discussion of MX Records</h3></div></div></div>
 <p>
             As described above, domain servers store information as a
             series of resource records, each of which contains a particular
@@ -6926,7 +6962,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2592251"></a>Inverse Mapping in IPv4</h3></div></div></div>
+<a name="id2592280"></a>Inverse Mapping in IPv4</h3></div></div></div>
 <p>
             Reverse name resolution (that is, translation from IP address
             to name) is achieved by means of the <span class="emphasis"><em>in-addr.arpa</em></span> domain
@@ -6987,7 +7023,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2592446"></a>Other Zone File Directives</h3></div></div></div>
+<a name="id2592475"></a>Other Zone File Directives</h3></div></div></div>
 <p>
             The Master File Format was initially defined in RFC 1035 and
             has subsequently been extended. While the Master File Format
@@ -7002,7 +7038,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2592469"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
+<a name="id2592566"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$ORIGIN</strong></span>
               <em class="replaceable"><code>domain-name</code></em>
@@ -7030,7 +7066,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2592530"></a>The <span><strong class="command">$INCLUDE</strong></span> Directive</h4></div></div></div>
+<a name="id2592627"></a>The <span><strong class="command">$INCLUDE</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$INCLUDE</strong></span>
               <em class="replaceable"><code>filename</code></em>
@@ -7066,7 +7102,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2592667"></a>The <span><strong class="command">$TTL</strong></span> Directive</h4></div></div></div>
+<a name="id2592696"></a>The <span><strong class="command">$TTL</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$TTL</strong></span>
               <em class="replaceable"><code>default-ttl</code></em>
@@ -7085,7 +7121,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2592772"></a><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</h3></div></div></div>
+<a name="id2592801"></a><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</h3></div></div></div>
 <p>
             Syntax: <span><strong class="command">$GENERATE</strong></span>
             <em class="replaceable"><code>range</code></em>
