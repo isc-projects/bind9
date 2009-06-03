@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.100 2009/03/04 23:48:02 tbox Exp $ */
+/* $Id: check.c,v 1.101 2009/06/03 00:04:38 marka Exp $ */
 
 /*! \file */
 
@@ -1072,9 +1072,9 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	{ "notify", MASTERZONE | SLAVEZONE },
 	{ "also-notify", MASTERZONE | SLAVEZONE },
 	{ "dialup", MASTERZONE | SLAVEZONE | STUBZONE },
-	{ "delegation-only", HINTZONE | STUBZONE },
-	{ "forward", MASTERZONE | SLAVEZONE | STUBZONE | FORWARDZONE},
-	{ "forwarders", MASTERZONE | SLAVEZONE | STUBZONE | FORWARDZONE},
+	{ "delegation-only", HINTZONE | STUBZONE | DELEGATIONZONE },
+	{ "forward", MASTERZONE | SLAVEZONE | STUBZONE | FORWARDZONE },
+	{ "forwarders", MASTERZONE | SLAVEZONE | STUBZONE | FORWARDZONE },
 	{ "maintain-ixfr-base", MASTERZONE | SLAVEZONE },
 	{ "max-ixfr-log-size", MASTERZONE | SLAVEZONE },
 	{ "notify-source", MASTERZONE | SLAVEZONE },

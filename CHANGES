@@ -1,3 +1,6 @@
+2606.	[bug]		"delegation-only" was not being accepted in
+			delegation-only type zones. [RT #19717]
+
 2605.	[bug]		Accept DS responses from delegation only zones.
 			[RT # 19296]
 
