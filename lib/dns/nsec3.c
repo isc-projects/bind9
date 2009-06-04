@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006, 2008, 2009  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3.c,v 1.6.12.1 2009/06/04 01:47:41 marka Exp $ */
+/* $Id: nsec3.c,v 1.6.12.2 2009/06/04 02:56:14 tbox Exp $ */
 
 #include <config.h>
 
@@ -951,27 +951,27 @@ dns_nsec3_addnsec3s(dns_db_t *db, dns_dbversion_t *version,
  */
 static isc_result_t
 deleteit(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
-         isc_boolean_t *yesno)
+	 isc_boolean_t *yesno)
 {
-        isc_result_t result;
-        dns_fixedname_t foundname;
-        dns_fixedname_init(&foundname);
+	isc_result_t result;
+	dns_fixedname_t foundname;
+	dns_fixedname_init(&foundname);
 
-        result = dns_db_find(db, name, ver, dns_rdatatype_any,
-                             DNS_DBFIND_GLUEOK | DNS_DBFIND_NOWILD,
-                             (isc_stdtime_t) 0, NULL,
-                             dns_fixedname_name(&foundname),
-                             NULL, NULL);
+	result = dns_db_find(db, name, ver, dns_rdatatype_any,
+			     DNS_DBFIND_GLUEOK | DNS_DBFIND_NOWILD,
+			     (isc_stdtime_t) 0, NULL,
+			     dns_fixedname_name(&foundname),
+			     NULL, NULL);
 	if (result == DNS_R_EMPTYNAME || result == ISC_R_SUCCESS ||
 	    result ==  DNS_R_ZONECUT) {
-                *yesno = ISC_FALSE;
-                return (ISC_R_SUCCESS);
+		*yesno = ISC_FALSE;
+		return (ISC_R_SUCCESS);
 	}
-        if (result == DNS_R_GLUE || result == DNS_R_DNAME ||
-            result == DNS_R_DELEGATION || result == DNS_R_NXDOMAIN) {
-                *yesno = ISC_TRUE;
-                return (ISC_R_SUCCESS);
-        }
+	if (result == DNS_R_GLUE || result == DNS_R_DNAME ||
+	    result == DNS_R_DELEGATION || result == DNS_R_NXDOMAIN) {
+		*yesno = ISC_TRUE;
+		return (ISC_R_SUCCESS);
+	}
 	/*
 	 * Silence compiler.
 	 */

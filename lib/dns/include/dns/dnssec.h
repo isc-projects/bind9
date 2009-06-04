@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec.h,v 1.32.332.1 2009/06/04 02:41:54 marka Exp $ */
+/* $Id: dnssec.h,v 1.32.332.2 2009/06/04 02:56:14 tbox Exp $ */
 
 #ifndef DNS_DNSSEC_H
 #define DNS_DNSSEC_H 1
@@ -180,8 +180,8 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 
 isc_boolean_t
 dns_dnssec_selfsigns(dns_rdata_t *rdata, dns_name_t *name,
-                     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
-                     isc_boolean_t ignoretime, isc_mem_t *mctx);
+		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
+		     isc_boolean_t ignoretime, isc_mem_t *mctx);
 
 
 ISC_LANG_ENDDECLS
