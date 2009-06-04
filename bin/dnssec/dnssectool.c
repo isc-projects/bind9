@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.45 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id: dnssectool.c,v 1.45.334.1 2009/06/04 02:41:54 marka Exp $ */
 
 /*! \file */
 
@@ -65,7 +65,7 @@ void
 fatal(const char *format, ...) {
 	va_list args;
 
-	fprintf(stderr, "%s: ", program);
+	fprintf(stderr, "%s: fatal: ", program);
 	va_start(args, format);
 	vfprintf(stderr, format, args);
 	va_end(args);
