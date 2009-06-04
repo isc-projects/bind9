@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.docbook,v 1.31 2008/10/14 14:28:25 jreed Exp $ -->
+<!-- $Id: dnssec-signzone.docbook,v 1.32 2009/06/04 02:13:37 marka Exp $ -->
 <refentry id="man.dnssec-signzone">
   <refentryinfo>
     <date>June 30, 2000</date>
@@ -72,6 +72,7 @@
       <arg><option>-o <replaceable class="parameter">origin</replaceable></option></arg>
       <arg><option>-O <replaceable class="parameter">output-format</replaceable></option></arg>
       <arg><option>-p</option></arg>
+      <arg><option>-P</option></arg>
       <arg><option>-r <replaceable class="parameter">randomdev</replaceable></option></arg>
       <arg><option>-s <replaceable class="parameter">start-time</replaceable></option></arg>
       <arg><option>-t</option></arg>
@@ -354,6 +355,21 @@
             but less secure, than using real random data.  This option
             may be useful when signing large zones or when the entropy
             source is limited.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-P</term>
+        <listitem>
+          <para>
+	    Disable post sign verification tests.
+          </para>
+          <para>
+	    The post sign verification test ensures that for each algorithm
+	    in use there is at least one non revoked self signed KSK key.
+	    That all revoked KSK keys are self signed.  That all records
+	    in the zone are signed by the algorithm.
           </para>
         </listitem>
       </varlistentry>
