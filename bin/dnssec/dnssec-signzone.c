@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.215 2009/06/04 02:56:47 tbox Exp $ */
+/* $Id: dnssec-signzone.c,v 1.216 2009/06/04 04:33:11 marka Exp $ */
 
 /*! \file */
 
@@ -2916,7 +2916,7 @@ main(int argc, char *argv[]) {
 	unsigned char saltbuf[255];
 	hashlist_t hashlist;
 
-#define CMDLINE_FLAGS "3:aAc:d:e:f:FghH:i:I:j:k:l:m:n:N:o:O:pr:s:StUv:z"
+#define CMDLINE_FLAGS "3:aAc:d:e:f:FghH:i:I:j:k:l:m:n:N:o:O:pPr:s:StUv:z"
 
 	/*
 	 * Process memory debugging argument first.
@@ -3003,22 +3003,18 @@ main(int argc, char *argv[]) {
 			generateds = ISC_TRUE;
 			break;
 
-		case 'F':
-			/* Reserved for FIPS mode */
-			/* FALLTHROUGH */
-		case '?':
-			if (isc_commandline_option != '?')
-				fprintf(stderr, "%s: invalid argument -%c\n",
-					program, isc_commandline_option);
-			/* FALLTHROUGH */
+		case 'H':
+			iterations = strtoul(isc_commandline_argument,
+					     &endp, 0);
+			if (*endp != '\0')
+				fatal("iterations must be numeric");
+			if (iterations > 0xffffU)
+				fatal("iterations too big");
+			break;
+ 
 		case 'h':
 			usage();
 			break;
-
-		default:
-			fprintf(stderr, "%s: unhandled option -%c\n",
-				program, isc_commandline_option);
-			exit(1);
 
 		case 'i':
 			endp = NULL;
@@ -3120,6 +3116,9 @@ main(int argc, char *argv[]) {
 			ignoreksk = ISC_TRUE;
 			break;
 
+		case 'F':
+			/* Reserved for FIPS mode */
+			/* FALLTHROUGH */
 		case '?':
 			if (isc_commandline_option != '?')
 				fprintf(stderr, "%s: invalid argument -%c\n",
