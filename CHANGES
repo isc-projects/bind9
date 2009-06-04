@@ -1,3 +1,7 @@
+2607.	[bug]		named could incorrectly delete NSEC3 records for
+			empty nodes when processing a update request.  
+			[RT #19749]
+
 2606.	[bug]		"delegation-only" was not being accepted in
 			delegation-only type zones. [RT #19717]
 
