@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.46 2009/06/04 02:13:37 marka Exp $ */
+/* $Id: dnssectool.c,v 1.47 2009/06/04 02:56:47 tbox Exp $ */
 
 /*! \file */
 
@@ -222,7 +222,7 @@ setup_entropy(isc_mem_t *mctx, const char *randomfile, isc_entropy_t **ectx) {
 	int usekeyboard = ISC_ENTROPY_KEYBOARDMAYBE;
 
 	REQUIRE(ectx != NULL);
-	
+
 	if (*ectx == NULL) {
 		result = isc_entropy_create(mctx, ectx);
 		if (result != ISC_R_SUCCESS)
