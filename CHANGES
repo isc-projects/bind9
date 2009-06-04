@@ -1,3 +1,6 @@
+
+	--- 9.6.1 released ---
+
 2608.	[func]		Perform post signing verification checks in
 			dnssec-signzone.  These can be disabled with -P.
 
