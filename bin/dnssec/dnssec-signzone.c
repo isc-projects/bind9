@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.216 2009/06/04 04:33:11 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.217 2009/06/04 23:47:53 tbox Exp $ */
 
 /*! \file */
 
@@ -3011,7 +3011,7 @@ main(int argc, char *argv[]) {
 			if (iterations > 0xffffU)
 				fatal("iterations too big");
 			break;
- 
+
 		case 'h':
 			usage();
 			break;
