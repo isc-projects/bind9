@@ -18,10 +18,10 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.docbook,v 1.33 2009/06/04 02:56:47 tbox Exp $ -->
+<!-- $Id: dnssec-signzone.docbook,v 1.34 2009/06/05 21:59:43 jreed Exp $ -->
 <refentry id="man.dnssec-signzone">
   <refentryinfo>
-    <date>June 30, 2000</date>
+    <date>June 05, 2009</date>
   </refentryinfo>
 
   <refmeta>
@@ -368,9 +368,10 @@
           </para>
           <para>
 	    The post sign verification test ensures that for each algorithm
-	    in use there is at least one non revoked self signed KSK key.
-	    That all revoked KSK keys are self signed.  That all records
+	    in use there is at least one non revoked self signed KSK key,
+	    that all revoked KSK keys are self signed, and that all records
 	    in the zone are signed by the algorithm.
+	    This option skips these tests.
           </para>
         </listitem>
       </varlistentry>
