@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.209.12.6 2009/06/04 03:11:31 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.209.12.7 2009/06/05 06:56:40 marka Exp $ */
 
 /*! \file */
 
@@ -1399,7 +1399,7 @@ verifyset(dns_rdataset_t *rdataset, dns_name_t *name, dns_dbnode_t *node,
 static void
 verifynode(dns_name_t *name, dns_dbnode_t *node, isc_boolean_t delegation,
 	   dns_rdataset_t *keyrdataset, unsigned char *ksk_algorithms,
-	    char *bad_algorithms)
+	   unsigned char *bad_algorithms)
 {
 	dns_rdataset_t rdataset;
 	dns_rdatasetiter_t *rdsiter = NULL;
