@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: dnssec-signzone.html,v 1.34 2009/06/05 01:12:33 tbox Exp $ -->
+<!-- $Id: dnssec-signzone.html,v 1.35 2009/06/06 01:12:32 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -209,9 +209,10 @@
           </p>
 <p>
 	    The post sign verification test ensures that for each algorithm
-	    in use there is at least one non revoked self signed KSK key.
-	    That all revoked KSK keys are self signed.  That all records
+	    in use there is at least one non revoked self signed KSK key,
+	    that all revoked KSK keys are self signed, and that all records
 	    in the zone are signed by the algorithm.
+	    This option skips these tests.
           </p>
 </dd>
 <dt><span class="term">-r <em class="replaceable"><code>randomdev</code></em></span></dt>

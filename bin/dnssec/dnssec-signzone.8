@@ -13,18 +13,18 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-signzone.8,v 1.48 2009/06/05 01:12:33 tbox Exp $
+.\" $Id: dnssec-signzone.8,v 1.49 2009/06/06 01:12:32 tbox Exp $
 .\"
 .hy 0
 .ad l
 .\"     Title: dnssec\-signzone
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets v1.71.1 <http://docbook.sf.net/>
-.\"      Date: June 30, 2000
+.\"      Date: June 05, 2009
 .\"    Manual: BIND9
 .\"    Source: BIND9
 .\"
-.TH "DNSSEC\-SIGNZONE" "8" "June 30, 2000" "BIND9" "BIND9"
+.TH "DNSSEC\-SIGNZONE" "8" "June 05, 2009" "BIND9" "BIND9"
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
@@ -190,7 +190,7 @@ Use pseudo\-random data when signing the zone. This is faster, but less secure, 
 .RS 4
 Disable post sign verification tests.
 .sp
-The post sign verification test ensures that for each algorithm in use there is at least one non revoked self signed KSK key. That all revoked KSK keys are self signed. That all records in the zone are signed by the algorithm.
+The post sign verification test ensures that for each algorithm in use there is at least one non revoked self signed KSK key, that all revoked KSK keys are self signed, and that all records in the zone are signed by the algorithm. This option skips these tests.
 .RE
 .PP
 \-r \fIrandomdev\fR
