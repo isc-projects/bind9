@@ -1,15 +1,6 @@
 
 	--- 9.6.1 released ---
 
-2608.	[func]		Perform post signing verification checks in
-			dnssec-signzone.  These can be disabled with -P.
-
-			The post sign verification test ensures that for each
-			algorithm in use there is at least one non revoked
-			self signed KSK key.  That all revoked KSK keys are
-			self signed.  That all records in the zone are signed
-			by the algorithm.  [RT #19653]
-
 2607.	[bug]		named could incorrectly delete NSEC3 records for
 			empty nodes when processing a update request.  
 			[RT #19749]

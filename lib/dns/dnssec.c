@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.93.12.2 2009/06/04 02:56:14 tbox Exp $
+ * $Id: dnssec.c,v 1.93.12.3 2009/06/08 22:23:07 each Exp $
  */
 
 /*! \file */
@@ -93,7 +93,6 @@ rdataset_to_sortedarray(dns_rdataset_t *set, isc_mem_t *mctx,
 	isc_result_t ret;
 	int i = 0, n;
 	dns_rdata_t *data;
-	dns_rdataset_t rdataset;
 
 	n = dns_rdataset_count(set);
 
@@ -101,11 +100,8 @@ rdataset_to_sortedarray(dns_rdataset_t *set, isc_mem_t *mctx,
 	if (data == NULL)
 		return (ISC_R_NOMEMORY);
 
-	dns_rdataset_init(&rdataset);
-	dns_rdataset_clone(set, &rdataset);
-	ret = dns_rdataset_first(&rdataset);
+	ret = dns_rdataset_first(set);
 	if (ret != ISC_R_SUCCESS) {
-		dns_rdataset_disassociate(&rdataset);
 		isc_mem_put(mctx, data, n * sizeof(dns_rdata_t));
 		return (ret);
 	}
@@ -115,8 +111,8 @@ rdataset_to_sortedarray(dns_rdataset_t *set, isc_mem_t *mctx,
 	 */
 	do {
 		dns_rdata_init(&data[i]);
-		dns_rdataset_current(&rdataset, &data[i++]);
-	} while (dns_rdataset_next(&rdataset) == ISC_R_SUCCESS);
+		dns_rdataset_current(set, &data[i++]);
+	} while (dns_rdataset_next(set) == ISC_R_SUCCESS);
 
 	/*
 	 * Sort the array.
@@ -124,7 +120,6 @@ rdataset_to_sortedarray(dns_rdataset_t *set, isc_mem_t *mctx,
 	qsort(data, n, sizeof(dns_rdata_t), rdata_compare_wrapper);
 	*rdata = data;
 	*nrdata = n;
-	dns_rdataset_disassociate(&rdataset);
 	return (ISC_R_SUCCESS);
 }
 
@@ -894,60 +889,4 @@ failure:
 		dst_context_destroy(&ctx);
 
 	return (result);
-}
-
-/*%
- * Does this key ('rdata') self sign the rrset ('rdataset')?
- */
-isc_boolean_t
-dns_dnssec_selfsigns(dns_rdata_t *rdata, dns_name_t *name,
-		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
-		     isc_boolean_t ignoretime, isc_mem_t *mctx)
-{
-	dst_key_t *dstkey = NULL;
-	dns_keytag_t keytag;
-	dns_rdata_dnskey_t key;
-	dns_rdata_rrsig_t sig;
-	dns_rdata_t sigrdata = DNS_RDATA_INIT;
-	isc_result_t result;
-
-	INSIST(rdataset->type == dns_rdatatype_key ||
-	       rdataset->type == dns_rdatatype_dnskey);
-	if (rdataset->type == dns_rdatatype_key) {
-		INSIST(sigrdataset->type == dns_rdatatype_sig);
-		INSIST(sigrdataset->covers == dns_rdatatype_key);
-	} else {
-		INSIST(sigrdataset->type == dns_rdatatype_rrsig);
-		INSIST(sigrdataset->covers == dns_rdatatype_dnskey);
-	}
-
-	result = dns_dnssec_keyfromrdata(name, rdata, mctx, &dstkey);
-	if (result != ISC_R_SUCCESS)
-		return (ISC_FALSE);
-	result = dns_rdata_tostruct(rdata, &key, NULL);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-
-	keytag = dst_key_id(dstkey);
-	for (result = dns_rdataset_first(sigrdataset);
-	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(sigrdataset))
-	{
-		dns_rdata_reset(&sigrdata);
-		dns_rdataset_current(sigrdataset, &sigrdata);
-		result = dns_rdata_tostruct(&sigrdata, &sig, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-
-		if (sig.algorithm == key.algorithm &&
-		    sig.keyid == keytag) {
-			result = dns_dnssec_verify2(name, rdataset, dstkey,
-						    ignoretime, mctx,
-						    &sigrdata, NULL);
-			if (result == ISC_R_SUCCESS) {
-				dst_key_free(&dstkey);
-				return (ISC_TRUE);
-			}
-		}
-	}
-	dst_key_free(&dstkey);
-	return (ISC_FALSE);
 }
