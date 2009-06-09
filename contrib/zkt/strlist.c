@@ -49,7 +49,7 @@
 
 /*****************************************************************
 **	prepstrlist (str, delim)
-**	prepare a string with delimeters to a so called strlist.
+**	prepare a string with delimiters to a so called strlist.
 **	'str' is a list of substrings delimeted by 'delim'
 **	The # of strings is stored at the first byte of the allocated
 **	memory. Every substring is stored as a '\0' terminated C-String.

@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.22 2008/04/05 23:47:11 tbox Exp $
+ * $Id: openssl_link.c,v 1.22.112.3 2009/02/11 03:07:01 jinmei Exp $
  */
 #ifdef OPENSSL
 
@@ -148,18 +148,8 @@ mem_free(void *ptr) {
 
 static void *
 mem_realloc(void *ptr, size_t size) {
-	void *p;
-
 	INSIST(dst__memory_pool != NULL);
-	p = NULL;
-	if (size > 0U) {
-		p = mem_alloc(size);
-		if (p != NULL && ptr != NULL)
-			memcpy(p, ptr, size);
-	}
-	if (ptr != NULL)
-		mem_free(ptr);
-	return (p);
+	return (isc_mem_reallocate(dst__memory_pool, ptr, size));
 }
 
 isc_result_t
@@ -252,7 +242,7 @@ dst__openssl_init() {
 		for (e = ENGINE_get_first(); e != NULL; e = ENGINE_get_next(e)) {
 
 			/*
-			 * Something wierd here. If we call ENGINE_finish()
+			 * Something weird here. If we call ENGINE_finish()
 			 * ENGINE_get_default_RAND() will fail.
 			 */
 			if (ENGINE_init(e)) {
@@ -386,7 +376,7 @@ dst__openssl_setdefault(const char *name) {
  *
  * 'engine_id' is the openssl engine name.
  *
- * pre_cmds and post_cmds a sequence if command arguement pairs
+ * pre_cmds and post_cmds a sequence if command argument pairs
  * pre_num and post_num are a count of those pairs.
  *
  * "SO_PATH", PKCS11_SO_PATH ("/usr/local/lib/engines/engine_pkcs11.so")

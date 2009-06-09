@@ -166,7 +166,7 @@ zone_t	*zone_new (zone_t **zp, const char *zone, const char *dir, const char *fi
 	{
 		char	*p;
 
-		new->zone = str_tolowerdup (zone);
+		new->zone = domain_canonicdup (zone);
 		new->dir = strdup (dir);
 		new->file = strdup (file);
 		/* check if file ends with ".signed" ? */
@@ -208,7 +208,10 @@ int	zone_readdir (const char *dir, const char *zone, const char *zfile, zone_t *
 		else
 			zone = dir;
 	}
-	dbg_val4 ("zone_readdir: (dir: %s, zone: %s, zfile: %s zp, cp, dyn_zone = %d)\n",
+	if ( zone == NULL )	/* zone name still null ? */
+		return 0;
+
+	dbg_val4 ("zone_readdir: (dir: \"%s\", zone: \"%s\", zfile: \"%s\", zp, cp, dyn_zone = %d)\n",
 					dir, zone, zfile ? zfile: "NULL", dyn_zone);
 
 	if ( dyn_zone )

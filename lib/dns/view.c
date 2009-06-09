@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,13 +15,14 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.150 2008/06/17 03:14:20 marka Exp $ */
+/* $Id: view.c,v 1.150.84.2 2009/01/29 23:47:44 tbox Exp $ */
 
 /*! \file */
 
 #include <config.h>
 
 #include <isc/hash.h>
+#include <isc/stats.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/task.h>
 #include <isc/util.h>
@@ -347,7 +348,7 @@ destroy(dns_view_t *view) {
 		view->rootexclude = NULL;
 	}
 	if (view->resstats != NULL)
-		dns_stats_detach(&view->resstats);
+		isc_stats_detach(&view->resstats);
 	if (view->resquerystats != NULL)
 		dns_stats_detach(&view->resquerystats);
 	dns_keytable_detach(&view->trustedkeys);
@@ -1431,21 +1432,21 @@ dns_view_freezezones(dns_view_t *view, isc_boolean_t value) {
 }
 
 void
-dns_view_setresstats(dns_view_t *view, dns_stats_t *stats) {
+dns_view_setresstats(dns_view_t *view, isc_stats_t *stats) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
 	REQUIRE(view->resstats == NULL);
 
-	dns_stats_attach(stats, &view->resstats);
+	isc_stats_attach(stats, &view->resstats);
 }
 
 void
-dns_view_getresstats(dns_view_t *view, dns_stats_t **statsp) {
+dns_view_getresstats(dns_view_t *view, isc_stats_t **statsp) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
 	if (view->resstats != NULL)
-		dns_stats_attach(view->resstats, statsp);
+		isc_stats_attach(view->resstats, statsp);
 }
 
 void

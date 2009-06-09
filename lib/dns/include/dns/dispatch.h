@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.h,v 1.60 2008/06/23 23:47:11 tbox Exp $ */
+/* $Id: dispatch.h,v 1.60.82.2 2009/01/29 23:47:44 tbox Exp $ */
 
 #ifndef DNS_DISPATCH_H
 #define DNS_DISPATCH_H 1
@@ -55,7 +55,7 @@
 #include <isc/buffer.h>
 #include <isc/lang.h>
 #include <isc/socket.h>
-#include <dns/types.h>
+#include <isc/types.h>
 
 #include <dns/types.h>
 
@@ -223,7 +223,7 @@ dns_dispatchmgr_setavailports(dns_dispatchmgr_t *mgr, isc_portset_t *v4portset,
  */
 
 void
-dns_dispatchmgr_setstats(dns_dispatchmgr_t *mgr, dns_stats_t *stats);
+dns_dispatchmgr_setstats(dns_dispatchmgr_t *mgr, isc_stats_t *stats);
 /*%<
  * Sets statistics counter for the dispatchmgr.  This function is expected to
  * be called only on zone creation (when necessary).

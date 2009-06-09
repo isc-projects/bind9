@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.111 2008/05/21 23:17:21 each Exp $ */
+/* $Id: view.h,v 1.111.88.4 2009/01/29 22:40:35 jinmei Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -100,7 +100,7 @@ struct dns_view {
 	isc_event_t			resevent;
 	isc_event_t			adbevent;
 	isc_event_t			reqevent;
-	dns_stats_t *			resstats;
+	isc_stats_t *			resstats;
 	dns_stats_t *			resquerystats;
 
 	/* Configurable data. */
@@ -234,7 +234,7 @@ void
 dns_view_flushanddetach(dns_view_t **viewp);
 /*%<
  * Detach '*viewp' from its view.  If this was the last reference
- * uncommited changed in zones will be flushed to disk.
+ * uncommitted changed in zones will be flushed to disk.
  *
  * Requires:
  *
@@ -373,7 +373,7 @@ dns_view_setdstport(dns_view_t *view, in_port_t dstport);
  *\li      'dstport' is a valid TCP/UDP port number.
  *
  * Ensures:
- *\li	External name servers will be assumed to be listning
+ *\li	External name servers will be assumed to be listening
  *	on 'dstport'.  For servers whose address has already
  *	obtained obtained at the time of the call, the view may
  *	continue to use the previously set port until the address
@@ -656,7 +656,7 @@ dns_view_gettsig(dns_view_t *view, dns_name_t *keyname,
  * Find the TSIG key configured in 'view' with name 'keyname',
  * if any.
  *
- * Reqires:
+ * Requires:
  *\li	keyp points to a NULL dns_tsigkey_t *.
  *
  * Returns:
@@ -672,7 +672,7 @@ dns_view_getpeertsig(dns_view_t *view, isc_netaddr_t *peeraddr,
  * Find the TSIG key configured in 'view' for the server whose
  * address is 'peeraddr', if any.
  *
- * Reqires:
+ * Requires:
  *	keyp points to a NULL dns_tsigkey_t *.
  *
  * Returns:
@@ -794,8 +794,8 @@ dns_view_isdelegationonly(dns_view_t *view, dns_name_t *name);
  *\li	'name' is valid.
  *
  * Returns:
- *\li	#ISC_TRUE if the name is is the table.
- *\li	#ISC_FALSE othewise.
+ *\li	#ISC_TRUE if the name is the table.
+ *\li	#ISC_FALSE otherwise.
  */
 
 void
@@ -826,7 +826,7 @@ dns_view_freezezones(dns_view_t *view, isc_boolean_t freeze);
  */
 
 void
-dns_view_setresstats(dns_view_t *view, dns_stats_t *stats);
+dns_view_setresstats(dns_view_t *view, isc_stats_t *stats);
 /*%<
  * Set a general resolver statistics counter set 'stats' for 'view'.
  *
@@ -838,7 +838,7 @@ dns_view_setresstats(dns_view_t *view, dns_stats_t *stats);
  */
 
 void
-dns_view_getresstats(dns_view_t *view, dns_stats_t **statsp);
+dns_view_getresstats(dns_view_t *view, isc_stats_t **statsp);
 /*%<
  * Get the general statistics counter set for 'view'.  If a statistics set is
  * set '*statsp' will be attached to the set; otherwise, '*statsp' will be

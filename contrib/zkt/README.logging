@@ -18,15 +18,14 @@ the file or directory name via the commandline option -L (--logfile)
 or via the config file parameter "LogFile".
 	LogFile: ""|"<file>"|"<directory>"	(default is "")
 If a file is specified, than each run of dnssec-signer will append the
-messages to tat file. If a directory is specified, than a file with a
+messages to that file. If a directory is specified, than a file with a
 name of zkt-<ISOdate&timeUTC>.log" will be created on each dnssec-signer run.
 
 Logging into the syslog channel could be enabled via the config file
 parameter "SyslogFacility".
 	SyslogFacility:	NONE|USER|DAEMON|LOCAL0|..|LOCAL7 (default is USER)
 
-For both channels, the log level could be independently set to one
-of six log levels:
+For both channels, the log level could be set to one of six log levels:
 	LG_FATAL, LG_ERROR, LG_WARNING
 	LB_NOTICE, LG_INFO, LG_DEBUG
 
@@ -38,12 +37,12 @@ and
    		(default is NOTICE)
 
 All the log parameters are settable on the commandline via the generic
-option -O "optstring" (--config-option="opt").
+option -O "optstring" (--config-option="optstring").
 
 A verbose message output to stdout could be achieved by the commandline
 option -v (or -v -v).
-If you want to log the same messages with loglevel LG_DEBUG to a file or
-to syslog, you could enable this by setting the config file option
+If you like to have this verbose messages also logged with a level of LG_DEBUG
+you should enable this by setting the config file option
 "VerboseLog" to a value of 1 or 2.
 
 Current logging messages:
@@ -72,7 +71,7 @@ Some recomended and useful logging settings
 	VerboseLog: 0
 
 - Setting as in version v0.95
-	LogFile: "zkt-error.log"	# or a directory for seperate logfiles
+	LogFile: "zkt-error.log"	# or a directory for separate logfiles
 	LogLevel: ERROR
 	SyslogFacility: NONE
 	VerboseLog: 0
@@ -83,14 +82,14 @@ Some recomended and useful logging settings
 	VerboseLog: 0
 
 - Recommended setting for normal usage
-	LogFile: "zkt.log"	# or a directory for seperate logfiles
+	LogFile: "zkt.log"	# or a directory for separate logfiles
 	LogLevel: ERROR
 	SyslogFacility: USER
 	SyslogLevel: NOTICE
 	VerboseLog: 0
 	
 - Recommended setting for debugging
-	LogFile: "zkt.log"	# or a directory for seperate logfiles
+	LogFile: "zkt.log"	# or a directory for separate logfiles
 	LogLevel: DEBUG
 	SyslogFacility: USER
 	SyslogLevel: NOTICE

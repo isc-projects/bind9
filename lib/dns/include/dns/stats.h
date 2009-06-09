@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stats.h,v 1.18 2008/09/08 05:59:11 marka Exp $ */
+/* $Id: stats.h,v 1.18.56.2 2009/01/29 23:47:44 tbox Exp $ */
 
 #ifndef DNS_STATS_H
 #define DNS_STATS_H 1
@@ -25,7 +25,7 @@
 #include <dns/types.h>
 
 /*%
- * Statistics counters.  Used as dns_statscounter_t values.
+ * Statistics counters.  Used as isc_statscounter_t values.
  */
 enum {
 	/*%
@@ -52,8 +52,17 @@ enum {
 	dns_resstatscounter_valsuccess = 18,
 	dns_resstatscounter_valnegsuccess = 19,
 	dns_resstatscounter_valfail = 20,
+	dns_resstatscounter_dispabort = 21,
+	dns_resstatscounter_dispsockfail = 22,
+	dns_resstatscounter_querytimeout = 23,
+	dns_resstatscounter_queryrtt0 = 24,
+	dns_resstatscounter_queryrtt1 = 25,
+	dns_resstatscounter_queryrtt2 = 26,
+	dns_resstatscounter_queryrtt3 = 27,
+	dns_resstatscounter_queryrtt4 = 28,
+	dns_resstatscounter_queryrtt5 = 29,
 
-	dns_resstatscounter_max = 21,
+	dns_resstatscounter_max = 30,
 
 	/*%
 	 * Zone statistics counters.
@@ -89,10 +98,14 @@ enum {
 
 #define DNS_STATS_NCOUNTERS 8
 
+#if 0
 /*%<
- * Flag(s) for dns_xxxstats_dump().
+ * Flag(s) for dns_xxxstats_dump().  DNS_STATSDUMP_VERBOSE is obsolete.
+ * ISC_STATSDUMP_VERBOSE should be used instead.  These two values are
+ * intentionally defined to be the same value to ensure binary compatibility.
  */
 #define DNS_STATSDUMP_VERBOSE	0x00000001 /*%< dump 0-value counters */
+#endif
 
 /*%<
  * (Obsoleted)
@@ -119,7 +132,7 @@ LIBDNS_EXTERNAL_DATA extern const char *dns_statscounter_names[];
 #define DNS_RDATASTATSTYPE_ATTR_NXDOMAIN	0x0004
 
 /*%<
- * Conversion macros among dns_rdatatype_t, attributes and dns_statscounter_t.
+ * Conversion macros among dns_rdatatype_t, attributes and isc_statscounter_t.
  */
 #define DNS_RDATASTATSTYPE_BASE(type)	((dns_rdatatype_t)((type) & 0xFFFF))
 #define DNS_RDATASTATSTYPE_ATTR(type)	((type) >> 16)
@@ -128,7 +141,7 @@ LIBDNS_EXTERNAL_DATA extern const char *dns_statscounter_names[];
 /*%<
  * Types of dump callbacks.
  */
-typedef void (*dns_generalstats_dumper_t)(dns_statscounter_t, isc_uint64_t,
+typedef void (*dns_generalstats_dumper_t)(isc_statscounter_t, isc_uint64_t,
 					  void *);
 typedef void (*dns_rdatatypestats_dumper_t)(dns_rdatastatstype_t, isc_uint64_t,
 					    void *);
@@ -139,6 +152,8 @@ dns_generalstats_create(isc_mem_t *mctx, dns_stats_t **statsp, int ncounters);
 /*%<
  * Create a statistics counter structure of general type.  It counts a general
  * set of counters indexed by an ID between 0 and ncounters -1.
+ * This function is obsolete.  A more general function, isc_stats_create(),
+ * should be used.
  *
  * Requires:
  *\li	'mctx' must be a valid memory context.
@@ -220,9 +235,10 @@ dns_stats_detach(dns_stats_t **statsp);
  */
 
 void
-dns_generalstats_increment(dns_stats_t *stats, dns_statscounter_t counter);
+dns_generalstats_increment(dns_stats_t *stats, isc_statscounter_t counter);
 /*%<
- * Increment the counter-th counter of stats.
+ * Increment the counter-th counter of stats.  This function is obsolete.
+ * A more general function, isc_stats_increment(), should be used.
  *
  * Requires:
  *\li	'stats' is a valid dns_stats_t created by dns_generalstats_create().
@@ -274,7 +290,10 @@ dns_generalstats_dump(dns_stats_t *stats, dns_generalstats_dumper_t dump_fn,
  * Dump the current statistics counters in a specified way.  For each counter
  * in stats, dump_fn is called with its current value and the given argument
  * arg.  By default counters that have a value of 0 is skipped; if options has
- * the DNS_STATSDUMP_VERBOSE flag, even such counters are dumped.
+ * the ISC_STATSDUMP_VERBOSE flag, even such counters are dumped.
+ *
+ * This function is obsolete.  A more general function, isc_stats_dump(),
+ * should be used.
  *
  * Requires:
  *\li	'stats' is a valid dns_stats_t created by dns_generalstats_create().
@@ -288,7 +307,7 @@ dns_rdatatypestats_dump(dns_stats_t *stats, dns_rdatatypestats_dumper_t dump_fn,
  * in stats, dump_fn is called with the corresponding type in the form of
  * dns_rdatastatstype_t, the current counter value and the given argument
  * arg.  By default counters that have a value of 0 is skipped; if options has
- * the DNS_STATSDUMP_VERBOSE flag, even such counters are dumped.
+ * the ISC_STATSDUMP_VERBOSE flag, even such counters are dumped.
  *
  * Requires:
  *\li	'stats' is a valid dns_stats_t created by dns_generalstats_create().
@@ -302,7 +321,7 @@ dns_rdatasetstats_dump(dns_stats_t *stats, dns_rdatatypestats_dumper_t dump_fn,
  * in stats, dump_fn is called with the corresponding type in the form of
  * dns_rdatastatstype_t, the current counter value and the given argument
  * arg.  By default counters that have a value of 0 is skipped; if options has
- * the DNS_STATSDUMP_VERBOSE flag, even such counters are dumped.
+ * the ISC_STATSDUMP_VERBOSE flag, even such counters are dumped.
  *
  * Requires:
  *\li	'stats' is a valid dns_stats_t created by dns_generalstats_create().
@@ -315,7 +334,7 @@ dns_opcodestats_dump(dns_stats_t *stats, dns_opcodestats_dumper_t dump_fn,
  * Dump the current statistics counters in a specified way.  For each counter
  * in stats, dump_fn is called with the corresponding opcode, the current
  * counter value and the given argument arg.  By default counters that have a
- * value of 0 is skipped; if options has the DNS_STATSDUMP_VERBOSE flag, even
+ * value of 0 is skipped; if options has the ISC_STATSDUMP_VERBOSE flag, even
  * such counters are dumped.
  *
  * Requires:

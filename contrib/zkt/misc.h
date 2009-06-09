@@ -56,7 +56,11 @@ extern	int	copyfile (const char *fromfile, const char *tofile, const char *dnske
 extern	int	copyzonefile (const char *fromfile, const char *tofile, const char *dnskeyfile);
 extern	int	cmpfile (const char *file1, const char *file2);
 extern	char	*str_delspace (char *s);
+#if 1
+extern	char	*domain_canonicdup (const char *s);
+#else
 extern	char	*str_tolowerdup (const char *s);
+#endif
 extern	int	in_strarr (const char *str, char *const arr[], int cnt);
 extern	const	char	*splitpath (char *path, size_t  size, const char *filename);
 extern	char	*pathname (char *name, size_t size, const char *path, const char *file, const char *ext);

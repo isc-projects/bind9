@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.16 2008/11/14 22:53:46 marka Exp $
+ * $Id: dst_api.c,v 1.16.12.3 2009/03/02 02:00:34 marka Exp $
  */
 
 /*! \file */
@@ -125,6 +125,7 @@ static isc_result_t	addsuffix(char *filename, unsigned int len,
 			return (_r);		\
 	} while (0);				\
 
+#ifdef OPENSSL
 static void *
 default_memalloc(void *arg, size_t size) {
 	UNUSED(arg);
@@ -138,6 +139,7 @@ default_memfree(void *arg, void *ptr) {
 	UNUSED(arg);
 	free(ptr);
 }
+#endif
 
 isc_result_t
 dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
@@ -1161,9 +1163,12 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 	fwrite(r.base, 1, r.length, fp);
 
 	fputc('\n', fp);
+	fflush(fp);
+	if (ferror(fp))
+		ret = DST_R_WRITEERROR;
 	fclose(fp);
 
-	return (ISC_R_SUCCESS);
+	return (ret);
 }
 
 static isc_result_t

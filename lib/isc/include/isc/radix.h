@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.h,v 1.11 2008/09/26 21:12:02 each Exp $ */
+/* $Id: radix.h,v 1.11.44.2 2008/12/24 23:47:02 tbox Exp $ */
 
 /*
  * This source was adapted from MRT's RCS Ids:
@@ -111,25 +111,84 @@ typedef struct isc_radix_tree {
    int num_added_node;			/* total number of nodes */
 } isc_radix_tree_t;
 
+isc_result_t
+isc_radix_search(isc_radix_tree_t *radix, isc_radix_node_t **target,
+		 isc_prefix_t *prefix);
+/*%<
+ * Search 'radix' for the best match to 'prefix'.
+ * Return the node found in '*target'.
+ *
+ * Requires:
+ * \li	'radix' to be valid.
+ * \li	'target' is not NULL and "*target" is NULL.
+ * \li	'prefix' to be valid.
+ *
+ * Returns:
+ * \li	ISC_R_NOTFOUND
+ * \li	ISC_R_SUCCESS
+ */
 
 isc_result_t
-isc_radix_search(isc_radix_tree_t *radix, isc_radix_node_t **target, isc_prefix_t *prefix);
-
-isc_result_t
-isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target, isc_radix_node_t *source, isc_prefix_t *prefix);
+isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
+		 isc_radix_node_t *source, isc_prefix_t *prefix);
+/*%<
+ * Insert 'source' or 'prefix' into the radix tree 'radix'.
+ * Return the node added in 'target'.
+ *
+ * Requires:
+ * \li	'radix' to be valid.
+ * \li	'target' is not NULL and "*target" is NULL.
+ * \li	'prefix' to be valid or 'source' to be non NULL and contain
+ *	a valid prefix.
+ *
+ * Returns:
+ * \li	ISC_R_NOMEMORY
+ * \li	ISC_R_SUCCESS
+ */
 
 void
 isc_radix_remove(isc_radix_tree_t *radix, isc_radix_node_t *node);
+/*%<
+ * Remove the node 'node' from the radix tree 'radix'.
+ *
+ * Requires:
+ * \li	'radix' to be valid.
+ * \li	'node' to be valid.
+ */
 
 isc_result_t
 isc_radix_create(isc_mem_t *mctx, isc_radix_tree_t **target, int maxbits);
+/*%<
+ * Create a radix tree with a maximum depth of 'maxbits';
+ *
+ * Requires:
+ * \li	'mctx' to be valid.
+ * \li	'target' to be non NULL and '*target' to be NULL.
+ * \li	'maxbits' to be less than or equal to RADIX_MAXBITS.
+ *
+ * Returns:
+ * \li	ISC_R_NOMEMORY
+ * \li	ISC_R_SUCCESS
+ */
 
 void
 isc_radix_destroy(isc_radix_tree_t *radix, isc_radix_destroyfunc_t func);
+/*%<
+ * Destroy a radix tree optionally calling 'func' to clean up node data.
+ *
+ * Requires:
+ * \li	'radix' to be valid.
+ */
 
 void
 isc_radix_process(isc_radix_tree_t *radix, isc_radix_processfunc_t func);
-
+/*%<
+ * Walk a radix tree calling 'func' to process node data.
+ *
+ * Requires:
+ * \li	'radix' to be valid.
+ * \li	'func' to point to a function.
+ */
 
 #define RADIX_MAXBITS 128
 #define RADIX_NBIT(x)        (0x80 >> ((x) & 0x7f))

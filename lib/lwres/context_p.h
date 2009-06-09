@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: context_p.h,v 1.17 2007/06/19 23:47:22 tbox Exp $ */
+/* $Id: context_p.h,v 1.17.332.2 2008/12/30 23:46:49 tbox Exp $ */
 
 #ifndef LWRES_CONTEXT_P_H
 #define LWRES_CONTEXT_P_H 1
@@ -46,6 +46,8 @@ struct lwres_context {
 	 */
 	int			sock;		/*%< socket to send on */
 	lwres_addr_t		address;	/*%< address to send to */
+	int			use_ipv4;	/*%< use IPv4 transaction */
+	int			use_ipv6;	/*%< use IPv6 transaction */
 
 	/*@{*/
 	/*

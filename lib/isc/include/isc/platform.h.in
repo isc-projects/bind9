@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.48 2008/06/23 19:41:19 jinmei Exp $ */
+/* $Id: platform.h.in,v 1.48.84.2 2009/02/16 23:47:15 tbox Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -92,11 +92,6 @@
  * If this system needs inet_pton(), ISC_PLATFORM_NEEDPTON will be defined.
  */
 @ISC_PLATFORM_NEEDPTON@
-
-/*! \brief
- * If this system needs inet_aton(), ISC_PLATFORM_NEEDATON will be defined.
- */
-@ISC_PLATFORM_NEEDATON@
 
 /*! \brief
  * If this system needs in_port_t, ISC_PLATFORM_NEEDPORTT will be defined.

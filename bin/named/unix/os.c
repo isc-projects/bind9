@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.89 2008/11/14 05:08:48 marka Exp $ */
+/* $Id: os.c,v 1.89.12.5 2009/03/02 03:03:54 marka Exp $ */
 
 /*! \file */
 
@@ -462,10 +462,12 @@ ns_os_started(void) {
 	char buf = 0;
 
 	/*
-	 * Signal to the parent that we stated successfully.
+	 * Signal to the parent that we started successfully.
 	 */
 	if (dfd[0] != -1 && dfd[1] != -1) {
-		write(dfd[1], &buf, 1);
+		if (write(dfd[1], &buf, 1) != 1)
+			ns_main_earlyfatal("unable to signal parent that we "
+					   "otherwise started successfully.");
 		close(dfd[1]);
 		dfd[0] = dfd[1] = -1;
 	}
@@ -505,10 +507,14 @@ ns_os_chroot(const char *root) {
 	ns_smf_chroot = 0;
 #endif
 	if (root != NULL) {
+#ifdef HAVE_CHROOT
 		if (chroot(root) < 0) {
 			isc__strerror(errno, strbuf, sizeof(strbuf));
 			ns_main_earlyfatal("chroot(): %s", strbuf);
 		}
+#else
+		ns_main_earlyfatal("chroot(): disabled");
+#endif
 		if (chdir("/") < 0) {
 			isc__strerror(errno, strbuf, sizeof(strbuf));
 			ns_main_earlyfatal("chdir(/): %s", strbuf);
@@ -641,7 +647,8 @@ safe_open(const char *filename, isc_boolean_t append) {
 		fd = open(filename, O_WRONLY|O_CREAT|O_APPEND,
 			  S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
 	else {
-		(void)unlink(filename);
+		if (unlink(filename) < 0 && errno != ENOENT)
+			return (-1);
 		fd = open(filename, O_WRONLY|O_CREAT|O_EXCL,
 			  S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
 	}
@@ -650,11 +657,52 @@ safe_open(const char *filename, isc_boolean_t append) {
 
 static void
 cleanup_pidfile(void) {
+	int n;
 	if (pidfile != NULL) {
-		(void)unlink(pidfile);
+		n = unlink(pidfile);
+		if (n == -1 && errno != ENOENT)
+			ns_main_earlywarning("unlink '%s': failed", pidfile);
 		free(pidfile);
 	}
 	pidfile = NULL;
+}
+
+static int
+mkdirpath(char *filename, void (*report)(const char *, ...)) {
+	char *slash = strrchr(filename, '/');
+	char strbuf[ISC_STRERRORSIZE];
+	unsigned int mode;
+
+	if (slash != NULL && slash != filename) {
+		struct stat sb;
+		*slash = '\0';
+
+		if (stat(filename, &sb) == -1) {
+			if (errno != ENOENT) {
+				isc__strerror(errno, strbuf, sizeof(strbuf));
+				(*report)("couldn't stat '%s': %s", filename,
+					  strbuf);
+				goto error;
+			}
+			if (mkdirpath(filename, report) == -1)
+				goto error;
+			mode = S_IRUSR | S_IWUSR | S_IXUSR;	/* u=rwx */
+			mode |= S_IRGRP | S_IXGRP;		/* g=rx */
+			mode |= S_IROTH | S_IXOTH;		/* o=rx */
+			if (mkdir(filename, mode) == -1) {
+				isc__strerror(errno, strbuf, sizeof(strbuf));
+				(*report)("couldn't mkdir '%s': %s", filename,
+					  strbuf);
+				goto error;
+			}
+		}
+		*slash = '/';
+	}
+	return (0);
+
+ error:
+	*slash = '/';
+	return (-1);
 }
 
 void
@@ -665,9 +713,6 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 	pid_t pid;
 	char strbuf[ISC_STRERRORSIZE];
 	void (*report)(const char *, ...);
-	unsigned int mode;
-	char *slash;
-	int n;
 
 	/*
 	 * The caller must ensure any required synchronization.
@@ -687,28 +732,17 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 		(*report)("couldn't malloc '%s': %s", filename, strbuf);
 		return;
 	}
+
 	/* This is safe. */
 	strcpy(pidfile, filename);
 
 	/*
 	 * Make the containing directory if it doesn't exist.
 	 */
-	slash = strrchr(pidfile, '/');
-	if (slash != NULL && slash != pidfile) {
-		*slash = '\0';
-		mode = S_IRUSR | S_IWUSR | S_IXUSR;	/* u=rwx */
-		mode |= S_IRGRP | S_IXGRP;		/* g=rx */
-		mode |= S_IROTH | S_IXOTH;		/* o=rx */
-		n = mkdir(pidfile, mode);
-		if (n == -1 && errno != EEXIST) {
-			isc__strerror(errno, strbuf, sizeof(strbuf));
-			(*report)("couldn't mkdir %s': %s", filename,
-				  strbuf);
-			free(pidfile);
-			pidfile = NULL;
-			return;
-		}
-		*slash = '/';
+	if (mkdirpath(pidfile, report) == -1) {
+		free(pidfile);
+		pidfile = NULL;
+		return;
 	}
 
 	fd = safe_open(filename, ISC_FALSE);

@@ -100,7 +100,7 @@ static	void	printkeyinfo (const dki_t *dkp, const char *oldpath)
 		printf ("%05d ", dkp->tag);
 		printf ("%3s ", dki_isksk (dkp) ? "KSK" : "ZSK");
 		printf ("%-3.3s ", dki_statusstr (dkp) );
-		printf ("%-7s", dki_algo2str(dkp->algo));
+		printf ("%-7s", dki_algo2sstr(dkp->algo));
 		if ( timeflag )
 			printf (" %-20s", time2str (dkp->gentime ? dkp->gentime: dkp->time, 's')); 
 		if ( exptimeflag )
