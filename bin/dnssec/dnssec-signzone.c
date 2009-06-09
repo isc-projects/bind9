@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.218 2009/06/05 06:59:03 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.219 2009/06/09 22:54:21 marka Exp $ */
 
 /*! \file */
 
@@ -1361,7 +1361,7 @@ verifyset(dns_rdataset_t *rdataset, dns_name_t *name, dns_dbnode_t *node,
 		type_format(rdataset->type, typebuf, sizeof(typebuf));
 		fprintf(stderr, "no signatures for %s/%s\n", namebuf, typebuf);
 		for (i = 0; i < 256; i++)
-			if (ksk_algorithms[i])
+			if (ksk_algorithms[i] != 0)
 				bad_algorithms[i] = 1;
 		return;
 	}
@@ -1375,8 +1375,8 @@ verifyset(dns_rdataset_t *rdataset, dns_name_t *name, dns_dbnode_t *node,
 
 		dns_rdataset_current(&sigrdataset, &rdata);
 		dns_rdata_tostruct(&rdata, &sig, NULL);
-		if (set_algorithms[sig.algorithm] ||
-		    !ksk_algorithms[sig.algorithm])
+		if ((set_algorithms[sig.algorithm] != 0) ||
+		    (ksk_algorithms[sig.algorithm] == 0))
 			continue;
 		if (goodsig(&rdata, name, keyrdataset, rdataset))
 			set_algorithms[sig.algorithm] = 1;
@@ -1386,7 +1386,8 @@ verifyset(dns_rdataset_t *rdataset, dns_name_t *name, dns_dbnode_t *node,
 		dns_name_format(name, namebuf, sizeof(namebuf));
 		type_format(rdataset->type, typebuf, sizeof(typebuf));
 		for (i = 0; i < 256; i++)
-			if (ksk_algorithms[i] && !set_algorithms[i]) {
+			if ((ksk_algorithms[i] != 0) &&
+			    (set_algorithms[i] == 0)) {
 				alg_format(i, algbuf, sizeof(algbuf));
 				fprintf(stderr, "Missing %s signature for "
 					"%s %s\n", algbuf, namebuf, typebuf);
@@ -1578,23 +1579,25 @@ verifyzone(void) {
 
 	fprintf(stderr, "Verifying the zone using the following algorithms:");
 	for (i = 0; i < 256; i++) {
-		if (ksk_algorithms[i]) {
+		if (ksk_algorithms[i] != 0) {
 			alg_format(i, algbuf, sizeof(algbuf));
 			fprintf(stderr, " %s", algbuf);
 		}
 	}
 	fprintf(stderr, ".\n");
 
-	if (memcmp(ksk_algorithms, zsk_algorithms, sizeof(ksk_algorithms))) {
-		for (i = 0; i < 256; i++) {
-			if (ksk_algorithms[i] == zsk_algorithms[i])
-				continue;
-			alg_format(i, algbuf, sizeof(algbuf));
-			fprintf(stderr, "Missing %s for algorithm %s\n",
-				ksk_algorithms[i] ? "ZSK" : "self signing KSK",
-				algbuf);
-			bad_algorithms[i] = 1;
-		}
+	for (i = 0; i < 256; i++) {
+		/*
+		 * The counts should both be zero or both be non-zero.
+		 * Mark the algorithm as bad if this is not met.
+		 */
+		if ((ksk_algorithms[i] != 0) == (zsk_algorithms[i] != 0))
+			continue;
+		alg_format(i, algbuf, sizeof(algbuf));
+		fprintf(stderr, "Missing %s for algorithm %s\n",
+			(ksk_algorithms[i] != 0) ? "ZSK" : "self signing KSK",
+			algbuf);
+		bad_algorithms[i] = 1;
 	}
 
 	/*
@@ -1674,7 +1677,7 @@ verifyzone(void) {
 	 * zone.  Set the good flag.
 	 */
 	for (i = 0; i < 256; i++) {
-		if (bad_algorithms[i]) {
+		if (bad_algorithms[i] != 0) {
 			if (first)
 				fprintf(stderr, "The zone is not fully signed "
 					"for the following algorithms:");
@@ -1694,8 +1697,9 @@ verifyzone(void) {
 		 */
 		fprintf(stderr, "Zone signing complete:\n");
 		for (i = 0; i < 256; i++) {
-			if (zsk_algorithms[i] || ksk_algorithms[i] ||
-			    revoked[i] || standby[i]) {
+			if ((zsk_algorithms[i] != 0) ||
+			    (ksk_algorithms[i] != 0) ||
+			    (revoked[i] != 0) || (standby[i] != 0)) {
 				alg_format(i, algbuf, sizeof(algbuf));
 				fprintf(stderr, "Algorithm: %s: ZSKs: %u, "
 					"KSKs: %u active, %u revoked, %u "
