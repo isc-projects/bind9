@@ -1,4 +1,4 @@
-.\" Copyright (C) 2004-2008 Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (C) 2004-2009 Internet Systems Consortium, Inc. ("ISC")
 .\" Copyright (C) 2000-2003 Internet Software Consortium.
 .\" 
 .\" Permission to use, copy, modify, and distribute this software for any
@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-signzone.8,v 1.47.44.3 2009/06/08 22:23:06 each Exp $
+.\" $Id: dnssec-signzone.8,v 1.47.44.4 2009/06/09 01:47:19 each Exp $
 .\"
 .hy 0
 .ad l
@@ -36,7 +36,7 @@
 .el .ne 3
 .IP "\\$1" \\$2
 ..
-.TH "DNSSEC-SIGNZONE" 8 "June 05, 2009" "" ""
+.TH "DNSSEC-SIGNZONE" 8 "June 08, 2009" "" ""
 .SH NAME
 dnssec-signzone \- DNSSEC zone signing tool
 .SH "SYNOPSIS"
@@ -160,6 +160,13 @@ This example re\-signs a previously signed zone with default parameters\&. The p
 db\&.example\&.com\&.signed
 %
 .fi
+.SH "KNOWN BUGS"
+.PP
+ \fBdnssec\-signzone\fR was designed so that it could sign a zone partially, using only a subset of the DNSSEC keys needed to produce a fully\-signed zone\&. This permits a zone administrator, for example, to sign a zone with one key on one machine, move the resulting partially\-signed zone to a second machine, and sign it again with a second key\&.
+.PP
+An unfortunate side\-effect of this flexibility is that \fBdnssec\-signzone\fR does not check to make sure it's signing a zone with any valid keys at all\&. An attempt to sign a zone without any keys will appear to succeed, producing a "signed" zone with no signatures\&. There is no warning issued when a zone is not fully signed\&.
+.PP
+This will be corrected in a future release\&. In the meantime, ISC recommends examining the output of \fBdnssec\-signzone\fR to confirm that the zone is properly signed by all keys before using it\&.
 .SH "SEE ALSO"
 .PP
 \fBdnssec\-keygen\fR(8), BIND 9 Administrator Reference Manual, RFC 4033\&.
