@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.176 2009/05/07 23:47:44 tbox Exp $ */
+/* $Id: validator.c,v 1.177 2009/06/09 22:57:09 marka Exp $ */
 
 #include <config.h>
 
@@ -3580,7 +3580,7 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 
 		val->attributes |= VALATTR_INSECURITY;
 		result = proveunsecure(val, ISC_FALSE, ISC_FALSE);
-		if (result != DNS_R_NOTINSECURE)
+		if (result == DNS_R_NOTINSECURE)
 			validator_log(val, ISC_LOG_INFO,
 				      "got insecure response; "
 				      "parent indicates it should be secure");
