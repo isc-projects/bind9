@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.533 2009/06/10 00:27:21 each Exp $ */
+/* $Id: server.c,v 1.534 2009/06/10 23:47:47 tbox Exp $ */
 
 /*! \file */
 
@@ -3272,7 +3272,7 @@ generate_session_key(const char *filename, const char *keynamestr,
 
 	/*
 	 * Dump the key to the buffer for later use.  Should be done before
-	 * we transfer the ownership of key to tsigkey. 
+	 * we transfer the ownership of key to tsigkey.
 	 */
 	isc_buffer_init(&key_rawbuffer, &key_rawsecret, sizeof(key_rawsecret));
 	CHECK(dst_key_tobuffer(key, &key_rawbuffer));
@@ -3306,8 +3306,8 @@ generate_session_key(const char *filename, const char *keynamestr,
 
   cleanup:
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-		      NS_LOGMODULE_SERVER, ISC_LOG_ERROR, 
-		      "failed to generate session key " 
+		      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+		      "failed to generate session key "
 		      "for dynamic DNS: %s", isc_result_totext(result));
 	if (tsigkey != NULL)
 		dns_tsigkey_detach(&tsigkey);
@@ -3367,7 +3367,7 @@ configure_session_key(const cfg_obj_t **maps, ns_server_t *server,
 		cfg_obj_log(obj, ns_g_lctx, ISC_LOG_ERROR, "ddns-keyalg: "
 			    "unsupported or unknown algorithm '%s'%s",
 			    algstr,
-			    server->ddns_keyfile != NULL ? s : ""); 
+			    server->ddns_keyfile != NULL ? s : "");
 		return (result);
 	}
 
@@ -3404,7 +3404,7 @@ configure_session_key(const cfg_obj_t **maps, ns_server_t *server,
 		if (server->ddns_keyname == NULL)
 			goto cleanup;
 		dns_name_init(server->ddns_keyname, NULL);
-		CHECK(dns_name_dup(keyname, mctx, server->ddns_keyname)); 
+		CHECK(dns_name_dup(keyname, mctx, server->ddns_keyname));
 
 		server->ddns_keyfile = isc_mem_strdup(mctx, keyfile);
 		if (server->ddns_keyfile == NULL)

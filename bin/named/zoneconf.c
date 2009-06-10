@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.150 2009/06/10 00:27:21 each Exp $ */
+/* $Id: zoneconf.c,v 1.151 2009/06/10 23:47:47 tbox Exp $ */
 
 /*% */
 
@@ -336,8 +336,8 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 	}
 
 	/*
-         * If this is a "ddns-autoconf" zone and a DDNS session key exists,
-         * then use the default policy, equivalent to:
+	 * If this is a "ddns-autoconf" zone and a DDNS session key exists,
+	 * then use the default policy, equivalent to:
 	 * update-policy { grant <ddns-keyname> zonesub any; };
 	 */
 	if (autoddns) {

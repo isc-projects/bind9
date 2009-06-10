@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.97 2009/06/10 00:27:22 each Exp $ */
+/* $Id: namedconf.c,v 1.98 2009/06/10 23:47:47 tbox Exp $ */
 
 /*! \file */
 
@@ -249,7 +249,7 @@ static cfg_type_t cfg_type_pubkey = {
  */
 static cfg_type_t cfg_type_rrtypelist = {
 	"rrtypelist", cfg_parse_spacelist, cfg_print_spacelist,
-        cfg_doc_terminal, &cfg_rep_list, &cfg_type_astring
+	cfg_doc_terminal, &cfg_rep_list, &cfg_type_astring
 };
 
 static const char *mode_enums[] = { "grant", "deny", NULL };
@@ -266,7 +266,7 @@ parse_matchtype(cfg_parser_t *pctx, const cfg_type_t *type,
 	CHECK(cfg_peektoken(pctx, 0));
 	if (pctx->token.type == isc_tokentype_string &&
 	    strcasecmp(TOKEN_STRING(pctx), "zonesub") == 0) {
-	    	pctx->flags |= CFG_PCTX_SKIP;
+		pctx->flags |= CFG_PCTX_SKIP;
 	}
 	return (cfg_parse_enum(pctx, type, ret));
 
@@ -297,12 +297,12 @@ static const char *matchtype_enums[] = {
 	"tcp-self", "6to4-self", "zonesub", NULL };
 static cfg_type_t cfg_type_matchtype = {
 	"matchtype", parse_matchtype, cfg_print_ustring,
-        cfg_doc_enum, &cfg_rep_string, &matchtype_enums
+	cfg_doc_enum, &cfg_rep_string, &matchtype_enums
 };
 
 static cfg_type_t cfg_type_matchname = {
 	"optional_matchname", parse_matchname, cfg_print_ustring,
-        cfg_doc_tuple, &cfg_rep_tuple, &cfg_type_ustring
+	cfg_doc_tuple, &cfg_rep_tuple, &cfg_type_ustring
 };
 
 /*%
