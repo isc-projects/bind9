@@ -1,3 +1,15 @@
+2609.	[func]		Simplify the configuration of dynamic zones:
+			- add ddns-confgen command to generate
+			  configuration text for named.conf
+			- add zone option "ddns-autoconf yes;", which
+			  causes named to generate a TSIG session key
+			  and allow updates to the zone using that key
+			- add '-l' (localhost) option to nsupdate, which
+			  causes nsupdate to connect to a locally-running
+			  named process using the session key generated
+			  by named
+			[RT #19284]
+			
 2608.	[func]		Perform post signing verification checks in
 			dnssec-signzone.  These can be disabled with -P.
 

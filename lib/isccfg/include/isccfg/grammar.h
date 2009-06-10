@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: grammar.h,v 1.17 2008/09/25 04:02:39 tbox Exp $ */
+/* $Id: grammar.h,v 1.18 2009/06/10 00:27:22 each Exp $ */
 
 #ifndef ISCCFG_GRAMMAR_H
 #define ISCCFG_GRAMMAR_H 1
@@ -210,10 +210,18 @@ struct cfg_parser {
 	 */
 	unsigned int	line;
 
+	/*%
+	 * Parser context flags, used for maintaining state
+	 * from one token to the next.
+	 */
+	unsigned int flags;
+
 	cfg_parsecallback_t callback;
 	void *callbackarg;
 };
 
+/* Parser context flags */
+#define CFG_PCTX_SKIP		0x1
 
 /*@{*/
 /*%

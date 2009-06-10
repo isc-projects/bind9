@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.96 2009/03/16 23:41:21 each Exp $ */
+/* $Id: config.c,v 1.97 2009/06/10 00:27:21 each Exp $ */
 
 /*! \file */
 
@@ -42,6 +42,8 @@
 #include <dns/tsig.h>
 #include <dns/zone.h>
 
+#include <dst/dst.h>
+
 #include <named/config.h>
 #include <named/globals.h>
 
@@ -57,7 +59,10 @@ options {\n\
 	files unlimited;\n\
 	stacksize default;\n"
 #endif
-"	deallocate-on-exit true;\n\
+"#	ddns-keyfile \"" NS_LOCALSTATEDIR "/run/named/ddns.key\";\n\
+	ddns-keyname local-ddns;\n\
+	ddns-keyalg hmac-sha256;\n\
+	deallocate-on-exit true;\n\
 #	directory <none>\n\
 	dump-file \"named_dump.db\";\n\
 	fake-iquery no;\n\
@@ -163,6 +168,7 @@ options {\n\
 	notify-delay 5;\n\
 	notify-to-soa no;\n\
 	dialup no;\n\
+	ddns-autoconf no;\n\
 #	forward <none>\n\
 #	forwarders <none>\n\
 	maintain-ixfr-base no;\n\
@@ -766,22 +772,30 @@ struct keyalgorithms {
 	const char *str;
 	enum { hmacnone, hmacmd5, hmacsha1, hmacsha224,
 	       hmacsha256, hmacsha384, hmacsha512 } hmac;
+	unsigned int type;
 	isc_uint16_t size;
 } algorithms[] = {
-	{ "hmac-md5", hmacmd5, 128 },
-	{ "hmac-md5.sig-alg.reg.int", hmacmd5, 0 },
-	{ "hmac-md5.sig-alg.reg.int.", hmacmd5, 0 },
-	{ "hmac-sha1", hmacsha1, 160 },
-	{ "hmac-sha224", hmacsha224, 224 },
-	{ "hmac-sha256", hmacsha256, 256 },
-	{ "hmac-sha384", hmacsha384, 384 },
-	{ "hmac-sha512", hmacsha512, 512 },
-	{  NULL, hmacnone, 0 }
+	{ "hmac-md5", hmacmd5, DST_ALG_HMACMD5, 128 },
+	{ "hmac-md5.sig-alg.reg.int", hmacmd5, DST_ALG_HMACMD5, 0 },
+	{ "hmac-md5.sig-alg.reg.int.", hmacmd5, DST_ALG_HMACMD5, 0 },
+	{ "hmac-sha1", hmacsha1, DST_ALG_HMACSHA1, 160 },
+	{ "hmac-sha224", hmacsha224, DST_ALG_HMACSHA224, 224 },
+	{ "hmac-sha256", hmacsha256, DST_ALG_HMACSHA256, 256 },
+	{ "hmac-sha384", hmacsha384, DST_ALG_HMACSHA384, 384 },
+	{ "hmac-sha512", hmacsha512, DST_ALG_HMACSHA512, 512 },
+	{  NULL, hmacnone, DST_ALG_UNKNOWN, 0 }
 };
 
 isc_result_t
 ns_config_getkeyalgorithm(const char *str, dns_name_t **name,
 			  isc_uint16_t *digestbits)
+{
+	return (ns_config_getkeyalgorithm2(str, name, NULL, digestbits));
+}
+
+isc_result_t
+ns_config_getkeyalgorithm2(const char *str, dns_name_t **name,
+			   unsigned int *typep, isc_uint16_t *digestbits)
 {
 	int i;
 	size_t len = 0;
@@ -820,6 +834,8 @@ ns_config_getkeyalgorithm(const char *str, dns_name_t **name,
 			INSIST(0);
 		}
 	}
+	if (typep != NULL)
+		*typep = algorithms[i].type;
 	if (digestbits != NULL)
 		*digestbits = bits;
 	return (ISC_R_SUCCESS);

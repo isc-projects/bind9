@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_internal.h,v 1.11 2008/04/01 23:47:10 tbox Exp $ */
+/* $Id: dst_internal.h,v 1.12 2009/06/10 00:27:22 each Exp $ */
 
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1
@@ -58,8 +58,8 @@
 
 ISC_LANG_BEGINDECLS
 
-#define KEY_MAGIC       ISC_MAGIC('D','S','T','K')
-#define CTX_MAGIC       ISC_MAGIC('D','S','T','C')
+#define KEY_MAGIC	ISC_MAGIC('D','S','T','K')
+#define CTX_MAGIC	ISC_MAGIC('D','S','T','C')
 
 #define VALID_KEY(x) ISC_MAGIC_VALID(x, KEY_MAGIC)
 #define VALID_CTX(x) ISC_MAGIC_VALID(x, CTX_MAGIC)
@@ -72,7 +72,7 @@ extern isc_mem_t *dst__memory_pool;
 
 typedef struct dst_func dst_func_t;
 
-typedef struct dst_hmacmd5_key    dst_hmacmd5_key_t;
+typedef struct dst_hmacmd5_key	  dst_hmacmd5_key_t;
 typedef struct dst_hmacsha1_key   dst_hmacsha1_key_t;
 typedef struct dst_hmacsha224_key dst_hmacsha224_key_t;
 typedef struct dst_hmacsha256_key dst_hmacsha256_key_t;
@@ -112,7 +112,7 @@ struct dst_key {
 		dst_hmacsha512_key_t *hmacsha512;
 
 	} keydata;			/*%< pointer to key in crypto pkg fmt */
-	dst_func_t *	func;		/*%< crypto package specific functions */
+	dst_func_t *	func;	       /*%< crypto package specific functions */
 };
 
 struct dst_context {

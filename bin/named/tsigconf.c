@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsigconf.c,v 1.30 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id: tsigconf.c,v 1.31 2009/06/10 00:27:21 each Exp $ */
 
 /*! \file */
 
@@ -148,6 +148,8 @@ ns_tsigkeyring_fromconfig(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	dns_tsig_keyring_t *ring = NULL;
 	isc_result_t result;
 	int i;
+
+	REQUIRE(ringp != NULL && *ringp == NULL);
 
 	i = 0;
 	if (config != NULL)

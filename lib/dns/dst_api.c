@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.19 2009/03/02 23:47:43 tbox Exp $
+ * $Id: dst_api.c,v 1.20 2009/06/10 00:27:22 each Exp $
  */
 
 /*! \file */
@@ -110,7 +110,7 @@ static isc_result_t	algorithm_status(unsigned int alg);
 static isc_result_t	addsuffix(char *filename, unsigned int len,
 				  const char *ofilename, const char *suffix);
 
-#define RETERR(x) 				\
+#define RETERR(x)				\
 	do {					\
 		result = (x);			\
 		if (result != ISC_R_SUCCESS)	\

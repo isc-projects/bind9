@@ -48,7 +48,7 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: file.c,v 1.53 2009/02/16 23:48:04 tbox Exp $ */
+/* $Id: file.c,v 1.54 2009/06/10 00:27:22 each Exp $ */
 
 /*! \file */
 
@@ -441,4 +441,40 @@ isc_file_truncate(const char *filename, isc_offset_t size) {
 	if (truncate(filename, size) < 0)
 		result = isc__errno2result(errno);
 	return (result);
+}
+
+isc_result_t
+isc_file_safecreate(const char *filename, FILE **fp) {
+	isc_result_t result;
+	int flags;
+	struct stat sb;
+	FILE *f;
+	int fd;
+
+	REQUIRE(filename != NULL);
+	REQUIRE(fp != NULL && *fp == NULL);
+
+	result = file_stats(filename, &sb);
+	if (result == ISC_R_SUCCESS) {
+		if ((sb.st_mode & S_IFREG) == 0)
+			return (ISC_R_INVALIDFILE);
+		flags = O_WRONLY | O_TRUNC;
+	} else if (result == ISC_R_FILENOTFOUND) {
+		flags = O_WRONLY | O_CREAT | O_EXCL;
+	} else
+		return (result);
+
+	fd = open(filename, flags, S_IRUSR | S_IWUSR);
+	if (fd == -1)
+		return (isc__errno2result(errno));
+
+	f = fdopen(fd, "w");
+	if (f == NULL) {
+		result = isc__errno2result(errno);
+		close(fd);
+		return (result);
+	}
+
+	*fp = f;
+	return (ISC_R_SUCCESS);
 }

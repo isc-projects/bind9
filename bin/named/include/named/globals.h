@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: globals.h,v 1.82 2009/03/05 23:47:35 tbox Exp $ */
+/* $Id: globals.h,v 1.83 2009/06/10 00:27:21 each Exp $ */
 
 #ifndef NAMED_GLOBALS_H
 #define NAMED_GLOBALS_H 1
@@ -29,6 +29,8 @@
 #include <isccfg/cfg.h>
 
 #include <dns/zone.h>
+
+#include <dst/dst.h>
 
 #include <named/types.h>
 
@@ -89,6 +91,10 @@ EXTERN const char *		ns_g_conffile		INIT(NS_SYSCONFDIR
 EXTERN cfg_obj_t *		ns_g_bindkeys		INIT(NULL);
 EXTERN const char *		ns_g_keyfile		INIT(NS_SYSCONFDIR
 							     "/rndc.key");
+
+EXTERN dns_tsigkey_t *		ns_g_ddnskey		INIT(NULL);
+EXTERN dns_name_t		ns_g_ddnskeyname;
+
 EXTERN const char *		lwresd_g_conffile	INIT(NS_SYSCONFDIR
 							     "/lwresd.conf");
 EXTERN const char *		lwresd_g_resolvconffile	INIT("/etc"
@@ -112,6 +118,10 @@ EXTERN isc_boolean_t		ns_g_coreok		INIT(ISC_TRUE);
 EXTERN const char *		ns_g_chrootdir		INIT(NULL);
 EXTERN isc_boolean_t		ns_g_foreground		INIT(ISC_FALSE);
 EXTERN isc_boolean_t		ns_g_logstderr		INIT(ISC_FALSE);
+
+EXTERN const char *		ns_g_defaultddnskeyfile	INIT(NS_LOCALSTATEDIR
+							     "/run/named/"
+							     "ddns.key");
 
 #if NS_RUN_PID_DIR
 EXTERN const char *		ns_g_defaultpidfile 	INIT(NS_LOCALSTATEDIR

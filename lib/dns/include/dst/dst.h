@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.12 2008/09/24 02:46:23 marka Exp $ */
+/* $Id: dst.h,v 1.13 2009/06/10 00:27:22 each Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -509,10 +509,12 @@ dst_key_paramcompare(const dst_key_t *key1, const dst_key_t *key2);
 void
 dst_key_free(dst_key_t **keyp);
 /*%<
- * Release all memory associated with the key.
+ * Decrement the key's reference counter and, when it reaches zero,
+ * release all memory associated with the key.
  *
  * Requires:
  *\li	"keyp" is not NULL and "*keyp" is a valid key.
+ *\li	reference counter greater than zero.
  *
  * Ensures:
  *\li	All memory associated with "*keyp" will be freed.

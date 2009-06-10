@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.45 2009/06/10 00:27:21 each Exp $
+# $Id: Makefile.in,v 1.2 2009/06/10 00:27:21 each Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -47,28 +47,39 @@ RNDCDEPLIBS =	${ISCCFGDEPLIBS} ${ISCCCDEPLIBS} ${BIND9DEPLIBS} ${DNSDEPLIBS} ${I
 CONFLIBS =	${DNSLIBS} ${ISCLIBS} @LIBS@
 CONFDEPLIBS =	${DNSDEPLIBS} ${ISCDEPLIBS}
 
-SRCS=		rndc.c
+SRCS=		rndc-confgen.c ddns-confgen.c
 
-TARGETS =	rndc@EXEEXT@
+SUBDIRS =	unix
 
-MANPAGES =	rndc.8 rndc.conf.5
+TARGETS =	rndc-confgen@EXEEXT@ ddns-confgen@EXEEXT@
 
-HTMLPAGES =	rndc.html rndc.conf.html
+MANPAGES =	rndc-confgen.8 ddns-confgen.8
+
+HTMLPAGES =	rndc-confgen.html ddns-confgen.html
 
 MANOBJS =	${MANPAGES} ${HTMLPAGES}
 
+UOBJS =		unix/os.@O@
+
 @BIND9_MAKE_RULES@
 
-rndc.@O@: rndc.c
+rndc-confgen.@O@: rndc-confgen.c
 	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} \
-		-DVERSION=\"${VERSION}\" \
-		-DRNDC_CONFFILE=\"${sysconfdir}/rndc.conf\" \
 		-DRNDC_KEYFILE=\"${sysconfdir}/rndc.key\" \
-		-c ${srcdir}/rndc.c
+		-c ${srcdir}/rndc-confgen.c
 
-rndc@EXEEXT@: rndc.@O@ util.@O@ ${RNDCDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ rndc.@O@ util.@O@ \
-		${RNDCLIBS}
+ddns-confgen.@O@: ddns-confgen.c
+	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} \
+		-DDDNS_KEYFILE=\"${localstatedir}/run/named/ddns.key\" \
+		-c ${srcdir}/ddns-confgen.c
+
+rndc-confgen@EXEEXT@: rndc-confgen.@O@ util.@O@ keygen.@O@ ${UOBJS} ${CONFDEPLIBS} 
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ rndc-confgen.@O@ util.@O@ keygen.@O@ \
+		${UOBJS} ${CONFLIBS}
+
+ddns-confgen@EXEEXT@: ddns-confgen.@O@ util.@O@ keygen.@O@ ${UOBJS} ${CONFDEPLIBS} 
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ ddns-confgen.@O@ util.@O@ keygen.@O@ \
+		${UOBJS} ${CONFLIBS}
 
 doc man:: ${MANOBJS}
 
@@ -78,12 +89,12 @@ docclean manclean maintainer-clean::
 installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${sbindir}
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man8
-	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man5
 
-install:: rndc@EXEEXT@ installdirs
-	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} rndc@EXEEXT@ ${DESTDIR}${sbindir}
-	${INSTALL_DATA} ${srcdir}/rndc.8 ${DESTDIR}${mandir}/man8
-	${INSTALL_DATA} ${srcdir}/rndc.conf.5 ${DESTDIR}${mandir}/man5
+install:: rndc-confgen@EXEEXT@ ddns-confgen@EXEEXT@ installdirs
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} rndc-confgen@EXEEXT@ ${DESTDIR}${sbindir}
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} ddns-confgen@EXEEXT@ ${DESTDIR}${sbindir}
+	${INSTALL_DATA} ${srcdir}/rndc-confgen.8 ${DESTDIR}${mandir}/man8
+	${INSTALL_DATA} ${srcdir}/ddns-confgen.8 ${DESTDIR}${mandir}/man8
 
 clean distclean maintainer-clean::
 	rm -f ${TARGETS}

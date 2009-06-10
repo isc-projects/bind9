@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.129 2008/09/25 04:02:39 tbox Exp $ */
+/* $Id: parser.c,v 1.130 2009/06/10 00:27:22 each Exp $ */
 
 /*! \file */
 
@@ -400,6 +400,7 @@ cfg_parser_create(isc_mem_t *mctx, isc_log_t *lctx, cfg_parser_t **ret) {
 	pctx->callback = NULL;
 	pctx->callbackarg = NULL;
 	pctx->token.type = isc_tokentype_unknown;
+        pctx->flags = 0;
 
 	memset(specials, 0, sizeof(specials));
 	specials['{'] = 1;

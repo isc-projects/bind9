@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.411 2009/06/02 05:51:44 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.412 2009/06/10 00:27:21 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -1651,11 +1651,25 @@ controls {
 
       <para>
 	Dynamic update is enabled by including an
-	<command>allow-update</command> or <command>update-policy</command>
-	clause in the <command>zone</command> statement.  The
-	<command>tkey-gssapi-credential</command> and
+	<command>allow-update</command>, <command>update-policy</command>
+	clause in the <command>zone</command> statement, or by setting the
+	<command>dynamic</command> option to <userinput>yes</userinput>
+	and creating a <filename>ddns.key</filename> file (see
+	<command>ddns-confgen</command>.)
+      </para>
+      
+      <para>
+	If the zone's <command>dynamic</command> option is set to
+	<userinput>yes</userinput>, and if a <filename>ddns.key</filename>
+	file exists and contains a valid TSIG key, and if no other dynamic
+	update policy has been set for the zone, then updates to the zone
+	will be permitted for the key <filename>ddns.key</filename>.
+      </para>
+
+      <para>
+        The <command>tkey-gssapi-credential</command> and
 	<command>tkey-domain</command> clauses in the
-	<command>options</command>        statement enable the
+	<command>options</command> statement enable the
 	server to negotiate keys that can be matched against those
 	in <command>update-policy</command> or
 	<command>allow-update</command>.
@@ -1670,7 +1684,7 @@ controls {
       </para>
 
       <sect2 id="journal">
-        <title>The journal file</title>
+	<title>The journal file</title>
 
         <para>
           All changes made to a zone using dynamic update are stored
@@ -9722,6 +9736,20 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
               </varlistentry>
 
               <varlistentry>
+                <term><command>dynamic</command></term>
+                <listitem>
+                  <para>
+                    If this flag is set to <userinput>yes</userinput> in
+                    a master zone, <command>named</command> will
+                    automatically generate a TSIG session key for use
+                    by <command>nsupdate -l</command> on the local system,
+                    and the zone will be marked to allow dynamic updates
+                    using this key.
+                  </para>
+                </listitem>
+              </varlistentry>
+
+              <varlistentry>
                 <term><command>forward</command></term>
                 <listitem>
                   <para>
@@ -10103,7 +10131,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
             </para>
 
 <programlisting>
-( <command>grant</command> | <command>deny</command> ) <replaceable>identity</replaceable> <replaceable>nametype</replaceable> <replaceable>name</replaceable> <optional> <replaceable>types</replaceable> </optional>
+( <command>grant</command> | <command>deny</command> ) <replaceable>identity</replaceable> <replaceable>nametype</replaceable> <optional> <replaceable>name</replaceable> </optional> <optional> <replaceable>types</replaceable> </optional>
 </programlisting>
 
             <para>
@@ -10149,7 +10177,8 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
 	      <varname>krb5-self</varname>, <varname>ms-self</varname>,
 	      <varname>krb5-subdomain</varname>,
 	      <varname>ms-subdomain</varname>,
-	      <varname>tcp-self</varname> and <varname>6to4-self</varname>.
+	      <varname>tcp-self</varname>, <varname>6to4-self</varname>,
+	      and <varname>zonesub</varname>.
             </para>
             <informaltable>
               <tgroup cols="2" colsep="0" rowsep="0" tgroupstyle="4Level-table">
@@ -10181,6 +10210,28 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
 			is a subdomain of, or identical to, the
 			contents of the <replaceable>name</replaceable>
 			field.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			<varname>zonesub</varname>
+		      </para>
+		    </entry> <entry colname="2">
+		      <para>
+			This rule is similar to subdomain, except that
+			it matches when the name being updated is a
+			subdomain of the zone in which the
+			<command>update-policy</command> statement
+			appears.  This obviates the need to type the zone
+			name twice, and enables the use of a standard
+			<command>update-policy</command> statement in
+			multiple zones without modification.
+		      </para>
+		      <para>
+                        When this rule is used, the
+                        <replaceable>name</replaceable> field is omitted.
 		      </para>
 		    </entry>
 		  </row>

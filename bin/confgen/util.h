@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,36 +15,37 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsigconf.h,v 1.17 2009/06/10 00:27:21 each Exp $ */
+/* $Id: util.h,v 1.2 2009/06/10 00:27:21 each Exp $ */
 
-#ifndef NS_TSIGCONF_H
-#define NS_TSIGCONF_H 1
+#ifndef RNDC_UTIL_H
+#define RNDC_UTIL_H 1
 
 /*! \file */
 
-#include <isc/types.h>
 #include <isc/lang.h>
+
+#include <isc/formatcheck.h>
+
+#define NS_CONTROL_PORT		953
+
+#undef DO
+#define DO(name, function) \
+	do { \
+		result = function; \
+		if (result != ISC_R_SUCCESS) \
+			fatal("%s: %s", name, isc_result_totext(result)); \
+		else \
+			notify("%s", name); \
+	} while (0)
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t
-ns_tsigkeyring_fromconfig(const cfg_obj_t *config, const cfg_obj_t *vconfig,
-			  isc_mem_t *mctx, dns_tsig_keyring_t **ringp);
-/*%<
- * Create a TSIG key ring and configure it according to the 'key'
- * statements in the global and view configuration objects.
- *
- *	Requires:
- *	\li	'config' is not NULL.
- *	\li	'vconfig' is not NULL.
- *	\li	'mctx' is not NULL
- *	\li	'ringp' is not NULL, and '*ringp' is NULL
- *
- *	Returns:
- *	\li	ISC_R_SUCCESS
- *	\li	ISC_R_NOMEMORY
- */
+void
+notify(const char *fmt, ...) ISC_FORMAT_PRINTF(1, 2);
+
+void            
+fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
 ISC_LANG_ENDDECLS
 
-#endif /* NS_TSIGCONF_H */
+#endif /* RNDC_UTIL_H */

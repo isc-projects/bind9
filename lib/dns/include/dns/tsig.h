@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig.h,v 1.51 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: tsig.h,v 1.52 2009/06/10 00:27:22 each Exp $ */
 
 #ifndef DNS_TSIG_H
 #define DNS_TSIG_H 1
@@ -240,6 +240,20 @@ dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ringp);
  *	Returns:
  *\li		#ISC_R_SUCCESS
  *\li		#ISC_R_NOMEMORY
+ */
+
+isc_result_t
+dns_tsigkeyring_add(dns_tsig_keyring_t *ring, dns_name_t *name,
+                    dns_tsigkey_t *tkey);
+/*%<
+ *      Place a TSIG key onto a key ring.
+ *
+ *	Requires:
+ *\li		'ring', 'name' and 'tkey' are not NULL
+ *
+ *	Returns:
+ *\li		#ISC_R_SUCCESS
+ *\li		Any other value indicates failure.
  */
 
 

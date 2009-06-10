@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.h,v 1.35 2009/01/17 23:47:43 tbox Exp $ */
+/* $Id: file.h,v 1.36 2009/06/10 00:27:22 each Exp $ */
 
 #ifndef ISC_FILE_H
 #define ISC_FILE_H 1
@@ -249,6 +249,14 @@ isc_result_t
 isc_file_truncate(const char *filename, isc_offset_t size);
 /*%<
  * Truncate/extend the file specified to 'size' bytes.
+ */
+
+isc_result_t
+isc_file_safecreate(const char *filename, FILE **fp);
+/*%<
+ * Open 'filename' for writing, truncating if necessary.  Ensure that
+ * if it existed it was a normal file.  If creating the file, ensure
+ * that only the owner can read/write it.
  */
 
 ISC_LANG_ENDDECLS

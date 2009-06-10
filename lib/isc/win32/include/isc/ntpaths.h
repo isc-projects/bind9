@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntpaths.h,v 1.16 2007/06/19 23:47:20 tbox Exp $ */
+/* $Id: ntpaths.h,v 1.17 2009/06/10 00:27:22 each Exp $ */
 
 /*
  * Windows-specific path definitions
@@ -50,7 +50,6 @@ enum NtPaths {
 #define RNDC_CONFFILE isc_ntpaths_get(RNDC_CONF_PATH)
 #define RNDC_KEYFILE isc_ntpaths_get(RNDC_KEY_PATH)
 #define RESOLV_CONF isc_ntpaths_get(RESOLV_CONF_PATH)
-
 
 /*
  * Information about where the files are on disk

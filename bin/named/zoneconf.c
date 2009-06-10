@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.149 2009/01/27 23:47:54 tbox Exp $ */
+/* $Id: zoneconf.c,v 1.150 2009/06/10 00:27:21 each Exp $ */
 
 /*% */
 
@@ -55,14 +55,16 @@ typedef enum {
 	allow_update_forwarding
 } acl_type_t;
 
-/*%
- * These are BIND9 server defaults, not necessarily identical to the
- * library defaults defined in zone.c.
- */
 #define RETERR(x) do { \
 	isc_result_t _r = (x); \
 	if (_r != ISC_R_SUCCESS) \
 		return (_r); \
+	} while (0)
+
+#define CHECK(x) do { \
+	result = (x); \
+	if (result != ISC_R_SUCCESS) \
+		goto cleanup; \
 	} while (0)
 
 /*%
@@ -169,7 +171,9 @@ parse_acl:
  * Parse the zone update-policy statement.
  */
 static isc_result_t
-configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone) {
+configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
+			const char *zname, isc_boolean_t autoddns)
+{
 	const cfg_obj_t *updatepolicy = NULL;
 	const cfg_listelt_t *element, *element2;
 	dns_ssutable_t *table = NULL;
@@ -177,7 +181,8 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone) {
 	isc_result_t result;
 
 	(void)cfg_map_get(zconfig, "update-policy", &updatepolicy);
-	if (updatepolicy == NULL) {
+
+	if (updatepolicy == NULL && !autoddns) {
 		dns_zone_setssutable(zone, NULL);
 		return (ISC_R_SUCCESS);
 	}
@@ -198,6 +203,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone) {
 		const cfg_obj_t *typelist = cfg_tuple_get(stmt, "types");
 		const char *str;
 		isc_boolean_t grant = ISC_FALSE;
+		isc_boolean_t usezone = ISC_FALSE;
 		unsigned int mtype = DNS_SSUMATCHTYPE_NAME;
 		dns_fixedname_t fname, fident;
 		isc_buffer_t b;
@@ -237,7 +243,10 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone) {
 			mtype = DNS_SSUMATCHTYPE_TCPSELF;
 		else if (strcasecmp(str, "6to4-self") == 0)
 			mtype = DNS_SSUMATCHTYPE_6TO4SELF;
-		else
+		else if (strcasecmp(str, "zonesub") == 0) {
+			mtype = DNS_SSUMATCHTYPE_SUBDOMAIN;
+			usezone = ISC_TRUE;
+		} else
 			INSIST(0);
 
 		dns_fixedname_init(&fident);
@@ -253,15 +262,28 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone) {
 		}
 
 		dns_fixedname_init(&fname);
-		str = cfg_obj_asstring(dname);
-		isc_buffer_init(&b, str, strlen(str));
-		isc_buffer_add(&b, strlen(str));
-		result = dns_name_fromtext(dns_fixedname_name(&fname), &b,
-					   dns_rootname, ISC_FALSE, NULL);
-		if (result != ISC_R_SUCCESS) {
-			cfg_obj_log(identity, ns_g_lctx, ISC_LOG_ERROR,
-				    "'%s' is not a valid name", str);
-			goto cleanup;
+		if (usezone) {
+			result = dns_name_copy(dns_zone_getorigin(zone),
+					       dns_fixedname_name(&fname),
+					       NULL);
+			if (result != ISC_R_SUCCESS) {
+				cfg_obj_log(identity, ns_g_lctx, ISC_LOG_ERROR,
+					    "error copying origin: %s",
+					    isc_result_totext(result));
+				goto cleanup;
+			}
+		} else {
+			str = cfg_obj_asstring(dname);
+			isc_buffer_init(&b, str, strlen(str));
+			isc_buffer_add(&b, strlen(str));
+			result = dns_name_fromtext(dns_fixedname_name(&fname),
+						   &b, dns_rootname,
+						   ISC_FALSE, NULL);
+			if (result != ISC_R_SUCCESS) {
+				cfg_obj_log(identity, ns_g_lctx, ISC_LOG_ERROR,
+					    "'%s' is not a valid name", str);
+				goto cleanup;
+			}
 		}
 
 		n = ns_config_listcount(typelist);
@@ -311,7 +333,34 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone) {
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
 		}
+	}
 
+	/*
+         * If this is a "ddns-autoconf" zone and a DDNS session key exists,
+         * then use the default policy, equivalent to:
+	 * update-policy { grant <ddns-keyname> zonesub any; };
+	 */
+	if (autoddns) {
+		dns_rdatatype_t any = dns_rdatatype_any;
+
+		if (ns_g_server->ddns_keyname == NULL) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      "failed to enable auto DDNS policy "
+				      "for zone %s: session key not found",
+				      zname);
+			result = ISC_R_NOTFOUND;
+			goto cleanup;
+		}
+
+		result = dns_ssutable_addrule(table, ISC_TRUE,
+					      ns_g_server->ddns_keyname,
+					      DNS_SSUMATCHTYPE_SUBDOMAIN,
+					      dns_zone_getorigin(zone),
+					      1, &any);
+
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
 	}
 
 	result = ISC_R_SUCCESS;
@@ -431,6 +480,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	isc_boolean_t check = ISC_FALSE, fail = ISC_FALSE;
 	isc_boolean_t warn = ISC_FALSE, ignore = ISC_FALSE;
 	isc_boolean_t ixfrdiff;
+	isc_boolean_t autoddns;
 	dns_masterformat_t masterformat;
 	isc_stats_t *zoneqrystats;
 	isc_boolean_t zonestats_on;
@@ -731,6 +781,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	 */
 	if (ztype == dns_zone_master) {
 		dns_acl_t *updateacl;
+
 		RETERR(configure_zone_acl(zconfig, vconfig, config,
 					  allow_update, ac, zone,
 					  dns_zone_setupdateacl,
@@ -744,7 +795,13 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 				      "address, which is insecure",
 				      zname);
 
-		RETERR(configure_zone_ssutable(zoptions, zone));
+		obj = NULL;
+		result = ns_config_get(maps, "ddns-autoconf", &obj);
+		INSIST(result == ISC_R_SUCCESS);
+		autoddns = cfg_obj_asboolean(obj);
+
+		RETERR(configure_zone_ssutable(zoptions, zone, zname,
+					       autoddns));
 
 		obj = NULL;
 		result = ns_config_get(maps, "sig-validity-interval", &obj);

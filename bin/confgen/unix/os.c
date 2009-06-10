@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,51 +15,30 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.6 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id: os.c,v 1.2 2009/06/10 00:27:21 each Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
-#include <rndc/os.h>
+#include <confgen/os.h>
 
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <pwd.h>
 #include <errno.h>
 #include <stdio.h>
-#include <io.h>
 #include <sys/stat.h>
 
 int
 set_user(FILE *fd, const char *user) {
-	return (0);
-}
+	struct passwd *pw;
 
-/*
- * Note that the error code EOPNOTSUPP does not exist
- * on win32 so we are forced to fall back to using
- * ENOENT for now. WSAEOPNOTSUPP does exist but it
- * should only be used for sockets.
- */
-
-FILE *
-safe_create(const char *filename) {
-	int fd;
-	FILE *f;
-        struct stat sb;
-
-        if (stat(filename, &sb) == -1) {
-                if (errno != ENOENT)
-			return (NULL);
-        } else if ((sb.st_mode & S_IFREG) == 0) {
-		errno = ENOENT;
-		return (NULL);
+	pw = getpwnam(user);
+	if (pw == NULL) {
+		errno = EINVAL;
+		return (-1);
 	}
-
-	fd = open(filename, O_WRONLY | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
-	if (fd == -1)
-		return (NULL);
-	f = fdopen(fd, "w");
-	if (f == NULL)
-		close(fd);
-	return (f);
+	return (fchown(fileno(fd), pw->pw_uid, -1));
 }

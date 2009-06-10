@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.29 2008/08/29 23:47:22 tbox Exp $
+# $Id: Makefile.in,v 1.30 2009/06/10 00:27:21 each Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -24,7 +24,7 @@ top_srcdir =	@top_srcdir@
 @BIND9_MAKE_INCLUDES@
 
 CINCLUDES =	${LWRES_INCLUDES} ${DNS_INCLUDES} ${BIND9_INCLUDES} \
-		${ISC_INCLUDES} @DST_GSSAPI_INC@
+		${ISC_INCLUDES} ${ISCCFG_INCLUDES} @DST_GSSAPI_INC@
 
 CDEFINES =	@USE_GSSAPI@
 CWARNINGS =
@@ -43,7 +43,7 @@ ISCCFGDEPLIBS =	../../lib/isccfg/libisccfg.@A@
 
 DEPLIBS =	${DNSDEPLIBS} ${BIND9DEPLIBS} ${ISCDEPLIBS} ${ISCCFGDEPLIBS}
 
-LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} ${ISCLIBS} ${ISCCFGLIBS} @LIBS@
+LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} ${ISCCFGLIBS} ${ISCLIBS} @LIBS@
 
 SUBDIRS =
 
@@ -62,6 +62,11 @@ HTMLPAGES =	nsupdate.html
 MANOBJS =	${MANPAGES} ${HTMLPAGES}
 
 @BIND9_MAKE_RULES@
+
+nsupdate.@O@: nsupdate.c
+	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} \
+		-DDDNS_KEYFILE=\"${localstatedir}/run/named/ddns.key\" \
+		-c ${srcdir}/nsupdate.c
 
 nsupdate@EXEEXT@: nsupdate.@O@ ${UOBJS} ${DEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ nsupdate.@O@ ${UOBJS} ${LIBS}

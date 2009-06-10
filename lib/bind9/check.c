@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.101 2009/06/03 00:04:38 marka Exp $ */
+/* $Id: check.c,v 1.102 2009/06/10 00:27:22 each Exp $ */
 
 /*! \file */
 
@@ -991,17 +991,22 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 			result = tresult;
 		}
 
-		dns_fixedname_init(&fixed);
-		str = cfg_obj_asstring(dname);
-		isc_buffer_init(&b, str, strlen(str));
-		isc_buffer_add(&b, strlen(str));
-		tresult = dns_name_fromtext(dns_fixedname_name(&fixed), &b,
-					    dns_rootname, ISC_FALSE, NULL);
-		if (tresult != ISC_R_SUCCESS) {
-			cfg_obj_log(dname, logctx, ISC_LOG_ERROR,
-				    "'%s' is not a valid name", str);
-			result = tresult;
+		if (tresult == ISC_R_SUCCESS &&
+		    strcasecmp(cfg_obj_asstring(matchtype), "zonesub") != 0) {
+			dns_fixedname_init(&fixed);
+			str = cfg_obj_asstring(dname);
+			isc_buffer_init(&b, str, strlen(str));
+			isc_buffer_add(&b, strlen(str));
+			tresult = dns_name_fromtext(dns_fixedname_name(&fixed),
+						    &b, dns_rootname,
+						    ISC_FALSE, NULL);
+			if (tresult != ISC_R_SUCCESS) {
+				cfg_obj_log(dname, logctx, ISC_LOG_ERROR,
+					    "'%s' is not a valid name", str);
+				result = tresult;
+			}
 		}
+
 		if (tresult == ISC_R_SUCCESS &&
 		    strcasecmp(cfg_obj_asstring(matchtype), "wildcard") == 0 &&
 		    !dns_name_iswildcard(dns_fixedname_name(&fixed))) {
@@ -1072,6 +1077,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	{ "notify", MASTERZONE | SLAVEZONE },
 	{ "also-notify", MASTERZONE | SLAVEZONE },
 	{ "dialup", MASTERZONE | SLAVEZONE | STUBZONE },
+ 	{ "ddns-autoconf", MASTERZONE },
 	{ "delegation-only", HINTZONE | STUBZONE | DELEGATIONZONE },
 	{ "forward", MASTERZONE | SLAVEZONE | STUBZONE | FORWARDZONE },
 	{ "forwarders", MASTERZONE | SLAVEZONE | STUBZONE | FORWARDZONE },

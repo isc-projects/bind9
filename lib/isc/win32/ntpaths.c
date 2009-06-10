@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntpaths.c,v 1.11 2007/06/18 23:47:49 tbox Exp $ */
+/* $Id: ntpaths.c,v 1.12 2009/06/10 00:27:22 each Exp $ */
 
 /*
  * This module fetches the required path information that is specific
@@ -84,6 +84,9 @@ isc_ntpaths_init() {
 	strcpy(rndc_keyFile, namedBase);
 	strcat(rndc_keyFile, "\\etc\\rndc.key");
 
+	strcpy(ddns_keyFile, namedBase);
+	strcat(ddns_keyFile, "\\etc\\ddns.key");
+
 	strcpy(rndc_confFile, namedBase);
 	strcat(rndc_confFile, "\\etc\\rndc.conf");
 	strcpy(ns_defaultpidfile, namedBase);
@@ -133,6 +136,9 @@ isc_ntpaths_get(int ind) {
 		break;
 	case RNDC_KEY_PATH:
 		return (rndc_keyFile);
+		break;
+	case RNDC_KEY_PATH:
+		return (ddns_keyFile);
 		break;
 	default:
 		return (NULL);

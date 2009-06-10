@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 2001  Internet Software Consortium.
+ * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,26 +15,43 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.h,v 1.12 2009/06/10 00:27:21 each Exp $ */
+/* $Id: util.c,v 1.2 2009/06/10 00:27:21 each Exp $ */
 
 /*! \file */
 
-#ifndef RNDC_OS_H
-#define RNDC_OS_H 1
+#include <config.h>
 
-#include <isc/lang.h>
+#include <stdarg.h>
+#include <stdlib.h>
 #include <stdio.h>
 
-ISC_LANG_BEGINDECLS
+#include <isc/boolean.h>
 
-int set_user(FILE *fd, const char *user);
-/*%<
- * Set the owner of the file referenced by 'fd' to 'user'.
- * Returns:
- *   0 		success
- *   -1 	insufficient permissions, or 'user' does not exist.
- */
+#include "util.h"
 
-ISC_LANG_ENDDECLS
+extern isc_boolean_t verbose;
+extern const char *progname;
 
-#endif
+void
+notify(const char *fmt, ...) {
+	va_list ap;
+
+	if (verbose) {
+		va_start(ap, fmt);
+		vfprintf(stderr, fmt, ap);
+		va_end(ap);
+		fputs("\n", stderr);
+	}
+}
+
+void            
+fatal(const char *format, ...) {
+	va_list args;
+
+	fprintf(stderr, "%s: ", progname);
+	va_start(args, format);
+	vfprintf(stderr, format, args);
+	va_end(args);
+	fprintf(stderr, "\n");
+	exit(1);
+}               

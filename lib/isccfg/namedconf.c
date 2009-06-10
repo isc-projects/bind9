@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.96 2009/05/29 22:22:37 jinmei Exp $ */
+/* $Id: namedconf.c,v 1.97 2009/06/10 00:27:22 each Exp $ */
 
 /*! \file */
 
@@ -248,8 +248,8 @@ static cfg_type_t cfg_type_pubkey = {
  * Note that the old parser allows quotes around the RR type names.
  */
 static cfg_type_t cfg_type_rrtypelist = {
-	"rrtypelist", cfg_parse_spacelist, cfg_print_spacelist, cfg_doc_terminal,
-	&cfg_rep_list, &cfg_type_astring
+	"rrtypelist", cfg_parse_spacelist, cfg_print_spacelist,
+        cfg_doc_terminal, &cfg_rep_list, &cfg_type_astring
 };
 
 static const char *mode_enums[] = { "grant", "deny", NULL };
@@ -258,13 +258,51 @@ static cfg_type_t cfg_type_mode = {
 	&mode_enums
 };
 
+static isc_result_t
+parse_matchtype(cfg_parser_t *pctx, const cfg_type_t *type,
+		cfg_obj_t **ret) {
+	isc_result_t result;
+
+	CHECK(cfg_peektoken(pctx, 0));
+	if (pctx->token.type == isc_tokentype_string &&
+	    strcasecmp(TOKEN_STRING(pctx), "zonesub") == 0) {
+	    	pctx->flags |= CFG_PCTX_SKIP;
+	}
+	return (cfg_parse_enum(pctx, type, ret));
+
+ cleanup:
+	return (result);
+}
+
+static isc_result_t
+parse_matchname(cfg_parser_t *pctx, const cfg_type_t *type,
+			 cfg_obj_t **ret) {
+	isc_result_t result;
+	cfg_obj_t *obj = NULL;
+
+	if ((pctx->flags & CFG_PCTX_SKIP) != 0) {
+		pctx->flags &= ~CFG_PCTX_SKIP;
+		CHECK(cfg_parse_void(pctx, NULL, &obj));
+	} else
+		result = cfg_parse_astring(pctx, type, &obj);
+
+	*ret = obj;
+ cleanup:
+	return (result);
+}
+
 static const char *matchtype_enums[] = {
 	"name", "subdomain", "wildcard", "self", "selfsub", "selfwild",
 	"krb5-self", "ms-self", "krb5-subdomain", "ms-subdomain",
-	"tcp-self", "6to4-self", NULL };
+	"tcp-self", "6to4-self", "zonesub", NULL };
 static cfg_type_t cfg_type_matchtype = {
-	"matchtype", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum, &cfg_rep_string,
-	&matchtype_enums
+	"matchtype", parse_matchtype, cfg_print_ustring,
+        cfg_doc_enum, &cfg_rep_string, &matchtype_enums
+};
+
+static cfg_type_t cfg_type_matchname = {
+	"optional_matchname", parse_matchname, cfg_print_ustring,
+        cfg_doc_tuple, &cfg_rep_tuple, &cfg_type_ustring
 };
 
 /*%
@@ -274,7 +312,7 @@ static cfg_tuplefielddef_t grant_fields[] = {
 	{ "mode", &cfg_type_mode, 0 },
 	{ "identity", &cfg_type_astring, 0 }, /* domain name */
 	{ "matchtype", &cfg_type_matchtype, 0 },
-	{ "name", &cfg_type_astring, 0 }, /* domain name */
+	{ "name", &cfg_type_matchname, 0 }, /* domain name */
 	{ "types", &cfg_type_rrtypelist, 0 },
 	{ NULL, NULL, 0 }
 };
@@ -678,6 +716,9 @@ options_clauses[] = {
 	{ "blackhole", &cfg_type_bracketed_aml, 0 },
 	{ "coresize", &cfg_type_size, 0 },
 	{ "datasize", &cfg_type_size, 0 },
+	{ "ddns-keyfile", &cfg_type_qstringornone, 0 },
+	{ "ddns-keyname", &cfg_type_astring, 0 },
+	{ "ddns-keyalg", &cfg_type_astring, 0 },
 	{ "deallocate-on-exit", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "directory", &cfg_type_qstring, CFG_CLAUSEFLAG_CALLBACK },
 	{ "dump-file", &cfg_type_qstring, 0 },
@@ -967,6 +1008,7 @@ zone_clauses[] = {
 	{ "check-sibling", &cfg_type_boolean, 0 },
 	{ "check-srv-cname", &cfg_type_checkmode, 0 },
 	{ "check-wildcard", &cfg_type_boolean, 0 },
+	{ "ddns-autoconf", &cfg_type_boolean, 0 },
 	{ "dialup", &cfg_type_dialuptype, 0 },
 	{ "forward", &cfg_type_forwardtype, 0 },
 	{ "forwarders", &cfg_type_portiplist, 0 },
@@ -2130,6 +2172,15 @@ rndckey_clausesets[] = {
 
 LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_rndckey = {
 	"rndckey", cfg_parse_mapbody, cfg_print_mapbody, cfg_doc_mapbody,
+	&cfg_rep_map, rndckey_clausesets
+};
+
+/*
+ * ddns.key has exactly the same syntax as rndc.key, but it's defined
+ * separately for clarity (and so we can extend it someday, if needed).
+ */
+LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_ddnskey = {
+	"ddnskey", cfg_parse_mapbody, cfg_print_mapbody, cfg_doc_mapbody,
 	&cfg_rep_map, rndckey_clausesets
 };
 
