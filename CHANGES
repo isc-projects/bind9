@@ -1,3 +1,5 @@
+2610.	[port]		sunos: Change #2363 was not complete. [RT #19796]
+
 2609.	[func]		Simplify the configuration of dynamic zones:
 			- add ddns-confgen command to generate
 			  configuration text for named.conf
