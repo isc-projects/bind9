@@ -121,6 +121,7 @@ isc_file_progname
 isc_file_remove
 isc_file_rename
 isc_file_renameunique
+isc_file_safecreate
 isc_file_safemovefile
 isc_file_settime
 isc_file_template

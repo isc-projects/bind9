@@ -375,7 +375,22 @@ Package=<4>
 
 ###############################################################################
 
-Project: "rndcconfgen"="..\bin\rndc\win32\confgen.dsp" - Package Owner=<4>
+Project: "rndcconfgen"="..\bin\confgen\win32\confgen.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name rndcutil
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "ddnsconfgen"="..\bin\confgen\win32\ddnsconfgen.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
