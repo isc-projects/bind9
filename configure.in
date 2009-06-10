@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.432.60.31 $)
+AC_REVISION($Revision: 1.432.60.32 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -29,6 +29,19 @@ AC_CONFIG_SUBDIRS(lib/bind)
 AC_CANONICAL_HOST
 
 AC_PROG_MAKE_SET
+
+#
+# GNU libtool support
+#
+case $build_os in
+sunos*)
+    # Just set the maximum command line length for sunos as it otherwise
+    # takes a exceptionally long time to work it out. Required for libtool.
+     
+    lt_cv_sys_max_cmd_len=4096;
+    ;;
+esac
+
 AC_PROG_LIBTOOL
 AC_PROG_INSTALL
 AC_PROG_LN_S
@@ -1192,16 +1205,6 @@ esac
 
 AC_SUBST(PURIFY)
 
-#
-# GNU libtool support
-#
-case $build_os in
-sunos*)
-    # Just set the maximum command line length for sunos as it otherwise
-    # takes a exceptionally long time to work it out. Required for libtool.
-    lt_cv_sys_max_cmd_len=4096;
-    ;;
-esac
 
 AC_ARG_WITH(libtool,
 	    [  --with-libtool	use GNU libtool (following indented options supported)],
