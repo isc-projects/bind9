@@ -1,3 +1,5 @@
+2610.	[port]		sunos: Change #2363 was not complete. [RT #19796]
+
 2606.	[bug]		"delegation-only" was not being accepted in
 			delegation-only type zones. [RT #19717]
 
