@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntpaths.c,v 1.12 2009/06/10 00:27:22 each Exp $ */
+/* $Id: ntpaths.c,v 1.13 2009/06/11 23:47:55 tbox Exp $ */
 
 /*
  * This module fetches the required path information that is specific
@@ -57,7 +57,7 @@ isc_ntpaths_init() {
 	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, BIND_SUBKEY, 0, KEY_READ, &hKey)
 		!= ERROR_SUCCESS)
 		keyFound = FALSE;
-	
+
 	if (keyFound == TRUE) {
 		/* Get the named directory */
 		if (RegQueryValueEx(hKey, "InstallDir", NULL, NULL,
@@ -100,7 +100,7 @@ isc_ntpaths_init() {
 
 	strcpy(sys_conf_dir, namedBase);
 	strcat(sys_conf_dir, "\\etc");
-	
+
 	Initialized = TRUE;
 }
 

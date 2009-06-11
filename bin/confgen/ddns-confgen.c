@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ddns-confgen.c,v 1.3 2009/06/11 20:01:22 jinmei Exp $ */
+/* $Id: ddns-confgen.c,v 1.4 2009/06/11 23:47:55 tbox Exp $ */
 
 /*! \file */
 
@@ -107,10 +107,10 @@ main(int argc, char **argv) {
 		switch (ch) {
 		case 'a':
 			algname = isc_commandline_argument;
-                        alg = alg_fromtext(algname);
-                        if (alg == DST_ALG_UNKNOWN)
+			alg = alg_fromtext(algname);
+			if (alg == DST_ALG_UNKNOWN)
 				fatal("Unsupported algorithm '%s'", algname);
-                        keysize = alg_bits(alg);
+			keysize = alg_bits(alg);
 			break;
 		case 'h':
 			usage(0);
@@ -154,29 +154,29 @@ main(int argc, char **argv) {
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
 
-        if (argc == 1)
-                zone = argv[0];
+	if (argc == 1)
+		zone = argv[0];
 
 	if (argc > 1)
 		usage(1);
 
 	DO("create memory context", isc_mem_create(0, 0, &mctx));
 
-        if (self) {
-                if (zone == NULL)
-                        usage(1);
-                keyname = zone;
-        } else {
-                if (keyname == NULL)
-                        keyname = DEFAULT_KEYNAME;
+	if (self) {
+		if (zone == NULL)
+			usage(1);
+		keyname = zone;
+	} else {
+		if (keyname == NULL)
+			keyname = DEFAULT_KEYNAME;
 
-                if (zone != NULL) {
-                        len = strlen(keyname) + strlen(zone) + 2;
-                        keybuf = isc_mem_get(mctx, len);
-                        snprintf(keybuf, len, "%s.%s", keyname, zone);
-                        keyname = (const char *) keybuf;
-                }
-        }
+		if (zone != NULL) {
+			len = strlen(keyname) + strlen(zone) + 2;
+			keybuf = isc_mem_get(mctx, len);
+			snprintf(keybuf, len, "%s.%s", keyname, zone);
+			keyname = (const char *) keybuf;
+		}
+	}
 
 	isc_buffer_init(&key_txtbuffer, &key_txtsecret, sizeof(key_txtsecret));
 
@@ -227,7 +227,7 @@ update-policy {\n\
 	  grant %s subdomain %s%s ANY;\n\
 };\n",
 			       zone, keyname, zone,
-                               zone[strlen(zone) - 1] == '.' ? "" : ".");
+			       zone[strlen(zone) - 1] == '.' ? "" : ".");
 		}
 
 	printf("\n\

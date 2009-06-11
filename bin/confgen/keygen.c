@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2004-2005, 2007-2009 Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 2001, 2003 Internet Software Consortium.
+ * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keygen.c,v 1.2 2009/06/10 00:27:21 each Exp $ */
+/* $Id: keygen.c,v 1.3 2009/06/11 23:47:55 tbox Exp $ */
 
 /*! \file */
 
@@ -70,19 +69,19 @@ alg_totext(dns_secalg_t alg) {
  */
 dns_secalg_t
 alg_fromtext(const char *name) {
-        if (strcmp(name, "hmac-md5") == 0)
-                return DST_ALG_HMACMD5;
-        if (strcmp(name, "hmac-sha1") == 0)
-                return DST_ALG_HMACSHA1;
-        if (strcmp(name, "hmac-sha224") == 0)
-                return DST_ALG_HMACSHA224;
-        if (strcmp(name, "hmac-sha256") == 0)
-                return DST_ALG_HMACSHA256;
-        if (strcmp(name, "hmac-sha384") == 0)
-                return DST_ALG_HMACSHA384;
-        if (strcmp(name, "hmac-sha512") == 0)
-                return DST_ALG_HMACSHA512;
-        return DST_ALG_UNKNOWN;
+	if (strcmp(name, "hmac-md5") == 0)
+		return DST_ALG_HMACMD5;
+	if (strcmp(name, "hmac-sha1") == 0)
+		return DST_ALG_HMACSHA1;
+	if (strcmp(name, "hmac-sha224") == 0)
+		return DST_ALG_HMACSHA224;
+	if (strcmp(name, "hmac-sha256") == 0)
+		return DST_ALG_HMACSHA256;
+	if (strcmp(name, "hmac-sha384") == 0)
+		return DST_ALG_HMACSHA384;
+	if (strcmp(name, "hmac-sha512") == 0)
+		return DST_ALG_HMACSHA512;
+	return DST_ALG_UNKNOWN;
 }
 
 /*%
@@ -90,7 +89,7 @@ alg_fromtext(const char *name) {
  */
 int
 alg_bits(dns_secalg_t alg) {
-        switch (alg) {
+	switch (alg) {
 	    case DST_ALG_HMACMD5:
 		return 128;
 	    case DST_ALG_HMACSHA1:
@@ -105,7 +104,7 @@ alg_bits(dns_secalg_t alg) {
 		return 512;
 	    default:
 		return 0;
-        }
+	}
 }
 
 /*%
@@ -139,7 +138,7 @@ generate_key(isc_mem_t *mctx, const char *randomfile, dns_secalg_t alg,
 	    default:
 		fatal("unsupported algorithm %d\n", alg);
 	}
-		
+
 
 	DO("create entropy context", isc_entropy_create(mctx, &ectx));
 

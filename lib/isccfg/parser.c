@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.130 2009/06/10 00:27:22 each Exp $ */
+/* $Id: parser.c,v 1.131 2009/06/11 23:47:55 tbox Exp $ */
 
 /*! \file */
 
@@ -400,7 +400,7 @@ cfg_parser_create(isc_mem_t *mctx, isc_log_t *lctx, cfg_parser_t **ret) {
 	pctx->callback = NULL;
 	pctx->callbackarg = NULL;
 	pctx->token.type = isc_tokentype_unknown;
-        pctx->flags = 0;
+	pctx->flags = 0;
 
 	memset(specials, 0, sizeof(specials));
 	specials['{'] = 1;

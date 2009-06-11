@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsigconf.h,v 1.17 2009/06/10 00:27:21 each Exp $ */
+/* $Id: tsigconf.h,v 1.18 2009/06/11 23:47:55 tbox Exp $ */
 
 #ifndef NS_TSIGCONF_H
 #define NS_TSIGCONF_H 1

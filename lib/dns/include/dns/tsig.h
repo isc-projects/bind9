@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig.h,v 1.52 2009/06/10 00:27:22 each Exp $ */
+/* $Id: tsig.h,v 1.53 2009/06/11 23:47:55 tbox Exp $ */
 
 #ifndef DNS_TSIG_H
 #define DNS_TSIG_H 1
@@ -81,8 +81,8 @@ struct dns_tsigkey {
 
 #define dns_tsigkey_identity(tsigkey) \
 	((tsigkey) == NULL ? NULL : \
-         (tsigkey)->generated ? ((tsigkey)->creator) : \
-         (&((tsigkey)->name)))
+	 (tsigkey)->generated ? ((tsigkey)->creator) : \
+	 (&((tsigkey)->name)))
 
 ISC_LANG_BEGINDECLS
 
@@ -244,7 +244,7 @@ dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ringp);
 
 isc_result_t
 dns_tsigkeyring_add(dns_tsig_keyring_t *ring, dns_name_t *name,
-                    dns_tsigkey_t *tkey);
+		    dns_tsigkey_t *tkey);
 /*%<
  *      Place a TSIG key onto a key ring.
  *
