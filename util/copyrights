@@ -2581,7 +2581,7 @@
 ./util/mandoc2docbook.pl			PERL	2001,2004,2007
 ./util/mdnbuildtest.sh				SH	2000,2001,2004,2007
 ./util/memleak.pl				PERL	1999,2000,2001,2004,2007
-./util/merge_copyrights				PERL	1998,1999,2000,2001,2003,2004,2005,2006,2007
+./util/merge_copyrights				PERL	1998,1999,2000,2001,2003,2004,2005,2006,2007,2009
 ./util/mkreslib.pl				PERL	2000,2001,2004,2007
 ./util/nanny.pl					PERL	2000,2001,2004,2007
 ./util/new-func					PERL	2005,2007
