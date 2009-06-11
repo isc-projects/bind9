@@ -260,7 +260,7 @@
 2536.	[cleanup]	Silence some warnings when -Werror=format-security is
 			specified. [RT #19083]
 
-2535.	[bug]		dig +showsearh and +trace interacted badly. [RT #19091]
+2535.	[bug]		dig +showsearch and +trace interacted badly. [RT #19091]
 
 2534.	[func]		Check NAPTR records regular expressions and
 			replacement strings to ensure they are syntactically
