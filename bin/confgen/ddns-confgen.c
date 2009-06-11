@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ddns-confgen.c,v 1.2 2009/06/10 00:27:21 each Exp $ */
+/* $Id: ddns-confgen.c,v 1.3 2009/06/11 20:01:22 jinmei Exp $ */
 
 /*! \file */
 
@@ -132,6 +132,7 @@ main(int argc, char **argv) {
 			break;
 		case 's':
 			self = ISC_TRUE;
+			break;
 		case 'V':
 			verbose = ISC_TRUE;
 			break;
