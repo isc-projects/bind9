@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: merge_copyrights,v 1.31 2007/08/06 04:52:27 marka Exp $
+# $Id: merge_copyrights,v 1.31.118.1 2009/06/11 01:31:49 marka Exp $
 
 %file_types = ();
 %file_years = ();
@@ -78,7 +78,7 @@ while (<FILES>) {
 	    $file_types{$_} = "CONF-SH";
 	} elsif ($base =~ /\.(db|hint)$/) {
 	    $file_types{$_} = "ZONE";
-	} elsif ($base =~ /(\/\.cvsignore|\.gif|\.jpg|\.dsp|\.dsw)$/i) {
+	} elsif ($base =~ /(\/\.cvsignore|\.gif|\.jpg|\.dsp|\.dsw|\.mak)$/i) {
 	    $file_types{$_} = "X";
 	} elsif ($base =~ /\.rnc$/i) {
 	    $file_types{$_} = "RNC";
