@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_copyrights,v 1.53 2009/01/06 23:47:57 tbox Exp $
+# $Id: update_copyrights,v 1.54 2009/06/12 04:04:38 marka Exp $
 
 require 5.002;
 
@@ -55,6 +55,10 @@ my %file_types = ();
 my %file_years = ();
 my $years_list;
 my $parent;
+
+($dummy,$dummy,$dummy,$dummy,$dummy,$this_year,$dummy,$dummy,$dummy) = localtime(time());
+$this_year += 1900;
+
 
 while (<>) {
 	chomp;
@@ -431,7 +435,7 @@ foreach $file (keys %file_types) {
 	                print TARGET "\n";
                 }
 
-		if ($type eq "C" && $sysyears =~ /2009/) {
+		if ($type eq "C" && $sysyears =~ /$this_year/) {
 			my $body = "";
 			while (<SOURCE>) {
 			# Process leading white space.
