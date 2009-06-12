@@ -47,6 +47,13 @@ BIND 9.7.0
         BIND 9.7.0 includes a number of changes from BIND 9.6 and earlier
         releases, including:
 
+        Support for RFC 5011, automated trust anchor maintenance.
+
+        Simplified configuration of DNSSEC Lookaside Validation (DLV).
+
+        Simplified configuration of Dynamic DNS using the "ddns-confgen"
+        command line tool or the "ddns-autoconf" zone option.
+
 	New named option "attach-cache" that allows multiple views to
 	share a single cache.
 
@@ -54,7 +61,7 @@ BIND 9.7.0
 	internal information about query failures, especially about
 	server failures.
 
-	Add support for DNS rebinding attack prevention.
+	DNS rebinding attack prevention.
 
 BIND 9.6.0
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntpaths.c,v 1.13 2009/06/11 23:47:55 tbox Exp $ */
+/* $Id: ntpaths.c,v 1.14 2009/06/12 02:33:21 each Exp $ */
 
 /*
  * This module fetches the required path information that is specific
@@ -44,6 +44,7 @@ static char lwresd_defaultpidfile[MAX_PATH];
 static char local_state_dir[MAX_PATH];
 static char sys_conf_dir[MAX_PATH];
 static char rndc_keyFile[MAX_PATH];
+static char ddns_keyFile[MAX_PATH];
 
 static DWORD baseLen = MAX_PATH;
 static BOOL Initialized = FALSE;
@@ -137,7 +138,7 @@ isc_ntpaths_get(int ind) {
 	case RNDC_KEY_PATH:
 		return (rndc_keyFile);
 		break;
-	case RNDC_KEY_PATH:
+	case DDNS_KEY_PATH:
 		return (ddns_keyFile);
 		break;
 	default:

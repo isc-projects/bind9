@@ -55,6 +55,7 @@ echo Copying the standalone manual pages.
 
 copy ..\bin\named\named.html ..\Build\Release
 copy ..\bin\rndc\*.html ..\Build\Release
+copy ..\bin\confgen\*.html ..\Build\Release
 copy ..\bin\dig\*.html ..\Build\Release
 copy ..\bin\nsupdate\*.html ..\Build\Release
 copy ..\bin\check\*.html ..\Build\Release
@@ -79,8 +80,7 @@ if Defined FrameworkSDKDir (
 
 rem
 rem vcredist_x86.exe path relative to FrameworkSDKDir
-rem
-
+rem 
 if Exist "%FrameworkSDKDir%\%vcredist%" (
 
 echo Copying Visual C x86 Redistributable Installer
