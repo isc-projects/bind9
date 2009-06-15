@@ -42,8 +42,8 @@
 ./bin/confgen/keygen.c				C	2009
 ./bin/confgen/keygen.h				C	2009
 ./bin/confgen/rndc-confgen.8			MAN	DOCBOOK
-./bin/confgen/rndc-confgen.c			C	2001,2003,2004,2005,2007,2008
-./bin/confgen/rndc-confgen.docbook			SGML	2001,2003,2004,2005,2007
+./bin/confgen/rndc-confgen.c			C	2001,2003,2004,2005,2007,2008,2009
+./bin/confgen/rndc-confgen.docbook		SGML	2001,2003,2004,2005,2007,2009
 ./bin/confgen/rndc-confgen.html			HTML	DOCBOOK
 ./bin/confgen/unix/.cvsignore			X	2009
 ./bin/confgen/unix/Makefile.in			MAKE	2009
