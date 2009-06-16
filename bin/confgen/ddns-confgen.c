@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ddns-confgen.c,v 1.4 2009/06/11 23:47:55 tbox Exp $ */
+/* $Id: ddns-confgen.c,v 1.5 2009/06/16 22:36:53 jinmei Exp $ */
 
 /*! \file */
 
@@ -65,12 +65,13 @@ usage(int status) {
 
 	fprintf(stderr, "\
 Usage:\n\
- %s [-a alg] [-k keyname] [-r randomfile] [-q] [-z zone]\n\
+ %s [-a alg] [-k keyname] [-r randomfile] [-q] [-s name | -z zone]\n\
   -a alg:        algorithm (default hmac-sha256)\n\
-  -k keyname:	 name of the key as it will be used in named.conf\n\
+  -k keyname:    name of the key as it will be used in named.conf\n\
   -r randomfile: source of random data (use \"keyboard\" for key timing)\n\
-  -z zone:	 name of the zone as it will be used named.conf\n\
-  -q:		 quiet mode: print the key, with no explanatory text\n",
+  -s name:       domain name to be updated the created key\n\
+  -z zone:       name of the zone as it will be used in named.conf\n\
+  -q:            quiet mode: print the key, with no explanatory text\n",
 		 progname);
 
 	exit (status);
@@ -80,7 +81,6 @@ int
 main(int argc, char **argv) {
 	isc_boolean_t show_final_mem = ISC_FALSE;
 	isc_boolean_t quiet = ISC_FALSE;
-	isc_boolean_t self = ISC_FALSE;
 	isc_buffer_t key_txtbuffer;
 	char key_txtsecret[256];
 	isc_mem_t *mctx = NULL;
@@ -88,6 +88,7 @@ main(int argc, char **argv) {
 	const char *randomfile = NULL;
 	const char *keyname = NULL;
 	const char *zone = NULL;
+	const char *self_domain = NULL;
 	char *keybuf = NULL;
 	dns_secalg_t alg = DST_ALG_HMACSHA256;
 	const char *algname = alg_totext(alg);
@@ -103,7 +104,7 @@ main(int argc, char **argv) {
 	isc_commandline_errprint = ISC_FALSE;
 
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "a:hk:Mmr:qsVy:")) != -1) {
+					   "a:hk:Mmr:qs:Vy:z:")) != -1) {
 		switch (ch) {
 		case 'a':
 			algname = isc_commandline_argument;
@@ -131,10 +132,13 @@ main(int argc, char **argv) {
 			randomfile = isc_commandline_argument;
 			break;
 		case 's':
-			self = ISC_TRUE;
+			self_domain = isc_commandline_argument;
 			break;
 		case 'V':
 			verbose = ISC_TRUE;
+			break;
+		case 'z':
+			zone = isc_commandline_argument;
 			break;
 		case '?':
 			if (isc_commandline_option != '?') {
@@ -154,26 +158,28 @@ main(int argc, char **argv) {
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
 
-	if (argc == 1)
-		zone = argv[0];
+	if (self_domain != NULL && zone != NULL)
+		usage(1);	/* -s and -z cannot coexist */
 
-	if (argc > 1)
+	if (argc > 0)
 		usage(1);
 
 	DO("create memory context", isc_mem_create(0, 0, &mctx));
 
-	if (self) {
-		if (zone == NULL)
-			usage(1);
-		keyname = zone;
-	} else {
-		if (keyname == NULL)
-			keyname = DEFAULT_KEYNAME;
+	if (keyname == NULL) {
+		const char *suffix = NULL;
 
-		if (zone != NULL) {
-			len = strlen(keyname) + strlen(zone) + 2;
+		keyname = DEFAULT_KEYNAME;
+		if (self_domain != NULL)
+			suffix = self_domain;
+		else if (zone != NULL)
+			suffix = zone;
+		if (suffix != NULL) {
+			len = strlen(keyname) + strlen(suffix) + 2;
 			keybuf = isc_mem_get(mctx, len);
-			snprintf(keybuf, len, "%s.%s", keyname, zone);
+			if (keybuf == NULL)
+				fatal("failed to allocate memory for keyname");
+			snprintf(keybuf, len, "%s.%s", keyname, suffix);
 			keyname = (const char *) keybuf;
 		}
 	}
@@ -199,7 +205,25 @@ key \"%s\" {\n\
 	       (char *)isc_buffer_base(&key_txtbuffer));
 
 	if (!quiet) {
-		if (zone == NULL) {
+		if (self_domain != NULL) {
+			printf("\n\
+# Then, in the \"zone\" statement for the zone containing the\n\
+# name \"%s\", place an \"update-policy\" statement\n\
+# like this one, adjusted as needed for your preferred permissions:\n\
+update-policy {\n\
+	  grant %s self . ANY;\n\
+};\n",
+			       self_domain, keyname);
+		} else if (zone != NULL) {
+			printf("\n\
+# Then, in the \"zone\" definition statement for \"%s\",\n\
+# place an \"update-policy\" statement like this one, adjusted as \n\
+# needed for your preferred permissions:\n\
+update-policy {\n\
+	  grant %s zonesub ANY;\n\
+};\n",
+			       zone, keyname);
+		} else {
 			printf("\n\
 # Then, in the \"zone\" statement for each zone you wish to dynamically\n\
 # update, place an \"update-policy\" statement granting update permission\n\
@@ -209,34 +233,15 @@ update-policy {\n\
 	grant %s zonesub ANY;\n\
 };\n",
 			       keyname);
-		} else if (self) {
-			printf("\n\
-# Finally, in the \"zone\" statement for the zone containing the\n\
-# name \"%s\", place an \"update-policy\" statement\n\
-# like this one, adjusted as needed for your preferred permissions:\n\
-update-policy {\n\
-	  grant %s self . ANY;\n\
-};\n",
-			       zone, keyname);
-		} else {
-			printf("\n\
-# Finally, in the \"zone\" definition statement for \"%s\",\n\
-# place an \"update-policy\" statement like this one, adjusted as \n\
-# needed for your preferred permissions:\n\
-update-policy {\n\
-	  grant %s subdomain %s%s ANY;\n\
-};\n",
-			       zone, keyname, zone,
-			       zone[strlen(zone) - 1] == '.' ? "" : ".");
 		}
-
-	printf("\n\
-# After the keyfile has been created, the following command will\n\
-# execute nsupdate using this key:\n\
-nsupdate -k <keyfile>\n");
 	}
 
-	if (zone != NULL && keybuf != NULL)
+	printf("\n\
+# After the keyfile has been placed, the following command will\n\
+# execute nsupdate using this key:\n\
+nsupdate -k <keyfile>\n");
+
+	if (keybuf != NULL)
 		isc_mem_put(mctx, keybuf, len);
 
 	if (show_final_mem)

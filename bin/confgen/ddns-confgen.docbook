@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: ddns-confgen.docbook,v 1.3 2009/06/11 23:47:55 tbox Exp $ -->
+<!-- $Id: ddns-confgen.docbook,v 1.4 2009/06/16 22:36:53 jinmei Exp $ -->
 <refentry id="man.ddns-confgen">
   <refentryinfo>
     <date>Jan 29, 2009</date>
@@ -48,7 +48,7 @@
       <arg><option>-h</option></arg>
       <arg><option>-k <replaceable class="parameter">keyname</replaceable></option></arg>
       <arg><option>-r <replaceable class="parameter">randomfile</replaceable></option></arg>
-      <arg><option>-s</option></arg>
+      <arg><option>-s name | -z zone</option></arg>
       <arg><option>-q</option></arg>
       <arg choice="opt">name</arg>
     </cmdsynopsis>
@@ -114,7 +114,12 @@
 	<listitem>
 	  <para>
 	    Specifies the key name of the DDNS authentication key.
-	    The default is <constant>ddns-key</constant>.
+	    The default is <constant>ddns-key</constant> when neither
+	    the <command>-s</command> nor <command>-z</command> option is
+	    specified; otherwise, the default
+	    is <constant>ddns-key</constant> as a separate label
+	    followed by the argument of the option, e.g.,
+	    <constant>ddns-key.example.com.</constant>
 	    The key name must have the format of a valid domain name,
 	    consisting of letters, digits, hyphens and periods.
 	  </para>
@@ -149,14 +154,31 @@
       </varlistentry>
 
       <varlistentry>
-	<term>-s</term>
+	<term>-s <replaceable class="parameter">name</replaceable></term>
 	<listitem>
 	  <para>
 	    Self mode:  The example <command>named.conf</command> text
-            shows how to set an update policy using the "self" nametype,
-            using a single key per each domain name for updates, instead of
-            the "subdomain" nametype which allows matching on any name
-            within a specified domain.
+            shows how to set an update policy for the specified
+	    <replaceable class="parameter">name</replaceable>
+	    using the "self" nametype, instead of the "subdomain"
+	    nametype which allows matching on any name within a
+	    specified domain.
+	    This option cannot be used with the <command>-z</command> option.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>-z <replaceable class="parameter">zone</replaceable></term>
+	<listitem>
+	  <para>
+	    zone mode:  The example <command>named.conf</command> text
+            shows how to set an update policy for the specified
+	    <replaceable class="parameter">zone</replaceable>
+	    using the "zonesub" nametype, allowing updates to all subdomain
+	    names within
+	    that <replaceable class="parameter">zone</replaceable>.
+	    This option cannot be used with the <command>-s</command> option.
 	  </para>
 	</listitem>
       </varlistentry>
