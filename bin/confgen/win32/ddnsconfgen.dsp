@@ -50,7 +50,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386
-# ADD LINK32 user32.lib advapi32.lib ws2_32.lib Release/util.lib ../../../lib/isc/win32/Release/libisc.lib ../../../lib/dns/win32/Release/libdns.lib ../../../lib/isccfg/win32/Release/libisccfg.lib ../../../lib/isccc/win32/Release/libisccc.lib /nologo /subsystem:console /machine:I386 /out:"../../../Build/Release/ddns-confgen.exe"
+# ADD LINK32 user32.lib advapi32.lib ws2_32.lib ../../../lib/isc/win32/Release/libisc.lib ../../../lib/dns/win32/Release/libdns.lib ../../../lib/isccfg/win32/Release/libisccfg.lib ../../../lib/isccc/win32/Release/libisccc.lib /nologo /subsystem:console /machine:I386 /out:"../../../Build/Release/ddns-confgen.exe"
 
 !ELSEIF  "$(CFG)" == "ddnsconfgen - Win32 Debug"
 
@@ -75,7 +75,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 user32.lib advapi32.lib ws2_32.lib Debug/util.lib ../../../lib/isc/win32/Debug/libisc.lib ../../../lib/dns/win32/Debug/libdns.lib ../../../lib/isccfg/win32/Debug/libisccfg.lib ../../../lib/isccc/win32/Debug/libisccc.lib /nologo /subsystem:console /debug /machine:I386 /out:"../../../Build/Debug/ddns-confgen.exe" /pdbtype:sept
+# ADD LINK32 user32.lib advapi32.lib ws2_32.lib ../../../lib/isc/win32/Debug/libisc.lib ../../../lib/dns/win32/Debug/libdns.lib ../../../lib/isccfg/win32/Debug/libisccfg.lib ../../../lib/isccc/win32/Debug/libisccc.lib /nologo /subsystem:console /debug /machine:I386 /out:"../../../Build/Debug/ddns-confgen.exe" /pdbtype:sept
 
 !ENDIF 
 
@@ -92,12 +92,24 @@ SOURCE=.\os.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\keygen.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\util.c
+# End Source File
+# Begin Source File
+
 SOURCE="..\ddns-confgen.c"
 # End Source File
 # End Group
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Source File
+
+SOURCE=..\keygen.h
+# End Source File
 # Begin Source File
 
 SOURCE=..\util.h

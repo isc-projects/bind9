@@ -114,6 +114,7 @@ ALL : "..\..\..\Build\Release\ddns-confgen.exe"
 CLEAN :
 	-@erase "$(INTDIR)\os.obj"
 	-@erase "$(INTDIR)\ddns-confgen.obj"
+	-@erase "$(INTDIR)\keygen.obj"
 	-@erase "$(INTDIR)\util.obj"
 	-@erase "$(INTDIR)\vc60.idb"
 	-@erase "..\..\..\Build\Release\ddns-confgen.exe"
@@ -132,6 +133,7 @@ LINK32_FLAGS=user32.lib advapi32.lib ws2_32.lib ../../../lib/isc/win32/Release/l
 LINK32_OBJS= \
 	"$(INTDIR)\os.obj" \
 	"$(INTDIR)\ddns-confgen.obj" \
+	"$(INTDIR)\keygen.obj" \
 	"$(INTDIR)\util.obj"
 
 "..\..\..\Build\Release\ddns-confgen.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
@@ -156,6 +158,8 @@ CLEAN :
 	-@erase "$(INTDIR)\os.sbr"
 	-@erase "$(INTDIR)\ddns-confgen.obj"
 	-@erase "$(INTDIR)\ddns-confgen.sbr"
+	-@erase "$(INTDIR)\keygen.obj"
+	-@erase "$(INTDIR)\keygen.sbr"
 	-@erase "$(INTDIR)\util.obj"
 	-@erase "$(INTDIR)\util.sbr"
 	-@erase "$(INTDIR)\vc60.idb"
@@ -175,6 +179,7 @@ BSC32_FLAGS=/nologo /o"$(OUTDIR)\ddnsconfgen.bsc"
 BSC32_SBRS= \
 	"$(INTDIR)\os.sbr" \
 	"$(INTDIR)\ddns-confgen.sbr" \
+	"$(INTDIR)\keygen.sbr" \
 	"$(INTDIR)\util.sbr"
 
 "$(OUTDIR)\ddnsconfgen.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
@@ -187,6 +192,7 @@ LINK32_FLAGS=user32.lib advapi32.lib ws2_32.lib ../../../lib/isc/win32/Debug/lib
 LINK32_OBJS= \
 	"$(INTDIR)\os.obj" \
 	"$(INTDIR)\ddns-confgen.obj" \
+	"$(INTDIR)\keygen.obj" \
 	"$(INTDIR)\util.obj"
 
 "..\..\..\Build\Debug\ddns-confgen.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
@@ -267,6 +273,24 @@ SOURCE="..\ddns-confgen.c"
 
 
 "$(INTDIR)\ddns-confgen.obj"	"$(INTDIR)\ddns-confgen.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\keygen.c
+
+!IF  "$(CFG)" == "ddnsconfgen - Win32 Release"
+
+
+"$(INTDIR)\keygen.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "ddnsconfgen - Win32 Debug"
+
+
+"$(INTDIR)\keygen.obj"	"$(INTDIR)\keygen.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
