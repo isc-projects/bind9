@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ddns-confgen.c,v 1.5 2009/06/16 22:36:53 jinmei Exp $ */
+/* $Id: ddns-confgen.c,v 1.6 2009/06/17 19:18:37 jinmei Exp $ */
 
 /*! \file */
 
@@ -69,7 +69,7 @@ Usage:\n\
   -a alg:        algorithm (default hmac-sha256)\n\
   -k keyname:    name of the key as it will be used in named.conf\n\
   -r randomfile: source of random data (use \"keyboard\" for key timing)\n\
-  -s name:       domain name to be updated the created key\n\
+  -s name:       domain name to be updated using the created key\n\
   -z zone:       name of the zone as it will be used in named.conf\n\
   -q:            quiet mode: print the key, with no explanatory text\n",
 		 progname);
