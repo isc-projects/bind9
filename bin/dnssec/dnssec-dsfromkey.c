@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-dsfromkey.c,v 1.7 2009/06/17 06:51:43 each Exp $ */
+/* $Id: dnssec-dsfromkey.c,v 1.8 2009/06/17 23:53:04 tbox Exp $ */
 
 /*! \file */
 
@@ -78,18 +78,18 @@ loadkeys(char *dirname, char *setname)
 
 	isc_buffer_init(&buf, filename, sizeof(filename));
 	if (dirname != NULL) {
-                if (isc_buffer_availablelength(&buf) < strlen(dirname))
-                        fatal("directory name '%s' too long", dirname);
+		if (isc_buffer_availablelength(&buf) < strlen(dirname))
+			fatal("directory name '%s' too long", dirname);
 		isc_buffer_putstr(&buf, dirname);
 		if (dirname[strlen(dirname) - 1] != '/') {
-                        if (isc_buffer_availablelength(&buf) < 1)
-                                fatal("directory name '%s' too long", dirname);
+			if (isc_buffer_availablelength(&buf) < 1)
+				fatal("directory name '%s' too long", dirname);
 			isc_buffer_putstr(&buf, "/");
-                }
+		}
 	}
 
-        if (isc_buffer_availablelength(&buf) < strlen("keyset-"))
-                fatal("directory name '%s' too long", dirname);
+	if (isc_buffer_availablelength(&buf) < strlen("keyset-"))
+		fatal("directory name '%s' too long", dirname);
 	isc_buffer_putstr(&buf, "keyset-");
 	result = dns_name_tofilenametext(name, ISC_FALSE, &buf);
 	check_result(result, "dns_name_tofilenametext()");
@@ -297,7 +297,7 @@ main(int argc, char **argv) {
 	isc_commandline_errprint = ISC_FALSE;
 
 	while ((ch = isc_commandline_parse(argc, argv,
- 					   "12a:c:d:l:sv:Fh")) != -1) {
+					   "12a:c:d:l:sv:Fh")) != -1) {
 		switch (ch) {
 		case '1':
 			dtype = DNS_DSDIGEST_SHA1;

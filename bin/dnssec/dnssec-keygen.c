@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.84 2009/06/17 06:51:43 each Exp $ */
+/* $Id: dnssec-keygen.c,v 1.85 2009/06/17 23:53:04 tbox Exp $ */
 
 /*! \file */
 
@@ -263,7 +263,7 @@ main(int argc, char **argv) {
 				"defaulting to %s\n", algname);
 	}
 
-        if (strcasecmp(algname, "RSA") == 0) {
+	if (strcasecmp(algname, "RSA") == 0) {
 		fprintf(stderr, "The use of RSA (RSAMD5) is not recommended.\n"
 				"If you still wish to use RSA (RSAMD5) please "
 				"specify \"-a RSAMD5\"\n");
@@ -315,8 +315,8 @@ main(int argc, char **argv) {
 	if (size < 0) {
 		if (use_default) {
 			size = (ksk != 0) ? 2048 : 1024;
-                        if (verbose > 0)
-                                fprintf(stderr, "key size not specified; "
+			if (verbose > 0)
+				fprintf(stderr, "key size not specified; "
 					"defaulting to %d\n", size);
 		} else {
 			fatal("key size not specified (-b option)");
