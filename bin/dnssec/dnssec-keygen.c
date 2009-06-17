@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.83 2009/05/07 23:47:44 tbox Exp $ */
+/* $Id: dnssec-keygen.c,v 1.84 2009/06/17 06:51:43 each Exp $ */
 
 /*! \file */
 
@@ -67,6 +67,8 @@ static const char *algs = "RSA | RSAMD5 | DH | DSA | RSASHA1 | NSEC3DSA |"
 			  " HMAC-SHA1 | HMAC-SHA224 | HMAC-SHA256 |"
 			  " HMAC-SHA384 | HMAC-SHA512";
 
+#define DEFAULT_ALGORITHM "RSASHA1"
+
 static isc_boolean_t
 dsa_size_ok(int size) {
 	return (ISC_TF(size >= 512 && size <= 1024 && size % 64 == 0));
@@ -75,11 +77,12 @@ dsa_size_ok(int size) {
 static void
 usage(void) {
 	fprintf(stderr, "Usage:\n");
-	fprintf(stderr, "    %s -a alg -b bits [-n type] [options] name\n\n",
+	fprintf(stderr, "    %s [options] name\n\n",
 		program);
 	fprintf(stderr, "Version: %s\n", VERSION);
-	fprintf(stderr, "Required options:\n");
-	fprintf(stderr, "    -a algorithm: %s\n", algs);
+	fprintf(stderr, "    name: owner of the key\n");
+	fprintf(stderr, "Options:\n");
+	fprintf(stderr, "    -a algorithm: %s (default RSASHA1)\n", algs);
 	fprintf(stderr, "    -b key size, in bits:\n");
 	fprintf(stderr, "        RSAMD5:\t\t[512..%d]\n", MAX_RSA);
 	fprintf(stderr, "        RSASHA1:\t\t[512..%d]\n", MAX_RSA);
@@ -93,10 +96,9 @@ usage(void) {
 	fprintf(stderr, "        HMAC-SHA256:\t[1..256]\n");
 	fprintf(stderr, "        HMAC-SHA384:\t[1..384]\n");
 	fprintf(stderr, "        HMAC-SHA512:\t[1..512]\n");
+	fprintf(stderr, "       (default 1024 for RSASHA1 ZSK, 2048 for KSK\n");
 	fprintf(stderr, "    -n nametype: ZONE | HOST | ENTITY | USER | OTHER\n");
-	fprintf(stderr, "        (DNSKEY generation defaults to ZONE\n");
-	fprintf(stderr, "    name: owner of the key\n");
-	fprintf(stderr, "Other options:\n");
+	fprintf(stderr, "        (DNSKEY generation defaults to ZONE)\n");
 	fprintf(stderr, "    -c <class> (default: IN)\n");
 	fprintf(stderr, "    -d <digest bits> (0 => max, default)\n");
 	fprintf(stderr, "    -e use large exponent (RSAMD5/RSASHA1 only)\n");
@@ -122,7 +124,7 @@ usage(void) {
 
 int
 main(int argc, char **argv) {
-	char		*algname = NULL, *nametype = NULL, *type = NULL;
+	char	        *algname = NULL, *nametype = NULL, *type = NULL;
 	char		*classname = NULL;
 	char		*endp;
 	dst_key_t	*key = NULL, *oldkey;
@@ -143,6 +145,7 @@ main(int argc, char **argv) {
 	dns_rdataclass_t rdclass;
 	int		options = DST_TYPE_PRIVATE | DST_TYPE_PUBLIC;
 	int		dbits = 0;
+	isc_boolean_t	use_default = ISC_FALSE;
 
 	if (argc == 1)
 		usage();
@@ -252,9 +255,15 @@ main(int argc, char **argv) {
 	if (argc > isc_commandline_index + 1)
 		fatal("extraneous arguments");
 
-	if (algname == NULL)
-		fatal("no algorithm was specified");
-	if (strcasecmp(algname, "RSA") == 0) {
+	if (algname == NULL) {
+		algname = strdup(DEFAULT_ALGORITHM);
+		use_default = ISC_TRUE;
+		if (verbose > 0)
+			fprintf(stderr, "no algorithm specified; "
+				"defaulting to %s\n", algname);
+	}
+
+        if (strcasecmp(algname, "RSA") == 0) {
 		fprintf(stderr, "The use of RSA (RSAMD5) is not recommended.\n"
 				"If you still wish to use RSA (RSAMD5) please "
 				"specify \"-a RSAMD5\"\n");
@@ -303,8 +312,16 @@ main(int argc, char **argv) {
 			fatal("invalid type %s", type);
 	}
 
-	if (size < 0)
-		fatal("key size not specified (-b option)");
+	if (size < 0) {
+		if (use_default) {
+			size = (ksk != 0) ? 2048 : 1024;
+                        if (verbose > 0)
+                                fprintf(stderr, "key size not specified; "
+					"defaulting to %d\n", size);
+		} else {
+			fatal("key size not specified (-b option)");
+		}
+	}
 
 	switch (alg) {
 	case DNS_KEYALG_RSAMD5:

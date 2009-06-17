@@ -1,3 +1,14 @@
+	--- 9.7.0a1 released ---
+
+2612.	[func]		Add default values for the arguments to
+			dnssec-keygen.  Without arguments, it will now
+			generate a 1024-bit RSASHA1 zone-signing key,
+			or with the -f KSK option, a 2048-bit RSASHA1
+			key-signing key. [RT #19300]
+
+2611.	[func]		Add -l option to dnssec-dsfromkey to generate 
+			DLV records instead of DS records. [RT #19300]
+
 2610.	[port]		sunos: Change #2363 was not complete. [RT #19796]
 
 2609.	[func]		Simplify the configuration of dynamic zones:

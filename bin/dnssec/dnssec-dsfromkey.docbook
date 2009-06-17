@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-dsfromkey.docbook,v 1.6 2008/11/07 13:54:11 jreed Exp $ -->
+<!-- $Id: dnssec-dsfromkey.docbook,v 1.7 2009/06/17 06:51:43 each Exp $ -->
 <refentry id="man.dnssec-dsfromkey">
   <refentryinfo>
     <date>November 29, 2008</date>
@@ -110,6 +110,17 @@
         <listitem>
           <para>
             Sets the debugging level.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-l <replaceable class="parameter">domain</replaceable></term>
+        <listitem>
+          <para>
+            Generate a DLV set instead of a DS set.  The specified
+            <option>domain</option> is appended to the name for each
+            record in the set.
           </para>
         </listitem>
       </varlistentry>

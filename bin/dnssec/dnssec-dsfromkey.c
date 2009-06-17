@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-dsfromkey.c,v 1.6 2009/05/07 09:33:52 fdupont Exp $ */
+/* $Id: dnssec-dsfromkey.c,v 1.7 2009/06/17 06:51:43 each Exp $ */
 
 /*! \file */
 
@@ -52,19 +52,19 @@ const char *program = "dnssec-dsfromkey";
 int verbose;
 
 static dns_rdataclass_t rdclass;
-static dns_fixedname_t  fixed;
-static dns_name_t       *name = NULL;
-static dns_db_t         *db = NULL;
-static dns_dbnode_t     *node = NULL;
-static dns_rdataset_t   keyset;
-static isc_mem_t        *mctx = NULL;
+static dns_fixedname_t	fixed;
+static dns_name_t	*name = NULL;
+static dns_db_t		*db = NULL;
+static dns_dbnode_t	*node = NULL;
+static dns_rdataset_t	keyset;
+static isc_mem_t	*mctx = NULL;
 
 static void
 loadkeys(char *dirname, char *setname)
 {
-	isc_result_t     result;
-	char             filename[1024];
-	isc_buffer_t     buf;
+	isc_result_t	 result;
+	char		 filename[1024];
+	isc_buffer_t	 buf;
 
 	dns_rdataset_init(&keyset);
 	dns_fixedname_init(&fixed);
@@ -78,10 +78,18 @@ loadkeys(char *dirname, char *setname)
 
 	isc_buffer_init(&buf, filename, sizeof(filename));
 	if (dirname != NULL) {
+                if (isc_buffer_availablelength(&buf) < strlen(dirname))
+                        fatal("directory name '%s' too long", dirname);
 		isc_buffer_putstr(&buf, dirname);
-		if (dirname[strlen(dirname) - 1] != '/')
+		if (dirname[strlen(dirname) - 1] != '/') {
+                        if (isc_buffer_availablelength(&buf) < 1)
+                                fatal("directory name '%s' too long", dirname);
 			isc_buffer_putstr(&buf, "/");
+                }
 	}
+
+        if (isc_buffer_availablelength(&buf) < strlen("keyset-"))
+                fatal("directory name '%s' too long", dirname);
 	isc_buffer_putstr(&buf, "keyset-");
 	result = dns_name_tofilenametext(name, ISC_FALSE, &buf);
 	check_result(result, "dns_name_tofilenametext()");
@@ -161,7 +169,7 @@ logkey(dns_rdata_t *rdata)
 	isc_result_t result;
 	dst_key_t    *key = NULL;
 	isc_buffer_t buf;
-	char         keystr[KEY_FORMATSIZE];
+	char	     keystr[KEY_FORMATSIZE];
 
 	isc_buffer_init(&buf, rdata->data, rdata->length);
 	isc_buffer_add(&buf, rdata->length);
@@ -176,43 +184,63 @@ logkey(dns_rdata_t *rdata)
 }
 
 static void
-emitds(unsigned int dtype, dns_rdata_t *rdata)
+emit(unsigned int dtype, dns_rdata_t *rdata, char *lookaside)
 {
-	isc_result_t   result;
-	unsigned char  buf[DNS_DS_BUFFERSIZE];
-	char           text_buf[DST_KEY_MAXTEXTSIZE];
-	char           class_buf[10];
-	isc_buffer_t   textb, classb;
-	isc_region_t   r;
-	dns_rdata_t    ds;
+	isc_result_t	result;
+	unsigned char	buf[DNS_DS_BUFFERSIZE];
+	char		text_buf[DST_KEY_MAXTEXTSIZE];
+	char		name_buf[DNS_NAME_MAXWIRE];
+	char		class_buf[10];
+	isc_buffer_t	textb, nameb, classb;
+	isc_region_t	r;
+	dns_rdata_t	ds;
 
 	isc_buffer_init(&textb, text_buf, sizeof(text_buf));
+	isc_buffer_init(&nameb, name_buf, sizeof(name_buf));
 	isc_buffer_init(&classb, class_buf, sizeof(class_buf));
 
 	dns_rdata_init(&ds);
 
 	result = dns_ds_buildrdata(name, rdata, dtype, buf, &ds);
 	if (result != ISC_R_SUCCESS)
-		fatal("can't build DS");
+		fatal("can't build record");
+
+	result = dns_name_totext(name, ISC_FALSE, &nameb);
+	if (result != ISC_R_SUCCESS)
+		fatal("can't print name");
+
+	/* Add lookaside origin, if set */
+	if (lookaside != NULL) {
+		if (isc_buffer_availablelength(&nameb) < strlen(lookaside))
+			fatal("DLV origin '%s' is too long", lookaside);
+		isc_buffer_putstr(&nameb, lookaside);
+		if (lookaside[strlen(lookaside) - 1] != '.') {
+			if (isc_buffer_availablelength(&nameb) < 1)
+				fatal("DLV origin '%s' is too long", lookaside);
+			isc_buffer_putstr(&nameb, ".");
+		}
+	}
 
 	result = dns_rdata_totext(&ds, (dns_name_t *) NULL, &textb);
 	if (result != ISC_R_SUCCESS)
-		fatal("can't print DS rdata");
+		fatal("can't print rdata");
 
 	result = dns_rdataclass_totext(rdclass, &classb);
 	if (result != ISC_R_SUCCESS)
-		fatal("can't print DS class");
+		fatal("can't print class");
 
-	result = dns_name_print(name, stdout);
-	if (result != ISC_R_SUCCESS)
-		fatal("can't print DS name");
+	isc_buffer_usedregion(&nameb, &r);
+	fwrite(r.base, 1, r.length, stdout);
 
 	putchar(' ');
 
 	isc_buffer_usedregion(&classb, &r);
 	fwrite(r.base, 1, r.length, stdout);
 
-	printf(" DS ");
+	if (lookaside == NULL)
+		printf(" DS ");
+	else
+		printf(" DLV ");
 
 	isc_buffer_usedregion(&textb, &r);
 	fwrite(r.base, 1, r.length, stdout);
@@ -223,7 +251,7 @@ static void
 usage(void) {
 	fprintf(stderr, "Usage:\n");
 	fprintf(stderr,	"    %s options keyfile\n\n", program);
-	fprintf(stderr, "    %s options [-c class] [-d dir] -s dnsname\n\n",
+	fprintf(stderr, "    %s options [-c class] [-d dir] [-l lookaside] -s dnsname\n\n",
 		program);
 	fprintf(stderr, "Version: %s\n", VERSION);
 	fprintf(stderr, "Options:\n");
@@ -233,25 +261,27 @@ usage(void) {
 	fprintf(stderr, "    -a algorithm: use algorithm\n");
 	fprintf(stderr, "Keyset options:\n");
 	fprintf(stderr, "    -s: keyset mode\n");
+	fprintf(stderr, "    -l: add lookaside zone and print DLV records\n");
 	fprintf(stderr, "    -c class\n");
 	fprintf(stderr, "    -d directory\n");
-	fprintf(stderr, "Output: DS RRs\n");
+	fprintf(stderr, "Output: DS or DLV RRs\n");
 
 	exit (-1);
 }
 
 int
 main(int argc, char **argv) {
-	char           *algname = NULL, *classname = NULL, *dirname = NULL;
-	char           *endp;
-	int            ch;
-	unsigned int   dtype = DNS_DSDIGEST_SHA1;
-	isc_boolean_t  both = ISC_TRUE;
-	isc_boolean_t  usekeyset = ISC_FALSE;
-	isc_result_t   result;
-	isc_log_t      *log = NULL;
-	isc_entropy_t  *ectx = NULL;
-	dns_rdata_t    rdata;
+	char		*algname = NULL, *classname = NULL, *dirname = NULL;
+	char		*lookaside = NULL;
+	char		*endp;
+	int		ch;
+	unsigned int	dtype = DNS_DSDIGEST_SHA1;
+	isc_boolean_t	both = ISC_TRUE;
+	isc_boolean_t	usekeyset = ISC_FALSE;
+	isc_result_t	result;
+	isc_log_t       *log = NULL;
+	isc_entropy_t	*ectx = NULL;
+	dns_rdata_t	rdata;
 
 	dns_rdata_init(&rdata);
 
@@ -267,7 +297,7 @@ main(int argc, char **argv) {
 	isc_commandline_errprint = ISC_FALSE;
 
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "12a:c:d:sv:Fh")) != -1) {
+ 					   "12a:c:d:l:sv:Fh")) != -1) {
 		switch (ch) {
 		case '1':
 			dtype = DNS_DSDIGEST_SHA1;
@@ -286,6 +316,13 @@ main(int argc, char **argv) {
 			break;
 		case 'd':
 			dirname = isc_commandline_argument;
+			if (strlen(dirname) == 0)
+				fatal("dir must be a non-empty string");
+			break;
+		case 'l':
+			lookaside = isc_commandline_argument;
+			if (strlen(lookaside) == 0)
+				fatal("lookaside must be a non-empty string");
 			break;
 		case 's':
 			usekeyset = ISC_TRUE;
@@ -357,10 +394,10 @@ main(int argc, char **argv) {
 				logkey(&rdata);
 
 			if (both) {
-				emitds(DNS_DSDIGEST_SHA1, &rdata);
-				emitds(DNS_DSDIGEST_SHA256, &rdata);
+				emit(DNS_DSDIGEST_SHA1, &rdata, lookaside);
+				emit(DNS_DSDIGEST_SHA256, &rdata, lookaside);
 			} else
-				emitds(dtype, &rdata);
+				emit(dtype, &rdata, lookaside);
 		}
 	} else {
 		unsigned char key_buf[DST_KEY_MAXSIZE];
@@ -369,10 +406,10 @@ main(int argc, char **argv) {
 			DST_KEY_MAXSIZE, &rdata);
 
 		if (both) {
-			emitds(DNS_DSDIGEST_SHA1, &rdata);
-			emitds(DNS_DSDIGEST_SHA256, &rdata);
+			emit(DNS_DSDIGEST_SHA1, &rdata, lookaside);
+			emit(DNS_DSDIGEST_SHA256, &rdata, lookaside);
 		} else
-			emitds(dtype, &rdata);
+			emit(dtype, &rdata, lookaside);
 	}
 
 	if (dns_rdataset_isassociated(&keyset))
