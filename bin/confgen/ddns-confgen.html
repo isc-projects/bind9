@@ -13,7 +13,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: ddns-confgen.html,v 1.6 2009/06/16 01:12:45 tbox Exp $ -->
+<!-- $Id: ddns-confgen.html,v 1.7 2009/06/17 01:12:48 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -28,7 +28,7 @@
 </div>
 <div class="refsynopsisdiv">
 <h2>Synopsis</h2>
-<div class="cmdsynopsis"><p><code class="command">ddns-confgen</code>  [<code class="option">-a <em class="replaceable"><code>algorithm</code></em></code>] [<code class="option">-h</code>] [<code class="option">-k <em class="replaceable"><code>keyname</code></em></code>] [<code class="option">-r <em class="replaceable"><code>randomfile</code></em></code>] [<code class="option">-s</code>] [<code class="option">-q</code>] [name]</p></div>
+<div class="cmdsynopsis"><p><code class="command">ddns-confgen</code>  [<code class="option">-a <em class="replaceable"><code>algorithm</code></em></code>] [<code class="option">-h</code>] [<code class="option">-k <em class="replaceable"><code>keyname</code></em></code>] [<code class="option">-r <em class="replaceable"><code>randomfile</code></em></code>] [<code class="option">-s name | -z zone</code>] [<code class="option">-q</code>] [name]</p></div>
 </div>
 <div class="refsect1" lang="en">
 <a name="id2543377"></a><h2>DESCRIPTION</h2>
@@ -74,7 +74,12 @@
 <dt><span class="term">-k <em class="replaceable"><code>keyname</code></em></span></dt>
 <dd><p>
 	    Specifies the key name of the DDNS authentication key.
-	    The default is <code class="constant">ddns-key</code>.
+	    The default is <code class="constant">ddns-key</code> when neither
+	    the <span><strong class="command">-s</strong></span> nor <span><strong class="command">-z</strong></span> option is
+	    specified; otherwise, the default
+	    is <code class="constant">ddns-key</code> as a separate label
+	    followed by the argument of the option, e.g.,
+	    <code class="constant">ddns-key.example.com.</code>
 	    The key name must have the format of a valid domain name,
 	    consisting of letters, digits, hyphens and periods.
 	  </p></dd>
@@ -95,18 +100,30 @@
             <code class="filename">keyboard</code> indicates that keyboard input
             should be used.
 	  </p></dd>
-<dt><span class="term">-s</span></dt>
+<dt><span class="term">-s <em class="replaceable"><code>name</code></em></span></dt>
 <dd><p>
 	    Self mode:  The example <span><strong class="command">named.conf</strong></span> text
-            shows how to set an update policy using the "self" nametype,
-            using a single key per each domain name for updates, instead of
-            the "subdomain" nametype which allows matching on any name
-            within a specified domain.
+            shows how to set an update policy for the specified
+	    <em class="replaceable"><code>name</code></em>
+	    using the "self" nametype, instead of the "subdomain"
+	    nametype which allows matching on any name within a
+	    specified domain.
+	    This option cannot be used with the <span><strong class="command">-z</strong></span> option.
+	  </p></dd>
+<dt><span class="term">-z <em class="replaceable"><code>zone</code></em></span></dt>
+<dd><p>
+	    zone mode:  The example <span><strong class="command">named.conf</strong></span> text
+            shows how to set an update policy for the specified
+	    <em class="replaceable"><code>zone</code></em>
+	    using the "zonesub" nametype, allowing updates to all subdomain
+	    names within
+	    that <em class="replaceable"><code>zone</code></em>.
+	    This option cannot be used with the <span><strong class="command">-s</strong></span> option.
 	  </p></dd>
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543556"></a><h2>SEE ALSO</h2>
+<a name="id2543618"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">nsupdate</span>(1)</span>,
       <span class="citerefentry"><span class="refentrytitle">named.conf</span>(5)</span>,
       <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
@@ -114,7 +131,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543594"></a><h2>AUTHOR</h2>
+<a name="id2543656"></a><h2>AUTHOR</h2>
 <p><span class="corpauthor">Internet Systems Consortium</span>
     </p>
 </div>

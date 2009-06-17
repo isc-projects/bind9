@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: ddns-confgen.8,v 1.6 2009/06/16 01:12:45 tbox Exp $
+.\" $Id: ddns-confgen.8,v 1.7 2009/06/17 01:12:48 tbox Exp $
 .\"
 .hy 0
 .ad l
@@ -32,7 +32,7 @@
 ddns\-confgen \- ddns key generation tool
 .SH "SYNOPSIS"
 .HP 13
-\fBddns\-confgen\fR [\fB\-a\ \fR\fB\fIalgorithm\fR\fR] [\fB\-h\fR] [\fB\-k\ \fR\fB\fIkeyname\fR\fR] [\fB\-r\ \fR\fB\fIrandomfile\fR\fR] [\fB\-s\fR] [\fB\-q\fR] [name]
+\fBddns\-confgen\fR [\fB\-a\ \fR\fB\fIalgorithm\fR\fR] [\fB\-h\fR] [\fB\-k\ \fR\fB\fIkeyname\fR\fR] [\fB\-r\ \fR\fB\fIrandomfile\fR\fR] [\fB\-s\ name\ |\ \-z\ zone\fR] [\fB\-q\fR] [name]
 .SH "DESCRIPTION"
 .PP
 \fBddns\-confgen\fR
@@ -79,7 +79,16 @@ Prints a short summary of the options and arguments to
 \-k \fIkeyname\fR
 .RS 4
 Specifies the key name of the DDNS authentication key. The default is
-\fBddns\-key\fR. The key name must have the format of a valid domain name, consisting of letters, digits, hyphens and periods.
+\fBddns\-key\fR
+when neither the
+\fB\-s\fR
+nor
+\fB\-z\fR
+option is specified; otherwise, the default is
+\fBddns\-key\fR
+as a separate label followed by the argument of the option, e.g.,
+\fBddns\-key.example.com.\fR
+The key name must have the format of a valid domain name, consisting of letters, digits, hyphens and periods.
 .RE
 .PP
 \-q
@@ -98,11 +107,27 @@ specifies the name of a character device or file containing random data to be us
 indicates that keyboard input should be used.
 .RE
 .PP
-\-s
+\-s \fIname\fR
 .RS 4
 Self mode: The example
 \fBnamed.conf\fR
-text shows how to set an update policy using the "self" nametype, using a single key per each domain name for updates, instead of the "subdomain" nametype which allows matching on any name within a specified domain.
+text shows how to set an update policy for the specified
+\fIname\fR
+using the "self" nametype, instead of the "subdomain" nametype which allows matching on any name within a specified domain. This option cannot be used with the
+\fB\-z\fR
+option.
+.RE
+.PP
+\-z \fIzone\fR
+.RS 4
+zone mode: The example
+\fBnamed.conf\fR
+text shows how to set an update policy for the specified
+\fIzone\fR
+using the "zonesub" nametype, allowing updates to all subdomain names within that
+\fIzone\fR. This option cannot be used with the
+\fB\-s\fR
+option.
 .RE
 .SH "SEE ALSO"
 .PP
