@@ -1,3 +1,5 @@
+2613.	[bug]		Option argument validation was missing for
+			dnssec-dsfromkey. [RT #19828]
 
 	--- 9.6.1 released ---
 
