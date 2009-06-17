@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.483.36.6 2009/03/26 22:57:07 marka Exp $ */
+/* $Id: zone.c,v 1.483.36.7 2009/06/17 04:53:57 marka Exp $ */
 
 /*! \file */
 
@@ -2148,7 +2148,8 @@ resume_signingwithkey(dns_zone_t *zone) {
 		}
 
 		result = zone_signwithkey(zone, rdata.data[0],
-					  (rdata.data[1] << 8) | rdata.data[2],						  ISC_TF(rdata.data[3]));
+					  (rdata.data[1] << 8) | rdata.data[2],
+					  ISC_TF(rdata.data[3]));
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "zone_signwithkey failed: %s",
@@ -4374,7 +4375,8 @@ updatesignwithkey(dns_signing_t *signing, dns_dbversion_t *version,
 			seen_done = ISC_TRUE;
 		else
 			CHECK(update_one_rr(signing->db, version, diff,
-					    DNS_DIFFOP_DEL, name,							    rdataset.ttl, &rdata));
+					    DNS_DIFFOP_DEL, name,
+					    rdataset.ttl, &rdata));
 		dns_rdata_reset(&rdata);
 	}
 	if (result == ISC_R_NOMORE)
