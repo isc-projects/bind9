@@ -143,7 +143,7 @@ LINK32_OBJS= \
 	"..\..\..\lib\dns\win32\Release\libdns.lib" \
 	"..\..\..\lib\isc\win32\Release\libisc.lib" \
 	"..\..\..\lib\bind9\win32\Release\libbind9.lib" \
-	"..\..\..\lib\bind9\win32\Release\libisccfg.lib"
+	"..\..\..\lib\isccfg\win32\Release\libisccfg.lib"
 
 "..\..\..\Build\Release\nsupdate.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -205,7 +205,7 @@ LINK32_OBJS= \
 	"..\..\..\lib\dns\win32\Debug\libdns.lib" \
 	"..\..\..\lib\isc\win32\Debug\libisc.lib" \
 	"..\..\..\lib\bind9\win32\Debug\libbind9.lib" \
-	"..\..\..\lib\bind9\win32\Release\libisccfg.lib"
+	"..\..\..\lib\isccfg\win32\Release\libisccfg.lib"
 
 "..\..\..\Build\Debug\nsupdate.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<

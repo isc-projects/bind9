@@ -9,7 +9,7 @@ CFG=rndcconfgen - Win32 Debug
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "confgen.mak" CFG="rndcconfgen - Win32 Debug"
+!MESSAGE NMAKE /f "rndcconfgen.mak" CFG="rndcconfgen - Win32 Debug"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
@@ -278,24 +278,6 @@ SOURCE="..\rndc-confgen.c"
 
 !ENDIF 
 
-SOURCE=..\util.c
-
-!IF  "$(CFG)" == "rndcconfgen - Win32 Release"
-
-
-"$(INTDIR)\util.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ELSEIF  "$(CFG)" == "rndcconfgen - Win32 Debug"
-
-
-"$(INTDIR)\util.obj"	"$(INTDIR)\util.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ENDIF 
-
 SOURCE=..\keygen.c
 
 !IF  "$(CFG)" == "rndcconfgen - Win32 Release"
@@ -314,6 +296,23 @@ SOURCE=..\keygen.c
 
 !ENDIF 
 
+SOURCE=..\util.c
+
+!IF  "$(CFG)" == "rndcconfgen - Win32 Release"
+
+
+"$(INTDIR)\util.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "rndcconfgen - Win32 Debug"
+
+
+"$(INTDIR)\util.obj"	"$(INTDIR)\util.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
 
 !ENDIF 
 

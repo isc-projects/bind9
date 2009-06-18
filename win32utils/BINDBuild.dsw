@@ -375,7 +375,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "rndcconfgen"="..\bin\confgen\win32\confgen.dsp" - Package Owner=<4>
+Project: "rndcconfgen"="..\bin\confgen\win32\rndcconfgen.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -399,7 +399,7 @@ Package=<4>
     Project_Dep_Name libdns
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name rndcutil
+    Project_Dep_Name confgentool
     End Project Dependency
 }}}
 
@@ -420,7 +420,7 @@ Package=<4>
     Project_Dep_Name libdns
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name rndcutil
+    Project_Dep_Name confgentool
     End Project Dependency
 }}}
 
@@ -481,6 +481,18 @@ Package=<4>
 ###############################################################################
 
 Project: "rndcutil"="..\bin\rndc\win32\rndcutil.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "confgentool"="..\bin\confgen\win32\confgentool.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{

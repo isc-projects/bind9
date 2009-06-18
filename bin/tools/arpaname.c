@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: arpaname.c,v 1.2 2009/03/04 02:23:36 marka Exp $ */
+/* $Id: arpaname.c,v 1.3 2009/06/18 16:02:25 each Exp $ */
 
 #include "config.h"
 
@@ -24,10 +24,14 @@
 #include <arpa/inet.h>
 #include <stdio.h>
 
+#define UNUSED(x) (void)(x)
+
 int
 main(int argc, char *argv[]) {
 	unsigned char buf[16];
 	int i;
+
+	UNUSED(argc);
 
 	while (argv[1]) {
 		if (inet_pton(AF_INET6, argv[1], buf) == 1) {

@@ -80,7 +80,12 @@ cd ..\..
 
 cd rndc\win32
 nmake /nologo -f rndc.mak CFG="rndc - Win32 Release"  NO_EXTERNAL_DEPS="1"
-nmake /nologo -f confgen.mak CFG="rndcconfgen - Win32 Release"  NO_EXTERNAL_DEPS="1"
+
+cd ..\..
+
+cd confgen\win32
+nmake /nologo -f rndcconfgen.mak CFG="rndcconfgen - Win32 Release"  NO_EXTERNAL_DEPS="1"
+nmake /nologo -f ddnsconfgen.mak CFG="ddnsconfgen - Win32 Release"  NO_EXTERNAL_DEPS="1"
 
 cd ..\..
 
