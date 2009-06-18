@@ -53,10 +53,15 @@
 ./bin/confgen/win32/confgen.dsp			X	2009
 ./bin/confgen/win32/confgen.dsw			X	2009
 ./bin/confgen/win32/confgen.mak			X	2009
+./bin/confgen/win32/confgentool.dsp		X	2009
+./bin/confgen/win32/confgentool.dsw		X	2009
 ./bin/confgen/win32/ddnsconfgen.dsp		X	2009
 ./bin/confgen/win32/ddnsconfgen.dsw		X	2009
 ./bin/confgen/win32/ddnsconfgen.mak		X	2009
 ./bin/confgen/win32/os.c			C	2009
+./bin/confgen/win32/rndcconfgen.dsp		X	2009
+./bin/confgen/win32/rndcconfgen.dsw		X	2009
+./bin/confgen/win32/rndcconfgen.mak		X	2009
 ./bin/dig/.cvsignore				X	2000,2001
 ./bin/dig/Makefile.in				MAKE	2000,2001,2002,2004,2005,2007
 ./bin/dig/dig.1					MAN	DOCBOOK
@@ -105,7 +110,7 @@
 ./bin/dnssec/dnssectool.c			C	2000,2001,2003,2004,2005,2007,2009
 ./bin/dnssec/dnssectool.h			C	2000,2001,2003,2004,2007,2008
 ./bin/dnssec/win32/dnssectool.dsp		X	2006
-./bin/dnssec/win32/dnssectool.dsw		X	2006
+./bin/dnssec/win32/dnssectool.dsw		X	2006,2009
 ./bin/dnssec/win32/dsfromkey.dsp		X	2008
 ./bin/dnssec/win32/dsfromkey.dsw		X	2008
 ./bin/dnssec/win32/dsfromkey.mak		X	2008
@@ -2470,7 +2475,7 @@
 ./util/update_copyrights			PERL	1998,1999,2000,2001,2004,2005,2006,2007,2008,2009
 ./version					X	1998,1999,2000,2001,2003,2005,2006,2007,2008,2009
 ./win32utils/BINDBuild.dsw			X	2001,2005,2006,2008,2009
-./win32utils/BuildAll.bat			BAT	2001,2002,2004,2005,2006,2007,2008
+./win32utils/BuildAll.bat			BAT	2001,2002,2004,2005,2006,2007,2008,2009
 ./win32utils/BuildOpenSSL.bat			BAT	2007
 ./win32utils/BuildPost.bat			BAT	2005,2006
 ./win32utils/BuildSetup.bat			BAT	2001,2002,2004,2005,2006,2007,2008,2009
