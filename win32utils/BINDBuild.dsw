@@ -384,6 +384,21 @@ Package=<5>
 Package=<4>
 {{{
     Begin Project Dependency
+    Project_Dep_Name libisc
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libisccc
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libisccfg
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libbind9
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libdns
+    End Project Dependency
+    Begin Project Dependency
     Project_Dep_Name rndcutil
     End Project Dependency
 }}}
@@ -398,6 +413,12 @@ Package=<5>
 
 Package=<4>
 {{{
+    Begin Project Dependency
+    Project_Dep_Name libisc
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libdns
+    End Project Dependency
     Begin Project Dependency
     Project_Dep_Name rndcutil
     End Project Dependency
