@@ -56,9 +56,9 @@
 ./bin/confgen/win32/ddnsconfgen.dsw		X	2009
 ./bin/confgen/win32/ddnsconfgen.mak		X	2009
 ./bin/confgen/win32/os.c			C	2009
-./bin/confgen/win32/rndcconfgen.dsp		X	2009
-./bin/confgen/win32/rndcconfgen.dsw		X	2009
-./bin/confgen/win32/rndcconfgen.mak		X	2009
+./bin/confgen/win32/rndcconfgen.dsp		X	2001,2009
+./bin/confgen/win32/rndcconfgen.dsw		X	2001,2004,2005,2006,2009
+./bin/confgen/win32/rndcconfgen.mak		X	2001,2004,2005,2006,2009
 ./bin/dig/.cvsignore				X	2000,2001
 ./bin/dig/Makefile.in				MAKE	2000,2001,2002,2004,2005,2007
 ./bin/dig/dig.1					MAN	DOCBOOK
@@ -229,9 +229,6 @@
 ./bin/rndc/unix/os.c				C	2001,2004,2005,2007
 ./bin/rndc/util.c				C	2000,2001,2004,2005,2007
 ./bin/rndc/util.h				C	2000,2001,2004,2005,2007
-./bin/rndc/win32/confgen.dsp			X	2001,2004,2005,2006
-./bin/rndc/win32/confgen.dsw			X	2001
-./bin/rndc/win32/confgen.mak			X	2001,2004,2005,2006
 ./bin/rndc/win32/os.c				C	2001,2004,2007
 ./bin/rndc/win32/rndc.dsp			X	2001,2004,2005,2006
 ./bin/rndc/win32/rndc.dsw			X	2001
