@@ -17,6 +17,7 @@ custom_ALLIANZ_v9_4_2		private	marka	// 2007-11-23 04:32 +0000
 custom_ALLIANZ_v9_4_2_P1	new	each	// 2008-05-27 23:33 +0000
 custom_ALLIANZ_v9_4_2_P2	new	each	// 2008-08-05 21:28 +0000
 custom_CISCO_v9_3_4_P1		private	marka	// 2007-11-23 04:19 +0000
+custom_DYNDNS_v9_6		new	each	// 2009-06-19 15:34 +0000
 custom_NOM_v9_5_0a7		private	
 custom_NOM_v9_5_0b2		new	marka	// 2008-03-06 06:45 +0000
 custom_NOM_v9_5_0b2+		new	marka	// 2008-03-06 06:13 +0000
