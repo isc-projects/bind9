@@ -50,9 +50,6 @@
 ./bin/confgen/unix/os.c				C	2009
 ./bin/confgen/util.c				C	2009
 ./bin/confgen/util.h				C	2009
-./bin/confgen/win32/confgen.dsp			X	2009
-./bin/confgen/win32/confgen.dsw			X	2009
-./bin/confgen/win32/confgen.mak			X	2009
 ./bin/confgen/win32/confgentool.dsp		X	2009
 ./bin/confgen/win32/confgentool.dsw		X	2009
 ./bin/confgen/win32/ddnsconfgen.dsp		X	2009
