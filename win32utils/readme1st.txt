@@ -1,8 +1,8 @@
-Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
+Copyright (C) 2004, 2005, 2007-2009  Internet Systems Consortium, Inc. ("ISC")
 Copyright (C) 2001, 2003  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: readme1st.txt,v 1.22 2009/06/22 01:59:30 marka Exp $
+$Id: readme1st.txt,v 1.23 2009/06/22 23:47:53 tbox Exp $
 
 	   Release of BIND 9.7 for Windows and later.
 
