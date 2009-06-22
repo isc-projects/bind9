@@ -2,7 +2,7 @@ Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
 Copyright (C) 2001, 2003  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: readme1st.txt,v 1.18.168.2 2009/06/22 02:02:50 marka Exp $
+$Id: readme1st.txt,v 1.18.168.3 2009/06/22 02:09:08 marka Exp $
 
 	   Release of BIND 9.5 for Windows XP and later.
 
@@ -109,45 +109,44 @@ directory using the directory directive options.
 
 	Documentation
 
-This kit includes Documentation in HTML format.  The documentation is not
-copied during the installation process so you should move it to any convenient
-location for later reference. Of particular importance is the BIND 9
-Administrator's Reference Manual (Bv9ARM*.html) which provides detailed
-information on BIND 9. In addition, there are HTML pages for each of the
-BIND 9 applications.
+This kit includes Documentation in HTML format.  The documentation
+is not copied during the installation process so you should move
+it to any convenient location for later reference. Of particular
+importance is the BIND 9 Administrator's Reference Manual (Bv9ARM*.html)
+which provides detailed information on BIND 9. In addition, there
+are HTML pages for each of the BIND 9 applications.
 
 	DNS Tools
 
-The following tools have been built for Windows NT: dig, nslookup,
+The following tools have been built for Windows: dig, nslookup,
 host, nsupdate, rndc, rndc-confgen, named-checkconf, named-checkzone,
-dnssec-keygen, dnssec-signzone. The tools will NOT run on Win9x,
-only WinNT and Win2000. The latter tools are for use with DNSSEC.
-All tools are installed in the dns/bin directory.
+dnssec-keygen, dnssec-signzone.  The latter tools are for use with
+DNSSEC.  All tools are installed in the dns/bin directory.
 
 IMPORTANT NOTE ON USING THE TOOLS:
 
-It is no longer necessary to create a resolv.conf file on Windows as
-the tools will look in the registry for the required nameserver
+It is no longer necessary to create a resolv.conf file on Windows
+as the tools will look in the registry for the required nameserver
 information. However if you wish to create a resolv.conf file as
 follows it will use it in preference to the registry nameserver
 entries.
 
 To create a resolv.conf you need to place it in the System32\Drivers\etc
-directory and it needs to contain a list of nameserver addresses to
-use to find the nameserver authoritative for the zone. The format of
-this file is:
+directory and it needs to contain a list of nameserver addresses
+to use to find the nameserver authoritative for the zone. The format
+of this file is:
 
 nameserver 1.2.3.4
 nameserver 5.6.7.8
 
-Replace the IP addresses with your real addresses.  127.0.0.1 is a valid
-address if you are running a nameserver on the localhost. 
+Replace the IP addresses with your real addresses.  127.0.0.1 is a
+valid address if you are running a nameserver on the localhost.
 
 	Problems
 
 Please report all problems to bind9-bugs@isc.org and not to me. All
-other questions should go to the bind-users@isc.org mailing list or the
-comp.protocol.dns.bind news group.
+other questions should go to the bind-users@isc.org mailing list
+or the comp.protocol.dns.bind news group.
 
 	Danny Mayer
 	mayer@ntp.isc.org
