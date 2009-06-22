@@ -3,6 +3,15 @@
 
 2610.	[port]		sunos: Change #2363 was not complete. [RT #19796]
 
+2608.	[func]		Perform post signing verification checks in
+			dnssec-signzone.  These can be disabled with -P.
+
+			The post sign verification test ensures that for each
+			algorithm in use there is at least one non revoked
+			self signed KSK key.  That all revoked KSK keys are
+			self signed.  That all records in the zone are signed
+			by the algorithm.  [RT #19653]
+
 2589.	[bug]		dns_db_unregister() failed to clear '*dbimp'.
 		        [RT #19626]
 
