@@ -1,6 +1,9 @@
 2613.	[bug]		Option argument validation was missing for
 			dnssec-dsfromkey. [RT #19828]
 
+2581.	[contrib]	dlz/mysql set MYSQL_OPT_RECONNECT option on connection.
+			Requires MySQL 5.0.19 or later. [RT #19084]
+
 2580.	[bug]		UpdateRej statistics counter could be incremented twice
 			for one rejection. [RT #19476]
 
