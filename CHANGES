@@ -1,6 +1,8 @@
 2613.	[bug]		Option argument validation was missing for
 			dnssec-dsfromkey. [RT #19828]
 
+2610.	[port]		sunos: Change #2363 was not complete. [RT #19796]
+
 2589.	[bug]		dns_db_unregister() failed to clear '*dbimp'.
 		        [RT #19626]
 
