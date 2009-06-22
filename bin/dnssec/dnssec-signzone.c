@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.209.12.9 2009/06/22 05:05:00 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.209.12.10 2009/06/22 23:47:16 tbox Exp $ */
 
 /*! \file */
 
@@ -1302,7 +1302,7 @@ goodsig(dns_rdata_t *sigrdata, dns_name_t *name, dns_rdataset_t *keyrdataset,
 	dns_rdata_rrsig_t sig;
 	dst_key_t *dstkey = NULL;
 	isc_result_t result;
-	
+
 	dns_rdata_tostruct(sigrdata, &sig, NULL);
 
 	for (result = dns_rdataset_first(keyrdataset);
@@ -1365,7 +1365,7 @@ verifyset(dns_rdataset_t *rdataset, dns_name_t *name, dns_dbnode_t *node,
 				bad_algorithms[i] = 1;
 		return;
 	}
-	
+
 	memset(set_algorithms, 0, sizeof(set_algorithms));
 	for (result = dns_rdataset_first(&sigrdataset);
 	     result == ISC_R_SUCCESS;
@@ -1512,7 +1512,7 @@ verifyzone(void) {
 		else if ((dnskey.flags & DNS_KEYFLAG_REVOKE) != 0) {
 			if ((dnskey.flags & DNS_KEYFLAG_KSK) != 0 &&
 			    !dns_dnssec_selfsigns(&rdata, gorigin, &rdataset,
-                                                  &sigrdataset, ISC_FALSE,
+						  &sigrdataset, ISC_FALSE,
 						  mctx)) {
 				char namebuf[DNS_NAME_FORMATSIZE];
 				char buffer[1024];
@@ -1526,7 +1526,7 @@ verifyzone(void) {
 				fatal("revoked KSK is not self signed:\n"
 				      "%s DNSKEY %.*s", namebuf,
 				      (int)isc_buffer_usedlength(&buf), buffer);
-			} 
+			}
 			if ((dnskey.flags & DNS_KEYFLAG_KSK) != 0 &&
 			     revoked[dnskey.algorithm] != 255)
 				revoked[dnskey.algorithm]++;
@@ -1561,7 +1561,7 @@ verifyzone(void) {
 		dns_rdata_reset(&rdata);
 	}
 	dns_rdataset_disassociate(&sigrdataset);
-	
+
 	if (!goodksk) {
 #ifdef ALLOW_KSKLESS_ZONES
 		if (!goodzsk)
@@ -1585,7 +1585,7 @@ verifyzone(void) {
 		}
 	}
 	fprintf(stderr, ".\n");
-	
+
 	for (i = 0; i < 256; i++) {
 		/*
 		 * The counts should both be zero or both be non-zero.

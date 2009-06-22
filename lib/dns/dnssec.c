@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.93.12.5 2009/06/22 05:05:01 marka Exp $
+ * $Id: dnssec.c,v 1.93.12.6 2009/06/22 23:47:18 tbox Exp $
  */
 
 /*! \file */
@@ -905,14 +905,14 @@ dns_dnssec_selfsigns(dns_rdata_t *rdata, dns_name_t *name,
 		     isc_boolean_t ignoretime, isc_mem_t *mctx)
 {
 	dst_key_t *dstkey = NULL;
-        dns_keytag_t keytag;
-        dns_rdata_dnskey_t key;
-        dns_rdata_rrsig_t sig;
-        dns_rdata_t sigrdata = DNS_RDATA_INIT;
-        isc_result_t result;
+	dns_keytag_t keytag;
+	dns_rdata_dnskey_t key;
+	dns_rdata_rrsig_t sig;
+	dns_rdata_t sigrdata = DNS_RDATA_INIT;
+	isc_result_t result;
 
-        INSIST(rdataset->type == dns_rdatatype_key ||
-               rdataset->type == dns_rdatatype_dnskey);
+	INSIST(rdataset->type == dns_rdatatype_key ||
+	       rdataset->type == dns_rdatatype_dnskey);
 	if (rdataset->type == dns_rdatatype_key) {
 		INSIST(sigrdataset->type == dns_rdatatype_sig);
 		INSIST(sigrdataset->covers == dns_rdatatype_key);
@@ -947,7 +947,7 @@ dns_dnssec_selfsigns(dns_rdata_t *rdata, dns_name_t *name,
 				return (ISC_TRUE);
 			}
 		}
-        }
+	}
 	dst_key_free(&dstkey);
-        return (ISC_FALSE);
+	return (ISC_FALSE);
 }
