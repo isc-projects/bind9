@@ -1,6 +1,9 @@
 2613.	[bug]		Option argument validation was missing for
 			dnssec-dsfromkey. [RT #19828]
 
+2580.	[bug]		UpdateRej statistics counter could be incremented twice
+			for one rejection. [RT #19476]
+
 	--- 9.6.1 released ---
 
 2607.	[bug]		named could incorrectly delete NSEC3 records for
