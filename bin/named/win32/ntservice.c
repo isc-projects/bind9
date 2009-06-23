@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntservice.c,v 1.12 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id: ntservice.c,v 1.13 2009/06/23 07:43:48 marka Exp $ */
 
 #include <config.h>
 #include <stdio.h>
@@ -65,9 +65,12 @@ int bindmain()
 	 */
 	GetArgs(&argc, &argv, &envp);
 
-	/* Command line users should put -f in the options */
+	/* Command line users should put -f in the options. */
+	/* XXXMPA should use isc_commandline_parse() here. */
 	while (argv[i]) {
-		if (!strcmp(argv[i], "-f") || !strcmp(argv[i], "-g")) {
+		if (!strcmp(argv[i], "-f") ||
+		    !strcmp(argv[i], "-g") ||
+		    !strcmp(argv[i], "-v")) {
 			foreground = TRUE;
 			break;
 		}
