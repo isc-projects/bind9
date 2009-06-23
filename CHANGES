@@ -1,3 +1,6 @@
+2615.	[port]		win32: 'named -v' should automatically be executed
+			in the foreground. [RT #19844]
+
 2613.	[placeholder]
 
 	--- 9.7.0a1 released ---
