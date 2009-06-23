@@ -1,8 +1,0 @@
-$ORIGIN .
-example.com		300	IN DNSKEY 257 3 5 (
-					AwEAAbuWh5W3eGwixISqPwxszotQ0246KqhU
-					B2Mb6JqNMJd6cWR66IrXYnevpIHsb6oanqJm
-					VzOcJ6Yj3rXOIYtYYXgLbT7EJ8x7BNCZPHxG
-					+w5C7I1WsDbT6eGf//FLn2c4odKLOXaWCVIT
-					eNy61w43IlteIT9Q1egKdt+8a7X9605j
-					) ; key id = 23362
