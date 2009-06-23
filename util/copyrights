@@ -959,7 +959,7 @@
 ./contrib/dlz/drivers/dlz_drivers.c		X	2005
 ./contrib/dlz/drivers/dlz_filesystem_driver.c	X	2005
 ./contrib/dlz/drivers/dlz_ldap_driver.c		X	2005
-./contrib/dlz/drivers/dlz_mysql_driver.c	X	2005,2007
+./contrib/dlz/drivers/dlz_mysql_driver.c	X	2005,2007,2009
 ./contrib/dlz/drivers/dlz_odbc_driver.c		X	2005
 ./contrib/dlz/drivers/dlz_postgres_driver.c	X	2005,2007
 ./contrib/dlz/drivers/dlz_stub_driver.c		X	2005
@@ -1588,7 +1588,7 @@
 ./lib/dns/cache.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./lib/dns/callbacks.c				C	1999,2000,2001,2004,2005,2007
 ./lib/dns/compress.c				C	1999,2000,2001,2004,2005,2006,2007
-./lib/dns/db.c					C	1999,2000,2001,2003,2004,2005,2007,2008
+./lib/dns/db.c					C	1999,2000,2001,2003,2004,2005,2007,2008,2009
 ./lib/dns/dbiterator.c				C	1999,2000,2001,2004,2005,2007
 ./lib/dns/dbtable.c				C	1999,2000,2001,2004,2005,2007
 ./lib/dns/diff.c				C	2000,2001,2002,2003,2004,2005,2007,2008,2009
@@ -2439,6 +2439,6 @@
 ./win32utils/index.html				HTML	2006,2007,2008
 ./win32utils/makedefs.pl			PERL	2001,2004,2007,2009
 ./win32utils/makeversion.pl			PERL	2001,2004,2007
-./win32utils/readme1st.txt			TXT.BRIEF	2001,2003,2004,2005,2007,2008
+./win32utils/readme1st.txt			TXT.BRIEF	2001,2003,2004,2005,2007,2008,2009
 ./win32utils/updateopenssl.pl			PERL	2006,2007
 ./win32utils/win32-build.txt			TXT.BRIEF	2001,2002,2004,2005,2008
