@@ -1,3 +1,6 @@
+2615.	[port]		win32: 'named -v' should automatically be executed
+			in the foreground. [RT #19844]
+
 2610.	[port]		sunos: Change #2363 was not complete. [RT #19796]
 
 2606.	[bug]		"delegation-only" was not being accepted in
