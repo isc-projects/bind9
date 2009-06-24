@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.321 2009/02/25 02:34:21 marka Exp $ */
+/* $Id: dighost.c,v 1.322 2009/06/24 02:51:29 marka Exp $ */
 
 /*! \file
  *  \note
@@ -1066,7 +1066,9 @@ setup_system(void) {
 		debug("ndots is %d.", ndots);
 	}
 
-	copy_server_list(lwconf, &server_list);
+	/* If user doesn't specify server use nameservers from resolv.conf. */
+	if (ISC_LIST_EMPTY(server_list))
+		copy_server_list(lwconf, &server_list);
 
 	/* If we don't find a nameserver fall back to localhost */
 	if (ISC_LIST_EMPTY(server_list)) {
