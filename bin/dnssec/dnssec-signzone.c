@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.219 2009/06/09 22:54:21 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.220 2009/06/24 01:27:06 marka Exp $ */
 
 /*! \file */
 
@@ -1333,7 +1333,7 @@ goodsig(dns_rdata_t *sigrdata, dns_name_t *name, dns_rdataset_t *keyrdataset,
 static void
 verifyset(dns_rdataset_t *rdataset, dns_name_t *name, dns_dbnode_t *node,
 	  dns_rdataset_t *keyrdataset, unsigned char *ksk_algorithms,
-	   char *bad_algorithms)
+	  unsigned char *bad_algorithms)
 {
 	unsigned char set_algorithms[256];
 	char namebuf[DNS_NAME_FORMATSIZE];
