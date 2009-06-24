@@ -1,5 +1,5 @@
-2616.	[bug]		The nameserver argument to 'host' was being ignored.
-			[RT #19852]
+2616.	[bug]		'host' used the nameservers from resolv.conf even
+			when a explicit nameserver was specified. [RT #19852]
 
 2615.	[bug]		"__attribute__((unused))" was in the wrong place
 			for ia64 gcc builds. [RT #19854]
