@@ -1,3 +1,6 @@
+2615.	[bug]		"__attribute__((unused))" was in the wrong place
+			for ia64 gcc builds. [RT #19854]
+
 2614.	[port]		win32: 'named -v' should automatically be executed
 			in the foreground. [RT #19844]
 
