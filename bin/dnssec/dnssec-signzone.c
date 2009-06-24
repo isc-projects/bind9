@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.209.12.10 2009/06/22 23:47:16 tbox Exp $ */
+/* $Id: dnssec-signzone.c,v 1.209.12.11 2009/06/24 01:26:32 marka Exp $ */
 
 /*! \file */
 
@@ -1333,7 +1333,7 @@ goodsig(dns_rdata_t *sigrdata, dns_name_t *name, dns_rdataset_t *keyrdataset,
 static void
 verifyset(dns_rdataset_t *rdataset, dns_name_t *name, dns_dbnode_t *node,
 	  dns_rdataset_t *keyrdataset, unsigned char *ksk_algorithms,
-	   char *bad_algorithms)
+	  unsigned char *bad_algorithms)
 {
 	unsigned char set_algorithms[256];
 	char namebuf[DNS_NAME_FORMATSIZE];
@@ -2920,7 +2920,7 @@ main(int argc, char *argv[]) {
 	unsigned char saltbuf[255];
 	hashlist_t hashlist;
 
-#define CMDLINE_FLAGS "3:aAc:d:e:f:ghH:i:I:j:k:l:m:n:N:o:O:pPr:s:StUv:z"
+#define CMDLINE_FLAGS "3:aAc:d:e:f:FghH:i:I:j:k:l:m:n:N:o:O:pPr:s:StUv:z"
 
 	/*
 	 * Process memory debugging argument first.
