@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.55 2009/03/04 02:42:30 each Exp $
+# $Id: Makefile.in,v 1.56 2009/06/25 17:06:42 each Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -53,9 +53,9 @@ installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man1
 
 install:: isc-config.sh installdirs
-	${INSTALL_SCRIPT} isc-config.sh ${DESTDIR}${bindir}
-	${INSTALL_DATA} ${srcdir}/isc-config.sh.1 ${DESTDIR}${mandir}/man1
-	${INSTALL_SCRIPT} bind.keys ${DESTDIR}${sysconfdir}
+	${INSTALL_SCRIPT} ${top_srcdir}/isc-config.sh ${DESTDIR}${bindir}
+	${INSTALL_DATA} ${top_srcdir}/isc-config.sh.1 ${DESTDIR}${mandir}/man1
+	${INSTALL_DATA} ${top_srcdir}/bind.keys ${DESTDIR}${sysconfdir}
 
 tags:
 	rm -f TAGS
