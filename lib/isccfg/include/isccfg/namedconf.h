@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.h,v 1.12 2009/06/10 00:27:22 each Exp $ */
+/* $Id: namedconf.h,v 1.13 2009/06/25 05:28:34 marka Exp $ */
 
 #ifndef ISCCFG_NAMEDCONF_H
 #define ISCCFG_NAMEDCONF_H 1
@@ -48,4 +48,4 @@ LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_ddnskey;
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_keyref;
 /*%< A key reference, used as an ACL element */
 
-#endif /* ISCCFG_CFG_H */
+#endif /* ISCCFG_NAMEDCONF_H */
