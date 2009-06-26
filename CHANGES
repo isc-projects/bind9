@@ -1,3 +1,6 @@
+2618.	[bug]		The sdb and sdlz db_interator_seek() methods could
+			loop infinitely. [RT #19847]
+
 2617.	[bug]		ifconfig.sh failed to emit an error message when
 			run from the wrong location. [RT #19375]
 
