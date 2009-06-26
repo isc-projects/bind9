@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.324 2009/05/07 09:41:22 fdupont Exp $ */
+/* $Id: query.c,v 1.325 2009/06/26 08:02:57 jinmei Exp $ */
 
 /*! \file */
 
@@ -3616,7 +3616,7 @@ query_findclosestnsec3(dns_name_t *qname, dns_db_t *db,
 		       dns_name_t *found)
 {
 	unsigned char salt[256];
-	size_t salt_length = sizeof(salt);
+	size_t salt_length;
 	isc_uint16_t iterations;
 	isc_result_t result;
 	unsigned int dboptions;
