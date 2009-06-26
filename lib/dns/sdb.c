@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.59.94.7 2009/04/28 23:46:43 tbox Exp $ */
+/* $Id: sdb.c,v 1.59.94.8 2009/06/26 06:23:47 marka Exp $ */
 
 /*! \file */
 
@@ -1447,9 +1447,11 @@ dbiterator_seek(dns_dbiterator_t *iterator, dns_name_t *name) {
 	sdb_dbiterator_t *sdbiter = (sdb_dbiterator_t *)iterator;
 
 	sdbiter->current = ISC_LIST_HEAD(sdbiter->nodelist);
-	while (sdbiter->current != NULL)
+	while (sdbiter->current != NULL) {
 		if (dns_name_equal(sdbiter->current->name, name))
 			return (ISC_R_SUCCESS);
+		sdbiter->current = ISC_LIST_NEXT(sdbiter->current, link);
+	}
 	return (ISC_R_NOTFOUND);
 }
 

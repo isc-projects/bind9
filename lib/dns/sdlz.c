@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdlz.c,v 1.14.94.5 2009/04/28 23:46:43 tbox Exp $ */
+/* $Id: sdlz.c,v 1.14.94.6 2009/06/26 06:23:47 marka Exp $ */
 
 /*! \file */
 
@@ -1108,9 +1108,11 @@ dbiterator_seek(dns_dbiterator_t *iterator, dns_name_t *name) {
 	sdlz_dbiterator_t *sdlziter = (sdlz_dbiterator_t *)iterator;
 
 	sdlziter->current = ISC_LIST_HEAD(sdlziter->nodelist);
-	while (sdlziter->current != NULL)
+	while (sdlziter->current != NULL) {
 		if (dns_name_equal(sdlziter->current->name, name))
 			return (ISC_R_SUCCESS);
+		sdlziter->current = ISC_LIST_NEXT(sdlziter->current, link);
+	}
 	return (ISC_R_NOTFOUND);
 }
 
