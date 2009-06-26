@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2008  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2008, 2009  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000-2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: ifconfig.sh,v 1.46.18.7 2009/06/26 06:17:32 marka Exp $
+# $Id: ifconfig.sh,v 1.46.18.8 2009/06/26 23:45:57 tbox Exp $
 
 #
 # Set up interface aliases for bind9 system tests.
