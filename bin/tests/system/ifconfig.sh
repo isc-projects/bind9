@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: ifconfig.sh,v 1.46.18.6 2008/07/25 20:46:58 fdupont Exp $
+# $Id: ifconfig.sh,v 1.46.18.7 2009/06/26 06:17:32 marka Exp $
 
 #
 # Set up interface aliases for bind9 system tests.
@@ -32,7 +32,7 @@ done
 
 if test "X$config_guess" = "X"
 then
-	echo <<EOF >&2
+	cat <<EOF >&2
 $0: must be run from the top level source directory or the
 bin/tests/system directory
 EOF
