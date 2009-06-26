@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.414 2009/06/17 07:02:45 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.415 2009/06/26 04:05:01 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -68,7 +68,7 @@
       </para>
 
       <para>
-        This version of the manual corresponds to BIND version 9.6.
+        This version of the manual corresponds to BIND version 9.7.
       </para>
 
     </sect1>
