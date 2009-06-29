@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.415 2009/06/26 04:05:01 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.416 2009/06/29 09:46:40 jreed Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -2514,7 +2514,7 @@ allow-update { key host1-host2. ;};
 
 	<para>
 	  After DNSSEC gets established, a typical DNSSEC configuration
-	  will look something like the following.  It has a one or
+	  will look something like the following.  It has one or
 	  more public keys for the root.  This allows answers from
 	  outside the organization to be validated.  It will also
 	  have several keys for parts of the namespace the organization
@@ -5350,14 +5350,14 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	      <para>
 		DS queries are expected to be made to and be answered by
 		delegation only zones.  Such queries and responses are
-		treated as a exception to delegation-only processing
+		treated as an exception to delegation-only processing
 		and are not converted to NXDOMAIN responses provided
 		a CNAME is not discovered at the query name.
 	      </para>
 	      <para>
 		If a delegation only zone server also serves a child
 		zone it is not always possible to determine whether
-		a answer comes from the delegation only zone or the
+		an answer comes from the delegation only zone or the
 		child zone.  SOA NS and DNSKEY records are apex
 		only records and a matching response that contains
 		these records or DS is treated as coming from a
@@ -7955,7 +7955,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  DNSSEC signatures automatically generated as a
 		  result of dynamic updates (<xref
 		  linkend="dynamic_update"/>) will expire.  There
-		  is a optional second field which specifies how
+		  is an optional second field which specifies how
 		  long before expiry that the signatures will be
 		  regenerated.  If not specified, the signatures will
 		  be regenerated at 1/4 of base interval.  The second
@@ -8256,7 +8256,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	  <para>
 	    Named will attempt to determine if a built-in zone already exists
 	    or is active (covered by a forward-only forwarding declaration)
-	    and will not create a empty zone in that case.
+	    and will not create an empty zone in that case.
 	  </para>
 	  <para>
 	    The current list of empty zones is:
@@ -11854,7 +11854,7 @@ HOST-127.EXAMPLE. MX 0 .
                     </para>
 		    <para>
 		      In nibble mode the value will be treated as
-		      a if it was a reversed hexadecimal string
+		      if it was a reversed hexadecimal string
 		      with each hexadecimal digit as a seperate
 		      label.  The width field includes the label
 		      seperator.
