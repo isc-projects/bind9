@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.86 2009/06/30 02:52:32 each Exp $ */
+/* $Id: dnssec-keygen.c,v 1.87 2009/06/30 23:48:00 tbox Exp $ */
 
 /*! \file */
 
@@ -429,7 +429,7 @@ main(int argc, char **argv) {
 	else if ((flags & DNS_KEYOWNER_ZONE) != 0) { /* DNSKEY */
 		flags |= ksk;
 		flags |= revoke;
-        }
+	}
 
 	if (protocol == -1)
 		protocol = DNS_KEYPROTO_DNSSEC;

@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keyfromlabel.c,v 1.7 2009/06/30 02:52:32 each Exp $ */
+/* $Id: dnssec-keyfromlabel.c,v 1.8 2009/06/30 23:48:00 tbox Exp $ */
 
 /*! \file */
 
@@ -244,7 +244,7 @@ main(int argc, char **argv) {
 	else if ((flags & DNS_KEYOWNER_ZONE) != 0) { /* DNSKEY */
 		flags |= ksk;
 		flags |= revoke;
-        }
+	}
 
 	if (protocol == -1)
 		protocol = DNS_KEYPROTO_DNSSEC;

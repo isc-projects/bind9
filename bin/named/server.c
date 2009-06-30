@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.535 2009/06/30 02:52:32 each Exp $ */
+/* $Id: server.c,v 1.536 2009/06/30 23:48:01 tbox Exp $ */
 
 /*! \file */
 
@@ -664,11 +664,11 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 		if (builtin_managed_keys != NULL)
 			ns_g_server->managedkeys = ISC_TRUE;
 		CHECK(load_view_keys(builtin_keys, vconfig, view,
-                                     ISC_FALSE, mctx));
+				     ISC_FALSE, mctx));
 
 		if (strcmp(view->name, "_meta") == 0)
 			CHECK(load_view_keys(builtin_managed_keys, vconfig,
-                                             view, ISC_TRUE, mctx));
+					     view, ISC_TRUE, mctx));
 	}
 
 	CHECK(load_view_keys(view_keys, vconfig, view, ISC_FALSE, mctx));
@@ -2882,7 +2882,7 @@ add_keydata_zone(dns_view_t *view, isc_mem_t *mctx) {
 
 	CHECK(dns_zone_create(&zone, mctx));
 
-        dns_name_init(&zname, NULL);
+	dns_name_init(&zname, NULL);
 	CHECK(dns_name_fromstring(&zname, KEYZONE, mctx));
 	CHECK(dns_zone_setorigin(zone, &zname));
 	dns_name_free(&zname, mctx);

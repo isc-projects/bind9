@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.494 2009/06/30 02:52:32 each Exp $ */
+/* $Id: zone.c,v 1.495 2009/06/30 23:48:01 tbox Exp $ */
 
 /*! \file */
 
@@ -2860,7 +2860,7 @@ zone_journal(dns_zone_t *zone, dns_diff_t *diff, const char *caller) {
 }
 
 /*
- * Synchronize the set of initializing keys found in managed-keys {} 
+ * Synchronize the set of initializing keys found in managed-keys {}
  * statements with the set of trust anchors found in the managed-keys.bind
  * zone.  If a domain is no longer named in managed-keys, delete all keys
  * from that domain from the key zone.	If a domain is mentioned in in
@@ -2936,7 +2936,7 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db, isc_boolean_t addsoa) {
 			if (!dns_rdataset_isassociated(rdataset)) {
 				dns_rriterator_destroy(&rrit);
 				goto failure;
-			} 
+			}
 
 			if (rdataset->type != dns_rdatatype_keydata)
 				continue;
@@ -6763,7 +6763,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	 *     timer to 30 days in the future
 	 *   - All keys not being removed have their refresh timers
 	 *     updated
-	 */ 
+	 */
 	initializing = ISC_TRUE;
 	for (result = dns_rdataset_first(&kfetch->keydataset);
 	     result == ISC_R_SUCCESS;
@@ -6819,7 +6819,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 					     &keydata, &keyb);
 
 			/* Insert updated version */
-			CHECK(update_one_rr(kfetch->db, ver, &diff, 
+			CHECK(update_one_rr(kfetch->db, ver, &diff,
 					    DNS_DIFFOP_ADD, keyname, 0,
 					    &keydatarr));
 			changed = ISC_TRUE;
@@ -6907,8 +6907,8 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 			} else {
 				if (keydata.removehd != 0) {
 					/*
-					 * Key isn't revoked--but it 
-					 * seems it used to be. 
+					 * Key isn't revoked--but it
+					 * seems it used to be.
 					 * Remove it now and add it
 					 * back as if it were a fresh key.
 					 */
@@ -6927,7 +6927,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 				updatekey = ISC_TRUE;
 		} else {
 			/*
-			 * Key wasn't in the key zone but it's 
+			 * Key wasn't in the key zone but it's
 			 * revoked now anyway, so just skip it
 			 */
 			if (revoked)
@@ -6953,7 +6953,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 
 		/* Delete old version */
 		if (deletekey || !newkey) {
-			CHECK(update_one_rr(kfetch->db, ver, &diff, 
+			CHECK(update_one_rr(kfetch->db, ver, &diff,
 					    DNS_DIFFOP_DEL, keyname, 0,
 					    &keydatarr));
 			changed = ISC_TRUE;
@@ -7024,7 +7024,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADED);
 		zone_needdump(zone, 30);
 	}
-	
+
 	if (alldone)
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESHING);
 
@@ -7150,7 +7150,7 @@ zone_refreshkeys(dns_zone_t *zone) {
 
 		dns_resolver_createfetch(zone->view->resolver,
 					 dns_fixedname_name(&kfetch->name),
-					 dns_rdatatype_dnskey, 
+					 dns_rdatatype_dnskey,
 					 NULL, NULL, NULL,
 					 DNS_FETCHOPT_NOVALIDATE,
 					 zone->task, keyfetch_done, kfetch,

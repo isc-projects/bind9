@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.21 2009/06/30 02:52:32 each Exp $
+ * $Id: dst_api.c,v 1.22 2009/06/30 23:48:01 tbox Exp $
  */
 
 /*! \file */
@@ -1067,9 +1067,9 @@ dst_key_read_public(const char *filename, int type,
  */
 isc_result_t
 dst_key_setflags(dst_key_t *key, isc_uint32_t flags) {
-        REQUIRE(VALID_KEY(key));
-        key->key_flags = flags;
-        return (computeid(key));
+	REQUIRE(VALID_KEY(key));
+	key->key_flags = flags;
+	return (computeid(key));
 }
 
 static isc_boolean_t
