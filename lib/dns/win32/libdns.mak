@@ -148,6 +148,7 @@ CLEAN :
 	-@erase "$(INTDIR)\iptable.obj"
 	-@erase "$(INTDIR)\journal.obj"
 	-@erase "$(INTDIR)\key.obj"
+	-@erase "$(INTDIR)\keydata.obj"
 	-@erase "$(INTDIR)\keytable.obj"
 	-@erase "$(INTDIR)\lib.obj"
 	-@erase "$(INTDIR)\log.obj"
@@ -179,6 +180,7 @@ CLEAN :
 	-@erase "$(INTDIR)\resolver.obj"
 	-@erase "$(INTDIR)\result.obj"
 	-@erase "$(INTDIR)\rootns.obj"
+	-@erase "$(INTDIR)\rriterator.obj"
 	-@erase "$(INTDIR)\sdb.obj"
 	-@erase "$(INTDIR)\sdlz.obj"
 	-@erase "$(INTDIR)\soa.obj"
@@ -270,6 +272,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\forward.obj" \
 	"$(INTDIR)\iptable.obj" \
 	"$(INTDIR)\journal.obj" \
+	"$(INTDIR)\keydata.obj" \
 	"$(INTDIR)\keytable.obj" \
 	"$(INTDIR)\lib.obj" \
 	"$(INTDIR)\log.obj" \
@@ -297,6 +300,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\resolver.obj" \
 	"$(INTDIR)\result.obj" \
 	"$(INTDIR)\rootns.obj" \
+	"$(INTDIR)\rriterator.obj" \
 	"$(INTDIR)\sdb.obj" \
 	"$(INTDIR)\sdlz.obj" \
 	"$(INTDIR)\soa.obj" \
@@ -415,6 +419,8 @@ CLEAN :
 	-@erase "$(INTDIR)\journal.sbr"
 	-@erase "$(INTDIR)\key.obj"
 	-@erase "$(INTDIR)\key.sbr"
+	-@erase "$(INTDIR)\keydata.obj"
+	-@erase "$(INTDIR)\keydata.sbr"
 	-@erase "$(INTDIR)\keytable.obj"
 	-@erase "$(INTDIR)\keytable.sbr"
 	-@erase "$(INTDIR)\lib.obj"
@@ -477,6 +483,8 @@ CLEAN :
 	-@erase "$(INTDIR)\result.sbr"
 	-@erase "$(INTDIR)\rootns.obj"
 	-@erase "$(INTDIR)\rootns.sbr"
+	-@erase "$(INTDIR)\rriterator.obj"
+	-@erase "$(INTDIR)\rriterator.sbr"
 	-@erase "$(INTDIR)\sdb.obj"
 	-@erase "$(INTDIR)\sdb.sbr"
 	-@erase "$(INTDIR)\sdlz.obj"
@@ -585,6 +593,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\forward.sbr" \
 	"$(INTDIR)\iptable.sbr" \
 	"$(INTDIR)\journal.sbr" \
+	"$(INTDIR)\keydata.sbr" \
 	"$(INTDIR)\keytable.sbr" \
 	"$(INTDIR)\lib.sbr" \
 	"$(INTDIR)\log.sbr" \
@@ -612,6 +621,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\resolver.sbr" \
 	"$(INTDIR)\result.sbr" \
 	"$(INTDIR)\rootns.sbr" \
+	"$(INTDIR)\rriterator.sbr" \
 	"$(INTDIR)\sdb.sbr" \
 	"$(INTDIR)\sdlz.sbr" \
 	"$(INTDIR)\soa.sbr" \
@@ -673,6 +683,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\forward.obj" \
 	"$(INTDIR)\iptable.obj" \
 	"$(INTDIR)\journal.obj" \
+	"$(INTDIR)\key.obj" \
 	"$(INTDIR)\keytable.obj" \
 	"$(INTDIR)\lib.obj" \
 	"$(INTDIR)\log.obj" \
@@ -700,6 +711,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\resolver.obj" \
 	"$(INTDIR)\result.obj" \
 	"$(INTDIR)\rootns.obj" \
+	"$(INTDIR)\rriterator.obj" \
 	"$(INTDIR)\sdb.obj" \
 	"$(INTDIR)\sdlz.obj" \
 	"$(INTDIR)\soa.obj" \
@@ -1091,6 +1103,24 @@ SOURCE=..\journal.c
 
 
 "$(INTDIR)\journal.obj"	"$(INTDIR)\journal.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\keydata.c
+
+!IF  "$(CFG)" == "libdns - Win32 Release"
+
+
+"$(INTDIR)\keydata.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libdns - Win32 Debug"
+
+
+"$(INTDIR)\keydata.obj"	"$(INTDIR)\keydata.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
@@ -1578,6 +1608,24 @@ SOURCE=..\rootns.c
 
 
 "$(INTDIR)\rootns.obj"	"$(INTDIR)\rootns.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\rriterator.c
+
+!IF  "$(CFG)" == "libdns - Win32 Release"
+
+
+"$(INTDIR)\rriterator.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libdns - Win32 Debug"
+
+
+"$(INTDIR)\rriterator.obj"	"$(INTDIR)\rriterator.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 

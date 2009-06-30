@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.85 2009/06/17 23:53:04 tbox Exp $ */
+/* $Id: dnssec-keygen.c,v 1.86 2009/06/30 02:52:32 each Exp $ */
 
 /*! \file */
 
@@ -102,7 +102,7 @@ usage(void) {
 	fprintf(stderr, "    -c <class> (default: IN)\n");
 	fprintf(stderr, "    -d <digest bits> (0 => max, default)\n");
 	fprintf(stderr, "    -e use large exponent (RSAMD5/RSASHA1 only)\n");
-	fprintf(stderr, "    -f keyflag: KSK\n");
+	fprintf(stderr, "    -f keyflag (KSK or REVOKE)\n");
 	fprintf(stderr, "    -g <generator> use specified generator "
 		"(DH only)\n");
 	fprintf(stderr, "    -t <type>: "
@@ -130,7 +130,7 @@ main(int argc, char **argv) {
 	dst_key_t	*key = NULL, *oldkey;
 	dns_fixedname_t	fname;
 	dns_name_t	*name;
-	isc_uint16_t	flags = 0, ksk = 0;
+	isc_uint16_t	flags = 0, ksk = 0, revoke = 0;
 	dns_secalg_t	alg;
 	isc_boolean_t	conflict = ISC_FALSE, null_key = ISC_FALSE;
 	isc_mem_t	*mctx = NULL;
@@ -182,6 +182,9 @@ main(int argc, char **argv) {
 		case 'f':
 			if (strcasecmp(isc_commandline_argument, "KSK") == 0)
 				ksk = DNS_KEYFLAG_KSK;
+			else if (strcasecmp(isc_commandline_argument,
+					    "REVOKE") == 0)
+				revoke = DNS_KEYFLAG_REVOKE;
 			else
 				fatal("unknown flag '%s'",
 				      isc_commandline_argument);
@@ -423,8 +426,10 @@ main(int argc, char **argv) {
 
 	if ((options & DST_TYPE_KEY) != 0)  /* KEY / HMAC */
 		flags |= signatory;
-	else if ((flags & DNS_KEYOWNER_ZONE) != 0) /* DNSKEY */
+	else if ((flags & DNS_KEYOWNER_ZONE) != 0) { /* DNSKEY */
 		flags |= ksk;
+		flags |= revoke;
+        }
 
 	if (protocol == -1)
 		protocol = DNS_KEYPROTO_DNSSEC;

@@ -15,15 +15,17 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: soa.c,v 1.8 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: soa.c,v 1.9 2009/06/30 02:52:32 each Exp $ */
 
 /*! \file */
 
 #include <config.h>
 
+#include <isc/buffer.h>
 #include <isc/util.h>
 
 #include <dns/rdata.h>
+#include <dns/rdatastruct.h>
 #include <dns/soa.h>
 
 static inline isc_uint32_t
@@ -58,6 +60,37 @@ soa_get(dns_rdata_t *rdata, int offset) {
 	INSIST(rdata->length >= 20);
 	INSIST(offset >= 0 && offset <= 16);
 	return (decode_uint32(rdata->data + rdata->length - 20 + offset));
+}
+
+isc_result_t
+dns_soa_buildrdata(dns_name_t *origin, dns_name_t *contact,
+		   dns_rdataclass_t rdclass,
+		   isc_uint32_t serial, isc_uint32_t refresh, 
+		   isc_uint32_t retry, isc_uint32_t expire, 
+		   isc_uint32_t minimum, dns_rdata_t *rdata) {
+	dns_rdata_soa_t soa;
+	char soadata[DNS_NAME_FORMATSIZE];
+	isc_buffer_t rdatabuf;
+
+	REQUIRE(origin != NULL);
+	REQUIRE(contact != NULL);
+
+	soa.common.rdtype = dns_rdatatype_soa;
+	soa.common.rdclass = rdclass;
+	soa.mctx = NULL;
+	soa.serial = serial;
+	soa.refresh = refresh;
+	soa.retry = retry;
+	soa.expire = expire;
+	soa.minimum = minimum;
+	dns_name_init(&soa.origin, NULL);
+	dns_name_clone(origin, &soa.origin);
+	dns_name_init(&soa.contact, NULL);
+	dns_name_clone(contact, &soa.contact);
+
+	isc_buffer_init(&rdatabuf, soadata, sizeof(soadata));
+	return (dns_rdata_fromstruct(rdata, rdclass, dns_rdatatype_soa,
+				      &soa, &rdatabuf));
 }
 
 isc_uint32_t

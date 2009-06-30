@@ -1,3 +1,9 @@
+2619.	[func]		Add support for RFC 5011, automatic trust anchor
+			maintenance.  The new "managed-keys" statement can
+			be used in place of "trusted-keys" for zones which
+			support this protocol.  (Note: this syntax is
+			expected to change prior to 9.7.0 final.) [RT #19248]
+
 2618.	[bug]		The sdb and sdlz db_interator_seek() methods could
 			loop infinitely. [RT #19847]
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: soa.h,v 1.9 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: soa.h,v 1.10 2009/06/30 02:52:32 each Exp $ */
 
 #ifndef DNS_SOA_H
 #define DNS_SOA_H 1
@@ -40,6 +40,12 @@
 
 ISC_LANG_BEGINDECLS
 
+isc_result_t
+dns_soa_buildrdata(dns_name_t *origin, dns_name_t *contact,
+		   dns_rdataclass_t rdclass,
+		   isc_uint32_t serial, isc_uint32_t refresh, 
+		   isc_uint32_t retry, isc_uint32_t expire, 
+		   isc_uint32_t minimum, dns_rdata_t *rdata);
 isc_uint32_t
 dns_soa_getserial(dns_rdata_t *rdata);
 isc_uint32_t

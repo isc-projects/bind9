@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.98 2009/06/10 23:47:47 tbox Exp $ */
+/* $Id: namedconf.c,v 1.99 2009/06/30 02:52:33 each Exp $ */
 
 /*! \file */
 
@@ -361,9 +361,9 @@ static cfg_type_t cfg_type_category = {
 
 
 /*%
- * A trusted key, as used in the "trusted-keys" statement.
+ * A dnssec key, as used in the "trusted-keys" or "managed-keys" statement.
  */
-static cfg_tuplefielddef_t trustedkey_fields[] = {
+static cfg_tuplefielddef_t dnsseckey_fields[] = {
 	{ "name", &cfg_type_astring, 0 },
 	{ "flags", &cfg_type_uint32, 0 },
 	{ "protocol", &cfg_type_uint32, 0 },
@@ -371,9 +371,9 @@ static cfg_tuplefielddef_t trustedkey_fields[] = {
 	{ "key", &cfg_type_qstring, 0 },
 	{ NULL, NULL, 0 }
 };
-static cfg_type_t cfg_type_trustedkey = {
-	"trustedkey", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple, &cfg_rep_tuple,
-	trustedkey_fields
+static cfg_type_t cfg_type_dnsseckey = {
+	"dnsseckey", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	&cfg_rep_tuple, dnsseckey_fields
 };
 
 static keyword_type_t wild_class_kw = { "class", &cfg_type_ustring };
@@ -459,13 +459,14 @@ static cfg_type_t cfg_type_optional_port = {
 
 /*% A list of keys, as in the "key" clause of the controls statement. */
 static cfg_type_t cfg_type_keylist = {
-	"keylist", cfg_parse_bracketed_list, cfg_print_bracketed_list, cfg_doc_bracketed_list, &cfg_rep_list,
-	&cfg_type_astring
+	"keylist", cfg_parse_bracketed_list, cfg_print_bracketed_list,
+	cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_astring
 };
 
-static cfg_type_t cfg_type_trustedkeys = {
-	"trusted-keys", cfg_parse_bracketed_list, cfg_print_bracketed_list, cfg_doc_bracketed_list, &cfg_rep_list,
-	&cfg_type_trustedkey
+/*% A list of dnssec keys, as in "trusted-keys" and "managed-keys" stanzas */
+static cfg_type_t cfg_type_dnsseckeys = {
+	"dnsseckeys", cfg_parse_bracketed_list, cfg_print_bracketed_list,
+	cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_dnsseckey
 };
 
 static const char *forwardtype_enums[] = { "first", "only", NULL };
@@ -690,7 +691,8 @@ namedconf_or_view_clauses[] = {
 	/* only 1 DLZ per view allowed */
 	{ "dlz", &cfg_type_dynamically_loadable_zones, 0 },
 	{ "server", &cfg_type_server, CFG_CLAUSEFLAG_MULTI },
-	{ "trusted-keys", &cfg_type_trustedkeys, CFG_CLAUSEFLAG_MULTI },
+	{ "trusted-keys", &cfg_type_dnsseckeys, CFG_CLAUSEFLAG_MULTI },
+	{ "managed-keys", &cfg_type_dnsseckeys, CFG_CLAUSEFLAG_MULTI },
 	{ NULL, NULL, 0 }
 };
 
@@ -699,7 +701,8 @@ namedconf_or_view_clauses[] = {
  */
 static cfg_clausedef_t
 bindkeys_clauses[] = {
-	{ "trusted-keys", &cfg_type_trustedkeys, CFG_CLAUSEFLAG_MULTI },
+	{ "trusted-keys", &cfg_type_dnsseckeys, CFG_CLAUSEFLAG_MULTI },
+	{ "managed-keys", &cfg_type_dnsseckeys, CFG_CLAUSEFLAG_MULTI },
 	{ NULL, NULL, 0 }
 };
 
@@ -1086,7 +1089,7 @@ LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_namedconf = {
 	&cfg_rep_map, namedconf_clausesets
 };
 
-/*% The bind.keys syntax (trusted-keys only). */
+/*% The bind.keys syntax (trusted-keys/managed-keys only). */
 static cfg_clausedef_t *
 bindkeys_clausesets[] = {
 	bindkeys_clauses,

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.14 2009/06/11 23:47:55 tbox Exp $ */
+/* $Id: dst.h,v 1.15 2009/06/30 02:52:32 each Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -634,6 +634,15 @@ void
 dst_key_setbits(dst_key_t *key, isc_uint16_t bits);
 /*
  * Set the number of digest bits required (0 == MAX).
+ *
+ * Requires:
+ *	"key" is a valid key.
+ */
+
+isc_result_t
+dst_key_setflags(dst_key_t *key, isc_uint32_t flags);
+/*
+ * Set the key flags, and recompute the key ID.
  *
  * Requires:
  *	"key" is a valid key.

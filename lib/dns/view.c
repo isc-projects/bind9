@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.154 2009/05/29 22:22:37 jinmei Exp $ */
+/* $Id: view.c,v 1.155 2009/06/30 02:52:32 each Exp $ */
 
 /*! \file */
 
@@ -96,23 +96,6 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		goto cleanup_mutex;
 	}
 	view->secroots = NULL;
-	result = dns_keytable_create(mctx, &view->secroots);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "dns_keytable_create() failed: %s",
-				 isc_result_totext(result));
-		result = ISC_R_UNEXPECTED;
-		goto cleanup_zt;
-	}
-	view->trustedkeys = NULL;
-	result = dns_keytable_create(mctx, &view->trustedkeys);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "dns_keytable_create() failed: %s",
-				 isc_result_totext(result));
-		result = ISC_R_UNEXPECTED;
-		goto cleanup_secroots;
-	}
 	view->fwdtable = NULL;
 	result = dns_fwdtable_create(mctx, &view->fwdtable);
 	if (result != ISC_R_SUCCESS) {
@@ -120,7 +103,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 				 "dns_fwdtable_create() failed: %s",
 				 isc_result_totext(result));
 		result = ISC_R_UNEXPECTED;
-		goto cleanup_trustedkeys;
+		goto cleanup_zt;
 	}
 
 	view->acache = NULL;
@@ -236,12 +219,6 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 
  cleanup_fwdtable:
 	dns_fwdtable_destroy(&view->fwdtable);
-
- cleanup_trustedkeys:
-	dns_keytable_detach(&view->trustedkeys);
-
- cleanup_secroots:
-	dns_keytable_detach(&view->secroots);
 
  cleanup_zt:
 	dns_zt_detach(&view->zonetable);
@@ -365,8 +342,8 @@ destroy(dns_view_t *view) {
 		isc_stats_detach(&view->resstats);
 	if (view->resquerystats != NULL)
 		dns_stats_detach(&view->resquerystats);
-	dns_keytable_detach(&view->trustedkeys);
-	dns_keytable_detach(&view->secroots);
+	if (view->secroots != NULL)
+		dns_keytable_detach(&view->secroots);
 	dns_fwdtable_destroy(&view->fwdtable);
 	dns_aclenv_destroy(&view->aclenv);
 	DESTROYLOCK(&view->lock);
@@ -990,7 +967,7 @@ dns_view_findzonecut(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 isc_result_t
 dns_view_findzonecut2(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 		      isc_stdtime_t now, unsigned int options,
-		      isc_boolean_t use_hints,  isc_boolean_t use_cache,
+		      isc_boolean_t use_hints,	isc_boolean_t use_cache,
 		      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
 {
 	isc_result_t result;

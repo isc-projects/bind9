@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.117 2009/05/29 22:22:37 jinmei Exp $ */
+/* $Id: view.h,v 1.118 2009/06/30 02:52:32 each Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -92,8 +92,7 @@ struct dns_view {
 	dns_cache_t *			cache;
 	dns_db_t *			cachedb;
 	dns_db_t *			hints;
-	dns_keytable_t *		secroots;
-	dns_keytable_t *		trustedkeys;
+	dns_keytable_t *		secroots;   /* security roots */
 	isc_mutex_t			lock;
 	isc_boolean_t			frozen;
 	isc_task_t *			task;
@@ -165,6 +164,7 @@ struct dns_view {
 	unsigned int			attributes;
 	/* Under owner's locking control. */
 	ISC_LINK(struct dns_view)	link;
+	dns_viewlist_t *		viewlist;
 };
 
 #define DNS_VIEW_MAGIC			ISC_MAGIC('V','i','e','w')

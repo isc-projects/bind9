@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_internal.h,v 1.13 2009/06/11 23:47:55 tbox Exp $ */
+/* $Id: dst_internal.h,v 1.14 2009/06/30 02:52:32 each Exp $ */
 
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1
@@ -112,7 +112,7 @@ struct dst_key {
 		dst_hmacsha512_key_t *hmacsha512;
 
 	} keydata;			/*%< pointer to key in crypto pkg fmt */
-	dst_func_t *	func;	       /*%< crypto package specific functions */
+	dst_func_t *	func;		/*%< crypto package specific functions*/
 };
 
 struct dst_context {

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.97 2009/05/07 09:41:23 fdupont Exp $ */
+/* $Id: db.h,v 1.98 2009/06/30 02:52:32 each Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -59,7 +59,10 @@
 #include <isc/ondestroy.h>
 #include <isc/stdtime.h>
 
+#include <dns/fixedname.h>
 #include <dns/name.h>
+#include <dns/rdata.h>
+#include <dns/rdataset.h>
 #include <dns/types.h>
 
 ISC_LANG_BEGINDECLS
@@ -613,7 +616,7 @@ dns_db_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
  *
  * Note: if '*versionp' is a read-write version and 'commit' is ISC_TRUE,
  * then all changes made in the version will take effect, otherwise they
- * will be rolled back.  The value if 'commit' is ignored for read-only
+ * will be rolled back.  The value of 'commit' is ignored for read-only
  * versions.
  *
  * Requires:

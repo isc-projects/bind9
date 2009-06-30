@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.133 2009/01/27 22:29:59 jinmei Exp $ */
+/* $Id: types.h,v 1.134 2009/06/30 02:52:32 each Exp $ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
@@ -72,6 +72,7 @@ typedef struct dns_iptable			dns_iptable_t;
 typedef isc_uint32_t				dns_iterations_t;
 typedef isc_uint16_t				dns_keyflags_t;
 typedef struct dns_keynode			dns_keynode_t;
+typedef ISC_LIST(dns_keynode_t)			dns_keynodelist_t;
 typedef struct dns_keytable			dns_keytable_t;
 typedef isc_uint16_t				dns_keytag_t;
 typedef struct dns_loadctx			dns_loadctx_t;

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.534 2009/06/10 23:47:47 tbox Exp $ */
+/* $Id: server.c,v 1.535 2009/06/30 02:52:32 each Exp $ */
 
 /*! \file */
 
@@ -270,6 +270,9 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	       const cfg_obj_t *vconfig, isc_mem_t *mctx, dns_view_t *view,
 	       cfg_aclconfctx_t *aclconf);
 
+static isc_result_t
+add_keydata_zone(dns_view_t *view, isc_mem_t *mctx);
+
 static void
 end_reserved_dispatches(ns_server_t *server, isc_boolean_t all);
 
@@ -439,8 +442,8 @@ configure_view_nametable(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 }
 
 static isc_result_t
-configure_view_dnsseckey(const cfg_obj_t *vconfig, const cfg_obj_t *key,
-			 dns_keytable_t *keytable, isc_mem_t *mctx)
+dstkey_fromconfig(const cfg_obj_t *vconfig, const cfg_obj_t *key,
+		  isc_boolean_t managed, dst_key_t **target, isc_mem_t *mctx)
 {
 	dns_rdataclass_t viewclass;
 	dns_rdata_dnskey_t keystruct;
@@ -456,6 +459,8 @@ configure_view_dnsseckey(const cfg_obj_t *vconfig, const cfg_obj_t *key,
 	isc_buffer_t namebuf;
 	isc_result_t result;
 	dst_key_t *dstkey = NULL;
+
+	INSIST(target != NULL && *target == NULL);
 
 	flags = cfg_obj_asuint32(cfg_tuple_get(key, "flags"));
 	proto = cfg_obj_asuint32(cfg_tuple_get(key, "protocol"));
@@ -502,7 +507,8 @@ configure_view_dnsseckey(const cfg_obj_t *vconfig, const cfg_obj_t *key,
 	     keystruct.algorithm == DST_ALG_RSAMD5) &&
 	    r.length > 1 && r.base[0] == 1 && r.base[1] == 3)
 		cfg_obj_log(key, ns_g_lctx, ISC_LOG_WARNING,
-			    "trusted key '%s' has a weak exponent",
+			    "%s key '%s' has a weak exponent",
+			    managed ? "managed" : "trusted",
 			    keynamestr);
 
 	CHECK(dns_rdata_fromstruct(NULL,
@@ -518,19 +524,20 @@ configure_view_dnsseckey(const cfg_obj_t *vconfig, const cfg_obj_t *key,
 	CHECK(dst_key_fromdns(keyname, viewclass, &rrdatabuf,
 			      mctx, &dstkey));
 
-	CHECK(dns_keytable_add(keytable, &dstkey));
-	INSIST(dstkey == NULL);
+	*target = dstkey;
 	return (ISC_R_SUCCESS);
 
  cleanup:
 	if (result == DST_R_NOCRYPTO) {
 		cfg_obj_log(key, ns_g_lctx, ISC_LOG_ERROR,
-			    "ignoring trusted key for '%s': no crypto support",
+			    "ignoring %s key for '%s': no crypto support",
+			    managed ? "managed" : "trusted",
 			    keynamestr);
 		result = ISC_R_SUCCESS;
 	} else {
 		cfg_obj_log(key, ns_g_lctx, ISC_LOG_ERROR,
-			    "configuring trusted key for '%s': %s",
+			    "configuring %s key for '%s': %s",
+			    managed ? "managed" : "trusted",
 			    keynamestr, isc_result_totext(result));
 		result = ISC_R_FAILURE;
 	}
@@ -541,15 +548,14 @@ configure_view_dnsseckey(const cfg_obj_t *vconfig, const cfg_obj_t *key,
 	return (result);
 }
 
-
-static void
-configure_view_dnsseckeylist(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
-			     dns_keytable_t *keytable, isc_mem_t *mctx)
+static isc_result_t
+load_view_keys(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
+	       dns_view_t *view, isc_boolean_t managed, isc_mem_t *mctx)
 {
 	const cfg_listelt_t *elt, *elt2;
-	const cfg_obj_t *key;
-	const cfg_obj_t *keylist;
-	isc_result_t result;
+	const cfg_obj_t *key, *keylist;
+	dst_key_t *dstkey = NULL;
+	isc_result_t result = ISC_R_SUCCESS;
 
 	for (elt = cfg_list_first(keys);
 	     elt != NULL;
@@ -560,49 +566,57 @@ configure_view_dnsseckeylist(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
 		     elt2 != NULL;
 		     elt2 = cfg_list_next(elt2)) {
 			key = cfg_listelt_value(elt2);
-			CHECK(configure_view_dnsseckey(vconfig, key,
-						       keytable, mctx));
+			CHECK(dstkey_fromconfig(vconfig, key, managed,
+						&dstkey, mctx));
+			CHECK(dns_keytable_add(view->secroots, managed,
+					       &dstkey));
 		}
 	}
 
  cleanup:
-	return;
+	return (result);
 }
 
 /*%
- * Configure DNSSEC keys for a view.  Currently used only for the security
- * roots.
+ * Configure DNSSEC keys for a view.
  *
  * The per-view configuration values and the server-global defaults are read
- * from 'vconfig' and 'config'.	 The variable to be configured is '*target'.
+ * from 'vconfig' and 'config'.
  */
 static isc_result_t
-configure_view_dnsseckeys(const cfg_obj_t *vconfig, const cfg_obj_t *config,
-			  const cfg_obj_t *bindkeys, isc_boolean_t auto_dlv,
-			  isc_mem_t *mctx, dns_keytable_t **target)
+configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
+			  const cfg_obj_t *config, const cfg_obj_t *bindkeys,
+			  isc_boolean_t auto_dlv, isc_mem_t *mctx)
 {
+	isc_result_t result = ISC_R_SUCCESS;
 	const cfg_obj_t *view_keys = NULL;
 	const cfg_obj_t *global_keys = NULL;
+	const cfg_obj_t *global_managed_keys = NULL;
 	const cfg_obj_t *builtin_keys = NULL;
+	const cfg_obj_t *builtin_managed_keys = NULL;
 	const cfg_obj_t *maps[4];
 	const cfg_obj_t *voptions = NULL;
 	const cfg_obj_t *options = NULL;
-	dns_keytable_t *keytable = NULL;
-	isc_result_t result;
 	int i = 0;
 
-	CHECK(dns_keytable_create(mctx, &keytable));
+	/* We don't need trust anchors for the _bind view */
+	if (strcmp(view->name, "_bind") == 0) {
+		view->secroots = NULL;
+		return (ISC_R_SUCCESS);
+	}
 
 	if (vconfig != NULL) {
 		voptions = cfg_tuple_get(vconfig, "options");
 		if (voptions != NULL) {
-			(void)cfg_map_get(voptions, "trusted-keys", &view_keys);
+			(void) cfg_map_get(voptions, "trusted-keys",
+					   &view_keys);
 			maps[i++] = voptions;
 		}
 	}
 
 	if (config != NULL) {
 		(void)cfg_map_get(config, "trusted-keys", &global_keys);
+		(void)cfg_map_get(config, "managed-keys", &global_managed_keys);
 		(void)cfg_map_get(config, "options", &options);
 		if (options != NULL) {
 			maps[i++] = options;
@@ -612,35 +626,60 @@ configure_view_dnsseckeys(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 	maps[i++] = ns_g_defaults;
 	maps[i] = NULL;
 
+	if (view->secroots != NULL)
+		dns_keytable_detach(&view->secroots);
+	result = dns_keytable_create(mctx, &view->secroots);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "couldn't create keytable");
+		return (ISC_R_UNEXPECTED);
+	}
+
+	if (global_managed_keys != NULL)
+		ns_g_server->managedkeys = ISC_TRUE;
+
 	if (auto_dlv) {
 		isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_SECURITY,
 			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
-			      "using built-in trusted-keys");
+			      "using built-in trusted-keys for view %s",
+			      view->name);
 
 		/*
-		 * If bind.keys exists, it overrides the trusted-keys
+		 * If bind.keys exists, it overrides the managed-keys
 		 * clause hard-coded in ns_g_config.
 		 */
-		if (bindkeys != NULL)
+		if (bindkeys != NULL) {
 			(void)cfg_map_get(bindkeys, "trusted-keys",
 					  &builtin_keys);
-		else
+			(void)cfg_map_get(bindkeys, "managed-keys",
+					  &builtin_managed_keys);
+		} else {
 			(void)cfg_map_get(ns_g_config, "trusted-keys",
 					  &builtin_keys);
+			(void)cfg_map_get(ns_g_config, "managed-keys",
+					  &builtin_managed_keys);
+		}
 
-		configure_view_dnsseckeylist(builtin_keys, vconfig,
-					     keytable, mctx);
+		if (builtin_managed_keys != NULL)
+			ns_g_server->managedkeys = ISC_TRUE;
+		CHECK(load_view_keys(builtin_keys, vconfig, view,
+                                     ISC_FALSE, mctx));
+
+		if (strcmp(view->name, "_meta") == 0)
+			CHECK(load_view_keys(builtin_managed_keys, vconfig,
+                                             view, ISC_TRUE, mctx));
 	}
 
-	configure_view_dnsseckeylist(global_keys, vconfig, keytable, mctx);
-	configure_view_dnsseckeylist(view_keys, vconfig, keytable, mctx);
+	CHECK(load_view_keys(view_keys, vconfig, view, ISC_FALSE, mctx));
+	CHECK(load_view_keys(global_keys, vconfig, view, ISC_FALSE, mctx));
 
-	dns_keytable_detach(target);
-	*target = keytable; /* Transfer ownership. */
-	keytable = NULL;
+	if (strcmp(view->name, "_meta") == 0)
+		CHECK(load_view_keys(global_managed_keys, vconfig, view,
+			       ISC_TRUE, mctx));
 
- cleanup:
-	return (ISC_R_SUCCESS);
+  cleanup:
+	return (result);
 }
 
 static isc_result_t
@@ -2082,8 +2121,8 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	 * For now, there is only one kind of trusted keys, the
 	 * "security roots".
 	 */
-	CHECK(configure_view_dnsseckeys(vconfig, config, bindkeys, auto_dlv,
-					mctx, &view->secroots));
+	CHECK(configure_view_dnsseckeys(view, vconfig, config, bindkeys,
+					auto_dlv, mctx));
 	dns_resolver_resetmustbesecure(view->resolver);
 	obj = NULL;
 	result = ns_config_get(maps, "dnssec-must-be-secure", &obj);
@@ -2824,6 +2863,73 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 }
 
 /*
+ * Configure built-in zone for storing managed-key data.
+ */
+
+#define KEYZONE "managed-keys.bind"
+
+static isc_result_t
+add_keydata_zone(dns_view_t *view, isc_mem_t *mctx) {
+	isc_result_t result;
+	dns_zone_t *zone = NULL;
+	dns_acl_t *none = NULL;
+	dns_name_t zname;
+
+	if (!ns_g_server->managedkeys)
+		return (ISC_R_SUCCESS);
+
+	REQUIRE(view != NULL);
+
+	CHECK(dns_zone_create(&zone, mctx));
+
+        dns_name_init(&zname, NULL);
+	CHECK(dns_name_fromstring(&zname, KEYZONE, mctx));
+	CHECK(dns_zone_setorigin(zone, &zname));
+	dns_name_free(&zname, mctx);
+
+	CHECK(dns_zone_setfile(zone, KEYZONE));
+
+	if (view->hints == NULL)
+		dns_view_sethints(view, ns_g_server->in_roothints);
+
+	dns_zone_setview(zone, view);
+	dns_zone_settype(zone, dns_zone_key);
+	dns_zone_setclass(zone, view->rdclass);
+
+	CHECK(dns_zonemgr_managezone(ns_g_server->zonemgr, zone));
+
+	if (view->acache != NULL)
+		dns_zone_setacache(zone, view->acache);
+
+	CHECK(dns_acl_none(mctx, &none));
+	dns_zone_setqueryacl(zone, none);
+	dns_zone_setqueryonacl(zone, none);
+	dns_acl_detach(&none);
+
+	dns_zone_setdialup(zone, dns_dialuptype_no);
+	dns_zone_setnotifytype(zone, dns_notifytype_no);
+	dns_zone_setoption(zone, DNS_ZONEOPT_NOCHECKNS, ISC_TRUE);
+	dns_zone_setjournalsize(zone, 0);
+
+	dns_zone_setstats(zone, ns_g_server->zonestats);
+	CHECK(setquerystats(zone, mctx, ISC_FALSE));
+
+	CHECK(dns_view_addzone(view, zone));
+
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+		      "set up %s meta-zone", KEYZONE);
+
+cleanup:
+	if (zone != NULL)
+		dns_zone_detach(&zone);
+	if (none != NULL)
+		dns_acl_detach(&none);
+
+	return (result);
+}
+
+/*
  * Configure a single server quota.
  */
 static void
@@ -3442,7 +3548,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	dns_view_t *view = NULL;
 	dns_view_t *view_next;
 	dns_viewlist_t tmpviewlist;
-	dns_viewlist_t viewlist;
+	dns_viewlist_t viewlist, builtin_viewlist;
 	in_port_t listen_port, udpport_low, udpport_high;
 	int i;
 	isc_interval_t interval;
@@ -3460,6 +3566,7 @@ load_configuration(const char *filename, ns_server_t *server,
 
 	cfg_aclconfctx_init(&aclconfctx);
 	ISC_LIST_INIT(viewlist);
+	ISC_LIST_INIT(builtin_viewlist);
 	ISC_LIST_INIT(cachelist);
 
 	/* Ensure exclusive access to configuration data. */
@@ -3908,7 +4015,7 @@ load_configuration(const char *filename, ns_server_t *server,
 
 	/*
 	 * Create (or recreate) the built-in views.  Currently
-	 * there is only one, the _bind view.
+	 * there is only one, the _bind view, but allow for others.
 	 */
 	builtin_views = NULL;
 	RUNTIME_CHECK(cfg_map_get(ns_g_config, "view",
@@ -3918,32 +4025,43 @@ load_configuration(const char *filename, ns_server_t *server,
 	     element = cfg_list_next(element))
 	{
 		const cfg_obj_t *vconfig = cfg_listelt_value(element);
-		CHECK(create_view(vconfig, &viewlist, &view));
+
+		CHECK(create_view(vconfig, &builtin_viewlist, &view));
 		CHECK(configure_view(view, config, vconfig,
 				     &cachelist, bindkeys,
 				     ns_g_mctx, &aclconfctx, ISC_FALSE));
+
+		if (!strcmp(view->name, "_meta")) {
+			result = add_keydata_zone(view, ns_g_mctx);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		}
+
 		dns_view_freeze(view);
 		dns_view_detach(&view);
 		view = NULL;
 	}
 
-	/*
-	 * Swap our new view list with the production one.
-	 */
+	/* Now combine the two viewlists into one */
+	ISC_LIST_APPENDLIST(viewlist, builtin_viewlist, link);
+
+	/* Swap our new view list with the production one. */
 	tmpviewlist = server->viewlist;
 	server->viewlist = viewlist;
 	viewlist = tmpviewlist;
 
-	/*
-	 * Swap our new cache list with the production one.
-	 */
+	/* Make the view list available to each of the views */
+	view = ISC_LIST_HEAD(server->viewlist);
+	while (view != NULL) {
+		view->viewlist = &server->viewlist;
+		view = ISC_LIST_NEXT(view, link);
+	}
+
+	/* Swap our new cache list with the production one. */
 	tmpcachelist = server->cachelist;
 	server->cachelist = cachelist;
 	cachelist = tmpcachelist;
 
-	/*
-	 * Load the TKEY information from the configuration.
-	 */
+	/* Load the TKEY information from the configuration. */
 	if (options != NULL) {
 		dns_tkeyctx_t *t = NULL;
 		CHECKM(ns_tkeyctx_fromconfig(options, ns_g_mctx, ns_g_entropy,
@@ -4551,6 +4669,8 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	CHECKFATAL(server->bindkeysfile == NULL ? ISC_R_NOMEMORY :
 						  ISC_R_SUCCESS,
 		   "isc_mem_strdup");
+
+	server->managedkeys = ISC_FALSE;
 
 	server->dumpfile = isc_mem_strdup(server->mctx, "named_dump.db");
 	CHECKFATAL(server->dumpfile == NULL ? ISC_R_NOMEMORY : ISC_R_SUCCESS,
@@ -6161,8 +6281,9 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args) {
 		dns_zone_setupdatedisabled(zone, freeze);
 
 	view = dns_zone_getview(zone);
-	if (strcmp(view->name, "_bind") == 0 ||
-	    strcmp(view->name, "_default") == 0)
+	if (strcmp(view->name, "_default") == 0 ||
+	    strcmp(view->name, "_bind") == 0 ||
+	    strcmp(view->name, "_meta"))
 	{
 		vname = "";
 		sep = "";

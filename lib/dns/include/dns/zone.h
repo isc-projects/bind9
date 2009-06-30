@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.164 2009/01/27 22:29:59 jinmei Exp $ */
+/* $Id: zone.h,v 1.165 2009/06/30 02:52:32 each Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -40,7 +40,8 @@ typedef enum {
 	dns_zone_none,
 	dns_zone_master,
 	dns_zone_slave,
-	dns_zone_stub
+	dns_zone_stub,
+	dns_zone_key
 } dns_zonetype_t;
 
 #define DNS_ZONEOPT_SERVERS	  0x00000001U	/*%< perform server checks */

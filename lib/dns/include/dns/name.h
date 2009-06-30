@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.129 2009/03/11 07:02:34 each Exp $ */
+/* $Id: name.h,v 1.130 2009/06/30 02:52:32 each Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -1155,6 +1155,46 @@ dns_name_fromstring(dns_name_t *target, const char *src, isc_mem_t *mctx);
 /*%<
  * Convert a string to a name and place it in target, allocating memory
  * as necessary.
+ *
+ * Returns:
+ *
+ *\li	#ISC_R_SUCCESS
+ *
+ *\li	Any error that dns_name_fromtext() can return.
+ *
+ *\li	Any error that dns_name_dup() can return.
+ */
+
+isc_result_t
+dns_name_tostring(dns_name_t *source, char **target, isc_mem_t *mctx);
+/*%<
+ * Convert 'name' to string format, allocating sufficient memory to
+ * hold it (free with isc_mem_free()).
+ *
+ * Differs from dns_name_format in that it allocates its own memory.
+ *
+ * Requires:
+ *
+ *\li	'name' is a valid name.
+ *\li	'target' is not NULL.
+ *\li	'*target' is NULL.
+ *
+ * Returns:
+ *
+ *\li	ISC_R_SUCCESS
+ *
+ *\li	Any error that dns_name_totext() can return.
+ */
+
+isc_result_t
+dns_name_fromstring(dns_name_t *target, const char *src, isc_mem_t *mctx);
+/*%<
+ * Convert a string to a name and place it in target, allocating memory
+ * as necessary.
+ *
+ * Requires:
+ *
+ * \li	'target' is a valid name that is not read-only.
  *
  * Returns:
  *

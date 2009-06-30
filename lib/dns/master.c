@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.176 2009/02/16 03:19:40 marka Exp $ */
+/* $Id: master.c,v 1.177 2009/06/30 02:52:32 each Exp $ */
 
 /*! \file */
 
@@ -862,6 +862,7 @@ generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 
 		if ((lctx->options & DNS_MASTER_ZONE) != 0 &&
 		    (lctx->options & DNS_MASTER_SLAVE) == 0 &&
+		    (lctx->options & DNS_MASTER_KEY) == 0 &&
 		    !dns_name_issubdomain(owner, lctx->top))
 		{
 			char namebuf[DNS_NAME_FORMATSIZE];
@@ -1502,6 +1503,7 @@ load_text(dns_loadctx_t *lctx) {
 			}
 			if ((lctx->options & DNS_MASTER_ZONE) != 0 &&
 			    (lctx->options & DNS_MASTER_SLAVE) == 0 &&
+			    (lctx->options & DNS_MASTER_KEY) == 0 &&
 			    !dns_name_issubdomain(new_name, lctx->top))
 			{
 				char namebuf[DNS_NAME_FORMATSIZE];

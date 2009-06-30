@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.h,v 1.51 2008/04/02 02:37:42 marka Exp $ */
+/* $Id: master.h,v 1.52 2009/06/30 02:52:32 each Exp $ */
 
 #ifndef DNS_MASTER_H
 #define DNS_MASTER_H 1
@@ -56,6 +56,7 @@
 #define DNS_MASTER_CHECKMXFAIL	0x00001000
 
 #define DNS_MASTER_RESIGN	0x00002000
+#define DNS_MASTER_KEY	 	0x00004000	/*%< Loading a key zone master file. */
 
 ISC_LANG_BEGINDECLS
 

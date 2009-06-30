@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.177 2009/06/09 22:57:09 marka Exp $ */
+/* $Id: validator.c,v 1.178 2009/06/30 02:52:32 each Exp $ */
 
 #include <config.h>
 
@@ -1875,6 +1875,8 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 					break;
 				}
 				val->key = dns_keynode_key(val->keynode);
+				if (val->key == NULL)
+					break;
 			} else {
 				if (get_dst_key(val, val->siginfo, val->keyset)
 				    != ISC_R_SUCCESS)
@@ -2115,7 +2117,8 @@ dlv_validatezonekey(dns_validator_t *val) {
 }
 
 /*%
- * Attempts positive response validation of an RRset containing zone keys.
+ * Attempts positive response validation of an RRset containing zone keys
+ * (i.e. a DNSKEY rrset).
  *
  * Returns:
  * \li	ISC_R_SUCCESS	Validation completed successfully
@@ -2182,11 +2185,18 @@ validatezonekey(dns_validator_t *val) {
 				atsep = ISC_TRUE;
 			while (result == ISC_R_SUCCESS) {
 				dstkey = dns_keynode_key(keynode);
+				if (dstkey == NULL) {
+					dns_keytable_detachkeynode(
+								val->keytable,
+								&keynode);
+					break;
+				}
 				result = verify(val, dstkey, &sigrdata,
 						sig.keyid);
 				if (result == ISC_R_SUCCESS) {
-					dns_keytable_detachkeynode(val->keytable,
-								   &keynode);
+					dns_keytable_detachkeynode(
+								val->keytable,
+								&keynode);
 					break;
 				}
 				result = dns_keytable_findnextkeynode(
@@ -2228,8 +2238,8 @@ validatezonekey(dns_validator_t *val) {
 					sizeof(namebuf));
 			validator_log(val, ISC_LOG_DEBUG(2),
 				      "unable to find a DNSKEY which verifies "
-				      "the DNSKEY RRset and also matches one "
-				      "of specified trusted-keys for '%s'",
+				      "the DNSKEY RRset and also matches a "
+				      "trusted key for '%s'",
 				      namebuf);
 			return (DNS_R_NOVALIDKEY);
 		}

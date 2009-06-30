@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.97 2009/06/10 00:27:21 each Exp $ */
+/* $Id: config.c,v 1.98 2009/06/30 02:52:32 each Exp $ */
 
 /*! \file */
 
@@ -225,10 +225,22 @@ view \"_bind\" chaos {\n\
 		type master;\n\
 		database \"_builtin authors\";\n\
 	};\n\
+\n\
 	zone \"id.server\" chaos {\n\
 		type master;\n\
 		database \"_builtin id\";\n\
 	};\n\
+};\n\
+"
+
+"#\n\
+#  The \"_meta\" view is for zones that are used to store internal\n\
+#  information for named, such as managed keys.  The zones are defined\n\
+#  elsewhere.\n\
+#\n\
+view \"_meta\" in {\n\
+	recursion no;\n\
+	notify no;\n\
 };\n\
 "
 

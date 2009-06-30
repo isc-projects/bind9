@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.35 2008/11/07 02:28:49 marka Exp $
+# $Id: Makefile.in,v 1.36 2009/06/30 02:52:32 each Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -40,18 +40,19 @@ LIBS =		${DNSLIBS} ${ISCLIBS} @LIBS@
 
 # Alphabetically
 TARGETS =	dnssec-keygen@EXEEXT@ dnssec-signzone@EXEEXT@ \
-		dnssec-keyfromlabel@EXEEXT@ dnssec-dsfromkey@EXEEXT@
+		dnssec-keyfromlabel@EXEEXT@ dnssec-dsfromkey@EXEEXT@ \
+		dnssec-revoke@EXEEXT@
 
 OBJS =		dnssectool.@O@
 
 SRCS =		dnssec-dsfromkey.c dnssec-keyfromlabel.c dnssec-keygen.c \
-		dnssec-signzone.c dnssectool.c
+		dnssec-revoke.c dnssec-signzone.c dnssectool.c
 
 MANPAGES =	dnssec-dsfromkey.8 dnssec-keyfromlabel.8 dnssec-keygen.8 \
-		dnssec-signzone.8
+		dnssec-revoke.8 dnssec-signzone.8
 
 HTMLPAGES =	dnssec-dsfromkey.html dnssec-keyfromlabel.html \
-		dnssec-keygen.html dnssec-signzone.html 
+		dnssec-keygen.html dnssec-revoke.html dnssec-signzone.html 
 
 MANOBJS =	${MANPAGES} ${HTMLPAGES}
 
@@ -76,6 +77,10 @@ dnssec-signzone.@O@: dnssec-signzone.c
 dnssec-signzone@EXEEXT@: dnssec-signzone.@O@ ${OBJS} ${DEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 	dnssec-signzone.@O@ ${OBJS} ${LIBS}
+
+dnssec-revoke@EXEEXT@: dnssec-revoke.@O@ ${OBJS} ${DEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+	dnssec-revoke.@O@ ${OBJS} ${LIBS}
 
 doc man:: ${MANOBJS}
 

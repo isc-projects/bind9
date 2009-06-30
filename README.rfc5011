@@ -1,0 +1,67 @@
+BIND 9.7.0 introduces support for RFC 5011, dynamic trust anchor
+management.  Using this feature allows named to keep track of changes to
+critical DNSSEC keys without any need for the operator to make changes to
+configuration files.
+
+As of 9.7.0a1, the syntax for using RFC5011 is expected to change, so
+proper documentation has yet to be written.  This file is intended to
+provide enough information to get started.
+
+AUTHORITATIVE SERVER
+--------------------
+
+To set up an authoritative zone for RFC5011 trust anchor maintenance,
+generate two (or more) key signing keys (KSKs) for the zone.  Sign the zone
+with one of them; this is the "active" KSK.  All KSK's which do not sign
+the zone are "stand-by" keys.
+
+Any validating resolver which is configured to use the active KSK as an
+RFC5011-managed trust anchor will take note of the stand-by KSKs in the
+zone's DNSKEY RRset, and store them for future reference.  The resolver
+will recheck the zone periodically, and after 30 days, if the new key is
+still there, then the key will be accepted by the resolver as a valid
+trust anchor for the zone.
+
+At any time after this 30-day acceptance timer has expired, the active
+KSK can be revoked and the zone can be "rolled over" to one of the
+standby KSKs.
+
+To revoke a key, the new command "dnssec-revoke" has been added.  This adds
+the REVOKED bit to the key flags and re-generates the K*.key and K*.private
+files.
+
+After revoking the active key, the zone must be signed with both the
+revoked KSK and the new active KSK.  Once a key has been revoked and
+used to sign the DNSKEY RRset in which it appears, that key will never
+again be accepted as a valid trust anchor by the resolver.  However,
+validation can proceed using the new active key (which had been accepted
+by the resolver when it was a stand-by key).
+
+See RFC 5011 for more details on key rollover scenarios.
+
+VALIDATING RESOLVER
+-------------------
+
+NOTE: This is expected to change before 9.7.0 is final!
+
+To configure a validating resolver to use RFC5011 to maintain a trust
+anchor, configure the trust anchor using a "managed-keys" statement
+instead of a "trusted-keys" statement.
+
+The syntax for "managed-keys" is identical to that for "trusted-keys".
+However, whereas a trusted key is trusted permanently until it is removed
+from named.conf, a managed key is only trusted for as long as it takes to
+initialize RFC5011 key maintenance.
+
+When named loads for the first time with a managed key configured, it
+will fetch the DNSKEY RRset directly from the zone apex and check its
+signature against the key specified in the "managed-keys" statement.
+If it is validly signed, then the DNSKEY RRset is used as the basis for a
+new managed keys database.
+
+From that point on, when named loads, it will see the "managed-keys"
+statement, check to make sure RFC5011 key maintenance has already been
+initialized for the specified zone, and if so, it will simply move on.
+No action will be taken unless a key is *removed* from the "managed-keys"
+statement--in which case that zone is removed from the managed keys
+database as well, and RFC5011 key maintenance will no longer be used.

@@ -198,6 +198,10 @@ SOURCE=..\include\dns\journal.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\dns\keydata.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\dns\keyflags.h
 # End Source File
 # Begin Source File
@@ -323,6 +327,10 @@ SOURCE=..\include\dns\result.h
 # Begin Source File
 
 SOURCE=..\include\dns\rootns.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\dns\rriterator.h
 # End Source File
 # Begin Source File
 
@@ -494,6 +502,10 @@ SOURCE=..\journal.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\keydata.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\keytable.c
 # End Source File
 # Begin Source File
@@ -599,6 +611,10 @@ SOURCE=..\result.c
 # Begin Source File
 
 SOURCE=..\rootns.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\rriterator.c
 # End Source File
 # Begin Source File
 

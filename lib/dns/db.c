@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.90 2009/04/29 23:48:02 tbox Exp $ */
+/* $Id: db.c,v 1.91 2009/06/30 02:52:32 each Exp $ */
 
 /*! \file */
 
@@ -34,10 +34,12 @@
 
 #include <dns/callbacks.h>
 #include <dns/db.h>
+#include <dns/dbiterator.h>
 #include <dns/log.h>
 #include <dns/master.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
+#include <dns/rdatasetiter.h>
 #include <dns/result.h>
 
 /***
@@ -926,3 +928,4 @@ dns_db_resigned(dns_db_t *db, dns_rdataset_t *rdataset, dns_dbversion_t *version
 	if (db->methods->resigned != NULL)
 		(db->methods->resigned)(db, rdataset, version);
 }
+
