@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.224 2009/06/17 23:12:09 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.225 2009/06/30 01:13:00 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -2504,14 +2504,14 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 <p>
                 DS queries are expected to be made to and be answered by
                 delegation only zones.  Such queries and responses are
-                treated as a exception to delegation-only processing
+                treated as an exception to delegation-only processing
                 and are not converted to NXDOMAIN responses provided
                 a CNAME is not discovered at the query name.
               </p>
 <p>
                 If a delegation only zone server also serves a child
                 zone it is not always possible to determine whether
-                a answer comes from the delegation only zone or the
+                an answer comes from the delegation only zone or the
                 child zone.  SOA NS and DNSKEY records are apex
                 only records and a matching response that contains
                 these records or DS is treated as coming from a
@@ -4580,7 +4580,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   Specifies the number of days into the future when
                   DNSSEC signatures automatically generated as a
                   result of dynamic updates (<a href="Bv9ARM.ch04.html#dynamic_update" title="Dynamic Update">the section called &#8220;Dynamic Update&#8221;</a>) will expire.  There
-                  is a optional second field which specifies how
+                  is an optional second field which specifies how
                   long before expiry that the signatures will be
                   regenerated.  If not specified, the signatures will
                   be regenerated at 1/4 of base interval.  The second
@@ -4821,7 +4821,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 <p>
             Named will attempt to determine if a built-in zone already exists
             or is active (covered by a forward-only forwarding declaration)
-            and will not create a empty zone in that case.
+            and will not create an empty zone in that case.
           </p>
 <p>
             The current list of empty zones is:
@@ -8057,7 +8057,7 @@ HOST-127.EXAMPLE. MX 0 .
                     </p>
                     <p>
                       In nibble mode the value will be treated as
-                      a if it was a reversed hexadecimal string
+                      if it was a reversed hexadecimal string
                       with each hexadecimal digit as a seperate
                       label.  The width field includes the label
                       seperator.
