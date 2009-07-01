@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keytable.h,v 1.17 2009/06/30 02:52:32 each Exp $ */
+/* $Id: keytable.h,v 1.18 2009/07/01 23:47:36 tbox Exp $ */
 
 #ifndef DNS_KEYTABLE_H
 #define DNS_KEYTABLE_H 1
@@ -170,7 +170,7 @@ dns_keytable_add(dns_keytable_t *keytable, isc_boolean_t managed,
 isc_result_t
 dns_keytable_marksecure(dns_keytable_t *keytable, dns_name_t *name);
 /*%<
- * Add a null key to 'keytable' for name 'name'.  This marks the 
+ * Add a null key to 'keytable' for name 'name'.  This marks the
  * name as a secure domain, but doesn't supply any key data to allow the
  * domain to be validated.  (Used when automated trust anchor management
  * has gotten broken by a zone misconfiguration; for exmaple, when the
@@ -200,7 +200,7 @@ isc_result_t
 dns_keytable_delete(dns_keytable_t *keytable, dns_name_t *keyname);
 /*%<
  * Delete node(s) from 'keytable' matching name 'keyname'
- * 
+ *
  * Requires:
  *
  *\li	'keytable' points to a valid keytable.
@@ -219,11 +219,11 @@ dns_keytable_deletekeynode(dns_keytable_t *keytable, dst_key_t *dstkey);
 /*%<
  * Delete node(s) from 'keytable' containing copies of the key pointed
  * to by 'dstkey'
- * 
+ *
  * Requires:
  *
  *\li	'keytable' points to a valid keytable.
- *\li	'dstkey' is not NULL 
+ *\li	'dstkey' is not NULL
  *
  * Returns:
  *
@@ -307,7 +307,7 @@ dns_keytable_findkeynode(dns_keytable_t *keytable, dns_name_t *name,
 
 isc_result_t
 dns_keytable_findnextkeynode(dns_keytable_t *keytable, dns_keynode_t *keynode,
-		                             dns_keynode_t **nextnodep);
+					     dns_keynode_t **nextnodep);
 /*%<
  * Search for the next key with the same properties as 'keynode' in
  * 'keytable' as found by dns_keytable_findkeynode().

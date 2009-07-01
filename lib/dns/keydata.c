@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keydata.c,v 1.2 2009/06/30 02:52:32 each Exp $ */
+/* $Id: keydata.c,v 1.3 2009/07/01 23:47:36 tbox Exp $ */
 
 /*! \file */
 
@@ -76,7 +76,7 @@ dns_keydata_fromdnskey(dns_rdata_keydata_t *keydata,
 	keydata->algorithm = dnskey->algorithm;
 
 	keydata->datalen = dnskey->datalen;
-	if (mctx == NULL) 
+	if (mctx == NULL)
 		keydata->data = dnskey->data;
 	else {
 		keydata->data = isc_mem_allocate(mctx, keydata->datalen);

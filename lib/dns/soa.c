@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: soa.c,v 1.9 2009/06/30 02:52:32 each Exp $ */
+/* $Id: soa.c,v 1.10 2009/07/01 23:47:36 tbox Exp $ */
 
 /*! \file */
 
@@ -65,8 +65,8 @@ soa_get(dns_rdata_t *rdata, int offset) {
 isc_result_t
 dns_soa_buildrdata(dns_name_t *origin, dns_name_t *contact,
 		   dns_rdataclass_t rdclass,
-		   isc_uint32_t serial, isc_uint32_t refresh, 
-		   isc_uint32_t retry, isc_uint32_t expire, 
+		   isc_uint32_t serial, isc_uint32_t refresh,
+		   isc_uint32_t retry, isc_uint32_t expire,
 		   isc_uint32_t minimum, dns_rdata_t *rdata) {
 	dns_rdata_soa_t soa;
 	char soadata[DNS_NAME_FORMATSIZE];

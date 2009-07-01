@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keytable.c,v 1.35 2009/06/30 02:52:32 each Exp $ */
+/* $Id: keytable.c,v 1.36 2009/07/01 23:47:36 tbox Exp $ */
 
 /*! \file */
 
@@ -206,7 +206,7 @@ insert(dns_keytable_t *keytable, isc_boolean_t managed,
 isc_result_t
 dns_keytable_add(dns_keytable_t *keytable, isc_boolean_t managed,
 		 dst_key_t **keyp)
-{ 
+{
 	REQUIRE(keyp != NULL && *keyp != NULL);
 	return (insert(keytable, managed, dst_key_name(*keyp), keyp));
 }
@@ -223,7 +223,7 @@ dns_keytable_delete(dns_keytable_t *keytable, dns_name_t *keyname) {
 
 	REQUIRE(VALID_KEYTABLE(keytable));
 	REQUIRE(keyname != NULL);
-	
+
 	RWLOCK(&keytable->rwlock, isc_rwlocktype_write);
 	result = dns_rbt_findnode(keytable->table, keyname, NULL, &node, NULL,
 				  DNS_RBTFIND_NOOPTIONS, NULL, NULL);
@@ -267,16 +267,16 @@ dns_keytable_deletekeynode(dns_keytable_t *keytable, dst_key_t *dstkey) {
 	}
 
 	knode = node->data;
-	if (knode->next == NULL && 
+	if (knode->next == NULL &&
 	    (knode->key == NULL ||
 	     dst_key_compare(knode->key, dstkey) == ISC_TRUE)) {
 		result = dns_rbt_deletenode(keytable->table, node, ISC_FALSE);
 		goto finish;
 	}
-		
+
 	kprev = (dns_keynode_t **) &node->data;
 	while (knode != NULL) {
-		if (dst_key_compare(knode->key, dstkey) == ISC_TRUE) 
+		if (dst_key_compare(knode->key, dstkey) == ISC_TRUE)
 			break;
 		kprev = &knode;
 		knode = knode->next;
@@ -312,7 +312,7 @@ dns_keytable_find(dns_keytable_t *keytable, dns_name_t *keyname,
 	REQUIRE(VALID_KEYTABLE(keytable));
 	REQUIRE(keyname != NULL);
 	REQUIRE(keynodep != NULL && *keynodep == NULL);
-	
+
 	RWLOCK(&keytable->rwlock, isc_rwlocktype_read);
 	result = dns_rbt_findnode(keytable->table, keyname, NULL, &node, NULL,
 				  DNS_RBTFIND_NOOPTIONS, NULL, NULL);
