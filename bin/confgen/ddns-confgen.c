@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ddns-confgen.c,v 1.6 2009/06/17 19:18:37 jinmei Exp $ */
+/* $Id: ddns-confgen.c,v 1.7 2009/07/02 22:50:24 jinmei Exp $ */
 
 /*! \file */
 
@@ -211,9 +211,9 @@ key \"%s\" {\n\
 # name \"%s\", place an \"update-policy\" statement\n\
 # like this one, adjusted as needed for your preferred permissions:\n\
 update-policy {\n\
-	  grant %s self . ANY;\n\
+	  grant %s name %s ANY;\n\
 };\n",
-			       self_domain, keyname);
+			       self_domain, keyname, self_domain);
 		} else if (zone != NULL) {
 			printf("\n\
 # Then, in the \"zone\" definition statement for \"%s\",\n\

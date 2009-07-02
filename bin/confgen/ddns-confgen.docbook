@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: ddns-confgen.docbook,v 1.4 2009/06/16 22:36:53 jinmei Exp $ -->
+<!-- $Id: ddns-confgen.docbook,v 1.5 2009/07/02 22:50:24 jinmei Exp $ -->
 <refentry id="man.ddns-confgen">
   <refentryinfo>
     <date>Jan 29, 2009</date>
@@ -115,7 +115,7 @@
 	  <para>
 	    Specifies the key name of the DDNS authentication key.
 	    The default is <constant>ddns-key</constant> when neither
-	    the <command>-s</command> nor <command>-z</command> option is
+	    the <option>-s</option> nor <option>-z</option> option is
 	    specified; otherwise, the default
 	    is <constant>ddns-key</constant> as a separate label
 	    followed by the argument of the option, e.g.,
@@ -157,13 +157,15 @@
 	<term>-s <replaceable class="parameter">name</replaceable></term>
 	<listitem>
 	  <para>
-	    Self mode:  The example <command>named.conf</command> text
-            shows how to set an update policy for the specified
+	    Single host mode: The example <command>named.conf</command> text
+	    shows how to set an update policy for the specified
 	    <replaceable class="parameter">name</replaceable>
-	    using the "self" nametype, instead of the "subdomain"
-	    nametype which allows matching on any name within a
-	    specified domain.
-	    This option cannot be used with the <command>-z</command> option.
+	    using the "name" nametype.
+	    The default key name is
+	    ddns-key.<replaceable class="parameter">name</replaceable>.
+	    Note that the "self" nametype cannot be used, since
+	    the name to be updated may differ from the key name.
+	    This option cannot be used with the <option>-z</option> option.
 	  </para>
 	</listitem>
       </varlistentry>
@@ -178,7 +180,7 @@
 	    using the "zonesub" nametype, allowing updates to all subdomain
 	    names within
 	    that <replaceable class="parameter">zone</replaceable>.
-	    This option cannot be used with the <command>-s</command> option.
+	    This option cannot be used with the <option>-s</option> option.
 	  </para>
 	</listitem>
       </varlistentry>
