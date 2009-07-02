@@ -1,3 +1,6 @@
+2920.	[bug]		Delay thawing the zone until the reload of it has
+			completed successfully.  [RT #19750]
+
 2619.	[func]		Add support for RFC 5011, automatic trust anchor
 			maintenance.  The new "managed-keys" statement can
 			be used in place of "trusted-keys" for zones which
