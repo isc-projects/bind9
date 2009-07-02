@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.496 2009/07/02 07:39:02 marka Exp $ */
+/* $Id: zone.c,v 1.497 2009/07/02 23:47:26 tbox Exp $ */
 
 /*! \file */
 
@@ -1508,7 +1508,7 @@ dns_zone_loadnew(dns_zone_t *zone) {
 isc_result_t
 dns_zone_loadandthaw(dns_zone_t *zone) {
 	isc_result_t result;
-		
+
 	result = zone_load(zone, DNS_ZONELOADFLAG_THAW);
 	switch (result) {
 	case DNS_R_CONTINUE:
