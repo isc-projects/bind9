@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.416 2009/06/29 09:46:40 jreed Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.417 2009/07/02 02:19:17 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -8052,7 +8052,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                 <para>
 		  Sets the advertised EDNS UDP buffer size in bytes
                   to control the size of packets received.
-                  Valid values are 512 to 4096 (values outside this range
+                  Valid values are 1024 to 4096 (values outside this range
 		  will be silently adjusted).  The default value
 		  is 4096.  The usual reason for setting
 		  <command>edns-udp-size</command> to a non-default
@@ -8060,23 +8060,35 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  firewalls that block fragmented packets and/or
 		  block UDP packets that are greater than 512 bytes.
                 </para>
+		<para>
+		  <command>named<command> will fallback to using 512 bytes
+		  if it get a series of timeout at the initial value.  512
+		  bytes is not being offered to encourge sites to fix their
+	          firewalls.  Small EDNS UDP sizes will results in the
+		  excessive use of TCP.
+		</para>
               </listitem>
             </varlistentry>
 
             <varlistentry>
               <term><command>max-udp-size</command></term>
-              <listitem>
-                <para>
-		  Sets the maximum EDNS UDP message size <command>named</command> will
-		  send in bytes.  Valid values are 512 to 4096 (values outside
-		  this range will be silently adjusted).  The default
+	      <listitem>
+		<para>
+		  Sets the maximum EDNS UDP message size
+		  <command>named</command> will send in bytes.
+		  Valid values are 512 to 4096 (values outside this
+		  range will be silently adjusted).  The default
 		  value is 4096.  The usual reason for setting
-		  <command>max-udp-size</command> to a non-default value is to get UDP
-		  answers to pass through broken firewalls that
-		  block fragmented packets and/or block UDP packets
-		  that are greater than 512 bytes.
+		  <command>max-udp-size</command> to a non-default
+		  value is to get UDP answers to pass through broken
+		  firewalls that block fragmented packets and/or
+		  block UDP packets that are greater than 512 bytes.
 		  This is independent of the advertised receive
 		  buffer (<command>edns-udp-size</command>).
+		</para>
+		<para>
+		  Setting this to a low value will encourge additional
+		  TCP traffic to the nameserver.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -15183,6 +15195,7 @@ zone "example.com" {
       <xi:include href="../../bin/dnssec/dnssec-dsfromkey.docbook"/>
       <xi:include href="../../bin/dnssec/dnssec-keyfromlabel.docbook"/>
       <xi:include href="../../bin/dnssec/dnssec-keygen.docbook"/>
+      <xi:include href="../../bin/dnssec/dnssec-revoke.docbook"/>
       <xi:include href="../../bin/dnssec/dnssec-signzone.docbook"/>
       <xi:include href="../../bin/check/named-checkconf.docbook"/>
       <xi:include href="../../bin/check/named-checkzone.docbook"/>
