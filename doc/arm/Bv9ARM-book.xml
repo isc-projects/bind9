@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.417 2009/07/02 02:19:17 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.418 2009/07/03 01:45:37 jreed Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -8061,7 +8061,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  block UDP packets that are greater than 512 bytes.
                 </para>
 		<para>
-		  <command>named<command> will fallback to using 512 bytes
+		  <command>named</command> will fallback to using 512 bytes
 		  if it get a series of timeout at the initial value.  512
 		  bytes is not being offered to encourge sites to fix their
 	          firewalls.  Small EDNS UDP sizes will results in the
