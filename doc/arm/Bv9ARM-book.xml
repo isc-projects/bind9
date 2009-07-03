@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.418 2009/07/03 01:45:37 jreed Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.419 2009/07/03 01:53:53 jreed Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -8063,8 +8063,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		<para>
 		  <command>named</command> will fallback to using 512 bytes
 		  if it get a series of timeout at the initial value.  512
-		  bytes is not being offered to encourge sites to fix their
-	          firewalls.  Small EDNS UDP sizes will results in the
+		  bytes is not being offered to encourage sites to fix their
+	          firewalls.  Small EDNS UDP sizes will result in the
 		  excessive use of TCP.
 		</para>
               </listitem>
@@ -9617,6 +9617,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                     received from the
                     network.  The default varies according to zone type.  For <command>master</command> zones the default is <command>fail</command>.  For <command>slave</command>
                     zones the default is <command>warn</command>.
+                    It is not implemented for <command>hint</command> zones.
                   </para>
                 </listitem>
               </varlistentry>
@@ -10333,7 +10334,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
 		    </entry> <entry colname="2">
 		      <para>
 			Allow the 6to4 prefix to be update by any TCP
-			conection from the 6to4 network or from the
+			connection from the 6to4 network or from the
 			corresponding IPv4 address.  This is intended
 			to allow NS or DNAME RRsets to be added to the
 			reverse tree.
@@ -11867,9 +11868,9 @@ HOST-127.EXAMPLE. MX 0 .
 		    <para>
 		      In nibble mode the value will be treated as
 		      if it was a reversed hexadecimal string
-		      with each hexadecimal digit as a seperate
+		      with each hexadecimal digit as a separate
 		      label.  The width field includes the label
-		      seperator.
+		      separator.
 		    </para>
 		    <para>
 		      For compatibility with earlier versions,
