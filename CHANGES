@@ -1,3 +1,5 @@
+2621.	[doc]		Made copyright boilterplate consistent.  [RT #19833]
+
 2620.	[bug]		Delay thawing the zone until the reload of it has
 			completed successfully.  [RT #19750]
 
