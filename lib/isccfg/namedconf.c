@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.99 2009/06/30 02:52:33 each Exp $ */
+/* $Id: namedconf.c,v 1.100 2009/07/10 07:33:21 marka Exp $ */
 
 /*! \file */
 
@@ -241,7 +241,8 @@ static cfg_tuplefielddef_t pubkey_fields[] = {
 	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_pubkey = {
-	"pubkey", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple, &cfg_rep_tuple, pubkey_fields };
+	"pubkey", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	&cfg_rep_tuple, pubkey_fields };
 
 /*%
  * A list of RR types, used in grant statements.
@@ -254,8 +255,8 @@ static cfg_type_t cfg_type_rrtypelist = {
 
 static const char *mode_enums[] = { "grant", "deny", NULL };
 static cfg_type_t cfg_type_mode = {
-	"mode", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum, &cfg_rep_string,
-	&mode_enums
+	"mode", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,	
+	&cfg_rep_string, &mode_enums
 };
 
 static isc_result_t
@@ -275,8 +276,7 @@ parse_matchtype(cfg_parser_t *pctx, const cfg_type_t *type,
 }
 
 static isc_result_t
-parse_matchname(cfg_parser_t *pctx, const cfg_type_t *type,
-			 cfg_obj_t **ret) {
+parse_matchname(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	isc_result_t result;
 	cfg_obj_t *obj = NULL;
 
@@ -291,10 +291,18 @@ parse_matchname(cfg_parser_t *pctx, const cfg_type_t *type,
 	return (result);
 }
 
+static void
+doc_matchname(cfg_printer_t *pctx, const cfg_type_t *type) {
+	cfg_print_chars(pctx, "[ ", 2);
+	cfg_doc_obj(pctx, type->of);
+	cfg_print_chars(pctx, " ]", 2);
+}
+
 static const char *matchtype_enums[] = {
 	"name", "subdomain", "wildcard", "self", "selfsub", "selfwild",
 	"krb5-self", "ms-self", "krb5-subdomain", "ms-subdomain",
 	"tcp-self", "6to4-self", "zonesub", NULL };
+
 static cfg_type_t cfg_type_matchtype = {
 	"matchtype", parse_matchtype, cfg_print_ustring,
 	cfg_doc_enum, &cfg_rep_string, &matchtype_enums
@@ -302,7 +310,7 @@ static cfg_type_t cfg_type_matchtype = {
 
 static cfg_type_t cfg_type_matchname = {
 	"optional_matchname", parse_matchname, cfg_print_ustring,
-	cfg_doc_tuple, &cfg_rep_tuple, &cfg_type_ustring
+	&doc_matchname, &cfg_rep_tuple, &cfg_type_ustring
 };
 
 /*%
@@ -317,11 +325,13 @@ static cfg_tuplefielddef_t grant_fields[] = {
 	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_grant = {
-	"grant", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple, &cfg_rep_tuple, grant_fields };
+	"grant", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	 &cfg_rep_tuple, grant_fields
+};
 
 static cfg_type_t cfg_type_updatepolicy = {
-	"update_policy", cfg_parse_bracketed_list, cfg_print_bracketed_list, cfg_doc_bracketed_list,
-	&cfg_rep_list, &cfg_type_grant
+	"update_policy", cfg_parse_bracketed_list, cfg_print_bracketed_list,
+	cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_grant
 };
 
 /*%
@@ -334,7 +344,9 @@ static cfg_tuplefielddef_t view_fields[] = {
 	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_view = {
-	"view", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple, &cfg_rep_tuple, view_fields };
+	"view", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	 &cfg_rep_tuple, view_fields
+};
 
 /*%
  * A zone statement.
@@ -346,7 +358,9 @@ static cfg_tuplefielddef_t zone_fields[] = {
 	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_zone = {
-	"zone", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple, &cfg_rep_tuple, zone_fields };
+	"zone", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	&cfg_rep_tuple, zone_fields
+};
 
 /*%
  * A "category" clause in the "logging" statement.
@@ -357,7 +371,9 @@ static cfg_tuplefielddef_t category_fields[] = {
 	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_category = {
-	"category", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple, &cfg_rep_tuple, category_fields };
+	"category", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	&cfg_rep_tuple, category_fields
+};
 
 
 /*%
