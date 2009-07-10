@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.419 2009/07/03 01:53:53 jreed Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.420 2009/07/10 01:22:18 jreed Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -5941,6 +5941,7 @@ options {
                   off
                   on a per-zone basis by specifying <command>zone-statistics no</command>
                   in the <command>zone</command> statement).
+                  The default is <userinput>no</userinput>.
                   These statistics may be accessed
                   using <command>rndc stats</command>, which will
                   dump them to the file listed
