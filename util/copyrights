@@ -1556,7 +1556,7 @@
 ./doc/doxygen/isc-header.html			HTML	2006,2007
 ./doc/doxygen/mainpage				X	2006
 ./doc/misc/.cvsignore				X	2001
-./doc/misc/Makefile.in				MAKE	2001,2004,2007
+./doc/misc/Makefile.in				MAKE	2001,2004,2007,2009
 ./doc/misc/dnssec				TXT.BRIEF	2000,2001,2002,2004
 ./doc/misc/format-options.pl			PERL	2001,2004,2007
 ./doc/misc/ipv6					TXT.BRIEF	2000,2001,2004
@@ -1583,7 +1583,7 @@
 ./doc/todo/unassigned				X	2000,2001
 ./doc/xsl/.cvsignore				X	2005
 ./doc/xsl/Makefile.in				MAKE	2005,2007
-./doc/xsl/copyright.xsl				SGML	2005,2007
+./doc/xsl/copyright.xsl				SGML	2005,2007,2009
 ./doc/xsl/isc-docbook-chunk.xsl.in		SGML	2005,2007
 ./doc/xsl/isc-docbook-html.xsl.in		SGML	2005,2007
 ./doc/xsl/isc-docbook-latex-mappings.xml	SGML	2005,2007
