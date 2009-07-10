@@ -14,7 +14,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: copyright.xsl,v 1.6 2007/06/19 23:47:13 tbox Exp $ -->
+<!-- $Id: copyright.xsl,v 1.6.128.1 2009/07/10 07:23:09 jinmei Exp $ -->
 
 <!-- Generate ISC copyright comments from Docbook copyright metadata. -->
 
@@ -35,7 +35,7 @@
 
   <xsl:variable name="isc.copyright.text">
     <xsl:text>
-      Permission to use, copy, modify, and distribute this software for any
+      Permission to use, copy, modify, and/or distribute this software for any
       purpose with or without fee is hereby granted, provided that the above
       copyright notice and this permission notice appear in all copies.
 
