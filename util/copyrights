@@ -1277,7 +1277,7 @@
 ./doc/todo/unassigned				X	2000,2001
 ./doc/xsl/.cvsignore				X	2005
 ./doc/xsl/Makefile.in				MAKE	2005
-./doc/xsl/copyright.xsl				SGML	2005
+./doc/xsl/copyright.xsl				SGML	2005,2009
 ./doc/xsl/isc-docbook-chunk.xsl.in		SGML	2005
 ./doc/xsl/isc-docbook-html.xsl.in		SGML	2005
 ./doc/xsl/isc-docbook-latex-mappings.xml	SGML	2005
