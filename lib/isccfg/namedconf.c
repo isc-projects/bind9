@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.100 2009/07/10 07:33:21 marka Exp $ */
+/* $Id: namedconf.c,v 1.101 2009/07/10 23:47:58 tbox Exp $ */
 
 /*! \file */
 
@@ -255,7 +255,7 @@ static cfg_type_t cfg_type_rrtypelist = {
 
 static const char *mode_enums[] = { "grant", "deny", NULL };
 static cfg_type_t cfg_type_mode = {
-	"mode", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,	
+	"mode", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
 	&cfg_rep_string, &mode_enums
 };
 
