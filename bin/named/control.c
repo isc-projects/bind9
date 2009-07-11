@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.c,v 1.20.10.11 2009/07/11 04:30:49 marka Exp $ */
+/* $Id: control.c,v 1.20.10.12 2009/07/11 23:46:06 tbox Exp $ */
 
 /*! \file */
 
@@ -56,7 +56,7 @@ command_compare(const char *text, const char *command) {
 
 /*%
  * This function is called to process the incoming command
- * when a control channel message is received.  
+ * when a control channel message is received.
  */
 isc_result_t
 ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
