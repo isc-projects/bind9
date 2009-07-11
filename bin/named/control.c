@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.c,v 1.20.10.10 2007/09/13 23:46:26 tbox Exp $ */
+/* $Id: control.c,v 1.20.10.11 2009/07/11 04:30:49 marka Exp $ */
 
 /*! \file */
 
@@ -159,10 +159,12 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 	} else if (command_compare(command, NS_COMMAND_STATUS)) {
 		result = ns_server_status(ns_g_server, text);
 	} else if (command_compare(command, NS_COMMAND_FREEZE)) {
-		result = ns_server_freeze(ns_g_server, ISC_TRUE, command);
+		result = ns_server_freeze(ns_g_server, ISC_TRUE, command,
+					  text);
 	} else if (command_compare(command, NS_COMMAND_UNFREEZE) ||
 		   command_compare(command, NS_COMMAND_THAW)) {
-		result = ns_server_freeze(ns_g_server, ISC_FALSE, command);
+		result = ns_server_freeze(ns_g_server, ISC_FALSE, command,
+					  text);
 	} else if (command_compare(command, NS_COMMAND_RECURSING)) {
 		result = ns_server_dumprecursing(ns_g_server);
 	} else if (command_compare(command, NS_COMMAND_TIMERPOKE)) {

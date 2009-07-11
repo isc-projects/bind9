@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.410.18.59 2009/03/26 23:00:22 marka Exp $ */
+/* $Id: zone.c,v 1.410.18.60 2009/07/11 04:30:49 marka Exp $ */
 
 /*! \file */
 
@@ -306,11 +306,15 @@ struct dns_zone {
 #define DNS_ZONEFLG_USEALTXFRSRC 0x00800000U
 #define DNS_ZONEFLG_SOABEFOREAXFR 0x01000000U
 #define DNS_ZONEFLG_NEEDCOMPACT 0x02000000U
+#define DNS_ZONEFLG_REFRESHING	0x04000000U	/*%< Refreshing keydata */
+#define DNS_ZONEFLG_THAW	0x08000000U
 
 #define DNS_ZONE_OPTION(z,o) (((z)->options & (o)) != 0)
 
 /* Flags for zone_load() */
 #define DNS_ZONELOADFLAG_NOSTAT	0x00000001U	/* Do not stat() master files */
+#define DNS_ZONELOADFLAG_THAW	0x00000002U	/* Thaw the zone on successful
+						   load. */
 
 struct dns_zonemgr {
 	unsigned int		magic;
@@ -1089,7 +1093,9 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 	INSIST(zone->type != dns_zone_none);
 
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADING)) {
-		result = ISC_R_SUCCESS;
+		if ((flags & DNS_ZONELOADFLAG_THAW) != 0)
+			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_THAW);
+		result = DNS_R_CONTINUE;
 		goto cleanup;
 	}
 
@@ -1223,6 +1229,8 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 
 	if (result == DNS_R_CONTINUE) {
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADING);
+		if ((flags & DNS_ZONELOADFLAG_THAW) != 0)
+			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_THAW);
 		goto cleanup;
 	}
 
@@ -1243,6 +1251,30 @@ dns_zone_load(dns_zone_t *zone) {
 isc_result_t
 dns_zone_loadnew(dns_zone_t *zone) {
 	return (zone_load(zone, DNS_ZONELOADFLAG_NOSTAT));
+}
+
+isc_result_t
+dns_zone_loadandthaw(dns_zone_t *zone) {
+	isc_result_t result;
+
+	result = zone_load(zone, DNS_ZONELOADFLAG_THAW);
+	switch (result) {
+	case DNS_R_CONTINUE:
+		/* Deferred thaw. */
+		break;
+	case ISC_R_SUCCESS:
+	case DNS_R_UPTODATE:
+	case DNS_R_SEENINCLUDE:
+		zone->update_disabled = ISC_FALSE;
+		break;
+	case DNS_R_NOMASTERFILE:
+		zone->update_disabled = ISC_FALSE;
+		break;
+	default:
+		/* Error, remain in disabled state. */
+		break;
+	}
+	return (result);
 }
 
 static void
@@ -6724,6 +6756,13 @@ zone_loaddone(void *arg, isc_result_t result) {
 	(void)zone_postload(load->zone, load->db, load->loadtime, result);
 	zonemgr_putio(&load->zone->readio);
 	DNS_ZONE_CLRFLAG(load->zone, DNS_ZONEFLG_LOADING);
+	/*
+	 * Leave the zone frozen if the reload fails.
+	 */
+	if ((result == ISC_R_SUCCESS || result == DNS_R_SEENINCLUDE) &&
+	     DNS_ZONE_FLAG(load->zone, DNS_ZONEFLG_THAW))
+		zone->update_disabled = ISC_FALSE;
+	DNS_ZONE_CLRFLAG(load->zone, DNS_ZONEFLG_THAW);
 	UNLOCK_ZONE(load->zone);
 
 	load->magic = 0;

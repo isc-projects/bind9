@@ -674,6 +674,7 @@ dns_zone_iattach
 dns_zone_idetach
 dns_zone_isforced
 dns_zone_load
+dns_zone_loadandthaw
 dns_zone_log
 dns_zone_maintenance
 dns_zone_markdirty
