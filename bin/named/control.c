@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.c,v 1.33 2007/09/13 04:45:18 each Exp $ */
+/* $Id: control.c,v 1.33.62.1 2009/07/11 04:28:14 marka Exp $ */
 
 /*! \file */
 
@@ -170,10 +170,12 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 	} else if (command_compare(command, NS_COMMAND_TSIGDELETE)) {
 		result = ns_server_tsigdelete(ns_g_server, command, text);
 	} else if (command_compare(command, NS_COMMAND_FREEZE)) {
-		result = ns_server_freeze(ns_g_server, ISC_TRUE, command);
+		result = ns_server_freeze(ns_g_server, ISC_TRUE, command,
+					  text);
 	} else if (command_compare(command, NS_COMMAND_UNFREEZE) ||
 		   command_compare(command, NS_COMMAND_THAW)) {
-		result = ns_server_freeze(ns_g_server, ISC_FALSE, command);
+		result = ns_server_freeze(ns_g_server, ISC_FALSE, command,
+					  text);
 	} else if (command_compare(command, NS_COMMAND_RECURSING)) {
 		result = ns_server_dumprecursing(ns_g_server);
 	} else if (command_compare(command, NS_COMMAND_TIMERPOKE)) {

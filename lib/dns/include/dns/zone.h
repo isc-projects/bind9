@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.153.56.7 2009/01/29 22:41:45 jinmei Exp $ */
+/* $Id: zone.h,v 1.153.56.8 2009/07/11 04:28:14 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -254,6 +254,9 @@ dns_zone_load(dns_zone_t *zone);
 
 isc_result_t
 dns_zone_loadnew(dns_zone_t *zone);
+
+isc_result_t
+dns_zone_loadandthaw(dns_zone_t *zone);
 /*%<
  *	Cause the database to be loaded from its backing store.
  *	Confirm that the minimum requirements for the zone type are
@@ -262,6 +265,8 @@ dns_zone_loadnew(dns_zone_t *zone);
  *	dns_zone_loadnew() only loads zones that are not yet loaded.
  *	dns_zone_load() also loads zones that are already loaded and
  *	and whose master file has changed since the last load.
+ *	dns_zone_loadandthaw() is similar to dns_zone_load() but will
+ *	also re-enable DNS UPDATEs when the load completes.
  *
  * Require:
  *\li	'zone' to be a valid zone.

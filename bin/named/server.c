@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.495.10.28 2009/01/30 04:24:59 marka Exp $ */
+/* $Id: server.c,v 1.495.10.29 2009/07/11 04:28:14 marka Exp $ */
 
 /*! \file */
 
@@ -5391,7 +5391,9 @@ ns_server_tsiglist(ns_server_t *server, isc_buffer_t *text) {
  * Act on a "freeze" or "thaw" command from the command channel.
  */
 isc_result_t
-ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args) {
+ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args,
+		 isc_buffer_t *text)
+{
 	isc_result_t result, tresult;
 	dns_zone_t *zone = NULL;
 	dns_zonetype_t type;
@@ -5401,6 +5403,7 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args) {
 	char *journal;
 	const char *vname, *sep;
 	isc_boolean_t frozen;
+	const char *msg = NULL;
 
 	result = zone_from_args(server, args, &zone);
 	if (result != ISC_R_SUCCESS)
@@ -5433,25 +5436,47 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args) {
 
 	frozen = dns_zone_getupdatedisabled(zone);
 	if (freeze) {
-		if (frozen)
+		if (frozen) {
+			msg = "WARNING: The zone was already frozen.\n"
+			      "Someone else may be editing it or "
+			      "it may still be re-loading.";
 			result = DNS_R_FROZEN;
-		if (result == ISC_R_SUCCESS)
+		}
+		if (result == ISC_R_SUCCESS) {
 			result = dns_zone_flush(zone);
+			if (result != ISC_R_SUCCESS)
+				msg = "Flushing the zone updates to "
+				      "disk failed.";
+		}
 		if (result == ISC_R_SUCCESS) {
 			journal = dns_zone_getjournal(zone);
 			if (journal != NULL)
 				(void)isc_file_remove(journal);
 		}
+		if (result == ISC_R_SUCCESS)
+			dns_zone_setupdatedisabled(zone, freeze);
 	} else {
 		if (frozen) {
-			result = dns_zone_load(zone);
-			if (result == DNS_R_CONTINUE ||
-			    result == DNS_R_UPTODATE)
+			result = dns_zone_loadandthaw(zone);
+			switch (result) {
+			case ISC_R_SUCCESS:
+			case DNS_R_UPTODATE:
+				msg = "The zone reload and thaw was "
+				      "successful.";
 				result = ISC_R_SUCCESS;
+				break;
+			case DNS_R_CONTINUE:
+				msg = "A zone reload and thaw was started.\n"
+				      "Check the logs to see the result.";
+				result = ISC_R_SUCCESS;
+				break;
+			}
 		}
 	}
-	if (result == ISC_R_SUCCESS)
-		dns_zone_setupdatedisabled(zone, freeze);
+
+	if (msg != NULL && strlen(msg) < isc_buffer_availablelength(text))
+		isc_buffer_putmem(text, (const unsigned char *)msg,
+				  strlen(msg) + 1);
 
 	view = dns_zone_getview(zone);
 	if (strcmp(view->name, "_bind") == 0 ||
