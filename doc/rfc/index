@@ -111,6 +111,7 @@
 4408:	Sender Policy Framework (SPF) for Authorizing Use of Domains
 	 in E-Mail, Version 1
 4470:	Minimally Covering NSEC Records and DNSSEC On-line Signing
+4509:	Use of SHA-256 in DNSSEC Delegation Signer (DS) Resource Records (RRs)
 4634:	US Secure Hash Algorithms (SHA and HMAC-SHA)
 4641:	DNSSEC Operational Practices
 4648:	The Base16, Base32, and Base64 Data Encodings
