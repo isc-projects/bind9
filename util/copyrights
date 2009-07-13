@@ -2321,7 +2321,7 @@
 ./lib/isc/x86_32/include/Makefile.in		MAKE	2007
 ./lib/isc/x86_32/include/isc/.cvsignore		X	2007
 ./lib/isc/x86_32/include/isc/Makefile.in	MAKE	2007
-./lib/isc/x86_32/include/isc/atomic.h		C	2005
+./lib/isc/x86_32/include/isc/atomic.h		C	2005,2009
 ./lib/isc/x86_64/.cvsignore			X	2007
 ./lib/isc/x86_64/Makefile.in			MAKE	2007
 ./lib/isc/x86_64/include/.cvsignore		X	2007
