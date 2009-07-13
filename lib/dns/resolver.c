@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.402 2009/06/02 23:47:50 tbox Exp $ */
+/* $Id: resolver.c,v 1.403 2009/07/13 06:24:27 marka Exp $ */
 
 /*! \file */
 
@@ -2580,7 +2580,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 		 * DS records are found in the parent server.
 		 * Strip label to get the correct forwarder (if any).
 		 */
-		if (fctx->type == dns_rdatatype_ds &&
+		if (dns_rdatatype_atparent(fctx->type) &&
 		    dns_name_countlabels(name) > 1) {
 			dns_name_init(&suffix, NULL);
 			labels = dns_name_countlabels(name);
@@ -3473,21 +3473,22 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	if (domain == NULL) {
 		dns_forwarders_t *forwarders = NULL;
 		unsigned int labels;
+		dns_name_t *fwdname = name;
 
 		/*
 		 * DS records are found in the parent server.
 		 * Strip label to get the correct forwarder (if any).
 		 */
-		if (fctx->type == dns_rdatatype_ds &&
+		if (dns_rdatatype_atparent(fctx->type) &&
 		    dns_name_countlabels(name) > 1) {
 			dns_name_init(&suffix, NULL);
 			labels = dns_name_countlabels(name);
 			dns_name_getlabelsequence(name, 1, labels - 1, &suffix);
-			name = &suffix;
+			fwdname = &suffix;
 		}
 		dns_fixedname_init(&fixed);
 		domain = dns_fixedname_name(&fixed);
-		result = dns_fwdtable_find2(fctx->res->view->fwdtable, name,
+		result = dns_fwdtable_find2(fctx->res->view->fwdtable, fwdname,
 					    domain, &forwarders);
 		if (result == ISC_R_SUCCESS)
 			fctx->fwdpolicy = forwarders->fwdpolicy;
@@ -3498,7 +3499,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 			 * nameservers, and we're not in forward-only mode,
 			 * so find the best nameservers to use.
 			 */
-			if (dns_rdatatype_atparent(type))
+			if (dns_rdatatype_atparent(fctx->type))
 				findoptions |= DNS_DBFIND_NOEXACT;
 			result = dns_view_findzonecut(res->view, name, domain,
 						      0, findoptions, ISC_TRUE,
