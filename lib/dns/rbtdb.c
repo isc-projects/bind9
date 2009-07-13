@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.276 2009/05/06 22:53:54 jinmei Exp $ */
+/* $Id: rbtdb.c,v 1.277 2009/07/13 07:02:46 marka Exp $ */
 
 /*! \file */
 
@@ -3546,8 +3546,8 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	 * We now go looking for rdata...
 	 */
 
-	NODE_LOCK(&(search.rbtdb->node_locks[node->locknum].lock),
-		  isc_rwlocktype_read);
+	lock = &search.rbtdb->node_locks[node->locknum].lock;
+	NODE_LOCK(lock, isc_rwlocktype_read);
 
 	found = NULL;
 	foundsig = NULL;
@@ -3625,8 +3625,10 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 			 * we are using behave as if it isn't here.
 			 */
 			if (header->type == dns_rdatatype_nsec3 &&
-			    !matchparams(header, &search))
+			   !matchparams(header, &search)) {
+				NODE_UNLOCK(lock, isc_rwlocktype_read);
 				goto partial_match;
+			}
 			/*
 			 * If we found a type we were looking for,
 			 * remember it.
@@ -3705,7 +3707,6 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		 * we really have a partial match.
 		 */
 		if (!wild) {
-			lock = &search.rbtdb->node_locks[node->locknum].lock;
 			NODE_UNLOCK(lock, isc_rwlocktype_read);
 			goto partial_match;
 		}
@@ -3722,7 +3723,6 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 			 *
 			 * Return the delegation.
 			 */
-			lock = &search.rbtdb->node_locks[node->locknum].lock;
 			NODE_UNLOCK(lock, isc_rwlocktype_read);
 			result = setup_delegation(&search, nodep, foundname,
 						  rdataset, sigrdataset);
@@ -3744,7 +3744,6 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 				goto node_exit;
 			}
 
-			lock = &search.rbtdb->node_locks[node->locknum].lock;
 			NODE_UNLOCK(lock, isc_rwlocktype_read);
 			result = find_closest_nsec(&search, nodep, foundname,
 						   rdataset, sigrdataset,
@@ -3829,7 +3828,6 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		if (result == DNS_R_GLUE &&
 		    (search.options & DNS_DBFIND_VALIDATEGLUE) != 0 &&
 		    !valid_glue(&search, foundname, type, node)) {
-			lock = &search.rbtdb->node_locks[node->locknum].lock;
 			NODE_UNLOCK(lock, isc_rwlocktype_read);
 			result = setup_delegation(&search, nodep, foundname,
 						  rdataset, sigrdataset);
@@ -3861,8 +3859,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		foundname->attributes |= DNS_NAMEATTR_WILDCARD;
 
  node_exit:
-	NODE_UNLOCK(&(search.rbtdb->node_locks[node->locknum].lock),
-		    isc_rwlocktype_read);
+	NODE_UNLOCK(lock, isc_rwlocktype_read);
 
  tree_exit:
 	RWUNLOCK(&search.rbtdb->tree_lock, isc_rwlocktype_read);

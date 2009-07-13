@@ -1,3 +1,5 @@
+2625.	[bug]		Missing UNLOCK in rbtdb.c. [RT #19865]
+
 2624.	[func]		'named-checkconf -p' will print out the parsed
 			configuration. [RT #18871]
 
