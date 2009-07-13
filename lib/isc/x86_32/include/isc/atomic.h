@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2005, 2009  Internet Systems Consortium, Inc. ("ISC")
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: atomic.h,v 1.2.2.4 2009/07/13 07:34:02 marka Exp $ */
+/* $Id: atomic.h,v 1.2.2.5 2009/07/13 23:46:05 tbox Exp $ */
 
 #ifndef ISC_ATOMIC_H
 #define ISC_ATOMIC_H 1
@@ -60,7 +60,7 @@ isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
 		 * xchg should automatically lock memory, but we add it
 		 * explicitly just in case (it at least doesn't harm)
 		 */
-		"lock;"		
+		"lock;"
 #endif
 
 		"xchgl %1, %0"
