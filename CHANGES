@@ -1,3 +1,6 @@
+2627.	[bug]		Named aborted if the same key was included in
+			trusted-keys more than once. [RT #19918]
+
 2626.	[bug]		Multiple trusted-keys could trigger an assertion
 			failure. [RT #19914]
 

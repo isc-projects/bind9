@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keytable.c,v 1.36 2009/07/01 23:47:36 tbox Exp $ */
+/* $Id: keytable.c,v 1.37 2009/07/13 21:53:03 each Exp $ */
 
 /*! \file */
 
@@ -177,6 +177,7 @@ insert(dns_keytable_t *keytable, isc_boolean_t managed,
 				if (dst_key_compare(k->key, *keyp) == ISC_TRUE)
 					break;
 			}
+
 			if (k == NULL)
 				result = ISC_R_SUCCESS;
 			else
@@ -194,6 +195,10 @@ insert(dns_keytable_t *keytable, isc_boolean_t managed,
 		node->data = knode;
 		knode = NULL;
 	}
+
+        /* Key was already there?  That's the same as a success */
+        if (result == ISC_R_EXISTS)
+                result = ISC_R_SUCCESS;
 
 	RWUNLOCK(&keytable->rwlock, isc_rwlocktype_write);
 
