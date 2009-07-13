@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.497 2009/07/02 23:47:26 tbox Exp $ */
+/* $Id: zone.c,v 1.498 2009/07/13 21:49:57 each Exp $ */
 
 /*! \file */
 
@@ -3001,15 +3001,21 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db, isc_boolean_t addsoa) {
 		result = ISC_R_NOMORE;
 	while (result == DNS_R_NEWORIGIN || result == ISC_R_SUCCESS) {
 		dns_rbtnode_t *rbtnode = NULL;
+
 		dns_rbtnodechain_current(&chain, &foundname, origin, &rbtnode);
 		keynode = rbtnode->data;
+                if (keynode == NULL)
+                        goto skip;
+
 		if (dns_keynode_managed(keynode)) {
 			dns_fixedname_t fname;
 			dns_fixedname_init(&fname);
 			dst_key_t *key = dns_keynode_key(keynode);
 			dns_name_t *keyname;
+
 			if (key == NULL)   /* fail_secure() was called. */
 				goto skip;
+
 			keyname = dst_key_name(key);
 			result = dns_db_find(db, keyname, ver,
 					     dns_rdatatype_keydata,

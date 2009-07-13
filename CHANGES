@@ -1,3 +1,6 @@
+2626.	[bug]		Multiple trusted-keys could trigger an assertion
+			failure. [RT #19914]
+
 2625.	[bug]		Missing UNLOCK in rbtdb.c. [RT #19865]
 
 2624.	[func]		'named-checkconf -p' will print out the parsed
