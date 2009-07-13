@@ -1,3 +1,6 @@
+2624.	[func]		'named-checkconf -p' will print out the parsed
+			configuration. [RT #18871]
+
 2623.	[bug]		Named started seaches for DS non-optimally. [RT #19915]
 
 2622.	[bug]		Printing of named.conf grammar was broken. [RT #19919]

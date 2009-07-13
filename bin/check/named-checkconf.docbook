@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named-checkconf.docbook,v 1.19 2007/06/19 06:58:03 marka Exp $ -->
+<!-- $Id: named-checkconf.docbook,v 1.20 2009/07/13 06:57:21 marka Exp $ -->
 <refentry id="man.named-checkconf">
   <refentryinfo>
     <date>June 14, 2000</date>
@@ -58,6 +58,7 @@
       <arg><option>-j</option></arg>
       <arg><option>-t <replaceable class="parameter">directory</replaceable></option></arg>
       <arg choice="req">filename</arg>
+      <arg><option>-p</option></arg>
       <arg><option>-z</option></arg>
     </cmdsynopsis>
   </refsynopsisdiv>
@@ -87,8 +88,7 @@
         <term>-t <replaceable class="parameter">directory</replaceable></term>
         <listitem>
           <para>
-            Chroot to <filename>directory</filename> so that
-            include
+            Chroot to <filename>directory</filename> so that include
             directives in the configuration file are processed as if
             run by a similarly chrooted named.
           </para>
@@ -101,6 +101,16 @@
           <para>
             Print the version of the <command>named-checkconf</command>
             program and exit.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-p</term>
+        <listitem>
+          <para>
+	    Print out the <filename>named.conf</filename> and included files
+	    in canonical form if no errors were detected.
           </para>
         </listitem>
       </varlistentry>
