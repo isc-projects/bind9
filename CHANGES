@@ -1558,6 +1558,8 @@
 			res_init() failures better.
 
 2095.	[port]		libbind: alway prototype inet_cidr_ntop_ipv6() and
+2623.	[bug]		Named started seaches for DS non-optimally. [RT #19915]
+
 			net_cidr_ntop_ipv6(). [RT #16388]
  
 2094.	[contrib]	Update named-bootconf.  [RT# 16404]
