@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.95 2009/03/02 03:08:22 marka Exp $ */
+/* $Id: os.c,v 1.96 2009/07/14 05:15:00 marka Exp $ */
 
 /*! \file */
 
@@ -290,6 +290,12 @@ linux_initialprivs(void) {
 	 * support named.conf options, this is now being added to test.
 	 */
 	SET_CAP(CAP_SYS_RESOURCE);
+
+	/*
+	 * We need to be able to set the ownership of the containing
+	 * directory of the pid file when we create it.
+	 */
+	SET_CAP(CAP_CHOWN);
 
 	linux_setcaps(caps);
 
@@ -752,7 +758,52 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 		return;
 	}
 
-	fd = safe_open(filename, ISC_FALSE);
+	if (first_time && runas_pw != NULL) {
+		/*
+		 * Open the file using the uid/gid pair we will eventually
+		 * be running as.
+		 */
+		if (setegid(runas_pw->pw_gid) == -1) {
+			isc__strerror(errno, strbuf, sizeof(strbuf));
+			(*report)("unable to set effective gid: %s", strbuf);
+			/* NOTREACHED */
+		}
+		if (seteuid(runas_pw->pw_uid) == -1) {
+			isc__strerror(errno, strbuf, sizeof(strbuf));
+			(*report)("unable to set effective uid: %s", strbuf);
+			/* NOTREACHED */
+		}
+		fd = safe_open(filename, ISC_FALSE);
+		if  (seteuid(0) == -1) {
+			isc__strerror(errno, strbuf, sizeof(strbuf));
+			(*report)("unable to restore effective uid: %s",
+				  strbuf);
+			/* NOTREACHED */
+		}
+		if (setegid(0) == -1) {
+			isc__strerror(errno, strbuf, sizeof(strbuf));
+			(*report)("unable to restore effective gid: %s",
+				  strbuf);
+			/* NOTREACHED */
+		}
+		if (fd == -1) {
+			/*
+			 * Backwards compatibility.
+			 */
+			fd = safe_open(filename, ISC_FALSE);
+			if (fd != -1) {
+				ns_main_earlywarning("Required root "
+					             "permissions to open "
+						     "'%s'.", filename);
+				ns_main_earlywarning("Please check file and "
+						     "directory permissions "
+						     "or adjust 'pid-file' "
+						     "in named.conf.");
+			}
+		}
+	} else
+		fd = safe_open(filename, ISC_FALSE);
+	
 	if (fd < 0) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		(*report)("couldn't open pid file '%s': %s", filename, strbuf);
