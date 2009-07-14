@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.168 2009/06/10 01:44:53 each Exp $ */
+/* $Id: nsupdate.c,v 1.169 2009/07/14 22:54:56 each Exp $ */
 
 /*! \file */
 
@@ -562,9 +562,9 @@ setup_keystr(void) {
  * Get a key from a named.conf format keyfile
  */
 static isc_result_t
-read_ddnskey(isc_mem_t *mctx, isc_log_t *lctx) {
+read_sessionkey(isc_mem_t *mctx, isc_log_t *lctx) {
 	cfg_parser_t *pctx = NULL;
-	cfg_obj_t *ddnskey = NULL;
+	cfg_obj_t *sessionkey = NULL;
 	const cfg_obj_t *key = NULL;
 	const cfg_obj_t *secretobj = NULL;
 	const cfg_obj_t *algorithmobj = NULL;
@@ -581,11 +581,12 @@ read_ddnskey(isc_mem_t *mctx, isc_log_t *lctx) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	result = cfg_parse_file(pctx, keyfile, &cfg_type_ddnskey, &ddnskey);
+	result = cfg_parse_file(pctx, keyfile, &cfg_type_sessionkey,
+                                &sessionkey);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	result = cfg_map_get(ddnskey, "key", &key);
+	result = cfg_map_get(sessionkey, "key", &key);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
@@ -605,8 +606,8 @@ read_ddnskey(isc_mem_t *mctx, isc_log_t *lctx) {
 
  cleanup:
 	if (pctx != NULL) {
-		if (ddnskey != NULL)
-			cfg_obj_destroy(pctx, &ddnskey);
+		if (sessionkey != NULL)
+			cfg_obj_destroy(pctx, &sessionkey);
 		cfg_parser_destroy(&pctx);
 	}
 
@@ -629,9 +630,9 @@ setup_keyfile(isc_mem_t *mctx, isc_log_t *lctx) {
 				       DST_TYPE_PRIVATE | DST_TYPE_KEY, mctx,
 				       &dstkey);
 
-	/* If that didn't work, try reading it as a ddns.key keyfile */
+	/* If that didn't work, try reading it as a session.key keyfile */
 	if (result != ISC_R_SUCCESS) {
-		result = read_ddnskey(mctx, lctx);
+		result = read_sessionkey(mctx, lctx);
 		if (result == ISC_R_SUCCESS)
 			return;
 	}
@@ -884,7 +885,7 @@ setup_system(void) {
 	if (keystr != NULL)
 		setup_keystr();
 	else if (local_only)
-		read_ddnskey(mctx, lctx);
+		read_sessionkey(mctx, lctx);
 	else if (keyfile != NULL)
 		setup_keyfile(mctx, lctx);
 }
@@ -1043,7 +1044,7 @@ parse_args(int argc, char **argv, isc_mem_t *mctx, isc_entropy_t **ectx) {
 		struct in_addr localhost;
 
 		if (keyfile == NULL)
-			keyfile = DDNS_KEYFILE;
+			keyfile = SESSION_KEYFILE;
 
 		if (userserver == NULL) {
 			userserver = isc_mem_get(mctx, sizeof(isc_sockaddr_t));

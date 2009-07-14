@@ -1,3 +1,7 @@
+2630.	[func]		Improved syntax for DDNS autoconfiguration:  use
+			"update-policy local;" to switch on local DDNS in a
+			zone.  [RT #19875]
+
 2629.	[port]		Check for seteuid()/setegid(), use setresuid()/
 			setresgid() if not present. [RT #19932]
 			

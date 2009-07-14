@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.537 2009/07/02 07:39:02 marka Exp $ */
+/* $Id: server.c,v 1.538 2009/07/14 22:54:56 each Exp $ */
 
 /*! \file */
 
@@ -1786,9 +1786,9 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	 * Configure the view's TSIG keys.
 	 */
 	CHECK(ns_tsigkeyring_fromconfig(config, vconfig, view->mctx, &ring));
-	if (ns_g_server->ddnskey != NULL) {
-		CHECK(dns_tsigkeyring_add(ring, ns_g_server->ddns_keyname,
-					  ns_g_server->ddnskey));
+	if (ns_g_server->sessionkey != NULL) {
+		CHECK(dns_tsigkeyring_add(ring, ns_g_server->session_keyname,
+					  ns_g_server->sessionkey));
 	}
 	dns_view_setkeyring(view, ring);
 	ring = NULL;		/* ownership transferred */
@@ -3327,24 +3327,24 @@ removed(dns_zone_t *zone, void *uap) {
 
 static void
 cleanup_session_key(ns_server_t *server, isc_mem_t *mctx) {
-	if (server->ddns_keyfile != NULL) {
-		isc_file_remove(server->ddns_keyfile);
-		isc_mem_free(mctx, server->ddns_keyfile);
-		server->ddns_keyfile = NULL;
+	if (server->session_keyfile != NULL) {
+		isc_file_remove(server->session_keyfile);
+		isc_mem_free(mctx, server->session_keyfile);
+		server->session_keyfile = NULL;
 	}
 
-	if (server->ddns_keyname != NULL) {
-		if (dns_name_dynamic(server->ddns_keyname))
-			dns_name_free(server->ddns_keyname, mctx);
-		isc_mem_put(mctx, server->ddns_keyname, sizeof(dns_name_t));
-		server->ddns_keyname = NULL;
+	if (server->session_keyname != NULL) {
+		if (dns_name_dynamic(server->session_keyname))
+			dns_name_free(server->session_keyname, mctx);
+		isc_mem_put(mctx, server->session_keyname, sizeof(dns_name_t));
+		server->session_keyname = NULL;
 	}
 
-	if (server->ddnskey != NULL)
-		dns_tsigkey_detach(&server->ddnskey);
+	if (server->sessionkey != NULL)
+		dns_tsigkey_detach(&server->sessionkey);
 
-	server->ddns_keyalg = DST_ALG_UNKNOWN;
-	server->ddns_keybits = 0;
+	server->session_keyalg = DST_ALG_UNKNOWN;
+	server->session_keybits = 0;
 }
 
 static isc_result_t
@@ -3395,7 +3395,13 @@ generate_session_key(const char *filename, const char *keynamestr,
 	key = NULL;		/* ownership of key has been transferred */
 
 	/* Dump the key to the key file. */
-	CHECK(isc_file_safecreate(filename, &fp));
+	result = isc_file_safecreate(filename, &fp);
+        if (result != ISC_R_SUCCESS) {
+                isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+                              NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+                              "could not create %s", filename);
+                goto cleanup;
+        }
 
 	fprintf(fp, "key \"%s\" {\n"
 		"\talgorithm %s;\n"
@@ -3439,17 +3445,17 @@ configure_session_key(const cfg_obj_t **maps, ns_server_t *server,
 	isc_result_t result;
 
 	obj = NULL;
-	result = ns_config_get(maps, "ddns-keyfile", &obj);
+	result = ns_config_get(maps, "session-keyfile", &obj);
 	if (result == ISC_R_SUCCESS) {
 		if (cfg_obj_isvoid(obj))
 			keyfile = NULL; /* disable it */
 		else
 			keyfile = cfg_obj_asstring(obj);
 	} else
-		keyfile = ns_g_defaultddnskeyfile;
+		keyfile = ns_g_defaultsessionkeyfile;
 
 	obj = NULL;
-	result = ns_config_get(maps, "ddns-keyname", &obj);
+	result = ns_config_get(maps, "session-keyname", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	keynamestr = cfg_obj_asstring(obj);
 	dns_fixedname_init(&fname);
@@ -3462,7 +3468,7 @@ configure_session_key(const cfg_obj_t **maps, ns_server_t *server,
 		return (result);
 
 	obj = NULL;
-	result = ns_config_get(maps, "ddns-keyalg", &obj);
+	result = ns_config_get(maps, "session-keyalg", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	algstr = cfg_obj_asstring(obj);
 	algname = NULL;
@@ -3470,58 +3476,58 @@ configure_session_key(const cfg_obj_t **maps, ns_server_t *server,
 	if (result != ISC_R_SUCCESS) {
 		const char *s = " (keeping current key)";
 
-		cfg_obj_log(obj, ns_g_lctx, ISC_LOG_ERROR, "ddns-keyalg: "
+		cfg_obj_log(obj, ns_g_lctx, ISC_LOG_ERROR, "session-keyalg: "
 			    "unsupported or unknown algorithm '%s'%s",
 			    algstr,
-			    server->ddns_keyfile != NULL ? s : "");
+			    server->session_keyfile != NULL ? s : "");
 		return (result);
 	}
 
 	/* See if we need to (re)generate a new key. */
 	if (keyfile == NULL) {
-		if (server->ddns_keyfile != NULL)
+		if (server->session_keyfile != NULL)
 			need_deleteold = ISC_TRUE;
-	} else if (server->ddns_keyfile == NULL)
+	} else if (server->session_keyfile == NULL)
 		need_createnew = ISC_TRUE;
-	else if (strcmp(keyfile, server->ddns_keyfile) != 0 ||
-		 !dns_name_equal(server->ddns_keyname, keyname) ||
-		 server->ddns_keyalg != algtype ||
-		 server->ddns_keybits != bits) {
+	else if (strcmp(keyfile, server->session_keyfile) != 0 ||
+		 !dns_name_equal(server->session_keyname, keyname) ||
+		 server->session_keyalg != algtype ||
+		 server->session_keybits != bits) {
 		need_deleteold = ISC_TRUE;
 		need_createnew = ISC_TRUE;
 	}
 
 	if (need_deleteold) {
-		INSIST(server->ddns_keyfile != NULL);
-		INSIST(server->ddns_keyname != NULL);
-		INSIST(server->ddnskey != NULL);
+		INSIST(server->session_keyfile != NULL);
+		INSIST(server->session_keyname != NULL);
+		INSIST(server->sessionkey != NULL);
 
 		cleanup_session_key(server, mctx);
 	}
 
 	if (need_createnew) {
-		INSIST(server->ddnskey == NULL);
-		INSIST(server->ddns_keyfile == NULL);
-		INSIST(server->ddns_keyname == NULL);
-		INSIST(server->ddns_keyalg == DST_ALG_UNKNOWN);
-		INSIST(server->ddns_keybits == 0);
+		INSIST(server->sessionkey == NULL);
+		INSIST(server->session_keyfile == NULL);
+		INSIST(server->session_keyname == NULL);
+		INSIST(server->session_keyalg == DST_ALG_UNKNOWN);
+		INSIST(server->session_keybits == 0);
 
-		server->ddns_keyname = isc_mem_get(mctx, sizeof(dns_name_t));
-		if (server->ddns_keyname == NULL)
+		server->session_keyname = isc_mem_get(mctx, sizeof(dns_name_t));
+		if (server->session_keyname == NULL)
 			goto cleanup;
-		dns_name_init(server->ddns_keyname, NULL);
-		CHECK(dns_name_dup(keyname, mctx, server->ddns_keyname));
+		dns_name_init(server->session_keyname, NULL);
+		CHECK(dns_name_dup(keyname, mctx, server->session_keyname));
 
-		server->ddns_keyfile = isc_mem_strdup(mctx, keyfile);
-		if (server->ddns_keyfile == NULL)
+		server->session_keyfile = isc_mem_strdup(mctx, keyfile);
+		if (server->session_keyfile == NULL)
 			goto cleanup;
 
-		server->ddns_keyalg = algtype;
-		server->ddns_keybits = bits;
+		server->session_keyalg = algtype;
+		server->session_keybits = bits;
 
 		CHECK(generate_session_key(keyfile, keynamestr, keyname, algstr,
 					   algname, algtype, bits, mctx,
-					   &server->ddnskey));
+					   &server->sessionkey));
 	}
 
 	return (result);
@@ -3962,9 +3968,25 @@ load_configuration(const char *filename, ns_server_t *server,
 	CHECK(isc_timer_reset(server->pps_timer, isc_timertype_ticker, NULL,
 			      &interval, ISC_FALSE));
 
+        /*
+         * Write the PID file.
+         */
+	obj = NULL;
+	if (ns_config_get(maps, "pid-file", &obj) == ISC_R_SUCCESS)
+		if (cfg_obj_isvoid(obj))
+			ns_os_writepidfile(NULL, first_time);
+		else
+			ns_os_writepidfile(cfg_obj_asstring(obj), first_time);
+	else if (ns_g_lwresdonly)
+		ns_os_writepidfile(lwresd_g_defaultpidfile, first_time);
+	else
+		ns_os_writepidfile(ns_g_defaultpidfile, first_time);
+
 	/*
 	 * Configure the server-wide session key.  This must be done before
-	 * configure views because zone configuration may require ddns-keyname.
+	 * configure views because zone configuration may need to know
+	 * session-keyname.
+	 *
 	 * Failure of session key generation isn't fatal at this time; if it
 	 * turns out that a session key is really needed but doesn't exist,
 	 * we'll treat it as a fatal error then.
@@ -4127,17 +4149,6 @@ load_configuration(const char *filename, ns_server_t *server,
 #endif
 		}
 	}
-
-	obj = NULL;
-	if (ns_config_get(maps, "pid-file", &obj) == ISC_R_SUCCESS)
-		if (cfg_obj_isvoid(obj))
-			ns_os_writepidfile(NULL, first_time);
-		else
-			ns_os_writepidfile(cfg_obj_asstring(obj), first_time);
-	else if (ns_g_lwresdonly)
-		ns_os_writepidfile(lwresd_g_defaultpidfile, first_time);
-	else
-		ns_os_writepidfile(ns_g_defaultpidfile, first_time);
 
 	/*
 	 * Relinquish root privileges.
@@ -4557,9 +4568,9 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 
 	dns_zonemgr_shutdown(server->zonemgr);
 
-	if (ns_g_ddnskey != NULL) {
-		dns_tsigkey_detach(&ns_g_ddnskey);
-		dns_name_free(&ns_g_ddnskeyname, server->mctx);
+	if (ns_g_sessionkey != NULL) {
+		dns_tsigkey_detach(&ns_g_sessionkey);
+		dns_name_free(&ns_g_sessionkeyname, server->mctx);
 	}
 
 	if (server->blackholeacl != NULL)
@@ -4719,11 +4730,11 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 
 	ISC_LIST_INIT(server->cachelist);
 
-	server->ddnskey = NULL;
-	server->ddns_keyfile = NULL;
-	server->ddns_keyname = NULL;
-	server->ddns_keyalg = DST_ALG_UNKNOWN;
-	server->ddns_keybits = 0;
+	server->sessionkey = NULL;
+	server->session_keyfile = NULL;
+	server->session_keyname = NULL;
+	server->session_keyalg = DST_ALG_UNKNOWN;
+	server->session_keybits = 0;
 
 	server->magic = NS_SERVER_MAGIC;
 	*serverp = server;

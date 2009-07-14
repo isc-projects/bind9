@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.151 2009/06/10 23:47:47 tbox Exp $ */
+/* $Id: zoneconf.c,v 1.152 2009/07/14 22:54:56 each Exp $ */
 
 /*% */
 
@@ -172,20 +172,26 @@ parse_acl:
  */
 static isc_result_t
 configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
-			const char *zname, isc_boolean_t autoddns)
-{
+			const char *zname) {
 	const cfg_obj_t *updatepolicy = NULL;
 	const cfg_listelt_t *element, *element2;
 	dns_ssutable_t *table = NULL;
 	isc_mem_t *mctx = dns_zone_getmctx(zone);
+        isc_boolean_t autoddns = ISC_FALSE;
 	isc_result_t result;
 
 	(void)cfg_map_get(zconfig, "update-policy", &updatepolicy);
 
-	if (updatepolicy == NULL && !autoddns) {
+	if (updatepolicy == NULL) {
 		dns_zone_setssutable(zone, NULL);
 		return (ISC_R_SUCCESS);
 	}
+
+        if (cfg_obj_isstring(updatepolicy) &&
+            strcmp("local", cfg_obj_asstring(updatepolicy)) == 0) {
+                autoddns = ISC_TRUE;
+                updatepolicy = NULL;
+        }
 
 	result = dns_ssutable_create(mctx, &table);
 	if (result != ISC_R_SUCCESS)
@@ -336,14 +342,14 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 	}
 
 	/*
-	 * If this is a "ddns-autoconf" zone and a DDNS session key exists,
-	 * then use the default policy, equivalent to:
-	 * update-policy { grant <ddns-keyname> zonesub any; };
+	 * If "update-policy local;" and a session key exists,
+	 * then use the default policy, which is equivalent to:
+	 * update-policy { grant <session-keyname> zonesub any; };
 	 */
 	if (autoddns) {
 		dns_rdatatype_t any = dns_rdatatype_any;
 
-		if (ns_g_server->ddns_keyname == NULL) {
+		if (ns_g_server->session_keyname == NULL) {
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 				      "failed to enable auto DDNS policy "
@@ -354,7 +360,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 		}
 
 		result = dns_ssutable_addrule(table, ISC_TRUE,
-					      ns_g_server->ddns_keyname,
+					      ns_g_server->session_keyname,
 					      DNS_SSUMATCHTYPE_SUBDOMAIN,
 					      dns_zone_getorigin(zone),
 					      1, &any);
@@ -480,7 +486,6 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	isc_boolean_t check = ISC_FALSE, fail = ISC_FALSE;
 	isc_boolean_t warn = ISC_FALSE, ignore = ISC_FALSE;
 	isc_boolean_t ixfrdiff;
-	isc_boolean_t autoddns;
 	dns_masterformat_t masterformat;
 	isc_stats_t *zoneqrystats;
 	isc_boolean_t zonestats_on;
@@ -795,13 +800,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 				      "address, which is insecure",
 				      zname);
 
-		obj = NULL;
-		result = ns_config_get(maps, "ddns-autoconf", &obj);
-		INSIST(result == ISC_R_SUCCESS);
-		autoddns = cfg_obj_asboolean(obj);
-
-		RETERR(configure_zone_ssutable(zoptions, zone, zname,
-					       autoddns));
+		RETERR(configure_zone_ssutable(zoptions, zone, zname));
 
 		obj = NULL;
 		result = ns_config_get(maps, "sig-validity-interval", &obj);

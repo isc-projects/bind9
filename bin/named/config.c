@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.98 2009/06/30 02:52:32 each Exp $ */
+/* $Id: config.c,v 1.99 2009/07/14 22:54:56 each Exp $ */
 
 /*! \file */
 
@@ -59,9 +59,9 @@ options {\n\
 	files unlimited;\n\
 	stacksize default;\n"
 #endif
-"#	ddns-keyfile \"" NS_LOCALSTATEDIR "/run/named/ddns.key\";\n\
-	ddns-keyname local-ddns;\n\
-	ddns-keyalg hmac-sha256;\n\
+"#	session-keyfile \"" NS_LOCALSTATEDIR "/run/named/session.key\";\n\
+	session-keyname local-ddns;\n\
+	session-keyalg hmac-sha256;\n\
 	deallocate-on-exit true;\n\
 #	directory <none>\n\
 	dump-file \"named_dump.db\";\n\
@@ -168,7 +168,6 @@ options {\n\
 	notify-delay 5;\n\
 	notify-to-soa no;\n\
 	dialup no;\n\
-	ddns-autoconf no;\n\
 #	forward <none>\n\
 #	forwarders <none>\n\
 	maintain-ixfr-base no;\n\

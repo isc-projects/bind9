@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.100 2009/07/02 07:39:02 marka Exp $ */
+/* $Id: server.h,v 1.101 2009/07/14 22:54:56 each Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -110,11 +110,11 @@ struct ns_server {
 
 	ns_statschannellist_t	statschannels;
 
-	dns_tsigkey_t		*ddnskey;
-	char			*ddns_keyfile;
-	dns_name_t		*ddns_keyname;
-	unsigned int		ddns_keyalg;
-	isc_uint16_t		ddns_keybits;
+	dns_tsigkey_t		*sessionkey;
+	char			*session_keyfile;
+	dns_name_t		*session_keyname;
+	unsigned int		session_keyalg;
+	isc_uint16_t		session_keybits;
 };
 
 #define NS_SERVER_MAGIC			ISC_MAGIC('S','V','E','R')

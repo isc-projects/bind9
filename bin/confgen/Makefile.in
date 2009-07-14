@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.3 2009/06/11 23:47:55 tbox Exp $
+# $Id: Makefile.in,v 1.4 2009/07/14 22:54:56 each Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -68,9 +68,7 @@ rndc-confgen.@O@: rndc-confgen.c
 		-c ${srcdir}/rndc-confgen.c
 
 ddns-confgen.@O@: ddns-confgen.c
-	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} \
-		-DDDNS_KEYFILE=\"${localstatedir}/run/named/ddns.key\" \
-		-c ${srcdir}/ddns-confgen.c
+	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} -c ${srcdir}/ddns-confgen.c
 
 rndc-confgen@EXEEXT@: rndc-confgen.@O@ util.@O@ keygen.@O@ ${UOBJS} ${CONFDEPLIBS} 
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ rndc-confgen.@O@ util.@O@ keygen.@O@ \

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntpaths.h,v 1.19 2009/06/12 02:33:21 each Exp $ */
+/* $Id: ntpaths.h,v 1.20 2009/07/14 22:54:57 each Exp $ */
 
 /*
  * Windows-specific path definitions
@@ -41,7 +41,7 @@ enum NtPaths {
 	LOCAL_STATE_DIR,
 	SYS_CONF_DIR,
 	RNDC_KEY_PATH,
-	DDNS_KEY_PATH
+	SESSION_KEY_PATH
 };
 
 /*
@@ -50,7 +50,7 @@ enum NtPaths {
 #define NAMED_CONFFILE isc_ntpaths_get(NAMED_CONF_PATH)
 #define RNDC_CONFFILE isc_ntpaths_get(RNDC_CONF_PATH)
 #define RNDC_KEYFILE isc_ntpaths_get(RNDC_KEY_PATH)
-#define DDNS_KEYFILE isc_ntpaths_get(DDNS_KEY_PATH)
+#define SESSION_KEYFILE isc_ntpaths_get(SESSION_KEY_PATH)
 #define RESOLV_CONF isc_ntpaths_get(RESOLV_CONF_PATH)
 
 /*

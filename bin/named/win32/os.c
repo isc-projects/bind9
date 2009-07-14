@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.34 2009/06/12 02:33:21 each Exp $ */
+/* $Id: os.c,v 1.35 2009/07/14 22:54:56 each Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -66,7 +66,7 @@ ns_paths_init() {
 	ns_g_defaultpidfile = isc_ntpaths_get(NAMED_PID_PATH);
 	lwresd_g_defaultpidfile = isc_ntpaths_get(LWRESD_PID_PATH);
 	ns_g_keyfile = isc_ntpaths_get(RNDC_KEY_PATH);
-	ns_g_defaultddnskeyfile = isc_ntpaths_get(DDNS_KEY_PATH);
+	ns_g_defaultsessionkeyfile = isc_ntpaths_get(SESSION_KEY_PATH);
 
 	Initialized = TRUE;
 }
