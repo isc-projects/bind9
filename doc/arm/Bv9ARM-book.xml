@@ -35,7 +35,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.41 2009/06/02 06:00:40 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.42 2009/07/14 18:01:02 jreed Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -2472,7 +2472,7 @@ allow-update { key host1-host2. ;};
 
 	<para>
 	  After DNSSEC gets established, a typical DNSSEC configuration
-	  will look something like the following.  It has a one or
+	  will look something like the following.  It has one or
 	  more public keys for the root.  This allows answers from
 	  outside the organization to be validated.  It will also
 	  have several keys for parts of the namespace the organization
@@ -7819,7 +7819,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
               <listitem>
 		<para>These set the
 		  initial value (minimum) and maximum number of recursive
-		  simultanious clients for any given query
+		  simultaneous clients for any given query
 		  (&lt;qname,qtype,qclass&gt;) that the server will accept
 		  before dropping additional clients.  <command>named</command> will attempt to
 		  self tune this value and changes will be logged.  The
@@ -7958,7 +7958,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	  <para>
 	    Named will attempt to determine if a built-in zone already exists
 	    or is active (covered by a forward-only forwarding declaration)
-	    and will not create a empty zone in that case.
+	    and will not create an empty zone in that case.
 	  </para>
 	  <para>
 	    The current list of empty zones is:
