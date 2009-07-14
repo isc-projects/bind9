@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.471 $)
+AC_REVISION($Revision: 1.472 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -281,6 +281,12 @@ AC_C_CONST
 AC_C_INLINE
 AC_C_VOLATILE
 AC_CHECK_FUNC(sysctlbyname, AC_DEFINE(HAVE_SYSCTLBYNAME))
+
+#
+# Older versions of HP/UX don't define seteuid() and setegid()
+#
+AC_CHECK_FUNCS(seteuid setresuid)
+AC_CHECK_FUNCS(setegid setresgid)
 
 #
 # UnixWare 7.1.1 with the feature supplement to the UDK compiler

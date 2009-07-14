@@ -1,3 +1,6 @@
+2629.	[port]		Check for seteuid()/setegid(), use setresuid()/
+			setresgid() if not present. [RT #19932]
+			
 2628.	[port]		linux: Allow /var/run/named/named.pid to be opened 
 			at startup with reduced capabilities in operation.
 			[RT #19884]

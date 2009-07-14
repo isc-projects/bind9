@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.96 2009/07/14 05:15:00 marka Exp $ */
+/* $Id: os.c,v 1.97 2009/07/14 22:38:38 each Exp $ */
 
 /*! \file */
 
@@ -718,6 +718,34 @@ mkdirpath(char *filename, void (*report)(const char *, ...)) {
 	return (-1);
 }
 
+static void
+setperms(uid_t uid, gid_t gid, void (*report)(const char *, ...)) {
+	char strbuf[ISC_STRERRORSIZE];
+#if defined(HAVE_SETEGID)
+        if (setegid(gid) == -1) {
+                isc__strerror(errno, strbuf, sizeof(strbuf));
+                (*report)("unable to set effective gid: %s", strbuf);
+        }
+#elif defined(HAVE_SETRESGID)
+        if (setresgid(-1, gid, -1) == -1) {
+                isc__strerror(errno, strbuf, sizeof(strbuf));
+                (*report)("unable to set effective gid: %s", strbuf);
+        }
+#endif
+
+#if defined(HAVE_SETEUID)
+        if (seteuid(uid) == -1) {
+                isc__strerror(errno, strbuf, sizeof(strbuf));
+                (*report)("unable to set effective uid: %s", strbuf);
+        }
+#elif defined(HAVE_SETRESUID)
+        if (setresuid(-1, uid, -1) == -1) {
+                isc__strerror(errno, strbuf, sizeof(strbuf));
+                (*report)("unable to set effective uid: %s", strbuf);
+        }
+#endif
+}
+
 void
 ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 	int fd;
@@ -763,29 +791,10 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 		 * Open the file using the uid/gid pair we will eventually
 		 * be running as.
 		 */
-		if (setegid(runas_pw->pw_gid) == -1) {
-			isc__strerror(errno, strbuf, sizeof(strbuf));
-			(*report)("unable to set effective gid: %s", strbuf);
-			/* NOTREACHED */
-		}
-		if (seteuid(runas_pw->pw_uid) == -1) {
-			isc__strerror(errno, strbuf, sizeof(strbuf));
-			(*report)("unable to set effective uid: %s", strbuf);
-			/* NOTREACHED */
-		}
+                setperms(runas_pw->pw_uid, runas_pw->pw_gid, report);
 		fd = safe_open(filename, ISC_FALSE);
-		if  (seteuid(0) == -1) {
-			isc__strerror(errno, strbuf, sizeof(strbuf));
-			(*report)("unable to restore effective uid: %s",
-				  strbuf);
-			/* NOTREACHED */
-		}
-		if (setegid(0) == -1) {
-			isc__strerror(errno, strbuf, sizeof(strbuf));
-			(*report)("unable to restore effective gid: %s",
-				  strbuf);
-			/* NOTREACHED */
-		}
+                setperms(0, 0, report);
+
 		if (fd == -1) {
 			/*
 			 * Backwards compatibility.
