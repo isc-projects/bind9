@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.104 2009/07/14 22:54:57 each Exp $ */
+/* $Id: check.c,v 1.105 2009/07/14 23:47:54 tbox Exp $ */
 
 /*! \file */
 
@@ -972,7 +972,7 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 	/* Check for "update-policy local;" */
 	if (cfg_obj_isstring(policy) &&
 	    strcmp("local", cfg_obj_asstring(policy)) == 0)
-	    	return (ISC_R_SUCCESS);
+		return (ISC_R_SUCCESS);
 
 	/* Now check the grant policy */
 	for (element = cfg_list_first(policy);

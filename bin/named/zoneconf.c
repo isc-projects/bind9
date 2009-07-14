@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.152 2009/07/14 22:54:56 each Exp $ */
+/* $Id: zoneconf.c,v 1.153 2009/07/14 23:47:53 tbox Exp $ */
 
 /*% */
 
@@ -177,7 +177,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 	const cfg_listelt_t *element, *element2;
 	dns_ssutable_t *table = NULL;
 	isc_mem_t *mctx = dns_zone_getmctx(zone);
-        isc_boolean_t autoddns = ISC_FALSE;
+	isc_boolean_t autoddns = ISC_FALSE;
 	isc_result_t result;
 
 	(void)cfg_map_get(zconfig, "update-policy", &updatepolicy);
@@ -187,11 +187,11 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 		return (ISC_R_SUCCESS);
 	}
 
-        if (cfg_obj_isstring(updatepolicy) &&
-            strcmp("local", cfg_obj_asstring(updatepolicy)) == 0) {
-                autoddns = ISC_TRUE;
-                updatepolicy = NULL;
-        }
+	if (cfg_obj_isstring(updatepolicy) &&
+	    strcmp("local", cfg_obj_asstring(updatepolicy)) == 0) {
+		autoddns = ISC_TRUE;
+		updatepolicy = NULL;
+	}
 
 	result = dns_ssutable_create(mctx, &table);
 	if (result != ISC_R_SUCCESS)

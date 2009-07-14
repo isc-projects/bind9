@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.97 2009/07/14 22:38:38 each Exp $ */
+/* $Id: os.c,v 1.98 2009/07/14 23:47:54 tbox Exp $ */
 
 /*! \file */
 
@@ -722,27 +722,27 @@ static void
 setperms(uid_t uid, gid_t gid, void (*report)(const char *, ...)) {
 	char strbuf[ISC_STRERRORSIZE];
 #if defined(HAVE_SETEGID)
-        if (setegid(gid) == -1) {
-                isc__strerror(errno, strbuf, sizeof(strbuf));
-                (*report)("unable to set effective gid: %s", strbuf);
-        }
+	if (setegid(gid) == -1) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		(*report)("unable to set effective gid: %s", strbuf);
+	}
 #elif defined(HAVE_SETRESGID)
-        if (setresgid(-1, gid, -1) == -1) {
-                isc__strerror(errno, strbuf, sizeof(strbuf));
-                (*report)("unable to set effective gid: %s", strbuf);
-        }
+	if (setresgid(-1, gid, -1) == -1) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		(*report)("unable to set effective gid: %s", strbuf);
+	}
 #endif
 
 #if defined(HAVE_SETEUID)
-        if (seteuid(uid) == -1) {
-                isc__strerror(errno, strbuf, sizeof(strbuf));
-                (*report)("unable to set effective uid: %s", strbuf);
-        }
+	if (seteuid(uid) == -1) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		(*report)("unable to set effective uid: %s", strbuf);
+	}
 #elif defined(HAVE_SETRESUID)
-        if (setresuid(-1, uid, -1) == -1) {
-                isc__strerror(errno, strbuf, sizeof(strbuf));
-                (*report)("unable to set effective uid: %s", strbuf);
-        }
+	if (setresuid(-1, uid, -1) == -1) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		(*report)("unable to set effective uid: %s", strbuf);
+	}
 #endif
 }
 
@@ -791,9 +791,9 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 		 * Open the file using the uid/gid pair we will eventually
 		 * be running as.
 		 */
-                setperms(runas_pw->pw_uid, runas_pw->pw_gid, report);
+		setperms(runas_pw->pw_uid, runas_pw->pw_gid, report);
 		fd = safe_open(filename, ISC_FALSE);
-                setperms(0, 0, report);
+		setperms(0, 0, report);
 
 		if (fd == -1) {
 			/*
@@ -802,7 +802,7 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 			fd = safe_open(filename, ISC_FALSE);
 			if (fd != -1) {
 				ns_main_earlywarning("Required root "
-					             "permissions to open "
+						     "permissions to open "
 						     "'%s'.", filename);
 				ns_main_earlywarning("Please check file and "
 						     "directory permissions "
@@ -812,7 +812,7 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 		}
 	} else
 		fd = safe_open(filename, ISC_FALSE);
-	
+
 	if (fd < 0) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		(*report)("couldn't open pid file '%s': %s", filename, strbuf);

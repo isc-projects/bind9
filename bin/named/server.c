@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.538 2009/07/14 22:54:56 each Exp $ */
+/* $Id: server.c,v 1.539 2009/07/14 23:47:53 tbox Exp $ */
 
 /*! \file */
 
@@ -3396,12 +3396,12 @@ generate_session_key(const char *filename, const char *keynamestr,
 
 	/* Dump the key to the key file. */
 	result = isc_file_safecreate(filename, &fp);
-        if (result != ISC_R_SUCCESS) {
-                isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-                              NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
-                              "could not create %s", filename);
-                goto cleanup;
-        }
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "could not create %s", filename);
+		goto cleanup;
+	}
 
 	fprintf(fp, "key \"%s\" {\n"
 		"\talgorithm %s;\n"
@@ -3968,9 +3968,9 @@ load_configuration(const char *filename, ns_server_t *server,
 	CHECK(isc_timer_reset(server->pps_timer, isc_timertype_ticker, NULL,
 			      &interval, ISC_FALSE));
 
-        /*
-         * Write the PID file.
-         */
+	/*
+	 * Write the PID file.
+	 */
 	obj = NULL;
 	if (ns_config_get(maps, "pid-file", &obj) == ISC_R_SUCCESS)
 		if (cfg_obj_isvoid(obj))

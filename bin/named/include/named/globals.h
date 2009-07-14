@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: globals.h,v 1.84 2009/07/14 22:54:56 each Exp $ */
+/* $Id: globals.h,v 1.85 2009/07/14 23:47:53 tbox Exp $ */
 
 #ifndef NAMED_GLOBALS_H
 #define NAMED_GLOBALS_H 1
@@ -120,7 +120,7 @@ EXTERN isc_boolean_t		ns_g_foreground		INIT(ISC_FALSE);
 EXTERN isc_boolean_t		ns_g_logstderr		INIT(ISC_FALSE);
 
 EXTERN const char *		ns_g_defaultsessionkeyfile
-                                        INIT(NS_LOCALSTATEDIR "/run/named/"
+					INIT(NS_LOCALSTATEDIR "/run/named/"
 							      "session.key");
 
 #if NS_RUN_PID_DIR

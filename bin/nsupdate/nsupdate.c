@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.169 2009/07/14 22:54:56 each Exp $ */
+/* $Id: nsupdate.c,v 1.170 2009/07/14 23:47:54 tbox Exp $ */
 
 /*! \file */
 
@@ -582,7 +582,7 @@ read_sessionkey(isc_mem_t *mctx, isc_log_t *lctx) {
 		goto cleanup;
 
 	result = cfg_parse_file(pctx, keyfile, &cfg_type_sessionkey,
-                                &sessionkey);
+				&sessionkey);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
