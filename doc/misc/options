@@ -88,10 +88,6 @@ options {
         clients-per-query <integer>;
         coresize <size>;
         datasize <size>;
-        ddns-autoconf <boolean>;
-        ddns-keyalg <string>;
-        ddns-keyfile ( <quoted_string> | none );
-        ddns-keyname <string>;
         deallocate-on-exit <boolean>; // obsolete
         deny-answer-addresses { <address_match_element>; ... } [
             except-from { <quoted_string>; ... } ];
@@ -187,6 +183,9 @@ options {
         serial-queries <integer>; // obsolete
         serial-query-rate <integer>;
         server-id ( <quoted_string> | none |;
+        session-keyalg <string>;
+        session-keyfile ( <quoted_string> | none );
+        session-keyname <string>;
         sig-signing-nodes <integer>;
         sig-signing-signatures <integer>;
         sig-signing-type <integer>;
@@ -283,7 +282,6 @@ view <string> <optional_class> {
         cleaning-interval <integer>;
         clients-per-query <integer>;
         database <string>;
-        ddns-autoconf <boolean>;
         deny-answer-addresses { <address_match_element>; ... } [
             except-from { <quoted_string>; ... } ];
         deny-answer-aliases { <quoted_string>; ... } [ except-from {
@@ -473,8 +471,8 @@ view <string> <optional_class> {
                 type ( master | slave | stub | hint | forward |
                     delegation-only );
                 update-check-ksk <boolean>;
-                update-policy { ( grant | deny ) <string> ( name |
-                    subdomain | wildcard | self | selfsub | selfwild |
+                update-policy ( local | { ( grant | deny ) <string> ( name
+                    | subdomain | wildcard | self | selfsub | selfwild |
                     krb5-self | ms-self | krb5-subdomain | ms-subdomain |
                     tcp-self | 6to4-self | zonesub ) [ <string> ]
                     <rrtypelist>; ... };
@@ -549,10 +547,10 @@ zone <string> <optional_class> {
         try-tcp-refresh <boolean>;
         type ( master | slave | stub | hint | forward | delegation-only );
         update-check-ksk <boolean>;
-        update-policy { ( grant | deny ) <string> ( name | subdomain |
-            wildcard | self | selfsub | selfwild | krb5-self | ms-self |
-            krb5-subdomain | ms-subdomain | tcp-self | 6to4-self | zonesub
-            ) [ <string> ] <rrtypelist>; ... };
+        update-policy ( local | { ( grant | deny ) <string> ( name |
+            subdomain | wildcard | self | selfsub | selfwild | krb5-self |
+            ms-self | krb5-subdomain | ms-subdomain | tcp-self | 6to4-self
+            | zonesub ) [ <string> ] <rrtypelist>; ... };
         use-alt-transfer-source <boolean>;
         zero-no-soa-ttl <boolean>;
         zone-statistics <boolean>;
