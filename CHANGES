@@ -1,3 +1,6 @@
+2631.	[bug]		Handle "//", "/./" and "/../" in mkdirpath().
+			[RT #19926 ]
+
 2630.	[func]		Improved syntax for DDNS autoconfiguration:  use
 			"update-policy local;" to switch on local DDNS in a
 			zone.  [RT #19875]

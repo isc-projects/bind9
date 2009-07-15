@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.98 2009/07/14 23:47:54 tbox Exp $ */
+/* $Id: os.c,v 1.99 2009/07/15 00:36:37 marka Exp $ */
 
 /*! \file */
 
@@ -692,6 +692,15 @@ mkdirpath(char *filename, void (*report)(const char *, ...)) {
 			}
 			if (mkdirpath(filename, report) == -1)
 				goto error;
+			/*
+			 * Handle "//", "/./" and "/../" in path.
+			 */
+			if (!strcmp(slash + 1, "") ||
+			    !strcmp(slash + 1, ".") ||
+			    !strcmp(slash + 1, "..")) {
+				*slash = '/';
+				return (0);
+			}
 			mode = S_IRUSR | S_IWUSR | S_IXUSR;	/* u=rwx */
 			mode |= S_IRGRP | S_IXGRP;		/* g=rx */
 			mode |= S_IROTH | S_IXOTH;		/* o=rx */
