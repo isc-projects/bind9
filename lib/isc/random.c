@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: random.c,v 1.27 2009/07/01 23:47:36 tbox Exp $ */
+/* $Id: random.c,v 1.28 2009/07/16 05:52:46 marka Exp $ */
 
 /*! \file */
 
@@ -84,7 +84,16 @@ isc_random_get(isc_uint32_t *val)
 	 * rand()'s lower bits are not random.
 	 * rand()'s upper bit is zero.
 	 */
+#if RAND_MAX >= 0xfffff
+	/* We have at least 20 bits.  Use lower 16 excluding lower most 4 */
 	*val = ((rand() >> 4) & 0xffff) | ((rand() << 12) & 0xffff0000);
+#elif RAND_MAX >= 0x7fff
+	/* We have at least 15 bits.  Use lower 10/11 excluding lower most 4 */
+	*val = ((rand() >> 4) & 0x000007ff) | ((rand() << 7) & 0x003ff800) |
+		((rand() << 18) & 0xffc00000);
+#else
+#error RAND_MAX is too small
+#endif
 #else
 	*val = arc4random();
 #endif
@@ -92,13 +101,13 @@ isc_random_get(isc_uint32_t *val)
 
 isc_uint32_t
 isc_random_jitter(isc_uint32_t max, isc_uint32_t jitter) {
+	isc_uint32_t rnd;
+
 	REQUIRE(jitter < max || (jitter == 0 && max == 0));
+
 	if (jitter == 0)
 		return (max);
-	else
-#ifndef HAVE_ARC4RANDOM
-		return (max - rand() % jitter);
-#else
-		return (max - arc4random() % jitter);
-#endif
+
+	isc_random_get(&rnd);
+	return (max - rnd % jitter);
 }
