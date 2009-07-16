@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: random.c,v 1.25.332.1 2009/07/16 05:58:45 marka Exp $ */
+/* $Id: random.c,v 1.25.332.2 2009/07/16 23:47:17 tbox Exp $ */
 
 /*! \file */
 
@@ -43,7 +43,7 @@ initialize_rand(void)
 {
 #ifndef HAVE_ARC4RANDOM
 	unsigned int pid = getpid();
-	
+
 	/*
 	 * The low bits of pid generally change faster.
 	 * Xor them with the high bits of time which change slowly.

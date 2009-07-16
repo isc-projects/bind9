@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007-2009  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000-2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: kit.sh,v 1.33.44.1 2009/07/16 05:32:40 marka Exp $
+# $Id: kit.sh,v 1.33.44.2 2009/07/16 23:47:21 tbox Exp $
 
 # Make a release kit
 #
