@@ -2215,7 +2215,7 @@
 ./lib/isc/pthreads/thread.c			C	2000,2001,2003,2004,2005,2007
 ./lib/isc/quota.c				C	2000,2001,2004,2005,2007
 ./lib/isc/radix.c				C	2007,2008,2009
-./lib/isc/random.c				C	1999,2000,2001,2002,2003,2004,2005,2007
+./lib/isc/random.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2009
 ./lib/isc/ratelimiter.c				C	1999,2000,2001,2002,2004,2005,2007
 ./lib/isc/refcount.c				C	2005,2007
 ./lib/isc/region.c				C	2002,2004,2005,2007
@@ -2577,7 +2577,7 @@
 ./util/check-pullups.pl				PERL	2001,2002,2003,2004,2007
 ./util/check-sources.pl				PERL	2000,2001,2004,2007
 ./util/copyrights				X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
-./util/kit.sh					SH	2000,2001,2002,2003,2004,2007
+./util/kit.sh					SH	2000,2001,2002,2003,2004,2007,2009
 ./util/mandoc2docbook.pl			PERL	2001,2004,2007
 ./util/mdnbuildtest.sh				SH	2000,2001,2004,2007
 ./util/memleak.pl				PERL	1999,2000,2001,2004,2007
