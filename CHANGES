@@ -1,3 +1,5 @@
+2633.	[bug]		Handle 15 bit rand() functions. [RT #19783]
+
 2632.	[func]		util/kit.sh: warn if documentation appears to be out of
 			date.  [RT #19922]
 
