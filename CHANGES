@@ -1,3 +1,6 @@
+2632.	[func]		util/kit.sh: warn if documentation appears to be out of
+			date.  [RT #19922]
+
 2623.	[bug]		Named started seaches for DS non-optimally. [RT #19915]
 
 2621.	[doc]		Made copyright boilterplate consistent.  [RT #19833]

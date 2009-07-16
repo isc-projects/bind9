@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: kit.sh,v 1.31 2007/06/19 23:47:24 tbox Exp $
+# $Id: kit.sh,v 1.31.128.1 2009/07/16 05:33:48 marka Exp $
 
 # Make a release kit
 #
@@ -137,6 +137,29 @@ do
 	mv tmp $f
 done
 
+# check that documentation has been updated properly; issue a warning
+# if it hasn't
+if test doc/arm/Bv9ARM-book.xml -nt doc/arm/Bv9ARM.html
+then
+	echo "WARNING: ARM source is newer than the html version."
+fi
+
+if test doc/arm/Bv9ARM-book.xml -nt doc/arm/Bv9ARM.pdf
+then
+	echo "WARNING: ARM source is newer than the PDF version."
+fi
+
+for f in `find . -name "*.docbook" -print`
+do
+	docbookfile=$f
+	htmlfile=${f%.docbook}.html
+	if test $docbookfile -nt $htmlfile
+	then
+		echo "WARNING: $docbookfile is newer than the html version."
+	fi
+done
+
+# build the tarball
 cd .. || exit 1
 
 kit=$topdir.tar.gz
