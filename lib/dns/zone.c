@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.499 2009/07/13 23:47:42 tbox Exp $ */
+/* $Id: zone.c,v 1.500 2009/07/17 06:25:42 each Exp $ */
 
 /*! \file */
 
@@ -3009,9 +3009,10 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db, isc_boolean_t addsoa) {
 
 		if (dns_keynode_managed(keynode)) {
 			dns_fixedname_t fname;
-			dns_fixedname_init(&fname);
-			dst_key_t *key = dns_keynode_key(keynode);
 			dns_name_t *keyname;
+			dst_key_t *key; 
+			key = dns_keynode_key(keynode);
+			dns_fixedname_init(&fname);
 
 			if (key == NULL)   /* fail_secure() was called. */
 				goto skip;

@@ -266,6 +266,7 @@ isc_mem_gettag
 isc_mem_inuse
 isc_mem_ondestroy
 isc_mem_references
+isc_mem_renderxml
 isc_mem_setdestroycheck
 isc_mem_setname
 isc_mem_setquota
@@ -447,6 +448,7 @@ isc_socketmgr_create
 isc_socketmgr_create2
 isc_socketmgr_destroy
 isc_socketmgr_getmaxsockets
+isc_socketmgr_renderxml
 isc_socketmgr_setstats
 isc_stats_create
 isc_stats_attach
@@ -501,6 +503,7 @@ isc_task_unsend
 isc_task_unsendrange
 isc_taskmgr_create
 isc_taskmgr_destroy
+isc_taskmgr_renderxml
 isc_taskpool_create
 isc_taskpool_destroy
 isc_taskpool_gettask
@@ -513,6 +516,7 @@ isc_thread_key_setspecific
 isc_thread_setconcurrency
 isc_time_add
 isc_time_compare
+isc_time_formatISO8601
 isc_time_isepoch
 isc_time_microdiff
 isc_time_nanoseconds

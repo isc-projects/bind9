@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.48 2008/09/08 23:47:10 tbox Exp $ */
+/* $Id: time.c,v 1.49 2009/07/17 06:25:45 each Exp $ */
 
 #include <config.h>
 
@@ -280,15 +280,38 @@ isc_time_formathttptimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 	char DateBuf[50];
 	char TimeBuf[50];
 
+/* strftime() format: "%a, %d %b %Y %H:%M:%S GMT" */
+
 	REQUIRE(len > 0);
 	if (FileTimeToSystemTime(&t->absolute, &st)) {
-		GetDateFormat(LOCALE_USER_DEFAULT, 0, &st, "ddd',', dd-MMM-yyyy",
-			      DateBuf, 50);
+		GetDateFormat(LOCALE_USER_DEFAULT, 0, &st,
+			      "ddd',', dd-MMM-yyyy", DateBuf, 50);
 		GetTimeFormat(LOCALE_USER_DEFAULT,
 			      TIME_NOTIMEMARKER | TIME_FORCE24HOURFORMAT,
 			      &st, "hh':'mm':'ss", TimeBuf, 50);
 
 		snprintf(buf, len, "%s %s GMT", DateBuf, TimeBuf);
+	} else {
+		buf[0] = 0;
+	}
+}
+
+void
+isc_time_formatISO8601(const isc_time_t *t, char *buf, unsigned int len) {
+	SYSTEMTIME st;
+	char DateBuf[50];
+	char TimeBuf[50];
+
+/* strtime() format: "%Y-%m-%dT%H:%M:%SZ" */
+
+	REQUIRE(len > 0);
+	if (FileTimeToSystemTime(&t->absolute, &st)) {
+		GetDateFormat(LOCALE_NEUTRAL, 0, &st, "yyyy-MM-dd",
+			      DateBuf, 50);
+		GetTimeFormat(LOCALE_NEUTRAL,
+			      TIME_NOTIMEMARKER | TIME_FORCE24HOURFORMAT,
+			      &st, "hh':'mm':'ss", TimeBuf, 50);
+		snprintf(buf, len, "%s%sZ", DateBuf, TimeBuf);
 	} else {
 		buf[0] = 0;
 	}

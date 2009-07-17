@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.cpp,v 1.41 2009/01/17 23:47:42 tbox Exp $ */
+/* $Id: BINDInstallDlg.cpp,v 1.42 2009/07/17 06:25:42 each Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -63,6 +63,8 @@
 #include <direct.h>
 #include "AccountInfo.h"
 #include "versioninfo.h"
+
+#include <config.h>
 
 #define MAX_GROUPS	100
 #define MAX_PRIVS	 50
@@ -130,6 +132,9 @@ const FileData installFiles[] =
 	{"libdns.dll", FileData::BinDir, FileData::Critical, FALSE},
 	{"liblwres.dll", FileData::BinDir, FileData::Critical, FALSE},
 	{"libeay32.dll", FileData::BinDir, FileData::Critical, FALSE},
+#ifdef HAVE_LIBXML2
+	{"libxml2.dll", FileData::BinDir, FileData::Critical, FALSE},
+#endif
 	{"named.exe", FileData::BinDir, FileData::Critical, FALSE},
 	{"nsupdate.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"BINDInstall.exe", FileData::BinDir, FileData::Normal, FALSE},
@@ -138,10 +143,12 @@ const FileData installFiles[] =
 	{"host.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"nslookup.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"rndc-confgen.exe", FileData::BinDir, FileData::Normal, FALSE},
+	{"ddns-confgen.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"dnssec-keygen.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"dnssec-signzone.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"dnssec-dsfromkey.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"dnssec-keyfromlabel.exe", FileData::BinDir, FileData::Normal, FALSE},
+	{"dnssec-revoke.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"named-checkconf.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"named-checkzone.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"named-compilezone.exe", FileData::BinDir, FileData::Normal, FALSE},

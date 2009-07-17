@@ -1,3 +1,6 @@
+2634.	[port]		win32: Add support for libxml2, enable
+			statschannel. [RT #19773]
+
 2633.	[bug]		Handle 15 bit rand() functions. [RT #19783]
 
 2632.	[func]		util/kit.sh: warn if documentation appears to be out of

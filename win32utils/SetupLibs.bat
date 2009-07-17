@@ -1,6 +1,6 @@
 echo off
 rem
-rem Copyright (C) 2007  Internet Systems Consortium, Inc. ("ISC")
+rem Copyright (C) 2007,2009  Internet Systems Consortium, Inc. ("ISC")
 rem 
 rem Permission to use, copy, modify, and distribute this software for any
 rem purpose with or without fee is hereby granted, provided that the above
@@ -14,13 +14,18 @@ rem LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
 rem OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 rem PERFORMANCE OF THIS SOFTWARE.
 
-rem BuildOpenSSL.bat
-rem This script copys the OpenSSL dlls into place.
-rem This script may be modified by updateopenssl.pl.
+rem SetupLibs.bat
+rem This script copys the openssl and libxml2 dlls into place.
+rem This script may be modified by updateopenssl.pl and/or updatelibxml2.pl.
 
 echo Copying the OpenSSL DLL.
 
-copy ..\..\openssl-0.9.8d\out32dll\libeay32.dll ..\Build\Release\
-copy ..\..\openssl-0.9.8d\out32dll\libeay32.dll ..\Build\Debug\
+copy ..\..\openssl-0.9.8k\out32dll\libeay32.dll ..\Build\Release\
+copy ..\..\openssl-0.9.8k\out32dll\libeay32.dll ..\Build\Debug\
+
+echo Copying the libxml DLL.
+
+copy ..\..\libxml2-2.7.3\win32\bin.msvc\libxml2.dll ..\Build\Release\
+copy ..\..\libxml2-2.7.3\win32\bin.msvc\libxml2.dll ..\Build\Debug\
 
 rem Done

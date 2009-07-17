@@ -19,13 +19,14 @@ rem BuildSetup.bat
 rem This script sets up the files necessary ready to build BIND 9.
 rem This requires perl to be installed on the system.
 
-rem Get and update for the latest build of the openssl library
-perl updateopenssl.pl
-
 rem Set up the configuration file
 cd ..
 copy config.h.win32 config.h
 cd win32utils
+
+rem Get and update for the latest build of the openssl and libxml libraries
+perl updateopenssl.pl
+perl updatelibxml2.pl
 
 rem Generate the version information
 perl makeversion.pl
@@ -69,7 +70,7 @@ echo Copying the migration notes.
 copy ..\doc\misc\migration ..\Build\Release
 copy ..\doc\misc\migration-4to9 ..\Build\Release
 
-call BuildOpenSSL.bat
+call SetupLibs.bat
 
 rem
 rem set vcredist here so that it is correctly expanded in the if body 
