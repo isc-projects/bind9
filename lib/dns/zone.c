@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.500 2009/07/17 06:25:42 each Exp $ */
+/* $Id: zone.c,v 1.501 2009/07/17 23:47:40 tbox Exp $ */
 
 /*! \file */
 
@@ -3010,7 +3010,7 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db, isc_boolean_t addsoa) {
 		if (dns_keynode_managed(keynode)) {
 			dns_fixedname_t fname;
 			dns_name_t *keyname;
-			dst_key_t *key; 
+			dst_key_t *key;
 			key = dns_keynode_key(keynode);
 			dns_fixedname_init(&fname);
 

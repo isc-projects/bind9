@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-revoke.c,v 1.3 2009/07/17 06:25:41 each Exp $ */
+/* $Id: dnssec-revoke.c,v 1.4 2009/07/17 23:47:40 tbox Exp $ */
 
 /*! \file */
 
@@ -127,28 +127,28 @@ main(int argc, char **argv) {
 		fatal("Extraneous arguments");
 
 	if (dir == NULL) {
-                char *slash;
+		char *slash;
 #ifdef _WIN32
-                char *backslash;
+		char *backslash;
 #endif
 
 		dir = strdup(argv[isc_commandline_index]);
 
-                /* Figure out the directory name from the key name */
-	        slash = strrchr(dir, '/');
+		/* Figure out the directory name from the key name */
+		slash = strrchr(dir, '/');
 #ifdef _WIN32
-                backslash = strrchr(dir, '\\');
-                if ((slash != NULL && backslash != NULL && backslash > slash) ||
-                    (slash == NULL && backslash != NULL))
-                        slash = backslash;
+		backslash = strrchr(dir, '\\');
+		if ((slash != NULL && backslash != NULL && backslash > slash) ||
+		    (slash == NULL && backslash != NULL))
+			slash = backslash;
 #endif
-                if (slash != NULL)
-                        *slash++ = '\0';
-                else {
-                        free(dir);
-                        dir = strdup(".");
-                }
-        }
+		if (slash != NULL)
+			*slash++ = '\0';
+		else {
+			free(dir);
+			dir = strdup(".");
+		}
+	}
 
 	filename = argv[isc_commandline_index];
 

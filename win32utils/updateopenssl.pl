@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 2006, 2007  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2006, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: updateopenssl.pl,v 1.9 2009/07/17 06:25:45 each Exp $
+# $Id: updateopenssl.pl,v 1.10 2009/07/17 23:47:41 tbox Exp $
 
 # updateopenssl.pl
 # This script locates the latest version of OpenSSL in the grandparent
