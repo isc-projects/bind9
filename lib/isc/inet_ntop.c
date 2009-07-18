@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1996-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -19,7 +19,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char rcsid[] =
-	"$Id: inet_ntop.c,v 1.19.332.1 2009/07/18 21:14:57 each Exp $";
+	"$Id: inet_ntop.c,v 1.19.332.2 2009/07/18 23:47:25 tbox Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
@@ -52,7 +52,7 @@ static const char *inet_ntop6(const unsigned char *src, char *dst,
  *	convert a network format address to presentation format.
  * \return
  *	pointer to presentation format address (`dst'), or NULL (see errno).
- * \author 
+ * \author
  *	Paul Vixie, 1996.
  */
 const char *
