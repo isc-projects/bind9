@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: man.dnssec-signzone.html,v 1.122 2009/07/15 01:13:11 tbox Exp $ -->
+<!-- $Id: man.dnssec-signzone.html,v 1.123 2009/07/19 04:27:55 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -22,7 +22,7 @@
 <meta name="generator" content="DocBook XSL Stylesheets V1.71.1">
 <link rel="start" href="Bv9ARM.html" title="BIND 9 Administrator Reference Manual">
 <link rel="up" href="Bv9ARM.ch10.html" title="Manual pages">
-<link rel="prev" href="man.dnssec-revoke.html" title="dnssec-revoke">
+<link rel="prev" href="man.dnssec-settime.html" title="dnssec-settime">
 <link rel="next" href="man.named-checkconf.html" title="named-checkconf">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -31,7 +31,7 @@
 <tr><th colspan="3" align="center"><span class="application">dnssec-signzone</span></th></tr>
 <tr>
 <td width="20%" align="left">
-<a accesskey="p" href="man.dnssec-revoke.html">Prev</a> </td>
+<a accesskey="p" href="man.dnssec-settime.html">Prev</a> </td>
 <th width="60%" align="center">Manual pages</th>
 <td width="20%" align="right"> <a accesskey="n" href="man.named-checkconf.html">Next</a>
 </td>
@@ -47,10 +47,10 @@
 </div>
 <div class="refsynopsisdiv">
 <h2>Synopsis</h2>
-<div class="cmdsynopsis"><p><code class="command">dnssec-signzone</code>  [<code class="option">-a</code>] [<code class="option">-c <em class="replaceable"><code>class</code></em></code>] [<code class="option">-d <em class="replaceable"><code>directory</code></em></code>] [<code class="option">-e <em class="replaceable"><code>end-time</code></em></code>] [<code class="option">-f <em class="replaceable"><code>output-file</code></em></code>] [<code class="option">-g</code>] [<code class="option">-h</code>] [<code class="option">-k <em class="replaceable"><code>key</code></em></code>] [<code class="option">-l <em class="replaceable"><code>domain</code></em></code>] [<code class="option">-i <em class="replaceable"><code>interval</code></em></code>] [<code class="option">-I <em class="replaceable"><code>input-format</code></em></code>] [<code class="option">-j <em class="replaceable"><code>jitter</code></em></code>] [<code class="option">-N <em class="replaceable"><code>soa-serial-format</code></em></code>] [<code class="option">-o <em class="replaceable"><code>origin</code></em></code>] [<code class="option">-O <em class="replaceable"><code>output-format</code></em></code>] [<code class="option">-p</code>] [<code class="option">-P</code>] [<code class="option">-r <em class="replaceable"><code>randomdev</code></em></code>] [<code class="option">-s <em class="replaceable"><code>start-time</code></em></code>] [<code class="option">-t</code>] [<code class="option">-v <em class="replaceable"><code>level</code></em></code>] [<code class="option">-z</code>] [<code class="option">-3 <em class="replaceable"><code>salt</code></em></code>] [<code class="option">-H <em class="replaceable"><code>iterations</code></em></code>] [<code class="option">-A</code>] {zonefile} [key...]</p></div>
+<div class="cmdsynopsis"><p><code class="command">dnssec-signzone</code>  [<code class="option">-a</code>] [<code class="option">-c <em class="replaceable"><code>class</code></em></code>] [<code class="option">-d <em class="replaceable"><code>directory</code></em></code>] [<code class="option">-e <em class="replaceable"><code>end-time</code></em></code>] [<code class="option">-f <em class="replaceable"><code>output-file</code></em></code>] [<code class="option">-g</code>] [<code class="option">-h</code>] [<code class="option">-K <em class="replaceable"><code>directory</code></em></code>] [<code class="option">-k <em class="replaceable"><code>key</code></em></code>] [<code class="option">-l <em class="replaceable"><code>domain</code></em></code>] [<code class="option">-i <em class="replaceable"><code>interval</code></em></code>] [<code class="option">-I <em class="replaceable"><code>input-format</code></em></code>] [<code class="option">-j <em class="replaceable"><code>jitter</code></em></code>] [<code class="option">-N <em class="replaceable"><code>soa-serial-format</code></em></code>] [<code class="option">-o <em class="replaceable"><code>origin</code></em></code>] [<code class="option">-O <em class="replaceable"><code>output-format</code></em></code>] [<code class="option">-p</code>] [<code class="option">-P</code>] [<code class="option">-r <em class="replaceable"><code>randomdev</code></em></code>] [<code class="option">-S</code>] [<code class="option">-s <em class="replaceable"><code>start-time</code></em></code>] [<code class="option">-T <em class="replaceable"><code>ttl</code></em></code>] [<code class="option">-t</code>] [<code class="option">-v <em class="replaceable"><code>level</code></em></code>] [<code class="option">-z</code>] [<code class="option">-3 <em class="replaceable"><code>salt</code></em></code>] [<code class="option">-H <em class="replaceable"><code>iterations</code></em></code>] [<code class="option">-A</code>] {zonefile} [key...]</p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2609317"></a><h2>DESCRIPTION</h2>
+<a name="id2610242"></a><h2>DESCRIPTION</h2>
 <p><span><strong class="command">dnssec-signzone</strong></span>
       signs a zone.  It generates
       NSEC and RRSIG records and produces a signed version of the
@@ -61,7 +61,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2609336"></a><h2>OPTIONS</h2>
+<a name="id2610807"></a><h2>OPTIONS</h2>
 <div class="variablelist"><dl>
 <dt><span class="term">-a</span></dt>
 <dd><p>
@@ -70,6 +70,22 @@
 <dt><span class="term">-c <em class="replaceable"><code>class</code></em></span></dt>
 <dd><p>
             Specifies the DNS class of the zone.
+          </p></dd>
+<dt><span class="term">-d <em class="replaceable"><code>directory</code></em></span></dt>
+<dd><p>
+            Look for <code class="filename">dsset-</code> or
+            <code class="filename">keyset-</code> files in <code class="option">directory</code>.
+          </p></dd>
+<dt><span class="term">-g</span></dt>
+<dd><p>
+            Generate DS records for child zones from
+            <code class="filename">dsset-</code> or <code class="filename">keyset-</code>
+            file.  Existing DS records will be removed.
+          </p></dd>
+<dt><span class="term">-K <em class="replaceable"><code>directory</code></em></span></dt>
+<dd><p>
+            Key repository: Specify a directory to search for DNSSEC keys.
+            If not specified, defaults to the current directory.
           </p></dd>
 <dt><span class="term">-k <em class="replaceable"><code>key</code></em></span></dt>
 <dd><p>
@@ -80,16 +96,6 @@
 <dd><p>
             Generate a DLV set in addition to the key (DNSKEY) and DS sets.
             The domain is appended to the name of the records.
-          </p></dd>
-<dt><span class="term">-d <em class="replaceable"><code>directory</code></em></span></dt>
-<dd><p>
-            Look for <code class="filename">keyset</code> files in
-            <code class="option">directory</code> as the directory
-          </p></dd>
-<dt><span class="term">-g</span></dt>
-<dd><p>
-            Generate DS records for child zones from keyset files.
-            Existing DS records will be removed.
           </p></dd>
 <dt><span class="term">-s <em class="replaceable"><code>start-time</code></em></span></dt>
 <dd><p>
@@ -245,6 +251,55 @@
             <code class="filename">keyboard</code> indicates that keyboard
             input should be used.
           </p></dd>
+<dt><span class="term">-S</span></dt>
+<dd>
+<p>
+            Smart signing: Instructs <span><strong class="command">dnssec-signzone</strong></span> to
+            search the key repository for keys that match the zone being
+            signed, and to include them in the zone if appropriate.
+          </p>
+<p>
+            When a key is found, its timing metadata is examined to
+            determine how it should be used, according to the following
+            rules.  Each successive rule takes priority over the prior
+            ones:
+          </p>
+<div class="variablelist"><dl>
+<dt></dt>
+<dd><p>
+                  If no timing metadata has been set for the key, the key is
+                  published in the zone and used to sign the zone.
+                </p></dd>
+<dt></dt>
+<dd><p>
+                  If the key's publication date is set and is in the past, the
+                  key is published in the zone.
+                </p></dd>
+<dt></dt>
+<dd><p>
+                  If the key's activation date is set and in the past, the
+                  key is published (regardless of publication date) and
+                  used to sign the zone.  
+                </p></dd>
+<dt></dt>
+<dd><p>
+                  If the key's revocation date is set and in the past, and the
+                  key is published, then the key is revoked, and the revoked key
+                  is used to sign the zone.
+                </p></dd>
+<dt></dt>
+<dd><p>
+                  If either of the key's unpublication or deletion dates are set
+                  and in the past, the key is NOT published or used to sign the
+                  zone, regardless of any other metadata.
+                </p></dd>
+</dl></div>
+</dd>
+<dt><span class="term">-T <em class="replaceable"><code>ttl</code></em></span></dt>
+<dd><p>
+            Specifies the TTL of new DNSKEY records imported to the zone
+            from the key repository.  Only useful with the -S option.
+          </p></dd>
 <dt><span class="term">-t</span></dt>
 <dd><p>
             Print statistics at completion.
@@ -289,7 +344,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2659789"></a><h2>EXAMPLE</h2>
+<a name="id2660497"></a><h2>EXAMPLE</h2>
 <p>
       The following command signs the <strong class="userinput"><code>example.com</code></strong>
       zone with the DSA key generated by <span><strong class="command">dnssec-keygen</strong></span>
@@ -318,14 +373,14 @@ db.example.com.signed
 %</pre>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2659862"></a><h2>SEE ALSO</h2>
+<a name="id2660637"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">dnssec-keygen</span>(8)</span>,
       <em class="citetitle">BIND 9 Administrator Reference Manual</em>,
       <em class="citetitle">RFC 4033</em>.
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2659955"></a><h2>AUTHOR</h2>
+<a name="id2660662"></a><h2>AUTHOR</h2>
 <p><span class="corpauthor">Internet Systems Consortium</span>
     </p>
 </div>
@@ -335,14 +390,14 @@ db.example.com.signed
 <table width="100%" summary="Navigation footer">
 <tr>
 <td width="40%" align="left">
-<a accesskey="p" href="man.dnssec-revoke.html">Prev</a> </td>
+<a accesskey="p" href="man.dnssec-settime.html">Prev</a> </td>
 <td width="20%" align="center"><a accesskey="u" href="Bv9ARM.ch10.html">Up</a></td>
 <td width="40%" align="right"> <a accesskey="n" href="man.named-checkconf.html">Next</a>
 </td>
 </tr>
 <tr>
 <td width="40%" align="left" valign="top">
-<span class="application">dnssec-revoke</span> </td>
+<span class="application">dnssec-settime</span> </td>
 <td width="20%" align="center"><a accesskey="h" href="Bv9ARM.html">Home</a></td>
 <td width="40%" align="right" valign="top"> <span class="application">named-checkconf</span>
 </td>

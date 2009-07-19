@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-revoke.8,v 1.4 2009/07/01 23:47:36 tbox Exp $
+.\" $Id: dnssec-revoke.8,v 1.5 2009/07/19 04:27:55 tbox Exp $
 .\"
 .hy 0
 .ad l
@@ -32,7 +32,7 @@
 dnssec\-revoke \- Set the REVOKED bit on a DNSSEC key
 .SH "SYNOPSIS"
 .HP 14
-\fBdnssec\-revoke\fR [\fB\-hr\fR] [\fB\-v\ \fR\fB\fIlevel\fR\fR] [\fB\-d\ \fR\fB\fIdirectory\fR\fR] [\fB\-f\fR] {keyfile}
+\fBdnssec\-revoke\fR [\fB\-hr\fR] [\fB\-v\ \fR\fB\fIlevel\fR\fR] [\fB\-K\ \fR\fB\fIdirectory\fR\fR] [\fB\-f\fR] {keyfile}
 .SH "DESCRIPTION"
 .PP
 \fBdnssec\-revoke\fR
@@ -44,7 +44,7 @@ reads a DNSSEC key file, sets the REVOKED bit on the key as defined in RFC 5011,
 Emit usage message and exit.
 .RE
 .PP
-\-d \fIdirectory\fR
+\-K \fIdirectory\fR
 .RS 4
 Sets the directory in which the key files are to reside.
 .RE

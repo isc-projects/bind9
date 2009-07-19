@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-signzone.8,v 1.50 2009/07/11 01:12:45 tbox Exp $
+.\" $Id: dnssec-signzone.8,v 1.51 2009/07/19 04:27:55 tbox Exp $
 .\"
 .hy 0
 .ad l
@@ -33,7 +33,7 @@
 dnssec\-signzone \- DNSSEC zone signing tool
 .SH "SYNOPSIS"
 .HP 16
-\fBdnssec\-signzone\fR [\fB\-a\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-d\ \fR\fB\fIdirectory\fR\fR] [\fB\-e\ \fR\fB\fIend\-time\fR\fR] [\fB\-f\ \fR\fB\fIoutput\-file\fR\fR] [\fB\-g\fR] [\fB\-h\fR] [\fB\-k\ \fR\fB\fIkey\fR\fR] [\fB\-l\ \fR\fB\fIdomain\fR\fR] [\fB\-i\ \fR\fB\fIinterval\fR\fR] [\fB\-I\ \fR\fB\fIinput\-format\fR\fR] [\fB\-j\ \fR\fB\fIjitter\fR\fR] [\fB\-N\ \fR\fB\fIsoa\-serial\-format\fR\fR] [\fB\-o\ \fR\fB\fIorigin\fR\fR] [\fB\-O\ \fR\fB\fIoutput\-format\fR\fR] [\fB\-p\fR] [\fB\-P\fR] [\fB\-r\ \fR\fB\fIrandomdev\fR\fR] [\fB\-s\ \fR\fB\fIstart\-time\fR\fR] [\fB\-t\fR] [\fB\-v\ \fR\fB\fIlevel\fR\fR] [\fB\-z\fR] [\fB\-3\ \fR\fB\fIsalt\fR\fR] [\fB\-H\ \fR\fB\fIiterations\fR\fR] [\fB\-A\fR] {zonefile} [key...]
+\fBdnssec\-signzone\fR [\fB\-a\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-d\ \fR\fB\fIdirectory\fR\fR] [\fB\-e\ \fR\fB\fIend\-time\fR\fR] [\fB\-f\ \fR\fB\fIoutput\-file\fR\fR] [\fB\-g\fR] [\fB\-h\fR] [\fB\-K\ \fR\fB\fIdirectory\fR\fR] [\fB\-k\ \fR\fB\fIkey\fR\fR] [\fB\-l\ \fR\fB\fIdomain\fR\fR] [\fB\-i\ \fR\fB\fIinterval\fR\fR] [\fB\-I\ \fR\fB\fIinput\-format\fR\fR] [\fB\-j\ \fR\fB\fIjitter\fR\fR] [\fB\-N\ \fR\fB\fIsoa\-serial\-format\fR\fR] [\fB\-o\ \fR\fB\fIorigin\fR\fR] [\fB\-O\ \fR\fB\fIoutput\-format\fR\fR] [\fB\-p\fR] [\fB\-P\fR] [\fB\-r\ \fR\fB\fIrandomdev\fR\fR] [\fB\-S\fR] [\fB\-s\ \fR\fB\fIstart\-time\fR\fR] [\fB\-T\ \fR\fB\fIttl\fR\fR] [\fB\-t\fR] [\fB\-v\ \fR\fB\fIlevel\fR\fR] [\fB\-z\fR] [\fB\-3\ \fR\fB\fIsalt\fR\fR] [\fB\-H\ \fR\fB\fIiterations\fR\fR] [\fB\-A\fR] {zonefile} [key...]
 .SH "DESCRIPTION"
 .PP
 \fBdnssec\-signzone\fR
@@ -52,6 +52,30 @@ Verify all generated signatures.
 Specifies the DNS class of the zone.
 .RE
 .PP
+\-d \fIdirectory\fR
+.RS 4
+Look for
+\fIdsset\-\fR
+or
+\fIkeyset\-\fR
+files in
+\fBdirectory\fR.
+.RE
+.PP
+\-g
+.RS 4
+Generate DS records for child zones from
+\fIdsset\-\fR
+or
+\fIkeyset\-\fR
+file. Existing DS records will be removed.
+.RE
+.PP
+\-K \fIdirectory\fR
+.RS 4
+Key repository: Specify a directory to search for DNSSEC keys. If not specified, defaults to the current directory.
+.RE
+.PP
 \-k \fIkey\fR
 .RS 4
 Treat specified key as a key signing key ignoring any key flags. This option may be specified multiple times.
@@ -60,20 +84,6 @@ Treat specified key as a key signing key ignoring any key flags. This option may
 \-l \fIdomain\fR
 .RS 4
 Generate a DLV set in addition to the key (DNSKEY) and DS sets. The domain is appended to the name of the records.
-.RE
-.PP
-\-d \fIdirectory\fR
-.RS 4
-Look for
-\fIkeyset\fR
-files in
-\fBdirectory\fR
-as the directory
-.RE
-.PP
-\-g
-.RS 4
-Generate DS records for child zones from keyset files. Existing DS records will be removed.
 .RE
 .PP
 \-s \fIstart\-time\fR
@@ -202,6 +212,42 @@ or equivalent device, the default source of randomness is keyboard input.
 specifies the name of a character device or file containing random data to be used instead of the default. The special value
 \fIkeyboard\fR
 indicates that keyboard input should be used.
+.RE
+.PP
+\-S
+.RS 4
+Smart signing: Instructs
+\fBdnssec\-signzone\fR
+to search the key repository for keys that match the zone being signed, and to include them in the zone if appropriate.
+.sp
+When a key is found, its timing metadata is examined to determine how it should be used, according to the following rules. Each successive rule takes priority over the prior ones:
+.RS 4
+.PP
+.RS 4
+If no timing metadata has been set for the key, the key is published in the zone and used to sign the zone.
+.RE
+.PP
+.RS 4
+If the key's publication date is set and is in the past, the key is published in the zone.
+.RE
+.PP
+.RS 4
+If the key's activation date is set and in the past, the key is published (regardless of publication date) and used to sign the zone.
+.RE
+.PP
+.RS 4
+If the key's revocation date is set and in the past, and the key is published, then the key is revoked, and the revoked key is used to sign the zone.
+.RE
+.PP
+.RS 4
+If either of the key's unpublication or deletion dates are set and in the past, the key is NOT published or used to sign the zone, regardless of any other metadata.
+.RE
+.RE
+.RE
+.PP
+\-T \fIttl\fR
+.RS 4
+Specifies the TTL of new DNSKEY records imported to the zone from the key repository. Only useful with the \-S option.
 .RE
 .PP
 \-t
