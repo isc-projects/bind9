@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.92 2009/07/19 04:18:05 each Exp $ */
+/* $Id: db.c,v 1.93 2009/07/19 23:47:55 tbox Exp $ */
 
 /*! \file */
 
@@ -330,7 +330,7 @@ dns_db_load2(dns_db_t *db, const char *filename, dns_masterformat_t format) {
 
 isc_result_t
 dns_db_load3(dns_db_t *db, const char *filename, dns_masterformat_t format,
-             unsigned int options) {
+	     unsigned int options) {
 	isc_result_t result, eresult;
 	dns_rdatacallbacks_t callbacks;
 

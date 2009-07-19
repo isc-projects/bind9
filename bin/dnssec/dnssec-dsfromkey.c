@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-dsfromkey.c,v 1.10 2009/07/19 05:06:48 each Exp $ */
+/* $Id: dnssec-dsfromkey.c,v 1.11 2009/07/19 23:47:55 tbox Exp $ */
 
 /*! \file */
 
@@ -67,12 +67,12 @@ initname(char *setname) {
 	isc_result_t result;
 	isc_buffer_t buf;
 
-  	dns_fixedname_init(&fixed);
-  	name = dns_fixedname_name(&fixed);
-  
-  	isc_buffer_init(&buf, setname, strlen(setname));
-  	isc_buffer_add(&buf, strlen(setname));
-  	result = dns_name_fromtext(name, &buf, dns_rootname, ISC_FALSE, NULL);
+	dns_fixedname_init(&fixed);
+	name = dns_fixedname_name(&fixed);
+
+	isc_buffer_init(&buf, setname, strlen(setname));
+	isc_buffer_add(&buf, strlen(setname));
+	result = dns_name_fromtext(name, &buf, dns_rootname, ISC_FALSE, NULL);
 	return (result);
 }
 
@@ -424,7 +424,7 @@ main(int argc, char **argv) {
 	if (filename == NULL)
 		showall = ISC_TRUE;
 
-	if (argc < isc_commandline_index + 1 && filename == NULL) 
+	if (argc < isc_commandline_index + 1 && filename == NULL)
 		fatal("the key file name was not specified");
 	if (argc > isc_commandline_index + 1)
 		fatal("extraneous arguments");
@@ -475,9 +475,9 @@ main(int argc, char **argv) {
 
 			if (both) {
 				emit(DNS_DSDIGEST_SHA1, showall, lookaside,
-                                     &rdata);
+				     &rdata);
 				emit(DNS_DSDIGEST_SHA256, showall, lookaside,
-                                     &rdata);
+				     &rdata);
 			} else
 				emit(dtype, showall, lookaside, &rdata);
 		}

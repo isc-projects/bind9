@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.97 2009/07/19 04:50:15 each Exp $
+ * $Id: dnssec.c,v 1.98 2009/07/19 23:47:55 tbox Exp $
  */
 
 /*! \file */
@@ -1049,7 +1049,7 @@ get_hints(dns_dnsseckey_t *key) {
 	}
 
 	/*
-	 * Activation date is set (maybe in the future), but 
+	 * Activation date is set (maybe in the future), but
 	 * publication date isn't. Most likely the user wants to
 	 * publish now and activate later.
 	 */
@@ -1111,7 +1111,7 @@ dns_dnssec_findmatchingkeys(dns_name_t *origin, const char *directory,
 
 	isc_dir_init(&dir);
 	RETERR(isc_dir_open(&dir, directory));
-	
+
 	while (isc_dir_read(&dir) == ISC_R_SUCCESS) {
 		if (dir.entry.name[0] == 'K' &&
 		    dir.entry.length > len + 1 &&

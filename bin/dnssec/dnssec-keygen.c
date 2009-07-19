@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.88 2009/07/19 04:18:04 each Exp $ */
+/* $Id: dnssec-keygen.c,v 1.89 2009/07/19 23:47:55 tbox Exp $ */
 
 /*! \file */
 
@@ -317,7 +317,7 @@ main(int argc, char **argv) {
 					   now, now);
 			break;
 		case 'U':
-			unpublish = strtotime(isc_commandline_argument, 
+			unpublish = strtotime(isc_commandline_argument,
 					      now, now);
 			break;
 		case 'D':

@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.23 2009/07/19 04:18:05 each Exp $
+ * $Id: dst_api.c,v 1.24 2009/07/19 23:47:55 tbox Exp $
  */
 
 /*! \file */
@@ -1207,7 +1207,7 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 
 	/* Write key information in comments */
 	if ((type & DST_TYPE_KEY) == 0) {
-		fprintf(fp, "; This is a %s%s-signing key, keyid %d, for ", 
+		fprintf(fp, "; This is a %s%s-signing key, keyid %d, for ",
 			(key->key_flags & DNS_KEYFLAG_REVOKE) != 0 ?
 				"revoked " :
 				"",

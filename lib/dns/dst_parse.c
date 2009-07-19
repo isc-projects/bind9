@@ -31,7 +31,7 @@
 
 /*%
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.18 2009/07/19 04:18:05 each Exp $
+ * $Id: dst_parse.c,v 1.19 2009/07/19 23:47:55 tbox Exp $
  */
 
 #include <config.h>
@@ -138,7 +138,7 @@ find_metadata(const char *s) {
 	}
 
 	return (-1);
-}	
+}
 
 static const char *
 find_tag(const int value) {
@@ -419,7 +419,7 @@ dst__privstruct_parse(dst_key_t *key, unsigned int alg, isc_lex_t *lex,
 		tag = find_metadata(DST_AS_STR(token));
 		if (tag >= 0) {
 			INSIST(tag < METADATA_NTAGS);
-			
+
 			NEXTTOKEN(lex, opt, &token);
 			if (token.type != isc_tokentype_string) {
 				ret = DST_R_INVALIDPRIVATEKEY;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keycreate.c,v 1.16 2009/07/19 04:18:04 each Exp $ */
+/* $Id: keycreate.c,v 1.17 2009/07/19 23:47:55 tbox Exp $ */
 
 #include <config.h>
 
@@ -135,7 +135,7 @@ sendquery(isc_task_t *task, isc_event_t *event) {
 	isc_region_t r;
 	isc_result_t result;
 	dns_fixedname_t keyname;
-	dns_fixedname_t ownername;	
+	dns_fixedname_t ownername;
 	isc_buffer_t namestr, keybuf;
 	unsigned char keydata[9];
 	dns_message_t *query;

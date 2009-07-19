@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.48 2009/07/19 04:18:04 each Exp $ */
+/* $Id: dnssectool.c,v 1.49 2009/07/19 23:47:55 tbox Exp $ */
 
 /*! \file */
 
@@ -265,7 +265,7 @@ cleanup_entropy(isc_entropy_t **ectx) {
 	isc_entropy_detach(ectx);
 }
 
-static isc_stdtime_t 
+static isc_stdtime_t
 time_units(isc_stdtime_t offset, char suffix, const char *str) {
 	switch(suffix) {
 	    case 'Y': case 'y':
