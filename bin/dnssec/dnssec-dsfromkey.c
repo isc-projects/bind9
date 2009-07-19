@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-dsfromkey.c,v 1.9 2009/07/19 04:18:04 each Exp $ */
+/* $Id: dnssec-dsfromkey.c,v 1.10 2009/07/19 05:06:48 each Exp $ */
 
 /*! \file */
 
@@ -51,7 +51,7 @@
 #include "dnssectool.h"
 
 #ifndef PATH_MAX
-#define PATH_MAX 1024   /* AIX and others don't define this. */
+#define PATH_MAX 1024   /* AIX, WIN32, and others don't define this. */
 #endif
 
 const char *program = "dnssec-dsfromkey";

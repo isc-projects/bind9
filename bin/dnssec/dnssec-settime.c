@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-settime.c,v 1.2 2009/07/19 04:18:04 each Exp $ */
+/* $Id: dnssec-settime.c,v 1.3 2009/07/19 05:06:48 each Exp $ */
 
 /*! \file */
 
@@ -23,7 +23,7 @@
 #include <libgen.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/errno.h>
+#include <errno.h>
 #include <time.h>
 
 #include <isc/buffer.h>

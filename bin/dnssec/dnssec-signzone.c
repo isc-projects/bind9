@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.221 2009/07/19 04:18:04 each Exp $ */
+/* $Id: dnssec-signzone.c,v 1.222 2009/07/19 05:06:48 each Exp $ */
 
 /*! \file */
 
@@ -86,6 +86,10 @@
 #include <dst/dst.h>
 
 #include "dnssectool.h"
+
+#ifndef PATH_MAX
+#define PATH_MAX 1024   /* AIX, WIN32, and others don't define this. */
+#endif
 
 const char *program = "dnssec-signzone";
 int verbose;
