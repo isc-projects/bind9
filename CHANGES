@@ -6,7 +6,7 @@
 			  specify a directory in which key files will be
 			  stored
 			- DNSSEC can now store metadata indicating when
-			  they are scheduled to be published, acttivated,
+			  they are scheduled to be published, activated,
 			  revoked or removed; these values can be set by
 			  dnssec-keygen or overwritten by the new
 			  dnssec-settime command
