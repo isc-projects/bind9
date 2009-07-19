@@ -95,7 +95,7 @@
 ./bin/dnssec/dnssec-dsfromkey.html		HTML	2008,2009
 ./bin/dnssec/dnssec-keyfromlabel.8		MAN	DOCBOOK
 ./bin/dnssec/dnssec-keyfromlabel.c		C	2007,2008,2009
-./bin/dnssec/dnssec-keyfromlabel.docbook	SGML	2008
+./bin/dnssec/dnssec-keyfromlabel.docbook	SGML	2008,2009
 ./bin/dnssec/dnssec-keyfromlabel.html		HTML	DOCBOOK
 ./bin/dnssec/dnssec-keygen.8			MAN	DOCBOOK
 ./bin/dnssec/dnssec-keygen.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
@@ -105,6 +105,10 @@
 ./bin/dnssec/dnssec-revoke.c			C	2009
 ./bin/dnssec/dnssec-revoke.docbook		SGML	2009
 ./bin/dnssec/dnssec-revoke.html			HTML	2009
+./bin/dnssec/dnssec-settime.8			MAN	2009
+./bin/dnssec/dnssec-settime.c			C	2009
+./bin/dnssec/dnssec-settime.docbook		SGML	2009
+./bin/dnssec/dnssec-settime.html		HTML	2009
 ./bin/dnssec/dnssec-signzone.8			MAN	DOCBOOK
 ./bin/dnssec/dnssec-signzone.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./bin/dnssec/dnssec-signzone.docbook		SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
@@ -127,6 +131,9 @@
 ./bin/dnssec/win32/revoke.dsp			X	2009
 ./bin/dnssec/win32/revoke.dsw			X	2009
 ./bin/dnssec/win32/revoke.mak			X	2009
+./bin/dnssec/win32/settime.dsp			X	2009
+./bin/dnssec/win32/settime.dsw			X	2009
+./bin/dnssec/win32/settime.mak			X	2009
 ./bin/dnssec/win32/signzone.dsp			X	2001,2004,2005,2006,2009
 ./bin/dnssec/win32/signzone.dsw			X	2001
 ./bin/dnssec/win32/signzone.mak			X	2001,2004,2005,2006,2009
@@ -814,14 +821,14 @@
 ./bin/tests/system/tkey/.cvsignore		X	2001
 ./bin/tests/system/tkey/Makefile.in		MAKE	2001,2002,2004,2007
 ./bin/tests/system/tkey/clean.sh		SH	2001,2004,2007
-./bin/tests/system/tkey/keycreate.c		C	2001,2004,2005,2007
-./bin/tests/system/tkey/keydelete.c		C	2001,2004,2005,2007
+./bin/tests/system/tkey/keycreate.c		C	2001,2004,2005,2007,2009
+./bin/tests/system/tkey/keydelete.c		C	2001,2004,2005,2007,2009
 ./bin/tests/system/tkey/ns1/.cvsignore		X	2001
 ./bin/tests/system/tkey/ns1/named.conf.in	CONF-C	2001,2004,2007,2009
-./bin/tests/system/tkey/ns1/setup.sh		SH	2001,2004,2007
+./bin/tests/system/tkey/ns1/setup.sh		SH	2001,2004,2007,2009
 ./bin/tests/system/tkey/prereq.sh		SH	2001,2004,2006,2007,2009
 ./bin/tests/system/tkey/setup.sh		SH	2001,2004,2007,2009
-./bin/tests/system/tkey/tests.sh		SH	2001,2004,2007
+./bin/tests/system/tkey/tests.sh		SH	2001,2004,2007,2009
 ./bin/tests/system/tsig/clean.sh		SH	2005,2006,2007
 ./bin/tests/system/tsig/ns1/example.db		ZONE	2005,2006,2007,2009
 ./bin/tests/system/tsig/ns1/named.conf		CONF-C	2005,2006,2007
@@ -1646,7 +1653,7 @@
 ./lib/dns/dst_lib.c				C	1999,2000,2001,2004,2005,2007
 ./lib/dns/dst_openssl.h				C	2002,2004,2005,2007,2008
 ./lib/dns/dst_parse.c				C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009
-./lib/dns/dst_parse.h				C.NAI	2000,2001,2002,2004,2005,2006,2007,2008
+./lib/dns/dst_parse.h				C.NAI	2000,2001,2002,2004,2005,2006,2007,2008,2009
 ./lib/dns/dst_result.c				C	1999,2000,2001,2004,2005,2007,2008
 ./lib/dns/forward.c				C	2000,2001,2004,2005,2007
 ./lib/dns/gen-unix.h				C	1999,2000,2001,2004,2005,2007,2009
@@ -2304,7 +2311,7 @@
 ./lib/isccfg/parser.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./lib/isccfg/version.c				C	1998,1999,2000,2001,2004,2005,2007
 ./lib/isccfg/win32/DLLMain.c			C	2001,2004,2007
-./lib/isccfg/win32/libisccfg.def		X	2001,2002,2005
+./lib/isccfg/win32/libisccfg.def		X	2001,2002,2005,2009
 ./lib/isccfg/win32/libisccfg.dsp		X	2001,2002,2004,2005,2009
 ./lib/isccfg/win32/libisccfg.dsw		X	2001
 ./lib/isccfg/win32/libisccfg.mak		X	2001,2002,2004,2005,2006,2009
