@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.170 2009/07/14 23:47:54 tbox Exp $ */
+/* $Id: nsupdate.c,v 1.171 2009/07/19 04:18:04 each Exp $ */
 
 /*! \file */
 
@@ -626,7 +626,7 @@ setup_keyfile(isc_mem_t *mctx, isc_log_t *lctx) {
 	debug("Creating key...");
 
 	/* Try reading the key from a K* pair */
-	result = dst_key_fromnamedfile(keyfile,
+	result = dst_key_fromnamedfile(keyfile, NULL,
 				       DST_TYPE_PRIVATE | DST_TYPE_KEY, mctx,
 				       &dstkey);
 

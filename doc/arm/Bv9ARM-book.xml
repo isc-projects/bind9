@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.422 2009/07/14 22:54:57 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.423 2009/07/19 04:18:04 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -15264,6 +15264,7 @@ zone "example.com" {
       <xi:include href="../../bin/dnssec/dnssec-keyfromlabel.docbook"/>
       <xi:include href="../../bin/dnssec/dnssec-keygen.docbook"/>
       <xi:include href="../../bin/dnssec/dnssec-revoke.docbook"/>
+      <xi:include href="../../bin/dnssec/dnssec-settime.docbook"/>
       <xi:include href="../../bin/dnssec/dnssec-signzone.docbook"/>
       <xi:include href="../../bin/check/named-checkconf.docbook"/>
       <xi:include href="../../bin/check/named-checkzone.docbook"/>

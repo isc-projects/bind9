@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.docbook,v 1.34 2009/06/05 21:59:43 jreed Exp $ -->
+<!-- $Id: dnssec-signzone.docbook,v 1.35 2009/07/19 04:18:04 each Exp $ -->
 <refentry id="man.dnssec-signzone">
   <refentryinfo>
     <date>June 05, 2009</date>
@@ -64,6 +64,7 @@
       <arg><option>-f <replaceable class="parameter">output-file</replaceable></option></arg>
       <arg><option>-g</option></arg>
       <arg><option>-h</option></arg>
+      <arg><option>-K <replaceable class="parameter">directory</replaceable></option></arg>
       <arg><option>-k <replaceable class="parameter">key</replaceable></option></arg>
       <arg><option>-l <replaceable class="parameter">domain</replaceable></option></arg>
       <arg><option>-i <replaceable class="parameter">interval</replaceable></option></arg>
@@ -75,7 +76,9 @@
       <arg><option>-p</option></arg>
       <arg><option>-P</option></arg>
       <arg><option>-r <replaceable class="parameter">randomdev</replaceable></option></arg>
+      <arg><option>-S</option></arg>
       <arg><option>-s <replaceable class="parameter">start-time</replaceable></option></arg>
+      <arg><option>-T <replaceable class="parameter">ttl</replaceable></option></arg>
       <arg><option>-t</option></arg>
       <arg><option>-v <replaceable class="parameter">level</replaceable></option></arg>
       <arg><option>-z</option></arg>
@@ -122,6 +125,37 @@
       </varlistentry>
 
       <varlistentry>
+        <term>-d <replaceable class="parameter">directory</replaceable></term>
+        <listitem>
+          <para>
+            Look for <filename>dsset-</filename> or
+            <filename>keyset-</filename> files in <option>directory</option>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-g</term>
+        <listitem>
+          <para>
+            Generate DS records for child zones from
+            <filename>dsset-</filename> or <filename>keyset-</filename>
+            file.  Existing DS records will be removed.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-K <replaceable class="parameter">directory</replaceable></term>
+        <listitem>
+          <para>
+            Key repository: Specify a directory to search for DNSSEC keys.
+            If not specified, defaults to the current directory.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
         <term>-k <replaceable class="parameter">key</replaceable></term>
         <listitem>
           <para>
@@ -137,26 +171,6 @@
           <para>
             Generate a DLV set in addition to the key (DNSKEY) and DS sets.
             The domain is appended to the name of the records.
-          </para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term>-d <replaceable class="parameter">directory</replaceable></term>
-        <listitem>
-          <para>
-            Look for <filename>keyset</filename> files in
-            <option>directory</option> as the directory
-          </para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term>-g</term>
-        <listitem>
-          <para>
-            Generate DS records for child zones from keyset files.
-            Existing DS records will be removed.
           </para>
         </listitem>
       </varlistentry>
@@ -389,6 +403,82 @@
             data to be used instead of the default.  The special value
             <filename>keyboard</filename> indicates that keyboard
             input should be used.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-S</term>
+        <listitem>
+          <para>
+            Smart signing: Instructs <command>dnssec-signzone</command> to
+            search the key repository for keys that match the zone being
+            signed, and to include them in the zone if appropriate.
+          </para>
+          <para>
+            When a key is found, its timing metadata is examined to
+            determine how it should be used, according to the following
+            rules.  Each successive rule takes priority over the prior
+            ones:
+          </para>
+          <variablelist>
+	    <varlistentry>
+              <listitem>
+                <para>
+                  If no timing metadata has been set for the key, the key is
+                  published in the zone and used to sign the zone.
+                </para>
+	      </listitem>
+            </varlistentry>
+
+	    <varlistentry>
+              <listitem>
+                <para>
+                  If the key's publication date is set and is in the past, the
+                  key is published in the zone.
+                </para>
+	      </listitem>
+            </varlistentry>
+
+	    <varlistentry>
+              <listitem>
+                <para>
+                  If the key's activation date is set and in the past, the
+                  key is published (regardless of publication date) and
+                  used to sign the zone.  
+                </para>
+	      </listitem>
+            </varlistentry>
+
+	    <varlistentry>
+              <listitem>
+                <para>
+                  If the key's revocation date is set and in the past, and the
+                  key is published, then the key is revoked, and the revoked key
+                  is used to sign the zone.
+                </para>
+	      </listitem>
+            </varlistentry>
+
+	    <varlistentry>
+              <listitem>
+                <para>
+                  If either of the key's unpublication or deletion dates are set
+                  and in the past, the key is NOT published or used to sign the
+                  zone, regardless of any other metadata.
+                </para>
+	      </listitem>
+            </varlistentry>
+	 </variablelist>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-T <replaceable class="parameter">ttl</replaceable></term>
+        <listitem>
+          <para>
+            Specifies the TTL of new DNSKEY records imported to the zone
+            from the key repository.  Only useful with the -S option.
           </para>
         </listitem>
       </varlistentry>

@@ -44,28 +44,34 @@ BIND 9
 
 BIND 9.7.0
 
-        BIND 9.7.0 includes a number of changes from BIND 9.6 and earlier
-        releases.  Most are intended to simplify DNSSEC configuration.
-        New features include:
+	BIND 9.7.0 includes a number of changes from BIND 9.6 and earlier
+	releases.  Most are intended to simplify DNSSEC configuration.
 
-        - Simplified configuration of DNSSEC Lookaside Validation (DLV).
-        - Simplified configuration of Dynamic DNS, using the "ddns-confgen"
-          command line tool or the "ddns-autoconf" zone option.  (As a side
-          effect, this also makes it easier to configure automatic zone
-          re-signing.)
+	Please note that configuration syntax and APIs for new features
+	are still experimental and are subject to change before the final
+	release.
+
+	New features include:
+
+	- Simplified configuration of DNSSEC Lookaside Validation (DLV).
+	- Simplified configuration of Dynamic DNS, using the "ddns-confgen"
+	  command line tool or the "local" update-policy option.  (As a side
+	  effect, this also makes it easier to configure automatic zone
+	  re-signing.)
 	- New named option "attach-cache" that allows multiple views to
 	  share a single cache.
-	- New logging category "query-errors" to provide detailed
-	  internal information about query failures, especially about
-	  server failures.
 	- DNS rebinding attack prevention.
-        - New default values for dnssec-keygen parameters.
+	- New default values for dnssec-keygen parameters.
+	- Support for RFC 5011 (automated trust anchor maintenance)
+	- Smart signing: simplified tools for zone signing and key
+	  maintenance
+	- The "statistics-channels" option is now available on Windows
 
-        Planned but not complete in alpha:
+	Planned but not complete in this alpha:
 
-        - Support for RFC 5011 (automated trust anchor maintenance)
-        - Simplified tools for zone signing and key maintenance
-        - Fully automatic signing of zones by "named"
+	- Fully automatic signing of zones by "named"
+        - DNSSEC-aware libdns API
+        - Improved PKCS#11 support, including Keyper support
 
 BIND 9.6.0
 

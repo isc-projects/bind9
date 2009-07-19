@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.27 2009/06/04 02:56:47 tbox Exp $
+# $Id: sign.sh,v 1.28 2009/07/19 04:18:04 each Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -28,8 +28,8 @@ zonefile=root.db
 
 (cd ../ns2 && sh sign.sh )
 
-cp ../ns2/keyset-example. .
-cp ../ns2/keyset-dlv. .
+cp ../ns2/dsset-example. .
+cp ../ns2/dsset-dlv. .
 
 keyname=`$KEYGEN -r $RANDFILE -a RSAMD5 -b 768 -n zone $zone`
 
@@ -39,7 +39,7 @@ $SIGNER -P -g -r $RANDFILE -o $zone $zonefile > /dev/null
 
 # Configure the resolving server with a trusted key.
 
-cat $keyname.key | $PERL -n -e '
+cat $keyname.key | grep -v '^; ' | $PERL -n -e '
 local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
 local $key = join("", @rest);
 print <<EOF

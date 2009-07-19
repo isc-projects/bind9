@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keycreate.c,v 1.15 2007/06/19 23:47:06 tbox Exp $ */
+/* $Id: keycreate.c,v 1.16 2009/07/19 04:18:04 each Exp $ */
 
 #include <config.h>
 
@@ -285,7 +285,7 @@ main(int argc, char *argv[]) {
 
 	ourkey = NULL;
 	type = DST_TYPE_PUBLIC | DST_TYPE_PRIVATE | DST_TYPE_KEY;
-	result = dst_key_fromnamedfile(ourkeyname, type, mctx, &ourkey);
+	result = dst_key_fromnamedfile(ourkeyname, NULL, type, mctx, &ourkey);
 	CHECK("dst_key_fromnamedfile", result);
 
 	isc_buffer_init(&nonce, noncedata, sizeof(noncedata));

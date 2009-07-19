@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.23 2009/01/17 14:41:43 fdupont Exp $
+ * $Id: opensslrsa_link.c,v 1.24 2009/07/19 04:18:05 each Exp $
  */
 #ifdef OPENSSL
 #ifndef USE_EVP
@@ -751,8 +751,9 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 		i++;
 	}
 
+
 	priv.nelements = i;
-	result =  dst__privstruct_writefile(key, &priv, directory);
+	result = dst__privstruct_writefile(key, &priv, directory);
  fail:
 #if USE_EVP
 	RSA_free(rsa);

@@ -31,7 +31,7 @@
 
 /*%
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.17 2009/06/17 06:51:44 each Exp $
+ * $Id: dst_parse.c,v 1.18 2009/07/19 04:18:05 each Exp $
  */
 
 #include <config.h>
@@ -41,8 +41,11 @@
 #include <isc/fsaccess.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
+#include <isc/stdtime.h>
 #include <isc/string.h>
 #include <isc/util.h>
+
+#include <dns/time.h>
 
 #include "dst_internal.h"
 #include "dst_parse.h"
@@ -52,6 +55,16 @@
 
 #define PRIVATE_KEY_STR "Private-key-format:"
 #define ALGORITHM_STR "Algorithm:"
+
+#define METADATA_NTAGS 6
+static const char *metatags[METADATA_NTAGS] = {
+	"Created:",
+	"Publish:",
+	"Activate:",
+	"Revoke:",
+	"Remove:",
+	"Delete:"
+};
 
 struct parse_map {
 	const int value;
@@ -107,14 +120,25 @@ static int
 find_value(const char *s, const unsigned int alg) {
 	int i;
 
-	for (i = 0; ; i++) {
-		if (map[i].tag == NULL)
-			return (-1);
-		else if (strcasecmp(s, map[i].tag) == 0 &&
-			 TAG_ALG(map[i].value) == alg)
+	for (i = 0; map[i].tag != NULL; i++) {
+		if (strcasecmp(s, map[i].tag) == 0 &&
+		    (TAG_ALG(map[i].value) == alg))
 			return (map[i].value);
 	}
+	return (-1);
 }
+
+static int
+find_metadata(const char *s) {
+	int i;
+
+	for (i = 0; i < METADATA_NTAGS; i++) {
+		if (strcasecmp(s, metatags[i]) == 0)
+			return (i);
+	}
+
+	return (-1);
+}	
 
 static const char *
 find_tag(const int value) {
@@ -294,6 +318,7 @@ dst__privstruct_parse(dst_key_t *key, unsigned int alg, isc_lex_t *lex,
 	isc_token_t token;
 	unsigned char *data = NULL;
 	unsigned int opt = ISC_LEXOPT_EOL;
+	isc_stdtime_t when;
 	isc_result_t ret;
 
 	REQUIRE(priv != NULL);
@@ -377,7 +402,6 @@ dst__privstruct_parse(dst_key_t *key, unsigned int alg, isc_lex_t *lex,
 	for (n = 0; n < MAXFIELDS; n++) {
 		int tag;
 		isc_region_t r;
-
 		do {
 			ret = isc_lex_gettoken(lex, opt, &token);
 			if (ret == ISC_R_EOF)
@@ -391,8 +415,29 @@ dst__privstruct_parse(dst_key_t *key, unsigned int alg, isc_lex_t *lex,
 			goto fail;
 		}
 
+		/* Key timing metadata */
+		tag = find_metadata(DST_AS_STR(token));
+		if (tag >= 0) {
+			INSIST(tag < METADATA_NTAGS);
+			
+			NEXTTOKEN(lex, opt, &token);
+			if (token.type != isc_tokentype_string) {
+				ret = DST_R_INVALIDPRIVATEKEY;
+				goto fail;
+			}
+
+			ret = dns_time32_fromtext(DST_AS_STR(token), &when);
+			if (ret != ISC_R_SUCCESS)
+				goto fail;
+
+			dst_key_settime(key, tag, when);
+
+			goto next;
+		}
+
+		/* Key data */
 		tag = find_value(DST_AS_STR(token), alg);
-		if (tag < 0 || TAG_ALG(tag) != alg) {
+		if (tag < 0) {
 			ret = DST_R_INVALIDPRIVATEKEY;
 			goto fail;
 		}
@@ -409,20 +454,19 @@ dst__privstruct_parse(dst_key_t *key, unsigned int alg, isc_lex_t *lex,
 		isc_buffer_usedregion(&b, &r);
 		priv->elements[n].length = r.length;
 		priv->elements[n].data = r.base;
+		priv->nelements++;
 
+	  next:
 		READLINE(lex, opt, &token);
 		data = NULL;
 	}
  done:
-	priv->nelements = n;
-
 	if (check_data(priv, alg, ISC_TRUE) < 0)
 		goto fail;
 
 	return (ISC_R_SUCCESS);
 
 fail:
-	priv->nelements = n;
 	dst__privstruct_free(priv, mctx);
 	if (data != NULL)
 		isc_mem_put(mctx, data, MAXFIELDSIZE);
@@ -436,11 +480,13 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 {
 	FILE *fp;
 	int ret, i;
-	isc_result_t iret;
+	isc_result_t result;
 	char filename[ISC_DIR_NAMEMAX];
 	char buffer[MAXFIELDSIZE * 2];
-	isc_buffer_t b;
 	isc_fsaccess_t access;
+	isc_stdtime_t when;
+	isc_buffer_t b;
+	isc_region_t r;
 
 	REQUIRE(priv != NULL);
 
@@ -480,6 +526,12 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 	case DST_ALG_RSASHA1:
 		fprintf(fp, "(RSASHA1)\n");
 		break;
+	case DST_ALG_NSEC3RSASHA1:
+		fprintf(fp, "(NSEC3RSASHA1)\n");
+		break;
+	case DST_ALG_NSEC3DSA:
+		fprintf(fp, "(NSEC3DSA)\n");
+		break;
 	case DST_ALG_HMACMD5:
 		fprintf(fp, "(HMAC_MD5)\n");
 		break;
@@ -498,20 +550,12 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 	case DST_ALG_HMACSHA512:
 		fprintf(fp, "(HMAC_SHA512)\n");
 		break;
-	case DST_ALG_NSEC3DSA:
-		fprintf(fp, "(NSEC3DSA)\n");
-		break;
-	case DST_ALG_NSEC3RSASHA1:
-		fprintf(fp, "(NSEC3RSASHA1)\n");
-		break;
 	default:
 		fprintf(fp, "(?)\n");
 		break;
 	}
 
 	for (i = 0; i < priv->nelements; i++) {
-		isc_buffer_t b;
-		isc_region_t r;
 		const char *s;
 
 		s = find_tag(priv->elements[i].tag);
@@ -519,8 +563,8 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 		r.base = priv->elements[i].data;
 		r.length = priv->elements[i].length;
 		isc_buffer_init(&b, buffer, sizeof(buffer));
-		iret = isc_base64_totext(&r, sizeof(buffer), "", &b);
-		if (iret != ISC_R_SUCCESS) {
+		result = isc_base64_totext(&r, sizeof(buffer), "", &b);
+		if (result != ISC_R_SUCCESS) {
 			fclose(fp);
 			return (DST_R_INVALIDPRIVATEKEY);
 		}
@@ -531,10 +575,28 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 		fprintf(fp, "\n");
 	}
 
+	/* Add the timing metadata tags */
+	for (i = 0; i < METADATA_NTAGS; i++) {
+		result = dst_key_gettime(key, i, &when);
+		if (result != ISC_R_SUCCESS)
+			continue;
+
+		isc_buffer_init(&b, buffer, sizeof(buffer));
+		result = dns_time32_totext(when, &b);
+		if (result != ISC_R_SUCCESS)
+			continue;
+
+		isc_buffer_usedregion(&b, &r);
+
+		fprintf(fp, "%s ", metatags[i]);
+		fwrite(r.base, 1, r.length, fp);
+		fprintf(fp, "\n");
+	}
+
 	fflush(fp);
-	iret = ferror(fp) ? DST_R_WRITEERROR : ISC_R_SUCCESS;
+	result = ferror(fp) ? DST_R_WRITEERROR : ISC_R_SUCCESS;
 	fclose(fp);
-	return (iret);
+	return (result);
 }
 
 /*! \file */

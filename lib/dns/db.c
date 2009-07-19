@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.91 2009/06/30 02:52:32 each Exp $ */
+/* $Id: db.c,v 1.92 2009/07/19 04:18:05 each Exp $ */
 
 /*! \file */
 
@@ -320,14 +320,19 @@ dns_db_endload(dns_db_t *db, dns_dbload_t **dbloadp) {
 
 isc_result_t
 dns_db_load(dns_db_t *db, const char *filename) {
-	return (dns_db_load2(db, filename, dns_masterformat_text));
+	return (dns_db_load3(db, filename, dns_masterformat_text, 0));
 }
 
 isc_result_t
 dns_db_load2(dns_db_t *db, const char *filename, dns_masterformat_t format) {
+	return (dns_db_load3(db, filename, format, 0));
+}
+
+isc_result_t
+dns_db_load3(dns_db_t *db, const char *filename, dns_masterformat_t format,
+             unsigned int options) {
 	isc_result_t result, eresult;
 	dns_rdatacallbacks_t callbacks;
-	unsigned int options = 0;
 
 	/*
 	 * Load master file 'filename' into 'db'.

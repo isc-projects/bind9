@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-keyfromlabel.docbook,v 1.6 2008/11/07 13:54:11 jreed Exp $ -->
+<!-- $Id: dnssec-keyfromlabel.docbook,v 1.7 2009/07/19 04:18:04 each Exp $ -->
 <refentry id="man.dnssec-keyfromlabel">
   <refentryinfo>
     <date>February 8, 2008</date>
@@ -49,6 +49,7 @@
       <arg><option>-c <replaceable class="parameter">class</replaceable></option></arg>
       <arg><option>-f <replaceable class="parameter">flag</replaceable></option></arg>
       <arg><option>-k</option></arg>
+      <arg><option>-K <replaceable class="parameter">directory</replaceable></option></arg>
       <arg><option>-n <replaceable class="parameter">nametype</replaceable></option></arg>
       <arg><option>-p <replaceable class="parameter">protocol</replaceable></option></arg>
       <arg><option>-t <replaceable class="parameter">type</replaceable></option></arg>
@@ -140,6 +141,15 @@
           <para>
             Prints a short summary of the options and arguments to
             <command>dnssec-keygen</command>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-K <replaceable class="parameter">directory</replaceable></term>
+        <listitem>
+          <para>
+            Sets the directory in which the key files are to be written.
           </para>
         </listitem>
       </varlistentry>

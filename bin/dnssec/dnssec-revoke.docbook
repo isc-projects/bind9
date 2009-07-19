@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-revoke.docbook,v 1.3 2009/06/30 03:20:26 each Exp $ -->
+<!-- $Id: dnssec-revoke.docbook,v 1.4 2009/07/19 04:18:04 each Exp $ -->
 <refentry id="man.dnssec-revoke">
   <refentryinfo>
     <date>June 1, 2009</date>
@@ -46,7 +46,7 @@
       <command>dnssec-revoke</command>
       <arg><option>-hr</option></arg>
       <arg><option>-v <replaceable class="parameter">level</replaceable></option></arg>
-      <arg><option>-d <replaceable class="parameter">directory</replaceable></option></arg>
+      <arg><option>-K <replaceable class="parameter">directory</replaceable></option></arg>
       <arg><option>-f</option></arg>
       <arg choice="req">keyfile</arg>
     </cmdsynopsis>
@@ -75,7 +75,7 @@
       </varlistentry>
   
       <varlistentry>
-        <term>-d <replaceable class="parameter">directory</replaceable></term>
+        <term>-K <replaceable class="parameter">directory</replaceable></term>
         <listitem>
           <para>
             Sets the directory in which the key files are to reside.

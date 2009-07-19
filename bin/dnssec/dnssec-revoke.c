@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-revoke.c,v 1.4 2009/07/17 23:47:40 tbox Exp $ */
+/* $Id: dnssec-revoke.c,v 1.5 2009/07/19 04:18:04 each Exp $ */
 
 /*! \file */
 
@@ -50,8 +50,8 @@ usage(void) {
 	fprintf(stderr, "Usage:\n");
 	fprintf(stderr,	"    %s [options] keyfile\n\n", program);
 	fprintf(stderr, "Version: %s\n", VERSION);
-	fprintf(stderr, "    -f:	   force ovewrite\n");
-	fprintf(stderr, "    -d directory: use directory for key files\n");
+	fprintf(stderr, "    -f:	   force overwrite\n");
+	fprintf(stderr, "    -K directory: use directory for key files\n");
 	fprintf(stderr, "    -h:	   help\n");
 	fprintf(stderr, "    -r:	   remove old keyfiles after "
 					   "creating revoked version\n");
@@ -89,13 +89,13 @@ main(int argc, char **argv) {
 
 	isc_commandline_errprint = ISC_FALSE;
 
-	while ((ch = isc_commandline_parse(argc, argv, "d:fhrv:")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "fK:rhv:")) != -1) {
 		switch (ch) {
-		    case 'd':
-			dir = isc_commandline_argument;
-			break;
 		    case 'f':
 			force = ISC_TRUE;
+			break;
+		    case 'K':
+			dir = isc_commandline_argument;
 			break;
 		    case 'r':
 			remove = ISC_TRUE;
@@ -163,7 +163,7 @@ main(int argc, char **argv) {
 		fatal("Could not initialize dst");
 	isc_entropy_stopcallbacksources(ectx);
 
-	result = dst_key_fromnamedfile(filename,
+	result = dst_key_fromnamedfile(filename, dir,
 				       DST_TYPE_PUBLIC|DST_TYPE_PRIVATE,
 				       mctx, &key);
 	if (result != ISC_R_SUCCESS)

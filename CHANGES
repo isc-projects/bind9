@@ -1,3 +1,21 @@
+	--- 9.7.0a2 released ---
+
+2636.	[func]		Simplify zone signing and key maintenance with the
+			dnssec-* tools.  Major changes:
+			- all dnssec-* tools now take a -K option to
+			  specify a directory in which key files will be
+			  stored
+			- DNSSEC can now store metadata indicating when
+			  they are scheduled to be published, acttivated,
+			  revoked or removed; these values can be set by
+			  dnssec-keygen or overwritten by the new
+			  dnssec-settime command
+			- dnssec-signzone -S (for "smart") option reads key
+			  metadata and uses it to determine automatically
+			  which keys to publish to the zone, use for
+			  signing, revoke, or remove from the zone
+			[RT #19816]
+
 2635.	[bug]		isc_inet_ntop() incorrectly handled 0.0/16 addresses.
 			[RT #19716]
 

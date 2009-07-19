@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_parse.h,v 1.11 2008/05/15 00:50:26 each Exp $ */
+/* $Id: dst_parse.h,v 1.12 2009/07/19 04:18:05 each Exp $ */
 
 /*! \file */
 #ifndef DST_DST_PARSE_H
@@ -40,10 +40,15 @@
 #include <dst/dst.h>
 
 #define MAJOR_VERSION		1
-#define MINOR_VERSION		2
+#define MINOR_VERSION		3
 
 #define MAXFIELDSIZE		512
-#define MAXFIELDS		12
+
+/*
+ * Maximum number of fields in a private file is 18 (12 algorithm-
+ * specific fields for RSA, plus 6 generic fields).
+ */
+#define MAXFIELDS		12+6
 
 #define TAG_SHIFT		4
 #define TAG_ALG(tag)		((unsigned int)(tag) >> TAG_SHIFT)

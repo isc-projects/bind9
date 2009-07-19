@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_internal.h,v 1.14 2009/06/30 02:52:32 each Exp $ */
+/* $Id: dst_internal.h,v 1.15 2009/07/19 04:18:05 each Exp $ */
 
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1
@@ -42,8 +42,11 @@
 #include <isc/types.h>
 #include <isc/md5.h>
 #include <isc/sha1.h>
+#include <isc/stdtime.h>
 #include <isc/hmacmd5.h>
 #include <isc/hmacsha.h>
+
+#include <dns/time.h>
 
 #include <dst/dst.h>
 
@@ -112,7 +115,9 @@ struct dst_key {
 		dst_hmacsha512_key_t *hmacsha512;
 
 	} keydata;			/*%< pointer to key in crypto pkg fmt */
-	dst_func_t *	func;		/*%< crypto package specific functions*/
+
+	isc_stdtime_t	times[DST_MAX_TIMES + 1];    /*%< key timing metadata */
+	dst_func_t *    func;	       /*%< crypto package specific functions */
 };
 
 struct dst_context {

@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.22 2009/06/30 23:48:01 tbox Exp $
+ * $Id: dst_api.c,v 1.23 2009/07/19 04:18:05 each Exp $
  */
 
 /*! \file */
@@ -108,7 +108,8 @@ static isc_result_t	frombuffer(dns_name_t *name,
 static isc_result_t	algorithm_status(unsigned int alg);
 
 static isc_result_t	addsuffix(char *filename, unsigned int len,
-				  const char *ofilename, const char *suffix);
+				  const char *dirname, const char *ofilename,
+				  const char *suffix);
 
 #define RETERR(x)				\
 	do {					\
@@ -394,7 +395,7 @@ dst_key_fromfile(dns_name_t *name, dns_keytag_t id,
 		return (result);
 
 	key = NULL;
-	result = dst_key_fromnamedfile(filename, type, mctx, &key);
+	result = dst_key_fromnamedfile(filename, NULL, type, mctx, &key);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -416,8 +417,8 @@ dst_key_fromfile(dns_name_t *name, dns_keytag_t id,
 }
 
 isc_result_t
-dst_key_fromnamedfile(const char *filename, int type, isc_mem_t *mctx,
-		      dst_key_t **keyp)
+dst_key_fromnamedfile(const char *filename, const char *dirname,
+		      int type, isc_mem_t *mctx, dst_key_t **keyp)
 {
 	isc_result_t result;
 	dst_key_t *pubkey = NULL, *key = NULL;
@@ -432,11 +433,23 @@ dst_key_fromnamedfile(const char *filename, int type, isc_mem_t *mctx,
 	REQUIRE(mctx != NULL);
 	REQUIRE(keyp != NULL && *keyp == NULL);
 
+	/* If an absolute path is specified, don't use the key directory */
+#ifndef WIN32
+	if (filename[0] == '/')
+		dirname = NULL;
+#else /* WIN32 */
+	if (filename[0] == '/' || filename[0] == '\\')
+		dirname = NULL;
+#endif
+
 	newfilenamelen = strlen(filename) + 5;
+	if (dirname != NULL)
+		newfilenamelen += strlen(dirname) + 1;
 	newfilename = isc_mem_get(mctx, newfilenamelen);
 	if (newfilename == NULL)
 		return (ISC_R_NOMEMORY);
-	result = addsuffix(newfilename, newfilenamelen, filename, ".key");
+	result = addsuffix(newfilename, newfilenamelen,
+			   dirname, filename, ".key");
 	INSIST(result == ISC_R_SUCCESS);
 
 	result = dst_key_read_public(newfilename, type, mctx, &pubkey);
@@ -476,10 +489,13 @@ dst_key_fromnamedfile(const char *filename, int type, isc_mem_t *mctx,
 		RETERR(DST_R_UNSUPPORTEDALG);
 
 	newfilenamelen = strlen(filename) + 9;
+	if (dirname != NULL)
+		newfilenamelen += strlen(dirname) + 1;
 	newfilename = isc_mem_get(mctx, newfilenamelen);
 	if (newfilename == NULL)
 		RETERR(ISC_R_NOMEMORY);
-	result = addsuffix(newfilename, newfilenamelen, filename, ".private");
+	result = addsuffix(newfilename, newfilenamelen,
+			   dirname, filename, ".private");
 	INSIST(result == ISC_R_SUCCESS);
 
 	RETERR(isc_lex_create(mctx, 1500, &lex));
@@ -755,6 +771,24 @@ dst_key_generate(dns_name_t *name, unsigned int alg,
 	return (ISC_R_SUCCESS);
 }
 
+isc_result_t
+dst_key_gettime(const dst_key_t *key, int type, isc_stdtime_t *timep) {
+	REQUIRE(VALID_KEY(key));
+	REQUIRE(timep != NULL);
+	REQUIRE(type <= DST_MAX_TIMES);
+	if (key->times[type] == 0)
+		return (ISC_R_NOTFOUND);
+	*timep = key->times[type];
+	return (ISC_R_SUCCESS);
+}
+
+void
+dst_key_settime(dst_key_t *key, int type, isc_stdtime_t when) {
+	REQUIRE(VALID_KEY(key));
+	REQUIRE(type <= DST_MAX_TIMES);
+	key->times[type] = when;
+}
+
 isc_boolean_t
 dst_key_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	REQUIRE(dst_initialized == ISC_TRUE);
@@ -933,6 +967,7 @@ get_key_struct(dns_name_t *name, unsigned int alg,
 	key->key_alg = alg;
 	key->key_flags = flags;
 	key->key_proto = protocol;
+	memset(key->times, 0, sizeof(key->times));
 	key->mctx = mctx;
 	key->keydata.generic = NULL;
 	key->key_size = bits;
@@ -1095,6 +1130,23 @@ issymmetric(const dst_key_t *key) {
 }
 
 /*%
+ * Write key timing metadata to a file pointer, preceded by 'tag'
+ */
+static void
+printtime(const dst_key_t *key, int type, const char *tag, FILE *stream) {
+	isc_result_t result;
+	isc_stdtime_t when;
+	const char *output;
+
+	result = dst_key_gettime(key, type, &when);
+	if (result == ISC_R_NOTFOUND)
+		return;
+
+	output = ctime((time_t *) &when);
+	fprintf(stream, "%s: %s", tag, output);
+}
+
+/*%
  * Writes a public key to disk in DNS format.
  */
 static isc_result_t
@@ -1153,11 +1205,33 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 		(void)isc_fsaccess_set(filename, access);
 	}
 
-	ret = dns_name_print(key->key_name, fp);
-	if (ret != ISC_R_SUCCESS) {
-		fclose(fp);
-		return (ret);
+	/* Write key information in comments */
+	if ((type & DST_TYPE_KEY) == 0) {
+		fprintf(fp, "; This is a %s%s-signing key, keyid %d, for ", 
+			(key->key_flags & DNS_KEYFLAG_REVOKE) != 0 ?
+				"revoked " :
+				"",
+			(key->key_flags & DNS_KEYFLAG_KSK) != 0 ?
+				"key" :
+				"zone",
+			key->key_id);
+		ret = dns_name_print(key->key_name, fp);
+		if (ret != ISC_R_SUCCESS) {
+			fclose(fp);
+			return (ret);
+		}
+		fputc('\n', fp);
+
+		printtime(key, DST_TIME_CREATED, "; Created", fp);
+		printtime(key, DST_TIME_PUBLISH, "; Publish", fp);
+		printtime(key, DST_TIME_ACTIVATE, "; Activate", fp);
+		printtime(key, DST_TIME_REVOKE, "; Revoke", fp);
+		printtime(key, DST_TIME_REMOVE, "; Remove", fp);
+		printtime(key, DST_TIME_DELETE, "; Delete", fp);
 	}
+
+	/* Now print the actual key */
+	ret = dns_name_print(key->key_name, fp);
 
 	fprintf(fp, " ");
 
@@ -1292,8 +1366,8 @@ algorithm_status(unsigned int alg) {
 }
 
 static isc_result_t
-addsuffix(char *filename, unsigned int len, const char *ofilename,
-	  const char *suffix)
+addsuffix(char *filename, unsigned int len, const char *odirname,
+	  const char *ofilename, const char *suffix)
 {
 	int olen = strlen(ofilename);
 	int n;
@@ -1305,7 +1379,11 @@ addsuffix(char *filename, unsigned int len, const char *ofilename,
 	else if (olen > 4 && strcmp(ofilename + olen - 4, ".key") == 0)
 		olen -= 4;
 
-	n = snprintf(filename, len, "%.*s%s", olen, ofilename, suffix);
+	if (odirname == NULL)
+		n = snprintf(filename, len, "%.*s%s", olen, ofilename, suffix);
+	else
+		n = snprintf(filename, len, "%s/%.*s%s",
+			     odirname, olen, ofilename, suffix);
 	if (n < 0)
 		return (ISC_R_NOSPACE);
 	return (ISC_R_SUCCESS);

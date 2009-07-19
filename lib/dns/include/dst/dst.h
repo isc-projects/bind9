@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.15 2009/06/30 02:52:32 each Exp $ */
+/* $Id: dst.h,v 1.16 2009/07/19 04:18:05 each Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -23,6 +23,7 @@
 /*! \file dst/dst.h */
 
 #include <isc/lang.h>
+#include <isc/stdtime.h>
 
 #include <dns/types.h>
 
@@ -77,6 +78,15 @@ typedef struct dst_context 	dst_context_t;
 #define DST_TYPE_KEY		0x1000000	/* KEY key */
 #define DST_TYPE_PRIVATE	0x2000000
 #define DST_TYPE_PUBLIC		0x4000000
+
+/* Key timing metadata definitions */
+#define DST_TIME_CREATED	0
+#define DST_TIME_PUBLISH	1
+#define DST_TIME_ACTIVATE	2
+#define DST_TIME_REVOKE 	3
+#define DST_TIME_REMOVE 	4
+#define DST_TIME_DELETE 	5
+#define DST_MAX_TIMES		5
 
 /***
  *** Functions
@@ -242,12 +252,16 @@ dst_key_fromfile(dns_name_t *name, dns_keytag_t id, unsigned int alg, int type,
  */
 
 isc_result_t
-dst_key_fromnamedfile(const char *filename, int type, isc_mem_t *mctx,
-		      dst_key_t **keyp);
+dst_key_fromnamedfile(const char *filename, const char *dirname,
+		      int type, isc_mem_t *mctx, dst_key_t **keyp);
 /*%<
  * Reads a key from permanent storage.  The key can either be a public or
  * key, and is specified by filename.  If a private key is specified, the
  * public key must also be present.
+ *
+ * If 'dirname' is not NULL, and 'filename' is a relative path,
+ * then the file is looked up relative to the given directory.
+ * If 'filename' is an absolute path, 'dirname' is ignored.
  *
  * Requires:
  * \li	"filename" is not NULL
@@ -623,7 +637,7 @@ dst_region_computeid(const isc_region_t *source, unsigned int alg);
 
 isc_uint16_t
 dst_key_getbits(const dst_key_t *key);
-/*
+/*%<
  * Get the number of digest bits required (0 == MAX).
  *
  * Requires:
@@ -632,7 +646,7 @@ dst_key_getbits(const dst_key_t *key);
 
 void
 dst_key_setbits(dst_key_t *key, isc_uint16_t bits);
-/*
+/*%<
  * Set the number of digest bits required (0 == MAX).
  *
  * Requires:
@@ -646,6 +660,27 @@ dst_key_setflags(dst_key_t *key, isc_uint32_t flags);
  *
  * Requires:
  *	"key" is a valid key.
+ */
+
+isc_result_t
+dst_key_gettime(const dst_key_t *key, int type, isc_stdtime_t *timep);
+/*%<
+ * Get a member of the timing metadata array and place it in '*timep'.
+ *
+ * Requires:
+ *	"key" is a valid key.
+ *	"type" is no larger than DST_MAX_TIMES
+ *	"timep" is not null.
+ */
+
+void
+dst_key_settime(dst_key_t *key, int type, isc_stdtime_t when);
+/*%<
+ * Set a member of the timing metadata array.
+ *
+ * Requires:
+ *	"key" is a valid key.
+ *	"type" is no larger than DST_MAX_TIMES
  */
 
 ISC_LANG_ENDDECLS

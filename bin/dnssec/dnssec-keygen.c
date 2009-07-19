@@ -29,12 +29,13 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.87 2009/06/30 23:48:00 tbox Exp $ */
+/* $Id: dnssec-keygen.c,v 1.88 2009/07/19 04:18:04 each Exp $ */
 
 /*! \file */
 
 #include <config.h>
 
+#include <ctype.h>
 #include <stdlib.h>
 
 #include <isc/buffer.h>
@@ -62,10 +63,8 @@
 const char *program = "dnssec-keygen";
 int verbose;
 
-static const char *algs = "RSA | RSAMD5 | DH | DSA | RSASHA1 | NSEC3DSA |"
-			  " NSEC3RSASHA1 | HMAC-MD5 |"
-			  " HMAC-SHA1 | HMAC-SHA224 | HMAC-SHA256 |"
-			  " HMAC-SHA384 | HMAC-SHA512";
+#define DEFAULT_ALGORITHM "RSASHA1"
+#define DEFAULT_NSEC3_ALGORITHM "NSEC3RSASHA1"
 
 #define DEFAULT_ALGORITHM "RSASHA1"
 
@@ -77,47 +76,71 @@ dsa_size_ok(int size) {
 static void
 usage(void) {
 	fprintf(stderr, "Usage:\n");
-	fprintf(stderr, "    %s [options] name\n\n",
-		program);
+	fprintf(stderr, "    %s [options] name\n\n", program);
 	fprintf(stderr, "Version: %s\n", VERSION);
 	fprintf(stderr, "    name: owner of the key\n");
 	fprintf(stderr, "Options:\n");
-	fprintf(stderr, "    -a algorithm: %s (default RSASHA1)\n", algs);
-	fprintf(stderr, "    -b key size, in bits:\n");
-	fprintf(stderr, "        RSAMD5:\t\t[512..%d]\n", MAX_RSA);
-	fprintf(stderr, "        RSASHA1:\t\t[512..%d]\n", MAX_RSA);
-	fprintf(stderr, "        NSEC3RSASHA1:\t\t[512..%d]\n", MAX_RSA);
-	fprintf(stderr, "        DH:\t\t[128..4096]\n");
-	fprintf(stderr, "        DSA:\t\t[512..1024] and divisible by 64\n");
-	fprintf(stderr, "        NSEC3DSA:\t\t[512..1024] and divisible by 64\n");
-	fprintf(stderr, "        HMAC-MD5:\t[1..512]\n");
-	fprintf(stderr, "        HMAC-SHA1:\t[1..160]\n");
-	fprintf(stderr, "        HMAC-SHA224:\t[1..224]\n");
-	fprintf(stderr, "        HMAC-SHA256:\t[1..256]\n");
-	fprintf(stderr, "        HMAC-SHA384:\t[1..384]\n");
-	fprintf(stderr, "        HMAC-SHA512:\t[1..512]\n");
-	fprintf(stderr, "       (default 1024 for RSASHA1 ZSK, 2048 for KSK\n");
-	fprintf(stderr, "    -n nametype: ZONE | HOST | ENTITY | USER | OTHER\n");
-	fprintf(stderr, "        (DNSKEY generation defaults to ZONE)\n");
-	fprintf(stderr, "    -c <class> (default: IN)\n");
+	fprintf(stderr, "    -K <directory>: write keys into directory\n");
+	fprintf(stderr, "    -a <algorithm>:\n");
+	fprintf(stderr, "        RSA | RSAMD5 | DSA | RSASHA1 | "
+				"NSEC3RSASHA1 | NSEC3DSA |\n");
+	fprintf(stderr, "        DH | HMAC-MD5 | HMAC-SHA1 | HMAC-SHA224 | "
+				"HMAC-SHA256 | \n");
+	fprintf(stderr, "        HMAC-SHA384 | HMAC-SHA512\n");
+	fprintf(stderr, "       (default: RSASHA1, or "
+			       "NSEC3RSASHA1 if using -3)\n");
+	fprintf(stderr, "    -3: use NSEC3-capable algorithm\n");
+	fprintf(stderr, "    -b <key size in bits>:\n");
+	fprintf(stderr, "	 RSAMD5:\t[512..%d]\n", MAX_RSA);
+	fprintf(stderr, "	 RSASHA1:\t[512..%d]\n", MAX_RSA);
+	fprintf(stderr, "	 NSEC3RSASHA1:\t[512..%d]\n", MAX_RSA);
+	fprintf(stderr, "	 DH:\t\t[128..4096]\n");
+	fprintf(stderr, "	 DSA:\t\t[512..1024] and divisible by 64\n");
+	fprintf(stderr, "	 NSEC3DSA:\t[512..1024] and divisible "
+				"by 64\n");
+	fprintf(stderr, "	 HMAC-MD5:\t[1..512]\n");
+	fprintf(stderr, "	 HMAC-SHA1:\t[1..160]\n");
+	fprintf(stderr, "	 HMAC-SHA224:\t[1..224]\n");
+	fprintf(stderr, "	 HMAC-SHA256:\t[1..256]\n");
+	fprintf(stderr, "	 HMAC-SHA384:\t[1..384]\n");
+	fprintf(stderr, "	 HMAC-SHA512:\t[1..512]\n");
+	fprintf(stderr, "        (if using the default algorithm, key size\n"
+			"        defaults to 2048 for KSK, or 1024 for all "
+			"others)\n");
+	fprintf(stderr, "    -n <nametype>: ZONE | HOST | ENTITY | "
+					    "USER | OTHER\n");
+	fprintf(stderr, "	 (DNSKEY generation defaults to ZONE)\n");
+	fprintf(stderr, "    -c <class>: (default: IN)\n");
 	fprintf(stderr, "    -d <digest bits> (0 => max, default)\n");
-	fprintf(stderr, "    -e use large exponent (RSAMD5/RSASHA1 only)\n");
-	fprintf(stderr, "    -f keyflag (KSK or REVOKE)\n");
-	fprintf(stderr, "    -g <generator> use specified generator "
-		"(DH only)\n");
+	fprintf(stderr, "    -e: use large exponent (RSAMD5/RSASHA1 only)\n");
+	fprintf(stderr, "    -f <keyflag>: KSK | REVOKE\n");
+	fprintf(stderr, "    -g <generator>: use specified generator "
+			"(DH only)\n");
+	fprintf(stderr, "    -p <protocol>: (default: 3 [dnssec])\n");
+	fprintf(stderr, "    -s <strength>: strength value this key signs DNS "
+			"records with (default: 0)\n");
+	fprintf(stderr, "    -T <rrtype>: DNSKEY | KEY (default: DNSKEY; "
+			"use KEY for SIG(0))\n");
 	fprintf(stderr, "    -t <type>: "
-		"AUTHCONF | NOAUTHCONF | NOAUTH | NOCONF "
-		"(default: AUTHCONF)\n");
-	fprintf(stderr, "    -p <protocol>: "
-	       "default: 3 [dnssec]\n");
-	fprintf(stderr, "    -s <strength> strength value this key signs DNS "
-		"records with (default: 0)\n");
+			"AUTHCONF | NOAUTHCONF | NOAUTH | NOCONF "
+			"(default: AUTHCONF)\n");
 	fprintf(stderr, "    -r <randomdev>: a file containing random data\n");
-	fprintf(stderr, "    -v <verbose level>\n");
-	fprintf(stderr, "    -k : generate a TYPE=KEY key\n");
+
+	fprintf(stderr, "    -h: print usage and exit\n");
+	fprintf(stderr, "    -m <memory debugging mode>:\n");
+	fprintf(stderr, "	usage | trace | record | size | mctx\n");
+	fprintf(stderr, "    -v <level>: set verbosity level (0 - 10)\n");
+	fprintf(stderr, "Date options:\n");
+	fprintf(stderr, "    -P date/[+-]offset: set key publication date\n");
+	fprintf(stderr, "    -A date/[+-]offset: set key activation date\n");
+	fprintf(stderr, "    -R date/[+-]offset: set key revocation date\n");
+	fprintf(stderr, "    -U date/[+-]offset: set key unpublication date\n");
+	fprintf(stderr, "    -D date/[+-]offset: set key deletion date\n");
+	fprintf(stderr, "    -C: generate a backward-compatible key, omitting "
+			"dates\n");
 	fprintf(stderr, "Output:\n");
 	fprintf(stderr, "     K<name>+<alg>+<id>.key, "
-		"K<name>+<alg>+<id>.private\n");
+			"K<name>+<alg>+<id>.private\n");
 
 	exit (-1);
 }
@@ -130,36 +153,68 @@ main(int argc, char **argv) {
 	dst_key_t	*key = NULL, *oldkey;
 	dns_fixedname_t	fname;
 	dns_name_t	*name;
-	isc_uint16_t	flags = 0, ksk = 0, revoke = 0;
+	isc_uint16_t	flags = 0, kskflag = 0, revflag = 0;
 	dns_secalg_t	alg;
 	isc_boolean_t	conflict = ISC_FALSE, null_key = ISC_FALSE;
+	isc_boolean_t	oldstyle = ISC_FALSE;
 	isc_mem_t	*mctx = NULL;
 	int		ch, rsa_exp = 0, generator = 0, param = 0;
 	int		protocol = -1, size = -1, signatory = 0;
 	isc_result_t	ret;
 	isc_textregion_t r;
 	char		filename[255];
+	const char	*directory = NULL;
 	isc_buffer_t	buf;
 	isc_log_t	*log = NULL;
 	isc_entropy_t	*ectx = NULL;
 	dns_rdataclass_t rdclass;
 	int		options = DST_TYPE_PRIVATE | DST_TYPE_PUBLIC;
 	int		dbits = 0;
-	isc_boolean_t	use_default = ISC_FALSE;
+	isc_boolean_t	use_default = ISC_FALSE, use_nsec3 = ISC_FALSE;
+	isc_stdtime_t	publish = 0, activate = 0, revoke = 0;
+	isc_stdtime_t	unpublish = 0, delete = 0;
+	isc_stdtime_t	now;
 
 	if (argc == 1)
 		usage();
-
-	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
 	dns_result_register();
 
 	isc_commandline_errprint = ISC_FALSE;
 
-	while ((ch = isc_commandline_parse(argc, argv,
-					"a:b:c:d:ef:g:kn:t:p:s:r:v:Fh")) != -1)
-	{
+	/*
+	 * Process memory debugging argument first.
+	 */
+#define CMDLINE_FLAGS "3a:b:Cc:d:eFf:g:K:km:n:p:r:s:T:t:v:hP:A:R:U:D:"
+	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
+		switch (ch) {
+		case 'm':
+			if (strcasecmp(isc_commandline_argument, "record") == 0)
+				isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
+			if (strcasecmp(isc_commandline_argument, "trace") == 0)
+				isc_mem_debugging |= ISC_MEM_DEBUGTRACE;
+			if (strcasecmp(isc_commandline_argument, "usage") == 0)
+				isc_mem_debugging |= ISC_MEM_DEBUGUSAGE;
+			if (strcasecmp(isc_commandline_argument, "size") == 0)
+				isc_mem_debugging |= ISC_MEM_DEBUGSIZE;
+			if (strcasecmp(isc_commandline_argument, "mctx") == 0)
+				isc_mem_debugging |= ISC_MEM_DEBUGCTX;
+			break;
+		default:
+			break;
+		}
+	}
+	isc_commandline_reset = ISC_TRUE;
+
+	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
+
+	isc_stdtime_get(&now);
+
+	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 	    switch (ch) {
+		case '3':
+			use_nsec3 = ISC_TRUE;
+			break;
 		case 'a':
 			algname = isc_commandline_argument;
 			break;
@@ -167,6 +222,9 @@ main(int argc, char **argv) {
 			size = strtol(isc_commandline_argument, &endp, 10);
 			if (*endp != '\0' || size < 0)
 				fatal("-b requires a non-negative number");
+			break;
+		case 'C':
+			oldstyle = ISC_TRUE;
 			break;
 		case 'c':
 			classname = isc_commandline_argument;
@@ -180,11 +238,10 @@ main(int argc, char **argv) {
 			rsa_exp = 1;
 			break;
 		case 'f':
-			if (strcasecmp(isc_commandline_argument, "KSK") == 0)
-				ksk = DNS_KEYFLAG_KSK;
-			else if (strcasecmp(isc_commandline_argument,
-					    "REVOKE") == 0)
-				revoke = DNS_KEYFLAG_REVOKE;
+			if (toupper(isc_commandline_argument[0]) == 'K')
+				kskflag = DNS_KEYFLAG_KSK;
+			else if (toupper(isc_commandline_argument[0]) == 'R')
+				revflag = DNS_KEYFLAG_REVOKE;
 			else
 				fatal("unknown flag '%s'",
 				      isc_commandline_argument);
@@ -195,20 +252,27 @@ main(int argc, char **argv) {
 			if (*endp != '\0' || generator <= 0)
 				fatal("-g requires a positive number");
 			break;
+		case 'K':
+			directory = isc_commandline_argument;
+			break;
 		case 'k':
-			options |= DST_TYPE_KEY;
+			fatal("The -k option has been deprecated.\n"
+			      "To generate a key-signing key, use -f KSK.\n"
+			      "To generate a key with TYPE=KEY, use -T KEY.\n");
 			break;
 		case 'n':
 			nametype = isc_commandline_argument;
 			break;
-		case 't':
-			type = isc_commandline_argument;
+		case 'm':
 			break;
 		case 'p':
 			protocol = strtol(isc_commandline_argument, &endp, 10);
 			if (*endp != '\0' || protocol < 0 || protocol > 255)
 				fatal("-p must be followed by a number "
 				      "[0..255]");
+			break;
+		case 'r':
+			setup_entropy(mctx, isc_commandline_argument, &ectx);
 			break;
 		case 's':
 			signatory = strtol(isc_commandline_argument,
@@ -217,14 +281,48 @@ main(int argc, char **argv) {
 				fatal("-s must be followed by a number "
 				      "[0..15]");
 			break;
-		case 'r':
-			setup_entropy(mctx, isc_commandline_argument, &ectx);
+		case 'T':
+			if (strcasecmp(isc_commandline_argument, "KEY") == 0)
+				options |= DST_TYPE_KEY;
+			else if (strcasecmp(isc_commandline_argument,
+				 "DNSKEY") == 0)
+				/* default behavior */
+				;
+			else
+				fatal("unknown type '%s'",
+				      isc_commandline_argument);
+			break;
+		case 't':
+			type = isc_commandline_argument;
 			break;
 		case 'v':
 			endp = NULL;
 			verbose = strtol(isc_commandline_argument, &endp, 0);
 			if (*endp != '\0')
 				fatal("-v must be followed by a number");
+			break;
+		case 'z':
+			/* already the default */
+			break;
+		case 'P':
+			publish = strtotime(isc_commandline_argument,
+					    now, now);
+			break;
+		case 'A':
+			activate = strtotime(isc_commandline_argument,
+					     now, now);
+			break;
+		case 'R':
+			revoke = strtotime(isc_commandline_argument,
+					   now, now);
+			break;
+		case 'U':
+			unpublish = strtotime(isc_commandline_argument, 
+					      now, now);
+			break;
+		case 'D':
+			delete = strtotime(isc_commandline_argument,
+					   now, now);
 			break;
 		case 'F':
 			/* Reserved for FIPS mode */
@@ -259,8 +357,11 @@ main(int argc, char **argv) {
 		fatal("extraneous arguments");
 
 	if (algname == NULL) {
-		algname = strdup(DEFAULT_ALGORITHM);
 		use_default = ISC_TRUE;
+		if (use_nsec3)
+			algname = strdup(DEFAULT_NSEC3_ALGORITHM);
+		else
+			algname = strdup(DEFAULT_ALGORITHM);
 		if (verbose > 0)
 			fprintf(stderr, "no algorithm specified; "
 				"defaulting to %s\n", algname);
@@ -299,6 +400,12 @@ main(int argc, char **argv) {
 			options |= DST_TYPE_KEY;
 	}
 
+	if (use_nsec3 &&
+	    alg != DST_ALG_NSEC3DSA && alg != DST_ALG_NSEC3RSASHA1) {
+		fatal("%s is incompatible with NSEC3; "
+		      "do not use the -3 option", algname);
+	}
+
 	if (type != NULL && (options & DST_TYPE_KEY) != 0) {
 		if (strcasecmp(type, "NOAUTH") == 0)
 			flags |= DNS_KEYTYPE_NOAUTH;
@@ -317,7 +424,7 @@ main(int argc, char **argv) {
 
 	if (size < 0) {
 		if (use_default) {
-			size = (ksk != 0) ? 2048 : 1024;
+			size = ((kskflag & DNS_KEYFLAG_KSK) != 0) ? 2048 : 1024;
 			if (verbose > 0)
 				fprintf(stderr, "key size not specified; "
 					"defaulting to %d\n", size);
@@ -424,11 +531,14 @@ main(int argc, char **argv) {
 
 	rdclass = strtoclass(classname);
 
+	if (directory == NULL)
+		directory = ".";
+
 	if ((options & DST_TYPE_KEY) != 0)  /* KEY / HMAC */
 		flags |= signatory;
 	else if ((flags & DNS_KEYOWNER_ZONE) != 0) { /* DNSKEY */
-		flags |= ksk;
-		flags |= revoke;
+		flags |= kskflag;
+		flags |= revflag;
 	}
 
 	if (protocol == -1)
@@ -508,6 +618,22 @@ main(int argc, char **argv) {
 		dst_key_setbits(key, dbits);
 
 		/*
+		 * Set key timing metadata
+		 */
+		if (!oldstyle) {
+			dst_key_settime(key, DST_TIME_CREATED, now);
+			dst_key_settime(key, DST_TIME_PUBLISH, publish);
+			dst_key_settime(key, DST_TIME_ACTIVATE, activate);
+			dst_key_settime(key, DST_TIME_REVOKE, revoke);
+			dst_key_settime(key, DST_TIME_REMOVE, unpublish);
+			dst_key_settime(key, DST_TIME_DELETE, delete);
+		} else if (publish != 0 || activate != 0 || revoke != 0 ||
+			   unpublish != 0 || delete != 0) {
+			fatal("cannot use -C together with "
+			      "-P, -A, -R, -U, or -D options");
+		}
+
+		/*
 		 * Try to read a key with the same name, alg and id from disk.
 		 * If there is one we must continue generating a new one
 		 * unless we were asked to generate a null key, in which
@@ -540,7 +666,7 @@ main(int argc, char **argv) {
 		fatal("cannot generate a null key when a key with id 0 "
 		      "already exists");
 
-	ret = dst_key_tofile(key, options, NULL);
+	ret = dst_key_tofile(key, options, directory);
 	if (ret != ISC_R_SUCCESS) {
 		char keystr[KEY_FORMATSIZE];
 		key_format(key, keystr, sizeof(keystr));

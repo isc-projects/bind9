@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.95 2009/06/04 02:56:47 tbox Exp $
+ * $Id: dnssec.c,v 1.96 2009/07/19 04:18:05 each Exp $
  */
 
 /*! \file */
@@ -26,6 +26,7 @@
 #include <stdlib.h>
 
 #include <isc/buffer.h>
+#include <isc/dir.h>
 #include <isc/mem.h>
 #include <isc/serial.h>
 #include <isc/string.h>
@@ -950,4 +951,209 @@ dns_dnssec_selfsigns(dns_rdata_t *rdata, dns_name_t *name,
 	}
 	dst_key_free(&dstkey);
 	return (ISC_FALSE);
+}
+
+isc_result_t
+dns_dnsseckey_create(isc_mem_t *mctx, dst_key_t **dstkey,
+		     dns_dnsseckey_t **dkp)
+{
+	isc_result_t result;
+	isc_stdtime_t when;
+	dns_dnsseckey_t *dk;
+
+	REQUIRE(dkp != NULL && *dkp == NULL);
+	dk = isc_mem_get(mctx, sizeof(dns_dnsseckey_t));
+	if (dk == NULL)
+		return (ISC_R_NOMEMORY);
+
+	dk->key = *dstkey;
+	*dstkey = NULL;
+	dk->force_publish = ISC_FALSE;
+	dk->force_sign = ISC_FALSE;
+	dk->hint_publish = ISC_FALSE;
+	dk->hint_sign = ISC_FALSE;
+	dk->hint_remove = ISC_FALSE;
+	dk->source = dns_keysource_unknown;
+	dk->index = 0;
+
+	/* KSK or ZSK? */
+	dk->ksk = ISC_TF((dst_key_flags(dk->key) & DNS_KEYFLAG_KSK) != 0);
+
+	/* Is this an old-style key? */
+	result = dst_key_gettime(dk->key, DST_TIME_CREATED, &when);
+	dk->legacy = ISC_TF(result != ISC_R_SUCCESS);
+
+	ISC_LINK_INIT(dk, link);
+	*dkp = dk;
+	return (ISC_R_SUCCESS);
+}
+
+void
+dns_dnsseckey_destroy(isc_mem_t *mctx, dns_dnsseckey_t **dkp) {
+	dns_dnsseckey_t *dk;
+
+	REQUIRE(dkp != NULL && *dkp != NULL);
+	dk = *dkp;
+	if (dk->key != NULL)
+		dst_key_free(&dk->key);
+	isc_mem_put(mctx, dk, sizeof(dns_dnsseckey_t));
+	*dkp = NULL;
+}
+
+static void
+get_hints(dns_dnsseckey_t *key) {
+	isc_result_t result;
+	isc_stdtime_t now, publish, active, revoke, remove, delete;
+	isc_boolean_t pubset = ISC_FALSE, actset = ISC_FALSE;
+	isc_boolean_t revset = ISC_FALSE, remset = ISC_FALSE;
+	isc_boolean_t delset = ISC_FALSE;
+
+	REQUIRE(key != NULL && key->key != NULL);
+
+	isc_stdtime_get(&now);
+
+	result = dst_key_gettime(key->key, DST_TIME_PUBLISH, &publish);
+	if (result == ISC_R_SUCCESS)
+		pubset = ISC_TRUE;
+
+	result = dst_key_gettime(key->key, DST_TIME_ACTIVATE, &active);
+	if (result == ISC_R_SUCCESS)
+		actset = ISC_TRUE;
+
+	result = dst_key_gettime(key->key, DST_TIME_REVOKE, &revoke);
+	if (result == ISC_R_SUCCESS)
+		revset = ISC_TRUE;
+
+	result = dst_key_gettime(key->key, DST_TIME_REMOVE, &remove);
+	if (result == ISC_R_SUCCESS)
+		remset = ISC_TRUE;
+
+	result = dst_key_gettime(key->key, DST_TIME_DELETE, &delete);
+	if (result == ISC_R_SUCCESS)
+		delset = ISC_TRUE;
+
+	/* No metadata set: Publish and sign.  */
+	if (!pubset && !actset && !revset && !remset && !delset) {
+		key->hint_sign = ISC_TRUE;
+		key->hint_publish = ISC_TRUE;
+	}
+
+	/* Metadata says publish (but possibly not activate) */
+	if (pubset && publish < now)
+		key->hint_publish = ISC_TRUE;
+
+	/* Metadata says activate (so we must also publish) */
+	if (actset && active < now) {
+		key->hint_sign = ISC_TRUE;
+		key->hint_publish = ISC_TRUE;
+	}
+
+	/*
+	 * Activation date is set (maybe in the future), but 
+	 * publication date isn't. Most likely the user wants to
+	 * publish now and activate later.
+	 */
+	if (actset && !pubset)
+		key->hint_publish = ISC_TRUE;
+
+	/*
+	 * Metadata says revoke.  If the key is published,
+	 * we *have to* sign with it per RFC5011--even if it was
+	 * not active before.
+	 *
+	 * If it hasn't already been done, we should also revoke it now.
+	 */
+	if (key->hint_publish && (revset && revoke < now)) {
+		isc_uint32_t flags;
+		key->hint_sign = ISC_TRUE;
+		flags = dst_key_flags(key->key);
+		if ((flags & DNS_KEYFLAG_REVOKE) == 0) {
+			flags |= DNS_KEYFLAG_REVOKE;
+			dst_key_setflags(dstkey, flags);
+		}
+	}
+
+	/*
+	 * Metadata says remove or delete, so don't publish
+	 * this key or sign with it.
+	 */
+	if ((remset && remove < now) ||
+	    (delset && delete < now)) {
+		key->hint_publish = ISC_FALSE;
+		key->hint_sign = ISC_FALSE;
+		key->hint_remove = ISC_TRUE;
+	}
+}
+
+/*%
+ * Get a list of DNSSEC keys from the key repository
+ */
+isc_result_t
+dns_dnssec_findmatchingkeys(dns_name_t *origin, const char *directory,
+			    isc_mem_t *mctx, dns_dnsseckeylist_t *keylist)
+{
+	isc_result_t result = ISC_R_SUCCESS;
+	dns_dnsseckeylist_t list;
+	isc_dir_t dir;
+	dns_dnsseckey_t *key = NULL;
+	dst_key_t *dstkey = NULL;
+	char namebuf[DNS_NAME_FORMATSIZE], *p;
+	isc_buffer_t b;
+	unsigned int len;
+
+	REQUIRE(keylist != NULL);
+	ISC_LIST_INIT(list);
+
+	isc_buffer_init(&b, namebuf, sizeof(namebuf) - 1);
+	RETERR(dns_name_totext(origin, ISC_FALSE, &b));
+	len = isc_buffer_usedlength(&b);
+	namebuf[len] = '\0';
+
+	isc_dir_init(&dir);
+	RETERR(isc_dir_open(&dir, directory));
+	
+	while (isc_dir_read(&dir) == ISC_R_SUCCESS) {
+		if (dir.entry.name[0] == 'K' &&
+		    dir.entry.length > len + 1 &&
+		    dir.entry.name[len + 1] == '+' &&
+		    strncasecmp(dir.entry.name + 1, namebuf, len) == 0) {
+			p = strrchr(dir.entry.name, '.');
+			if (strcmp(p, ".private") != 0)
+				continue;
+
+			dstkey = NULL;
+			RETERR(dst_key_fromnamedfile(dir.entry.name, directory,
+					     DST_TYPE_PUBLIC | DST_TYPE_PRIVATE,
+					     mctx, &dstkey));
+
+			RETERR(dns_dnsseckey_create(mctx, &dstkey, &key));
+			key->source = dns_keysource_repository;
+			get_hints(key);
+
+			if (key->legacy) {
+				dns_dnsseckey_destroy(mctx, &key);
+			} else {
+				ISC_LIST_APPEND(list, key, link);
+				key = NULL;
+			}
+		}
+	}
+
+	if (!ISC_LIST_EMPTY(list))
+		ISC_LIST_APPENDLIST(*keylist, list, link);
+	else
+		result = ISC_R_NOTFOUND;
+
+ failure:
+	isc_dir_close(&dir);
+	INSIST(key == NULL);
+	while ((key = ISC_LIST_HEAD(list)) != NULL) {
+		ISC_LIST_UNLINK(list, key, link);
+		INSIST(key->key != NULL);
+		dst_key_free(&key->key);
+		dns_dnsseckey_destroy(mctx, &key);
+	}
+	if (dstkey != NULL)
+		dst_key_free(&dstkey);
+	return (result);
 }

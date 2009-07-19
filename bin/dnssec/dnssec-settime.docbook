@@ -1,0 +1,228 @@
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+               "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd"
+               [<!ENTITY mdash "&#8212;">]>
+<!--
+ - Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
+ -
+ - Permission to use, copy, modify, and/or distribute this software for any
+ - purpose with or without fee is hereby granted, provided that the above
+ - copyright notice and this permission notice appear in all copies.
+ -
+ - THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+ - REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ - AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ - INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ - LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ - PERFORMANCE OF THIS SOFTWARE.
+-->
+
+<!-- $Id: dnssec-settime.docbook,v 1.2 2009/07/19 04:18:04 each Exp $ -->
+<refentry id="man.dnssec-settime">
+  <refentryinfo>
+    <date>July 15, 2009</date>
+  </refentryinfo>
+
+  <refmeta>
+    <refentrytitle><application>dnssec-settime</application></refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo>BIND9</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname><application>dnssec-settime</application></refname>
+    <refpurpose>Set the key timing metadata for a DNSSEC key</refpurpose>
+  </refnamediv>
+
+  <docinfo>
+    <copyright>
+      <year>2009</year>
+      <holder>Internet Systems Consortium, Inc. ("ISC")</holder>
+    </copyright>
+  </docinfo>
+
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>dnssec-settime</command>
+      <arg><option>-fr</option></arg>
+      <arg><option>-K <replaceable class="parameter">directory</replaceable></option></arg>
+      <arg><option>-P <replaceable class="parameter">date/offset</replaceable></option></arg>
+      <arg><option>-A <replaceable class="parameter">date/offset</replaceable></option></arg>
+      <arg><option>-R <replaceable class="parameter">date/offset</replaceable></option></arg>
+      <arg><option>-U <replaceable class="parameter">date/offset</replaceable></option></arg>
+      <arg><option>-D <replaceable class="parameter">date/offset</replaceable></option></arg>
+      <arg><option>-h</option></arg>
+      <arg><option>-v <replaceable class="parameter">level</replaceable></option></arg>
+      <arg choice="req">keyfile</arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>DESCRIPTION</title>
+    <para><command>dnssec-settime</command>
+      reads a DNSSEC private key file and sets the key timing metadata
+      as specified by the <option>-P</option>, <option>-A</option>,
+      <option>-R</option>, <option>-U</option>, and <option>-D</option>
+      options.  The metadata can then be used by
+      <command>dnssec-signzone</command> or other signing software to
+      determine when a key is to be published, whether it should be
+      used for signing a zone, etc.
+    </para>
+    <para>
+      If none of these options is set on the command line,
+      then <command>dnssec-settime</command> simply prints the key timing
+      metadata already stored in the key.
+    </para>
+    <para>
+      When key metadata fields are changed, both files of a key
+      pair (<filename>Knnnn.+aaa+iiiii.key</filename> and
+      <filename>Knnnn.+aaa+iiiii.private</filename>) are regenerated.
+      Metadata fields are stored in the private file.  A human-readable
+      description of the metadata is also placed in comments in the key
+      file.
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title>OPTIONS</title>
+
+    <variablelist>
+      <varlistentry>
+	<term>-f</term>
+        <listitem>
+	  <para>
+	    Force an update of an old-format key with no metadata fields.
+            Without this option, <command>dnssec-settime</command> will
+            fail when attempting to update a legacy key.  With this option,
+            the key will be recreated in the new format, but with the
+            original key data retained.  The key's creation date will be
+            set to the present time. 
+	  </para>
+        </listitem>
+      </varlistentry>
+  
+      <varlistentry>
+        <term>-K <replaceable class="parameter">directory</replaceable></term>
+        <listitem>
+          <para>
+            Sets the directory in which the key files are to reside.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>-h</term>
+        <listitem>
+	  <para>
+	    Emit usage message and exit.
+	  </para>
+        </listitem>
+      </varlistentry>
+  
+      <varlistentry>
+        <term>-v <replaceable class="parameter">level</replaceable></term>
+        <listitem>
+          <para>
+            Sets the debugging level.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>TIMING OPTIONS</title>
+    <para>
+      Dates can be expressed in the format YYYYMMDD or YYYYMMDDHHMMSS.
+      If the argument begins with a '+' or '-', it is interpreted as
+      an offset from the present time.  If such an offset is followed
+      by one of the characters 'y', 'm', 'w', 'd', or 'h', then the
+      offset is computed in years, months, weeks, days, or hours,
+      respectively; otherwise it is computed in seconds.
+    </para>
+
+    <variablelist>
+      <varlistentry>
+        <term>-P <replaceable class="parameter">date/offset</replaceable></term>
+        <listitem>
+          <para>
+            Sets the date on which a key is to be published to the zone.
+            After that date, the key will be included in the zone but will
+            not be used to sign it.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-A <replaceable class="parameter">date/offset</replaceable></term>
+        <listitem>
+          <para>
+            Sets the date on which the key is to be activated.  After that
+            date, the key will be included and the zone and used to sign
+            it.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-R <replaceable class="parameter">date/offset</replaceable></term>
+        <listitem>
+          <para>
+            Sets the date on which the key is to be revoked.  After that
+            date, the key will be flagged as revoked.  It will be included
+            in the zone and will be used to sign it.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-U <replaceable class="parameter">date/offset</replaceable></term>
+        <listitem>
+          <para>
+            Sets the date on which the key is to be unpublished.  After that
+            date, the key will no longer be included in the zone, but it
+            may remain in the key repository.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-D <replaceable class="parameter">date/offset</replaceable></term>
+        <listitem>
+          <para>
+            Sets the date on which the key is to be deleted.  After that
+            date, the key can be removed from the key repository.
+            NOTE: Keys are not currently deleted automatically; this field
+            is included for informational purposes and for future
+            development.
+          </para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>SEE ALSO</title>
+    <para><citerefentry>
+        <refentrytitle>dnssec-keygen</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>dnssec-signzone</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citetitle>BIND 9 Administrator Reference Manual</citetitle>,
+      <citetitle>RFC 5011</citetitle>.
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title>AUTHOR</title>
+    <para><corpauthor>Internet Systems Consortium</corpauthor>
+    </para>
+  </refsect1>
+
+</refentry><!--
+ - Local variables:
+ - mode: sgml
+ - End:
+-->

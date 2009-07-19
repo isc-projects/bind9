@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.47 2009/06/04 02:56:47 tbox Exp $ */
+/* $Id: dnssectool.c,v 1.48 2009/07/19 04:18:04 each Exp $ */
 
 /*! \file */
 
@@ -265,32 +265,66 @@ cleanup_entropy(isc_entropy_t **ectx) {
 	isc_entropy_detach(ectx);
 }
 
+static isc_stdtime_t 
+time_units(isc_stdtime_t offset, char suffix, const char *str) {
+	switch(suffix) {
+	    case 'Y': case 'y':
+		return (offset * (365 * 24 * 3600));
+	    case 'M': case 'm':
+		return (offset * (30 * 24 * 3600));
+	    case 'W': case 'w':
+		return (offset * (7 * 24 * 3600));
+	    case 'D': case 'd':
+		return (offset * (24 * 3600));
+	    case 'H': case 'h':
+		return (offset * 3600);
+	    case 'S': case 's': case '\0':
+		return (offset);
+	    default:
+		fatal("time value %s is invalid", str);
+	}
+	return(0); /* silence compiler warning */
+}
+
 isc_stdtime_t
 strtotime(const char *str, isc_int64_t now, isc_int64_t base) {
 	isc_int64_t val, offset;
 	isc_result_t result;
+	const char *orig = str;
 	char *endp;
 
-	if (str[0] == '+') {
+	if (strlen(str) == 1 && (str[0] == '0' || str[0] == '-'))
+		return ((isc_stdtime_t) 0);
+
+	if (strncmp(str, "now", 3) == 0) {
+		base = now;
+		str += 3;
+	}
+
+	if (str[0] == '\0')
+		return ((isc_stdtime_t) base);
+	else if (str[0] == '+') {
 		offset = strtol(str + 1, &endp, 0);
-		if (*endp != '\0')
-			fatal("time value %s is invalid", str);
+		offset = time_units(offset, *endp, orig);
 		val = base + offset;
-	} else if (strncmp(str, "now+", 4) == 0) {
-		offset = strtol(str + 4, &endp, 0);
-		if (*endp != '\0')
-			fatal("time value %s is invalid", str);
-		val = now + offset;
+	} else if (str[0] == '-') {
+		offset = strtol(str + 1, &endp, 0);
+		offset = time_units(offset, *endp, orig);
+		val = base - offset;
 	} else if (strlen(str) == 8U) {
 		char timestr[15];
 		sprintf(timestr, "%s000000", str);
 		result = dns_time64_fromtext(timestr, &val);
 		if (result != ISC_R_SUCCESS)
-			fatal("time value %s is invalid", str);
+			fatal("time value %s is invalid: %s", orig,
+			      isc_result_totext(result));
+	} else if (strlen(str) > 14U) {
+		fatal("time value %s is invalid", orig);
 	} else {
 		result = dns_time64_fromtext(str, &val);
 		if (result != ISC_R_SUCCESS)
-			fatal("time value %s is invalid", str);
+			fatal("time value %s is invalid: %s", orig,
+			      isc_result_totext(result));
 	}
 
 	return ((isc_stdtime_t) val);

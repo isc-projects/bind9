@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-dsfromkey.docbook,v 1.8 2009/06/17 23:53:04 tbox Exp $ -->
+<!-- $Id: dnssec-dsfromkey.docbook,v 1.9 2009/07/19 04:18:04 each Exp $ -->
 <refentry id="man.dnssec-dsfromkey">
   <refentryinfo>
     <date>November 29, 2008</date>
@@ -54,12 +54,15 @@
     <cmdsynopsis>
       <command>dnssec-dsfromkey</command>
       <arg choice="req">-s</arg>
-      <arg><option>-v <replaceable class="parameter">level</replaceable></option></arg>
       <arg><option>-1</option></arg>
       <arg><option>-2</option></arg>
       <arg><option>-a <replaceable class="parameter">alg</replaceable></option></arg>
+      <arg><option>-K <replaceable class="parameter">directory</replaceable></option></arg>
+      <arg><option>-s</option></arg>
       <arg><option>-c <replaceable class="parameter">class</replaceable></option></arg>
-      <arg><option>-d <replaceable class="parameter">dir</replaceable></option></arg>
+      <arg><option>-f <replaceable class="parameter">file</replaceable></option></arg>
+      <arg><option>-A</option></arg>
+      <arg><option>-v <replaceable class="parameter">level</replaceable></option></arg>
       <arg choice="req">dnsname</arg>
    </cmdsynopsis>
   </refsynopsisdiv>
@@ -107,10 +110,35 @@
       </varlistentry>
 
       <varlistentry>
-        <term>-v <replaceable class="parameter">level</replaceable></term>
+        <term>-K <replaceable class="parameter">directory</replaceable></term>
         <listitem>
           <para>
-            Sets the debugging level.
+            Look for key files (or, in keyset mode,
+            <filename>keyset-</filename> files) in
+            <option>directory</option>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-f <replaceable class="parameter">file</replaceable></term>
+        <listitem>
+          <para>
+            Zone file mode: in place of the keyfile name, the argument is
+            the DNS domain name of a zone master file, which can be read
+            from <option>file</option>.  If the zone name is the same as
+            <option>file</option>, then it may be omitted.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-A</term>
+        <listitem>
+          <para>
+            Include ZSK's when generating DS records.  Without this option,
+            only keys which have the KSK flag set will be converted to DS
+            records and printed.  Useful only in zone file mode. 
           </para>
         </listitem>
       </varlistentry>
@@ -131,8 +159,7 @@
         <listitem>
           <para>
             Keyset mode: in place of the keyfile name, the argument is
-            the DNS domain name of a keyset file. Following options make sense
-            only in this mode.
+            the DNS domain name of a keyset file.
           </para>
         </listitem>
       </varlistentry>
@@ -141,23 +168,20 @@
         <term>-c <replaceable class="parameter">class</replaceable></term>
         <listitem>
           <para>
-            Specifies the DNS class (default is IN), useful only
-            in the keyset mode.
+            Specifies the DNS class (default is IN).  Useful only
+            in keyset or zone file mode.
           </para>
 	  </listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-d <replaceable class="parameter">directory</replaceable></term>
+        <term>-v <replaceable class="parameter">level</replaceable></term>
         <listitem>
           <para>
-            Look for <filename>keyset</filename> files in
-            <option>directory</option> as the directory, ignored when
-            not in the keyset mode.
+            Sets the debugging level.
           </para>
         </listitem>
       </varlistentry>
-
     </variablelist>
   </refsect1>
 
