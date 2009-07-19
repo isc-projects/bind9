@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.96 2009/07/19 04:18:05 each Exp $
+ * $Id: dnssec.c,v 1.97 2009/07/19 04:50:15 each Exp $
  */
 
 /*! \file */
@@ -1069,7 +1069,7 @@ get_hints(dns_dnsseckey_t *key) {
 		flags = dst_key_flags(key->key);
 		if ((flags & DNS_KEYFLAG_REVOKE) == 0) {
 			flags |= DNS_KEYFLAG_REVOKE;
-			dst_key_setflags(dstkey, flags);
+			dst_key_setflags(key->key, flags);
 		}
 	}
 

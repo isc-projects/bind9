@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: updatelibxml2.pl,v 1.2 2009/07/17 06:25:45 each Exp $
+# $Id: updatelibxml2.pl,v 1.3 2009/07/19 04:50:15 each Exp $
 
 # updatelibxml2.pl
 # This script locates the latest version of libxml2 in the grandparent
@@ -55,6 +55,8 @@ $path = "..\\..\\";
              "../bin/dnssec/win32/keygen.mak",
              "../bin/dnssec/win32/revoke.dsp",
              "../bin/dnssec/win32/revoke.mak",
+             "../bin/dnssec/win32/settime.dsp",
+             "../bin/dnssec/win32/settime.mak",
              "../bin/dnssec/win32/signzone.dsp",
              "../bin/dnssec/win32/signzone.mak",
              "../bin/named/win32/named.dsp",
