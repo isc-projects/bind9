@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-settime.c,v 1.4 2009/07/19 05:26:05 each Exp $ */
+/* $Id: dnssec-settime.c,v 1.5 2009/07/19 16:11:53 each Exp $ */
 
 /*! \file */
 
@@ -204,8 +204,6 @@ main(int argc, char **argv) {
 			directory = strdup(".");
 		}
 	}
-
-	filename = argv[isc_commandline_index];
 
 	if (ectx == NULL)
 		setup_entropy(mctx, NULL, &ectx);
