@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-revoke.c,v 1.5 2009/07/19 04:18:04 each Exp $ */
+/* $Id: dnssec-revoke.c,v 1.6 2009/07/19 05:26:05 each Exp $ */
 
 /*! \file */
 
@@ -133,6 +133,7 @@ main(int argc, char **argv) {
 #endif
 
 		dir = strdup(argv[isc_commandline_index]);
+		filename = dir;
 
 		/* Figure out the directory name from the key name */
 		slash = strrchr(dir, '/');
@@ -142,15 +143,14 @@ main(int argc, char **argv) {
 		    (slash == NULL && backslash != NULL))
 			slash = backslash;
 #endif
-		if (slash != NULL)
+		if (slash != NULL) {
 			*slash++ = '\0';
-		else {
+			filename = slash;
+		} else {
 			free(dir);
 			dir = strdup(".");
 		}
 	}
-
-	filename = argv[isc_commandline_index];
 
 	if (ectx == NULL)
 		setup_entropy(mctx, NULL, &ectx);

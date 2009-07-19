@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-settime.c,v 1.3 2009/07/19 05:06:48 each Exp $ */
+/* $Id: dnssec-settime.c,v 1.4 2009/07/19 05:26:05 each Exp $ */
 
 /*! \file */
 
@@ -179,9 +179,33 @@ main(int argc, char **argv) {
 	if (argc > isc_commandline_index + 1)
 		fatal("Extraneous arguments");
 
-	if (directory == NULL)
-		directory = dirname(argv[isc_commandline_index]);
-	filename = basename(argv[isc_commandline_index]);
+	if (directory == NULL) {
+		char *slash;
+#ifdef _WIN32
+		char *backslash;
+#endif
+
+		directory = strdup(argv[isc_commandline_index]);
+		filename = directory;
+
+		/* Figure out the directory name from the key name */
+		slash = strrchr(directory, '/');
+#ifdef _WIN32
+		backslash = strrchr(directory, '\\');
+		if ((slash != NULL && backslash != NULL && backslash > slash) ||
+		    (slash == NULL && backslash != NULL))
+			slash = backslash;
+#endif
+		if (slash != NULL) {
+			*slash++ = '\0';
+			filename = slash;
+		} else {
+			free(directory);
+			directory = strdup(".");
+		}
+	}
+
+	filename = argv[isc_commandline_index];
 
 	if (ectx == NULL)
 		setup_entropy(mctx, NULL, &ectx);
