@@ -4,6 +4,7 @@ dnssec-keyfromlabel
 dnssec-keygen
 dnssec-makekeyset
 dnssec-revoke
+dnssec-settime
 dnssec-signkey
 dnssec-signzone
 *.lo
