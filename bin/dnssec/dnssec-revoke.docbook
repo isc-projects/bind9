@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-revoke.docbook,v 1.4 2009/07/19 04:18:04 each Exp $ -->
+<!-- $Id: dnssec-revoke.docbook,v 1.5 2009/07/20 11:56:35 fdupont Exp $ -->
 <refentry id="man.dnssec-revoke">
   <refentryinfo>
     <date>June 1, 2009</date>
@@ -56,8 +56,8 @@
     <title>DESCRIPTION</title>
     <para><command>dnssec-revoke</command>
       reads a DNSSEC key file, sets the REVOKED bit on the key as defined
-      in RFC 5011, and creates a new pair of key files containing the now-
-      revoked key.
+      in RFC 5011, and creates a new pair of key files containing the
+      now-revoked key.
     </para>
   </refsect1>
 
