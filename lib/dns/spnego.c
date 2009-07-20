@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: spnego.c,v 1.5.128.5 2009/01/19 23:47:02 tbox Exp $ */
+/* $Id: spnego.c,v 1.5.128.6 2009/07/20 01:56:05 marka Exp $ */
 
 /*! \file
  * \brief
@@ -622,7 +622,7 @@ gss_accept_sec_context_spnego(OM_uint32 *minor_status,
 	}
 
 	for (i = 0; !found && i < init_token.mechTypes.len; ++i) {
-		char mechbuf[17];
+		unsigned char mechbuf[17];
 		size_t mech_len;
 
 		ret = der_put_oid(mechbuf + sizeof(mechbuf) - 1,
