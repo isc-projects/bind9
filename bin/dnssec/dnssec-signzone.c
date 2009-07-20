@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.222 2009/07/19 05:06:48 each Exp $ */
+/* $Id: dnssec-signzone.c,v 1.223 2009/07/20 12:11:58 fdupont Exp $ */
 
 /*! \file */
 
@@ -449,8 +449,7 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 				 "invalid validity period\n",
 				 sigstr);
 		} else if (key == NULL && !future &&
-			 expecttofindkey(&rrsig.signer))
-		{
+			   expecttofindkey(&rrsig.signer)) {
 			/* rrsig is dropped and not replaced */
 			vbprintf(2, "\trrsig by %s dropped - "
 				 "private dnskey not found\n",
