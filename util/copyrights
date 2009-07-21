@@ -1518,8 +1518,8 @@
 ./doc/arm/man.dnssec-dsfromkey.html		X	2008,2009
 ./doc/arm/man.dnssec-keyfromlabel.html		X	2008,2009
 ./doc/arm/man.dnssec-keygen.html		X	2005,2006,2007,2008,2009
-./doc/arm/man.dnssec-revoke.html		HTML	2009
-./doc/arm/man.dnssec-settime.html		HTML	2009
+./doc/arm/man.dnssec-revoke.html		X	2009
+./doc/arm/man.dnssec-settime.html		X	2009
 ./doc/arm/man.dnssec-signzone.html		X	2005,2006,2007,2008,2009
 ./doc/arm/man.host.html				X	2005,2006,2007,2008,2009
 ./doc/arm/man.named-checkconf.html		X	2005,2006,2007,2008,2009
