@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.224 2009/07/21 01:22:27 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.225 2009/07/21 03:27:38 marka Exp $ */
 
 /*! \file */
 
@@ -187,7 +187,7 @@ dumpnode(dns_name_t *name, dns_dbnode_t *node) {
 }
 
 /*%
- * Sign given the RRset with given key, and add the signature record to the
+ * Sign the given RRset with given key, and add the signature record to the
  * given tuple.
  */
 static void
