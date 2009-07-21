@@ -1,5 +1,7 @@
 	--- 9.7.0a2 released ---
 
+2628.	[bug]		Install arpaname. [RT #19957]
+
 2627.	[func]		Rationalize dnssec-signzone's signwithkey() calling.
 			[RT #19959]
 
