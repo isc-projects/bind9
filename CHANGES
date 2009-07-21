@@ -1,5 +1,7 @@
 	--- 9.7.0a2 released ---
 
+2639.	[bug]		Silence compiler warnings in gssapi code. [RT #19954]
+
 2638.	[bug]		Install arpaname. [RT #19957]
 
 2637.	[func]		Rationalize dnssec-signzone's signwithkey() calling.
