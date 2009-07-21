@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-settime.c,v 1.5 2009/07/19 16:11:53 each Exp $ */
+/* $Id: dnssec-settime.c,v 1.6 2009/07/21 02:57:39 jinmei Exp $ */
 
 /*! \file */
 
@@ -122,51 +122,60 @@ main(int argc, char **argv) {
 	while ((ch = isc_commandline_parse(argc, argv,
 					   "fK:hv:P:A:R:U:D:")) != -1) {
 		switch (ch) {
-		    case 'f':
+		case 'f':
 			forceupdate = ISC_TRUE;
 			break;
-		    case 'K':
-			directory = isc_commandline_argument;
+		case 'K':
+			/*
+			 * We don't have to copy it here, but do it to
+			 * simplify cleanup later
+			 */
+			directory = isc_mem_strdup(mctx,
+						   isc_commandline_argument);
+			if (directory == NULL) {
+				fatal("Failed to memory allocation for "
+				      "directory");
+			}
 			break;
-		    case 'v':
+		case 'v':
 			verbose = strtol(isc_commandline_argument, &endp, 0);
 			if (*endp != '\0')
 				fatal("-v must be followed by a number");
 			break;
-		    case 'P':
+		case 'P':
 			print = ISC_FALSE;
 			setpub = ISC_TRUE;
 			pub = strtotime(isc_commandline_argument, now, now);
 			break;
-		    case 'A':
+		case 'A':
 			print = ISC_FALSE;
 			setact = ISC_TRUE;
 			act = strtotime(isc_commandline_argument, now, now);
 			break;
-		    case 'R':
+		case 'R':
 			print = ISC_FALSE;
 			setrev = ISC_TRUE;
 			rev = strtotime(isc_commandline_argument, now, now);
 			break;
-		    case 'U':
+		case 'U':
 			print = ISC_FALSE;
 			setunpub = ISC_TRUE;
 			unpub = strtotime(isc_commandline_argument, now, now);
 			break;
-		    case 'D':
+		case 'D':
 			print = ISC_FALSE;
 			setdel = ISC_TRUE;
 			del = strtotime(isc_commandline_argument, now, now);
 			break;
-		    case '?':
+		case '?':
 			if (isc_commandline_option != '?')
 				fprintf(stderr, "%s: invalid argument -%c\n",
 					program, isc_commandline_option);
 			/* Falls into */
-		    case 'h':
+		case 'h':
 			usage();
 
-		    default:
+		default:
 			fprintf(stderr, "%s: unhandled option -%c\n",
 				program, isc_commandline_option);
 			exit(1);
@@ -185,7 +194,9 @@ main(int argc, char **argv) {
 		char *backslash;
 #endif
 
-		directory = strdup(argv[isc_commandline_index]);
+		directory = isc_mem_strdup(mctx, argv[isc_commandline_index]);
+		if (directory == NULL)
+			fatal("Failed to memory allocation for directory");
 		filename = directory;
 
 		/* Figure out the directory name from the key name */
@@ -200,10 +211,16 @@ main(int argc, char **argv) {
 			*slash++ = '\0';
 			filename = slash;
 		} else {
-			free(directory);
-			directory = strdup(".");
+			isc_mem_free(mctx, directory);
+			/* strdup could be skipped (see above) */
+			directory = isc_mem_strdup(mctx, ".");
+			if (directory == NULL) {
+				fatal("Failed to memory allocation "
+				      "for directory");
+			}
 		}
-	}
+	} else
+		filename = argv[isc_commandline_index];
 
 	if (ectx == NULL)
 		setup_entropy(mctx, NULL, &ectx);
@@ -265,7 +282,12 @@ main(int argc, char **argv) {
 			dst_key_settime(key, DST_TIME_DELETE, del);
 
 		isc_buffer_init(&buf, newname, sizeof(newname));
-		dst_key_buildfilename(key, DST_TYPE_PUBLIC, directory, &buf);
+		result = dst_key_buildfilename(key, DST_TYPE_PUBLIC, directory,
+					       &buf);
+		if (result != ISC_R_SUCCESS) {
+			fatal("Failed to build public key filename: %s",
+			      isc_result_totext(result));
+		}
 
 		result = dst_key_tofile(key, DST_TYPE_PUBLIC|DST_TYPE_PRIVATE,
 					directory);
@@ -278,7 +300,12 @@ main(int argc, char **argv) {
 		printf("%s\n", newname);
 
 		isc_buffer_clear(&buf);
-		dst_key_buildfilename(key, DST_TYPE_PRIVATE, directory, &buf);
+		result = dst_key_buildfilename(key, DST_TYPE_PRIVATE, directory,
+					       &buf);
+		if (result != ISC_R_SUCCESS) {
+			fatal("Failed to build private key filename: %s",
+			      isc_result_totext(result));
+		}
 		printf("%s\n", newname);
 	}
 
@@ -288,6 +315,7 @@ main(int argc, char **argv) {
 	cleanup_entropy(&ectx);
 	if (verbose > 10)
 		isc_mem_stats(mctx, stdout);
+	isc_mem_free(mctx, directory);
 	isc_mem_destroy(&mctx);
 
 	return (0);
