@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.223 2009/07/20 12:11:58 fdupont Exp $ */
+/* $Id: dnssec-signzone.c,v 1.224 2009/07/21 01:22:27 marka Exp $ */
 
 /*! \file */
 
@@ -186,19 +186,29 @@ dumpnode(dns_name_t *name, dns_dbnode_t *node) {
 	check_result(result, "dns_master_dumpnodetostream");
 }
 
+/*%
+ * Sign given the RRset with given key, and add the signature record to the
+ * given tuple.
+ */
 static void
-signwithkey(dns_name_t *name, dns_rdataset_t *rdataset, dns_rdata_t *rdata,
-	    dst_key_t *key)
+signwithkey(dns_name_t *name, dns_rdataset_t *rdataset, dst_key_t *key,
+	    dns_ttl_t ttl, dns_diff_t *add, const char *logmsg)
 {
 	isc_result_t result;
 	isc_stdtime_t jendtime;
+	char keystr[KEY_FORMATSIZE];
+	dns_rdata_t trdata = DNS_RDATA_INIT;
 	unsigned char array[BUFSIZE];
 	isc_buffer_t b;
+	dns_difftuple_t *tuple;
+
+	key_format(key, keystr, sizeof(keystr));
+	vbprintf(1, "\t%s %s\n", logmsg, keystr);
 
 	jendtime = (jitter != 0) ? isc_random_jitter(endtime, jitter) : endtime;
 	isc_buffer_init(&b, array, sizeof(array));
 	result = dns_dnssec_sign(name, rdataset, key, &starttime, &jendtime,
-				 mctx, &b, rdata);
+				 mctx, &b, &trdata);
 	isc_entropy_stopcallbacksources(ectx);
 	if (result != ISC_R_SUCCESS) {
 		char keystr[KEY_FORMATSIZE];
@@ -210,7 +220,7 @@ signwithkey(dns_name_t *name, dns_rdataset_t *rdataset, dns_rdata_t *rdata,
 
 	if (tryverify) {
 		result = dns_dnssec_verify(name, rdataset, key,
-					   ISC_TRUE, mctx, rdata);
+					   ISC_TRUE, mctx, &trdata);
 		if (result == ISC_R_SUCCESS) {
 			vbprintf(3, "\tsignature verified\n");
 			INCSTAT(nverified);
@@ -219,6 +229,12 @@ signwithkey(dns_name_t *name, dns_rdataset_t *rdataset, dns_rdata_t *rdata,
 			INCSTAT(nverifyfailed);
 		}
 	}
+
+	tuple = NULL;
+	result = dns_difftuple_create(mctx, DNS_DIFFOP_ADD, name, ttl, &trdata,
+				      &tuple);
+	check_result(result, "dns_difftuple_create");
+	dns_diff_append(add, &tuple);
 }
 
 static inline isc_boolean_t
@@ -527,21 +543,11 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 		}
 
 		if (resign) {
-			dns_rdata_t trdata = DNS_RDATA_INIT;
-			char keystr[KEY_FORMATSIZE];
-
 			INSIST(!keep);
 
-			key_format(key->key, keystr, sizeof(keystr));
-			vbprintf(1, "\tresigning with dnskey %s\n", keystr);
-			signwithkey(name, set, &trdata, key->key);
+			signwithkey(name, set, key->key, ttl, add,
+				    "resigning with dnskey");
 			nowsignedby[key->index] = ISC_TRUE;
-			tuple = NULL;
-			result = dns_difftuple_create(mctx, DNS_DIFFOP_ADD,
-						      name, ttl, &trdata,
-						      &tuple);
-			check_result(result, "dns_difftuple_create");
-			dns_diff_append(add, &tuple);
 		}
 
 		dns_rdata_reset(&sigrdata);
@@ -559,9 +565,6 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 	     key != NULL;
 	     key = ISC_LIST_NEXT(key, link))
 	{
-		dns_rdata_t trdata;
-		char keystr[KEY_FORMATSIZE];
-
 		if (nowsignedby[key->index])
 			continue;
 
@@ -571,16 +574,8 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 		if (iszsk(key) ||
 		    (isksk(key) && set->type == dns_rdatatype_dnskey &&
 		     dns_name_equal(name, gorigin))) {
-			key_format(key->key, keystr, sizeof(keystr));
-			vbprintf(1, "\tsigning with dnskey %s\n", keystr);
-			dns_rdata_init(&trdata);
-			signwithkey(name, set, &trdata, key->key);
-			tuple = NULL;
-			result = dns_difftuple_create(mctx, DNS_DIFFOP_ADD,
-						      name, ttl, &trdata,
-						      &tuple);
-			check_result(result, "dns_difftuple_create");
-			dns_diff_append(add, &tuple);
+			signwithkey(name, set, key->key, ttl, add,
+				    "signing with dnskey");
 		}
 	}
 

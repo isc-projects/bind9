@@ -1,5 +1,8 @@
 	--- 9.7.0a2 released ---
 
+2627.	[func]		Rationalize dnssec-signzone's signwithkey() calling.
+			[RT #19959]
+
 2636.	[func]		Simplify zone signing and key maintenance with the
 			dnssec-* tools.  Major changes:
 			- all dnssec-* tools now take a -K option to
