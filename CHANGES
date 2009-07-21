@@ -1,3 +1,6 @@
+2637.	[func]		Rationalize dnssec-signzone's signwithkey() calling.
+			[RT #19959]
+
 2635.	[bug]		isc_inet_ntop() incorrectly handled 0.0/16 addresses.
 			[RT #19716]
 
