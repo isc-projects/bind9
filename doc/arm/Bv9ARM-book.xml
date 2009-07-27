@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.423 2009/07/19 04:18:04 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.424 2009/07/27 00:43:13 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -10245,7 +10245,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
 	    </para>
 
             <para>
-              The <replaceable>nametype</replaceable> field has 12
+              The <replaceable>nametype</replaceable> field has 13
               values:
               <varname>name</varname>, <varname>subdomain</varname>,
               <varname>wildcard</varname>, <varname>self</varname>,
