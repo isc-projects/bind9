@@ -16,6 +16,7 @@ custom_ALLIANZ_v9_4_1_P1	private	marka	// 2007-08-03 04:51 +0000
 custom_ALLIANZ_v9_4_2		private	marka	// 2007-11-23 04:32 +0000
 custom_ALLIANZ_v9_4_2_P1	new	each	// 2008-05-27 23:33 +0000
 custom_ALLIANZ_v9_4_2_P2	new	each	// 2008-08-05 21:28 +0000
+custom_ATT_v9_4			new	each	// 2009-07-28 17:05 +0000
 custom_CISCO_v9_3_4_P1		private	marka	// 2007-11-23 04:19 +0000
 custom_DYNDNS_v9_6		new	each	// 2009-06-19 15:34 +0000
 custom_NOM_v9_5_0a7		private	
@@ -283,6 +284,7 @@ v9_5_0_patch			active		// security fixes 9.5.0 only
 v9_5_1_patch			new	marka	// 2008-12-03 02:07 +0000
 v9_6				new	marka	// 2008-11-30 22:53 +0000
 v9_6_0_patch			new	marka	// 2008-12-23 01:13 +0000
+v9_6_1_patch			new	marka	// 2009-07-28 14:11 +0000
 
 
 a6_remove			closed
