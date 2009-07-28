@@ -1,4 +1,5 @@
-2639.	[bug]		Silence compiler warnings in gssapi code. [RT #19954]
+2640.	[security]	A specially crafted update packet will cause named
+			to exit. [RT #20000]
 
 2637.	[func]		Rationalize dnssec-signzone's signwithkey() calling.
 			[RT #19959]
