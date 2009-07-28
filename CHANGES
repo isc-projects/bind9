@@ -1,4 +1,5 @@
-2637.	[func]		Rationalize dnssec-signzone's signwithkey() calling.
+2640.	[security]	A specially crafted update packet will cause named
+			to exit. [RT #20000]
 			[RT #19959]
 
 2635.	[bug]		isc_inet_ntop() incorrectly handled 0.0/16 addresses.
