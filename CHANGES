@@ -1,4 +1,5 @@
-2640.	[placeholder]
+2640.	[security]	A specially crafted update packet will cause named
+			to exit. [RT #20000]
 
 	--- 9.7.0a2 released ---
 
