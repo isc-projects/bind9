@@ -1,7 +1,7 @@
+	--- 9.7.0a2 released ---
+
 2640.	[security]	A specially crafted update packet will cause named
 			to exit. [RT #20000]
-
-	--- 9.7.0a2 released ---
 
 2639.	[bug]		Silence compiler warnings in gssapi code. [RT #19954]
 
