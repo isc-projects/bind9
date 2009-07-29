@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.16.12.3 2009/03/02 02:00:34 marka Exp $
+ * $Id: dst_api.c,v 1.16.12.4 2009/07/29 23:53:22 each Exp $
  */
 
 /*! \file */
@@ -1016,6 +1016,9 @@ dst_key_read_public(const char *filename, int type,
 
 	/* Read the next word: either TTL, class, or 'KEY' */
 	NEXTTOKEN(lex, opt, &token);
+
+	if (token.type != isc_tokentype_string)
+		BADTOKEN();
 
 	/* If it's a TTL, read the next one */
 	result = dns_ttl_fromtext(&token.value.as_textregion, &ttl);

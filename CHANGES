@@ -1,3 +1,6 @@
+2642.	[bug]		nsupdate could dump core on solaris when reading
+			improperly formatted key files.  [RT #20015]
+
 2640.	[security]	A specially crafted update packet will cause named
 			to exit. [RT #20000]
 
