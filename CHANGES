@@ -1,5 +1,8 @@
 	--- 9.7.0a2 released ---
 
+2642.	[bug]		nsupdate could dump core on solaris when reading
+			improperly formatted key files.  [RT #20015]
+
 2641.	[bug]		Fixed an error in parsing update-policy syntax,
 			added a regression test to check it. [RT #20007]
 
