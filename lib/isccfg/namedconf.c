@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.102 2009/07/14 22:54:57 each Exp $ */
+/* $Id: namedconf.c,v 1.103 2009/07/29 17:52:00 each Exp $ */
 
 /*! \file */
 
@@ -350,6 +350,7 @@ parse_updatepolicy(cfg_parser_t *pctx, const cfg_type_t *type,
 	CHECK(cfg_gettoken(pctx, 0));
 	if (pctx->token.type == isc_tokentype_special &&
 	    pctx->token.value.as_char == '{') {
+		cfg_ungettoken(pctx);
 		return (cfg_parse_bracketed_list(pctx, type, ret));
 	}
 

@@ -15,14 +15,14 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.12 2007/09/26 03:22:44 marka Exp $
+# $Id: clean.sh,v 1.13 2009/07/29 17:52:00 each Exp $
 
 #
 # Clean up after zone transfer tests.
 #
 
 rm -f dig.out.ns1 dig.out.ns2 dig.out.ns1.after ns1/*.jnl ns2/*.jnl \
-    ns1/example.db ns1/update.db
+    ns1/example.db ns1/update.db ns1/other.db
 rm -f ns2/example.bk
 rm -f ns2/update.bk
 rm -f */named.memstats

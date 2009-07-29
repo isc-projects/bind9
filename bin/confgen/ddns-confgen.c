@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ddns-confgen.c,v 1.7 2009/07/02 22:50:24 jinmei Exp $ */
+/* $Id: ddns-confgen.c,v 1.8 2009/07/29 17:52:00 each Exp $ */
 
 /*! \file */
 
@@ -234,12 +234,13 @@ update-policy {\n\
 };\n",
 			       keyname);
 		}
-	}
 
-	printf("\n\
+		printf("\n\
 # After the keyfile has been placed, the following command will\n\
 # execute nsupdate using this key:\n\
 nsupdate -k <keyfile>\n");
+
+	}
 
 	if (keybuf != NULL)
 		isc_mem_put(mctx, keybuf, len);

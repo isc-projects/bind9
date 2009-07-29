@@ -15,7 +15,10 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.10 2007/06/19 23:47:04 tbox Exp $
+# $Id: setup.sh,v 1.11 2009/07/29 17:52:00 each Exp $
+
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
 
 #
 # jnl and database files MUST be removed before we start
@@ -24,6 +27,7 @@
 rm -f ns1/*.jnl ns1/example.db ns2/*.jnl ns2/example.bk
 
 cp -f ns1/example1.db ns1/example.db
+sed 's/example.nil/other.nil/g' ns1/example1.db > ns1/other.db
 
 # update_test.pl has its own zone file because it
 # requires a specific NS record set.
@@ -40,3 +44,5 @@ update.nil              IN SOA  ns1.example.nil. hostmaster.example.nil. (
 update.nil.             NS      ns1.update.nil.
 ns1.update.nil.         A       10.53.0.2
 EOF
+
+$DDNSCONFGEN -q -z example.nil > ns1/ddns.key

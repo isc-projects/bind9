@@ -1,5 +1,8 @@
 	--- 9.7.0a2 released ---
 
+2641.	[bug]		Fixed an error in parsing update-policy syntax,
+			added a regression test to check it. [RT #20007]
+
 2640.	[security]	A specially crafted update packet will cause named
 			to exit. [RT #20000]
 
