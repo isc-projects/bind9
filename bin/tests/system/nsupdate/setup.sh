@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.12 2009/07/29 23:47:43 tbox Exp $
+# $Id: setup.sh,v 1.13 2009/07/30 15:11:41 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -45,4 +45,5 @@ update.nil.             NS      ns1.update.nil.
 ns1.update.nil.         A       10.53.0.2
 EOF
 
-$DDNSCONFGEN -q -z example.nil > ns1/ddns.key
+../../../tools/genrandom 400 random.data
+$DDNSCONFGEN -q -r random.data -z example.nil > ns1/ddns.key
