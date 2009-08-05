@@ -15,11 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.36 2009/08/05 17:35:33 each Exp $ */
+/* $Id: os.c,v 1.37 2009/08/05 18:43:37 each Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
 
+#include <sys/types.h>
 #include <sys/stat.h>
 
 #include <ctype.h>
@@ -177,7 +178,7 @@ ns_os_minprivs(void) {
 }
 
 static int
-safe_open(const char *filename, mode_t mode, isc_boolean_t append) {
+safe_open(const char *filename, int mode, isc_boolean_t append) {
 	int fd;
 	struct stat sb;
 
@@ -206,7 +207,7 @@ cleanup_pidfile(void) {
 }
 
 FILE *
-ns_os_openfile(char *filename, mode_t mode, isc_boolean_t switch_user) {
+ns_os_openfile(const char *filename, int mode, isc_boolean_t switch_user) {
 	char strbuf[ISC_STRERRORSIZE];
 	FILE *fp;
 	int fd;
@@ -220,7 +221,7 @@ ns_os_openfile(char *filename, mode_t mode, isc_boolean_t switch_user) {
 	}
 
 	fp = fdopen(fd, "w");
-	if (lockfile == NULL) {
+	if (fp == NULL) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		ns_main_earlywarning("could not fdopen() file '%s': %s",
 				     filename, strbuf);
@@ -248,7 +249,7 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 	if (filename == NULL)
 		return;
 
-	pidfile = strdup(filename):
+	pidfile = strdup(filename);
 	if (pidfile == NULL) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		(*report)("couldn't strdup() '%s': %s", filename, strbuf);
