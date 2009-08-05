@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.313.20.8 2009/06/26 08:03:47 jinmei Exp $ */
+/* $Id: query.c,v 1.313.20.9 2009/08/05 02:11:48 marka Exp $ */
 
 /*! \file */
 
@@ -2731,7 +2731,7 @@ query_addds(ns_client_t *client, dns_db_t *db, dns_dbnode_t *node,
 	return;
 
    addnsec3:
-	if (dns_db_iscache(db))
+	if (!dns_db_iszone(db))
 		goto cleanup;
 	/*
 	 * Add the NSEC3 which proves the DS does not exist.
