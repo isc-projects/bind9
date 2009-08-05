@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.99 2009/07/15 00:36:37 marka Exp $ */
+/* $Id: os.c,v 1.100 2009/08/05 17:35:33 each Exp $ */
 
 /*! \file */
 
@@ -637,7 +637,7 @@ ns_os_minprivs(void) {
 }
 
 static int
-safe_open(const char *filename, isc_boolean_t append) {
+safe_open(const char *filename, mode_t mode, isc_boolean_t append) {
 	int fd;
 	struct stat sb;
 
@@ -650,13 +650,11 @@ safe_open(const char *filename, isc_boolean_t append) {
 	}
 
 	if (append)
-		fd = open(filename, O_WRONLY|O_CREAT|O_APPEND,
-			  S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+		fd = open(filename, O_WRONLY|O_CREAT|O_APPEND, mode);
 	else {
 		if (unlink(filename) < 0 && errno != ENOENT)
 			return (-1);
-		fd = open(filename, O_WRONLY|O_CREAT|O_EXCL,
-			  S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+		fd = open(filename, O_WRONLY|O_CREAT|O_EXCL, mode);
 	}
 	return (fd);
 }
@@ -728,38 +726,126 @@ mkdirpath(char *filename, void (*report)(const char *, ...)) {
 }
 
 static void
-setperms(uid_t uid, gid_t gid, void (*report)(const char *, ...)) {
+setperms(uid_t uid, gid_t gid) {
 	char strbuf[ISC_STRERRORSIZE];
+#if !defined(HAVE_SETEGID) && defined(HAVE_SETRESGID)
+	gid_t oldgid, tmpg;
+#endif
+#if !defined(HAVE_SETEUID) && defined(HAVE_SETRESUID)
+	uid_t olduid, tmpu;
+#endif
 #if defined(HAVE_SETEGID)
-	if (setegid(gid) == -1) {
+	if (getegid() != gid && setegid(gid) == -1) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
-		(*report)("unable to set effective gid: %s", strbuf);
+		ns_main_earlywarning("unable to set effective gid to %d: %s",
+				     gid, strbuf);
 	}
 #elif defined(HAVE_SETRESGID)
-	if (setresgid(-1, gid, -1) == -1) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
-		(*report)("unable to set effective gid: %s", strbuf);
+	if (getresgid(&tmpg, &oldgid, &tmpg) == -1 || oldgid != gid) {
+		if (setresgid(-1, gid, -1) == -1) {
+			isc__strerror(errno, strbuf, sizeof(strbuf));
+			ns_main_earlywarning("unable to set effective "
+					     "gid to %d: %s", gid, strbuf);
+		}
 	}
 #endif
 
 #if defined(HAVE_SETEUID)
-	if (seteuid(uid) == -1) {
+	if (geteuid() != uid && seteuid(uid) == -1) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
-		(*report)("unable to set effective uid: %s", strbuf);
+		ns_main_earlywarning("unable to set effective uid to %d: %s",
+				     uid, strbuf);
 	}
 #elif defined(HAVE_SETRESUID)
-	if (setresuid(-1, uid, -1) == -1) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
-		(*report)("unable to set effective uid: %s", strbuf);
+	if (getresuid(&tmpu, &olduid, &tmpu) == -1 || olduid != uid) {
+		if (setresuid(-1, uid, -1) == -1) {
+			isc__strerror(errno, strbuf, sizeof(strbuf));
+			ns_main_earlywarning("unable to set effective "
+					     "uid to %d: %s", uid, strbuf);
+		}
 	}
 #endif
 }
 
+FILE *
+ns_os_openfile(const char *filename, mode_t mode, isc_boolean_t switch_user) {
+	char strbuf[ISC_STRERRORSIZE], *f;
+	FILE *fp;
+	int fd;
+
+	/*
+	 * Make the containing directory if it doesn't exist.
+	 */
+	f = strdup(filename);
+	if (f == NULL) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		ns_main_earlywarning("couldn't strdup() '%s': %s",
+				     filename, strbuf);
+		return (NULL);
+	}
+	if (mkdirpath(f, ns_main_earlywarning) == -1) {
+		free(f);
+		return (NULL);
+	}
+	free(f);
+
+	if (switch_user && runas_pw != NULL) {
+		/* Set UID/GID to the one we'll be running with eventually */
+		setperms(runas_pw->pw_uid, runas_pw->pw_gid);
+
+		fd = safe_open(filename, mode, ISC_FALSE);
+
+#ifndef HAVE_LINUXTHREADS
+		/* Restore UID/GID to root */
+		setperms(0, 0);
+#endif /* HAVE_LINUXTHREADS */
+
+		if (fd == -1) {
+#ifndef HAVE_LINUXTHREADS
+			fd = safe_open(filename, mode, ISC_FALSE);
+			if (fd != -1) {
+				ns_main_earlywarning("Required root "
+						     "permissions to open "
+						     "'%s'.", filename);
+			} else {
+				ns_main_earlywarning("Could not open "
+						     "'%s'.", filename);
+			}
+			ns_main_earlywarning("Please check file and "
+					     "directory permissions "
+					     "or reconfigure the filename.");
+#else /* HAVE_LINUXTHREADS */
+			ns_main_earlywarning("Could not open "
+					     "'%s'.", filename);
+			ns_main_earlywarning("Please check file and "
+					     "directory permissions "
+					     "or reconfigure the filename.");
+#endif /* HAVE_LINUXTHREADS */
+		}
+	} else {
+		fd = safe_open(filename, mode, ISC_FALSE);
+	}
+
+	if (fd < 0) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		ns_main_earlywarning("could not open file '%s': %s",
+				     filename, strbuf);
+		return (NULL);
+	}
+
+	fp = fdopen(fd, "w");
+	if (fp == NULL) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		ns_main_earlywarning("could not fdopen() file '%s': %s",
+				     filename, strbuf);
+	}
+
+	return (fp);
+}
+
 void
 ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
-	int fd;
 	FILE *lockfile;
-	size_t len;
 	pid_t pid;
 	char strbuf[ISC_STRERRORSIZE];
 	void (*report)(const char *, ...);
@@ -775,66 +861,16 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 	if (filename == NULL)
 		return;
 
-	len = strlen(filename);
-	pidfile = malloc(len + 1);
+	pidfile = strdup(filename);
 	if (pidfile == NULL) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
-		(*report)("couldn't malloc '%s': %s", filename, strbuf);
+		(*report)("couldn't strdup() '%s': %s", filename, strbuf);
 		return;
 	}
 
-	/* This is safe. */
-	strcpy(pidfile, filename);
-
-	/*
-	 * Make the containing directory if it doesn't exist.
-	 */
-	if (mkdirpath(pidfile, report) == -1) {
-		free(pidfile);
-		pidfile = NULL;
-		return;
-	}
-
-	if (first_time && runas_pw != NULL) {
-		/*
-		 * Open the file using the uid/gid pair we will eventually
-		 * be running as.
-		 */
-		setperms(runas_pw->pw_uid, runas_pw->pw_gid, report);
-		fd = safe_open(filename, ISC_FALSE);
-		setperms(0, 0, report);
-
-		if (fd == -1) {
-			/*
-			 * Backwards compatibility.
-			 */
-			fd = safe_open(filename, ISC_FALSE);
-			if (fd != -1) {
-				ns_main_earlywarning("Required root "
-						     "permissions to open "
-						     "'%s'.", filename);
-				ns_main_earlywarning("Please check file and "
-						     "directory permissions "
-						     "or adjust 'pid-file' "
-						     "in named.conf.");
-			}
-		}
-	} else
-		fd = safe_open(filename, ISC_FALSE);
-
-	if (fd < 0) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
-		(*report)("couldn't open pid file '%s': %s", filename, strbuf);
-		free(pidfile);
-		pidfile = NULL;
-		return;
-	}
-	lockfile = fdopen(fd, "w");
+	lockfile = ns_os_openfile(filename, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH,
+				  first_time);
 	if (lockfile == NULL) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
-		(*report)("could not fdopen() pid file '%s': %s",
-			  filename, strbuf);
-		(void)close(fd);
 		cleanup_pidfile();
 		return;
 	}

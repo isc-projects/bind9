@@ -1,7 +1,11 @@
+	--- 9.7.0a2 released ---
+
+2644.	[bug]		Change #2628 caused a regression on some systems;
+			named was unable to write the PID file and would
+			fail on startup. [RT #20001]
+
 2643.	[bug]		Stub zones interacted badly with NSEC3 support.
 			[RT #19777]
-
-	--- 9.7.0a2 released ---
 
 2642.	[bug]		nsupdate could dump core on solaris when reading
 			improperly formatted key files.  [RT #20015]

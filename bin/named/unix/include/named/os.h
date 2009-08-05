@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.h,v 1.29 2008/10/24 01:44:48 tbox Exp $ */
+/* $Id: os.h,v 1.30 2009/08/05 17:35:33 each Exp $ */
 
 #ifndef NS_OS_H
 #define NS_OS_H 1
@@ -51,8 +51,12 @@ ns_os_adjustnofile(void);
 void
 ns_os_minprivs(void);
 
+FILE *
+ns_os_openfile(const char *filename, mode_t mode, isc_boolean_t switch_user);
+
 void
 ns_os_writepidfile(const char *filename, isc_boolean_t first_time);
+
 void
 ns_os_shutdown(void);
 

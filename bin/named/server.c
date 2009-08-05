@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.539 2009/07/14 23:47:53 tbox Exp $ */
+/* $Id: server.c,v 1.540 2009/08/05 17:35:33 each Exp $ */
 
 /*! \file */
 
@@ -37,6 +37,7 @@
 #include <isc/print.h>
 #include <isc/resource.h>
 #include <isc/socket.h>
+#include <isc/stat.h>
 #include <isc/stats.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
@@ -3395,11 +3396,12 @@ generate_session_key(const char *filename, const char *keynamestr,
 	key = NULL;		/* ownership of key has been transferred */
 
 	/* Dump the key to the key file. */
-	result = isc_file_safecreate(filename, &fp);
-	if (result != ISC_R_SUCCESS) {
+	fp = ns_os_openfile(filename, S_IRUSR|S_IWUSR, ISC_TRUE);
+	if (fp == NULL) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "could not create %s", filename);
+		result = ISC_R_NOPERM;
 		goto cleanup;
 	}
 
