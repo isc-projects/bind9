@@ -2,7 +2,7 @@ Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
 Copyright (C) 2000-2003  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: release,v 1.72 2009/08/06 01:21:58 marka Exp $
+$Id: release,v 1.73 2009/08/06 01:31:50 marka Exp $
 
 Preparing a bind9 release
 
@@ -59,6 +59,19 @@ release.
    necessary XML tools, but at least trebuchet, cuba,
    and Scanner's machine do.  Commit any files that were
    regenerated.
+
+   Most of this has now been automated, only doc/arm/ARM.pdf will
+   not be committed:
+	ssh tbox@docs.lab.isc.org
+	run this command from crontab.
+1 1 * * * /usr/bin/lockf -s -t 0 /udir/tbox/bind9-documents/regenerate.lock /udir/tbox/bind9-documents/regenerate
+
+   Check to see if the ARM has changed since the last release
+   and if it has commit doc/arm/ARM.pdf.
+   e.g.
+	cvs rdiff -r v9_6_1 -r v9_6 bind9/doc/arm
+	cd bind9-documents/bind9.v9_6
+	cvs commit doc/arm/ARM.pdf
 
  - Verify that the documents in doc/misc are up-to-date.
 
