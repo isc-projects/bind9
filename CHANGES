@@ -1,3 +1,5 @@
+2646.	[bug]		Incorrect cleanup on error in socket.c. [RT #19987]
+
 2645.	[port]		"gcc -m32" didn't work on amd64 and x86_64 platforms
 			which default to 64 bits. [RT #19927]
 
