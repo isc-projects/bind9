@@ -1,3 +1,5 @@
+2648.	[port]		win32: isc_time_seconds() was broken. [RT #19900]
+
 2647.	[bug]		Remove unnecessary SOA updates when a new KSK is
 			added. [RT #19913]
 
