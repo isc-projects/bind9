@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-dsfromkey.c,v 1.11 2009/07/19 23:47:55 tbox Exp $ */
+/* $Id: dnssec-dsfromkey.c,v 1.12 2009/08/13 04:13:58 marka Exp $ */
 
 /*! \file */
 
@@ -367,7 +367,7 @@ main(int argc, char **argv) {
 			/* fall through */
 		case 'K':
 			dir = isc_commandline_argument;
-			if (strlen(dir) == 0)
+			if (strlen(dir) == 0U)
 				fatal("directory must be non-empty string");
 			break;
 		case 'f':
@@ -375,7 +375,7 @@ main(int argc, char **argv) {
 			break;
 		case 'l':
 			lookaside = isc_commandline_argument;
-			if (strlen(lookaside) == 0)
+			if (strlen(lookaside) == 0U)
 				fatal("lookaside must be a non-empty string");
 			break;
 		case 's':

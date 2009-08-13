@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.49 2009/07/19 23:47:55 tbox Exp $ */
+/* $Id: dnssectool.c,v 1.50 2009/08/13 04:13:58 marka Exp $ */
 
 /*! \file */
 
@@ -293,7 +293,7 @@ strtotime(const char *str, isc_int64_t now, isc_int64_t base) {
 	const char *orig = str;
 	char *endp;
 
-	if (strlen(str) == 1 && (str[0] == '0' || str[0] == '-'))
+	if ((str[0] == '0' || str[0] == '-') && str[1] == '\0')
 		return ((isc_stdtime_t) 0);
 
 	if (strncmp(str, "now", 3) == 0) {

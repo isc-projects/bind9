@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.225 2009/07/21 03:27:38 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.226 2009/08/13 04:13:58 marka Exp $ */
 
 /*! \file */
 
@@ -3203,7 +3203,7 @@ main(int argc, char *argv[]) {
 
 		case 'd':
 			dsdir = isc_commandline_argument;
-			if (strlen(dsdir) == 0)
+			if (strlen(dsdir) == 0U)
 				fatal("DS directory must be non-empty string");
 			break;
 
