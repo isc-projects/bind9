@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.100 2009/08/05 17:35:33 each Exp $ */
+/* $Id: os.c,v 1.101 2009/08/13 07:04:38 marka Exp $ */
 
 /*! \file */
 
@@ -737,8 +737,8 @@ setperms(uid_t uid, gid_t gid) {
 #if defined(HAVE_SETEGID)
 	if (getegid() != gid && setegid(gid) == -1) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
-		ns_main_earlywarning("unable to set effective gid to %d: %s",
-				     gid, strbuf);
+		ns_main_earlywarning("unable to set effective gid to %ld: %s",
+				     (long)gid, strbuf);
 	}
 #elif defined(HAVE_SETRESGID)
 	if (getresgid(&tmpg, &oldgid, &tmpg) == -1 || oldgid != gid) {
@@ -753,8 +753,8 @@ setperms(uid_t uid, gid_t gid) {
 #if defined(HAVE_SETEUID)
 	if (geteuid() != uid && seteuid(uid) == -1) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
-		ns_main_earlywarning("unable to set effective uid to %d: %s",
-				     uid, strbuf);
+		ns_main_earlywarning("unable to set effective uid to %ld: %s",
+				     (long)uid, strbuf);
 	}
 #elif defined(HAVE_SETRESUID)
 	if (getresuid(&tmpu, &olduid, &tmpu) == -1 || olduid != uid) {
