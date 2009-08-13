@@ -1,3 +1,6 @@
+2645.	[port]		"gcc -m32" didn't work on amd64 and x86_64 platforms
+			which default to 64 bits. [RT #19927]
+
 	--- 9.7.0a2 released ---
 
 2644.	[bug]		Change #2628 caused a regression on some systems;
