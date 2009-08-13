@@ -1,3 +1,5 @@
+2648.	[port]		win32: isc_time_seconds() was broken. [RT #19900]
+
 2646.	[bug]		Incorrect cleanup on error in socket.c. [RT #19987]
 
 2642.	[bug]		nsupdate could dump core on solaris when reading
