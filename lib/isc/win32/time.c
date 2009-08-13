@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2006-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2006-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.43.128.3 2009/08/13 03:40:57 marka Exp $ */
+/* $Id: time.c,v 1.43.128.4 2009/08/13 07:12:58 tbox Exp $ */
 
 #include <config.h>
 
