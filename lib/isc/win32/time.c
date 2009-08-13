@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.43.128.2 2008/08/29 23:46:52 tbox Exp $ */
+/* $Id: time.c,v 1.43.128.3 2009/08/13 03:40:57 marka Exp $ */
 
 #include <config.h>
 
@@ -205,28 +205,30 @@ isc_time_microdiff(const isc_time_t *t1, const isc_time_t *t2) {
 
 isc_uint32_t
 isc_time_seconds(const isc_time_t *t) {
-	SYSTEMTIME st;
+	SYSTEMTIME epoch = { 1970, 1, 4, 1, 0, 0, 0, 0 };
+	FILETIME temp;
+	ULARGE_INTEGER i1, i2;
+	LONGLONG i3;
 
-	/*
-	 * Convert the time to a SYSTEMTIME structure and the grab the
-	 * milliseconds
-	 */
-	FileTimeToSystemTime(&t->absolute, &st);
+	SystemTimeToFileTime(&epoch, &temp);
 
-	return ((isc_uint32_t)(st.wMilliseconds / 1000));
+	i1.LowPart  = t->absolute.dwLowDateTime;
+	i1.HighPart = t->absolute.dwHighDateTime;
+	i2.LowPart  = temp.dwLowDateTime;
+	i2.HighPart = temp.dwHighDateTime;
+
+	i3 = (i1.QuadPart - i2.QuadPart) / 10000000;
+
+	return ((isc_uint32_t)i3)
 }
 
 isc_uint32_t
 isc_time_nanoseconds(const isc_time_t *t) {
-	SYSTEMTIME st;
+	ULARGE_INTEGER i;
 
-	/*
-	 * Convert the time to a SYSTEMTIME structure and the grab the
-	 * milliseconds
-	 */
-	FileTimeToSystemTime(&t->absolute, &st);
-
-	return ((isc_uint32_t)(st.wMilliseconds * 1000000));
+	i.LowPart  = t->absolute.dwLowDateTime;
+	i.HighPart = t->absolute.dwHighDateTime;
+	return ((isc_uint32_t)(i.QuadPart % 10000000) * 100);
 }
 
 void
