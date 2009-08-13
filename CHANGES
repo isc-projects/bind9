@@ -1,3 +1,6 @@
+
+	--- 9.5.2b released ---
+
 2649.	[bug]		Set the domain for forward only zones. [RT #19944]
 
 2648.	[port]		win32: isc_time_seconds() was broken. [RT #19900]
