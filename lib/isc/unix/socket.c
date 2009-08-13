@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.308.12.8 2009/04/18 01:29:26 jinmei Exp $ */
+/* $Id: socket.c,v 1.308.12.9 2009/08/13 02:16:01 marka Exp $ */
 
 /*! \file */
 
@@ -3645,7 +3645,7 @@ setup_watcher(isc_mem_t *mctx, isc_socketmgr_t *manager) {
 					  manager->maxsocks);
 	if (manager->fdpollinfo == NULL) {
 		isc_mem_put(mctx, manager->events,
-			    sizeof(pollinfo_t) * manager->maxsocks);
+			    sizeof(struct pollfd) * manager->nevents);
 		return (ISC_R_NOMEMORY);
 	}
 	memset(manager->fdpollinfo, 0, sizeof(pollinfo_t) * manager->maxsocks);
