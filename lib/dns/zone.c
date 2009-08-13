@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.483.36.9 2009/07/11 23:47:17 tbox Exp $ */
+/* $Id: zone.c,v 1.483.36.10 2009/08/13 02:57:45 marka Exp $ */
 
 /*! \file */
 
@@ -5492,6 +5492,7 @@ zone_sign(dns_zone_t *zone) {
 	dst_key_t *zone_keys[MAXZONEKEYS];
 	isc_int32_t signatures;
 	isc_boolean_t check_ksk, is_ksk;
+	isc_boolean_t commit = ISC_FALSE;
 	isc_boolean_t delegation;
 	isc_boolean_t finishedakey = ISC_FALSE;
 	isc_boolean_t secureupdated = ISC_FALSE;
@@ -5779,6 +5780,7 @@ zone_sign(dns_zone_t *zone) {
 			goto failure;
 		}
 	}
+
 	if (finishedakey) {
 		/*
 		 * We have changed the RRset above so we need to update
@@ -5804,6 +5806,15 @@ zone_sign(dns_zone_t *zone) {
 			goto failure;
 		}
 	}
+ 
+	/*
+	 * Have we changed anything?
+	 */
+	if (ISC_LIST_HEAD(sig_diff.tuples) == NULL) 
+		goto pauseall;
+ 
+	commit = ISC_TRUE;
+
 	result = del_sigs(zone, db, version, &zone->origin, dns_rdatatype_soa,
 			  &sig_diff, zone_keys, nkeys, now);
 	if (result != ISC_R_SUCCESS) {
@@ -5835,6 +5846,9 @@ zone_sign(dns_zone_t *zone) {
 		goto failure;
 	}
 
+	/*
+	 * Write changes to journal file.
+	 */
 	journalfile = dns_zone_getjournal(zone);
 	if (journalfile != NULL) {
 		dns_journal_t *journal = NULL;
@@ -5857,7 +5871,7 @@ zone_sign(dns_zone_t *zone) {
 		}
 	}
 
-
+ pauseall:
 	/*
 	 * Pause all iterators so that dns_db_closeversion() can succeed.
 	 */
@@ -5874,7 +5888,7 @@ zone_sign(dns_zone_t *zone) {
 	/*
 	 * Everything has succeeded. Commit the changes.
 	 */
-	dns_db_closeversion(db, &version, ISC_TRUE);
+	dns_db_closeversion(db, &version, commit);
 
 	/*
 	 * Everything succeeded so we can clean these up now.
@@ -5890,9 +5904,11 @@ zone_sign(dns_zone_t *zone) {
 
 	set_resigntime(zone);
 
-	LOCK_ZONE(zone);
-	zone_needdump(zone, DNS_DUMP_DELAY);
-	UNLOCK_ZONE(zone);
+	if (commit) {
+		LOCK_ZONE(zone);
+		zone_needdump(zone, DNS_DUMP_DELAY);
+		UNLOCK_ZONE(zone);
+	}
 
  failure:
 	/*
