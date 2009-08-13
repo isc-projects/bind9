@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.502 2009/08/13 02:53:01 marka Exp $ */
+/* $Id: zone.c,v 1.503 2009/08/13 07:14:05 tbox Exp $ */
 
 /*! \file */
 
@@ -6315,13 +6315,13 @@ zone_sign(dns_zone_t *zone) {
 			goto failure;
 		}
 	}
- 
+
 	/*
 	 * Have we changed anything?
 	 */
-	if (ISC_LIST_HEAD(sig_diff.tuples) == NULL) 
+	if (ISC_LIST_HEAD(sig_diff.tuples) == NULL)
 		goto pauseall;
- 
+
 	commit = ISC_TRUE;
 
 	result = del_sigs(zone, db, version, &zone->origin, dns_rdatatype_soa,
