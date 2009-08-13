@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.432.60.32 $)
+AC_REVISION($Revision: 1.432.60.33 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -467,7 +467,7 @@ AC_C_BIGENDIAN
 OPENSSL_WARNING=
 AC_MSG_CHECKING(for OpenSSL library)
 AC_ARG_WITH(openssl,
-[  --with-openssl[=PATH]   Build with OpenSSL [yes|no|path].
+[  --with-openssl[=PATH]     Build with OpenSSL [yes|no|path].
 			  (Required for DNSSEC)],
     use_openssl="$withval", use_openssl="auto")
 
@@ -647,7 +647,7 @@ DNS_CRYPTO_LIBS="$DNS_CRYPTO_LIBS $DNS_OPENSSL_LIBS"
 
 AC_MSG_CHECKING(for GSSAPI library)
 AC_ARG_WITH(gssapi,
-[  --with-gssapi=PATH   Specify path for system-supplied GSSAPI],
+[  --with-gssapi=PATH      Specify path for system-supplied GSSAPI],
     use_gssapi="$withval", use_gssapi="no")
 
 gssapidirs="/usr/local /usr/pkg /usr/kerberos /usr"
@@ -801,7 +801,7 @@ AC_SUBST(DNS_CRYPTO_LIBS)
 #
 AC_MSG_CHECKING(for random device)
 AC_ARG_WITH(randomdev,
-[  --with-randomdev=PATH Specify path for random device],
+[  --with-randomdev=PATH   Specify path for random device],
     use_randomdev="$withval", use_randomdev="unspec")
 
 case "$use_randomdev" in
@@ -974,7 +974,7 @@ AC_SUBST(ISC_THREAD_DIR)
 #
 AC_MSG_CHECKING(for libxml2 library)
 AC_ARG_WITH(libxml2,
-[  --with-libxml2[=PATH]   Build with libxml2 library [yes|no|path]],
+[  --with-libxml2[=PATH]     Build with libxml2 library [yes|no|path]],
     use_libxml2="$withval", use_libxml2="auto")
 
 case "$use_libxml2" in
@@ -1168,7 +1168,7 @@ esac
 #
 AC_MSG_CHECKING(whether to use purify)
 AC_ARG_WITH(purify,
-	[  --with-purify[=PATH]	use Rational purify],
+	[  --with-purify[=PATH]      use Rational purify],
 	use_purify="$withval", use_purify="no")
 
 case "$use_purify" in
@@ -1207,7 +1207,7 @@ AC_SUBST(PURIFY)
 
 
 AC_ARG_WITH(libtool,
-	    [  --with-libtool	use GNU libtool (following indented options supported)],
+	    [  --with-libtool          use GNU libtool],
 	    use_libtool="$withval", use_libtool="no")
 
 case $use_libtool in
@@ -1282,7 +1282,7 @@ esac
 # IPv6
 #
 AC_ARG_ENABLE(ipv6,
-	[  --enable-ipv6		use IPv6 [default=autodetect]])
+	[  --enable-ipv6           use IPv6 [default=autodetect]])
 
 case "$enable_ipv6" in
 	yes|''|autodetect)
@@ -1313,7 +1313,7 @@ AC_TRY_COMPILE([
 #
 AC_MSG_CHECKING(for Kame IPv6 support)
 AC_ARG_WITH(kame,
-	[  --with-kame[=PATH]	use Kame IPv6 [default path /usr/local/v6]],
+	[  --with-kame[=PATH]	  use Kame IPv6 [default path /usr/local/v6]],
 	use_kame="$withval", use_kame="no")
 
 case "$use_kame" in
@@ -1902,7 +1902,7 @@ AC_SUBST(ISC_EXTRA_SRCS)
 # Use our own SPNEGO implementation?
 #
 AC_ARG_ENABLE(isc-spnego,
-	[  --disable-isc-spnego		use SPNEGO from GSSAPI library])
+	[  --disable-isc-spnego    use SPNEGO from GSSAPI library])
 
 if test -n "$USE_GSSAPI"
 then
@@ -1967,7 +1967,7 @@ AC_SUBST(LWRES_PLATFORM_QUADFORMAT)
 # Note it is very recommended to *not* disable chroot(),
 # this is only because chroot() was made obsolete by Posix.
 AC_ARG_ENABLE(chroot,
-	[  --disable-chroot disable chroot])
+	[  --disable-chroot        disable chroot])
 case "$enable_chroot" in
 	yes|'')
 		AC_CHECK_FUNCS(chroot)
@@ -1976,7 +1976,7 @@ case "$enable_chroot" in
 		;;
 esac
 AC_ARG_ENABLE(linux-caps,
-	[  --disable-linux-caps	disable linux capabilities])
+	[  --disable-linux-caps	  disable linux capabilities])
 case "$enable_linux_caps" in
 	yes|'')
 		AC_CHECK_HEADERS(linux/capability.h sys/capability.h)
@@ -2215,8 +2215,8 @@ AC_CHECK_FUNCS(nanosleep)
 # Machine architecture dependent features
 #
 AC_ARG_ENABLE(atomic,
-	[  --enable-atomic	enable machine specific atomic operations
-			[[default=autodetect]]],
+	[  --enable-atomic	  enable machine specific atomic operations
+			  [[default=autodetect]]],
 			enable_atomic="$enableval",
 			enable_atomic="autodetect")
 case "$enable_atomic" in
@@ -2248,8 +2248,16 @@ main() {
 		[arch=x86_32])
 	;;
 	x86_64-*|amd64-*)
-		have_xaddq=yes
-		arch=x86_64
+AC_TRY_RUN([
+main() {
+       exit((sizeof(void *) == 8) ? 0 : 1);
+}
+],
+	       [arch=x86_64
+	       have_xaddq=yes],
+	       [arch=x86_32],
+	       [arch=x86_64
+	       have_xaddq=yes])
 	;;
 	alpha*-*)
 		arch=alpha
@@ -2354,9 +2362,9 @@ else
 fi
 
 if test "$have_xaddq" = "yes"; then
-        ISC_PLATFORM_HAVEXADDQ="#define ISC_PLATFORM_HAVEXADDQ 1"
+	ISC_PLATFORM_HAVEXADDQ="#define ISC_PLATFORM_HAVEXADDQ 1"
 else
-        ISC_PLATFORM_HAVEXADDQ="#undef ISC_PLATFORM_HAVEXADDQ"
+	ISC_PLATFORM_HAVEXADDQ="#undef ISC_PLATFORM_HAVEXADDQ"
 fi
 
 AC_SUBST(ISC_PLATFORM_HAVEXADD)
@@ -2376,14 +2384,14 @@ AC_SUBST(ISC_ARCH_DIR)
 # Activate "rrset-order fixed" or not?
 #
 AC_ARG_ENABLE(fixed-rrset,
-	[  --enable-fixed-rrset        enable fixed rrset ordering
-			[[default=no]]],
+	[  --enable-fixed-rrset    enable fixed rrset ordering
+			  [[default=no]]],
 			enable_fixed="$enableval",
 			enable_fixed="no")
 case "$enable_fixed" in
 	yes)
 		AC_DEFINE(DNS_RDATASET_FIXED, 1,
-                          [Define to enable "rrset-order fixed" syntax.])
+			  [Define to enable "rrset-order fixed" syntax.])
 		;;
 	no)
 		;;
@@ -2503,7 +2511,7 @@ AC_SUBST($1)
 #
 AC_MSG_CHECKING(for Docbook-XSL path)
 AC_ARG_WITH(docbook-xsl,
-[  --with-docbook-xsl=PATH    Specify path for Docbook-XSL stylesheets],
+[  --with-docbook-xsl=PATH Specify path for Docbook-XSL stylesheets],
    docbook_path="$withval", docbook_path="auto")
 case "$docbook_path" in
 auto)
@@ -2571,7 +2579,7 @@ AC_SUBST(XSLT_DB2LATEX_ADMONITIONS)
 # IDN support
 #
 AC_ARG_WITH(idn,
-	[  --with-idn[=MPREFIX]   enable IDN support using idnkit [default PREFIX]],
+	[  --with-idn[=MPREFIX]      enable IDN support using idnkit [default PREFIX]],
 	use_idn="$withval", use_idn="no")
 case "$use_idn" in
 yes)
@@ -2591,7 +2599,7 @@ esac
 iconvinc=
 iconvlib=
 AC_ARG_WITH(libiconv,
-	[  --with-libiconv[=IPREFIX]   GNU libiconv are in IPREFIX [default PREFIX]],
+	[  --with-libiconv[=IPREFIX] GNU libiconv are in IPREFIX [default PREFIX]],
 	use_libiconv="$withval", use_libiconv="no")
 case "$use_libiconv" in
 yes)
@@ -2610,7 +2618,7 @@ no)
 esac
 
 AC_ARG_WITH(iconv,
-	[  --with-iconv[=LIBSPEC]   specify iconv library [default -liconv]],
+	[  --with-iconv[=LIBSPEC]    specify iconv library [default -liconv]],
 	iconvlib="$withval")
 case "$iconvlib" in
 no)
@@ -2622,7 +2630,7 @@ yes)
 esac
 
 AC_ARG_WITH(idnlib,
-	[  --with-idnlib=ARG    specify libidnkit],
+	[  --with-idnlib=ARG       specify libidnkit],
 	idnlib="$withval", idnlib="no")
 if test "$idnlib" = yes; then
 	AC_MSG_ERROR([You must specify ARG for --with-idnlib.])
