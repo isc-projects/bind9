@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.43.128.4 2009/08/13 07:12:58 tbox Exp $ */
+/* $Id: time.c,v 1.43.128.5 2009/08/14 07:48:45 marka Exp $ */
 
 #include <config.h>
 
@@ -219,7 +219,7 @@ isc_time_seconds(const isc_time_t *t) {
 
 	i3 = (i1.QuadPart - i2.QuadPart) / 10000000;
 
-	return ((isc_uint32_t)i3)
+	return ((isc_uint32_t)i3);
 }
 
 isc_uint32_t
