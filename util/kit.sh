@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: kit.sh,v 1.35 2009/07/16 23:47:55 tbox Exp $
+# $Id: kit.sh,v 1.36 2009/08/14 06:17:20 marka Exp $
 
 # Make a release kit
 #
@@ -142,7 +142,16 @@ done
 
 # check that documentation has been updated properly; issue a warning
 # if it hasn't
-if test doc/arm/Bv9ARM-book.xml -nt doc/arm/Bv9ARM.html
+ok=
+for f in doc/arm/*.html
+do
+	if test "$f" -nt doc/arm/Bv9ARM-book.xml
+	then
+		ok=ok
+	fi
+done
+
+if test "$ok" != ok
 then
 	echo "WARNING: ARM source is newer than the html version."
 fi
