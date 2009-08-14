@@ -1,3 +1,6 @@
+2651.	[bug]		Dates could print incorrectly in K*.key files on
+			64-bit systems. [RT #20076]
+
 2650.	[bug]		Assertion failure in dnssec-signzone when trying
                         to read keyset-* files. [RT #20075]
 

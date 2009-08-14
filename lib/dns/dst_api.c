@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.25 2009/07/29 23:45:24 each Exp $
+ * $Id: dst_api.c,v 1.26 2009/08/14 06:28:40 each Exp $
  */
 
 /*! \file */
@@ -1138,14 +1138,17 @@ issymmetric(const dst_key_t *key) {
 static void
 printtime(const dst_key_t *key, int type, const char *tag, FILE *stream) {
 	isc_result_t result;
-	isc_stdtime_t when;
 	const char *output;
+	isc_stdtime_t when;
+	time_t t;
 
 	result = dst_key_gettime(key, type, &when);
 	if (result == ISC_R_NOTFOUND)
 		return;
 
-	output = ctime((time_t *) &when);
+	/* time_t and isc_stdtime_t might be different sizes */
+	t = when;
+	output = ctime(&t);
 	fprintf(stream, "%s: %s", tag, output);
 }
 
