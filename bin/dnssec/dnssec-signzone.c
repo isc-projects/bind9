@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.226 2009/08/13 04:13:58 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.227 2009/08/14 01:07:00 each Exp $ */
 
 /*! \file */
 
@@ -824,6 +824,12 @@ loadds(dns_name_t *name, isc_uint32_t ttl, dns_rdataset_t *dsset) {
 	opendb("keyset-", name, gclass, &db);
 	if (db == NULL) {
 		return (ISC_R_NOTFOUND);
+	}
+
+	result = dns_db_findnode(db, name, ISC_FALSE, &node);
+	if (result != ISC_R_SUCCESS) {
+		dns_db_detach(&db);
+		return (result);
 	}
 
 	dns_rdataset_init(&keyset);
