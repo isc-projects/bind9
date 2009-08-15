@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getipnode.c,v 1.42.332.1 2009/08/15 03:11:13 each Exp $ */
+/* $Id: getipnode.c,v 1.42.332.2 2009/08/15 05:02:28 each Exp $ */
 
 /*! \file */
 
@@ -285,10 +285,7 @@ lwres_getipnodebyname(const char *name, int af, int flags, int *error_num) {
 				goto cleanup;
 			}
 		} else {
-			if (n == LWRES_R_NOTFOUND)
-			       tmp_err = HOST_NOT_FOUND;
-			else
-			       tmp_err = NO_RECOVERY;
+			tmp_err = HOST_NOT_FOUND;
 		}
 	}
 
@@ -440,15 +437,9 @@ lwres_getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 	if (n != 0) {
 		lwres_conf_clear(lwrctx);
 		lwres_context_destroy(&lwrctx);
-
-		if (n == LWRES_R_NOTFOUND)
-		       *error_num = HOST_NOT_FOUND;
-		else
-		       *error_num = NO_RECOVERY;
-
+		*error_num = HOST_NOT_FOUND;
 		return (NULL);
 	}
-
 	he1 = hostfromaddr(by, AF_INET6, src);
 	lwres_gnbaresponse_free(lwrctx, &by);
 	if (he1 == NULL)
@@ -844,11 +835,6 @@ copyandmerge(struct hostent *he1, struct hostent *he2, int af, int *error_num)
 	int names = 1;		/* NULL terminator */
 	int len = 0;
 	char **cpp, **npp;
-
-
-	/* If there is an unrecoverable error, the other steps are useless */
-	if (*error_num == NO_RECOVERY)
-		goto no_recovery;
 
 	/*
 	 * Work out array sizes.
