@@ -1,7 +1,3 @@
-2652.	[bug]		lwres_getipnodebyname() and lwres_getipnodebyaddr()
-			returned a misleading error code when lwresd was
-			down. [RT #20028]
-
 2651.	[bug]		Dates could print incorrectly in K*.key files on
 			64-bit systems. [RT #20076]
 
