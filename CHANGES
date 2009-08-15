@@ -1,3 +1,7 @@
+2652.	[bug]		lwres_getipnodebyname() and lwres_getipnodebyaddr()
+			returned a misleading error code when lwresd was
+			down. [RT #20028]
+
 2649.	[bug]		Set the domain for forward only zones. [RT #19944]
 
 2648.	[port]		win32: isc_time_seconds() was broken. [RT #19900]
