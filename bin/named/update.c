@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.158 2009/07/28 15:45:43 marka Exp $ */
+/* $Id: update.c,v 1.159 2009/08/17 07:18:41 marka Exp $ */
 
 #include <config.h>
 
@@ -3901,6 +3901,9 @@ update_action(isc_task_t *task, isc_event_t *event) {
 						&diff));
 			}
 		} else if (update_class == dns_rdataclass_none) {
+			char namestr[DNS_NAME_FORMATSIZE];
+			char typestr[DNS_RDATATYPE_FORMATSIZE];
+
 			/*
 			 * The (name == zonename) condition appears in
 			 * RFC2136 3.4.2.4 but is missing from the pseudocode.
@@ -3928,11 +3931,13 @@ update_action(isc_task_t *task, isc_event_t *event) {
 					}
 				}
 			}
-			update_log(client, zone,
-				   LOGLEVEL_PROTOCOL,
-				   "deleting an RR");
-			CHECK(delete_if(rr_equal_p, db, ver, name,
-					rdata.type, covers, &rdata, &diff));
+			dns_name_format(name, namestr, sizeof(namestr));
+			dns_rdatatype_format(rdata.type, typestr,
+					     sizeof(typestr));
+			update_log(client, zone, LOGLEVEL_PROTOCOL,
+				   "deleting an RR at %s %s", namestr, typestr);
+			CHECK(delete_if(rr_equal_p, db, ver, name, rdata.type,
+					covers, &rdata, &diff));
 		}
 	}
 	if (result != ISC_R_NOMORE)

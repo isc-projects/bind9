@@ -1,3 +1,6 @@
+2652.	[func]		Provide more detail about what record is being
+			deleted. [RT #20061]
+
 2651.	[bug]		Dates could print incorrectly in K*.key files on
 			64-bit systems. [RT #20076]
 
