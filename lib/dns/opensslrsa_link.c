@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.24 2009/07/19 04:18:05 each Exp $
+ * $Id: opensslrsa_link.c,v 1.25 2009/08/18 07:45:14 marka Exp $
  */
 #ifdef OPENSSL
 #ifndef USE_EVP
@@ -806,8 +806,8 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer) {
 			DST_RET(DST_R_NOENGINE);
 		pkey = ENGINE_load_private_key(e, label, NULL, NULL);
 		if (pkey == NULL) {
-			ERR_print_errors_fp(stderr);
-			DST_RET(ISC_R_FAILURE);
+			/* ERR_print_errors_fp(stderr); */
+			DST_RET(ISC_R_NOTFOUND);
 		}
 		key->engine = isc_mem_strdup(key->mctx, name);
 		if (key->engine == NULL)
@@ -925,7 +925,7 @@ opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 		DST_RET(DST_R_NOENGINE);
 	pkey = ENGINE_load_private_key(e, label, NULL, NULL);
 	if (pkey == NULL)
-		DST_RET(ISC_R_NOMEMORY);
+		DST_RET(ISC_R_NOTFOUND);
 	key->engine = isc_mem_strdup(key->mctx, label);
 	if (key->engine == NULL)
 		DST_RET(ISC_R_NOMEMORY);
