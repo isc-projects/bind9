@@ -44,6 +44,7 @@ BIND 9
 
 BIND 9.4.4
 
+	BIND 9.4.4 is the final maintenance release for BIND 9.4.
 	BIND 9.4.4 is a maintenance release, fixing bugs in 9.4.3.
 
 BIND 9.4.3
