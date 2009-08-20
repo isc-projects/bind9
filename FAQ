@@ -157,12 +157,17 @@ A: BIND 9.3 and later: Use TSIG to select the appropriate view.
                    secret "xxxxxxxx";
            };
            view "internal" {
-                   match-clients { !key external; 10.0.1/24; };
+                   match-clients { !key external; // reject message ment for the
+                                                  // external view.
+                                   10.0.1/24; };  // accept from these addresses.
                    ...
            };
            view "external" {
                    match-clients { key external; any; };
-                   server 10.0.1.2 { keys external; };
+                   server 10.0.1.2 { keys external; };  // tag messages from the
+                                                        // external view to the
+                                                        // other servers for the
+                                                        // view.
                    recursion no;
                    ...
            };

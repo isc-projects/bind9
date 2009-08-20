@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: FAQ.xml,v 1.30.26.9 2009/02/19 01:41:00 tbox Exp $ -->
+<!-- $Id: FAQ.xml,v 1.30.26.10 2009/08/20 01:43:31 tbox Exp $ -->
 
 <article class="faq">
   <title>Frequently Asked Questions about BIND 9</title>
@@ -323,12 +323,17 @@ Master 10.0.1.1:
 		secret "xxxxxxxx";
 	};
 	view "internal" {
-		match-clients { !key external; 10.0.1/24; };
+		match-clients { !key external; // reject message ment for the
+					       // external view.
+				10.0.1/24; };  // accept from these addresses.
 		...
 	};
 	view "external" {
 		match-clients { key external; any; };
-		server 10.0.1.2 { keys external; };
+		server 10.0.1.2 { keys external; };  // tag messages from the
+						     // external view to the
+						     // other servers for the
+						     // view.
 		recursion no;
 		...
 	};
