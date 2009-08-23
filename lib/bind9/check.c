@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.105 2009/07/14 23:47:54 tbox Exp $ */
+/* $Id: check.c,v 1.106 2009/08/23 11:44:44 fdupont Exp $ */
 
 /*! \file */
 
@@ -709,7 +709,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 					result = ISC_R_FAILURE;
 			}
 
-			if(!cfg_obj_isvoid(anchor)) {
+			if (!cfg_obj_isvoid(anchor)) {
 				dlv = cfg_obj_asstring(anchor);
 				isc_buffer_init(&b, dlv, strlen(dlv));
 				isc_buffer_add(&b, strlen(dlv));
