@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.h,v 1.8 2007/06/19 23:47:07 tbox Exp $ */
+/* $Id: BINDInstallDlg.h,v 1.9 2009/08/25 06:47:06 marka Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -48,6 +48,7 @@ public:
 	CString	m_version;
 	BOOL	m_autoStart;
 	BOOL	m_keepFiles;
+	BOOL	m_toolsOnly;
 	CString	m_current;
 	BOOL	m_startOnInstall;
 	//}}AFX_DATA
