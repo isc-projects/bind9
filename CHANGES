@@ -1,3 +1,6 @@
+2655.	[doc]		Document that key-directory does not affect
+			bind.keys, rndc.key or session.key.  [RT #20155]
+
 2654.	[bug]		Improve error reporting on duplicated names for
 			deny-answer-xxx. [RT #20164]
 
