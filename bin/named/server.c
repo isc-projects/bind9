@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.541 2009/08/25 02:42:46 marka Exp $ */
+/* $Id: server.c,v 1.542 2009/08/25 23:47:51 tbox Exp $ */
 
 /*! \file */
 
@@ -438,7 +438,7 @@ configure_view_nametable(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 				    str, confname, isc_result_totext(result));
 			goto cleanup;
 		}
-		
+
 	}
 
 	return (result);
