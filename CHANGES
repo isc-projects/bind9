@@ -1,3 +1,6 @@
+2657.	[cleanup]	Lower "journal file <path> does not exist, creating it"
+			log level to debug 1. [RT #20058]
+
 2656.	[func]		win32: add a "tools only" check box to the installer
 			which causes it to only install dig, host, nslookup,
 			nsupdate and relevent dlls.  [RT #19998]
