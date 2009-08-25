@@ -1,3 +1,6 @@
+2655.	[doc]		Document that key-directory does not affect
+			rndc.key.  [RT #20155]
+
 2653.	[bug]		Treat ENGINE_load_private_key() failures as key
 			not found rather than out of memory.  [RT #18033]
 
