@@ -1,3 +1,5 @@
+2655.	[doc]		Document that key-directory does not affect
+			rndc.key.  [RT #20155]
 
 	--- 9.5.2b released ---
 
