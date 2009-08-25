@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.540 2009/08/05 17:35:33 each Exp $ */
+/* $Id: server.c,v 1.541 2009/08/25 02:42:46 marka Exp $ */
 
 /*! \file */
 
@@ -431,7 +431,14 @@ configure_view_nametable(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 		 * for baz.example.com, which is not the expected result.
 		 * We simply use (void *)1 as the dummy data.
 		 */
-		CHECK(dns_rbt_addname(*rbtp, name, (void *)1));
+		result = dns_rbt_addname(*rbtp, name, (void *)1);
+		if (result != ISC_R_SUCCESS) {
+			cfg_obj_log(nameobj, ns_g_lctx, ISC_LOG_ERROR,
+				    "failed to add %s for %s: %s",
+				    str, confname, isc_result_totext(result));
+			goto cleanup;
+		}
+		
 	}
 
 	return (result);
