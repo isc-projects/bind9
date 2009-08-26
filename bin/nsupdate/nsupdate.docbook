@@ -18,10 +18,10 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: nsupdate.docbook,v 1.39 2009/07/14 22:54:57 each Exp $ -->
+<!-- $Id: nsupdate.docbook,v 1.40 2009/08/26 21:34:44 jreed Exp $ -->
 <refentry id="man.nsupdate">
   <refentryinfo>
-    <date>Jun 30, 2000</date>
+    <date>Aug 25, 2009</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle><application>nsupdate</application></refentrytitle>
@@ -60,6 +60,7 @@
       <group>
 	<arg><option>-g</option></arg>
 	<arg><option>-o</option></arg>
+	<arg><option>-l</option></arg>
         <arg><option>-y <replaceable class="parameter"><optional>hmac:</optional>keyname:secret</replaceable></option></arg>
         <arg><option>-k <replaceable class="parameter">keyfile</replaceable></option></arg>
       </group>
