@@ -14,7 +14,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-dsfromkey.html,v 1.10 2009/07/19 04:27:55 tbox Exp $ -->
+<!-- $Id: dnssec-dsfromkey.html,v 1.11 2009/08/27 01:14:39 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -29,18 +29,18 @@
 </div>
 <div class="refsynopsisdiv">
 <h2>Synopsis</h2>
-<div class="cmdsynopsis"><p><code class="command">dnssec-dsfromkey</code>  [<code class="option">-v <em class="replaceable"><code>level</code></em></code>] [<code class="option">-1</code>] [<code class="option">-2</code>] [<code class="option">-a <em class="replaceable"><code>alg</code></em></code>] {keyfile}</p></div>
-<div class="cmdsynopsis"><p><code class="command">dnssec-dsfromkey</code>  {-s} [<code class="option">-1</code>] [<code class="option">-2</code>] [<code class="option">-a <em class="replaceable"><code>alg</code></em></code>] [<code class="option">-K <em class="replaceable"><code>directory</code></em></code>] [<code class="option">-s</code>] [<code class="option">-c <em class="replaceable"><code>class</code></em></code>] [<code class="option">-f <em class="replaceable"><code>file</code></em></code>] [<code class="option">-A</code>] [<code class="option">-v <em class="replaceable"><code>level</code></em></code>] {dnsname}</p></div>
+<div class="cmdsynopsis"><p><code class="command">dnssec-dsfromkey</code>  [<code class="option">-v <em class="replaceable"><code>level</code></em></code>] [<code class="option">-1</code>] [<code class="option">-2</code>] [<code class="option">-a <em class="replaceable"><code>alg</code></em></code>] [<code class="option">-l <em class="replaceable"><code>domain</code></em></code>] {keyfile}</p></div>
+<div class="cmdsynopsis"><p><code class="command">dnssec-dsfromkey</code>  {-s} [<code class="option">-1</code>] [<code class="option">-2</code>] [<code class="option">-a <em class="replaceable"><code>alg</code></em></code>] [<code class="option">-K <em class="replaceable"><code>directory</code></em></code>] [<code class="option">-l <em class="replaceable"><code>domain</code></em></code>] [<code class="option">-s</code>] [<code class="option">-c <em class="replaceable"><code>class</code></em></code>] [<code class="option">-f <em class="replaceable"><code>file</code></em></code>] [<code class="option">-A</code>] [<code class="option">-v <em class="replaceable"><code>level</code></em></code>] {dnsname}</p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543444"></a><h2>DESCRIPTION</h2>
+<a name="id2543461"></a><h2>DESCRIPTION</h2>
 <p><span><strong class="command">dnssec-dsfromkey</strong></span>
       outputs the Delegation Signer (DS) resource record (RR), as defined in
       RFC 3658 and RFC 4509, for the given key(s).
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543456"></a><h2>OPTIONS</h2>
+<a name="id2543473"></a><h2>OPTIONS</h2>
 <div class="variablelist"><dl>
 <dt><span class="term">-1</span></dt>
 <dd><p>
@@ -81,6 +81,8 @@
             Generate a DLV set instead of a DS set.  The specified
             <code class="option">domain</code> is appended to the name for each
             record in the set.
+            The DNSSEC Lookaside Validation (DLV) RR is described
+            in RFC 4431.
           </p></dd>
 <dt><span class="term">-s</span></dt>
 <dd><p>
@@ -99,7 +101,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543642"></a><h2>EXAMPLE</h2>
+<a name="id2543659"></a><h2>EXAMPLE</h2>
 <p>
       To build the SHA-256 DS RR from the
       <strong class="userinput"><code>Kexample.com.+003+26160</code></strong>
@@ -114,7 +116,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543672"></a><h2>FILES</h2>
+<a name="id2543689"></a><h2>FILES</h2>
 <p>
       The keyfile can be designed by the key identification
       <code class="filename">Knnnn.+aaa+iiiii</code> or the full file name
@@ -128,22 +130,23 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543707"></a><h2>CAVEAT</h2>
+<a name="id2543724"></a><h2>CAVEAT</h2>
 <p>
       A keyfile error can give a "file not found" even if the file exists.
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543717"></a><h2>SEE ALSO</h2>
+<a name="id2543734"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">dnssec-keygen</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">dnssec-signzone</span>(8)</span>,
       <em class="citetitle">BIND 9 Administrator Reference Manual</em>,
       <em class="citetitle">RFC 3658</em>,
+      <em class="citetitle">RFC 4431</em>.
       <em class="citetitle">RFC 4509</em>.
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543753"></a><h2>AUTHOR</h2>
+<a name="id2543773"></a><h2>AUTHOR</h2>
 <p><span class="corpauthor">Internet Systems Consortium</span>
     </p>
 </div>
