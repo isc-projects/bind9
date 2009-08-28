@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-keygen.docbook,v 1.25 2009/07/19 04:18:04 each Exp $ -->
+<!-- $Id: dnssec-keygen.docbook,v 1.26 2009/08/28 21:47:02 each Exp $ -->
 <refentry id="man.dnssec-keygen">
   <refentryinfo>
     <date>June 30, 2000</date>
@@ -90,6 +90,11 @@
       and RFC 4034.  It can also generate keys for use with
       TSIG (Transaction Signatures) as defined in RFC 2845, or TKEY
       (Transaction Key) as defined in RFC 2930.
+    </para>
+    <para>
+      The <option>name</option> of the key is specified on the command
+      line.  For DNSSEC keys, this must match the name of the zone for
+      which the key is being generated.
     </para>
   </refsect1>
 

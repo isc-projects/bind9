@@ -1,3 +1,6 @@
+2659.	[doc]		Clarify dnssec-keygen doc: key name must match zone
+			name for DNSSEC keys. [RT #19938]
+
 2658.	[bug]		dnssec-settime and dnssec-revoke didn't process
 			key file paths correctly. [RT #20078]
 
