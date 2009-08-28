@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-settime.c,v 1.7 2009/08/28 03:13:08 each Exp $ */
+/* $Id: dnssec-settime.c,v 1.8 2009/08/28 23:48:02 tbox Exp $ */
 
 /*! \file */
 
@@ -192,7 +192,7 @@ main(int argc, char **argv) {
 	if (directory != NULL) {
 		filename = argv[isc_commandline_index];
 	} else {
-                isc_file_splitpath(mctx, argv[isc_commandline_index],
+		isc_file_splitpath(mctx, argv[isc_commandline_index],
 				   &directory, &filename);
 	}
 
