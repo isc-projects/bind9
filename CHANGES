@@ -1,3 +1,6 @@
+2658.	[bug]		dnssec-settime and dnssec-revoke didn't process
+			key file paths correctly. [RT #20078]
+
 2657.	[cleanup]	Lower "journal file <path> does not exist, creating it"
 			log level to debug 1. [RT #20058]
 

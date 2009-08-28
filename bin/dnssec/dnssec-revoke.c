@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-revoke.c,v 1.6 2009/07/19 05:26:05 each Exp $ */
+/* $Id: dnssec-revoke.c,v 1.7 2009/08/28 03:13:08 each Exp $ */
 
 /*! \file */
 
@@ -27,6 +27,7 @@
 #include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/entropy.h>
+#include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/mem.h>
 #include <isc/print.h>
@@ -66,7 +67,7 @@ usage(void) {
 int
 main(int argc, char **argv) {
 	isc_result_t result;
-	char *filename = NULL, *dir= NULL;
+	char *filename = NULL, *dir = NULL;
 	char newname[1024], oldname[1024];
 	char keystr[KEY_FORMATSIZE];
 	char *endp;
@@ -126,30 +127,11 @@ main(int argc, char **argv) {
 	if (argc > isc_commandline_index + 1)
 		fatal("Extraneous arguments");
 
-	if (dir == NULL) {
-		char *slash;
-#ifdef _WIN32
-		char *backslash;
-#endif
-
-		dir = strdup(argv[isc_commandline_index]);
-		filename = dir;
-
-		/* Figure out the directory name from the key name */
-		slash = strrchr(dir, '/');
-#ifdef _WIN32
-		backslash = strrchr(dir, '\\');
-		if ((slash != NULL && backslash != NULL && backslash > slash) ||
-		    (slash == NULL && backslash != NULL))
-			slash = backslash;
-#endif
-		if (slash != NULL) {
-			*slash++ = '\0';
-			filename = slash;
-		} else {
-			free(dir);
-			dir = strdup(".");
-		}
+	if (dir != NULL) {
+		filename = argv[isc_commandline_index];
+	} else {
+                isc_file_splitpath(mctx, argv[isc_commandline_index],
+				   &dir, &filename);
 	}
 
 	if (ectx == NULL)
@@ -232,6 +214,7 @@ cleanup:
 	cleanup_entropy(&ectx);
 	if (verbose > 10)
 		isc_mem_stats(mctx, stdout);
+	isc_mem_free(mctx, dir);
 	isc_mem_destroy(&mctx);
 
 	return (0);

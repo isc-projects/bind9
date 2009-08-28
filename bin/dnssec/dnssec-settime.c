@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-settime.c,v 1.6 2009/07/21 02:57:39 jinmei Exp $ */
+/* $Id: dnssec-settime.c,v 1.7 2009/08/28 03:13:08 each Exp $ */
 
 /*! \file */
 
@@ -29,6 +29,7 @@
 #include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/entropy.h>
+#include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/mem.h>
 #include <isc/print.h>
@@ -188,39 +189,12 @@ main(int argc, char **argv) {
 	if (argc > isc_commandline_index + 1)
 		fatal("Extraneous arguments");
 
-	if (directory == NULL) {
-		char *slash;
-#ifdef _WIN32
-		char *backslash;
-#endif
-
-		directory = isc_mem_strdup(mctx, argv[isc_commandline_index]);
-		if (directory == NULL)
-			fatal("Failed to memory allocation for directory");
-		filename = directory;
-
-		/* Figure out the directory name from the key name */
-		slash = strrchr(directory, '/');
-#ifdef _WIN32
-		backslash = strrchr(directory, '\\');
-		if ((slash != NULL && backslash != NULL && backslash > slash) ||
-		    (slash == NULL && backslash != NULL))
-			slash = backslash;
-#endif
-		if (slash != NULL) {
-			*slash++ = '\0';
-			filename = slash;
-		} else {
-			isc_mem_free(mctx, directory);
-			/* strdup could be skipped (see above) */
-			directory = isc_mem_strdup(mctx, ".");
-			if (directory == NULL) {
-				fatal("Failed to memory allocation "
-				      "for directory");
-			}
-		}
-	} else
+	if (directory != NULL) {
 		filename = argv[isc_commandline_index];
+	} else {
+                isc_file_splitpath(mctx, argv[isc_commandline_index],
+				   &directory, &filename);
+	}
 
 	if (ectx == NULL)
 		setup_entropy(mctx, NULL, &ectx);
