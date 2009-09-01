@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app_api.c,v 1.3 2009/09/01 03:43:27 jinmei Exp $ */
+/* $Id: app_api.c,v 1.4 2009/09/01 08:12:33 jinmei Exp $ */
 
 #include <config.h>
 
@@ -108,7 +108,7 @@ void
 isc_app_ctxfinish(isc_appctx_t *ctx) {
 	REQUIRE(ISCAPI_APPCTX_VALID(ctx));
 
-	return (ctx->methods->ctxfinish(ctx));
+	ctx->methods->ctxfinish(ctx);
 }
 
 void

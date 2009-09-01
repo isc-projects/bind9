@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.90 2009/09/01 00:22:28 jinmei Exp $ */
+/* $Id: timer.c,v 1.91 2009/09/01 08:12:33 jinmei Exp $ */
 
 /*! \file */
 
@@ -133,7 +133,7 @@ ISC_TIMERFUNC_SCOPE isc_result_t
 isc__timer_reset(isc_timer_t *timer, isc_timertype_t type,
 		 isc_time_t *expires, isc_interval_t *interval,
 		 isc_boolean_t purge);
-ISC_TIMERFUNC_SCOPE isc_result_t
+ISC_TIMERFUNC_SCOPE isc_timertype_t
 isc__timer_gettype(isc_timer_t *timer);
 ISC_TIMERFUNC_SCOPE isc_result_t
 isc__timer_touch(isc_timer_t *timer);

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.320 2009/09/01 00:22:28 jinmei Exp $ */
+/* $Id: socket.c,v 1.321 2009/09/01 08:12:33 jinmei Exp $ */
 
 /*! \file */
 
@@ -501,7 +501,7 @@ isc__socket_sendto2(isc_socket_t *sock, isc_region_t *region,
 		    isc_socketevent_t *event, unsigned int flags);
 ISC_SOCKETFUNC_SCOPE void
 isc__socket_cleanunix(isc_sockaddr_t *sockaddr, isc_boolean_t active);
-ISC_SOCKETFUNC_SCOPE isc_boolean_t
+ISC_SOCKETFUNC_SCOPE isc_result_t
 isc__socket_permunix(isc_sockaddr_t *sockaddr, isc_uint32_t perm,
 		     isc_uint32_t owner, isc_uint32_t group);
 ISC_SOCKETFUNC_SCOPE isc_result_t
