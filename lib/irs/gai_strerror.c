@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gai_strerror.c,v 1.2 2009/09/01 00:22:27 jinmei Exp $ */
+/* $Id: gai_strerror.c,v 1.3 2009/09/01 03:43:27 jinmei Exp $ */
 
 /*! \file gai_strerror.c
  * gai_strerror() returns an error message corresponding to an
@@ -50,6 +50,8 @@
  *
  * strerror(), getaddrinfo(), getnameinfo(), RFC3493.
  */
+#include <config.h>
+
 #include <irs/netdb.h>
 
 /*% Text of error messages. */

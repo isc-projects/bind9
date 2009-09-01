@@ -14,7 +14,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task_api.c,v 1.2 2009/09/01 00:22:28 jinmei Exp $ */
+/* $Id: task_api.c,v 1.3 2009/09/01 03:43:27 jinmei Exp $ */
+
+#include <config.h>
 
 #include <unistd.h>
 

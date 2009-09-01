@@ -15,9 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnsconf.c,v 1.2 2009/09/01 00:22:28 jinmei Exp $ */
+/* $Id: dnsconf.c,v 1.3 2009/09/01 03:43:27 jinmei Exp $ */
 
 /*! \file */
+
+#include <config.h>
 
 #include <isccfg/cfg.h>
 #include <isccfg/grammar.h>

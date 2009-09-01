@@ -14,7 +14,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.2 2009/09/01 00:22:26 jinmei Exp $ */
+/* $Id: client.c,v 1.3 2009/09/01 03:43:27 jinmei Exp $ */
+
+#include <config.h>
 
 #include <isc/app.h>
 #include <isc/mem.h>
