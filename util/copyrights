@@ -1066,7 +1066,7 @@
 ./contrib/idn/idnkit-1.0-src/tools/idnconv/idnslookup.in	X	2003
 ./contrib/idn/idnkit-1.0-src/tools/idnconv/make.wnt	X	2003
 ./contrib/idn/idnkit-1.0-src/tools/idnconv/selectiveencode.c	X	2003
-./contrib/idn/idnkit-1.0-src/tools/idnconv/selectiveencode.h	X	2003
+./contrib/idn/idnkit-1.0-src/tools/idnconv/selectiveencode.h	X	2003,2009
 ./contrib/idn/idnkit-1.0-src/tools/idnconv/util.c	X	2003
 ./contrib/idn/idnkit-1.0-src/tools/idnconv/util.h	X	2003
 ./contrib/idn/idnkit-1.0-src/tools/make.wnt	X	2003
@@ -2392,12 +2392,12 @@
 ./lib/lwres/Makefile.in				MAKE	2000,2001,2004,2005
 ./lib/lwres/api					X	2000,2001,2005,2006,2007,2008,2009
 ./lib/lwres/assert_p.h				C	2000,2001,2004,2005
-./lib/lwres/context.c				C	2000,2001,2003,2004,2005,2007,2008
+./lib/lwres/context.c				C	2000,2001,2003,2004,2005,2007,2008,2009
 ./lib/lwres/context_p.h				C	2000,2001,2004,2005,2008
 ./lib/lwres/gai_strerror.c			C	2000,2001,2004,2005,2006
 ./lib/lwres/getaddrinfo.c			C.BSDI	1999,2000,2001,2004,2005,2006,2007,2008
 ./lib/lwres/gethost.c				C	2000,2001,2004,2005
-./lib/lwres/getipnode.c				C	1999,2000,2001,2002,2003,2004,2005,2007
+./lib/lwres/getipnode.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2009
 ./lib/lwres/getnameinfo.c			C.PORTION	1999,2000,2001,2003,2004,2005
 ./lib/lwres/getrrset.c				C	2000,2001,2002,2003,2004,2005
 ./lib/lwres/herror.c				C.PORTION	2000,2001,2003,2004,2005
