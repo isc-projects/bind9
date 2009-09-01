@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.135 2009/09/01 00:22:25 jinmei Exp $
+# $Id: Makefile.in,v 1.136 2009/09/01 18:40:25 jinmei Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -29,11 +29,13 @@ CWARNINGS =
 
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 ISCLIBS =	../../lib/isc/libisc.@A@ @DNS_CRYPTO_LIBS@
+ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@ @DNS_CRYPTO_LIBS@
 ISCCFGLIBS = 	../../lib/isccfg/libisccfg.@A@
 LWRESLIBS =	../../lib/lwres/liblwres.@A@
 
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
+ISCDEPNOSYMLIBS = ../../lib/isc/libisc-nosymtbl.@A@
 ISCCFGDEPLIBS = ../../lib/isccfg/libisccfg.@A@
 LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
 
@@ -52,6 +54,8 @@ TARGETS =	cfg_test@EXEEXT@
 # Alphabetically
 XTARGETS =	adb_test@EXEEXT@ \
 		byaddr_test@EXEEXT@ \
+		backtrace_test@EXEEXT@ \
+		backtrace_test_nosymtbl@EXEEXT@ \
 		byname_test@EXEEXT@ \
 		compress_test@EXEEXT@ \
 		db_test@EXEEXT@ \
@@ -91,6 +95,7 @@ SRCS =		cfg_test.c ${XSRCS}
 
 XSRCS =		adb_test.c \
 		byaddr_test.c \
+		backtrace_test.c \
 		byname_test.c \
 		compress_test.c \
 		db_test.c \
@@ -128,11 +133,40 @@ XSRCS =		adb_test.c \
 
 @BIND9_MAKE_RULES@
 
+# disable optimization for backtrace test to get the expected result	
+BTTEST_CFLAGS =	${EXT_CFLAGS} ${ALL_CPPFLAGS} -g ${ALWAYS_WARNINGS} \
+	${STD_CWARNINGS} ${CWARNINGS}
+
 all_tests: ${XTARGETS}
 
 adb_test@EXEEXT@: adb_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ adb_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
+
+backtrace_test_nosymtbl@EXEEXT@: backtrace_test.c ${ISCDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${BTTEST_CFLAGS} ${LDFLAGS} -o $@ \
+	backtrace_test.c ${ISCLIBS} ${LIBS}
+
+backtrace_test@EXEEXT@: backtrace_test_nosymtbl@EXEEXT@
+	#first step: create a first symbol table
+	rm -f symtbl.c
+	if test X${MKSYMTBL_PROGRAM} != X; then \
+	${MKSYMTBL_PROGRAM} ${top_srcdir}/util/mksymtbl.pl $<; else \
+	cp ${top_srcdir}/lib/isc/backtrace-emptytbl.c symtbl.c; fi
+	#second step: build a binary with the first symbol table
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${BTTEST_CFLAGS} ${LDFLAGS} \
+	-o $@0 backtrace_test.c symtbl.c \
+	${ISCNOSYMLIBS} ${LIBS}
+	rm -f symtbl.c
+	#third step: create a second symbol table
+	if test X${MKSYMTBL_PROGRAM} != X; then \
+	${MKSYMTBL_PROGRAM} ${top_srcdir}/util/mksymtbl.pl $@0; else \
+	cp ${top_srcdir}/lib/isc/backtrace-emptytbl.c symtbl.c; fi
+	#fourth step: build the final binary
+	rm -f $@0
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${BTTEST_CFLAGS} ${LDFLAGS} \
+	-o $@ backtrace_test.c symtbl.c ${ISCNOSYMLIBS} ${LIBS}
+	rm -f symtbl.c
 
 nsecify@EXEEXT@: nsecify.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ nsecify.@O@ \
@@ -280,6 +314,7 @@ distclean::
 clean distclean::
 	rm -f ${TARGETS} ${XTARGETS}
 	rm -f t_journal
+	rm -f backtrace_test_symtbl.c
 
 check: test
 

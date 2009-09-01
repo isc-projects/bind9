@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.42 2009/09/01 00:22:24 jinmei Exp $
+# $Id: Makefile.in,v 1.43 2009/09/01 18:40:25 jinmei Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -33,6 +33,7 @@ ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 BIND9LIBS =	../../lib/bind9/libbind9.@A@
 ISCLIBS =	../../lib/isc/libisc.@A@
+ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@
 LWRESLIBS =	../../lib/lwres/liblwres.@A@
 
 ISCCFGDEPLIBS =	../../lib/isccfg/libisccfg.@A@
@@ -45,6 +46,9 @@ DEPLIBS =	${DNSDEPLIBS} ${BIND9DEPLIBS} ${ISCDEPLIBS} ${ISCCFGDEPLIBS} \
 		${LWRESDEPLIBS}
 
 LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} ${ISCLIBS} \
+		${ISCCFGLIBS} @IDNLIBS@ @LIBS@
+
+NOSYMLIBS =	${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} ${ISCNOSYMLIBS} \
 		${ISCCFGLIBS} @IDNLIBS@ @LIBS@
 
 SUBDIRS =
@@ -66,16 +70,16 @@ MANOBJS =	${MANPAGES} ${HTMLPAGES}
 @BIND9_MAKE_RULES@
 
 dig@EXEEXT@: dig.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-	dig.@O@ dighost.@O@ ${UOBJS} ${LIBS}
+	export BASEOBJS="dig.@O@ dighost.@O@ ${UOBJS}"; \
+	${FINALBUILDCMD}
 
 host@EXEEXT@: host.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-	host.@O@ dighost.@O@ ${UOBJS} ${LIBS}
+	export BASEOBJS="host.@O@ dighost.@O@ ${UOBJS}"; \
+	${FINALBUILDCMD}
 
 nslookup@EXEEXT@: nslookup.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-	nslookup.@O@ dighost.@O@ ${UOBJS} ${LIBS}
+	export BASEOBJS="nslookup.@O@ dighost.@O@ ${UOBJS}"; \
+	${FINALBUILDCMD}
 
 doc man:: ${MANOBJS}
 

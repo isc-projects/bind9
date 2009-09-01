@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.172 2009/05/07 09:33:52 fdupont Exp $ */
+/* $Id: main.c,v 1.173 2009/09/01 18:40:25 jinmei Exp $ */
 
 /*! \file */
 
@@ -26,6 +26,7 @@
 #include <string.h>
 
 #include <isc/app.h>
+#include <isc/backtrace.h>
 #include <isc/commandline.h>
 #include <isc/dir.h>
 #include <isc/entropy.h>
@@ -81,6 +82,13 @@
 #include <dlz/dlz_drivers.h>
 #endif
 
+/*
+ * The maximum number of stack frames to dump on assertion failure.
+ */
+#ifndef BACKTRACE_MAXFRAME
+#define BACKTRACE_MAXFRAME 128
+#endif
+
 static isc_boolean_t	want_stats = ISC_FALSE;
 static char		program_name[ISC_DIR_NAMEMAX] = "named";
 static char		absolute_conffile[ISC_DIR_PATHMAX];
@@ -134,6 +142,12 @@ static void
 assertion_failed(const char *file, int line, isc_assertiontype_t type,
 		 const char *cond)
 {
+	void *tracebuf[BACKTRACE_MAXFRAME];
+	int i, nframes;
+	isc_result_t result;
+	const char *logsuffix = "";
+	const char *fname;
+
 	/*
 	 * Handle assertion failures.
 	 */
@@ -145,10 +159,40 @@ assertion_failed(const char *file, int line, isc_assertiontype_t type,
 		 */
 		isc_assertion_setcallback(NULL);
 
+		result = isc_backtrace_gettrace(tracebuf, BACKTRACE_MAXFRAME,
+						&nframes);
+		if (result == ISC_R_SUCCESS && nframes > 0)
+			logsuffix = ", back trace";
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
-			      "%s:%d: %s(%s) failed", file, line,
-			      isc_assertion_typetotext(type), cond);
+			      "%s:%d: %s(%s) failed%s", file, line,
+			      isc_assertion_typetotext(type), cond, logsuffix);
+		if (result == ISC_R_SUCCESS) {
+			for (i = 0; i < nframes; i++) {
+				unsigned long offset;
+
+				fname = NULL;
+				result = isc_backtrace_getsymbol(tracebuf[i],
+								 &fname,
+								 &offset);
+				if (result == ISC_R_SUCCESS) {
+					isc_log_write(ns_g_lctx,
+						      NS_LOGCATEGORY_GENERAL,
+						      NS_LOGMODULE_MAIN,
+						      ISC_LOG_CRITICAL,
+						      "#%d %p in %s()+0x%lx", i,
+						      tracebuf[i], fname,
+						      offset);
+				} else {
+					isc_log_write(ns_g_lctx,
+						      NS_LOGCATEGORY_GENERAL,
+						      NS_LOGMODULE_MAIN,
+						      ISC_LOG_CRITICAL,
+						      "#%d %p in ??", i,
+						      tracebuf[i]);
+				}
+			}
+		}
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
 			      "exiting (due to assertion failure)");
@@ -585,6 +629,34 @@ destroy_managers(void) {
 }
 
 static void
+dump_symboltable() {
+	int i;
+	isc_result_t result;
+	const char *fname;
+	const void *addr;
+
+	if (isc__backtrace_nsymbols == 0)
+		return;
+
+	if (!isc_log_wouldlog(ns_g_lctx, ISC_LOG_DEBUG(99)))
+		return;
+
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
+		      ISC_LOG_DEBUG(99), "Symbol table:");
+
+	for (i = 0, result = ISC_R_SUCCESS; result == ISC_R_SUCCESS; i++) {
+		addr = NULL;
+		fname = NULL;
+		result = isc_backtrace_getsymbolfromindex(i, &addr, &fname);
+		if (result == ISC_R_SUCCESS) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_MAIN, ISC_LOG_DEBUG(99),
+				      "[%d] %p %s", i, addr, fname);
+		}
+	}
+}
+
+static void
 setup(void) {
 	isc_result_t result;
 	isc_resourcevalue_t old_openfiles;
@@ -690,6 +762,8 @@ setup(void) {
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "built with %s", ns_g_configargs);
+
+	dump_symboltable();
 
 	/*
 	 * Get the initial resource limits.
@@ -901,6 +975,9 @@ main(int argc, char *argv[]) {
 
 	if (strcmp(program_name, "lwresd") == 0)
 		ns_g_lwresdonly = ISC_TRUE;
+
+	if (result != ISC_R_SUCCESS)
+		ns_main_earlyfatal("failed to build internal symbol table");
 
 	isc_assertion_setcallback(assertion_failed);
 	isc_error_setfatal(library_fatal_error);

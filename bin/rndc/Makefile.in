@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.47 2009/09/01 00:22:25 jinmei Exp $
+# $Id: Makefile.in,v 1.48 2009/09/01 18:40:25 jinmei Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -32,6 +32,7 @@ CWARNINGS =
 ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCCCLIBS =	../../lib/isccc/libisccc.@A@
 ISCLIBS =	../../lib/isc/libisc.@A@
+ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 BIND9LIBS =	../../lib/bind9/libbind9.@A@
 
@@ -41,10 +42,11 @@ ISCDEPLIBS =	../../lib/isc/libisc.@A@
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
 BIND9DEPLIBS =	../../lib/bind9/libbind9.@A@
 
-RNDCLIBS =	${ISCCFGLIBS} ${ISCCCLIBS} ${BIND9LIBS} ${DNSLIBS} ${ISCLIBS} @LIBS@
+LIBS =		${ISCLIBS} @LIBS@
+NOSYMLIBS =	${ISCNOSYMLIBS} @LIBS@
+
 RNDCDEPLIBS =	${ISCCFGDEPLIBS} ${ISCCCDEPLIBS} ${BIND9DEPLIBS} ${DNSDEPLIBS} ${ISCDEPLIBS}
 
-CONFLIBS =	${DNSLIBS} ${ISCLIBS} @LIBS@
 CONFDEPLIBS =	${DNSDEPLIBS} ${ISCDEPLIBS}
 
 SRCS=		rndc.c
@@ -67,8 +69,9 @@ rndc.@O@: rndc.c
 		-c ${srcdir}/rndc.c
 
 rndc@EXEEXT@: rndc.@O@ util.@O@ ${RNDCDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ rndc.@O@ util.@O@ \
-		${RNDCLIBS}
+	export BASEOBJS="rndc.@O@ util.@O@"; \
+	export LIBS0="${ISCCFGLIBS} ${ISCCCLIBS} ${BIND9LIBS} ${DNSLIBS}"; \
+	${FINALBUILDCMD}
 
 doc man:: ${MANOBJS}
 

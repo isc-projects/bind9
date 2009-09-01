@@ -1,3 +1,6 @@
+2667.	[func]		Add support for logging stack backtrace on assertion
+			failure (not available for all platforms). [RT #19780]
+
 2666.	[func]		Added an 'options' argument to dns_name_fromstring()
 			(API change from 9.7.0a2). [RT #20196]
 

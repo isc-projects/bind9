@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.33 2009/09/01 00:22:25 jinmei Exp $
+# $Id: Makefile.in,v 1.34 2009/09/01 18:40:25 jinmei Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -33,6 +33,7 @@ LWRESLIBS =	../../lib/lwres/liblwres.@A@
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 BIND9LIBS =	../../lib/bind9/libbind9.@A@
 ISCLIBS =	../../lib/isc/libisc.@A@
+ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@
 ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@
 
 LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
@@ -44,6 +45,8 @@ ISCCFGDEPLIBS =	../../lib/isccfg/libisccfg.@A@
 DEPLIBS =	${DNSDEPLIBS} ${BIND9DEPLIBS} ${ISCDEPLIBS} ${ISCCFGDEPLIBS}
 
 LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} ${ISCCFGLIBS} ${ISCLIBS} @LIBS@
+
+NOSYMLIBS =	${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} ${ISCNOSYMLIBS} ${ISCCFGLIBS} @LIBS@
 
 SUBDIRS =
 
@@ -69,7 +72,8 @@ nsupdate.@O@: nsupdate.c
 		-c ${srcdir}/nsupdate.c
 
 nsupdate@EXEEXT@: nsupdate.@O@ ${UOBJS} ${DEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ nsupdate.@O@ ${UOBJS} ${LIBS}
+	export BASEOBJS="nsupdate.@O@ ${UOBJS}"; \
+	${FINALBUILDCMD}
 
 doc man:: ${MANOBJS}
 

@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.8 2009/09/01 00:22:26 jinmei Exp $
+# $Id: Makefile.in,v 1.9 2009/09/01 18:40:25 jinmei Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -28,6 +28,7 @@ CWARNINGS =
 
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 ISCLIBS =	../../lib/isc/libisc.@A@ @DNS_CRYPTO_LIBS@
+ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@
 ISCCFGLIBS = 	../../lib/isccfg/libisccfg.@A@
 LWRESLIBS =	../../lib/lwres/liblwres.@A@
 
@@ -36,7 +37,8 @@ ISCDEPLIBS =	../../lib/isc/libisc.@A@
 ISCCFGDEPLIBS = ../../lib/isccfg/libisccfg.@A@
 LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
 
-LIBS =		@LIBS@
+LIBS =		${ISCLIBS} @LIBS@
+NOSYMLIBS =	${ISCNOSYMLIBS} @LIBS@
 
 SUBDIRS = 
 
@@ -53,13 +55,16 @@ MANOBJS =	${MANPAGES} ${HTMLPAGES}
 arpaname@EXEEXT@: arpaname.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ arpaname.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
+
 journalprint@EXEEXT@: journalprint.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ journalprint.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${LIBS}
+	export BASEOBJS="journalprint.@O@"; \
+	export LIBS0="${DNSLIBS}"; \
+	${FINALBUILDCMD}
 
 nsec3hash@EXEEXT@: nsec3hash.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ nsec3hash.@O@ \
-	${DNSLIBS} ${ISCLIBS} ${LIBS}
+	export BASEOBJS="nsec3hash.@O@"; \
+	export LIBS0="${DNSLIBS}"; \
+	${FINALBUILDCMD}
 
 genrandom@EXEEXT@: genrandom.@O@
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ genrandom.@O@ @GENRANDOMLIB@ ${LIBS}
