@@ -14,7 +14,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: backtrace_test.c,v 1.2 2009/09/01 18:40:25 jinmei Exp $ */
+/* $Id: backtrace_test.c,v 1.3 2009/09/01 20:13:43 each Exp $ */
+
+#include <config.h>
 
 #include <stdio.h>
 #include <string.h>

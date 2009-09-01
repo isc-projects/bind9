@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: backtrace-emptytbl.c,v 1.2 2009/09/01 18:40:25 jinmei Exp $ */
+/* $Id: backtrace-emptytbl.c,v 1.3 2009/09/01 20:13:44 each Exp $ */
 
 /*! \file */
 
@@ -25,6 +25,8 @@
  * version of the library not including this definition
  * (e.g. libisc-nosymbol.a).
  */
+
+#include <config.h>
 
 #include <isc/backtrace.h>
 
