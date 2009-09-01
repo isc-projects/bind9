@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.136 2009/09/01 18:40:25 jinmei Exp $
+# $Id: Makefile.in,v 1.137 2009/09/01 22:30:28 jinmei Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -151,7 +151,8 @@ backtrace_test@EXEEXT@: backtrace_test_nosymtbl@EXEEXT@
 	#first step: create a first symbol table
 	rm -f symtbl.c
 	if test X${MKSYMTBL_PROGRAM} != X; then \
-	${MKSYMTBL_PROGRAM} ${top_srcdir}/util/mksymtbl.pl $<; else \
+	${MKSYMTBL_PROGRAM} ${top_srcdir}/util/mksymtbl.pl \
+	backtrace_test_nosymtbl@EXEEXT@; else \
 	cp ${top_srcdir}/lib/isc/backtrace-emptytbl.c symtbl.c; fi
 	#second step: build a binary with the first symbol table
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${BTTEST_CFLAGS} ${LDFLAGS} \
