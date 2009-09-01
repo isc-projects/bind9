@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getipnode.c,v 1.42.332.4 2009/09/01 06:03:11 each Exp $ */
+/* $Id: getipnode.c,v 1.42.332.5 2009/09/01 23:47:05 tbox Exp $ */
 
 /*! \file */
 
@@ -289,7 +289,7 @@ lwres_getipnodebyname(const char *name, int af, int flags, int *error_num) {
 			else {
 				*error_num = NO_RECOVERY;
 				goto cleanup;
-        		}
+			}
 		}
 	}
 
@@ -315,7 +315,7 @@ lwres_getipnodebyname(const char *name, int af, int flags, int *error_num) {
 	} else
 		*error_num = tmp_err;
 
-        he3 = copyandmerge(he1, he2, af, error_num);
+	he3 = copyandmerge(he1, he2, af, error_num);
 
  cleanup:
 	if (he1 != NULL)
