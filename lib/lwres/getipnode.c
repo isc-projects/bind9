@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getipnode.c,v 1.42.332.3 2009/08/15 23:47:15 tbox Exp $ */
+/* $Id: getipnode.c,v 1.42.332.4 2009/09/01 06:03:11 each Exp $ */
 
 /*! \file */
 
@@ -202,7 +202,7 @@ lwres_getipnodebyname(const char *name, int af, int flags, int *error_num) {
 	struct in6_addr in6;
 	struct hostent he, *he1 = NULL, *he2 = NULL, *he3 = NULL;
 	int v4 = 0, v6 = 0;
-	int tmp_err;
+	int tmp_err = 0;
 	lwres_context_t *lwrctx = NULL;
 	lwres_gabnresponse_t *by = NULL;
 	int n;
@@ -275,7 +275,6 @@ lwres_getipnodebyname(const char *name, int af, int flags, int *error_num) {
 	(void) lwres_conf_parse(lwrctx, lwres_resolv_conf);
 	tmp_err = NO_RECOVERY;
 	if (have_v6 && af == AF_INET6) {
-
 		n = lwres_getaddrsbyname(lwrctx, name, LWRES_ADDRTYPE_V6, &by);
 		if (n == 0) {
 			he1 = hostfromname(by, AF_INET6);
@@ -285,7 +284,12 @@ lwres_getipnodebyname(const char *name, int af, int flags, int *error_num) {
 				goto cleanup;
 			}
 		} else {
-			tmp_err = HOST_NOT_FOUND;
+			if (n == LWRES_R_NOTFOUND)
+				tmp_err = HOST_NOT_FOUND;
+			else {
+				*error_num = NO_RECOVERY;
+				goto cleanup;
+        		}
 		}
 	}
 
@@ -311,7 +315,7 @@ lwres_getipnodebyname(const char *name, int af, int flags, int *error_num) {
 	} else
 		*error_num = tmp_err;
 
-	he3 = copyandmerge(he1, he2, af, error_num);
+        he3 = copyandmerge(he1, he2, af, error_num);
 
  cleanup:
 	if (he1 != NULL)
@@ -437,9 +441,15 @@ lwres_getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 	if (n != 0) {
 		lwres_conf_clear(lwrctx);
 		lwres_context_destroy(&lwrctx);
-		*error_num = HOST_NOT_FOUND;
+
+		if (n == LWRES_R_NOTFOUND)
+		       *error_num = HOST_NOT_FOUND;
+		else
+		       *error_num = NO_RECOVERY;
+
 		return (NULL);
 	}
+
 	he1 = hostfromaddr(by, AF_INET6, src);
 	lwres_gnbaresponse_free(lwrctx, &by);
 	if (he1 == NULL)

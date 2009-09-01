@@ -1,3 +1,10 @@
+2662.	[bug]		lwres_getipnodebyname() and lwres_getipnodebyaddr() 
+			returned a misleading error code when lwresd was
+			down. [RT #20028]
+
+2661.	[bug]		Check whether socket fd exceeds FD_SETSIZE when
+			creating lwres context. [RT #20029]
+
 2656.	[func]		win32: add a "tools only" check box to the installer
 			which causes it to only install dig, host, nslookup,
 			nsupdate and relevent dlls.  [RT #19998]

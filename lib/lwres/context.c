@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: context.c,v 1.50.332.2 2008/12/30 23:46:49 tbox Exp $ */
+/* $Id: context.c,v 1.50.332.3 2009/09/01 06:03:11 each Exp $ */
 
 /*! \file context.c
    lwres_context_create() creates a #lwres_context_t structure for use in
@@ -471,6 +471,17 @@ lwres_context_sendrecv(lwres_context_t *ctx,
 	result = lwres_context_send(ctx, sendbase, sendlen);
 	if (result != LWRES_R_SUCCESS)
 		return (result);
+	
+	/*
+	 * If this is not checked, select() can overflow,
+	 * causing corruption elsewhere.
+	 */
+	if (ctx->sock >= FD_SETSIZE) {
+		close(ctx->sock);
+		ctx->sock = -1;
+		return (LWRES_R_IOERROR);
+	}
+
  again:
 	FD_ZERO(&readfds);
 	FD_SET(ctx->sock, &readfds);
