@@ -48,20 +48,35 @@ To configure a validating resolver to use RFC5011 to maintain a trust
 anchor, configure the trust anchor using a "managed-keys" statement
 instead of a "trusted-keys" statement.
 
-The syntax for "managed-keys" is identical to that for "trusted-keys".
-However, whereas a trusted key is trusted permanently until it is removed
-from named.conf, a managed key is only trusted for as long as it takes to
-initialize RFC5011 key maintenance.
+A "managed-keys" statement contains a list of keys to be maintained,
+with information on how they are to be initialized the first time.  The
+only initialization method supported in BIND 9.7.0 is "initial-key".
+This means the "managed-keys" statement itself will contain a copy of
+the initializing key.  In future releases, keys may be initialized by
+other methods, removing the need to incorporate a copy of an intializing
+key in named.conf.
 
-When named loads for the first time with a managed key configured, it
-will fetch the DNSKEY RRset directly from the zone apex and check its
-signature against the key specified in the "managed-keys" statement.
-If it is validly signed, then the DNSKEY RRset is used as the basis for a
-new managed keys database.
+Example:
 
-From that point on, when named loads, it will see the "managed-keys"
-statement, check to make sure RFC5011 key maintenance has already been
-initialized for the specified zone, and if so, it will simply move on.
+managed-keys {
+	sample.domain. initial-key 257 3 5 "BEAAAAPHMu ...";
+};
+
+At first glance this is very similar to a "trusted-keys" statement,
+differing only in the presence of the second field, "initial-key".
+However, whereas a trusted key is trusted permanently until it is
+removed from named.conf, this key would only be trusted once, for
+as long as it takes to initialize RFC5011 key maintenance.
+
+The first time named runs with a managed key configured in named.conf,
+it fetches the DNSKEY RRset directly from the zone apex, and validates
+it using the key specified in the "managed-keys" statement, as above.
+If the DNSKEY RRset is validly signed, then it is used as the basis for
+a new managed keys database.
+
+From that point on, whenever named loads, it sees the "managed-keys"
+statement, checks to make sure RFC5011 key maintenance has already been
+initialized for the specified zone, and if so, it simply moves on.
 No action will be taken unless a key is *removed* from the "managed-keys"
 statement--in which case that zone is removed from the managed keys
 database as well, and RFC5011 key maintenance will no longer be used.

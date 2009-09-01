@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.425 2009/08/25 02:56:03 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.426 2009/09/01 07:14:25 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -2486,7 +2486,8 @@ allow-update { key host1-host2. ;};
 	  <command>dnssec-validation</command> options must both be
           set to yes (the default setting in <acronym>BIND</acronym> 9.5
           and later), and at least one trust anchor must be configured
-          with a <command>trusted-keys</command> statement in
+          with a <command>trusted-keys</command> or
+          <command>managed-keys</command> statement in
           <filename>named.conf</filename>.
         </para>
 	  
@@ -2500,7 +2501,14 @@ allow-update { key host1-host2. ;};
 	</para>
 
 	<para>
-	  <command>trusted-keys</command> are described in more detail
+	  <command>managed-keys</command> are trusted keys which are
+          automatically kept up to date via RFC 5011 trust anchor
+          maintenance.
+	</para>
+
+	<para>
+	  <command>trusted-keys</command> and
+          <command>managed-keys</command> are described in more detail
 	  later in this document.
 	</para>
 
@@ -2517,54 +2525,55 @@ allow-update { key host1-host2. ;};
 	  more public keys for the root.  This allows answers from
 	  outside the organization to be validated.  It will also
 	  have several keys for parts of the namespace the organization
-	  controls.  These are here to ensure that <command>named</command> is immune
-	  to compromises in the DNSSEC components of the security
-	  of parent zones.
+          controls.  These are here to ensure that <command>named</command>
+          is immune to compromises in the DNSSEC components of the security
+          of parent zones.
 	</para>
 
 <programlisting>
-trusted-keys {
-
+managed-keys {
 	/* Root Key */
-"." 257 3 3 "BNY4wrWM1nCfJ+CXd0rVXyYmobt7sEEfK3clRbGaTwS
-             JxrGkxJWoZu6I7PzJu/E9gx4UC1zGAHlXKdE4zYIpRh
-             aBKnvcC2U9mZhkdUpd1Vso/HAdjNe8LmMlnzY3zy2Xy
-             4klWOADTPzSv9eamj8V18PHGjBLaVtYvk/ln5ZApjYg
-             hf+6fElrmLkdaz MQ2OCnACR817DF4BBa7UR/beDHyp
-             5iWTXWSi6XmoJLbG9Scqc7l70KDqlvXR3M/lUUVRbke
-             g1IPJSidmK3ZyCllh4XSKbje/45SKucHgnwU5jefMtq
-             66gKodQj+MiA21AfUVe7u99WzTLzY3qlxDhxYQQ20FQ
-             97S+LKUTpQcq27R7AT3/V5hRQxScINqwcz4jYqZD2fQ
-             dgxbcDTClU0CRBdiieyLMNzXG3";
+        "." initial-key 257 3 3 "BNY4wrWM1nCfJ+CXd0rVXyYmobt7sEEfK3clRbGaTwS
+                                 JxrGkxJWoZu6I7PzJu/E9gx4UC1zGAHlXKdE4zYIpRh
+                                 aBKnvcC2U9mZhkdUpd1Vso/HAdjNe8LmMlnzY3zy2Xy
+                                 4klWOADTPzSv9eamj8V18PHGjBLaVtYvk/ln5ZApjYg
+                                 hf+6fElrmLkdaz MQ2OCnACR817DF4BBa7UR/beDHyp
+                                 5iWTXWSi6XmoJLbG9Scqc7l70KDqlvXR3M/lUUVRbke
+                                 g1IPJSidmK3ZyCllh4XSKbje/45SKucHgnwU5jefMtq
+                                 66gKodQj+MiA21AfUVe7u99WzTLzY3qlxDhxYQQ20FQ
+                                 97S+LKUTpQcq27R7AT3/V5hRQxScINqwcz4jYqZD2fQ
+                                 dgxbcDTClU0CRBdiieyLMNzXG3";
+};
 
-/* Key for our organization's forward zone */
-example.com. 257 3 5 "AwEAAaxPMcR2x0HbQV4WeZB6oEDX+r0QM6
-                      5KbhTjrW1ZaARmPhEZZe3Y9ifgEuq7vZ/z
-                      GZUdEGNWy+JZzus0lUptwgjGwhUS1558Hb
-                      4JKUbbOTcM8pwXlj0EiX3oDFVmjHO444gL
-                      kBOUKUf/mC7HvfwYH/Be22GnClrinKJp1O
-                      g4ywzO9WglMk7jbfW33gUKvirTHr25GL7S
-                      TQUzBb5Usxt8lgnyTUHs1t3JwCY5hKZ6Cq
-                      FxmAVZP20igTixin/1LcrgX/KMEGd/biuv
-                      F4qJCyduieHukuY3H4XMAcR+xia2nIUPvm
-                      /oyWR8BW/hWdzOvnSCThlHf3xiYleDbt/o
-                      1OTQ09A0=";
+trusted-keys {
+        /* Key for our organization's forward zone */
+        example.com. 257 3 5 "AwEAAaxPMcR2x0HbQV4WeZB6oEDX+r0QM6
+                              5KbhTjrW1ZaARmPhEZZe3Y9ifgEuq7vZ/z
+                              GZUdEGNWy+JZzus0lUptwgjGwhUS1558Hb
+                              4JKUbbOTcM8pwXlj0EiX3oDFVmjHO444gL
+                              kBOUKUf/mC7HvfwYH/Be22GnClrinKJp1O
+                              g4ywzO9WglMk7jbfW33gUKvirTHr25GL7S
+                              TQUzBb5Usxt8lgnyTUHs1t3JwCY5hKZ6Cq
+                              FxmAVZP20igTixin/1LcrgX/KMEGd/biuv
+                              F4qJCyduieHukuY3H4XMAcR+xia2nIUPvm
+                              /oyWR8BW/hWdzOvnSCThlHf3xiYleDbt/o
+                              1OTQ09A0=";
 
-/* Key for our reverse zone. */
-2.0.192.IN-ADDRPA.NET. 257 3 5 "AQOnS4xn/IgOUpBPJ3bogzwc
-                               xOdNax071L18QqZnQQQAVVr+i
-                               LhGTnNGp3HoWQLUIzKrJVZ3zg
-                               gy3WwNT6kZo6c0tszYqbtvchm
-                               gQC8CzKojM/W16i6MG/eafGU3
-                               siaOdS0yOI6BgPsw+YZdzlYMa
-                               IJGf4M4dyoKIhzdZyQ2bYQrjy
-                               Q4LB0lC7aOnsMyYKHHYeRvPxj
-                               IQXmdqgOJGq+vsevG06zW+1xg
-                               YJh9rCIfnm1GX/KMgxLPG2vXT
-                               D/RnLX+D3T3UL7HJYHJhAZD5L
-                               59VvjSPsZJHeDCUyWYrvPZesZ
-                               DIRvhDD52SKvbheeTJUm6Ehkz
-                               ytNN2SN96QRk8j/iI8ib";
+        /* Key for our reverse zone. */
+        2.0.192.IN-ADDRPA.NET. 257 3 5 "AQOnS4xn/IgOUpBPJ3bogzwc
+                                       xOdNax071L18QqZnQQQAVVr+i
+                                       LhGTnNGp3HoWQLUIzKrJVZ3zg
+                                       gy3WwNT6kZo6c0tszYqbtvchm
+                                       gQC8CzKojM/W16i6MG/eafGU3
+                                       siaOdS0yOI6BgPsw+YZdzlYMa
+                                       IJGf4M4dyoKIhzdZyQ2bYQrjy
+                                       Q4LB0lC7aOnsMyYKHHYeRvPxj
+                                       IQXmdqgOJGq+vsevG06zW+1xg
+                                       YJh9rCIfnm1GX/KMgxLPG2vXT
+                                       D/RnLX+D3T3UL7HJYHJhAZD5L
+                                       59VvjSPsZJHeDCUyWYrvPZesZ
+                                       DIRvhDD52SKvbheeTJUm6Ehkz
+                                       ytNN2SN96QRk8j/iI8ib";
 };
 
 options {
@@ -3491,6 +3500,17 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
               <entry colname="2">
                 <para>
                   defines trusted DNSSEC keys.
+                </para>
+              </entry>
+            </row>
+            <row rowsep="0">
+              <entry colname="1">
+                <para><command>managed-keys</command></para>
+              </entry>
+              <entry colname="2">
+                <para>
+                  lists DNSSEC keys to be kept up to date
+                  using RFC 5011 trust anchor maintenance.
                 </para>
               </entry>
             </row>
@@ -5495,7 +5515,8 @@ options {
                 they are secure.  If <userinput>no</userinput>, then normal
                 DNSSEC validation applies allowing for insecure answers to
                 be accepted.  The specified domain must be under a
-                <command>trusted-key</command> or
+                <command>trusted-keys</command> or
+                <command>managed-keys</command> statement, or
                 <command>dnssec-lookaside</command> must be active.
               </para>
             </listitem>
@@ -9017,11 +9038,112 @@ deny-answer-aliases { "example.net"; };
 	    level are inherited by all views, but keys defined in a view
 	    are only used within that view.
 	  </para>
+	</sect2>
+
+        <sect2>
+          <title><command>managed-keys</command> Statement Grammar</title>
+
+<programlisting><command>managed-keys</command> {
+    <replaceable>string</replaceable> initial-key <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>string</replaceable> ;
+    <optional> <replaceable>string</replaceable> initial-key <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>string</replaceable> ; <optional>...</optional></optional>
+};
+</programlisting>
+
+        </sect2>
+	<sect2>
+	  <title><command>managed-keys</command> Statement Definition
+	    and Usage</title>
 	  <para>
-	    In addition to keys specified in
-	    <command>trusted-keys</command> statements, if the
-	    <command>dnssec-lookaside</command> option is set to "auto",
-	    named will also load a built-in trusted key for dlv.isc.org.
+	    The <command>managed-keys</command> statement, like 
+            <command>trusted-keys</command>, defines DNSSEC
+            security roots.  The difference is that
+            <command>managed-keys</command> can be kept up to date
+            automatically, without intervention from the resolver
+            operator.
+	  </para>
+	  <para>
+            Suppose, for example, that a zone's key-signing
+            key was compromised, and the zone owner had to revoke and
+            replace the key.  A resolver which had the old key in a
+            <command>trusted-keys</command> statement would be
+            unable to validate this zone any longer; it would
+            reply with a SERVFAIL response code.  This would
+            continue until the resolver operator had updated the
+            <command>trusted-keys</command> statement with the new key.
+	  </para>
+	  <para>
+            If, however, the zone were listed in a
+            <command>managed-keys</command> statement instead, then the
+            zone owner could add a "stand-by" key to the zone in advance.
+            <command>named</command> would store the stand-by key, and
+            when the original key was revoked, <command>named</command>
+            would be able to transition smoothly to the new key.  It would
+            also recognize that the old key had been revoked, and cease
+            using that key to validate answers, minimizing the damage that
+            the compromised key could do.
+	  </para>
+          <para>
+            A <command>managed-keys</command> statement contains a list of
+            the keys to be managed, along with information about how the
+            keys are to be initialized for the first time.  The only
+            initialization method currently supported (as of
+            <acronym>BIND</acronym> 9.7.0) is <literal>initial-key</literal>.
+            This means the <command>managed-keys</command> statement must
+            contain a copy of the initializing key.  (Future releases may
+            allow keys to be initialized by other methods, eliminating this
+            requirement.)
+	  </para>
+          <para>
+            Consequently, a <command>managed-keys</command> statement
+            appears similar to a <command>trusted-keys</command>, differing
+            in the presence of the second field, containing the keyword
+            <literal>initial-key</literal>.  The difference is, whereas the
+            keys listed in a <command>trusted-keys</command> continue to be
+            trusted until they are removed from
+            <filename>named.conf</filename>, an initializing key listed 
+            in a <command>managed-keys</command> statement is only trusted
+            <emphasis>once</emphasis>: for as long as it takes to load the
+            managed key database and start the RFC 5011 key maintenance
+            process.
+	  </para>
+          <para>
+            The first time <command>named</command> runs with a managed key
+            configured in <filename>named.conf</filename>, it fetches the
+            DNSKEY RRset directly from the zone apex, and validates it
+            using the key specified in the <command>managed-keys</command>
+            statement.  If the DNSKEY RRset is validly signed, then it is
+            used as the basis for a new managed keys database.
+	  </para>
+          <para>
+            From that point on, whenever <command>named</command> runs, it
+            sees the <command>managed-keys</command> statement, checks to
+            make sure RFC 5011 key maintenance has already been initialized
+            for the specified domain, and if so, it simply moves on.  The
+            key specified in the <command>managed-keys</command> is not
+            used to validate answers; it has been superseded by the key or
+            keys stored in the managed keys database.
+          </para>
+          <para>
+            The first name <command>named</command> runs after a name
+            has been <emphasis>removed</emphasis> from the
+            <command>managed-keys<command> statement, the corresponding
+            zone will be removed from the managed keys database,
+            and RFC 5011 key maintenance will no longer be used for that
+            domain.
+	  </para>
+	  <para>
+	    <command>named</command> only maintains a single managed keys
+            database; consequently, unlike <command>trusted-keys</command>,
+            <command>managed-keys</command> may only be set at the top
+            level of <filename>named.conf</filename>, not within a view.
+	  </para>
+	  <para>
+	    If the <command>dnssec-lookaside</command> option is set to
+            "auto", <command>named</command> will automatically initialize
+            a managed key for the zone <literal>dlv.isc.org</literal>.  The
+            key that is used to initialize the key maintenance process is
+            built into <command>named</command>, and can be overridden
+            from <command>bindkeys-file</command>.
 	  </para>
 	</sect2>
 

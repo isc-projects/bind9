@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.103 2009/07/29 17:52:00 each Exp $ */
+/* $Id: namedconf.c,v 1.104 2009/09/01 07:14:26 each Exp $ */
 
 /*! \file */
 
@@ -428,7 +428,7 @@ static cfg_type_t cfg_type_category = {
 
 
 /*%
- * A dnssec key, as used in the "trusted-keys" or "managed-keys" statement.
+ * A dnssec key, as used in the "trusted-keys" statement.
  */
 static cfg_tuplefielddef_t dnsseckey_fields[] = {
 	{ "name", &cfg_type_astring, 0 },
@@ -441,6 +441,24 @@ static cfg_tuplefielddef_t dnsseckey_fields[] = {
 static cfg_type_t cfg_type_dnsseckey = {
 	"dnsseckey", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
 	&cfg_rep_tuple, dnsseckey_fields
+};
+
+/*%
+ * A managed key initialization specifier, as used in the
+ * "managed-keys" statement.
+ */
+static cfg_tuplefielddef_t managedkey_fields[] = {
+	{ "name", &cfg_type_astring, 0 },
+	{ "init", &cfg_type_ustring, 0 },   /* must be literal "initial-key" */
+	{ "flags", &cfg_type_uint32, 0 },
+	{ "protocol", &cfg_type_uint32, 0 },
+	{ "algorithm", &cfg_type_uint32, 0 },
+	{ "key", &cfg_type_qstring, 0 },
+	{ NULL, NULL, 0 }
+};
+static cfg_type_t cfg_type_managedkey = {
+	"managedkey", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	&cfg_rep_tuple, managedkey_fields
 };
 
 static keyword_type_t wild_class_kw = { "class", &cfg_type_ustring };
@@ -530,10 +548,23 @@ static cfg_type_t cfg_type_keylist = {
 	cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_astring
 };
 
-/*% A list of dnssec keys, as in "trusted-keys" and "managed-keys" stanzas */
+/*% A list of dnssec keys, as in "trusted-keys" */
 static cfg_type_t cfg_type_dnsseckeys = {
 	"dnsseckeys", cfg_parse_bracketed_list, cfg_print_bracketed_list,
 	cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_dnsseckey
+};
+
+/*%
+ * A list of managed key entries, as in "trusted-keys".  Currently
+ * (9.7.0) this has a format similar to dnssec keys, except the keyname
+ * is followed by the keyword "initial-key".  In future releases, this
+ * keyword may take other values indicating different methods for the
+ * key to be initialized.
+ */
+
+static cfg_type_t cfg_type_managedkeys = {
+	"managedkeys", cfg_parse_bracketed_list, cfg_print_bracketed_list,
+	cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_managedkey
 };
 
 static const char *forwardtype_enums[] = { "first", "only", NULL };
@@ -762,7 +793,7 @@ namedconf_or_view_clauses[] = {
 	{ "dlz", &cfg_type_dynamically_loadable_zones, 0 },
 	{ "server", &cfg_type_server, CFG_CLAUSEFLAG_MULTI },
 	{ "trusted-keys", &cfg_type_dnsseckeys, CFG_CLAUSEFLAG_MULTI },
-	{ "managed-keys", &cfg_type_dnsseckeys, CFG_CLAUSEFLAG_MULTI },
+	{ "managed-keys", &cfg_type_managedkeys, CFG_CLAUSEFLAG_MULTI },
 	{ NULL, NULL, 0 }
 };
 
@@ -772,7 +803,7 @@ namedconf_or_view_clauses[] = {
 static cfg_clausedef_t
 bindkeys_clauses[] = {
 	{ "trusted-keys", &cfg_type_dnsseckeys, CFG_CLAUSEFLAG_MULTI },
-	{ "managed-keys", &cfg_type_dnsseckeys, CFG_CLAUSEFLAG_MULTI },
+	{ "managed-keys", &cfg_type_managedkeys, CFG_CLAUSEFLAG_MULTI },
 	{ NULL, NULL, 0 }
 };
 

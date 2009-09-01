@@ -14,13 +14,12 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: bindkeys.pl,v 1.2 2009/03/04 02:42:30 each Exp $
+# $Id: bindkeys.pl,v 1.3 2009/09/01 07:14:25 each Exp $
 
 use strict;
 use warnings;
 
-my $lines = '#define TRUSTED_KEYS "\\' . "\n";
-
+my $lines;
 while (<>) {
     chomp;
     s/\"/\\\"/g;
@@ -28,5 +27,12 @@ while (<>) {
     $lines .= $_ . "\n";
 }
 
-$lines .= '"' . "\n";
-print $lines;
+my $mkey = '#define MANAGED_KEYS "\\' . "\n" . $lines . "\"\n";
+
+$lines =~ s/managed-keys/trusted-keys/;
+$lines =~ s/\s+initial-key//;
+my $tkey = '#define TRUSTED_KEYS "\\' . "\n" . $lines . "\"\n";
+
+print $tkey;
+print "\n";
+print $mkey;

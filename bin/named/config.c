@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.100 2009/09/01 00:22:25 jinmei Exp $ */
+/* $Id: config.c,v 1.101 2009/09/01 07:14:25 each Exp $ */
 
 /*! \file */
 
@@ -248,12 +248,12 @@ view \"_meta\" in {\n\
 #  (used if \"dnssec-lookaside auto;\" is set and\n\
 #  sysconfdir/bind.keys doesn't exist).\n\
 #\n\
-# BEGIN TRUSTED KEYS\n"
+# BEGIN MANAGED KEYS\n"
 
 /* Imported from bind.keys.h: */
-TRUSTED_KEYS
+MANAGED_KEYS
 
-"# END TRUSTED KEYS\n\
+"# END MANAGED KEYS\n\
 ";
 
 isc_result_t
