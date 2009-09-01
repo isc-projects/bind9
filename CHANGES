@@ -1,3 +1,6 @@
+2666.	[func]		Added an 'options' argument to dns_name_fromstring()
+			(API change from 9.7.0a2). [RT #20196]
+
 2665.	[func]		Clarify syntax for managed-keys {} statement, add
 			ARM documentation about RFC 5011 support. [RT #19874]
 

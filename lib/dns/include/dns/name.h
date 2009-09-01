@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.131 2009/09/01 00:22:26 jinmei Exp $ */
+/* $Id: name.h,v 1.132 2009/09/01 17:36:51 jinmei Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -1157,50 +1157,17 @@ dns_name_tostring(dns_name_t *source, char **target, isc_mem_t *mctx);
  */
 
 isc_result_t
-dns_name_fromstring(dns_name_t *target, const char *src, isc_mem_t *mctx);
+dns_name_fromstring(dns_name_t *target, const char *src, unsigned int options,
+		    isc_mem_t *mctx);
 /*%<
  * Convert a string to a name and place it in target, allocating memory
- * as necessary.
- *
- * Returns:
- *
- *\li	#ISC_R_SUCCESS
- *
- *\li	Any error that dns_name_fromtext() can return.
- *
- *\li	Any error that dns_name_dup() can return.
- */
-
-isc_result_t
-dns_name_tostring(dns_name_t *source, char **target, isc_mem_t *mctx);
-/*%<
- * Convert 'name' to string format, allocating sufficient memory to
- * hold it (free with isc_mem_free()).
- *
- * Differs from dns_name_format in that it allocates its own memory.
- *
- * Requires:
- *
- *\li	'name' is a valid name.
- *\li	'target' is not NULL.
- *\li	'*target' is NULL.
- *
- * Returns:
- *
- *\li	ISC_R_SUCCESS
- *
- *\li	Any error that dns_name_totext() can return.
- */
-
-isc_result_t
-dns_name_fromstring(dns_name_t *target, const char *src, isc_mem_t *mctx);
-/*%<
- * Convert a string to a name and place it in target, allocating memory
- * as necessary.
+ * as necessary.  'options' has the same semantics as that of
+ * dns_name_fromtext().
  *
  * Requires:
  *
  * \li	'target' is a valid name that is not read-only.
+ * \li	'src' is not NULL.
  *
  * Returns:
  *
@@ -1298,13 +1265,6 @@ dns_name_destroy(void);
  * Note: dns_name_settotextfilter(NULL); should be called for all
  * threads which have called dns_name_settotextfilter() with a
  * non-NULL argument prior to calling dns_name_destroy();
- */
-
-isc_result_t
-dns_name_fromstr(dns_name_t *name, const char *source, const char *origin,
-		 unsigned int options, isc_buffer_t *target);
-/*%<
- * TBD
  */
 
 ISC_LANG_ENDDECLS

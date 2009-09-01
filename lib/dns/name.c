@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.168 2009/09/01 00:22:26 jinmei Exp $ */
+/* $Id: name.c,v 1.169 2009/09/01 17:36:51 jinmei Exp $ */
 
 /*! \file */
 
@@ -1017,32 +1017,6 @@ dns_name_toregion(dns_name_t *name, isc_region_t *r) {
 	REQUIRE(r != NULL);
 
 	DNS_NAME_TOREGION(name, r);
-}
-
-isc_result_t
-dns_name_fromstr(dns_name_t *name, const char *source, const char *origin,
-		 unsigned int options, isc_buffer_t *target)
-{
-	dns_name_t *o;
-	dns_fixedname_t fixed;
-	isc_buffer_t b;
-	isc_result_t result;
-
-	REQUIRE(source != NULL);
-	if (origin != NULL) {
-		isc_buffer_init(&b, origin, strlen(origin));
-		isc_buffer_add(&b, strlen(origin));
-		dns_fixedname_init(&fixed);
-		o = dns_fixedname_name(&fixed);
-		result = dns_name_fromtext(o, &b, dns_rootname, options, NULL);
-		if (result != ISC_R_SUCCESS)
-			return(result);
-	} else
-		o = dns_rootname;
-	
-	isc_buffer_init(&b, source, strlen(source));
-	isc_buffer_add(&b, strlen(source));
-	return (dns_name_fromtext(name, &b, o, options, target));
 }
 
 isc_result_t
@@ -2399,18 +2373,22 @@ dns_name_tostring(dns_name_t *name, char **target, isc_mem_t *mctx) {
  * allocating memory as needed
  */
 isc_result_t
-dns_name_fromstring(dns_name_t *target, const char *src, isc_mem_t *mctx) {
+dns_name_fromstring(dns_name_t *target, const char *src, unsigned int options,
+		    isc_mem_t *mctx)
+{
 	isc_result_t result;
 	isc_buffer_t buf;
 	dns_fixedname_t fn;
 	dns_name_t *name;
+
+	REQUIRE(src != NULL);
 
 	isc_buffer_init(&buf, src, strlen(src));
 	isc_buffer_add(&buf, strlen(src));
 	dns_fixedname_init(&fn);
 	name = dns_fixedname_name(&fn);
 
-	result = dns_name_fromtext(name, &buf, dns_rootname, 0, NULL);
+	result = dns_name_fromtext(name, &buf, dns_rootname, options, NULL);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 

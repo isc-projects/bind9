@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.544 2009/09/01 07:14:25 each Exp $ */
+/* $Id: server.c,v 1.545 2009/09/01 17:36:51 jinmei Exp $ */
 
 /*! \file */
 
@@ -2901,7 +2901,7 @@ add_keydata_zone(dns_view_t *view, isc_mem_t *mctx) {
 	CHECK(dns_zone_create(&zone, mctx));
 
 	dns_name_init(&zname, NULL);
-	CHECK(dns_name_fromstring(&zname, KEYZONE, mctx));
+	CHECK(dns_name_fromstring(&zname, KEYZONE, 0, mctx));
 	CHECK(dns_zone_setorigin(zone, &zname));
 	dns_name_free(&zname, mctx);
 
