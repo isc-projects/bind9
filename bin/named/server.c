@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.545 2009/09/01 17:36:51 jinmei Exp $ */
+/* $Id: server.c,v 1.546 2009/09/01 23:47:44 tbox Exp $ */
 
 /*! \file */
 
@@ -475,19 +475,19 @@ dstkey_fromconfig(const cfg_obj_t *vconfig, const cfg_obj_t *key,
 	keyname = dns_fixedname_name(&fkeyname);
 	keynamestr = cfg_obj_asstring(cfg_tuple_get(key, "name"));
 
-        if (managed) {
-                const char *initmethod;
-                initmethod = cfg_obj_asstring(cfg_tuple_get(key, "init"));
+	if (managed) {
+		const char *initmethod;
+		initmethod = cfg_obj_asstring(cfg_tuple_get(key, "init"));
 
-                if (strcmp(initmethod, "initial-key") != 0) {
-                        cfg_obj_log(key, ns_g_lctx, ISC_LOG_ERROR,
-                                    "managed key '%s': "
-                                    "invalid initialization method '%s'",
-                                    keynamestr, initmethod);
-                        result = ISC_R_FAILURE;
-                        goto cleanup;
-                }
-        }
+		if (strcmp(initmethod, "initial-key") != 0) {
+			cfg_obj_log(key, ns_g_lctx, ISC_LOG_ERROR,
+				    "managed key '%s': "
+				    "invalid initialization method '%s'",
+				    keynamestr, initmethod);
+			result = ISC_R_FAILURE;
+			goto cleanup;
+		}
+	}
 
 	if (vconfig == NULL)
 		viewclass = dns_rdataclass_in;

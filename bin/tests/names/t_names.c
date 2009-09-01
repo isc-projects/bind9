@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_names.c,v 1.49 2009/09/01 00:22:25 jinmei Exp $ */
+/* $Id: t_names.c,v 1.50 2009/09/01 23:47:44 tbox Exp $ */
 
 #include <config.h>
 
@@ -1777,7 +1777,7 @@ t_dns_name_fromtext(void) {
 							   atoi(Tokens[3])
 								== 0 ?
 								0 :
-						       	     DNS_NAME_DOWNCASE);
+							     DNS_NAME_DOWNCASE);
 			} else {
 				t_info("bad format at line %d\n", line);
 			}

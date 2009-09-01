@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.150 2009/09/01 00:22:28 jinmei Exp $ */
+/* $Id: mem.c,v 1.151 2009/09/01 23:47:44 tbox Exp $ */
 
 /*! \file */
 
@@ -2193,7 +2193,7 @@ isc__mempool_getfillcount(isc_mempool_t *mpctx0) {
 	return (fillcount);
 }
 
-#ifdef USE_MEMIMPREGISTER 
+#ifdef USE_MEMIMPREGISTER
 isc_result_t
 isc__mem_register() {
 	return (isc_mem_register(isc__mem_create2));

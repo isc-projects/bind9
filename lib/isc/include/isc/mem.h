@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.82 2009/09/01 00:22:28 jinmei Exp $ */
+/* $Id: mem.h,v 1.83 2009/09/01 23:47:44 tbox Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -221,7 +221,7 @@ typedef struct isc_mempoolmethods {
 } isc_mempoolmethods_t;
 
 /*%
- * This structure is actually just the common prefix of a memory context 
+ * This structure is actually just the common prefix of a memory context
  * implementation's version of an isc_mem_t.
  * \brief
  * Direct use of this structure by clients is forbidden.  mctx implementations

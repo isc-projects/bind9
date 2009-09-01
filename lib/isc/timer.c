@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.91 2009/09/01 08:12:33 jinmei Exp $ */
+/* $Id: timer.c,v 1.92 2009/09/01 23:47:44 tbox Exp $ */
 
 /*! \file */
 
@@ -1042,7 +1042,7 @@ isc__timermgr_dispatch(isc_timermgr_t *manager0) {
 }
 #endif /* USE_TIMER_THREAD */
 
-#ifdef USE_TIMERIMPREGISTER 
+#ifdef USE_TIMERIMPREGISTER
 isc_result_t
 isc__timer_register() {
 	return (isc_timer_register(isc__timermgr_create));

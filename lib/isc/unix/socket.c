@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.321 2009/09/01 08:12:33 jinmei Exp $ */
+/* $Id: socket.c,v 1.322 2009/09/01 23:47:45 tbox Exp $ */
 
 /*! \file */
 
@@ -5322,7 +5322,7 @@ isc__socket_getpeername(isc_socket_t *sock0, isc_sockaddr_t *addressp) {
 	} else {
 		result = ISC_R_NOTCONNECTED;
 	}
-	
+
 	UNLOCK(&sock->lock);
 
 	return (result);
@@ -5572,7 +5572,7 @@ isc__socketmgr_waitevents(isc_socketmgr_t *manager0, struct timeval *tvp,
 	REQUIRE(swaitp != NULL && *swaitp == NULL);
 
 #ifdef USE_SHARED_MANAGER
-  	if (manager == NULL)
+	if (manager == NULL)
 		manager = socketmgr;
 #endif
 	if (manager == NULL)
@@ -5632,7 +5632,7 @@ isc__socketmgr_dispatch(isc_socketmgr_t *manager0, isc_socketwait_t *swait) {
 	REQUIRE(swait == &swait_private);
 
 #ifdef USE_SHARED_MANAGER
-  	if (manager == NULL)
+	if (manager == NULL)
 		manager = socketmgr;
 #endif
 	if (manager == NULL)
@@ -5681,7 +5681,7 @@ isc__socket_gettag(isc_socket_t *socket0) {
 }
 #endif	/* BIND9 */
 
-#ifdef USE_SOCKETIMPREGISTER 
+#ifdef USE_SOCKETIMPREGISTER
 isc_result_t
 isc__socket_register() {
 	return (isc_socket_register(isc__socketmgr_create));
