@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.h,v 1.10 2009/08/25 23:47:51 tbox Exp $ */
+/* $Id: BINDInstallDlg.h,v 1.11 2009/09/01 06:51:47 marka Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -73,7 +73,7 @@ protected:
 	void DeleteFiles(BOOL uninstall);
 
 	void RegisterService();
-	void UpdateService();
+	void UpdateService(CString StartName);
 	void UnregisterService(BOOL uninstall);
 
 	void RegisterMessages();

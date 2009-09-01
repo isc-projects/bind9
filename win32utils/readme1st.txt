@@ -2,7 +2,7 @@ Copyright (C) 2004, 2005, 2007-2009  Internet Systems Consortium, Inc. ("ISC")
 Copyright (C) 2001, 2003  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: readme1st.txt,v 1.23 2009/06/22 23:47:53 tbox Exp $
+$Id: readme1st.txt,v 1.24 2009/09/01 06:51:47 marka Exp $
 
 	   Release of BIND 9.7 for Windows and later.
 
@@ -11,7 +11,7 @@ This is a release of BIND 9.7 for Windows XP and later.
 	Important Kit Installation Information
 
 As of release 9.3.0, BINDInstall requires that you install it under
-an account with restricted privileges. The installer will prompt
+a account with restricted privileges. The installer will prompt
 you for an account name, the default is "named", and a password for
 that account. It will also check for the existence of that account.
 If it does not exist is will create it with only the privileges
@@ -27,6 +27,11 @@ the pid file, any files that are maintained either for slave zones
 or for master zones supporting dynamic updates. The account will
 also need read access to the named.conf and any other file that it
 needs to read.
+
+"NT AUTHORITY\LocalService" is also an acceptable account.  This
+account is built into Windows and no password is required.  Appropriate
+file permissions will also need to be set for "NT AUTHORITY\LocalService"
+similar to those that would have been required for the "named" account.
 
 It is important that on Windows the directory directive is used in
 the options section to tell BIND where to find the files used in
