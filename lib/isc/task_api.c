@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task_api.c,v 1.3 2009/09/01 03:43:27 jinmei Exp $ */
+/* $Id: task_api.c,v 1.4 2009/09/01 23:05:33 jinmei Exp $ */
 
 #include <config.h>
 
@@ -97,7 +97,7 @@ isc_taskmgr_destroy(isc_taskmgr_t **managerp) {
 	(*managerp)->methods->destroy(managerp);
 
 	ENSURE(*managerp == NULL);
-};
+}
 
 isc_result_t
 isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,
