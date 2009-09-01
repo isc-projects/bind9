@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.89 2009/03/05 03:13:55 marka Exp $ */
+/* $Id: socket.h,v 1.90 2009/09/01 00:22:28 jinmei Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -259,6 +259,71 @@ typedef enum {
 #define ISC_SOCKFDWATCH_READ	0x00000001	/*%< watch for readable */
 #define ISC_SOCKFDWATCH_WRITE	0x00000002	/*%< watch for writable */
 /*@}*/
+
+/*% Socket and socket manager methods */
+typedef struct isc_socketmgrmethods {
+	void		(*destroy)(isc_socketmgr_t **managerp);
+	isc_result_t	(*socketcreate)(isc_socketmgr_t *manager, int pf,
+					isc_sockettype_t type,
+					isc_socket_t **socketp);
+} isc_socketmgrmethods_t;
+
+typedef struct isc_socketmethods {
+	void		(*attach)(isc_socket_t *socket,
+				  isc_socket_t **socketp);
+	void		(*detach)(isc_socket_t **socketp);
+	isc_result_t	(*bind)(isc_socket_t *sock, isc_sockaddr_t *sockaddr,
+				unsigned int options);
+	isc_result_t	(*sendto)(isc_socket_t *sock, isc_region_t *region,
+				  isc_task_t *task, isc_taskaction_t action,
+				  const void *arg, isc_sockaddr_t *address,
+				  struct in6_pktinfo *pktinfo);
+	isc_result_t	(*connect)(isc_socket_t *sock, isc_sockaddr_t *addr,
+				   isc_task_t *task, isc_taskaction_t action,
+				   const void *arg);
+	isc_result_t	(*recv)(isc_socket_t *sock, isc_region_t *region,
+				unsigned int minimum, isc_task_t *task,
+				isc_taskaction_t action, const void *arg);
+	void		(*cancel)(isc_socket_t *sock, isc_task_t *task,
+				  unsigned int how);
+	isc_result_t	(*getsockname)(isc_socket_t *sock,
+				       isc_sockaddr_t *addressp);
+	isc_sockettype_t (*gettype)(isc_socket_t *sock);
+	void		(*ipv6only)(isc_socket_t *sock, isc_boolean_t yes);
+} isc_socketmethods_t;
+
+/*%
+ * This structure is actually just the common prefix of a socket manager
+ * object implementation's version of an isc_socketmgr_t.
+ * \brief
+ * Direct use of this structure by clients is forbidden.  mctx implementations
+ * may change the structure.  'magic' must be ISCAPI_SOCKETMGR_MAGIC for any
+ * of the isc_socket_ routines to work.  socket implementations must maintain
+ * all socket invariants.
+ */
+struct isc_socketmgr {
+	unsigned int		impmagic;
+	unsigned int		magic;
+	isc_socketmgrmethods_t	*methods;
+};
+
+#define ISCAPI_SOCKETMGR_MAGIC		ISC_MAGIC('A','s','m','g')
+#define ISCAPI_SOCKETMGR_VALID(m)	((m) != NULL && \
+					 (m)->magic == ISCAPI_SOCKETMGR_MAGIC)
+
+/*%
+ * This is the common prefix of a socket object.  The same note as
+ * that for the socketmgr structure applies.
+ */
+struct isc_socket {
+	unsigned int		impmagic;
+	unsigned int		magic;
+	isc_socketmethods_t	*methods;
+};
+
+#define ISCAPI_SOCKET_MAGIC	ISC_MAGIC('A','s','c','t')
+#define ISCAPI_SOCKET_VALID(s)	((s) != NULL && \
+				 (s)->magic == ISCAPI_SOCKET_MAGIC)
 
 /***
  *** Socket and Socket Manager Functions
@@ -821,6 +886,10 @@ isc_socket_sendto2(isc_socket_t *sock, isc_region_t *region,
 /*@}*/
 
 isc_result_t
+isc_socketmgr_createinctx(isc_mem_t *mctx, isc_appctx_t *actx,
+ 			  isc_socketmgr_t **managerp);
+
+isc_result_t
 isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp);
 
 isc_result_t
@@ -831,6 +900,8 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
  * maximum number of sockets that the created manager should handle.
  * isc_socketmgr_create() is equivalent of isc_socketmgr_create2() with
  * "maxsocks" being zero.
+ * isc_socketmgr_createinctx() also associates the new manager with the
+ * specified application context.
  *
  * Notes:
  *
@@ -841,6 +912,8 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
  *\li	'mctx' is a valid memory context.
  *
  *\li	'managerp' points to a NULL isc_socketmgr_t.
+ *
+ *\li	'actx' is a valid application context (for createinctx()).
  *
  * Ensures:
  *
@@ -987,7 +1060,7 @@ void *isc_socket_gettag(isc_socket_t *socket);
  */
 
 void
-isc__socketmgr_setreserved(isc_socketmgr_t *mgr, isc_uint32_t);
+isc_socketmgr_setreserved(isc_socketmgr_t *mgr, isc_uint32_t);
 /*%<
  * Temporary.  For use by named only.
  */
@@ -1007,6 +1080,31 @@ isc_socketmgr_renderxml(isc_socketmgr_t *mgr, xmlTextWriterPtr writer);
  */
 
 #endif /* HAVE_LIBXML2 */
+
+#ifdef USE_SOCKETIMPREGISTER
+/*%<
+ * See isc_socketmgr_create() above.
+ */
+typedef isc_result_t
+(*isc_socketmgrcreatefunc_t)(isc_mem_t *mctx, isc_socketmgr_t **managerp); 
+
+isc_result_t
+isc_socket_register(isc_socketmgrcreatefunc_t createfunc);
+/*%<
+ * Register a new socket I/O implementation and add it to the list of
+ * supported implementations.  This function must be called when a different
+ * event library is used than the one contained in the ISC library.
+ */
+
+isc_result_t
+isc__socket_register(void);
+/*%<
+ * A short cut function that specifies the socket I/O module in the ISC
+ * library for isc_socket_register().  An application that uses the ISC library
+ * usually do not have to care about this function: it would call
+ * isc_lib_register(), which internally calls this function.
+ */
+#endif /* USE_SOCKETIMPREGISTER */
 
 ISC_LANG_ENDDECLS
 

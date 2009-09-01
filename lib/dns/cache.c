@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.84 2009/05/06 22:53:54 jinmei Exp $ */
+/* $Id: cache.c,v 1.85 2009/09/01 00:22:26 jinmei Exp $ */
 
 /*! \file */
 
@@ -450,6 +450,7 @@ dns_cache_setfilename(dns_cache_t *cache, const char *filename) {
 	return (ISC_R_SUCCESS);
 }
 
+#ifdef BIND9
 isc_result_t
 dns_cache_load(dns_cache_t *cache) {
 	isc_result_t result;
@@ -465,6 +466,7 @@ dns_cache_load(dns_cache_t *cache) {
 
 	return (result);
 }
+#endif /* BIND9 */
 
 isc_result_t
 dns_cache_dump(dns_cache_t *cache) {
@@ -475,10 +477,14 @@ dns_cache_dump(dns_cache_t *cache) {
 	if (cache->filename == NULL)
 		return (ISC_R_SUCCESS);
 
+#ifdef BIND9
 	LOCK(&cache->filelock);
 	result = dns_master_dump(cache->mctx, cache->db, NULL,
 				 &dns_master_style_cache, cache->filename);
 	UNLOCK(&cache->filelock);
+#else
+	return (ISC_R_NOTIMPLEMENTED);
+#endif
 
 	return (result);
 }

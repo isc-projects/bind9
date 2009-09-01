@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsecify.c,v 1.8 2008/09/25 04:02:38 tbox Exp $ */
+/* $Id: nsecify.c,v 1.9 2009/09/01 00:22:25 jinmei Exp $ */
 
 #include <config.h>
 
@@ -139,7 +139,7 @@ nsecify(char *filename) {
 	len = strlen(origintext);
 	isc_buffer_init(&b, origintext, len);
 	isc_buffer_add(&b, len);
-	result = dns_name_fromtext(name, &b, dns_rootname, ISC_FALSE, NULL);
+	result = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
 	check_result(result, "dns_name_fromtext()");
 
 	db = NULL;

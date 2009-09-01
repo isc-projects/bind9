@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone2bdb.c,v 1.2 2008/09/24 02:46:21 marka Exp $ */
+/* $Id: zone2bdb.c,v 1.3 2009/09/01 00:22:26 jinmei Exp $ */
 
 #include <stdio.h>
 
@@ -137,7 +137,7 @@ main(int argc, char *argv[])
 	dns_fixedname_init(&origin);
 
 	REQUIRE(dns_name_fromtext(dns_fixedname_name(&origin), &b, dns_rootname,
-				  ISC_FALSE, NULL) == ISC_R_SUCCESS);
+				  0, NULL) == ISC_R_SUCCESS);
 	REQUIRE(dns_db_create(mctx, "rbt", dns_fixedname_name(&origin),
 			      dns_dbtype_zone, dns_rdataclass_in, 0, NULL,
 			      &db) == ISC_R_SUCCESS);

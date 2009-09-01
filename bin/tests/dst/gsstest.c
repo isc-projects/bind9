@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gsstest.c,v 1.6 2007/06/19 23:47:00 tbox Exp $ */
+/* $Id: gsstest.c,v 1.7 2009/09/01 00:22:25 jinmei Exp $ */
 
 #include <config.h>
 
@@ -212,7 +212,7 @@ sendquery(isc_task_t *task, isc_event_t *event)
 	isc_buffer_init(&buf, host, strlen(host));
 	isc_buffer_add(&buf, strlen(host));
 	result = dns_name_fromtext(dns_fixedname_name(&queryname), &buf,
-				   dns_rootname, ISC_FALSE, NULL);
+				   dns_rootname, 0, NULL);
 	CHECK("dns_name_fromtext", result);
 
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &message);
@@ -369,7 +369,7 @@ initctx1(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_init(&buf, contextname, strlen(contextname));
 	isc_buffer_add(&buf, strlen(contextname));
 	result = dns_name_fromtext(dns_fixedname_name(&servername), &buf,
-				   dns_rootname, ISC_FALSE, NULL);
+				   dns_rootname, 0, NULL);
 	CHECK("dns_name_fromtext", result);
 
 	/* Make name happen */	
@@ -377,7 +377,7 @@ initctx1(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_init(&buf, gssid, strlen(gssid));
 	isc_buffer_add(&buf, strlen(gssid));
 	result = dns_name_fromtext(dns_fixedname_name(&gssname), &buf,
-				   dns_rootname, ISC_FALSE, NULL);
+				   dns_rootname, 0, NULL);
 	CHECK("dns_name_fromtext", result);
 
 	query = NULL;

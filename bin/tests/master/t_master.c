@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_master.c,v 1.38 2009/01/22 23:47:54 tbox Exp $ */
+/* $Id: t_master.c,v 1.39 2009/09/01 00:22:25 jinmei Exp $ */
 
 #include <config.h>
 
@@ -94,7 +94,7 @@ test_master(char *testfile, char *origin, char *class, isc_result_t exp_result)
 	isc_buffer_init(&target, name_buf, BUFLEN);
 	dns_name_init(&dns_origin, NULL);
 	dns_result = dns_name_fromtext(&dns_origin, &source, dns_rootname,
-				   ISC_FALSE, &target);
+				       0, &target);
 	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_name_fromtext failed %s\n",
 				dns_result_totext(dns_result));

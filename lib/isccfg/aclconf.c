@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.c,v 1.24 2009/01/18 23:48:14 tbox Exp $ */
+/* $Id: aclconf.c,v 1.25 2009/09/01 00:22:28 jinmei Exp $ */
 
 #include <config.h>
 
@@ -150,7 +150,7 @@ convert_keyname(const cfg_obj_t *keyobj, isc_log_t *lctx, isc_mem_t *mctx,
 	isc_buffer_add(&buf, keylen);
 	dns_fixedname_init(&fixname);
 	result = dns_name_fromtext(dns_fixedname_name(&fixname), &buf,
-				   dns_rootname, ISC_FALSE, NULL);
+				   dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
 		cfg_obj_log(keyobj, lctx, ISC_LOG_WARNING,
 			    "key name '%s' is not a valid domain name",

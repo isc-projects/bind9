@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: forward.h,v 1.11 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: forward.h,v 1.12 2009/09/01 00:22:26 jinmei Exp $ */
 
 #ifndef DNS_FORWARD_H
 #define DNS_FORWARD_H 1
@@ -64,6 +64,21 @@ dns_fwdtable_add(dns_fwdtable_t *fwdtable, dns_name_t *name,
  * Returns:
  * \li	#ISC_R_SUCCESS
  * \li	#ISC_R_NOMEMORY
+ */
+
+isc_result_t
+dns_fwdtable_delete(dns_fwdtable_t *fwdtable, dns_name_t *name);
+/*%<
+ * Removes an entry for 'name' from the forwarding table.  If an entry
+ * that exactly matches 'name' does not exist, ISC_R_NOTFOUND will be returned.
+ *
+ * Requires:
+ * \li	fwdtable is a valid forwarding table.
+ * \li	name is a valid name
+ *
+ * Returns:
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_NOTFOUND
  */
 
 isc_result_t

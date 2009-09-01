@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.26 2009/08/14 06:28:40 each Exp $
+ * $Id: dst_api.c,v 1.27 2009/09/01 00:22:26 jinmei Exp $
  */
 
 /*! \file */
@@ -69,7 +69,9 @@
 #define DST_AS_STR(t) ((t).value.as_textregion.base)
 
 static dst_func_t *dst_t_func[DST_MAX_ALGS];
+#ifdef BIND9
 static isc_entropy_t *dst_entropy_pool = NULL;
+#endif
 static unsigned int dst_entropy_flags = 0;
 static isc_boolean_t dst_initialized = ISC_FALSE;
 
@@ -126,7 +128,7 @@ static isc_result_t	addsuffix(char *filename, unsigned int len,
 			return (_r);		\
 	} while (0);				\
 
-#ifdef OPENSSL
+#if defined(OPENSSL) && defined(BIND9)
 static void *
 default_memalloc(void *arg, size_t size) {
 	UNUSED(arg);
@@ -146,12 +148,17 @@ isc_result_t
 dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 	isc_result_t result;
 
-	REQUIRE(mctx != NULL && ectx != NULL);
+	REQUIRE(mctx != NULL);
+#ifdef BIND9
+	REQUIRE(ectx != NULL);
+#else
+	UNUSED(ectx);
+#endif
 	REQUIRE(dst_initialized == ISC_FALSE);
 
 	dst__memory_pool = NULL;
 
-#ifdef OPENSSL
+#if defined(OPENSSL) && defined(BIND9)
 	UNUSED(mctx);
 	/*
 	 * When using --with-openssl, there seems to be no good way of not
@@ -170,7 +177,9 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 #else
 	isc_mem_attach(mctx, &dst__memory_pool);
 #endif
+#ifdef BIND9
 	isc_entropy_attach(ectx, &dst_entropy_pool);
+#endif
 	dst_entropy_flags = eflags;
 
 	dst_result_register();
@@ -218,9 +227,10 @@ dst_lib_destroy(void) {
 #endif
 	if (dst__memory_pool != NULL)
 		isc_mem_detach(&dst__memory_pool);
+#ifdef BIND9
 	if (dst_entropy_pool != NULL)
 		isc_entropy_detach(&dst_entropy_pool);
-
+#endif
 }
 
 isc_boolean_t
@@ -1045,7 +1055,7 @@ dst_key_read_public(const char *filename, int type,
 	isc_buffer_init(&b, DST_AS_STR(token), strlen(DST_AS_STR(token)));
 	isc_buffer_add(&b, strlen(DST_AS_STR(token)));
 	ret = dns_name_fromtext(dns_fixedname_name(&name), &b, dns_rootname,
-				ISC_FALSE, NULL);
+				0, NULL);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup;
 
@@ -1397,13 +1407,25 @@ addsuffix(char *filename, unsigned int len, const char *odirname,
 
 isc_result_t
 dst__entropy_getdata(void *buf, unsigned int len, isc_boolean_t pseudo) {
+#ifdef BIND9
 	unsigned int flags = dst_entropy_flags;
 	if (pseudo)
 		flags &= ~ISC_ENTROPY_GOODONLY;
 	return (isc_entropy_getdata(dst_entropy_pool, buf, len, NULL, flags));
+#else
+	UNUSED(buf);
+	UNUSED(len);
+	UNUSED(pseudo);
+
+	return (ISC_R_NOTIMPLEMENTED);
+#endif
 }
 
 unsigned int
 dst__entropy_status(void) {
+#ifdef BIND9
 	return (isc_entropy_status(dst_entropy_pool));
+#else
+	return (0);
+#endif
 }

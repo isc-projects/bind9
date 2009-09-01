@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keycreate.c,v 1.17 2009/07/19 23:47:55 tbox Exp $ */
+/* $Id: keycreate.c,v 1.18 2009/09/01 00:22:25 jinmei Exp $ */
 
 #include <config.h>
 
@@ -153,14 +153,14 @@ sendquery(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_init(&namestr, "tkeytest.", 9);
 	isc_buffer_add(&namestr, 9);
 	result = dns_name_fromtext(dns_fixedname_name(&keyname), &namestr,
-				   NULL, ISC_FALSE, NULL);
+				   NULL, 0, NULL);
 	CHECK("dns_name_fromtext", result);
 
 	dns_fixedname_init(&ownername);
 	isc_buffer_init(&namestr, ownername_str, strlen(ownername_str));
 	isc_buffer_add(&namestr, strlen(ownername_str));
 	result = dns_name_fromtext(dns_fixedname_name(&ownername), &namestr,
-				   NULL, ISC_FALSE, NULL);
+				   NULL, 0, NULL);
 	CHECK("dns_name_fromtext", result);
 
 	isc_buffer_init(&keybuf, keydata, 9);

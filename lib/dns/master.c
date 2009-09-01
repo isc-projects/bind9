@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.177 2009/06/30 02:52:32 each Exp $ */
+/* $Id: master.c,v 1.178 2009/09/01 00:22:26 jinmei Exp $ */
 
 /*! \file */
 
@@ -1382,7 +1382,7 @@ load_text(dns_loadctx_t *lctx) {
 			isc_buffer_setactive(&buffer,
 					     token.value.as_region.length);
 			result = dns_name_fromtext(new_name, &buffer,
-					  ictx->origin, ISC_FALSE, NULL);
+					  ictx->origin, 0, NULL);
 			if (MANYERRS(lctx, result)) {
 				SETRESULT(lctx, result);
 				LOGIT(result);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone2sqlite.c,v 1.2 2008/09/24 02:46:21 marka Exp $ */
+/* $Id: zone2sqlite.c,v 1.3 2009/09/01 00:22:26 jinmei Exp $ */
 
 #include <stdlib.h>
 #include <string.h>
@@ -181,7 +181,7 @@ main(int argc, char *argv[])
     isc_buffer_add(&b, strlen(porigin));
     dns_fixedname_init(&forigin);
     origin = dns_fixedname_name(&forigin);
-    result = dns_name_fromtext(origin, &b, dns_rootname, ISC_FALSE, NULL);
+    result = dns_name_fromtext(origin, &b, dns_rootname, 0, NULL);
     check_result(result, "dns_name_fromtext");
     
     db = NULL;

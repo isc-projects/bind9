@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db_test.c,v 1.66 2008/09/25 04:02:38 tbox Exp $ */
+/* $Id: db_test.c,v 1.67 2009/09/01 00:22:25 jinmei Exp $ */
 
 /*! \file
  * \author
@@ -134,8 +134,7 @@ select_db(char *origintext) {
 	isc_buffer_add(&source, len);
 	dns_fixedname_init(&forigin);
 	origin = dns_fixedname_name(&forigin);
-	result = dns_name_fromtext(origin, &source, dns_rootname, ISC_FALSE,
-				   NULL);
+	result = dns_name_fromtext(origin, &source, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
 		print_result("bad name", result);
 		return (NULL);
@@ -188,8 +187,7 @@ list(dbinfo *dbi, char *seektext) {
 				result = dns_name_fromtext(seekname, &source,
 							   dns_db_origin(
 								 dbi->db),
-							   ISC_FALSE,
-							   NULL);
+							   0, NULL);
 				if (result == ISC_R_SUCCESS)
 					result = dns_dbiterator_seek(
 							     dbi->dbiterator,
@@ -271,8 +269,7 @@ load(const char *filename, const char *origintext, isc_boolean_t cache) {
 	isc_buffer_add(&source, len);
 	dns_fixedname_init(&forigin);
 	origin = dns_fixedname_name(&forigin);
-	result = dns_name_fromtext(origin, &source, dns_rootname, ISC_FALSE,
-				   NULL);
+	result = dns_name_fromtext(origin, &source, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -736,8 +733,7 @@ main(int argc, char *argv[]) {
 		isc_buffer_init(&source, s, len);
 		isc_buffer_add(&source, len);
 		isc_buffer_init(&target, b, sizeof(b));
-		result = dns_name_fromtext(&name, &source, origin,
-					   ISC_FALSE, &target);
+		result = dns_name_fromtext(&name, &source, origin, 0, &target);
 		if (result != ISC_R_SUCCESS) {
 			print_result("bad name: ", result);
 			continue;

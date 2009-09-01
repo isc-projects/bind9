@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byname_test.c,v 1.31 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id: byname_test.c,v 1.32 2009/09/01 00:22:25 jinmei Exp $ */
 
 /*! \file
  * \author
@@ -343,7 +343,7 @@ main(int argc, char *argv[]) {
 	dns_fixedname_init(&name);
 	dns_fixedname_init(&target);
 	RUNTIME_CHECK(dns_name_fromtext(dns_fixedname_name(&name), &b,
-					dns_rootname, ISC_FALSE, NULL) ==
+					dns_rootname, 0, NULL) ==
 		      ISC_R_SUCCESS);
 
 	RUNTIME_CHECK(isc_app_onrun(mctx, task, run, NULL) == ISC_R_SUCCESS);

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: peer.c,v 1.31 2008/04/03 06:09:04 tbox Exp $ */
+/* $Id: peer.c,v 1.32 2009/09/01 00:22:26 jinmei Exp $ */
 
 /*! \file */
 
@@ -536,7 +536,7 @@ dns_peer_setkeybycharp(dns_peer_t *peer, const char *keyval) {
 	isc_buffer_init(&b, keyval, strlen(keyval));
 	isc_buffer_add(&b, strlen(keyval));
 	result = dns_name_fromtext(dns_fixedname_name(&fname), &b,
-				   dns_rootname, ISC_FALSE, NULL);
+				   dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 

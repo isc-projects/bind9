@@ -16,7 +16,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.117 2009/08/13 01:51:19 marka Exp $ */
+/* $Id: config.h.in,v 1.118 2009/09/01 00:22:24 jinmei Exp $ */
 
 /*! \file */
 
@@ -291,6 +291,12 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Defined if extern char *optarg is not declared. */
 #undef NEED_OPTARG
+
+/* Define to the buffer length type used by getnameinfo(3). */
+#undef IRS_GETNAMEINFO_BUFLEN_T
+
+/* Define to the flags type used by getnameinfo(3). */
+#undef IRS_GETNAMEINFO_FLAGS_T
 
 /* Define if connect does not honour the permission on the UNIX domain socket.
    */

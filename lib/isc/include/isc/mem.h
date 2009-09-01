@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.81 2009/02/11 03:04:18 jinmei Exp $ */
+/* $Id: mem.h,v 1.82 2009/09/01 00:22:28 jinmei Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -186,6 +186,72 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_debugging;
  * isc_mem_detach(&mctx);
  * \endcode
  */
+
+/*% memory and memory pool methods */
+typedef struct isc_memmethods {
+	void (*attach)(isc_mem_t *source, isc_mem_t **targetp);
+	void (*detach)(isc_mem_t **mctxp);
+	void (*destroy)(isc_mem_t **mctxp);
+	void *(*memget)(isc_mem_t *mctx, size_t size _ISC_MEM_FLARG);
+	void (*memput)(isc_mem_t *mctx, void *ptr, size_t size _ISC_MEM_FLARG);
+	void (*memputanddetach)(isc_mem_t **mctxp, void *ptr,
+				size_t size _ISC_MEM_FLARG);
+	void *(*memallocate)(isc_mem_t *mctx, size_t size _ISC_MEM_FLARG);
+	char *(*memstrdup)(isc_mem_t *mctx, const char *s _ISC_MEM_FLARG);
+	void (*memfree)(isc_mem_t *mctx, void *ptr _ISC_MEM_FLARG);
+	void (*setdestroycheck)(isc_mem_t *mctx, isc_boolean_t flag);
+	void (*setwater)(isc_mem_t *ctx, isc_mem_water_t water,
+			 void *water_arg, size_t hiwater, size_t lowater);
+	void (*waterack)(isc_mem_t *ctx, int flag);
+	size_t (*inuse)(isc_mem_t *mctx);
+	isc_result_t (*mpcreate)(isc_mem_t *mctx, size_t size,
+				 isc_mempool_t **mpctxp);
+} isc_memmethods_t;
+
+typedef struct isc_mempoolmethods {
+	void (*destroy)(isc_mempool_t **mpctxp);
+	void *(*get)(isc_mempool_t *mpctx _ISC_MEM_FLARG);
+	void (*put)(isc_mempool_t *mpctx, void *mem _ISC_MEM_FLARG);
+	unsigned int (*getallocated)(isc_mempool_t *mpctx);
+	void (*setmaxalloc)(isc_mempool_t *mpctx, unsigned int limit);
+	void (*setfreemax)(isc_mempool_t *mpctx, unsigned int limit);
+	void (*setname)(isc_mempool_t *mpctx, const char *name);
+	void (*associatelock)(isc_mempool_t *mpctx, isc_mutex_t *lock);
+	void (*setfillcount)(isc_mempool_t *mpctx, unsigned int limit);
+} isc_mempoolmethods_t;
+
+/*%
+ * This structure is actually just the common prefix of a memory context 
+ * implementation's version of an isc_mem_t.
+ * \brief
+ * Direct use of this structure by clients is forbidden.  mctx implementations
+ * may change the structure.  'magic' must be ISCAPI_MCTX_MAGIC for any of the
+ * isc_mem_ routines to work.  mctx implementations must maintain all mctx
+ * invariants.
+ */
+struct isc_mem {
+	unsigned int		impmagic;
+	unsigned int		magic;
+	isc_memmethods_t	*methods;
+};
+
+#define ISCAPI_MCTX_MAGIC	ISC_MAGIC('A','m','c','x')
+#define ISCAPI_MCTX_VALID(m)	((m) != NULL && \
+				 (m)->magic == ISCAPI_MCTX_MAGIC)
+
+/*%
+ * This is the common prefix of a memory pool context.  The same note as
+ * that for the mem structure applies.
+ */
+struct isc_mempool {
+	unsigned int		impmagic;
+	unsigned int		magic;
+	isc_mempoolmethods_t	*methods;
+};
+
+#define ISCAPI_MPOOL_MAGIC	ISC_MAGIC('A','m','p','l')
+#define ISCAPI_MPOOL_VALID(mp)	((mp) != NULL && \
+				 (mp)->magic == ISCAPI_MPOOL_MAGIC)
 
 #if ISC_MEM_DEBUG
 #define isc_mem_put(c, p, s) \
@@ -607,8 +673,7 @@ isc_mempool_setfillcount(isc_mempool_t *mpctx, unsigned int limit);
 void *
 isc__mem_get(isc_mem_t *, size_t _ISC_MEM_FLARG);
 void
-isc__mem_putanddetach(isc_mem_t **, void *,
-				      size_t _ISC_MEM_FLARG);
+isc__mem_putanddetach(isc_mem_t **, void *, size_t _ISC_MEM_FLARG);
 void
 isc__mem_put(isc_mem_t *, void *, size_t _ISC_MEM_FLARG);
 void *
@@ -623,6 +688,33 @@ void *
 isc__mempool_get(isc_mempool_t * _ISC_MEM_FLARG);
 void
 isc__mempool_put(isc_mempool_t *, void * _ISC_MEM_FLARG);
+
+#ifdef USE_MEMIMPREGISTER
+
+/*%<
+ * See isc_mem_create2() above.
+ */
+typedef isc_result_t
+(*isc_memcreatefunc_t)(size_t init_max_size, size_t target_size,
+		       isc_mem_t **ctxp, unsigned int flags);
+
+isc_result_t
+isc_mem_register(isc_memcreatefunc_t createfunc);
+/*%<
+ * Register a new memory management implementation and add it to the list of
+ * supported implementations.  This function must be called when a different
+ * memory management library is used than the one contained in the ISC library.
+ */
+
+isc_result_t
+isc__mem_register(void);
+/*%<
+ * A short cut function that specifies the memory management module in the ISC
+ * library for isc_mem_register().  An application that uses the ISC library
+ * usually do not have to care about this function: it would call
+ * isc_lib_register(), which internally calls this function.
+ */
+#endif /* USE_MEMIMPREGISTER */
 
 ISC_LANG_ENDDECLS
 

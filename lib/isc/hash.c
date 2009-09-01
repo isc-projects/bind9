@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hash.c,v 1.15 2009/05/06 23:47:50 tbox Exp $ */
+/* $Id: hash.c,v 1.16 2009/09/01 00:22:28 jinmei Exp $ */
 
 /*! \file
  * Some portion of this code was derived from universal hash function
@@ -194,8 +194,12 @@ isc_hash_ctxcreate(isc_mem_t *mctx, isc_entropy_t *entropy,
 	hctx->vectorlen = vlen;
 	hctx->rndvector = rv;
 
+#ifdef BIND9
 	if (entropy != NULL)
 		isc_entropy_attach(entropy, &hctx->entropy);
+#else
+	UNUSED(entropy);
+#endif
 
 	*hctxp = hctx;
 	return (ISC_R_SUCCESS);
@@ -236,18 +240,22 @@ isc_hash_create(isc_mem_t *mctx, isc_entropy_t *entropy, size_t limit) {
 
 void
 isc_hash_ctxinit(isc_hash_t *hctx) {
-	isc_result_t result;
-
 	LOCK(&hctx->lock);
 
 	if (hctx->initialized == ISC_TRUE)
 		goto out;
 
 	if (hctx->entropy) {
+#ifdef BIND9
+		isc_result_t result;
+
 		result = isc_entropy_getdata(hctx->entropy,
 					     hctx->rndvector, hctx->vectorlen,
 					     NULL, 0);
 		INSIST(result == ISC_R_SUCCESS);
+#else
+		INSIST(0);
+#endif
 	} else {
 		isc_uint32_t pr;
 		unsigned int i, copylen;
@@ -304,8 +312,10 @@ destroy(isc_hash_t **hctxp) {
 	isc_refcount_destroy(&hctx->refcnt);
 
 	mctx = hctx->mctx;
+#ifdef BIND9
 	if (hctx->entropy != NULL)
 		isc_entropy_detach(&hctx->entropy);
+#endif
 	if (hctx->rndvector != NULL)
 		isc_mem_put(mctx, hctx->rndvector, hctx->vectorlen);
 

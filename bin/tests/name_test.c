@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name_test.c,v 1.41 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id: name_test.c,v 1.42 2009/09/01 00:22:25 jinmei Exp $ */
 
 #include <config.h>
 
@@ -73,7 +73,7 @@ main(int argc, char *argv[]) {
 	isc_buffer_t source;
 	isc_region_t r;
 	dns_name_t *name, *origin, *comp, *down;
-	isc_boolean_t downcase = ISC_FALSE;
+	unsigned int downcase = 0;
 	size_t len;
 	isc_boolean_t quiet = ISC_FALSE;
 	isc_boolean_t concatenate = ISC_FALSE;
@@ -128,8 +128,7 @@ main(int argc, char *argv[]) {
 			dns_fixedname_init(&oname);
 			origin = &oname.name;
 			result = dns_name_fromtext(origin, &source,
-						   dns_rootname, ISC_FALSE,
-						   NULL);
+						   dns_rootname, 0, NULL);
 			if (result != 0) {
 				fprintf(stderr,
 					"dns_name_fromtext() failed: %d\n",
@@ -151,8 +150,8 @@ main(int argc, char *argv[]) {
 			isc_buffer_add(&source, len);
 			dns_fixedname_init(&compname);
 			comp = &compname.name;
-			result = dns_name_fromtext(comp, &source,
-						   origin, ISC_FALSE, NULL);
+			result = dns_name_fromtext(comp, &source, origin,
+						   0, NULL);
 			if (result != 0) {
 				fprintf(stderr,
 					"dns_name_fromtext() failed: %d\n",

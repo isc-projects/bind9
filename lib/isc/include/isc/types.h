@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.48 2009/01/27 23:47:54 tbox Exp $ */
+/* $Id: types.h,v 1.49 2009/09/01 00:22:28 jinmei Exp $ */
 
 #ifndef ISC_TYPES_H
 #define ISC_TYPES_H 1
+
+#include <isc/namespace.h>
 
 /*! \file isc/types.h
  * \brief
@@ -40,6 +42,7 @@
 
 /* Core Types.  Alphabetized by defined type. */
 
+typedef struct isc_appctx		isc_appctx_t;	 	/*%< Application context */
 typedef struct isc_bitstring		isc_bitstring_t; 	/*%< Bitstring */
 typedef struct isc_buffer		isc_buffer_t;		/*%< Buffer */
 typedef ISC_LIST(isc_buffer_t)		isc_bufferlist_t;	/*%< Buffer List */

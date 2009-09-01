@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.153 2009/07/14 23:47:53 tbox Exp $ */
+/* $Id: zoneconf.c,v 1.154 2009/09/01 00:22:25 jinmei Exp $ */
 
 /*% */
 
@@ -260,7 +260,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 		isc_buffer_init(&b, str, strlen(str));
 		isc_buffer_add(&b, strlen(str));
 		result = dns_name_fromtext(dns_fixedname_name(&fident), &b,
-					   dns_rootname, ISC_FALSE, NULL);
+					   dns_rootname, 0, NULL);
 		if (result != ISC_R_SUCCESS) {
 			cfg_obj_log(identity, ns_g_lctx, ISC_LOG_ERROR,
 				    "'%s' is not a valid name", str);
@@ -283,8 +283,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 			isc_buffer_init(&b, str, strlen(str));
 			isc_buffer_add(&b, strlen(str));
 			result = dns_name_fromtext(dns_fixedname_name(&fname),
-						   &b, dns_rootname,
-						   ISC_FALSE, NULL);
+						   &b, dns_rootname, 0, NULL);
 			if (result != ISC_R_SUCCESS) {
 				cfg_obj_log(identity, ns_g_lctx, ISC_LOG_ERROR,
 					    "'%s' is not a valid name", str);

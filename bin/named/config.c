@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.99 2009/07/14 22:54:56 each Exp $ */
+/* $Id: config.c,v 1.100 2009/09/01 00:22:25 jinmei Exp $ */
 
 /*! \file */
 
@@ -651,7 +651,7 @@ ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 		isc_buffer_add(&b, strlen(keystr));
 		dns_fixedname_init(&fname);
 		result = dns_name_fromtext(dns_fixedname_name(&fname), &b,
-					   dns_rootname, ISC_FALSE, NULL);
+					   dns_rootname, 0, NULL);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		result = dns_name_dup(dns_fixedname_name(&fname), mctx,

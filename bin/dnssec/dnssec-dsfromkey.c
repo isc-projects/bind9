@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-dsfromkey.c,v 1.12 2009/08/13 04:13:58 marka Exp $ */
+/* $Id: dnssec-dsfromkey.c,v 1.13 2009/09/01 00:22:24 jinmei Exp $ */
 
 /*! \file */
 
@@ -72,7 +72,7 @@ initname(char *setname) {
 
 	isc_buffer_init(&buf, setname, strlen(setname));
 	isc_buffer_add(&buf, strlen(setname));
-	result = dns_name_fromtext(name, &buf, dns_rootname, ISC_FALSE, NULL);
+	result = dns_name_fromtext(name, &buf, dns_rootname, 0, NULL);
 	return (result);
 }
 

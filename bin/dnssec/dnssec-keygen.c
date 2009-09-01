@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.89 2009/07/19 23:47:55 tbox Exp $ */
+/* $Id: dnssec-keygen.c,v 1.90 2009/09/01 00:22:24 jinmei Exp $ */
 
 /*! \file */
 
@@ -567,7 +567,7 @@ main(int argc, char **argv) {
 	isc_buffer_init(&buf, argv[isc_commandline_index],
 			strlen(argv[isc_commandline_index]));
 	isc_buffer_add(&buf, strlen(argv[isc_commandline_index]));
-	ret = dns_name_fromtext(name, &buf, dns_rootname, ISC_FALSE, NULL);
+	ret = dns_name_fromtext(name, &buf, dns_rootname, 0, NULL);
 	if (ret != ISC_R_SUCCESS)
 		fatal("invalid key name %s: %s", argv[isc_commandline_index],
 		      isc_result_totext(ret));

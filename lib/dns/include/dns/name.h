@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.130 2009/06/30 02:52:32 each Exp $ */
+/* $Id: name.h,v 1.131 2009/09/01 00:22:26 jinmei Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -127,21 +127,27 @@ struct dns_name {
 
 #define DNS_NAME_MAGIC			ISC_MAGIC('D','N','S','n')
 
-#define DNS_NAMEATTR_ABSOLUTE		0x0001
-#define DNS_NAMEATTR_READONLY		0x0002
-#define DNS_NAMEATTR_DYNAMIC		0x0004
-#define DNS_NAMEATTR_DYNOFFSETS		0x0008
-#define DNS_NAMEATTR_NOCOMPRESS		0x0010
+#define DNS_NAMEATTR_ABSOLUTE		0x00000001
+#define DNS_NAMEATTR_READONLY		0x00000002
+#define DNS_NAMEATTR_DYNAMIC		0x00000004
+#define DNS_NAMEATTR_DYNOFFSETS		0x00000008
+#define DNS_NAMEATTR_NOCOMPRESS		0x00000010
 /*
  * Attributes below 0x0100 reserved for name.c usage.
  */
-#define DNS_NAMEATTR_CACHE		0x0100		/*%< Used by resolver. */
-#define DNS_NAMEATTR_ANSWER		0x0200		/*%< Used by resolver. */
-#define DNS_NAMEATTR_NCACHE		0x0400		/*%< Used by resolver. */
-#define DNS_NAMEATTR_CHAINING		0x0800		/*%< Used by resolver. */
-#define DNS_NAMEATTR_CHASE		0x1000		/*%< Used by resolver. */
-#define DNS_NAMEATTR_WILDCARD		0x2000		/*%< Used by server. */
+#define DNS_NAMEATTR_CACHE		0x00000100	/*%< Used by resolver. */
+#define DNS_NAMEATTR_ANSWER		0x00000200	/*%< Used by resolver. */
+#define DNS_NAMEATTR_NCACHE		0x00000400	/*%< Used by resolver. */
+#define DNS_NAMEATTR_CHAINING		0x00000800	/*%< Used by resolver. */
+#define DNS_NAMEATTR_CHASE		0x00001000	/*%< Used by resolver. */
+#define DNS_NAMEATTR_WILDCARD		0x00002000	/*%< Used by server. */
+#define DNS_NAMEATTR_PREREQUISITE	0x00004000	/*%< Used by client. */
+#define DNS_NAMEATTR_UPDATE		0x00008000	/*%< Used by client. */
+#define DNS_NAMEATTR_HASUPDATEREC	0x00010000	/*%< Used by client. */
 
+/*
+ * Various flags.
+ */
 #define DNS_NAME_DOWNCASE		0x0001
 #define DNS_NAME_CHECKNAMES		0x0002		/*%< Used by rdata. */
 #define DNS_NAME_CHECKNAMESFAIL		0x0004		/*%< Used by rdata. */
@@ -1292,6 +1298,13 @@ dns_name_destroy(void);
  * Note: dns_name_settotextfilter(NULL); should be called for all
  * threads which have called dns_name_settotextfilter() with a
  * non-NULL argument prior to calling dns_name_destroy();
+ */
+
+isc_result_t
+dns_name_fromstr(dns_name_t *name, const char *source, const char *origin,
+		 unsigned int options, isc_buffer_t *target);
+/*%<
+ * TBD
  */
 
 ISC_LANG_ENDDECLS

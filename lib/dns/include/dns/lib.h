@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lib.h,v 1.16 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: lib.h,v 1.17 2009/09/01 00:22:26 jinmei Exp $ */
 
 #ifndef DNS_LIB_H
 #define DNS_LIB_H 1
@@ -38,6 +38,20 @@ dns_lib_initmsgcat(void);
 /*%<
  * Initialize the DNS library's message catalog, dns_msgcat, if it
  * has not already been initialized.
+ */
+
+isc_result_t
+dns_lib_init(void);
+/*%<
+ * A set of initialization procedure used in the DNS library.  This function
+ * is provided for an application that is not aware of the underlying ISC or
+ * DNS libraries much.
+ */
+
+void
+dns_lib_shutdown(void);
+/*%<
+ * Free temporary resources allocated in dns_lib_init().
  */
 
 ISC_LANG_ENDDECLS

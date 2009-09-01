@@ -66,11 +66,11 @@ BIND 9.7.0
 	- Smart signing: simplified tools for zone signing and key
 	  maintenance
 	- The "statistics-channels" option is now available on Windows
+        - DNSSEC-aware libdns API
 
 	Planned but not complete in this alpha:
 
 	- Fully automatic signing of zones by "named"
-        - DNSSEC-aware libdns API
         - Improved PKCS#11 support, including Keyper support
 
 BIND 9.6.0

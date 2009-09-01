@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.46 2009/06/11 23:47:55 tbox Exp $
+# $Id: Makefile.in,v 1.47 2009/09/01 00:22:25 jinmei Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -26,7 +26,7 @@ top_srcdir =	@top_srcdir@
 CINCLUDES = -I${srcdir}/include ${ISC_INCLUDES} ${ISCCC_INCLUDES} \
 	${ISCCFG_INCLUDES} ${DNS_INCLUDES} ${BIND9_INCLUDES}
 
-CDEFINES =
+CDEFINES =	-DBIND9
 CWARNINGS =
 
 ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@

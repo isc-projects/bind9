@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone_test.c,v 1.33 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id: zone_test.c,v 1.34 2009/09/01 00:22:25 jinmei Exp $ */
 
 #include <config.h>
 
@@ -104,7 +104,7 @@ setup(const char *zonename, const char *filename, const char *classname) {
 	isc_buffer_add(&buffer, strlen(zonename));
 	dns_fixedname_init(&fixorigin);
 	result = dns_name_fromtext(dns_fixedname_name(&fixorigin),
-			  	   &buffer, dns_rootname, ISC_FALSE, NULL);
+			  	   &buffer, dns_rootname, 0, NULL);
 	ERRRET(result, "dns_name_fromtext");
 	origin = dns_fixedname_name(&fixorigin);
 
@@ -206,7 +206,7 @@ query(void) {
 		isc_buffer_init(&buffer, buf, strlen(buf));
 		isc_buffer_add(&buffer, strlen(buf));
 		result = dns_name_fromtext(dns_fixedname_name(&name),
-				  &buffer, dns_rootname, ISC_FALSE, NULL);
+				  &buffer, dns_rootname, 0, NULL);
 		ERRCONT(result, "dns_name_fromtext");
 
 		result = dns_db_find(db, dns_fixedname_name(&name),

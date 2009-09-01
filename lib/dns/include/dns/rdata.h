@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.h,v 1.73 2009/01/17 23:47:43 tbox Exp $ */
+/* $Id: rdata.h,v 1.74 2009/09/01 00:22:26 jinmei Exp $ */
 
 #ifndef DNS_RDATA_H
 #define DNS_RDATA_H 1
@@ -95,6 +95,7 @@
 
 #include <dns/types.h>
 #include <dns/name.h>
+#include <dns/message.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -697,6 +698,21 @@ dns_rdata_checknames(dns_rdata_t *rdata, dns_name_t *owner, dns_name_t *bad);
  *	'owner' to be valid.
  *	'bad'	to be NULL or valid.
  */
+
+void
+dns_rdata_exists(dns_rdata_t *rdata, dns_rdatatype_t type);
+
+void
+dns_rdata_notexist(dns_rdata_t *rdata, dns_rdatatype_t type);
+
+void
+dns_rdata_deleterrset(dns_rdata_t *rdata, dns_rdatatype_t type);
+
+void
+dns_rdata_makedelete(dns_rdata_t *rdata);
+
+const char *
+dns_rdata_updateop(dns_rdata_t *rdata, dns_section_t section);
 
 ISC_LANG_ENDDECLS
 

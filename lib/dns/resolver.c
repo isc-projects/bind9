@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.404 2009/08/13 04:33:51 marka Exp $ */
+/* $Id: resolver.c,v 1.405 2009/09/01 00:22:26 jinmei Exp $ */
 
 /*! \file */
 
@@ -1013,6 +1013,7 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result, int line) {
 		ISC_LIST_UNLINK(fctx->events, event, ev_link);
 		task = event->ev_sender;
 		event->ev_sender = fctx;
+		event->vresult = fctx->vresult;
 		if (!HAVE_ANSWER(fctx))
 			event->result = result;
 
@@ -3889,6 +3890,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(!ISC_LIST_EMPTY(fctx->validators));
 
 	vevent = (dns_validatorevent_t *)event;
+	fctx->vresult = vevent->result;
 
 	FCTXTRACE("received validation completion event");
 
@@ -7151,6 +7153,7 @@ dns_resolver_create(dns_view_t *view,
 	return (result);
 }
 
+#ifdef BIND9
 static void
 prime_done(isc_task_t *task, isc_event_t *event) {
 	dns_resolver_t *res;
@@ -7256,6 +7259,7 @@ dns_resolver_prime(dns_resolver_t *res) {
 		}
 	}
 }
+#endif /* BIND9 */
 
 void
 dns_resolver_freeze(dns_resolver_t *res) {

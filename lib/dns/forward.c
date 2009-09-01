@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: forward.c,v 1.12 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: forward.c,v 1.13 2009/09/01 00:22:26 jinmei Exp $ */
 
 /*! \file */
 
@@ -129,6 +129,22 @@ dns_fwdtable_add(dns_fwdtable_t *fwdtable, dns_name_t *name,
 		isc_mem_put(fwdtable->mctx, sa, sizeof(isc_sockaddr_t));
 	}
 	isc_mem_put(fwdtable->mctx, forwarders, sizeof(dns_forwarders_t));
+	return (result);
+}
+
+isc_result_t
+dns_fwdtable_delete(dns_fwdtable_t *fwdtable, dns_name_t *name) {
+	isc_result_t result;
+
+	REQUIRE(VALID_FWDTABLE(fwdtable));
+
+	RWLOCK(&fwdtable->rwlock, isc_rwlocktype_write);
+	result = dns_rbt_deletename(fwdtable->table, name, ISC_FALSE);
+	RWUNLOCK(&fwdtable->rwlock, isc_rwlocktype_write);
+
+	if (result == DNS_R_PARTIALMATCH)
+		result = ISC_R_NOTFOUND;
+
 	return (result);
 }
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.323 2009/07/19 04:18:03 each Exp $ */
+/* $Id: dighost.c,v 1.324 2009/09/01 00:22:24 jinmei Exp $ */
 
 /*! \file
  *  \note
@@ -921,9 +921,7 @@ setup_text_key(void) {
 
 	secretsize = isc_buffer_usedlength(&secretbuf);
 
-	result = dns_name_fromtext(&keyname, namebuf,
-				   dns_rootname, ISC_FALSE,
-				   namebuf);
+	result = dns_name_fromtext(&keyname, namebuf, dns_rootname, 0, namebuf);
 	if (result != ISC_R_SUCCESS)
 		goto failure;
 
@@ -1890,7 +1888,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		isc_buffer_init(&b, lookup->origin->origin, len);
 		isc_buffer_add(&b, len);
 		result = dns_name_fromtext(lookup->oname, &b, dns_rootname,
-					   ISC_FALSE, &lookup->onamebuf);
+					   0, &lookup->onamebuf);
 		if (result != ISC_R_SUCCESS) {
 			dns_message_puttempname(lookup->sendmsg,
 						&lookup->name);
@@ -1907,7 +1905,7 @@ setup_lookup(dig_lookup_t *lookup) {
 			isc_buffer_init(&b, lookup->textname, len);
 			isc_buffer_add(&b, len);
 			result = dns_name_fromtext(lookup->name, &b,
-						   lookup->oname, ISC_FALSE,
+						   lookup->oname, 0,
 						   &lookup->namebuf);
 		}
 		if (result != ISC_R_SUCCESS) {
@@ -1931,16 +1929,14 @@ setup_lookup(dig_lookup_t *lookup) {
 			isc_buffer_init(&b, idn_textname, len);
 			isc_buffer_add(&b, len);
 			result = dns_name_fromtext(lookup->name, &b,
-						   dns_rootname,
-						   ISC_FALSE,
+						   dns_rootname, 0,
 						   &lookup->namebuf);
 #else
 			len = strlen(lookup->textname);
 			isc_buffer_init(&b, lookup->textname, len);
 			isc_buffer_add(&b, len);
 			result = dns_name_fromtext(lookup->name, &b,
-						   dns_rootname,
-						   ISC_FALSE,
+						   dns_rootname, 0,
 						   &lookup->namebuf);
 #endif
 		}
@@ -4085,7 +4081,7 @@ nameFromString(const char *str, dns_name_t *p_ret) {
 
 	dns_fixedname_init(&fixedname);
 	result = dns_name_fromtext(dns_fixedname_name(&fixedname), &buffer,
-				   dns_rootname, ISC_TRUE, NULL);
+				   dns_rootname, DNS_NAME_DOWNCASE, NULL);
 	check_result(result, "nameFromString");
 
 	if (dns_name_dynamic(p_ret))

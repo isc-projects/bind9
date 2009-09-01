@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.171 2009/07/19 04:18:04 each Exp $ */
+/* $Id: nsupdate.c,v 1.172 2009/09/01 00:22:25 jinmei Exp $ */
 
 /*! \file */
 
@@ -526,8 +526,7 @@ setup_keystr(void) {
 	isc_buffer_add(&keynamesrc, n - name);
 
 	debug("namefromtext");
-	result = dns_name_fromtext(keyname, &keynamesrc, dns_rootname,
-				   ISC_FALSE, NULL);
+	result = dns_name_fromtext(keyname, &keynamesrc, dns_rootname, 0, NULL);
 	check_result(result, "dns_name_fromtext");
 
 	secretlen = strlen(secretstr) * 3 / 4;
@@ -1110,8 +1109,7 @@ parse_name(char **cmdlinep, dns_message_t *msg, dns_name_t **namep) {
 	dns_message_takebuffer(msg, &namebuf);
 	isc_buffer_init(&source, word, strlen(word));
 	isc_buffer_add(&source, strlen(word));
-	result = dns_name_fromtext(*namep, &source, dns_rootname,
-				   ISC_FALSE, NULL);
+	result = dns_name_fromtext(*namep, &source, dns_rootname, 0, NULL);
 	check_result(result, "dns_name_fromtext");
 	isc_buffer_invalidate(&source);
 	return (STATUS_MORE);
@@ -1433,7 +1431,7 @@ evaluate_key(char *cmdline) {
 
 	isc_buffer_init(&b, namestr, strlen(namestr));
 	isc_buffer_add(&b, strlen(namestr));
-	result = dns_name_fromtext(keyname, &b, dns_rootname, ISC_FALSE, NULL);
+	result = dns_name_fromtext(keyname, &b, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "could not parse key name\n");
 		return (STATUS_SYNTAX);
@@ -1490,8 +1488,7 @@ evaluate_zone(char *cmdline) {
 	userzone = dns_fixedname_name(&fuserzone);
 	isc_buffer_init(&b, word, strlen(word));
 	isc_buffer_add(&b, strlen(word));
-	result = dns_name_fromtext(userzone, &b, dns_rootname, ISC_FALSE,
-				   NULL);
+	result = dns_name_fromtext(userzone, &b, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
 		userzone = NULL; /* Lest it point to an invalid name */
 		fprintf(stderr, "could not parse zone name\n");
@@ -2426,8 +2423,7 @@ start_gssrequest(dns_name_t *master)
 		      isc_result_totext(result));
 	isc_buffer_init(&buf, servicename, strlen(servicename));
 	isc_buffer_add(&buf, strlen(servicename));
-	result = dns_name_fromtext(servname, &buf, dns_rootname,
-				   ISC_FALSE, NULL);
+	result = dns_name_fromtext(servname, &buf, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS)
 		fatal("dns_name_fromtext(servname) failed: %s",
 		      isc_result_totext(result));
@@ -2444,8 +2440,7 @@ start_gssrequest(dns_name_t *master)
 	isc_buffer_init(&buf, keystr, strlen(keystr));
 	isc_buffer_add(&buf, strlen(keystr));
 
-	result = dns_name_fromtext(keyname, &buf, dns_rootname,
-				   ISC_FALSE, NULL);
+	result = dns_name_fromtext(keyname, &buf, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS)
 		fatal("dns_name_fromtext(keyname) failed: %s",
 		      isc_result_totext(result));
@@ -2596,8 +2591,7 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 	servname = dns_fixedname_name(&fname);
 	isc_buffer_init(&buf, servicename, strlen(servicename));
 	isc_buffer_add(&buf, strlen(servicename));
-	result = dns_name_fromtext(servname, &buf, dns_rootname,
-				   ISC_FALSE, NULL);
+	result = dns_name_fromtext(servname, &buf, dns_rootname, 0, NULL);
 	check_result(result, "dns_name_fromtext");
 
 	tsigkey = NULL;

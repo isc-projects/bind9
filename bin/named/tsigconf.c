@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsigconf.c,v 1.32 2009/06/11 23:47:55 tbox Exp $ */
+/* $Id: tsigconf.c,v 1.33 2009/09/01 00:22:25 jinmei Exp $ */
 
 /*! \file */
 
@@ -82,7 +82,7 @@ add_initial_keys(const cfg_obj_t *list, dns_tsig_keyring_t *ring,
 		isc_buffer_add(&keynamesrc, strlen(keyid));
 		isc_buffer_init(&keynamebuf, keynamedata, sizeof(keynamedata));
 		ret = dns_name_fromtext(&keyname, &keynamesrc, dns_rootname,
-					ISC_TRUE, &keynamebuf);
+					DNS_NAME_DOWNCASE, &keynamebuf);
 		if (ret != ISC_R_SUCCESS)
 			goto failure;
 

@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.227 2009/08/14 01:07:00 each Exp $ */
+/* $Id: dnssec-signzone.c,v 1.228 2009/09/01 00:22:24 jinmei Exp $ */
 
 /*! \file */
 
@@ -2486,7 +2486,7 @@ loadzone(char *file, char *origin, dns_rdataclass_t rdclass, dns_db_t **db) {
 
 	dns_fixedname_init(&fname);
 	name = dns_fixedname_name(&fname);
-	result = dns_name_fromtext(name, &b, dns_rootname, ISC_FALSE, NULL);
+	result = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS)
 		fatal("failed converting name '%s' to dns format: %s",
 		      origin, isc_result_totext(result));
@@ -3274,8 +3274,8 @@ main(int argc, char *argv[]) {
 
 			dns_fixedname_init(&dlv_fixed);
 			dlv = dns_fixedname_name(&dlv_fixed);
-			result = dns_name_fromtext(dlv, &b, dns_rootname,
-						   ISC_FALSE, NULL);
+			result = dns_name_fromtext(dlv, &b, dns_rootname, 0,
+						   NULL);
 			check_result(result, "dns_name_fromtext(dlv)");
 			break;
 

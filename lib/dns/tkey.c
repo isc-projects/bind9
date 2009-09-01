@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.90 2008/04/03 00:45:23 marka Exp $
+ * $Id: tkey.c,v 1.91 2009/09/01 00:22:26 jinmei Exp $
  */
 /*! \file */
 #include <config.h>
@@ -724,8 +724,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 			}
 			isc_buffer_init(&b, randomtext, sizeof(randomtext));
 			isc_buffer_add(&b, sizeof(randomtext));
-			result = dns_name_fromtext(keyname, &b, NULL,
-						   ISC_FALSE, NULL);
+			result = dns_name_fromtext(keyname, &b, NULL, 0, NULL);
 			if (result != ISC_R_SUCCESS)
 				goto failure;
 		}

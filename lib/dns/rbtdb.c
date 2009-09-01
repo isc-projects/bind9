@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.277 2009/07/13 07:02:46 marka Exp $ */
+/* $Id: rbtdb.c,v 1.278 2009/09/01 00:22:26 jinmei Exp $ */
 
 /*! \file */
 
@@ -625,8 +625,10 @@ typedef struct rbtdb_dbiterator {
 static void free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log,
 		       isc_event_t *event);
 static void overmem(dns_db_t *db, isc_boolean_t overmem);
+#ifdef BIND9
 static void setnsec3parameters(dns_db_t *db, rbtdb_version_t *version,
 			       isc_boolean_t *nsec3createflag);
+#endif
 
 /*%
  * 'init_count' is used to initialize 'newheader->count' which inturn
@@ -1925,6 +1927,13 @@ cleanup_nondirty(rbtdb_version_t *version, rbtdb_changedlist_t *cleanup_list) {
 
 static void
 iszonesecure(dns_db_t *db, rbtdb_version_t *version, dns_dbnode_t *origin) {
+#ifndef BIND9
+	UNUSED(db);
+	UNUSED(version);
+	UNUSED(origin);
+
+	return;
+#else
 	dns_rdataset_t keyset;
 	dns_rdataset_t nsecset, signsecset;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -1988,12 +1997,14 @@ iszonesecure(dns_db_t *db, rbtdb_version_t *version, dns_dbnode_t *origin) {
 		version->secure = dns_db_partial;
 	else
 		version->secure = dns_db_insecure;
+#endif
 }
 
 /*%<
  * Walk the origin node looking for NSEC3PARAM records.
  * Cache the nsec3 parameters.
  */
+#ifdef BIND9
 static void
 setnsec3parameters(dns_db_t *db, rbtdb_version_t *version,
 		   isc_boolean_t *nsec3createflag)
@@ -2098,6 +2109,7 @@ setnsec3parameters(dns_db_t *db, rbtdb_version_t *version,
 		    isc_rwlocktype_read);
 	RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
 }
+#endif
 
 static void
 closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
@@ -6505,9 +6517,17 @@ dump(dns_db_t *db, dns_dbversion_t *version, const char *filename,
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
+#ifdef BIND9
 	return (dns_master_dump2(rbtdb->common.mctx, db, version,
 				 &dns_master_style_default,
 				 filename, masterformat));
+#else
+	UNUSED(version);
+	UNUSED(filename);
+	UNUSED(masterformat);
+
+	return (ISC_R_NOTIMPLEMENTED);
+#endif /* BIND9 */
 }
 
 static void
@@ -8089,6 +8109,21 @@ rdataset_getadditional(dns_rdataset_t *rdataset, dns_rdatasetadditional_t type,
 		       dns_name_t *fname, dns_message_t *msg,
 		       isc_stdtime_t now)
 {
+#ifndef BIND9
+	UNUSED(rdataset);
+	UNUSED(type);
+	UNUSED(qtype);
+	UNUSED(acache);
+	UNUSED(zonep);
+	UNUSED(dbp);
+	UNUSED(versionp);
+	UNUSED(nodep);
+	UNUSED(fname);
+	UNUSED(msg);
+	UNUSED(now);
+
+	return (ISC_R_NOTIMPLEMENTED);
+#else
 	dns_rbtdb_t *rbtdb = rdataset->private1;
 	dns_rbtnode_t *rbtnode = rdataset->private2;
 	unsigned char *raw = rdataset->private3;        /* RDATASLAB */
@@ -8205,8 +8240,10 @@ acache_callback(dns_acacheentry_t *entry, void **arg) {
 	dns_db_detach((dns_db_t **)(void*)&rbtdb);
 
 	*arg = NULL;
+#endif /* BIND9 */
 }
 
+#ifdef BIND9
 static void
 acache_cancelentry(isc_mem_t *mctx, dns_acacheentry_t *entry,
 		      acache_cbarg_t **cbargp)
@@ -8227,6 +8264,7 @@ acache_cancelentry(isc_mem_t *mctx, dns_acacheentry_t *entry,
 
 	*cbargp = NULL;
 }
+#endif /* BIND9 */
 
 static isc_result_t
 rdataset_setadditional(dns_rdataset_t *rdataset, dns_rdatasetadditional_t type,
@@ -8235,6 +8273,19 @@ rdataset_setadditional(dns_rdataset_t *rdataset, dns_rdatasetadditional_t type,
 		       dns_dbversion_t *version, dns_dbnode_t *node,
 		       dns_name_t *fname)
 {
+#ifndef BIND9
+	UNUSED(rdataset);
+	UNUSED(type);
+	UNUSED(qtype);
+	UNUSED(acache);
+	UNUSED(zone);
+	UNUSED(db);
+	UNUSED(version);
+	UNUSED(node);
+	UNUSED(fname);
+
+	return (ISC_R_NOTIMPLEMENTED);
+#else
 	dns_rbtdb_t *rbtdb = rdataset->private1;
 	dns_rbtnode_t *rbtnode = rdataset->private2;
 	unsigned char *raw = rdataset->private3;        /* RDATASLAB */
@@ -8358,12 +8409,21 @@ rdataset_setadditional(dns_rdataset_t *rdataset, dns_rdatasetadditional_t type,
 	}
 
 	return (result);
+#endif
 }
 
 static isc_result_t
 rdataset_putadditional(dns_acache_t *acache, dns_rdataset_t *rdataset,
 		       dns_rdatasetadditional_t type, dns_rdatatype_t qtype)
 {
+#ifndef BIND9
+	UNUSED(acache);
+	UNUSED(rdataset);
+	UNUSED(type);
+	UNUSED(qtype);
+
+	return (ISC_R_NOTIMPLEMENTED);
+#else
 	dns_rbtdb_t *rbtdb = rdataset->private1;
 	dns_rbtnode_t *rbtnode = rdataset->private2;
 	unsigned char *raw = rdataset->private3;        /* RDATASLAB */
@@ -8428,6 +8488,7 @@ rdataset_putadditional(dns_acache_t *acache, dns_rdataset_t *rdataset,
 	}
 
 	return (ISC_R_SUCCESS);
+#endif
 }
 
 /*%

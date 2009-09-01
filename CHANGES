@@ -1,3 +1,6 @@
+2660.	[func]		Add a new set of DNS libraries for non-BIND9
+			applications.  See README.libdns. [RT #19369]
+
 2659.	[doc]		Clarify dnssec-keygen doc: key name must match zone
 			name for DNSSEC keys. [RT #19938]
 

@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.32 2009/07/14 22:54:56 each Exp $
+# $Id: Makefile.in,v 1.33 2009/09/01 00:22:25 jinmei Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -26,7 +26,7 @@ top_srcdir =	@top_srcdir@
 CINCLUDES =	${LWRES_INCLUDES} ${DNS_INCLUDES} ${BIND9_INCLUDES} \
 		${ISC_INCLUDES} ${ISCCFG_INCLUDES} @DST_GSSAPI_INC@
 
-CDEFINES =	@USE_GSSAPI@
+CDEFINES =	-DBIND9 @USE_GSSAPI@
 CWARNINGS =
 
 LWRESLIBS =	../../lib/lwres/liblwres.@A@

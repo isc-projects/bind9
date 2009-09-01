@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master_test.c,v 1.30 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id: master_test.c,v 1.31 2009/09/01 00:22:25 jinmei Exp $ */
 
 #include <config.h>
 
@@ -75,7 +75,7 @@ main(int argc, char *argv[]) {
 		isc_buffer_init(&target, name_buf, 255);
 		dns_name_init(&origin, NULL);
 		result = dns_name_fromtext(&origin, &source, dns_rootname,
-					   ISC_FALSE, &target);
+					   0, &target);
 		if (result != ISC_R_SUCCESS) {
 			fprintf(stdout, "dns_name_fromtext: %s\n",
 				dns_result_totext(result));

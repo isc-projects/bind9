@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sig0_test.c,v 1.17 2008/07/22 23:47:04 tbox Exp $ */
+/* $Id: sig0_test.c,v 1.18 2009/09/01 00:22:25 jinmei Exp $ */
 
 #include <config.h>
 
@@ -157,8 +157,7 @@ buildquery(void) {
 	isc_buffer_add(&namesrc, strlen(nametext));
 	isc_buffer_init(&namedst, namedata, sizeof(namedata));
 	dns_name_init(qname, NULL);
-	result = dns_name_fromtext(qname, &namesrc, dns_rootname, ISC_FALSE,
-				   &namedst);
+	result = dns_name_fromtext(qname, &namesrc, dns_rootname, 0, &namedst);
 	CHECK("dns_name_fromtext", result);
 	ISC_LIST_APPEND(qname->list, question, link);
 	dns_message_addname(query, qname, DNS_SECTION_QUESTION);
@@ -264,7 +263,7 @@ main(int argc, char *argv[]) {
 	name = dns_fixedname_name(&fname);
 	isc_buffer_init(&b, "child.example.", strlen("child.example."));
 	isc_buffer_add(&b, strlen("child.example."));
-	result = dns_name_fromtext(name, &b, dns_rootname, ISC_FALSE, NULL);
+	result = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
 	CHECK("dns_name_fromtext", result);
 
 	key = NULL;

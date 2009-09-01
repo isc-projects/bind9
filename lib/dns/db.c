@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.93 2009/07/19 23:47:55 tbox Exp $ */
+/* $Id: db.c,v 1.94 2009/09/01 00:22:26 jinmei Exp $ */
 
 /*! \file */
 
@@ -63,14 +63,18 @@ struct dns_dbimplementation {
  */
 
 #include "rbtdb.h"
+#ifdef BIND9
 #include "rbtdb64.h"
+#endif
 
 static ISC_LIST(dns_dbimplementation_t) implementations;
 static isc_rwlock_t implock;
 static isc_once_t once = ISC_ONCE_INIT;
 
 static dns_dbimplementation_t rbtimp;
+#ifdef BIND9
 static dns_dbimplementation_t rbt64imp;
+#endif
 
 static void
 initialize(void) {
@@ -82,15 +86,19 @@ initialize(void) {
 	rbtimp.driverarg = NULL;
 	ISC_LINK_INIT(&rbtimp, link);
 
+#ifdef BIND9
 	rbt64imp.name = "rbt64";
 	rbt64imp.create = dns_rbtdb64_create;
 	rbt64imp.mctx = NULL;
 	rbt64imp.driverarg = NULL;
 	ISC_LINK_INIT(&rbt64imp, link);
+#endif
 
 	ISC_LIST_INIT(implementations);
 	ISC_LIST_APPEND(implementations, &rbtimp, link);
+#ifdef BIND9
 	ISC_LIST_APPEND(implementations, &rbt64imp, link);
+#endif
 }
 
 static inline dns_dbimplementation_t *
@@ -292,6 +300,7 @@ dns_db_class(dns_db_t *db) {
 	return (db->rdclass);
 }
 
+#ifdef BIND9
 isc_result_t
 dns_db_beginload(dns_db_t *db, dns_addrdatasetfunc_t *addp,
 		 dns_dbload_t **dbloadp) {
@@ -383,6 +392,7 @@ dns_db_dump2(dns_db_t *db, dns_dbversion_t *version, const char *filename,
 
 	return ((db->methods->dump)(db, version, filename, masterformat));
 }
+#endif /* BIND9 */
 
 /***
  *** Version Methods

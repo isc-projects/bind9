@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.106 2009/08/23 11:44:44 fdupont Exp $ */
+/* $Id: check.c,v 1.107 2009/09/01 00:22:26 jinmei Exp $ */
 
 /*! \file */
 
@@ -100,7 +100,7 @@ check_orderent(const cfg_obj_t *ent, isc_log_t *logctx) {
 		isc_buffer_init(&b, str, strlen(str));
 		isc_buffer_add(&b, strlen(str));
 		tresult = dns_name_fromtext(dns_fixedname_name(&fixed), &b,
-					    dns_rootname, ISC_FALSE, NULL);
+					    dns_rootname, 0, NULL);
 		if (tresult != ISC_R_SUCCESS) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "rrset-order: invalid name '%s'", str);
@@ -199,7 +199,7 @@ check_dual_stack(const cfg_obj_t *options, isc_log_t *logctx) {
 		dns_fixedname_init(&fixed);
 		name = dns_fixedname_name(&fixed);
 		tresult = dns_name_fromtext(name, &buffer, dns_rootname,
-					   ISC_FALSE, NULL);
+					    0, NULL);
 		if (tresult != ISC_R_SUCCESS) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "bad name '%s'", str);
@@ -262,7 +262,7 @@ disabled_algorithms(const cfg_obj_t *disabled, isc_log_t *logctx) {
 	str = cfg_obj_asstring(obj);
 	isc_buffer_init(&b, str, strlen(str));
 	isc_buffer_add(&b, strlen(str));
-	tresult = dns_name_fromtext(name, &b, dns_rootname, ISC_FALSE, NULL);
+	tresult = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
 	if (tresult != ISC_R_SUCCESS) {
 		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 			    "bad domain name '%s'", str);
@@ -349,7 +349,7 @@ mustbesecure(const cfg_obj_t *secure, isc_symtab_t *symtab, isc_log_t *logctx,
 	str = cfg_obj_asstring(obj);
 	isc_buffer_init(&b, str, strlen(str));
 	isc_buffer_add(&b, strlen(str));
-	result = dns_name_fromtext(name, &b, dns_rootname, ISC_FALSE, NULL);
+	result = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
 		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 			    "bad domain name '%s'", str);
@@ -617,7 +617,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 				isc_buffer_add(&b, strlen(str));
 				tresult = dns_name_fromtext(name, &b,
 							   dns_rootname,
-							   ISC_FALSE, NULL);
+							   0, NULL);
 				if (tresult != ISC_R_SUCCESS) {
 					cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 						    "bad domain name '%s'",
@@ -680,7 +680,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 			isc_buffer_init(&b, dlv, strlen(dlv));
 			isc_buffer_add(&b, strlen(dlv));
 			tresult = dns_name_fromtext(name, &b, dns_rootname,
-						    ISC_TRUE, NULL);
+						    0, NULL);
 			if (tresult != ISC_R_SUCCESS) {
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 					    "bad domain name '%s'", dlv);
@@ -715,7 +715,8 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 				isc_buffer_add(&b, strlen(dlv));
 				tresult = dns_name_fromtext(name, &b,
 							    dns_rootname,
-							    ISC_TRUE, NULL);
+							    DNS_NAME_DOWNCASE,
+							    NULL);
 				if (tresult != ISC_R_SUCCESS) {
 					cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 						    "bad domain name '%s'",
@@ -771,7 +772,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 		isc_buffer_init(&b, str, strlen(str));
 		isc_buffer_add(&b, strlen(str));
 		tresult = dns_name_fromtext(dns_fixedname_name(&fixed), &b,
-					    dns_rootname, ISC_FALSE, NULL);
+					    dns_rootname, 0, NULL);
 		if (tresult != ISC_R_SUCCESS) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "empty-server: invalid name '%s'", str);
@@ -786,7 +787,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 		isc_buffer_init(&b, str, strlen(str));
 		isc_buffer_add(&b, strlen(str));
 		tresult = dns_name_fromtext(dns_fixedname_name(&fixed), &b,
-					    dns_rootname, ISC_FALSE, NULL);
+					    dns_rootname, 0, NULL);
 		if (tresult != ISC_R_SUCCESS) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "empty-contact: invalid name '%s'", str);
@@ -805,7 +806,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 		isc_buffer_init(&b, str, strlen(str));
 		isc_buffer_add(&b, strlen(str));
 		tresult = dns_name_fromtext(dns_fixedname_name(&fixed), &b,
-					    dns_rootname, ISC_FALSE, NULL);
+					    dns_rootname, 0, NULL);
 		if (tresult != ISC_R_SUCCESS) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "disable-empty-zone: invalid name '%s'",
@@ -990,7 +991,7 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 		isc_buffer_init(&b, str, strlen(str));
 		isc_buffer_add(&b, strlen(str));
 		tresult = dns_name_fromtext(dns_fixedname_name(&fixed), &b,
-					    dns_rootname, ISC_FALSE, NULL);
+					    dns_rootname, 0, NULL);
 		if (tresult != ISC_R_SUCCESS) {
 			cfg_obj_log(identity, logctx, ISC_LOG_ERROR,
 				    "'%s' is not a valid name", str);
@@ -1004,8 +1005,7 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 			isc_buffer_init(&b, str, strlen(str));
 			isc_buffer_add(&b, strlen(str));
 			tresult = dns_name_fromtext(dns_fixedname_name(&fixed),
-						    &b, dns_rootname,
-						    ISC_FALSE, NULL);
+						    &b, dns_rootname, 0, NULL);
 			if (tresult != ISC_R_SUCCESS) {
 				cfg_obj_log(dname, logctx, ISC_LOG_ERROR,
 					    "'%s' is not a valid name", str);
@@ -1198,7 +1198,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	isc_buffer_init(&b, zname, strlen(zname));
 	isc_buffer_add(&b, strlen(zname));
 	tresult = dns_name_fromtext(dns_fixedname_name(&fixedname), &b,
-				    dns_rootname, ISC_TRUE, NULL);
+				    dns_rootname, DNS_NAME_DOWNCASE, NULL);
 	if (tresult != ISC_R_SUCCESS) {
 		cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
 			    "zone '%s': is not a valid name", zname);
@@ -1511,7 +1511,7 @@ check_keylist(const cfg_obj_t *keys, isc_symtab_t *symtab,
 		isc_buffer_init(&b, keyid, strlen(keyid));
 		isc_buffer_add(&b, strlen(keyid));
 		tresult = dns_name_fromtext(name, &b, dns_rootname,
-					    ISC_FALSE, NULL);
+					    0, NULL);
 		if (tresult != ISC_R_SUCCESS) {
 			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
 				    "key '%s': bad key name", keyid);
@@ -1681,7 +1681,7 @@ check_servers(const cfg_obj_t *config, const cfg_obj_t *voptions,
 			isc_buffer_add(&b, strlen(keyval));
 			keyname = dns_fixedname_name(&fname);
 			tresult = dns_name_fromtext(keyname, &b, dns_rootname,
-						    ISC_FALSE, NULL);
+						    0, NULL);
 			if (tresult != ISC_R_SUCCESS) {
 				cfg_obj_log(keys, logctx, ISC_LOG_ERROR,
 					    "bad key name '%s'", keyval);

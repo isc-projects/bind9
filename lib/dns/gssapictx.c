@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gssapictx.c,v 1.12 2008/04/03 06:09:04 tbox Exp $ */
+/* $Id: gssapictx.c,v 1.13 2009/09/01 00:22:26 jinmei Exp $ */
 
 #include <config.h>
 
@@ -630,7 +630,7 @@ dst_gssapi_acceptctx(gss_cred_id_t cred,
 		isc_buffer_add(&namebuf, r.length);
 
 		RETERR(dns_name_fromtext(principal, &namebuf, dns_rootname,
-					 ISC_FALSE, NULL));
+					 0, NULL));
 
 		if (gnamebuf.length != 0) {
 			gret = gss_release_buffer(&minor, &gnamebuf);

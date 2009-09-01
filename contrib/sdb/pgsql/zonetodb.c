@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zonetodb.c,v 1.21 2008/11/27 06:14:22 marka Exp $ */
+/* $Id: zonetodb.c,v 1.22 2009/09/01 00:22:26 jinmei Exp $ */
 
 #include <stdlib.h>
 #include <string.h>
@@ -174,7 +174,7 @@ main(int argc, char **argv) {
 	isc_buffer_add(&b, strlen(porigin));
 	dns_fixedname_init(&forigin);
 	origin = dns_fixedname_name(&forigin);
-	result = dns_name_fromtext(origin, &b, dns_rootname, ISC_FALSE, NULL);
+	result = dns_name_fromtext(origin, &b, dns_rootname, 0, NULL);
 	check_result(result, "dns_name_fromtext");
 
 	db = NULL;

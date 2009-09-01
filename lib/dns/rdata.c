@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.200 2008/12/12 04:37:23 marka Exp $ */
+/* $Id: rdata.c,v 1.201 2009/09/01 00:22:26 jinmei Exp $ */
 
 /*! \file */
 
@@ -38,6 +38,7 @@
 #include <dns/enumtype.h>
 #include <dns/keyflags.h>
 #include <dns/keyvalues.h>
+#include <dns/message.h>
 #include <dns/rcode.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
@@ -1766,4 +1767,94 @@ dns_rdatatype_isknown(dns_rdatatype_t type) {
 	    == 0)
 		return (ISC_TRUE);
 	return (ISC_FALSE);
+}
+
+void
+dns_rdata_exists(dns_rdata_t *rdata, dns_rdatatype_t type) {
+
+	REQUIRE(rdata != NULL);
+	REQUIRE(DNS_RDATA_INITIALIZED(rdata));
+
+	rdata->data = NULL;
+	rdata->length = 0;
+	rdata->flags = DNS_RDATA_UPDATE;
+	rdata->type = type;
+	rdata->rdclass = dns_rdataclass_any;
+}
+
+void
+dns_rdata_notexist(dns_rdata_t *rdata, dns_rdatatype_t type) {
+
+	REQUIRE(rdata != NULL);
+	REQUIRE(DNS_RDATA_INITIALIZED(rdata));
+
+	rdata->data = NULL;
+	rdata->length = 0;
+	rdata->flags = DNS_RDATA_UPDATE;
+	rdata->type = type;
+	rdata->rdclass = dns_rdataclass_none;
+}
+
+void
+dns_rdata_deleterrset(dns_rdata_t *rdata, dns_rdatatype_t type) {
+
+	REQUIRE(rdata != NULL);
+	REQUIRE(DNS_RDATA_INITIALIZED(rdata));
+
+	rdata->data = NULL;
+	rdata->length = 0;
+	rdata->flags = DNS_RDATA_UPDATE;
+	rdata->type = type;
+	rdata->rdclass = dns_rdataclass_any;
+}
+
+void
+dns_rdata_makedelete(dns_rdata_t *rdata) {
+	REQUIRE(rdata != NULL);
+
+	rdata->rdclass = dns_rdataclass_none;
+}
+
+const char *
+dns_rdata_updateop(dns_rdata_t *rdata, dns_section_t section) {
+
+	REQUIRE(rdata != NULL);
+	REQUIRE(DNS_RDATA_INITIALIZED(rdata));
+
+	switch (section) {
+	case DNS_SECTION_PREREQUISITE:
+		switch (rdata->rdclass) {
+		case dns_rdataclass_none:
+			switch (rdata->type) {
+			case dns_rdatatype_any:
+				return ("domain doesn't exist");
+			default:
+				return ("rrset doesn't exist");
+			}
+		case dns_rdataclass_any:
+			switch (rdata->type) {
+			case dns_rdatatype_any:
+				return ("domain exists");
+			default:
+				return ("rrset exists (value independent)");
+			}
+		default:
+			return ("rrset exists (value dependent)");
+		}
+	case DNS_SECTION_UPDATE:
+		switch (rdata->rdclass) {
+		case dns_rdataclass_none:
+			return ("delete");
+		case dns_rdataclass_any:
+			switch (rdata->type) {
+			case dns_rdatatype_any:
+				return ("delete all rrsets");
+			default:
+				return ("delete rrset");
+			}
+		default:
+			return ("add");
+		}
+	}
+	return ("invalid");
 }

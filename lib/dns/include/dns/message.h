@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.127 2009/01/17 23:47:43 tbox Exp $ */
+/* $Id: message.h,v 1.128 2009/09/01 00:22:26 jinmei Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -81,8 +81,7 @@
  *	name = NULL;
  *	name = dns_message_gettempname(message, &name);
  *	dns_name_init(name, NULL);
- *	result = dns_name_fromtext(name, &source, dns_rootname, ISC_FALSE,
- *				   buffer);
+ *	result = dns_name_fromtext(name, &source, dns_rootname, 0, buffer);
  *	dns_message_takebuffer(message, &buffer);
  * \endcode
  *
