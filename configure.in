@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.474 $)
+AC_REVISION($Revision: 1.475 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -1875,6 +1875,22 @@ int getnameinfo(const struct sockaddr *, socklen_t, char *,
 [AC_MSG_RESULT(not match any subspecies; assume standard definition)
 AC_DEFINE(IRS_GETNAMEINFO_BUFLEN_T, socklen_t)
 AC_DEFINE(IRS_GETNAMEINFO_FLAGS_T, int)])])
+
+#
+# ...and same for gai_strerror().
+#
+AC_MSG_CHECKING(for gai_strerror prototype definitions)
+AC_TRY_COMPILE([
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+char *gai_strerror(int ecode);],
+[ return (0); ],
+	[AC_MSG_RESULT(returning char *)
+	 AC_DEFINE([IRS_GAISTRERROR_RETURN_T], [char *],
+	 [return type of gai_srerror])],
+[AC_MSG_RESULT(not match any subspecies; assume standard definition)])
+AC_DEFINE([IRS_GAISTRERROR_RETURN_T], [const char *])
 
 AC_CHECK_FUNC(getipnodebyname,
 	[ISC_LWRES_GETIPNODEPROTO="#undef ISC_LWRES_GETIPNODEPROTO"],

@@ -16,7 +16,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.118 2009/09/01 00:22:24 jinmei Exp $ */
+/* $Id: config.h.in,v 1.119 2009/09/01 17:54:16 jinmei Exp $ */
 
 /*! \file */
 
@@ -297,6 +297,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to the flags type used by getnameinfo(3). */
 #undef IRS_GETNAMEINFO_FLAGS_T
+
+/* Define to the return type of gai_strerror(3). */
+#undef IRS_GAISTRERROR_RETURN_T
 
 /* Define if connect does not honour the permission on the UNIX domain socket.
    */

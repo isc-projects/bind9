@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gai_strerror.c,v 1.3 2009/09/01 03:43:27 jinmei Exp $ */
+/* $Id: gai_strerror.c,v 1.4 2009/09/01 17:54:16 jinmei Exp $ */
 
 /*! \file gai_strerror.c
  * gai_strerror() returns an error message corresponding to an
@@ -78,7 +78,7 @@ static const char *gai_messages[] = {
  * Returns an error message corresponding to an error code returned by
  * getaddrinfo() and getnameinfo()
  */
-const char *
+IRS_GAISTRERROR_RETURN_T
 gai_strerror(int ecode) {
 	union {
 		const char *const_ptr;
