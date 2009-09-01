@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getnameinfo.c,v 1.2 2009/09/01 00:22:27 jinmei Exp $ */
+/* $Id: getnameinfo.c,v 1.3 2009/09/01 02:54:26 marka Exp $ */
 
 /*! \file */
 
@@ -101,8 +101,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <isc/sockaddr.h>
 #include <isc/netaddr.h>
+#include <isc/print.h>
+#include <isc/sockaddr.h>
 #include <isc/util.h>
 
 #include <dns/byaddr.h>
