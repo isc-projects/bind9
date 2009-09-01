@@ -1,3 +1,7 @@
+2664.	[bug]		create_keydata() and minimal_update() in zone.c 
+			didn't properly check return values for some
+			functions.  [RT #19956]
+
 2663.	[func]		win32:  allow named to run as a service using
 			"NT AUTHORITY\LocalService" as the account. [RT #19977]
 

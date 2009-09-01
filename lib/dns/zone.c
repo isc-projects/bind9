@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.503 2009/08/13 07:14:05 tbox Exp $ */
+/* $Id: zone.c,v 1.504 2009/09/01 07:04:12 each Exp $ */
 
 /*! \file */
 
@@ -2532,15 +2532,16 @@ create_keydata(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 				     dns_rdatatype_dnskey, &r);
 
 		/* DSTKEY to KEYDATA. */
-		dns_rdata_tostruct(&rdata, &dnskey, NULL);
-		dns_keydata_fromdnskey(&keydata, &dnskey, now, 0, 0, NULL);
+		CHECK(dns_rdata_tostruct(&rdata, &dnskey, NULL));
+		CHECK(dns_keydata_fromdnskey(&keydata, &dnskey, now, 0, 0,
+					     NULL));
 
 		/* KEYDATA to rdata. */
 		dns_rdata_reset(&rdata);
 		isc_buffer_init(&keyb, key_buf, sizeof(key_buf));
-		dns_rdata_fromstruct(&rdata,
-				     zone->rdclass, dns_rdatatype_keydata,
-				     &keydata, &keyb);
+		CHECK(dns_rdata_fromstruct(&rdata,
+					   zone->rdclass, dns_rdatatype_keydata,
+					   &keydata, &keyb));
 
 		/* Add rdata to zone. */
 		CHECK(update_one_rr(db, ver, diff, DNS_DIFFOP_ADD,
@@ -6580,15 +6581,15 @@ minimal_update(dns_keyfetch_t *kfetch, dns_dbversion_t *ver, dns_diff_t *diff) {
 				    name, 0, &rdata));
 
 		/* Update refresh timer */
-		dns_rdata_tostruct(&rdata, &keydata, NULL);
+		CHECK(dns_rdata_tostruct(&rdata, &keydata, NULL));
 		keydata.refresh = refresh_time(kfetch);
 		set_refreshkeytimer(zone, &keydata, now);
 
 		dns_rdata_reset(&rdata);
 		isc_buffer_init(&keyb, key_buf, sizeof(key_buf));
-		dns_rdata_fromstruct(&rdata,
-				     zone->rdclass, dns_rdatatype_keydata,
-				     &keydata, &keyb);
+		CHECK(dns_rdata_fromstruct(&rdata,
+					   zone->rdclass, dns_rdatatype_keydata,
+					   &keydata, &keyb));
 
 		/* Insert updated version */
 		CHECK(update_one_rr(kfetch->db, ver, diff, DNS_DIFFOP_ADD,
