@@ -1,14 +1,7 @@
-2662.	[bug]		lwres_getipnodebyname() and lwres_getipnodebyaddr() 
-			returned a misleading error code when lwresd was
-			down. [RT #20028]
-
-2661.	[bug]		Check whether socket fd exceeds FD_SETSIZE when
-			creating lwres context. [RT #20029]
-
 2655.	[doc]		Document that key-directory does not affect
 			rndc.key.  [RT #20155]
 
-	--- 9.5.2b released ---
+	--- 9.5.2b1 released ---
 
 2649.	[bug]		Set the domain for forward only zones. [RT #19944]
 
