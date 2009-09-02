@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.77 2009/09/01 00:22:28 jinmei Exp $ */
+/* $Id: socket.c,v 1.78 2009/09/02 18:32:25 each Exp $ */
 
 /* This code uses functions which are only available on Server 2003 and
  * higher, and Windows XP and higher.
@@ -3675,7 +3675,7 @@ isc__socketmgr_setreserved(isc_socketmgr_t *manager, isc_uint32_t reserved) {
 }
 
 void
-isc__socketmgr_maxudp(isc_socketmgr_t *manager, int maxudp) {
+isc___socketmgr_maxudp(isc_socketmgr_t *manager, int maxudp) {
 
 	UNUSED(manager);
 	UNUSED(maxudp);
