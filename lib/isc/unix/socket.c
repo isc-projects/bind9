@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.322 2009/09/01 23:47:45 tbox Exp $ */
+/* $Id: socket.c,v 1.323 2009/09/02 04:25:19 jinmei Exp $ */
 
 /*! \file */
 
@@ -541,8 +541,10 @@ static struct {
 	/*%
 	 * The following are defined just for avoiding unused static functions.
 	 */
+#ifndef BIND9
 	void *recvv, *send, *sendv, *sendto2, *cleanunix, *permunix, *filter,
 		*listen, *accept, *getpeername, *isbound;
+#endif
 } socketmethods = {
 	{
 		isc__socket_attach,
@@ -555,11 +557,16 @@ static struct {
 		isc__socket_getsockname,
 		isc__socket_gettype,
 		isc__socket_ipv6only
-	},
-	isc__socket_recvv, isc__socket_send, isc__socket_sendv,
-	isc__socket_sendto2, isc__socket_cleanunix, isc__socket_permunix,
-	isc__socket_filter, isc__socket_listen, isc__socket_accept,
-	isc__socket_getpeername, isc__socket_isbound
+	}
+#ifndef BIND9
+	,
+	(void *)isc__socket_recvv, (void *)isc__socket_send,
+	(void *)isc__socket_sendv, (void *)isc__socket_sendto2,
+	(void *)isc__socket_cleanunix, (void *)isc__socket_permunix,
+	(void *)isc__socket_filter, (void *)isc__socket_listen,
+	(void *)isc__socket_accept, (void *)isc__socket_getpeername,
+	(void *)isc__socket_isbound
+#endif
 };
 
 static isc_socketmgrmethods_t socketmgrmethods = {

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.61 2009/09/01 00:22:28 jinmei Exp $ */
+/* $Id: app.c,v 1.62 2009/09/02 04:25:19 jinmei Exp $ */
 
 /*! \file */
 
@@ -156,8 +156,10 @@ static struct {
 	/*%
 	 * The following are defined just for avoiding unused static functions.
 	 */
+#ifndef BIND9
 	void *run, *shutdown, *start, *onrun, *reload, *finish,
 		*block, *unblock;
+#endif
 } appmethods = {
 	{
 		isc__appctx_destroy,
@@ -169,10 +171,14 @@ static struct {
 		isc__appctx_settaskmgr,
 		isc__appctx_setsocketmgr,
 		isc__appctx_settimermgr
-	},
-	isc__app_run, isc__app_shutdown,
-	isc__app_start, isc__app_onrun, isc__app_reload, isc__app_finish,
-	isc__app_block, isc__app_unblock
+	}
+#ifndef BIND9
+	,
+	(void *)isc__app_run, (void *)isc__app_shutdown,
+	(void *)isc__app_start, (void *)isc__app_onrun, (void *)isc__app_reload,
+	(void *)isc__app_finish, (void *)isc__app_block,
+	(void *)isc__app_unblock
+#endif
 };
 
 #ifdef HAVE_LINUXTHREADS

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.92 2009/09/01 23:47:44 tbox Exp $ */
+/* $Id: timer.c,v 1.93 2009/09/02 04:25:19 jinmei Exp $ */
 
 /*! \file */
 
@@ -154,15 +154,20 @@ static struct isc__timermethods {
 	/*%
 	 * The following are defined just for avoiding unused static functions.
 	 */
+#ifndef BIND9
 	void *gettype;
+#endif
 } timermethods = {
 	{
 		isc__timer_attach,
 		isc__timer_detach,
 		isc__timer_reset,
 		isc__timer_touch
-	},
-	isc__timer_gettype
+	}
+#ifndef BIND9
+	,
+	(void *)isc__timer_gettype
+#endif
 };
 
 static struct isc__timermgrmethods {
@@ -172,8 +177,11 @@ static struct isc__timermgrmethods {
 	{
 		isc__timermgr_destroy,
 		isc__timer_create
-	},
-	isc__timermgr_poke
+	}
+#ifdef BIND9
+	,
+	(void *)isc__timermgr_poke
+#endif
 };
 
 #ifdef USE_SHARED_MANAGER

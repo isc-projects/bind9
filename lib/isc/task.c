@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.108 2009/09/01 00:22:28 jinmei Exp $ */
+/* $Id: task.c,v 1.109 2009/09/02 04:25:19 jinmei Exp $ */
 
 /*! \file
  * \author Principal Author: Bob Halley
@@ -228,9 +228,11 @@ static struct isc__taskmethods {
 	/*%
 	 * The following are defined just for avoiding unused static functions.
 	 */
+#ifndef BIND9
 	void *purgeevent, *unsendrange,
 		*getname, *gettag, *getcurrenttime, *beginexclusive,
 		*endexclusive;
+#endif
 } taskmethods = {
 	{
 		isc__task_attach,
@@ -244,11 +246,14 @@ static struct isc__taskmethods {
 		isc__task_setname,
 		isc__task_purge,
 		isc__task_purgerange
-	},
-	isc__task_purgeevent, isc__task_unsendrange,
-	isc__task_getname, isc__task_gettag,
-	isc__task_getcurrenttime, isc__task_beginexclusive,
-	isc__task_endexclusive
+	}
+#ifndef BIND9
+	,
+	(void *)isc__task_purgeevent, (void *)isc__task_unsendrange,
+	(void *)isc__task_getname, (void *)isc__task_gettag,
+	(void *)isc__task_getcurrenttime, (void *)isc__task_beginexclusive,
+	(void *)isc__task_endexclusive
+#endif
 };
 
 static isc_taskmgrmethods_t taskmgrmethods = {

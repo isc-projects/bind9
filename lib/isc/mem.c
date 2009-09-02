@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.151 2009/09/01 23:47:44 tbox Exp $ */
+/* $Id: mem.c,v 1.152 2009/09/02 04:25:19 jinmei Exp $ */
 
 /*! \file */
 
@@ -323,8 +323,10 @@ static struct isc__memmethods {
 	/*%
 	 * The following are defined just for avoiding unused static functions.
 	 */
+#ifndef BIND9
 	void *createx, *create, *create2, *ondestroy, *stats,
 		*setquota, *getquota, *setname, *getname, *gettag;
+#endif
 } memmethods = {
 	{
 		isc__mem_attach,
@@ -341,11 +343,15 @@ static struct isc__memmethods {
 		isc__mem_waterack,
 		isc__mem_inuse,
 		isc__mempool_create
-	},
-	isc__mem_createx, isc__mem_create, isc__mem_create2,
-	isc__mem_ondestroy, isc__mem_stats,
-	isc__mem_setquota, isc__mem_getquota, isc__mem_setname,
-	isc__mem_getname, isc__mem_gettag
+	}
+#ifndef BIND9
+	,
+	(void *)isc__mem_createx, (void *)isc__mem_create,
+	(void *)isc__mem_create2, (void *)isc__mem_ondestroy,
+	(void *)isc__mem_stats, (void *)isc__mem_setquota,
+	(void *)isc__mem_getquota, (void *)isc__mem_setname,
+	(void *)isc__mem_getname, (void *)isc__mem_gettag
+#endif
 };
 
 static struct isc__mempoolmethods {
@@ -354,7 +360,9 @@ static struct isc__mempoolmethods {
 	/*%
 	 * The following are defined just for avoiding unused static functions.
 	 */
+#ifndef BIND9
 	void *getfreemax, *getfreecount, *getmaxalloc, *getfillcount;
+#endif
 } mempoolmethods = {
 	{
 		isc__mempool_destroy,
@@ -366,9 +374,12 @@ static struct isc__mempoolmethods {
 		isc__mempool_setname,
 		isc__mempool_associatelock,
 		isc__mempool_setfillcount
-	},
-	isc__mempool_getfreemax, isc__mempool_getfreecount,
-	isc__mempool_getmaxalloc, isc__mempool_getfillcount
+	}
+#ifndef BIND9
+	,
+	(void *)isc__mempool_getfreemax, (void *)isc__mempool_getfreecount,
+	(void *)isc__mempool_getmaxalloc, (void *)isc__mempool_getfillcount
+#endif
 };
 
 /*!
