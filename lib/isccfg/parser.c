@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.131 2009/06/11 23:47:55 tbox Exp $ */
+/* $Id: parser.c,v 1.132 2009/09/02 23:43:54 each Exp $ */
 
 /*! \file */
 
@@ -29,12 +29,12 @@
 #include <isc/mem.h>
 #include <isc/net.h>
 #include <isc/netaddr.h>
+#include <isc/netscope.h>
 #include <isc/print.h>
 #include <isc/string.h>
 #include <isc/sockaddr.h>
-#include <isc/netscope.h>
-#include <isc/util.h>
 #include <isc/symtab.h>
+#include <isc/util.h>
 
 #include <isccfg/cfg.h>
 #include <isccfg/grammar.h>

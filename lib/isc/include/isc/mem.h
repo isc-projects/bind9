@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.83 2009/09/01 23:47:44 tbox Exp $ */
+/* $Id: mem.h,v 1.84 2009/09/02 23:43:54 each Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -152,11 +152,11 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_debugging;
 #endif
 
 
-#define isc_mem_get(c, s)	isc__mem_get((c), (s) _ISC_MEM_FILELINE)
-#define isc_mem_allocate(c, s)	isc__mem_allocate((c), (s) _ISC_MEM_FILELINE)
-#define isc_mem_reallocate(c, p, s) isc__mem_reallocate((c), (p), (s) _ISC_MEM_FILELINE)
-#define isc_mem_strdup(c, p)	isc__mem_strdup((c), (p) _ISC_MEM_FILELINE)
-#define isc_mempool_get(c)	isc__mempool_get((c) _ISC_MEM_FILELINE)
+#define isc_mem_get(c, s)	isc___mem_get((c), (s) _ISC_MEM_FILELINE)
+#define isc_mem_allocate(c, s)	isc___mem_allocate((c), (s) _ISC_MEM_FILELINE)
+#define isc_mem_reallocate(c, p, s) isc___mem_reallocate((c), (p), (s) _ISC_MEM_FILELINE)
+#define isc_mem_strdup(c, p)	isc___mem_strdup((c), (p) _ISC_MEM_FILELINE)
+#define isc_mempool_get(c)	isc___mempool_get((c) _ISC_MEM_FILELINE)
 
 /*%
  * isc_mem_putanddetach() is a convenience function for use where you
@@ -197,6 +197,8 @@ typedef struct isc_memmethods {
 	void (*memputanddetach)(isc_mem_t **mctxp, void *ptr,
 				size_t size _ISC_MEM_FLARG);
 	void *(*memallocate)(isc_mem_t *mctx, size_t size _ISC_MEM_FLARG);
+	void *(*memreallocate)(isc_mem_t *mctx, void *ptr,
+			       size_t size _ISC_MEM_FLARG);
 	char *(*memstrdup)(isc_mem_t *mctx, const char *s _ISC_MEM_FLARG);
 	void (*memfree)(isc_mem_t *mctx, void *ptr _ISC_MEM_FLARG);
 	void (*setdestroycheck)(isc_mem_t *mctx, isc_boolean_t flag);
@@ -256,29 +258,29 @@ struct isc_mempool {
 #if ISC_MEM_DEBUG
 #define isc_mem_put(c, p, s) \
 	do { \
-		isc__mem_put((c), (p), (s) _ISC_MEM_FILELINE); \
+		isc___mem_put((c), (p), (s) _ISC_MEM_FILELINE); \
 		(p) = NULL; \
 	} while (0)
 #define isc_mem_putanddetach(c, p, s) \
 	do { \
-		isc__mem_putanddetach((c), (p), (s) _ISC_MEM_FILELINE); \
+		isc___mem_putanddetach((c), (p), (s) _ISC_MEM_FILELINE); \
 		(p) = NULL; \
 	} while (0)
 #define isc_mem_free(c, p) \
 	do { \
-		isc__mem_free((c), (p) _ISC_MEM_FILELINE); \
+		isc___mem_free((c), (p) _ISC_MEM_FILELINE); \
 		(p) = NULL; \
 	} while (0)
 #define isc_mempool_put(c, p) \
 	do { \
-		isc__mempool_put((c), (p) _ISC_MEM_FILELINE); \
+		isc___mempool_put((c), (p) _ISC_MEM_FILELINE); \
 		(p) = NULL; \
 	} while (0)
 #else
-#define isc_mem_put(c, p, s)	isc__mem_put((c), (p), (s) _ISC_MEM_FILELINE)
+#define isc_mem_put(c, p, s)	isc___mem_put((c), (p), (s) _ISC_MEM_FILELINE)
 #define isc_mem_putanddetach(c, p, s) \
-	isc__mem_putanddetach((c), (p), (s) _ISC_MEM_FILELINE)
-#define isc_mem_free(c, p)	isc__mem_free((c), (p) _ISC_MEM_FILELINE)
+	isc___mem_putanddetach((c), (p), (s) _ISC_MEM_FILELINE)
+#define isc_mem_free(c, p)	isc___mem_free((c), (p) _ISC_MEM_FILELINE)
 #define isc_mempool_put(c, p)	isc__mempool_put((c), (p) _ISC_MEM_FILELINE)
 #endif
 
@@ -671,23 +673,23 @@ isc_mempool_setfillcount(isc_mempool_t *mpctx, unsigned int limit);
  * Pseudo-private functions for use via macros.  Do not call directly.
  */
 void *
-isc__mem_get(isc_mem_t *, size_t _ISC_MEM_FLARG);
+isc___mem_get(isc_mem_t *, size_t _ISC_MEM_FLARG);
 void
-isc__mem_putanddetach(isc_mem_t **, void *, size_t _ISC_MEM_FLARG);
+isc___mem_putanddetach(isc_mem_t **, void *, size_t _ISC_MEM_FLARG);
 void
-isc__mem_put(isc_mem_t *, void *, size_t _ISC_MEM_FLARG);
+isc___mem_put(isc_mem_t *, void *, size_t _ISC_MEM_FLARG);
 void *
-isc__mem_allocate(isc_mem_t *, size_t _ISC_MEM_FLARG);
+isc___mem_allocate(isc_mem_t *, size_t _ISC_MEM_FLARG);
 void *
-isc__mem_reallocate(isc_mem_t *, void *, size_t _ISC_MEM_FLARG);
+isc___mem_reallocate(isc_mem_t *, void *, size_t _ISC_MEM_FLARG);
 void
-isc__mem_free(isc_mem_t *, void * _ISC_MEM_FLARG);
+isc___mem_free(isc_mem_t *, void * _ISC_MEM_FLARG);
 char *
-isc__mem_strdup(isc_mem_t *, const char *_ISC_MEM_FLARG);
+isc___mem_strdup(isc_mem_t *, const char *_ISC_MEM_FLARG);
 void *
-isc__mempool_get(isc_mempool_t * _ISC_MEM_FLARG);
+isc___mempool_get(isc_mempool_t * _ISC_MEM_FLARG);
 void
-isc__mempool_put(isc_mempool_t *, void * _ISC_MEM_FLARG);
+isc___mempool_put(isc_mempool_t *, void * _ISC_MEM_FLARG);
 
 #ifdef USE_MEMIMPREGISTER
 

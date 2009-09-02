@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.92 2009/09/02 18:32:25 each Exp $ */
+/* $Id: socket.h,v 1.93 2009/09/02 23:43:54 each Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -1068,7 +1068,7 @@ void *isc_socket_gettag(isc_socket_t *socket);
  */
 
 void
-isc_socketmgr_setreserved(isc_socketmgr_t *mgr, isc_uint32_t);
+isc__socketmgr_setreserved(isc_socketmgr_t *mgr, isc_uint32_t);
 /*%<
  * Temporary.  For use by named only.
  */

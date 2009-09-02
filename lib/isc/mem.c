@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.152 2009/09/02 04:25:19 jinmei Exp $ */
+/* $Id: mem.c,v 1.153 2009/09/02 23:43:54 each Exp $ */
 
 /*! \file */
 
@@ -255,6 +255,8 @@ ISC_MEMFUNC_SCOPE void
 isc__mem_stats(isc_mem_t *ctx, FILE *out);
 ISC_MEMFUNC_SCOPE void *
 isc___mem_allocate(isc_mem_t *ctx, size_t size FLARG);
+ISC_MEMFUNC_SCOPE void *
+isc___mem_reallocate(isc_mem_t *ctx, void *ptr, size_t size FLARG);
 ISC_MEMFUNC_SCOPE void
 isc___mem_free(isc_mem_t *ctx, void *ptr FLARG);
 ISC_MEMFUNC_SCOPE char *
@@ -336,6 +338,7 @@ static struct isc__memmethods {
 		isc___mem_put,
 		isc___mem_putanddetach,
 		isc___mem_allocate,
+		isc___mem_reallocate,
 		isc___mem_strdup,
 		isc___mem_free,
 		isc__mem_setdestroycheck,
@@ -1545,8 +1548,9 @@ isc___mem_allocate(isc_mem_t *ctx0, size_t size FLARG) {
 	return (si);
 }
 
-void *
-isc__mem_reallocate(isc_mem_t *ctx, void *ptr, size_t size FLARG) {
+ISC_MEMFUNC_SCOPE void *
+isc___mem_reallocate(isc_mem_t *ctx0, void *ptr, size_t size FLARG) {
+	isc__mem_t *ctx = (isc__mem_t *)ctx0;
 	void *new_ptr = NULL;
 	size_t oldsize, copysize;
 
@@ -1564,17 +1568,17 @@ isc__mem_reallocate(isc_mem_t *ctx, void *ptr, size_t size FLARG) {
 	 *     NULL if allocation fails or doesn't happen.
 	 */
 	if (size > 0U) {
-		new_ptr = isc__mem_allocate(ctx, size FLARG_PASS);
+		new_ptr = isc__mem_allocate(ctx0, size FLARG_PASS);
 		if (new_ptr != NULL && ptr != NULL) {
 			oldsize = (((size_info *)ptr)[-1]).u.size;
 			INSIST(oldsize >= ALIGNMENT_SIZE);
 			oldsize -= ALIGNMENT_SIZE;
 			copysize = oldsize > size ? size : oldsize;
 			memcpy(new_ptr, ptr, copysize);
-			isc__mem_free(ctx, ptr FLARG_PASS);
+			isc__mem_free(ctx0, ptr FLARG_PASS);
 		}
 	} else if (ptr != NULL)
-		isc__mem_free(ctx, ptr FLARG_PASS);
+		isc__mem_free(ctx0, ptr FLARG_PASS);
 
 	return (new_ptr);
 }

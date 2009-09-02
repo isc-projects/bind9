@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hip_55.c,v 1.3 2009/02/26 11:18:56 tbox Exp $ */
+/* $Id: hip_55.c,v 1.4 2009/09/02 23:43:54 each Exp $ */
 
 /* reviewed: TBC */
 
@@ -215,7 +215,7 @@ fromwire_hip(ARGS_FROMWIRE) {
 	if (key_len == 0)
 		RETERR(DNS_R_FORMERR);
 	isc_region_consume(&region, 2);
-	if (region.length < hit_len + key_len)
+	if (region.length < (unsigned) (hit_len + key_len))
 		RETERR(DNS_R_FORMERR);
 
 	RETERR(mem_tobuffer(target, rr.base, 4 + hit_len + key_len));

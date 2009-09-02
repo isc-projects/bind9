@@ -51,6 +51,7 @@ isc__app_unblock
 isc_assertion_setcallback
 isc_assertion_typetotext
 isc_backtrace_getsymbol
+isc_backtrace_getsymbolfromindex
 isc_backtrace_gettrace
 isc_base32_decoderegion
 isc_base32_decodestring
@@ -128,6 +129,7 @@ isc_file_renameunique
 isc_file_safecreate
 isc_file_safemovefile
 isc_file_settime
+isc_file_splitpath
 isc_file_template
 isc_file_truncate
 isc_fsaccess_add

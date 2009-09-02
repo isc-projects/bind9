@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem_api.c,v 1.3 2009/09/01 03:43:27 jinmei Exp $ */
+/* $Id: mem_api.c,v 1.4 2009/09/02 23:43:54 each Exp $ */
 
 #include <config.h>
 
@@ -146,6 +146,13 @@ isc__mem_allocate(isc_mem_t *mctx, size_t size FLARG) {
 	REQUIRE(ISCAPI_MCTX_VALID(mctx));
 
 	return (mctx->methods->memallocate(mctx, size FLARG_PASS));
+}
+
+void *
+isc__mem_reallocate(isc_mem_t *mctx, void *ptr, size_t size FLARG) {
+	REQUIRE(ISCAPI_MCTX_VALID(mctx));
+
+	return (mctx->methods->memreallocate(mctx, ptr, size FLARG_PASS));
 }
 
 char *
