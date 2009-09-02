@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.34 2009/08/28 03:13:08 each Exp $ */
+/* $Id: file.c,v 1.35 2009/09/02 17:58:06 each Exp $ */
 
 #include <config.h>
 
@@ -36,6 +36,7 @@
 #include <isc/time.h>
 #include <isc/util.h>
 #include <isc/stat.h>
+#include <isc/string.h>
 
 #include "errno2result.h"
 
