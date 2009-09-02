@@ -207,6 +207,14 @@ SOURCE=..\include\isc\assertions.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\isc\backtrace.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\isc\backtrace-emptytbl.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\isc\base32.h
 # End Source File
 # Begin Source File
@@ -576,6 +584,14 @@ SOURCE=..\..\..\versions.h
 # Begin Source File
 
 SOURCE=..\assertions.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\backtrace.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\backtrace-emptytbl.c
 # End Source File
 # Begin Source File
 

@@ -116,6 +116,8 @@ ALL : "..\..\..\Build\Release\libisc.dll"
 CLEAN :
 	-@erase "$(INTDIR)\app.obj"
 	-@erase "$(INTDIR)\assertions.obj"
+	-@erase "$(INTDIR)\backtrace.obj"
+	-@erase "$(INTDIR)\backtrace-emptytbl.obj"
 	-@erase "$(INTDIR)\base32.obj"
 	-@erase "$(INTDIR)\base64.obj"
 	-@erase "$(INTDIR)\bitstring.obj"
@@ -236,6 +238,8 @@ LINK32_OBJS= \
 	"$(INTDIR)\version.obj" \
 	"$(INTDIR)\win32os.obj" \
 	"$(INTDIR)\assertions.obj" \
+	"$(INTDIR)\backtrace.obj" \
+	"$(INTDIR)\backtrace-emptytbl.obj" \
 	"$(INTDIR)\base32.obj" \
 	"$(INTDIR)\base64.obj" \
 	"$(INTDIR)\bitstring.obj" \
@@ -307,6 +311,10 @@ CLEAN :
 	-@erase "$(INTDIR)\app.sbr"
 	-@erase "$(INTDIR)\assertions.obj"
 	-@erase "$(INTDIR)\assertions.sbr"
+	-@erase "$(INTDIR)\backtrace.obj"
+	-@erase "$(INTDIR)\backtrace-emptytbl.obj"
+	-@erase "$(INTDIR)\backtrace.sbr"
+	-@erase "$(INTDIR)\backtrace-emptytbl.sbr"
 	-@erase "$(INTDIR)\base32.obj"
 	-@erase "$(INTDIR)\base32.sbr"
 	-@erase "$(INTDIR)\base64.obj"
@@ -499,6 +507,8 @@ BSC32_SBRS= \
 	"$(INTDIR)\version.sbr" \
 	"$(INTDIR)\win32os.sbr" \
 	"$(INTDIR)\assertions.sbr" \
+	"$(INTDIR)\backtrace.sbr" \
+	"$(INTDIR)\backtrace-emptytbl.sbr" \
 	"$(INTDIR)\base32.sbr" \
 	"$(INTDIR)\base64.sbr" \
 	"$(INTDIR)\bitstring.sbr" \
@@ -585,6 +595,8 @@ LINK32_OBJS= \
 	"$(INTDIR)\version.obj" \
 	"$(INTDIR)\win32os.obj" \
 	"$(INTDIR)\assertions.obj" \
+	"$(INTDIR)\backtrace.obj" \
+	"$(INTDIR)\backtrace-emptytbl.obj" \
 	"$(INTDIR)\base32.obj" \
 	"$(INTDIR)\base64.obj" \
 	"$(INTDIR)\bitstring.obj" \
@@ -1097,6 +1109,42 @@ SOURCE=..\assertions.c
 
 
 "$(INTDIR)\assertions.obj"	"$(INTDIR)\assertions.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\backtrace.c
+
+!IF  "$(CFG)" == "libisc - Win32 Release"
+
+
+"$(INTDIR)\backtrace.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libisc - Win32 Debug"
+
+
+"$(INTDIR)\backtrace.obj"	"$(INTDIR)\backtrace.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\backtrace-emptytbl.c
+
+!IF  "$(CFG)" == "libisc - Win32 Release"
+
+
+"$(INTDIR)\backtrace-emptytbl.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libisc - Win32 Debug"
+
+
+"$(INTDIR)\backtrace-emptytbl.obj"	"$(INTDIR)\backtrace-emptytbl.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 

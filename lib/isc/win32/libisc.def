@@ -5,6 +5,8 @@ EXPORTS
 
 NTReportError
 closelog
+isc__backtrace_nsymbols
+isc__backtrace_symtable
 isc__buffer_activeregion
 isc__buffer_add
 isc__buffer_availableregion
@@ -48,6 +50,8 @@ isc__app_start
 isc__app_unblock
 isc_assertion_setcallback
 isc_assertion_typetotext
+isc_backtrace_getsymbol
+isc_backtrace_gettrace
 isc_base32_decoderegion
 isc_base32_decodestring
 isc_base32_tobuffer
