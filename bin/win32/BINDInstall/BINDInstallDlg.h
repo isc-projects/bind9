@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.h,v 1.8.128.2 2009/09/02 00:30:44 marka Exp $ */
+/* $Id: BINDInstallDlg.h,v 1.8.128.3 2009/09/02 23:46:40 tbox Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -78,7 +78,7 @@ protected:
 
 	void RegisterMessages();
 	void UnregisterMessages(BOOL uninstall);
-	
+
 	void FailedInstall();
 	void SetItemStatus(UINT nID, BOOL bSuccess = TRUE);
 
@@ -92,7 +92,7 @@ protected:
 	BOOL CheckBINDService();
 	void SetCurrent(int id, ...);
 	void ProgramGroup(BOOL create = TRUE);
-	
+
 	HICON m_hIcon;
 	CString m_defaultDir;
 	CString m_etcDir;
@@ -107,7 +107,7 @@ protected:
 	CString m_accountPasswordConfirm;
 	CString m_accountPassword;
 	BOOL	m_serviceExists;
- 
+
 	// Generated message map functions
 	//{{AFX_MSG(CBINDInstallDlg)
 	virtual BOOL OnInitDialog();
