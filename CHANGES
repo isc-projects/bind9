@@ -1,3 +1,6 @@
+2663.	[func]		win32:  allow named to run as a service using
+			"NT AUTHORITY\LocalService" as the account. [RT #19977]
+
 2656.	[func]		win32: add a "tools only" check box to the installer
 			which causes it to only install dig, host, nslookup,
 			nsupdate and relevent dlls.  [RT #19998]

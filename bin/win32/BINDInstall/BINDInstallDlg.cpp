@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.cpp,v 1.37.24.3 2009/09/02 00:29:56 marka Exp $ */
+/* $Id: BINDInstallDlg.cpp,v 1.37.24.4 2009/09/02 00:30:44 marka Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -66,6 +66,8 @@
 
 #define MAX_GROUPS	100
 #define MAX_PRIVS	 50
+
+#define LOCAL_SERVICE "NT AUTHORITY\\LocalService"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -401,7 +403,7 @@ void CBINDInstallDlg::OnInstall() {
 
 	UpdateData();
 
-	if (!m_toolsOnly) {
+	if (!m_toolsOnly && m_accountName != LOCAL_SERVICE) {
 		/*
 		 * Check that the Passwords entered match.
 		 */
@@ -445,6 +447,11 @@ void CBINDInstallDlg::OnInstall() {
 				return;
 			}
 		}
+	} else if (m_accountName == LOCAL_SERVICE) {
+		/* The LocalService always exists. */
+		m_accountExists = TRUE;
+		if (m_accountName != m_currentAccount)
+			m_accountUsed = FALSE;
 	}
 
 	/* Directories */
@@ -719,13 +726,16 @@ CBINDInstallDlg::GetCurrentServiceAccountName() {
 	}
 
 	RegCloseKey(hKey);
-	if(keyFound == FALSE)
+	if (keyFound == FALSE)
 		m_accountName = "";
-	else {
-	/*
-	 * LocalSystem is not a regular account and is equivalent
-	 * to no account but with lots of privileges
-	 */
+	else if (!strcmp(accountName, LOCAL_SERVICE)) {
+		m_accountName = LOCAL_SERVICE;
+		m_accountUsed = TRUE;
+	} else {
+		/*
+		 * LocalSystem is not a regular account and is equivalent
+		 * to no account but with lots of privileges
+		 */
 		Tmp = accountName;
 		if (Tmp == ".\\LocalSystem")
 			m_accountName = "";
@@ -781,23 +791,23 @@ void
 CBINDInstallDlg::RegisterService() {
 	SC_HANDLE hSCManager;
 	SC_HANDLE hService;
-	CString StartName = ".\\" + m_accountName;
+	CString StartName;
 
-	if(m_toolsOnly)
-		return;
-
+	if (m_accountName == LOCAL_SERVICE)
+		StartName = LOCAL_SERVICE;
+	else
+		StartName = ".\\" + m_accountName;
 	/*
 	 * We need to change the service rather than create it
 	 * if the service already exists. Do nothing if we are already
 	 * using that account
 	 */
-	if(m_serviceExists == TRUE) {
-		if(m_accountUsed == FALSE) {
-			UpdateService();
+	if (m_serviceExists == TRUE) {
+		if (m_accountUsed == FALSE) {
+			UpdateService(StartName);
 			SetItemStatus(IDC_REG_SERVICE);
 			return;
-		}
-		else {
+		} else {
 			SetItemStatus(IDC_REG_SERVICE);
 			return;
 		}
@@ -836,10 +846,9 @@ CBINDInstallDlg::RegisterService() {
 }
 
 void
-CBINDInstallDlg::UpdateService() {
+CBINDInstallDlg::UpdateService(CString StartName) {
 	SC_HANDLE hSCManager;
 	SC_HANDLE hService;
-	CString StartName = ".\\" + m_accountName;
 
 	if(m_toolsOnly)
 		return;
@@ -869,11 +878,10 @@ CBINDInstallDlg::UpdateService() {
 		if (hSCManager)
 			CloseServiceHandle(hSCManager);
 		return;
-	}
-	else {
+	} else {
 		if (ChangeServiceConfig(hService, dwServiceType, dwStart,
 			SERVICE_ERROR_NORMAL, namedLoc, NULL, NULL, NULL,
-			StartName, m_accountPassword,BIND_DISPLAY_NAME)
+			StartName, m_accountPassword, BIND_DISPLAY_NAME)
 			!= TRUE) {
 			DWORD err = GetLastError();
 			MsgBox(IDS_ERR_UPDATE_SERVICE, GetErrMessage());
