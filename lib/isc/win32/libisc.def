@@ -33,7 +33,7 @@ isc___mem_free
 isc___mem_get
 isc___mem_put
 isc___mem_putanddetach
-isc__mem_reallocate
+isc___mem_reallocate
 isc___mem_strdup
 isc___mempool_get
 isc___mempool_put
