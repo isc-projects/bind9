@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.h,v 1.22 2008/09/25 04:02:38 tbox Exp $ */
+/* $Id: dnssectool.h,v 1.23 2009/09/02 06:29:01 each Exp $ */
 
 #ifndef DNSSECTOOL_H
 #define DNSSECTOOL_H 1
@@ -66,6 +66,8 @@ setup_entropy(isc_mem_t *mctx, const char *randomfile, isc_entropy_t **ectx);
 
 void
 cleanup_entropy(isc_entropy_t **ectx);
+
+dns_ttl_t strtottl(const char *str);
 
 isc_stdtime_t
 strtotime(const char *str, isc_int64_t now, isc_int64_t base);

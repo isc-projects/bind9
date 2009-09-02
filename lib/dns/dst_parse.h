@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_parse.h,v 1.13 2009/07/19 23:47:55 tbox Exp $ */
+/* $Id: dst_parse.h,v 1.14 2009/09/02 06:29:01 each Exp $ */
 
 /*! \file */
 #ifndef DST_DST_PARSE_H
@@ -126,11 +126,11 @@ ISC_LANG_BEGINDECLS
 void
 dst__privstruct_free(dst_private_t *priv, isc_mem_t *mctx);
 
-int
+isc_result_t
 dst__privstruct_parse(dst_key_t *key, unsigned int alg, isc_lex_t *lex,
 		      isc_mem_t *mctx, dst_private_t *priv);
 
-int
+isc_result_t
 dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 			  const char *directory);
 

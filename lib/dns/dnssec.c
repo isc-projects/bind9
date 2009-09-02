@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.98 2009/07/19 23:47:55 tbox Exp $
+ * $Id: dnssec.c,v 1.99 2009/09/02 06:29:01 each Exp $
  */
 
 /*! \file */
@@ -958,8 +958,8 @@ dns_dnsseckey_create(isc_mem_t *mctx, dst_key_t **dstkey,
 		     dns_dnsseckey_t **dkp)
 {
 	isc_result_t result;
-	isc_stdtime_t when;
 	dns_dnsseckey_t *dk;
+	int major, minor;
 
 	REQUIRE(dkp != NULL && *dkp == NULL);
 	dk = isc_mem_get(mctx, sizeof(dns_dnsseckey_t));
@@ -973,6 +973,7 @@ dns_dnsseckey_create(isc_mem_t *mctx, dst_key_t **dstkey,
 	dk->hint_publish = ISC_FALSE;
 	dk->hint_sign = ISC_FALSE;
 	dk->hint_remove = ISC_FALSE;
+        dk->prepublish = 0;
 	dk->source = dns_keysource_unknown;
 	dk->index = 0;
 
@@ -980,8 +981,8 @@ dns_dnsseckey_create(isc_mem_t *mctx, dst_key_t **dstkey,
 	dk->ksk = ISC_TF((dst_key_flags(dk->key) & DNS_KEYFLAG_KSK) != 0);
 
 	/* Is this an old-style key? */
-	result = dst_key_gettime(dk->key, DST_TIME_CREATED, &when);
-	dk->legacy = ISC_TF(result != ISC_R_SUCCESS);
+	result = dst_key_getprivateformat(dk->key, &major, &minor);
+	dk->legacy = ISC_TF(major == 1 && minor <= 2);
 
 	ISC_LINK_INIT(dk, link);
 	*dkp = dk;
@@ -1003,7 +1004,7 @@ dns_dnsseckey_destroy(isc_mem_t *mctx, dns_dnsseckey_t **dkp) {
 static void
 get_hints(dns_dnsseckey_t *key) {
 	isc_result_t result;
-	isc_stdtime_t now, publish, active, revoke, remove, delete;
+	isc_stdtime_t now, publish, active, revoke, unpublish, delete;
 	isc_boolean_t pubset = ISC_FALSE, actset = ISC_FALSE;
 	isc_boolean_t revset = ISC_FALSE, remset = ISC_FALSE;
 	isc_boolean_t delset = ISC_FALSE;
@@ -1024,7 +1025,7 @@ get_hints(dns_dnsseckey_t *key) {
 	if (result == ISC_R_SUCCESS)
 		revset = ISC_TRUE;
 
-	result = dst_key_gettime(key->key, DST_TIME_REMOVE, &remove);
+	result = dst_key_gettime(key->key, DST_TIME_UNPUBLISH, &unpublish);
 	if (result == ISC_R_SUCCESS)
 		remset = ISC_TRUE;
 
@@ -1056,6 +1057,13 @@ get_hints(dns_dnsseckey_t *key) {
 	if (actset && !pubset)
 		key->hint_publish = ISC_TRUE;
 
+        /*
+         * If activation date is in the future, make note of how far off
+         */
+        if (key->hint_publish && actset && active > now) {
+                key->prepublish = active - now;
+        }
+
 	/*
 	 * Metadata says revoke.  If the key is published,
 	 * we *have to* sign with it per RFC5011--even if it was
@@ -1074,10 +1082,10 @@ get_hints(dns_dnsseckey_t *key) {
 	}
 
 	/*
-	 * Metadata says remove or delete, so don't publish
+	 * Metadata says unpublish or delete, so don't publish
 	 * this key or sign with it.
 	 */
-	if ((remset && remove < now) ||
+	if ((remset && unpublish < now) ||
 	    (delset && delete < now)) {
 		key->hint_publish = ISC_FALSE;
 		key->hint_sign = ISC_FALSE;

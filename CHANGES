@@ -1,3 +1,16 @@
+	--- 9.7.0a3 released ---
+
+2668.	[func]		Several improvements to dnssec-* tools, including:
+			- dnssec-keygen and dnssec-settime can now set key
+			  metadata fields 0 (to unset a value, use "none")
+			- dnssec-revoke sets the revocation date in
+			  addition to the revoke bit
+			- dnssec-settime can now print individual metadata
+			  fields instead of always printing all of them,
+			  and can print them in unix epoch time format for
+			  use by scripts
+			[RT #19942]
+
 2667.	[func]		Add support for logging stack backtrace on assertion
 			failure (not available for all platforms). [RT #19780]
 

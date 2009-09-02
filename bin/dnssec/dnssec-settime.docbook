@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-settime.docbook,v 1.2 2009/07/19 04:18:04 each Exp $ -->
+<!-- $Id: dnssec-settime.docbook,v 1.3 2009/09/02 06:29:00 each Exp $ -->
 <refentry id="man.dnssec-settime">
   <refentryinfo>
     <date>July 15, 2009</date>
@@ -135,10 +135,12 @@
     <para>
       Dates can be expressed in the format YYYYMMDD or YYYYMMDDHHMMSS.
       If the argument begins with a '+' or '-', it is interpreted as
-      an offset from the present time.  If such an offset is followed
-      by one of the characters 'y', 'm', 'w', 'd', or 'h', then the
-      offset is computed in years, months, weeks, days, or hours,
-      respectively; otherwise it is computed in seconds.
+      an offset from the present time.  For convenience, if such an offset
+      is followed by one of the suffixes 'y', 'mo', 'w', 'd', 'h', or 'mi',
+      then the offset is computed in years (defined as 365 24-hour days,
+      ignoring leap years), months (defined as 30 24-hour days), weeks,
+      days, hours, or minutes, respectively.  Without a suffix, the offset
+      is computed in seconds.  To unset a date, use 'none'.
     </para>
 
     <variablelist>
@@ -196,6 +198,44 @@
             is included for informational purposes and for future
             development.
           </para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>PRINTING OPTIONS</title>
+    <para>
+      <command>dnssec-settime</command> can also be used to print the
+      timing metadata associated with a key.
+    </para>
+
+    <variablelist>
+      <varlistentry>
+	<term>-u</term>
+        <listitem>
+	  <para>
+	    Print times in UNIX epoch format.
+	  </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-p <replaceable class="parameter">C/P/A/R/U/D/all</replaceable></term>
+        <listitem>
+	  <para>
+	    Print a specific metadata value or set of metadata values.
+            The <option>-p</option> option may be followed by one or more
+            of the following letters to indicate which value or values to print:
+            <option>C</option> for the creation date,
+            <option>P</option> for the publication date,
+            <option>A</option> for the activation date,
+            <option>R</option> for the revokation date,
+            <option>U</option> for the unpublication date, or
+            <option>D</option> for the deletion date.
+            To print all of the metadata, use <option>-p all</option>.
+	  </para>
         </listitem>
       </varlistentry>
 

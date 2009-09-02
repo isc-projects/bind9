@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.90 2009/09/01 00:22:24 jinmei Exp $ */
+/* $Id: dnssec-keygen.c,v 1.91 2009/09/02 06:29:00 each Exp $ */
 
 /*! \file */
 
@@ -174,6 +174,12 @@ main(int argc, char **argv) {
 	isc_stdtime_t	publish = 0, activate = 0, revoke = 0;
 	isc_stdtime_t	unpublish = 0, delete = 0;
 	isc_stdtime_t	now;
+	isc_boolean_t	setpub = ISC_FALSE, setact = ISC_FALSE;
+	isc_boolean_t	setrev = ISC_FALSE, setunpub = ISC_FALSE;
+	isc_boolean_t	setdel = ISC_FALSE;
+	isc_boolean_t	unsetpub = ISC_FALSE, unsetact = ISC_FALSE;
+	isc_boolean_t	unsetrev = ISC_FALSE, unsetunpub = ISC_FALSE;
+	isc_boolean_t	unsetdel = ISC_FALSE;
 
 	if (argc == 1)
 		usage();
@@ -305,24 +311,64 @@ main(int argc, char **argv) {
 			/* already the default */
 			break;
 		case 'P':
-			publish = strtotime(isc_commandline_argument,
-					    now, now);
+                        if (setpub || unsetpub)
+                                fatal("-P specified more than once");
+
+			if (strcasecmp(isc_commandline_argument, "none")) {
+				setpub = ISC_TRUE;
+				publish = strtotime(isc_commandline_argument,
+						    now, now);
+			} else {
+                                unsetpub = ISC_TRUE;
+                        }
 			break;
 		case 'A':
-			activate = strtotime(isc_commandline_argument,
-					     now, now);
+                        if (setact || unsetact)
+                                fatal("-A specified more than once");
+
+			if (strcasecmp(isc_commandline_argument, "none")) {
+				setact = ISC_TRUE;
+				activate = strtotime(isc_commandline_argument,
+						     now, now);
+			} else {
+                                unsetact = ISC_TRUE;
+			}
 			break;
 		case 'R':
-			revoke = strtotime(isc_commandline_argument,
-					   now, now);
+                        if (setrev || unsetrev)
+                                fatal("-R specified more than once");
+
+			if (strcasecmp(isc_commandline_argument, "none")) {
+				setrev = ISC_TRUE;
+				revoke = strtotime(isc_commandline_argument,
+						   now, now);
+			} else {
+                                unsetrev = ISC_TRUE;
+			}
 			break;
 		case 'U':
-			unpublish = strtotime(isc_commandline_argument,
-					      now, now);
+                        if (setunpub || unsetunpub)
+                                fatal("-U specified more than once");
+
+			if (strcasecmp(isc_commandline_argument, "none")) {
+				setunpub = ISC_TRUE;
+				unpublish = strtotime(isc_commandline_argument,
+						      now, now);
+			} else {
+                                unsetunpub = ISC_TRUE;
+			}
 			break;
 		case 'D':
-			delete = strtotime(isc_commandline_argument,
-					   now, now);
+                        if (setdel || unsetdel)
+                                fatal("-D specified more than once");
+
+			if (strcasecmp(isc_commandline_argument, "none")) {
+				setdel = ISC_TRUE;
+				delete = strtotime(isc_commandline_argument,
+						   now, now);
+			} else {
+                                unsetdel = ISC_TRUE;
+			}
 			break;
 		case 'F':
 			/* Reserved for FIPS mode */
@@ -618,19 +664,37 @@ main(int argc, char **argv) {
 		dst_key_setbits(key, dbits);
 
 		/*
-		 * Set key timing metadata
+		 * Set key timing metadata (unless using -C)
 		 */
 		if (!oldstyle) {
 			dst_key_settime(key, DST_TIME_CREATED, now);
-			dst_key_settime(key, DST_TIME_PUBLISH, publish);
-			dst_key_settime(key, DST_TIME_ACTIVATE, activate);
-			dst_key_settime(key, DST_TIME_REVOKE, revoke);
-			dst_key_settime(key, DST_TIME_REMOVE, unpublish);
-			dst_key_settime(key, DST_TIME_DELETE, delete);
-		} else if (publish != 0 || activate != 0 || revoke != 0 ||
-			   unpublish != 0 || delete != 0) {
-			fatal("cannot use -C together with "
-			      "-P, -A, -R, -U, or -D options");
+
+			if (setpub)
+				dst_key_settime(key, DST_TIME_PUBLISH,
+						publish);
+			if (setact)
+				dst_key_settime(key, DST_TIME_ACTIVATE,
+						activate);
+			if (setrev)
+				dst_key_settime(key, DST_TIME_REVOKE,
+						revoke);
+			if (setunpub)
+				dst_key_settime(key, DST_TIME_UNPUBLISH,
+						unpublish);
+			if (setdel)
+				dst_key_settime(key, DST_TIME_DELETE,
+						delete);
+		} else {
+			if (setpub || setact || setrev || setunpub ||
+			    setdel || unsetpub || unsetact ||
+			    unsetrev || unsetunpub || unsetdel)
+				fatal("cannot use -C together with "
+				      "-P, -A, -R, -U, or -D options");
+			/*
+			 * Compatibility mode: Private-key-format 
+			 * should be set to 1.2.
+			 */
+			dst_key_setprivateformat(key, 1, 2);
 		}
 
 		/*

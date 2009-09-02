@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.228 2009/09/01 00:22:24 jinmei Exp $ */
+/* $Id: dnssec-signzone.c,v 1.229 2009/09/02 06:29:00 each Exp $ */
 
 /*! \file */
 
@@ -130,6 +130,7 @@ static isc_boolean_t printstats = ISC_FALSE;
 static isc_mem_t *mctx = NULL;
 static isc_entropy_t *ectx = NULL;
 static dns_ttl_t zone_soa_min_ttl;
+static dns_ttl_t soa_ttl;
 static FILE *fp;
 static char *tempfile = NULL;
 static const dns_master_style_t *masterstyle;
@@ -160,7 +161,8 @@ static unsigned int serialformat = SOA_SERIAL_KEEP;
 static unsigned int hash_length = 0;
 static isc_boolean_t unknownalg = ISC_FALSE;
 static isc_boolean_t disable_zone_check = ISC_FALSE;
-static int keyttl = 3600;
+static isc_boolean_t set_keyttl = ISC_FALSE;
+static dns_ttl_t keyttl;
 
 #define INCSTAT(counter)		\
 	if (printstats) {		\
@@ -1128,17 +1130,15 @@ active_node(dns_dbnode_t *node) {
 }
 
 /*%
- * Extracts the minimum TTL from the SOA.
+ * Extracts the minimum TTL from the SOA record, and the SOA record's TTL.
  */
-static dns_ttl_t
-soa_min_ttl(void) {
+static void
+get_soa_ttls(void) {
 	dns_rdataset_t soaset;
 	dns_fixedname_t fname;
 	dns_name_t *name;
 	isc_result_t result;
-	dns_ttl_t ttl;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
-	dns_rdata_soa_t soa;
 
 	dns_fixedname_init(&fname);
 	name = dns_fixedname_name(&fname);
@@ -1152,11 +1152,9 @@ soa_min_ttl(void) {
 	result = dns_rdataset_first(&soaset);
 	check_result(result, "dns_rdataset_first");
 	dns_rdataset_current(&soaset, &rdata);
-	result = dns_rdata_tostruct(&rdata, &soa, NULL);
-	check_result(result, "dns_rdata_tostruct");
-	ttl = soa.minimum;
+	zone_soa_min_ttl = dns_soa_getminimum(&rdata);
+	soa_ttl = soaset.ttl;
 	dns_rdataset_disassociate(&soaset);
-	return (ttl);
 }
 
 /*%
@@ -2530,6 +2528,14 @@ loadzonekeys(dns_db_t *db) {
 				     &rdataset, NULL);
 
 	if (result == ISC_R_SUCCESS) {
+		if (set_keyttl && keyttl != rdataset.ttl) {
+			fprintf(stderr, "User-specified TTL (%d) conflicts "
+					"with existing DNSKEY RRset TTL.\n",
+					keyttl);
+			fprintf(stderr, "Imported keys will use the RRSet "
+					"TTL (%d) instead.\n",
+					rdataset.ttl);
+		}
 		keyttl = rdataset.ttl;
 		if (dns_rdataset_isassociated(&rdataset))
 			dns_rdataset_disassociate(&rdataset);
@@ -2744,7 +2750,7 @@ build_final_keylist(dns_db_t *db, const char *directory, isc_mem_t *mctx) {
 			make_dnskey(key1->key, &dnskey);
 
 			alg_format(dst_key_alg(key1->key), alg, sizeof(alg));
-			fprintf(stderr, "Fetching %s %d/%s from key %s.\n",
+			fprintf(stderr, "Fetching %s %d/%s from key %s\n",
 					isksk(key1) ?
 					    (iszsk(key1) ?  "KSK/ZSK" : "KSK") :
 					    "ZSK",
@@ -2752,6 +2758,19 @@ build_final_keylist(dns_db_t *db, const char *directory, isc_mem_t *mctx) {
 					key1->source == dns_keysource_user ?
 						"file" :
 						"repository");
+
+			if (key1->prepublish && keyttl > key1->prepublish) {
+				char keystr[KEY_FORMATSIZE];
+				key_format(key1->key, keystr, sizeof(keystr));
+				fatal("Key %s is scheduled to\n"
+				      "become active in %d seconds.  "
+				      "This is less than the DNSKEY TTL\n"
+				      "value of %d seconds.  Reduce "
+				      "the TTL, or change the activation\n"
+				      "date of the key using "
+				      "'dnssec-settime -A'.",
+				      keystr, key1->prepublish, keyttl);
+			}
 
 			/* add key to the zone */
 			result = dns_difftuple_create(mctx, DNS_DIFFOP_ADD,
@@ -3324,9 +3343,8 @@ main(int argc, char *argv[]) {
 
 		case 'T':
 			endp = NULL;
-			keyttl = strtol(isc_commandline_argument, &endp, 0);
-			if (*endp != '\0')
-				fatal("key TTL must be numeric");
+			set_keyttl = ISC_TRUE;
+			keyttl = strtottl(isc_commandline_argument);
 			break;
 
 		case 't':
@@ -3382,15 +3400,11 @@ main(int argc, char *argv[]) {
 	isc_stdtime_get(&now);
 
 	if (startstr != NULL) {
-		if (startstr[0] == '-' || strncmp(startstr, "now-", 4) == 0)
-			fatal("time value %s is invalid", startstr);
 		starttime = strtotime(startstr, now, now);
 	} else
 		starttime = now - 3600;  /* Allow for some clock skew. */
 
 	if (endstr != NULL) {
-		if (endstr[0] == '-' || strncmp(endstr, "now-", 4) == 0)
-			fatal("time value %s is invalid", endstr);
 		endtime = strtotime(endstr, now, starttime);
 	} else
 		endtime = starttime + (30 * 24 * 60 * 60);
@@ -3471,7 +3485,10 @@ main(int argc, char *argv[]) {
 	loadzone(file, origin, rdclass, &gdb);
 	gorigin = dns_db_origin(gdb);
 	gclass = dns_db_class(gdb);
-	zone_soa_min_ttl = soa_min_ttl();
+	get_soa_ttls();
+
+	if (!set_keyttl)
+		keyttl = soa_ttl;
 
 	if (IS_NSEC3) {
 		isc_boolean_t answer;

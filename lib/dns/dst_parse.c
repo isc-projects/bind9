@@ -31,7 +31,7 @@
 
 /*%
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.19 2009/07/19 23:47:55 tbox Exp $
+ * $Id: dst_parse.c,v 1.20 2009/09/02 06:29:01 each Exp $
  */
 
 #include <config.h>
@@ -62,7 +62,7 @@ static const char *metatags[METADATA_NTAGS] = {
 	"Publish:",
 	"Activate:",
 	"Revoke:",
-	"Remove:",
+	"Unpublish:",
 	"Delete:"
 };
 
@@ -309,7 +309,7 @@ dst__privstruct_free(dst_private_t *priv, isc_mem_t *mctx) {
 	priv->nelements = 0;
 }
 
-int
+isc_result_t
 dst__privstruct_parse(dst_key_t *key, unsigned int alg, isc_lex_t *lex,
 		      isc_mem_t *mctx, dst_private_t *priv)
 {
@@ -372,6 +372,11 @@ dst__privstruct_parse(dst_key_t *key, unsigned int alg, isc_lex_t *lex,
 		ret = DST_R_INVALIDPRIVATEKEY;
 		goto fail;
 	}
+
+	/*
+	 * Store the private key format version number
+	 */
+	dst_key_setprivateformat(key, major, minor);
 
 	READLINE(lex, opt, &token);
 
@@ -474,7 +479,7 @@ fail:
 	return (ret);
 }
 
-int
+isc_result_t
 dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 			  const char *directory)
 {
@@ -487,6 +492,7 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 	isc_stdtime_t when;
 	isc_buffer_t b;
 	isc_region_t r;
+	int major, minor;
 
 	REQUIRE(priv != NULL);
 
@@ -507,11 +513,17 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 			 &access);
 	(void)isc_fsaccess_set(filename, access);
 
+	dst_key_getprivateformat(key, &major, &minor);
+	if (major == 0 && minor == 0) {
+		major = MAJOR_VERSION;
+		minor = MINOR_VERSION;
+	}
+
 	/* XXXDCL return value should be checked for full filesystem */
-	fprintf(fp, "%s v%d.%d\n", PRIVATE_KEY_STR, MAJOR_VERSION,
-		MINOR_VERSION);
+	fprintf(fp, "%s v%d.%d\n", PRIVATE_KEY_STR, major, minor);
 
 	fprintf(fp, "%s %d ", ALGORITHM_STR, dst_key_alg(key));
+
 	/* XXXVIX this switch statement is too sparse to gen a jump table. */
 	switch (dst_key_alg(key)) {
 	case DST_ALG_RSAMD5:
@@ -576,21 +588,23 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 	}
 
 	/* Add the timing metadata tags */
-	for (i = 0; i < METADATA_NTAGS; i++) {
-		result = dst_key_gettime(key, i, &when);
-		if (result != ISC_R_SUCCESS)
-			continue;
+	if (major > 1 || (major == 1 && minor >= 3)) {
+		for (i = 0; i < METADATA_NTAGS; i++) {
+			result = dst_key_gettime(key, i, &when);
+			if (result != ISC_R_SUCCESS)
+				continue;
 
-		isc_buffer_init(&b, buffer, sizeof(buffer));
-		result = dns_time32_totext(when, &b);
-		if (result != ISC_R_SUCCESS)
-			continue;
+			isc_buffer_init(&b, buffer, sizeof(buffer));
+			result = dns_time32_totext(when, &b);
+			if (result != ISC_R_SUCCESS)
+				continue;
 
-		isc_buffer_usedregion(&b, &r);
+			isc_buffer_usedregion(&b, &r);
 
-		fprintf(fp, "%s ", metatags[i]);
-		fwrite(r.base, 1, r.length, fp);
-		fprintf(fp, "\n");
+			fprintf(fp, "%s ", metatags[i]);
+			fwrite(r.base, 1, r.length, fp);
+			fprintf(fp, "\n");
+		}
 	}
 
 	fflush(fp);

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.16 2009/07/19 04:18:05 each Exp $ */
+/* $Id: dst.h,v 1.17 2009/09/02 06:29:01 each Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -84,7 +84,7 @@ typedef struct dst_context 	dst_context_t;
 #define DST_TIME_PUBLISH	1
 #define DST_TIME_ACTIVATE	2
 #define DST_TIME_REVOKE 	3
-#define DST_TIME_REMOVE 	4
+#define DST_TIME_UNPUBLISH	4
 #define DST_TIME_DELETE 	5
 #define DST_MAX_TIMES		5
 
@@ -681,6 +681,39 @@ dst_key_settime(dst_key_t *key, int type, isc_stdtime_t when);
  * Requires:
  *	"key" is a valid key.
  *	"type" is no larger than DST_MAX_TIMES
+ */
+
+void
+dst_key_unsettime(dst_key_t *key, int type);
+/*%<
+ * Flag a member of the timing metadata array as "not set".
+ *
+ * Requires:
+ *	"key" is a valid key.
+ *	"type" is no larger than DST_MAX_TIMES
+ */
+
+isc_result_t
+dst_key_getprivateformat(const dst_key_t *key, int *majorp, int *minorp);
+/*%<
+ * Get the private key format version number.  (If the key does not have
+ * a private key associated with it, the version will be 0.0.)  The major
+ * version number is placed in '*majorp', and the minor version number in
+ * '*minorp'.
+ *
+ * Requires:
+ *	"key" is a valid key.
+ *	"majorp" is not NULL.
+ *	"minorp" is not NULL.
+ */
+
+void
+dst_key_setprivateformat(dst_key_t *key, int major, int minor);
+/*%<
+ * Set the private key format version number.
+ *
+ * Requires:
+ *	"key" is a valid key.
  */
 
 ISC_LANG_ENDDECLS

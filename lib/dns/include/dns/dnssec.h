@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec.h,v 1.35 2009/07/19 04:18:05 each Exp $ */
+/* $Id: dnssec.h,v 1.36 2009/09/02 06:29:01 each Exp $ */
 
 #ifndef DNS_DNSSEC_H
 #define DNS_DNSSEC_H 1
@@ -52,6 +52,7 @@ struct dns_dnsseckey {
 	isc_boolean_t hint_sign;     /*% metadata says to sign with this key */
 	isc_boolean_t force_sign;    /*% sign with key regardless of metadata */
 	isc_boolean_t hint_remove;   /*% metadata says *don't* publish */
+	unsigned int prepublish;     /*% how long until active? */
 	dns_keysource_t source;      /*% how the key was found */
 	isc_boolean_t ksk;           /*% this is a key-signing key */
 	isc_boolean_t legacy;        /*% this is old-style key with no

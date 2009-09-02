@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-revoke.c,v 1.8 2009/08/28 23:48:02 tbox Exp $ */
+/* $Id: dnssec-revoke.c,v 1.9 2009/09/02 06:29:00 each Exp $ */
 
 /*! \file */
 
@@ -161,6 +161,11 @@ main(int argc, char **argv) {
 
 	flags = dst_key_flags(key);
 	if ((flags & DNS_KEYFLAG_REVOKE) == 0) {
+                isc_stdtime_t now;
+
+                isc_stdtime_get(&now);
+		dst_key_settime(key, DST_TIME_REVOKE, now);
+
 		dst_key_setflags(key, flags | DNS_KEYFLAG_REVOKE);
 
 		isc_buffer_init(&buf, newname, sizeof(newname));

@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.27 2009/09/01 00:22:26 jinmei Exp $
+ * $Id: dst_api.c,v 1.28 2009/09/02 06:29:01 each Exp $
  */
 
 /*! \file */
@@ -786,7 +786,7 @@ dst_key_gettime(const dst_key_t *key, int type, isc_stdtime_t *timep) {
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(timep != NULL);
 	REQUIRE(type <= DST_MAX_TIMES);
-	if (key->times[type] == 0)
+	if (!key->timeset[type])
 		return (ISC_R_NOTFOUND);
 	*timep = key->times[type];
 	return (ISC_R_SUCCESS);
@@ -797,6 +797,31 @@ dst_key_settime(dst_key_t *key, int type, isc_stdtime_t when) {
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(type <= DST_MAX_TIMES);
 	key->times[type] = when;
+	key->timeset[type] = ISC_TRUE;
+}
+
+void
+dst_key_unsettime(dst_key_t *key, int type) {
+	REQUIRE(VALID_KEY(key));
+	REQUIRE(type <= DST_MAX_TIMES);
+	key->timeset[type] = ISC_FALSE;
+}
+
+isc_result_t
+dst_key_getprivateformat(const dst_key_t *key, int *majorp, int *minorp) {
+	REQUIRE(VALID_KEY(key));
+	REQUIRE(majorp != NULL);
+	REQUIRE(minorp != NULL);
+	*majorp = key->fmt_major;
+	*minorp = key->fmt_minor;
+	return (ISC_R_SUCCESS);
+}
+
+void
+dst_key_setprivateformat(dst_key_t *key, int major, int minor) {
+	REQUIRE(VALID_KEY(key));
+	key->fmt_major = major;
+	key->fmt_minor = minor;
 }
 
 isc_boolean_t
@@ -954,6 +979,7 @@ get_key_struct(dns_name_t *name, unsigned int alg,
 {
 	dst_key_t *key;
 	isc_result_t result;
+	int i;
 
 	key = (dst_key_t *) isc_mem_get(mctx, sizeof(dst_key_t));
 	if (key == NULL)
@@ -977,12 +1003,17 @@ get_key_struct(dns_name_t *name, unsigned int alg,
 	key->key_alg = alg;
 	key->key_flags = flags;
 	key->key_proto = protocol;
-	memset(key->times, 0, sizeof(key->times));
 	key->mctx = mctx;
 	key->keydata.generic = NULL;
 	key->key_size = bits;
 	key->key_class = rdclass;
 	key->func = dst_t_func[alg];
+	key->fmt_major = 0;
+	key->fmt_minor = 0;
+	for (i = 0; i < (DST_MAX_TIMES + 1); i++) {
+		key->times[i] = 0;
+		key->timeset[i] = ISC_FALSE;
+	}
 	return (key);
 }
 
@@ -1242,7 +1273,7 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 		printtime(key, DST_TIME_PUBLISH, "; Publish", fp);
 		printtime(key, DST_TIME_ACTIVATE, "; Activate", fp);
 		printtime(key, DST_TIME_REVOKE, "; Revoke", fp);
-		printtime(key, DST_TIME_REMOVE, "; Remove", fp);
+		printtime(key, DST_TIME_UNPUBLISH, "; Unpublish", fp);
 		printtime(key, DST_TIME_DELETE, "; Delete", fp);
 	}
 
