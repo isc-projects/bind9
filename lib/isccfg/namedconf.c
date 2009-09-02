@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.104 2009/09/01 07:14:26 each Exp $ */
+/* $Id: namedconf.c,v 1.105 2009/09/02 16:10:03 each Exp $ */
 
 /*! \file */
 
@@ -1163,7 +1163,6 @@ zone_only_clauses[] = {
 	{ "masters", &cfg_type_namesockaddrkeylist, 0 },
 	{ "pubkey", &cfg_type_pubkey,
 	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_OBSOLETE },
-	{ "ddns-autoconf", &cfg_type_boolean, 0 },
 	{ "update-policy", &cfg_type_updatepolicy, 0 },
 	{ "database", &cfg_type_astring, 0 },
 	{ "delegation-only", &cfg_type_boolean, 0 },

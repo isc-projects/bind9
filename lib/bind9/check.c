@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.107 2009/09/01 00:22:26 jinmei Exp $ */
+/* $Id: check.c,v 1.108 2009/09/02 16:10:03 each Exp $ */
 
 /*! \file */
 
@@ -1083,7 +1083,6 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	{ "notify", MASTERZONE | SLAVEZONE },
 	{ "also-notify", MASTERZONE | SLAVEZONE },
 	{ "dialup", MASTERZONE | SLAVEZONE | STUBZONE },
-	{ "ddns-autoconf", MASTERZONE },
 	{ "delegation-only", HINTZONE | STUBZONE | DELEGATIONZONE },
 	{ "forward", MASTERZONE | SLAVEZONE | STUBZONE | FORWARDZONE },
 	{ "forwarders", MASTERZONE | SLAVEZONE | STUBZONE | FORWARDZONE },
