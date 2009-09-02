@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.h,v 1.41 2009/09/01 00:22:28 jinmei Exp $ */
+/* $Id: timer.h,v 1.42 2009/09/02 18:38:40 jinmei Exp $ */
 
 #ifndef ISC_TIMER_H
 #define ISC_TIMER_H 1
@@ -129,7 +129,7 @@ typedef struct {
  * This structure is actually just the common prefix of a timer manager
  * object implementation's version of an isc_timermgr_t.
  * \brief
- * Direct use of this structure by clients is forbidden.  mctx implementations
+ * Direct use of this structure by clients is forbidden.  timer implementations
  * may change the structure.  'magic' must be ISCAPI_TIMERMGR_MAGIC for any
  * of the isc_timer_ routines to work.  timer implementations must maintain
  * all timer invariants.

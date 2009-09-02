@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.h,v 1.9 2009/09/01 00:22:28 jinmei Exp $ */
+/* $Id: app.h,v 1.10 2009/09/02 18:38:40 jinmei Exp $ */
 
 #ifndef ISC_APP_H
 #define ISC_APP_H 1
@@ -123,10 +123,10 @@ typedef struct isc_appmethods {
  * This structure is actually just the common prefix of an application context
  * implementation's version of an isc_appctx_t.
  * \brief
- * Direct use of this structure by clients is forbidden.  mctx implementations
+ * Direct use of this structure by clients is forbidden.  app implementations
  * may change the structure.  'magic' must be ISCAPI_APPCTX_MAGIC for any
  * of the isc_app_ routines to work.  app implementations must maintain
- * all app socket invariants.
+ * all app context invariants.
  */
 struct isc_appctx {
 	unsigned int		impmagic;

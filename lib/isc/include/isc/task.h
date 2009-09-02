@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.h,v 1.64 2009/09/01 00:22:28 jinmei Exp $ */
+/* $Id: task.h,v 1.65 2009/09/02 18:38:40 jinmei Exp $ */
 
 #ifndef ISC_TASK_H
 #define ISC_TASK_H 1
@@ -131,7 +131,7 @@ typedef struct isc_taskmethods {
  * This structure is actually just the common prefix of a task manager
  * object implementation's version of an isc_taskmgr_t.
  * \brief
- * Direct use of this structure by clients is forbidden.  mctx implementations
+ * Direct use of this structure by clients is forbidden.  task implementations
  * may change the structure.  'magic' must be ISCAPI_TASKMGR_MAGIC for any
  * of the isc_task_ routines to work.  task implementations must maintain
  * all task invariants.
