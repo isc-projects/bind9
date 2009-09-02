@@ -1,3 +1,7 @@
+2656.	[func]		win32: add a "tools only" check box to the installer
+			which causes it to only install dig, host, nslookup,
+			nsupdate and relevent dlls.  [RT #19998]
+
 2655.	[doc]		Document that key-directory does not affect
 			rndc.key.  [RT #20155]
 
