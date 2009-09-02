@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: forward.h,v 1.12 2009/09/01 00:22:26 jinmei Exp $ */
+/* $Id: forward.h,v 1.13 2009/09/02 23:48:02 tbox Exp $ */
 
 #ifndef DNS_FORWARD_H
 #define DNS_FORWARD_H 1

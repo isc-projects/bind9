@@ -1,8 +1,7 @@
 /*
- * Portions Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
- * Portions Copyright (C) 1999-2001, 2003  Internet Software Consortium.
+ * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getnameinfo.c,v 1.3 2009/09/01 02:54:26 marka Exp $ */
+/* $Id: getnameinfo.c,v 1.4 2009/09/02 23:48:02 tbox Exp $ */
 
 /*! \file */
 
@@ -52,47 +51,47 @@
  *    getnameinfo() returns the hostname for the struct sockaddr sa which is
  *    salen bytes long. The hostname is of length hostlen and is returned via
  *    *host. The maximum length of the hostname is 1025 bytes: #NI_MAXHOST.
- * 
+ *
  *    The name of the service associated with the port number in sa is
  *    returned in *serv. It is servlen bytes long. The maximum length of the
  *    service name is #NI_MAXSERV - 32 bytes.
- * 
+ *
  *    The flags argument sets the following bits:
- * 
+ *
  * \li   #NI_NOFQDN:
  *           A fully qualified domain name is not required for local hosts.
  *           The local part of the fully qualified domain name is returned
  *           instead.
- * 
+ *
  * \li   #NI_NUMERICHOST
  *           Return the address in numeric form, as if calling inet_ntop(),
  *           instead of a host name.
- * 
+ *
  * \li   #NI_NAMEREQD
  *           A name is required. If the hostname cannot be found in the DNS
  *           and this flag is set, a non-zero error code is returned. If the
  *           hostname is not found and the flag is not set, the address is
  *           returned in numeric form.
- * 
+ *
  * \li   #NI_NUMERICSERV
  *           The service name is returned as a digit string representing the
  *           port number.
- * 
+ *
  * \li   #NI_DGRAM
  *           Specifies that the service being looked up is a datagram
  *           service, and causes getservbyport() to be called with a second
  *           argument of "udp" instead of its default of "tcp". This is
  *           required for the few ports (512-514) that have different
  *           services for UDP and TCP.
- * 
+ *
  * \section getnameinfo_return Return Values
- * 
+ *
  *    getnameinfo() returns 0 on success or a non-zero error code if
  *    an error occurs.
- * 
+ *
  * \section getname_see See Also
- * 
- *    RFC3493, getservbyport(), 
+ *
+ *    RFC3493, getservbyport(),
  *    getnamebyaddr(). inet_ntop().
  */
 
@@ -376,7 +375,7 @@ getnameinfo(const struct sockaddr *sa, socklen_t salen, char *host,
 							&b, &hostregion);
 						goto ptrfound;
 					}
-					
+
 				}
 			}
 		}

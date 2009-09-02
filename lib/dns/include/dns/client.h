@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.2 2009/09/01 00:22:26 jinmei Exp $ */
+/* $Id: client.h,v 1.3 2009/09/02 23:48:02 tbox Exp $ */
 
 #ifndef DNS_CLIENT_H
 #define DNS_CLIENT_H 1
@@ -346,7 +346,7 @@ dns_client_destroyrestrans(dns_clientrestrans_t **transp);
  */
 
 void
-dns_client_freeresanswer(dns_client_t *client, dns_namelist_t *namelist); 
+dns_client_freeresanswer(dns_client_t *client, dns_namelist_t *namelist);
 /*%<
  * Free resources allocated for the content of 'namelist'.
  *

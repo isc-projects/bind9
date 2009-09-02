@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namespace.h,v 1.3 2009/09/02 23:43:54 each Exp $ */
+/* $Id: namespace.h,v 1.4 2009/09/02 23:48:03 tbox Exp $ */
 
 #ifndef ISCAPI_NAMESPACE_H
 #define ISCAPI_NAMESPACE_H 1

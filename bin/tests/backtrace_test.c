@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: backtrace_test.c,v 1.3 2009/09/01 20:13:43 each Exp $ */
+/* $Id: backtrace_test.c,v 1.4 2009/09/02 23:48:01 tbox Exp $ */
 
 #include <config.h>
 
@@ -46,10 +46,10 @@ func3() {
 		       isc_result_totext(result));
 		return (1);
 	}
-		
+
 	if (nframes < 4)
 		error++;
-	
+
 	for (i = 0; i < 4 && i < nframes; i++) {
 		fname = NULL;
 		result = isc_backtrace_getsymbol(tracebuf[i], &fname, &offset);

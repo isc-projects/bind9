@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resultclass.h,v 1.19 2009/09/01 00:22:28 jinmei Exp $ */
+/* $Id: resultclass.h,v 1.20 2009/09/02 23:48:03 tbox Exp $ */
 
 #ifndef ISC_RESULTCLASS_H
 #define ISC_RESULTCLASS_H 1

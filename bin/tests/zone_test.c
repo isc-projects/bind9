@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone_test.c,v 1.34 2009/09/01 00:22:25 jinmei Exp $ */
+/* $Id: zone_test.c,v 1.35 2009/09/02 23:48:01 tbox Exp $ */
 
 #include <config.h>
 
@@ -104,7 +104,7 @@ setup(const char *zonename, const char *filename, const char *classname) {
 	isc_buffer_add(&buffer, strlen(zonename));
 	dns_fixedname_init(&fixorigin);
 	result = dns_name_fromtext(dns_fixedname_name(&fixorigin),
-			  	   &buffer, dns_rootname, 0, NULL);
+				   &buffer, dns_rootname, 0, NULL);
 	ERRRET(result, "dns_name_fromtext");
 	origin = dns_fixedname_name(&fixorigin);
 
@@ -137,19 +137,19 @@ setup(const char *zonename, const char *filename, const char *classname) {
 
 static void
 print_rdataset(dns_name_t *name, dns_rdataset_t *rdataset) {
-        isc_buffer_t text;
-        char t[1000];
-        isc_result_t result;
-        isc_region_t r;
+	isc_buffer_t text;
+	char t[1000];
+	isc_result_t result;
+	isc_region_t r;
 
-        isc_buffer_init(&text, t, sizeof(t));
-        result = dns_rdataset_totext(rdataset, name, ISC_FALSE, ISC_FALSE,
+	isc_buffer_init(&text, t, sizeof(t));
+	result = dns_rdataset_totext(rdataset, name, ISC_FALSE, ISC_FALSE,
 				     &text);
-        isc_buffer_usedregion(&text, &r);
-        if (result == ISC_R_SUCCESS)
-                printf("%.*s", (int)r.length, (char *)r.base);
-        else
-                printf("%s\n", dns_result_totext(result));
+	isc_buffer_usedregion(&text, &r);
+	if (result == ISC_R_SUCCESS)
+		printf("%.*s", (int)r.length, (char *)r.base);
+	else
+		printf("%s\n", dns_result_totext(result));
 }
 
 static void

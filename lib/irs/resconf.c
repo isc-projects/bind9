@@ -1,23 +1,20 @@
 /*
- * Copyright (C) 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
  *
- * This code is derived from software contributed to ISC by
- * Berkeley Software Design, Inc.
- *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
- * THE SOFTWARE IS PROVIDED "AS IS" AND ISC AND BERKELEY SOFTWARE DESIGN, INC.
- * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE
- * FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
- * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resconf.c,v 1.2 2009/09/01 00:22:28 jinmei Exp $ */
+/* $Id: resconf.c,v 1.3 2009/09/02 23:48:02 tbox Exp $ */
 
 /*! \file resconf.c */
 
@@ -26,19 +23,19 @@
  *
  *    irs_resconf_load() opens the file filename and parses it to initialize
  *    the configuration structure.
- * 
+ *
  * \section lwconfig_return Return Values
- * 
+ *
  *    irs_resconf_load() returns #IRS_R_SUCCESS if it successfully read and
  *    parsed filename. It returns a non-0 error code if filename could not be
  *    opened or contained incorrect resolver statements.
- * 
+ *
  * \section lwconfig_see See Also
- * 
+ *
  *    stdio(3), \link resolver resolver \endlink
- * 
+ *
  * \section files Files
- * 
+ *
  *    /etc/resolv.conf
  */
 
@@ -324,7 +321,7 @@ resconf_parsedomain(irs_resconf_t *conf,  FILE *fp) {
 	 */
 	for (i = 0; i < RESCONFMAXSEARCH; i++) {
 		if (conf->search[i] != NULL) {
-			isc_mem_free(conf->mctx, conf->search[i]); 
+			isc_mem_free(conf->mctx, conf->search[i]);
 			conf->search[i] = NULL;
 		}
 	}

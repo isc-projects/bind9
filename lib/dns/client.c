@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.3 2009/09/01 03:43:27 jinmei Exp $ */
+/* $Id: client.c,v 1.4 2009/09/02 23:48:02 tbox Exp $ */
 
 #include <config.h>
 
@@ -526,7 +526,7 @@ destroyclient(dns_client_t **clientp) {
 
 	DESTROYLOCK(&client->lock);
 	client->magic = 0;
-	
+
 	isc_mem_putanddetach(&client->mctx, client, sizeof(*client));
 
 	*clientp = NULL;
@@ -558,7 +558,7 @@ dns_client_destroy(dns_client_t **clientp) {
 
 isc_result_t
 dns_client_setservers(dns_client_t *client, dns_rdataclass_t rdclass,
-		      dns_name_t *namespace, isc_sockaddrlist_t *addrs) 
+		      dns_name_t *namespace, isc_sockaddrlist_t *addrs)
 {
 	isc_result_t result;
 	dns_view_t *view = NULL;
@@ -1112,7 +1112,7 @@ dns_client_resolve(dns_client_t *client, dns_name_t *name,
 		/*
 		 * If the client is run under application's control, we need
 		 * to create a new running (sub)environment for this
-		 * particular resolution. 
+		 * particular resolution.
 		 */
 		return (ISC_R_NOTIMPLEMENTED); /* XXXTBD */
 	} else
@@ -1156,7 +1156,7 @@ dns_client_resolve(dns_client_t *client, dns_name_t *name,
 		/*
 		 * If this lookup failed due to some error in DNSSEC
 		 * validation, return the validation error code.
-		 * XXX: or should we pass the validation result separately? 
+		 * XXX: or should we pass the validation result separately?
 		 */
 		result = resarg->vresult;
 	}
@@ -1210,7 +1210,7 @@ dns_client_startresolve(dns_client_t *client, dns_name_t *name,
 	mctx = client->mctx;
 	rdataset = NULL;
 	sigrdataset = NULL;
-	want_dnssec = ISC_TF((options & DNS_CLIENTRESOPT_NODNSSEC) == 0); 
+	want_dnssec = ISC_TF((options & DNS_CLIENTRESOPT_NODNSSEC) == 0);
 
 	/*
 	 * Prepare some intermediate resources
@@ -1276,7 +1276,7 @@ dns_client_startresolve(dns_client_t *client, dns_name_t *name,
 	UNLOCK(&client->lock);
 
 	client_resfind(rctx, NULL);
- 
+
 	*transp = (dns_clientrestrans_t *)rctx;
 
 	return (ISC_R_SUCCESS);
@@ -1318,7 +1318,7 @@ dns_client_cancelresolve(dns_clientrestrans_t *trans) {
 }
 
 void
-dns_client_freeresanswer(dns_client_t *client, dns_namelist_t *namelist) { 
+dns_client_freeresanswer(dns_client_t *client, dns_namelist_t *namelist) {
 	dns_name_t *name;
 	dns_rdataset_t *rdataset;
 
@@ -1453,7 +1453,7 @@ request_done(isc_task_t *task, isc_event_t *event) {
 static void
 localrequest_done(isc_task_t *task, isc_event_t *event) {
 	reqarg_t *reqarg = event->ev_arg;
-	dns_clientreqevent_t *rev =(dns_clientreqevent_t *)event; 
+	dns_clientreqevent_t *rev =(dns_clientreqevent_t *)event;
 
 	UNUSED(task);
 
@@ -1501,7 +1501,7 @@ dns_client_request(dns_client_t *client, dns_message_t *qmessage,
 		/*
 		 * If the client is run under application's control, we need
 		 * to create a new running (sub)environment for this
-		 * particular resolution. 
+		 * particular resolution.
 		 */
 		return (ISC_R_NOTIMPLEMENTED); /* XXXTBD */
 	} else
@@ -2503,13 +2503,13 @@ dns_client_update(dns_client_t *client, dns_rdataclass_t rdclass,
 	updatearg_t *uarg;
 
 	REQUIRE(DNS_CLIENT_VALID(client));
-	
+
 	if ((client->attributes & DNS_CLIENTATTR_OWNCTX) == 0 &&
 	    (options & DNS_CLIENTRESOPT_ALLOWRUN) == 0) {
 		/*
 		 * If the client is run under application's control, we need
 		 * to create a new running (sub)environment for this
-		 * particular resolution. 
+		 * particular resolution.
 		 */
 		return (ISC_R_NOTIMPLEMENTED); /* XXXTBD */
 	} else
@@ -2875,7 +2875,7 @@ dns_client_updaterec(dns_client_updateop_t op, dns_name_t *owner,
 	REQUIRE(owner != NULL);
 	REQUIRE((rdataset != NULL && rdatalist != NULL && rdata != NULL) ||
 		(rdataset == NULL && rdatalist == NULL && rdata == NULL &&
-		 mctx != NULL)); 
+		 mctx != NULL));
 	if (op == updateop_add)
 		REQUIRE(source != NULL);
 	if (source != NULL) {
@@ -2899,7 +2899,7 @@ dns_client_updaterec(dns_client_updateop_t op, dns_name_t *owner,
 		dns_rdatalist_init(&updaterec->rdatalist);
 		dns_rdata_init(&updaterec->rdata);
 		isc_buffer_init(b, b + 1,
-			        size - sizeof(dns_client_updaterec_t));
+				size - sizeof(dns_client_updaterec_t));
 		dns_name_copy(owner, target, b);
 		if (source != NULL) {
 			isc_region_t r;
@@ -2907,7 +2907,7 @@ dns_client_updaterec(dns_client_updateop_t op, dns_name_t *owner,
 			dns_rdata_toregion(rdata, &r);
 			rdata->data = isc_buffer_used(b);
 			isc_buffer_copyregion(b, &r);
-			
+
 		}
 		updaterec->mctx = NULL;
 		isc_mem_attach(mctx, &updaterec->mctx);

@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app_api.c,v 1.4 2009/09/01 08:12:33 jinmei Exp $ */
+/* $Id: app_api.c,v 1.5 2009/09/02 23:48:02 tbox Exp $ */
 
 #include <config.h>
 
@@ -79,21 +79,21 @@ isc_appctx_destroy(isc_appctx_t **ctxp) {
 isc_result_t
 isc_app_ctxstart(isc_appctx_t *ctx) {
 	REQUIRE(ISCAPI_APPCTX_VALID(ctx));
-	
+
 	return (ctx->methods->ctxstart(ctx));
 }
 
 isc_result_t
 isc_app_ctxrun(isc_appctx_t *ctx) {
 	REQUIRE(ISCAPI_APPCTX_VALID(ctx));
-	
+
 	return (ctx->methods->ctxrun(ctx));
 }
 
 isc_result_t
 isc_app_ctxsuspend(isc_appctx_t *ctx) {
 	REQUIRE(ISCAPI_APPCTX_VALID(ctx));
-	
+
 	return (ctx->methods->ctxsuspend(ctx));
 }
 

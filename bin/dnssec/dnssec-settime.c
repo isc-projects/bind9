@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-settime.c,v 1.9 2009/09/02 06:29:00 each Exp $ */
+/* $Id: dnssec-settime.c,v 1.10 2009/09/02 23:48:01 tbox Exp $ */
 
 /*! \file */
 
@@ -72,7 +72,7 @@ usage(void) {
 						     "deletion date\n");
 	fprintf(stderr, "Printing options:\n");
 	fprintf(stderr, "    -p C/P/A/R/U/D/all: print a particular time "
-	                                        "value or values "
+						"value or values "
 						"[default: all]\n");
 	fprintf(stderr, "    -u:                 print times in unix epoch "
 						"format\n");
@@ -213,8 +213,8 @@ main(int argc, char **argv) {
 				fatal("-v must be followed by a number");
 			break;
 		case 'P':
-                        if (setpub || unsetpub)
-                                fatal("-P specified more than once");
+			if (setpub || unsetpub)
+				fatal("-P specified more than once");
 
 			changed = ISC_TRUE;
 			if (!strcasecmp(isc_commandline_argument, "none")) {
@@ -226,8 +226,8 @@ main(int argc, char **argv) {
 			}
 			break;
 		case 'A':
-                        if (setact || unsetact)
-                                fatal("-A specified more than once");
+			if (setact || unsetact)
+				fatal("-A specified more than once");
 
 			changed = ISC_TRUE;
 			if (!strcasecmp(isc_commandline_argument, "none")) {
@@ -239,8 +239,8 @@ main(int argc, char **argv) {
 			}
 			break;
 		case 'R':
-                        if (setrev || unsetrev)
-                                fatal("-R specified more than once");
+			if (setrev || unsetrev)
+				fatal("-R specified more than once");
 
 			changed = ISC_TRUE;
 			if (!strcasecmp(isc_commandline_argument, "none")) {
@@ -252,8 +252,8 @@ main(int argc, char **argv) {
 			}
 			break;
 		case 'U':
-                        if (setunpub || unsetunpub)
-                                fatal("-U specified more than once");
+			if (setunpub || unsetunpub)
+				fatal("-U specified more than once");
 
 			changed = ISC_TRUE;
 			if (!strcasecmp(isc_commandline_argument, "none")) {
@@ -265,8 +265,8 @@ main(int argc, char **argv) {
 			}
 			break;
 		case 'D':
-                        if (setdel || unsetdel)
-                                fatal("-D specified more than once");
+			if (setdel || unsetdel)
+				fatal("-D specified more than once");
 
 			changed = ISC_TRUE;
 			if (!strcasecmp(isc_commandline_argument, "none")) {
@@ -360,20 +360,20 @@ main(int argc, char **argv) {
 		dst_key_unsettime(key, DST_TIME_ACTIVATE);
 
 	if (setrev) {
-                if ((dst_key_flags(key) & DNS_KEYFLAG_REVOKE) != 0 && rev > now)
-                        fprintf(stderr, "%s: warning: Key %s is already "
+		if ((dst_key_flags(key) & DNS_KEYFLAG_REVOKE) != 0 && rev > now)
+			fprintf(stderr, "%s: warning: Key %s is already "
 					"revoked; changing the revocation date "
 					"will not affect this.\n",
 					program, keystr);
 		dst_key_settime(key, DST_TIME_REVOKE, rev);
 	} else if (unsetrev) {
-                if ((dst_key_flags(key) & DNS_KEYFLAG_REVOKE) != 0)
-                        fprintf(stderr, "%s: warning: Key %s is already "
+		if ((dst_key_flags(key) & DNS_KEYFLAG_REVOKE) != 0)
+			fprintf(stderr, "%s: warning: Key %s is already "
 					"revoked; removing the revocation date "
 					"will not affect this.\n",
 					program, keystr);
 		dst_key_unsettime(key, DST_TIME_REVOKE);
-        }
+	}
 
 	if (setunpub)
 		dst_key_settime(key, DST_TIME_UNPUBLISH, unpub);

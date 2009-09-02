@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgabn.c,v 1.23 2009/09/01 00:22:25 jinmei Exp $ */
+/* $Id: lwdgabn.c,v 1.24 2009/09/02 23:48:01 tbox Exp $ */
 
 /*! \file */
 

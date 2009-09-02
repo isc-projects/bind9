@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.51 2009/09/02 06:29:01 each Exp $ */
+/* $Id: dnssectool.c,v 1.52 2009/09/02 23:48:01 tbox Exp $ */
 
 /*! \file */
 
@@ -304,8 +304,8 @@ strtottl(const char *str) {
 	char *endp;
 
 	ttl = strtol(str, &endp, 0);
-        if (ttl == 0 && endp == str)
-                fatal("TTL must be numeric");
+	if (ttl == 0 && endp == str)
+		fatal("TTL must be numeric");
 	ttl = time_units(ttl, endp, orig);
 	return (ttl);
 }

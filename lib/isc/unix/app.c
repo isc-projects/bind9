@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.62 2009/09/02 04:25:19 jinmei Exp $ */
+/* $Id: app.c,v 1.63 2009/09/02 23:48:03 tbox Exp $ */
 
 /*! \file */
 
@@ -140,7 +140,7 @@ typedef struct isc__appctx {
 	 * We assume that 'want_reload' can be read and written atomically.
 	 */
 	isc_boolean_t		want_reload;
-	
+
 	isc_boolean_t		blocked;
 
 	isc_taskmgr_t		*taskmgr;
@@ -952,7 +952,7 @@ isc__appctx_settimermgr(isc_appctx_t *ctx0, isc_timermgr_t *timermgr) {
 	ctx->timermgr = timermgr;
 }
 
-#ifdef USE_APPIMPREGISTER 
+#ifdef USE_APPIMPREGISTER
 isc_result_t
 isc__app_register() {
 	return (isc_app_register(isc__appctx_create));

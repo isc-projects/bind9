@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem_api.c,v 1.4 2009/09/02 23:43:54 each Exp $ */
+/* $Id: mem_api.c,v 1.5 2009/09/02 23:48:02 tbox Exp $ */
 
 #include <config.h>
 
@@ -99,7 +99,7 @@ isc_mem_attach(isc_mem_t *source, isc_mem_t **targetp) {
 
 void
 isc_mem_detach(isc_mem_t **mctxp) {
-	REQUIRE(mctxp != NULL && ISCAPI_MCTX_VALID(*mctxp)); 
+	REQUIRE(mctxp != NULL && ISCAPI_MCTX_VALID(*mctxp));
 
 	(*mctxp)->methods->detach(mctxp);
 
@@ -192,7 +192,7 @@ isc_mem_waterack(isc_mem_t *ctx, int flag) {
 	ctx->methods->waterack(ctx, flag);
 }
 
-size_t 
+size_t
 isc_mem_inuse(isc_mem_t *mctx) {
 	REQUIRE(ISCAPI_MCTX_VALID(mctx));
 

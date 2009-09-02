@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.109 2009/09/02 04:25:19 jinmei Exp $ */
+/* $Id: task.c,v 1.110 2009/09/02 23:48:02 tbox Exp $ */
 
 /*! \file
  * \author Principal Author: Bob Halley
@@ -301,7 +301,7 @@ ISC_TASKFUNC_SCOPE isc_result_t
 isc__task_create(isc_taskmgr_t *manager0, unsigned int quantum,
 		 isc_task_t **taskp)
 {
-	isc__taskmgr_t *manager = (isc__taskmgr_t *)manager0; 
+	isc__taskmgr_t *manager = (isc__taskmgr_t *)manager0;
 	isc__task_t *task;
 	isc_boolean_t exiting;
 	isc_result_t result;
@@ -1467,7 +1467,7 @@ isc__task_endexclusive(isc_task_t *task0) {
 #endif
 }
 
-#ifdef USE_SOCKETIMPREGISTER 
+#ifdef USE_SOCKETIMPREGISTER
 isc_result_t
 isc__task_register() {
 	return (isc_task_register(isc__taskmgr_create));

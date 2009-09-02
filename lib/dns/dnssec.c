@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.99 2009/09/02 06:29:01 each Exp $
+ * $Id: dnssec.c,v 1.100 2009/09/02 23:48:02 tbox Exp $
  */
 
 /*! \file */
@@ -973,7 +973,7 @@ dns_dnsseckey_create(isc_mem_t *mctx, dst_key_t **dstkey,
 	dk->hint_publish = ISC_FALSE;
 	dk->hint_sign = ISC_FALSE;
 	dk->hint_remove = ISC_FALSE;
-        dk->prepublish = 0;
+	dk->prepublish = 0;
 	dk->source = dns_keysource_unknown;
 	dk->index = 0;
 
@@ -1057,12 +1057,12 @@ get_hints(dns_dnsseckey_t *key) {
 	if (actset && !pubset)
 		key->hint_publish = ISC_TRUE;
 
-        /*
-         * If activation date is in the future, make note of how far off
-         */
-        if (key->hint_publish && actset && active > now) {
-                key->prepublish = active - now;
-        }
+	/*
+	 * If activation date is in the future, make note of how far off
+	 */
+	if (key->hint_publish && actset && active > now) {
+		key->prepublish = active - now;
+	}
 
 	/*
 	 * Metadata says revoke.  If the key is published,

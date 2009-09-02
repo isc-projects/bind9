@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2006  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsec.h,v 1.2 2009/09/01 00:22:27 jinmei Exp $ */
+/* $Id: tsec.h,v 1.3 2009/09/02 23:48:02 tbox Exp $ */
 
 #ifndef DNS_TSEC_H
 #define DNS_TSEC_H 1
@@ -68,7 +68,7 @@ isc_result_t
 dns_tsec_create(isc_mem_t *mctx, dns_tsectype_t type, dst_key_t *key,
 		dns_tsec_t **tsecp);
 /*%<
- * Create a TSEC structure and stores a type-dependent key structure in it.  
+ * Create a TSEC structure and stores a type-dependent key structure in it.
  * For a TSIG key (type is dns_tsectype_tsig), dns_tsec_create() creates a
  * TSIG key structure from '*key' and keeps it in the structure.  For other
  * types, this function simply retains '*key' in the structure.  In either

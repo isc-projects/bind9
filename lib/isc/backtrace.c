@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: backtrace.c,v 1.2 2009/09/01 18:40:25 jinmei Exp $ */
+/* $Id: backtrace.c,v 1.3 2009/09/02 23:48:02 tbox Exp $ */
 
 /*! \file */
 
@@ -37,7 +37,7 @@
  * 1. If the system library supports the "backtrace()" function, use it.
  * 2. Otherwise, if the compiler is gcc and the architecture is x86_64 or IA64,
  *    then use gcc's (hidden) Unwind_Backtrace() function.  Note that this
- *    function doesn't work for C programs on many other architectures. 
+ *    function doesn't work for C programs on many other architectures.
  * 3. Otherwise, if the architecture x86 or x86_64, try to unwind the stack
  *    frame following frame pointers.  This assumes the executable binary
  *    compiled with frame pointers; this is not always true for x86_64 (rather,

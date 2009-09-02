@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sample-update.c,v 1.3 2009/09/01 03:43:27 jinmei Exp $ */
+/* $Id: sample-update.c,v 1.4 2009/09/02 23:48:02 tbox Exp $ */
 
 #include <config.h>
 
@@ -718,7 +718,7 @@ evaluate_prereq(isc_mem_t *mctx, char *cmdline, dns_name_t *name) {
 		fprintf(stderr, "incorrect operation code: %s\n", word);
 		exit(1);
 	}
-	
+
 	make_prereq(mctx, cmdline, ispositive, isrrset, name);
 }
 

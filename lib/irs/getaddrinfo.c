@@ -1,24 +1,20 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
  *
- * This code is derived from software contributed to ISC by
- * Berkeley Software Design, Inc.
- *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
- * THE SOFTWARE IS PROVIDED "AS IS" AND ISC AND BERKELEY SOFTWARE DESIGN, INC.
- * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE
- * FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
- * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddrinfo.c,v 1.2 2009/09/01 00:22:27 jinmei Exp $ */
+/* $Id: getaddrinfo.c,v 1.3 2009/09/02 23:48:02 tbox Exp $ */
 
 /*! \file */
 
@@ -30,10 +26,10 @@
  *    string: a dotted decimal IPv4 address or an IPv6 address. servname is
  *    either a decimal port number or a service name as listed in
  *    /etc/services.
- * 
+ *
  *    If the operating system does not provide a struct addrinfo, the
  *    following structure is used:
- * 
+ *
  * \code
  * struct  addrinfo {
  *         int             ai_flags;       // AI_PASSIVE, AI_CANONNAME
@@ -46,29 +42,29 @@
  *         struct addrinfo *ai_next;       // next structure in linked list
  * };
  * \endcode
- * 
- * 
+ *
+ *
  *    hints is an optional pointer to a struct addrinfo. This structure can
  *    be used to provide hints concerning the type of socket that the caller
  *    supports or wishes to use. The caller can supply the following
  *    structure elements in *hints:
- * 
+ *
  * <ul>
  *    <li>ai_family:
  *           The protocol family that should be used. When ai_family is set
  *           to PF_UNSPEC, it means the caller will accept any protocol
  *           family supported by the operating system.</li>
- * 
+ *
  *    <li>ai_socktype:
  *           denotes the type of socket -- SOCK_STREAM, SOCK_DGRAM or
  *           SOCK_RAW -- that is wanted. When ai_socktype is zero the caller
  *           will accept any socket type.</li>
- * 
+ *
  *    <li>ai_protocol:
  *           indicates which transport protocol is wanted: IPPROTO_UDP or
  *           IPPROTO_TCP. If ai_protocol is zero the caller will accept any
  *           protocol.</li>
- * 
+ *
  *    <li>ai_flags:
  *           Flag bits. If the AI_CANONNAME bit is set, a successful call to
  *           getaddrinfo() will return a null-terminated string
@@ -80,7 +76,7 @@
  *           address portion of the socket address structure will be set to
  *           INADDR_ANY for an IPv4 address or IN6ADDR_ANY_INIT for an IPv6
  *           address.<br /><br />
- * 
+ *
  *           When ai_flags does not set the AI_PASSIVE bit, the returned
  *           socket address structure will be ready for use in a call to
  *           connect(2) for a connection-oriented protocol or connect(2),
@@ -88,18 +84,18 @@
  *           chosen. The IP address portion of the socket address structure
  *           will be set to the loopback address if hostname is a NULL
  *           pointer and AI_PASSIVE is not set in ai_flags.<br /><br />
- * 
+ *
  *           If ai_flags is set to AI_NUMERICHOST it indicates that hostname
  *           should be treated as a numeric string defining an IPv4 or IPv6
  *           address and no name resolution should be attempted.
  * </li></ul>
- * 
+ *
  *    All other elements of the struct addrinfo passed via hints must be
  *    zero.
- * 
+ *
  *    A hints of NULL is treated as if the caller provided a struct addrinfo
  *    initialized to zero with ai_familyset to PF_UNSPEC.
- * 
+ *
  *    After a successful call to getaddrinfo(), *res is a pointer to a
  *    linked list of one or more addrinfo structures. Each struct addrinfo
  *    in this list cn be processed by following the ai_next pointer, until a
@@ -108,22 +104,22 @@
  *    corresponding arguments for a call to socket(2). For each addrinfo
  *    structure in the list, the ai_addr member points to a filled-in socket
  *    address structure of length ai_addrlen.
- * 
+ *
  *    All of the information returned by getaddrinfo() is dynamically
  *    allocated: the addrinfo structures, and the socket address structures
  *    and canonical host name strings pointed to by the addrinfostructures.
  *    Memory allocated for the dynamically allocated structures created by a
  *    successful call to getaddrinfo() is released by freeaddrinfo().
  *    ai is a pointer to a struct addrinfo created by a call to getaddrinfo().
- * 
+ *
  * \section irsreturn RETURN VALUES
- * 
+ *
  *    getaddrinfo() returns zero on success or one of the error codes
  *    listed in gai_strerror() if an error occurs. If both hostname and
  *    servname are NULL getaddrinfo() returns #EAI_NONAME.
- * 
+ *
  * \section irssee SEE ALSO
- * 
+ *
  *    getaddrinfo(), freeaddrinfo(),
  *    gai_strerror(), RFC3493, getservbyname(3), connect(2),
  *    sendto(2), sendmsg(2), socket(2).
@@ -854,7 +850,7 @@ process_answer(isc_task_t *task, isc_event_t *event) {
 		 * There are outstanding states, but if we are at the head
 		 * of the state list (i.e., at the highest search priority)
 		 * and have any answer, we can stop now by canceling the
-		 * others. 
+		 * others.
 		 */
 		if (resstate == ISC_LIST_HEAD(resstate->head->resstates)) {
 			if ((resstate->trans4 != NULL &&
