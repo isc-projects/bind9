@@ -1932,6 +1932,8 @@
 ./lib/dns/zone.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./lib/dns/zonekey.c				C	2001,2003,2004,2005,2007
 ./lib/dns/zt.c					C	1999,2000,2001,2002,2004,2005,2006,2007
+./lib/export/samples/Makefile-postinstall.in	MAKE	2009
+./lib/irs/api					X	2009
 ./lib/isc/.cvsignore				X	1998,1999,2000,2001
 ./lib/isc/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./lib/isc/alpha/.cvsignore			X	2007
