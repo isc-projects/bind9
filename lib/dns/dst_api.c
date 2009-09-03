@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.28 2009/09/02 06:29:01 each Exp $
+ * $Id: dst_api.c,v 1.29 2009/09/03 04:09:58 marka Exp $
  */
 
 /*! \file */
@@ -432,7 +432,6 @@ dst_key_fromnamedfile(const char *filename, const char *dirname,
 {
 	isc_result_t result;
 	dst_key_t *pubkey = NULL, *key = NULL;
-	dns_keytag_t id;
 	char *newfilename = NULL;
 	int newfilenamelen = 0;
 	isc_lex_t *lex = NULL;
@@ -489,11 +488,10 @@ dst_key_fromnamedfile(const char *filename, const char *dirname,
 	key = get_key_struct(pubkey->key_name, pubkey->key_alg,
 			     pubkey->key_flags, pubkey->key_proto, 0,
 			     pubkey->key_class, mctx);
-	id = pubkey->key_id;
-	dst_key_free(&pubkey);
-
-	if (key == NULL)
+	if (key == NULL) {
+		dst_key_free(&pubkey);
 		return (ISC_R_NOMEMORY);
+	}
 
 	if (key->func->parse == NULL)
 		RETERR(DST_R_UNSUPPORTEDALG);
@@ -512,17 +510,20 @@ dst_key_fromnamedfile(const char *filename, const char *dirname,
 	RETERR(isc_lex_openfile(lex, newfilename));
 	isc_mem_put(mctx, newfilename, newfilenamelen);
 
-	RETERR(key->func->parse(key, lex));
+	RETERR(key->func->parse(key, lex, pubkey));
 	isc_lex_destroy(&lex);
 
 	RETERR(computeid(key));
 
-	if (id != key->key_id)
+	if (pubkey->key_id != key->key_id)
 		RETERR(DST_R_INVALIDPRIVATEKEY);
+	dst_key_free(&pubkey);
 
 	*keyp = key;
 	return (ISC_R_SUCCESS);
  out:
+	if (pubkey != NULL)
+		dst_key_free(&pubkey);
 	if (newfilename != NULL)
 		isc_mem_put(mctx, newfilename, newfilenamelen);
 	if (lex != NULL)
@@ -657,7 +658,7 @@ dst_key_privatefrombuffer(dst_key_t *key, isc_buffer_t *buffer) {
 
 	RETERR(isc_lex_create(key->mctx, 1500, &lex));
 	RETERR(isc_lex_openbuffer(lex, buffer));
-	RETERR(key->func->parse(key, lex));
+	RETERR(key->func->parse(key, lex, NULL));
  out:
 	if (lex != NULL)
 		isc_lex_destroy(&lex);

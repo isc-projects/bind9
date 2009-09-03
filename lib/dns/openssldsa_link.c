@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: openssldsa_link.c,v 1.15 2009/01/14 23:48:00 tbox Exp $ */
+/* $Id: openssldsa_link.c,v 1.16 2009/09/03 04:09:58 marka Exp $ */
 
 #ifdef OPENSSL
 #ifndef USE_EVP
@@ -512,7 +512,7 @@ openssldsa_tofile(const dst_key_t *key, const char *directory) {
 }
 
 static isc_result_t
-openssldsa_parse(dst_key_t *key, isc_lex_t *lexer) {
+openssldsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	dst_private_t priv;
 	isc_result_t ret;
 	int i;
@@ -520,6 +520,7 @@ openssldsa_parse(dst_key_t *key, isc_lex_t *lexer) {
 	isc_mem_t *mctx = key->mctx;
 #define DST_RET(a) {ret = a; goto err;}
 
+	UNUSED(pub);
 	/* read private key file */
 	ret = dst__privstruct_parse(key, DST_ALG_DSA, lexer, mctx, &priv);
 	if (ret != ISC_R_SUCCESS)

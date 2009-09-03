@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.25 2009/08/18 07:45:14 marka Exp $
+ * $Id: opensslrsa_link.c,v 1.26 2009/09/03 04:09:58 marka Exp $
  */
 #ifdef OPENSSL
 #ifndef USE_EVP
@@ -767,15 +767,51 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 }
 
 static isc_result_t
-opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer) {
+rsa_check(RSA *rsa, RSA *pub)
+{
+	/* Public parameters should be the same but if they are not set
+	 * copy them from the public key. */
+	if (pub != NULL) {
+		if (rsa->n != NULL) {
+			if (BN_cmp(rsa->n, pub->n) != 0)
+				return (DST_R_INVALIDPRIVATEKEY);
+		} else {
+			rsa->n = pub->n;
+			pub->n = NULL;
+		}
+		if (rsa->e != NULL) {
+			if (BN_cmp(rsa->e, pub->e) != 0)
+				return (DST_R_INVALIDPRIVATEKEY);
+		} else {
+			rsa->e = pub->e;
+			pub->e = NULL;
+		}
+	}
+	if (rsa->n == NULL || rsa->e == NULL)
+		return (DST_R_INVALIDPRIVATEKEY);
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	dst_private_t priv;
 	isc_result_t ret;
 	int i;
-	RSA *rsa = NULL;
+	RSA *rsa = NULL, *pubrsa = NULL;
 	ENGINE *e = NULL;
 	isc_mem_t *mctx = key->mctx;
 	const char *name = NULL, *label = NULL;
 	EVP_PKEY *pkey = NULL;
+
+#if USE_EVP
+	if (pub != NULL && pub->keydata.pkey != NULL)
+		pubrsa = EVP_PKEY_get1_RSA(pub->keydata.pkey);
+#else
+	if (pub != NULL && pub->keydata.rsa != NULL) {
+		pubrsa = pub->keydata.rsa;
+		pub->keydata.rsa = NULL;
+	}
+#endif
 
 	/* read private key file */
 	ret = dst__privstruct_parse(key, DST_ALG_RSA, lexer, mctx, &priv);
@@ -815,16 +851,20 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer) {
 		key->label = isc_mem_strdup(key->mctx, label);
 		if (key->label == NULL)
 			DST_RET(ISC_R_NOMEMORY);
+		rsa = EVP_PKEY_get1_RSA(pkey);
+		if (rsa == NULL)
+			DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
+		if (rsa_check(rsa, pubrsa) != ISC_R_SUCCESS)
+			DST_RET(DST_R_INVALIDPRIVATEKEY);
 		key->key_size = EVP_PKEY_bits(pkey);
 #if USE_EVP
 		key->keydata.pkey = pkey;
 #else
-		key->keydata.rsa = EVP_PKEY_get1_RSA(pkey);
-		if (rsa == NULL)
-			DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
+		key->keydata.rsa = rsa;
 		EVP_PKEY_free(pkey);
 #endif
 		dst__privstruct_free(&priv, mctx);
+		memset(&priv, 0, sizeof(priv));
 		return (ISC_R_SUCCESS);
 	}
 
@@ -889,8 +929,13 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer) {
 		}
 	}
 	dst__privstruct_free(&priv, mctx);
+	memset(&priv, 0, sizeof(priv));
 
+	if (rsa_check(rsa, pubrsa) != ISC_R_SUCCESS)
+		DST_RET(DST_R_INVALIDPRIVATEKEY);
 	key->key_size = BN_num_bits(rsa->n);
+	if (pubrsa != NULL)
+		RSA_free(pubrsa);
 #if USE_EVP
 	RSA_free(rsa);
 #endif
@@ -904,6 +949,8 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer) {
 #endif
 	if (rsa != NULL)
 		RSA_free(rsa);
+	if (pubrsa != NULL)
+		RSA_free(pubrsa);
 	opensslrsa_destroy(key);
 	dst__privstruct_free(&priv, mctx);
 	memset(&priv, 0, sizeof(priv));

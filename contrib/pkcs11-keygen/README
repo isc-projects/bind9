@@ -4,6 +4,8 @@ an id of the keytag in hex.
 
 Run genkey.sh to generate a new key and call the other programs in turn.
 Run writekey.sh to load key to the key store from Kxxx.{key,private}.
+Run genkey, dnssec-keyfromlabel and optionally set_key_id when you have
+no perl or no Net::DNS::SEC perl module.
 
 genkey[.c] uses PKCS11 calls to generate keys.
 PEM_write_pubkey[.c] uses OpenSSL to write a public key from the key store

@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.25 2009/02/11 03:04:18 jinmei Exp $
+ * $Id: openssl_link.c,v 1.26 2009/09/03 04:09:58 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -223,7 +223,7 @@ dst__openssl_init() {
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_rm;
 	}
-#endif /* USE_PKCS11 */
+#else /* USE_PKCS11 */
 	if (engine_id != NULL) {
 		e = ENGINE_by_id(engine_id);
 		if (e == NULL) {
@@ -237,6 +237,8 @@ dst__openssl_init() {
 		}
 		ENGINE_set_default(e, ENGINE_METHOD_ALL);
 		ENGINE_free(e);
+		if (he == NULL)
+			he = e;
 	} else {
 		ENGINE_register_all_complete();
 		for (e = ENGINE_get_first(); e != NULL; e = ENGINE_get_next(e)) {
@@ -251,6 +253,7 @@ dst__openssl_init() {
 			}
 		}
 	}
+#endif /* USE_PKCS11 */
 	re = ENGINE_get_default_RAND();
 	if (re == NULL) {
 		re = ENGINE_new();
@@ -292,10 +295,11 @@ dst__openssl_destroy() {
 #endif
 	EVP_cleanup();
 #if defined(USE_ENGINE)
-	if (e != NULL) {
+	if (he != NULL)
+		ENGINE_finish(he);
+	else if (e != NULL)
 		ENGINE_finish(e);
-		e = NULL;
-	}
+	he = e = NULL;
 #if defined(USE_ENGINE) && OPENSSL_VERSION_NUMBER >= 0x00907000L
 	ENGINE_cleanup();
 #endif
@@ -344,7 +348,6 @@ ENGINE *
 dst__openssl_getengine(const char *name) {
 
 	UNUSED(name);
-
 
 #if defined(USE_ENGINE)
 	return (he);

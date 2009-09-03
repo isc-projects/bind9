@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_internal.h,v 1.16 2009/09/02 06:29:01 each Exp $ */
+/* $Id: dst_internal.h,v 1.17 2009/09/03 04:09:58 marka Exp $ */
 
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1
@@ -173,7 +173,9 @@ struct dst_func {
 	isc_result_t (*todns)(const dst_key_t *key, isc_buffer_t *data);
 	isc_result_t (*fromdns)(dst_key_t *key, isc_buffer_t *data);
 	isc_result_t (*tofile)(const dst_key_t *key, const char *directory);
-	isc_result_t (*parse)(dst_key_t *key, isc_lex_t *lexer);
+	isc_result_t (*parse)(dst_key_t *key,
+			      isc_lex_t *lexer,
+			      dst_key_t *pub);
 
 	/* cleanup */
 	void (*cleanup)(void);

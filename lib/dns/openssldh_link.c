@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.14 2008/04/01 23:47:10 tbox Exp $
+ * $Id: openssldh_link.c,v 1.15 2009/09/03 04:09:58 marka Exp $
  */
 
 #ifdef OPENSSL
@@ -476,7 +476,7 @@ openssldh_tofile(const dst_key_t *key, const char *directory) {
 }
 
 static isc_result_t
-openssldh_parse(dst_key_t *key, isc_lex_t *lexer) {
+openssldh_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	dst_private_t priv;
 	isc_result_t ret;
 	int i;
@@ -484,6 +484,7 @@ openssldh_parse(dst_key_t *key, isc_lex_t *lexer) {
 	isc_mem_t *mctx;
 #define DST_RET(a) {ret = a; goto err;}
 
+	UNUSED(pub);
 	mctx = key->mctx;
 
 	/* read private key file */
