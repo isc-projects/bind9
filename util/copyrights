@@ -8,7 +8,7 @@
 ./README					X	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./README.idnkit					X	2005,2009
 ./README.libdns					X	2009
-./README.pkcs11					X	2008
+./README.pkcs11					X	2008,2009
 ./README.rfc5011				X	2009
 ./acconfig.h					C	1999,2000,2001,2002,2003,2004,2005,2007,2008
 ./aclocal.m4					X	1999,2000,2001
@@ -1242,7 +1242,7 @@
 ./contrib/nslint-2.1a3/savestr.h		X	2001
 ./contrib/nslint-2.1a3/strerror.c		X	2001
 ./contrib/pkcs11-keygen/PEM_write_pubkey.c	X	2008
-./contrib/pkcs11-keygen/README			X	2008
+./contrib/pkcs11-keygen/README			X	2008,2009
 ./contrib/pkcs11-keygen/destroyobj.c		X	2008
 ./contrib/pkcs11-keygen/genkey.c		X	2008
 ./contrib/pkcs11-keygen/genkey.sh		X	2008
@@ -1250,6 +1250,7 @@
 ./contrib/pkcs11-keygen/keydump.pl		X	2008
 ./contrib/pkcs11-keygen/listobjs.c		X	2008
 ./contrib/pkcs11-keygen/openssl-0.9.8g-patch	X	2008
+./contrib/pkcs11-keygen/openssl-0.9.8i-patch	X	2009
 ./contrib/pkcs11-keygen/readkey.c		X	2008
 ./contrib/pkcs11-keygen/set_key_id.c		X	2008
 ./contrib/pkcs11-keygen/writekey.c		X	2008
@@ -1662,7 +1663,7 @@
 ./lib/dns/gen.c					C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/dns/gssapi_link.c				C	2000,2001,2002,2004,2005,2006,2007,2008
 ./lib/dns/gssapictx.c				C	2000,2001,2004,2005,2006,2007,2008,2009
-./lib/dns/hmac_link.c				C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008
+./lib/dns/hmac_link.c				C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009
 ./lib/dns/include/.cvsignore			X	1998,1999,2000,2001
 ./lib/dns/include/Makefile.in			MAKE	1998,1999,2000,2001,2004,2007
 ./lib/dns/include/dns/.cvsignore		X	1998,1999,2000,2001
@@ -1767,7 +1768,7 @@
 ./lib/dns/nsec.c				C	1999,2000,2001,2003,2004,2005,2007,2008,2009
 ./lib/dns/nsec3.c				C	2006,2008,2009
 ./lib/dns/openssl_link.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
-./lib/dns/openssldh_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008
+./lib/dns/openssldh_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009
 ./lib/dns/openssldsa_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009
 ./lib/dns/opensslrsa_link.c			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./lib/dns/order.c				C	2002,2004,2005,2007
