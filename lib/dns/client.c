@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.4 2009/09/02 23:48:02 tbox Exp $ */
+/* $Id: client.c,v 1.5 2009/09/03 21:45:46 jinmei Exp $ */
 
 #include <config.h>
 
@@ -307,7 +307,19 @@ dns_client_createview(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 
 	result = dns_view_create(mctx, rdclass, DNS_CLIENTVIEW_NAME, &view);
 	if (result != ISC_R_SUCCESS)
-		return (ISC_R_NOMEMORY);
+		return (result);
+
+	/*
+	 * Workaround for a recent change in dns_view_create(): proactively
+	 * create view->secroots if it's not created with view creation.
+	 */
+	if (view->secroots == NULL) {
+		result = dns_keytable_create(mctx, &view->secroots);
+		if (result != ISC_R_SUCCESS) {
+			dns_view_detach(&view);
+			return (result);
+		}
+	}
 
 	result = dns_view_createresolver(view, taskmgr, ntasks, socketmgr,
 					 timermgr, 0, dispatchmgr,
