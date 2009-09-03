@@ -82,95 +82,6 @@ diff -u openssl/Configure:1.1.2.1 openssl/Configure:1.5
  	s/^SHLIB_VERSION_NUMBER=.*/SHLIB_VERSION_NUMBER=$shlib_version_number/;
  	s/^SHLIB_VERSION_HISTORY=.*/SHLIB_VERSION_HISTORY=$shlib_version_history/;
  	s/^SHLIB_MAJOR=.*/SHLIB_MAJOR=$shlib_major/;
-Index: openssl/Makefile
-diff -u openssl/Makefile:1.1.2.1 openssl/Makefile:1.5
---- openssl/Makefile:1.1.2.1	Mon Sep 15 15:27:21 2008
-+++ openssl/Makefile	Mon Dec 15 12:55:31 2008
-@@ -11,11 +11,11 @@
- SHLIB_VERSION_HISTORY=
- SHLIB_MAJOR=0
- SHLIB_MINOR=9.8
--SHLIB_EXT=
--PLATFORM=dist
--OPTIONS= no-camellia no-capieng no-cms no-gmp no-krb5 no-mdc2 no-montasm no-rc5 no-rfc3779 no-seed no-shared no-tlsext no-zlib no-zlib-dynamic
--CONFIGURE_ARGS=dist
--SHLIB_TARGET=
-+SHLIB_EXT=.so.$(SHLIB_MAJOR).$(SHLIB_MINOR)
-+PLATFORM=solaris64-x86_64-gcc
-+OPTIONS=--pk11-libname=/usr/lib/64/libpkcs11.so.1 no-camellia no-capieng no-cms no-gmp no-krb5 no-mdc2 no-montasm no-rc5 no-rfc3779 no-seed no-shared no-tlsext no-zlib no-zlib-dynamic
-+CONFIGURE_ARGS=solaris64-x86_64-gcc --pk11-libname=/usr/lib/64/libpkcs11.so.1
-+SHLIB_TARGET=solaris-shared
- 
- # HERE indicates where this Makefile lives.  This can be used to indicate
- # where sub-Makefiles are expected to be.  Currently has very limited usage,
-@@ -28,6 +28,9 @@
- INSTALL_PREFIX=
- INSTALLTOP=/usr/local/ssl
- 
-+# You must set this through --pk11-libname configure option.
-+PK11_LIB_LOCATION=/usr/lib/64/libpkcs11.so.1
-+
- # Do not edit this manually. Use Configure --openssldir=DIR do change this!
- OPENSSLDIR=/usr/local/ssl
- 
-@@ -59,11 +62,11 @@
- # equal 4.
- # PKCS1_CHECK - pkcs1 tests.
- 
--CC= cc
--CFLAG= -O
-+CC= gcc
-+CFLAG= -DOPENSSL_THREADS -D_REENTRANT -DDSO_DLFCN -DHAVE_DLFCN_H -DPK11_LIB_LOCATION=\"/usr/lib/64/libpkcs11.so.1\" -m64 -O3 -Wall -DL_ENDIAN -DMD32_REG_T=int -DOPENSSL_BN_ASM_MONT -DSHA1_ASM -DSHA256_ASM -DSHA512_ASM -DMD5_ASM -DAES_ASM
- DEPFLAG= -DOPENSSL_NO_CAMELLIA -DOPENSSL_NO_CAPIENG -DOPENSSL_NO_CMS -DOPENSSL_NO_GMP -DOPENSSL_NO_MDC2 -DOPENSSL_NO_RC5 -DOPENSSL_NO_RFC3779 -DOPENSSL_NO_SEED -DOPENSSL_NO_TLSEXT 
- PEX_LIBS= 
--EX_LIBS= 
-+EX_LIBS= -lsocket -lnsl -ldl
- EXE_EXT= 
- ARFLAGS= 
- AR=ar $(ARFLAGS) r
-@@ -71,7 +74,7 @@
- PERL= /usr/bin/perl
- TAR= tar
- TARFLAGS= --no-recursion
--MAKEDEPPROG=makedepend
-+MAKEDEPPROG= gcc
- 
- # We let the C compiler driver to take care of .s files. This is done in
- # order to be excused from maintaining a separate set of architecture
-@@ -86,16 +89,16 @@
- PROCESSOR= 
- 
- # CPUID module collects small commonly used assembler snippets
--CPUID_OBJ= 
--BN_ASM= bn_asm.o
-+CPUID_OBJ= x86_64cpuid.o
-+BN_ASM= x86_64-gcc.o x86_64-mont.o
- DES_ENC= des_enc.o fcrypt_b.o
--AES_ASM_OBJ= aes_core.o aes_cbc.o
-+AES_ASM_OBJ= aes-x86_64.o
- BF_ENC= bf_enc.o
- CAST_ENC= c_enc.o
--RC4_ENC= rc4_enc.o rc4_skey.o
-+RC4_ENC= rc4-x86_64.o
- RC5_ENC= rc5_enc.o
--MD5_ASM_OBJ= 
--SHA1_ASM_OBJ= 
-+MD5_ASM_OBJ= md5-x86_64.o
-+SHA1_ASM_OBJ= sha1-x86_64.o sha256-x86_64.o sha512-x86_64.o
- RMD160_ASM_OBJ= 
- 
- # KRB5 stuff
-@@ -141,8 +144,8 @@
- SHARED_CRYPTO=libcrypto$(SHLIB_EXT)
- SHARED_SSL=libssl$(SHLIB_EXT)
- SHARED_LIBS=
--SHARED_LIBS_LINK_EXTS=
--SHARED_LDFLAGS=
-+SHARED_LIBS_LINK_EXTS=.so.$(SHLIB_MAJOR) .so
-+SHARED_LDFLAGS=-m64 -shared -static-libgcc
- 
- GENERAL=        Makefile
- BASENAME=       openssl
 Index: openssl/Makefile.org
 diff -u openssl/Makefile.org:1.1.2.1 openssl/Makefile.org:1.2
 --- openssl/Makefile.org:1.1.2.1	Thu Apr  3 23:03:39 2008
@@ -10946,7 +10857,7 @@ diff -u /dev/null openssl/crypto/engine/pkcs11.h:1.1.1.1
 +++ openssl/crypto/engine/pkcs11.h	Wed Oct 24 23:27:09 2007
 @@ -0,0 +1,299 @@
 +/* pkcs11.h include file for PKCS #11. */
-+/* $Revision: 1.3 $ */
++/* $Revision: 1.4 $ */
 +
 +/* License to copy and use this software is granted provided that it is
 + * identified as "RSA Security Inc. PKCS #11 Cryptographic Token Interface
@@ -11250,7 +11161,7 @@ diff -u /dev/null openssl/crypto/engine/pkcs11f.h:1.1.1.1
 +++ openssl/crypto/engine/pkcs11f.h	Wed Oct 24 23:27:09 2007
 @@ -0,0 +1,912 @@
 +/* pkcs11f.h include file for PKCS #11. */
-+/* $Revision: 1.3 $ */
++/* $Revision: 1.4 $ */
 +
 +/* License to copy and use this software is granted provided that it is
 + * identified as "RSA Security Inc. PKCS #11 Cryptographic Token Interface
@@ -12167,7 +12078,7 @@ diff -u /dev/null openssl/crypto/engine/pkcs11t.h:1.2
 +++ openssl/crypto/engine/pkcs11t.h	Sat Aug 30 11:58:07 2008
 @@ -0,0 +1,1885 @@
 +/* pkcs11t.h include file for PKCS #11. */
-+/* $Revision: 1.3 $ */
++/* $Revision: 1.4 $ */
 +
 +/* License to copy and use this software is granted provided that it is
 + * identified as "RSA Security Inc. PKCS #11 Cryptographic Token Interface
