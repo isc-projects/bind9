@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch04.html,v 1.99 2009/07/15 01:13:11 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch04.html,v 1.100 2009/09/03 01:14:42 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -68,10 +68,10 @@
 <dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2571813">Signing the Zone</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2571894">Configuring Servers</a></span></dt>
 </dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2572064">IPv6 Support in <acronym class="acronym">BIND</acronym> 9</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2572076">IPv6 Support in <acronym class="acronym">BIND</acronym> 9</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2572262">Address Lookups Using AAAA Records</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2572283">Address to Name Lookups Using Nibble Format</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2564083">Address Lookups Using AAAA Records</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2564104">Address to Name Lookups Using Nibble Format</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -884,7 +884,8 @@ allow-update { key host1-host2. ;};
           <span><strong class="command">dnssec-validation</strong></span> options must both be
           set to yes (the default setting in <acronym class="acronym">BIND</acronym> 9.5
           and later), and at least one trust anchor must be configured
-          with a <span><strong class="command">trusted-keys</strong></span> statement in
+          with a <span><strong class="command">trusted-keys</strong></span> or
+          <span><strong class="command">managed-keys</strong></span> statement in
           <code class="filename">named.conf</code>.
         </p>
 <p>
@@ -896,7 +897,13 @@ allow-update { key host1-host2. ;};
           to validated the DNSKEY RRset that they are from.
         </p>
 <p>
-          <span><strong class="command">trusted-keys</strong></span> are described in more detail
+          <span><strong class="command">managed-keys</strong></span> are trusted keys which are
+          automatically kept up to date via RFC 5011 trust anchor
+          maintenance.
+        </p>
+<p>
+          <span><strong class="command">trusted-keys</strong></span> and
+          <span><strong class="command">managed-keys</strong></span> are described in more detail
           later in this document.
         </p>
 <p>
@@ -911,53 +918,54 @@ allow-update { key host1-host2. ;};
           more public keys for the root.  This allows answers from
           outside the organization to be validated.  It will also
           have several keys for parts of the namespace the organization
-          controls.  These are here to ensure that <span><strong class="command">named</strong></span> is immune
-          to compromises in the DNSSEC components of the security
+          controls.  These are here to ensure that <span><strong class="command">named</strong></span>
+          is immune to compromises in the DNSSEC components of the security
           of parent zones.
         </p>
 <pre class="programlisting">
-trusted-keys {
-
+managed-keys {
         /* Root Key */
-"." 257 3 3 "BNY4wrWM1nCfJ+CXd0rVXyYmobt7sEEfK3clRbGaTwS
-             JxrGkxJWoZu6I7PzJu/E9gx4UC1zGAHlXKdE4zYIpRh
-             aBKnvcC2U9mZhkdUpd1Vso/HAdjNe8LmMlnzY3zy2Xy
-             4klWOADTPzSv9eamj8V18PHGjBLaVtYvk/ln5ZApjYg
-             hf+6fElrmLkdaz MQ2OCnACR817DF4BBa7UR/beDHyp
-             5iWTXWSi6XmoJLbG9Scqc7l70KDqlvXR3M/lUUVRbke
-             g1IPJSidmK3ZyCllh4XSKbje/45SKucHgnwU5jefMtq
-             66gKodQj+MiA21AfUVe7u99WzTLzY3qlxDhxYQQ20FQ
-             97S+LKUTpQcq27R7AT3/V5hRQxScINqwcz4jYqZD2fQ
-             dgxbcDTClU0CRBdiieyLMNzXG3";
+        "." initial-key 257 3 3 "BNY4wrWM1nCfJ+CXd0rVXyYmobt7sEEfK3clRbGaTwS
+                                 JxrGkxJWoZu6I7PzJu/E9gx4UC1zGAHlXKdE4zYIpRh
+                                 aBKnvcC2U9mZhkdUpd1Vso/HAdjNe8LmMlnzY3zy2Xy
+                                 4klWOADTPzSv9eamj8V18PHGjBLaVtYvk/ln5ZApjYg
+                                 hf+6fElrmLkdaz MQ2OCnACR817DF4BBa7UR/beDHyp
+                                 5iWTXWSi6XmoJLbG9Scqc7l70KDqlvXR3M/lUUVRbke
+                                 g1IPJSidmK3ZyCllh4XSKbje/45SKucHgnwU5jefMtq
+                                 66gKodQj+MiA21AfUVe7u99WzTLzY3qlxDhxYQQ20FQ
+                                 97S+LKUTpQcq27R7AT3/V5hRQxScINqwcz4jYqZD2fQ
+                                 dgxbcDTClU0CRBdiieyLMNzXG3";
+};
 
-/* Key for our organization's forward zone */
-example.com. 257 3 5 "AwEAAaxPMcR2x0HbQV4WeZB6oEDX+r0QM6
-                      5KbhTjrW1ZaARmPhEZZe3Y9ifgEuq7vZ/z
-                      GZUdEGNWy+JZzus0lUptwgjGwhUS1558Hb
-                      4JKUbbOTcM8pwXlj0EiX3oDFVmjHO444gL
-                      kBOUKUf/mC7HvfwYH/Be22GnClrinKJp1O
-                      g4ywzO9WglMk7jbfW33gUKvirTHr25GL7S
-                      TQUzBb5Usxt8lgnyTUHs1t3JwCY5hKZ6Cq
-                      FxmAVZP20igTixin/1LcrgX/KMEGd/biuv
-                      F4qJCyduieHukuY3H4XMAcR+xia2nIUPvm
-                      /oyWR8BW/hWdzOvnSCThlHf3xiYleDbt/o
-                      1OTQ09A0=";
+trusted-keys {
+        /* Key for our organization's forward zone */
+        example.com. 257 3 5 "AwEAAaxPMcR2x0HbQV4WeZB6oEDX+r0QM6
+                              5KbhTjrW1ZaARmPhEZZe3Y9ifgEuq7vZ/z
+                              GZUdEGNWy+JZzus0lUptwgjGwhUS1558Hb
+                              4JKUbbOTcM8pwXlj0EiX3oDFVmjHO444gL
+                              kBOUKUf/mC7HvfwYH/Be22GnClrinKJp1O
+                              g4ywzO9WglMk7jbfW33gUKvirTHr25GL7S
+                              TQUzBb5Usxt8lgnyTUHs1t3JwCY5hKZ6Cq
+                              FxmAVZP20igTixin/1LcrgX/KMEGd/biuv
+                              F4qJCyduieHukuY3H4XMAcR+xia2nIUPvm
+                              /oyWR8BW/hWdzOvnSCThlHf3xiYleDbt/o
+                              1OTQ09A0=";
 
-/* Key for our reverse zone. */
-2.0.192.IN-ADDRPA.NET. 257 3 5 "AQOnS4xn/IgOUpBPJ3bogzwc
-                               xOdNax071L18QqZnQQQAVVr+i
-                               LhGTnNGp3HoWQLUIzKrJVZ3zg
-                               gy3WwNT6kZo6c0tszYqbtvchm
-                               gQC8CzKojM/W16i6MG/eafGU3
-                               siaOdS0yOI6BgPsw+YZdzlYMa
-                               IJGf4M4dyoKIhzdZyQ2bYQrjy
-                               Q4LB0lC7aOnsMyYKHHYeRvPxj
-                               IQXmdqgOJGq+vsevG06zW+1xg
-                               YJh9rCIfnm1GX/KMgxLPG2vXT
-                               D/RnLX+D3T3UL7HJYHJhAZD5L
-                               59VvjSPsZJHeDCUyWYrvPZesZ
-                               DIRvhDD52SKvbheeTJUm6Ehkz
-                               ytNN2SN96QRk8j/iI8ib";
+        /* Key for our reverse zone. */
+        2.0.192.IN-ADDRPA.NET. 257 3 5 "AQOnS4xn/IgOUpBPJ3bogzwc
+                                       xOdNax071L18QqZnQQQAVVr+i
+                                       LhGTnNGp3HoWQLUIzKrJVZ3zg
+                                       gy3WwNT6kZo6c0tszYqbtvchm
+                                       gQC8CzKojM/W16i6MG/eafGU3
+                                       siaOdS0yOI6BgPsw+YZdzlYMa
+                                       IJGf4M4dyoKIhzdZyQ2bYQrjy
+                                       Q4LB0lC7aOnsMyYKHHYeRvPxj
+                                       IQXmdqgOJGq+vsevG06zW+1xg
+                                       YJh9rCIfnm1GX/KMgxLPG2vXT
+                                       D/RnLX+D3T3UL7HJYHJhAZD5L
+                                       59VvjSPsZJHeDCUyWYrvPZesZ
+                                       DIRvhDD52SKvbheeTJUm6Ehkz
+                                       ytNN2SN96QRk8j/iI8ib";
 };
 
 options {
@@ -1009,7 +1017,7 @@ options {
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2572064"></a>IPv6 Support in <acronym class="acronym">BIND</acronym> 9</h2></div></div></div>
+<a name="id2572076"></a>IPv6 Support in <acronym class="acronym">BIND</acronym> 9</h2></div></div></div>
 <p>
         <acronym class="acronym">BIND</acronym> 9 fully supports all currently
         defined forms of IPv6 name to address and address to name
@@ -1047,7 +1055,7 @@ options {
       </p>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2572262"></a>Address Lookups Using AAAA Records</h3></div></div></div>
+<a name="id2564083"></a>Address Lookups Using AAAA Records</h3></div></div></div>
 <p>
           The IPv6 AAAA record is a parallel to the IPv4 A record,
           and, unlike the deprecated A6 record, specifies the entire
@@ -1066,7 +1074,7 @@ host            3600    IN      AAAA    2001:db8::1
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2572283"></a>Address to Name Lookups Using Nibble Format</h3></div></div></div>
+<a name="id2564104"></a>Address to Name Lookups Using Nibble Format</h3></div></div></div>
 <p>
           When looking up an address in nibble format, the address
           components are simply reversed, just as in IPv4, and

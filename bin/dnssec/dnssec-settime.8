@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-settime.8,v 1.4 2009/07/19 23:47:55 tbox Exp $
+.\" $Id: dnssec-settime.8,v 1.5 2009/09/03 01:14:41 tbox Exp $
 .\"
 .hy 0
 .ad l
@@ -78,7 +78,7 @@ Sets the debugging level.
 .RE
 .SH "TIMING OPTIONS"
 .PP
-Dates can be expressed in the format YYYYMMDD or YYYYMMDDHHMMSS. If the argument begins with a '+' or '\-', it is interpreted as an offset from the present time. If such an offset is followed by one of the characters 'y', 'm', 'w', 'd', or 'h', then the offset is computed in years, months, weeks, days, or hours, respectively; otherwise it is computed in seconds.
+Dates can be expressed in the format YYYYMMDD or YYYYMMDDHHMMSS. If the argument begins with a '+' or '\-', it is interpreted as an offset from the present time. For convenience, if such an offset is followed by one of the suffixes 'y', 'mo', 'w', 'd', 'h', or 'mi', then the offset is computed in years (defined as 365 24\-hour days, ignoring leap years), months (defined as 30 24\-hour days), weeks, days, hours, or minutes, respectively. Without a suffix, the offset is computed in seconds. To unset a date, use 'none'.
 .PP
 \-P \fIdate/offset\fR
 .RS 4
@@ -103,6 +103,35 @@ Sets the date on which the key is to be unpublished. After that date, the key wi
 \-D \fIdate/offset\fR
 .RS 4
 Sets the date on which the key is to be deleted. After that date, the key can be removed from the key repository. NOTE: Keys are not currently deleted automatically; this field is included for informational purposes and for future development.
+.RE
+.SH "PRINTING OPTIONS"
+.PP
+\fBdnssec\-settime\fR
+can also be used to print the timing metadata associated with a key.
+.PP
+\-u
+.RS 4
+Print times in UNIX epoch format.
+.RE
+.PP
+\-p \fIC/P/A/R/U/D/all\fR
+.RS 4
+Print a specific metadata value or set of metadata values. The
+\fB\-p\fR
+option may be followed by one or more of the following letters to indicate which value or values to print:
+\fBC\fR
+for the creation date,
+\fBP\fR
+for the publication date,
+\fBA\fR
+for the activation date,
+\fBR\fR
+for the revokation date,
+\fBU\fR
+for the unpublication date, or
+\fBD\fR
+for the deletion date. To print all of the metadata, use
+\fB\-p all\fR.
 .RE
 .SH "SEE ALSO"
 .PP

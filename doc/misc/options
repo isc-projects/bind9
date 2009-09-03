@@ -44,7 +44,8 @@ lwres {
         view <string> <optional_class>;
 };
 
-managed-keys { <string> <integer> <integer> <integer> <quoted_string>; ... };
+managed-keys { <string> <string> <integer> <integer> <integer>
+    <quoted_string>; ... };
 
 masters <string> [ port <integer> ] { ( <masters> | <ipv4_address> [ port
     <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ]; ... };
@@ -316,7 +317,7 @@ view <string> <optional_class> {
         key-directory <quoted_string>;
         lame-ttl <integer>;
         maintain-ixfr-base <boolean>; // obsolete
-        managed-keys { <string> <integer> <integer> <integer>
+        managed-keys { <string> <string> <integer> <integer> <integer>
             <quoted_string>; ... };
         masterfile-format ( text | raw );
         match-clients { <address_match_element>; ... };
@@ -421,7 +422,6 @@ view <string> <optional_class> {
                 check-srv-cname ( fail | warn | ignore );
                 check-wildcard <boolean>;
                 database <string>;
-                ddns-autoconf <boolean>;
                 delegation-only <boolean>;
                 dialup <dialuptype>;
                 file <quoted_string>;
@@ -503,7 +503,6 @@ zone <string> <optional_class> {
         check-srv-cname ( fail | warn | ignore );
         check-wildcard <boolean>;
         database <string>;
-        ddns-autoconf <boolean>;
         delegation-only <boolean>;
         dialup <dialuptype>;
         file <quoted_string>;

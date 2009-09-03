@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-keygen.8,v 1.46 2009/08/29 01:14:37 tbox Exp $
+.\" $Id: dnssec-keygen.8,v 1.47 2009/09/03 01:14:41 tbox Exp $
 .\"
 .hy 0
 .ad l
@@ -169,7 +169,7 @@ Sets the debugging level.
 .RE
 .SH "TIMING OPTIONS"
 .PP
-Dates can be expressed in the format YYYYMMDD or YYYYMMDDHHMMSS. If the argument begins with a '+' or '\-', it is interpreted as an offset from the present time. If such an offset is followed by one of the characters 'y', 'm', 'w', 'd', or 'h', then the offset is computed in years, months, weeks, days, or hours, respectively; otherwise it is computed in seconds.
+Dates can be expressed in the format YYYYMMDD or YYYYMMDDHHMMSS. If the argument begins with a '+' or '\-', it is interpreted as an offset from the present time. For convenience, if such an offset is followed by one of the suffixes 'y', 'mo', 'w', 'd', 'h', or 'mi', then the offset is computed in years (defined as 365 24\-hour days, ignoring leap years), months (defined as 30 24\-hour days), weeks, days, hours, or minutes, respectively. Without a suffix, the offset is computed in seconds.
 .PP
 \-P \fIdate/offset\fR
 .RS 4

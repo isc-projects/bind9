@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: man.dnssec-settime.html,v 1.6 2009/08/29 01:14:37 tbox Exp $ -->
+<!-- $Id: man.dnssec-settime.html,v 1.7 2009/09/03 01:14:42 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -50,7 +50,7 @@
 <div class="cmdsynopsis"><p><code class="command">dnssec-settime</code>  [<code class="option">-fr</code>] [<code class="option">-K <em class="replaceable"><code>directory</code></em></code>] [<code class="option">-P <em class="replaceable"><code>date/offset</code></em></code>] [<code class="option">-A <em class="replaceable"><code>date/offset</code></em></code>] [<code class="option">-R <em class="replaceable"><code>date/offset</code></em></code>] [<code class="option">-U <em class="replaceable"><code>date/offset</code></em></code>] [<code class="option">-D <em class="replaceable"><code>date/offset</code></em></code>] [<code class="option">-h</code>] [<code class="option">-v <em class="replaceable"><code>level</code></em></code>] {keyfile}</p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2608993"></a><h2>DESCRIPTION</h2>
+<a name="id2608777"></a><h2>DESCRIPTION</h2>
 <p><span><strong class="command">dnssec-settime</strong></span>
       reads a DNSSEC private key file and sets the key timing metadata
       as specified by the <code class="option">-P</code>, <code class="option">-A</code>,
@@ -75,7 +75,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2609051"></a><h2>OPTIONS</h2>
+<a name="id2608836"></a><h2>OPTIONS</h2>
 <div class="variablelist"><dl>
 <dt><span class="term">-f</span></dt>
 <dd><p>
@@ -101,14 +101,16 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2609128"></a><h2>TIMING OPTIONS</h2>
+<a name="id2608981"></a><h2>TIMING OPTIONS</h2>
 <p>
       Dates can be expressed in the format YYYYMMDD or YYYYMMDDHHMMSS.
       If the argument begins with a '+' or '-', it is interpreted as
-      an offset from the present time.  If such an offset is followed
-      by one of the characters 'y', 'm', 'w', 'd', or 'h', then the
-      offset is computed in years, months, weeks, days, or hours,
-      respectively; otherwise it is computed in seconds.
+      an offset from the present time.  For convenience, if such an offset
+      is followed by one of the suffixes 'y', 'mo', 'w', 'd', 'h', or 'mi',
+      then the offset is computed in years (defined as 365 24-hour days,
+      ignoring leap years), months (defined as 30 24-hour days), weeks,
+      days, hours, or minutes, respectively.  Without a suffix, the offset
+      is computed in seconds.  To unset a date, use 'none'.
     </p>
 <div class="variablelist"><dl>
 <dt><span class="term">-P <em class="replaceable"><code>date/offset</code></em></span></dt>
@@ -146,7 +148,33 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2609294"></a><h2>SEE ALSO</h2>
+<a name="id2609147"></a><h2>PRINTING OPTIONS</h2>
+<p>
+      <span><strong class="command">dnssec-settime</strong></span> can also be used to print the
+      timing metadata associated with a key.
+    </p>
+<div class="variablelist"><dl>
+<dt><span class="term">-u</span></dt>
+<dd><p>
+	    Print times in UNIX epoch format.
+	  </p></dd>
+<dt><span class="term">-p <em class="replaceable"><code>C/P/A/R/U/D/all</code></em></span></dt>
+<dd><p>
+	    Print a specific metadata value or set of metadata values.
+            The <code class="option">-p</code> option may be followed by one or more
+            of the following letters to indicate which value or values to print:
+            <code class="option">C</code> for the creation date,
+            <code class="option">P</code> for the publication date,
+            <code class="option">A</code> for the activation date,
+            <code class="option">R</code> for the revokation date,
+            <code class="option">U</code> for the unpublication date, or
+            <code class="option">D</code> for the deletion date.
+            To print all of the metadata, use <code class="option">-p all</code>.
+	  </p></dd>
+</dl></div>
+</div>
+<div class="refsect1" lang="en">
+<a name="id2609296"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">dnssec-keygen</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">dnssec-signzone</span>(8)</span>,
       <em class="citetitle">BIND 9 Administrator Reference Manual</em>,
@@ -154,7 +182,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2609328"></a><h2>AUTHOR</h2>
+<a name="id2609329"></a><h2>AUTHOR</h2>
 <p><span class="corpauthor">Internet Systems Consortium</span>
     </p>
 </div>
