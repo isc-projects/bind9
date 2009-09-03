@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keyfromlabel.c,v 1.10 2009/09/01 00:22:24 jinmei Exp $ */
+/* $Id: dnssec-keyfromlabel.c,v 1.11 2009/09/03 13:43:52 fdupont Exp $ */
 
 /*! \file */
 
@@ -87,7 +87,7 @@ main(int argc, char **argv) {
 	char		*directory = NULL;
 	char		*classname = NULL;
 	char		*endp;
-	dst_key_t	*key = NULL, *oldkey;
+	dst_key_t	*key = NULL, *oldkey = NULL;
 	dns_fixedname_t	fname;
 	dns_name_t	*name;
 	isc_uint16_t	flags = 0, ksk = 0, revoke = 0;
