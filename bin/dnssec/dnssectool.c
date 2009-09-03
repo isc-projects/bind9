@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.52 2009/09/02 23:48:01 tbox Exp $ */
+/* $Id: dnssectool.c,v 1.53 2009/09/03 00:12:23 each Exp $ */
 
 /*! \file */
 
@@ -329,11 +329,11 @@ strtotime(const char *str, isc_int64_t now, isc_int64_t base) {
 		return ((isc_stdtime_t) base);
 	else if (str[0] == '+') {
 		offset = strtol(str + 1, &endp, 0);
-		offset = time_units(offset, endp, orig);
+		offset = time_units((isc_stdtime_t) offset, endp, orig);
 		val = base + offset;
 	} else if (str[0] == '-') {
 		offset = strtol(str + 1, &endp, 0);
-		offset = time_units(offset, endp, orig);
+		offset = time_units((isc_stdtime_t) offset, endp, orig);
 		val = base - offset;
 	} else if (strlen(str) == 8U) {
 		char timestr[15];

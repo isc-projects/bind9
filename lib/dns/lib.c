@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lib.c,v 1.18 2009/09/02 23:48:02 tbox Exp $ */
+/* $Id: lib.c,v 1.19 2009/09/03 00:12:23 each Exp $ */
 
 /*! \file */
 
@@ -83,7 +83,7 @@ static isc_mutex_t reflock;
 static unsigned int references = 0;
 
 static void
-initialize() {
+initialize(void) {
 	isc_result_t result;
 
 	REQUIRE(initialize_done == ISC_FALSE);
