@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.93 2009/09/02 04:25:19 jinmei Exp $ */
+/* $Id: timer.c,v 1.94 2009/09/03 21:55:13 jinmei Exp $ */
 
 /*! \file */
 
@@ -172,13 +172,15 @@ static struct isc__timermethods {
 
 static struct isc__timermgrmethods {
 	isc_timermgrmethods_t methods;
+#ifndef BIND9
 	void *poke;		/* see above */
+#endif
 } timermgrmethods = {
 	{
 		isc__timermgr_destroy,
 		isc__timer_create
 	}
-#ifdef BIND9
+#ifndef BIND9
 	,
 	(void *)isc__timermgr_poke
 #endif
