@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.85 2009/09/04 17:47:26 each Exp $ */
+/* $Id: mem.h,v 1.86 2009/09/04 18:51:37 jinmei Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -152,6 +152,16 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_debugging;
 #endif
 
 
+/*%<
+ * We use either isc___mem (three underscores) or isc__mem (two) depending on
+ * whether it's for BIND9's internal purpose (with -DBIND9) or generic export
+ * library.  This condition is generally handled in isc/namespace.h, but for
+ * Windows it doesn't work if it involves multiple times of macro expansion
+ * (such as isc_mem to isc__mem then to isc___mem).  The following definitions
+ * are used to work around this portability issue.  Right now, we don't support
+ * the export library for Windows, so we always use the three-underscore
+ * version.
+ */
 #ifdef WIN32
 #define ISCMEMFUNC(sfx) isc___mem_ ## sfx
 #define ISCMEMPOOLFUNC(sfx) isc___mempool_ ## sfx
