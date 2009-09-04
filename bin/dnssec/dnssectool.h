@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.h,v 1.22 2008/09/25 04:02:38 tbox Exp $ */
+/* $Id: dnssectool.h,v 1.22.48.1 2009/09/04 02:38:33 marka Exp $ */
 
 #ifndef DNSSECTOOL_H
 #define DNSSECTOOL_H 1
@@ -45,7 +45,7 @@ type_format(const dns_rdatatype_t type, char *cp, unsigned int size);
 
 void
 alg_format(const dns_secalg_t alg, char *cp, unsigned int size);
-#define ALG_FORMATSIZE 10
+#define ALG_FORMATSIZE 20
 
 void
 sig_format(dns_rdata_rrsig_t *sig, char *cp, unsigned int size);
