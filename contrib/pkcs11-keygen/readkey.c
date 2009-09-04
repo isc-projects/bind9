@@ -117,7 +117,7 @@ main(int argc, char *argv[])
 
     /* Login to the Token (Keystore) */
     if (!pin)
-#ifndef OPENCRYPTOKI
+#ifndef HAVE_GETPASS
         pin = (CK_UTF8CHAR *)getpassphrase("Enter Pin: ");
 #else
         pin = (CK_UTF8CHAR *)getpass("Enter Pin: ");
