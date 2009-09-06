@@ -1,7 +1,7 @@
+	--- 9.7.0a3 released ---
+
 2669.	[func]		Update PKCS#11 support to support Keyper HSM.
 			Update PKCS#11 patch to be against openssl-0.9.8i.
-
-	--- 9.7.0a3 released ---
 
 2668.	[func]		Several improvements to dnssec-* tools, including:
 			- dnssec-keygen and dnssec-settime can now set key
