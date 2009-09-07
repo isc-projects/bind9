@@ -1,7 +1,8 @@
+
+	--- 9.4-ESV-20090907 released ---
+
 2670.	[bug]		Unexpected connect failures failed to log enough
 			information to be useful. [RT #20205]
-
-	--- 9.4.4b1 released ---
 
 2649.	[bug]		Set the domain for forward only zones. [RT #19944]
 
