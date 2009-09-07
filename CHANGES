@@ -1,3 +1,6 @@
+2670.	[bug]		Unexpected connect failures failed to log enough
+			information to be useful. [RT #20205]
+
 	--- 9.7.0a3 released ---
 
 2669.	[func]		Update PKCS#11 support to support Keyper HSM.
