@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.26 2009/09/03 04:09:58 marka Exp $
+ * $Id: opensslrsa_link.c,v 1.27 2009/09/07 12:54:59 fdupont Exp $
  */
 #ifdef OPENSSL
 #ifndef USE_EVP
@@ -800,7 +800,7 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	RSA *rsa = NULL, *pubrsa = NULL;
 	ENGINE *e = NULL;
 	isc_mem_t *mctx = key->mctx;
-	const char *name = NULL, *label = NULL;
+	const char *engine = NULL, *label = NULL;
 	EVP_PKEY *pkey = NULL;
 
 #if USE_EVP
@@ -821,7 +821,7 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	for (i = 0; i < priv.nelements; i++) {
 		switch (priv.elements[i].tag) {
 		case TAG_RSA_ENGINE:
-			name = (char *)priv.elements[i].data;
+			engine = (char *)priv.elements[i].data;
 			break;
 		case TAG_RSA_LABEL:
 			label = (char *)priv.elements[i].data;
@@ -834,10 +834,10 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	 * Is this key is stored in a HSM?
 	 * See if we can fetch it.
 	 */
-	if (name != NULL || label != NULL) {
-		INSIST(name != NULL);
-		INSIST(label != NULL);
-		e = dst__openssl_getengine(name);
+	if (label != NULL) {
+		if (engine == NULL)
+			DST_RET(DST_R_NOENGINE);
+		e = dst__openssl_getengine(engine);
 		if (e == NULL)
 			DST_RET(DST_R_NOENGINE);
 		pkey = ENGINE_load_private_key(e, label, NULL, NULL);
@@ -845,7 +845,7 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 			/* ERR_print_errors_fp(stderr); */
 			DST_RET(ISC_R_NOTFOUND);
 		}
-		key->engine = isc_mem_strdup(key->mctx, name);
+		key->engine = isc_mem_strdup(key->mctx, engine);
 		if (key->engine == NULL)
 			DST_RET(ISC_R_NOMEMORY);
 		key->label = isc_mem_strdup(key->mctx, label);
@@ -856,9 +856,12 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 			DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 		if (rsa_check(rsa, pubrsa) != ISC_R_SUCCESS)
 			DST_RET(DST_R_INVALIDPRIVATEKEY);
+		if (pubrsa != NULL)
+			RSA_free(pubrsa);
 		key->key_size = EVP_PKEY_bits(pkey);
 #if USE_EVP
 		key->keydata.pkey = pkey;
+		RSA_free(rsa);
 #else
 		key->keydata.rsa = rsa;
 		EVP_PKEY_free(pkey);
@@ -877,9 +880,8 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	pkey = EVP_PKEY_new();
 	if (pkey == NULL)
 		DST_RET(ISC_R_NOMEMORY);
-	if (!EVP_PKEY_set1_RSA(pkey, rsa)) {
+	if (!EVP_PKEY_set1_RSA(pkey, rsa))
 		DST_RET(ISC_R_FAILURE);
-	}
 	key->keydata.pkey = pkey;
 #else
 	key->keydata.rsa = rsa;
@@ -964,33 +966,61 @@ opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	ENGINE *e = NULL;
 	isc_result_t ret;
 	EVP_PKEY *pkey = NULL;
+	RSA *rsa = NULL, *pubrsa = NULL;
+	char *colon;
 
 	UNUSED(pin);
 
 	e = dst__openssl_getengine(engine);
 	if (e == NULL)
 		DST_RET(DST_R_NOENGINE);
+	pkey = ENGINE_load_public_key(e, label, NULL, NULL);
+	if (pkey != NULL) {
+		pubrsa = EVP_PKEY_get1_RSA(pkey);
+		EVP_PKEY_free(pkey);
+		if (pubrsa == NULL)
+			DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
+	}
 	pkey = ENGINE_load_private_key(e, label, NULL, NULL);
 	if (pkey == NULL)
 		DST_RET(ISC_R_NOTFOUND);
-	key->engine = isc_mem_strdup(key->mctx, label);
-	if (key->engine == NULL)
-		DST_RET(ISC_R_NOMEMORY);
+	if (engine != NULL) {
+		key->engine = isc_mem_strdup(key->mctx, engine);
+		if (key->engine == NULL)
+			DST_RET(ISC_R_NOMEMORY);
+	} else {
+		key->engine = isc_mem_strdup(key->mctx, label);
+		if (key->engine == NULL)
+			DST_RET(ISC_R_NOMEMORY);
+		colon = strchr(key->engine, ':');
+		if (colon != NULL)
+			*colon = '\0';
+	}
 	key->label = isc_mem_strdup(key->mctx, label);
 	if (key->label == NULL)
 		DST_RET(ISC_R_NOMEMORY);
+	rsa = EVP_PKEY_get1_RSA(pkey);
+	if (rsa == NULL)
+		DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
+	if (rsa_check(rsa, pubrsa) != ISC_R_SUCCESS)
+		DST_RET(DST_R_INVALIDPRIVATEKEY);
+	if (pubrsa != NULL)
+		RSA_free(pubrsa);
 	key->key_size = EVP_PKEY_bits(pkey);
 #if USE_EVP
 	key->keydata.pkey = pkey;
+	RSA_free(rsa);
 #else
-	key->keydata.rsa = EVP_PKEY_get1_RSA(pkey);
+	key->keydata.rsa = rsa;
 	EVP_PKEY_free(pkey);
-	if (key->keydata.rsa == NULL)
-		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 #endif
 	return (ISC_R_SUCCESS);
 
  err:
+	if (rsa != NULL)
+		RSA_free(rsa);
+	if (pubrsa != NULL)
+		RSA_free(pubrsa);
 	if (pkey != NULL)
 		EVP_PKEY_free(pkey);
 	return (ret);

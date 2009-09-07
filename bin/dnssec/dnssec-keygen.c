@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.93 2009/09/04 16:57:22 each Exp $ */
+/* $Id: dnssec-keygen.c,v 1.94 2009/09/07 12:54:59 fdupont Exp $ */
 
 /*! \file */
 
@@ -699,8 +699,8 @@ main(int argc, char **argv) {
 
 		/*
 		 * Try to read a key with the same name, alg and id from disk.
-		 * If there is one we must continue generating a new one
-		 * unless we were asked to generate a null key, in which
+		 * If there is one we must continue generating a different
+		 * key unless we were asked to generate a null key, in which
 		 * case we return failure.
 		 */
 		ret = dst_key_fromfile(name, dst_key_id(key), alg,

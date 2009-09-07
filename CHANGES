@@ -1,3 +1,8 @@
+2671.	[bug]		Add support for PKCS#11 providers not returning
+			the public exponent in RSA private keys
+			(OpenCryptoki for instance) in
+			dnssec-keyfromlabel. [RT #19294]
+
 2670.	[bug]		Unexpected connect failures failed to log enough
 			information to be useful. [RT #20205]
 
