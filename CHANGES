@@ -1,3 +1,6 @@
+2670.	[bug]		Unexpected connect failures failed to log enough
+			information to be useful. [RT #20205]
+
 2663.	[func]		win32:  allow named to run as a service using
 			"NT AUTHORITY\LocalService" as the account. [RT #19977]
 
