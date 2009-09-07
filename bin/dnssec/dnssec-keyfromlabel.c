@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keyfromlabel.c,v 1.12 2009/09/07 12:54:59 fdupont Exp $ */
+/* $Id: dnssec-keyfromlabel.c,v 1.13 2009/09/07 23:11:48 fdupont Exp $ */
 
 /*! \file */
 
@@ -59,7 +59,7 @@ usage(void) {
 	fprintf(stderr, "Version: %s\n", VERSION);
 	fprintf(stderr, "Required options:\n");
 	fprintf(stderr, "    -a algorithm: %s\n", algs);
-	fprintf(stderr, "    -l label: label of the keys\n");
+	fprintf(stderr, "    -l label: label of the key pair\n");
 	fprintf(stderr, "    name: owner of the key\n");
 	fprintf(stderr, "Other options:\n");
 	fprintf(stderr, "    -c <class> (default: IN)\n");
