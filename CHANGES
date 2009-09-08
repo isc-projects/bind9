@@ -1,4 +1,7 @@
 
+2672.	[bug]		Don't enable searching in 'host' when doing reverse
+			lookups. [RT #20218]
+
 	--- 9.4-ESV-20090907 released ---
 
 2670.	[bug]		Unexpected connect failures failed to log enough
