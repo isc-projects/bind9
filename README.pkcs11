@@ -1,94 +1,285 @@
 
-			BIND-9 PKCS#11 support
+		BIND 9 PKCS #11 (Cryptoki) support
 
-Prerequisite
+INTRODUCTION
 
-The PKCS#11 support needs a PKCS#11 OpenSSL engine based on the Solaris one,
-released the 2008-12-02 for OpenSSL 0.9.8i, with back port of key by reference
-and some improvements, including user friendly PIN management. You may also
-use the original engine code.
+PKCS #11 (Public Key Cryptography Standard #11) defines a platform-
+independent API for the control of hardware security modules (HSMs)
+and other cryptographic support devices. 
 
-Compilation
+BIND 9 is known to work with two HSMs:  The Sun SCA 6000 cryptographic
+acceration board, tested under OpenSolaris x86, and the AEP Keyper
+network-attached key storage device, tested with a Debian Linux system.
+(The Keyper has also been tested with Windows 2003 and found to work,
+but with some stability problems that have not yet been resolved.)
 
-"configure --with-pkcs11 ..."
+PREREQUISITES
 
-PKCS#11 Libraries
+See the HSM vendor documentation for information about installing,
+initializing, testing and troubleshooting the HSM.
 
-Tested with Solaris one with a SCA board and with openCryptoki with the
-software token. Known to work on Linux and Windows 2003 server so
-should work on most operating systems. For AEP Keyper or any device used
-only for its protected key store, please switch to the sign-only engine.
+BIND 9 uses OpenSSL for cryptography, but stock OpenSSL does not
+yet fully support PKCS #11.  However, a PKCS #11 engine for OpenSSL
+is available from the OpenSolaris project.  It has been modified by
+ISC to work with with BIND 9, and with further improvements to provide
+features such as PIN management.
 
-OpenSSL Engines
+The modified OpenSSL depends on a PKCS #11 shared library object,
+which is provided by the HSM vendor and is specific to the HSM to
+be controlled.
 
-With PKCS#11 support the PKCS#11 engine is statically loaded but at its
-initialization it dynamically loads the PKCS#11 objects.
-Even the pre commands are therefore unused they are defined with:
- SO_PATH:
-   define: PKCS11_SO_PATH
-   default: /usr/local/lib/engines/engine_pkcs11.so
- MODULE_PATH:
-   define: PKCS11_MODULE_PATH
-   default: /usr/lib/libpkcs11.so
-Without PKCS#11 support, a specific OpenSSL engine can be still used
-by defining ENGINE_ID at compile time.
+The OpenSSL code is included in BIND 9.7.0a3 release in the form
+of a context diff against OpenSSL 0.9.8i.  Before building BIND 9
+PKCS #11 support, it will be necessary to build OpenSSL with this
+patch in place, and provide it with the path to the HSM-specific
+PKCS #11 library.
 
-PKCS#11 tools
+Obtain OpenSSL 0.9.8i:
 
-The contrib/pkcs11-keygen directory contains a set of experimental tools
-to handle keys stored in a Hardware Security Module at the benefit of BIND.
+    wget http://www.openssl.org/source/openssl-0.9.8i.tar.gz
 
-The patch for OpenSSL 0.9.8i is in this directory. Read its README.pkcs11
-for the way to use it (these are the original notes so with the original
-path, etc. Define HAVE_GETPASSPHRASE if you have getpassphrase() on
-a operating system which is not Solaris.)
+Extract the tarball:
 
-Not all tools are supported on AEP Keyper but genkey and dnssec-keyfromlabel
-are functional.
+    tar zxf openssl-0.9.8i.tar.gz
 
-PIN management
+Apply the patch from the BIND 9 release:
 
-With the just fixed PKCS#11 OpenSSL engine, the PIN should be entered
-each time it is required. With the improved engine, the PIN should be
-entered the first time it is required or can be configured in the
-OpenSSL configuration file (aka. openssl.cnf) by adding in it:
- - at the beginning:
-	openssl_conf = openssl_def
- - at any place these sections:
-	[ openssl_def ]
-	engines = engine_section
-	[ engine_section ]
-	pkcs11 = pkcs11_section
-	[ pkcs11_section ]
-	PIN = put__your__pin__value__here
+    patch -p1 -d openssl-0.9.8i \
+            < bind-9.7.0a3/contrib/pkcs11-keygen/openssl-0.9.8i-patch 
 
-Slot management
+(Note that the patch file may not be compatible with the "patch" utility
+on all operating systems.  You may need to install GNU patch.)
 
-The engine tries to use the first best slot but it is recommended
-to simply use the slot 0 (usual default, meta-slot on Solaris).
+When building OpenSSL, place it in a non-standard location so that it
+does not interfere with OpenSSL libraries elsewhere on the system.
+In the following examples, we choose to install into "/opt/pkcs11/usr".
+We will use this location when we configure BIND 9.
 
-Sign-only engine
+    EXAMPLE 1--BUILDING OPENSSL FOR THE AEP KEYPER ON LINUX:
 
-openssl.../crypto/engibe/hw_pk11-kp.c and hw_pk11_pub-kp.c contain
-a stripped down version of hw_pk11.c and hw_pk11_pub.c files which
-has only the useful functions (i.e., signature with a RSA private
-key in the device protected key store and key loading).
+    The AEP Keyper is a highly-secured key storage device, but it does not
+    provide hardware cryptographic acceleration.  It can carry out
+    cryptographic operations, but it is probably slower than your
+    system's CPU, so it is most efficient to use it only for operations
+    that require the secured private key.
 
-This engine should be used with a device which provides mainly
-a protected store and no acceleration. AEP Keyper is an example
-of such a device (BTW with the fully capable engine, key export
-must be enabled on this device and this configuration is not yet
-supported).
+    The patched OpenSSL source tree includes two versions of the PKCS #11
+    engine, one of which uses the HSM for all cryptographic operations, and
+    the other only uses it for signing.  To build with the signing-only
+    engine:
 
-Original engine
+        cp openssl-0.9.8i/crypto/engine/hw_pk11-kp.c \
+           openssl-0.9.8i/crypto/engine/hw_pk11.c
+        cp openssl-0.9.8i/crypto/engine/hw_pk11_pub-kp.c \
+           openssl-0.9.8i/crypto/engine/hw_pk11_pub.c
 
-If you are using the original engine and getpassphrase() is not defined, add:
-#define getpassphrase(x) getpass(x)
-in openssl.../crypto/engine/hw_pk11_pub.c
+    The Keyper-specific PKCS #11 shared library object is provided
+    by AEP.  In this example, we place it /opt/pkcs11/usr/lib:
 
-Notes
+        cp pkcs11.GCC4.0.2.so.4.05 /opt/pkcs11/usr/lib/libpkcs11.so
 
-Some names here are registered trademarks, at least Solaris is a trademark
-of Sun Microsystems Inc...
-Include files are from RSA Labs., PKCS#11 version is 2.20 amendment 3.
-The PKCS#11 support is compatible with the forthcoming FIPS 140-2 support.
+    Note that the this library is only available for Linux as a 32-bit
+    binary.  If we are compiling on a 64-bit Linux system, it is necessary
+    to force a 32-bit build, by specifying -m32 in the build options.
+
+    Finally, the Keyper library requires threads, so we must specify -pthread.
+    
+        cd openssl-0.9.8i
+        ./Configure linux-generic32 -m32 -pthread \
+            --pk11-libname=/opt/pkcs11/usr/lib/libpkcs11.so \
+            --prefix=/opt/pkcs11/usr
+
+    After configuring, run "make" and "make test".  If "make test" fails
+    with "pthread_atfork() not found", you forgot to add the -pthread
+    above.
+
+    EXAMPLE 2--BUILDING OPENSSL FOR THE SCA 6000 ON SOLARIS:
+
+    The SCA-6000 PKCS #11 library is provided as a system library, libpkcs11.
+
+    In this example, we are building on OpenSolaris x86 on an AMD64 system.
+
+        cd openssl-0.9.8i
+        ./Configure solaris64-x86_64-cc -xarch=amd64 \
+            --pk11-libname=/usr/lib/64/libpkcs11.so \
+            --prefix=/opt/pkcs11/usr
+
+    After configuring, run "make" and "make test".
+
+Once you have built OpenSSL, run "apps/openssl engine" to confirm that
+PKCS #11 support was compiled in correctly.  The output should include the
+line:
+
+        (pkcs11) PKCS #11 engine support
+
+If the output is correct, run "make install".
+
+BUILDING BIND 9
+
+When building BIND 9, the location of the custom-built OpenSSL
+library must be specified via configure.
+
+    EXAMPLE 3--CONFIGURING BIND 9 FOR LINUX
+
+    To link with the PKCS #11 library, threads must be enabled in the bind9
+    build.
+
+    Since the PKCS #11 library is only available as a 32-bit binary, if
+    we are building on a 64-bit host, we must force a 32-bit build by
+    adding "-m32" to the CC options on the "configure" command line.
+
+        cd ../bind-9.7.0a3
+        ./configure CC="gcc -m32" --enable-threads \
+            --with-openssl=/opt/pkcs11/usr
+
+    EXAMPLE 4--CONFIGURING BIND 9 FOR SOLARIS
+
+    To link with the PKCS #11 library, threads must be enabled in the bind9
+    build.
+
+        cd ../bind-9.7.0a3
+        ./configure CC="cc -xarch=adm64" --enable-threads \
+            --with-openssl=/opt/pkcs11/usr
+
+If configure complains about OpenSSL not working, you may have a 32/64-bit
+architecture mismatch.  Or, you may have incorrectly specified the path to
+OpenSSL (it should be the same as the --prefix argument to the OpenSSL
+Configure).  
+
+After configuring, run "make", "make test" and "make install".
+
+PKCS #11 TOOLS
+
+The contrib/pkcs11-keygen directory contains a set of experimental
+tools to operate an HSM for the benefit of BIND 9, including "genkey" to
+generate a new key pair within the HSM, and "listobjs" to list keys
+currently available.
+
+These tools are not yet complete, not documented, and not supported
+by ISC.  As of BIND 9.7.0a3, they still lack such basic amenities as
+a Makefile.  Other commercial or open-source PKCS #11 tools may be
+available which are better-suited to the job.  However, in the
+absence of those tools, the ones provided in contrib/pkcs11-keygen
+can get you started.
+
+    EXAMPLE 5--BUILDING TOOLS ON LINUX:
+
+    gcc -m32 -DHAVE_GETPASS -I. -L /opt/pkcs11/usr/lib \
+        genkey.c -o genkey -lpkcs11
+    gcc -m32 -DHAVE_GETPASS -I. -L /opt/pkcs11/usr/lib \
+        listobjs.c -o listobjs -lpkcs11
+    gcc -m32 -DHAVE_GETPASS -I. -L /opt/pkcs11/usr/lib \
+        destroyobj.c -o destroyobj -lpkcs11
+    cd ../..
+
+    EXAMPLE 6--BUILDING TOOLS ON SOLARIS:
+
+    cc -xarch=amd64 -I. -L /opt/pkcs11/usr/lib \
+        genkey.c -o genkey -lcrypto -lpkcs11 -lsocket
+    cc -xarch=amd64 -I. -L /opt/pkcs11/usr/lib \
+        listobjs.c -o listobjs -lcrypto -lpkcs11 -lsocket
+    cc -xarch=amd64 -I. -L /opt/pkcs11/usr/lib \
+        destroyobj.c -o destroyobj -lcrypto -lpkcs11 -lsocket
+    cd ../..
+
+USING THE HSM
+
+First, we must set up the runtime environment so the OpenSSL and PKCS #11
+libraries can be loaded:
+
+    export LD_LIBRARY_PATH=/opt/pkcs11/usr/lib:${LD_LIBRARY_PATH}
+
+When operating an AEP Keyper, it is also necessary to specify the
+location of the "machine" file, which provides information about the
+Keyper to the PKCS #11 library.  For example, if the machine file is in
+/opt/Keyper/PKCS11Provider/machine, use:
+
+    export KEYPER_LIBRARY_PATH=/opt/Keyper/PKCS11Provider
+
+These environment variables must be set whenever running any tool
+which uses the HSM, including genkey, listobjs, destroyobj,
+dnssec-keyfromlabel, dnssec-signzone, and named.
+
+We can now create and use keys in the HSM.  In this case, we will
+create a 2048 bit key and give it the label "sample-ksk":
+
+    contrib/pkcs11-keygen/genkey -b 2048 -l sample-ksk
+
+To confirm that the key exists:
+
+    contrib/pkcs11-keygen/listobjs
+    Enter PIN:
+    object[0]: handle 2147483658 class 3 label[8] 'sample-ksk' id[0] 
+    object[1]: handle 2147483657 class 2 label[8] 'sample-ksk' id[0] 
+
+Before using this key to sign a zone, we must create a pair of BIND 9
+key files.  The "dnssec-keyfromlabel" utility does this.  In this case,
+we will be using the HSM key "sample-ksk" as the key-signing key for
+"example.net":
+
+    dnssec-keyfromlabel -a NSEC3RSASHA1 -l pkcs11:sample-ksk -f KSK example.net
+
+(Note:  It is necessary to specify "pkcs11:" before the key's label;
+otherwise the PCKS #11 engine will look for the key on disk rather than
+in the HSM.  If you forget to do this, dnssec-keyfromlabel will return
+"not found".)
+
+The resulting K*.key and K*.private files can now be used to sign the
+zone.  Unlike normal K* files, which contain both public and private
+key data, these files will contain only the public key data, plus an
+identifier for the private key which remains stored within the HSM.
+The HSM handles signing with the private key.
+
+If you wish to generate a second key in the HSM for use as a zone-signing
+key, follow the same procedure above, using a different keylabel, a
+smaller key size, and omitting "-f KSK" from the dnssec-keyfromlabel
+arguments:
+
+    contrib/pkcs11-keygen/genkey -b 1024 -l sample-zsk
+    dnssec-keyfromlabel -a NSEC3RSASHA1 -l pkcs11:sample-zsk example.net
+
+Alternatively, you may prefer to generate a conventional on-disk key, using
+dnssec-keygen:
+
+    dnssec-keygen -a NSEC3RSASHA1 -b 1024 example.net
+
+This provides less security than an HSM key, but since HSMs are often
+slower at signing than your system's CPU, it may be more efficient to
+reserve HSM keys for the less-frequent key-signing operation.  The
+zone-signing key can be rolled more frequently, if you wish, to
+compensate for a reduction in key security.
+
+Now you can sign the zone.  (Note: If not using the -S option to
+dnssec-signzone, it will be necessary to add the contents of both
+K*.key files to the zone master file before signing it.)
+
+    dnssec-signzone -S example.net
+    Enter PIN:
+    Verifying the zone using the following algorithms: NSEC3RSASHA1.
+    Zone signing complete:
+    Algorithm: NSEC3RSASHA1: ZSKs: 1, KSKs: 1 active, 0 revoked, 0 stand-by
+    example.net.signed
+
+RUNNING NAMED WITH AUTOMATIC ZONE RE-SIGNING
+
+If you want named to dynamically re-sign zones using HSM keys, and/or to
+to sign new records inserted via nsupdate, then named must have access
+to the HSM PIN.  This can be accomplished by placing the PIN into the
+openssl.cnf file (in the above examples, /opt/pkcs11/usr/ssl/openssl.cnf).
+
+The location of the openssl.cnf file can be overridden by setting the
+OPENSSL_CONF environment variable before running named.
+
+Sample openssl.cnf:
+
+        openssl_conf = openssl_def
+        [ openssl_def ]
+        engines = engine_section
+        [ engine_section ]
+        pkcs11 = pkcs11_section
+        [ pkcs11_section ]
+        PIN = <PLACE PIN HERE>
+
+PLEASE NOTE:  Placing the HSM's PIN in a text file in this manner
+may reduce the security advantage of using an HSM.  Be sure this
+is what you want to do before configuring BIND 9 in this way.
