@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.116.12.2 2009/05/06 23:46:49 tbox Exp $ */
+/* $Id: host.c,v 1.116.12.3 2009/09/08 23:28:40 marka Exp $ */
 
 /*! \file */
 
@@ -839,11 +839,10 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	} else {
 		strncpy(lookup->textname, hostname, sizeof(lookup->textname));
 		lookup->textname[sizeof(lookup->textname)-1]=0;
+		usesearch = ISC_TRUE;
 	}
 	lookup->new_search = ISC_TRUE;
 	ISC_LIST_APPEND(lookup_list, lookup, link);
-
-	usesearch = ISC_TRUE;
 }
 
 int

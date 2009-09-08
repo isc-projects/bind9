@@ -1,3 +1,6 @@
+2672.	[bug]		Don't enable searching in 'host' when doing reverse
+			lookups. [RT #20218]
+
 2670.	[bug]		Unexpected connect failures failed to log enough
 			information to be useful. [RT #20205]
 
