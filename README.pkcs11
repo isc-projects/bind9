@@ -21,8 +21,8 @@ initializing, testing and troubleshooting the HSM.
 BIND 9 uses OpenSSL for cryptography, but stock OpenSSL does not
 yet fully support PKCS #11.  However, a PKCS #11 engine for OpenSSL
 is available from the OpenSolaris project.  It has been modified by
-ISC to work with with BIND 9, and with further improvements to provide
-features such as PIN management.
+ISC to work with with BIND 9 and to provide new features such as
+PIN management.
 
 The modified OpenSSL depends on a PKCS #11 shared library object,
 which is provided by the HSM vendor and is specific to the HSM to
@@ -64,9 +64,9 @@ We will use this location when we configure BIND 9.
     that require the secured private key.
 
     The patched OpenSSL source tree includes two versions of the PKCS #11
-    engine, one of which uses the HSM for all cryptographic operations, and
-    the other only uses it for signing.  To build with the signing-only
-    engine:
+    engine; one uses the HSM for all cryptographic operations, and the
+    other only uses it for signing.  The signing-only engine is recommended
+    for the Keyper.  To build OpenSSL with the signing-only engine:
 
         cp openssl-0.9.8i/crypto/engine/hw_pk11-kp.c \
            openssl-0.9.8i/crypto/engine/hw_pk11.c
@@ -78,9 +78,9 @@ We will use this location when we configure BIND 9.
 
         cp pkcs11.GCC4.0.2.so.4.05 /opt/pkcs11/usr/lib/libpkcs11.so
 
-    Note that the this library is only available for Linux as a 32-bit
-    binary.  If we are compiling on a 64-bit Linux system, it is necessary
-    to force a 32-bit build, by specifying -m32 in the build options.
+    This library is only available for Linux as a 32-bit binary.  If we are
+    compiling on a 64-bit Linux system, it is necessary to force a 32-bit
+    build, by specifying -m32 in the build options.
 
     Finally, the Keyper library requires threads, so we must specify -pthread.
     
@@ -124,7 +124,7 @@ library must be specified via configure.
     To link with the PKCS #11 library, threads must be enabled in the bind9
     build.
 
-    Since the PKCS #11 library is only available as a 32-bit binary, if
+    The PKCS #11 library is only available as a 32-bit binary.  If
     we are building on a 64-bit host, we must force a 32-bit build by
     adding "-m32" to the CC options on the "configure" command line.
 
