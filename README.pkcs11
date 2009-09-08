@@ -8,10 +8,10 @@ independent API for the control of hardware security modules (HSMs)
 and other cryptographic support devices. 
 
 BIND 9 is known to work with two HSMs:  The Sun SCA 6000 cryptographic
-acceration board, tested under OpenSolaris x86, and the AEP Keyper
+acceration board, tested under Solaris x86, and the AEP Keyper
 network-attached key storage device, tested with a Debian Linux system.
-(The Keyper has also been tested with Windows 2003 and found to work,
-but with some stability problems that have not yet been resolved.)
+(The Keyper has also been tested with Windows Server 2003 and found to
+work, but with some stability problems that have not yet been resolved.)
 
 PREREQUISITES
 
@@ -22,17 +22,19 @@ BIND 9 uses OpenSSL for cryptography, but stock OpenSSL does not
 yet fully support PKCS #11.  However, a PKCS #11 engine for OpenSSL
 is available from the OpenSolaris project.  It has been modified by
 ISC to work with with BIND 9 and to provide new features such as
-PIN management.
+PIN management and key by reference.
 
-The modified OpenSSL depends on a PKCS #11 shared library object,
-which is provided by the HSM vendor and is specific to the HSM to
-be controlled.
+The modified OpenSSL depends on a "PKCS #11 provider".  This is a shared
+library object, providing a low-level PKCS #11 interface to the HSM
+hardware; it is dynamically loaded by OpenSSL at runtime.  The PKCS #11
+provider comes from the HSM vendor, and and is specific to the HSM to be
+controlled.
 
-The OpenSSL code is included in BIND 9.7.0a3 release in the form
-of a context diff against OpenSSL 0.9.8i.  Before building BIND 9
-PKCS #11 support, it will be necessary to build OpenSSL with this
-patch in place, and provide it with the path to the HSM-specific
-PKCS #11 library.
+The modified OpenSSL code is included in BIND 9.7.0a3 release in the form
+of a context diff against OpenSSL 0.9.8i.  Before building BIND 9 with
+PKCS #11 support, it will be necessary to build OpenSSL with this patch
+in place and inform it of the path to the HSM-specific PKCS #11 provider
+library.
 
 Obtain OpenSSL 0.9.8i:
 
@@ -57,8 +59,8 @@ We will use this location when we configure BIND 9.
 
     EXAMPLE 1--BUILDING OPENSSL FOR THE AEP KEYPER ON LINUX:
 
-    The AEP Keyper is a highly-secured key storage device, but it does not
-    provide hardware cryptographic acceleration.  It can carry out
+    The AEP Keyper is a highly-secured key storage device, but it does
+    not provide hardware cryptographic acceleration.  It can carry out
     cryptographic operations, but it is probably slower than your
     system's CPU, so it is most efficient to use it only for operations
     that require the secured private key.
@@ -73,8 +75,8 @@ We will use this location when we configure BIND 9.
         cp openssl-0.9.8i/crypto/engine/hw_pk11_pub-kp.c \
            openssl-0.9.8i/crypto/engine/hw_pk11_pub.c
 
-    The Keyper-specific PKCS #11 shared library object is provided
-    by AEP.  In this example, we place it /opt/pkcs11/usr/lib:
+    The Keyper-specific PKCS #11 provider library is delivered with the
+    Keyper software.  In this example, we place it /opt/pkcs11/usr/lib:
 
         cp pkcs11.GCC4.0.2.so.4.05 /opt/pkcs11/usr/lib/libpkcs11.so
 
@@ -95,9 +97,10 @@ We will use this location when we configure BIND 9.
 
     EXAMPLE 2--BUILDING OPENSSL FOR THE SCA 6000 ON SOLARIS:
 
-    The SCA-6000 PKCS #11 library is provided as a system library, libpkcs11.
+    The SCA-6000 PKCS #11 provider is installed as a system library,
+    libpkcs11.
 
-    In this example, we are building on OpenSolaris x86 on an AMD64 system.
+    In this example, we are building on Solaris x86 on an AMD64 system.
 
         cd openssl-0.9.8i
         ./Configure solaris64-x86_64-cc -xarch=amd64 \
@@ -190,8 +193,8 @@ libraries can be loaded:
     export LD_LIBRARY_PATH=/opt/pkcs11/usr/lib:${LD_LIBRARY_PATH}
 
 When operating an AEP Keyper, it is also necessary to specify the
-location of the "machine" file, which provides information about the
-Keyper to the PKCS #11 library.  For example, if the machine file is in
+location of the "machine" file, which stores information about the Keyper
+for use by PKCS #11 provider library.  If the machine file is in
 /opt/Keyper/PKCS11Provider/machine, use:
 
     export KEYPER_LIBRARY_PATH=/opt/Keyper/PKCS11Provider
