@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-keyfromlabel.8,v 1.9 2009/07/20 01:13:18 tbox Exp $
+.\" $Id: dnssec-keyfromlabel.8,v 1.10 2009/09/08 01:14:42 tbox Exp $
 .\"
 .hy 0
 .ad l
@@ -32,18 +32,22 @@
 dnssec\-keyfromlabel \- DNSSEC key generation tool
 .SH "SYNOPSIS"
 .HP 20
-\fBdnssec\-keyfromlabel\fR {\-a\ \fIalgorithm\fR} {\-l\ \fIlabel\fR} [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-f\ \fR\fB\fIflag\fR\fR] [\fB\-k\fR] [\fB\-K\ \fR\fB\fIdirectory\fR\fR] [\fB\-n\ \fR\fB\fInametype\fR\fR] [\fB\-p\ \fR\fB\fIprotocol\fR\fR] [\fB\-t\ \fR\fB\fItype\fR\fR] [\fB\-v\ \fR\fB\fIlevel\fR\fR] {name}
+\fBdnssec\-keyfromlabel\fR {\-a\ \fIalgorithm\fR} {\-l\ \fIlabel\fR} [\fB\-A\ \fR\fB\fIdate/offset\fR\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-D\ \fR\fB\fIdate/offset\fR\fR] [\fB\-f\ \fR\fB\fIflag\fR\fR] [\fB\-k\fR] [\fB\-K\ \fR\fB\fIdirectory\fR\fR] [\fB\-n\ \fR\fB\fInametype\fR\fR] [\fB\-P\ \fR\fB\fIdate/offset\fR\fR] [\fB\-p\ \fR\fB\fIprotocol\fR\fR] [\fB\-R\ \fR\fB\fIdate/offset\fR\fR] [\fB\-t\ \fR\fB\fItype\fR\fR] [\fB\-U\ \fR\fB\fIdate/offset\fR\fR] [\fB\-v\ \fR\fB\fIlevel\fR\fR] {name}
 .SH "DESCRIPTION"
 .PP
 \fBdnssec\-keyfromlabel\fR
 gets keys with the given label from a crypto hardware and builds key files for DNSSEC (Secure DNS), as defined in RFC 2535 and RFC 4034.
+.PP
+The
+\fBname\fR
+of the key is specified on the command line. This must match the name of the zone for which the key is being generated.
 .SH "OPTIONS"
 .PP
 \-a \fIalgorithm\fR
 .RS 4
 Selects the cryptographic algorithm. The value of
 \fBalgorithm\fR
-must be one of RSAMD5 (RSA) or RSASHA1, DSA, NSEC3RSASHA1, NSEC3DSA or DH (Diffie Hellman). These values are case insensitive.
+must be one of RSAMD5 (RSA), RSASHA1, DSA, NSEC3RSASHA1, NSEC3DSA or DH (Diffie Hellman). These values are case insensitive.
 .sp
 Note 1: that for DNSSEC, RSASHA1 is a mandatory to implement algorithm, and DSA is recommended.
 .sp
@@ -62,6 +66,15 @@ Specifies the owner type of the key. The value of
 must either be ZONE (for a DNSSEC zone key (KEY/DNSKEY)), HOST or ENTITY (for a key associated with a host (KEY)), USER (for a key associated with a user(KEY)) or OTHER (DNSKEY). These values are case insensitive.
 .RE
 .PP
+\-C
+.RS 4
+Compatibility mode: generates an old\-style key, without any metadata. By default,
+\fBdnssec\-keyfromlabel\fR
+will include the key's creation date in the metadata stored with the private key, and other dates may be set there as well (publication date, activation date, etc). Keys that include this data may be incompatible with older versions of BIND; the
+\fB\-C\fR
+option suppresses them.
+.RE
+.PP
 \-c \fIclass\fR
 .RS 4
 Indicates that the DNS record containing the key should have the specified class. If not specified, class IN is used.
@@ -69,13 +82,13 @@ Indicates that the DNS record containing the key should have the specified class
 .PP
 \-f \fIflag\fR
 .RS 4
-Set the specified flag in the flag field of the KEY/DNSKEY record. The only recognized flag is KSK (Key Signing Key) DNSKEY.
+Set the specified flag in the flag field of the KEY/DNSKEY record. The only recognized flags are KSK (Key Signing Key) and REVOKE.
 .RE
 .PP
 \-h
 .RS 4
 Prints a short summary of the options and arguments to
-\fBdnssec\-keygen\fR.
+\fBdnssec\-keyfromlabel\fR.
 .RE
 .PP
 \-K \fIdirectory\fR
@@ -90,7 +103,7 @@ Generate KEY records rather than DNSKEY records.
 .PP
 \-p \fIprotocol\fR
 .RS 4
-Sets the protocol value for the generated key. The protocol is a number between 0 and 255. The default is 3 (DNSSEC). Other possible values for this argument are listed in RFC 2535 and its successors.
+Sets the protocol value for the key. The protocol is a number between 0 and 255. The default is 3 (DNSSEC). Other possible values for this argument are listed in RFC 2535 and its successors.
 .RE
 .PP
 \-t \fItype\fR
@@ -103,6 +116,34 @@ must be one of AUTHCONF, NOAUTHCONF, NOAUTH, or NOCONF. The default is AUTHCONF.
 \-v \fIlevel\fR
 .RS 4
 Sets the debugging level.
+.RE
+.SH "TIMING OPTIONS"
+.PP
+Dates can be expressed in the format YYYYMMDD or YYYYMMDDHHMMSS. If the argument begins with a '+' or '\-', it is interpreted as an offset from the present time. For convenience, if such an offset is followed by one of the suffixes 'y', 'mo', 'w', 'd', 'h', or 'mi', then the offset is computed in years (defined as 365 24\-hour days, ignoring leap years), months (defined as 30 24\-hour days), weeks, days, hours, or minutes, respectively. Without a suffix, the offset is computed in seconds.
+.PP
+\-P \fIdate/offset\fR
+.RS 4
+Sets the date on which a key is to be published to the zone. After that date, the key will be included in the zone but will not be used to sign it.
+.RE
+.PP
+\-A \fIdate/offset\fR
+.RS 4
+Sets the date on which the key is to be activated. After that date, the key will be included and the zone and used to sign it.
+.RE
+.PP
+\-R \fIdate/offset\fR
+.RS 4
+Sets the date on which the key is to be revoked. After that date, the key will be flagged as revoked. It will be included in the zone and will be used to sign it.
+.RE
+.PP
+\-U \fIdate/offset\fR
+.RS 4
+Sets the date on which the key is to be unpublished. After that date, the key will no longer be included in the zone, but it may remain in the key repository.
+.RE
+.PP
+\-D \fIdate/offset\fR
+.RS 4
+Sets the date on which the key is to be deleted. After that date, the key can be removed from the key repository. NOTE: Keys are not currently deleted automatically; this field is included for informational purposes and for future development.
 .RE
 .SH "GENERATED KEY FILES"
 .PP
@@ -137,7 +178,7 @@ file contains a DNS KEY record that can be inserted into a zone file (directly o
 .PP
 The
 \fI.private\fR
-file contains algorithm specific fields. For obvious security reasons, this file does not have general read permission.
+file contains algorithm\-specific fields. For obvious security reasons, this file does not have general read permission.
 .SH "SEE ALSO"
 .PP
 \fBdnssec\-keygen\fR(8),
