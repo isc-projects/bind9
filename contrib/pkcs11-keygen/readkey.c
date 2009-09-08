@@ -7,12 +7,7 @@
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>
-#ifndef OPENCRYPTOKI
-#include <security/cryptoki.h>
-#include <security/pkcs11.h>
-#else
 #include <opencryptoki/pkcs11.h>
-#endif
 #include <openssl/conf.h>
 #include <openssl/err.h>
 #include <openssl/rsa.h>
