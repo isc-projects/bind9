@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: kit.sh,v 1.36 2009/08/14 06:17:20 marka Exp $
+# $Id: kit.sh,v 1.37 2009/09/08 03:39:30 each Exp $
 
 # Make a release kit
 #
@@ -114,11 +114,15 @@ fi
 # we still delete them from releases just in case something 
 # gets accidentally resurrected.
 
-rm -rf TODO EXCLUDED conftools util doc/design doc/dev doc/expired \
+rm -rf TODO EXCLUDED conftools doc/design doc/dev doc/expired \
     doc/html doc/todo doc/private bin/lwresd doc/man \
     lib/lwres/man/resolver.5 \
     bin/tests/system/relay lib/cfg
 
+# Remove everything but mksymtbl.pl from util
+find ./util -name mksymtbl.pl -prune -o -type f -print | xargs rm -rf
+
+# Remove all .cvsignore files
 find . -name .cvsignore -print | xargs rm
 
 # The following files should be executable.
