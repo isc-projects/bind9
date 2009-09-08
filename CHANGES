@@ -1,3 +1,6 @@
+
+	--- 9.5.2rc1 released ---
+
 2672.	[bug]		Don't enable searching in 'host' when doing reverse
 			lookups. [RT #20218]
 
