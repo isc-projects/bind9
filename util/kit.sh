@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: kit.sh,v 1.38 2009/09/09 04:27:40 marka Exp $
+# $Id: kit.sh,v 1.39 2009/09/09 04:48:01 marka Exp $
 
 # Make a release kit
 #
@@ -121,7 +121,7 @@ rm -rf TODO EXCLUDED conftools doc/design doc/dev doc/expired \
 
 # Remove everything but mksymtbl.pl from util
 find util -name mksymtbl.pl -prune -o -type f -print | xargs rm -f
-find util -depth -type d -print | xargs rmdir -p
+find util -depth -type d -print | xargs rmdir 2>/dev/null
 
 # Remove all .cvsignore files
 find . -name .cvsignore -print | xargs rm
