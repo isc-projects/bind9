@@ -181,9 +181,9 @@ can get you started.
 
     EXAMPLE 6--BUILDING TOOLS ON SOLARIS:
 
-    cc -I. -L /opt/pkcs11/usr/lib genkey.c -o genkey -lpkcs11
-    cc -I. -L /opt/pkcs11/usr/lib listobjs.c -o listobjs -lpkcs11
-    cc -I. -L /opt/pkcs11/usr/lib destroyobj.c -o destroyobj -lpkcs11
+    cc -I. genkey.c -o genkey -lpkcs11
+    cc -I. listobjs.c -o listobjs -lpkcs11
+    cc -I. destroyobj.c -o destroyobj -lpkcs11
     cd ../..
 
 USING THE HSM
