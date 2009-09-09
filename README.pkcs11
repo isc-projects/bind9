@@ -103,9 +103,11 @@ We will use this location when we configure BIND 9.
     In this example, we are building on Solaris x86 on an AMD64 system.
 
         cd openssl-0.9.8i
-        ./Configure solaris64-x86_64-cc -xarch=amd64 \
+        ./Configure solaris64-x86_64-cc \
             --pk11-libname=/usr/lib/64/libpkcs11.so \
             --prefix=/opt/pkcs11/usr
+
+    (For a 32-bit build, use "solaris-x86-cc" and /usr/lib/libpkcs11.so.)
 
     After configuring, run "make" and "make test".
 
@@ -124,8 +126,8 @@ library must be specified via configure.
 
     EXAMPLE 3--CONFIGURING BIND 9 FOR LINUX
 
-    To link with the PKCS #11 library, threads must be enabled in the bind9
-    build.
+    To link with the PKCS #11 provider, threads must be enabled in the
+    BIND 9 build.
 
     The PKCS #11 library is only available as a 32-bit binary.  If
     we are building on a 64-bit host, we must force a 32-bit build by
@@ -137,12 +139,14 @@ library must be specified via configure.
 
     EXAMPLE 4--CONFIGURING BIND 9 FOR SOLARIS
 
-    To link with the PKCS #11 library, threads must be enabled in the bind9
-    build.
+    To link with the PKCS #11 provider, threads must be enabled in the
+    BIND 9 build.
 
         cd ../bind-9.7.0a3
-        ./configure CC="cc -xarch=adm64" --enable-threads \
+        ./configure CC="cc -xarch=amd64" --enable-threads \
             --with-openssl=/opt/pkcs11/usr
+
+    (For a 32-bit build, omit CC="cc -xarch=amd64".)
 
 If configure complains about OpenSSL not working, you may have a 32/64-bit
 architecture mismatch.  Or, you may have incorrectly specified the path to
@@ -177,12 +181,9 @@ can get you started.
 
     EXAMPLE 6--BUILDING TOOLS ON SOLARIS:
 
-    cc -xarch=amd64 -I. -L /opt/pkcs11/usr/lib \
-        genkey.c -o genkey -lcrypto -lpkcs11 -lsocket
-    cc -xarch=amd64 -I. -L /opt/pkcs11/usr/lib \
-        listobjs.c -o listobjs -lcrypto -lpkcs11 -lsocket
-    cc -xarch=amd64 -I. -L /opt/pkcs11/usr/lib \
-        destroyobj.c -o destroyobj -lcrypto -lpkcs11 -lsocket
+    cc -I. -L /opt/pkcs11/usr/lib genkey.c -o genkey -lpkcs11
+    cc -I. -L /opt/pkcs11/usr/lib listobjs.c -o listobjs -lpkcs11
+    cc -I. -L /opt/pkcs11/usr/lib destroyobj.c -o destroyobj -lpkcs11
     cd ../..
 
 USING THE HSM
