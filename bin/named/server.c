@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.547 2009/09/04 00:49:50 marka Exp $ */
+/* $Id: server.c,v 1.548 2009/09/10 01:49:29 each Exp $ */
 
 /*! \file */
 
@@ -552,7 +552,6 @@ dstkey_fromconfig(const cfg_obj_t *vconfig, const cfg_obj_t *key,
 			    "ignoring %s key for '%s': no crypto support",
 			    managed ? "managed" : "trusted",
 			    keynamestr);
-		result = ISC_R_SUCCESS;
 	} else {
 		cfg_obj_log(key, ns_g_lctx, ISC_LOG_ERROR,
 			    "configuring %s key for '%s': %s",
@@ -593,6 +592,8 @@ load_view_keys(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
 	}
 
  cleanup:
+	if (result == DST_R_NOCRYPTO)
+		result = ISC_R_SUCCESS;
 	return (result);
 }
 
