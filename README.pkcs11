@@ -179,7 +179,7 @@ can get you started.
         destroyobj.c -o destroyobj -lpkcs11
     cd ../..
 
-    EXAMPLE 6--BUILDING TOOLS ON SOLARIS:
+    EXAMPLE 6--BUILDING TOOLS ON SOLARIS WITH SCA 6000:
 
     cc -I. genkey.c -o genkey -lpkcs11
     cc -I. listobjs.c -o listobjs -lpkcs11
