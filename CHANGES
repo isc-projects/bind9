@@ -1,7 +1,14 @@
+	--- 9.7.0a3 released ---
+
+2674.	[bug]		"dnssec-lookaside auto;" crashed if named was built
+			without openssl. [RT #20231]
+
+2673.	[bug]		The managed-keys.bind zone file could fail to
+			load due to a spurious result from sync_keyzone()
+			[RT #20045]
+
 2672.	[bug]		Don't enable searching in 'host' when doing reverse
 			lookups. [RT #20218]
-
-	--- 9.7.0a3 released ---
 
 2671.	[bug]		Add support for PKCS#11 providers not returning
 			the public exponent in RSA private keys
