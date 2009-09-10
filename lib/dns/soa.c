@@ -15,11 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: soa.c,v 1.11 2009/09/10 01:47:08 each Exp $ */
+/* $Id: soa.c,v 1.12 2009/09/10 02:18:40 each Exp $ */
 
 /*! \file */
 
 #include <config.h>
+#include <string.h>
 
 #include <isc/buffer.h>
 #include <isc/util.h>
