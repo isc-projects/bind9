@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.506 2009/09/10 23:48:00 tbox Exp $ */
+/* $Id: zone.c,v 1.505 2009/09/10 01:47:08 each Exp $ */
 
 /*! \file */
 
@@ -2898,7 +2898,7 @@ static isc_result_t
 add_soa(dns_zone_t *zone, dns_db_t *db) {
 	isc_result_t result;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
-	unsigned char buf[DNS_SOA_BUFFERSIZE];
+        unsigned char buf[DNS_SOA_BUFFERSIZE];
 	dns_dbversion_t *ver = NULL;
 	dns_diff_t diff;
 
@@ -3133,7 +3133,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	else
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_HASINCLUDE);
 
-	/*
+	/* 
 	 * If there's no master file for a key zone, then the zone is new:
 	 * create an SOA record.  (We do this now, instead of later, so that
 	 * if there happens to be a journal file, we can roll forward from
