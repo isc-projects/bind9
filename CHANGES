@@ -1,3 +1,6 @@
+2675.   [bug]           dnssec-signzone could crash if the key directory
+                        did not exist. [RT #20232]
+
 	--- 9.7.0a3 released ---
 
 2674.	[bug]		"dnssec-lookaside auto;" crashed if named was built
