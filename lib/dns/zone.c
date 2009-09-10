@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.504 2009/09/01 07:04:12 each Exp $ */
+/* $Id: zone.c,v 1.506 2009/09/10 23:48:00 tbox Exp $ */
 
 /*! \file */
 
@@ -2892,6 +2892,49 @@ zone_journal(dns_zone_t *zone, dns_diff_t *diff, const char *caller) {
 }
 
 /*
+ * Create an SOA record for a newly-created zone
+ */
+static isc_result_t
+add_soa(dns_zone_t *zone, dns_db_t *db) {
+	isc_result_t result;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	unsigned char buf[DNS_SOA_BUFFERSIZE];
+	dns_dbversion_t *ver = NULL;
+	dns_diff_t diff;
+
+	dns_zone_log(zone, ISC_LOG_DEBUG(1), "creating SOA");
+
+	dns_diff_init(zone->mctx, &diff);
+	result = dns_db_newversion(db, &ver);
+	if (result != ISC_R_SUCCESS) {
+		dns_zone_log(zone, ISC_LOG_ERROR,
+			     "add_soa:dns_db_newversion -> %s\n",
+			     dns_result_totext(result));
+		goto failure;
+	}
+
+	/* Build SOA record */
+	result = dns_soa_buildrdata(&zone->origin, dns_rootname, zone->rdclass,
+				    0, 0, 0, 0, 0, buf, &rdata);
+	if (result != ISC_R_SUCCESS) {
+		dns_zone_log(zone, ISC_LOG_ERROR,
+			     "add_soa:dns_soa_buildrdata -> %s\n",
+			     dns_result_totext(result));
+		goto failure;
+	}
+
+	result = update_one_rr(db, ver, &diff, DNS_DIFFOP_ADD,
+			       &zone->origin, 0, &rdata);
+
+failure:
+	dns_diff_clear(&diff);
+	if (ver != NULL)
+		dns_db_closeversion(db, &ver, ISC_TF(result == ISC_R_SUCCESS));
+
+	return (result);
+}
+
+/*
  * Synchronize the set of initializing keys found in managed-keys {}
  * statements with the set of trust anchors found in the managed-keys.bind
  * zone.  If a domain is no longer named in managed-keys, delete all keys
@@ -2900,7 +2943,7 @@ zone_journal(dns_zone_t *zone, dns_diff_t *diff, const char *caller) {
  * the key zone with the initializing key(s) for that domain.
  */
 static isc_result_t
-sync_keyzone(dns_zone_t *zone, dns_db_t *db, isc_boolean_t addsoa) {
+sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_boolean_t changed = ISC_FALSE;
 	dns_rbtnodechain_t chain;
@@ -2920,6 +2963,7 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db, isc_boolean_t addsoa) {
 	origin = dns_fixedname_name(&fn);
 
 	dns_diff_init(zone->mctx, &diff);
+
 	result = dns_db_newversion(db, &ver);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
@@ -2928,68 +2972,46 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db, isc_boolean_t addsoa) {
 		goto failure;
 	}
 
-	if (addsoa) {
-		/* If this zone is being newly created, make an SOA record. */
-		dns_rdata_t rdata = DNS_RDATA_INIT;
+	/*
+	 * Walk the zone DB.  If we find any keys whose names are no longer
+	 * in managed-keys (or *are* in trusted-keys, meaning they are
+	 * permanent and not RFC5011-maintained), delete them from the
+	 * zone.  Otherwise call load_secroots(), which loads keys into
+	 * secroots as appropriate.
+	 */
+	dns_rriterator_init(&rrit, db, ver, 0);
+	for (result = dns_rriterator_first(&rrit);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rriterator_nextrrset(&rrit)) {
+		dns_rdataset_t *rdataset;
+		dns_name_t *rrname = NULL;
+		isc_uint32_t ttl;
 
-		dns_zone_log(zone, ISC_LOG_DEBUG(1), "creating key zone");
-
-		result = dns_soa_buildrdata(&zone->origin, dns_rootname,
-					    zone->rdclass,
-					    0, 0, 0, 0, 0, &rdata);
-		if (result != ISC_R_SUCCESS) {
-			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "sync_keyzone:dns_soa_buildrdata -> %s\n",
-				     dns_result_totext(result));
+		dns_rriterator_current(&rrit, &rrname, &ttl,
+				       &rdataset, NULL);
+		if (!dns_rdataset_isassociated(rdataset)) {
+			dns_rriterator_destroy(&rrit);
 			goto failure;
 		}
 
-		CHECK(update_one_rr(db, ver, &diff, DNS_DIFFOP_ADD,
-				    &zone->origin, 0, &rdata));
-	} else {
-		/*
-		 * Zone is not new, so walk the zone DB; if we find any keys
-		 * whose names are no longer in managed-keys (or *are*
-		 * in trusted-keys, meaning they are permanent and not
-		 * RFC5011-maintained), delete them from the zone.  Otherwise
-		 * call load_secroots(), which loads keys into secroots as
-		 * appropriate.
-		 */
-		dns_rriterator_init(&rrit, db, ver, 0);
-		for (result = dns_rriterator_first(&rrit);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rriterator_nextrrset(&rrit)) {
-			dns_rdataset_t *rdataset;
-			dns_name_t *rrname = NULL;
-			isc_uint32_t ttl;
+		if (rdataset->type != dns_rdatatype_keydata)
+			continue;
 
-			dns_rriterator_current(&rrit, &rrname, &ttl,
-					       &rdataset, NULL);
-			if (!dns_rdataset_isassociated(rdataset)) {
-				dns_rriterator_destroy(&rrit);
-				goto failure;
-			}
+		result = dns_keytable_find(sr, rrname, &keynode);
 
-			if (rdataset->type != dns_rdatatype_keydata)
-				continue;
-
-			result = dns_keytable_find(sr, rrname, &keynode);
-
-			if ((result != ISC_R_SUCCESS &&
-			     result != DNS_R_PARTIALMATCH) ||
-			    dns_keynode_managed(keynode) == ISC_FALSE) {
-				CHECK(delete_keydata(db, ver, &diff,
-						     rrname, rdataset));
-			} else {
-				load_secroots(zone, rrname, rdataset);
-			}
-
-			if (keynode != NULL)
-				dns_keytable_detachkeynode(sr, &keynode);
+		if ((result != ISC_R_SUCCESS &&
+		     result != DNS_R_PARTIALMATCH) ||
+		    dns_keynode_managed(keynode) == ISC_FALSE) {
+			CHECK(delete_keydata(db, ver, &diff,
+					     rrname, rdataset));
+		} else {
+			load_secroots(zone, rrname, rdataset);
 		}
 
-		dns_rriterator_destroy(&rrit);
+		if (keynode != NULL)
+			dns_keytable_detachkeynode(sr, &keynode);
 	}
+	dns_rriterator_destroy(&rrit);
 
 	/*
 	 * Now walk secroots to find any managed keys that aren't
@@ -3036,6 +3058,9 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db, isc_boolean_t addsoa) {
 	}
 	RWUNLOCK(&sr->rwlock, isc_rwlocktype_write);
 
+	if (result == ISC_R_NOMORE)
+		result = ISC_R_SUCCESS;
+
 	if (changed) {
 		/* Write changes to journal file. */
 		result = increment_soa_serial(db, ver, &diff, zone->mctx);
@@ -3065,6 +3090,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	isc_time_t now;
 	isc_boolean_t needdump = ISC_FALSE;
 	isc_boolean_t hasinclude = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_HASINCLUDE);
+	isc_boolean_t nomaster = ISC_FALSE;
 	unsigned int options;
 
 	TIME_NOW(&now);
@@ -3091,6 +3117,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 				     "loading from master file %s failed: %s",
 				     zone->masterfile,
 				     dns_result_totext(result));
+			nomaster = ISC_TRUE;
 		}
 
 		if (zone->type != dns_zone_key)
@@ -3105,6 +3132,18 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_HASINCLUDE);
 	else
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_HASINCLUDE);
+
+	/*
+	 * If there's no master file for a key zone, then the zone is new:
+	 * create an SOA record.  (We do this now, instead of later, so that
+	 * if there happens to be a journal file, we can roll forward from
+	 * a sane starting point.)
+	 */
+	if (nomaster && zone->type == dns_zone_key) {
+		result = add_soa(zone, db);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
+	}
 
 	/*
 	 * Apply update log, if any, on initial load.
@@ -3272,7 +3311,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		break;
 
 	case dns_zone_key:
-		result = sync_keyzone(zone, db, ISC_TF(soacount == 0));
+		zone->serial = serial;
+		result = sync_keyzone(zone, db);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		break;
@@ -3317,8 +3357,12 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 
 	result = ISC_R_SUCCESS;
 
-	if (needdump)
-		zone_needdump(zone, DNS_DUMP_DELAY);
+	if (needdump) {
+		if (zone->type == dns_zone_key)
+			zone_needdump(zone, 30);
+		else
+			zone_needdump(zone, DNS_DUMP_DELAY);
+	}
 
 	if (zone->task != NULL) {
 		if (zone->type == dns_zone_master) {
@@ -3569,15 +3613,14 @@ zone_get_from_db(dns_zone_t *zone, dns_db_t *db, unsigned int *nscount,
 		 isc_uint32_t *expire, isc_uint32_t *minimum,
 		 unsigned int *errors)
 {
-	dns_dbversion_t *version;
 	isc_result_t result;
 	isc_result_t answer = ISC_R_SUCCESS;
+	dns_dbversion_t *version = NULL;
 	dns_dbnode_t *node;
 
 	REQUIRE(db != NULL);
 	REQUIRE(zone != NULL);
 
-	version = NULL;
 	dns_db_currentversion(db, &version);
 
 	node = NULL;

@@ -5,12 +5,12 @@ Network Working Group                                          S. Weiler
 Internet-Draft                                              SPARTA, Inc.
 Updates: 4033, 4034, 4035, 5155                                D. Blacka
 (if approved)                                             VeriSign, Inc.
-Intended status: Standards Track                        January 14, 2009
-Expires: July 18, 2009
+Intended status: Standards Track                       September 5, 2009
+Expires: March 9, 2010
 
 
          Clarifications and Implementation Notes for DNSSECbis
-                draft-ietf-dnsext-dnssec-bis-updates-08
+                draft-ietf-dnsext-dnssec-bis-updates-09
 
 Status of this Memo
 
@@ -33,7 +33,7 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on July 18, 2009.
+   This Internet-Draft will expire on March 9, 2010.
 
 Copyright Notice
 
@@ -41,25 +41,22 @@ Copyright Notice
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
-   Provisions Relating to IETF Documents
-   (http://trustee.ietf.org/license-info) in effect on the date of
-   publication of this document.  Please review these documents
-   carefully, as they describe your rights and restrictions with respect
-   to this document.
-
-
-
-
-
-
-Weiler & Blacka           Expires July 18, 2009                 [Page 1]
-
-Internet-Draft       DNSSECbis Implementation Notes         January 2009
-
+   Provisions Relating to IETF Documents in effect on the date of
+   publication of this document (http://trustee.ietf.org/license-info).
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.
 
 Abstract
 
    This document is a collection of technical clarifications to the
+
+
+
+Weiler & Blacka           Expires March 9, 2010                 [Page 1]
+
+Internet-Draft       DNSSECbis Implementation Notes       September 2009
+
+
    DNSSECbis document set.  It is meant to serve as a resource to
    implementors as well as a repository of DNSSECbis errata.
 
@@ -72,24 +69,24 @@ Table of Contents
    2.  Important Additions to DNSSSECbis  . . . . . . . . . . . . . .  3
      2.1.  NSEC3 Support  . . . . . . . . . . . . . . . . . . . . . .  3
      2.2.  SHA-256 Support  . . . . . . . . . . . . . . . . . . . . .  3
-   3.  Significant Concerns . . . . . . . . . . . . . . . . . . . . .  4
+   3.  Security Concerns  . . . . . . . . . . . . . . . . . . . . . .  4
      3.1.  Clarifications on Non-Existence Proofs . . . . . . . . . .  4
      3.2.  Validating Responses to an ANY Query . . . . . . . . . . .  4
      3.3.  Check for CNAME  . . . . . . . . . . . . . . . . . . . . .  5
      3.4.  Insecure Delegation Proofs . . . . . . . . . . . . . . . .  5
-     3.5.  Errors in Canonical Form Type Code List  . . . . . . . . .  5
    4.  Interoperability Concerns  . . . . . . . . . . . . . . . . . .  5
-     4.1.  Unknown DS Message Digest Algorithms . . . . . . . . . . .  5
-     4.2.  Private Algorithms . . . . . . . . . . . . . . . . . . . .  6
-     4.3.  Caution About Local Policy and Multiple RRSIGs . . . . . .  6
-     4.4.  Key Tag Calculation  . . . . . . . . . . . . . . . . . . .  7
-     4.5.  Setting the DO Bit on Replies  . . . . . . . . . . . . . .  7
-     4.6.  Setting the AD bit on Replies  . . . . . . . . . . . . . .  7
-     4.7.  Setting the CD bit on Requests . . . . . . . . . . . . . .  8
-     4.8.  Nested Trust Anchors . . . . . . . . . . . . . . . . . . .  8
+     4.1.  Errors in Canonical Form Type Code List  . . . . . . . . .  5
+     4.2.  Unknown DS Message Digest Algorithms . . . . . . . . . . .  5
+     4.3.  Private Algorithms . . . . . . . . . . . . . . . . . . . .  6
+     4.4.  Caution About Local Policy and Multiple RRSIGs . . . . . .  7
+     4.5.  Key Tag Calculation  . . . . . . . . . . . . . . . . . . .  7
+     4.6.  Setting the DO Bit on Replies  . . . . . . . . . . . . . .  7
+     4.7.  Setting the AD bit on Replies  . . . . . . . . . . . . . .  7
+     4.8.  Setting the CD bit on Requests . . . . . . . . . . . . . .  8
+     4.9.  Nested Trust Anchors . . . . . . . . . . . . . . . . . . .  8
    5.  Minor Corrections and Clarifications . . . . . . . . . . . . .  8
      5.1.  Finding Zone Cuts  . . . . . . . . . . . . . . . . . . . .  8
-     5.2.  Clarifications on DNSKEY Usage . . . . . . . . . . . . . .  8
+     5.2.  Clarifications on DNSKEY Usage . . . . . . . . . . . . . .  9
      5.3.  Errors in Examples . . . . . . . . . . . . . . . . . . . .  9
      5.4.  Errors in RFC 5155 . . . . . . . . . . . . . . . . . . . .  9
    6.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 10
@@ -108,15 +105,19 @@ Table of Contents
 
 
 
-Weiler & Blacka           Expires July 18, 2009                 [Page 2]
+
+
+
+Weiler & Blacka           Expires March 9, 2010                 [Page 2]
 
-Internet-Draft       DNSSECbis Implementation Notes         January 2009
+Internet-Draft       DNSSECbis Implementation Notes       September 2009
 
 
 1.  Introduction and Terminology
 
-   This document lists some clarifications and corrections to DNSSECbis,
-   as described in [RFC4033], [RFC4034], and [RFC4035].
+   This document lists some additions, clarifications and corrections to
+   the core DNSSECbis specification, as originally described in
+   [RFC4033], [RFC4034], and [RFC4035].
 
    It is intended to serve as a resource for implementors and as a
    repository of items that need to be addressed when advancing the
@@ -126,8 +127,8 @@ Internet-Draft       DNSSECbis Implementation Notes         January 2009
 
    The clarifications to DNSSECbis are sorted according to their
    importance, starting with ones which could, if ignored, lead to
-   security and stability problems and progressing down to
-   clarifications that are expected to have little operational impact.
+   security problems and progressing down to clarifications that are
+   expected to have little operational impact.
 
 1.2.  Terminology
 
@@ -138,16 +139,17 @@ Internet-Draft       DNSSECbis Implementation Notes         January 2009
 
 2.  Important Additions to DNSSSECbis
 
-   This section provides
+   This section updates the set of core DNSSEC protocol documents
+   originally specified in Section 10 of [RFC4033].
 
 2.1.  NSEC3 Support
 
    [RFC5155] describes the use and behavior of the NSEC3 and NSEC3PARAM
    records for hashed denial of existence.  Validator implementations
-   are strongly encouraged to include support for NSEC3 as a number of
-   highly visible zones are expected to use it.  Validators that do not
-   support validation of responses using NSEC3 will likely be hampered
-   in validating large portions of the DNS space.
+   are strongly encouraged to include support for NSEC3 because a number
+   of highly visible zones are expected to use it.  Validators that do
+   not support validation of responses using NSEC3 will likely be
+   hampered in validating large portions of the DNS space.
 
    [RFC5155] should be considered part of the DNS Security Document
    Family as described by [RFC4033], Section 10.
@@ -156,35 +158,33 @@ Internet-Draft       DNSSECbis Implementation Notes         January 2009
 
    [RFC4509] describes the use of SHA-256 as a digest algorithm for use
    with Delegation Signer (DS) RRs.  [I-D.ietf-dnsext-dnssec-rsasha256]
-   describes the use of the RSASHA256 algorthim for use in DNSKEY and
+   describes the use of the RSASHA256 algorithm for use in DNSKEY and
    RRSIG RRs.  Validator implementations are strongly encouraged to
    include support for this algorithm for DS, DNSKEY, and RRSIG records.
 
-   Both [RFC4509] and [I-D.ietf-dnsext-dnssec-rsasha256] should also be
 
 
-
-Weiler & Blacka           Expires July 18, 2009                 [Page 3]
+Weiler & Blacka           Expires March 9, 2010                 [Page 3]
 
-Internet-Draft       DNSSECbis Implementation Notes         January 2009
+Internet-Draft       DNSSECbis Implementation Notes       September 2009
 
 
+   Both [RFC4509] and [I-D.ietf-dnsext-dnssec-rsasha256] should also be
    considered part of the DNS Security Document Family as described by
    [RFC4033], Section 10.
 
 
-3.  Significant Concerns
+3.  Security Concerns
 
    This section provides clarifications that, if overlooked, could lead
-   to security issues or major interoperability problems.
+   to security issues.
 
 3.1.  Clarifications on Non-Existence Proofs
 
-   [RFC4035] Section 5.4 underspecifies the algorithm for checking non-
+   [RFC4035] Section 5.4 under-specifies the algorithm for checking non-
    existence proofs.  In particular, the algorithm as presented would
    incorrectly allow an NSEC or NSEC3 RR from an ancestor zone to prove
-   the non-existence of other RRs at that name in the child zone or
-   other names in the child zone.
+   the non-existence of RRs in the child zone.
 
    An "ancestor delegation" NSEC RR (or NSEC3 RR) is one with:
 
@@ -209,43 +209,51 @@ Internet-Draft       DNSSECbis Implementation Notes         January 2009
 
    [RFC4035] does not address how to validate responses when QTYPE=*.
    As described in Section 6.2.2 of [RFC1034], a proper response to
-   QTYPE=* may include a subset of the RRsets at a given name -- it is
-   not necessary to include all RRsets at the QNAME in the response.
+   QTYPE=* may include a subset of the RRsets at a given name.  That is,
+   it is not necessary to include all RRsets at the QNAME in the
+   response.
 
-   When validating a response to QTYPE=*, validate all received RRsets
-   that match QNAME and QCLASS.  If any of those RRsets fail validation,
-   treat the answer as Bogus.  If there are no RRsets matching QNAME and
-   QCLASS, validate that fact using the rules in [RFC4035] Section 5.4
-   (as clarified in this document).  To be clear, a validator must not
+   When validating a response to QTYPE=*, all received RRsets that match
+   QNAME and QCLASS MUST be validated.  If any of those RRsets fail
+   validation, the answer is considered Bogus.  If there are no RRsets
+   matching QNAME and QCLASS, that fact MUST be validated according to
 
 
 
-Weiler & Blacka           Expires July 18, 2009                 [Page 4]
+Weiler & Blacka           Expires March 9, 2010                 [Page 4]
 
-Internet-Draft       DNSSECbis Implementation Notes         January 2009
+Internet-Draft       DNSSECbis Implementation Notes       September 2009
 
 
-   expect to receive all records at the QNAME in response to QTYPE=*.
+   the rules in [RFC4035] Section 5.4 (as clarified in this document).
+   To be clear, a validator must not expect to receive all records at
+   the QNAME in response to QTYPE=*.
 
 3.3.  Check for CNAME
 
    Section 5 of [RFC4035] says little about validating responses based
    on (or that should be based on) CNAMEs.  When validating a NOERROR/
    NODATA response, validators MUST check the CNAME bit in the matching
-   NSEC or NSEC3 RR's type bitmap.  If the CNAME bit is set, the
-   validator MUST validate the CNAME RR and follow it, as appropriate.
+   NSEC or NSEC3 RR's type bitmap in addition to the bit for the query
+   type.  Without this check, an attacker could successfully transform a
+   positive CNAME response into a NOERROR/NODATA response.
 
 3.4.  Insecure Delegation Proofs
 
    [RFC4035] Section 5.2 specifies that a validator, when proving a
    delegation is not secure, needs to check for the absence of the DS
    and SOA bits in the NSEC (or NSEC3) type bitmap.  The validator also
-   needs to check for the presence of the NS bit in the NSEC (or NSEC3)
-   RR (proving that there is, indeed, a delegation).  If this is not
-   checked, spoofed unsigned delegations might be used to claim that an
-   existing signed record is not signed.
+   needs to check for the presence of the NS bit in the matching NSEC
+   (or NSEC3) RR (proving that there is, indeed, a delegation), or
+   alternately make sure that the delegation is covered by an NSEC3 RR
+   with the Opt-Out flag set.  If this is not checked, spoofed unsigned
+   delegations might be used to claim that an existing signed record is
+   not signed.
 
-3.5.  Errors in Canonical Form Type Code List
+
+4.  Interoperability Concerns
+
+4.1.  Errors in Canonical Form Type Code List
 
    When canonicalizing DNS names, DNS names in the RDATA section of NSEC
    and RRSIG resource records are not downcased.
@@ -260,26 +268,24 @@ Internet-Draft       DNSSECbis Implementation Notes         January 2009
    Since HINFO records contain no domain names, they are not subject to
    downcasing.
 
-
-4.  Interoperability Concerns
-
-4.1.  Unknown DS Message Digest Algorithms
+4.2.  Unknown DS Message Digest Algorithms
 
    Section 5.2 of [RFC4035] includes rules for how to handle delegations
-   to zones that are signed with entirely unsupported algorithms, as
-   indicated by the algorithms shown in those zone's DS RRsets.  It does
-   not explicitly address how to handle DS records that use unsupported
-   message digest algorithms.  In brief, DS records using unknown or
-   unsupported message digest algorithms MUST be treated the same way as
-   DS records referring to DNSKEY RRs of unknown or unsupported
-   algorithms.
+   to zones that are signed with entirely unsupported public key
+   algorithms, as indicated by the key algorithms shown in those zone's
 
 
 
-Weiler & Blacka           Expires July 18, 2009                 [Page 5]
+Weiler & Blacka           Expires March 9, 2010                 [Page 5]
 
-Internet-Draft       DNSSECbis Implementation Notes         January 2009
+Internet-Draft       DNSSECbis Implementation Notes       September 2009
 
+
+   DS RRsets.  It does not explicitly address how to handle DS records
+   that use unsupported message digest algorithms.  In brief, DS records
+   using unknown or unsupported message digest algorithms MUST be
+   treated the same way as DS records referring to DNSKEY RRs of unknown
+   or unsupported public key algorithms.
 
    The existing text says:
 
@@ -291,15 +297,15 @@ Internet-Draft       DNSSECbis Implementation Notes         January 2009
       described above.
 
    To paraphrase the above, when determining the security status of a
-   zone, a validator discards (for this purpose only) any DS records
-   listing unknown or unsupported algorithms.  If none are left, the
-   zone is treated as if it were unsigned.
+   zone, a validator disregards any DS records listing unknown or
+   unsupported algorithms.  If none are left, the zone is treated as if
+   it were unsigned.
 
    Modified to consider DS message digest algorithms, a validator also
-   discards any DS records using unknown or unsupported message digest
+   disregards any DS records using unknown or unsupported message digest
    algorithms.
 
-4.2.  Private Algorithms
+4.3.  Private Algorithms
 
    As discussed above, section 5.2 of [RFC4035] requires that validators
    make decisions about the security status of zones based on the public
@@ -313,30 +319,30 @@ Internet-Draft       DNSSECbis Implementation Notes         January 2009
    needed.  In the remaining cases, the security status of the zone
    depends on whether or not the resolver supports any of the private
    algorithms in use (provided that these DS records use supported hash
-   functions, as discussed in Section 4.1).  In these cases, the
+   functions, as discussed in Section 4.2).  In these cases, the
    resolver MUST retrieve the corresponding DNSKEY for each private
    algorithm DS record and examine the public key field to determine the
    algorithm in use.  The security-aware resolver MUST ensure that the
    hash of the DNSKEY RR's owner name and RDATA matches the digest in
    the DS RR.  If they do not match, and no other DS establishes that
-   the zone is secure, the referral should be considered BAD data, as
+   the zone is secure, the referral should be considered Bogus data, as
    discussed in [RFC4035].
 
    This clarification facilitates the broader use of private algorithms,
+
+
+
+Weiler & Blacka           Expires March 9, 2010                 [Page 6]
+
+Internet-Draft       DNSSECbis Implementation Notes       September 2009
+
+
    as suggested by [RFC4955].
 
-4.3.  Caution About Local Policy and Multiple RRSIGs
+4.4.  Caution About Local Policy and Multiple RRSIGs
 
    When multiple RRSIGs cover a given RRset, [RFC4035] Section 5.3.3
    suggests that "the local resolver security policy determines whether
-
-
-
-Weiler & Blacka           Expires July 18, 2009                 [Page 6]
-
-Internet-Draft       DNSSECbis Implementation Notes         January 2009
-
-
    the resolver also has to test these RRSIG RRs and how to resolve
    conflicts if these RRSIG RRs lead to differing results."  In most
    cases, a resolver would be well advised to accept any valid RRSIG as
@@ -352,7 +358,7 @@ Internet-Draft       DNSSECbis Implementation Notes         January 2009
    method described in section 4.2.1.2 of [RFC4641] might not work
    reliably.
 
-4.4.  Key Tag Calculation
+4.5.  Key Tag Calculation
 
    [RFC4034] Appendix B.1 incorrectly defines the Key Tag field
    calculation for algorithm 1.  It correctly says that the Key Tag is
@@ -361,7 +367,7 @@ Internet-Draft       DNSSECbis Implementation Notes         January 2009
    say that this is 4th to last and 3rd to last octets of the public key
    modulus.  It is, in fact, the 3rd to last and 2nd to last octets.
 
-4.5.  Setting the DO Bit on Replies
+4.6.  Setting the DO Bit on Replies
 
    [RFC4035] does not provide any instructions to servers as to how to
    set the DO bit.  Some authoritative server implementations have
@@ -370,7 +376,7 @@ Internet-Draft       DNSSECbis Implementation Notes         January 2009
    responses.  Either behavior is permitted.  To be clear, in replies to
    queries with the DO-bit set servers may or may not set the DO bit.
 
-4.6.  Setting the AD bit on Replies
+4.7.  Setting the AD bit on Replies
 
    Section 3.2.3 of [RFC4035] describes under which conditions a
    validating resolver should set or clear the AD bit in a response.  In
@@ -379,6 +385,14 @@ Internet-Draft       DNSSECbis Implementation Notes         January 2009
    conditions listed in RFC 4035, section 3.2.3, and the request
    contained either a set DO bit or a set AD bit.
 
+
+
+
+Weiler & Blacka           Expires March 9, 2010                 [Page 7]
+
+Internet-Draft       DNSSECbis Implementation Notes       September 2009
+
+
    Note that the use of the AD bit in the query was previously
    undefined.  This document defines it as a signal indicating that the
    requester understands and is interested in the value of the AD bit in
@@ -386,23 +400,16 @@ Internet-Draft       DNSSECbis Implementation Notes         January 2009
    understands the AD bit without also requesting DNSSEC data via the DO
    bit.
 
-
-
-Weiler & Blacka           Expires July 18, 2009                 [Page 7]
-
-Internet-Draft       DNSSECbis Implementation Notes         January 2009
-
-
-4.7.  Setting the CD bit on Requests
+4.8.  Setting the CD bit on Requests
 
    When processing a request with the CD bit set, the resolver MUST set
    the CD bit on its upstream queries.
 
-4.8.  Nested Trust Anchors
+4.9.  Nested Trust Anchors
 
    A DNSSEC validator may be configured such that, for a given response,
    more than one trust anchor could be used to validate the chain of
-   trust to the response zone.  For example, imagine a validor
+   trust to the response zone.  For example, imagine a validator
    configured with trust anchors for "example." and "zone.example."
    When the validator is asked to validate a response to
    "www.sub.zone.example.", either trust anchor could apply.
@@ -431,6 +438,17 @@ Internet-Draft       DNSSECbis Implementation Notes         January 2009
    does not already have the parent's NS RRset.  Section 4.2 of
    [RFC4035] specifies a mechanism for doing that.
 
+
+
+
+
+
+
+Weiler & Blacka           Expires March 9, 2010                 [Page 8]
+
+Internet-Draft       DNSSECbis Implementation Notes       September 2009
+
+
 5.2.  Clarifications on DNSKEY Usage
 
    Questions of the form "can I use a different DNSKEY for signing this
@@ -441,14 +459,6 @@ Internet-Draft       DNSSECbis Implementation Notes         January 2009
    the size of the DNSKEY RRset.  However, be aware that there is no way
    to tell resolvers what a particularly DNSKEY is supposed to be used
    for -- any DNSKEY in the zone's signed DNSKEY RRset may be used to
-
-
-
-Weiler & Blacka           Expires July 18, 2009                 [Page 8]
-
-Internet-Draft       DNSSECbis Implementation Notes         January 2009
-
-
    authenticate any RRset in the zone.  For example, if a weaker or less
    trusted DNSKEY is being used to authenticate NSEC RRsets or all
    dynamically updated records, that same DNSKEY can also be used to
@@ -480,13 +490,20 @@ Internet-Draft       DNSSECbis Implementation Notes         January 2009
 
 5.4.  Errors in RFC 5155
 
-   A NSEC3 record, that matches an Empty Non-Terminal, effectively has
-   no type associated with it.  This NSEC3 record has an empty type bit
+   A NSEC3 record that matches an Empty Non-Terminal effectively has no
+   type associated with it.  This NSEC3 record has an empty type bit
    map.  Section 3.2.1 of [RFC5155] contains the statement:
 
       Blocks with no types present MUST NOT be included.
 
    However, the same section contains a regular expression:
+
+
+
+Weiler & Blacka           Expires March 9, 2010                 [Page 9]
+
+Internet-Draft       DNSSECbis Implementation Notes       September 2009
+
 
       Type Bit Maps Field = ( Window Block # | Bitmap Length | Bitmap )+
 
@@ -495,15 +512,6 @@ Internet-Draft       DNSSECbis Implementation Notes         January 2009
    least one window block.  If this window block has no types, it
    contradicts with the first statement.  Therefore, the correct text in
    RFC 5155 3.2.1 should be:
-
-
-
-
-
-Weiler & Blacka           Expires July 18, 2009                 [Page 9]
-
-Internet-Draft       DNSSECbis Implementation Notes         January 2009
-
 
       Type Bit Maps Field = ( Window Block # | Bitmap Length | Bitmap )*
 
@@ -515,16 +523,15 @@ Internet-Draft       DNSSECbis Implementation Notes         January 2009
 
 7.  Security Considerations
 
-   This document does not make fundamental changes to the DNSSEC
-   protocol, as it was generally understood when DNSSECbis was
-   published.  It does, however, address some ambiguities and omissions
-   in those documents that, if not recognized and addressed in
+   This document adds two cryptographic features to the core DNSSEC
+   protocol.  Additionally, it addresses some ambiguities and omissions
+   in the core DNSSEC documents that, if not recognized and addressed in
    implementations, could lead to security failures.  In particular, the
    validation algorithm clarifications in Section 3 are critical for
    preserving the security properties DNSSEC offers.  Furthermore,
    failure to address some of the interoperability concerns in Section 4
    could limit the ability to later change or expand DNSSEC, including
-   by adding new algorithms.
+   adding new algorithms.
 
 
 8.  References
@@ -534,8 +541,8 @@ Internet-Draft       DNSSECbis Implementation Notes         January 2009
    [I-D.ietf-dnsext-dnssec-rsasha256]
               Jansen, J., "Use of SHA-2 algorithms with RSA in DNSKEY
               and RRSIG Resource Records for DNSSEC",
-              draft-ietf-dnsext-dnssec-rsasha256-10 (work in progress),
-              January 2009.
+              draft-ietf-dnsext-dnssec-rsasha256-14 (work in progress),
+              June 2009.
 
    [RFC1034]  Mockapetris, P., "Domain names - concepts and facilities",
               RFC 1034, STD 13, November 1987.
@@ -547,20 +554,19 @@ Internet-Draft       DNSSECbis Implementation Notes         January 2009
               Rose, "DNS Security Introduction and Requirements",
               RFC 4033, March 2005.
 
+
+
+Weiler & Blacka           Expires March 9, 2010                [Page 10]
+
+Internet-Draft       DNSSECbis Implementation Notes       September 2009
+
+
    [RFC4034]  Arends, R., Austein, R., Larson, M., Massey, D., and S.
               Rose, "Resource Records for the DNS Security Extensions",
               RFC 4034, March 2005.
 
    [RFC4035]  Arends, R., Austein, R., Larson, M., Massey, D., and S.
               Rose, "Protocol Modifications for the DNS Security
-
-
-
-Weiler & Blacka           Expires July 18, 2009                [Page 10]
-
-Internet-Draft       DNSSECbis Implementation Notes         January 2009
-
-
               Extensions", RFC 4035, March 2005.
 
    [RFC4509]  Hardaker, W., "Use of SHA-256 in DNSSEC Delegation Signer
@@ -592,16 +598,24 @@ Appendix A.  Acknowledgments
    provided text suitable for inclusion in this document.
 
    The lack of specificity about handling private algorithms, as
-   described in Section 4.2, and the lack of specificity in handling ANY
+   described in Section 4.3, and the lack of specificity in handling ANY
    queries, as described in Section 3.2, were discovered by David
    Blacka.
 
    The error in algorithm 1 key tag calculation, as described in
-   Section 4.4, was found by Abhijit Hayatnagarkar.  Donald Eastlake
-   contributed text for Section 4.4.
+   Section 4.5, was found by Abhijit Hayatnagarkar.  Donald Eastlake
+   contributed text for Section 4.5.
 
    The bug relating to delegation NSEC RR's in Section 3.1 was found by
    Roy Badami.  Roy Arends found the related problem with DNAME.
+
+
+
+
+Weiler & Blacka           Expires March 9, 2010                [Page 11]
+
+Internet-Draft       DNSSECbis Implementation Notes       September 2009
+
 
    The errors in the [RFC4035] examples were found by Roy Arends, who
    also contributed text for Section 5.3 of this document.
@@ -609,12 +623,6 @@ Appendix A.  Acknowledgments
    The editors would like to thank Ed Lewis, Danny Mayer, Olafur
    Gudmundsson, Suzanne Woolf, and Scott Rose for their substantive
    comments on the text of this document.
-
-
-
-Weiler & Blacka           Expires July 18, 2009                [Page 11]
-
-Internet-Draft       DNSSECbis Implementation Notes         January 2009
 
 
 Authors' Addresses
@@ -660,13 +668,5 @@ Authors' Addresses
 
 
 
-
-
-
-
-
-
-
-
-Weiler & Blacka           Expires July 18, 2009                [Page 12]
+Weiler & Blacka           Expires March 9, 2010                [Page 12]
 

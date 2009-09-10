@@ -14,12 +14,13 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keyfromlabel.c,v 1.11 2009/09/03 13:43:52 fdupont Exp $ */
+/* $Id: dnssec-keyfromlabel.c,v 1.13 2009/09/07 23:11:48 fdupont Exp $ */
 
 /*! \file */
 
 #include <config.h>
 
+#include <ctype.h>
 #include <stdlib.h>
 
 #include <isc/buffer.h>
@@ -58,25 +59,32 @@ usage(void) {
 	fprintf(stderr, "Version: %s\n", VERSION);
 	fprintf(stderr, "Required options:\n");
 	fprintf(stderr, "    -a algorithm: %s\n", algs);
-	fprintf(stderr, "    -l label: label of the key\n");
+	fprintf(stderr, "    -l label: label of the key pair\n");
 	fprintf(stderr, "    name: owner of the key\n");
 	fprintf(stderr, "Other options:\n");
-	fprintf(stderr, "    -n nametype: ZONE | HOST | ENTITY | USER | OTHER\n");
-	fprintf(stderr, "        (DNSKEY generation defaults to ZONE\n");
 	fprintf(stderr, "    -c <class> (default: IN)\n");
-	fprintf(stderr, "    -f keyflag (KSK or REVOKE)\n");
+	fprintf(stderr, "    -f keyflag: KSK | REVOKE\n");
 	fprintf(stderr, "    -K directory: directory in which to place "
 			"key files\n");
+	fprintf(stderr, "    -k : generate a TYPE=KEY key\n");
+	fprintf(stderr, "    -n nametype: ZONE | HOST | ENTITY | USER | OTHER\n");
+	fprintf(stderr, "        (DNSKEY generation defaults to ZONE\n");
+	fprintf(stderr, "    -p <protocol>: default: 3 [dnssec]\n");
 	fprintf(stderr, "    -t <type>: "
 		"AUTHCONF | NOAUTHCONF | NOAUTH | NOCONF "
 		"(default: AUTHCONF)\n");
-	fprintf(stderr, "    -p <protocol>: "
-	       "default: 3 [dnssec]\n");
 	fprintf(stderr, "    -v <verbose level>\n");
-	fprintf(stderr, "    -k : generate a TYPE=KEY key\n");
+	fprintf(stderr, "Date options:\n");
+	fprintf(stderr, "    -P date/[+-]offset: set key publication date\n");
+	fprintf(stderr, "    -A date/[+-]offset: set key activation date\n");
+	fprintf(stderr, "    -R date/[+-]offset: set key revocation date\n");
+	fprintf(stderr, "    -U date/[+-]offset: set key unpublication date\n");
+	fprintf(stderr, "    -D date/[+-]offset: set key deletion date\n");
+	fprintf(stderr, "    -C: generate a backward-compatible key, omitting"
+			" dates\n");
 	fprintf(stderr, "Output:\n");
 	fprintf(stderr, "     K<name>+<alg>+<id>.key, "
-		"K<name>+<alg>+<id>.private\n");
+			"K<name>+<alg>+<id>.private\n");
 
 	exit (-1);
 }
@@ -84,15 +92,15 @@ usage(void) {
 int
 main(int argc, char **argv) {
 	char		*algname = NULL, *nametype = NULL, *type = NULL;
-	char		*directory = NULL;
+	const char	*directory = NULL;
 	char		*classname = NULL;
 	char		*endp;
 	dst_key_t	*key = NULL, *oldkey = NULL;
 	dns_fixedname_t	fname;
 	dns_name_t	*name;
-	isc_uint16_t	flags = 0, ksk = 0, revoke = 0;
+	isc_uint16_t	flags = 0, kskflag = 0, revflag = 0;
 	dns_secalg_t	alg;
-	isc_boolean_t	null_key = ISC_FALSE;
+	isc_boolean_t	oldstyle = ISC_FALSE;
 	isc_mem_t	*mctx = NULL;
 	int		ch;
 	int		protocol = -1, signatory = 0;
@@ -104,7 +112,16 @@ main(int argc, char **argv) {
 	isc_entropy_t	*ectx = NULL;
 	dns_rdataclass_t rdclass;
 	int		options = DST_TYPE_PRIVATE | DST_TYPE_PUBLIC;
-	char		*label = NULL;
+	char		*label = NULL, *engine = NULL;
+	isc_stdtime_t	publish = 0, activate = 0, revoke = 0;
+	isc_stdtime_t	unpublish = 0, delete = 0;
+	isc_stdtime_t	now;
+	isc_boolean_t	setpub = ISC_FALSE, setact = ISC_FALSE;
+	isc_boolean_t	setrev = ISC_FALSE, setunpub = ISC_FALSE;
+	isc_boolean_t	setdel = ISC_FALSE;
+	isc_boolean_t	unsetpub = ISC_FALSE, unsetact = ISC_FALSE;
+	isc_boolean_t	unsetrev = ISC_FALSE, unsetunpub = ISC_FALSE;
+	isc_boolean_t	unsetdel = ISC_FALSE;
 
 	if (argc == 1)
 		usage();
@@ -115,22 +132,26 @@ main(int argc, char **argv) {
 
 	isc_commandline_errprint = ISC_FALSE;
 
+	isc_stdtime_get(&now);
+
 	while ((ch = isc_commandline_parse(argc, argv,
-					 "a:c:f:K:kl:n:p:t:v:Fh")) != -1)
+				"a:Cc:f:K:kl:n:p:t:v:FhP:A:R:U:D:")) != -1)
 	{
 	    switch (ch) {
 		case 'a':
 			algname = isc_commandline_argument;
 			break;
+		case 'C':
+			oldstyle = ISC_TRUE;
+			break;
 		case 'c':
 			classname = isc_commandline_argument;
 			break;
 		case 'f':
-			if (strcasecmp(isc_commandline_argument, "KSK") == 0)
-				ksk = DNS_KEYFLAG_KSK;
-			else if (strcasecmp(isc_commandline_argument,
-					    "REVOKE") == 0)
-				revoke = DNS_KEYFLAG_REVOKE;
+			if (toupper(isc_commandline_argument[0]) == 'K')
+				kskflag = DNS_KEYFLAG_KSK;
+			else if (toupper(isc_commandline_argument[0]) == 'R')
+				revflag = DNS_KEYFLAG_REVOKE;
 			else
 				fatal("unknown flag '%s'",
 				      isc_commandline_argument);
@@ -160,6 +181,66 @@ main(int argc, char **argv) {
 			verbose = strtol(isc_commandline_argument, &endp, 0);
 			if (*endp != '\0')
 				fatal("-v must be followed by a number");
+			break;
+		case 'P':
+			if (setpub || unsetpub)
+				fatal("-P specified more than once");
+
+			if (strcasecmp(isc_commandline_argument, "none")) {
+				setpub = ISC_TRUE;
+				publish = strtotime(isc_commandline_argument,
+						    now, now);
+			} else {
+				unsetpub = ISC_TRUE;
+			}
+			break;
+		case 'A':
+			if (setact || unsetact)
+				fatal("-A specified more than once");
+
+			if (strcasecmp(isc_commandline_argument, "none")) {
+				setact = ISC_TRUE;
+				activate = strtotime(isc_commandline_argument,
+						     now, now);
+			} else {
+				unsetact = ISC_TRUE;
+			}
+			break;
+		case 'R':
+			if (setrev || unsetrev)
+				fatal("-R specified more than once");
+
+			if (strcasecmp(isc_commandline_argument, "none")) {
+				setrev = ISC_TRUE;
+				revoke = strtotime(isc_commandline_argument,
+						   now, now);
+			} else {
+				unsetrev = ISC_TRUE;
+			}
+			break;
+		case 'U':
+			if (setunpub || unsetunpub)
+				fatal("-U specified more than once");
+
+			if (strcasecmp(isc_commandline_argument, "none")) {
+				setunpub = ISC_TRUE;
+				unpublish = strtotime(isc_commandline_argument,
+						      now, now);
+			} else {
+				unsetunpub = ISC_TRUE;
+			}
+			break;
+		case 'D':
+			if (setdel || unsetdel)
+				fatal("-D specified more than once");
+
+			if (strcasecmp(isc_commandline_argument, "none")) {
+				setdel = ISC_TRUE;
+				delete = strtotime(isc_commandline_argument,
+						   now, now);
+			} else {
+				unsetdel = ISC_TRUE;
+			}
 			break;
 		case 'F':
 			/* Reserved for FIPS mode */
@@ -245,11 +326,14 @@ main(int argc, char **argv) {
 
 	rdclass = strtoclass(classname);
 
+	if (directory == NULL)
+		directory = ".";
+
 	if ((options & DST_TYPE_KEY) != 0)  /* KEY */
 		flags |= signatory;
 	else if ((flags & DNS_KEYOWNER_ZONE) != 0) { /* DNSKEY */
-		flags |= ksk;
-		flags |= revoke;
+		flags |= kskflag;
+		flags |= revflag;
 	}
 
 	if (protocol == -1)
@@ -278,14 +362,11 @@ main(int argc, char **argv) {
 		fatal("invalid key name %s: %s", argv[isc_commandline_index],
 		      isc_result_totext(ret));
 
-	if ((flags & DNS_KEYFLAG_TYPEMASK) == DNS_KEYTYPE_NOKEY)
-		null_key = ISC_TRUE;
-
 	isc_buffer_init(&buf, filename, sizeof(filename) - 1);
 
 	/* associate the key */
 	ret = dst_key_fromlabel(name, alg, flags, protocol,
-				rdclass, "", label, NULL, mctx, &key);
+				rdclass, engine, label, NULL, mctx, &key);
 	isc_entropy_stopcallbacksources(ectx);
 
 	if (ret != ISC_R_SUCCESS) {
@@ -293,16 +374,43 @@ main(int argc, char **argv) {
 		char algstr[ALG_FORMATSIZE];
 		dns_name_format(name, namestr, sizeof(namestr));
 		alg_format(alg, algstr, sizeof(algstr));
-		fatal("failed to generate key %s/%s: %s\n",
+		fatal("failed to get key %s/%s: %s\n",
 		      namestr, algstr, isc_result_totext(ret));
 		exit(-1);
 	}
 
 	/*
+	 * Set key timing metadata (unless using -C)
+	 */
+	if (!oldstyle) {
+		dst_key_settime(key, DST_TIME_CREATED, now);
+
+		if (setpub)
+			dst_key_settime(key, DST_TIME_PUBLISH, publish);
+		if (setact)
+			dst_key_settime(key, DST_TIME_ACTIVATE, activate);
+		if (setrev)
+			dst_key_settime(key, DST_TIME_REVOKE, revoke);
+		if (setunpub)
+			dst_key_settime(key, DST_TIME_UNPUBLISH, unpublish);
+		if (setdel)
+			dst_key_settime(key, DST_TIME_DELETE, delete);
+	} else {
+		if (setpub || setact || setrev || setunpub ||
+		    setdel || unsetpub || unsetact ||
+		    unsetrev || unsetunpub || unsetdel)
+			fatal("cannot use -C together with "
+			      "-P, -A, -R, -U, or -D options");
+		/*
+		 * Compatibility mode: Private-key-format
+		 * should be set to 1.2.
+		 */
+		dst_key_setprivateformat(key, 1, 2);
+	}
+
+	/*
 	 * Try to read a key with the same name, alg and id from disk.
-	 * If there is one we must continue generating a new one
-	 * unless we were asked to generate a null key, in which
-	 * case we return failure.
+	 * If there is one we must return failure.
 	 */
 	ret = dst_key_fromfile(name, dst_key_id(key), alg,
 			       DST_TYPE_PRIVATE, directory, mctx, &oldkey);
@@ -310,10 +418,7 @@ main(int argc, char **argv) {
 	if (ret == ISC_R_SUCCESS) {
 		isc_buffer_clear(&buf);
 		ret = dst_key_buildfilename(key, 0, directory, &buf);
-		fprintf(stderr, "%s: %s already exists\n",
-			program, filename);
-		dst_key_free(&key);
-		exit (1);
+		fatal("%s: %s already exists\n", program, filename);
 	}
 
 	ret = dst_key_tofile(key, options, directory);
@@ -325,7 +430,7 @@ main(int argc, char **argv) {
 	}
 
 	isc_buffer_clear(&buf);
-	ret = dst_key_buildfilename(key, 0, directory, &buf);
+	ret = dst_key_buildfilename(key, 0, NULL, &buf);
 	printf("%s\n", filename);
 	dst_key_free(&key);
 

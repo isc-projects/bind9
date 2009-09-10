@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.100 2009/09/02 23:48:02 tbox Exp $
+ * $Id: dnssec.c,v 1.101 2009/09/10 05:09:31 each Exp $
  */
 
 /*! \file */
@@ -1101,6 +1101,7 @@ dns_dnssec_findmatchingkeys(dns_name_t *origin, const char *directory,
 			    isc_mem_t *mctx, dns_dnsseckeylist_t *keylist)
 {
 	isc_result_t result = ISC_R_SUCCESS;
+	isc_boolean_t dir_open = ISC_FALSE;
 	dns_dnsseckeylist_t list;
 	isc_dir_t dir;
 	dns_dnsseckey_t *key = NULL;
@@ -1111,14 +1112,15 @@ dns_dnssec_findmatchingkeys(dns_name_t *origin, const char *directory,
 
 	REQUIRE(keylist != NULL);
 	ISC_LIST_INIT(list);
+	isc_dir_init(&dir);
 
 	isc_buffer_init(&b, namebuf, sizeof(namebuf) - 1);
 	RETERR(dns_name_totext(origin, ISC_FALSE, &b));
 	len = isc_buffer_usedlength(&b);
 	namebuf[len] = '\0';
 
-	isc_dir_init(&dir);
 	RETERR(isc_dir_open(&dir, directory));
+	dir_open = ISC_TRUE;
 
 	while (isc_dir_read(&dir) == ISC_R_SUCCESS) {
 		if (dir.entry.name[0] == 'K' &&
@@ -1126,7 +1128,7 @@ dns_dnssec_findmatchingkeys(dns_name_t *origin, const char *directory,
 		    dir.entry.name[len + 1] == '+' &&
 		    strncasecmp(dir.entry.name + 1, namebuf, len) == 0) {
 			p = strrchr(dir.entry.name, '.');
-			if (strcmp(p, ".private") != 0)
+			if (p != NULL && strcmp(p, ".private") != 0)
 				continue;
 
 			dstkey = NULL;
@@ -1153,7 +1155,8 @@ dns_dnssec_findmatchingkeys(dns_name_t *origin, const char *directory,
 		result = ISC_R_NOTFOUND;
 
  failure:
-	isc_dir_close(&dir);
+	if (dir_open)
+		isc_dir_close(&dir);
 	INSIST(key == NULL);
 	while ((key = ISC_LIST_HEAD(list)) != NULL) {
 		ISC_LIST_UNLINK(list, key, link);
