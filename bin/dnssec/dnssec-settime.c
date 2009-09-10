@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-settime.c,v 1.10 2009/09/02 23:48:01 tbox Exp $ */
+/* $Id: dnssec-settime.c,v 1.11 2009/09/04 16:57:22 each Exp $ */
 
 /*! \file */
 
@@ -203,7 +203,7 @@ main(int argc, char **argv) {
 			directory = isc_mem_strdup(mctx,
 						   isc_commandline_argument);
 			if (directory == NULL) {
-				fatal("Failed to memory allocation for "
+				fatal("Failed to allocate memory for "
 				      "directory");
 			}
 			break;

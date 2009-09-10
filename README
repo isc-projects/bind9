@@ -62,7 +62,8 @@ BIND 9.7.0
 	  share a single cache.
 	- DNS rebinding attack prevention.
 	- New default values for dnssec-keygen parameters.
-	- Support for RFC 5011 (automated trust anchor maintenance).
+	- Support for RFC 5011 automated trust anchor maintenance
+          (see README.rfc5011 for additional details).
 	- Smart signing: simplified tools for zone signing and key
 	  maintenance.
 	- The "statistics-channels" option is now available on Windows.
@@ -72,11 +73,13 @@ BIND 9.7.0
           a stack backtrace an assertion failure, to aid in debugging.
         - A "tools only" installation mode on Windows, which only installs
           dig, host, nslookup and nsupdate.
+        - Improved PKCS#11 support, including Keyper support (see
+          README.pkcs11 for additional details).
 
 	Planned but not complete in this alpha:
 
 	- Fully automatic signing of zones by "named"
-        - Improved PKCS#11 support, including Keyper support
+        - Additional PKCS#11 support, including multiple OpenSSL engines
 
 BIND 9.6.0
 

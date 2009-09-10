@@ -1,11 +1,18 @@
+
+                        BIND 9 RFC 5011 support
+
 BIND 9.7.0 introduces support for RFC 5011, dynamic trust anchor
 management.  Using this feature allows named to keep track of changes to
 critical DNSSEC keys without any need for the operator to make changes to
 configuration files.
 
-As of 9.7.0a1, the syntax for using RFC5011 is expected to change, so
-proper documentation has yet to be written.  This file is intended to
-provide enough information to get started.
+VALIDATING RESOLVER
+-------------------
+
+To configure a validating resolver to use RFC5011 to maintain a trust
+anchor, configure the trust anchor using a "managed-keys" statement.
+Information about this can be found in the ARM, in the section titled
+"managed-keys Statement Definition".
 
 AUTHORITATIVE SERVER
 --------------------
@@ -22,6 +29,14 @@ will recheck the zone periodically, and after 30 days, if the new key is
 still there, then the key will be accepted by the resolver as a valid
 trust anchor for the zone.
 
+The easiest way to place a stand-by key in a zone is to use the "smart
+signing" features of dnssec-signzone.  If a key with a publication date
+in the past, but an activation date in the future, "dnssec-signzone -S"
+will include the DNSKEY record in the zone, but will not sign with it:
+
+    $ dnssec-keygen -K keys -f KSK -P now -A now+2y example.net
+    $ dnssec-signzone -S -K keys example.net
+
 At any time after this 30-day acceptance timer has expired, the active
 KSK can be revoked and the zone can be "rolled over" to one of the
 standby KSKs.
@@ -31,52 +46,12 @@ the REVOKED bit to the key flags and re-generates the K*.key and K*.private
 files.
 
 After revoking the active key, the zone must be signed with both the
-revoked KSK and the new active KSK.  Once a key has been revoked and
-used to sign the DNSKEY RRset in which it appears, that key will never
-again be accepted as a valid trust anchor by the resolver.  However,
-validation can proceed using the new active key (which had been accepted
-by the resolver when it was a stand-by key).
+revoked KSK and the new active KSK.  (Smart signing takes care of this
+automatically.)
+
+Once a key has been revoked and used to sign the DNSKEY RRset in which it
+appears, that key will never again be accepted as a valid trust anchor by
+the resolver.  However, validation can proceed using the new active key
+(which had been accepted by the resolver when it was a stand-by key).
 
 See RFC 5011 for more details on key rollover scenarios.
-
-VALIDATING RESOLVER
--------------------
-
-NOTE: This is expected to change before 9.7.0 is final!
-
-To configure a validating resolver to use RFC5011 to maintain a trust
-anchor, configure the trust anchor using a "managed-keys" statement
-instead of a "trusted-keys" statement.
-
-A "managed-keys" statement contains a list of keys to be maintained,
-with information on how they are to be initialized the first time.  The
-only initialization method supported in BIND 9.7.0 is "initial-key".
-This means the "managed-keys" statement itself will contain a copy of
-the initializing key.  In future releases, keys may be initialized by
-other methods, removing the need to incorporate a copy of an intializing
-key in named.conf.
-
-Example:
-
-managed-keys {
-	sample.domain. initial-key 257 3 5 "BEAAAAPHMu ...";
-};
-
-At first glance this is very similar to a "trusted-keys" statement,
-differing only in the presence of the second field, "initial-key".
-However, whereas a trusted key is trusted permanently until it is
-removed from named.conf, this key would only be trusted once, for
-as long as it takes to initialize RFC5011 key maintenance.
-
-The first time named runs with a managed key configured in named.conf,
-it fetches the DNSKEY RRset directly from the zone apex, and validates
-it using the key specified in the "managed-keys" statement, as above.
-If the DNSKEY RRset is validly signed, then it is used as the basis for
-a new managed keys database.
-
-From that point on, whenever named loads, it sees the "managed-keys"
-statement, checks to make sure RFC5011 key maintenance has already been
-initialized for the specified zone, and if so, it simply moves on.
-No action will be taken unless a key is *removed* from the "managed-keys"
-statement--in which case that zone is removed from the managed keys
-database as well, and RFC5011 key maintenance will no longer be used.

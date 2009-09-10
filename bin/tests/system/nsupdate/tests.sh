@@ -15,12 +15,30 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.27 2009/07/29 23:47:43 tbox Exp $
+# $Id: tests.sh,v 1.28 2009/09/04 17:14:58 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 status=0
+
+# wait for zone transfer to complete
+tries=0
+while true; do
+    if [ $tries -eq 10 ]
+    then
+        exit 1
+    fi
+
+    if grep "example.nil/IN.*Transfer completed" ns2/named.run > /dev/null
+    then
+        break
+    else
+        echo "I:zones are not fully loaded, waiting..."
+        tries=`expr $tries + 1`
+        sleep 1
+    fi
+done
 
 echo "I:fetching first copy of zone before update"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\

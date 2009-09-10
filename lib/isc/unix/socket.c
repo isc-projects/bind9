@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.323 2009/09/02 04:25:19 jinmei Exp $ */
+/* $Id: socket.c,v 1.324 2009/09/07 02:08:51 marka Exp $ */
 
 /*! \file */
 
@@ -5065,6 +5065,7 @@ isc__socket_connect(isc_socket_t *sock0, isc_sockaddr_t *addr,
 	isc__socketmgr_t *manager;
 	int cc;
 	char strbuf[ISC_STRERRORSIZE];
+	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(addr != NULL);
@@ -5133,7 +5134,9 @@ isc__socket_connect(isc_socket_t *sock0, isc_sockaddr_t *addr,
 		sock->connected = 0;
 
 		isc__strerror(errno, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "%d/%s", errno, strbuf);
+		isc_sockaddr_format(addr, addrbuf, sizeof(addrbuf));
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "connect(%s) %d/%s",
+				 addrbuf, errno, strbuf);
 
 		UNLOCK(&sock->lock);
 		inc_stats(sock->manager->stats,

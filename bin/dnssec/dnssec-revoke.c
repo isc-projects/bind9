@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-revoke.c,v 1.10 2009/09/02 23:48:01 tbox Exp $ */
+/* $Id: dnssec-revoke.c,v 1.11 2009/09/04 16:57:22 each Exp $ */
 
 /*! \file */
 
@@ -96,7 +96,15 @@ main(int argc, char **argv) {
 			force = ISC_TRUE;
 			break;
 		    case 'K':
-			dir = isc_commandline_argument;
+			/*
+			 * We don't have to copy it here, but do it to
+			 * simplify cleanup later
+			 */
+			dir = isc_mem_strdup(mctx, isc_commandline_argument);
+			if (dir == NULL) {
+				fatal("Failed to allocate memory for "
+				      "directory");
+			}
 			break;
 		    case 'r':
 			remove = ISC_TRUE;

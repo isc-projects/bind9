@@ -15,11 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: soa.c,v 1.10 2009/07/01 23:47:36 tbox Exp $ */
+/* $Id: soa.c,v 1.12 2009/09/10 02:18:40 each Exp $ */
 
 /*! \file */
 
 #include <config.h>
+#include <string.h>
 
 #include <isc/buffer.h>
 #include <isc/util.h>
@@ -67,13 +68,16 @@ dns_soa_buildrdata(dns_name_t *origin, dns_name_t *contact,
 		   dns_rdataclass_t rdclass,
 		   isc_uint32_t serial, isc_uint32_t refresh,
 		   isc_uint32_t retry, isc_uint32_t expire,
-		   isc_uint32_t minimum, dns_rdata_t *rdata) {
+		   isc_uint32_t minimum, unsigned char *buffer,
+		   dns_rdata_t *rdata) {
 	dns_rdata_soa_t soa;
-	char soadata[DNS_NAME_FORMATSIZE];
 	isc_buffer_t rdatabuf;
 
 	REQUIRE(origin != NULL);
 	REQUIRE(contact != NULL);
+
+	memset(buffer, 0, DNS_SOA_BUFFERSIZE);
+	isc_buffer_init(&rdatabuf, buffer, DNS_SOA_BUFFERSIZE);
 
 	soa.common.rdtype = dns_rdatatype_soa;
 	soa.common.rdclass = rdclass;
@@ -88,7 +92,6 @@ dns_soa_buildrdata(dns_name_t *origin, dns_name_t *contact,
 	dns_name_init(&soa.contact, NULL);
 	dns_name_clone(contact, &soa.contact);
 
-	isc_buffer_init(&rdatabuf, soadata, sizeof(soadata));
 	return (dns_rdata_fromstruct(rdata, rdclass, dns_rdatatype_soa,
 				      &soa, &rdatabuf));
 }
