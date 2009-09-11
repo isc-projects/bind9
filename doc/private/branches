@@ -200,6 +200,7 @@ rt19113				new	fdupont	// 2009-01-10 17:53 +0000
 rt19198				new	marka	// 2009-01-23 02:19 +0000
 rt19209				new	marka	// 2009-02-05 01:10 +0000
 rt19234				new	fdupont	// 2009-02-12 14:15 +0000
+rt19234a			new	fdupont	// 2009-09-11 22:20 +0000
 rt19240				new	jinmei	// 2009-01-26 23:31 +0000
 rt19248				new	each	// 2009-01-28 00:25 +0000
 rt19256				new	jinmei	// 2009-01-29 00:55 +0000
@@ -238,6 +239,8 @@ rt20037				new	marka	// 2009-08-11 07:46 +0000
 rt20044				new	fdupont	// 2009-08-07 18:59 +0000
 rt20062				new	marka	// 2009-08-10 05:00 +0000
 rt20112				new	marka	// 2009-08-18 05:22 +0000
+rt20247				new	each	// 2009-09-11 03:22 +0000
+rt20253				new	sar	// 2009-09-11 22:17 +0000
 shane_dbbackend			open	
 skan				open	explorer
 skan-metazones1			private	explorer
