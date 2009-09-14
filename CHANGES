@@ -1,3 +1,6 @@
+2678.	[func]		Treat DS queries as if "minimal-response yes;"
+			was set. [RT #20258]
+
 2677.	[func]		Changes to key metadata behavior:
 			- Keys without "publish" or "active" dates set will
 			  no longer be used for smart signing.  However,
