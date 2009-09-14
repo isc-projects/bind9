@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.477 $)
+AC_REVISION($Revision: 1.478 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -1409,11 +1409,11 @@ if test -z "$export_libdir"; then
 fi
 AC_SUBST(export_libdir)
 
-AC_ARG_WITH(export-installdir,
-	[  --with-export-installdir[=PATH]
+AC_ARG_WITH(export-includedir,
+	[  --with-export-includedir[=PATH]
                         installation directory for the header files of the
                         export library [[PREFIX/include/bind9]]],
-	export_installdir="$withval",)
+	export_includedir="$withval",)
 if test -z "$export_includedir"; then
 	export_includedir="\${prefix}/include/bind9/"
 fi
