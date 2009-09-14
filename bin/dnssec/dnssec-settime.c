@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-settime.c,v 1.11 2009/09/04 16:57:22 each Exp $ */
+/* $Id: dnssec-settime.c,v 1.12 2009/09/14 18:45:45 each Exp $ */
 
 /*! \file */
 
@@ -66,8 +66,8 @@ usage(void) {
 						     "activation date\n");
 	fprintf(stderr, "    -R date/[+-]offset/none: set key "
 						     "revocation date\n");
-	fprintf(stderr, "    -U date/[+-]offset/none: set key "
-						     "unpublication date\n");
+	fprintf(stderr, "    -I date/[+-]offset/none: set key "
+						     "inactivation date\n");
 	fprintf(stderr, "    -D date/[+-]offset/none: set key "
 						     "deletion date\n");
 	fprintf(stderr, "Printing options:\n");
@@ -119,16 +119,16 @@ main(int argc, char **argv) {
 	isc_buffer_t buf;
 	int major, minor;
 	isc_stdtime_t	now;
-	isc_stdtime_t	pub = 0, act = 0, rev = 0, unpub = 0, del = 0;
+	isc_stdtime_t	pub = 0, act = 0, rev = 0, inact = 0, del = 0;
 	isc_boolean_t	setpub = ISC_FALSE, setact = ISC_FALSE;
-	isc_boolean_t	setrev = ISC_FALSE, setunpub = ISC_FALSE;
+	isc_boolean_t	setrev = ISC_FALSE, setinact = ISC_FALSE;
 	isc_boolean_t	setdel = ISC_FALSE;
 	isc_boolean_t	unsetpub = ISC_FALSE, unsetact = ISC_FALSE;
-	isc_boolean_t	unsetrev = ISC_FALSE, unsetunpub = ISC_FALSE;
+	isc_boolean_t	unsetrev = ISC_FALSE, unsetinact = ISC_FALSE;
 	isc_boolean_t	unsetdel = ISC_FALSE;
 	isc_boolean_t	printcreate = ISC_FALSE, printpub = ISC_FALSE;
 	isc_boolean_t	printact = ISC_FALSE,  printrev = ISC_FALSE;
-	isc_boolean_t	printunpub = ISC_FALSE, printdel = ISC_FALSE;
+	isc_boolean_t	printinact = ISC_FALSE, printdel = ISC_FALSE;
 	isc_boolean_t	forceupdate = ISC_FALSE;
 	isc_boolean_t   epoch = ISC_FALSE;
 	isc_boolean_t   changed = ISC_FALSE;
@@ -147,7 +147,7 @@ main(int argc, char **argv) {
 	isc_stdtime_get(&now);
 
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "fK:uhp:v:P:A:R:U:D:")) != -1) {
+					   "fK:uhp:v:P:A:R:I:D:")) != -1) {
 		switch (ch) {
 		case 'f':
 			forceupdate = ISC_TRUE;
@@ -159,7 +159,7 @@ main(int argc, char **argv) {
 				printpub = ISC_TRUE;
 				printact = ISC_TRUE;
 				printrev = ISC_TRUE;
-				printunpub = ISC_TRUE;
+				printinact = ISC_TRUE;
 				printdel = ISC_TRUE;
 				break;
 			}
@@ -178,8 +178,8 @@ main(int argc, char **argv) {
 				case 'R':
 					printrev = ISC_TRUE;
 					break;
-				case 'U':
-					printunpub = ISC_TRUE;
+				case 'I':
+					printinact = ISC_TRUE;
 					break;
 				case 'D':
 					printdel = ISC_TRUE;
@@ -251,16 +251,16 @@ main(int argc, char **argv) {
 						now, now);
 			}
 			break;
-		case 'U':
-			if (setunpub || unsetunpub)
-				fatal("-U specified more than once");
+		case 'I':
+			if (setinact || unsetinact)
+				fatal("-I specified more than once");
 
 			changed = ISC_TRUE;
 			if (!strcasecmp(isc_commandline_argument, "none")) {
-				unsetunpub = ISC_TRUE;
+				unsetinact = ISC_TRUE;
 			} else {
-				setunpub = ISC_TRUE;
-				unpub = strtotime(isc_commandline_argument,
+				setinact = ISC_TRUE;
+				inact = strtotime(isc_commandline_argument,
 						now, now);
 			}
 			break;
@@ -360,7 +360,7 @@ main(int argc, char **argv) {
 		dst_key_unsettime(key, DST_TIME_ACTIVATE);
 
 	if (setrev) {
-		if ((dst_key_flags(key) & DNS_KEYFLAG_REVOKE) != 0 && rev > now)
+		if ((dst_key_flags(key) & DNS_KEYFLAG_REVOKE) != 0)
 			fprintf(stderr, "%s: warning: Key %s is already "
 					"revoked; changing the revocation date "
 					"will not affect this.\n",
@@ -375,10 +375,10 @@ main(int argc, char **argv) {
 		dst_key_unsettime(key, DST_TIME_REVOKE);
 	}
 
-	if (setunpub)
-		dst_key_settime(key, DST_TIME_UNPUBLISH, unpub);
-	else if (unsetunpub)
-		dst_key_unsettime(key, DST_TIME_UNPUBLISH);
+	if (setinact)
+		dst_key_settime(key, DST_TIME_INACTIVE, inact);
+	else if (unsetinact)
+		dst_key_unsettime(key, DST_TIME_INACTIVE);
 
 	if (setdel)
 		dst_key_settime(key, DST_TIME_DELETE, del);
@@ -400,8 +400,8 @@ main(int argc, char **argv) {
 	if (printrev)
 		printtime(key, DST_TIME_REVOKE, "Revoke", epoch, stdout);
 
-	if (printunpub)
-		printtime(key, DST_TIME_UNPUBLISH, "Unpublish", epoch, stdout);
+	if (printinact)
+		printtime(key, DST_TIME_INACTIVE, "Inactive", epoch, stdout);
 
 	if (printdel)
 		printtime(key, DST_TIME_DELETE, "Delete", epoch, stdout);

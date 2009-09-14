@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.17 2009/09/02 06:29:01 each Exp $ */
+/* $Id: dst.h,v 1.18 2009/09/14 18:45:45 each Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -84,7 +84,7 @@ typedef struct dst_context 	dst_context_t;
 #define DST_TIME_PUBLISH	1
 #define DST_TIME_ACTIVATE	2
 #define DST_TIME_REVOKE 	3
-#define DST_TIME_UNPUBLISH	4
+#define DST_TIME_INACTIVE	4
 #define DST_TIME_DELETE 	5
 #define DST_MAX_TIMES		5
 

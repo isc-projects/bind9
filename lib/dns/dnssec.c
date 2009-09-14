@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.101 2009/09/10 05:09:31 each Exp $
+ * $Id: dnssec.c,v 1.102 2009/09/14 18:45:45 each Exp $
  */
 
 /*! \file */
@@ -1004,9 +1004,9 @@ dns_dnsseckey_destroy(isc_mem_t *mctx, dns_dnsseckey_t **dkp) {
 static void
 get_hints(dns_dnsseckey_t *key) {
 	isc_result_t result;
-	isc_stdtime_t now, publish, active, revoke, unpublish, delete;
+	isc_stdtime_t now, publish, active, revoke, inactive, delete;
 	isc_boolean_t pubset = ISC_FALSE, actset = ISC_FALSE;
-	isc_boolean_t revset = ISC_FALSE, remset = ISC_FALSE;
+	isc_boolean_t revset = ISC_FALSE, inactset = ISC_FALSE;
 	isc_boolean_t delset = ISC_FALSE;
 
 	REQUIRE(key != NULL && key->key != NULL);
@@ -1025,26 +1025,20 @@ get_hints(dns_dnsseckey_t *key) {
 	if (result == ISC_R_SUCCESS)
 		revset = ISC_TRUE;
 
-	result = dst_key_gettime(key->key, DST_TIME_UNPUBLISH, &unpublish);
+	result = dst_key_gettime(key->key, DST_TIME_INACTIVE, &inactive);
 	if (result == ISC_R_SUCCESS)
-		remset = ISC_TRUE;
+		inactset = ISC_TRUE;
 
 	result = dst_key_gettime(key->key, DST_TIME_DELETE, &delete);
 	if (result == ISC_R_SUCCESS)
 		delset = ISC_TRUE;
 
-	/* No metadata set: Publish and sign.  */
-	if (!pubset && !actset && !revset && !remset && !delset) {
-		key->hint_sign = ISC_TRUE;
-		key->hint_publish = ISC_TRUE;
-	}
-
 	/* Metadata says publish (but possibly not activate) */
-	if (pubset && publish < now)
+	if (pubset && publish <= now)
 		key->hint_publish = ISC_TRUE;
 
 	/* Metadata says activate (so we must also publish) */
-	if (actset && active < now) {
+	if (actset && active <= now) {
 		key->hint_sign = ISC_TRUE;
 		key->hint_publish = ISC_TRUE;
 	}
@@ -1065,6 +1059,14 @@ get_hints(dns_dnsseckey_t *key) {
 	}
 
 	/*
+	 * Key has been marked inactive: we can continue publishing,
+	 * but don't sign.
+	 */
+	if (key->hint_publish && inactset && inactive <= now) {
+		key->hint_sign = ISC_FALSE;
+	}
+
+	/*
 	 * Metadata says revoke.  If the key is published,
 	 * we *have to* sign with it per RFC5011--even if it was
 	 * not active before.
@@ -1082,11 +1084,9 @@ get_hints(dns_dnsseckey_t *key) {
 	}
 
 	/*
-	 * Metadata says unpublish or delete, so don't publish
-	 * this key or sign with it.
+	 * Metadata says delete, so don't publish this key or sign with it.
 	 */
-	if ((remset && unpublish < now) ||
-	    (delset && delete < now)) {
+	if (delset && delete <= now) {
 		key->hint_publish = ISC_FALSE;
 		key->hint_sign = ISC_FALSE;
 		key->hint_remove = ISC_TRUE;
