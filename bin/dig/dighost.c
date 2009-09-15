@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.325 2009/09/15 03:13:43 each Exp $ */
+/* $Id: dighost.c,v 1.326 2009/09/15 23:48:09 tbox Exp $ */
 
 /*! \file
  *  \note
@@ -964,14 +964,14 @@ parse_uint(isc_uint32_t *uip, const char *value, isc_uint32_t max,
 
 static isc_uint32_t
 parse_bits(char *arg, const char *desc, isc_uint32_t max) {
-        isc_result_t result;
-        isc_uint32_t tmp;
+	isc_result_t result;
+	isc_uint32_t tmp;
 
-        result = parse_uint(&tmp, arg, max, desc);
-        if (result != ISC_R_SUCCESS)
-                fatal("couldn't parse digest bits");
-        tmp = (tmp + 7) & ~0x7U;
-        return (tmp);
+	result = parse_uint(&tmp, arg, max, desc);
+	if (result != ISC_R_SUCCESS)
+		fatal("couldn't parse digest bits");
+	tmp = (tmp + 7) & ~0x7U;
+	return (tmp);
 }
 
 
@@ -986,7 +986,7 @@ parse_hmac(const char *hmac) {
 	REQUIRE(hmac != NULL);
 
 	len = strlen(hmac);
-        if (len >= (int) sizeof(buf))
+	if (len >= (int) sizeof(buf))
 		fatal("unknown key type '%.*s'", len, hmac);
 	strncpy(buf, hmac, sizeof(buf));
 
