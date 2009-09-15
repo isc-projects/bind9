@@ -70,7 +70,7 @@ BIND 9.7.0
         - A new DNSSEC-aware libdns API for use by non-BIND9 applications
           (see README.libdns for details).
         - On some platforms, named and other binaries can now print out
-          a stack backtrace an assertion failure, to aid in debugging.
+          a stack backtrace on assertion failure, to aid in debugging.
         - A "tools only" installation mode on Windows, which only installs
           dig, host, nslookup and nsupdate.
         - Improved PKCS#11 support, including Keyper support (see
