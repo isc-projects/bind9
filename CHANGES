@@ -1,3 +1,25 @@
+2679.	[func]		dig -k can now accept TSIG keys in named.conf
+			format.  [RT #20031]
+
+2678.	[func]		Treat DS queries as if "minimal-response yes;"
+			was set. [RT #20258]
+
+2677.	[func]		Changes to key metadata behavior:
+			- Keys without "publish" or "active" dates set will
+			  no longer be used for smart signing.  However,
+			  those dates will be set to "now" by default when
+			  a key is created; to generate a key but not use
+			  it yet, use dnssec-keygen -G.
+			- New "inactive" date (dnssec-keygen/settime -I)
+			  sets the time when a key is no longer used for
+			  signing but is still published.
+			- The "unpublished" date (-U) is deprecated in
+			  favor of "deleted" (-D).
+			[RT #20247]
+
+2676.	[bug]		--with-export-installdir should have been
+			--with-export-includedir. [RT #20252]
+
 2675.   [bug]           dnssec-signzone could crash if the key directory
                         did not exist. [RT #20232]
 

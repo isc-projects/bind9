@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.94 2009/09/07 12:54:59 fdupont Exp $ */
+/* $Id: dnssec-keygen.c,v 1.95 2009/09/14 18:45:45 each Exp $ */
 
 /*! \file */
 
@@ -131,13 +131,16 @@ usage(void) {
 	fprintf(stderr, "	usage | trace | record | size | mctx\n");
 	fprintf(stderr, "    -v <level>: set verbosity level (0 - 10)\n");
 	fprintf(stderr, "Date options:\n");
-	fprintf(stderr, "    -P date/[+-]offset: set key publication date\n");
-	fprintf(stderr, "    -A date/[+-]offset: set key activation date\n");
+	fprintf(stderr, "    -P date/[+-]offset: set key publication date "
+						"(default: now)\n");
+	fprintf(stderr, "    -A date/[+-]offset: set key activation date "
+						"(default: now)\n");
 	fprintf(stderr, "    -R date/[+-]offset: set key revocation date\n");
-	fprintf(stderr, "    -U date/[+-]offset: set key unpublication date\n");
+	fprintf(stderr, "    -I date/[+-]offset: set key inactivation date\n");
 	fprintf(stderr, "    -D date/[+-]offset: set key deletion date\n");
+	fprintf(stderr, "    -G: generate key only; do not set -P or -A\n");
 	fprintf(stderr, "    -C: generate a backward-compatible key, omitting "
-			"dates\n");
+			"all dates\n");
 	fprintf(stderr, "Output:\n");
 	fprintf(stderr, "     K<name>+<alg>+<id>.key, "
 			"K<name>+<alg>+<id>.private\n");
@@ -172,14 +175,15 @@ main(int argc, char **argv) {
 	int		dbits = 0;
 	isc_boolean_t	use_default = ISC_FALSE, use_nsec3 = ISC_FALSE;
 	isc_stdtime_t	publish = 0, activate = 0, revoke = 0;
-	isc_stdtime_t	unpublish = 0, delete = 0;
+	isc_stdtime_t	inactive = 0, delete = 0;
 	isc_stdtime_t	now;
 	isc_boolean_t	setpub = ISC_FALSE, setact = ISC_FALSE;
-	isc_boolean_t	setrev = ISC_FALSE, setunpub = ISC_FALSE;
+	isc_boolean_t	setrev = ISC_FALSE, setinact = ISC_FALSE;
 	isc_boolean_t	setdel = ISC_FALSE;
 	isc_boolean_t	unsetpub = ISC_FALSE, unsetact = ISC_FALSE;
-	isc_boolean_t	unsetrev = ISC_FALSE, unsetunpub = ISC_FALSE;
+	isc_boolean_t	unsetrev = ISC_FALSE, unsetinact = ISC_FALSE;
 	isc_boolean_t	unsetdel = ISC_FALSE;
+	isc_boolean_t	genonly = ISC_FALSE;
 
 	if (argc == 1)
 		usage();
@@ -191,7 +195,7 @@ main(int argc, char **argv) {
 	/*
 	 * Process memory debugging argument first.
 	 */
-#define CMDLINE_FLAGS "3a:b:Cc:d:eFf:g:K:km:n:p:r:s:T:t:v:hP:A:R:U:D:"
+#define CMDLINE_FLAGS "3a:b:Cc:d:eFf:g:K:km:n:p:r:s:T:t:v:hGP:A:R:I:D:"
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
 		case 'm':
@@ -310,6 +314,9 @@ main(int argc, char **argv) {
 		case 'z':
 			/* already the default */
 			break;
+		case 'G':
+			genonly = ISC_TRUE;
+			break;
 		case 'P':
 			if (setpub || unsetpub)
 				fatal("-P specified more than once");
@@ -346,16 +353,16 @@ main(int argc, char **argv) {
 				unsetrev = ISC_TRUE;
 			}
 			break;
-		case 'U':
-			if (setunpub || unsetunpub)
-				fatal("-U specified more than once");
+		case 'I':
+			if (setinact || unsetinact)
+				fatal("-I specified more than once");
 
 			if (strcasecmp(isc_commandline_argument, "none")) {
-				setunpub = ISC_TRUE;
-				unpublish = strtotime(isc_commandline_argument,
-						      now, now);
+				setinact = ISC_TRUE;
+				inactive = strtotime(isc_commandline_argument,
+						     now, now);
 			} else {
-				unsetunpub = ISC_TRUE;
+				unsetinact = ISC_TRUE;
 			}
 			break;
 		case 'D':
@@ -665,31 +672,44 @@ main(int argc, char **argv) {
 
 		/*
 		 * Set key timing metadata (unless using -C)
+		 *
+		 * Publish and activation dates are set to "now" by default,
+		 * but can be overridden.  Creation date is always set to
+		 * "now".
 		 */
 		if (!oldstyle) {
 			dst_key_settime(key, DST_TIME_CREATED, now);
 
+			if (genonly && (setpub || setact))
+				fatal("cannot use -G together with "
+				      "-P or -A options");
+
 			if (setpub)
-				dst_key_settime(key, DST_TIME_PUBLISH,
-						publish);
+				dst_key_settime(key, DST_TIME_PUBLISH, publish);
+			else if (!genonly)
+				dst_key_settime(key, DST_TIME_PUBLISH, now);
+
 			if (setact)
 				dst_key_settime(key, DST_TIME_ACTIVATE,
 						activate);
+			else if (!genonly)
+				dst_key_settime(key, DST_TIME_ACTIVATE, now);
+
 			if (setrev)
-				dst_key_settime(key, DST_TIME_REVOKE,
-						revoke);
-			if (setunpub)
-				dst_key_settime(key, DST_TIME_UNPUBLISH,
-						unpublish);
+				dst_key_settime(key, DST_TIME_REVOKE, revoke);
+
+			if (setinact)
+				dst_key_settime(key, DST_TIME_INACTIVE,
+						inactive);
+
 			if (setdel)
-				dst_key_settime(key, DST_TIME_DELETE,
-						delete);
+				dst_key_settime(key, DST_TIME_DELETE, delete);
 		} else {
-			if (setpub || setact || setrev || setunpub ||
+			if (setpub || setact || setrev || setinact ||
 			    setdel || unsetpub || unsetact ||
-			    unsetrev || unsetunpub || unsetdel)
+			    unsetrev || unsetinact || unsetdel || genonly)
 				fatal("cannot use -C together with "
-				      "-P, -A, -R, -U, or -D options");
+				      "-P, -A, -R, -I, -D, or -G options");
 			/*
 			 * Compatibility mode: Private-key-format
 			 * should be set to 1.2.

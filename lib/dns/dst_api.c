@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.29 2009/09/03 04:09:58 marka Exp $
+ * $Id: dst_api.c,v 1.30 2009/09/14 18:45:45 each Exp $
  */
 
 /*! \file */
@@ -1274,7 +1274,7 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 		printtime(key, DST_TIME_PUBLISH, "; Publish", fp);
 		printtime(key, DST_TIME_ACTIVATE, "; Activate", fp);
 		printtime(key, DST_TIME_REVOKE, "; Revoke", fp);
-		printtime(key, DST_TIME_UNPUBLISH, "; Unpublish", fp);
+		printtime(key, DST_TIME_INACTIVE, "; Inactive", fp);
 		printtime(key, DST_TIME_DELETE, "; Delete", fp);
 	}
 

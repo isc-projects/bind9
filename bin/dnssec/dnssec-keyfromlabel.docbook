@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-keyfromlabel.docbook,v 1.9 2009/09/07 12:54:59 fdupont Exp $ -->
+<!-- $Id: dnssec-keyfromlabel.docbook,v 1.10 2009/09/14 18:45:45 each Exp $ -->
 <refentry id="man.dnssec-keyfromlabel">
   <refentryinfo>
     <date>February 8, 2008</date>
@@ -51,6 +51,8 @@
       <arg><option>-c <replaceable class="parameter">class</replaceable></option></arg>
       <arg><option>-D <replaceable class="parameter">date/offset</replaceable></option></arg>
       <arg><option>-f <replaceable class="parameter">flag</replaceable></option></arg>
+      <arg><option>-G</option></arg>
+      <arg><option>-I <replaceable class="parameter">date/offset</replaceable></option></arg>
       <arg><option>-k</option></arg>
       <arg><option>-K <replaceable class="parameter">directory</replaceable></option></arg>
       <arg><option>-n <replaceable class="parameter">nametype</replaceable></option></arg>
@@ -58,7 +60,6 @@
       <arg><option>-p <replaceable class="parameter">protocol</replaceable></option></arg>
       <arg><option>-R <replaceable class="parameter">date/offset</replaceable></option></arg>
       <arg><option>-t <replaceable class="parameter">type</replaceable></option></arg>
-      <arg><option>-U <replaceable class="parameter">date/offset</replaceable></option></arg>
       <arg><option>-v <replaceable class="parameter">level</replaceable></option></arg>
       <arg choice="req">name</arg>
     </cmdsynopsis>
@@ -161,6 +162,16 @@
       </varlistentry>
 
       <varlistentry>
+        <term>-G</term>
+        <listitem>
+          <para>
+            Generate a key, but do not publish it or sign with it.  This
+            option is incompatible with -P and -A.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
         <term>-h</term>
         <listitem>
           <para>
@@ -245,7 +256,8 @@
           <para>
             Sets the date on which a key is to be published to the zone.
             After that date, the key will be included in the zone but will
-            not be used to sign it.
+            not be used to sign it.  If not set, and if the -G option has
+            not been used, the default is "now".
           </para>
         </listitem>
       </varlistentry>
@@ -256,7 +268,8 @@
           <para>
             Sets the date on which the key is to be activated.  After that
             date, the key will be included and the zone and used to sign
-            it.
+            it.  If not set, and if the -G option has not been used, the
+            default is "now".
           </para>
         </listitem>
       </varlistentry>
@@ -276,9 +289,9 @@
         <term>-U <replaceable class="parameter">date/offset</replaceable></term>
         <listitem>
           <para>
-            Sets the date on which the key is to be unpublished.  After that
-            date, the key will no longer be included in the zone, but it
-            may remain in the key repository.
+            Sets the date on which the key is to be retired.  After that
+            date, the key will still be included in the zone, but it
+            will not be used to sign it.
           </para>
         </listitem>
       </varlistentry>
@@ -288,10 +301,8 @@
         <listitem>
           <para>
             Sets the date on which the key is to be deleted.  After that
-            date, the key can be removed from the key repository.
-            NOTE: Keys are not currently deleted automatically; this field
-            is included for informational purposes and for future
-            development.
+            date, the key will no longer be included in the zone.  (It
+            may remain in the key repository, however.)
           </para>
         </listitem>
       </varlistentry>

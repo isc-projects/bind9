@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.326 2009/08/05 02:09:04 marka Exp $ */
+/* $Id: query.c,v 1.327 2009/09/14 23:13:37 marka Exp $ */
 
 /*! \file */
 
@@ -5130,9 +5130,9 @@ ns_query_start(ns_client_t *client) {
 	}
 
 	/*
-	 * Turn on minimal response for DNSKEY queries.
+	 * Turn on minimal response for DNSKEY and DS queries.
 	 */
-	if (qtype == dns_rdatatype_dnskey)
+	if (qtype == dns_rdatatype_dnskey || qtype == dns_rdatatype_ds)
 		client->query.attributes |= (NS_QUERYATTR_NOAUTHORITY |
 					     NS_QUERYATTR_NOADDITIONAL);
 
