@@ -56,7 +56,7 @@ under the lib/export/samples directory (see below).
 This will install library object files under the directory specified
 by the --with-export-libdir configure option (default:
 EPREFIX/lib/bind9), and header files under the directory specified by
-the --with-export-installdir configure option (default:
+the --with-export-includedir configure option (default:
 PREFIX/include/bind9).
 
 To see how to build your own application after the installation, see
@@ -272,4 +272,4 @@ As of this writing, there is no formal "manual" of the libraries,
 except this document, header files (some of them provide pretty
 detailed explanations), and sample application programs.
 
-; $Id: README.libdns,v 1.2 2009/09/01 00:22:24 jinmei Exp $
+; $Id: README.libdns,v 1.3 2009/09/15 19:12:03 jinmei Exp $
