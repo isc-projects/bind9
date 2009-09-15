@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.478 $)
+AC_REVISION($Revision: 1.479 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -1341,7 +1341,7 @@ yes|all|minimal)
 Install perl or explicitly disable the feature by --disable-symtable.])
 	fi
 	if test "$use_libtool" = "yes"; then
-		AC_MSG_WARN([Internal symbol table does not work with libtool.  Disabling symtbol table.])
+		AC_MSG_WARN([Internal symbol table does not work with libtool.  Disabling symbol table.])
 	else
 		MKSYMTBL_PROGRAM="$PERL"
 		if test $want_symtable = all; then
