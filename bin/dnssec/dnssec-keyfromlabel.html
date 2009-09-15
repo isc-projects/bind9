@@ -13,7 +13,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: dnssec-keyfromlabel.html,v 1.9 2009/09/08 01:14:42 tbox Exp $ -->
+<!-- $Id: dnssec-keyfromlabel.html,v 1.10 2009/09/15 01:14:41 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -28,10 +28,10 @@
 </div>
 <div class="refsynopsisdiv">
 <h2>Synopsis</h2>
-<div class="cmdsynopsis"><p><code class="command">dnssec-keyfromlabel</code>  {-a <em class="replaceable"><code>algorithm</code></em>} {-l <em class="replaceable"><code>label</code></em>} [<code class="option">-A <em class="replaceable"><code>date/offset</code></em></code>] [<code class="option">-c <em class="replaceable"><code>class</code></em></code>] [<code class="option">-D <em class="replaceable"><code>date/offset</code></em></code>] [<code class="option">-f <em class="replaceable"><code>flag</code></em></code>] [<code class="option">-k</code>] [<code class="option">-K <em class="replaceable"><code>directory</code></em></code>] [<code class="option">-n <em class="replaceable"><code>nametype</code></em></code>] [<code class="option">-P <em class="replaceable"><code>date/offset</code></em></code>] [<code class="option">-p <em class="replaceable"><code>protocol</code></em></code>] [<code class="option">-R <em class="replaceable"><code>date/offset</code></em></code>] [<code class="option">-t <em class="replaceable"><code>type</code></em></code>] [<code class="option">-U <em class="replaceable"><code>date/offset</code></em></code>] [<code class="option">-v <em class="replaceable"><code>level</code></em></code>] {name}</p></div>
+<div class="cmdsynopsis"><p><code class="command">dnssec-keyfromlabel</code>  {-a <em class="replaceable"><code>algorithm</code></em>} {-l <em class="replaceable"><code>label</code></em>} [<code class="option">-A <em class="replaceable"><code>date/offset</code></em></code>] [<code class="option">-c <em class="replaceable"><code>class</code></em></code>] [<code class="option">-D <em class="replaceable"><code>date/offset</code></em></code>] [<code class="option">-f <em class="replaceable"><code>flag</code></em></code>] [<code class="option">-G</code>] [<code class="option">-I <em class="replaceable"><code>date/offset</code></em></code>] [<code class="option">-k</code>] [<code class="option">-K <em class="replaceable"><code>directory</code></em></code>] [<code class="option">-n <em class="replaceable"><code>nametype</code></em></code>] [<code class="option">-P <em class="replaceable"><code>date/offset</code></em></code>] [<code class="option">-p <em class="replaceable"><code>protocol</code></em></code>] [<code class="option">-R <em class="replaceable"><code>date/offset</code></em></code>] [<code class="option">-t <em class="replaceable"><code>type</code></em></code>] [<code class="option">-v <em class="replaceable"><code>level</code></em></code>] {name}</p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543467"></a><h2>DESCRIPTION</h2>
+<a name="id2543472"></a><h2>DESCRIPTION</h2>
 <p><span><strong class="command">dnssec-keyfromlabel</strong></span>
       gets keys with the given label from a crypto hardware and builds
       key files for DNSSEC (Secure DNS), as defined in RFC 2535
@@ -44,7 +44,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543485"></a><h2>OPTIONS</h2>
+<a name="id2543490"></a><h2>OPTIONS</h2>
 <div class="variablelist"><dl>
 <dt><span class="term">-a <em class="replaceable"><code>algorithm</code></em></span></dt>
 <dd>
@@ -96,6 +96,11 @@
             Set the specified flag in the flag field of the KEY/DNSKEY record.
             The only recognized flags are KSK (Key Signing Key) and REVOKE.
           </p></dd>
+<dt><span class="term">-G</span></dt>
+<dd><p>
+            Generate a key, but do not publish it or sign with it.  This
+            option is incompatible with -P and -A.
+          </p></dd>
 <dt><span class="term">-h</span></dt>
 <dd><p>
             Prints a short summary of the options and arguments to
@@ -130,7 +135,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543717"></a><h2>TIMING OPTIONS</h2>
+<a name="id2543734"></a><h2>TIMING OPTIONS</h2>
 <p>
       Dates can be expressed in the format YYYYMMDD or YYYYMMDDHHMMSS.
       If the argument begins with a '+' or '-', it is interpreted as
@@ -146,13 +151,15 @@
 <dd><p>
             Sets the date on which a key is to be published to the zone.
             After that date, the key will be included in the zone but will
-            not be used to sign it.
+            not be used to sign it.  If not set, and if the -G option has
+            not been used, the default is "now".
           </p></dd>
 <dt><span class="term">-A <em class="replaceable"><code>date/offset</code></em></span></dt>
 <dd><p>
             Sets the date on which the key is to be activated.  After that
             date, the key will be included and the zone and used to sign
-            it.
+            it.  If not set, and if the -G option has not been used, the
+            default is "now".
           </p></dd>
 <dt><span class="term">-R <em class="replaceable"><code>date/offset</code></em></span></dt>
 <dd><p>
@@ -162,22 +169,20 @@
           </p></dd>
 <dt><span class="term">-U <em class="replaceable"><code>date/offset</code></em></span></dt>
 <dd><p>
-            Sets the date on which the key is to be unpublished.  After that
-            date, the key will no longer be included in the zone, but it
-            may remain in the key repository.
+            Sets the date on which the key is to be retired.  After that
+            date, the key will still be included in the zone, but it
+            will not be used to sign it.
           </p></dd>
 <dt><span class="term">-D <em class="replaceable"><code>date/offset</code></em></span></dt>
 <dd><p>
             Sets the date on which the key is to be deleted.  After that
-            date, the key can be removed from the key repository.
-            NOTE: Keys are not currently deleted automatically; this field
-            is included for informational purposes and for future
-            development.
+            date, the key will no longer be included in the zone.  (It
+            may remain in the key repository, however.)
           </p></dd>
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543815"></a><h2>GENERATED KEY FILES</h2>
+<a name="id2543969"></a><h2>GENERATED KEY FILES</h2>
 <p>
       When <span><strong class="command">dnssec-keyfromlabel</strong></span> completes
       successfully,
@@ -216,7 +221,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544024"></a><h2>SEE ALSO</h2>
+<a name="id2544041"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">dnssec-keygen</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">dnssec-signzone</span>(8)</span>,
       <em class="citetitle">BIND 9 Administrator Reference Manual</em>,
@@ -226,7 +231,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544064"></a><h2>AUTHOR</h2>
+<a name="id2544081"></a><h2>AUTHOR</h2>
 <p><span class="corpauthor">Internet Systems Consortium</span>
     </p>
 </div>
