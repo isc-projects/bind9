@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.108 2008/12/16 02:57:24 jinmei Exp $ */
+/* $Id: dig.h,v 1.109 2009/09/15 03:13:44 each Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -324,6 +324,13 @@ setup_libs(void);
 
 void
 setup_system(void);
+
+isc_result_t
+parse_uint(isc_uint32_t *uip, const char *value, isc_uint32_t max,
+	   const char *desc);
+
+void
+parse_hmac(const char *hmacstr);
 
 dig_lookup_t *
 requeue_lookup(dig_lookup_t *lookold, isc_boolean_t servers);

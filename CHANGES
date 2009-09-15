@@ -1,3 +1,6 @@
+2679.	[func]		dig -k can now accept TSIG keys in named.conf
+			format.  [RT #20031]
+
 2678.	[func]		Treat DS queries as if "minimal-response yes;"
 			was set. [RT #20258]
 
@@ -12,7 +15,7 @@
 			  signing but is still published.
 			- The "unpublished" date (-U) is deprecated in
 			  favor of "deleted" (-D).
-			[rt20247]
+			[RT #20247]
 
 2676.	[bug]		--with-export-installdir should have been
 			--with-export-includedir. [RT #20252]
