@@ -1,4 +1,4 @@
-/* genkey - pkcs11 rsa key generator
+/* pkcs11-keygen - pkcs11 rsa key generator
  *
  * create RSASHA1 key in the keystore of an SCA6000
  * The calculation of key tag is left to the script
@@ -6,9 +6,11 @@
  * it into a zone file.
  *
  * usage:
- * genkey [-P] [-s slot] -b keysize -l label [-p pin] 
+ * pkcs11-keygen [-P] [-s slot] -b keysize -l label [-p pin] 
  *
  */
+
+#include <config.h>
 
 #include <stdio.h>
 #include <stdlib.h>
