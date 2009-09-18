@@ -1,7 +1,5 @@
 /* pkcs11-list [-P] [-s slot] [-i $id | -l $label] [-p $pin] */
 
-#include <config.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

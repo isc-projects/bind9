@@ -1,7 +1,5 @@
 /* pkcs11-destroy [-s $slot] [-i $id | -l $label] [-p $pin] */
 
-#include <config.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
