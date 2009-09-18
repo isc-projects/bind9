@@ -1,3 +1,6 @@
+2681.	[bug]		IPSECKEY RR of gateway type 3 was not correctly
+			decoded [RT #20269].
+
 2678.	[func]		Treat DS queries as if "minimal-response yes;"
 			was set. [RT #20258]
 
