@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: ddns-confgen.docbook,v 1.5 2009/07/02 22:50:24 jinmei Exp $ -->
+<!-- $Id: ddns-confgen.docbook,v 1.6 2009/09/18 22:08:55 fdupont Exp $ -->
 <refentry id="man.ddns-confgen">
   <refentryinfo>
     <date>Jan 29, 2009</date>
@@ -48,7 +48,10 @@
       <arg><option>-h</option></arg>
       <arg><option>-k <replaceable class="parameter">keyname</replaceable></option></arg>
       <arg><option>-r <replaceable class="parameter">randomfile</replaceable></option></arg>
-      <arg><option>-s name | -z zone</option></arg>
+      <group>
+        <arg choice="plain">-s <replaceable class="parameter">name</replaceable></arg>
+        <arg choice="plain">-z <replaceable class="parameter">zone</replaceable></arg>
+      </group>
       <arg><option>-q</option></arg>
       <arg choice="opt">name</arg>
     </cmdsynopsis>
