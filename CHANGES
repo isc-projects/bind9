@@ -1,3 +1,5 @@
+2681.	[bug]		IPSECKEY RR of gateway type 3 was not correctly
+			decoded [RT #20269].
 
 2672.	[bug]		Don't enable searching in 'host' when doing reverse
 			lookups. [RT #20218]
