@@ -1,5 +1,5 @@
 2681.	[bug]		IPSECKEY RR of gateway type 3 was not correctly
-			decoded [RT #20269].
+			decoded. [RT #20269]
 
 2680.	[func]		Move some contrib/pkcs11-keygen to bin/pkcs11.
 			[RT #20067]
