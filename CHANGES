@@ -1,3 +1,6 @@
+
+	--- 9.5.2 released ---
+
 2681.	[bug]		IPSECKEY RR of gateway type 3 was not correctly
 			decoded. [RT #20269]
 
