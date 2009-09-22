@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.483.36.11 2009/08/13 07:13:30 tbox Exp $ */
+/* $Id: zone.c,v 1.483.36.12 2009/09/22 08:39:44 fdupont Exp $ */
 
 /*! \file */
 
@@ -11565,7 +11565,8 @@ zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm, isc_uint16_t keyid,
 
  cleanup:
 	if (signing != NULL) {
-		dns_db_detach(&signing->db);
+		if (signing->db != NULL)
+			dns_db_detach(&signing->db);
 		if (signing->dbiterator != NULL)
 			dns_dbiterator_destroy(&signing->dbiterator);
 		isc_mem_put(zone->mctx, signing, sizeof *signing);
