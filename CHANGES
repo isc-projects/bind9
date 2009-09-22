@@ -1,3 +1,6 @@
+2682.	[bug]		"configure --enable-symtable=all" failed to
+			build. [RT #20282]
+
 2681.	[bug]		IPSECKEY RR of gateway type 3 was not correctly
 			decoded. [RT #20269]
 
