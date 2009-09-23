@@ -11,8 +11,7 @@
 2681.	[bug]		IPSECKEY RR of gateway type 3 was not correctly
 			decoded. [RT #20269]
 
-2680.	[func]		Move some contrib/pkcs11-keygen to bin/pkcs11.
-			[RT #20067]
+2680.	[func]		Move contrib/pkcs11-keygen to bin/pkcs11. [RT #20067]
 
 2679.	[func]		dig -k can now accept TSIG keys in named.conf
 			format.  [RT #20031]
