@@ -3,7 +3,7 @@
 			not defined by protocol (but is legal).  [RT #19943]
 
 2686.	[bug]		dnssec-signzone should clean the old NSEC chain when
-			signing with NSEC3 and vica versa. [RT #20301]
+			signing with NSEC3 and vice versa. [RT #20301]
 
 2685.	[contrib]	Update contrib/zkt to version 0.99c. [RT #20054]
 
