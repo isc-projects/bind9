@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.c,v 1.14.128.4 2008/08/08 05:10:34 marka Exp $ */
+/* $Id: net.c,v 1.14.128.5 2009/09/23 00:46:47 each Exp $ */
 
 #include <config.h>
 
@@ -197,7 +197,7 @@ try_ipv6only(void) {
 	ipv6only_result = ISC_R_SUCCESS;
 
 close:
-	closeocket(s);
+	closesocket(s);
 	return;
 #endif /* IPV6_V6ONLY */
 }
