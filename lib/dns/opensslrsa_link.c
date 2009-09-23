@@ -17,14 +17,11 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.27 2009/09/07 12:54:59 fdupont Exp $
+ * $Id: opensslrsa_link.c,v 1.28 2009/09/23 11:16:50 fdupont Exp $
  */
 #ifdef OPENSSL
 #ifndef USE_EVP
 #define USE_EVP 1
-#endif
-#if USE_EVP
-#define USE_EVP_RSA 1
 #endif
 
 #include <config.h>

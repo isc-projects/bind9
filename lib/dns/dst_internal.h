@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_internal.h,v 1.17 2009/09/03 04:09:58 marka Exp $ */
+/* $Id: dst_internal.h,v 1.18 2009/09/23 11:16:50 fdupont Exp $ */
 
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1
@@ -100,7 +100,7 @@ struct dst_key {
 		void *generic;
 		gss_ctx_id_t gssctx;
 #ifdef OPENSSL
-#if USE_EVP_RSA
+#if !defined(USE_EVP) || !USE_EVP
 		RSA *rsa;
 #endif
 		DSA *dsa;
