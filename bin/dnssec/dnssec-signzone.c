@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.232 2009/09/23 16:01:56 each Exp $ */
+/* $Id: dnssec-signzone.c,v 1.233 2009/09/23 23:47:56 tbox Exp $ */
 
 /*! \file */
 
@@ -1699,7 +1699,7 @@ verifyzone(void) {
 					algbuf, ksk_algorithms[i],
 					standby_ksk[i], revoked_ksk[i]);
 				fprintf(stderr, "%*sZSKs: "
-				        "%u active, %u stand-by, %u revoked\n",
+					"%u active, %u stand-by, %u revoked\n",
 					(int) strlen(algbuf) + 13, "",
 					zsk_algorithms[i],
 					standby_zsk[i], revoked_zsk[i]);
@@ -1997,7 +1997,7 @@ nsecify(void) {
 		dns_db_detachnode(gdb, &node);
 	}
 	dns_dbiterator_destroy(&dbiter);
-	
+
 	result = dns_db_createiterator(gdb, DNS_DB_NONSEC3, &dbiter);
 	check_result(result, "dns_db_createiterator()");
 
