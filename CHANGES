@@ -1,3 +1,6 @@
+2684.	[bug]		dnssec-signzone should clean the old NSEC chain when
+			signing with NSEC3 and vica versa. [RT #20301]
+
 2685.	[contrib]	Update contrib/zkt to version 0.99c. [RT #20054]
 
 2684.	[cleanup]	dig: formalize +ad and +cd as synonyms for
