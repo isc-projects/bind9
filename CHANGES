@@ -1,3 +1,7 @@
+2683.	[bug]		dnssec-signzone should clean out old NSEC3 chains when
+			the NSEC3 parameters used to sign the zone change.
+			[RT #20246]
+
 2682.	[bug]		"configure --enable-symtable=all" failed to
 			build. [RT #20282]
 
