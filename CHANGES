@@ -1,3 +1,7 @@
+2683.	[bug]		dnssec-signzone should clean out old NSEC3 chains when
+			the NSEC3 parameters used to sign the zone change.
+			[RT #20246]
+
 2681.	[bug]		IPSECKEY RR of gateway type 3 was not correctly
 			decoded. [RT #20269]
 

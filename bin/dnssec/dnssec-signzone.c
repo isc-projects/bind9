@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.209.12.12 2009/07/21 03:33:05 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.209.12.13 2009/09/23 07:08:01 marka Exp $ */
 
 /*! \file */
 
@@ -180,8 +180,9 @@ static isc_boolean_t disable_zone_check = ISC_FALSE;
 static void
 sign(isc_task_t *task, isc_event_t *event);
 
-static isc_boolean_t
-nsec3only(dns_dbnode_t *node);
+#define check_dns_dbiterator_current(result) \
+	check_result((result == DNS_R_NEWORIGIN) ? ISC_R_SUCCESS : result, \
+		     "dns_dbiterator_current()")
 
 static void
 dumpnode(dns_name_t *name, dns_dbnode_t *node) {
@@ -1615,7 +1616,8 @@ verifyzone(void) {
 	while (!done) {
 		isc_boolean_t isdelegation = ISC_FALSE;
 
-		dns_dbiterator_current(dbiter, &node, name);
+		result = dns_dbiterator_current(dbiter, &node, name);
+		check_dns_dbiterator_current(result);
 		if (delegation(name, node, NULL)) {
 			zonecut = dns_fixedname_name(&fzonecut);
 			dns_name_copy(name, zonecut, NULL);
@@ -1628,8 +1630,7 @@ verifyzone(void) {
 		while (result == ISC_R_SUCCESS) {
 			result = dns_dbiterator_current(dbiter, &nextnode,
 							nextname);
-			if (result != ISC_R_SUCCESS)
-				break;
+			check_dns_dbiterator_current(result);
 			if (!dns_name_issubdomain(nextname, gorigin) ||
 			    (zonecut != NULL &&
 			     dns_name_issubdomain(nextname, zonecut)))
@@ -1657,7 +1658,8 @@ verifyzone(void) {
 	for (result = dns_dbiterator_first(dbiter);
 	     result == ISC_R_SUCCESS;
 	     result = dns_dbiterator_next(dbiter) ) {
-		dns_dbiterator_current(dbiter, &node, name);
+		result = dns_dbiterator_current(dbiter, &node, name);
+		check_dns_dbiterator_current(result);
 		verifynode(name, node, ISC_FALSE, &rdataset,
 			   ksk_algorithms, bad_algorithms);
 		dns_db_detachnode(gdb, &node);
@@ -1722,7 +1724,7 @@ signapex(void) {
 	result = dns_dbiterator_seek(gdbiter, gorigin);
 	check_result(result, "dns_dbiterator_seek()");
 	result = dns_dbiterator_current(gdbiter, &node, name);
-	check_result(result, "dns_dbiterator_current()");
+	check_dns_dbiterator_current(result);
 	signname(node, name);
 	dumpnode(name, node);
 	cleannode(gdb, gversion, node);
@@ -1774,9 +1776,7 @@ assignwork(isc_task_t *task, isc_task_t *worker) {
 	found = ISC_FALSE;
 	while (!found) {
 		result = dns_dbiterator_current(gdbiter, &node, name);
-		if (result != ISC_R_SUCCESS)
-			fatal("failure iterating database: %s",
-			      isc_result_totext(result));
+		check_dns_dbiterator_current(result);
 		/*
 		 * The origin was handled by signapex().
 		 */
@@ -1970,7 +1970,8 @@ nsecify(void) {
 	check_result(result, "dns_dbiterator_first()");
 
 	while (!done) {
-		dns_dbiterator_current(dbiter, &node, name);
+		result = dns_dbiterator_current(dbiter, &node, name);
+		check_dns_dbiterator_current(result);
 		if (delegation(name, node, &nsttl)) {
 			zonecut = dns_fixedname_name(&fzonecut);
 			dns_name_copy(name, zonecut, NULL);
@@ -1983,8 +1984,7 @@ nsecify(void) {
 			isc_boolean_t active = ISC_FALSE;
 			result = dns_dbiterator_current(dbiter, &nextnode,
 							nextname);
-			if (result != ISC_R_SUCCESS)
-				break;
+			check_dns_dbiterator_current(result);
 			active = active_node(nextnode);
 			if (!active) {
 				dns_db_detachnode(gdb, &nextnode);
@@ -2015,37 +2015,6 @@ nsecify(void) {
 	}
 
 	dns_dbiterator_destroy(&dbiter);
-}
-
-/*%
- * Does this node only contain NSEC3 records or RRSIG records or is empty.
- */
-static isc_boolean_t
-nsec3only(dns_dbnode_t *node) {
-	dns_rdatasetiter_t *rdsiter = NULL;
-	isc_result_t result;
-	dns_rdataset_t rdataset;
-	isc_boolean_t answer = ISC_TRUE;
-
-	dns_rdataset_init(&rdataset);
-	result = dns_db_allrdatasets(gdb, node, gversion, 0, &rdsiter);
-	check_result(result, "dns_db_allrdatasets()");
-	result = dns_rdatasetiter_first(rdsiter);
-	while (result == ISC_R_SUCCESS) {
-		dns_rdatasetiter_current(rdsiter, &rdataset);
-		if (rdataset.type != dns_rdatatype_nsec3 &&
-		    rdataset.type != dns_rdatatype_rrsig) {
-			answer = ISC_FALSE;
-			result = ISC_R_NOMORE;
-		} else
-			result = dns_rdatasetiter_next(rdsiter);
-		dns_rdataset_disassociate(&rdataset);
-	}
-	if (result != ISC_R_NOMORE)
-		fatal("rdataset iteration failed: %s",
-		      isc_result_totext(result));
-	dns_rdatasetiter_destroy(&rdsiter);
-	return (answer);
 }
 
 static void
@@ -2088,6 +2057,16 @@ addnsec3param(const unsigned char *salt, size_t salt_length,
 
 	result = dns_db_findnode(gdb, gorigin, ISC_TRUE, &node);
 	check_result(result, "dns_db_find(gorigin)");
+
+	/*
+	 * Delete any current NSEC3PARAM records.
+	 */
+	result = dns_db_deleterdataset(gdb, node, gversion,
+				       dns_rdatatype_nsec3param, 0);
+	if (result == DNS_R_UNCHANGED)
+		result = ISC_R_SUCCESS;
+	check_result(result, "dddnsec3param: dns_db_deleterdataset()");
+
 	result = dns_db_addrdataset(gdb, node, gversion, 0, &rdataset,
 				    DNS_DBADD_MERGE, NULL);
 	if (result == DNS_R_UNCHANGED)
@@ -2176,6 +2155,7 @@ nsec3clean(dns_name_t *name, dns_dbnode_t *node,
 	isc_buffer_t target;
 	isc_result_t result;
 	unsigned char hash[NSEC3_MAX_HASH_LENGTH + 1];
+	isc_boolean_t exists;
 
 	/*
 	 * Get the first label.
@@ -2197,8 +2177,7 @@ nsec3clean(dns_name_t *name, dns_dbnode_t *node,
 
 	hash[isc_buffer_usedlength(&target)] = 0;
 
-	if (hashlist_exists(hashlist, hash))
-		return;
+	exists = hashlist_exists(hashlist, hash);
 
 	/*
 	 * Verify that the NSEC3 parameters match the current ones
@@ -2213,8 +2192,8 @@ nsec3clean(dns_name_t *name, dns_dbnode_t *node,
 		return;
 
 	/*
-	 * Delete any matching NSEC3 records which have parameters that
-	 * match the NSEC3 chain we are building.
+	 * Delete any NSEC3 records which are not part of the current
+	 * NSEC3 chain.
 	 */
 	for (result = dns_rdataset_first(&rdataset);
 	     result == ISC_R_SUCCESS;
@@ -2223,11 +2202,11 @@ nsec3clean(dns_name_t *name, dns_dbnode_t *node,
 		dns_rdataset_current(&rdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &nsec3, NULL);
 		check_result(result, "dns_rdata_tostruct");
-		if (nsec3.hash == hashalg &&
+		if (exists && nsec3.hash == hashalg &&
 		    nsec3.iterations == iterations &&
 		    nsec3.salt_length == salt_length &&
 		    !memcmp(nsec3.salt, salt, salt_length))
-			break;
+			continue;
 		rdatalist.rdclass = rdata.rdclass;
 		rdatalist.type = rdata.type;
 		rdatalist.covers = 0;
@@ -2241,7 +2220,7 @@ nsec3clean(dns_name_t *name, dns_dbnode_t *node,
 		result = dns_db_subtractrdataset(gdb, node, gversion,
 						 &delrdataset, 0, NULL);
 		dns_rdataset_disassociate(&delrdataset);
-		if (result != ISC_R_SUCCESS && result != DNS_R_UNCHANGED)
+		if (result != ISC_R_SUCCESS && result != DNS_R_NXRRSET)
 			check_result(result, "dns_db_subtractrdataset(NSEC3)");
 		delete_rrsigs = ISC_TRUE;
 	}
@@ -2296,14 +2275,14 @@ nsec3ify(unsigned int hashalg, unsigned int iterations,
 	check_result(result, "dns_dbiterator_first()");
 
 	while (!done) {
-		dns_dbiterator_current(dbiter, &node, name);
+		result = dns_dbiterator_current(dbiter, &node, name);
+		check_dns_dbiterator_current(result);
 		result = dns_dbiterator_next(dbiter);
 		nextnode = NULL;
 		while (result == ISC_R_SUCCESS) {
 			result = dns_dbiterator_current(dbiter, &nextnode,
 							nextname);
-			if (result != ISC_R_SUCCESS)
-				break;
+			check_dns_dbiterator_current(result);
 			active = active_node(nextnode);
 			if (!active) {
 				dns_db_detachnode(gdb, &nextnode);
@@ -2385,6 +2364,26 @@ nsec3ify(unsigned int hashalg, unsigned int iterations,
 
 	addnsec3param(salt, salt_length, iterations);
 
+	/*
+	 * Clean out NSEC3 records which don't match this chain.
+	 */
+	result = dns_db_createiterator(gdb, DNS_DB_NSEC3ONLY, &dbiter);
+	check_result(result, "dns_db_createiterator()");
+
+	for (result = dns_dbiterator_first(dbiter);
+	     result == ISC_R_SUCCESS;
+	     result = dns_dbiterator_next(dbiter)) {
+		result = dns_dbiterator_current(dbiter, &node, name);
+		check_dns_dbiterator_current(result);
+		nsec3clean(name, node, hashalg, iterations, salt, salt_length,
+			   hashlist);
+		dns_db_detachnode(gdb, &node);
+	}
+	dns_dbiterator_destroy(&dbiter);
+
+	/*
+	 * Generate / complete the new chain.
+	 */
 	result = dns_db_createiterator(gdb, DNS_DB_NONSEC3, &dbiter);
 	check_result(result, "dns_db_createiterator()");
 
@@ -2392,25 +2391,16 @@ nsec3ify(unsigned int hashalg, unsigned int iterations,
 	check_result(result, "dns_dbiterator_first()");
 
 	while (!done) {
-		dns_dbiterator_current(dbiter, &node, name);
+		result = dns_dbiterator_current(dbiter, &node, name);
+		check_dns_dbiterator_current(result);
 		result = dns_dbiterator_next(dbiter);
 		nextnode = NULL;
 		while (result == ISC_R_SUCCESS) {
 			result = dns_dbiterator_current(dbiter, &nextnode,
 							nextname);
-			if (result != ISC_R_SUCCESS)
-				break;
-			/*
-			 * Cleanout NSEC3 RRsets which don't exist in the
-			 * hash table.
-			 */
-			nsec3clean(nextname, nextnode, hashalg, iterations,
-				   salt, salt_length, hashlist);
-			/*
-			 * Skip NSEC3 only nodes when looking for the next
-			 * node in the zone.  Also skips now empty nodes.
-			 */
-			if (nsec3only(nextnode)) {
+			check_dns_dbiterator_current(result);
+			active = active_node(nextnode);
+			if (!active) {
 				dns_db_detachnode(gdb, &nextnode);
 				result = dns_dbiterator_next(dbiter);
 				continue;
