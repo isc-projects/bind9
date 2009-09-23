@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.209.12.14 2009/09/23 14:06:42 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.209.12.15 2009/09/23 23:47:14 tbox Exp $ */
 
 /*! \file */
 
@@ -1983,7 +1983,7 @@ nsecify(void) {
 		dns_db_detachnode(gdb, &node);
 	}
 	dns_dbiterator_destroy(&dbiter);
-	
+
 	result = dns_db_createiterator(gdb, DNS_DB_NONSEC3, &dbiter);
 	check_result(result, "dns_db_createiterator()");
 
