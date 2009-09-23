@@ -135,7 +135,8 @@ library must be specified via configure.
 
         cd ../bind-9.7.0a3
         ./configure CC="gcc -m32" --enable-threads \
-            --with-openssl=/opt/pkcs11/usr
+            --with-openssl=/opt/pkcs11/usr \
+            --with-pkcs11=/opt/pkcs11/usr/lib/libpkcs11.so
 
     EXAMPLE 4--CONFIGURING BIND 9 FOR SOLARIS
 
@@ -144,7 +145,8 @@ library must be specified via configure.
 
         cd ../bind-9.7.0a3
         ./configure CC="cc -xarch=amd64" --enable-threads \
-            --with-openssl=/opt/pkcs11/usr
+            --with-openssl=/opt/pkcs11/usr \
+            -with-pkcs11=/usr/lib/64/libpkcs11.so
 
     (For a 32-bit build, omit CC="cc -xarch=amd64".)
 
@@ -157,34 +159,12 @@ After configuring, run "make", "make test" and "make install".
 
 PKCS #11 TOOLS
 
-The contrib/pkcs11-keygen directory contains a set of experimental
-tools to operate an HSM for the benefit of BIND 9, including "genkey" to
-generate a new key pair within the HSM, and "listobjs" to list keys
-currently available.
+The bin/pkcs11 directory contains a set of tools to operate an HSM for
+the benefit of BIND 9, including "pkcs11-keygen" to generate a new key
+pair within the HSM, "pkcs11-list" to list objects currently available
+and "pkcs11-destroy" to remove objects.
 
-These tools are not yet complete, not documented, and not supported
-by ISC.  As of BIND 9.7.0a3, they still lack such basic amenities as
-a Makefile.  Other commercial or open-source PKCS #11 tools may be
-available which are better-suited to the job.  However, in the
-absence of those tools, the ones provided in contrib/pkcs11-keygen
-can get you started.
-
-    EXAMPLE 5--BUILDING TOOLS ON LINUX:
-
-    gcc -m32 -DHAVE_GETPASS -I. -L /opt/pkcs11/usr/lib \
-        genkey.c -o genkey -lpkcs11
-    gcc -m32 -DHAVE_GETPASS -I. -L /opt/pkcs11/usr/lib \
-        listobjs.c -o listobjs -lpkcs11
-    gcc -m32 -DHAVE_GETPASS -I. -L /opt/pkcs11/usr/lib \
-        destroyobj.c -o destroyobj -lpkcs11
-    cd ../..
-
-    EXAMPLE 6--BUILDING TOOLS ON SOLARIS WITH SCA 6000:
-
-    cc -I. genkey.c -o genkey -lpkcs11
-    cc -I. listobjs.c -o listobjs -lpkcs11
-    cc -I. destroyobj.c -o destroyobj -lpkcs11
-    cd ../..
+<<<To Finish with 20225 and children about --with-pkcs11>>>
 
 USING THE HSM
 
@@ -201,17 +181,17 @@ for use by PKCS #11 provider library.  If the machine file is in
     export KEYPER_LIBRARY_PATH=/opt/Keyper/PKCS11Provider
 
 These environment variables must be set whenever running any tool
-which uses the HSM, including genkey, listobjs, destroyobj,
+which uses the HSM, including pkcs11-keygen, pkcs11-list, pkcs11-destroy,
 dnssec-keyfromlabel, dnssec-signzone, and named.
 
 We can now create and use keys in the HSM.  In this case, we will
 create a 2048 bit key and give it the label "sample-ksk":
 
-    contrib/pkcs11-keygen/genkey -b 2048 -l sample-ksk
+    pkcs11-keygen -b 2048 -l sample-ksk
 
 To confirm that the key exists:
 
-    contrib/pkcs11-keygen/listobjs
+    pkcs11-list
     Enter PIN:
     object[0]: handle 2147483658 class 3 label[8] 'sample-ksk' id[0] 
     object[1]: handle 2147483657 class 2 label[8] 'sample-ksk' id[0] 
@@ -239,7 +219,7 @@ key, follow the same procedure above, using a different keylabel, a
 smaller key size, and omitting "-f KSK" from the dnssec-keyfromlabel
 arguments:
 
-    contrib/pkcs11-keygen/genkey -b 1024 -l sample-zsk
+    pkcs11-keygen -b 1024 -l sample-zsk
     dnssec-keyfromlabel -a NSEC3RSASHA1 -l pkcs11:sample-zsk example.net
 
 Alternatively, you may prefer to generate a conventional on-disk key, using
