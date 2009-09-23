@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.230 2009/09/15 03:13:43 each Exp $ */
+/* $Id: dig.c,v 1.231 2009/09/23 06:21:36 each Exp $ */
 
 /*! \file */
 
@@ -733,6 +733,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				lookup->section_additional = state;
 				break;
 			case 'f': /* adflag */
+			case '\0': /* +ad is a synonym for +adflag */
 				FULLCHECK("adflag");
 				lookup->adflag = state;
 				break;
@@ -787,8 +788,15 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 	case 'c':
 		switch (cmd[1]) {
 		case 'd':/* cdflag */
-			FULLCHECK("cdflag");
-			lookup->cdflag = state;
+			switch (cmd[2]) {
+			case 'f': /* cdflag */
+			case '\0': /* +cd is a synonym for +cdflag */
+				FULLCHECK("cdflag");
+				lookup->cdflag = state;
+				break;
+			default:
+				goto invalid_option;
+			}
 			break;
 		case 'l': /* cl */
 			FULLCHECK("cl");

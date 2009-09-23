@@ -1,3 +1,6 @@
+2684.	[cleanup]	dig: formalize +ad and +cd as synonyms for
+			+adflag and +cdflag.  [RT #19305]
+
 2683.	[bug]		dnssec-signzone should clean out old NSEC3 chains when
 			the NSEC3 parameters used to sign the zone change.
 			[RT #20246]
