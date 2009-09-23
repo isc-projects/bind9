@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keyfromlabel.c,v 1.14 2009/09/14 18:45:45 each Exp $ */
+/* $Id: dnssec-keyfromlabel.c,v 1.15 2009/09/23 16:01:56 each Exp $ */
 
 /*! \file */
 
@@ -406,8 +406,15 @@ main(int argc, char **argv) {
 		else if (!genonly)
 			dst_key_settime(key, DST_TIME_ACTIVATE, now);
 
-		if (setrev)
+		if (setrev) {
+			if (kskflag == 0)
+				fprintf(stderr, "%s: warning: Key is "
+					"not flagged as a KSK, but -R "
+					"was used. Revoking a ZSK is "
+					"legal, but undefined.\n",
+					program);
 			dst_key_settime(key, DST_TIME_REVOKE, revoke);
+		}
 
 		if (setinact)
 			dst_key_settime(key, DST_TIME_INACTIVE, inactive);

@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-settime.c,v 1.12 2009/09/14 18:45:45 each Exp $ */
+/* $Id: dnssec-settime.c,v 1.13 2009/09/23 16:01:56 each Exp $ */
 
 /*! \file */
 
@@ -364,6 +364,11 @@ main(int argc, char **argv) {
 			fprintf(stderr, "%s: warning: Key %s is already "
 					"revoked; changing the revocation date "
 					"will not affect this.\n",
+					program, keystr);
+		if ((dst_key_flags(key) & DNS_KEYFLAG_KSK) == 0)
+			fprintf(stderr, "%s: warning: Key %s is not flagged as "
+					"a KSK, but -R was used.  Revoking a "
+					"ZSK is legal, but undefined.\n",
 					program, keystr);
 		dst_key_settime(key, DST_TIME_REVOKE, rev);
 	} else if (unsetrev) {

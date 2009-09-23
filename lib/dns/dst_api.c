@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.30 2009/09/14 18:45:45 each Exp $
+ * $Id: dst_api.c,v 1.31 2009/09/23 16:01:57 each Exp $
  */
 
 /*! \file */
@@ -825,24 +825,99 @@ dst_key_setprivateformat(dst_key_t *key, int major, int minor) {
 	key->fmt_minor = minor;
 }
 
-isc_boolean_t
-dst_key_compare(const dst_key_t *key1, const dst_key_t *key2) {
+static isc_boolean_t
+comparekeys(const dst_key_t *key1, const dst_key_t *key2,
+	    isc_boolean_t match_revoked_key,
+	    isc_boolean_t (*compare)())
+{
 	REQUIRE(dst_initialized == ISC_TRUE);
 	REQUIRE(VALID_KEY(key1));
 	REQUIRE(VALID_KEY(key2));
 
 	if (key1 == key2)
 		return (ISC_TRUE);
+
 	if (key1 == NULL || key2 == NULL)
 		return (ISC_FALSE);
-	if (key1->key_alg == key2->key_alg &&
-	    key1->key_id == key2->key_id &&
-	    key1->func->compare != NULL &&
-	    key1->func->compare(key1, key2) == ISC_TRUE)
-		return (ISC_TRUE);
+
+	if (key1->key_alg != key2->key_alg)
+		return (ISC_FALSE);
+
+	/*
+	 * For all algorithms except RSAMD5, revoking the key
+	 * changes the key ID, increasing it by 128.  If we want to
+	 * be able to find matching keys even if one of them is the
+	 * revoked version of the other one, then we need to check
+	 * for that possibility.
+	 */
+	if (key1->key_id != key2->key_id) {
+		if (!match_revoked_key)
+			return (ISC_FALSE);
+		if (key1->key_alg == DST_ALG_RSAMD5)
+			return (ISC_FALSE);
+		if ((key1->key_flags & DNS_KEYFLAG_REVOKE) ==
+		    (key2->key_flags & DNS_KEYFLAG_REVOKE))
+			return (ISC_FALSE);
+		if ((key1->key_flags & DNS_KEYFLAG_REVOKE) != 0 &&
+		    key1->key_id != ((key2->key_id + 128) & 0xffff))
+			return (ISC_FALSE);
+		if ((key2->key_flags & DNS_KEYFLAG_REVOKE) != 0 &&
+		    key2->key_id != ((key1->key_id + 128) & 0xffff))
+			return (ISC_FALSE);
+	}
+
+	if (compare != NULL)
+		return (compare(key1, key2));
 	else
 		return (ISC_FALSE);
 }
+
+
+/*
+ * Compares only the public portion of two keys, by converting them
+ * both to wire format and comparing the results.
+ */
+static isc_boolean_t
+pub_compare(dst_key_t *key1, dst_key_t *key2) {
+	isc_result_t result;
+	unsigned char txt1[DST_KEY_MAXSIZE], txt2[DST_KEY_MAXSIZE];
+	isc_buffer_t b1, b2;
+	isc_region_t r1, r2;
+	isc_uint16_t flags;
+
+	flags = key1->key_flags;
+	key1->key_flags = 0;
+	isc_buffer_init(&b1, txt1, sizeof(txt1));
+	result = dst_key_todns(key1, &b1);
+	key1->key_flags = flags;
+	if (result != ISC_R_SUCCESS)
+		return (ISC_FALSE);
+
+	flags = key2->key_flags;
+	key2->key_flags = 0;
+	isc_buffer_init(&b2, txt2, sizeof(txt2));
+	result = dst_key_todns(key2, &b2);
+	key2->key_flags = flags;
+	if (result != ISC_R_SUCCESS)
+		return (ISC_FALSE);
+
+	isc_buffer_usedregion(&b1, &r1);
+	isc_buffer_usedregion(&b2, &r2);
+	return (ISC_TF(isc_region_compare(&r1, &r2) == 0));
+}
+
+isc_boolean_t
+dst_key_compare(const dst_key_t *key1, const dst_key_t *key2) {
+	return (comparekeys(key1, key2, ISC_FALSE, key1->func->compare));
+}
+
+isc_boolean_t
+dst_key_pubcompare(const dst_key_t *key1, const dst_key_t *key2,
+		   isc_boolean_t match_revoked_key)
+{
+	return (comparekeys(key1, key2, match_revoked_key, pub_compare));
+}
+
 
 isc_boolean_t
 dst_key_paramcompare(const dst_key_t *key1, const dst_key_t *key2) {

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.18 2009/09/14 18:45:45 each Exp $ */
+/* $Id: dst.h,v 1.19 2009/09/23 16:01:57 each Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -494,7 +494,10 @@ dst_key_generate(dns_name_t *name, unsigned int alg,
 isc_boolean_t
 dst_key_compare(const dst_key_t *key1, const dst_key_t *key2);
 /*%<
- * Compares two DST keys.
+ * Compares two DST keys.  Returns true if they match, false otherwise.
+ *
+ * Keys ARE NOT considered to match if one of them is the revoked version
+ * of the other.
  *
  * Requires:
  *\li	"key1" is a valid key.
@@ -505,6 +508,26 @@ dst_key_compare(const dst_key_t *key1, const dst_key_t *key2);
  * \li	ISC_FALSE
  */
 
+isc_boolean_t
+dst_key_pubcompare(const dst_key_t *key1, const dst_key_t *key2,
+		   isc_boolean_t match_revoked_key);
+/*%<
+ * Compares only the public portions of two DST keys.  Returns true
+ * if they match, false otherwise.  This allows us, for example, to
+ * determine whether a public key found in a zone matches up with a
+ * key pair found on disk.
+ *
+ * If match_revoked_key is TRUE, then keys ARE considered to match if one
+ * of them is the revoked version of the other. Otherwise, they are not.
+ *
+ * Requires:
+ *\li	"key1" is a valid key.
+ *\li	"key2" is a valid key.
+ *
+ * Returns:
+ *\li 	ISC_TRUE
+ * \li	ISC_FALSE
+ */
 isc_boolean_t
 dst_key_paramcompare(const dst_key_t *key1, const dst_key_t *key2);
 /*%<

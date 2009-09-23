@@ -1,3 +1,7 @@
+2685.	[bug]		Fixed dnssec-signzone -S handling of revoked keys.
+			Also, added warnings when revoking a ZSK, as this is
+			not defined by protocol (but is legal).  [RT #19943]
+
 2684.	[bug]		dnssec-signzone should clean the old NSEC chain when
 			signing with NSEC3 and vica versa. [RT #20301]
 

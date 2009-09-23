@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.95 2009/09/14 18:45:45 each Exp $ */
+/* $Id: dnssec-keygen.c,v 1.96 2009/09/23 16:01:56 each Exp $ */
 
 /*! \file */
 
@@ -686,17 +686,24 @@ main(int argc, char **argv) {
 
 			if (setpub)
 				dst_key_settime(key, DST_TIME_PUBLISH, publish);
-			else if (!genonly)
+			else if (!genonly && !setact)
 				dst_key_settime(key, DST_TIME_PUBLISH, now);
 
 			if (setact)
 				dst_key_settime(key, DST_TIME_ACTIVATE,
 						activate);
-			else if (!genonly)
+			else if (!genonly && !setpub)
 				dst_key_settime(key, DST_TIME_ACTIVATE, now);
 
-			if (setrev)
+			if (setrev) {
+				if (kskflag == 0)
+					fprintf(stderr, "%s: warning: Key is "
+						"not flagged as a KSK, but -R "
+						"was used. Revoking a ZSK is "
+						"legal, but undefined.\n",
+						program);
 				dst_key_settime(key, DST_TIME_REVOKE, revoke);
+			}
 
 			if (setinact)
 				dst_key_settime(key, DST_TIME_INACTIVE,

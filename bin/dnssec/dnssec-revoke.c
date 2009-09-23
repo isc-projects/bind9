@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-revoke.c,v 1.11 2009/09/04 16:57:22 each Exp $ */
+/* $Id: dnssec-revoke.c,v 1.12 2009/09/23 16:01:56 each Exp $ */
 
 /*! \file */
 
@@ -170,6 +170,13 @@ main(int argc, char **argv) {
 	flags = dst_key_flags(key);
 	if ((flags & DNS_KEYFLAG_REVOKE) == 0) {
 		isc_stdtime_t now;
+
+
+		if ((flags & DNS_KEYFLAG_KSK) == 0)
+			fprintf(stderr, "%s: warning: Key is not flagged "
+					"as a KSK. Revoking a ZSK is "
+					"legal, but undefined.\n",
+					program);
 
 		isc_stdtime_get(&now);
 		dst_key_settime(key, DST_TIME_REVOKE, now);
