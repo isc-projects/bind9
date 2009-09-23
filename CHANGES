@@ -1,4 +1,4 @@
-2684.	[bug]		dnssec-signzone should clean the old NSEC chain when
+2686.	[bug]		dnssec-signzone should clean the old NSEC chain when
 			signing with NSEC3 and vica versa. [RT #20301]
 
 2683.	[bug]		dnssec-signzone should clean out old NSEC3 chains when
