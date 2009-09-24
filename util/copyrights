@@ -230,6 +230,7 @@
 ./bin/nsupdate/win32/nsupdate.dsw		X	2001
 ./bin/nsupdate/win32/nsupdate.mak		X	2001,2002,2004,2005,2006,2009
 ./bin/pkcs11/.cvsignore				X	2009
+./bin/pkcs11/OLD-PKCS11-NOTES			X	2009
 ./bin/pkcs11/pkcs11-destroy.c			X	2009
 ./bin/pkcs11/pkcs11-keygen.c			X	2009
 ./bin/pkcs11/pkcs11-list.c			X	2009
