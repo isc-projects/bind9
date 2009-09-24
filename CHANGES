@@ -1,3 +1,6 @@
+2688.	[bug]		Use INTERFACE_F_POINTTOPOINT, not IFF_POINTOPOINT,
+			to decide to fetch the destination address. [RT #20305]
+
 2686.	[bug]		dnssec-signzone should clean the old NSEC chain when
 			signing with NSEC3 and vice versa. [RT #20301]
 

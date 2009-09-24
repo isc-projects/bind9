@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_getifaddrs.c,v 1.11 2008/03/20 23:47:00 tbox Exp $ */
+/* $Id: ifiter_getifaddrs.c,v 1.11.120.1 2009/09/24 06:42:18 marka Exp $ */
 
 /*! \file
  * \brief
@@ -181,7 +181,7 @@ internal_current(isc_interfaceiter_t *iter) {
 			 ifa->ifa_name);
 
 	if (ifa->ifa_dstaddr != NULL &&
-	    (iter->current.flags & IFF_POINTOPOINT) != 0)
+	    (iter->current.flags & INTERFACE_F_POINTTOPOINT) != 0)
 		get_addr(family, &iter->current.dstaddress, ifa->ifa_dstaddr,
 			 ifa->ifa_name);
 
