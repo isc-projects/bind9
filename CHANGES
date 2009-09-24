@@ -1,3 +1,5 @@
+2689.	[bug]		Correctly handle snprintf result. [RT #20306]
+
 2688.	[bug]		Use INTERFACE_F_POINTTOPOINT, not IFF_POINTOPOINT,
 			to decide to fetch the destination address. [RT #20305]
 

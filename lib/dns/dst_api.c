@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.31 2009/09/23 16:01:57 each Exp $
+ * $Id: dst_api.c,v 1.32 2009/09/24 22:19:08 marka Exp $
  */
 
 /*! \file */
@@ -1508,6 +1508,8 @@ addsuffix(char *filename, unsigned int len, const char *odirname,
 		n = snprintf(filename, len, "%s/%.*s%s",
 			     odirname, olen, ofilename, suffix);
 	if (n < 0)
+		return (ISC_R_FAILURE);
+	if (n >= len)
 		return (ISC_R_NOSPACE);
 	return (ISC_R_SUCCESS);
 }
