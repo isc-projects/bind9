@@ -2,7 +2,7 @@ Copyright (C) 2004, 2005, 2008, 2009  Internet Systems Consortium, Inc. ("ISC")
 Copyright (C) 2001, 2002  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: win32-build.txt,v 1.16 2009/09/02 08:41:06 fdupont Exp $
+$Id: win32-build.txt,v 1.17 2009/09/24 13:03:39 fdupont Exp $
 
        BIND 9.7 for Win32 Source Build Instructions.  02-Jul-2009
 
@@ -64,7 +64,7 @@ to see if the build instructions have changed:
   cd openssl-0.9.8k
   perl Configure VC-WIN32 --prefix=c:/openssl
   ms\do_masm
-  nmake /f ms\ntll.mak
+  nmake /f ms\ntdll.mak
 
 Step 2: Download and build libxml2
 
