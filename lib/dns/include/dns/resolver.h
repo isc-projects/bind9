@@ -1,8 +1,8 @@
 /*
- * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.40.18.12 2009/09/24 21:38:52 jinmei Exp $ */
+/* $Id: resolver.h,v 1.40.18.13 2009/09/24 23:46:07 tbox Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
@@ -93,7 +93,7 @@ typedef struct dns_fetchevent {
 #define DNS_FETCHOPT_FORWARDONLY	0x10	     /*%< Only use forwarders. */
 #define DNS_FETCHOPT_NOVALIDATE		0x20	     /*%< Disable validation. */
 #define DNS_FETCHOPT_EDNS512		0x40	     /*%< Advertise a 512 byte
-						          UDP buffer. */
+							  UDP buffer. */
 
 #define	DNS_FETCHOPT_EDNSVERSIONSET	0x00800000
 #define	DNS_FETCHOPT_EDNSVERSIONMASK	0xff000000
@@ -487,7 +487,7 @@ dns_resolver_getclientsperquery(dns_resolver_t *resolver, isc_uint32_t *cur,
 
 isc_boolean_t
 dns_resolver_getzeronosoattl(dns_resolver_t *resolver);
- 
+
 void
 dns_resolver_setzeronosoattl(dns_resolver_t *resolver, isc_boolean_t state);
 
