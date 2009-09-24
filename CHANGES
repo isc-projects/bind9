@@ -1,3 +1,6 @@
+2688.	[bug]		Use INTERFACE_F_POINTTOPOINT, not IFF_POINTOPOINT,
+			to decide to fetch the destination address. [RT #20305]
+
 2681.	[bug]		IPSECKEY RR of gateway type 3 was not correctly
 			decoded. [RT #20269]
 
