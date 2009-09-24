@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.410.18.60 2009/07/11 04:30:49 marka Exp $ */
+/* $Id: zone.c,v 1.410.18.61 2009/09/24 21:38:52 jinmei Exp $ */
 
 /*! \file */
 
@@ -6570,7 +6570,6 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 				zone_unload(zone);
 				goto next_master;
 			}
-			zone->serial = serial;
 			zone->refresh = RANGE(refresh, zone->minrefresh,
 					      zone->maxrefresh);
 			zone->retry = RANGE(retry, zone->minretry,
@@ -6608,7 +6607,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 				buf[0] = '\0';
 			dns_zone_log(zone, ISC_LOG_INFO,
 				     "transferred serial %u%s",
-				     zone->serial, buf);
+				     serial, buf);
 		}
 
 		/*

@@ -7,6 +7,11 @@
 2672.	[bug]		Don't enable searching in 'host' when doing reverse
 			lookups. [RT #20218]
 
+2525.	[experimental]	New logging category "query-errors" to provide detailed
+			internal information about query failures, especially
+			about server failures.  (backported as a special
+			exception to the general policy) [RT #19027]
+
 	--- 9.4-ESV-20090907 released ---
 
 2670.	[bug]		Unexpected connect failures failed to log enough
