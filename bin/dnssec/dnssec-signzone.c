@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.233 2009/09/23 23:47:56 tbox Exp $ */
+/* $Id: dnssec-signzone.c,v 1.234 2009/09/24 04:36:28 each Exp $ */
 
 /*! \file */
 
@@ -163,6 +163,7 @@ static isc_boolean_t unknownalg = ISC_FALSE;
 static isc_boolean_t disable_zone_check = ISC_FALSE;
 static isc_boolean_t set_keyttl = ISC_FALSE;
 static dns_ttl_t keyttl;
+static isc_boolean_t smartsign = ISC_FALSE;
 
 #define INCSTAT(counter)		\
 	if (printstats) {		\
@@ -1553,42 +1554,54 @@ verifyzone(void) {
 	}
 	dns_rdataset_disassociate(&sigrdataset);
 
-	if (!goodksk) {
 #ifdef ALLOW_KSKLESS_ZONES
-		if (!goodzsk)
-			fatal("no self signing keys found");
-		fprintf(stderr, "No self signing KSK found. Using self signed "
-			"ZSK's for active algorithm list.\n");
+	if (!goodksk) {
+		if (!ignore_kskflag)
+			fprintf(stderr, "No self signing KSK found. Using "
+					"self signed ZSK's for active "
+					"algorithm list.\n");
 		memcpy(ksk_algorithms, self_algorithms, sizeof(ksk_algorithms));
 		if (!allzsksigned)
 			fprintf(stderr, "warning: not all ZSK's are self "
 				"signed.\n");
-#else
-		fatal("no self signed KSK's found");
-#endif
 	}
+#else
+	if (!goodksk) {
+		fatal("no self signed KSK's found");
+	}
+#endif
 
 	fprintf(stderr, "Verifying the zone using the following algorithms:");
 	for (i = 0; i < 256; i++) {
-		if (ksk_algorithms[i] != 0) {
+#ifdef ALLOW_KSKLESS_ZONES
+		if (ksk_algorithms[i] != 0 || zsk_algorithms[i] != 0)
+#else
+		if (ksk_algorithms[i] != 0)
+#endif
+		{
 			alg_format(i, algbuf, sizeof(algbuf));
 			fprintf(stderr, " %s", algbuf);
 		}
 	}
 	fprintf(stderr, ".\n");
 
-	for (i = 0; i < 256; i++) {
-		/*
-		 * The counts should both be zero or both be non-zero.
-		 * Mark the algorithm as bad if this is not met.
-		 */
-		if ((ksk_algorithms[i] != 0) == (zsk_algorithms[i] != 0))
-			continue;
-		alg_format(i, algbuf, sizeof(algbuf));
-		fprintf(stderr, "Missing %s for algorithm %s\n",
-			(ksk_algorithms[i] != 0) ? "ZSK" : "self signing KSK",
-			algbuf);
-		bad_algorithms[i] = 1;
+	if (!ignore_kskflag) {
+		for (i = 0; i < 256; i++) {
+			/*
+			 * The counts should both be zero or both be non-zero.
+			 * Mark the algorithm as bad if this is not met.
+			 */
+			if ((ksk_algorithms[i] != 0) ==
+			    (zsk_algorithms[i] != 0))
+				continue;
+			alg_format(i, algbuf, sizeof(algbuf));
+			fprintf(stderr, "Missing %s for algorithm %s\n",
+				(ksk_algorithms[i] != 0)
+				   ? "ZSK"
+				   : "self signing KSK",
+				algbuf);
+			bad_algorithms[i] = 1;
+		}
 	}
 
 	/*
@@ -1683,7 +1696,7 @@ verifyzone(void) {
 		fatal("DNSSEC completeness test failed.");
 	}
 
-	if (goodksk) {
+	if (goodksk || ignore_kskflag) {
 		/*
 		 * Print the success summary.
 		 */
@@ -2633,7 +2646,7 @@ loadzonekeys(dns_db_t *db) {
 		dns_dnsseckey_t *key = NULL;
 
 		dns_dnsseckey_create(mctx, &keys[i], &key);
-		if (key->legacy) {
+		if (key->legacy || !smartsign) {
 			key->force_publish = ISC_TRUE;
 			key->force_sign = dst_key_isprivate(key->key);
 		}
@@ -2691,10 +2704,26 @@ loadzonepubkeys(dns_db_t *db) {
 			goto next;
 		}
 
-		dns_dnsseckey_create(mctx, &pubkey, &key);
-		if (key->legacy)
-			key->force_publish = ISC_TRUE;
-		ISC_LIST_APPEND(keylist, key, link);
+		/* Skip duplicates */
+		for (key = ISC_LIST_HEAD(keylist);
+		     key != NULL;
+		     key = ISC_LIST_NEXT(key, link)) {
+			dst_key_t *dkey = key->key;
+			if (dst_key_id(dkey) == dst_key_id(pubkey) &&
+			    dst_key_alg(dkey) == dst_key_alg(pubkey) &&
+			    dns_name_equal(dst_key_name(dkey), gorigin))
+				break;
+		}
+		if (key == NULL) {
+			dns_dnsseckey_create(mctx, &pubkey, &key);
+			if (key->legacy)
+				key->force_publish = ISC_TRUE;
+			key->force_sign = ISC_FALSE;
+			key->hint_sign = ISC_FALSE;
+			ISC_LIST_APPEND(keylist, key, link);
+		} else {
+			dst_key_free(&pubkey);
+		}
  next:
 		result = dns_rdataset_next(&rdataset);
 	}
@@ -3269,7 +3298,6 @@ main(int argc, char *argv[]) {
 	size_t salt_length = 0;
 	unsigned char saltbuf[255];
 	hashlist_t hashlist;
-	isc_boolean_t smartsign = ISC_FALSE;
 	isc_boolean_t make_keyset = ISC_FALSE;
 
 #define CMDLINE_FLAGS "3:AaCc:Dd:e:f:FghH:i:I:j:K:k:l:m:n:N:o:O:pPr:s:ST:tUv:z"
@@ -3694,32 +3722,23 @@ main(int argc, char *argv[]) {
 		for (key = ISC_LIST_HEAD(keylist);
 		     key != NULL;
 		     key = ISC_LIST_NEXT(key, link)) {
-			dst_key_t *dkey = key->key;
-			if (dst_key_id(dkey) == dst_key_id(newkey) &&
-			    dst_key_alg(dkey) == dst_key_alg(newkey) &&
-			    dns_name_equal(dst_key_name(dkey), gorigin)) {
-				/*
-				 * Key was already in keylist, but we
-				 * must make sure it has the right
-				 * dnsseckey flags.
-				 */
-				key->ksk = ISC_TRUE;
-				key->force_publish = ISC_TRUE;
-				key->force_sign = ISC_TRUE;
-				key->source = dns_keysource_user;
-				dst_key_free(&newkey);
+			if (dst_key_id(key->key) == dst_key_id(newkey) &&
+			    dst_key_alg(key->key) == dst_key_alg(newkey) &&
+			    dns_name_equal(dst_key_name(key->key), gorigin))
 				break;
-			}
 		}
 		if (key == NULL) {
 			/* We haven't seen this key before */
 			dns_dnsseckey_create(mctx, &newkey, &key);
-			key->ksk = ISC_TRUE;
-			key->force_publish = ISC_TRUE;
-			key->force_sign = ISC_TRUE;
-			key->source = dns_keysource_user;
 			ISC_LIST_APPEND(keylist, key, link);
+		} else {
+			dst_key_free(&key->key);
+			key->key = newkey;
 		}
+		key->force_publish = ISC_TRUE;
+		key->force_sign = ISC_TRUE;
+		key->source = dns_keysource_user;
+		key->ksk = ISC_TRUE;
 	}
 
 	/*
