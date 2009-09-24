@@ -1,3 +1,6 @@
+2688.	[bug]		Use INTERFACE_F_POINTTOPOINT, not IFF_POINTOPOINT,
+			to decide to fetch the destination address. [RT #20305]
+
 2687.	[bug]		Fixed dnssec-signzone -S handling of revoked keys.
 			Also, added warnings when revoking a ZSK, as this is
 			not defined by protocol (but is legal).  [RT #19943]
