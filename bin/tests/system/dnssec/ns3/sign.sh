@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.27 2009/06/04 02:56:47 tbox Exp $
+# $Id: sign.sh,v 1.28 2009/09/25 06:47:50 each Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -213,12 +213,12 @@ cat $infile $keyname.key >$zonefile
 
 $SIGNER -P -r $RANDFILE -o $zone $zonefile > /dev/null
 mv $zonefile.signed $zonefile
-$SIGNER -P -3 - -r $RANDFILE -o $zone $zonefile > /dev/null
+$SIGNER -P -u3 - -r $RANDFILE -o $zone $zonefile > /dev/null
 mv $zonefile.signed $zonefile
-$SIGNER -P -3 AAAA -r $RANDFILE -o $zone $zonefile > /dev/null
+$SIGNER -P -u3 AAAA -r $RANDFILE -o $zone $zonefile > /dev/null
 mv $zonefile.signed $zonefile
-$SIGNER -P -3 BBBB -r $RANDFILE -o $zone $zonefile > /dev/null
+$SIGNER -P -u3 BBBB -r $RANDFILE -o $zone $zonefile > /dev/null
 mv $zonefile.signed $zonefile
-$SIGNER -P -3 CCCC -r $RANDFILE -o $zone $zonefile > /dev/null
+$SIGNER -P -u3 CCCC -r $RANDFILE -o $zone $zonefile > /dev/null
 mv $zonefile.signed $zonefile
-$SIGNER -P -3 DDDD -r $RANDFILE -o $zone $zonefile > /dev/null
+$SIGNER -P -u3 DDDD -r $RANDFILE -o $zone $zonefile > /dev/null

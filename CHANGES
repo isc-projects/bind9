@@ -1,3 +1,8 @@
+2691.	[func]		dnssec-signzone: retain the existing NSEC or NSEC3
+			chain when re-signing a previously-signed zone.
+			Use -u to modify NSEC3 parameters or switch
+			between NSEC and NSEC3. [RT #20304]
+
 2690.	[bug]	 	win32: fix isc_thread_key_getspecific() prototype.
 			[RT #20315]
 

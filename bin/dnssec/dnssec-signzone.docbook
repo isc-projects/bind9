@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.docbook,v 1.36 2009/09/02 06:29:00 each Exp $ -->
+<!-- $Id: dnssec-signzone.docbook,v 1.37 2009/09/25 06:47:50 each Exp $ -->
 <refentry id="man.dnssec-signzone">
   <refentryinfo>
     <date>June 05, 2009</date>
@@ -80,6 +80,7 @@
       <arg><option>-s <replaceable class="parameter">start-time</replaceable></option></arg>
       <arg><option>-T <replaceable class="parameter">ttl</replaceable></option></arg>
       <arg><option>-t</option></arg>
+      <arg><option>-u</option></arg>
       <arg><option>-v <replaceable class="parameter">level</replaceable></option></arg>
       <arg><option>-z</option></arg>
       <arg><option>-3 <replaceable class="parameter">salt</replaceable></option></arg>
@@ -516,6 +517,20 @@
       </varlistentry>
 
       <varlistentry>
+        <term>-u</term>
+        <listitem>
+          <para>
+            Update NSEC/NSEC3 chain when re-signing a previously signed
+            zone.  With this option, a zone signed with NSEC can be
+            switched to NSEC3, or a zone signed with NSEC3 can
+            be switch to NSEC or to NSEC3 with different parameters.
+            Without this option, <command>dnssec-signzone</command> will
+            retain the existing chain when re-signing.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
         <term>-v <replaceable class="parameter">level</replaceable></term>
         <listitem>
           <para>
@@ -561,6 +576,12 @@
 	    When generating a NSEC3 chain set the OPTOUT flag on all
 	    NSEC3 records and do not generate NSEC3 records for insecure
 	    delegations.
+          </para>
+          <para>
+	    Using this option twice (i.e., <option>-AA</option>)
+	    turns the OPTOUT flag off for all records.  This is useful
+	    when using the <option>-u</option> option to modify an NSEC3
+	    chain which previously had OPTOUT set.
           </para>
         </listitem>
       </varlistentry>

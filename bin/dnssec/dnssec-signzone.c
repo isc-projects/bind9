@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.234 2009/09/24 04:36:28 each Exp $ */
+/* $Id: dnssec-signzone.c,v 1.235 2009/09/25 06:47:50 each Exp $ */
 
 /*! \file */
 
@@ -147,6 +147,10 @@ static dns_dbiterator_t *gdbiter;	/* The database iterator */
 static dns_rdataclass_t gclass;		/* The class */
 static dns_name_t *gorigin;		/* The database origin */
 static int nsec3flags = 0;
+static dns_iterations_t nsec3iter = 100U;
+static unsigned char saltbuf[255];
+static unsigned char *salt = saltbuf;
+static size_t salt_length = 0;
 static isc_task_t *master = NULL;
 static unsigned int ntasks = 0;
 static isc_boolean_t shuttingdown = ISC_FALSE, finished = ISC_FALSE;
@@ -161,6 +165,7 @@ static unsigned int serialformat = SOA_SERIAL_KEEP;
 static unsigned int hash_length = 0;
 static isc_boolean_t unknownalg = ISC_FALSE;
 static isc_boolean_t disable_zone_check = ISC_FALSE;
+static isc_boolean_t update_chain = ISC_FALSE;
 static isc_boolean_t set_keyttl = ISC_FALSE;
 static dns_ttl_t keyttl;
 static isc_boolean_t smartsign = ISC_FALSE;
@@ -2001,8 +2006,8 @@ nsecify(void) {
 			type = rdataset.type;
 			covers = rdataset.covers;
 			dns_rdataset_disassociate(&rdataset);
-			result = dns_db_deleterdataset(gdb, node, gversion, type,
-						       covers);
+			result = dns_db_deleterdataset(gdb, node, gversion,
+						       type, covers);
 			check_result(result,
 				     "dns_db_deleterdataset(nsec3param/rrsig)");
 		}
@@ -2019,6 +2024,7 @@ nsecify(void) {
 
 	result = dns_dbiterator_current(dbiter, &node, name);
 	check_dns_dbiterator_current(result);
+
 	/*
 	 * Delete any NSEC3PARAM records at the apex.
 	 */
@@ -2354,6 +2360,7 @@ nsec3ify(unsigned int hashalg, unsigned int iterations,
 
 	result = dns_dbiterator_current(dbiter, &node, name);
 	check_dns_dbiterator_current(result);
+
 	/*
 	 * Delete any NSEC records at the apex.
 	 */
@@ -2366,7 +2373,12 @@ nsec3ify(unsigned int hashalg, unsigned int iterations,
 		type = rdataset.type;
 		covers = rdataset.covers;
 		dns_rdataset_disassociate(&rdataset);
-		if (type == dns_rdatatype_nsec || covers == dns_rdatatype_nsec) {
+		if (type == dns_rdatatype_nsec ||
+		    covers == dns_rdatatype_nsec) {
+			if (!update_chain)
+				fatal("Zone contains NSEC records.  Use -u "
+				      "to update to NSEC3.");
+
 			result = dns_db_deleterdataset(gdb, node, gversion,
 						       type, covers);
 			check_result(result,
@@ -3013,6 +3025,100 @@ warnifallksk(dns_db_t *db) {
 }
 
 static void
+set_nsec3params(isc_boolean_t update_chain, isc_boolean_t set_salt,
+		isc_boolean_t set_optout, isc_boolean_t set_iter)
+{
+	isc_result_t result;
+	dns_dbversion_t *ver = NULL;
+	dns_dbnode_t *node = NULL;
+	dns_rdataset_t rdataset;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdata_nsec3_t nsec3;
+	dns_fixedname_t fname;
+	dns_name_t *hashname;
+	unsigned char orig_salt[256];
+	size_t orig_saltlen;
+	dns_hash_t orig_hash;
+	isc_uint16_t orig_iter;
+
+	dns_db_currentversion(gdb, &ver);
+
+	orig_saltlen = sizeof(orig_salt);
+	result = dns_db_getnsec3parameters(gdb, ver, &orig_hash, NULL, 
+					   &orig_iter, orig_salt,
+					   &orig_saltlen);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	nsec_datatype = dns_rdatatype_nsec3;
+
+	if (!update_chain && set_salt) {
+		if (salt_length != orig_saltlen ||
+		    memcmp(saltbuf, orig_salt, salt_length) != 0)
+			fatal("An NSEC3 chain exists with a different salt. "
+			      "Use -u to update it.");
+	} else if (!set_salt) {
+		salt_length = orig_saltlen;
+		memcpy(saltbuf, orig_salt, orig_saltlen);
+		salt = saltbuf;
+	}
+
+	if (!update_chain && set_iter) {
+		if (nsec3iter != orig_iter)
+			fatal("An NSEC3 chain exists with different "
+			      "iterations. Use -u to update it.");
+	} else if (!set_iter)
+		nsec3iter = orig_iter;
+
+	/*
+	 * Find an NSEC3 record to get the current OPTOUT value.
+	 * (This assumes all NSEC3 records agree.)
+	 */
+
+	dns_fixedname_init(&fname);
+        hashname = dns_fixedname_name(&fname);
+	result = dns_nsec3_hashname(&fname, NULL, NULL,
+				    gorigin, gorigin, dns_hash_sha1,
+				    orig_iter, orig_salt, orig_saltlen);
+	check_result(result, "dns_nsec3_hashname");
+
+	result = dns_db_findnsec3node(gdb, hashname, ISC_FALSE, &node);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	dns_rdataset_init(&rdataset);
+	result = dns_db_findrdataset(gdb, node, ver, dns_rdatatype_nsec3,
+				     0, 0, &rdataset, NULL);
+	if (result != ISC_R_SUCCESS)
+                goto cleanup;
+
+	result = dns_rdataset_first(&rdataset);
+	check_result(result, "dns_rdataset_first");
+	dns_rdataset_current(&rdataset, &rdata);
+	result = dns_rdata_tostruct(&rdata, &nsec3, NULL);
+	check_result(result, "dns_rdata_tostruct");
+
+	if (!update_chain && set_optout) {
+		if (nsec3flags != nsec3.flags)
+			fatal("An NSEC3 chain exists with%s OPTOUT. "
+			      "Use -u -%s to %s it.",
+			      OPTOUT(nsec3.flags) ? "" : "out",
+			      OPTOUT(nsec3.flags) ? "AA" : "A",
+			      OPTOUT(nsec3.flags) ? "clear" : "set");
+	} else if (!set_optout)
+		nsec3flags = nsec3.flags;
+
+	dns_rdata_freestruct(&nsec3);
+
+ cleanup:
+        if (dns_rdataset_isassociated(&rdataset))
+                dns_rdataset_disassociate(&rdataset);
+        if (node != NULL)
+                dns_db_detachnode(gdb, &node);
+        dns_db_closeversion(gdb, &ver, ISC_FALSE);
+}
+
+static void
 writeset(const char *prefix, dns_rdatatype_t type) {
 	char *filename;
 	char namestr[DNS_NAME_FORMATSIZE];
@@ -3177,9 +3283,9 @@ usage(void) {
 	fprintf(stderr, "Version: %s\n", VERSION);
 
 	fprintf(stderr, "Options: (default value in parenthesis) \n");
-	fprintf(stderr, "\t-S:\tsmart signing: automatically finds key\n"
-			"\t\tfiles for the zone and determines they are to\n"
-			"\t\tbe used\n");
+	fprintf(stderr, "\t-S:\tsmart signing: automatically finds key files\n"
+			"\t\tfor the zone and determines how they are to "
+			"be used\n");
 	fprintf(stderr, "\t-K directory:\n");
 	fprintf(stderr, "\t\tdirectory to find key files (.)\n");
 	fprintf(stderr, "\t-d directory:\n");
@@ -3221,6 +3327,8 @@ usage(void) {
 	fprintf(stderr, "\t-T TTL:\tTTL for newly added DNSKEYs");
 	fprintf(stderr, "\t-t:\t");
 	fprintf(stderr, "print statistics\n");
+	fprintf(stderr, "\t-u:\t");
+	fprintf(stderr, "update or replace an existing NSEC/NSEC3 chain\n");
 	fprintf(stderr, "\t-C:\tgenerate a keyset file, for compatibility\n"
 			"\t\twith older versions of dnssec-signzone -g\n");
 	fprintf(stderr, "\t-n ncpus (number of cpus present)\n");
@@ -3293,14 +3401,14 @@ main(int argc, char *argv[]) {
 	isc_task_t **tasks = NULL;
 	isc_buffer_t b;
 	int len;
-	unsigned int iterations = 100U;
-	const unsigned char *salt = NULL;
-	size_t salt_length = 0;
-	unsigned char saltbuf[255];
 	hashlist_t hashlist;
 	isc_boolean_t make_keyset = ISC_FALSE;
-
-#define CMDLINE_FLAGS "3:AaCc:Dd:e:f:FghH:i:I:j:K:k:l:m:n:N:o:O:pPr:s:ST:tUv:z"
+	isc_boolean_t set_salt = ISC_FALSE;
+	isc_boolean_t set_optout = ISC_FALSE;
+	isc_boolean_t set_iter = ISC_FALSE;
+  
+#define CMDLINE_FLAGS \
+	"3:AaCc:Dd:e:f:FghH:i:I:j:K:k:l:m:n:N:o:O:pPr:s:ST:tuUv:z"
 
 	/*
 	 * Process memory debugging argument first.
@@ -3340,7 +3448,9 @@ main(int argc, char *argv[]) {
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
 		case '3':
-			if (strcmp(isc_commandline_argument, "-")) {
+			set_salt = ISC_TRUE;
+			nsec_datatype = dns_rdatatype_nsec3;
+			if (strcmp(isc_commandline_argument, "-") != 0) {
 				isc_buffer_t target;
 				char *sarg;
 
@@ -3350,17 +3460,16 @@ main(int argc, char *argv[]) {
 				result = isc_hex_decodestring(sarg, &target);
 				check_result(result,
 					     "isc_hex_decodestring(salt)");
-				salt = saltbuf;
 				salt_length = isc_buffer_usedlength(&target);
-			} else {
-				salt = saltbuf;
-				salt_length = 0;
 			}
-			nsec_datatype = dns_rdatatype_nsec3;
 			break;
 
 		case 'A':
-			nsec3flags |= DNS_NSEC3FLAG_OPTOUT;
+			set_optout = ISC_TRUE;
+			if (OPTOUT(nsec3flags))
+				nsec3flags &= ~DNS_NSEC3FLAG_OPTOUT;
+			else
+				nsec3flags |= DNS_NSEC3FLAG_OPTOUT;
 			break;
 
 		case 'a':
@@ -3398,11 +3507,11 @@ main(int argc, char *argv[]) {
 			break;
 
 		case 'H':
-			iterations = strtoul(isc_commandline_argument,
-					     &endp, 0);
+			set_iter = ISC_TRUE;
+			nsec3iter = strtoul(isc_commandline_argument, &endp, 0);
 			if (*endp != '\0')
 				fatal("iterations must be numeric");
-			if (iterations > 0xffffU)
+			if (nsec3iter  > 0xffffU)
 				fatal("iterations too big");
 			break;
 
@@ -3502,6 +3611,10 @@ main(int argc, char *argv[]) {
 
 		case 'U':	/* Undocumented for testing only. */
 			unknownalg = ISC_TRUE;
+			break;
+
+		case 'u':
+			update_chain = ISC_TRUE;
 			break;
 
 		case 'v':
@@ -3622,7 +3735,8 @@ main(int argc, char *argv[]) {
 		else if (strcasecmp(serialformatstr, "unixtime") == 0)
 			serialformat = SOA_SERIAL_UNIXTIME;
 		else
-			fatal("unknown soa serial format: %s\n", serialformatstr);
+			fatal("unknown soa serial format: %s\n",
+			      serialformatstr);
 	}
 
 	result = dns_master_stylecreate(&dsstyle,  DNS_STYLEFLAG_NO_TTL,
@@ -3638,6 +3752,15 @@ main(int argc, char *argv[]) {
 
 	if (!set_keyttl)
 		keyttl = soa_ttl;
+
+	/*
+	 * Check for any existing NSEC3 parameters in the zone,
+	 * and use them as defaults if -u was not specified.
+	 */
+	if (update_chain && !set_optout && !set_iter && !set_salt)
+		nsec_datatype = dns_rdatatype_nsec;
+	else
+		set_nsec3params(update_chain, set_salt, set_optout, set_iter);
 
 	if (IS_NSEC3) {
 		isc_boolean_t answer;
@@ -3769,7 +3892,7 @@ main(int argc, char *argv[]) {
 		unsigned int max;
 		result = dns_nsec3_maxiterations(gdb, NULL, mctx, &max);
 		check_result(result, "dns_nsec3_maxiterations()");
-		if (iterations > max)
+		if (nsec3iter > max)
 			fatal("NSEC3 iterations too big for weakest DNSKEY "
 			      "strength. Maximum iterations allowed %u.", max);
 	}
@@ -3794,7 +3917,7 @@ main(int argc, char *argv[]) {
 	}
 
 	if (IS_NSEC3)
-		nsec3ify(dns_hash_sha1, iterations, salt, salt_length,
+		nsec3ify(dns_hash_sha1, nsec3iter, salt, salt_length,
 			 &hashlist);
 	else
 		nsecify();
