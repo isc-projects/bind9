@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.78 2009/09/02 18:32:25 each Exp $ */
+/* $Id: socket.c,v 1.79 2009/09/25 02:44:06 marka Exp $ */
 
 /* This code uses functions which are only available on Server 2003 and
  * higher, and Windows XP and higher.
@@ -1689,7 +1689,7 @@ isc__socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		/* 2292bis */
 		if ((pf == AF_INET6)
 		    && (setsockopt(sock->fd, IPPROTO_IPV6, IPV6_RECVPKTINFO,
-				   (void *)&on, sizeof(on)) < 0)) {
+				   (char *)&on, sizeof(on)) < 0)) {
 			isc__strerror(WSAGetLastError(), strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "setsockopt(%d, IPV6_RECVPKTINFO) "
@@ -1704,7 +1704,7 @@ isc__socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		/* 2292 */
 		if ((pf == AF_INET6)
 		    && (setsockopt(sock->fd, IPPROTO_IPV6, IPV6_PKTINFO,
-				   (void *)&on, sizeof(on)) < 0)) {
+				   (char *)&on, sizeof(on)) < 0)) {
 			isc__strerror(WSAGetLastError(), strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "setsockopt(%d, IPV6_PKTINFO) %s: %s",
@@ -1721,7 +1721,7 @@ isc__socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		if (pf == AF_INET6) {
 			(void)setsockopt(sock->fd, IPPROTO_IPV6,
 					 IPV6_USE_MIN_MTU,
-					 (void *)&on, sizeof(on));
+					 (char *)&on, sizeof(on));
 		}
 #endif
 #endif /* ISC_PLATFORM_HAVEIPV6 */
@@ -1730,11 +1730,11 @@ isc__socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 #if defined(SO_RCVBUF)
 	       optlen = sizeof(size);
 	       if (getsockopt(sock->fd, SOL_SOCKET, SO_RCVBUF,
-			      (void *)&size, &optlen) >= 0 &&
+			      (char *)&size, &optlen) >= 0 &&
 		    size < RCVBUFSIZE) {
 		       size = RCVBUFSIZE;
 		       (void)setsockopt(sock->fd, SOL_SOCKET, SO_RCVBUF,
-					(void *)&size, sizeof(size));
+					(char *)&size, sizeof(size));
 	       }
 #endif
 
@@ -1990,7 +1990,7 @@ internal_accept(isc_socket_t *sock, IoCompletionInfo *lpo, int accept_errno) {
 	INSIST(result == ISC_R_SUCCESS);
 
 	INSIST(setsockopt(nsock->fd, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT,
-	       (char *)&sock->fd, sizeof(sock->fd)) == 0);
+	                  (char *)&sock->fd, sizeof(sock->fd)) == 0);
 
 	/*
 	 * Hook it up into the manager.
@@ -2096,7 +2096,8 @@ internal_connect(isc_socket_t *sock, IoCompletionInfo *lpo, int connect_errno) {
 					 strbuf);
 		}
 	} else {
-		INSIST(setsockopt(sock->fd, SOL_SOCKET, SO_UPDATE_CONNECT_CONTEXT, NULL, 0) == 0);
+		INSIST(setsockopt(sock->fd, SOL_SOCKET,
+				  SO_UPDATE_CONNECT_CONTEXT, NULL, 0) == 0);
 		cdev->result = ISC_R_SUCCESS;
 		sock->connected = 1;
 		socket_log(__LINE__, sock, &sock->address, IOEVENT,
@@ -3034,7 +3035,7 @@ isc__socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr,
 	 */
 	if ((options & ISC_SOCKET_REUSEADDRESS) != 0 &&
 	    isc_sockaddr_getport(sockaddr) != (in_port_t)0 &&
-	    setsockopt(sock->fd, SOL_SOCKET, SO_REUSEADDR, (void *)&on,
+	    setsockopt(sock->fd, SOL_SOCKET, SO_REUSEADDR, (char *)&on,
 		       sizeof(on)) < 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "setsockopt(%d) %s", sock->fd,
@@ -3620,7 +3621,7 @@ isc__socket_ipv6only(isc_socket_t *sock, isc_boolean_t yes) {
 #ifdef IPV6_V6ONLY
 	if (sock->pf == AF_INET6) {
 		(void)setsockopt(sock->fd, IPPROTO_IPV6, IPV6_V6ONLY,
-				 (void *)&onoff, sizeof(onoff));
+				 (char *)&onoff, sizeof(onoff));
 	}
 #endif
 }
