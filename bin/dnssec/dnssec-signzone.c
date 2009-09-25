@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.235 2009/09/25 06:47:50 each Exp $ */
+/* $Id: dnssec-signzone.c,v 1.236 2009/09/25 14:30:10 each Exp $ */
 
 /*! \file */
 
@@ -3042,6 +3042,7 @@ set_nsec3params(isc_boolean_t update_chain, isc_boolean_t set_salt,
 	isc_uint16_t orig_iter;
 
 	dns_db_currentversion(gdb, &ver);
+	dns_rdataset_init(&rdataset);
 
 	orig_saltlen = sizeof(orig_salt);
 	result = dns_db_getnsec3parameters(gdb, ver, &orig_hash, NULL, 
@@ -3086,7 +3087,6 @@ set_nsec3params(isc_boolean_t update_chain, isc_boolean_t set_salt,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	dns_rdataset_init(&rdataset);
 	result = dns_db_findrdataset(gdb, node, ver, dns_rdatatype_nsec3,
 				     0, 0, &rdataset, NULL);
 	if (result != ISC_R_SUCCESS)
