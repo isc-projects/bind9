@@ -1,3 +1,6 @@
+2690.	[bug]	 	win32: fix isc_thread_key_getspecific() prototype.
+			[RT #20315]
+
 2689.	[bug]		Correctly handle snprintf result. [RT #20306]
 
 2688.	[bug]		Use INTERFACE_F_POINTTOPOINT, not IFF_POINTOPOINT,
