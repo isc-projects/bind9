@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.236 2009/09/25 14:30:10 each Exp $ */
+/* $Id: dnssec-signzone.c,v 1.237 2009/09/25 23:48:10 tbox Exp $ */
 
 /*! \file */
 
@@ -3045,7 +3045,7 @@ set_nsec3params(isc_boolean_t update_chain, isc_boolean_t set_salt,
 	dns_rdataset_init(&rdataset);
 
 	orig_saltlen = sizeof(orig_salt);
-	result = dns_db_getnsec3parameters(gdb, ver, &orig_hash, NULL, 
+	result = dns_db_getnsec3parameters(gdb, ver, &orig_hash, NULL,
 					   &orig_iter, orig_salt,
 					   &orig_saltlen);
 	if (result != ISC_R_SUCCESS)
@@ -3077,7 +3077,7 @@ set_nsec3params(isc_boolean_t update_chain, isc_boolean_t set_salt,
 	 */
 
 	dns_fixedname_init(&fname);
-        hashname = dns_fixedname_name(&fname);
+	hashname = dns_fixedname_name(&fname);
 	result = dns_nsec3_hashname(&fname, NULL, NULL,
 				    gorigin, gorigin, dns_hash_sha1,
 				    orig_iter, orig_salt, orig_saltlen);
@@ -3090,7 +3090,7 @@ set_nsec3params(isc_boolean_t update_chain, isc_boolean_t set_salt,
 	result = dns_db_findrdataset(gdb, node, ver, dns_rdatatype_nsec3,
 				     0, 0, &rdataset, NULL);
 	if (result != ISC_R_SUCCESS)
-                goto cleanup;
+		goto cleanup;
 
 	result = dns_rdataset_first(&rdataset);
 	check_result(result, "dns_rdataset_first");
@@ -3111,11 +3111,11 @@ set_nsec3params(isc_boolean_t update_chain, isc_boolean_t set_salt,
 	dns_rdata_freestruct(&nsec3);
 
  cleanup:
-        if (dns_rdataset_isassociated(&rdataset))
-                dns_rdataset_disassociate(&rdataset);
-        if (node != NULL)
-                dns_db_detachnode(gdb, &node);
-        dns_db_closeversion(gdb, &ver, ISC_FALSE);
+	if (dns_rdataset_isassociated(&rdataset))
+		dns_rdataset_disassociate(&rdataset);
+	if (node != NULL)
+		dns_db_detachnode(gdb, &node);
+	dns_db_closeversion(gdb, &ver, ISC_FALSE);
 }
 
 static void
@@ -3406,7 +3406,7 @@ main(int argc, char *argv[]) {
 	isc_boolean_t set_salt = ISC_FALSE;
 	isc_boolean_t set_optout = ISC_FALSE;
 	isc_boolean_t set_iter = ISC_FALSE;
-  
+
 #define CMDLINE_FLAGS \
 	"3:AaCc:Dd:e:f:FghH:i:I:j:K:k:l:m:n:N:o:O:pPr:s:ST:tuUv:z"
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: thread.h,v 1.23 2009/09/25 05:48:17 marka Exp $ */
+/* $Id: thread.h,v 1.24 2009/09/25 23:48:13 tbox Exp $ */
 
 #ifndef ISC_THREAD_H
 #define ISC_THREAD_H 1
@@ -37,18 +37,18 @@ inline BOOL IsValidHandle( HANDLE hHandle) {
 /* validate wait return codes... */
 inline BOOL WaitSucceeded( DWORD dwWaitResult, DWORD dwHandleCount) {
     return ((dwWaitResult >= WAIT_OBJECT_0) &&
-            (dwWaitResult < WAIT_OBJECT_0 + dwHandleCount));
+	    (dwWaitResult < WAIT_OBJECT_0 + dwHandleCount));
 }
 
 inline BOOL WaitAbandoned( DWORD dwWaitResult, DWORD dwHandleCount) {
     return ((dwWaitResult >= WAIT_ABANDONED_0) &&
-            (dwWaitResult < WAIT_ABANDONED_0 + dwHandleCount));
+	    (dwWaitResult < WAIT_ABANDONED_0 + dwHandleCount));
 }
 
 inline BOOL WaitTimeout( DWORD dwWaitResult) {
     return (dwWaitResult == WAIT_TIMEOUT);
 }
-    
+
 inline BOOL WaitFailed( DWORD dwWaitResult) {
     return (dwWaitResult == WAIT_FAILED);
 }
