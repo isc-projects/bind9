@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: thread.h,v 1.22 2007/06/19 23:47:20 tbox Exp $ */
+/* $Id: thread.h,v 1.22.128.1 2009/09/25 05:51:09 marka Exp $ */
 
 #ifndef ISC_THREAD_H
 #define ISC_THREAD_H 1
@@ -90,7 +90,7 @@ int
 isc_thread_key_delete(isc_thread_key_t key);
 
 void *
-isc_thread_key_getspecific(isc_thread_key);
+isc_thread_key_getspecific(isc_thread_key_t);
 
 int
 isc_thread_key_setspecific(isc_thread_key_t key, void *value);
