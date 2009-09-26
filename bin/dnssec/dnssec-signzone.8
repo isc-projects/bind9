@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-signzone.8,v 1.52 2009/09/03 01:14:41 tbox Exp $
+.\" $Id: dnssec-signzone.8,v 1.53 2009/09/26 01:14:51 tbox Exp $
 .\"
 .hy 0
 .ad l
@@ -33,7 +33,7 @@
 dnssec\-signzone \- DNSSEC zone signing tool
 .SH "SYNOPSIS"
 .HP 16
-\fBdnssec\-signzone\fR [\fB\-a\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-d\ \fR\fB\fIdirectory\fR\fR] [\fB\-e\ \fR\fB\fIend\-time\fR\fR] [\fB\-f\ \fR\fB\fIoutput\-file\fR\fR] [\fB\-g\fR] [\fB\-h\fR] [\fB\-K\ \fR\fB\fIdirectory\fR\fR] [\fB\-k\ \fR\fB\fIkey\fR\fR] [\fB\-l\ \fR\fB\fIdomain\fR\fR] [\fB\-i\ \fR\fB\fIinterval\fR\fR] [\fB\-I\ \fR\fB\fIinput\-format\fR\fR] [\fB\-j\ \fR\fB\fIjitter\fR\fR] [\fB\-N\ \fR\fB\fIsoa\-serial\-format\fR\fR] [\fB\-o\ \fR\fB\fIorigin\fR\fR] [\fB\-O\ \fR\fB\fIoutput\-format\fR\fR] [\fB\-p\fR] [\fB\-P\fR] [\fB\-r\ \fR\fB\fIrandomdev\fR\fR] [\fB\-S\fR] [\fB\-s\ \fR\fB\fIstart\-time\fR\fR] [\fB\-T\ \fR\fB\fIttl\fR\fR] [\fB\-t\fR] [\fB\-v\ \fR\fB\fIlevel\fR\fR] [\fB\-z\fR] [\fB\-3\ \fR\fB\fIsalt\fR\fR] [\fB\-H\ \fR\fB\fIiterations\fR\fR] [\fB\-A\fR] {zonefile} [key...]
+\fBdnssec\-signzone\fR [\fB\-a\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-d\ \fR\fB\fIdirectory\fR\fR] [\fB\-e\ \fR\fB\fIend\-time\fR\fR] [\fB\-f\ \fR\fB\fIoutput\-file\fR\fR] [\fB\-g\fR] [\fB\-h\fR] [\fB\-K\ \fR\fB\fIdirectory\fR\fR] [\fB\-k\ \fR\fB\fIkey\fR\fR] [\fB\-l\ \fR\fB\fIdomain\fR\fR] [\fB\-i\ \fR\fB\fIinterval\fR\fR] [\fB\-I\ \fR\fB\fIinput\-format\fR\fR] [\fB\-j\ \fR\fB\fIjitter\fR\fR] [\fB\-N\ \fR\fB\fIsoa\-serial\-format\fR\fR] [\fB\-o\ \fR\fB\fIorigin\fR\fR] [\fB\-O\ \fR\fB\fIoutput\-format\fR\fR] [\fB\-p\fR] [\fB\-P\fR] [\fB\-r\ \fR\fB\fIrandomdev\fR\fR] [\fB\-S\fR] [\fB\-s\ \fR\fB\fIstart\-time\fR\fR] [\fB\-T\ \fR\fB\fIttl\fR\fR] [\fB\-t\fR] [\fB\-u\fR] [\fB\-v\ \fR\fB\fIlevel\fR\fR] [\fB\-z\fR] [\fB\-3\ \fR\fB\fIsalt\fR\fR] [\fB\-H\ \fR\fB\fIiterations\fR\fR] [\fB\-A\fR] {zonefile} [key...]
 .SH "DESCRIPTION"
 .PP
 \fBdnssec\-signzone\fR
@@ -269,6 +269,13 @@ Specifies the TTL to be used for new DNSKEY records imported into the zone from 
 Print statistics at completion.
 .RE
 .PP
+\-u
+.RS 4
+Update NSEC/NSEC3 chain when re\-signing a previously signed zone. With this option, a zone signed with NSEC can be switched to NSEC3, or a zone signed with NSEC3 can be switch to NSEC or to NSEC3 with different parameters. Without this option,
+\fBdnssec\-signzone\fR
+will retain the existing chain when re\-signing.
+.RE
+.PP
 \-v \fIlevel\fR
 .RS 4
 Sets the debugging level.
@@ -292,6 +299,11 @@ When generating a NSEC3 chain use this many interations. The default is 100.
 \-A
 .RS 4
 When generating a NSEC3 chain set the OPTOUT flag on all NSEC3 records and do not generate NSEC3 records for insecure delegations.
+.sp
+Using this option twice (i.e.,
+\fB\-AA\fR) turns the OPTOUT flag off for all records. This is useful when using the
+\fB\-u\fR
+option to modify an NSEC3 chain which previously had OPTOUT set.
 .RE
 .PP
 zonefile

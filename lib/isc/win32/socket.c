@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.79 2009/09/25 02:44:06 marka Exp $ */
+/* $Id: socket.c,v 1.80 2009/09/25 23:48:11 tbox Exp $ */
 
 /* This code uses functions which are only available on Server 2003 and
  * higher, and Windows XP and higher.
@@ -1990,7 +1990,7 @@ internal_accept(isc_socket_t *sock, IoCompletionInfo *lpo, int accept_errno) {
 	INSIST(result == ISC_R_SUCCESS);
 
 	INSIST(setsockopt(nsock->fd, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT,
-	                  (char *)&sock->fd, sizeof(sock->fd)) == 0);
+			  (char *)&sock->fd, sizeof(sock->fd)) == 0);
 
 	/*
 	 * Hook it up into the manager.
