@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.cpp,v 1.37.24.4 2009/09/02 00:30:44 marka Exp $ */
+/* $Id: BINDInstallDlg.cpp,v 1.37.24.5 2009/09/29 05:09:43 marka Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -229,7 +229,7 @@ BOOL CBINDInstallDlg::OnInitDialog() {
 	char *fptr = &filename[0];
 	GetModuleFileName(NULL, filename, MAX_PATH);
 	char *dptr = strrchr(filename,'\\');
-	int index = dptr - fptr;
+	size_t index = dptr - fptr;
 	strncpy(dirname, filename, index);
 	dirname[index] = '\0';
 	CString Dirname(dirname);
@@ -961,7 +961,7 @@ void CBINDInstallDlg::RegisterMessages() {
 
 	/* Add the Event-ID message-file name to the subkey. */
 	if (RegSetValueEx(hKey, "EventMessageFile", 0, REG_EXPAND_SZ,
-		(LPBYTE)pszMsgDLL, strlen(pszMsgDLL) + 1) != ERROR_SUCCESS)
+		(LPBYTE)pszMsgDLL, (DWORD)(strlen(pszMsgDLL) + 1)) != ERROR_SUCCESS)
 		throw(Exception(IDS_ERR_SET_VALUE, GetErrMessage()));
 
 	/* Set the supported types flags and addit to the subkey. */
