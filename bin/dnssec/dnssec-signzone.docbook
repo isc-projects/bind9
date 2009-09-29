@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.docbook,v 1.37 2009/09/25 06:47:50 each Exp $ -->
+<!-- $Id: dnssec-signzone.docbook,v 1.38 2009/09/29 22:17:34 each Exp $ -->
 <refentry id="man.dnssec-signzone">
   <refentryinfo>
     <date>June 05, 2009</date>
@@ -552,7 +552,7 @@
         <term>-3 <replaceable class="parameter">salt</replaceable></term>
         <listitem>
           <para>
-            Generate a NSEC3 chain with the given hex encoded salt.
+            Generate an NSEC3 chain with the given hex encoded salt.
 	    A dash (<replaceable class="parameter">salt</replaceable>) can
 	    be used to indicate that no salt is to be used when generating		    the NSEC3 chain.
           </para>
@@ -563,8 +563,8 @@
         <term>-H <replaceable class="parameter">iterations</replaceable></term>
         <listitem>
           <para>
-	    When generating a NSEC3 chain use this many interations.  The
-	    default is 100.
+	    When generating an NSEC3 chain, use this many interations.  The
+	    default is 10.
           </para>
         </listitem>
       </varlistentry>
@@ -573,7 +573,7 @@
         <term>-A</term>
         <listitem>
           <para>
-	    When generating a NSEC3 chain set the OPTOUT flag on all
+	    When generating an NSEC3 chain set the OPTOUT flag on all
 	    NSEC3 records and do not generate NSEC3 records for insecure
 	    delegations.
           </para>

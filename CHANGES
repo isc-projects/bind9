@@ -1,3 +1,6 @@
+2794.	[bug]		Reduce default NSEC3 iterations from 100 to 10.
+			[RT #19970]
+
 2793.	[port]		Add some noreturn attributes. [RT #20257]
 
 2792.	[port]		win32: 32/64 bit cleanups. [RT #20335]

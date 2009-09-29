@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.238 2009/09/29 15:06:06 fdupont Exp $ */
+/* $Id: dnssec-signzone.c,v 1.239 2009/09/29 22:17:34 each Exp $ */
 
 /*! \file */
 
@@ -147,7 +147,7 @@ static dns_dbiterator_t *gdbiter;	/* The database iterator */
 static dns_rdataclass_t gclass;		/* The class */
 static dns_name_t *gorigin;		/* The database origin */
 static int nsec3flags = 0;
-static dns_iterations_t nsec3iter = 100U;
+static dns_iterations_t nsec3iter = 10U;
 static unsigned char saltbuf[255];
 static unsigned char *salt = saltbuf;
 static size_t salt_length = 0;
@@ -3337,9 +3337,9 @@ usage(void) {
 	fprintf(stderr, "\t-n ncpus (number of cpus present)\n");
 	fprintf(stderr, "\t-k key_signing_key\n");
 	fprintf(stderr, "\t-l lookasidezone\n");
-	fprintf(stderr, "\t-3 salt (NSEC3 salt)\n");
-	fprintf(stderr, "\t-H iterations (NSEC3 iterations)\n");
-	fprintf(stderr, "\t-A (NSEC3 optout)\n");
+	fprintf(stderr, "\t-3 NSEC3 salt\n");
+	fprintf(stderr, "\t-H NSEC3 iterations (10)\n");
+	fprintf(stderr, "\t-A NSEC3 optout\n");
 	fprintf(stderr, "\t-z:\t");
 	fprintf(stderr, "ignore KSK flag in DNSKEYs");
 
