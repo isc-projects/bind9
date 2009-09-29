@@ -1,3 +1,5 @@
+2792.	[port]		win32: 32/64 bit cleanups. [RT #128244]
+
 2691.	[func]		dnssec-signzone: retain the existing NSEC or NSEC3
 			chain when re-signing a previously-signed zone.
 			Use -u to modify NSEC3 parameters or switch

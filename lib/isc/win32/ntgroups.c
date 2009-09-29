@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntgroups.c,v 1.10 2007/06/19 23:47:19 tbox Exp $ */
+/* $Id: ntgroups.c,v 1.11 2009/09/29 04:37:08 marka Exp $ */
 
 /*
  * The NT Groups have two groups that are not well documented and are
@@ -63,7 +63,7 @@ isc_ntsecurity_getaccountgroups(char *username, char **GroupList,
 	DWORD dwTotalEntries = 0;
 	NET_API_STATUS nStatus;
 	DWORD dwTotalCount = 0;
-	int retlen;
+	size_t retlen;
 	wchar_t user[MAX_NAME_LENGTH];
 
 	retlen = mbstowcs(user, username, MAX_NAME_LENGTH);

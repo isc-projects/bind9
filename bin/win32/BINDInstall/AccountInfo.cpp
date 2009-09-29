@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: AccountInfo.cpp,v 1.8 2007/06/19 23:47:07 tbox Exp $ */
+/* $Id: AccountInfo.cpp,v 1.9 2009/09/29 04:37:08 marka Exp $ */
 
 #ifndef UNICODE
 #define UNICODE
@@ -183,8 +183,8 @@ CreateServiceAccount(char *name, char *password) {
 	DWORD dwError = 0;
 	NET_API_STATUS nStatus;
 
-	unsigned int namelen = strlen(name);
-	unsigned int passwdlen = strlen(password);
+	size_t namelen = strlen(name);
+	size_t passwdlen = strlen(password);
 	wchar_t AccountName[MAX_NAME_LENGTH];
 	wchar_t AccountPassword[MAX_NAME_LENGTH];
 
@@ -251,7 +251,7 @@ AddPrivilegeToAcccount(LPTSTR name, LPWSTR PrivilegeName) {
 
 void
 InitLsaString(PLSA_UNICODE_STRING LsaString, LPWSTR String){
-	DWORD StringLength;
+	size_t StringLength;
 
 	if (String == NULL) {
 		LsaString->Buffer = NULL;
