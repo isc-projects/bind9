@@ -48,6 +48,7 @@ isc__app_run
 isc__app_shutdown
 isc__app_start
 isc__app_unblock
+isc_assertion_failed
 isc_assertion_setcallback
 isc_assertion_typetotext
 isc_backtrace_getsymbol
@@ -552,7 +553,6 @@ syslog
 
 EXPORTS
 
-isc_assertion_failed		DATA
 isc_commandline_argument	DATA
 isc_commandline_errprint	DATA
 isc_commandline_index		DATA

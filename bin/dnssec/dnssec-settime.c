@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-settime.c,v 1.13 2009/09/23 16:01:56 each Exp $ */
+/* $Id: dnssec-settime.c,v 1.14 2009/09/29 15:06:06 fdupont Exp $ */
 
 /*! \file */
 
@@ -47,6 +47,9 @@ const char *program = "dnssec-settime";
 int verbose;
 
 static isc_mem_t	*mctx = NULL;
+
+ISC_PLATFORM_NORETURN_PRE static void
+usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
 usage(void) {

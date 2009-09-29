@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.110 2009/09/15 23:48:09 tbox Exp $ */
+/* $Id: dig.h,v 1.111 2009/09/29 15:06:06 fdupont Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -292,8 +292,9 @@ isc_result_t
 get_reverse(char *reverse, size_t len, char *value, isc_boolean_t ip6_int,
 	    isc_boolean_t strict);
 
-void
-fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
+ISC_PLATFORM_NORETURN_PRE void
+fatal(const char *format, ...)
+ISC_FORMAT_PRINTF(1, 2) ISC_PLATFORM_NORETURN_POST;
 
 void
 debug(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);

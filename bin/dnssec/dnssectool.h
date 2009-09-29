@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.h,v 1.25 2009/09/04 02:31:29 marka Exp $ */
+/* $Id: dnssectool.h,v 1.26 2009/09/29 15:06:06 fdupont Exp $ */
 
 #ifndef DNSSECTOOL_H
 #define DNSSECTOOL_H 1
@@ -27,8 +27,9 @@
 
 typedef void (fatalcallback_t)(void);
 
-void
-fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
+ISC_PLATFORM_NORETURN_PRE void
+fatal(const char *format, ...)
+ISC_FORMAT_PRINTF(1, 2) ISC_PLATFORM_NORETURN_POST;
 
 void
 setfatalcallback(fatalcallback_t *callback);

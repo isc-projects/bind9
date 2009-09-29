@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.h,v 1.73 2009/01/17 23:47:43 tbox Exp $ */
+/* $Id: rbt.h,v 1.74 2009/09/29 15:06:06 fdupont Exp $ */
 
 #ifndef DNS_RBT_H
 #define DNS_RBT_H 1
@@ -909,7 +909,7 @@ dns_rbtnodechain_nextflat(dns_rbtnodechain_t *chain, dns_name_t *name);
 	} while (0)
 #else  /* DNS_RBT_USEISCREFCOUNT */
 #define dns_rbtnode_refinit(node, n)    ((node)->references = (n))
-#define dns_rbtnode_refdestroy(node)    (REQUIRE((node)->references == 0))
+#define dns_rbtnode_refdestroy(node)    REQUIRE((node)->references == 0)
 #define dns_rbtnode_refcurrent(node)    ((node)->references)
 #define dns_rbtnode_refincrement0(node, refs)                   \
 	do {                                                    \

@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3hash.c,v 1.4 2009/03/07 23:47:45 tbox Exp $ */
+/* $Id: nsec3hash.c,v 1.5 2009/09/29 15:06:06 fdupont Exp $ */
 
 #include <config.h>
 
@@ -35,6 +35,9 @@
 #include <dns/types.h>
 
 const char *program = "nsec3hash";
+
+ISC_PLATFORM_NORETURN_PRE static void
+fatal(const char *format, ...) ISC_PLATFORM_NORETURN_POST;
 
 static void
 fatal(const char *format, ...) {

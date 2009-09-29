@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sample-async.c,v 1.4 2009/09/02 23:48:02 tbox Exp $ */
+/* $Id: sample-async.c,v 1.5 2009/09/29 15:06:07 fdupont Exp $ */
 
 #include <config.h>
 
@@ -247,8 +247,11 @@ dispatch_query(struct query_trans *trans) {
 	return (result);
 }
 
+ISC_PLATFORM_NORETURN_PRE static void
+usage(void) ISC_PLATFORM_NORETURN_POST;
+
 static void
-usage() {
+usage(void) {
 	fprintf(stderr, "usage: sample-async [-s server_address] [-t RR type] "
 		"input_file\n");
 

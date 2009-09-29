@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.231 2009/09/23 06:21:36 each Exp $ */
+/* $Id: dig.c,v 1.232 2009/09/29 15:06:05 fdupont Exp $ */
 
 /*! \file */
 
@@ -137,6 +137,9 @@ print_usage(FILE *fp) {
 "            {global-d-opt} host [@local-server] {local-d-opt}\n"
 "            [ host [@local-server] {local-d-opt} [...]]\n", fp);
 }
+
+ISC_PLATFORM_NORETURN_PRE static void
+usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
 usage(void) {

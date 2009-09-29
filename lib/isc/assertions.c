@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: assertions.c,v 1.25 2009/09/02 23:48:02 tbox Exp $ */
+/* $Id: assertions.c,v 1.26 2009/09/29 15:06:07 fdupont Exp $ */
 
 /*! \file */
 
@@ -39,24 +39,33 @@
 /*%
  * Forward.
  */
-/* coverity[+kill] */
 static void
 default_callback(const char *, int, isc_assertiontype_t, const char *);
+
+static isc_assertioncallback_t isc_assertion_failed_cb = default_callback;
 
 /*%
  * Public.
  */
 
-LIBISC_EXTERNAL_DATA isc_assertioncallback_t isc_assertion_failed =
-					     default_callback;
+/*% assertion failed handler */
+/* coverity[+kill] */
+void
+isc_assertion_failed(const char *file, int line, isc_assertiontype_t type,
+		     const char *cond)
+{
+	isc_assertion_failed_cb(file, line, type, cond);
+	abort();
+	/* NOTREACHED */
+}
 
 /*% Set callback. */
 void
 isc_assertion_setcallback(isc_assertioncallback_t cb) {
 	if (cb == NULL)
-		isc_assertion_failed = default_callback;
+		isc_assertion_failed_cb = default_callback;
 	else
-		isc_assertion_failed = cb;
+		isc_assertion_failed_cb = cb;
 }
 
 /*% Type to Text */
@@ -127,6 +136,4 @@ default_callback(const char *file, int line, isc_assertiontype_t type,
 		}
 	}
 	fflush(stderr);
-	abort();
-	/* NOTREACHED */
 }

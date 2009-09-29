@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h,v 1.17 2008/12/01 03:51:47 marka Exp $ */
+/* $Id: platform.h,v 1.18 2009/09/29 15:06:07 fdupont Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -62,6 +62,12 @@
  * Define if the platform has <sys/un.h>.
  */
 #undef ISC_PLATFORM_HAVESYSUNH
+
+/*
+ * Defines for the noreturn attribute.
+ */
+#define ISC_PLATFORM_NORETURN_PRE __declspec(noreturn)
+#define ISC_PLATFORM_NORETURN_POST
 
  /*
  * Set up a macro for importing and exporting from the DLL

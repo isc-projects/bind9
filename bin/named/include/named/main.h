@@ -15,15 +15,16 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.h,v 1.15 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id: main.h,v 1.16 2009/09/29 15:06:06 fdupont Exp $ */
 
 #ifndef NAMED_MAIN_H
 #define NAMED_MAIN_H 1
 
 /*! \file */
 
-void
-ns_main_earlyfatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
+ISC_PLATFORM_NORETURN_PRE void
+ns_main_earlyfatal(const char *format, ...)
+ISC_FORMAT_PRINTF(1, 2) ISC_PLATFORM_NORETURN_POST;
 
 void
 ns_main_earlywarning(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);

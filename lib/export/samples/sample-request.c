@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sample-request.c,v 1.4 2009/09/02 23:48:02 tbox Exp $ */
+/* $Id: sample-request.c,v 1.5 2009/09/29 15:06:07 fdupont Exp $ */
 
 #include <config.h>
 
@@ -57,8 +57,11 @@
 static isc_mem_t *mctx;
 static dns_fixedname_t fixedqname;
 
+ISC_PLATFORM_NORETURN_PRE static void
+usage(void) ISC_PLATFORM_NORETURN_POST;
+
 static void
-usage() {
+usage(void) {
 	fprintf(stderr, "sample-request [-t RRtype] server_address hostname\n");
 
 	exit(1);

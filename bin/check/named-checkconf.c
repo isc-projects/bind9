@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.49 2009/07/13 06:57:21 marka Exp $ */
+/* $Id: named-checkconf.c,v 1.50 2009/09/29 15:06:05 fdupont Exp $ */
 
 /*! \file */
 
@@ -59,6 +59,9 @@ isc_log_t *logc = NULL;
 	} while (0)
 
 /*% usage */
+ISC_PLATFORM_NORETURN_PRE static void
+usage(void) ISC_PLATFORM_NORETURN_POST;
+
 static void
 usage(void) {
 	fprintf(stderr, "usage: %s [-h] [-j] [-v] [-z] [-t directory] "

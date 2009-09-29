@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: refcount.h,v 1.15 2007/06/19 23:47:18 tbox Exp $ */
+/* $Id: refcount.h,v 1.16 2009/09/29 15:06:07 fdupont Exp $ */
 
 #ifndef ISC_REFCOUNT_H
 #define ISC_REFCOUNT_H 1
@@ -103,7 +103,7 @@ typedef struct isc_refcount {
 	isc_int32_t refs;
 } isc_refcount_t;
 
-#define isc_refcount_destroy(rp) (REQUIRE((rp)->refs == 0))
+#define isc_refcount_destroy(rp) REQUIRE((rp)->refs == 0)
 #define isc_refcount_current(rp) ((unsigned int)((rp)->refs))
 
 #define isc_refcount_increment0(rp, tp)				\
@@ -192,7 +192,7 @@ typedef struct isc_refcount {
 	int refs;
 } isc_refcount_t;
 
-#define isc_refcount_destroy(rp) (REQUIRE((rp)->refs == 0))
+#define isc_refcount_destroy(rp) REQUIRE((rp)->refs == 0)
 #define isc_refcount_current(rp) ((unsigned int)((rp)->refs))
 
 #define isc_refcount_increment0(rp, tp)					\

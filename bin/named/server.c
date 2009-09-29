@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.548 2009/09/10 01:49:29 each Exp $ */
+/* $Id: server.c,v 1.549 2009/09/29 15:06:06 fdupont Exp $ */
 
 /*! \file */
 
@@ -243,8 +243,8 @@ static const struct {
 	{ NULL, ISC_FALSE }
 };
 
-static void
-fatal(const char *msg, isc_result_t result);
+ISC_PLATFORM_NORETURN_PRE static void
+fatal(const char *msg, isc_result_t result) ISC_PLATFORM_NORETURN_POST;
 
 static void
 ns_server_reload(isc_task_t *task, isc_event_t *event);

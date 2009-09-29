@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: util.h,v 1.3 2009/06/11 23:47:55 tbox Exp $ */
+/* $Id: util.h,v 1.4 2009/09/29 15:06:05 fdupont Exp $ */
 
 #ifndef RNDC_UTIL_H
 #define RNDC_UTIL_H 1
@@ -22,6 +22,7 @@
 /*! \file */
 
 #include <isc/lang.h>
+#include <isc/platform.h>
 
 #include <isc/formatcheck.h>
 
@@ -42,8 +43,9 @@ ISC_LANG_BEGINDECLS
 void
 notify(const char *fmt, ...) ISC_FORMAT_PRINTF(1, 2);
 
-void
-fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
+ISC_PLATFORM_NORETURN_PRE void
+fatal(const char *format, ...)
+ISC_FORMAT_PRINTF(1, 2) ISC_PLATFORM_NORETURN_POST;
 
 ISC_LANG_ENDDECLS
 

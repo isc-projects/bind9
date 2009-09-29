@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sample.c,v 1.4 2009/09/02 23:48:02 tbox Exp $ */
+/* $Id: sample.c,v 1.5 2009/09/29 15:06:07 fdupont Exp $ */
 
 #include <config.h>
 
@@ -78,8 +78,11 @@ printdata(dns_rdataset_t *rdataset, dns_name_t *owner) {
 	return (ISC_R_SUCCESS);
 }
 
+ISC_PLATFORM_NORETURN_PRE static void
+usage(void) ISC_PLATFORM_NORETURN_POST;
+
 static void
-usage() {
+usage(void) {
 	fprintf(stderr, "sample [-t RRtype] "
 		"[[-a algorithm] [-e] -k keyname -K keystring] "
 		"[-s domain:serveraddr_for_domain ] "

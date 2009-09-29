@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ddns-confgen.c,v 1.8 2009/07/29 17:52:00 each Exp $ */
+/* $Id: ddns-confgen.c,v 1.9 2009/09/29 15:06:05 fdupont Exp $ */
 
 /*! \file */
 
@@ -59,6 +59,9 @@ static char program[256];
 const char *progname;
 
 isc_boolean_t verbose = ISC_FALSE;
+
+ISC_PLATFORM_NORETURN_PRE static void
+usage(int status) ISC_PLATFORM_NORETURN_POST;
 
 static void
 usage(int status) {

@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsprobe.c,v 1.4 2009/09/02 23:48:02 tbox Exp $ */
+/* $Id: nsprobe.c,v 1.5 2009/09/29 15:06:06 fdupont Exp $ */
 
 #include <config.h>
 
@@ -1015,8 +1015,11 @@ probe_domain(struct probe_trans *trans) {
 	return (result);
 }
 
+ISC_PLATFORM_NORETURN_PRE static void
+usage(void) ISC_PLATFORM_NORETURN_POST;
+
 static void
-usage() {
+usage(void) {
 	fprintf(stderr, "usage: nsprobe [-d] [-v [-v...]] [-c cache_address] "
 		"[input_file]\n");
 

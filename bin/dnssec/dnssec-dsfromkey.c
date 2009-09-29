@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-dsfromkey.c,v 1.13 2009/09/01 00:22:24 jinmei Exp $ */
+/* $Id: dnssec-dsfromkey.c,v 1.14 2009/09/29 15:06:06 fdupont Exp $ */
 
 /*! \file */
 
@@ -281,6 +281,9 @@ emit(unsigned int dtype, isc_boolean_t showall, char *lookaside,
 	fwrite(r.base, 1, r.length, stdout);
 	putchar('\n');
 }
+
+ISC_PLATFORM_NORETURN_PRE static void
+usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
 usage(void) {

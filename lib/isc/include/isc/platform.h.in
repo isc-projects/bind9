@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.52 2009/09/01 18:40:25 jinmei Exp $ */
+/* $Id: platform.h.in,v 1.53 2009/09/29 15:06:07 fdupont Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -293,6 +293,12 @@
  * Define if the hash functions must be provided by OpenSSL.
  */
 @ISC_PLATFORM_OPENSSLHASH@
+
+/*
+ * Defines for the noreturn attribute.
+ */
+@ISC_PLATFORM_NORETURN_PRE@
+@ISC_PLATFORM_NORETURN_POST@
 
 /***
  ***	Windows dll support.

@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sample-update.c,v 1.4 2009/09/02 23:48:02 tbox Exp $ */
+/* $Id: sample-update.c,v 1.5 2009/09/29 15:06:07 fdupont Exp $ */
 
 #include <config.h>
 
@@ -67,8 +67,11 @@ static void update_addordelete(isc_mem_t *mctx, char *cmdline,
 			       isc_boolean_t isdelete, dns_name_t *name);
 static void evaluate_prereq(isc_mem_t *mctx, char *cmdline, dns_name_t *name);
 
+ISC_PLATFORM_NORETURN_PRE static void
+usage(void) ISC_PLATFORM_NORETURN_POST;
+
 static void
-usage() {
+usage(void) {
 	fprintf(stderr, "sample-update "
 		"[-a auth_server] "
 		"[-k keyfile] "
