@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstall.cpp,v 1.7 2007/06/19 23:47:07 tbox Exp $ */
+/* $Id: BINDInstall.cpp,v 1.7.332.1 2009/09/29 05:06:55 marka Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -88,7 +88,7 @@ BOOL CBINDInstallApp::InitInstance()
 
 	CBINDInstallDlg dlg;
 	m_pMainWnd = &dlg;
-	int nResponse = dlg.DoModal();
+	INT_PTR nResponse = dlg.DoModal();
 	if (nResponse == IDOK)
 	{
 		// TODO: Place code here to handle when the dialog is

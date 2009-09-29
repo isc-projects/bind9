@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: thread.h,v 1.22.332.2 2009/09/25 23:47:27 tbox Exp $ */
+/* $Id: thread.h,v 1.22.332.3 2009/09/29 05:06:55 marka Exp $ */
 
 #ifndef ISC_THREAD_H
 #define ISC_THREAD_H 1
@@ -65,7 +65,7 @@ inline DWORD WaitAbandonedIndex( DWORD dwWaitResult) {
 
 
 typedef HANDLE isc_thread_t;
-typedef unsigned int isc_threadresult_t;
+typedef DWORD isc_threadresult_t;
 typedef void * isc_threadarg_t;
 typedef isc_threadresult_t (WINAPI *isc_threadfunc_t)(isc_threadarg_t);
 typedef DWORD isc_thread_key_t;
