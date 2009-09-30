@@ -1,4 +1,4 @@
-2692.	[port]		win32: 32/64 bit cleanups. [RT #128244]
+2692.	[port]		win32: 32/64 bit cleanups. [RT #20335]
 
 2690.	[bug]	 	win32: fix isc_thread_key_getspecific() prototype.
 			[RT #20315]
