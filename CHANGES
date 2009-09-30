@@ -1,9 +1,9 @@
-2794.	[bug]		Reduce default NSEC3 iterations from 100 to 10.
+2694.	[bug]		Reduce default NSEC3 iterations from 100 to 10.
 			[RT #19970]
 
-2793.	[port]		Add some noreturn attributes. [RT #20257]
+2693.	[port]		Add some noreturn attributes. [RT #20257]
 
-2792.	[port]		win32: 32/64 bit cleanups. [RT #20335]
+2692.	[port]		win32: 32/64 bit cleanups. [RT #20335]
 
 2691.	[func]		dnssec-signzone: retain the existing NSEC or NSEC3
 			chain when re-signing a previously-signed zone.
