@@ -1,3 +1,6 @@
+2696.	[bug]		named failed to successfully process some valid
+			acl constructs. [RT #20308]
+
 2692.	[port]		win32: 32/64 bit cleanups. [RT #20335]
 
 2690.	[bug]	 	win32: fix isc_thread_key_getspecific() prototype.
@@ -80,6 +83,8 @@
 			date.  [RT #19922]
 
 2625.	[bug]		Missing UNLOCK in rbtdb.c. [RT #19865]
+
+2623.	[bug]		Named started seaches for DS non-optimally. [RT #19915]
 
 2621.	[doc]		Made copyright boilterplate consistent.  [RT #19833]
 
@@ -361,7 +366,7 @@
 2515.	[port]		win32: build dnssec-dsfromkey and dnssec-keyfromlabel.
 			[RT #19063]
 
-2513	[bug]		Fix windows cli build. [RT #19062]
+2513.	[bug]		Fix windows cli build. [RT #19062]
 
 2510.	[bug]		"dig +sigchase" could trigger REQUIRE failures.
 			[RT #19033]
@@ -1641,8 +1646,6 @@
 			res_init() failures better.
 
 2095.	[port]		libbind: alway prototype inet_cidr_ntop_ipv6() and
-2623.	[bug]		Named started seaches for DS non-optimally. [RT #19915]
-
 			net_cidr_ntop_ipv6(). [RT #16388]
  
 2094.	[contrib]	Update named-bootconf.  [RT# 16404]
