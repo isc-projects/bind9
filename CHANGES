@@ -1,3 +1,6 @@
+2696.	[bug]		named failed to successfully process some valid
+			acl constructs. [RT #20308]
+
 2695.	[func]		DHCP/DDNS - update fdwatch code for use by
 			DHCP.  Modify the api to isc_sockfdwatch_t (the
 			callback funciton for isc_socket_fdwatchcreate)
