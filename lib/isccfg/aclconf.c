@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.c,v 1.17.2.8 2009/10/01 04:20:37 marka Exp $ */
+/* $Id: aclconf.c,v 1.17.2.9 2009/10/01 23:46:45 tbox Exp $ */
 
 #include <config.h>
 
@@ -208,7 +208,7 @@ count_acl_elements(const cfg_obj_t *caml, const cfg_obj_t *cctx,
 				result = get_acl_def(cctx, name, &cacl);
 				if (result == ISC_R_SUCCESS)
 					n += count_acl_elements(cacl, cctx,
-							        NULL) + 1;
+								NULL) + 1;
 			}
 		}
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stat.h,v 1.7.128.1 2009/10/01 05:19:35 marka Exp $ */
+/* $Id: stat.h,v 1.7.128.2 2009/10/01 23:46:45 tbox Exp $ */
 
 #ifndef ISC_STAT_H
 #define ISC_STAT_H 1
@@ -24,7 +24,7 @@
 
 /* open() under unix allows setting of read/write permissions
  * at the owner, group and other levels.  These don't exist in NT
- * We'll just map them all to the NT equivalent 
+ * We'll just map them all to the NT equivalent
  */
 
 #define S_IREAD	_S_IREAD	/* read permission, owner */
