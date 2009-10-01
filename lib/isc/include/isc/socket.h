@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.93 2009/09/02 23:43:54 each Exp $ */
+/* $Id: socket.h,v 1.94 2009/10/01 01:30:01 sar Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -266,6 +266,11 @@ typedef struct isc_socketmgrmethods {
 	isc_result_t	(*socketcreate)(isc_socketmgr_t *manager, int pf,
 					isc_sockettype_t type,
 					isc_socket_t **socketp);
+	isc_result_t    (*fdwatchcreate)(isc_socketmgr_t *manager, int fd,
+					 int flags,
+					 isc_sockfdwatch_t callback,
+					 void *cbarg, isc_task_t *task,
+					 isc_socket_t **socketp);
 } isc_socketmgrmethods_t;
 
 typedef struct isc_socketmethods {
@@ -290,6 +295,7 @@ typedef struct isc_socketmethods {
 				       isc_sockaddr_t *addressp);
 	isc_sockettype_t (*gettype)(isc_socket_t *sock);
 	void		(*ipv6only)(isc_socket_t *sock, isc_boolean_t yes);
+	isc_result_t    (*fdwatchpoke)(isc_socket_t *sock, int flags);
 } isc_socketmethods_t;
 
 /*%
@@ -377,6 +383,35 @@ isc_socket_fdwatchcreate(isc_socketmgr_t *manager,
  *\li	#ISC_R_NOMEMORY
  *\li	#ISC_R_NORESOURCES
  *\li	#ISC_R_UNEXPECTED
+ */
+
+isc_result_t
+isc_socket_fdwatchpoke(isc_socket_t *sock,
+		       int flags);
+/*%<
+ * Poke a file descriptor watch socket informing the manager that it
+ * should restart watching the socket
+ *
+ * Note:
+ *
+ *\li   'sock' is the socket returned by isc_socket_fdwatchcreate
+ *
+ *\li   'flags' indicates what the manager should watch for on the socket
+ *      in addition to what it may already be watching.  It can be one or
+ *      both of ISC_SOCKFDWATCH_READ and ISC_SOCKFDWATCH_WRITE.  To
+ *      temporarily disable watching on a socket the value indicating
+ *      no more data should be returned from the call back routine.
+ *
+ *\li	This function is not available on Windows.
+ *
+ * Requires:
+ *
+ *\li	'sock' is a valid isc socket
+ *
+ *
+ * Returns:
+ *
+ *\li	#ISC_R_SUCCESS
  */
 
 isc_result_t

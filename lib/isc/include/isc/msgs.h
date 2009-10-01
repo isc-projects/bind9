@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: msgs.h,v 1.17 2008/08/08 06:28:59 tbox Exp $ */
+/* $Id: msgs.h,v 1.18 2009/10/01 01:30:01 sar Exp $ */
 
 #ifndef ISC_MSGS_H
 #define ISC_MSGS_H 1
@@ -156,7 +156,7 @@
 #define ISC_MSG_FILTER	       1421 /*%< setsockopt(SO_ACCEPTFILTER): %s */
 
 #define ISC_MSG_TOOMANYHANDLES 1422 /*%< %s: too many open WSA event handles: %s */
-
+#define ISC_MSG_POKED          1423 /*%< "poked flags: %d" */
 
 #define ISC_MSG_AWAKE	       1502 /*%< "awake" */
 #define ISC_MSG_WORKING	       1503 /*%< "working" */

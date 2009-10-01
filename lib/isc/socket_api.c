@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket_api.c,v 1.4 2009/09/02 23:48:02 tbox Exp $ */
+/* $Id: socket_api.c,v 1.5 2009/10/01 01:30:01 sar Exp $ */
 
 #include <config.h>
 
@@ -193,4 +193,24 @@ isc_socket_setname(isc_socket_t *socket, const char *name, void *tag) {
 	UNUSED(socket);		/* in case REQUIRE() is empty */
 	UNUSED(name);
 	UNUSED(tag);
+}
+
+isc_result_t
+isc_socket_fdwatchcreate(isc_socketmgr_t *manager, int fd, int flags,
+			 isc_sockfdwatch_t callback, void *cbarg,
+			 isc_task_t *task, isc_socket_t **socketp)
+{
+	REQUIRE(ISCAPI_SOCKETMGR_VALID(manager));
+
+	return (manager->methods->fdwatchcreate(manager, fd, flags,
+						callback, cbarg, task,
+						socketp));
+}
+
+isc_result_t
+isc_socket_fdwatchpoke(isc_socket_t *sock, int flags)
+{
+	REQUIRE(ISCAPI_SOCKET_VALID(sock));
+
+	return(sock->methods->fdwatchpoke(sock, flags));
 }

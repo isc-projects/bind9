@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.324 2009/09/07 02:08:51 marka Exp $ */
+/* $Id: socket.c,v 1.325 2009/10/01 01:30:01 sar Exp $ */
 
 /*! \file */
 
@@ -535,6 +535,13 @@ ISC_SOCKETFUNC_SCOPE void
 isc__socketmgr_renderxml(isc_socketmgr_t *mgr0, xmlTextWriterPtr writer);
 #endif
 
+ISC_SOCKETFUNC_SCOPE isc_result_t
+isc__socket_fdwatchcreate(isc_socketmgr_t *manager, int fd, int flags,
+			  isc_sockfdwatch_t callback, void *cbarg,
+			  isc_task_t *task, isc_socket_t **socketp);
+ISC_SOCKETFUNC_SCOPE isc_result_t
+isc__socket_fdwatchpoke(isc_socket_t *sock, int flags);
+
 static struct {
 	isc_socketmethods_t methods;
 
@@ -556,7 +563,8 @@ static struct {
 		isc__socket_cancel,
 		isc__socket_getsockname,
 		isc__socket_gettype,
-		isc__socket_ipv6only
+		isc__socket_ipv6only,
+		isc__socket_fdwatchpoke
 	}
 #ifndef BIND9
 	,
@@ -571,7 +579,8 @@ static struct {
 
 static isc_socketmgrmethods_t socketmgrmethods = {
 	isc__socketmgr_destroy,
-	isc__socket_create
+	isc__socket_create,
+	isc__socket_fdwatchcreate
 };
 
 #define SELECT_POKE_SHUTDOWN		(-1)
@@ -2553,6 +2562,7 @@ isc__socket_open(isc_socket_t *sock0) {
 
 	return (result);
 }
+#endif	/* BIND9 */
 
 /*
  * Create a new 'type' socket managed by 'manager'.  Events
@@ -2617,7 +2627,29 @@ isc__socket_fdwatchcreate(isc_socketmgr_t *manager0, int fd, int flags,
 
 	return (ISC_R_SUCCESS);
 }
-#endif	/* BIND9 */
+
+/* Indicate to the manager that it should watch the socket again.
+ * This can be used to restart watching if the previous event handler
+ * didn't indicate there was more data to be processed.  Primarily
+ * it is for writing but could be used for reading if desired */
+
+ISC_SOCKETFUNC_SCOPE isc_result_t
+isc__socket_fdwatchpoke(isc_socket_t *sock0, int flags)
+{
+	isc__socket_t *sock = (isc__socket_t *)sock0;
+
+	REQUIRE(VALID_SOCKET(sock));
+
+	if (flags & ISC_SOCKFDWATCH_READ)
+		select_poke(sock->manager, sock->fd, SELECT_POKE_READ);
+	if (flags & ISC_SOCKFDWATCH_WRITE)
+		select_poke(sock->manager, sock->fd, SELECT_POKE_WRITE);
+
+	socket_log(sock, NULL, TRACE, isc_msgcat, ISC_MSGSET_SOCKET,
+		   ISC_MSG_POKED, "fdwatch-poked flags: %d", flags);
+
+	return (ISC_R_SUCCESS);
+}
 
 /*
  * Attach to a socket.  Caller must explicitly detach when it is done.
@@ -3276,7 +3308,7 @@ internal_fdwatch_write(isc_task_t *me, isc_event_t *ev) {
 
 	UNLOCK(&sock->lock);
 	more_data = (sock->fdwatchcb)(me, (isc_socket_t *)sock,
-				      sock->fdwatcharg);
+				      sock->fdwatcharg, ISC_SOCKFDWATCH_WRITE);
 	LOCK(&sock->lock);
 
 	sock->pending_send = 0;
@@ -3317,7 +3349,7 @@ internal_fdwatch_read(isc_task_t *me, isc_event_t *ev) {
 
 	UNLOCK(&sock->lock);
 	more_data = (sock->fdwatchcb)(me, (isc_socket_t *)sock,
-				      sock->fdwatcharg);
+				      sock->fdwatcharg, ISC_SOCKFDWATCH_READ);
 	LOCK(&sock->lock);
 
 	sock->pending_recv = 0;
