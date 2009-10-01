@@ -1,3 +1,7 @@
+2697.	[port]		win32: ensure that S_IFMT, S_IFDIR, S_IFCHR and
+			S_IFREG are defined after including <isc/stat.h>.
+			[RT #20309]
+
 2690.	[bug]	 	win32: fix isc_thread_key_getspecific() prototype.
 			[RT #20315]
 
@@ -93,7 +97,7 @@
 			removed_orphaned_ds(). [RT #19507]
 
 2589.	[bug]		dns_db_unregister() failed to clear '*dbimp'.
-		        [RT #19626]
+			[RT #19626]
 
 2586.	[bug]		Missing cleanup of SIG rdataset in searching a DLZ DB
 			or SDB. [RT #19577]
@@ -182,8 +186,8 @@
 2529.	[cleanup]	Upgrade libtool to silence complaints from recent
 			version of autoconf. [RT #18657]
 
-2528.   [cleanup]       Silence spurious configure warning about
-                        --datarootdir [RT #19096]
+2528.   [cleanup]	Silence spurious configure warning about
+			--datarootdir [RT #19096]
 
 2527.	[bug]		named could reuse cache on reload with
 			enabling/disabling validation. [RT #19119]
@@ -219,7 +223,7 @@
 2509.	[bug]		Specifying a fixed query source port was broken.
 			[RT #19051]
 
-2506.	[port]		solaris: Check at configure time if 
+2506.	[port]		solaris: Check at configure time if
 			hack_shutup_pthreadonceinit is needed. [RT #19037]
 
 2505.	[port]		Treat amd64 similarly to x86_64 when determining
@@ -278,7 +282,7 @@
 
 2473.	[port]		linux: raise the limit on open files to the possible
 			maximum value before spawning threads; 'files'
-		        specified in named.conf doesn't seem to work with
+			specified in named.conf doesn't seem to work with
 			threads as expected. [RT #18784]
 
 2472.	[port]		linux: check the number of available cpu's before
@@ -301,7 +305,7 @@
 2465.	[bug]		Adb's handling of lame addresses was different
 			for IPv4 and IPv6. [RT #18738]
 
-2463.   [port]          linux: POSIX doesn't include the IPv6 Advanced Socket
+2463.	[port]		linux: POSIX doesn't include the IPv6 Advanced Socket
 			API and glibc hides parts of the IPv6 Advanced Socket
 			API as a result.  This is stupid as it breaks how the
 			two halves (Basic and Advanced) of the IPv6 Socket API
@@ -486,7 +490,7 @@
 2380.	[bug]		dns_view_find() was not returning NXDOMAIN/NXRRSET
 			proofs which, in turn, caused validation failures
 			for insecure zones immediately below a secure zone
-			the server was authoritative for. [RT #18112] 
+			the server was authoritative for. [RT #18112]
 
 2379.	[contrib]	queryperf/gen-data-queryperf.py: removed redundant
 			TLDs and supported RRs with TTLs [RT #17972]
