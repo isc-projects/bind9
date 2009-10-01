@@ -1,3 +1,7 @@
+2697.	[port]		win32: ensure that S_IFMT, S_IFDIR, S_IFCHR and
+			S_IFREG are defined after including <isc/stat.h>.
+			[RT #20309]
+
 2696.	[bug]		named failed to successfully process some valid
 			acl constructs. [RT #20308]
 
@@ -230,8 +234,8 @@
 2529.	[cleanup]	Upgrade libtool to silence complaints from recent
 			version of autoconf. [RT #18657]
 
-2528.   [cleanup]       Silence spurious configure warning about
-                        --datarootdir [RT #19096]
+2528.   [cleanup]	Silence spurious configure warning about
+			--datarootdir [RT #19096]
 
 2527.	[bug]		named could reuse cache on reload with
 			enabling/disabling validation. [RT #19119]
@@ -383,7 +387,7 @@
 2464.	[port]		linux: check that a capability is present before
 			trying to set it. [RT #18135]
 
-2463.   [port]          linux: POSIX doesn't include the IPv6 Advanced Socket
+2463.	[port]		linux: POSIX doesn't include the IPv6 Advanced Socket
 			API and glibc hides parts of the IPv6 Advanced Socket
 			API as a result.  This is stupid as it breaks how the
 			two halves (Basic and Advanced) of the IPv6 Socket API
@@ -440,7 +444,7 @@
 
 2442.	[bug]		A lock could be destroyed twice. [RT# 18626]
 
-2441.   [bug]           isc_radix_insert() could copy radix tree nodes
+2441.	[bug]		isc_radix_insert() could copy radix tree nodes
 			incompletely. [RT #18573]
 
 2440.   [bug]		named-checkconf used an incorrect test to determine
@@ -555,9 +559,9 @@
 
 2407.	[port]		hpux: test for sys/dyntune.h. [RT #18421]
 
-2405.   [cleanup]       The default value for dnssec-validation was changed to
-                        "yes" in 9.5.0-P1 and all subsequent releases; this
-                        was inadvertently omitted from CHANGES at the time.
+2405.	[cleanup]	The default value for dnssec-validation was changed to
+			"yes" in 9.5.0-P1 and all subsequent releases; this
+			was inadvertently omitted from CHANGES at the time.
 
 2404.	[port]		hpux: files unlimited support.
 
