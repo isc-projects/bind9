@@ -1,6 +1,9 @@
+2696.	[bug]		named failed to successfully process some valid
+			acl constructs. [RT #20308]
+
 2692.	[port]		win32: 32/64 bit cleanups. [RT #20335]
 
-2690.	[bug]	 	win32: fix isc_thread_key_getspecific() prototype.
+2690.	[bug]		win32: fix isc_thread_key_getspecific() prototype.
 			[RT #20315]
 
 2689.	[bug]		Correctly handle snprintf result. [RT #20306]
@@ -117,7 +120,7 @@
 			removed_orphaned_ds(). [RT #19507]
 
 2589.	[bug]		dns_db_unregister() failed to clear '*dbimp'.
-		        [RT #19626]
+			[RT #19626]
 
 2586.	[bug]		Missing cleanup of SIG rdataset in searching a DLZ DB
 			or SDB. [RT #19577]
@@ -133,7 +136,7 @@
 			date to the version string, -DNO_VERSION_DATE.
 
 2582.	[bug]		Don't emit warning log message when we attempt to
-			remove non-existant journal. [RT #19516]
+			remove non-existent journal. [RT #19516]
 
 2581.	[contrib]	dlz/mysql set MYSQL_OPT_RECONNECT option on connection.
 			Requires MySQL 5.0.19 or later. [RT #19084]
@@ -262,7 +265,7 @@
 2511.	[cleanup]	dns_rdata_tofmttext() add const to linebreak.
 			[RT #18885]
 
-2506.	[port]		solaris: Check at configure time if 
+2506.	[port]		solaris: Check at configure time if
 			hack_shutup_pthreadonceinit is needed. [RT #19037]
 
 2505.	[port]		Treat amd64 similarly to x86_64 when determining
@@ -337,7 +340,7 @@
 
 2478.	[bug]		'addresses' could be used uninitalized in
 			configure_forward(). [RT #18800]
-	
+
 2476.	[doc]		ARM: improve documentation for max-journal-size and
 			ixfr-from-differences. [RT #15909] [RT #18541]
 
@@ -351,7 +354,7 @@
 
 2473.	[port]		linux: raise the limit on open files to the possible
 			maximum value before spawning threads; 'files'
-		        specified in named.conf doesn't seem to work with
+			specified in named.conf doesn't seem to work with
 			threads as expected. [RT #18784]
 
 2472.	[port]		linux: check the number of available cpu's before
@@ -403,7 +406,7 @@
 2456.	[bug]		In ACLs, ::/0 and 0.0.0.0/0 would both match any
 			address, regardless of family.  They now correctly
 			distinguish IPv4 from IPv6.  [RT #18559]
-                        
+
 2455.	[bug]		Stop metadata being transferred via axfr/ixfr.
 			[RT #18639]
 
@@ -445,7 +448,7 @@
 
 2439.   [bug]           Potential NULL dereference in dns_acl_isanyornone().
                         [RT #18559]
-        
+
 2438.	[bug]		Timeouts could be logged incorrectly under win32.
 			[RT #18617]
 
@@ -492,7 +495,7 @@
 			implementation.  Allow the use of kqueue,
 			epoll and /dev/poll to be selected at compile
 			time. [RT #18277]
-			
+
 2422.	[bug]		Handle the special return value of a empty node as
 			if it was a NXRRSET in the validator. [RT #18447]
 
@@ -628,7 +631,7 @@
 2380.	[bug]		dns_view_find() was not returning NXDOMAIN/NXRRSET
 			proofs which, in turn, caused validation failures
 			for insecure zones immediately below a secure zone
-			the server was authoritative for. [RT #18112] 
+			the server was authoritative for. [RT #18112]
 
 2379.	[contrib]	queryperf/gen-data-queryperf.py: removed redundant
 			TLDs and supported RRs with TTLs [RT #17972]
@@ -1886,7 +1889,7 @@
 1966.	[bug]		Don't set CD when we have fallen back to plain DNS.
 			[RT #15727]
 
-1965.	[func]		Suppress spurious "recusion requested but not
+1965.	[func]		Suppress spurious "recursion requested but not
 			available" warning with 'dig +qr'. [RT #15780].
 
 1964.	[func]		Separate out MX and SRV to CNAME checks. [RT #15723]
@@ -4890,7 +4893,7 @@
  963.	[bug]		Bad ISC_LANG_ENDDECLS. [RT #1645]
 
  962.	[bug]		libbind: bad "#undef", don't attempt to install
-			non-existant nlist.h. [RT #1640]
+			non-existent nlist.h. [RT #1640]
 
  961.	[bug]		Tried to use a IPV6 feature when ISC_PLATFORM_HAVEIPV6
 			was not defined. [RT #1482]
@@ -7528,7 +7531,7 @@
  188.	[func]		Log a warning message when an incoming zone transfer
 			contains out-of-zone data.
 
- 187.	[func]		isc_ratelimter_enqueue() has an additional argument
+ 187.	[func]		isc_ratelimiter_enqueue() has an additional argument
 			'task'.
 
  186.	[func]		dns_request_getresponse() has an additional argument
@@ -7671,7 +7674,7 @@
 
 				masters [ port xxx ] { y.y.y.y [ port zzz ] ; }
 
- 149.	[cleanup]	Removed usused argument 'olist' from
+ 149.	[cleanup]	Removed unused argument 'olist' from
 			dns_c_view_unsetordering().
 
  148.	[cleanup]	Stop issuing some warnings about some configuration
@@ -7747,7 +7750,7 @@
  128.	[cleanup]	<isc/dir.h> had ISC_LANG_BEGINDECLS instead of
 			ISC_LANG_ENDDECLS at end of header.
 
- 127.	[cleanup]	The contracts for the comparision routines
+ 127.	[cleanup]	The contracts for the comparison routines
 			dns_name_fullcompare(), dns_name_compare(),
 			dns_name_rdatacompare(), and dns_rdata_compare() now
 			specify that the order value returned is < 0, 0, or > 0
