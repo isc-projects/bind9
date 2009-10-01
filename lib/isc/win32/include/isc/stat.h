@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stat.h,v 1.7 2007/06/19 23:47:20 tbox Exp $ */
+/* $Id: stat.h,v 1.8 2009/10/01 04:43:30 marka Exp $ */
 
 #ifndef ISC_STAT_H
 #define ISC_STAT_H 1
@@ -35,6 +35,19 @@
 #define S_IWGRP _S_IWRITE	/* Group write permission */
 #define S_IROTH _S_IREAD	/* Other read permission */
 #define S_IWOTH _S_IWRITE	/* Other write permission */
+
+#ifndef S_IFMT
+# define S_IFMT   _S_IFMT
+#endif
+#ifndef S_IFDIR
+# define S_IFDIR  _S_IFDIR
+#endif
+#ifndef S_IFCHR
+# define S_IFCHR  _S_IFCHR
+#endif
+#ifndef S_IFREG
+# define S_IFREG  _S_IFREG
+#endif
 
 #ifndef S_ISDIR
 # define S_ISDIR(m)	(((m) & S_IFMT) == S_IFDIR)
