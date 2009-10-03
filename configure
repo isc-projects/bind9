@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-# $Id: configure,v 1.339.18.90 2009/08/13 01:59:39 marka Exp $
+# $Id: configure,v 1.339.18.91 2009/10/03 16:23:51 each Exp $
 #
 # Portions Copyright (C) 1996-2001  Nominum, Inc.
 #
@@ -835,6 +835,7 @@ LIBS
 build_alias
 host_alias
 target_alias
+LIBBIND
 subdirs
 build
 build_cpu
@@ -913,7 +914,6 @@ LIBTOOL_MODE_INSTALL
 LIBTOOL_MODE_LINK
 LIBTOOL_ALLOW_UNDEFINED
 LIBTOOL_IN_MAIN
-LIBBIND
 ISC_PLATFORM_HAVEIPV6
 LWRES_PLATFORM_HAVEIPV6
 ISC_PLATFORM_NEEDNETINETIN6H
@@ -1618,6 +1618,7 @@ if test -n "$ac_init_help"; then
 Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --enable-libbind        build libbind (deprecated) [default=no]
   --enable-shared[=PKGS]  build shared libraries [default=yes]
   --enable-static[=PKGS]  build static libraries [default=yes]
   --enable-fast-install[=PKGS]
@@ -1630,7 +1631,6 @@ Optional Features:
                           Check OpenSSL Version [default=yes]
   --enable-threads	enable multithreading
   --enable-largefile	  64-bit file support
-  --enable-libbind		build libbind default=no
   --enable-ipv6           use IPv6 default=autodetect
   --enable-getifaddrs    Enable the use of getifaddrs() [yes|no|glibc].
              glibc: Use getifaddrs() in glibc if you know it supports IPv6.
@@ -2111,6 +2111,39 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
+
+#
+# build libbind?
+#
+# Check whether --enable-libbind was given.
+if test "${enable_libbind+set}" = set; then
+  enableval=$enable_libbind;
+fi
+
+
+
+case "$enable_libbind" in
+       yes)
+               { echo "$as_me:$LINENO: WARNING: The version of libbind included with BIND 9.4
+is no longer maintained.  While '--enable-libbind' will still compile
+and may work, we are no longer supporting it within the BIND
+framework.  Anyone planning to use libbind should download
+and use the separate libbind package.  Please see
+https://www.isc.org/software/libbind for details.
+" >&5
+echo "$as_me: WARNING: The version of libbind included with BIND 9.4
+is no longer maintained.  While '--enable-libbind' will still compile
+and may work, we are no longer supporting it within the BIND
+framework.  Anyone planning to use libbind should download
+and use the separate libbind package.  Please see
+https://www.isc.org/software/libbind for details.
+" >&2;}
+               LIBBIND=lib/bind
+
+               ;;
+       no|'')
+               ;;
+esac
 
 ac_config_headers="$ac_config_headers config.h"
 
@@ -3919,7 +3952,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 3922 "configure"' > conftest.$ac_ext
+  echo '#line 3955 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -6867,11 +6900,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:6870: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:6903: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:6874: \$? = $ac_status" >&5
+   echo "$as_me:6907: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7157,11 +7190,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7160: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7193: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7164: \$? = $ac_status" >&5
+   echo "$as_me:7197: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7261,11 +7294,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7264: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7297: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:7268: \$? = $ac_status" >&5
+   echo "$as_me:7301: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -9625,7 +9658,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9628 "configure"
+#line 9661 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -9725,7 +9758,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9728 "configure"
+#line 9761 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12130,11 +12163,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12133: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12166: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:12137: \$? = $ac_status" >&5
+   echo "$as_me:12170: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -12234,11 +12267,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12237: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12270: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:12241: \$? = $ac_status" >&5
+   echo "$as_me:12274: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -13817,11 +13850,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13820: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13853: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:13824: \$? = $ac_status" >&5
+   echo "$as_me:13857: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13921,11 +13954,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13924: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13957: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13928: \$? = $ac_status" >&5
+   echo "$as_me:13961: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -16132,11 +16165,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16135: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16168: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16139: \$? = $ac_status" >&5
+   echo "$as_me:16172: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16422,11 +16455,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16425: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16458: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16429: \$? = $ac_status" >&5
+   echo "$as_me:16462: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16526,11 +16559,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16529: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16562: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:16533: \$? = $ac_status" >&5
+   echo "$as_me:16566: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -25260,25 +25293,6 @@ SA=a
 
 
 #
-# build libbind?
-#
-# Check whether --enable-libbind was given.
-if test "${enable_libbind+set}" = set; then
-  enableval=$enable_libbind;
-fi
-
-
-case "$enable_libbind" in
-	yes)
-		LIBBIND=lib/bind
-
-		;;
-	no|'')
-		;;
-esac
-
-
-#
 # Here begins a very long section to determine the system's networking
 # capabilities.  The order of the tests is significant.
 #
@@ -32810,6 +32824,7 @@ LIBS!$LIBS$ac_delim
 build_alias!$build_alias$ac_delim
 host_alias!$host_alias$ac_delim
 target_alias!$target_alias$ac_delim
+LIBBIND!$LIBBIND$ac_delim
 subdirs!$subdirs$ac_delim
 build!$build$ac_delim
 build_cpu!$build_cpu$ac_delim
@@ -32842,7 +32857,6 @@ CXX!$CXX$ac_delim
 CXXFLAGS!$CXXFLAGS$ac_delim
 ac_ct_CXX!$ac_ct_CXX$ac_delim
 CXXCPP!$CXXCPP$ac_delim
-F77!$F77$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 70; then
@@ -32920,6 +32934,7 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+F77!$F77$ac_delim
 FFLAGS!$FFLAGS$ac_delim
 ac_ct_F77!$ac_ct_F77$ac_delim
 LIBTOOL!$LIBTOOL$ac_delim
@@ -32965,7 +32980,6 @@ LIBTOOL_MODE_INSTALL!$LIBTOOL_MODE_INSTALL$ac_delim
 LIBTOOL_MODE_LINK!$LIBTOOL_MODE_LINK$ac_delim
 LIBTOOL_ALLOW_UNDEFINED!$LIBTOOL_ALLOW_UNDEFINED$ac_delim
 LIBTOOL_IN_MAIN!$LIBTOOL_IN_MAIN$ac_delim
-LIBBIND!$LIBBIND$ac_delim
 ISC_PLATFORM_HAVEIPV6!$ISC_PLATFORM_HAVEIPV6$ac_delim
 LWRES_PLATFORM_HAVEIPV6!$LWRES_PLATFORM_HAVEIPV6$ac_delim
 ISC_PLATFORM_NEEDNETINETIN6H!$ISC_PLATFORM_NEEDNETINETIN6H$ac_delim
