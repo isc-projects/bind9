@@ -18,10 +18,33 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.432.60.33 $)
+AC_REVISION($Revision: 1.432.60.34 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
+
+#
+# build libbind?
+#
+AC_ARG_ENABLE(libbind,
+       [  --enable-libbind        build libbind (deprecated) [[default=no]]])
+
+
+case "$enable_libbind" in
+       yes)
+               AC_MSG_WARN([The version of libbind included with BIND 9.5
+is no longer maintained.  While '--enable-libbind' will still compile
+and may work, we are no longer supporting it within the BIND
+framework.  Anyone planning to use libbind should download
+and use the separate libbind package.  Please see
+https://www.isc.org/software/libbind for details.
+])
+               LIBBIND=lib/bind
+               AC_SUBST(LIBBIND)
+               ;;
+       no|'')
+               ;;
+esac
 
 AC_CONFIG_HEADER(config.h)
 AC_CONFIG_SUBDIRS(lib/bind)
@@ -1256,22 +1279,6 @@ AC_SUBST(LIBTOOL_MODE_INSTALL)
 AC_SUBST(LIBTOOL_MODE_LINK)
 AC_SUBST(LIBTOOL_ALLOW_UNDEFINED)
 AC_SUBST(LIBTOOL_IN_MAIN)
-
-#
-# build libbind?
-#
-AC_ARG_ENABLE(libbind,
-	[  --enable-libbind		build libbind [default=no]])
-
-case "$enable_libbind" in
-	yes)
-		LIBBIND=lib/bind
-		AC_SUBST(LIBBIND)
-		;;
-	no|'')
-		;;
-esac
-
 
 #
 # Here begins a very long section to determine the system's networking

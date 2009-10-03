@@ -1,3 +1,5 @@
+2698.   [cleanup]       configure --enable-libbind is deprecated. [RT #20090]
+
 2697.	[port]		win32: ensure that S_IFMT, S_IFDIR, S_IFCHR and
 			S_IFREG are defined after including <isc/stat.h>.
 			[RT #20309]
