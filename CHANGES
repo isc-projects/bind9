@@ -1,3 +1,5 @@
+2699.	[bug]		Missing lock in rbtdb.c. [RT #20037]
+
 2698.	[placeholder]
 
 2697.	[port]		win32: ensure that S_IFMT, S_IFDIR, S_IFCHR and
