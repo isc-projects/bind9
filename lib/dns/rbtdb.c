@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.270.12.8 2009/10/03 22:39:04 each Exp $ */
+/* $Id: rbtdb.c,v 1.270.12.9 2009/10/03 23:47:29 tbox Exp $ */
 
 /*! \file */
 
@@ -2279,7 +2279,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 
 		lock = &rbtdb->node_locks[header->node->locknum].lock;
 		NODE_LOCK(lock, isc_rwlocktype_write);
-		if (rollback) 
+		if (rollback)
 			resign_insert(rbtdb, header->node->locknum, header);
 		decrement_reference(rbtdb, header->node, least_serial,
 				    isc_rwlocktype_write, isc_rwlocktype_none,
@@ -6507,7 +6507,7 @@ delete_callback(void *data, void *arg) {
 	dns_rbtdb_t *rbtdb = arg;
 	rdatasetheader_t *current, *next;
 	unsigned int locknum;
-	
+
 	current = data;
 	locknum = current->node->locknum;
 	NODE_LOCK(&rbtdb->node_locks[locknum].lock, isc_rwlocktype_write);
