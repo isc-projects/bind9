@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.53 2009/09/03 00:12:23 each Exp $ */
+/* $Id: dnssectool.c,v 1.54 2009/10/03 18:03:54 each Exp $ */
 
 /*! \file */
 
@@ -282,6 +282,7 @@ time_units(isc_stdtime_t offset, char *suffix, const char *str) {
 		    default:
 			fatal("time value %s is invalid", str);
 		}
+		/* NOTREACHED */
 		break;
 	    case 'W': case 'w':
 		return (offset * (7 * 24 * 3600));
@@ -294,6 +295,7 @@ time_units(isc_stdtime_t offset, char *suffix, const char *str) {
 	    default:
 		fatal("time value %s is invalid", str);
 	}
+	/* NOTREACHED */
 	return(0); /* silence compiler warning */
 }
 

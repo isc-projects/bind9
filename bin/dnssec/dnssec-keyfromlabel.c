@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keyfromlabel.c,v 1.16 2009/09/29 15:06:06 fdupont Exp $ */
+/* $Id: dnssec-keyfromlabel.c,v 1.17 2009/10/03 18:03:53 each Exp $ */
 
 /*! \file */
 
@@ -384,6 +384,7 @@ main(int argc, char **argv) {
 		alg_format(alg, algstr, sizeof(algstr));
 		fatal("failed to get key %s/%s: %s\n",
 		      namestr, algstr, isc_result_totext(ret));
+		/* NOTREACHED */
 		exit(-1);
 	}
 

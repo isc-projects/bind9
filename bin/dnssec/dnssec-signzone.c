@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.239 2009/09/29 22:17:34 each Exp $ */
+/* $Id: dnssec-signzone.c,v 1.240 2009/10/03 18:03:54 each Exp $ */
 
 /*! \file */
 
@@ -372,6 +372,7 @@ expecttofindkey(dns_name_t *name) {
 	dns_name_format(name, namestr, sizeof(namestr));
 	fatal("failure looking for '%s DNSKEY' in database: %s",
 	      namestr, isc_result_totext(result));
+	/* NOTREACHED */
 	return (ISC_FALSE); /* removes a warning */
 }
 

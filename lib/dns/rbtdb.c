@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.278 2009/09/01 00:22:26 jinmei Exp $ */
+/* $Id: rbtdb.c,v 1.279 2009/10/03 18:03:54 each Exp $ */
 
 /*! \file */
 
@@ -3916,6 +3916,7 @@ zone_findzonecut(dns_db_t *db, dns_name_t *name, unsigned int options,
 
 	FATAL_ERROR(__FILE__, __LINE__, "zone_findzonecut() called!");
 
+	/* NOTREACHED */
 	return (ISC_R_NOTIMPLEMENTED);
 }
 
