@@ -35,7 +35,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.43 2009/08/25 04:41:23 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.44 2009/10/03 23:34:19 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -5865,13 +5865,15 @@ options {
                   If <userinput>yes</userinput>, then an
                   IPv4-mapped IPv6 address will match any address match
                   list entries that match the corresponding IPv4 address.
-                  Enabling this option is sometimes useful on IPv6-enabled
-                  Linux
-                  systems, to work around a kernel quirk that causes IPv4
-                  TCP connections such as zone transfers to be accepted
-                  on an IPv6 socket using mapped addresses, causing
-                  address match lists designed for IPv4 to fail to match.
-                  The use of this option for any other purpose is discouraged.
+                </para>
+                <para>
+                  This option was introduced to work around a kernel quirk
+                  in some operating systems that causes IPv4 TCP
+                  connections, such as zone transfers, to be accepted on an
+                  IPv6 socket using mapped addresses.  This caused address
+                  match lists designed for IPv4 to fail to match.  However,
+                  <command>named</command> now solves this problem
+                  internally.  The use of this option is discouraged.
                 </para>
               </listitem>
             </varlistentry>
