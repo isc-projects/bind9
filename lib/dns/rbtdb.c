@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.270.12.7 2009/07/13 07:04:36 marka Exp $ */
+/* $Id: rbtdb.c,v 1.270.12.8 2009/10/03 22:39:04 each Exp $ */
 
 /*! \file */
 
@@ -258,21 +258,8 @@ typedef struct rdatasetheader {
 
 	dns_rbtnode_t                   *node;
 	isc_stdtime_t                   last_used;
-	ISC_LINK(struct rdatasetheader) lru_link;
-	/*%<
-	 * Used for LRU-based cache management.  We should probably make
-	 * these cache-DB specific.  We might also make it a pointer and
-	 * ensure only the top header has a valid link to save memory.
-	 * The linked-list is locked by the rbtdb->lrulock.
-	 */
+	ISC_LINK(struct rdatasetheader) link;
 
-	/*
-	 * It's possible this should not be here anymore, but instead
-	 * referenced from the bucket's heap directly.
-	 */
-#if 0
-	isc_heap_t                      *heap;
-#endif
 	unsigned int                    heap_index;
 	/*%<
 	 * Used for TTL-based cache cleaning.
@@ -1227,7 +1214,7 @@ free_noqname(isc_mem_t *mctx, struct noqname **noqname) {
 static inline void
 init_rdataset(dns_rbtdb_t *rbtdb, rdatasetheader_t *h)
 {
-	ISC_LINK_INIT(h, lru_link);
+	ISC_LINK_INIT(h, link);
 	h->heap_index = 0;
 
 #if TRACE_HEADER
@@ -1267,8 +1254,10 @@ free_rdataset(dns_rbtdb_t *rbtdb, isc_mem_t *mctx, rdatasetheader_t *rdataset)
 	}
 
 	idx = rdataset->node->locknum;
-	if (ISC_LINK_LINKED(rdataset, lru_link))
-		ISC_LIST_UNLINK(rbtdb->rdatasets[idx], rdataset, lru_link);
+	if (ISC_LINK_LINKED(rdataset, link)) {
+		INSIST(IS_CACHE(rbtdb));
+		ISC_LIST_UNLINK(rbtdb->rdatasets[idx], rdataset, link);
+	}
 	if (rdataset->heap_index != 0)
 		isc_heap_delete(rbtdb->heaps[idx], rdataset->heap_index);
 	rdataset->heap_index = 0;
@@ -2284,17 +2273,18 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 	for (header = HEAD(resigned_list);
 	     header != NULL;
 	     header = HEAD(resigned_list)) {
-		ISC_LIST_UNLINK(resigned_list, header, lru_link);
-		if (rollback) {
-			nodelock_t *lock;
-			lock = &rbtdb->node_locks[header->node->locknum].lock;
-			NODE_LOCK(lock, isc_rwlocktype_write);
+		nodelock_t *lock;
+
+		ISC_LIST_UNLINK(resigned_list, header, link);
+
+		lock = &rbtdb->node_locks[header->node->locknum].lock;
+		NODE_LOCK(lock, isc_rwlocktype_write);
+		if (rollback) 
 			resign_insert(rbtdb, header->node->locknum, header);
-			NODE_UNLOCK(lock, isc_rwlocktype_write);
-		}
 		decrement_reference(rbtdb, header->node, least_serial,
 				    isc_rwlocktype_write, isc_rwlocktype_none,
 				    ISC_FALSE);
+		NODE_UNLOCK(lock, isc_rwlocktype_write);
 	}
 
 	if (!EMPTY(cleanup_list)) {
@@ -5403,8 +5393,10 @@ static isc_result_t
 resign_insert(dns_rbtdb_t *rbtdb, int idx, rdatasetheader_t *newheader) {
 	isc_result_t result;
 
+	INSIST(!IS_CACHE(rbtdb));
 	INSIST(newheader->heap_index == 0);
-	INSIST(!ISC_LINK_LINKED(newheader, lru_link));
+	INSIST(!ISC_LINK_LINKED(newheader, link));
+
 	result = isc_heap_insert(rbtdb->heaps[idx], newheader);
 	return (result);
 }
@@ -5730,7 +5722,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 			idx = newheader->node->locknum;
 			if (IS_CACHE(rbtdb)) {
 				ISC_LIST_PREPEND(rbtdb->rdatasets[idx],
-						 newheader, lru_link);
+						 newheader, link);
 				/*
 				 * XXXMLG We don't check the return value
 				 * here.  If it fails, we will not do TTL
@@ -5789,7 +5781,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		idx = newheader->node->locknum;
 		if (IS_CACHE(rbtdb)) {
 			ISC_LIST_PREPEND(rbtdb->rdatasets[idx],
-					 newheader, lru_link);
+					 newheader, link);
 			isc_heap_insert(rbtdb->heaps[idx], newheader);
 		} else if (RESIGN(newheader)) {
 			resign_insert(rbtdb, idx, newheader);
@@ -6514,11 +6506,17 @@ static void
 delete_callback(void *data, void *arg) {
 	dns_rbtdb_t *rbtdb = arg;
 	rdatasetheader_t *current, *next;
-
-	for (current = data; current != NULL; current = next) {
+	unsigned int locknum;
+	
+	current = data;
+	locknum = current->node->locknum;
+	NODE_LOCK(&rbtdb->node_locks[locknum].lock, isc_rwlocktype_write);
+	while (current != NULL) {
 		next = current->next;
 		free_rdataset(rbtdb, rbtdb->common.mctx, current);
+		current = next;
 	}
+	NODE_UNLOCK(&rbtdb->node_locks[locknum].lock, isc_rwlocktype_write);
 }
 
 static isc_boolean_t
@@ -6756,7 +6754,7 @@ resigned(dns_db_t *db, dns_rdataset_t *rdataset, dns_dbversion_t *version)
 	header = rdataset->private3;
 	header--;
 
-	RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_read);
+	RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_write);
 	NODE_LOCK(&rbtdb->node_locks[node->locknum].lock,
 		  isc_rwlocktype_write);
 	/*
@@ -6766,11 +6764,11 @@ resigned(dns_db_t *db, dns_rdataset_t *rdataset, dns_dbversion_t *version)
 	new_reference(rbtdb, node);
 	isc_heap_delete(rbtdb->heaps[node->locknum], header->heap_index);
 	header->heap_index = 0;
-	ISC_LIST_APPEND(rbtversion->resigned_list, header, lru_link);
+	ISC_LIST_APPEND(rbtversion->resigned_list, header, link);
 
 	NODE_UNLOCK(&rbtdb->node_locks[node->locknum].lock,
 		    isc_rwlocktype_write);
-	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_read);
+	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
 }
 
 static dns_stats_t *
@@ -8492,13 +8490,11 @@ update_header(dns_rbtdb_t *rbtdb, rdatasetheader_t *header,
 	INSIST(IS_CACHE(rbtdb));
 
 	/* To be checked: can we really assume this? XXXMLG */
-	INSIST(ISC_LINK_LINKED(header, lru_link));
+	INSIST(ISC_LINK_LINKED(header, link));
 
-	ISC_LIST_UNLINK(rbtdb->rdatasets[header->node->locknum],
-			header, lru_link);
+	ISC_LIST_UNLINK(rbtdb->rdatasets[header->node->locknum], header, link);
 	header->last_used = now;
-	ISC_LIST_PREPEND(rbtdb->rdatasets[header->node->locknum],
-			 header, lru_link);
+	ISC_LIST_PREPEND(rbtdb->rdatasets[header->node->locknum], header, link);
 }
 
 /*%
@@ -8534,7 +8530,7 @@ overmem_purge(dns_rbtdb_t *rbtdb, unsigned int locknum_start,
 		for (header = ISC_LIST_TAIL(rbtdb->rdatasets[locknum]);
 		     header != NULL && purgecount > 0;
 		     header = header_prev) {
-			header_prev = ISC_LIST_PREV(header, lru_link);
+			header_prev = ISC_LIST_PREV(header, link);
 			/*
 			 * Unlink the entry at this point to avoid checking it
 			 * again even if it's currently used someone else and
@@ -8543,7 +8539,7 @@ overmem_purge(dns_rbtdb_t *rbtdb, unsigned int locknum_start,
 			 * TTL was reset to 0.
 			 */
 			ISC_LIST_UNLINK(rbtdb->rdatasets[locknum], header,
-					lru_link);
+					link);
 			expire_header(rbtdb, header, tree_locked);
 			purgecount--;
 		}
