@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.97 2009/09/29 15:06:06 fdupont Exp $ */
+/* $Id: dnssec-keygen.c,v 1.98 2009/10/03 18:03:53 each Exp $ */
 
 /*! \file */
 
@@ -668,6 +668,7 @@ main(int argc, char **argv) {
 			alg_format(alg, algstr, sizeof(algstr));
 			fatal("failed to generate key %s/%s: %s\n",
 			      namestr, algstr, isc_result_totext(ret));
+			/* NOTREACHED */
 			exit(-1);
 		}
 

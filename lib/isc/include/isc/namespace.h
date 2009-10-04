@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namespace.h,v 1.4 2009/09/02 23:48:03 tbox Exp $ */
+/* $Id: namespace.h,v 1.5 2009/10/01 01:30:01 sar Exp $ */
 
 #ifndef ISCAPI_NAMESPACE_H
 #define ISCAPI_NAMESPACE_H 1
@@ -109,7 +109,6 @@
 #define isc_socket_listen isc__socket_listen
 #define isc_socket_accept isc__socket_accept
 #define isc_socket_connect isc__socket_connect
-#define isc_socket_fdwatchcreate isc__socket_fdwatchcreate
 #define isc_socket_getname isc__socket_getname
 #define isc_socket_gettag isc__socket_gettag
 #define isc_socket_getpeername isc__socket_getpeername
@@ -123,6 +122,8 @@
 #define isc_socketmgr_setstats isc__socketmgr_setstats
 #define isc_socketmgr_setreserved isc__socketmgr_setreserved
 #define isc__socketmgr_maxudp isc___socketmgr_maxudp
+#define isc_socket_fdwatchcreate isc__socket_fdwatchcreate
+#define isc_socket_fdwatchpoke isc__socket_fdwatchpoke
 
 #define isc_task_create isc__task_create
 #define isc_task_attach isc__task_attach
