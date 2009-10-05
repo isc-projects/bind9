@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.483.36.13 2009/10/05 21:56:59 each Exp $ */
+/* $Id: zone.c,v 1.483.36.14 2009/10/05 23:47:50 tbox Exp $ */
 
 /*! \file */
 
@@ -2614,10 +2614,10 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 					     serialmax);
 				result = DNS_R_BADZONE;
 				goto cleanup;
-  			} else if (!isc_serial_ge(serial, oldserial))
+			} else if (!isc_serial_ge(serial, oldserial))
 				dns_zone_log(zone, ISC_LOG_ERROR,
 					     "zone serial has gone backwards");
-  			else if (serial == oldserial && !hasinclude)
+			else if (serial == oldserial && !hasinclude)
 				dns_zone_log(zone, ISC_LOG_ERROR,
 					     "zone serial unchanged. "
 					     "zone may fail to transfer "
