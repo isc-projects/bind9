@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.28 2009/09/23 11:16:50 fdupont Exp $
+ * $Id: opensslrsa_link.c,v 1.29 2009/10/05 17:30:49 fdupont Exp $
  */
 #ifdef OPENSSL
 #ifndef USE_EVP
@@ -968,6 +968,8 @@ opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 
 	UNUSED(pin);
 
+	if (engine == NULL)
+		DST_RET(DST_R_NOENGINE);
 	e = dst__openssl_getengine(engine);
 	if (e == NULL)
 		DST_RET(DST_R_NOENGINE);

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.110 2009/09/02 23:48:02 tbox Exp $ */
+/* $Id: task.c,v 1.111 2009/10/05 17:30:49 fdupont Exp $ */
 
 /*! \file
  * \author Principal Author: Bob Halley
@@ -39,6 +39,10 @@
 #include <isc/thread.h>
 #include <isc/util.h>
 #include <isc/xml.h>
+
+#ifdef OPENSSL_LEAKS
+#include <openssl/err.h>
+#endif
 
 /*%
  * For BIND9 internal applications:
@@ -1155,6 +1159,10 @@ run(void *uap) {
 
 	XTHREADTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
 				    ISC_MSG_EXITING, "exiting"));
+
+#ifdef OPENSSL_LEAKS
+	ERR_remove_state(0);
+#endif
 
 	return ((isc_threadresult_t)0);
 }

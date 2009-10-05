@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keyfromlabel.c,v 1.17 2009/10/03 18:03:53 each Exp $ */
+/* $Id: dnssec-keyfromlabel.c,v 1.18 2009/10/05 17:30:49 fdupont Exp $ */
 
 /*! \file */
 
@@ -63,20 +63,28 @@ usage(void) {
 	fprintf(stderr, "Required options:\n");
 	fprintf(stderr, "    -a algorithm: %s\n", algs);
 	fprintf(stderr, "    -l label: label of the key pair\n");
+#ifdef USE_PKCS11
+	fprintf(stderr, "      (for instance \"pkcs11:foo\"\n");
+#else
+	fprintf(stderr, "    -E enginename\n");
+#endif
 	fprintf(stderr, "    name: owner of the key\n");
 	fprintf(stderr, "Other options:\n");
-	fprintf(stderr, "    -c <class> (default: IN)\n");
+	fprintf(stderr, "    -c class (default: IN)\n");
+#ifdef USE_PKCS11
+	fprintf(stderr, "    -E enginename (default: pkcs11)\n");
+#endif
 	fprintf(stderr, "    -f keyflag: KSK | REVOKE\n");
 	fprintf(stderr, "    -K directory: directory in which to place "
 			"key files\n");
 	fprintf(stderr, "    -k : generate a TYPE=KEY key\n");
 	fprintf(stderr, "    -n nametype: ZONE | HOST | ENTITY | USER | OTHER\n");
 	fprintf(stderr, "        (DNSKEY generation defaults to ZONE\n");
-	fprintf(stderr, "    -p <protocol>: default: 3 [dnssec]\n");
-	fprintf(stderr, "    -t <type>: "
+	fprintf(stderr, "    -p protocol: default: 3 [dnssec]\n");
+	fprintf(stderr, "    -t type: "
 		"AUTHCONF | NOAUTHCONF | NOAUTH | NOCONF "
 		"(default: AUTHCONF)\n");
-	fprintf(stderr, "    -v <verbose level>\n");
+	fprintf(stderr, "    -v verbose level\n");
 	fprintf(stderr, "Date options:\n");
 	fprintf(stderr, "    -P date/[+-]offset: set key publication date\n");
 	fprintf(stderr, "    -A date/[+-]offset: set key activation date\n");
@@ -97,6 +105,11 @@ int
 main(int argc, char **argv) {
 	char		*algname = NULL, *nametype = NULL, *type = NULL;
 	const char	*directory = NULL;
+#ifdef USE_PKCS11
+	const char	*engine = "pkcs11";
+#else
+	const char	*engine = NULL;
+#endif
 	char		*classname = NULL;
 	char		*endp;
 	dst_key_t	*key = NULL, *oldkey = NULL;
@@ -116,7 +129,7 @@ main(int argc, char **argv) {
 	isc_entropy_t	*ectx = NULL;
 	dns_rdataclass_t rdclass;
 	int		options = DST_TYPE_PRIVATE | DST_TYPE_PUBLIC;
-	char		*label = NULL, *engine = NULL;
+	char		*label = NULL;
 	isc_stdtime_t	publish = 0, activate = 0, revoke = 0;
 	isc_stdtime_t	inactive = 0, delete = 0;
 	isc_stdtime_t	now;
@@ -140,7 +153,7 @@ main(int argc, char **argv) {
 	isc_stdtime_get(&now);
 
 	while ((ch = isc_commandline_parse(argc, argv,
-				"a:Cc:f:K:kl:n:p:t:v:FhGP:A:R:I:D:")) != -1)
+				"a:Cc:E:f:K:kl:n:p:t:v:FhGP:A:R:I:D:")) != -1)
 	{
 	    switch (ch) {
 		case 'a':
@@ -151,6 +164,9 @@ main(int argc, char **argv) {
 			break;
 		case 'c':
 			classname = isc_commandline_argument;
+			break;
+		case 'E':
+			engine = isc_commandline_argument;
 			break;
 		case 'f':
 			if (toupper(isc_commandline_argument[0]) == 'K')
@@ -270,10 +286,11 @@ main(int argc, char **argv) {
 
 	if (ectx == NULL)
 		setup_entropy(mctx, NULL, &ectx);
-	ret = dst_lib_init(mctx, ectx,
-			   ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY);
+	ret = dst_lib_init2(mctx, ectx, engine,
+			    ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY);
 	if (ret != ISC_R_SUCCESS)
-		fatal("could not initialize dst");
+		fatal("could not initialize dst: %s",
+		      isc_result_totext(ret));
 
 	setup_logging(verbose, mctx, &log);
 

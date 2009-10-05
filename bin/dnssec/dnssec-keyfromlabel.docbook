@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-keyfromlabel.docbook,v 1.10 2009/09/14 18:45:45 each Exp $ -->
+<!-- $Id: dnssec-keyfromlabel.docbook,v 1.11 2009/10/05 17:30:49 fdupont Exp $ -->
 <refentry id="man.dnssec-keyfromlabel">
   <refentryinfo>
     <date>February 8, 2008</date>
@@ -50,6 +50,7 @@
       <arg><option>-A <replaceable class="parameter">date/offset</replaceable></option></arg>
       <arg><option>-c <replaceable class="parameter">class</replaceable></option></arg>
       <arg><option>-D <replaceable class="parameter">date/offset</replaceable></option></arg>
+      <arg><option>-E <replaceable class="parameter">engine</replaceable></option></arg>
       <arg><option>-f <replaceable class="parameter">flag</replaceable></option></arg>
       <arg><option>-G</option></arg>
       <arg><option>-I <replaceable class="parameter">date/offset</replaceable></option></arg>
@@ -103,11 +104,22 @@
       </varlistentry>
 
       <varlistentry>
+        <term>-E <replaceable class="parameter">engine</replaceable></term>
+        <listitem>
+          <para>
+            Specifies the name of the crypto hardware (OpenSSL engine).
+            When compiled with PKCS#11 support it defaults to pcks11.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
         <term>-l <replaceable class="parameter">label</replaceable></term>
         <listitem>
           <para>
-            Specifies the label of keys in the crypto hardware
-            (PKCS#11 device).
+            Specifies the label of keys in the crypto hardware (OpenSSL
+            engine). An example for the pkcs11 engine is pkcs11:foo
+            (note the string pkcs11 is in both E and l options.)
           </para>
         </listitem>
       </varlistentry>

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.174 2009/09/29 15:06:06 fdupont Exp $ */
+/* $Id: main.c,v 1.175 2009/10/05 17:30:49 fdupont Exp $ */
 
 /*! \file */
 
@@ -298,8 +298,9 @@ usage(void) {
 	}
 	fprintf(stderr,
 		"usage: named [-4|-6] [-c conffile] [-d debuglevel] "
-		"[-f|-g] [-n number_of_cpus]\n"
-		"             [-p port] [-s] [-t chrootdir] [-u username]\n"
+		"[-E engine] [-f|-g]\n"
+		"             [-n number_of_cpus] [-p port] [-s] "
+		"[-t chrootdir] [-u username]\n"
 		"             [-m {usage|trace|record|size|mctx}]\n");
 }
 
@@ -408,7 +409,7 @@ parse_command_line(int argc, char *argv[]) {
 
 	isc_commandline_errprint = ISC_FALSE;
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "46c:C:d:fFgi:lm:n:N:p:P:"
+					   "46c:C:d:E:fFgi:lm:n:N:p:P:"
 					   "sS:t:T:u:vVx:")) != -1) {
 		switch (ch) {
 		case '4':
@@ -443,6 +444,9 @@ parse_command_line(int argc, char *argv[]) {
 		case 'd':
 			ns_g_debuglevel = parse_int(isc_commandline_argument,
 						    "debug level");
+			break;
+		case 'E':
+			ns_g_engine = isc_commandline_argument;
 			break;
 		case 'f':
 			ns_g_foreground = ISC_TRUE;

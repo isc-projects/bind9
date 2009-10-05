@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.19 2009/09/23 16:01:57 each Exp $ */
+/* $Id: dst.h,v 1.20 2009/10/05 17:30:49 fdupont Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -94,6 +94,10 @@ typedef struct dst_context 	dst_context_t;
 
 isc_result_t
 dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags);
+
+isc_result_t
+dst_lib_init2(isc_mem_t *mctx, isc_entropy_t *ectx,
+	      const char *engine, unsigned int eflags);
 /*%<
  * Initializes the DST subsystem.
  *
@@ -104,6 +108,7 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags);
  * Returns:
  * \li	ISC_R_SUCCESS
  * \li	ISC_R_NOMEMORY
+ * \li	DST_R_NOENGINE
  *
  * Ensures:
  * \li	DST is properly initialized.

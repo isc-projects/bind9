@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-dsfromkey.c,v 1.14 2009/09/29 15:06:06 fdupont Exp $ */
+/* $Id: dnssec-dsfromkey.c,v 1.15 2009/10/05 17:30:49 fdupont Exp $ */
 
 /*! \file */
 
@@ -440,7 +440,8 @@ main(int argc, char **argv) {
 	result = dst_lib_init(mctx, ectx,
 			      ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY);
 	if (result != ISC_R_SUCCESS)
-		fatal("could not initialize dst");
+		fatal("could not initialize dst: %s",
+		      isc_result_totext(result));
 	isc_entropy_stopcallbacksources(ectx);
 
 	setup_logging(verbose, mctx, &log);

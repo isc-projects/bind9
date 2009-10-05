@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-revoke.c,v 1.13 2009/09/29 15:06:06 fdupont Exp $ */
+/* $Id: dnssec-revoke.c,v 1.14 2009/10/05 17:30:49 fdupont Exp $ */
 
 /*! \file */
 
@@ -54,6 +54,13 @@ usage(void) {
 	fprintf(stderr, "Usage:\n");
 	fprintf(stderr,	"    %s [options] keyfile\n\n", program);
 	fprintf(stderr, "Version: %s\n", VERSION);
+	fprintf(stderr, "\t-E engine:\n");
+#ifdef USE_PKCS11
+	fprintf(stderr, "\t\tname of an OpenSSL engine to use "
+				"(default is \"pkcs11\")\n");
+#else
+	fprintf(stderr, "\t\tname of an OpenSSL engine to use\n");
+#endif
 	fprintf(stderr, "    -f:	   force overwrite\n");
 	fprintf(stderr, "    -K directory: use directory for key files\n");
 	fprintf(stderr, "    -h:	   help\n");
@@ -70,6 +77,11 @@ usage(void) {
 int
 main(int argc, char **argv) {
 	isc_result_t result;
+#ifdef USE_PKCS11
+	const char *engine = "pkcs11";
+#else
+	const char *engine = NULL;
+#endif
 	char *filename = NULL, *dir = NULL;
 	char newname[1024], oldname[1024];
 	char keystr[KEY_FORMATSIZE];
@@ -93,8 +105,11 @@ main(int argc, char **argv) {
 
 	isc_commandline_errprint = ISC_FALSE;
 
-	while ((ch = isc_commandline_parse(argc, argv, "fK:rhv:")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "EfK:rhv:")) != -1) {
 		switch (ch) {
+		    case 'E':
+			engine = isc_commandline_argument;
+			break;
 		    case 'f':
 			force = ISC_TRUE;
 			break;
@@ -150,10 +165,11 @@ main(int argc, char **argv) {
 	result = isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE);
 	if (result != ISC_R_SUCCESS)
 		fatal("Could not initialize hash");
-	result = dst_lib_init(mctx, ectx,
-			      ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY);
+	result = dst_lib_init2(mctx, ectx, engine,
+			       ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY);
 	if (result != ISC_R_SUCCESS)
-		fatal("Could not initialize dst");
+		fatal("Could not initialize dst: %s",
+		      isc_result_totext(result));
 	isc_entropy_stopcallbacksources(ectx);
 
 	result = dst_key_fromnamedfile(filename, dir,

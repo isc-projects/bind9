@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.94 2009/09/03 21:55:13 jinmei Exp $ */
+/* $Id: timer.c,v 1.95 2009/10/05 17:30:49 fdupont Exp $ */
 
 /*! \file */
 
@@ -33,6 +33,10 @@
 #include <isc/time.h>
 #include <isc/timer.h>
 #include <isc/util.h>
+
+#ifdef OPENSSL_LEAKS
+#include <openssl/err.h>
+#endif
 
 /* See task.c about the following definition: */
 #ifdef BIND9
@@ -827,6 +831,10 @@ run(void *uap) {
 				      ISC_MSG_WAKEUP, "wakeup"));
 	}
 	UNLOCK(&manager->lock);
+
+#ifdef OPENSSL_LEAKS
+	ERR_remove_state(0);
+#endif
 
 	return ((isc_threadresult_t)0);
 }

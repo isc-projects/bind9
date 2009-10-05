@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-keygen.docbook,v 1.28 2009/09/14 18:45:45 each Exp $ -->
+<!-- $Id: dnssec-keygen.docbook,v 1.29 2009/10/05 17:30:49 fdupont Exp $ -->
 <refentry id="man.dnssec-keygen">
   <refentryinfo>
     <date>June 30, 2000</date>
@@ -64,6 +64,7 @@
       <arg><option>-C</option></arg>
       <arg><option>-c <replaceable class="parameter">class</replaceable></option></arg>
       <arg><option>-D <replaceable class="parameter">date/offset</replaceable></option></arg>
+      <arg><option>-E <replaceable class="parameter">engine</replaceable></option></arg>
       <arg><option>-e</option></arg>
       <arg><option>-f <replaceable class="parameter">flag</replaceable></option></arg>
       <arg><option>-G</option></arg>
@@ -202,6 +203,18 @@
           <para>
             Indicates that the DNS record containing the key should have
             the specified class.  If not specified, class IN is used.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-E <replaceable class="parameter">engine</replaceable></term>
+        <listitem>
+          <para>
+            Uses a crypto hardware (OpenSSL engine) for random number
+            and, when supported, key generation. When compiled with PKCS#11
+            support it defaults to pcks11, the empty name resets it to
+            no engine.
           </para>
         </listitem>
       </varlistentry>

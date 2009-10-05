@@ -1,3 +1,7 @@
+2703.	[func]		Introduce an OpenSSL "engine" argument with -E
+			for all binaries which can take benefit of
+			crypto hardware. [RT #20230]
+
 2702.	[func]		Update PKCS#11 tools (bin/pkcs11) [RT #20225 & all]
 
 2701.	[doc]		Correction to ARM: hmac-md5 is no longer the only

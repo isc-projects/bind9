@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.docbook,v 1.38 2009/09/29 22:17:34 each Exp $ -->
+<!-- $Id: dnssec-signzone.docbook,v 1.39 2009/10/05 17:30:49 fdupont Exp $ -->
 <refentry id="man.dnssec-signzone">
   <refentryinfo>
     <date>June 05, 2009</date>
@@ -60,6 +60,7 @@
       <arg><option>-a</option></arg>
       <arg><option>-c <replaceable class="parameter">class</replaceable></option></arg>
       <arg><option>-d <replaceable class="parameter">directory</replaceable></option></arg>
+      <arg><option>-E <replaceable class="parameter">engine</replaceable></option></arg>
       <arg><option>-e <replaceable class="parameter">end-time</replaceable></option></arg>
       <arg><option>-f <replaceable class="parameter">output-file</replaceable></option></arg>
       <arg><option>-g</option></arg>
@@ -145,6 +146,18 @@
           <para>
             Look for <filename>dsset-</filename> or
             <filename>keyset-</filename> files in <option>directory</option>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-E <replaceable class="parameter">engine</replaceable></term>
+        <listitem>
+          <para>
+            Uses a crypto hardware (OpenSSL engine) for the crypto operations
+            it supports, for instance signing with private keys from
+            a secure key store. When compiled with PKCS#11 support
+            it defaults to pcks11, the empty name resets it to no engine.
           </para>
         </listitem>
       </varlistentry>

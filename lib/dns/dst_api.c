@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.33 2009/09/25 01:42:09 marka Exp $
+ * $Id: dst_api.c,v 1.34 2009/10/05 17:30:49 fdupont Exp $
  */
 
 /*! \file */
@@ -146,6 +146,12 @@ default_memfree(void *arg, void *ptr) {
 
 isc_result_t
 dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
+	return (dst_lib_init2(mctx, ectx, NULL, eflags));
+}
+
+isc_result_t
+dst_lib_init2(isc_mem_t *mctx, isc_entropy_t *ectx,
+	      const char *engine, unsigned int eflags) {
 	isc_result_t result;
 
 	REQUIRE(mctx != NULL);
@@ -173,7 +179,9 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	isc_mem_setname(dst__memory_pool, "dst", NULL);
+#ifndef OPENSSL_LEAKS
 	isc_mem_setdestroycheck(dst__memory_pool, ISC_FALSE);
+#endif
 #else
 	isc_mem_attach(mctx, &dst__memory_pool);
 #endif
@@ -192,7 +200,7 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 	RETERR(dst__hmacsha384_init(&dst_t_func[DST_ALG_HMACSHA384]));
 	RETERR(dst__hmacsha512_init(&dst_t_func[DST_ALG_HMACSHA512]));
 #ifdef OPENSSL
-	RETERR(dst__openssl_init());
+	RETERR(dst__openssl_init(engine));
 	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSAMD5]));
 	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA1]));
 	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_NSEC3RSASHA1]));
@@ -209,6 +217,8 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 	return (ISC_R_SUCCESS);
 
  out:
+	/* avoid immediate crash! */
+	dst_initialized = ISC_TRUE;
 	dst_lib_destroy();
 	return (result);
 }
@@ -1520,6 +1530,8 @@ dst__entropy_getdata(void *buf, unsigned int len, isc_boolean_t pseudo) {
 	unsigned int flags = dst_entropy_flags;
 	if (pseudo)
 		flags &= ~ISC_ENTROPY_GOODONLY;
+	else
+		flags |= ISC_ENTROPY_BLOCKING;
 	return (isc_entropy_getdata(dst_entropy_pool, buf, len, NULL, flags));
 #else
 	UNUSED(buf);

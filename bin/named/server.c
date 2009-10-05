@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.549 2009/09/29 15:06:06 fdupont Exp $ */
+/* $Id: server.c,v 1.550 2009/10/05 17:30:49 fdupont Exp $ */
 
 /*! \file */
 
@@ -4650,7 +4650,8 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 		   ISC_R_NOMEMORY : ISC_R_SUCCESS,
 		   "allocating reload event");
 
-	CHECKFATAL(dst_lib_init(ns_g_mctx, ns_g_entropy, ISC_ENTROPY_GOODONLY),
+	CHECKFATAL(dst_lib_init2(ns_g_mctx, ns_g_entropy,
+				 ns_g_engine, ISC_ENTROPY_GOODONLY),
 		   "initializing DST");
 
 	server->tkeyctx = NULL;

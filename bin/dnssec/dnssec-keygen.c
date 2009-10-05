@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.98 2009/10/03 18:03:53 each Exp $ */
+/* $Id: dnssec-keygen.c,v 1.99 2009/10/05 17:30:49 fdupont Exp $ */
 
 /*! \file */
 
@@ -115,6 +115,11 @@ usage(void) {
 	fprintf(stderr, "	 (DNSKEY generation defaults to ZONE)\n");
 	fprintf(stderr, "    -c <class>: (default: IN)\n");
 	fprintf(stderr, "    -d <digest bits> (0 => max, default)\n");
+#ifdef USE_PKCS11
+	fprintf(stderr, "    -E <engine name> (default \"pkcs11\")\n");
+#else
+	fprintf(stderr, "    -E <engine name>\n");
+#endif
 	fprintf(stderr, "    -e: use large exponent (RSAMD5/RSASHA1 only)\n");
 	fprintf(stderr, "    -f <keyflag>: KSK | REVOKE\n");
 	fprintf(stderr, "    -g <generator>: use specified generator "
@@ -173,6 +178,11 @@ main(int argc, char **argv) {
 	isc_buffer_t	buf;
 	isc_log_t	*log = NULL;
 	isc_entropy_t	*ectx = NULL;
+#ifdef USE_PKCS11
+	const char	*engine = "pkcs11";
+#else
+	const char	*engine = NULL;
+#endif
 	dns_rdataclass_t rdclass;
 	int		options = DST_TYPE_PRIVATE | DST_TYPE_PUBLIC;
 	int		dbits = 0;
@@ -198,7 +208,7 @@ main(int argc, char **argv) {
 	/*
 	 * Process memory debugging argument first.
 	 */
-#define CMDLINE_FLAGS "3a:b:Cc:d:eFf:g:K:km:n:p:r:s:T:t:v:hGP:A:R:I:D:"
+#define CMDLINE_FLAGS "3a:b:Cc:d:E:eFf:g:K:km:n:p:r:s:T:t:v:hGP:A:R:I:D:"
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
 		case 'm':
@@ -246,6 +256,9 @@ main(int argc, char **argv) {
 			dbits = strtol(isc_commandline_argument, &endp, 10);
 			if (*endp != '\0' || dbits < 0)
 				fatal("-d requires a non-negative number");
+			break;
+		case 'E':
+			engine = isc_commandline_argument;
 			break;
 		case 'e':
 			rsa_exp = 1;
@@ -400,10 +413,11 @@ main(int argc, char **argv) {
 
 	if (ectx == NULL)
 		setup_entropy(mctx, NULL, &ectx);
-	ret = dst_lib_init(mctx, ectx,
-			   ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY);
+	ret = dst_lib_init2(mctx, ectx, engine,
+			    ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY);
 	if (ret != ISC_R_SUCCESS)
-		fatal("could not initialize dst");
+		fatal("could not initialize dst: %s",
+		      isc_result_totext(ret));
 
 	setup_logging(verbose, mctx, &log);
 

@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-settime.docbook,v 1.4 2009/09/14 18:45:45 each Exp $ -->
+<!-- $Id: dnssec-settime.docbook,v 1.5 2009/10/05 17:30:49 fdupont Exp $ -->
 <refentry id="man.dnssec-settime">
   <refentryinfo>
     <date>July 15, 2009</date>
@@ -53,6 +53,7 @@
       <arg><option>-D <replaceable class="parameter">date/offset</replaceable></option></arg>
       <arg><option>-h</option></arg>
       <arg><option>-v <replaceable class="parameter">level</replaceable></option></arg>
+      <arg><option>-E <replaceable class="parameter">engine</replaceable></option></arg>
       <arg choice="req">keyfile</arg>
     </cmdsynopsis>
   </refsynopsisdiv>
@@ -124,6 +125,16 @@
         <listitem>
           <para>
             Sets the debugging level.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-E <replaceable class="parameter">engine</replaceable></term>
+        <listitem>
+          <para>
+            Use the given OpenSSL engine. When compiled with PKCS#11 support
+            it defaults to pcks11, the empty name resets it to no engine.
           </para>
         </listitem>
       </varlistentry>

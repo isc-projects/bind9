@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-revoke.docbook,v 1.5 2009/07/20 11:56:35 fdupont Exp $ -->
+<!-- $Id: dnssec-revoke.docbook,v 1.6 2009/10/05 17:30:49 fdupont Exp $ -->
 <refentry id="man.dnssec-revoke">
   <refentryinfo>
     <date>June 1, 2009</date>
@@ -47,6 +47,7 @@
       <arg><option>-hr</option></arg>
       <arg><option>-v <replaceable class="parameter">level</replaceable></option></arg>
       <arg><option>-K <replaceable class="parameter">directory</replaceable></option></arg>
+      <arg><option>-E <replaceable class="parameter">engine</replaceable></option></arg>
       <arg><option>-f</option></arg>
       <arg choice="req">keyfile</arg>
     </cmdsynopsis>
@@ -98,6 +99,16 @@
         <listitem>
           <para>
             Sets the debugging level.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-E <replaceable class="parameter">engine</replaceable></term>
+        <listitem>
+          <para>
+            Use the given OpenSSL engine. When compiled with PKCS#11 support
+            it defaults to pcks11, the empty name resets it to no engine.
           </para>
         </listitem>
       </varlistentry>

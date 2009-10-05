@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.240 2009/10/03 18:03:54 each Exp $ */
+/* $Id: dnssec-signzone.c,v 1.241 2009/10/05 17:30:49 fdupont Exp $ */
 
 /*! \file */
 
@@ -3324,6 +3324,13 @@ usage(void) {
 	fprintf(stderr, "\t-a:\t");
 	fprintf(stderr, "verify generated signatures\n");
 	fprintf(stderr, "\t-c class (IN)\n");
+	fprintf(stderr, "\t-E engine:\n");
+#ifdef USE_PKCS11
+	fprintf(stderr, "\t\tname of an OpenSSL engine to use "
+				"(default is \"pkcs11\")\n");
+#else
+	fprintf(stderr, "\t\tname of an OpenSSL engine to use\n");
+#endif
 	fprintf(stderr, "\t-p:\t");
 	fprintf(stderr, "use pseudorandom data (faster but less secure)\n");
 	fprintf(stderr, "\t-P:\t");
@@ -3398,6 +3405,11 @@ main(int argc, char *argv[]) {
 	isc_result_t result;
 	isc_log_t *log = NULL;
 	isc_boolean_t pseudorandom = ISC_FALSE;
+#ifdef USE_PKCS11
+	const char *engine = "pkcs11";
+#else
+	const char *engine = NULL;
+#endif
 	unsigned int eflags;
 	isc_boolean_t free_output = ISC_FALSE;
 	int tempfilelen;
@@ -3412,7 +3424,7 @@ main(int argc, char *argv[]) {
 	isc_boolean_t set_iter = ISC_FALSE;
 
 #define CMDLINE_FLAGS \
-	"3:AaCc:Dd:e:f:FghH:i:I:j:K:k:l:m:n:N:o:O:pPr:s:ST:tuUv:z"
+	"3:AaCc:Dd:Ee:f:FghH:i:I:j:K:k:l:m:n:N:o:O:pPr:s:ST:tuUv:z"
 
 	/*
 	 * Process memory debugging argument first.
@@ -3494,8 +3506,8 @@ main(int argc, char *argv[]) {
 				fatal("DS directory must be non-empty string");
 			break;
 
-		case 'K':
-			directory = isc_commandline_argument;
+		case 'E':
+			engine = isc_commandline_argument;
 			break;
 
 		case 'e':
@@ -3523,6 +3535,10 @@ main(int argc, char *argv[]) {
 			usage();
 			break;
 
+		case 'I':
+			inputformatstr = isc_commandline_argument;
+			break;
+
 		case 'i':
 			endp = NULL;
 			cycle = strtol(isc_commandline_argument, &endp, 0);
@@ -3531,15 +3547,15 @@ main(int argc, char *argv[]) {
 				      "positive");
 			break;
 
-		case 'I':
-			inputformatstr = isc_commandline_argument;
-			break;
-
 		case 'j':
 			endp = NULL;
 			jitter = strtol(isc_commandline_argument, &endp, 0);
 			if (*endp != '\0' || jitter < 0)
 				fatal("jitter must be numeric and positive");
+			break;
+
+		case 'K':
+			directory = isc_commandline_argument;
 			break;
 
 		case 'k':
@@ -3563,6 +3579,10 @@ main(int argc, char *argv[]) {
 		case 'm':
 			break;
 
+		case 'N':
+			serialformatstr = isc_commandline_argument;
+			break;
+
 		case 'n':
 			endp = NULL;
 			ntasks = strtol(isc_commandline_argument, &endp, 0);
@@ -3570,37 +3590,33 @@ main(int argc, char *argv[]) {
 				fatal("number of cpus must be numeric");
 			break;
 
-		case 'N':
-			serialformatstr = isc_commandline_argument;
+		case 'O':
+			outputformatstr = isc_commandline_argument;
 			break;
 
 		case 'o':
 			origin = isc_commandline_argument;
 			break;
 
-		case 'O':
-			outputformatstr = isc_commandline_argument;
+		case 'P':
+			disable_zone_check = ISC_TRUE;
 			break;
 
 		case 'p':
 			pseudorandom = ISC_TRUE;
 			break;
 
-		case 'P':
-			disable_zone_check = ISC_TRUE;
-			break;
-
 		case 'r':
 			setup_entropy(mctx, isc_commandline_argument, &ectx);
-			break;
-
-		case 's':
-			startstr = isc_commandline_argument;
 			break;
 
 		case 'S':
 			smartsign = ISC_TRUE;
 			generateds = ISC_TRUE;
+			break;
+
+		case 's':
+			startstr = isc_commandline_argument;
 			break;
 
 		case 'T':
@@ -3659,9 +3675,10 @@ main(int argc, char *argv[]) {
 	if (result != ISC_R_SUCCESS)
 		fatal("could not create hash context");
 
-	result = dst_lib_init(mctx, ectx, eflags);
+	result = dst_lib_init2(mctx, ectx, engine, eflags);
 	if (result != ISC_R_SUCCESS)
-		fatal("could not initialize dst");
+		fatal("could not initialize dst: %s",
+		      isc_result_totext(result));
 
 	isc_stdtime_get(&now);
 
