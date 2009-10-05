@@ -1,3 +1,6 @@
+2704.	[bug]		Serial of dynamic and stub zones could be inconsistent
+			with their SOA serial.  [RT #19387]
+
 2703.	[func]		Introduce an OpenSSL "engine" argument with -E
 			for all binaries which can take benefit of
 			crypto hardware. [RT #20230]

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.166 2009/07/02 07:39:03 marka Exp $ */
+/* $Id: zone.h,v 1.167 2009/10/05 19:39:20 each Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -150,13 +150,24 @@ dns_zone_getclass(dns_zone_t *zone);
  *\li	'zone' to be a valid zone.
  */
 
+isc_result_t
+dns_zone_getserial2(dns_zone_t *zone, isc_uint32_t *serialp);
+
 isc_uint32_t
 dns_zone_getserial(dns_zone_t *zone);
 /*%<
- *	Returns the current serial number of the zone.
+ *	Returns the current serial number of the zone.  On success, the SOA
+ *	serial of the zone will be copied into '*serialp'.
+ *	dns_zone_getserial() cannot catch failure cases and is deprecated by
+ *	dns_zone_getserial2().
  *
  * Requires:
  *\li	'zone' to be a valid zone.
+ *\li	'serialp' to be non NULL
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS
+ *\li	#DNS_R_NOTLOADED	zone DB is not loaded
  */
 
 void

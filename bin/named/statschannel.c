@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: statschannel.c,v 1.22 2009/02/17 03:40:28 marka Exp $ */
+/* $Id: statschannel.c,v 1.23 2009/10/05 19:39:20 each Exp $ */
 
 /*! \file */
 
@@ -678,9 +678,11 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 	xmlTextWriterWriteString(writer, ISC_XMLCHAR buf);
 	xmlTextWriterEndElement(writer);
 
-	serial = dns_zone_getserial(zone);
 	xmlTextWriterStartElement(writer, ISC_XMLCHAR "serial");
-	xmlTextWriterWriteFormatString(writer, "%u", serial);
+	if (dns_zone_getserial2(zone, &serial) == ISC_R_SUCCESS)
+		xmlTextWriterWriteFormatString(writer, "%u", serial);
+	else
+		xmlTextWriterWriteString(writer, ISC_XMLCHAR "-");
 	xmlTextWriterEndElement(writer);
 
 	zonestats = dns_zone_getrequeststats(zone);
@@ -729,7 +731,7 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "bind"));
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "statistics"));
 	TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "version",
-					 ISC_XMLCHAR "2.1"));
+					 ISC_XMLCHAR "2.2"));
 
 	/* Set common fields for statistics dump */
 	dumparg.type = statsformat_xml;
