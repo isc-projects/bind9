@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: statschannel.c,v 1.2.2.20 2009/10/05 21:57:42 each Exp $ */
+/* $Id: statschannel.c,v 1.2.2.21 2009/10/05 23:46:57 tbox Exp $ */
 
 /*! \file */
 
@@ -730,7 +730,7 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "bind"));
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "statistics"));
 	TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "version",
- 					 ISC_XMLCHAR "2.2"));
+					 ISC_XMLCHAR "2.2"));
 
 	/* Set common fields for statistics dump */
 	dumparg.type = statsformat_xml;
