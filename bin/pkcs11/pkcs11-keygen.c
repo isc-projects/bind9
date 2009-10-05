@@ -6,7 +6,8 @@
  * it into a zone file.
  *
  * usage:
- * pkcs11-keygen [-P] [-m module] [-s slot] -b keysize -l label [-p pin] 
+ * pkcs11-keygen [-P] [-m module] [-s slot] [-e] -b keysize
+ *               -l label [-i id] [-p pin] 
  *
  */
 
@@ -45,10 +46,14 @@ main(int argc, char *argv[])
     CK_ULONG modulusbits = 0;
     CK_CHAR *label = NULL;
     CK_OBJECT_HANDLE privatekey, publickey;
-    CK_BYTE public_exponent[3];
+    CK_BYTE public_exponent[5];
+    CK_ULONG expsize = 3;
     int error = 0;
     int c, errflg = 0;
     int hide = 1;
+    int idlen = 0;
+    unsigned long id = 0;
+    CK_BYTE idbuf[4];
     CK_ULONG ulObjectCount;
     /* Set search template */
     CK_ATTRIBUTE search_template[] = {
@@ -59,20 +64,24 @@ main(int argc, char *argv[])
         {CKA_VERIFY, &truevalue, sizeof (truevalue)},
         {CKA_TOKEN, &truevalue, sizeof (truevalue)},
         {CKA_MODULUS_BITS, &modulusbits, sizeof (modulusbits)},
-        {CKA_PUBLIC_EXPONENT, &public_exponent, sizeof (public_exponent)}
+        {CKA_PUBLIC_EXPONENT, &public_exponent, expsize},
+	{CKA_ID, &idbuf, idlen}
     };
+    CK_ULONG publickey_attrcnt = 6;
     CK_ATTRIBUTE privatekey_template[] = {
         {CKA_LABEL, NULL_PTR, 0},
         {CKA_SIGN, &truevalue, sizeof (truevalue)},
         {CKA_TOKEN, &truevalue, sizeof (truevalue)},
         {CKA_PRIVATE, &truevalue, sizeof (truevalue)},
         {CKA_SENSITIVE, &truevalue, sizeof (truevalue)},
-        {CKA_EXTRACTABLE, &falsevalue, sizeof (falsevalue)}
+        {CKA_EXTRACTABLE, &falsevalue, sizeof (falsevalue)},
+	{CKA_ID, &idbuf, idlen}
     };
+    CK_ULONG privatekey_attrcnt = 7;
     extern char *optarg;
     extern int optopt;
     
-    while ((c = getopt(argc, argv, ":Pm:s:b:i:l:p:")) != -1) {
+    while ((c = getopt(argc, argv, ":Pm:s:b:ei:l:p:")) != -1) {
         switch (c) {
 	case 'P':
 	    hide = 0;
@@ -83,12 +92,19 @@ main(int argc, char *argv[])
 	case 's':
 	    slot = atoi(optarg);
 	    break;
+	case 'e':
+	    expsize = 5;
+	    break;
         case 'b':
             modulusbits = atoi(optarg);
             break;
         case 'l':
             label = (CK_CHAR *)optarg;
             break;
+	case 'i':
+	    id = strtoul(optarg, NULL, 0);
+	    idlen = 4;
+	    break;
         case 'p':
             pin = (CK_UTF8CHAR *)optarg;
             break;
@@ -104,8 +120,10 @@ main(int argc, char *argv[])
     }
     if ((errflg) || (!modulusbits) || (!label)) {
         fprintf(stderr,
-		"usage: pkcs11-keygen [-P] [-m module] [-s slot] "
-		"-b keysize -l label [-p pin]\n");
+		"usage: pkcs11-keygen "
+		"[-P] [-m module] [-s slot] [-e] -b keysize\n"
+		"                     "
+		"-l label [-i id] [-p pin]\n");
         exit(2);
     }
     
@@ -116,15 +134,38 @@ main(int argc, char *argv[])
     privatekey_template[0].pValue = label;
     privatekey_template[0].ulValueLen = strlen((char *)label);
 
-    /* Set public exponent to 65537 */
+    /* Set public exponent to F4 or F5 */
     public_exponent[0] = 0x01;
     public_exponent[1] = 0x00;
-    public_exponent[2] = 0x01;
+    if (expsize == 3)
+	public_exponent[2] = 0x01;
+    else {
+	publickey_template[4].ulValueLen = expsize;
+	public_exponent[2] = 0x00;
+	public_exponent[3] = 0x00;
+	public_exponent[4] = 0x01;
+    }
 
     /* Set up mechanism for generating key pair */
     genmech.mechanism = CKM_RSA_PKCS_KEY_PAIR_GEN;
     genmech.pParameter = NULL_PTR;
     genmech.ulParameterLen = 0;
+
+    if (idlen == 0) {
+        publickey_attrcnt--;
+        privatekey_attrcnt--;
+    } else if (id <= 0xffff) {
+	idlen = 2;
+	publickey_template[5].ulValueLen = idlen;
+	privatekey_template[6].ulValueLen = idlen;
+	idbuf[0] = id >> 8;
+	idbuf[1] = id & 0xff;
+    } else {
+        idbuf[0] = id >> 24;
+	idbuf[1] = (id >> 16) & 0xff;
+	idbuf[2] = (id >> 8) & 0xff;
+	idbuf[3] = id & 0xff;
+    }
 
     /* Initialize the CRYPTOKI library */
     rv = C_Initialize(NULL_PTR);
@@ -186,12 +227,9 @@ main(int argc, char *argv[])
     }
 
     /* Generate Key pair for signing/verifying */
-    rv = C_GenerateKeyPair(hSession, &genmech, publickey_template,
-			   (sizeof (publickey_template) /
-			    sizeof (CK_ATTRIBUTE)),
-			   privatekey_template,
-			   (sizeof (privatekey_template) /
-			    sizeof (CK_ATTRIBUTE)),
+    rv = C_GenerateKeyPair(hSession, &genmech,
+			   publickey_template, publickey_attrcnt,
+			   privatekey_template, privatekey_attrcnt,
 			   &publickey, &privatekey);
         
     if (rv != CKR_OK) {
