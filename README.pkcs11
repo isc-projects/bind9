@@ -9,9 +9,8 @@ and other cryptographic support devices.
 
 BIND 9 is known to work with two HSMs:  The Sun SCA 6000 cryptographic
 acceration board, tested under Solaris x86, and the AEP Keyper
-network-attached key storage device, tested with a Debian Linux system.
-(The Keyper has also been tested with Windows Server 2003 and found to
-work, but with some stability problems that have not yet been resolved.)
+network-attached key storage device, tested with a Debian Linux system,
+Solaris x86 and Windows Server 2003.
 
 PREREQUISITES
 
@@ -24,30 +23,37 @@ is available from the OpenSolaris project.  It has been modified by
 ISC to work with with BIND 9 and to provide new features such as
 PIN management and key by reference.
 
+The PKCS#11 engine supports two flavors:
+ - the crypto-accelerator which uses the PKCS#11 device for all crypto
+  operations it supports. This is the right choice for the SCA 6000.
+ - the sign-only which was stripped down and provides only the
+  useful features for a secure key store. The Keyper must use this
+  flavor.
+
 The modified OpenSSL depends on a "PKCS #11 provider".  This is a shared
 library object, providing a low-level PKCS #11 interface to the HSM
 hardware; it is dynamically loaded by OpenSSL at runtime.  The PKCS #11
 provider comes from the HSM vendor, and and is specific to the HSM to be
 controlled.
 
-The modified OpenSSL code is included in BIND 9.7.0a3 release in the form
-of a context diff against OpenSSL 0.9.8i.  Before building BIND 9 with
+The modified OpenSSL code is included in BIND 9.7.0b1 release in the form
+of a context diff against OpenSSL 0.9.8k.  Before building BIND 9 with
 PKCS #11 support, it will be necessary to build OpenSSL with this patch
 in place and inform it of the path to the HSM-specific PKCS #11 provider
 library.
 
-Obtain OpenSSL 0.9.8i:
+Obtain OpenSSL 0.9.8k:
 
-    wget http://www.openssl.org/source/openssl-0.9.8i.tar.gz
+    wget http://www.openssl.org/source/openssl-0.9.8k.tar.gz
 
 Extract the tarball:
 
-    tar zxf openssl-0.9.8i.tar.gz
+    tar zxf openssl-0.9.8k.tar.gz
 
 Apply the patch from the BIND 9 release:
 
-    patch -p1 -d openssl-0.9.8i \
-            < bind-9.7.0a3/contrib/pkcs11-keygen/openssl-0.9.8i-patch 
+    patch -p1 -d openssl-0.9.8k \
+            < bind-9.7.0b1/bin/pkcs11/openssl-0.9.8k-patch 
 
 (Note that the patch file may not be compatible with the "patch" utility
 on all operating systems.  You may need to install GNU patch.)
@@ -63,17 +69,8 @@ We will use this location when we configure BIND 9.
     not provide hardware cryptographic acceleration.  It can carry out
     cryptographic operations, but it is probably slower than your
     system's CPU, so it is most efficient to use it only for operations
-    that require the secured private key.
-
-    The patched OpenSSL source tree includes two versions of the PKCS #11
-    engine; one uses the HSM for all cryptographic operations, and the
-    other only uses it for signing.  The signing-only engine is recommended
-    for the Keyper.  To build OpenSSL with the signing-only engine:
-
-        cp openssl-0.9.8i/crypto/engine/hw_pk11-kp.c \
-           openssl-0.9.8i/crypto/engine/hw_pk11.c
-        cp openssl-0.9.8i/crypto/engine/hw_pk11_pub-kp.c \
-           openssl-0.9.8i/crypto/engine/hw_pk11_pub.c
+    that require the secured private key. This is why the PKCS#11
+    engine flavor shall be 'sign-only'.
 
     The Keyper-specific PKCS #11 provider library is delivered with the
     Keyper software.  In this example, we place it /opt/pkcs11/usr/lib:
@@ -86,9 +83,10 @@ We will use this location when we configure BIND 9.
 
     Finally, the Keyper library requires threads, so we must specify -pthread.
     
-        cd openssl-0.9.8i
+        cd openssl-0.9.8k
         ./Configure linux-generic32 -m32 -pthread \
             --pk11-libname=/opt/pkcs11/usr/lib/libpkcs11.so \
+            --pk11-flavor=sign-only \
             --prefix=/opt/pkcs11/usr
 
     After configuring, run "make" and "make test".  If "make test" fails
@@ -98,13 +96,15 @@ We will use this location when we configure BIND 9.
     EXAMPLE 2--BUILDING OPENSSL FOR THE SCA 6000 ON SOLARIS:
 
     The SCA-6000 PKCS #11 provider is installed as a system library,
-    libpkcs11.
+    libpkcs11. It is a true crypto accelerator, up to 4 times faster
+    than any CPU, so the flavor shall be 'crypto-accelerator'.
 
     In this example, we are building on Solaris x86 on an AMD64 system.
 
-        cd openssl-0.9.8i
+        cd openssl-0.9.8k
         ./Configure solaris64-x86_64-cc \
             --pk11-libname=/usr/lib/64/libpkcs11.so \
+            --pk11-flavor=crypto-accelerator \
             --prefix=/opt/pkcs11/usr
 
     (For a 32-bit build, use "solaris-x86-cc" and /usr/lib/libpkcs11.so.)
@@ -116,6 +116,8 @@ PKCS #11 support was compiled in correctly.  The output should include the
 line:
 
         (pkcs11) PKCS #11 engine support
+
+<<"apps/openssl engine -t" to see if initialization is correct (available)>>
 
 If the output is correct, run "make install".
 
@@ -133,7 +135,7 @@ library must be specified via configure.
     we are building on a 64-bit host, we must force a 32-bit build by
     adding "-m32" to the CC options on the "configure" command line.
 
-        cd ../bind-9.7.0a3
+        cd ../bind-9.7.0b1
         ./configure CC="gcc -m32" --enable-threads \
             --with-openssl=/opt/pkcs11/usr \
             --with-pkcs11=/opt/pkcs11/usr/lib/libpkcs11.so
@@ -143,10 +145,10 @@ library must be specified via configure.
     To link with the PKCS #11 provider, threads must be enabled in the
     BIND 9 build.
 
-        cd ../bind-9.7.0a3
+        cd ../bind-9.7.0b1
         ./configure CC="cc -xarch=amd64" --enable-threads \
             --with-openssl=/opt/pkcs11/usr \
-            -with-pkcs11=/usr/lib/64/libpkcs11.so
+            --with-pkcs11=/usr/lib/64/libpkcs11.so
 
     (For a 32-bit build, omit CC="cc -xarch=amd64".)
 
@@ -207,6 +209,10 @@ we will be using the HSM key "sample-ksk" as the key-signing key for
 otherwise the PCKS #11 engine will look for the key on disk rather than
 in the HSM.  If you forget to do this, dnssec-keyfromlabel will return
 "not found".)
+
+<<Something about -E>>
+<<Something about bad formatted .private (simply rerun dnssec-keyfromlabel
+which by side-effect will fix the smart signing dates too)>>
 
 The resulting K*.key and K*.private files can now be used to sign the
 zone.  Unlike normal K* files, which contain both public and private

@@ -1,3 +1,5 @@
+2702.	[func]		Update PKCS#11 tools (bin/pkcs11) [RT #20225 & all]
+
 2701.	[doc]		Correction to ARM: hmac-md5 is no longer the only
 			supported TSIG key algorithm. [RT #18046]
 
