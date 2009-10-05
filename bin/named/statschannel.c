@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: statschannel.c,v 1.14.64.6 2009/02/17 03:43:07 marka Exp $ */
+/* $Id: statschannel.c,v 1.14.64.7 2009/10/05 21:56:59 each Exp $ */
 
 /*! \file */
 
@@ -677,9 +677,11 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 	xmlTextWriterWriteString(writer, ISC_XMLCHAR buf);
 	xmlTextWriterEndElement(writer);
 
-	serial = dns_zone_getserial(zone);
 	xmlTextWriterStartElement(writer, ISC_XMLCHAR "serial");
-	xmlTextWriterWriteFormatString(writer, "%u", serial);
+	if (dns_zone_getserial2(zone, &serial) == ISC_R_SUCCESS)
+		xmlTextWriterWriteFormatString(writer, "%u", serial);
+	else
+		xmlTextWriterWriteString(writer, ISC_XMLCHAR "-");
 	xmlTextWriterEndElement(writer);
 
 	zonestats = dns_zone_getrequeststats(zone);
@@ -728,7 +730,7 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "bind"));
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "statistics"));
 	TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "version",
-					 ISC_XMLCHAR "2.0"));
+ 					 ISC_XMLCHAR "2.2"));
 
 	/* Set common fields for statistics dump */
 	dumparg.type = statsformat_xml;
@@ -766,11 +768,15 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 
 		cachestats = dns_db_getrrsetstats(view->cachedb);
 		if (cachestats != NULL) {
-			xmlTextWriterStartElement(writer,
-						  ISC_XMLCHAR "cache");
+			TRY0(xmlTextWriterStartElement(writer,
+						       ISC_XMLCHAR "cache"));
+			TRY0(xmlTextWriterWriteAttribute(writer,
+							 ISC_XMLCHAR "name",
+							 ISC_XMLCHAR
+							 view->name));
 			dns_rdatasetstats_dump(cachestats, rdatasetstats_dump,
 					       &dumparg, 0);
-			xmlTextWriterEndElement(writer); /* cache */
+			TRY0(xmlTextWriterEndElement(writer)); /* cache */
 		}
 
 		xmlTextWriterEndElement(writer); /* view */

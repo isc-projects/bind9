@@ -1,3 +1,13 @@
+2705.	[bug]		Reconcile the XML stats version number with a later
+                        BIND9 release, by adding a "name" attribute to
+                        "cache" elements and increasing the version number
+                        to 2.2.  (This is a minor version change, but may
+                        affect XML parsers if they assume the cache element
+                        doesn't take an attribute.)
+
+2704.	[bug]		Serial of dynamic and stub zones could be inconsistent
+			with their SOA serial.  [RT #19387]
+
 2700.	[doc]		The match-mapped-addresses option is discouraged.
 			[RT #12252]
 
