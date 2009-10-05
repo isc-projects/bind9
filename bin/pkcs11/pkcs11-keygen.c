@@ -158,13 +158,13 @@ main(int argc, char *argv[])
 	idlen = 2;
 	publickey_template[5].ulValueLen = idlen;
 	privatekey_template[6].ulValueLen = idlen;
-	idbuf[0] = id >> 8;
-	idbuf[1] = id & 0xff;
+	idbuf[0] = (CK_BYTE) (id >> 8);
+	idbuf[1] = (CK_BYTE) id;
     } else {
-        idbuf[0] = id >> 24;
-	idbuf[1] = (id >> 16) & 0xff;
-	idbuf[2] = (id >> 8) & 0xff;
-	idbuf[3] = id & 0xff;
+        idbuf[0] = (CK_BYTE) (id >> 24);
+	idbuf[1] = (CK_BYTE) (id >> 16);
+	idbuf[2] = (CK_BYTE) (id >> 8);
+	idbuf[3] = (CK_BYTE) id;
     }
 
     /* Initialize the CRYPTOKI library */

@@ -107,10 +107,10 @@ getopt(int nargc, char * const nargv[], const char *ostr)
 /* load PKCS11 DLL */
 
 #ifndef PK11_LIB_LOCATION
-#define PK11_LIB_LOCATION "bp201w32HSM"
+#error "PK11_LIB_LOCATION is not defined"
 #endif
 
-const char pk11_libname[] = PK11_LIB_LOCATION ".dll";
+const char *pk11_libname = PK11_LIB_LOCATION ".dll";
 
 HINSTANCE hPK11 = NULL;
 
@@ -120,6 +120,12 @@ CK_RV
 C_Initialize(CK_VOID_PTR pReserved)
 {
 	CK_C_Initialize sym;
+
+	if (pk11_libname == NULL)
+		return 0xfe;
+	/* Visual Studio convertion issue... */
+	if (*pk11_libname == ' ')
+		pk11_libname++;
 
 	hPK11 = LoadLibraryA(pk11_libname);
 
