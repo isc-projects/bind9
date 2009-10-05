@@ -1,3 +1,6 @@
+2701.	[doc]		Correction to ARM: hmac-md5 is no longer the only
+			supported TSIG key algorithm. [RT #18046]
+
 2700.	[doc]		The match-mapped-addresses option is discouraged.
 			[RT #12252]
 
