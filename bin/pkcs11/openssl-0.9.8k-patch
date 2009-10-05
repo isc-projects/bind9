@@ -1,27 +1,30 @@
 Index: openssl/Configure
-diff -u openssl/Configure:1.1.3.1 openssl/Configure:1.6
+diff -u openssl/Configure:1.1.3.1 openssl/Configure:1.7
 --- openssl/Configure:1.1.3.1	Mon Feb 16 08:44:22 2009
-+++ openssl/Configure	Fri Sep  4 10:43:21 2009
++++ openssl/Configure	Mon Oct  5 13:16:50 2009
 @@ -12,7 +12,7 @@
  
  # see INSTALL for instructions.
  
 -my $usage="Usage: Configure [no-<cipher> ...] [enable-<cipher> ...] [experimental-<cipher> ...] [-Dxxx] [-lxxx] [-Lxxx] [-fxxx] [-Kxxx] [no-hw-xxx|no-hw] [[no-]threads] [[no-]shared] [[no-]zlib|zlib-dynamic] [enable-montasm] [no-asm] [no-dso] [no-krb5] [386] [--prefix=DIR] [--openssldir=OPENSSLDIR] [--with-xxx[=vvv]] [--test-sanity] os/compiler[:flags]\n";
-+my $usage="Usage: Configure --pk11-libname=PK11_LIB_LOCATION [no-<cipher> ...] [enable-<cipher> ...] [experimental-<cipher> ...] [-Dxxx] [-lxxx] [-Lxxx] [-fxxx] [-Kxxx] [no-hw-xxx|no-hw] [[no-]threads] [[no-]shared] [[no-]zlib|zlib-dynamic] [enable-montasm] [no-asm] [no-dso] [no-krb5] [386] [--prefix=DIR] [--openssldir=OPENSSLDIR] [--with-xxx[=vvv]] [--test-sanity] os/compiler[:flags]\n";
++my $usage="Usage: Configure --pk11-libname=PK11_LIB_LOCATION --pk11-flavor=FLAVOR [no-<cipher> ...] [enable-<cipher> ...] [experimental-<cipher> ...] [-Dxxx] [-lxxx] [-Lxxx] [-fxxx] [-Kxxx] [no-hw-xxx|no-hw] [[no-]threads] [[no-]shared] [[no-]zlib|zlib-dynamic] [enable-montasm] [no-asm] [no-dso] [no-krb5] [386] [--prefix=DIR] [--openssldir=OPENSSLDIR] [--with-xxx[=vvv]] [--test-sanity] os/compiler[:flags]\n";
  
  # Options:
  #
-@@ -21,6 +21,9 @@
+@@ -21,6 +21,12 @@
  # --prefix      prefix for the OpenSSL include, lib and bin directories
  #               (Default: the OPENSSLDIR directory)
  #
 +# --pk11-libname  PKCS#11 library name.
-+#               (Default: none)
++#               (No default)
++#
++# --pk11-flavor either crypto-accelerator or sign-only
++#               (No default)
 +#
  # --install_prefix  Additional prefix for package builders (empty by
  #               default).  This needn't be set in advance, you can
  #               just as well use "make INSTALL_PREFIX=/whatever install".
-@@ -329,7 +332,7 @@
+@@ -329,7 +335,7 @@
  "linux-ppc",	"gcc:-DB_ENDIAN -DTERMIO -O3 -Wall::-D_REENTRANT::-ldl:BN_LLONG RC4_CHAR RC4_CHUNK DES_RISC1 DES_UNROLL::linux_ppc32.o::::::::::dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
  #### IA-32 targets...
  "linux-ia32-icc",	"icc:-DL_ENDIAN -DTERMIO -O2 -no_cpprt::-D_REENTRANT::-ldl:BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_elf_asm}:dlfcn:linux-shared:-KPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
@@ -30,17 +33,27 @@ diff -u openssl/Configure:1.1.3.1 openssl/Configure:1.6
  "linux-aout",	"gcc:-DL_ENDIAN -DTERMIO -O3 -fomit-frame-pointer -march=i486 -Wall::(unknown):::BN_LLONG ${x86_gcc_des} ${x86_gcc_opts}:${x86_out_asm}",
  ####
  "linux-generic64","gcc:-DTERMIO -O3 -Wall::-D_REENTRANT::-ldl:SIXTY_FOUR_BIT_LONG RC4_CHAR RC4_CHUNK DES_INT DES_UNROLL BF_PTR:${no_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
-@@ -580,6 +583,9 @@
+@@ -337,7 +343,7 @@
+ "linux-ia64",	"gcc:-DL_ENDIAN -DTERMIO -O3 -Wall::-D_REENTRANT::-ldl:SIXTY_FOUR_BIT_LONG RC4_CHUNK:${ia64_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+ "linux-ia64-ecc","ecc:-DL_ENDIAN -DTERMIO -O2 -Wall -no_cpprt::-D_REENTRANT::-ldl:SIXTY_FOUR_BIT_LONG RC4_CHUNK:${ia64_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+ "linux-ia64-icc","icc:-DL_ENDIAN -DTERMIO -O2 -Wall -no_cpprt::-D_REENTRANT::-ldl:SIXTY_FOUR_BIT_LONG RC4_CHUNK:${ia64_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+-"linux-x86_64",	"gcc:-m64 -DL_ENDIAN -DTERMIO -O3 -Wall -DMD32_REG_T=int::-D_REENTRANT::-ldl:SIXTY_FOUR_BIT_LONG RC4_CHUNK BF_PTR2 DES_INT DES_UNROLL:${x86_64_asm}:dlfcn:linux-shared:-fPIC:-m64:.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
++"linux-x86_64",	"gcc:-m64 -DL_ENDIAN -DTERMIO -O3 -Wall -DMD32_REG_T=int::-D_REENTRANT -pthread::-ldl:SIXTY_FOUR_BIT_LONG RC4_CHUNK BF_PTR2 DES_INT DES_UNROLL:${x86_64_asm}:dlfcn:linux-shared:-fPIC:-m64:.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+ #### SPARC Linux setups
+ # Ray Miller <ray.miller@computing-services.oxford.ac.uk> has patiently
+ # assisted with debugging of following two configs.
+@@ -580,6 +586,10 @@
  my $idx_ranlib = $idx++;
  my $idx_arflags = $idx++;
  
 +# PKCS#11 engine patch
 +my $pk11_libname="";
++my $pk11_flavor="";
 +
  my $prefix="";
  my $openssldir="";
  my $exe_ext="";
-@@ -812,6 +818,10 @@
+@@ -812,6 +822,14 @@
  				{
  				$flags.=$_." ";
  				}
@@ -48,10 +61,14 @@ diff -u openssl/Configure:1.1.3.1 openssl/Configure:1.6
 +                                {
 +                                $pk11_libname=$1;
 +                                }
++			elsif (/^--pk11-flavor=(.*)$/)
++				{
++				$pk11_flavor=$1;
++				}
  			elsif (/^--prefix=(.*)$/)
  				{
  				$prefix=$1;
-@@ -943,6 +953,13 @@
+@@ -943,6 +961,22 @@
  	exit 0;
  }
  
@@ -62,10 +79,45 @@ diff -u openssl/Configure:1.1.3.1 openssl/Configure:1.6
 +        exit 1;
 +        }
 +
++if (! $pk11_flavor
++    || !($pk11_flavor eq "crypto-accelerator" || $pk11_flavor eq "sign-only"))
++	{
++	print STDERR "You must set --pk11-flavor.\n";
++	print STDERR "Choices are crypto-accelerator and sign-only.\n";
++	print STDERR "See README.pkcs11 for more information.\n";
++	exit 1;
++	}
++
  if ($target =~ m/^CygWin32(-.*)$/) {
  	$target = "Cygwin".$1;
  }
-@@ -1103,6 +1120,8 @@
+@@ -1057,6 +1091,25 @@
+ 	print "\n";
+ 	}
+ 
++if ($pk11_flavor eq "crypto-accelerator")
++	{
++	$openssl_other_defines .= "#define OPENSSL_NO_HW_PKCS11SO\n";
++	$default_depflags .= " -DOPENSSL_NO_HW_PKCS11SO";
++	$depflags .= " -DOPENSSL_NO_HW_PKCS11SO";
++	$options .= " no-hw-pkcs11so";
++	print "    no-hw-pkcs11so  [pk11-flavor]";
++	print " OPENSSL_NO_HW_PKCS11SO\n";
++	}
++else
++	{
++	$openssl_other_defines .= "#define OPENSSL_NO_HW_PKCS11CA\n";
++	$default_depflags .= " -DOPENSSL_NO_HW_PKCS11CA";
++	$depflags .= " -DOPENSSL_NO_HW_PKCS11CA";
++	$options .= " no-hw-pkcs11ca";
++	print "    no-hw-pkcs11ca  [pk11-flavor]";
++	print " OPENSSL_NO_HW_PKCS11CA\n";
++}
++
+ my $IsMK1MF=scalar grep /^$target$/,@MK1MF_Builds;
+ 
+ $IsMK1MF=1 if ($target eq "mingw" && $^O ne "cygwin" && !is_msys());
+@@ -1103,6 +1156,8 @@
  if ($flags ne "")	{ $cflags="$flags$cflags"; }
  else			{ $no_user_cflags=1;       }
  
@@ -74,7 +126,7 @@ diff -u openssl/Configure:1.1.3.1 openssl/Configure:1.6
  # Kerberos settings.  The flavor must be provided from outside, either through
  # the script "config" or manually.
  if (!$no_krb5)
-@@ -1456,6 +1475,7 @@
+@@ -1456,6 +1511,7 @@
  	s/^VERSION=.*/VERSION=$version/;
  	s/^MAJOR=.*/MAJOR=$major/;
  	s/^MINOR=.*/MINOR=$minor/;
@@ -97,10 +149,27 @@ diff -u openssl/Makefile.org:1.1.3.1 openssl/Makefile.org:1.3
  OPENSSLDIR=/usr/local/ssl
  
 Index: openssl/README.pkcs11
-diff -u /dev/null openssl/README.pkcs11:1.5
---- /dev/null	Mon Oct  5 11:08:12 2009
-+++ openssl/README.pkcs11	Fri Sep  4 10:43:21 2009
-@@ -0,0 +1,230 @@
+diff -u /dev/null openssl/README.pkcs11:1.6
+--- /dev/null	Mon Oct  5 13:17:23 2009
++++ openssl/README.pkcs11	Mon Oct  5 13:16:50 2009
+@@ -0,0 +1,247 @@
++ISC modified
++============
++
++The PKCS#11 engine exists in two flavors, crypto-accelerator and
++sign-only. The first one is from the Solaris patch and uses the
++PKCS#11 device for all crypto operations it supports. The second
++is a stripped down version which provides only the useful
++function (i.e., signature with a RSA private key in the device
++protected key store and key loading).
++
++As a hint PKCS#11 boards should use the crypto-accelerator flavor,
++external PKCS#11 devices the sign-only. SCA 6000 is an example
++of the first, AEP Keyper of the second.
++
++Note it is mandatory to set a pk11-flavor (and only one) in
++config/Configure.
++
 +PKCS#11 engine support for OpenSSL 0.9.8j
 +=========================================
 +
@@ -403,27 +472,27 @@ diff -u openssl/crypto/opensslconf.h:1.1.3.1 openssl/crypto/opensslconf.h:1.5
  
  /* These default values were supplied by
 Index: openssl/crypto/engine/Makefile
-diff -u openssl/crypto/engine/Makefile:1.1.3.1 openssl/crypto/engine/Makefile:1.4
+diff -u openssl/crypto/engine/Makefile:1.1.3.1 openssl/crypto/engine/Makefile:1.5
 --- openssl/crypto/engine/Makefile:1.1.3.1	Wed Sep 17 17:10:59 2008
-+++ openssl/crypto/engine/Makefile	Fri Sep  4 10:43:22 2009
++++ openssl/crypto/engine/Makefile	Mon Oct  5 13:16:50 2009
 @@ -21,12 +21,14 @@
  	eng_table.c eng_pkey.c eng_fat.c eng_all.c \
  	tb_rsa.c tb_dsa.c tb_ecdsa.c tb_dh.c tb_ecdh.c tb_rand.c tb_store.c \
  	tb_cipher.c tb_digest.c \
 -	eng_openssl.c eng_cnf.c eng_dyn.c eng_cryptodev.c eng_padlock.c
 +	eng_openssl.c eng_cnf.c eng_dyn.c eng_cryptodev.c eng_padlock.c \
-+	hw_pk11.c hw_pk11_pub.c
++	hw_pk11.c hw_pk11_pub.c hw_pk11so.c hw_pk11so_pub.c
  LIBOBJ= eng_err.o eng_lib.o eng_list.o eng_init.o eng_ctrl.o \
  	eng_table.o eng_pkey.o eng_fat.o eng_all.o \
  	tb_rsa.o tb_dsa.o tb_ecdsa.o tb_dh.o tb_ecdh.o tb_rand.o tb_store.o \
  	tb_cipher.o tb_digest.o \
 -	eng_openssl.o eng_cnf.o eng_dyn.o eng_cryptodev.o eng_padlock.o
 +	eng_openssl.o eng_cnf.o eng_dyn.o eng_cryptodev.o eng_padlock.o \
-+	hw_pk11.o hw_pk11_pub.o
++	hw_pk11.o hw_pk11_pub.o hw_pk11so.o hw_pk11so_pub.o
  
  SRC= $(LIBSRC)
  
-@@ -286,6 +288,54 @@
+@@ -286,6 +288,102 @@
  eng_table.o: ../../include/openssl/symhacks.h ../../include/openssl/x509.h
  eng_table.o: ../../include/openssl/x509_vfy.h ../cryptlib.h eng_int.h
  eng_table.o: eng_table.c
@@ -475,12 +544,60 @@ diff -u openssl/crypto/engine/Makefile:1.1.3.1 openssl/crypto/engine/Makefile:1.
 +hw_pk11_pub.o: ../../include/openssl/x509_vfy.h ../../include/openssl/pkcs7.h
 +hw_pk11_pub.o: ../../include/openssl/pem2.h ../cryptlib.h
 +hw_pk11_pub.o: ../../e_os.h hw_pk11_err.c hw_pk11_err.h hw_pk11_pub.c
++hw_pk11so.o: ../../include/openssl/e_os2.h ../../include/openssl/opensslconf.h
++hw_pk11so.o: ../../include/openssl/engine.h ../../include/openssl/ossl_typ.h
++hw_pk11so.o: ../../include/openssl/bn.h ../../include/openssl/rsa.h
++hw_pk11so.o: ../../include/openssl/asn1.h ../../include/openssl/bio.h
++hw_pk11so.o: ../../include/openssl/crypto.h ../../include/openssl/stack.h
++hw_pk11so.o: ../../include/openssl/safestack.h ../../include/openssl/opensslv.h
++hw_pk11so.o: ../../include/openssl/symhacks.h ../../include/openssl/dsa.h
++hw_pk11so.o: ../../include/openssl/dh.h ../../include/openssl/rand.h
++hw_pk11so.o: ../../include/openssl/ui.h ../../include/openssl/err.h
++hw_pk11so.o: ../../include/openssl/lhash.h ../../include/openssl/dso.h
++hw_pk11so.o: ../../include/openssl/pem.h ../../include/openssl/evp.h
++hw_pk11so.o: ../../include/openssl/md2.h ../../include/openssl/md4.h
++hw_pk11so.o: ../../include/openssl/md5.h ../../include/openssl/sha.h
++hw_pk11so.o: ../../include/openssl/ripemd.h ../../include/openssl/des.h
++hw_pk11so.o: ../../include/openssl/des_old.h ../../include/openssl/ui_compat.h
++hw_pk11so.o: ../../include/openssl/rc4.h ../../include/openssl/rc2.h
++hw_pk11so.o: ../../crypto/rc5/rc5.h ../../include/openssl/blowfish.h
++hw_pk11so.o: ../../include/openssl/cast.h ../../include/openssl/idea.h
++hw_pk11so.o: ../../crypto/mdc2/mdc2.h ../../include/openssl/aes.h
++hw_pk11so.o: ../../include/openssl/objects.h ../../include/openssl/obj_mac.h
++hw_pk11so.o: ../../include/openssl/x509.h ../../include/openssl/buffer.h
++hw_pk11so.o: ../../include/openssl/x509_vfy.h ../../include/openssl/pkcs7.h
++hw_pk11so.o: ../../include/openssl/pem2.h ../cryptlib.h
++hw_pk11so.o: ../../e_os.h hw_pk11_err.c hw_pk11_err.h hw_pk11so.c
++hw_pk11so_pub.o: ../../include/openssl/e_os2.h ../../include/openssl/opensslconf.h
++hw_pk11so_pub.o: ../../include/openssl/engine.h ../../include/openssl/ossl_typ.h
++hw_pk11so_pub.o: ../../include/openssl/bn.h ../../include/openssl/rsa.h
++hw_pk11so_pub.o: ../../include/openssl/asn1.h ../../include/openssl/bio.h
++hw_pk11so_pub.o: ../../include/openssl/crypto.h ../../include/openssl/stack.h
++hw_pk11so_pub.o: ../../include/openssl/safestack.h ../../include/openssl/opensslv.h
++hw_pk11so_pub.o: ../../include/openssl/symhacks.h ../../include/openssl/dsa.h
++hw_pk11so_pub.o: ../../include/openssl/dh.h ../../include/openssl/rand.h
++hw_pk11so_pub.o: ../../include/openssl/ui.h ../../include/openssl/err.h
++hw_pk11so_pub.o: ../../include/openssl/lhash.h ../../include/openssl/dso.h
++hw_pk11so_pub.o: ../../include/openssl/pem.h ../../include/openssl/evp.h
++hw_pk11so_pub.o: ../../include/openssl/md2.h ../../include/openssl/md4.h
++hw_pk11so_pub.o: ../../include/openssl/md5.h ../../include/openssl/sha.h
++hw_pk11so_pub.o: ../../include/openssl/ripemd.h ../../include/openssl/des.h
++hw_pk11so_pub.o: ../../include/openssl/des_old.h ../../include/openssl/ui_compat.h
++hw_pk11so_pub.o: ../../include/openssl/rc4.h ../../include/openssl/rc2.h
++hw_pk11so_pub.o: ../../crypto/rc5/rc5.h ../../include/openssl/blowfish.h
++hw_pk11so_pub.o: ../../include/openssl/cast.h ../../include/openssl/idea.h
++hw_pk11so_pub.o: ../../crypto/mdc2/mdc2.h ../../include/openssl/aes.h
++hw_pk11so_pub.o: ../../include/openssl/objects.h ../../include/openssl/obj_mac.h
++hw_pk11so_pub.o: ../../include/openssl/x509.h ../../include/openssl/buffer.h
++hw_pk11so_pub.o: ../../include/openssl/x509_vfy.h ../../include/openssl/pkcs7.h
++hw_pk11so_pub.o: ../../include/openssl/pem2.h ../cryptlib.h
++hw_pk11so_pub.o: ../../e_os.h hw_pk11_err.c hw_pk11_err.h hw_pk11so_pub.c
  tb_cipher.o: ../../e_os.h ../../include/openssl/asn1.h
  tb_cipher.o: ../../include/openssl/bio.h ../../include/openssl/buffer.h
  tb_cipher.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
 Index: openssl/crypto/engine/cryptoki.h
 diff -u /dev/null openssl/crypto/engine/cryptoki.h:1.4
---- /dev/null	Mon Oct  5 11:08:14 2009
+--- /dev/null	Mon Oct  5 13:17:24 2009
 +++ openssl/crypto/engine/cryptoki.h	Thu Dec 18 00:14:12 2008
 @@ -0,0 +1,103 @@
 +/*
@@ -587,1652 +704,62 @@ diff -u /dev/null openssl/crypto/engine/cryptoki.h:1.4
 +
 +#endif	/* _CRYPTOKI_H */
 Index: openssl/crypto/engine/eng_all.c
-diff -u openssl/crypto/engine/eng_all.c:1.1.3.1 openssl/crypto/engine/eng_all.c:1.2
+diff -u openssl/crypto/engine/eng_all.c:1.1.3.1 openssl/crypto/engine/eng_all.c:1.3
 --- openssl/crypto/engine/eng_all.c:1.1.3.1	Wed Jun  4 18:01:39 2008
-+++ openssl/crypto/engine/eng_all.c	Wed Oct 15 15:39:48 2008
-@@ -110,6 +110,9 @@
++++ openssl/crypto/engine/eng_all.c	Mon Oct  5 13:16:50 2009
+@@ -110,6 +110,14 @@
  #if defined(OPENSSL_SYS_WIN32) && !defined(OPENSSL_NO_CAPIENG)
  	ENGINE_load_capi();
  #endif
 +#ifndef OPENSSL_NO_HW_PKCS11
-+	ENGINE_load_pk11();
++#ifndef OPENSSL_NO_HW_PKCS11CA
++	ENGINE_load_pk11ca();
++#endif
++#ifndef OPENSSL_NO_HW_PKCS11SO
++	ENGINE_load_pk11so();
++#endif
 +#endif
  #endif
  	}
  
+Index: openssl/crypto/engine/eng_list.c
+diff -u openssl/crypto/engine/eng_list.c:1.1.3.1 openssl/crypto/engine/eng_list.c:1.2
+--- openssl/crypto/engine/eng_list.c:1.1.3.1	Sat Aug  6 10:34:35 2005
++++ openssl/crypto/engine/eng_list.c	Mon Oct  5 13:16:50 2009
+@@ -408,7 +408,11 @@
+ 				!ENGINE_ctrl_cmd_string(iterator, "DIR_ADD",
+ 					load_dir, 0) ||
+ 				!ENGINE_ctrl_cmd_string(iterator, "LOAD", NULL, 0))
++			{
++				if (iterator)
++					ENGINE_free(iterator);
+ 				goto notfound;
++			}
+ 		return iterator;
+ 		}
+ notfound:
 Index: openssl/crypto/engine/engine.h
-diff -u openssl/crypto/engine/engine.h:1.1.3.1 openssl/crypto/engine/engine.h:1.2
+diff -u openssl/crypto/engine/engine.h:1.1.3.1 openssl/crypto/engine/engine.h:1.3
 --- openssl/crypto/engine/engine.h:1.1.3.1	Wed Jun  4 18:01:40 2008
-+++ openssl/crypto/engine/engine.h	Wed Oct 15 15:39:48 2008
-@@ -337,6 +337,7 @@
++++ openssl/crypto/engine/engine.h	Mon Oct  5 13:16:50 2009
+@@ -337,6 +337,12 @@
  void ENGINE_load_ubsec(void);
  #endif
  void ENGINE_load_cryptodev(void);
-+void ENGINE_load_pk11(void);
++#ifndef OPENSSL_NO_HW_PKCS11CA
++void ENGINE_load_pk11ca(void);
++#endif
++#ifndef OPENSSL_NO_HW_PKCS11SO
++void ENGINE_load_pk11so(void);
++#endif
  void ENGINE_load_padlock(void);
  void ENGINE_load_builtin_engines(void);
  #ifndef OPENSSL_NO_CAPIENG
-Index: openssl/crypto/engine/hw_pk11-kp.c
-diff -u /dev/null openssl/crypto/engine/hw_pk11-kp.c:1.20
---- /dev/null	Mon Oct  5 11:08:14 2009
-+++ openssl/crypto/engine/hw_pk11-kp.c	Tue Sep  1 06:02:18 2009
-@@ -0,0 +1,1611 @@
-+/*
-+ * Copyright 2008 Sun Microsystems, Inc.  All rights reserved.
-+ * Use is subject to license terms.
-+ */
-+
-+/* crypto/engine/hw_pk11.c */
-+/*
-+ * This product includes software developed by the OpenSSL Project for
-+ * use in the OpenSSL Toolkit (http://www.openssl.org/).
-+ *
-+ * This project also referenced hw_pkcs11-0.9.7b.patch written by
-+ * Afchine Madjlessi.
-+ */
-+/*
-+ * ====================================================================
-+ * Copyright (c) 2000-2001 The OpenSSL Project.  All rights reserved.
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ * 1. Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ *
-+ * 2. Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in
-+ *    the documentation and/or other materials provided with the
-+ *    distribution.
-+ *
-+ * 3. All advertising materials mentioning features or use of this
-+ *    software must display the following acknowledgment:
-+ *    "This product includes software developed by the OpenSSL Project
-+ *    for use in the OpenSSL Toolkit. (http://www.OpenSSL.org/)"
-+ *
-+ * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
-+ *    endorse or promote products derived from this software without
-+ *    prior written permission. For written permission, please contact
-+ *    licensing@OpenSSL.org.
-+ *
-+ * 5. Products derived from this software may not be called "OpenSSL"
-+ *    nor may "OpenSSL" appear in their names without prior written
-+ *    permission of the OpenSSL Project.
-+ *
-+ * 6. Redistributions of any form whatsoever must retain the following
-+ *    acknowledgment:
-+ *    "This product includes software developed by the OpenSSL Project
-+ *    for use in the OpenSSL Toolkit (http://www.OpenSSL.org/)"
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
-+ * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
-+ * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-+ * OF THE POSSIBILITY OF SUCH DAMAGE.
-+ * ====================================================================
-+ *
-+ * This product includes cryptographic software written by Eric Young
-+ * (eay@cryptsoft.com).  This product includes software written by Tim
-+ * Hudson (tjh@cryptsoft.com).
-+ *
-+ */
-+
-+/* Modified to keep only RNG and RSA Sign */
-+
-+#ifdef OPENSSL_NO_RSA
-+#error RSA is disabled
-+#endif
-+
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <sys/types.h>
-+
-+#include <openssl/e_os2.h>
-+#include <openssl/crypto.h>
-+#include <cryptlib.h>
-+#include <openssl/engine.h>
-+#include <openssl/dso.h>
-+#include <openssl/err.h>
-+#include <openssl/bn.h>
-+#include <openssl/md5.h>
-+#include <openssl/pem.h>
-+#include <openssl/rsa.h>
-+#include <openssl/rand.h>
-+#include <openssl/objects.h>
-+#include <openssl/x509.h>
-+
-+#ifdef OPENSSL_SYS_WIN32
-+typedef int pid_t;
-+#define getpid() GetCurrentProcessId()
-+#define NOPTHREADS
-+#ifndef NULL_PTR
-+#define NULL_PTR NULL
-+#endif
-+#define CK_DEFINE_FUNCTION(returnType, name) \
-+	returnType __declspec(dllexport) name
-+#define CK_DECLARE_FUNCTION(returnType, name) \
-+	returnType __declspec(dllimport) name
-+#define CK_DECLARE_FUNCTION_POINTER(returnType, name) \
-+	returnType __declspec(dllimport) (* name)
-+#else
-+#include <signal.h>
-+#include <unistd.h>
-+#include <dlfcn.h>
-+#endif
-+
-+#ifndef NOPTHREADS
-+#include <pthread.h>
-+#endif
-+
-+#ifndef OPENSSL_NO_HW
-+#ifndef OPENSSL_NO_HW_PK11
-+
-+/* label for debug messages printed on stderr */
-+#define	PK11_DBG	"PKCS#11 ENGINE DEBUG"
-+/* prints a lot of debug messages on stderr about slot selection process */
-+#undef	DEBUG_SLOT_SELECTION
-+
-+#ifndef OPENSSL_NO_DSA
-+#define OPENSSL_NO_DSA
-+#endif
-+#ifndef OPENSSL_NO_DH
-+#define OPENSSL_NO_DH
-+#endif
-+
-+#ifdef OPENSSL_SYS_WIN32
-+#pragma pack(push, cryptoki, 1)
-+#include "cryptoki.h"
-+#include "pkcs11.h"
-+#pragma pack(pop, cryptoki)
-+#else
-+#include "cryptoki.h"
-+#include "pkcs11.h"
-+#endif
-+#include "hw_pk11_err.c"
-+
-+/* PKCS#11 session caches and their locks for all operation types */
-+static PK11_CACHE session_cache[OP_MAX];
-+
-+/*
-+ * As stated in v2.20, 11.7 Object Management Function, in section for
-+ * C_FindObjectsInit(), at most one search operation may be active at a given
-+ * time in a given session. Therefore, C_Find{,Init,Final}Objects() should be
-+ * grouped together to form one atomic search operation. This is already
-+ * ensured by the property of unique PKCS#11 session handle used for each
-+ * PK11_SESSION object.
-+ *
-+ * This is however not the biggest concern - maintaining consistency of the
-+ * underlying object store is more important. The same section of the spec also
-+ * says that one thread can be in the middle of a search operation while another
-+ * thread destroys the object matching the search template which would result in
-+ * invalid handle returned from the search operation.
-+ *
-+ * Hence, the following locks are used for both protection of the object stores.
-+ * They are also used for active list protection.
-+ */
-+#ifndef NOPTHREADS
-+pthread_mutex_t *find_lock[OP_MAX] = { NULL };
-+#endif
-+
-+/*
-+ * lists of asymmetric key handles which are active (referenced by at least one
-+ * PK11_SESSION structure, either held by a thread or present in free_session
-+ * list) for given algorithm type
-+ */
-+PK11_active *active_list[OP_MAX] = { NULL };
-+
-+/*
-+ * Create all secret key objects in a global session so that they are available
-+ * to use for other sessions. These other sessions may be opened or closed
-+ * without losing the secret key objects.
-+ */
-+static CK_SESSION_HANDLE	global_session = CK_INVALID_HANDLE;
-+
-+/* ENGINE level stuff */
-+static int pk11_init(ENGINE *e);
-+static int pk11_library_init(ENGINE *e);
-+static int pk11_finish(ENGINE *e);
-+static int pk11_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f)(void));
-+static int pk11_destroy(ENGINE *e);
-+
-+/* RAND stuff */
-+static void pk11_rand_seed(const void *buf, int num);
-+static void pk11_rand_add(const void *buf, int num, double add_entropy);
-+static void pk11_rand_cleanup(void);
-+static int pk11_rand_bytes(unsigned char *buf, int num);
-+static int pk11_rand_status(void);
-+
-+/* These functions are also used in other files */
-+PK11_SESSION *pk11_get_session(PK11_OPTYPE optype);
-+void pk11_return_session(PK11_SESSION *sp, PK11_OPTYPE optype);
-+
-+/* active list manipulation functions used in this file */
-+extern int pk11_active_delete(CK_OBJECT_HANDLE h, PK11_OPTYPE type);
-+extern void pk11_free_active_list(PK11_OPTYPE type);
-+
-+int pk11_destroy_rsa_key_objects(PK11_SESSION *session);
-+int pk11_destroy_rsa_object_pub(PK11_SESSION *sp, CK_BBOOL uselock);
-+int pk11_destroy_rsa_object_priv(PK11_SESSION *sp, CK_BBOOL uselock);
-+
-+/* Local helper functions */
-+static int pk11_free_all_sessions(void);
-+static int pk11_free_session_list(PK11_OPTYPE optype);
-+static int pk11_setup_session(PK11_SESSION *sp, PK11_OPTYPE optype);
-+static int pk11_destroy_object(CK_SESSION_HANDLE session,
-+	CK_OBJECT_HANDLE oh);
-+static const char *get_PK11_LIBNAME(void);
-+static void free_PK11_LIBNAME(void);
-+static long set_PK11_LIBNAME(const char *name);
-+
-+static int pk11_choose_slots(int *any_slot_found);
-+
-+static int pk11_init_all_locks(void);
-+static void pk11_free_all_locks(void);
-+
-+#define	TRY_OBJ_DESTROY(sess_hdl, obj_hdl, retval, uselock, alg_type)	\
-+	{								\
-+	if (uselock)							\
-+		LOCK_OBJSTORE(alg_type);				\
-+	if (pk11_active_delete(obj_hdl, alg_type) == 1)			\
-+		{							\
-+		retval = pk11_destroy_object(sess_hdl, obj_hdl);	\
-+		}							\
-+	if (uselock)							\
-+		UNLOCK_OBJSTORE(alg_type);				\
-+	}
-+
-+#define	TRY_OBJ_DELETE(sess_hdl, obj_hdl, retval, uselock, alg_type)	\
-+	{								\
-+	if (uselock)							\
-+		LOCK_OBJSTORE(alg_type);				\
-+	(void) pk11_active_delete(obj_hdl, alg_type);			\
-+	if (uselock)							\
-+		UNLOCK_OBJSTORE(alg_type);				\
-+	}
-+
-+static CK_BBOOL pk11_have_rsa	= CK_FALSE;
-+static CK_BBOOL pk11_have_random = CK_FALSE;
-+
-+/*
-+ * Initialization function. Sets up various PKCS#11 library components.
-+ * The definitions for control commands specific to this engine
-+ */
-+#define PK11_CMD_SO_PATH		ENGINE_CMD_BASE
-+#define PK11_CMD_PIN			(ENGINE_CMD_BASE+1)
-+#define PK11_CMD_SLOT			(ENGINE_CMD_BASE+2)
-+static const ENGINE_CMD_DEFN pk11_cmd_defns[] =
-+	{
-+		{
-+		PK11_CMD_SO_PATH,
-+		"SO_PATH",
-+		"Specifies the path to the 'pkcs#11' shared library",
-+		ENGINE_CMD_FLAG_STRING
-+		},
-+		{
-+		PK11_CMD_PIN,
-+		"PIN",
-+		"Specifies the pin code",
-+		ENGINE_CMD_FLAG_STRING
-+		},
-+		{
-+		PK11_CMD_SLOT,
-+		"SLOT",
-+		"Specifies the slot (default is auto select)",
-+		ENGINE_CMD_FLAG_NUMERIC,
-+		},
-+		{0, NULL, NULL, 0}
-+	};
-+
-+
-+static RAND_METHOD pk11_random =
-+	{
-+	pk11_rand_seed,
-+	pk11_rand_bytes,
-+	pk11_rand_cleanup,
-+	pk11_rand_add,
-+	pk11_rand_bytes,
-+	pk11_rand_status
-+	};
-+
-+
-+/* Constants used when creating the ENGINE */
-+static const char *engine_pk11_id = "pkcs11";
-+static const char *engine_pk11_name = "PKCS #11 engine support";
-+
-+CK_FUNCTION_LIST_PTR pFuncList = NULL;
-+static const char PK11_GET_FUNCTION_LIST[] = "C_GetFunctionList";
-+
-+/*
-+ * These is the static string constant for the DSO file name and the function
-+ * symbol names to bind to.
-+ */
-+static const char def_PK11_LIBNAME[] = PK11_LIB_LOCATION;
-+
-+static CK_SLOT_ID pubkey_SLOTID = 0;
-+static CK_SLOT_ID rand_SLOTID = 0;
-+static CK_SLOT_ID SLOTID = 0;
-+char *pk11_pin = NULL;
-+static CK_BBOOL pk11_library_initialized = FALSE;
-+static CK_BBOOL pk11_atfork_initialized = FALSE;
-+static int pk11_pid = 0;
-+
-+static DSO *pk11_dso = NULL;
-+
-+/* allocate and initialize all locks used by the engine itself */
-+static int pk11_init_all_locks(void)
-+	{
-+#ifndef NOPTHREADS
-+	int type;
-+
-+	find_lock[OP_RSA] = OPENSSL_malloc(sizeof (pthread_mutex_t));
-+	if (find_lock[OP_RSA] == NULL)
-+		goto malloc_err;
-+	(void) pthread_mutex_init(find_lock[OP_RSA], NULL);
-+
-+	for (type = 0; type < OP_MAX; type++)
-+		{
-+		session_cache[type].lock =
-+		    OPENSSL_malloc(sizeof (pthread_mutex_t));
-+		if (session_cache[type].lock == NULL)
-+			goto malloc_err;
-+		(void) pthread_mutex_init(session_cache[type].lock, NULL);
-+		}
-+
-+	return (1);
-+
-+malloc_err:
-+	pk11_free_all_locks();
-+	PK11err(PK11_F_INIT_ALL_LOCKS, PK11_R_MALLOC_FAILURE);
-+	return (0);
-+#else
-+	return (1);
-+#endif
-+	}
-+
-+static void pk11_free_all_locks(void)
-+	{
-+#ifndef NOPTHREADS
-+	int type;
-+
-+	if (find_lock[OP_RSA] != NULL)
-+		{
-+		(void) pthread_mutex_destroy(find_lock[OP_RSA]);
-+		OPENSSL_free(find_lock[OP_RSA]);
-+		find_lock[OP_RSA] = NULL;
-+		}
-+
-+	for (type = 0; type < OP_MAX; type++)
-+		{
-+		if (session_cache[type].lock != NULL)
-+			{
-+			(void) pthread_mutex_destroy(session_cache[type].lock);
-+			OPENSSL_free(session_cache[type].lock);
-+			session_cache[type].lock = NULL;
-+			}
-+		}
-+#endif
-+	}
-+
-+/*
-+ * This internal function is used by ENGINE_pk11() and "dynamic" ENGINE support.
-+ */
-+static int bind_pk11(ENGINE *e)
-+	{
-+	if (!pk11_library_initialized)
-+		if (!pk11_library_init(e))
-+			return (0);
-+
-+	if (!ENGINE_set_id(e, engine_pk11_id) ||
-+	    !ENGINE_set_name(e, engine_pk11_name))
-+		return (0);
-+
-+	if (pk11_have_rsa == CK_TRUE)
-+		{
-+		if (!ENGINE_set_RSA(e, PK11_RSA()) ||
-+		    !ENGINE_set_load_privkey_function(e, pk11_load_privkey) ||
-+		    !ENGINE_set_load_pubkey_function(e, pk11_load_pubkey))
-+			return (0);
-+#ifdef	DEBUG_SLOT_SELECTION
-+		fprintf(stderr, "%s: registered RSA\n", PK11_DBG);
-+#endif	/* DEBUG_SLOT_SELECTION */
-+		}
-+
-+	if (pk11_have_random)
-+		{
-+		if (!ENGINE_set_RAND(e, &pk11_random))
-+			return (0);
-+#ifdef	DEBUG_SLOT_SELECTION
-+		fprintf(stderr, "%s: registered random\n", PK11_DBG);
-+#endif	/* DEBUG_SLOT_SELECTION */
-+		}
-+	if (!ENGINE_set_init_function(e, pk11_init) ||
-+	    !ENGINE_set_destroy_function(e, pk11_destroy) ||
-+	    !ENGINE_set_finish_function(e, pk11_finish) ||
-+	    !ENGINE_set_ctrl_function(e, pk11_ctrl) ||
-+	    !ENGINE_set_cmd_defns(e, pk11_cmd_defns))
-+		return (0);
-+
-+	/* Ensure the pk11 error handling is set up */
-+	ERR_load_pk11_strings();
-+
-+	return (1);
-+	}
-+
-+/* Dynamic engine support is disabled at a higher level for Solaris */
-+#ifdef	ENGINE_DYNAMIC_SUPPORT
-+static int bind_helper(ENGINE *e, const char *id)
-+	{
-+	if (id && (strcmp(id, engine_pk11_id) != 0))
-+		return (0);
-+
-+	if (!bind_pk11(e))
-+		return (0);
-+
-+	return (1);
-+	}
-+
-+IMPLEMENT_DYNAMIC_CHECK_FN()
-+IMPLEMENT_DYNAMIC_BIND_FN(bind_helper)
-+
-+#else
-+static ENGINE *engine_pk11(void)
-+	{
-+	ENGINE *ret = ENGINE_new();
-+
-+	if (!ret)
-+		return (NULL);
-+
-+	if (!bind_pk11(ret))
-+		{
-+		ENGINE_free(ret);
-+		return (NULL);
-+		}
-+
-+	return (ret);
-+	}
-+
-+void
-+ENGINE_load_pk11(void)
-+	{
-+	ENGINE *e_pk11 = NULL;
-+
-+	/*
-+	 * Do not use dynamic PKCS#11 library on Solaris due to
-+	 * security reasons. We will link it in statically.
-+	 */
-+	/* Attempt to load PKCS#11 library */
-+	if (!pk11_dso)
-+		pk11_dso = DSO_load(NULL, get_PK11_LIBNAME(), NULL, 0);
-+
-+	if (pk11_dso == NULL)
-+		{
-+		PK11err(PK11_F_LOAD, PK11_R_DSO_FAILURE);
-+		return;
-+		}
-+
-+	e_pk11 = engine_pk11();
-+	if (!e_pk11)
-+		{
-+		DSO_free(pk11_dso);
-+		pk11_dso = NULL;
-+		return;
-+		}
-+
-+	/*
-+	 * At this point, the pk11 shared library is either dynamically
-+	 * loaded or statically linked in. So, initialize the pk11
-+	 * library before calling ENGINE_set_default since the latter
-+	 * needs cipher and digest algorithm information
-+	 */
-+	if (!pk11_library_init(e_pk11))
-+		{
-+		DSO_free(pk11_dso);
-+		pk11_dso = NULL;
-+		ENGINE_free(e_pk11);
-+		return;
-+		}
-+
-+	ENGINE_add(e_pk11);
-+
-+	ENGINE_free(e_pk11);
-+	ERR_clear_error();
-+	}
-+#endif	/* ENGINE_DYNAMIC_SUPPORT */
-+
-+/*
-+ * These are the static string constants for the DSO file name and
-+ * the function symbol names to bind to.
-+ */
-+static const char *PK11_LIBNAME = NULL;
-+
-+static const char *get_PK11_LIBNAME(void)
-+	{
-+	if (PK11_LIBNAME)
-+		return (PK11_LIBNAME);
-+
-+	return (def_PK11_LIBNAME);
-+	}
-+
-+static void free_PK11_LIBNAME(void)
-+	{
-+	if (PK11_LIBNAME)
-+		OPENSSL_free((void*)PK11_LIBNAME);
-+
-+	PK11_LIBNAME = NULL;
-+	}
-+
-+static long set_PK11_LIBNAME(const char *name)
-+	{
-+	free_PK11_LIBNAME();
-+
-+	return ((PK11_LIBNAME = BUF_strdup(name)) != NULL ? 1 : 0);
-+	}
-+
-+/* acquire all engine specific mutexes before fork */
-+static void pk11_fork_prepare(void)
-+	{
-+#ifndef NOPTHREADS
-+	int i;
-+
-+	if (!pk11_library_initialized)
-+		return;
-+
-+	LOCK_OBJSTORE(OP_RSA);
-+	for (i = 0; i < OP_MAX; i++)
-+		{
-+		(void) pthread_mutex_lock(session_cache[i].lock);
-+		}
-+#endif
-+	}
-+
-+/* release all engine specific mutexes */
-+static void pk11_fork_parent(void)
-+	{
-+#ifndef NOPTHREADS
-+	int i;
-+
-+	if (!pk11_library_initialized)
-+		return;
-+
-+	for (i = OP_MAX - 1; i >= 0; i--)
-+		{
-+		(void) pthread_mutex_unlock(session_cache[i].lock);
-+		}
-+	UNLOCK_OBJSTORE(OP_RSA);
-+#endif
-+	}
-+
-+/*
-+ * same situation as in parent - we need to unlock all locks to make them
-+ * accessible to all threads.
-+ */
-+static void pk11_fork_child(void)
-+	{
-+#ifndef NOPTHREADS
-+	int i;
-+
-+	if (!pk11_library_initialized)
-+		return;
-+
-+	for (i = OP_MAX - 1; i >= 0; i--)
-+		{
-+		(void) pthread_mutex_unlock(session_cache[i].lock);
-+		}
-+	UNLOCK_OBJSTORE(OP_RSA);
-+#endif
-+	}
-+
-+/* Initialization function for the pk11 engine */
-+static int pk11_init(ENGINE *e)
-+{
-+	return (pk11_library_init(e));
-+}
-+
-+/*
-+ * Initialization function. Sets up various PKCS#11 library components.
-+ * It selects a slot based on predefined critiera. In the process, it also
-+ * count how many ciphers and digests to support. Since the cipher and
-+ * digest information is needed when setting default engine, this function
-+ * needs to be called before calling ENGINE_set_default.
-+ */
-+/* ARGSUSED */
-+static int pk11_library_init(ENGINE *e)
-+	{
-+	CK_C_GetFunctionList p;
-+	CK_RV rv = CKR_OK;
-+	CK_INFO info;
-+	int any_slot_found;
-+	int i;
-+#ifndef OPENSSL_SYS_WIN32
-+	struct sigaction sigint_act, sigterm_act, sighup_act;
-+#endif
-+
-+	/*
-+	 * pk11_library_initialized is set to 0 in pk11_finish() which is called
-+	 * from ENGINE_finish(). However, if there is still at least one
-+	 * existing functional reference to the engine (see engine(3) for more
-+	 * information), pk11_finish() is skipped. For example, this can happen
-+	 * if an application forgets to clear one cipher context. In case of a
-+	 * fork() when the application is finishing the engine so that it can be
-+	 * reinitialized in the child, forgotten functional reference causes
-+	 * pk11_library_initialized to stay 1. In that case we need the PID
-+	 * check so that we properly initialize the engine again.
-+	 */
-+	if (pk11_library_initialized)
-+		{
-+		if (pk11_pid == getpid())
-+			{
-+			return (1);
-+			}
-+		else
-+			{
-+			global_session = CK_INVALID_HANDLE;
-+			/*
-+			 * free the locks first to prevent memory leak in case
-+			 * the application calls fork() without finishing the
-+			 * engine first.
-+			 */
-+			pk11_free_all_locks();
-+			}
-+		}
-+
-+	if (pk11_dso == NULL)
-+		{
-+		PK11err(PK11_F_LIBRARY_INIT, PK11_R_DSO_FAILURE);
-+		goto err;
-+		}
-+
-+	/* get the C_GetFunctionList function from the loaded library */
-+	p = (CK_C_GetFunctionList)DSO_bind_func(pk11_dso,
-+		PK11_GET_FUNCTION_LIST);
-+	if (!p)
-+		{
-+		PK11err(PK11_F_LIBRARY_INIT, PK11_R_DSO_FAILURE);
-+		goto err;
-+		}
-+
-+	/* get the full function list from the loaded library */
-+	rv = p(&pFuncList);
-+	if (rv != CKR_OK)
-+		{
-+		PK11err_add_data(PK11_F_LIBRARY_INIT, PK11_R_DSO_FAILURE, rv);
-+		goto err;
-+		}
-+
-+#ifndef OPENSSL_SYS_WIN32
-+	/* Not all PKCS#11 library are signal safe! */
-+
-+	(void) memset(&sigint_act, 0, sizeof(sigint_act));
-+	(void) memset(&sigterm_act, 0, sizeof(sigterm_act));
-+	(void) memset(&sighup_act, 0, sizeof(sighup_act));
-+	(void) sigaction(SIGINT, NULL, &sigint_act);
-+	(void) sigaction(SIGTERM, NULL, &sigterm_act);
-+	(void) sigaction(SIGHUP, NULL, &sighup_act);
-+#endif
-+	rv = pFuncList->C_Initialize(NULL_PTR);
-+#ifndef OPENSSL_SYS_WIN32
-+	(void) sigaction(SIGINT, &sigint_act, NULL);
-+	(void) sigaction(SIGTERM, &sigterm_act, NULL);
-+	(void) sigaction(SIGHUP, &sighup_act, NULL);
-+#endif
-+	if ((rv != CKR_OK) && (rv != CKR_CRYPTOKI_ALREADY_INITIALIZED))
-+		{
-+		PK11err_add_data(PK11_F_LIBRARY_INIT, PK11_R_INITIALIZE, rv);
-+		goto err;
-+		}
-+
-+	rv = pFuncList->C_GetInfo(&info);
-+	if (rv != CKR_OK)
-+		{
-+		PK11err_add_data(PK11_F_LIBRARY_INIT, PK11_R_GETINFO, rv);
-+		goto err;
-+		}
-+
-+	if (pk11_choose_slots(&any_slot_found) == 0)
-+		goto err;
-+
-+	/*
-+	 * The library we use, set in def_PK11_LIBNAME, may not offer any
-+	 * slot(s). In that case, we must not proceed but we must not return an
-+	 * error. The reason is that applications that try to set up the PKCS#11
-+	 * engine don't exit on error during the engine initialization just
-+	 * because no slot was present.
-+	 */
-+	if (any_slot_found == 0)
-+		return (1);
-+
-+	if (global_session == CK_INVALID_HANDLE)
-+		{
-+		/* Open the global_session for the new process */
-+		rv = pFuncList->C_OpenSession(SLOTID, CKF_SERIAL_SESSION,
-+			NULL_PTR, NULL_PTR, &global_session);
-+		if (rv != CKR_OK)
-+			{
-+			PK11err_add_data(PK11_F_LIBRARY_INIT,
-+			    PK11_R_OPENSESSION, rv);
-+			goto err;
-+			}
-+		}
-+
-+	pk11_library_initialized = TRUE;
-+	pk11_pid = getpid();
-+	/*
-+	 * if initialization of the locks fails pk11_init_all_locks()
-+	 * will do the cleanup.
-+	 */
-+	if (!pk11_init_all_locks())
-+		goto err;
-+	for (i = 0; i < OP_MAX; i++)
-+		session_cache[i].head = NULL;
-+	/*
-+	 * initialize active lists. We only use active lists
-+	 * for asymmetric ciphers.
-+	 */
-+	for (i = 0; i < OP_MAX; i++)
-+		active_list[i] = NULL;
-+
-+#ifndef NOPTHREADS
-+	if (!pk11_atfork_initialized)
-+		{
-+		if (pthread_atfork(pk11_fork_prepare, pk11_fork_parent,
-+		    pk11_fork_child) != 0)
-+			{
-+			PK11err(PK11_F_LIBRARY_INIT, PK11_R_ATFORK_FAILED);
-+			goto err;
-+			}
-+		pk11_atfork_initialized = TRUE;
-+		}
-+#endif
-+
-+	return (1);
-+
-+err:
-+	return (0);
-+	}
-+
-+/* Destructor (complements the "ENGINE_pk11()" constructor) */
-+/* ARGSUSED */
-+static int pk11_destroy(ENGINE *e)
-+	{
-+	free_PK11_LIBNAME();
-+	ERR_unload_pk11_strings();
-+	if (pk11_pin) {
-+		memset(pk11_pin, 0, strlen(pk11_pin));
-+		OPENSSL_free((void*)pk11_pin);
-+	}
-+	pk11_pin = NULL;
-+	return (1);
-+	}
-+
-+/*
-+ * Termination function to clean up the session, the token, and the pk11
-+ * library.
-+ */
-+/* ARGSUSED */
-+static int pk11_finish(ENGINE *e)
-+	{
-+	int i;
-+
-+	if (pk11_pin) {
-+		memset(pk11_pin, 0, strlen(pk11_pin));
-+		OPENSSL_free((void*)pk11_pin);
-+	}
-+	pk11_pin = NULL;
-+
-+	if (pk11_dso == NULL)
-+		{
-+		PK11err(PK11_F_FINISH, PK11_R_NOT_LOADED);
-+		goto err;
-+		}
-+
-+	OPENSSL_assert(pFuncList != NULL);
-+
-+	if (pk11_free_all_sessions() == 0)
-+		goto err;
-+
-+	/* free all active lists */
-+	for (i = 0; i < OP_MAX; i++)
-+		pk11_free_active_list(i);
-+
-+	pFuncList->C_CloseSession(global_session);
-+	global_session = CK_INVALID_HANDLE;
-+
-+	/*
-+	 * Since we are part of a library (libcrypto.so), calling this function
-+	 * may have side-effects.
-+	 */
-+#if 0
-+	pFuncList->C_Finalize(NULL);
-+#endif
-+
-+	if (!DSO_free(pk11_dso))
-+		{
-+		PK11err(PK11_F_FINISH, PK11_R_DSO_FAILURE);
-+		goto err;
-+		}
-+	pk11_dso = NULL;
-+	pFuncList = NULL;
-+	pk11_library_initialized = FALSE;
-+	pk11_pid = 0;
-+	/*
-+	 * There is no way how to unregister atfork handlers (other than
-+	 * unloading the library) so we just free the locks. For this reason
-+	 * the atfork handlers check if the engine is initialized and bail out
-+	 * immediately if not. This is necessary in case a process finishes
-+	 * the engine before calling fork().
-+	 */
-+	pk11_free_all_locks();
-+
-+	return (1);
-+
-+err:
-+	return (0);
-+	}
-+
-+/* Standard engine interface function to set the dynamic library path */
-+/* ARGSUSED */
-+static int pk11_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f)(void))
-+	{
-+	int initialized = ((pk11_dso == NULL) ? 0 : 1);
-+
-+	switch (cmd)
-+		{
-+	case PK11_CMD_SO_PATH:
-+		if (p == NULL)
-+			{
-+			PK11err(PK11_F_CTRL, ERR_R_PASSED_NULL_PARAMETER);
-+			return (0);
-+			}
-+
-+		if (initialized)
-+			{
-+			PK11err(PK11_F_CTRL, PK11_R_ALREADY_LOADED);
-+			return (0);
-+			}
-+
-+		return (set_PK11_LIBNAME((const char *)p));
-+	case PK11_CMD_PIN:
-+		if (pk11_pin) {
-+			memset(pk11_pin, 0, strlen(pk11_pin));
-+			OPENSSL_free((void*)pk11_pin);
-+		}
-+		pk11_pin = NULL;
-+
-+		if (p == NULL)
-+			{
-+			PK11err(PK11_F_CTRL, ERR_R_PASSED_NULL_PARAMETER);
-+			return (0);
-+			}
-+
-+		pk11_pin = BUF_strdup(p);
-+		if (pk11_pin == NULL)
-+			{
-+			PK11err(PK11_F_GET_SESSION, PK11_R_MALLOC_FAILURE);
-+			return (0);
-+			}
-+		return (1);
-+	case PK11_CMD_SLOT:
-+		SLOTID = (CK_SLOT_ID)i;
-+#ifdef DEBUG_SLOT_SELECTION
-+		fprintf(stderr, "%s: slot set\n", PK11_DBG);
-+#endif
-+		return (1);
-+	default:
-+		break;
-+		}
-+
-+	PK11err(PK11_F_CTRL, PK11_R_CTRL_COMMAND_NOT_IMPLEMENTED);
-+
-+	return (0);
-+	}
-+
-+
-+/* Required function by the engine random interface. It does nothing here */
-+static void pk11_rand_cleanup(void)
-+	{
-+	return;
-+	}
-+
-+/* ARGSUSED */
-+static void pk11_rand_add(const void *buf, int num, double add)
-+	{
-+	PK11_SESSION *sp;
-+
-+	if ((sp = pk11_get_session(OP_RAND)) == NULL)
-+		return;
-+
-+	/*
-+	 * Ignore any errors (e.g. CKR_RANDOM_SEED_NOT_SUPPORTED) since
-+	 * the calling functions do not care anyway
-+	 */
-+	pFuncList->C_SeedRandom(sp->session, (unsigned char *) buf, num);
-+	pk11_return_session(sp, OP_RAND);
-+
-+	return;
-+	}
-+
-+static void pk11_rand_seed(const void *buf, int num)
-+	{
-+	pk11_rand_add(buf, num, 0);
-+	}
-+
-+static int pk11_rand_bytes(unsigned char *buf, int num)
-+	{
-+	CK_RV rv;
-+	PK11_SESSION *sp;
-+
-+	if ((sp = pk11_get_session(OP_RAND)) == NULL)
-+		return (0);
-+
-+	rv = pFuncList->C_GenerateRandom(sp->session, buf, num);
-+	if (rv != CKR_OK)
-+		{
-+		PK11err_add_data(PK11_F_RAND_BYTES, PK11_R_GENERATERANDOM, rv);
-+		pk11_return_session(sp, OP_RAND);
-+		return (0);
-+		}
-+
-+	pk11_return_session(sp, OP_RAND);
-+	return (1);
-+	}
-+
-+/* Required function by the engine random interface. It does nothing here */
-+static int pk11_rand_status(void)
-+	{
-+	return (1);
-+	}
-+
-+/* Free all BIGNUM structures from PK11_SESSION. */
-+static void pk11_free_nums(PK11_SESSION *sp, PK11_OPTYPE optype)
-+	{
-+	switch (optype)
-+		{
-+		case OP_RSA:
-+			if (sp->opdata_rsa_n_num != NULL)
-+				{
-+				BN_free(sp->opdata_rsa_n_num);
-+				sp->opdata_rsa_n_num = NULL;
-+				}
-+			if (sp->opdata_rsa_e_num != NULL)
-+				{
-+				BN_free(sp->opdata_rsa_e_num);
-+				sp->opdata_rsa_e_num = NULL;
-+				}
-+			if (sp->opdata_rsa_d_num != NULL)
-+				{
-+				BN_free(sp->opdata_rsa_d_num);
-+				sp->opdata_rsa_d_num = NULL;
-+				}
-+			break;
-+		default:
-+			break;
-+		}
-+	}
-+
-+/*
-+ * Get new PK11_SESSION structure ready for use. Every process must have
-+ * its own freelist of PK11_SESSION structures so handle fork() here
-+ * by destroying the old and creating new freelist.
-+ * The returned PK11_SESSION structure is disconnected from the freelist.
-+ */
-+PK11_SESSION *
-+pk11_get_session(PK11_OPTYPE optype)
-+	{
-+	PK11_SESSION *sp = NULL, *sp1, *freelist;
-+#ifndef NOPTHREADS
-+	pthread_mutex_t *freelist_lock = NULL;
-+#endif
-+	CK_RV rv;
-+
-+	switch (optype)
-+		{
-+		case OP_RSA:
-+		case OP_DSA:
-+		case OP_DH:
-+		case OP_RAND:
-+		case OP_DIGEST:
-+		case OP_CIPHER:
-+#ifndef NOPTHREADS
-+			freelist_lock = session_cache[optype].lock;
-+#endif
-+			break;
-+		default:
-+			PK11err(PK11_F_GET_SESSION,
-+				PK11_R_INVALID_OPERATION_TYPE);
-+			return (NULL);
-+		}
-+#ifndef NOPTHREADS
-+	(void) pthread_mutex_lock(freelist_lock);
-+#else
-+	CRYPTO_w_lock(CRYPTO_LOCK_PK11_ENGINE);
-+#endif
-+	freelist = session_cache[optype].head;
-+	sp = freelist;
-+
-+	/*
-+	 * If the free list is empty, allocate new unitialized (filled
-+	 * with zeroes) PK11_SESSION structure otherwise return first
-+	 * structure from the freelist.
-+	 */
-+	if (sp == NULL)
-+		{
-+		if ((sp = OPENSSL_malloc(sizeof (PK11_SESSION))) == NULL)
-+			{
-+			PK11err(PK11_F_GET_SESSION,
-+				PK11_R_MALLOC_FAILURE);
-+			goto err;
-+			}
-+		(void) memset(sp, 0, sizeof (PK11_SESSION));
-+		}
-+	else
-+		{
-+		freelist = sp->next;
-+		}
-+
-+	if (sp->pid != 0 && sp->pid != getpid())
-+		{
-+		/*
-+		 * We are a new process and thus need to free any inherited
-+		 * PK11_SESSION objects.
-+		 */
-+		while ((sp1 = freelist) != NULL)
-+			{
-+			freelist = sp1->next;
-+			/*
-+			 * NOTE: we do not want to call pk11_free_all_sessions()
-+			 * here because it would close underlying PKCS#11
-+			 * sessions and destroy all objects.
-+			 */
-+			pk11_free_nums(sp1, optype);
-+			OPENSSL_free(sp1);
-+			}
-+
-+		/* we have to free the active list as well. */
-+		pk11_free_active_list(optype);
-+
-+		/* Initialize the process */
-+		rv = pFuncList->C_Initialize(NULL_PTR);
-+		if ((rv != CKR_OK) && (rv != CKR_CRYPTOKI_ALREADY_INITIALIZED))
-+			{
-+			PK11err_add_data(PK11_F_GET_SESSION, PK11_R_INITIALIZE,
-+			    rv);
-+			OPENSSL_free(sp);
-+			sp = NULL;
-+			goto err;
-+			}
-+
-+		/*
-+		 * Choose slot here since the slot table is different on this
-+		 * process. If we are here then we must have found at least one
-+		 * usable slot before so we don't need to check any_slot_found.
-+		 * See pk11_library_init()'s usage of this function for more
-+		 * information.
-+		 */
-+		if (pk11_choose_slots(NULL) == 0)
-+			goto err;
-+
-+		/* Open the global_session for the new process */
-+		rv = pFuncList->C_OpenSession(SLOTID, CKF_SERIAL_SESSION,
-+			NULL_PTR, NULL_PTR, &global_session);
-+		if (rv != CKR_OK)
-+			{
-+			PK11err_add_data(PK11_F_GET_SESSION, PK11_R_OPENSESSION,
-+			    rv);
-+			OPENSSL_free(sp);
-+			sp = NULL;
-+			goto err;
-+			}
-+
-+		/* It is an inherited session and needs re-initialization. */
-+		if (pk11_setup_session(sp, optype) == 0)
-+			{
-+			OPENSSL_free(sp);
-+			sp = NULL;
-+			}
-+		}
-+	if (sp->pid == 0)
-+		{
-+		/* It is a new session and needs initialization. */
-+		if (pk11_setup_session(sp, optype) == 0)
-+			{
-+			OPENSSL_free(sp);
-+			sp = NULL;
-+			}
-+		}
-+
-+	/* set new head for the list of PK11_SESSION objects */
-+	session_cache[optype].head = freelist;
-+
-+err:
-+	if (sp != NULL)
-+		sp->next = NULL;
-+
-+#ifndef NOPTHREADS
-+	(void) pthread_mutex_unlock(freelist_lock);
-+#else
-+	CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
-+#endif
-+
-+	return (sp);
-+	}
-+
-+
-+void
-+pk11_return_session(PK11_SESSION *sp, PK11_OPTYPE optype)
-+	{
-+#ifndef NOPTHREADS
-+	pthread_mutex_t *freelist_lock;
-+#endif
-+	PK11_SESSION *freelist;
-+
-+	if (sp == NULL || sp->pid != getpid())
-+		return;
-+
-+	switch (optype)
-+		{
-+		case OP_RSA:
-+		case OP_DSA:
-+		case OP_DH:
-+		case OP_RAND:
-+		case OP_DIGEST:
-+		case OP_CIPHER:
-+#ifndef NOPTHREADS
-+			freelist_lock = session_cache[optype].lock;
-+#endif
-+			break;
-+		default:
-+			PK11err(PK11_F_RETURN_SESSION,
-+				PK11_R_INVALID_OPERATION_TYPE);
-+			return;
-+		}
-+
-+#ifndef NOPTHREADS
-+	(void) pthread_mutex_lock(freelist_lock);
-+#else
-+	CRYPTO_w_lock(CRYPTO_LOCK_PK11_ENGINE);
-+#endif
-+	freelist = session_cache[optype].head;
-+	sp->next = freelist;
-+	session_cache[optype].head = sp;
-+#ifndef NOPTHREADS
-+	(void) pthread_mutex_unlock(freelist_lock);
-+#else
-+	CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
-+#endif
-+	}
-+
-+
-+/* Destroy all objects. This function is called when the engine is finished */
-+static int pk11_free_all_sessions()
-+	{
-+	int ret = 1;
-+	int type;
-+
-+	(void) pk11_destroy_rsa_key_objects(NULL);
-+
-+	/*
-+	 * We try to release as much as we can but any error means that we will
-+	 * return 0 on exit.
-+	 */
-+	for (type = 0; type < OP_MAX; type++)
-+		{
-+		if (pk11_free_session_list(type) == 0)
-+			ret = 0;
-+		}
-+
-+	return (ret);
-+	}
-+
-+/*
-+ * Destroy session structures from the linked list specified. Free as many
-+ * sessions as possible but any failure in C_CloseSession() means that we
-+ * return an error on return.
-+ */
-+static int pk11_free_session_list(PK11_OPTYPE optype)
-+	{
-+	CK_RV rv;
-+	PK11_SESSION *sp = NULL;
-+	PK11_SESSION *freelist = NULL;
-+	pid_t mypid = getpid();
-+#ifndef NOPTHREADS
-+	pthread_mutex_t *freelist_lock;
-+#endif
-+	int ret = 1;
-+
-+	switch (optype)
-+		{
-+		case OP_RSA:
-+		case OP_DSA:
-+		case OP_DH:
-+		case OP_RAND:
-+		case OP_DIGEST:
-+		case OP_CIPHER:
-+#ifndef NOPTHREADS
-+			freelist_lock = session_cache[optype].lock;
-+#endif
-+			break;
-+		default:
-+			PK11err(PK11_F_FREE_ALL_SESSIONS,
-+				PK11_R_INVALID_OPERATION_TYPE);
-+			return (0);
-+		}
-+
-+#ifndef NOPTHREADS
-+	(void) pthread_mutex_lock(freelist_lock);
-+#else
-+	CRYPTO_w_lock(CRYPTO_LOCK_PK11_ENGINE);
-+#endif
-+	freelist = session_cache[optype].head;
-+	while ((sp = freelist) != NULL)
-+		{
-+		if (sp->session != CK_INVALID_HANDLE && sp->pid == mypid)
-+			{
-+			rv = pFuncList->C_CloseSession(sp->session);
-+			if (rv != CKR_OK)
-+				{
-+				PK11err_add_data(PK11_F_FREE_ALL_SESSIONS,
-+					PK11_R_CLOSESESSION, rv);
-+				ret = 0;
-+				}
-+			}
-+		freelist = sp->next;
-+		pk11_free_nums(sp, optype);
-+		OPENSSL_free(sp);
-+		}
-+
-+#ifndef NOPTHREADS
-+	(void) pthread_mutex_unlock(freelist_lock);
-+#else
-+	CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
-+#endif
-+	return (ret);
-+	}
-+
-+
-+static int pk11_setup_session(PK11_SESSION *sp, PK11_OPTYPE optype)
-+	{
-+	CK_RV rv;
-+	CK_SLOT_ID myslot;
-+
-+	switch (optype)
-+		{
-+		case OP_RSA:
-+			myslot = pubkey_SLOTID;
-+			break;
-+		case OP_RAND:
-+			myslot = rand_SLOTID;
-+			break;
-+		default:
-+			PK11err(PK11_F_SETUP_SESSION,
-+			    PK11_R_INVALID_OPERATION_TYPE);
-+			return (0);
-+		}
-+
-+	sp->session = CK_INVALID_HANDLE;
-+#ifdef	DEBUG_SLOT_SELECTION
-+	fprintf(stderr, "%s: myslot=%d optype=%d\n", PK11_DBG, myslot, optype);
-+#endif	/* DEBUG_SLOT_SELECTION */
-+	rv = pFuncList->C_OpenSession(myslot, CKF_SERIAL_SESSION,
-+		NULL_PTR, NULL_PTR, &sp->session);
-+	if (rv == CKR_CRYPTOKI_NOT_INITIALIZED)
-+		{
-+		/*
-+		 * We are probably a child process so force the
-+		 * reinitialize of the session
-+		 */
-+		pk11_library_initialized = FALSE;
-+		if (!pk11_library_init(NULL))
-+			return (0);
-+		rv = pFuncList->C_OpenSession(myslot, CKF_SERIAL_SESSION,
-+			NULL_PTR, NULL_PTR, &sp->session);
-+		}
-+	if (rv != CKR_OK)
-+		{
-+		PK11err_add_data(PK11_F_SETUP_SESSION, PK11_R_OPENSESSION, rv);
-+		return (0);
-+		}
-+
-+	sp->pid = getpid();
-+
-+	if (optype == OP_RSA)
-+		{
-+		sp->opdata_rsa_pub_key = CK_INVALID_HANDLE;
-+		sp->opdata_rsa_priv_key = CK_INVALID_HANDLE;
-+		sp->opdata_rsa_pub = NULL;
-+		sp->opdata_rsa_n_num = NULL;
-+		sp->opdata_rsa_e_num = NULL;
-+		sp->opdata_rsa_priv = NULL;
-+		sp->opdata_rsa_d_num = NULL;
-+		}
-+
-+	return (1);
-+	}
-+
-+/* Destroy RSA public key from single session. */
-+int
-+pk11_destroy_rsa_object_pub(PK11_SESSION *sp, CK_BBOOL uselock)
-+	{
-+	int ret = 0;
-+
-+	if (sp->opdata_rsa_pub_key != CK_INVALID_HANDLE)
-+		{
-+		TRY_OBJ_DESTROY(sp->session, sp->opdata_rsa_pub_key,
-+		    ret, uselock, OP_RSA);
-+		sp->opdata_rsa_pub_key = CK_INVALID_HANDLE;
-+		sp->opdata_rsa_pub = NULL;
-+		if (sp->opdata_rsa_n_num != NULL)
-+			{
-+			BN_free(sp->opdata_rsa_n_num);
-+			sp->opdata_rsa_n_num = NULL;
-+			}
-+		if (sp->opdata_rsa_e_num != NULL)
-+			{
-+			BN_free(sp->opdata_rsa_e_num);
-+			sp->opdata_rsa_e_num = NULL;
-+			}
-+		}
-+
-+	return (ret);
-+	}
-+
-+/* Destroy RSA private key from single session. */
-+int
-+pk11_destroy_rsa_object_priv(PK11_SESSION *sp, CK_BBOOL uselock)
-+	{
-+	int ret = 0;
-+
-+	if (sp->opdata_rsa_priv_key != CK_INVALID_HANDLE)
-+		{
-+		TRY_OBJ_DELETE(sp->session,
-+			       sp->opdata_rsa_priv_key,
-+			       ret, uselock, OP_RSA);
-+		sp->opdata_rsa_priv_key = CK_INVALID_HANDLE;
-+		sp->opdata_rsa_priv = NULL;
-+		if (sp->opdata_rsa_d_num != NULL)
-+			{
-+			BN_free(sp->opdata_rsa_d_num);
-+			sp->opdata_rsa_d_num = NULL;
-+			}
-+		}
-+
-+	return (ret);
-+	}
-+
-+/*
-+ * Destroy RSA key object wrapper. If session is NULL, try to destroy all
-+ * objects in the free list.
-+ */
-+int
-+pk11_destroy_rsa_key_objects(PK11_SESSION *session)
-+	{
-+	int ret = 1;
-+	PK11_SESSION *sp = NULL;
-+	PK11_SESSION *local_free_session;
-+	CK_BBOOL uselock = TRUE;
-+
-+	if (session != NULL)
-+		local_free_session = session;
-+	else
-+		{
-+#ifndef NOPTHREADS
-+		(void) pthread_mutex_lock(session_cache[OP_RSA].lock);
-+#else
-+		CRYPTO_w_lock(CRYPTO_LOCK_PK11_ENGINE);
-+#endif
-+		local_free_session = session_cache[OP_RSA].head;
-+		uselock = FALSE;
-+		}
-+
-+	/*
-+	 * go through the list of sessions and delete key objects
-+	 */
-+	while ((sp = local_free_session) != NULL)
-+		{
-+		local_free_session = sp->next;
-+
-+		/*
-+		 * Do not terminate list traversal if one of the
-+		 * destroy operations fails.
-+		 */
-+		if (pk11_destroy_rsa_object_pub(sp, uselock) == 0)
-+			{
-+			ret = 0;
-+			continue;
-+			}
-+		if (pk11_destroy_rsa_object_priv(sp, uselock) == 0)
-+			{
-+			ret = 0;
-+			continue;
-+			}
-+		}
-+
-+#ifndef NOPTHREADS
-+	if (session == NULL)
-+		(void) pthread_mutex_unlock(session_cache[OP_RSA].lock);
-+#else
-+	if (session == NULL)
-+		CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
-+#endif
-+
-+	return (ret);
-+	}
-+
-+static int pk11_destroy_object(CK_SESSION_HANDLE session, CK_OBJECT_HANDLE oh)
-+	{
-+	CK_RV rv;
-+	rv = pFuncList->C_DestroyObject(session, oh);
-+	if (rv != CKR_OK)
-+		{
-+		PK11err_add_data(PK11_F_DESTROY_OBJECT, PK11_R_DESTROYOBJECT,
-+		    rv);
-+		return (0);
-+		}
-+
-+	return (1);
-+	}
-+
-+
-+/*
-+ * Public key mechanisms optionally supported
-+ *
-+ * CKM_RSA_X_509
-+ * CKM_RSA_PKCS
-+ *
-+ * The first slot that supports at least one of those mechanisms is chosen as a
-+ * public key slot.
-+ *
-+ * The output of this function is a set of global variables indicating which
-+ * mechanisms from RSA, DSA, DH and RAND are present, and also two arrays of
-+ * mechanisms, one for symmetric ciphers and one for digests. Also, 3 global
-+ * variables carry information about which slot was chosen for (a) public key
-+ * mechanisms, (b) random operations, and (c) symmetric ciphers and digests.
-+ */
-+static int
-+pk11_choose_slots(int *any_slot_found)
-+	{
-+	CK_SLOT_ID_PTR pSlotList = NULL_PTR;
-+	CK_ULONG ulSlotCount = 0;
-+	CK_MECHANISM_INFO mech_info;
-+	CK_TOKEN_INFO token_info;
-+	unsigned int i;
-+	CK_RV rv;
-+	CK_SLOT_ID best_slot_sofar = 0;
-+	CK_BBOOL found_candidate_slot = CK_FALSE;
-+	CK_SLOT_ID current_slot = 0;
-+
-+	/* let's initialize the output parameter */
-+	if (any_slot_found != NULL)
-+		*any_slot_found = 0;
-+
-+	/* Get slot list for memory allocation */
-+	rv = pFuncList->C_GetSlotList(0, NULL_PTR, &ulSlotCount);
-+
-+	if (rv != CKR_OK)
-+		{
-+		PK11err_add_data(PK11_F_CHOOSE_SLOT, PK11_R_GETSLOTLIST, rv);
-+		return (0);
-+		}
-+
-+	/* it's not an error if we didn't find any providers */
-+	if (ulSlotCount == 0)
-+		{
-+#ifdef	DEBUG_SLOT_SELECTION
-+		fprintf(stderr, "%s: no crypto providers found\n", PK11_DBG);
-+#endif	/* DEBUG_SLOT_SELECTION */
-+		return (1);
-+		}
-+
-+	pSlotList = OPENSSL_malloc(ulSlotCount * sizeof (CK_SLOT_ID));
-+
-+	if (pSlotList == NULL)
-+		{
-+		PK11err(PK11_F_CHOOSE_SLOT, PK11_R_MALLOC_FAILURE);
-+		return (0);
-+		}
-+
-+	/* Get the slot list for processing */
-+	rv = pFuncList->C_GetSlotList(0, pSlotList, &ulSlotCount);
-+	if (rv != CKR_OK)
-+		{
-+		PK11err_add_data(PK11_F_CHOOSE_SLOT, PK11_R_GETSLOTLIST, rv);
-+		OPENSSL_free(pSlotList);
-+		return (0);
-+		}
-+
-+#ifdef	DEBUG_SLOT_SELECTION
-+	fprintf(stderr, "%s: provider: %s\n", PK11_DBG, def_PK11_LIBNAME);
-+	fprintf(stderr, "%s: number of slots: %d\n", PK11_DBG, ulSlotCount);
-+
-+	fprintf(stderr, "%s: == checking rand slots ==\n", PK11_DBG);
-+#endif	/* DEBUG_SLOT_SELECTION */
-+	for (i = 0; i < ulSlotCount; i++)
-+		{
-+		current_slot = pSlotList[i];
-+
-+#ifdef	DEBUG_SLOT_SELECTION
-+	fprintf(stderr, "%s: checking slot: %d\n", PK11_DBG, i);
-+#endif	/* DEBUG_SLOT_SELECTION */
-+		/* Check if slot has random support. */
-+		rv = pFuncList->C_GetTokenInfo(current_slot, &token_info);
-+		if (rv != CKR_OK)
-+			continue;
-+
-+#ifdef	DEBUG_SLOT_SELECTION
-+	fprintf(stderr, "%s: token label: %.32s\n", PK11_DBG, token_info.label);
-+#endif	/* DEBUG_SLOT_SELECTION */
-+
-+		if (token_info.flags & CKF_RNG)
-+			{
-+#ifdef	DEBUG_SLOT_SELECTION
-+	fprintf(stderr, "%s: this token has CKF_RNG flag\n", PK11_DBG);
-+#endif	/* DEBUG_SLOT_SELECTION */
-+			pk11_have_random = CK_TRUE;
-+			rand_SLOTID = current_slot;
-+			break;
-+			}
-+		}
-+
-+#ifdef	DEBUG_SLOT_SELECTION
-+	fprintf(stderr, "%s: == checking pubkey slots ==\n", PK11_DBG);
-+#endif	/* DEBUG_SLOT_SELECTION */
-+
-+	pubkey_SLOTID = pSlotList[0];
-+	for (i = 0; i < ulSlotCount; i++)
-+		{
-+		CK_BBOOL slot_has_rsa = CK_FALSE;
-+		current_slot = pSlotList[i];
-+
-+#ifdef	DEBUG_SLOT_SELECTION
-+	fprintf(stderr, "%s: checking slot: %d\n", PK11_DBG, i);
-+#endif	/* DEBUG_SLOT_SELECTION */
-+		rv = pFuncList->C_GetTokenInfo(current_slot, &token_info);
-+		if (rv != CKR_OK)
-+			continue;
-+
-+#ifdef	DEBUG_SLOT_SELECTION
-+	fprintf(stderr, "%s: token label: %.32s\n", PK11_DBG, token_info.label);
-+#endif	/* DEBUG_SLOT_SELECTION */
-+
-+		/*
-+		 * Check if this slot is capable of signing with CKM_RSA_PKCS.
-+		 */
-+		rv = pFuncList->C_GetMechanismInfo(current_slot, CKM_RSA_PKCS,
-+			&mech_info);
-+
-+		if (rv == CKR_OK && ((mech_info.flags & CKF_SIGN)))
-+			{
-+			slot_has_rsa = CK_TRUE;
-+			}
-+
-+		if (!found_candidate_slot && slot_has_rsa)
-+			{
-+#ifdef	DEBUG_SLOT_SELECTION
-+			fprintf(stderr,
-+			    "%s: potential slot: %d\n", PK11_DBG, current_slot);
-+#endif	/* DEBUG_SLOT_SELECTION */
-+			best_slot_sofar = current_slot;
-+			pk11_have_rsa = slot_has_rsa;
-+			found_candidate_slot = CK_TRUE;
-+#ifdef	DEBUG_SLOT_SELECTION
-+			fprintf(stderr,
-+			    "%s: setting found_candidate_slot to CK_TRUE\n",
-+			    PK11_DBG);
-+			fprintf(stderr,
-+			    "%s: best so far slot: %d\n", PK11_DBG,
-+			    best_slot_sofar);
-+			}
-+		else
-+			{
-+			fprintf(stderr,
-+			    "%s: no rsa\n", PK11_DBG);
-+			}
-+#else
-+			} /* if */
-+#endif	/* DEBUG_SLOT_SELECTION */
-+		} /* for */
-+
-+	if (found_candidate_slot)
-+		{
-+		pubkey_SLOTID = best_slot_sofar;
-+		}
-+
-+	/*SLOTID = pSlotList[0];*/
-+
-+#ifdef	DEBUG_SLOT_SELECTION
-+	fprintf(stderr,
-+	    "%s: chosen pubkey slot: %d\n", PK11_DBG, pubkey_SLOTID);
-+	fprintf(stderr,
-+	    "%s: chosen rand slot: %d\n", PK11_DBG, rand_SLOTID);
-+	fprintf(stderr,
-+	    "%s: pk11_have_rsa %d\n", PK11_DBG, pk11_have_rsa);
-+	fprintf(stderr,
-+	    "%s: pk11_have_random %d\n", PK11_DBG, pk11_have_random);
-+#endif	/* DEBUG_SLOT_SELECTION */
-+
-+	if (pSlotList != NULL)
-+		OPENSSL_free(pSlotList);
-+
-+	if (any_slot_found != NULL)
-+		*any_slot_found = 1;
-+	return (1);
-+	}
-+
-+#endif	/* OPENSSL_NO_HW_PK11 */
-+#endif	/* OPENSSL_NO_HW */
 Index: openssl/crypto/engine/hw_pk11.c
-diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.25
---- /dev/null	Mon Oct  5 11:08:14 2009
-+++ openssl/crypto/engine/hw_pk11.c	Fri Sep  4 10:43:22 2009
-@@ -0,0 +1,3919 @@
+diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.26
+--- /dev/null	Mon Oct  5 13:17:24 2009
++++ openssl/crypto/engine/hw_pk11.c	Mon Oct  5 13:16:50 2009
+@@ -0,0 +1,3927 @@
 +/*
 + * Copyright 2008 Sun Microsystems, Inc.  All rights reserved.
 + * Use is subject to license terms.
@@ -2354,11 +881,12 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.25
 +
 +#ifndef OPENSSL_NO_HW
 +#ifndef OPENSSL_NO_HW_PK11
++#ifndef OPENSSL_NO_HW_PK11CA
 +
 +/* label for debug messages printed on stderr */
 +#define	PK11_DBG	"PKCS#11 ENGINE DEBUG"
 +/* prints a lot of debug messages on stderr about slot selection process */
-+#undef	DEBUG_SLOT_SELECTION
++/* #undef	DEBUG_SLOT_SELECTION */
 +/*
 + * Solaris specific code. See comment at check_hw_mechanisms() for more
 + * information.
@@ -2385,6 +913,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.25
 +#include "cryptoki.h"
 +#include "pkcs11.h"
 +#endif
++#include "hw_pk11ca.h"
 +#include "hw_pk11_err.c"
 +
 +#ifdef	SOLARIS_AES_CTR
@@ -2392,9 +921,9 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.25
 + * NIDs for AES counter mode that will be defined during the engine
 + * initialization.
 + */
-+int NID_aes_128_ctr = NID_undef;
-+int NID_aes_192_ctr = NID_undef;
-+int NID_aes_256_ctr = NID_undef;
++static int NID_aes_128_ctr = NID_undef;
++static int NID_aes_192_ctr = NID_undef;
++static int NID_aes_256_ctr = NID_undef;
 +#endif	/* SOLARIS_AES_CTR */
 +
 +#ifdef	SOLARIS_HW_SLOT_SELECTION
@@ -2402,8 +931,8 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.25
 + * Tables for symmetric ciphers and digest mechs found in the pkcs11_kernel
 + * library. See comment at check_hw_mechanisms() for more information.
 + */
-+int *hw_cnids;
-+int *hw_dnids;
++static int *hw_cnids;
++static int *hw_dnids;
 +#endif	/* SOLARIS_HW_SLOT_SELECTION */
 +
 +/* PKCS#11 session caches and their locks for all operation types */
@@ -3061,8 +1590,12 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.25
 +
 +
 +/* Constants used when creating the ENGINE */
++#ifdef OPENSSL_NO_HW_PK11SO
++#error "can't load both crypto-accelerator and sign-only PKCS#11 engines"
++#endif
 +static const char *engine_pk11_id = "pkcs11";
-+static const char *engine_pk11_name = "PKCS #11 engine support";
++static const char *engine_pk11_name =
++	"PKCS #11 engine support (crypto accelerator)";
 +
 +CK_FUNCTION_LIST_PTR pFuncList = NULL;
 +static const char PK11_GET_FUNCTION_LIST[] = "C_GetFunctionList";
@@ -3261,6 +1794,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.25
 +
 +/* Dynamic engine support is disabled at a higher level for Solaris */
 +#ifdef	ENGINE_DYNAMIC_SUPPORT
++#error  "dynamic engine not supported"
 +static int bind_helper(ENGINE *e, const char *id)
 +	{
 +	if (id && (strcmp(id, engine_pk11_id) != 0))
@@ -6150,11 +4684,12 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11.c:1.25
 +	}
 +#endif	/* SOLARIS_HW_SLOT_SELECTION */
 +
++#endif	/* OPENSSL_NO_HW_PK11CA */
 +#endif	/* OPENSSL_NO_HW_PK11 */
 +#endif	/* OPENSSL_NO_HW */
 Index: openssl/crypto/engine/hw_pk11_err.c
 diff -u /dev/null openssl/crypto/engine/hw_pk11_err.c:1.4
---- /dev/null	Mon Oct  5 11:08:14 2009
+--- /dev/null	Mon Oct  5 13:17:24 2009
 +++ openssl/crypto/engine/hw_pk11_err.c	Wed Dec 17 16:14:26 2008
 @@ -0,0 +1,259 @@
 +/*
@@ -6418,7 +4953,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_err.c:1.4
 +}
 Index: openssl/crypto/engine/hw_pk11_err.h
 diff -u /dev/null openssl/crypto/engine/hw_pk11_err.h:1.9
---- /dev/null	Mon Oct  5 11:08:14 2009
+--- /dev/null	Mon Oct  5 13:17:24 2009
 +++ openssl/crypto/engine/hw_pk11_err.h	Wed Dec 17 15:01:45 2008
 @@ -0,0 +1,402 @@
 +/*
@@ -6823,912 +5358,11 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_err.h:1.9
 +extern CK_FUNCTION_LIST_PTR pFuncList;
 +
 +#endif /* HW_PK11_ERR_H */
-Index: openssl/crypto/engine/hw_pk11_pub-kp.c
-diff -u /dev/null openssl/crypto/engine/hw_pk11_pub-kp.c:1.21
---- /dev/null	Mon Oct  5 11:08:14 2009
-+++ openssl/crypto/engine/hw_pk11_pub-kp.c	Tue Sep  1 06:02:18 2009
-@@ -0,0 +1,896 @@
-+/*
-+ * Copyright 2008 Sun Microsystems, Inc.  All rights reserved.
-+ * Use is subject to license terms.
-+ */
-+
-+/* crypto/engine/hw_pk11_pub.c */
-+/*
-+ * This product includes software developed by the OpenSSL Project for
-+ * use in the OpenSSL Toolkit (http://www.openssl.org/).
-+ *
-+ * This project also referenced hw_pkcs11-0.9.7b.patch written by
-+ * Afchine Madjlessi.
-+ */
-+/*
-+ * ====================================================================
-+ * Copyright (c) 2000-2001 The OpenSSL Project.  All rights reserved.
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ * 1. Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ *
-+ * 2. Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in
-+ *    the documentation and/or other materials provided with the
-+ *    distribution.
-+ *
-+ * 3. All advertising materials mentioning features or use of this
-+ *    software must display the following acknowledgment:
-+ *    "This product includes software developed by the OpenSSL Project
-+ *    for use in the OpenSSL Toolkit. (http://www.OpenSSL.org/)"
-+ *
-+ * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
-+ *    endorse or promote products derived from this software without
-+ *    prior written permission. For written permission, please contact
-+ *    licensing@OpenSSL.org.
-+ *
-+ * 5. Products derived from this software may not be called "OpenSSL"
-+ *    nor may "OpenSSL" appear in their names without prior written
-+ *    permission of the OpenSSL Project.
-+ *
-+ * 6. Redistributions of any form whatsoever must retain the following
-+ *    acknowledgment:
-+ *    "This product includes software developed by the OpenSSL Project
-+ *    for use in the OpenSSL Toolkit (http://www.OpenSSL.org/)"
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
-+ * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
-+ * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-+ * OF THE POSSIBILITY OF SUCH DAMAGE.
-+ * ====================================================================
-+ *
-+ * This product includes cryptographic software written by Eric Young
-+ * (eay@cryptsoft.com).  This product includes software written by Tim
-+ * Hudson (tjh@cryptsoft.com).
-+ *
-+ */
-+
-+/* Modified to keep only RNG and RSA Sign */
-+
-+#ifdef OPENSSL_NO_RSA
-+#error RSA is disabled
-+#endif
-+
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <sys/types.h>
-+
-+#include <openssl/e_os2.h>
-+#include <openssl/crypto.h>
-+#include <cryptlib.h>
-+#include <openssl/engine.h>
-+#include <openssl/dso.h>
-+#include <openssl/err.h>
-+#include <openssl/bn.h>
-+#include <openssl/pem.h>
-+#include <openssl/rsa.h>
-+#include <openssl/rand.h>
-+#include <openssl/objects.h>
-+#include <openssl/x509.h>
-+
-+#ifdef OPENSSL_SYS_WIN32
-+#define NOPTHREADS
-+typedef int pid_t;
-+#define HAVE_GETPASSPHRASE
-+static char *getpassphrase(const char *prompt);
-+#ifndef NULL_PTR
-+#define NULL_PTR NULL
-+#endif
-+#define CK_DEFINE_FUNCTION(returnType, name) \
-+	returnType __declspec(dllexport) name
-+#define CK_DECLARE_FUNCTION(returnType, name) \
-+	returnType __declspec(dllimport) name
-+#define CK_DECLARE_FUNCTION_POINTER(returnType, name) \
-+	returnType __declspec(dllimport) (* name)
-+#else
-+#include <unistd.h>
-+#endif
-+
-+#ifndef NOPTHREADS
-+#include <pthread.h>
-+#endif
-+
-+#ifndef OPENSSL_NO_HW
-+#ifndef OPENSSL_NO_HW_PK11
-+
-+#ifndef OPENSSL_NO_DSA
-+#define OPENSSL_NO_DSA
-+#endif
-+#ifndef OPENSSL_NO_DH
-+#define OPENSSL_NO_DH
-+#endif
-+
-+#ifdef OPENSSL_SYS_WIN32
-+#pragma pack(push, cryptoki, 1)
-+#include "cryptoki.h"
-+#include "pkcs11.h"
-+#pragma pack(pop, cryptoki)
-+#else
-+#include "cryptoki.h"
-+#include "pkcs11.h"
-+#endif
-+#include "hw_pk11_err.h"
-+
-+#if !(defined(HAVE_GETPASSPHRASE) || (defined (__SVR4) && defined (__sun)))
-+#define getpassphrase(x)	getpass(x)
-+#endif
-+
-+/* RSA stuff */
-+static int pk11_RSA_sign(int type, const unsigned char *m, unsigned int m_len,
-+	unsigned char *sigret, unsigned int *siglen, const RSA *rsa);
-+EVP_PKEY *pk11_load_privkey(ENGINE*, const char *pubkey_file,
-+	UI_METHOD *ui_method, void *callback_data);
-+EVP_PKEY *pk11_load_pubkey(ENGINE*, const char *pubkey_file,
-+	UI_METHOD *ui_method, void *callback_data);
-+
-+static CK_OBJECT_HANDLE pk11_get_private_rsa_key(RSA* rsa, RSA** key_ptr,
-+	BIGNUM **rsa_d_num, CK_SESSION_HANDLE session);
-+
-+static int check_new_rsa_key_pub(PK11_SESSION *sp, const RSA *rsa);
-+static int check_new_rsa_key_priv(PK11_SESSION *sp, const RSA *rsa);
-+
-+static void attr_to_BN(CK_ATTRIBUTE_PTR attr, CK_BYTE attr_data[], BIGNUM **bn);
-+
-+/* Read mode string to be used for fopen() */
-+#if SOLARIS_OPENSSL
-+static char *read_mode_flags = "rF";
-+#else
-+static char *read_mode_flags = "r";
-+#endif
-+
-+/*
-+ * increment/create reference for an asymmetric key handle via active list
-+ * manipulation. If active list operation fails, unlock (if locked), set error
-+ * variable and jump to the specified label.
-+ */
-+#define	KEY_HANDLE_REFHOLD(key_handle, alg_type, unlock, var, label)	\
-+	{								\
-+	if (pk11_active_add(key_handle, alg_type) < 0)			\
-+		{							\
-+		var = TRUE;						\
-+		if (unlock)						\
-+			UNLOCK_OBJSTORE(alg_type);			\
-+		goto label;						\
-+		}							\
-+	}
-+
-+/*
-+ * Find active list entry according to object handle and return pointer to the
-+ * entry otherwise return NULL.
-+ *
-+ * This function presumes it is called with lock protecting the active list
-+ * held.
-+ */
-+static PK11_active *pk11_active_find(CK_OBJECT_HANDLE h, PK11_OPTYPE type)
-+	{
-+	PK11_active *entry;
-+
-+	for (entry = active_list[type]; entry != NULL; entry = entry->next)
-+		if (entry->h == h)
-+			return (entry);
-+
-+	return (NULL);
-+	}
-+
-+/*
-+ * Search for an entry in the active list using PKCS#11 object handle as a
-+ * search key and return refcnt of the found/created entry or -1 in case of
-+ * failure.
-+ *
-+ * This function presumes it is called with lock protecting the active list
-+ * held.
-+ */
-+int
-+pk11_active_add(CK_OBJECT_HANDLE h, PK11_OPTYPE type)
-+	{
-+	PK11_active *entry = NULL;
-+
-+	if (h == CK_INVALID_HANDLE)
-+		{
-+		PK11err(PK11_F_ACTIVE_ADD, PK11_R_INVALID_HANDLE);
-+		return (-1);
-+		}
-+
-+	/* search for entry in the active list */
-+	if ((entry = pk11_active_find(h, type)) != NULL)
-+		entry->refcnt++;
-+	else
-+		{
-+		/* not found, create new entry and add it to the list */
-+		entry = OPENSSL_malloc(sizeof (PK11_active));
-+		if (entry == NULL)
-+			{
-+			PK11err(PK11_F_ACTIVE_ADD, PK11_R_MALLOC_FAILURE);
-+			return (-1);
-+			}
-+		entry->h = h;
-+		entry->refcnt = 1;
-+		entry->prev = NULL;
-+		entry->next = NULL;
-+		/* connect the newly created entry to the list */
-+		if (active_list[type] == NULL)
-+			active_list[type] = entry;
-+		else /* make the entry first in the list */
-+			{
-+			entry->next = active_list[type];
-+			active_list[type]->prev = entry;
-+			active_list[type] = entry;
-+			}
-+		}
-+
-+	return (entry->refcnt);
-+	}
-+
-+/*
-+ * Remove active list entry from the list and free it.
-+ *
-+ * This function presumes it is called with lock protecting the active list
-+ * held.
-+ */
-+void
-+pk11_active_remove(PK11_active *entry, PK11_OPTYPE type)
-+	{
-+	PK11_active *prev_entry;
-+
-+	/* remove the entry from the list and free it */
-+	if ((prev_entry = entry->prev) != NULL)
-+		{
-+		prev_entry->next = entry->next;
-+		if (entry->next != NULL)
-+			entry->next->prev = prev_entry;
-+		}
-+	else
-+		{
-+		active_list[type] = entry->next;
-+		/* we were the first but not the only one */
-+		if (entry->next != NULL)
-+			entry->next->prev = NULL;
-+		}
-+
-+	/* sanitization */
-+	entry->h = CK_INVALID_HANDLE;
-+	entry->prev = NULL;
-+	entry->next = NULL;
-+	OPENSSL_free(entry);
-+	}
-+
-+/* Free all entries from the active list. */
-+void
-+pk11_free_active_list(PK11_OPTYPE type)
-+	{
-+	PK11_active *entry;
-+
-+	/* only for asymmetric types since only they have C_Find* locks. */
-+	switch (type)
-+		{
-+		case OP_RSA:
-+			break;
-+		default:
-+			return;
-+		}
-+
-+	/* see find_lock array definition for more info on object locking */
-+	LOCK_OBJSTORE(type);
-+	while ((entry = active_list[type]) != NULL)
-+		pk11_active_remove(entry, type);
-+	UNLOCK_OBJSTORE(type);
-+	}
-+
-+/*
-+ * Search for active list entry associated with given PKCS#11 object handle,
-+ * decrement its refcnt and if it drops to 0, disconnect the entry and free it.
-+ *
-+ * Return 1 if the PKCS#11 object associated with the entry has no references,
-+ * return 0 if there is at least one reference, -1 on error.
-+ *
-+ * This function presumes it is called with lock protecting the active list
-+ * held.
-+ */
-+int
-+pk11_active_delete(CK_OBJECT_HANDLE h, PK11_OPTYPE type)
-+	{
-+	PK11_active *entry = NULL;
-+
-+	if ((entry = pk11_active_find(h, type)) == NULL)
-+		{
-+		PK11err(PK11_F_ACTIVE_DELETE, PK11_R_INVALID_HANDLE);
-+		return (-1);
-+		}
-+
-+	OPENSSL_assert(entry->refcnt > 0);
-+	entry->refcnt--;
-+	if (entry->refcnt == 0)
-+		{
-+		pk11_active_remove(entry, type);
-+		return (1);
-+		}
-+
-+	return (0);
-+	}
-+
-+/* Our internal RSA_METHOD that we provide pointers to */
-+static RSA_METHOD pk11_rsa;
-+
-+RSA_METHOD *
-+PK11_RSA(void)
-+	{
-+	const RSA_METHOD *rsa;
-+
-+	if (pk11_rsa.name == NULL)
-+		{
-+		rsa = RSA_PKCS1_SSLeay();
-+		memcpy(&pk11_rsa, rsa, sizeof(*rsa));
-+		pk11_rsa.name = "PKCS#11 RSA method";
-+		pk11_rsa.rsa_sign = pk11_RSA_sign;
-+		}
-+	return (&pk11_rsa);
-+	}
-+
-+/* Size of an SSL signature: MD5+SHA1 */
-+#define	SSL_SIG_LENGTH		36
-+
-+/*
-+ * Standard engine interface function. Majority codes here are from
-+ * rsa/rsa_sign.c. We replaced the decrypt function call by C_Sign of PKCS#11.
-+ * See more details in rsa/rsa_sign.c
-+ */
-+static int pk11_RSA_sign(int type, const unsigned char *m, unsigned int m_len,
-+	unsigned char *sigret, unsigned int *siglen, const RSA *rsa)
-+	{
-+	X509_SIG sig;
-+	ASN1_TYPE parameter;
-+	int i, j = 0;
-+	unsigned char *p, *s = NULL;
-+	X509_ALGOR algor;
-+	ASN1_OCTET_STRING digest;
-+	CK_RV rv;
-+	CK_MECHANISM mech_rsa = {CKM_RSA_PKCS, NULL, 0};
-+	CK_MECHANISM *p_mech = &mech_rsa;
-+	CK_OBJECT_HANDLE h_priv_key;
-+	PK11_SESSION *sp = NULL;
-+	int ret = 0;
-+	unsigned long ulsiglen;
-+
-+	/* Encode the digest */
-+	/* Special case: SSL signature, just check the length */
-+	if (type == NID_md5_sha1)
-+		{
-+		if (m_len != SSL_SIG_LENGTH)
-+			{
-+			PK11err(PK11_F_RSA_SIGN,
-+				PK11_R_INVALID_MESSAGE_LENGTH);
-+			goto err;
-+			}
-+		i = SSL_SIG_LENGTH;
-+		s = (unsigned char *)m;
-+		}
-+	else
-+		{
-+		sig.algor = &algor;
-+		sig.algor->algorithm = OBJ_nid2obj(type);
-+		if (sig.algor->algorithm == NULL)
-+			{
-+			PK11err(PK11_F_RSA_SIGN,
-+				PK11_R_UNKNOWN_ALGORITHM_TYPE);
-+			goto err;
-+			}
-+		if (sig.algor->algorithm->length == 0)
-+			{
-+			PK11err(PK11_F_RSA_SIGN,
-+				PK11_R_UNKNOWN_ASN1_OBJECT_ID);
-+			goto err;
-+			}
-+		parameter.type = V_ASN1_NULL;
-+		parameter.value.ptr = NULL;
-+		sig.algor->parameter = &parameter;
-+
-+		sig.digest = &digest;
-+		sig.digest->data = (unsigned char *)m;
-+		sig.digest->length = m_len;
-+
-+		i = i2d_X509_SIG(&sig, NULL);
-+		}
-+
-+	j = RSA_size(rsa);
-+	if ((i - RSA_PKCS1_PADDING) > j)
-+		{
-+		PK11err(PK11_F_RSA_SIGN, PK11_R_DIGEST_TOO_BIG);
-+		goto err;
-+		}
-+
-+	if (type != NID_md5_sha1)
-+		{
-+		s = (unsigned char *)OPENSSL_malloc((unsigned int)(j + 1));
-+		if (s == NULL)
-+			{
-+			PK11err(PK11_F_RSA_SIGN, PK11_R_MALLOC_FAILURE);
-+			goto err;
-+			}
-+		p = s;
-+		(void) i2d_X509_SIG(&sig, &p);
-+		}
-+
-+	if ((sp = pk11_get_session(OP_RSA)) == NULL)
-+		goto err;
-+
-+	(void) check_new_rsa_key_priv(sp, rsa);
-+
-+	h_priv_key = sp->opdata_rsa_priv_key;
-+	if (h_priv_key == CK_INVALID_HANDLE)
-+		h_priv_key = sp->opdata_rsa_priv_key =
-+			pk11_get_private_rsa_key((RSA *)rsa,
-+			    &sp->opdata_rsa_priv,
-+			    &sp->opdata_rsa_d_num, sp->session);
-+
-+	if (h_priv_key != CK_INVALID_HANDLE)
-+		{
-+		rv = pFuncList->C_SignInit(sp->session, p_mech, h_priv_key);
-+
-+		if (rv != CKR_OK)
-+			{
-+			PK11err_add_data(PK11_F_RSA_SIGN, PK11_R_SIGNINIT, rv);
-+			goto err;
-+			}
-+
-+		ulsiglen = j;
-+		rv = pFuncList->C_Sign(sp->session, s, i, sigret,
-+			(CK_ULONG_PTR) &ulsiglen);
-+		*siglen = ulsiglen;
-+
-+		if (rv != CKR_OK)
-+			{
-+			PK11err_add_data(PK11_F_RSA_SIGN, PK11_R_SIGN, rv);
-+			goto err;
-+			}
-+		ret = 1;
-+		}
-+
-+err:
-+	if ((type != NID_md5_sha1) && (s != NULL))
-+		{
-+		(void) memset(s, 0, (unsigned int)(j + 1));
-+		OPENSSL_free(s);
-+		}
-+
-+	pk11_return_session(sp, OP_RSA);
-+	return (ret);
-+	}
-+
-+static int hndidx_rsa = -1;
-+
-+/* load RSA private key from a file */
-+/* ARGSUSED */
-+EVP_PKEY *pk11_load_privkey(ENGINE *e, const char *privkey_file,
-+	UI_METHOD *ui_method, void *callback_data)
-+	{
-+	EVP_PKEY *pkey = NULL;
-+	FILE *privkey;
-+	RSA *rsa;
-+	PK11_SESSION *sp = NULL;
-+	/* everything else below needed for key by reference extension */
-+	CK_RV rv;
-+	CK_ULONG objcnt = 0;
-+	CK_BBOOL is_token = TRUE;
-+	CK_BYTE attr_data[2][1024];
-+	CK_OBJECT_CLASS key_class = CKO_PRIVATE_KEY;
-+	CK_OBJECT_HANDLE ks_key = CK_INVALID_HANDLE;	/* key in keystore */
-+	extern char *pk11_pin;
-+
-+	/* we look for private keys only */
-+	CK_ATTRIBUTE search_templ[] =
-+		{
-+		{CKA_TOKEN, &is_token, sizeof(is_token)},
-+		{CKA_CLASS, &key_class, sizeof(key_class)},
-+		{CKA_LABEL, NULL, 0}
-+		};
-+
-+	/* these attributes are needed to initialize OpenSSL RSA structure */
-+	CK_ATTRIBUTE get_templ[] =
-+		{
-+		{CKA_MODULUS, (void *)attr_data[0], 1024},	    /* n */
-+		{CKA_PUBLIC_EXPONENT, (void *)attr_data[1], 1024},  /* e */
-+		};
-+
-+	/*
-+	 * Use simple scheme "pkcs11:<KEY_LABEL>" for now.
-+	 */
-+	if (strstr(privkey_file, "pkcs11:") == privkey_file)
-+		{
-+		if ((sp = pk11_get_session(OP_RSA)) == NULL)
-+			return (NULL);
-+
-+		search_templ[2].pValue = strstr(privkey_file, ":") + 1;
-+		search_templ[2].ulValueLen = strlen(search_templ[2].pValue);
-+
-+		if (pk11_pin == NULL)
-+			{
-+			pk11_pin = BUF_strdup(getpassphrase("Enter PIN: "));
-+
-+			if (pk11_pin == NULL)
-+				{
-+				PK11err(PK11_F_LOAD_PRIVKEY, PK11_R_MALLOC_FAILURE);
-+				goto err;
-+				}
-+			}
-+		if ((rv = pFuncList->C_Login(sp->session, CKU_USER, (CK_UTF8CHAR*)pk11_pin,
-+		    strlen(pk11_pin))) != CKR_OK && rv != CKR_USER_ALREADY_LOGGED_IN)
-+			{
-+			PK11err_add_data(PK11_F_LOAD_PRIVKEY,
-+					 PK11_R_INVALID_PIN, rv);
-+			goto err;
-+			}
-+
-+		LOCK_OBJSTORE(OP_RSA);
-+		if ((rv = pFuncList->C_FindObjectsInit(sp->session,
-+		    search_templ, 3)) != CKR_OK)
-+			{
-+			UNLOCK_OBJSTORE(OP_RSA);
-+			PK11err_add_data(PK11_F_LOAD_PRIVKEY,
-+					 PK11_R_FINDOBJECTSINIT, rv);
-+			goto err;
-+			}
-+
-+		rv = pFuncList->C_FindObjects(sp->session, &ks_key, 1, &objcnt);
-+		if (rv != CKR_OK)
-+			{
-+			UNLOCK_OBJSTORE(OP_RSA);
-+			PK11err_add_data(PK11_F_LOAD_PRIVKEY,
-+					 PK11_R_FINDOBJECTS, rv);
-+			goto err;
-+			}
-+
-+		if (objcnt > 1)
-+			{
-+			UNLOCK_OBJSTORE(OP_RSA);
-+			PK11err(PK11_F_LOAD_PRIVKEY, PK11_R_TOO_MANY_OBJECTS);
-+			goto err;
-+			}
-+
-+		if (objcnt != 1)
-+			{
-+			UNLOCK_OBJSTORE(OP_RSA);
-+			PK11err(PK11_F_LOAD_PRIVKEY, PK11_R_OBJECT_NOT_FOUND);
-+			goto err;
-+			}
-+
-+		(void) pFuncList->C_FindObjectsFinal(sp->session);
-+		UNLOCK_OBJSTORE(OP_RSA);
-+
-+		if (hndidx_rsa == -1)
-+			hndidx_rsa = RSA_get_ex_new_index(0,
-+				        "pkcs11 RSA HSM key handle",
-+					NULL, NULL, NULL);
-+
-+		pkey = EVP_PKEY_new();
-+		if (pkey == NULL)
-+			goto err;
-+
-+		rsa = RSA_new_method(e);
-+		if (rsa == NULL) {
-+			EVP_PKEY_free(pkey);
-+			pkey = NULL;
-+			goto err;
-+		}
-+		EVP_PKEY_set1_RSA(pkey, rsa);
-+
-+		if ((rv = pFuncList->C_GetAttributeValue(sp->session, ks_key,
-+		    get_templ, 2)) != CKR_OK)
-+			{
-+			PK11err_add_data(PK11_F_LOAD_PRIVKEY,
-+					 PK11_R_GETATTRIBUTVALUE, rv);
-+			EVP_PKEY_free(pkey);
-+			pkey = NULL;
-+			goto err;
-+			}
-+
-+		/* Note: these flags are critical! */
-+		rsa->flags = RSA_FLAG_SIGN_VER | RSA_FLAG_EXT_PKEY;
-+		RSA_set_ex_data(rsa, hndidx_rsa, (void *) ks_key);
-+		(void) check_new_rsa_key_priv(sp, rsa);
-+		sp->opdata_rsa_priv = rsa;
-+		sp->opdata_rsa_priv_key = ks_key;
-+
-+		attr_to_BN(&get_templ[0], attr_data[0], &rsa->n);
-+		attr_to_BN(&get_templ[1], attr_data[1], &rsa->e);
-+		}
-+	else if ((privkey = fopen(privkey_file, read_mode_flags)) != NULL)
-+		{
-+		pkey = PEM_read_PrivateKey(privkey, NULL, NULL, NULL);
-+		(void) fclose(privkey);
-+		}
-+
-+err:
-+	if (sp != NULL)
-+		pk11_return_session(sp, OP_RSA);
-+	return (pkey);
-+	}
-+
-+/* load RSA public key from a file */
-+/* ARGSUSED */
-+EVP_PKEY *pk11_load_pubkey(ENGINE *e, const char *pubkey_file,
-+	UI_METHOD *ui_method, void *callback_data)
-+	{
-+	EVP_PKEY *pkey = NULL;
-+	FILE *pubkey;
-+	RSA *rsa;
-+	PK11_SESSION *sp = NULL;
-+	/* everything else below needed for key by reference extension */
-+	CK_RV rv;
-+	CK_ULONG objcnt = 0;
-+	CK_BBOOL is_token = TRUE;
-+	CK_BYTE attr_data[2][1024];
-+	CK_OBJECT_CLASS key_class = CKO_PUBLIC_KEY;
-+	CK_OBJECT_HANDLE ks_key = CK_INVALID_HANDLE;	/* key in keystore */
-+	extern char *pk11_pin;
-+
-+	/* we look for public keys only */
-+	CK_ATTRIBUTE search_templ[] =
-+		{
-+		{CKA_TOKEN, &is_token, sizeof(is_token)},
-+		{CKA_CLASS, &key_class, sizeof(key_class)},
-+		{CKA_LABEL, NULL, 0}
-+		};
-+
-+	/* these attributes are needed to initialize OpenSSL RSA structure */
-+	CK_ATTRIBUTE get_templ[] =
-+		{
-+		{CKA_MODULUS, (void *)attr_data[0], 1024},	    /* n */
-+		{CKA_PUBLIC_EXPONENT, (void *)attr_data[1], 1024},  /* e */
-+		};
-+
-+	/*
-+	 * Use simple scheme "pkcs11:<KEY_LABEL>" for now.
-+	 */
-+	if (strstr(pubkey_file, "pkcs11:") == pubkey_file)
-+		{
-+		if ((sp = pk11_get_session(OP_RSA)) == NULL)
-+			return (NULL);
-+
-+		search_templ[2].pValue = strstr(pubkey_file, ":") + 1;
-+		search_templ[2].ulValueLen = strlen(search_templ[2].pValue);
-+
-+#define ALLWAYS_LOGIN
-+#ifdef ALLWAYS_LOGIN
-+		if (pk11_pin == NULL)
-+			{
-+			pk11_pin = BUF_strdup(getpassphrase("Enter PIN: "));
-+
-+			if (pk11_pin == NULL)
-+				{
-+				PK11err(PK11_F_LOAD_PUBKEY, PK11_R_MALLOC_FAILURE);
-+				goto err;
-+				}
-+			}
-+		if ((rv = pFuncList->C_Login(sp->session, CKU_USER, (CK_UTF8CHAR*)pk11_pin,
-+		    strlen(pk11_pin))) != CKR_OK && rv != CKR_USER_ALREADY_LOGGED_IN)
-+			{
-+			PK11err_add_data(PK11_F_LOAD_PUBKEY,
-+					 PK11_R_INVALID_PIN, rv);
-+			goto err;
-+			}
-+#endif
-+
-+		LOCK_OBJSTORE(OP_RSA);
-+		if (pFuncList->C_FindObjectsInit(sp->session, search_templ, 3) != CKR_OK)
-+			{
-+			UNLOCK_OBJSTORE(OP_RSA);
-+			PK11err_add_data(PK11_F_LOAD_PUBKEY,
-+					 PK11_R_FINDOBJECTSINIT, rv);
-+			goto err;
-+			}
-+		rv = pFuncList->C_FindObjects(sp->session, &ks_key, 1, &objcnt);
-+		if (rv != CKR_OK)
-+			{
-+			UNLOCK_OBJSTORE(OP_RSA);
-+			PK11err_add_data(PK11_F_LOAD_PUBKEY,
-+					 PK11_R_FINDOBJECTS, rv);
-+			goto err;
-+			}
-+
-+		if (objcnt > 1)
-+			{
-+			UNLOCK_OBJSTORE(OP_RSA);
-+			PK11err(PK11_F_LOAD_PUBKEY, PK11_R_TOO_MANY_OBJECTS);
-+			goto err;
-+			}
-+
-+		if (objcnt != 1)
-+			{
-+			UNLOCK_OBJSTORE(OP_RSA);
-+			PK11err(PK11_F_LOAD_PUBKEY, PK11_R_OBJECT_NOT_FOUND);
-+			goto err;
-+			}
-+
-+		(void) pFuncList->C_FindObjectsFinal(sp->session);
-+		UNLOCK_OBJSTORE(OP_RSA);
-+
-+		sp->opdata_rsa_pub_key = ks_key;
-+		pkey = EVP_PKEY_new();
-+		if (pkey == NULL)
-+			goto err;
-+
-+		rsa = RSA_new_method(e);
-+		if (rsa == NULL) {
-+			EVP_PKEY_free(pkey);
-+			pkey = NULL;
-+			goto err;
-+		}
-+		EVP_PKEY_set1_RSA(pkey, rsa);
-+
-+		if (pFuncList->C_GetAttributeValue(sp->session, ks_key,
-+		    get_templ, 2) != CKR_OK)
-+			{
-+			PK11err_add_data(PK11_F_LOAD_PUBKEY,
-+					 PK11_R_GETATTRIBUTVALUE, rv);
-+			goto err;
-+			}
-+
-+		(void) check_new_rsa_key_pub(sp, rsa);
-+		sp->opdata_rsa_pub = rsa;
-+
-+		attr_to_BN(&get_templ[0], attr_data[0], &rsa->n);
-+		attr_to_BN(&get_templ[1], attr_data[1], &rsa->e);
-+		}
-+	else if ((pubkey = fopen(pubkey_file, read_mode_flags)) != NULL)
-+		{
-+		pkey = PEM_read_PUBKEY(pubkey, NULL, NULL, NULL);
-+		(void) fclose(pubkey);
-+		}
-+
-+err:
-+	if (sp != NULL)
-+		pk11_return_session(sp, OP_RSA);
-+	return (pkey);
-+	}
-+
-+/*
-+ * Create a private key object in the session from a given rsa structure.
-+ * The *rsa_d_num pointer is non-NULL for RSA private keys.
-+ */
-+static CK_OBJECT_HANDLE pk11_get_private_rsa_key(RSA *rsa,
-+    RSA **key_ptr, BIGNUM **rsa_d_num, CK_SESSION_HANDLE session)
-+	{
-+	CK_OBJECT_HANDLE h_key = CK_INVALID_HANDLE;
-+
-+	if ((rsa->flags & RSA_FLAG_EXT_PKEY) == 0) {
-+		PK11err(PK11_F_GET_PRIV_RSA_KEY, PK11_R_INCONSISTENT_KEY);
-+		return (h_key);
-+	}
-+	
-+	h_key = (CK_OBJECT_HANDLE)RSA_get_ex_data(rsa, hndidx_rsa);
-+	(void) pk11_active_add(h_key, OP_RSA);
-+	if (key_ptr != NULL)
-+		*key_ptr = rsa;
-+	if (rsa_d_num != NULL)
-+		{
-+		if (rsa->d == NULL)
-+			*rsa_d_num = NULL;
-+		else if ((*rsa_d_num = BN_dup(rsa->d)) == NULL)
-+			{
-+			PK11err(PK11_F_GET_PRIV_RSA_KEY, PK11_R_MALLOC_FAILURE);
-+			return (h_key);
-+			}
-+		}
-+	return (h_key);
-+	}
-+
-+/*
-+ * Check for cache miss and clean the object pointer and handle
-+ * in such case. Return 1 for cache hit, 0 for cache miss.
-+ */
-+static int check_new_rsa_key_pub(PK11_SESSION *sp, const RSA *rsa)
-+	{
-+	/*
-+	 * Provide protection against RSA structure reuse by making the
-+	 * check for cache hit stronger. Only public components of RSA
-+	 * key matter here so it is sufficient to compare them with values
-+	 * cached in PK11_SESSION structure.
-+	 */
-+	if ((sp->opdata_rsa_pub != rsa) ||
-+	    (BN_cmp(sp->opdata_rsa_n_num, rsa->n) != 0) ||
-+	    (BN_cmp(sp->opdata_rsa_e_num, rsa->e) != 0))
-+		{
-+		/*
-+		 * We do not check the return value because even in case of
-+		 * failure the sp structure will have both key pointer
-+		 * and object handle cleaned and pk11_destroy_object()
-+		 * reports the failure to the OpenSSL error message buffer.
-+		 */
-+		(void) pk11_destroy_rsa_object_pub(sp, TRUE);
-+		return (0);
-+		}
-+	return (1);
-+	}
-+
-+/*
-+ * Check for cache miss and clean the object pointer and handle
-+ * in such case. Return 1 for cache hit, 0 for cache miss.
-+ */
-+static int check_new_rsa_key_priv(PK11_SESSION *sp, const RSA *rsa)
-+	{
-+	/*
-+	 * Provide protection against RSA structure reuse by making the
-+	 * check for cache hit stronger. Comparing private exponent of RSA
-+	 * key with value cached in PK11_SESSION structure should
-+	 * be sufficient.
-+	 */
-+	if ((sp->opdata_rsa_priv != rsa) ||
-+	    (BN_cmp(sp->opdata_rsa_d_num, rsa->d) != 0) ||
-+	    ((rsa->flags & RSA_FLAG_EXT_PKEY) != 0))
-+		{
-+		/*
-+		 * We do not check the return value because even in case of
-+		 * failure the sp structure will have both key pointer
-+		 * and object handle cleaned and pk11_destroy_object()
-+		 * reports the failure to the OpenSSL error message buffer.
-+		 */
-+		(void) pk11_destroy_rsa_object_priv(sp, TRUE);
-+		return (0);
-+		}
-+	return (1);
-+	}
-+
-+static void attr_to_BN(CK_ATTRIBUTE_PTR attr, CK_BYTE attr_data[], BIGNUM **bn)
-+	{
-+	if (attr->ulValueLen > 0)
-+		{
-+		*bn = BN_bin2bn(attr_data, attr->ulValueLen, NULL);
-+		}
-+	}
-+
-+#ifdef	OPENSSL_SYS_WIN32
-+char *getpassphrase(const char *prompt)
-+	{
-+	static char buf[128];
-+	HANDLE h;
-+	DWORD cc, mode;
-+	int cnt;
-+
-+	h = GetStdHandle(STD_INPUT_HANDLE);
-+	fputs(prompt, stderr);
-+	fflush(stderr);
-+	fflush(stdout);
-+	FlushConsoleInputBuffer(h);
-+	GetConsoleMode(h, &mode);
-+	SetConsoleMode(h, ENABLE_PROCESSED_INPUT);
-+
-+	for (cnt = 0; cnt < sizeof(buf) - 1; cnt++)
-+		{
-+		ReadFile(h, buf + cnt, 1, &cc, NULL);
-+		if (buf[cnt] == '\r')
-+			break;
-+		fputc('*', stdout);
-+		fflush(stderr);
-+		fflush(stdout);
-+		}
-+
-+	SetConsoleMode(h, mode);
-+	buf[cnt] = '\0';
-+	fputs("\n", stderr);
-+	return buf;
-+	}
-+#endif	/* OPENSSL_SYS_WIN32 */
-+#endif	/* OPENSSL_NO_HW_PK11 */
-+#endif	/* OPENSSL_NO_HW */
 Index: openssl/crypto/engine/hw_pk11_pub.c
-diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.31
---- /dev/null	Mon Oct  5 11:08:14 2009
-+++ openssl/crypto/engine/hw_pk11_pub.c	Fri Aug 28 06:31:09 2009
-@@ -0,0 +1,3137 @@
+diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.32
+--- /dev/null	Mon Oct  5 13:17:24 2009
++++ openssl/crypto/engine/hw_pk11_pub.c	Mon Oct  5 13:16:55 2009
+@@ -0,0 +1,3140 @@
 +/*
 + * Copyright 2008 Sun Microsystems, Inc.  All rights reserved.
 + * Use is subject to license terms.
@@ -7847,6 +5481,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.31
 +
 +#ifndef OPENSSL_NO_HW
 +#ifndef OPENSSL_NO_HW_PK11
++#ifndef OPENSSL_NO_HW_PK11CA
 +
 +#ifdef OPENSSL_SYS_WIN32
 +#pragma pack(push, cryptoki, 1)
@@ -7857,6 +5492,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.31
 +#include "cryptoki.h"
 +#include "pkcs11.h"
 +#endif
++#include "hw_pk11ca.h"
 +#include "hw_pk11_err.h"
 +
 +#if !(defined(HAVE_GETPASSPHRASE) || (defined (__SVR4) && defined (__sun)))
@@ -9094,7 +6730,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.31
 +			pkey = NULL;
 +			goto err;
 +		}
-+		EVP_PKEY_set1_RSA(pkey, rsa);
++		EVP_PKEY_assign_RSA(pkey, rsa);
 +
 +		if ((rv = pFuncList->C_GetAttributeValue(sp->session, ks_key,
 +		    get_templ, 2)) != CKR_OK)
@@ -9264,7 +6900,7 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.31
 +			pkey = NULL;
 +			goto err;
 +		}
-+		EVP_PKEY_set1_RSA(pkey, rsa);
++		EVP_PKEY_assign_RSA(pkey, rsa);
 +
 +		if (pFuncList->C_GetAttributeValue(sp->session, ks_key,
 +		    get_templ, 2) != CKR_OK)
@@ -10864,15 +8500,2609 @@ diff -u /dev/null openssl/crypto/engine/hw_pk11_pub.c:1.31
 +	return buf;
 +	}
 +#endif	/* OPENSSL_SYS_WIN32 */
++#endif	/* OPENSSL_NO_HW_PK11CA */
++#endif	/* OPENSSL_NO_HW_PK11 */
++#endif	/* OPENSSL_NO_HW */
+Index: openssl/crypto/engine/hw_pk11ca.h
+diff -u /dev/null openssl/crypto/engine/hw_pk11ca.h:1.2
+--- /dev/null	Mon Oct  5 13:17:24 2009
++++ openssl/crypto/engine/hw_pk11ca.h	Mon Oct  5 13:17:03 2009
+@@ -0,0 +1,28 @@
++/* Redefine all pk11/PK11 external symbols to pk11ca/PK11CA */
++
++#define find_lock			pk11ca_find_lock
++#define active_list			pk11ca_active_list
++#define ERR_pk11_error			ERR_pk11ca_error
++#define PK11err_add_data		PK11CAerr_add_data
++#define pk11_get_session		pk11ca_get_session
++#define pk11_return_session		pk11ca_return_session
++#define pk11_active_add			pk11ca_active_add
++#define pk11_active_delete		pk11ca_active_delete
++#define pk11_active_remove		pk11ca_active_remove
++#define pk11_free_active_list		pk11ca_free_active_list
++#define pk11_destroy_rsa_key_objects	pk11ca_destroy_rsa_key_objects
++#define pk11_destroy_rsa_object_pub	pk11ca_destroy_rsa_object_pub
++#define pk11_destroy_rsa_object_priv	pk11ca_destroy_rsa_object_priv
++#define pk11_load_privkey		pk11ca_load_privkey
++#define pk11_load_pubkey		pk11ca_load_pubkey
++#define PK11_RSA			PK11CA_RSA
++#define pk11_destroy_dsa_key_objects	pk11ca_destroy_dsa_key_objects
++#define pk11_destroy_dsa_object_pub	pk11ca_destroy_dsa_object_pub
++#define pk11_destroy_dsa_object_priv	pk11ca_destroy_dsa_object_priv
++#define PK11_DSA			PK11CA_DSA
++#define pk11_destroy_dh_key_objects	pk11ca_destroy_dh_key_objects
++#define pk11_destroy_dh_object		pk11ca_destroy_dh_object
++#define PK11_DH				PK11CA_DH
++#define pFuncList			pk11ca_pFuncList
++#define pk11_pin			pk11ca_pin
++#define ENGINE_load_pk11		ENGINE_load_pk11ca
+Index: openssl/crypto/engine/hw_pk11so.c
+diff -u /dev/null openssl/crypto/engine/hw_pk11so.c:1.2
+--- /dev/null	Mon Oct  5 13:17:24 2009
++++ openssl/crypto/engine/hw_pk11so.c	Mon Oct  5 13:17:03 2009
+@@ -0,0 +1,1618 @@
++/*
++ * Copyright 2008 Sun Microsystems, Inc.  All rights reserved.
++ * Use is subject to license terms.
++ */
++
++/* crypto/engine/hw_pk11.c */
++/*
++ * This product includes software developed by the OpenSSL Project for
++ * use in the OpenSSL Toolkit (http://www.openssl.org/).
++ *
++ * This project also referenced hw_pkcs11-0.9.7b.patch written by
++ * Afchine Madjlessi.
++ */
++/*
++ * ====================================================================
++ * Copyright (c) 2000-2001 The OpenSSL Project.  All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ *
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *
++ * 3. All advertising materials mentioning features or use of this
++ *    software must display the following acknowledgment:
++ *    "This product includes software developed by the OpenSSL Project
++ *    for use in the OpenSSL Toolkit. (http://www.OpenSSL.org/)"
++ *
++ * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
++ *    endorse or promote products derived from this software without
++ *    prior written permission. For written permission, please contact
++ *    licensing@OpenSSL.org.
++ *
++ * 5. Products derived from this software may not be called "OpenSSL"
++ *    nor may "OpenSSL" appear in their names without prior written
++ *    permission of the OpenSSL Project.
++ *
++ * 6. Redistributions of any form whatsoever must retain the following
++ *    acknowledgment:
++ *    "This product includes software developed by the OpenSSL Project
++ *    for use in the OpenSSL Toolkit (http://www.OpenSSL.org/)"
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
++ * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
++ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
++ * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
++ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
++ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
++ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
++ * OF THE POSSIBILITY OF SUCH DAMAGE.
++ * ====================================================================
++ *
++ * This product includes cryptographic software written by Eric Young
++ * (eay@cryptsoft.com).  This product includes software written by Tim
++ * Hudson (tjh@cryptsoft.com).
++ *
++ */
++
++/* Modified to keep only RNG and RSA Sign */
++
++#ifdef OPENSSL_NO_RSA
++#error RSA is disabled
++#endif
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sys/types.h>
++
++#include <openssl/e_os2.h>
++#include <openssl/crypto.h>
++#include <cryptlib.h>
++#include <openssl/engine.h>
++#include <openssl/dso.h>
++#include <openssl/err.h>
++#include <openssl/bn.h>
++#include <openssl/md5.h>
++#include <openssl/pem.h>
++#include <openssl/rsa.h>
++#include <openssl/rand.h>
++#include <openssl/objects.h>
++#include <openssl/x509.h>
++
++#ifdef OPENSSL_SYS_WIN32
++typedef int pid_t;
++#define getpid() GetCurrentProcessId()
++#define NOPTHREADS
++#ifndef NULL_PTR
++#define NULL_PTR NULL
++#endif
++#define CK_DEFINE_FUNCTION(returnType, name) \
++	returnType __declspec(dllexport) name
++#define CK_DECLARE_FUNCTION(returnType, name) \
++	returnType __declspec(dllimport) name
++#define CK_DECLARE_FUNCTION_POINTER(returnType, name) \
++	returnType __declspec(dllimport) (* name)
++#else
++#include <signal.h>
++#include <unistd.h>
++#include <dlfcn.h>
++#endif
++
++#ifndef NOPTHREADS
++#include <pthread.h>
++#endif
++
++#ifndef OPENSSL_NO_HW
++#ifndef OPENSSL_NO_HW_PK11
++#ifndef OPENSSL_NO_HW_PK11SO
++
++/* label for debug messages printed on stderr */
++#define	PK11_DBG	"PKCS#11 ENGINE DEBUG"
++/* prints a lot of debug messages on stderr about slot selection process */
++/*#undef	DEBUG_SLOT_SELECTION */
++
++#ifndef OPENSSL_NO_DSA
++#define OPENSSL_NO_DSA
++#endif
++#ifndef OPENSSL_NO_DH
++#define OPENSSL_NO_DH
++#endif
++
++#ifdef OPENSSL_SYS_WIN32
++#pragma pack(push, cryptoki, 1)
++#include "cryptoki.h"
++#include "pkcs11.h"
++#pragma pack(pop, cryptoki)
++#else
++#include "cryptoki.h"
++#include "pkcs11.h"
++#endif
++#include "hw_pk11so.h"
++#include "hw_pk11_err.c"
++
++/* PKCS#11 session caches and their locks for all operation types */
++static PK11_CACHE session_cache[OP_MAX];
++
++/*
++ * As stated in v2.20, 11.7 Object Management Function, in section for
++ * C_FindObjectsInit(), at most one search operation may be active at a given
++ * time in a given session. Therefore, C_Find{,Init,Final}Objects() should be
++ * grouped together to form one atomic search operation. This is already
++ * ensured by the property of unique PKCS#11 session handle used for each
++ * PK11_SESSION object.
++ *
++ * This is however not the biggest concern - maintaining consistency of the
++ * underlying object store is more important. The same section of the spec also
++ * says that one thread can be in the middle of a search operation while another
++ * thread destroys the object matching the search template which would result in
++ * invalid handle returned from the search operation.
++ *
++ * Hence, the following locks are used for both protection of the object stores.
++ * They are also used for active list protection.
++ */
++#ifndef NOPTHREADS
++pthread_mutex_t *find_lock[OP_MAX] = { NULL };
++#endif
++
++/*
++ * lists of asymmetric key handles which are active (referenced by at least one
++ * PK11_SESSION structure, either held by a thread or present in free_session
++ * list) for given algorithm type
++ */
++PK11_active *active_list[OP_MAX] = { NULL };
++
++/*
++ * Create all secret key objects in a global session so that they are available
++ * to use for other sessions. These other sessions may be opened or closed
++ * without losing the secret key objects.
++ */
++static CK_SESSION_HANDLE	global_session = CK_INVALID_HANDLE;
++
++/* ENGINE level stuff */
++static int pk11_init(ENGINE *e);
++static int pk11_library_init(ENGINE *e);
++static int pk11_finish(ENGINE *e);
++static int pk11_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f)(void));
++static int pk11_destroy(ENGINE *e);
++
++/* RAND stuff */
++static void pk11_rand_seed(const void *buf, int num);
++static void pk11_rand_add(const void *buf, int num, double add_entropy);
++static void pk11_rand_cleanup(void);
++static int pk11_rand_bytes(unsigned char *buf, int num);
++static int pk11_rand_status(void);
++
++/* These functions are also used in other files */
++PK11_SESSION *pk11_get_session(PK11_OPTYPE optype);
++void pk11_return_session(PK11_SESSION *sp, PK11_OPTYPE optype);
++
++/* active list manipulation functions used in this file */
++extern int pk11_active_delete(CK_OBJECT_HANDLE h, PK11_OPTYPE type);
++extern void pk11_free_active_list(PK11_OPTYPE type);
++
++int pk11_destroy_rsa_key_objects(PK11_SESSION *session);
++int pk11_destroy_rsa_object_pub(PK11_SESSION *sp, CK_BBOOL uselock);
++int pk11_destroy_rsa_object_priv(PK11_SESSION *sp, CK_BBOOL uselock);
++
++/* Local helper functions */
++static int pk11_free_all_sessions(void);
++static int pk11_free_session_list(PK11_OPTYPE optype);
++static int pk11_setup_session(PK11_SESSION *sp, PK11_OPTYPE optype);
++static int pk11_destroy_object(CK_SESSION_HANDLE session,
++	CK_OBJECT_HANDLE oh);
++static const char *get_PK11_LIBNAME(void);
++static void free_PK11_LIBNAME(void);
++static long set_PK11_LIBNAME(const char *name);
++
++static int pk11_choose_slots(int *any_slot_found);
++
++static int pk11_init_all_locks(void);
++static void pk11_free_all_locks(void);
++
++#define	TRY_OBJ_DESTROY(sess_hdl, obj_hdl, retval, uselock, alg_type)	\
++	{								\
++	if (uselock)							\
++		LOCK_OBJSTORE(alg_type);				\
++	if (pk11_active_delete(obj_hdl, alg_type) == 1)			\
++		{							\
++		retval = pk11_destroy_object(sess_hdl, obj_hdl);	\
++		}							\
++	if (uselock)							\
++		UNLOCK_OBJSTORE(alg_type);				\
++	}
++
++#define	TRY_OBJ_DELETE(sess_hdl, obj_hdl, retval, uselock, alg_type)	\
++	{								\
++	if (uselock)							\
++		LOCK_OBJSTORE(alg_type);				\
++	(void) pk11_active_delete(obj_hdl, alg_type);			\
++	if (uselock)							\
++		UNLOCK_OBJSTORE(alg_type);				\
++	}
++
++static CK_BBOOL pk11_have_rsa	= CK_FALSE;
++static CK_BBOOL pk11_have_random = CK_FALSE;
++
++/*
++ * Initialization function. Sets up various PKCS#11 library components.
++ * The definitions for control commands specific to this engine
++ */
++#define PK11_CMD_SO_PATH		ENGINE_CMD_BASE
++#define PK11_CMD_PIN			(ENGINE_CMD_BASE+1)
++#define PK11_CMD_SLOT			(ENGINE_CMD_BASE+2)
++static const ENGINE_CMD_DEFN pk11_cmd_defns[] =
++	{
++		{
++		PK11_CMD_SO_PATH,
++		"SO_PATH",
++		"Specifies the path to the 'pkcs#11' shared library",
++		ENGINE_CMD_FLAG_STRING
++		},
++		{
++		PK11_CMD_PIN,
++		"PIN",
++		"Specifies the pin code",
++		ENGINE_CMD_FLAG_STRING
++		},
++		{
++		PK11_CMD_SLOT,
++		"SLOT",
++		"Specifies the slot (default is auto select)",
++		ENGINE_CMD_FLAG_NUMERIC,
++		},
++		{0, NULL, NULL, 0}
++	};
++
++
++static RAND_METHOD pk11_random =
++	{
++	pk11_rand_seed,
++	pk11_rand_bytes,
++	pk11_rand_cleanup,
++	pk11_rand_add,
++	pk11_rand_bytes,
++	pk11_rand_status
++	};
++
++
++/* Constants used when creating the ENGINE */
++#ifdef OPENSSL_NO_HW_PK11CA
++#error "can't load both crypto-accelerator and sign-only PKCS#11 engines"
++#endif
++static const char *engine_pk11_id = "pkcs11";
++static const char *engine_pk11_name = "PKCS #11 engine support (sign only)";
++
++CK_FUNCTION_LIST_PTR pFuncList = NULL;
++static const char PK11_GET_FUNCTION_LIST[] = "C_GetFunctionList";
++
++/*
++ * These is the static string constant for the DSO file name and the function
++ * symbol names to bind to.
++ */
++static const char def_PK11_LIBNAME[] = PK11_LIB_LOCATION;
++
++static CK_SLOT_ID pubkey_SLOTID = 0;
++static CK_SLOT_ID rand_SLOTID = 0;
++static CK_SLOT_ID SLOTID = 0;
++char *pk11_pin = NULL;
++static CK_BBOOL pk11_library_initialized = FALSE;
++static CK_BBOOL pk11_atfork_initialized = FALSE;
++static int pk11_pid = 0;
++
++static DSO *pk11_dso = NULL;
++
++/* allocate and initialize all locks used by the engine itself */
++static int pk11_init_all_locks(void)
++	{
++#ifndef NOPTHREADS
++	int type;
++
++	find_lock[OP_RSA] = OPENSSL_malloc(sizeof (pthread_mutex_t));
++	if (find_lock[OP_RSA] == NULL)
++		goto malloc_err;
++	(void) pthread_mutex_init(find_lock[OP_RSA], NULL);
++
++	for (type = 0; type < OP_MAX; type++)
++		{
++		session_cache[type].lock =
++		    OPENSSL_malloc(sizeof (pthread_mutex_t));
++		if (session_cache[type].lock == NULL)
++			goto malloc_err;
++		(void) pthread_mutex_init(session_cache[type].lock, NULL);
++		}
++
++	return (1);
++
++malloc_err:
++	pk11_free_all_locks();
++	PK11err(PK11_F_INIT_ALL_LOCKS, PK11_R_MALLOC_FAILURE);
++	return (0);
++#else
++	return (1);
++#endif
++	}
++
++static void pk11_free_all_locks(void)
++	{
++#ifndef NOPTHREADS
++	int type;
++
++	if (find_lock[OP_RSA] != NULL)
++		{
++		(void) pthread_mutex_destroy(find_lock[OP_RSA]);
++		OPENSSL_free(find_lock[OP_RSA]);
++		find_lock[OP_RSA] = NULL;
++		}
++
++	for (type = 0; type < OP_MAX; type++)
++		{
++		if (session_cache[type].lock != NULL)
++			{
++			(void) pthread_mutex_destroy(session_cache[type].lock);
++			OPENSSL_free(session_cache[type].lock);
++			session_cache[type].lock = NULL;
++			}
++		}
++#endif
++	}
++
++/*
++ * This internal function is used by ENGINE_pk11() and "dynamic" ENGINE support.
++ */
++static int bind_pk11(ENGINE *e)
++	{
++	if (!pk11_library_initialized)
++		if (!pk11_library_init(e))
++			return (0);
++
++	if (!ENGINE_set_id(e, engine_pk11_id) ||
++	    !ENGINE_set_name(e, engine_pk11_name))
++		return (0);
++
++	if (pk11_have_rsa == CK_TRUE)
++		{
++		if (!ENGINE_set_RSA(e, PK11_RSA()) ||
++		    !ENGINE_set_load_privkey_function(e, pk11_load_privkey) ||
++		    !ENGINE_set_load_pubkey_function(e, pk11_load_pubkey))
++			return (0);
++#ifdef	DEBUG_SLOT_SELECTION
++		fprintf(stderr, "%s: registered RSA\n", PK11_DBG);
++#endif	/* DEBUG_SLOT_SELECTION */
++		}
++
++	if (pk11_have_random)
++		{
++		if (!ENGINE_set_RAND(e, &pk11_random))
++			return (0);
++#ifdef	DEBUG_SLOT_SELECTION
++		fprintf(stderr, "%s: registered random\n", PK11_DBG);
++#endif	/* DEBUG_SLOT_SELECTION */
++		}
++	if (!ENGINE_set_init_function(e, pk11_init) ||
++	    !ENGINE_set_destroy_function(e, pk11_destroy) ||
++	    !ENGINE_set_finish_function(e, pk11_finish) ||
++	    !ENGINE_set_ctrl_function(e, pk11_ctrl) ||
++	    !ENGINE_set_cmd_defns(e, pk11_cmd_defns))
++		return (0);
++
++	/* Ensure the pk11 error handling is set up */
++	ERR_load_pk11_strings();
++
++	return (1);
++	}
++
++/* Dynamic engine support is disabled at a higher level for Solaris */
++#ifdef	ENGINE_DYNAMIC_SUPPORT
++#error	"dynamic engine not supported"
++static int bind_helper(ENGINE *e, const char *id)
++	{
++	if (id && (strcmp(id, engine_pk11_id) != 0))
++		return (0);
++
++	if (!bind_pk11(e))
++		return (0);
++
++	return (1);
++	}
++
++IMPLEMENT_DYNAMIC_CHECK_FN()
++IMPLEMENT_DYNAMIC_BIND_FN(bind_helper)
++
++#else
++static ENGINE *engine_pk11(void)
++	{
++	ENGINE *ret = ENGINE_new();
++
++	if (!ret)
++		return (NULL);
++
++	if (!bind_pk11(ret))
++		{
++		ENGINE_free(ret);
++		return (NULL);
++		}
++
++	return (ret);
++	}
++
++void
++ENGINE_load_pk11(void)
++	{
++	ENGINE *e_pk11 = NULL;
++
++	/*
++	 * Do not use dynamic PKCS#11 library on Solaris due to
++	 * security reasons. We will link it in statically.
++	 */
++	/* Attempt to load PKCS#11 library */
++	if (!pk11_dso)
++		pk11_dso = DSO_load(NULL, get_PK11_LIBNAME(), NULL, 0);
++
++	if (pk11_dso == NULL)
++		{
++		PK11err(PK11_F_LOAD, PK11_R_DSO_FAILURE);
++		return;
++		}
++
++	e_pk11 = engine_pk11();
++	if (!e_pk11)
++		{
++		DSO_free(pk11_dso);
++		pk11_dso = NULL;
++		return;
++		}
++
++	/*
++	 * At this point, the pk11 shared library is either dynamically
++	 * loaded or statically linked in. So, initialize the pk11
++	 * library before calling ENGINE_set_default since the latter
++	 * needs cipher and digest algorithm information
++	 */
++	if (!pk11_library_init(e_pk11))
++		{
++		DSO_free(pk11_dso);
++		pk11_dso = NULL;
++		ENGINE_free(e_pk11);
++		return;
++		}
++
++	ENGINE_add(e_pk11);
++
++	ENGINE_free(e_pk11);
++	ERR_clear_error();
++	}
++#endif	/* ENGINE_DYNAMIC_SUPPORT */
++
++/*
++ * These are the static string constants for the DSO file name and
++ * the function symbol names to bind to.
++ */
++static const char *PK11_LIBNAME = NULL;
++
++static const char *get_PK11_LIBNAME(void)
++	{
++	if (PK11_LIBNAME)
++		return (PK11_LIBNAME);
++
++	return (def_PK11_LIBNAME);
++	}
++
++static void free_PK11_LIBNAME(void)
++	{
++	if (PK11_LIBNAME)
++		OPENSSL_free((void*)PK11_LIBNAME);
++
++	PK11_LIBNAME = NULL;
++	}
++
++static long set_PK11_LIBNAME(const char *name)
++	{
++	free_PK11_LIBNAME();
++
++	return ((PK11_LIBNAME = BUF_strdup(name)) != NULL ? 1 : 0);
++	}
++
++/* acquire all engine specific mutexes before fork */
++static void pk11_fork_prepare(void)
++	{
++#ifndef NOPTHREADS
++	int i;
++
++	if (!pk11_library_initialized)
++		return;
++
++	LOCK_OBJSTORE(OP_RSA);
++	for (i = 0; i < OP_MAX; i++)
++		{
++		(void) pthread_mutex_lock(session_cache[i].lock);
++		}
++#endif
++	}
++
++/* release all engine specific mutexes */
++static void pk11_fork_parent(void)
++	{
++#ifndef NOPTHREADS
++	int i;
++
++	if (!pk11_library_initialized)
++		return;
++
++	for (i = OP_MAX - 1; i >= 0; i--)
++		{
++		(void) pthread_mutex_unlock(session_cache[i].lock);
++		}
++	UNLOCK_OBJSTORE(OP_RSA);
++#endif
++	}
++
++/*
++ * same situation as in parent - we need to unlock all locks to make them
++ * accessible to all threads.
++ */
++static void pk11_fork_child(void)
++	{
++#ifndef NOPTHREADS
++	int i;
++
++	if (!pk11_library_initialized)
++		return;
++
++	for (i = OP_MAX - 1; i >= 0; i--)
++		{
++		(void) pthread_mutex_unlock(session_cache[i].lock);
++		}
++	UNLOCK_OBJSTORE(OP_RSA);
++#endif
++	}
++
++/* Initialization function for the pk11 engine */
++static int pk11_init(ENGINE *e)
++{
++	return (pk11_library_init(e));
++}
++
++/*
++ * Initialization function. Sets up various PKCS#11 library components.
++ * It selects a slot based on predefined critiera. In the process, it also
++ * count how many ciphers and digests to support. Since the cipher and
++ * digest information is needed when setting default engine, this function
++ * needs to be called before calling ENGINE_set_default.
++ */
++/* ARGSUSED */
++static int pk11_library_init(ENGINE *e)
++	{
++	CK_C_GetFunctionList p;
++	CK_RV rv = CKR_OK;
++	CK_INFO info;
++	int any_slot_found;
++	int i;
++#ifndef OPENSSL_SYS_WIN32
++	struct sigaction sigint_act, sigterm_act, sighup_act;
++#endif
++
++	/*
++	 * pk11_library_initialized is set to 0 in pk11_finish() which is called
++	 * from ENGINE_finish(). However, if there is still at least one
++	 * existing functional reference to the engine (see engine(3) for more
++	 * information), pk11_finish() is skipped. For example, this can happen
++	 * if an application forgets to clear one cipher context. In case of a
++	 * fork() when the application is finishing the engine so that it can be
++	 * reinitialized in the child, forgotten functional reference causes
++	 * pk11_library_initialized to stay 1. In that case we need the PID
++	 * check so that we properly initialize the engine again.
++	 */
++	if (pk11_library_initialized)
++		{
++		if (pk11_pid == getpid())
++			{
++			return (1);
++			}
++		else
++			{
++			global_session = CK_INVALID_HANDLE;
++			/*
++			 * free the locks first to prevent memory leak in case
++			 * the application calls fork() without finishing the
++			 * engine first.
++			 */
++			pk11_free_all_locks();
++			}
++		}
++
++	if (pk11_dso == NULL)
++		{
++		PK11err(PK11_F_LIBRARY_INIT, PK11_R_DSO_FAILURE);
++		goto err;
++		}
++
++	/* get the C_GetFunctionList function from the loaded library */
++	p = (CK_C_GetFunctionList)DSO_bind_func(pk11_dso,
++		PK11_GET_FUNCTION_LIST);
++	if (!p)
++		{
++		PK11err(PK11_F_LIBRARY_INIT, PK11_R_DSO_FAILURE);
++		goto err;
++		}
++
++	/* get the full function list from the loaded library */
++	rv = p(&pFuncList);
++	if (rv != CKR_OK)
++		{
++		PK11err_add_data(PK11_F_LIBRARY_INIT, PK11_R_DSO_FAILURE, rv);
++		goto err;
++		}
++
++#ifndef OPENSSL_SYS_WIN32
++	/* Not all PKCS#11 library are signal safe! */
++
++	(void) memset(&sigint_act, 0, sizeof(sigint_act));
++	(void) memset(&sigterm_act, 0, sizeof(sigterm_act));
++	(void) memset(&sighup_act, 0, sizeof(sighup_act));
++	(void) sigaction(SIGINT, NULL, &sigint_act);
++	(void) sigaction(SIGTERM, NULL, &sigterm_act);
++	(void) sigaction(SIGHUP, NULL, &sighup_act);
++#endif
++	rv = pFuncList->C_Initialize(NULL_PTR);
++#ifndef OPENSSL_SYS_WIN32
++	(void) sigaction(SIGINT, &sigint_act, NULL);
++	(void) sigaction(SIGTERM, &sigterm_act, NULL);
++	(void) sigaction(SIGHUP, &sighup_act, NULL);
++#endif
++	if ((rv != CKR_OK) && (rv != CKR_CRYPTOKI_ALREADY_INITIALIZED))
++		{
++		PK11err_add_data(PK11_F_LIBRARY_INIT, PK11_R_INITIALIZE, rv);
++		goto err;
++		}
++
++	rv = pFuncList->C_GetInfo(&info);
++	if (rv != CKR_OK)
++		{
++		PK11err_add_data(PK11_F_LIBRARY_INIT, PK11_R_GETINFO, rv);
++		goto err;
++		}
++
++	if (pk11_choose_slots(&any_slot_found) == 0)
++		goto err;
++
++	/*
++	 * The library we use, set in def_PK11_LIBNAME, may not offer any
++	 * slot(s). In that case, we must not proceed but we must not return an
++	 * error. The reason is that applications that try to set up the PKCS#11
++	 * engine don't exit on error during the engine initialization just
++	 * because no slot was present.
++	 */
++	if (any_slot_found == 0)
++		return (1);
++
++	if (global_session == CK_INVALID_HANDLE)
++		{
++		/* Open the global_session for the new process */
++		rv = pFuncList->C_OpenSession(SLOTID, CKF_SERIAL_SESSION,
++			NULL_PTR, NULL_PTR, &global_session);
++		if (rv != CKR_OK)
++			{
++			PK11err_add_data(PK11_F_LIBRARY_INIT,
++			    PK11_R_OPENSESSION, rv);
++			goto err;
++			}
++		}
++
++	pk11_library_initialized = TRUE;
++	pk11_pid = getpid();
++	/*
++	 * if initialization of the locks fails pk11_init_all_locks()
++	 * will do the cleanup.
++	 */
++	if (!pk11_init_all_locks())
++		goto err;
++	for (i = 0; i < OP_MAX; i++)
++		session_cache[i].head = NULL;
++	/*
++	 * initialize active lists. We only use active lists
++	 * for asymmetric ciphers.
++	 */
++	for (i = 0; i < OP_MAX; i++)
++		active_list[i] = NULL;
++
++#ifndef NOPTHREADS
++	if (!pk11_atfork_initialized)
++		{
++		if (pthread_atfork(pk11_fork_prepare, pk11_fork_parent,
++		    pk11_fork_child) != 0)
++			{
++			PK11err(PK11_F_LIBRARY_INIT, PK11_R_ATFORK_FAILED);
++			goto err;
++			}
++		pk11_atfork_initialized = TRUE;
++		}
++#endif
++
++	return (1);
++
++err:
++	return (0);
++	}
++
++/* Destructor (complements the "ENGINE_pk11()" constructor) */
++/* ARGSUSED */
++static int pk11_destroy(ENGINE *e)
++	{
++	free_PK11_LIBNAME();
++	ERR_unload_pk11_strings();
++	if (pk11_pin) {
++		memset(pk11_pin, 0, strlen(pk11_pin));
++		OPENSSL_free((void*)pk11_pin);
++	}
++	pk11_pin = NULL;
++	return (1);
++	}
++
++/*
++ * Termination function to clean up the session, the token, and the pk11
++ * library.
++ */
++/* ARGSUSED */
++static int pk11_finish(ENGINE *e)
++	{
++	int i;
++
++	if (pk11_pin) {
++		memset(pk11_pin, 0, strlen(pk11_pin));
++		OPENSSL_free((void*)pk11_pin);
++	}
++	pk11_pin = NULL;
++
++	if (pk11_dso == NULL)
++		{
++		PK11err(PK11_F_FINISH, PK11_R_NOT_LOADED);
++		goto err;
++		}
++
++	OPENSSL_assert(pFuncList != NULL);
++
++	if (pk11_free_all_sessions() == 0)
++		goto err;
++
++	/* free all active lists */
++	for (i = 0; i < OP_MAX; i++)
++		pk11_free_active_list(i);
++
++	pFuncList->C_CloseSession(global_session);
++	global_session = CK_INVALID_HANDLE;
++
++	/*
++	 * Since we are part of a library (libcrypto.so), calling this function
++	 * may have side-effects.
++	 */
++#if 0
++	pFuncList->C_Finalize(NULL);
++#endif
++
++	if (!DSO_free(pk11_dso))
++		{
++		PK11err(PK11_F_FINISH, PK11_R_DSO_FAILURE);
++		goto err;
++		}
++	pk11_dso = NULL;
++	pFuncList = NULL;
++	pk11_library_initialized = FALSE;
++	pk11_pid = 0;
++	/*
++	 * There is no way how to unregister atfork handlers (other than
++	 * unloading the library) so we just free the locks. For this reason
++	 * the atfork handlers check if the engine is initialized and bail out
++	 * immediately if not. This is necessary in case a process finishes
++	 * the engine before calling fork().
++	 */
++	pk11_free_all_locks();
++
++	return (1);
++
++err:
++	return (0);
++	}
++
++/* Standard engine interface function to set the dynamic library path */
++/* ARGSUSED */
++static int pk11_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f)(void))
++	{
++	int initialized = ((pk11_dso == NULL) ? 0 : 1);
++
++	switch (cmd)
++		{
++	case PK11_CMD_SO_PATH:
++		if (p == NULL)
++			{
++			PK11err(PK11_F_CTRL, ERR_R_PASSED_NULL_PARAMETER);
++			return (0);
++			}
++
++		if (initialized)
++			{
++			PK11err(PK11_F_CTRL, PK11_R_ALREADY_LOADED);
++			return (0);
++			}
++
++		return (set_PK11_LIBNAME((const char *)p));
++	case PK11_CMD_PIN:
++		if (pk11_pin) {
++			memset(pk11_pin, 0, strlen(pk11_pin));
++			OPENSSL_free((void*)pk11_pin);
++		}
++		pk11_pin = NULL;
++
++		if (p == NULL)
++			{
++			PK11err(PK11_F_CTRL, ERR_R_PASSED_NULL_PARAMETER);
++			return (0);
++			}
++
++		pk11_pin = BUF_strdup(p);
++		if (pk11_pin == NULL)
++			{
++			PK11err(PK11_F_GET_SESSION, PK11_R_MALLOC_FAILURE);
++			return (0);
++			}
++		return (1);
++	case PK11_CMD_SLOT:
++		SLOTID = (CK_SLOT_ID)i;
++#ifdef DEBUG_SLOT_SELECTION
++		fprintf(stderr, "%s: slot set\n", PK11_DBG);
++#endif
++		return (1);
++	default:
++		break;
++		}
++
++	PK11err(PK11_F_CTRL, PK11_R_CTRL_COMMAND_NOT_IMPLEMENTED);
++
++	return (0);
++	}
++
++
++/* Required function by the engine random interface. It does nothing here */
++static void pk11_rand_cleanup(void)
++	{
++	return;
++	}
++
++/* ARGSUSED */
++static void pk11_rand_add(const void *buf, int num, double add)
++	{
++	PK11_SESSION *sp;
++
++	if ((sp = pk11_get_session(OP_RAND)) == NULL)
++		return;
++
++	/*
++	 * Ignore any errors (e.g. CKR_RANDOM_SEED_NOT_SUPPORTED) since
++	 * the calling functions do not care anyway
++	 */
++	pFuncList->C_SeedRandom(sp->session, (unsigned char *) buf, num);
++	pk11_return_session(sp, OP_RAND);
++
++	return;
++	}
++
++static void pk11_rand_seed(const void *buf, int num)
++	{
++	pk11_rand_add(buf, num, 0);
++	}
++
++static int pk11_rand_bytes(unsigned char *buf, int num)
++	{
++	CK_RV rv;
++	PK11_SESSION *sp;
++
++	if ((sp = pk11_get_session(OP_RAND)) == NULL)
++		return (0);
++
++	rv = pFuncList->C_GenerateRandom(sp->session, buf, num);
++	if (rv != CKR_OK)
++		{
++		PK11err_add_data(PK11_F_RAND_BYTES, PK11_R_GENERATERANDOM, rv);
++		pk11_return_session(sp, OP_RAND);
++		return (0);
++		}
++
++	pk11_return_session(sp, OP_RAND);
++	return (1);
++	}
++
++/* Required function by the engine random interface. It does nothing here */
++static int pk11_rand_status(void)
++	{
++	return (1);
++	}
++
++/* Free all BIGNUM structures from PK11_SESSION. */
++static void pk11_free_nums(PK11_SESSION *sp, PK11_OPTYPE optype)
++	{
++	switch (optype)
++		{
++		case OP_RSA:
++			if (sp->opdata_rsa_n_num != NULL)
++				{
++				BN_free(sp->opdata_rsa_n_num);
++				sp->opdata_rsa_n_num = NULL;
++				}
++			if (sp->opdata_rsa_e_num != NULL)
++				{
++				BN_free(sp->opdata_rsa_e_num);
++				sp->opdata_rsa_e_num = NULL;
++				}
++			if (sp->opdata_rsa_d_num != NULL)
++				{
++				BN_free(sp->opdata_rsa_d_num);
++				sp->opdata_rsa_d_num = NULL;
++				}
++			break;
++		default:
++			break;
++		}
++	}
++
++/*
++ * Get new PK11_SESSION structure ready for use. Every process must have
++ * its own freelist of PK11_SESSION structures so handle fork() here
++ * by destroying the old and creating new freelist.
++ * The returned PK11_SESSION structure is disconnected from the freelist.
++ */
++PK11_SESSION *
++pk11_get_session(PK11_OPTYPE optype)
++	{
++	PK11_SESSION *sp = NULL, *sp1, *freelist;
++#ifndef NOPTHREADS
++	pthread_mutex_t *freelist_lock = NULL;
++#endif
++	CK_RV rv;
++
++	switch (optype)
++		{
++		case OP_RSA:
++		case OP_DSA:
++		case OP_DH:
++		case OP_RAND:
++		case OP_DIGEST:
++		case OP_CIPHER:
++#ifndef NOPTHREADS
++			freelist_lock = session_cache[optype].lock;
++#endif
++			break;
++		default:
++			PK11err(PK11_F_GET_SESSION,
++				PK11_R_INVALID_OPERATION_TYPE);
++			return (NULL);
++		}
++#ifndef NOPTHREADS
++	(void) pthread_mutex_lock(freelist_lock);
++#else
++	CRYPTO_w_lock(CRYPTO_LOCK_PK11_ENGINE);
++#endif
++	freelist = session_cache[optype].head;
++	sp = freelist;
++
++	/*
++	 * If the free list is empty, allocate new unitialized (filled
++	 * with zeroes) PK11_SESSION structure otherwise return first
++	 * structure from the freelist.
++	 */
++	if (sp == NULL)
++		{
++		if ((sp = OPENSSL_malloc(sizeof (PK11_SESSION))) == NULL)
++			{
++			PK11err(PK11_F_GET_SESSION,
++				PK11_R_MALLOC_FAILURE);
++			goto err;
++			}
++		(void) memset(sp, 0, sizeof (PK11_SESSION));
++		}
++	else
++		{
++		freelist = sp->next;
++		}
++
++	if (sp->pid != 0 && sp->pid != getpid())
++		{
++		/*
++		 * We are a new process and thus need to free any inherited
++		 * PK11_SESSION objects.
++		 */
++		while ((sp1 = freelist) != NULL)
++			{
++			freelist = sp1->next;
++			/*
++			 * NOTE: we do not want to call pk11_free_all_sessions()
++			 * here because it would close underlying PKCS#11
++			 * sessions and destroy all objects.
++			 */
++			pk11_free_nums(sp1, optype);
++			OPENSSL_free(sp1);
++			}
++
++		/* we have to free the active list as well. */
++		pk11_free_active_list(optype);
++
++		/* Initialize the process */
++		rv = pFuncList->C_Initialize(NULL_PTR);
++		if ((rv != CKR_OK) && (rv != CKR_CRYPTOKI_ALREADY_INITIALIZED))
++			{
++			PK11err_add_data(PK11_F_GET_SESSION, PK11_R_INITIALIZE,
++			    rv);
++			OPENSSL_free(sp);
++			sp = NULL;
++			goto err;
++			}
++
++		/*
++		 * Choose slot here since the slot table is different on this
++		 * process. If we are here then we must have found at least one
++		 * usable slot before so we don't need to check any_slot_found.
++		 * See pk11_library_init()'s usage of this function for more
++		 * information.
++		 */
++		if (pk11_choose_slots(NULL) == 0)
++			goto err;
++
++		/* Open the global_session for the new process */
++		rv = pFuncList->C_OpenSession(SLOTID, CKF_SERIAL_SESSION,
++			NULL_PTR, NULL_PTR, &global_session);
++		if (rv != CKR_OK)
++			{
++			PK11err_add_data(PK11_F_GET_SESSION, PK11_R_OPENSESSION,
++			    rv);
++			OPENSSL_free(sp);
++			sp = NULL;
++			goto err;
++			}
++
++		/* It is an inherited session and needs re-initialization. */
++		if (pk11_setup_session(sp, optype) == 0)
++			{
++			OPENSSL_free(sp);
++			sp = NULL;
++			}
++		}
++	if (sp->pid == 0)
++		{
++		/* It is a new session and needs initialization. */
++		if (pk11_setup_session(sp, optype) == 0)
++			{
++			OPENSSL_free(sp);
++			sp = NULL;
++			}
++		}
++
++	/* set new head for the list of PK11_SESSION objects */
++	session_cache[optype].head = freelist;
++
++err:
++	if (sp != NULL)
++		sp->next = NULL;
++
++#ifndef NOPTHREADS
++	(void) pthread_mutex_unlock(freelist_lock);
++#else
++	CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
++#endif
++
++	return (sp);
++	}
++
++
++void
++pk11_return_session(PK11_SESSION *sp, PK11_OPTYPE optype)
++	{
++#ifndef NOPTHREADS
++	pthread_mutex_t *freelist_lock;
++#endif
++	PK11_SESSION *freelist;
++
++	if (sp == NULL || sp->pid != getpid())
++		return;
++
++	switch (optype)
++		{
++		case OP_RSA:
++		case OP_DSA:
++		case OP_DH:
++		case OP_RAND:
++		case OP_DIGEST:
++		case OP_CIPHER:
++#ifndef NOPTHREADS
++			freelist_lock = session_cache[optype].lock;
++#endif
++			break;
++		default:
++			PK11err(PK11_F_RETURN_SESSION,
++				PK11_R_INVALID_OPERATION_TYPE);
++			return;
++		}
++
++#ifndef NOPTHREADS
++	(void) pthread_mutex_lock(freelist_lock);
++#else
++	CRYPTO_w_lock(CRYPTO_LOCK_PK11_ENGINE);
++#endif
++	freelist = session_cache[optype].head;
++	sp->next = freelist;
++	session_cache[optype].head = sp;
++#ifndef NOPTHREADS
++	(void) pthread_mutex_unlock(freelist_lock);
++#else
++	CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
++#endif
++	}
++
++
++/* Destroy all objects. This function is called when the engine is finished */
++static int pk11_free_all_sessions()
++	{
++	int ret = 1;
++	int type;
++
++	(void) pk11_destroy_rsa_key_objects(NULL);
++
++	/*
++	 * We try to release as much as we can but any error means that we will
++	 * return 0 on exit.
++	 */
++	for (type = 0; type < OP_MAX; type++)
++		{
++		if (pk11_free_session_list(type) == 0)
++			ret = 0;
++		}
++
++	return (ret);
++	}
++
++/*
++ * Destroy session structures from the linked list specified. Free as many
++ * sessions as possible but any failure in C_CloseSession() means that we
++ * return an error on return.
++ */
++static int pk11_free_session_list(PK11_OPTYPE optype)
++	{
++	CK_RV rv;
++	PK11_SESSION *sp = NULL;
++	PK11_SESSION *freelist = NULL;
++	pid_t mypid = getpid();
++#ifndef NOPTHREADS
++	pthread_mutex_t *freelist_lock;
++#endif
++	int ret = 1;
++
++	switch (optype)
++		{
++		case OP_RSA:
++		case OP_DSA:
++		case OP_DH:
++		case OP_RAND:
++		case OP_DIGEST:
++		case OP_CIPHER:
++#ifndef NOPTHREADS
++			freelist_lock = session_cache[optype].lock;
++#endif
++			break;
++		default:
++			PK11err(PK11_F_FREE_ALL_SESSIONS,
++				PK11_R_INVALID_OPERATION_TYPE);
++			return (0);
++		}
++
++#ifndef NOPTHREADS
++	(void) pthread_mutex_lock(freelist_lock);
++#else
++	CRYPTO_w_lock(CRYPTO_LOCK_PK11_ENGINE);
++#endif
++	freelist = session_cache[optype].head;
++	while ((sp = freelist) != NULL)
++		{
++		if (sp->session != CK_INVALID_HANDLE && sp->pid == mypid)
++			{
++			rv = pFuncList->C_CloseSession(sp->session);
++			if (rv != CKR_OK)
++				{
++				PK11err_add_data(PK11_F_FREE_ALL_SESSIONS,
++					PK11_R_CLOSESESSION, rv);
++				ret = 0;
++				}
++			}
++		freelist = sp->next;
++		pk11_free_nums(sp, optype);
++		OPENSSL_free(sp);
++		}
++
++#ifndef NOPTHREADS
++	(void) pthread_mutex_unlock(freelist_lock);
++#else
++	CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
++#endif
++	return (ret);
++	}
++
++
++static int pk11_setup_session(PK11_SESSION *sp, PK11_OPTYPE optype)
++	{
++	CK_RV rv;
++	CK_SLOT_ID myslot;
++
++	switch (optype)
++		{
++		case OP_RSA:
++			myslot = pubkey_SLOTID;
++			break;
++		case OP_RAND:
++			myslot = rand_SLOTID;
++			break;
++		default:
++			PK11err(PK11_F_SETUP_SESSION,
++			    PK11_R_INVALID_OPERATION_TYPE);
++			return (0);
++		}
++
++	sp->session = CK_INVALID_HANDLE;
++#ifdef	DEBUG_SLOT_SELECTION
++	fprintf(stderr, "%s: myslot=%d optype=%d\n", PK11_DBG, myslot, optype);
++#endif	/* DEBUG_SLOT_SELECTION */
++	rv = pFuncList->C_OpenSession(myslot, CKF_SERIAL_SESSION,
++		NULL_PTR, NULL_PTR, &sp->session);
++	if (rv == CKR_CRYPTOKI_NOT_INITIALIZED)
++		{
++		/*
++		 * We are probably a child process so force the
++		 * reinitialize of the session
++		 */
++		pk11_library_initialized = FALSE;
++		if (!pk11_library_init(NULL))
++			return (0);
++		rv = pFuncList->C_OpenSession(myslot, CKF_SERIAL_SESSION,
++			NULL_PTR, NULL_PTR, &sp->session);
++		}
++	if (rv != CKR_OK)
++		{
++		PK11err_add_data(PK11_F_SETUP_SESSION, PK11_R_OPENSESSION, rv);
++		return (0);
++		}
++
++	sp->pid = getpid();
++
++	if (optype == OP_RSA)
++		{
++		sp->opdata_rsa_pub_key = CK_INVALID_HANDLE;
++		sp->opdata_rsa_priv_key = CK_INVALID_HANDLE;
++		sp->opdata_rsa_pub = NULL;
++		sp->opdata_rsa_n_num = NULL;
++		sp->opdata_rsa_e_num = NULL;
++		sp->opdata_rsa_priv = NULL;
++		sp->opdata_rsa_d_num = NULL;
++		}
++
++	return (1);
++	}
++
++/* Destroy RSA public key from single session. */
++int
++pk11_destroy_rsa_object_pub(PK11_SESSION *sp, CK_BBOOL uselock)
++	{
++	int ret = 0;
++
++	if (sp->opdata_rsa_pub_key != CK_INVALID_HANDLE)
++		{
++		TRY_OBJ_DESTROY(sp->session, sp->opdata_rsa_pub_key,
++		    ret, uselock, OP_RSA);
++		sp->opdata_rsa_pub_key = CK_INVALID_HANDLE;
++		sp->opdata_rsa_pub = NULL;
++		if (sp->opdata_rsa_n_num != NULL)
++			{
++			BN_free(sp->opdata_rsa_n_num);
++			sp->opdata_rsa_n_num = NULL;
++			}
++		if (sp->opdata_rsa_e_num != NULL)
++			{
++			BN_free(sp->opdata_rsa_e_num);
++			sp->opdata_rsa_e_num = NULL;
++			}
++		}
++
++	return (ret);
++	}
++
++/* Destroy RSA private key from single session. */
++int
++pk11_destroy_rsa_object_priv(PK11_SESSION *sp, CK_BBOOL uselock)
++	{
++	int ret = 0;
++
++	if (sp->opdata_rsa_priv_key != CK_INVALID_HANDLE)
++		{
++		TRY_OBJ_DELETE(sp->session,
++			       sp->opdata_rsa_priv_key,
++			       ret, uselock, OP_RSA);
++		sp->opdata_rsa_priv_key = CK_INVALID_HANDLE;
++		sp->opdata_rsa_priv = NULL;
++		if (sp->opdata_rsa_d_num != NULL)
++			{
++			BN_free(sp->opdata_rsa_d_num);
++			sp->opdata_rsa_d_num = NULL;
++			}
++		}
++
++	return (ret);
++	}
++
++/*
++ * Destroy RSA key object wrapper. If session is NULL, try to destroy all
++ * objects in the free list.
++ */
++int
++pk11_destroy_rsa_key_objects(PK11_SESSION *session)
++	{
++	int ret = 1;
++	PK11_SESSION *sp = NULL;
++	PK11_SESSION *local_free_session;
++	CK_BBOOL uselock = TRUE;
++
++	if (session != NULL)
++		local_free_session = session;
++	else
++		{
++#ifndef NOPTHREADS
++		(void) pthread_mutex_lock(session_cache[OP_RSA].lock);
++#else
++		CRYPTO_w_lock(CRYPTO_LOCK_PK11_ENGINE);
++#endif
++		local_free_session = session_cache[OP_RSA].head;
++		uselock = FALSE;
++		}
++
++	/*
++	 * go through the list of sessions and delete key objects
++	 */
++	while ((sp = local_free_session) != NULL)
++		{
++		local_free_session = sp->next;
++
++		/*
++		 * Do not terminate list traversal if one of the
++		 * destroy operations fails.
++		 */
++		if (pk11_destroy_rsa_object_pub(sp, uselock) == 0)
++			{
++			ret = 0;
++			continue;
++			}
++		if (pk11_destroy_rsa_object_priv(sp, uselock) == 0)
++			{
++			ret = 0;
++			continue;
++			}
++		}
++
++#ifndef NOPTHREADS
++	if (session == NULL)
++		(void) pthread_mutex_unlock(session_cache[OP_RSA].lock);
++#else
++	if (session == NULL)
++		CRYPTO_w_unlock(CRYPTO_LOCK_PK11_ENGINE);
++#endif
++
++	return (ret);
++	}
++
++static int pk11_destroy_object(CK_SESSION_HANDLE session, CK_OBJECT_HANDLE oh)
++	{
++	CK_RV rv;
++	rv = pFuncList->C_DestroyObject(session, oh);
++	if (rv != CKR_OK)
++		{
++		PK11err_add_data(PK11_F_DESTROY_OBJECT, PK11_R_DESTROYOBJECT,
++		    rv);
++		return (0);
++		}
++
++	return (1);
++	}
++
++
++/*
++ * Public key mechanisms optionally supported
++ *
++ * CKM_RSA_X_509
++ * CKM_RSA_PKCS
++ *
++ * The first slot that supports at least one of those mechanisms is chosen as a
++ * public key slot.
++ *
++ * The output of this function is a set of global variables indicating which
++ * mechanisms from RSA, DSA, DH and RAND are present, and also two arrays of
++ * mechanisms, one for symmetric ciphers and one for digests. Also, 3 global
++ * variables carry information about which slot was chosen for (a) public key
++ * mechanisms, (b) random operations, and (c) symmetric ciphers and digests.
++ */
++static int
++pk11_choose_slots(int *any_slot_found)
++	{
++	CK_SLOT_ID_PTR pSlotList = NULL_PTR;
++	CK_ULONG ulSlotCount = 0;
++	CK_MECHANISM_INFO mech_info;
++	CK_TOKEN_INFO token_info;
++	unsigned int i;
++	CK_RV rv;
++	CK_SLOT_ID best_slot_sofar = 0;
++	CK_BBOOL found_candidate_slot = CK_FALSE;
++	CK_SLOT_ID current_slot = 0;
++
++	/* let's initialize the output parameter */
++	if (any_slot_found != NULL)
++		*any_slot_found = 0;
++
++	/* Get slot list for memory allocation */
++	rv = pFuncList->C_GetSlotList(0, NULL_PTR, &ulSlotCount);
++
++	if (rv != CKR_OK)
++		{
++		PK11err_add_data(PK11_F_CHOOSE_SLOT, PK11_R_GETSLOTLIST, rv);
++		return (0);
++		}
++
++	/* it's not an error if we didn't find any providers */
++	if (ulSlotCount == 0)
++		{
++#ifdef	DEBUG_SLOT_SELECTION
++		fprintf(stderr, "%s: no crypto providers found\n", PK11_DBG);
++#endif	/* DEBUG_SLOT_SELECTION */
++		return (1);
++		}
++
++	pSlotList = OPENSSL_malloc(ulSlotCount * sizeof (CK_SLOT_ID));
++
++	if (pSlotList == NULL)
++		{
++		PK11err(PK11_F_CHOOSE_SLOT, PK11_R_MALLOC_FAILURE);
++		return (0);
++		}
++
++	/* Get the slot list for processing */
++	rv = pFuncList->C_GetSlotList(0, pSlotList, &ulSlotCount);
++	if (rv != CKR_OK)
++		{
++		PK11err_add_data(PK11_F_CHOOSE_SLOT, PK11_R_GETSLOTLIST, rv);
++		OPENSSL_free(pSlotList);
++		return (0);
++		}
++
++#ifdef	DEBUG_SLOT_SELECTION
++	fprintf(stderr, "%s: provider: %s\n", PK11_DBG, def_PK11_LIBNAME);
++	fprintf(stderr, "%s: number of slots: %d\n", PK11_DBG, ulSlotCount);
++
++	fprintf(stderr, "%s: == checking rand slots ==\n", PK11_DBG);
++#endif	/* DEBUG_SLOT_SELECTION */
++	for (i = 0; i < ulSlotCount; i++)
++		{
++		current_slot = pSlotList[i];
++
++#ifdef	DEBUG_SLOT_SELECTION
++	fprintf(stderr, "%s: checking slot: %d\n", PK11_DBG, i);
++#endif	/* DEBUG_SLOT_SELECTION */
++		/* Check if slot has random support. */
++		rv = pFuncList->C_GetTokenInfo(current_slot, &token_info);
++		if (rv != CKR_OK)
++			continue;
++
++#ifdef	DEBUG_SLOT_SELECTION
++	fprintf(stderr, "%s: token label: %.32s\n", PK11_DBG, token_info.label);
++#endif	/* DEBUG_SLOT_SELECTION */
++
++		if (token_info.flags & CKF_RNG)
++			{
++#ifdef	DEBUG_SLOT_SELECTION
++	fprintf(stderr, "%s: this token has CKF_RNG flag\n", PK11_DBG);
++#endif	/* DEBUG_SLOT_SELECTION */
++			pk11_have_random = CK_TRUE;
++			rand_SLOTID = current_slot;
++			break;
++			}
++		}
++
++#ifdef	DEBUG_SLOT_SELECTION
++	fprintf(stderr, "%s: == checking pubkey slots ==\n", PK11_DBG);
++#endif	/* DEBUG_SLOT_SELECTION */
++
++	pubkey_SLOTID = pSlotList[0];
++	for (i = 0; i < ulSlotCount; i++)
++		{
++		CK_BBOOL slot_has_rsa = CK_FALSE;
++		current_slot = pSlotList[i];
++
++#ifdef	DEBUG_SLOT_SELECTION
++	fprintf(stderr, "%s: checking slot: %d\n", PK11_DBG, i);
++#endif	/* DEBUG_SLOT_SELECTION */
++		rv = pFuncList->C_GetTokenInfo(current_slot, &token_info);
++		if (rv != CKR_OK)
++			continue;
++
++#ifdef	DEBUG_SLOT_SELECTION
++	fprintf(stderr, "%s: token label: %.32s\n", PK11_DBG, token_info.label);
++#endif	/* DEBUG_SLOT_SELECTION */
++
++		/*
++		 * Check if this slot is capable of signing with CKM_RSA_PKCS.
++		 */
++		rv = pFuncList->C_GetMechanismInfo(current_slot, CKM_RSA_PKCS,
++			&mech_info);
++
++		if (rv == CKR_OK && ((mech_info.flags & CKF_SIGN)))
++			{
++			slot_has_rsa = CK_TRUE;
++			}
++
++		if (!found_candidate_slot && slot_has_rsa)
++			{
++#ifdef	DEBUG_SLOT_SELECTION
++			fprintf(stderr,
++			    "%s: potential slot: %d\n", PK11_DBG, current_slot);
++#endif	/* DEBUG_SLOT_SELECTION */
++			best_slot_sofar = current_slot;
++			pk11_have_rsa = slot_has_rsa;
++			found_candidate_slot = CK_TRUE;
++#ifdef	DEBUG_SLOT_SELECTION
++			fprintf(stderr,
++			    "%s: setting found_candidate_slot to CK_TRUE\n",
++			    PK11_DBG);
++			fprintf(stderr,
++			    "%s: best so far slot: %d\n", PK11_DBG,
++			    best_slot_sofar);
++			}
++		else
++			{
++			fprintf(stderr,
++			    "%s: no rsa\n", PK11_DBG);
++			}
++#else
++			} /* if */
++#endif	/* DEBUG_SLOT_SELECTION */
++		} /* for */
++
++	if (found_candidate_slot)
++		{
++		pubkey_SLOTID = best_slot_sofar;
++		}
++
++	/*SLOTID = pSlotList[0];*/
++
++#ifdef	DEBUG_SLOT_SELECTION
++	fprintf(stderr,
++	    "%s: chosen pubkey slot: %d\n", PK11_DBG, pubkey_SLOTID);
++	fprintf(stderr,
++	    "%s: chosen rand slot: %d\n", PK11_DBG, rand_SLOTID);
++	fprintf(stderr,
++	    "%s: pk11_have_rsa %d\n", PK11_DBG, pk11_have_rsa);
++	fprintf(stderr,
++	    "%s: pk11_have_random %d\n", PK11_DBG, pk11_have_random);
++#endif	/* DEBUG_SLOT_SELECTION */
++
++	if (pSlotList != NULL)
++		OPENSSL_free(pSlotList);
++
++	if (any_slot_found != NULL)
++		*any_slot_found = 1;
++	return (1);
++	}
++
++#endif	/* OPENSSL_NO_HW_PK11SO */
++#endif	/* OPENSSL_NO_HW_PK11 */
++#endif	/* OPENSSL_NO_HW */
+Index: openssl/crypto/engine/hw_pk11so.h
+diff -u /dev/null openssl/crypto/engine/hw_pk11so.h:1.2
+--- /dev/null	Mon Oct  5 13:17:24 2009
++++ openssl/crypto/engine/hw_pk11so.h	Mon Oct  5 13:17:03 2009
+@@ -0,0 +1,28 @@
++/* Redefine all pk11/PK11 external symbols to pk11so/PK11SO */
++
++#define find_lock			pk11so_find_lock
++#define active_list			pk11so_active_list
++#define ERR_pk11_error			ERR_pk11so_error
++#define PK11err_add_data		PK11SOerr_add_data
++#define pk11_get_session		pk11so_get_session
++#define pk11_return_session		pk11so_return_session
++#define pk11_active_add			pk11so_active_add
++#define pk11_active_delete		pk11so_active_delete
++#define pk11_active_remove		pk11so_active_remove
++#define pk11_free_active_list		pk11so_free_active_list
++#define pk11_destroy_rsa_key_objects	pk11so_destroy_rsa_key_objects
++#define pk11_destroy_rsa_object_pub	pk11so_destroy_rsa_object_pub
++#define pk11_destroy_rsa_object_priv	pk11so_destroy_rsa_object_priv
++#define pk11_load_privkey		pk11so_load_privkey
++#define pk11_load_pubkey		pk11so_load_pubkey
++#define PK11_RSA			PK11SO_RSA
++#define pk11_destroy_dsa_key_objects	pk11so_destroy_dsa_key_objects
++#define pk11_destroy_dsa_object_pub	pk11so_destroy_dsa_object_pub
++#define pk11_destroy_dsa_object_priv	pk11so_destroy_dsa_object_priv
++#define PK11_DSA			PK11SO_DSA
++#define pk11_destroy_dh_key_objects	pk11so_destroy_dh_key_objects
++#define pk11_destroy_dh_object		pk11so_destroy_dh_object
++#define PK11_DH				PK11SO_DH
++#define pFuncList			pk11so_pFuncList
++#define pk11_pin			pk11so_pin
++#define ENGINE_load_pk11		ENGINE_load_pk11so
+Index: openssl/crypto/engine/hw_pk11so_pub.c
+diff -u /dev/null openssl/crypto/engine/hw_pk11so_pub.c:1.2
+--- /dev/null	Mon Oct  5 13:17:24 2009
++++ openssl/crypto/engine/hw_pk11so_pub.c	Mon Oct  5 13:17:03 2009
+@@ -0,0 +1,899 @@
++/*
++ * Copyright 2008 Sun Microsystems, Inc.  All rights reserved.
++ * Use is subject to license terms.
++ */
++
++/* crypto/engine/hw_pk11_pub.c */
++/*
++ * This product includes software developed by the OpenSSL Project for
++ * use in the OpenSSL Toolkit (http://www.openssl.org/).
++ *
++ * This project also referenced hw_pkcs11-0.9.7b.patch written by
++ * Afchine Madjlessi.
++ */
++/*
++ * ====================================================================
++ * Copyright (c) 2000-2001 The OpenSSL Project.  All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ *
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *
++ * 3. All advertising materials mentioning features or use of this
++ *    software must display the following acknowledgment:
++ *    "This product includes software developed by the OpenSSL Project
++ *    for use in the OpenSSL Toolkit. (http://www.OpenSSL.org/)"
++ *
++ * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
++ *    endorse or promote products derived from this software without
++ *    prior written permission. For written permission, please contact
++ *    licensing@OpenSSL.org.
++ *
++ * 5. Products derived from this software may not be called "OpenSSL"
++ *    nor may "OpenSSL" appear in their names without prior written
++ *    permission of the OpenSSL Project.
++ *
++ * 6. Redistributions of any form whatsoever must retain the following
++ *    acknowledgment:
++ *    "This product includes software developed by the OpenSSL Project
++ *    for use in the OpenSSL Toolkit (http://www.OpenSSL.org/)"
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
++ * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
++ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
++ * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
++ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
++ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
++ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
++ * OF THE POSSIBILITY OF SUCH DAMAGE.
++ * ====================================================================
++ *
++ * This product includes cryptographic software written by Eric Young
++ * (eay@cryptsoft.com).  This product includes software written by Tim
++ * Hudson (tjh@cryptsoft.com).
++ *
++ */
++
++/* Modified to keep only RNG and RSA Sign */
++
++#ifdef OPENSSL_NO_RSA
++#error RSA is disabled
++#endif
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sys/types.h>
++
++#include <openssl/e_os2.h>
++#include <openssl/crypto.h>
++#include <cryptlib.h>
++#include <openssl/engine.h>
++#include <openssl/dso.h>
++#include <openssl/err.h>
++#include <openssl/bn.h>
++#include <openssl/pem.h>
++#include <openssl/rsa.h>
++#include <openssl/rand.h>
++#include <openssl/objects.h>
++#include <openssl/x509.h>
++
++#ifdef OPENSSL_SYS_WIN32
++#define NOPTHREADS
++typedef int pid_t;
++#define HAVE_GETPASSPHRASE
++static char *getpassphrase(const char *prompt);
++#ifndef NULL_PTR
++#define NULL_PTR NULL
++#endif
++#define CK_DEFINE_FUNCTION(returnType, name) \
++	returnType __declspec(dllexport) name
++#define CK_DECLARE_FUNCTION(returnType, name) \
++	returnType __declspec(dllimport) name
++#define CK_DECLARE_FUNCTION_POINTER(returnType, name) \
++	returnType __declspec(dllimport) (* name)
++#else
++#include <unistd.h>
++#endif
++
++#ifndef NOPTHREADS
++#include <pthread.h>
++#endif
++
++#ifndef OPENSSL_NO_HW
++#ifndef OPENSSL_NO_HW_PK11
++#ifndef OPENSSL_NO_HW_PK11SO
++
++#ifndef OPENSSL_NO_DSA
++#define OPENSSL_NO_DSA
++#endif
++#ifndef OPENSSL_NO_DH
++#define OPENSSL_NO_DH
++#endif
++
++#ifdef OPENSSL_SYS_WIN32
++#pragma pack(push, cryptoki, 1)
++#include "cryptoki.h"
++#include "pkcs11.h"
++#pragma pack(pop, cryptoki)
++#else
++#include "cryptoki.h"
++#include "pkcs11.h"
++#endif
++#include "hw_pk11so.h"
++#include "hw_pk11_err.h"
++
++#if !(defined(HAVE_GETPASSPHRASE) || (defined (__SVR4) && defined (__sun)))
++#define getpassphrase(x)	getpass(x)
++#endif
++
++/* RSA stuff */
++static int pk11_RSA_sign(int type, const unsigned char *m, unsigned int m_len,
++	unsigned char *sigret, unsigned int *siglen, const RSA *rsa);
++EVP_PKEY *pk11_load_privkey(ENGINE*, const char *pubkey_file,
++	UI_METHOD *ui_method, void *callback_data);
++EVP_PKEY *pk11_load_pubkey(ENGINE*, const char *pubkey_file,
++	UI_METHOD *ui_method, void *callback_data);
++
++static CK_OBJECT_HANDLE pk11_get_private_rsa_key(RSA* rsa, RSA** key_ptr,
++	BIGNUM **rsa_d_num, CK_SESSION_HANDLE session);
++
++static int check_new_rsa_key_pub(PK11_SESSION *sp, const RSA *rsa);
++static int check_new_rsa_key_priv(PK11_SESSION *sp, const RSA *rsa);
++
++static void attr_to_BN(CK_ATTRIBUTE_PTR attr, CK_BYTE attr_data[], BIGNUM **bn);
++
++/* Read mode string to be used for fopen() */
++#if SOLARIS_OPENSSL
++static char *read_mode_flags = "rF";
++#else
++static char *read_mode_flags = "r";
++#endif
++
++/*
++ * increment/create reference for an asymmetric key handle via active list
++ * manipulation. If active list operation fails, unlock (if locked), set error
++ * variable and jump to the specified label.
++ */
++#define	KEY_HANDLE_REFHOLD(key_handle, alg_type, unlock, var, label)	\
++	{								\
++	if (pk11_active_add(key_handle, alg_type) < 0)			\
++		{							\
++		var = TRUE;						\
++		if (unlock)						\
++			UNLOCK_OBJSTORE(alg_type);			\
++		goto label;						\
++		}							\
++	}
++
++/*
++ * Find active list entry according to object handle and return pointer to the
++ * entry otherwise return NULL.
++ *
++ * This function presumes it is called with lock protecting the active list
++ * held.
++ */
++static PK11_active *pk11_active_find(CK_OBJECT_HANDLE h, PK11_OPTYPE type)
++	{
++	PK11_active *entry;
++
++	for (entry = active_list[type]; entry != NULL; entry = entry->next)
++		if (entry->h == h)
++			return (entry);
++
++	return (NULL);
++	}
++
++/*
++ * Search for an entry in the active list using PKCS#11 object handle as a
++ * search key and return refcnt of the found/created entry or -1 in case of
++ * failure.
++ *
++ * This function presumes it is called with lock protecting the active list
++ * held.
++ */
++int
++pk11_active_add(CK_OBJECT_HANDLE h, PK11_OPTYPE type)
++	{
++	PK11_active *entry = NULL;
++
++	if (h == CK_INVALID_HANDLE)
++		{
++		PK11err(PK11_F_ACTIVE_ADD, PK11_R_INVALID_HANDLE);
++		return (-1);
++		}
++
++	/* search for entry in the active list */
++	if ((entry = pk11_active_find(h, type)) != NULL)
++		entry->refcnt++;
++	else
++		{
++		/* not found, create new entry and add it to the list */
++		entry = OPENSSL_malloc(sizeof (PK11_active));
++		if (entry == NULL)
++			{
++			PK11err(PK11_F_ACTIVE_ADD, PK11_R_MALLOC_FAILURE);
++			return (-1);
++			}
++		entry->h = h;
++		entry->refcnt = 1;
++		entry->prev = NULL;
++		entry->next = NULL;
++		/* connect the newly created entry to the list */
++		if (active_list[type] == NULL)
++			active_list[type] = entry;
++		else /* make the entry first in the list */
++			{
++			entry->next = active_list[type];
++			active_list[type]->prev = entry;
++			active_list[type] = entry;
++			}
++		}
++
++	return (entry->refcnt);
++	}
++
++/*
++ * Remove active list entry from the list and free it.
++ *
++ * This function presumes it is called with lock protecting the active list
++ * held.
++ */
++void
++pk11_active_remove(PK11_active *entry, PK11_OPTYPE type)
++	{
++	PK11_active *prev_entry;
++
++	/* remove the entry from the list and free it */
++	if ((prev_entry = entry->prev) != NULL)
++		{
++		prev_entry->next = entry->next;
++		if (entry->next != NULL)
++			entry->next->prev = prev_entry;
++		}
++	else
++		{
++		active_list[type] = entry->next;
++		/* we were the first but not the only one */
++		if (entry->next != NULL)
++			entry->next->prev = NULL;
++		}
++
++	/* sanitization */
++	entry->h = CK_INVALID_HANDLE;
++	entry->prev = NULL;
++	entry->next = NULL;
++	OPENSSL_free(entry);
++	}
++
++/* Free all entries from the active list. */
++void
++pk11_free_active_list(PK11_OPTYPE type)
++	{
++	PK11_active *entry;
++
++	/* only for asymmetric types since only they have C_Find* locks. */
++	switch (type)
++		{
++		case OP_RSA:
++			break;
++		default:
++			return;
++		}
++
++	/* see find_lock array definition for more info on object locking */
++	LOCK_OBJSTORE(type);
++	while ((entry = active_list[type]) != NULL)
++		pk11_active_remove(entry, type);
++	UNLOCK_OBJSTORE(type);
++	}
++
++/*
++ * Search for active list entry associated with given PKCS#11 object handle,
++ * decrement its refcnt and if it drops to 0, disconnect the entry and free it.
++ *
++ * Return 1 if the PKCS#11 object associated with the entry has no references,
++ * return 0 if there is at least one reference, -1 on error.
++ *
++ * This function presumes it is called with lock protecting the active list
++ * held.
++ */
++int
++pk11_active_delete(CK_OBJECT_HANDLE h, PK11_OPTYPE type)
++	{
++	PK11_active *entry = NULL;
++
++	if ((entry = pk11_active_find(h, type)) == NULL)
++		{
++		PK11err(PK11_F_ACTIVE_DELETE, PK11_R_INVALID_HANDLE);
++		return (-1);
++		}
++
++	OPENSSL_assert(entry->refcnt > 0);
++	entry->refcnt--;
++	if (entry->refcnt == 0)
++		{
++		pk11_active_remove(entry, type);
++		return (1);
++		}
++
++	return (0);
++	}
++
++/* Our internal RSA_METHOD that we provide pointers to */
++static RSA_METHOD pk11_rsa;
++
++RSA_METHOD *
++PK11_RSA(void)
++	{
++	const RSA_METHOD *rsa;
++
++	if (pk11_rsa.name == NULL)
++		{
++		rsa = RSA_PKCS1_SSLeay();
++		memcpy(&pk11_rsa, rsa, sizeof(*rsa));
++		pk11_rsa.name = "PKCS#11 RSA method";
++		pk11_rsa.rsa_sign = pk11_RSA_sign;
++		}
++	return (&pk11_rsa);
++	}
++
++/* Size of an SSL signature: MD5+SHA1 */
++#define	SSL_SIG_LENGTH		36
++
++/*
++ * Standard engine interface function. Majority codes here are from
++ * rsa/rsa_sign.c. We replaced the decrypt function call by C_Sign of PKCS#11.
++ * See more details in rsa/rsa_sign.c
++ */
++static int pk11_RSA_sign(int type, const unsigned char *m, unsigned int m_len,
++	unsigned char *sigret, unsigned int *siglen, const RSA *rsa)
++	{
++	X509_SIG sig;
++	ASN1_TYPE parameter;
++	int i, j = 0;
++	unsigned char *p, *s = NULL;
++	X509_ALGOR algor;
++	ASN1_OCTET_STRING digest;
++	CK_RV rv;
++	CK_MECHANISM mech_rsa = {CKM_RSA_PKCS, NULL, 0};
++	CK_MECHANISM *p_mech = &mech_rsa;
++	CK_OBJECT_HANDLE h_priv_key;
++	PK11_SESSION *sp = NULL;
++	int ret = 0;
++	unsigned long ulsiglen;
++
++	/* Encode the digest */
++	/* Special case: SSL signature, just check the length */
++	if (type == NID_md5_sha1)
++		{
++		if (m_len != SSL_SIG_LENGTH)
++			{
++			PK11err(PK11_F_RSA_SIGN,
++				PK11_R_INVALID_MESSAGE_LENGTH);
++			goto err;
++			}
++		i = SSL_SIG_LENGTH;
++		s = (unsigned char *)m;
++		}
++	else
++		{
++		sig.algor = &algor;
++		sig.algor->algorithm = OBJ_nid2obj(type);
++		if (sig.algor->algorithm == NULL)
++			{
++			PK11err(PK11_F_RSA_SIGN,
++				PK11_R_UNKNOWN_ALGORITHM_TYPE);
++			goto err;
++			}
++		if (sig.algor->algorithm->length == 0)
++			{
++			PK11err(PK11_F_RSA_SIGN,
++				PK11_R_UNKNOWN_ASN1_OBJECT_ID);
++			goto err;
++			}
++		parameter.type = V_ASN1_NULL;
++		parameter.value.ptr = NULL;
++		sig.algor->parameter = &parameter;
++
++		sig.digest = &digest;
++		sig.digest->data = (unsigned char *)m;
++		sig.digest->length = m_len;
++
++		i = i2d_X509_SIG(&sig, NULL);
++		}
++
++	j = RSA_size(rsa);
++	if ((i - RSA_PKCS1_PADDING) > j)
++		{
++		PK11err(PK11_F_RSA_SIGN, PK11_R_DIGEST_TOO_BIG);
++		goto err;
++		}
++
++	if (type != NID_md5_sha1)
++		{
++		s = (unsigned char *)OPENSSL_malloc((unsigned int)(j + 1));
++		if (s == NULL)
++			{
++			PK11err(PK11_F_RSA_SIGN, PK11_R_MALLOC_FAILURE);
++			goto err;
++			}
++		p = s;
++		(void) i2d_X509_SIG(&sig, &p);
++		}
++
++	if ((sp = pk11_get_session(OP_RSA)) == NULL)
++		goto err;
++
++	(void) check_new_rsa_key_priv(sp, rsa);
++
++	h_priv_key = sp->opdata_rsa_priv_key;
++	if (h_priv_key == CK_INVALID_HANDLE)
++		h_priv_key = sp->opdata_rsa_priv_key =
++			pk11_get_private_rsa_key((RSA *)rsa,
++			    &sp->opdata_rsa_priv,
++			    &sp->opdata_rsa_d_num, sp->session);
++
++	if (h_priv_key != CK_INVALID_HANDLE)
++		{
++		rv = pFuncList->C_SignInit(sp->session, p_mech, h_priv_key);
++
++		if (rv != CKR_OK)
++			{
++			PK11err_add_data(PK11_F_RSA_SIGN, PK11_R_SIGNINIT, rv);
++			goto err;
++			}
++
++		ulsiglen = j;
++		rv = pFuncList->C_Sign(sp->session, s, i, sigret,
++			(CK_ULONG_PTR) &ulsiglen);
++		*siglen = ulsiglen;
++
++		if (rv != CKR_OK)
++			{
++			PK11err_add_data(PK11_F_RSA_SIGN, PK11_R_SIGN, rv);
++			goto err;
++			}
++		ret = 1;
++		}
++
++err:
++	if ((type != NID_md5_sha1) && (s != NULL))
++		{
++		(void) memset(s, 0, (unsigned int)(j + 1));
++		OPENSSL_free(s);
++		}
++
++	pk11_return_session(sp, OP_RSA);
++	return (ret);
++	}
++
++static int hndidx_rsa = -1;
++
++/* load RSA private key from a file */
++/* ARGSUSED */
++EVP_PKEY *pk11_load_privkey(ENGINE *e, const char *privkey_file,
++	UI_METHOD *ui_method, void *callback_data)
++	{
++	EVP_PKEY *pkey = NULL;
++	FILE *privkey;
++	RSA *rsa;
++	PK11_SESSION *sp = NULL;
++	/* everything else below needed for key by reference extension */
++	CK_RV rv;
++	CK_ULONG objcnt = 0;
++	CK_BBOOL is_token = TRUE;
++	CK_BYTE attr_data[2][1024];
++	CK_OBJECT_CLASS key_class = CKO_PRIVATE_KEY;
++	CK_OBJECT_HANDLE ks_key = CK_INVALID_HANDLE;	/* key in keystore */
++	extern char *pk11_pin;
++
++	/* we look for private keys only */
++	CK_ATTRIBUTE search_templ[] =
++		{
++		{CKA_TOKEN, &is_token, sizeof(is_token)},
++		{CKA_CLASS, &key_class, sizeof(key_class)},
++		{CKA_LABEL, NULL, 0}
++		};
++
++	/* these attributes are needed to initialize OpenSSL RSA structure */
++	CK_ATTRIBUTE get_templ[] =
++		{
++		{CKA_MODULUS, (void *)attr_data[0], 1024},	    /* n */
++		{CKA_PUBLIC_EXPONENT, (void *)attr_data[1], 1024},  /* e */
++		};
++
++	/*
++	 * Use simple scheme "pkcs11:<KEY_LABEL>" for now.
++	 */
++	if (strstr(privkey_file, "pkcs11:") == privkey_file)
++		{
++		if ((sp = pk11_get_session(OP_RSA)) == NULL)
++			return (NULL);
++
++		search_templ[2].pValue = strstr(privkey_file, ":") + 1;
++		search_templ[2].ulValueLen = strlen(search_templ[2].pValue);
++
++		if (pk11_pin == NULL)
++			{
++			pk11_pin = BUF_strdup(getpassphrase("Enter PIN: "));
++
++			if (pk11_pin == NULL)
++				{
++				PK11err(PK11_F_LOAD_PRIVKEY, PK11_R_MALLOC_FAILURE);
++				goto err;
++				}
++			}
++		if ((rv = pFuncList->C_Login(sp->session, CKU_USER, (CK_UTF8CHAR*)pk11_pin,
++		    strlen(pk11_pin))) != CKR_OK && rv != CKR_USER_ALREADY_LOGGED_IN)
++			{
++			PK11err_add_data(PK11_F_LOAD_PRIVKEY,
++					 PK11_R_INVALID_PIN, rv);
++			goto err;
++			}
++
++		LOCK_OBJSTORE(OP_RSA);
++		if ((rv = pFuncList->C_FindObjectsInit(sp->session,
++		    search_templ, 3)) != CKR_OK)
++			{
++			UNLOCK_OBJSTORE(OP_RSA);
++			PK11err_add_data(PK11_F_LOAD_PRIVKEY,
++					 PK11_R_FINDOBJECTSINIT, rv);
++			goto err;
++			}
++
++		rv = pFuncList->C_FindObjects(sp->session, &ks_key, 1, &objcnt);
++		if (rv != CKR_OK)
++			{
++			UNLOCK_OBJSTORE(OP_RSA);
++			PK11err_add_data(PK11_F_LOAD_PRIVKEY,
++					 PK11_R_FINDOBJECTS, rv);
++			goto err;
++			}
++
++		if (objcnt > 1)
++			{
++			UNLOCK_OBJSTORE(OP_RSA);
++			PK11err(PK11_F_LOAD_PRIVKEY, PK11_R_TOO_MANY_OBJECTS);
++			goto err;
++			}
++
++		if (objcnt != 1)
++			{
++			UNLOCK_OBJSTORE(OP_RSA);
++			PK11err(PK11_F_LOAD_PRIVKEY, PK11_R_OBJECT_NOT_FOUND);
++			goto err;
++			}
++
++		(void) pFuncList->C_FindObjectsFinal(sp->session);
++		UNLOCK_OBJSTORE(OP_RSA);
++
++		if (hndidx_rsa == -1)
++			hndidx_rsa = RSA_get_ex_new_index(0,
++				        "pkcs11 RSA HSM key handle",
++					NULL, NULL, NULL);
++
++		pkey = EVP_PKEY_new();
++		if (pkey == NULL)
++			goto err;
++
++		rsa = RSA_new_method(e);
++		if (rsa == NULL) {
++			EVP_PKEY_free(pkey);
++			pkey = NULL;
++			goto err;
++		}
++		EVP_PKEY_assign_RSA(pkey, rsa);
++
++		if ((rv = pFuncList->C_GetAttributeValue(sp->session, ks_key,
++		    get_templ, 2)) != CKR_OK)
++			{
++			PK11err_add_data(PK11_F_LOAD_PRIVKEY,
++					 PK11_R_GETATTRIBUTVALUE, rv);
++			EVP_PKEY_free(pkey);
++			pkey = NULL;
++			goto err;
++			}
++
++		/* Note: these flags are critical! */
++		rsa->flags = RSA_FLAG_SIGN_VER | RSA_FLAG_EXT_PKEY;
++		RSA_set_ex_data(rsa, hndidx_rsa, (void *) ks_key);
++		(void) check_new_rsa_key_priv(sp, rsa);
++		sp->opdata_rsa_priv = rsa;
++		sp->opdata_rsa_priv_key = ks_key;
++
++		attr_to_BN(&get_templ[0], attr_data[0], &rsa->n);
++		attr_to_BN(&get_templ[1], attr_data[1], &rsa->e);
++		}
++	else if ((privkey = fopen(privkey_file, read_mode_flags)) != NULL)
++		{
++		pkey = PEM_read_PrivateKey(privkey, NULL, NULL, NULL);
++		(void) fclose(privkey);
++		}
++
++err:
++	if (sp != NULL)
++		pk11_return_session(sp, OP_RSA);
++	return (pkey);
++	}
++
++/* load RSA public key from a file */
++/* ARGSUSED */
++EVP_PKEY *pk11_load_pubkey(ENGINE *e, const char *pubkey_file,
++	UI_METHOD *ui_method, void *callback_data)
++	{
++	EVP_PKEY *pkey = NULL;
++	FILE *pubkey;
++	RSA *rsa;
++	PK11_SESSION *sp = NULL;
++	/* everything else below needed for key by reference extension */
++	CK_RV rv;
++	CK_ULONG objcnt = 0;
++	CK_BBOOL is_token = TRUE;
++	CK_BYTE attr_data[2][1024];
++	CK_OBJECT_CLASS key_class = CKO_PUBLIC_KEY;
++	CK_OBJECT_HANDLE ks_key = CK_INVALID_HANDLE;	/* key in keystore */
++	extern char *pk11_pin;
++
++	/* we look for public keys only */
++	CK_ATTRIBUTE search_templ[] =
++		{
++		{CKA_TOKEN, &is_token, sizeof(is_token)},
++		{CKA_CLASS, &key_class, sizeof(key_class)},
++		{CKA_LABEL, NULL, 0}
++		};
++
++	/* these attributes are needed to initialize OpenSSL RSA structure */
++	CK_ATTRIBUTE get_templ[] =
++		{
++		{CKA_MODULUS, (void *)attr_data[0], 1024},	    /* n */
++		{CKA_PUBLIC_EXPONENT, (void *)attr_data[1], 1024},  /* e */
++		};
++
++	/*
++	 * Use simple scheme "pkcs11:<KEY_LABEL>" for now.
++	 */
++	if (strstr(pubkey_file, "pkcs11:") == pubkey_file)
++		{
++		if ((sp = pk11_get_session(OP_RSA)) == NULL)
++			return (NULL);
++
++		search_templ[2].pValue = strstr(pubkey_file, ":") + 1;
++		search_templ[2].ulValueLen = strlen(search_templ[2].pValue);
++
++#define ALLWAYS_LOGIN
++#ifdef ALLWAYS_LOGIN
++		if (pk11_pin == NULL)
++			{
++			pk11_pin = BUF_strdup(getpassphrase("Enter PIN: "));
++
++			if (pk11_pin == NULL)
++				{
++				PK11err(PK11_F_LOAD_PUBKEY, PK11_R_MALLOC_FAILURE);
++				goto err;
++				}
++			}
++		if ((rv = pFuncList->C_Login(sp->session, CKU_USER, (CK_UTF8CHAR*)pk11_pin,
++		    strlen(pk11_pin))) != CKR_OK && rv != CKR_USER_ALREADY_LOGGED_IN)
++			{
++			PK11err_add_data(PK11_F_LOAD_PUBKEY,
++					 PK11_R_INVALID_PIN, rv);
++			goto err;
++			}
++#endif
++
++		LOCK_OBJSTORE(OP_RSA);
++		if (pFuncList->C_FindObjectsInit(sp->session, search_templ, 3) != CKR_OK)
++			{
++			UNLOCK_OBJSTORE(OP_RSA);
++			PK11err_add_data(PK11_F_LOAD_PUBKEY,
++					 PK11_R_FINDOBJECTSINIT, rv);
++			goto err;
++			}
++		rv = pFuncList->C_FindObjects(sp->session, &ks_key, 1, &objcnt);
++		if (rv != CKR_OK)
++			{
++			UNLOCK_OBJSTORE(OP_RSA);
++			PK11err_add_data(PK11_F_LOAD_PUBKEY,
++					 PK11_R_FINDOBJECTS, rv);
++			goto err;
++			}
++
++		if (objcnt > 1)
++			{
++			UNLOCK_OBJSTORE(OP_RSA);
++			PK11err(PK11_F_LOAD_PUBKEY, PK11_R_TOO_MANY_OBJECTS);
++			goto err;
++			}
++
++		if (objcnt != 1)
++			{
++			UNLOCK_OBJSTORE(OP_RSA);
++			PK11err(PK11_F_LOAD_PUBKEY, PK11_R_OBJECT_NOT_FOUND);
++			goto err;
++			}
++
++		(void) pFuncList->C_FindObjectsFinal(sp->session);
++		UNLOCK_OBJSTORE(OP_RSA);
++
++		sp->opdata_rsa_pub_key = ks_key;
++		pkey = EVP_PKEY_new();
++		if (pkey == NULL)
++			goto err;
++
++		rsa = RSA_new_method(e);
++		if (rsa == NULL) {
++			EVP_PKEY_free(pkey);
++			pkey = NULL;
++			goto err;
++		}
++		EVP_PKEY_assign_RSA(pkey, rsa);
++
++		if (pFuncList->C_GetAttributeValue(sp->session, ks_key,
++		    get_templ, 2) != CKR_OK)
++			{
++			PK11err_add_data(PK11_F_LOAD_PUBKEY,
++					 PK11_R_GETATTRIBUTVALUE, rv);
++			goto err;
++			}
++
++		(void) check_new_rsa_key_pub(sp, rsa);
++		sp->opdata_rsa_pub = rsa;
++
++		attr_to_BN(&get_templ[0], attr_data[0], &rsa->n);
++		attr_to_BN(&get_templ[1], attr_data[1], &rsa->e);
++		}
++	else if ((pubkey = fopen(pubkey_file, read_mode_flags)) != NULL)
++		{
++		pkey = PEM_read_PUBKEY(pubkey, NULL, NULL, NULL);
++		(void) fclose(pubkey);
++		}
++
++err:
++	if (sp != NULL)
++		pk11_return_session(sp, OP_RSA);
++	return (pkey);
++	}
++
++/*
++ * Create a private key object in the session from a given rsa structure.
++ * The *rsa_d_num pointer is non-NULL for RSA private keys.
++ */
++static CK_OBJECT_HANDLE pk11_get_private_rsa_key(RSA *rsa,
++    RSA **key_ptr, BIGNUM **rsa_d_num, CK_SESSION_HANDLE session)
++	{
++	CK_OBJECT_HANDLE h_key = CK_INVALID_HANDLE;
++
++	if ((rsa->flags & RSA_FLAG_EXT_PKEY) == 0) {
++		PK11err(PK11_F_GET_PRIV_RSA_KEY, PK11_R_INCONSISTENT_KEY);
++		return (h_key);
++	}
++	
++	h_key = (CK_OBJECT_HANDLE)RSA_get_ex_data(rsa, hndidx_rsa);
++	(void) pk11_active_add(h_key, OP_RSA);
++	if (key_ptr != NULL)
++		*key_ptr = rsa;
++	if (rsa_d_num != NULL)
++		{
++		if (rsa->d == NULL)
++			*rsa_d_num = NULL;
++		else if ((*rsa_d_num = BN_dup(rsa->d)) == NULL)
++			{
++			PK11err(PK11_F_GET_PRIV_RSA_KEY, PK11_R_MALLOC_FAILURE);
++			return (h_key);
++			}
++		}
++	return (h_key);
++	}
++
++/*
++ * Check for cache miss and clean the object pointer and handle
++ * in such case. Return 1 for cache hit, 0 for cache miss.
++ */
++static int check_new_rsa_key_pub(PK11_SESSION *sp, const RSA *rsa)
++	{
++	/*
++	 * Provide protection against RSA structure reuse by making the
++	 * check for cache hit stronger. Only public components of RSA
++	 * key matter here so it is sufficient to compare them with values
++	 * cached in PK11_SESSION structure.
++	 */
++	if ((sp->opdata_rsa_pub != rsa) ||
++	    (BN_cmp(sp->opdata_rsa_n_num, rsa->n) != 0) ||
++	    (BN_cmp(sp->opdata_rsa_e_num, rsa->e) != 0))
++		{
++		/*
++		 * We do not check the return value because even in case of
++		 * failure the sp structure will have both key pointer
++		 * and object handle cleaned and pk11_destroy_object()
++		 * reports the failure to the OpenSSL error message buffer.
++		 */
++		(void) pk11_destroy_rsa_object_pub(sp, TRUE);
++		return (0);
++		}
++	return (1);
++	}
++
++/*
++ * Check for cache miss and clean the object pointer and handle
++ * in such case. Return 1 for cache hit, 0 for cache miss.
++ */
++static int check_new_rsa_key_priv(PK11_SESSION *sp, const RSA *rsa)
++	{
++	/*
++	 * Provide protection against RSA structure reuse by making the
++	 * check for cache hit stronger. Comparing private exponent of RSA
++	 * key with value cached in PK11_SESSION structure should
++	 * be sufficient.
++	 */
++	if ((sp->opdata_rsa_priv != rsa) ||
++	    (BN_cmp(sp->opdata_rsa_d_num, rsa->d) != 0) ||
++	    ((rsa->flags & RSA_FLAG_EXT_PKEY) != 0))
++		{
++		/*
++		 * We do not check the return value because even in case of
++		 * failure the sp structure will have both key pointer
++		 * and object handle cleaned and pk11_destroy_object()
++		 * reports the failure to the OpenSSL error message buffer.
++		 */
++		(void) pk11_destroy_rsa_object_priv(sp, TRUE);
++		return (0);
++		}
++	return (1);
++	}
++
++static void attr_to_BN(CK_ATTRIBUTE_PTR attr, CK_BYTE attr_data[], BIGNUM **bn)
++	{
++	if (attr->ulValueLen > 0)
++		{
++		*bn = BN_bin2bn(attr_data, attr->ulValueLen, NULL);
++		}
++	}
++
++#ifdef	OPENSSL_SYS_WIN32
++char *getpassphrase(const char *prompt)
++	{
++	static char buf[128];
++	HANDLE h;
++	DWORD cc, mode;
++	int cnt;
++
++	h = GetStdHandle(STD_INPUT_HANDLE);
++	fputs(prompt, stderr);
++	fflush(stderr);
++	fflush(stdout);
++	FlushConsoleInputBuffer(h);
++	GetConsoleMode(h, &mode);
++	SetConsoleMode(h, ENABLE_PROCESSED_INPUT);
++
++	for (cnt = 0; cnt < sizeof(buf) - 1; cnt++)
++		{
++		ReadFile(h, buf + cnt, 1, &cc, NULL);
++		if (buf[cnt] == '\r')
++			break;
++		fputc('*', stdout);
++		fflush(stderr);
++		fflush(stdout);
++		}
++
++	SetConsoleMode(h, mode);
++	buf[cnt] = '\0';
++	fputs("\n", stderr);
++	return buf;
++	}
++#endif	/* OPENSSL_SYS_WIN32 */
++#endif	/* OPENSSL_NO_HW_PK11SO */
 +#endif	/* OPENSSL_NO_HW_PK11 */
 +#endif	/* OPENSSL_NO_HW */
 Index: openssl/crypto/engine/pkcs11.h
 diff -u /dev/null openssl/crypto/engine/pkcs11.h:1.1.1.1
---- /dev/null	Mon Oct  5 11:08:14 2009
+--- /dev/null	Mon Oct  5 13:17:24 2009
 +++ openssl/crypto/engine/pkcs11.h	Wed Oct 24 23:27:09 2007
 @@ -0,0 +1,299 @@
 +/* pkcs11.h include file for PKCS #11. */
-+/* $Revision: 1.1 $ */
++/* $Revision: 1.2 $ */
 +
 +/* License to copy and use this software is granted provided that it is
 + * identified as "RSA Security Inc. PKCS #11 Cryptographic Token Interface
@@ -11172,11 +11402,11 @@ diff -u /dev/null openssl/crypto/engine/pkcs11.h:1.1.1.1
 +#endif
 Index: openssl/crypto/engine/pkcs11f.h
 diff -u /dev/null openssl/crypto/engine/pkcs11f.h:1.1.1.1
---- /dev/null	Mon Oct  5 11:08:14 2009
+--- /dev/null	Mon Oct  5 13:17:24 2009
 +++ openssl/crypto/engine/pkcs11f.h	Wed Oct 24 23:27:09 2007
 @@ -0,0 +1,912 @@
 +/* pkcs11f.h include file for PKCS #11. */
-+/* $Revision: 1.1 $ */
++/* $Revision: 1.2 $ */
 +
 +/* License to copy and use this software is granted provided that it is
 + * identified as "RSA Security Inc. PKCS #11 Cryptographic Token Interface
@@ -12089,11 +12319,11 @@ diff -u /dev/null openssl/crypto/engine/pkcs11f.h:1.1.1.1
 +#endif
 Index: openssl/crypto/engine/pkcs11t.h
 diff -u /dev/null openssl/crypto/engine/pkcs11t.h:1.2
---- /dev/null	Mon Oct  5 11:08:14 2009
+--- /dev/null	Mon Oct  5 13:17:24 2009
 +++ openssl/crypto/engine/pkcs11t.h	Sat Aug 30 11:58:07 2008
 @@ -0,0 +1,1885 @@
 +/* pkcs11t.h include file for PKCS #11. */
-+/* $Revision: 1.1 $ */
++/* $Revision: 1.2 $ */
 +
 +/* License to copy and use this software is granted provided that it is
 + * identified as "RSA Security Inc. PKCS #11 Cryptographic Token Interface
@@ -13978,19 +14208,38 @@ diff -u /dev/null openssl/crypto/engine/pkcs11t.h:1.2
 +
 +#endif
 Index: openssl/util/libeay.num
-diff -u openssl/util/libeay.num:1.1.3.1 openssl/util/libeay.num:1.5
+diff -u openssl/util/libeay.num:1.1.3.1 openssl/util/libeay.num:1.6
 --- openssl/util/libeay.num:1.1.3.1	Mon Feb  2 00:27:56 2009
-+++ openssl/util/libeay.num	Fri Sep  4 10:43:22 2009
-@@ -3725,3 +3725,4 @@
++++ openssl/util/libeay.num	Mon Oct  5 13:17:03 2009
+@@ -3725,3 +3725,5 @@
  JPAKE_STEP3A_init                       4111	EXIST::FUNCTION:JPAKE
  ERR_load_JPAKE_strings                  4112	EXIST::FUNCTION:JPAKE
  JPAKE_STEP2_init                        4113	EXIST::FUNCTION:JPAKE
-+ENGINE_load_pk11                        4114	EXIST::FUNCTION:ENGINE
++ENGINE_load_pk11ca                      4114	EXIST::FUNCTION:HW_PKCS11CA,ENGINE
++ENGINE_load_pk11so                      4114	EXIST::FUNCTION:HW_PKCS11SO,ENGINE
 Index: openssl/util/mk1mf.pl
-diff -u openssl/util/mk1mf.pl:1.1.3.1 openssl/util/mk1mf.pl:1.6
+diff -u openssl/util/mk1mf.pl:1.1.3.1 openssl/util/mk1mf.pl:1.7
 --- openssl/util/mk1mf.pl:1.1.3.1	Tue Dec  2 23:50:21 2008
-+++ openssl/util/mk1mf.pl	Fri Sep  4 10:43:23 2009
-@@ -322,6 +322,9 @@
++++ openssl/util/mk1mf.pl	Mon Oct  5 13:17:05 2009
+@@ -87,6 +87,8 @@
+ 	no-ecdh					- No ECDH
+ 	no-engine				- No engine
+ 	no-hw					- No hw
++	no-hw-pkcs11ca				- No hw PKCS#11 CA flavor
++	no-hw-pkcs11so				- No hw PKCS#11 SO flavor
+ 	nasm 					- Use NASM for x86 asm
+ 	nw-nasm					- Use NASM x86 asm for NetWare
+ 	nw-mwasm				- Use Metrowerks x86 asm for NetWare
+@@ -242,6 +244,8 @@
+ $cflags.=" -DOPENSSL_NO_ECDH" if $no_ecdh;
+ $cflags.=" -DOPENSSL_NO_ENGINE"   if $no_engine;
+ $cflags.=" -DOPENSSL_NO_HW"   if $no_hw;
++$cflags.=" -DOPENSSL_NO_HW_PKCS11CA"   if $no_hw_pkcs11ca;
++$cflags.=" -DOPENSSL_NO_HW_PKCS11SO"   if $no_hw_pkcs11so;
+ $cflags.=" -DOPENSSL_FIPS"    if $fips;
+ $cflags.= " -DZLIB" if $zlib_opt;
+ $cflags.= " -DZLIB_SHARED" if $zlib_opt == 2;
+@@ -322,6 +326,9 @@
  	if ($key eq "ZLIB_INCLUDE")
  		{ $cflags .= " $val" if $val ne "";}
  
@@ -14000,6 +14249,54 @@ diff -u openssl/util/mk1mf.pl:1.1.3.1 openssl/util/mk1mf.pl:1.6
  	if ($key eq "LIBZLIB")
  		{ $zlib_lib = "$val" if $val ne "";}
  
+@@ -1300,6 +1307,8 @@
+ 		"no-ecdh" => \$no_ecdh,
+ 		"no-engine" => \$no_engine,
+ 		"no-hw" => \$no_hw,
++		"no-hw-pkcs11ca" => \$no_hw_pkcs11ca,
++		"no-hw-pkcs11so" => \$no_hw_pkcs11so,
+ 		"just-ssl" =>
+ 			[\$no_rc2, \$no_idea, \$no_des, \$no_bf, \$no_cast,
+ 			  \$no_md2, \$no_sha, \$no_mdc2, \$no_dsa, \$no_dh,
+Index: openssl/util/mkdef.pl
+diff -u openssl/util/mkdef.pl:1.1.3.1 openssl/util/mkdef.pl:1.5
+--- openssl/util/mkdef.pl:1.1.3.1	Mon Nov 24 16:14:15 2008
++++ openssl/util/mkdef.pl	Mon Oct  5 13:17:05 2009
+@@ -93,7 +93,7 @@
+ 			 # External "algorithms"
+ 			 "FP_API", "STDIO", "SOCK", "KRB5", "DGRAM",
+ 			 # Engines
+-			 "STATIC_ENGINE", "ENGINE", "HW", "GMP",
++			 "STATIC_ENGINE", "ENGINE", "HW", "GMP", "HW_PKCS11CA", "HW_PKCS11SO",
+ 			 # RFC3779 support 
+ 			 "RFC3779",
+ 			 # TLS extension support
+@@ -122,6 +122,7 @@
+ my $no_md2; my $no_md4; my $no_md5; my $no_sha; my $no_ripemd; my $no_mdc2;
+ my $no_rsa; my $no_dsa; my $no_dh; my $no_hmac=0; my $no_aes; my $no_krb5;
+ my $no_ec; my $no_ecdsa; my $no_ecdh; my $no_engine; my $no_hw; my $no_camellia;
++my $no_pkcs11ca; my $no_pkcs11so;
+ my $no_seed;
+ my $no_fp_api; my $no_static_engine; my $no_gmp; my $no_deprecated;
+ my $no_rfc3779; my $no_tlsext; my $no_cms; my $no_capieng; my $no_jpake;
+@@ -214,6 +215,8 @@
+ 	elsif (/^no-cms$/)	{ $no_cms=1; }
+ 	elsif (/^no-capieng$/)	{ $no_capieng=1; }
+ 	elsif (/^no-jpake$/)	{ $no_jpake=1; }
++	elsif (/^no-hw-pkcs11ca$/) { $no_pkcs11ca=1; }
++	elsif (/^no-hw-pkcs11so$/) { $no_pkcs11so=1; }
+ 	}
+ 
+ 
+@@ -1138,6 +1141,8 @@
+ 			if ($keyword eq "KRB5" && $no_krb5) { return 0; }
+ 			if ($keyword eq "ENGINE" && $no_engine) { return 0; }
+ 			if ($keyword eq "HW" && $no_hw) { return 0; }
++			if ($keyword eq "HW_PKCS11CA" && $no_pkcs11ca) { return 0; }
++			if ($keyword eq "HW_PKCS11SO" && $no_pkcs11so) { return 0; }
+ 			if ($keyword eq "FP_API" && $no_fp_api) { return 0; }
+ 			if ($keyword eq "STATIC_ENGINE" && $no_static_engine) { return 0; }
+ 			if ($keyword eq "GMP" && $no_gmp) { return 0; }
 Index: openssl/util/pl/VC-32.pl
 diff -u openssl/util/pl/VC-32.pl:1.1.3.1 openssl/util/pl/VC-32.pl:1.5
 --- openssl/util/pl/VC-32.pl:1.1.3.1	Mon Mar  9 12:14:08 2009
