@@ -889,6 +889,7 @@ dst_key_tofile
 dst_key_unsettime
 dst_lib_destroy
 dst_lib_init
+dst_lib_init2
 dst_lib_initmsgcat
 dst_region_computeid
 dst_result_register
