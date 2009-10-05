@@ -1,3 +1,5 @@
+2705.	[placeholder]
+
 2704.	[bug]		Serial of dynamic and stub zones could be inconsistent
 			with their SOA serial.  [RT #19387]
 
