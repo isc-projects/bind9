@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.481 $)
+AC_REVISION($Revision: 1.482 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -710,21 +710,37 @@ AC_SUBST(ISC_OPENSSL_INC)
 
 AC_MSG_CHECKING(for PKCS11 support)
 AC_ARG_WITH(pkcs11,
-[  --with-pkcs11           Build with PKCS11 support],
-   use_pkcs11="yes", use_pkcs11="no")
+[  --with-pkcs11[=PATH]      Build with PKCS11 support [yes|no|path]
+                          (PATH is for the PKCS11 provider)],
+   use_pkcs11="$withval", use_pkcs11="no")
 
 case "$use_pkcs11" in
-	no)
+	no|'')
 		AC_MSG_RESULT(disabled)
-		USE_PKCS11=""
+		USE_PKCS11=''
 		;;
-	yes)
+	yes|*)
 		AC_MSG_RESULT(using OpenSSL with PKCS11 support)
 		USE_PKCS11='-DUSE_PKCS11'
 		;;
 esac
-
 AC_SUBST(USE_PKCS11)
+
+AC_MSG_CHECKING(for PKCS11 tools)
+case "$use_pkcs11" in
+	no|yes|'')
+		AC_MSG_RESULT(disabled)
+		PKCS11_PROVIDER="undefined"
+		PKCS11_TOOLS=''
+		;;
+       *)
+		AC_MSG_RESULT(PKCS11 provider is "$use_pkcs11")
+		PKCS11_PROVIDER="$use_pkcs11"
+		PKCS11_TOOLS=pkcs11
+		;;
+esac
+AC_SUBST(PKCS11_PROVIDER)
+AC_SUBST(PKCS11_TOOLS)
 
 AC_MSG_CHECKING(for GSSAPI library)
 AC_ARG_WITH(gssapi,
@@ -3179,6 +3195,7 @@ AC_CONFIG_FILES([
 	bin/tests/headerdep_test.sh
 	bin/tools/Makefile
 	bin/dnssec/Makefile
+	bin/pkcs11/Makefile
 	doc/Makefile
 	doc/arm/Makefile
 	doc/misc/Makefile

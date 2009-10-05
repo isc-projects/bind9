@@ -1,13 +1,25 @@
-/* pkcs11-destroy [-s $slot] [-i $id | -l $label] [-p $pin] */
+/* pkcs11-destroy [-m module] [-s $slot] [-i $id | -l $label] [-p $pin] */
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>
-#include <opencryptoki/pkcs11.h>
+#include "cryptoki.h"
+
+#ifdef WIN32
+#define sleep(x)	Sleep(x)
+#include "win32.c"
+#else
+#ifndef FORCE_STATIC_PROVIDER
+#include "unix.c"
+#endif
+#endif
+
+#if !(defined(HAVE_GETPASSPHRASE) || (defined (__SVR4) && defined (__sun)))
+#define getpassphrase(x)	getpass(x)
+#endif
 
 int
 main(int argc, char *argv[])
@@ -20,7 +32,7 @@ main(int argc, char *argv[])
     CK_OBJECT_HANDLE akey[50];
     char *label = NULL;
     int error = 0;
-    int id = 0, i = 0;
+    unsigned int id = 0, i = 0;
     int c, errflg = 0;
     CK_ULONG ulObjectCount;
     CK_ATTRIBUTE search_template[] = {
@@ -29,8 +41,11 @@ main(int argc, char *argv[])
     extern char *optarg;
     extern int optopt;
 
-    while ((c = getopt(argc, argv, ":s:i:l:p:")) != -1) {
+    while ((c = getopt(argc, argv, ":m:s:i:l:p:")) != -1) {
 	switch (c) {
+	case 'm':
+	    pk11_libname = optarg;
+	    break;
 	case 's':
 	    slot = atoi(optarg);
 	    break;
@@ -56,7 +71,8 @@ main(int argc, char *argv[])
     }
     if (errflg || ((!id) && (!label))) {
 	fprintf(stderr,
-		"usage: destroykey [-s slot] [-i id | -l label] [-p pin]\n");
+		"usage: pkcs11-destroy [-m module] [-s slot] "
+		"[-i id | -l label] [-p pin]\n");
 	exit(1);
     }
     if (id) {
@@ -73,7 +89,12 @@ main(int argc, char *argv[])
     /* Initialize the CRYPTOKI library */
     rv = C_Initialize(NULL_PTR);
     if (rv != CKR_OK) {
-	fprintf(stderr, "C_Initialize: Error = 0x%.8X\n", rv);
+	if (rv == 0xfe)
+	    fprintf(stderr,
+		    "Can't load or link module \"%s\"\n",
+		    pk11_libname);
+	else
+	    fprintf(stderr, "C_Initialize: Error = 0x%.8lX\n", rv);
 	exit(1);
     }
 
@@ -81,22 +102,18 @@ main(int argc, char *argv[])
     rv = C_OpenSession(slot, CKF_RW_SESSION+CKF_SERIAL_SESSION,
 		       NULL_PTR, NULL_PTR, &hSession);
     if (rv != CKR_OK) {
-	fprintf(stderr, "C_OpenSession: Error = 0x%.8X\n", rv);
+	fprintf(stderr, "C_OpenSession: Error = 0x%.8lX\n", rv);
 	error = 1;
 	goto exit_program;
     }
 
     /* Login to the Token (Keystore) */
     if (!pin)
-#ifndef HAVE_GETPASS
 	pin = (CK_UTF8CHAR *)getpassphrase("Enter Pin: ");
-#else
-	pin = (CK_UTF8CHAR *)getpass("Enter Pin: ");
-#endif
     rv = C_Login(hSession, CKU_USER, pin, strlen((char *)pin));
     memset(pin, 0, strlen((char *)pin));
     if (rv != CKR_OK) {
-	fprintf(stderr, "C_Login: Error = 0x%.8X\n", rv);
+	fprintf(stderr, "C_Login: Error = 0x%.8lX\n", rv);
 	error = 1;
 	goto exit_session;
     }
@@ -104,14 +121,14 @@ main(int argc, char *argv[])
     rv = C_FindObjectsInit(hSession, search_template,
 			   ((id != 0) || (label != NULL)) ? 1 : 0); 
     if (rv != CKR_OK) {
-	fprintf(stderr, "C_FindObjectsInit: Error = 0x%.8X\n", rv);
+	fprintf(stderr, "C_FindObjectsInit: Error = 0x%.8lX\n", rv);
 	error = 1;
 	goto exit_session;
     }
     
     rv = C_FindObjects(hSession, akey, 50, &ulObjectCount);
     if (rv != CKR_OK) {
-	fprintf(stderr, "C_FindObjects: Error = 0x%.8X\n", rv);
+	fprintf(stderr, "C_FindObjects: Error = 0x%.8lX\n", rv);
 	error = 1;
 	goto exit_search;
     }
@@ -125,22 +142,24 @@ main(int argc, char *argv[])
 	    {CKA_LABEL, labelbuf, sizeof(labelbuf) - 1},
 	    {CKA_ID, idbuf, sizeof(idbuf)}
 	};
-	int j, len;
+	unsigned int j, len;
 
 	memset(labelbuf, 0, sizeof(labelbuf));
 	memset(idbuf, 0, sizeof(idbuf));
 
 	rv = C_GetAttributeValue(hSession, akey[i], attr_template, 3);
 	if (rv != CKR_OK) {
-	    fprintf(stderr, "C_GetAttributeValue[%d]: rv = 0x%.8X\n", i, rv);
+	    fprintf(stderr, "C_GetAttributeValue[%u]: rv = 0x%.8lX\n", i, rv);
 	    error = 1;
 	    goto exit_search;
 	}
 	len = attr_template[2].ulValueLen;
-	printf("object[%d]: class %d label '%s' id[%u] ",
+	printf("object[%u]: class %lu label '%s' id[%lu] ",
 	       i, oclass, labelbuf, attr_template[2].ulValueLen);
 	if (len > 4)
 	    len = 4;
+	if (len > 0)
+	    printf("0x");
 	for (j = 0; j < len; j++)
 	    printf("%02x", idbuf[j]);
 	if (attr_template[2].ulValueLen > len)
@@ -156,7 +175,7 @@ main(int argc, char *argv[])
     for (i = 0; i < ulObjectCount; i++) {
 	rv = C_DestroyObject(hSession, akey[i]);
 	if (rv != CKR_OK) {
-	    fprintf(stderr, "C_DestroyObject[%d]: rv = 0x%.8X\n", i, rv);
+	    fprintf(stderr, "C_DestroyObject[%u]: rv = 0x%.8lX\n", i, rv);
 	    error = 1;
 	}
     }
@@ -164,7 +183,7 @@ main(int argc, char *argv[])
  exit_search:
     rv = C_FindObjectsFinal(hSession);
     if (rv != CKR_OK) {
-	fprintf(stderr, "C_FindObjectsFinal: Error = 0x%.8X\n", rv);
+	fprintf(stderr, "C_FindObjectsFinal: Error = 0x%.8lX\n", rv);
 	error = 1;
     }
 

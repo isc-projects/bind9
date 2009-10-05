@@ -1,13 +1,24 @@
-/* pkcs11-list [-P] [-s slot] [-i $id | -l $label] [-p $pin] */
+/* pkcs11-list [-P] [-m module] [-s slot] [-i $id | -l $label] [-p $pin] */
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>
-#include <opencryptoki/pkcs11.h>
+#include "cryptoki.h"
+
+#ifdef WIN32
+#include "win32.c"
+#else
+#ifndef FORCE_STATIC_PROVIDER
+#include "unix.c"
+#endif
+#endif
+
+#if !(defined(HAVE_GETPASSPHRASE) || (defined (__SVR4) && defined (__sun)))
+#define getpassphrase(x)	getpass(x)
+#endif
 
 int
 main(int argc, char *argv[])
@@ -20,7 +31,7 @@ main(int argc, char *argv[])
     CK_OBJECT_HANDLE akey[50];
     char *label = NULL;
     int error = 0, public = 0, all = 0;
-    int i = 0, id = 0;
+    unsigned int i = 0, id = 0;
     int c, errflg = 0;
     CK_ULONG ulObjectCount;
     CK_ATTRIBUTE search_template[] = {
@@ -29,10 +40,13 @@ main(int argc, char *argv[])
     extern char *optarg;
     extern int optopt;
 
-    while ((c = getopt(argc, argv, ":s:i:l:p:P")) != -1) {
+    while ((c = getopt(argc, argv, ":m:s:i:l:p:P")) != -1) {
 	switch (c) {
 	case 'P':
 	    public = 1;
+	    break;
+	case 'm':
+	    pk11_libname = optarg;
 	    break;
 	case 's':
 	    slot = atoi(optarg);
@@ -59,13 +73,14 @@ main(int argc, char *argv[])
     }
     if (errflg) {
 	fprintf(stderr,
-		"usage: listobjs [-P] [-s slot] [-p pin] -i id | $label\n");
+		"usage: pkcs11-list [-P] [-m module] [-s slot] "
+		"[-i id | -l label] [-p pin]\n");
 	exit(1);
     }
     if ((!id) && (!label))
 	all = 1;
     if (slot)
-	printf("slot %d\n", slot);
+	printf("slot %lu\n", slot);
     if (id) {
 	printf("id %i\n", id);
 	attr_id[0] = (id >> 8) & 0xff;
@@ -80,7 +95,12 @@ main(int argc, char *argv[])
     /* Initialize the CRYPTOKI library */
     rv = C_Initialize(NULL_PTR);
     if (rv != CKR_OK) {
-	fprintf(stderr, "C_Initialize: Error = 0x%.8X\n", rv);
+	if (rv == 0xfe)
+	    fprintf(stderr,
+		    "Can't load or link module \"%s\"\n",
+		    pk11_libname);
+	else
+	    fprintf(stderr, "C_Initialize: Error = 0x%.8lX\n", rv);
 	exit(1);
     }
 
@@ -88,7 +108,7 @@ main(int argc, char *argv[])
     rv = C_OpenSession(slot, CKF_SERIAL_SESSION,
 		       NULL_PTR, NULL_PTR, &hSession);
     if (rv != CKR_OK) {
-	fprintf(stderr, "C_OpenSession: Error = 0x%.8X\n", rv);
+	fprintf(stderr, "C_OpenSession: Error = 0x%.8lX\n", rv);
 	error = 1;
 	goto exit_program;
     }
@@ -96,15 +116,11 @@ main(int argc, char *argv[])
     /* Login to the Token (Keystore) */
     if (!public) {
 	if (!pin)
-#ifndef HAVE_GETPASS
 	    pin = (CK_UTF8CHAR *)getpassphrase("Enter Pin: ");
-#else
-	    pin = (CK_UTF8CHAR *)getpass("Enter Pin: ");
-#endif
 	rv = C_Login(hSession, CKU_USER, pin, strlen((char *)pin));
 	memset(pin, 0, strlen((char *)pin));
 	if (rv != CKR_OK) {
-	    fprintf(stderr, "C_Login: Error = 0x%.8X\n", rv);
+	    fprintf(stderr, "C_Login: Error = 0x%.8lX\n", rv);
 	    error = 1;
 	    goto exit_session;
 	}
@@ -112,7 +128,7 @@ main(int argc, char *argv[])
 
     rv = C_FindObjectsInit(hSession, search_template, all ? 0 : 1); 
     if (rv != CKR_OK) {
-	fprintf(stderr, "C_FindObjectsInit: Error = 0x%.8X\n", rv);
+	fprintf(stderr, "C_FindObjectsInit: Error = 0x%.8lX\n", rv);
 	error = 1;
 	goto exit_session;
     }
@@ -121,7 +137,7 @@ main(int argc, char *argv[])
     while (ulObjectCount) {
 	rv = C_FindObjects(hSession, akey, 50, &ulObjectCount);
 	if (rv != CKR_OK) {
-	    fprintf(stderr, "C_FindObjects: Error = 0x%.8X\n", rv);
+	    fprintf(stderr, "C_FindObjects: Error = 0x%.8lX\n", rv);
 	    error = 1;
 	    goto exit_search;
 	}
@@ -135,7 +151,7 @@ main(int argc, char *argv[])
 		{CKA_LABEL, labelbuf, sizeof(labelbuf) - 1},
 		{CKA_ID, idbuf, sizeof(idbuf)}
 	    };
-	    int j, len;
+	    unsigned int j, len;
 
 	    memset(labelbuf, 0, sizeof(labelbuf));
 	    memset(idbuf, 0, sizeof(idbuf));
@@ -143,9 +159,9 @@ main(int argc, char *argv[])
 	    rv = C_GetAttributeValue(hSession, akey[i], attr_template, 3);
 	    if (rv != CKR_OK) {
 		fprintf(stderr,
-			"C_GetAttributeValue[%d]: rv = 0x%.8X\n", i, rv);
-		if (rv = CKR_BUFFER_TOO_SMALL)
-		    fprintf(stderr, "%d too small: %u %u %u\n", i,
+			"C_GetAttributeValue[%u]: rv = 0x%.8lX\n", i, rv);
+		if (rv == CKR_BUFFER_TOO_SMALL)
+		    fprintf(stderr, "%u too small: %lu %lu %lu\n", i,
 			    attr_template[0].ulValueLen,
 			    attr_template[1].ulValueLen,
 			    attr_template[2].ulValueLen);
@@ -154,17 +170,20 @@ main(int argc, char *argv[])
 	    }
 
 	    len = attr_template[2].ulValueLen;
-	    printf("object[%d]: handle %u class %d label[%u] '%s' id[%u] ",
+	    printf("object[%u]: handle %lu class %lu "
+		   "label[%lu] '%s' id[%lu] ",
 		   i, akey[i], oclass,
 		   attr_template[1].ulValueLen, labelbuf,
 		   attr_template[2].ulValueLen);
 	    if (len == 2) {
 		id = (idbuf[0] << 8) & 0xff00;
 		id |= idbuf[1] & 0xff;
-		printf("%i\n", id);
+		printf("%u\n", id);
 	    } else {
 		if (len > 8)
 		    len = 8;
+		if (len > 0)
+		    printf("0x");
 		for (j = 0; j < len; j++)
 		    printf("%02x", idbuf[j]);
 		if (attr_template[2].ulValueLen > len)
@@ -178,7 +197,7 @@ main(int argc, char *argv[])
  exit_search:
     rv = C_FindObjectsFinal(hSession);
     if (rv != CKR_OK) {
-	fprintf(stderr, "C_FindObjectsFinal: Error = 0x%.8X\n", rv);
+	fprintf(stderr, "C_FindObjectsFinal: Error = 0x%.8lX\n", rv);
 	error = 1;
     }
 

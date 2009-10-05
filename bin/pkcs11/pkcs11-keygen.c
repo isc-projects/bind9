@@ -6,18 +6,29 @@
  * it into a zone file.
  *
  * usage:
- * pkcs11-keygen [-P] [-s slot] -b keysize -l label [-p pin] 
+ * pkcs11-keygen [-P] [-m module] [-s slot] -b keysize -l label [-p pin] 
  *
  */
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>
-#include <opencryptoki/pkcs11.h>
+#include "cryptoki.h"
+
+#ifdef WIN32
+#include "win32.c"
+#else
+#ifndef FORCE_STATIC_PROVIDER
+#include "unix.c"
+#endif
+#endif
+
+#if !(defined(HAVE_GETPASSPHRASE) || (defined (__SVR4) && defined (__sun)))
+#define getpassphrase(x)	getpass(x)
+#endif
 
 /* Define static key template values */
 static CK_BBOOL truevalue = TRUE;
@@ -36,7 +47,6 @@ main(int argc, char *argv[])
     CK_OBJECT_HANDLE privatekey, publickey;
     CK_BYTE public_exponent[3];
     int error = 0;
-    int i = 0;
     int c, errflg = 0;
     int hide = 1;
     CK_ULONG ulObjectCount;
@@ -62,10 +72,13 @@ main(int argc, char *argv[])
     extern char *optarg;
     extern int optopt;
     
-    while ((c = getopt(argc, argv, ":Ps:b:i:l:p:")) != -1) {
+    while ((c = getopt(argc, argv, ":Pm:s:b:i:l:p:")) != -1) {
         switch (c) {
 	case 'P':
 	    hide = 0;
+	    break;
+	case 'm':
+	    pk11_libname = optarg;
 	    break;
 	case 's':
 	    slot = atoi(optarg);
@@ -91,7 +104,8 @@ main(int argc, char *argv[])
     }
     if ((errflg) || (!modulusbits) || (!label)) {
         fprintf(stderr,
-		"usage: genkey [-P] [-s slot] -b keysize -l label [-p pin]\n");
+		"usage: pkcs11-keygen [-P] [-m module] [-s slot] "
+		"-b keysize -l label [-p pin]\n");
         exit(2);
     }
     
@@ -116,7 +130,12 @@ main(int argc, char *argv[])
     rv = C_Initialize(NULL_PTR);
 
     if (rv != CKR_OK) {
-        fprintf(stderr, "C_Initialize: Error = 0x%.8X\n", rv);
+	if (rv == 0xfe)
+	    fprintf(stderr,
+		    "Can't load or link module \"%s\"\n",
+		    pk11_libname);
+	else
+	    fprintf(stderr, "C_Initialize: Error = 0x%.8lX\n", rv);
 	exit(1);
     }
 
@@ -125,22 +144,18 @@ main(int argc, char *argv[])
 		       NULL_PTR, NULL_PTR, &hSession);
 
     if (rv != CKR_OK) {
-	fprintf(stderr, "C_OpenSession: Error = 0x%.8X\n", rv);
+	fprintf(stderr, "C_OpenSession: Error = 0x%.8lX\n", rv);
 	error = 1;
 	goto exit_program;
     }
 
     /* Login to the Token (Keystore) */
     if (!pin)
-#ifndef HAVE_GETPASS
         pin = (CK_UTF8CHAR *)getpassphrase("Enter Pin: ");
-#else
-        pin = (CK_UTF8CHAR *)getpass("Enter Pin: ");
-#endif
     rv = C_Login(hSession, CKU_USER, pin, strlen((char *)pin));
     memset(pin, 0, strlen((char *)pin));
     if (rv != CKR_OK) {
-	fprintf(stderr, "C_Login: Error = 0x%.8X\n", rv);
+	fprintf(stderr, "C_Login: Error = 0x%.8lX\n", rv);
         error = 1;
         goto exit_session;
     }
@@ -148,13 +163,13 @@ main(int argc, char *argv[])
     /* check if a key with the same id already exists */
     rv = C_FindObjectsInit(hSession, search_template, 1); 
     if (rv != CKR_OK) {
-        fprintf(stderr, "C_FindObjectsInit: Error = 0x%.8X\n", rv);
+        fprintf(stderr, "C_FindObjectsInit: Error = 0x%.8lX\n", rv);
         error = 1;
         goto exit_session;
     }
     rv = C_FindObjects(hSession, &privatekey, 1, &ulObjectCount);
     if (rv != CKR_OK) {
-        fprintf(stderr, "C_FindObjects: Error = 0x%.8X\n", rv);
+        fprintf(stderr, "C_FindObjects: Error = 0x%.8lX\n", rv);
         error = 1;
         goto exit_search;
     }
@@ -180,14 +195,14 @@ main(int argc, char *argv[])
 			   &publickey, &privatekey);
         
     if (rv != CKR_OK) {
-        fprintf(stderr, "C_GenerateKeyPair: Error = 0x%.8X\n", rv);
+        fprintf(stderr, "C_GenerateKeyPair: Error = 0x%.8lX\n", rv);
         error = 1;
     }
     
  exit_search:
     rv = C_FindObjectsFinal(hSession);
     if (rv != CKR_OK) {
-        fprintf(stderr, "C_FindObjectsFinal: Error = 0x%.8X\n", rv);
+        fprintf(stderr, "C_FindObjectsFinal: Error = 0x%.8lX\n", rv);
         error = 1;
     }
 
