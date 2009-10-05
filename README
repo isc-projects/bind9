@@ -47,12 +47,9 @@ BIND 9.7.0
 	BIND 9.7.0 includes a number of changes from BIND 9.6 and earlier
 	releases.  Most are intended to simplify DNSSEC configuration.
 
-	Please note that configuration syntax and APIs for new features
-	are still experimental and are subject to change before the final
-	release.
-
 	New features include:
 
+	- Fully automatic signing of zones by "named"
 	- Simplified configuration of DNSSEC Lookaside Validation (DLV).
 	- Simplified configuration of Dynamic DNS, using the "ddns-confgen"
 	  command line tool or the "local" update-policy option.  (As a side
@@ -73,13 +70,8 @@ BIND 9.7.0
           a stack backtrace on assertion failure, to aid in debugging.
         - A "tools only" installation mode on Windows, which only installs
           dig, host, nslookup and nsupdate.
-        - Improved PKCS#11 support, including Keyper support (see
-          README.pkcs11 for additional details).
-
-	Planned but not complete in this alpha:
-
-	- Fully automatic signing of zones by "named"
-        - Additional PKCS#11 support, including multiple OpenSSL engines
+        - Improved PKCS#11 support, including Keyper support and explicit
+          OpenSSL engine selection (see README.pkcs11 for additional details).
 
 BIND 9.6.0
 
