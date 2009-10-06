@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keyfromlabel.c,v 1.19 2009/10/06 22:58:45 each Exp $ */
+/* $Id: dnssec-keyfromlabel.c,v 1.20 2009/10/06 23:22:51 each Exp $ */
 
 /*! \file */
 
@@ -28,6 +28,7 @@
 #include <isc/entropy.h>
 #include <isc/mem.h>
 #include <isc/region.h>
+#include <isc/print.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
