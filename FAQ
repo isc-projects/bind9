@@ -153,8 +153,8 @@ A: BIND 9.3 and later: Use TSIG to select the appropriate view.
 
    Master 10.0.1.1:
            key "external" {
-                   algorithm hmac-md5;
-                   secret "xxxxxxxx";
+                   algorithm hmac-sha256;
+                   secret "xxxxxxxxxxxxxxxxxxxxxxxx";
            };
            view "internal" {
                    match-clients { !key external; // reject message ment for the
@@ -174,8 +174,8 @@ A: BIND 9.3 and later: Use TSIG to select the appropriate view.
 
    Slave 10.0.1.2:
            key "external" {
-                   algorithm hmac-md5;
-                   secret "xxxxxxxx";
+                   algorithm hmac-sha256;
+                   secret "xxxxxxxxxxxxxxxxxxxxxxxx";
            };
            view "internal" {
                    match-clients { !key external; 10.0.1/24; };
@@ -225,13 +225,13 @@ A: You choose one view to be master and the second a slave and transfer
 
    Master 10.0.1.1:
            key "external" {
-                   algorithm hmac-md5;
-                   secret "xxxxxxxx";
+                   algorithm hmac-sha256;
+                   secret "xxxxxxxxxxxxxxxxxxxxxxxx";
            };
 
            key "mykey" {
-                   algorithm hmac-md5;
-                   secret "yyyyyyyy";
+                   algorithm hmac-sha256;
+                   secret "yyyyyyyyyyyyyyyyyyyyyyyy";
            };
 
            view "internal" {
