@@ -259,6 +259,9 @@ rt20257a			new	fdupont	// 2009-09-28 08:58 +0000
 rt20304				new	each	// 2009-09-24 22:57 +0000
 rt20310				new	each	// 2009-09-25 00:29 +0000
 rt20339				new	vjs	// 2009-09-29 20:44 +0000
+rt20369				new	fdupont	// 2009-10-06 08:41 +0000
+rt20369a			new	fdupont	// 2009-10-06 14:25 +0000
+rt20372				new	each	// 2009-10-06 22:08 +0000
 shane_dbbackend			open	
 skan				open	explorer
 skan-metazones1			private	explorer
