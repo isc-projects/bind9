@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-keygen.8,v 1.48 2009/09/15 01:14:41 tbox Exp $
+.\" $Id: dnssec-keygen.8,v 1.49 2009/10/06 01:14:41 tbox Exp $
 .\"
 .hy 0
 .ad l
@@ -33,7 +33,7 @@
 dnssec\-keygen \- DNSSEC key generation tool
 .SH "SYNOPSIS"
 .HP 14
-\fBdnssec\-keygen\fR [\fB\-a\ \fR\fB\fIalgorithm\fR\fR] [\fB\-b\ \fR\fB\fIkeysize\fR\fR] [\fB\-n\ \fR\fB\fInametype\fR\fR] [\fB\-3\fR] [\fB\-A\ \fR\fB\fIdate/offset\fR\fR] [\fB\-C\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-D\ \fR\fB\fIdate/offset\fR\fR] [\fB\-e\fR] [\fB\-f\ \fR\fB\fIflag\fR\fR] [\fB\-G\fR] [\fB\-g\ \fR\fB\fIgenerator\fR\fR] [\fB\-h\fR] [\fB\-I\ \fR\fB\fIdate/offset\fR\fR] [\fB\-K\ \fR\fB\fIdirectory\fR\fR] [\fB\-k\fR] [\fB\-P\ \fR\fB\fIdate/offset\fR\fR] [\fB\-p\ \fR\fB\fIprotocol\fR\fR] [\fB\-R\ \fR\fB\fIdate/offset\fR\fR] [\fB\-r\ \fR\fB\fIrandomdev\fR\fR] [\fB\-s\ \fR\fB\fIstrength\fR\fR] [\fB\-t\ \fR\fB\fItype\fR\fR] [\fB\-v\ \fR\fB\fIlevel\fR\fR] [\fB\-z\fR] {name}
+\fBdnssec\-keygen\fR [\fB\-a\ \fR\fB\fIalgorithm\fR\fR] [\fB\-b\ \fR\fB\fIkeysize\fR\fR] [\fB\-n\ \fR\fB\fInametype\fR\fR] [\fB\-3\fR] [\fB\-A\ \fR\fB\fIdate/offset\fR\fR] [\fB\-C\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-D\ \fR\fB\fIdate/offset\fR\fR] [\fB\-E\ \fR\fB\fIengine\fR\fR] [\fB\-e\fR] [\fB\-f\ \fR\fB\fIflag\fR\fR] [\fB\-G\fR] [\fB\-g\ \fR\fB\fIgenerator\fR\fR] [\fB\-h\fR] [\fB\-I\ \fR\fB\fIdate/offset\fR\fR] [\fB\-K\ \fR\fB\fIdirectory\fR\fR] [\fB\-k\fR] [\fB\-P\ \fR\fB\fIdate/offset\fR\fR] [\fB\-p\ \fR\fB\fIprotocol\fR\fR] [\fB\-R\ \fR\fB\fIdate/offset\fR\fR] [\fB\-r\ \fR\fB\fIrandomdev\fR\fR] [\fB\-s\ \fR\fB\fIstrength\fR\fR] [\fB\-t\ \fR\fB\fItype\fR\fR] [\fB\-v\ \fR\fB\fIlevel\fR\fR] [\fB\-z\fR] {name}
 .SH "DESCRIPTION"
 .PP
 \fBdnssec\-keygen\fR
@@ -94,6 +94,11 @@ option suppresses them.
 \-c \fIclass\fR
 .RS 4
 Indicates that the DNS record containing the key should have the specified class. If not specified, class IN is used.
+.RE
+.PP
+\-E \fIengine\fR
+.RS 4
+Uses a crypto hardware (OpenSSL engine) for random number and, when supported, key generation. When compiled with PKCS#11 support it defaults to pcks11, the empty name resets it to no engine.
 .RE
 .PP
 \-e

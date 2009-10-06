@@ -13,7 +13,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: dnssec-keyfromlabel.html,v 1.10 2009/09/15 01:14:41 tbox Exp $ -->
+<!-- $Id: dnssec-keyfromlabel.html,v 1.11 2009/10/06 01:14:41 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -28,10 +28,10 @@
 </div>
 <div class="refsynopsisdiv">
 <h2>Synopsis</h2>
-<div class="cmdsynopsis"><p><code class="command">dnssec-keyfromlabel</code>  {-a <em class="replaceable"><code>algorithm</code></em>} {-l <em class="replaceable"><code>label</code></em>} [<code class="option">-A <em class="replaceable"><code>date/offset</code></em></code>] [<code class="option">-c <em class="replaceable"><code>class</code></em></code>] [<code class="option">-D <em class="replaceable"><code>date/offset</code></em></code>] [<code class="option">-f <em class="replaceable"><code>flag</code></em></code>] [<code class="option">-G</code>] [<code class="option">-I <em class="replaceable"><code>date/offset</code></em></code>] [<code class="option">-k</code>] [<code class="option">-K <em class="replaceable"><code>directory</code></em></code>] [<code class="option">-n <em class="replaceable"><code>nametype</code></em></code>] [<code class="option">-P <em class="replaceable"><code>date/offset</code></em></code>] [<code class="option">-p <em class="replaceable"><code>protocol</code></em></code>] [<code class="option">-R <em class="replaceable"><code>date/offset</code></em></code>] [<code class="option">-t <em class="replaceable"><code>type</code></em></code>] [<code class="option">-v <em class="replaceable"><code>level</code></em></code>] {name}</p></div>
+<div class="cmdsynopsis"><p><code class="command">dnssec-keyfromlabel</code>  {-a <em class="replaceable"><code>algorithm</code></em>} {-l <em class="replaceable"><code>label</code></em>} [<code class="option">-A <em class="replaceable"><code>date/offset</code></em></code>] [<code class="option">-c <em class="replaceable"><code>class</code></em></code>] [<code class="option">-D <em class="replaceable"><code>date/offset</code></em></code>] [<code class="option">-E <em class="replaceable"><code>engine</code></em></code>] [<code class="option">-f <em class="replaceable"><code>flag</code></em></code>] [<code class="option">-G</code>] [<code class="option">-I <em class="replaceable"><code>date/offset</code></em></code>] [<code class="option">-k</code>] [<code class="option">-K <em class="replaceable"><code>directory</code></em></code>] [<code class="option">-n <em class="replaceable"><code>nametype</code></em></code>] [<code class="option">-P <em class="replaceable"><code>date/offset</code></em></code>] [<code class="option">-p <em class="replaceable"><code>protocol</code></em></code>] [<code class="option">-R <em class="replaceable"><code>date/offset</code></em></code>] [<code class="option">-t <em class="replaceable"><code>type</code></em></code>] [<code class="option">-v <em class="replaceable"><code>level</code></em></code>] {name}</p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543472"></a><h2>DESCRIPTION</h2>
+<a name="id2543480"></a><h2>DESCRIPTION</h2>
 <p><span><strong class="command">dnssec-keyfromlabel</strong></span>
       gets keys with the given label from a crypto hardware and builds
       key files for DNSSEC (Secure DNS), as defined in RFC 2535
@@ -44,7 +44,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543490"></a><h2>OPTIONS</h2>
+<a name="id2543498"></a><h2>OPTIONS</h2>
 <div class="variablelist"><dl>
 <dt><span class="term">-a <em class="replaceable"><code>algorithm</code></em></span></dt>
 <dd>
@@ -62,10 +62,16 @@
             Note 2: DH automatically sets the -k flag.
           </p>
 </dd>
+<dt><span class="term">-E <em class="replaceable"><code>engine</code></em></span></dt>
+<dd><p>
+            Specifies the name of the crypto hardware (OpenSSL engine).
+            When compiled with PKCS#11 support it defaults to pcks11.
+          </p></dd>
 <dt><span class="term">-l <em class="replaceable"><code>label</code></em></span></dt>
 <dd><p>
-            Specifies the label of keys in the crypto hardware
-            (PKCS#11 device).
+            Specifies the label of keys in the crypto hardware (OpenSSL
+            engine). An example for the pkcs11 engine is pkcs11:foo
+            (note the string pkcs11 is in both E and l options.)
           </p></dd>
 <dt><span class="term">-n <em class="replaceable"><code>nametype</code></em></span></dt>
 <dd><p>
@@ -135,7 +141,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543734"></a><h2>TIMING OPTIONS</h2>
+<a name="id2543828"></a><h2>TIMING OPTIONS</h2>
 <p>
       Dates can be expressed in the format YYYYMMDD or YYYYMMDDHHMMSS.
       If the argument begins with a '+' or '-', it is interpreted as
@@ -182,7 +188,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543969"></a><h2>GENERATED KEY FILES</h2>
+<a name="id2543994"></a><h2>GENERATED KEY FILES</h2>
 <p>
       When <span><strong class="command">dnssec-keyfromlabel</strong></span> completes
       successfully,
@@ -221,7 +227,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544041"></a><h2>SEE ALSO</h2>
+<a name="id2544067"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">dnssec-keygen</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">dnssec-signzone</span>(8)</span>,
       <em class="citetitle">BIND 9 Administrator Reference Manual</em>,
@@ -231,7 +237,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544081"></a><h2>AUTHOR</h2>
+<a name="id2544106"></a><h2>AUTHOR</h2>
 <p><span class="corpauthor">Internet Systems Consortium</span>
     </p>
 </div>

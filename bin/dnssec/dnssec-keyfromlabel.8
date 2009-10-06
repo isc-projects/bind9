@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-keyfromlabel.8,v 1.11 2009/09/15 01:14:41 tbox Exp $
+.\" $Id: dnssec-keyfromlabel.8,v 1.12 2009/10/06 01:14:41 tbox Exp $
 .\"
 .hy 0
 .ad l
@@ -32,7 +32,7 @@
 dnssec\-keyfromlabel \- DNSSEC key generation tool
 .SH "SYNOPSIS"
 .HP 20
-\fBdnssec\-keyfromlabel\fR {\-a\ \fIalgorithm\fR} {\-l\ \fIlabel\fR} [\fB\-A\ \fR\fB\fIdate/offset\fR\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-D\ \fR\fB\fIdate/offset\fR\fR] [\fB\-f\ \fR\fB\fIflag\fR\fR] [\fB\-G\fR] [\fB\-I\ \fR\fB\fIdate/offset\fR\fR] [\fB\-k\fR] [\fB\-K\ \fR\fB\fIdirectory\fR\fR] [\fB\-n\ \fR\fB\fInametype\fR\fR] [\fB\-P\ \fR\fB\fIdate/offset\fR\fR] [\fB\-p\ \fR\fB\fIprotocol\fR\fR] [\fB\-R\ \fR\fB\fIdate/offset\fR\fR] [\fB\-t\ \fR\fB\fItype\fR\fR] [\fB\-v\ \fR\fB\fIlevel\fR\fR] {name}
+\fBdnssec\-keyfromlabel\fR {\-a\ \fIalgorithm\fR} {\-l\ \fIlabel\fR} [\fB\-A\ \fR\fB\fIdate/offset\fR\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-D\ \fR\fB\fIdate/offset\fR\fR] [\fB\-E\ \fR\fB\fIengine\fR\fR] [\fB\-f\ \fR\fB\fIflag\fR\fR] [\fB\-G\fR] [\fB\-I\ \fR\fB\fIdate/offset\fR\fR] [\fB\-k\fR] [\fB\-K\ \fR\fB\fIdirectory\fR\fR] [\fB\-n\ \fR\fB\fInametype\fR\fR] [\fB\-P\ \fR\fB\fIdate/offset\fR\fR] [\fB\-p\ \fR\fB\fIprotocol\fR\fR] [\fB\-R\ \fR\fB\fIdate/offset\fR\fR] [\fB\-t\ \fR\fB\fItype\fR\fR] [\fB\-v\ \fR\fB\fIlevel\fR\fR] {name}
 .SH "DESCRIPTION"
 .PP
 \fBdnssec\-keyfromlabel\fR
@@ -54,9 +54,14 @@ Note 1: that for DNSSEC, RSASHA1 is a mandatory to implement algorithm, and DSA 
 Note 2: DH automatically sets the \-k flag.
 .RE
 .PP
+\-E \fIengine\fR
+.RS 4
+Specifies the name of the crypto hardware (OpenSSL engine). When compiled with PKCS#11 support it defaults to pcks11.
+.RE
+.PP
 \-l \fIlabel\fR
 .RS 4
-Specifies the label of keys in the crypto hardware (PKCS#11 device).
+Specifies the label of keys in the crypto hardware (OpenSSL engine). An example for the pkcs11 engine is pkcs11:foo (note the string pkcs11 is in both E and l options.)
 .RE
 .PP
 \-n \fInametype\fR
