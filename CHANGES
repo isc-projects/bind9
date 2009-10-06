@@ -1,3 +1,10 @@
+2707.	[func]		dnssec-keyfromlabel no longer require engine name
+			to be specified in the label if there is a default
+			engine or the -E option has been used.  Also, it
+			now uses default algorithms as dnssec-keygen does
+			(i.e., RSASHA1, or NSEC3RSASHA1 if -3 is used).
+			[RT #20371]
+
 2706.	[bug]		Loading a zone with a very large NSEC3 salt could
 			trigger an assert. [RT #20368]
 

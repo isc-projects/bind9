@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.99 2009/10/05 17:30:49 fdupont Exp $ */
+/* $Id: dnssec-keygen.c,v 1.100 2009/10/06 22:58:45 each Exp $ */
 
 /*! \file */
 
@@ -65,8 +65,6 @@ int verbose;
 
 #define DEFAULT_ALGORITHM "RSASHA1"
 #define DEFAULT_NSEC3_ALGORITHM "NSEC3RSASHA1"
-
-#define DEFAULT_ALGORITHM "RSASHA1"
 
 static isc_boolean_t
 dsa_size_ok(int size) {

@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keyfromlabel.c,v 1.18 2009/10/05 17:30:49 fdupont Exp $ */
+/* $Id: dnssec-keyfromlabel.c,v 1.19 2009/10/06 22:58:45 each Exp $ */
 
 /*! \file */
 
@@ -48,6 +48,9 @@
 const char *program = "dnssec-keyfromlabel";
 int verbose;
 
+#define DEFAULT_ALGORITHM "RSASHA1"
+#define DEFAULT_NSEC3_ALGORITHM "NSEC3RSASHA1"
+
 static const char *algs = "RSA | RSAMD5 | DH | DSA | RSASHA1 |"
 			  " NSEC3DSA | NSEC3RSASHA1";
 
@@ -57,22 +60,22 @@ usage(void) ISC_PLATFORM_NORETURN_POST;
 static void
 usage(void) {
 	fprintf(stderr, "Usage:\n");
-	fprintf(stderr, "    %s -a alg -l label [options] name\n\n",
+	fprintf(stderr, "    %s -l label [options] name\n\n",
 		program);
 	fprintf(stderr, "Version: %s\n", VERSION);
 	fprintf(stderr, "Required options:\n");
-	fprintf(stderr, "    -a algorithm: %s\n", algs);
 	fprintf(stderr, "    -l label: label of the key pair\n");
-#ifdef USE_PKCS11
-	fprintf(stderr, "      (for instance \"pkcs11:foo\"\n");
-#else
-	fprintf(stderr, "    -E enginename\n");
-#endif
 	fprintf(stderr, "    name: owner of the key\n");
 	fprintf(stderr, "Other options:\n");
+	fprintf(stderr, "    -a algorithm: %s\n", algs);
+	fprintf(stderr, "       (default: RSASHA1, or "
+			       "NSEC3RSASHA1 if using -3)\n");
+	fprintf(stderr, "    -3: use NSEC3-capable algorithm\n");
 	fprintf(stderr, "    -c class (default: IN)\n");
 #ifdef USE_PKCS11
 	fprintf(stderr, "    -E enginename (default: pkcs11)\n");
+#else
+	fprintf(stderr, "    -E enginename\n");
 #endif
 	fprintf(stderr, "    -f keyflag: KSK | REVOKE\n");
 	fprintf(stderr, "    -K directory: directory in which to place "
@@ -140,6 +143,7 @@ main(int argc, char **argv) {
 	isc_boolean_t	unsetrev = ISC_FALSE, unsetinact = ISC_FALSE;
 	isc_boolean_t	unsetdel = ISC_FALSE;
 	isc_boolean_t	genonly = ISC_FALSE;
+	isc_boolean_t	use_nsec3 = ISC_FALSE;
 
 	if (argc == 1)
 		usage();
@@ -153,9 +157,12 @@ main(int argc, char **argv) {
 	isc_stdtime_get(&now);
 
 	while ((ch = isc_commandline_parse(argc, argv,
-				"a:Cc:E:f:K:kl:n:p:t:v:FhGP:A:R:I:D:")) != -1)
+				"3a:Cc:E:f:K:kl:n:p:t:v:FhGP:A:R:I:D:")) != -1)
 	{
 	    switch (ch) {
+		case '3':
+			use_nsec3 = ISC_TRUE;
+			break;
 		case 'a':
 			algname = isc_commandline_argument;
 			break;
@@ -301,8 +308,27 @@ main(int argc, char **argv) {
 	if (argc > isc_commandline_index + 1)
 		fatal("extraneous arguments");
 
-	if (algname == NULL)
-		fatal("no algorithm was specified");
+	if (strchr(label, ':') == NULL &&
+	    engine != NULL && strlen(engine) != 0) {
+		char *l;
+		int len;
+
+		len = strlen(label) + strlen(engine) + 2;
+		l = isc_mem_get(mctx, len);
+		snprintf(l, len, "%s:%s", engine, label);
+		label = l;
+	}
+
+	if (algname == NULL) {
+		if (use_nsec3)
+			algname = strdup(DEFAULT_NSEC3_ALGORITHM);
+		else
+			algname = strdup(DEFAULT_ALGORITHM);
+		if (verbose > 0)
+			fprintf(stderr, "no algorithm specified; "
+				"defaulting to %s\n", algname);
+	}
+
 	if (strcasecmp(algname, "RSA") == 0) {
 		fprintf(stderr, "The use of RSA (RSAMD5) is not recommended.\n"
 				"If you still wish to use RSA (RSAMD5) please "
@@ -316,6 +342,12 @@ main(int argc, char **argv) {
 			fatal("unknown algorithm %s", algname);
 		if (alg == DST_ALG_DH)
 			options |= DST_TYPE_KEY;
+	}
+
+	if (use_nsec3 &&
+	    alg != DST_ALG_NSEC3DSA && alg != DST_ALG_NSEC3RSASHA1) {
+		fatal("%s is incompatible with NSEC3; "
+		      "do not use the -3 option", algname);
 	}
 
 	if (type != NULL && (options & DST_TYPE_KEY) != 0) {
