@@ -80,6 +80,11 @@ main(int argc, char *argv[])
     CK_ULONG privatekey_attrcnt = 7;
     extern char *optarg;
     extern int optopt;
+    char *pk11_provider;
+
+    pk11_provider = getenv("PKCS11_PROVIDER");
+    if (pk11_provider != NULL)
+        pk11_libname = pk11_provider;
     
     while ((c = getopt(argc, argv, ":Pm:s:b:ei:l:p:")) != -1) {
         switch (c) {

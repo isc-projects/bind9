@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.482 $)
+AC_REVISION($Revision: 1.483 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -718,29 +718,29 @@ case "$use_pkcs11" in
 	no|'')
 		AC_MSG_RESULT(disabled)
 		USE_PKCS11=''
+		PKCS11_TOOLS=''
 		;;
 	yes|*)
 		AC_MSG_RESULT(using OpenSSL with PKCS11 support)
 		USE_PKCS11='-DUSE_PKCS11'
+		PKCS11_TOOLS=pkcs11
 		;;
 esac
 AC_SUBST(USE_PKCS11)
+AC_SUBST(PKCS11_TOOLS)
 
 AC_MSG_CHECKING(for PKCS11 tools)
 case "$use_pkcs11" in
 	no|yes|'')
 		AC_MSG_RESULT(disabled)
 		PKCS11_PROVIDER="undefined"
-		PKCS11_TOOLS=''
 		;;
        *)
 		AC_MSG_RESULT(PKCS11 provider is "$use_pkcs11")
 		PKCS11_PROVIDER="$use_pkcs11"
-		PKCS11_TOOLS=pkcs11
 		;;
 esac
 AC_SUBST(PKCS11_PROVIDER)
-AC_SUBST(PKCS11_TOOLS)
 
 AC_MSG_CHECKING(for GSSAPI library)
 AC_ARG_WITH(gssapi,
