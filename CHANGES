@@ -1,3 +1,6 @@
+2706.	[bug]		Loading a zone with a very large NSEC3 salt could
+			trigger an assert. [RT #20368]
+
 2705.	[bug]		Reconcile the XML stats version number with a later
                         BIND9 release, by adding a "name" attribute to
                         "cache" elements and increasing the version number
