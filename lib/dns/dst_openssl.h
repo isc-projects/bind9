@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_openssl.h,v 1.8 2009/10/05 17:30:49 fdupont Exp $ */
+/* $Id: dst_openssl.h,v 1.9 2009/10/06 04:40:14 tbox Exp $ */
 
 #ifndef DST_OPENSSL_H
 #define DST_OPENSSL_H 1
