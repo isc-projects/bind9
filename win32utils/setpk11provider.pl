@@ -14,16 +14,16 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setprovider,v 1.2 2009/10/05 13:02:31 fdupont Exp $
+# $Id: setpk11provider.pl,v 1.1 2009/10/06 22:14:13 each Exp $
 
-# setprovider
-# This script sets the provider name in the build scripts.
+# setpk11provider
+# This script sets the PKCS#11 provider name in the build scripts.
 #
-# for instance: setprovider bp201w32HSM
+# for instance: perl setpk11provider bp201w32HSM
 #
 
 if ($#ARGV != 0) {
-	die "Usage: perl setprovider <pkcs11_provider_dll_name>\n"
+	die "Usage: perl setpk11provider <pkcs11_provider_dll_name>\n"
 }
 
 my $provider=$ARGV[0];
@@ -31,9 +31,12 @@ my $provider=$ARGV[0];
 $provider =~ s|\.[dD][lL][lL]$||;
 
 # List of files that need to be updated
-@filelist = ("./keygen.mak", "./keygen.dsp",
-	     "./list.mak", "./list.dsp",
-	     "./destroy.mak", "./destroy.dsp");
+@filelist = ("../bin/pkcs11/win32/pk11keygen.mak",
+             "../bin/pkcs11/win32/pk11keygen.dsp",
+	     "../bin/pkcs11/win32/pk11list.mak",
+             "../bin/pkcs11/win32/pk11list.dsp",
+	     "../bin/pkcs11/win32/pk11destroy.mak",
+             "../bin/pkcs11/win32/pk11destroy.dsp");
 
 # function to replace the provider define
 sub updatefile {
