@@ -1,3 +1,6 @@
+2706.	[bug]		Loading a zone with a very large NSEC3 salt could
+			trigger an assert. [RT #20368]
+
 2705.	[placeholder]
 
 2704.	[bug]		Serial of dynamic and stub zones could be inconsistent

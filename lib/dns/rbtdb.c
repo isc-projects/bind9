@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.281 2009/10/03 23:48:10 tbox Exp $ */
+/* $Id: rbtdb.c,v 1.282 2009/10/06 21:20:45 each Exp $ */
 
 /*! \file */
 
@@ -383,7 +383,7 @@ typedef struct rbtdb_version {
 	isc_uint8_t			flags;
 	isc_uint16_t			iterations;
 	isc_uint8_t			salt_length;
-	unsigned char			salt[NSEC3_MAX_HASH_LENGTH];
+	unsigned char			salt[DNS_NSEC3_SALTSIZE];
 } rbtdb_version_t;
 
 typedef ISC_LIST(rbtdb_version_t)       rbtdb_versionlist_t;
@@ -2075,8 +2075,6 @@ setnsec3parameters(dns_db_t *db, rbtdb_version_t *version,
 					continue;
 #endif
 
-				INSIST(nsec3param.salt_length <=
-				       sizeof(version->salt));
 				memcpy(version->salt, nsec3param.salt,
 				       nsec3param.salt_length);
 				version->hash = nsec3param.hash;
@@ -6656,8 +6654,8 @@ getnsec3parameters(dns_db_t *db, dns_dbversion_t *version, dns_hash_t *hash,
 	if (rbtversion->havensec3) {
 		if (hash != NULL)
 			*hash = rbtversion->hash;
-		if (salt != NULL && salt_length != 0) {
-			REQUIRE(*salt_length > rbtversion->salt_length);
+		if (salt != NULL && salt_length != NULL) {
+			REQUIRE(*salt_length >= rbtversion->salt_length);
 			memcpy(salt, rbtversion->salt, rbtversion->salt_length);
 		}
 		if (salt_length != NULL)
