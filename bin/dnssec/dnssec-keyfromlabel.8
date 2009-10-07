@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-keyfromlabel.8,v 1.12 2009/10/06 01:14:41 tbox Exp $
+.\" $Id: dnssec-keyfromlabel.8,v 1.13 2009/10/07 01:14:42 tbox Exp $
 .\"
 .hy 0
 .ad l
@@ -32,7 +32,7 @@
 dnssec\-keyfromlabel \- DNSSEC key generation tool
 .SH "SYNOPSIS"
 .HP 20
-\fBdnssec\-keyfromlabel\fR {\-a\ \fIalgorithm\fR} {\-l\ \fIlabel\fR} [\fB\-A\ \fR\fB\fIdate/offset\fR\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-D\ \fR\fB\fIdate/offset\fR\fR] [\fB\-E\ \fR\fB\fIengine\fR\fR] [\fB\-f\ \fR\fB\fIflag\fR\fR] [\fB\-G\fR] [\fB\-I\ \fR\fB\fIdate/offset\fR\fR] [\fB\-k\fR] [\fB\-K\ \fR\fB\fIdirectory\fR\fR] [\fB\-n\ \fR\fB\fInametype\fR\fR] [\fB\-P\ \fR\fB\fIdate/offset\fR\fR] [\fB\-p\ \fR\fB\fIprotocol\fR\fR] [\fB\-R\ \fR\fB\fIdate/offset\fR\fR] [\fB\-t\ \fR\fB\fItype\fR\fR] [\fB\-v\ \fR\fB\fIlevel\fR\fR] {name}
+\fBdnssec\-keyfromlabel\fR {\-l\ \fIlabel\fR} [\fB\-3\fR] [\fB\-a\ \fR\fB\fIalgorithm\fR\fR] [\fB\-A\ \fR\fB\fIdate/offset\fR\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-D\ \fR\fB\fIdate/offset\fR\fR] [\fB\-E\ \fR\fB\fIengine\fR\fR] [\fB\-f\ \fR\fB\fIflag\fR\fR] [\fB\-G\fR] [\fB\-I\ \fR\fB\fIdate/offset\fR\fR] [\fB\-k\fR] [\fB\-K\ \fR\fB\fIdirectory\fR\fR] [\fB\-n\ \fR\fB\fInametype\fR\fR] [\fB\-P\ \fR\fB\fIdate/offset\fR\fR] [\fB\-p\ \fR\fB\fIprotocol\fR\fR] [\fB\-R\ \fR\fB\fIdate/offset\fR\fR] [\fB\-t\ \fR\fB\fItype\fR\fR] [\fB\-v\ \fR\fB\fIlevel\fR\fR] {name}
 .SH "DESCRIPTION"
 .PP
 \fBdnssec\-keyfromlabel\fR
@@ -49,19 +49,28 @@ Selects the cryptographic algorithm. The value of
 \fBalgorithm\fR
 must be one of RSAMD5 (RSA), RSASHA1, DSA, NSEC3RSASHA1, NSEC3DSA or DH (Diffie Hellman). These values are case insensitive.
 .sp
+If no algorithm is specified, then RSASHA1 will be used by default, unless the
+\fB\-3\fR
+option is specified, in which case NSEC3RSASHA1 will be used instead.
+.sp
 Note 1: that for DNSSEC, RSASHA1 is a mandatory to implement algorithm, and DSA is recommended.
 .sp
 Note 2: DH automatically sets the \-k flag.
 .RE
 .PP
+\-3
+.RS 4
+Use an NSEC3\-capable algorithm to generate a DNSSEC key. If this option is used and no algorithm is explicitly set on the command line, NSEC3RSASHA1 will be used by default.
+.RE
+.PP
 \-E \fIengine\fR
 .RS 4
-Specifies the name of the crypto hardware (OpenSSL engine). When compiled with PKCS#11 support it defaults to pcks11.
+Specifies the name of the crypto hardware (OpenSSL engine). When compiled with PKCS#11 support it defaults to "pcks11".
 .RE
 .PP
 \-l \fIlabel\fR
 .RS 4
-Specifies the label of keys in the crypto hardware (OpenSSL engine). An example for the pkcs11 engine is pkcs11:foo (note the string pkcs11 is in both E and l options.)
+Specifies the label of the key pair in the crypto hardware. The label may be preceded by an optional OpenSSL engine name, separated by a colon, as in "pkcs11:keylabel".
 .RE
 .PP
 \-n \fInametype\fR
