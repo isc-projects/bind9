@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.511 2009/10/08 23:48:10 tbox Exp $ */
+/* $Id: zone.c,v 1.512 2009/10/08 23:55:57 marka Exp $ */
 
 /*! \file */
 
@@ -6514,6 +6514,13 @@ zone_sign(dns_zone_t *zone) {
 		signing = nextsigning;
 		first = ISC_TRUE;
 	}
+
+	/*
+	 * Recompute check_ksk as it may have changed.
+	 */
+	check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
+	if (check_ksk)
+		check_ksk = ksk_sanity(db, version);
 
 	if (secureupdated) {
 		/*
