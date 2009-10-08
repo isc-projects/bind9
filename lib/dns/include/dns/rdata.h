@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.h,v 1.75 2009/10/08 23:13:07 marka Exp $ */
+/* $Id: rdata.h,v 1.76 2009/10/08 23:48:10 tbox Exp $ */
 
 #ifndef DNS_RDATA_H
 #define DNS_RDATA_H 1
@@ -128,13 +128,13 @@ struct dns_rdata {
 #define DNS_RDATA_CHECKINITIALIZED
 #ifdef DNS_RDATA_CHECKINITIALIZED
 #define DNS_RDATA_INITIALIZED(rdata) \
-        ((rdata)->data == NULL && (rdata)->length == 0 && \
-         (rdata)->rdclass == 0 && (rdata)->type == 0 && (rdata)->flags == 0 && \
-         !ISC_LINK_LINKED((rdata), link))
-#else   
+	((rdata)->data == NULL && (rdata)->length == 0 && \
+	 (rdata)->rdclass == 0 && (rdata)->type == 0 && (rdata)->flags == 0 && \
+	 !ISC_LINK_LINKED((rdata), link))
+#else
 #ifdef ISC_LIST_CHECKINIT
 #define DNS_RDATA_INITIALIZED(rdata) \
-        (!ISC_LINK_LINKED((rdata), link))
+	(!ISC_LINK_LINKED((rdata), link))
 #else
 #define DNS_RDATA_INITIALIZED(rdata) ISC_TRUE
 #endif
@@ -144,7 +144,7 @@ struct dns_rdata {
 #define DNS_RDATA_OFFLINE	0x0002		/*%< RRSIG has a offline key. */
 
 #define DNS_RDATA_VALIDFLAGS(rdata) \
-        (((rdata)->flags & ~(DNS_RDATA_UPDATE|DNS_RDATA_OFFLINE)) == 0)
+	(((rdata)->flags & ~(DNS_RDATA_UPDATE|DNS_RDATA_OFFLINE)) == 0)
 
 /*
  * Flags affecting rdata formatting style.  Flags 0xFFFF0000

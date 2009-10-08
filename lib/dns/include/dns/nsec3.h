@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3.h,v 1.9 2009/10/08 23:13:07 marka Exp $ */
+/* $Id: nsec3.h,v 1.10 2009/10/08 23:48:10 tbox Exp $ */
 
 #ifndef DNS_NSEC3_H
 #define DNS_NSEC3_H 1
@@ -220,7 +220,7 @@ dns_nsec3_maxiterations(dns_db_t *db, dns_dbversion_t *version,
 
 isc_boolean_t
 dns_nsec3param_fromprivate(dns_rdata_t *src, dns_rdata_t *target,
-                           unsigned char *buf, size_t buflen);
+			   unsigned char *buf, size_t buflen);
 /*%<
  * Convert a private rdata to a nsec3param rdata.
  *
@@ -231,8 +231,8 @@ dns_nsec3param_fromprivate(dns_rdata_t *src, dns_rdata_t *target,
 
 void
 dns_nsec3param_toprivate(dns_rdata_t *src, dns_rdata_t *target,
-                         dns_rdatatype_t privatetype,
-                         unsigned char *buf, size_t buflen);
+			 dns_rdatatype_t privatetype,
+			 unsigned char *buf, size_t buflen);
 /*%<
  * Convert a nsec3param rdata to a private rdata.
  *

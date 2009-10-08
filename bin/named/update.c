@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.160 2009/10/08 23:13:05 marka Exp $ */
+/* $Id: update.c,v 1.161 2009/10/08 23:48:09 tbox Exp $ */
 
 #include <config.h>
 
@@ -3474,7 +3474,7 @@ isdnssec(dns_db_t *db, dns_dbversion_t *ver, dns_rdatatype_t privatetype) {
 
 	if (dns_db_issecure(db))
 		return (ISC_TRUE);
-	
+
 	result = dns_private_chains(db, ver, privatetype,
 				    &build_nsec, &build_nsec3);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.510 2009/10/08 23:13:07 marka Exp $ */
+/* $Id: zone.c,v 1.511 2009/10/08 23:48:10 tbox Exp $ */
 
 /*! \file */
 
@@ -2309,7 +2309,7 @@ zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param) {
 	}
 	if (nsec3param->salt_length == 0)
 		strlcpy(saltbuf, "-", sizeof(saltbuf));
-	else 
+	else
 		for (i = 0; i < nsec3param->salt_length; i++)
 			sprintf(&saltbuf[i*2], "%02X", nsec3chain->salt[i]);
 	dns_zone_log(zone, ISC_LOG_INFO,
@@ -5014,7 +5014,7 @@ updatesignwithkey(dns_zone_t *zone, dns_signing_t *signing,
 	if (result != ISC_R_SUCCESS)
 		goto failure;
 
-	result = dns_db_findrdataset(signing->db, node, version, 
+	result = dns_db_findrdataset(signing->db, node, version,
 				     zone->privatetype, dns_rdatatype_none,
 				     0, &rdataset, NULL);
 	if (result == ISC_R_NOTFOUND) {
@@ -5073,7 +5073,7 @@ updatesignwithkey(dns_zone_t *zone, dns_signing_t *signing,
  * If 'active' is set then we are not done with the chain yet so only
  * delete the nsec3param record which indicates a full chain exists
  * (flags == 0).
- */ 
+ */
 static isc_result_t
 fixup_nsec3param(dns_db_t *db, dns_dbversion_t *ver, dns_nsec3chain_t *chain,
 		 isc_boolean_t active, dns_rdatatype_t privatetype,
@@ -5216,7 +5216,7 @@ delete_nsec(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node,
 				     0, 0, &rdataset, NULL);
 	if (result == ISC_R_NOTFOUND)
 		return (ISC_R_SUCCESS);
-	if (result != ISC_R_SUCCESS) 
+	if (result != ISC_R_SUCCESS)
 		return (result);
 	for (result = dns_rdataset_first(&rdataset);
 	     result == ISC_R_SUCCESS;
@@ -5387,7 +5387,7 @@ update_sigs(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *version,
 			dns_difftuple_t *next = ISC_LIST_NEXT(tuple, link);
 			while (next != NULL &&
 			       (tuple->rdata.type != next->rdata.type ||
-			        !dns_name_equal(&tuple->name, &next->name)))
+				!dns_name_equal(&tuple->name, &next->name)))
 				next = ISC_LIST_NEXT(next, link);
 			ISC_LIST_UNLINK(diff->tuples, tuple, link);
 			dns_diff_appendminimal(sig_diff, &tuple);
@@ -5733,8 +5733,8 @@ zone_nsec3chain(dns_zone_t *zone) {
 		if (first && !updatensec &&
 		    (nsec3chain->nsec3param.flags & DNS_NSEC3FLAG_NONSEC) == 0) {
 			result = need_nsec_chain(db, version,
-					         &nsec3chain->nsec3param,
-					         &buildnsecchain);
+						 &nsec3chain->nsec3param,
+						 &buildnsecchain);
 			if (result != ISC_R_SUCCESS) {
 				dns_zone_log(zone, ISC_LOG_ERROR,
 					     "zone_nsec3chain:"
@@ -5742,7 +5742,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 					     dns_result_totext(result));
 				goto failure;
 			}
-		}	
+		}
 
 		if (first)
 			dns_zone_log(zone, ISC_LOG_DEBUG(3), "zone_nsec3chain:"
@@ -5758,8 +5758,8 @@ zone_nsec3chain(dns_zone_t *zone) {
 			if (first) {
 				result = fixup_nsec3param(db, version,
 							  nsec3chain,
-						          ISC_TRUE, privatetype,
-						          &param_diff);
+							  ISC_TRUE, privatetype,
+							  &param_diff);
 				if (result != ISC_R_SUCCESS) {
 					dns_zone_log(zone, ISC_LOG_ERROR,
 						     "zone_nsec3chain:"
@@ -5873,7 +5873,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 				result = fixup_nsec3param(db, version,
 							  nsec3chain, ISC_FALSE,
 							  privatetype,
-						          &param_diff);
+							  &param_diff);
 				if (result != ISC_R_SUCCESS) {
 					dns_zone_log(zone, ISC_LOG_ERROR,
 						     "zone_nsec3chain:"

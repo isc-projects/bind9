@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3.c,v 1.9 2009/10/08 23:13:06 marka Exp $ */
+/* $Id: nsec3.c,v 1.10 2009/10/08 23:48:10 tbox Exp $ */
 
 #include <config.h>
 
@@ -482,7 +482,7 @@ better_param(dns_rdataset_t *nsec3paramset, dns_rdata_t *param) {
 				continue;
 		} else
 			dns_rdataset_current(&rdataset, &rdata);
-		
+
 		if (rdata.length != param->length)
 			continue;
 		if (rdata.data[0] != param->data[0] ||
@@ -948,8 +948,8 @@ isc_boolean_t
 dns_nsec3param_fromprivate(dns_rdata_t *src, dns_rdata_t *target,
 			   unsigned char *buf, size_t buflen)
 {
-        dns_decompress_t dctx;
-        isc_result_t result;
+	dns_decompress_t dctx;
+	isc_result_t result;
 	isc_buffer_t buf1;
 	isc_buffer_t buf2;
 
@@ -962,20 +962,20 @@ dns_nsec3param_fromprivate(dns_rdata_t *src, dns_rdata_t *target,
 
 	isc_buffer_init(&buf1, src->data + 1, src->length - 1);
 	isc_buffer_add(&buf1, src->length - 1);
-        isc_buffer_setactive(&buf1, src->length - 1);
+	isc_buffer_setactive(&buf1, src->length - 1);
 	isc_buffer_init(&buf2, buf, buflen);
-        dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_NONE);
-        result = dns_rdata_fromwire(target, src->rdclass,
+	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_NONE);
+	result = dns_rdata_fromwire(target, src->rdclass,
 				    dns_rdatatype_nsec3param,
 				    &buf1, &dctx, 0, &buf2);
-        dns_decompress_invalidate(&dctx);
+	dns_decompress_invalidate(&dctx);
 
-        return (ISC_TF(result == ISC_R_SUCCESS));
+	return (ISC_TF(result == ISC_R_SUCCESS));
 }
 
 void
 dns_nsec3param_toprivate(dns_rdata_t *src, dns_rdata_t *target,
-			 dns_rdatatype_t privatetype, 
+			 dns_rdatatype_t privatetype,
 			 unsigned char *buf, size_t buflen)
 {
 	REQUIRE(buflen >= src->length + 1);
