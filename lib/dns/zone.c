@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.512 2009/10/08 23:55:57 marka Exp $ */
+/* $Id: zone.c,v 1.513 2009/10/08 23:58:14 marka Exp $ */
 
 /*! \file */
 
@@ -6458,8 +6458,7 @@ zone_sign(dns_zone_t *zone) {
 				ISC_LIST_APPEND(cleanup, signing, link);
 				dns_dbiterator_pause(signing->dbiterator);
 				finishedakey = ISC_TRUE;
-				if (!is_ksk && !secureupdated && nkeys != 0 &&
-				    build_nsec) {
+				if (!secureupdated && nkeys != 0 && build_nsec) {
 					/*
 					 * We have finished regenerating the
 					 * zone with a zone signing key.
