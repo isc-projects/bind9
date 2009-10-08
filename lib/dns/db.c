@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.94 2009/09/01 00:22:26 jinmei Exp $ */
+/* $Id: db.c,v 1.95 2009/10/08 23:13:06 marka Exp $ */
 
 /*! \file */
 
@@ -938,9 +938,9 @@ dns_db_getsigningtime(dns_db_t *db, dns_rdataset_t *rdataset, dns_name_t *name)
 }
 
 void
-dns_db_resigned(dns_db_t *db, dns_rdataset_t *rdataset, dns_dbversion_t *version)
+dns_db_resigned(dns_db_t *db, dns_rdataset_t *rdataset,
+		dns_dbversion_t *version)
 {
 	if (db->methods->resigned != NULL)
 		(db->methods->resigned)(db, rdataset, version);
 }
-

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.105 2009/09/02 16:10:03 each Exp $ */
+/* $Id: namedconf.c,v 1.106 2009/10/08 23:13:07 marka Exp $ */
 
 /*! \file */
 
@@ -1135,6 +1135,7 @@ zone_clauses[] = {
 	{ "notify-source-v6", &cfg_type_sockaddr6wild, 0 },
 	{ "notify-to-soa", &cfg_type_boolean, 0 },
 	{ "nsec3-test-zone", &cfg_type_boolean, CFG_CLAUSEFLAG_TESTONLY },
+	{ "secure-to-insecure", &cfg_type_boolean, 0 },
 	{ "sig-signing-nodes", &cfg_type_uint32, 0 },
 	{ "sig-signing-signatures", &cfg_type_uint32, 0 },
 	{ "sig-signing-type", &cfg_type_uint32, 0 },

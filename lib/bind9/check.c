@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.108 2009/09/02 16:10:03 each Exp $ */
+/* $Id: check.c,v 1.109 2009/10/08 23:13:06 marka Exp $ */
 
 /*! \file */
 
@@ -23,6 +23,7 @@
 
 #include <stdlib.h>
 
+#include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/log.h>
 #include <isc/mem.h>
@@ -1100,6 +1101,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	{ "min-retry-time", SLAVEZONE | STUBZONE },
 	{ "max-refresh-time", SLAVEZONE | STUBZONE },
 	{ "min-refresh-time", SLAVEZONE | STUBZONE },
+	{ "secure-to-insecure", MASTERZONE },
 	{ "sig-validity-interval", MASTERZONE },
 	{ "sig-re-signing-interval", MASTERZONE },
 	{ "sig-signing-nodes", MASTERZONE },
@@ -1404,6 +1406,9 @@ bind9_check_key(const cfg_obj_t *key, isc_log_t *logctx) {
 	const char *algorithm;
 	int i;
 	size_t len = 0;
+	isc_result_t result;
+	isc_buffer_t buf;
+	unsigned char secretbuf[1024];
 	static const algorithmtable algorithms[] = {
 		{ "hmac-md5", 128 },
 		{ "hmac-md5.sig-alg.reg.int", 0 },
@@ -1424,6 +1429,14 @@ bind9_check_key(const cfg_obj_t *key, isc_log_t *logctx) {
 			    "'algorithm' defined",
 			    keyname);
 		return (ISC_R_FAILURE);
+	}
+
+	isc_buffer_init(&buf, secretbuf, sizeof(secretbuf));
+	result = isc_base64_decodestring(cfg_obj_asstring(secretobj), &buf);
+	if (result != ISC_R_SUCCESS) {
+		cfg_obj_log(secretobj, logctx, ISC_LOG_ERROR,
+			    "bad secret '%s'", isc_result_totext(result));
+		return (result);
 	}
 
 	algorithm = cfg_obj_asstring(algobj);

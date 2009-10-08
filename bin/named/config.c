@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.101 2009/09/01 07:14:25 each Exp $ */
+/* $Id: config.c,v 1.102 2009/10/08 23:13:05 marka Exp $ */
 
 /*! \file */
 
@@ -185,6 +185,7 @@ options {\n\
 	max-refresh-time 2419200; /* 4 weeks */\n\
 	min-refresh-time 300;\n\
 	multi-master no;\n\
+	secure-to-insecure no;\n\
 	sig-validity-interval 30; /* days */\n\
 	sig-signing-nodes 100;\n\
 	sig-signing-signatures 10;\n\

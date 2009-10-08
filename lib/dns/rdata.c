@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.202 2009/09/02 23:48:02 tbox Exp $ */
+/* $Id: rdata.c,v 1.203 2009/10/08 23:13:07 marka Exp $ */
 
 /*! \file */
 
@@ -275,23 +275,6 @@ dns_rdata_init(dns_rdata_t *rdata) {
 	ISC_LINK_INIT(rdata, link);
 	/* ISC_LIST_INIT(rdata->list); */
 }
-
-#if 1
-#define DNS_RDATA_INITIALIZED(rdata) \
-	((rdata)->data == NULL && (rdata)->length == 0 && \
-	 (rdata)->rdclass == 0 && (rdata)->type == 0 && (rdata)->flags == 0 && \
-	 !ISC_LINK_LINKED((rdata), link))
-#else
-#ifdef ISC_LIST_CHECKINIT
-#define DNS_RDATA_INITIALIZED(rdata) \
-	(!ISC_LINK_LINKED((rdata), link))
-#else
-#define DNS_RDATA_INITIALIZED(rdata) ISC_TRUE
-#endif
-#endif
-
-#define DNS_RDATA_VALIDFLAGS(rdata) \
-	(((rdata)->flags & ~(DNS_RDATA_UPDATE|DNS_RDATA_OFFLINE)) == 0)
 
 void
 dns_rdata_reset(dns_rdata_t *rdata) {

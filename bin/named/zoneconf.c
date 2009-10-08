@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.154 2009/09/01 00:22:25 jinmei Exp $ */
+/* $Id: zoneconf.c,v 1.155 2009/10/08 23:13:06 marka Exp $ */
 
 /*% */
 
@@ -929,6 +929,12 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			INSIST(0);
 		dns_zone_setoption(zone, DNS_ZONEOPT_WARNSRVCNAME, warn);
 		dns_zone_setoption(zone, DNS_ZONEOPT_IGNORESRVCNAME, ignore);
+
+		obj = NULL;
+		result = ns_config_get(maps, "secure-to-insecure", &obj);
+		INSIST(obj != NULL);
+		dns_zone_setoption(zone, DNS_ZONEOPT_SECURETOINSECURE,
+				   cfg_obj_asboolean(obj));
 	}
 
 	/*

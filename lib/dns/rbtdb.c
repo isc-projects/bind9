@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.282 2009/10/06 21:20:45 each Exp $ */
+/* $Id: rbtdb.c,v 1.283 2009/10/08 23:13:06 marka Exp $ */
 
 /*! \file */
 
@@ -613,8 +613,7 @@ static void free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log,
 		       isc_event_t *event);
 static void overmem(dns_db_t *db, isc_boolean_t overmem);
 #ifdef BIND9
-static void setnsec3parameters(dns_db_t *db, rbtdb_version_t *version,
-			       isc_boolean_t *nsec3createflag);
+static void setnsec3parameters(dns_db_t *db, rbtdb_version_t *version);
 #endif
 
 /*%
@@ -1925,11 +1924,8 @@ iszonesecure(dns_db_t *db, rbtdb_version_t *version, dns_dbnode_t *origin) {
 #else
 	dns_rdataset_t keyset;
 	dns_rdataset_t nsecset, signsecset;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_boolean_t haszonekey = ISC_FALSE;
 	isc_boolean_t hasnsec = ISC_FALSE;
-	isc_boolean_t hasoptbit = ISC_FALSE;
-	isc_boolean_t nsec3createflag = ISC_FALSE;
 	isc_result_t result;
 
 	dns_rdataset_init(&keyset);
@@ -1961,29 +1957,18 @@ iszonesecure(dns_db_t *db, rbtdb_version_t *version, dns_dbnode_t *origin) {
 	if (result == ISC_R_SUCCESS) {
 		if (dns_rdataset_isassociated(&signsecset)) {
 			hasnsec = ISC_TRUE;
-			result = dns_rdataset_first(&nsecset);
-			if (result == ISC_R_SUCCESS) {
-				dns_rdataset_current(&nsecset, &rdata);
-				hasoptbit = dns_nsec_typepresent(&rdata,
-							     dns_rdatatype_opt);
-			}
 			dns_rdataset_disassociate(&signsecset);
 		}
 		dns_rdataset_disassociate(&nsecset);
 	}
 
-	setnsec3parameters(db, version, &nsec3createflag);
+	setnsec3parameters(db, version);
 
 	/*
 	 * Do we have a valid NSEC/NSEC3 chain?
 	 */
-	if (version->havensec3 || (hasnsec && !hasoptbit))
+	if (version->havensec3 || hasnsec)
 		version->secure = dns_db_secure;
-	/*
-	 * Do we have a NSEC/NSEC3 chain under creation?
-	 */
-	else if (hasoptbit || nsec3createflag)
-		version->secure = dns_db_partial;
 	else
 		version->secure = dns_db_insecure;
 #endif
@@ -1995,9 +1980,7 @@ iszonesecure(dns_db_t *db, rbtdb_version_t *version, dns_dbnode_t *origin) {
  */
 #ifdef BIND9
 static void
-setnsec3parameters(dns_db_t *db, rbtdb_version_t *version,
-		   isc_boolean_t *nsec3createflag)
-{
+setnsec3parameters(dns_db_t *db, rbtdb_version_t *version) {
 	dns_rbtnode_t *node;
 	dns_rdata_nsec3param_t nsec3param;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -2028,7 +2011,7 @@ setnsec3parameters(dns_db_t *db, rbtdb_version_t *version,
 		} while (header != NULL);
 
 		if (header != NULL &&
-		    header->type == dns_rdatatype_nsec3param) {
+		    (header->type == dns_rdatatype_nsec3param)) {
 			/*
 			 * Find A NSEC3PARAM with a supported algorithm.
 			 */
@@ -2063,17 +2046,8 @@ setnsec3parameters(dns_db_t *db, rbtdb_version_t *version,
 				    !dns_nsec3_supportedhash(nsec3param.hash))
 					continue;
 
-#ifdef RFC5155_STRICT
 				if (nsec3param.flags != 0)
 					continue;
-#else
-				if ((nsec3param.flags & DNS_NSEC3FLAG_CREATE)
-				    != 0)
-					*nsec3createflag = ISC_TRUE;
-				if ((nsec3param.flags & ~DNS_NSEC3FLAG_OPTOUT)
-				    != 0)
-					continue;
-#endif
 
 				memcpy(version->salt, nsec3param.salt,
 				       nsec3param.salt_length);

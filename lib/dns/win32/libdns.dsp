@@ -266,6 +266,10 @@ SOURCE=..\include\dns\portlist.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\dns\private.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\dns\rbt.h
 # End Source File
 # Begin Source File
@@ -559,6 +563,10 @@ SOURCE=..\peer.c
 # Begin Source File
 
 SOURCE=..\portlist.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\private.c
 # End Source File
 # Begin Source File
 

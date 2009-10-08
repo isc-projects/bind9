@@ -73,6 +73,11 @@ BIND 9.7.0
         - Improved PKCS#11 support, including Keyper support and explicit
           OpenSSL engine selection (see README.pkcs11 for additional details).
 
+	Warning: If you had built BIND 9.6 with any of ALLOW_NSEC3PARAM_UPDATE,
+	ALLOW_SECURE_TO_INSECURE or ALLOW_INSECURE_TO_SECURE defined then
+	you should ensure that all changes that are in progress have completed
+	prior to upgrading to BIND 9.7.  BIND 9.7 is not backwards compatible.
+
 BIND 9.6.0
 
         BIND 9.6.0 includes a number of changes from BIND 9.5 and earlier

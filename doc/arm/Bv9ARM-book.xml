@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.430 2009/10/05 01:49:59 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.431 2009/10/08 23:13:06 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4891,6 +4891,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> allow-update { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-update-forwarding { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> update-check-ksk <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> secure-to-insecure <replaceable>yes_or_no</replaceable> ;</optional>
     <optional> try-tcp-refresh <replaceable>yes_or_no</replaceable>; </optional>
     <optional> allow-v6-synthesis { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> blackhole { <replaceable>address_match_list</replaceable> }; </optional>
@@ -6438,6 +6439,17 @@ options {
 		  Try to refresh the zone using TCP if UDP queries fail.
 		  For BIND 8 compatibility, the default is
 		  <command>yes</command>.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>secure-to-insecure</command></term>
+	      <listitem>
+	        <para>
+		  Allow a zone to transition from secure to insecure by
+		  deleting all DNSKEY records.  The default is
+		  <command>no</command>.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -9347,6 +9359,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
     <optional> allow-transfer { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-update-forwarding { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> update-check-ksk <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> secure-to-insecure <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> try-tcp-refresh <replaceable>yes_or_no</replaceable>; </optional>
     <optional> also-notify { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ;
                   <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
@@ -10258,6 +10271,16 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
 		  </para>
 		</listitem>
 	      </varlistentry>
+
+              <varlistentry>
+                <term><command>secure-to-insecure</command></term>
+                <listitem>
+                  <para>
+                    See the description of
+                    <command>secure-to-insecure</command> in <xref linkend="boolean_options"/>.
+                  </para>
+                </listitem>
+              </varlistentry>
 
             </variablelist>
 

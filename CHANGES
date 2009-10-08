@@ -1,3 +1,16 @@
+2708.	[func]		Insecure to secure and NSEC3 parameter changes via
+			update are now fully supported and no longer require
+			defines to enable.  We now no longer overload the
+			NSEC3PARAM flag field, nor the NSEC OPT bit at the
+			apex.  Secure to insecure changes are controlled by
+			by the named.conf option 'secure-to-insecure'.
+
+			Warning: If you had previously enabled support by
+			adding defines at compile time to BIND 9.6 you should
+			ensure that all changes that are in progress have
+			completed prior to upgrading to BIND 9.7.  BIND 9.7
+			is not backwards compatible.
+
 2707.	[func]		dnssec-keyfromlabel no longer require engine name
 			to be specified in the label if there is a default
 			engine or the -E option has been used.  Also, it
