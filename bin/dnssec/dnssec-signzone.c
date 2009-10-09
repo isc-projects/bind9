@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.241 2009/10/05 17:30:49 fdupont Exp $ */
+/* $Id: dnssec-signzone.c,v 1.242 2009/10/09 06:09:21 each Exp $ */
 
 /*! \file */
 
@@ -3424,7 +3424,7 @@ main(int argc, char *argv[]) {
 	isc_boolean_t set_iter = ISC_FALSE;
 
 #define CMDLINE_FLAGS \
-	"3:AaCc:Dd:Ee:f:FghH:i:I:j:K:k:l:m:n:N:o:O:pPr:s:ST:tuUv:z"
+	"3:AaCc:Dd:E:e:f:FghH:i:I:j:K:k:l:m:n:N:o:O:pPr:s:ST:tuUv:z"
 
 	/*
 	 * Process memory debugging argument first.

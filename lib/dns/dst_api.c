@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.34 2009/10/05 17:30:49 fdupont Exp $
+ * $Id: dst_api.c,v 1.35 2009/10/09 06:09:21 each Exp $
  */
 
 /*! \file */
@@ -109,7 +109,7 @@ static isc_result_t	frombuffer(dns_name_t *name,
 
 static isc_result_t	algorithm_status(unsigned int alg);
 
-static isc_result_t	addsuffix(char *filename, unsigned int len,
+static isc_result_t	addsuffix(char *filename, int len,
 				  const char *dirname, const char *ofilename,
 				  const char *suffix);
 
@@ -790,6 +790,35 @@ dst_key_generate(dns_name_t *name, unsigned int alg,
 
 	*keyp = key;
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dst_key_getnum(const dst_key_t *key, int type, isc_uint32_t *valuep)
+{
+	REQUIRE(VALID_KEY(key));
+	REQUIRE(valuep != NULL);
+	REQUIRE(type <= DST_MAX_NUMERIC);
+	if (!key->numset[type])
+		return (ISC_R_NOTFOUND);
+	*valuep = key->nums[type];
+	return (ISC_R_SUCCESS);
+}
+
+void
+dst_key_setnum(dst_key_t *key, int type, isc_uint32_t value)
+{
+	REQUIRE(VALID_KEY(key));
+	REQUIRE(type <= DST_MAX_NUMERIC);
+	key->nums[type] = value;
+	key->numset[type] = ISC_TRUE;
+}
+
+void
+dst_key_unsetnum(dst_key_t *key, int type)
+{
+	REQUIRE(VALID_KEY(key));
+	REQUIRE(type <= DST_MAX_NUMERIC);
+	key->numset[type] = ISC_FALSE;
 }
 
 isc_result_t
@@ -1499,7 +1528,7 @@ algorithm_status(unsigned int alg) {
 }
 
 static isc_result_t
-addsuffix(char *filename, unsigned int len, const char *odirname,
+addsuffix(char *filename, int len, const char *odirname,
 	  const char *ofilename, const char *suffix)
 {
 	int olen = strlen(ofilename);

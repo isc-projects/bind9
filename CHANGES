@@ -1,3 +1,9 @@
+2709.	[func]		Added some data fields, currently unused, to the
+			private key file format, to allow implementation
+			of explicit key rollover in a future release
+			without impairing backward or forward compatibility.
+			[RT #20310]
+
 2708.	[func]		Insecure to secure and NSEC3 parameter changes via
 			update are now fully supported and no longer require
 			defines to enable.  We now no longer overload the

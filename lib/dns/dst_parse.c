@@ -31,7 +31,7 @@
 
 /*%
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.20 2009/09/02 06:29:01 each Exp $
+ * $Id: dst_parse.c,v 1.21 2009/10/09 06:09:21 each Exp $
  */
 
 #include <config.h>
@@ -56,14 +56,23 @@
 #define PRIVATE_KEY_STR "Private-key-format:"
 #define ALGORITHM_STR "Algorithm:"
 
-#define METADATA_NTAGS 6
-static const char *metatags[METADATA_NTAGS] = {
+#define TIMING_NTAGS (DST_MAX_TIMES + 1)
+static const char *timetags[TIMING_NTAGS] = {
 	"Created:",
 	"Publish:",
 	"Activate:",
 	"Revoke:",
 	"Unpublish:",
-	"Delete:"
+	"Delete:",
+	"DSPublish:"
+};
+
+#define NUMERIC_NTAGS (DST_MAX_NUMERIC + 1)
+static const char *numerictags[NUMERIC_NTAGS] = {
+	"Predecessor:",
+	"Successor:",
+	"MaxTTL:",
+	"RollPeriod:"
 };
 
 struct parse_map {
@@ -128,18 +137,6 @@ find_value(const char *s, const unsigned int alg) {
 	return (-1);
 }
 
-static int
-find_metadata(const char *s) {
-	int i;
-
-	for (i = 0; i < METADATA_NTAGS; i++) {
-		if (strcasecmp(s, metatags[i]) == 0)
-			return (i);
-	}
-
-	return (-1);
-}
-
 static const char *
 find_tag(const int value) {
 	int i;
@@ -150,6 +147,28 @@ find_tag(const int value) {
 		else if (value == map[i].value)
 			return (map[i].tag);
 	}
+}
+
+static int
+find_metadata(const char *s, const char *tags[], int ntags) {
+	int i;
+
+	for (i = 0; i < ntags; i++) {
+		if (strcasecmp(s, tags[i]) == 0)
+			return (i);
+	}
+
+	return (-1);
+}
+
+static int
+find_timedata(const char *s) {
+	return (find_metadata(s, timetags, TIMING_NTAGS));
+}
+
+static int
+find_numericdata(const char *s) {
+	return (find_metadata(s, numerictags, NUMERIC_NTAGS));
 }
 
 static int
@@ -420,10 +439,25 @@ dst__privstruct_parse(dst_key_t *key, unsigned int alg, isc_lex_t *lex,
 			goto fail;
 		}
 
-		/* Key timing metadata */
-		tag = find_metadata(DST_AS_STR(token));
+		/* Numeric metadata */
+		tag = find_numericdata(DST_AS_STR(token));
 		if (tag >= 0) {
-			INSIST(tag < METADATA_NTAGS);
+			INSIST(tag < NUMERIC_NTAGS);
+
+			NEXTTOKEN(lex, opt | ISC_LEXOPT_NUMBER, &token);
+			if (token.type != isc_tokentype_number) {
+				ret = DST_R_INVALIDPRIVATEKEY;
+				goto fail;
+			}
+
+			dst_key_setnum(key, tag, token.value.as_ulong);
+			goto next;
+		}
+
+		/* Timing metadata */
+		tag = find_timedata(DST_AS_STR(token));
+		if (tag >= 0) {
+			INSIST(tag < TIMING_NTAGS);
 
 			NEXTTOKEN(lex, opt, &token);
 			if (token.type != isc_tokentype_string) {
@@ -490,6 +524,7 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 	char buffer[MAXFIELDSIZE * 2];
 	isc_fsaccess_t access;
 	isc_stdtime_t when;
+	isc_uint32_t value;
 	isc_buffer_t b;
 	isc_region_t r;
 	int major, minor;
@@ -587,9 +622,15 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 		fprintf(fp, "\n");
 	}
 
-	/* Add the timing metadata tags */
+	/* Add the metadata tags */
 	if (major > 1 || (major == 1 && minor >= 3)) {
-		for (i = 0; i < METADATA_NTAGS; i++) {
+		for (i = 0; i < NUMERIC_NTAGS; i++) {
+			result = dst_key_getnum(key, i, &value);
+			if (result != ISC_R_SUCCESS)
+				continue;
+			fprintf(fp, "%s %u\n", numerictags[i], value);
+		}
+		for (i = 0; i < TIMING_NTAGS; i++) {
 			result = dst_key_gettime(key, i, &when);
 			if (result != ISC_R_SUCCESS)
 				continue;
@@ -601,7 +642,7 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 
 			isc_buffer_usedregion(&b, &r);
 
-			fprintf(fp, "%s ", metatags[i]);
+			fprintf(fp, "%s ", timetags[i]);
 			fwrite(r.base, 1, r.length, fp);
 			fprintf(fp, "\n");
 		}

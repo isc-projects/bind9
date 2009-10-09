@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_internal.h,v 1.19 2009/10/05 17:30:49 fdupont Exp $ */
+/* $Id: dst_internal.h,v 1.20 2009/10/09 06:09:21 each Exp $ */
 
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1
@@ -116,8 +116,10 @@ struct dst_key {
 
 	} keydata;			/*%< pointer to key in crypto pkg fmt */
 
-	isc_stdtime_t	times[DST_MAX_TIMES + 1];    /*%< key timing metadata */
-	isc_boolean_t	timeset[DST_MAX_TIMES + 1];  /*%< metadata set? */
+	isc_stdtime_t	times[DST_MAX_TIMES + 1];    /*%< timing metadata */
+	isc_boolean_t	timeset[DST_MAX_TIMES + 1];  /*%< data set? */
+	isc_stdtime_t	nums[DST_MAX_NUMERIC + 1];   /*%< numeric metadata */
+	isc_boolean_t	numset[DST_MAX_NUMERIC + 1]; /*%< data set? */
 
 	int		fmt_major;     /*%< private key format, major version */
 	int		fmt_minor;     /*%< private key format, minor version */

@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.13 2009/09/03 23:48:12 tbox Exp $
+ * $Id: hmac_link.c,v 1.14 2009/10/09 06:09:21 each Exp $
  */
 
 #include <config.h>
@@ -277,7 +277,8 @@ hmacmd5_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 
 	UNUSED(pub);
 	/* read private key file */
-	result = dst__privstruct_parse(key, DST_ALG_HMACMD5, lexer, mctx, &priv);
+	result = dst__privstruct_parse(key, DST_ALG_HMACMD5, lexer, mctx,
+				       &priv);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 

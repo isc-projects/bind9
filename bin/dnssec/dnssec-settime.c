@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-settime.c,v 1.15 2009/10/05 17:30:49 fdupont Exp $ */
+/* $Id: dnssec-settime.c,v 1.16 2009/10/09 06:09:21 each Exp $ */
 
 /*! \file */
 
@@ -161,7 +161,7 @@ main(int argc, char **argv) {
 	isc_stdtime_get(&now);
 
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "EfK:uhp:v:P:A:R:I:D:")) != -1) {
+					   "E:fK:uhp:v:P:A:R:I:D:")) != -1) {
 		switch (ch) {
 		case 'E':
 			engine = isc_commandline_argument;

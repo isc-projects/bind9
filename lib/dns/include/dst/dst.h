@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.20 2009/10/05 17:30:49 fdupont Exp $ */
+/* $Id: dst.h,v 1.21 2009/10/09 06:09:21 each Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -86,7 +86,15 @@ typedef struct dst_context 	dst_context_t;
 #define DST_TIME_REVOKE 	3
 #define DST_TIME_INACTIVE	4
 #define DST_TIME_DELETE 	5
-#define DST_MAX_TIMES		5
+#define DST_TIME_DSPUBLISH 	6
+#define DST_MAX_TIMES		6
+
+/* Numeric metadata definitions */
+#define DST_NUM_PREDECESSOR	0
+#define DST_NUM_SUCCESSOR	1
+#define DST_NUM_MAXTTL		2
+#define DST_NUM_ROLLPERIOD	3
+#define DST_MAX_NUMERIC		3
 
 /***
  *** Functions
@@ -688,6 +696,37 @@ dst_key_setflags(dst_key_t *key, isc_uint32_t flags);
  *
  * Requires:
  *	"key" is a valid key.
+ */
+
+isc_result_t
+dst_key_getnum(const dst_key_t *key, int type, isc_uint32_t *valuep);
+/*%<
+ * Get a member of the numeric metadata array and place it in '*valuep'.
+ *
+ * Requires:
+ *	"key" is a valid key.
+ *	"type" is no larger than DST_MAX_NUMERIC
+ *	"timep" is not null.
+ */
+
+void
+dst_key_setnum(dst_key_t *key, int type, isc_uint32_t value);
+/*%<
+ * Set a member of the numeric metadata array.
+ *
+ * Requires:
+ *	"key" is a valid key.
+ *	"type" is no larger than DST_MAX_NUMERIC
+ */
+
+void
+dst_key_unsetnum(dst_key_t *key, int type);
+/*%<
+ * Flag a member of the numeric metadata array as "not set".
+ *
+ * Requires:
+ *	"key" is a valid key.
+ *	"type" is no larger than DST_MAX_NUMERIC
  */
 
 isc_result_t

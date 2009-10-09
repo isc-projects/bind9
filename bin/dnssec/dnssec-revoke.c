@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-revoke.c,v 1.14 2009/10/05 17:30:49 fdupont Exp $ */
+/* $Id: dnssec-revoke.c,v 1.15 2009/10/09 06:09:21 each Exp $ */
 
 /*! \file */
 
@@ -105,7 +105,7 @@ main(int argc, char **argv) {
 
 	isc_commandline_errprint = ISC_FALSE;
 
-	while ((ch = isc_commandline_parse(argc, argv, "EfK:rhv:")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "E:fK:rhv:")) != -1) {
 		switch (ch) {
 		    case 'E':
 			engine = isc_commandline_argument;
