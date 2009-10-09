@@ -14,6 +14,8 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* $Id: private.c,v 1.3 2009/10/09 23:48:09 tbox Exp $ */
+
 #include "config.h"
 
 #include <isc/result.h>
@@ -61,7 +63,7 @@
 static isc_boolean_t
 ignore(dns_rdata_t *param, dns_rdataset_t *privateset) {
 	isc_result_t result;
-		
+
 	for (result = dns_rdataset_first(privateset);
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(privateset)) {
@@ -74,7 +76,7 @@ ignore(dns_rdata_t *param, dns_rdataset_t *privateset) {
 						buf, sizeof(buf)))
 			continue;
 		/*
-		 * We are going to create a new NSEC3 chain so it 
+		 * We are going to create a new NSEC3 chain so it
 		 * doesn't matter if we are removing this one.
 		 */
 		if (CREATE(rdata.data[1]))
@@ -165,7 +167,7 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
 
 			dns_rdataset_current(&privateset, &private);
 			if (!dns_nsec3param_fromprivate(&private, &rdata,
-						        buf, sizeof(buf)))
+							buf, sizeof(buf)))
 				continue;
 			if (REMOVE(rdata.data[1]))
 				continue;
@@ -175,7 +177,7 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
 		}
 		goto success;
 	}
-	
+
 	if (dns_rdataset_isassociated(&nsec3paramset)) {
 		if (build_nsec3 != NULL)
 			*build_nsec3 = ISC_TRUE;
@@ -200,7 +202,7 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
 			if (CREATE(rdata.data[1]))
 				goto success;
 		}
-		 
+
 		/*
 		 * Check to see if there will be a active NSEC3CHAIN once
 		 * the changes queued complete.
@@ -219,7 +221,7 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
 				goto success;
 			dns_rdataset_current(&nsec3paramset, &rdata);
 			if (ignore(&rdata, &privateset))
-				continue; 
+				continue;
 			/*
 			 * We still have a good NSEC3 chain or we are
 			 * not creating a NSEC chain as NONSEC is set.

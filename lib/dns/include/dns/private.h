@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: private.h,v 1.2 2009/10/09 00:33:39 marka Exp $ */
+/* $Id: private.h,v 1.3 2009/10/09 23:48:09 tbox Exp $ */
 
 #include <isc/lang.h>
 #include <isc/types.h>
@@ -29,14 +29,14 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
-                   dns_rdatatype_t privatetype,
-                   isc_boolean_t *build_nsec, isc_boolean_t *build_nsec3);
+		   dns_rdatatype_t privatetype,
+		   isc_boolean_t *build_nsec, isc_boolean_t *build_nsec3);
 /*%<
  * Examine the NSEC, NSEC3PARAM and privatetype RRsets at the apex of the
  * database to determine which of NSEC or NSEC3 chains we are currently
  * maintaining.  In normal operations only one of NSEC or NSEC3 is being
  * maintained but when we are transitiong between NSEC and NSEC3 we need
- * to update both sets of chains.  If 'privatetype' is zero then the 
+ * to update both sets of chains.  If 'privatetype' is zero then the
  * privatetype RRset will not be examined.
  *
  * Requires:
