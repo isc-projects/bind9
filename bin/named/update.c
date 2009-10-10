@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.162 2009/10/10 01:47:59 each Exp $ */
+/* $Id: update.c,v 1.163 2009/10/10 23:47:58 tbox Exp $ */
 
 #include <config.h>
 
@@ -1857,7 +1857,7 @@ add_sigs(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 		if (!dst_key_isprivate(keys[i]))
 			continue;
 
-		if (check_ksk && !REVOKE(keys[i])) { 
+		if (check_ksk && !REVOKE(keys[i])) {
 			isc_boolean_t have_ksk, have_nonksk;
 			if (KSK(keys[i])) {
 				have_ksk = ISC_TRUE;
@@ -1867,7 +1867,7 @@ add_sigs(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 				have_nonksk = ISC_TRUE;
 			}
 			for (j = 0; j < nkeys; j++) {
-				if (j == i || ALG(keys[i]) != ALG(keys[j])) 
+				if (j == i || ALG(keys[i]) != ALG(keys[j]))
 					continue;
 				if (REVOKE(keys[j]))
 					continue;
@@ -1875,7 +1875,7 @@ add_sigs(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 					have_ksk = ISC_TRUE;
 				else
 					have_nonksk = ISC_TRUE;
-		 		both = have_ksk && have_nonksk;
+				both = have_ksk && have_nonksk;
 				if (both)
 					break;
 			}
@@ -2128,7 +2128,7 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	check_ksk = ISC_TF((dns_zone_getoptions(zone) &
 			    DNS_ZONEOPT_UPDATECHECKKSK) != 0);
 	keyset_kskonly = ISC_TF((dns_zone_getoptions(zone) &
-			        DNS_ZONEOPT_DNSKEYKSKONLY) != 0);
+				DNS_ZONEOPT_DNSKEYKSKONLY) != 0);
 
 	/*
 	 * Get the NSEC/NSEC3 TTL from the SOA MINIMUM field.

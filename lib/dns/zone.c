@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.514 2009/10/10 01:48:00 each Exp $ */
+/* $Id: zone.c,v 1.515 2009/10/10 23:47:58 tbox Exp $ */
 
 /*! \file */
 
@@ -4454,7 +4454,7 @@ static isc_result_t
 add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	 dns_rdatatype_t type, dns_diff_t *diff, dst_key_t **keys,
 	 unsigned int nkeys, isc_mem_t *mctx, isc_stdtime_t inception,
-	 isc_stdtime_t expire, isc_boolean_t check_ksk, 
+	 isc_stdtime_t expire, isc_boolean_t check_ksk,
 	 isc_boolean_t keyset_kskonly)
 {
 	isc_result_t result;
@@ -4494,7 +4494,7 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 
 	for (i = 0; i < nkeys; i++) {
 		isc_boolean_t both = ISC_FALSE;
-		
+
 		if (!dst_key_isprivate(keys[i]))
 			continue;
 
@@ -4508,7 +4508,7 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 				have_nonksk = ISC_TRUE;
 			}
 			for (j = 0; j < nkeys; j++) {
-				if (j == i || ALG(keys[i]) != ALG(keys[j])) 
+				if (j == i || ALG(keys[i]) != ALG(keys[j]))
 					continue;
 				if (REVOKE(keys[j]))
 					continue;
@@ -4843,7 +4843,7 @@ sign_a_node(dns_db_t *db, dns_name_t *name, dns_dbnode_t *node,
 	    isc_boolean_t build_nsec, dst_key_t *key,
 	    isc_stdtime_t inception, isc_stdtime_t expire,
 	    unsigned int minimum, isc_boolean_t is_ksk,
-	    isc_boolean_t keyset_kskonly, isc_boolean_t *delegation, 
+	    isc_boolean_t keyset_kskonly, isc_boolean_t *delegation,
 	    dns_diff_t *diff, isc_int32_t *signatures, isc_mem_t *mctx)
 {
 	isc_result_t result;
@@ -6452,7 +6452,7 @@ zone_sign(dns_zone_t *zone) {
 				for (j = 0; j < nkeys; j++) {
 					if (j == i ||
 					    ALG(zone_keys[i]) !=
-					    ALG(zone_keys[j])) 
+					    ALG(zone_keys[j]))
 						continue;
 					if (REVOKE(zone_keys[j]))
 						continue;
