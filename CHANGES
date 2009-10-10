@@ -1,3 +1,8 @@
+2710.	[func]		New 'dnssec-signzone -x' flag and 'dnskey-ksk-only'
+			zone option cause a zone to be signed with only KSKs
+			signing the DNSKEY RRset, not ZSKs.  This reduces
+			the size of a DNSKEY answer.  [RT #20340]
+
 2709.	[func]		Added some data fields, currently unused, to the
 			private key file format, to allow implementation
 			of explicit key rollover in a future release

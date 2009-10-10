@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.155 2009/10/08 23:13:06 marka Exp $ */
+/* $Id: zoneconf.c,v 1.156 2009/10/10 01:47:59 each Exp $ */
 
 /*% */
 
@@ -859,6 +859,11 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		dns_zone_setoption(zone, DNS_ZONEOPT_UPDATECHECKKSK,
 				   cfg_obj_asboolean(obj));
 
+		obj = NULL;
+		result = ns_config_get(maps, "dnskey-ksk-only", &obj);
+		INSIST(result == ISC_R_SUCCESS);
+		dns_zone_setoption(zone, DNS_ZONEOPT_DNSKEYKSKONLY,
+				   cfg_obj_asboolean(obj));
 	} else if (ztype == dns_zone_slave) {
 		RETERR(configure_zone_acl(zconfig, vconfig, config,
 					  allow_update_forwarding, ac, zone,

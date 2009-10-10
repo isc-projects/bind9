@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.109 2009/10/08 23:13:06 marka Exp $ */
+/* $Id: check.c,v 1.110 2009/10/10 01:48:00 each Exp $ */
 
 /*! \file */
 
@@ -1126,6 +1126,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	{ "check-srv-cname", MASTERZONE },
 	{ "masterfile-format", MASTERZONE | SLAVEZONE | STUBZONE | HINTZONE },
 	{ "update-check-ksk", MASTERZONE },
+	{ "dnskey-ksk-only", MASTERZONE },
 	{ "try-tcp-refresh", SLAVEZONE },
 	};
 

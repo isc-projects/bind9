@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.docbook,v 1.39 2009/10/05 17:30:49 fdupont Exp $ -->
+<!-- $Id: dnssec-signzone.docbook,v 1.40 2009/10/10 01:47:59 each Exp $ -->
 <refentry id="man.dnssec-signzone">
   <refentryinfo>
     <date>June 05, 2009</date>
@@ -83,6 +83,7 @@
       <arg><option>-t</option></arg>
       <arg><option>-u</option></arg>
       <arg><option>-v <replaceable class="parameter">level</replaceable></option></arg>
+      <arg><option>-x</option></arg>
       <arg><option>-z</option></arg>
       <arg><option>-3 <replaceable class="parameter">salt</replaceable></option></arg>
       <arg><option>-H <replaceable class="parameter">iterations</replaceable></option></arg>
@@ -553,10 +554,22 @@
       </varlistentry>
 
       <varlistentry>
+        <term>-x</term>
+        <listitem>
+          <para>
+            Only sign the DNSKEY RRset with key-signing keys, and omit
+            signatures from zone-signing keys.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
         <term>-z</term>
         <listitem>
           <para>
-            Ignore KSK flag on key when determining what to sign.
+            Ignore KSK flag on key when determining what to sign.  This
+            causes KSK-flagged keys to sign all records, not just the
+            DNSKEY RRset.
           </para>
         </listitem>
       </varlistentry>

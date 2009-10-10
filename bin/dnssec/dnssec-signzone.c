@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.242 2009/10/09 06:09:21 each Exp $ */
+/* $Id: dnssec-signzone.c,v 1.243 2009/10/10 01:47:59 each Exp $ */
 
 /*! \file */
 
@@ -101,6 +101,8 @@ static int nsec_datatype = dns_rdatatype_nsec;
 #define IS_NSEC3	(nsec_datatype == dns_rdatatype_nsec3)
 #define OPTOUT(x)	(((x) & DNS_NSEC3FLAG_OPTOUT) != 0)
 
+#define REVOKE(x) ((dst_key_flags(x) & DNS_KEYFLAG_REVOKE) != 0)
+
 #define BUFSIZE 2048
 #define MAXDSKEYS 8
 
@@ -158,6 +160,7 @@ static isc_boolean_t nokeys = ISC_FALSE;
 static isc_boolean_t removefile = ISC_FALSE;
 static isc_boolean_t generateds = ISC_FALSE;
 static isc_boolean_t ignore_kskflag = ISC_FALSE;
+static isc_boolean_t keyset_kskonly = ISC_FALSE;
 static dns_name_t *dlv = NULL;
 static dns_fixedname_t dlv_fixed;
 static dns_master_style_t *dsstyle = NULL;
@@ -579,9 +582,27 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 		if (!issigningkey(key))
 			continue;
 
-		if (iszsk(key) ||
-		    (isksk(key) && set->type == dns_rdatatype_dnskey &&
-		     dns_name_equal(name, gorigin))) {
+		if (set->type == dns_rdatatype_dnskey &&
+		     dns_name_equal(name, gorigin)) {
+			isc_boolean_t have_ksk = isksk(key);;
+			dns_dnsseckey_t *tmpkey;
+
+			for (tmpkey = ISC_LIST_HEAD(keylist);
+			     tmpkey != NULL;
+			     tmpkey = ISC_LIST_NEXT(tmpkey, link)) {
+				if (dst_key_alg(key->key) !=
+				    dst_key_alg(tmpkey->key))
+					continue;
+				if (REVOKE(tmpkey->key))
+					continue;
+				if (isksk(tmpkey))
+					have_ksk = ISC_TRUE;
+			}
+			if (isksk(key) || !have_ksk ||
+			    (iszsk(key) && !keyset_kskonly))
+				signwithkey(name, set, key->key, ttl, add,
+					    "signing with dnskey");
+		} else if (iszsk(key)) {
 			signwithkey(name, set, key->key, ttl, add,
 				    "signing with dnskey");
 		}
@@ -1422,8 +1443,8 @@ verifynode(dns_name_t *name, dns_dbnode_t *node, isc_boolean_t delegation,
 /*%
  * Verify that certain things are sane:
  *
- *   The apex has a DNSKEY record with at least one KSK and at least
- *   one ZSK.
+ *   The apex has a DNSKEY record with at least one KSK, and at least
+ *   one ZSK if the -x flag was not used.
  *
  *   The DNSKEY record was signed with at least one of the KSKs in this
  *   set.
@@ -1492,8 +1513,9 @@ verifyzone(void) {
 #endif
 
 	/*
-	 * Check that the DNSKEY RR has at least one self signing KSK and
-	 * one ZSK per algorithm in it.
+	 * Check that the DNSKEY RR has at least one self signing KSK
+	 * and one ZSK per algorithm in it (or, if -x was used, one
+	 * self-signing KSK).
 	 */
 	for (result = dns_rdataset_first(&rdataset);
 	     result == ISC_R_SUCCESS;
@@ -1591,7 +1613,7 @@ verifyzone(void) {
 	}
 	fprintf(stderr, ".\n");
 
-	if (!ignore_kskflag) {
+	if (!ignore_kskflag && !keyset_kskonly) {
 		for (i = 0; i < 256; i++) {
 			/*
 			 * The counts should both be zero or both be non-zero.
@@ -1708,20 +1730,24 @@ verifyzone(void) {
 		 */
 		fprintf(stderr, "Zone signing complete:\n");
 		for (i = 0; i < 256; i++) {
-			if ((zsk_algorithms[i] != 0) ||
-			    (ksk_algorithms[i] != 0) ||
-			    (standby_zsk[i] != 0) || (standby_ksk[i] != 0) ||
-			    (revoked_ksk[i] != 0) || (revoked_zsk[i] != 0)) {
+			if ((ksk_algorithms[i] != 0) ||
+			    (standby_ksk[i] != 0) ||
+			    (revoked_zsk[i] != 0) ||
+			    (zsk_algorithms[i] != 0) ||
+			    (standby_zsk[i] != 0) ||
+			    (revoked_zsk[i] != 0)) {
 				alg_format(i, algbuf, sizeof(algbuf));
 				fprintf(stderr, "Algorithm: %s: KSKs: "
 					"%u active, %u stand-by, %u revoked\n",
 					algbuf, ksk_algorithms[i],
 					standby_ksk[i], revoked_ksk[i]);
 				fprintf(stderr, "%*sZSKs: "
-					"%u active, %u stand-by, %u revoked\n",
+					"%u active, %u %s, %u revoked\n",
 					(int) strlen(algbuf) + 13, "",
 					zsk_algorithms[i],
-					standby_zsk[i], revoked_zsk[i]);
+					standby_zsk[i],
+					keyset_kskonly ? "present" : "stand-by",
+					revoked_zsk[i]);
 			}
 		}
 	}
@@ -3136,7 +3162,7 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 	isc_buffer_t namebuf;
 	isc_region_t r;
 	isc_result_t result;
-	dns_dnsseckey_t *key;
+	dns_dnsseckey_t *key, *tmpkey;
 	unsigned char dsbuf[DNS_DS_BUFFERSIZE];
 	unsigned char keybuf[DST_KEY_MAXSIZE];
 	unsigned int filenamelen;
@@ -3162,22 +3188,6 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 
 	dns_diff_init(mctx, &diff);
 
-	for (key = ISC_LIST_HEAD(keylist);
-	     key != NULL;
-	     key = ISC_LIST_NEXT(key, link))
-		if (!isksk(key)) {
-			have_non_ksk = ISC_TRUE;
-			break;
-		}
-
-	for (key = ISC_LIST_HEAD(keylist);
-	     key != NULL;
-	     key = ISC_LIST_NEXT(key, link))
-		if (isksk(key)) {
-			have_ksk = ISC_TRUE;
-			break;
-		}
-
 	if (type == dns_rdatatype_dlv) {
 		dns_name_t tname;
 		unsigned int labels;
@@ -3196,6 +3206,27 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 	     key != NULL;
 	     key = ISC_LIST_NEXT(key, link))
 	{
+		if (REVOKE(key->key))
+			continue;
+		if (isksk(key)) {
+			have_ksk = ISC_TRUE;
+			have_non_ksk = ISC_FALSE;
+		} else {
+			have_ksk = ISC_FALSE;
+			have_non_ksk = ISC_TRUE;
+		}
+		for (tmpkey = ISC_LIST_HEAD(keylist);
+		     tmpkey != NULL;
+		     tmpkey = ISC_LIST_NEXT(tmpkey, link)) {
+			if (dst_key_alg(key->key) != dst_key_alg(tmpkey->key))
+				continue;
+			if (REVOKE(tmpkey->key))
+				continue;
+			if (isksk(tmpkey))
+				have_ksk = ISC_TRUE;
+			else
+				have_non_ksk = ISC_TRUE;
+		}
 		if (have_ksk && have_non_ksk && !isksk(key))
 			continue;
 		dns_rdata_init(&rdata);
@@ -3340,6 +3371,8 @@ usage(void) {
 	fprintf(stderr, "print statistics\n");
 	fprintf(stderr, "\t-u:\t");
 	fprintf(stderr, "update or replace an existing NSEC/NSEC3 chain\n");
+	fprintf(stderr, "\t-x:\tsign DNSKEY record with KSKs only, not ZSKs\n");
+	fprintf(stderr, "\t-z:\tsign all records with KSKs\n");
 	fprintf(stderr, "\t-C:\tgenerate a keyset file, for compatibility\n"
 			"\t\twith older versions of dnssec-signzone -g\n");
 	fprintf(stderr, "\t-n ncpus (number of cpus present)\n");
@@ -3348,8 +3381,6 @@ usage(void) {
 	fprintf(stderr, "\t-3 NSEC3 salt\n");
 	fprintf(stderr, "\t-H NSEC3 iterations (10)\n");
 	fprintf(stderr, "\t-A NSEC3 optout\n");
-	fprintf(stderr, "\t-z:\t");
-	fprintf(stderr, "ignore KSK flag in DNSKEYs");
 
 	fprintf(stderr, "\n");
 
@@ -3424,7 +3455,7 @@ main(int argc, char *argv[]) {
 	isc_boolean_t set_iter = ISC_FALSE;
 
 #define CMDLINE_FLAGS \
-	"3:AaCc:Dd:E:e:f:FghH:i:I:j:K:k:l:m:n:N:o:O:pPr:s:ST:tuUv:z"
+	"3:AaCc:Dd:E:e:f:FghH:i:I:j:K:k:l:m:n:N:o:O:pPr:s:ST:tuUv:xz"
 
 	/*
 	 * Process memory debugging argument first.
@@ -3642,6 +3673,10 @@ main(int argc, char *argv[]) {
 			verbose = strtol(isc_commandline_argument, &endp, 0);
 			if (*endp != '\0')
 				fatal("verbose level must be numeric");
+			break;
+
+		case 'x':
+			keyset_kskonly = ISC_TRUE;
 			break;
 
 		case 'z':

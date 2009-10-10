@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.431 2009/10/08 23:13:06 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.432 2009/10/10 01:47:59 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4891,6 +4891,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> allow-update { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-update-forwarding { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> update-check-ksk <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> dnskey-ksk-only <replaceable>yes_or_no</replaceable>; </optional>
     <optional> secure-to-insecure <replaceable>yes_or_no</replaceable> ;</optional>
     <optional> try-tcp-refresh <replaceable>yes_or_no</replaceable>; </optional>
     <optional> allow-v6-synthesis { <replaceable>address_match_list</replaceable> }; </optional>
@@ -6425,9 +6426,25 @@ options {
 		  request to a secure zone, check the KSK flag on
 		  the DNSKEY RR to determine if this key should be
 		  used to generate the RRSIG.  This flag is ignored
-		  if there are not DNSKEY RRs both with and without
-		  a KSK.
+		  if there are not non-revoked DNSKEY RRs both with
+		  and without a KSK for the algorithm.
 		  The default is <command>yes</command>.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>dnskey-ksk-only</command></term>
+	      <listitem>
+	        <para>
+		  When regenerating the RRSIGs following a UPDATE
+		  request to a secure zone and
+		  <command>update-check-ksk</command> is true then
+		  only generate signatures DNSKEY RRSIG using DNSKEY's
+		  with the KSK bit set.  This flag is ignored if there
+		  are not non-revoked DNSKEY RRs both with and without
+		  a KSK for the algorithm.
+		  The default is <command>no</command>.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -9359,6 +9376,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
     <optional> allow-transfer { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-update-forwarding { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> update-check-ksk <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> dnskey-ksk-only <replaceable>yes_or_no</replaceable>; </optional>
     <optional> secure-to-insecure <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> try-tcp-refresh <replaceable>yes_or_no</replaceable>; </optional>
     <optional> also-notify { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ;
@@ -9867,6 +9885,16 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                   <para>
                     See the description of
                     <command>update-check-ksk</command> in <xref linkend="boolean_options"/>.
+                  </para>
+                </listitem>
+              </varlistentry>
+
+	      <varlistentry>
+	        <term><command>dnskey-ksk-only</command></term>
+                <listitem>
+                  <para>
+                    See the description of
+                    <command>dnskey-ksk-only</command> in <xref linkend="boolean_options"/>.
                   </para>
                 </listitem>
               </varlistentry>

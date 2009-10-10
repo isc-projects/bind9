@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.161 2009/10/08 23:48:09 tbox Exp $ */
+/* $Id: update.c,v 1.162 2009/10/10 01:47:59 each Exp $ */
 
 #include <config.h>
 
@@ -1810,44 +1810,6 @@ find_zone_keys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	return (result);
 }
 
-static isc_boolean_t
-ksk_sanity(dns_db_t *db, dns_dbversion_t *ver) {
-	isc_boolean_t ret = ISC_FALSE;
-	isc_boolean_t have_ksk = ISC_FALSE, have_nonksk = ISC_FALSE;
-	isc_result_t result;
-	dns_dbnode_t *node = NULL;
-	dns_rdataset_t rdataset;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	dns_rdata_dnskey_t dnskey;
-
-	dns_rdataset_init(&rdataset);
-	CHECK(dns_db_findnode(db, dns_db_origin(db), ISC_FALSE, &node));
-	CHECK(dns_db_findrdataset(db, node, ver, dns_rdatatype_dnskey, 0, 0,
-				   &rdataset, NULL));
-	CHECK(dns_rdataset_first(&rdataset));
-	while (result == ISC_R_SUCCESS && (!have_ksk || !have_nonksk)) {
-		dns_rdataset_current(&rdataset, &rdata);
-		CHECK(dns_rdata_tostruct(&rdata, &dnskey, NULL));
-		if ((dnskey.flags & (DNS_KEYFLAG_OWNERMASK|DNS_KEYTYPE_NOAUTH))
-				 == DNS_KEYOWNER_ZONE) {
-			if ((dnskey.flags & DNS_KEYFLAG_KSK) != 0)
-				have_ksk = ISC_TRUE;
-			else
-				have_nonksk = ISC_TRUE;
-		}
-		dns_rdata_reset(&rdata);
-		result = dns_rdataset_next(&rdataset);
-	}
-	if (have_ksk && have_nonksk)
-		ret = ISC_TRUE;
- failure:
-	if (dns_rdataset_isassociated(&rdataset))
-		dns_rdataset_disassociate(&rdataset);
-	if (node != NULL)
-		dns_db_detachnode(db, &node);
-	return (ret);
-}
-
 /*%
  * Add RRSIG records for an RRset, recording the change in "diff".
  */
@@ -1856,7 +1818,7 @@ add_sigs(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	 dns_dbversion_t *ver, dns_name_t *name, dns_rdatatype_t type,
 	 dns_diff_t *diff, dst_key_t **keys, unsigned int nkeys,
 	 isc_stdtime_t inception, isc_stdtime_t expire,
-	 isc_boolean_t check_ksk)
+	 isc_boolean_t check_ksk, isc_boolean_t keyset_kskonly)
 {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
@@ -1864,7 +1826,7 @@ add_sigs(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	dns_rdata_t sig_rdata = DNS_RDATA_INIT;
 	isc_buffer_t buffer;
 	unsigned char data[1024]; /* XXX */
-	unsigned int i;
+	unsigned int i, j;
 	isc_boolean_t added_sig = ISC_FALSE;
 	isc_mem_t *mctx = client->mctx;
 
@@ -1880,13 +1842,52 @@ add_sigs(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 				  (isc_stdtime_t) 0, &rdataset, NULL));
 	dns_db_detachnode(db, &node);
 
-	for (i = 0; i < nkeys; i++) {
+#define REVOKE(x) ((dst_key_flags(x) & DNS_KEYFLAG_REVOKE) == 1)
+#define KSK(x) ((dst_key_flags(x) & DNS_KEYFLAG_KSK) == 1)
+#define ALG(x) dst_key_alg(x)
 
-		if (check_ksk && type != dns_rdatatype_dnskey &&
-		    (dst_key_flags(keys[i]) & DNS_KEYFLAG_KSK) != 0)
-			continue;
+	/*
+	 * If we are honoring KSK flags then we need to check that we
+	 * have both KSK and non-KSK keys that are not revoked per
+	 * algorithm.
+	 */
+	for (i = 0; i < nkeys; i++) {
+		isc_boolean_t both = ISC_FALSE;
 
 		if (!dst_key_isprivate(keys[i]))
+			continue;
+
+		if (check_ksk && !REVOKE(keys[i])) { 
+			isc_boolean_t have_ksk, have_nonksk;
+			if (KSK(keys[i])) {
+				have_ksk = ISC_TRUE;
+				have_nonksk = ISC_FALSE;
+			} else {
+				have_ksk = ISC_FALSE;
+				have_nonksk = ISC_TRUE;
+			}
+			for (j = 0; j < nkeys; j++) {
+				if (j == i || ALG(keys[i]) != ALG(keys[j])) 
+					continue;
+				if (REVOKE(keys[j]))
+					continue;
+				if (KSK(keys[j]))
+					have_ksk = ISC_TRUE;
+				else
+					have_nonksk = ISC_TRUE;
+		 		both = have_ksk && have_nonksk;
+				if (both)
+					break;
+			}
+		}
+
+		if (both) {
+			if (type == dns_rdatatype_dnskey) {
+				if (!KSK(keys[i]) && keyset_kskonly)
+					continue;
+			} else if (!KSK(keys[i]))
+				continue;
+		} else if (REVOKE(keys[i]) && type != dns_rdatatype_dnskey)
 			continue;
 
 		/* Calculate the signature, creating a RRSIG RDATA. */
@@ -1997,7 +1998,7 @@ add_exposed_sigs(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 		 dns_dbversion_t *ver, dns_name_t *name, isc_boolean_t cut,
 		 dns_diff_t *diff, dst_key_t **keys, unsigned int nkeys,
 		 isc_stdtime_t inception, isc_stdtime_t expire,
-		 isc_boolean_t check_ksk)
+		 isc_boolean_t check_ksk, isc_boolean_t keyset_kskonly)
 {
 	isc_result_t result;
 	dns_dbnode_t *node;
@@ -2043,7 +2044,8 @@ add_exposed_sigs(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 		if (flag)
 			continue;;
 		result = add_sigs(client, zone, db, ver, name, type, diff,
-				  keys, nkeys, inception, expire, check_ksk);
+					  keys, nkeys, inception, expire,
+					  check_ksk, keyset_kskonly);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_iterator;
 	}
@@ -2073,8 +2075,7 @@ add_exposed_sigs(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 static isc_result_t
 update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 		  dns_dbversion_t *oldver, dns_dbversion_t *newver,
-		  dns_diff_t *diff, isc_uint32_t sigvalidityinterval,
-		  isc_boolean_t *deleted_zsk)
+		  dns_diff_t *diff, isc_uint32_t sigvalidityinterval)
 {
 	isc_result_t result;
 	dns_difftuple_t *t;
@@ -2093,7 +2094,7 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdataset_t rdataset;
 	dns_dbnode_t *node = NULL;
-	isc_boolean_t check_ksk;
+	isc_boolean_t check_ksk, keyset_kskonly;
 	isc_boolean_t unsecure;
 	isc_boolean_t cut;
 	dns_rdatatype_t privatetype = dns_zone_getprivatetype(zone);
@@ -2126,27 +2127,8 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	 */
 	check_ksk = ISC_TF((dns_zone_getoptions(zone) &
 			    DNS_ZONEOPT_UPDATECHECKKSK) != 0);
-	/*
-	 * If we are not checking the ZSK flag then all DNSKEY's are
-	 * already signing all RRsets so we don't need to trigger special
-	 * changes.
-	 */
-	if (*deleted_zsk && (!check_ksk || !ksk_sanity(db, oldver)))
-		*deleted_zsk = ISC_FALSE;
-
-	if (check_ksk) {
-		check_ksk = ksk_sanity(db, newver);
-		if (!check_ksk && ksk_sanity(db, oldver))
-			update_log(client, zone, ISC_LOG_WARNING,
-				   "disabling update-check-ksk");
-	}
-
-	/*
-	 * If we have deleted a ZSK and we we still have some ZSK's
-	 * we don't need to convert the KSK's to a ZSK's.
-	 */
-	if (*deleted_zsk && check_ksk)
-		*deleted_zsk = ISC_FALSE;
+	keyset_kskonly = ISC_TF((dns_zone_getoptions(zone) &
+			        DNS_ZONEOPT_DNSKEYKSKONLY) != 0);
 
 	/*
 	 * Get the NSEC/NSEC3 TTL from the SOA MINIMUM field.
@@ -2213,7 +2195,7 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 				CHECK(add_sigs(client, zone, db, newver, name,
 					       type, &sig_diff, zone_keys,
 					       nkeys, inception, expire,
-					       check_ksk));
+					       check_ksk, keyset_kskonly));
 			}
 		skip:
 			/* Skip any other updates to the same RRset. */
@@ -2365,7 +2347,8 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 			}
 			CHECK(add_exposed_sigs(client, zone, db, newver, name,
 					       cut, diff, zone_keys, nkeys,
-					       inception, expire, check_ksk));
+					       inception, expire, check_ksk,
+					       keyset_kskonly));
 		}
 	}
 
@@ -2427,7 +2410,7 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 			CHECK(add_sigs(client, zone, db, newver, &t->name,
 				       dns_rdatatype_nsec, &sig_diff,
 				       zone_keys, nkeys, inception, expire,
-				       check_ksk));
+				       check_ksk, keyset_kskonly));
 		} else {
 			INSIST(0);
 		}
@@ -2523,7 +2506,8 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 		} else {
 			CHECK(add_exposed_sigs(client, zone, db, newver, name,
 					       cut, diff, zone_keys, nkeys,
-					       inception, expire, check_ksk));
+					       inception, expire, check_ksk,
+					       keyset_kskonly));
 			CHECK(dns_nsec3_addnsec3sx(db, newver, name, nsecttl,
 						   unsecure, privatetype,
 						   &nsec_diff));
@@ -2557,7 +2541,8 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 			CHECK(add_sigs(client, zone, db, newver, &t->name,
 				       dns_rdatatype_nsec3,
 				       &sig_diff, zone_keys, nkeys,
-				       inception, expire, check_ksk));
+				       inception, expire, check_ksk,
+				       keyset_kskonly));
 		} else {
 			INSIST(0);
 		}
@@ -3503,7 +3488,6 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	dns_fixedname_t tmpnamefixed;
 	dns_name_t *tmpname = NULL;
 	unsigned int options;
-	isc_boolean_t deleted_zsk;
 	dns_difftuple_t *tuple;
 	dns_rdata_dnskey_t dnskey;
 	unsigned char buf[DNS_NSEC3PARAM_BUFFERSIZE];
@@ -4107,8 +4091,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			isc_uint32_t interval;
 			interval = dns_zone_getsigvalidityinterval(zone);
 			result = update_signatures(client, zone, db, oldver,
-						   ver, &diff, interval,
-						   &deleted_zsk);
+						   ver, &diff, interval);
 			if (result != ISC_R_SUCCESS) {
 				update_log(client, zone,
 					   ISC_LOG_ERROR,

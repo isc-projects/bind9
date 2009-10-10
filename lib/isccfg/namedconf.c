@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.106 2009/10/08 23:13:07 marka Exp $ */
+/* $Id: namedconf.c,v 1.107 2009/10/10 01:48:00 each Exp $ */
 
 /*! \file */
 
@@ -1113,6 +1113,7 @@ zone_clauses[] = {
 	{ "check-srv-cname", &cfg_type_checkmode, 0 },
 	{ "check-wildcard", &cfg_type_boolean, 0 },
 	{ "dialup", &cfg_type_dialuptype, 0 },
+	{ "dnskey-ksk-only", &cfg_type_boolean, 0 },
 	{ "forward", &cfg_type_forwardtype, 0 },
 	{ "forwarders", &cfg_type_portiplist, 0 },
 	{ "key-directory", &cfg_type_qstring, 0 },
