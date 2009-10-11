@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-signzone.8,v 1.55 2009/10/06 01:14:41 tbox Exp $
+.\" $Id: dnssec-signzone.8,v 1.56 2009/10/11 01:14:48 tbox Exp $
 .\"
 .hy 0
 .ad l
@@ -33,7 +33,7 @@
 dnssec\-signzone \- DNSSEC zone signing tool
 .SH "SYNOPSIS"
 .HP 16
-\fBdnssec\-signzone\fR [\fB\-a\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-d\ \fR\fB\fIdirectory\fR\fR] [\fB\-E\ \fR\fB\fIengine\fR\fR] [\fB\-e\ \fR\fB\fIend\-time\fR\fR] [\fB\-f\ \fR\fB\fIoutput\-file\fR\fR] [\fB\-g\fR] [\fB\-h\fR] [\fB\-K\ \fR\fB\fIdirectory\fR\fR] [\fB\-k\ \fR\fB\fIkey\fR\fR] [\fB\-l\ \fR\fB\fIdomain\fR\fR] [\fB\-i\ \fR\fB\fIinterval\fR\fR] [\fB\-I\ \fR\fB\fIinput\-format\fR\fR] [\fB\-j\ \fR\fB\fIjitter\fR\fR] [\fB\-N\ \fR\fB\fIsoa\-serial\-format\fR\fR] [\fB\-o\ \fR\fB\fIorigin\fR\fR] [\fB\-O\ \fR\fB\fIoutput\-format\fR\fR] [\fB\-p\fR] [\fB\-P\fR] [\fB\-r\ \fR\fB\fIrandomdev\fR\fR] [\fB\-S\fR] [\fB\-s\ \fR\fB\fIstart\-time\fR\fR] [\fB\-T\ \fR\fB\fIttl\fR\fR] [\fB\-t\fR] [\fB\-u\fR] [\fB\-v\ \fR\fB\fIlevel\fR\fR] [\fB\-z\fR] [\fB\-3\ \fR\fB\fIsalt\fR\fR] [\fB\-H\ \fR\fB\fIiterations\fR\fR] [\fB\-A\fR] {zonefile} [key...]
+\fBdnssec\-signzone\fR [\fB\-a\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-d\ \fR\fB\fIdirectory\fR\fR] [\fB\-E\ \fR\fB\fIengine\fR\fR] [\fB\-e\ \fR\fB\fIend\-time\fR\fR] [\fB\-f\ \fR\fB\fIoutput\-file\fR\fR] [\fB\-g\fR] [\fB\-h\fR] [\fB\-K\ \fR\fB\fIdirectory\fR\fR] [\fB\-k\ \fR\fB\fIkey\fR\fR] [\fB\-l\ \fR\fB\fIdomain\fR\fR] [\fB\-i\ \fR\fB\fIinterval\fR\fR] [\fB\-I\ \fR\fB\fIinput\-format\fR\fR] [\fB\-j\ \fR\fB\fIjitter\fR\fR] [\fB\-N\ \fR\fB\fIsoa\-serial\-format\fR\fR] [\fB\-o\ \fR\fB\fIorigin\fR\fR] [\fB\-O\ \fR\fB\fIoutput\-format\fR\fR] [\fB\-p\fR] [\fB\-P\fR] [\fB\-r\ \fR\fB\fIrandomdev\fR\fR] [\fB\-S\fR] [\fB\-s\ \fR\fB\fIstart\-time\fR\fR] [\fB\-T\ \fR\fB\fIttl\fR\fR] [\fB\-t\fR] [\fB\-u\fR] [\fB\-v\ \fR\fB\fIlevel\fR\fR] [\fB\-x\fR] [\fB\-z\fR] [\fB\-3\ \fR\fB\fIsalt\fR\fR] [\fB\-H\ \fR\fB\fIiterations\fR\fR] [\fB\-A\fR] {zonefile} [key...]
 .SH "DESCRIPTION"
 .PP
 \fBdnssec\-signzone\fR
@@ -286,9 +286,14 @@ will retain the existing chain when re\-signing.
 Sets the debugging level.
 .RE
 .PP
+\-x
+.RS 4
+Only sign the DNSKEY RRset with key\-signing keys, and omit signatures from zone\-signing keys.
+.RE
+.PP
 \-z
 .RS 4
-Ignore KSK flag on key when determining what to sign.
+Ignore KSK flag on key when determining what to sign. This causes KSK\-flagged keys to sign all records, not just the DNSKEY RRset.
 .RE
 .PP
 \-3 \fIsalt\fR

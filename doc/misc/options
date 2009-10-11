@@ -98,6 +98,7 @@ options {
         directory <quoted_string>;
         disable-algorithms <string> { <string>; ... };
         disable-empty-zone <string>;
+        dnskey-ksk-only <boolean>;
         dnssec-accept-expired <boolean>;
         dnssec-enable <boolean>;
         dnssec-lookaside <string> trust-anchor <string>;
@@ -294,6 +295,7 @@ view <string> <optional_class> {
         dlz <string> {
                 database <string>;
         };
+        dnskey-ksk-only <boolean>;
         dnssec-accept-expired <boolean>;
         dnssec-enable <boolean>;
         dnssec-lookaside <string> trust-anchor <string>;
@@ -426,6 +428,7 @@ view <string> <optional_class> {
                 database <string>;
                 delegation-only <boolean>;
                 dialup <dialuptype>;
+                dnskey-ksk-only <boolean>;
                 file <quoted_string>;
                 forward ( first | only );
                 forwarders [ port <integer> ] { ( <ipv4_address> |
@@ -508,6 +511,7 @@ zone <string> <optional_class> {
         database <string>;
         delegation-only <boolean>;
         dialup <dialuptype>;
+        dnskey-ksk-only <boolean>;
         file <quoted_string>;
         forward ( first | only );
         forwarders [ port <integer> ] { ( <ipv4_address> | <ipv6_address> )

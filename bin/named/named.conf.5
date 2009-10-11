@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.conf.5,v 1.38 2009/10/09 01:14:46 tbox Exp $
+.\" $Id: named.conf.5,v 1.39 2009/10/11 01:14:48 tbox Exp $
 .\"
 .hy 0
 .ad l
@@ -260,6 +260,7 @@ options {
 	allow\-update { \fIaddress_match_element\fR; ... };
 	allow\-update\-forwarding { \fIaddress_match_element\fR; ... };
 	update\-check\-ksk \fIboolean\fR;
+	dnskey\-ksk\-only \fIboolean\fR;
 	masterfile\-format ( text | raw );
 	notify \fInotifytype\fR;
 	notify\-source ( \fIipv4_address\fR | * ) [ port ( \fIinteger\fR | * ) ];
@@ -408,6 +409,7 @@ view \fIstring\fR \fIoptional_class\fR {
 	allow\-update { \fIaddress_match_element\fR; ... };
 	allow\-update\-forwarding { \fIaddress_match_element\fR; ... };
 	update\-check\-ksk \fIboolean\fR;
+	dnskey\-ksk\-only \fIboolean\fR;
 	masterfile\-format ( text | raw );
 	notify \fInotifytype\fR;
 	notify\-source ( \fIipv4_address\fR | * ) [ port ( \fIinteger\fR | * ) ];
@@ -492,6 +494,7 @@ zone \fIstring\fR \fIoptional_class\fR {
 		\fIrrtypelist\fR; ...
 	};
 	update\-check\-ksk \fIboolean\fR;
+	dnskey\-ksk\-only \fIboolean\fR;
 	masterfile\-format ( text | raw );
 	notify \fInotifytype\fR;
 	notify\-source ( \fIipv4_address\fR | * ) [ port ( \fIinteger\fR | * ) ];
