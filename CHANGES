@@ -1,3 +1,5 @@
+	--- 9.7.0b1 released ---
+
 2712.	[func]		New 'auto-dnssec' zone option allows zone signing
 			to be fully automated in zones configured for
 			dynamic DNS.  'auto-dnssec allow;' permits a zone
