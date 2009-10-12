@@ -64,6 +64,9 @@ copy ..\bin\dnssec\dnssec-keygen.html ..\Build\Release
 copy ..\bin\dnssec\dnssec-signzone.html ..\Build\Release
 copy ..\bin\dnssec\dnssec-dsfromkey.html ..\Build\Release
 copy ..\bin\dnssec\dnssec-keyfromlabel.html ..\Build\Release
+copy ..\bin\pkcs11\pkcs11-keygen.html ..\Build\Release
+copy ..\bin\pkcs11\pkcs11-list.html ..\Build\Release
+copy ..\bin\pkcs11\pkcs11-destroy.html ..\Build\Release
 
 echo Copying the migration notes.
 

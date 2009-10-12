@@ -41,16 +41,16 @@ choice depends on the HSM hardware:
    secure key storage devices, but lack hardware acceleration.  These
    devices are highly secure, but are not necessarily any faster at
    cryptography than the system CPU--often, they are slower.  It is
-   therefore most efficient to use them only for those operation
+   therefore most efficient to use them only for those cryptographic
    functions that require access to the secured private key, such as
    zone signing, and to use the system CPU for all other computationally-
    intensive operations.  The AEP Keyper is an example of such a device.
 
-The modified OpenSSL code is included in BIND 9.7.0b1 release in the form
-of a context diff against OpenSSL 0.9.8k.  Before building BIND 9 with
-PKCS #11 support, it will be necessary to build OpenSSL with this patch
-in place and inform it of the path to the HSM-specific PKCS #11 provider
-library.
+The modified OpenSSL code is included in the BIND 9.7.0b1 release, in the
+form of a context diff against OpenSSL 0.9.8k.  Before building BIND 9
+with PKCS #11 support, it will be necessary to build OpenSSL with this
+patch in place and inform it of the path to the HSM-specific PKCS #11
+provider library.
 
 Obtain OpenSSL 0.9.8k:
 
@@ -65,8 +65,8 @@ Apply the patch from the BIND 9 release:
     patch -p1 -d openssl-0.9.8k \
             < bind-9.7.0b1/bin/pkcs11/openssl-0.9.8k-patch 
 
-(Note that the patch file may not be compatible with the "patch" utility
-on all operating systems.  You may need to install GNU patch.)
+(Note that the patch file may not be compatible with the "patch"
+utility on all operating systems.  You may need to install GNU patch.)
 
 When building OpenSSL, place it in a non-standard location so that it
 does not interfere with OpenSSL libraries elsewhere on the system.
@@ -175,17 +175,18 @@ Configure).
 
 After configuring, run "make", "make test" and "make install".
 
+PKCS #11 TOOLS
+
 BIND 9 includes a minimal set of tools to operate the HSM, including
 "pkcs11-keygen" to generate a new key pair within the HSM, "pkcs11-list"
 to list objects currently available, and "pkcs11-destroy" to remove
 objects.
 
-These tools are built if BIND 9 is configured with the --with-pkcs11
-option.  (NOTE: If --with-pkcs11 is set to "yes", rather than to the
-path of the PKCS #11 provider, then the tools will be built but the
-provider will be left undefined.  Use the -m option or the
-PKCS11_PROVIDER environment variable to specify the path to the
-provider.)
+In UNIX/Linux builds, these tools are built only if BIND 9 is configured
+with the --with-pkcs11 option.  (NOTE: If --with-pkcs11 is set to "yes",
+rather than to the path of the PKCS #11 provider, then the tools will be
+built but the provider will be left undefined.  Use the -m option or the
+PKCS11_PROVIDER environment variable to specify the path to the provider.)
 
 USING THE HSM
 
@@ -238,8 +239,8 @@ arguments:
     pkcs11-keygen -b 1024 -l sample-zsk
     dnssec-keyfromlabel -l sample-zsk example.net
 
-Alternatively, you may prefer to generate a conventional on-disk key, using
-dnssec-keygen:
+Alternatively, you may prefer to generate a conventional on-disk key,
+using dnssec-keygen:
 
     dnssec-keygen example.net
 

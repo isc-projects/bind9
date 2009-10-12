@@ -1,3 +1,6 @@
+2711.	[port]		win32: Add the bin/pkcs11 tools into the full
+			build. [RT #20372]
+
 2710.	[func]		New 'dnssec-signzone -x' flag and 'dnskey-ksk-only'
 			zone option cause a zone to be signed with only KSKs
 			signing the DNSKEY RRset, not ZSKs.  This reduces

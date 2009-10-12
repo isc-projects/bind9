@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.win32,v 1.22 2009/09/02 23:43:54 each Exp $ */
+/* $Id: config.h.win32,v 1.23 2009/10/12 16:41:12 each Exp $ */
 
 /*
  * win32 configuration file
@@ -248,3 +248,9 @@ typedef long off_t;
  * of libisc, libdns, etc, this must be removed.
  */
 #define BIND9 1
+
+/*
+ * Define if PKCS11 is to be used.
+ */
+/* #undef USE_PKCS11 */
+

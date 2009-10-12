@@ -2,7 +2,7 @@ Copyright (C) 2004, 2005, 2008, 2009  Internet Systems Consortium, Inc. ("ISC")
 Copyright (C) 2001, 2002  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: win32-build.txt,v 1.17 2009/09/24 13:03:39 fdupont Exp $
+$Id: win32-build.txt,v 1.18 2009/10/12 16:41:13 each Exp $
 
        BIND 9.7 for Win32 Source Build Instructions.  02-Jul-2009
 
@@ -66,6 +66,12 @@ to see if the build instructions have changed:
   ms\do_masm
   nmake /f ms\ntdll.mak
 
+If you wish to use PKCS #11 to control a cryptographic hardware service
+module, please see bind9\README.pkcs11.  You will need to apply the patch
+in bind9\bin\pkcs11\openssl-0.9.8k-patch (this can be done using the Cygwin
+'patch' utility) and add --pk11-libname and --pk11-flavor to the Configure
+command above.
+
 Step 2: Download and build libxml2
 
 Download and untar the libxml2 sources from ftp://xmlsoft.org/libxml2.
@@ -88,6 +94,11 @@ From the command prompt cd to the win32utils directory under
 the BIND9 root:
 
   cd bind-9.7.0\win32utils
+
+If you wish to use PKCS #11 to control a cryptographic hardware service
+module, set the path to the PKCS #11 provider library:
+
+  perl setpk11provider.pl <DLL path>
   
 If using VC++ 6.0, run the BuildAll.bat file:
 

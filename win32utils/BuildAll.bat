@@ -113,6 +113,12 @@ nmake /nologo -f revoke.mak CFG="revoke - Win32 Release"  NO_EXTERNAL_DEPS="1"
 nmake /nologo -f settime.mak CFG="settime - Win32 Release"  NO_EXTERNAL_DEPS="1"
 cd ..\..
 
+cd pkcs11\win32
+nmake /nologo -f pk11keygen.mak CFG="pk11keygen - Win32 Release"  NO_EXTERNAL_DEPS="1"
+nmake /nologo -f pk11list.mak CFG="pk11list - Win32 Release"  NO_EXTERNAL_DEPS="1"
+nmake /nologo -f pk11destroy.mak CFG="pk11destroy - Win32 Release"  NO_EXTERNAL_DEPS="1"
+cd ..\..
+
 rem This is the BIND 9 Installer
 
 cd win32\BINDInstall
