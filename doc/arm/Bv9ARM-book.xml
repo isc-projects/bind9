@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.433 2009/10/12 20:48:11 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.434 2009/10/12 22:54:54 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -6448,13 +6448,26 @@ options {
 	      <term><command>update-check-ksk</command></term>
 	      <listitem>
 	        <para>
-		  When regenerating the RRSIGs following a UPDATE
-		  request to a secure zone, check the KSK flag on
-		  the DNSKEY RR to determine if this key should be
-		  used to generate the RRSIG.  This flag is ignored
-		  if there are not non-revoked DNSKEY RRs both with
-		  and without a KSK for the algorithm.
-		  The default is <command>yes</command>.
+                  When set to the default value of <literal>yes</literal>,
+                  check the KSK bit in each key to determine how the key
+                  should be used when generating RRSIGs for a secure zone.
+		</para>
+		<para>
+                  Ordinarily, zone-signing keys (that is, keys without the
+                  KSK bit set) are used to sign the entire zone, while
+                  key-signing keys (keys with the KSK bit set) are only
+                  used to sign the DNSKEY RRset at the zone apex.
+                  However, if this option is set to <literal>no</literal>,
+                  then the KSK bit is ignored; KSKs are treated as if they
+                  were ZSKs and are used to sign the entire zone.
+		</para>
+		<para>
+                  When this option is set to <literal>yes</literal>, there
+                  must be at least two active keys for every algorithm
+                  represented in the DNSKEY RRset: at least one KSK and one
+                  ZSK per algorithm.  If there is any algorithm for which
+                  this requirement is not met, this option will be ignored
+                  for that algorithm.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -6463,14 +6476,15 @@ options {
 	      <term><command>dnskey-ksk-only</command></term>
 	      <listitem>
 	        <para>
-		  When regenerating the RRSIGs following a UPDATE
-		  request to a secure zone and
-		  <command>update-check-ksk</command> is true then
-		  only generate signatures DNSKEY RRSIG using DNSKEY's
-		  with the KSK bit set.  This flag is ignored if there
-		  are not non-revoked DNSKEY RRs both with and without
-		  a KSK for the algorithm.
-		  The default is <command>no</command>.
+                  When this option and <command>update-check-ksk</command>
+                  are both set to <literal>yes</literal>, only key-signing
+                  keys (that is, keys with the KSK bit set) will be used
+                  to sign the DNSKEY RRset at the zone apex.  Zone-signing
+                  keys (keys without the KSK bit set) will be used to sign
+                  the remainder of the zone, but not the DNSKEY RRset.
+		  The default is <command>no</command>.  If
+                  <command>update-check-ksk</command> is set to
+                  <literal>no</literal>, this option is ignored.
 		</para>
 	      </listitem>
 	    </varlistentry>
