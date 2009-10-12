@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.37 2009/10/12 05:50:52 marka Exp $
+ * $Id: dst_api.c,v 1.38 2009/10/12 06:05:29 marka Exp $
  */
 
 /*! \file */
@@ -930,6 +930,8 @@ pub_compare(const dst_key_t *key1, const dst_key_t *key2) {
 		return (ISC_FALSE);
 	/* Zero out flags. */
 	buf1[0] = buf1[1] = 0;
+	if ((key1->key_flags & DNS_KEYFLAG_EXTENDED) != 0)
+		isc_buffer_subtract(&b1, 2);
 
 	isc_buffer_init(&b2, buf2, sizeof(buf2));
 	result = dst_key_todns(key2, &b2);
@@ -937,6 +939,8 @@ pub_compare(const dst_key_t *key1, const dst_key_t *key2) {
 		return (ISC_FALSE);
 	/* Zero out flags. */
 	buf2[0] = buf2[1] = 0;
+	if ((key2->key_flags & DNS_KEYFLAG_EXTENDED) != 0)
+		isc_buffer_subtract(&b2, 2);
 
 	isc_buffer_usedregion(&b1, &r1);
 	isc_buffer_usedregion(&b2, &r2);
