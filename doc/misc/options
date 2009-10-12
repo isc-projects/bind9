@@ -418,6 +418,7 @@ view <string> <optional_class> {
                     <integer> | * ) ];
                 alt-transfer-source-v6 ( <ipv6_address> | * ) [ port (
                     <integer> | * ) ];
+                auto-dnssec ( allow | maintain | create | off );
                 check-integrity <boolean>;
                 check-mx ( fail | warn | ignore );
                 check-mx-cname ( fail | warn | ignore );
@@ -501,6 +502,7 @@ zone <string> <optional_class> {
         alt-transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
         alt-transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> |
             * ) ];
+        auto-dnssec ( allow | maintain | create | off );
         check-integrity <boolean>;
         check-mx ( fail | warn | ignore );
         check-mx-cname ( fail | warn | ignore );

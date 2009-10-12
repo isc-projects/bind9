@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch03.html,v 1.76 2009/07/11 01:12:46 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch03.html,v 1.77 2009/10/12 23:15:32 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -54,7 +54,7 @@
 <dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2568358">Name Server Operations</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2568363">Tools for Use With the Name Server Daemon</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2570071">Signals</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2570124">Signals</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -472,6 +472,32 @@ zone "eng.example.com" {
 <dd><p>
                         Retransfer the given zone from the master.
                       </p></dd>
+<dt><span class="term"><strong class="userinput"><code>sign <em class="replaceable"><code>zone</code></em>
+                        [<span class="optional"><em class="replaceable"><code>class</code></em>
+           [<span class="optional"><em class="replaceable"><code>view</code></em></span>]</span>]</code></strong></span></dt>
+<dd>
+<p>
+                        Fetch all DNSSEC keys for the given zone
+                        from the key directory (see
+                        <span><strong class="command">key-directory</strong></span> in
+                        <a href="Bv9ARM.ch06.html#options" title="options Statement Definition and
+          Usage">the section called &#8220;<span><strong class="command">options</strong></span> Statement Definition and
+          Usage&#8221;</a>), and merge them
+                        into the zone's DNSKEY RRset.  If the DNSKEY RRset
+                        is changed as a result of this, then the zone is
+                        automatically re-signed with the new key set.
+                      </p>
+<p>
+                        This command requires that the
+                        <span><strong class="command">auto-dnssec</strong></span> zone option to be set
+                        to <code class="literal">allow</code>,
+                        <code class="literal">maintain</code>, or
+                        <code class="literal">create</code>,  and also requires
+                        the zone to be configured to allow dynamic DNS.
+                        See <a href="Bv9ARM.ch06.html#dynamic_update_policies" title="Dynamic Update Policies">the section called &#8220;Dynamic Update Policies&#8221;</a> for
+                        more details.
+                      </p>
+</dd>
 <dt><span class="term"><strong class="userinput"><code>freeze
                         [<span class="optional"><em class="replaceable"><code>zone</code></em>
        [<span class="optional"><em class="replaceable"><code>class</code></em>
@@ -760,7 +786,7 @@ controls {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2570071"></a>Signals</h3></div></div></div>
+<a name="id2570124"></a>Signals</h3></div></div></div>
 <p>
           Certain UNIX signals cause the name server to take specific
           actions, as described in the following table.  These signals can
