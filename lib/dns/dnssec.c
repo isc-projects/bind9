@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.103 2009/10/12 20:48:11 each Exp $
+ * $Id: dnssec.c,v 1.104 2009/10/12 23:48:01 tbox Exp $
  */
 
 /*! \file */
@@ -1192,7 +1192,7 @@ addkey(dns_dnsseckeylist_t *keylist, dst_key_t **newkey,
 		if (dst_key_id(key->key) == dst_key_id(*newkey) &&
 		    dst_key_alg(key->key) == dst_key_alg(*newkey) &&
 		    dns_name_equal(dst_key_name(key->key),
-		    		   dst_key_name(*newkey)))
+				   dst_key_name(*newkey)))
 			break;
 	}
 
@@ -1432,7 +1432,7 @@ remove_key(dns_diff_t *del, dns_dnsseckey_t *key, dns_name_t *origin,
  * the zone will be added to the list for post-removal processing.
  */
 isc_result_t
-dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys, 
+dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 		      dns_dnsseckeylist_t *removed, dns_name_t *origin,
 		      dns_ttl_t ttl, dns_diff_t *add, dns_diff_t *del,
 		      isc_boolean_t allzsk, isc_mem_t *mctx,
@@ -1534,10 +1534,10 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 			 * zone now.
 			 */
 			key2->hint_publish = key1->hint_publish;
-			if (key2->source == dns_keysource_user && 
+			if (key2->source == dns_keysource_user &&
 			    (key2->hint_publish || key2->force_publish))
 				RETERR(publish_key(add, key2, origin, ttl,
-					           mctx, allzsk, report));
+						   mctx, allzsk, report));
 		}
 
 		key1 = ISC_LIST_NEXT(key1, link);

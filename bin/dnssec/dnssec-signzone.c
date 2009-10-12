@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.244 2009/10/12 20:48:10 each Exp $ */
+/* $Id: dnssec-signzone.c,v 1.245 2009/10/12 23:48:01 tbox Exp $ */
 
 /*! \file */
 
@@ -1735,7 +1735,7 @@ verifyzone(void) {
 			    (zsk_algorithms[i] != 0) ||
 			    (standby_zsk[i] != 0) ||
 			    (revoked_zsk[i] != 0)) {
- 				dns_secalg_format(i, algbuf, sizeof(algbuf));
+				dns_secalg_format(i, algbuf, sizeof(algbuf));
 				fprintf(stderr, "Algorithm: %s: KSKs: "
 					"%u active, %u stand-by, %u revoked\n",
 					algbuf, ksk_algorithms[i],

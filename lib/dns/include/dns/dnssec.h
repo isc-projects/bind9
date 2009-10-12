@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec.h,v 1.37 2009/10/12 20:48:12 each Exp $ */
+/* $Id: dnssec.h,v 1.38 2009/10/12 23:48:02 tbox Exp $ */
 
 #ifndef DNS_DNSSEC_H
 #define DNS_DNSSEC_H 1
@@ -283,7 +283,7 @@ dns_dnssec_keylistfromrdataset(dns_name_t *origin,
  */
 
 isc_result_t
-dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys, 
+dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 		      dns_dnsseckeylist_t *removed, dns_name_t *origin,
 		      dns_ttl_t ttl, dns_diff_t *add, dns_diff_t *del,
 		      isc_boolean_t allzsk, isc_mem_t *mctx,

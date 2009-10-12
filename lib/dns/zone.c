@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.516 2009/10/12 20:48:12 each Exp $ */
+/* $Id: zone.c,v 1.517 2009/10/12 23:48:01 tbox Exp $ */
 
 /*! \file */
 
@@ -13404,8 +13404,8 @@ zone_rekey(dns_zone_t *zone) {
 	result = ISC_R_SUCCESS;
 
  failure:
- 	dns_diff_clear(&add);
- 	dns_diff_clear(&del);
+	dns_diff_clear(&add);
+	dns_diff_clear(&del);
 
 	clear_keylist(&dnskeys, mctx);
 	clear_keylist(&keys, mctx);

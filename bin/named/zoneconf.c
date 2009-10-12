@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.157 2009/10/12 20:48:11 each Exp $ */
+/* $Id: zoneconf.c,v 1.158 2009/10/12 23:48:01 tbox Exp $ */
 
 /*% */
 
@@ -944,24 +944,24 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		dns_zone_setoption(zone, DNS_ZONEOPT_SECURETOINSECURE,
 				   cfg_obj_asboolean(obj));
 
- 		obj = NULL;
- 		result = cfg_map_get(zoptions, "auto-dnssec", &obj);
- 		if (result == ISC_R_SUCCESS) {
- 			const char *arg = cfg_obj_asstring(obj);
- 			if (strcasecmp(arg, "allow") == 0)
- 				allow = ISC_TRUE;
- 			else if (strcasecmp(arg, "maintain") == 0)
- 				allow = maint = ISC_TRUE;
- 			else if (strcasecmp(arg, "create") == 0)
- 				allow = maint = create = ISC_TRUE;
- 			else if (strcasecmp(arg, "off") == 0)
- 				;
- 			else
- 				INSIST(0);
- 			dns_zone_setkeyopt(zone, DNS_ZONEKEY_ALLOW, allow);
- 			dns_zone_setkeyopt(zone, DNS_ZONEKEY_MAINTAIN, maint);
- 			dns_zone_setkeyopt(zone, DNS_ZONEKEY_CREATE, create);
- 		}
+		obj = NULL;
+		result = cfg_map_get(zoptions, "auto-dnssec", &obj);
+		if (result == ISC_R_SUCCESS) {
+			const char *arg = cfg_obj_asstring(obj);
+			if (strcasecmp(arg, "allow") == 0)
+				allow = ISC_TRUE;
+			else if (strcasecmp(arg, "maintain") == 0)
+				allow = maint = ISC_TRUE;
+			else if (strcasecmp(arg, "create") == 0)
+				allow = maint = create = ISC_TRUE;
+			else if (strcasecmp(arg, "off") == 0)
+				;
+			else
+				INSIST(0);
+			dns_zone_setkeyopt(zone, DNS_ZONEKEY_ALLOW, allow);
+			dns_zone_setkeyopt(zone, DNS_ZONEKEY_MAINTAIN, maint);
+			dns_zone_setkeyopt(zone, DNS_ZONEKEY_CREATE, create);
+		}
 	}
 
 	/*

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.108 2009/10/12 20:48:12 each Exp $ */
+/* $Id: namedconf.c,v 1.109 2009/10/12 23:48:02 tbox Exp $ */
 
 /*! \file */
 
@@ -530,7 +530,7 @@ static cfg_type_t cfg_type_bracketed_sockaddrlist = {
 	&cfg_rep_list, &cfg_type_sockaddr
 };
 
-static const char *autodnssec_enums[] = { "allow", "maintain", "create", 
+static const char *autodnssec_enums[] = { "allow", "maintain", "create",
 					  "off", NULL };
 static cfg_type_t cfg_type_autodnssec = {
 	"autodnssec", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
