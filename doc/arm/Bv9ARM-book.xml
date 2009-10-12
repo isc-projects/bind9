@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.434 2009/10/12 22:54:54 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.435 2009/10/12 23:02:32 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -6459,7 +6459,9 @@ options {
                   used to sign the DNSKEY RRset at the zone apex.
                   However, if this option is set to <literal>no</literal>,
                   then the KSK bit is ignored; KSKs are treated as if they
-                  were ZSKs and are used to sign the entire zone.
+                  were ZSKs and are used to sign the entire zone.  This is
+                  similar to the <command>dnssec-signzone -z</command>
+                  command line option.
 		</para>
 		<para>
                   When this option is set to <literal>yes</literal>, there
@@ -6482,6 +6484,10 @@ options {
                   to sign the DNSKEY RRset at the zone apex.  Zone-signing
                   keys (keys without the KSK bit set) will be used to sign
                   the remainder of the zone, but not the DNSKEY RRset.
+                  This is similar to the
+                  <command>dnssec-signzone -x</command> command line option.
+		</para>
+		<para>
 		  The default is <command>no</command>.  If
                   <command>update-check-ksk</command> is set to
                   <literal>no</literal>, this option is ignored.
