@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.39 2009/10/12 08:57:38 marka Exp $
+ * $Id: dst_api.c,v 1.40 2009/10/12 09:03:06 marka Exp $
  */
 
 /*! \file */
@@ -930,8 +930,6 @@ pub_compare(const dst_key_t *key1, const dst_key_t *key2) {
 		return (ISC_FALSE);
 	/* Zero out flags. */
 	buf1[0] = buf1[1] = 0;
-	if ((key1->key_flags & DNS_KEYFLAG_EXTENDED) != 0)
-		buf1[4] = buf1[5] = 0;
 
 	isc_buffer_init(&b2, buf2, sizeof(buf2));
 	result = dst_key_todns(key2, &b2);
@@ -939,11 +937,20 @@ pub_compare(const dst_key_t *key1, const dst_key_t *key2) {
 		return (ISC_FALSE);
 	/* Zero out flags. */
 	buf2[0] = buf2[1] = 0;
-	if ((key2->key_flags & DNS_KEYFLAG_EXTENDED) != 0)
-		buf2[4] = buf2[5] = 0;
 
 	isc_buffer_usedregion(&b1, &r1);
+	/* Remove extended flags. */
+	if ((key1->key_flags & DNS_KEYFLAG_EXTENDED) != 0) {
+		memmove(&buf1[4], &buf1[6], r1.length - 6);
+		r1.length -= 2;
+	}
+
 	isc_buffer_usedregion(&b2, &r2);
+	/* Remove extended flags. */
+	if ((key2->key_flags & DNS_KEYFLAG_EXTENDED) != 0) {
+		memmove(&buf2[4], &buf2[6], r2.length - 6);
+		r2.length -= 2;
+	}
 	return (ISC_TF(isc_region_compare(&r1, &r2) == 0));
 }
 
