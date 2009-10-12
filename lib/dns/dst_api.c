@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.36 2009/10/10 01:13:39 marka Exp $
+ * $Id: dst_api.c,v 1.37 2009/10/12 05:50:52 marka Exp $
  */
 
 /*! \file */
@@ -867,7 +867,8 @@ dst_key_setprivateformat(dst_key_t *key, int major, int minor) {
 static isc_boolean_t
 comparekeys(const dst_key_t *key1, const dst_key_t *key2,
 	    isc_boolean_t match_revoked_key,
-	    isc_boolean_t (*compare)())
+	    isc_boolean_t (*compare)(const dst_key_t *key1,
+				     const dst_key_t *key2))
 {
 	REQUIRE(dst_initialized == ISC_TRUE);
 	REQUIRE(VALID_KEY(key1));
@@ -917,28 +918,25 @@ comparekeys(const dst_key_t *key1, const dst_key_t *key2,
  * both to wire format and comparing the results.
  */
 static isc_boolean_t
-pub_compare(dst_key_t *key1, dst_key_t *key2) {
+pub_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	isc_result_t result;
-	unsigned char txt1[DST_KEY_MAXSIZE], txt2[DST_KEY_MAXSIZE];
+	unsigned char buf1[DST_KEY_MAXSIZE], buf2[DST_KEY_MAXSIZE];
 	isc_buffer_t b1, b2;
 	isc_region_t r1, r2;
-	isc_uint16_t flags;
 
-	flags = key1->key_flags;
-	key1->key_flags = 0;
-	isc_buffer_init(&b1, txt1, sizeof(txt1));
+	isc_buffer_init(&b1, buf1, sizeof(buf1));
 	result = dst_key_todns(key1, &b1);
-	key1->key_flags = flags;
 	if (result != ISC_R_SUCCESS)
 		return (ISC_FALSE);
+	/* Zero out flags. */
+	buf1[0] = buf1[1] = 0;
 
-	flags = key2->key_flags;
-	key2->key_flags = 0;
-	isc_buffer_init(&b2, txt2, sizeof(txt2));
+	isc_buffer_init(&b2, buf2, sizeof(buf2));
 	result = dst_key_todns(key2, &b2);
-	key2->key_flags = flags;
 	if (result != ISC_R_SUCCESS)
 		return (ISC_FALSE);
+	/* Zero out flags. */
+	buf2[0] = buf2[1] = 0;
 
 	isc_buffer_usedregion(&b1, &r1);
 	isc_buffer_usedregion(&b2, &r2);
