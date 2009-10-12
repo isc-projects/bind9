@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.54 2009/10/03 18:03:54 each Exp $ */
+/* $Id: dnssectool.c,v 1.55 2009/10/12 20:48:11 each Exp $ */
 
 /*! \file */
 
@@ -111,36 +111,13 @@ type_format(const dns_rdatatype_t type, char *cp, unsigned int size) {
 }
 
 void
-alg_format(const dns_secalg_t alg, char *cp, unsigned int size) {
-	isc_buffer_t b;
-	isc_region_t r;
-	isc_result_t result;
-
-	isc_buffer_init(&b, cp, size - 1);
-	result = dns_secalg_totext(alg, &b);
-	check_result(result, "dns_secalg_totext()");
-	isc_buffer_usedregion(&b, &r);
-	r.base[r.length] = 0;
-}
-
-void
 sig_format(dns_rdata_rrsig_t *sig, char *cp, unsigned int size) {
 	char namestr[DNS_NAME_FORMATSIZE];
 	char algstr[DNS_NAME_FORMATSIZE];
 
 	dns_name_format(&sig->signer, namestr, sizeof(namestr));
-	alg_format(sig->algorithm, algstr, sizeof(algstr));
+	dns_secalg_format(sig->algorithm, algstr, sizeof(algstr));
 	snprintf(cp, size, "%s/%s/%d", namestr, algstr, sig->keyid);
-}
-
-void
-key_format(const dst_key_t *key, char *cp, unsigned int size) {
-	char namestr[DNS_NAME_FORMATSIZE];
-	char algstr[DNS_NAME_FORMATSIZE];
-
-	dns_name_format(dst_key_name(key), namestr, sizeof(namestr));
-	alg_format((dns_secalg_t) dst_key_alg(key), algstr, sizeof(algstr));
-	snprintf(cp, size, "%s/%s/%d", namestr, algstr, dst_key_id(key));
 }
 
 void

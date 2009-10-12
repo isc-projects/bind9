@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.101 2009/07/14 22:54:56 each Exp $ */
+/* $Id: server.h,v 1.102 2009/10/12 20:48:11 each Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -288,6 +288,13 @@ ns_server_tsigdelete(ns_server_t *server, char *command, isc_buffer_t *text);
 isc_result_t
 ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args,
 		 isc_buffer_t *text);
+
+/*%
+ * Update a zone's DNSKEY set from the key repository, and re-sign the
+ * zone if there were any changes.
+ */
+isc_result_t
+ns_server_sign(ns_server_t *server, char *args);
 
 /*%
  * Dump the current recursive queries.

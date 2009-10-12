@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-settime.c,v 1.16 2009/10/09 06:09:21 each Exp $ */
+/* $Id: dnssec-settime.c,v 1.17 2009/10/12 20:48:10 each Exp $ */
 
 /*! \file */
 
@@ -125,7 +125,7 @@ main(int argc, char **argv) {
 #endif
 	char *filename = NULL, *directory = NULL;
 	char newname[1024];
-	char keystr[KEY_FORMATSIZE];
+	char keystr[DST_KEY_FORMATSIZE];
 	char *endp, *p;
 	int ch;
 	isc_entropy_t *ectx = NULL;
@@ -344,7 +344,7 @@ main(int argc, char **argv) {
 	if (!dst_key_isprivate(key))
 		fatal("%s is not a private key", filename);
 
-	key_format(key, keystr, sizeof(keystr));
+	dst_key_format(key, keystr, sizeof(keystr));
 
 	/* Is this an old-style key? */
 	dst_key_getprivateformat(key, &major, &minor);
@@ -441,7 +441,7 @@ main(int argc, char **argv) {
 		result = dst_key_tofile(key, DST_TYPE_PUBLIC|DST_TYPE_PRIVATE,
 					directory);
 		if (result != ISC_R_SUCCESS) {
-			key_format(key, keystr, sizeof(keystr));
+			dst_key_format(key, keystr, sizeof(keystr));
 			fatal("Failed to write key %s: %s", keystr,
 			      isc_result_totext(result));
 		}

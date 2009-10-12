@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.243 2009/10/10 01:47:59 each Exp $ */
+/* $Id: dnssec-signzone.c,v 1.244 2009/10/12 20:48:10 each Exp $ */
 
 /*! \file */
 
@@ -171,7 +171,6 @@ static isc_boolean_t disable_zone_check = ISC_FALSE;
 static isc_boolean_t update_chain = ISC_FALSE;
 static isc_boolean_t set_keyttl = ISC_FALSE;
 static dns_ttl_t keyttl;
-static isc_boolean_t smartsign = ISC_FALSE;
 
 #define INCSTAT(counter)		\
 	if (printstats) {		\
@@ -208,13 +207,13 @@ signwithkey(dns_name_t *name, dns_rdataset_t *rdataset, dst_key_t *key,
 {
 	isc_result_t result;
 	isc_stdtime_t jendtime;
-	char keystr[KEY_FORMATSIZE];
+	char keystr[DST_KEY_FORMATSIZE];
 	dns_rdata_t trdata = DNS_RDATA_INIT;
 	unsigned char array[BUFSIZE];
 	isc_buffer_t b;
 	dns_difftuple_t *tuple;
 
-	key_format(key, keystr, sizeof(keystr));
+	dst_key_format(key, keystr, sizeof(keystr));
 	vbprintf(1, "\t%s %s\n", logmsg, keystr);
 
 	jendtime = (jitter != 0) ? isc_random_jitter(endtime, jitter) : endtime;
@@ -223,8 +222,8 @@ signwithkey(dns_name_t *name, dns_rdataset_t *rdataset, dst_key_t *key,
 				 mctx, &b, &trdata);
 	isc_entropy_stopcallbacksources(ectx);
 	if (result != ISC_R_SUCCESS) {
-		char keystr[KEY_FORMATSIZE];
-		key_format(key, keystr, sizeof(keystr));
+		char keystr[DST_KEY_FORMATSIZE];
+		dst_key_format(key, keystr, sizeof(keystr));
 		fatal("dnskey '%s' failed to sign data: %s",
 		      keystr, isc_result_totext(result));
 	}
@@ -1400,7 +1399,7 @@ verifyset(dns_rdataset_t *rdataset, dns_name_t *name, dns_dbnode_t *node,
 		for (i = 0; i < 256; i++)
 			if ((ksk_algorithms[i] != 0) &&
 			    (set_algorithms[i] == 0)) {
-				alg_format(i, algbuf, sizeof(algbuf));
+				dns_secalg_format(i, algbuf, sizeof(algbuf));
 				fprintf(stderr, "Missing %s signature for "
 					"%s %s\n", algbuf, namebuf, typebuf);
 				bad_algorithms[i] = 1;
@@ -1607,7 +1606,7 @@ verifyzone(void) {
 		if (ksk_algorithms[i] != 0)
 #endif
 		{
-			alg_format(i, algbuf, sizeof(algbuf));
+			dns_secalg_format(i, algbuf, sizeof(algbuf));
 			fprintf(stderr, " %s", algbuf);
 		}
 	}
@@ -1622,7 +1621,7 @@ verifyzone(void) {
 			if ((ksk_algorithms[i] != 0) ==
 			    (zsk_algorithms[i] != 0))
 				continue;
-			alg_format(i, algbuf, sizeof(algbuf));
+			dns_secalg_format(i, algbuf, sizeof(algbuf));
 			fprintf(stderr, "Missing %s for algorithm %s\n",
 				(ksk_algorithms[i] != 0)
 				   ? "ZSK"
@@ -1714,7 +1713,7 @@ verifyzone(void) {
 			if (first)
 				fprintf(stderr, "The zone is not fully signed "
 					"for the following algorithms:");
-			alg_format(i, algbuf, sizeof(algbuf));
+			dns_secalg_format(i, algbuf, sizeof(algbuf));
 			fprintf(stderr, " %s", algbuf);
 			first = ISC_FALSE;
 		}
@@ -1736,7 +1735,7 @@ verifyzone(void) {
 			    (zsk_algorithms[i] != 0) ||
 			    (standby_zsk[i] != 0) ||
 			    (revoked_zsk[i] != 0)) {
-				alg_format(i, algbuf, sizeof(algbuf));
+ 				dns_secalg_format(i, algbuf, sizeof(algbuf));
 				fprintf(stderr, "Algorithm: %s: KSKs: "
 					"%u active, %u stand-by, %u revoked\n",
 					algbuf, ksk_algorithms[i],
@@ -2632,166 +2631,61 @@ loadzone(char *file, char *origin, dns_rdataclass_t rdclass, dns_db_t **db) {
  * private keys from disk.
  */
 static void
-loadzonekeys(dns_db_t *db) {
+loadzonekeys(isc_boolean_t preserve_keys, isc_boolean_t load_public) {
 	dns_dbnode_t *node;
 	dns_dbversion_t *currentversion;
 	isc_result_t result;
-	dst_key_t *keys[20];
-	unsigned int nkeys, i;
 	dns_rdataset_t rdataset;
 
 	currentversion = NULL;
-	dns_db_currentversion(db, &currentversion);
+	dns_db_currentversion(gdb, &currentversion);
 
 	node = NULL;
-	result = dns_db_findnode(db, gorigin, ISC_FALSE, &node);
+	result = dns_db_findnode(gdb, gorigin, ISC_FALSE, &node);
 	if (result != ISC_R_SUCCESS)
 		fatal("failed to find the zone's origin: %s",
 		      isc_result_totext(result));
 
 	/* Preserve the TTL of the DNSKEY RRset, if any */
 	dns_rdataset_init(&rdataset);
-	result = dns_db_findrdataset(db, node, currentversion,
+	result = dns_db_findrdataset(gdb, node, currentversion,
 				     dns_rdatatype_dnskey, 0, 0,
 				     &rdataset, NULL);
 
-	if (result == ISC_R_SUCCESS) {
-		if (set_keyttl && keyttl != rdataset.ttl) {
-			fprintf(stderr, "User-specified TTL (%d) conflicts "
-					"with existing DNSKEY RRset TTL.\n",
-					keyttl);
-			fprintf(stderr, "Imported keys will use the RRSet "
-					"TTL (%d) instead.\n",
-					rdataset.ttl);
-		}
-		keyttl = rdataset.ttl;
-		if (dns_rdataset_isassociated(&rdataset))
-			dns_rdataset_disassociate(&rdataset);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	if (set_keyttl && keyttl != rdataset.ttl) {
+		fprintf(stderr, "User-specified TTL (%d) conflicts "
+				"with existing DNSKEY RRset TTL.\n",
+				keyttl);
+		fprintf(stderr, "Imported keys will use the RRSet "
+				"TTL (%d) instead.\n",
+				rdataset.ttl);
 	}
+	keyttl = rdataset.ttl;
 
 	/* Load keys corresponding to the existing DNSKEY RRset */
-	result = dns_dnssec_findzonekeys2(db, currentversion, node, gorigin,
-					  directory, mctx, 20, keys, &nkeys);
-	if (result == ISC_R_NOTFOUND) {
-		result = ISC_R_SUCCESS;
-		goto cleanup;
-	}
-
+	result = dns_dnssec_keylistfromrdataset(gorigin, directory, mctx,
+						&rdataset, NULL, preserve_keys,
+						load_public, &keylist);
 	if (result != ISC_R_SUCCESS)
-		fatal("failed to find the zone keys: %s",
+		fatal("failed to load the zone keys: %s",
 		      isc_result_totext(result));
-
-	for (i = 0; i < nkeys; i++) {
-		dns_dnsseckey_t *key = NULL;
-
-		dns_dnsseckey_create(mctx, &keys[i], &key);
-		if (key->legacy || !smartsign) {
-			key->force_publish = ISC_TRUE;
-			key->force_sign = dst_key_isprivate(key->key);
-		}
-		key->source = dns_keysource_zoneapex;
-		ISC_LIST_APPEND(keylist, key, link);
-	}
-
-  cleanup:
-	dns_db_detachnode(db, &node);
-	dns_db_closeversion(db, &currentversion, ISC_FALSE);
-}
-
-/*%
- * Finds all public zone keys in the zone.
- */
-static void
-loadzonepubkeys(dns_db_t *db) {
-	dns_dbversion_t *currentversion = NULL;
-	dns_dbnode_t *node = NULL;
-	dns_rdataset_t rdataset;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	dst_key_t *pubkey;
-	isc_result_t result;
-
-	dns_db_currentversion(db, &currentversion);
-
-	result = dns_db_findnode(db, gorigin, ISC_FALSE, &node);
-	if (result != ISC_R_SUCCESS)
-		fatal("failed to find the zone's origin: %s",
-		      isc_result_totext(result));
-
-	dns_rdataset_init(&rdataset);
-	result = dns_db_findrdataset(db, node, currentversion,
-				     dns_rdatatype_dnskey, 0, 0, &rdataset,
-				     NULL);
-	if (result != ISC_R_SUCCESS) {
-		vbprintf(2, "failed to find keys at the zone apex: %s",
-			 isc_result_totext(result));
-		goto cleanup;
-	}
-
-	result = dns_rdataset_first(&rdataset);
-	check_result(result, "dns_rdataset_first");
-	while (result == ISC_R_SUCCESS) {
-		dns_dnsseckey_t *key = NULL;
-		pubkey = NULL;
-		dns_rdata_reset(&rdata);
-		dns_rdataset_current(&rdataset, &rdata);
-		result = dns_dnssec_keyfromrdata(gorigin, &rdata, mctx,
-						 &pubkey);
-		if (result != ISC_R_SUCCESS)
-			goto next;
-		if (!dst_key_iszonekey(pubkey)) {
-			dst_key_free(&pubkey);
-			goto next;
-		}
-
-		/* Skip duplicates */
-		for (key = ISC_LIST_HEAD(keylist);
-		     key != NULL;
-		     key = ISC_LIST_NEXT(key, link)) {
-			dst_key_t *dkey = key->key;
-			if (dst_key_id(dkey) == dst_key_id(pubkey) &&
-			    dst_key_alg(dkey) == dst_key_alg(pubkey) &&
-			    dns_name_equal(dst_key_name(dkey), gorigin))
-				break;
-		}
-		if (key == NULL) {
-			dns_dnsseckey_create(mctx, &pubkey, &key);
-			if (key->legacy)
-				key->force_publish = ISC_TRUE;
-			key->force_sign = ISC_FALSE;
-			key->hint_sign = ISC_FALSE;
-			ISC_LIST_APPEND(keylist, key, link);
-		} else {
-			dst_key_free(&pubkey);
-		}
- next:
-		result = dns_rdataset_next(&rdataset);
-	}
 
  cleanup:
 	if (dns_rdataset_isassociated(&rdataset))
 		dns_rdataset_disassociate(&rdataset);
-	if (node != NULL)
-		dns_db_detachnode(db, &node);
-	if (currentversion != NULL)
-		dns_db_closeversion(db, &currentversion, ISC_FALSE);
+	dns_db_detachnode(gdb, &node);
+	dns_db_closeversion(gdb, &currentversion, ISC_FALSE);
 }
 
-static isc_result_t
-make_dnskey(dst_key_t *key, dns_rdata_t *target) {
-	isc_result_t result;
-	unsigned char data[DST_KEY_MAXSIZE];
-	isc_buffer_t b;
-	isc_region_t r;
-
-	isc_buffer_init(&b, data, sizeof(data));
-	result = dst_key_todns(key, &b);
-	check_result(result, "dst_key_todns");
-
-	dns_rdata_reset(target);
-	isc_buffer_usedregion(&b, &r);
-	dns_rdata_fromregion(target, dst_key_class(key),
-			     dns_rdatatype_dnskey, &r);
-	return (ISC_R_SUCCESS);
+static void
+report(const char *format, ...) {
+	va_list args;
+	va_start(args, format);
+	vfprintf(stderr, format, args);
+	va_end(args);
 }
 
 static void
@@ -2799,15 +2693,12 @@ build_final_keylist(dns_db_t *db, const char *directory, isc_mem_t *mctx) {
 	isc_result_t result;
 	dns_dbversion_t *ver = NULL;
 	dns_diff_t del, add;
-	dns_difftuple_t *tuple = NULL;
-	dns_rdata_t dnskey = DNS_RDATA_INIT;
 	dns_dnsseckeylist_t matchkeys;
-	dns_dnsseckey_t *key1, *key2;
 	char name[DNS_NAME_FORMATSIZE];
-	char alg[80];
 
-	dns_name_format(gorigin, name, sizeof(name));
-
+	/*
+	 * Find keys that match this zone in the key repository.
+	 */
 	ISC_LIST_INIT(matchkeys);
 	result = dns_dnssec_findmatchingkeys(gorigin, directory,
 					     mctx, &matchkeys);
@@ -2822,166 +2713,12 @@ build_final_keylist(dns_db_t *db, const char *directory, isc_mem_t *mctx) {
 	dns_diff_init(mctx, &add);
 
 	/*
-	 * For each key in matchkeys, see if it has a match in keylist.
-	 * - If not, and if the metadata says it should be published:
-	 *   add it to keylist and to the DNSKEY set
-	 * - If so, and if the metadata says it should be removed:
-	 *   remove it from keylist and from the DNSKEY set
-	 * - Otherwise, make sure keylist has up-to-date metadata
+	 * Update keylist with information from from the key repository.
 	 */
+	dns_dnssec_updatekeys(&keylist, &matchkeys, NULL, gorigin, keyttl,
+			      &add, &del, ignore_kskflag, mctx, report);
 
-	key1 = ISC_LIST_HEAD(matchkeys);
-	while (key1 != NULL) {
-		isc_boolean_t key_revoked = ISC_FALSE;
-		for (key2 = ISC_LIST_HEAD(keylist);
-		     key2 != NULL;
-		     key2 = ISC_LIST_NEXT(key2, link)) {
-			if (dst_key_pubcompare(key1->key, key2->key,
-					       ISC_TRUE)) {
-				key_revoked = ISC_TF(dst_key_flags(key1->key) !=
-						     dst_key_flags(key2->key));
-				break;
-			}
-		}
-
-		/*
-		 * No matching key found in keylist, so move the key
-		 * we found into keylist
-		 */
-		if (key2 == NULL) {
-			dns_dnsseckey_t *next;
-
-			/* move key from matchkeys to keylist */
-			next = ISC_LIST_NEXT(key1, link);
-			ISC_LIST_UNLINK(matchkeys, key1, link);
-			ISC_LIST_APPEND(keylist, key1, link);
-
-			key1 = next;
-			continue;
-		}
-
-		/* Match found: remove it or update it as needed */
-		if (key1->hint_remove) {
-			ISC_LIST_UNLINK(keylist, key2, link);
-			dns_dnsseckey_destroy(mctx, &key2);
-
-			make_dnskey(key1->key, &dnskey);
-			alg_format(dst_key_alg(key1->key), alg, sizeof(alg));
-			fprintf(stderr, "Removing expired key %d/%s from "
-					"DNSKEY RRset.\n",
-					dst_key_id(key1->key), alg);
-
-			result = dns_difftuple_create(mctx, DNS_DIFFOP_DEL,
-						      gorigin, keyttl,
-						      &dnskey, &tuple);
-			check_result(result, "dns_difftuple_create");
-			dns_diff_append(&del, &tuple);
-		} else if (key_revoked &&
-			 (dst_key_flags(key1->key) & DNS_KEYFLAG_REVOKE) != 0) {
-			dns_dnsseckey_t *next;
-
-			/*
-			 * A key in the DNSKEY set has been revoked in the
-			 * key repository.  We need to remove the old
-			 * version and pull in the new one.
-			 */
-			make_dnskey(key2->key, &dnskey);
-			alg_format(dst_key_alg(key2->key), alg, sizeof(alg));
-			fprintf(stderr, "Replacing revoked key %d/%s in "
-					"DNSKEY RRset.\n",
-					dst_key_id(key2->key), alg);
-
-			result = dns_difftuple_create(mctx, DNS_DIFFOP_DEL,
-						      gorigin, keyttl,
-						      &dnskey, &tuple);
-			check_result(result, "dns_difftuple_create");
-			dns_diff_append(&del, &tuple);
-
-			ISC_LIST_UNLINK(keylist, key2, link);
-			dns_dnsseckey_destroy(mctx, &key2);
-
-			next = ISC_LIST_NEXT(key1, link);
-			ISC_LIST_UNLINK(matchkeys, key1, link);
-			ISC_LIST_APPEND(keylist, key1, link);
-
-			/*
-			 * XXX: The revoke flag is only defined for trust
-			 * anchors.  Setting the flag on a non-KSK is legal,
-			 * but not defined in any RFC.  It seems reasonable
-			 * to treat it the same as a KSK: keep it in the
-			 * zone and sign the DNSKEY set with it, but not
-			 * sign other records with it.
-			 */
-			if (iszsk(key1))
-				key1->ksk = ISC_TRUE;
-
-			key1 = next;
-			continue;
-		} else {
-			key2->hint_publish = key1->hint_publish;
-			key2->hint_sign = key1->hint_sign;
-		}
-
-		key1 = ISC_LIST_NEXT(key1, link);
-	}
-
-	/*
-	 * If a key was not in the zone already and needs to be published,
-	 * add it now.
-	 */
-	for (key1 = ISC_LIST_HEAD(keylist);
-	     key1 != NULL;
-	     key1 = ISC_LIST_NEXT(key1, link)) {
-		if (key1->source == dns_keysource_zoneapex)
-			continue;
-
-		if (key1->hint_publish || key1->force_publish) {
-			make_dnskey(key1->key, &dnskey);
-
-			alg_format(dst_key_alg(key1->key), alg, sizeof(alg));
-			fprintf(stderr, "Fetching %s %d/%s from key %s\n",
-					isksk(key1) ?
-					    (iszsk(key1) ?  "KSK/ZSK" : "KSK") :
-					    "ZSK",
-					dst_key_id(key1->key), alg,
-					key1->source == dns_keysource_user ?
-						"file" :
-						"repository");
-
-			if (key1->prepublish && keyttl > key1->prepublish) {
-				char keystr[KEY_FORMATSIZE];
-				key_format(key1->key, keystr, sizeof(keystr));
-				fatal("Key %s is scheduled to\n"
-				      "become active in %d seconds.  "
-				      "This is less than the DNSKEY TTL\n"
-				      "value of %d seconds.  Reduce "
-				      "the TTL, or change the activation\n"
-				      "date of the key using "
-				      "'dnssec-settime -A'.",
-				      keystr, key1->prepublish, keyttl);
-			}
-
-			/* add key to the zone */
-			result = dns_difftuple_create(mctx, DNS_DIFFOP_ADD,
-						      gorigin, keyttl,
-						      &dnskey, &tuple);
-			check_result(result, "dns_difftuple_create");
-			dns_diff_append(&add, &tuple);
-		} else {
-			vbprintf(1, "%s %d/%s: not published.\n",
-				 isksk(key1) ?
-				     (iszsk(key1) ?  "KSK/ZSK" : "KSK") :
-				     "ZSK",
-				 dst_key_id(key1->key), alg);
-		}
-	}
-
-	/* free matchkeys */
-	while (!ISC_LIST_EMPTY(matchkeys)) {
-		key1 = ISC_LIST_HEAD(matchkeys);
-		ISC_LIST_UNLINK(matchkeys, key1, link);
-		dns_dnsseckey_destroy(mctx, &key1);
-	}
+	dns_name_format(gorigin, name, sizeof(name));
 
 	result = dns_diff_applysilently(&del, db, ver);
 	if (result != ISC_R_SUCCESS)
@@ -3449,6 +3186,7 @@ main(int argc, char *argv[]) {
 	isc_buffer_t b;
 	int len;
 	hashlist_t hashlist;
+	isc_boolean_t smartsign = ISC_FALSE;
 	isc_boolean_t make_keyset = ISC_FALSE;
 	isc_boolean_t set_salt = ISC_FALSE;
 	isc_boolean_t set_optout = ISC_FALSE;
@@ -3837,8 +3575,45 @@ main(int argc, char *argv[]) {
 	ISC_LIST_INIT(keylist);
 	isc_rwlock_init(&keylist_lock, 0, 0);
 
-	if (argc == 0)
-		loadzonekeys(gdb);
+	loadzonekeys(!smartsign, ISC_FALSE);
+
+	for (i = 0; i < ndskeys; i++) {
+		dst_key_t *newkey = NULL;
+
+		result = dst_key_fromnamedfile(dskeyfile[i], directory,
+					       DST_TYPE_PUBLIC |
+					       DST_TYPE_PRIVATE,
+					       mctx, &newkey);
+		if (result != ISC_R_SUCCESS)
+			fatal("cannot load dnskey %s: %s", dskeyfile[i],
+			      isc_result_totext(result));
+
+		if (!dns_name_equal(gorigin, dst_key_name(newkey)))
+			fatal("key %s not at origin\n", dskeyfile[i]);
+
+		/* Skip any duplicates */
+		for (key = ISC_LIST_HEAD(keylist);
+		     key != NULL;
+		     key = ISC_LIST_NEXT(key, link)) {
+			if (dst_key_id(key->key) == dst_key_id(newkey) &&
+			    dst_key_alg(key->key) == dst_key_alg(newkey) &&
+			    dns_name_equal(dst_key_name(key->key), gorigin))
+				break;
+		}
+
+		if (key == NULL) {
+			/* We haven't seen this key before */
+			dns_dnsseckey_create(mctx, &newkey, &key);
+			ISC_LIST_APPEND(keylist, key, link);
+			key->source = dns_keysource_user;
+		} else {
+			dst_key_free(&key->key);
+			key->key = newkey;
+		}
+		key->force_publish = ISC_TRUE;
+		key->force_sign = ISC_TRUE;
+		key->ksk = ISC_TRUE;
+	}
 
 	for (i = 0; i < argc; i++) {
 		dst_key_t *newkey = NULL;
@@ -3869,6 +3644,7 @@ main(int argc, char *argv[]) {
 				break;
 			}
 		}
+
 		if (key == NULL) {
 			/* We haven't seen this key before */
 			dns_dnsseckey_create(mctx, &newkey, &key);
@@ -3876,49 +3652,13 @@ main(int argc, char *argv[]) {
 			key->force_sign = ISC_TRUE;
 			key->source = dns_keysource_user;
 			ISC_LIST_APPEND(keylist, key, link);
-		} else
+		} else {
 			dst_key_free(&newkey);
+		}
 	}
 
 	if (argc != 0)
-		loadzonepubkeys(gdb);
-
-	for (i = 0; i < ndskeys; i++) {
-		dst_key_t *newkey = NULL;
-
-		result = dst_key_fromnamedfile(dskeyfile[i], directory,
-					       DST_TYPE_PUBLIC |
-					       DST_TYPE_PRIVATE,
-					       mctx, &newkey);
-		if (result != ISC_R_SUCCESS)
-			fatal("cannot load dnskey %s: %s", dskeyfile[i],
-			      isc_result_totext(result));
-
-		if (!dns_name_equal(gorigin, dst_key_name(newkey)))
-			fatal("key %s not at origin\n", dskeyfile[i]);
-
-		/* Skip any duplicates */
-		for (key = ISC_LIST_HEAD(keylist);
-		     key != NULL;
-		     key = ISC_LIST_NEXT(key, link)) {
-			if (dst_key_id(key->key) == dst_key_id(newkey) &&
-			    dst_key_alg(key->key) == dst_key_alg(newkey) &&
-			    dns_name_equal(dst_key_name(key->key), gorigin))
-				break;
-		}
-		if (key == NULL) {
-			/* We haven't seen this key before */
-			dns_dnsseckey_create(mctx, &newkey, &key);
-			ISC_LIST_APPEND(keylist, key, link);
-		} else {
-			dst_key_free(&key->key);
-			key->key = newkey;
-		}
-		key->force_publish = ISC_TRUE;
-		key->force_sign = ISC_TRUE;
-		key->source = dns_keysource_user;
-		key->ksk = ISC_TRUE;
-	}
+		loadzonekeys(!smartsign, ISC_TRUE);
 
 	/*
 	 * If we're doing smart signing, look in the key repository for

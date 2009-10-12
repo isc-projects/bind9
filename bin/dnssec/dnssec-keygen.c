@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.100 2009/10/06 22:58:45 each Exp $ */
+/* $Id: dnssec-keygen.c,v 1.101 2009/10/12 20:48:10 each Exp $ */
 
 /*! \file */
 
@@ -675,9 +675,9 @@ main(int argc, char **argv) {
 
 		if (ret != ISC_R_SUCCESS) {
 			char namestr[DNS_NAME_FORMATSIZE];
-			char algstr[ALG_FORMATSIZE];
+			char algstr[DNS_SECALG_FORMATSIZE];
 			dns_name_format(name, namestr, sizeof(namestr));
-			alg_format(alg, algstr, sizeof(algstr));
+			dns_secalg_format(alg, algstr, sizeof(algstr));
 			fatal("failed to generate key %s/%s: %s\n",
 			      namestr, algstr, isc_result_totext(ret));
 			/* NOTREACHED */
@@ -777,8 +777,8 @@ main(int argc, char **argv) {
 
 	ret = dst_key_tofile(key, options, directory);
 	if (ret != ISC_R_SUCCESS) {
-		char keystr[KEY_FORMATSIZE];
-		key_format(key, keystr, sizeof(keystr));
+		char keystr[DST_KEY_FORMATSIZE];
+		dst_key_format(key, keystr, sizeof(keystr));
 		fatal("failed to write key %s: %s\n", keystr,
 		      isc_result_totext(ret));
 	}

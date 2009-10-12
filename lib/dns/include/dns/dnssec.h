@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec.h,v 1.36 2009/09/02 06:29:01 each Exp $ */
+/* $Id: dnssec.h,v 1.37 2009/10/12 20:48:12 each Exp $ */
 
 #ifndef DNS_DNSSEC_H
 #define DNS_DNSSEC_H 1
@@ -25,6 +25,7 @@
 #include <isc/lang.h>
 #include <isc/stdtime.h>
 
+#include <dns/diff.h>
 #include <dns/types.h>
 
 #include <dst/dst.h>
@@ -52,6 +53,8 @@ struct dns_dnsseckey {
 	isc_boolean_t hint_sign;     /*% metadata says to sign with this key */
 	isc_boolean_t force_sign;    /*% sign with key regardless of metadata */
 	isc_boolean_t hint_remove;   /*% metadata says *don't* publish */
+	isc_boolean_t is_active;     /*% key is already active */
+	isc_boolean_t first_sign;    /*% key is newly becoming active */
 	unsigned int prepublish;     /*% how long until active? */
 	dns_keysource_t source;      /*% how the key was found */
 	isc_boolean_t ksk;           /*% this is a key-signing key */
@@ -265,6 +268,51 @@ dns_dnssec_findmatchingkeys(dns_name_t *origin, const char *directory,
  *\li		On error, keylist is unchanged
  */
 
+isc_result_t
+dns_dnssec_keylistfromrdataset(dns_name_t *origin,
+			       const char *directory, isc_mem_t *mctx,
+			       dns_rdataset_t *keyset, dns_rdataset_t *sigset,
+			       isc_boolean_t savekeys, isc_boolean_t public,
+			       dns_dnsseckeylist_t *keylist);
+/*%<
+ * Append the contents of a DNSKEY rdataset 'keyset' to 'keylist'.
+ * Omit duplicates.  If 'public' is ISC_FALSE, search 'directory' for
+ * matching key files, and load the private keys that go with
+ * the public ones.  If 'savekeys' is ISC_TRUE, mark the keys so
+ * they will not be deleted or inactivated regardless of metadata.
+ */
+
+isc_result_t
+dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys, 
+		      dns_dnsseckeylist_t *removed, dns_name_t *origin,
+		      dns_ttl_t ttl, dns_diff_t *add, dns_diff_t *del,
+		      isc_boolean_t allzsk, isc_mem_t *mctx,
+		      void (*report)(const char *, ...));
+/*%<
+ * Update the list of keys in 'keys' with new key information in 'newkeys'.
+ *
+ * For each key in 'newkeys', see if it has a match in 'keys'.
+ * - If not, and if the metadata says the key should be published:
+ *   add it to 'keys', and place a dns_difftuple into 'add' so
+ *   the key can be added to the DNSKEY set.  If the metadata says it
+ *   should be active, set the first_sign flag.
+ * - If so, and if the metadata says it should be removed:
+ *   remove it from 'keys', and place a dns_difftuple into 'del' so
+ *   the key can be removed from the DNSKEY set.  if 'removed' is non-NULL,
+ *   copy the key into that list; otherwise destroy it.
+ * - Otherwise, make sure keys has current metadata.
+ *
+ * If 'allzsk' is true, we are allowing KSK-flagged keys to be used as
+ * ZSKs.
+ *
+ * 'ttl' is the TTL of the DNSKEY RRset; if it is longer than the
+ * time until a new key will be activated, then we have to delay the
+ * key's activation.
+ *
+ * 'report' points to a function for reporting status.
+ *
+ * On completion, any remaining keys in 'newkeys' are freed.
+ */
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_DNSSEC_H */

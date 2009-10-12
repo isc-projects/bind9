@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.107 2009/10/10 01:48:00 each Exp $ */
+/* $Id: namedconf.c,v 1.108 2009/10/12 20:48:12 each Exp $ */
 
 /*! \file */
 
@@ -528,6 +528,13 @@ static cfg_type_t cfg_type_checknames = {
 static cfg_type_t cfg_type_bracketed_sockaddrlist = {
 	"bracketed_sockaddrlist", cfg_parse_bracketed_list, cfg_print_bracketed_list, cfg_doc_bracketed_list,
 	&cfg_rep_list, &cfg_type_sockaddr
+};
+
+static const char *autodnssec_enums[] = { "allow", "maintain", "create", 
+					  "off", NULL };
+static cfg_type_t cfg_type_autodnssec = {
+	"autodnssec", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
+	&cfg_rep_string, &autodnssec_enums
 };
 
 static cfg_type_t cfg_type_rrsetorder = {
@@ -1174,6 +1181,7 @@ zone_only_clauses[] = {
 	 */
 	{ "check-names", &cfg_type_checkmode, 0 },
 	{ "ixfr-from-differences", &cfg_type_boolean, 0 },
+	{ "auto-dnssec", &cfg_type_autodnssec, 0 },
 	{ NULL, NULL, 0 }
 };
 

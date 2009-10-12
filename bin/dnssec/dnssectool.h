@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.h,v 1.26 2009/09/29 15:06:06 fdupont Exp $ */
+/* $Id: dnssectool.h,v 1.27 2009/10/12 20:48:11 each Exp $ */
 
 #ifndef DNSSECTOOL_H
 #define DNSSECTOOL_H 1
@@ -45,16 +45,8 @@ type_format(const dns_rdatatype_t type, char *cp, unsigned int size);
 #define TYPE_FORMATSIZE 20
 
 void
-alg_format(const dns_secalg_t alg, char *cp, unsigned int size);
-#define ALG_FORMATSIZE 20
-
-void
 sig_format(dns_rdata_rrsig_t *sig, char *cp, unsigned int size);
-#define SIG_FORMATSIZE (DNS_NAME_FORMATSIZE + ALG_FORMATSIZE + sizeof("65535"))
-
-void
-key_format(const dst_key_t *key, char *cp, unsigned int size);
-#define KEY_FORMATSIZE (DNS_NAME_FORMATSIZE + ALG_FORMATSIZE + sizeof("65535"))
+#define SIG_FORMATSIZE (DNS_NAME_FORMATSIZE + DNS_SECALG_FORMATSIZE + sizeof("65535"))
 
 void
 setup_logging(int verbose, isc_mem_t *mctx, isc_log_t **logp);

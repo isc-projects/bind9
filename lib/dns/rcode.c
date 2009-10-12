@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rcode.c,v 1.9 2008/12/16 05:04:47 marka Exp $ */
+/* $Id: rcode.c,v 1.10 2009/10/12 20:48:12 each Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -314,6 +314,21 @@ dns_secalg_fromtext(dns_secalg_t *secalgp, isc_textregion_t *source) {
 isc_result_t
 dns_secalg_totext(dns_secalg_t secalg, isc_buffer_t *target) {
 	return (dns_mnemonic_totext(secalg, target, secalgs));
+}
+
+void
+dns_secalg_format(dns_secalg_t alg, char *cp, unsigned int size) {
+	isc_buffer_t b;
+	isc_region_t r;
+	isc_result_t result;
+
+	REQUIRE(cp != NULL && size > 0);
+	isc_buffer_init(&b, cp, size - 1);
+	result = dns_secalg_totext(alg, &b);
+	isc_buffer_usedregion(&b, &r);
+	r.base[r.length] = 0;
+	if (result != ISC_R_SUCCESS)
+		r.base[0] = 0;
 }
 
 isc_result_t

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.127 2009/03/01 23:47:25 tbox Exp $ */
+/* $Id: result.c,v 1.128 2009/10/12 20:48:12 each Exp $ */
 
 /*! \file */
 
@@ -157,6 +157,7 @@ static const char *text[DNS_R_NRESULTS] = {
 	"MX is an address",		       /*%< 102 DNS_R_MXISADDRESS */
 	"duplicate query",		       /*%< 103 DNS_R_DUPLICATE */
 	"invalid NSEC3 owner name (wildcard)", /*%< 104 DNS_R_INVALIDNSEC3 */
+	"not master",			       /*%< 105 DNS_R_NOTMASTER */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {

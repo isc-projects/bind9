@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.21 2009/10/09 06:09:21 each Exp $ */
+/* $Id: dst.h,v 1.22 2009/10/12 20:48:12 each Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -26,6 +26,8 @@
 #include <isc/stdtime.h>
 
 #include <dns/types.h>
+#include <dns/name.h>
+#include <dns/secalg.h>
 
 #include <dst/gssapi.h>
 
@@ -541,6 +543,7 @@ dst_key_pubcompare(const dst_key_t *key1, const dst_key_t *key2,
  *\li 	ISC_TRUE
  * \li	ISC_FALSE
  */
+
 isc_boolean_t
 dst_key_paramcompare(const dst_key_t *key1, const dst_key_t *key2);
 /*%<
@@ -781,6 +784,15 @@ dst_key_setprivateformat(dst_key_t *key, int major, int minor);
  *
  * Requires:
  *	"key" is a valid key.
+ */
+
+#define DST_KEY_FORMATSIZE (DNS_NAME_FORMATSIZE + DNS_SECALG_FORMATSIZE + 7)
+
+void
+dst_key_format(dst_key_t *key, char *cp, unsigned int size);
+/*%<
+ * Write the uniquely identifying information about the key (name,
+ * algorithm, key ID) into a string 'cp' of size 'size'.
  */
 
 ISC_LANG_ENDDECLS

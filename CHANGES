@@ -1,3 +1,12 @@
+2712.	[func]		New 'auto-dnssec' zone option allows zone signing
+			to be fully automated in zones configured for
+			dynamic DNS.  'auto-dnssec allow;' permits a zone
+			to be signed by creating keys for it in the
+			key-directory and using 'rndc sign <zone>'.
+			'auto-dnssec maintain;' allows that too, plus it
+			also keeps the zone's DNSSEC keys up to date
+			according to their timing metadata. [RT #19943]
+			
 2711.	[port]		win32: Add the bin/pkcs11 tools into the full
 			build. [RT #20372]
 

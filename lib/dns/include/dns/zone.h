@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.169 2009/10/10 01:48:00 each Exp $ */
+/* $Id: zone.h,v 1.170 2009/10/12 20:48:12 each Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -80,6 +80,13 @@ typedef enum {
  */
 #define DNS_ZONEOPT_NOTIFYFORWARD 0x80000000U	/* forward notify to master */
 #endif /* NOMINUM_PUBLIC */
+
+/*
+ * Zone key maintenance options
+ */
+#define DNS_ZONEKEY_ALLOW	0x00000001U	/*%< fetch keys on command */
+#define DNS_ZONEKEY_MAINTAIN	0x00000002U	/*%< publish/sign on schedule */
+#define DNS_ZONEKEY_CREATE	0x00000004U	/*%< make keys when needed */
 
 #ifndef DNS_ZONE_MINREFRESH
 #define DNS_ZONE_MINREFRESH		    300	/*%< 5 minutes */
@@ -565,6 +572,25 @@ unsigned int
 dns_zone_getoptions(dns_zone_t *zone);
 /*%<
  *	Returns the current zone options.
+ *
+ * Require:
+ *\li	'zone' to be a valid zone.
+ */
+
+void
+dns_zone_setkeyopt(dns_zone_t *zone, unsigned int option, isc_boolean_t value);
+/*%<
+ *	Set key options on ('value' == ISC_TRUE) or off ('value' ==
+ *	#ISC_FALSE).
+ *
+ * Require:
+ *\li	'zone' to be a valid zone.
+ */
+
+unsigned int
+dns_zone_getkeyopts(dns_zone_t *zone);
+/*%<
+ *	Returns the current zone key options.
  *
  * Require:
  *\li	'zone' to be a valid zone.
@@ -1748,6 +1774,12 @@ dns_zone_getprivatetype(dns_zone_t *zone);
 /*
  * Get/Set the private record type.  It is expected that these interfaces
  * will not be permanent.
+ */
+
+isc_result_t
+dns_zone_rekey(dns_zone_t *zone);
+/*%<
+ * Update the zone's DNSKEY set from the key repository.
  */
 
 ISC_LANG_ENDDECLS

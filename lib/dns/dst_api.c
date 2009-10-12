@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.40 2009/10/12 09:03:06 marka Exp $
+ * $Id: dst_api.c,v 1.41 2009/10/12 20:48:12 each Exp $
  */
 
 /*! \file */
@@ -930,6 +930,8 @@ pub_compare(const dst_key_t *key1, const dst_key_t *key2) {
 		return (ISC_FALSE);
 	/* Zero out flags. */
 	buf1[0] = buf1[1] = 0;
+	if ((key1->key_flags & DNS_KEYFLAG_EXTENDED) != 0)
+		isc_buffer_subtract(&b1, 2);
 
 	isc_buffer_init(&b2, buf2, sizeof(buf2));
 	result = dst_key_todns(key2, &b2);
@@ -937,6 +939,8 @@ pub_compare(const dst_key_t *key1, const dst_key_t *key2) {
 		return (ISC_FALSE);
 	/* Zero out flags. */
 	buf2[0] = buf2[1] = 0;
+	if ((key2->key_flags & DNS_KEYFLAG_EXTENDED) != 0)
+		isc_buffer_subtract(&b2, 2);
 
 	isc_buffer_usedregion(&b1, &r1);
 	/* Remove extended flags. */
@@ -1086,6 +1090,27 @@ dst_key_secretsize(const dst_key_t *key, unsigned int *n) {
 	else
 		return (DST_R_UNSUPPORTEDALG);
 	return (ISC_R_SUCCESS);
+}
+
+/*%
+ * Set the flags on a key, then recompute the key ID
+ */
+isc_result_t
+dst_key_setflags(dst_key_t *key, isc_uint32_t flags) {
+	REQUIRE(VALID_KEY(key));
+	key->key_flags = flags;
+	return (computeid(key));
+}
+
+void
+dst_key_format(dst_key_t *key, char *cp, unsigned int size) {
+	char namestr[DNS_NAME_FORMATSIZE];
+	char algstr[DNS_NAME_FORMATSIZE];
+
+	dns_name_format(dst_key_name(key), namestr, sizeof(namestr));
+	dns_secalg_format((dns_secalg_t) dst_key_alg(key), algstr,
+			  sizeof(algstr));
+	snprintf(cp, size, "%s/%s/%d", namestr, algstr, dst_key_id(key));
 }
 
 /***
@@ -1263,16 +1288,6 @@ dst_key_read_public(const char *filename, int type,
 	if (lex != NULL)
 		isc_lex_destroy(&lex);
 	return (ret);
-}
-
-/*%
- * Set the flags on a key, then recompute the key ID
- */
-isc_result_t
-dst_key_setflags(dst_key_t *key, isc_uint32_t flags) {
-	REQUIRE(VALID_KEY(key));
-	key->key_flags = flags;
-	return (computeid(key));
 }
 
 static isc_boolean_t

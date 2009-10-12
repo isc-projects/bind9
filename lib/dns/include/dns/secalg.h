@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: secalg.h,v 1.19 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: secalg.h,v 1.20 2009/10/12 20:48:12 each Exp $ */
 
 #ifndef DNS_SECALG_H
 #define DNS_SECALG_H 1
@@ -64,6 +64,13 @@ dns_secalg_totext(dns_secalg_t secalg, isc_buffer_t *target);
  * Returns:
  *\li	ISC_R_SUCCESS			on success
  *\li	ISC_R_NOSPACE			target buffer is too small
+ */
+
+#define DNS_SECALG_FORMATSIZE 20
+void
+dns_secalg_format(dns_secalg_t alg, char *cp, unsigned int size);
+/*%<
+ * Wrapper for dns_secalg_totext(), writing text into 'cp'
  */
 
 ISC_LANG_ENDDECLS

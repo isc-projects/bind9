@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.432 2009/10/10 01:47:59 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.433 2009/10/12 20:48:11 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -1170,7 +1170,33 @@ zone "eng.example.com" {
                   </varlistentry>
 
                   <varlistentry>
+                    <term><userinput>sign <replaceable>zone</replaceable>
+                        <optional><replaceable>class</replaceable>
+           <optional><replaceable>view</replaceable></optional></optional></userinput></term>
+                    <listitem>
+                      <para>
+                        Fetch all DNSSEC keys for the given zone
+                        from the key directory (see
+                        <command>key-directory</command> in
+                        <xref linkend="options"/>), and merge them
+                        into the zone's DNSKEY RRset.  If the DNSKEY RRset
+                        is changed as a result of this, then the zone is
+                        automatically re-signed with the new key set.
+                      </para>
+                      <para>
+                        This command requires that the
+                        <command>auto-dnssec</command> zone option to be set
+                        to <literal>allow</literal>,
+                        <literal>maintain</literal>, or
+                        <literal>create</literal>,  and also requires
+                        the zone to be configured to allow dynamic DNS.
+                        See <xref linkend="dynamic_update_policies"/> for
+                        more details.
+                      </para>
+                    </listitem>
+                  </varlistentry>
 
+                  <varlistentry>
                     <term><userinput>freeze
                         <optional><replaceable>zone</replaceable>
        <optional><replaceable>class</replaceable>
@@ -9365,6 +9391,7 @@ view "external" {
     <optional> min-retry-time <replaceable>number</replaceable> ; </optional>
     <optional> max-retry-time <replaceable>number</replaceable> ; </optional>
     <optional> key-directory <replaceable>path_name</replaceable>; </optional>
+    <optional> auto-dnssec <constant>allow</constant>|<constant>maintain</constant>|<constant>create</constant>|<constant>off</constant>; </optional>
     <optional> zero-no-soa-ttl <replaceable>yes_or_no</replaceable> ; </optional>
 };
 
@@ -10276,6 +10303,39 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                   <para>
                     See the description of
                     <command>key-directory</command> in <xref linkend="options"/>.
+                  </para>
+                </listitem>
+              </varlistentry>
+
+              <varlistentry>
+                <term><command>auto-dnssec</command></term>
+                <listitem>
+                  <para>
+                    Zones configured for dynamic DNS may also use this
+                    option to allow varying levels of autonatic DNSSEC key
+                    management. There are four possible settings:
+                  </para>
+                  <para>
+                    <command>auto-dnssec allow;</command> permits
+                    keys to be updated and the zone re-signed whenever the
+                    user issues the command <command>rndc sign</command>.
+                  </para>
+                  <para>
+                    <command>auto-dnssec maintain;</command> includes the
+                    above, but also automatically adjusts the zone's DNSSEC
+                    keys on schedule, according to the keys' timing metadata
+                    (see <xref linkend="man.dnssec-keygen"/> and
+                    <xref linkend="man.dnssec-settime"/>).
+                  </para>
+                  <para>
+                    <command>auto-dnssec create;</command> includes the
+                    above, but also allows <command>named</command>
+                    to create new keys in the key repository when needed.
+                    (NOTE: This option is not yet implemented; the syntax is
+                    being reserved for future use.)
+                  </para>
+                  <para>
+                    The default setting is <command>auto-dnssec off</command>.
                   </para>
                 </listitem>
               </varlistentry>

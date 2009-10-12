@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-dsfromkey.c,v 1.15 2009/10/05 17:30:49 fdupont Exp $ */
+/* $Id: dnssec-dsfromkey.c,v 1.16 2009/10/12 20:48:10 each Exp $ */
 
 /*! \file */
 
@@ -164,9 +164,9 @@ loadkey(char *filename, unsigned char *key_buf, unsigned int key_buf_size,
 		      filename, isc_result_totext(result));
 
 	if (verbose > 2) {
-		char keystr[KEY_FORMATSIZE];
+		char keystr[DST_KEY_FORMATSIZE];
 
-		key_format(key, keystr, sizeof(keystr));
+		dst_key_format(key, keystr, sizeof(keystr));
 		fprintf(stderr, "%s: %s\n", program, keystr);
 	}
 
@@ -195,7 +195,7 @@ logkey(dns_rdata_t *rdata)
 	isc_result_t result;
 	dst_key_t    *key = NULL;
 	isc_buffer_t buf;
-	char	     keystr[KEY_FORMATSIZE];
+	char	     keystr[DST_KEY_FORMATSIZE];
 
 	isc_buffer_init(&buf, rdata->data, rdata->length);
 	isc_buffer_add(&buf, rdata->length);
@@ -203,7 +203,7 @@ logkey(dns_rdata_t *rdata)
 	if (result != ISC_R_SUCCESS)
 		return;
 
-	key_format(key, keystr, sizeof(keystr));
+	dst_key_format(key, keystr, sizeof(keystr));
 	fprintf(stderr, "%s: %s\n", program, keystr);
 
 	dst_key_free(&key);

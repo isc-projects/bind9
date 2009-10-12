@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.110 2009/10/10 01:48:00 each Exp $ */
+/* $Id: check.c,v 1.111 2009/10/12 20:48:11 each Exp $ */
 
 /*! \file */
 
@@ -1127,6 +1127,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	{ "masterfile-format", MASTERZONE | SLAVEZONE | STUBZONE | HINTZONE },
 	{ "update-check-ksk", MASTERZONE },
 	{ "dnskey-ksk-only", MASTERZONE },
+ 	{ "auto-dnssec", MASTERZONE },
 	{ "try-tcp-refresh", SLAVEZONE },
 	};
 
@@ -1284,7 +1285,10 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 * Master zones can't have both "allow-update" and "update-policy".
 	 */
 	if (ztype == MASTERZONE) {
-		isc_result_t res1, res2;
+		isc_result_t res1, res2, res3;
+		const char *arg;
+		isc_boolean_t ddns;
+
 		obj = NULL;
 		res1 = cfg_map_get(zoptions, "allow-update", &obj);
 		obj = NULL;
@@ -1298,6 +1302,27 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		} else if (res2 == ISC_R_SUCCESS &&
 			   check_update_policy(obj, logctx) != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
+		ddns = ISC_TF(res1 == ISC_R_SUCCESS || res2 == ISC_R_SUCCESS);
+
+		obj = NULL;
+		arg = "off";
+		res3 = cfg_map_get(zoptions, "auto-dnssec", &obj);
+		if (res3 == ISC_R_SUCCESS)
+			arg = cfg_obj_asstring(obj);
+		if (strcasecmp(arg, "off") != 0 && !ddns) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "'auto-dnssec %s;' requires "
+				    "dynamic DNS to be configured in the zone",
+				    arg);
+			result = ISC_R_FAILURE;
+		}
+		if (strcasecmp(arg, "create") == 0) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "'auto-dnssec create;' is not "
+				    "yet implemented");
+			result = ISC_R_FAILURE;
+		}
+
 		obj = NULL;
 		res1 = cfg_map_get(zoptions, "sig-signing-type", &obj);
 		if (res1 == ISC_R_SUCCESS) {
