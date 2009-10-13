@@ -1,3 +1,6 @@
+
+	--- 9.4-ESV released ---
+
 2698.   [cleanup]       configure --enable-libbind is deprecated. [RT #20090]
 
 2697.	[port]		win32: ensure that S_IFMT, S_IFDIR, S_IFCHR and
@@ -22,8 +25,6 @@
 			internal information about query failures, especially
 			about server failures.  (backported as a special
 			exception to the general policy) [RT #19027]
-
-	--- 9.4-ESV-20090907 released ---
 
 2670.	[bug]		Unexpected connect failures failed to log enough
 			information to be useful. [RT #20205]

@@ -42,10 +42,15 @@ BIND 9
 		Stichting NLnet - NLnet Foundation
 		Nominum, Inc.
 
-BIND 9.4.4
+BIND 9.4-ESV (Extended Support Version)
 
-	BIND 9.4.4 is the final maintenance release for BIND 9.4.
-	BIND 9.4.4 is a maintenance release, fixing bugs in 9.4.3.
+	BIND 9.4-ESV is the final maintenance release for BIND 9.4.
+	BIND 9.4-ESV is a one off maintenance release, fixing bugs in
+	BIND 9.4.3.
+
+	BIND 9.4-ESV will be supported until Feb 2010, at which
+	time you will need to upgrade to the current release of
+	BIND.
 
 BIND 9.4.3
 
