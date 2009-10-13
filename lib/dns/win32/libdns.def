@@ -193,9 +193,11 @@ dns_dnssec_findmatchingkeys
 dns_dnssec_findzonekeys
 dns_dnssec_findzonekeys2
 dns_dnssec_keyfromrdata
+dns_dnssec_keylistfromrdataset
 dns_dnssec_selfsigns
 dns_dnssec_sign
 dns_dnssec_signmessage
+dns_dnssec_updatekeys
 dns_dnssec_verify
 dns_dnssec_verify2
 dns_dnssec_verifymessage
@@ -597,6 +599,7 @@ dns_sdlz_putrr
 dns_sdlz_putsoa
 dns_sdlzregister
 dns_sdlzunregister
+dns_secalg_format
 dns_secalg_fromtext
 dns_secalg_totext
 dns_secproto_fromtext
@@ -694,6 +697,7 @@ dns_xfrin_attach
 dns_xfrin_create
 dns_xfrin_detach
 dns_xfrin_shutdown
+dns_zone_addnsec3chain
 dns_zone_attach
 dns_zone_checknames
 dns_zone_clearforwardacl
@@ -724,6 +728,7 @@ dns_zone_getidleout
 dns_zone_getjournal
 dns_zone_getjournalsize
 dns_zone_getkeydirectory
+dns_zone_getkeyopts
 dns_zone_getmaxxfrin
 dns_zone_getmaxxfrout
 dns_zone_getmctx
@@ -765,6 +770,7 @@ dns_zone_notify
 dns_zone_notifyreceive
 dns_zone_refresh
 dns_zone_replacedb
+dns_zone_rekey
 dns_zone_setacache
 dns_zone_setalsonotify
 dns_zone_setaltxfrsource4
@@ -786,6 +792,7 @@ dns_zone_setisself
 dns_zone_setjournal
 dns_zone_setjournalsize
 dns_zone_setkeydirectory
+dns_zone_setkeyopt
 dns_zone_setmasters
 dns_zone_setmasterswithkeys
 dns_zone_setmaxrefreshtime
@@ -865,6 +872,7 @@ dst_key_class
 dst_key_compare
 dst_key_computesecret
 dst_key_flags
+dst_key_format
 dst_key_free
 dst_key_frombuffer
 dst_key_fromdns

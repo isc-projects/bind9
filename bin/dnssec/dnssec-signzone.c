@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.245 2009/10/12 23:48:01 tbox Exp $ */
+/* $Id: dnssec-signzone.c,v 1.246 2009/10/13 00:55:51 each Exp $ */
 
 /*! \file */
 
@@ -583,9 +583,10 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 
 		if (set->type == dns_rdatatype_dnskey &&
 		     dns_name_equal(name, gorigin)) {
-			isc_boolean_t have_ksk = isksk(key);;
+			isc_boolean_t have_ksk;
 			dns_dnsseckey_t *tmpkey;
 
+                        have_ksk = isksk(key);
 			for (tmpkey = ISC_LIST_HEAD(keylist);
 			     tmpkey != NULL;
 			     tmpkey = ISC_LIST_NEXT(tmpkey, link)) {
