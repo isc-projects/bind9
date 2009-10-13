@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: kit.sh,v 1.39 2009/09/09 04:48:01 marka Exp $
+# $Id: kit.sh,v 1.40 2009/10/13 03:03:05 marka Exp $
 
 # Make a release kit
 #
@@ -80,7 +80,7 @@ then
     arg=-D
 fi
 
-version=${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}
+version=${MAJORVER}.${MINORVER}${PATCHVER:+.}${PATCHVER}${RELEASETYPE}${RELEASEVER}
 
 echo "building release kit for BIND version $version, hold on..."
 
