@@ -1,5 +1,7 @@
 /* pkcs11-list [-P] [-m module] [-s slot] [-i $id | -l $label] [-p $pin] */
 
+#include <config.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
