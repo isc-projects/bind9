@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.435 2009/10/12 23:02:32 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.436 2009/10/14 12:49:11 jreed Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -5327,9 +5327,9 @@ badresp:1,adberr:0,findfail:0,valfail:0]
             <listitem>
               <para>
                 The pathname of a file to override the built-in trusted
-		keys provided by named.  See the discussion of
-		<command>dnssec-lookaside</command> for details.
-                If not specified, the default is
+		keys provided by <command>named</command>.
+		See the discussion of <command>dnssec-lookaside</command>
+		for details.  If not specified, the default is
 		<filename>/etc/bind.keys</filename>.
               </para>
             </listitem>
@@ -5518,14 +5518,15 @@ options {
 	      </para>
 	      <para>
 		If <command>dnssec-lookaside</command> is set to
-		"auto", then built-in default values for
-		the domain and trust anchor will be used, along
-		with a built-in key for validation.
+		<userinput>auto</userinput>, then built-in default
+		values for the domain and trust anchor will be
+		used, along with a built-in key for validation.
 	      </para>
 	      <para>
 		NOTE: Since the built-in key may expire, it can be
-		overridden without recompiling named by placing a new key
-		in the file <filename>bind.keys</filename>.
+		overridden without recompiling <command>named</command>
+		by placing a new key in the file
+		<filename>bind.keys</filename>.
               </para>
             </listitem>
           </varlistentry>
@@ -6294,7 +6295,9 @@ options {
                 <para>
 		  Accept expired signatures when verifying DNSSEC signatures.
                   The default is <userinput>no</userinput>.
-		  Setting this option to "yes" leaves <command>named</command> vulnerable to replay attacks.
+		  Setting this option to <userinput>yes</userinput>
+		  leaves <command>named</command> vulnerable to
+		  replay attacks.
                 </para>
               </listitem>
             </varlistentry>
@@ -9212,12 +9215,13 @@ deny-answer-aliases { "example.net"; };
             level of <filename>named.conf</filename>, not within a view.
 	  </para>
 	  <para>
-	    If the <command>dnssec-lookaside</command> option is set to
-            "auto", <command>named</command> will automatically initialize
-            a managed key for the zone <literal>dlv.isc.org</literal>.  The
-            key that is used to initialize the key maintenance process is
-            built into <command>named</command>, and can be overridden
-            from <command>bindkeys-file</command>.
+	    If the <command>dnssec-lookaside</command> option is
+	    set to <userinput>auto</userinput>, <command>named</command>
+	    will automatically initialize a managed key for the
+	    zone <literal>dlv.isc.org</literal>.  The key that is
+	    used to initialize the key maintenance process is built
+	    into <command>named</command>, and can be overridden
+	    from <command>bindkeys-file</command>.
 	  </para>
 	</sect2>
 
