@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keyfromlabel.c,v 1.21 2009/10/12 20:48:10 each Exp $ */
+/* $Id: dnssec-keyfromlabel.c,v 1.22 2009/10/14 22:07:13 marka Exp $ */
 
 /*! \file */
 
@@ -310,7 +310,7 @@ main(int argc, char **argv) {
 		fatal("extraneous arguments");
 
 	if (strchr(label, ':') == NULL &&
-	    engine != NULL && strlen(engine) != 0) {
+	    engine != NULL && strlen(engine) != 0U) {
 		char *l;
 		int len;
 
