@@ -1,3 +1,6 @@
+2713.	[bug]		powerpc: atomic operations missing asm("ics") /
+			__isync() calls.
+
 2706.	[bug]		Loading a zone with a very large NSEC3 salt could
 			trigger an assert. [RT #20368]
 
