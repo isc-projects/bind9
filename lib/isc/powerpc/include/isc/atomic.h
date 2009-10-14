@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: atomic.h,v 1.6 2007/06/18 23:47:47 tbox Exp $ */
+/* $Id: atomic.h,v 1.6.128.1 2009/10/14 04:04:48 marka Exp $ */
 
 #ifndef ISC_ATOMIC_H
 #define ISC_ATOMIC_H 1
@@ -46,8 +46,32 @@
 
 #include <sys/atomic_op.h>
 
-#define isc_atomic_xadd(p, v) fetch_and_add(p, v)
 #define isc_atomic_store(p, v) _clear_lock(p, v)
+
+#ifdef __GNUC__
+static inline isc_int32_t
+#else
+static isc_int32_t
+#endif
+isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
+	int ret;
+
+#ifdef __GNUC__
+        asm("ics");
+#else
+         __isync();
+#endif
+
+	ret = fetch_and_add((atomic_p)p, (int)val);
+
+#ifdef __GNUC__
+        asm("ics");
+#else
+         __isync();
+#endif
+
+	 return (ret);
+}
 
 #ifdef __GNUC__
 static inline int
@@ -63,7 +87,14 @@ isc_atomic_cmpxchg(atomic_p p, int old, int new) {
          __isync();
 #endif
         if (compare_and_swap(p, &orig, new))
-		return (old);
+		orig = old;
+
+#ifdef __GNUC__
+        asm("ics");
+#else
+         __isync();
+#endif
+
         return (orig);
 }
 
