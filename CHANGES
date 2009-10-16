@@ -1,7 +1,7 @@
+	--- 9.7.0b1 released ---
+
 2713.	[bug]		powerpc: atomic operations missing asm("ics") /
 			__isync() calls.
-
-	--- 9.7.0b1 released ---
 
 2712.	[func]		New 'auto-dnssec' zone option allows zone signing
 			to be fully automated in zones configured for

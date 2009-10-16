@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.104 2009/10/12 23:48:01 tbox Exp $
+ * $Id: dnssec.c,v 1.105 2009/10/16 02:59:41 each Exp $
  */
 
 /*! \file */
@@ -1256,15 +1256,15 @@ dns_dnssec_keylistfromrdataset(dns_name_t *origin,
 
 		if (!is_zone_key(pubkey) ||
 		    (dst_key_flags(pubkey) & DNS_KEYTYPE_NOAUTH) != 0)
-			continue;
+			goto again;
 
 		/* Corrupted .key file? */
 		if (!dns_name_equal(origin, dst_key_name(pubkey)))
-			continue;
+			goto again;
 
 		if (public) {
 			addkey(keylist, &pubkey, savekeys, mctx);
-			continue;
+			goto again;
 		}
 
 		result = dst_key_fromfile(dst_key_name(pubkey),
@@ -1274,20 +1274,20 @@ dns_dnssec_keylistfromrdataset(dns_name_t *origin,
 					  directory, mctx, &privkey);
 		if (result == ISC_R_FILENOTFOUND) {
 			addkey(keylist, &pubkey, savekeys, mctx);
-			continue;
+			goto again;
 		}
 		RETERR(result);
 
-		if ((dst_key_flags(privkey) & DNS_KEYTYPE_NOAUTH) != 0) {
-			/* We should never get here. */
-			dst_key_free(&pubkey);
-			dst_key_free(&privkey);
-			continue;
-		}
+		/* This should never happen. */
+		if ((dst_key_flags(privkey) & DNS_KEYTYPE_NOAUTH) != 0)
+			goto again;
 
 		addkey(keylist, &privkey, savekeys, mctx);
-
-		dst_key_free(&pubkey);
+ again:
+ 		if (pubkey != NULL)
+			dst_key_free(&pubkey);
+ 		if (privkey != NULL)
+			dst_key_free(&privkey);
 	}
 	if (result == ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;
