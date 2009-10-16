@@ -1,3 +1,6 @@
+2713.	[port]		aix/powerpc: 'asm("ics");' needs non standard assembler
+			flags.
+
 	--- 9.7.0b1 released ---
 
 2713.	[bug]		powerpc: atomic operations missing asm("ics") /
