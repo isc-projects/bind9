@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.105 2009/10/16 02:59:41 each Exp $
+ * $Id: dnssec.c,v 1.106 2009/10/16 23:47:54 tbox Exp $
  */
 
 /*! \file */
@@ -1284,9 +1284,9 @@ dns_dnssec_keylistfromrdataset(dns_name_t *origin,
 
 		addkey(keylist, &privkey, savekeys, mctx);
  again:
- 		if (pubkey != NULL)
+		if (pubkey != NULL)
 			dst_key_free(&pubkey);
- 		if (privkey != NULL)
+		if (privkey != NULL)
 			dst_key_free(&privkey);
 	}
 	if (result == ISC_R_NOMORE)
