@@ -1,3 +1,6 @@
+2715.	[bug]		Require OpenSSL support to be explicitly disabled.
+			[RT #20288]
+
 2714.	[port]		aix/powerpc: 'asm("ics");' needs non standard assembler
 			flags.
 
