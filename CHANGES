@@ -1,4 +1,7 @@
-2713.	[port]		aix/powerpc: 'asm("ics");' needs non standard assembler
+2715.	[bug]		Require OpenSSL support to be explicitly disabled.
+			[RT #20288]
+
+2714.	[port]		aix/powerpc: 'asm("ics");' needs non standard assembler
 			flags.
 
 	--- 9.7.0b1 released ---
