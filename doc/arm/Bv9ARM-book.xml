@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.436 2009/10/14 12:49:11 jreed Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.437 2009/10/16 02:59:41 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -5509,24 +5509,42 @@ options {
 		validator with an alternate method to validate DNSKEY
 		records at the top of a zone.  When a DNSKEY is at or
 		below a domain specified by the deepest
-		<command>dnssec-lookaside</command>, and the normal dnssec
+		<command>dnssec-lookaside</command>, and the normal DNSSEC
 		validation has left the key untrusted, the trust-anchor
-		will be append to the key name and a DLV record will be
+		will be appended to the key name and a DLV record will be
 		looked up to see if it can validate the key.  If the DLV
-		record validates a DNSKEY (similarly to the way a DS record
-		does) the DNSKEY RRset is deemed to be trusted.
+		record validates a DNSKEY (similarly to the way a DS
+                record does) the DNSKEY RRset is deemed to be trusted.
 	      </para>
 	      <para>
 		If <command>dnssec-lookaside</command> is set to
 		<userinput>auto</userinput>, then built-in default
-		values for the domain and trust anchor will be
+		values for the DLV domain and trust anchor will be
 		used, along with a built-in key for validation.
 	      </para>
-	      <para>
-		NOTE: Since the built-in key may expire, it can be
-		overridden without recompiling <command>named</command>
-		by placing a new key in the file
-		<filename>bind.keys</filename>.
+              <para>
+                The default DLV key is stored in the file
+                <filename>bind.keys</filename>, which
+                <command>named</command> loads at startup if
+                <command>dnssec-lookaside</command> is set to
+                <constant>auto</constant>.  A copy of that file is
+                installed along with <acronym>BIND</acronym> 9, and is
+                current as of the release date.  If the DLV key expires, a
+                new copy of <filename>bind.keys</filename> can be downloaded
+                from <ulink>https://www.isc.org/solutions/dlv</ulink>.
+              </para>
+              <para>
+                (To prevent problems if <filename>bind.keys</filename> is
+                not found, the current key is also compiled in to
+                <command>named</command>.  Relying on this is not
+                recommended, however, as it requires <command>named</command>
+                to be recompiled with a new key when the DLV key expires.)
+              </para>
+              <para>
+                NOTE: Using <filename>bind.keys</filename> to store
+                locally-configured keys is possible, but not
+                recommended, as the file will be overwritten whenever
+                <acronym>BIND</acronym> 9 is re-installed or upgraded.
               </para>
             </listitem>
           </varlistentry>

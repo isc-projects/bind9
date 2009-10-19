@@ -1,7 +1,13 @@
+	--- 9.7.0b1 released ---
+
+2715.	[bug]		Require OpenSSL support to be explicitly disabled.
+			[RT #20288]
+
+2714.	[port]		aix/powerpc: 'asm("ics");' needs non standard assembler
+			flags.
+
 2713.	[bug]		powerpc: atomic operations missing asm("ics") /
 			__isync() calls.
-
-	--- 9.7.0b1 released ---
 
 2712.	[func]		New 'auto-dnssec' zone option allows zone signing
 			to be fully automated in zones configured for

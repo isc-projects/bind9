@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.483 $)
+AC_REVISION($Revision: 1.485 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -525,7 +525,9 @@ case "$use_openssl" in
 	auto)
 		DST_OPENSSL_INC=""
 		USE_OPENSSL=""
-		AC_MSG_RESULT(not found)
+		AC_MSG_ERROR(
+[OpenSSL was not found in any of $openssldirs; use --with-openssl=/path
+If you don't want OpenSSL, use --without-openssl])
 		;;
 	*)
 		if test "$use_openssl" = "yes"
@@ -2431,7 +2433,37 @@ AC_ARG_ENABLE(atomic,
 			enable_atomic="autodetect")
 case "$enable_atomic" in
 	yes|''|autodetect)
-		use_atomic=yes
+		case "$host" in
+		powerpc-ibm-aix*)
+			if test "X$GCC" = "Xyes"; then
+				AC_MSG_CHECKING([if asm("isc"); works])
+				AC_TRY_COMPILE(,[
+				main() { asm("ics"); exit(0); }
+				],
+				[AC_MSG_RESULT(yes)
+				 use_atomic=yes],
+				[
+				saved_cflags="$CFLAGS"
+				CFLAGS="$CFLAGS -Wa,-many"
+				AC_TRY_RUN([
+				main() { asm("ics"); exit(0); }
+				],
+				[AC_MSG_RESULT([yes, required -Wa,-many])
+				 use_atomic=yes],
+				[AC_MSG_RESULT([no, use_atomic disabled])
+				 CFLAGS="$saved_cflags"
+				 use_atomic=no],
+				[AC_MSG_RESULT([cross compile, assume yes])
+				 CFLAGS="$saved_cflags"
+				 use_atomic=yes])
+				]
+				)
+			fi
+			;;
+		*)
+			use_atomic=yes
+			;;
+		esac
 		;;
 	no)
 		use_atomic=no
@@ -2896,7 +2928,7 @@ AC_SUBST_FILE(BIND9_MAKE_RULES)
 BIND9_MAKE_RULES=$BIND9_TOP_BUILDDIR/make/rules
 
 . $srcdir/version
-BIND9_VERSION="VERSION=${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}"
+BIND9_VERSION="VERSION=${MAJORVER}.${MINORVER}${PATCHVER:+.}${PATCHVER}${RELEASETYPE}${RELEASEVER}"
 AC_SUBST(BIND9_VERSION)
 
 if test -z "$ac_configure_args"; then
@@ -3215,6 +3247,12 @@ AC_CONFIG_FILES([
 #
 
 AC_OUTPUT
+
+if test "X$USE_OPENSSL" = "X"; then
+cat << \EOF                                                             
+BIND is being built without OpenSSL. This means it will not have DNSSEC support.
+EOF
+fi
 
 if test "X$OPENSSL_WARNING" != "X"; then
 cat << \EOF

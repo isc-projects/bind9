@@ -9,7 +9,7 @@ and other cryptographic support devices.
 
 BIND 9 is known to work with two HSMs:  The Sun SCA 6000 cryptographic
 acceration board, tested under Solaris x86, and the AEP Keyper
-network-attached key storage device, tested with a Debian Linux system,
+network-attached key storage device, tested with Debian Linux,
 Solaris x86 and Windows Server 2003.
 
 PREREQUISITES
@@ -203,8 +203,9 @@ for use by PKCS #11 provider library.  If the machine file is in
     export KEYPER_LIBRARY_PATH=/opt/Keyper/PKCS11Provider
 
 These environment variables must be set whenever running any tool
-which uses the HSM, including pkcs11-keygen, pkcs11-list, pkcs11-destroy,
-dnssec-keyfromlabel, dnssec-signzone, and named.
+that uses the HSM, including pkcs11-keygen, pkcs11-list, pkcs11-destroy,
+dnssec-keyfromlabel, dnssec-signzone, dnssec-keygen (which will use
+the HSM for random number generation), and named.
 
 We can now create and use keys in the HSM.  In this case, we will
 create a 2048 bit key and give it the label "sample-ksk":
@@ -298,6 +299,10 @@ Sample openssl.cnf:
         pkcs11 = pkcs11_section
         [ pkcs11_section ]
         PIN = <PLACE PIN HERE>
+
+This will also allow the dnssec-* tools to access the HSM without
+PIN entry.  (The pkcs11-* tools access the HSM directly, not via
+OpenSSL, so a PIN will still be required to use them.)
 
 PLEASE NOTE:  Placing the HSM's PIN in a text file in this manner
 may reduce the security advantage of using an HSM.  Be sure this
