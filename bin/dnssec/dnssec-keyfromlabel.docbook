@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-keyfromlabel.docbook,v 1.13 2009/10/16 15:37:01 jreed Exp $ -->
+<!-- $Id: dnssec-keyfromlabel.docbook,v 1.12 2009/10/06 22:58:45 each Exp $ -->
 <refentry id="man.dnssec-keyfromlabel">
   <refentryinfo>
     <date>February 8, 2008</date>
@@ -297,7 +297,7 @@
         <listitem>
           <para>
             Sets the date on which the key is to be activated.  After that
-            date, the key will be included in the zone and used to sign
+            date, the key will be included and the zone and used to sign
             it.  If not set, and if the -G option has not been used, the
             default is "now".
           </para>
