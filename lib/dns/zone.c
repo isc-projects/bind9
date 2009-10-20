@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.518 2009/10/20 02:45:06 marka Exp $ */
+/* $Id: zone.c,v 1.519 2009/10/20 04:13:38 each Exp $ */
 
 /*! \file */
 
@@ -7042,9 +7042,19 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	dns_diff_init(zone->mctx, &diff);
 
 	/* Fetch failed */
-	if (eresult != ISC_R_SUCCESS) {
+	if (eresult != ISC_R_SUCCESS ||
+	    !dns_rdataset_isassociated(&kfetch->dnskeyset)) {
 		dns_zone_log(zone, ISC_LOG_WARNING,
 			     "Unable to fetch DNSKEY set "
+			     "'%s': %s", namebuf, dns_result_totext(eresult));
+		CHECK(minimal_update(kfetch, ver, &diff));
+		goto failure;
+	}
+
+	/* No RRSIGs found */
+	if (!dns_rdataset_isassociated(&kfetch->dnskeysigset)) {
+		dns_zone_log(zone, ISC_LOG_WARNING,
+			     "No DNSKEY RRSIGs found for "
 			     "'%s': %s", namebuf, dns_result_totext(eresult));
 		CHECK(minimal_update(kfetch, ver, &diff));
 		goto failure;

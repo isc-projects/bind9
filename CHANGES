@@ -1,3 +1,6 @@
+2720.	[bug]		RFC 5011 trust anchor updates could trigger an
+			assert if the DNSKEY record was unsigned. [RT #20406]
+
 2719.	[func]		Skip trusted/managed keys for unsupported algorithms.
 			[RT #20392]
 
