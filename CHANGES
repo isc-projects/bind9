@@ -1,3 +1,6 @@
+2718.	[bug]		The space calculations in opensslrsa_todns() were
+			incorrect. [RT #20394]
+
 2717.	[bug]		named failed to update the NSEC/NSEC3 record when
 			the last private type record was removed as a result
 			of completing the signing the zone with a key.
