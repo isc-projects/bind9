@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.551 2009/10/12 20:48:11 each Exp $ */
+/* $Id: server.c,v 1.552 2009/10/20 03:15:06 marka Exp $ */
 
 /*! \file */
 
@@ -552,6 +552,11 @@ dstkey_fromconfig(const cfg_obj_t *vconfig, const cfg_obj_t *key,
 			    "ignoring %s key for '%s': no crypto support",
 			    managed ? "managed" : "trusted",
 			    keynamestr);
+	} else if (result == DST_R_UNSUPPORTEDALG) {
+		cfg_obj_log(key, ns_g_lctx, ISC_LOG_WARNING,
+			    "skipping %s key for '%s': %s",
+			    managed ? "managed" : "trusted",
+			    keynamestr, isc_result_totext(result));
 	} else {
 		cfg_obj_log(key, ns_g_lctx, ISC_LOG_ERROR,
 			    "configuring %s key for '%s': %s",
@@ -584,8 +589,14 @@ load_view_keys(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
 		     elt2 != NULL;
 		     elt2 = cfg_list_next(elt2)) {
 			key = cfg_listelt_value(elt2);
-			CHECK(dstkey_fromconfig(vconfig, key, managed,
-						&dstkey, mctx));
+			result = dstkey_fromconfig(vconfig, key, managed,
+						   &dstkey, mctx);
+			if (result ==  DST_R_UNSUPPORTEDALG) {
+				result = ISC_R_SUCCESS;
+				continue;
+			}
+			if (result != ISC_R_SUCCESS)
+				goto cleanup;
 			CHECK(dns_keytable_add(view->secroots, managed,
 					       &dstkey));
 		}
