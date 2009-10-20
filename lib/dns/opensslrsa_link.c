@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.16.128.3 2009/01/19 00:01:10 marka Exp $
+ * $Id: opensslrsa_link.c,v 1.16.128.4 2009/10/20 03:06:32 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -372,19 +372,20 @@ opensslrsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 		if (r.length < 1)
 			return (ISC_R_NOSPACE);
 		isc_buffer_putuint8(data, (isc_uint8_t) e_bytes);
+		isc_region_consume(&r, 1);
 	} else {
 		if (r.length < 3)
 			return (ISC_R_NOSPACE);
 		isc_buffer_putuint8(data, 0);
 		isc_buffer_putuint16(data, (isc_uint16_t) e_bytes);
+		isc_region_consume(&r, 3);
 	}
 
 	if (r.length < e_bytes + mod_bytes)
 		return (ISC_R_NOSPACE);
-	isc_buffer_availableregion(data, &r);
 
 	BN_bn2bin(rsa->e, r.base);
-	r.base += e_bytes;
+	isc_region_consume(&r, e_bytes);
 	BN_bn2bin(rsa->n, r.base);
 
 	isc_buffer_add(data, e_bytes + mod_bytes);
