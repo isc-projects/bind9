@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.41 2009/10/12 20:48:12 each Exp $
+ * $Id: dst_api.c,v 1.42 2009/10/20 04:39:48 marka Exp $
  */
 
 /*! \file */
@@ -1581,6 +1581,9 @@ isc_result_t
 dst__entropy_getdata(void *buf, unsigned int len, isc_boolean_t pseudo) {
 #ifdef BIND9
 	unsigned int flags = dst_entropy_flags;
+
+	if (len == 0)
+		return (ISC_R_SUCCESS);
 	if (pseudo)
 		flags &= ~ISC_ENTROPY_GOODONLY;
 	else
@@ -1598,6 +1601,23 @@ dst__entropy_getdata(void *buf, unsigned int len, isc_boolean_t pseudo) {
 unsigned int
 dst__entropy_status(void) {
 #ifdef BIND9
+#ifdef GSSAPI
+	unsigned int flags = dst_entropy_flags;
+	isc_result_t ret;
+	unsigned char buf[32];
+	static isc_boolean_t first = ISC_TRUE;
+
+	if (first) {
+		/* Someone believes RAND_status() initializes the PRNG */
+		flags &= ~ISC_ENTROPY_GOODONLY;
+		ret = isc_entropy_getdata(dst_entropy_pool, buf,
+					  sizeof(buf), NULL, flags);
+		INSIST(ret == ISC_R_SUCCESS);
+		isc_entropy_putdata(dst_entropy_pool, buf,
+				    sizeof(buf), 2 * sizeof(buf));
+		first = ISC_FALSE;
+	}
+#endif
 	return (isc_entropy_status(dst_entropy_pool));
 #else
 	return (0);
