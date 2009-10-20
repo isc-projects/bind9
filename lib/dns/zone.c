@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.519 2009/10/20 04:13:38 each Exp $ */
+/* $Id: zone.c,v 1.520 2009/10/20 23:47:32 tbox Exp $ */
 
 /*! \file */
 
@@ -5119,13 +5119,13 @@ updatesignwithkey(dns_zone_t *zone, dns_signing_t *signing,
 		 * Rebuild the NSEC/NSEC3 record for the origin as we no
 		 * longer have any private records.
 		 */
-		if (build_nsec3) 
+		if (build_nsec3)
 			CHECK(dns_nsec3_addnsec3s(signing->db, version, origin,
 						  minimum, ISC_FALSE, diff));
 		CHECK(updatesecure(signing->db, version, origin, minimum,
 				   ISC_TRUE, diff));
 	}
- 
+
  failure:
 	if (dns_rdataset_isassociated(&rdataset))
 		dns_rdataset_disassociate(&rdataset);
