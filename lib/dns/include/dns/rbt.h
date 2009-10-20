@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.h,v 1.69.36.2 2009/01/19 23:47:03 tbox Exp $ */
+/* $Id: rbt.h,v 1.69.36.3 2009/10/20 05:06:29 marka Exp $ */
 
 #ifndef DNS_RBT_H
 #define DNS_RBT_H 1
@@ -105,10 +105,10 @@ struct dns_rbtnode {
 	unsigned int is_root : 1;       /*%< range is 0..1 */
 	unsigned int color : 1;         /*%< range is 0..1 */
 	unsigned int find_callback : 1; /*%< range is 0..1 */
-	unsigned int attributes : 4;    /*%< range is 0..2 */
+	unsigned int attributes : 5;    /*%< range is 0..2 */
 	unsigned int namelen : 8;       /*%< range is 1..255 */
 	unsigned int offsetlen : 8;     /*%< range is 1..128 */
-	unsigned int padbytes : 9;      /*%< range is 0..380 */
+	unsigned int oldnamelen : 8;    /*%< range is 1..255 */
 	/*@}*/
 
 #ifdef DNS_RBT_USEHASH
