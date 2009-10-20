@@ -1,3 +1,5 @@
+2716.	[bug]		nslookup debug mode didn't return the ttl. [RT #20414]
+
 	--- 9.7.0b1 released ---
 
 2715.	[bug]		Require OpenSSL support to be explicitly disabled.
