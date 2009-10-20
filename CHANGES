@@ -1,3 +1,8 @@
+2717.	[bug]		named failed to update the NSEC/NSEC3 record when
+			the last private type record was removed as a result
+			of completing the signing the zone with a key.
+			[RT #20399]
+
 2716.	[bug]		nslookup debug mode didn't return the ttl. [RT #20414]
 
 	--- 9.7.0b1 released ---

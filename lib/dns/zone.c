@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.517 2009/10/12 23:48:01 tbox Exp $ */
+/* $Id: zone.c,v 1.518 2009/10/20 02:45:06 marka Exp $ */
 
 /*! \file */
 
@@ -4986,7 +4986,7 @@ sign_a_node(dns_db_t *db, dns_name_t *name, dns_dbnode_t *node,
 		result = ISC_R_SUCCESS;
 	if (seen_dname)
 		*delegation = ISC_TRUE;
-failure:
+ failure:
 	if (dns_rdataset_isassociated(&rdataset))
 		dns_rdataset_disassociate(&rdataset);
 	if (iterator != NULL)
@@ -4999,8 +4999,7 @@ failure:
  */
 static isc_result_t
 updatesecure(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
-	     dns_ttl_t minimum, isc_boolean_t update_only,
-	     isc_boolean_t *secureupdated, dns_diff_t *diff)
+	     dns_ttl_t minimum, isc_boolean_t update_only, dns_diff_t *diff)
 {
 	isc_result_t result;
 	dns_rdataset_t rdataset;
@@ -5015,19 +5014,15 @@ updatesecure(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 					     0, &rdataset, NULL);
 		if (dns_rdataset_isassociated(&rdataset))
 			dns_rdataset_disassociate(&rdataset);
-		if (result == ISC_R_NOTFOUND) {
-			result = ISC_R_SUCCESS;
-			goto done;
-		}
+		if (result == ISC_R_NOTFOUND)
+			goto success;
 		if (result != ISC_R_SUCCESS)
 			goto failure;
 	}
 	CHECK(delete_nsec(db, version, node, name, diff));
 	CHECK(add_nsec(db, version, name, node, minimum, ISC_FALSE, diff));
- done:
-	if (secureupdated != NULL)
-		*secureupdated = ISC_TRUE;
-
+ success:
+	result = ISC_R_SUCCESS;
  failure:
 	if (node != NULL)
 		dns_db_detachnode(db, &node);
@@ -5036,7 +5031,8 @@ updatesecure(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 
 static isc_result_t
 updatesignwithkey(dns_zone_t *zone, dns_signing_t *signing,
-		  dns_dbversion_t *version, dns_diff_t *diff)
+		  dns_dbversion_t *version, isc_boolean_t build_nsec3,
+		  dns_ttl_t minimum, dns_diff_t *diff)
 {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
@@ -5044,6 +5040,7 @@ updatesignwithkey(dns_zone_t *zone, dns_signing_t *signing,
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	unsigned char data[5];
 	isc_boolean_t seen_done = ISC_FALSE;
+	isc_boolean_t have_rr = ISC_FALSE;
 
 	dns_rdataset_init(&rdataset);
 	result = dns_db_getoriginnode(signing->db, &node);
@@ -5066,16 +5063,32 @@ updatesignwithkey(dns_zone_t *zone, dns_signing_t *signing,
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(&rdataset)) {
 		dns_rdataset_current(&rdataset, &rdata);
+		/*
+		 * If we don't match the algorithm or keyid skip the record.
+		 */
 		if (rdata.length != 5 ||
 		    rdata.data[0] != signing->algorithm ||
 		    rdata.data[1] != ((signing->keyid >> 8) & 0xff) ||
 		    rdata.data[2] != (signing->keyid & 0xff)) {
+			have_rr = ISC_TRUE;
 			dns_rdata_reset(&rdata);
 			continue;
 		}
-		if (!signing->delete && rdata.data[4] != 0)
+		/*
+		 * We have a match.  If we were signing (!signing->delete)
+		 * and we already have a record indicating that we have
+		 * finished signing (rdata.data[4] != 0) then keep it.
+		 * Otherwise it needs to be deleted as we have removed all
+		 * the signatures (signing->delete), so any record indicating
+		 * completion is now out of date, or we have finished signing
+		 * with the new record so we no longer need to remember that
+		 * we need to sign the zone with the matching key across a
+		 * nameserver re-start.
+		 */
+		if (!signing->delete && rdata.data[4] != 0) {
 			seen_done = ISC_TRUE;
-		else
+			have_rr = ISC_TRUE;
+		} else
 			CHECK(update_one_rr(signing->db, version, diff,
 					    DNS_DIFFOP_DEL, &zone->origin,
 					    rdataset.ttl, &rdata));
@@ -5084,7 +5097,11 @@ updatesignwithkey(dns_zone_t *zone, dns_signing_t *signing,
 	if (result == ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;
 	if (!signing->delete && !seen_done) {
-
+		/*
+		 * If we were signing then we need to indicate that we have
+		 * finished signing the zone with this key.  If it is already
+		 * there we don't need to add it a second time.
+		 */
 		data[0] = signing->algorithm;
 		data[1] = (signing->keyid >> 8) & 0xff;
 		data[2] = signing->keyid & 0xff;
@@ -5096,7 +5113,19 @@ updatesignwithkey(dns_zone_t *zone, dns_signing_t *signing,
 		rdata.rdclass = dns_db_class(signing->db);
 		CHECK(update_one_rr(signing->db, version, diff, DNS_DIFFOP_ADD,
 				    &zone->origin, rdataset.ttl, &rdata));
+	} else if (!have_rr) {
+		dns_name_t *origin = dns_db_origin(signing->db);
+		/*
+		 * Rebuild the NSEC/NSEC3 record for the origin as we no
+		 * longer have any private records.
+		 */
+		if (build_nsec3) 
+			CHECK(dns_nsec3_addnsec3s(signing->db, version, origin,
+						  minimum, ISC_FALSE, diff));
+		CHECK(updatesecure(signing->db, version, origin, minimum,
+				   ISC_TRUE, diff));
 	}
+ 
  failure:
 	if (dns_rdataset_isassociated(&rdataset))
 		dns_rdataset_disassociate(&rdataset);
@@ -5970,7 +5999,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 		dns_db_detachnode(db, &node);
 		if (rebuild_nsec) {
 			result = updatesecure(db, version, &zone->origin,
-					      zone->minimum, ISC_TRUE, NULL,
+					      zone->minimum, ISC_TRUE,
 					      &nsec_diff);
 			if (result != ISC_R_SUCCESS) {
 				dns_zone_log(zone, ISC_LOG_ERROR,
@@ -6022,8 +6051,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 
 	if (updatensec) {
 		result = updatesecure(db, version, &zone->origin,
-				      zone->minimum, ISC_FALSE, NULL,
-				      &nsec_diff);
+				      zone->minimum, ISC_FALSE, &nsec_diff);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain:"
 				     "updatesecure -> %s\n",
@@ -6268,6 +6296,7 @@ zone_sign(dns_zone_t *zone) {
 	dns_dbnode_t *node = NULL;
 	dns_dbversion_t *version = NULL;
 	dns_diff_t sig_diff;
+	dns_diff_t post_diff;
 	dns_fixedname_t fixed;
 	dns_fixedname_t nextfixed;
 	dns_name_t *name, *nextname;
@@ -6279,8 +6308,6 @@ zone_sign(dns_zone_t *zone) {
 	isc_boolean_t check_ksk, keyset_kskonly, is_ksk;
 	isc_boolean_t commit = ISC_FALSE;
 	isc_boolean_t delegation;
-	isc_boolean_t finishedakey = ISC_FALSE;
-	isc_boolean_t secureupdated = ISC_FALSE;
 	isc_boolean_t build_nsec = ISC_FALSE;
 	isc_boolean_t build_nsec3 = ISC_FALSE;
 	isc_boolean_t first;
@@ -6299,6 +6326,7 @@ zone_sign(dns_zone_t *zone) {
 	nextname = dns_fixedname_name(&nextfixed);
 	dns_diff_init(zone->mctx, &sig_diff);
 	sig_diff.resign = zone->sigresigninginterval;
+	dns_diff_init(zone->mctx, &post_diff);
 	ISC_LIST_INIT(cleanup);
 
 	/*
@@ -6530,8 +6558,7 @@ zone_sign(dns_zone_t *zone) {
 				ISC_LIST_UNLINK(zone->signing, signing, link);
 				ISC_LIST_APPEND(cleanup, signing, link);
 				dns_dbiterator_pause(signing->dbiterator);
-				finishedakey = ISC_TRUE;
-				if (!secureupdated && nkeys != 0 && build_nsec) {
+				if (nkeys != 0 && build_nsec) {
 					/*
 					 * We have finished regenerating the
 					 * zone with a zone signing key.
@@ -6544,8 +6571,7 @@ zone_sign(dns_zone_t *zone) {
 							      &zone->origin,
 							      zone->minimum,
 							      ISC_FALSE,
-							      &secureupdated,
-							      &sig_diff);
+							      &post_diff);
 					if (result != ISC_R_SUCCESS) {
 						dns_zone_log(zone,
 							     ISC_LOG_ERROR,
@@ -6555,7 +6581,10 @@ zone_sign(dns_zone_t *zone) {
 					}
 				}
 				result = updatesignwithkey(zone, signing,
-							   version, &sig_diff);
+							   version,
+							   build_nsec3,
+							   zone->minimum,
+							   &post_diff);
 				if (result != ISC_R_SUCCESS) {
 					dns_zone_log(zone, ISC_LOG_ERROR,
 						     "updatesignwithkey "
@@ -6587,53 +6616,13 @@ zone_sign(dns_zone_t *zone) {
 		first = ISC_TRUE;
 	}
 
-	if (secureupdated) {
-		/*
-		 * We have changed the NSEC RRset above so we need to update
-		 * the signatures.
-		 */
-		result = del_sigs(zone, db, version, &zone->origin,
-				  dns_rdatatype_nsec, &sig_diff, zone_keys,
-				  nkeys, now);
+	if (ISC_LIST_HEAD(post_diff.tuples) != NULL) {
+		result = update_sigs(&post_diff, db, version, zone_keys,
+				     nkeys, zone, inception, expire, now,
+				     check_ksk, keyset_kskonly, &sig_diff);
 		if (result != ISC_R_SUCCESS) {
-			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "zone_sign:del_sigs -> %s\n",
-				     dns_result_totext(result));
-			goto failure;
-		}
-		result = add_sigs(db, version, &zone->origin,
-				  dns_rdatatype_nsec, &sig_diff, zone_keys,
-				  nkeys, zone->mctx, inception, soaexpire,
-				  check_ksk, keyset_kskonly);
-		if (result != ISC_R_SUCCESS) {
-			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "zone_sign:add_sigs -> %s\n",
-				     dns_result_totext(result));
-			goto failure;
-		}
-	}
-
-	if (finishedakey) {
-		/*
-		 * We have changed the RRset above so we need to update
-		 * the signatures.
-		 */
-		result = del_sigs(zone, db, version, &zone->origin,
-				  zone->privatetype, &sig_diff,
-				  zone_keys, nkeys, now);
-		if (result != ISC_R_SUCCESS) {
-			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "zone_sign:del_sigs -> %s\n",
-				     dns_result_totext(result));
-			goto failure;
-		}
-		result = add_sigs(db, version, &zone->origin,
-				  zone->privatetype, &sig_diff,
-				  zone_keys, nkeys, zone->mctx, inception,
-				  soaexpire, check_ksk, keyset_kskonly);
-		if (result != ISC_R_SUCCESS) {
-			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "zone_sign:add_sigs -> %s\n",
+			dns_zone_log(zone, ISC_LOG_ERROR, "zone_sign:"
+				     "update_sigs -> %s\n",
 				     dns_result_totext(result));
 			goto failure;
 		}
