@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: base64.c,v 1.32 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: base64.c,v 1.32.128.1 2009/10/21 01:23:19 each Exp $ */
 
 /*! \file */
 
@@ -85,11 +85,13 @@ isc_base64_totext(isc_region_t *source, int wordlength,
 		buf[2] = base64[((source->base[1]<<2)&0x3c)];
 		buf[3] = '=';
 		RETERR(str_totext(buf, target));
+		isc_region_consume(source, 2);
 	} else if (source->length == 1) {
 		buf[0] = base64[(source->base[0]>>2)&0x3f];
 		buf[1] = base64[((source->base[0]<<4)&0x30)];
 		buf[2] = buf[3] = '=';
 		RETERR(str_totext(buf, target));
+		isc_region_consume(source, 1);
 	}
 	return (ISC_R_SUCCESS);
 }
