@@ -120,5 +120,5 @@
          Dynamic Host Configuration Protocol (DHCP) Information (DHCID RR)
 4892:	Requirements for a Mechanism Identifying a Name Server Instance
 5155:	DNS Security (DNSSEC) Hashed Authenticated Denial of Existence
-5295:	Host Identity Protocol (HIP) Domain Name System (DNS) Extension
+5205:	Host Identity Protocol (HIP) Domain Name System (DNS) Extension
 5507:	Design Choices When Expanding the DNS
