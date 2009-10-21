@@ -1,3 +1,7 @@
+2723.	[bug]		isc_base32_totext(), isc_base32hex_totext(), and
+			isc_base64_totext(), didn't always mark regions of
+			memory as fully consumed after conversion.  [RT #20445]
+
 2722.	[bug]		Ensure that the memory associated with the name of
 			a node in a rbt tree is not altered during the life
 			of the node. [RT #20431]
