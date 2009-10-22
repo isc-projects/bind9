@@ -1,3 +1,6 @@
+2725.	[doc]		Added information about the file "managed-keys.bind"
+			to the ARM. [RT #20235]
+
 2724.	[bug]		Updates to a existing node in secure zone using NSEC
 			were failing. [RT #20448]
 

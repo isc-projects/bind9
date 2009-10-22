@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.437 2009/10/16 02:59:41 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.438 2009/10/22 02:04:07 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -9231,6 +9231,21 @@ deny-answer-aliases { "example.net"; };
             database; consequently, unlike <command>trusted-keys</command>,
             <command>managed-keys</command> may only be set at the top
             level of <filename>named.conf</filename>, not within a view.
+	  </para>
+          <para>
+            In the current implementation, the managed keys database is
+            stored as a master-format zone file called
+            <filename>managed-keys.bind</filename>.  When the key database
+            is changed, the zone is updated.  As with any other dynamic
+            zone, changes will be written into a journal file,
+            <filename>managed-keys.bind.jnl</filename>.  They are committed
+            to the master file as soon as possible afterward; in the case
+            of the managed key database, this will usually occur within 30
+            seconds.  So, whenever <command>named</command> is using
+            automatic key maintenace, those two files can be expected to
+            exist in the working directory.  (For this reason among others,
+            the working directory should be always be writable by
+            <command>named</command>.)
 	  </para>
 	  <para>
 	    If the <command>dnssec-lookaside</command> option is
