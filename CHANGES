@@ -1,3 +1,6 @@
+2727.	[func]		The 'key-directory' option can now specify a relative
+			path. [RT #20154]
+
 2726.	[func]		Added support for SHA-2 DNSSEC algorithms,
 			RSASHA256 and RSASHA512. [RT #20023]
 
