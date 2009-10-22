@@ -1,3 +1,6 @@
+2726.	[func]		Added support for SHA-2 DNSSEC algorithms,
+			RSASHA256 and RSASHA512. [RT #20023]
+
 2725.	[doc]		Added information about the file "managed-keys.bind"
 			to the ARM. [RT #20235]
 

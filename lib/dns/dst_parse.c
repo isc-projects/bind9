@@ -31,7 +31,7 @@
 
 /*%
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.21 2009/10/09 06:09:21 each Exp $
+ * $Id: dst_parse.c,v 1.22 2009/10/22 02:21:30 each Exp $
  */
 
 #include <config.h>
@@ -578,6 +578,12 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 		break;
 	case DST_ALG_NSEC3DSA:
 		fprintf(fp, "(NSEC3DSA)\n");
+		break;
+	case DST_ALG_RSASHA256:
+		fprintf(fp, "(RSASHA256)\n");
+		break;
+	case DST_ALG_RSASHA512:
+		fprintf(fp, "(RSASHA512)\n");
 		break;
 	case DST_ALG_HMACMD5:
 		fprintf(fp, "(HMAC_MD5)\n");

@@ -3,13 +3,13 @@
 
 DNS Extensions working group                                   J. Jansen
 Internet-Draft                                                NLnet Labs
-Intended status: Standards Track                          April 24, 2009
-Expires: October 26, 2009
+Intended status: Standards Track                           June 04, 2009
+Expires: December 6, 2009
 
 
  Use of SHA-2 algorithms with RSA in DNSKEY and RRSIG Resource Records
                                for DNSSEC
-                 draft-ietf-dnsext-dnssec-rsasha256-13
+                 draft-ietf-dnsext-dnssec-rsasha256-14
 
 Status of this Memo
 
@@ -32,7 +32,7 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on October 26, 2009.
+   This Internet-Draft will expire on December 6, 2009.
 
 Copyright Notice
 
@@ -52,9 +52,9 @@ Abstract
 
 
 
-Jansen                  Expires October 26, 2009                [Page 1]
+Jansen                  Expires December 6, 2009                [Page 1]
 
-Internet-Draft              DNSSEC RSA/SHA-2                  April 2009
+Internet-Draft              DNSSEC RSA/SHA-2                   June 2009
 
 
    Security Extensions (DNSSEC, RFC 4033, RFC 4034, and RFC 4035).
@@ -77,7 +77,7 @@ Table of Contents
      5.2.  Support for NSEC3 Denial of Existence  . . . . . . . . . .  5
    6.  Examples . . . . . . . . . . . . . . . . . . . . . . . . . . .  6
      6.1.  RSA/SHA-256 Key and Signature  . . . . . . . . . . . . . .  6
-     6.2.  RSA/SHA-512 Key and Signature  . . . . . . . . . . . . . .  6
+     6.2.  RSA/SHA-512 Key and Signature  . . . . . . . . . . . . . .  7
    7.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . .  8
    8.  Security Considerations  . . . . . . . . . . . . . . . . . . .  8
      8.1.  SHA-1 versus SHA-2 Considerations for RRSIG Resource
@@ -108,9 +108,9 @@ Table of Contents
 
 
 
-Jansen                  Expires October 26, 2009                [Page 2]
+Jansen                  Expires December 6, 2009                [Page 2]
 
-Internet-Draft              DNSSEC RSA/SHA-2                  April 2009
+Internet-Draft              DNSSEC RSA/SHA-2                   June 2009
 
 
 1.  Introduction
@@ -164,9 +164,9 @@ Internet-Draft              DNSSEC RSA/SHA-2                  April 2009
 
 
 
-Jansen                  Expires October 26, 2009                [Page 3]
+Jansen                  Expires December 6, 2009                [Page 3]
 
-Internet-Draft              DNSSEC RSA/SHA-2                  April 2009
+Internet-Draft              DNSSEC RSA/SHA-2                   June 2009
 
 
 2.2.  RSA/SHA-512 DNSKEY Resource Records
@@ -220,9 +220,9 @@ Internet-Draft              DNSSEC RSA/SHA-2                  April 2009
 
 
 
-Jansen                  Expires October 26, 2009                [Page 4]
+Jansen                  Expires December 6, 2009                [Page 4]
 
-Internet-Draft              DNSSEC RSA/SHA-2                  April 2009
+Internet-Draft              DNSSEC RSA/SHA-2                   June 2009
 
 
 3.2.  RSA/SHA-512 RRSIG Resource Records
@@ -276,14 +276,15 @@ Internet-Draft              DNSSEC RSA/SHA-2                  April 2009
 
 
 
-Jansen                  Expires October 26, 2009                [Page 5]
+Jansen                  Expires December 6, 2009                [Page 5]
 
-Internet-Draft              DNSSEC RSA/SHA-2                  April 2009
+Internet-Draft              DNSSEC RSA/SHA-2                   June 2009
 
 
-   both NSEC and NSEC3 [RFC5155] negative answers.  An authoritative
-   server that does not implement NSEC3 MAY still serve zones that use
-   RSA/SHA-2 with NSEC denial of existence.
+   negative answers in the form of both NSEC and NSEC3 with hash
+   algorithm 1, as defined in [RFC5155].  An authoritative server that
+   does not implement NSEC3 MAY still serve zones that use RSA/SHA-2
+   with NSEC denial of existence.
 
 
 6.  Examples
@@ -313,84 +314,83 @@ Internet-Draft              DNSSEC RSA/SHA-2                  April 2009
 
    With this key, sign the following RRSet, consisting of 1 A record:
 
-   www.example.net. 3600  IN  A  123.123.123.123
+   www.example.net. 3600  IN  A  192.0.2.91
 
    If the inception date is set at 00:00 hours on January 1st, 2000, and
    the expiration date at 00:00 hours on January 1st, 2030, the
    following signature should be created:
 
    www.example.net. 3600  IN  RRSIG  (A 8 3 3600 20300101000000
-                    20000101000000 9033 example.net. KWgSIg3khRfyrHmtJU
-                    5pzpsANyy27+HOZ6waMQ5kV690ljVmbHmGc8ULOfXw3aWmP0wJB
-                    ND/TQhjCvrb3T9ffQ== );{id = 9033}
+                    20000101000000 9033 example.net. kRCOH6u7l0QGy9qpC9
+                    l1sLncJcOKFLJ7GhiUOibu4teYp5VE9RncriShZNz85mwlMgNEa
+                    cFYK/lPtPiVYP4bwg== ;{id = 9033}
+
+
+
+
+
+
+
+
+Jansen                  Expires December 6, 2009                [Page 6]
+
+Internet-Draft              DNSSEC RSA/SHA-2                   June 2009
+
 
 6.2.  RSA/SHA-512 Key and Signature
 
    Given a private key with the following values (in Base64):
 
-
-
-
-
-Jansen                  Expires October 26, 2009                [Page 6]
-
-Internet-Draft              DNSSEC RSA/SHA-2                  April 2009
-
-
    Private-key-format: v1.2
-   Algorithm:       9 (RSASHA512)
-   Modulus:         8Du9YHEwFNjO5iG9jrrNyKwRs5mAzJgXBrjbA49R/ESWJKw6eHH
-                    XfZaxnP+gVhZBDmqwND/SFwrEkN5LyH3HZ+/d/ECW+vT8Lxprqf
-                    haTfxQkV4OFjw/ikuTcBMoUIYfhO1NVPBcH1mWh34DWmu6eedzH
-                    IbdeNZnIkWSv4muchs=
+   Algorithm:       10 (RSASHA512)
+   Modulus:         0eg1M5b563zoq4k5ZEOnWmd2/BvpjzedJVdfIsDcMuuhE5SQ3pf
+                    Q7qmdaeMlC6Nf8DKGoUPGPXe06cP27/WRODtxXquSUytkO0kJDk
+                    8KX8PtA0+yBWwy7UnZDyCkynO00Uuk8HPVtZeMO1pHtlAGVnc8V
+                    jXZlNKdyit99waaE4s=
    PublicExponent:  AQAB
-   PrivateExponent: sRm5YLHQ2m2DCdDx55j7P+bqHdcaRroQr5nzi8pKjIkbjumRKV3
-                    zmNhRFAa3cv9w8mnggIRUIzyC8LGQeLuRFjbv6uXDzoPX2O321j
-                    PlTUOwCYMTVnbkZUem6c+7iRd2v5zNNe9uiXex6T8CDXyhQhqYb
-                    8q2AajPrTlRzv6uW8E=
-   Prime1:          +DPVg2OlfYqcNlm67T42608gjyqWFdVc0UtDDDBo+ABWavqp+Yk
-                    Fb/z/Ig+iBE901Q8RWdqVLND3PtGwWipIyw==
-   Prime2:          98fQbOaWH3D/WFhnu47f1qOgaob/ss3FQ12QbUdRDpgfmdryHH7
-                    j1UGR2Xs0aRPwBASXYhgtamXtxLorXIFh8Q==
-   Exponent1:       j0UsbGlqr6sBPQZStnuBLBdCziFg/T1qFI4DJ9gR34YiXCJRV29
-                    Wqiw6AalQdnh/EjVeaKWaEoKVFbfoukNKPQ==
-   Exponent2:       4YTy9ftVjd5p+f3UxEgBATnCatLebd6NeYfySRQM+YyJzp4RmNA
-                    BC/t3BQv3IuBrpyyKoFTDGUEWjOSpTLPR8Q==
-   Coefficient:     BpIAEwh5rlw9M8FpGHjpF5TxSdhCjnA8NT0tB+MB/k0msceyBbx
-                    avjzJXTi/QPk9PIO8Wv6eCzMQEM0QDZO53Q==
+   PrivateExponent: rFS1IPbJllFFgFc33B5DDlC1egO8e81P4fFadODbp56V7sphKa6
+                    AZQCx8NYAew6VXFFPAKTw41QdHnK5kIYOwxvfFDjDcUGza88qbj
+                    yrDPSJenkeZbISMUSSqy7AMFzEolkk6WSn6k3thUVRgSlqDoOV3
+                    SEIAsrB043XzGrKIVE=
+   Prime1:          8mbtsu9Tl9v7tKSHdCIeprLIQXQLzxlSZun5T1n/OjvXSUtvD7x
+                    nZJ+LHqaBj1dIgMbCq2U8O04QVcK3TS9GiQ==
+   Prime2:          3a6gkfs74d0Jb7yL4j4adAif4fcp7ZrGt7G5NRVDDY/Mv4TERAK
+                    Ma0TKN3okKE0A7X+Rv2K84mhT4QLDlllEcw==
+   Exponent1:       v3D5A9uuCn5rgVR7wgV8ba0/KSpsdSiLgsoA42GxiB1gvvs7gJM
+                    MmVTDu/ZG1p1ZnpLbhh/S/Qd/MSwyNlxC+Q==
+   Exponent2:       m+ezf9dsDvYQK+gzjOLWYeKq5xWYBEYFGa3BLocMiF4oxkzOZ3J
+                    PZSWU/h1Fjp5RV7aPP0Vmx+hNjYMPIQ8Y5w==
+   Coefficient:     Je5YhYpUron/WdOXjxNAxDubAp3i5X7UOUfhJcyIggqwY86IE0Q
+                    /Bk0Dw4SC9zxnsimmdBXW2Izd8Lwuk8FQcQ==
 
    The DNSKEY record for this key would be:
 
-   example.net.    3600  IN  DNSKEY  (256 3 9 AwEAAfA7vWBxMBTYzuYhvY66z
-                   cisEbOZgMyYFwa42wOPUfxEliSsOnhx132WsZz/oFYWQQ5qsDQ/0
-                   hcKxJDeS8h9x2fv3fxAlvr0/C8aa6n4Wk38UJFeDhY8P4pLk3ATK
-                   FCGH4TtTVTwXB9Zlod+A1prunnncxyG3XjWZyJFkr+JrnIb
-                   );{id = 28237 (zsk), size = 1024b}
+   example.net.    3600  IN  DNSKEY  (256 3 10 AwEAAdHoNTOW+et86KuJOWRD
+                   p1pndvwb6Y83nSVXXyLA3DLroROUkN6X0O6pnWnjJQujX/AyhqFD
+                   xj13tOnD9u/1kTg7cV6rklMrZDtJCQ5PCl/D7QNPsgVsMu1J2Q8g
+                   pMpztNFLpPBz1bWXjDtaR7ZQBlZ3PFY12ZTSncorffcGmhOL
+                   );{id = 3740 (zsk), size = 1024b}
 
    With this key, sign the following RRSet, consisting of 1 A record:
 
-   www.example.net. 3600  IN  A  123.123.123.123
+   www.example.net. 3600  IN  A  192.0.2.91
 
    If the inception date is set at 00:00 hours on January 1st, 2000, and
    the expiration date at 00:00 hours on January 1st, 2030, the
    following signature should be created:
 
-   www.example.net. 3600  IN  RRSIG  (A 9 3 3600 20300101000000
-                    20000101000000 28237 example.net. mCanSdkQztEUOmslG
-                    z7VvfkKPMp4ftz3K1PTf2jdla4vUu/tRE585xymurMB+wXhrFcK
-                    dhm0egnPq8X/gmm0cmui/GQwFT5hmP5bL1ETuQsM3HOu3j9E3tq
-                    4sFWIsUv3N6ohpYEbhj5jk0b/01EMUPM9y5rLzFHmYYujzKQwqu
-                    M= );{id = 28237}
+   www.example.net. 3600  IN  RRSIG  (A 10 3 3600 20300101000000
+                    20000101000000 3740 example.net. tsb4wnjRUDnB1BUi+t
+                    6TMTXThjVnG+eCkWqjvvjhzQL1d0YRoOe0CbxrVDYd0xDtsuJRa
+                    eUw1ep94PzEWzr0iGYgZBWm/zpq+9fOuagYJRfDqfReKBzMweOL
+                    DiNa8iP5g9vMhpuv6OPlvpXwm9Sa9ZXIbNl1MBGk0fthPgxdDLw
+                    =);{id = 3740}
 
 
 
-
-
-
-
-Jansen                  Expires October 26, 2009                [Page 7]
+Jansen                  Expires December 6, 2009                [Page 7]
 
-Internet-Draft              DNSSEC RSA/SHA-2                  April 2009
+Internet-Draft              DNSSEC RSA/SHA-2                   June 2009
 
 
 7.  IANA Considerations
@@ -444,9 +444,9 @@ Internet-Draft              DNSSEC RSA/SHA-2                  April 2009
 
 
 
-Jansen                  Expires October 26, 2009                [Page 8]
+Jansen                  Expires December 6, 2009                [Page 8]
 
-Internet-Draft              DNSSEC RSA/SHA-2                  April 2009
+Internet-Draft              DNSSEC RSA/SHA-2                   June 2009
 
 
 9.  Acknowledgments
@@ -500,9 +500,9 @@ Internet-Draft              DNSSEC RSA/SHA-2                  April 2009
 
 
 
-Jansen                  Expires October 26, 2009                [Page 9]
+Jansen                  Expires December 6, 2009                [Page 9]
 
-Internet-Draft              DNSSEC RSA/SHA-2                  April 2009
+Internet-Draft              DNSSEC RSA/SHA-2                   June 2009
 
 
               Version 2.1", RFC 3447, February 2003.
@@ -556,5 +556,5 @@ Author's Address
 
 
 
-Jansen                  Expires October 26, 2009               [Page 10]
+Jansen                  Expires December 6, 2009               [Page 10]
 

@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.101 2009/10/12 20:48:10 each Exp $ */
+/* $Id: dnssec-keygen.c,v 1.102 2009/10/22 02:21:30 each Exp $ */
 
 /*! \file */
 
@@ -83,8 +83,9 @@ usage(void) {
 	fprintf(stderr, "Options:\n");
 	fprintf(stderr, "    -K <directory>: write keys into directory\n");
 	fprintf(stderr, "    -a <algorithm>:\n");
-	fprintf(stderr, "        RSA | RSAMD5 | DSA | RSASHA1 | "
-				"NSEC3RSASHA1 | NSEC3DSA |\n");
+	fprintf(stderr, "        RSA | RSAMD5 | DSA | RSASHA1 | NSEC3RSASHA1"
+				" | NSEC3DSA |\n");
+	fprintf(stderr, "        RSASHA256 | RSASHA512 |\n");
 	fprintf(stderr, "        DH | HMAC-MD5 | HMAC-SHA1 | HMAC-SHA224 | "
 				"HMAC-SHA256 | \n");
 	fprintf(stderr, "        HMAC-SHA384 | HMAC-SHA512\n");
@@ -95,6 +96,8 @@ usage(void) {
 	fprintf(stderr, "	 RSAMD5:\t[512..%d]\n", MAX_RSA);
 	fprintf(stderr, "	 RSASHA1:\t[512..%d]\n", MAX_RSA);
 	fprintf(stderr, "	 NSEC3RSASHA1:\t[512..%d]\n", MAX_RSA);
+	fprintf(stderr, "	 RSASHA256:\t[512..%d]\n", MAX_RSA);
+	fprintf(stderr, "	 RSASHA512:\t[1024..%d]\n", MAX_RSA);
 	fprintf(stderr, "	 DH:\t\t[128..4096]\n");
 	fprintf(stderr, "	 DSA:\t\t[512..1024] and divisible by 64\n");
 	fprintf(stderr, "	 NSEC3DSA:\t[512..1024] and divisible "
@@ -469,7 +472,8 @@ main(int argc, char **argv) {
 	}
 
 	if (use_nsec3 &&
-	    alg != DST_ALG_NSEC3DSA && alg != DST_ALG_NSEC3RSASHA1) {
+	    alg != DST_ALG_NSEC3DSA && alg != DST_ALG_NSEC3RSASHA1 &&
+	    alg != DST_ALG_RSASHA256 && alg!= DST_ALG_RSASHA512) {
 		fatal("%s is incompatible with NSEC3; "
 		      "do not use the -3 option", algname);
 	}
@@ -505,7 +509,12 @@ main(int argc, char **argv) {
 	case DNS_KEYALG_RSAMD5:
 	case DNS_KEYALG_RSASHA1:
 	case DNS_KEYALG_NSEC3RSASHA1:
+	case DNS_KEYALG_RSASHA256:
 		if (size != 0 && (size < 512 || size > MAX_RSA))
+			fatal("RSA key size %d out of range", size);
+		break;
+	case DNS_KEYALG_RSASHA512:
+		if (size != 0 && (size < 1024 || size > MAX_RSA))
 			fatal("RSA key size %d out of range", size);
 		break;
 	case DNS_KEYALG_DH:
@@ -574,7 +583,8 @@ main(int argc, char **argv) {
 	}
 
 	if (!(alg == DNS_KEYALG_RSAMD5 || alg == DNS_KEYALG_RSASHA1 ||
-	      alg == DNS_KEYALG_NSEC3RSASHA1) && rsa_exp != 0)
+	      alg == DNS_KEYALG_NSEC3RSASHA1 || alg == DNS_KEYALG_RSASHA256 ||
+	      alg == DNS_KEYALG_RSASHA512) && rsa_exp != 0)
 		fatal("specified RSA exponent for a non-RSA key");
 
 	if (alg != DNS_KEYALG_DH && generator != 0)
@@ -643,12 +653,16 @@ main(int argc, char **argv) {
 	switch(alg) {
 	case DNS_KEYALG_RSAMD5:
 	case DNS_KEYALG_RSASHA1:
+	case DNS_KEYALG_NSEC3RSASHA1:
+	case DNS_KEYALG_RSASHA256:
+	case DNS_KEYALG_RSASHA512:
 		param = rsa_exp;
 		break;
 	case DNS_KEYALG_DH:
 		param = generator;
 		break;
 	case DNS_KEYALG_DSA:
+	case DNS_KEYALG_NSEC3DSA:
 	case DST_ALG_HMACMD5:
 	case DST_ALG_HMACSHA1:
 	case DST_ALG_HMACSHA224:
