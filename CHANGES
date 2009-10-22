@@ -1,3 +1,6 @@
+2724.	[bug]		Updates to a existing node in secure zone using NSEC
+			were failing. [RT #20448]
+
 2723.	[bug]		isc_base32_totext(), isc_base32hex_totext(), and
 			isc_base64_totext(), didn't always mark regions of
 			memory as fully consumed after conversion.  [RT #20445]

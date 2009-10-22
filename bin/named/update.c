@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.163 2009/10/10 23:47:58 tbox Exp $ */
+/* $Id: update.c,v 1.164 2009/10/22 01:55:55 marka Exp $ */
 
 #include <config.h>
 
@@ -2333,15 +2333,18 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 					dns_rdatatype_any, 0, NULL, diff));
 		} else {
 			/*
-			 * This name is not obscured.  It should have a NSEC
-			 * unless it is the at the origin, in which case it
-			 * should already exist.
+			 * This name is not obscured.  It needs to have a
+			 * NSEC unless it is the at the origin, in which
+			 * case it should already exist if there is a complete
+			 * NSEC chain and if there isn't a complete NSEC chain
+			 * we don't want to add one as that would signal that
+			 * there is a complete NSEC chain. 
 			 */
 			if (!dns_name_equal(name, dns_db_origin(db))) {
-				CHECK(dns_private_chains(db, newver,
-							 privatetype, &flag,
-							 NULL));
-				if (flag)
+				CHECK(rrset_exists(db, newver, name,
+						   dns_rdatatype_nsec, 0,
+						   &flag));
+				if (!flag)
 					CHECK(add_placeholder_nsec(db, newver,
 								   name, diff));
 			}
