@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.164 2009/10/22 01:55:55 marka Exp $ */
+/* $Id: update.c,v 1.165 2009/10/22 23:48:07 tbox Exp $ */
 
 #include <config.h>
 
@@ -2338,7 +2338,7 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 			 * case it should already exist if there is a complete
 			 * NSEC chain and if there isn't a complete NSEC chain
 			 * we don't want to add one as that would signal that
-			 * there is a complete NSEC chain. 
+			 * there is a complete NSEC chain.
 			 */
 			if (!dns_name_equal(name, dns_db_origin(db))) {
 				CHECK(rrset_exists(db, newver, name,

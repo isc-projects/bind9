@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.31 2009/10/22 02:21:30 each Exp $
+ * $Id: opensslrsa_link.c,v 1.32 2009/10/22 23:48:07 tbox Exp $
  */
 #ifdef OPENSSL
 #ifndef USE_EVP
@@ -134,56 +134,56 @@ static isc_result_t opensslrsa_todns(const dst_key_t *key, isc_buffer_t *data);
 #endif
 
 static int init256(EVP_MD_CTX *ctx)
-        { isc_sha256_init(ctx->md_data); return 1; }
+	{ isc_sha256_init(ctx->md_data); return 1; }
 static int update256(EVP_MD_CTX *ctx,const void *data, unsigned long count)
-        { isc_sha256_update(ctx->md_data,data,count); return 1; }
+	{ isc_sha256_update(ctx->md_data,data,count); return 1; }
 static int final256(EVP_MD_CTX *ctx,unsigned char *md)
-        { isc_sha256_final(md,ctx->md_data); return 1; }
+	{ isc_sha256_final(md,ctx->md_data); return 1; }
 
 static const EVP_MD sha256_md=
-        {
-        NID_sha256,
-        NID_sha256WithRSAEncryption,
-        ISC_SHA256_DIGESTLENGTH,
-        0,
-        init256,
-        update256,
-        final256,
-        NULL,
-        NULL,
-        EVP_PKEY_RSA_method,
-        ISC_SHA256_BLOCK_LENGTH,
-        sizeof(EVP_MD *)+sizeof(isc_sha256_t),
-        };
+	{
+	NID_sha256,
+	NID_sha256WithRSAEncryption,
+	ISC_SHA256_DIGESTLENGTH,
+	0,
+	init256,
+	update256,
+	final256,
+	NULL,
+	NULL,
+	EVP_PKEY_RSA_method,
+	ISC_SHA256_BLOCK_LENGTH,
+	sizeof(EVP_MD *)+sizeof(isc_sha256_t),
+	};
 
 static const EVP_MD *EVP_sha256(void)
-        { return(&sha256_md); }
+	{ return(&sha256_md); }
 
 static int init512(EVP_MD_CTX *ctx)
-        { isc_sha512_init(ctx->md_data); return 1; }
+	{ isc_sha512_init(ctx->md_data); return 1; }
 static int update512(EVP_MD_CTX *ctx,const void *data,unsigned long count)
-        { isc_sha512_update(ctx->md_data,data,count); return 1; }
+	{ isc_sha512_update(ctx->md_data,data,count); return 1; }
 static int final512(EVP_MD_CTX *ctx,unsigned char *md)
-        { isc_sha512_final(md,ctx->md_data); return 1; }
+	{ isc_sha512_final(md,ctx->md_data); return 1; }
 
 static const EVP_MD sha512_md=
-        {
-        NID_sha512,
-        NID_sha512WithRSAEncryption,
-        ISC_SHA512_DIGESTLENGTH,
-        0,
-        init512,
-        update512,
-        final512,
-        NULL,
-        NULL,
-        EVP_PKEY_RSA_method,
-        ISC_SHA512_BLOCK_LENGTH,
-        sizeof(EVP_MD *)+sizeof(isc_sha512_t),
-        };
+	{
+	NID_sha512,
+	NID_sha512WithRSAEncryption,
+	ISC_SHA512_DIGESTLENGTH,
+	0,
+	init512,
+	update512,
+	final512,
+	NULL,
+	NULL,
+	EVP_PKEY_RSA_method,
+	ISC_SHA512_BLOCK_LENGTH,
+	sizeof(EVP_MD *)+sizeof(isc_sha512_t),
+	};
 
 static const EVP_MD *EVP_sha512(void)
-        { return(&sha512_md); }
+	{ return(&sha512_md); }
 #endif
 
 static isc_result_t
@@ -257,7 +257,7 @@ opensslrsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 		{
 			isc_sha256_t *sha256ctx;
 
-			sha256ctx = isc_mem_get(dctx->mctx, 
+			sha256ctx = isc_mem_get(dctx->mctx,
 						sizeof(isc_sha256_t));
 			if (sha256ctx == NULL)
 				return (ISC_R_NOMEMORY);
@@ -269,7 +269,7 @@ opensslrsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 		{
 			isc_sha512_t *sha512ctx;
 
-			sha512ctx = isc_mem_get(dctx->mctx, 
+			sha512ctx = isc_mem_get(dctx->mctx,
 						sizeof(isc_sha512_t));
 			if (sha512ctx == NULL)
 				return (ISC_R_NOMEMORY);
