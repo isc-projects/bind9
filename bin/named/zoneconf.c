@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.158 2009/10/12 23:48:01 tbox Exp $ */
+/* $Id: zoneconf.c,v 1.159 2009/10/22 03:43:16 each Exp $ */
 
 /*% */
 
@@ -830,12 +830,6 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		result = ns_config_get(maps, "key-directory", &obj);
 		if (result == ISC_R_SUCCESS) {
 			filename = cfg_obj_asstring(obj);
-			if (!isc_file_isabsolute(filename)) {
-				cfg_obj_log(obj, ns_g_lctx, ISC_LOG_ERROR,
-					    "key-directory '%s' "
-					    "is not absolute", filename);
-				return (ISC_R_FAILURE);
-			}
 			RETERR(dns_zone_setkeydirectory(zone, filename));
 		}
 

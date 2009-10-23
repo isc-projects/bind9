@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.42 2009/10/20 04:39:48 marka Exp $
+ * $Id: dst_api.c,v 1.43 2009/10/22 02:21:30 each Exp $
  */
 
 /*! \file */
@@ -204,6 +204,8 @@ dst_lib_init2(isc_mem_t *mctx, isc_entropy_t *ectx,
 	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSAMD5]));
 	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA1]));
 	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_NSEC3RSASHA1]));
+	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA256]));
+	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA512]));
 #ifdef HAVE_OPENSSL_DSA
 	RETERR(dst__openssldsa_init(&dst_t_func[DST_ALG_DSA]));
 	RETERR(dst__openssldsa_init(&dst_t_func[DST_ALG_NSEC3DSA]));
@@ -1045,6 +1047,8 @@ dst_key_sigsize(const dst_key_t *key, unsigned int *n) {
 	case DST_ALG_RSAMD5:
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
+	case DST_ALG_RSASHA256:
+	case DST_ALG_RSASHA512:
 		*n = (key->key_size + 7) / 8;
 		break;
 	case DST_ALG_DSA:
@@ -1300,6 +1304,8 @@ issymmetric(const dst_key_t *key) {
 	case DST_ALG_RSAMD5:
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
+	case DST_ALG_RSASHA256:
+	case DST_ALG_RSASHA512:
 	case DST_ALG_DSA:
 	case DST_ALG_NSEC3DSA:
 	case DST_ALG_DH:
@@ -1545,7 +1551,8 @@ algorithm_status(unsigned int alg) {
 	if (alg == DST_ALG_RSAMD5 || alg == DST_ALG_RSASHA1 ||
 	    alg == DST_ALG_DSA || alg == DST_ALG_DH ||
 	    alg == DST_ALG_HMACMD5 || alg == DST_ALG_NSEC3DSA ||
-	    alg == DST_ALG_NSEC3RSASHA1)
+	    alg == DST_ALG_NSEC3RSASHA1 ||
+	    alg == DST_ALG_RSASHA256 || alg == DST_ALG_RSASHA512)
 		return (DST_R_NOCRYPTO);
 #endif
 	return (DST_R_UNSUPPORTEDALG);

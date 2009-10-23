@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-keyfromlabel.8,v 1.14 2009/10/17 01:14:35 tbox Exp $
+.\" $Id: dnssec-keyfromlabel.8,v 1.15 2009/10/23 01:14:47 tbox Exp $
 .\"
 .hy 0
 .ad l
@@ -47,11 +47,13 @@ of the key is specified on the command line. This must match the name of the zon
 .RS 4
 Selects the cryptographic algorithm. The value of
 \fBalgorithm\fR
-must be one of RSAMD5 (RSA), RSASHA1, DSA, NSEC3RSASHA1, NSEC3DSA or DH (Diffie Hellman). These values are case insensitive.
+must be one of RSAMD5, RSASHA1, DSA, NSEC3RSASHA1, NSEC3DSA, RSASHA256 or RSASHA512. These values are case insensitive.
 .sp
 If no algorithm is specified, then RSASHA1 will be used by default, unless the
 \fB\-3\fR
-option is specified, in which case NSEC3RSASHA1 will be used instead.
+option is specified, in which case NSEC3RSASHA1 will be used instead. (If
+\fB\-3\fR
+is used and an algorithm is specified, that algorithm will be checked for compatibility with NSEC3.)
 .sp
 Note 1: that for DNSSEC, RSASHA1 is a mandatory to implement algorithm, and DSA is recommended.
 .sp
@@ -203,9 +205,7 @@ file contains algorithm\-specific fields. For obvious security reasons, this fil
 \fBdnssec\-keygen\fR(8),
 \fBdnssec\-signzone\fR(8),
 BIND 9 Administrator Reference Manual,
-RFC 2539,
-RFC 2845,
-RFC 4033.
+RFC 4034.
 .SH "AUTHOR"
 .PP
 Internet Systems Consortium

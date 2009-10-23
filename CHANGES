@@ -1,3 +1,19 @@
+2727.	[func]		The 'key-directory' option can now specify a relative
+			path. [RT #20154]
+
+2726.	[func]		Added support for SHA-2 DNSSEC algorithms,
+			RSASHA256 and RSASHA512. [RT #20023]
+
+2725.	[doc]		Added information about the file "managed-keys.bind"
+			to the ARM. [RT #20235]
+
+2724.	[bug]		Updates to a existing node in secure zone using NSEC
+			were failing. [RT #20448]
+
+2723.	[bug]		isc_base32_totext(), isc_base32hex_totext(), and
+			isc_base64_totext(), didn't always mark regions of
+			memory as fully consumed after conversion.  [RT #20445]
+
 2722.	[bug]		Ensure that the memory associated with the name of
 			a node in a rbt tree is not altered during the life
 			of the node. [RT #20431]
