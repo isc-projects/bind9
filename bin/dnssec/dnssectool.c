@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.55 2009/10/12 20:48:11 each Exp $ */
+/* $Id: dnssectool.c,v 1.56 2009/10/24 00:00:06 each Exp $ */
 
 /*! \file */
 
@@ -28,6 +28,7 @@
 #include <stdlib.h>
 
 #include <isc/buffer.h>
+#include <isc/dir.h>
 #include <isc/entropy.h>
 #include <isc/list.h>
 #include <isc/mem.h>
@@ -347,4 +348,17 @@ strtoclass(const char *str) {
 	if (ret != ISC_R_SUCCESS)
 		fatal("unknown class %s", str);
 	return (rdclass);
+}
+
+isc_result_t
+try_dir(const char *dirname) {
+	isc_result_t result;
+	isc_dir_t d;
+
+	isc_dir_init(&d);
+	result = isc_dir_open(&d, dirname);
+	if (result == ISC_R_SUCCESS) {
+		isc_dir_close(&d);
+	}
+	return (result);
 }

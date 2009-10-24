@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.102 2009/10/22 02:21:30 each Exp $ */
+/* $Id: dnssec-keygen.c,v 1.103 2009/10/24 00:00:06 each Exp $ */
 
 /*! \file */
 
@@ -281,6 +281,10 @@ main(int argc, char **argv) {
 			break;
 		case 'K':
 			directory = isc_commandline_argument;
+			ret = try_dir(directory);
+			if (ret != ISC_R_SUCCESS)
+				fatal("cannot write to directory %s: %s",
+				      directory, isc_result_totext(ret));
 			break;
 		case 'k':
 			fatal("The -k option has been deprecated.\n"
@@ -773,8 +777,7 @@ main(int argc, char **argv) {
 		if (conflict == ISC_TRUE) {
 			if (verbose > 0) {
 				isc_buffer_clear(&buf);
-				ret = dst_key_buildfilename(key, 0, directory,
-							    &buf);
+				dst_key_buildfilename(key, 0, directory, &buf);
 				fprintf(stderr,
 					"%s: %s already exists, "
 					"generating a new key\n",
@@ -782,7 +785,6 @@ main(int argc, char **argv) {
 			}
 			dst_key_free(&key);
 		}
-
 	} while (conflict == ISC_TRUE);
 
 	if (conflict)

@@ -1,3 +1,7 @@
+2728.	[bug]		dnssec-keygen, dnssec-keyfromlabel and
+			dnssec-signzone now warn immediately if asked to
+			write into a nonexistent directory. [RT #20278]
+
 2727.	[func]		The 'key-directory' option can now specify a relative
 			path. [RT #20154]
 

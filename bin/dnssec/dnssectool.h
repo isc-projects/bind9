@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.h,v 1.27 2009/10/12 20:48:11 each Exp $ */
+/* $Id: dnssectool.h,v 1.28 2009/10/24 00:00:06 each Exp $ */
 
 #ifndef DNSSECTOOL_H
 #define DNSSECTOOL_H 1
@@ -68,4 +68,6 @@ strtotime(const char *str, isc_int64_t now, isc_int64_t base);
 dns_rdataclass_t
 strtoclass(const char *str);
 
+isc_result_t
+try_dir(const char *dirname);
 #endif /* DNSSEC_DNSSECTOOL_H */

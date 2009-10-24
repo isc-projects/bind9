@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.247 2009/10/13 23:48:12 tbox Exp $ */
+/* $Id: dnssec-signzone.c,v 1.248 2009/10/24 00:00:06 each Exp $ */
 
 /*! \file */
 
@@ -3274,6 +3274,10 @@ main(int argc, char *argv[]) {
 			dsdir = isc_commandline_argument;
 			if (strlen(dsdir) == 0U)
 				fatal("DS directory must be non-empty string");
+			result = try_dir(dsdir);
+			if (result != ISC_R_SUCCESS)
+				fatal("Cannot write to directory %s: %s",
+				      dsdir, isc_result_totext(result));
 			break;
 
 		case 'E':
