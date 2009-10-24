@@ -1,3 +1,6 @@
+2729.	[func]		When constructing a CNAME from a DNAME use the DNAME
+			TTL. [RT #20451]
+
 2728.	[bug]		dnssec-keygen, dnssec-keyfromlabel and
 			dnssec-signzone now warn immediately if asked to
 			write into a nonexistent directory. [RT #20278]
