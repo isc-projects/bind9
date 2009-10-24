@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.32 2009/10/22 23:48:07 tbox Exp $
+ * $Id: opensslrsa_link.c,v 1.33 2009/10/24 09:46:19 fdupont Exp $
  */
 #ifdef OPENSSL
 #ifndef USE_EVP
@@ -653,8 +653,21 @@ opensslrsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	return (ISC_TRUE);
 }
 
+#if OPENSSL_VERSION_NUMBER > 0x00908000L
+static int
+progress_cb(int p, int n, BN_GENCB *cb)
+{
+	void (*callback)(int) = cb->arg;
+
+	UNUSED(n);
+	if (callback != NULL)
+		callback(p);
+	return (1);
+}
+#endif
+
 static isc_result_t
-opensslrsa_generate(dst_key_t *key, int exp) {
+opensslrsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 #if OPENSSL_VERSION_NUMBER > 0x00908000L
 	BN_GENCB cb;
 	RSA *rsa = RSA_new();
@@ -682,7 +695,11 @@ opensslrsa_generate(dst_key_t *key, int exp) {
 		BN_set_bit(e, 32);
 	}
 
-	BN_GENCB_set_old(&cb, NULL, NULL);
+	if (callback == NULL) {
+		BN_GENCB_set_old(&cb, NULL, NULL);
+	} else {
+		BN_GENCB_set(&cb, &progress_cb, callback);
+	}
 
 	if (RSA_generate_key_ex(rsa, key->key_size, e, &cb)) {
 		BN_free(e);
@@ -713,8 +730,12 @@ err:
 #if USE_EVP
 	EVP_PKEY *pkey = EVP_PKEY_new();
 
+	UNUSED(callback);
+
 	if (pkey == NULL)
 		return (ISC_R_NOMEMORY);
+#else
+	UNUSED(callback);
 #endif
 
 	if (exp == 0)

@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: openssldsa_link.c,v 1.16 2009/09/03 04:09:58 marka Exp $ */
+/* $Id: openssldsa_link.c,v 1.17 2009/10/24 09:46:19 fdupont Exp $ */
 
 #ifdef OPENSSL
 #ifndef USE_EVP
@@ -313,15 +313,30 @@ openssldsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	return (ISC_TRUE);
 }
 
-static isc_result_t
-openssldsa_generate(dst_key_t *key, int unused) {
 #if OPENSSL_VERSION_NUMBER > 0x00908000L
-	BN_GENCB cb;
+static int
+progress_cb(int p, int n, BN_GENCB *cb)
+{
+	void (*callback)(int) = cb->arg;
+
+	UNUSED(n);
+	if (callback != NULL)
+		callback(p);
+	return (1);
+}
 #endif
+
+static isc_result_t
+openssldsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	DSA *dsa;
 	unsigned char rand_array[ISC_SHA1_DIGESTLENGTH];
 	isc_result_t result;
+#if OPENSSL_VERSION_NUMBER > 0x00908000L
+	BN_GENCB cb;
 
+#else
+	UNUSED(callback);
+#endif
 	UNUSED(unused);
 
 	result = dst__entropy_getdata(rand_array, sizeof(rand_array),
@@ -334,7 +349,11 @@ openssldsa_generate(dst_key_t *key, int unused) {
 	if (dsa == NULL)
 		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 
-	BN_GENCB_set_old(&cb, NULL, NULL);
+	if (callback == NULL) {
+		BN_GENCB_set_old(&cb, NULL, NULL);
+	} else {
+		BN_GENCB_set(&cb, &progress_cb, callback);
+	}
 
 	if (!DSA_generate_parameters_ex(dsa, key->key_size, rand_array,
 					ISC_SHA1_DIGESTLENGTH,  NULL, NULL,

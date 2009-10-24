@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.14 2009/10/09 06:09:21 each Exp $
+ * $Id: hmac_link.c,v 1.15 2009/10/24 09:46:19 fdupont Exp $
  */
 
 #include <config.h>
@@ -149,11 +149,13 @@ hmacmd5_compare(const dst_key_t *key1, const dst_key_t *key2) {
 }
 
 static isc_result_t
-hmacmd5_generate(dst_key_t *key, int pseudorandom_ok) {
+hmacmd5_generate(dst_key_t *key, int pseudorandom_ok, void (*callback)(int)) {
 	isc_buffer_t b;
 	isc_result_t ret;
 	int bytes;
 	unsigned char data[HMAC_LEN];
+
+	UNUSED(callback);
 
 	bytes = (key->key_size + 7) / 8;
 	if (bytes > HMAC_LEN) {
@@ -420,11 +422,13 @@ hmacsha1_compare(const dst_key_t *key1, const dst_key_t *key2) {
 }
 
 static isc_result_t
-hmacsha1_generate(dst_key_t *key, int pseudorandom_ok) {
+hmacsha1_generate(dst_key_t *key, int pseudorandom_ok, void (*callback)(int)) {
 	isc_buffer_t b;
 	isc_result_t ret;
 	int bytes;
 	unsigned char data[HMAC_LEN];
+
+	UNUSED(callback);
 
 	bytes = (key->key_size + 7) / 8;
 	if (bytes > HMAC_LEN) {
@@ -691,11 +695,15 @@ hmacsha224_compare(const dst_key_t *key1, const dst_key_t *key2) {
 }
 
 static isc_result_t
-hmacsha224_generate(dst_key_t *key, int pseudorandom_ok) {
+hmacsha224_generate(dst_key_t *key, int pseudorandom_ok,
+		    void (*callback)(int))
+{
 	isc_buffer_t b;
 	isc_result_t ret;
 	int bytes;
 	unsigned char data[HMAC_LEN];
+
+	UNUSED(callback);
 
 	bytes = (key->key_size + 7) / 8;
 	if (bytes > HMAC_LEN) {
@@ -962,11 +970,15 @@ hmacsha256_compare(const dst_key_t *key1, const dst_key_t *key2) {
 }
 
 static isc_result_t
-hmacsha256_generate(dst_key_t *key, int pseudorandom_ok) {
+hmacsha256_generate(dst_key_t *key, int pseudorandom_ok,
+		    void (*callback)(int))
+{
 	isc_buffer_t b;
 	isc_result_t ret;
 	int bytes;
 	unsigned char data[HMAC_LEN];
+
+	UNUSED(callback);
 
 	bytes = (key->key_size + 7) / 8;
 	if (bytes > HMAC_LEN) {
@@ -1233,11 +1245,15 @@ hmacsha384_compare(const dst_key_t *key1, const dst_key_t *key2) {
 }
 
 static isc_result_t
-hmacsha384_generate(dst_key_t *key, int pseudorandom_ok) {
+hmacsha384_generate(dst_key_t *key, int pseudorandom_ok,
+		    void (*callback)(int))
+{
 	isc_buffer_t b;
 	isc_result_t ret;
 	int bytes;
 	unsigned char data[HMAC_LEN];
+
+	UNUSED(callback);
 
 	bytes = (key->key_size + 7) / 8;
 	if (bytes > HMAC_LEN) {
@@ -1504,11 +1520,15 @@ hmacsha512_compare(const dst_key_t *key1, const dst_key_t *key2) {
 }
 
 static isc_result_t
-hmacsha512_generate(dst_key_t *key, int pseudorandom_ok) {
+hmacsha512_generate(dst_key_t *key, int pseudorandom_ok,
+		    void (*callback)(int))
+{
 	isc_buffer_t b;
 	isc_result_t ret;
 	int bytes;
 	unsigned char data[HMAC_LEN];
+
+	UNUSED(callback);
 
 	bytes = (key->key_size + 7) / 8;
 	if (bytes > HMAC_LEN) {

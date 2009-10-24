@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.103 2009/10/24 00:00:06 each Exp $ */
+/* $Id: dnssec-keygen.c,v 1.104 2009/10/24 09:46:18 fdupont Exp $ */
 
 /*! \file */
 
@@ -73,6 +73,8 @@ dsa_size_ok(int size) {
 
 ISC_PLATFORM_NORETURN_PRE static void
 usage(void) ISC_PLATFORM_NORETURN_POST;
+
+static void progress(int p);
 
 static void
 usage(void) {
@@ -155,6 +157,31 @@ usage(void) {
 			"K<name>+<alg>+<id>.private\n");
 
 	exit (-1);
+}
+
+static void
+progress(int p)
+{
+	char c = '*';
+
+	switch (p) {
+	case 0:
+		c = '.';
+		break;
+	case 1:
+		c = '+';
+		break;
+	case 2:
+		c = '*';
+		break;
+	case 3:
+		c = '\n';
+		break;
+	default:
+		break;
+	}
+	(void) putc(c, stderr);
+	(void) fflush(stderr);
 }
 
 int
@@ -687,8 +714,9 @@ main(int argc, char **argv) {
 		oldkey = NULL;
 
 		/* generate the key */
-		ret = dst_key_generate(name, alg, size, param, flags, protocol,
-				       rdclass, mctx, &key);
+		ret = dst_key_generate2(name, alg, size, param, flags,
+					protocol, rdclass, mctx, &key,
+					&progress);
 		isc_entropy_stopcallbacksources(ectx);
 
 		if (ret != ISC_R_SUCCESS) {

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.23 2009/10/22 02:21:31 each Exp $ */
+/* $Id: dst.h,v 1.24 2009/10/24 09:46:19 fdupont Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -479,6 +479,14 @@ dst_key_generate(dns_name_t *name, unsigned int alg,
 		 unsigned int flags, unsigned int protocol,
 		 dns_rdataclass_t rdclass,
 		 isc_mem_t *mctx, dst_key_t **keyp);
+
+isc_result_t
+dst_key_generate2(dns_name_t *name, unsigned int alg,
+		  unsigned int bits, unsigned int param,
+		  unsigned int flags, unsigned int protocol,
+		  dns_rdataclass_t rdclass,
+		  isc_mem_t *mctx, dst_key_t **keyp,
+		  void (*callback)(int));
 /*%<
  * Generate a DST key (or keypair) with the supplied parameters.  The
  * interpretation of the "param" field depends on the algorithm:

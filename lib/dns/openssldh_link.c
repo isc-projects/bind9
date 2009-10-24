@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.16 2009/09/03 23:48:13 tbox Exp $
+ * $Id: openssldh_link.c,v 1.17 2009/10/24 09:46:19 fdupont Exp $
  */
 
 #ifdef OPENSSL
@@ -149,12 +149,28 @@ openssldh_paramcompare(const dst_key_t *key1, const dst_key_t *key2) {
 	return (ISC_TRUE);
 }
 
+#if OPENSSL_VERSION_NUMBER > 0x00908000L
+static int
+progress_cb(int p, int n, BN_GENCB *cb)
+{
+	void (*callback)(int) = cb->arg;
+
+	UNUSED(n);
+	if (callback != NULL)
+		callback(p);
+	return (1);
+}
+#endif
+
 static isc_result_t
-openssldh_generate(dst_key_t *key, int generator) {
+openssldh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
+	DH *dh = NULL;
 #if OPENSSL_VERSION_NUMBER > 0x00908000L
 	BN_GENCB cb;
+#else
+
+	UNUSED(callback);
 #endif
-	DH *dh = NULL;
 
 	if (generator == 0) {
 		if (key->key_size == 768 ||
@@ -181,7 +197,11 @@ openssldh_generate(dst_key_t *key, int generator) {
 		if (dh == NULL)
 			return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 
-		BN_GENCB_set_old(&cb, NULL, NULL);
+		if (callback == NULL) {
+			BN_GENCB_set_old(&cb, NULL, NULL);
+		} else {
+			BN_GENCB_set(&cb, &progress_cb, callback);
+		}
 
 		if (!DH_generate_parameters_ex(dh, key->key_size, generator,
 					       &cb)) {

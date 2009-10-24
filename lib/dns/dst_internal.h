@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_internal.h,v 1.21 2009/10/22 02:21:30 each Exp $ */
+/* $Id: dst_internal.h,v 1.22 2009/10/24 09:46:19 fdupont Exp $ */
 
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1
@@ -170,7 +170,8 @@ struct dst_func {
 	isc_boolean_t (*compare)(const dst_key_t *key1, const dst_key_t *key2);
 	isc_boolean_t (*paramcompare)(const dst_key_t *key1,
 				      const dst_key_t *key2);
-	isc_result_t (*generate)(dst_key_t *key, int parms);
+	isc_result_t (*generate)(dst_key_t *key, int parms,
+				 void (*callback)(int));
 	isc_boolean_t (*isprivate)(const dst_key_t *key);
 	void (*destroy)(dst_key_t *key);
 

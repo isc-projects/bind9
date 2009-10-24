@@ -1,3 +1,10 @@
+2730.	[func]		Have dnssec-keygen display a progress indication
+			a la 'openssl genrsa' on standard error. Note
+			when the first '.' is followed by a long stop
+			one has the choice between slow generation vs.
+			poor random quality, i.e., '-r /dev/urandom'.
+			[RT #20284]
+
 2729.	[func]		When constructing a CNAME from a DNAME use the DNAME
 			TTL. [RT #20451]
 

@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.43 2009/10/22 02:21:30 each Exp $
+ * $Id: dst_api.c,v 1.44 2009/10/24 09:46:18 fdupont Exp $
  */
 
 /*! \file */
@@ -753,6 +753,18 @@ dst_key_generate(dns_name_t *name, unsigned int alg,
 		 dns_rdataclass_t rdclass,
 		 isc_mem_t *mctx, dst_key_t **keyp)
 {
+	return (dst_key_generate2(name, alg, bits, param, flags, protocol,
+				  rdclass, mctx, keyp, NULL));
+}
+
+isc_result_t
+dst_key_generate2(dns_name_t *name, unsigned int alg,
+		  unsigned int bits, unsigned int param,
+		  unsigned int flags, unsigned int protocol,
+		  dns_rdataclass_t rdclass,
+		  isc_mem_t *mctx, dst_key_t **keyp,
+		  void (*callback)(int))
+{
 	dst_key_t *key;
 	isc_result_t ret;
 
@@ -778,7 +790,7 @@ dst_key_generate(dns_name_t *name, unsigned int alg,
 		return (DST_R_UNSUPPORTEDALG);
 	}
 
-	ret = key->func->generate(key, param);
+	ret = key->func->generate(key, param, callback);
 	if (ret != ISC_R_SUCCESS) {
 		dst_key_free(&key);
 		return (ret);
