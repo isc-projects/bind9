@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.106 2009/10/16 23:47:54 tbox Exp $
+ * $Id: dnssec.c,v 1.107 2009/10/26 21:18:24 each Exp $
  */
 
 /*! \file */
@@ -985,6 +985,8 @@ dns_dnsseckey_create(isc_mem_t *mctx, dst_key_t **dstkey,
 
 	/* Is this an old-style key? */
 	result = dst_key_getprivateformat(dk->key, &major, &minor);
+
+	/* Smart signing started with key format 1.3 */
 	dk->legacy = ISC_TF(major == 1 && minor <= 2);
 
 	ISC_LINK_INIT(dk, link);

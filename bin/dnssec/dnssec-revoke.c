@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-revoke.c,v 1.16 2009/10/12 20:48:10 each Exp $ */
+/* $Id: dnssec-revoke.c,v 1.17 2009/10/26 21:18:24 each Exp $ */
 
 /*! \file */
 
@@ -179,17 +179,20 @@ main(int argc, char **argv) {
 		fatal("Invalid keyfile name %s: %s",
 		      filename, isc_result_totext(result));
 
-	if (verbose > 2) {
-		char keystr[DST_KEY_FORMATSIZE];
+	dst_key_format(key, keystr, sizeof(keystr));
 
-		dst_key_format(key, keystr, sizeof(keystr));
+	if (verbose > 2)
 		fprintf(stderr, "%s: %s\n", program, keystr);
-	}
+
+	if (force)
+		set_keyversion(key);
+	else
+		check_keyversion(key, keystr);
+
 
 	flags = dst_key_flags(key);
 	if ((flags & DNS_KEYFLAG_REVOKE) == 0) {
 		isc_stdtime_t now;
-
 
 		if ((flags & DNS_KEYFLAG_KSK) == 0)
 			fprintf(stderr, "%s: warning: Key is not flagged "

@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_parse.h,v 1.14 2009/09/02 06:29:01 each Exp $ */
+/* $Id: dst_parse.h,v 1.15 2009/10/26 21:18:24 each Exp $ */
 
 /*! \file */
 #ifndef DST_DST_PARSE_H
@@ -38,9 +38,6 @@
 #include <isc/lang.h>
 
 #include <dst/dst.h>
-
-#define MAJOR_VERSION		1
-#define MINOR_VERSION		3
 
 #define MAXFIELDSIZE		512
 

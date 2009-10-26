@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.56 2009/10/24 00:00:06 each Exp $ */
+/* $Id: dnssectool.c,v 1.57 2009/10/26 21:18:24 each Exp $ */
 
 /*! \file */
 
@@ -361,4 +361,44 @@ try_dir(const char *dirname) {
 		isc_dir_close(&d);
 	}
 	return (result);
+}
+
+/*
+ * Check private key version compatibility.
+ */
+void
+check_keyversion(dst_key_t *key, char *keystr) {
+	int major, minor;
+	dst_key_getprivateformat(key, &major, &minor);
+        INSIST(major <= DST_MAJOR_VERSION); /* invalid private key */
+
+	if (major < DST_MAJOR_VERSION || minor < DST_MINOR_VERSION) 
+		fatal("Key %s has incompatible format version %d.%d, "
+		      "use -f to force upgrade to new version.",
+		      keystr, major, minor);
+	if (minor > DST_MINOR_VERSION)
+		fatal("Key %s has incompatible format version %d.%d, "
+		      "use -f to force downgrade to current version.",
+		      keystr, major, minor);
+}
+
+void
+set_keyversion(dst_key_t *key) {
+	int major, minor;
+	dst_key_getprivateformat(key, &major, &minor);
+        INSIST(major <= DST_MAJOR_VERSION);
+
+	if (major != DST_MAJOR_VERSION || minor != DST_MINOR_VERSION)
+		dst_key_setprivateformat(key, DST_MAJOR_VERSION,
+					 DST_MINOR_VERSION);
+
+	/*
+	 * If the key is from a version older than 1.3, set
+	 * set the creation date
+	 */
+	if (major < 1 || (major == 1 && minor <= 2)) {
+		isc_stdtime_t now;
+		isc_stdtime_get(&now);
+		dst_key_settime(key, DST_TIME_CREATED, now);
+	}
 }

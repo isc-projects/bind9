@@ -31,7 +31,7 @@
 
 /*%
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.22 2009/10/22 02:21:30 each Exp $
+ * $Id: dst_parse.c,v 1.23 2009/10/26 21:18:24 each Exp $
  */
 
 #include <config.h>
@@ -385,9 +385,7 @@ dst__privstruct_parse(dst_key_t *key, unsigned int alg, isc_lex_t *lex,
 		goto fail;
 	}
 
-	if (major > MAJOR_VERSION ||
-	    (major == MAJOR_VERSION && minor > MINOR_VERSION))
-	{
+	if (major > DST_MAJOR_VERSION) {
 		ret = DST_R_INVALIDPRIVATEKEY;
 		goto fail;
 	}
@@ -476,10 +474,13 @@ dst__privstruct_parse(dst_key_t *key, unsigned int alg, isc_lex_t *lex,
 
 		/* Key data */
 		tag = find_value(DST_AS_STR(token), alg);
-		if (tag < 0) {
+		if (tag < 0 && minor > DST_MINOR_VERSION)
+			goto next;
+		else if (tag < 0) {
 			ret = DST_R_INVALIDPRIVATEKEY;
 			goto fail;
 		}
+
 		priv->elements[n].tag = tag;
 
 		data = (unsigned char *) isc_mem_get(mctx, MAXFIELDSIZE);
@@ -490,6 +491,7 @@ dst__privstruct_parse(dst_key_t *key, unsigned int alg, isc_lex_t *lex,
 		ret = isc_base64_tobuffer(lex, &b, -1);
 		if (ret != ISC_R_SUCCESS)
 			goto fail;
+
 		isc_buffer_usedregion(&b, &r);
 		priv->elements[n].length = r.length;
 		priv->elements[n].data = r.base;
@@ -550,8 +552,8 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 
 	dst_key_getprivateformat(key, &major, &minor);
 	if (major == 0 && minor == 0) {
-		major = MAJOR_VERSION;
-		minor = MINOR_VERSION;
+		major = DST_MAJOR_VERSION;
+		minor = DST_MINOR_VERSION;
 	}
 
 	/* XXXDCL return value should be checked for full filesystem */
