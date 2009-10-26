@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.485 $)
+AC_REVISION($Revision: 1.486 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -2634,6 +2634,25 @@ case "$enable_fixed" in
 	yes)
 		AC_DEFINE(DNS_RDATASET_FIXED, 1,
 			  [Define to enable "rrset-order fixed" syntax.])
+		;;
+	no)
+		;;
+	*)
+		;;
+esac
+
+#
+# Activate "filter-aaaa-on-v4" or not?
+#
+AC_ARG_ENABLE(filter-aaaa,
+	[  --enable-filter-aaaa    enable filtering of AAAA records over IPv4
+			  [[default=no]]],
+			enable_filter="$enableval",
+			enable_filter="no")
+case "$enable_filter" in
+	yes)
+		AC_DEFINE(ALLOW_FILTER_AAAA_ON_V4, 1,
+			  [Define to enable the "filter-aaaa-on-v4" option.])
 		;;
 	no)
 		;;

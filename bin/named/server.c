@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.552 2009/10/20 03:15:06 marka Exp $ */
+/* $Id: server.c,v 1.553 2009/10/26 23:14:53 each Exp $ */
 
 /*! \file */
 
@@ -4355,6 +4355,25 @@ load_configuration(const char *filename, ns_server_t *server,
 		server->flushonshutdown = ISC_FALSE;
 	}
 
+#ifdef ALLOW_FILTER_AAAA_ON_V4
+	obj = NULL;
+	result = ns_config_get(maps, "filter-aaaa-on-v4", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	if (cfg_obj_isboolean(obj)) {
+		if (cfg_obj_asboolean(obj))
+			server->v4_aaaa = dns_v4_aaaa_filter;
+		else
+			server->v4_aaaa = dns_v4_aaaa_ok;
+	} else {
+		const char *v4_aaaastr = cfg_obj_asstring(obj);
+		if (strcasecmp(v4_aaaastr, "break-dnssec") == 0)
+			server->v4_aaaa
+					= dns_v4_aaaa_break_dnssec;
+		else
+			INSIST(0);
+	}
+
+#endif
 	result = ISC_R_SUCCESS;
 
  cleanup:

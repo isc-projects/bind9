@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.247 2009/01/17 23:47:42 tbox Exp $ */
+/* $Id: message.c,v 1.248 2009/10/26 23:14:54 each Exp $ */
 
 /*! \file */
 
@@ -1802,6 +1802,36 @@ wrong_priority(dns_rdataset_t *rds, int pass, dns_rdatatype_t preferred_glue) {
 	return (ISC_TRUE);
 }
 
+#ifdef ALLOW_FILTER_AAAA_ON_V4
+/*
+ * Decide whether to not answer with an AAAA record and its RRSIG
+ */
+static inline isc_boolean_t
+norender_rdataset(const dns_rdataset_t *rdataset, unsigned int options)
+{
+	switch (rdataset->type) {
+	case dns_rdatatype_aaaa:
+		if ((options & DNS_MESSAGERENDER_FILTER_AAAA) == 0)
+			return (ISC_FALSE);
+		break;
+
+	case dns_rdatatype_rrsig:
+		if ((options & DNS_MESSAGERENDER_FILTER_AAAA) == 0 ||
+		    rdataset->covers != dns_rdatatype_aaaa)
+			return (ISC_FALSE);
+		break;
+
+	default:
+		return (ISC_FALSE);
+	}
+
+	if (rdataset->rdclass != dns_rdataclass_in)
+		return (ISC_FALSE);
+
+	return (ISC_TRUE);
+}
+
+#endif
 isc_result_t
 dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 			  unsigned int options)
@@ -1927,6 +1957,23 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 						      preferred_glue))
 					goto next;
 
+#ifdef ALLOW_FILTER_AAAA_ON_V4
+				/*
+				 * Suppress AAAAs if asked and we are
+				 * not doing DNSSEC or are breaking DNSSEC.
+				 * Say so in the AD bit if we break DNSSEC.
+				 */
+				if (norender_rdataset(rdataset, options) &&
+				    sectionid != DNS_SECTION_QUESTION) {
+					if (sectionid == DNS_SECTION_ANSWER ||
+					    sectionid == DNS_SECTION_AUTHORITY)
+					    msg->flags &= ~DNS_MESSAGEFLAG_AD;
+					if (OPTOUT(rdataset))
+					    msg->flags &= ~DNS_MESSAGEFLAG_AD;
+					goto next;
+				}
+
+#endif
 				st = *(msg->buffer);
 
 				count = 0;

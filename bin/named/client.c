@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.265 2009/05/07 09:41:21 fdupont Exp $ */
+/* $Id: client.c,v 1.266 2009/10/26 23:14:53 each Exp $ */
 
 #include <config.h>
 
@@ -918,7 +918,7 @@ ns_client_send(ns_client_t *client) {
 	dns_compress_t cctx;
 	isc_boolean_t cleanup_cctx = ISC_FALSE;
 	unsigned char sendbuf[SEND_BUFFER_SIZE];
-	unsigned int dnssec_opts;
+	unsigned int render_opts;
 	unsigned int preferred_glue;
 	isc_boolean_t opt_included = ISC_FALSE;
 
@@ -930,10 +930,21 @@ ns_client_send(ns_client_t *client) {
 		client->message->flags |= DNS_MESSAGEFLAG_RA;
 
 	if ((client->attributes & NS_CLIENTATTR_WANTDNSSEC) != 0)
-		dnssec_opts = 0;
+		render_opts = 0;
 	else
-		dnssec_opts = DNS_MESSAGERENDER_OMITDNSSEC;
-
+		render_opts = DNS_MESSAGERENDER_OMITDNSSEC;
+#ifdef ALLOW_FILTER_AAAA_ON_V4
+	/*
+	 * filter-aaaa-on-v4 yes or break-dnssec option to suppress
+	 * AAAA records
+	 * We already know that request came via IPv4,
+	 * that we have both AAAA and A records,
+	 * and that we either have no signatures that the client wants
+	 * or we are supposed to break DNSSEC.
+	 */
+	if ((client->attributes & NS_CLIENTATTR_FILTER_AAAA) != 0)
+		render_opts |= DNS_MESSAGERENDER_FILTER_AAAA;
+#endif
 	preferred_glue = 0;
 	if (client->view != NULL) {
 		if (client->view->preferred_glue == dns_rdatatype_a)
@@ -977,7 +988,7 @@ ns_client_send(ns_client_t *client) {
 	result = dns_message_rendersection(client->message,
 					   DNS_SECTION_ANSWER,
 					   DNS_MESSAGERENDER_PARTIAL |
-					   dnssec_opts);
+					   render_opts);
 	if (result == ISC_R_NOSPACE) {
 		client->message->flags |= DNS_MESSAGEFLAG_TC;
 		goto renderend;
@@ -987,7 +998,7 @@ ns_client_send(ns_client_t *client) {
 	result = dns_message_rendersection(client->message,
 					   DNS_SECTION_AUTHORITY,
 					   DNS_MESSAGERENDER_PARTIAL |
-					   dnssec_opts);
+					   render_opts);
 	if (result == ISC_R_NOSPACE) {
 		client->message->flags |= DNS_MESSAGEFLAG_TC;
 		goto renderend;
@@ -996,7 +1007,7 @@ ns_client_send(ns_client_t *client) {
 		goto done;
 	result = dns_message_rendersection(client->message,
 					   DNS_SECTION_ADDITIONAL,
-					   preferred_glue | dnssec_opts);
+					   preferred_glue | render_opts);
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOSPACE)
 		goto done;
  renderend:

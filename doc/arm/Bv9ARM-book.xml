@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.439 2009/10/22 03:43:16 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.440 2009/10/26 23:14:53 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -5000,6 +5000,8 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> random-device <replaceable>path_name</replaceable> ; </optional>
     <optional> max-cache-size <replaceable>size_spec</replaceable> ; </optional>
     <optional> match-mapped-addresses <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> match-mapped-addresses <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> disable-aaaa-on-v4-transport ( <replaceable>yes_or_no</replaceable> | <replaceable>break-dnssec</replaceable> ); </optional>
     <optional> preferred-glue ( <replaceable>A</replaceable> | <replaceable>AAAA</replaceable> | <replaceable>NONE</replaceable> ); </optional>
     <optional> edns-udp-size <replaceable>number</replaceable>; </optional>
     <optional> max-udp-size <replaceable>number</replaceable>; </optional>
@@ -6228,6 +6230,59 @@ options {
                   match lists designed for IPv4 to fail to match.  However,
                   <command>named</command> now solves this problem
                   internally.  The use of this option is discouraged.
+                </para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term><command>filter-aaaa-on-v4</command></term>
+              <listitem>
+                <para>
+                  This option is only available when
+                  <acronym>BIND</acronym> 9 is compiled with the
+                  <userinput>--with-filter-aaaa</userinput> option on the
+                  "configure" command line.  It is intended to help the
+                  transition from IPv4 to IPv6 by not giving IPv6 addresses
+                  to DNS clients unless they have connections to the IPv6
+                  Internet.  This is not recommended unless absolutely
+                  necessary.  The default is <userinput>no</userinput>.
+                </para>
+                <para>
+                  If <userinput>yes</userinput>,
+                  the DNS client is at an IPv4 address,
+                  and if the response does not include DNSSEC signatures, 
+                  then all AAAA records are deleted from the response.
+                  This filtering applies to all responses and not only
+                  authoritative responses.
+                </para>
+                <para>
+                  If <userinput>break-dnssec</userinput>,
+                  then AAAA records are deleted even when dnssec is enabled.
+                  As suggested by the name, this makes the response not verify,
+                  because the DNSSEC protocol is designed detect deletions.
+                </para>
+                <para>
+                  This mechanism can erroneously cause other servers to 
+		  not give AAAA records to their clients.  
+		  A recursing server with both IPv6 and IPv4 network connections
+		  that queries an authoritative server using this mechanism
+		  via IPv4 will be denied AAAA records even if its client is
+		  using IPv6.
+                </para>
+                <para>
+                  This mechanism is applied to authoritative as well as
+		  non-authoritative records.
+		  A client using IPv4 that is not allowed recursion can
+		  erroneously be given AAAA records because the server is not
+		  allowed to check for A records.
+                </para>
+                <para>
+		  Some AAAA records are given to IPv4 clients in glue records.
+		  IPv4 clients that are servers can then erroneously
+		  answer requests for AAAA records received via IPv4.
+                </para>
+                <para>
+		  security
                 </para>
               </listitem>
             </varlistentry>

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.109 2009/10/12 23:48:02 tbox Exp $ */
+/* $Id: namedconf.c,v 1.110 2009/10/26 23:14:54 each Exp $ */
 
 /*! \file */
 
@@ -120,6 +120,9 @@ static cfg_type_t cfg_type_zone;
 static cfg_type_t cfg_type_zoneopts;
 static cfg_type_t cfg_type_dynamically_loadable_zones;
 static cfg_type_t cfg_type_dynamically_loadable_zones_opts;
+#ifdef ALLOW_FILTER_AAAA_ON_V4
+static cfg_type_t cfg_type_v4_aaaa;
+#endif
 
 /*
  * Clauses that can be found in a 'dynamically loadable zones' statement
@@ -874,6 +877,9 @@ options_clauses[] = {
 	{ "use-ixfr", &cfg_type_boolean, 0 },
 	{ "version", &cfg_type_qstringornone, 0 },
 	{ "flush-zones-on-shutdown", &cfg_type_boolean, 0 },
+#ifdef ALLOW_FILTER_AAAA_ON_V4
+	{ "filter-aaaa-on-v4", &cfg_type_v4_aaaa, 0 },
+#endif
 	{ NULL, NULL, 0 }
 };
 
@@ -1591,6 +1597,19 @@ static cfg_type_t cfg_type_ixfrdifftype = {
 	&cfg_rep_string, ixfrdiff_enums,
 };
 
+#ifdef ALLOW_FILTER_AAAA_ON_V4
+static const char *v4_aaaa_enums[] = { "break-dnssec", NULL };
+static isc_result_t
+parse_v4_aaaa(cfg_parser_t *pctx, const cfg_type_t *type,
+		     cfg_obj_t **ret) {
+	return (parse_enum_or_other(pctx, type, &cfg_type_boolean, ret));
+}
+static cfg_type_t cfg_type_v4_aaaa = {
+	"v4_aaaa", parse_v4_aaaa, cfg_print_ustring,
+	doc_enum_or_other, &cfg_rep_string, v4_aaaa_enums,
+};
+
+#endif
 static keyword_type_t key_kw = { "key", &cfg_type_astring };
 
 LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_keyref = {

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.103 2009/10/10 01:47:59 each Exp $ */
+/* $Id: config.c,v 1.104 2009/10/26 23:14:53 each Exp $ */
 
 /*! \file */
 
@@ -158,6 +158,10 @@ options {\n\
 	zero-no-soa-ttl-cache no;\n\
 	nsec3-test-zone no;\n\
 "
+#ifdef ALLOW_FILTER_AAAA_ON_V4
+"	filter-aaaa-on-v4 no;\n\
+"
+#endif
 
 "	/* zone */\n\
 	allow-query {any;};\n\
