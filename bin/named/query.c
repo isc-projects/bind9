@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.329 2009/10/26 23:14:53 each Exp $ */
+/* $Id: query.c,v 1.330 2009/10/26 23:47:35 tbox Exp $ */
 
 /*! \file */
 
@@ -4639,7 +4639,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	if (type == dns_rdatatype_any) {
 #ifdef ALLOW_FILTER_AAAA_ON_V4
 		isc_boolean_t have_aaaa, have_a, have_sig;
-		
+
 		/*
 		 * The filter-aaaa-on-v4 option should
 		 * suppress AAAAs for IPv4 clients if there is an A.
@@ -4882,7 +4882,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 					    NS_CLIENTATTR_FILTER_AAAA_RC) != 0) {
 				client->attributes &=
 					    ~NS_CLIENTATTR_FILTER_AAAA_RC;
-				client->attributes |= 
+				client->attributes |=
 					    NS_CLIENTATTR_FILTER_AAAA;
 				dns_rdataset_disassociate(rdataset);
 				if (sigrdataset != NULL &&

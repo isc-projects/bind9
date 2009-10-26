@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.57 2009/10/26 21:18:24 each Exp $ */
+/* $Id: dnssectool.c,v 1.58 2009/10/26 23:47:35 tbox Exp $ */
 
 /*! \file */
 
@@ -370,9 +370,9 @@ void
 check_keyversion(dst_key_t *key, char *keystr) {
 	int major, minor;
 	dst_key_getprivateformat(key, &major, &minor);
-        INSIST(major <= DST_MAJOR_VERSION); /* invalid private key */
+	INSIST(major <= DST_MAJOR_VERSION); /* invalid private key */
 
-	if (major < DST_MAJOR_VERSION || minor < DST_MINOR_VERSION) 
+	if (major < DST_MAJOR_VERSION || minor < DST_MINOR_VERSION)
 		fatal("Key %s has incompatible format version %d.%d, "
 		      "use -f to force upgrade to new version.",
 		      keystr, major, minor);
@@ -386,7 +386,7 @@ void
 set_keyversion(dst_key_t *key) {
 	int major, minor;
 	dst_key_getprivateformat(key, &major, &minor);
-        INSIST(major <= DST_MAJOR_VERSION);
+	INSIST(major <= DST_MAJOR_VERSION);
 
 	if (major != DST_MAJOR_VERSION || minor != DST_MINOR_VERSION)
 		dst_key_setprivateformat(key, DST_MAJOR_VERSION,

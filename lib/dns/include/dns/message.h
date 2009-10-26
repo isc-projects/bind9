@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.129 2009/10/26 23:14:54 each Exp $ */
+/* $Id: message.h,v 1.130 2009/10/26 23:47:35 tbox Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -175,7 +175,7 @@ typedef int dns_messagetextflag_t;
 						  additional section. */
 #ifdef ALLOW_FILTER_AAAA_ON_V4
 #define DNS_MESSAGERENDER_FILTER_AAAA	0x0020	/*%< filter AAAA records */
-#endif 
+#endif
 
 typedef struct dns_msgblock dns_msgblock_t;
 
