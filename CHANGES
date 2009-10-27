@@ -1,3 +1,6 @@
+2737.	[func]		UPDATE requests can leak existance information.
+			[RT #17261]
+
 2736.	[func]		Improve the performance of NSEC signed zones with
 			more than a normal amount of glue below a delegation.
 			[RT #20191]
