@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec.h,v 1.38 2009/10/12 23:48:02 tbox Exp $ */
+/* $Id: dnssec.h,v 1.39 2009/10/27 03:59:45 each Exp $ */
 
 #ifndef DNS_DNSSEC_H
 #define DNS_DNSSEC_H 1
@@ -271,8 +271,9 @@ dns_dnssec_findmatchingkeys(dns_name_t *origin, const char *directory,
 isc_result_t
 dns_dnssec_keylistfromrdataset(dns_name_t *origin,
 			       const char *directory, isc_mem_t *mctx,
-			       dns_rdataset_t *keyset, dns_rdataset_t *sigset,
-			       isc_boolean_t savekeys, isc_boolean_t public,
+			       dns_rdataset_t *keyset, dns_rdataset_t *keysigs,
+			       dns_rdataset_t *soasigs, isc_boolean_t savekeys,
+			       isc_boolean_t public,
 			       dns_dnsseckeylist_t *keylist);
 /*%<
  * Append the contents of a DNSKEY rdataset 'keyset' to 'keylist'.
@@ -280,6 +281,10 @@ dns_dnssec_keylistfromrdataset(dns_name_t *origin,
  * matching key files, and load the private keys that go with
  * the public ones.  If 'savekeys' is ISC_TRUE, mark the keys so
  * they will not be deleted or inactivated regardless of metadata.
+ *
+ * 'keysigs' and 'soasigs', if not NULL and associated, contain the
+ * RRSIGS for the DNSKEY and SOA records respectively and are used to mark
+ * whether a key is already active int eh zone.
  */
 
 isc_result_t

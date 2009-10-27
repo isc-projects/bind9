@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.107 2009/10/26 21:18:24 each Exp $
+ * $Id: dnssec.c,v 1.108 2009/10/27 03:59:45 each Exp $
  */
 
 /*! \file */
@@ -1202,7 +1202,8 @@ addkey(dns_dnsseckeylist_t *keylist, dst_key_t **newkey,
 		/*
 		 * Found a match.  If the old key was only public and the
 		 * new key is private, replace the old one; otherwise
-		 * we're done.
+		 * leave it.  But either way, mark the key as having
+		 * been found in the zone.
 		 */
 		if (dst_key_isprivate(key->key)) {
 			dst_key_free(newkey);
@@ -1211,6 +1212,7 @@ addkey(dns_dnsseckeylist_t *keylist, dst_key_t **newkey,
 			key->key = *newkey;
 		}
 
+		key->source = dns_keysource_zoneapex;
 		return;
 	}
 
@@ -1224,49 +1226,95 @@ addkey(dns_dnsseckeylist_t *keylist, dst_key_t **newkey,
 	*newkey = NULL;
 }
 
+
+/*%
+ * Mark all keys which signed the DNSKEY/SOA RRsets as "active",
+ * for future reference.
+ */
+static isc_result_t
+mark_active_keys(dns_dnsseckeylist_t *keylist, dns_rdataset_t *rrsigs) {
+	isc_result_t result = ISC_R_SUCCESS;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdataset_t sigs;
+	dns_dnsseckey_t *key;
+
+	REQUIRE(rrsigs != NULL && dns_rdataset_isassociated(rrsigs));
+
+	dns_rdataset_init(&sigs);
+	dns_rdataset_clone(rrsigs, &sigs);
+	for (key = ISC_LIST_HEAD(*keylist);
+	     key != NULL;
+	     key = ISC_LIST_NEXT(key, link)) {
+		isc_uint16_t keyid, sigid;
+		dns_secalg_t keyalg, sigalg;
+		keyid = dst_key_id(key->key);
+		keyalg = dst_key_alg(key->key);
+
+		for (result = dns_rdataset_first(&sigs);
+		     result == ISC_R_SUCCESS;
+		     result = dns_rdataset_next(&sigs)) {
+			dns_rdata_rrsig_t sig;
+
+			dns_rdata_reset(&rdata);
+			dns_rdataset_current(&sigs, &rdata);
+			result = dns_rdata_tostruct(&rdata, &sig, NULL);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+			sigalg = sig.algorithm;
+			sigid = sig.keyid;
+			if (keyid == sigid && keyalg == sigalg) {
+				key->is_active = ISC_TRUE;
+				break;
+			}
+		}
+	}
+
+	if (result == ISC_R_NOMORE)
+		result = ISC_R_SUCCESS;
+
+	if (dns_rdataset_isassociated(&sigs))
+		dns_rdataset_disassociate(&sigs);
+	return (result);
+}
+
 /*%
  * Add the contents of a DNSKEY rdataset 'keyset' to 'keylist'.
  */
 isc_result_t
 dns_dnssec_keylistfromrdataset(dns_name_t *origin,
 			       const char *directory, isc_mem_t *mctx,
-			       dns_rdataset_t *keyset, dns_rdataset_t *sigset,
-			       isc_boolean_t savekeys, isc_boolean_t public,
+			       dns_rdataset_t *keyset, dns_rdataset_t *keysigs,
+			       dns_rdataset_t *soasigs, isc_boolean_t savekeys,
+			       isc_boolean_t public,
 			       dns_dnsseckeylist_t *keylist)
 {
-	dns_rdataset_t keys, sigs;
+	dns_rdataset_t keys;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
-	dst_key_t *pubkey, *privkey;
-	dns_dnsseckey_t *key;
+	dst_key_t *pubkey = NULL, *privkey = NULL;
 	isc_result_t result;
 
-	dns_rdataset_init(&keys);
-	dns_rdataset_init(&sigs);
-
 	REQUIRE(keyset != NULL && dns_rdataset_isassociated(keyset));
-	dns_rdataset_clone(keyset, &keys);
 
+	dns_rdataset_init(&keys);
+
+	dns_rdataset_clone(keyset, &keys);
 	for (result = dns_rdataset_first(&keys);
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(&keys)) {
-		pubkey = NULL;
-		privkey = NULL;
-
 		dns_rdata_reset(&rdata);
 		dns_rdataset_current(&keys, &rdata);
 		RETERR(dns_dnssec_keyfromrdata(origin, &rdata, mctx, &pubkey));
 
 		if (!is_zone_key(pubkey) ||
 		    (dst_key_flags(pubkey) & DNS_KEYTYPE_NOAUTH) != 0)
-			goto again;
+			goto skip;
 
 		/* Corrupted .key file? */
 		if (!dns_name_equal(origin, dst_key_name(pubkey)))
-			goto again;
+			goto skip;
 
 		if (public) {
 			addkey(keylist, &pubkey, savekeys, mctx);
-			goto again;
+			goto skip;
 		}
 
 		result = dst_key_fromfile(dst_key_name(pubkey),
@@ -1276,72 +1324,42 @@ dns_dnssec_keylistfromrdataset(dns_name_t *origin,
 					  directory, mctx, &privkey);
 		if (result == ISC_R_FILENOTFOUND) {
 			addkey(keylist, &pubkey, savekeys, mctx);
-			goto again;
+			goto skip;
 		}
 		RETERR(result);
 
 		/* This should never happen. */
 		if ((dst_key_flags(privkey) & DNS_KEYTYPE_NOAUTH) != 0)
-			goto again;
+			goto skip;
 
 		addkey(keylist, &privkey, savekeys, mctx);
- again:
+ skip:
 		if (pubkey != NULL)
 			dst_key_free(&pubkey);
 		if (privkey != NULL)
 			dst_key_free(&privkey);
 	}
-	if (result == ISC_R_NOMORE)
-		result = ISC_R_SUCCESS;
-	else if (result != ISC_R_SUCCESS)
-		goto failure;
 
-	if (sigset == NULL || !dns_rdataset_isassociated(sigset))
-		goto success;
+	if (result != ISC_R_NOMORE)
+		RETERR(result);
 
-	dns_rdataset_clone(sigset, &sigs);
+	if (keysigs != NULL && dns_rdataset_isassociated(keysigs))
+		RETERR(mark_active_keys(keylist, keysigs));
 
-	/*
-	 * Mark all keys which signed the DNSKEY set, for future reference.
-	 */
-	for (key = ISC_LIST_HEAD(*keylist);
-	     key != NULL;
-	     key = ISC_LIST_NEXT(key, link)) {
-		isc_uint16_t keyid, sigid;
-		isc_uint8_t keyalg, sigalg;
-		keyid = dst_key_id(key->key);
-		keyalg = dst_key_alg(key->key);
+	if (soasigs != NULL && dns_rdataset_isassociated(soasigs))
+		RETERR(mark_active_keys(keylist, soasigs));
 
-		for (result = dns_rdataset_first(&sigs);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&sigs)) {
-			dns_rdata_reset(&rdata);
-			dns_rdataset_current(&sigs, &rdata);
-			sigalg = rdata.data[2];
-			sigid = (rdata.data[16] << 8) | rdata.data[17];
-			if (keyid == sigid && keyalg == sigalg) {
-				key->is_active = ISC_TRUE;
-				break;
-			}
-		}
-	}
-
-	if (result == ISC_R_NOMORE)
- success:
-		result = ISC_R_SUCCESS;
+	result = ISC_R_SUCCESS;
 
  failure:
 	if (dns_rdataset_isassociated(&keys))
 		dns_rdataset_disassociate(&keys);
-	if (dns_rdataset_isassociated(&sigs))
-		dns_rdataset_disassociate(&sigs);
 	if (pubkey != NULL)
 		dst_key_free(&pubkey);
 	if (privkey != NULL)
 		dst_key_free(&privkey);
 	return (result);
 }
-
 
 static isc_result_t
 make_dnskey(dst_key_t *key, dns_rdata_t *target) {
@@ -1441,11 +1459,32 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 		      void (*report)(const char *, ...))
 {
 	isc_result_t result;
-	dns_dnsseckey_t *key1, *key2;
+	dns_dnsseckey_t *key, *key1, *key2, *next;
 
-	key1 = ISC_LIST_HEAD(*newkeys);
-	while (key1 != NULL) {
+	/*
+	 * First, look through the existing key list to find keys
+	 * supplied from the command line which are not in the zone.
+	 * Update the zone to include them.
+	 */
+	for (key = ISC_LIST_HEAD(*keys);
+	     key != NULL;
+	     key = ISC_LIST_NEXT(key, link)) {
+		if (key->source == dns_keysource_user &&
+		    (key->hint_publish || key->force_publish)) {
+			RETERR(publish_key(add, key, origin, ttl,
+					   mctx, allzsk, report));
+		}
+	}
+
+	/*
+	 * Second, scan the list of newly found keys looking for matches
+	 * with known keys, and update accordingly.
+	 */
+	for (key1 = ISC_LIST_HEAD(*newkeys); key1 != NULL; key1 = next) {
 		isc_boolean_t key_revoked = ISC_FALSE;
+
+		next = ISC_LIST_NEXT(key1, link);
+
 		for (key2 = ISC_LIST_HEAD(*keys);
 		     key2 != NULL;
 		     key2 = ISC_LIST_NEXT(key2, link)) {
@@ -1477,7 +1516,6 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 					key1->first_sign = ISC_TRUE;
 			}
 
-			key1 = next;
 			continue;
 		}
 
@@ -1492,7 +1530,6 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 				dns_dnsseckey_destroy(mctx, &key2);
 		} else if (key_revoked &&
 			 (dst_key_flags(key1->key) & DNS_KEYFLAG_REVOKE) != 0) {
-			dns_dnsseckey_t *next;
 
 			/*
 			 * A previously valid key has been revoked.
@@ -1509,7 +1546,6 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 
 			RETERR(publish_key(add, key1, origin, ttl,
 					   mctx, allzsk, report));
-			next = ISC_LIST_NEXT(key1, link);
 			ISC_LIST_UNLINK(*newkeys, key1, link);
 			ISC_LIST_APPEND(*keys, key1, link);
 
@@ -1522,27 +1558,14 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 			 * sign other records with it.
 			 */
 			key1->ksk = ISC_TRUE;
-			key1 = next;
 			continue;
 		} else {
 			if (!key2->is_active &&
 			    (key1->hint_sign || key1->force_sign))
 				key2->first_sign = ISC_TRUE;
 			key2->hint_sign = key1->hint_sign;
-
-			/*
-			 * If a key was specified on the command line,
-			 * not in the zone, it can be imported into the
-			 * zone now.
-			 */
 			key2->hint_publish = key1->hint_publish;
-			if (key2->source == dns_keysource_user &&
-			    (key2->hint_publish || key2->force_publish))
-				RETERR(publish_key(add, key2, origin, ttl,
-						   mctx, allzsk, report));
 		}
-
-		key1 = ISC_LIST_NEXT(key1, link);
 	}
 
 	/* Free any leftover keys in newkeys */

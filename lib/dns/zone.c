@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.520 2009/10/20 23:47:32 tbox Exp $ */
+/* $Id: zone.c,v 1.521 2009/10/27 03:59:45 each Exp $ */
 
 /*! \file */
 
@@ -13279,7 +13279,7 @@ zone_rekey(dns_zone_t *zone) {
 	dns_db_t *db = NULL;
 	dns_dbnode_t *node = NULL;
 	dns_dbversion_t *ver = NULL;
-	dns_rdataset_t soaset, keyset, sigset;
+	dns_rdataset_t soaset, soasigs, keyset, keysigs;
 	dns_dnsseckeylist_t dnskeys, keys, oldkeys;
 	dns_dnsseckey_t *key;
 	dns_diff_t add, del;
@@ -13295,8 +13295,9 @@ zone_rekey(dns_zone_t *zone) {
 	ISC_LIST_INIT(keys);
 	ISC_LIST_INIT(oldkeys);
 	dns_rdataset_init(&soaset);
+	dns_rdataset_init(&soasigs);
 	dns_rdataset_init(&keyset);
-	dns_rdataset_init(&sigset);
+	dns_rdataset_init(&keysigs);
 	dir = dns_zone_getkeydirectory(zone);
 	mctx = zone->mctx;
 	dns_diff_init(mctx, &add);
@@ -13309,17 +13310,18 @@ zone_rekey(dns_zone_t *zone) {
 
 	/* Get the SOA record's TTL */
 	CHECK(dns_db_findrdataset(db, node, ver, dns_rdatatype_soa,
-				  dns_rdatatype_none, 0, &soaset, NULL));
+				  dns_rdatatype_none, 0, &soaset, &soasigs));
 	ttl = soaset.ttl;
 	dns_rdataset_disassociate(&soaset);
 
 	/* Get the DNSKEY rdataset */
 	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_dnskey,
-				     dns_rdatatype_none, 0, &keyset, &sigset);
+				     dns_rdatatype_none, 0, &keyset, &keysigs);
 	if (result == ISC_R_SUCCESS) {
 		ttl = keyset.ttl;
 		CHECK(dns_dnssec_keylistfromrdataset(&zone->origin, dir,
-						     mctx, &keyset, &sigset,
+						     mctx, &keyset,
+						     &keysigs, &soasigs,
 						     ISC_FALSE, ISC_FALSE,
 						     &dnskeys));
 	} else if (result != ISC_R_NOTFOUND)
@@ -13414,8 +13416,10 @@ zone_rekey(dns_zone_t *zone) {
 		dns_db_closeversion(db, &ver, ISC_FALSE);
 	if (dns_rdataset_isassociated(&keyset))
 		dns_rdataset_disassociate(&keyset);
-	if (dns_rdataset_isassociated(&sigset))
-		dns_rdataset_disassociate(&sigset);
+	if (dns_rdataset_isassociated(&keysigs))
+		dns_rdataset_disassociate(&keysigs);
+	if (dns_rdataset_isassociated(&soasigs))
+		dns_rdataset_disassociate(&soasigs);
 	if (node != NULL)
 		dns_db_detachnode(db, &node);
 	if (db != NULL)

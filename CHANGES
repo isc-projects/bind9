@@ -1,3 +1,8 @@
+2735.	[bug]		dnssec-signzone could fail to read keys
+			that were specified on the command line with
+			full paths, but weren't in the current
+			directory. [RT #20421]
+
 2734.	[port]		cygwin: arpaname did not compile. [RT #20473]
 
 2733.	[cleanup]	Clean up coding style in pkcs11-* tools. [RT #20355]
