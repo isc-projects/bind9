@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 #
 # Copyright (C) 2004, 2006-2009  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000-2002  Internet Software Consortium.
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.28 2009/09/25 06:47:50 each Exp $
+# $Id: sign.sh,v 1.29 2009/10/27 22:25:37 marka Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -222,3 +222,29 @@ mv $zonefile.signed $zonefile
 $SIGNER -P -u3 CCCC -r $RANDFILE -o $zone $zonefile > /dev/null
 mv $zonefile.signed $zonefile
 $SIGNER -P -u3 DDDD -r $RANDFILE -o $zone $zonefile > /dev/null
+
+#
+# A RSASHA256 zone.
+#
+zone=rsasha256.example.
+infile=rsasha256.example.db.in
+zonefile=rsasha256.example.db
+
+keyname=`$KEYGEN -r $RANDFILE -a RSASHA256 -b 768 -n zone $zone`
+
+cat $infile $keyname.key >$zonefile
+
+$SIGNER -P -r $RANDFILE -o $zone $zonefile > /dev/null
+
+#
+# A RSASHA512 zone.
+#
+zone=rsasha512.example.
+infile=rsasha512.example.db.in
+zonefile=rsasha512.example.db
+
+keyname=`$KEYGEN -r $RANDFILE -a RSASHA512 -b 1024 -n zone $zone`
+
+cat $infile $keyname.key >$zonefile
+
+$SIGNER -P -r $RANDFILE -o $zone $zonefile > /dev/null

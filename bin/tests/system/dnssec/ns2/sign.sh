@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 #
 # Copyright (C) 2004, 2006-2009  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000-2003  Internet Software Consortium.
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.33 2009/07/19 04:18:04 each Exp $
+# $Id: sign.sh,v 1.34 2009/10/27 22:25:37 marka Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -30,7 +30,8 @@ zonefile=example.db
 
 ( cd ../ns3 && sh sign.sh )
 
-for subdomain in secure bogus dynamic keyless nsec3 optout nsec3-unknown optout-unknown multiple
+for subdomain in secure bogus dynamic keyless nsec3 optout nsec3-unknown \
+    optout-unknown multiple rsasha256 rsasha512
 do
 	cp ../ns3/dsset-$subdomain.example. .
 done

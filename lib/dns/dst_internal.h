@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_internal.h,v 1.22 2009/10/24 09:46:19 fdupont Exp $ */
+/* $Id: dst_internal.h,v 1.23 2009/10/27 22:25:37 marka Exp $ */
 
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1
@@ -201,7 +201,8 @@ isc_result_t dst__hmacsha224_init(struct dst_func **funcp);
 isc_result_t dst__hmacsha256_init(struct dst_func **funcp);
 isc_result_t dst__hmacsha384_init(struct dst_func **funcp);
 isc_result_t dst__hmacsha512_init(struct dst_func **funcp);
-isc_result_t dst__opensslrsa_init(struct dst_func **funcp);
+isc_result_t dst__opensslrsa_init(struct dst_func **funcp,
+				  unsigned char algorithm);
 isc_result_t dst__openssldsa_init(struct dst_func **funcp);
 isc_result_t dst__openssldh_init(struct dst_func **funcp);
 isc_result_t dst__gssapi_init(struct dst_func **funcp);

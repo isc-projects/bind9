@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.486 $)
+AC_REVISION($Revision: 1.487 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -666,8 +666,10 @@ esac
 		else
 			AC_MSG_RESULT(no)
 		fi
+		AC_CHECK_FUNCS(EVP_sha256 EVP_sha512)
 		CFLAGS="$saved_cflags"
 		LIBS="$saved_libs"
+
 		;;
 esac
 
@@ -1941,8 +1943,10 @@ int getnameinfo(const struct sockaddr *, socklen_t, char *,
                 socklen_t, char *, socklen_t, unsigned int);],
 [ return (0);],
 	[AC_MSG_RESULT(socklen_t for buflen; u_int for flags)
-	 AC_DEFINE(IRS_GETNAMEINFO_BUFLEN_T, socklen_t)
-	 AC_DEFINE(IRS_GETNAMEINFO_FLAGS_T, unsigned int)],
+	 AC_DEFINE(IRS_GETNAMEINFO_BUFLEN_T, socklen_t,
+		   [Define to the buffer length type used by getnameinfo(3).])
+	 AC_DEFINE(IRS_GETNAMEINFO_FLAGS_T, unsigned int,
+		   [Define to the flags type used by getnameinfo(3).])],
 [AC_TRY_COMPILE([
 #include <sys/types.h>
 #include <sys/socket.h>

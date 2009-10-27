@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.44 2009/10/24 09:46:18 fdupont Exp $
+ * $Id: dst_api.c,v 1.45 2009/10/27 22:25:37 marka Exp $
  */
 
 /*! \file */
@@ -201,11 +201,16 @@ dst_lib_init2(isc_mem_t *mctx, isc_entropy_t *ectx,
 	RETERR(dst__hmacsha512_init(&dst_t_func[DST_ALG_HMACSHA512]));
 #ifdef OPENSSL
 	RETERR(dst__openssl_init(engine));
-	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSAMD5]));
-	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA1]));
-	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_NSEC3RSASHA1]));
-	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA256]));
-	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA512]));
+	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSAMD5],
+				    DST_ALG_RSAMD5));
+	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA1],
+				    DST_ALG_RSASHA1));
+	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_NSEC3RSASHA1],
+				    DST_ALG_NSEC3RSASHA1));
+	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA256],
+				    DST_ALG_RSASHA256));
+	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA512],
+				    DST_ALG_RSASHA512));
 #ifdef HAVE_OPENSSL_DSA
 	RETERR(dst__openssldsa_init(&dst_t_func[DST_ALG_DSA]));
 	RETERR(dst__openssldsa_init(&dst_t_func[DST_ALG_NSEC3DSA]));

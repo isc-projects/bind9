@@ -1,3 +1,6 @@
+2738.	[func]		Add RSASHA256 and RSASHA512 tests to the dnssec system
+			test. [RT #20453]
+
 2737.	[func]		UPDATE requests can leak existance information.
 			[RT #17261]
 
