@@ -1,3 +1,5 @@
+2734.	[port]		cygwin: arpaname did not compile. [RT #20473]
+
 2733.	[cleanup]	Clean up coding style in pkcs11-* tools. [RT #20355]
 
 2732.	[func]		Add optional filter-aaaa-on-v4 option, available
