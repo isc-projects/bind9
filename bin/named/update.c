@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.165 2009/10/22 23:48:07 tbox Exp $ */
+/* $Id: update.c,v 1.166 2009/10/27 05:42:25 marka Exp $ */
 
 #include <config.h>
 
@@ -279,6 +279,43 @@ inc_stats(dns_zone_t *zone, isc_statscounter_t counter) {
 		if (zonestats != NULL)
 			isc_stats_increment(zonestats, counter);
 	}
+}
+
+/*%
+ * Check if we could have queried for the contents of this zone or
+ * if the zone is potentially updateable.
+ * If the zone can potentially be updated and the check failed then
+ * log a error otherwise we log a informational message.
+ */
+static isc_result_t
+checkqueryacl(ns_client_t *client, dns_acl_t *queryacl, dns_name_t *zonename,
+	      dns_acl_t *updateacl, dns_ssutable_t *ssutable)
+{
+	char namebuf[DNS_NAME_FORMATSIZE];
+	char classbuf[DNS_RDATACLASS_FORMATSIZE];
+	int level;
+	isc_result_t result;
+
+	result = ns_client_checkaclsilent(client, NULL, queryacl, ISC_TRUE);
+	if (result != ISC_R_SUCCESS) {
+		dns_name_format(zonename, namebuf, sizeof(namebuf));
+		dns_rdataclass_format(client->view->rdclass, classbuf,
+				      sizeof(classbuf));
+
+		level = (updateacl == NULL && ssutable == NULL) ?
+				ISC_LOG_INFO : ISC_LOG_ERROR;
+
+		ns_client_log(client, NS_LOGCATEGORY_UPDATE_SECURITY,
+			      NS_LOGMODULE_UPDATE, level,
+			      "update '%s/%s' denied due to allow-query",
+			      namebuf, classbuf);
+	} else if (updateacl == NULL && ssutable == NULL) {
+		result = DNS_R_REFUSED;
+		ns_client_log(client, NS_LOGCATEGORY_UPDATE_SECURITY,
+			      NS_LOGMODULE_UPDATE, ISC_LOG_INFO,
+			      "update '%s/%s' denied", namebuf, classbuf);
+	}
+	return (result);
 }
 
 /*%
@@ -3506,6 +3543,18 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	zonename = dns_db_origin(db);
 	zoneclass = dns_db_class(db);
 	dns_zone_getssutable(zone, &ssutable);
+
+	/*
+	 * Update message processing can leak record existance information
+	 * so check that we are allowed to query this zone.  Additionally
+	 * if we would refuse all updates for this zone we bail out here.
+	 */
+	CHECK(checkqueryacl(client, dns_zone_getqueryacl(zone), zonename,
+			    dns_zone_getupdateacl(zone), ssutable));
+
+	/*
+	 * Get old and new versions now that queryacl has been checked.
+	 */
 	dns_db_currentversion(db, &oldver);
 	CHECK(dns_db_newversion(db, &ver));
 
@@ -3597,7 +3646,6 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	}
 	if (result != ISC_R_NOMORE)
 		FAIL(result);
-
 
 	/*
 	 * Perform the final check of the "rrset exists (value dependent)"

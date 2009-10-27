@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keyfromlabel.c,v 1.24 2009/10/24 00:00:06 each Exp $ */
+/* $Id: dnssec-keyfromlabel.c,v 1.25 2009/10/27 18:56:48 each Exp $ */
 
 /*! \file */
 
@@ -190,7 +190,7 @@ main(int argc, char **argv) {
 			directory = isc_commandline_argument;
 			ret = try_dir(directory);
 			if (ret != ISC_R_SUCCESS)
-				fatal("Cannot write to directory %s: %s",
+				fatal("cannot open directory %s: %s",
 				      directory, isc_result_totext(ret));
 			break;
 		case 'k':
