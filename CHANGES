@@ -1,3 +1,6 @@
+2729.	[func]		When constructing a CNAME from a DNAME use the DNAME
+			TTL. [RT #20451]
+
 2723.	[bug]		isc_base64_totext() didn't always mark regions of
 			memory as fully consumed after conversion.  [RT #20445]
 
