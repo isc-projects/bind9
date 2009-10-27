@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.104 2009/10/24 09:46:18 fdupont Exp $ */
+/* $Id: dnssec-keygen.c,v 1.105 2009/10/27 18:56:48 each Exp $ */
 
 /*! \file */
 
@@ -310,7 +310,7 @@ main(int argc, char **argv) {
 			directory = isc_commandline_argument;
 			ret = try_dir(directory);
 			if (ret != ISC_R_SUCCESS)
-				fatal("cannot write to directory %s: %s",
+				fatal("cannot open directory %s: %s",
 				      directory, isc_result_totext(ret));
 			break;
 		case 'k':

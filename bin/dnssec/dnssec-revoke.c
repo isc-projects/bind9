@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-revoke.c,v 1.17 2009/10/26 21:18:24 each Exp $ */
+/* $Id: dnssec-revoke.c,v 1.18 2009/10/27 18:56:48 each Exp $ */
 
 /*! \file */
 
@@ -156,8 +156,12 @@ main(int argc, char **argv) {
 	if (dir != NULL) {
 		filename = argv[isc_commandline_index];
 	} else {
-		isc_file_splitpath(mctx, argv[isc_commandline_index],
-				   &dir, &filename);
+		result = isc_file_splitpath(mctx, argv[isc_commandline_index],
+					    &dir, &filename);
+		if (result != ISC_R_SUCCESS)
+			fatal("cannot process filename %s: %s",
+			      argv[isc_commandline_index],
+			      isc_result_totext(result));
 	}
 
 	if (ectx == NULL)
