@@ -1,3 +1,6 @@
+2740.	[func]		Identify bad answers from GTLD servers and treat them
+			as referrals. [RT #18884]
+
 2739.	[cleanup]	Clean up API for initializing and clearing trust
 			anchors for a view. [RT #20211]
 
