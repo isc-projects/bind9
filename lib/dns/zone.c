@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.522 2009/10/27 22:46:13 each Exp $ */
+/* $Id: zone.c,v 1.523 2009/10/27 23:47:45 tbox Exp $ */
 
 /*! \file */
 
@@ -3175,7 +3175,7 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 	}
 
  failure:
- 	if (sr != NULL)
+	if (sr != NULL)
 		dns_keytable_detach(&sr);
 	if (ver != NULL)
 		dns_db_closeversion(db, &ver, changed);

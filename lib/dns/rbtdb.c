@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.284 2009/10/27 04:46:58 marka Exp $ */
+/* $Id: rbtdb.c,v 1.285 2009/10/27 23:47:45 tbox Exp $ */
 
 /*! \file */
 
@@ -6147,7 +6147,7 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		newnsec = ISC_TRUE;
 	else
 		newnsec = ISC_FALSE;
-	
+
 	/*
 	 * If we're adding a delegation type, adding to the auxiliary NSEC tree,
 	 * or the DB is a cache in an overmem state, hold an exclusive lock on
