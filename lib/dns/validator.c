@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.178 2009/06/30 02:52:32 each Exp $ */
+/* $Id: validator.c,v 1.179 2009/10/27 22:46:13 each Exp $ */
 
 #include <config.h>
 
@@ -3651,6 +3651,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		return (ISC_R_NOMEMORY);
 	val->view = NULL;
 	dns_view_weakattach(view, &val->view);
+
 	event = (dns_validatorevent_t *)
 		isc_event_allocate(view->mctx, task,
 				   DNS_EVENT_VALIDATORSTART,
@@ -3679,8 +3680,12 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	val->fetch = NULL;
 	val->subvalidator = NULL;
 	val->parent = NULL;
+
 	val->keytable = NULL;
-	dns_keytable_attach(val->view->secroots, &val->keytable);
+	result = dns_view_getsecroots(val->view, &val->keytable);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
 	val->keynode = NULL;
 	val->key = NULL;
 	val->siginfo = NULL;

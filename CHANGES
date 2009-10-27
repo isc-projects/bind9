@@ -1,3 +1,6 @@
+2739.	[cleanup]	Clean up API for initializing and clearing trust
+			anchors for a view. [RT #20211]
+
 2738.	[func]		Add RSASHA256 and RSASHA512 tests to the dnssec system
 			test. [RT #20453]
 

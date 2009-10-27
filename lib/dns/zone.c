@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.521 2009/10/27 03:59:45 each Exp $ */
+/* $Id: zone.c,v 1.522 2009/10/27 22:46:13 each Exp $ */
 
 /*! \file */
 
@@ -2705,6 +2705,7 @@ trust_key(dns_viewlist_t *viewlist, dns_name_t *keyname,
 	unsigned char data[4096];
 	isc_buffer_t buffer;
 	dns_view_t *view;
+	dns_keytable_t *sr = NULL;
 
 	/* Convert dnskey to DST key. */
 	isc_buffer_init(&buffer, data, sizeof(data));
@@ -2713,15 +2714,20 @@ trust_key(dns_viewlist_t *viewlist, dns_name_t *keyname,
 
 	for (view = ISC_LIST_HEAD(*viewlist); view != NULL;
 	     view = ISC_LIST_NEXT(view, link)) {
-		if (view->secroots != NULL) {
-			dst_key_t *key = NULL;
-			CHECK(dns_dnssec_keyfromrdata(keyname, &rdata,
-						      mctx, &key));
-			CHECK(dns_keytable_add(view->secroots, ISC_TRUE, &key));
-		}
+		dst_key_t *key = NULL;
+
+		result = dns_view_getsecroots(view, &sr);
+		if (result != ISC_R_SUCCESS)
+			continue;
+
+		CHECK(dns_dnssec_keyfromrdata(keyname, &rdata, mctx, &key));
+		CHECK(dns_keytable_add(sr, ISC_TRUE, &key));
+		dns_keytable_detach(&sr);
 	}
 
   failure:
+	if (sr != NULL)
+		dns_keytable_detach(&sr);
 	return;
 }
 
@@ -2755,9 +2761,13 @@ untrust_key(dns_viewlist_t *viewlist, dns_name_t *keyname, isc_mem_t *mctx,
 
 	for (view = ISC_LIST_HEAD(*viewlist); view != NULL;
 	     view = ISC_LIST_NEXT(view, link)) {
-		if (view->secroots == NULL)
+		dns_keytable_t *sr = NULL;
+		result = dns_view_getsecroots(view, &sr);
+		if (result != ISC_R_SUCCESS)
 			continue;
-		dns_keytable_deletekeynode(view->secroots, key);
+
+		dns_keytable_deletekeynode(sr, key);
+		dns_keytable_detach(&sr);
 	}
 
 	dst_key_free(&key);
@@ -2769,13 +2779,20 @@ untrust_key(dns_viewlist_t *viewlist, dns_name_t *keyname, isc_mem_t *mctx,
  */
 static void
 fail_secure(dns_viewlist_t *viewlist, dns_name_t *keyname) {
+	isc_result_t result;
 	dns_view_t *view;
 
 	for (view = ISC_LIST_HEAD(*viewlist);
 	     view != NULL;
 	     view = ISC_LIST_NEXT(view, link)) {
-		if (view->secroots != NULL)
-			dns_keytable_marksecure(view->secroots, keyname);
+		dns_keytable_t *sr = NULL;
+
+		result = dns_view_getsecroots(view, &sr);
+		if (result != ISC_R_SUCCESS)
+			continue;
+
+		dns_keytable_marksecure(sr, keyname);
+		dns_keytable_detach(&sr);
 	}
 }
 
@@ -2801,8 +2818,14 @@ load_secroots(dns_zone_t *zone, dns_name_t *name, dns_rdataset_t *rdataset) {
 	/* For each view, delete references to this key from secroots. */
 	for (view = ISC_LIST_HEAD(*viewlist); view != NULL;
 	     view = ISC_LIST_NEXT(view, link)) {
-		if (view->secroots != NULL)
-			dns_keytable_delete(view->secroots, name);
+		dns_keytable_t *sr = NULL;
+
+		result = dns_view_getsecroots(view, &sr);
+		if (result != ISC_R_SUCCESS)
+			continue;
+
+		dns_keytable_delete(sr, name);
+		dns_keytable_detach(&sr);
 	}
 
 	/* Now insert all the accepted trust anchors from this keydata set. */
@@ -3029,7 +3052,7 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 	dns_name_t foundname, *origin;
 	dns_keynode_t *keynode = NULL;
 	dns_view_t *view = zone->view;
-	dns_keytable_t *sr = view->secroots;
+	dns_keytable_t *sr = NULL;
 	dns_dbversion_t *ver = NULL;
 	dns_diff_t diff;
 	dns_rriterator_t rrit;
@@ -3041,6 +3064,8 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 	origin = dns_fixedname_name(&fn);
 
 	dns_diff_init(zone->mctx, &diff);
+
+	CHECK(dns_view_getsecroots(view, &sr));
 
 	result = dns_db_newversion(db, &ver);
 	if (result != ISC_R_SUCCESS) {
@@ -3150,6 +3175,8 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 	}
 
  failure:
+ 	if (sr != NULL)
+		dns_keytable_detach(&sr);
 	if (ver != NULL)
 		dns_db_closeversion(db, &ver, changed);
 	dns_diff_clear(&diff);
@@ -6994,7 +7021,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	dns_fetchevent_t *devent;
 	dns_keyfetch_t *kfetch;
 	dns_zone_t *zone;
-	dns_keytable_t *secroots;
+	dns_keytable_t *secroots = NULL;
 	dns_dbversion_t *ver = NULL;
 	dns_diff_t diff;
 	isc_boolean_t changed = ISC_FALSE;
@@ -7020,7 +7047,6 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 
 	kfetch = event->ev_arg;
 	zone = kfetch->zone;
-	secroots = zone->view->secroots;
 	keyname = dns_fixedname_name(&kfetch->name);
 
 	devent = (dns_fetchevent_t *) event;
@@ -7036,6 +7062,9 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 
 	isc_stdtime_get(&now);
 	dns_name_format(keyname, namebuf, sizeof(namebuf));
+
+	result = dns_view_getsecroots(zone->view, &secroots);
+	INSIST(result == ISC_R_SUCCESS);
 
 	LOCK_ZONE(zone);
 	dns_db_newversion(kfetch->db, &ver);
@@ -7431,6 +7460,9 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 
 	dns_name_free(keyname, zone->mctx);
 	isc_mem_put(zone->mctx, kfetch, sizeof(dns_keyfetch_t));
+
+	if (secroots != NULL)
+		dns_keytable_detach(&secroots);
 }
 
 /*

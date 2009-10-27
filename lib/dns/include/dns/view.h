@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.118 2009/06/30 02:52:32 each Exp $ */
+/* $Id: view.h,v 1.119 2009/10/27 22:46:13 each Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -92,7 +92,13 @@ struct dns_view {
 	dns_cache_t *			cache;
 	dns_db_t *			cachedb;
 	dns_db_t *			hints;
-	dns_keytable_t *		secroots;   /* security roots */
+
+	/*
+	 * security roots.
+	 * internal use only; access via * dns_view_getsecroots()
+	 */
+	dns_keytable_t *		secroots_priv;
+
 	isc_mutex_t			lock;
 	isc_boolean_t			frozen;
 	isc_task_t *			task;
@@ -904,4 +910,53 @@ dns_view_iscacheshared(dns_view_t *view);
  *\li	#ISC_FALSE otherwise.
  */
 
+isc_result_t
+dns_view_initsecroots(dns_view_t *view, isc_mem_t *mctx);
+/*%<
+ * Initialize security roots for the view.  (Note that secroots is
+ * NULL until this function is called, so any function using
+ * secroots must check its validity first.  One way to do this is
+ * use dns_view_getsecroots() and check its return value.)
+ *
+ * Requires:
+ * \li	'view' is valid.
+ * \li	'view->secroots' is NULL.
+ *
+ * Returns:
+ *\li	ISC_R_SUCCESS
+ *\li	Any other result indicates failure
+ */
+
+isc_result_t
+dns_view_getsecroots(dns_view_t *view, dns_keytable_t **ktp);
+/*%<
+ * Get the security roots for this view.  Returns ISC_R_NOTFOUND if
+ * the security roots keytable has not been initialized for the view.
+ *
+ * '*ktp' is attached on success; the caller is responsible for
+ * detaching it with dns_keytable_detach().
+ *
+ * Requires:
+ * \li	'view' is valid.
+ * \li	'ktp' is not NULL and '*ktp' is NULL.
+ *
+ * Returns:
+ *\li	ISC_R_SUCCESS
+ *\li	ISC_R_NOTFOUND
+ */
+
+isc_result_t
+dns_view_issecuredomain(dns_view_t *view, dns_name_t *name,
+			 isc_boolean_t *secure_domain);
+/*%<
+ * Is 'name' at or beneath a trusted key?  Put answer in
+ * '*secure_domain'.
+ *
+ * Requires:
+ * \li	'view' is valid.
+ *
+ * Returns:
+ *\li	ISC_R_SUCCESS
+ *\li	Any other value indicates failure
+ */
 #endif /* DNS_VIEW_H */

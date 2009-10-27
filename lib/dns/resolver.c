@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.405 2009/09/01 00:22:26 jinmei Exp $ */
+/* $Id: resolver.c,v 1.406 2009/10/27 22:46:13 each Exp $ */
 
 /*! \file */
 
@@ -1691,9 +1691,8 @@ resquery_send(resquery_t *query) {
 	if ((query->options & DNS_FETCHOPT_NOVALIDATE) != 0) {
 		fctx->qmessage->flags |= DNS_MESSAGEFLAG_CD;
 	} else if (res->view->enablevalidation) {
-		result = dns_keytable_issecuredomain(res->view->secroots,
-						     &fctx->name,
-						     &secure_domain);
+		result = dns_view_issecuredomain(res->view, &fctx->name,
+						 &secure_domain);
 		if (result != ISC_R_SUCCESS)
 			secure_domain = ISC_FALSE;
 		if (res->view->dlv != NULL)
@@ -4217,8 +4216,8 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 	 * Is DNSSEC validation required for this name?
 	 */
 	if (res->view->enablevalidation) {
-		result = dns_keytable_issecuredomain(res->view->secroots, name,
-						     &secure_domain);
+		result = dns_view_issecuredomain(res->view, name,
+						 &secure_domain);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 
@@ -4675,8 +4674,8 @@ ncache_message(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	 * Is DNSSEC validation required for this name?
 	 */
 	if (fctx->res->view->enablevalidation) {
-		result = dns_keytable_issecuredomain(res->view->secroots, name,
-						     &secure_domain);
+		result = dns_view_issecuredomain(res->view, name,
+						 &secure_domain);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 
