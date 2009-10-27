@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.249 2009/10/27 03:59:45 each Exp $ */
+/* $Id: dnssec-signzone.c,v 1.250 2009/10/27 04:46:58 marka Exp $ */
 
 /*! \file */
 
@@ -2115,6 +2115,7 @@ nsecify(void) {
 		} else if (result != ISC_R_SUCCESS)
 			fatal("iterating through the database failed: %s",
 			      isc_result_totext(result));
+		dns_dbiterator_pause(dbiter);
 		result = dns_nsec_build(gdb, gversion, node, nextname,
 					zone_soa_min_ttl);
 		check_result(result, "dns_nsec_build()");

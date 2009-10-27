@@ -1,3 +1,7 @@
+2736.	[func]		Improve the performance of NSEC signed zones with
+			more than a normal amount of glue below a delegation.
+			[RT #20191]
+
 2735.	[bug]		dnssec-signzone could fail to read keys
 			that were specified on the command line with
 			full paths, but weren't in the current
