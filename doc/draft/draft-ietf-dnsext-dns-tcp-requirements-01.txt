@@ -3,14 +3,14 @@
 
 DNSEXT                                                         R. Bellis
 Internet-Draft                                                Nominet UK
-Updates: 1123, 1035                                      October 6, 2009
+Updates: 1035, 1123                                     October 26, 2009
 (if approved)
 Intended status: Standards Track
-Expires: April 9, 2010
+Expires: April 29, 2010
 
 
                          DNS Transport over TCP
-               draft-ietf-dnsext-dns-tcp-requirements-00
+               draft-ietf-dnsext-dns-tcp-requirements-01
 
 Status of this Memo
 
@@ -33,7 +33,7 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on April 9, 2010.
+   This Internet-Draft will expire on April 29, 2010.
 
 Copyright Notice
 
@@ -52,7 +52,7 @@ Abstract
 
 
 
-Bellis                    Expires April 9, 2010                 [Page 1]
+Bellis                   Expires April 29, 2010                 [Page 1]
 
 Internet-Draft           DNS Transport over TCP             October 2009
 
@@ -108,7 +108,7 @@ Table of Contents
 
 
 
-Bellis                    Expires April 9, 2010                 [Page 2]
+Bellis                   Expires April 29, 2010                 [Page 2]
 
 Internet-Draft           DNS Transport over TCP             October 2009
 
@@ -117,7 +117,7 @@ Internet-Draft           DNS Transport over TCP             October 2009
 
    Most DNS [RFC1035] transactions take place over the UDP [RFC0792]
    protocol.  The TCP [RFC0793] protocol is used for zone transfers and
-   is supported by some implementations for the transfer of other
+   is supported by many implementations for the transfer of other
    packets which exceed the protocol's original 512 byte packet-size
    limit.
 
@@ -125,6 +125,9 @@ Internet-Draft           DNS Transport over TCP             October 2009
 
       DNS resolvers and recursive servers MUST support UDP, and SHOULD
       support TCP, for sending (non-zone-transfer) queries.
+
+   However, some implementors have taken the text quoted above to mean
+   that TCP support is truly optional for typical DNS operation.
 
    This document normatively updates the core DNS protocol
    specifications such that (except in very limited circumstances)
@@ -140,35 +143,14 @@ Internet-Draft           DNS Transport over TCP             October 2009
 
 3.  Discussion
 
-   Some implementors have taken the [RFC1123] text quoted above to mean
-   that TCP support is truly optional for typical DNS operation.
-
-   However, whilst RFC 1123 predates the current RFC 2119 terminology
-   document it uses exactly the same text:
-
-      SHOULD - This word, or the adjective "RECOMMENDED", mean that
-      there may exist valid reasons in particular circumstances to
-      ignore a particular item, but the full implications must be
-      understood and carefully weighed before choosing a different
-      course.
-
    In the absence of EDNS0 (see below) the normal behaviour of any DNS
-   server needing to send a UDP response that exceeds that 512 limit is
-   for the server to truncate the response at the 512 byte limit and set
-   the TC flag in the response header.  When the client receives such a
-   response it takes the TC flag as notice that it should retry over TCP
-   instead.
+   server needing to send a UDP response that exceeds that 512 byte
+   limit is for the server to truncate the response at the 512 byte
+   limit and set the TC flag in the response header.  When the client
+   receives such a response it takes the TC flag as notice that it
+   should retry over TCP instead.
 
    RFC 1123 also says:
-
-
-
-
-Bellis                    Expires April 9, 2010                 [Page 3]
-
-Internet-Draft           DNS Transport over TCP             October 2009
-
-
 
       ... it is also clear that some new DNS record types defined in the
       future will contain information exceeding the 512 byte limit that
@@ -179,11 +161,19 @@ Internet-Draft           DNS Transport over TCP             October 2009
 
    Existing deployments of DNSSEC [RFC4033] have shown that truncation
    at the 512 byte boundary is now commonplace.  For example an NXDOMAIN
+
+
+
+Bellis                   Expires April 29, 2010                 [Page 3]
+
+Internet-Draft           DNS Transport over TCP             October 2009
+
+
    (RCODE == 3) response from a DNSSEC signed zone using NSEC3 [RFC5155]
    is almost invariably longer than 512 bytes.
 
-   Since the original core specifications for DNS were written the
-   Extension Mechanisms for DNS EDNS0 [RFC2671] have been introduced.
+   Since the original core specifications for DNS were written, the
+   Extension Mechanisms for DNS (EDNS0 [RFC2671]) have been introduced.
    These extensions can be used to indicate that the client is prepared
    to receive UDP responses longer than 512 bytes.  An EDNS0 compatible
    server receiving a request from an EDNS0 compatible client may send
@@ -203,30 +193,22 @@ Internet-Draft           DNS Transport over TCP             October 2009
    1500 bytes, and even that limit is routinely exceeded by DNSSEC
    signed responses.
 
-   The future that was anticipated in RFC 1123 is now here, and the only
+   The future that was anticipated in RFC 1123 has arrived, and the only
    standardised mechanism which may have resolved the packet size issue
    has been found inadequate.
 
 
 4.  Transport Protocol Selection
 
+   All DNS implementations MUST support both UDP and TCP transport
+   protocols, except as set out below.
+
    On a case by case basis, authoritative DNS server operators MAY elect
-   to disable DNS transport over TCP if all of the conditions below are
-   satisfied:
+   to disable DNS transport over TCP if all of the following conditions
+   are satisfied:
 
-   o  the server is authoritative
-
-
-
-
-
-Bellis                    Expires April 9, 2010                 [Page 4]
-
-Internet-Draft           DNS Transport over TCP             October 2009
-
-
+   o  the server is authoritative only
    o  the server does not support AXFR
-   o  the server does not support DNSSEC
    o  all requests and responses are guaranteed to be <= 512 bytes
 
    A general purpose stub resolver implementation (e.g. an operating
@@ -235,25 +217,31 @@ Internet-Draft           DNS Transport over TCP             October 2009
    with upstream servers.
 
    A proprietary stub resolver implementation MAY omit support for TCP
-   if it is operating in an environment where truncation will not occur,
-   or if it is prepared to accept a DNS lookup failure should truncation
-   occur.
+
+
+
+Bellis                   Expires April 29, 2010                 [Page 4]
+
+Internet-Draft           DNS Transport over TCP             October 2009
+
+
+   if it is operating in an environment where truncation can never
+   occur, or if it is prepared to accept a DNS lookup failure should
+   truncation occur.
 
    A recursive resolver or forwarder MUST support TCP so that it does
    not prevent long responses from a TCP-capable server from reaching
    its TCP-capable clients.
-
-   Otherwise, all DNS implementations MUST support TCP transport.
 
    Regarding the choice of when to use UDP or TCP, RFC 1123 says:
 
       ... a DNS resolver or server that is sending a non-zone-transfer
       query MUST send a UDP query first.
 
-   This requirement is no longer mandatory.  A resolver SHOULD send a
-   UDP query first, but MAY elect to send a TCP query instead if it has
-   good reason to expect the response would be truncated if it were sent
-   over UDP, or other operational considerations suggest otherwise.
+   That requirement is hereby relaxed.  A resolver SHOULD send a UDP
+   query first, but MAY elect to send a TCP query instead if it has good
+   reason to expect the response would be truncated if it were sent over
+   UDP (with or without EDNS0) or for other operational reasons.
 
 
 5.  Dormant Connection Handling
@@ -271,31 +259,42 @@ Internet-Draft           DNS Transport over TCP             October 2009
    them dormant can trivially create a "denial of service" attack.
 
    This document therefore RECOMMENDS that the idle period should be of
-   the order of TBD seconds.  With modern high performance networks 2 to
-   4 seconds should be sufficient to allow significant numbers (i.e.
+   the order of TBD seconds.
+
+   Servers MAY allow dormant connections to remain open for longer
+   periods, but for the avoidance of doubt persistent DNS connections
+   should generally be considered to be as much for the server's benefit
+   as for the client's.  Therefore if the server needs to unilaterally
+   close a dormant TCP connection it MUST be free to do so whenever
+   required.
+
+   Further recommendations for the tuning of TCP parameters to allow
+   higher throughput or improved resiliency against denial of service
+   attacks are (currently) outside the scope of this document.
 
 
 
-Bellis                    Expires April 9, 2010                 [Page 5]
+
+
+Bellis                   Expires April 29, 2010                 [Page 5]
 
 Internet-Draft           DNS Transport over TCP             October 2009
 
 
-   thousands) of concurrent dormant connections without impacting
-   service performance.
-
-   Servers MAY allow idle connections to remain open for longer periods,
-   but for the avoidance of doubt persistent DNS connections should
-   generally be considered to be as much for the server's benefit as for
-   the client's.  Therefore if the server needs to unilaterally close a
-   dormant TCP connection it MUST be free to do so whenever required.
-
-
 6.  Response re-ordering
 
-   [Potential text to be added regarding whether TCP responses can come
-   back in a different order to requests.  I'm not aware whether this is
-   specified anywhere]
+   RFC 1035 is ambiguous on the question of whether TCP queries may be
+   re-ordered - the only relevant text is in Section 4.2.1 which relates
+   to UDP:
+
+      Queries or their responses may be reordered by the network, or by
+      processing in name servers, so resolvers should not depend on them
+      being returned in order.
+
+   For the avoidance of future doubt, this requirement is clarified.
+   Client resolvers MUST be able to process responses which arrive in a
+   different order to that in which the requests were sent, regardless
+   of the transport protocol in use.
 
 
 7.  Security Considerations
@@ -329,15 +328,14 @@ Internet-Draft           DNS Transport over TCP             October 2009
               RFC 792, September 1981.
 
    [RFC0793]  Postel, J., "Transmission Control Protocol", STD 7,
+              RFC 793, September 1981.
 
 
 
-Bellis                    Expires April 9, 2010                 [Page 6]
+Bellis                   Expires April 29, 2010                 [Page 6]
 
 Internet-Draft           DNS Transport over TCP             October 2009
 
-
-              RFC 793, September 1981.
 
    [RFC1035]  Mockapetris, P., "Domain names - implementation and
               specification", STD 13, RFC 1035, November 1987.
@@ -377,6 +375,10 @@ Appendix A.  Change Log
 
    NB: to be removed by the RFC Editor before publication.
 
+   draft-ietf-dnsext-dns-tcp-requirements-01
+      Addition of response ordering section
+      Various minor editorial changes from WG reviewers
+
    draft-ietf-dnsext-dns-tcp-requirements-00
       Initial draft
 
@@ -386,9 +388,7 @@ Appendix A.  Change Log
 
 
 
-
-
-Bellis                    Expires April 9, 2010                 [Page 7]
+Bellis                   Expires April 29, 2010                 [Page 7]
 
 Internet-Draft           DNS Transport over TCP             October 2009
 
@@ -444,5 +444,5 @@ Author's Address
 
 
 
-Bellis                    Expires April 9, 2010                 [Page 8]
+Bellis                   Expires April 29, 2010                 [Page 8]
 
