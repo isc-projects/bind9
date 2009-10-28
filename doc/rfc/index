@@ -123,3 +123,5 @@
 5155:	DNS Security (DNSSEC) Hashed Authenticated Denial of Existence
 5205:	Host Identity Protocol (HIP) Domain Name System (DNS) Extension
 5507:	Design Choices When Expanding the DNS
+5702:   Use of SHA-2 Algorithms with RSA in
+         DNSKEY and RRSIG Resource Records for DNSSEC

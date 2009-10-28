@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.35 2009/10/27 23:47:45 tbox Exp $
+ * $Id: opensslrsa_link.c,v 1.36 2009/10/28 21:07:09 marka Exp $
  */
 #ifdef OPENSSL
 #include <config.h>
@@ -344,7 +344,7 @@ opensslrsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
 
 #if ! USE_EVP && OPENSSL_VERSION_NUMBER < 0x00908000L
 /*
- * Digest prefixes from RFC XXXX (draft-ietf-dnsext-dnssec-rsasha256-14).
+ * Digest prefixes from RFC 5702.
  */
 static unsigned char sha256_prefix[] =
 	 { 0x30, 0x31, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86, 0x48,

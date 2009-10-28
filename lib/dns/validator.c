@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.179 2009/10/27 22:46:13 each Exp $ */
+/* $Id: validator.c,v 1.180 2009/10/28 05:34:21 each Exp $ */
 
 #include <config.h>
 
@@ -553,7 +553,8 @@ dsfetched2(isc_task_t *task, isc_event_t *event) {
 		if (isdelegation(tname, &val->frdataset, eresult)) {
 			if (val->mustbesecure) {
 				validator_log(val, ISC_LOG_WARNING,
-					      "must be secure failure");
+					      "must be secure failure, no DS"
+					      " and this is a delegation");
 				validator_done(val, DNS_R_MUSTBESECURE);
 			} else if (val->view->dlv == NULL || DLVTRIED(val)) {
 				markanswer(val);
@@ -1849,7 +1850,9 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 		if (val->key == NULL) {
 			if (val->mustbesecure) {
 				validator_log(val, ISC_LOG_WARNING,
-					      "must be secure failure");
+					      "must be secure failure,"
+					      " key is insecure, so mark the"
+					      " data as insecure also.");
 				return (DNS_R_MUSTBESECURE);
 			}
 			markanswer(val);
@@ -1924,7 +1927,8 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 			event->rdataset->trust = dns_trust_secure;
 			event->sigrdataset->trust = dns_trust_secure;
 			validator_log(val, ISC_LOG_DEBUG(3),
-				      "marking as secure");
+				      "marking as secure, "
+				      "noqname proof not needed");
 			return (result);
 		} else {
 			validator_log(val, ISC_LOG_DEBUG(3),
@@ -2100,12 +2104,13 @@ dlv_validatezonekey(dns_validator_t *val) {
 	if (result == ISC_R_SUCCESS) {
 		val->event->rdataset->trust = dns_trust_secure;
 		val->event->sigrdataset->trust = dns_trust_secure;
-		validator_log(val, ISC_LOG_DEBUG(3), "marking as secure");
+		validator_log(val, ISC_LOG_DEBUG(3), "marking as secure (dlv)");
 		return (result);
 	} else if (result == ISC_R_NOMORE && !supported_algorithm) {
 		if (val->mustbesecure) {
 			validator_log(val, ISC_LOG_WARNING,
-				      "must be secure failure");
+				      "must be secure failure,"
+				      "no supported algorithm/digest (dlv)");
 			return (DNS_R_MUSTBESECURE);
 		}
 		validator_log(val, ISC_LOG_DEBUG(3),
@@ -2312,7 +2317,8 @@ validatezonekey(dns_validator_t *val) {
 	if (val->dsset->trust < dns_trust_secure) {
 		if (val->mustbesecure) {
 			validator_log(val, ISC_LOG_WARNING,
-				      "must be secure failure");
+				      "must be secure failure,"
+				      " insecure DS");
 			return (DNS_R_MUSTBESECURE);
 		}
 		markanswer(val);
@@ -2452,12 +2458,13 @@ validatezonekey(dns_validator_t *val) {
 	if (result == ISC_R_SUCCESS) {
 		event->rdataset->trust = dns_trust_secure;
 		event->sigrdataset->trust = dns_trust_secure;
-		validator_log(val, ISC_LOG_DEBUG(3), "marking as secure");
+		validator_log(val, ISC_LOG_DEBUG(3), "marking as secure (DS)");
 		return (result);
 	} else if (result == ISC_R_NOMORE && !supported_algorithm) {
 		if (val->mustbesecure) {
 			validator_log(val, ISC_LOG_WARNING,
-				      "must be secure failure");
+				      "must be secure failure, "
+				      "no supported algorithm/digest (DS)");
 			return (DNS_R_MUSTBESECURE);
 		}
 		validator_log(val, ISC_LOG_DEBUG(3),
@@ -2875,9 +2882,7 @@ nsecvalidate(dns_validator_t *val, isc_boolean_t resume) {
 		if ((val->attributes & VALATTR_FOUNDNOQNAME) != 0 &&
 		    (val->attributes & VALATTR_FOUNDCLOSEST) != 0) {
 			validator_log(val, ISC_LOG_DEBUG(3),
-				      "noqname proof found");
-			validator_log(val, ISC_LOG_DEBUG(3),
-				      "marking as secure");
+				      "marking as secure, noqname proof found");
 			val->event->rdataset->trust = dns_trust_secure;
 			val->event->sigrdataset->trust = dns_trust_secure;
 			return (ISC_R_SUCCESS);
@@ -3077,7 +3082,8 @@ startfinddlvsep(dns_validator_t *val, dns_name_t *unsecure) {
 		      namebuf);
 
 	if (dns_name_issubdomain(val->event->name, val->view->dlv)) {
-		validator_log(val, ISC_LOG_WARNING, "must be secure failure");
+		validator_log(val, ISC_LOG_WARNING, "must be secure failure, "
+			      " %s is under DLV (startfinddlvsep)", namebuf);
 		return (DNS_R_MUSTBESECURE);
 	}
 
@@ -3129,10 +3135,12 @@ finddlvsep(dns_validator_t *val, isc_boolean_t resume) {
 	INSIST(val->view->dlv != NULL);
 
 	if (!resume) {
-
 		if (dns_name_issubdomain(val->event->name, val->view->dlv)) {
+			dns_name_format(val->event->name, namebuf,
+					sizeof(namebuf));
 			validator_log(val, ISC_LOG_WARNING,
-				      "must be secure failure");
+				      "must be secure failure, "
+				      "%s is under DLV (finddlvsep)", namebuf);
 			return (DNS_R_MUSTBESECURE);
 		}
 
@@ -3267,7 +3275,8 @@ proveunsecure(dns_validator_t *val, isc_boolean_t have_ds, isc_boolean_t resume)
 				      "not beneath secure root");
 			if (val->mustbesecure) {
 				validator_log(val, ISC_LOG_WARNING,
-					      "must be secure failure");
+					      "must be secure failure, "
+					      "not beneath secure root");
 				result = DNS_R_MUSTBESECURE;
 				goto out;
 			}
@@ -3390,7 +3399,9 @@ proveunsecure(dns_validator_t *val, isc_boolean_t have_ds, isc_boolean_t resume)
 			if (isdelegation(tname, &val->frdataset, result)) {
 				if (val->mustbesecure) {
 					validator_log(val, ISC_LOG_WARNING,
-						      "must be secure failure");
+						      "must be secure failure, "
+						      "%s is a delegation",
+						      namebuf);
 					return (DNS_R_MUSTBESECURE);
 				}
 				if (val->view->dlv == NULL || DLVTRIED(val)) {
@@ -3413,7 +3424,10 @@ proveunsecure(dns_validator_t *val, isc_boolean_t have_ds, isc_boolean_t resume)
 					if (val->mustbesecure) {
 						validator_log(val,
 							      ISC_LOG_WARNING,
-						      "must be secure failure");
+						      "must be secure failure, "
+						      "no supported algorithm/"
+						      "digest (%s/DS)",
+						      namebuf);
 						result = DNS_R_MUSTBESECURE;
 						goto out;
 					}
