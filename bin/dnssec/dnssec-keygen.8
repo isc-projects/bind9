@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-keygen.8,v 1.51 2009/10/23 01:14:47 tbox Exp $
+.\" $Id: dnssec-keygen.8,v 1.52 2009/10/28 01:14:38 tbox Exp $
 .\"
 .hy 0
 .ad l
@@ -33,7 +33,7 @@
 dnssec\-keygen \- DNSSEC key generation tool
 .SH "SYNOPSIS"
 .HP 14
-\fBdnssec\-keygen\fR [\fB\-a\ \fR\fB\fIalgorithm\fR\fR] [\fB\-b\ \fR\fB\fIkeysize\fR\fR] [\fB\-n\ \fR\fB\fInametype\fR\fR] [\fB\-3\fR] [\fB\-A\ \fR\fB\fIdate/offset\fR\fR] [\fB\-C\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-D\ \fR\fB\fIdate/offset\fR\fR] [\fB\-E\ \fR\fB\fIengine\fR\fR] [\fB\-e\fR] [\fB\-f\ \fR\fB\fIflag\fR\fR] [\fB\-G\fR] [\fB\-g\ \fR\fB\fIgenerator\fR\fR] [\fB\-h\fR] [\fB\-I\ \fR\fB\fIdate/offset\fR\fR] [\fB\-K\ \fR\fB\fIdirectory\fR\fR] [\fB\-k\fR] [\fB\-P\ \fR\fB\fIdate/offset\fR\fR] [\fB\-p\ \fR\fB\fIprotocol\fR\fR] [\fB\-R\ \fR\fB\fIdate/offset\fR\fR] [\fB\-r\ \fR\fB\fIrandomdev\fR\fR] [\fB\-s\ \fR\fB\fIstrength\fR\fR] [\fB\-t\ \fR\fB\fItype\fR\fR] [\fB\-v\ \fR\fB\fIlevel\fR\fR] [\fB\-z\fR] {name}
+\fBdnssec\-keygen\fR [\fB\-a\ \fR\fB\fIalgorithm\fR\fR] [\fB\-b\ \fR\fB\fIkeysize\fR\fR] [\fB\-n\ \fR\fB\fInametype\fR\fR] [\fB\-3\fR] [\fB\-A\ \fR\fB\fIdate/offset\fR\fR] [\fB\-C\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-D\ \fR\fB\fIdate/offset\fR\fR] [\fB\-E\ \fR\fB\fIengine\fR\fR] [\fB\-e\fR] [\fB\-f\ \fR\fB\fIflag\fR\fR] [\fB\-G\fR] [\fB\-g\ \fR\fB\fIgenerator\fR\fR] [\fB\-h\fR] [\fB\-I\ \fR\fB\fIdate/offset\fR\fR] [\fB\-K\ \fR\fB\fIdirectory\fR\fR] [\fB\-k\fR] [\fB\-P\ \fR\fB\fIdate/offset\fR\fR] [\fB\-p\ \fR\fB\fIprotocol\fR\fR] [\fB\-q\fR] [\fB\-R\ \fR\fB\fIdate/offset\fR\fR] [\fB\-r\ \fR\fB\fIrandomdev\fR\fR] [\fB\-s\ \fR\fB\fIstrength\fR\fR] [\fB\-t\ \fR\fB\fItype\fR\fR] [\fB\-v\ \fR\fB\fIlevel\fR\fR] [\fB\-z\fR] {name}
 .SH "DESCRIPTION"
 .PP
 \fBdnssec\-keygen\fR
@@ -142,6 +142,15 @@ Deprecated in favor of \-T KEY.
 \-p \fIprotocol\fR
 .RS 4
 Sets the protocol value for the generated key. The protocol is a number between 0 and 255. The default is 3 (DNSSEC). Other possible values for this argument are listed in RFC 2535 and its successors.
+.RE
+.PP
+\-q
+.RS 4
+Quiet mode: Suppresses unnecessary output, including progress indication. Without this option, when
+\fBdnssec\-keygen\fR
+is run interactively to generate an RSA or DSA key pair, it will print a string of symbols to
+\fIstderr\fR
+indicating the progress of the key generation. A '.' indicates that a random number has been found which passed an initial sieve test; '+' means a number has passed a single round of the Miller\-Rabin primality test; a space means that the number has passed all the tests and is a satisfactory key.
 .RE
 .PP
 \-r \fIrandomdev\fR
