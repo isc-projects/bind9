@@ -1,3 +1,5 @@
+	--- 9.7.0b2 released ---
+
 2742.	[cleanup]	Clarify some DNSSEC-related log messages in
 			validator.c. [RT #19589]
 
