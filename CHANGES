@@ -6,8 +6,7 @@
 			suppress the progress messages when stdin is not
 			a tty. [RT #20474]
 
-2740.	[func]		Identify bad answers from GTLD servers and treat them
-			as referrals. [RT #18884]
+2740.	[placeholder]
 
 2739.	[cleanup]	Clean up API for initializing and clearing trust
 			anchors for a view. [RT #20211]
