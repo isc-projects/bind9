@@ -1,3 +1,8 @@
+2741.	[func]		Allow the dnssec-keygen progress messages to be
+			suppressed (dnssec-keygen -q).  Automatically 
+			suppress the progress messages when stdin is not
+			a tty. [RT #20474]
+
 2740.	[func]		Identify bad answers from GTLD servers and treat them
 			as referrals. [RT #18884]
 

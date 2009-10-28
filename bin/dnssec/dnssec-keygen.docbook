@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-keygen.docbook,v 1.31 2009/10/22 02:21:30 each Exp $ -->
+<!-- $Id: dnssec-keygen.docbook,v 1.32 2009/10/28 00:27:10 marka Exp $ -->
 <refentry id="man.dnssec-keygen">
   <refentryinfo>
     <date>June 30, 2000</date>
@@ -75,6 +75,7 @@
       <arg><option>-k</option></arg>
       <arg><option>-P <replaceable class="parameter">date/offset</replaceable></option></arg>
       <arg><option>-p <replaceable class="parameter">protocol</replaceable></option></arg>
+      <arg><option>-q</option></arg>
       <arg><option>-R <replaceable class="parameter">date/offset</replaceable></option></arg>
       <arg><option>-r <replaceable class="parameter">randomdev</replaceable></option></arg>
       <arg><option>-s <replaceable class="parameter">strength</replaceable></option></arg>
@@ -300,6 +301,25 @@
             is a number between 0 and 255.  The default is 3 (DNSSEC).
             Other possible values for this argument are listed in
             RFC 2535 and its successors.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-q</term>
+        <listitem>
+          <para>
+            Quiet mode: Suppresses unnecessary output, including
+            progress indication.  Without this option, when
+            <command>dnssec-keygen</command> is run interactively
+            to generate an RSA or DSA key pair, it will print a string
+            of symbols to <filename>stderr</filename> indicating the
+            progress of the key generation.  A '.' indicates that a
+            random number has been found which passed an initial
+            sieve test; '+' means a number has passed a single
+            round of the Miller-Rabin primality test; a space
+            means that the number has passed all the tests and is
+            a satisfactory key.
           </para>
         </listitem>
       </varlistentry>

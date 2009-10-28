@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.34 2009/10/27 22:25:37 marka Exp $
+# $Id: sign.sh,v 1.35 2009/10/28 00:27:10 marka Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -36,8 +36,8 @@ do
 	cp ../ns3/dsset-$subdomain.example. .
 done
 
-keyname1=`$KEYGEN -r $RANDFILE -a DSA -b 768 -n zone $zone`
-keyname2=`$KEYGEN -r $RANDFILE -a DSA -b 768 -n zone $zone`
+keyname1=`$KEYGEN -q -r $RANDFILE -a DSA -b 768 -n zone $zone`
+keyname2=`$KEYGEN -q -r $RANDFILE -a DSA -b 768 -n zone $zone`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
@@ -49,7 +49,7 @@ privzone=private.secure.example.
 privinfile=private.secure.example.db.in
 privzonefile=private.secure.example.db
 
-privkeyname=`$KEYGEN -r $RANDFILE -a RSAMD5 -b 768 -n zone $privzone`
+privkeyname=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 768 -n zone $privzone`
 
 cat $privinfile $privkeyname.key >$privzonefile
 
@@ -62,7 +62,7 @@ dlvzone=dlv.
 dlvinfile=dlv.db.in
 dlvzonefile=dlv.db
 
-dlvkeyname=`$KEYGEN -r $RANDFILE -a RSAMD5 -b 768 -n zone $dlvzone`
+dlvkeyname=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 768 -n zone $dlvzone`
 
 cat $dlvinfile $dlvkeyname.key dlvset-$privzone > $dlvzonefile
 

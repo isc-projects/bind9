@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.105 2009/10/27 18:56:48 each Exp $ */
+/* $Id: dnssec-keygen.c,v 1.106 2009/10/28 00:27:10 marka Exp $ */
 
 /*! \file */
 
@@ -37,6 +37,7 @@
 
 #include <ctype.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <isc/buffer.h>
 #include <isc/commandline.h>
@@ -175,7 +176,7 @@ progress(int p)
 		c = '*';
 		break;
 	case 3:
-		c = '\n';
+		c = ' ';
 		break;
 	default:
 		break;
@@ -225,6 +226,8 @@ main(int argc, char **argv) {
 	isc_boolean_t	unsetrev = ISC_FALSE, unsetinact = ISC_FALSE;
 	isc_boolean_t	unsetdel = ISC_FALSE;
 	isc_boolean_t	genonly = ISC_FALSE;
+	isc_boolean_t	quiet = ISC_FALSE;
+	isc_boolean_t	show_progress = ISC_FALSE;
 
 	if (argc == 1)
 		usage();
@@ -236,7 +239,7 @@ main(int argc, char **argv) {
 	/*
 	 * Process memory debugging argument first.
 	 */
-#define CMDLINE_FLAGS "3a:b:Cc:d:E:eFf:g:K:km:n:p:r:s:T:t:v:hGP:A:R:I:D:"
+#define CMDLINE_FLAGS "3a:b:Cc:d:E:eFf:g:K:km:n:p:qr:s:T:t:v:hGP:A:R:I:D:"
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
 		case 'm':
@@ -328,6 +331,9 @@ main(int argc, char **argv) {
 			if (*endp != '\0' || protocol < 0 || protocol > 255)
 				fatal("-p must be followed by a number "
 				      "[0..255]");
+			break;
+		case 'q':
+			quiet = ISC_TRUE;
 			break;
 		case 'r':
 			setup_entropy(mctx, isc_commandline_argument, &ectx);
@@ -442,6 +448,9 @@ main(int argc, char **argv) {
 			exit(1);
 		}
 	}
+
+	if (!isatty(0))
+		quiet = ISC_TRUE;
 
 	if (ectx == NULL)
 		setup_entropy(mctx, NULL, &ectx);
@@ -688,12 +697,18 @@ main(int argc, char **argv) {
 	case DNS_KEYALG_RSASHA256:
 	case DNS_KEYALG_RSASHA512:
 		param = rsa_exp;
+		show_progress = ISC_TRUE;
 		break;
+
 	case DNS_KEYALG_DH:
 		param = generator;
 		break;
+
 	case DNS_KEYALG_DSA:
 	case DNS_KEYALG_NSEC3DSA:
+		show_progress = ISC_TRUE;
+		/* fall through */
+
 	case DST_ALG_HMACMD5:
 	case DST_ALG_HMACSHA1:
 	case DST_ALG_HMACSHA224:
@@ -713,10 +728,19 @@ main(int argc, char **argv) {
 		conflict = ISC_FALSE;
 		oldkey = NULL;
 
-		/* generate the key */
-		ret = dst_key_generate2(name, alg, size, param, flags,
-					protocol, rdclass, mctx, &key,
-					&progress);
+		if (!quiet && show_progress) {
+			fprintf(stderr, "Generating key pair.");
+			ret = dst_key_generate2(name, alg, size, param, flags,
+						protocol, rdclass, mctx, &key,
+						&progress);
+			putc('\n', stderr);
+			fflush(stderr);
+		} else {
+			ret = dst_key_generate2(name, alg, size, param, flags,
+						protocol, rdclass, mctx, &key,
+						NULL);
+		}
+
 		isc_entropy_stopcallbacksources(ectx);
 
 		if (ret != ISC_R_SUCCESS) {
