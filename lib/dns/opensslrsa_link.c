@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.36 2009/10/28 21:07:09 marka Exp $
+ * $Id: opensslrsa_link.c,v 1.37 2009/10/30 05:08:23 marka Exp $
  */
 #ifdef OPENSSL
 #include <config.h>
@@ -708,11 +708,16 @@ opensslrsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 static int
 progress_cb(int p, int n, BN_GENCB *cb)
 {
-	void (*callback)(int) = cb->arg;
+	union {
+		void *dptr;
+		void (*fptr)(int);
+	} u;
 
 	UNUSED(n);
-	if (callback != NULL)
-		callback(p);
+
+	u.dptr = cb->arg;
+	if (u.fptr != NULL)
+		u.fptr(p);
 	return (1);
 }
 #endif
@@ -721,6 +726,10 @@ static isc_result_t
 opensslrsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 #if OPENSSL_VERSION_NUMBER > 0x00908000L
 	BN_GENCB cb;
+	union {
+		void *dptr;
+		void (*fptr)(int);
+	} u;
 	RSA *rsa = RSA_new();
 	BIGNUM *e = BN_new();
 #if USE_EVP
@@ -749,7 +758,8 @@ opensslrsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 	if (callback == NULL) {
 		BN_GENCB_set_old(&cb, NULL, NULL);
 	} else {
-		BN_GENCB_set(&cb, &progress_cb, callback);
+		u.fptr = callback;
+		BN_GENCB_set(&cb, &progress_cb, u.dptr);
 	}
 
 	if (RSA_generate_key_ex(rsa, key->key_size, e, &cb)) {

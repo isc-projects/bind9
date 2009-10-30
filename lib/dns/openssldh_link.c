@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.17 2009/10/24 09:46:19 fdupont Exp $
+ * $Id: openssldh_link.c,v 1.18 2009/10/30 05:08:23 marka Exp $
  */
 
 #ifdef OPENSSL
@@ -153,11 +153,16 @@ openssldh_paramcompare(const dst_key_t *key1, const dst_key_t *key2) {
 static int
 progress_cb(int p, int n, BN_GENCB *cb)
 {
-	void (*callback)(int) = cb->arg;
+	union {
+		void *dptr;
+		void (*fptr)(int);
+	} u;
 
 	UNUSED(n);
-	if (callback != NULL)
-		callback(p);
+
+	u.dptr = cb->arg;
+	if (u.fptr != NULL)
+		u.fptr(p);
 	return (1);
 }
 #endif
@@ -167,6 +172,10 @@ openssldh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
 	DH *dh = NULL;
 #if OPENSSL_VERSION_NUMBER > 0x00908000L
 	BN_GENCB cb;
+	union {
+		void *dptr;
+		void (*fptr)(int);
+	} u;
 #else
 
 	UNUSED(callback);
@@ -200,7 +209,8 @@ openssldh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
 		if (callback == NULL) {
 			BN_GENCB_set_old(&cb, NULL, NULL);
 		} else {
-			BN_GENCB_set(&cb, &progress_cb, callback);
+			u.fptr = callback;
+			BN_GENCB_set(&cb, &progress_cb, u.dptr);
 		}
 
 		if (!DH_generate_parameters_ex(dh, key->key_size, generator,
