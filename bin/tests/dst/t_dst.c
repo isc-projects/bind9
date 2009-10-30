@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_dst.c,v 1.55 2008/01/12 23:47:13 tbox Exp $ */
+/* $Id: t_dst.c,v 1.55.158.2 2009/01/22 23:47:05 tbox Exp $ */
 
 #include <config.h>
 
@@ -357,7 +357,7 @@ t1(void) {
 	dns_name_t	*name;
 	isc_buffer_t	b;
 
-	t_assert("dst", 1, T_REQUIRED, a1);
+	t_assert("dst", 1, T_REQUIRED, "%s", a1);
 
 	nfails = 0;
 	nprobs = 0;
@@ -920,7 +920,7 @@ t2_vfy(char **av) {
 static void
 t2(void) {
 	int	result;
-	t_assert("dst", 2, T_REQUIRED, a2);
+	t_assert("dst", 2, T_REQUIRED, "%s", a2);
 	result = t_eval("dst_2_data", t2_vfy, 6);
 	t_result(result);
 }

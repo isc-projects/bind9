@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.c,v 1.22 2008/10/24 02:28:55 each Exp $ */
+/* $Id: aclconf.c,v 1.22.34.2 2009/01/18 23:47:41 tbox Exp $ */
 
 #include <config.h>
 
@@ -240,7 +240,7 @@ cfg_acl_fromconfig(const cfg_obj_t *caml,
 		/*
 		 * Need to allocate a new ACL structure.  Count the items
 		 * in the ACL definition that will require space in the
-		 * elemnts table.  (Note that if nest_level is nonzero,
+		 * elements table.  (Note that if nest_level is nonzero,
 		 * *everything* goes in the elements table.)
 		 */
 		int nelem;

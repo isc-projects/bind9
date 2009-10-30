@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.103 2008/09/25 02:01:45 marka Exp $ */
+/* $Id: journal.c,v 1.103.48.2 2009/01/18 23:47:37 tbox Exp $ */
 
 #include <config.h>
 
@@ -42,7 +42,7 @@
 #include <dns/soa.h>
 
 /*! \file
- * \brief Journalling.
+ * \brief Journaling.
  *
  * A journal file consists of
  *
@@ -172,7 +172,7 @@ dns_db_createsoatuple(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
 	return (result);
 }
 
-/* Journalling */
+/* Journaling */
 
 /*%
  * On-disk representation of a "pointer" to a journal entry.
@@ -641,7 +641,7 @@ journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 	dns_rdata_init(&j->it.rdata);
 
 	/*
-	 * Set up empty initial buffers for uncheched and checked
+	 * Set up empty initial buffers for unchecked and checked
 	 * wire format RR data.  They will be reallocated
 	 * later.
 	 */
@@ -1237,7 +1237,7 @@ roll_forward(dns_journal_t *j, dns_db_t *db, unsigned int options) {
 	dns_diff_init(j->mctx, &diff);
 
 	/*
-	 * Set up empty initial buffers for uncheched and checked
+	 * Set up empty initial buffers for unchecked and checked
 	 * wire format transaction data.  They will be reallocated
 	 * later.
 	 */
@@ -1409,7 +1409,7 @@ dns_journal_print(isc_mem_t *mctx, const char *filename, FILE *file) {
 	dns_diff_init(j->mctx, &diff);
 
 	/*
-	 * Set up empty initial buffers for uncheched and checked
+	 * Set up empty initial buffers for unchecked and checked
 	 * wire format transaction data.  They will be reallocated
 	 * later.
 	 */

@@ -195,7 +195,7 @@ int	main (int argc, char *argv[])
 			action = c;
 			if ( !optarg )
 				usage ("ksk rollover requires an domain argument", config);
-			kskdomain = str_tolowerdup (optarg);
+			kskdomain = domain_canonicdup (optarg);
 			break;
 		case 'T':
 			trustedkeyflag = 1;
@@ -218,15 +218,7 @@ int	main (int argc, char *argv[])
 		case 19:
 		case 20:
 			if ( (keyname = parsetag (optarg, &searchtag)) != NULL )
-			{
-				int len = strlen (keyname);
-				if ( len > 0 && keyname[len-1] != '.' )
-				{
-					snprintf (str, sizeof(str), "%s.", keyname);
-					keyname = str;
-				}
-			}
-			keyname = str_tolowerdup (keyname);
+				keyname = domain_canonicdup (keyname);
 			action = c;
 			break;
 		case 'a':		/* age */

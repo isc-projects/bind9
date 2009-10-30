@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.c,v 1.35 2008/10/24 00:28:00 marka Exp $ */
+/* $Id: check-tool.c,v 1.35.36.3 2009/01/20 02:03:18 marka Exp $ */
 
 /*! \file */
 
@@ -115,6 +115,7 @@ static isc_logcategory_t categories[] = {
 	{ "queries",	     0 },
 	{ "unmatched", 	     0 },
 	{ "update-security", 0 },
+	{ "query-errors",    0 },
 	{ NULL,		     0 }
 };
 
@@ -217,8 +218,8 @@ checkns(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner,
 		while (cur != NULL && cur->ai_canonname == NULL &&
 		       cur->ai_next != NULL)
 			cur = cur->ai_next;
-		if (ai != NULL && cur->ai_canonname != NULL &&
-		    strcasecmp(ai->ai_canonname, namebuf) != 0 &&
+		if (cur != NULL && cur->ai_canonname != NULL &&
+		    strcasecmp(cur->ai_canonname, namebuf) != 0 &&
 		    !logged(namebuf, ERR_IS_CNAME)) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "%s/NS '%s' (out of zone) "

@@ -41,16 +41,16 @@
 # define	HAS_TIMEGM	1
 #endif
 
-#ifndef HAS_UTYPES
-# define	HAS_UTYPES	1
-#endif
-
 #ifndef LOG_FNAMETMPL
 # define	LOG_FNAMETMPL	"/zkt-%04d-%02d-%02dT%02d%02d%02dZ.log"
 #endif
 
 /* don't change anything below this */
 /* the values here are determined or settable via the ./configure script */
+
+#ifndef HAS_UTYPES
+# define	HAS_UTYPES	1
+#endif
 
 #ifndef HAVE_GETOPT_LONG
 # define	HAVE_GETOPT_LONG	1
@@ -104,9 +104,9 @@
 
 #ifndef ZKT_VERSION
 # if defined(USE_TREE) && USE_TREE
-#  define	ZKT_VERSION	"vT0.97 (c) Feb 2005 - Aug 2008 Holger Zuleger hznet.de"
+#  define	ZKT_VERSION	"vT0.98 (c) Feb 2005 - Sep 2008 Holger Zuleger hznet.de"
 # else
-#  define	ZKT_VERSION	"v0.97 (c) Feb 2005 - Aug 2008 Holger Zuleger hznet.de"
+#  define	ZKT_VERSION	"v0.98 (c) Feb 2005 - Sep 2008 Holger Zuleger hznet.de"
 # endif
 #endif
 

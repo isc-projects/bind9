@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.12 2007/06/19 23:47:22 tbox Exp $ */
+/* $Id: log.h,v 1.12.332.2 2009/01/18 23:47:41 tbox Exp $ */
 
 #ifndef ISCCFG_LOG_H
 #define ISCCFG_LOG_H 1
@@ -46,7 +46,7 @@ cfg_log_init(isc_log_t *lctx);
  *\li	cfg_log_init() is called only once.
  *
  * Ensures:
- * \li	The catgories and modules defined above are available for
+ * \li	The categories and modules defined above are available for
  * 	use by isc_log_usechannnel() and isc_log_write().
  */
 

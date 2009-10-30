@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dlz.c,v 1.5 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: dlz.c,v 1.5.332.2 2009/01/18 23:47:35 tbox Exp $ */
 
 /*! \file */
 
@@ -126,7 +126,7 @@ dns_dlzallowzonexfr(dns_view_t *view, dns_name_t *name,
 	dlzdatabase = view->dlzdatabase;
 	allowzonexfr = dlzdatabase->implementation->methods->allowzonexfr;
 	result = (*allowzonexfr)(dlzdatabase->implementation->driverarg,
-			         dlzdatabase->dbdata, dlzdatabase->mctx,
+				 dlzdatabase->dbdata, dlzdatabase->mctx,
 				 view->rdclass, name, clientaddr, dbp);
 
 	if (result == ISC_R_NOTIMPLEMENTED)
@@ -275,7 +275,7 @@ dns_dlzfindzone(dns_view_t *view, dns_name_t *name, unsigned int minlabels,
 	 * trying shorter names portions of the name until we find a
 	 * match, have an error, or are below the 'minlabels'
 	 * threshold.  minlabels is 0, if the standard database didn't
-	 * have a zone name match.  Otherwise minlables is the number
+	 * have a zone name match.  Otherwise minlabels is the number
 	 * of labels in that name.  We need to beat that for a
 	 * "better" match for the DLZ database to be authoritative
 	 * instead of the standard database.

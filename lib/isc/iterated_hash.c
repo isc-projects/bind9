@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006, 2008, 2009  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: iterated_hash.c,v 1.4 2008/09/24 03:16:58 tbox Exp $ */
+/* $Id: iterated_hash.c,v 1.4.48.2 2009/02/18 23:47:12 tbox Exp $ */
+
+#include "config.h"
 
 #include <stdio.h>
 

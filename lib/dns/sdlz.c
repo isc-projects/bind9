@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2005-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2005-2009  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdlz.c,v 1.18 2008/09/24 02:46:22 marka Exp $ */
+/* $Id: sdlz.c,v 1.18.50.2 2009/04/21 23:47:18 tbox Exp $ */
 
 /*! \file */
 
@@ -844,9 +844,12 @@ find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 				{
 					result = DNS_R_ZONECUT;
 					dns_rdataset_disassociate(rdataset);
-					if (sigrdataset != NULL)
+					if (sigrdataset != NULL &&
+					    dns_rdataset_isassociated
+							(sigrdataset)) {
 						dns_rdataset_disassociate
 							(sigrdataset);
+					}
 				} else
 					result = DNS_R_DELEGATION;
 				break;

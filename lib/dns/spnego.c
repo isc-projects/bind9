@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006-2009  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: spnego.c,v 1.8 2008/04/03 06:09:04 tbox Exp $ */
+/* $Id: spnego.c,v 1.8.118.2 2009/01/18 23:47:40 tbox Exp $ */
 
 /*! \file
  * \brief
@@ -1731,7 +1731,7 @@ spnego_reply(OM_uint32 *minor_status,
 	 * to check the MIC -- our preferred mechanism (Kerberos)
 	 * authenticates its own messages and is the only mechanism
 	 * we'll accept, so if the mechanism negotiation completes
-	 * sucessfully, we don't need the MIC.  See RFC 4178.
+	 * successfully, we don't need the MIC.  See RFC 4178.
 	 */
 
 	free_NegTokenResp(&resp);

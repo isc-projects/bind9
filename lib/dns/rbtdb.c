@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.270 2008/11/14 14:07:48 marka Exp $ */
+/* $Id: rbtdb.c,v 1.270.12.6 2009/05/06 23:34:30 jinmei Exp $ */
 
 /*! \file */
 
@@ -190,6 +190,15 @@ typedef isc_mutex_t nodelock_t;
 #define NODE_WEAKDOWNGRADE(l)   ((void)0)
 #endif
 
+/*%
+ * Whether to rate-limit updating the LRU to avoid possible thread contention.
+ * Our performance measurement has shown the cost is marginal, so it's defined
+ * to be 0 by default either with or without threads.
+ */
+#ifndef DNS_RBTDB_LIMITLRUUPDATE
+#define DNS_RBTDB_LIMITLRUUPDATE 0
+#endif
+
 /*
  * Allow clients with a virtual time of up to 5 minutes in the past to see
  * records that would have otherwise have expired.
@@ -335,7 +344,7 @@ struct acachectl {
  */
 #ifdef DNS_RBTDB_CACHE_NODE_LOCK_COUNT
 #if DNS_RBTDB_CACHE_NODE_LOCK_COUNT <= 1
-#error "DNS_RBTDB_CACHE_NODE_LOCK_COUNT must be larger 1"
+#error "DNS_RBTDB_CACHE_NODE_LOCK_COUNT must be larger than 1"
 #else
 #define DEFAULT_CACHE_NODE_LOCK_COUNT DNS_RBTDB_CACHE_NODE_LOCK_COUNT
 #endif
@@ -524,6 +533,7 @@ static void overmem_purge(dns_rbtdb_t *rbtdb, unsigned int locknum_start,
 			  isc_stdtime_t now, isc_boolean_t tree_locked);
 static isc_result_t resign_insert(dns_rbtdb_t *rbtdb, int idx,
 				  rdatasetheader_t *newheader);
+static void prune_tree(isc_task_t *task, isc_event_t *event);
 
 static dns_rdatasetmethods_t rdataset_methods = {
 	rdataset_disassociate,
@@ -621,7 +631,7 @@ static void setnsec3parameters(dns_db_t *db, rbtdb_version_t *version,
 /*%
  * 'init_count' is used to initialize 'newheader->count' which inturn
  * is used to determine where in the cycle rrset-order cyclic starts.
- * We don't lock this as we don't care about simultanious updates.
+ * We don't lock this as we don't care about simultaneous updates.
  *
  * Note:
  *      Both init_count and header->count can be ISC_UINT32_MAX.
@@ -1542,7 +1552,7 @@ new_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 /*
  * This function is assumed to be called when a node is newly referenced
  * and can be in the deadnode list.  In that case the node must be retrieved
- * from the list because the it is going to be used.  In addition, if the caller
+ * from the list because it is going to be used.  In addition, if the caller
  * happens to hold a write lock on the tree, it's a good chance to purge dead
  * nodes.
  * Note: while a new reference is gained in multiple places, there are only very
@@ -1595,13 +1605,15 @@ reactivate_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 static isc_boolean_t
 decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		    rbtdb_serial_t least_serial,
-		    isc_rwlocktype_t nlock, isc_rwlocktype_t tlock)
+		    isc_rwlocktype_t nlock, isc_rwlocktype_t tlock,
+		    isc_boolean_t pruning)
 {
 	isc_result_t result;
 	isc_boolean_t write_locked;
 	rbtdb_nodelock_t *nodelock;
 	unsigned int refs, nrefs;
 	int bucket = node->locknum;
+	isc_boolean_t no_reference;
 
 	nodelock = &rbtdb->node_locks[bucket];
 
@@ -1684,6 +1696,7 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	} else
 		write_locked = ISC_TRUE;
 
+	no_reference = ISC_TRUE;
 	if (write_locked && dns_rbtnode_refcurrent(node) == 0) {
 		/*
 		 * We can now delete the node if the reference counter is
@@ -1692,35 +1705,97 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		 * current thread locks the tree (e.g., in findnode()).
 		 */
 
-		if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {
-			char printname[DNS_NAME_FORMATSIZE];
+		/*
+		 * If this node is the only one in the level it's in, deleting
+		 * this node may recursively make its parent the only node in
+		 * the parent level; if so, and if no one is currently using
+		 * the parent node, this is almost the only opportunity to
+		 * clean it up.  But the recursive cleanup is not that trivial
+		 * since the child and parent may be in different lock buckets,
+		 * which would cause a lock order reversal problem.  To avoid
+		 * the trouble, we'll dispatch a separate event for batch
+		 * cleaning.  We need to check whether we're deleting the node
+		 * as a result of pruning to avoid infinite dispatching.
+		 * Note: pruning happens only when a task has been set for the
+		 * rbtdb.  If the user of the rbtdb chooses not to set a task,
+		 * it's their responsibility to purge stale leaves (e.g. by
+		 * periodic walk-through).
+		 */
+		if (!pruning && node->parent != NULL &&
+		    node->parent->down == node && node->left == NULL &&
+		    node->right == NULL && rbtdb->task != NULL) {
+			isc_event_t *ev;
+			dns_db_t *db;
 
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-				      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),
-				      "decrement_reference: "
-				      "delete from rbt: %p %s",
-				      node,
-				      dns_rbt_formatnodename(node, printname,
-							   sizeof(printname)));
+			ev = isc_event_allocate(rbtdb->common.mctx, NULL,
+						DNS_EVENT_RBTPRUNE,
+						prune_tree, node,
+						sizeof(isc_event_t));
+			if (ev != NULL) {
+				new_reference(rbtdb, node);
+				db = NULL;
+				attach((dns_db_t *)rbtdb, &db);
+				ev->ev_sender = db;
+				isc_task_send(rbtdb->task, &ev);
+				no_reference = ISC_FALSE;
+			} else {
+				/*
+				 * XXX: this is a weird situation.  We could
+				 * ignore this error case, but then the stale
+				 * node will unlikely be purged except via a
+				 * rare condition such as manual cleanup.  So
+				 * we queue it in the deadnodes list, hoping
+				 * the memory shortage is temporary and the node
+				 * will be deleted later.
+				 */
+				isc_log_write(dns_lctx,
+					      DNS_LOGCATEGORY_DATABASE,
+					      DNS_LOGMODULE_CACHE,
+					      ISC_LOG_INFO,
+					      "decrement_reference: failed to "
+					      "allocate pruning event");
+				INSIST(!ISC_LINK_LINKED(node, deadlink));
+				ISC_LIST_APPEND(rbtdb->deadnodes[bucket], node,
+						deadlink);
+			}
+		} else {
+			if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {
+				char printname[DNS_NAME_FORMATSIZE];
+
+				isc_log_write(dns_lctx,
+					      DNS_LOGCATEGORY_DATABASE,
+					      DNS_LOGMODULE_CACHE,
+					      ISC_LOG_DEBUG(1),
+					      "decrement_reference: "
+					      "delete from rbt: %p %s",
+					      node,
+					      dns_rbt_formatnodename(node,
+							printname,
+							sizeof(printname)));
+			}
+
+			INSIST(!ISC_LINK_LINKED(node, deadlink));
+			if (node->nsec3)
+				result = dns_rbt_deletenode(rbtdb->nsec3, node,
+							    ISC_FALSE);
+			else
+				result = dns_rbt_deletenode(rbtdb->tree, node,
+							    ISC_FALSE);
+			if (result != ISC_R_SUCCESS) {
+				isc_log_write(dns_lctx,
+					      DNS_LOGCATEGORY_DATABASE,
+					      DNS_LOGMODULE_CACHE,
+					      ISC_LOG_WARNING,
+					      "decrement_reference: "
+					      "dns_rbt_deletenode: %s",
+					      isc_result_totext(result));
+			}
 		}
-
-		INSIST(!ISC_LINK_LINKED(node, deadlink));
-		if (node->nsec3)
-			result = dns_rbt_deletenode(rbtdb->nsec3, node,
-						    ISC_FALSE);
-		else
-			result = dns_rbt_deletenode(rbtdb->tree, node,
-						    ISC_FALSE);
-		if (result != ISC_R_SUCCESS)
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-				      DNS_LOGMODULE_CACHE, ISC_LOG_WARNING,
-				      "decrement_reference: "
-				      "dns_rbt_deletenode: %s",
-				      isc_result_totext(result));
 	} else if (dns_rbtnode_refcurrent(node) == 0) {
 		INSIST(!ISC_LINK_LINKED(node, deadlink));
 		ISC_LIST_APPEND(rbtdb->deadnodes[bucket], node, deadlink);
-	}
+	} else
+		no_reference = ISC_FALSE;
 
 	/* Restore the lock? */
 	if (nlock == isc_rwlocktype_read)
@@ -1737,7 +1812,71 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		if (write_locked)
 			isc_rwlock_downgrade(&rbtdb->tree_lock);
 
-	return (ISC_TRUE);
+	return (no_reference);
+}
+
+/*
+ * Prune the tree by recursively cleaning-up single leaves.  In the worst
+ * case, the number of iteration is the number of tree levels, which is at
+ * most the maximum number of domain name labels, i.e, 127.  In practice, this
+ * should be much smaller (only a few times), and even the worst case would be
+ * acceptable for a single event.
+ */
+static void
+prune_tree(isc_task_t *task, isc_event_t *event) {
+	dns_rbtdb_t *rbtdb = event->ev_sender;
+	dns_rbtnode_t *node = event->ev_arg;
+	dns_rbtnode_t *parent;
+	unsigned int locknum;
+
+	UNUSED(task);
+
+	isc_event_free(&event);
+
+	RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_write);
+	locknum = node->locknum;
+	NODE_LOCK(&rbtdb->node_locks[locknum].lock, isc_rwlocktype_write);
+	do {
+		parent = node->parent;
+		decrement_reference(rbtdb, node, 0, isc_rwlocktype_write,
+				    isc_rwlocktype_write, ISC_TRUE);
+
+		if (parent != NULL && parent->down == NULL) {
+			/*
+			 * node was the only down child of the parent and has
+			 * just been removed.  We'll then need to examine the
+			 * parent.  Keep the lock if possible; otherwise,
+			 * release the old lock and acquire one for the parent.
+			 */
+			if (parent->locknum != locknum) {
+				NODE_UNLOCK(&rbtdb->node_locks[locknum].lock,
+					    isc_rwlocktype_write);
+				locknum = parent->locknum;
+				NODE_LOCK(&rbtdb->node_locks[locknum].lock,
+					  isc_rwlocktype_write);
+			}
+
+			/*
+			 * We need to gain a reference to the node before
+			 * decrementing it in the next iteration.  In addition,
+			 * if the node is in the dead-nodes list, extract it
+			 * from the list beforehand as we do in
+			 * reactivate_node().
+			 */
+			new_reference(rbtdb, parent);
+			if (ISC_LINK_LINKED(parent, deadlink)) {
+				ISC_LIST_UNLINK(rbtdb->deadnodes[locknum],
+						parent, deadlink);
+			}
+		} else
+			parent = NULL;
+
+		node = parent;
+	} while (node != NULL);
+	NODE_UNLOCK(&rbtdb->node_locks[locknum].lock, isc_rwlocktype_write);
+	RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_write);
+
+	detach((dns_db_t **)&rbtdb);
 }
 
 static inline void
@@ -2154,8 +2293,8 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 			NODE_UNLOCK(lock, isc_rwlocktype_write);
 		}
 		decrement_reference(rbtdb, header->node, least_serial,
-				    isc_rwlocktype_write,
-				    isc_rwlocktype_none);
+				    isc_rwlocktype_write, isc_rwlocktype_none,
+				    ISC_FALSE);
 	}
 
 	if (!EMPTY(cleanup_list)) {
@@ -2188,7 +2327,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 				rollback_node(rbtnode, serial);
 			decrement_reference(rbtdb, rbtnode, least_serial,
 					    isc_rwlocktype_write,
-					    isc_rwlocktype_write);
+					    isc_rwlocktype_write, ISC_FALSE);
 
 			NODE_UNLOCK(lock, isc_rwlocktype_write);
 
@@ -3738,7 +3877,8 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 
 		NODE_LOCK(lock, isc_rwlocktype_read);
 		decrement_reference(search.rbtdb, node, 0,
-				    isc_rwlocktype_read, isc_rwlocktype_none);
+				    isc_rwlocktype_read, isc_rwlocktype_none,
+				    ISC_FALSE);
 		NODE_UNLOCK(lock, isc_rwlocktype_read);
 	}
 
@@ -4516,7 +4656,8 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 
 		NODE_LOCK(lock, isc_rwlocktype_read);
 		decrement_reference(search.rbtdb, node, 0,
-				    isc_rwlocktype_read, isc_rwlocktype_none);
+				    isc_rwlocktype_read, isc_rwlocktype_none,
+				    ISC_FALSE);
 		NODE_UNLOCK(lock, isc_rwlocktype_read);
 	}
 
@@ -4734,7 +4875,7 @@ detachnode(dns_db_t *db, dns_dbnode_t **targetp) {
 	NODE_LOCK(&nodelock->lock, isc_rwlocktype_read);
 
 	if (decrement_reference(rbtdb, node, 0, isc_rwlocktype_read,
-				isc_rwlocktype_none)) {
+				isc_rwlocktype_none, ISC_FALSE)) {
 		if (isc_refcount_current(&nodelock->references) == 0 &&
 		    nodelock->exiting) {
 			inactive = ISC_TRUE;
@@ -4801,8 +4942,8 @@ expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
 
 		/*
 		 * Note that 'log' can be true IFF rbtdb->overmem is also true.
-		 * rbtdb->ovemem can currently only be true for cache databases
-		 * -- hence all of the "overmem cache" log strings.
+		 * rbtdb->overmem can currently only be true for cache
+		 * databases -- hence all of the "overmem cache" log strings.
 		 */
 		log = ISC_TF(isc_log_wouldlog(dns_lctx, level));
 		if (log)
@@ -5226,19 +5367,15 @@ cname_and_other_data(dns_rbtnode_t *node, rbtdb_serial_t serial) {
 			 * Look for active extant "other data".
 			 *
 			 * "Other data" is any rdataset whose type is not
-			 * KEY, RRSIG KEY, NSEC, RRSIG NSEC or RRSIG CNAME.
+			 * KEY, NSEC, SIG or RRSIG.
 			 */
 			rdtype = RBTDB_RDATATYPE_BASE(header->type);
-			if (rdtype == dns_rdatatype_rrsig ||
-			    rdtype == dns_rdatatype_sig)
-				rdtype = RBTDB_RDATATYPE_EXT(header->type);
-			if (rdtype != dns_rdatatype_nsec &&
-			    rdtype != dns_rdatatype_key &&
-			    rdtype != dns_rdatatype_cname) {
+			if (rdtype != dns_rdatatype_key &&
+			    rdtype != dns_rdatatype_sig &&
+			    rdtype != dns_rdatatype_nsec &&
+			    rdtype != dns_rdatatype_rrsig) {
 				/*
-				 * We've found a type that isn't
-				 * NSEC, KEY, CNAME, or one of their
-				 * signatures.  Is it active and extant?
+				 * Is it active and extant?
 				 */
 				do {
 					if (header->serial <= serial &&
@@ -5942,7 +6079,7 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 	/*
 	 * Update the zone's secure status.  If version is non-NULL
-	 * this is defered until closeversion() is called.
+	 * this is deferred until closeversion() is called.
 	 */
 	if (result == ISC_R_SUCCESS && version == NULL && !IS_CACHE(rbtdb))
 		iszonesecure(db, version, rbtdb->origin_node);
@@ -6126,7 +6263,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 	/*
 	 * Update the zone's secure status.  If version is non-NULL
-	 * this is defered until closeversion() is called.
+	 * this is deferred until closeversion() is called.
 	 */
 	if (result == ISC_R_SUCCESS && version == NULL && !IS_CACHE(rbtdb))
 		iszonesecure(db, rbtdb->current_version, rbtdb->origin_node);
@@ -6181,7 +6318,7 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 	/*
 	 * Update the zone's secure status.  If version is non-NULL
-	 * this is defered until closeversion() is called.
+	 * this is deferred until closeversion() is called.
 	 */
 	if (result == ISC_R_SUCCESS && version == NULL && !IS_CACHE(rbtdb))
 		iszonesecure(db, rbtdb->current_version, rbtdb->origin_node);
@@ -6872,7 +7009,7 @@ dns_rbtdb_create
 	isc_mem_attach(mctx, &rbtdb->common.mctx);
 
 	/*
-	 * Must be initalized before free_rbtdb() is called.
+	 * Must be initialized before free_rbtdb() is called.
 	 */
 	isc_ondestroy_init(&rbtdb->common.ondest);
 
@@ -7464,7 +7601,7 @@ dereference_iter_node(rbtdb_dbiterator_t *rbtdbiter) {
 	lock = &rbtdb->node_locks[node->locknum].lock;
 	NODE_LOCK(lock, isc_rwlocktype_read);
 	decrement_reference(rbtdb, node, 0, isc_rwlocktype_read,
-			    rbtdbiter->tree_locked);
+			    rbtdbiter->tree_locked, ISC_FALSE);
 	NODE_UNLOCK(lock, isc_rwlocktype_read);
 
 	rbtdbiter->node = NULL;
@@ -7505,7 +7642,7 @@ flush_deletions(rbtdb_dbiterator_t *rbtdbiter) {
 			NODE_LOCK(lock, isc_rwlocktype_read);
 			decrement_reference(rbtdb, node, 0,
 					    isc_rwlocktype_read,
-					    rbtdbiter->tree_locked);
+					    rbtdbiter->tree_locked, ISC_FALSE);
 			NODE_UNLOCK(lock, isc_rwlocktype_read);
 		}
 
@@ -8302,15 +8439,17 @@ rdataset_putadditional(dns_acache_t *acache, dns_rdataset_t *rdataset,
 
 /*%
  * See if a given cache entry that is being reused needs to be updated
- * in the LRU-list.  For the non-threaded case this is always true unless the
- * entry has already been marked as stale; for the threaded case, updating
- * the entry every time it is referenced might be expensive because it requires
- * a node write lock.  Thus this function returns true if the entry has not been
- * updated for some period of time.  We differentiate the NS or glue address
- * case and the others since experiments have shown that the former tends to be
- * accessed relatively infrequently and the cost of cache miss is higher
- * (e.g., a missing NS records may cause external queries at a higher level
- * zone, involving more transactions).
+ * in the LRU-list.  From the LRU management point of view, this function is
+ * expected to return true for almost all cases.  When used with threads,
+ * however, this may cause a non-negligible performance penalty because a
+ * writer lock will have to be acquired before updating the list.
+ * If DNS_RBTDB_LIMITLRUUPDATE is defined to be non 0 at compilation time, this
+ * function returns true if the entry has not been updated for some period of
+ * time.  We differentiate the NS or glue address case and the others since
+ * experiments have shown that the former tends to be accessed relatively
+ * infrequently and the cost of cache miss is higher (e.g., a missing NS records
+ * may cause external queries at a higher level zone, involving more
+ * transactions).
  *
  * Caller must hold the node (read or write) lock.
  */
@@ -8320,7 +8459,7 @@ need_headerupdate(rdatasetheader_t *header, isc_stdtime_t now) {
 	     (RDATASET_ATTR_NONEXISTENT|RDATASET_ATTR_STALE)) != 0)
 		return (ISC_FALSE);
 
-#ifdef ISC_PLATFORM_USETHREADS
+#if DNS_RBTDB_LIMITLRUUPDATE
 	if (header->type == dns_rdatatype_ns ||
 	    (header->trust == dns_trust_glue &&
 	     (header->type == dns_rdatatype_a ||
@@ -8399,6 +8538,15 @@ overmem_purge(dns_rbtdb_t *rbtdb, unsigned int locknum_start,
 		     header != NULL && purgecount > 0;
 		     header = header_prev) {
 			header_prev = ISC_LIST_PREV(header, lru_link);
+			/*
+			 * Unlink the entry at this point to avoid checking it
+			 * again even if it's currently used someone else and
+			 * cannot be purged at this moment.  This entry won't be
+			 * referenced any more (so unlinking is safe) since the
+			 * TTL was reset to 0.
+			 */
+			ISC_LIST_UNLINK(rbtdb->rdatasets[locknum], header,
+					lru_link);
 			expire_header(rbtdb, header, tree_locked);
 			purgecount--;
 		}
@@ -8430,6 +8578,6 @@ expire_header(dns_rbtdb_t *rbtdb, rdatasetheader_t *header,
 		decrement_reference(rbtdb, header->node, 0,
 				    isc_rwlocktype_write,
 				    tree_locked ? isc_rwlocktype_write :
-				    isc_rwlocktype_none);
+				    isc_rwlocktype_none, ISC_FALSE);
 	}
 }

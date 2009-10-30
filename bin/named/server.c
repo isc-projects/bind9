@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.520 2008/11/14 23:47:32 tbox Exp $ */
+/* $Id: server.c,v 1.520.12.7 2009/01/30 03:53:38 marka Exp $ */
 
 /*! \file */
 
@@ -37,6 +37,7 @@
 #include <isc/print.h>
 #include <isc/resource.h>
 #include <isc/socket.h>
+#include <isc/stats.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/task.h>
@@ -214,7 +215,7 @@ static const struct {
 	/* Local IPv6 Unicast Addresses */
 	{ "0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.IP6.ARPA", ISC_FALSE },
 	{ "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.IP6.ARPA", ISC_FALSE },
-	/* LOCALLY ASSIGNED LOCAL ADDRES S SCOPE */
+	/* LOCALLY ASSIGNED LOCAL ADDRESS SCOPE */
 	{ "D.F.IP6.ARPA", ISC_FALSE },
 	{ "8.E.F.IP6.ARPA", ISC_FALSE },	/* LINK LOCAL */
 	{ "9.E.F.IP6.ARPA", ISC_FALSE },	/* LINK LOCAL */
@@ -256,9 +257,8 @@ static void
 end_reserved_dispatches(ns_server_t *server, isc_boolean_t all);
 
 /*%
- * Configure a single view ACL at '*aclp'.  Get its configuration by
- * calling 'getvcacl' (for per-view configuration) and maybe 'getscacl'
- * (for a global default).
+ * Configure a single view ACL at '*aclp'.  Get its configuration from
+ * 'vconfig' (for per-view configuration) and maybe from 'config'
  */
 static isc_result_t
 configure_view_acl(const cfg_obj_t *vconfig, const cfg_obj_t *config,
@@ -958,20 +958,37 @@ check_dbtype(dns_zone_t **zonep, unsigned int dbtypec, const char **dbargv,
 static isc_result_t
 setquerystats(dns_zone_t *zone, isc_mem_t *mctx, isc_boolean_t on) {
 	isc_result_t result;
-	dns_stats_t *zoneqrystats;
+	isc_stats_t *zoneqrystats;
 
 	zoneqrystats = NULL;
 	if (on) {
-		result = dns_generalstats_create(mctx, &zoneqrystats,
-						 dns_nsstatscounter_max);
+		result = isc_stats_create(mctx, &zoneqrystats,
+					  dns_nsstatscounter_max);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 	}
 	dns_zone_setrequeststats(zone, zoneqrystats);
 	if (zoneqrystats != NULL)
-		dns_stats_detach(&zoneqrystats);
+		isc_stats_detach(&zoneqrystats);
 
 	return (ISC_R_SUCCESS);
+}
+
+static isc_boolean_t
+cache_reusable(dns_view_t *originview, dns_view_t *view,
+	       isc_boolean_t new_zero_no_soattl)
+{
+	if (originview->checknames != view->checknames ||
+	    dns_resolver_getzeronosoattl(originview->resolver) !=
+	    new_zero_no_soattl ||
+	    originview->acceptexpired != view->acceptexpired ||
+	    originview->enablevalidation != view->enablevalidation ||
+	    originview->maxcachettl != view->maxcachettl ||
+	    originview->maxncachettl != view->maxncachettl) {
+		return (ISC_FALSE);
+	}
+
+	return (ISC_TRUE);
 }
 
 /*
@@ -1028,8 +1045,9 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	isc_boolean_t rfc1918;
 	isc_boolean_t empty_zones_enable;
 	const cfg_obj_t *disablelist = NULL;
-	dns_stats_t *resstats = NULL;
+	isc_stats_t *resstats = NULL;
 	dns_stats_t *resquerystats = NULL;
+	isc_boolean_t zero_no_soattl;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -1171,19 +1189,70 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 #endif
 
 	/*
+	 * Obtain configuration parameters that affect the decision of whether
+	 * we can reuse/share an existing cache.
+	 */
+	/* Check-names. */
+	obj = NULL;
+	result = ns_checknames_get(maps, "response", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+
+	str = cfg_obj_asstring(obj);
+	if (strcasecmp(str, "fail") == 0) {
+		resopts |= DNS_RESOLVER_CHECKNAMES |
+			DNS_RESOLVER_CHECKNAMESFAIL;
+		view->checknames = ISC_TRUE;
+	} else if (strcasecmp(str, "warn") == 0) {
+		resopts |= DNS_RESOLVER_CHECKNAMES;
+		view->checknames = ISC_FALSE;
+	} else if (strcasecmp(str, "ignore") == 0) {
+		view->checknames = ISC_FALSE;
+	} else
+		INSIST(0);
+
+	obj = NULL;
+	result = ns_config_get(maps, "zero-no-soa-ttl-cache", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	zero_no_soattl = cfg_obj_asboolean(obj);
+
+	obj = NULL;
+	result = ns_config_get(maps, "dnssec-accept-expired", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->acceptexpired = cfg_obj_asboolean(obj);
+
+	obj = NULL;
+	result = ns_config_get(maps, "dnssec-validation", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->enablevalidation = cfg_obj_asboolean(obj);
+
+	obj = NULL;
+	result = ns_config_get(maps, "max-cache-ttl", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->maxcachettl = cfg_obj_asuint32(obj);
+
+	obj = NULL;
+	result = ns_config_get(maps, "max-ncache-ttl", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->maxncachettl = cfg_obj_asuint32(obj);
+	if (view->maxncachettl > 7 * 24 * 3600)
+		view->maxncachettl = 7 * 24 * 3600;
+
+	/*
 	 * Configure the view's cache.  Try to reuse an existing
 	 * cache if possible, otherwise create a new cache.
 	 * Note that the ADB is not preserved in either case.
 	 * When a matching view is found, the associated statistics are
 	 * also retrieved and reused.
 	 *
-	 * XXX Determining when it is safe to reuse a cache is
-	 * tricky.  When the view's configuration changes, the cached
-	 * data may become invalid because it reflects our old
-	 * view of the world.  As more view attributes become
-	 * configurable, we will have to add code here to check
-	 * whether they have changed in ways that could
-	 * invalidate the cache.
+	 * XXX Determining when it is safe to reuse a cache is tricky.
+	 * When the view's configuration changes, the cached data may become
+	 * invalid because it reflects our old view of the world.  We check
+	 * some of the configuration parameters that could invalidate the cache,
+	 * but there are other configuration options that should be checked.
+	 * For example, if a view uses a forwarder, changes in the forwarder
+	 * configuration may invalidate the cache.  At the moment, it's the
+	 * administrator's responsibility to ensure these configuration options
+	 * don't invalidate reusing.
 	 */
 	result = dns_viewlist_find(&ns_g_server->viewlist,
 				   view->name, view->rdclass,
@@ -1191,16 +1260,25 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	if (result != ISC_R_NOTFOUND && result != ISC_R_SUCCESS)
 		goto cleanup;
 	if (pview != NULL) {
-		INSIST(pview->cache != NULL);
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_DEBUG(3),
-			      "reusing existing cache");
-		reused_cache = ISC_TRUE;
-		dns_cache_attach(pview->cache, &cache);
+		if (cache_reusable(pview, view, zero_no_soattl)) {
+			INSIST(pview->cache != NULL);
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_DEBUG(3),
+				      "reusing existing cache");
+			reused_cache = ISC_TRUE;
+			dns_cache_attach(pview->cache, &cache);
+		} else {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_DEBUG(1),
+				      "cache cannot be reused for view %s "
+				      "due to configuration parameter mismatch",
+				      view->name);
+		}
 		dns_view_getresstats(pview, &resstats);
 		dns_view_getresquerystats(pview, &resquerystats);
 		dns_view_detach(&pview);
-	} else {
+	}
+	if (cache == NULL) {
 		CHECK(isc_mem_create(0, 0, &cmctx));
 		CHECK(dns_cache_create(cmctx, ns_g_taskmgr, ns_g_timermgr,
 				       view->rdclass, "rbt", 0, NULL, &cache));
@@ -1250,26 +1328,6 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	dns_cache_detach(&cache);
 
 	/*
-	 * Check-names.
-	 */
-	obj = NULL;
-	result = ns_checknames_get(maps, "response", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-
-	str = cfg_obj_asstring(obj);
-	if (strcasecmp(str, "fail") == 0) {
-		resopts |= DNS_RESOLVER_CHECKNAMES |
-			DNS_RESOLVER_CHECKNAMESFAIL;
-		view->checknames = ISC_TRUE;
-	} else if (strcasecmp(str, "warn") == 0) {
-		resopts |= DNS_RESOLVER_CHECKNAMES;
-		view->checknames = ISC_FALSE;
-	} else if (strcasecmp(str, "ignore") == 0) {
-		view->checknames = ISC_FALSE;
-	} else
-		INSIST(0);
-
-	/*
 	 * Resolver.
 	 *
 	 * XXXRTH  Hardwired number of tasks.
@@ -1293,8 +1351,8 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 				      dispatch4, dispatch6));
 
 	if (resstats == NULL) {
-		CHECK(dns_generalstats_create(mctx, &resstats,
-					      dns_resstatscounter_max));
+		CHECK(isc_stats_create(mctx, &resstats,
+				       dns_resstatscounter_max));
 	}
 	dns_view_setresstats(view, resstats);
 	if (resquerystats == NULL)
@@ -1322,11 +1380,6 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	if (lame_ttl > 1800)
 		lame_ttl = 1800;
 	dns_resolver_setlamettl(view->resolver, lame_ttl);
-
-	obj = NULL;
-	result = ns_config_get(maps, "zero-no-soa-ttl-cache", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	dns_resolver_setzeronosoattl(view->resolver, cfg_obj_asboolean(obj));
 
 	/*
 	 * Set the resolver's EDNS UDP size.
@@ -1577,10 +1630,11 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	 */
 	if (view->queryacl == NULL && view->recursionacl != NULL)
 		dns_acl_attach(view->recursionacl, &view->queryacl);
-	if (view->queryacl == NULL)
+	if (view->queryacl == NULL && view->recursion)
 		CHECK(configure_view_acl(vconfig, config, "allow-query",
 					 actx, ns_g_mctx, &view->queryacl));
-	if (view->recursionacl == NULL && view->queryacl != NULL)
+	if (view->recursion &&
+	    view->recursionacl == NULL && view->queryacl != NULL)
 		dns_acl_attach(view->queryacl, &view->recursionacl);
 
 	/*
@@ -1597,10 +1651,17 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 					 "allow-recursion-on",
 					 actx, ns_g_mctx,
 					 &view->recursiononacl));
-	if (view->queryacl == NULL)
-		CHECK(configure_view_acl(NULL, ns_g_config,
-					 "allow-query-cache", actx,
-					 ns_g_mctx, &view->queryacl));
+	if (view->queryacl == NULL) {
+		if (view->recursion)
+			CHECK(configure_view_acl(NULL, ns_g_config,
+						 "allow-query-cache", actx,
+						 ns_g_mctx, &view->queryacl));
+		else {
+			if (view->queryacl != NULL)
+				dns_acl_detach(&view->queryacl);
+			CHECK(dns_acl_none(ns_g_mctx, &view->queryacl));
+		}
+	}
 
 	/*
 	 * Configure sortlist, if set
@@ -1663,16 +1724,6 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	view->enablednssec = cfg_obj_asboolean(obj);
 
 	obj = NULL;
-	result = ns_config_get(maps, "dnssec-accept-expired", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	view->acceptexpired = cfg_obj_asboolean(obj);
-
-	obj = NULL;
-	result = ns_config_get(maps, "dnssec-validation", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	view->enablevalidation = cfg_obj_asboolean(obj);
-
-	obj = NULL;
 	result = ns_config_get(maps, "dnssec-lookaside", &obj);
 	if (result == ISC_R_SUCCESS) {
 		for (element = cfg_list_first(obj);
@@ -1725,18 +1776,6 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	result = ns_config_get(maps, "dnssec-must-be-secure", &obj);
 	if (result == ISC_R_SUCCESS)
 		CHECK(mustbesecure(obj, view->resolver));
-
-	obj = NULL;
-	result = ns_config_get(maps, "max-cache-ttl", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	view->maxcachettl = cfg_obj_asuint32(obj);
-
-	obj = NULL;
-	result = ns_config_get(maps, "max-ncache-ttl", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	view->maxncachettl = cfg_obj_asuint32(obj);
-	if (view->maxncachettl > 7 * 24 * 3600)
-		view->maxncachettl = 7 * 24 * 3600;
 
 	obj = NULL;
 	result = ns_config_get(maps, "preferred-glue", &obj);
@@ -1973,7 +2012,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	if (dispatch6 != NULL)
 		dns_dispatch_detach(&dispatch6);
 	if (resstats != NULL)
-		dns_stats_detach(&resstats);
+		isc_stats_detach(&resstats);
 	if (resquerystats != NULL)
 		dns_stats_detach(&resquerystats);
 	if (order != NULL)
@@ -3908,6 +3947,11 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->opcodestats = NULL;
 	server->zonestats = NULL;
 	server->resolverstats = NULL;
+	server->sockstats = NULL;
+	CHECKFATAL(isc_stats_create(server->mctx, &server->sockstats,
+				    isc_sockstatscounter_max),
+		   "isc_stats_create");
+	isc_socketmgr_setstats(ns_g_socketmgr, server->sockstats);
 
 	server->dumpfile = isc_mem_strdup(server->mctx, "named_dump.db");
 	CHECKFATAL(server->dumpfile == NULL ? ISC_R_NOMEMORY : ISC_R_SUCCESS,
@@ -3924,8 +3968,8 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->server_usehostname = ISC_FALSE;
 	server->server_id = NULL;
 
-	CHECKFATAL(dns_generalstats_create(ns_g_mctx, &server->nsstats,
-					   dns_nsstatscounter_max),
+	CHECKFATAL(isc_stats_create(ns_g_mctx, &server->nsstats,
+				    dns_nsstatscounter_max),
 		   "dns_stats_create (server)");
 
 	CHECKFATAL(dns_rdatatypestats_create(ns_g_mctx,
@@ -3935,12 +3979,12 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	CHECKFATAL(dns_opcodestats_create(ns_g_mctx, &server->opcodestats),
 		   "dns_stats_create (opcode)");
 
-	CHECKFATAL(dns_generalstats_create(ns_g_mctx, &server->zonestats,
-					   dns_zonestatscounter_max),
+	CHECKFATAL(isc_stats_create(ns_g_mctx, &server->zonestats,
+				    dns_zonestatscounter_max),
 		   "dns_stats_create (zone)");
 
-	CHECKFATAL(dns_generalstats_create(ns_g_mctx, &server->resolverstats,
-					   dns_resstatscounter_max),
+	CHECKFATAL(isc_stats_create(ns_g_mctx, &server->resolverstats,
+				    dns_resstatscounter_max),
 		   "dns_stats_create (resolver)");
 
 	server->flushonshutdown = ISC_FALSE;
@@ -3965,11 +4009,12 @@ ns_server_destroy(ns_server_t **serverp) {
 
 	ns_controls_destroy(&server->controls);
 
-	dns_stats_detach(&server->nsstats);
+	isc_stats_detach(&server->nsstats);
 	dns_stats_detach(&server->rcvquerystats);
 	dns_stats_detach(&server->opcodestats);
-	dns_stats_detach(&server->zonestats);
-	dns_stats_detach(&server->resolverstats);
+	isc_stats_detach(&server->zonestats);
+	isc_stats_detach(&server->resolverstats);
+	isc_stats_detach(&server->sockstats);
 
 	isc_mem_free(server->mctx, server->statsfile);
 	isc_mem_free(server->mctx, server->dumpfile);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddresses.h,v 1.9 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: getaddresses.h,v 1.9.332.2 2009/01/18 23:47:35 tbox Exp $ */
 
 #ifndef BIND9_GETADDRESSES_H
 #define BIND9_GETADDRESSES_H 1
@@ -40,7 +40,7 @@ bind9_getaddresses(const char *hostname, in_port_t port,
  * first 'addrsize' are returned and the remainder silently truncated.
  *
  * This routine may block.  If called by a program using the isc_app
- * framework, it should be surounded by isc_app_block()/isc_app_unblock().
+ * framework, it should be surrounded by isc_app_block()/isc_app_unblock().
  *
  *  Requires:
  *\li	'hostname' is not NULL.
@@ -48,7 +48,7 @@ bind9_getaddresses(const char *hostname, in_port_t port,
  *\li	'addrsize' > 0
  *\li	'addrcount' is not NULL.
  *
- * 
+ *
  * Returns:
  *\li	#ISC_R_SUCCESS
  *\li	#ISC_R_NOTFOUND

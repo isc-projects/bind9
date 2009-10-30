@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,11 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.483 2008/10/24 00:28:00 marka Exp $ */
+/* $Id: zone.c,v 1.483.36.6 2009/03/26 22:57:07 marka Exp $ */
 
 /*! \file */
 
 #include <config.h>
+#include <errno.h>
 
 #include <isc/file.h>
 #include <isc/mutex.h>
@@ -29,6 +30,8 @@
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
 #include <isc/serial.h>
+#include <isc/strerror.h>
+#include <isc/stats.h>
 #include <isc/stdtime.h>
 #include <isc/string.h>
 #include <isc/taskpool.h>
@@ -271,13 +274,13 @@ struct dns_zone {
 	/*%
 	 * Statistics counters about zone management.
 	 */
-	dns_stats_t	    	*stats;
+	isc_stats_t	    	*stats;
 	/*%
 	 * Optional per-zone statistics counters.  Counted outside of this
 	 * module.
 	 */
 	isc_boolean_t	    	requeststats_on;
-	dns_stats_t	    	*requeststats;
+	isc_stats_t	    	*requeststats;
 	isc_uint32_t		notifydelay;
 	dns_isselffunc_t	isself;
 	void			*isselfarg;
@@ -331,7 +334,7 @@ struct dns_zone {
 						 * reload */
 #define DNS_ZONEFLG_NOMASTERS	0x00001000U	/*%< an attempt to refresh a
 						 * zone with no masters
-						 * occured */
+						 * occurred */
 #define DNS_ZONEFLG_LOADING	0x00002000U	/*%< load from disk in progress*/
 #define DNS_ZONEFLG_HAVETIMERS	0x00004000U	/*%< timer values have been set
 						 * from SOA (if not set, we
@@ -645,9 +648,9 @@ static const char *dbargv_default[] = { "rbt" };
  * Increment resolver-related statistics counters.  Zone must be locked.
  */
 static inline void
-inc_stats(dns_zone_t *zone, dns_statscounter_t counter) {
+inc_stats(dns_zone_t *zone, isc_statscounter_t counter) {
 	if (zone->stats != NULL)
-		dns_generalstats_increment(zone->stats, counter);
+		isc_stats_increment(zone->stats, counter);
 }
 
 /***
@@ -869,9 +872,9 @@ zone_free(dns_zone_t *zone) {
 		isc_mem_free(zone->mctx, zone->journal);
 	zone->journal = NULL;
 	if (zone->stats != NULL)
-		dns_stats_detach(&zone->stats);
+		isc_stats_detach(&zone->stats);
 	if (zone->requeststats != NULL)
-		dns_stats_detach(&zone->requeststats);
+		isc_stats_detach(&zone->requeststats);
 	if (zone->db != NULL)
 		zone_detachdb(zone);
 	if (zone->acache != NULL)
@@ -3345,7 +3348,7 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone,
 		goto unlock;
 
 	/*
-	 * masters must countain count elements!
+	 * masters must contain count elements!
 	 */
 	new = isc_mem_get(zone->mctx, count * sizeof(*new));
 	if (new == NULL) {
@@ -4247,7 +4250,9 @@ sign_a_node(dns_db_t *db, dns_name_t *name, dns_dbnode_t *node,
 			goto next_rdataset;
 		if (is_ksk && rdataset.type != dns_rdatatype_dnskey)
 			goto next_rdataset;
-		if (*delegation && !dns_rdatatype_atparent(rdataset.type))
+		if (*delegation &&
+		    rdataset.type != dns_rdatatype_ds &&
+		    rdataset.type != dns_rdatatype_nsec)
 			goto next_rdataset;
 		if (signed_with_key(db, node, version, rdataset.type, key))
 			goto next_rdataset;
@@ -4736,7 +4741,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 		check_ksk = ksk_sanity(db, version);
 
 	/*
-	 * We keep pulling nodes off each interator in turn until
+	 * We keep pulling nodes off each iterator in turn until
 	 * we have no more nodes to pull off or we reach the limits
 	 * for this quantum.
 	 */
@@ -5521,7 +5526,7 @@ zone_sign(dns_zone_t *zone) {
 		check_ksk = ksk_sanity(db, version);
 
 	/*
-	 * We keep pulling nodes off each interator in turn until
+	 * We keep pulling nodes off each iterator in turn until
 	 * we have no more nodes to pull off or we reach the limits
 	 * for this quantum.
 	 */
@@ -6015,7 +6020,7 @@ void
 dns_zone_markdirty(dns_zone_t *zone) {
 
 	LOCK_ZONE(zone);
-	set_resigntime(zone);	/* XXXMPA make seperate call back */
+	set_resigntime(zone);	/* XXXMPA make separate call back */
 	zone_needdump(zone, DNS_DUMP_DELAY);
 	UNLOCK_ZONE(zone);
 }
@@ -6965,7 +6970,7 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		dns_rdata_reset(&rdata);
 		/*
-		 * Don't notify the master server unless explictly
+		 * Don't notify the master server unless explicitly
 		 * configured to do so.
 		 */
 		if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_NOTIFYTOSOA) &&
@@ -7484,7 +7489,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 			     "master %s (source %s)", (int)rb.used, rcode,
 			     master, source);
 		/*
-		 * Perhaps AXFR/IXFR is allowed even if SOA queries arn't.
+		 * Perhaps AXFR/IXFR is allowed even if SOA queries aren't.
 		 */
 		if (msg->rcode == dns_rcode_refused &&
 		    zone->type == dns_zone_slave)
@@ -9462,7 +9467,7 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 
 	/*
 	 * The initial version of a slave zone is always dumped;
-	 * subsequent versions may be journalled instead if this
+	 * subsequent versions may be journaled instead if this
 	 * is enabled in the configuration.
 	 */
 	if (zone->db != NULL && zone->journal != NULL &&
@@ -9545,7 +9550,7 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 			 * The in-memory database just changed, and
 			 * because 'dump' is set, it didn't change by
 			 * being loaded from disk.  Also, we have not
-			 * journalled diffs for this change.
+			 * journaled diffs for this change.
 			 * Therefore, the on-disk journal is missing
 			 * the deltas for this change.  Since it can
 			 * no longer be used to bring the zone
@@ -9555,7 +9560,17 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_ZONE, ISC_LOG_DEBUG(3),
 				      "removing journal file");
-			(void)remove(zone->journal);
+			if (remove(zone->journal) < 0 && errno != ENOENT) {
+				char strbuf[ISC_STRERRORSIZE];
+				isc__strerror(errno, strbuf, sizeof(strbuf));
+				isc_log_write(dns_lctx,
+					      DNS_LOGCATEGORY_GENERAL,
+					      DNS_LOGMODULE_ZONE,
+					      ISC_LOG_WARNING,
+					      "unable to remove journal "
+					      "'%s': '%s'",
+					      zone->journal, strbuf);
+			}
 		}
 	}
 
@@ -9712,7 +9727,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 		}
 
 		/*
-		 * This is not neccessary if we just performed a AXFR
+		 * This is not necessary if we just performed a AXFR
 		 * however it is necessary for an IXFR / UPTODATE and
 		 * won't hurt with an AXFR.
 		 */
@@ -10922,7 +10937,7 @@ zone_saveunique(dns_zone_t *zone, const char *path, const char *templat) {
 }
 
 #if 0
-/* Hook for ondestroy notifcation from a database. */
+/* Hook for ondestroy notification from a database. */
 
 static void
 dns_zonemgr_dbdestroyed(isc_task_t *task, isc_event_t *event) {
@@ -11099,18 +11114,18 @@ dns_zone_getstatscounters(dns_zone_t *zone) {
 }
 
 void
-dns_zone_setstats(dns_zone_t *zone, dns_stats_t *stats) {
+dns_zone_setstats(dns_zone_t *zone, isc_stats_t *stats) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(zone->stats == NULL);
 
 	LOCK_ZONE(zone);
 	zone->stats = NULL;
-	dns_stats_attach(stats, &zone->stats);
+	isc_stats_attach(stats, &zone->stats);
 	UNLOCK_ZONE(zone);
 }
 
 void
-dns_zone_setrequeststats(dns_zone_t *zone, dns_stats_t *stats) {
+dns_zone_setrequeststats(dns_zone_t *zone, isc_stats_t *stats) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
@@ -11118,7 +11133,7 @@ dns_zone_setrequeststats(dns_zone_t *zone, dns_stats_t *stats) {
 		zone->requeststats_on = ISC_FALSE;
 	else if (!zone->requeststats_on && stats != NULL) {
 		if (zone->requeststats == NULL) {
-			dns_stats_attach(stats, &zone->requeststats);
+			isc_stats_attach(stats, &zone->requeststats);
 			zone->requeststats_on = ISC_TRUE;
 		}
 	}
@@ -11127,7 +11142,7 @@ dns_zone_setrequeststats(dns_zone_t *zone, dns_stats_t *stats) {
 	return;
 }
 
-dns_stats_t *
+isc_stats_t *
 dns_zone_getrequeststats(dns_zone_t *zone) {
 	/*
 	 * We don't lock zone for efficiency reason.  This is not catastrophic

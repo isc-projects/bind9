@@ -31,6 +31,7 @@ isc__mem_free
 isc__mem_get
 isc__mem_put
 isc__mem_putanddetach
+isc__mem_reallocate
 isc__mem_strdup
 isc__mempool_get
 isc__mempool_put
@@ -444,6 +445,14 @@ isc_socketmgr_create
 isc_socketmgr_create2
 isc_socketmgr_destroy
 isc_socketmgr_getmaxsockets
+isc_socketmgr_setstats
+isc_stats_create
+isc_stats_attach
+isc_stats_detach
+isc_stats_ncounters
+isc_stats_increment
+isc_stats_decrement
+isc_stats_dump
 isc_stdio_close
 isc_stdio_flush
 isc_stdio_open

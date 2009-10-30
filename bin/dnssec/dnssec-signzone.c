@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.209 2008/11/14 22:53:46 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.209.12.8 2009/06/08 22:23:06 each Exp $ */
 
 /*! \file */
 
@@ -53,6 +53,7 @@
 #include <isc/random.h>
 #include <isc/serial.h>
 #include <isc/stdio.h>
+#include <isc/stdlib.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/time.h>
@@ -2375,7 +2376,7 @@ usage(void) {
 	fprintf(stderr, "\t-k key_signing_key\n");
 	fprintf(stderr, "\t-l lookasidezone\n");
 	fprintf(stderr, "\t-3 salt (NSEC3 salt)\n");
-	fprintf(stderr, "\t-H interations (NSEC3 interations)\n");
+	fprintf(stderr, "\t-H iterations (NSEC3 iterations)\n");
 	fprintf(stderr, "\t-A (NSEC3 optout)\n");
 	fprintf(stderr, "\t-z:\t");
 	fprintf(stderr, "ignore KSK flag in DNSKEYs");
@@ -2450,7 +2451,7 @@ main(int argc, char *argv[]) {
 #define CMDLINE_FLAGS "3:aAc:d:e:f:ghH:i:I:j:k:l:m:n:N:o:O:pr:s:StUv:z"
 
 	/*
-	 * Process memory debugging arguement first.
+	 * Process memory debugging argument first.
 	 */
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
@@ -2865,7 +2866,7 @@ main(int argc, char *argv[]) {
 		result = dns_nsec3_maxiterations(gdb, NULL, mctx, &max);
 		check_result(result, "dns_nsec3_maxiterations()");
 		if (iterations > max)
-			fatal("NSEC3 interations too big for weakest DNSKEY "
+			fatal("NSEC3 iterations too big for weakest DNSKEY "
 			      "strength. Maximum iterations allowed %u.", max);
 	}
 

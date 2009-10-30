@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2008, 2009  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: base32.c,v 1.3 2008/04/04 23:47:01 tbox Exp $ */
+/* $Id: base32.c,v 1.3.116.2 2009/01/18 23:47:41 tbox Exp $ */
 
 /*! \file */
 
@@ -171,7 +171,7 @@ base32_decode_char(base32_decode_ctx_t *ctx, int c) {
 	if (last > 32)
 		last -= 33;
 	/*
-	 * Check that padding is contigious.
+	 * Check that padding is contiguous.
 	 */
 	if (last != 32 && ctx->seen_32 != 0)
 		return (ISC_R_BADBASE32);

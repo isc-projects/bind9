@@ -93,6 +93,27 @@ Package=<4>
 
 ###############################################################################
 
+Project: "dsfromkey"="..\bin\dnssec\win32\dsfromkey.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libdns
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libisc
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name dnssectool
+    End Project Dependency
+}}}
+
+###############################################################################
+
 Project: "keygen"="..\bin\dnssec\win32\keygen.dsp" - Package Owner=<4>
 
 Package=<5>
@@ -370,6 +391,27 @@ Package=<4>
 ###############################################################################
 
 Project: "signzone"="..\bin\dnssec\win32\signzone.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libdns
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libisc
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name dnssectool
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "keyfromlabel"="..\bin\dnssec\win32\keyfromlabel.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{

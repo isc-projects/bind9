@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2008, 2009  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3.h,v 1.5 2008/09/24 03:16:58 tbox Exp $ */
+/* $Id: nsec3.h,v 1.5.48.2 2009/01/18 23:47:41 tbox Exp $ */
 
 #ifndef DNS_NSEC3_H
 #define DNS_NSEC3_H 1
@@ -121,7 +121,7 @@ dns_nsec3_addnsec3s(dns_db_t *db, dns_dbversion_t *version,
  *
  * dns_nsec3_addnsec3s() will examine the NSEC3PARAM RRset to determine which
  * chains to be updated.  NSEC3PARAM records with the DNS_NSEC3FLAG_CREATE
- * will be preferentially choosen over NSEC3PARAM records without
+ * will be preferentially chosen over NSEC3PARAM records without
  * DNS_NSEC3FLAG_CREATE set.  NSEC3PARAM records with DNS_NSEC3FLAG_REMOVE
  * set will be ignored by dns_nsec3_addnsec3s().  If DNS_NSEC3FLAG_CREATE
  * is set then the new NSEC3 will have OPTOUT set to match the that in the
@@ -167,7 +167,7 @@ dns_nsec3_active(dns_db_t *db, dns_dbversion_t *version,
 		 isc_boolean_t complete, isc_boolean_t *answer);
 /*%<
  * Check if there are any complete/to be built NSEC3 chains.
- * If 'complete' is ISC_TRUE only complete chains will be recognised.
+ * If 'complete' is ISC_TRUE only complete chains will be recognized.
  *
  * Requires:
  *	'db' to be valid.

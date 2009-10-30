@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.93 2008/07/23 23:27:54 marka Exp $ */
+/* $Id: interfacemgr.c,v 1.93.70.2 2009/01/18 23:47:34 tbox Exp $ */
 
 /*! \file */
 
@@ -518,7 +518,7 @@ setup_locals(ns_interfacemgr_t *mgr, isc_interface_t *interface) {
 	result = isc_netaddr_masktoprefixlen(&interface->netmask,
 					     &prefixlen);
 
-	/* Non contigious netmasks not allowed by IPv6 arch. */
+	/* Non contiguous netmasks not allowed by IPv6 arch. */
 	if (result != ISC_R_SUCCESS && netaddr->family == AF_INET6)
 		return (result);
 

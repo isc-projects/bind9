@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.307 2008/11/12 23:47:17 tbox Exp $ */
+/* $Id: socket.c,v 1.308.12.8 2009/04/18 01:29:26 jinmei Exp $ */
 
 /*! \file */
 
@@ -50,6 +50,7 @@
 #include <isc/print.h>
 #include <isc/region.h>
 #include <isc/socket.h>
+#include <isc/stats.h>
 #include <isc/strerror.h>
 #include <isc/task.h>
 #include <isc/thread.h>
@@ -268,7 +269,7 @@ typedef isc_event_t intev_t;
 #endif
 
 /*%
- * The size to raise the recieve buffer to (from BIND 8).
+ * The size to raise the receive buffer to (from BIND 8).
  */
 #define RCVBUFSIZE (32*1024)
 
@@ -283,6 +284,7 @@ struct isc_socket {
 	isc_socketmgr_t	       *manager;
 	isc_mutex_t		lock;
 	isc_sockettype_t	type;
+	const isc_statscounter_t	*statsindex;
 
 	/* Locked by socket lock. */
 	ISC_LINK(isc_socket_t)	link;
@@ -339,6 +341,7 @@ struct isc_socketmgr {
 	isc_mem_t	       *mctx;
 	isc_mutex_t		lock;
 	isc_mutex_t		*fdlock;
+	isc_stats_t		*stats;
 #ifdef USE_KQUEUE
 	int			kqueue_fd;
 	int			nevents;
@@ -436,6 +439,94 @@ static isc_boolean_t process_ctlfd(isc_socketmgr_t *manager);
 
 #define SOCK_DEAD(s)			((s)->references == 0)
 
+/*%
+ * Shortcut index arrays to get access to statistics counters.
+ */
+enum {
+	STATID_OPEN = 0,
+	STATID_OPENFAIL = 1,
+	STATID_CLOSE = 2,
+	STATID_BINDFAIL = 3,
+	STATID_CONNECTFAIL = 4,
+	STATID_CONNECT = 5,
+	STATID_ACCEPTFAIL = 6,
+	STATID_ACCEPT = 7,
+	STATID_SENDFAIL = 8,
+	STATID_RECVFAIL = 9
+};
+static const isc_statscounter_t upd4statsindex[] = {
+	isc_sockstatscounter_udp4open,
+	isc_sockstatscounter_udp4openfail,
+	isc_sockstatscounter_udp4close,
+	isc_sockstatscounter_udp4bindfail,
+	isc_sockstatscounter_udp4connectfail,
+	isc_sockstatscounter_udp4connect,
+	-1,
+	-1,
+	isc_sockstatscounter_udp4sendfail,
+	isc_sockstatscounter_udp4recvfail
+};
+static const isc_statscounter_t upd6statsindex[] = {
+	isc_sockstatscounter_udp6open,
+	isc_sockstatscounter_udp6openfail,
+	isc_sockstatscounter_udp6close,
+	isc_sockstatscounter_udp6bindfail,
+	isc_sockstatscounter_udp6connectfail,
+	isc_sockstatscounter_udp6connect,
+	-1,
+	-1,
+	isc_sockstatscounter_udp6sendfail,
+	isc_sockstatscounter_udp6recvfail
+};
+static const isc_statscounter_t tcp4statsindex[] = {
+	isc_sockstatscounter_tcp4open,
+	isc_sockstatscounter_tcp4openfail,
+	isc_sockstatscounter_tcp4close,
+	isc_sockstatscounter_tcp4bindfail,
+	isc_sockstatscounter_tcp4connectfail,
+	isc_sockstatscounter_tcp4connect,
+	isc_sockstatscounter_tcp4acceptfail,
+	isc_sockstatscounter_tcp4accept,
+	isc_sockstatscounter_tcp4sendfail,
+	isc_sockstatscounter_tcp4recvfail
+};
+static const isc_statscounter_t tcp6statsindex[] = {
+	isc_sockstatscounter_tcp6open,
+	isc_sockstatscounter_tcp6openfail,
+	isc_sockstatscounter_tcp6close,
+	isc_sockstatscounter_tcp6bindfail,
+	isc_sockstatscounter_tcp6connectfail,
+	isc_sockstatscounter_tcp6connect,
+	isc_sockstatscounter_tcp6acceptfail,
+	isc_sockstatscounter_tcp6accept,
+	isc_sockstatscounter_tcp6sendfail,
+	isc_sockstatscounter_tcp6recvfail
+};
+static const isc_statscounter_t unixstatsindex[] = {
+	isc_sockstatscounter_unixopen,
+	isc_sockstatscounter_unixopenfail,
+	isc_sockstatscounter_unixclose,
+	isc_sockstatscounter_unixbindfail,
+	isc_sockstatscounter_unixconnectfail,
+	isc_sockstatscounter_unixconnect,
+	isc_sockstatscounter_unixacceptfail,
+	isc_sockstatscounter_unixaccept,
+	isc_sockstatscounter_unixsendfail,
+	isc_sockstatscounter_unixrecvfail
+};
+static const isc_statscounter_t fdwatchstatsindex[] = {
+	-1,
+	-1,
+	isc_sockstatscounter_fdwatchclose,
+	isc_sockstatscounter_fdwatchbindfail,
+	isc_sockstatscounter_fdwatchconnectfail,
+	isc_sockstatscounter_fdwatchconnect,
+	-1,
+	-1,
+	isc_sockstatscounter_fdwatchsendfail,
+	isc_sockstatscounter_fdwatchrecvfail
+};
+
 static void
 manager_log(isc_socketmgr_t *sockmgr,
 	    isc_logcategory_t *category, isc_logmodule_t *module, int level,
@@ -524,6 +615,17 @@ FIX_IPV6_RECVPKTINFO(isc_socket_t *sock)
 #else
 #define FIX_IPV6_RECVPKTINFO(sock) (void)0
 #endif
+
+/*%
+ * Increment socket-related statistics counters.
+ */
+static inline void
+inc_stats(isc_stats_t *stats, isc_statscounter_t counterid) {
+	REQUIRE(counterid != -1);
+
+	if (stats != NULL)
+		isc_stats_increment(stats, counterid);
+}
 
 static inline isc_result_t
 watch_fd(isc_socketmgr_t *manager, int fd, int msg) {
@@ -1129,7 +1231,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 
 /*
  * Construct an iov array and attach it to the msghdr passed in.  This is
- * the RECV constructor, which will use the avialable region of the buffer
+ * the RECV constructor, which will use the available region of the buffer
  * (if using a buffer list) or will use the internal region (if a single
  * buffer I/O is requested).
  *
@@ -1378,6 +1480,8 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 	if (recv_errno == _system) { \
 		if (sock->connected) { \
 			dev->result = _isc; \
+			inc_stats(sock->manager->stats, \
+				  sock->statsindex[STATID_RECVFAIL]); \
 			return (DOIO_HARD); \
 		} \
 		return (DOIO_SOFT); \
@@ -1385,6 +1489,8 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 #define ALWAYS_HARD(_system, _isc) \
 	if (recv_errno == _system) { \
 		dev->result = _isc; \
+		inc_stats(sock->manager->stats, \
+			  sock->statsindex[STATID_RECVFAIL]); \
 		return (DOIO_HARD); \
 	}
 
@@ -1408,6 +1514,8 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 #undef ALWAYS_HARD
 
 		dev->result = isc__errno2result(recv_errno);
+		inc_stats(sock->manager->stats,
+			  sock->statsindex[STATID_RECVFAIL]);
 		return (DOIO_HARD);
 	}
 
@@ -1536,6 +1644,8 @@ doio_send(isc_socket_t *sock, isc_socketevent_t *dev) {
 	if (send_errno == _system) { \
 		if (sock->connected) { \
 			dev->result = _isc; \
+			inc_stats(sock->manager->stats, \
+				  sock->statsindex[STATID_SENDFAIL]); \
 			return (DOIO_HARD); \
 		} \
 		return (DOIO_SOFT); \
@@ -1543,6 +1653,8 @@ doio_send(isc_socket_t *sock, isc_socketevent_t *dev) {
 #define ALWAYS_HARD(_system, _isc) \
 	if (send_errno == _system) { \
 		dev->result = _isc; \
+		inc_stats(sock->manager->stats, \
+			  sock->statsindex[STATID_SENDFAIL]); \
 		return (DOIO_HARD); \
 	}
 
@@ -1577,14 +1689,19 @@ doio_send(isc_socket_t *sock, isc_socketevent_t *dev) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__, "internal_send: %s: %s",
 				 addrbuf, strbuf);
 		dev->result = isc__errno2result(send_errno);
+		inc_stats(sock->manager->stats,
+			  sock->statsindex[STATID_SENDFAIL]);
 		return (DOIO_HARD);
 	}
 
-	if (cc == 0)
+	if (cc == 0) {
+		inc_stats(sock->manager->stats,
+			  sock->statsindex[STATID_SENDFAIL]);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "internal_send: send() %s 0",
+				 "doio_send: send() %s 0",
 				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
 						ISC_MSG_RETURNED, "returned"));
+	}
 
 	/*
 	 * If we write less than we expected, update counters, poke.
@@ -1608,7 +1725,8 @@ doio_send(isc_socket_t *sock, isc_socketevent_t *dev) {
  * references exist.
  */
 static void
-closesocket(isc_socketmgr_t *manager, isc_sockettype_t type, int fd) {
+closesocket(isc_socketmgr_t *manager, isc_socket_t *sock, int fd) {
+	isc_sockettype_t type = sock->type;
 	int lockid = FDLOCK_ID(fd);
 
 	/*
@@ -1636,6 +1754,8 @@ closesocket(isc_socketmgr_t *manager, isc_sockettype_t type, int fd) {
 		(void)unwatch_fd(manager, fd, SELECT_POKE_WRITE);
 	} else
 		select_poke(manager, fd, SELECT_POKE_CLOSE);
+
+	inc_stats(manager->stats, sock->statsindex[STATID_CLOSE]);
 
 	/*
 	 * update manager->maxfd here (XXX: this should be implemented more
@@ -1685,7 +1805,7 @@ destroy(isc_socket_t **sockp) {
 	if (sock->fd >= 0) {
 		fd = sock->fd;
 		sock->fd = -1;
-		closesocket(manager, sock->type, fd);
+		closesocket(manager, sock, fd);
 	}
 
 	LOCK(&manager->lock);
@@ -1723,6 +1843,7 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 	sock->manager = manager;
 	sock->type = type;
 	sock->fd = -1;
+	sock->statsindex = NULL;
 
 	ISC_LINK_INIT(sock, link);
 
@@ -1756,6 +1877,9 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 		if (sock->sendcmsgbuf == NULL)
 			goto error;
 	}
+
+	memset(sock->name, 0, sizeof(sock->name));
+	sock->tag = NULL;
 
 	/*
 	 * set up list of readers and writers to be initially empty
@@ -2145,6 +2269,8 @@ opensocket(isc_socketmgr_t *manager, isc_socket_t *sock) {
 	}
 #endif /* defined(USE_CMSG) || defined(SO_RCVBUF) */
 
+	inc_stats(manager->stats, sock->statsindex[STATID_OPEN]);
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -2170,15 +2296,29 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
+	switch (sock->type) {
+	case isc_sockettype_udp:
+		sock->statsindex =
+			(pf == AF_INET) ? upd4statsindex : upd6statsindex;
+		break;
+	case isc_sockettype_tcp:
+		sock->statsindex =
+			(pf == AF_INET) ? tcp4statsindex : tcp6statsindex;
+		break;
+	case isc_sockettype_unix:
+		sock->statsindex = unixstatsindex;
+		break;
+	default:
+		INSIST(0);
+	}
+
 	sock->pf = pf;
 	result = opensocket(manager, sock);
 	if (result != ISC_R_SUCCESS) {
+		inc_stats(manager->stats, sock->statsindex[STATID_OPENFAIL]);
 		free_socket(&sock);
 		return (result);
 	}
-
-	memset(sock->name, 0, sizeof(sock->name));
-	sock->tag = NULL;
 
 	sock->references = 1;
 	*socketp = sock;
@@ -2282,6 +2422,7 @@ isc_socket_fdwatchcreate(isc_socketmgr_t *manager, int fd, int flags,
 	sock->fdwatchcb = callback;
 	sock->fdwatchflags = flags;
 	sock->fdwatchtask = task;
+	sock->statsindex = fdwatchstatsindex;
 
 	sock->references = 1;
 	*socketp = sock;
@@ -2360,18 +2501,15 @@ isc_socket_detach(isc_socket_t **socketp) {
 isc_result_t
 isc_socket_close(isc_socket_t *sock) {
 	int fd;
+	isc_socketmgr_t *manager;
+	isc_sockettype_t type;
 
 	REQUIRE(VALID_SOCKET(sock));
 
 	LOCK(&sock->lock);
+
 	REQUIRE(sock->references == 1);
 	REQUIRE(sock->type != isc_sockettype_fdwatch);
-	UNLOCK(&sock->lock);
-	/*
-	 * We don't need to retain the lock hereafter, since no one else has
-	 * this socket.
-	 */
-
 	REQUIRE(sock->fd >= 0 && sock->fd < (int)sock->manager->maxsocks);
 
 	INSIST(!sock->connecting);
@@ -2383,15 +2521,21 @@ isc_socket_close(isc_socket_t *sock) {
 	INSIST(ISC_LIST_EMPTY(sock->accept_list));
 	INSIST(sock->connect_ev == NULL);
 
+	manager = sock->manager;
+	type = sock->type;
 	fd = sock->fd;
 	sock->fd = -1;
+	memset(sock->name, 0, sizeof(sock->name));
+	sock->tag = NULL;
 	sock->listener = 0;
 	sock->connected = 0;
 	sock->connecting = 0;
 	sock->bound = 0;
 	isc_sockaddr_any(&sock->peer_address);
 
-	closesocket(sock->manager, sock->type, fd);
+	UNLOCK(&sock->lock);
+
+	closesocket(manager, sock, fd);
 
 	return (ISC_R_SUCCESS);
 }
@@ -2639,7 +2783,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 	 * a documented error for accept().  ECONNABORTED has been
 	 * reported for Solaris 8.  The rest are thrown in not because
 	 * we have seen them but because they are ignored by other
-	 * deamons such as BIND 8 and Apache.
+	 * daemons such as BIND 8 and Apache.
 	 */
 
 	addrlen = sizeof(dev->newsocket->peer_address.type);
@@ -2797,7 +2941,10 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 			   dev->newsocket);
 
 		UNLOCK(&manager->lock);
+
+		inc_stats(manager->stats, sock->statsindex[STATID_ACCEPT]);
 	} else {
+		inc_stats(manager->stats, sock->statsindex[STATID_ACCEPTFAIL]);
 		dev->newsocket->references--;
 		free_socket(&dev->newsocket);
 	}
@@ -2815,6 +2962,8 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
  soft_error:
 	select_poke(sock->manager, sock->fd, SELECT_POKE_ACCEPT);
 	UNLOCK(&sock->lock);
+
+	inc_stats(manager->stats, sock->statsindex[STATID_ACCEPTFAIL]);
 	return;
 }
 
@@ -3028,6 +3177,7 @@ process_fd(isc_socketmgr_t *manager, int fd, isc_boolean_t readable,
 {
 	isc_socket_t *sock;
 	isc_boolean_t unlock_sock;
+	isc_boolean_t unwatch_read = ISC_FALSE, unwatch_write = ISC_FALSE;
 	int lockid = FDLOCK_ID(fd);
 
 	/*
@@ -3043,11 +3193,10 @@ process_fd(isc_socketmgr_t *manager, int fd, isc_boolean_t readable,
 	}
 
 	sock = manager->fds[fd];
-	UNLOCK(&manager->fdlock[lockid]);
 	unlock_sock = ISC_FALSE;
 	if (readable) {
 		if (sock == NULL) {
-			(void)unwatch_fd(manager, fd, SELECT_POKE_READ);
+			unwatch_read = ISC_TRUE;
 			goto check_write;
 		}
 		unlock_sock = ISC_TRUE;
@@ -3058,13 +3207,13 @@ process_fd(isc_socketmgr_t *manager, int fd, isc_boolean_t readable,
 			else
 				dispatch_recv(sock);
 		}
-		(void)unwatch_fd(manager, fd, SELECT_POKE_READ);
+		unwatch_read = ISC_TRUE;
 	}
 check_write:
 	if (writeable) {
 		if (sock == NULL) {
-			(void)unwatch_fd(manager, fd, SELECT_POKE_WRITE);
-			return;
+			unwatch_write = ISC_TRUE;
+			goto unlock_fd;
 		}
 		if (!unlock_sock) {
 			unlock_sock = ISC_TRUE;
@@ -3076,10 +3225,18 @@ check_write:
 			else
 				dispatch_send(sock);
 		}
-		(void)unwatch_fd(manager, fd, SELECT_POKE_WRITE);
+		unwatch_write = ISC_TRUE;
 	}
 	if (unlock_sock)
 		UNLOCK(&sock->lock);
+
+ unlock_fd:
+	UNLOCK(&manager->fdlock[lockid]);
+	if (unwatch_read)
+		(void)unwatch_fd(manager, fd, SELECT_POKE_READ);
+	if (unwatch_write)
+		(void)unwatch_fd(manager, fd, SELECT_POKE_WRITE);
+
 }
 
 #ifdef USE_KQUEUE
@@ -3365,7 +3522,6 @@ watcher(void *uap) {
 						    ISC_LOGCATEGORY_GENERAL,
 						    ISC_LOGMODULE_SOCKET,
 						    ISC_LOG_DEBUG(1),
-						    ISC_LOG_INFO,
 						    "unexpected POLL timeout");
 				}
 				pollstate = poll_active;
@@ -3387,7 +3543,7 @@ watcher(void *uap) {
 #endif
 	}
 
-	manager_log(manager, TRACE,
+	manager_log(manager, TRACE, "%s",
 		    isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
 				   ISC_MSG_EXITING, "watcher exiting"));
 
@@ -3665,10 +3821,11 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 		goto free_manager;
 	}
 	manager->fdstate = isc_mem_get(mctx, manager->maxsocks * sizeof(int));
-	if (manager->fds == NULL) {
+	if (manager->fdstate == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto free_manager;
 	}
+	manager->stats = NULL;
 
 	manager->magic = SOCKET_MANAGER_MAGIC;
 	manager->mctx = NULL;
@@ -3806,6 +3963,16 @@ isc_socketmgr_getmaxsockets(isc_socketmgr_t *manager, unsigned int *nsockp) {
 }
 
 void
+isc_socketmgr_setstats(isc_socketmgr_t *manager, isc_stats_t *stats) {
+	REQUIRE(VALID_MANAGER(manager));
+	REQUIRE(ISC_LIST_EMPTY(manager->socklist));
+	REQUIRE(manager->stats == NULL);
+	REQUIRE(isc_stats_ncounters(stats) == isc_sockstatscounter_max);
+
+	isc_stats_attach(stats, &manager->stats);
+}
+
+void
 isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	isc_socketmgr_t *manager;
 	int i;
@@ -3834,7 +4001,7 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	 * Wait for all sockets to be destroyed.
 	 */
 	while (!ISC_LIST_EMPTY(manager->socklist)) {
-		manager_log(manager, CREATION,
+		manager_log(manager, CREATION, "%s",
 			    isc_msgcat_get(isc_msgcat, ISC_MSGSET_SOCKET,
 					   ISC_MSG_SOCKETSREMAIN,
 					   "sockets exist"));
@@ -3845,7 +4012,7 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	 * Hope all sockets have been destroyed.
 	 */
 	if (!ISC_LIST_EMPTY(manager->socklist)) {
-		manager_log(manager, CREATION,
+		manager_log(manager, CREATION, "%s",
 			    isc_msgcat_get(isc_msgcat, ISC_MSGSET_SOCKET,
 					   ISC_MSG_SOCKETSREMAIN,
 					   "sockets exist"));
@@ -3892,6 +4059,9 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 		    manager->maxsocks * sizeof(isc_socket_t *));
 	isc_mem_put(manager->mctx, manager->fdstate,
 		    manager->maxsocks * sizeof(int));
+
+	if (manager->stats != NULL)
+		isc_stats_detach(&manager->stats);
 
 	if (manager->fdlock != NULL) {
 		for (i = 0; i < FDLOCK_COUNT; i++)
@@ -4503,6 +4673,9 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr,
  bind_socket:
 #endif
 	if (bind(sock->fd, &sockaddr->type.sa, sockaddr->length) < 0) {
+		inc_stats(sock->manager->stats,
+			  sock->statsindex[STATID_BINDFAIL]);
+
 		UNLOCK(&sock->lock);
 		switch (errno) {
 		case EACCES:
@@ -4647,6 +4820,7 @@ isc_socket_accept(isc_socket_t *sock,
 	 */
 	isc_task_attach(task, &ntask);
 	nsock->references++;
+	nsock->statsindex = sock->statsindex;
 
 	dev->ev_sender = ntask;
 	dev->newsocket = nsock;
@@ -4748,6 +4922,8 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 		UNEXPECTED_ERROR(__FILE__, __LINE__, "%d/%s", errno, strbuf);
 
 		UNLOCK(&sock->lock);
+		inc_stats(sock->manager->stats,
+			  sock->statsindex[STATID_CONNECTFAIL]);
 		isc_event_free(ISC_EVENT_PTR(&dev));
 		return (ISC_R_UNEXPECTED);
 
@@ -4756,6 +4932,8 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 		isc_task_send(task, ISC_EVENT_PTR(&dev));
 
 		UNLOCK(&sock->lock);
+		inc_stats(sock->manager->stats,
+			  sock->statsindex[STATID_CONNECTFAIL]);
 		return (ISC_R_SUCCESS);
 	}
 
@@ -4770,6 +4948,10 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 		isc_task_send(task, ISC_EVENT_PTR(&dev));
 
 		UNLOCK(&sock->lock);
+
+		inc_stats(sock->manager->stats,
+			  sock->statsindex[STATID_CONNECT]);
+
 		return (ISC_R_SUCCESS);
 	}
 
@@ -4868,6 +5050,9 @@ internal_connect(isc_task_t *me, isc_event_t *ev) {
 			return;
 		}
 
+		inc_stats(sock->manager->stats,
+			  sock->statsindex[STATID_CONNECTFAIL]);
+
 		/*
 		 * Translate other errors into ISC_R_* flavors.
 		 */
@@ -4898,6 +5083,8 @@ internal_connect(isc_task_t *me, isc_event_t *ev) {
 					 peerbuf, strbuf);
 		}
 	} else {
+		inc_stats(sock->manager->stats,
+			  sock->statsindex[STATID_CONNECT]);
 		dev->result = ISC_R_SUCCESS;
 		sock->connected = 1;
 		sock->bound = 1;

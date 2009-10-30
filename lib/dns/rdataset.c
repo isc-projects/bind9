@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.82 2008/09/24 02:46:22 marka Exp $ */
+/* $Id: rdataset.c,v 1.82.50.2 2009/01/18 23:47:40 tbox Exp $ */
 
 /*! \file */
 
@@ -342,7 +342,7 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	}
 
 	/*
-	 * Do we want to shuffle this anwer?
+	 * Do we want to shuffle this answer?
 	 */
 	if (!question && count > 1 &&
 	    (!WANT_FIXED(rdataset) || order != NULL) &&
