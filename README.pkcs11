@@ -8,7 +8,7 @@ independent API for the control of hardware security modules (HSMs)
 and other cryptographic support devices. 
 
 BIND 9 is known to work with two HSMs:  The Sun SCA 6000 cryptographic
-acceration board, tested under Solaris x86, and the AEP Keyper
+acceleration board, tested under Solaris x86, and the AEP Keyper
 network-attached key storage device, tested with Debian Linux,
 Solaris x86 and Windows Server 2003.
 
