@@ -1,3 +1,6 @@
+2745.	[bug]		configure script didn't probe the return type of
+			gai_strerror(3) correctly. [RT #20573]
+
 2744.	[func]		Log if a query was over TCP. [RT #19961]
 
 2743.	[bug]		RRSIG could be incorrectly set in the NSEC3 record

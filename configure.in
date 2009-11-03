@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.487 $)
+AC_REVISION($Revision: 1.488 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -1973,9 +1973,9 @@ char *gai_strerror(int ecode);],
 [ return (0); ],
 	[AC_MSG_RESULT(returning char *)
 	 AC_DEFINE([IRS_GAISTRERROR_RETURN_T], [char *],
-	 [return type of gai_srerror])],
-[AC_MSG_RESULT(not match any subspecies; assume standard definition)])
-AC_DEFINE([IRS_GAISTRERROR_RETURN_T], [const char *])
+	 [return type of gai_strerror])],
+[AC_MSG_RESULT(not match any subspecies; assume standard definition)
+AC_DEFINE([IRS_GAISTRERROR_RETURN_T], [const char *])])
 
 AC_CHECK_FUNC(getipnodebyname,
 	[ISC_LWRES_GETIPNODEPROTO="#undef ISC_LWRES_GETIPNODEPROTO"],
