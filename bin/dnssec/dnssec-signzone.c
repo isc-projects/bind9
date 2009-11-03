@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.251 2009/10/27 18:56:49 each Exp $ */
+/* $Id: dnssec-signzone.c,v 1.252 2009/11/03 01:31:17 marka Exp $ */
 
 /*! \file */
 
@@ -1991,7 +1991,7 @@ add_ds(dns_name_t *name, dns_dbnode_t *node, isc_uint32_t nsttl) {
 }
 
 /*%
- * Generate NSEC records for the zone and remove NSEC3/NSEC3PARAM records
+ * Generate NSEC records for the zone and remove NSEC3/NSEC3PARAM records.
  */
 static void
 nsecify(void) {
