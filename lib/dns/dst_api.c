@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.45 2009/10/27 22:25:37 marka Exp $
+ * $Id: dst_api.c,v 1.46 2009/11/03 19:43:54 marka Exp $
  */
 
 /*! \file */
@@ -161,6 +161,10 @@ dst_lib_init2(isc_mem_t *mctx, isc_entropy_t *ectx,
 	UNUSED(ectx);
 #endif
 	REQUIRE(dst_initialized == ISC_FALSE);
+
+#ifndef OPENSSL
+	UNUSED(engine);
+#endif
 
 	dst__memory_pool = NULL;
 
