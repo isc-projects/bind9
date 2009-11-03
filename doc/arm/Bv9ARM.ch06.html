@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.240 2009/10/27 01:14:46 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.241 2009/11/03 21:58:30 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -1641,10 +1641,11 @@ category notify { null; };
                       class and type.  Next it reports whether the
                       Recursion Desired flag was set (+ if set, -
                       if not set), if the query was signed (S),
-                      EDNS was in use (E), if DO (DNSSEC Ok) was
-                      set (D), or if CD (Checking Disabled) was set
-                      (C).  After this the destination address the
-                      query was sent to is reported.
+                      EDNS was in use (E), if TCP was used (T), if
+                      DO (DNSSEC Ok) was set (D), or if CD (Checking
+                      Disabled) was set (C).  After this the
+                      destination address the query was sent to is
+                      reported.
                     </p>
 
                     <p>
