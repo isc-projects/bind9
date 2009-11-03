@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.209.12.16 2009/11/03 01:17:40 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.209.12.17 2009/11/03 01:39:31 marka Exp $ */
 
 /*! \file */
 
@@ -828,8 +828,8 @@ loadds(dns_name_t *name, isc_uint32_t ttl, dns_rdataset_t *dsset) {
 		return (DNS_R_BADDB);
 	}
 	dns_rdataset_init(&keyset);
-	result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_dnskey, 0, 0,
-				     &keyset, NULL);
+	result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_dnskey, 0,
+				     0, &keyset, NULL);
 	if (result != ISC_R_SUCCESS) {
 		dns_db_detachnode(db, &node);
 		dns_db_detach(&db);
@@ -2623,7 +2623,8 @@ loadzonepubkeys(dns_db_t *db) {
 
 	dns_rdataset_init(&rdataset);
 	result = dns_db_findrdataset(db, node, currentversion,
-				     dns_rdatatype_dnskey, 0, 0, &rdataset, NULL);
+				     dns_rdatatype_dnskey, 0, 0, &rdataset,
+				     NULL);
 	if (result != ISC_R_SUCCESS)
 		fatal("failed to find keys at the zone apex: %s",
 		      isc_result_totext(result));
@@ -2671,7 +2672,8 @@ warnifallksk(dns_db_t *db) {
 
 	dns_rdataset_init(&rdataset);
 	result = dns_db_findrdataset(db, node, currentversion,
-				     dns_rdatatype_dnskey, 0, 0, &rdataset, NULL);
+				     dns_rdatatype_dnskey, 0, 0, &rdataset,
+				     NULL);
 	if (result != ISC_R_SUCCESS)
 		fatal("failed to find keys at the zone apex: %s",
 		      isc_result_totext(result));
@@ -2874,7 +2876,8 @@ usage(void) {
 	fprintf(stderr, "\t-g:\t");
 	fprintf(stderr, "generate DS records from keyset files\n");
 	fprintf(stderr, "\t-s [YYYYMMDDHHMMSS|+offset]:\n");
-	fprintf(stderr, "\t\tRRSIG start time - absolute|offset (now - 1 hour)\n");
+	fprintf(stderr, "\t\tRRSIG start time - absolute|offset "
+				"(now - 1 hour)\n");
 	fprintf(stderr, "\t-e [YYYYMMDDHHMMSS|+offset|\"now\"+offset]:\n");
 	fprintf(stderr, "\t\tRRSIG end time  - absolute|from start|from now "
 				"(now + 30 days)\n");
@@ -2882,7 +2885,8 @@ usage(void) {
 	fprintf(stderr, "\t\tcycle interval - resign "
 				"if < interval from end ( (end-start)/4 )\n");
 	fprintf(stderr, "\t-j jitter:\n");
-	fprintf(stderr, "\t\trandomize signature end time up to jitter seconds\n");
+	fprintf(stderr, "\t\trandomize signature end time up to jitter "
+				"seconds\n");
 	fprintf(stderr, "\t-v debuglevel (0)\n");
 	fprintf(stderr, "\t-o origin:\n");
 	fprintf(stderr, "\t\tzone origin (name of zonefile)\n");
@@ -3285,7 +3289,8 @@ main(int argc, char *argv[]) {
 		else if (strcasecmp(serialformatstr, "unixtime") == 0)
 			serialformat = SOA_SERIAL_UNIXTIME;
 		else
-			fatal("unknown soa serial format: %s\n", serialformatstr);
+			fatal("unknown soa serial format: %s\n",
+			      serialformatstr);
 	}
 
 	result = dns_master_stylecreate(&dsstyle,  DNS_STYLEFLAG_NO_TTL,
@@ -3405,8 +3410,8 @@ main(int argc, char *argv[]) {
 
 	if (ISC_LIST_EMPTY(keylist)) {
 		if (disable_zone_check)
-			fprintf(stderr, "%s: warning: No keys specified or found\n",
-				program);
+			fprintf(stderr, "%s: warning: No keys specified "
+			        "or found\n", program);
 		else
 			fatal("No signing keys specified or found.");
 		nokeys = ISC_TRUE;
