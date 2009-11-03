@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-keyfromlabel.docbook,v 1.14 2009/10/22 02:21:30 each Exp $ -->
+<!-- $Id: dnssec-keyfromlabel.docbook,v 1.15 2009/11/03 21:44:46 each Exp $ -->
 <refentry id="man.dnssec-keyfromlabel">
   <refentryinfo>
     <date>February 8, 2008</date>
@@ -128,7 +128,7 @@
         <listitem>
           <para>
             Specifies the name of the crypto hardware (OpenSSL engine).
-            When compiled with PKCS#11 support it defaults to "pcks11".
+            When compiled with PKCS#11 support it defaults to "pkcs11".
           </para>
         </listitem>
       </varlistentry>

@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.docbook,v 1.42 2009/10/12 23:02:31 each Exp $ -->
+<!-- $Id: dnssec-signzone.docbook,v 1.43 2009/11/03 21:44:46 each Exp $ -->
 <refentry id="man.dnssec-signzone">
   <refentryinfo>
     <date>June 05, 2009</date>
@@ -158,7 +158,7 @@
             Uses a crypto hardware (OpenSSL engine) for the crypto operations
             it supports, for instance signing with private keys from
             a secure key store. When compiled with PKCS#11 support
-            it defaults to pcks11, the empty name resets it to no engine.
+            it defaults to pkcs11; the empty name resets it to no engine.
           </para>
         </listitem>
       </varlistentry>
