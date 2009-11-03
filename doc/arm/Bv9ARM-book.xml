@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.440 2009/10/26 23:14:53 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.441 2009/11/03 04:39:41 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4411,10 +4411,11 @@ category notify { null; };
 		      class and type.  Next it reports whether the
 		      Recursion Desired flag was set (+ if set, -
 		      if not set), if the query was signed (S),
-		      EDNS was in use (E), if DO (DNSSEC Ok) was
-		      set (D), or if CD (Checking Disabled) was set
-		      (C).  After this the destination address the
-		      query was sent to is reported.
+		      EDNS was in use (E), if TCP was used (T), if
+		      DO (DNSSEC Ok) was set (D), or if CD (Checking
+		      Disabled) was set (C).  After this the
+		      destination address the query was sent to is
+		      reported.
 		    </para>
 
                     <para>

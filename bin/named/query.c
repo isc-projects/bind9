@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.330 2009/10/26 23:47:35 tbox Exp $ */
+/* $Id: query.c,v 1.331 2009/11/03 04:39:41 marka Exp $ */
 
 /*! \file */
 
@@ -5073,10 +5073,12 @@ log_query(ns_client_t *client, unsigned int flags, unsigned int extflags) {
 	isc_netaddr_format(&client->destaddr, onbuf, sizeof(onbuf));
 
 	ns_client_log(client, NS_LOGCATEGORY_QUERIES, NS_LOGMODULE_QUERY,
-		      level, "query: %s %s %s %s%s%s%s%s (%s)", namebuf,
+		      level, "query: %s %s %s %s%s%s%s%s%s (%s)", namebuf,
 		      classname, typename, WANTRECURSION(client) ? "+" : "-",
 		      (client->signer != NULL) ? "S": "",
 		      (client->opt != NULL) ? "E" : "",
+		      ((client->attributes & NS_CLIENTATTR_TCP) != 0) ?
+				 "T" : "",
 		      ((extflags & DNS_MESSAGEEXTFLAG_DO) != 0) ? "D" : "",
 		      ((flags & DNS_MESSAGEFLAG_CD) != 0) ? "C" : "",
 		      onbuf);
