@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.209.12.17 2009/11/03 01:39:31 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.209.12.18 2009/11/03 23:47:45 tbox Exp $ */
 
 /*! \file */
 
@@ -3411,7 +3411,7 @@ main(int argc, char *argv[]) {
 	if (ISC_LIST_EMPTY(keylist)) {
 		if (disable_zone_check)
 			fprintf(stderr, "%s: warning: No keys specified "
-			        "or found\n", program);
+				"or found\n", program);
 		else
 			fatal("No signing keys specified or found.");
 		nokeys = ISC_TRUE;

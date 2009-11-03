@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3.c,v 1.6.12.3 2009/11/03 01:16:19 marka Exp $ */
+/* $Id: nsec3.c,v 1.6.12.4 2009/11/03 23:47:46 tbox Exp $ */
 
 #include <config.h>
 
@@ -154,7 +154,7 @@ dns_nsec3_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 			if (rdataset.type > max_type)
 				max_type = rdataset.type;
 			set_bit(bm, rdataset.type, 1);
-			/* 
+			/*
 			 * Work out if we need to set the RRSIG bit for
 			 * this node.  We set the RRSIG bit if either of
 			 * the following conditions are met:
@@ -168,7 +168,7 @@ dns_nsec3_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 				need_rrsig = ISC_TRUE;
 			else if (rdataset.type == dns_rdatatype_ns)
 				found_ns = ISC_TRUE;
-			else 
+			else
 				found = ISC_TRUE;
 		}
 		dns_rdataset_disassociate(&rdataset);
