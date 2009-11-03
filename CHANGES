@@ -1,3 +1,6 @@
+2743.	[bug]		RRSIG could be incorrectly sent in the NSEC3 record
+			for a insecure delegation.
+
 2729.	[func]		When constructing a CNAME from a DNAME use the DNAME
 			TTL. [RT #20451]
 
