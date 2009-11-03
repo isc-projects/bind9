@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.209.12.15 2009/09/23 23:47:14 tbox Exp $ */
+/* $Id: dnssec-signzone.c,v 1.209.12.16 2009/11/03 01:17:40 marka Exp $ */
 
 /*! \file */
 
@@ -1932,7 +1932,7 @@ add_ds(dns_name_t *name, dns_dbnode_t *node, isc_uint32_t nsttl) {
 }
 
 /*%
- * Generate NSEC records for the zone and remove NSEC3/NSEC3PARAM records
+ * Generate NSEC records for the zone and remove NSEC3/NSEC3PARAM records.
  */
 static void
 nsecify(void) {
@@ -1974,8 +1974,8 @@ nsecify(void) {
 			type = rdataset.type;
 			covers = rdataset.covers;
 			dns_rdataset_disassociate(&rdataset);
-			result = dns_db_deleterdataset(gdb, node, gversion, type,
-						       covers);
+			result = dns_db_deleterdataset(gdb, node, gversion,
+						       type, covers);
 			check_result(result,
 				     "dns_db_deleterdataset(nsec3param/rrsig)");
 		}
@@ -2339,7 +2339,8 @@ nsec3ify(unsigned int hashalg, unsigned int iterations,
 		type = rdataset.type;
 		covers = rdataset.covers;
 		dns_rdataset_disassociate(&rdataset);
-		if (type == dns_rdatatype_nsec || covers == dns_rdatatype_nsec) {
+		if (type == dns_rdatatype_nsec ||
+		    covers == dns_rdatatype_nsec) {
 			result = dns_db_deleterdataset(gdb, node, gversion,
 						       type, covers);
 			check_result(result,
