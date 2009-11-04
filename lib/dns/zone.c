@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.523 2009/10/27 23:47:45 tbox Exp $ */
+/* $Id: zone.c,v 1.524 2009/11/04 01:25:55 marka Exp $ */
 
 /*! \file */
 
@@ -2429,7 +2429,6 @@ static void
 set_resigntime(dns_zone_t *zone) {
 	dns_rdataset_t rdataset;
 	dns_fixedname_t fixed;
-	char namebuf[DNS_NAME_FORMATSIZE];
 	unsigned int resign;
 	isc_result_t result;
 	isc_uint32_t nanosecs;
@@ -2443,7 +2442,6 @@ set_resigntime(dns_zone_t *zone) {
 		return;
 	}
 	resign = rdataset.resign;
-	dns_name_format(dns_fixedname_name(&fixed), namebuf, sizeof(namebuf));
 	dns_rdataset_disassociate(&rdataset);
 	isc_random_get(&nanosecs);
 	nanosecs %= 1000000000;
@@ -3262,8 +3260,9 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			options = DNS_JOURNALOPT_RESIGN;
 		else
 			options = 0;
-		result = dns_journal_rollforward(zone->mctx, db, options,
-						 zone->journal);
+		result = dns_journal_rollforward2(zone->mctx, db, options,
+						  zone->sigresigninginterval,
+						  zone->journal);
 		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND &&
 		    result != DNS_R_UPTODATE && result != DNS_R_NOJOURNAL &&
 		    result != ISC_R_RANGE) {

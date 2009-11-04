@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.106 2009/08/25 07:41:28 marka Exp $ */
+/* $Id: journal.c,v 1.107 2009/11/04 01:25:55 marka Exp $ */
 
 #include <config.h>
 
@@ -1216,7 +1216,9 @@ dns_journal_destroy(dns_journal_t **journalp) {
 /* XXX Share code with incoming IXFR? */
 
 static isc_result_t
-roll_forward(dns_journal_t *j, dns_db_t *db, unsigned int options) {
+roll_forward(dns_journal_t *j, dns_db_t *db, unsigned int options,
+	     isc_uint32_t resign)
+{
 	isc_buffer_t source;		/* Transaction data from disk */
 	isc_buffer_t target;		/* Ditto after _fromwire check */
 	isc_uint32_t db_serial;		/* Database SOA serial */
@@ -1233,6 +1235,7 @@ roll_forward(dns_journal_t *j, dns_db_t *db, unsigned int options) {
 	REQUIRE(DNS_DB_VALID(db));
 
 	dns_diff_init(j->mctx, &diff);
+	diff.resign = resign;
 
 	/*
 	 * Set up empty initial buffers for unchecked and checked
@@ -1351,6 +1354,14 @@ isc_result_t
 dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db,
 			unsigned int options, const char *filename)
 {
+	REQUIRE((options & DNS_JOURNALOPT_RESIGN) == 0);
+	return (dns_journal_rollforward2(mctx, db, options, 0, filename));
+}
+
+isc_result_t
+dns_journal_rollforward2(isc_mem_t *mctx, dns_db_t *db, unsigned int options,
+			 isc_uint32_t resign, const char *filename)
+{
 	dns_journal_t *j;
 	isc_result_t result;
 
@@ -1369,7 +1380,7 @@ dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db,
 	if (JOURNAL_EMPTY(&j->header))
 		result = DNS_R_UPTODATE;
 	else
-		result = roll_forward(j, db, options);
+		result = roll_forward(j, db, options, resign);
 
 	dns_journal_destroy(&j);
 

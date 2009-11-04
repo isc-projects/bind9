@@ -1,3 +1,6 @@
+2747.	[bug]		Journal roll forwards failed to set the re-signing
+			time of RRSIGs correctly. [RT #20541]
+
 2746.	[port]		hpux: address signed/unsigned expansion mismatch of
 			dns_rbtnode_t.nsec. [RT #20542]
 
