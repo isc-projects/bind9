@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.103.48.4 2009/11/04 04:05:45 marka Exp $ */
+/* $Id: journal.c,v 1.103.48.5 2009/11/04 04:21:57 marka Exp $ */
 
 #include <config.h>
 
@@ -1890,7 +1890,7 @@ diff_namespace(isc_mem_t *mctx,
 		return (result);
 	result = dns_db_createiterator(db[1], options, &dbit[1]);
 	if (result != ISC_R_SUCCESS)
-		goto cleanup_interator;
+		goto cleanup_iterator;
 
 	itresult[0] = dns_dbiterator_first(dbit[0]);
 	itresult[1] = dns_dbiterator_first(dbit[1]);
@@ -1958,7 +1958,7 @@ diff_namespace(isc_mem_t *mctx,
 
  failure:
 	dns_dbiterator_destroy(&dbit[1]);
- cleanup_interator:
+ cleanup_iterator:
 	dns_dbiterator_destroy(&dbit[0]);
 	return (result);
 }
