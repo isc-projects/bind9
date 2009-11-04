@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.h,v 1.36 2009/11/04 01:25:55 marka Exp $ */
+/* $Id: journal.h,v 1.37 2009/11/04 23:48:18 tbox Exp $ */
 
 #ifndef DNS_JOURNAL_H
 #define DNS_JOURNAL_H 1
@@ -240,10 +240,10 @@ dns_journal_rollforward2(isc_mem_t *mctx, dns_db_t *db, unsigned int options,
  * Roll forward (play back) the journal file "filename" into the
  * database "db".  This should be called when the server starts
  * after a shutdown or crash.  'resign' is how many seconds before
- * a RRSIG is due to expire it should be scheduled to be regenerated. 
+ * a RRSIG is due to expire it should be scheduled to be regenerated.
  *
  * Requires:
- *\li	dns_journal_rollforward() requires that DNS_JOURNALOPT_RESIGN 
+ *\li	dns_journal_rollforward() requires that DNS_JOURNALOPT_RESIGN
  *	is not set.
  *\li   'mctx' is a valid memory context.
  *\li	'db' is a valid database which does not have a version

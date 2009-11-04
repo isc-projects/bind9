@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.109 2009/11/04 04:22:16 marka Exp $ */
+/* $Id: journal.c,v 1.110 2009/11/04 23:48:18 tbox Exp $ */
 
 #include <config.h>
 
@@ -1971,7 +1971,7 @@ isc_result_t
 dns_db_diff(isc_mem_t *mctx,
 	    dns_db_t *dba, dns_dbversion_t *dbvera,
 	    dns_db_t *dbb, dns_dbversion_t *dbverb,
-	    const char *journal_filename) 
+	    const char *journal_filename)
 {
 	isc_result_t result;
 	dns_journal_t *journal = NULL;
