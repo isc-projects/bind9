@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.408 2009/10/28 18:04:29 each Exp $ */
+/* $Id: resolver.c,v 1.409 2009/11/04 02:15:29 marka Exp $ */
 
 /*! \file */
 
@@ -4819,7 +4819,9 @@ mark_related(dns_name_t *name, dns_rdataset_t *rdataset,
 }
 
 static isc_result_t
-check_related(void *arg, dns_name_t *addname, dns_rdatatype_t type) {
+check_section(void *arg, dns_name_t *addname, dns_rdatatype_t type,
+	      dns_section_t section)
+{
 	fetchctx_t *fctx = arg;
 	isc_result_t result;
 	dns_name_t *name;
@@ -4830,15 +4832,19 @@ check_related(void *arg, dns_name_t *addname, dns_rdatatype_t type) {
 
 	REQUIRE(VALID_FCTX(fctx));
 
+#if CHECK_FOR_GLUE_IN_ANSWER
+	if (section == DNS_SECTION_ANSWER && type != dns_rdatatype_a)
+		return (ISC_R_SUCCESS);
+#endif
+
 	if (GLUING(fctx))
 		gluing = ISC_TRUE;
 	else
 		gluing = ISC_FALSE;
 	name = NULL;
 	rdataset = NULL;
-	result = dns_message_findname(fctx->rmessage, DNS_SECTION_ADDITIONAL,
-				      addname, dns_rdatatype_any, 0, &name,
-				      NULL);
+	result = dns_message_findname(fctx->rmessage, section, addname,
+				      dns_rdatatype_any, 0, &name, NULL);
 	if (result == ISC_R_SUCCESS) {
 		external = ISC_TF(!dns_name_issubdomain(name, &fctx->domain));
 		if (type == dns_rdatatype_a) {
@@ -4875,6 +4881,21 @@ check_related(void *arg, dns_name_t *addname, dns_rdatatype_t type) {
 
 	return (ISC_R_SUCCESS);
 }
+
+static isc_result_t
+check_related(void *arg, dns_name_t *addname, dns_rdatatype_t type) {
+	return (check_section(arg, addname, type, DNS_SECTION_ADDITIONAL));
+}
+
+#ifndef CHECK_FOR_GLUE_IN_ANSWER
+#define CHECK_FOR_GLUE_IN_ANSWER 0
+#endif
+#if CHECK_FOR_GLUE_IN_ANSWER
+static isc_result_t
+check_answer(void *arg, dns_name_t *addname, dns_rdatatype_t type) {
+	return (check_section(arg, addname, type, DNS_SECTION_ANSWER));
+}
+#endif
 
 static void
 chase_additional(fetchctx_t *fctx) {
@@ -5103,14 +5124,17 @@ is_answertarget_allowed(dns_view_t *view, dns_name_t *name,
 
 /*
  * Handle a no-answer response (NXDOMAIN, NXRRSET, or referral).
- * If bind8_ns_resp is ISC_TRUE, this is a suspected BIND 8
- * response to an NS query that should be treated as a referral
- * even though the NS records occur in the answer section
- * rather than the authority section.
+ * If look_in_options has LOOK_FOR_NS_IN_ANSWER then we look in the answer
+ * section for the NS RRset if the query type is NS; if it has
+ * LOOK_FOR_GLUE_IN_ANSWER we look for glue incorrectly returned in the answer
+ * section for A and AAAA queries.
  */
+#define LOOK_FOR_NS_IN_ANSWER 0x1
+#define LOOK_FOR_GLUE_IN_ANSWER 0x2
+
 static isc_result_t
 noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
-		  isc_boolean_t bind8_ns_resp)
+		  unsigned int look_in_options)
 {
 	isc_result_t result;
 	dns_message_t *message;
@@ -5118,10 +5142,15 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 	dns_rdataset_t *rdataset, *ns_rdataset;
 	isc_boolean_t aa, negative_response;
 	dns_rdatatype_t type;
-	dns_section_t section =
-		bind8_ns_resp ? DNS_SECTION_ANSWER : DNS_SECTION_AUTHORITY;
+	dns_section_t section;
 
 	FCTXTRACE("noanswer_response");
+
+	if ((look_in_options & LOOK_FOR_NS_IN_ANSWER) != 0) {
+		INSIST(fctx->type == dns_rdatatype_ns);
+		section = DNS_SECTION_ANSWER;
+	} else
+		section = DNS_SECTION_AUTHORITY;
 
 	message = fctx->rmessage;
 
@@ -5403,6 +5432,20 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 		fctx->attributes |= FCTX_ATTR_GLUING;
 		(void)dns_rdataset_additionaldata(ns_rdataset, check_related,
 						  fctx);
+#if CHECK_FOR_GLUE_IN_ANSWER
+		/*
+		 * Look in the answer section for "glue" that is incorrectly
+		 * returned as a answer.  This is needed if the server also
+		 * minimizes the response size by not adding records to the
+		 * additional section that are in the answer section or if
+		 * the record gets dropped due to message size constraints.
+		 */
+		if ((look_in_options & LOOK_FOR_GLUE_IN_ANSWER) != 0 &&
+		    (fctx->type == dns_rdatatype_aaaa ||
+		     fctx->type == dns_rdatatype_a))
+			(void)dns_rdataset_additionaldata(ns_rdataset,
+							  check_answer, fctx);
+#endif
 		fctx->attributes &= ~FCTX_ATTR_GLUING;
 		/*
 		 * NS rdatasets with 0 TTL cause problems.
@@ -5817,7 +5860,7 @@ answer_response(fetchctx_t *fctx) {
 		 * If it isn't a noanswer response, no harm will be
 		 * done.
 		 */
-		return (noanswer_response(fctx, qname, ISC_FALSE));
+		return (noanswer_response(fctx, qname, 0));
 	}
 
 	/*
@@ -6135,6 +6178,16 @@ log_packet(dns_message_t *message, int level, isc_mem_t *mctx) {
 
 	if (buf != NULL)
 		isc_mem_put(mctx, buf, len);
+}
+
+static isc_boolean_t
+iscname(fetchctx_t *fctx) {
+	isc_result_t result;
+
+	result = dns_message_findname(fctx->rmessage, DNS_SECTION_ANSWER,
+				      &fctx->name, dns_rdatatype_cname, 0,
+				      NULL, NULL);
+	return (result == ISC_R_SUCCESS ? ISC_TRUE : ISC_FALSE);
 }
 
 static void
@@ -6576,27 +6629,56 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	    (message->rcode == dns_rcode_noerror ||
 	     message->rcode == dns_rcode_nxdomain)) {
 		/*
-		 * We've got answers.  However, if we sent
-		 * a BIND 8 server an NS query, it may have
-		 * incorrectly responded with a non-authoritative
-		 * answer instead of a referral.  Since this
-		 * answer lacks the SIGs necessary to do DNSSEC
-		 * validation, we must invoke the following special
-		 * kludge to treat it as a referral.
+		 * [normal case]
+		 * We've got answers.  If it has an authoritative answer or an
+		 * answer from a forwarder, we're done.
 		 */
-		if (fctx->type == dns_rdatatype_ns &&
-		    (message->flags & DNS_MESSAGEFLAG_AA) == 0 &&
-		    !ISFORWARDER(query->addrinfo))
-		{
-			result = noanswer_response(fctx, NULL, ISC_TRUE);
+		if ((message->flags & DNS_MESSAGEFLAG_AA) != 0 ||
+		    ISFORWARDER(query->addrinfo))
+			result = answer_response(fctx);
+		else if (iscname(fctx) &&
+			 fctx->type != dns_rdatatype_any &&
+			 fctx->type != dns_rdatatype_cname) {
+			/*
+			 * A BIND8 server could return a non-authoritative
+			 * answer when a CNAME is followed.  We should treat
+			 * it as a valid answer.
+			 */
+			result = answer_response(fctx);
+		} else {
+			if (fctx->type == dns_rdatatype_ns) {
+				/*
+				 * A BIND 8 server could incorrectly return a
+				 * non-authoritative answer to an NS query
+				 * instead of a referral. Since this answer
+				 * lacks the SIGs necessary to do DNSSEC
+				 * validation, we must invoke the following
+				 * special kludge to treat it as a referral.
+				 */
+				result = noanswer_response(fctx, NULL,
+						   LOOK_FOR_NS_IN_ANSWER);
+			} else {
+				/*
+				 * Some other servers may still somehow include
+				 * an answer when it should return a referral
+				 * with an empty answer.  Check to see if we can
+				 * treat this as a referral by ignoring the
+				 * answer.  Further more, there may be an
+				 * implementation that moves A/AAAA glue records
+				 * to the answer section for that type of
+				 * delegation when the query is for that glue
+				 * record.  LOOK_FOR_GLUE_IN_ANSWER will handle
+				 * such a corner case.
+				 */
+				result = noanswer_response(fctx, NULL,
+						   LOOK_FOR_GLUE_IN_ANSWER);
+			}
 			if (result != DNS_R_DELEGATION) {
 				/*
-				 * The answer section must have contained
-				 * something other than the NS records
-				 * we asked for.  Since AA is not set
-				 * and the server is not a forwarder,
-				 * it is technically lame and it's easier
-				 * to treat it as such than to figure out
+				 * At this point, AA is not set, the response
+				 * is not a referral, and the server is not a
+				 * forwarder.  It is technically lame and it's
+				 * easier to treat it as such than to figure out
 				 * some more elaborate course of action.
 				 */
 				broken_server = DNS_R_LAME;
@@ -6605,7 +6687,6 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			}
 			goto force_referral;
 		}
-		result = answer_response(fctx);
 		if (result != ISC_R_SUCCESS) {
 			if (result == DNS_R_FORMERR)
 				keep_trying = ISC_TRUE;
@@ -6617,7 +6698,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		/*
 		 * NXDOMAIN, NXRDATASET, or referral.
 		 */
-		result = noanswer_response(fctx, NULL, ISC_FALSE);
+		result = noanswer_response(fctx, NULL, 0);
 		if (result == DNS_R_CHASEDSSERVERS) {
 		} else if (result == DNS_R_DELEGATION) {
 		force_referral:

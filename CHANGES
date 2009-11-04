@@ -1,3 +1,6 @@
+2748.	[func]		Identify bad answers from GTLD servers and treat them
+			as referrals. [RT #18884]
+
 2747.	[bug]		Journal roll forwards failed to set the re-signing
 			time of RRSIGs correctly. [RT #20541]
 
