@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.h,v 1.76 2009/10/27 04:46:58 marka Exp $ */
+/* $Id: rbt.h,v 1.77 2009/11/04 01:18:19 marka Exp $ */
 
 #ifndef DNS_RBT_H
 #define DNS_RBT_H 1
@@ -70,6 +70,12 @@ ISC_LANG_BEGINDECLS
  * multiple dns_rbtnode structures will not work.
  */
 typedef struct dns_rbtnode dns_rbtnode_t;
+enum {
+	DNS_RBT_NSEC_NORMAL=0,      /* in main tree */
+	DNS_RBT_NSEC_HAS_NSEC=1,    /* also has node in nsec tree */
+	DNS_RBT_NSEC_NSEC=2,        /* in nsec tree */
+	DNS_RBT_NSEC_NSEC3=3        /* in nsec3 tree */
+};
 struct dns_rbtnode {
 #if DNS_RBT_USEMAGIC
 	unsigned int magic;
@@ -103,12 +109,7 @@ struct dns_rbtnode {
 	unsigned int color : 1;         /*%< range is 0..1 */
 	unsigned int find_callback : 1; /*%< range is 0..1 */
 	unsigned int attributes : 3;    /*%< range is 0..2 */
-	enum {
-	    DNS_RBT_NSEC_NORMAL=0,      /*      in main tree */
-	    DNS_RBT_NSEC_HAS_NSEC=1,    /*      also has node in nsec tree */
-	    DNS_RBT_NSEC_NSEC=2,        /*      in nsec tree */
-	    DNS_RBT_NSEC_NSEC3=3        /*      in nsec3 tree */
-	} nsec : 2;                     /*%< range is 0..3 */
+	unsigned int nsec : 2;          /*%< range is 0..3 */
 	unsigned int namelen : 8;       /*%< range is 1..255 */
 	unsigned int offsetlen : 8;     /*%< range is 1..128 */
 	unsigned int oldnamelen : 8;    /*%< range is 1..255 */
