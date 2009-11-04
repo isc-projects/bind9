@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.441 2009/11/03 04:39:41 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.442 2009/11/04 22:35:08 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -5001,7 +5001,6 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> random-device <replaceable>path_name</replaceable> ; </optional>
     <optional> max-cache-size <replaceable>size_spec</replaceable> ; </optional>
     <optional> match-mapped-addresses <replaceable>yes_or_no</replaceable>; </optional>
-    <optional> match-mapped-addresses <replaceable>yes_or_no</replaceable>; </optional>
     <optional> disable-aaaa-on-v4-transport ( <replaceable>yes_or_no</replaceable> | <replaceable>break-dnssec</replaceable> ); </optional>
     <optional> preferred-glue ( <replaceable>A</replaceable> | <replaceable>AAAA</replaceable> | <replaceable>NONE</replaceable> ); </optional>
     <optional> edns-udp-size <replaceable>number</replaceable>; </optional>
@@ -6281,9 +6280,6 @@ options {
 		  Some AAAA records are given to IPv4 clients in glue records.
 		  IPv4 clients that are servers can then erroneously
 		  answer requests for AAAA records received via IPv4.
-                </para>
-                <para>
-		  security
                 </para>
               </listitem>
             </varlistentry>
