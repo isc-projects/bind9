@@ -1,3 +1,6 @@
+2750.	[bug]		dig: assertion failure could occur when a server
+			didn't have an address. [RT #20579]
+
 2729.	[func]		When constructing a CNAME from a DNAME use the DNAME
 			TTL. [RT #20451]
 
