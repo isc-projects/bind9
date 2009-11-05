@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.524 2009/11/04 01:25:55 marka Exp $ */
+/* $Id: zone.c,v 1.525 2009/11/05 21:45:05 each Exp $ */
 
 /*! \file */
 
@@ -2320,7 +2320,7 @@ zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param) {
 		for (i = 0; i < nsec3param->salt_length; i++)
 			sprintf(&saltbuf[i*2], "%02X", nsec3chain->salt[i]);
 	dns_zone_log(zone, ISC_LOG_INFO,
-		     "zone_addnsec3chain(%u,%s,%u,%s)\n",
+		     "zone_addnsec3chain(%u,%s,%u,%s)",
 		      nsec3param->hash, flags, nsec3param->iterations,
 		      saltbuf);
 	for (current = ISC_LIST_HEAD(zone->nsec3chain);
