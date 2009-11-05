@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.107 2009/10/05 17:30:49 fdupont Exp $
+# $Id: Makefile.in,v 1.108 2009/11/05 02:59:04 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -145,7 +145,7 @@ docclean manclean maintainer-clean::
 clean distclean maintainer-clean::
 	rm -f ${TARGETS} ${OBJS} bind.keys.h
 
-bind9.xsl.h: bind9.xsl convertxsl.pl
+bind9.xsl.h: bind9.xsl ${srcdir}/convertxsl.pl
 	${PERL} ${srcdir}/convertxsl.pl < ${srcdir}/bind9.xsl > bind9.xsl.h
 
 depend: bind9.xsl.h
