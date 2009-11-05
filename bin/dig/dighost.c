@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.311.70.9 2009/06/24 03:40:42 marka Exp $ */
+/* $Id: dighost.c,v 1.311.70.10 2009/11/05 01:57:29 each Exp $ */
 
 /*! \file
  *  \note
@@ -2398,12 +2398,14 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 		cq = query->lookup->current_query;
 		if (!l->tcp_mode)
 			send_udp(ISC_LIST_NEXT(cq, link));
-		else {
+		else if (query->sock != NULL) {
 			isc_socket_cancel(query->sock, NULL,
 					  ISC_SOCKCANCEL_ALL);
 			isc_socket_detach(&query->sock);
 			sockcount--;
 			debug("sockcount=%d", sockcount);
+			send_tcp_connect(ISC_LIST_NEXT(cq, link));
+		} else {
 			send_tcp_connect(ISC_LIST_NEXT(cq, link));
 		}
 		UNLOCK_LOOKUP;
