@@ -1,3 +1,5 @@
+2755.	[placeholder]
+
 2754.	[bug]		Secure-to-insecure transitions failed when zone
 			was signed with NSEC3. [RT #20587]
 
