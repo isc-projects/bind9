@@ -1,3 +1,6 @@
+2754.	[bug]		Secure-to-insecure transitions failed when zone
+			was signed with NSEC3. [RT #20587]
+
 2750.	[bug]		dig: assertion failure could occur when a server
 			didn't have an address. [RT #20579]
 
