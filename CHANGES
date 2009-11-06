@@ -1,3 +1,5 @@
+2752.	[bug]		Locking violation. [RT #20587]
+
 2751.	[bug]		Fixed a memory leak in dnssec-keyfromlabel. [RT #20588]
 
 2750.	[bug]		dig: assertion failure could occur when a server

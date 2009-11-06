@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.525 2009/11/05 21:45:05 each Exp $ */
+/* $Id: zone.c,v 1.526 2009/11/06 01:30:06 marka Exp $ */
 
 /*! \file */
 
@@ -5937,9 +5937,11 @@ zone_nsec3chain(dns_zone_t *zone) {
 		/*
 		 * Add a NSEC record except at the origin.
 		 */
-		if (!dns_name_equal(name, dns_db_origin(db)))
+		if (!dns_name_equal(name, dns_db_origin(db))) {
+			dns_dbiterator_pause(nsec3chain->dbiterator);
 			CHECK(add_nsec(db, version, name, node, zone->minimum,
 				       delegation, &nsec_diff));
+		}
 
  next_removenode:
 		first = ISC_FALSE;
