@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.443 2009/11/05 19:12:13 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.444 2009/11/06 18:54:48 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4939,7 +4939,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
         <optional> port ( <replaceable>ip_port</replaceable> | <replaceable>*</replaceable> ) </optional> ) ; </optional>
     <optional> use-queryport-pool <replaceable>yes_or_no</replaceable>; </optional>
     <optional> queryport-pool-ports <replaceable>number</replaceable>; </optional>
-    <optional> queryport-pool-interval <replaceable>number</replaceable>; </optional>
+    <optional> queryport-pool-updateinterval <replaceable>number</replaceable>; </optional>
     <optional> max-transfer-time-in <replaceable>number</replaceable>; </optional>
     <optional> max-transfer-time-out <replaceable>number</replaceable>; </optional>
     <optional> max-transfer-idle-in <replaceable>number</replaceable>; </optional>
@@ -8875,7 +8875,7 @@ deny-answer-aliases { "example.net"; };
                      <optional> port ( <replaceable>ip_port</replaceable> | <replaceable>*</replaceable> ) </optional>; </optional>
     <optional> use-queryport-pool <replaceable>yes_or_no</replaceable>; </optional>
     <optional> queryport-pool-ports <replaceable>number</replaceable>; </optional>
-    <optional> queryport-pool-interval <replaceable>number</replaceable>; </optional>
+    <optional> queryport-pool-updateinterval <replaceable>number</replaceable>; </optional>
 };
 </programlisting>
 
