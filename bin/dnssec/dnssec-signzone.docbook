@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.docbook,v 1.27.130.2 2008/10/15 23:46:53 tbox Exp $ -->
+<!-- $Id: dnssec-signzone.docbook,v 1.27.130.3 2009/11/06 21:35:56 each Exp $ -->
 <refentry id="man.dnssec-signzone">
   <refentryinfo>
     <date>June 30, 2000</date>
@@ -87,10 +87,10 @@
     <para><command>dnssec-signzone</command>
       signs a zone.  It generates
       NSEC and RRSIG records and produces a signed version of the
-      zone. The security status of delegations from the signed zone
-      (that is, whether the child zones are secure or not) is
-      determined by the presence or absence of a
-      <filename>keyset</filename> file for each child zone.
+      zone.  It also generates a <filename>keyset-</filename> file containing
+      the key-signing keys for the zone, and if signing a zone which
+      contains delegations, it can optionally generate DS records for
+      the child zones from their <filename>keyset-</filename> files.
     </para>
   </refsect1>
 
@@ -150,8 +150,10 @@
         <term>-g</term>
         <listitem>
           <para>
-            Generate DS records for child zones from keyset files.
-            Existing DS records will be removed.
+            If the zone contains any delegations, and there are
+            <filename>keyset-</filename> files for any of the child zones,
+            then DS records for the child zones will be generated from the
+            keys in those files.  Existing DS records will be removed.
           </para>
         </listitem>
       </varlistentry>
