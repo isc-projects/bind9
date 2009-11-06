@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.166 2009/10/27 05:42:25 marka Exp $ */
+/* $Id: update.c,v 1.167 2009/11/06 08:38:56 each Exp $ */
 
 #include <config.h>
 
@@ -3043,14 +3043,15 @@ check_dnssec(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	CHECK(dns_nsec_nseconly(db, ver, &flag));
 
 	if (flag)
-		CHECK(dns_nsec3_activex(db, ver, ISC_FALSE, privatetype, &flag));
+		CHECK(dns_nsec3_activex(db, ver, ISC_FALSE,
+					privatetype, &flag));
 	if (flag) {
 		update_log(client, zone, ISC_LOG_WARNING,
 			   "NSEC only DNSKEYs and NSEC3 chains not allowed");
 	} else {
 		CHECK(get_iterations(db, ver, privatetype, &iterations));
 		CHECK(dns_nsec3_maxiterations(db, ver, client->mctx, &max));
-		if (iterations > max) {
+		if (max != 0 && iterations > max) {
 			flag = ISC_TRUE;
 			update_log(client, zone, ISC_LOG_WARNING,
 				   "too many NSEC3 iterations (%u) for "
