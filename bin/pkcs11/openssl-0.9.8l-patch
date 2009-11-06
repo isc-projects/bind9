@@ -11102,7 +11102,7 @@ diff -u /dev/null openssl/crypto/engine/pkcs11.h:1.1.1.1
 +++ openssl/crypto/engine/pkcs11.h	Wed Oct 24 23:27:09 2007
 @@ -0,0 +1,299 @@
 +/* pkcs11.h include file for PKCS #11. */
-+/* $Revision: 1.2 $ */
++/* $Revision: 1.1 $ */
 +
 +/* License to copy and use this software is granted provided that it is
 + * identified as "RSA Security Inc. PKCS #11 Cryptographic Token Interface
@@ -11406,7 +11406,7 @@ diff -u /dev/null openssl/crypto/engine/pkcs11f.h:1.1.1.1
 +++ openssl/crypto/engine/pkcs11f.h	Wed Oct 24 23:27:09 2007
 @@ -0,0 +1,912 @@
 +/* pkcs11f.h include file for PKCS #11. */
-+/* $Revision: 1.2 $ */
++/* $Revision: 1.1 $ */
 +
 +/* License to copy and use this software is granted provided that it is
 + * identified as "RSA Security Inc. PKCS #11 Cryptographic Token Interface
@@ -12323,7 +12323,7 @@ diff -u /dev/null openssl/crypto/engine/pkcs11t.h:1.2
 +++ openssl/crypto/engine/pkcs11t.h	Sat Aug 30 11:58:07 2008
 @@ -0,0 +1,1885 @@
 +/* pkcs11t.h include file for PKCS #11. */
-+/* $Revision: 1.2 $ */
++/* $Revision: 1.1 $ */
 +
 +/* License to copy and use this software is granted provided that it is
 + * identified as "RSA Security Inc. PKCS #11 Cryptographic Token Interface
