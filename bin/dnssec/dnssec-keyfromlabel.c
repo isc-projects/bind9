@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keyfromlabel.c,v 1.25 2009/10/27 18:56:48 each Exp $ */
+/* $Id: dnssec-keyfromlabel.c,v 1.26 2009/11/06 01:06:38 each Exp $ */
 
 /*! \file */
 
@@ -197,7 +197,7 @@ main(int argc, char **argv) {
 			options |= DST_TYPE_KEY;
 			break;
 		case 'l':
-			label = isc_commandline_argument;
+			label = isc_mem_strdup(mctx, isc_commandline_argument);
 			break;
 		case 'n':
 			nametype = isc_commandline_argument;
@@ -320,8 +320,11 @@ main(int argc, char **argv) {
 		int len;
 
 		len = strlen(label) + strlen(engine) + 2;
-		l = isc_mem_get(mctx, len);
+		l = isc_mem_allocate(mctx, len);
+		if (l == NULL)
+			fatal("cannot allocate memory");
 		snprintf(l, len, "%s:%s", engine, label);
+		isc_mem_free(mctx, label);
 		label = l;
 	}
 
@@ -525,6 +528,7 @@ main(int argc, char **argv) {
 	dns_name_destroy();
 	if (verbose > 10)
 		isc_mem_stats(mctx, stdout);
+	isc_mem_free(mctx, label);
 	isc_mem_destroy(&mctx);
 
 	return (0);
