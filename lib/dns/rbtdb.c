@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.285 2009/10/27 23:47:45 tbox Exp $ */
+/* $Id: rbtdb.c,v 1.286 2009/11/06 03:26:59 each Exp $ */
 
 /*! \file */
 
@@ -6204,11 +6204,6 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			nsecnode->nsec = DNS_RBT_NSEC_NSEC;
 			rbtnode->nsec = DNS_RBT_NSEC_HAS_NSEC;
 		} else if (result == ISC_R_EXISTS) {
-			isc_log_write(dns_lctx,
-				      DNS_LOGCATEGORY_DATABASE,
-				      DNS_LOGMODULE_CACHE,
-				      ISC_LOG_ERROR,
-				      "addrdataset: node lied about NSEC");
 			rbtnode->nsec = DNS_RBT_NSEC_HAS_NSEC;
 			result = ISC_R_SUCCESS;
 		}
