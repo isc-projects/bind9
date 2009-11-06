@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ecdb.c,v 1.3 2009/09/02 23:48:02 tbox Exp $ */
+/* $Id: ecdb.c,v 1.4 2009/11/06 04:19:28 marka Exp $ */
 
 #include "config.h"
 
@@ -498,11 +498,11 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 }
 
 static isc_result_t
-createiterator(dns_db_t *db, isc_boolean_t relative_names,
+createiterator(dns_db_t *db, unsigned int options,
 	       dns_dbiterator_t **iteratorp)
 {
 	UNUSED(db);
-	UNUSED(relative_names);
+	UNUSED(options);
 	UNUSED(iteratorp);
 
 	return (ISC_R_NOTIMPLEMENTED);
