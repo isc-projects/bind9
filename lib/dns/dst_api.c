@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.46 2009/11/03 19:43:54 marka Exp $
+ * $Id: dst_api.c,v 1.47 2009/11/07 03:36:58 each Exp $
  */
 
 /*! \file */
@@ -39,6 +39,7 @@
 #include <config.h>
 
 #include <stdlib.h>
+#include <time.h>
 
 #include <isc/buffer.h>
 #include <isc/dir.h>
