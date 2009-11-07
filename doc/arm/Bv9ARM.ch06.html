@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.168.18.39 2009/10/04 01:45:33 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.168.18.40 2009/11/07 01:45:04 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -95,7 +95,7 @@
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2592752">Discussion of MX Records</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#Setting_TTLs">Setting TTLs</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2593367">Inverse Mapping in IPv4</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2593494">Other Zone File Directives</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2593562">Other Zone File Directives</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2593751"><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#zonefile_format">Additional File Formats</a></span></dt>
 </dl></dd>
@@ -2115,7 +2115,7 @@ category notify { null; };
         [<span class="optional"> port ( <em class="replaceable"><code>ip_port</code></em> | <em class="replaceable"><code>*</code></em> ) </span>] ) ; </span>]
     [<span class="optional"> use-queryport-pool <em class="replaceable"><code>yes_or_no</code></em>; </span>]
     [<span class="optional"> queryport-pool-ports <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> queryport-pool-interval <em class="replaceable"><code>number</code></em>; </span>]
+    [<span class="optional"> queryport-pool-updateinterval <em class="replaceable"><code>number</code></em>; </span>]
     [<span class="optional"> max-transfer-time-in <em class="replaceable"><code>number</code></em>; </span>]
     [<span class="optional"> max-transfer-time-out <em class="replaceable"><code>number</code></em>; </span>]
     [<span class="optional"> max-transfer-idle-in <em class="replaceable"><code>number</code></em>; </span>]
@@ -4829,7 +4829,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
     [<span class="optional"> query-source-v6 [<span class="optional"> address ( <em class="replaceable"><code>ip_addr</code></em> | <em class="replaceable"><code>*</code></em> ) </span>] [<span class="optional"> port ( <em class="replaceable"><code>ip_port</code></em> | <em class="replaceable"><code>*</code></em> ) </span>]; </span>]
     [<span class="optional"> use-queryport-pool <em class="replaceable"><code>yes_or_no</code></em>; </span>]
     [<span class="optional"> queryport-pool-ports <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> queryport-pool-interval <em class="replaceable"><code>number</code></em>; </span>]
+    [<span class="optional"> queryport-pool-updateinterval <em class="replaceable"><code>number</code></em>; </span>]
 };
 </pre>
 </div>
@@ -7365,7 +7365,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2593494"></a>Other Zone File Directives</h3></div></div></div>
+<a name="id2593562"></a>Other Zone File Directives</h3></div></div></div>
 <p>
             The Master File Format was initially defined in RFC 1035 and
             has subsequently been extended. While the Master File Format
@@ -7380,7 +7380,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2593516"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
+<a name="id2593585"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$ORIGIN</strong></span>
               <em class="replaceable"><code>domain-name</code></em>
@@ -7408,7 +7408,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2593577"></a>The <span><strong class="command">$INCLUDE</strong></span> Directive</h4></div></div></div>
+<a name="id2593645"></a>The <span><strong class="command">$INCLUDE</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$INCLUDE</strong></span>
               <em class="replaceable"><code>filename</code></em>
@@ -8411,7 +8411,7 @@ $GENERATE 1-127 $ CNAME $.0</pre>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2596284"></a>Zone Maintenance Statistics Counters</h4></div></div></div>
+<a name="id2596353"></a>Zone Maintenance Statistics Counters</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -8565,7 +8565,7 @@ $GENERATE 1-127 $ CNAME $.0</pre>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2596736"></a>Resolver Statistics Counters</h4></div></div></div>
+<a name="id2596804"></a>Resolver Statistics Counters</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>

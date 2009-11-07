@@ -1,4 +1,4 @@
-.\" Copyright (C) 2004-2008 Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (C) 2004-2009 Internet Systems Consortium, Inc. ("ISC")
 .\" Copyright (C) 2000-2003 Internet Software Consortium.
 .\" 
 .\" Permission to use, copy, modify, and/or distribute this software for any
@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-signzone.8,v 1.45.164.3 2009/07/11 01:43:27 tbox Exp $
+.\" $Id: dnssec-signzone.8,v 1.45.164.4 2009/11/07 01:45:04 tbox Exp $
 .\"
 .hy 0
 .ad l
@@ -37,9 +37,11 @@ dnssec\-signzone \- DNSSEC zone signing tool
 .SH "DESCRIPTION"
 .PP
 \fBdnssec\-signzone\fR
-signs a zone. It generates NSEC and RRSIG records and produces a signed version of the zone. The security status of delegations from the signed zone (that is, whether the child zones are secure or not) is determined by the presence or absence of a
-\fIkeyset\fR
-file for each child zone.
+signs a zone. It generates NSEC and RRSIG records and produces a signed version of the zone. It also generates a
+\fIkeyset\-\fR
+file containing the key\-signing keys for the zone, and if signing a zone which contains delegations, it can optionally generate DS records for the child zones from their
+\fIkeyset\-\fR
+files.
 .SH "OPTIONS"
 .PP
 \-a
@@ -73,7 +75,9 @@ as the directory
 .PP
 \-g
 .RS 4
-Generate DS records for child zones from keyset files. Existing DS records will be removed.
+If the zone contains any delegations, and there are
+\fIkeyset\-\fR
+files for any of the child zones, then DS records for the child zones will be generated from the keys in those files. Existing DS records will be removed.
 .RE
 .PP
 \-s \fIstart\-time\fR
@@ -266,7 +270,7 @@ RFC 4033.
 .PP
 Internet Systems Consortium
 .SH "COPYRIGHT"
-Copyright \(co 2004\-2008 Internet Systems Consortium, Inc. ("ISC")
+Copyright \(co 2004\-2009 Internet Systems Consortium, Inc. ("ISC")
 .br
 Copyright \(co 2000\-2003 Internet Software Consortium.
 .br
