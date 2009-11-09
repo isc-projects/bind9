@@ -1,3 +1,5 @@
+2756.	[bug]		Fixed corrupt logfile message in update.c. [RT# 20597]
+
 2755.	[placeholder]
 
 2754.	[bug]		Secure-to-insecure transitions failed when zone
