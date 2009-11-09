@@ -236,6 +236,7 @@
 ./bin/pkcs11/include/pkcs11f.h			C	2009
 ./bin/pkcs11/include/pkcs11t.h			C	2009
 ./bin/pkcs11/openssl-0.9.8k-patch		X	2009
+./bin/pkcs11/openssl-0.9.8l-patch		X	2009
 ./bin/pkcs11/pkcs11-destroy.8			MAN	2009
 ./bin/pkcs11/pkcs11-destroy.c			X	2009
 ./bin/pkcs11/pkcs11-destroy.docbook		SGML	2009
