@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.56 2009/11/10 20:02:01 each Exp $ */
+/* $Id: named-checkzone.c,v 1.57 2009/11/10 21:30:42 each Exp $ */
 
 /*! \file */
 
@@ -85,7 +85,7 @@ usage(void) {
 		"[-W (ignore|warn)] "
 		"%s zonename filename\n",
 		prog_name,
-		progmode == progmode_check ? "[-o filename]" : "{-o filename}");
+		progmode == progmode_check ? "[-o filename]" : "-o filename");
 	exit(1);
 }
 
