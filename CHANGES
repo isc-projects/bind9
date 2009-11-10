@@ -1,3 +1,6 @@
+2759.	[doc]		Add information about .jbk/.jnw files to 
+			the ARM. [RT #20303]
+
 2758.	[bug]		win32: Added a workaround for a windows 2008 bug
 			that could cause the UDP client handler to shut
 			down. [RT #19176]

@@ -35,7 +35,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.45 2009/11/06 18:52:18 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.46 2009/11/10 19:47:34 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -1677,6 +1677,11 @@ controls {
           each dynamic update, because that would be too slow when a large
           zone is updated frequently.  Instead, the dump is delayed by
           up to 15 minutes, allowing additional updates to take place.
+          During the dump process, transient files will be created
+          with the extensions <filename>.jnw</filename> and
+          <filename>.jbk</filename>; under ordinary circumstances, these
+          will be removed when the dump is complete, and can be safely
+          ignored.
         </para>
 
         <para>
