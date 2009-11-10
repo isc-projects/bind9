@@ -1,3 +1,6 @@
+2757.	[bug]		dig: assertion failure could occur in connect
+			timeout. [RT #20599]
+
 2755.	[doc]		Clarify documentation of keyset- files in
 			dnssec-signzone man page. [RT #19810]
 
