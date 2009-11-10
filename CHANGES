@@ -1,3 +1,6 @@
+2757.	[bug]		dig: assertion failure could occur in connect
+			timeout. [RT #20599]
+
 2756.	[bug]		Fixed corrupt logfile message in update.c. [RT# 20597]
 
 2755.	[placeholder]
