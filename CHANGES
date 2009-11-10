@@ -1,3 +1,5 @@
+2760.	[cleanup]	Corrected named-compilezone usage summary. [RT #20533]
+
 2759.	[doc]		Add information about .jbk/.jnw files to 
 			the ARM. [RT #20303]
 
