@@ -1,3 +1,7 @@
+2758.	[bug]		win32: Added a workaround for a windows 2008 bug
+			that could cause the UDP client handler to shut
+			down. [RT #19176]
+
 2757.	[bug]		dig: assertion failure could occur in connect
 			timeout. [RT #20599]
 
