@@ -1,3 +1,7 @@
+2761.	[cleanup]	Enable internal symbol table for backtrace only for
+			systems that are known to work.  Currently, BSD
+			variants, Linux and Solaris are supported. [RT# 20202]
+
 2760.	[cleanup]	Corrected named-compilezone usage summary. [RT #20533]
 
 2759.	[doc]		Add information about .jbk/.jnw files to 
