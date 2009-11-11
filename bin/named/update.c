@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.167 2009/11/06 08:38:56 each Exp $ */
+/* $Id: update.c,v 1.168 2009/11/09 01:28:32 each Exp $ */
 
 #include <config.h>
 
@@ -310,6 +310,10 @@ checkqueryacl(ns_client_t *client, dns_acl_t *queryacl, dns_name_t *zonename,
 			      "update '%s/%s' denied due to allow-query",
 			      namebuf, classbuf);
 	} else if (updateacl == NULL && ssutable == NULL) {
+		dns_name_format(zonename, namebuf, sizeof(namebuf));
+		dns_rdataclass_format(client->view->rdclass, classbuf,
+				      sizeof(classbuf));
+
 		result = DNS_R_REFUSED;
 		ns_client_log(client, NS_LOGCATEGORY_UPDATE_SECURITY,
 			      NS_LOGMODULE_UPDATE, ISC_LOG_INFO,

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.327 2009/11/05 01:57:49 each Exp $ */
+/* $Id: dighost.c,v 1.328 2009/11/10 17:27:40 each Exp $ */
 
 /*! \file
  *  \note
@@ -2581,14 +2581,10 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 		cq = query->lookup->current_query;
 		if (!l->tcp_mode)
 			send_udp(ISC_LIST_NEXT(cq, link));
-		else if (query->sock != NULL) {
-			isc_socket_cancel(query->sock, NULL,
-					  ISC_SOCKCANCEL_ALL);
-			isc_socket_detach(&query->sock);
-			sockcount--;
-			debug("sockcount=%d", sockcount);
-			send_tcp_connect(ISC_LIST_NEXT(cq, link));
-		} else {
+		else {
+			if (query->sock != NULL)
+				isc_socket_cancel(query->sock, NULL,
+						  ISC_SOCKCANCEL_ALL);
 			send_tcp_connect(ISC_LIST_NEXT(cq, link));
 		}
 		UNLOCK_LOOKUP;
@@ -2792,8 +2788,8 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 	if (sevent->result == ISC_R_CANCELED) {
 		debug("in cancel handler");
 		isc_socket_detach(&query->sock);
+		INSIST(sockcount > 0);
 		sockcount--;
-		INSIST(sockcount >= 0);
 		debug("sockcount=%d", sockcount);
 		query->waiting_connect = ISC_FALSE;
 		isc_event_free(&event);

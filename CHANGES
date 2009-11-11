@@ -1,3 +1,21 @@
+2761.	[cleanup]	Enable internal symbol table for backtrace only for
+			systems that are known to work.  Currently, BSD
+			variants, Linux and Solaris are supported. [RT# 20202]
+
+2760.	[cleanup]	Corrected named-compilezone usage summary. [RT #20533]
+
+2759.	[doc]		Add information about .jbk/.jnw files to 
+			the ARM. [RT #20303]
+
+2758.	[bug]		win32: Added a workaround for a windows 2008 bug
+			that could cause the UDP client handler to shut
+			down. [RT #19176]
+
+2757.	[bug]		dig: assertion failure could occur in connect
+			timeout. [RT #20599]
+
+2756.	[bug]		Fixed corrupt logfile message in update.c. [RT# 20597]
+
 2755.	[placeholder]
 
 2754.	[bug]		Secure-to-insecure transitions failed when zone
