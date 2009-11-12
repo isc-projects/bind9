@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.528 2009/11/12 23:30:33 marka Exp $ */
+/* $Id: zone.c,v 1.529 2009/11/12 23:47:59 tbox Exp $ */
 
 /*! \file */
 
@@ -13370,7 +13370,7 @@ rr_exists(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
  */
 static isc_result_t
 add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
-                    dns_dbversion_t *ver, dns_diff_t *diff)
+		    dns_dbversion_t *ver, dns_diff_t *diff)
 {
 	dns_difftuple_t *tuple, *newtuple = NULL;
 	dns_rdata_dnskey_t dnskey;
@@ -13496,7 +13496,7 @@ zone_rekey(dns_zone_t *zone) {
 					    ISC_TF(!check_ksk), mctx, logmsg));
 		if (!ISC_LIST_EMPTY(del.tuples)) {
 			commit = ISC_TRUE;
-                        add_signing_records(db, zone->privatetype, ver, &del);
+			add_signing_records(db, zone->privatetype, ver, &del);
 			dns_diff_apply(&del, db, ver);
 			result = increment_soa_serial(db, ver, &del, mctx);
 			if (result == ISC_R_SUCCESS)
@@ -13504,7 +13504,7 @@ zone_rekey(dns_zone_t *zone) {
 		}
 		if (!ISC_LIST_EMPTY(add.tuples)) {
 			commit = ISC_TRUE;
-                        add_signing_records(db, zone->privatetype, ver, &add);
+			add_signing_records(db, zone->privatetype, ver, &add);
 			dns_diff_apply(&add, db, ver);
 			result = increment_soa_serial(db, ver, &add, mctx);
 			if (result == ISC_R_SUCCESS)
