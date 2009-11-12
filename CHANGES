@@ -1,3 +1,6 @@
+2762.	[bug]		DLV validation failed with a local slave DLV zone.
+			[RT #20577]
+
 2761.	[cleanup]	Enable internal symbol table for backtrace only for
 			systems that are known to work.  Currently, BSD
 			variants, Linux and Solaris are supported. [RT# 20202]

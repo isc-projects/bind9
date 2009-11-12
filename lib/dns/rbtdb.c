@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.286 2009/11/06 03:26:59 each Exp $ */
+/* $Id: rbtdb.c,v 1.287 2009/11/12 02:59:20 each Exp $ */
 
 /*! \file */
 
@@ -3225,7 +3225,7 @@ matchparams(rdatasetheader_t *header, rbtdb_search_t *search)
 }
 
 static inline isc_result_t
-previous_close_nsec(dns_rdatatype_t type, rbtdb_search_t *search,
+previous_closest_nsec(dns_rdatatype_t type, rbtdb_search_t *search,
 		    dns_name_t *name, dns_name_t *origin,
 		    dns_rbtnode_t **nodep, dns_rbtnodechain_t *nsecchain,
 		    isc_boolean_t *firstp)
@@ -3285,6 +3285,8 @@ previous_close_nsec(dns_rdatatype_t type, rbtdb_search_t *search,
 			 * records.  Perhaps they lacked signature records.
 			 */
 			result = dns_rbtnodechain_prev(nsecchain, name, origin);
+			if (result == DNS_R_NEWORIGIN)
+				result = ISC_R_NOTFOUND;
 			if (result != ISC_R_SUCCESS)
 				return (result);
 		}
@@ -3310,6 +3312,9 @@ previous_close_nsec(dns_rdatatype_t type, rbtdb_search_t *search,
 		 * same name as the node in the auxiliary NSEC tree, except for
 		 * nodes in the auxiliary tree that are awaiting deletion.
 		 */
+		if (result == DNS_R_PARTIALMATCH)
+			result = ISC_R_NOTFOUND;
+
 		if (result != ISC_R_NOTFOUND) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_CACHE, ISC_LOG_ERROR,
@@ -3452,7 +3457,7 @@ find_closest_nsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 				 * node as if it were empty and keep looking.
 				 */
 				empty_node = ISC_TRUE;
-				result = previous_close_nsec(type, search,
+				result = previous_closest_nsec(type, search,
 							name, origin, &prevnode,
 							&nsecchain, &first);
 			} else {
@@ -3468,9 +3473,9 @@ find_closest_nsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 			 * This node isn't active.  We've got to keep
 			 * looking.
 			 */
-			result = previous_close_nsec(type, search,
-						     name, origin, &prevnode,
-						     &nsecchain, &first);
+			result = previous_closest_nsec(type, search,
+						       name, origin, &prevnode,
+						       &nsecchain, &first);
 		}
 		NODE_UNLOCK(&(search->rbtdb->node_locks[node->locknum].lock),
 			    isc_rwlocktype_read);
