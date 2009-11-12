@@ -1,3 +1,5 @@
+2763.	[bug]		"rndc sign" didn't create an NSEC chain. [RT #20591]
+
 2762.	[bug]		DLV validation failed with a local slave DLV zone.
 			[RT #20577]
 
