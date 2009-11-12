@@ -6,7 +6,7 @@ Expires: May 10, 2010
 
  Use of GOST signature algorithms in DNSKEY and RRSIG Resource Records
                                for DNSSEC
-                 draft-ietf-dnsext-dnssec-gost-02
+                 draft-ietf-dnsext-dnssec-gost-03
 
 Status of this Memo
 
@@ -44,10 +44,10 @@ Copyright Notice
 
 Abstract
 
-   This document describes how to produce GOST signature and hash 
-   algorithms    DNSKEY and RRSIG resource records for use in the Domain
-   Name System Security Extensions (DNSSEC, RFC 4033, RFC 4034, 
-   and RFC 4035).
+   This document describes how to produce signature and hash using 
+   GOST algorithms for DNSKEY, RRSIG and DS resource records for use in
+   the Domain Name System Security Extensions (DNSSEC, RFC 4033, 
+   RFC 4034, and RFC 4035).
 
 V.Dolmatov              Expires May  10, 2010               [Page 1]
 
@@ -220,22 +220,18 @@ V.Dolmatov              Expires May  10, 2010                [Page 3]
                                   P8RtFK8Qv5DRsA== )
 
   Note: Several GOST signatures calculated for the same message text 
-   will differ because of using of random element in signature 
+   differ because of using of a random element is used in signature 
    generation process.
 
 4.  DS Resource Records
 
    GOST R 34.11-94 digest algorithm is denoted in DS RRs by the digest
    type {TBA2}.  The wire format of a digest value is compatible with 
-   RFC 4490 [RFC4490]. 
+   RFC 4490 [RFC4490], that is digest is in little-endian representation. 
 
 V.Dolmatov              Expires May  10, 2010                [Page 4]
 
-   Quoting RFC 4490: 
-   
-   "A 32-byte digest in little-endian representation."
-
-   The digest MUST always be calculated with GOST R 34.11-94 parameters
+      The digest MUST always be calculated with GOST R 34.11-94 parameters
    identified by id-GostR3411-94-CryptoProParamSet [RFC4357].
 
 4.1. DS RR Example
@@ -249,7 +245,7 @@ V.Dolmatov              Expires May  10, 2010                [Page 4]
                                 9tCz5oSsZl0cL0R2
                                 ) ; key id = 21649
 
-   DS RR will be
+   The DS RR will be
 
    example.net. 3600 IN DS 21649 {TBA1} {TBA2} (
              A8146F448569F30B91255BA8E98DE14B18569A524C49593ADCA4103A
@@ -291,7 +287,7 @@ V.Dolmatov              Expires May  10, 2010                [Page 4]
     Due to the fact that all existing industry implementations of GOST
     cryptographic libraries are returning GOST blobs in little-endian 
     format and in order to avoid the necessity for DNSSEC developers 
-    to hanlde different cryptographic algorithms differently, it was
+    to handle different cryptographic algorithms differently, it was
     chosen to send these blobs on the wire "as is" without 
     transformation of endianness.
 
@@ -313,16 +309,17 @@ V.Dolmatov              Expires May  10, 2010                [Page 5]
 
 8.  IANA Considerations
 
-   This document updates the IANA registry "DNS SECURITY ALGORITHM
-   NUMBERS -- per [RFC4035] "
+   This document updates the IANA registry "DNS Security Algorithm 
+   Numbers [RFC4034]"
    (http://www.iana.org/assignments/dns-sec-alg-numbers).  The 
    following entries are added to the registry:
-                                        Zone     Trans.
-   Value   Algorithm          Mnemonic  Signing  Sec.   References   Status
-   {TBA1}  GOST R 34.10-2001  GOST      Y        *      (this memo)  OPTIONAL
+                                     Zone    Trans.
+   Value  Algorithm         Mnemonic Signing Sec.  References   Status
+   {TBA1} GOST R 34.10-2001 GOST     Y       *     (this memo)  OPTIONAL
 
-   This document updates the RFC 4034 [RFC4034] Digest Types assignment
-   (RFC 4034, section A.2):
+   This document updates the RFC 4034 Digest Types assignment
+   (section A.2)by adding the value and status for the GOST R 34.11-94
+   algorithm:
 
    Value   Algorithm        Status
    {TBA2}  GOST R 34.11-94  OPTIONAL
@@ -336,7 +333,7 @@ V.Dolmatov              Expires May  10, 2010                [Page 5]
    their hard work.
 
    The following people provided additional feedback and text: Dmitry 
-   Burkov, Jaap Akkerhuis, Olafur Gundmundsson,Jelte Jansen 
+   Burkov, Jaap Akkerhuis, Olafur Gundmundsson, Jelte Jansen 
    and Wouter Wijngaards.
 
 
@@ -413,17 +410,19 @@ V.Dolmatov              Expires May  10, 2010                [Page 6]
 
    [DRAFT1]   Dolmatov V., Kabelev D., Ustinov I., Vyshensky S.,
               "GOST R 34.10-2001 digital signature algorithm"
-              draft-dolmatov-cryptocom-gost3410-2001-05,
-              work in progress
+              draft-dolmatov-cryptocom-gost3410-2001-06, 11.10.09
+              work in progress.
 V.Dolmatov              Expires May  10, 2010               [Page 7]
 
    [DRAFT2]   Dolmatov V., Kabelev D., Ustinov I., Vyshensky S.,
               "GOST R 34.11-94 Hash function algorithm"
-              draft-dolmatov-cryptocom-gost341194-03, work in progress
+              draft-dolmatov-cryptocom-gost341194-04, 11.10.09
+              work in progress.
 
    [DRAFT3]   Dolmatov V., Kabelev D., Ustinov I., Emelyanova I.,
               "GOST 28147-89 encryption, decryption and MAC algorithms"
-              draft-dolmatov-cryptocom-gost2814789-03, work in progress
+              draft-dolmatov-cryptocom-gost2814789-04, 11.10.09
+              work in progress.
 
 Authors' Addresses
 
@@ -450,6 +449,7 @@ Moscow, 117303, Russian Federation
 EMail: igus@cryptocom.ru
 
 V.Dolmatov              Expires May  10, 2010                [Page 8]
+
 
 
 
