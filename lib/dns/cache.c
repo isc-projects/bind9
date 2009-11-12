@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.86 2009/11/06 04:12:15 marka Exp $ */
+/* $Id: cache.c,v 1.87 2009/11/12 23:43:02 each Exp $ */
 
 /*! \file */
 
@@ -470,7 +470,9 @@ dns_cache_load(dns_cache_t *cache) {
 
 isc_result_t
 dns_cache_dump(dns_cache_t *cache) {
+#ifdef BIND9
 	isc_result_t result;
+#endif
 
 	REQUIRE(VALID_CACHE(cache));
 
