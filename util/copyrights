@@ -1527,6 +1527,7 @@
 ./doc/private/bugfix-by-assertion		X	2001
 ./doc/private/delete-list			X	2005,2006,2007,2008
 ./doc/private/options				TXT.BRIEF	2000,2001,2004
+./doc/private/SRCID				X	2009
 ./doc/todo/brister/todo				X	2000,2001
 ./doc/todo/bwelling/todo			X	2000,2001
 ./doc/todo/drc/todo				X	2000,2001
