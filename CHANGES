@@ -1,3 +1,6 @@
+2765.	[bug]		Skip masters for which the TSIG key cannot be found.
+			[RT #20595]
+
 2764.	[bug]		"rndc-confgen -a" could trigger a REQUIRE. [RT #20610]
 
 2763.	[bug]		"rndc sign" didn't create an NSEC chain. [RT #20591]
