@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keygen.c,v 1.3 2009/06/11 23:47:55 tbox Exp $ */
+/* $Id: keygen.c,v 1.4 2009/11/12 14:02:38 marka Exp $ */
 
 /*! \file */
 
@@ -194,7 +194,7 @@ write_key_file(const char *keyfile, const char *user,
 	       dns_secalg_t alg) {
 	isc_result_t result;
 	const char *algname = alg_totext(alg);
-	FILE *fd;
+	FILE *fd = NULL;
 
 	DO("create keyfile", isc_file_safecreate(keyfile, &fd));
 
