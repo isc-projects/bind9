@@ -1,3 +1,6 @@
+2765.	[bug]		Skip masters for which the TSIG key cannot be found.
+			[RT #20595]
+
 2760.	[cleanup]	Corrected named-compilezone usage summary. [RT #20533]
 
 2759.	[doc]		Add information about .jbk/.jnw files to 

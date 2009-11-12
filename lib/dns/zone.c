@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.470.12.14 2009/10/05 23:46:58 tbox Exp $ */
+/* $Id: zone.c,v 1.470.12.15 2009/11/12 23:43:36 marka Exp $ */
 
 /*! \file */
 
@@ -3674,6 +3674,7 @@ notify_isself(dns_zone_t *zone, isc_sockaddr_t *dst) {
 	isc_sockaddr_t any;
 	isc_boolean_t isself;
 	isc_netaddr_t dstaddr;
+	isc_result_t result;
 
 	if (zone->view == NULL || zone->isself == NULL)
 		return (ISC_FALSE);
@@ -3699,7 +3700,9 @@ notify_isself(dns_zone_t *zone, isc_sockaddr_t *dst) {
 		src = *dst;
 
 	isc_netaddr_fromsockaddr(&dstaddr, dst);
-	(void)dns_view_getpeertsig(zone->view, &dstaddr, &key);
+	result = dns_view_getpeertsig(zone->view, &dstaddr, &key);
+	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND)
+		return (ISC_FALSE);
 	isself = (zone->isself)(zone->view, key, &src, dst, zone->rdclass,
 				zone->isselfarg);
 	if (key != NULL)
@@ -3901,9 +3904,14 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 		goto cleanup;
 
 	isc_netaddr_fromsockaddr(&dstip, &notify->dst);
-	(void)dns_view_getpeertsig(notify->zone->view, &dstip, &key);
-
 	isc_sockaddr_format(&notify->dst, addrbuf, sizeof(addrbuf));
+	result = dns_view_getpeertsig(notify->zone->view, &dstip, &key);
+	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
+		notify_log(notify->zone, ISC_LOG_ERROR, "NOTIFY to %s not "
+			   "sent. Peer TSIG key lookup failure.", addrbuf);
+		goto cleanup_message;
+	}
+
 	notify_log(notify->zone, ISC_LOG_DEBUG(3), "sending notify to %s",
 		   addrbuf);
 	if (notify->zone->view->peers != NULL) {
@@ -3950,6 +3958,7 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
  cleanup_key:
 	if (key != NULL)
 		dns_tsigkey_detach(&key);
+ cleanup_message:
 	dns_message_destroy(&message);
  cleanup:
 	UNLOCK_ZONE(notify->zone);
@@ -5146,10 +5155,19 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 			dns_name_format(keyname, namebuf, sizeof(namebuf));
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "unable to find key: %s", namebuf);
+			goto skip_master;
 		}
 	}
-	if (key == NULL)
-		(void)dns_view_getpeertsig(zone->view, &masterip, &key);
+	if (key == NULL) {
+		result = dns_view_getpeertsig(zone->view, &masterip, &key);
+		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
+			char addrbuf[ISC_NETADDR_FORMATSIZE];
+			isc_netaddr_format(&masterip, addrbuf, sizeof(addrbuf));
+			dns_zone_log(zone, ISC_LOG_ERROR,
+				     "unable to find TSIG key for %s", addrbuf);
+			goto skip_master;
+		}
+	}
 
 	have_xfrsource = ISC_FALSE;
 	reqnsid = zone->view->requestnsid;
