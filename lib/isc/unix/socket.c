@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.325 2009/10/01 01:30:01 sar Exp $ */
+/* $Id: socket.c,v 1.326 2009/11/13 00:41:58 each Exp $ */
 
 /*! \file */
 
@@ -2628,10 +2628,12 @@ isc__socket_fdwatchcreate(isc_socketmgr_t *manager0, int fd, int flags,
 	return (ISC_R_SUCCESS);
 }
 
-/* Indicate to the manager that it should watch the socket again.
+/*
+ * Indicate to the manager that it should watch the socket again.
  * This can be used to restart watching if the previous event handler
  * didn't indicate there was more data to be processed.  Primarily
- * it is for writing but could be used for reading if desired */
+ * it is for writing but could be used for reading if desired
+ */
 
 ISC_SOCKETFUNC_SCOPE isc_result_t
 isc__socket_fdwatchpoke(isc_socket_t *sock0, int flags)
@@ -2640,10 +2642,23 @@ isc__socket_fdwatchpoke(isc_socket_t *sock0, int flags)
 
 	REQUIRE(VALID_SOCKET(sock));
 
-	if (flags & ISC_SOCKFDWATCH_READ)
-		select_poke(sock->manager, sock->fd, SELECT_POKE_READ);
-	if (flags & ISC_SOCKFDWATCH_WRITE)
-		select_poke(sock->manager, sock->fd, SELECT_POKE_WRITE);
+	/*
+	 * We check both flags first to allow us to get the lock
+	 * once but only if we need it.
+	 */
+
+	if ((flags & (ISC_SOCKFDWATCH_READ | ISC_SOCKFDWATCH_WRITE)) != 0) {
+		LOCK(&sock->lock);
+		if (((flags & ISC_SOCKFDWATCH_READ) != 0) &&
+		    !sock->pending_recv)
+			select_poke(sock->manager, sock->fd,
+				    SELECT_POKE_READ);
+		if (((flags & ISC_SOCKFDWATCH_WRITE) != 0) &&
+		    !sock->pending_send)
+			select_poke(sock->manager, sock->fd,
+				    SELECT_POKE_WRITE);
+		UNLOCK(&sock->lock);
+	}
 
 	socket_log(sock, NULL, TRACE, isc_msgcat, ISC_MSGSET_SOCKET,
 		   ISC_MSG_POKED, "fdwatch-poked flags: %d", flags);
