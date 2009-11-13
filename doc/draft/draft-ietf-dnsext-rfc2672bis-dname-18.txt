@@ -5,28 +5,32 @@ DNS Extensions Working Group                                     S. Rose
 Internet-Draft                                                      NIST
 Obsoletes: 2672 (if approved)                              W. Wijngaards
 Updates: 3363,4294                                            NLnet Labs
-(if approved)                                         September 24, 2009
+(if approved)                                          November 12, 2009
 Intended status: Standards Track
-Expires: March 28, 2010
+Expires: May 16, 2010
 
 
                  Update to DNAME Redirection in the DNS
-                 draft-ietf-dnsext-rfc2672bis-dname-17
+                 draft-ietf-dnsext-rfc2672bis-dname-18
+
+Abstract
+
+   The DNAME record provides redirection for a sub-tree of the domain
+   name tree in the DNS system.  That is, all names that end with a
+   particular suffix are redirected to another part of the DNS.  This is
+   a revision of the original specification in RFC 2672, also aligning
+   RFC 3363 and RFC 4294 with this revision.
+
+Requirements Language
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in RFC 2119 [RFC2119].
 
 Status of This Memo
 
    This Internet-Draft is submitted to IETF in full conformance with the
-   provisions of BCP 78 and BCP 79.  This document may contain material
-   from IETF Documents or IETF Contributions published or made publicly
-   available before November 10, 2008.  The person(s) controlling the
-   copyright in some of this material may not have granted the IETF
-   Trust the right to allow modifications of such material outside the
-   IETF Standards Process.  Without obtaining an adequate license from
-   the person(s) controlling the copyright in such materials, this
-   document may not be modified outside the IETF Standards Process, and
-   derivative works of it may not be created outside the IETF Standards
-   Process, except to format it for publication as an RFC or to
-   translate it into languages other than English.
+   provisions of BCP 78 and BCP 79.
 
    Internet-Drafts are working documents of the Internet Engineering
    Task Force (IETF), its areas, and its working groups.  Note that
@@ -44,44 +48,41 @@ Status of This Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on March 28, 2010.
+   This Internet-Draft will expire on May 16, 2010.
+
+
+
+Rose & Wijngaards         Expires May 16, 2010                  [Page 1]
+
+Internet-Draft              DNAME Redirection              November 2009
+
 
 Copyright Notice
 
    Copyright (c) 2009 IETF Trust and the persons identified as the
-
-
-
-Rose & Wijngaards        Expires March 28, 2010                 [Page 1]
-
-Internet-Draft              DNAME Redirection             September 2009
-
-
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
-   Provisions Relating to IETF Documents in effect on the date of
-   publication of this document (http://trustee.ietf.org/license-info).
-   Please review these documents carefully, as they describe your rights
-   and restrictions with respect to this document.
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.  Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
+   the Trust Legal Provisions and are provided without warranty as
+   described in the BSD License.
 
-Abstract
-
-   The DNAME record provides redirection for a sub-tree of the domain
-   name tree in the DNS system.  That is, all names that end with a
-   particular suffix are redirected to another part of the DNS.  This is
-   a revision of the original specification in RFC 2672, also aligning
-   RFC 3363 and RFC 4294 with this revision.
-
-Requirements Language
-
-   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
-   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
-   document are to be interpreted as described in RFC 2119 [RFC2119].
-
-
-
-
+   This document may contain material from IETF Documents or IETF
+   Contributions published or made publicly available before November
+   10, 2008.  The person(s) controlling the copyright in some of this
+   material may not have granted the IETF Trust the right to allow
+   modifications of such material outside the IETF Standards Process.
+   Without obtaining an adequate license from the person(s) controlling
+   the copyright in such materials, this document may not be modified
+   outside the IETF Standards Process, and derivative works of it may
+   not be created outside the IETF Standards Process, except to format
+   it for publication as an RFC or to translate it into languages other
+   than English.
 
 
 
@@ -107,10 +108,9 @@ Requirements Language
 
 
 
-
-Rose & Wijngaards        Expires March 28, 2010                 [Page 2]
+Rose & Wijngaards         Expires May 16, 2010                  [Page 2]
 
-Internet-Draft              DNAME Redirection             September 2009
+Internet-Draft              DNAME Redirection              November 2009
 
 
 Table of Contents
@@ -120,7 +120,7 @@ Table of Contents
    2.  The DNAME Resource Record  . . . . . . . . . . . . . . . . . .  4
      2.1.  Format . . . . . . . . . . . . . . . . . . . . . . . . . .  4
      2.2.  The DNAME Substitution . . . . . . . . . . . . . . . . . .  5
-     2.3.  DNAME Apex not Redirected itself . . . . . . . . . . . . .  6
+     2.3.  DNAME Owner Name not Redirected Itself . . . . . . . . . .  6
      2.4.  Names Next to and Below a DNAME Record . . . . . . . . . .  7
      2.5.  Compression of the DNAME record. . . . . . . . . . . . . .  7
 
@@ -164,9 +164,9 @@ Table of Contents
 
 
 
-Rose & Wijngaards        Expires March 28, 2010                 [Page 3]
+Rose & Wijngaards         Expires May 16, 2010                  [Page 3]
 
-Internet-Draft              DNAME Redirection             September 2009
+Internet-Draft              DNAME Redirection              November 2009
 
 
 1.  Introduction
@@ -220,9 +220,9 @@ Internet-Draft              DNAME Redirection             September 2009
 
 
 
-Rose & Wijngaards        Expires March 28, 2010                 [Page 4]
+Rose & Wijngaards         Expires May 16, 2010                  [Page 4]
 
-Internet-Draft              DNAME Redirection             September 2009
+Internet-Draft              DNAME Redirection              November 2009
 
 
    Its RDATA is comprised of a single field, <target>, which contains a
@@ -276,9 +276,9 @@ Internet-Draft              DNAME Redirection             September 2009
 
 
 
-Rose & Wijngaards        Expires March 28, 2010                 [Page 5]
+Rose & Wijngaards         Expires May 16, 2010                  [Page 5]
 
-Internet-Draft              DNAME Redirection             September 2009
+Internet-Draft              DNAME Redirection              November 2009
 
 
    In the table below, the QNAME refers to the query name.  The owner is
@@ -323,7 +323,7 @@ Internet-Draft              DNAME Redirection             September 2009
    DNAME record and its signature (if the zone is signed) are included
    in the answer as proof for the YXDOMAIN (value 6) RCODE.
 
-2.3.  DNAME Apex not Redirected itself
+2.3.  DNAME Owner Name not Redirected Itself
 
    Unlike a CNAME RR, a DNAME RR redirects DNS names subordinate to its
    owner name; the owner name of a DNAME is not redirected itself.  The
@@ -332,18 +332,19 @@ Internet-Draft              DNAME Redirection             September 2009
 
 
 
-Rose & Wijngaards        Expires March 28, 2010                 [Page 6]
+Rose & Wijngaards         Expires May 16, 2010                  [Page 6]
 
-Internet-Draft              DNAME Redirection             September 2009
+Internet-Draft              DNAME Redirection              November 2009
 
 
    other types that have restrictions on what they can co-exist with.
-   DNAME RRs are not allowed at the parent side of a delegation point
-   but are allowed at a zone apex.
+   DNAME RRs MUST NOT appear at the same owner name as an NS RR unless
+   the owner name is the zone apex.
 
-   There still is a need to have the customary SOA and NS resource
-   records at the zone apex.  This means that DNAME does not mirror a
-   zone completely, as it does not mirror the zone apex.
+   If a DNAME record is present at the zone apex, there is still a need
+   to have the customary SOA and NS resource records there as well.
+   Such a DNAME cannot be used to mirror a zone completely, as it does
+   not mirror the zone apex.
 
    These rules also allow DNAME records to be queried through RFC 1034
    [RFC1034] compliant, DNAME-unaware caches.
@@ -387,10 +388,9 @@ Internet-Draft              DNAME Redirection             September 2009
 
 
 
-
-Rose & Wijngaards        Expires March 28, 2010                 [Page 7]
+Rose & Wijngaards         Expires May 16, 2010                  [Page 7]
 
-Internet-Draft              DNAME Redirection             September 2009
+Internet-Draft              DNAME Redirection              November 2009
 
 
 3.  Processing
@@ -444,9 +444,9 @@ Internet-Draft              DNAME Redirection             September 2009
 
 
 
-Rose & Wijngaards        Expires March 28, 2010                 [Page 8]
+Rose & Wijngaards         Expires May 16, 2010                  [Page 8]
 
-Internet-Draft              DNAME Redirection             September 2009
+Internet-Draft              DNAME Redirection              November 2009
 
 
        A.  If the whole of QNAME is matched, we have found the node.
@@ -500,9 +500,9 @@ Internet-Draft              DNAME Redirection             September 2009
 
 
 
-Rose & Wijngaards        Expires March 28, 2010                 [Page 9]
+Rose & Wijngaards         Expires May 16, 2010                  [Page 9]
 
-Internet-Draft              DNAME Redirection             September 2009
+Internet-Draft              DNAME Redirection              November 2009
 
 
            into the answer section of the response changing the owner
@@ -556,9 +556,9 @@ Internet-Draft              DNAME Redirection             September 2009
 
 
 
-Rose & Wijngaards        Expires March 28, 2010                [Page 10]
+Rose & Wijngaards         Expires May 16, 2010                 [Page 10]
 
-Internet-Draft              DNAME Redirection             September 2009
+Internet-Draft              DNAME Redirection              November 2009
 
 
    This conflict situation is a transitional phase that ends when the
@@ -612,9 +612,9 @@ Internet-Draft              DNAME Redirection             September 2009
 
 
 
-Rose & Wijngaards        Expires March 28, 2010                [Page 11]
+Rose & Wijngaards         Expires May 16, 2010                 [Page 11]
 
-Internet-Draft              DNAME Redirection             September 2009
+Internet-Draft              DNAME Redirection              November 2009
 
 
    In [RFC3363], the paragraph
@@ -668,9 +668,9 @@ Internet-Draft              DNAME Redirection             September 2009
 
 
 
-Rose & Wijngaards        Expires March 28, 2010                [Page 12]
+Rose & Wijngaards         Expires May 16, 2010                 [Page 12]
 
-Internet-Draft              DNAME Redirection             September 2009
+Internet-Draft              DNAME Redirection              November 2009
 
 
    any domain names that may exist under the added DNAME.
@@ -724,9 +724,9 @@ Internet-Draft              DNAME Redirection             September 2009
 
 
 
-Rose & Wijngaards        Expires March 28, 2010                [Page 13]
+Rose & Wijngaards         Expires May 16, 2010                 [Page 13]
 
-Internet-Draft              DNAME Redirection             September 2009
+Internet-Draft              DNAME Redirection              November 2009
 
 
    ;; Header: QR AA DO RCODE=3(NXDOMAIN)
@@ -780,9 +780,9 @@ Internet-Draft              DNAME Redirection             September 2009
 
 
 
-Rose & Wijngaards        Expires March 28, 2010                [Page 14]
+Rose & Wijngaards         Expires May 16, 2010                 [Page 14]
 
-Internet-Draft              DNAME Redirection             September 2009
+Internet-Draft              DNAME Redirection              November 2009
 
 
 6.  IANA Considerations
@@ -836,9 +836,9 @@ Internet-Draft              DNAME Redirection             September 2009
 
 
 
-Rose & Wijngaards        Expires March 28, 2010                [Page 15]
+Rose & Wijngaards         Expires May 16, 2010                 [Page 15]
 
-Internet-Draft              DNAME Redirection             September 2009
+Internet-Draft              DNAME Redirection              November 2009
 
 
               RFC 2136, April 1997.
@@ -892,9 +892,9 @@ Internet-Draft              DNAME Redirection             September 2009
 
 
 
-Rose & Wijngaards        Expires March 28, 2010                [Page 16]
+Rose & Wijngaards         Expires May 16, 2010                 [Page 16]
 
-Internet-Draft              DNAME Redirection             September 2009
+Internet-Draft              DNAME Redirection              November 2009
 
 
 Authors' Addresses
@@ -948,6 +948,6 @@ Authors' Addresses
 
 
 
-Rose & Wijngaards        Expires March 28, 2010                [Page 17]
+Rose & Wijngaards         Expires May 16, 2010                 [Page 17]
 
 
