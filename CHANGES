@@ -1,3 +1,7 @@
+2767.	[bug]		named could crash on startup if a zone was
+			configured with auto-dnssec and there was no
+			key-directory. [RT #20615]
+
 2766.	[bug]		isc_socket_fdwatchpoke() should only update the
 			socketmgr state if the socket is not pending on a
 			read or write.  [RT #20603]

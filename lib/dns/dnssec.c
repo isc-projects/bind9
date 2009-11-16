@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.108 2009/10/27 03:59:45 each Exp $
+ * $Id: dnssec.c,v 1.109 2009/11/16 01:44:33 each Exp $
  */
 
 /*! \file */
@@ -1124,6 +1124,8 @@ dns_dnssec_findmatchingkeys(dns_name_t *origin, const char *directory,
 	len = isc_buffer_usedlength(&b);
 	namebuf[len] = '\0';
 
+	if (directory == NULL)
+		directory = ".";
 	RETERR(isc_dir_open(&dir, directory));
 	dir_open = ISC_TRUE;
 
