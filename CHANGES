@@ -1,3 +1,5 @@
+2769.	[cleanup]	Change #2742 was incomplete. [RT #19589]
+
 2768.	[bug]		dnssec-signzone: -S no longer implies -g [RT #20568]
 
 2767.	[bug]		named could crash on startup if a zone was

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.180 2009/10/28 05:34:21 each Exp $ */
+/* $Id: validator.c,v 1.181 2009/11/16 07:56:06 each Exp $ */
 
 #include <config.h>
 
@@ -1438,8 +1438,11 @@ create_fetch(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 	if (dns_rdataset_isassociated(&val->fsigrdataset))
 		dns_rdataset_disassociate(&val->fsigrdataset);
 
-	if (check_deadlock(val, name, type, NULL, NULL))
+	if (check_deadlock(val, name, type, NULL, NULL)) {
+		validator_log(val, ISC_LOG_DEBUG(3),
+			      "deadlock found (create_fetch)");
 		return (DNS_R_NOVALIDSIG);
+	}
 
 	validator_logcreate(val, name, type, caller, "fetch");
 	return (dns_resolver_createfetch(val->view->resolver, name, type,
@@ -1461,8 +1464,11 @@ create_validator(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 {
 	isc_result_t result;
 
-	if (check_deadlock(val, name, type, rdataset, sigrdataset))
+	if (check_deadlock(val, name, type, rdataset, sigrdataset)) {
+		validator_log(val, ISC_LOG_DEBUG(3),
+			      "deadlock found (create_validator)");
 		return (DNS_R_NOVALIDSIG);
+	}
 
 	validator_logcreate(val, name, type, caller, "validator");
 	result = dns_validator_create(val->view, name, type,
@@ -2227,10 +2233,15 @@ validatezonekey(dns_validator_t *val) {
 		 * give up, since there's no DS at the root.
 		 */
 		if (dns_name_equal(event->name, dns_rootname)) {
-			if ((val->attributes & VALATTR_TRIEDVERIFY) != 0)
+			if ((val->attributes & VALATTR_TRIEDVERIFY) != 0) {
+				validator_log(val, ISC_LOG_DEBUG(3),
+					      "root key failed to validate");
 				return (DNS_R_NOVALIDSIG);
-			else
+			} else {
+				validator_log(val, ISC_LOG_DEBUG(3),
+					      "no trusted root key");
 				return (DNS_R_NOVALIDDS);
+			}
 		}
 
 		if (atsep) {
@@ -2471,8 +2482,11 @@ validatezonekey(dns_validator_t *val) {
 			      "no supported algorithm/digest (DS)");
 		markanswer(val);
 		return (ISC_R_SUCCESS);
-	} else
+	} else {
+		validator_log(val, ISC_LOG_INFO,
+			      "no valid signature found (DS)");
 		return (DNS_R_NOVALIDSIG);
+	}
 }
 
 /*%
@@ -3190,8 +3204,11 @@ finddlvsep(dns_validator_t *val, isc_boolean_t resume) {
 			      namebuf);
 		result = view_find(val, dlvname, dns_rdatatype_dlv);
 		if (result == ISC_R_SUCCESS) {
-			if (val->frdataset.trust < dns_trust_secure)
+			if (val->frdataset.trust < dns_trust_secure) {
+				validator_log(val, ISC_LOG_DEBUG(3),
+					      "DLV not validated");
 				return (DNS_R_NOVALIDSIG);
+			}
 			val->havedlvsep = ISC_TRUE;
 			dns_rdataset_clone(&val->frdataset, &val->dlv);
 			return (ISC_R_SUCCESS);
@@ -3279,7 +3296,9 @@ proveunsecure(dns_validator_t *val, isc_boolean_t have_ds, isc_boolean_t resume)
 					      "not beneath secure root");
 				result = DNS_R_MUSTBESECURE;
 				goto out;
-			}
+			} else
+				validator_log(val, ISC_LOG_DEBUG(3),
+					      "not beneath secure root");
 			if (val->view->dlv == NULL || DLVTRIED(val)) {
 				markanswer(val);
 				return (ISC_R_SUCCESS);
@@ -3310,7 +3329,8 @@ proveunsecure(dns_validator_t *val, isc_boolean_t have_ds, isc_boolean_t resume)
 			if ((val->view->dlv == NULL || DLVTRIED(val)) &&
 			    val->mustbesecure) {
 				validator_log(val, ISC_LOG_WARNING,
-					      "must be secure failure at '%s'",
+					      "must be secure failure at '%s', "
+					      "can't fall back to DLV",
 					      namebuf);
 				result = DNS_R_MUSTBESECURE;
 				goto out;
@@ -3372,12 +3392,13 @@ proveunsecure(dns_validator_t *val, isc_boolean_t have_ds, isc_boolean_t resume)
 			if (result == DNS_R_NXRRSET &&
 			    !dns_rdataset_isassociated(&val->frdataset) &&
 			    dns_view_findzonecut2(val->view, tname, found,
-						  0, 0, ISC_FALSE, ISC_FALSE,
-						  NULL, NULL) == ISC_R_SUCCESS &&
+						 0, 0, ISC_FALSE, ISC_FALSE,
+						 NULL, NULL) == ISC_R_SUCCESS &&
 			    dns_name_equal(tname, found)) {
 				if (val->mustbesecure) {
 					validator_log(val, ISC_LOG_WARNING,
-						      "must be secure failure");
+						      "must be secure failure, "
+						      "no DS at zone cut");
 					return (DNS_R_MUSTBESECURE);
 				}
 				if (val->view->dlv == NULL || DLVTRIED(val)) {
@@ -3393,6 +3414,9 @@ proveunsecure(dns_validator_t *val, isc_boolean_t have_ds, isc_boolean_t resume)
 				 * there's no way of validating existing
 				 * negative response blobs, give up.
 				 */
+				validator_log(val, ISC_LOG_WARNING,
+					      "can't validate existing "
+					      "negative responses (no DS)");
 				result = DNS_R_NOVALIDSIG;
 				goto out;
 			}
@@ -3444,6 +3468,8 @@ proveunsecure(dns_validator_t *val, isc_boolean_t have_ds, isc_boolean_t resume)
 			}
 			else if (!dns_rdataset_isassociated(&val->fsigrdataset))
 			{
+				validator_log(val, ISC_LOG_DEBUG(3),
+					      "DS is unsigned");
 				result = DNS_R_NOVALIDSIG;
 				goto out;
 			}
@@ -3475,6 +3501,10 @@ proveunsecure(dns_validator_t *val, isc_boolean_t have_ds, isc_boolean_t resume)
 				 * there's no way of validating existing
 				 * negative response blobs, give up.
 				 */
+				validator_log(val, ISC_LOG_WARNING,
+					      "can't validate existing "
+					      "negative responses "
+					      "(not a zone cut)");
 				result = DNS_R_NOVALIDSIG;
 				goto out;
 			}
