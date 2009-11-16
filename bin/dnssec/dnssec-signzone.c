@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.252 2009/11/03 01:31:17 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.253 2009/11/16 04:27:44 each Exp $ */
 
 /*! \file */
 
@@ -3129,10 +3129,10 @@ usage(void) {
 	fprintf(stderr, "\t-K directory:\n");
 	fprintf(stderr, "\t\tdirectory to find key files (.)\n");
 	fprintf(stderr, "\t-d directory:\n");
-	fprintf(stderr, "\t\tdirectory to find dsset files (.)\n");
+	fprintf(stderr, "\t\tdirectory to find dsset-* files (.)\n");
 	fprintf(stderr, "\t-g:\t");
-	fprintf(stderr, "generate dsset file, and/or include DS records\n"
-			"\t\tfrom child zones' dsset files\n");
+	fprintf(stderr, "update DS records based on child zones' "
+			"dsset-* files\n");
 	fprintf(stderr, "\t-s [YYYYMMDDHHMMSS|+offset]:\n");
 	fprintf(stderr, "\t\tRRSIG start time - absolute|offset (now - 1 hour)\n");
 	fprintf(stderr, "\t-e [YYYYMMDDHHMMSS|+offset|\"now\"+offset]:\n");
@@ -3453,7 +3453,6 @@ main(int argc, char *argv[]) {
 
 		case 'S':
 			smartsign = ISC_TRUE;
-			generateds = ISC_TRUE;
 			break;
 
 		case 's':
