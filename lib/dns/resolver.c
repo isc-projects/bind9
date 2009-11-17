@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.410 2009/11/17 02:23:15 each Exp $ */
+/* $Id: resolver.c,v 1.411 2009/11/17 23:48:13 tbox Exp $ */
 
 /*! \file */
 
@@ -3787,8 +3787,8 @@ same_question(fetchctx_t *fctx) {
 	    fctx->res->rdclass != rdataset->rdclass ||
 	    !dns_name_equal(&fctx->name, name)) {
 		char namebuf[DNS_NAME_FORMATSIZE];
-       		char class[DNS_RDATACLASS_FORMATSIZE];
-       		char type[DNS_RDATATYPE_FORMATSIZE];
+		char class[DNS_RDATACLASS_FORMATSIZE];
+		char type[DNS_RDATATYPE_FORMATSIZE];
 
 		dns_name_format(name, namebuf, sizeof(namebuf));
 		dns_rdataclass_format(rdataset->rdclass, class, sizeof(class));
@@ -5413,7 +5413,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 					 */
 					if (ns_name == NULL) {
 						log_formerr(fctx,
-						 	    "DS with no "
+							    "DS with no "
 							    "referral");
 						return (DNS_R_FORMERR);
 					}
@@ -5696,7 +5696,7 @@ answer_response(fetchctx_t *fctx) {
 						dns_rdatatype_format(fctx->type,
 							      buf, sizeof(buf));
 						log_formerr(fctx,
-		 					    "CNAME response "
+							    "CNAME response "
 							    "for %s RR", buf);
 						return (DNS_R_FORMERR);
 					}
@@ -5832,7 +5832,7 @@ answer_response(fetchctx_t *fctx) {
 					 */
 					if (!chaining && external) {
 						log_formerr(fctx,
-		 					    "external DNAME");
+							    "external DNAME");
 						return (DNS_R_FORMERR);
 					}
 					found = ISC_TRUE;
@@ -5977,7 +5977,7 @@ answer_response(fetchctx_t *fctx) {
 	 */
 	if (message->rcode != dns_rcode_noerror) {
 		log_formerr(fctx, "CNAME/DNAME chain complete, but RCODE "
-			          "indicates error");
+				  "indicates error");
 		return (DNS_R_FORMERR);
 	}
 
