@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.411 2009/11/17 23:48:13 tbox Exp $ */
+/* $Id: resolver.c,v 1.412 2009/11/17 23:55:18 marka Exp $ */
 
 /*! \file */
 
@@ -4363,6 +4363,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 		 * for it, unless it is glue.
 		 */
 		if (secure_domain && rdataset->trust != dns_trust_glue) {
+			dns_trust_t trust;
 			/*
 			 * RRSIGs are validated as part of validating the
 			 * type they cover.
@@ -4399,12 +4400,34 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 			}
 
 			/*
-			 * Cache this rdataset/sigrdataset pair as
-			 * pending data.
+			 * Reject out of bailiwick additional records
+			 * without RRSIGs as they can't possibly validate
+			 * as "secure" and as we will never never want to
+			 * store these as "answers" after validation.
 			 */
-			rdataset->trust = dns_trust_pending;
+			if (rdataset->trust == dns_trust_additional &&
+			    sigrdataset == NULL && EXTERNAL(rdataset))
+				continue;
+				
+			/*
+                         * XXXMPA: If we store as "answer" after validating
+                         * then we need to do bailiwick processing and
+                         * also need to track whether RRsets are in or
+                         * out of bailiwick.  This will require a another 
+                         * pending trust level.
+                         *
+			 * Cache this rdataset/sigrdataset pair as
+			 * pending data.  Track whether it was additional
+			 * or not.
+			 */
+			if (rdataset->trust == dns_trust_additional)
+				trust = dns_trust_pending_additional;
+			else
+				trust = dns_trust_pending_answer;
+
+			rdataset->trust = trust;
 			if (sigrdataset != NULL)
-				sigrdataset->trust = dns_trust_pending;
+				sigrdataset->trust = trust;
 			if (!need_validation || !ANSWER(rdataset)) {
 				addedrdataset = ardataset;
 				result = dns_db_addrdataset(fctx->cache, node,
@@ -4752,7 +4775,7 @@ ncache_message(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 			for (trdataset = ISC_LIST_HEAD(tname->list);
 			     trdataset != NULL;
 			     trdataset = ISC_LIST_NEXT(trdataset, link))
-				trdataset->trust = dns_trust_pending;
+				trdataset->trust = dns_trust_pending_answer;
 			result = dns_message_nextname(fctx->rmessage,
 						      DNS_SECTION_AUTHORITY);
 		}
