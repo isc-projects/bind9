@@ -1,3 +1,6 @@
+2771.	[bug]		dnssec-signzone: DNSKEY records could be
+			corrupted when importing from key files [RT #20624]
+
 2770.	[cleanup]	Add log messages to resolver.c to indicate events
 			causing FORMERR responses. [RT #20526]
 

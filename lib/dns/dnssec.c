@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.109 2009/11/16 01:44:33 each Exp $
+ * $Id: dnssec.c,v 1.110 2009/11/17 05:46:53 each Exp $
  */
 
 /*! \file */
@@ -1364,13 +1364,14 @@ dns_dnssec_keylistfromrdataset(dns_name_t *origin,
 }
 
 static isc_result_t
-make_dnskey(dst_key_t *key, dns_rdata_t *target) {
+make_dnskey(dst_key_t *key, unsigned char *buf, int bufsize,
+	    dns_rdata_t *target)
+{
 	isc_result_t result;
-	unsigned char data[DST_KEY_MAXSIZE];
 	isc_buffer_t b;
 	isc_region_t r;
 
-	isc_buffer_init(&b, data, sizeof(data));
+	isc_buffer_init(&b, buf, bufsize);
 	result = dst_key_todns(key, &b);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -1389,11 +1390,12 @@ publish_key(dns_diff_t *add, dns_dnsseckey_t *key, dns_name_t *origin,
 {
 	isc_result_t result;
 	dns_difftuple_t *tuple = NULL;
+	unsigned char buf[DST_KEY_MAXSIZE];
 	dns_rdata_t dnskey = DNS_RDATA_INIT;
 	char alg[80];
 
 	dns_rdata_reset(&dnskey);
-	RETERR(make_dnskey(key->key, &dnskey));
+	RETERR(make_dnskey(key->key, buf, sizeof(buf), &dnskey));
 
 	dns_secalg_format(dst_key_alg(key->key), alg, sizeof(alg));
 	report("Fetching %s %d/%s from key %s\n",
@@ -1430,6 +1432,7 @@ remove_key(dns_diff_t *del, dns_dnsseckey_t *key, dns_name_t *origin,
 {
 	isc_result_t result;
 	dns_difftuple_t *tuple = NULL;
+	unsigned char buf[DST_KEY_MAXSIZE];
 	dns_rdata_t dnskey = DNS_RDATA_INIT;
 	char alg[80];
 
@@ -1437,7 +1440,7 @@ remove_key(dns_diff_t *del, dns_dnsseckey_t *key, dns_name_t *origin,
 	report("Removing %s key %d/%s from DNSKEY RRset.\n",
 	       reason, dst_key_id(key->key), alg);
 
-	RETERR(make_dnskey(key->key, &dnskey));
+	RETERR(make_dnskey(key->key, buf, sizeof(buf), &dnskey));
 	RETERR(dns_difftuple_create(mctx, DNS_DIFFOP_DEL, origin, ttl, &dnskey,
 				    &tuple));
 	dns_diff_append(del, &tuple);
