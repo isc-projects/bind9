@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.409 2009/11/04 02:15:29 marka Exp $ */
+/* $Id: resolver.c,v 1.410 2009/11/17 02:23:15 each Exp $ */
 
 /*! \file */
 
@@ -272,6 +272,8 @@ struct fetchctx {
 	unsigned int			findfail;
 	unsigned int			valfail;
 	isc_boolean_t			timeout;
+	dns_adbaddrinfo_t 		*addrinfo;
+	isc_sockaddr_t			*client;
 };
 
 #define FCTX_MAGIC			ISC_MAGIC('F', '!', '!', '!')
@@ -3395,6 +3397,7 @@ fctx_join(fetchctx_t *fctx, isc_task_t *task, isc_sockaddr_t *client,
 	else
 		ISC_LIST_APPEND(fctx->events, event, ev_link);
 	fctx->references++;
+	fctx->client = client;
 
 	fetch->magic = DNS_FETCH_MAGIC;
 	fetch->private = fctx;
@@ -3492,6 +3495,8 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	fctx->rand_buf = 0;
 	fctx->rand_bits = 0;
 	fctx->timeout = ISC_FALSE;
+	fctx->addrinfo = NULL;
+	fctx->client = NULL;
 
 	dns_name_init(&fctx->nsname, NULL);
 	fctx->nsfetch = NULL;
@@ -3723,6 +3728,33 @@ log_lame(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo) {
 		      namebuf, domainbuf, addrbuf);
 }
 
+static inline void
+log_formerr(fetchctx_t *fctx, const char *format, ...) {
+	char nsbuf[ISC_SOCKADDR_FORMATSIZE];
+	char clbuf[ISC_SOCKADDR_FORMATSIZE];
+	const char *clmsg = "";
+	char msgbuf[2048];
+	va_list args;
+
+	va_start(args, format);
+	vsnprintf(msgbuf, sizeof(msgbuf), format, args);
+	va_end(args);
+
+	isc_sockaddr_format(&fctx->addrinfo->sockaddr, nsbuf, sizeof(nsbuf));
+
+	if (fctx->client != NULL) {
+		clmsg = " for client ";
+		isc_sockaddr_format(fctx->client, clbuf, sizeof(clbuf));
+	} else {
+		clbuf[0] = '\0';
+	}
+
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+		      DNS_LOGMODULE_RESOLVER, ISC_LOG_NOTICE,
+		      "DNS format error from %s resolving %s%s%s: %s",
+		      nsbuf, fctx->info, clmsg, clbuf, msgbuf);
+}
+
 static inline isc_result_t
 same_question(fetchctx_t *fctx) {
 	isc_result_t result;
@@ -3737,8 +3769,10 @@ same_question(fetchctx_t *fctx) {
 	/*
 	 * XXXRTH  Currently we support only one question.
 	 */
-	if (message->counts[DNS_SECTION_QUESTION] != 1)
+	if (message->counts[DNS_SECTION_QUESTION] != 1) {
+		log_formerr(fctx, "too many questions");
 		return (DNS_R_FORMERR);
+	}
 
 	result = dns_message_firstname(message, DNS_SECTION_QUESTION);
 	if (result != ISC_R_SUCCESS)
@@ -3748,10 +3782,21 @@ same_question(fetchctx_t *fctx) {
 	rdataset = ISC_LIST_HEAD(name->list);
 	INSIST(rdataset != NULL);
 	INSIST(ISC_LIST_NEXT(rdataset, link) == NULL);
+
 	if (fctx->type != rdataset->type ||
 	    fctx->res->rdclass != rdataset->rdclass ||
-	    !dns_name_equal(&fctx->name, name))
+	    !dns_name_equal(&fctx->name, name)) {
+		char namebuf[DNS_NAME_FORMATSIZE];
+       		char class[DNS_RDATACLASS_FORMATSIZE];
+       		char type[DNS_RDATATYPE_FORMATSIZE];
+
+		dns_name_format(name, namebuf, sizeof(namebuf));
+		dns_rdataclass_format(rdataset->rdclass, class, sizeof(class));
+		dns_rdatatype_format(rdataset->type, type, sizeof(type));
+		log_formerr(fctx, "question section mismatch: got %s/%s/%s",
+			    namebuf, class, type);
 		return (DNS_R_FORMERR);
+	}
 
 	return (ISC_R_SUCCESS);
 }
@@ -4953,8 +4998,8 @@ cname_target(dns_rdataset_t *rdataset, dns_name_t *tname) {
 }
 
 static inline isc_result_t
-dname_target(dns_rdataset_t *rdataset, dns_name_t *qname, dns_name_t *oname,
-	     dns_fixedname_t *fixeddname)
+dname_target(fetchctx_t *fctx, dns_rdataset_t *rdataset, dns_name_t *qname,
+	     dns_name_t *oname, dns_fixedname_t *fixeddname)
 {
 	isc_result_t result;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -4967,7 +5012,6 @@ dname_target(dns_rdataset_t *rdataset, dns_name_t *qname, dns_name_t *oname,
 	/*
 	 * Get the target name of the DNAME.
 	 */
-
 	result = dns_rdataset_first(rdataset);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -4981,7 +5025,14 @@ dname_target(dns_rdataset_t *rdataset, dns_name_t *qname, dns_name_t *oname,
 	 */
 	namereln = dns_name_fullcompare(qname, oname, &order, &nlabels);
 	if (namereln != dns_namereln_subdomain) {
+		char qbuf[DNS_NAME_FORMATSIZE];
+		char obuf[DNS_NAME_FORMATSIZE];
+
 		dns_rdata_freestruct(&dname);
+		dns_name_format(qname, qbuf, sizeof(qbuf));
+		dns_name_format(oname, obuf, sizeof(obuf));
+		log_formerr(fctx, "unrelated DNAME in answer: "
+				   "%s is not in %s", qbuf, obuf);
 		return (DNS_R_FORMERR);
 	}
 	dns_fixedname_init(&prefix);
@@ -5224,8 +5275,22 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 					type = rdataset->covers;
 				if (((type == dns_rdatatype_ns ||
 				      type == dns_rdatatype_soa) &&
-				     !dns_name_issubdomain(qname, name)))
+				     !dns_name_issubdomain(qname, name))) {
+					char qbuf[DNS_NAME_FORMATSIZE];
+					char nbuf[DNS_NAME_FORMATSIZE];
+					char tbuf[DNS_RDATATYPE_FORMATSIZE];
+					dns_rdatatype_format(fctx->type, tbuf,
+							     sizeof(tbuf));
+					dns_name_format(name, nbuf,
+							     sizeof(nbuf));
+					dns_name_format(qname, qbuf,
+							     sizeof(qbuf));
+					log_formerr(fctx,
+						    "unrelated %s %s in "
+						    "%s authority section",
+						    tbuf, qbuf, nbuf);
 					return (DNS_R_FORMERR);
+				}
 				if (type == dns_rdatatype_ns) {
 					/*
 					 * NS or RRSIG NS.
@@ -5235,8 +5300,14 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 					if (rdataset->type ==
 					    dns_rdatatype_ns) {
 						if (ns_name != NULL &&
-						    name != ns_name)
+						    name != ns_name) {
+							log_formerr(fctx,
+								"multiple NS "
+								"RRsets in "
+								"authority "
+								"section");
 							return (DNS_R_FORMERR);
+						}
 						ns_name = name;
 						ns_rdataset = rdataset;
 					}
@@ -5255,8 +5326,14 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 					if (rdataset->type ==
 					    dns_rdatatype_soa) {
 						if (soa_name != NULL &&
-						    name != soa_name)
+						    name != soa_name) {
+							log_formerr(fctx,
+								"multiple SOA "
+								"RRs in "
+								"authority "
+								"section");
 							return (DNS_R_FORMERR);
+						}
 						soa_name = name;
 					}
 					name->attributes |=
@@ -5334,13 +5411,23 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 					 * this is a referral, and there
 					 * should only be one DS RRset.
 					 */
-					if (ns_name == NULL)
+					if (ns_name == NULL) {
+						log_formerr(fctx,
+						 	    "DS with no "
+							    "referral");
 						return (DNS_R_FORMERR);
+					}
 					if (rdataset->type ==
 					    dns_rdatatype_ds) {
 						if (ds_name != NULL &&
-						    name != ds_name)
+						    name != ds_name) {
+							log_formerr(fctx,
+								"DS doesn't "
+								"match "
+								"referral "
+								"(NS)");
 							return (DNS_R_FORMERR);
+						}
 						ds_name = name;
 					}
 					name->attributes |=
@@ -5390,6 +5477,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 			/*
 			 * The responder is insane.
 			 */
+			log_formerr(fctx, "invalid response");
 			return (DNS_R_FORMERR);
 		}
 	}
@@ -5397,8 +5485,10 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 	/*
 	 * If we found both NS and SOA, they should be the same name.
 	 */
-	if (ns_name != NULL && soa_name != NULL && ns_name != soa_name)
+	if (ns_name != NULL && soa_name != NULL && ns_name != soa_name) {
+		log_formerr(fctx, "NS/SOA mismatch");
 		return (DNS_R_FORMERR);
+	}
 
 	/*
 	 * Do we have a referral?  (We only want to follow a referral if
@@ -5411,14 +5501,18 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 		 * progress.  We return DNS_R_FORMERR so that we'll keep
 		 * trying other servers.
 		 */
-		if (dns_name_equal(ns_name, &fctx->domain))
+		if (dns_name_equal(ns_name, &fctx->domain)) {
+			log_formerr(fctx, "sideways referral");
 			return (DNS_R_FORMERR);
+		}
 
 		/*
 		 * If the referral name is not a parent of the query
 		 * name, consider the responder insane.
 		 */
 		if (! dns_name_issubdomain(&fctx->name, ns_name)) {
+			/* Logged twice */
+			log_formerr(fctx, "referral to non-parent");
 			FCTXTRACE("referral to non-parent");
 			return (DNS_R_FORMERR);
 		}
@@ -5543,6 +5637,7 @@ answer_response(fetchctx_t *fctx) {
 					 * NSEC3 records are not allowed to
 					 * appear in the answer section.
 					 */
+					log_formerr(fctx, "NSEC3 in answer");
 					return (DNS_R_FORMERR);
 				}
 
@@ -5595,8 +5690,16 @@ answer_response(fetchctx_t *fctx) {
 					 */
 					if (type == dns_rdatatype_rrsig ||
 					    type == dns_rdatatype_dnskey ||
-					    type == dns_rdatatype_nsec)
+					    type == dns_rdatatype_nsec ||
+					    type == dns_rdatatype_nsec3) {
+						char buf[DNS_RDATATYPE_FORMATSIZE];
+						dns_rdatatype_format(fctx->type,
+							      buf, sizeof(buf));
+						log_formerr(fctx,
+		 					    "CNAME response "
+							    "for %s RR", buf);
 						return (DNS_R_FORMERR);
+					}
 					found = ISC_TRUE;
 					found_cname = ISC_TRUE;
 					want_chaining = ISC_TRUE;
@@ -5727,12 +5830,15 @@ answer_response(fetchctx_t *fctx) {
 					 * If we're not chaining, then the
 					 * DNAME should not be external.
 					 */
-					if (!chaining && external)
+					if (!chaining && external) {
+						log_formerr(fctx,
+		 					    "external DNAME");
 						return (DNS_R_FORMERR);
+					}
 					found = ISC_TRUE;
 					want_chaining = ISC_TRUE;
 					aflag = DNS_RDATASETATTR_ANSWER;
-					result = dname_target(rdataset,
+					result = dname_target(fctx, rdataset,
 							      qname, name,
 							      &dname);
 					if (result == ISC_R_NOSPACE) {
@@ -5842,8 +5948,10 @@ answer_response(fetchctx_t *fctx) {
 	/*
 	 * We should have found an answer.
 	 */
-	if (!have_answer)
+	if (!have_answer) {
+		log_formerr(fctx, "reply has no answer");
 		return (DNS_R_FORMERR);
+	}
 
 	/*
 	 * This response is now potentially cacheable.
@@ -5867,8 +5975,11 @@ answer_response(fetchctx_t *fctx) {
 	 * We didn't end with an incomplete chain, so the rcode should be
 	 * "no error".
 	 */
-	if (message->rcode != dns_rcode_noerror)
+	if (message->rcode != dns_rcode_noerror) {
+		log_formerr(fctx, "CNAME/DNAME chain complete, but RCODE "
+			          "indicates error");
 		return (DNS_R_FORMERR);
+	}
 
 	/*
 	 * Examine the authority section (if there is one).
@@ -6239,6 +6350,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 
 	fctx->timeouts = 0;
 	fctx->timeout = ISC_FALSE;
+	fctx->addrinfo = query->addrinfo;
 
 	/*
 	 * XXXRTH  We should really get the current time just once.  We
@@ -6515,6 +6627,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				 * cannot make any more progress with this
 				 * fetch.
 				 */
+				log_formerr(fctx, "server sent FORMERR");
 				result = DNS_R_FORMERR;
 			}
 		} else if (message->rcode == dns_rcode_yxdomain) {
