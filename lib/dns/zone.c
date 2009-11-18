@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.529 2009/11/12 23:47:59 tbox Exp $ */
+/* $Id: zone.c,v 1.530 2009/11/18 21:22:31 each Exp $ */
 
 /*! \file */
 
@@ -4586,7 +4586,7 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 			if (type == dns_rdatatype_dnskey) {
 				if (!KSK(keys[i]) && keyset_kskonly)
 					continue;
-			} else if (!KSK(keys[i]))
+			} else if (KSK(keys[i]))
 				continue;
 		} else if (REVOKE(keys[i]) && type != dns_rdatatype_dnskey)
 				continue;

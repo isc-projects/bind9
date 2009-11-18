@@ -1,3 +1,6 @@
+2773.	[bug]		In autosigned zones, the SOA could be signed
+			with the KSK. [RT #20628]
+
 	--- 9.7.0b3 released ---
 
 2772.	[security]	When validating, track whether pending data was from

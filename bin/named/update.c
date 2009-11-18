@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.168 2009/11/09 01:28:32 each Exp $ */
+/* $Id: update.c,v 1.169 2009/11/18 21:22:31 each Exp $ */
 
 #include <config.h>
 
@@ -1926,7 +1926,7 @@ add_sigs(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 			if (type == dns_rdatatype_dnskey) {
 				if (!KSK(keys[i]) && keyset_kskonly)
 					continue;
-			} else if (!KSK(keys[i]))
+			} else if (KSK(keys[i]))
 				continue;
 		} else if (REVOKE(keys[i]) && type != dns_rdatatype_dnskey)
 			continue;
