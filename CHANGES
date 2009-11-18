@@ -1,3 +1,7 @@
+2772.	[security]	When validating, track whether pending data was from
+			the additional section or not and only return it if
+			validates as secure. [RT #20438]
+
 2765.	[bug]		Skip masters for which the TSIG key cannot be found.
 			[RT #20595]
 
