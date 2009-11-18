@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.89.128.5 2009/01/19 23:47:02 tbox Exp $ */
+/* $Id: masterdump.c,v 1.89.128.5.2.1 2009/11/18 23:41:18 marka Exp $ */
 
 /*! \file */
 
@@ -774,7 +774,8 @@ dump_order_compare(const void *a, const void *b) {
 
 static const char *trustnames[] = {
 	"none",
-	"pending",
+	"pending-additional",
+	"pending-answer",
 	"additional",
 	"glue",
 	"answer",
