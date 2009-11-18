@@ -1,7 +1,6 @@
 #!/bin/sh -e
 #
-# Copyright (C) 2004, 2006-2009  Internet Systems Consortium, Inc. ("ISC")
-# Copyright (C) 2000-2003  Internet Software Consortium.
+# Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.2 2009/11/17 23:55:18 marka Exp $
+# $Id: sign.sh,v 1.2.4.2 2009/11/18 23:47:24 tbox Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh

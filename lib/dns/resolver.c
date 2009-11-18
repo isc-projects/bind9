@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.384.14.17 2009/11/18 00:15:37 marka Exp $ */
+/* $Id: resolver.c,v 1.384.14.18 2009/11/18 23:47:24 tbox Exp $ */
 
 /*! \file */
 
@@ -4366,14 +4366,14 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 			if (rdataset->trust == dns_trust_additional &&
 			    sigrdataset == NULL && EXTERNAL(rdataset))
 				continue;
-				
+
 			/*
-                         * XXXMPA: If we store as "answer" after validating
-                         * then we need to do bailiwick processing and
-                         * also need to track whether RRsets are in or
-                         * out of bailiwick.  This will require a another 
-                         * pending trust level.
-                         *
+			 * XXXMPA: If we store as "answer" after validating
+			 * then we need to do bailiwick processing and
+			 * also need to track whether RRsets are in or
+			 * out of bailiwick.  This will require a another
+			 * pending trust level.
+			 *
 			 * Cache this rdataset/sigrdataset pair as
 			 * pending data.  Track whether it was additional
 			 * or not.
