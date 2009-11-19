@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.554 2009/10/27 22:46:13 each Exp $ */
+/* $Id: server.c,v 1.555 2009/11/19 18:52:40 each Exp $ */
 
 /*! \file */
 
@@ -1590,8 +1590,8 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 			if (result != ISC_R_NOTFOUND && result != ISC_R_SUCCESS)
 				goto cleanup;
 			if (pview != NULL) {
-				if (cache_reusable(pview, view,
-						   zero_no_soattl)) {
+				if (!cache_reusable(pview, view,
+						    zero_no_soattl)) {
 					isc_log_write(ns_g_lctx,
 						      NS_LOGCATEGORY_GENERAL,
 						      NS_LOGMODULE_SERVER,

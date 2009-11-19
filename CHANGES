@@ -1,3 +1,6 @@
+2774.	[bug]		Existing cache DB wasn't being reused after
+			reconfiguration. [RT #20629]
+
 2773.	[bug]		In autosigned zones, the SOA could be signed
 			with the KSK. [RT #20628]
 
