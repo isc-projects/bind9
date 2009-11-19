@@ -1,40 +1,28 @@
-DNS Extensions Working Group                                   G. Sisson
-Internet-Draft                                                 B. Laurie
-Expires: January 11, 2006                                        Nominet
-                                                           July 10, 2005
+
+
+
+
+
+
+Network Working Group                                          G. Sisson
+Request for Comments: 4471                                     B. Laurie
+Category: Experimental                                           Nominet
+                                                          September 2006
 
 
             Derivation of DNS Name Predecessor and Successor
-                   draft-ietf-dnsext-dns-name-p-s-00
 
-Status of this Memo
 
-   By submitting this Internet-Draft, each author represents that any
-   applicable patent or other IPR claims of which he or she is aware
-   have been or will be disclosed, and any of which he or she becomes
-   aware will be disclosed, in accordance with Section 6 of BCP 79.
+Status of This Memo
 
-   Internet-Drafts are working documents of the Internet Engineering
-   Task Force (IETF), its areas, and its working groups.  Note that
-   other groups may also distribute working documents as Internet-
-   Drafts.
-
-   Internet-Drafts are draft documents valid for a maximum of six months
-   and may be updated, replaced, or obsoleted by other documents at any
-   time.  It is inappropriate to use Internet-Drafts as reference
-   material or to cite them other than as "work in progress."
-
-   The list of current Internet-Drafts can be accessed at
-   http://www.ietf.org/ietf/1id-abstracts.txt.
-
-   The list of Internet-Draft Shadow Directories can be accessed at
-   http://www.ietf.org/shadow.html.
-
-   This Internet-Draft will expire on January 11, 2006.
+   This memo defines an Experimental Protocol for the Internet
+   community.  It does not specify an Internet standard of any kind.
+   Discussion and suggestions for improvement are requested.
+   Distribution of this memo is unlimited.
 
 Copyright Notice
 
-   Copyright (C) The Internet Society (2005).
+   Copyright (C) The Internet Society (2006).
 
 Abstract
 
@@ -42,105 +30,90 @@ Abstract
    ordered predecessor and successor of a DNS name.  These methods may
    be used for dynamic NSEC resource record synthesis, enabling
    security-aware name servers to provide authenticated denial of
-   existence without disclosing other owner names in a DNSSEC-secured
+   existence without disclosing other owner names in a DNSSEC secured
    zone.
-
-
-
-
-
-Sisson & Laurie         Expires January 11, 2006                [Page 1]
-
-Internet-Draft     DNS Name Predecessor and Successor          July 2005
-
 
 Table of Contents
 
-   1.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  3
-   2.  Notational Conventions . . . . . . . . . . . . . . . . . . . .  3
-   3.  Absolute Method  . . . . . . . . . . . . . . . . . . . . . . .  4
-     3.1.  Derivation of DNS Name Predecessor . . . . . . . . . . . .  4
-     3.2.  Derivation of DNS Name Successor . . . . . . . . . . . . .  4
-   4.  Modified Method  . . . . . . . . . . . . . . . . . . . . . . .  5
-     4.1.  Derivation of DNS Name Predecessor . . . . . . . . . . . .  6
-     4.2.  Derivation of DNS Name Successor . . . . . . . . . . . . .  6
-   5.  Notes  . . . . . . . . . . . . . . . . . . . . . . . . . . . .  7
-     5.1.  Case Considerations  . . . . . . . . . . . . . . . . . . .  7
-     5.2.  Choice of Range  . . . . . . . . . . . . . . . . . . . . .  7
-     5.3.  Wild Card Considerations . . . . . . . . . . . . . . . . .  8
-     5.4.  Possible Modifications . . . . . . . . . . . . . . . . . .  8
-       5.4.1.  Restriction of Effective Maximum DNS Name Length . . .  8
-       5.4.2.  Use of Modified Method With Zones Containing
-               SRV RRs  . . . . . . . . . . . . . . . . . . . . . . .  9
-   6.  Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . 10
-     6.1.  Examples of Immediate Predecessors Using Absolute
-           Method . . . . . . . . . . . . . . . . . . . . . . . . . . 10
-     6.2.  Examples of Immediate Successors Using Absolute Method . . 13
-     6.3.  Examples of Predecessors Using Modified Method . . . . . . 19
-     6.4.  Examples of Successors Using Modified Method . . . . . . . 20
-   7.  Security Considerations  . . . . . . . . . . . . . . . . . . . 21
-   8.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 21
-   10. References . . . . . . . . . . . . . . . . . . . . . . . . . . 22
-     10.1. Normative References . . . . . . . . . . . . . . . . . . . 22
-     10.2. Informative References . . . . . . . . . . . . . . . . . . 22
-   9.  Acknowledgments  . . . . . . . . . . . . . . . . . . . . . . . 21
-   Appendix A.  Change History  . . . . . . . . . . . . . . . . . . . 22
-     A.1.  Changes from sisson-02 to ietf-00  . . . . . . . . . . . . 22
-     A.2.  Changes from sisson-01 to sisson-02  . . . . . . . . . . . 23
-     A.3.  Changes from sisson-00 to sisson-01  . . . . . . . . . . . 23
-   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 24
-   Intellectual Property and Copyright Statements . . . . . . . . . . 25
+   1. Introduction ....................................................2
+   2. Notational Conventions ..........................................3
+   3. Derivations .....................................................3
+      3.1. Absolute Method ............................................3
+           3.1.1. Derivation of DNS Name Predecessor ..................3
+           3.1.2. Derivation of DNS Name Successor ....................4
+      3.2. Modified Method ............................................4
+           3.2.1. Derivation of DNS Name Predecessor ..................5
+           3.2.2. Derivation of DNS Name Successor ....................6
+   4. Notes ...........................................................6
+      4.1. Test for Existence .........................................6
+      4.2. Case Considerations ........................................7
+      4.3. Choice of Range ............................................7
+      4.4. Wild Card Considerations ...................................8
+      4.5. Possible Modifications .....................................8
+           4.5.1. Restriction of Effective Maximum DNS Name Length ....8
+           4.5.2. Use of Modified Method with Zones Containing
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-Sisson & Laurie         Expires January 11, 2006                [Page 2]
+Sisson & Laurie               Experimental                      [Page 1]
 
-Internet-Draft     DNS Name Predecessor and Successor          July 2005
+RFC 4471           DNS Name Predecessor and Successor     September 2006
 
+
+                  SRV RRs .............................................8
+   5. Examples ........................................................9
+      5.1. Examples of Immediate Predecessors Using Absolute Method ..10
+      5.2. Examples of Immediate Successors Using Absolute Method ....14
+      5.3. Examples of Predecessors Using Modified Method ............19
+      5.4. Examples of Successors Using Modified Method ..............20
+   6. Security Considerations ........................................21
+   7. Acknowledgements ...............................................21
+   8. References .....................................................21
+      8.1. Normative References ......................................21
+      8.2. Informative References ....................................22
 
 1.  Introduction
 
    One of the proposals for avoiding the exposure of zone information
    during the deployment DNSSEC is dynamic NSEC resource record (RR)
-   synthesis.  This technique is described in [I-D.ietf-dnsext-dnssec-
-   trans] and [I-D.ietf-dnsext-dnssec-online-signing], and involves the
-   generation of NSEC RRs that just span the query name for non-existent
-   owner names.  In order to do this, the DNS names which would occur
-   just prior to and just following a given query name must be
-   calculated in real time, as maintaining a list of all possible owner
-   names that might occur in a zone would be impracticable.
+   synthesis.  This technique is described in [DNSSEC-TRANS] and
+   [RFC4470], and involves the generation of NSEC RRs that just span the
+   query name for non-existent owner names.  In order to do this, the
+   DNS names that would occur just prior to and just following a given
+   query name must be calculated in real time, as maintaining a list of
+   all possible owner names that might occur in a zone would be
+   impracticable.
 
    Section 6.1 of [RFC4034] defines canonical DNS name order.  This
    document does not amend or modify this definition.  However, the
-   derivation of immediate predecessor and successor, while trivial, is
-   non-obvious.  Accordingly, several methods are described here as an
-   aid to implementors and a reference to other interested parties.
+   derivation of immediate predecessor and successor, although trivial,
+   is non-obvious.  Accordingly, several methods are described here as
+   an aid to implementors and a reference to other interested parties.
 
    This document describes two methods:
 
-   1.  An ``absolute method'', which returns the immediate predecessor
-       or successor of a domain name such that no valid DNS name could
+   1.  An "absolute method", which returns the immediate predecessor or
+       successor of a domain name such that no valid DNS name could
        exist between that DNS name and the predecessor or successor.
 
-   2.  A ``modified method'', which returns a predecessor and successor
-       which are more economical in size and computation.  This method
-       is restricted to use with zones consisting only of single-label
-       owner names where a maximum-length owner name would not result in
-       a DNS name exceeding the maximum DNS name length.  This is,
-       however, the type of zone for which the technique of online-
-       signing is most likely to be used.
+   2.  A "modified method", which returns a predecessor and successor
+       that are more economical in size and computation.  This method is
+       restricted to use with zones consisting exclusively of owner
+       names that contain no more than one label more than the owner
+       name of the apex, where the longest possible owner name (i.e.,
+       one with a maximum length left-most label) would not exceed the
+       maximum DNS name length.  This is, however, the type of zone for
+       which the technique of online signing is most likely to be used.
+
+
+
+
+
+
+
+Sisson & Laurie               Experimental                      [Page 2]
+
+RFC 4471           DNS Name Predecessor and Successor     September 2006
 
 
 2.  Notational Conventions
@@ -156,104 +129,106 @@ Internet-Draft     DNS Name Predecessor and Successor          July 2005
 
    P'(N): Predecessor to N (modified method).
 
-
-
-
-
-
-Sisson & Laurie         Expires January 11, 2006                [Page 3]
-
-Internet-Draft     DNS Name Predecessor and Successor          July 2005
-
-
    S'(N): Successor to N (modified method).
 
-
-3.  Absolute Method
+3.  Derivations
 
    These derivations assume that all uppercase US-ASCII letters in N
    have already been replaced by their corresponding lowercase
    equivalents.  Unless otherwise specified, processing stops after the
    first step in which a condition is met.
 
-3.1.  Derivation of DNS Name Predecessor
+   The derivations make reference to maximum label length and maximum
+   DNS name length; these are defined in Section 3.1 of [RFC1034] to be
+   63 and 255 octets, respectively.
+
+3.1.  Absolute Method
+
+3.1.1.  Derivation of DNS Name Predecessor
 
    To derive P(N):
 
    1.  If N is the same as the owner name of the zone apex, prepend N
        repeatedly with labels of the maximum length possible consisting
-       of octets of the maximum sort value (e.g. 0xff) until N is the
-       maximum length possible; otherwise continue to the next step.
+       of octets of the maximum sort value (e.g., 0xff) until N is the
+       maximum length possible; otherwise proceed to the next step.
 
    2.  If the least significant (left-most) label of N consists of a
-       single octet of the minimum sort value (e.g. 0x00), remove that
-       label; otherwise continue to the next step.
+       single octet of the minimum sort value (e.g., 0x00), remove that
+       label; otherwise proceed to the next step.
 
    3.  If the least significant (right-most) octet in the least
        significant (left-most) label of N is the minimum sort value,
-       remove the least significant octet and continue with step 5.
+       remove the least significant octet and proceed to step 5.
 
-   4.  Decrement the value of the least significant (right-most) octet,
-       skipping any values that correspond to uppercase US-ASCII
-       letters, and then append the label with as many octets as
-       possible of the maximum sort value.  Continue to the next step.
+   4.  Decrement the value of the least significant (right-most) octet
+       of the least significant (left-most) label, skipping any values
+       that correspond to uppercase US-ASCII letters, and then append
+
+
+
+Sisson & Laurie               Experimental                      [Page 3]
+
+RFC 4471           DNS Name Predecessor and Successor     September 2006
+
+
+       the least significant (left-most) label with as many octets as
+       possible of the maximum sort value.  Proceed to the next step.
 
    5.  Prepend N repeatedly with labels of as long a length as possible
        consisting of octets of the maximum sort value until N is the
        maximum length possible.
 
-3.2.  Derivation of DNS Name Successor
+3.1.2.  Derivation of DNS Name Successor
 
    To derive S(N):
 
    1.  If N is two or more octets shorter than the maximum DNS name
        length, prepend N with a label containing a single octet of the
-       minimum sort value (e.g. 0x00); otherwise continue to the next
+       minimum sort value (e.g., 0x00); otherwise proceed to the next
        step.
 
-   2.  If N is one or more octets shorter than the maximum DNS name
-       length and the least significant (left-most) label is one or more
-       octets shorter than the maximum label length, append an octet of
-
-
-
-Sisson & Laurie         Expires January 11, 2006                [Page 4]
-
-Internet-Draft     DNS Name Predecessor and Successor          July 2005
-
-
-       the minimum sort value to the least significant label; otherwise
-       continue to the next step.
+   2.  If N is one octet shorter than the maximum DNS name length and
+       the least significant (left-most) label is one or more octets
+       shorter than the maximum label length, append an octet of the
+       minimum sort value to the least significant label; otherwise
+       proceed to the next step.
 
    3.  Increment the value of the least significant (right-most) octet
        in the least significant (left-most) label that is less than the
-       maximum sort value (e.g. 0xff), skipping any values that
+       maximum sort value (e.g., 0xff), skipping any values that
        correspond to uppercase US-ASCII letters, and then remove any
        octets to the right of that one.  If all octets in the label are
-       the maximum sort value, then continue to the next step.
+       the maximum sort value, then proceed to the next step.
 
-   4.  Remove the least significant (left-most) label.  If N is now the
-       same as the owner name of the zone apex, do nothing.  (This will
-       occur only if N is the maximum possible name in canonical DNS
-       name order, and thus has wrapped to the owner name of zone apex.)
-       Otherwise repeat starting at step 2.
+   4.  Remove the least significant (left-most) label.  Unless N is now
+       the same as the owner name of the zone apex (this will occur only
+       if N was the maximum possible name in canonical DNS name order,
+       and thus has wrapped to the owner name of zone apex), repeat
+       starting at step 2.
 
-
-4.  Modified Method
+3.2.  Modified Method
 
    This method is for use with zones consisting only of single-label
    owner names where an owner name consisting of label of maximum length
-   would not result in a DNS name which exceeded the maximum DNS name
+   would not result in a DNS name that exceeded the maximum DNS name
    length.  This method is computationally simpler and returns values
-   which are more economical in size than the absolute method.  It
+   that are more economical in size than the absolute method.  It
    differs from the absolute method detailed above in the following
    ways:
 
    1.  Step 1 of the derivation P(N) has been omitted as the existence
        of the owner name of the zone apex never requires denial.
 
-   2.  A new step 1 has been introduced which removes unnecessary
-       labels.
+
+
+
+Sisson & Laurie               Experimental                      [Page 4]
+
+RFC 4471           DNS Name Predecessor and Successor     September 2006
+
+
+   2.  A new step 1 has been introduced that removes unnecessary labels.
 
    3.  Step 4 of the derivation P(N) has been omitted as it is only
        necessary for zones containing owner names consisting of more
@@ -271,87 +246,110 @@ Internet-Draft     DNS Name Predecessor and Successor          July 2005
        assumption of this method that no DNS name in the zone can exceed
        the maximum DNS name length.
 
-
-
-Sisson & Laurie         Expires January 11, 2006                [Page 5]
-
-Internet-Draft     DNS Name Predecessor and Successor          July 2005
-
-
-   These derivations assume that all uppercase US-ASCII letters in N
-   have already been replaced by their corresponding lowercase
-   equivalents.  Unless otherwise specified, processing stops after the
-   first step in which a condition is met.
-
-4.1.  Derivation of DNS Name Predecessor
+3.2.1.  Derivation of DNS Name Predecessor
 
    To derive P'(N):
 
-   1.  If N has more labels than the number of labels in the owner name
-       of the apex + 1, repeatedly remove the least significant (left-
-       most) label until N has no more labels than the number of labels
-       in the owner name of the apex + 1; otherwise continue to next
-       step.
+   1.  If N is two or more labels longer than the owner name of the
+       apex, repeatedly remove the least significant (left-most) label
+       until N is only one label longer than the owner name of the apex;
+       otherwise proceed to the next step.
 
    2.  If the least significant (left-most) label of N consists of a
-       single octet of the minimum sort value (e.g. 0x00), remove that
-       label; otherwise continue to the next step.
+       single octet of the minimum sort value (e.g., 0x00), remove that
+       label; otherwise proceed to the next step.  (If this condition is
+       met, P'(N) is the owner name of the apex.)
 
    3.  If the least significant (right-most) octet in the least
        significant (left-most) label of N is the minimum sort value,
        remove the least significant octet.
 
    4.  Decrement the value of the least significant (right-most) octet,
-       skipping any values which correspond to uppercase US-ASCII
+       skipping any values that correspond to uppercase US-ASCII
        letters, and then append the label with as many octets as
        possible of the maximum sort value.
 
-4.2.  Derivation of DNS Name Successor
+
+
+
+
+
+
+
+
+
+
+Sisson & Laurie               Experimental                      [Page 5]
+
+RFC 4471           DNS Name Predecessor and Successor     September 2006
+
+
+3.2.2.  Derivation of DNS Name Successor
 
    To derive S'(N):
 
-   1.  If N has more labels than the number of labels in the owner name
-       of the apex + 1, repeatedly remove the least significant (left-
-       most) label until N has no more labels than the number of labels
-       in the owner name of the apex + 1.  Continue to next step.
+   1.  If N is two or more labels longer than the owner name of the
+       apex, repeatedly remove the least significant (left-most) label
+       until N is only one label longer than the owner name of the apex.
+       Proceed to the next step.
 
    2.  If the least significant (left-most) label of N is one or more
        octets shorter than the maximum label length, append an octet of
        the minimum sort value to the least significant label; otherwise
-       continue to the next step.
+       proceed to the next step.
 
    3.  Increment the value of the least significant (right-most) octet
        in the least significant (left-most) label that is less than the
-       maximum sort value (e.g. 0xff), skipping any values which
+       maximum sort value (e.g., 0xff), skipping any values that
        correspond to uppercase US-ASCII letters, and then remove any
        octets to the right of that one.  If all octets in the label are
-       the maximum sort value, then continue to the next step.
-
-
-
-Sisson & Laurie         Expires January 11, 2006                [Page 6]
-
-Internet-Draft     DNS Name Predecessor and Successor          July 2005
-
+       the maximum sort value, then proceed to the next step.
 
    4.  Remove the least significant (left-most) label.  (This will occur
        only if the least significant label is the maximum label length
        and consists entirely of octets of the maximum sort value, and
        thus has wrapped to the owner name of the zone apex.)
 
+4.  Notes
 
-5.  Notes
+4.1.  Test for Existence
 
-5.1.  Case Considerations
+   Before using the result of P(N) or P'(N) as the owner name of an NSEC
+   RR in a DNS response, a name server should test to see whether the
+   name exists.  If it does, either a standard non-synthesised NSEC RR
+   should be used, or the synthesised NSEC RR should reflect the RRset
+   types that exist at the NSEC RR's owner name in the Type Bit Map
+   field as specified by Section 4.1.2 of [RFC4034].  Implementors will
+   likely find it simpler to use a non-synthesised NSEC RR.  For further
+   details, see Section 2 of [RFC4470].
+
+
+
+
+
+
+
+
+
+
+
+
+
+Sisson & Laurie               Experimental                      [Page 6]
+
+RFC 4471           DNS Name Predecessor and Successor     September 2006
+
+
+4.2.  Case Considerations
 
    Section 3.5 of [RFC1034] specifies that "while upper and lower case
-   letters are allowed in [DNS] names, no significance is attached to
-   the case".  Additionally, Section 6.1 of [RFC4034] states that when
+   letters are allowed in names, no significance is attached to the
+   case".  Additionally, Section 6.1 of [RFC4034] states that when
    determining canonical DNS name order, "uppercase US-ASCII letters are
    treated as if they were lowercase US-ASCII letters".  Consequently,
    values corresponding to US-ASCII uppercase letters must be skipped
    when decrementing and incrementing octets in the derivations
-   described in Section 3.1 and Section 3.2.
+   described in Section 3.
 
    The following pseudo-code is illustrative:
 
@@ -369,98 +367,100 @@ Internet-Draft     DNS Name Predecessor and Successor          July 2005
       else
               octet++;
 
-5.2.  Choice of Range
+4.3.  Choice of Range
 
    [RFC2181] makes the clarification that "any binary string whatever
-   can be used as the label of any resource record".  Consequently the
+   can be used as the label of any resource record".  Consequently, the
    minimum sort value may be set as 0x00 and the maximum sort value as
-   0xff, and the range of possible values will be any DNS name which
+   0xff, and the range of possible values will be any DNS name that
    contains octets of any value other than those corresponding to
    uppercase US-ASCII letters.
 
    However, if all owner names in a zone are in the letter-digit-hyphen,
    or LDH, format specified in [RFC1034], it may be desirable to
    restrict the range of possible values to DNS names containing only
-   LDH values.  This has the effect of:
-
-
-
-Sisson & Laurie         Expires January 11, 2006                [Page 7]
-
-Internet-Draft     DNS Name Predecessor and Successor          July 2005
-
+   LDH values.  This has the effect of
 
    1.  making the output of tools such as `dig' and `nslookup' less
-       subject to confusion;
+       subject to confusion,
 
    2.  minimising the impact that NSEC RRs containing DNS names with
        non-LDH values (or non-printable values) might have on faulty DNS
-       resolver implementations; and
+       resolver implementations, and
 
-   3.  preventing the possibility of results which are wildcard DNS
-       names (see Section 5.3).
+
+
+
+Sisson & Laurie               Experimental                      [Page 7]
+
+RFC 4471           DNS Name Predecessor and Successor     September 2006
+
+
+   3.  preventing the possibility of results that are wildcard DNS names
+       (see Section 4.4).
 
    This may be accomplished by using a minimum sort value of 0x1f (US-
    ASCII character `-') and a maximum sort value of 0x7a (US-ASCII
    character lowercase `z'), and then skipping non-LDH, non-lowercase
    values when incrementing or decrementing octets.
 
-5.3.  Wild Card Considerations
+4.4.  Wild Card Considerations
 
    Neither derivation avoids the possibility that the result may be a
-   DNS name containing a wildcard label, i.e. a label containing a
+   DNS name containing a wildcard label, i.e., a label containing a
    single octet with the value 0x2a (US-ASCII character `*').  With
    additional tests, wildcard DNS names may be explicitly avoided;
    alternatively, if the range of octet values can be restricted to
    those corresponding to letter-digit-hyphen, or LDH, characters (see
-   Section 5.2), such DNS names will not occur.
+   Section 4.3), such DNS names will not occur.
 
-   Note that it is improbable that a result which is a wildcard DNS name
+   Note that it is improbable that a result that is a wildcard DNS name
    will occur unintentionally; even if one does occur either as the
    owner name of, or in the RDATA of an NSEC RR, it is treated as a
    literal DNS name with no special meaning.
 
-5.4.  Possible Modifications
+4.5.  Possible Modifications
 
-5.4.1.  Restriction of Effective Maximum DNS Name Length
+4.5.1.  Restriction of Effective Maximum DNS Name Length
 
    [RFC1034] specifies that "the total number of octets that represent a
-   [DNS] name (i.e., the sum of all label octets and label lengths) is
-   limited to 255", including the null (zero-length) label which
-   represents the root.  For the purpose of deriving predecessors and
-   successors during NSEC RR synthesis, the maximum DNS name length may
-   be effectively restricted to the length of the longest DNS name in
-   the zone.  This will minimise the size of responses containing
-   synthesised NSEC RRs but, especially in the case of the modified
-   method, may result in some additional computational complexity.
+   name (i.e., the sum of all label octets and label lengths) is limited
+   to 255", including the null (zero-length) label that represents the
+   root.  For the purpose of deriving predecessors and successors during
+   NSEC RR synthesis, the maximum DNS name length may be effectively
+   restricted to the length of the longest DNS name in the zone.  This
+   will minimise the size of responses containing synthesised NSEC RRs
+   but, especially in the case of the modified method, may result in
+   some additional computational complexity.
 
    Note that this modification will have the effect of revealing
    information about the longest name in the zone.  Moreover, when the
-   contents of the zone changes, e.g. during dynamic updates and zone
+   contents of the zone changes, e.g., during dynamic updates and zone
    transfers, care must be taken to ensure that the effective maximum
-
-
-
-Sisson & Laurie         Expires January 11, 2006                [Page 8]
-
-Internet-Draft     DNS Name Predecessor and Successor          July 2005
-
-
    DNS name length agrees with the new contents.
 
-5.4.2.  Use of Modified Method With Zones Containing SRV RRs
+4.5.2.  Use of Modified Method with Zones Containing SRV RRs
 
-   Normally the modified method cannot be used in zones that contain
-   SRV RRs [RFC2782], as SRV RRs have owner names which contain multiple
-   labels.  However the use of SRV RRs can be accommodated by various
-   techniques.  There are at least four possible ways to do this:
+   Normally, the modified method cannot be used in zones that contain
+   Service Record (SRV) RRs [RFC2782], as SRV RRs have owner names that
+   contain multiple labels.  However, the use of SRV RRs can be
+
+
+
+Sisson & Laurie               Experimental                      [Page 8]
+
+RFC 4471           DNS Name Predecessor and Successor     September 2006
+
+
+   accommodated by various techniques.  There are at least four possible
+   ways to do this:
 
    1.  Use conventional NSEC RRs for the region of the zone that
        contains first-level labels beginning with the underscore (`_')
        character.  For the purposes of generating these NSEC RRs, the
        existence of (possibly fictional) ownernames `9{63}' and `a'
        could be assumed, providing a lower and upper bound for this
-       region.  Then all queries where the QNAME doesn't exist but
+       region.  Then all queries where the QNAME does not exist but
        contains a first-level label beginning with an underscore could
        be handled using the normal DNSSEC protocol.
 
@@ -473,7 +473,7 @@ Internet-Draft     DNS Name Predecessor and Successor          July 2005
 
    2.  The absolute method could be used for synthesising NSEC RRs for
        all queries where the QNAME contains a leading underscore.
-       However this re-introduces the susceptibility of the absolute
+       However, this re-introduces the susceptibility of the absolute
        method to denial of service activity, as an attacker could send
        queries for an effectively inexhaustible supply of domain names
        beginning with a leading underscore.
@@ -482,42 +482,42 @@ Internet-Draft     DNS Name Predecessor and Successor          July 2005
        NSEC RRs for all queries where the QNAME contains a leading
        underscore.  This variant would assume that all predecessors and
        successors to queries where the QNAME contains a leading
-       underscore may consist of two lablels rather than only one.  This
+       underscore may consist of two labels rather than only one.  This
        introduces a little additional complexity without incurring the
        full increase in response size and computational complexity as
        the absolute method.
 
-   4.  Finally, a variant the modified method which assumes that all
+   4.  Finally, a variant of the modified method that assumes that all
        owner names in the zone consist of one or two labels could be
-       used.  However this negates much of the reduction in response
+       used.  However, this negates much of the reduction in response
        size of the modified method and may be nearly as computationally
        complex as the absolute method.
 
+5.  Examples
+
+   In the following examples,
+
+      the owner name of the zone apex is "example.com.",
 
 
 
 
-Sisson & Laurie         Expires January 11, 2006                [Page 9]
+
+Sisson & Laurie               Experimental                      [Page 9]
 
-Internet-Draft     DNS Name Predecessor and Successor          July 2005
+RFC 4471           DNS Name Predecessor and Successor     September 2006
 
-
-6.  Examples
-
-   In the following examples:
-
-      the owner name of the zone apex is "example.com.";
 
       the range of octet values is 0x00 - 0xff excluding values
-      corresponding to uppercase US-ASCII letters; and
+      corresponding to uppercase US-ASCII letters, and
 
       non-printable octet values are expressed as three-digit decimal
       numbers preceded by a backslash (as specified in Section 5.1 of
       [RFC1035]).
 
-6.1.  Examples of Immediate Predecessors Using Absolute Method
+5.1.  Examples of Immediate Predecessors Using Absolute Method
 
-   Example of typical case:
+   Example of a typical case:
 
       P(foo.example.com.) =
 
@@ -548,20 +548,21 @@ Internet-Draft     DNS Name Predecessor and Successor          July 2005
 
       where {n} represents the number of repetitions of an octet.
 
-
-
-
-
-
-Sisson & Laurie         Expires January 11, 2006               [Page 10]
-
-Internet-Draft     DNS Name Predecessor and Successor          July 2005
-
-
    Example where least significant (left-most) label of DNS name
    consists of a single octet of the minimum sort value:
 
       P(\000.foo.example.com.) = foo.example.com.
+
+
+
+
+
+
+
+Sisson & Laurie               Experimental                     [Page 10]
+
+RFC 4471           DNS Name Predecessor and Successor     September 2006
+
 
    Example where least significant (right-most) octet of least
    significant (left-most) label has the minimum sort value:
@@ -609,12 +610,17 @@ Internet-Draft     DNS Name Predecessor and Successor          July 2005
 
 
 
-Sisson & Laurie         Expires January 11, 2006               [Page 11]
+
+
+
+
+
+Sisson & Laurie               Experimental                     [Page 11]
 
-Internet-Draft     DNS Name Predecessor and Successor          July 2005
+RFC 4471           DNS Name Predecessor and Successor     September 2006
 
 
-   Example where DNS name contains an octet which must be decremented by
+   Example where DNS name contains an octet that must be decremented by
    skipping values corresponding to US-ASCII uppercase letters:
 
       P(fo\[.example.com.) =
@@ -665,9 +671,9 @@ Internet-Draft     DNS Name Predecessor and Successor          July 2005
 
 
 
-Sisson & Laurie         Expires January 11, 2006               [Page 12]
+Sisson & Laurie               Experimental                     [Page 12]
 
-Internet-Draft     DNS Name Predecessor and Successor          July 2005
+RFC 4471           DNS Name Predecessor and Successor     September 2006
 
 
    Example where DNS name is the owner name of the zone apex, and
@@ -702,29 +708,35 @@ Internet-Draft     DNS Name Predecessor and Successor          July 2005
 
            \255{49}.\255{63}.\255{63}.\255{63}.example.com.
 
-6.2.  Examples of Immediate Successors Using Absolute Method
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Sisson & Laurie               Experimental                     [Page 13]
+
+RFC 4471           DNS Name Predecessor and Successor     September 2006
+
+
+5.2.  Examples of Immediate Successors Using Absolute Method
 
    Example of typical case:
 
       S(foo.example.com.) = \000.foo.example.com.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Sisson & Laurie         Expires January 11, 2006               [Page 13]
-
-Internet-Draft     DNS Name Predecessor and Successor          July 2005
-
 
    Example where DNS name is one octet short of the maximum DNS name
    length:
@@ -771,15 +783,9 @@ Internet-Draft     DNS Name Predecessor and Successor          July 2005
 
 
 
-
-
-
-
-
-
-Sisson & Laurie         Expires January 11, 2006               [Page 14]
+Sisson & Laurie               Experimental                     [Page 14]
 
-Internet-Draft     DNS Name Predecessor and Successor          July 2005
+RFC 4471           DNS Name Predecessor and Successor     September 2006
 
 
    Example where DNS name is the maximum DNS name length:
@@ -833,9 +839,9 @@ Internet-Draft     DNS Name Predecessor and Successor          July 2005
 
 
 
-Sisson & Laurie         Expires January 11, 2006               [Page 15]
+Sisson & Laurie               Experimental                     [Page 15]
 
-Internet-Draft     DNS Name Predecessor and Successor          July 2005
+RFC 4471           DNS Name Predecessor and Successor     September 2006
 
 
    Example where DNS name is the maximum DNS name length and the least
@@ -889,14 +895,14 @@ Internet-Draft     DNS Name Predecessor and Successor          July 2005
 
 
 
-Sisson & Laurie         Expires January 11, 2006               [Page 16]
+Sisson & Laurie               Experimental                     [Page 16]
 
-Internet-Draft     DNS Name Predecessor and Successor          July 2005
+RFC 4471           DNS Name Predecessor and Successor     September 2006
 
 
    Example where DNS name is the maximum DNS name length and the eight
-   least significant (right-most) octets of the least significant (left-
-   most) label have the maximum sort value:
+   least significant (right-most) octets of the least significant
+   (left-most) label have the maximum sort value:
 
       N  = foooooooooooooooooooooooooooooooooooooooo\255
            \255\255\255\255\255\255\255.ooooooooooooooooooo
@@ -945,13 +951,13 @@ Internet-Draft     DNS Name Predecessor and Successor          July 2005
 
 
 
-Sisson & Laurie         Expires January 11, 2006               [Page 17]
+Sisson & Laurie               Experimental                     [Page 17]
 
-Internet-Draft     DNS Name Predecessor and Successor          July 2005
+RFC 4471           DNS Name Predecessor and Successor     September 2006
 
 
    Example where DNS name is the maximum DNS name length and contains an
-   octet which must be incremented by skipping values corresponding to
+   octet that must be incremented by skipping values corresponding to
    US-ASCII uppercase letters:
 
       N  = fooooooooooooooooooooooooooooooooooooooooooooooo
@@ -1001,9 +1007,9 @@ Internet-Draft     DNS Name Predecessor and Successor          July 2005
 
 
 
-Sisson & Laurie         Expires January 11, 2006               [Page 18]
+Sisson & Laurie               Experimental                     [Page 18]
 
-Internet-Draft     DNS Name Predecessor and Successor          July 2005
+RFC 4471           DNS Name Predecessor and Successor     September 2006
 
 
    Example where DNS name has the maximum possible sort order in the
@@ -1037,9 +1043,9 @@ Internet-Draft     DNS Name Predecessor and Successor          July 2005
 
       S(N) = example.com.
 
-6.3.  Examples of Predecessors Using Modified Method
+5.3.  Examples of Predecessors Using Modified Method
 
-   Example of typical case:
+   Example of a typical case:
 
       P'(foo.example.com.) =
 
@@ -1057,9 +1063,9 @@ Internet-Draft     DNS Name Predecessor and Successor          July 2005
 
 
 
-Sisson & Laurie         Expires January 11, 2006               [Page 19]
+Sisson & Laurie               Experimental                     [Page 19]
 
-Internet-Draft     DNS Name Predecessor and Successor          July 2005
+RFC 4471           DNS Name Predecessor and Successor     September 2006
 
 
    Example where DNS name contains more labels than DNS names in the
@@ -1094,9 +1100,9 @@ Internet-Draft     DNS Name Predecessor and Successor          July 2005
 
            \255{63}.example.com.
 
-6.4.  Examples of Successors Using Modified Method
+5.4.  Examples of Successors Using Modified Method
 
-   Example of typical case:
+   Example of a typical case:
 
       S'(foo.example.com.) = foo\000.example.com.
 
@@ -1106,21 +1112,17 @@ Internet-Draft     DNS Name Predecessor and Successor          July 2005
       S'(bar.foo.example.com.) = foo\000.example.com.
 
 
-
-
-
-
-
-
-
-Sisson & Laurie         Expires January 11, 2006               [Page 20]
-
-Internet-Draft     DNS Name Predecessor and Successor          July 2005
-
-
    Example where least significant (left-most) label has the maximum
    sort value, and consequently wraps to the owner name of the zone
    apex:
+
+
+
+
+Sisson & Laurie               Experimental                     [Page 20]
+
+RFC 4471           DNS Name Predecessor and Successor     September 2006
+
 
       N  = \255\255\255\255\255\255\255\255\255\255\255\255
            \255\255\255\255\255\255\255\255\255\255\255\255
@@ -1135,156 +1137,58 @@ Internet-Draft     DNS Name Predecessor and Successor          July 2005
 
       S'(N) = example.com.
 
-
-7.  Security Considerations
+6.  Security Considerations
 
    The derivation of some predecessors/successors requires the testing
-   of more conditions than others.  Consequently the effectiveness of a
+   of more conditions than others.  Consequently, the effectiveness of a
    denial-of-service attack may be enhanced by sending queries that
    require more conditions to be tested.  The modified method involves
    the testing of fewer conditions than the absolute method and
    consequently is somewhat less susceptible to this exposure.
 
+7.  Acknowledgements
 
-8.  IANA Considerations
+   The authors would like to thank Sam Weiler, Olaf Kolkman, Olafur
+   Gudmundsson, and Niall O'Reilly for their review and input.
 
-   This document has no IANA actions.
+8.  References
 
-   Note to RFC Editor: This section is included to make it clear during
-   pre-publication review that this document has no IANA actions.  It
-   may therefore be removed should it be published as an RFC.
+8.1.  Normative References
+
+   [RFC1034]      Mockapetris, P., "Domain names - concepts and
+                  facilities", STD 13, RFC 1034, November 1987.
+
+   [RFC1035]      Mockapetris, P., "Domain names - implementation and
+                  specification", STD 13, RFC 1035, November 1987.
+
+   [RFC2181]      Elz, R. and R. Bush, "Clarifications to the DNS
+                  Specification", RFC 2181, July 1997.
+
+   [RFC2782]      Gulbrandsen, A., Vixie, P., and L. Esibov, "A DNS RR
+                  for specifying the location of services (DNS SRV)",
+                  RFC 2782, February 2000.
+
+   [RFC4034]      Arends, R., Austein, R., Larson, M., Massey, D., and
+                  S. Rose, "Resource Records for the DNS Security
+                  Extensions", RFC 4034, March 2005.
 
 
-9.  Acknowledgments
-
-   The authors would like to thank Olaf Kolkman, Olafur Gudmundsson and
-   Niall O'Reilly for their review and input.
 
 
-10.  References
-
-
-
-
-
-
-
-Sisson & Laurie         Expires January 11, 2006               [Page 21]
+Sisson & Laurie               Experimental                     [Page 21]
 
-Internet-Draft     DNS Name Predecessor and Successor          July 2005
+RFC 4471           DNS Name Predecessor and Successor     September 2006
 
 
-10.1  Normative References
+8.2.  Informative References
 
-   [RFC1034]  Mockapetris, P., "Domain names - concepts and facilities",
-              STD 13, RFC 1034, November 1987.
+   [RFC4470]      Weiler, S. and J. Ihren, "Minimally Covering NSEC
+                  Records and DNSSEC On-line Signing", RFC 4470, April
+                  2006.
 
-   [RFC1035]  Mockapetris, P., "Domain names - implementation and
-              specification", STD 13, RFC 1035, November 1987.
-
-   [RFC2181]  Elz, R. and R. Bush, "Clarifications to the DNS
-              Specification", RFC 2181, July 1997.
-
-   [RFC2782]  Gulbrandsen, A., Vixie, P., and L. Esibov, "A DNS RR for
-              specifying the location of services (DNS SRV)", RFC 2782,
-              February 2000.
-
-   [RFC4034]  Arends, R., Austein, R., Larson, M., Massey, D., and S.
-              Rose, "Resource Records for the DNS Security Extensions",
-              RFC 4034, March 2005.
-
-10.2  Informative References
-
-   [I-D.ietf-dnsext-dnssec-online-signing]
-              Ihren, J. and S. Weiler, "Minimally Covering NSEC Records
-              and DNSSEC On-line Signing",
-              draft-ietf-dnsext-dnssec-online-signing-00 (work in
-              progress), May 2005.
-
-   [I-D.ietf-dnsext-dnssec-trans]
-              Arends, R., Koch, P., and J. Schlyter, "Evaluating DNSSEC
-              Transition Mechanisms",
-              draft-ietf-dnsext-dnssec-trans-02 (work in progress),
-              February 2005.
-
-
-Appendix A.  Change History
-
-A.1.  Changes from sisson-02 to ietf-00
-
-   o  Added notes on use of SRV RRs with modified method.
-
-   o  Changed reference from weiler-dnssec-online-signing to ietf-
-      dnsext-dnssec-online-signing.
-
-   o  Changed reference from ietf-dnsext-dnssec-records to RFC 4034.
-
-   o  Miscellaneous minor changes to text.
-
-
-
-
-
-Sisson & Laurie         Expires January 11, 2006               [Page 22]
-
-Internet-Draft     DNS Name Predecessor and Successor          July 2005
-
-
-A.2.  Changes from sisson-01 to sisson-02
-
-   o  Added modified version of derivation (with supporting examples).
-
-   o  Introduced notational conventions N, P(N), S(N), P'(N) and S'(N).
-
-   o  Added clarification to derivations about when processing stops.
-
-   o  Miscellaneous minor changes to text.
-
-A.3.  Changes from sisson-00 to sisson-01
-
-   o  Split step 3 of derivation of DNS name predecessor into two
-      distinct steps for clarity.
-
-   o  Added clarifying text and examples related to the requirement to
-      avoid uppercase characters when decrementing or incrementing
-      octets.
-
-   o  Added optimisation using restriction of effective maximum DNS name
-      length.
-
-   o  Changed examples to use decimal rather than octal notation as per
-      [RFC1035].
-
-   o  Corrected DNS name length of some examples.
-
-   o  Added reference to weiler-dnssec-online-signing.
-
-   o  Miscellaneous minor changes to text.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Sisson & Laurie         Expires January 11, 2006               [Page 23]
-
-Internet-Draft     DNS Name Predecessor and Successor          July 2005
-
+   [DNSSEC-TRANS] Arends, R., Koch, P., and J. Schlyter, "Evaluating
+                  DNSSEC Transition Mechanisms", Work in Progress,
+                  February 2005.
 
 Authors' Addresses
 
@@ -1296,8 +1200,8 @@ Authors' Addresses
    OX4 6LB
    GB
 
-   Phone: +44 1865 332339
-   Email: geoff@nominet.org.uk
+   Phone: +44 1865 332211
+   EMail: geoff@nominet.org.uk
 
 
    Ben Laurie
@@ -1308,7 +1212,7 @@ Authors' Addresses
    GB
 
    Phone: +44 20 8735 0686
-   Email: ben@algroup.co.uk
+   EMail: ben@algroup.co.uk
 
 
 
@@ -1327,22 +1231,28 @@ Authors' Addresses
 
 
 
-
-
-
-
-
-
-
-
-
-
-Sisson & Laurie         Expires January 11, 2006               [Page 24]
+Sisson & Laurie               Experimental                     [Page 22]
 
-Internet-Draft     DNS Name Predecessor and Successor          July 2005
+RFC 4471           DNS Name Predecessor and Successor     September 2006
 
 
-Intellectual Property Statement
+Full Copyright Statement
+
+   Copyright (C) The Internet Society (2006).
+
+   This document is subject to the rights, licenses and restrictions
+   contained in BCP 78, and except as set forth therein, the authors
+   retain all their rights.
+
+   This document and the information contained herein are provided on an
+   "AS IS" basis and THE CONTRIBUTOR, THE ORGANIZATION HE/SHE REPRESENTS
+   OR IS SPONSORED BY (IF ANY), THE INTERNET SOCIETY AND THE INTERNET
+   ENGINEERING TASK FORCE DISCLAIM ALL WARRANTIES, EXPRESS OR IMPLIED,
+   INCLUDING BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE
+   INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
+   WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+Intellectual Property
 
    The IETF takes no position regarding the validity or scope of any
    Intellectual Property Rights or other rights that might be claimed to
@@ -1366,32 +1276,16 @@ Intellectual Property Statement
    this standard.  Please address the information to the IETF at
    ietf-ipr@ietf.org.
 
+Acknowledgement
 
-Disclaimer of Validity
-
-   This document and the information contained herein are provided on an
-   "AS IS" basis and THE CONTRIBUTOR, THE ORGANIZATION HE/SHE REPRESENTS
-   OR IS SPONSORED BY (IF ANY), THE INTERNET SOCIETY AND THE INTERNET
-   ENGINEERING TASK FORCE DISCLAIM ALL WARRANTIES, EXPRESS OR IMPLIED,
-   INCLUDING BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE
-   INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
-   WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
-
-
-Copyright Statement
-
-   Copyright (C) The Internet Society (2005).  This document is subject
-   to the rights, licenses and restrictions contained in BCP 78, and
-   except as set forth therein, the authors retain all their rights.
-
-
-Acknowledgment
-
-   Funding for the RFC Editor function is currently provided by the
-   Internet Society.
+   Funding for the RFC Editor function is provided by the IETF
+   Administrative Support Activity (IASA).
 
 
 
 
-Sisson & Laurie         Expires January 11, 2006               [Page 25]
+
+
+
+Sisson & Laurie               Experimental                     [Page 23]
 
