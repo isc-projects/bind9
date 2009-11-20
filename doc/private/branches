@@ -283,6 +283,7 @@ rt20541				new	marka	// 2009-10-30 02:28 +0000
 rt20603				new	sar	// 2009-11-12 01:38 +0000
 rt20609				new	marka	// 2009-11-18 08:46 +0000
 rt20619				new	sar	// 2009-11-16 19:51 +0000
+rt20639				new	fdupont	// 2009-11-20 08:18 +0000
 shane_dbbackend			open	
 skan				open	explorer
 skan-metazones1			private	explorer
