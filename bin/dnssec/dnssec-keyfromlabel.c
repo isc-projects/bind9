@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keyfromlabel.c,v 1.26 2009/11/06 01:06:38 each Exp $ */
+/* $Id: dnssec-keyfromlabel.c,v 1.27 2009/11/21 17:51:49 fdupont Exp $ */
 
 /*! \file */
 
@@ -354,7 +354,8 @@ main(int argc, char **argv) {
 	}
 
 	if (use_nsec3 &&
-	    alg != DST_ALG_NSEC3DSA && alg != DST_ALG_NSEC3RSASHA1) {
+	    alg != DST_ALG_NSEC3DSA && alg != DST_ALG_NSEC3RSASHA1 &&
+	    alg != DST_ALG_RSASHA256 && alg != DST_ALG_RSASHA512) {
 		fatal("%s is incompatible with NSEC3; "
 		      "do not use the -3 option", algname);
 	}

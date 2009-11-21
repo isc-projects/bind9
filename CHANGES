@@ -1,3 +1,6 @@
+2775.	[bug]		Accept RSASHA256 and RSASHA512 as NSEC3 compatible
+			in dnssec-keyfromlabel. [RT #20643]
+
 2774.	[bug]		Existing cache DB wasn't being reused after
 			reconfiguration. [RT #20629]
 
