@@ -1,3 +1,13 @@
+	--- 9.7.0b3 released ---
+
+2780.	[bug]		dnssec-keygen -A none didn't properly unset the
+			activation date in all cases. [RT #20648]
+
+2779.	[bug]		Dynamic key revokation could fail. [RT #20644]
+
+2778.	[bug]		dnssec-signzone could fail when a key was revoked
+			without deleting the unrevoked version. [RT #20638]
+
 2777.	[contrib]	DLZ MYSQL auto reconnect support discovery was wrong.
 
 2776.	[bug]		Change #2762 was not correct. [RT #20647]
@@ -10,8 +20,6 @@
 
 2773.	[bug]		In autosigned zones, the SOA could be signed
 			with the KSK. [RT #20628]
-
-	--- 9.7.0b3 released ---
 
 2772.	[security]	When validating, track whether pending data was from
 			the additional section or not and only return it if

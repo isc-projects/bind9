@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keyfromlabel.c,v 1.27 2009/11/21 17:51:49 fdupont Exp $ */
+/* $Id: dnssec-keyfromlabel.c,v 1.28 2009/11/23 02:55:40 each Exp $ */
 
 /*! \file */
 
@@ -461,12 +461,14 @@ main(int argc, char **argv) {
 
 		if (setpub)
 			dst_key_settime(key, DST_TIME_PUBLISH, publish);
-		else if (!genonly)
+		else if (setact)
+			dst_key_settime(key, DST_TIME_PUBLISH, activate);
+		else if (!genonly && !unsetpub)
 			dst_key_settime(key, DST_TIME_PUBLISH, now);
 
 		if (setact)
 			dst_key_settime(key, DST_TIME_ACTIVATE, activate);
-		else if (!genonly)
+		else if (!genonly && !unsetact)
 			dst_key_settime(key, DST_TIME_ACTIVATE, now);
 
 		if (setrev) {

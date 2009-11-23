@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.169 2009/11/18 21:22:31 each Exp $ */
+/* $Id: update.c,v 1.170 2009/11/23 02:55:41 each Exp $ */
 
 #include <config.h>
 
@@ -1883,8 +1883,8 @@ add_sigs(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 				  (isc_stdtime_t) 0, &rdataset, NULL));
 	dns_db_detachnode(db, &node);
 
-#define REVOKE(x) ((dst_key_flags(x) & DNS_KEYFLAG_REVOKE) == 1)
-#define KSK(x) ((dst_key_flags(x) & DNS_KEYFLAG_KSK) == 1)
+#define REVOKE(x) ((dst_key_flags(x) & DNS_KEYFLAG_REVOKE) != 0)
+#define KSK(x) ((dst_key_flags(x) & DNS_KEYFLAG_KSK) != 0)
 #define ALG(x) dst_key_alg(x)
 
 	/*
