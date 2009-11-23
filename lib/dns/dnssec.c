@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.111 2009/11/23 02:55:41 each Exp $
+ * $Id: dnssec.c,v 1.112 2009/11/23 15:18:07 each Exp $
  */
 
 /*! \file */
@@ -541,6 +541,59 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	return (result);
 }
 
+static isc_boolean_t
+key_active(dst_key_t *key) {
+	isc_result_t result;
+	isc_stdtime_t now, publish, active, revoke, inactive, delete;
+	isc_boolean_t pubset = ISC_FALSE, actset = ISC_FALSE;
+	isc_boolean_t revset = ISC_FALSE, inactset = ISC_FALSE;
+	isc_boolean_t delset = ISC_FALSE;
+	int major, minor;
+
+	/* Is this an old-style key? */
+	result = dst_key_getprivateformat(key, &major, &minor);
+
+	/*
+	 * Smart signing started with key format 1.3; prior to that, all
+	 * keys are assumed active
+	 */
+	if (major == 1 && minor <= 2)
+		return (ISC_TRUE);
+
+	isc_stdtime_get(&now);
+
+	result = dst_key_gettime(key, DST_TIME_PUBLISH, &publish);
+	if (result == ISC_R_SUCCESS)
+		pubset = ISC_TRUE;
+
+	result = dst_key_gettime(key, DST_TIME_ACTIVATE, &active);
+	if (result == ISC_R_SUCCESS)
+		actset = ISC_TRUE;
+
+	result = dst_key_gettime(key, DST_TIME_REVOKE, &revoke);
+	if (result == ISC_R_SUCCESS)
+		revset = ISC_TRUE;
+
+	result = dst_key_gettime(key, DST_TIME_INACTIVE, &inactive);
+	if (result == ISC_R_SUCCESS)
+		inactset = ISC_TRUE;
+
+	result = dst_key_gettime(key, DST_TIME_DELETE, &delete);
+	if (result == ISC_R_SUCCESS)
+		delset = ISC_TRUE;
+
+	if ((inactset && inactive <= now) || (delset && delete <= now))
+		return (ISC_FALSE);
+
+	if (revset && revoke <= now && pubset && publish <= now)
+		return (ISC_TRUE);
+
+	if (actset && active <= now)
+		return (ISC_TRUE);
+
+	return (ISC_FALSE);
+}
+
 #define is_zone_key(key) ((dst_key_flags(key) & DNS_KEYFLAG_OWNERMASK) \
 			  == DNS_KEYOWNER_ZONE)
 
@@ -590,6 +643,18 @@ dns_dnssec_findzonekeys2(dns_db_t *db, dns_dbversion_t *ver,
 		}
 		if (result != ISC_R_SUCCESS)
 			goto failure;
+		
+		/*
+		 * If a key is marked inactive, skip it
+		 */
+		if (!key_active(keys[count])) {
+			dst_key_free(&keys[count]);
+			keys[count] = pubkey;
+			pubkey = NULL;
+			count++;
+			goto next;
+		}
+
 		if ((dst_key_flags(keys[count]) & DNS_KEYTYPE_NOAUTH) != 0) {
 			/* We should never get here. */
 			dst_key_free(&keys[count]);
@@ -1408,7 +1473,7 @@ publish_key(dns_diff_t *diff, dns_dnsseckey_t *key, dns_name_t *origin,
 		isc_stdtime_t now;
 
 		dst_key_format(key->key, keystr, sizeof(keystr));
-		report("Key %s: Delaying activation to match the DNSKEY TTL.",
+		report("Key %s: Delaying activation to match the DNSKEY TTL.\n",
 		       keystr, ttl);
 
 		isc_stdtime_get(&now);

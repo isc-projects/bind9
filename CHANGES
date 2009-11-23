@@ -1,5 +1,7 @@
 	--- 9.7.0b3 released ---
 
+2781.	[bug]		Inactive keys could be used for signing. [RT #20649]
+
 2780.	[bug]		dnssec-keygen -A none didn't properly unset the
 			activation date in all cases. [RT #20648]
 
