@@ -792,7 +792,7 @@ mysql_create(const char *dlzname, unsigned int argc, char *argv[],
 	char *endp;
 	int j;
 	unsigned int flags = 0;
-#ifdef MYSQL_OPT_RECONNECT
+#if MYSQL_VERSION_ID >= 50000
         my_bool auto_reconnect = 1;
 #endif
 
@@ -926,7 +926,7 @@ mysql_create(const char *dlzname, unsigned int argc, char *argv[],
 	pass = getParameterValue(argv[1], "pass=");
 	socket = getParameterValue(argv[1], "socket=");
 
-#ifdef MYSQL_OPT_RECONNECT
+#if MYSQL_VERSION_ID >= 50000
 	/* enable automatic reconnection. */
         if (mysql_options((MYSQL *) dbi->dbconn, MYSQL_OPT_RECONNECT,
 			  &auto_reconnect) != 0) {
