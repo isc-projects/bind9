@@ -1,3 +1,5 @@
+2776.	[bug]		Change #2762 was not correct. [RT #20647]
+
 2775.	[bug]		Accept RSASHA256 and RSASHA512 as NSEC3 compatible
 			in dnssec-keyfromlabel. [RT #20643]
 
