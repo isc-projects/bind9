@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.112 2009/11/23 15:18:07 each Exp $
+ * $Id: dnssec.c,v 1.113 2009/11/23 23:48:16 tbox Exp $
  */
 
 /*! \file */
@@ -643,7 +643,7 @@ dns_dnssec_findzonekeys2(dns_db_t *db, dns_dbversion_t *ver,
 		}
 		if (result != ISC_R_SUCCESS)
 			goto failure;
-		
+
 		/*
 		 * If a key is marked inactive, skip it
 		 */
