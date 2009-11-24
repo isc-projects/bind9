@@ -1,3 +1,6 @@
+2782.	[port]		win32: use getaddrinfo() for hostname lookups.
+			[RT #20650]
+
 	--- 9.7.0b3 released ---
 
 2781.	[bug]		Inactive keys could be used for signing. [RT #20649]
