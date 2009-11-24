@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.win32,v 1.19 2008/09/25 07:44:12 marka Exp $ */
+/* $Id: config.h.win32,v 1.19.48.1 2009/11/24 02:12:54 marka Exp $ */
 
 /*
  * win32 configuration file
@@ -234,3 +234,13 @@ typedef long off_t;
  * Windows doesn't use configure so just set "default" here.
  */
 #define CONFIGARGS "default"
+
+/** define if struct addrinfo exists */
+#define HAVE_ADDRINFO
+
+/** define if getaddrinfo() exists */
+#define HAVE_GETADDRINFO
+
+/** define if gai_strerror() exists */
+#define HAVE_GAISTRERROR
+
