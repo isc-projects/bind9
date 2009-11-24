@@ -1,3 +1,6 @@
+2784.	[bug]		TC was not always being set when required glue was
+			dropped. [RT #234186]
+
 2783.	[func]		Return minimal responses to EDNS/UDP queries with a UDP
 			buffer size of 512 or less.  [RT #20654]
 
