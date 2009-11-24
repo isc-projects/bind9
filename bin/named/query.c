@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.298.48.17 2009/11/18 00:08:59 marka Exp $ */
+/* $Id: query.c,v 1.298.48.18 2009/11/24 03:15:54 marka Exp $ */
 
 /*! \file */
 
@@ -4724,6 +4724,14 @@ ns_query_start(ns_client_t *client) {
 	 * Turn on minimal response for DNSKEY and DS queries.
 	 */
 	if (qtype == dns_rdatatype_dnskey || qtype == dns_rdatatype_ds)
+		client->query.attributes |= (NS_QUERYATTR_NOAUTHORITY |
+					     NS_QUERYATTR_NOADDITIONAL);
+
+	/*
+	 * Turn on minimal responses for EDNS/UDP bufsize 512 queries.
+	 */
+	if (client->opt != NULL && client->udpsize <= 512U &&
+	    (client->attributes & NS_CLIENTATTR_TCP) == 0)
 		client->query.attributes |= (NS_QUERYATTR_NOAUTHORITY |
 					     NS_QUERYATTR_NOADDITIONAL);
 

@@ -1,3 +1,6 @@
+2783.	[func]		Return minimal responses to EDNS/UDP queries with a UDP
+			buffer size of 512 or less.  [RT #20654]
+
 2782.	[port]		win32: use getaddrinfo() for hostname lookups.
 			[RT #20650]
 
