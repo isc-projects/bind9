@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.529 2009/11/12 23:47:59 tbox Exp $ */
+/* $Id: zone.c,v 1.532 2009/11/24 03:42:32 each Exp $ */
 
 /*! \file */
 
@@ -4549,8 +4549,8 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		goto failure;
 	}
 
-#define REVOKE(x) ((dst_key_flags(x) & DNS_KEYFLAG_REVOKE) == 1)
-#define KSK(x) ((dst_key_flags(x) & DNS_KEYFLAG_KSK) == 1)
+#define REVOKE(x) ((dst_key_flags(x) & DNS_KEYFLAG_REVOKE) != 0)
+#define KSK(x) ((dst_key_flags(x) & DNS_KEYFLAG_KSK) != 0)
 #define ALG(x) dst_key_alg(x)
 
 	for (i = 0; i < nkeys; i++) {
@@ -4586,12 +4586,13 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 			if (type == dns_rdatatype_dnskey) {
 				if (!KSK(keys[i]) && keyset_kskonly)
 					continue;
-			} else if (!KSK(keys[i]))
+			} else if (KSK(keys[i]))
 				continue;
 		} else if (REVOKE(keys[i]) && type != dns_rdatatype_dnskey)
 				continue;
 
 		/* Calculate the signature, creating a RRSIG RDATA. */
+		isc_buffer_clear(&buffer);
 		CHECK(dns_dnssec_sign(name, &rdataset, keys[i],
 				      &inception, &expire,
 				      mctx, &buffer, &sig_rdata));
@@ -4923,6 +4924,7 @@ sign_a_node(dns_db_t *db, dns_name_t *name, dns_dbnode_t *node,
 			result = ISC_R_SUCCESS;
 		return (result);
 	}
+
 	dns_rdataset_init(&rdataset);
 	isc_buffer_init(&buffer, data, sizeof(data));
 	seen_rr = seen_soa = seen_ns = seen_dname = seen_nsec =
@@ -4996,6 +4998,7 @@ sign_a_node(dns_db_t *db, dns_name_t *name, dns_dbnode_t *node,
 		if (signed_with_key(db, node, version, rdataset.type, key))
 			goto next_rdataset;
 		/* Calculate the signature, creating a RRSIG RDATA. */
+		isc_buffer_clear(&buffer);
 		CHECK(dns_dnssec_sign(name, &rdataset, key, &inception,
 				      &expire, mctx, &buffer, &rdata));
 		/* Update the database and journal with the RRSIG. */
@@ -6450,7 +6453,8 @@ zone_sign(dns_zone_t *zone) {
 				 * Find the key we want to remove.
 				 */
 				if (ALG(zone_keys[i]) == signing->algorithm &&
-				    dst_key_id(zone_keys[i]) == signing->keyid) {
+				    dst_key_id(zone_keys[i]) == signing->keyid)
+				{
 					if (KSK(zone_keys[i]))
 						dst_key_free(&zone_keys[i]);
 					continue;
@@ -6553,7 +6557,7 @@ zone_sign(dns_zone_t *zone) {
 						break;
 				}
 			}
-			if (both)
+			if (both || REVOKE(zone_keys[i]))
 				is_ksk = KSK(zone_keys[i]);
 			else
 				is_ksk = ISC_FALSE;
@@ -6762,7 +6766,8 @@ zone_sign(dns_zone_t *zone) {
 	for (i = 0; i < nkeys; i++)
 		dst_key_free(&zone_keys[i]);
 
-	INSIST(node == NULL);
+	if (node != NULL)
+		dns_db_detachnode(db, &node);
 
 	if (version != NULL) {
 		dns_db_closeversion(db, &version, ISC_FALSE);
@@ -13439,9 +13444,9 @@ zone_rekey(dns_zone_t *zone) {
 	dns_dbnode_t *node = NULL;
 	dns_dbversion_t *ver = NULL;
 	dns_rdataset_t soaset, soasigs, keyset, keysigs;
-	dns_dnsseckeylist_t dnskeys, keys, oldkeys;
+	dns_dnsseckeylist_t dnskeys, keys, rmkeys;
 	dns_dnsseckey_t *key;
-	dns_diff_t add, del;
+	dns_diff_t diff;
 	isc_boolean_t commit = ISC_FALSE;
 	dns_ttl_t ttl = 3600;
 	const char *dir;
@@ -13452,15 +13457,14 @@ zone_rekey(dns_zone_t *zone) {
 
 	ISC_LIST_INIT(dnskeys);
 	ISC_LIST_INIT(keys);
-	ISC_LIST_INIT(oldkeys);
+	ISC_LIST_INIT(rmkeys);
 	dns_rdataset_init(&soaset);
 	dns_rdataset_init(&soasigs);
 	dns_rdataset_init(&keyset);
 	dns_rdataset_init(&keysigs);
 	dir = dns_zone_getkeydirectory(zone);
 	mctx = zone->mctx;
-	dns_diff_init(mctx, &add);
-	dns_diff_init(mctx, &del);
+	dns_diff_init(mctx, &diff);
 	isc_stdtime_get(&now);
 
 	CHECK(dns_zone_getdb(zone, &db));
@@ -13491,24 +13495,16 @@ zone_rekey(dns_zone_t *zone) {
 		isc_boolean_t check_ksk;
 		check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
 
-		CHECK(dns_dnssec_updatekeys(&dnskeys, &keys, &oldkeys,
-					    &zone->origin, ttl, &add, &del,
+		CHECK(dns_dnssec_updatekeys(&dnskeys, &keys, &rmkeys,
+					    &zone->origin, ttl, &diff,
 					    ISC_TF(!check_ksk), mctx, logmsg));
-		if (!ISC_LIST_EMPTY(del.tuples)) {
+		if (!ISC_LIST_EMPTY(diff.tuples)) {
 			commit = ISC_TRUE;
-			add_signing_records(db, zone->privatetype, ver, &del);
-			dns_diff_apply(&del, db, ver);
-			result = increment_soa_serial(db, ver, &del, mctx);
+			add_signing_records(db, zone->privatetype, ver, &diff);
+			dns_diff_apply(&diff, db, ver);
+			result = increment_soa_serial(db, ver, &diff, mctx);
 			if (result == ISC_R_SUCCESS)
-				zone_journal(zone, &del, "zone_rekey");
-		}
-		if (!ISC_LIST_EMPTY(add.tuples)) {
-			commit = ISC_TRUE;
-			add_signing_records(db, zone->privatetype, ver, &add);
-			dns_diff_apply(&add, db, ver);
-			result = increment_soa_serial(db, ver, &add, mctx);
-			if (result == ISC_R_SUCCESS)
-				zone_journal(zone, &add, "zone_rekey");
+				zone_journal(zone, &diff, "zone_rekey");
 
 		}
 	}
@@ -13516,7 +13512,7 @@ zone_rekey(dns_zone_t *zone) {
 	dns_db_closeversion(db, &ver, commit);
 
 	if (commit) {
-		for (key = ISC_LIST_HEAD(oldkeys);
+		for (key = ISC_LIST_HEAD(rmkeys);
 		     key != NULL;
 		     key = ISC_LIST_NEXT(key, link)) {
 			zone_signwithkey(zone, dst_key_alg(key->key),
@@ -13566,12 +13562,11 @@ zone_rekey(dns_zone_t *zone) {
 	result = ISC_R_SUCCESS;
 
  failure:
-	dns_diff_clear(&add);
-	dns_diff_clear(&del);
+	dns_diff_clear(&diff);
 
 	clear_keylist(&dnskeys, mctx);
 	clear_keylist(&keys, mctx);
-	clear_keylist(&oldkeys, mctx);
+	clear_keylist(&rmkeys, mctx);
 
 	if (ver != NULL)
 		dns_db_closeversion(db, &ver, ISC_FALSE);

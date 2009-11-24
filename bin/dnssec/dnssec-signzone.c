@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.253 2009/11/16 04:27:44 each Exp $ */
+/* $Id: dnssec-signzone.c,v 1.255 2009/11/24 03:42:31 each Exp $ */
 
 /*! \file */
 
@@ -2754,13 +2754,14 @@ report(const char *format, ...) {
 	va_start(args, format);
 	vfprintf(stderr, format, args);
 	va_end(args);
+	putc('\n', stderr);
 }
 
 static void
 build_final_keylist() {
 	isc_result_t result;
 	dns_dbversion_t *ver = NULL;
-	dns_diff_t del, add;
+	dns_diff_t diff;
 	dns_dnsseckeylist_t matchkeys;
 	char name[DNS_NAME_FORMATSIZE];
 
@@ -2777,31 +2778,24 @@ build_final_keylist() {
 	result = dns_db_newversion(gdb, &ver);
 	check_result(result, "dns_db_newversion");
 
-	dns_diff_init(mctx, &del);
-	dns_diff_init(mctx, &add);
+	dns_diff_init(mctx, &diff);
 
 	/*
 	 * Update keylist with information from from the key repository.
 	 */
 	dns_dnssec_updatekeys(&keylist, &matchkeys, NULL, gorigin, keyttl,
-			      &add, &del, ignore_kskflag, mctx, report);
+			      &diff, ignore_kskflag, mctx, report);
 
 	dns_name_format(gorigin, name, sizeof(name));
 
-	result = dns_diff_applysilently(&del, gdb, ver);
+	result = dns_diff_applysilently(&diff, gdb, ver);
 	if (result != ISC_R_SUCCESS)
-		fatal("failed to delete DNSKEYs at node '%s': %s",
-		      name, isc_result_totext(result));
-
-	result = dns_diff_applysilently(&add, gdb, ver);
-	if (result != ISC_R_SUCCESS)
-		fatal("failed to add DNSKEYs at node '%s': %s",
+		fatal("failed to update DNSKEY RRset at node '%s': %s",
 		      name, isc_result_totext(result));
 
 	dns_db_closeversion(gdb, &ver, ISC_TRUE);
 
-	dns_diff_clear(&del);
-	dns_diff_clear(&add);
+	dns_diff_clear(&diff);
 }
 
 static void

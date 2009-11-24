@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.288 2009/11/17 23:55:18 marka Exp $ */
+/* $Id: rbtdb.c,v 1.289 2009/11/23 02:10:16 marka Exp $ */
 
 /*! \file */
 
@@ -3269,6 +3269,8 @@ previous_closest_nsec(dns_rdatatype_t type, rbtdb_search_t *search,
 				 */
 				result = dns_rbtnodechain_prev(nsecchain,
 							name, origin);
+				if (result == DNS_R_NEWORIGIN)
+					result = ISC_R_SUCCESS;
 			} else if (result == ISC_R_NOTFOUND
 				   || result == DNS_R_PARTIALMATCH) {
 				result = dns_rbtnodechain_current(nsecchain,
@@ -3286,7 +3288,7 @@ previous_closest_nsec(dns_rdatatype_t type, rbtdb_search_t *search,
 			 */
 			result = dns_rbtnodechain_prev(nsecchain, name, origin);
 			if (result == DNS_R_NEWORIGIN)
-				result = ISC_R_NOTFOUND;
+				result = ISC_R_SUCCESS;
 			if (result != ISC_R_SUCCESS)
 				return (result);
 		}

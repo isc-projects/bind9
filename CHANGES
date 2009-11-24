@@ -1,5 +1,39 @@
 	--- 9.7.0b3 released ---
 
+2785.	[bug]		Revoked keys could fail to self-sign [RT #20652]
+
+2784.	[bug]		TC was not always being set when required glue was
+			dropped. [RT #20655]
+
+2783.	[func]		Return minimal responses to EDNS/UDP queries with a UDP
+			buffer size of 512 or less.  [RT #20654]
+
+2782.	[port]		win32: use getaddrinfo() for hostname lookups.
+			[RT #20650]
+
+2781.	[bug]		Inactive keys could be used for signing. [RT #20649]
+
+2780.	[bug]		dnssec-keygen -A none didn't properly unset the
+			activation date in all cases. [RT #20648]
+
+2779.	[bug]		Dynamic key revokation could fail. [RT #20644]
+
+2778.	[bug]		dnssec-signzone could fail when a key was revoked
+			without deleting the unrevoked version. [RT #20638]
+
+2777.	[contrib]	DLZ MYSQL auto reconnect support discovery was wrong.
+
+2776.	[bug]		Change #2762 was not correct. [RT #20647]
+
+2775.	[bug]		Accept RSASHA256 and RSASHA512 as NSEC3 compatible
+			in dnssec-keyfromlabel. [RT #20643]
+
+2774.	[bug]		Existing cache DB wasn't being reused after
+			reconfiguration. [RT #20629]
+
+2773.	[bug]		In autosigned zones, the SOA could be signed
+			with the KSK. [RT #20628]
+
 2772.	[security]	When validating, track whether pending data was from
 			the additional section or not and only return it if
 			validates as secure. [RT #20438]

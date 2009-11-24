@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec.h,v 1.39 2009/10/27 03:59:45 each Exp $ */
+/* $Id: dnssec.h,v 1.40 2009/11/23 02:55:41 each Exp $ */
 
 #ifndef DNS_DNSSEC_H
 #define DNS_DNSSEC_H 1
@@ -290,19 +290,18 @@ dns_dnssec_keylistfromrdataset(dns_name_t *origin,
 isc_result_t
 dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 		      dns_dnsseckeylist_t *removed, dns_name_t *origin,
-		      dns_ttl_t ttl, dns_diff_t *add, dns_diff_t *del,
-		      isc_boolean_t allzsk, isc_mem_t *mctx,
-		      void (*report)(const char *, ...));
+		      dns_ttl_t ttl, dns_diff_t *diff, isc_boolean_t allzsk,
+		      isc_mem_t *mctx, void (*report)(const char *, ...));
 /*%<
  * Update the list of keys in 'keys' with new key information in 'newkeys'.
  *
  * For each key in 'newkeys', see if it has a match in 'keys'.
  * - If not, and if the metadata says the key should be published:
- *   add it to 'keys', and place a dns_difftuple into 'add' so
+ *   add it to 'keys', and place a dns_difftuple into 'diff' so
  *   the key can be added to the DNSKEY set.  If the metadata says it
  *   should be active, set the first_sign flag.
  * - If so, and if the metadata says it should be removed:
- *   remove it from 'keys', and place a dns_difftuple into 'del' so
+ *   remove it from 'keys', and place a dns_difftuple into 'diff' so
  *   the key can be removed from the DNSKEY set.  if 'removed' is non-NULL,
  *   copy the key into that list; otherwise destroy it.
  * - Otherwise, make sure keys has current metadata.

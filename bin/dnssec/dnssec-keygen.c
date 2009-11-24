@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.106 2009/10/28 00:27:10 marka Exp $ */
+/* $Id: dnssec-keygen.c,v 1.107 2009/11/23 02:55:40 each Exp $ */
 
 /*! \file */
 
@@ -772,13 +772,16 @@ main(int argc, char **argv) {
 
 			if (setpub)
 				dst_key_settime(key, DST_TIME_PUBLISH, publish);
-			else if (!genonly && !setact)
+			else if (setact)
+				dst_key_settime(key, DST_TIME_PUBLISH,
+						activate);
+			else if (!genonly && !unsetpub)
 				dst_key_settime(key, DST_TIME_PUBLISH, now);
 
 			if (setact)
 				dst_key_settime(key, DST_TIME_ACTIVATE,
 						activate);
-			else if (!genonly && !setpub)
+			else if (!genonly && !unsetact)
 				dst_key_settime(key, DST_TIME_ACTIVATE, now);
 
 			if (setrev) {

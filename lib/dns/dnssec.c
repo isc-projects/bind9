@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.110 2009/11/17 05:46:53 each Exp $
+ * $Id: dnssec.c,v 1.114 2009/11/24 03:42:32 each Exp $
  */
 
 /*! \file */
@@ -541,6 +541,59 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	return (result);
 }
 
+static isc_boolean_t
+key_active(dst_key_t *key) {
+	isc_result_t result;
+	isc_stdtime_t now, publish, active, revoke, inactive, delete;
+	isc_boolean_t pubset = ISC_FALSE, actset = ISC_FALSE;
+	isc_boolean_t revset = ISC_FALSE, inactset = ISC_FALSE;
+	isc_boolean_t delset = ISC_FALSE;
+	int major, minor;
+
+	/* Is this an old-style key? */
+	result = dst_key_getprivateformat(key, &major, &minor);
+
+	/*
+	 * Smart signing started with key format 1.3; prior to that, all
+	 * keys are assumed active
+	 */
+	if (major == 1 && minor <= 2)
+		return (ISC_TRUE);
+
+	isc_stdtime_get(&now);
+
+	result = dst_key_gettime(key, DST_TIME_PUBLISH, &publish);
+	if (result == ISC_R_SUCCESS)
+		pubset = ISC_TRUE;
+
+	result = dst_key_gettime(key, DST_TIME_ACTIVATE, &active);
+	if (result == ISC_R_SUCCESS)
+		actset = ISC_TRUE;
+
+	result = dst_key_gettime(key, DST_TIME_REVOKE, &revoke);
+	if (result == ISC_R_SUCCESS)
+		revset = ISC_TRUE;
+
+	result = dst_key_gettime(key, DST_TIME_INACTIVE, &inactive);
+	if (result == ISC_R_SUCCESS)
+		inactset = ISC_TRUE;
+
+	result = dst_key_gettime(key, DST_TIME_DELETE, &delete);
+	if (result == ISC_R_SUCCESS)
+		delset = ISC_TRUE;
+
+	if ((inactset && inactive <= now) || (delset && delete <= now))
+		return (ISC_FALSE);
+
+	if (revset && revoke <= now && pubset && publish <= now)
+		return (ISC_TRUE);
+
+	if (actset && active <= now)
+		return (ISC_TRUE);
+
+	return (ISC_FALSE);
+}
+
 #define is_zone_key(key) ((dst_key_flags(key) & DNS_KEYFLAG_OWNERMASK) \
 			  == DNS_KEYOWNER_ZONE)
 
@@ -582,14 +635,55 @@ dns_dnssec_findzonekeys2(dns_db_t *db, dns_dbversion_t *ver,
 					  DST_TYPE_PUBLIC|DST_TYPE_PRIVATE,
 					  directory,
 					  mctx, &keys[count]);
+
+		/*
+		 * If the key was revoked and the private file
+		 * doesn't exist, maybe it was revoked internally
+		 * by named.  Try loading the unrevoked version.
+		 */
+		if (result == ISC_R_FILENOTFOUND) {
+			isc_uint32_t flags;
+			flags = dst_key_flags(pubkey);
+			if ((flags & DNS_KEYFLAG_REVOKE) != 0) {
+				dst_key_setflags(pubkey,
+						 flags & ~DNS_KEYFLAG_REVOKE);
+				result = dst_key_fromfile(dst_key_name(pubkey),
+							  dst_key_id(pubkey),
+							  dst_key_alg(pubkey),
+							  DST_TYPE_PUBLIC|
+							  DST_TYPE_PRIVATE,
+							  directory,
+							  mctx, &keys[count]);
+				if (result == ISC_R_SUCCESS &&
+				    dst_key_pubcompare(pubkey, keys[count],
+				    		       ISC_FALSE)) {
+					dst_key_setflags(keys[count], flags);
+				}
+				dst_key_setflags(pubkey, flags);
+			}
+		}
+
 		if (result == ISC_R_FILENOTFOUND) {
 			keys[count] = pubkey;
 			pubkey = NULL;
 			count++;
 			goto next;
 		}
+
 		if (result != ISC_R_SUCCESS)
 			goto failure;
+
+		/*
+		 * If a key is marked inactive, skip it
+		 */
+		if (!key_active(keys[count])) {
+			dst_key_free(&keys[count]);
+			keys[count] = pubkey;
+			pubkey = NULL;
+			count++;
+			goto next;
+		}
+
 		if ((dst_key_flags(keys[count]) & DNS_KEYTYPE_NOAUTH) != 0) {
 			/* We should never get here. */
 			dst_key_free(&keys[count]);
@@ -1078,7 +1172,7 @@ get_hints(dns_dnsseckey_t *key) {
 	 *
 	 * If it hasn't already been done, we should also revoke it now.
 	 */
-	if (key->hint_publish && (revset && revoke < now)) {
+	if (key->hint_publish && (revset && revoke <= now)) {
 		isc_uint32_t flags;
 		key->hint_sign = ISC_TRUE;
 		flags = dst_key_flags(key->key);
@@ -1384,7 +1478,7 @@ make_dnskey(dst_key_t *key, unsigned char *buf, int bufsize,
 }
 
 static isc_result_t
-publish_key(dns_diff_t *add, dns_dnsseckey_t *key, dns_name_t *origin,
+publish_key(dns_diff_t *diff, dns_dnsseckey_t *key, dns_name_t *origin,
 	    dns_ttl_t ttl, isc_mem_t *mctx, isc_boolean_t allzsk,
 	    void (*report)(const char *, ...))
 {
@@ -1398,7 +1492,7 @@ publish_key(dns_diff_t *add, dns_dnsseckey_t *key, dns_name_t *origin,
 	RETERR(make_dnskey(key->key, buf, sizeof(buf), &dnskey));
 
 	dns_secalg_format(dst_key_alg(key->key), alg, sizeof(alg));
-	report("Fetching %s %d/%s from key %s\n",
+	report("Fetching %s %d/%s from key %s.",
 	       key->ksk ?  (allzsk ?  "KSK/ZSK" : "KSK") : "ZSK",
 	       dst_key_id(key->key), alg,
 	       key->source == dns_keysource_user ?  "file" : "repository");
@@ -1408,7 +1502,7 @@ publish_key(dns_diff_t *add, dns_dnsseckey_t *key, dns_name_t *origin,
 		isc_stdtime_t now;
 
 		dst_key_format(key->key, keystr, sizeof(keystr));
-		report("Key %s: Delaying activation to match the DNSKEY TTL.",
+		report("Key %s: Delaying activation to match the DNSKEY TTL.\n",
 		       keystr, ttl);
 
 		isc_stdtime_get(&now);
@@ -1418,7 +1512,7 @@ publish_key(dns_diff_t *add, dns_dnsseckey_t *key, dns_name_t *origin,
 	/* publish key */
 	RETERR(dns_difftuple_create(mctx, DNS_DIFFOP_ADD, origin, ttl,
 				    &dnskey, &tuple));
-	dns_diff_append(add, &tuple);
+	dns_diff_appendminimal(diff, &tuple);
 	result = ISC_R_SUCCESS;
 
  failure:
@@ -1426,7 +1520,7 @@ publish_key(dns_diff_t *add, dns_dnsseckey_t *key, dns_name_t *origin,
 }
 
 static isc_result_t
-remove_key(dns_diff_t *del, dns_dnsseckey_t *key, dns_name_t *origin,
+remove_key(dns_diff_t *diff, dns_dnsseckey_t *key, dns_name_t *origin,
 	  dns_ttl_t ttl, isc_mem_t *mctx, const char *reason,
 	  void (*report)(const char *, ...))
 {
@@ -1437,13 +1531,13 @@ remove_key(dns_diff_t *del, dns_dnsseckey_t *key, dns_name_t *origin,
 	char alg[80];
 
 	dns_secalg_format(dst_key_alg(key->key), alg, sizeof(alg));
-	report("Removing %s key %d/%s from DNSKEY RRset.\n",
+	report("Removing %s key %d/%s from DNSKEY RRset.",
 	       reason, dst_key_id(key->key), alg);
 
 	RETERR(make_dnskey(key->key, buf, sizeof(buf), &dnskey));
 	RETERR(dns_difftuple_create(mctx, DNS_DIFFOP_DEL, origin, ttl, &dnskey,
 				    &tuple));
-	dns_diff_append(del, &tuple);
+	dns_diff_appendminimal(diff, &tuple);
 	result = ISC_R_SUCCESS;
 
  failure:
@@ -1459,9 +1553,8 @@ remove_key(dns_diff_t *del, dns_dnsseckey_t *key, dns_name_t *origin,
 isc_result_t
 dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 		      dns_dnsseckeylist_t *removed, dns_name_t *origin,
-		      dns_ttl_t ttl, dns_diff_t *add, dns_diff_t *del,
-		      isc_boolean_t allzsk, isc_mem_t *mctx,
-		      void (*report)(const char *, ...))
+		      dns_ttl_t ttl, dns_diff_t *diff, isc_boolean_t allzsk,
+		      isc_mem_t *mctx, void (*report)(const char *, ...))
 {
 	isc_result_t result;
 	dns_dnsseckey_t *key, *key1, *key2, *next;
@@ -1476,7 +1569,7 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 	     key = ISC_LIST_NEXT(key, link)) {
 		if (key->source == dns_keysource_user &&
 		    (key->hint_publish || key->force_publish)) {
-			RETERR(publish_key(add, key, origin, ttl,
+			RETERR(publish_key(diff, key, origin, ttl,
 					   mctx, allzsk, report));
 		}
 	}
@@ -1515,7 +1608,7 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 
 			if (key1->source != dns_keysource_zoneapex &&
 			    (key1->hint_publish || key1->force_publish)) {
-				RETERR(publish_key(add, key1, origin, ttl,
+				RETERR(publish_key(diff, key1, origin, ttl,
 						   mctx, allzsk, report));
 				if (key1->hint_sign || key1->force_sign)
 					key1->first_sign = ISC_TRUE;
@@ -1526,7 +1619,7 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 
 		/* Match found: remove or update it as needed */
 		if (key1->hint_remove) {
-			RETERR(remove_key(del, key2, origin, ttl, mctx,
+			RETERR(remove_key(diff, key2, origin, ttl, mctx,
 					  "expired", report));
 			ISC_LIST_UNLINK(*keys, key2, link);
 			if (removed != NULL)
@@ -1541,7 +1634,7 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 			 * We need to remove the old version and pull
 			 * in the new one.
 			 */
-			RETERR(remove_key(del, key2, origin, ttl, mctx,
+			RETERR(remove_key(diff, key2, origin, ttl, mctx,
 					  "revoked", report));
 			ISC_LIST_UNLINK(*keys, key2, link);
 			if (removed != NULL)
@@ -1549,7 +1642,7 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 			else
 				dns_dnsseckey_destroy(mctx, &key2);
 
-			RETERR(publish_key(add, key1, origin, ttl,
+			RETERR(publish_key(diff, key1, origin, ttl,
 					   mctx, allzsk, report));
 			ISC_LIST_UNLINK(*newkeys, key1, link);
 			ISC_LIST_APPEND(*keys, key1, link);
