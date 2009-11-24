@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.win32,v 1.16.130.2 2008/04/02 23:46:28 tbox Exp $ */
+/* $Id: config.h.win32,v 1.16.130.3 2009/11/24 02:14:17 marka Exp $ */
 
 /*
  * win32 configuration file
@@ -226,6 +226,16 @@ typedef long off_t;
  * This must be defined before winsock2.h gets included as the
  * macro is used there.
  */
+
+
+/** define if struct addrinfo exists */
+#define HAVE_ADDRINFO
+
+/** define if getaddrinfo() exists */
+#define HAVE_GETADDRINFO
+
+/** define if gai_strerror() exists */
+#define HAVE_GAISTRERROR
 
 #define FD_SETSIZE 16384
 #include <windows.h>
