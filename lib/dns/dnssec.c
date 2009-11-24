@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.114 2009/11/24 03:42:32 each Exp $
+ * $Id: dnssec.c,v 1.115 2009/11/24 23:48:12 tbox Exp $
  */
 
 /*! \file */
@@ -656,7 +656,7 @@ dns_dnssec_findzonekeys2(dns_db_t *db, dns_dbversion_t *ver,
 							  mctx, &keys[count]);
 				if (result == ISC_R_SUCCESS &&
 				    dst_key_pubcompare(pubkey, keys[count],
-				    		       ISC_FALSE)) {
+						       ISC_FALSE)) {
 					dst_key_setflags(keys[count], flags);
 				}
 				dst_key_setflags(pubkey, flags);
