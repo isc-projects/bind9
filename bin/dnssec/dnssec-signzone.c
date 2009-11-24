@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.254 2009/11/23 02:55:40 each Exp $ */
+/* $Id: dnssec-signzone.c,v 1.255 2009/11/24 03:42:31 each Exp $ */
 
 /*! \file */
 
@@ -2754,6 +2754,7 @@ report(const char *format, ...) {
 	va_start(args, format);
 	vfprintf(stderr, format, args);
 	va_end(args);
+	putc('\n', stderr);
 }
 
 static void

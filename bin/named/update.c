@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.170 2009/11/23 02:55:41 each Exp $ */
+/* $Id: update.c,v 1.171 2009/11/24 03:42:32 each Exp $ */
 
 #include <config.h>
 
@@ -3928,6 +3928,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 				memcpy(buf, rdata.data, rdata.length);
 				buf[1] |= DNS_NSEC3FLAG_UPDATE;
 				rdata.data = buf;
+
 				/*
 				 * Force the TTL to zero for NSEC3PARAM records.
 				 */

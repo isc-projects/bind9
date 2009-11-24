@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.113 2009/11/23 23:48:16 tbox Exp $
+ * $Id: dnssec.c,v 1.114 2009/11/24 03:42:32 each Exp $
  */
 
 /*! \file */
@@ -635,12 +635,41 @@ dns_dnssec_findzonekeys2(dns_db_t *db, dns_dbversion_t *ver,
 					  DST_TYPE_PUBLIC|DST_TYPE_PRIVATE,
 					  directory,
 					  mctx, &keys[count]);
+
+		/*
+		 * If the key was revoked and the private file
+		 * doesn't exist, maybe it was revoked internally
+		 * by named.  Try loading the unrevoked version.
+		 */
+		if (result == ISC_R_FILENOTFOUND) {
+			isc_uint32_t flags;
+			flags = dst_key_flags(pubkey);
+			if ((flags & DNS_KEYFLAG_REVOKE) != 0) {
+				dst_key_setflags(pubkey,
+						 flags & ~DNS_KEYFLAG_REVOKE);
+				result = dst_key_fromfile(dst_key_name(pubkey),
+							  dst_key_id(pubkey),
+							  dst_key_alg(pubkey),
+							  DST_TYPE_PUBLIC|
+							  DST_TYPE_PRIVATE,
+							  directory,
+							  mctx, &keys[count]);
+				if (result == ISC_R_SUCCESS &&
+				    dst_key_pubcompare(pubkey, keys[count],
+				    		       ISC_FALSE)) {
+					dst_key_setflags(keys[count], flags);
+				}
+				dst_key_setflags(pubkey, flags);
+			}
+		}
+
 		if (result == ISC_R_FILENOTFOUND) {
 			keys[count] = pubkey;
 			pubkey = NULL;
 			count++;
 			goto next;
 		}
+
 		if (result != ISC_R_SUCCESS)
 			goto failure;
 
@@ -1463,7 +1492,7 @@ publish_key(dns_diff_t *diff, dns_dnsseckey_t *key, dns_name_t *origin,
 	RETERR(make_dnskey(key->key, buf, sizeof(buf), &dnskey));
 
 	dns_secalg_format(dst_key_alg(key->key), alg, sizeof(alg));
-	report("Fetching %s %d/%s from key %s\n",
+	report("Fetching %s %d/%s from key %s.",
 	       key->ksk ?  (allzsk ?  "KSK/ZSK" : "KSK") : "ZSK",
 	       dst_key_id(key->key), alg,
 	       key->source == dns_keysource_user ?  "file" : "repository");
@@ -1502,7 +1531,7 @@ remove_key(dns_diff_t *diff, dns_dnsseckey_t *key, dns_name_t *origin,
 	char alg[80];
 
 	dns_secalg_format(dst_key_alg(key->key), alg, sizeof(alg));
-	report("Removing %s key %d/%s from DNSKEY RRset.\n",
+	report("Removing %s key %d/%s from DNSKEY RRset.",
 	       reason, dst_key_id(key->key), alg);
 
 	RETERR(make_dnskey(key->key, buf, sizeof(buf), &dnskey));

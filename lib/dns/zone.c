@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.531 2009/11/23 02:55:41 each Exp $ */
+/* $Id: zone.c,v 1.532 2009/11/24 03:42:32 each Exp $ */
 
 /*! \file */
 
@@ -4592,6 +4592,7 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 				continue;
 
 		/* Calculate the signature, creating a RRSIG RDATA. */
+		isc_buffer_clear(&buffer);
 		CHECK(dns_dnssec_sign(name, &rdataset, keys[i],
 				      &inception, &expire,
 				      mctx, &buffer, &sig_rdata));
@@ -4923,6 +4924,7 @@ sign_a_node(dns_db_t *db, dns_name_t *name, dns_dbnode_t *node,
 			result = ISC_R_SUCCESS;
 		return (result);
 	}
+
 	dns_rdataset_init(&rdataset);
 	isc_buffer_init(&buffer, data, sizeof(data));
 	seen_rr = seen_soa = seen_ns = seen_dname = seen_nsec =
@@ -4996,6 +4998,7 @@ sign_a_node(dns_db_t *db, dns_name_t *name, dns_dbnode_t *node,
 		if (signed_with_key(db, node, version, rdataset.type, key))
 			goto next_rdataset;
 		/* Calculate the signature, creating a RRSIG RDATA. */
+		isc_buffer_clear(&buffer);
 		CHECK(dns_dnssec_sign(name, &rdataset, key, &inception,
 				      &expire, mctx, &buffer, &rdata));
 		/* Update the database and journal with the RRSIG. */
@@ -6450,7 +6453,8 @@ zone_sign(dns_zone_t *zone) {
 				 * Find the key we want to remove.
 				 */
 				if (ALG(zone_keys[i]) == signing->algorithm &&
-				    dst_key_id(zone_keys[i]) == signing->keyid) {
+				    dst_key_id(zone_keys[i]) == signing->keyid)
+				{
 					if (KSK(zone_keys[i]))
 						dst_key_free(&zone_keys[i]);
 					continue;
@@ -6553,7 +6557,7 @@ zone_sign(dns_zone_t *zone) {
 						break;
 				}
 			}
-			if (both)
+			if (both || REVOKE(zone_keys[i]))
 				is_ksk = KSK(zone_keys[i]);
 			else
 				is_ksk = ISC_FALSE;
@@ -6762,7 +6766,8 @@ zone_sign(dns_zone_t *zone) {
 	for (i = 0; i < nkeys; i++)
 		dst_key_free(&zone_keys[i]);
 
-	INSIST(node == NULL);
+	if (node != NULL)
+		dns_db_detachnode(db, &node);
 
 	if (version != NULL) {
 		dns_db_closeversion(db, &version, ISC_FALSE);
@@ -13439,7 +13444,7 @@ zone_rekey(dns_zone_t *zone) {
 	dns_dbnode_t *node = NULL;
 	dns_dbversion_t *ver = NULL;
 	dns_rdataset_t soaset, soasigs, keyset, keysigs;
-	dns_dnsseckeylist_t dnskeys, keys, oldkeys;
+	dns_dnsseckeylist_t dnskeys, keys, rmkeys;
 	dns_dnsseckey_t *key;
 	dns_diff_t diff;
 	isc_boolean_t commit = ISC_FALSE;
@@ -13452,7 +13457,7 @@ zone_rekey(dns_zone_t *zone) {
 
 	ISC_LIST_INIT(dnskeys);
 	ISC_LIST_INIT(keys);
-	ISC_LIST_INIT(oldkeys);
+	ISC_LIST_INIT(rmkeys);
 	dns_rdataset_init(&soaset);
 	dns_rdataset_init(&soasigs);
 	dns_rdataset_init(&keyset);
@@ -13490,7 +13495,7 @@ zone_rekey(dns_zone_t *zone) {
 		isc_boolean_t check_ksk;
 		check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
 
-		CHECK(dns_dnssec_updatekeys(&dnskeys, &keys, &oldkeys,
+		CHECK(dns_dnssec_updatekeys(&dnskeys, &keys, &rmkeys,
 					    &zone->origin, ttl, &diff,
 					    ISC_TF(!check_ksk), mctx, logmsg));
 		if (!ISC_LIST_EMPTY(diff.tuples)) {
@@ -13507,7 +13512,7 @@ zone_rekey(dns_zone_t *zone) {
 	dns_db_closeversion(db, &ver, commit);
 
 	if (commit) {
-		for (key = ISC_LIST_HEAD(oldkeys);
+		for (key = ISC_LIST_HEAD(rmkeys);
 		     key != NULL;
 		     key = ISC_LIST_NEXT(key, link)) {
 			zone_signwithkey(zone, dst_key_alg(key->key),
@@ -13539,22 +13544,16 @@ zone_rekey(dns_zone_t *zone) {
 		 * key metadata indicates there is a key change event
 		 * scheduled in the future, set the key refresh timer.
 		 */
-//HERE
-dns_zone_log(zone, ISC_LOG_NOTICE, "1");
 		if (!DNS_ZONEKEY_OPTION(zone, DNS_ZONEKEY_MAINTAIN))
 			break;
-dns_zone_log(zone, ISC_LOG_NOTICE, "2");
 
 		result = next_keyevent(key->key, &then);
 		if (result != ISC_R_SUCCESS)
 			continue;
-dns_zone_log(zone, ISC_LOG_NOTICE, "3");
 
 		isc_time_set(&timethen, then, 0);
 		if (isc_time_isepoch(&zone->refreshkeytime) ||
 		    isc_time_compare(&timethen, &zone->refreshkeytime) < 0) {
-//HERE
-dns_zone_log(zone, ISC_LOG_NOTICE, "setting refreshkeytime to %d\n", then);
 			zone->refreshkeytime = timethen;
 			zone_settimer(zone, &timenow);
 		}
@@ -13567,7 +13566,7 @@ dns_zone_log(zone, ISC_LOG_NOTICE, "setting refreshkeytime to %d\n", then);
 
 	clear_keylist(&dnskeys, mctx);
 	clear_keylist(&keys, mctx);
-	clear_keylist(&oldkeys, mctx);
+	clear_keylist(&rmkeys, mctx);
 
 	if (ver != NULL)
 		dns_db_closeversion(db, &ver, ISC_FALSE);
