@@ -1,3 +1,5 @@
+2786.	[bug]		Additional could be promoted to answer. [RT #20663]
+
 	--- 9.7.0b3 released ---
 
 2785.	[bug]		Revoked keys could fail to self-sign [RT #20652]
