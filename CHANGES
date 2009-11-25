@@ -1,3 +1,5 @@
+2789.   [bug]           Fixed an INSIST in dispatch.c [RT #20576]
+
 2786.	[bug]		Additional could be promoted to answer. [RT #20663]
 
 2784.	[bug]		TC was not always being set when required glue was

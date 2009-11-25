@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.155.12.7 2009/04/28 21:39:45 jinmei Exp $ */
+/* $Id: dispatch.c,v 1.155.12.8 2009/11/25 05:55:10 each Exp $ */
 
 /*! \file */
 
@@ -746,6 +746,9 @@ new_portentry(dns_dispatch_t *disp, in_port_t port) {
 	return (portentry);
 }
 
+/*%
+ * The caller must not hold the qid->lock.
+ */
 static void
 deref_portentry(dns_dispatch_t *disp, dispportentry_t **portentryp) {
 	dispportentry_t *portentry = *portentryp;
@@ -753,6 +756,9 @@ deref_portentry(dns_dispatch_t *disp, dispportentry_t **portentryp) {
 	REQUIRE(disp->port_table != NULL);
 	REQUIRE(portentry != NULL && portentry->refs > 0);
 
+	dns_qid_t *qid;
+	qid = DNS_QID(disp);
+	LOCK(&qid->lock);
 	portentry->refs--;
 	if (portentry->refs == 0) {
 		ISC_LIST_UNLINK(disp->port_table[portentry->port %
@@ -762,6 +768,7 @@ deref_portentry(dns_dispatch_t *disp, dispportentry_t **portentryp) {
 	}
 
 	*portentryp = NULL;
+	UNLOCK(&qid->lock);
 }
 
 /*%
@@ -779,8 +786,9 @@ socket_search(dns_qid_t *qid, isc_sockaddr_t *dest, in_port_t port,
 	dispsock = ISC_LIST_HEAD(qid->sock_table[bucket]);
 
 	while (dispsock != NULL) {
-		if (isc_sockaddr_equal(dest, &dispsock->host) &&
-		    dispsock->portentry->port == port)
+                if (dispsock->portentry != NULL &&
+		    dispsock->portentry->port == port &&
+		    isc_sockaddr_equal(dest, &dispsock->host))
 			return (dispsock);
 		dispsock = ISC_LIST_NEXT(dispsock, blink);
 	}
