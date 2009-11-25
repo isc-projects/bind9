@@ -1,3 +1,6 @@
+2788.	[bug]		dnssec-signzone could sign with keys that were
+			not requested [RT #20625]
+
 2787.	[bug]		Spurious log message when zone keys were
 			dynamically reconfigured. [RT #20659]
 
