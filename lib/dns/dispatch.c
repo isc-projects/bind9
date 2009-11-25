@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.166 2009/11/25 13:17:59 marka Exp $ */
+/* $Id: dispatch.c,v 1.167 2009/11/25 23:49:21 tbox Exp $ */
 
 /*! \file */
 
@@ -818,7 +818,7 @@ socket_search(dns_qid_t *qid, isc_sockaddr_t *dest, in_port_t port,
 	dispsock = ISC_LIST_HEAD(qid->sock_table[bucket]);
 
 	while (dispsock != NULL) {
-                if (dispsock->portentry != NULL &&
+		if (dispsock->portentry != NULL &&
 		    dispsock->portentry->port == port &&
 		    isc_sockaddr_equal(dest, &dispsock->host))
 			return (dispsock);

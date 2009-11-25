@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.101 2009/11/25 02:22:05 marka Exp $ */
+/* $Id: db.h,v 1.102 2009/11/25 23:49:22 tbox Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -703,7 +703,7 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *	dns_trust_glue.
  *
  * \li	If 'options' does not have #DNS_DBFIND_ADDITIONALOK set, then no
- *	additional records will be returned.  Only caches can have 
+ *	additional records will be returned.  Only caches can have
  *	rdataset with trust dns_trust_additional.
  *
  * \li	If 'options' does not have #DNS_DBFIND_PENDINGOK set, then no
