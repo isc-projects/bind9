@@ -14,9 +14,9 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: prereq.sh,v 1.2.2.2 2009/11/18 23:46:39 tbox Exp $
+# $Id: prereq.sh,v 1.2.2.3 2009/11/25 13:40:48 marka Exp $
 
-../../../tools/genrandom 400 random.data
+../../genrandom 400 random.data
 
 if $KEYGEN -q -a RSAMD5 -b 512 -n zone -r random.data foo > /dev/null 2>&1
 then
