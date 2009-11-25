@@ -1,3 +1,6 @@
+2772.	[security]	When validating, track whether pending data was from
+			the additional section or not and only return it if
+			validates as secure. [RT #20438]
 
 	--- 9.4-ESVb1 released ---
 
