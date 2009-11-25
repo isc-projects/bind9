@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: diff.c,v 1.21 2009/04/30 06:53:10 marka Exp $ */
+/* $Id: diff.c,v 1.22 2009/11/25 02:30:54 each Exp $ */
 
 /*! \file */
 
@@ -400,7 +400,7 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver,
 					isc_log_write(DIFF_COMMON_LOGARGS,
 						      ISC_LOG_WARNING,
 						      "%s/%s: update with no "
-						      " effect", namebuf,
+						      "effect", namebuf,
 						      classbuf);
 				}
 			} else if (result == DNS_R_NXRRSET) {
