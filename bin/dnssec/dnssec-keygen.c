@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.107 2009/11/23 02:55:40 each Exp $ */
+/* $Id: dnssec-keygen.c,v 1.108 2009/11/25 22:58:48 marka Exp $ */
 
 /*! \file */
 
@@ -228,6 +228,7 @@ main(int argc, char **argv) {
 	isc_boolean_t	genonly = ISC_FALSE;
 	isc_boolean_t	quiet = ISC_FALSE;
 	isc_boolean_t	show_progress = ISC_FALSE;
+	unsigned char	c;
 
 	if (argc == 1)
 		usage();
@@ -295,9 +296,10 @@ main(int argc, char **argv) {
 			rsa_exp = 1;
 			break;
 		case 'f':
-			if (toupper(isc_commandline_argument[0]) == 'K')
+			c = (unsigned char)(isc_commandline_argument[0]);
+			if (toupper(c) == 'K')
 				kskflag = DNS_KEYFLAG_KSK;
-			else if (toupper(isc_commandline_argument[0]) == 'R')
+			else if (toupper(c) == 'R')
 				revflag = DNS_KEYFLAG_REVOKE;
 			else
 				fatal("unknown flag '%s'",

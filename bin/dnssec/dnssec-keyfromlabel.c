@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keyfromlabel.c,v 1.28 2009/11/23 02:55:40 each Exp $ */
+/* $Id: dnssec-keyfromlabel.c,v 1.29 2009/11/25 23:00:32 marka Exp $ */
 
 /*! \file */
 
@@ -146,6 +146,7 @@ main(int argc, char **argv) {
 	isc_boolean_t	unsetdel = ISC_FALSE;
 	isc_boolean_t	genonly = ISC_FALSE;
 	isc_boolean_t	use_nsec3 = ISC_FALSE;
+	unsigned char	c;
 
 	if (argc == 1)
 		usage();
@@ -178,9 +179,10 @@ main(int argc, char **argv) {
 			engine = isc_commandline_argument;
 			break;
 		case 'f':
-			if (toupper(isc_commandline_argument[0]) == 'K')
+			c = (unsigned char)(isc_commandline_argument[0]);
+			if (toupper(c) == 'K')
 				kskflag = DNS_KEYFLAG_KSK;
-			else if (toupper(isc_commandline_argument[0]) == 'R')
+			else if (toupper(c) == 'R')
 				revflag = DNS_KEYFLAG_REVOKE;
 			else
 				fatal("unknown flag '%s'",
