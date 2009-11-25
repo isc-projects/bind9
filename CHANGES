@@ -1,3 +1,5 @@
+2786.	[bug]		Additional could be promoted to answer. [RT #20663]
+
 2784.	[bug]		TC was not always being set when required glue was
 			dropped. [RT #20655]
 

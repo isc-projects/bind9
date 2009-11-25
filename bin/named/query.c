@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.313.20.13 2009/11/24 03:15:31 marka Exp $ */
+/* $Id: query.c,v 1.313.20.14 2009/11/25 02:25:56 marka Exp $ */
 
 /*! \file */
 
@@ -1160,7 +1160,8 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 			goto cleanup;
 	}
 	result = dns_db_find(db, name, version, type,
-			     client->query.dboptions | DNS_DBFIND_GLUEOK,
+			     client->query.dboptions |
+			     DNS_DBFIND_GLUEOK | DNS_DBFIND_ADDITIONALOK,
 			     client->now, &node, fname, rdataset,
 			     sigrdataset);
 	if (result == DNS_R_GLUE &&
@@ -1645,7 +1646,8 @@ query_addadditional2(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 		goto try_glue;
 
 	result = dns_db_find(db, name, version, type,
-			     client->query.dboptions | DNS_DBFIND_GLUEOK,
+			     client->query.dboptions |
+			     DNS_DBFIND_GLUEOK | DNS_DBFIND_ADDITIONALOK,
 			     client->now, &node, fname, NULL, NULL);
 	if (result == ISC_R_SUCCESS)
 		goto found;
