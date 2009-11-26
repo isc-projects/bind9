@@ -1,3 +1,5 @@
+2790.	[bug]		Handle DS queries to stub zones.
+
 2789.   [bug]           Fixed an INSIST in dispatch.c [RT #20576]
 
 2788.	[bug]		dnssec-signzone could sign with keys that were
