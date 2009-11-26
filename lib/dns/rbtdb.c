@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.270.12.13 2009/11/26 03:36:45 marka Exp $ */
+/* $Id: rbtdb.c,v 1.270.12.14 2009/11/26 23:47:33 tbox Exp $ */
 
 /*! \file */
 
@@ -3511,7 +3511,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	} else {
 		/*
 		 * The node may be a zone cut itself.  If it might be one,
-		 * make sure we check for it later. 
+		 * make sure we check for it later.
 		 *
 		 * DS records live above the zone cut in ordinary zone so
 		 * we want to ignore any referral.
