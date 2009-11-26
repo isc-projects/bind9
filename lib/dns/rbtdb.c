@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.270.12.12 2009/11/25 02:25:56 marka Exp $ */
+/* $Id: rbtdb.c,v 1.270.12.13 2009/11/26 03:36:45 marka Exp $ */
 
 /*! \file */
 
@@ -3511,12 +3511,18 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	} else {
 		/*
 		 * The node may be a zone cut itself.  If it might be one,
-		 * make sure we check for it later.
+		 * make sure we check for it later. 
+		 *
+		 * DS records live above the zone cut in ordinary zone so
+		 * we want to ignore any referral.
+		 *
+		 * Stub zones don't have anything "above" the delgation so
+		 * we always return a referral.
 		 */
 		if (node->find_callback &&
-		    (node != search.rbtdb->origin_node ||
-		     IS_STUB(search.rbtdb)) &&
-		    !dns_rdatatype_atparent(type))
+		    ((node != search.rbtdb->origin_node &&
+		      !dns_rdatatype_atparent(type)) ||
+		     IS_STUB(search.rbtdb)))
 			maybe_zonecut = ISC_TRUE;
 	}
 
