@@ -1,4 +1,5 @@
-2791.	[bug]		The installation of isc-config.sh was broken. [RT #20667]
+2791.	[bug]		The installation of isc-config.sh was broken.
+			[RT #20667]
 
 2790.	[bug]		Handle DS queries to stub zones.
 
