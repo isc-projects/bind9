@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.155.12.9 2009/11/25 23:48:42 tbox Exp $ */
+/* $Id: dispatch.c,v 1.155.12.10 2009/11/26 02:35:43 marka Exp $ */
 
 /*! \file */
 
@@ -752,11 +752,11 @@ new_portentry(dns_dispatch_t *disp, in_port_t port) {
 static void
 deref_portentry(dns_dispatch_t *disp, dispportentry_t **portentryp) {
 	dispportentry_t *portentry = *portentryp;
+	dns_qid_t *qid;
 
 	REQUIRE(disp->port_table != NULL);
 	REQUIRE(portentry != NULL && portentry->refs > 0);
 
-	dns_qid_t *qid;
 	qid = DNS_QID(disp);
 	LOCK(&qid->lock);
 	portentry->refs--;
