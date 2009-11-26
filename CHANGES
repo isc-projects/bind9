@@ -1,4 +1,4 @@
-2790.	[bug]		Handle DS queries to stub zones.
+2790.	[bug]		Handle DS queries to stub zones. [RT #20440]
 
 2772.	[security]	When validating, track whether pending data was from
 			the additional section or not and only return it if
