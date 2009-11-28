@@ -1,3 +1,7 @@
+2792.	[func]		Optional filter-aaaa-on-v4 option, if built with
+			'./configure --enable-filter-aaaa', can now be
+			a view option. [RT #20635]
+
 2791.	[bug]		The installation of isc-config.sh was broken.
 			[RT #20667]
 
