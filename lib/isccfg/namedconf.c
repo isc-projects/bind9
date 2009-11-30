@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.110 2009/10/26 23:14:54 each Exp $ */
+/* $Id: namedconf.c,v 1.111 2009/11/28 15:57:37 vjs Exp $ */
 
 /*! \file */
 
@@ -877,9 +877,6 @@ options_clauses[] = {
 	{ "use-ixfr", &cfg_type_boolean, 0 },
 	{ "version", &cfg_type_qstringornone, 0 },
 	{ "flush-zones-on-shutdown", &cfg_type_boolean, 0 },
-#ifdef ALLOW_FILTER_AAAA_ON_V4
-	{ "filter-aaaa-on-v4", &cfg_type_v4_aaaa, 0 },
-#endif
 	{ NULL, NULL, 0 }
 };
 
@@ -1049,6 +1046,9 @@ view_clauses[] = {
 	{ "transfer-format", &cfg_type_transferformat, 0 },
 	{ "use-queryport-pool", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "zero-no-soa-ttl-cache", &cfg_type_boolean, 0 },
+#ifdef ALLOW_FILTER_AAAA_ON_V4
+	{ "filter-aaaa-on-v4", &cfg_type_v4_aaaa, 0 },
+#endif
 	{ NULL, NULL, 0 }
 };
 

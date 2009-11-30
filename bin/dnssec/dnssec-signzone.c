@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.255 2009/11/24 03:42:31 each Exp $ */
+/* $Id: dnssec-signzone.c,v 1.256 2009/11/25 03:17:11 each Exp $ */
 
 /*! \file */
 
@@ -3643,16 +3643,18 @@ main(int argc, char *argv[]) {
 	/*
 	 * Fill keylist with:
 	 * 1) Keys listed in the DNSKEY set that have
-	 *    private keys associated
-	 * 2) KSKs set on the command line
-	 * 3) ZSKs set on the command line
+	 *    private keys associated, *if* no keys were
+	 *    set on the command line.
+	 * 2) ZSKs set on the command line
+	 * 3) KSKs set on the command line
 	 * 4) Any keys remaining in the DNSKEY set which
 	 *    do not have private keys associated and were
 	 *    not specified on the command line.
 	 */
-	loadzonekeys(!smartsign, ISC_FALSE);
-	loadexplicitkeys(dskeyfile, ndskeys, ISC_TRUE);
+	if (argc == 0 || smartsign)
+		loadzonekeys(!smartsign, ISC_FALSE);
 	loadexplicitkeys(argv, argc, ISC_FALSE);
+	loadexplicitkeys(dskeyfile, ndskeys, ISC_TRUE);
 	loadzonekeys(!smartsign, ISC_TRUE);
 
 	/*

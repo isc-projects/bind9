@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.532 2009/11/24 03:42:32 each Exp $ */
+/* $Id: zone.c,v 1.533 2009/11/25 02:30:54 each Exp $ */
 
 /*! \file */
 
@@ -13471,6 +13471,8 @@ zone_rekey(dns_zone_t *zone) {
 	CHECK(dns_db_newversion(db, &ver));
 	CHECK(dns_db_getoriginnode(db, &node));
 
+	dns_zone_log(zone, ISC_LOG_INFO, "reconfiguring zone keys");
+
 	/* Get the SOA record's TTL */
 	CHECK(dns_db_findrdataset(db, node, ver, dns_rdatatype_soa,
 				  dns_rdatatype_none, 0, &soaset, &soasigs));
@@ -13500,12 +13502,11 @@ zone_rekey(dns_zone_t *zone) {
 					    ISC_TF(!check_ksk), mctx, logmsg));
 		if (!ISC_LIST_EMPTY(diff.tuples)) {
 			commit = ISC_TRUE;
-			add_signing_records(db, zone->privatetype, ver, &diff);
 			dns_diff_apply(&diff, db, ver);
+			add_signing_records(db, zone->privatetype, ver, &diff);
 			result = increment_soa_serial(db, ver, &diff, mctx);
 			if (result == ISC_R_SUCCESS)
 				zone_journal(zone, &diff, "zone_rekey");
-
 		}
 	}
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.103 2009/10/26 23:14:53 each Exp $ */
+/* $Id: server.h,v 1.104 2009/11/28 15:57:37 vjs Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -115,9 +115,6 @@ struct ns_server {
 	dns_name_t		*session_keyname;
 	unsigned int		session_keyalg;
 	isc_uint16_t		session_keybits;
-#ifdef ALLOW_FILTER_AAAA_ON_V4
-	dns_v4_aaaa_t		v4_aaaa;
-#endif
 };
 
 #define NS_SERVER_MAGIC			ISC_MAGIC('S','V','E','R')

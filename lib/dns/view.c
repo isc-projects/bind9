@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.158 2009/11/12 23:30:36 marka Exp $ */
+/* $Id: view.c,v 1.159 2009/11/28 15:57:37 vjs Exp $ */
 
 /*! \file */
 
@@ -177,6 +177,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->flush = ISC_FALSE;
 	view->dlv = NULL;
 	view->maxudp = 0;
+#ifdef ALLOW_FILTER_AAAA_ON_V4
+	view->v4_aaaa = dns_v4_aaaa_ok;
+#endif
 	dns_fixedname_init(&view->dlv_fixed);
 
 #ifdef BIND9

@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.445 2009/11/10 19:49:32 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.447 2009/11/28 15:57:37 vjs Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -6251,6 +6251,10 @@ options {
                   to DNS clients unless they have connections to the IPv6
                   Internet.  This is not recommended unless absolutely
                   necessary.  The default is <userinput>no</userinput>.
+                  The <command>filter-aaaa-on-v4</command> option
+                  may also be specified in <command>view</command> statements
+                  to override the global <command>filter-aaaa-on-v4</command>
+                  option.
                 </para>
                 <para>
                   If <userinput>yes</userinput>,
@@ -10431,7 +10435,8 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                   <para>
                     <command>auto-dnssec allow;</command> permits
                     keys to be updated and the zone re-signed whenever the
-                    user issues the command <command>rndc sign</command>.
+                    user issues the command <command>rndc sign
+                    <replaceable>zonename</replaceable></command>.
                   </para>
                   <para>
                     <command>auto-dnssec maintain;</command> includes the

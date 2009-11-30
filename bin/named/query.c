@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.333 2009/11/24 03:09:57 marka Exp $ */
+/* $Id: query.c,v 1.335 2009/11/28 15:57:36 vjs Exp $ */
 
 /*! \file */
 
@@ -1160,7 +1160,8 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 			goto cleanup;
 	}
 	result = dns_db_find(db, name, version, type,
-			     client->query.dboptions | DNS_DBFIND_GLUEOK,
+			     client->query.dboptions |
+			     DNS_DBFIND_GLUEOK | DNS_DBFIND_ADDITIONALOK,
 			     client->now, &node, fname, rdataset,
 			     sigrdataset);
 	if (result == DNS_R_GLUE &&
@@ -1645,7 +1646,8 @@ query_addadditional2(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 		goto try_glue;
 
 	result = dns_db_find(db, name, version, type,
-			     client->query.dboptions | DNS_DBFIND_GLUEOK,
+			     client->query.dboptions |
+			     DNS_DBFIND_GLUEOK | DNS_DBFIND_ADDITIONALOK,
 			     client->now, &node, fname, NULL, NULL);
 	if (result == ISC_R_SUCCESS)
 		goto found;
@@ -4727,7 +4729,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			 * Notice the presence of A and AAAAs so
 			 * that AAAAs can be hidden from IPv4 clients.
 			 */
-			if (ns_g_server->v4_aaaa != dns_v4_aaaa_ok &&
+			if (client->view->v4_aaaa != dns_v4_aaaa_ok &&
 			    client->peeraddr_valid &&
 			    client->peeraddr.type.sa.sa_family == AF_INET) {
 				if (rdataset->type == dns_rdatatype_aaaa)
@@ -4788,7 +4790,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		 */
 		if (have_aaaa && have_a &&
 		    (!have_sig || !WANTDNSSEC(client) ||
-		     ns_g_server->v4_aaaa == dns_v4_aaaa_break_dnssec))
+		     client->view->v4_aaaa == dns_v4_aaaa_break_dnssec))
 			client->attributes |= NS_CLIENTATTR_FILTER_AAAA;
 #endif
 		if (fname != NULL)
@@ -4861,13 +4863,13 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		 * so fundamentally wrong, unavoidably inaccurate, and
 		 * unneeded that it is best to keep it as short as possible.
 		 */
-		if (ns_g_server->v4_aaaa != dns_v4_aaaa_ok &&
+		if (client->view->v4_aaaa != dns_v4_aaaa_ok &&
 		    client->peeraddr_valid &&
 		    client->peeraddr.type.sa.sa_family == AF_INET &&
 		    (!WANTDNSSEC(client) ||
 		     sigrdataset == NULL ||
 		     !dns_rdataset_isassociated(sigrdataset) ||
-		     ns_g_server->v4_aaaa == dns_v4_aaaa_break_dnssec)) {
+		     client->view->v4_aaaa == dns_v4_aaaa_break_dnssec)) {
 			if (qtype == dns_rdatatype_aaaa) {
 				trdataset = query_newrdataset(client);
 				result = dns_db_findrdataset(db, node, version,

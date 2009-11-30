@@ -1,3 +1,26 @@
+2794.	[bug]		Install <isc/namespace.h>.  [RT #20677]
+
+2793.	[func]		Add "autosign" and "metadata" tests to the
+			automatic tests. [RT #19946]
+
+2792.	[func]		"filter-aaaa-on-v4" can now be set in view
+			options (if compiled in).  [RT #20635]
+
+2791.	[bug]		The installation of isc-config.sh was broken.
+			[RT #20667]
+
+2790.	[bug]		Handle DS queries to stub zones. [RT #20440]
+
+2789.   [bug]           Fixed an INSIST in dispatch.c [RT #20576]
+
+2788.	[bug]		dnssec-signzone could sign with keys that were
+			not requested [RT #20625]
+
+2787.	[bug]		Spurious log message when zone keys were
+			dynamically reconfigured. [RT #20659]
+
+2786.	[bug]		Additional could be promoted to answer. [RT #20663]
+
 	--- 9.7.0b3 released ---
 
 2785.	[bug]		Revoked keys could fail to self-sign [RT #20652]
