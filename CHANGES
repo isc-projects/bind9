@@ -1,6 +1,8 @@
-2792.	[func]		Optional filter-aaaa-on-v4 option, if built with
-			'./configure --enable-filter-aaaa', can now be
-			a view option. [RT #20635]
+2793.	[func]		Add "autosign" and "metadata" tests to the
+			automatic tests. [RT #19946]
+
+2792.	[func]		"filter-aaaa-on-v4" can now be set in view
+			options (if compiled in).  [RT #20635]
 
 2791.	[bug]		The installation of isc-config.sh was broken.
 			[RT #20667]
