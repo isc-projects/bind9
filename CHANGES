@@ -1,3 +1,5 @@
+2794.	[bug]		Install <isc/namespace.h>.  [RT #20677]
+
 2793.	[func]		Add "autosign" and "metadata" tests to the
 			automatic tests. [RT #19946]
 
