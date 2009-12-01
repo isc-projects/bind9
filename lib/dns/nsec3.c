@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3.c,v 1.12 2009/11/03 23:48:23 tbox Exp $ */
+/* $Id: nsec3.c,v 1.13 2009/12/01 05:28:40 marka Exp $ */
 
 #include <config.h>
 
@@ -1457,6 +1457,7 @@ dns_nsec3_delnsec3sx(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 		 */
 		CHECK(dns_nsec3_delnsec3(db, version, name, &nsec3param, diff));
 	}
+	dns_rdataset_disassociate(&rdataset);
 
  try_private:
 	if (type == 0)
