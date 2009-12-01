@@ -1,3 +1,6 @@
+2795.	[cleanup]	Add text to differentiate "update with no effect"
+			log messages. [RT #18889]
+
 2794.	[bug]		Install <isc/namespace.h>.  [RT #20677]
 
 2793.	[func]		Add "autosign" and "metadata" tests to the
