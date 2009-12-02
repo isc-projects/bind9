@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.4 2009/12/02 05:42:15 each Exp $
+# $Id: tests.sh,v 1.5 2009/12/02 17:54:45 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -43,23 +43,23 @@ echo "I:signing zones"
 $SIGNER -Sg -o $czone $cfile > /dev/null 2>&1
 $SIGNER -Sg -o $pzone $pfile > /dev/null 2>&1
 
-awk -v CZ="${czone}." '$2 ~ /RRSIG/ {
+awk '$2 ~ /RRSIG/ {
         type = $3;
         getline;
-        id = $2;
-        if ($3 ~ CZ) {
-                print type, id
-        }
+	id = $2;
+	if ($3 ~ /'${czone}'/) {
+		print type, id
+	}
 }' < ${cfile}.signed > sigs
 
 awk '$2 ~ /DNSKEY/ {
-        flags = $3;
-        while ($0 !~ "key id =")
-                getline;
-        id = $6;
-        print flags, id;
+	flags = $3;
+	while ($0 !~ /key id =/)
+		getline;
+	id = $6;
+	print flags, id;
 }' < ${cfile}.signed > keys
-        
+
 echo "I:checking that KSK signed DNSKEY only ($n)"
 ret=0
 grep "DNSKEY $ksk"'$' sigs > /dev/null || ret=1
