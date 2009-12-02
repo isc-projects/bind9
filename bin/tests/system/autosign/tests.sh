@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.3 2009/11/30 23:48:02 tbox Exp $
+# $Id: tests.sh,v 1.4 2009/12/02 05:42:15 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -456,7 +456,7 @@ status=`expr $status + $ret`
 
 echo "I:checking that revoked key is present ($n)"
 ret=0
-id=`sed s/^K.+005+0*// < rev.key`
+id=`sed 's/^K.+005+0*//' < rev.key`
 id=`expr $id + 128 % 65536`
 $DIG $DIGOPTS +multi dnskey . @10.53.0.1 > dig.out.ns1.test$n || ret=1
 grep '; key id = '"$id"'$' dig.out.ns1.test$n > /dev/null || ret=1
@@ -466,7 +466,7 @@ status=`expr $status + $ret`
 
 echo "I:checking that revoked key self-signs ($n)"
 ret=0
-id=`sed s/^K.+005+0*// < rev.key`
+id=`sed 's/^K.+005+0*//' < rev.key`
 id=`expr $id + 128 % 65536`
 $DIG $DIGOPTS dnskey . @10.53.0.1 > dig.out.ns1.test$n || ret=1
 grep 'RRSIG.*'" $id "'\. ' dig.out.ns1.test$n > /dev/null || ret=1
@@ -476,7 +476,7 @@ status=`expr $status + $ret`
 
 echo "I:checking for unpublished key ($n)"
 ret=0
-id=`sed s/^K.+005+0*// < unpub.key`
+id=`sed 's/^K.+005+0*//' < unpub.key`
 $DIG $DIGOPTS +multi dnskey . @10.53.0.1 > dig.out.ns1.test$n || ret=1
 grep '; key id = '"$id"'$' dig.out.ns1.test$n > /dev/null && ret=1
 n=`expr $n + 1`
@@ -485,7 +485,7 @@ status=`expr $status + $ret`
 
 echo "I:checking that standby key does not sign records ($n)"
 ret=0
-id=`sed s/^K.+005+0*// < standby.key`
+id=`sed 's/^K.+005+0*//' < standby.key`
 $DIG $DIGOPTS dnskey . @10.53.0.1 > dig.out.ns1.test$n || ret=1
 grep 'RRSIG.*'" $id "'\. ' dig.out.ns1.test$n > /dev/null && ret=1
 n=`expr $n + 1`
@@ -494,7 +494,7 @@ status=`expr $status + $ret`
 
 echo "I:checking that deactivated key does not sign records  ($n)"
 ret=0
-id=`sed s/^K.+005+0*// < inact.key`
+id=`sed 's/^K.+005+0*//' < inact.key`
 $DIG $DIGOPTS dnskey . @10.53.0.1 > dig.out.ns1.test$n || ret=1
 grep 'RRSIG.*'" $id "'\. ' dig.out.ns1.test$n > /dev/null && ret=1
 n=`expr $n + 1`
@@ -503,7 +503,7 @@ status=`expr $status + $ret`
 
 echo "I:checking key deletion ($n)"
 ret=0
-id=`sed s/^K.+005+0*// < del.key`
+id=`sed 's/^K.+005+0*//' < del.key`
 $DIG $DIGOPTS +multi dnskey . @10.53.0.1 > dig.out.ns1.test$n || ret=1
 grep '; key id = '"$id"'$' dig.out.ns1.test$n > /dev/null && ret=1
 n=`expr $n + 1`

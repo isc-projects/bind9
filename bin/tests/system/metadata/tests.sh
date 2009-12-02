@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.3 2009/11/30 23:48:02 tbox Exp $
+# $Id: tests.sh,v 1.4 2009/12/02 05:42:15 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -25,14 +25,17 @@ czone=child.parent.nil cfile=child.db
 status=0
 n=0
 
-inact=`sed s/^K${czone}.+005+0*// < inact.key`
-ksk=`sed s/^K${czone}.+005+0*// < ksk.key`
-pending=`sed s/^K${czone}.+005+0*// < pending.key`
-postrev=`sed s/^K${czone}.+005+0*// < postrev.key`
-prerev=`sed s/^K${czone}.+005+0*// < prerev.key`
-rolling=`sed s/^K${czone}.+005+0*// < rolling.key`
-standby=`sed s/^K${czone}.+005+0*// < standby.key`
-zsk=`sed s/^K${czone}.+005+0*// < zsk.key`
+echo "I:setting key timers"
+$SETTIME -A now+15s `cat rolling.key` > /dev/null
+
+inact=`sed 's/^K'${czone}'.+005+0*//' < inact.key`
+ksk=`sed 's/^K'${czone}'.+005+0*//' < ksk.key`
+pending=`sed 's/^K'${czone}'.+005+0*//' < pending.key`
+postrev=`sed 's/^K'${czone}'.+005+0*//' < postrev.key`
+prerev=`sed 's/^K'${czone}'.+005+0*//' < prerev.key`
+rolling=`sed 's/^K'${czone}'.+005+0*//' < rolling.key`
+standby=`sed 's/^K'${czone}'.+005+0*//' < standby.key`
+zsk=`sed 's/^K'${czone}'.+005+0*//' < zsk.key`
 
 ../../../tools/genrandom 400 $RANDFILE
 
