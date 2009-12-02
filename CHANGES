@@ -1,3 +1,6 @@
+2797.	[bug]		Don't decrement the dispatch manager's maxbuffers.
+			[RT #20613]
+
 2796.	[bug]		Missing dns_rdataset_disassociate() call in
 			dns_nsec3_delnsec3sx(). [RT #20681]
 
