@@ -1,3 +1,6 @@
+
+	--- 9.6.2b1 released ---
+
 2790.	[bug]		Handle DS queries to stub zones. [RT #20440]
 
 2789.   [bug]           Fixed an INSIST in dispatch.c [RT #20576]
