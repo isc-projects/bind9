@@ -104,7 +104,7 @@
 
 2760.	[cleanup]	Corrected named-compilezone usage summary. [RT #20533]
 
-2759.	[doc]		Add information about .jbk/.jnw files to 
+2759.	[doc]		Add information about .jbk/.jnw files to
 			the ARM. [RT #20303]
 
 2758.	[bug]		win32: Added a workaround for a windows 2008 bug
@@ -157,7 +157,7 @@
 			validator.c. [RT #19589]
 
 2741.	[func]		Allow the dnssec-keygen progress messages to be
-			suppressed (dnssec-keygen -q).  Automatically 
+			suppressed (dnssec-keygen -q).  Automatically
 			suppress the progress messages when stdin is not
 			a tty. [RT #20474]
 
@@ -269,7 +269,7 @@
 			'auto-dnssec maintain;' allows that too, plus it
 			also keeps the zone's DNSSEC keys up to date
 			according to their timing metadata. [RT #19943]
-			
+
 2711.	[port]		win32: Add the bin/pkcs11 tools into the full
 			build. [RT #20372]
 
