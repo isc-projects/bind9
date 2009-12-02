@@ -1,3 +1,6 @@
+2797.	[bug]		Don't decrement the dispatch manager's maxbuffers.
+			[RT #20613]
+
 2790.	[bug]		Handle DS queries to stub zones. [RT #20440]
 
 2786.	[bug]		Additional could be promoted to answer. [RT #20663]
