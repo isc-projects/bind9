@@ -30,7 +30,7 @@
 
 2760.	[cleanup]	Corrected named-compilezone usage summary. [RT #20533]
 
-2759.	[doc]		Add information about .jbk/.jnw files to 
+2759.	[doc]		Add information about .jbk/.jnw files to
 			the ARM. [RT #20303]
 
 2758.	[bug]		win32: Added a workaround for a windows 2008 bug
@@ -143,7 +143,7 @@
 2663.	[func]		win32:  allow named to run as a service using
 			"NT AUTHORITY\LocalService" as the account. [RT #19977]
 
-2662.	[bug]		lwres_getipnodebyname() and lwres_getipnodebyaddr() 
+2662.	[bug]		lwres_getipnodebyname() and lwres_getipnodebyaddr()
 			returned a misleading error code when lwresd was
 			down. [RT #20028]
 
@@ -245,7 +245,7 @@
 	--- 9.6.1 released ---
 
 2607.	[bug]		named could incorrectly delete NSEC3 records for
-			empty nodes when processing a update request.  
+			empty nodes when processing a update request.
 			[RT #19749]
 
 2606.	[bug]		"delegation-only" was not being accepted in
@@ -357,7 +357,7 @@
 2556.	[port]		Solaris: mkdir(2) on tmpfs filesystems does not do the
 			error checks in the correct order resulting in the
 			wrong error code sometimes being returned. [RT #19249]
-			
+
 2554.	[bug]		Validation of uppercase queries from NSEC3 zones could
 			fail. [RT #19297]
 
