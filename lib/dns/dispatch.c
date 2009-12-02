@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.116.18.41 2009/01/19 23:46:14 tbox Exp $ */
+/* $Id: dispatch.c,v 1.116.18.42 2009/12/02 23:36:35 marka Exp $ */
 
 /*! \file */
 
@@ -1932,8 +1932,18 @@ dns_dispatchmgr_setudp(dns_dispatchmgr_t *mgr,
 
 	/* Create or adjust buffer pool */
 	if (mgr->bpool != NULL) {
-		isc_mempool_setmaxalloc(mgr->bpool, maxbuffers);
-		mgr->maxbuffers = maxbuffers;
+		/*
+		 * We only increase the maxbuffers to avoid accidental buffer
+		 * shortage.  Ideally we'd separate the manager-wide maximum
+		 * from per-dispatch limits and respect the latter within the
+		 * global limit.  But at this moment that's deemed to be
+		 * overkilling and isn't worth additional implementation
+		 * complexity.
+		 */
+		if (maxbuffers > mgr->maxbuffers) {
+			isc_mempool_setmaxalloc(mgr->bpool, maxbuffers);
+			mgr->maxbuffers = maxbuffers;
+		}
 	} else {
 		result = isc_mempool_create(mgr->mctx, buffersize, &mgr->bpool);
 		if (result != ISC_R_SUCCESS) {
