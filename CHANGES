@@ -239,6 +239,9 @@
 2580.	[bug]		UpdateRej statistics counter could be incremented twice
 			for one rejection. [RT #19476]
 
+2500.	[contrib]	contrib/sdb/pgsql/zonetodb.c called non-existant
+			function. [RT #18582]
+
 	--- 9.6.1 released ---
 
 2607.	[bug]		named could incorrectly delete NSEC3 records for
