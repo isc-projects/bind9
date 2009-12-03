@@ -103,6 +103,9 @@
 2688.	[bug]		Use INTERFACE_F_POINTTOPOINT, not IFF_POINTOPOINT,
 			to decide to fetch the destination address. [RT #20305]
 
+2659.	[doc]		Clarify dnssec-keygen doc: key name must match zone
+			name for DNSSEC keys. [RT #19938]
+
 2533.	[doc]		ARM: document @ (at-sign). [RT #17144]
 
 	--- 9.5.2 released ---
