@@ -241,6 +241,8 @@
 2601.	[doc]		Mention file creation mode mask in the
 			named manual page.
 
+2593.	[bug]		Improve a corner source of SERVFAILs [RT #19632]
+
 2589.	[bug]		dns_db_unregister() failed to clear '*dbimp'.
 			[RT #19626]
 
