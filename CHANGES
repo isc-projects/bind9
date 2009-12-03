@@ -238,6 +238,9 @@
 			self signed.  That all records in the zone are signed
 			by the algorithm.  [RT #19653]
 
+2601.	[doc]		Mention file creation mode mask in the
+			named manual page.
+
 2589.	[bug]		dns_db_unregister() failed to clear '*dbimp'.
 			[RT #19626]
 
