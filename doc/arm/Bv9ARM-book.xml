@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.447 2009/11/28 15:57:37 vjs Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.448 2009/12/03 23:18:17 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4923,8 +4923,8 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> allow-update { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-update-forwarding { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> update-check-ksk <replaceable>yes_or_no</replaceable>; </optional>
-    <optional> dnskey-ksk-only <replaceable>yes_or_no</replaceable>; </optional>
-    <optional> secure-to-insecure <replaceable>yes_or_no</replaceable> ;</optional>
+    <optional> dnssec-dnskey-kskonly <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> dnssec-secure-to-insecure <replaceable>yes_or_no</replaceable> ;</optional>
     <optional> try-tcp-refresh <replaceable>yes_or_no</replaceable>; </optional>
     <optional> allow-v6-synthesis { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> blackhole { <replaceable>address_match_list</replaceable> }; </optional>
@@ -6556,7 +6556,7 @@ options {
 	    </varlistentry>
 
 	    <varlistentry>
-	      <term><command>dnskey-ksk-only</command></term>
+	      <term><command>dnssec-dnskey-kskonly</command></term>
 	      <listitem>
 	        <para>
                   When this option and <command>update-check-ksk</command>
@@ -6588,7 +6588,7 @@ options {
 	    </varlistentry>
 
 	    <varlistentry>
-	      <term><command>secure-to-insecure</command></term>
+	      <term><command>dnssec-secure-to-insecure</command></term>
 	      <listitem>
 	        <para>
 		  Allow a zone to transition from secure to insecure by
@@ -9520,8 +9520,8 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
     <optional> allow-transfer { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-update-forwarding { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> update-check-ksk <replaceable>yes_or_no</replaceable>; </optional>
-    <optional> dnskey-ksk-only <replaceable>yes_or_no</replaceable>; </optional>
-    <optional> secure-to-insecure <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> dnssec-dnskey-kskonly <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> dnssec-secure-to-insecure <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> try-tcp-refresh <replaceable>yes_or_no</replaceable>; </optional>
     <optional> also-notify { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ;
                   <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
@@ -10034,11 +10034,11 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
               </varlistentry>
 
 	      <varlistentry>
-	        <term><command>dnskey-ksk-only</command></term>
+	        <term><command>dnssec-dnskey-kskonly</command></term>
                 <listitem>
                   <para>
                     See the description of
-                    <command>dnskey-ksk-only</command> in <xref linkend="boolean_options"/>.
+                    <command>dnssec-dnskey-kskonly</command> in <xref linkend="boolean_options"/>.
                   </para>
                 </listitem>
               </varlistentry>
@@ -10479,11 +10479,11 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
 	      </varlistentry>
 
               <varlistentry>
-                <term><command>secure-to-insecure</command></term>
+                <term><command>dnssec-secure-to-insecure</command></term>
                 <listitem>
                   <para>
                     See the description of
-                    <command>secure-to-insecure</command> in <xref linkend="boolean_options"/>.
+                    <command>dnssec-secure-to-insecure</command> in <xref linkend="boolean_options"/>.
                   </para>
                 </listitem>
               </varlistentry>

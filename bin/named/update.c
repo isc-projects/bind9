@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.171 2009/11/24 03:42:32 each Exp $ */
+/* $Id: update.c,v 1.172 2009/12/03 23:18:16 each Exp $ */
 
 #include <config.h>
 
@@ -4122,8 +4122,9 @@ update_action(isc_task_t *task, isc_event_t *event) {
 					   &had_dnskey));
 			if (had_dnskey && !has_dnskey) {
 				update_log(client, zone, LOGLEVEL_PROTOCOL,
-					   "update rejected: all DNSKEY records "
-					   "removed and 'secure-to-insecure' "
+					   "update rejected: all DNSKEY "
+                                           "records removed and "
+                                           "'dnssec-secure-to-insecure' "
 					   "not set");
 				result = DNS_R_REFUSED;
 				goto failure;

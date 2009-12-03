@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.159 2009/10/22 03:43:16 each Exp $ */
+/* $Id: zoneconf.c,v 1.160 2009/12/03 23:18:17 each Exp $ */
 
 /*% */
 
@@ -855,7 +855,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 				   cfg_obj_asboolean(obj));
 
 		obj = NULL;
-		result = ns_config_get(maps, "dnskey-ksk-only", &obj);
+		result = ns_config_get(maps, "dnssec-dnskey-kskonly", &obj);
 		INSIST(result == ISC_R_SUCCESS);
 		dns_zone_setoption(zone, DNS_ZONEOPT_DNSKEYKSKONLY,
 				   cfg_obj_asboolean(obj));
@@ -933,7 +933,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		dns_zone_setoption(zone, DNS_ZONEOPT_IGNORESRVCNAME, ignore);
 
 		obj = NULL;
-		result = ns_config_get(maps, "secure-to-insecure", &obj);
+		result = ns_config_get(maps, "dnssec-secure-to-insecure", &obj);
 		INSIST(obj != NULL);
 		dns_zone_setoption(zone, DNS_ZONEOPT_SECURETOINSECURE,
 				   cfg_obj_asboolean(obj));

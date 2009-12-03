@@ -129,7 +129,7 @@ NSEC chain will be generated before the NSEC3 chain is removed.
 To do this remove all the DNSKEY records.  Any NSEC or NSEC3 chains
 will be removed as well as associated NSEC3PARAM records.  This will
 take place after the update requests completes.  This requires
-secure-to-insecure to be set in named.conf.
+dnssec-secure-to-insecure to be set in named.conf.
 
 		Periodic re-signing.
 

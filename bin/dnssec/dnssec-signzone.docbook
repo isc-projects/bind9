@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.docbook,v 1.43 2009/11/03 21:44:46 each Exp $ -->
+<!-- $Id: dnssec-signzone.docbook,v 1.44 2009/12/03 23:18:16 each Exp $ -->
 <refentry id="man.dnssec-signzone">
   <refentryinfo>
     <date>June 05, 2009</date>
@@ -559,7 +559,7 @@
           <para>
             Only sign the DNSKEY RRset with key-signing keys, and omit
             signatures from zone-signing keys.  (This is similar to the
-            <command>dnskey-ksk-only yes;</command> zone option in
+            <command>dnssec-dnskey-kskonly yes;</command> zone option in
             <command>named</command>.)
           </para>
         </listitem>

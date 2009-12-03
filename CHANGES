@@ -1,3 +1,7 @@
+2799.	[cleanup]	Changed the "secure-to-insecure" option to
+			"dnssec-secure-to-insecure", and "dnskey-ksk-only"
+			to "dnssec-dnskey-kskonly", for clarity. [RT #20586]
+
 2798.	[bug]		Addressed bugs in managed-keys initialization 
 			and rollover. [RT #20683]
 
