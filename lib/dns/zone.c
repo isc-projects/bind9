@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.533 2009/11/25 02:30:54 each Exp $ */
+/* $Id: zone.c,v 1.534 2009/12/03 15:40:02 each Exp $ */
 
 /*! \file */
 
@@ -2574,8 +2574,8 @@ set_refreshkeytimer(dns_zone_t *zone, dns_rdata_keydata_t *key,
  */
 static isc_result_t
 create_keydata(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
-	       dns_diff_t *diff, dns_name_t *name, dns_keytable_t *keytable,
-	       dns_keynode_t *keynode, isc_boolean_t *changed)
+	       dns_diff_t *diff, dns_keytable_t *keytable,
+	       dns_keynode_t **keynodep, isc_boolean_t *changed)
 {
 	const char me[] = "create_keydata";
 	isc_result_t result = ISC_R_SUCCESS;
@@ -2584,16 +2584,21 @@ create_keydata(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	dns_rdata_keydata_t keydata;
 	dns_rdata_dnskey_t dnskey;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
-	dns_keynode_t *nextnode = NULL;
+	dns_keynode_t *keynode;
 	isc_stdtime_t now;
 	isc_region_t r;
 	dst_key_t *key;
+
+	REQUIRE(keynodep != NULL);
+	keynode = *keynodep;
 
 	ENTER;
 	isc_stdtime_get(&now);
 
 	/* Loop in case there's more than one key. */
 	while (result == ISC_R_SUCCESS) {
+		dns_keynode_t *nextnode = NULL;
+
 		key = dns_keynode_key(keynode);
 		if (key == NULL)
 			goto skip;
@@ -2621,12 +2626,12 @@ create_keydata(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 
 		/* Add rdata to zone. */
 		CHECK(update_one_rr(db, ver, diff, DNS_DIFFOP_ADD,
-				    name, 0, &rdata));
+				    dst_key_name(key), 0, &rdata));
 		*changed = ISC_TRUE;
 
  skip:
 		result = dns_keytable_nextkeynode(keytable, keynode, &nextnode);
-		if(result != ISC_R_NOTFOUND) {
+		if (result != ISC_R_NOTFOUND) {
 			dns_keytable_detachkeynode(keytable, &keynode);
 			keynode = nextnode;
 		}
@@ -2635,6 +2640,10 @@ create_keydata(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	/* Refresh new keys from the zone apex as soon as possible. */
 	if (*changed)
 		set_refreshkeytimer(zone, &keydata, now);
+
+	if (keynode != NULL)
+		dns_keytable_detachkeynode(keytable, &keynode);
+	*keynodep = NULL;
 
 	return (ISC_R_SUCCESS);
 
@@ -3099,12 +3108,12 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 			continue;
 
 		result = dns_keytable_find(sr, rrname, &keynode);
-
 		if ((result != ISC_R_SUCCESS &&
 		     result != DNS_R_PARTIALMATCH) ||
 		    dns_keynode_managed(keynode) == ISC_FALSE) {
 			CHECK(delete_keydata(db, ver, &diff,
 					     rrname, rdataset));
+			changed = ISC_TRUE;
 		} else {
 			load_secroots(zone, rrname, rdataset);
 		}
@@ -3127,10 +3136,10 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 		dns_rbtnode_t *rbtnode = NULL;
 
 		dns_rbtnodechain_current(&chain, &foundname, origin, &rbtnode);
-		keynode = rbtnode->data;
-		if (keynode == NULL)
+		if (rbtnode->data == NULL)
 			goto skip;
 
+		dns_keytable_attachkeynode(sr, rbtnode->data, &keynode);
 		if (dns_keynode_managed(keynode)) {
 			dns_fixedname_t fname;
 			dns_name_t *keyname;
@@ -3149,13 +3158,14 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 					     NULL, NULL);
 			if (result != ISC_R_SUCCESS)
 				result = create_keydata(zone, db, ver, &diff,
-							keyname, sr, keynode,
-							&changed);
+							sr, &keynode, &changed);
 			if (result != ISC_R_SUCCESS)
 				break;
 		}
   skip:
 		result = dns_rbtnodechain_next(&chain, &foundname, origin);
+		if (keynode != NULL)
+			dns_keytable_detachkeynode(sr, &keynode);
 	}
 	RWUNLOCK(&sr->rwlock, isc_rwlocktype_write);
 
@@ -3173,6 +3183,8 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 	}
 
  failure:
+	if (keynode != NULL)
+		dns_keytable_detachkeynode(sr, &keynode);
 	if (sr != NULL)
 		dns_keytable_detach(&sr);
 	if (ver != NULL)
@@ -7452,7 +7464,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	}
 
 	dns_diff_clear(&diff);
-	dns_db_closeversion(kfetch->db, &ver, alldone);
+	dns_db_closeversion(kfetch->db, &ver, changed);
 	dns_db_detach(&kfetch->db);
 
 	if (dns_rdataset_isassociated(&kfetch->keydataset))

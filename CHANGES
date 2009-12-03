@@ -1,3 +1,6 @@
+2798.	[bug]		Addressed bugs in managed-keys initialization 
+			and rollover. [RT #20683]
+
 2797.	[bug]		Don't decrement the dispatch manager's maxbuffers.
 			[RT #20613]
 
