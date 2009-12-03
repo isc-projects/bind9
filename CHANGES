@@ -100,6 +100,8 @@
 2688.	[bug]		Use INTERFACE_F_POINTTOPOINT, not IFF_POINTOPOINT,
 			to decide to fetch the destination address. [RT #20305]
 
+2533.	[doc]		ARM: document @ (at-sign). [RT #17144]
+
 	--- 9.5.2 released ---
 
 2681.	[bug]		IPSECKEY RR of gateway type 3 was not correctly
