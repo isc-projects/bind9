@@ -99,6 +99,9 @@
 2704.	[bug]		Serial of dynamic and stub zones could be inconsistent
 			with their SOA serial.  [RT #19387]
 
+2701.	[doc]		Correction to ARM: hmac-md5 is no longer the only
+			supported TSIG key algorithm. [RT #18046]
+
 2700.	[doc]		The match-mapped-addresses option is discouraged.
 			[RT #12252]
 

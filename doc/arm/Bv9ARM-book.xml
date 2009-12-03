@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.380.14.21 2009/12/03 03:34:18 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.380.14.22 2009/12/03 04:22:52 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -2058,17 +2058,16 @@ nameserver 172.16.72.4
         <sect3>
           <title>Automatic Generation</title>
           <para>
-            The following command will generate a 128-bit (16 byte) HMAC-MD5
+            The following command will generate a 128-bit (16 byte) HMAC-SHA256
             key as described above. Longer keys are better, but shorter keys
-            are easier to read. Note that the maximum key length is 512 bits;
-            keys longer than that will be digested with MD5 to produce a
-            128-bit key.
+            are easier to read. Note that the maximum key length is the digest
+            length, here 256 bits.
           </para>
           <para>
-            <userinput>dnssec-keygen -a hmac-md5 -b 128 -n HOST host1-host2.</userinput>
+            <userinput>dnssec-keygen -a hmac-sha256 -b 128 -n HOST host1-host2.</userinput>
           </para>
           <para>
-            The key is in the file <filename>Khost1-host2.+157+00000.private</filename>.
+            The key is in the file <filename>Khost1-host2.+163+00000.private</filename>.
             Nothing directly uses this file, but the base-64 encoded string
             following "<literal>Key:</literal>"
             can be extracted from the file and used as a shared secret:
@@ -2110,18 +2109,16 @@ nameserver 172.16.72.4
 
 <programlisting>
 key host1-host2. {
-  algorithm hmac-md5;
+  algorithm hmac-sha256;
   secret "La/E5CjG9O+os1jq0a2jdA==";
 };
 </programlisting>
 
         <para>
-          The algorithm, <literal>hmac-md5</literal>, is the only one supported by <acronym>BIND</acronym>.
           The secret is the one generated above. Since this is a secret, it
-          is recommended that either <filename>named.conf</filename> be non-world
-          readable, or the key directive be added to a non-world readable
-          file that is included by
-          <filename>named.conf</filename>.
+          is recommended that either <filename>named.conf</filename> be
+          non-world readable, or the key directive be added to a non-world
+          readable file that is included by <filename>named.conf</filename>.
         </para>
         <para>
           At this point, the key is recognized. This means that if the
