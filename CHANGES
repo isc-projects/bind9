@@ -153,6 +153,9 @@
 2661.	[bug]		Check whether socket fd exceeds FD_SETSIZE when
 			creating lwres context. [RT #20029]
 
+2659.	[doc]		Clarify dnssec-keygen doc: key name must match zone
+			name for DNSSEC keys. [RT #19938]
+
 2656.	[func]		win32: add a "tools only" check box to the installer
 			which causes it to only install dig, host, nslookup,
 			nsupdate and relevant DLLs.  [RT #19998]
