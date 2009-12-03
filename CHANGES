@@ -241,6 +241,8 @@
 2580.	[bug]		UpdateRej statistics counter could be incremented twice
 			for one rejection. [RT #19476]
 
+2533.	[doc]		ARM: document @ (at-sign). [RT #17144]
+
 2500.	[contrib]	contrib/sdb/pgsql/zonetodb.c called non-existent
 			function. [RT #18582]
 
