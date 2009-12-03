@@ -122,7 +122,7 @@
 			was signed with NSEC3. [RT #20587]
 
 2753.	[bug]		Removed an unnecessary warning that could appear when
-			building an NSEC chain. [RT #20588]
+			building an NSEC chain. [RT #20589]
 
 2752.	[bug]		Locking violation. [RT #20587]
 
