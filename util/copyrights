@@ -1,6 +1,7 @@
 ./.cvsignore					X	1998,1999,2000,2001,2004
 ./CHANGES					X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./COPYRIGHT					TXT	1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
+./EXCLUDED					X	2009
 ./FAQ						X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./FAQ.xml					SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./KNOWN-DEFECTS					X	2009
@@ -72,7 +73,7 @@
 ./bin/dnssec/dnssec-keyfromlabel.html		HTML	DOCBOOK
 ./bin/dnssec/dnssec-keygen.8			MAN	DOCBOOK
 ./bin/dnssec/dnssec-keygen.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
-./bin/dnssec/dnssec-keygen.docbook		SGML	2000,2001,2002,2003,2004,2005,2007,2008
+./bin/dnssec/dnssec-keygen.docbook		SGML	2000,2001,2002,2003,2004,2005,2007,2008,2009
 ./bin/dnssec/dnssec-keygen.html			HTML	DOCBOOK
 ./bin/dnssec/dnssec-signzone.8			MAN	DOCBOOK
 ./bin/dnssec/dnssec-signzone.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
@@ -153,7 +154,7 @@
 ./bin/named/named.conf.5			MAN	DOCBOOK
 ./bin/named/named.conf.docbook			SGML	2004,2005,2006,2007,2008
 ./bin/named/named.conf.html			HTML	DOCBOOK
-./bin/named/named.docbook			SGML	2000,2001,2003,2004,2005,2006,2007,2008
+./bin/named/named.docbook			SGML	2000,2001,2003,2004,2005,2006,2007,2008,2009
 ./bin/named/named.html				HTML	DOCBOOK
 ./bin/named/notify.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./bin/named/query.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
@@ -1264,7 +1265,7 @@
 ./contrib/sdb/ldap/zone2ldap.c			X	2001,2005,2008
 ./contrib/sdb/pgsql/pgsqldb.c			C	2000,2001,2004,2007
 ./contrib/sdb/pgsql/pgsqldb.h			C	2000,2001,2004,2007
-./contrib/sdb/pgsql/zonetodb.c			C	2000,2001,2002,2004,2005,2007,2008
+./contrib/sdb/pgsql/zonetodb.c			C	2000,2001,2002,2004,2005,2007,2008,2009
 ./contrib/sdb/sqlite/README.sdb_sqlite		X	2007
 ./contrib/sdb/sqlite/sqlitedb.c			X	2007
 ./contrib/sdb/sqlite/sqlitedb.h			X	2007
