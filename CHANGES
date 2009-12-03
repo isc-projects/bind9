@@ -152,7 +152,7 @@
 
 2656.	[func]		win32: add a "tools only" check box to the installer
 			which causes it to only install dig, host, nslookup,
-			nsupdate and relevant dlls.  [RT #19998]
+			nsupdate and relevant DLLs.  [RT #19998]
 
 2655.	[doc]		Document that key-directory does not affect
 			rndc.key.  [RT #20155]
@@ -180,6 +180,8 @@
 
 2640.	[security]	A specially crafted update packet will cause named
 			to exit. [RT #20000]
+
+2639.	[bug]		Silence compiler warnings in gssapi code. [RT #19954]
 
 2637.	[func]		Rationalize dnssec-signzone's signwithkey() calling.
 			[RT #19959]
