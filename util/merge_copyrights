@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: merge_copyrights,v 1.31.118.2 2009/06/11 23:46:36 tbox Exp $
+# $Id: merge_copyrights,v 1.31.118.3 2009/12/03 04:47:13 marka Exp $
 
 %file_types = ();
 %file_years = ();
@@ -54,6 +54,8 @@ while (<FILES>) {
 	# Contributed code should maintain its own copyright.
 	if ($base =~ /\.\/contrib\//) {
 	     $file_types{$_} = "X";
+	} elsif ($base =~ /\/openssl-[a-z0-9.]*-patch$/) {
+	    $file_types{$_} = "X";
 	} elsif ($base =~ /\.(c|h|css)$/) {
 	    $file_types{$_} = "C";
         } elsif ($base =~ /\.y$/) {
@@ -82,6 +84,8 @@ while (<FILES>) {
 	    $file_types{$_} = "X";
 	} elsif ($base =~ /\.rnc$/i) {
 	    $file_types{$_} = "RNC";
+	} elsif ($base =~ /^\.\/EXCLUDED$/i) {
+	    $file_types{$_} = "X";
 	} elsif ($base =~ /\.bat$/i) {
 	    $file_types{$_} = "BAT";
 	} else {
