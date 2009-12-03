@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keytable.h,v 1.19 2009/12/03 15:40:03 each Exp $ */
+/* $Id: keytable.h,v 1.20 2009/12/03 16:49:09 each Exp $ */
 
 #ifndef DNS_KEYTABLE_H
 #define DNS_KEYTABLE_H 1
@@ -352,7 +352,7 @@ dns_keytable_finddeepestmatch(dns_keytable_t *keytable, dns_name_t *name,
 
 void
 dns_keytable_attachkeynode(dns_keytable_t *keytable, dns_keynode_t *source,
-			   dns_keynode_t **target)
+			   dns_keynode_t **target);
 /*%<
  * Attach a keynode and and increment the active_nodes counter in a
  * corresponding keytable.
