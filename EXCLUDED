@@ -1,0 +1,204 @@
+2796.	[bug]		Missing dns_rdataset_disassociate() call in
+			dns_nsec3_delnsec3sx(). [RT #20681]
+
+2795.	[cleanup]	Add text to differentiate "update with no effect"
+			log messages. [RT #18889]
+
+2794.	[bug]		Install <isc/namespace.h>.  [RT #20677]
+
+2791.	[bug]		The installation of isc-config.sh was broken.
+			[RT #20667]
+
+2788.	[bug]		dnssec-signzone could sign with keys that were
+			not requested [RT #20625]
+
+2787.   [bug]           Spurious log message when zone keys were
+                        dynamically reconfigured. [RT #20659]
+
+2785.	[bug]		Revoked keys could fail to self-sign [RT #20652]
+
+2781.	[bug]		Inactive keys could be used for signing. [RT #20649]
+
+2780.	[bug]		dnssec-keygen -A none didn't properly unset the
+			activation date in all cases. [RT #20648]
+
+2779.	[bug]		Dynamic key revokation could fail. [RT #20644]
+
+2778.	[bug]		dnssec-signzone could fail when a key was revoked
+			without deleting the unrevoked version. [RT #20638]
+
+2763.	[bug]		"rndc sign" didn't create an NSEC chain. [RT #20591]
+
+2761.	[cleanup]	Enable internal symbol table for backtrace only for
+			systems that are known to work.  Currently, BSD
+			variants, Linux and Solaris are supported. [RT# 20202]
+
+2775.	[bug]		Accept RSASHA256 and RSASHA512 as NSEC3 compatible
+			in dnssec-keyfromlabel. [RT #20643]
+
+2773.	[bug]		In autosigned zones, the SOA could be signed
+			with the KSK. [RT #20628]
+
+2771.	[bug]		dnssec-signzone: DNSKEY records could be
+			corrupted when importing from key files [RT #20624]
+
+2770.	[cleanup]	Add log messages to resolver.c to indicate events
+			causing FORMERR responses. [RT #20526]
+
+2769.   [cleanup]       Change #2742 was incomplete. [RT #19589]
+
+2768.	[bug]		dnssec-signzone: -S no longer implies -g [RT #20568]
+
+2767.	[bug]		named could crash on startup if a zone was
+			configured with auto-dnssec and there was no
+			key-directory. [RT #20615]
+
+2766.	[bug]		isc_socket_fdwatchpoke() should only update the
+			socketmgr state if the socket is not pending on a
+			read or write.  [RT #20603]
+
+2764.   [bug]           "rndc-confgen -a" could trigger a REQUIRE. [RT #20610]
+
+2756.   [bug]           Fixed corrupt logfile message in update.c. [RT# 20597]
+
+2753.   [bug]           Removed an unnecessary warning that could appear when
+                        building an NSEC chain. [RT #20589]
+
+2752.   [bug]           Locking violation. [RT #20587]
+
+2751.   [bug]           Fixed a memory leak in dnssec-keyfromlabel. [RT #20588]
+
+2746.	[port]		hpux: address signed/unsigned expansion mismatch of
+			dns_rbtnode_t.nsec. [RT #20542]
+
+2745.   [bug]           configure script didn't probe the return type of
+                        gai_strerror(3) correctly. [RT #20573]
+
+2774.   [bug]           Existing cache DB wasn't being reused after
+                        reconfiguration. [RT #20629]
+
+2742.   [cleanup]       Clarify some DNSSEC-related log messages in
+                        validator.c. [RT #19589]
+
+2739.	[cleanup]	Clean up API for initializing and clearing trust
+			anchors for a view. [RT #20211]
+
+2735.	[bug]		dnssec-signzone could fail to read keys
+			that were specified on the command line with
+			full paths, but weren't in the current
+			directory. [RT #20421]
+
+2734.	[port]		cygwin: arpaname did not compile. [RT #20473]
+
+2733.	[cleanup]	Clean up coding style in pkcs11-* tools. [RT #20355]
+
+2728.	[bug]		dssec-keygen, dnssec-keyfromlabel and
+			dnssec-signzone now warn immediately if asked to
+			write into a nonexistent directory. [RT #20278]
+
+2725.	[doc]		Added information about the file "managed-keys.bind"
+			to the ARM. [RT #20235]
+
+2724.   [bug]           Updates to a existing node in secure zone using NSEC
+                        were failing. [RT #20448]
+
+2720.	[bug]		RFC 5011 trust anchor updates could trigger an
+			assert if the DNSKEY record was unsigned. [RT #20406]
+
+2717.	[bug]		named failed to update the NSEC/NSEC3 record when
+			the last private type record was removed as a result
+			of completing the signing the zone with a key.
+			[RT #20399]
+
+2711.	[port]		win32: Add the bin/pkcs11 tools into the full
+			build. [RT #20372]
+
+2694.	[bug]		Reduce default NSEC3 iterations from 100 to 10.
+			[RT #19970]
+
+2693.	[port]		Add some noreturn attributes. [RT #20257]
+
+2687.	[bug]		Fixed dnssec-signzone -S handling of revoked keys.
+			Also, added warnings when revoking a ZSK, as this is
+			not defined by protocol (but is legal).  [RT #19943]
+
+2684.	[cleanup]	dig: formalize +ad and +cd as synonyms for
+			+adflag and +cdflag.  [RT #19305]
+
+2682.	[bug]		"configure --enable-symtable=all" failed to
+			build. [RT #20282]
+
+2676.	[bug]		--with-export-installdir should have been
+			--with-export-includedir. [RT #20252]
+
+2675.	[bug]		dnssec-signzone could crash if the key directory
+			did not exist. [RT #20232]
+
+2674.	[bug]		"dnssec-lookaside auto;" crashed if named was built
+			without openssl. [RT #20231]
+
+2673.   [bug]           The managed-keys.bind zone file could fail to
+                        load due to a spurious result from sync_keyzone()
+                        [RT #20045]
+
+2671.	[bug]		Add support for PKCS#11 providers not returning
+			the public exponent in RSA private keys
+			(OpenCryptoki for instance) in
+			dnssec-keyfromlabel. [RT #19294]
+
+2664.	[bug]		create_keydata() and minimal_update() in zone.c
+			didn't properly check return values for some
+			functions.  [RT #19956]
+
+2658.	[bug]		dnssec-settime and dnssec-revoke didn't process
+			key file paths correctly. [RT #20078]
+
+2657.	[cleanup]	Lower "journal file <path> does not exist, creating it"
+			log level to debug 1. [RT #20058]
+
+2654.   [bug]           Improve error reporting on duplicated names for
+                        deny-answer-xxx. [RT #20164]
+
+2651.   [bug]           Dates could print incorrectly in K*.key files on
+                        64-bit systems. [RT #20076]
+
+2650.   [bug]           Assertion failure in dnssec-signzone when trying
+                        to read keyset-* files. [RT #20075]
+
+2644.   [bug]           Change #2628 caused a regression on some systems;
+                        named was unable to write the PID file and would
+                        fail on startup. [RT #20001]
+
+2641.   [bug]           Fixed an error in parsing update-policy syntax,
+                        added a regression test to check it. [RT #20007]
+
+2638.	[bug]		Install arpaname. [RT #19957]
+
+2634.	[port]		win32: Add support for libxml2, enable
+			statschannel. [RT #19773]
+
+2631.   [bug]           Handle "//", "/./" and "/../" in mkdirpath().
+                        [RT #19926 ]
+
+2629.   [port]          Check for seteuid()/setegid(), use setresuid()/
+                        setresgid() if not present. [RT #19932]
+
+2628.   [port]          linux: Allow /var/run/named/named.pid to be opened
+                        at startup with reduced capabilities in operation.
+                        [RT #19884]
+
+2627.   [bug]           Named aborted if the same key was included in
+                        trusted-keys more than once. [RT #19918]
+
+2626.   [bug]           Multiple trusted-keys could trigger an assertion
+                        failure. [RT #19914]
+
+2622.   [bug]           Printing of named.conf grammar was broken. [RT #19919]
+
+2600.   [doc]           ARM: miscellaneous reformatting for different
+                        page widths. [RT #19574]
+
+2566.	[cleanup]	Clarify logged message when an insecure DNSSEC
+			response arrives from a zone thought to be secure:
+			"insecurity proof failed" instead of "not
+			insecure". [RT #19400]
