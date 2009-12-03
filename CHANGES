@@ -106,6 +106,9 @@
 2659.	[doc]		Clarify dnssec-keygen doc: key name must match zone
 			name for DNSSEC keys. [RT #19938]
 
+2601.	[doc]		Mention file creation mode mask in the
+			named manual page.
+
 2533.	[doc]		ARM: document @ (at-sign). [RT #17144]
 
 	--- 9.5.2 released ---
