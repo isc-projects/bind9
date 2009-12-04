@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.173 2009/12/04 21:09:33 marka Exp $ */
+/* $Id: zone.h,v 1.174 2009/12/04 22:06:37 tbox Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1786,7 +1786,7 @@ dns_zone_rekey(dns_zone_t *zone);
 
 isc_result_t
 dns_zone_nscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version,
-                 unsigned int *errors);
+		 unsigned int *errors);
 /*%
  * Check if the name servers for the zone are sane (have address, don't
  * refer to CNAMEs/DNAMEs.  The number of constiancy errors detected in

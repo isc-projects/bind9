@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ipseckey_45.c,v 1.8 2009/12/04 21:09:33 marka Exp $ */
+/* $Id: ipseckey_45.c,v 1.9 2009/12/04 22:06:37 tbox Exp $ */
 
 #ifndef RDATA_GENERIC_IPSECKEY_45_C
 #define RDATA_GENERIC_IPSECKEY_45_C
@@ -480,14 +480,14 @@ casecompare_ipseckey(ARGS_COMPARE) {
 	if (memcmp(region1.base, region2.base, 3) != 0 || region1.base[1] != 3)
 		return (isc_region_compare(&region1, &region2));
 
-        dns_name_init(&name1, NULL);
-        dns_name_init(&name2, NULL);
+	dns_name_init(&name1, NULL);
+	dns_name_init(&name2, NULL);
 
-        isc_region_consume(&region1, 3);
-        isc_region_consume(&region2, 3);
-                                              
-        dns_name_fromregion(&name1, &region1);
-        dns_name_fromregion(&name2, &region2);
+	isc_region_consume(&region1, 3);
+	isc_region_consume(&region2, 3);
+
+	dns_name_fromregion(&name1, &region1);
+	dns_name_fromregion(&name2, &region2);
 
 	order = dns_name_rdatacompare(&name1, &name2);
 	if (order != 0)

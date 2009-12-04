@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec_47.c,v 1.12 2009/12/04 21:09:34 marka Exp $ */
+/* $Id: nsec_47.c,v 1.13 2009/12/04 22:06:37 tbox Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -365,33 +365,33 @@ checknames_nsec(ARGS_CHECKNAMES) {
 
 static inline int
 casecompare_nsec(ARGS_COMPARE) {
-        isc_region_t region1;
-        isc_region_t region2;
-        dns_name_t name1;
-        dns_name_t name2;
-        int order;
+	isc_region_t region1;
+	isc_region_t region2;
+	dns_name_t name1;
+	dns_name_t name2;
+	int order;
 
-        REQUIRE(rdata1->type == rdata2->type);
-        REQUIRE(rdata1->rdclass == rdata2->rdclass);
-        REQUIRE(rdata1->type == 47);
-        REQUIRE(rdata1->length != 0);
-        REQUIRE(rdata2->length != 0);
+	REQUIRE(rdata1->type == rdata2->type);
+	REQUIRE(rdata1->rdclass == rdata2->rdclass);
+	REQUIRE(rdata1->type == 47);
+	REQUIRE(rdata1->length != 0);
+	REQUIRE(rdata2->length != 0);
 
-        dns_name_init(&name1, NULL);
-        dns_name_init(&name2, NULL);
+	dns_name_init(&name1, NULL);
+	dns_name_init(&name2, NULL);
 
-        dns_rdata_toregion(rdata1, &region1);
-        dns_rdata_toregion(rdata2, &region2);
+	dns_rdata_toregion(rdata1, &region1);
+	dns_rdata_toregion(rdata2, &region2);
 
-        dns_name_fromregion(&name1, &region1);
-        dns_name_fromregion(&name2, &region2);
+	dns_name_fromregion(&name1, &region1);
+	dns_name_fromregion(&name2, &region2);
 
-        order = dns_name_rdatacompare(&name1, &name2);
-        if (order != 0)
-                return (order);
+	order = dns_name_rdatacompare(&name1, &name2);
+	if (order != 0)
+		return (order);
 
-        isc_region_consume(&region1, name_length(&name1));
-        isc_region_consume(&region2, name_length(&name2));
+	isc_region_consume(&region1, name_length(&name1));
+	isc_region_consume(&region2, name_length(&name2));
 
 	return (isc_region_compare(&region1, &region2));
 }

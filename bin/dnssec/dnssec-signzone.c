@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.257 2009/12/04 21:09:32 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.258 2009/12/04 22:06:37 tbox Exp $ */
 
 /*! \file */
 
@@ -2353,29 +2353,29 @@ rrset_remove_duplicates(dns_name_t *name, dns_rdataset_t *rdataset,
 			dns_diff_t *diff)
 {
 	dns_difftuple_t *tuple = NULL;
-        isc_result_t result;
-        unsigned int count1 = 0;
+	isc_result_t result;
+	unsigned int count1 = 0;
 	dns_rdataset_t tmprdataset;
- 
-        dns_rdataset_init(&tmprdataset);
-        for (result = dns_rdataset_first(rdataset);
-             result == ISC_R_SUCCESS;
-             result = dns_rdataset_next(rdataset)) {
-                dns_rdata_t rdata1 = DNS_RDATA_INIT;
-                unsigned int count2 = 0;
- 
-                count1++;
-                dns_rdataset_current(rdataset, &rdata1);
-                dns_rdataset_clone(rdataset, &tmprdataset);
-                for (result = dns_rdataset_first(&tmprdataset);
-                     result == ISC_R_SUCCESS;
-                     result = dns_rdataset_next(&tmprdataset)) {
-                        dns_rdata_t rdata2 = DNS_RDATA_INIT;
-                        count2++;
-                        if (count1 >= count2)
-                                continue;
-                        dns_rdataset_current(&tmprdataset, &rdata2);
-                        if (dns_rdata_casecompare(&rdata1, &rdata2) == 0) {
+
+	dns_rdataset_init(&tmprdataset);
+	for (result = dns_rdataset_first(rdataset);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(rdataset)) {
+		dns_rdata_t rdata1 = DNS_RDATA_INIT;
+		unsigned int count2 = 0;
+
+		count1++;
+		dns_rdataset_current(rdataset, &rdata1);
+		dns_rdataset_clone(rdataset, &tmprdataset);
+		for (result = dns_rdataset_first(&tmprdataset);
+		     result == ISC_R_SUCCESS;
+		     result = dns_rdataset_next(&tmprdataset)) {
+			dns_rdata_t rdata2 = DNS_RDATA_INIT;
+			count2++;
+			if (count1 >= count2)
+				continue;
+			dns_rdataset_current(&tmprdataset, &rdata2);
+			if (dns_rdata_casecompare(&rdata1, &rdata2) == 0) {
 				result = dns_difftuple_create(mctx,
 							      DNS_DIFFOP_DEL,
 							      name,
@@ -2383,10 +2383,10 @@ rrset_remove_duplicates(dns_name_t *name, dns_rdataset_t *rdataset,
 							      &rdata2, &tuple);
 				check_result(result, "dns_difftuple_create");
 				dns_diff_append(diff, &tuple);
-                        }
-                }
-                dns_rdataset_disassociate(&tmprdataset);
-        }
+			}
+		}
+		dns_rdataset_disassociate(&tmprdataset);
+	}
 }
 
 static void
@@ -2399,7 +2399,7 @@ remove_duplicates(void) {
 	dns_rdataset_t rdataset;
 	dns_fixedname_t fname;
 	dns_name_t *name;
-	
+
 	dns_diff_init(mctx, &diff);
 	dns_fixedname_init(&fname);
 	name = dns_fixedname_name(&fname);

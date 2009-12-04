@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hip_55.c,v 1.5 2009/12/04 21:09:33 marka Exp $ */
+/* $Id: hip_55.c,v 1.6 2009/12/04 22:06:37 tbox Exp $ */
 
 /* reviewed: TBC */
 
@@ -451,49 +451,49 @@ dns_rdata_hip_current(dns_rdata_hip_t *hip, dns_name_t *name) {
 
 static inline int
 casecompare_hip(ARGS_COMPARE) {
-        isc_region_t r1;
-        isc_region_t r2;
-        dns_name_t name1;
-        dns_name_t name2;
-        int order;
+	isc_region_t r1;
+	isc_region_t r2;
+	dns_name_t name1;
+	dns_name_t name2;
+	int order;
 	isc_uint8_t hit_len;
 	isc_uint16_t key_len;
- 
-        REQUIRE(rdata1->type == rdata2->type);
-        REQUIRE(rdata1->rdclass == rdata2->rdclass);
-        REQUIRE(rdata1->type == 55);
-        REQUIRE(rdata1->length != 0);
-        REQUIRE(rdata2->length != 0);
 
-        dns_rdata_toregion(rdata1, &r1);
-        dns_rdata_toregion(rdata2, &r2);
+	REQUIRE(rdata1->type == rdata2->type);
+	REQUIRE(rdata1->rdclass == rdata2->rdclass);
+	REQUIRE(rdata1->type == 55);
+	REQUIRE(rdata1->length != 0);
+	REQUIRE(rdata2->length != 0);
 
-        INSIST(r1.length > 4);
-        INSIST(r2.length > 4);
-        r1.length = 4;
-        r2.length = 4;
-        order = isc_region_compare(&r1, &r2);
-        if (order != 0)
-                return (order);
+	dns_rdata_toregion(rdata1, &r1);
+	dns_rdata_toregion(rdata2, &r2);
 
-        hit_len = uint8_fromregion(&r1);
-        isc_region_consume(&r1, 2);         /* hit length + algorithm */
-        key_len = uint16_fromregion(&r1);
+	INSIST(r1.length > 4);
+	INSIST(r2.length > 4);
+	r1.length = 4;
+	r2.length = 4;
+	order = isc_region_compare(&r1, &r2);
+	if (order != 0)
+		return (order);
 
-        dns_rdata_toregion(rdata1, &r1);
-        dns_rdata_toregion(rdata2, &r2);
-        isc_region_consume(&r1, 4);
-        isc_region_consume(&r2, 4);
-        INSIST(r1.length >= (unsigned) (hit_len + key_len));
-        INSIST(r2.length >= (unsigned) (hit_len + key_len));
-        order = isc_region_compare(&r1, &r2);
-        if (order != 0)
-                return (order);
-        isc_region_consume(&r1, hit_len + key_len);
-        isc_region_consume(&r2, hit_len + key_len);
+	hit_len = uint8_fromregion(&r1);
+	isc_region_consume(&r1, 2);         /* hit length + algorithm */
+	key_len = uint16_fromregion(&r1);
 
-        dns_name_init(&name1, NULL);
-        dns_name_init(&name2, NULL);
+	dns_rdata_toregion(rdata1, &r1);
+	dns_rdata_toregion(rdata2, &r2);
+	isc_region_consume(&r1, 4);
+	isc_region_consume(&r2, 4);
+	INSIST(r1.length >= (unsigned) (hit_len + key_len));
+	INSIST(r2.length >= (unsigned) (hit_len + key_len));
+	order = isc_region_compare(&r1, &r2);
+	if (order != 0)
+		return (order);
+	isc_region_consume(&r1, hit_len + key_len);
+	isc_region_consume(&r2, hit_len + key_len);
+
+	dns_name_init(&name1, NULL);
+	dns_name_init(&name2, NULL);
 	while (r1.length != 0 && r2.length != 0) {
 		dns_name_fromregion(&name1, &r1);
 		dns_name_fromregion(&name2, &r2);
@@ -504,7 +504,7 @@ casecompare_hip(ARGS_COMPARE) {
 		isc_region_consume(&r1, name_length(&name1));
 		isc_region_consume(&r2, name_length(&name2));
 	}
-        return (isc_region_compare(&r1, &r2));
+	return (isc_region_compare(&r1, &r2));
 }
 
 #endif	/* RDATA_GENERIC_HIP_5_C */

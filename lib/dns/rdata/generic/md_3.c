@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: md_3.c,v 1.48 2009/12/04 21:09:33 marka Exp $ */
+/* $Id: md_3.c,v 1.49 2009/12/04 22:06:37 tbox Exp $ */
 
 /* Reviewed: Wed Mar 15 17:48:20 PST 2000 by bwelling */
 
@@ -69,7 +69,7 @@ totext_md(ARGS_TOTEXT) {
 
 static inline isc_result_t
 fromwire_md(ARGS_FROMWIRE) {
-        dns_name_t name;
+	dns_name_t name;
 
 	REQUIRE(type == 3);
 
@@ -78,8 +78,8 @@ fromwire_md(ARGS_FROMWIRE) {
 
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
 
-        dns_name_init(&name, NULL);
-        return (dns_name_fromwire(&name, source, dctx, options, target));
+	dns_name_init(&name, NULL);
+	return (dns_name_fromwire(&name, source, dctx, options, target));
 }
 
 static inline isc_result_t

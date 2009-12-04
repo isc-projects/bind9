@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.58 2009/12/04 21:09:32 marka Exp $ */
+/* $Id: named-checkzone.c,v 1.59 2009/12/04 22:06:37 tbox Exp $ */
 
 /*! \file */
 
@@ -148,7 +148,7 @@ main(int argc, char **argv) {
 				 DNS_ZONEOPT_CHECKNAMES |
 				 DNS_ZONEOPT_CHECKNAMESFAIL |
 				 DNS_ZONEOPT_CHECKWILDCARD);
-	} else 
+	} else
 		zone_options |= DNS_ZONEOPT_CHECKDUPRR;
 
 #define ARGCMP(X) (strcmp(isc_commandline_argument, X) == 0)

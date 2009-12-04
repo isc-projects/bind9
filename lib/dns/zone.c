@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.536 2009/12/04 21:09:33 marka Exp $ */
+/* $Id: zone.c,v 1.537 2009/12/04 22:06:37 tbox Exp $ */
 
 /*! \file */
 
@@ -3456,7 +3456,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			result = DNS_R_BADZONE;
 			goto cleanup;
 		}
-		
+
 		if (zone->type == dns_zone_master &&
 		    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKDUPRR) &&
 		    !zone_check_dup(zone, db)) {
