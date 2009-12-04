@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dlv_32769.c,v 1.6 2007/06/18 23:47:43 tbox Exp $ */
+/* $Id: dlv_32769.c,v 1.7 2009/12/04 21:09:33 marka Exp $ */
 
 /* draft-ietf-dnsext-delegation-signer-05.txt */
 
@@ -316,6 +316,11 @@ checknames_dlv(ARGS_CHECKNAMES) {
 	UNUSED(bad);
 
 	return (ISC_TRUE);
+}
+
+static inline int
+casecompare_dlv(ARGS_COMPARE) {
+	return (compare_dlv(rdata1, rdata2));
 }
 
 #endif	/* RDATA_GENERIC_DLV_32769_C */

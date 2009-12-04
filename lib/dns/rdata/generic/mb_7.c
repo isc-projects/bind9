@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mb_7.c,v 1.45 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: mb_7.c,v 1.46 2009/12/04 21:09:33 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 17:31:26 PST 2000 by bwelling */
 
@@ -229,6 +229,11 @@ checknames_mb(ARGS_CHECKNAMES) {
 	UNUSED(bad);
 
 	return (ISC_TRUE);
+}
+
+static inline int
+casecompare_mb(ARGS_COMPARE) {
+	return (compare_mb(rdata1, rdata2));
 }
 
 #endif	/* RDATA_GENERIC_MB_7_C */

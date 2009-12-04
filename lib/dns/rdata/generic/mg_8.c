@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mg_8.c,v 1.43 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: mg_8.c,v 1.44 2009/12/04 21:09:33 marka Exp $ */
 
 /* reviewed: Wed Mar 15 17:49:21 PST 2000 by brister */
 
@@ -225,6 +225,11 @@ checknames_mg(ARGS_CHECKNAMES) {
 	UNUSED(bad);
 
 	return (ISC_TRUE);
+}
+
+static inline int
+casecompare_mg(ARGS_COMPARE) {
+	return (compare_mg(rdata1, rdata2));
 }
 
 #endif	/* RDATA_GENERIC_MG_8_C */

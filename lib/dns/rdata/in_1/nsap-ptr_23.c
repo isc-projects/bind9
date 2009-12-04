@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsap-ptr_23.c,v 1.38 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: nsap-ptr_23.c,v 1.39 2009/12/04 21:09:34 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 10:16:02 PST 2000 by gson */
 
@@ -240,6 +240,11 @@ checknames_in_nsap_ptr(ARGS_CHECKNAMES) {
 	UNUSED(bad);
 
 	return (ISC_TRUE);
+}
+
+static inline int
+casecompare_in_nsap_ptr(ARGS_COMPARE) {
+	return (compare_in_nsap_ptr(rdata1, rdata2));
 }
 
 #endif	/* RDATA_IN_1_NSAP_PTR_23_C */

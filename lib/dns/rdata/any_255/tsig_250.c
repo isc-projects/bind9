@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig_250.c,v 1.63 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: tsig_250.c,v 1.64 2009/12/04 21:09:33 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
 
@@ -592,6 +592,11 @@ checknames_any_tsig(ARGS_CHECKNAMES) {
 	UNUSED(bad);
 
 	return (ISC_TRUE);
+}
+
+static inline int
+casecompare_any_tsig(ARGS_COMPARE) {
+	return (compare_any_tsig(rdata1, rdata2));
 }
 
 #endif	/* RDATA_ANY_255_TSIG_250_C */

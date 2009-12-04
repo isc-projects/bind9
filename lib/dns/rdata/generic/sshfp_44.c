@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sshfp_44.c,v 1.7 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: sshfp_44.c,v 1.8 2009/12/04 21:09:34 marka Exp $ */
 
 /* RFC 4255 */
 
@@ -257,6 +257,11 @@ checknames_sshfp(ARGS_CHECKNAMES) {
 	UNUSED(bad);
 
 	return (ISC_TRUE);
+}
+
+static inline int
+casecompare_sshfp(ARGS_COMPARE) {
+	return (compare_sshfp(rdata1, rdata2));
 }
 
 #endif	/* RDATA_GENERIC_SSHFP_44_C */

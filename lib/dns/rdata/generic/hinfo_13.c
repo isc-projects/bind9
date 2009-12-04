@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hinfo_13.c,v 1.44 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: hinfo_13.c,v 1.45 2009/12/04 21:09:33 marka Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -221,4 +221,8 @@ checknames_hinfo(ARGS_CHECKNAMES) {
 	return (ISC_TRUE);
 }
 
+static inline int
+casecompare_hinfo(ARGS_COMPARE) {
+	return (compare_hinfo(rdata1, rdata2));
+}
 #endif	/* RDATA_GENERIC_HINFO_13_C */

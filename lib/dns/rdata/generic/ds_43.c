@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ds_43.c,v 1.12 2007/06/18 23:47:43 tbox Exp $ */
+/* $Id: ds_43.c,v 1.13 2009/12/04 21:09:33 marka Exp $ */
 
 /* draft-ietf-dnsext-delegation-signer-05.txt */
 
@@ -316,6 +316,11 @@ checknames_ds(ARGS_CHECKNAMES) {
 	UNUSED(bad);
 
 	return (ISC_TRUE);
+}
+
+static inline int
+casecompare_ds(ARGS_COMPARE) {
+	return (compare_ds(rdata1, rdata2));
 }
 
 #endif	/* RDATA_GENERIC_DS_43_C */

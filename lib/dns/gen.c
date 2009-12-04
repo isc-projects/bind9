@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.83 2008/09/25 04:02:38 tbox Exp $ */
+/* $Id: gen.c,v 1.84 2009/12/04 21:09:33 marka Exp $ */
 
 /*! \file */
 
@@ -630,6 +630,8 @@ main(int argc, char **argv) {
 		doswitch("TOWIRESWITCH", "towire", TOWIREARGS,
 			 TOWIRETYPE, TOWIRECLASS, TOWIREDEF);
 		doswitch("COMPARESWITCH", "compare", COMPAREARGS,
+			  COMPARETYPE, COMPARECLASS, COMPAREDEF);
+		doswitch("CASECOMPARESWITCH", "casecompare", COMPAREARGS,
 			  COMPARETYPE, COMPARECLASS, COMPAREDEF);
 		doswitch("FROMSTRUCTSWITCH", "fromstruct", FROMSTRUCTARGS,
 			  FROMSTRUCTTYPE, FROMSTRUCTCLASS, FROMSTRUCTDEF);

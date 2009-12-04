@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkey_249.c,v 1.57 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: tkey_249.c,v 1.58 2009/12/04 21:09:34 marka Exp $ */
 
 /*
  * Reviewed: Thu Mar 16 17:35:30 PST 2000 by halley.
@@ -552,4 +552,8 @@ checknames_tkey(ARGS_CHECKNAMES) {
 	return (ISC_TRUE);
 }
 
+static inline isc_result_t
+casecompare_tkey(ARGS_COMPARE) {
+	return (compare_tkey(rdata1, rdata2));
+}
 #endif	/* RDATA_GENERIC_TKEY_249_C */

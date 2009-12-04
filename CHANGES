@@ -1,3 +1,15 @@
+2801.	[func]		Detect and report records that are different according
+			to DNSSEC but are sematically equal according to plain
+			DNS.  Apply plain DNS comparisons rather than DNSSEC
+			comparisons when processing UPDATE requests.
+			dnssec-signzone now removes such semantically duplicate
+			records prior to signing the RRset.
+
+			named-checkzone -r {ignore|warn|fail} (default warn)
+			named-compilezone -r {ignore|warn|fail} (default warn)
+			
+			named.conf: check-dup-records {ignore|warn|fail};
+
 2800.	[func]		Reject zones which have NS records which refer to
 			CNAMEs, DNAMEs or don't have address record (class IN
 			only).  Reject UPDATEs which would cause the zone

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rp_17.c,v 1.42 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: rp_17.c,v 1.43 2009/12/04 21:09:34 marka Exp $ */
 
 /* RFC1183 */
 
@@ -311,4 +311,8 @@ checknames_rp(ARGS_CHECKNAMES) {
 	return (ISC_TRUE);
 }
 
+static inline int
+casecompare_rp(ARGS_COMPARE) {
+	return (compare_rp(rdata1, rdata2));
+}
 #endif	/* RDATA_GENERIC_RP_17_C */

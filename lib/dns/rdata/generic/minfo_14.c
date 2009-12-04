@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: minfo_14.c,v 1.45 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: minfo_14.c,v 1.46 2009/12/04 21:09:34 marka Exp $ */
 
 /* reviewed: Wed Mar 15 17:45:32 PST 2000 by brister */
 
@@ -319,6 +319,11 @@ checknames_minfo(ARGS_CHECKNAMES) {
 		return (ISC_FALSE);
 	}
 	return (ISC_TRUE);
+}
+
+static inline int
+casecompare_minfo(ARGS_COMPARE) {
+	return (compare_minfo(rdata1, rdata2));
 }
 
 #endif	/* RDATA_GENERIC_MINFO_14_C */

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aaaa_28.c,v 1.45 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: aaaa_28.c,v 1.46 2009/12/04 21:09:34 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -230,4 +230,8 @@ checknames_in_aaaa(ARGS_CHECKNAMES) {
 	return (ISC_TRUE);
 }
 
+static inline int
+casecompare_in_aaaa(ARGS_COMPARE) {
+	return (compare_in_aaaa(rdata1, rdata2));
+}
 #endif	/* RDATA_IN_1_AAAA_28_C */

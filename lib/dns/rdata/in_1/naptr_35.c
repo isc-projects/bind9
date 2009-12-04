@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: naptr_35.c,v 1.55 2009/01/21 23:47:27 tbox Exp $ */
+/* $Id: naptr_35.c,v 1.56 2009/12/04 21:09:34 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -700,6 +700,11 @@ checknames_in_naptr(ARGS_CHECKNAMES) {
 	UNUSED(bad);
 
 	return (ISC_TRUE);
+}
+
+static inline int
+casecompare_in_naptr(ARGS_COMPARE) {
+	return (compare_in_naptr(rdata1, rdata2));
 }
 
 #endif	/* RDATA_IN_1_NAPTR_35_C */

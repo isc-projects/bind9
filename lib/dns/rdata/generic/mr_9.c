@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mr_9.c,v 1.42 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: mr_9.c,v 1.43 2009/12/04 21:09:34 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 21:30:35 EST 2000 by tale */
 
@@ -226,6 +226,11 @@ checknames_mr(ARGS_CHECKNAMES) {
 	UNUSED(bad);
 
 	return (ISC_TRUE);
+}
+
+static inline int
+casecompare_mr(ARGS_COMPARE) {
+	return (compare_mr(rdata1, rdata2));
 }
 
 #endif	/* RDATA_GENERIC_MR_9_C */

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.63 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: nxt_30.c,v 1.64 2009/12/04 21:09:34 marka Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -326,4 +326,8 @@ checknames_nxt(ARGS_CHECKNAMES) {
 	return (ISC_TRUE);
 }
 
+static inline int
+casecompare_nxt(ARGS_COMPARE) {
+	return (compare_nxt(rdata1, rdata2));
+}
 #endif	/* RDATA_GENERIC_NXT_30_C */

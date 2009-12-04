@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.448 2009/12/03 23:18:17 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.449 2009/12/04 21:09:32 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4906,6 +4906,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
         ... }; </optional>
     <optional> check-names ( <replaceable>master</replaceable> | <replaceable>slave</replaceable> | <replaceable>response</replaceable> )
         ( <replaceable>warn</replaceable> | <replaceable>fail</replaceable> | <replaceable>ignore</replaceable> ); </optional>
+    <optional> check-dup-records ( <replaceable>warn</replaceable> | <replaceable>fail</replaceable> | <replaceable>ignore</replaceable> ); </optional>
     <optional> check-mx ( <replaceable>warn</replaceable> | <replaceable>fail</replaceable> | <replaceable>ignore</replaceable> ); </optional>
     <optional> check-wildcard <replaceable>yes_or_no</replaceable>; </optional>
     <optional> check-integrity <replaceable>yes_or_no</replaceable>; </optional>
@@ -6424,6 +6425,30 @@ options {
               </listitem>
             </varlistentry>
 
+	    <varlistentry>
+	      <term><command>check-dup-records</command></term>
+	      <listitem>
+		<para>
+		  Check master zones for records that are treated as different
+		  by DNSSEC but are semantically equal in plain DNS.  The
+		  default is to <command>warn</command>.  Other possible
+		  values are <command>fail</command> and
+		  <command>ignore</command>.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>check-mx</command></term>
+	      <listitem>
+		<para>
+		  Check whether the MX record appears to refer to a IP address.
+		  The default is to <command>warn</command>.  Other possible
+		  values are <command>fail</command> and
+		  <command>ignore</command>.
+		</para>
+	      </listitem>
+	    </varlistentry>
 	    <varlistentry>
 	      <term><command>check-mx</command></term>
 	      <listitem>

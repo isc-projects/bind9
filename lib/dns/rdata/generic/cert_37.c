@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cert_37.c,v 1.50 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: cert_37.c,v 1.51 2009/12/04 21:09:33 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 21:14:32 EST 2000 by tale */
 
@@ -276,5 +276,9 @@ checknames_cert(ARGS_CHECKNAMES) {
 	return (ISC_TRUE);
 }
 
-#endif	/* RDATA_GENERIC_CERT_37_C */
 
+static inline int
+casecompare_cert(ARGS_COMPARE) {
+	return (compare_cert(rdata1, rdata2));
+}
+#endif	/* RDATA_GENERIC_CERT_37_C */

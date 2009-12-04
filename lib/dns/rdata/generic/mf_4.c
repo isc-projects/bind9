@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mf_4.c,v 1.45 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: mf_4.c,v 1.46 2009/12/04 21:09:33 marka Exp $ */
 
 /* reviewed: Wed Mar 15 17:47:33 PST 2000 by brister */
 
@@ -230,6 +230,11 @@ checknames_mf(ARGS_CHECKNAMES) {
 	UNUSED(bad);
 
 	return (ISC_TRUE);
+}
+
+static inline int
+casecompare_mf(ARGS_COMPARE) {
+	return (compare_mf(rdata1, rdata2));
 }
 
 #endif	/* RDATA_GENERIC_MF_4_C */

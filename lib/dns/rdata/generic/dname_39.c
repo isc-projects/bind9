@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dname_39.c,v 1.38 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: dname_39.c,v 1.39 2009/12/04 21:09:33 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 16:52:38 PST 2000 by explorer */
 
@@ -230,4 +230,8 @@ checknames_dname(ARGS_CHECKNAMES) {
 	return (ISC_TRUE);
 }
 
+static inline int
+casecompare_dname(ARGS_COMPARE) {
+	return (compare_dname(rdata1, rdata2));
+}
 #endif	/* RDATA_GENERIC_DNAME_39_C */

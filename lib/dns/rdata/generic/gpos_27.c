@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gpos_27.c,v 1.41 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: gpos_27.c,v 1.42 2009/12/04 21:09:33 marka Exp $ */
 
 /* reviewed: Wed Mar 15 16:48:45 PST 2000 by brister */
 
@@ -247,6 +247,11 @@ checknames_gpos(ARGS_CHECKNAMES) {
 	UNUSED(bad);
 
 	return (ISC_TRUE);
+}
+
+static inline int
+casecompare_gpos(ARGS_COMPARE) {
+	return (compare_gpos(rdata1, rdata2));
 }
 
 #endif	/* RDATA_GENERIC_GPOS_27_C */

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: null_10.c,v 1.42 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: null_10.c,v 1.43 2009/12/04 21:09:34 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 13:57:50 PST 2000 by explorer */
 
@@ -187,6 +187,11 @@ checknames_null(ARGS_CHECKNAMES) {
 	UNUSED(bad);
 
 	return (ISC_TRUE);
+}
+
+static inline int
+casecompare_null(ARGS_COMPARE) {
+	return (compare_null(rdata1, rdata2));
 }
 
 #endif	/* RDATA_GENERIC_NULL_10_C */

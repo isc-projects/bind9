@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: txt_16.c,v 1.45 2008/02/15 23:46:51 tbox Exp $ */
+/* $Id: txt_16.c,v 1.46 2009/12/04 21:09:34 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 15:40:00 PST 2000 by bwelling */
 
@@ -233,6 +233,11 @@ checknames_txt(ARGS_CHECKNAMES) {
 	UNUSED(bad);
 
 	return (ISC_TRUE);
+}
+
+static inline isc_result_t
+casecompare_txt(ARGS_COMPARE) {
+	return (compare_txt(rdata1, rdata2));
 }
 
 #endif	/* RDATA_GENERIC_TXT_16_C */

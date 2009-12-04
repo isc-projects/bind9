@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.535 2009/12/04 03:33:15 marka Exp $ */
+/* $Id: zone.c,v 1.536 2009/12/04 21:09:33 marka Exp $ */
 
 /*! \file */
 
@@ -2022,6 +2022,113 @@ zone_check_glue(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 }
 
 static isc_boolean_t
+zone_rrset_check_dup(dns_zone_t *zone, dns_name_t *owner,
+		     dns_rdataset_t *rdataset)
+{
+	dns_rdataset_t tmprdataset;
+	isc_result_t result;
+	isc_boolean_t answer = ISC_TRUE;
+	isc_boolean_t format = ISC_TRUE;
+	int level = ISC_LOG_WARNING;
+	char ownerbuf[DNS_NAME_FORMATSIZE];
+	char typebuf[DNS_RDATATYPE_FORMATSIZE];
+	unsigned int count1 = 0;
+
+	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKDUPRRFAIL))
+		level = ISC_LOG_ERROR;
+
+	dns_rdataset_init(&tmprdataset);
+	for (result = dns_rdataset_first(rdataset);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(rdataset)) {
+		dns_rdata_t rdata1 = DNS_RDATA_INIT;
+		unsigned int count2 = 0;
+
+		count1++;
+		dns_rdataset_current(rdataset, &rdata1);
+		dns_rdataset_clone(rdataset, &tmprdataset);
+		for (result = dns_rdataset_first(&tmprdataset);
+		     result == ISC_R_SUCCESS;
+		     result = dns_rdataset_next(&tmprdataset)) {
+			dns_rdata_t rdata2 = DNS_RDATA_INIT;
+			count2++;
+			if (count1 >= count2)
+				continue;
+			dns_rdataset_current(&tmprdataset, &rdata2);
+			if (dns_rdata_casecompare(&rdata1, &rdata2) == 0) {
+				if (format) {
+					dns_name_format(owner, ownerbuf,
+							sizeof ownerbuf);
+					dns_rdatatype_format(rdata1.type,
+							     typebuf,
+							     sizeof(typebuf));
+					format = ISC_FALSE;
+				}
+				dns_zone_log(zone, level, "%s/%s has "
+					     "semantically identical records",
+					     ownerbuf, typebuf);
+				if (level == ISC_LOG_ERROR)
+					answer = ISC_FALSE;
+				break;
+			}
+		}
+		dns_rdataset_disassociate(&tmprdataset);
+		if (!format)
+			break;
+	}
+	return (answer);
+}
+
+static isc_boolean_t
+zone_check_dup(dns_zone_t *zone, dns_db_t *db) {
+	dns_dbiterator_t *dbiterator = NULL;
+	dns_dbnode_t *node = NULL;
+	dns_fixedname_t fixed;
+	dns_name_t *name;
+	dns_rdataset_t rdataset;
+	dns_rdatasetiter_t *rdsit = NULL;
+	isc_boolean_t ok = ISC_TRUE;
+	isc_result_t result;
+
+	dns_fixedname_init(&fixed);
+	name = dns_fixedname_name(&fixed);
+	dns_rdataset_init(&rdataset);
+
+	result = dns_db_createiterator(db, 0, &dbiterator);
+	if (result != ISC_R_SUCCESS)
+		return (ISC_TRUE);
+
+	for (result = dns_dbiterator_first(dbiterator);
+	     result == ISC_R_SUCCESS;
+	     result = dns_dbiterator_next(dbiterator)) {
+		result = dns_dbiterator_current(dbiterator, &node, name);
+		if (result != ISC_R_SUCCESS)
+			continue;
+
+		result = dns_db_allrdatasets(db, node, NULL, 0, &rdsit);
+		if (result != ISC_R_SUCCESS)
+			continue;
+
+		for (result = dns_rdatasetiter_first(rdsit);
+		     result == ISC_R_SUCCESS;
+		     result = dns_rdatasetiter_next(rdsit)) {
+			dns_rdatasetiter_current(rdsit, &rdataset);
+			if (!zone_rrset_check_dup(zone, name, &rdataset))
+				ok = ISC_FALSE;
+			dns_rdataset_disassociate(&rdataset);
+		}
+		dns_rdatasetiter_destroy(&rdsit);
+		dns_db_detachnode(db, &node);
+	}
+
+	if (node != NULL)
+		dns_db_detachnode(db, &node);
+	dns_dbiterator_destroy(&dbiterator);
+
+	return (ok);
+}
+
+static isc_boolean_t
 integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 	dns_dbiterator_t *dbiterator = NULL;
 	dns_dbnode_t *node = NULL;
@@ -2088,6 +2195,7 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 			result = dns_rdataset_next(&rdataset);
 		}
 		dns_rdataset_disassociate(&rdataset);
+		goto next;
 
  checkmx:
 		result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_mx,
@@ -3345,6 +3453,13 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		if (zone->type == dns_zone_master &&
 		    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKINTEGRITY) &&
 		    !integrity_checks(zone, db)) {
+			result = DNS_R_BADZONE;
+			goto cleanup;
+		}
+		
+		if (zone->type == dns_zone_master &&
+		    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKDUPRR) &&
+		    !zone_check_dup(zone, db)) {
 			result = DNS_R_BADZONE;
 			goto cleanup;
 		}

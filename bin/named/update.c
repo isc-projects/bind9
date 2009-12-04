@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.175 2009/12/04 20:32:07 each Exp $ */
+/* $Id: update.c,v 1.176 2009/12/04 21:09:32 marka Exp $ */
 
 #include <config.h>
 
@@ -931,7 +931,7 @@ temp_check_rrset(dns_difftuple_t *a, dns_difftuple_t *b) {
 		       b->op == DNS_DIFFOP_EXISTS);
 		INSIST(a->rdata.type == b->rdata.type);
 		INSIST(dns_name_equal(&a->name, &b->name));
-		if (dns_rdata_compare(&a->rdata, &b->rdata) != 0)
+		if (dns_rdata_casecompare(&a->rdata, &b->rdata) != 0)
 			return (DNS_R_NXRRSET);
 		a = ISC_LIST_NEXT(a, link);
 		b = ISC_LIST_NEXT(b, link);
@@ -959,7 +959,7 @@ temp_order(const void *av, const void *bv) {
 	r = (b->rdata.type - a->rdata.type);
 	if (r != 0)
 		return (r);
-	r = dns_rdata_compare(&a->rdata, &b->rdata);
+	r = dns_rdata_casecompare(&a->rdata, &b->rdata);
 	return (r);
 }
 
@@ -1188,7 +1188,7 @@ rr_equal_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
 	 *         dns_rdata_equal() (that used dns_name_equal()), since it
 	 *         would be faster.  Not a priority.
 	 */
-	return (dns_rdata_compare(update_rr, db_rr) == 0 ?
+	return (dns_rdata_casecompare(update_rr, db_rr) == 0 ?
 		ISC_TRUE : ISC_FALSE);
 }
 
@@ -1335,7 +1335,7 @@ add_rr_prepare_action(void *data, rr_t *rr) {
 	 * If the update RR is a "duplicate" of the update RR,
 	 * the update should be silently ignored.
 	 */
-	equal = ISC_TF(dns_rdata_compare(&rr->rdata, ctx->update_rr) == 0);
+	equal = ISC_TF(dns_rdata_casecompare(&rr->rdata, ctx->update_rr) == 0);
 	if (equal && rr->ttl == ctx->update_rr_ttl) {
 		ctx->ignore_add = ISC_TRUE;
 		return (ISC_R_SUCCESS);
@@ -2928,7 +2928,7 @@ rr_exists(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	     result = dns_rdataset_next(&rdataset)) {
 		dns_rdata_t myrdata = DNS_RDATA_INIT;
 		dns_rdataset_current(&rdataset, &myrdata);
-		if (!dns_rdata_compare(&myrdata, rdata))
+		if (!dns_rdata_casecompare(&myrdata, rdata))
 			break;
 	}
 	dns_rdataset_disassociate(&rdataset);

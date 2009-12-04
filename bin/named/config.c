@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.105 2009/12/03 23:18:16 each Exp $ */
+/* $Id: config.c,v 1.106 2009/12/04 21:09:32 marka Exp $ */
 
 /*! \file */
 
@@ -146,6 +146,7 @@ options {\n\
 	check-names master fail;\n\
 	check-names slave warn;\n\
 	check-names response ignore;\n\
+	check-dup-records warn;\n\
 	check-mx warn;\n\
 	acache-enable no;\n\
 	acache-cleaning-interval 60;\n\

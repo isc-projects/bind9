@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ptr_12.c,v 1.43 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: ptr_12.c,v 1.44 2009/12/04 21:09:34 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 14:05:12 PST 2000 by explorer */
 
@@ -288,4 +288,8 @@ checknames_ptr(ARGS_CHECKNAMES) {
 	return (ISC_TRUE);
 }
 
+static inline int
+casecompare_ptr(ARGS_COMPARE) {
+	return (compare_ptr(rdata1, rdata2));
+}
 #endif	/* RDATA_GENERIC_PTR_12_C */

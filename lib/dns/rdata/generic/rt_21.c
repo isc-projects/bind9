@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rt_21.c,v 1.46 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: rt_21.c,v 1.47 2009/12/04 21:09:34 marka Exp $ */
 
 /* reviewed: Thu Mar 16 15:02:31 PST 2000 by brister */
 
@@ -306,6 +306,11 @@ checknames_rt(ARGS_CHECKNAMES) {
 		return (ISC_FALSE);
 	}
 	return (ISC_TRUE);
+}
+
+static inline int
+casecompare_rt(ARGS_COMPARE) {
+	return (compare_rt(rdata1, rdata2));
 }
 
 #endif	/* RDATA_GENERIC_RT_21_C */

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: unspec_103.c,v 1.35 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: unspec_103.c,v 1.36 2009/12/04 21:09:34 marka Exp $ */
 
 #ifndef RDATA_GENERIC_UNSPEC_103_C
 #define RDATA_GENERIC_UNSPEC_103_C
@@ -184,6 +184,11 @@ checknames_unspec(ARGS_CHECKNAMES) {
 	UNUSED(bad);
 
 	return (ISC_TRUE);
+}
+
+static inline int
+casecompare_unspec(ARGS_COMPARE) {
+	return (compare_unspec(rdata1, rdata2));
 }
 
 #endif	/* RDATA_GENERIC_UNSPEC_103_C */

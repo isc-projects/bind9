@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: px_26.c,v 1.43 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: px_26.c,v 1.44 2009/12/04 21:09:34 marka Exp $ */
 
 /* Reviewed: Mon Mar 20 10:44:27 PST 2000 */
 
@@ -369,6 +369,11 @@ checknames_in_px(ARGS_CHECKNAMES) {
 	UNUSED(bad);
 
 	return (ISC_TRUE);
+}
+
+static inline int
+casecompare_in_px(ARGS_COMPARE) {
+	return (compare_in_px(rdata1, rdata2));
 }
 
 #endif	/* RDATA_IN_1_PX_26_C */

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cname_5.c,v 1.47 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: cname_5.c,v 1.48 2009/12/04 21:09:33 marka Exp $ */
 
 /* reviewed: Wed Mar 15 16:48:45 PST 2000 by brister */
 
@@ -227,6 +227,11 @@ checknames_cname(ARGS_CHECKNAMES) {
 	UNUSED(bad);
 
 	return (ISC_TRUE);
+}
+
+static inline int
+casecompare_cname(ARGS_COMPARE) {
+	return (compare_cname(rdata1, rdata2));
 }
 
 #endif	/* RDATA_GENERIC_CNAME_5_C */

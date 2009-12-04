@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ns_2.c,v 1.46 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: ns_2.c,v 1.47 2009/12/04 21:09:34 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 18:15:00 PST 2000 by bwelling */
 
@@ -246,6 +246,11 @@ checknames_ns(ARGS_CHECKNAMES) {
 		return (ISC_FALSE);
 	}
 	return (ISC_TRUE);
+}
+
+static inline int
+casecompare_ns(ARGS_COMPARE) {
+	return (compare_ns(rdata1, rdata2));
 }
 
 #endif	/* RDATA_GENERIC_NS_2_C */

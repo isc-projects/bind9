@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mx_15.c,v 1.56 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: mx_15.c,v 1.57 2009/12/04 21:09:34 marka Exp $ */
 
 /* reviewed: Wed Mar 15 18:05:46 PST 2000 by brister */
 
@@ -314,6 +314,11 @@ checknames_mx(ARGS_CHECKNAMES) {
 		return (ISC_FALSE);
 	}
 	return (ISC_TRUE);
+}
+
+static inline int
+casecompare_mx(ARGS_COMPARE) {
+	return (compare_mx(rdata1, rdata2));
 }
 
 #endif	/* RDATA_GENERIC_MX_15_C */

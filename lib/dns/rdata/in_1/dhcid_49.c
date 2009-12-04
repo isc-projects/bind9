@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dhcid_49.c,v 1.5 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: dhcid_49.c,v 1.6 2009/12/04 21:09:34 marka Exp $ */
 
 /* RFC 4701 */
 
@@ -224,6 +224,11 @@ checknames_in_dhcid(ARGS_CHECKNAMES) {
 	UNUSED(bad);
 
 	return (ISC_TRUE);
+}
+
+static inline int
+casecompare_in_dhcid(ARGS_COMPARE) {
+	return (compare_in_dhcid(rdata1, rdata2));
 }
 
 #endif	/* RDATA_IN_1_DHCID_49_C */

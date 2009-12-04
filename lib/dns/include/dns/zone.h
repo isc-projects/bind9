@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.172 2009/12/04 03:33:15 marka Exp $ */
+/* $Id: zone.h,v 1.173 2009/12/04 21:09:33 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -73,6 +73,8 @@ typedef enum {
 #define DNS_ZONEOPT_NSEC3TESTZONE 0x04000000U	/*%< nsec3-test-zone */
 #define DNS_ZONEOPT_SECURETOINSECURE 0x08000000U /*%< dnssec-secure-to-insecure */
 #define DNS_ZONEOPT_DNSKEYKSKONLY 0x10000000U	/*%< dnssec-dnskey-kskonly */
+#define DNS_ZONEOPT_CHECKDUPRR	  0x20000000U   /*%< check-dup-records */
+#define DNS_ZONEOPT_CHECKDUPRRFAIL 0x40000000U	/*%< fatal check-dup-records failures */
 
 #ifndef NOMINUM_PUBLIC
 /*

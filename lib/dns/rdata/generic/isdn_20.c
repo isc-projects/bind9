@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: isdn_20.c,v 1.38 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: isdn_20.c,v 1.39 2009/12/04 21:09:33 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 16:53:11 PST 2000 by bwelling */
 
@@ -229,6 +229,11 @@ checknames_isdn(ARGS_CHECKNAMES) {
 	UNUSED(bad);
 
 	return (ISC_TRUE);
+}
+
+static inline int
+casecompare_isdn(ARGS_COMPARE) {
+	return (compare_isdn(rdata1, rdata2));
 }
 
 #endif	/* RDATA_GENERIC_ISDN_20_C */

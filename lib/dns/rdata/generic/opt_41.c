@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: opt_41.c,v 1.33 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: opt_41.c,v 1.34 2009/12/04 21:09:34 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 14:06:44 PST 2000 by gson */
 
@@ -275,6 +275,11 @@ checknames_opt(ARGS_CHECKNAMES) {
 	UNUSED(bad);
 
 	return (ISC_TRUE);
+}
+
+static inline int
+casecompare_opt(ARGS_COMPARE) {
+	return (compare_opt(rdata1, rdata2));
 }
 
 #endif	/* RDATA_GENERIC_OPT_41_C */

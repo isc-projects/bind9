@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sig_24.c,v 1.66 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: sig_24.c,v 1.67 2009/12/04 21:09:34 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
@@ -575,4 +575,8 @@ checknames_sig(ARGS_CHECKNAMES) {
 	return (ISC_TRUE);
 }
 
+static inline int
+casecompare_sig(ARGS_COMPARE) {
+	return (compare_sig(rdata1, rdata2));
+}
 #endif	/* RDATA_GENERIC_SIG_24_C */

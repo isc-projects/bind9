@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: md_3.c,v 1.47 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: md_3.c,v 1.48 2009/12/04 21:09:33 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 17:48:20 PST 2000 by bwelling */
 
@@ -231,6 +231,11 @@ checknames_md(ARGS_CHECKNAMES) {
 	UNUSED(bad);
 
 	return (ISC_TRUE);
+}
+
+static inline int
+casecompare_md(ARGS_COMPARE) {
+	return (compare_md(rdata1, rdata2));
 }
 
 #endif	/* RDATA_GENERIC_MD_3_C */
