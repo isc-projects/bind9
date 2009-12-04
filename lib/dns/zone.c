@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.537 2009/12/04 22:06:37 tbox Exp $ */
+/* $Id: zone.c,v 1.538 2009/12/04 22:45:11 each Exp $ */
 
 /*! \file */
 
@@ -365,6 +365,7 @@ struct dns_zone {
 #define DNS_ZONEFLG_NEEDCOMPACT 0x02000000U
 #define DNS_ZONEFLG_REFRESHING	0x04000000U	/*%< Refreshing keydata */
 #define DNS_ZONEFLG_THAW	0x08000000U
+#define DNS_ZONEFLG_NOTIFYRESIGN 0x10000000U
 
 #define DNS_ZONE_OPTION(z,o) (((z)->options & (o)) != 0)
 #define DNS_ZONEKEY_OPTION(z,o) (((z)->keyopts & (o)) != 0)
@@ -6835,6 +6836,15 @@ zone_sign(dns_zone_t *zone) {
 	 * Write changes to journal file.
 	 */
 	zone_journal(zone, &sig_diff, "zone_sign");
+
+	/*
+	 * Notify slaves, if appropriate.
+	 */
+	TIME_NOW(&when);
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOTIFYRESIGN)) {
+		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NOTIFYRESIGN);
+		zone_notify(zone, when);
+	}
 
  pauseall:
 	/*
@@ -13645,6 +13655,8 @@ zone_rekey(dns_zone_t *zone) {
 	dns_db_closeversion(db, &ver, commit);
 
 	if (commit) {
+		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOTIFYRESIGN);
+
 		for (key = ISC_LIST_HEAD(rmkeys);
 		     key != NULL;
 		     key = ISC_LIST_NEXT(key, link)) {
