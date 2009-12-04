@@ -1,6 +1,6 @@
-# $Id: SRCID,v 1.60 2009/12/04 04:18:42 tbox Exp $
+# $Id: SRCID,v 1.61 2009/12/04 20:16:38 tbox Exp $
 # 
 # This file must follow /bin/sh rules.  It is imported directly via
 # configure.
 #
-SRCID="( $Date: 2009/12/04 04:18:42 $ )"
+SRCID="( $Date: 2009/12/04 20:16:38 $ )"
