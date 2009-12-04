@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.conf.5,v 1.40 2009/10/16 04:20:32 tbox Exp $
+.\" $Id: named.conf.5,v 1.41 2009/12/04 01:13:44 tbox Exp $
 .\"
 .hy 0
 .ad l
@@ -270,7 +270,7 @@ options {
 	allow\-update { \fIaddress_match_element\fR; ... };
 	allow\-update\-forwarding { \fIaddress_match_element\fR; ... };
 	update\-check\-ksk \fIboolean\fR;
-	dnskey\-ksk\-only \fIboolean\fR;
+	dnssec\-dnskey\-kskonly \fIboolean\fR;
 	masterfile\-format ( text | raw );
 	notify \fInotifytype\fR;
 	notify\-source ( \fIipv4_address\fR | * ) [ port ( \fIinteger\fR | * ) ];
@@ -314,7 +314,7 @@ options {
 	try\-tcp\-refresh \fIboolean\fR;
 	zero\-no\-soa\-ttl \fIboolean\fR;
 	zero\-no\-soa\-ttl\-cache \fIboolean\fR;
-	secure\-to\-insecure \fIboolean\fR;
+	dnssec\-secure\-to\-insecure \fIboolean\fR;
 	deny\-answer\-addresses {
 		\fIaddress_match_list\fR
 	} [ except\-from { \fInamelist\fR } ];
@@ -427,7 +427,7 @@ view \fIstring\fR \fIoptional_class\fR {
 	allow\-update { \fIaddress_match_element\fR; ... };
 	allow\-update\-forwarding { \fIaddress_match_element\fR; ... };
 	update\-check\-ksk \fIboolean\fR;
-	dnskey\-ksk\-only \fIboolean\fR;
+	dnssec\-dnskey\-kskonly \fIboolean\fR;
 	masterfile\-format ( text | raw );
 	notify \fInotifytype\fR;
 	notify\-source ( \fIipv4_address\fR | * ) [ port ( \fIinteger\fR | * ) ];
@@ -466,7 +466,7 @@ view \fIstring\fR \fIoptional_class\fR {
 	key\-directory \fIquoted_string\fR;
 	zero\-no\-soa\-ttl \fIboolean\fR;
 	zero\-no\-soa\-ttl\-cache \fIboolean\fR;
-	secure\-to\-insecure \fIboolean\fR;
+	dnssec\-secure\-to\-insecure \fIboolean\fR;
 	allow\-v6\-synthesis { \fIaddress_match_element\fR; ... }; // obsolete
 	fetch\-glue \fIboolean\fR; // obsolete
 	maintain\-ixfr\-base \fIboolean\fR; // obsolete
@@ -498,7 +498,7 @@ zone \fIstring\fR \fIoptional_class\fR {
 	ixfr\-from\-differences \fIboolean\fR;
 	journal \fIquoted_string\fR;
 	zero\-no\-soa\-ttl \fIboolean\fR;
-	secure\-to\-insecure \fIboolean\fR;
+	dnssec\-secure\-to\-insecure \fIboolean\fR;
 	allow\-query { \fIaddress_match_element\fR; ... };
 	allow\-query\-on { \fIaddress_match_element\fR; ... };
 	allow\-transfer { \fIaddress_match_element\fR; ... };
@@ -513,7 +513,7 @@ zone \fIstring\fR \fIoptional_class\fR {
 		\fR\fI[...]\fR\fI
 	}\fR;
 	update\-check\-ksk \fIboolean\fR;
-	dnskey\-ksk\-only \fIboolean\fR;
+	dnssec\-dnskey\-kskonly \fIboolean\fR;
 	masterfile\-format ( text | raw );
 	notify \fInotifytype\fR;
 	notify\-source ( \fIipv4_address\fR | * ) [ port ( \fIinteger\fR | * ) ];
