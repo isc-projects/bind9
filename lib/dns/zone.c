@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.534 2009/12/03 15:40:02 each Exp $ */
+/* $Id: zone.c,v 1.535 2009/12/04 03:33:15 marka Exp $ */
 
 /*! \file */
 
@@ -3540,7 +3540,9 @@ exit_check(dns_zone_t *zone) {
 }
 
 static isc_boolean_t
-zone_check_ns(dns_zone_t *zone, dns_db_t *db, dns_name_t *name) {
+zone_check_ns(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
+	      isc_boolean_t logit)
+{
 	isc_result_t result;
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char altbuf[DNS_NAME_FORMATSIZE];
@@ -3571,30 +3573,33 @@ zone_check_ns(dns_zone_t *zone, dns_db_t *db, dns_name_t *name) {
 			return (ISC_TRUE);
 	}
 
-	dns_name_format(name, namebuf, sizeof namebuf);
 	if (result == DNS_R_NXRRSET || result == DNS_R_NXDOMAIN ||
 	    result == DNS_R_EMPTYNAME) {
-		dns_zone_log(zone, level,
-			     "NS '%s' has no address records (A or AAAA)",
-			     namebuf);
-		/* XXX950 Make fatal ISC_FALSE for 9.5.0. */
-		return (ISC_TRUE);
+		if (logit) {
+			dns_name_format(name, namebuf, sizeof namebuf);
+			dns_zone_log(zone, level, "NS '%s' has no address "
+				     "records (A or AAAA)", namebuf);
+		}
+		return (ISC_FALSE);
 	}
 
 	if (result == DNS_R_CNAME) {
-		dns_zone_log(zone, level, "NS '%s' is a CNAME (illegal)",
-			     namebuf);
-		/* XXX950 Make fatal ISC_FALSE for 9.5.0. */
-		return (ISC_TRUE);
+		if (logit) {
+			dns_name_format(name, namebuf, sizeof namebuf);
+			dns_zone_log(zone, level, "NS '%s' is a CNAME "
+				     "(illegal)", namebuf);
+		}
+		return (ISC_FALSE);
 	}
 
 	if (result == DNS_R_DNAME) {
-		dns_name_format(foundname, altbuf, sizeof altbuf);
-		dns_zone_log(zone, level,
-			     "NS '%s' is below a DNAME '%s' (illegal)",
-			     namebuf, altbuf);
-		/* XXX950 Make fatal ISC_FALSE for 9.5.0. */
-		return (ISC_TRUE);
+		if (logit) {
+			dns_name_format(name, namebuf, sizeof namebuf);
+			dns_name_format(foundname, altbuf, sizeof altbuf);
+			dns_zone_log(zone, level, "NS '%s' is below a DNAME "
+				     "'%s' (illegal)", namebuf, altbuf);
+		}
+		return (ISC_FALSE);
 	}
 
 	return (ISC_TRUE);
@@ -3603,7 +3608,7 @@ zone_check_ns(dns_zone_t *zone, dns_db_t *db, dns_name_t *name) {
 static isc_result_t
 zone_count_ns_rr(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
 		 dns_dbversion_t *version, unsigned int *nscount,
-		 unsigned int *errors)
+		 unsigned int *errors, isc_boolean_t logit)
 {
 	isc_result_t result;
 	unsigned int count = 0;
@@ -3634,7 +3639,7 @@ zone_count_ns_rr(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
 			result = dns_rdata_tostruct(&rdata, &ns, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			if (dns_name_issubdomain(&ns.name, &zone->origin) &&
-			    !zone_check_ns(zone, db, &ns.name))
+			    !zone_check_ns(zone, db, &ns.name, logit))
 				ecount++;
 		}
 		count++;
@@ -3763,7 +3768,7 @@ zone_get_from_db(dns_zone_t *zone, dns_db_t *db, unsigned int *nscount,
 
 	if (nscount != NULL || errors != NULL) {
 		result = zone_count_ns_rr(zone, db, node, version,
-					  nscount, errors);
+					  nscount, errors, ISC_TRUE);
 		if (result != ISC_R_SUCCESS)
 			answer = result;
 	}
@@ -13605,5 +13610,24 @@ dns_zone_rekey(dns_zone_t *zone) {
 	result = zone_rekey(zone);
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESHING);
 	UNLOCK_ZONE(zone);
+	return (result);
+}
+
+isc_result_t
+dns_zone_nscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version,
+		 unsigned int *errors)
+{
+	isc_result_t result;
+	dns_dbnode_t *node = NULL;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(errors != NULL);
+
+	result = dns_db_getoriginnode(db, &node);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	result = zone_count_ns_rr(zone, db, node, version, NULL, errors,
+				  ISC_FALSE);
+	dns_db_detachnode(db, &node);
 	return (result);
 }

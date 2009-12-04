@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.4 2007/06/19 23:47:07 tbox Exp $
+# $Id: tests.sh,v 1.5 2009/12/04 03:33:15 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -161,4 +161,4 @@ else
 	echo "I:failed (status)"; status=1
 fi
 echo "I:exit status: $status"
-exit $?
+exit $status

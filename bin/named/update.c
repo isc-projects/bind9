@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.173 2009/12/03 23:48:22 tbox Exp $ */
+/* $Id: update.c,v 1.174 2009/12/04 03:33:14 marka Exp $ */
 
 #include <config.h>
 
@@ -4087,6 +4087,18 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (! ISC_LIST_EMPTY(diff.tuples))
 		CHECK(check_dnssec(client, zone, db, ver, &diff));
+
+	if (! ISC_LIST_EMPTY(diff.tuples)) {
+		unsigned int errors = 0;
+		CHECK(dns_zone_nscheck(zone, db, ver, &errors));
+		if (errors != 0) {
+			update_log(client, zone, LOGLEVEL_PROTOCOL,
+				   "update rejected: post update name server "
+				   "sanity check failed");
+			result = DNS_R_REFUSED;
+			goto failure;
+		}
+	}
 
 	/*
 	 * If any changes were made, increment the SOA serial number,

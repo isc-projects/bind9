@@ -1,3 +1,8 @@
+2800.	[func]		Reject zones which have NS records which refer to
+			CNAMEs, DNAMEs or don't have address record (class IN
+			only).  Reject UPDATEs which would cause the zone
+			to fail the above checks if committed. [RT #20678]
+
 2799.	[cleanup]	Changed the "secure-to-insecure" option to
 			"dnssec-secure-to-insecure", and "dnskey-ksk-only"
 			to "dnssec-dnskey-kskonly", for clarity. [RT #20586]
