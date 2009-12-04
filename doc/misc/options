@@ -78,6 +78,7 @@ options {
         bindkeys-file <quoted_string>;
         blackhole { <address_match_element>; ... };
         cache-file <quoted_string>;
+        check-dup-records ( fail | warn | ignore );
         check-integrity <boolean>;
         check-mx ( fail | warn | ignore );
         check-mx-cname ( fail | warn | ignore );
@@ -275,6 +276,7 @@ view <string> <optional_class> {
         attach-cache <string>;
         auth-nxdomain <boolean>; // default changed
         cache-file <quoted_string>;
+        check-dup-records ( fail | warn | ignore );
         check-integrity <boolean>;
         check-mx ( fail | warn | ignore );
         check-mx-cname ( fail | warn | ignore );
@@ -419,6 +421,7 @@ view <string> <optional_class> {
                 alt-transfer-source-v6 ( <ipv6_address> | * ) [ port (
                     <integer> | * ) ];
                 auto-dnssec ( allow | maintain | create | off );
+                check-dup-records ( fail | warn | ignore );
                 check-integrity <boolean>;
                 check-mx ( fail | warn | ignore );
                 check-mx-cname ( fail | warn | ignore );
@@ -503,6 +506,7 @@ zone <string> <optional_class> {
         alt-transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> |
             * ) ];
         auto-dnssec ( allow | maintain | create | off );
+        check-dup-records ( fail | warn | ignore );
         check-integrity <boolean>;
         check-mx ( fail | warn | ignore );
         check-mx-cname ( fail | warn | ignore );
