@@ -1,4 +1,4 @@
-.\" Copyright (C) 2004, 2005, 2007, 2008 Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (C) 2004, 2005, 2007-2009 Internet Systems Consortium, Inc. ("ISC")
 .\" Copyright (C) 2000-2003 Internet Software Consortium.
 .\" 
 .\" Permission to use, copy, modify, and/or distribute this software for any
@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-keygen.8,v 1.38.130.3 2009/07/11 01:43:27 tbox Exp $
+.\" $Id: dnssec-keygen.8,v 1.38.130.4 2009/12/04 01:44:05 tbox Exp $
 .\"
 .hy 0
 .ad l
@@ -38,6 +38,10 @@ dnssec\-keygen \- DNSSEC key generation tool
 .PP
 \fBdnssec\-keygen\fR
 generates keys for DNSSEC (Secure DNS), as defined in RFC 2535 and RFC 4034. It can also generate keys for use with TSIG (Transaction Signatures), as defined in RFC 2845.
+.PP
+The
+\fBname\fR
+of the key is specified on the command line. For DNSSEC keys, this must match the name of the zone for which the key is being generated.
 .SH "OPTIONS"
 .PP
 \-a \fIalgorithm\fR
@@ -194,7 +198,7 @@ RFC 4033.
 .PP
 Internet Systems Consortium
 .SH "COPYRIGHT"
-Copyright \(co 2004, 2005, 2007, 2008 Internet Systems Consortium, Inc. ("ISC")
+Copyright \(co 2004, 2005, 2007\-2009 Internet Systems Consortium, Inc. ("ISC")
 .br
 Copyright \(co 2000\-2003 Internet Software Consortium.
 .br
