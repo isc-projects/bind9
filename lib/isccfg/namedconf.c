@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.111 2009/11/28 15:57:37 vjs Exp $ */
+/* $Id: namedconf.c,v 1.113 2009/12/04 21:09:34 marka Exp $ */
 
 /*! \file */
 
@@ -523,6 +523,7 @@ static cfg_tuplefielddef_t checknames_fields[] = {
 	{ "mode", &cfg_type_checkmode, 0 },
 	{ NULL, NULL, 0 }
 };
+
 static cfg_type_t cfg_type_checknames = {
 	"checknames", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple, &cfg_rep_tuple,
 	checknames_fields
@@ -1119,6 +1120,7 @@ zone_clauses[] = {
 	{ "also-notify", &cfg_type_portiplist, 0 },
 	{ "alt-transfer-source", &cfg_type_sockaddr4wild, 0 },
 	{ "alt-transfer-source-v6", &cfg_type_sockaddr6wild, 0 },
+	{ "check-dup-records", &cfg_type_checkmode, 0 },
 	{ "check-integrity", &cfg_type_boolean, 0 },
 	{ "check-mx", &cfg_type_checkmode, 0 },
 	{ "check-mx-cname", &cfg_type_checkmode, 0 },
@@ -1126,7 +1128,8 @@ zone_clauses[] = {
 	{ "check-srv-cname", &cfg_type_checkmode, 0 },
 	{ "check-wildcard", &cfg_type_boolean, 0 },
 	{ "dialup", &cfg_type_dialuptype, 0 },
-	{ "dnskey-ksk-only", &cfg_type_boolean, 0 },
+	{ "dnssec-dnskey-kskonly", &cfg_type_boolean, 0 },
+	{ "dnssec-secure-to-insecure", &cfg_type_boolean, 0 },
 	{ "forward", &cfg_type_forwardtype, 0 },
 	{ "forwarders", &cfg_type_portiplist, 0 },
 	{ "key-directory", &cfg_type_qstring, 0 },
@@ -1149,7 +1152,6 @@ zone_clauses[] = {
 	{ "notify-source-v6", &cfg_type_sockaddr6wild, 0 },
 	{ "notify-to-soa", &cfg_type_boolean, 0 },
 	{ "nsec3-test-zone", &cfg_type_boolean, CFG_CLAUSEFLAG_TESTONLY },
-	{ "secure-to-insecure", &cfg_type_boolean, 0 },
 	{ "sig-signing-nodes", &cfg_type_uint32, 0 },
 	{ "sig-signing-signatures", &cfg_type_uint32, 0 },
 	{ "sig-signing-type", &cfg_type_uint32, 0 },

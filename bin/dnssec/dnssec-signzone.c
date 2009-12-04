@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.256 2009/11/25 03:17:11 each Exp $ */
+/* $Id: dnssec-signzone.c,v 1.258 2009/12/04 22:06:37 tbox Exp $ */
 
 /*! \file */
 
@@ -2348,6 +2348,97 @@ nsec3clean(dns_name_t *name, dns_dbnode_t *node,
 		check_result(result, "dns_db_deleterdataset(RRSIG(NSEC3))");
 }
 
+static void
+rrset_remove_duplicates(dns_name_t *name, dns_rdataset_t *rdataset,
+			dns_diff_t *diff)
+{
+	dns_difftuple_t *tuple = NULL;
+	isc_result_t result;
+	unsigned int count1 = 0;
+	dns_rdataset_t tmprdataset;
+
+	dns_rdataset_init(&tmprdataset);
+	for (result = dns_rdataset_first(rdataset);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(rdataset)) {
+		dns_rdata_t rdata1 = DNS_RDATA_INIT;
+		unsigned int count2 = 0;
+
+		count1++;
+		dns_rdataset_current(rdataset, &rdata1);
+		dns_rdataset_clone(rdataset, &tmprdataset);
+		for (result = dns_rdataset_first(&tmprdataset);
+		     result == ISC_R_SUCCESS;
+		     result = dns_rdataset_next(&tmprdataset)) {
+			dns_rdata_t rdata2 = DNS_RDATA_INIT;
+			count2++;
+			if (count1 >= count2)
+				continue;
+			dns_rdataset_current(&tmprdataset, &rdata2);
+			if (dns_rdata_casecompare(&rdata1, &rdata2) == 0) {
+				result = dns_difftuple_create(mctx,
+							      DNS_DIFFOP_DEL,
+							      name,
+							      rdataset->ttl,
+							      &rdata2, &tuple);
+				check_result(result, "dns_difftuple_create");
+				dns_diff_append(diff, &tuple);
+			}
+		}
+		dns_rdataset_disassociate(&tmprdataset);
+	}
+}
+
+static void
+remove_duplicates(void) {
+	isc_result_t result;
+	dns_dbiterator_t *dbiter = NULL;
+	dns_rdatasetiter_t *rdsiter = NULL;
+	dns_diff_t diff;
+	dns_dbnode_t *node = NULL;
+	dns_rdataset_t rdataset;
+	dns_fixedname_t fname;
+	dns_name_t *name;
+
+	dns_diff_init(mctx, &diff);
+	dns_fixedname_init(&fname);
+	name = dns_fixedname_name(&fname);
+	dns_rdataset_init(&rdataset);
+
+	result = dns_db_createiterator(gdb, 0, &dbiter);
+	check_result(result, "dns_db_createiterator()");
+
+	for (result = dns_dbiterator_first(dbiter);
+	     result == ISC_R_SUCCESS;
+	     result = dns_dbiterator_next(dbiter)) {
+
+		result = dns_dbiterator_current(dbiter, &node, name);
+		check_dns_dbiterator_current(result);
+		result = dns_db_allrdatasets(gdb, node, gversion, 0, &rdsiter);
+		check_result(result, "dns_db_allrdatasets()");
+		for (result = dns_rdatasetiter_first(rdsiter);
+		     result == ISC_R_SUCCESS;
+		     result = dns_rdatasetiter_next(rdsiter)) {
+			dns_rdatasetiter_current(rdsiter, &rdataset);
+			rrset_remove_duplicates(name, &rdataset, &diff);
+			dns_rdataset_disassociate(&rdataset);
+		}
+		if (result != ISC_R_NOMORE)
+			fatal("rdatasets iteration failed.");
+		dns_rdatasetiter_destroy(&rdsiter);
+		dns_db_detachnode(gdb, &node);
+	}
+	if (result != ISC_R_NOMORE)
+		fatal("zone iteration failed.");
+
+	if (!ISC_LIST_EMPTY(diff.tuples)) {
+		result = dns_diff_applysilently(&diff, gdb, gversion);
+		check_result(result, "dns_diff_applysilently");
+	}
+	dns_diff_clear(&diff);
+	dns_dbiterator_destroy(&dbiter);
+}
+
 /*
  * Generate NSEC3 records for the zone.
  */
@@ -3708,6 +3799,8 @@ main(int argc, char *argv[]) {
 			/* do nothing */
 			break;
 	}
+
+	remove_duplicates();
 
 	if (IS_NSEC3)
 		nsec3ify(dns_hash_sha1, nsec3iter, salt, salt_length,

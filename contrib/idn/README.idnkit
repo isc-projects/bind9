@@ -1,37 +1,22 @@
 
-			BIND-9 IDN patch
+                          BIND 9 IDN support
 
 	       Japan Network Information Center (JPNIC)
-
-
-* What is this patch for?
-
-This patch adds internationalized domain name (IDN) support to BIND-9.
-You'll get internationalized version of dig/host/nslookup commands.
-
-    + internationalized dig/host/nslookup
-	dig/host/nslookup accepts non-ASCII domain names in the local
-	codeset (such as Shift JIS, Big5 or ISO8859-1) determined by
-	the locale information.  The domain names are normalized and
-	converted to the encoding on the DNS protocol, and sent to DNS
-	servers.  The replies are converted back to the local codeset
-	and displayed.
 
 
 * Compilation & installation
 
 0. Prerequisite
 
-You have to build and install idnkit before building this patched version
-of bind-9.
+You have to build and install idnkit before building bind9.
 
 1. Running configure script
 
 Run `configure' in the top directory.  See `README' for the
 configuration options.
 
-This patch adds the following 4 options to `configure'.  You should
-at least specify `--with-idn' option to enable IDN support.
+The following four options to `configure' are relevant to IDN.  You
+should at least specify `--with-idn' option to enable IDN support.
 
     --with-idn[=IDN_PREFIX]
 	To enable IDN support, you have to specify `--with-idn' option.
@@ -73,8 +58,7 @@ at least specify `--with-idn' option to enable IDN support.
 	is the argument(s) to `cc' or `ld' to link the library, for
 	example, `--with-iconv="-L/usr/local/lib -liconv"'.
 	You don't need to specify the header file directory for "iconv.h"
-	to the compiler, as it isn't included directly by bind-9 with
-	this patch.
+	to the compiler, as it isn't included directly by bind9.
 
     --with-idnlib=IDN_LIBSPEC
 	With this option, you can explicitly specify the argument(s)
@@ -103,10 +87,10 @@ for compiling and installing.
 
 * Contact information
 
-Please see http//www.nic.ad.jp/en/idn/ for the latest news
-about idnkit and this patch.
+Please see http://www.nic.ad.jp/en/idn/ for the latest news
+about idnkit.
 
 Bug reports and comments on this kit should be sent to
 mdnkit-bugs@nic.ad.jp and idn-cmt@nic.ad.jp, respectively.
 
-; $Id: README.idnkit,v 1.3 2009/01/17 09:43:50 fdupont Exp $
+; $Id: README.idnkit,v 1.1 2009/12/04 20:14:28 each Exp $

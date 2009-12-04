@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.159 2009/10/22 03:43:16 each Exp $ */
+/* $Id: zoneconf.c,v 1.161 2009/12/04 21:09:32 marka Exp $ */
 
 /*% */
 
@@ -855,7 +855,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 				   cfg_obj_asboolean(obj));
 
 		obj = NULL;
-		result = ns_config_get(maps, "dnskey-ksk-only", &obj);
+		result = ns_config_get(maps, "dnssec-dnskey-kskonly", &obj);
 		INSIST(result == ISC_R_SUCCESS);
 		dns_zone_setoption(zone, DNS_ZONEOPT_DNSKEYKSKONLY,
 				   cfg_obj_asboolean(obj));
@@ -880,6 +880,21 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		else
 			check = ISC_FALSE;
 		dns_zone_setoption(zone, DNS_ZONEOPT_CHECKWILDCARD, check);
+
+		obj = NULL;
+		result = ns_config_get(maps, "check-dup-records", &obj);
+		INSIST(obj != NULL);
+		if (strcasecmp(cfg_obj_asstring(obj), "warn") == 0) {
+			fail = ISC_FALSE;
+			check = ISC_TRUE;
+		} else if (strcasecmp(cfg_obj_asstring(obj), "fail") == 0) {
+			fail = check = ISC_TRUE;
+		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
+			fail = check = ISC_FALSE;
+		} else
+			INSIST(0);
+		dns_zone_setoption(zone, DNS_ZONEOPT_CHECKDUPRR, check);
+		dns_zone_setoption(zone, DNS_ZONEOPT_CHECKDUPRRFAIL, fail);
 
 		obj = NULL;
 		result = ns_config_get(maps, "check-mx", &obj);
@@ -933,7 +948,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		dns_zone_setoption(zone, DNS_ZONEOPT_IGNORESRVCNAME, ignore);
 
 		obj = NULL;
-		result = ns_config_get(maps, "secure-to-insecure", &obj);
+		result = ns_config_get(maps, "dnssec-secure-to-insecure", &obj);
 		INSIST(obj != NULL);
 		dns_zone_setoption(zone, DNS_ZONEOPT_SECURETOINSECURE,
 				   cfg_obj_asboolean(obj));

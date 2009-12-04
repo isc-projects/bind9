@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.104 2009/10/26 23:14:53 each Exp $ */
+/* $Id: config.c,v 1.106 2009/12/04 21:09:32 marka Exp $ */
 
 /*! \file */
 
@@ -146,6 +146,7 @@ options {\n\
 	check-names master fail;\n\
 	check-names slave warn;\n\
 	check-names response ignore;\n\
+	check-dup-records warn;\n\
 	check-mx warn;\n\
 	acache-enable no;\n\
 	acache-cleaning-interval 60;\n\
@@ -189,7 +190,7 @@ options {\n\
 	max-refresh-time 2419200; /* 4 weeks */\n\
 	min-refresh-time 300;\n\
 	multi-master no;\n\
-	secure-to-insecure no;\n\
+	dnssec-secure-to-insecure no;\n\
 	sig-validity-interval 30; /* days */\n\
 	sig-signing-nodes 100;\n\
 	sig-signing-signatures 10;\n\
@@ -204,7 +205,7 @@ options {\n\
 	check-srv-cname warn;\n\
 	zero-no-soa-ttl yes;\n\
 	update-check-ksk yes;\n\
-	dnskey-ksk-only no;\n\
+	dnssec-dnskey-kskonly no;\n\
 	try-tcp-refresh yes; /* BIND 8 compat */\n\
 };\n\
 "

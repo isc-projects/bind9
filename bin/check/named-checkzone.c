@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.57 2009/11/10 21:30:42 each Exp $ */
+/* $Id: named-checkzone.c,v 1.59 2009/12/04 22:06:37 tbox Exp $ */
 
 /*! \file */
 
@@ -80,6 +80,7 @@ usage(void) {
 		"[-f inputformat] [-F outputformat] "
 		"[-t directory] [-w directory] [-k (ignore|warn|fail)] "
 		"[-n (ignore|warn|fail)] [-m (ignore|warn|fail)] "
+		"[-r (ignore|warn|fail)] "
 		"[-i (full|full-sibling|local|local-sibling|none)] "
 		"[-M (ignore|warn|fail)] [-S (ignore|warn|fail)] "
 		"[-W (ignore|warn)] "
@@ -143,17 +144,19 @@ main(int argc, char **argv) {
 	if (progmode == progmode_compile) {
 		zone_options |= (DNS_ZONEOPT_CHECKNS |
 				 DNS_ZONEOPT_FATALNS |
+				 DNS_ZONEOPT_CHECKDUPRR |
 				 DNS_ZONEOPT_CHECKNAMES |
 				 DNS_ZONEOPT_CHECKNAMESFAIL |
 				 DNS_ZONEOPT_CHECKWILDCARD);
-	}
+	} else
+		zone_options |= DNS_ZONEOPT_CHECKDUPRR;
 
 #define ARGCMP(X) (strcmp(isc_commandline_argument, X) == 0)
 
 	isc_commandline_errprint = ISC_FALSE;
 
 	while ((c = isc_commandline_parse(argc, argv,
-					 "c:df:hi:jk:m:n:qs:t:o:vw:DF:M:S:W:"))
+				       "c:df:hi:jk:m:n:qr:s:t:o:vw:DF:M:S:W:"))
 	       != EOF) {
 		switch (c) {
 		case 'c':
@@ -265,16 +268,27 @@ main(int argc, char **argv) {
 			}
 			break;
 
+		case 'o':
+			output_filename = isc_commandline_argument;
+			break;
+
 		case 'q':
 			quiet++;
 			break;
 
-		case 't':
-			result = isc_dir_chroot(isc_commandline_argument);
-			if (result != ISC_R_SUCCESS) {
-				fprintf(stderr, "isc_dir_chroot: %s: %s\n",
-					isc_commandline_argument,
-					isc_result_totext(result));
+		case 'r':
+			if (ARGCMP("warn")) {
+				zone_options |= DNS_ZONEOPT_CHECKDUPRR;
+				zone_options &= ~DNS_ZONEOPT_CHECKDUPRRFAIL;
+			} else if (ARGCMP("fail")) {
+				zone_options |= DNS_ZONEOPT_CHECKDUPRR |
+						DNS_ZONEOPT_CHECKDUPRRFAIL;
+			} else if (ARGCMP("ignore")) {
+				zone_options &= ~(DNS_ZONEOPT_CHECKDUPRR |
+						  DNS_ZONEOPT_CHECKDUPRRFAIL);
+			} else {
+				fprintf(stderr, "invalid argument to -r: %s\n",
+					isc_commandline_argument);
 				exit(1);
 			}
 			break;
@@ -292,8 +306,14 @@ main(int argc, char **argv) {
 			}
 			break;
 
-		case 'o':
-			output_filename = isc_commandline_argument;
+		case 't':
+			result = isc_dir_chroot(isc_commandline_argument);
+			if (result != ISC_R_SUCCESS) {
+				fprintf(stderr, "isc_dir_chroot: %s: %s\n",
+					isc_commandline_argument,
+					isc_result_totext(result));
+				exit(1);
+			}
 			break;
 
 		case 'v':

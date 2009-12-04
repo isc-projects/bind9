@@ -1,3 +1,35 @@
+2804.	[bug]		Send notifies when a zone is signed with "rndc sign"
+			or as a result of a scheduled key change. [RT #20700]
+
+2803.	[port]		win32: Install named-journalprint, nsec3hash, arpaname
+			and genrandom under windows. [RT #20670]
+
+2802.	[cleanup]	Rename journalprint to named-journalprint. [RT #20670]
+
+2801.	[func]		Detect and report records that are different according
+			to DNSSEC but are sematically equal according to plain
+			DNS.  Apply plain DNS comparisons rather than DNSSEC
+			comparisons when processing UPDATE requests.
+			dnssec-signzone now removes such semantically duplicate
+			records prior to signing the RRset.
+
+			named-checkzone -r {ignore|warn|fail} (default warn)
+			named-compilezone -r {ignore|warn|fail} (default warn)
+			
+			named.conf: check-dup-records {ignore|warn|fail};
+
+2800.	[func]		Reject zones which have NS records which refer to
+			CNAMEs, DNAMEs or don't have address record (class IN
+			only).  Reject UPDATEs which would cause the zone
+			to fail the above checks if committed. [RT #20678]
+
+2799.	[cleanup]	Changed the "secure-to-insecure" option to
+			"dnssec-secure-to-insecure", and "dnskey-ksk-only"
+			to "dnssec-dnskey-kskonly", for clarity. [RT #20586]
+
+2798.	[bug]		Addressed bugs in managed-keys initialization 
+			and rollover. [RT #20683]
+
 2797.	[bug]		Don't decrement the dispatch manager's maxbuffers.
 			[RT #20613]
 

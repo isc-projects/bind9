@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.170 2009/10/12 20:48:12 each Exp $ */
+/* $Id: zone.h,v 1.174 2009/12/04 22:06:37 tbox Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -71,8 +71,10 @@ typedef enum {
 #define DNS_ZONEOPT_TRYTCPREFRESH 0x01000000U	/*%< try tcp refresh on udp failure */
 #define DNS_ZONEOPT_NOTIFYTOSOA	  0x02000000U	/*%< Notify the SOA MNAME */
 #define DNS_ZONEOPT_NSEC3TESTZONE 0x04000000U	/*%< nsec3-test-zone */
-#define DNS_ZONEOPT_SECURETOINSECURE 0x08000000U /*%< secure-to-insecure */
-#define DNS_ZONEOPT_DNSKEYKSKONLY 0x10000000U	/*%< dnskey-ksk-only */
+#define DNS_ZONEOPT_SECURETOINSECURE 0x08000000U /*%< dnssec-secure-to-insecure */
+#define DNS_ZONEOPT_DNSKEYKSKONLY 0x10000000U	/*%< dnssec-dnskey-kskonly */
+#define DNS_ZONEOPT_CHECKDUPRR	  0x20000000U   /*%< check-dup-records */
+#define DNS_ZONEOPT_CHECKDUPRRFAIL 0x40000000U	/*%< fatal check-dup-records failures */
 
 #ifndef NOMINUM_PUBLIC
 /*
@@ -1781,6 +1783,25 @@ dns_zone_rekey(dns_zone_t *zone);
 /*%<
  * Update the zone's DNSKEY set from the key repository.
  */
+
+isc_result_t
+dns_zone_nscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version,
+		 unsigned int *errors);
+/*%
+ * Check if the name servers for the zone are sane (have address, don't
+ * refer to CNAMEs/DNAMEs.  The number of constiancy errors detected in
+ * returned in '*errors'
+ *
+ * Requires:
+ * \li	'zone' to be valid.
+ * \li	'db' to be valid.
+ * \li	'version' to be valid or NULL.
+ * \li	'errors' to be non NULL.
+ *
+ * Returns:
+ * 	ISC_R_SUCCESS if there were no errors examining the zone contents.
+ */
+
 
 ISC_LANG_ENDDECLS
 

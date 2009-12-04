@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keytable.h,v 1.18 2009/07/01 23:47:36 tbox Exp $ */
+/* $Id: keytable.h,v 1.20 2009/12/03 16:49:09 each Exp $ */
 
 #ifndef DNS_KEYTABLE_H
 #define DNS_KEYTABLE_H 1
@@ -351,6 +351,22 @@ dns_keytable_finddeepestmatch(dns_keytable_t *keytable, dns_name_t *name,
  */
 
 void
+dns_keytable_attachkeynode(dns_keytable_t *keytable, dns_keynode_t *source,
+			   dns_keynode_t **target);
+/*%<
+ * Attach a keynode and and increment the active_nodes counter in a
+ * corresponding keytable.
+ *
+ * Requires:
+ *
+ *\li	'keytable' is a valid keytable.
+ *
+ *\li	'source' is a valid keynode.
+ *
+ *\li	'target' is not null and '*target' is null.
+ */
+
+void
 dns_keytable_detachkeynode(dns_keytable_t *keytable,
 			   dns_keynode_t **keynodep);
 /*%<
@@ -421,9 +437,15 @@ dns_keynode_attach(dns_keynode_t *source, dns_keynode_t **target);
 void
 dns_keynode_detach(isc_mem_t *mctx, dns_keynode_t **target);
 /*%<
- * Detach keynode.
+ * Detach a single keynode, without touching any keynodes that
+ * may be pointed to by its 'next' pointer
  */
 
+void
+dns_keynode_detachall(isc_mem_t *mctx, dns_keynode_t **target);
+/*%<
+ * Detach a keynode and all its succesors.
+ */
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_KEYTABLE_H */
