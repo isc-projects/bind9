@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.174 2009/12/04 03:33:14 marka Exp $ */
+/* $Id: update.c,v 1.175 2009/12/04 20:32:07 each Exp $ */
 
 #include <config.h>
 
@@ -1945,7 +1945,7 @@ add_sigs(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	}
 	if (!added_sig) {
 		update_log(client, zone, ISC_LOG_ERROR,
-			   "found no private keys, "
+			   "found no active private keys, "
 			   "unable to generate any signatures");
 		result = ISC_R_NOTFOUND;
 	}
