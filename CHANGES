@@ -1,3 +1,7 @@
+2805.	[bug]		Fixed namespace problems encountered when building
+			external programs using non-exported BIND9 libraries
+			(i.e., built without --enable-exportlib). [RT #20679]
+
 2804.	[bug]		Send notifies when a zone is signed with "rndc sign"
 			or as a result of a scheduled key change. [RT #20700]
 
