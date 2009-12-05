@@ -283,6 +283,7 @@
 ./bin/rndc/rndc.conf.html			HTML	DOCBOOK
 ./bin/rndc/rndc.docbook				SGML	2000,2001,2004,2005,2007
 ./bin/rndc/rndc.html				HTML	DOCBOOK
+./bin/rndc/unix/.cvsignore			X	2009
 ./bin/rndc/util.c				C	2000,2001,2004,2005,2007
 ./bin/rndc/util.h				C	2000,2001,2004,2005,2007,2009
 ./bin/rndc/win32/rndc.dsp			X	2001,2004,2005,2006,2009
@@ -2141,8 +2142,11 @@
 ./lib/export/isc/include/isc/Makefile.in	MAKE	2009
 ./lib/export/isc/nls/.cvsignore			X	2009
 ./lib/export/isc/nls/Makefile.in		MAKE	2009
+./lib/export/isc/nothreads/.cvsignore		X	2009
 ./lib/export/isc/nothreads/Makefile.in		MAKE	2009
+./lib/export/isc/nothreads/include/.cvsignore	X	2009
 ./lib/export/isc/nothreads/include/Makefile.in	MAKE	2009
+./lib/export/isc/nothreads/include/isc/.cvsignore	X	2009
 ./lib/export/isc/nothreads/include/isc/Makefile.in	MAKE	2009
 ./lib/export/isc/pthreads/.cvsignore		X	2009
 ./lib/export/isc/pthreads/Makefile.in		MAKE	2009
