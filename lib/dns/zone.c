@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.538 2009/12/04 22:45:11 each Exp $ */
+/* $Id: zone.c,v 1.539 2009/12/05 01:25:43 each Exp $ */
 
 /*! \file */
 
@@ -6483,6 +6483,7 @@ zone_sign(dns_zone_t *zone) {
 	unsigned int nkeys = 0;
 	isc_uint32_t nodes;
 	isc_boolean_t was_ksk;
+	isc_time_t when;
 
 	dns_rdataset_init(&rdataset);
 	dns_fixedname_init(&fixed);
@@ -6842,8 +6843,10 @@ zone_sign(dns_zone_t *zone) {
 	 */
 	TIME_NOW(&when);
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOTIFYRESIGN)) {
+		LOCK_ZONE(zone);
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NOTIFYRESIGN);
-		zone_notify(zone, when);
+		UNLOCK_ZONE(zone);
+		zone_notify(zone, &when);
 	}
 
  pauseall:
