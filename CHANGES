@@ -1,3 +1,5 @@
+	--- 9.7.0rc1 released ---
+
 2805.	[bug]		Fixed namespace problems encountered when building
 			external programs using non-exported BIND9 libraries
 			(i.e., built without --enable-exportlib). [RT #20679]
