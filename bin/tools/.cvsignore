@@ -1,5 +1,5 @@
 Makefile
 arpaname
 genrandom
-journalprint
+named-journalprint
 nsec3hash
