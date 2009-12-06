@@ -529,6 +529,7 @@
 ./bin/tests/system/Makefile.in			MAKE	2000,2001,2004,2007,2008
 ./bin/tests/system/README			TXT.BRIEF	2000,2001,2004
 ./bin/tests/system/acl/clean.sh			SH	2008
+./bin/tests/system/acl/ns2/.cvsignore		X	2009
 ./bin/tests/system/acl/ns2/named1.conf		CONF-C	2008
 ./bin/tests/system/acl/ns2/named2.conf		CONF-C	2008
 ./bin/tests/system/acl/ns2/named3.conf		CONF-C	2008
@@ -585,6 +586,7 @@
 ./bin/tests/system/checkconf/good.conf		CONF-C	2005,2007
 ./bin/tests/system/checkconf/tests.sh		SH	2005,2007
 ./bin/tests/system/checknames/clean.sh		SH	2004,2007
+./bin/tests/system/checknames/ns1/.cvsignore	X	2009
 ./bin/tests/system/checknames/ns1/fail.example.db.in	ZONE	2004,2007
 ./bin/tests/system/checknames/ns1/fail.update.db.in	ZONE	2004,2007
 ./bin/tests/system/checknames/ns1/ignore.example.db.in	ZONE	2004,2007
@@ -593,8 +595,10 @@
 ./bin/tests/system/checknames/ns1/root.db	ZONE	2004,2007
 ./bin/tests/system/checknames/ns1/warn.example.db.in	ZONE	2004,2007
 ./bin/tests/system/checknames/ns1/warn.update.db.in	ZONE	2004,2007
+./bin/tests/system/checknames/ns2/.cvsignore	X	2009
 ./bin/tests/system/checknames/ns2/named.conf	CONF-C	2004,2007
 ./bin/tests/system/checknames/ns2/root.hints	ZONE	2004,2007
+./bin/tests/system/checknames/ns3/.cvsignore	X	2009
 ./bin/tests/system/checknames/ns3/named.conf	CONF-C	2004,2007
 ./bin/tests/system/checknames/ns3/root.hints	ZONE	2004,2007
 ./bin/tests/system/checknames/setup.sh		SH	2004,2007
@@ -683,7 +687,9 @@
 ./bin/tests/system/dnssec/ns5/.cvsignore	X	2000,2001
 ./bin/tests/system/dnssec/ns5/named.conf	CONF-C	2000,2001,2004,2006,2007
 ./bin/tests/system/dnssec/ns5/trusted.conf.bad	CONF-C	2000,2001,2004,2007
+./bin/tests/system/dnssec/ns6/.cvsignore	X	2009
 ./bin/tests/system/dnssec/ns6/named.conf	CONF-C	2004,2006,2007
+./bin/tests/system/dnssec/ns7/.cvsignore	X	2009
 ./bin/tests/system/dnssec/ns7/named.conf	CONF-C	2006,2008
 ./bin/tests/system/dnssec/prereq.sh		SH	2000,2001,2002,2004,2006,2007,2009
 ./bin/tests/system/dnssec/setup.sh		SH	2000,2001,2004,2007,2009
@@ -767,9 +773,11 @@
 ./bin/tests/system/masterfile/ns1/ttl2.db	ZONE	2001,2004,2007
 ./bin/tests/system/masterfile/tests.sh		SH	2001,2004,2007
 ./bin/tests/system/masterformat/clean.sh	SH	2005,2007
+./bin/tests/system/masterformat/ns1/.cvsignore	X	2009
 ./bin/tests/system/masterformat/ns1/compile.sh	SH	2005,2006,2007
 ./bin/tests/system/masterformat/ns1/example.db	ZONE	2005,2007
 ./bin/tests/system/masterformat/ns1/named.conf	CONF-C	2005,2007
+./bin/tests/system/masterformat/ns2/.cvsignore	X	2009
 ./bin/tests/system/masterformat/ns2/named.conf	CONF-C	2005,2007
 ./bin/tests/system/masterformat/setup.sh	SH	2005,2006,2007
 ./bin/tests/system/masterformat/tests.sh	SH	2005,2007
@@ -882,7 +890,7 @@
 ./bin/tests/system/runall.sh			SH	2000,2001,2004,2007
 ./bin/tests/system/send.pl			PERL	2001,2004,2007
 ./bin/tests/system/setup.sh			SH	2000,2001,2004,2007
-./bin/tests/system/sortlist/clean.sh		SH	2000,2001,2004,2007
+./bin/tests/system/sortlist/clean.sh		SH	2000,2001,2004,2007,2009
 ./bin/tests/system/sortlist/ns1/.cvsignore	X	2000,2001
 ./bin/tests/system/sortlist/ns1/example.db	ZONE	2000,2001,2004,2007
 ./bin/tests/system/sortlist/ns1/named.conf	CONF-C	2000,2001,2004,2007
@@ -2140,6 +2148,7 @@
 ./lib/export/isc/include/Makefile.in		MAKE	2009
 ./lib/export/isc/include/isc/.cvsignore		X	2009
 ./lib/export/isc/include/isc/Makefile.in	MAKE	2009
+./lib/export/isc/include/isc/bind9.h		C	2009
 ./lib/export/isc/nls/.cvsignore			X	2009
 ./lib/export/isc/nls/Makefile.in		MAKE	2009
 ./lib/export/isc/nothreads/.cvsignore		X	2009
@@ -2242,6 +2251,7 @@
 ./lib/isc/include/isc/backtrace.h		C	2009
 ./lib/isc/include/isc/base32.h			C	2008
 ./lib/isc/include/isc/base64.h			C	1999,2000,2001,2004,2005,2006,2007
+./lib/isc/include/isc/bind9.h			C	2009
 ./lib/isc/include/isc/bitstring.h		C	1999,2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/boolean.h			C	1998,1999,2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/buffer.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008
