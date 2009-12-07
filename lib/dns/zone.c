@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.539 2009/12/05 01:25:43 each Exp $ */
+/* $Id: zone.c,v 1.540 2009/12/07 20:51:12 each Exp $ */
 
 /*! \file */
 
@@ -13582,6 +13582,53 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 	return (result);
 }
 
+static void
+sign_dnskey(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
+	    dns_diff_t *diff)
+{
+	isc_result_t result;
+	isc_stdtime_t now, inception, soaexpire;
+	isc_boolean_t check_ksk, keyset_kskonly;
+	dst_key_t *zone_keys[MAXZONEKEYS];
+	unsigned int nkeys = 0, i;
+
+	result = find_zone_keys(zone, db, ver, zone->mctx, MAXZONEKEYS,
+				zone_keys, &nkeys);
+	if (result != ISC_R_SUCCESS) {
+		dns_zone_log(zone, ISC_LOG_ERROR,
+			     "sign_dnskey:find_zone_keys -> %s\n",
+			     dns_result_totext(result));
+		return;
+	}
+
+	isc_stdtime_get(&now);
+	inception = now - 3600;	/* Allow for clock skew. */
+	soaexpire = now + dns_zone_getsigvalidityinterval(zone);
+
+	check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
+	keyset_kskonly = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_DNSKEYKSKONLY);
+
+	result = del_sigs(zone, db, ver, &zone->origin, dns_rdatatype_dnskey,
+			  diff, zone_keys, nkeys, now);
+	if (result != ISC_R_SUCCESS) {
+		dns_zone_log(zone, ISC_LOG_ERROR,
+			     "sign_dnskey:del_sigs -> %s\n",
+			     dns_result_totext(result));
+		goto failure;
+	}
+
+	result = add_sigs(db, ver, &zone->origin, dns_rdatatype_dnskey, diff,
+			  zone_keys, nkeys, zone->mctx, inception, soaexpire,
+			  check_ksk, keyset_kskonly);
+
+	if (result != ISC_R_SUCCESS)
+		dns_zone_log(zone, ISC_LOG_ERROR, "zone_rekey:add_sigs -> %s\n",
+			     dns_result_totext(result));
+ failure:
+	for (i = 0; i < nkeys; i++)
+		dst_key_free(&zone_keys[i]);
+}
+
 static isc_result_t
 zone_rekey(dns_zone_t *zone) {
 	isc_result_t result;
@@ -13648,6 +13695,7 @@ zone_rekey(dns_zone_t *zone) {
 		if (!ISC_LIST_EMPTY(diff.tuples)) {
 			commit = ISC_TRUE;
 			dns_diff_apply(&diff, db, ver);
+			sign_dnskey(zone, db, ver, &diff);
 			add_signing_records(db, zone->privatetype, ver, &diff);
 			result = increment_soa_serial(db, ver, &diff, mctx);
 			if (result == ISC_R_SUCCESS)
