@@ -1,3 +1,6 @@
+2807.	[bug]		Fixed a possible ASSERT when reconfiguring zone
+			keys. [RT #20720]
+
 	--- 9.7.0rc1 released ---
 
 2806.	[bug]		"rdnc sign" could delay re-signing the DNSKEY

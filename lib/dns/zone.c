@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540 2009/12/07 20:51:12 each Exp $ */
+/* $Id: zone.c,v 1.540.2.1 2009/12/11 01:06:12 each Exp $ */
 
 /*! \file */
 
@@ -13750,6 +13750,7 @@ zone_rekey(dns_zone_t *zone) {
 		isc_time_set(&timethen, then, 0);
 		if (isc_time_isepoch(&zone->refreshkeytime) ||
 		    isc_time_compare(&timethen, &zone->refreshkeytime) < 0) {
+			TIME_NOW(&timenow);
 			zone->refreshkeytime = timethen;
 			zone_settimer(zone, &timenow);
 		}
