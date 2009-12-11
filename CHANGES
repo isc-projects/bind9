@@ -1,3 +1,6 @@
+
+	--- 9.4-ESVrc1 released ---
+
 2797.	[bug]		Don't decrement the dispatch manager's maxbuffers.
 			[RT #20613]
 
