@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.126 2009/09/29 15:06:06 fdupont Exp $ */
+/* $Id: rndc.c,v 1.126.66.1 2009/12/18 07:59:09 each Exp $ */
 
 /*! \file */
 
@@ -117,6 +117,8 @@ command is one of the following:\n\
   notify zone [class [view]]\n\
 		Resend NOTIFY messages for the zone.\n\
   reconfig	Reload configuration file and new zones only.\n\
+  sign zone [class [view]]\n\
+		Update zone keys, and sign as needed.\n\
   stats		Write server statistics to the statistics file.\n\
   querylog	Toggle query logging.\n\
   dumpdb [-all|-cache|-zones] [view ...]\n\

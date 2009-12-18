@@ -1,3 +1,6 @@
+2811.	[cleanup]	Add "rndc sign" to list of commands in rndc usage
+			output. [RT #20733]
+
 2810.	[doc]		Clarified the process of transitioning an NSEC3 zone
 			to insecure. [RT #20746]
 			
