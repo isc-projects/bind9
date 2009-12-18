@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.450 2009/12/04 21:59:23 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.450.4.1 2009/12/18 07:55:06 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -6616,9 +6616,26 @@ options {
 	      <term><command>dnssec-secure-to-insecure</command></term>
 	      <listitem>
 	        <para>
-		  Allow a zone to transition from secure to insecure by
-		  deleting all DNSKEY records.  The default is
-		  <command>no</command>.
+		  Allow a dynamic zone to transition from secure to
+                  insecure (i.e., signed to unsigned) by deleting all
+                  of the DNSKEY records.  The default is <command>no</command>.
+                  If set to <command>yes</command>, and if the DNSKEY RRset
+                  at the zone apex is deleted, all RRSIG and NSEC records
+                  will be removed from the zone as well.
+		</para>
+	        <para>
+                  If the zone uses NSEC3, then it is also necessary to
+                  delete the NSEC3PARAM RRset from the zone apex; this will
+                  cause the removal of all corresponding NSEC3 records.
+                  (It is expected that this requirement will be eliminated
+                  in a future release.)
+		</para>
+	        <para>
+                  Note that if a zone has been configured with
+                  <command>auto-dnssec maintain</command> and the
+                  private keys remain accessible in the key repository,
+                  then the zone will be automatically signed again the
+                  next time <command>named</command> is started.
 		</para>
 	      </listitem>
 	    </varlistentry>
