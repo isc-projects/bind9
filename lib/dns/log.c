@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.45 2007/06/18 23:47:40 tbox Exp $ */
+/* $Id: log.c,v 1.45.558.1 2009/12/18 22:13:53 each Exp $ */
 
 /*! \file */
 
@@ -79,6 +79,7 @@ LIBDNS_EXTERNAL_DATA isc_logmodule_t dns_modules[] = {
 	{ "dns/hints",		0 },
 	{ "dns/acache",		0 },
 	{ "dns/dlz",		0 },
+	{ "dns/dnssec",		0 },
 	{ NULL, 		0 }
 };
 
