@@ -1,3 +1,6 @@
+2808.	[bug]		atomic.h was not being properly installed under all
+			circumstances. [RT #20722]
+
 2807.	[bug]		Fixed a possible ASSERT when reconfiguring zone
 			keys. [RT #20720]
 
