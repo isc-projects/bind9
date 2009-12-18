@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.104 2009/12/05 23:31:41 each Exp $
+# $Id: Makefile.in,v 1.104.2.1 2009/12/18 04:09:55 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -122,9 +122,6 @@ installdirs:
 
 install:: timestamp installdirs
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_DATA} libisc.@A@ ${DESTDIR}${libdir}
-
-install:: @ISC_ARCH_DIR@/include/isc/atomic.h
-	${INSTALL_DATA} @ISC_ARCH_DIR@/include/isc/atomic.h ${DESTDIR}${includedir}/isc
 
 clean distclean::
 	rm -f libisc.@A@ libisc-nosymtbl.@A@ libisc.la \
