@@ -1,3 +1,6 @@
+2809.	[cleanup]	Restored accidentally-deleted text in usage output
+			in dnssec-settime and dnssec-revoke [RT #20739]
+
 2808.	[bug]		Remove the attempt to install atomic.h from lib/isc.
 			atomic.h is correctly installed by the architecture
 			specific subdirectories.  [RT #20722]
