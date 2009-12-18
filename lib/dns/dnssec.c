@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.115.10.1 2009/12/18 22:13:53 each Exp $
+ * $Id: dnssec.c,v 1.115.10.2 2009/12/18 23:48:18 tbox Exp $
  */
 
 /*! \file */
@@ -671,7 +671,7 @@ dns_dnssec_findzonekeys2(dns_db_t *db, dns_dbversion_t *ver,
 					sizeof(keybuf));
 			dns_secalg_format(dst_key_alg(pubkey), algbuf,
 					  sizeof(algbuf));
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, 
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_DNSSEC, ISC_LOG_WARNING,
 				      "dns_dnssec_findzonekeys2: error "
 				      "reading private key file %s/%s/%d: %s",
@@ -1257,7 +1257,7 @@ dns_dnssec_findmatchingkeys(dns_name_t *origin, const char *directory,
 
 			if (result != ISC_R_SUCCESS) {
 				isc_log_write(dns_lctx,
-					      DNS_LOGCATEGORY_GENERAL, 
+					      DNS_LOGCATEGORY_GENERAL,
 					      DNS_LOGMODULE_DNSSEC,
 					      ISC_LOG_WARNING,
 					      "dns_dnssec_findmatchingkeys: "
@@ -1456,7 +1456,7 @@ dns_dnssec_keylistfromrdataset(dns_name_t *origin,
 					sizeof(keybuf));
 			dns_secalg_format(dst_key_alg(pubkey), algbuf,
 					  sizeof(algbuf));
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, 
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_DNSSEC, ISC_LOG_WARNING,
 				      "dns_dnssec_keylistfromrdataset: error "
 				      "reading private key file %s/%s/%d: %s",

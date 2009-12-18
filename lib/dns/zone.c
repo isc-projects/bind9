@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.2 2009/12/18 22:13:53 each Exp $ */
+/* $Id: zone.c,v 1.540.2.3 2009/12/18 23:48:18 tbox Exp $ */
 
 /*! \file */
 
@@ -13647,17 +13647,17 @@ dnskey_sane(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	for (tuple = ISC_LIST_HEAD(diff->tuples);
 	     tuple != NULL;
 	     tuple = ISC_LIST_NEXT(tuple, link)) {
-                isc_uint8_t alg;
-	        if (tuple->rdata.type != dns_rdatatype_dnskey ||
-                    tuple->op != DNS_DIFFOP_ADD)
+		isc_uint8_t alg;
+		if (tuple->rdata.type != dns_rdatatype_dnskey ||
+		    tuple->op != DNS_DIFFOP_ADD)
 			continue;
 
-                alg = tuple->rdata.data[3];
-                if (alg == DST_ALG_RSAMD5 || alg == DST_ALG_RSASHA1 ||
-                    alg == DST_ALG_DSA || alg == DST_ALG_ECC) {
-                        nseconly = ISC_TRUE;
-                        break;
-                }
+		alg = tuple->rdata.data[3];
+		if (alg == DST_ALG_RSAMD5 || alg == DST_ALG_RSASHA1 ||
+		    alg == DST_ALG_DSA || alg == DST_ALG_ECC) {
+			nseconly = ISC_TRUE;
+			break;
+		}
 	}
 
 	/* Check existing DB for NSEC-only DNSKEY */

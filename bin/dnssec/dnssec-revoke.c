@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-revoke.c,v 1.18.34.1 2009/12/18 07:48:37 each Exp $ */
+/* $Id: dnssec-revoke.c,v 1.18.34.2 2009/12/18 23:48:18 tbox Exp $ */
 
 /*! \file */
 
@@ -56,7 +56,7 @@ usage(void) {
 	fprintf(stderr, "Version: %s\n", VERSION);
 #ifdef USE_PKCS11
 	fprintf(stderr, "    -E engine:    specify OpenSSL engine "
-				           "(default \"pkcs11\")\n");
+					   "(default \"pkcs11\")\n");
 #else
 	fprintf(stderr, "    -E engine:    specify OpenSSL engine\n");
 #endif
