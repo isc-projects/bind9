@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.177 2009/12/18 22:16:49 each Exp $ */
+/* $Id: update.c,v 1.178 2009/12/18 23:49:03 tbox Exp $ */
 
 #include <config.h>
 
@@ -3044,7 +3044,7 @@ check_dnssec(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	for (tuple = ISC_LIST_HEAD(diff->tuples);
 	     tuple != NULL;
 	     tuple = ISC_LIST_NEXT(tuple, link)) {
-	        if (tuple->op != DNS_DIFFOP_ADD)
+		if (tuple->op != DNS_DIFFOP_ADD)
 			continue;
 
 		if (tuple->rdata.type == dns_rdatatype_dnskey) {
@@ -3052,7 +3052,7 @@ check_dnssec(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 			alg = tuple->rdata.data[3];
 			if (alg == DST_ALG_RSAMD5 || alg == DST_ALG_RSASHA1 ||
 			    alg == DST_ALG_DSA || alg == DST_ALG_ECC) {
-			    	nseconly = ISC_TRUE;
+				nseconly = ISC_TRUE;
 				break;
 			}
 		} else if (tuple->rdata.type == dns_rdatatype_nsec3param) {
