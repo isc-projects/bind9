@@ -1,5 +1,5 @@
 2808.	[bug]		Remove the attempt to install atomic.h from lib/isc.
-			atomic.h is correctly intalled by the architecture
+			atomic.h is correctly installed by the architecture
 			specific subdirectories.  [RT #20722]
 
 2807.	[bug]		Fixed a possible ASSERT when reconfiguring zone
