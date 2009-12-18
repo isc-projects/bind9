@@ -1,3 +1,9 @@
+2813.	[bug]		Better handling of unreadable DNSSEC key files.
+			[RT #20710]
+
+2812.	[bug]		Make sure updates can't result in a zone with
+			NSEC-only keys and NSEC3 records. [RT 20748]
+
 2811.	[cleanup]	Add "rndc sign" to list of commands in rndc usage
 			output. [RT #20733]
 
