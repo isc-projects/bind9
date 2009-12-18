@@ -1,3 +1,6 @@
+2810.	[doc]		Clarified the process of transitioning an NSEC3 zone
+			to insecure. [RT #20746]
+
 2809.	[cleanup]	Restored accidentally-deleted text in usage output
 			in dnssec-settime and dnssec-revoke [RT #20739]
 
