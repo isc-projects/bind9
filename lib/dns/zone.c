@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.541 2009/12/11 01:06:03 each Exp $ */
+/* $Id: zone.c,v 1.543 2009/12/18 23:49:03 tbox Exp $ */
 
 /*! \file */
 
@@ -2544,8 +2544,8 @@ set_resigntime(dns_zone_t *zone) {
 
 	dns_rdataset_init(&rdataset);
 	dns_fixedname_init(&fixed);
-	result	= dns_db_getsigningtime(zone->db, &rdataset,
-					dns_fixedname_name(&fixed));
+	result = dns_db_getsigningtime(zone->db, &rdataset,
+				       dns_fixedname_name(&fixed));
 	if (result != ISC_R_SUCCESS) {
 		isc_time_settoepoch(&zone->resigntime);
 		return;
@@ -13629,6 +13629,59 @@ sign_dnskey(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		dst_key_free(&zone_keys[i]);
 }
 
+/*
+ * Prevent the zone entering a inconsistent state where
+ * NSEC only DNSKEYs are present with NSEC3 chains.
+ * See update.c:check_dnssec()
+ */
+static isc_boolean_t
+dnskey_sane(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
+	    dns_diff_t *diff)
+{
+	isc_result_t result;
+	dns_difftuple_t *tuple;
+	isc_boolean_t nseconly = ISC_FALSE, nsec3 = ISC_FALSE;
+	dns_rdatatype_t privatetype = dns_zone_getprivatetype(zone);
+
+	/* Scan the tuples for an NSEC-only DNSKEY */
+	for (tuple = ISC_LIST_HEAD(diff->tuples);
+	     tuple != NULL;
+	     tuple = ISC_LIST_NEXT(tuple, link)) {
+		isc_uint8_t alg;
+		if (tuple->rdata.type != dns_rdatatype_dnskey ||
+		    tuple->op != DNS_DIFFOP_ADD)
+			continue;
+
+		alg = tuple->rdata.data[3];
+		if (alg == DST_ALG_RSAMD5 || alg == DST_ALG_RSASHA1 ||
+		    alg == DST_ALG_DSA || alg == DST_ALG_ECC) {
+			nseconly = ISC_TRUE;
+			break;
+		}
+	}
+
+	/* Check existing DB for NSEC-only DNSKEY */
+	if (!nseconly)
+		CHECK(dns_nsec_nseconly(db, ver, &nseconly));
+
+	/* Check existing DB for NSEC3 */
+	if (!nsec3)
+		CHECK(dns_nsec3_activex(db, ver, ISC_FALSE,
+					privatetype, &nsec3));
+
+	/* Refuse to allow NSEC3 with NSEC-only keys */
+	if (nseconly && nsec3) {
+		dns_zone_log(zone, ISC_LOG_ERROR,
+			   "NSEC only DNSKEYs and NSEC3 chains not allowed");
+		goto failure;
+	}
+
+	return (ISC_TRUE);
+
+ failure:
+	return (ISC_FALSE);
+}
+
 static isc_result_t
 zone_rekey(dns_zone_t *zone) {
 	isc_result_t result;
@@ -13689,10 +13742,22 @@ zone_rekey(dns_zone_t *zone) {
 		isc_boolean_t check_ksk;
 		check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
 
-		CHECK(dns_dnssec_updatekeys(&dnskeys, &keys, &rmkeys,
-					    &zone->origin, ttl, &diff,
-					    ISC_TF(!check_ksk), mctx, logmsg));
-		if (!ISC_LIST_EMPTY(diff.tuples)) {
+		result = dns_dnssec_updatekeys(&dnskeys, &keys, &rmkeys,
+					       &zone->origin, ttl, &diff,
+					       ISC_TF(!check_ksk),
+					       mctx, logmsg);
+
+		/* Keys couldn't be updated for some reason; try again later. */
+		if (result != ISC_R_SUCCESS) {
+			dns_zone_log(zone, ISC_LOG_ERROR, "zone_rekey:"
+				     "couldn't update zone keys: %s",
+				     isc_result_totext(result));
+			zone->refreshkeytime.seconds += HOUR;
+			goto failure;
+		}
+
+		if (!ISC_LIST_EMPTY(diff.tuples) &&
+		    dnskey_sane(zone, db, ver, &diff)) {
 			commit = ISC_TRUE;
 			dns_diff_apply(&diff, db, ver);
 			sign_dnskey(zone, db, ver, &diff);

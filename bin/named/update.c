@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.176 2009/12/04 21:09:32 marka Exp $ */
+/* $Id: update.c,v 1.178 2009/12/18 23:49:03 tbox Exp $ */
 
 #include <config.h>
 
@@ -3034,61 +3034,62 @@ static isc_result_t
 check_dnssec(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	     dns_dbversion_t *ver, dns_diff_t *diff)
 {
-	dns_diff_t temp_diff;
-	dns_diffop_t op;
-	dns_difftuple_t *tuple, *newtuple = NULL, *next;
-	isc_boolean_t flag;
+	dns_difftuple_t *tuple;
+	isc_boolean_t nseconly = ISC_FALSE, nsec3 = ISC_FALSE;
 	isc_result_t result;
 	unsigned int iterations = 0, max;
 	dns_rdatatype_t privatetype = dns_zone_getprivatetype(zone);
 
-	dns_diff_init(diff->mctx, &temp_diff);
+	/* Scan the tuples for an NSEC-only DNSKEY or an NSEC3PARAM */
+	for (tuple = ISC_LIST_HEAD(diff->tuples);
+	     tuple != NULL;
+	     tuple = ISC_LIST_NEXT(tuple, link)) {
+		if (tuple->op != DNS_DIFFOP_ADD)
+			continue;
 
-	CHECK(dns_nsec_nseconly(db, ver, &flag));
+		if (tuple->rdata.type == dns_rdatatype_dnskey) {
+			isc_uint8_t alg;
+			alg = tuple->rdata.data[3];
+			if (alg == DST_ALG_RSAMD5 || alg == DST_ALG_RSASHA1 ||
+			    alg == DST_ALG_DSA || alg == DST_ALG_ECC) {
+				nseconly = ISC_TRUE;
+				break;
+			}
+		} else if (tuple->rdata.type == dns_rdatatype_nsec3param) {
+			nsec3 = ISC_TRUE;
+			break;
+		}
+	}
 
-	if (flag)
+	/* Check existing DB for NSEC-only DNSKEY */
+	if (!nseconly)
+		CHECK(dns_nsec_nseconly(db, ver, &nseconly));
+
+	/* Check existing DB for NSEC3 */
+	if (!nsec3)
 		CHECK(dns_nsec3_activex(db, ver, ISC_FALSE,
-					privatetype, &flag));
-	if (flag) {
-		update_log(client, zone, ISC_LOG_WARNING,
+					privatetype, &nsec3));
+
+	/* Refuse to allow NSEC3 with NSEC-only keys */
+	if (nseconly && nsec3) {
+		update_log(client, zone, ISC_LOG_ERROR,
 			   "NSEC only DNSKEYs and NSEC3 chains not allowed");
-	} else {
-		CHECK(get_iterations(db, ver, privatetype, &iterations));
-		CHECK(dns_nsec3_maxiterations(db, ver, client->mctx, &max));
-		if (max != 0 && iterations > max) {
-			flag = ISC_TRUE;
-			update_log(client, zone, ISC_LOG_WARNING,
-				   "too many NSEC3 iterations (%u) for "
-				   "weakest DNSKEY (%u)", iterations, max);
-		}
-	}
-	if (flag) {
-		for (tuple = ISC_LIST_HEAD(diff->tuples);
-		     tuple != NULL;
-		     tuple = next) {
-			next = ISC_LIST_NEXT(tuple, link);
-			if (tuple->rdata.type != dns_rdatatype_dnskey &&
-			    tuple->rdata.type != dns_rdatatype_nsec3param)
-				continue;
-			op = (tuple->op == DNS_DIFFOP_DEL) ?
-			     DNS_DIFFOP_ADD : DNS_DIFFOP_DEL;
-			CHECK(dns_difftuple_create(temp_diff.mctx, op,
-						   &tuple->name, tuple->ttl,
-						   &tuple->rdata, &newtuple));
-			CHECK(do_one_tuple(&newtuple, db, ver, &temp_diff));
-			INSIST(newtuple == NULL);
-		}
-		for (tuple = ISC_LIST_HEAD(temp_diff.tuples);
-		     tuple != NULL;
-		     tuple = ISC_LIST_HEAD(temp_diff.tuples)) {
-			ISC_LIST_UNLINK(temp_diff.tuples, tuple, link);
-			dns_diff_appendminimal(diff, &tuple);
-		}
+		result = DNS_R_REFUSED;
+		goto failure;
 	}
 
+	/* Verify NSEC3 params */
+	CHECK(get_iterations(db, ver, privatetype, &iterations));
+	CHECK(dns_nsec3_maxiterations(db, ver, client->mctx, &max));
+	if (max != 0 && iterations > max) {
+		update_log(client, zone, ISC_LOG_ERROR,
+			   "too many NSEC3 iterations (%u) for "
+			   "weakest DNSKEY (%u)", iterations, max);
+		result = DNS_R_REFUSED;
+		goto failure;
+	}
 
  failure:
-	dns_diff_clear(&temp_diff);
 	return (result);
 }
 

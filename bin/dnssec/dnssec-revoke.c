@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-revoke.c,v 1.18 2009/10/27 18:56:48 each Exp $ */
+/* $Id: dnssec-revoke.c,v 1.20 2009/12/18 23:49:02 tbox Exp $ */
 
 /*! \file */
 
@@ -54,12 +54,11 @@ usage(void) {
 	fprintf(stderr, "Usage:\n");
 	fprintf(stderr,	"    %s [options] keyfile\n\n", program);
 	fprintf(stderr, "Version: %s\n", VERSION);
-	fprintf(stderr, "\t-E engine:\n");
 #ifdef USE_PKCS11
-	fprintf(stderr, "\t\tname of an OpenSSL engine to use "
-				"(default is \"pkcs11\")\n");
+	fprintf(stderr, "    -E engine:    specify OpenSSL engine "
+					   "(default \"pkcs11\")\n");
 #else
-	fprintf(stderr, "\t\tname of an OpenSSL engine to use\n");
+	fprintf(stderr, "    -E engine:    specify OpenSSL engine\n");
 #endif
 	fprintf(stderr, "    -f:	   force overwrite\n");
 	fprintf(stderr, "    -K directory: use directory for key files\n");

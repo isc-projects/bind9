@@ -1,3 +1,22 @@
+2813.	[bug]		Better handling of unreadable DNSSEC key files.
+			[RT #20710]
+
+2812.	[bug]		Make sure updates can't result in a zone with
+			NSEC-only keys and NSEC3 records. [RT 20748]
+
+2811.	[cleanup]	Add "rndc sign" to list of commands in rndc usage
+			output. [RT #20733]
+
+2810.	[doc]		Clarified the process of transitioning an NSEC3 zone
+			to insecure. [RT #20746]
+
+2809.	[cleanup]	Restored accidentally-deleted text in usage output
+			in dnssec-settime and dnssec-revoke [RT #20739]
+
+2808.	[bug]		Remove the attempt to install atomic.h from lib/isc.
+			atomic.h is correctly installed by the architecture
+			specific subdirectories.  [RT #20722]
+
 2807.	[bug]		Fixed a possible ASSERT when reconfiguring zone
 			keys. [RT #20720]
 
