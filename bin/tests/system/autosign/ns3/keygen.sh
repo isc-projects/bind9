@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: keygen.sh,v 1.3 2009/11/30 23:48:02 tbox Exp $
+# $Id: keygen.sh,v 1.3.6.1 2009/12/19 17:30:07 each Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -25,8 +25,8 @@ zone=secure.example
 zonefile="${zone}.db"
 infile="${zonefile}.in"
 cp $infile $zonefile
-ksk=`$KEYGEN -q -r $RANDFILE -fk $zone`
-$KEYGEN -q -r $RANDFILE $zone > /dev/null
+ksk=`$KEYGEN -3 -q -r $RANDFILE -fk $zone`
+$KEYGEN -3 -q -r $RANDFILE $zone > /dev/null
 $DSFROMKEY $ksk.key > dsset-${zone}.
 
 #
@@ -102,8 +102,8 @@ zone=optout.optout.example
 zonefile="${zone}.db"
 infile="${zonefile}.in"
 cp $infile $zonefile
-ksk=`$KEYGEN -q -r $RANDFILE -fk $zone`
-$KEYGEN -q -r $RANDFILE $zone > /dev/null
+ksk=`$KEYGEN -q -3 -r $RANDFILE -fk $zone`
+$KEYGEN -q -3 -r $RANDFILE $zone > /dev/null
 $DSFROMKEY $ksk.key > dsset-${zone}.
 
 #

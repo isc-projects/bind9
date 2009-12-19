@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: keygen.sh,v 1.3 2009/11/30 23:48:02 tbox Exp $
+# $Id: keygen.sh,v 1.3.6.1 2009/12/19 17:30:07 each Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -29,14 +29,14 @@ infile=root.db.in
 
 cat $infile ../ns2/dsset-example. > $zonefile
 
-$KEYGEN -q -r $RANDFILE $zone > /dev/null
-zskdel=`$KEYGEN -q -r $RANDFILE -D now $zone`
-zskinact=`$KEYGEN -q -r $RANDFILE -I now $zone`
-zskunpub=`$KEYGEN -q -r $RANDFILE -G $zone`
-zsksby=`$KEYGEN -q -r $RANDFILE -A none $zone`
+$KEYGEN -3 -q -r $RANDFILE $zone > /dev/null
+zskdel=`$KEYGEN -3 -q -r $RANDFILE -D now $zone`
+zskinact=`$KEYGEN -3 -q -r $RANDFILE -I now $zone`
+zskunpub=`$KEYGEN -3 -q -r $RANDFILE -G $zone`
+zsksby=`$KEYGEN -3 -q -r $RANDFILE -A none $zone`
 
-ksksby=`$KEYGEN -q -r $RANDFILE -P now -A now+15s -fk $zone`
-kskrev=`$KEYGEN -q -r $RANDFILE -R now+15s -fk $zone`
+ksksby=`$KEYGEN -3 -q -r $RANDFILE -P now -A now+15s -fk $zone`
+kskrev=`$KEYGEN -3 -q -r $RANDFILE -R now+15s -fk $zone`
 
 cat $ksksby.key | grep -v '^; ' | $PERL -n -e '
 local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
