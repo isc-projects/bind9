@@ -1,3 +1,6 @@
+2814.	[func]		Provide a definitive error message when a master
+			zone is not loaded. [RT #20757]
+ 
 2813.	[bug]		Better handling of unreadable DNSSEC key files.
 			[RT #20710]
 
