@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.483.36.16 2009/11/12 23:39:22 marka Exp $ */
+/* $Id: zone.c,v 1.483.36.17 2009/12/21 04:32:42 marka Exp $ */
 
 /*! \file */
 
@@ -2734,7 +2734,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		if (zone->task != NULL)
 			zone_settimer(zone, &now);
 		result = ISC_R_SUCCESS;
-	}
+	} else if (zone->type == dns_zone_master)
+		dns_zone_log(zone, ISC_LOG_ERROR, "not loaded due to errors.");
 	return (result);
 }
 

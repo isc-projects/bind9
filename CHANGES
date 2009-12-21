@@ -1,3 +1,5 @@
+2814.	[func]		Provide a definitive error message when a master
+			zone is not loaded. [RT #20757]
 
 	--- 9.6.2b1 released ---
 
