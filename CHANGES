@@ -1,3 +1,6 @@
+2815.	[bug]		Exclusively lock the task when freezing a zone.
+			[RT #19838]
+
 2814.	[func]		Provide a definitive error message when a master
 			zone is not loaded. [RT #20757]
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.520.12.9 2009/09/04 01:31:29 marka Exp $ */
+/* $Id: server.c,v 1.520.12.10 2009/12/23 23:34:16 each Exp $ */
 
 /*! \file */
 
@@ -5444,6 +5444,8 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args,
 		return (ISC_R_NOTFOUND);
 	}
 
+	result = isc_task_beginexclusive(server->task);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	frozen = dns_zone_getupdatedisabled(zone);
 	if (freeze) {
 		if (frozen) {
@@ -5483,6 +5485,7 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args,
 			}
 		}
 	}
+	isc_task_endexclusive(server->task);
 
 	if (msg != NULL && strlen(msg) < isc_buffer_availablelength(text))
 		isc_buffer_putmem(text, (const unsigned char *)msg,
