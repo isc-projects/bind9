@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.556 2009/11/28 15:57:36 vjs Exp $ */
+/* $Id: server.c,v 1.556.8.1 2009/12/23 23:33:53 each Exp $ */
 
 /*! \file */
 
@@ -6359,6 +6359,8 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args,
 		return (DNS_R_NOTMASTER);
 	}
 
+	result = isc_task_beginexclusive(server->task);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	frozen = dns_zone_getupdatedisabled(zone);
 	if (freeze) {
 		if (frozen) {
@@ -6398,6 +6400,7 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args,
 			}
 		}
 	}
+	isc_task_endexclusive(server->task);
 
 	if (msg != NULL && strlen(msg) < isc_buffer_availablelength(text))
 		isc_buffer_putmem(text, (const unsigned char *)msg,
