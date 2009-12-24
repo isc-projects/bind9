@@ -1,3 +1,6 @@
+2818.	[cleanup]	rndc could return an incorrect error code 
+			when a zone was not found. [RT #20767]
+
 2817.	[cleanup]	Removed unnecessary isc_tasc_endexclusive() calls.
 			[RT #20768]
 

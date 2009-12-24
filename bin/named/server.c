@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.558 2009/12/23 23:59:42 each Exp $ */
+/* $Id: server.c,v 1.559 2009/12/24 00:14:20 each Exp $ */
 
 /*! \file */
 
@@ -5132,6 +5132,8 @@ zone_from_args(ns_server_t *server, char *args, dns_zone_t **zonep) {
 	/* Partial match? */
 	if (result != ISC_R_SUCCESS && *zonep != NULL)
 		dns_zone_detach(zonep);
+	if (result == DNS_R_PARTIALMATCH)
+		result = ISC_R_NOTFOUND;
  fail1:
 	return (result);
 }
