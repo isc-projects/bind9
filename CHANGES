@@ -1,4 +1,8 @@
-2819.	[cleanup]	Removed unnecessary DNS_POINTER_MAXHOPS define
+2820.	[func]		Handle read access failure of OpenSSL configuration
+			file more user friendly (PKCS#11 engine patch).
+			[RT #20668]
+
+2819.	[cleanup]	Removed unnecessary DNS_POINTER_MAXHOPS define.
 			[RT #20771]
 
 2818.	[cleanup]	rndc could return an incorrect error code 
