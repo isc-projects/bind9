@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.292 2009/11/26 23:48:14 tbox Exp $ */
+/* $Id: rbtdb.c,v 1.293 2009/12/23 23:43:01 each Exp $ */
 
 /*! \file */
 
@@ -3235,8 +3235,16 @@ previous_closest_nsec(dns_rdatatype_t type, rbtdb_search_t *search,
 	dns_rbtnode_t *nsecnode;
 	isc_result_t result;
 
-	if (type == dns_rdatatype_nsec3)
-		return (dns_rbtnodechain_prev(&search->chain, NULL, NULL));
+	if (type == dns_rdatatype_nsec3) {
+		result = dns_rbtnodechain_prev(&search->chain, NULL, NULL);
+		if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN)
+			return (result);
+		result = dns_rbtnodechain_current(&search->chain, name, origin,
+						  nodep);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		return (ISC_R_SUCCESS);
+	}
 
 	dns_fixedname_init(&ftarget);
 	target = dns_fixedname_name(&ftarget);

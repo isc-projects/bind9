@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.556 2009/11/28 15:57:36 vjs Exp $ */
+/* $Id: server.c,v 1.559 2009/12/24 00:14:20 each Exp $ */
 
 /*! \file */
 
@@ -5132,6 +5132,8 @@ zone_from_args(ns_server_t *server, char *args, dns_zone_t **zonep) {
 	/* Partial match? */
 	if (result != ISC_R_SUCCESS && *zonep != NULL)
 		dns_zone_detach(zonep);
+	if (result == DNS_R_PARTIALMATCH)
+		result = ISC_R_NOTFOUND;
  fail1:
 	return (result);
 }
@@ -6151,10 +6153,8 @@ ns_server_tsigdelete(ns_server_t *server, char *command, isc_buffer_t *text) {
 	n = snprintf((char *)isc_buffer_used(text),
 		     isc_buffer_availablelength(text),
 		     "%d tsig keys deleted.\n", foundkeys);
-	if (n >= isc_buffer_availablelength(text)) {
-		isc_task_endexclusive(server->task);
+	if (n >= isc_buffer_availablelength(text))
 		return (ISC_R_NOSPACE);
-	}
 	isc_buffer_add(text, n);
 
 	return (ISC_R_SUCCESS);
@@ -6270,10 +6270,8 @@ ns_server_tsiglist(ns_server_t *server, isc_buffer_t *text) {
 		n = snprintf((char *)isc_buffer_used(text),
 			     isc_buffer_availablelength(text),
 			     "no tsig keys found.\n");
-		if (n >= isc_buffer_availablelength(text)) {
-			isc_task_endexclusive(server->task);
+		if (n >= isc_buffer_availablelength(text))
 			return (ISC_R_NOSPACE);
-		}
 		isc_buffer_add(text, n);
 	}
 
@@ -6359,6 +6357,8 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args,
 		return (DNS_R_NOTMASTER);
 	}
 
+	result = isc_task_beginexclusive(server->task);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	frozen = dns_zone_getupdatedisabled(zone);
 	if (freeze) {
 		if (frozen) {
@@ -6398,6 +6398,7 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args,
 			}
 		}
 	}
+	isc_task_endexclusive(server->task);
 
 	if (msg != NULL && strlen(msg) < isc_buffer_availablelength(text))
 		isc_buffer_putmem(text, (const unsigned char *)msg,
