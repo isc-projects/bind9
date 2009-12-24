@@ -1,3 +1,6 @@
+2818.	[cleanup]	rndc could return an incorrect error code 
+			when a zone was not found. [RT #20767]
+
 2815.	[bug]		Exclusively lock the task when freezing a zone.
 			[RT #19838]
 
