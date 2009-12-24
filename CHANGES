@@ -1,3 +1,6 @@
+2819.	[cleanup]	Removed unnecessary DNS_POINTER_MAXHOPS define
+			[RT #20771]
+
 2818.	[cleanup]	rndc could return an incorrect error code 
 			when a zone was not found. [RT #20767]
 
