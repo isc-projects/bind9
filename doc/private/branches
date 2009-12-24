@@ -17,6 +17,7 @@ custom_ALLIANZ_v9_4_2		private	marka	// 2007-11-23 04:32 +0000
 custom_ALLIANZ_v9_4_2_P1	new	each	// 2008-05-27 23:33 +0000
 custom_ALLIANZ_v9_4_2_P2	new	each	// 2008-08-05 21:28 +0000
 custom_ATT_v9_4			new	each	// 2009-07-28 17:05 +0000
+custom_ATT_v9_4_3_P4		new	cathya	// 2009-12-24 15:12 +0000
 custom_ATT_v9_6_1_P1		new	cathya	// 2009-10-22 13:24 +0000
 custom_CISCO_v9_3_4_P1		private	marka	// 2007-11-23 04:19 +0000
 custom_DYNDNS_v9_6		new	each	// 2009-06-19 15:34 +0000
@@ -291,6 +292,7 @@ rt20678				new	marka	// 2009-11-30 22:25 +0000
 rt20679				new	
 rt20705				new	marka	// 2009-12-09 01:03 +0000
 rt20737				new	marka	// 2009-12-17 05:51 +0000
+rt20737_jinmei			new	jinmei	// 2009-12-24 19:28 +0000
 rt20751				new	fdupont	// 2009-12-17 13:06 +0000
 rt20759				new	marka	// 2009-12-22 22:09 +0000
 rt20760				new	each	// 2009-12-19 03:42 +0000
