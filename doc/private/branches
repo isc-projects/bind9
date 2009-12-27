@@ -45,6 +45,7 @@ gsstsig4_win32			open	danny	// sub-branch off gsstsig4 for windows development
 jinmei-mmapzone-test		open		// mmap based zone file. very experimental, just for reference purposes
 jinmei_libdnsng			open	
 jinmei_lrucache			open	
+jinmei_pendingstats		new	
 libbind_clean			open	jinmei
 make				new	
 marka-xlink			new	marka	// 2009-02-10 02:17 +0000
