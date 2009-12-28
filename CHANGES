@@ -1,3 +1,6 @@
+2821.	[doc]		Add note that named-checkconf doesn't automatically
+			read rndc.key and bind.keys [RT #20758]
+
 2819.	[cleanup]	Removed unnecessary DNS_POINTER_MAXHOPS define
 			[RT #20771]
 
