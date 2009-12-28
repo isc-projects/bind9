@@ -1,3 +1,6 @@
+2821.	[doc]		Add note that named-checkconf doesn't automatically
+			read rndc.key and bind.keys [RT #20758]
+
 2820.	[func]		Handle read access failure of OpenSSL configuration
 			file more user friendly (PKCS#11 engine patch).
 			[RT #20668]
