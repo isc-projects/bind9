@@ -1,3 +1,6 @@
+2822.	[bug]		rbtdb.c:loadnode() could return the wrong result.
+			[RT #20802]
+
 2821.	[doc]		Add note that named-checkconf doesn't automatically
 			read rndc.key and bind.keys [RT #20758]
 
