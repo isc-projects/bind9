@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.174 2009/12/04 22:06:37 tbox Exp $ */
+/* $Id: zone.h,v 1.174.4.1 2009/12/29 22:23:00 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1778,7 +1778,7 @@ dns_zone_getprivatetype(dns_zone_t *zone);
  * will not be permanent.
  */
 
-isc_result_t
+void
 dns_zone_rekey(dns_zone_t *zone);
 /*%<
  * Update the zone's DNSKEY set from the key repository.

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.556.8.3 2009/12/24 00:16:08 each Exp $ */
+/* $Id: server.c,v 1.556.8.4 2009/12/29 22:23:01 marka Exp $ */
 
 /*! \file */
 
@@ -6302,7 +6302,7 @@ ns_server_sign(ns_server_t *server, char *args) {
 
 	keyopts = dns_zone_getkeyopts(zone);
 	if ((keyopts & DNS_ZONEKEY_ALLOW) != 0)
-		result = dns_zone_rekey(zone);
+		dns_zone_rekey(zone);
 	else
 		result = ISC_R_NOPERM;
 
