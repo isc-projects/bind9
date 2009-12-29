@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.544 2009/12/21 04:29:10 marka Exp $ */
+/* $Id: zone.c,v 1.545 2009/12/29 22:20:33 marka Exp $ */
 
 /*! \file */
 
@@ -648,7 +648,7 @@ static isc_result_t zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm,
 static isc_result_t delete_nsec(dns_db_t *db, dns_dbversion_t *ver,
 				dns_dbnode_t *node, dns_name_t *name,
 				dns_diff_t *diff);
-static isc_result_t zone_rekey(dns_zone_t *zone);
+static void zone_rekey(dns_zone_t *zone);
 
 #define ENTER zone_debuglog(zone, me, 1, "enter")
 
@@ -7822,10 +7822,9 @@ zone_maintenance(dns_zone_t *zone) {
 			zone_refreshkeys(zone);
 		break;
 	case dns_zone_master:
-		if (DNS_ZONEKEY_OPTION(zone, DNS_ZONEKEY_MAINTAIN) &&
-		    !isc_time_isepoch(&zone->refreshkeytime) &&
+		if (!isc_time_isepoch(&zone->refreshkeytime) &&
 		    isc_time_compare(&now, &zone->refreshkeytime) >= 0)
-			dns_zone_rekey(zone);
+			zone_rekey(zone);
 	default:
 		break;
 	}
@@ -13683,7 +13682,7 @@ dnskey_sane(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	return (ISC_FALSE);
 }
 
-static isc_result_t
+static void
 zone_rekey(dns_zone_t *zone) {
 	isc_result_t result;
 	dns_db_t *db = NULL;
@@ -13822,8 +13821,6 @@ zone_rekey(dns_zone_t *zone) {
 		}
 	}
 
-	result = ISC_R_SUCCESS;
-
  failure:
 	dns_diff_clear(&diff);
 
@@ -13843,19 +13840,20 @@ zone_rekey(dns_zone_t *zone) {
 		dns_db_detachnode(db, &node);
 	if (db != NULL)
 		dns_db_detach(&db);
-	return (result);
 }
 
-isc_result_t
+void
 dns_zone_rekey(dns_zone_t *zone) {
-	isc_result_t result;
+	isc_time_t now;
 
-	LOCK_ZONE(zone);
-	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_REFRESHING);
-	result = zone_rekey(zone);
-	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESHING);
-	UNLOCK_ZONE(zone);
-	return (result);
+	if (zone->type == dns_zone_master && zone->task != NULL) {
+		LOCK_ZONE(zone);
+
+		TIME_NOW(&now);
+		zone->refreshkeytime = now;
+		zone_settimer(zone, &now);
+		UNLOCK_ZONE(zone);
+	}
 }
 
 isc_result_t
