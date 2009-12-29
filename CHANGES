@@ -1,3 +1,5 @@
+2823.	[bug]		rbtdb.c:getsigningtime() was missing locks. [RT #20781]
+
 2822.	[bug]		rbtdb.c:loadnode() could return the wrong result.
 			[RT #20802]
 
