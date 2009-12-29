@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.292.8.1 2009/12/23 23:43:37 each Exp $ */
+/* $Id: rbtdb.c,v 1.292.8.2 2009/12/29 08:58:32 marka Exp $ */
 
 /*! \file */
 
@@ -6530,7 +6530,7 @@ loadnode(dns_rbtdb_t *rbtdb, dns_name_t *name, dns_rbtnode_t **nodep,
 	if (nsecresult == ISC_R_SUCCESS) {
 		nsecnode->nsec = DNS_RBT_NSEC_NSEC;
 		(*nodep)->nsec = DNS_RBT_NSEC_HAS_NSEC;
-		return (ISC_R_SUCCESS);
+		return (noderesult);
 	}
 
 	if (nsecresult == ISC_R_EXISTS) {
