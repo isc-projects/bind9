@@ -1,3 +1,5 @@
+2823.	[bug]		rbtdb.c:getsigningtime() was missing locks. [RT #20781]
+
 2819.	[cleanup]	Removed unnecessary DNS_POINTER_MAXHOPS define
 			[RT #20771]
 

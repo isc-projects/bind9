@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.270.12.14 2009/11/26 23:47:33 tbox Exp $ */
+/* $Id: rbtdb.c,v 1.270.12.15 2009/12/29 22:12:35 marka Exp $ */
 
 /*! \file */
 
@@ -6706,26 +6706,34 @@ getsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
 	rdatasetheader_t *header = NULL, *this;
 	unsigned int i;
 	isc_result_t result = ISC_R_NOTFOUND;
+	unsigned int locknum;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
 	RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_read);
 
 	for (i = 0; i < rbtdb->node_lock_count; i++) {
+		NODE_LOCK(&rbtdb->node_locks[i].lock, isc_rwlocktype_read);
 		this = isc_heap_element(rbtdb->heaps[i], 1);
-		if (this == NULL)
+		if (this == NULL) {
+			NODE_UNLOCK(&rbtdb->node_locks[i].lock,
+				    isc_rwlocktype_read);
 			continue;
+		}
 		if (header == NULL)
 			header = this;
-		else if (isc_serial_lt(this->resign, header->resign))
+		else if (isc_serial_lt(this->resign, header->resign)) {
+			locknum = header->node->locknum;
+			NODE_UNLOCK(&rbtdb->node_locks[locknum].lock,
+				    isc_rwlocktype_read);
 			header = this;
+		} else
+			NODE_UNLOCK(&rbtdb->node_locks[i].lock,
+				    isc_rwlocktype_read);
 	}
 
 	if (header == NULL)
 		goto unlock;
-
-	NODE_LOCK(&rbtdb->node_locks[header->node->locknum].lock,
-		  isc_rwlocktype_read);
 
 	bind_rdataset(rbtdb, header->node, header, 0, rdataset);
 
