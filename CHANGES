@@ -1,3 +1,5 @@
+2827.	[security]	Bogus NXDOMAIN could be cached as if valid. [RT #20712]
+
 2825.	[bug]		Changing the setting of OPTOUT in a NSEC3 chain that
 			was in the process of being created was not properly
 			recorded in the zone. [RT #20786]
