@@ -1,3 +1,5 @@
+2827.	[security]	Bogus NXDOMAIN could be cached as if valid. [RT #20712]
+
 2819.	[cleanup]	Removed unnecessary DNS_POINTER_MAXHOPS define
 			[RT #20771]
 
