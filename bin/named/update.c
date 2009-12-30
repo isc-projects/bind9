@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.151.12.8 2009/11/06 08:38:21 each Exp $ */
+/* $Id: update.c,v 1.151.12.9 2009/12/30 04:02:56 marka Exp $ */
 
 #include <config.h>
 
@@ -3157,6 +3157,24 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 							   &newtuple));
 				CHECK(do_one_tuple(&newtuple, db, ver, diff));
 			}
+
+			/*
+			 * Remove any existing CREATE request to add an
+			 * otherwise indentical chain with a reversed
+			 * OPTOUT state.
+			 */
+			buf[1] ^= DNS_NSEC3FLAG_OPTOUT;
+			CHECK(rr_exists(db, ver, name, &rdata, &flag));
+
+			if (flag) {
+				CHECK(dns_difftuple_create(diff->mctx,
+							   DNS_DIFFOP_DEL,
+							   name, tuple->ttl,
+							   &rdata,
+							   &newtuple));
+				CHECK(do_one_tuple(&newtuple, db, ver, diff));
+			}
+
 			/*
 			 * Remove the temporary add record.
 			 */
