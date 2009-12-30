@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000-2002  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.51.128.1 2009/12/30 08:35:52 jinmei Exp $
+# $Id: tests.sh,v 1.51.128.2 2009/12/30 23:46:44 tbox Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
