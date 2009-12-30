@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.119.18.41.2.2 2009/11/19 00:25:18 marka Exp $ */
+/* $Id: validator.c,v 1.119.18.41 2008/08/21 04:59:42 marka Exp $ */
 
 /*! \file */
 
@@ -209,37 +209,6 @@ exit_check(dns_validator_t *val) {
 		return (ISC_FALSE);
 
 	return (ISC_TRUE);
-}
-
-/*
- * Check that we have atleast one supported algorithm in the DLV RRset.
- */
-static inline isc_boolean_t
-dlv_algorithm_supported(dns_validator_t *val) {
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	dns_rdata_dlv_t dlv;
-	isc_result_t result;
-
-	for (result = dns_rdataset_first(&val->dlv);
-	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&val->dlv)) {
-		dns_rdata_reset(&rdata);
-		dns_rdataset_current(&val->dlv, &rdata);
-		result = dns_rdata_tostruct(&rdata, &dlv, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-
-		if (!dns_resolver_algorithm_supported(val->view->resolver,
-						      val->event->name,
-						      dlv.algorithm))
-			continue;
-
-		if (dlv.digest_type != DNS_DSDIGEST_SHA256 &&
-		    dlv.digest_type != DNS_DSDIGEST_SHA1)
-			continue;
-
-		return (ISC_TRUE);
-	}
-	return (ISC_FALSE);
 }
 
 /*%
@@ -1174,7 +1143,7 @@ get_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo) {
 		 * We have an rrset for the given keyname.
 		 */
 		val->keyset = &val->frdataset;
-		if (DNS_TRUST_PENDING(val->frdataset.trust) &&
+		if (val->frdataset.trust == dns_trust_pending &&
 		    dns_rdataset_isassociated(&val->fsigrdataset))
 		{
 			/*
@@ -1189,7 +1158,7 @@ get_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo) {
 			if (result != ISC_R_SUCCESS)
 				return (result);
 			return (DNS_R_WAIT);
-		} else if (DNS_TRUST_PENDING(val->frdataset.trust)) {
+		} else if (val->frdataset.trust == dns_trust_pending) {
 			/*
 			 * Having a pending key with no signature means that
 			 * something is broken.
@@ -1805,7 +1774,7 @@ validatezonekey(dns_validator_t *val) {
 			 * We have DS records.
 			 */
 			val->dsset = &val->frdataset;
-			if (DNS_TRUST_PENDING(val->frdataset.trust) &&
+			if (val->frdataset.trust == dns_trust_pending &&
 			    dns_rdataset_isassociated(&val->fsigrdataset))
 			{
 				result = create_validator(val,
@@ -1818,7 +1787,7 @@ validatezonekey(dns_validator_t *val) {
 				if (result != ISC_R_SUCCESS)
 					return (result);
 				return (DNS_R_WAIT);
-			} else if (DNS_TRUST_PENDING(val->frdataset.trust)) {
+			} else if (val->frdataset.trust == dns_trust_pending) {
 				/*
 				 * There should never be an unsigned DS.
 				 */
@@ -2328,36 +2297,19 @@ dlvfetched(isc_task_t *task, isc_event_t *event) {
 				sizeof(namebuf));
 		dns_rdataset_clone(&val->frdataset, &val->dlv);
 		val->havedlvsep = ISC_TRUE;
-		if (dlv_algorithm_supported(val)) {
-			validator_log(val, ISC_LOG_DEBUG(3), "DLV %s found",
-				      namebuf);
-			dlv_validator_start(val);
-		} else {
-			validator_log(val, ISC_LOG_DEBUG(3),
-				      "DLV %s found with no supported algorithms",
-				      namebuf);
-			markanswer(val);
-			validator_done(val, ISC_R_SUCCESS);
-		}
+		validator_log(val, ISC_LOG_DEBUG(3), "DLV %s found", namebuf);
+		dlv_validator_start(val);
 	} else if (eresult == DNS_R_NXRRSET ||
 		   eresult == DNS_R_NXDOMAIN ||
 		   eresult == DNS_R_NCACHENXRRSET ||
 		   eresult == DNS_R_NCACHENXDOMAIN) {
-		result = finddlvsep(val, ISC_TRUE);
+		   result = finddlvsep(val, ISC_TRUE);
 		if (result == ISC_R_SUCCESS) {
-			if (dlv_algorithm_supported(val)) {
-				dns_name_format(dns_fixedname_name(&val->dlvsep),
-						namebuf, sizeof(namebuf));
-				validator_log(val, ISC_LOG_DEBUG(3),
-					      "DLV %s found", namebuf);
-				dlv_validator_start(val);
-			} else {
-				validator_log(val, ISC_LOG_DEBUG(3),
-					      "DLV %s found with no supported "
-					      "algorithms", namebuf);
-				markanswer(val);
-				validator_done(val, ISC_R_SUCCESS);
-			}
+			dns_name_format(dns_fixedname_name(&val->dlvsep),
+					namebuf, sizeof(namebuf));
+			validator_log(val, ISC_LOG_DEBUG(3), "DLV %s found",
+				      namebuf);
+			dlv_validator_start(val);
 		} else if (result == ISC_R_NOTFOUND) {
 			validator_log(val, ISC_LOG_DEBUG(3), "DLV not found");
 			markanswer(val);
@@ -2420,16 +2372,9 @@ startfinddlvsep(dns_validator_t *val, dns_name_t *unsecure) {
 	}
 	dns_name_format(dns_fixedname_name(&val->dlvsep), namebuf,
 			sizeof(namebuf));
-	if (dlv_algorithm_supported(val)) {
-		validator_log(val, ISC_LOG_DEBUG(3), "DLV %s found", namebuf);
-		dlv_validator_start(val);
-		return (DNS_R_WAIT);
-	} 
-	validator_log(val, ISC_LOG_DEBUG(3), "DLV %s found with no supported "
-		      "algorithms", namebuf);
-	markanswer(val);
-	validator_done(val, ISC_R_SUCCESS);
-	return (ISC_R_SUCCESS);
+	validator_log(val, ISC_LOG_DEBUG(3), "DLV %s found", namebuf);
+	dlv_validator_start(val);
+	return (DNS_R_WAIT);
 }
 
 /*%
@@ -2667,7 +2612,7 @@ proveunsecure(dns_validator_t *val, isc_boolean_t have_ds, isc_boolean_t resume)
 			 * There is no DS.  If this is a delegation,
 			 * we maybe done.
 			 */
-			if (DNS_TRUST_PENDING(val->frdataset.trust)) {
+			if (val->frdataset.trust == dns_trust_pending) {
 				result = create_fetch(val, tname,
 						      dns_rdatatype_ds,
 						      dsfetched2,
