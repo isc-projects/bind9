@@ -1,0 +1,5 @@
+Makefile
+timestamp
+.libs
+*.la
+*.lo
