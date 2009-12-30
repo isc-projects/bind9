@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.546 2009/12/30 02:26:30 marka Exp $ */
+/* $Id: zone.c,v 1.547 2009/12/30 02:32:13 marka Exp $ */
 
 /*! \file */
 
@@ -13770,6 +13770,7 @@ zone_rekey(dns_zone_t *zone) {
 	dns_db_closeversion(db, &ver, commit);
 
 	if (commit) {
+		LOCK_ZONE(zone);	
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOTIFYRESIGN);
 
 		for (key = ISC_LIST_HEAD(rmkeys);
@@ -13790,6 +13791,7 @@ zone_rekey(dns_zone_t *zone) {
 				key->first_sign = ISC_FALSE;
 			}
 		}
+		UNLOCK_ZONE(zone);	
 	}
 
 	isc_time_settoepoch(&zone->refreshkeytime);
