@@ -1,3 +1,6 @@
+2828.	[security]	Cached CNAME or DNAME RR could be returned to clients
+			without DNSSEC validation. [RT #20737]
+
 2827.	[security]	Bogus NXDOMAIN could be cached as if valid. [RT #20712]
 
 2825.	[bug]		Changing the setting of OPTOUT in a NSEC3 chain that

@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.30.48.5 2009/06/22 05:05:01 marka Exp $
+# $Id: sign.sh,v 1.30.48.6 2009/12/30 08:34:29 jinmei Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -41,6 +41,53 @@ keyname2=`$KEYGEN -r $RANDFILE -a DSA -b 768 -n zone $zone`
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
 $SIGNER -P -g -r $RANDFILE -o $zone -k $keyname1 $zonefile $keyname2 > /dev/null
+
+#
+# lower/uppercase the signature bits with the exception of the last characters
+# changing the last 4 characters will lead to a bad base64 encoding.
+#
+$CHECKZONE -D -q -i local $zone $zonefile.signed |
+awk '
+tolower($1) == "bad-cname.example." && $4 == "RRSIG" && $5 == "CNAME" {
+	for (i = 1; i <= NF; i++ ) {
+		if (i <= 12) {
+			printf("%s ", $i);
+			continue;
+		}
+		prefix = substr($i, 1, length($i) - 4);
+		suffix = substr($i, length($i) - 4, 4);
+		if (i > 12 && tolower(prefix) != prefix)
+			printf("%s%s", tolower(prefix), suffix);
+		else if (i > 12 && toupper(prefix) != prefix)
+			printf("%s%s", toupper(prefix), suffix);
+		else
+			printf("%s%s ", prefix, suffix);
+	}
+	printf("\n");
+	next;
+}
+
+tolower($1) == "bad-dname.example." && $4 == "RRSIG" && $5 == "DNAME" {
+	for (i = 1; i <= NF; i++ ) {
+		if (i <= 12) {
+			printf("%s ", $i);
+			continue;
+		}
+		prefix = substr($i, 1, length($i) - 4);
+		suffix = substr($i, length($i) - 4, 4);
+		if (i > 12 && tolower(prefix) != prefix)
+			printf("%s%s", tolower(prefix), suffix);
+		else if (i > 12 && toupper(prefix) != prefix)
+			printf("%s%s", toupper(prefix), suffix);
+		else
+			printf("%s%s ", prefix, suffix);
+	}
+	printf("\n");
+	next;
+}
+
+{ print; }' > $zonefile.signed++ && mv $zonefile.signed++ $zonefile.signed
+
 
 # Sign the privately secure file
 

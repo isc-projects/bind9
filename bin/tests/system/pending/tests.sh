@@ -14,22 +14,50 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.2.4.2 2009/11/18 23:47:24 tbox Exp $
+# $Id: tests.sh,v 1.2.4.3 2009/12/30 08:34:30 jinmei Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
+# replace_data dname RR old_data new_data
+replace_data()
+{
+	if [ $# -ne 4 ]; then
+		echo I:unexpected input for replace_data
+		return 1
+	fi
+
+	_dname=$1
+	_rr=$2
+	_olddata=$3
+	_newdata=$4
+
+	_ret=0
+	$NSUPDATE -d <<END>> nsupdate.out.test 2>&1 || _ret=1
+server 10.53.0.2 5300
+update delete ${_dname} 30 ${_rr} ${_olddata}
+update add ${_dname} 30 ${_rr} ${_newdata}
+send
+END
+
+	if [ $_ret != 0 ]; then
+		echo I:failed to update the test data
+		return 1
+	fi
+
+	return 0
+}
+
 status=0
 n=0
 
-rm -f dig.out.*
-
-DIGOPTS="+short +tcp +cd -p 5300"
+DIGOPTS="+short +tcp -p 5300"
+DIGOPTS_CD="$DIGOPTS +cd"
 
 echo I:Priming cache.
 ret=0
 expect="10 mail.example."
-ans=`$DIG $DIGOPTS @10.53.0.4 hostile MX` || ret=1
+ans=`$DIG $DIGOPTS_CD @10.53.0.4 hostile MX` || ret=1
 test "$ans" = "$expect" || ret=1
 test $ret = 0 || echo I:failed, got "'""$ans""'", expected "'""$expect""'"
 status=`expr $status + $ret`
@@ -37,7 +65,95 @@ status=`expr $status + $ret`
 echo I:Checking that bogus additional is not returned with +CD.
 ret=0
 expect="10.0.0.2"
-ans=`$DIG $DIGOPTS @10.53.0.4 mail.example A` || ret=1
+ans=`$DIG $DIGOPTS_CD @10.53.0.4 mail.example A` || ret=1
+test "$ans" = "$expect" || ret=1
+test $ret = 0 || echo I:failed, got "'""$ans""'", expected "'""$expect""'"
+status=`expr $status + $ret`
+
+#
+# Prime cache with pending additional records.  These should not be promoted
+# to answer.
+#
+echo "I:Priming cache (pending additional A and AAAA)"
+ret=0
+expect="10 mail.example.com."
+ans=`$DIG $DIGOPTS @10.53.0.4 example.com MX` || ret=1
+test "$ans" = "$expect" || ret=1
+test $ret = 0 || echo I:failed, got "'""$ans""'", expected "'""$expect""'"
+status=`expr $status + $ret`
+
+echo "I:Replacing pending A"
+ret=0
+replace_data mail.example.com. A 192.0.2.2 192.0.2.3 || ret=1
+status=`expr $status + $ret`
+
+echo "I:Replacing pending AAAA"
+ret=0
+replace_data mail.example.com. AAAA 2001:db8::2 2001:db8::3 || ret=1
+status=`expr $status + $ret`
+
+echo "I:Checking updated data to be returned (without CD)"
+ret=0
+expect="192.0.2.3"
+ans=`$DIG $DIGOPTS @10.53.0.4 mail.example.com A` || ret=1
+test "$ans" = "$expect" || ret=1
+test $ret = 0 || echo I:failed, got "'""$ans""'", expected "'""$expect""'"
+status=`expr $status + $ret`
+
+echo "I:Checking updated data to be returned (with CD)" 
+ret=0
+expect="2001:db8::3"
+ans=`$DIG $DIGOPTS_CD @10.53.0.4 mail.example.com AAAA` || ret=1
+test "$ans" = "$expect" || ret=1
+test $ret = 0 || echo I:failed, got "'""$ans""'", expected "'""$expect""'"
+status=`expr $status + $ret`
+
+#
+# Prime cache with a pending answer record.  It can be returned (without
+# validation) with +CD.
+#
+echo "I:Priming cache (pending answer)"
+ret=0
+expect="192.0.2.2"
+ans=`$DIG $DIGOPTS_CD @10.53.0.4 pending-ok.example.com A` || ret=1
+test "$ans" = "$expect" || ret=1
+test $ret = 0 || echo I:failed, got "'""$ans""'", expected "'""$expect""'"
+status=`expr $status + $ret`
+
+echo I:Replacing pending data
+ret=0
+replace_data pending-ok.example.com. A 192.0.2.2 192.0.2.3 || ret=1
+status=`expr $status + $ret`
+
+echo I:Confirming cached pending data to be returned with CD
+ret=0
+expect="192.0.2.2"
+ans=`$DIG $DIGOPTS_CD @10.53.0.4 pending-ok.example.com A` || ret=1
+test "$ans" = "$expect" || ret=1
+test $ret = 0 || echo I:failed, got "'""$ans""'", expected "'""$expect""'"
+status=`expr $status + $ret`
+
+#
+# Prime cache with a pending answer record.  It should not be returned
+# to no-DNSSEC clients.
+#
+echo "I:Priming cache (pending answer)"
+ret=0
+expect="192.0.2.102"
+ans=`$DIG $DIGOPTS_CD @10.53.0.4 pending-ng.example.com A` || ret=1
+test "$ans" = "$expect" || ret=1
+test $ret = 0 || echo I:failed, got "'""$ans""'", expected "'""$expect""'"
+status=`expr $status + $ret`
+
+echo I:Replacing pending data
+ret=0
+replace_data pending-ng.example.com. A 192.0.2.102 192.0.2.103 || ret=1
+status=`expr $status + $ret`
+
+echo I:Confirming updated data returned, not the cached one, without CD
+ret=0
+expect="192.0.2.103"
+ans=`$DIG $DIGOPTS @10.53.0.4 pending-ng.example.com A` || ret=1
 test "$ans" = "$expect" || ret=1
 test $ret = 0 || echo I:failed, got "'""$ans""'", expected "'""$expect""'"
 status=`expr $status + $ret`
