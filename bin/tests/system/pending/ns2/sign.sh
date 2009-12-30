@@ -14,20 +14,22 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.3.8.3 2009/11/25 23:46:52 tbox Exp $
+# $Id: sign.sh,v 1.3.8.4 2009/12/30 08:55:48 jinmei Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
 RANDFILE=../random.data
 
-zone=example.
-infile=example.db.in
-zonefile=example.db
+for domain in example example.com; do
+	zone=${domain}.
+	infile=${domain}.db.in
+	zonefile=${domain}.db
 
-keyname1=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 768 -n zone $zone`
-keyname2=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 1024 -f KSK -n zone $zone`
+	keyname1=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 768 -n zone $zone`
+	keyname2=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 1024 -f KSK -n zone $zone`
 
-cat $infile $keyname1.key $keyname2.key >$zonefile
+	cat $infile $keyname1.key $keyname2.key >$zonefile
 
-$SIGNER -r $RANDFILE -o $zone $zonefile > /dev/null
+	$SIGNER -r $RANDFILE -o $zone $zonefile > /dev/null
+done
