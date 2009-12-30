@@ -1,3 +1,5 @@
+2827.	[security]	Bogus NXDOMAIN could be cached as if valid. [RT #20712]
+
 2826.	[bug]		NSEC3->NSEC transitions could fail due to a lock not
 			being released.  [RT #20740]
 
