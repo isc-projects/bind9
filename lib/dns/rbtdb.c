@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.295 2009/12/29 22:04:16 marka Exp $ */
+/* $Id: rbtdb.c,v 1.296 2009/12/30 08:02:23 jinmei Exp $ */
 
 /*! \file */
 
@@ -4678,7 +4678,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	 * If we didn't find what we were looking for...
 	 */
 	if (found == NULL ||
-	    (found->trust == dns_trust_additional &&
+	    (DNS_TRUST_ADDITIONAL(found->trust) &&
 	     ((options & DNS_DBFIND_ADDITIONALOK) == 0)) ||
 	    (found->trust == dns_trust_glue &&
 	     ((options & DNS_DBFIND_GLUEOK) == 0)) ||

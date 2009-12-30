@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.138 2009/12/05 23:31:40 each Exp $
+# $Id: Makefile.in,v 1.139 2009/12/30 08:02:22 jinmei Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -243,6 +243,10 @@ rdata_test@EXEEXT@: rdata_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 
 rwlock_test@EXEEXT@: rwlock_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ rwlock_test.@O@ \
+		${ISCLIBS} ${LIBS}
+
+rwlock_upgradetest@EXEEXT@: rwlock_upgradetest.@O@ ${ISCDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGSe} -o $@ rwlock_upgradetest.@O@ \
 		${ISCLIBS} ${LIBS}
 
 wire_test@EXEEXT@: wire_test.@O@ printmsg.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
