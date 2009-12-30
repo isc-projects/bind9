@@ -1,6 +1,10 @@
 2826.	[bug]		NSEC3->NSEC transitions could fail due to a lock not
 			being released.  [RT #20740]
 
+2825.	[bug]		Changing the setting of OPTOUT in a NSEC3 chain that
+			was in the process of being created was not properly
+			recorded in the zone. [RT #20786]
+
 2824.	[bug]		"rndc sign" was not being run by the correct task.
 			[RT #20759]
 
