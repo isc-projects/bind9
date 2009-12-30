@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.5 2009/12/29 22:23:00 marka Exp $ */
+/* $Id: zone.c,v 1.540.2.6 2009/12/30 02:28:13 marka Exp $ */
 
 /*! \file */
 
@@ -10293,11 +10293,10 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 			    isc_time_compare(&zone->dumptime, &next) < 0)
 				next = zone->dumptime;
 		}
-		if (DNS_ZONEKEY_OPTION(zone, DNS_ZONEKEY_MAINTAIN) &&
-		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESHING)) {
+		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESHING) &&
+		    !isc_time_isepoch(&zone->refreshkeytime)) {
 			if (isc_time_isepoch(&next) ||
-			    (!isc_time_isepoch(&zone->refreshkeytime) &&
-			    isc_time_compare(&zone->refreshkeytime, &next) < 0))
+			    isc_time_compare(&zone->refreshkeytime, &next) < 0)
 				next = zone->refreshkeytime;
 		}
 		if (!isc_time_isepoch(&zone->resigntime)) {
@@ -13771,6 +13770,7 @@ zone_rekey(dns_zone_t *zone) {
 	dns_db_closeversion(db, &ver, commit);
 
 	if (commit) {
+		LOCK_ZONE(zone);
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOTIFYRESIGN);
 
 		for (key = ISC_LIST_HEAD(rmkeys);
@@ -13791,6 +13791,7 @@ zone_rekey(dns_zone_t *zone) {
 				key->first_sign = ISC_FALSE;
 			}
 		}
+		UNLOCK_ZONE(zone);
 	}
 
 	isc_time_settoepoch(&zone->refreshkeytime);
