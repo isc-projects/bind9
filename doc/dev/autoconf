@@ -1,0 +1,18 @@
+Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+Copyright (C) 2001, 2002  Internet Software Consortium.
+See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
+
+$Id: autoconf,v 1.4 2004/03/05 05:04:50 marka Exp $
+
+Here are some hints on how to use autoconf correctly when doing
+BIND 9 development.
+
+Never edit the configure script directly.  Edit configure.in, commit
+the changes, run "autoconf", and commit the new configure.  Doing two
+separate commits ensures that the version numbers embedded in the
+configure script are correct.
+
+Don't edit config.h.in directly.  Instead, run "autoheader".  If it
+complains about missing definitions, add them to acconfig.h, rerun
+autoheader, commit acconfig.h if edited, and commit the generated
+config.h.in.

@@ -1,0 +1,5 @@
+Makefile
+.libs
+*.la
+*.lo
+t_names
