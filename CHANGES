@@ -1,3 +1,4 @@
+2827.	[security]	Bogus NXDOMAIN could be cached as if valid. [RT #20712]
 
 	--- 9.4-ESVrc1 released ---
 
