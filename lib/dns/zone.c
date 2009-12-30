@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.6 2009/12/30 02:28:13 marka Exp $ */
+/* $Id: zone.c,v 1.540.2.7 2009/12/30 03:37:55 each Exp $ */
 
 /*! \file */
 
@@ -6164,6 +6164,8 @@ zone_nsec3chain(dns_zone_t *zone) {
 		dns_db_detachnode(db, &node);
 
 		if (rebuild_nsec) {
+			if (nsec3chain != NULL)
+				dns_dbiterator_pause(nsec3chain->dbiterator);
 			result = updatesecure(db, version, &zone->origin,
 					      zone->minimum, ISC_TRUE,
 					      &nsec_diff);
@@ -6216,6 +6218,8 @@ zone_nsec3chain(dns_zone_t *zone) {
 	}
 
 	if (updatensec) {
+		if (nsec3chain != NULL)
+			dns_dbiterator_pause(nsec3chain->dbiterator);
 		result = updatesecure(db, version, &zone->origin,
 				      zone->minimum, ISC_FALSE, &nsec_diff);
 		if (result != ISC_R_SUCCESS) {
