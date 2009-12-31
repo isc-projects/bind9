@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.89.128.5 2009/01/19 00:01:11 marka Exp $ */
+/* $Id: db.h,v 1.89.128.5.2.1 2009/12/31 21:45:53 each Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -187,13 +187,14 @@ struct dns_db {
 /*%
  * Options that can be specified for dns_db_find().
  */
-#define DNS_DBFIND_GLUEOK		0x01
-#define DNS_DBFIND_VALIDATEGLUE		0x02
-#define DNS_DBFIND_NOWILD		0x04
-#define DNS_DBFIND_PENDINGOK		0x08
-#define DNS_DBFIND_NOEXACT		0x10
-#define DNS_DBFIND_FORCENSEC		0x20
-#define DNS_DBFIND_COVERINGNSEC		0x40
+#define DNS_DBFIND_GLUEOK		0x0001
+#define DNS_DBFIND_VALIDATEGLUE		0x0002
+#define DNS_DBFIND_NOWILD		0x0004
+#define DNS_DBFIND_PENDINGOK		0x0008
+#define DNS_DBFIND_NOEXACT		0x0010
+#define DNS_DBFIND_FORCENSEC		0x0020
+#define DNS_DBFIND_COVERINGNSEC		0x0040
+#define DNS_DBFIND_ADDITIONALOK		0x0100
 /*@}*/
 
 /*@{*/
