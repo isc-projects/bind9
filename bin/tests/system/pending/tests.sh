@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.4 2009/12/30 08:02:22 jinmei Exp $
+# $Id: tests.sh,v 1.4.4.1 2009/12/31 21:02:05 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -71,8 +71,8 @@ test $ret = 0 || echo I:failed, got "'""$ans""'", expected "'""$expect""'"
 status=`expr $status + $ret`
 
 #
-# Prime cache with pending additional records.  These should not be promoted
-# to answer.
+# Prime cache with pending additional records.  Technically, these should not
+# be promoted to answer, but it's allowed in BIND 9.4.
 #
 echo "I:Priming cache (pending additional A and AAAA)"
 ret=0
@@ -100,9 +100,9 @@ test "$ans" = "$expect" || ret=1
 test $ret = 0 || echo I:failed, got "'""$ans""'", expected "'""$expect""'"
 status=`expr $status + $ret`
 
-echo "I:Checking updated data to be returned (with CD)" 
+echo "I:Checking cached data to be returned (with CD, BIND 9.4 only)" 
 ret=0
-expect="2001:db8::3"
+expect="2001:db8::2"
 ans=`$DIG $DIGOPTS_CD @10.53.0.4 mail.example.com AAAA` || ret=1
 test "$ans" = "$expect" || ret=1
 test $ret = 0 || echo I:failed, got "'""$ans""'", expected "'""$expect""'"

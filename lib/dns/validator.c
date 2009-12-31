@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.119.18.41.2.2 2009/11/19 00:25:18 marka Exp $ */
+/* $Id: validator.c,v 1.119.18.41.2.3 2009/12/31 21:02:05 each Exp $ */
 
 /*! \file */
 
@@ -2572,20 +2572,20 @@ proveunsecure(dns_validator_t *val, isc_boolean_t have_ds, isc_boolean_t resume)
 	if (val->havedlvsep)
 		dns_name_copy(dns_fixedname_name(&val->dlvsep), secroot, NULL);
 	else {
+		unsigned int labels;
 		dns_name_copy(val->event->name, secroot, NULL);
 		/*
 		 * If this is a response to a DS query, we need to look in
 		 * the parent zone for the trust anchor.
 		 */
-		if (val->event->type == dns_rdatatype_ds &&
-		    dns_name_countlabels(secroot) > 1U)
-			dns_name_split(secroot, 1, NULL, secroot);
+
+		labels = dns_name_countlabels(secroot);
+		if (val->event->type == dns_rdatatype_ds && labels > 1U)
+			dns_name_getlabelsequence(secroot, 1, labels - 1,
+						  secroot);
 		result = dns_keytable_finddeepestmatch(val->keytable,
 						       secroot, secroot);
-
 		if (result == ISC_R_NOTFOUND) {
-			validator_log(val, ISC_LOG_DEBUG(3),
-				      "not beneath secure root");
 			if (val->mustbesecure) {
 				validator_log(val, ISC_LOG_WARNING,
 					      "must be secure failure");
