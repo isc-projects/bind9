@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 #
 # Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
 #
@@ -14,17 +14,22 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.4.2.1 2009/12/31 20:29:21 each Exp $
+# $Id: sign.sh.orig,v 1.1.2.1 2009/12/31 20:29:21 each Exp $
 
-rm -rf */*.signed
-rm -rf */*.jnl
-rm -rf */K*
-rm -rf */dsset-*
-rm -rf */named.memstats
-rm -rf */named.run
-rm -rf */trusted.conf
-rm -rf ns1/root.db
-rm -rf ns2/example.db
-rm -rf ns2/example.com.db
-rm -rf random.data
-rm -rf nsupdate.out.test
+SYSTEMTESTTOP=../..
+. $SYSTEMTESTTOP/conf.sh
+
+RANDFILE=../random.data
+
+for domain in example example.com; do
+	zone=${domain}.
+	infile=${domain}.db.in
+	zonefile=${domain}.db
+
+	keyname1=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 768 -n zone $zone`
+	keyname2=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 1024 -f KSK -n zone $zone`
+
+	cat $infile $keyname1.key $keyname2.key >$zonefile
+
+	$SIGNER -r $RANDFILE -o $zone $zonefile > /dev/null
+done

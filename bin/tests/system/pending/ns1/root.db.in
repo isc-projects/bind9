@@ -12,7 +12,7 @@
 ; OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 ; PERFORMANCE OF THIS SOFTWARE.
 
-; $Id: root.db.in,v 1.4 2009/12/30 08:02:22 jinmei Exp $
+; $Id: root.db.in,v 1.4.2.1 2009/12/31 20:29:21 each Exp $
 
 $TTL 30
 . 			IN SOA	marka.isc.org. a.root.servers.nil. (
