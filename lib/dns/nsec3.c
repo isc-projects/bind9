@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3.c,v 1.13 2009/12/01 05:28:40 marka Exp $ */
+/* $Id: nsec3.c,v 1.14 2010/01/04 22:47:58 each Exp $ */
 
 #include <config.h>
 
@@ -557,7 +557,7 @@ dns_nsec3_addnsec3(dns_db_t *db, dns_dbversion_t *version,
 	dns_rdataset_t rdataset;
 	int pass;
 	isc_boolean_t exists;
-	isc_boolean_t remove_unsecure = ISC_FALSE;
+	isc_boolean_t maybe_remove_unsecure = ISC_FALSE;
 	isc_uint8_t flags;
 	isc_buffer_t buffer;
 	isc_result_t result;
@@ -638,8 +638,12 @@ dns_nsec3_addnsec3(dns_db_t *db, dns_dbversion_t *version,
 			 */
 			if (!unsecure)
 				goto addnsec3;
-			else
-				remove_unsecure = ISC_TRUE;
+			else if (CREATE(nsec3param->flags) && OPTOUT(flags)) {
+				result = dns_nsec3_delnsec3(db, version, name,
+							    nsec3param, diff);
+				goto failure;
+			} else
+				maybe_remove_unsecure = ISC_TRUE;
 		} else {
 			dns_rdataset_disassociate(&rdataset);
 			if (result != ISC_R_NOMORE)
@@ -675,26 +679,19 @@ dns_nsec3_addnsec3(dns_db_t *db, dns_dbversion_t *version,
 		if (result != ISC_R_SUCCESS)
 			goto failure;
 
-		if (remove_unsecure) {
+		if (maybe_remove_unsecure) {
 			dns_rdataset_disassociate(&rdataset);
 			/*
-			 * We have found the previous NSEC3 record and can now
-			 * see if the existing NSEC3 record needs to be
-			 * updated or deleted.
+			 * If we have OPTOUT set in the previous NSEC3 record
+			 * we actually need to delete the NSEC3 record.
+			 * Otherwise we just need to replace the NSEC3 record.
 			 */
-			if (!OPTOUT(nsec3.flags)) {
-				/*
-				 * Just update the NSEC3 record.
-				 */
-				goto addnsec3;
-			} else {
-				/*
-				 * This is actually a deletion not a add.
-				 */
+			if (OPTOUT(nsec3.flags)) {
 				result = dns_nsec3_delnsec3(db, version, name,
 							    nsec3param, diff);
 				goto failure;
 			}
+			goto addnsec3;
 		} else {
 			/*
 			 * Is this is a unsecure delegation we are adding?
@@ -1273,6 +1270,8 @@ dns_nsec3_delnsec3(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 		 */
 		nsec3.next = nexthash;
 		nsec3.next_length = next_length;
+		if (CREATE(nsec3param->flags))
+			nsec3.flags = nsec3param->flags & DNS_NSEC3FLAG_OPTOUT;
 		isc_buffer_init(&buffer, nsec3buf, sizeof(nsec3buf));
 		CHECK(dns_rdata_fromstruct(&rdata, rdataset.rdclass,
 					   dns_rdatatype_nsec3, &nsec3,

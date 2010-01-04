@@ -1,3 +1,6 @@
+2830.	[bug]		Changing the OPTOUT setting could take multiple
+			passes. [RT #20813]
+
 2829.	[bug]		Fixed potential node inconsistency in rbtdb.c.
 			[RT #20808]
 
