@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.296 2009/12/30 08:02:23 jinmei Exp $ */
+/* $Id: rbtdb.c,v 1.297 2010/01/04 22:30:14 each Exp $ */
 
 /*! \file */
 
@@ -2377,7 +2377,8 @@ add_wildcard_magic(dns_rbtdb_t *rbtdb, dns_name_t *name) {
 	result = dns_rbt_addnode(rbtdb->tree, &foundname, &node);
 	if (result != ISC_R_SUCCESS && result != ISC_R_EXISTS)
 		return (result);
-	node->nsec = DNS_RBT_NSEC_NORMAL;
+	if (result == ISC_R_SUCCESS)
+		node->nsec = DNS_RBT_NSEC_NORMAL;
 	node->find_callback = 1;
 	node->wild = 1;
 	return (ISC_R_SUCCESS);
@@ -2405,7 +2406,8 @@ add_empty_wildcards(dns_rbtdb_t *rbtdb, dns_name_t *name) {
 						 &node);
 			if (result != ISC_R_SUCCESS && result != ISC_R_EXISTS)
 				return (result);
-			node->nsec = DNS_RBT_NSEC_NORMAL;
+			if (result == ISC_R_SUCCESS)
+				node->nsec = DNS_RBT_NSEC_NORMAL;
 		}
 		i++;
 	}
@@ -5762,6 +5764,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				free_rdataset(rbtdb, rbtdb->common.mctx,
 					      newheader);
 				newheader = (rdatasetheader_t *)merged;
+				init_rdataset(rbtdb, newheader);
 				if (loading && RESIGN(newheader) &&
 				    RESIGN(header) &&
 				    header->resign < newheader->resign)
@@ -6512,7 +6515,7 @@ loadnode(dns_rbtdb_t *rbtdb, dns_name_t *name, dns_rbtnode_t **nodep,
 		 * just now getting an NSEC record.
 		 */
 		if ((*nodep)->nsec == DNS_RBT_NSEC_HAS_NSEC)
-			return noderesult;
+			return (noderesult);
 	} else if (noderesult != ISC_R_SUCCESS) {
 		return (noderesult);
 	}
@@ -6932,7 +6935,7 @@ setsigningtime(dns_db_t *db, dns_rdataset_t *rdataset, isc_stdtime_t resign) {
 		} else if (resign < oldresign)
 			isc_heap_increased(rbtdb->heaps[header->node->locknum],
 					   header->heap_index);
-		else
+		else if (resign > oldresign)
 			isc_heap_decreased(rbtdb->heaps[header->node->locknum],
 					   header->heap_index);
 	} else if (resign && header->heap_index == 0) {
