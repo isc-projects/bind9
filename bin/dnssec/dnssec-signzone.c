@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.258 2009/12/04 22:06:37 tbox Exp $ */
+/* $Id: dnssec-signzone.c,v 1.258.4.1 2010/01/05 15:32:15 each Exp $ */
 
 /*! \file */
 
@@ -3256,7 +3256,7 @@ usage(void) {
 	fprintf(stderr, "use pseudorandom data (faster but less secure)\n");
 	fprintf(stderr, "\t-P:\t");
 	fprintf(stderr, "disable post-sign verification\n");
-	fprintf(stderr, "\t-T TTL:\tTTL for newly added DNSKEYs");
+	fprintf(stderr, "\t-T TTL:\tTTL for newly added DNSKEYs\n");
 	fprintf(stderr, "\t-t:\t");
 	fprintf(stderr, "print statistics\n");
 	fprintf(stderr, "\t-u:\t");
