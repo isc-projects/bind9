@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-settime.c,v 1.21 2009/12/18 23:49:02 tbox Exp $ */
+/* $Id: dnssec-settime.c,v 1.22 2010/01/06 00:53:45 each Exp $ */
 
 /*! \file */
 
@@ -58,10 +58,10 @@ usage(void) {
 	fprintf(stderr, "Version: %s\n", VERSION);
 	fprintf(stderr, "General options:\n");
 #ifdef USE_PKCS11
-	fprintf(stderr, "     -E engine:         specify OpenSSL engine "
+	fprintf(stderr, "    -E engine:          specify OpenSSL engine "
 						 "(default \"pkcs11\")\n");
 #else
-	fprintf(stderr, "     -E engine:         specify OpenSSL engine\n");
+	fprintf(stderr, "    -E engine:          specify OpenSSL engine\n");
 #endif
 	fprintf(stderr, "    -f:                 force update of old-style "
 						 "keys\n");
