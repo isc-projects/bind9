@@ -106,7 +106,7 @@
 ./bin/dnssec/dnssec-revoke.docbook		SGML	2009
 ./bin/dnssec/dnssec-revoke.html			HTML	2009
 ./bin/dnssec/dnssec-settime.8			MAN	2009
-./bin/dnssec/dnssec-settime.c			C	2009
+./bin/dnssec/dnssec-settime.c			C	2009,2010
 ./bin/dnssec/dnssec-settime.docbook		SGML	2009
 ./bin/dnssec/dnssec-settime.html		HTML	2009
 ./bin/dnssec/dnssec-signzone.8			MAN	DOCBOOK
