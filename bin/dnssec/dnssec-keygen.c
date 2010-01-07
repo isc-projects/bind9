@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.108 2009/11/25 22:58:48 marka Exp $ */
+/* $Id: dnssec-keygen.c,v 1.108.8.1 2010/01/07 19:16:30 each Exp $ */
 
 /*! \file */
 
@@ -142,14 +142,16 @@ usage(void) {
 	fprintf(stderr, "    -m <memory debugging mode>:\n");
 	fprintf(stderr, "	usage | trace | record | size | mctx\n");
 	fprintf(stderr, "    -v <level>: set verbosity level (0 - 10)\n");
-	fprintf(stderr, "Date options:\n");
-	fprintf(stderr, "    -P date/[+-]offset: set key publication date "
+	fprintf(stderr, "Timing options:\n");
+	fprintf(stderr, "    -P date/[+-]offset/none: set key publication date "
 						"(default: now)\n");
-	fprintf(stderr, "    -A date/[+-]offset: set key activation date "
+	fprintf(stderr, "    -A date/[+-]offset/none: set key activation date "
 						"(default: now)\n");
-	fprintf(stderr, "    -R date/[+-]offset: set key revocation date\n");
-	fprintf(stderr, "    -I date/[+-]offset: set key inactivation date\n");
-	fprintf(stderr, "    -D date/[+-]offset: set key deletion date\n");
+	fprintf(stderr, "    -R date/[+-]offset/none: set key "
+						     "revocation date\n");
+	fprintf(stderr, "    -I date/[+-]offset/none: set key "
+						     "inactivation date\n");
+	fprintf(stderr, "    -D date/[+-]offset/none: set key deletion date\n");
 	fprintf(stderr, "    -G: generate key only; do not set -P or -A\n");
 	fprintf(stderr, "    -C: generate a backward-compatible key, omitting "
 			"all dates\n");
