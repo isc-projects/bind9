@@ -1,3 +1,8 @@
+2831.	[security]	Do not attempt to validate or cache
+			out-of-bailiwick data returned with a secure
+			answer; it must be re-fetched from its original
+			source and validated in that context. [RT #20819]
+
 2830.	[bug]		Changing the OPTOUT setting could take multiple
 			passes. [RT #20813]
 
