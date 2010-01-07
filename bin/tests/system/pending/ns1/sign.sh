@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.3.4.1 2009/12/31 21:02:05 each Exp $
+# $Id: sign.sh,v 1.3.4.2 2010/01/07 17:18:49 each Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -34,7 +34,7 @@ keyname1=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
 keyname2=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 2048 -f KSK -n zone $zone`
 cat $infile $keyname1.key $keyname2.key > $zonefile
 
-$SIGNER -g -r $RANDFILE -o $zone $zonefile > /dev/null
+$SIGNER -g -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
 
 # Configure the resolving server with a trusted key.
 

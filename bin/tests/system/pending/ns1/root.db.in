@@ -12,7 +12,7 @@
 ; OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 ; PERFORMANCE OF THIS SOFTWARE.
 
-; $Id: root.db.in,v 1.4.4.1 2009/12/31 21:02:05 each Exp $
+; $Id: root.db.in,v 1.4.4.2 2010/01/07 17:18:49 each Exp $
 
 $TTL 30
 . 			IN SOA	marka.isc.org. a.root.servers.nil. (
@@ -31,3 +31,4 @@ example.com.		NS	ns2.example.com.
 ns2.example.com.	A	10.53.0.2
 hostile.		NS	ns3.hostile.
 ns3.hostile.		A	10.53.0.3
+nice.good.		A	10.10.10.10

@@ -1,5 +1,10 @@
 	--- 9.4.3-P5 released ---
 
+2831.	[security]	Do not attempt to validate or cache
+			out-of-bailiwick data returned with a secure
+			answer; it must be re-fetched from its original
+			source and validated in that context. [RT #20819]
+
 2828.	[security]	Cached CNAME or DNAME RR could be returned to clients
 			without DNSSEC validation. [RT #20737]
 
