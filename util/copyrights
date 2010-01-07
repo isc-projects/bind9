@@ -1055,6 +1055,10 @@
 ./bin/tools/genrandom.c				C	2000,2001,2002,2003,2004,2005,2007,2009
 ./bin/tools/genrandom.docbook			SGML	2009
 ./bin/tools/genrandom.html			HTML	2009
+./bin/tools/isc-hmac-fixup.8				MAN	2010
+./bin/tools/isc-hmac-fixup.c				C	2010
+./bin/tools/isc-hmac-fixup.docbook			SGML	2010
+./bin/tools/isc-hmac-fixup.html			HTML	2010
 ./bin/tools/named-journalprint.8		MAN	2009
 ./bin/tools/named-journalprint.c		C	2000,2001,2004,2005,2006,2007,2008,2009
 ./bin/tools/named-journalprint.docbook		SGML	2009
@@ -1069,6 +1073,9 @@
 ./bin/tools/win32/genrandom.dsp			X	2009
 ./bin/tools/win32/genrandom.dsw			X	2009
 ./bin/tools/win32/genrandom.mak			X	2009
+./bin/tools/win32/ischmacfix.dsp		X	2010
+./bin/tools/win32/ischmacfix.dsw		X	2010
+./bin/tools/win32/ischmacfix.mak		X	2010
 ./bin/tools/win32/journalprint.dsp		X	2009
 ./bin/tools/win32/journalprint.dsw		X	2009
 ./bin/tools/win32/journalprint.mak		X	2009

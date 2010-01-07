@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-settime.c,v 1.23 2010/01/06 23:48:47 tbox Exp $ */
+/* $Id: dnssec-settime.c,v 1.24 2010/01/07 19:13:59 each Exp $ */
 
 /*! \file */
 
@@ -71,13 +71,13 @@ usage(void) {
 	fprintf(stderr, "Timing options:\n");
 	fprintf(stderr, "    -P date/[+-]offset/none: set/unset key "
 						     "publication date\n");
-	fprintf(stderr, "    -A date/[+-]offset/none: set key "
+	fprintf(stderr, "    -A date/[+-]offset/none: set/unset key "
 						     "activation date\n");
-	fprintf(stderr, "    -R date/[+-]offset/none: set key "
+	fprintf(stderr, "    -R date/[+-]offset/none: set/unset key "
 						     "revocation date\n");
-	fprintf(stderr, "    -I date/[+-]offset/none: set key "
+	fprintf(stderr, "    -I date/[+-]offset/none: set/unset key "
 						     "inactivation date\n");
-	fprintf(stderr, "    -D date/[+-]offset/none: set key "
+	fprintf(stderr, "    -D date/[+-]offset/none: set/unset key "
 						     "deletion date\n");
 	fprintf(stderr, "Printing options:\n");
 	fprintf(stderr, "    -p C/P/A/R/U/D/all: print a particular time "

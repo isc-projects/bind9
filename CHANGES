@@ -1,3 +1,24 @@
+2834.	[bug]		HMAC-SHA* keys that were longer than the algorithm
+			digest length were used incorrectly, leading to
+			interoperability problems with other DNS
+			implementations.  This has been corrected.
+			(Note: If an oversize key is in use, and
+			compatibility is needed with an older release of
+			BIND, the new tool "isc-hmac-fixup" can convert
+			the key secret to a form that will work with all
+			versions.) [RT #20751]
+
+2833.	[cleanup]	Fix usage messages in dnssec-keygen and dnssec-settime.
+			[RT #20851]
+
+2832.	[bug]		Modify "struct stat" in lib/export/samples/nsprobe.c
+			to avoid redefinition in some OSes [RT 20831]
+
+2831.	[security]	Do not attempt to validate or cache
+			out-of-bailiwick data returned with a secure
+			answer; it must be re-fetched from its original
+			source and validated in that context. [RT #20819]
+
 2830.	[bug]		Changing the OPTOUT setting could take multiple
 			passes. [RT #20813]
 

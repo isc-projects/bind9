@@ -1,20 +1,20 @@
-# Microsoft Developer Studio Generated NMAKE File, Based on journalprint.dsp
+# Microsoft Developer Studio Generated NMAKE File, Based on ischmacfixup.dsp
 !IF "$(CFG)" == ""
-CFG=journalprint - Win32 Debug
-!MESSAGE No configuration specified. Defaulting to journalprint - Win32 Debug.
+CFG=ischmacfixup - Win32 Debug
+!MESSAGE No configuration specified. Defaulting to ischmacfixup - Win32 Debug.
 !ENDIF 
 
-!IF "$(CFG)" != "journalprint - Win32 Release" && "$(CFG)" != "journalprint - Win32 Debug"
+!IF "$(CFG)" != "ischmacfixup - Win32 Release" && "$(CFG)" != "ischmacfixup - Win32 Debug"
 !MESSAGE Invalid configuration "$(CFG)" specified.
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "journalprint.mak" CFG="journalprint - Win32 Debug"
+!MESSAGE NMAKE /f "ischmacfixup.mak" CFG="ischmacfixup - Win32 Debug"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "journalprint - Win32 Release" (based on "Win32 (x86) Console Application")
-!MESSAGE "journalprint - Win32 Debug" (based on "Win32 (x86) Console Application")
+!MESSAGE "ischmacfixup - Win32 Release" (based on "Win32 (x86) Console Application")
+!MESSAGE "ischmacfixup - Win32 Debug" (based on "Win32 (x86) Console Application")
 !MESSAGE 
 !ERROR An invalid configuration is specified.
 !ENDIF 
@@ -25,7 +25,7 @@ NULL=
 NULL=nul
 !ENDIF 
 
-!IF  "$(CFG)" == "journalprint - Win32 Release"
+!IF  "$(CFG)" == "ischmacfixup - Win32 Release"
 _VC_MANIFEST_INC=0
 _VC_MANIFEST_BASENAME=__VC80
 !ELSE
@@ -100,25 +100,25 @@ _VC_MANIFEST_CLEAN=
 
 !endif
 
-!IF  "$(CFG)" == "journalprint - Win32 Release"
+!IF  "$(CFG)" == "ischmacfixup - Win32 Release"
 
 OUTDIR=.\Release
 INTDIR=.\Release
 
-ALL : "..\..\..\Build\Release\named-journalprint.exe"
+ALL : "..\..\..\Build\Release\isc-hmac-fixup.exe"
 
 
 CLEAN :
-	-@erase "$(INTDIR)\named-journalprint.obj"
+	-@erase "$(INTDIR)\isc-hmac-fixup.obj"
 	-@erase "$(INTDIR)\vc60.idb"
-	-@erase "..\..\..\Build\Release\named-journalprint.exe"
+	-@erase "..\..\..\Build\Release\isc-hmac-fixup.exe"
 	-@$(_VC_MANIFEST_CLEAN)
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MD /W3 /GX /O2 /I "./" /I "../../../" /I "../../../../libxml2-2.7.3/include" /I "../../../lib/isc/win32" /I "../../../lib/isc/win32/include" /I "../../../lib/isc/include" /I "../../../lib/isc/noatomic/include" /I "../../../lib/dns/include" /D "NDEBUG" /D "__STDC__" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /Fp"$(INTDIR)\journalprint.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MD /W3 /GX /O2 /I "./" /I "../../../" /I "../../../../libxml2-2.7.3/include" /I "../../../lib/isc/win32" /I "../../../lib/isc/win32/include" /I "../../../lib/isc/include" /I "../../../lib/isc/noatomic/include" /D "NDEBUG" /D "__STDC__" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /Fp"$(INTDIR)\isc-hmac-fixup.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -152,21 +152,21 @@ CPP_PROJ=/nologo /MD /W3 /GX /O2 /I "./" /I "../../../" /I "../../../../libxml2-
 
 RSC=rc.exe
 BSC32=bscmake.exe
-BSC32_FLAGS=/nologo /o"$(OUTDIR)\journalprint.bsc" 
+BSC32_FLAGS=/nologo /o"$(OUTDIR)\isc-hmac-fixup.bsc" 
 BSC32_SBRS= \
 	
 LINK32=link.exe
-LINK32_FLAGS=user32.lib advapi32.lib ../../../lib/isc/win32/Release/libisc.lib ../../../lib/dns/win32/Release/libdns.lib /nologo /subsystem:console /incremental:no /pdb:"$(OUTDIR)\named-journalprint.pdb" /machine:I386 /out:"../../../Build/Release/named-journalprint.exe" 
+LINK32_FLAGS=user32.lib advapi32.lib ../../../lib/isc/win32/Release/libisc.lib /nologo /subsystem:console /incremental:no /pdb:"$(OUTDIR)\isc-hmac-fixup.pdb" /machine:I386 /out:"../../../Build/Release/isc-hmac-fixup.exe" 
 LINK32_OBJS= \
-	"$(INTDIR)\named-journalprint.obj"
+	"$(INTDIR)\isc-hmac-fixup.obj"
 
-"..\..\..\Build\Release\named-journalprint.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
+"..\..\..\Build\Release\isc-hmac-fixup.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
   $(LINK32_FLAGS) $(LINK32_OBJS)
 <<
     $(_VC_MANIFEST_EMBED_EXE)
 
-!ELSEIF  "$(CFG)" == "journalprint - Win32 Debug"
+!ELSEIF  "$(CFG)" == "ischmacfixup - Win32 Debug"
 
 OUTDIR=.\Debug
 INTDIR=.\Debug
@@ -174,25 +174,25 @@ INTDIR=.\Debug
 OutDir=.\Debug
 # End Custom Macros
 
-ALL : "..\..\..\Build\Debug\named-journalprint.exe" "$(OUTDIR)\journalprint.bsc"
+ALL : "..\..\..\Build\Debug\isc-hmac-fixup.exe" "$(OUTDIR)\isc-hmac-fixup.bsc"
 
 
 CLEAN :
-	-@erase "$(INTDIR)\named-journalprint.obj"
-	-@erase "$(INTDIR)\named-journalprint.sbr"
+	-@erase "$(INTDIR)\isc-hmac-fixup.obj"
+	-@erase "$(INTDIR)\isc-hmac-fixup.sbr"
 	-@erase "$(INTDIR)\vc60.idb"
 	-@erase "$(INTDIR)\vc60.pdb"
-	-@erase "$(OUTDIR)\named-journalprint.pdb"
-	-@erase "$(OUTDIR)\journalprint.bsc"
-	-@erase "..\..\..\Build\Debug\named-journalprint.exe"
-	-@erase "..\..\..\Build\Debug\named-journalprint.ilk"
+	-@erase "$(OUTDIR)\isc-hmac-fixup.pdb"
+	-@erase "$(OUTDIR)\isc-hmac-fixup.bsc"
+	-@erase "..\..\..\Build\Debug\isc-hmac-fixup.exe"
+	-@erase "..\..\..\Build\Debug\isc-hmac-fixup.ilk"
 	-@$(_VC_MANIFEST_CLEAN)
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MDd /W3 /Gm /GX /ZI /Od /I "./" /I "../../../" /I "../../../../libxml2-2.7.3/include" /I "../../../lib/isc/win32" /I "../../../lib/isc/win32/include" /I "../../../lib/isc/include" /I "../../../lib/isc/noatomic/include" /I "../../../lib/dns/include" /D "_DEBUG" /D "WIN32" /D "__STDC__" /D "_CONSOLE" /D "_MBCS" /FR"$(INTDIR)\\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+CPP_PROJ=/nologo /MDd /W3 /Gm /GX /ZI /Od /I "./" /I "../../../" /I "../../../../libxml2-2.7.3/include" /I "../../../lib/isc/win32" /I "../../../lib/isc/win32/include" /I "../../../lib/isc/include" /I "../../../lib/isc/noatomic/include" /D "_DEBUG" /D "WIN32" /D "__STDC__" /D "_CONSOLE" /D "_MBCS" /FR"$(INTDIR)\\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -226,21 +226,21 @@ CPP_PROJ=/nologo /MDd /W3 /Gm /GX /ZI /Od /I "./" /I "../../../" /I "../../../..
 
 RSC=rc.exe
 BSC32=bscmake.exe
-BSC32_FLAGS=/nologo /o"$(OUTDIR)\journalprint.bsc" 
+BSC32_FLAGS=/nologo /o"$(OUTDIR)\isc-hmac-fixup.bsc" 
 BSC32_SBRS= \
-	"$(INTDIR)\named-journalprint.sbr"
+	"$(INTDIR)\isc-hmac-fixup.sbr"
 
-"$(OUTDIR)\journalprint.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
+"$(OUTDIR)\isc-hmac-fixup.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
     $(BSC32) @<<
   $(BSC32_FLAGS) $(BSC32_SBRS)
 <<
 
 LINK32=link.exe
-LINK32_FLAGS=user32.lib advapi32.lib ../../../lib/isc/win32/Debug/libisc.lib ../../../lib/dns/win32/Debug/libdns.lib /nologo /subsystem:console /incremental:yes /pdb:"$(OUTDIR)\named-journalprint.pdb" /debug /machine:I386 /out:"../../../Build/Debug/named-journalprint.exe" /pdbtype:sept 
+LINK32_FLAGS=user32.lib advapi32.lib ../../../lib/isc/win32/Debug/libisc.lib /nologo /subsystem:console /incremental:yes /pdb:"$(OUTDIR)\isc-hmac-fixup.pdb" /debug /machine:I386 /out:"../../../Build/Debug/isc-hmac-fixup.exe" /pdbtype:sept 
 LINK32_OBJS= \
-	"$(INTDIR)\named-journalprint.obj" 
+	"$(INTDIR)\isc-hmac-fixup.obj"
 
-"..\..\..\Build\Debug\named-journalprint.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
+"..\..\..\Build\Debug\isc-hmac-fixup.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
   $(LINK32_FLAGS) $(LINK32_OBJS)
 <<
@@ -250,28 +250,28 @@ LINK32_OBJS= \
 
 
 !IF "$(NO_EXTERNAL_DEPS)" != "1"
-!IF EXISTS("journalprint.dep")
-!INCLUDE "journalprint.dep"
+!IF EXISTS("isc-hmac-fixup.dep")
+!INCLUDE "isc-hmac-fixup.dep"
 !ELSE 
-!MESSAGE Warning: cannot find "journalprint.dep"
+!MESSAGE Warning: cannot find "isc-hmac-fixup.dep"
 !ENDIF 
 !ENDIF 
 
 
-!IF "$(CFG)" == "journalprint - Win32 Release" || "$(CFG)" == "journalprint - Win32 Debug"
-SOURCE="..\named-journalprint.c"
+!IF "$(CFG)" == "ischmacfixup - Win32 Release" || "$(CFG)" == "ischmacfixup - Win32 Debug"
+SOURCE="..\isc-hmac-fixup.c"
 
-!IF  "$(CFG)" == "journalprint - Win32 Release"
+!IF  "$(CFG)" == "ischmacfixup - Win32 Release"
 
 
-"$(INTDIR)\named-journalprint.obj" : $(SOURCE) "$(INTDIR)"
+"$(INTDIR)\isc-hmac-fixup.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-!ELSEIF  "$(CFG)" == "journalprint - Win32 Debug"
+!ELSEIF  "$(CFG)" == "ischmacfixup - Win32 Debug"
 
 
-"$(INTDIR)\named-journalprint.obj" "$(INTDIR)\named-journalprint.sbr" : $(SOURCE) "$(INTDIR)"
+"$(INTDIR)\isc-hmac-fixup.obj" "$(INTDIR)\isc-hmac-fixup.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
