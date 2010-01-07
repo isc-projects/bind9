@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.3.8.3 2009/12/30 08:55:48 jinmei Exp $
+# $Id: tests.sh,v 1.3.8.4 2010/01/07 17:49:50 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -154,6 +154,27 @@ echo I:Confirming updated data returned, not the cached one, without CD
 ret=0
 expect="192.0.2.103"
 ans=`$DIG $DIGOPTS @10.53.0.4 pending-ng.example.com A` || ret=1
+test "$ans" = "$expect" || ret=1
+test $ret = 0 || echo I:failed, got "'""$ans""'", expected "'""$expect""'"
+status=`expr $status + $ret`
+
+#
+# Try to fool the resolver with an out-of-bailiwick CNAME
+#
+echo I:Trying to Prime out-of-bailiwick pending answer with CD
+ret=0
+expect="10.10.10.10"
+ans=`$DIG $DIGOPTS_CD @10.53.0.4 bad.example. A` || ret=1
+ans=`echo $ans | awk '{print $NF}'`
+test "$ans" = "$expect" || ret=1
+test $ret = 0 || echo I:failed, got "'""$ans""'", expected "'""$expect""'"
+status=`expr $status + $ret`
+
+echo I:Confirming the out-of-bailiwick answer is not cached or reused with CD
+ret=0
+expect="10.10.10.10"
+ans=`$DIG $DIGOPTS_CD @10.53.0.4 nice.good. A` || ret=1
+ans=`echo $ans | awk '{print $NF}'`
 test "$ans" = "$expect" || ret=1
 test $ret = 0 || echo I:failed, got "'""$ans""'", expected "'""$expect""'"
 status=`expr $status + $ret`
