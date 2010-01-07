@@ -1,3 +1,13 @@
+2834.	[bug]		HMAC-SHA* keys that were longer than the algorithm
+			digest length were used incorrectly, leading to
+			interoperability problems with other DNS
+			implementations.  This has been corrected.
+			(Note: If an oversize key is in use, and
+			compatibility is needed with an older release of
+			BIND, the new tool "isc-hmac-fixup" can convert
+			the key secret to a form that will work with all
+			versions.) [RT #20751]
+
 2833.	[cleanup]	Fix usage messages in dnssec-keygen and dnssec-settime.
 			[RT #20851]
 

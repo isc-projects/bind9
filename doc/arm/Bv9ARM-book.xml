@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.451 2009/12/18 07:56:29 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.452 2010/01/07 21:52:12 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -15673,6 +15673,7 @@ zone "example.com" {
       <xi:include href="../../bin/confgen/ddns-confgen.docbook"/>
       <xi:include href="../../bin/tools/arpaname.docbook"/>
       <xi:include href="../../bin/tools/genrandom.docbook"/>
+      <xi:include href="../../bin/tools/isc-hmac-fixup.docbook"/>
       <xi:include href="../../bin/tools/nsec3hash.docbook"/>
     </reference>
 
