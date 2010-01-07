@@ -1,3 +1,6 @@
+2833.	[cleanup]	Fix usage messages in dnssec-keygen and dnssec-settime.
+			[RT #20851]
+
 2832.	[bug]		Modify "struct stat" in lib/export/samples/nsprobe.c
 			to avoid redefinition in some OSes [RT 20831]
 
