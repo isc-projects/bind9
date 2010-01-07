@@ -1,3 +1,6 @@
+2832.	[bug]		Modify "struct stat" in lib/export/samples/nsprobe.c
+			to avoid redefinition in some OSes [RT 20831]
+
 2831.	[security]	Do not attempt to validate or cache
 			out-of-bailiwick data returned with a secure
 			answer; it must be re-fetched from its original

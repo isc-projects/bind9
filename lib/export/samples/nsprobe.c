@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsprobe.c,v 1.5 2009/09/29 15:06:06 fdupont Exp $ */
+/* $Id: nsprobe.c,v 1.5.66.1 2010/01/07 18:37:02 sar Exp $ */
 
 #include <config.h>
 
@@ -107,7 +107,7 @@ struct probe_trans {
 	ISC_LIST(struct probe_ns) nslist;
 };
 
-struct stat {
+struct lcl_stat {
 	unsigned long valid;
 	unsigned long ignore;
 	unsigned long nxdomain;
@@ -300,7 +300,7 @@ static void
 update_stat(struct probe_trans *trans) {
 	struct probe_ns *pns;
 	struct server *server;
-	struct stat local_stat;
+	struct lcl_stat local_stat;
 	unsigned int err_count = 0;
 	const char *stattype;
 
