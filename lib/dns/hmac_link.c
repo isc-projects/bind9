@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.15.36.1 2010/01/07 21:53:05 each Exp $
+ * $Id: hmac_link.c,v 1.15.36.2 2010/01/07 23:48:16 tbox Exp $
  */
 
 #include <config.h>

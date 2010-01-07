@@ -1,32 +1,20 @@
 /*
- * Portions Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2010  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
- * THE SOFTWARE IS PROVIDED "AS IS" AND ISC AND NETWORK ASSOCIATES DISCLAIMS
- * ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE
- * FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
- * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- *
- * Portions Copyright (C) 1995-2000 by Network Associates, Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND ISC AND NETWORK ASSOCIATES DISCLAIMS
- * ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE
- * FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
- * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
  */
+
+/* $Id: isc-hmac-fixup.c,v 1.2.2.2 2010/01/07 23:48:15 tbox Exp $ */
 
 #include <config.h>
 
@@ -78,7 +66,7 @@ main(int argc, char **argv)  {
 			r.length = ISC_MD5_DIGESTLENGTH;
 		}
 	} else if (!strcasecmp(argv[1], "sha1") ||
-	           !strcasecmp(argv[1], "hmac-sha1")) {
+		   !strcasecmp(argv[1], "hmac-sha1")) {
 		if (r.length > ISC_SHA1_DIGESTLENGTH) {
 			isc_sha1_t sha1ctx;
 			isc_sha1_init(&sha1ctx);
@@ -89,7 +77,7 @@ main(int argc, char **argv)  {
 			r.length = ISC_SHA1_DIGESTLENGTH;
 		}
 	} else if (!strcasecmp(argv[1], "sha224") ||
-	           !strcasecmp(argv[1], "hmac-sha224")) {
+		   !strcasecmp(argv[1], "hmac-sha224")) {
 		if (r.length > ISC_SHA224_DIGESTLENGTH) {
 			isc_sha224_t sha224ctx;
 			isc_sha224_init(&sha224ctx);
@@ -100,7 +88,7 @@ main(int argc, char **argv)  {
 			r.length = ISC_SHA224_DIGESTLENGTH;
 		}
 	} else if (!strcasecmp(argv[1], "sha256") ||
-	           !strcasecmp(argv[1], "hmac-sha256")) {
+		   !strcasecmp(argv[1], "hmac-sha256")) {
 		if (r.length > ISC_SHA256_DIGESTLENGTH) {
 			isc_sha256_t sha256ctx;
 			isc_sha256_init(&sha256ctx);
@@ -122,7 +110,7 @@ main(int argc, char **argv)  {
 			r.length = ISC_SHA384_DIGESTLENGTH;
 		}
 	} else if (!strcasecmp(argv[1], "sha512") ||
-	           !strcasecmp(argv[1], "hmac-sha512")) {
+		   !strcasecmp(argv[1], "hmac-sha512")) {
 		if (r.length > ISC_SHA512_DIGESTLENGTH) {
 			isc_sha512_t sha512ctx;
 			isc_sha512_init(&sha512ctx);

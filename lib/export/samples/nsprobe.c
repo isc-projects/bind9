@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsprobe.c,v 1.5.66.1 2010/01/07 18:37:02 sar Exp $ */
+/* $Id: nsprobe.c,v 1.5.66.2 2010/01/07 23:48:16 tbox Exp $ */
 
 #include <config.h>
 
