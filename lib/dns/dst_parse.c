@@ -31,7 +31,7 @@
 
 /*%
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.23 2009/10/26 21:18:24 each Exp $
+ * $Id: dst_parse.c,v 1.24 2010/01/08 17:15:36 each Exp $
  */
 
 #include <config.h>
@@ -62,7 +62,7 @@ static const char *timetags[TIMING_NTAGS] = {
 	"Publish:",
 	"Activate:",
 	"Revoke:",
-	"Unpublish:",
+	"Inactive:",
 	"Delete:",
 	"DSPublish:"
 };

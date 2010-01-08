@@ -1,3 +1,10 @@
+2835.	[bug]		Key inactivity dates were inadvertently stored in
+			the private key file with the outdated tag
+			"Unpublish" rather than "Inactive".  This has been
+			fixed; however, any existing keys that had Inactive
+			dates set will now need to have them reset, using
+			'dnssec-settime -I'. [RT #20868]
+
 2834.	[bug]		HMAC-SHA* keys that were longer than the algorithm
 			digest length were used incorrectly, leading to
 			interoperability problems with other DNS
