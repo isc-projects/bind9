@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec.h,v 1.40 2009/11/23 02:55:41 each Exp $ */
+/* $Id: dnssec.h,v 1.41 2010/01/09 15:21:10 fdupont Exp $ */
 
 #ifndef DNS_DNSSEC_H
 #define DNS_DNSSEC_H 1
@@ -284,7 +284,7 @@ dns_dnssec_keylistfromrdataset(dns_name_t *origin,
  *
  * 'keysigs' and 'soasigs', if not NULL and associated, contain the
  * RRSIGS for the DNSKEY and SOA records respectively and are used to mark
- * whether a key is already active int eh zone.
+ * whether a key is already active in the zone.
  */
 
 isc_result_t
