@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.8 2010/01/09 17:07:16 each Exp $ */
+/* $Id: zone.c,v 1.540.2.9 2010/01/09 23:47:55 tbox Exp $ */
 
 /*! \file */
 
@@ -13747,8 +13747,8 @@ zone_rekey(dns_zone_t *zone) {
 
 		result = dns_dnssec_updatekeys(&dnskeys, &keys, &rmkeys,
 					       &zone->origin, ttl, &diff,
-                                               ISC_TF(!check_ksk),
-                                               mctx, logmsg);
+					       ISC_TF(!check_ksk),
+					       mctx, logmsg);
 
 		/* Keys couldn't be updated for some reason; try again later. */
 		if (result != ISC_R_SUCCESS) {
