@@ -1,3 +1,6 @@
+2836.	[bug]		Keys that were scheduled to become active could
+			be delayed. [RT #20874]
+
 2835.	[bug]		Key inactivity dates were inadvertently stored in
 			the private key file with the outdated tag
 			"Unpublish" rather than "Inactive".  This has been

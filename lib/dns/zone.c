@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.549 2009/12/30 23:49:12 tbox Exp $ */
+/* $Id: zone.c,v 1.550 2010/01/09 17:09:00 each Exp $ */
 
 /*! \file */
 
@@ -13747,8 +13747,8 @@ zone_rekey(dns_zone_t *zone) {
 
 		result = dns_dnssec_updatekeys(&dnskeys, &keys, &rmkeys,
 					       &zone->origin, ttl, &diff,
-					       ISC_TF(!check_ksk),
-					       mctx, logmsg);
+                                               ISC_TF(!check_ksk),
+                                               mctx, logmsg);
 
 		/* Keys couldn't be updated for some reason; try again later. */
 		if (result != ISC_R_SUCCESS) {
@@ -13773,6 +13773,19 @@ zone_rekey(dns_zone_t *zone) {
 
 	dns_db_closeversion(db, &ver, commit);
 
+	/* See if any pre-existing keys have newly become active */
+	if (!commit) {
+		for (key = ISC_LIST_HEAD(dnskeys);
+		     key != NULL;
+		     key = ISC_LIST_NEXT(key, link)) {
+			if (key->first_sign) {
+				commit = ISC_TRUE;
+				break;
+			}
+		}
+	}
+
+	/* Update signatures */
 	if (commit) {
 		LOCK_ZONE(zone);
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOTIFYRESIGN);
