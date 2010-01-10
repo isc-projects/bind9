@@ -1,0 +1,4 @@
+Makefile
+t_db
+.libs
+*.lo
