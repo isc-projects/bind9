@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.47 2009/11/07 03:36:58 each Exp $
+ * $Id: dst_api.c,v 1.48 2010/01/11 10:49:14 fdupont Exp $
  */
 
 /*! \file */
@@ -1450,7 +1450,7 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 	fprintf(fp, " ");
 
 	isc_buffer_usedregion(&classb, &r);
-	fwrite(r.base, 1, r.length, fp);
+	isc_util_fwrite(r.base, 1, r.length, fp);
 
 	if ((type & DST_TYPE_KEY) != 0)
 		fprintf(fp, " KEY ");
@@ -1458,7 +1458,7 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 		fprintf(fp, " DNSKEY ");
 
 	isc_buffer_usedregion(&textb, &r);
-	fwrite(r.base, 1, r.length, fp);
+	isc_util_fwrite(r.base, 1, r.length, fp);
 
 	fputc('\n', fp);
 	fflush(fp);
