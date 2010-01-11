@@ -31,7 +31,7 @@
 
 /*%
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.14.120.3 2009/11/29 23:21:27 marka Exp $
+ * $Id: dst_parse.c,v 1.14.120.4 2010/01/11 11:02:32 fdupont Exp $
  */
 
 #include <config.h>
@@ -527,7 +527,7 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 		isc_buffer_usedregion(&b, &r);
 
 		fprintf(fp, "%s ", s);
-		fwrite(r.base, 1, r.length, fp);
+		isc_util_fwrite(r.base, 1, r.length, fp);
 		fprintf(fp, "\n");
 	}
 

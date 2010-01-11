@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg_test.c,v 1.19.332.2 2009/03/02 23:47:11 tbox Exp $ */
+/* $Id: cfg_test.c,v 1.19.332.3 2010/01/11 11:02:32 fdupont Exp $ */
 
 /*! \file */
 
@@ -49,7 +49,7 @@ check_result(isc_result_t result, const char *format, ...) {
 static void
 output(void *closure, const char *text, int textlen) {
 	UNUSED(closure);
-	(void) fwrite(text, 1, textlen, stdout);
+	(void) isc_util_fwrite(text, 1, textlen, stdout);
 }
 
 static void

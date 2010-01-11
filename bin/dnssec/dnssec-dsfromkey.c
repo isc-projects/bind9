@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-dsfromkey.c,v 1.2.14.4 2009/06/17 23:41:58 jinmei Exp $ */
+/* $Id: dnssec-dsfromkey.c,v 1.2.14.5 2010/01/11 11:02:32 fdupont Exp $ */
 
 /*! \file */
 
@@ -218,12 +218,12 @@ emitds(unsigned int dtype, dns_rdata_t *rdata)
 	putchar(' ');
 
 	isc_buffer_usedregion(&classb, &r);
-	fwrite(r.base, 1, r.length, stdout);
+	isc_util_fwrite(r.base, 1, r.length, stdout);
 
 	printf(" DS ");
 
 	isc_buffer_usedregion(&textb, &r);
-	fwrite(r.base, 1, r.length, stdout);
+	isc_util_fwrite(r.base, 1, r.length, stdout);
 	putchar('\n');
 }
 
