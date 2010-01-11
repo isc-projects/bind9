@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.551 2010/01/09 23:48:45 tbox Exp $ */
+/* $Id: zone.c,v 1.552 2010/01/11 01:14:08 fdupont Exp $ */
 
 /*! \file */
 
@@ -13819,7 +13819,7 @@ zone_rekey(dns_zone_t *zone) {
 		isc_time_t timenow, timethen;
 
 		/*
-		 * If we are doing automatic key maintenace and the
+		 * If we are doing automatic key maintenance and the
 		 * key metadata indicates there is a key change event
 		 * scheduled in the future, set the key refresh timer.
 		 */
