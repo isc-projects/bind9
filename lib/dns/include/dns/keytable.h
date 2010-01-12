@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keytable.h,v 1.20 2009/12/03 16:49:09 each Exp $ */
+/* $Id: keytable.h,v 1.21 2010/01/12 23:23:21 fdupont Exp $ */
 
 #ifndef DNS_KEYTABLE_H
 #define DNS_KEYTABLE_H 1
@@ -173,7 +173,7 @@ dns_keytable_marksecure(dns_keytable_t *keytable, dns_name_t *name);
  * Add a null key to 'keytable' for name 'name'.  This marks the
  * name as a secure domain, but doesn't supply any key data to allow the
  * domain to be validated.  (Used when automated trust anchor management
- * has gotten broken by a zone misconfiguration; for exmaple, when the
+ * has gotten broken by a zone misconfiguration; for example, when the
  * active key has been revoked but the stand-by key was still in its 30-day
  * waiting period for validity.)
  *
