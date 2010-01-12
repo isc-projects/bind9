@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keytable.h,v 1.21 2010/01/12 23:23:21 fdupont Exp $ */
+/* $Id: keytable.h,v 1.22 2010/01/12 23:48:57 tbox Exp $ */
 
 #ifndef DNS_KEYTABLE_H
 #define DNS_KEYTABLE_H 1
