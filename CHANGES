@@ -1,3 +1,9 @@
+2838.	[bug]		A KSK revoked by named could not be deleted.
+			[RT #20881]
+
+2837.	[port]		Prevent Linux spurious warnings about fwrite().
+			[RT #20812]
+
 2836.	[bug]		Keys that were scheduled to become active could
 			be delayed. [RT #20874]
 

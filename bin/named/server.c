@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.556.8.4 2009/12/29 22:23:01 marka Exp $ */
+/* $Id: server.c,v 1.556.8.5 2010/01/13 19:31:51 each Exp $ */
 
 /*! \file */
 
@@ -4090,8 +4090,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	}
 
 	/*
-	 * Create (or recreate) the built-in views.  Currently
-	 * there is only one, the _bind view, but allow for others.
+	 * Create (or recreate) the built-in views.
 	 */
 	builtin_views = NULL;
 	RUNTIME_CHECK(cfg_map_get(ns_g_config, "view",

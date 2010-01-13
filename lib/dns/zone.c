@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.9 2010/01/09 23:47:55 tbox Exp $ */
+/* $Id: zone.c,v 1.540.2.10 2010/01/13 19:31:52 each Exp $ */
 
 /*! \file */
 
@@ -1343,8 +1343,8 @@ dns_zone_getjournal(dns_zone_t *zone) {
  * master file (if any) is written by the server, rather than being
  * updated manually and read by the server.
  *
- * This is true for slave zones, stub zones, and zones that allow
- * dynamic updates either by having an update policy ("ssutable")
+ * This is true for slave zones, stub zones, key zones, and zones that
+ * allow dynamic updates either by having an update policy ("ssutable")
  * or an "allow-update" ACL with a value other than exactly "{ none; }".
  */
 static isc_boolean_t
@@ -13819,7 +13819,7 @@ zone_rekey(dns_zone_t *zone) {
 		isc_time_t timenow, timethen;
 
 		/*
-		 * If we are doing automatic key maintenace and the
+		 * If we are doing automatic key maintenance and the
 		 * key metadata indicates there is a key change event
 		 * scheduled in the future, set the key refresh timer.
 		 */
