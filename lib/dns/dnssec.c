@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.118 2010/01/13 08:35:24 fdupont Exp $
+ * $Id: dnssec.c,v 1.119 2010/01/13 23:48:59 tbox Exp $
  */
 
 /*! \file */
