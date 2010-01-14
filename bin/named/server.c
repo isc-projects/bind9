@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.560 2009/12/29 22:20:33 marka Exp $ */
+/* $Id: server.c,v 1.562 2010/01/13 23:48:59 tbox Exp $ */
 
 /*! \file */
 
@@ -4090,8 +4090,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	}
 
 	/*
-	 * Create (or recreate) the built-in views.  Currently
-	 * there is only one, the _bind view, but allow for others.
+	 * Create (or recreate) the built-in views.
 	 */
 	builtin_views = NULL;
 	RUNTIME_CHECK(cfg_map_get(ns_g_config, "view",

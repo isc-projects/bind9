@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.552 2010/01/11 01:14:08 fdupont Exp $ */
+/* $Id: zone.c,v 1.553 2010/01/12 23:56:12 fdupont Exp $ */
 
 /*! \file */
 
@@ -1343,8 +1343,8 @@ dns_zone_getjournal(dns_zone_t *zone) {
  * master file (if any) is written by the server, rather than being
  * updated manually and read by the server.
  *
- * This is true for slave zones, stub zones, and zones that allow
- * dynamic updates either by having an update policy ("ssutable")
+ * This is true for slave zones, stub zones, key zones, and zones that
+ * allow dynamic updates either by having an update policy ("ssutable")
  * or an "allow-update" ACL with a value other than exactly "{ none; }".
  */
 static isc_boolean_t

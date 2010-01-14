@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.117 2009/12/18 23:49:03 tbox Exp $
+ * $Id: dnssec.c,v 1.119 2010/01/13 23:48:59 tbox Exp $
  */
 
 /*! \file */
@@ -1448,6 +1448,33 @@ dns_dnssec_keylistfromrdataset(dns_name_t *origin,
 					  dst_key_alg(pubkey),
 					  DST_TYPE_PUBLIC|DST_TYPE_PRIVATE,
 					  directory, mctx, &privkey);
+
+		/*
+		 * If the key was revoked and the private file
+		 * doesn't exist, maybe it was revoked internally
+		 * by named.  Try loading the unrevoked version.
+		 */
+		if (result == ISC_R_FILENOTFOUND) {
+			isc_uint32_t flags;
+			flags = dst_key_flags(pubkey);
+			if ((flags & DNS_KEYFLAG_REVOKE) != 0) {
+				dst_key_setflags(pubkey,
+						 flags & ~DNS_KEYFLAG_REVOKE);
+				result = dst_key_fromfile(dst_key_name(pubkey),
+							  dst_key_id(pubkey),
+							  dst_key_alg(pubkey),
+							  DST_TYPE_PUBLIC|
+							  DST_TYPE_PRIVATE,
+							  directory,
+							  mctx, &privkey);
+				if (result == ISC_R_SUCCESS &&
+				    dst_key_pubcompare(pubkey, privkey,
+						       ISC_FALSE)) {
+					dst_key_setflags(privkey, flags);
+				}
+				dst_key_setflags(pubkey, flags);
+			}
+		}
 
 		if (result != ISC_R_SUCCESS) {
 			char keybuf[DNS_NAME_FORMATSIZE];
