@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.553 2010/01/12 23:56:12 fdupont Exp $ */
+/* $Id: zone.c,v 1.554 2010/01/14 23:27:38 each Exp $ */
 
 /*! \file */
 
@@ -6558,6 +6558,10 @@ zone_sign(dns_zone_t *zone) {
 	/* Determine which type of chain to build */
 	CHECK(dns_private_chains(db, version, zone->privatetype,
 				 &build_nsec, &build_nsec3));
+
+	/* If neither chain is found, default to NSEC */
+	if (!build_nsec && !build_nsec3)
+		build_nsec = ISC_TRUE;
 
 	while (signing != NULL && nodes-- > 0 && signatures > 0) {
 		nextsigning = ISC_LIST_NEXT(signing, link);
@@ -13695,7 +13699,7 @@ zone_rekey(dns_zone_t *zone) {
 	dns_dnsseckeylist_t dnskeys, keys, rmkeys;
 	dns_dnsseckey_t *key;
 	dns_diff_t diff;
-	isc_boolean_t commit = ISC_FALSE;
+	isc_boolean_t commit = ISC_FALSE, newactive = ISC_FALSE;
 	dns_ttl_t ttl = 3600;
 	const char *dir;
 	isc_mem_t *mctx;
@@ -13759,7 +13763,17 @@ zone_rekey(dns_zone_t *zone) {
 			goto failure;
 		}
 
-		if (!ISC_LIST_EMPTY(diff.tuples) &&
+		/* See if any pre-existing keys have newly become active */
+		for (key = ISC_LIST_HEAD(dnskeys);
+		     key != NULL;
+		     key = ISC_LIST_NEXT(key, link)) {
+			if (key->first_sign) {
+				newactive = ISC_TRUE;
+				break;
+			}
+		}
+
+		if ((newactive || !ISC_LIST_EMPTY(diff.tuples)) &&
 		    dnskey_sane(zone, db, ver, &diff)) {
 			commit = ISC_TRUE;
 			dns_diff_apply(&diff, db, ver);
@@ -13772,18 +13786,6 @@ zone_rekey(dns_zone_t *zone) {
 	}
 
 	dns_db_closeversion(db, &ver, commit);
-
-	/* See if any pre-existing keys have newly become active */
-	if (!commit) {
-		for (key = ISC_LIST_HEAD(dnskeys);
-		     key != NULL;
-		     key = ISC_LIST_NEXT(key, link)) {
-			if (key->first_sign) {
-				commit = ISC_TRUE;
-				break;
-			}
-		}
-	}
 
 	/* Update signatures */
 	if (commit) {
