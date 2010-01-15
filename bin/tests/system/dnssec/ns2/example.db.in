@@ -13,7 +13,7 @@
 ; OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 ; PERFORMANCE OF THIS SOFTWARE.
 
-; $Id: example.db.in,v 1.19.48.2 2009/12/30 23:47:31 tbox Exp $
+; $Id: example.db.in,v 1.19.48.3 2010/01/15 19:38:53 each Exp $
 
 $TTL 300	; 5 minutes
 @			IN SOA	mname1. . (
@@ -98,3 +98,9 @@ multiple		NS	ns.multiple
 ns.multiple		A	10.53.0.3
 
 *.wild			A	10.0.0.27
+
+rsasha256		NS	ns.rsasha256
+ns.rsasha256		A	10.53.0.3
+
+rsasha512		NS	ns.rsasha512
+ns.rsasha512		A	10.53.0.3

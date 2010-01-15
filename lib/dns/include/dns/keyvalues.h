@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keyvalues.h,v 1.23.48.2 2009/06/04 02:56:14 tbox Exp $ */
+/* $Id: keyvalues.h,v 1.23.48.3 2010/01/15 19:38:53 each Exp $ */
 
 #ifndef DNS_KEYVALUES_H
 #define DNS_KEYVALUES_H 1
@@ -69,6 +69,8 @@
 #define DNS_KEYALG_ECC		4
 #define DNS_KEYALG_RSASHA1	5
 #define DNS_KEYALG_NSEC3RSASHA1	7
+#define DNS_KEYALG_RSASHA256	8
+#define DNS_KEYALG_RSASHA512	10
 #define DNS_KEYALG_INDIRECT	252
 #define DNS_KEYALG_PRIVATEDNS	253
 #define DNS_KEYALG_PRIVATEOID	254     /*%< Key begins with OID giving alg */

@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.457.26.14 $)
+AC_REVISION($Revision: 1.457.26.15 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -644,8 +644,10 @@ esac
 		else
 			AC_MSG_RESULT(no)
 		fi
+		AC_CHECK_FUNCS(EVP_sha256 EVP_sha512)
 		CFLAGS="$saved_cflags"
 		LIBS="$saved_libs"
+
 		;;
 esac
 

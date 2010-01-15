@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keyfromlabel.c,v 1.4 2008/09/24 02:46:21 marka Exp $ */
+/* $Id: dnssec-keyfromlabel.c,v 1.4.50.1 2010/01/15 19:38:53 each Exp $ */
 
 /*! \file */
 
@@ -48,7 +48,8 @@ const char *program = "dnssec-keyfromlabel";
 int verbose;
 
 static const char *algs = "RSA | RSAMD5 | DH | DSA | RSASHA1 |"
-			  " NSEC3DSA | NSEC3RSASHA1";
+			  " NSEC3DSA | NSEC3RSASHA1 |"
+			  " RSASHA256 | RSASHA512";
 
 static void
 usage(void) {

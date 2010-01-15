@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sha2.c,v 1.13.332.2 2009/01/18 23:47:41 tbox Exp $ */
+/* $Id: sha2.c,v 1.13.332.3 2010/01/15 19:38:53 each Exp $ */
 
 /*	$FreeBSD: src/sys/crypto/sha2/sha2.c,v 1.2.2.2 2002/03/05 08:36:47 ume Exp $	*/
 /*	$KAME: sha2.c,v 1.8 2001/11/08 01:07:52 itojun Exp $	*/
@@ -415,6 +415,11 @@ isc_sha224_init(isc_sha224_t *context) {
 }
 
 void
+isc_sha224_invalidate(isc_sha224_t *context) {
+	memset(context, 0, sizeof(isc_sha224_t));
+}
+
+void
 isc_sha224_update(isc_sha224_t *context, const isc_uint8_t* data, size_t len) {
 	isc_sha256_update((isc_sha256_t *)context, data, len);
 }
@@ -649,6 +654,11 @@ isc_sha256_transform(isc_sha256_t *context, const isc_uint32_t* data) {
 }
 
 #endif /* ISC_SHA2_UNROLL_TRANSFORM */
+
+void
+isc_sha256_invalidate(isc_sha256_t *context) {
+	memset(context, 0, sizeof(isc_sha256_t));
+}
 
 void
 isc_sha256_update(isc_sha256_t *context, const isc_uint8_t *data, size_t len) {
@@ -990,7 +1000,13 @@ isc_sha512_transform(isc_sha512_t *context, const isc_uint64_t* data) {
 
 #endif /* ISC_SHA2_UNROLL_TRANSFORM */
 
-void isc_sha512_update(isc_sha512_t *context, const isc_uint8_t *data, size_t len) {
+void
+isc_sha512_invalidate(isc_sha512_t *context) {
+	memset(context, 0, sizeof(isc_sha512_t));
+}
+
+void
+isc_sha512_update(isc_sha512_t *context, const isc_uint8_t *data, size_t len) {
 	unsigned int	freespace, usedspace;
 
 	if (len == 0U) {
@@ -1161,6 +1177,11 @@ isc_sha384_init(isc_sha384_t *context) {
 	       ISC_SHA512_DIGESTLENGTH);
 	memset(context->buffer, 0, ISC_SHA384_BLOCK_LENGTH);
 	context->bitcount[0] = context->bitcount[1] = 0;
+}
+
+void
+isc_sha384_invalidate(isc_sha384_t *context) {
+	memset(context, 0, sizeof(isc_sha384_t));
 }
 
 void
