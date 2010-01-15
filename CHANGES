@@ -1,3 +1,5 @@
+	--- 9.6.2rc1 released ---
+
 2838.	[func]		Backport support for SHA-2 DNSSEC algorithms,
 			RSASHA256 and RSASHA512, from BIND 9.7.  (This
 			incorporates changes 2726 and 2738 from that
