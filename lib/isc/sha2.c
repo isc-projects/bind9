@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2005-2007, 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sha2.c,v 1.13.332.3 2010/01/15 19:38:53 each Exp $ */
+/* $Id: sha2.c,v 1.13.332.4 2010/01/15 23:47:34 tbox Exp $ */
 
 /*	$FreeBSD: src/sys/crypto/sha2/sha2.c,v 1.2.2.2 2002/03/05 08:36:47 ume Exp $	*/
 /*	$KAME: sha2.c,v 1.8 2001/11/08 01:07:52 itojun Exp $	*/

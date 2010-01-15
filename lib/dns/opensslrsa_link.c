@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.20.50.6 2010/01/15 19:38:53 each Exp $
+ * $Id: opensslrsa_link.c,v 1.20.50.7 2010/01/15 23:47:33 tbox Exp $
  */
 #ifdef OPENSSL
 #include <config.h>
@@ -185,7 +185,7 @@ opensslrsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 		{
 			isc_sha256_t *sha256ctx;
 
-			sha256ctx = isc_mem_get(dctx->mctx, 
+			sha256ctx = isc_mem_get(dctx->mctx,
 						sizeof(isc_sha256_t));
 			if (sha256ctx == NULL)
 				return (ISC_R_NOMEMORY);
@@ -197,7 +197,7 @@ opensslrsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 		{
 			isc_sha512_t *sha512ctx;
 
-			sha512ctx = isc_mem_get(dctx->mctx, 
+			sha512ctx = isc_mem_get(dctx->mctx,
 						sizeof(isc_sha512_t));
 			if (sha512ctx == NULL)
 				return (ISC_R_NOMEMORY);
@@ -593,7 +593,7 @@ opensslrsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 				    RSA_size(rsa), rsa);
 		break;
 
-	case DST_ALG_RSASHA256: 
+	case DST_ALG_RSASHA256:
 	case DST_ALG_RSASHA512:
 		{
 			/*
@@ -611,9 +611,9 @@ opensslrsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 			status = RSA_public_decrypt(sig->length, sig->base,
 						    original, rsa,
 						    RSA_PKCS1_PADDING);
-			if (status <= 0) 
+			if (status <= 0)
 				return (DST_R_VERIFYFAILURE);
-			if (status != (int)(prefixlen + digestlen)) 
+			if (status != (int)(prefixlen + digestlen))
 				return (DST_R_VERIFYFAILURE);
 			if (memcmp(original, prefix, prefixlen))
 				return (DST_R_VERIFYFAILURE);
