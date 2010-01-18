@@ -12,7 +12,7 @@
 ; OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 ; PERFORMANCE OF THIS SOFTWARE.
 
-; $Id: example.db.in,v 1.4 2010/01/18 19:19:31 each Exp $
+; $Id: bar.db.in,v 1.2 2010/01/18 19:19:31 each Exp $
 
 $TTL 300	; 5 minutes
 @			IN SOA	mname1. . (
@@ -83,9 +83,3 @@ ns.rsasha256		A	10.53.0.3
 
 rsasha512		NS	ns.rsasha512
 ns.rsasha512		A	10.53.0.3
-
-nsec3-to-nsec		NS	ns.nsec3-to-nsec
-ns.nsec3-to-nsec	A	10.53.0.3
-
-oldsigs			NS	ns.oldsigs
-ns.oldsigs		A	10.53.0.3

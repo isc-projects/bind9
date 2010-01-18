@@ -14,11 +14,13 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.3 2009/11/30 23:48:02 tbox Exp $
+# $Id: setup.sh,v 1.4 2010/01/18 19:19:30 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 . ./clean.sh
+
+echo "I:generating keys and preparing zones"
 
 ../../../tools/genrandom 400 random.data
 

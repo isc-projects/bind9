@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.6 2010/01/07 23:48:53 tbox Exp $
+# $Id: tests.sh,v 1.7 2010/01/18 19:19:31 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -175,6 +175,27 @@ ret=0
 expect="10.10.10.10"
 ans=`$DIG $DIGOPTS_CD @10.53.0.4 nice.good. A` || ret=1
 ans=`echo $ans | awk '{print $NF}'`
+test "$ans" = "$expect" || ret=1
+test $ret = 0 || echo I:failed, got "'""$ans""'", expected "'""$expect""'"
+status=`expr $status + $ret`
+
+#
+# Make sure the resolver doesn't cache bogus NXDOMAIN
+#
+echo I:Trying to Prime bogus NXDOMAIN
+ret=0
+expect="SERVFAIL"
+ans=`$DIG +tcp -p 5300 @10.53.0.4 removed.example.com. A` || ret=1
+ans=`echo $ans | sed 's/^.*status: \([A-Z][A-Z]*\).*$/\1/'`
+test "$ans" = "$expect" || ret=1
+test $ret = 0 || echo I:failed, got "'""$ans""'", expected "'""$expect""'"
+status=`expr $status + $ret`
+
+echo I:Confirming the bogus NXDOMAIN was not cached
+ret=0
+expect="SERVFAIL"
+ans=`$DIG +tcp -p 5300 @10.53.0.4 removed.example.com. A` || ret=1
+ans=`echo $ans | sed 's/^.*status: \([A-Z][A-Z]*\).*$/\1/'`
 test "$ans" = "$expect" || ret=1
 test $ret = 0 || echo I:failed, got "'""$ans""'", expected "'""$expect""'"
 status=`expr $status + $ret`

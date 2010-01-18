@@ -1,6 +1,7 @@
 #!/bin/sh
 #
-# Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2006, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2000-2002  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,14 +15,11 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: prereq.sh,v 1.4 2010/01/18 19:19:30 each Exp $
-
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+# $Id: prereq.sh,v 1.2 2010/01/18 19:19:31 each Exp $
 
 ../../../tools/genrandom 400 random.data
 
-if $KEYGEN -q -a RSAMD5 -b 512 -n zone -r random.data foo > /dev/null 2>&1
+if $KEYGEN -q -r random.data foo > /dev/null 2>&1
 then
     rm -f Kfoo*
 else

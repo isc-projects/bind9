@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.6 2010/01/07 23:48:53 tbox Exp $
+# $Id: sign.sh,v 1.7 2010/01/18 19:19:31 each Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -26,10 +26,16 @@ for domain in example example.com; do
 	infile=${domain}.db.in
 	zonefile=${domain}.db
 
-	keyname1=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 768 -n zone $zone`
-	keyname2=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -f KSK -n zone $zone`
+	keyname1=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 768 -n zone $zone`
+	keyname2=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -f KSK -n zone $zone`
 
-	cat $infile $keyname1.key $keyname2.key >$zonefile
+	cat $infile $keyname1.key $keyname2.key > $zonefile
 
-	$SIGNER -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
+	$SIGNER -3 bebe -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
 done
+
+# remove "removed" record from example.com, causing the server to
+# send an apparently-invalid NXDOMAIN
+sed '/^removed/d' example.com.db.signed > example.com.db.new
+rm -f example.com.db.signed
+mv example.com.db.new example.com.db.signed
