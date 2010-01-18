@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: keygen.sh,v 1.3.6.1 2009/12/19 17:30:07 each Exp $
+# $Id: keygen.sh,v 1.3.6.2 2010/01/18 19:18:35 each Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -138,3 +138,47 @@ cp $infile $zonefile
 ksk=`$KEYGEN -q -a RSASHA512 -b 2048 -r $RANDFILE -fk $zone`
 $KEYGEN -q -a RSASHA512 -b 1024 -r $RANDFILE $zone > /dev/null
 $DSFROMKEY $ksk.key > dsset-${zone}.
+
+#
+# NSEC-only zone.
+#
+zone=nsec.example
+zonefile="${zone}.db"
+infile="${zonefile}.in"
+cp $infile $zonefile
+ksk=`$KEYGEN -q -r $RANDFILE -fk $zone`
+$KEYGEN -q -r $RANDFILE $zone > /dev/null
+$DSFROMKEY $ksk.key > dsset-${zone}.
+
+#
+# Signature refresh test zone.  Signatures are set to expire long
+# in the past; they should be updated by autosign.
+#
+zone=oldsigs.example
+zonefile="${zone}.db"
+infile="${zonefile}.in"
+cp $infile $zonefile
+ksk=`$KEYGEN -q -r $RANDFILE -fk $zone`
+$KEYGEN -q -r $RANDFILE $zone > /dev/null
+$SIGNER -PS -s now-1y -e now-6mo -o $zone -f $zonefile $infile > /dev/null 2>&1
+
+#
+# NSEC3->NSEC transition test zone.
+#
+zone=nsec3-to-nsec.example
+zonefile="${zone}.db"
+infile="${zonefile}.in"
+cp $infile $zonefile
+ksk=`$KEYGEN -q -a RSASHA512 -b 2048 -r $RANDFILE -fk $zone`
+$KEYGEN -q -a RSASHA512 -b 1024 -r $RANDFILE $zone > /dev/null
+$SIGNER -S -3 beef -A -o $zone -f $zonefile $infile > /dev/null 2>&1
+
+#
+# secure-to-insecure transition test zone.
+#
+zone=secure-to-insecure.example
+zonefile="${zone}.db"
+infile="${zonefile}.in"
+ksk=`$KEYGEN -q -r $RANDFILE -fk $zone`
+$KEYGEN -q -r $RANDFILE $zone > /dev/null
+$SIGNER -S -o $zone -f $zonefile $infile > /dev/null 2>&1

@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: keygen.sh,v 1.3.6.1 2009/12/19 17:30:07 each Exp $
+# $Id: keygen.sh,v 1.3.6.2 2010/01/18 19:18:35 each Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -24,7 +24,7 @@ RANDFILE=../random.data
 # Have the child generate subdomain keys and pass DS sets to us.
 ( cd ../ns3 && sh keygen.sh )
 
-for subdomain in secure nsec3 optout rsasha256 rsasha512
+for subdomain in secure nsec3 optout rsasha256 rsasha512 nsec3-to-nsec oldsigs
 do
 	cp ../ns3/dsset-$subdomain.example. .
 done
@@ -46,3 +46,12 @@ infile="${zonefile}.in"
 cp $infile $zonefile
 $KEYGEN -3 -q -r $RANDFILE -fk $zone > /dev/null
 $KEYGEN -3 -q -r $RANDFILE $zone > /dev/null
+
+# Extract saved keys for the revoke-to-duplicate-key test
+zone=bar
+zonefile="${zone}.db"
+infile="${zonefile}.in"
+cat $infile > $zonefile
+sh revkeys.shar > /dev/null
+$KEYGEN -3 -q -r $RANDFILE $zone > /dev/null
+$DSFROMKEY Kbar.+005+30804.key > dsset-bar.

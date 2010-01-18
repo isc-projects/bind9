@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: keygen.sh,v 1.3.6.1 2009/12/19 17:30:07 each Exp $
+# $Id: keygen.sh,v 1.3.6.2 2010/01/18 19:18:34 each Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -29,11 +29,14 @@ infile=root.db.in
 
 cat $infile ../ns2/dsset-example. > $zonefile
 
-$KEYGEN -3 -q -r $RANDFILE $zone > /dev/null
+zskact=`$KEYGEN -3 -q -r $RANDFILE $zone`
+zskvanish=`$KEYGEN -3 -q -r $RANDFILE $zone`
 zskdel=`$KEYGEN -3 -q -r $RANDFILE -D now $zone`
 zskinact=`$KEYGEN -3 -q -r $RANDFILE -I now $zone`
 zskunpub=`$KEYGEN -3 -q -r $RANDFILE -G $zone`
 zsksby=`$KEYGEN -3 -q -r $RANDFILE -A none $zone`
+zsknopriv=`$KEYGEN -3 -q -r $RANDFILE $zone`
+rm $zsknopriv.private
 
 ksksby=`$KEYGEN -3 -q -r $RANDFILE -P now -A now+15s -fk $zone`
 kskrev=`$KEYGEN -3 -q -r $RANDFILE -R now+15s -fk $zone`
@@ -62,8 +65,11 @@ EOF
 ' > trusted.conf
 cp trusted.conf ../ns5/trusted.conf
 
+echo $zskact > ../active.key
+echo $zskvanish > ../vanishing.key
 echo $zskdel > ../del.key
 echo $zskinact > ../inact.key
 echo $zskunpub > ../unpub.key
+echo $zsknopriv > ../nopriv.key
 echo $zsksby > ../standby.key
 echo $kskrev > ../rev.key

@@ -1,3 +1,6 @@
+2841.	[func]		Added "smartsign" and improved "autosign" and
+			"dnssec" regression tests. [RT #20865]
+
 2840.	[bug]		Change 2836 was not complete. [RT #20883]
 
 2839.	[bug]		Temporary fixed pkcs11-destroy usage check.

@@ -1,6 +1,7 @@
-#!/bin/sh
+#!/bin/sh -e
 #
-# Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,17 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: prereq.sh,v 1.3.6.1 2010/01/18 19:18:34 each Exp $
+# $Id: setup.sh,v 1.1.4.1 2010/01/18 19:18:35 each Exp $
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
-
+sh clean.sh
 ../../../tools/genrandom 400 random.data
-
-if $KEYGEN -q -a RSAMD5 -b 512 -n zone -r random.data foo > /dev/null 2>&1
-then
-    rm -f Kfoo*
-else
-    echo "I:This test requires that --with-openssl was used." >&2
-    exit 1
-fi

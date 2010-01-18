@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.4.6.1 2009/12/19 17:30:07 each Exp $
+# $Id: tests.sh,v 1.4.6.2 2010/01/18 19:18:34 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -25,8 +25,37 @@ n=0
 
 DIGOPTS="+tcp +noadd +nosea +nostat +nocmd +dnssec -p 5300"
 
+echo "I:waiting 30 seconds for autosign changes to take effect"
+sleep 30
+
+echo "I:checking that zone transfer worked ($n)"
+ret=0
+$DIG $DIGOPTS a.example. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
+$DIG $DIGOPTS a.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
+$PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns3.test$n || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking NSEC->NSEC3 conversion prerequisites ($n)"
+ret=0
+# this command should result in an empty file:
+$DIG $DIGOPTS +noall +answer nsec3.example. nsec3param @10.53.0.3 > dig.out.ns3.test$n || ret=1
+grep "NSEC3PARAM" dig.out.ns3.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking NSEC3->NSEC conversion prerequisites ($n)"
+ret=0
+$DIG $DIGOPTS +noall +answer nsec3-to-nsec.example. nsec3param @10.53.0.3 > dig.out.ns3.test$n || ret=1
+grep "NSEC3PARAM" dig.out.ns3.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:converting zones from nsec to nsec3"
-$NSUPDATE > /dev/null <<END || status=1
+$NSUPDATE > /dev/null 2>&1 <<END	|| status=1
 server 10.53.0.3 5300
 zone nsec3.nsec3.example.
 update add nsec3.nsec3.example. 3600 NSEC3PARAM 1 0 10 BEEF
@@ -48,23 +77,78 @@ update add optout.example. 3600 NSEC3PARAM 1 1 10 BEEF
 send
 END
 
-echo "I:waiting 30 seconds for key changes to take effect"
-sleep 30
+# try to convert nsec.example; this should fail due to non-NSEC key
+$NSUPDATE > nsupdate.out 2>&1 <<END
+server 10.53.0.3 5300
+zone nsec.example.
+update add nsec.example. 3600 NSEC3PARAM 1 0 10 BEEF
+send
+END
+
+echo "I:waiting for changes to take effect"
+sleep 3
+
+echo "I:converting zone from nsec3 to nsec"
+$NSUPDATE > /dev/null 2>&1 << END	|| status=1
+server 10.53.0.3 5300
+zone nsec3-to-nsec.example.
+update delete nsec3-to-nsec.example. NSEC3PARAM
+send
+END
+
+echo "I:waiting for change to take effect"
+sleep 3
 
 # Send rndc freeze command to ns1, ns2 and ns3, to force the dynamically
 # signed zones to be dumped to their zone files
 echo "I:dumping zone files"
 $RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 freeze 2>&1 | sed 's/^/I:ns1 /'
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 thaw 2>&1 | sed 's/^/I:ns1 /'
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 freeze 2>&1 | sed 's/^/I:ns2 /'
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 thaw 2>&1 | sed 's/^/I:ns2 /'
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 freeze 2>&1 | sed 's/^/I:ns3 /'
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 thaw 2>&1 | sed 's/^/I:ns3 /'
 
-# Check the example. domain
-
-echo "I:checking that zone transfer worked ($n)"
+echo "I:checking expired signatures were updated ($n)"
 ret=0
-$DIG $DIGOPTS a.example. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
-$DIG $DIGOPTS a.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns3.test$n || ret=1
+$DIG $DIGOPTS +noauth a.oldsigs.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
+$DIG $DIGOPTS +noauth a.oldsigs.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
+$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking NSEC->NSEC3 conversion succeeded ($n)"
+ret=0
+$DIG $DIGOPTS nsec3.example. nsec3param @10.53.0.3 > dig.out.ns3.ok.test$n || ret=1
+grep "status: NOERROR" dig.out.ns3.ok.test$n > /dev/null || ret=1
+$DIG $DIGOPTS +noauth q.nsec3.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
+$DIG $DIGOPTS +noauth q.nsec3.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
+$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
+grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking NSEC->NSEC3 conversion failed with NSEC-only key ($n)"
+ret=0
+grep "failed: REFUSED" nsupdate.out > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking NSEC3->NSEC conversion succeeded ($n)"
+ret=0
+# this command should result in an empty file:
+$DIG $DIGOPTS +noall +answer nsec3-to-nsec.example. nsec3param @10.53.0.3 > dig.out.ns3.nx.test$n || ret=1
+grep "NSEC3PARAM" dig.out.ns3.nx.test$n > /dev/null && ret=1
+$DIG $DIGOPTS +noauth q.nsec3-to-nsec.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
+$DIG $DIGOPTS +noauth q.nsec3-to-nsec.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
+$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
+grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -501,6 +585,25 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:checking insertion of public-only key ($n)"
+ret=0
+id=`sed 's/^K.+007+0*//' < nopriv.key`
+file="ns1/`cat nopriv.key`.key"
+keydata=`grep DNSKEY $file`
+$NSUPDATE > /dev/null 2>&1 <<END	|| status=1
+server 10.53.0.1 5300
+zone .
+ttl 3600
+update add $keydata
+send
+END
+sleep 1
+$DIG $DIGOPTS dnskey . @10.53.0.1 > dig.out.ns1.test$n || ret=1
+grep 'RRSIG.*'" $id "'\. ' dig.out.ns1.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:checking key deletion ($n)"
 ret=0
 id=`sed 's/^K.+007+0*//' < del.key`
@@ -509,6 +612,82 @@ grep '; key id = '"$id"'$' dig.out.ns1.test$n > /dev/null && ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
+
+echo "I:checking secure-to-insecure transition ($n)"
+$NSUPDATE > /dev/null 2>&1 <<END	|| status=1
+server 10.53.0.3 5300
+zone secure-to-insecure.example
+update delete secure-to-insecure.example dnskey
+send
+END
+sleep 2
+$DIG $DIGOPTS axfr secure-to-insecure.example @10.53.0.3 > dig.out.ns3.test$n || ret=1
+egrep 'RRSIG.*'" $newid "'\. ' dig.out.ns3.test$n > /dev/null && ret=1
+egrep '(DNSKEY|NSEC)' dig.out.ns3.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:preparing to test key change corner cases"
+echo "I:removing a private key file"
+file="ns1/`cat vanishing.key`.private"
+rm -f $file
+
+echo "I:preparing ZSK roll"
+newid=`sed 's/^K.+007+0*//' < standby.key`
+file="ns1/`cat standby.key`.key"
+$SETTIME -A now $file > /dev/null
+oldid=`sed 's/^K.+007+0*//' < active.key`
+file="ns1/`cat active.key`.key"
+$SETTIME -I now -D now+10 $file > /dev/null
+
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 sign . 2>&1 | sed 's/^/I:ns1 /'
+
+echo "I:revoking key to duplicated key ID"
+$SETTIME -R now ns2/Kbar.+005+30676.key > /dev/null
+
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 sign bar. 2>&1 | sed 's/^/I:ns2 /'
+
+echo "I:waiting for changes to take effect"
+sleep 5
+
+echo "I:checking former standby key is now active ($n)"
+ret=0
+$DIG $DIGOPTS dnskey . @10.53.0.1 > dig.out.ns1.test$n || ret=1
+grep 'RRSIG.*'" $newid "'\. ' dig.out.ns1.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:waiting for former active key to be removed"
+sleep 10
+
+echo "I:checking key was removed ($n)"
+ret=0
+$DIG $DIGOPTS +multi dnskey . @10.53.0.1 > dig.out.ns1.test$n || ret=1
+grep '; key id =.*'"$oldid"'$' dig.out.ns1.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking private key file removal caused no immediate harm ($n)"
+ret=0
+id=`sed 's/^K.+007+0*//' < vanishing.key`
+$DIG $DIGOPTS dnskey . @10.53.0.1 > dig.out.ns1.test$n || ret=1
+grep 'RRSIG.*'" $id "'\. ' dig.out.ns1.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking revoked key with duplicate key ID (failure expected) ($n)"
+lret=0
+id=30676
+$DIG $DIGOPTS +multi dnskey bar @10.53.0.2 > dig.out.ns2.test$n || lret=1
+grep '; key id =.*'"$id"'$' dig.out.ns2.test$n || lret=1
+$DIG $DIGOPTS dnskey bar @10.53.0.4 > dig.out.ns4.test$n || lret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || lret=1
+n=`expr $n + 1`
+if [ $lret != 0 ]; then echo "I:failed"; fi
 
 echo "I:exit status: $status"
 
