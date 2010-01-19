@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.111 2010/01/19 20:26:07 each Exp $ */
+/* $Id: dnssec-keygen.c,v 1.112 2010/01/19 23:48:55 tbox Exp $ */
 
 /*! \file */
 
@@ -826,9 +826,9 @@ main(int argc, char **argv) {
 				  alg, mctx, NULL)) {
 			conflict = ISC_TRUE;
 			if (null_key) {
-                                dst_key_free(&key);
+				dst_key_free(&key);
 				break;
-                        }
+			}
 
 			if (verbose > 0) {
 				isc_buffer_clear(&buf);

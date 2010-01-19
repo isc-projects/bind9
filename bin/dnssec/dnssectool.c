@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.59 2010/01/19 20:26:07 each Exp $ */
+/* $Id: dnssectool.c,v 1.60 2010/01/19 23:48:56 tbox Exp $ */
 
 /*! \file */
 
@@ -414,7 +414,7 @@ key_collision(isc_uint16_t id, dns_name_t *name, const char *dir,
 	dns_dnsseckeylist_t matchkeys;
 	dns_dnsseckey_t *key = NULL;
 	isc_uint16_t oldid, diff;
-        isc_uint16_t bits = DNS_KEYFLAG_REVOKE;   /* flag bits to look for */
+	isc_uint16_t bits = DNS_KEYFLAG_REVOKE;   /* flag bits to look for */
 
 	if (exact != NULL)
 		*exact = ISC_FALSE;
@@ -435,16 +435,16 @@ key_collision(isc_uint16_t id, dns_name_t *name, const char *dir,
 			conflict = ISC_TRUE;
 			if (diff != 0) {
 				if (verbose > 1)
-                                        fprintf(stderr, "Key ID %d could "
+					fprintf(stderr, "Key ID %d could "
 						"collide with %d\n",
 						id, oldid);
 			} else {
 				if (exact != NULL)
 					*exact = ISC_TRUE;
 				if (verbose > 1)
-                                        fprintf(stderr, "Key ID %d exists\n",
+					fprintf(stderr, "Key ID %d exists\n",
 						id);
-                        }
+			}
 		}
 
  next:
@@ -452,7 +452,7 @@ key_collision(isc_uint16_t id, dns_name_t *name, const char *dir,
 		dns_dnsseckey_destroy(mctx, &key);
 	}
 
-        /* Finish freeing the list */
+	/* Finish freeing the list */
 	while (!ISC_LIST_EMPTY(matchkeys)) {
 		key = ISC_LIST_HEAD(matchkeys);
 		ISC_LIST_UNLINK(matchkeys, key, link);
