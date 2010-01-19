@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-keyfromlabel.docbook,v 1.15 2009/11/03 21:44:46 each Exp $ -->
+<!-- $Id: dnssec-keyfromlabel.docbook,v 1.15.24.1 2010/01/19 20:25:49 each Exp $ -->
 <refentry id="man.dnssec-keyfromlabel">
   <refentryinfo>
     <date>February 8, 2008</date>
@@ -63,6 +63,7 @@
       <arg><option>-R <replaceable class="parameter">date/offset</replaceable></option></arg>
       <arg><option>-t <replaceable class="parameter">type</replaceable></option></arg>
       <arg><option>-v <replaceable class="parameter">level</replaceable></option></arg>
+      <arg><option>-y</option></arg>
       <arg choice="req">name</arg>
     </cmdsynopsis>
   </refsynopsisdiv>
@@ -260,6 +261,19 @@
         <listitem>
           <para>
             Sets the debugging level.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-y</term>
+        <listitem>
+          <para>
+            Allows DNSSEC key files to be generated even if the key ID
+	    would collide with that of an existing key, in the event of
+	    either key being revoked.  (This is only safe to use if you
+            are sure you won't be using RFC 5011 trust anchor maintenance
+            with either of the keys involved.)
           </para>
         </listitem>
       </varlistentry>
