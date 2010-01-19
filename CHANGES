@@ -1,3 +1,12 @@
+2842.	[func]		Prevent dnssec-keygen and dnssec-keyfromlabel from
+			creating key files if there is a chance that the new
+			key ID will collide with an existing one after
+			either of the keys has been revoked.  (To override
+			this in the case of dnssec-keyfromlabel, use the -y
+			option.  dnssec-keygen will simply create a
+			different, noncolliding key, so an override is
+			not necessary.) [RT #20838]
+
 2841.	[func]		Added "smartsign" and improved "autosign" and
 			"dnssec" regression tests. [RT #20865]
 

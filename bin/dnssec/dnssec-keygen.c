@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.110 2010/01/07 23:48:53 tbox Exp $ */
+/* $Id: dnssec-keygen.c,v 1.111 2010/01/19 20:26:07 each Exp $ */
 
 /*! \file */
 
@@ -47,6 +47,7 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+#include <dns/dnssec.h>
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
 #include <dns/log.h>
@@ -66,11 +67,6 @@ int verbose;
 
 #define DEFAULT_ALGORITHM "RSASHA1"
 #define DEFAULT_NSEC3_ALGORITHM "NSEC3RSASHA1"
-
-static isc_boolean_t
-dsa_size_ok(int size) {
-	return (ISC_TF(size >= 512 && size <= 1024 && size % 64 == 0));
-}
 
 ISC_PLATFORM_NORETURN_PRE static void
 usage(void) ISC_PLATFORM_NORETURN_POST;
@@ -162,6 +158,11 @@ usage(void) {
 	exit (-1);
 }
 
+static isc_boolean_t
+dsa_size_ok(int size) {
+	return (ISC_TF(size >= 512 && size <= 1024 && size % 64 == 0));
+}
+
 static void
 progress(int p)
 {
@@ -192,7 +193,7 @@ main(int argc, char **argv) {
 	char	        *algname = NULL, *nametype = NULL, *type = NULL;
 	char		*classname = NULL;
 	char		*endp;
-	dst_key_t	*key = NULL, *oldkey;
+	dst_key_t	*key = NULL;
 	dns_fixedname_t	fname;
 	dns_name_t	*name;
 	isc_uint16_t	flags = 0, kskflag = 0, revflag = 0;
@@ -730,7 +731,6 @@ main(int argc, char **argv) {
 
 	do {
 		conflict = ISC_FALSE;
-		oldkey = NULL;
 
 		if (!quiet && show_progress) {
 			fprintf(stderr, "Generating key pair.");
@@ -818,37 +818,35 @@ main(int argc, char **argv) {
 		}
 
 		/*
-		 * Try to read a key with the same name, alg and id from disk.
-		 * If there is one we must continue generating a different
-		 * key unless we were asked to generate a null key, in which
-		 * case we return failure.
+		 * Do not overwrite an existing key, or create a key
+		 * if there is a risk of ID collision due to this key
+		 * or another key being revoked.
 		 */
-		ret = dst_key_fromfile(name, dst_key_id(key), alg,
-				       DST_TYPE_PRIVATE, directory,
-				       mctx, &oldkey);
-		/* do not overwrite an existing key  */
-		if (ret == ISC_R_SUCCESS) {
-			dst_key_free(&oldkey);
+		if (key_collision(dst_key_id(key), name, directory,
+				  alg, mctx, NULL)) {
 			conflict = ISC_TRUE;
-			if (null_key)
+			if (null_key) {
+                                dst_key_free(&key);
 				break;
-		}
-		if (conflict == ISC_TRUE) {
+                        }
+
 			if (verbose > 0) {
 				isc_buffer_clear(&buf);
 				dst_key_buildfilename(key, 0, directory, &buf);
 				fprintf(stderr,
-					"%s: %s already exists, "
-					"generating a new key\n",
+					"%s: %s already exists, or might "
+					"collide with another key upon "
+					"revokation.  Generating a new key\n",
 					program, filename);
 			}
+
 			dst_key_free(&key);
 		}
 	} while (conflict == ISC_TRUE);
 
 	if (conflict)
-		fatal("cannot generate a null key when a key with id 0 "
-		      "already exists");
+		fatal("cannot generate a null key due to possible key ID "
+		      "collision");
 
 	ret = dst_key_tofile(key, options, directory);
 	if (ret != ISC_R_SUCCESS) {
