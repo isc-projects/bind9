@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.3 2010/01/18 23:48:40 tbox Exp $
+# $Id: tests.sh,v 1.4 2010/01/19 15:54:45 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -47,12 +47,13 @@ cksk1=`$KEYGEN -q -r $RANDFILE -fk $czone`
 
 # published but not YET active; will be active in 20 seconds
 cksk2=`$KEYGEN -q -r $RANDFILE -fk $czone`
-$SETTIME -A now+20s $cksk2 > /dev/null
+# $SETTIME moved after other $KEYGENs
 
 echo I:revoking key
 # revoking key changes its ID
 cksk3=`$KEYGEN -q -r $RANDFILE -fk $czone`
 cksk4=`$REVOKE $cksk3`
+$SETTIME -A now+20s $cksk2 > /dev/null
 
 echo I:signing child zone
 czoneout=`$SIGNER -Sg -r $RANDFILE -o $czone $cfile 2>&1`
