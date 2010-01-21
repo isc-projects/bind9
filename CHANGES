@@ -1,3 +1,5 @@
+	--- 9.4-ESV released ---
+
 2831.	[security]	Do not attempt to validate or cache
 			out-of-bailiwick data returned with a secure
 			answer; it must be re-fetched from its original
@@ -7,8 +9,6 @@
 			without DNSSEC validation. [RT #20737]
 
 2827.	[security]	Bogus NXDOMAIN could be cached as if valid. [RT #20712]
-
-	--- 9.4-ESVrc1 released ---
 
 2797.	[bug]		Don't decrement the dispatch manager's maxbuffers.
 			[RT #20613]
