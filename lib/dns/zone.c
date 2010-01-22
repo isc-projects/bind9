@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.12 2010/01/22 01:35:06 each Exp $ */
+/* $Id: zone.c,v 1.540.2.13 2010/01/22 01:46:43 each Exp $ */
 
 /*! \file */
 
@@ -13761,7 +13761,7 @@ zone_rekey(dns_zone_t *zone) {
 				     "couldn't update zone keys: %s",
 				     isc_result_totext(result));
 			isc_interval_set(&ival, HOUR, 0);
-			isc_time_nowplusinterval(&zone->refrekshkeytime, &ival);
+			isc_time_nowplusinterval(&zone->refreshkeytime, &ival);
 			goto failure;
 		}
 
