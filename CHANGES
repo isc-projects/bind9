@@ -1,4 +1,4 @@
-2842.	[func]		Prevent dnssec-keygen and dnssec-keyfromlabel from
+2843.	[func]		Prevent dnssec-keygen and dnssec-keyfromlabel from
 			creating key files if there is a chance that the new
 			key ID will collide with an existing one after
 			either of the keys has been revoked.  (To override
@@ -7,16 +7,18 @@
 			different, noncolliding key, so an override is
 			not necessary.) [RT #20838]
 
-2841.	[func]		Added "smartsign" and improved "autosign" and
+2842.	[func]		Added "smartsign" and improved "autosign" and
 			"dnssec" regression tests. [RT #20865]
 
-2840.	[bug]		Change 2836 was not complete. [RT #20883]
+2841.	[bug]		Change 2836 was not complete. [RT #20883]
 
-2839.	[bug]		Temporary fixed pkcs11-destroy usage check.
+2840.	[bug]		Temporary fixed pkcs11-destroy usage check.
 			[RT #20760]
 
-2838.	[bug]		A KSK revoked by named could not be deleted.
+2839.	[bug]		A KSK revoked by named could not be deleted.
 			[RT #20881]
+
+2838.	[placeholder]
 
 2837.	[port]		Prevent Linux spurious warnings about fwrite().
 			[RT #20812]
