@@ -1086,9 +1086,9 @@
 ./bin/tools/win32/genrandom.dsp			X	2009
 ./bin/tools/win32/genrandom.dsw			X	2009
 ./bin/tools/win32/genrandom.mak			X	2009
-./bin/tools/win32/ischmacfix.dsp		X	2010
-./bin/tools/win32/ischmacfix.dsw		X	2010
-./bin/tools/win32/ischmacfix.mak		X	2010
+./bin/tools/win32/ischmacfixup.dsp		X	2010
+./bin/tools/win32/ischmacfixup.dsw		X	2010
+./bin/tools/win32/ischmacfixup.mak		X	2010
 ./bin/tools/win32/journalprint.dsp		X	2009
 ./bin/tools/win32/journalprint.dsw		X	2009
 ./bin/tools/win32/journalprint.mak		X	2009,2010
