@@ -1,6 +1,6 @@
 	--- 9.7.0rc2 released ---
 
-2842.	[func]		Prevent dnssec-keygen and dnssec-keyfromlabel from
+2843.	[func]		Prevent dnssec-keygen and dnssec-keyfromlabel from
 			creating key files if there is a chance that the new
 			key ID will collide with an existing one after
 			either of the keys has been revoked.  (To override
@@ -9,16 +9,18 @@
 			different, noncolliding key, so an override is
 			not necessary.) [RT #20838]
 
-2841.	[func]		Added "smartsign" and improved "autosign" and
+2842.	[func]		Added "smartsign" and improved "autosign" and
 			"dnssec" regression tests. [RT #20865]
 
-2840.	[bug]		Change 2836 was not complete. [RT #20883]
+2841.	[bug]		Change 2836 was not complete. [RT #20883]
 
-2839.	[bug]		Temporary fixed pkcs11-destroy usage check.
+2840.	[bug]		Temporary fixed pkcs11-destroy usage check.
 			[RT #20760]
 
-2838.	[bug]		A KSK revoked by named could not be deleted.
+2839.	[bug]		A KSK revoked by named could not be deleted.
 			[RT #20881]
+
+2838.	[placeholder]
 
 2837.	[port]		Prevent Linux spurious warnings about fwrite().
 			[RT #20812]
@@ -83,7 +85,7 @@
 2821.	[doc]		Add note that named-checkconf doesn't automatically
 			read rndc.key and bind.keys [RT #20758]
 
-2819.	[cleanup]	Removed unnecessary DNS_POINTER_MAXHOPS define
+2819.	[cleanup]	Removed unnecessary DNS_POINTER_MAXHOPS define.
 			[RT #20771]
 
 2818.	[cleanup]	rndc could return an incorrect error code 
@@ -112,7 +114,7 @@
 
 2810.	[doc]		Clarified the process of transitioning an NSEC3 zone
 			to insecure. [RT #20746]
-			
+
 2809.	[cleanup]	Restored accidentally-deleted text in usage output
 			in dnssec-settime and dnssec-revoke [RT #20739]
 
