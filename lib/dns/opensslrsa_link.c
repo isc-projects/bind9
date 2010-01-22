@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.20.50.7 2010/01/15 23:47:33 tbox Exp $
+ * $Id: opensslrsa_link.c,v 1.20.50.8 2010/01/22 02:36:49 marka Exp $
  */
 #ifdef OPENSSL
 #include <config.h>
@@ -368,7 +368,7 @@ opensslrsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	RSA *rsa = key->keydata.rsa;
 	/* note: ISC_SHA512_DIGESTLENGTH >= ISC_*_DIGESTLENGTH */
 	unsigned char digest[PREFIXLEN + ISC_SHA512_DIGESTLENGTH];
-	int status;
+	int status = 0;
 	int type = 0;
 	unsigned int digestlen = 0;
 	char *message;
