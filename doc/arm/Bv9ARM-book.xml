@@ -35,7 +35,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.48 2009/12/03 04:21:42 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.49 2010/01/23 00:42:50 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -7894,7 +7894,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
               <listitem>
                 <para>
                   The delay, in seconds, between sending sets of notify
-                  messages for a zone.  The default is zero.
+                  messages for a zone.  The default is five (5) seconds.
                 </para>
               </listitem>
             </varlistentry>
