@@ -1,5 +1,8 @@
 	--- 9.7.0rc2 released ---
 
+2844.	[doc]		notify-delay default in ARM was wrong.  It should have
+			been five (5) seconds.
+
 2843.	[func]		Prevent dnssec-keygen and dnssec-keyfromlabel from
 			creating key files if there is a chance that the new
 			key ID will collide with an existing one after
