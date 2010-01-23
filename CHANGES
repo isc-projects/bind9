@@ -1,3 +1,6 @@
+2844.	[doc]		notify-delay default in ARM was wrong.  It should have
+			been five (5) seconds.
+
 	--- 9.6.2rc1 released ---
 
 2838.	[func]		Backport support for SHA-2 DNSSEC algorithms,
