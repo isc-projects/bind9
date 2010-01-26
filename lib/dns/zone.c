@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.13 2010/01/22 01:46:43 each Exp $ */
+/* $Id: zone.c,v 1.540.2.14 2010/01/26 23:35:22 fdupont Exp $ */
 
 /*! \file */
 
@@ -7179,6 +7179,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	dns_fetchevent_t *devent;
 	dns_keyfetch_t *kfetch;
 	dns_zone_t *zone;
+	isc_mem_t *mctx;
 	dns_keytable_t *secroots = NULL;
 	dns_dbversion_t *ver = NULL;
 	dns_diff_t diff;
@@ -7205,6 +7206,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 
 	kfetch = event->ev_arg;
 	zone = kfetch->zone;
+	mctx = zone->mctx;
 	keyname = dns_fixedname_name(&kfetch->name);
 
 	devent = (dns_fetchevent_t *) event;
@@ -7226,7 +7228,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 
 	LOCK_ZONE(zone);
 	dns_db_newversion(kfetch->db, &ver);
-	dns_diff_init(zone->mctx, &diff);
+	dns_diff_init(mctx, &diff);
 
 	/* Fetch failed */
 	if (eresult != ISC_R_SUCCESS ||
@@ -7459,8 +7461,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 
 					/* Remove from secroots */
 					untrust_key(zone->view->viewlist,
-						    keyname, zone->mctx,
-						    &dnskey);
+						    keyname, mctx, &dnskey);
 
 					/* If initializing, delete now */
 					if (keydata.addhd == 0)
@@ -7506,7 +7507,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 			if (initializing) {
 				dns_keytag_t tag = 0;
 				CHECK(compute_tag(keyname, &dnskey,
-						  zone->mctx, &tag));
+						  mctx, &tag));
 				dns_zone_log(zone, ISC_LOG_WARNING,
 					     "Initializing automatic trust "
 					     "anchor management for zone '%s'; "
@@ -7564,7 +7565,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 			/* Trust this key in all views */
 			dns_rdata_tostruct(&dnskeyrr, &dnskey, NULL);
 			trust_key(zone->view->viewlist, keyname, &dnskey,
-				  zone->mctx);
+				  mctx);
 		}
 
 		if (!deletekey)
@@ -7599,8 +7600,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 
 	/* Write changes to journal file. */
 	if (alldone) {
-		result = increment_soa_serial(kfetch->db, ver, &diff,
-					      zone->mctx);
+		result = increment_soa_serial(kfetch->db, ver, &diff, mctx);
 		if (result == ISC_R_SUCCESS)
 			zone_journal(zone, &diff, "keyfetch_done");
 	}
@@ -7608,6 +7608,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	dns_diff_clear(&diff);
 	dns_db_closeversion(kfetch->db, &ver, changed);
 	dns_db_detach(&kfetch->db);
+	dns_zone_detach(&kfetch->zone);
 
 	if (dns_rdataset_isassociated(&kfetch->keydataset))
 		dns_rdataset_disassociate(&kfetch->keydataset);
@@ -7616,8 +7617,8 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	if (dns_rdataset_isassociated(&kfetch->dnskeysigset))
 		dns_rdataset_disassociate(&kfetch->dnskeysigset);
 
-	dns_name_free(keyname, zone->mctx);
-	isc_mem_put(zone->mctx, kfetch, sizeof(dns_keyfetch_t));
+	dns_name_free(keyname, mctx);
+	isc_mem_put(mctx, kfetch, sizeof(dns_keyfetch_t));
 
 	if (secroots != NULL)
 		dns_keytable_detach(&secroots);
@@ -7706,7 +7707,8 @@ zone_refreshkeys(dns_zone_t *zone) {
 		zone->refreshkeycount++;
 
 		kfetch = isc_mem_get(zone->mctx, sizeof(dns_keyfetch_t));
-		kfetch->zone = zone;
+		kfetch->zone = NULL;
+		dns_zone_attach(zone, &kfetch->zone);
 		dns_fixedname_init(&kfetch->name);
 		dns_name_dup(name, zone->mctx,
 			     dns_fixedname_name(&kfetch->name));
