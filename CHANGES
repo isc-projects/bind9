@@ -1,4 +1,4 @@
-2845.	[bug]		RFC 5011 client can crash. [RT #20903]
+2845.	[bug]		RFC 5011 client can crash on shutdown. [RT #20903]
 
 2844.	[doc]		notify-delay default in ARM was wrong.  It should have
 			been five (5) seconds.
