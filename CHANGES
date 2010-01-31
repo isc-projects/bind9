@@ -1,4 +1,7 @@
 2844.	[doc]		notify-delay default in ARM was wrong.  It should have
+2846.	[bug]		EOF on unix domain sockets was not being handled
+			correctly. [RT #20731]
+
 			been five (5) seconds.
 
 	--- 9.6.2rc1 released ---
