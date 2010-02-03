@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.326 2009/11/13 00:41:58 each Exp $ */
+/* $Id: socket.c,v 1.328 2010/01/31 23:49:09 tbox Exp $ */
 
 /*! \file */
 
@@ -1674,12 +1674,22 @@ doio_recv(isc__socket_t *sock, isc_socketevent_t *dev) {
 	}
 
 	/*
-	 * On TCP, zero length reads indicate EOF, while on
-	 * UDP, zero length reads are perfectly valid, although
-	 * strange.
+	 * On TCP and UNIX sockets, zero length reads indicate EOF,
+	 * while on UDP sockets, zero length reads are perfectly valid,
+	 * although strange.
 	 */
-	if ((sock->type == isc_sockettype_tcp) && (cc == 0))
-		return (DOIO_EOF);
+	switch (sock->type) {
+	case isc_sockettype_tcp:
+	case isc_sockettype_unix:
+		if (cc == 0)
+			return (DOIO_EOF);
+		break;
+	case isc_sockettype_udp:
+		break;
+	case isc_sockettype_fdwatch:
+	default:
+		INSIST(0);
+	}
 
 	if (sock->type == isc_sockettype_udp) {
 		dev->address.length = msghdr.msg_namelen;

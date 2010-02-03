@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.454 2010/01/23 00:33:21 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.455 2010/02/03 01:31:48 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -2655,6 +2655,13 @@ options {
       </sect2>
 
     </sect1>
+
+    <xi:include href="dnssec.xml"/>
+
+    <xi:include href="managed-keys.xml"/>
+
+    <xi:include href="pkcs11.xml"/>
+
     <sect1>
       <title>IPv6 Support in <acronym>BIND</acronym> 9</title>
 
@@ -9187,7 +9194,7 @@ deny-answer-aliases { "example.net"; };
 
       </sect2>
 
-        <sect2>
+	<sect2 id="trusted-keys">
           <title><command>trusted-keys</command> Statement Grammar</title>
 
 <programlisting><command>trusted-keys</command> {
@@ -9248,7 +9255,7 @@ deny-answer-aliases { "example.net"; };
 </programlisting>
 
         </sect2>
-	<sect2>
+	<sect2 id="managed-keys">
 	  <title><command>managed-keys</command> Statement Definition
 	    and Usage</title>
 	  <para>
@@ -15650,7 +15657,11 @@ zone "example.com" {
           </bibliography>
         </sect2>
       </sect1>
+
+      <xi:include href="libdns.xml"/>
+
     </appendix>
+
 
     <reference id="Bv9ARM.ch10">
       <title>Manual pages</title>

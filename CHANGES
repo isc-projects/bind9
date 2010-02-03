@@ -1,3 +1,11 @@
+2848.	[doc]		Moved README.dnssec, README.libdns, README.pkcs11 and
+			README.rfc5011 into the ARM. [RT #20899]
+
+2847.	[cleanup]	Corrected usage message in dnssec-settime. [RT #20921]
+
+2846.	[bug]		EOF on unix domain sockets was not being handled
+			correctly. [RT #20731]
+
 2845.	[bug]		RFC 5011 client could crash on shutdown. [RT #20903]
 
 2844.	[doc]		notify-delay default in ARM was wrong.  It should have

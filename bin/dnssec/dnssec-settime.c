@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-settime.c,v 1.24 2010/01/07 19:13:59 each Exp $ */
+/* $Id: dnssec-settime.c,v 1.25 2010/02/03 01:02:37 each Exp $ */
 
 /*! \file */
 
@@ -80,7 +80,7 @@ usage(void) {
 	fprintf(stderr, "    -D date/[+-]offset/none: set/unset key "
 						     "deletion date\n");
 	fprintf(stderr, "Printing options:\n");
-	fprintf(stderr, "    -p C/P/A/R/U/D/all: print a particular time "
+	fprintf(stderr, "    -p C/P/A/R/I/D/all: print a particular time "
 						"value or values "
 						"[default: all]\n");
 	fprintf(stderr, "    -u:                 print times in unix epoch "
