@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: heap.c,v 1.37.36.1 2010/02/04 23:28:38 jinmei Exp $ */
+/* $Id: heap.c,v 1.37.36.2 2010/02/04 23:41:59 jinmei Exp $ */
 
 /*! \file
  * Heap implementation of priority queues adapted from the following:
@@ -149,12 +149,10 @@ float_up(isc_heap_t *heap, unsigned int i, void *elt) {
 	     i > 1 && heap->compare(elt, heap->array[p]) ;
 	     i = p, p = heap_parent(i)) {
 		heap->array[i] = heap->array[p];
-		INSIST(heap->array[i] != NULL);
 		if (heap->index != NULL)
 			(heap->index)(heap->array[i], i);
 	}
 	heap->array[i] = elt;
-	INSIST(heap->array[i] != NULL);
 	if (heap->index != NULL)
 		(heap->index)(heap->array[i], i);
 
@@ -175,13 +173,11 @@ sink_down(isc_heap_t *heap, unsigned int i, void *elt) {
 		if (heap->compare(elt, heap->array[j]))
 			break;
 		heap->array[i] = heap->array[j];
-		INSIST(heap->array[i] != NULL);
 		if (heap->index != NULL)
 			(heap->index)(heap->array[i], i);
 		i = j;
 	}
 	heap->array[i] = elt;
-	INSIST(heap->array[i] != NULL);
 	if (heap->index != NULL)
 		(heap->index)(heap->array[i], i);
 
@@ -209,15 +205,9 @@ void
 isc_heap_delete(isc_heap_t *heap, unsigned int index) {
 	void *elt;
 	isc_boolean_t less;
-	void **array;
-	unsigned int size, last;
 
 	REQUIRE(VALID_HEAP(heap));
 	REQUIRE(index >= 1 && index <= heap->last);
-
-	array = heap->array;
-	size = heap->size;
-	last = heap->last;
 
 	if (index == heap->last) {
 		heap->array[heap->last] = NULL;
@@ -227,13 +217,8 @@ isc_heap_delete(isc_heap_t *heap, unsigned int index) {
 		heap->array[heap->last] = NULL;
 		heap->last--;
 
-		INSIST(array == heap->array &&
-		       size == heap->size &&
-		       last == heap->last + 1);
-
 		less = heap->compare(elt, heap->array[index]);
 		heap->array[index] = elt;
-		INSIST(heap->array[index] != NULL);
 		if (less)
 			float_up(heap, index, heap->array[index]);
 		else
