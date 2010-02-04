@@ -1,3 +1,5 @@
+	--- 9.7.0 released ---
+
 2849.	[bug]		Don't treat errors from the xml2 library as fatal.
 			[RT #20945]
 
