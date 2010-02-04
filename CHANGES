@@ -1,3 +1,6 @@
+2849.	[bug]		Don't treat errors from the xml2 library as fatal.
+			[RT #20945]
+
 2846.	[bug]		EOF on unix domain sockets was not being handled
 			correctly. [RT #20731]
 
