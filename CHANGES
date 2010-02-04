@@ -1,3 +1,6 @@
+2849.	[bug]		Don't treat errors from the xml2 library as fatal.
+			[RT #20945]
+
 2848.	[doc]		Moved README.dnssec, README.libdns, README.pkcs11 and
 			README.rfc5011 into the ARM. [RT #20899]
 
