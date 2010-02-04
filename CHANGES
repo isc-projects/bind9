@@ -1,5 +1,5 @@
 2850.	[bug]		If isc_heap_insert() failed due to memory shortage
-			the heap would have corrupted entries.
+			the heap would have corrupted entries. [RT #20951]
 
 2849.	[bug]		Don't treat errors from the xml2 library as fatal.
 			[RT #20945]
