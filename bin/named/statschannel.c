@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008, 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2008-2010  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: statschannel.c,v 1.2.2.23 2010/02/04 01:16:10 marka Exp $ */
+/* $Id: statschannel.c,v 1.2.2.24 2010/02/04 23:46:47 tbox Exp $ */
 
 /*! \file */
 
@@ -504,9 +504,9 @@ dump_counters(isc_stats_t *stats, statsformat_t type, void *arg,
 							       desc[index]));
 			}
 			TRY0(xmlTextWriterWriteFormatString(writer,
-						            "%"
-						            ISC_PRINT_QUADFORMAT
-						            "u", value));
+							    "%"
+							    ISC_PRINT_QUADFORMAT
+							    "u", value));
 			TRY0(xmlTextWriterEndElement(writer)); /* counter */
 			if (category != NULL)
 				TRY0(xmlTextWriterEndElement(writer)); /* category */
@@ -875,16 +875,16 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 	result = dump_counters(server->nsstats, statsformat_xml, writer,
 			       "nsstat", nsstats_xmldesc,
 				dns_nsstatscounter_max,
-		      		nsstats_index, nsstat_values,
+				nsstats_index, nsstat_values,
 				ISC_STATSDUMP_VERBOSE);
- 	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		goto error;
 
 	result = dump_counters(server->zonestats, statsformat_xml, writer,
 			       "zonestat", zonestats_xmldesc,
 			       dns_zonestatscounter_max, zonestats_index,
 			       zonestat_values, ISC_STATSDUMP_VERBOSE);
- 	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		goto error;
 
 	/*
@@ -895,14 +895,14 @@ generatexml(ns_server_t *server, int *buflen, xmlChar **buf) {
 			       "resstat", resstats_xmldesc,
 			       dns_resstatscounter_max, resstats_index,
 			       resstat_values, 0);
- 	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		goto error;
 
 	result = dump_counters(server->sockstats, statsformat_xml, writer,
 			       "sockstat", sockstats_xmldesc,
 			       isc_sockstatscounter_max, sockstats_index,
 			       sockstat_values, ISC_STATSDUMP_VERBOSE);
- 	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		goto error;
 
 	TRY0(xmlTextWriterEndElement(writer)); /* server */
