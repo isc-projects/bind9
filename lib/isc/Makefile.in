@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.104.2.1 2009/12/18 04:09:55 marka Exp $
+# $Id: Makefile.in,v 1.104.2.2 2010/02/22 02:08:42 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -81,6 +81,10 @@ SRCS =		@ISC_EXTRA_SRCS@ \
 
 LIBS =		@LIBS@
 
+# Note: the order of SUBDIRS is important.
+# Attempt to disable parallel processing.
+.NOTPARALLEL:
+.NO_PARALLEL:
 SUBDIRS =	include unix nls @ISC_THREAD_DIR@ @ISC_ARCH_DIR@
 TARGETS =	timestamp
 
