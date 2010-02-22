@@ -1,3 +1,5 @@
+2851.	[doc]		nslookup.1, removed <informalexample> from the docbook
+			source as it produced bad nroff.  [RT #21007]
 
 	--- 9.6.2 released ---
 
