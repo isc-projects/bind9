@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: nslookup.docbook,v 1.16 2007/06/18 23:47:17 tbox Exp $ -->
+<!-- $Id: nslookup.docbook,v 1.17 2010/02/22 20:48:56 marka Exp $ -->
 <!--
  - Copyright (c) 1985, 1989
  -    The Regents of the University of California.  All rights reserved.
@@ -129,11 +129,11 @@
       arguments and are prefixed with a hyphen.  For example, to
       change the default query type to host information, and the initial
       timeout to 10 seconds, type:
-      <informalexample>
+      <!-- <informalexample> produces bad nroff. -->
         <programlisting>
 nslookup -query=hinfo  -timeout=10
 </programlisting>
-      </informalexample>
+      <!-- </informalexample> -->
     </para>
 
   </refsect1>
