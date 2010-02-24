@@ -1,6 +1,9 @@
 2851.	[doc]		nslookup.1, removed <informalexample> from the docbook
 			source as it produced bad nroff.  [RT #21007]
 
+2850.	[bug]		If isc_heap_insert() failed due to memory shortage
+			the heap would have corrupted entries. [RT #20951]
+
 	--- 9.7.0 released ---
 
 2849.	[bug]		Don't treat errors from the xml2 library as fatal.
