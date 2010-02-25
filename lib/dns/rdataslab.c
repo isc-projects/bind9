@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.43.128.4.2.1 2010/02/25 10:47:49 marka Exp $ */
+/* $Id: rdataslab.c,v 1.43.128.4.2.2 2010/02/25 10:56:01 tbox Exp $ */
 
 /*! \file */
 

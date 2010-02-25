@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.355.12.44.2.4 2010/02/25 10:47:49 marka Exp $ */
+/* $Id: resolver.c,v 1.355.12.44.2.5 2010/02/25 10:56:01 tbox Exp $ */
 
 /*! \file */
 
@@ -7744,7 +7744,7 @@ dns_resolver_flushbadcache(dns_resolver_t *resolver, dns_name_t *name) {
 			} else
 				prev = bad;
 		}
-	} else 
+	} else
 		destroy_badcache(resolver);
 
  unlock:
