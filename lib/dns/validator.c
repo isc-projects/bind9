@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.182.16.1.2.1 2010/02/25 04:53:46 marka Exp $ */
+/* $Id: validator.c,v 1.182.16.1.2.2 2010/02/25 05:26:27 tbox Exp $ */
 
 #include <config.h>
 
@@ -3304,7 +3304,7 @@ finddlvsep(dns_validator_t *val, isc_boolean_t resume) {
 					      dns_fixedname_name(&val->fname),
 					      NULL);
 				result = create_validator(val,
-					        dns_fixedname_name(&val->fname),
+						dns_fixedname_name(&val->fname),
 							  dns_rdatatype_dlv,
 							  &val->frdataset,
 							  &val->fsigrdataset,
