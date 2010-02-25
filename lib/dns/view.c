@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.143.128.9 2009/01/29 23:47:13 tbox Exp $ */
+/* $Id: view.c,v 1.143.128.9.2.1 2010/02/25 10:47:49 marka Exp $ */
 
 /*! \file */
 
@@ -1270,10 +1270,11 @@ dns_view_dumpdbtostream(dns_view_t *view, FILE *fp) {
 
 	(void)fprintf(fp, ";\n; Cache dump of view '%s'\n;\n", view->name);
 	result = dns_master_dumptostream(view->mctx, view->cachedb, NULL,
-					  &dns_master_style_cache, fp);
+					 &dns_master_style_cache, fp);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	dns_adb_dump(view->adb, fp);
+	dns_resolver_printbadcache(view->resolver, fp);
 	return (ISC_R_SUCCESS);
 }
 
@@ -1294,6 +1295,8 @@ dns_view_flushcache(dns_view_t *view) {
 	dns_cache_attachdb(view->cache, &view->cachedb);
 	if (view->acache != NULL)
 		dns_acache_setdb(view->acache, view->cachedb);
+	if (view->resolver != NULL)
+		dns_resolver_flushbadcache(view->resolver, NULL);
 
 	dns_adb_flush(view->adb);
 	return (ISC_R_SUCCESS);
@@ -1308,6 +1311,8 @@ dns_view_flushname(dns_view_t *view, dns_name_t *name) {
 		dns_adb_flushname(view->adb, name);
 	if (view->cache == NULL)
 		return (ISC_R_SUCCESS);
+	if (view->resolver != NULL)
+		dns_resolver_flushbadcache(view->resolver, name);
 	return (dns_cache_flushname(view->cache, name));
 }
 
