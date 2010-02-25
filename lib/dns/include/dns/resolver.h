@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.56.128.8 2010/02/25 10:31:05 marka Exp $ */
+/* $Id: resolver.h,v 1.56.128.9 2010/02/25 10:55:22 tbox Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
@@ -510,7 +510,7 @@ dns_resolver_getoptions(dns_resolver_t *resolver);
 
 void
 dns_resolver_addbadcache(dns_resolver_t *resolver, dns_name_t *name,
-                         dns_rdatatype_t type, isc_time_t *expire);
+			 dns_rdatatype_t type, isc_time_t *expire);
 /*%<
  * Add a entry to the bad cache for <name,type> that will expire at 'expire'.
  *
@@ -521,7 +521,7 @@ dns_resolver_addbadcache(dns_resolver_t *resolver, dns_name_t *name,
 
 isc_boolean_t
 dns_resolver_getbadcache(dns_resolver_t *resolver, dns_name_t *name,
-                         dns_rdatatype_t type, isc_time_t *now);
+			 dns_rdatatype_t type, isc_time_t *now);
 /*%<
  * Check to see if there is a unexpired entry in the bad cache for
  * <name,type>.
