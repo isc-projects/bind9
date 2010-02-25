@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.h,v 1.62.128.2 2009/01/19 23:47:03 tbox Exp $ */
+/* $Id: rdataset.h,v 1.62.128.3 2010/02/25 10:31:04 marka Exp $ */
 
 #ifndef DNS_RDATASET_H
 #define DNS_RDATASET_H 1
@@ -104,6 +104,9 @@ typedef struct dns_rdatasetmethods {
 						 dns_rdataset_t *rdataset,
 						 dns_rdatasetadditional_t type,
 						 dns_rdatatype_t qtype);
+	void			(*settrust)(dns_rdataset_t *rdataset,
+					    dns_trust_t trust);
+	void			(*expire)(dns_rdataset_t *rdataset);
 } dns_rdatasetmethods_t;
 
 #define DNS_RDATASET_MAGIC	       ISC_MAGIC('D','N','S','R')
@@ -590,6 +593,19 @@ dns_rdataset_putadditional(dns_acache_t *acache,
  * \li	#ISC_R_FAILURE	- additional information caching is not supported.
  * \li	#ISC_R_NOTFOUND	- the corresponding DB node has not cached additional
  *			  information for 'rdataset.'
+ */
+
+void
+dns_rdataset_settrust(dns_rdataset_t *rdataset, dns_trust_t trust);
+/*%<
+ * Set the trust of the 'rdataset' to trust in any in the backing database.
+ * The local trust level of 'rdataset' is also set.
+ */
+
+void
+dns_rdataset_expire(dns_rdataset_t *rdataset);
+/*%<
+ * Mark the rdataset to be expired in the backing database.
  */
 
 ISC_LANG_ENDDECLS

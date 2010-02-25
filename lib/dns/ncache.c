@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ncache.c,v 1.41 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: ncache.c,v 1.41.128.1 2010/02/25 10:31:03 marka Exp $ */
 
 /*! \file */
 
@@ -474,6 +474,8 @@ static dns_rdatasetmethods_t rdataset_methods = {
 	rdataset_current,
 	rdataset_clone,
 	rdataset_count,
+	NULL,
+	NULL,
 	NULL,
 	NULL,
 	NULL,

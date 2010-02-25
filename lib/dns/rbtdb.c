@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.248.12.23 2009/12/30 08:35:53 jinmei Exp $ */
+/* $Id: rbtdb.c,v 1.248.12.24 2010/02/25 10:31:03 marka Exp $ */
 
 /*! \file */
 
@@ -497,6 +497,8 @@ static void expire_header(dns_rbtdb_t *rbtdb, rdatasetheader_t *header,
 static void overmem_purge(dns_rbtdb_t *rbtdb, unsigned int locknum_start,
 			  isc_stdtime_t now, isc_boolean_t tree_locked);
 static void prune_tree(isc_task_t *task, isc_event_t *event);
+static void rdataset_settrust(dns_rdataset_t *rdataset, dns_trust_t trust);
+static void rdataset_expire(dns_rdataset_t *rdataset);
 
 static dns_rdatasetmethods_t rdataset_methods = {
 	rdataset_disassociate,
@@ -509,7 +511,9 @@ static dns_rdatasetmethods_t rdataset_methods = {
 	rdataset_getnoqname,
 	rdataset_getadditional,
 	rdataset_setadditional,
-	rdataset_putadditional
+	rdataset_putadditional,
+	rdataset_settrust,
+	rdataset_expire
 };
 
 static void rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp);
@@ -6552,6 +6556,28 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 	dns_name_clone(&noqname->name, name);
 
 	return (ISC_R_SUCCESS);
+}
+
+static void
+rdataset_settrust(dns_rdataset_t *rdataset, dns_trust_t trust) {
+	rdatasetheader_t *header = rdataset->private3;
+
+	header--;
+	header->trust = rdataset->trust = trust;
+}
+
+static void
+rdataset_expire(dns_rdataset_t *rdataset) {
+	dns_rbtdb_t *rbtdb = rdataset->private1;
+	dns_rbtnode_t *rbtnode = rdataset->private2;
+	rdatasetheader_t *header = rdataset->private3;
+
+	header--;
+	NODE_LOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
+		  isc_rwlocktype_write);
+	expire_header(rbtdb, header, ISC_FALSE);
+	NODE_UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
+		  isc_rwlocktype_write);
 }
 
 /*

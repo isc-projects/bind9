@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.h,v 1.39.52.3 2009/01/19 00:01:11 marka Exp $ */
+/* $Id: validator.h,v 1.39.52.4 2010/02/25 10:31:05 marka Exp $ */
 
 #ifndef DNS_VALIDATOR_H
 #define DNS_VALIDATOR_H 1
@@ -151,6 +151,8 @@ struct dns_validator {
 	isc_boolean_t			mustbesecure;
 	unsigned int			dlvlabels;
 	unsigned int			depth;
+	unsigned int			authcount;
+	unsigned int			authfail;
 };
 
 /*%
