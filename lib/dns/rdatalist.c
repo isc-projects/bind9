@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdatalist.c,v 1.36 2008/09/24 02:46:22 marka Exp $ */
+/* $Id: rdatalist.c,v 1.36.336.1 2010/02/25 05:39:33 marka Exp $ */
 
 /*! \file */
 
@@ -44,6 +44,8 @@ static dns_rdatasetmethods_t methods = {
 	isc__rdatalist_getnoqname,
 	isc__rdatalist_addclosest,
 	isc__rdatalist_getclosest,
+	NULL,
+	NULL,
 	NULL,
 	NULL,
 	NULL

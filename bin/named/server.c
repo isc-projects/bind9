@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.520.12.11 2009/12/24 00:17:47 each Exp $ */
+/* $Id: server.c,v 1.520.12.11.8.1 2010/02/25 05:39:32 marka Exp $ */
 
 /*! \file */
 
@@ -4726,6 +4726,8 @@ dumpdone(void *arg, isc_result_t result) {
 	}
 	if (dctx->cache != NULL) {
 		dns_adb_dump(dctx->view->view->adb, dctx->fp);
+		dns_resolver_printbadcache(dctx->view->view->resolver,
+					   dctx->fp);
 		dns_db_detach(&dctx->cache);
 	}
 	if (dctx->dumpzones) {

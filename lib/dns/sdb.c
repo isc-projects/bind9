@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.66.48.3 2009/06/26 06:25:44 marka Exp $ */
+/* $Id: sdb.c,v 1.66.48.3.8.1 2010/02/25 05:39:33 marka Exp $ */
 
 /*! \file */
 
@@ -1383,6 +1383,8 @@ static dns_rdatasetmethods_t methods = {
 	isc__rdatalist_count,
 	isc__rdatalist_addnoqname,
 	isc__rdatalist_getnoqname,
+	NULL,
+	NULL,
 	NULL,
 	NULL,
 	NULL,
