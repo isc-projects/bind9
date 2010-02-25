@@ -1,3 +1,5 @@
+	--- 9.7.0-P1 released ---
+
 2852.	[bug]		Handle broken DNSSEC trust chains better. [RT #15619]
 
 	--- 9.7.0 released ---
