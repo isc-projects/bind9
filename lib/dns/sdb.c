@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.66.48.3.8.1 2010/02/25 05:39:33 marka Exp $ */
+/* $Id: sdb.c,v 1.66.48.3.8.2 2010/02/25 10:57:12 tbox Exp $ */
 
 /*! \file */
 

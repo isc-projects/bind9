@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.164.12.11.8.1 2010/02/25 05:39:33 marka Exp $ */
+/* $Id: validator.c,v 1.164.12.11.8.2 2010/02/25 10:57:12 tbox Exp $ */
 
 #include <config.h>
 
@@ -3265,24 +3265,24 @@ finddlvsep(dns_validator_t *val, isc_boolean_t resume) {
 			      namebuf);
 		result = view_find(val, dlvname, dns_rdatatype_dlv);
 		if (result == ISC_R_SUCCESS) {
-                        if (DNS_TRUST_PENDING(val->frdataset.trust) &&
-                            dns_rdataset_isassociated(&val->fsigrdataset))
-                        {
-                                dns_fixedname_init(&val->fname);
-                                dns_name_copy(dlvname,
-                                              dns_fixedname_name(&val->fname),
-                                              NULL);
-                                result = create_validator(val,
-                                                dns_fixedname_name(&val->fname),
-                                                          dns_rdatatype_dlv,
-                                                          &val->frdataset,
-                                                          &val->fsigrdataset,
-                                                          dlvvalidated,
-                                                          "finddlvsep");
-                                if (result != ISC_R_SUCCESS)
-                                        return (result);
-                                return (DNS_R_WAIT);
-                        }
+			if (DNS_TRUST_PENDING(val->frdataset.trust) &&
+			    dns_rdataset_isassociated(&val->fsigrdataset))
+			{
+				dns_fixedname_init(&val->fname);
+				dns_name_copy(dlvname,
+					      dns_fixedname_name(&val->fname),
+					      NULL);
+				result = create_validator(val,
+						dns_fixedname_name(&val->fname),
+							  dns_rdatatype_dlv,
+							  &val->frdataset,
+							  &val->fsigrdataset,
+							  dlvvalidated,
+							  "finddlvsep");
+				if (result != ISC_R_SUCCESS)
+					return (result);
+				return (DNS_R_WAIT);
+			}
 			if (val->frdataset.trust < dns_trust_secure)
 				return (DNS_R_NOVALIDSIG);
 			val->havedlvsep = ISC_TRUE;
