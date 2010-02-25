@@ -1,3 +1,5 @@
+2852.	[bug]		Handle broken DNSSEC trust chains better. [RT #15619]
+
 	--- 9.7.0 released ---
 
 2849.	[bug]		Don't treat errors from the xml2 library as fatal.
