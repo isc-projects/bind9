@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.111 2009/09/24 21:38:50 jinmei Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.112 2010/02/26 01:03:54 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -7421,6 +7421,13 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   maximum value is
                   <literal>1800</literal> (30 minutes).
                 </para>
+
+		<para>
+		  Lame-ttl also controls the amount of time DNSSEC
+		  validation failures are cached.  There is a minimum
+		  of 30 seconds applied to bad cache entries if the
+		  lame-ttl is set to less than 30 seconds.
+		</para>
 
               </listitem>
             </varlistentry>
