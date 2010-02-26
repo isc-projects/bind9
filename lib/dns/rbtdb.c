@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.248.12.18.2.4 2010/02/25 10:56:01 tbox Exp $ */
+/* $Id: rbtdb.c,v 1.248.12.18.2.5 2010/02/26 00:26:54 marka Exp $ */
 
 /*! \file */
 
@@ -6554,10 +6554,16 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 
 static void
 rdataset_settrust(dns_rdataset_t *rdataset, dns_trust_t trust) {
+	dns_rbtdb_t *rbtdb = rdataset->private1;
+	dns_rbtnode_t *rbtnode = rdataset->private2;
 	rdatasetheader_t *header = rdataset->private3;
 
 	header--;
+	NODE_LOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
+		  isc_rwlocktype_write);
 	header->trust = rdataset->trust = trust;
+	NODE_UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
+		  isc_rwlocktype_write);
 }
 
 static void
