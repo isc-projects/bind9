@@ -5,26 +5,25 @@ IPv6 Maintenance Working Group                               S. Kawamura
 Internet-Draft                                         NEC BIGLOBE, Ltd.
 Updates: 4291 (if approved)                                 M. Kawashima
 Intended status: Standards Track                NEC AccessTechnica, Ltd.
-Expires: August 23, 2010                               February 19, 2010
+Expires: August 29, 2010                               February 25, 2010
 
 
          A Recommendation for IPv6 Address Text Representation
-              draft-ietf-6man-text-addr-representation-06
+              draft-ietf-6man-text-addr-representation-07
 
 Abstract
 
-   As IPv6 network grows, there will be more engineers and also non-
-   engineers who will have the need to use an IPv6 address in text.
-   While the IPv6 address architecture RFC 4291 section 2.2 depicts a
-   flexible model for text representation of an IPv6 address, this
-   flexibility has been causing problems for operators, system
-   engineers, and users.  This document will describe the problems that
-   a flexible text representation has been causing.  This document also
-   recommends a canonical representation format that best avoids
-   confusion.  It is expected that the canonical format is followed by
-   humans and systems when representing IPv6 addresses as text, but all
-   implementations must accept and be able to handle any legitimate
-   RFC4291 format.
+   As IPv6 deployment increases there will be a dramatic increase in the
+   need to use IPv6 addresses in text.  While the IPv6 address
+   architecture in RFC 4291 section 2.2 describes a flexible model for
+   text representation of an IPv6 address this flexibility has been
+   causing problems for operators, system engineers, and users.  This
+   document defines a canonical textual representation format.  It does
+   not define a format for internal storage, such as within an
+   application or database.  It is expected that the canonical format is
+   followed by humans and systems when representing IPv6 addresses as
+   text, but all implementations must accept and be able to handle any
+   legitimate RFC 4291 format.
 
 Status of this Memo
 
@@ -47,17 +46,16 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on August 23, 2010.
+   This Internet-Draft will expire on August 29, 2010.
+
+Copyright Notice
 
 
 
-
-Kawamura & Kawashima     Expires August 23, 2010                [Page 1]
+Kawamura & Kawashima     Expires August 29, 2010                [Page 1]
 
 Internet-Draft          IPv6 Text Representation           February 2010
 
-
-Copyright Notice
 
    Copyright (c) 2010 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
@@ -108,7 +106,9 @@ Copyright Notice
 
 
 
-Kawamura & Kawashima     Expires August 23, 2010                [Page 2]
+
+
+Kawamura & Kawashima     Expires August 29, 2010                [Page 2]
 
 Internet-Draft          IPv6 Text Representation           February 2010
 
@@ -164,7 +164,7 @@ Table of Contents
 
 
 
-Kawamura & Kawashima     Expires August 23, 2010                [Page 3]
+Kawamura & Kawashima     Expires August 29, 2010                [Page 3]
 
 Internet-Draft          IPv6 Text Representation           February 2010
 
@@ -190,11 +190,11 @@ Internet-Draft          IPv6 Text Representation           February 2010
 
       2001:DB8:0:0:1::1
 
-   All the above represent the same IPv6 address.  This flexibility has
-   caused many problems for operators, systems engineers, and customers.
-   The problems will be noted in Section 3.  Also, a canonical
-   representation format to avoid problems will be introduced in
-   Section 4.
+   All of the above examples represent the same IPv6 address.  This
+   flexibility has caused many problems for operators, systems
+   engineers, and customers.  The problems are noted in Section 3.
+   Also, a canonical representation format to avoid problems is
+   introduced in Section 4.
 
 1.1.  Requirements Language
 
@@ -213,14 +213,14 @@ Internet-Draft          IPv6 Text Representation           February 2010
       'It is not necessary to write the leading zeros in an individual
       field.'
 
-   In other words, it is also not necessary to omit leading zeros.  This
+   Conversely it is also not necessary to omit leading zeros.  This
    means that, it is possible to select from such as the following
    example.  The final 16 bit field is different, but all these
-   addresses mean the same.
+   addresses represent the same address.
 
 
 
-Kawamura & Kawashima     Expires August 23, 2010                [Page 4]
+Kawamura & Kawashima     Expires August 29, 2010                [Page 4]
 
 Internet-Draft          IPv6 Text Representation           February 2010
 
@@ -246,7 +246,7 @@ Internet-Draft          IPv6 Text Representation           February 2010
       2001:db8:aaaa:bbbb:cccc:dddd:0:1
 
    In case where there is more than one zero fields, there is a choice
-   of how many fields can be shortened.  Examples follow.
+   of how many fields can be shortened.
 
       2001:db8:0:0:0::1
 
@@ -260,8 +260,8 @@ Internet-Draft          IPv6 Text Representation           February 2010
 
       'The "::" can only appear once in an address.'
 
-   This gives a choice on where, in a single address to compress the
-   zero.  Examples are shown below.
+   This gives a choice on where in a single address to compress the
+   zero.
 
       2001:db8::aaaa:0:0:1
 
@@ -269,14 +269,14 @@ Internet-Draft          IPv6 Text Representation           February 2010
 
 2.3.  Uppercase or Lowercase
 
-   [RFC4291] does not mention about preference of uppercase or
-   lowercase.  Various flavors are shown below.
+   [RFC4291] does not mention any preference of uppercase or lowercase.
 
 
 
 
 
-Kawamura & Kawashima     Expires August 23, 2010                [Page 5]
+
+Kawamura & Kawashima     Expires August 29, 2010                [Page 5]
 
 Internet-Draft          IPv6 Text Representation           February 2010
 
@@ -327,12 +327,12 @@ Internet-Draft          IPv6 Text Representation           February 2010
    record is set to a database, one will likely check the output to see
    if the entry is correct.  If an entity was recorded as 2001:db8::/48,
    but the whois output showed 2001:0db8:0000::/48, most non-engineers
-   would think that their input was wrong, and will likely retry several
+   would think that their input was wrong and will likely retry several
    times or make a frustrated call to the database hostmaster.  If there
 
 
 
-Kawamura & Kawashima     Expires August 23, 2010                [Page 6]
+Kawamura & Kawashima     Expires August 29, 2010                [Page 6]
 
 Internet-Draft          IPv6 Text Representation           February 2010
 
@@ -340,32 +340,32 @@ Internet-Draft          IPv6 Text Representation           February 2010
    was a need to register the same address on different systems, and
    each system showed a different text representation, this would
    confuse people even more.  Although this document focuses on
-   addresses rather than prefixes, this is worth mentioning since
+   addresses rather than prefixes, this is worth mentioning since the
    problems encountered are mostly equal.
 
 3.1.4.  Searching for an Address in a Network Diagram
 
-   Network diagrams and blue-prints often show what IP addresses are
-   assigned to a system devices.  In times of trouble shooting, there
-   may be a need to search through a diagram to find the point of
-   failure (for example, if a traceroute stopped at 2001:db8::1, one
-   would search the diagram for that address).  This is a technique
-   quite often in use in enterprise networks and managed services.
-   Again, the different flavors of text representation will result in a
-   time-consuming search, leading to longer MTTR in times of trouble.
+   Network diagrams and blueprints often show what IP addresses are
+   assigned to a system devices.  In times of trouble shooting there may
+   be a need to search through a diagram to find the point of failure
+   (for example, if a traceroute stopped at 2001:db8::1, one would
+   search the diagram for that address).  This is a technique quite
+   often in use in enterprise networks and managed services.  Again, the
+   different flavors of text representation will result in a time-
+   consuming search leading to longer MTTR in times of trouble.
 
 3.2.  Parsing and Modifying
 
 3.2.1.  General Summary
 
-   With all the possible text representation ways, each application must
-   include a module, object, link, etc. to a function that will parse
-   IPv6 addresses in a manner that no matter how it is represented, they
-   will mean the same address.  Many system engineers who integrate
-   complex computer systems to corporate customers will have
-   difficulties finding that their favorite tool will not have this
+   With all the possible methods of text representation each application
+   must include a module, object, link, etc. to a function that will
+   parse IPv6 addresses in a manner that no matter how it is
+   represented, they will mean the same address.  Many system engineers
+   who integrate complex computer systems for corporate customers will
+   have difficulties finding that their favorite tool will not have this
    function, or will encounter difficulties such as having to rewrite
-   their macro's or scripts for their customers.
+   their macros or scripts for their customers.
 
 3.2.2.  Logging
 
@@ -373,40 +373,40 @@ Internet-Draft          IPv6 Text Representation           February 2010
    address in full (such as 2001:0db8:0000:0000:1111:2222:3333:4444),
    the output would be highly unreadable compared to the IPv4 output.
    The address would have to be parsed and reformed to make it useful
-   for human reading.  Sometimes, logging for critical systems is done
-   by mirroring the same traffic to two different systems.  Care must be
-   taken that no matter what the log output is, the logs should be
+   for human reading.  Sometimes logging for critical systems is done by
+   mirroring the same traffic to two different systems.  Care must be
+   taken so that no matter what the log output is the logs should be
    parsed so they will mean the same.
 
 3.2.3.  Auditing: Case 1
 
    When a router or any other network appliance machine configuration is
    audited, there are many methods to compare the configuration
-   information of a node.  Sometimes, auditing will be done by just
-   comparing the changes made each day.  In this case, if configuration
+   information of a node.  Sometimes auditing will be done by just
+   comparing the changes made each day.  In this case if configuration
    was done such that 2001:db8::1 was changed to 2001:0db8:0000:0000:
 
 
 
-Kawamura & Kawashima     Expires August 23, 2010                [Page 7]
+Kawamura & Kawashima     Expires August 29, 2010                [Page 7]
 
 Internet-Draft          IPv6 Text Representation           February 2010
 
 
    0000:0000:0000:0001 just because the new engineer on the block felt
    it was better, a simple diff will show that a different address was
-   configured.  If this was done on a wide scale network, people will be
+   configured.  If this was done on a wide scale network people will be
    focusing on 'why the extra zeros were put in' instead of doing any
-   real auditing.  Lots of tools are just plain 'diff's that do not take
+   real auditing.  Lots of tools are just plain diffs that do not take
    into account address representation rules.
 
 3.2.4.  Auditing: Case 2
 
    Node configurations will be matched against an information system
-   that manages IP addresses.  If output notation is different, there
+   that manages IP addresses.  If output notation is different there
    will need to be a script that is implemented to cover for this.  The
    result of an SNMP GET operation, converted to text and compared to a
-   textual address written by a human is highly unlikely to match on
+   textual address written by a human is highly unlikely to match on the
    first try.
 
 3.2.5.  Verification
@@ -444,7 +444,7 @@ Internet-Draft          IPv6 Text Representation           February 2010
 
 
 
-Kawamura & Kawashima     Expires August 23, 2010                [Page 8]
+Kawamura & Kawashima     Expires August 29, 2010                [Page 8]
 
 Internet-Draft          IPv6 Text Representation           February 2010
 
@@ -456,7 +456,7 @@ Internet-Draft          IPv6 Text Representation           February 2010
 
 3.3.3.  Abuse
 
-   Network abuse is reported along with the abusing IP address.  This
+   Network abuse reports generally include the abusing IP address.  This
    'reporting' could take any shape or form of the flexible model.  A
    team that handles network abuse must be able to tell the difference
    between a 2001:db8::1:0:1 and 2001:db8:1::0:1.  Mistakes in the
@@ -481,7 +481,7 @@ Internet-Draft          IPv6 Text Representation           February 2010
 
 3.4.2.  Preference in Documentation
 
-   A document that is edited by more than one author, may become harder
+   A document that is edited by more than one author may become harder
    to read.
 
 3.4.3.  Legibility
@@ -500,7 +500,7 @@ Internet-Draft          IPv6 Text Representation           February 2010
 
 
 
-Kawamura & Kawashima     Expires August 23, 2010                [Page 9]
+Kawamura & Kawashima     Expires August 29, 2010                [Page 9]
 
 Internet-Draft          IPv6 Text Representation           February 2010
 
@@ -556,7 +556,7 @@ Internet-Draft          IPv6 Text Representation           February 2010
 
 
 
-Kawamura & Kawashima     Expires August 23, 2010               [Page 10]
+Kawamura & Kawashima     Expires August 29, 2010               [Page 10]
 
 Internet-Draft          IPv6 Text Representation           February 2010
 
@@ -608,31 +608,32 @@ Internet-Draft          IPv6 Text Representation           February 2010
    The [] style as expressed in [RFC3986] SHOULD be employed, and is the
    default unless otherwise specified.  Other styles are acceptable when
    there is exactly one style for the given context and cross-platform
-   portability does not become an issue.  For URIs, [RFC3986] MUST be
+   portability does not become an issue.  For URIs containing IPv6
 
 
 
-Kawamura & Kawashima     Expires August 23, 2010               [Page 11]
+Kawamura & Kawashima     Expires August 29, 2010               [Page 11]
 
 Internet-Draft          IPv6 Text Representation           February 2010
 
 
-   followed.
+   address literals, [RFC3986] MUST be followed, as well as the rules in
+   this document.
 
 
 7.  Prefix Representation
 
    Problems with prefixes are just the same as problems encountered with
-   addresses.  Text representation method of IPv6 prefixes should be no
-   different from that of IPv6 addresses.
+   addresses.  The text representation method of IPv6 prefixes should be
+   no different from that of IPv6 addresses.
 
 
 8.  Security Considerations
 
-   This document notes on some examples where IPv6 addresses are
-   compared in text format.  The example on Section 3.2.5 is one that
-   may cause a security risk if used for access control.  The common
-   practice of comparing X.509 data is done in binary format.
+   This document notes some examples where IPv6 addresses are compared
+   in text format.  The example on Section 3.2.5 is one that may cause a
+   security risk if used for access control.  The common practice of
+   comparing X.509 data is done in binary format.
 
 
 9.  IANA Considerations
@@ -647,10 +648,10 @@ Internet-Draft          IPv6 Text Representation           February 2010
    starting this document.  We also would like to thank Brian Carpenter,
    Akira Kato, Juergen Schoenwaelder, Antonio Querubin, Dave Thaler,
    Brian Haley, Suresh Krishnan, Jerry Huang, Roman Donchenko, Heikki
-   Vatiainen ,Dan Wing for their input.  Also a very special thanks to
-   Ron Bonica, Fred Baker, Brian Haberman, Robert Hinden, Jari Arkko,
-   and Kurt Lindqvist for their support in bringing this document to the
-   light of IETF working groups.
+   Vatiainen ,Dan Wing, and Doug Barton for their input.  Also a very
+   special thanks to Ron Bonica, Fred Baker, Brian Haberman, Robert
+   Hinden, Jari Arkko, and Kurt Lindqvist for their support in bringing
+   this document to the light of IETF working groups.
 
 
 11.  References
@@ -663,15 +664,20 @@ Internet-Draft          IPv6 Text Representation           February 2010
    [RFC2765]  Nordmark, E., "Stateless IP/ICMP Translation Algorithm
               (SIIT)", RFC 2765, February 2000.
 
-   [RFC4291]  Hinden, R. and S. Deering, "IP Version 6 Addressing
-              Architecture", RFC 4291, February 2006.
+   [RFC3986]  Berners-Lee, T., Fielding, R., and L. Masinter, "Uniform
 
 
 
-Kawamura & Kawashima     Expires August 23, 2010               [Page 12]
+Kawamura & Kawashima     Expires August 29, 2010               [Page 12]
 
 Internet-Draft          IPv6 Text Representation           February 2010
 
+
+              Resource Identifier (URI): Generic Syntax", STD 66,
+              RFC 3986, January 2005.
+
+   [RFC4291]  Hinden, R. and S. Deering, "IP Version 6 Addressing
+              Architecture", RFC 4291, February 2006.
 
 11.2.  Informative References
 
@@ -680,10 +686,6 @@ Internet-Draft          IPv6 Text Representation           February 2010
               Li, "IPv6 Addressing of IPv4/IPv6 Translators",
               draft-ietf-behave-address-format-04 (work in progress),
               January 2010.
-
-   [RFC3986]  Berners-Lee, T., Fielding, R., and L. Masinter, "Uniform
-              Resource Identifier (URI): Generic Syntax", STD 66,
-              RFC 3986, January 2005.
 
    [RFC4038]  Shin, M-K., Hong, Y-G., Hagino, J., Savola, P., and E.
               Castro, "Application Aspects of IPv6 Transition",
@@ -722,9 +724,7 @@ Authors' Addresses
 
 
 
-
-
-Kawamura & Kawashima     Expires August 23, 2010               [Page 13]
+Kawamura & Kawashima     Expires August 29, 2010               [Page 13]
 
 Internet-Draft          IPv6 Text Representation           February 2010
 
@@ -780,6 +780,6 @@ Internet-Draft          IPv6 Text Representation           February 2010
 
 
 
-Kawamura & Kawashima     Expires August 23, 2010               [Page 14]
+Kawamura & Kawashima     Expires August 29, 2010               [Page 14]
 
 
