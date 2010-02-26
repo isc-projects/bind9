@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.299 2010/02/25 04:39:13 marka Exp $ */
+/* $Id: rbtdb.c,v 1.300 2010/02/26 00:18:06 marka Exp $ */
 
 /*! \file */
 
@@ -7668,10 +7668,16 @@ rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
 
 static void
 rdataset_settrust(dns_rdataset_t *rdataset, dns_trust_t trust) {
+	dns_rbtdb_t *rbtdb = rdataset->private1;
+	dns_rbtnode_t *rbtnode = rdataset->private2;
 	rdatasetheader_t *header = rdataset->private3;
 
 	header--;
+	NODE_LOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
+		  isc_rwlocktype_write);
 	header->trust = rdataset->trust = trust;
+	NODE_UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
+		  isc_rwlocktype_write);
 }
 
 static void
