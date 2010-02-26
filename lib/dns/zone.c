@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.483.36.17 2009/12/21 04:32:42 marka Exp $ */
+/* $Id: zone.c,v 1.483.36.18 2010/02/26 01:52:05 marka Exp $ */
 
 /*! \file */
 
@@ -3877,6 +3877,7 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		CHECK(update_one_rr(db, ver, diff, DNS_DIFFOP_ADDRESIGN,
 				    name, rdataset.ttl, &sig_rdata));
 		dns_rdata_reset(&sig_rdata);
+		isc_buffer_init(&buffer, data, sizeof(data));
 	}
 
  failure:
