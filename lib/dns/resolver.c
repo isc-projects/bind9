@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.100 2010/02/26 01:03:55 marka Exp $ */
+/* $Id: resolver.c,v 1.284.18.101 2010/02/26 23:46:36 tbox Exp $ */
 
 /*! \file */
 
@@ -373,13 +373,13 @@ struct dns_resolver {
 	unsigned int			activebuckets;
 	isc_boolean_t			priming;
 	unsigned int			spillat;	/* clients-per-query */
-  
-        /* Bad cache. */
-        dns_badcache_t	**		badcache;
-        unsigned int			badcount;
-        unsigned int			badhash;
-        unsigned int			badsweep;
- 
+
+	/* Bad cache. */
+	dns_badcache_t	**		badcache;
+	unsigned int			badcount;
+	unsigned int			badhash;
+	unsigned int			badsweep;
+
 	/* Locked by primelock. */
 	dns_fetch_t *			primefetch;
 	/* Locked by nlock. */
@@ -3818,50 +3818,50 @@ validated(isc_task_t *task, isc_event_t *event) {
 		FCTXTRACE("validation failed");
 		fctx->valfail++;
 		fctx->vresult = vevent->result;
-                if (fctx->vresult != DNS_R_BROKENCHAIN) {
-                        result = ISC_R_NOTFOUND;
-                        if (vevent->rdataset != NULL)
-                                result = dns_db_findnode(fctx->cache,
-                                                         vevent->name,
-                                                         ISC_TRUE, &node);
-                        if (result == ISC_R_SUCCESS)
-                                (void)dns_db_deleterdataset(fctx->cache, node,
-                                                             NULL,
-                                                            vevent->type, 0);
-                        if (result == ISC_R_SUCCESS &&
-                             vevent->sigrdataset != NULL)
-                                (void)dns_db_deleterdataset(fctx->cache, node,
-                                                            NULL,
-                                                            dns_rdatatype_rrsig,
-                                                            vevent->type);
-                        if (result == ISC_R_SUCCESS)
-                                dns_db_detachnode(fctx->cache, &node);
-                }
-                if (fctx->vresult == DNS_R_BROKENCHAIN && !negative) {
-                        /*
-                         * Cache the data as pending for later validation.
-                         */
-                        result = ISC_R_NOTFOUND;
-                        if (vevent->rdataset != NULL)
-                                result = dns_db_findnode(fctx->cache,
-                                                         vevent->name,
-                                                         ISC_TRUE, &node);
-                        if (result == ISC_R_SUCCESS) {
-                                (void)dns_db_addrdataset(fctx->cache, node,
-                                                         NULL, now,
-                                                         vevent->rdataset, 0,
-                                                         NULL);
-                        }
-                        if (result == ISC_R_SUCCESS &&
-                            vevent->sigrdataset != NULL)
-                                (void)dns_db_addrdataset(fctx->cache, node,
-                                                         NULL, now,
-                                                         vevent->sigrdataset,
-                                                         0, NULL);
-                        if (result == ISC_R_SUCCESS)
-                                dns_db_detachnode(fctx->cache, &node);
-                }
-                result = fctx->vresult;
+		if (fctx->vresult != DNS_R_BROKENCHAIN) {
+			result = ISC_R_NOTFOUND;
+			if (vevent->rdataset != NULL)
+				result = dns_db_findnode(fctx->cache,
+							 vevent->name,
+							 ISC_TRUE, &node);
+			if (result == ISC_R_SUCCESS)
+				(void)dns_db_deleterdataset(fctx->cache, node,
+							     NULL,
+							    vevent->type, 0);
+			if (result == ISC_R_SUCCESS &&
+			     vevent->sigrdataset != NULL)
+				(void)dns_db_deleterdataset(fctx->cache, node,
+							    NULL,
+							    dns_rdatatype_rrsig,
+							    vevent->type);
+			if (result == ISC_R_SUCCESS)
+				dns_db_detachnode(fctx->cache, &node);
+		}
+		if (fctx->vresult == DNS_R_BROKENCHAIN && !negative) {
+			/*
+			 * Cache the data as pending for later validation.
+			 */
+			result = ISC_R_NOTFOUND;
+			if (vevent->rdataset != NULL)
+				result = dns_db_findnode(fctx->cache,
+							 vevent->name,
+							 ISC_TRUE, &node);
+			if (result == ISC_R_SUCCESS) {
+				(void)dns_db_addrdataset(fctx->cache, node,
+							 NULL, now,
+							 vevent->rdataset, 0,
+							 NULL);
+			}
+			if (result == ISC_R_SUCCESS &&
+			    vevent->sigrdataset != NULL)
+				(void)dns_db_addrdataset(fctx->cache, node,
+							 NULL, now,
+							 vevent->sigrdataset,
+							 0, NULL);
+			if (result == ISC_R_SUCCESS)
+				dns_db_detachnode(fctx->cache, &node);
+		}
+		result = fctx->vresult;
 		add_bad(fctx, addrinfo, result, badns_validation);
 		isc_event_free(&event);
 		UNLOCK(&fctx->res->buckets[fctx->bucketnum].lock);
@@ -3871,23 +3871,23 @@ validated(isc_task_t *task, isc_event_t *event) {
 			dns_validator_send(fctx->validator);
 		else if (sentresponse)
 			fctx_done(fctx, result, __LINE__); /* Locks bucket. */
-                else if (result == DNS_R_BROKENCHAIN) {
-                        isc_result_t tresult;
-                        isc_time_t expire;
-                        isc_interval_t i;
- 
-                        isc_interval_set(&i, DNS_BADCACHE_TTL(fctx), 0);
-                        tresult = isc_time_nowplusinterval(&expire, &i);
-                        if (negative &&
-                            (fctx->type == dns_rdatatype_dnskey ||
-                             fctx->type == dns_rdatatype_dlv ||
-                             fctx->type == dns_rdatatype_ds) &&
-                             tresult == ISC_R_SUCCESS)
-                                dns_resolver_addbadcache(fctx->res,
-                                                         &fctx->name,
-                                                         fctx->type, &expire);
-                        fctx_done(fctx, result, __LINE__); /* Locks bucket. */
-                } else
+		else if (result == DNS_R_BROKENCHAIN) {
+			isc_result_t tresult;
+			isc_time_t expire;
+			isc_interval_t i;
+
+			isc_interval_set(&i, DNS_BADCACHE_TTL(fctx), 0);
+			tresult = isc_time_nowplusinterval(&expire, &i);
+			if (negative &&
+			    (fctx->type == dns_rdatatype_dnskey ||
+			     fctx->type == dns_rdatatype_dlv ||
+			     fctx->type == dns_rdatatype_ds) &&
+			     tresult == ISC_R_SUCCESS)
+				dns_resolver_addbadcache(fctx->res,
+							 &fctx->name,
+							 fctx->type, &expire);
+			fctx_done(fctx, result, __LINE__); /* Locks bucket. */
+		} else
 			fctx_try(fctx, ISC_TRUE);	   /* Locks bucket. */
 		return;
 	}
@@ -7517,7 +7517,7 @@ dns_resolver_flushbadcache(dns_resolver_t *resolver, dns_name_t *name) {
 			} else
 				prev = bad;
 		}
-	} else 
+	} else
 		destroy_badcache(resolver);
 
  unlock:

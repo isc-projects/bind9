@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.196.18.60 2010/02/26 01:03:55 marka Exp $ */
+/* $Id: rbtdb.c,v 1.196.18.61 2010/02/26 23:46:36 tbox Exp $ */
 
 /*! \file */
 
@@ -5851,8 +5851,8 @@ rdataset_expire(dns_rdataset_t *rdataset) {
 	NODE_LOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
 		  isc_rwlocktype_write);
 	header->ttl = 0;
-        header->attributes |= RDATASET_ATTR_STALE;
-        rbtnode->dirty = 1;
+	header->attributes |= RDATASET_ATTR_STALE;
+	rbtnode->dirty = 1;
 	NODE_UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
 		  isc_rwlocktype_write);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2006, 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006, 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.72.18.8 2010/02/26 01:03:55 marka Exp $ */
+/* $Id: rdataset.c,v 1.72.18.9 2010/02/26 23:46:36 tbox Exp $ */
 
 /*! \file */
 
