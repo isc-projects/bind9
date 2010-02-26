@@ -1,3 +1,5 @@
+2853.	[bug]		add_sigs() could run out of scratch space. [RT #21015]
+
 2852.	[bug]		Handle broken DNSSEC trust chains better. [RT #15619]
 
 2851.	[doc]		nslookup.1, removed <informalexample> from the docbook
