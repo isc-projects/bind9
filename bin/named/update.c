@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.176.4.3 2009/12/30 03:55:03 marka Exp $ */
+/* $Id: update.c,v 1.176.4.4 2010/02/26 01:50:39 marka Exp $ */
 
 #include <config.h>
 
@@ -1941,6 +1941,7 @@ add_sigs(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 		CHECK(update_one_rr(db, ver, diff, DNS_DIFFOP_ADDRESIGN, name,
 				    rdataset.ttl, &sig_rdata));
 		dns_rdata_reset(&sig_rdata);
+		isc_buffer_init(&buffer, data, sizeof(data));
 		added_sig = ISC_TRUE;
 	}
 	if (!added_sig) {
