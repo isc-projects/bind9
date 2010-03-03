@@ -456,6 +456,7 @@ dns_rdataset_clone
 dns_rdataset_count
 dns_rdataset_current
 dns_rdataset_disassociate
+dns_rdataset_expire
 dns_rdataset_first
 dns_rdataset_getadditional
 dns_rdataset_getnoqname
@@ -466,6 +467,7 @@ dns_rdataset_makequestion
 dns_rdataset_next
 dns_rdataset_putadditional
 dns_rdataset_setadditional
+dns_rdataset_settrust
 dns_rdataset_totext
 dns_rdataset_towire
 dns_rdataset_towiresorted
