@@ -1,4 +1,4 @@
-	--- 9.6.2-P1 released ---
+	--- 9.6-ESV released ---
 
 2852.	[bug]		Handle broken DNSSEC trust chains better. [RT #15619]
 
