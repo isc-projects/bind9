@@ -467,6 +467,7 @@ dns_rdataset_clone
 dns_rdataset_count
 dns_rdataset_current
 dns_rdataset_disassociate
+dns_rdataset_expire
 dns_rdataset_first
 dns_rdataset_getadditional
 dns_rdataset_getclosest
@@ -478,6 +479,7 @@ dns_rdataset_makequestion
 dns_rdataset_next
 dns_rdataset_putadditional
 dns_rdataset_setadditional
+dns_rdataset_settrust
 dns_rdataset_totext
 dns_rdataset_towire
 dns_rdataset_towiresorted
@@ -520,6 +522,7 @@ dns_requestmgr_detach
 dns_requestmgr_shutdown
 dns_requestmgr_whenshutdown
 dns_resolver_addalternate
+dns_resolver_addbadcache
 dns_resolver_algorithm_supported
 dns_resolver_attach
 dns_resolver_cancelfetch
@@ -532,7 +535,9 @@ dns_resolver_disable_algorithm
 dns_resolver_dispatchmgr
 dns_resolver_dispatchv4
 dns_resolver_dispatchv6
+dns_resolver_flushbadcache
 dns_resolver_freeze
+dns_resolver_getbadcache
 dns_resolver_getlamettl
 dns_resolver_getoptions
 dns_resolver_getudpsize
@@ -540,6 +545,7 @@ dns_resolver_getzeronosoattl
 dns_resolver_logfetch
 dns_resolver_nrunning
 dns_resolver_prime
+dns_resolver_printbadcache
 dns_resolver_reset_algorithms
 dns_resolver_resetmustbesecure
 dns_resolver_setclientsperquery
