@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.250 2010/03/04 05:18:04 marka Exp $ */
+/* $Id: message.c,v 1.251 2010/03/04 23:50:34 tbox Exp $ */
 
 /*! \file */
 
@@ -3144,7 +3144,7 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 		for (rdataset = ISC_LIST_HEAD(name->list);
 		     rdataset != NULL;
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
-			if (section == DNS_SECTION_ANSWER && 
+			if (section == DNS_SECTION_ANSWER &&
 			    rdataset->type == dns_rdatatype_soa) {
 				if ((flags & DNS_MESSAGETEXTFLAG_OMITSOA) != 0)
 					continue;
