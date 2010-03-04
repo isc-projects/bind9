@@ -1,3 +1,6 @@
+2955.	[bug]		The size of a memory allocation was not always properly
+			recorded. [RT #20927]
+
 2854.	[func]		nsupdate will now preserve the entered case of domain
 			names in update requests it sends. [RT #20928]
 
