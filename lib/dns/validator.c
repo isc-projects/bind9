@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.155.52.18 2010/02/25 10:55:22 tbox Exp $ */
+/* $Id: validator.c,v 1.155.52.19 2010/03/04 22:35:06 marka Exp $ */
 
 #include <config.h>
 
@@ -3167,19 +3167,19 @@ dns_validator_cancel(dns_validator_t *validator) {
 
 	validator_log(validator, ISC_LOG_DEBUG(3), "dns_validator_cancel");
 
-	if (validator->event != NULL) {
-		if (validator->fetch != NULL)
-			dns_resolver_cancelfetch(validator->fetch);
-
-		if (validator->subvalidator != NULL)
-			dns_validator_cancel(validator->subvalidator);
-		if ((validator->options & DNS_VALIDATOR_DEFER) != 0) {
-			isc_task_t *task = validator->event->ev_sender;
-			validator->options &= ~DNS_VALIDATOR_DEFER;
-			isc_event_free((isc_event_t **)&validator->event);
-			isc_task_detach(&task);
-		}
+	if ((validator->attributes & VALATTR_CANCELED) == 0) {
 		validator->attributes |= VALATTR_CANCELED;
+	     	if (validator->event != NULL) {
+			if (validator->fetch != NULL)
+				dns_resolver_cancelfetch(validator->fetch);
+
+			if (validator->subvalidator != NULL)
+				dns_validator_cancel(validator->subvalidator);
+			if ((validator->options & DNS_VALIDATOR_DEFER) != 0) {
+				validator->options &= ~DNS_VALIDATOR_DEFER;
+				validator_done(validator, ISC_R_CANCELED);
+			}
+		}
 	}
 	UNLOCK(&validator->lock);
 }

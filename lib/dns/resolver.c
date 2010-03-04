@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.355.12.51 2010/03/04 06:45:27 marka Exp $ */
+/* $Id: resolver.c,v 1.355.12.52 2010/03/04 22:35:06 marka Exp $ */
 
 /*! \file */
 
@@ -472,7 +472,7 @@ valcreate(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo, dns_name_t *name,
 		inc_stats(fctx->res, dns_resstatscounter_val);
 		if ((valoptions & DNS_VALIDATOR_DEFER) == 0) {
 			INSIST(fctx->validator == NULL);
-			fctx->validator  = validator;
+			fctx->validator = validator;
 		}
 		ISC_LIST_APPEND(fctx->validators, validator, link);
 	} else
@@ -3797,14 +3797,6 @@ maybe_destroy(fetchctx_t *fctx) {
 	     validator != NULL; validator = next_validator) {
 		next_validator = ISC_LIST_NEXT(validator, link);
 		dns_validator_cancel(validator);
-		/*
-		 * If this is a active validator wait for the cancel
-		 * to complete before calling dns_validator_destroy().
-		 */
-		if (validator == fctx->validator)
-			continue;
-		ISC_LIST_UNLINK(fctx->validators, validator, link);
-		dns_validator_destroy(&validator);
 	}
 
 	bucketnum = fctx->bucketnum;
