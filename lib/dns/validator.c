@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.155.52.19 2010/03/04 22:35:06 marka Exp $ */
+/* $Id: validator.c,v 1.155.52.20 2010/03/04 23:46:49 tbox Exp $ */
 
 #include <config.h>
 
@@ -3169,7 +3169,7 @@ dns_validator_cancel(dns_validator_t *validator) {
 
 	if ((validator->attributes & VALATTR_CANCELED) == 0) {
 		validator->attributes |= VALATTR_CANCELED;
-	     	if (validator->event != NULL) {
+		if (validator->event != NULL) {
 			if (validator->fetch != NULL)
 				dns_resolver_cancelfetch(validator->fetch);
 
