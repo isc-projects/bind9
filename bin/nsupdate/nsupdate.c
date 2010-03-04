@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.173 2009/09/29 15:06:06 fdupont Exp $ */
+/* $Id: nsupdate.c,v 1.174 2010/03/04 05:24:56 marka Exp $ */
 
 /*! \file */
 
@@ -2078,7 +2078,7 @@ send_update(dns_name_t *zonename, isc_sockaddr_t *master,
 {
 	isc_result_t result;
 	dns_request_t *request = NULL;
-	unsigned int options = 0;
+	unsigned int options = DNS_REQUESTOPT_CASE;
 
 	ddebug("send_update()");
 

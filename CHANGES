@@ -1,3 +1,6 @@
+2854.	[func]		nsupdate will now preserve the entered case of domain
+			names in update requests it sends. [RT #20928]
+
 2854.	[func]		dig: allow the final soa record in a axfr response to
 			be suppressed, dig +onesoa. [RT #20929]
 

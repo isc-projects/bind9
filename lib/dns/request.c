@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.85 2009/09/01 00:22:26 jinmei Exp $ */
+/* $Id: request.c,v 1.86 2010/03/04 05:24:56 marka Exp $ */
 
 /*! \file */
 
@@ -1058,6 +1058,9 @@ req_render(dns_message_t *message, isc_buffer_t **bufferp,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	cleanup_cctx = ISC_TRUE;
+
+	if ((options & DNS_REQUESTOPT_CASE) != 0)
+		dns_compress_setsensitive(&cctx, ISC_TRUE);
 
 	/*
 	 * Render message.
