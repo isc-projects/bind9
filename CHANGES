@@ -1,3 +1,6 @@
+2957.	[bug]		RTT estimates were not being adjusted on ICMP errors.
+			[RT #20772]
+
 2956.	[bug]		named-checkconf did not fail on a bad trusted key.
 			[RT #20705]
 
