@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.95.12.5 2010/03/04 06:29:33 marka Exp $ */
+/* $Id: check.c,v 1.95.12.6 2010/03/04 23:47:53 tbox Exp $ */
 
 /*! \file */
 
@@ -1682,35 +1682,35 @@ check_trusted_key(const cfg_obj_t *key, isc_log_t *logctx)
 	isc_uint32_t flags, proto, alg;
 	unsigned char keydata[4096];
 
-        flags = cfg_obj_asuint32(cfg_tuple_get(key, "flags"));
-        proto = cfg_obj_asuint32(cfg_tuple_get(key, "protocol"));
-        alg = cfg_obj_asuint32(cfg_tuple_get(key, "algorithm"));
-        keyname = dns_fixedname_name(&fkeyname);
-        keynamestr = cfg_obj_asstring(cfg_tuple_get(key, "name"));
+	flags = cfg_obj_asuint32(cfg_tuple_get(key, "flags"));
+	proto = cfg_obj_asuint32(cfg_tuple_get(key, "protocol"));
+	alg = cfg_obj_asuint32(cfg_tuple_get(key, "algorithm"));
+	keyname = dns_fixedname_name(&fkeyname);
+	keynamestr = cfg_obj_asstring(cfg_tuple_get(key, "name"));
 
-        if (flags > 0xffff) {
-                cfg_obj_log(key, logctx, ISC_LOG_WARNING,
+	if (flags > 0xffff) {
+		cfg_obj_log(key, logctx, ISC_LOG_WARNING,
 			    "flags too big: %u\n", flags);
 		result = ISC_R_FAILURE;
 	}
-        if (proto > 0xff) {
-                cfg_obj_log(key, logctx, ISC_LOG_WARNING,
+	if (proto > 0xff) {
+		cfg_obj_log(key, logctx, ISC_LOG_WARNING,
 			    "protocol too big: %u\n", proto);
 		result = ISC_R_FAILURE;
 	}
-        if (alg > 0xff) {
-                cfg_obj_log(key, logctx, ISC_LOG_WARNING,
+	if (alg > 0xff) {
+		cfg_obj_log(key, logctx, ISC_LOG_WARNING,
 			    "algorithm too big: %u\n", alg);
 		result = ISC_R_FAILURE;
 	}
 
-        isc_buffer_init(&keydatabuf, keydata, sizeof(keydata));
+	isc_buffer_init(&keydatabuf, keydata, sizeof(keydata));
 
-        keystr = cfg_obj_asstring(cfg_tuple_get(key, "key"));
-        tresult = isc_base64_decodestring(keystr, &keydatabuf);
+	keystr = cfg_obj_asstring(cfg_tuple_get(key, "key"));
+	tresult = isc_base64_decodestring(keystr, &keydatabuf);
 
 	if (tresult != ISC_R_SUCCESS) {
-                cfg_obj_log(key, logctx, ISC_LOG_ERROR,
+		cfg_obj_log(key, logctx, ISC_LOG_ERROR,
 			    "%s", isc_result_totext(tresult));
 		result = ISC_R_FAILURE;
 	} else {
