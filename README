@@ -79,17 +79,6 @@ BIND 9.7.0
 
 	Known issues in this release:
 
-	- A validating resolver that has been incorrectly configured with
-	  an invalid trust anchor will be unable to resolve names covered
-	  by that trust anchor.  In all current versions of BIND 9, such a
-	  resolver will also generate significant unnecessary DNS traffic
-	  while trying to validate.  The latter problem will be addressed
-	  in future BIND 9 releases.  In the meantime, to avoid these
-	  problems, exercise caution when configuring "trusted-keys":
-	  make sure all keys are correct and current when you add them,
-	  and update your configuration in a timely manner when keys
-	  roll over.
-
 	- In rare cases, DNSSEC validation can leak memory.  When this 
 	  happens, it will cause an assertion failure when named exits,
 	  but is otherwise harmless.  A fix exists, but was too late for
