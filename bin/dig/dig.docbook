@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.45 2009/02/02 04:41:28 marka Exp $ -->
+<!-- $Id: dig.docbook,v 1.46 2010/03/04 05:18:04 marka Exp $ -->
 <refentry id="man.dig">
 
   <refentryinfo>
@@ -765,6 +765,17 @@
             </para>
           </listitem>
         </varlistentry>
+
+	<varlistentry>
+	  <term><option>+[no]onesoa</option></term>
+	  <listitem>
+	    <para>
+	      Print only one (starting) SOA record when performing
+	      an AXFR. The default is to print both the starting and
+	      ending SOA records.
+	    </para>
+	  </listitem>
+	</varlistentry>
 
         <varlistentry>
           <term><option>+[no]fail</option></term>

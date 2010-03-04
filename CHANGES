@@ -1,3 +1,6 @@
+2854.	[func]		dig: allow the final soa record in a axfr response to
+			be suppressed, dig +onesoa. [RT #20929]
+
 2853.	[bug]		add_sigs() could run out of scratch space. [RT #21015]
 
 2852.	[bug]		Handle broken DNSSEC trust chains better. [RT #15619]
