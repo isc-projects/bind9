@@ -1,3 +1,6 @@
+2956.	[bug]		named-checkconf did not fail on a bad trusted key.
+			[RT #20705]
+
 2955.	[bug]		The size of a memory allocation was not always properly
 			recorded. [RT #20927]
 
