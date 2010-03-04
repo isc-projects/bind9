@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.30 2008/07/01 23:47:17 tbox Exp $ */
+/* $Id: net.h,v 1.30.82.2 2009/02/16 23:47:15 tbox Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
@@ -335,11 +335,9 @@ isc_net_pton(int af, const char *src, void *dst);
 #define inet_pton isc_net_pton
 #endif
 
-#ifdef ISC_PLATFORM_NEEDATON
 int
 isc_net_aton(const char *cp, struct in_addr *addr);
 #define inet_aton isc_net_aton
-#endif
 
 ISC_LANG_ENDDECLS
 

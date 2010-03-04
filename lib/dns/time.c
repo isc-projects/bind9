@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.31 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: time.c,v 1.31.332.2 2009/01/18 23:47:40 tbox Exp $ */
 
 /*! \file */
 
@@ -145,7 +145,7 @@ dns_time64_fromtext(const char *source, isc_int64_t *target) {
 	RANGE(0, 60, second);		/* 60 == leap second. */
 
 	/*
-	 * Calulate seconds since epoch.
+	 * Calculate seconds since epoch.
 	 */
 	value = second + (60 * minute) + (3600 * hour) + ((day - 1) * 86400);
 	for (i = 0; i < (month - 1); i++)

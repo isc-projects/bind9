@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001, 2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg_test.c,v 1.19 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id: cfg_test.c,v 1.19.332.4 2010/01/11 23:47:22 tbox Exp $ */
 
 /*! \file */
 
@@ -49,7 +49,7 @@ check_result(isc_result_t result, const char *format, ...) {
 static void
 output(void *closure, const char *text, int textlen) {
 	UNUSED(closure);
-	(void) fwrite(text, 1, textlen, stdout);
+	(void) isc_util_fwrite(text, 1, textlen, stdout);
 }
 
 static void
@@ -70,7 +70,7 @@ main(int argc, char **argv) {
 	cfg_obj_t *cfg = NULL;
 	cfg_type_t *type = NULL;
 	isc_boolean_t grammar = ISC_FALSE;
-	isc_boolean_t memstats = ISC_FALSE;	
+	isc_boolean_t memstats = ISC_FALSE;
 	char *filename = NULL;
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
@@ -116,7 +116,7 @@ main(int argc, char **argv) {
 		} else {
 			filename = argv[1];
 		}
-		argv++, argc--;       
+		argv++, argc--;
 	}
 
 	if (grammar) {
@@ -147,5 +147,10 @@ main(int argc, char **argv) {
 		isc_mem_stats(mctx, stderr);
 	isc_mem_destroy(&mctx);
 
-	return (0);
+	fflush(stdout);
+	if (ferror(stdout)) {
+		fprintf(stderr, "write error\n");
+		return (1);
+	} else
+		return (0);
 }

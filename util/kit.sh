@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007-2009  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000-2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: kit.sh,v 1.33 2008/10/02 23:47:16 tbox Exp $
+# $Id: kit.sh,v 1.33.44.3 2009/10/13 03:04:37 marka Exp $
 
 # Make a release kit
 #
@@ -80,7 +80,7 @@ then
     arg=-D
 fi
 
-version=${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}
+version=${MAJORVER}.${MINORVER}${PATCHVER:+.}${PATCHVER}${RELEASETYPE}${RELEASEVER}
 
 echo "building release kit for BIND version $version, hold on..."
 
@@ -140,6 +140,29 @@ do
 	mv tmp $f
 done
 
+# check that documentation has been updated properly; issue a warning
+# if it hasn't
+if test doc/arm/Bv9ARM-book.xml -nt doc/arm/Bv9ARM.html
+then
+	echo "WARNING: ARM source is newer than the html version."
+fi
+
+if test doc/arm/Bv9ARM-book.xml -nt doc/arm/Bv9ARM.pdf
+then
+	echo "WARNING: ARM source is newer than the PDF version."
+fi
+
+for f in `find . -name "*.docbook" -print`
+do
+	docbookfile=$f
+	htmlfile=${f%.docbook}.html
+	if test $docbookfile -nt $htmlfile
+	then
+		echo "WARNING: $docbookfile is newer than the html version."
+	fi
+done
+
+# build the tarball
 cd .. || exit 1
 
 kit=$topdir.tar.gz

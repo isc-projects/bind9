@@ -493,7 +493,7 @@ SOURCE=..\include\isc\socket.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\include\isc\stat.h
+SOURCE=.\include\isc\stats.h
 # End Source File
 # Begin Source File
 
@@ -742,6 +742,10 @@ SOURCE=..\sha2.c
 # Begin Source File
 
 SOURCE=..\sockaddr.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\stats.c
 # End Source File
 # Begin Source File
 

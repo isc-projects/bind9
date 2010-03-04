@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zonetodb.c,v 1.20 2008/09/25 04:02:38 tbox Exp $ */
+/* $Id: zonetodb.c,v 1.20.42.2 2009/12/03 04:49:32 tbox Exp $ */
 
 #include <stdlib.h>
 #include <string.h>
@@ -165,7 +165,7 @@ main(int argc, char **argv) {
 	check_result(result, "isc_mem_create");
 
 	result = isc_entropy_create(mctx, &ectx);
-	result_check (result, "isc_entropy_create");
+	check_result (result, "isc_entropy_create");
 
 	result = isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE);
 	check_result (result, "isc_hash_create");

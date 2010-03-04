@@ -62,6 +62,8 @@
 extern	const	char	*progname;
 
 static	int	inc_soa_serial (FILE *fp, int use_unixtime);
+static	int	is_soa_rr (const char *line);
+static	const	char	*strfindstr (const char *str, const char *search);
 
 /*****************************************************************
 **	getnameappendix (progname, basename)
@@ -94,7 +96,8 @@ const	char	*getnameappendix (const char *progname, const char *basename)
 
 /*****************************************************************
 **	getdefconfname (view)
-**	returns the default configuration file name
+**	returns a pointer to a dynamic string containing the
+**	default configuration file name
 *****************************************************************/
 const	char	*getdefconfname (const char *view)
 {
@@ -105,13 +108,14 @@ const	char	*getdefconfname (const char *view)
 	
 	if ( (file = getenv ("ZKT_CONFFILE")) == NULL )
 		file = CONFIG_FILE;
+	dbg_val2 ("getdefconfname (%s) file = %s\n", view ? view : "NULL", file);
 
 	if ( view == NULL || *view == '\0' || (p = strrchr (file, '.')) == NULL )
 		return strdup (file);
 
 	size = strlen (file) + strlen (view) + 1 + 1;
 	if ( (buf = malloc (size)) == NULL )
-		return file;
+		return strdup (file);
 
 	dbg_val1 ("0123456789o123456789o123456789\tsize=%d\n", size);
 	dbg_val4 ("%.*s-%s%s\n", p - file, file, view, p);
@@ -120,6 +124,40 @@ const	char	*getdefconfname (const char *view)
 	return buf;	
 }
 
+#if 1
+/*****************************************************************
+**	domain_canonicdup (s)
+**	returns NULL or a pointer to a dynamic string containing the
+**	canonic (all lower case letters and ending with a '.')
+**	domain name
+*****************************************************************/
+char	*domain_canonicdup (const char *s)
+{
+	char	*new;
+	char	*p;
+	int	len;
+	int	add_dot;
+
+	if ( s == NULL )
+		return NULL;
+
+	add_dot = 0;
+	len = strlen (s);
+	if ( len > 0 && s[len-1] != '.' )
+		add_dot = len++;
+
+	if ( (new = p = malloc (len + 1)) == NULL )
+		return NULL;
+
+	while ( *s )
+		*p++ = tolower (*s++);
+	if ( add_dot )
+		*p++ = '.';
+	*p = '\0';
+
+	return new;
+}
+#else
 /*****************************************************************
 **	str_tolowerdup (s)
 *****************************************************************/
@@ -137,6 +175,7 @@ char	*str_tolowerdup (const char *s)
 
 	return new;
 }
+#endif
 
 /*****************************************************************
 **	str_delspace (s)
@@ -956,7 +995,7 @@ time_t	stop_timer (time_t start)
 **
 **	To match the SOA record, the SOA RR must be formatted
 **	like this:
-**	@    IN  SOA <master.fq.dn.> <hostmaster.fq.dn.> (
+**	@ [ttl]   IN  SOA <master.fq.dn.> <hostmaster.fq.dn.> (
 **	<SPACEes or TABs>      1234567890; serial number 
 **	<SPACEes or TABs>      86400	 ; other values
 **				...
@@ -972,7 +1011,6 @@ int	inc_serial (const char *fname, int use_unixtime)
 {
 	FILE	*fp;
 	char	buf[4095+1];
-	char	master[254+1];
 	int	error;
 
 	/**
@@ -988,8 +1026,7 @@ int	inc_serial (const char *fname, int use_unixtime)
 		return -1;
 
 		/* read until the line matches the beginning of a soa record ... */
-	while ( fgets (buf, sizeof buf, fp) &&
-		    sscanf (buf, "@ IN SOA %255s %*s (\n", master) != 1 )
+	while ( fgets (buf, sizeof buf, fp) && !is_soa_rr (buf) )
 		;
 
 	if ( feof (fp) )
@@ -1003,6 +1040,54 @@ int	inc_serial (const char *fname, int use_unixtime)
 	if ( fclose (fp) != 0 )
 		return -5;
 	return error;
+}
+
+/*****************************************************************
+**	check if line is the beginning of a SOA RR record, thus
+**	containing the string "IN .* SOA" and ends with a '('
+**	returns 1 if true
+*****************************************************************/
+static	int	is_soa_rr (const char *line)
+{
+	const	char	*p;
+
+	assert ( line != NULL );
+
+	if ( (p = strfindstr (line, "IN")) && strfindstr (p+2, "SOA") )	/* line contains "IN" and "SOA" */
+	{
+		p = line + strlen (line) - 1;
+		while ( p > line && isspace (*p) )
+			p--;
+		if ( *p == '(' )	/* last character have to be a '(' to start a multi line record */
+			return 1;
+	}
+
+	return 0;
+}
+
+/*****************************************************************
+**	Find string 'search' in 'str' and ignore case in comparison.
+**	returns the position of 'search' in 'str' or NULL if not found.
+*****************************************************************/
+static	const	char	*strfindstr (const char *str, const char *search)
+{
+	const	char	*p;
+	int		c;
+
+	assert ( str != NULL );
+	assert ( search != NULL );
+
+	c = tolower (*search);
+	p = str;
+	do {
+		while ( *p && tolower (*p) != c )
+			p++;
+		if ( strncasecmp (p, search, strlen (search)) == 0 )
+			return p;
+		p++;
+	} while ( *p );
+
+	return NULL;
 }
 
 /*****************************************************************
@@ -1100,8 +1185,11 @@ main (int argc, char *argv[])
 	now = today_serialtime ();
 	printf ("now = %lu\n", now);
 
-	if ( (err = inc_serial (argv[1]), 0) < 0 )
+	if ( (err = inc_serial (argv[1], 0)) <= 0 )
+	{
 		error ("can't change serial errno=%d\n", err);
+		exit (1);
+	}
 
 	snprintf (cmd, sizeof(cmd), "head -15 %s", argv[1]);
 	system (cmd);

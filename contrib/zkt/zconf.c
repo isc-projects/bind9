@@ -93,6 +93,7 @@ static	zconf_t	def = {
 	RESIGN_INT,
 	KSK_LIFETIME, KSK_ALGO, KSK_BITS, KSK_RANDOM,
 	ZSK_LIFETIME, ZSK_ALGO, ZSK_BITS, ZSK_RANDOM,
+	SALTLEN,
 	NULL, /* viewname cmdline paramter */
 	LOGFILE, LOGLEVEL, SYSLOGFACILITY, SYSLOGLEVEL, VERBOSELOG, 0,
 	DNSKEYFILE, ZONEFILE, KEYSETDIR,
@@ -143,6 +144,7 @@ static	zconf_para_t	confpara[] = {
 	{ "ZSK_algo",		0,	CONF_ALGO,	&def.z_algo },
 	{ "ZSK_bits",		0,	CONF_INT,	&def.z_bits },
 	{ "ZSK_randfile",	0,	CONF_STRING,	&def.z_random },
+	{ "SaltBits",		0,	CONF_INT,	&def.saltbits },
 
 	{ "",			0,	CONF_COMMENT,	NULL },
 	{ "",			0,	CONF_COMMENT,	"dnssec-signer options"},
@@ -236,6 +238,7 @@ static	void set_all_varptr (zconf_t *cp)
 	set_varptr ("zsk_algo", &cp->z_algo);
 	set_varptr ("zsk_bits", &cp->z_bits);
 	set_varptr ("zsk_randfile", &cp->z_random);
+	set_varptr ("saltbits", &cp->saltbits);
 
 	set_varptr ("--view", &cp->view);
 	set_varptr ("logfile", &cp->logfile);
@@ -261,6 +264,8 @@ static	void	parseconfigline (char *buf, unsigned int line, zconf_t *z)
 	char		*tag;
 	unsigned int	len, found;
 	zconf_para_t	*c;
+
+	assert (buf[0] != '\0');
 
 	p = &buf[strlen(buf)-1];        /* Chop off white space at eol */
 	while ( p >= buf && isspace (*p) )
@@ -357,6 +362,12 @@ static	void	parseconfigline (char *buf, unsigned int line, zconf_t *z)
 					*((int *)c->var) = DK_ALGO_DSA;
 				else if ( strcasecmp (val, "rsasha1") == 0 )
 					*((int *)c->var) = DK_ALGO_RSASHA1;
+				else if ( strcasecmp (val, "nsec3dsa") == 0 ||
+				          strcasecmp (val, "n3dsa") == 0 )
+					*((int *)c->var) = DK_ALGO_NSEC3DSA;
+				else if ( strcasecmp (val, "nsec3rsasha1") == 0 ||
+					  strcasecmp (val, "n3rsasha1") == 0 )
+					*((int *)c->var) = DK_ALGO_NSEC3RSASHA1;
 				else
 					error ("Illegal algorithm \"%s\" "
 						"in line %d.\n" , val, line);
@@ -475,13 +486,13 @@ zconf_t	*loadconfig (const char *filename, zconf_t *z)
 			return NULL;
 
 		if ( filename && *filename )
-			memcpy (z, &def, sizeof (*z));	/* init new struct with defaults */
+			memcpy (z, &def, sizeof (zconf_t));	/* init new struct with defaults */
 	}
 
 	if ( filename == NULL || *filename == '\0' )	/* no file name given... */
 	{
 		dbg_val0("loadconfig (NULL)\n");
-		memcpy (z, &def, sizeof (*z));		/* ..then init with defaults */
+		memcpy (z, &def, sizeof (zconf_t));		/* ..then init with defaults */
 		return z;
 	}
 
@@ -493,11 +504,8 @@ zconf_t	*loadconfig (const char *filename, zconf_t *z)
 
 	line = 0;
 	while (fgets(buf, sizeof(buf), fp))
-	{
-		line++;
+		parseconfigline (buf, ++line, z);
 
-		parseconfigline (buf, line, z);
-	}
 	fclose(fp);
 	return z;
 }
@@ -513,13 +521,13 @@ zconf_t	*loadconfig_fromstr (const char *str, zconf_t *z)
 	{
 		if ( (z = calloc (1, sizeof (zconf_t))) == NULL )
 			return NULL;
-		memcpy (z, &def, sizeof (*z));		/* init with defaults */
+		memcpy (z, &def, sizeof (zconf_t));		/* init with defaults */
 	}
 
 	if ( str == NULL || *str == '\0' )
 	{
 		dbg_val0("loadconfig_fromstr (NULL)\n");
-		memcpy (z, &def, sizeof (*z));		/* init with defaults */
+		memcpy (z, &def, sizeof (zconf_t));		/* init with defaults */
 		return z;
 	}
 
@@ -555,7 +563,7 @@ zconf_t	*dupconfig (const zconf_t *conf)
 	if ( (z = calloc (1, sizeof (zconf_t))) == NULL )
 		return NULL;
 
-	memcpy (z, conf, sizeof (*conf));
+	memcpy (z, conf, sizeof (zconf_t));
 
 	return z;
 }
@@ -697,6 +705,14 @@ int	checkconfig (const zconf_t *z)
 {
 	if ( z == NULL )
 		return 1;
+
+	if ( z->saltbits < 4 )
+		fprintf (stderr, "Saltlength must be at least 4 bits\n");
+	if ( z->saltbits > 128 )
+	{
+		fprintf (stderr, "While the maximum is 520 bits of salt, it's not recommended to use more than 128 bits.\n");
+		fprintf (stderr, "The current value is %d bits\n", z->saltbits);
+	}
 
 	if ( z->sigvalidity < (1 * DAYSEC) || z->sigvalidity > (12 * WEEKSEC) )
 	{

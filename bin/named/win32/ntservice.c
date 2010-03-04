@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2006, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2006, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntservice.c,v 1.12 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id: ntservice.c,v 1.12.332.2 2009/06/23 23:47:11 tbox Exp $ */
 
 #include <config.h>
 #include <stdio.h>
@@ -47,7 +47,7 @@ int main(int, char *[], char *[]); /* From ns_main.c */
 #pragma comment(linker, "/entry:bindmain")
 
 /*
- * This is the entry point for the executable 
+ * This is the entry point for the executable
  * We can now call main() explicitly or via StartServiceCtrlDispatcher()
  * as we need to.
  */
@@ -65,9 +65,12 @@ int bindmain()
 	 */
 	GetArgs(&argc, &argv, &envp);
 
-	/* Command line users should put -f in the options */
+	/* Command line users should put -f in the options. */
+	/* XXXMPA should use isc_commandline_parse() here. */
 	while (argv[i]) {
-		if (!strcmp(argv[i], "-f") || !strcmp(argv[i], "-g")) {
+		if (!strcmp(argv[i], "-f") ||
+		    !strcmp(argv[i], "-g") ||
+		    !strcmp(argv[i], "-v")) {
 			foreground = TRUE;
 			break;
 		}
@@ -129,7 +132,7 @@ BOOL
 ntservice_isservice() {
 	return(!foreground);
 }
-/* 
+/*
  * ServiceControl(): Handles requests from the SCM and passes them on
  * to named.
  */
@@ -137,17 +140,17 @@ void
 ServiceControl(DWORD dwCtrlCode) {
 	/* Handle the requested control code */
 	switch(dwCtrlCode) {
-        case SERVICE_CONTROL_INTERROGATE:
+	case SERVICE_CONTROL_INTERROGATE:
 		UpdateSCM(0);
 		break;
 
-        case SERVICE_CONTROL_SHUTDOWN:
-        case SERVICE_CONTROL_STOP:
+	case SERVICE_CONTROL_SHUTDOWN:
+	case SERVICE_CONTROL_STOP:
 		ns_server_flushonshutdown(ns_g_server, ISC_TRUE);
 		isc_app_shutdown();
 		UpdateSCM(SERVICE_STOPPED);
 		break;
-        default:
+	default:
 		break;
 	}
 }
@@ -185,7 +188,7 @@ void UpdateSCM(DWORD state) {
  * get argv, argc, envp.
  */
 
-typedef struct 
+typedef struct
 {
 	int newmode;
 } _startupinfo;
@@ -218,13 +221,13 @@ extern _CRTIMP char **__initenv;
 void GetArgs(int *argc, char ***argv, char ***envp)
 {
 	_startupinfo startinfo;
-    
+
 	/*
 	 * Set the app type to Console (check CRT/SRC/INTERNAL.H:
 	 * \#define _CONSOLE_APP 1)
 	 */
 	__set_app_type(1);
-	
+
 	/* Mark this module as an EXE file */
 	__onexitbegin = __onexitend = (_PVFV *)(-1);
 

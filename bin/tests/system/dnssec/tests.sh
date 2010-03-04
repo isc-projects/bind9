@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000-2002  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.53 2008/09/25 04:02:38 tbox Exp $
+# $Id: tests.sh,v 1.53.48.4 2010/01/15 23:47:33 tbox Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -522,6 +522,41 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:Checking that a bad CNAME signature is caught after a +CD query ($n)"
+ret=0
+#prime
+$DIG $DIGOPTS +cd bad-cname.example. @10.53.0.4 > dig.out.ns4.prime$n || ret=1
+#check: requery with +CD.  pending data should be returned even if it's bogus
+expect="a.example.
+10.0.0.1"
+ans=`$DIG $DIGOPTS +cd +nodnssec +short bad-cname.example. @10.53.0.4` || ret=1
+test "$ans" = "$expect" || ret=1
+test $ret = 0 || echo I:failed, got "'""$ans""'", expected "'""$expect""'"
+#check: requery without +CD.  bogus cached data should be rejected.
+$DIG $DIGOPTS +nodnssec bad-cname.example. @10.53.0.4 > dig.out.ns4.test$n || ret=1
+grep "SERVFAIL" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:Checking that a bad DNAME signature is caught after a +CD query ($n)"
+ret=0
+#prime
+$DIG $DIGOPTS +cd a.bad-dname.example. @10.53.0.4 > dig.out.ns4.prime$n || ret=1
+#check: requery with +CD.  pending data should be returned even if it's bogus
+expect="example.
+a.example.
+10.0.0.1"
+ans=`$DIG $DIGOPTS +cd +nodnssec +short a.bad-dname.example. @10.53.0.4` || ret=1
+test "$ans" = "$expect" || ret=1
+test $ret = 0 || echo I:failed, got "'""$ans""'", expected "'""$expect""'"
+#check: requery without +CD.  bogus cached data should be rejected.
+$DIG $DIGOPTS +nodnssec a.bad-dname.example. @10.53.0.4 > dig.out.ns4.test$n || ret=1
+grep "SERVFAIL" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 # Check the insecure.secure.example domain (insecurity proof)
 
 echo "I:checking 2-server insecurity proof ($n)"
@@ -603,6 +638,26 @@ $PERL ../digcomp.pl dig.out.ns4.test$n dig.out.ns5.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 # Note - this is looking for failure, hence the &&
 grep "flags:.*ad.*QUERY" dig.out.ns5.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking positive validation RSASHA256 NSEC ($n)"
+ret=0
+$DIG $DIGOPTS +noauth a.rsasha256.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
+$DIG $DIGOPTS +noauth a.rsasha256.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
+$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking positive validation RSASHA512 NSEC ($n)"
+ret=0
+$DIG $DIGOPTS +noauth a.rsasha512.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
+$DIG $DIGOPTS +noauth a.rsasha512.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
+$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

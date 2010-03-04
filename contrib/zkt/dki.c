@@ -625,11 +625,32 @@ char	*dki_algo2str (int algo)
 {
 	switch ( algo )
 	{
-	case DK_ALGO_RSA:	return ("RSAMD5");
-	case DK_ALGO_DH:	return ("DH");
-	case DK_ALGO_DSA:	return ("DSA");
-	case DK_ALGO_EC:	return ("EC");
-	case DK_ALGO_RSASHA1:	return ("RSASHA1");
+	case DK_ALGO_RSA:		return ("RSAMD5");
+	case DK_ALGO_DH:		return ("DH");
+	case DK_ALGO_DSA:		return ("DSA");
+	case DK_ALGO_EC:		return ("EC");
+	case DK_ALGO_RSASHA1:		return ("RSASHA1");
+	case DK_ALGO_NSEC3DSA:		return ("NSEC3DSA");
+	case DK_ALGO_NSEC3RSASHA1:	return ("NSEC3RSASHA1");
+	}
+	return ("unknown");
+}
+
+/*****************************************************************
+**	dki_algo2sstr ()
+**	return a short string describing the key algorithm
+*****************************************************************/
+char	*dki_algo2sstr (int algo)
+{
+	switch ( algo )
+	{
+	case DK_ALGO_RSA:		return ("RSAMD5");
+	case DK_ALGO_DH:		return ("DH");
+	case DK_ALGO_DSA:		return ("DSA");
+	case DK_ALGO_EC:		return ("EC");
+	case DK_ALGO_RSASHA1:		return ("RSASHA1");
+	case DK_ALGO_NSEC3DSA:		return ("N3DSA");
+	case DK_ALGO_NSEC3RSASHA1:	return ("N3RSA1");
 	}
 	return ("unknown");
 }

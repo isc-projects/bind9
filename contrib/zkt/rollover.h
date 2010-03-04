@@ -44,7 +44,14 @@
 # include "zconf.h"
 #endif
 
-# define	OFFSET	((int) (2.5 * MINSEC))
+# define	OFFSET			((int) (2.5 * MINSEC))
+# define	PARENT_PROPAGATION	(5 * MINSEC)
+# define	ADD_HOLD_DOWN		(30 * DAYSEC)
+#if 0
+# define	REMOVE_HOLD_DOWN	(30 * DAYSEC)
+#else
+# define	REMOVE_HOLD_DOWN	(10 * DAYSEC)	/* reduced for testiing purposes */
+#endif
 
 extern	int	ksk5011status (dki_t **listp, const char *dir, const char *domain, const zconf_t *z);
 extern	int	kskstatus (zone_t *zonelist, zone_t *zp);

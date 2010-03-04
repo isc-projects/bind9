@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: diff.h,v 1.15 2008/04/02 02:37:42 marka Exp $ */
+/* $Id: diff.h,v 1.15.120.2 2009/01/18 23:47:41 tbox Exp $ */
 
 #ifndef DNS_DIFF_H
 #define DNS_DIFF_H 1
@@ -110,7 +110,7 @@ struct dns_diff {
 	ISC_LIST(dns_difftuple_t)	tuples;
 };
 
-/* Type of comparision function for sorting diffs. */
+/* Type of comparison function for sorting diffs. */
 typedef int dns_diff_compare_func(const void *, const void *);
 
 /***
@@ -121,7 +121,7 @@ ISC_LANG_BEGINDECLS
 
 /**************************************************************************/
 /*
- * Maniuplation of diffs and tuples.
+ * Manipulation of diffs and tuples.
  */
 
 isc_result_t

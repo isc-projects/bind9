@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.18 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: entropy.c,v 1.18.332.2 2009/01/18 23:47:41 tbox Exp $ */
 
 /*! \file
  * \brief
@@ -290,7 +290,7 @@ entropypool_add_word(isc_entropypool_t *rp, isc_uint32_t val) {
 	 * If we have looped around the pool, increment the rotate
 	 * variable so the next value will get xored in rotated to
 	 * a different position.
-	 * Increment by a value that is relativly prime to the word size
+	 * Increment by a value that is relatively prime to the word size
 	 * to try to spread the bits throughout the pool quickly when the
 	 * pool is empty.
 	 */
@@ -1262,7 +1262,7 @@ isc_entropy_usebestsource(isc_entropy_t *ectx, isc_entropysource_t **source,
 
 		if (final_result != ISC_R_SUCCESS)
 			final_result = result;
-	}	
+	}
 
 	/*
 	 * final_result is ISC_R_SUCCESS if at least one source of entropy

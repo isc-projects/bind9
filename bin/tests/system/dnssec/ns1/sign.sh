@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/sh -e
 #
-# Copyright (C) 2004, 2006-2008  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2006-2010  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000-2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.25 2008/09/25 04:02:38 tbox Exp $
+# $Id: sign.sh,v 1.25.48.7 2010/01/15 23:47:33 tbox Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -35,8 +35,7 @@ keyname=`$KEYGEN -r $RANDFILE -a RSAMD5 -b 768 -n zone $zone`
 
 cat $infile $keyname.key > $zonefile
 
-echo $SIGNER -g -r $RANDFILE -o $zone $zonefile
-$SIGNER -g -r $RANDFILE -o $zone $zonefile > /dev/null
+$SIGNER -P -g -r $RANDFILE -o $zone $zonefile > /dev/null
 
 # Configure the resolving server with a trusted key.
 

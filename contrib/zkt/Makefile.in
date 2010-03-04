@@ -4,9 +4,11 @@
 #
 #################################################################
 
-INSTALL_DIR ?=	$$HOME/bin
+prefix	=	@prefix@
+mandir	=	@mandir@
+INSTALL_DIR =	$$HOME/bin
 
-CC	?=	@CC@
+CC	=	@CC@
 
 PROFILE =	# -pg
 OPTIM	=	# -O3 -DNDEBUG
@@ -42,11 +44,11 @@ OBJ_SER	=	$(SRC_SER:.c=.o)
 #MAN_SER	=	zkt-soaserial.8
 PROG_SER=	zkt-soaserial
 
-MAN	=	$(MAN_ZKT) $(MAN_SIG) #$(MAN_SER)
+MAN_ALL	=	$(MAN_ZKT) $(MAN_SIG) #$(MAN_SER)
 OTHER	=	README README.logging TODO LICENSE CHANGELOG tags Makefile.in \
 		configure examples
-SAVE	=	$(HEADER) $(SRC_ALL) $(SRC_SIG) $(SRC_ZKT) $(SRC_SER) $(MAN) $(OTHER)
-MNTSAVE	=	$(SAVE) configure.ac config.h.in doc
+SAVE	=	$(HEADER) $(SRC_ALL) $(SRC_SIG) $(SRC_ZKT) $(SRC_SER) man $(OTHER)
+MNTSAVE	=	$(SAVE) configure.ac config.h.in doc 
 
 
 all:	$(PROG_ZKT) $(PROG_SIG) $(PROG_SER)
@@ -76,6 +78,11 @@ install:	## install binaries in INSTALL_DIR
 install:	$(PROG_ZKT) $(PROG_SIG) $(PROG_SER)
 	cp $(PROG_ZKT) $(PROG_SIG) $(PROG_SER) $(INSTALL_DIR)
 
+install-man:	## install man pages in mandir
+install-man:
+	test -d $(mandir)/man8/ && cp -p man/$(MAN_ZKT) man/$(MAN_SIG) $(mandir)/man8/
+
+
 tags:		## create tags file
 tags:	$(SRC_ALL) $(SRC_SIG) $(SRC_ZKT) $(SRC_SER)
 	ctags $(SRC_ALL) $(SRC_SIG) $(SRC_ZKT) $(SRC_SER)
@@ -98,16 +105,16 @@ mainttar:	$(PROJECT)-maint-$(VERSION).tar.gz
 configure:	configure.ac
 	autoconf && autoheader
 
-man:	$(MAN_ZKT).html $(MAN_ZKT).pdf $(MAN_SIG).html $(MAN_SIG).pdf
+man:	man/$(MAN_ZKT).html man/$(MAN_ZKT).pdf man/$(MAN_SIG).html man/$(MAN_SIG).pdf
 
-$(MAN_ZKT).html: $(MAN_ZKT)
-	groff -Thtml -man -mhtml $(MAN_ZKT) > $(MAN_ZKT).html
-$(MAN_ZKT).pdf: $(MAN_ZKT)
-	groff -Tps -man $(MAN_ZKT) | ps2pdf - $(MAN_ZKT).pdf
-$(MAN_SIG).html: $(MAN_SIG)
-	groff -Thtml -man -mhtml $(MAN_SIG) > $(MAN_SIG).html
-$(MAN_SIG).pdf: $(MAN_SIG)
-	groff -Tps -man $(MAN_SIG) | ps2pdf - $(MAN_SIG).pdf
+man/$(MAN_ZKT).html: man/$(MAN_ZKT)
+	groff -Thtml -man -mhtml man/$(MAN_ZKT) > man/$(MAN_ZKT).html
+man/$(MAN_ZKT).pdf: man/$(MAN_ZKT)
+	groff -Tps -man man/$(MAN_ZKT) | ps2pdf - man/$(MAN_ZKT).pdf
+man/$(MAN_SIG).html: man/$(MAN_SIG)
+	groff -Thtml -man -mhtml man/$(MAN_SIG) > man/$(MAN_SIG).html
+man/$(MAN_SIG).pdf: man/$(MAN_SIG)
+	groff -Tps -man man/$(MAN_SIG) | ps2pdf - man/$(MAN_SIG).pdf
 	
 	
 $(PROJECT)-$(VERSION).tar.gz:	$(SAVE)
@@ -119,7 +126,7 @@ $(PROJECT)-$(VERSION).tar.gz:	$(SAVE)
 
 $(PROJECT)-maint-$(VERSION).tar.gz:	$(MNTSAVE)
 	(	\
-		distfiles=`ls -d $(SAVE) | sed 's|^|$(PROJECT)-$(VERSION)/|'` ;\
+		distfiles=`ls -d $(MNTSAVE) | sed 's|^|$(PROJECT)-$(VERSION)/|'` ;\
 		cd .. && tar czvf $(PROJECT)-$(VERSION)/$(PROJECT)-maint-$(VERSION).tar.gz $$distfiles ;\
 	)
 

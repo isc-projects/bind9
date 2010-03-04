@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2008-2010  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-dsfromkey.c,v 1.2 2008/11/07 02:28:49 marka Exp $ */
+/* $Id: dnssec-dsfromkey.c,v 1.2.14.6 2010/01/11 23:47:22 tbox Exp $ */
 
 /*! \file */
 
@@ -78,10 +78,18 @@ loadkeys(char *dirname, char *setname)
 
 	isc_buffer_init(&buf, filename, sizeof(filename));
 	if (dirname != NULL) {
+		if (isc_buffer_availablelength(&buf) < strlen(dirname))
+			fatal("directory name '%s' too long", dirname);
 		isc_buffer_putstr(&buf, dirname);
-		if (dirname[strlen(dirname) - 1] != '/')
+		if (dirname[strlen(dirname) - 1] != '/') {
+			if (isc_buffer_availablelength(&buf) < 1)
+				fatal("directory name '%s' too long", dirname);
 			isc_buffer_putstr(&buf, "/");
+		}
 	}
+
+	if (isc_buffer_availablelength(&buf) < strlen("keyset-"))
+		fatal("directory name '%s' too long", dirname);
 	isc_buffer_putstr(&buf, "keyset-");
 	result = dns_name_tofilenametext(name, ISC_FALSE, &buf);
 	check_result(result, "dns_name_tofilenametext()");
@@ -111,18 +119,18 @@ loadkeys(char *dirname, char *setname)
 }
 
 static void
-loadkey(char *filename, dns_rdata_t *rdata)
+loadkey(char *filename, unsigned char *key_buf, unsigned int key_buf_size,
+	dns_rdata_t *rdata)
 {
 	isc_result_t  result;
 	dst_key_t     *key = NULL;
-	unsigned char key_buf[DST_KEY_MAXSIZE];
 	isc_buffer_t  keyb;
 	isc_region_t  r;
 
 	dns_rdataset_init(&keyset);
 	dns_rdata_init(rdata);
 
-	isc_buffer_init(&keyb, key_buf, sizeof(key_buf));
+	isc_buffer_init(&keyb, key_buf, key_buf_size);
 
 	result = dst_key_fromnamedfile(filename, DST_TYPE_PUBLIC, mctx, &key);
 	if (result != ISC_R_SUCCESS)
@@ -210,12 +218,12 @@ emitds(unsigned int dtype, dns_rdata_t *rdata)
 	putchar(' ');
 
 	isc_buffer_usedregion(&classb, &r);
-	fwrite(r.base, 1, r.length, stdout);
+	isc_util_fwrite(r.base, 1, r.length, stdout);
 
 	printf(" DS ");
 
 	isc_buffer_usedregion(&textb, &r);
-	fwrite(r.base, 1, r.length, stdout);
+	isc_util_fwrite(r.base, 1, r.length, stdout);
 	putchar('\n');
 }
 
@@ -360,7 +368,10 @@ main(int argc, char **argv) {
 				emitds(dtype, &rdata);
 		}
 	} else {
-		loadkey(argv[isc_commandline_index], &rdata);
+		unsigned char key_buf[DST_KEY_MAXSIZE];
+
+		loadkey(argv[isc_commandline_index], key_buf,
+			DST_KEY_MAXSIZE, &rdata);
 
 		if (both) {
 			emitds(DNS_DSDIGEST_SHA1, &rdata);
@@ -384,5 +395,10 @@ main(int argc, char **argv) {
 		isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);
 
-	return (0);
+	fflush(stdout);
+	if (ferror(stdout)) {
+		fprintf(stderr, "write error\n");
+		return (1);
+	} else
+		return (0);
 }
