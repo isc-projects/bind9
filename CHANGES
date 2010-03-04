@@ -1,3 +1,6 @@
+2955.	[bug]		The size of a memory allocation was not always properly
+			recorded. [RT #20927]
+
 2853.	[bug]		add_sigs() could run out of scratch space. [RT #21015]
 
 2852.	[bug]		Handle broken DNSSEC trust chains better. [RT #15619]
