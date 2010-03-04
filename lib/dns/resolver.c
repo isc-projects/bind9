@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.355.12.50 2010/02/25 10:55:22 tbox Exp $ */
+/* $Id: resolver.c,v 1.355.12.51 2010/03/04 06:45:27 marka Exp $ */
 
 /*! \file */
 
@@ -6003,6 +6003,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	unsigned int findoptions;
 	isc_result_t broken_server;
 	badnstype_t broken_type = badns_response;
+	isc_boolean_t no_response;
 
 	REQUIRE(VALID_QUERY(query));
 	fctx = query->fctx;
@@ -6025,6 +6026,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	resend = ISC_FALSE;
 	truncated = ISC_FALSE;
 	finish = NULL;
+	no_response = ISC_FALSE;
 
 	if (fctx->res->exiting) {
 		result = ISC_R_SHUTTINGDOWN;
@@ -6072,7 +6074,9 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			/*
 			 * If this is a network error on an exclusive query
 			 * socket, mark the server as bad so that we won't try
-			 * it for this fetch again.
+			 * it for this fetch again.  Also adjust finish and
+			 * no_response so that we penalize this address in SRTT
+			 * adjustment later.
 			 */
 			if (query->exclusivesocket &&
 			    (devent->result == ISC_R_HOSTUNREACH ||
@@ -6081,6 +6085,8 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			     devent->result == ISC_R_CANCELED)) {
 				    broken_server = devent->result;
 				    broken_type = badns_unreachable;
+				    finish = NULL;
+				    no_response = ISC_TRUE;
 			}
 		}
 		goto done;
@@ -6554,7 +6560,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	 *
 	 * XXXRTH  Don't cancel the query if waiting for validation?
 	 */
-	fctx_cancelquery(&query, &devent, finish, ISC_FALSE);
+	fctx_cancelquery(&query, &devent, finish, no_response);
 
 	if (keep_trying) {
 		if (result == DNS_R_FORMERR)
