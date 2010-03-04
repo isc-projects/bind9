@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.563 2010/02/25 04:39:12 marka Exp $ */
+/* $Id: server.c,v 1.564 2010/03/04 06:17:01 marka Exp $ */
 
 /*! \file */
 
@@ -479,7 +479,7 @@ dstkey_fromconfig(const cfg_obj_t *vconfig, const cfg_obj_t *key,
 		const char *initmethod;
 		initmethod = cfg_obj_asstring(cfg_tuple_get(key, "init"));
 
-		if (strcmp(initmethod, "initial-key") != 0) {
+		if (strcasecmp(initmethod, "initial-key") != 0) {
 			cfg_obj_log(key, ns_g_lctx, ISC_LOG_ERROR,
 				    "managed key '%s': "
 				    "invalid initialization method '%s'",
