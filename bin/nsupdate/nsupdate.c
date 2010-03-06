@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.173 2009/09/29 15:06:06 fdupont Exp $ */
+/* $Id: nsupdate.c,v 1.175 2010/03/04 23:50:34 tbox Exp $ */
 
 /*! \file */
 
@@ -2078,7 +2078,7 @@ send_update(dns_name_t *zonename, isc_sockaddr_t *master,
 {
 	isc_result_t result;
 	dns_request_t *request = NULL;
-	unsigned int options = 0;
+	unsigned int options = DNS_REQUESTOPT_CASE;
 
 	ddebug("send_update()");
 

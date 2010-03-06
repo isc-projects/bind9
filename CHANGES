@@ -1,3 +1,28 @@
+2859.	[bug]		When cancelling validation it was possible to leak
+			memory. [RT #20800]
+
+2858.	[bug]		RTT estimates were not being adjusted on ICMP errors.
+			[RT #20772]
+
+2857.	[bug]		named-checkconf did not fail on a bad trusted key.
+			[RT #20705]
+
+2856.	[bug]		The size of a memory allocation was not always properly
+			recorded. [RT #20927]
+
+2855.	[func]		nsupdate will now preserve the entered case of domain
+			names in update requests it sends. [RT #20928]
+
+2854.	[func]		dig: allow the final soa record in a axfr response to
+			be suppressed, dig +onesoa. [RT #20929]
+
+2853.	[bug]		add_sigs() could run out of scratch space. [RT #21015]
+
+2852.	[bug]		Handle broken DNSSEC trust chains better. [RT #15619]
+
+2851.	[doc]		nslookup.1, removed <informalexample> from the docbook
+			source as it produced bad nroff.  [RT #21007]
+
 2850.	[bug]		If isc_heap_insert() failed due to memory shortage
 			the heap would have corrupted entries. [RT #20951]
 
@@ -23,7 +48,7 @@
 			either of the keys has been revoked.  (To override
 			this in the case of dnssec-keyfromlabel, use the -y
 			option.  dnssec-keygen will simply create a
-			different, noncolliding key, so an override is
+			different, non-colliding key, so an override is
 			not necessary.) [RT #20838]
 
 2842.	[func]		Added "smartsign" and improved "autosign" and
@@ -112,7 +137,7 @@
 2818.	[cleanup]	rndc could return an incorrect error code 
 			when a zone was not found. [RT #20767]
 
-2817.	[cleanup]	Removed unnecessary isc_tasc_endexclusive() calls.
+2817.	[cleanup]	Removed unnecessary isc_task_endexclusive() calls.
 			[RT #20768]
 
 2816.	[bug]		previous_closest_nsec() could fail to return

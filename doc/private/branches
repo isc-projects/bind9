@@ -74,6 +74,7 @@ rt15327				open
 rt15452a			open	marka	// NSEC3
 rt15452b			new	marka	// 2008-04-04 05:06 +0000
 rt15452c			new	marka	// 2008-09-22 02:18 +0000
+rt15610				new	marka	// 2010-02-11 01:43 +0000
 rt15698				open	
 rt15765				open	
 rt15860				open	
@@ -379,7 +380,10 @@ v9_5_2_patch			new	marka	// 2009-11-18 23:19 +0000
 v9_6				new	marka	// 2008-11-30 22:53 +0000
 v9_6_0_patch			new	marka	// 2008-12-23 01:13 +0000
 v9_6_1_patch			new	marka	// 2009-07-28 14:11 +0000
+v9_6_2_patch			new	marka	// 2010-02-25 03:11 +0000
+v9_6_esv_branch			new	marka	// 2010-03-03 21:57 +0000
 v9_7				new	each	// 2009-12-08 20:59 +0000
+v9_7_0_patch			new	marka	// 2010-02-25 03:05 +0000
 
 
 a6_remove			closed

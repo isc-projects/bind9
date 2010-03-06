@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.130 2009/10/26 23:47:35 tbox Exp $ */
+/* $Id: message.h,v 1.132 2010/03/04 23:50:34 tbox Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -136,6 +136,8 @@ typedef int dns_pseudosection_t;
 typedef int dns_messagetextflag_t;
 #define DNS_MESSAGETEXTFLAG_NOCOMMENTS	0x0001
 #define DNS_MESSAGETEXTFLAG_NOHEADERS	0x0002
+#define DNS_MESSAGETEXTFLAG_ONESOA	0x0004
+#define DNS_MESSAGETEXTFLAG_OMITSOA	0x0008
 
 /*
  * Dynamic update names for these sections.
@@ -370,6 +372,14 @@ dns_message_totext(dns_message_t *msg, const dns_master_style_t *style,
  *      with ";;" will be emitted indicating section name.  If
  *      #DNS_MESSAGETEXTFLAG_NOHEADERS is cleared, header lines will
  *      be emitted.
+ *
+ *	If #DNS_MESSAGETEXTFLAG_ONESOA is set then only print the
+ *	first SOA record in the answer section.  If
+ *	#DNS_MESSAGETEXTFLAG_OMITSOA is set don't print any SOA records
+ *	in the answer section.  These are useful for suppressing the
+ *	display of the second SOA record in a AXFR by setting
+ *	#DNS_MESSAGETEXTFLAG_ONESOA on the first message in a AXFR stream
+ *	and #DNS_MESSAGETEXTFLAG_OMITSOA on subsequent messages.
  *
  * Requires:
  *
