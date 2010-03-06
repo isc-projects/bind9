@@ -1,4 +1,4 @@
-2859.	[bug]		When canceling validation it was possible to leak
+2859.	[bug]		When cancelling validation it was possible to leak
 			memory. [RT #20800]
 
 2858.	[bug]		RTT estimates were not being adjusted on ICMP errors.
@@ -48,7 +48,7 @@
 			either of the keys has been revoked.  (To override
 			this in the case of dnssec-keyfromlabel, use the -y
 			option.  dnssec-keygen will simply create a
-			different, noncolliding key, so an override is
+			different, non-colliding key, so an override is
 			not necessary.) [RT #20838]
 
 2842.	[func]		Added "smartsign" and improved "autosign" and
@@ -137,7 +137,7 @@
 2818.	[cleanup]	rndc could return an incorrect error code 
 			when a zone was not found. [RT #20767]
 
-2817.	[cleanup]	Removed unnecessary isc_tasc_endexclusive() calls.
+2817.	[cleanup]	Removed unnecessary isc_task_endexclusive() calls.
 			[RT #20768]
 
 2816.	[bug]		previous_closest_nsec() could fail to return
