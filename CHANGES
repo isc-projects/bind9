@@ -1,4 +1,4 @@
-2859.	[bug]		When canceling validation it was possible to leak
+2859.	[bug]		When cancelling validation it was possible to leak
 			memory. [RT #20800]
 
 2858.	[bug]		RTT estimates were not being adjusted on ICMP errors.
