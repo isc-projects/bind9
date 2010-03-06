@@ -1,13 +1,13 @@
-2959.	[bug]		When canceling validation it was possible to leak
+2859.	[bug]		When canceling validation it was possible to leak
 			memory. [RT #20800]
 
-2958.	[bug]		RTT estimates were not being adjusted on ICMP errors.
+2858.	[bug]		RTT estimates were not being adjusted on ICMP errors.
 			[RT #20772]
 
-2957.	[bug]		named-checkconf did not fail on a bad trusted key.
+2857.	[bug]		named-checkconf did not fail on a bad trusted key.
 			[RT #20705]
 
-2956.	[bug]		The size of a memory allocation was not always properly
+2856.	[bug]		The size of a memory allocation was not always properly
 			recorded. [RT #20927]
 
 2853.	[bug]		add_sigs() could run out of scratch space. [RT #21015]
