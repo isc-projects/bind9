@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.173 2009/09/29 15:06:06 fdupont Exp $ */
+/* $Id: nsupdate.c,v 1.173.66.1 2010/03/09 03:47:21 marka Exp $ */
 
 /*! \file */
 
@@ -2694,6 +2694,7 @@ start_update(void) {
 		dns_name_init(name, NULL);
 		dns_name_clone(userzone, name);
 	} else {
+		dns_rdataset_t *rdataset;
 		result = dns_message_firstname(updatemsg, section);
 		if (result == ISC_R_NOMORE) {
 			section = DNS_SECTION_PREREQUISITE;
@@ -2711,6 +2712,19 @@ start_update(void) {
 		dns_message_currentname(updatemsg, section, &firstname);
 		dns_name_init(name, NULL);
 		dns_name_clone(firstname, name);
+		/*
+		 * Looks to see if the first name references a DS record
+		 * and if that name is not the root remove a label as DS
+		 * records live in the parent zone so we need to start our
+		 * search one label up.
+		 */
+		rdataset = ISC_LIST_HEAD(firstname->list);
+		if (section == DNS_SECTION_UPDATE &&
+		    !dns_name_equal(firstname, dns_rootname) &&
+		    rdataset->type == dns_rdatatype_ds) {
+		    unsigned int labels = dns_name_countlabels(name);
+		    dns_name_getlabelsequence(name, 1, labels - 1, name);
+		}
 	}
 
 	ISC_LIST_INIT(name->list);

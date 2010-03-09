@@ -1,3 +1,6 @@
+2862.	[bug]		nsupdate didn't default to the parent zone when
+			updating DS records. [RT #20896]
+
 2861.	[doc]		dnssec-settime man pages didn't correctly document the
 			inactivation time. [RT #21039]
 
