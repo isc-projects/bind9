@@ -1,3 +1,8 @@
+2861.	[doc]		dnssec-settime man pages didn't correctly document the
+			inactivation time. [RT #21039]
+
+2860.	[bug]		named-checkconf's usage was out of date. [RT #21039]
+
 2859.	[bug]		When cancelling validation it was possible to leak
 			memory. [RT #20800]
 
