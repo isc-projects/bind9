@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.51 2009/12/04 21:09:32 marka Exp $ */
+/* $Id: named-checkconf.c,v 1.51.4.1 2010/03/09 03:40:01 marka Exp $ */
 
 /*! \file */
 
@@ -64,7 +64,7 @@ usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
 usage(void) {
-	fprintf(stderr, "usage: %s [-h] [-j] [-v] [-z] [-t directory] "
+	fprintf(stderr, "usage: %s [-h] [-j] [-p] [-v] [-z] [-t directory] "
 		"[named.conf]\n", program);
 	exit(1);
 }
