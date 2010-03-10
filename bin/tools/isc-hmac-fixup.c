@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: isc-hmac-fixup.c,v 1.2.2.2 2010/01/07 23:48:15 tbox Exp $ */
+/* $Id: isc-hmac-fixup.c,v 1.2.2.3 2010/03/10 02:19:08 marka Exp $ */
 
 #include <config.h>
 
@@ -131,6 +131,6 @@ main(int argc, char **argv)  {
 		fprintf(stderr, "error: %s\n", isc_result_totext(result));
 		return (1);
 	}
-	fprintf(stdout, "%.*s\n", isc_buffer_usedlength(&buf), base64);
+	fprintf(stdout, "%.*s\n", (int)isc_buffer_usedlength(&buf), base64);
 	return (0);
 }
