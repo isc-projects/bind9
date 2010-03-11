@@ -1,3 +1,6 @@
+2863.	[port]		linux: disable IPv6 PMTUD and use network minimum MTU.
+			[RT #21056]
+
 2862.	[bug]		nsupdate didn't default to the parent zone when
 			updating DS records. [RT #20896]
 
