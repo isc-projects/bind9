@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008, 2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gssapictx.c,v 1.12.118.1 2010/03/12 03:50:26 marka Exp $ */
+/* $Id: gssapictx.c,v 1.12.118.2 2010/03/12 23:48:26 tbox Exp $ */
 
 #include <config.h>
 
