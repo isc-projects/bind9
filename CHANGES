@@ -1,3 +1,5 @@
+2865.	[bug]		memset to zero event.data.  [RT #20986]
+
 2864.	[bug]		Direct SIG/RRSIG queries were not handled correctly.
 			[RT #21050]
 
