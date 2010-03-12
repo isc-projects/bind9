@@ -1,3 +1,5 @@
+2865.	[bug]		memset to zero event.data.  [RT #20986]
+
 2863.	[port]		linux: disable IPv6 PMTUD and use network minimum MTU.
 			[RT #21056]
 
