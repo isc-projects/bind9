@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.138 2009/06/11 23:47:55 tbox Exp $
+ * $Id: tsig.c,v 1.139 2010/03/12 03:34:56 marka Exp $
  */
 /*! \file */
 #include <config.h>
@@ -906,6 +906,9 @@ dns_tsig_sign(dns_message_t *msg) {
 		      == ISC_R_SUCCESS);
 	msg->tsig = dataset;
 	msg->tsigname = owner;
+
+	/* Windows does not like the tsig name being compressed. */
+	msg->tsigname->attributes |= DNS_NAMEATTR_NOCOMPRESS;
 
 	return (ISC_R_SUCCESS);
 
