@@ -1,3 +1,6 @@
+2867.	[bug]		Don't set GSS_C_SEQUENCE_FLAG as Windows DNS servers
+			don't like it.  [RT #20986]
+
 2866.	[bug]		Windows does not like the TSIG name being compressed.
 			[RT #20986]
 
