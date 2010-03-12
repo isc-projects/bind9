@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.173.66.2 2010/03/09 23:49:56 tbox Exp $ */
+/* $Id: nsupdate.c,v 1.173.66.3 2010/03/12 03:37:20 marka Exp $ */
 
 /*! \file */
 
@@ -2096,6 +2096,10 @@ send_update(dns_name_t *zonename, isc_sockaddr_t *master,
 		isc_sockaddr_format(master, addrbuf, sizeof(addrbuf));
 		fprintf(stderr, "Sending update to %s\n", addrbuf);
 	}
+
+	/* Windows doesn't like the tsig name to be compressed. */
+	if (updatemsg->tsigname)
+		updatemsg->tsigname->attributes |= DNS_NAMEATTR_NOCOMPRESS;
 
 	result = dns_request_createvia3(requestmgr, updatemsg, srcaddr,
 					master, options, tsigkey, timeout,
