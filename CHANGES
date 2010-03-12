@@ -1,3 +1,17 @@
+2867.	[bug]		Don't set GSS_C_SEQUENCE_FLAG as Windows DNS servers
+			don't like it.  [RT #20986]
+
+2866.	[bug]		Windows does not like the TSIG name being compressed.
+			[RT #20986]
+
+2865.	[bug]		memset to zero event.data.  [RT #20986]
+
+2864.	[bug]		Direct SIG/RRSIG queries were not handled correctly.
+			[RT #21050]
+
+2863.	[port]		linux: disable IPv6 PMTUD and use network minimum MTU.
+			[RT #21056]
+
 2862.	[bug]		nsupdate didn't default to the parent zone when
 			updating DS records. [RT #20896]
 
