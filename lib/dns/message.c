@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.237.110.9 2009/11/24 03:24:42 marka Exp $ */
+/* $Id: message.c,v 1.237.110.10 2010/03/12 03:41:09 marka Exp $ */
 
 /*! \file */
 
@@ -1529,6 +1529,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		} else if (rdtype == dns_rdatatype_tsig && msg->tsig == NULL) {
 			msg->tsig = rdataset;
 			msg->tsigname = name;
+			/* Windows doesn't like TSIG names to be compressed. */
+			msg->tsigname->attributes |= DNS_NAMEATTR_NOCOMPRESS;
 			rdataset = NULL;
 			free_rdataset = ISC_FALSE;
 			free_name = ISC_FALSE;
