@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.335.8.1 2009/12/30 08:33:40 jinmei Exp $ */
+/* $Id: query.c,v 1.335.8.2 2010/03/12 02:00:58 marka Exp $ */
 
 /*! \file */
 
@@ -4754,11 +4754,12 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		if (fname != NULL)
 			dns_message_puttempname(client->message, &fname);
 
-		if (n == 0 && is_zone) {
+		if (n == 0) {
 			/*
 			 * We didn't match any rdatasets.
 			 */
-			if (qtype == dns_rdatatype_rrsig &&
+			if ((qtype == dns_rdatatype_rrsig ||
+			     qtype == dns_rdatatype_sig) &&
 			    result == ISC_R_NOMORE) {
 				/*
 				 * XXXRTH  If this is a secure zone and we

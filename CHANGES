@@ -1,3 +1,6 @@
+2864.	[bug]		Direct SIG/RRSIG queries were not handled correctly.
+			[RT #21050]
+
 2863.	[port]		linux: disable IPv6 PMTUD and use network minimum MTU.
 			[RT #21056]
 
