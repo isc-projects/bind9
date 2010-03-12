@@ -1,3 +1,6 @@
+2866.	[bug]		Windows does not like the TSIG name being compressed.
+			[RT #20986]
+
 2865.	[bug]		memset to zero event.data.  [RT #20986]
 
 2864.	[bug]		Direct SIG/RRSIG queries were not handled correctly.
