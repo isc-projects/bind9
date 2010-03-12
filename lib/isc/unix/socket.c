@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.329 2010/03/11 04:43:57 marka Exp $ */
+/* $Id: socket.c,v 1.330 2010/03/12 03:22:57 marka Exp $ */
 
 /*! \file */
 
@@ -806,6 +806,7 @@ watch_fd(isc__socketmgr_t *manager, int fd, int msg) {
 		event.events = EPOLLIN;
 	else
 		event.events = EPOLLOUT;
+	memset(&event.data, 0, sizeof(event.data));
 	event.data.fd = fd;
 	if (epoll_ctl(manager->epoll_fd, EPOLL_CTL_ADD, fd, &event) == -1 &&
 	    errno != EEXIST) {
@@ -873,6 +874,7 @@ unwatch_fd(isc__socketmgr_t *manager, int fd, int msg) {
 		event.events = EPOLLIN;
 	else
 		event.events = EPOLLOUT;
+	memset(&event.data, 0, sizeof(event.data));
 	event.data.fd = fd;
 	if (epoll_ctl(manager->epoll_fd, EPOLL_CTL_DEL, fd, &event) == -1 &&
 	    errno != ENOENT) {
