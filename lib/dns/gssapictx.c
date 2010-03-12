@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gssapictx.c,v 1.8.128.4 2008/04/03 06:08:26 tbox Exp $ */
+/* $Id: gssapictx.c,v 1.8.128.5 2010/03/12 03:51:10 marka Exp $ */
 
 #include <config.h>
 
@@ -488,8 +488,12 @@ dst_gssapi_initctx(dns_name_t *name, isc_buffer_t *intoken,
 		gintokenp = NULL;
 	}
 
+	/*
+	 * Note that we don't set GSS_C_SEQUENCE_FLAG as Windows DNS
+	 * servers don't like it.
+	 */
 	flags = GSS_C_REPLAY_FLAG | GSS_C_MUTUAL_FLAG | GSS_C_DELEG_FLAG |
-		GSS_C_SEQUENCE_FLAG | GSS_C_INTEG_FLAG;
+		GSS_C_INTEG_FLAG;
 
 	gret = gss_init_sec_context(&minor, GSS_C_NO_CREDENTIAL, gssctx,
 				    gname, GSS_SPNEGO_MECHANISM, flags,
