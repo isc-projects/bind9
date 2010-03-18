@@ -1,3 +1,7 @@
+2868.	[cleanup]	Run "make clean" at the end of configure to ensure
+			any changes made by configure are integrated.
+			Use --with-make-clean=no to disable.  [RT #20994]
+
 2867.	[bug]		Don't set GSS_C_SEQUENCE_FLAG as Windows DNS servers
 			don't like it.  [RT #20986]
 
