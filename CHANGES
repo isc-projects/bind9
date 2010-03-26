@@ -1,3 +1,6 @@
+2869.	[bug]		Fix arguments to dns_keytable_findnextkeynode() call.
+			[RT #20877]
+
 2868.	[cleanup]	Run "make clean" at the end of configure to ensure
 			any changes made by configure are integrated.
 			Use --with-make-clean=no to disable.  [RT #20994]
