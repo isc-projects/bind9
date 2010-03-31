@@ -4,18 +4,18 @@
 Network Working Group                                             C. Bao
 Internet-Draft                         CERNET Center/Tsinghua University
 Obsoletes: 2765 (if approved)                                 C. Huitema
-Intended status: Standards Track                   Microsoft Corporation
-Expires: September 15, 2010                                   M. Bagnulo
-                                                                    UC3M
+Updates: 4291 (if approved)                        Microsoft Corporation
+Intended status: Standards Track                              M. Bagnulo
+Expires: September 28, 2010                                         UC3M
                                                             M. Boucadair
                                                           France Telecom
                                                                    X. Li
                                        CERNET Center/Tsinghua University
-                                                          March 14, 2010
+                                                          March 27, 2010
 
 
                 IPv6 Addressing of IPv4/IPv6 Translators
-                draft-ietf-behave-address-format-05.txt
+                draft-ietf-behave-address-format-06.txt
 
 Abstract
 
@@ -48,11 +48,11 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on September 15, 2010.
+   This Internet-Draft will expire on September 28, 2010.
 
 
 
-Bao, et al.            Expires September 15, 2010               [Page 1]
+Bao, et al.            Expires September 28, 2010               [Page 1]
 
 Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
@@ -77,11 +77,13 @@ Table of Contents
 
    1.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  3
      1.1.  Applicability Scope  . . . . . . . . . . . . . . . . . . .  3
-     1.2.  Conventions  . . . . . . . . . . . . . . . . . . . . . . .  4
+     1.2.  Conventions  . . . . . . . . . . . . . . . . . . . . . . .  3
      1.3.  Terminology  . . . . . . . . . . . . . . . . . . . . . . .  4
-   2.  IPv4-Embedded IPv6 Address Format  . . . . . . . . . . . . . .  4
-     2.1.  Address Translation Algorithms . . . . . . . . . . . . . .  6
-     2.2.  Text Representation  . . . . . . . . . . . . . . . . . . .  6
+   2.  IPv4-Embedded IPv6 Address Prefix and Format . . . . . . . . .  4
+     2.1.  Well Known Prefix  . . . . . . . . . . . . . . . . . . . .  4
+     2.2.  IPv4-Embedded IPv6 Address Format  . . . . . . . . . . . .  4
+     2.3.  Address Translation Algorithms . . . . . . . . . . . . . .  6
+     2.4.  Text Representation  . . . . . . . . . . . . . . . . . . .  6
    3.  Deployment Guidelines and Choices  . . . . . . . . . . . . . .  7
      3.1.  Restrictions on the use of the Well-Known Prefix . . . . .  7
      3.2.  Impact on Inter-Domain Routing . . . . . . . . . . . . . .  8
@@ -106,9 +108,7 @@ Table of Contents
 
 
 
-
-
-Bao, et al.            Expires September 15, 2010               [Page 2]
+Bao, et al.            Expires September 28, 2010               [Page 2]
 
 Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
@@ -129,21 +129,16 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
    reference this document for algorithmic mapping of the addresses
    themselves.
 
-   This document reserves a "Well-Known Prefix" for use in an
-   algorithmic mapping.  The value of this IPv6 prefix is:
+   Section 2 describes the prefixes and the format of "IPv4-Embedded
+   IPv6 addresses", i.e., IPv6 addresses in which 32 bits contain an
+   IPv4 address.  This format is common to both "IPv4-Converted" and
+   "IPv4-Translatable" IPv6 addresses.  This section also defines the
+   algorithms for translating addresses, and the text representation of
+   IPv4-Embedded IPv6 addresses.
 
-      64:FF9B::/96
-
-   Section 2 describes the format of "IPv4-Embedded IPv6 addresses",
-   i.e., IPv6 addresses in which 32 bits contain an IPv4 address.  This
-   format is common to both "IPv4-Converted" and "IPv4-Translatable"
-   IPv6 addresses.  This section also defines the algorithms for
-   translating addresses, and the text representation of IPv4-Embedded
-   IPv6 addresses.
-
-   Section 3 discusses the choice of prefixes, the conditions of use of
-   the Well-Known Prefix and Network-Specific Prefixes, and the use of
-   IPv4-Embedded IPv6 addresses with stateless and stateful translation.
+   Section 3 discusses the choice of prefixes, the conditions in which
+   they can be used, and the use of IPv4-Embedded IPv6 addresses with
+   stateless and stateful translation.
 
    Section 4 discusses security concerns.
 
@@ -162,17 +157,18 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
    the IETF, we expect that their descriptions will document their
    specific use of IPv4-Embedded IPv6 addresses.
 
-
-
-Bao, et al.            Expires September 15, 2010               [Page 3]
-
-Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
-
-
 1.2.  Conventions
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+
+
+
+Bao, et al.            Expires September 28, 2010               [Page 3]
+
+Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
+
+
    document are to be interpreted as described in RFC 2119 [RFC2119].
 
 1.3.  Terminology
@@ -196,33 +192,42 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
       for use in algorithmic mapping.  Options for the Network Specific
       Prefix are discussed in Section 3.3 and Section 3.4.
    IPv4-Embedded IPv6 addresses:  IPv6 addresses in which 32 bits
-      contain an IPv4 address.  Their format is described in Section 2.
+      contain an IPv4 address.  Their format is described in
+      Section 2.2.
    IPv4-Converted IPv6 addresses:  IPv6 addresses used to represent IPv4
       nodes in an IPv6 network.  They are a variant of IPv4-Embedded
-      IPv6 addresses, and follow the format described in Section 2.
+      IPv6 addresses, and follow the format described in Section 2.2.
    IPv4-Translatable IPv6 addresses:  IPv6 addresses assigned to IPv6
       nodes for use with stateless translation.  They are a variant of
       IPv4-Embedded IPv6 addresses, and follow the format described in
-      Section 2.
+      Section 2.2.
 
 
-2.  IPv4-Embedded IPv6 Address Format
+2.  IPv4-Embedded IPv6 Address Prefix and Format
+
+2.1.  Well Known Prefix
+
+   This document reserves a "Well-Known Prefix" for use in an
+   algorithmic mapping.  The value of this IPv6 prefix is:
+
+      64:FF9B::/96
+
+2.2.  IPv4-Embedded IPv6 Address Format
 
    IPv4-Converted IPv6 addresses and IPv4-Translatable IPv6 addresses
    follow the same format, described here as the IPv4-Embedded IPv6
    address Format.  IPv4-Embedded IPv6 addresses are composed of a
+
+
+
+Bao, et al.            Expires September 28, 2010               [Page 4]
+
+Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
+
+
    variable length prefix, the embedded IPv4 address, and a variable
    length suffix, as presented in the following diagram, in which PL
    designates the prefix length:
-
-
-
-
-
-
-Bao, et al.            Expires September 15, 2010               [Page 4]
-
-Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 
     +--+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
@@ -246,8 +251,10 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
    In these addresses, the prefix shall be either the "Well-Known
    Prefix", or a "Network-Specific Prefix" unique to the organization
-   deploying the address translators.  (The Well-Known prefic is 96 bits
-   long, and can only be used in the last form of the table.)
+   deploying the address translators.  The prefixes can only have one of
+   the following lengths: 32, 40, 48, 56, 64 or 96.  (The Well-Known
+   prefic is 96 bits long, and can only be used in the last form of the
+   table.)
 
    Various deployments justify different prefix lengths with Network-
    Specific prefixes.  The tradeoff between different prefix lengths are
@@ -265,6 +272,15 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
    bits first.  Depending of the prefix length, the 4 octets of the
    address may be separated by the reserved octet "u", whose 8 bits MUST
    be set to zero.  In particular:
+
+
+
+
+Bao, et al.            Expires September 28, 2010               [Page 5]
+
+Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
+
+
    o  When the prefix is 32 bits long, the IPv4 address is encoded in
       positions 32 to 63.
    o  When the prefix is 40 bits long, 24 bits of the IPv4 address are
@@ -273,14 +289,6 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
    o  When the prefix is 48 bits long, 16 bits of the IPv4 address are
       encoded in positions 48 to 63, with the remaining 16 bits in
       position 72 to 87.
-
-
-
-Bao, et al.            Expires September 15, 2010               [Page 5]
-
-Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
-
-
    o  When the prefix is 56 bits long, 8 bits of the IPv4 address are
       encoded in positions 56 to 63, with the remaining 24 bits in
       position 72 to 95.
@@ -294,15 +302,15 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
    constitute the suffix.  These bits are reserved for future
    extensions, and SHOULD be set to zero.
 
-2.1.  Address Translation Algorithms
+2.3.  Address Translation Algorithms
 
    IPv4-Embedded IPv6 addresses are composed according to the following
    algorithm:
    o  Concatenate the prefix, the 32 bits of the IPv4 address and the
       null suffix if needed to obtain a 128 bit address.
-   o  If the prefix length is less than 96 bits, remove the last octet
-      and insert the null octet "u" at the appropriate position, as
-      documented in Figure 1.
+   o  If the prefix length is less than 96 bits, insert the null octet
+      "u" at the appropriate position, thus causing the least
+      significant octet to be excluded, as documented in Figure 1.
 
    The IPv4 addresses are extracted from the IPv4-Embedded IPv6
    addresses according to the following algorithm:
@@ -311,7 +319,7 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
    o  for the other prefix lengths, extract the "u" octet to obtain a
       120 bit sequence, then extract the 32 bits following the prefix.
 
-2.2.  Text Representation
+2.4.  Text Representation
 
    IPv4-Embedded IPv6 addresses will be represented in text in
    conformity with section 2.2 of [RFC4291].  IPv4-Embedded IPv6
@@ -324,15 +332,7 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 
 
-
-
-
-
-
-
-
-
-Bao, et al.            Expires September 15, 2010               [Page 6]
+Bao, et al.            Expires September 28, 2010               [Page 6]
 
 Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
@@ -364,7 +364,7 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
    The Network-Specific Prefix examples in Table 1 are derived from the
    IPv6 prefix reserved for documentation in [RFC3849].  The IPv4
    address 192.0.2.33 is part of the subnet 192.0.2.0/24 reserved for
-   documentation in [RFC3330].
+   documentation in [RFC5735].
 
 
 3.  Deployment Guidelines and Choices
@@ -388,7 +388,7 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 
 
-Bao, et al.            Expires September 15, 2010               [Page 7]
+Bao, et al.            Expires September 28, 2010               [Page 7]
 
 Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
@@ -434,7 +434,7 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
    Organizations deploying stateless IPv4/IPv6 translation SHOULD assign
    a Network-Specific Prefix to their IPv4/IPv6 translation service.
    IPv4-Translatable and IPv4-Converted IPv6 addresses MUST be
-   constructed as specified in Section 2.  IPv4-Translatable IPv6
+   constructed as specified in Section 2.2.  IPv4-Translatable IPv6
    addresses MUST use the selected Network-Specific Prefix.  Both IPv4-
    Translatable IPv6 addresses and IPv4-Converted IPv6 addresses SHOULD
    use the same prefix.
@@ -444,7 +444,7 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 
 
-Bao, et al.            Expires September 15, 2010               [Page 8]
+Bao, et al.            Expires September 28, 2010               [Page 8]
 
 Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
@@ -500,7 +500,7 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 
 
-Bao, et al.            Expires September 15, 2010               [Page 9]
+Bao, et al.            Expires September 28, 2010               [Page 9]
 
 Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
@@ -556,14 +556,14 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 
 
-Bao, et al.            Expires September 15, 2010              [Page 10]
+Bao, et al.            Expires September 28, 2010              [Page 10]
 
 Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 
    router anycast address in IPv6 and network identifier in IPv4, the
    last IPv4-translatable address is the subnet broadcast addresses in
-   IPv4.  Both of them SHOULD not be used for IPv6 nodes.  In addition,
+   IPv4.  Both of them SHOULD NOT be used for IPv6 nodes.  In addition,
    the minimum IPv4 subnet can be used for hosts is /30 (the router
    interface needs a valid address for the same subnet) and this rule
    SHOULD also be applied to the corresponding subnet of the IPv4-
@@ -578,7 +578,7 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
    When these services are used, IPv6 nodes are addressed through
    standard IPv6 addresses, while IPv4 nodes are represented by IPv4-
-   Converted IPv6 addresses, as specified in Section 2.
+   Converted IPv6 addresses, as specified in Section 2.2.
 
    The stateful nature of the translation creates a potential stability
    issue when the organization deploys multiple translators.  If several
@@ -602,7 +602,7 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 3.5.  Choice of Suffix
 
-   The address format described in Section 2 recommends a zero suffix.
+   The address format described in Section 2.2 recommends a zero suffix.
    Before making this recommendation, we considered different options:
    checksum neutrality; the encoding of a port range; and a value
    different than 0.
@@ -612,7 +612,7 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 
 
-Bao, et al.            Expires September 15, 2010              [Page 11]
+Bao, et al.            Expires September 28, 2010              [Page 11]
 
 Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
@@ -668,7 +668,7 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 
 
-Bao, et al.            Expires September 15, 2010              [Page 12]
+Bao, et al.            Expires September 28, 2010              [Page 12]
 
 Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
@@ -724,7 +724,7 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 
 
-Bao, et al.            Expires September 15, 2010              [Page 13]
+Bao, et al.            Expires September 28, 2010              [Page 13]
 
 Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
@@ -746,8 +746,14 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 5.  IANA Considerations
 
-   The Well Known Prefix falls into the range ::/8 reserved by the IETF.
-   The prefix definition does not require an IANA action.
+   The IANA is requested to add a note to the documentation of the
+   0000::/8 address block in
+   http://www.iana.org/assignments/ipv6-address-space to document the
+   assignment by the IETF of the Well Known Prefix.  For example:
+
+      The "Well Known Prefix" 64:FF9B::/96 used in an algorithmic
+      mapping between IPv4 to IPv6 addresses is defined out of the
+      0000::/8 address block, per (this document).
 
 
 6.  Acknowledgements
@@ -774,13 +780,7 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 
 
-
-
-
-
-
-
-Bao, et al.            Expires September 15, 2010              [Page 14]
+Bao, et al.            Expires September 28, 2010              [Page 14]
 
 Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
@@ -836,7 +836,7 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 
 
-Bao, et al.            Expires September 15, 2010              [Page 15]
+Bao, et al.            Expires September 28, 2010              [Page 15]
 
 Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
@@ -870,9 +870,6 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
               E. Lear, "Address Allocation for Private Internets",
               BCP 5, RFC 1918, February 1996.
 
-   [RFC3330]  IANA, "Special-Use IPv4 Addresses", RFC 3330,
-              September 2002.
-
    [RFC3484]  Draves, R., "Default Address Selection for Internet
               Protocol version 6 (IPv6)", RFC 3484, February 2003.
 
@@ -882,6 +879,8 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
    [RFC4271]  Rekhter, Y., Li, T., and S. Hares, "A Border Gateway
               Protocol 4 (BGP-4)", RFC 4271, January 2006.
 
+   [RFC5735]  Cotton, M. and L. Vegoda, "Special Use IPv4 Addresses",
+              BCP 153, RFC 5735, January 2010.
 
 
 
@@ -892,7 +891,8 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 
 
-Bao, et al.            Expires September 15, 2010              [Page 16]
+
+Bao, et al.            Expires September 28, 2010              [Page 16]
 
 Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
@@ -948,7 +948,7 @@ Authors' Addresses
 
 
 
-Bao, et al.            Expires September 15, 2010              [Page 17]
+Bao, et al.            Expires September 28, 2010              [Page 17]
 
 Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
@@ -1004,6 +1004,6 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 
 
-Bao, et al.            Expires September 15, 2010              [Page 18]
+Bao, et al.            Expires September 28, 2010              [Page 18]
 
 
