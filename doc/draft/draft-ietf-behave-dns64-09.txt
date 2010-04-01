@@ -4,17 +4,17 @@
 BEHAVE WG                                                     M. Bagnulo
 Internet-Draft                                                      UC3M
 Intended status: Standards Track                             A. Sullivan
-Expires: September 23, 2010                                     Shinkuro
+Expires: October 1, 2010                                        Shinkuro
                                                              P. Matthews
                                                           Alcatel-Lucent
                                                           I. van Beijnum
                                                           IMDEA Networks
-                                                          March 22, 2010
+                                                          March 30, 2010
 
 
 DNS64: DNS extensions for Network Address Translation from IPv6 Clients
                             to IPv4 Servers
-                       draft-ietf-behave-dns64-08
+                       draft-ietf-behave-dns64-09
 
 Abstract
 
@@ -47,12 +47,12 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on September 23, 2010.
+   This Internet-Draft will expire on October 1, 2010.
 
 
 
 
-Bagnulo, et al.        Expires September 23, 2010               [Page 1]
+Bagnulo, et al.          Expires October 1, 2010                [Page 1]
 
 Internet-Draft                    DNS64                       March 2010
 
@@ -108,7 +108,7 @@ Copyright Notice
 
 
 
-Bagnulo, et al.        Expires September 23, 2010               [Page 2]
+Bagnulo, et al.          Expires October 1, 2010                [Page 2]
 
 Internet-Draft                    DNS64                       March 2010
 
@@ -164,7 +164,7 @@ Table of Contents
 
 
 
-Bagnulo, et al.        Expires September 23, 2010               [Page 3]
+Bagnulo, et al.          Expires October 1, 2010                [Page 3]
 
 Internet-Draft                    DNS64                       March 2010
 
@@ -220,7 +220,7 @@ Internet-Draft                    DNS64                       March 2010
 
 
 
-Bagnulo, et al.        Expires September 23, 2010               [Page 4]
+Bagnulo, et al.          Expires October 1, 2010                [Page 4]
 
 Internet-Draft                    DNS64                       March 2010
 
@@ -276,7 +276,7 @@ Internet-Draft                    DNS64                       March 2010
 
 
 
-Bagnulo, et al.        Expires September 23, 2010               [Page 5]
+Bagnulo, et al.          Expires October 1, 2010                [Page 5]
 
 Internet-Draft                    DNS64                       March 2010
 
@@ -332,7 +332,7 @@ Internet-Draft                    DNS64                       March 2010
 
 
 
-Bagnulo, et al.        Expires September 23, 2010               [Page 6]
+Bagnulo, et al.          Expires October 1, 2010                [Page 6]
 
 Internet-Draft                    DNS64                       March 2010
 
@@ -388,7 +388,7 @@ Internet-Draft                    DNS64                       March 2010
 
 
 
-Bagnulo, et al.        Expires September 23, 2010               [Page 7]
+Bagnulo, et al.          Expires October 1, 2010                [Page 7]
 
 Internet-Draft                    DNS64                       March 2010
 
@@ -444,7 +444,7 @@ Internet-Draft                    DNS64                       March 2010
 
 
 
-Bagnulo, et al.        Expires September 23, 2010               [Page 8]
+Bagnulo, et al.          Expires October 1, 2010                [Page 8]
 
 Internet-Draft                    DNS64                       March 2010
 
@@ -500,7 +500,7 @@ Internet-Draft                    DNS64                       March 2010
 
 
 
-Bagnulo, et al.        Expires September 23, 2010               [Page 9]
+Bagnulo, et al.          Expires October 1, 2010                [Page 9]
 
 Internet-Draft                    DNS64                       March 2010
 
@@ -556,7 +556,7 @@ Internet-Draft                    DNS64                       March 2010
 
 
 
-Bagnulo, et al.        Expires September 23, 2010              [Page 10]
+Bagnulo, et al.          Expires October 1, 2010               [Page 10]
 
 Internet-Draft                    DNS64                       March 2010
 
@@ -612,7 +612,7 @@ Internet-Draft                    DNS64                       March 2010
 
 
 
-Bagnulo, et al.        Expires September 23, 2010              [Page 11]
+Bagnulo, et al.          Expires October 1, 2010               [Page 11]
 
 Internet-Draft                    DNS64                       March 2010
 
@@ -660,15 +660,15 @@ Internet-Draft                    DNS64                       March 2010
    AAAA record to follow.  The resulting AAAA or A record is treated
    like any other AAAA or A case, as appropriate.
 
-   When assembling the answer section, the original CNAME or DNAME RR is
-   included as part of the answer, and the synthetic AAAA, if
-   appropriate, is included.
+   When assembling the answer section, any chains of CNAME or DNAME RRs
+   are included as part of the answer along with the synthetic AAAA (if
+   appropriate).
 
 
 
 
 
-Bagnulo, et al.        Expires September 23, 2010              [Page 12]
+Bagnulo, et al.          Expires October 1, 2010               [Page 12]
 
 Internet-Draft                    DNS64                       March 2010
 
@@ -724,7 +724,7 @@ Internet-Draft                    DNS64                       March 2010
 
 
 
-Bagnulo, et al.        Expires September 23, 2010              [Page 13]
+Bagnulo, et al.          Expires October 1, 2010               [Page 13]
 
 Internet-Draft                    DNS64                       March 2010
 
@@ -780,7 +780,7 @@ Internet-Draft                    DNS64                       March 2010
 
 
 
-Bagnulo, et al.        Expires September 23, 2010              [Page 14]
+Bagnulo, et al.          Expires October 1, 2010               [Page 14]
 
 Internet-Draft                    DNS64                       March 2010
 
@@ -836,7 +836,7 @@ Internet-Draft                    DNS64                       March 2010
 
 
 
-Bagnulo, et al.        Expires September 23, 2010              [Page 15]
+Bagnulo, et al.          Expires October 1, 2010               [Page 15]
 
 Internet-Draft                    DNS64                       March 2010
 
@@ -892,7 +892,7 @@ Internet-Draft                    DNS64                       March 2010
 
 
 
-Bagnulo, et al.        Expires September 23, 2010              [Page 16]
+Bagnulo, et al.          Expires October 1, 2010               [Page 16]
 
 Internet-Draft                    DNS64                       March 2010
 
@@ -948,7 +948,7 @@ Internet-Draft                    DNS64                       March 2010
 
 
 
-Bagnulo, et al.        Expires September 23, 2010              [Page 17]
+Bagnulo, et al.          Expires October 1, 2010               [Page 17]
 
 Internet-Draft                    DNS64                       March 2010
 
@@ -1004,7 +1004,7 @@ Internet-Draft                    DNS64                       March 2010
 
 
 
-Bagnulo, et al.        Expires September 23, 2010              [Page 18]
+Bagnulo, et al.          Expires October 1, 2010               [Page 18]
 
 Internet-Draft                    DNS64                       March 2010
 
@@ -1060,7 +1060,7 @@ Internet-Draft                    DNS64                       March 2010
 
 
 
-Bagnulo, et al.        Expires September 23, 2010              [Page 19]
+Bagnulo, et al.          Expires October 1, 2010               [Page 19]
 
 Internet-Draft                    DNS64                       March 2010
 
@@ -1116,7 +1116,7 @@ Internet-Draft                    DNS64                       March 2010
 
 
 
-Bagnulo, et al.        Expires September 23, 2010              [Page 20]
+Bagnulo, et al.          Expires October 1, 2010               [Page 20]
 
 Internet-Draft                    DNS64                       March 2010
 
@@ -1172,7 +1172,7 @@ Internet-Draft                    DNS64                       March 2010
 
 
 
-Bagnulo, et al.        Expires September 23, 2010              [Page 21]
+Bagnulo, et al.          Expires October 1, 2010               [Page 21]
 
 Internet-Draft                    DNS64                       March 2010
 
@@ -1228,7 +1228,7 @@ Internet-Draft                    DNS64                       March 2010
 
 
 
-Bagnulo, et al.        Expires September 23, 2010              [Page 22]
+Bagnulo, et al.          Expires October 1, 2010               [Page 22]
 
 Internet-Draft                    DNS64                       March 2010
 
@@ -1284,7 +1284,7 @@ Internet-Draft                    DNS64                       March 2010
 
 
 
-Bagnulo, et al.        Expires September 23, 2010              [Page 23]
+Bagnulo, et al.          Expires October 1, 2010               [Page 23]
 
 Internet-Draft                    DNS64                       March 2010
 
@@ -1340,7 +1340,7 @@ Internet-Draft                    DNS64                       March 2010
 
 
 
-Bagnulo, et al.        Expires September 23, 2010              [Page 24]
+Bagnulo, et al.          Expires October 1, 2010               [Page 24]
 
 Internet-Draft                    DNS64                       March 2010
 
@@ -1396,7 +1396,7 @@ Internet-Draft                    DNS64                       March 2010
 
 
 
-Bagnulo, et al.        Expires September 23, 2010              [Page 25]
+Bagnulo, et al.          Expires October 1, 2010               [Page 25]
 
 Internet-Draft                    DNS64                       March 2010
 
@@ -1452,7 +1452,7 @@ Internet-Draft                    DNS64                       March 2010
 
 
 
-Bagnulo, et al.        Expires September 23, 2010              [Page 26]
+Bagnulo, et al.          Expires October 1, 2010               [Page 26]
 
 Internet-Draft                    DNS64                       March 2010
 
@@ -1508,7 +1508,7 @@ Internet-Draft                    DNS64                       March 2010
 
 
 
-Bagnulo, et al.        Expires September 23, 2010              [Page 27]
+Bagnulo, et al.          Expires October 1, 2010               [Page 27]
 
 Internet-Draft                    DNS64                       March 2010
 
@@ -1553,10 +1553,10 @@ Internet-Draft                    DNS64                       March 2010
               RFC 4787, January 2007.
 
    [I-D.ietf-behave-address-format]
-              Huitema, C., Bao, C., Bagnulo, M., Boucadair, M., and X.
+              Bao, C., Huitema, C., Bagnulo, M., Boucadair, M., and X.
               Li, "IPv6 Addressing of IPv4/IPv6 Translators",
-              draft-ietf-behave-address-format-04 (work in progress),
-              January 2010.
+              draft-ietf-behave-address-format-06 (work in progress),
+              March 2010.
 
 
 
@@ -1564,7 +1564,7 @@ Internet-Draft                    DNS64                       March 2010
 
 
 
-Bagnulo, et al.        Expires September 23, 2010              [Page 28]
+Bagnulo, et al.          Expires October 1, 2010               [Page 28]
 
 Internet-Draft                    DNS64                       March 2010
 
@@ -1575,8 +1575,8 @@ Internet-Draft                    DNS64                       March 2010
               Bagnulo, M., Matthews, P., and I. Beijnum, "Stateful
               NAT64: Network Address and Protocol Translation from IPv6
               Clients to IPv4 Servers",
-              draft-ietf-behave-v6v4-xlate-stateful-08 (work in
-              progress), January 2010.
+              draft-ietf-behave-v6v4-xlate-stateful-10 (work in
+              progress), March 2010.
 
    [RFC2136]  Vixie, P., Thomson, S., Rekhter, Y., and J. Bound,
               "Dynamic Updates in the Domain Name System (DNS UPDATE)",
@@ -1607,8 +1607,8 @@ Internet-Draft                    DNS64                       March 2010
    [I-D.ietf-behave-v6v4-framework]
               Baker, F., Li, X., Bao, C., and K. Yin, "Framework for
               IPv4/IPv6 Translation",
-              draft-ietf-behave-v6v4-framework-07 (work in progress),
-              February 2010.
+              draft-ietf-behave-v6v4-framework-08 (work in progress),
+              March 2010.
 
    [I-D.venaas-behave-mcast46]
               Venaas, S., Asaeda, H., SUZUKI, S., and T. Fujisaki, "An
@@ -1620,14 +1620,14 @@ Internet-Draft                    DNS64                       March 2010
 
 
 
-Bagnulo, et al.        Expires September 23, 2010              [Page 29]
+Bagnulo, et al.          Expires October 1, 2010               [Page 29]
 
 Internet-Draft                    DNS64                       March 2010
 
 
               Andrews, M., "Locally-served DNS Zones",
-              draft-ietf-dnsop-default-local-zones-09 (work in
-              progress), November 2009.
+              draft-ietf-dnsop-default-local-zones-10 (work in
+              progress), March 2010.
 
    [I-D.savolainen-mif-dns-server-selection]
               Savolainen, T., "DNS Server Selection on Multi-Homed
@@ -1676,7 +1676,7 @@ Appendix A.  Motivations and Implications of synthesizing AAAA Resource
 
 
 
-Bagnulo, et al.        Expires September 23, 2010              [Page 30]
+Bagnulo, et al.          Expires October 1, 2010               [Page 30]
 
 Internet-Draft                    DNS64                       March 2010
 
@@ -1732,7 +1732,7 @@ Authors' Addresses
 
 
 
-Bagnulo, et al.        Expires September 23, 2010              [Page 31]
+Bagnulo, et al.          Expires October 1, 2010               [Page 31]
 
 Internet-Draft                    DNS64                       March 2010
 
@@ -1788,5 +1788,5 @@ Internet-Draft                    DNS64                       March 2010
 
 
 
-Bagnulo, et al.        Expires September 23, 2010              [Page 32]
+Bagnulo, et al.          Expires October 1, 2010               [Page 32]
 
