@@ -1,4 +1,4 @@
-2870.	[maint]		Add AAAA addresses for L.ROOT-SERVERS.NET.
+2870.	[maint]		Add AAAA address for L.ROOT-SERVERS.NET.
 
 2869.	[bug]		Fix arguments to dns_keytable_findnextkeynode() call.
 			[RT #20877]
