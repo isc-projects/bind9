@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem_api.c,v 1.5 2009/09/02 23:48:02 tbox Exp $ */
+/* $Id: mem_api.c,v 1.5.104.1 2010/04/09 06:20:35 jinmei Exp $ */
 
 #include <config.h>
 
@@ -25,7 +25,7 @@
 
 #if ISC_MEM_TRACKLINES
 #define FLARG_PASS	, file, line
-#define FLARG		, const char *file, int line
+#define FLARG		, const char *file, unsigned int line
 #else
 #define FLARG_PASS
 #define FLARG
