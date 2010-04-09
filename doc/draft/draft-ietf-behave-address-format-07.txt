@@ -6,16 +6,16 @@ Internet-Draft                         CERNET Center/Tsinghua University
 Obsoletes: 2765 (if approved)                                 C. Huitema
 Updates: 4291 (if approved)                        Microsoft Corporation
 Intended status: Standards Track                              M. Bagnulo
-Expires: September 28, 2010                                         UC3M
+Expires: October 11, 2010                                           UC3M
                                                             M. Boucadair
                                                           France Telecom
                                                                    X. Li
                                        CERNET Center/Tsinghua University
-                                                          March 27, 2010
+                                                           April 9, 2010
 
 
                 IPv6 Addressing of IPv4/IPv6 Translators
-                draft-ietf-behave-address-format-06.txt
+                draft-ietf-behave-address-format-07.txt
 
 Abstract
 
@@ -29,38 +29,33 @@ Abstract
 
 Status of this Memo
 
-   This Internet-Draft is submitted to IETF in full conformance with the
+   This Internet-Draft is submitted in full conformance with the
    provisions of BCP 78 and BCP 79.
 
    Internet-Drafts are working documents of the Internet Engineering
-   Task Force (IETF), its areas, and its working groups.  Note that
-   other groups may also distribute working documents as Internet-
-   Drafts.
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at http://datatracker.ietf.org/drafts/current/.
 
    Internet-Drafts are draft documents valid for a maximum of six months
    and may be updated, replaced, or obsoleted by other documents at any
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   The list of current Internet-Drafts can be accessed at
-   http://www.ietf.org/ietf/1id-abstracts.txt.
-
-   The list of Internet-Draft Shadow Directories can be accessed at
-   http://www.ietf.org/shadow.html.
-
-   This Internet-Draft will expire on September 28, 2010.
-
-
-
-Bao, et al.            Expires September 28, 2010               [Page 1]
-
-Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
-
+   This Internet-Draft will expire on October 11, 2010.
 
 Copyright Notice
 
    Copyright (c) 2010 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
+
+
+
+
+Bao, et al.             Expires October 11, 2010                [Page 1]
+
+Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      April 2010
+
 
    This document is subject to BCP 78 and the IETF Trust's Legal
    Provisions Relating to IETF Documents
@@ -70,7 +65,7 @@ Copyright Notice
    to this document.  Code Components extracted from this document must
    include Simplified BSD License text as described in Section 4.e of
    the Trust Legal Provisions and are provided without warranty as
-   described in the BSD License.
+   described in the Simplified BSD License.
 
 
 Table of Contents
@@ -108,9 +103,14 @@ Table of Contents
 
 
 
-Bao, et al.            Expires September 28, 2010               [Page 2]
+
+
+
+
+
+Bao, et al.             Expires October 11, 2010                [Page 2]
 
-Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
+Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      April 2010
 
 
 1.  Introduction
@@ -164,9 +164,9 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 
 
-Bao, et al.            Expires September 28, 2010               [Page 3]
+Bao, et al.             Expires October 11, 2010                [Page 3]
 
-Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
+Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      April 2010
 
 
    document are to be interpreted as described in RFC 2119 [RFC2119].
@@ -220,9 +220,9 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 
 
-Bao, et al.            Expires September 28, 2010               [Page 4]
+Bao, et al.             Expires October 11, 2010                [Page 4]
 
-Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
+Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      April 2010
 
 
    variable length prefix, the embedded IPv4 address, and a variable
@@ -276,9 +276,9 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 
 
-Bao, et al.            Expires September 28, 2010               [Page 5]
+Bao, et al.             Expires October 11, 2010                [Page 5]
 
-Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
+Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      April 2010
 
 
    o  When the prefix is 32 bits long, the IPv4 address is encoded in
@@ -332,9 +332,9 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 
 
-Bao, et al.            Expires September 28, 2010               [Page 6]
+Bao, et al.             Expires October 11, 2010                [Page 6]
 
-Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
+Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      April 2010
 
 
    +-----------------------+------------+------------------------------+
@@ -388,9 +388,9 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 
 
-Bao, et al.            Expires September 28, 2010               [Page 7]
+Bao, et al.             Expires October 11, 2010                [Page 7]
 
-Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
+Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      April 2010
 
 
    The Well-Known Prefix MUST NOT be used to represent non global IPv4
@@ -444,9 +444,9 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 
 
-Bao, et al.            Expires September 28, 2010               [Page 8]
+Bao, et al.             Expires October 11, 2010                [Page 8]
 
-Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
+Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      April 2010
 
 
    served by IPv4-Translatable IPv6 addresses.  Specifically, if a node
@@ -500,9 +500,9 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 
 
-Bao, et al.            Expires September 28, 2010               [Page 9]
+Bao, et al.             Expires October 11, 2010                [Page 9]
 
-Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
+Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      April 2010
 
 
    combination of the prefix and the IPv4 address.  In theory, routers
@@ -556,9 +556,9 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 
 
-Bao, et al.            Expires September 28, 2010              [Page 10]
+Bao, et al.             Expires October 11, 2010               [Page 10]
 
-Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
+Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      April 2010
 
 
    router anycast address in IPv6 and network identifier in IPv4, the
@@ -612,9 +612,9 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 
 
-Bao, et al.            Expires September 28, 2010              [Page 11]
+Bao, et al.             Expires October 11, 2010               [Page 11]
 
-Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
+Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      April 2010
 
 
    Translatable and the IPv4-Converted IPv6 addresses were constructed
@@ -668,9 +668,9 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 
 
-Bao, et al.            Expires September 28, 2010              [Page 12]
+Bao, et al.             Expires October 11, 2010               [Page 12]
 
-Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
+Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      April 2010
 
 
    would not be able to support translation without modification.  This
@@ -724,9 +724,9 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 
 
-Bao, et al.            Expires September 28, 2010              [Page 13]
+Bao, et al.             Expires October 11, 2010               [Page 13]
 
-Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
+Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      April 2010
 
 
    throughout the network that packets are coming from an authorized
@@ -734,14 +734,16 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 4.2.  Secure Configuration
 
-   The prefixes and formats need to be the configured consistently among
-   multiple devices in the same network (e.g., nodes that need to prefer
-   native over translated addresses, DNS gateways, and IPv4/IPv6
-   translators).  As such, the means by which they are learned/
-   configured MUST be secure.  Specifying a default prefix and/or format
-   in implementations provides one way to configure them securely.  Any
-   alternative means of configuration is responsible for specifying how
-   to do so securely.
+   The prefixes used for address translation are used by IPv6 nodes to
+   send packets to IPv6/IPv4 translators.  Attackers could attempt to
+   fool nodes, DNS gateways, and IPv4/IPv6 translators into using wrong
+   values for these parameters, resulting in network disruption, denial
+   of service, and possible information disclosure.  To mitigate such
+   attacks, network administrators need to ensure that prefixes are
+   configured in a secure way.
+
+   The mechanisms for achieving secure configuration of prefixes are
+   beyond the scope of this document.
 
 
 5.  IANA Considerations
@@ -778,11 +780,9 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 
 
-
-
-Bao, et al.            Expires September 28, 2010              [Page 14]
+Bao, et al.             Expires October 11, 2010               [Page 14]
 
-Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
+Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      April 2010
 
 
        Congxiao Bao
@@ -836,9 +836,9 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 
 
-Bao, et al.            Expires September 28, 2010              [Page 15]
+Bao, et al.             Expires October 11, 2010               [Page 15]
 
-Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
+Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      April 2010
 
 
 8.  References
@@ -892,9 +892,9 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 
 
-Bao, et al.            Expires September 28, 2010              [Page 16]
+Bao, et al.             Expires October 11, 2010               [Page 16]
 
-Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
+Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      April 2010
 
 
 Authors' Addresses
@@ -948,9 +948,9 @@ Authors' Addresses
 
 
 
-Bao, et al.            Expires September 28, 2010              [Page 17]
+Bao, et al.             Expires October 11, 2010               [Page 17]
 
-Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
+Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      April 2010
 
 
    Xing Li
@@ -1004,6 +1004,6 @@ Internet-Draft  IPv6 Addressing of IPv4/IPv6 Translators      March 2010
 
 
 
-Bao, et al.            Expires September 28, 2010              [Page 18]
+Bao, et al.             Expires October 11, 2010               [Page 18]
 
 
