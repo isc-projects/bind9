@@ -1,3 +1,7 @@
+2871.	[bug]		Type mismatch in mem_api.c between the definition and
+			the header file, causing build failure with
+			--enable-exportlib. [RT #21138]
+
 2870.	[maint]		Add AAAA address for L.ROOT-SERVERS.NET.
 
 2869.	[bug]		Fix arguments to dns_keytable_findnextkeynode() call.
