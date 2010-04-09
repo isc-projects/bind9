@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem_api.c,v 1.5.104.1 2010/04/09 06:20:35 jinmei Exp $ */
+/* $Id: mem_api.c,v 1.5.104.2 2010/04/09 23:49:48 tbox Exp $ */
 
 #include <config.h>
 
