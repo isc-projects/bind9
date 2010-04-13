@@ -1,3 +1,7 @@
+2872.	[bug]		Modify dns/client.c:dns_client_createx() to only
+			require one of IPv4 or IPv6 rather than both.
+			[RT #21122]
+
 2871.	[bug]		Type mismatch in mem_api.c between the definition and
 			the header file, causing build failure with
 			--enable-exportlib. [RT #21138]
