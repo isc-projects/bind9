@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.7 2010/04/13 19:06:48 sar Exp $ */
+/* $Id: client.c,v 1.8 2010/04/13 23:50:58 tbox Exp $ */
 
 #include <config.h>
 
