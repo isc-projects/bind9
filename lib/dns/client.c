@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.8 2010/04/13 23:50:58 tbox Exp $ */
+/* $Id: client.c,v 1.9 2010/04/14 22:08:47 jinmei Exp $ */
 
 #include <config.h>
 
@@ -2808,9 +2808,9 @@ dns_client_cancelupdate(dns_clientupdatetrans_t *trans) {
 		if (uctx->soareq != NULL)
 			dns_request_cancel(uctx->soareq);
 		if (uctx->restrans != NULL)
-			dns_client_cancelresolve(&uctx->restrans);
+			dns_client_cancelresolve(uctx->restrans);
 		if (uctx->restrans2 != NULL)
-			dns_client_cancelresolve(&uctx->restrans2);
+			dns_client_cancelresolve(uctx->restrans2);
 	}
 
 	UNLOCK(&uctx->lock);
