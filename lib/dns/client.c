@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.6 2009/10/27 22:46:13 each Exp $ */
+/* $Id: client.c,v 1.9 2010/04/14 22:08:47 jinmei Exp $ */
 
 #include <config.h>
 
@@ -385,12 +385,12 @@ dns_client_create(dns_client_t **clientp, unsigned int options) {
 	return (ISC_R_SUCCESS);
 
  cleanup:
+	if (taskmgr != NULL)
+		isc_taskmgr_destroy(&taskmgr);
 	if (timermgr != NULL)
 		isc_timermgr_destroy(&timermgr);
 	if (socketmgr != NULL)
 		isc_socketmgr_destroy(&socketmgr);
-	if (taskmgr != NULL)
-		isc_taskmgr_destroy(&taskmgr);
 	if (actx != NULL)
 		isc_appctx_destroy(&actx);
 	isc_mem_detach(&mctx);
@@ -442,16 +442,22 @@ dns_client_createx(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
 	client->dispatchmgr = dispatchmgr;
 
 	/* TODO: whether to use dispatch v4 or v6 should be configurable */
+	client->dispatchv4 = NULL;
+	client->dispatchv6 = NULL;
 	result = getudpdispatch(AF_INET, dispatchmgr, socketmgr,
 				taskmgr, ISC_TRUE, &dispatchv4);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-	client->dispatchv4 = dispatchv4;
+	if (result == ISC_R_SUCCESS)
+		client->dispatchv4 = dispatchv4;
 	result = getudpdispatch(AF_INET6, dispatchmgr, socketmgr,
 				taskmgr, ISC_TRUE, &dispatchv6);
-	if (result != ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS)
+		client->dispatchv6 = dispatchv6;
+
+	/* We need at least one of the dispatchers */
+	if (dispatchv4 == NULL && dispatchv6 == NULL) {
+		INSIST(result != ISC_R_SUCCESS);
 		goto cleanup;
-	client->dispatchv6 = dispatchv6;
+	}
 
 	/* Create the default view for class IN */
 	result = dns_client_createview(mctx, dns_rdataclass_in, options,
@@ -2802,9 +2808,9 @@ dns_client_cancelupdate(dns_clientupdatetrans_t *trans) {
 		if (uctx->soareq != NULL)
 			dns_request_cancel(uctx->soareq);
 		if (uctx->restrans != NULL)
-			dns_client_cancelresolve(&uctx->restrans);
+			dns_client_cancelresolve(uctx->restrans);
 		if (uctx->restrans2 != NULL)
-			dns_client_cancelresolve(&uctx->restrans2);
+			dns_client_cancelresolve(uctx->restrans2);
 	}
 
 	UNLOCK(&uctx->lock);
