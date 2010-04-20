@@ -1,3 +1,7 @@
+2874.	[bug]		Cache lack of EDNS support only after the server
+			successfully responds to the query using plain DNS.
+			[RT #20930]
+
 2873.	[bug]		Canceling a dynamic update via the dns/client module
 			could trigger an assertion failure. [RT #21133]
 
