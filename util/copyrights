@@ -1711,8 +1711,8 @@
 ./doc/arm/Makefile.in				MAKE	2001,2002,2004,2005,2006,2007,2009
 ./doc/arm/README-SGML				TXT.BRIEF	2000,2001,2004
 ./doc/arm/dnssec.xml				SGML	2010
-./doc/arm/isc-logo.eps				X	2005
-./doc/arm/isc-logo.pdf				X	2005
+./doc/arm/isc-logo.eps				X	2005,2010
+./doc/arm/isc-logo.pdf				X	2005,2010
 ./doc/arm/latex-fixup.pl			PERL	2005,2007
 ./doc/arm/libdns.xml				SGML	2010
 ./doc/arm/man.arpaname.html			HTML	2009,2010
@@ -1805,7 +1805,7 @@
 ./doc/xsl/isc-docbook-chunk.xsl.in		SGML	2005,2007
 ./doc/xsl/isc-docbook-html.xsl.in		SGML	2005,2007
 ./doc/xsl/isc-docbook-latex-mappings.xml	SGML	2005,2007
-./doc/xsl/isc-docbook-latex.xsl.in		SGML	2005,2007
+./doc/xsl/isc-docbook-latex.xsl.in		SGML	2005,2007,2010
 ./doc/xsl/isc-docbook-text.xsl			SGML	2005,2007
 ./doc/xsl/isc-manpage.xsl.in			SGML	2005,2007
 ./doc/xsl/pre-latex.xsl				SGML	2005,2007
