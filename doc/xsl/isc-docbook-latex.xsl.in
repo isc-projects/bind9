@@ -14,7 +14,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: isc-docbook-latex.xsl.in,v 1.6 2007/06/19 23:47:13 tbox Exp $ -->
+<!-- $Id: isc-docbook-latex.xsl.in,v 1.7 2010/04/20 02:30:06 sra Exp $ -->
 
 <!-- ISC customizations for db2latex generator -->
 
@@ -121,7 +121,13 @@
             \par}
           %\vskip 1.5em%
 	  \vfil
-	  \includegraphics{isc-logo}
+	  % Not sure exactly how much to trim logo, but given that
+	  % this is a centered environment, we need not be too precise
+	  % so long as the image is centered in the input PDF, we
+	  % trim enough for it to fit on page, and we do not trim
+	  % so much that we clip out part of the graphic itself.
+	  % This seems to work, anyway.
+	  \includegraphics[trim=400 400 400 400,scale=2.5]{isc-logo}
         \end{center}\par
         \vfil\null
       \end{titlepage}
