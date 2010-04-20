@@ -1,3 +1,7 @@
+2874.	[bug]		Cache lack of EDNS support only after the server
+			successfully responds to the query using plain DNS.
+			[RT #20930]
+
 2870.	[maint]		Add AAAA address for L.ROOT-SERVERS.NET.
 
 2869.	[bug]		Fix arguments to dns_keytable_findnextkeynode() call.
