@@ -14,7 +14,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: isc-docbook-latex.xsl.in,v 1.7 2010/04/20 02:30:06 sra Exp $ -->
+<!-- $Id: isc-docbook-latex.xsl.in,v 1.8 2010/04/20 19:16:48 sra Exp $ -->
 
 <!-- ISC customizations for db2latex generator -->
 
@@ -140,6 +140,7 @@
     - of contents.
    -->
   <xsl:template match="book/bookinfo">
+    <xsl:text>\thispagestyle{empty}&#10;</xsl:text>
     <xsl:apply-imports/>
     <xsl:text>\begin{center}&#10;</xsl:text>
     <xsl:value-of select="$isc.copyright.text"/>
@@ -149,7 +150,23 @@
       <xsl:call-template name="text"/>
       <xsl:text>\end{center}&#10;</xsl:text>
     </xsl:for-each>
-    <xsl:text>\tableofcontents&#10;</xsl:text>
+    <xsl:text>
+      \vfill
+      \begin{center}
+      Internet System Consortium \\
+      950 Charter Street \\
+      Redwood City, California \\
+      USA \\
+      http://www.isc.org/
+      \end{center}
+    </xsl:text>
+    <xsl:text>
+      \newpage
+      \pagenumbering{roman}
+      \tableofcontents
+      \newpage
+      \pagenumbering{arabic}
+    </xsl:text>
   </xsl:template>
 
   <!--
