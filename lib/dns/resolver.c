@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.355.12.53 2010/04/20 07:35:05 marka Exp $ */
+/* $Id: resolver.c,v 1.355.12.54 2010/04/20 23:47:12 tbox Exp $ */
 
 /*! \file */
 
@@ -6269,7 +6269,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				    DNS_FETCHOPT_NOEDNS0,
 				    DNS_FETCHOPT_NOEDNS0);
 	}
-		
+
 	/*
 	 * Deal with truncated responses by retrying using TCP.
 	 */
