@@ -1,3 +1,6 @@
+2875.	[bug]		dns_time64_fromtext() could accept non digits.
+			[RT #21033]
+
 2874.	[bug]		Cache lack of EDNS support only after the server
 			successfully responds to the query using plain DNS.
 			[RT #20930]
