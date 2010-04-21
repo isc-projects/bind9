@@ -1,3 +1,6 @@
+2876.	[bug]		Named could return SERVFAIL for negative responses
+			from unsigned zones. [RT #21131]
+
 2875.	[bug]		dns_time64_fromtext() could accept non digits.
 			[RT #21033]
 
