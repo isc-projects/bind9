@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.31.128.2 2009/01/19 23:47:02 tbox Exp $ */
+/* $Id: time.c,v 1.31.128.3 2010/04/21 02:24:10 marka Exp $ */
 
 /*! \file */
 
@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <time.h>
+#include <ctype.h>
 
 #include <isc/print.h>
 #include <isc/region.h>
@@ -132,6 +133,14 @@ dns_time64_fromtext(const char *source, isc_int64_t *target) {
 
 	if (strlen(source) != 14U)
 		return (DNS_R_SYNTAX);
+	/*
+	 * Confirm the source only consists digits.  sscanf() allows some
+	 * minor exceptions.
+	 */
+	for (i = 0; i < 14; i++) {
+		if (!isdigit((unsigned char)source[i]))
+			return (DNS_R_SYNTAX);
+	}
 	if (sscanf(source, "%4d%2d%2d%2d%2d%2d",
 		   &year, &month, &day, &hour, &minute, &second) != 6)
 		return (DNS_R_SYNTAX);
