@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.189 2010/04/21 04:16:49 marka Exp $ */
+/* $Id: validator.c,v 1.190 2010/04/21 05:45:47 marka Exp $ */
 
 #include <config.h>
 
@@ -2119,7 +2119,7 @@ dlv_validatezonekey(dns_validator_t *val) {
 					     &sigrdata);
 			result = dns_rdata_tostruct(&sigrdata, &sig, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-			if (dlv.key_tag != sig.keyid &&
+			if (dlv.key_tag != sig.keyid ||
 			    dlv.algorithm != sig.algorithm)
 				continue;
 			dstkey = NULL;
