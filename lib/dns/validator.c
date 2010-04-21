@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.188 2010/03/26 17:12:48 marka Exp $ */
+/* $Id: validator.c,v 1.189 2010/04/21 04:16:49 marka Exp $ */
 
 #include <config.h>
 
@@ -2990,7 +2990,7 @@ nsecvalidate(dns_validator_t *val, isc_boolean_t resume) {
 		return (ISC_R_SUCCESS);
 	}
 
-	if (val->authcount == val->authfail)
+	if (val->authfail != 0 && val->authcount == val->authfail)
 		return (DNS_R_BROKENCHAIN);
 	validator_log(val, ISC_LOG_DEBUG(3),
 		      "nonexistence proof(s) not found");
