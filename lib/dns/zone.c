@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.558 2010/02/26 01:39:49 marka Exp $ */
+/* $Id: zone.c,v 1.559 2010/04/27 03:24:52 marka Exp $ */
 
 /*! \file */
 
@@ -366,6 +366,7 @@ struct dns_zone {
 #define DNS_ZONEFLG_REFRESHING	0x04000000U	/*%< Refreshing keydata */
 #define DNS_ZONEFLG_THAW	0x08000000U
 #define DNS_ZONEFLG_NOTIFYRESIGN 0x10000000U
+#define DNS_ZONEFLG_NODELAY	0x20000000U
 
 #define DNS_ZONE_OPTION(z,o) (((z)->options & (o)) != 0)
 #define DNS_ZONEKEY_OPTION(z,o) (((z)->keyopts & (o)) != 0)
@@ -11444,24 +11445,24 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 		}
 	} else {
 		if (dump && zone->masterfile != NULL) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-				      DNS_LOGMODULE_ZONE, ISC_LOG_DEBUG(3),
-				      "dumping new zone version");
-			result = dns_db_dump2(db, ver, zone->masterfile,
-					      zone->masterformat);
-			if (result != ISC_R_SUCCESS)
-				goto fail;
-
+			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NODELAY);
 			/*
-			 * Update the time the zone was updated, so
-			 * dns_zone_load can avoid loading it when
-			 * the server is reloaded.  If isc_time_now
-			 * fails for some reason, all that happens is
-			 * the timestamp is not updated.
+			 * If DNS_ZONEFLG_FORCEXFER was set we don't want
+			 * to keep the old masterfile.
 			 */
-			TIME_NOW(&zone->loadtime);
+			if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FORCEXFER) &&
+			    remove(zone->masterfile) < 0 && errno != ENOENT) {
+				char strbuf[ISC_STRERRORSIZE];
+				isc__strerror(errno, strbuf, sizeof(strbuf));
+				isc_log_write(dns_lctx,
+					      DNS_LOGCATEGORY_GENERAL,
+					      DNS_LOGMODULE_ZONE,
+					      ISC_LOG_WARNING,
+					      "unable to remove masterfile "
+					      "'%s': '%s'",
+					      zone->masterfile, strbuf);
+			}
 		}
-
 		if (dump && zone->journal != NULL) {
 			/*
 			 * The in-memory database just changed, and
@@ -11657,16 +11658,19 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 							  &now);
 			/* Someone removed the file from underneath us! */
 			if (result == ISC_R_FILENOTFOUND &&
-			    zone->masterfile != NULL)
-				zone_needdump(zone, DNS_DUMP_DELAY);
-			else if (result != ISC_R_SUCCESS)
+			    zone->masterfile != NULL) {
+				unsigned int delay = DNS_DUMP_DELAY;
+				if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NODELAY))
+					delay = 0;
+				zone_needdump(zone, delay);
+			} else if (result != ISC_R_SUCCESS)
 				dns_zone_log(zone, ISC_LOG_ERROR,
 					     "transfer: could not set file "
 					     "modification time of '%s': %s",
 					     zone->masterfile,
 					     dns_result_totext(result));
 		}
-
+		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NODELAY);
 		inc_stats(zone, dns_zonestatscounter_xfrsuccess);
 		break;
 
