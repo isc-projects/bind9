@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.16 2010/04/27 03:26:34 marka Exp $ */
+/* $Id: zone.c,v 1.540.2.17 2010/04/28 11:03:45 marka Exp $ */
 
 /*! \file */
 
@@ -11445,7 +11445,6 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 		}
 	} else {
 		if (dump && zone->masterfile != NULL) {
-			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NODELAY);
 			/*
 			 * If DNS_ZONEFLG_FORCEXFER was set we don't want
 			 * to keep the old masterfile.
@@ -11461,7 +11460,11 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 					      "unable to remove masterfile "
 					      "'%s': '%s'",
 					      zone->masterfile, strbuf);
-			}
+			} 
+			if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) == 0)
+				DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NODELAY);
+			else
+				zone_needdump(zone, 0);
 		}
 		if (dump && zone->journal != NULL) {
 			/*
