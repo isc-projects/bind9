@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.560 2010/04/28 11:03:07 marka Exp $ */
+/* $Id: zone.c,v 1.561 2010/04/28 23:50:51 tbox Exp $ */
 
 /*! \file */
 
@@ -11460,7 +11460,7 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 					      "unable to remove masterfile "
 					      "'%s': '%s'",
 					      zone->masterfile, strbuf);
-			} 
+			}
 			if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) == 0)
 				DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NODELAY);
 			else
