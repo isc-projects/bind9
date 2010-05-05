@@ -1,3 +1,6 @@
+2879.	[contrib]	DLZ bdbhpt driver fails to close correct cursor.
+			[RT #21106]
+
 2878.	[func]		Incrementally write the master file after performing
 			a AXFR.  [RT #21010]
 
