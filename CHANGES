@@ -1,3 +1,6 @@
+2879.	[contrib]	DLZ bdbhpt driver fails to close correct cursor.
+			[RT #21106]
+
 2877.	[bug]		The validator failed to skip obviously mismatching
 			RRSIGs. [RT #21138]
 
