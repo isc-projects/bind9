@@ -1,3 +1,6 @@
+2880.	[cleanup]	Make the output of dnssec-keygen and dnssec-revoke
+			consistent. [RT #21078]
+
 2879.	[contrib]	DLZ bdbhpt driver fails to close correct cursor.
 			[RT #21106]
 
