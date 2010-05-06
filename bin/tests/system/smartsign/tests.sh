@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.4 2010/01/19 15:54:45 each Exp $
+# $Id: tests.sh,v 1.5 2010/05/06 11:28:20 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -72,7 +72,7 @@ czinactive=`echo $czsk4 | sed 's/^K.*+005+0*//'`
 ckactive=`echo $cksk1 | sed 's/^K.*+005+0*//'`
 ckpublished=`echo $cksk2 | sed 's/^K.*+005+0*//'`
 ckprerevoke=`echo $cksk3 | sed 's/^K.*+005+0*//'`
-ckrevoked=`echo $cksk4 | sed 's/.*+005+0*\([0-9]*\)\.private$/\1/'`
+ckrevoked=`echo $cksk4 | sed 's/.*+005+0*\([0-9]*\)$/\1/'`
 
 pzid=`echo $pzsk | sed 's/^K.*+005+0*//'`
 pkid=`echo $pksk | sed 's/^K.*+005+0*//'`
