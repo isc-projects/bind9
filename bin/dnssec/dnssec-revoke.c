@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-revoke.c,v 1.20 2009/12/18 23:49:02 tbox Exp $ */
+/* $Id: dnssec-revoke.c,v 1.21 2010/05/06 05:31:19 marka Exp $ */
 
 /*! \file */
 
@@ -161,6 +161,10 @@ main(int argc, char **argv) {
 			fatal("cannot process filename %s: %s",
 			      argv[isc_commandline_index],
 			      isc_result_totext(result));
+		if (strcmp(dir, ".") == 0) {
+			isc_mem_free(mctx, dir);
+			dir = NULL;
+		}
 	}
 
 	if (ectx == NULL)
@@ -224,10 +228,8 @@ main(int argc, char **argv) {
 			      isc_result_totext(result));
 		}
 
-		printf("%s\n", newname);
-
 		isc_buffer_clear(&buf);
-		dst_key_buildfilename(key, DST_TYPE_PRIVATE, dir, &buf);
+		dst_key_buildfilename(key, 0, dir, &buf);
 		printf("%s\n", newname);
 
 		/*
@@ -259,7 +261,8 @@ cleanup:
 	cleanup_entropy(&ectx);
 	if (verbose > 10)
 		isc_mem_stats(mctx, stdout);
-	isc_mem_free(mctx, dir);
+	if (dir != NULL)
+		isc_mem_free(mctx, dir);
 	isc_mem_destroy(&mctx);
 
 	return (0);
