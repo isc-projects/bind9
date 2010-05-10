@@ -1,3 +1,5 @@
+	--- 9.4-ESV-R2 released ---
+
 2876.	[bug]		Named could return SERVFAIL for negative responses
 			from unsigned zones. [RT #21131]
 
