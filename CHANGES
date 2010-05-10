@@ -1,3 +1,6 @@
+2881.	[bug]		Reduce the amount of time the rbtdb write lock
+			is held when closing a version. [RT #21198]
+
 2880.	[cleanup]	Make the output of dnssec-keygen and dnssec-revoke
 			consistent. [RT #21078]
 
