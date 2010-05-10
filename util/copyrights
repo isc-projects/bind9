@@ -1651,7 +1651,7 @@
 ./lib/dns/include/dns/dlz.h			C.PORTION	1999,2000,2001,2005,2006,2007,2009
 ./lib/dns/include/dns/dnssec.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2009
 ./lib/dns/include/dns/ds.h			C	2002,2004,2005,2006,2007
-./lib/dns/include/dns/events.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2009
+./lib/dns/include/dns/events.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2010
 ./lib/dns/include/dns/fixedname.h		C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/forward.h			C	2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/iptable.h			C	2007
