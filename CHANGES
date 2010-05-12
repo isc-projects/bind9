@@ -1,3 +1,6 @@
+2884.	[bug]		Insufficient valadation in dns_name_getlabelsequence().
+			[RT #21283]
+
 2883.	[bug]		'dig +short' failed to handle really large datasets.
 			[RT #21113]
 

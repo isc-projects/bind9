@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.165 2008/04/01 23:47:10 tbox Exp $ */
+/* $Id: name.c,v 1.165.120.1 2010/05/12 05:45:05 marka Exp $ */
 
 /*! \file */
 
@@ -901,7 +901,7 @@ dns_name_getlabelsequence(const dns_name_t *source,
 	REQUIRE(VALID_NAME(source));
 	REQUIRE(VALID_NAME(target));
 	REQUIRE(first <= source->labels);
-	REQUIRE(first + n <= source->labels);
+	REQUIRE(n <= source->labels - first); /* note first+n could overflow */
 	REQUIRE(BINDABLE(target));
 
 	SETUP_OFFSETS(source, offsets, odata);
