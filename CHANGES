@@ -1,3 +1,6 @@
+2882.	[bug]		Remove memory context from list of active contexts
+			before clearing 'magic'. [RT #21274]
+
 2881.	[bug]		Reduce the amount of time the rbtdb write lock
 			is held when closing a version. [RT #21198]
 

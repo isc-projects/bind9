@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.145.120.6 2010/03/04 23:47:53 tbox Exp $ */
+/* $Id: mem.c,v 1.145.120.7 2010/05/12 00:51:11 marka Exp $ */
 
 /*! \file */
 
@@ -876,12 +876,12 @@ destroy(isc_mem_t *ctx) {
 	unsigned int i;
 	isc_ondestroy_t ondest;
 
-	ctx->magic = 0;
-
 	LOCK(&lock);
 	ISC_LIST_UNLINK(contexts, ctx, link);
 	totallost += ctx->inuse;
 	UNLOCK(&lock);
+
+	ctx->magic = 0;
 
 	INSIST(ISC_LIST_EMPTY(ctx->pools));
 
