@@ -1,3 +1,6 @@
+2883.	[bug]		'dig +short' failed to handle really large datasets.
+			[RT #21113]
+
 2882.	[bug]		Remove memory context from list of active contexts
 			before clearing 'magic'. [RT #21274]
 
