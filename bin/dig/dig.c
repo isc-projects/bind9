@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.233.62.2 2010/05/12 23:50:01 tbox Exp $ */
+/* $Id: dig.c,v 1.233.62.3 2010/05/13 00:42:26 marka Exp $ */
 
 /*! \file */
 
@@ -508,6 +508,8 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 				printf(" ad");
 			if ((msg->flags & DNS_MESSAGEFLAG_CD) != 0)
 				printf(" cd");
+			if ((msg->flags & 0x0040U) != 0)
+				printf("; MBZ: 0x4");
 
 			printf("; QUERY: %u, ANSWER: %u, "
 			       "AUTHORITY: %u, ADDITIONAL: %u\n",
