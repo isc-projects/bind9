@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.50 2010/05/12 23:49:40 marka Exp $
+ * $Id: dst_api.c,v 1.51 2010/05/13 03:08:30 marka Exp $
  */
 
 /*! \file */
@@ -1369,7 +1369,7 @@ printtime(const dst_key_t *key, int type, const char *tag, FILE *stream) {
 	if (ctime_s(output, sizeof(output), &t) != 0)
 		goto error;
 #else
-	if (ctime_r(&t, outout) == NULL)
+	if (ctime_r(&t, output) == NULL)
 		goto error;
 #endif
 #else
@@ -1383,7 +1383,7 @@ printtime(const dst_key_t *key, int type, const char *tag, FILE *stream) {
 
 	isc_buffer_usedregion(&b, &r);
 	fprintf(stream, "%s: %.*s (%.*s)\n", tag, (int)r.length, r.base,
-		 strlen(output) - 1, output);
+		 (int)strlen(output) - 1, output);
 	return;
 
  error:
