@@ -1,4 +1,4 @@
-2889.	[bug]		Element of the grammar where not properly reported.
+2889.	[bug]		Elements of the grammar where not properly reported.
 			[RT #21046]
 
 2888.	[bug]		Only the first EDNS option was displayed. [RT #21273]
