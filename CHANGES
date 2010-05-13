@@ -1,3 +1,6 @@
+2889.	[bug]		Element of the grammar where not properly reported.
+			[RT #21046]
+
 2888.	[bug]		Only the first EDNS option was displayed. [RT #21273]
 
 2887.	[bug]		Report the keytag times in UTC in the .key file,
