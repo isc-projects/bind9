@@ -1,3 +1,5 @@
+2888.	[bug]		Only the first EDNS option was displayed. [RT #21273]
+
 2887.	[bug]		Report the keytag times in UTC in the .key file,
 			local time is presented as a comment within the
 			comment.  [RT #21223]

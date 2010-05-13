@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.252 2010/03/12 03:34:56 marka Exp $ */
+/* $Id: message.c,v 1.253 2010/05/13 00:40:46 marka Exp $ */
 
 /*! \file */
 
@@ -3214,7 +3214,8 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 		ADD_STRING(target, ", flags:");
 		if ((ps->ttl & DNS_MESSAGEEXTFLAG_DO) != 0)
 			ADD_STRING(target, " do");
-		mbz = ps->ttl & ~DNS_MESSAGEEXTFLAG_DO & 0xffff;
+		mbz = ps->ttl & 0xffff;
+		mbz &= ~DNS_MESSAGEEXTFLAG_DO;		/* Known Flags. */
 		if (mbz != 0) {
 			ADD_STRING(target, "; MBZ: ");
 			snprintf(buf, sizeof(buf), "%.4x ", mbz);
@@ -3232,42 +3233,46 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 		/* Print EDNS info, if any */
 		dns_rdata_init(&rdata);
 		dns_rdataset_current(ps, &rdata);
-		if (rdata.length < 4)
-			return (ISC_R_SUCCESS);
 
 		isc_buffer_init(&optbuf, rdata.data, rdata.length);
 		isc_buffer_add(&optbuf, rdata.length);
-		optcode = isc_buffer_getuint16(&optbuf);
-		optlen = isc_buffer_getuint16(&optbuf);
+		while (isc_buffer_remaininglength(&optbuf) != 0) {
+			INSIST(isc_buffer_remaininglength(&optbuf) >= 4U);
+			optcode = isc_buffer_getuint16(&optbuf);
+			optlen = isc_buffer_getuint16(&optbuf);
+			INSIST(isc_buffer_remaininglength(&optbuf) >= optlen);
 
-		if (optcode == DNS_OPT_NSID) {
-			ADD_STRING(target, "; NSID");
-		} else {
-			ADD_STRING(target, "; OPT=");
-			sprintf(buf, "%u", optcode);
-			ADD_STRING(target, buf);
-		}
-
-		if (optlen != 0) {
-			int i;
-			ADD_STRING(target, ": ");
-
-			optdata = rdata.data + 4;
-			for (i = 0; i < optlen; i++) {
-				sprintf(buf, "%02x ", optdata[i]);
+			if (optcode == DNS_OPT_NSID) {
+				ADD_STRING(target, "; NSID");
+			} else {
+				ADD_STRING(target, "; OPT=");
+				sprintf(buf, "%u", optcode);
 				ADD_STRING(target, buf);
 			}
-			for (i = 0; i < optlen; i++) {
-				ADD_STRING(target, " (");
-				if (isprint(optdata[i]))
-					isc_buffer_putmem(target, &optdata[i],
-							  1);
-				else
-					isc_buffer_putstr(target, ".");
-				ADD_STRING(target, ")");
+
+			if (optlen != 0) {
+				int i;
+				ADD_STRING(target, ": ");
+
+				optdata = isc_buffer_current(&optbuf);
+				for (i = 0; i < optlen; i++) {
+					sprintf(buf, "%02x ", optdata[i]);
+					ADD_STRING(target, buf);
+				}
+				for (i = 0; i < optlen; i++) {
+					ADD_STRING(target, " (");
+					if (isprint(optdata[i]))
+						isc_buffer_putmem(target,
+								  &optdata[i],
+								  1);
+					else
+						isc_buffer_putstr(target, ".");
+					ADD_STRING(target, ")");
+				}
+				isc_buffer_forward(&optbuf, optlen);
 			}
+			ADD_STRING(target, "\n");
 		}
-		ADD_STRING(target, "\n");
 		return (ISC_R_SUCCESS);
 	case DNS_PSEUDOSECTION_TSIG:
 		ps = dns_message_gettsig(msg, &name);
@@ -3317,21 +3322,26 @@ dns_message_totext(dns_message_t *msg, const dns_master_style_t *style,
 		ADD_STRING(target, ", id: ");
 		snprintf(buf, sizeof(buf), "%6u", msg->id);
 		ADD_STRING(target, buf);
-		ADD_STRING(target, "\n;; flags: ");
+		ADD_STRING(target, "\n;; flags:");
 		if ((msg->flags & DNS_MESSAGEFLAG_QR) != 0)
-			ADD_STRING(target, "qr ");
+			ADD_STRING(target, " qr");
 		if ((msg->flags & DNS_MESSAGEFLAG_AA) != 0)
-			ADD_STRING(target, "aa ");
+			ADD_STRING(target, " aa");
 		if ((msg->flags & DNS_MESSAGEFLAG_TC) != 0)
-			ADD_STRING(target, "tc ");
+			ADD_STRING(target, " tc");
 		if ((msg->flags & DNS_MESSAGEFLAG_RD) != 0)
-			ADD_STRING(target, "rd ");
+			ADD_STRING(target, " rd");
 		if ((msg->flags & DNS_MESSAGEFLAG_RA) != 0)
-			ADD_STRING(target, "ra ");
+			ADD_STRING(target, " ra");
 		if ((msg->flags & DNS_MESSAGEFLAG_AD) != 0)
-			ADD_STRING(target, "ad ");
+			ADD_STRING(target, " ad");
 		if ((msg->flags & DNS_MESSAGEFLAG_CD) != 0)
-			ADD_STRING(target, "cd ");
+			ADD_STRING(target, " cd");
+		/*
+		 * The final unnamed flag must be zero.
+		 */
+		if ((msg->flags & 0x0040U) != 0)
+			ADD_STRING(target, "; MBZ: 0x4");
 		if (msg->opcode != dns_opcode_update) {
 			ADD_STRING(target, "; QUESTION: ");
 		} else {
