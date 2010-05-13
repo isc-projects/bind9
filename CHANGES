@@ -1,3 +1,5 @@
+2888.	[bug]		Only the first EDNS option was displayed. [RT #21273]
+
 2885.	[bug]		Improve -fno-strict-aliasing support probing in
 			configure. [RT #21080]
 
