@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.191 2010/05/14 00:13:43 marka Exp $ */
+/* $Id: validator.c,v 1.192 2010/05/14 04:38:51 marka Exp $ */
 
 #include <config.h>
 
@@ -28,17 +28,17 @@
 #include <isc/util.h>
 
 #include <dns/db.h>
-#include <dns/ds.h>
 #include <dns/dnssec.h>
+#include <dns/ds.h>
 #include <dns/events.h>
 #include <dns/keytable.h>
+#include <dns/keyvalues.h>
 #include <dns/log.h>
 #include <dns/message.h>
 #include <dns/ncache.h>
 #include <dns/nsec.h>
 #include <dns/nsec3.h>
 #include <dns/rdata.h>
-#include <dns/rdatastruct.h>
 #include <dns/rdataset.h>
 #include <dns/rdatatype.h>
 #include <dns/resolver.h>
@@ -1746,16 +1746,23 @@ compute_keytag(dns_rdata_t *rdata, dns_rdata_dnskey_t *key) {
  */
 static isc_boolean_t
 isselfsigned(dns_validator_t *val) {
+	dns_fixedname_t fixed;
 	dns_rdataset_t *rdataset, *sigrdataset;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_t sigrdata = DNS_RDATA_INIT;
 	dns_rdata_dnskey_t key;
 	dns_rdata_rrsig_t sig;
 	dns_keytag_t keytag;
+	dns_name_t *name;
 	isc_result_t result;
+	dst_key_t *dstkey;
+	isc_mem_t *mctx;
+	isc_boolean_t answer = ISC_FALSE;
 
 	rdataset = val->event->rdataset;
 	sigrdataset = val->event->sigrdataset;
+	name = val->event->name;
+	mctx = val->view->mctx;
 
 	INSIST(rdataset->type == dns_rdatatype_dnskey);
 
@@ -1777,12 +1784,31 @@ isselfsigned(dns_validator_t *val) {
 			result = dns_rdata_tostruct(&sigrdata, &sig, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-			if (sig.algorithm == key.algorithm &&
-			    sig.keyid == keytag)
-				return (ISC_TRUE);
+			if (sig.algorithm != key.algorithm ||
+			    sig.keyid != keytag ||
+			    !dns_name_equal(name, &sig.signer))
+				continue;
+
+			dstkey = NULL;
+			result = dns_dnssec_keyfromrdata(name, &rdata, mctx,
+							 &dstkey);
+			if (result != ISC_R_SUCCESS)
+				continue;
+
+			result = dns_dnssec_verify2(name, rdataset, dstkey,
+						    ISC_TRUE, mctx, &sigrdata,
+						    dns_fixedname_name(&fixed));
+			dst_key_free(&dstkey);
+			if (result != ISC_R_SUCCESS)
+				continue;
+			if ((key.flags & DNS_KEYFLAG_REVOKE) == 0) {
+				answer = ISC_TRUE;
+				continue;
+			}
+			dns_view_untrust(val->view, name, &key, mctx);
 		}
 	}
-	return (ISC_FALSE);
+	return (answer);
 }
 
 /*%
@@ -1946,8 +1972,6 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 			isc_stdtime_get(&now);
 			ttl = ISC_MIN(event->rdataset->ttl,
 				      val->siginfo->timeexpire - now);
-			if (val->keyset != NULL)
-				ttl = ISC_MIN(ttl, val->keyset->ttl);
 			event->rdataset->ttl = ttl;
 			event->sigrdataset->ttl = ttl;
 		}
@@ -1998,24 +2022,101 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 }
 
 /*%
+ * Check whether this DNSKEY (keyrdata) signed the DNSKEY RRset
+ * (val->event->rdataset).
+ */
+static isc_result_t
+checkkey(dns_validator_t *val, dns_rdata_t *keyrdata, isc_uint16_t keyid,
+	 dns_secalg_t algorithm)
+{
+	dns_rdata_rrsig_t sig;
+	dst_key_t *dstkey = NULL;
+	isc_result_t result;
+
+	for (result = dns_rdataset_first(val->event->sigrdataset);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(val->event->sigrdataset))
+	{
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+
+		dns_rdataset_current(val->event->sigrdataset, &rdata);
+		result = dns_rdata_tostruct(&rdata, &sig, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		if (keyid != sig.keyid || algorithm != sig.algorithm)
+			continue;
+		if (dstkey == NULL) {
+			result = dns_dnssec_keyfromrdata(val->event->name,
+							 keyrdata,
+							 val->view->mctx,
+							 &dstkey);
+			if (result != ISC_R_SUCCESS)
+				/*
+				 * This really shouldn't happen, but...
+				 */
+				continue;
+		}
+		result = verify(val, dstkey, &rdata, sig.keyid);
+		if (result == ISC_R_SUCCESS)
+			break;
+	}
+	if (dstkey != NULL)
+		dst_key_free(&dstkey);
+	return (result);
+}
+
+/*%
+ * Find the DNSKEY that corresponds to the DS.
+ */
+static isc_result_t
+keyfromds(dns_validator_t *val, dns_rdataset_t *rdataset, dns_rdata_t *dsrdata,
+	  isc_uint8_t digest, isc_uint16_t keyid, dns_secalg_t algorithm,
+	  dns_rdata_t *keyrdata)
+{
+	dns_keytag_t keytag;
+	dns_rdata_dnskey_t key;
+	isc_result_t result;
+	unsigned char dsbuf[DNS_DS_BUFFERSIZE];
+
+	for (result = dns_rdataset_first(rdataset);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(rdataset))
+	{
+		dns_rdata_t newdsrdata = DNS_RDATA_INIT;
+
+		dns_rdata_reset(keyrdata);
+		dns_rdataset_current(rdataset, keyrdata);
+		result = dns_rdata_tostruct(keyrdata, &key, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		keytag = compute_keytag(keyrdata, &key);
+		if (keyid != keytag || algorithm != key.algorithm)
+			continue;
+		dns_rdata_reset(&newdsrdata);
+		result = dns_ds_buildrdata(val->event->name, keyrdata, digest,
+					   dsbuf, &newdsrdata);
+		if (result != ISC_R_SUCCESS) {
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "dns_ds_buildrdata() -> %s",
+				      dns_result_totext(result));
+			continue;
+		}
+		if (dns_rdata_compare(dsrdata, &newdsrdata) == 0)
+			break;
+	}
+	return (result);
+}
+
+/*%
  * Validate the DNSKEY RRset by looking for a DNSKEY that matches a
  * DLV record and that also verifies the DNSKEY RRset.
  */
 static isc_result_t
 dlv_validatezonekey(dns_validator_t *val) {
-	dns_keytag_t keytag;
 	dns_rdata_dlv_t dlv;
-	dns_rdata_dnskey_t key;
-	dns_rdata_rrsig_t sig;
 	dns_rdata_t dlvrdata = DNS_RDATA_INIT;
 	dns_rdata_t keyrdata = DNS_RDATA_INIT;
-	dns_rdata_t newdsrdata = DNS_RDATA_INIT;
-	dns_rdata_t sigrdata = DNS_RDATA_INIT;
 	dns_rdataset_t trdataset;
-	dst_key_t *dstkey;
 	isc_boolean_t supported_algorithm;
 	isc_result_t result;
-	unsigned char dsbuf[DNS_DS_BUFFERSIZE];
 	isc_uint8_t digest_type;
 
 	validator_log(val, ISC_LOG_DEBUG(3), "dlv_validatezonekey");
@@ -2080,70 +2181,27 @@ dlv_validatezonekey(dns_validator_t *val) {
 		dns_rdataset_init(&trdataset);
 		dns_rdataset_clone(val->event->rdataset, &trdataset);
 
-		for (result = dns_rdataset_first(&trdataset);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&trdataset))
-		{
-			dns_rdata_reset(&keyrdata);
-			dns_rdataset_current(&trdataset, &keyrdata);
-			result = dns_rdata_tostruct(&keyrdata, &key, NULL);
-			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-			keytag = compute_keytag(&keyrdata, &key);
-			if (dlv.key_tag != keytag ||
-			    dlv.algorithm != key.algorithm)
-				continue;
-			dns_rdata_reset(&newdsrdata);
-			result = dns_ds_buildrdata(val->event->name,
-						   &keyrdata, dlv.digest_type,
-						   dsbuf, &newdsrdata);
-			if (result != ISC_R_SUCCESS) {
-				validator_log(val, ISC_LOG_DEBUG(3),
-					      "dns_ds_buildrdata() -> %s",
-					      dns_result_totext(result));
-				continue;
-			}
-			/* Covert to DLV */
-			newdsrdata.type = dns_rdatatype_dlv;
-			if (dns_rdata_compare(&dlvrdata, &newdsrdata) == 0)
-				break;
-		}
+		/*
+		 * Convert to DLV to DS and find matching DNSKEY.
+		 */
+		dlvrdata.type = dns_rdatatype_ds;
+		result = keyfromds(val, &trdataset, &dlvrdata,
+				   dlv.digest_type, dlv.key_tag,
+				   dlv.algorithm, &keyrdata);
 		if (result != ISC_R_SUCCESS) {
 			dns_rdataset_disassociate(&trdataset);
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "no DNSKEY matching DLV");
 			continue;
 		}
+
 		validator_log(val, ISC_LOG_DEBUG(3),
 		      "Found matching DLV record: checking for signature");
+		/*
+		 * Check that this DNSKEY signed the DNSKEY rrset.
+		 */
+		result = checkkey(val, &keyrdata, dlv.key_tag, dlv.algorithm);
 
-		for (result = dns_rdataset_first(val->event->sigrdataset);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(val->event->sigrdataset))
-		{
-			dns_rdata_reset(&sigrdata);
-			dns_rdataset_current(val->event->sigrdataset,
-					     &sigrdata);
-			result = dns_rdata_tostruct(&sigrdata, &sig, NULL);
-			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-			if (dlv.key_tag != sig.keyid ||
-			    dlv.algorithm != sig.algorithm)
-				continue;
-			dstkey = NULL;
-			result = dns_dnssec_keyfromrdata(val->event->name,
-							 &keyrdata,
-							 val->view->mctx,
-							 &dstkey);
-			if (result != ISC_R_SUCCESS)
-				/*
-				 * This really shouldn't happen, but...
-				 */
-				continue;
-
-			result = verify(val, dstkey, &sigrdata, sig.keyid);
-			dst_key_free(&dstkey);
-			if (result == ISC_R_SUCCESS)
-				break;
-		}
 		dns_rdataset_disassociate(&trdataset);
 		if (result == ISC_R_SUCCESS)
 			break;
@@ -2185,14 +2243,10 @@ validatezonekey(dns_validator_t *val) {
 	dns_validatorevent_t *event;
 	dns_rdataset_t trdataset;
 	dns_rdata_t dsrdata = DNS_RDATA_INIT;
-	dns_rdata_t newdsrdata = DNS_RDATA_INIT;
 	dns_rdata_t keyrdata = DNS_RDATA_INIT;
 	dns_rdata_t sigrdata = DNS_RDATA_INIT;
-	unsigned char dsbuf[DNS_DS_BUFFERSIZE];
 	char namebuf[DNS_NAME_FORMATSIZE];
-	dns_keytag_t keytag;
 	dns_rdata_ds_t ds;
-	dns_rdata_dnskey_t key;
 	dns_rdata_rrsig_t sig;
 	dst_key_t *dstkey;
 	isc_boolean_t supported_algorithm;
@@ -2235,8 +2289,7 @@ validatezonekey(dns_validator_t *val) {
 			result = dns_keytable_findkeynode(val->keytable,
 							  val->event->name,
 							  sig.algorithm,
-							  sig.keyid,
-							  &keynode);
+							  sig.keyid, &keynode);
 			if (result == ISC_R_NOTFOUND &&
 			    dns_keytable_finddeepestmatch(val->keytable,
 				  val->event->name, found) != ISC_R_SUCCESS) {
@@ -2466,29 +2519,10 @@ validatezonekey(dns_validator_t *val) {
 		dns_rdataset_clone(val->event->rdataset, &trdataset);
 
 		/*
-		 * Look for the KEY that matches the DS record.
+		 * Find matching DNSKEY from DS.
 		 */
-		for (result = dns_rdataset_first(&trdataset);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&trdataset))
-		{
-			dns_rdata_reset(&keyrdata);
-			dns_rdataset_current(&trdataset, &keyrdata);
-			result = dns_rdata_tostruct(&keyrdata, &key, NULL);
-			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-			keytag = compute_keytag(&keyrdata, &key);
-			if (ds.key_tag != keytag ||
-			    ds.algorithm != key.algorithm)
-				continue;
-			dns_rdata_reset(&newdsrdata);
-			result = dns_ds_buildrdata(val->event->name,
-						   &keyrdata, ds.digest_type,
-						   dsbuf, &newdsrdata);
-			if (result != ISC_R_SUCCESS)
-				continue;
-			if (dns_rdata_compare(&dsrdata, &newdsrdata) == 0)
-				break;
-		}
+		result = keyfromds(val, &trdataset, &dsrdata, ds.digest_type,
+				   ds.key_tag, ds.algorithm, &keyrdata);
 		if (result != ISC_R_SUCCESS) {
 			dns_rdataset_disassociate(&trdataset);
 			validator_log(val, ISC_LOG_DEBUG(3),
@@ -2496,38 +2530,11 @@ validatezonekey(dns_validator_t *val) {
 			continue;
 		}
 
-		for (result = dns_rdataset_first(val->event->sigrdataset);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(val->event->sigrdataset))
-		{
-			dns_rdata_reset(&sigrdata);
-			dns_rdataset_current(val->event->sigrdataset,
-					     &sigrdata);
-			result = dns_rdata_tostruct(&sigrdata, &sig, NULL);
-			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-			if (ds.key_tag != sig.keyid ||
-			    ds.algorithm != sig.algorithm)
-				continue;
-			if (!dns_name_equal(val->event->name, &sig.signer)) {
-				validator_log(val, ISC_LOG_DEBUG(3),
-					      "DNSKEY signer mismatch");
-				continue;
-			}
-			dstkey = NULL;
-			result = dns_dnssec_keyfromrdata(val->event->name,
-							 &keyrdata,
-							 val->view->mctx,
-							 &dstkey);
-			if (result != ISC_R_SUCCESS)
-				/*
-				 * This really shouldn't happen, but...
-				 */
-				continue;
-			result = verify(val, dstkey, &sigrdata, sig.keyid);
-			dst_key_free(&dstkey);
-			if (result == ISC_R_SUCCESS)
-				break;
-		}
+		/*
+		 * Check that this DNSKEY signed the DNSKEY rrset.
+		 */
+		result = checkkey(val, &keyrdata, ds.key_tag, ds.algorithm);
+
 		dns_rdataset_disassociate(&trdataset);
 		if (result == ISC_R_SUCCESS)
 			break;

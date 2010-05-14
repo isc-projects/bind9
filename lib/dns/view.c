@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.161 2010/02/25 05:08:01 tbox Exp $ */
+/* $Id: view.c,v 1.162 2010/05/14 04:38:51 marka Exp $ */
 
 /*! \file */
 
@@ -33,9 +33,11 @@
 #include <dns/cache.h>
 #include <dns/db.h>
 #include <dns/dlz.h>
+#include <dns/dnssec.h>
 #include <dns/events.h>
 #include <dns/forward.h>
 #include <dns/keytable.h>
+#include <dns/keyvalues.h>
 #include <dns/master.h>
 #include <dns/masterdump.h>
 #include <dns/order.h>
@@ -1566,3 +1568,36 @@ dns_view_issecuredomain(dns_view_t *view, dns_name_t *name,
 	return (dns_keytable_issecuredomain(view->secroots_priv, name,
 					    secure_domain));
 }
+
+void
+dns_view_untrust(dns_view_t *view, dns_name_t *keyname,
+		 dns_rdata_dnskey_t *dnskey, isc_mem_t *mctx)
+{
+	isc_result_t result;
+	unsigned char data[4096];
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	isc_buffer_t buffer;
+	dst_key_t *key = NULL;
+	dns_keytable_t *sr = NULL;
+
+	/*
+	 * Clear the revoke bit, if set, so that the key will match what's
+	 * in secroots now.
+	 */
+	dnskey->flags &= ~DNS_KEYFLAG_REVOKE;
+
+	/* Convert dnskey to DST key. */
+	isc_buffer_init(&buffer, data, sizeof(data));
+	dns_rdata_fromstruct(&rdata, dnskey->common.rdclass,
+			     dns_rdatatype_dnskey, dnskey, &buffer);
+	result = dns_dnssec_keyfromrdata(keyname, &rdata, mctx, &key);
+	if (result != ISC_R_SUCCESS)
+		return;
+	result = dns_view_getsecroots(view, &sr);
+	if (result == ISC_R_SUCCESS) {
+		dns_keytable_deletekeynode(sr, key);
+		dns_keytable_detach(&sr);
+	}
+	dst_key_free(&key);
+}
+

@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.7 2010/01/18 23:48:39 tbox Exp $
+# $Id: tests.sh,v 1.8 2010/05/14 04:38:52 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -530,10 +530,11 @@ status=`expr $status + $ret`
 # Try validating with a revoked trusted key.
 # This should fail.
 
-echo "I:checking that validation fails due to revoked trusted key ($n)"
+echo "I:checking that validation returns insecure due to revoked trusted key ($n)"
 ret=0
 $DIG $DIGOPTS example. soa @10.53.0.5 > dig.out.ns5.test$n || ret=1
-grep "SERVFAIL" dig.out.ns5.test$n > /dev/null || ret=1
+grep "flags:.*; QUERY" dig.out.ns5.test$n > /dev/null || ret=1
+grep "flags:.* ad.*; QUERY" dig.out.ns5.test$n > /dev/null && ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
