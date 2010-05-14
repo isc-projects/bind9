@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.18 2010/04/28 23:49:34 tbox Exp $ */
+/* $Id: zone.c,v 1.540.2.19 2010/05/14 04:41:11 marka Exp $ */
 
 /*! \file */
 
@@ -2855,39 +2855,11 @@ static void
 untrust_key(dns_viewlist_t *viewlist, dns_name_t *keyname, isc_mem_t *mctx,
 	    dns_rdata_dnskey_t *dnskey)
 {
-	isc_result_t result;
-	unsigned char data[4096];
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	isc_buffer_t buffer;
 	dns_view_t *view;
-	dst_key_t *key = NULL;
-
-	/*
-	 * Clear the revoke bit, if set, so that the key will match what's
-	 * in secroots now.
-	 */
-	dnskey->flags &= ~DNS_KEYFLAG_REVOKE;
-
-	/* Convert dnskey to DST key. */
-	isc_buffer_init(&buffer, data, sizeof(data));
-	dns_rdata_fromstruct(&rdata, dnskey->common.rdclass,
-			     dns_rdatatype_dnskey, dnskey, &buffer);
-	result = dns_dnssec_keyfromrdata(keyname, &rdata, mctx, &key);
-	if (result != ISC_R_SUCCESS)
-		return;
 
 	for (view = ISC_LIST_HEAD(*viewlist); view != NULL;
-	     view = ISC_LIST_NEXT(view, link)) {
-		dns_keytable_t *sr = NULL;
-		result = dns_view_getsecroots(view, &sr);
-		if (result != ISC_R_SUCCESS)
-			continue;
-
-		dns_keytable_deletekeynode(sr, key);
-		dns_keytable_detach(&sr);
-	}
-
-	dst_key_free(&key);
+	     view = ISC_LIST_NEXT(view, link))
+		dns_view_untrust(view, keyname, dnskey, mctx);
 }
 
 /*
@@ -7201,6 +7173,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	dst_key_t *dstkey;
 	isc_stdtime_t now;
 	int pending = 0;
+	isc_boolean_t secure;
 
 	UNUSED(task);
 	INSIST(event != NULL && event->ev_type == DNS_EVENT_FETCHDONE);
@@ -7253,8 +7226,6 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 
 	/*
 	 * Validate the dnskeyset against the current trusted keys.
-	 * (Note, if a key has been revoked and isn't RSAMD5, then
-	 * its key ID will have changed.)
 	 */
 	for (result = dns_rdataset_first(&kfetch->dnskeysigset);
 	     result == ISC_R_SUCCESS;
@@ -7277,9 +7248,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 				break;
 
 			if (dst_key_alg(dstkey) == sig.algorithm &&
-			    (dst_key_id(dstkey) == sig.keyid ||
-			     (sig.algorithm != 1 && sig.keyid ==
-			       ((dst_key_id(dstkey) + 128) & 0xffff)))) {
+			    dst_key_id(dstkey) == sig.keyid) {
 				result = dns_dnssec_verify2(keyname,
 						    &kfetch->dnskeyset,
 						    dstkey, ISC_FALSE,
@@ -7312,15 +7281,11 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 			break;
 	}
 
-	/* Failed to validate?	Let's go home. */
-	if (kfetch->dnskeyset.trust != dns_trust_secure) {
-		dns_zone_log(zone, ISC_LOG_WARNING,
-			     "DNSKEY set for zone '%s' failed to validate",
-			     namebuf);
-		CHECK(minimal_update(kfetch, ver, &diff));
-		changed = ISC_TRUE;
-		goto failure;
-	}
+	/*
+	 * If we were not able to verify the answer using the current
+	 * trusted keys then all we can do is look at any revoked keys.
+	 */
+	secure = ISC_TF(kfetch->dnskeyset.trust == dns_trust_secure);
 
 	/*
 	 * First scan keydataset to find keys that are not in dnskeyset
@@ -7354,7 +7319,10 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 		if (! matchkey(&kfetch->dnskeyset, &keydatarr)) {
 			isc_boolean_t deletekey = ISC_FALSE;
 
-			if (now < keydata.addhd) {
+			if (!secure) {
+				if (now > keydata.removehd)
+					deletekey = ISC_TRUE;
+			} else if (now < keydata.addhd) {
 				dns_zone_log(zone, ISC_LOG_WARNING,
 					     "Pending key unexpectedly missing "
 					     "from %s; restarting acceptance "
@@ -7374,13 +7342,15 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 				keydata.refresh = refresh_time(kfetch);
 			}
 
-			/* Delete old version */
-			CHECK(update_one_rr(kfetch->db, ver, &diff,
-					    DNS_DIFFOP_DEL, keyname, 0,
-					    &keydatarr));
-			changed = ISC_TRUE;
+			if  (secure || deletekey) {
+				/* Delete old version */
+				CHECK(update_one_rr(kfetch->db, ver, &diff,
+						    DNS_DIFFOP_DEL, keyname, 0,
+						    &keydatarr));
+				changed = ISC_TRUE;
+			}
 
-			if (deletekey)
+			if (!secure || deletekey)
 				continue;
 
 			dns_rdata_reset(&keydatarr);
@@ -7439,7 +7409,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 			dns_rdataset_current(&kfetch->keydataset, &keydatarr);
 			dns_rdata_tostruct(&keydatarr, &keydata, NULL);
 
-			if (revoked) {
+			if (revoked && revocable(kfetch, &keydata)) {
 				if (keydata.addhd > now) {
 					/*
 					 * Key wasn't trusted yet, and now
@@ -7447,20 +7417,6 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 					 */
 					deletekey = ISC_TRUE;
 				} else if (keydata.removehd == 0) {
-					/*
-					 * Newly revoked key?  Make sure
-					 * it signed itself
-					 */
-					if(! revocable(kfetch, &keydata)) {
-						dns_zone_log(zone,
-							     ISC_LOG_WARNING,
-							 "Active key for zone "
-							 "'%s' is revoked but "
-							 "did not self-sign; "
-							 "ignoring.", namebuf);
-						continue;
-					}
-
 					/* Remove from secroots */
 					untrust_key(zone->view->viewlist,
 						    keyname, mctx, &dnskey);
@@ -7474,7 +7430,16 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 					/* Scheduled for removal */
 					deletekey = ISC_TRUE;
 				}
-			} else {
+			} else if (revoked) {
+				if (secure && keydata.removehd == 0) {
+					dns_zone_log(zone, ISC_LOG_WARNING,
+						     "Active key for zone "
+						     "'%s' is revoked but "
+						     "did not self-sign; "
+							 "ignoring.", namebuf);
+						continue;
+				}
+			} else if (secure) {
 				if (keydata.removehd != 0) {
 					/*
 					 * Key isn't revoked--but it
@@ -7495,7 +7460,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 
 			if (!deletekey && !newkey)
 				updatekey = ISC_TRUE;
-		} else {
+		} else if (secure) {
 			/*
 			 * Key wasn't in the key zone but it's
 			 * revoked now anyway, so just skip it
@@ -7641,6 +7606,7 @@ zone_refreshkeys(dns_zone_t *zone) {
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_keydata_t kd;
 	isc_stdtime_t now;
+	isc_boolean_t commit = ISC_FALSE;
 
 	ENTER;
 	REQUIRE(zone->db != NULL);
@@ -7732,12 +7698,19 @@ zone_refreshkeys(dns_zone_t *zone) {
 					 &kfetch->dnskeysigset,
 					 &kfetch->fetch);
 	}
+	if (!ISC_LIST_EMPTY(diff.tuples)) {
+		CHECK(increment_soa_serial(db, ver, &diff, zone->mctx));
+		commit = ISC_TRUE;
+		zone_journal(zone, &diff, "sync_keyzone");
+                DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADED);
+                zone_needdump(zone, 30);
+	}
   failure:
 	UNLOCK_ZONE(zone);
 
 	dns_rriterator_destroy(&rrit);
 	dns_diff_clear(&diff);
-	dns_db_closeversion(db, &ver, ISC_FALSE);
+	dns_db_closeversion(db, &ver, commit);
 	dns_db_detach(&db);
 }
 
@@ -11147,7 +11120,8 @@ zone_debuglog(dns_zone_t *zone, const char *me, int debuglevel,
 	vsnprintf(message, sizeof(message), fmt, ap);
 	va_end(ap);
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_ZONE,
-		      level, "%s: zone %s: %s", me, zone->strnamerd, message);
+		      level, "%s: %s %s: %s", me, zone->type != dns_zone_key ?
+		      "zone" : "managed-keys-zone", zone->strnamerd, message);
 }
 
 static int

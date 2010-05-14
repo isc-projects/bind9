@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.120 2009/11/28 15:57:37 vjs Exp $ */
+/* $Id: view.h,v 1.120.8.1 2010/05/14 04:41:12 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -73,6 +73,7 @@
 
 #include <dns/acl.h>
 #include <dns/fixedname.h>
+#include <dns/rdatastruct.h>
 #include <dns/types.h>
 
 ISC_LANG_BEGINDECLS
@@ -962,4 +963,19 @@ dns_view_issecuredomain(dns_view_t *view, dns_name_t *name,
  *\li	ISC_R_SUCCESS
  *\li	Any other value indicates failure
  */
+
+void 
+dns_view_untrust(dns_view_t *view, dns_name_t *keyname,
+                 dns_rdata_dnskey_t *dnskey, isc_mem_t *mctx);
+/*%<
+ * Remove keys that match 'keyname' and 'dnskey' from the views trust
+ * anchors.
+ *
+ * Requires:
+ * \li	'view' is valid.
+ * \li	'keyname' is valid.
+ * \li	'mctx' is valid.
+ * \li	'dnskey' is valid.
+ */
+
 #endif /* DNS_VIEW_H */
