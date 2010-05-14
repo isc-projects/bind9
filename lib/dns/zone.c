@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.563 2010/05/14 04:48:28 marka Exp $ */
+/* $Id: zone.c,v 1.564 2010/05/14 23:50:39 tbox Exp $ */
 
 /*! \file */
 
@@ -7702,8 +7702,8 @@ zone_refreshkeys(dns_zone_t *zone) {
 		CHECK(increment_soa_serial(db, ver, &diff, zone->mctx));
 		commit = ISC_TRUE;
 		zone_journal(zone, &diff, "sync_keyzone");
-                DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADED);
-                zone_needdump(zone, 30);
+		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADED);
+		zone_needdump(zone, 30);
 	}
   failure:
 	UNLOCK_ZONE(zone);

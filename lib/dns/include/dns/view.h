@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.122 2010/05/14 04:48:28 marka Exp $ */
+/* $Id: view.h,v 1.123 2010/05/14 23:50:40 tbox Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -175,7 +175,7 @@ struct dns_view {
 	/* Under owner's locking control. */
 	ISC_LINK(struct dns_view)	link;
 	dns_viewlist_t *		viewlist;
-	
+
 	dns_zone_t *			managed_keys;
 };
 
@@ -966,9 +966,9 @@ dns_view_issecuredomain(dns_view_t *view, dns_name_t *name,
  *\li	Any other value indicates failure
  */
 
-void 
+void
 dns_view_untrust(dns_view_t *view, dns_name_t *keyname,
-                 dns_rdata_dnskey_t *dnskey, isc_mem_t *mctx);
+		 dns_rdata_dnskey_t *dnskey, isc_mem_t *mctx);
 /*%<
  * Remove keys that match 'keyname' and 'dnskey' from the views trust
  * anchors.
