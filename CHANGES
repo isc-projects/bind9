@@ -1,3 +1,6 @@
+2891.	[maint]		Update empty-zones list to match
+			draft-ietf-dnsop-default-local-zones-13. [RT# 21099]
+
 2890.	[bug]		Handle the introduction of new trusted-keys and
 			DS, DLV RRsets better. [RT #21097]
 
