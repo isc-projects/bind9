@@ -173,7 +173,7 @@ options {
             <quoted_string> ] <string> <string>; ... };
         serial-queries <integer>; // obsolete
         serial-query-rate <integer>;
-        server-id ( <quoted_string> | none |;
+        server-id ( <quoted_string> | none | hostname );
         sig-validity-interval <integer>;
         sortlist { <address_match_element>; ... };
         stacksize <size>;
