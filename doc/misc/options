@@ -186,7 +186,7 @@ options {
             <quoted_string> ] <string> <string>; ... };
         serial-queries <integer>; // obsolete
         serial-query-rate <integer>;
-        server-id ( <quoted_string> | none |;
+        server-id ( <quoted_string> | none | hostname );
         session-keyalg <string>;
         session-keyfile ( <quoted_string> | none );
         session-keyname <string>;
