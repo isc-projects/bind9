@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.495.10.33 2010/02/25 10:55:21 tbox Exp $ */
+/* $Id: server.c,v 1.495.10.34 2010/05/14 03:33:28 marka Exp $ */
 
 /*! \file */
 
@@ -205,11 +205,13 @@ static const struct {
 	{ "168.192.IN-ADDR.ARPA", ISC_TRUE },
 #endif
 
-	/* RFC 3330 */
+	/* RFC 5735 and RFC 5737 */
 	{ "0.IN-ADDR.ARPA", ISC_FALSE },	/* THIS NETWORK */
 	{ "127.IN-ADDR.ARPA", ISC_FALSE },	/* LOOPBACK */
 	{ "254.169.IN-ADDR.ARPA", ISC_FALSE },	/* LINK LOCAL */
 	{ "2.0.192.IN-ADDR.ARPA", ISC_FALSE },	/* TEST NET */
+	{ "100.51.198.IN-ADDR.ARPA", ISC_FALSE },	/* TEST NET 2 */
+	{ "113.0.203.IN-ADDR.ARPA", ISC_FALSE },	/* TEST NET 3 */
 	{ "255.255.255.255.IN-ADDR.ARPA", ISC_FALSE },	/* BROADCAST */
 
 	/* Local IPv6 Unicast Addresses */
@@ -221,6 +223,12 @@ static const struct {
 	{ "9.E.F.IP6.ARPA", ISC_FALSE },	/* LINK LOCAL */
 	{ "A.E.F.IP6.ARPA", ISC_FALSE },	/* LINK LOCAL */
 	{ "B.E.F.IP6.ARPA", ISC_FALSE },	/* LINK LOCAL */
+
+	/* Example Prefix, RFC 3849. */
+	{ "8.B.D.0.1.0.0.2.IP6.ARPA", ISC_FALSE },
+
+	/* ORCHID Prefix, RFC 4843. */
+	{ "0.1.1.0.0.2.IP6.ARPA", ISC_FALSE }, 
 
 	{ NULL, ISC_FALSE }
 };
