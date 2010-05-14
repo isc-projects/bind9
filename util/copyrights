@@ -938,7 +938,7 @@
 ./contrib/dlz/drivers/include/dlz/dlz_stub_driver.h	X	2005
 ./contrib/dlz/drivers/include/dlz/sdlz_helper.h	X	2005
 ./contrib/dlz/drivers/rules.in			X	2005
-./contrib/dlz/drivers/sdlz_helper.c		X	2005
+./contrib/dlz/drivers/sdlz_helper.c		X	2005,2010
 ./contrib/idn/idnkit-1.0-src/ChangeLog		X	2003
 ./contrib/idn/idnkit-1.0-src/DISTFILES		X	2003
 ./contrib/idn/idnkit-1.0-src/INSTALL		X	2003
@@ -1282,7 +1282,7 @@
 ./doc/misc/ipv6					TXT.BRIEF	2000,2001,2004
 ./doc/misc/migration				TXT.BRIEF	2000,2001,2003,2004,2007,2008
 ./doc/misc/migration-4to9			TXT.BRIEF	2001,2004
-./doc/misc/options				X	2000,2001,2002,2003,2004,2005,2006,2007,2008
+./doc/misc/options				X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2010
 ./doc/misc/rfc-compliance			TXT.BRIEF	2001,2004
 ./doc/misc/roadmap				TXT.BRIEF	2000,2001,2004
 ./doc/misc/sdb					TXT.BRIEF	2000,2001,2004
