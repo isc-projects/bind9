@@ -1,3 +1,6 @@
+2890.	[bug]		Handle the introduction of new trusted-keys and
+			DS, DLV RRsets better. [RT #21097]
+
 2889.	[bug]		Elements of the grammar where not properly reported.
 			[RT #21046]
 

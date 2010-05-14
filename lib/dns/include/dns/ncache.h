@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ncache.h,v 1.25.268.2 2009/12/30 23:48:30 tbox Exp $ */
+/* $Id: ncache.h,v 1.25.268.3 2010/05/14 00:16:32 marka Exp $ */
 
 #ifndef DNS_NCACHE_H
 #define DNS_NCACHE_H 1
@@ -159,6 +159,13 @@ dns_ncache_getrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
  *\li	#ISC_R_SUCCESS		- the rdataset was found.
  *\li	#ISC_R_NOTFOUND		- the rdataset was not found.
  *
+ */
+
+isc_result_t
+dns_ncache_getsigrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
+                          dns_rdatatype_t covers, dns_rdataset_t *rdataset);
+/*%<
+ * Similar to dns_ncache_getrdataset() but get the rrsig that matches.
  */
 
 void
