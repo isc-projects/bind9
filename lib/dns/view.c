@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.159.8.3 2010/05/14 04:41:11 marka Exp $ */
+/* $Id: view.c,v 1.159.8.4 2010/05/14 04:49:40 marka Exp $ */
 
 /*! \file */
 
@@ -183,6 +183,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->v4_aaaa = dns_v4_aaaa_ok;
 #endif
 	dns_fixedname_init(&view->dlv_fixed);
+	view->managed_keys = NULL;
 
 #ifdef BIND9
 	result = dns_order_create(view->mctx, &view->order);
@@ -361,6 +362,8 @@ destroy(dns_view_t *view) {
 		dns_stats_detach(&view->resquerystats);
 	if (view->secroots_priv != NULL)
 		dns_keytable_detach(&view->secroots_priv);
+	if (view->managed_keys != NULL)
+		dns_zone_detach(&view->managed_keys);
 	dns_fwdtable_destroy(&view->fwdtable);
 	dns_aclenv_destroy(&view->aclenv);
 	DESTROYLOCK(&view->lock);
@@ -423,6 +426,11 @@ view_flushanddetach(dns_view_t **viewp, isc_boolean_t flush) {
 			dns_zt_flushanddetach(&view->zonetable);
 		else
 			dns_zt_detach(&view->zonetable);
+		if (view->managed_keys != NULL) {
+			if (view->flush)
+				dns_zone_flush(view->managed_keys);
+			dns_zone_detach(&view->managed_keys);
+		}
 #endif
 		done = all_done(view);
 		UNLOCK(&view->lock);

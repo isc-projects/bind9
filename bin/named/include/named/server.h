@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.104 2009/11/28 15:57:37 vjs Exp $ */
+/* $Id: server.h,v 1.104.8.1 2010/05/14 04:49:40 marka Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -55,8 +55,6 @@ struct ns_server {
 	char *			statsfile;	/*%< Statistics file name */
 	char *			dumpfile;	/*%< Dump file name */
 	char *			bindkeysfile;	/*%< bind.keys file name */
-	isc_boolean_t           managedkeys;    /*%< A managed-keys
-						     statement exists */
 	char *			recfile;	/*%< Recursive file name */
 	isc_boolean_t		version_set;	/*%< User has set version */
 	char *			version;	/*%< User-specified version */

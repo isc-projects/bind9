@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.450.4.6 2010/02/25 05:05:07 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.450.4.7 2010/05/14 04:49:40 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4870,6 +4870,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> server-id <replaceable>server_id_string</replaceable>; </optional>
     <optional> directory <replaceable>path_name</replaceable>; </optional>
     <optional> key-directory <replaceable>path_name</replaceable>; </optional>
+    <optional> managed-keys-directory <replaceable>path_name</replaceable>; </optional>
     <optional> named-xfer <replaceable>path_name</replaceable>; </optional>
     <optional> tkey-gssapi-credential <replaceable>principal</replaceable>; </optional>
     <optional> tkey-domain <replaceable>domainname</replaceable>; </optional>
@@ -5186,6 +5187,19 @@ badresp:1,adberr:0,findfail:0,valfail:0]
                 <filename>bind.keys</filename>,
                 <filename>rndc.key</filename> or
                 <filename>session.key</filename>.)
+              </para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term><command>managed-keys-directory</command></term>
+            <listitem>
+              <para>
+		The directory used to hold the files used to track managed keys.
+		By default it is the working directory.  It there are no
+		views then the file <filename>managed-keys.bind</filename>
+		otherwise a SHA256 hash of the view name is used with
+		<filename>.mkeys</filename> extension added.
               </para>
             </listitem>
           </varlistentry>

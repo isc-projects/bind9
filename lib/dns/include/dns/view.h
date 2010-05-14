@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.120.8.1 2010/05/14 04:41:12 marka Exp $ */
+/* $Id: view.h,v 1.120.8.2 2010/05/14 04:49:40 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -175,6 +175,8 @@ struct dns_view {
 	/* Under owner's locking control. */
 	ISC_LINK(struct dns_view)	link;
 	dns_viewlist_t *		viewlist;
+	
+	dns_zone_t *			managed_keys;
 };
 
 #define DNS_VIEW_MAGIC			ISC_MAGIC('V','i','e','w')

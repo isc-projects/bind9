@@ -1,3 +1,6 @@
+2893.	[bug]		Improve managed keys support.  New named.conf option
+			managed-keys-directory. [RT #20924]
+
 2892.	[bug]		Handle REVOKED keys better. [RT #20961]
 
 2891.	[maint]		Update empty-zones list to match

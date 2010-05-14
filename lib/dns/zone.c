@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.19 2010/05/14 04:41:11 marka Exp $ */
+/* $Id: zone.c,v 1.540.2.20 2010/05/14 04:49:40 marka Exp $ */
 
 /*! \file */
 
@@ -11087,7 +11087,8 @@ dns_zone_logc(dns_zone_t *zone, isc_logcategory_t *category,
 	vsnprintf(message, sizeof(message), fmt, ap);
 	va_end(ap);
 	isc_log_write(dns_lctx, category, DNS_LOGMODULE_ZONE,
-		      level, "zone %s: %s", zone->strnamerd, message);
+		      level, "%s %s: %s", (zone->type == dns_zone_key) ?
+		      "managed-keys-zone" : "zone", zone->strnamerd, message);
 }
 
 void
@@ -11102,7 +11103,8 @@ dns_zone_log(dns_zone_t *zone, int level, const char *fmt, ...) {
 	vsnprintf(message, sizeof(message), fmt, ap);
 	va_end(ap);
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_ZONE,
-		      level, "zone %s: %s", zone->strnamerd, message);
+		      level, "%s %s: %s", (zone->type == dns_zone_key) ?
+		      "managed-keys-zone" : "zone", zone->strnamerd, message);
 }
 
 static void
