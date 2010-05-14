@@ -146,7 +146,7 @@
 ./bin/named/bindkeys.pl				PERL	2009
 ./bin/named/builtin.c				C	2001,2002,2003,2004,2005,2007,2009
 ./bin/named/client.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
-./bin/named/config.c				C	2001,2002,2003,2004,2005,2006,2007,2008,2009
+./bin/named/config.c				C	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
 ./bin/named/control.c				C	2001,2002,2003,2004,2005,2006,2007,2009
 ./bin/named/controlconf.c			C	2001,2002,2003,2004,2005,2006,2007,2008
 ./bin/named/convertxsl.pl			PERL	2006,2007,2008
@@ -167,7 +167,7 @@
 ./bin/named/include/named/notify.h		C	1999,2000,2001,2004,2005,2007,2009
 ./bin/named/include/named/ns_smf_globals.h	C	2005,2007
 ./bin/named/include/named/query.h		C	1999,2000,2001,2002,2004,2005,2007
-./bin/named/include/named/server.h		C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
+./bin/named/include/named/server.h		C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
 ./bin/named/include/named/sortlist.h		C	2000,2001,2004,2005,2006,2007
 ./bin/named/include/named/statschannel.h	C	2008
 ./bin/named/include/named/tkeyconf.h		C	1999,2000,2001,2004,2005,2006,2007
@@ -195,7 +195,7 @@
 ./bin/named/main.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./bin/named/named.8				MAN	DOCBOOK
 ./bin/named/named.conf.5			MAN	DOCBOOK
-./bin/named/named.conf.docbook			SGML	2004,2005,2006,2007,2008,2009
+./bin/named/named.conf.docbook			SGML	2004,2005,2006,2007,2008,2009,2010
 ./bin/named/named.conf.html			HTML	DOCBOOK
 ./bin/named/named.docbook			SGML	2000,2001,2003,2004,2005,2006,2007,2008,2009
 ./bin/named/named.html				HTML	DOCBOOK
@@ -1168,7 +1168,7 @@
 ./contrib/dlz/drivers/include/dlz/dlz_stub_driver.h	X	2005
 ./contrib/dlz/drivers/include/dlz/sdlz_helper.h	X	2005
 ./contrib/dlz/drivers/rules.in			X	2005
-./contrib/dlz/drivers/sdlz_helper.c		X	2005
+./contrib/dlz/drivers/sdlz_helper.c		X	2005,2010
 ./contrib/idn/README.idnkit			X	2005,2009
 ./contrib/idn/idnkit-1.0-src/ChangeLog		X	2003
 ./contrib/idn/idnkit-1.0-src/DISTFILES		X	2003
@@ -1779,7 +1779,7 @@
 ./doc/misc/ipv6					TXT.BRIEF	2000,2001,2004
 ./doc/misc/migration				TXT.BRIEF	2000,2001,2003,2004,2007,2008
 ./doc/misc/migration-4to9			TXT.BRIEF	2001,2004
-./doc/misc/options				X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
+./doc/misc/options				X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
 ./doc/misc/rfc-compliance			TXT.BRIEF	2001,2004
 ./doc/misc/roadmap				TXT.BRIEF	2000,2001,2004
 ./doc/misc/sdb					TXT.BRIEF	2000,2001,2004
@@ -1914,7 +1914,7 @@
 ./lib/dns/include/dns/masterdump.h		C	1999,2000,2001,2002,2004,2005,2006,2007,2008
 ./lib/dns/include/dns/message.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
 ./lib/dns/include/dns/name.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2009
-./lib/dns/include/dns/ncache.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009
+./lib/dns/include/dns/ncache.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010
 ./lib/dns/include/dns/nsec.h			C	1999,2000,2001,2003,2004,2005,2006,2007,2008
 ./lib/dns/include/dns/nsec3.h			C	2008,2009
 ./lib/dns/include/dns/opcode.h			C	2002,2004,2005,2006,2007
@@ -1950,10 +1950,10 @@
 ./lib/dns/include/dns/tsec.h			C	2009
 ./lib/dns/include/dns/tsig.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2009
 ./lib/dns/include/dns/ttl.h			C	1999,2000,2001,2004,2005,2006,2007
-./lib/dns/include/dns/types.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
+./lib/dns/include/dns/types.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
 ./lib/dns/include/dns/validator.h		C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
 ./lib/dns/include/dns/version.h			C	2001,2004,2005,2006,2007
-./lib/dns/include/dns/view.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
+./lib/dns/include/dns/view.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
 ./lib/dns/include/dns/xfrin.h			C	1999,2000,2001,2003,2004,2005,2006,2007,2009
 ./lib/dns/include/dns/zone.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./lib/dns/include/dns/zonekey.h			C	2001,2004,2005,2006,2007
