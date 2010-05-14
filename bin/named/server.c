@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.520.12.14 2010/05/14 03:31:06 marka Exp $ */
+/* $Id: server.c,v 1.520.12.15 2010/05/14 23:47:48 tbox Exp $ */
 
 /*! \file */
 
@@ -228,7 +228,7 @@ static const struct {
 	{ "8.B.D.0.1.0.0.2.IP6.ARPA", ISC_FALSE },
 
 	/* ORCHID Prefix, RFC 4843. */
-	{ "0.1.1.0.0.2.IP6.ARPA", ISC_FALSE }, 
+	{ "0.1.1.0.0.2.IP6.ARPA", ISC_FALSE },
 
 	{ NULL, ISC_FALSE }
 };
