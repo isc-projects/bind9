@@ -1,3 +1,6 @@
+2895.	[func]		genrandom: add support for the generation of multiple
+			files.  [RT #20917]
+
 2894.	[contrib]	DLZ LDAP support now use '$' not '%'. [RT #21294]
 
 2893.	[bug]		Improve managed keys support.  New named.conf option
