@@ -1066,8 +1066,8 @@
 ./bin/tools/arpaname.docbook			SGML	2009
 ./bin/tools/arpaname.html			HTML	2009
 ./bin/tools/genrandom.8				MAN	2009
-./bin/tools/genrandom.c				C	2000,2001,2002,2003,2004,2005,2007,2009
-./bin/tools/genrandom.docbook			SGML	2009
+./bin/tools/genrandom.c				C	2000,2001,2002,2003,2004,2005,2007,2009,2010
+./bin/tools/genrandom.docbook			SGML	2009,2010
 ./bin/tools/genrandom.html			HTML	2009
 ./bin/tools/isc-hmac-fixup.8			MAN	2010
 ./bin/tools/isc-hmac-fixup.c			C	2010
