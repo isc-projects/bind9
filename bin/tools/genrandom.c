@@ -15,12 +15,13 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: genrandom.c,v 1.5 2010/05/17 04:38:45 marka Exp $ */
+/* $Id: genrandom.c,v 1.6 2010/05/17 05:31:43 marka Exp $ */
 
 /*! \file */
 #include <config.h>
 
 #include <isc/commandline.h>
+#include <isc/print.h>
 #include <isc/stdlib.h>
 #include <isc/util.h>
 
