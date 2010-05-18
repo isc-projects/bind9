@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.23 2010/05/18 01:40:34 marka Exp $ */
+/* $Id: zone.c,v 1.540.2.24 2010/05/18 02:35:11 tbox Exp $ */
 
 /*! \file */
 
@@ -13680,7 +13680,7 @@ clean_nsec3param(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	CHECK(dns_db_getoriginnode(db, &node));
 
 	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_dnskey,
-                                     dns_rdatatype_none, 0, &rdataset, NULL);
+				     dns_rdatatype_none, 0, &rdataset, NULL);
 	if (dns_rdataset_isassociated(&rdataset))
 		dns_rdataset_disassociate(&rdataset);
 	if (result != ISC_R_NOTFOUND)
@@ -13810,8 +13810,8 @@ zone_rekey(dns_zone_t *zone) {
 		TIME_NOW(&timenow);
 		zone_settimer(zone, &timenow);
 
-                for (tuple = ISC_LIST_HEAD(diff.tuples);
-                     tuple != NULL;
+		for (tuple = ISC_LIST_HEAD(diff.tuples);
+		     tuple != NULL;
 		     tuple = ISC_LIST_NEXT(tuple, link)) {
 			dns_rdata_dnskey_t dnskey;
 			dns_secalg_t algorithm;
