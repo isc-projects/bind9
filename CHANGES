@@ -1,3 +1,6 @@
+2898.	[bug]		nslookup leaked memory when -domain=value was 
+			specified. [RT #21301]
+
 2897.	[bug]		NSEC3 chains could be left behind when transitioning
 			to insecure. [RT #21040]
 			
