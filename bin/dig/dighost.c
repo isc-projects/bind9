@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.304.12.18 2009/11/10 17:26:47 each Exp $ */
+/* $Id: dighost.c,v 1.304.12.19 2010/05/18 01:51:02 marka Exp $ */
 
 /*! \file
  *  \note
@@ -990,12 +990,21 @@ make_searchlist_entry(char *domain) {
 }
 
 static void
+clear_searchlist(void) {
+	dig_searchlist_t *search;
+	while ((search = ISC_LIST_HEAD(search_list)) != NULL) {
+		ISC_LIST_UNLINK(search_list, search, link);
+		isc_mem_free(mctx, search);
+	}
+}
+
+static void
 create_search_list(lwres_conf_t *confdata) {
 	int i;
 	dig_searchlist_t *search;
 
 	debug("create_search_list()");
-	ISC_LIST_INIT(search_list);
+	clear_searchlist();
 
 	for (i = 0; i < confdata->searchnxt; i++) {
 		search = make_searchlist_entry(confdata->search[i]);
@@ -1038,7 +1047,7 @@ setup_system(void) {
 	else { /* No search list. Use the domain name if any */
 		if (lwconf->domainname != NULL) {
 			domain = make_searchlist_entry(lwconf->domainname);
-			ISC_LIST_INITANDAPPEND(search_list, domain, link);
+			ISC_LIST_APPEND(search_list, domain, link);
 			domain  = NULL;
 		}
 	}
@@ -1091,15 +1100,6 @@ setup_system(void) {
 
 #endif
 
-}
-
-static void
-clear_searchlist(void) {
-	dig_searchlist_t *search;
-	while ((search = ISC_LIST_HEAD(search_list)) != NULL) {
-		ISC_LIST_UNLINK(search_list, search, link);
-		isc_mem_free(mctx, search);
-	}
 }
 
 /*%
