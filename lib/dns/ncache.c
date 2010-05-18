@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ncache.c,v 1.43.268.4 2010/05/14 23:49:20 tbox Exp $ */
+/* $Id: ncache.c,v 1.43.268.5 2010/05/18 06:29:32 marka Exp $ */
 
 /*! \file */
 
@@ -191,7 +191,7 @@ dns_ncache_addoptout(dns_message_t *message, dns_db_t *cache,
 					isc_buffer_putuint16(&buffer,
 							     rdataset->type);
 					isc_buffer_putuint8(&buffer,
-							     rdataset->trust);
+					       (unsigned char)rdataset->trust);
 					/*
 					 * Copy the rdataset into the buffer.
 					 */
@@ -514,7 +514,7 @@ static void
 rdataset_settrust(dns_rdataset_t *rdataset, dns_trust_t trust) {
 	unsigned char *raw = rdataset->private3;
 
-	raw[-1] = trust;
+	raw[-1] = (unsigned char)trust;
 }
 
 static dns_rdatasetmethods_t rdataset_methods = {
