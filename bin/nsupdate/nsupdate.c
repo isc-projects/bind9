@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.163.48.6 2010/03/12 03:39:34 marka Exp $ */
+/* $Id: nsupdate.c,v 1.163.48.7 2010/05/18 06:25:39 marka Exp $ */
 
 /*! \file */
 
@@ -2589,7 +2589,7 @@ start_update(void) {
 		dns_name_init(name, NULL);
 		dns_name_clone(userzone, name);
 	} else {
-		dns_rdataset_t *rdataset;
+		dns_rdataset_t *tmprdataset;
 		result = dns_message_firstname(updatemsg, section);
 		if (result == ISC_R_NOMORE) {
 			section = DNS_SECTION_PREREQUISITE;
@@ -2613,10 +2613,10 @@ start_update(void) {
 		 * records live in the parent zone so we need to start our
 		 * search one label up.
 		 */
-		rdataset = ISC_LIST_HEAD(firstname->list);
+		tmprdataset = ISC_LIST_HEAD(firstname->list);
 		if (section == DNS_SECTION_UPDATE &&
 		    !dns_name_equal(firstname, dns_rootname) &&
-		    rdataset->type == dns_rdatatype_ds) {
+		    tmprdataset->type == dns_rdatatype_ds) {
 		    unsigned int labels = dns_name_countlabels(name);
 		    dns_name_getlabelsequence(name, 1, labels - 1, name);
 		}
