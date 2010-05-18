@@ -1,3 +1,5 @@
+2899.	[port]		win32: Support linking against OpenSSL 1.0.0.
+
 2898.	[bug]		nslookup leaked memory when -domain=value was 
 			specified. [RT #21301]
 
