@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.22 2010/05/18 01:04:26 marka Exp $ */
+/* $Id: zone.c,v 1.540.2.23 2010/05/18 01:40:34 marka Exp $ */
 
 /*! \file */
 
@@ -13668,6 +13668,32 @@ dnskey_sane(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	return (ISC_FALSE);
 }
 
+static isc_result_t
+clean_nsec3param(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
+		 dns_diff_t *diff)
+{
+	isc_result_t result;
+	dns_dbnode_t *node = NULL;
+	dns_rdataset_t rdataset;
+
+	dns_rdataset_init(&rdataset);
+	CHECK(dns_db_getoriginnode(db, &node));
+
+	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_dnskey,
+                                     dns_rdatatype_none, 0, &rdataset, NULL);
+	if (dns_rdataset_isassociated(&rdataset))
+		dns_rdataset_disassociate(&rdataset);
+	if (result != ISC_R_NOTFOUND)
+		goto failure;
+
+	result = dns_nsec3param_deletechains(db, ver, zone, diff);
+
+ failure:
+	if (node != NULL)
+		dns_db_detachnode(db, &node);
+	return (result);
+}
+
 static void
 zone_rekey(dns_zone_t *zone) {
 	isc_result_t result;
@@ -13757,6 +13783,7 @@ zone_rekey(dns_zone_t *zone) {
 		if ((newactive || !ISC_LIST_EMPTY(diff.tuples)) &&
 		    dnskey_sane(zone, db, ver, &diff)) {
 			CHECK(dns_diff_apply(&diff, db, ver));
+			CHECK(clean_nsec3param(zone, db, ver, &diff));
 			CHECK(sign_apex(zone, db, ver, dns_rdatatype_dnskey,
 					&diff));
 			CHECK(add_signing_records(db, zone->privatetype, ver,
@@ -13807,6 +13834,36 @@ zone_rekey(dns_zone_t *zone) {
 				dns_zone_log(zone, ISC_LOG_ERROR,
 					     "zone_signwithkey failed: %s",
 					      dns_result_totext(result));
+			}
+		}
+
+		/*
+		 * Cause the zone to add/delete NSEC3 chains for the
+		 * deferred NSEC3PARAM changes.
+		 */
+		for (tuple = ISC_LIST_HEAD(diff.tuples);
+		     tuple != NULL;
+		     tuple = ISC_LIST_NEXT(tuple, link)) {
+			unsigned char buf[DNS_NSEC3PARAM_BUFFERSIZE];
+			dns_rdata_t rdata = DNS_RDATA_INIT;
+			dns_rdata_nsec3param_t nsec3param;
+
+			if (tuple->rdata.type != zone->privatetype ||
+			    tuple->op != DNS_DIFFOP_ADD)
+				continue;
+
+			if (!dns_nsec3param_fromprivate(&tuple->rdata, &rdata,
+							buf, sizeof(buf)))
+				continue;
+			dns_rdata_tostruct(&rdata, &nsec3param, NULL);
+			if (nsec3param.flags == 0)
+				continue;
+
+			result = zone_addnsec3chain(zone, &nsec3param);
+			if (result != ISC_R_SUCCESS) {
+				dns_zone_log(zone, ISC_LOG_ERROR,
+					     "zone_addnsec3chain failed: %s",
+					     dns_result_totext(result));
 			}
 		}
 		UNLOCK_ZONE(zone);

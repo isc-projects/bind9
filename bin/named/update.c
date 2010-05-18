@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.176.4.5 2010/02/26 23:49:47 tbox Exp $ */
+/* $Id: update.c,v 1.176.4.6 2010/05/18 01:40:34 marka Exp $ */
 
 #include <config.h>
 
@@ -3397,125 +3397,6 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 	return (result);
 }
 
-/*
- * Mark all NSEC3 chains for deletion without creating a NSEC chain as
- * a side effect of deleting the last chain.
- */
-static isc_result_t
-delete_chains(dns_db_t *db, dns_dbversion_t *ver, dns_zone_t *zone,
-	      dns_diff_t *diff)
-{
-	dns_dbnode_t *node = NULL;
-	dns_difftuple_t *tuple = NULL;
-	dns_name_t next;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	dns_rdataset_t rdataset;
-	isc_boolean_t flag;
-	isc_result_t result = ISC_R_SUCCESS;
-	unsigned char buf[DNS_NSEC3PARAM_BUFFERSIZE + 1];
-	dns_name_t *origin = dns_zone_getorigin(zone);
-	dns_rdatatype_t privatetype = dns_zone_getprivatetype(zone);
-
-	dns_name_init(&next, NULL);
-	dns_rdataset_init(&rdataset);
-
-	result = dns_db_getoriginnode(db, &node);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	/*
-	 * Cause all NSEC3 chains to be deleted.
-	 */
-	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_nsec3param,
-				     0, (isc_stdtime_t) 0, &rdataset, NULL);
-	if (result == ISC_R_NOTFOUND)
-		goto try_private;
-	if (result != ISC_R_SUCCESS)
-		goto failure;
-
-	for (result = dns_rdataset_first(&rdataset);
-	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset)) {
-		dns_rdata_t private = DNS_RDATA_INIT;
-
-		dns_rdataset_current(&rdataset, &rdata);
-
-		CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_DEL, origin,
-					   rdataset.ttl, &rdata, &tuple));
-		CHECK(do_one_tuple(&tuple, db, ver, diff));
-		INSIST(tuple == NULL);
-
-		dns_nsec3param_toprivate(&rdata, &private, privatetype,
-					 buf, sizeof(buf));
-		buf[2] = DNS_NSEC3FLAG_REMOVE | DNS_NSEC3FLAG_NONSEC;
-
-		CHECK(rr_exists(db, ver, origin, &rdata, &flag));
-
-		if (!flag) {
-			CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD,
-						   origin, 0, &rdata, &tuple));
-			CHECK(do_one_tuple(&tuple, db, ver, diff));
-			INSIST(tuple == NULL);
-		}
-		dns_rdata_reset(&rdata);
-	}
-	if (result != ISC_R_NOMORE)
-		goto failure;
-
-	dns_rdataset_disassociate(&rdataset);
-
- try_private:
-	if (privatetype == 0)
-		goto success;
-	result = dns_db_findrdataset(db, node, ver, privatetype, 0,
-				     (isc_stdtime_t) 0, &rdataset, NULL);
-	if (result == ISC_R_NOTFOUND)
-		goto success;
-	if (result != ISC_R_SUCCESS)
-		goto failure;
-
-	for (result = dns_rdataset_first(&rdataset);
-	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset)) {
-		dns_rdataset_current(&rdataset, &rdata);
-		INSIST(rdata.length <= sizeof(buf));
-		memcpy(buf, rdata.data, rdata.length);
-
-		if (buf[0] != 0 ||
-		    buf[2] == (DNS_NSEC3FLAG_REMOVE | DNS_NSEC3FLAG_NONSEC)) {
-			dns_rdata_reset(&rdata);
-			continue;
-		}
-
-		CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_DEL, origin,
-					   0, &rdata, &tuple));
-		CHECK(do_one_tuple(&tuple, db, ver, diff));
-		INSIST(tuple == NULL);
-
-		buf[2] = DNS_NSEC3FLAG_REMOVE | DNS_NSEC3FLAG_NONSEC;
-
-		CHECK(rr_exists(db, ver, origin, &rdata, &flag));
-
-		if (!flag) {
-			CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD,
-						   origin, 0, &rdata, &tuple));
-			CHECK(do_one_tuple(&tuple, db, ver, diff));
-			INSIST(tuple == NULL);
-		}
-		dns_rdata_reset(&rdata);
-	}
-	if (result != ISC_R_NOMORE)
-		goto failure;
- success:
-	result = ISC_R_SUCCESS;
-
- failure:
-	if (dns_rdataset_isassociated(&rdataset))
-		dns_rdataset_disassociate(&rdataset);
-	dns_db_detachnode(db, &node);
-	return (result);
-}
-
 static isc_boolean_t
 isdnssec(dns_db_t *db, dns_dbversion_t *ver, dns_rdatatype_t privatetype) {
 	isc_result_t result;
@@ -4175,7 +4056,8 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			 * the last signature for the DNSKEY records are
 			 * remove any NSEC chain present will also be removed.
 			 */
-			 CHECK(delete_chains(db, ver, zone, &diff));
+			 CHECK(dns_nsec3param_deletechains(db, ver, zone,
+							   &diff));
 		} else if (has_dnskey && isdnssec(db, ver, privatetype)) {
 			isc_uint32_t interval;
 			interval = dns_zone_getsigvalidityinterval(zone);

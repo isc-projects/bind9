@@ -1,3 +1,6 @@
+2897.	[bug]		NSEC3 chains could be left behind when transitioning
+			to insecure. [RT #21040]
+			
 2896.	[bug]		"rndc sign" failed to properly update the zone
 			when adding a DNSKEY for publication only. [RT #21045]
 
