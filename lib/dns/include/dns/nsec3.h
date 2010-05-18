@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3.h,v 1.10 2009/10/08 23:48:10 tbox Exp $ */
+/* $Id: nsec3.h,v 1.11 2010/05/18 01:39:41 marka Exp $ */
 
 #ifndef DNS_NSEC3_H
 #define DNS_NSEC3_H 1
@@ -238,6 +238,15 @@ dns_nsec3param_toprivate(dns_rdata_t *src, dns_rdata_t *target,
  *
  * 'buf' should be at least src->length + 1 in size.
  */
+
+isc_result_t
+dns_nsec3param_deletechains(dns_db_t *db, dns_dbversion_t *ver,
+                            dns_zone_t *zone, dns_diff_t *diff);
+
+/*%<
+ * Mark NSEC3PARAM for deletion.
+ */
+
 
 ISC_LANG_ENDDECLS
 
