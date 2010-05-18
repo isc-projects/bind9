@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.21 2010/05/14 23:49:20 tbox Exp $ */
+/* $Id: zone.c,v 1.540.2.22 2010/05/18 01:04:26 marka Exp $ */
 
 /*! \file */
 
@@ -365,7 +365,7 @@ struct dns_zone {
 #define DNS_ZONEFLG_NEEDCOMPACT 0x02000000U
 #define DNS_ZONEFLG_REFRESHING	0x04000000U	/*%< Refreshing keydata */
 #define DNS_ZONEFLG_THAW	0x08000000U
-#define DNS_ZONEFLG_NOTIFYRESIGN 0x10000000U
+/* #define DNS_ZONEFLG_XXXXX	0x10000000U   XXXMPA unused. */
 #define DNS_ZONEFLG_NODELAY	0x20000000U
 
 #define DNS_ZONE_OPTION(z,o) (((z)->options & (o)) != 0)
@@ -3051,11 +3051,11 @@ increment_soa_serial(dns_db_t *db, dns_dbversion_t *ver,
 /*
  * Write all transactions in 'diff' to the zone journal file.
  */
-static void
+static isc_result_t
 zone_journal(dns_zone_t *zone, dns_diff_t *diff, const char *caller) {
 	const char me[] = "zone_journal";
 	const char *journalfile;
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	dns_journal_t *journal = NULL;
 
 	ENTER;
@@ -3067,7 +3067,7 @@ zone_journal(dns_zone_t *zone, dns_diff_t *diff, const char *caller) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "%s:dns_journal_open -> %s\n",
 				     caller, dns_result_totext(result));
-			return;
+			return (result);
 		}
 
 		result = dns_journal_write_transaction(journal, diff);
@@ -3076,9 +3076,10 @@ zone_journal(dns_zone_t *zone, dns_diff_t *diff, const char *caller) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "%s:dns_journal_write_transaction -> %s\n",
 				     caller, dns_result_totext(result));
-			return;
+			return (result);
 		}
 	}
+	return (result);
 }
 
 /*
@@ -6462,7 +6463,6 @@ zone_sign(dns_zone_t *zone) {
 	unsigned int nkeys = 0;
 	isc_uint32_t nodes;
 	isc_boolean_t was_ksk;
-	isc_time_t when;
 
 	dns_rdataset_init(&rdataset);
 	dns_fixedname_init(&fixed);
@@ -6819,18 +6819,9 @@ zone_sign(dns_zone_t *zone) {
 	/*
 	 * Write changes to journal file.
 	 */
-	zone_journal(zone, &sig_diff, "zone_sign");
-
-	/*
-	 * Notify slaves, if appropriate.
-	 */
-	TIME_NOW(&when);
-	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOTIFYRESIGN)) {
-		LOCK_ZONE(zone);
-		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NOTIFYRESIGN);
-		UNLOCK_ZONE(zone);
-		zone_notify(zone, &when);
-	}
+	result = zone_journal(zone, &sig_diff, "zone_sign");
+	if (result != ISC_R_SUCCESS)
+		goto failure;
 
  pauseall:
 	/*
@@ -6867,6 +6858,7 @@ zone_sign(dns_zone_t *zone) {
 
 	if (commit) {
 		LOCK_ZONE(zone);
+		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
 		zone_needdump(zone, DNS_DUMP_DELAY);
 		UNLOCK_ZONE(zone);
 	}
@@ -7569,7 +7561,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	if (alldone) {
 		result = increment_soa_serial(kfetch->db, ver, &diff, mctx);
 		if (result == ISC_R_SUCCESS)
-			zone_journal(zone, &diff, "keyfetch_done");
+			result = zone_journal(zone, &diff, "keyfetch_done");
 	}
 
 	dns_diff_clear(&diff);
@@ -13575,9 +13567,9 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 	return (result);
 }
 
-static void
-sign_dnskey(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
-	    dns_diff_t *diff)
+static isc_result_t
+sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
+	  dns_rdatatype_t type, dns_diff_t *diff)
 {
 	isc_result_t result;
 	isc_stdtime_t now, inception, soaexpire;
@@ -13589,9 +13581,9 @@ sign_dnskey(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 				zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "sign_dnskey:find_zone_keys -> %s\n",
+			     "sign_apex:find_zone_keys -> %s\n",
 			     dns_result_totext(result));
-		return;
+		return (result);
 	}
 
 	isc_stdtime_get(&now);
@@ -13601,25 +13593,26 @@ sign_dnskey(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
 	keyset_kskonly = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_DNSKEYKSKONLY);
 
-	result = del_sigs(zone, db, ver, &zone->origin, dns_rdatatype_dnskey,
-			  diff, zone_keys, nkeys, now);
+	result = del_sigs(zone, db, ver, &zone->origin, type, diff,
+			  zone_keys, nkeys, now);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "sign_dnskey:del_sigs -> %s\n",
+			     "sign_apex:del_sigs -> %s\n",
 			     dns_result_totext(result));
 		goto failure;
 	}
 
-	result = add_sigs(db, ver, &zone->origin, dns_rdatatype_dnskey, diff,
-			  zone_keys, nkeys, zone->mctx, inception, soaexpire,
+	result = add_sigs(db, ver, &zone->origin, type, diff, zone_keys,
+			  nkeys, zone->mctx, inception, soaexpire,
 			  check_ksk, keyset_kskonly);
 
 	if (result != ISC_R_SUCCESS)
-		dns_zone_log(zone, ISC_LOG_ERROR, "zone_rekey:add_sigs -> %s\n",
+		dns_zone_log(zone, ISC_LOG_ERROR, "sign_apex:add_sigs -> %s\n",
 			     dns_result_totext(result));
  failure:
 	for (i = 0; i < nkeys; i++)
 		dst_key_free(&zone_keys[i]);
+	return (result);
 }
 
 /*
@@ -13763,39 +13756,57 @@ zone_rekey(dns_zone_t *zone) {
 
 		if ((newactive || !ISC_LIST_EMPTY(diff.tuples)) &&
 		    dnskey_sane(zone, db, ver, &diff)) {
+			CHECK(dns_diff_apply(&diff, db, ver));
+			CHECK(sign_apex(zone, db, ver, dns_rdatatype_dnskey,
+					&diff));
+			CHECK(add_signing_records(db, zone->privatetype, ver,
+						  &diff));
+			CHECK(increment_soa_serial(db, ver, &diff, mctx));
+			CHECK(sign_apex(zone, db, ver, dns_rdatatype_soa,
+					&diff));
+			CHECK(zone_journal(zone, &diff, "zone_rekey"));
 			commit = ISC_TRUE;
-			dns_diff_apply(&diff, db, ver);
-			sign_dnskey(zone, db, ver, &diff);
-			add_signing_records(db, zone->privatetype, ver, &diff);
-			result = increment_soa_serial(db, ver, &diff, mctx);
-			if (result == ISC_R_SUCCESS)
-				zone_journal(zone, &diff, "zone_rekey");
 		}
 	}
 
 	dns_db_closeversion(db, &ver, commit);
 
-	/* Update signatures */
 	if (commit) {
+		isc_time_t timenow;
+		dns_difftuple_t *tuple;
+
 		LOCK_ZONE(zone);
-		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOTIFYRESIGN);
+		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
 
-		for (key = ISC_LIST_HEAD(rmkeys);
-		     key != NULL;
-		     key = ISC_LIST_NEXT(key, link)) {
-			zone_signwithkey(zone, dst_key_alg(key->key),
-					 dst_key_id(key->key), ISC_TRUE);
-		}
+		zone_needdump(zone, DNS_DUMP_DELAY);
 
-		for (key = ISC_LIST_HEAD(dnskeys);
-		     key != NULL;
-		     key = ISC_LIST_NEXT(key, link)) {
-			if (key->first_sign) {
-				zone_signwithkey(zone, dst_key_alg(key->key),
-						 dst_key_id(key->key),
-						 ISC_FALSE);
-				key->is_active = ISC_TRUE;
-				key->first_sign = ISC_FALSE;
+		TIME_NOW(&timenow);
+		zone_settimer(zone, &timenow);
+
+                for (tuple = ISC_LIST_HEAD(diff.tuples);
+                     tuple != NULL;
+		     tuple = ISC_LIST_NEXT(tuple, link)) {
+			dns_rdata_dnskey_t dnskey;
+			dns_secalg_t algorithm;
+			isc_region_t r;
+			isc_uint16_t keyid;
+
+			if (tuple->rdata.type != dns_rdatatype_dnskey)
+				continue;
+
+			result = dns_rdata_tostruct(&tuple->rdata, &dnskey,
+						    NULL);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+			dns_rdata_toregion(&tuple->rdata, &r);
+			algorithm = dnskey.algorithm;
+			keyid = dst_region_computeid(&r, algorithm);
+
+			result = zone_signwithkey(zone, algorithm, keyid,
+					ISC_TF(tuple->op == DNS_DIFFOP_DEL));
+			if (result != ISC_R_SUCCESS) {
+				dns_zone_log(zone, ISC_LOG_ERROR,
+					     "zone_signwithkey failed: %s",
+					      dns_result_totext(result));
 			}
 		}
 		UNLOCK_ZONE(zone);
@@ -13821,12 +13832,14 @@ zone_rekey(dns_zone_t *zone) {
 			continue;
 
 		isc_time_set(&timethen, then, 0);
+		LOCK_ZONE(zone);
 		if (isc_time_isepoch(&zone->refreshkeytime) ||
 		    isc_time_compare(&timethen, &zone->refreshkeytime) < 0) {
 			TIME_NOW(&timenow);
 			zone->refreshkeytime = timethen;
 			zone_settimer(zone, &timenow);
 		}
+		UNLOCK_ZONE(zone);
 	}
 
  failure:
