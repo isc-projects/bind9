@@ -1,3 +1,6 @@
+2896.	[bug]		"rndc sign" failed to properly update the zone
+			when adding a DNSKEY for publication only. [RT #21045]
+
 2895.	[func]		genrandom: add support for the generation of multiple
 			files.  [RT #20917]
 
