@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3.c,v 1.16 2010/05/18 01:39:41 marka Exp $ */
+/* $Id: nsec3.c,v 1.17 2010/05/18 02:38:10 tbox Exp $ */
 
 #include <config.h>
 
@@ -1012,7 +1012,7 @@ rr_exists(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	dns_rdataset_t rdataset;
 	dns_dbnode_t *node = NULL;
 	isc_result_t result;
-			
+
 	dns_rdataset_init(&rdataset);
 	if (rdata->type == dns_rdatatype_nsec3)
 		CHECK(dns_db_findnsec3node(db, name, ISC_FALSE, &node));
