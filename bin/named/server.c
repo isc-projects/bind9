@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.556.8.11 2010/05/14 23:49:18 tbox Exp $ */
+/* $Id: server.c,v 1.556.8.12 2010/05/18 00:29:31 marka Exp $ */
 
 /*! \file */
 
@@ -2958,7 +2958,7 @@ add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 
 	CHECK(dns_zone_setorigin(zone, dns_rootname));
 
-	isc_sha256_data(view->name, strlen(view->name), buffer);
+	isc_sha256_data((void *)view->name, strlen(view->name), buffer);
 	strcat(buffer, MKEYS);
 	n = snprintf(filename, sizeof(filename), "%s%s%s",
 		     directory ? directory : "", directory ? "/" : "",
