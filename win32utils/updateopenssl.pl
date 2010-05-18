@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: updateopenssl.pl,v 1.8 2007/08/06 04:42:38 marka Exp $
+# $Id: updateopenssl.pl,v 1.8.322.1 2010/05/18 06:12:50 marka Exp $
 
 # updateopenssl.pl
 # This script locates the latest version of OpenSSL in the grandparent
@@ -53,7 +53,7 @@ sub getdirectory {
     my($file, $name);
     my($cnt);
     opendir(DIR,$path) || die "No Directory: $!";
-    @namelist = grep (/^openssl-[0-9]+\.[0-9]+\.[0-9]+[a-z]$/i, readdir(DIR));
+    @namelist = grep (/^openssl-[0-9]+\.[0-9]+\.[0-9]+[a-z]{0,1}$/i, readdir(DIR));
     closedir(DIR);
 
     # Make sure we have something
@@ -94,7 +94,7 @@ sub updatefile {
 
         # Replace the string
         foreach $line (@Lines) {
-                $line =~ s/openssl-[0-9]+\.[0-9]+\.[0-9]+[a-z]/$substr/gi;
+                $line =~ s/openssl-[0-9]+\.[0-9]+\.[0-9]+[a-z]{0,1}/$substr/gi;
         }
         #update the file
         open (RFILE, ">$filename") || die "Can't open file $filename: $!";
