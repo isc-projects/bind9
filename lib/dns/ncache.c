@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ncache.c,v 1.43.268.6 2010/05/19 06:41:04 marka Exp $ */
+/* $Id: ncache.c,v 1.43.268.7 2010/05/19 09:51:31 marka Exp $ */
 
 /*! \file */
 
@@ -268,7 +268,7 @@ dns_ncache_addoptout(dns_message_t *message, dns_db_t *cache,
 			trust = dns_trust_authauthority;
 		} else
 			trust = dns_trust_additional;
-		isc_buffer_putuint8(&buffer, trust);	/* trust */
+		isc_buffer_putuint8(&buffer, (unsigned char)trust); /* trust */
 		isc_buffer_putuint16(&buffer, 0);	/* count */
 
 		/*
