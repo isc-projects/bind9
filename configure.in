@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.457.26.18 $)
+AC_REVISION($Revision: 1.457.26.19 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -280,6 +280,7 @@ AC_C_CONST
 AC_C_INLINE
 AC_C_VOLATILE
 AC_CHECK_FUNC(sysctlbyname, AC_DEFINE(HAVE_SYSCTLBYNAME))
+AC_C_FLEXIBLE_ARRAY_MEMBER
 
 #
 # UnixWare 7.1.1 with the feature supplement to the UDK compiler

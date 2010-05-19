@@ -1,3 +1,5 @@
+2901.	[port]		Use AC_C_FLEXIBLE_ARRAY_MEMBER. [RT #21316]
+
 2900.	[bug]		The placeholder negative caching element was not
 			properly constructed triggering a INSIST in 
 			dns_ncache_towire(). [RT #21346]
