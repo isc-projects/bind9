@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ncache.c,v 1.43.268.5 2010/05/18 06:29:32 marka Exp $ */
+/* $Id: ncache.c,v 1.43.268.6 2010/05/19 06:41:04 marka Exp $ */
 
 /*! \file */
 
@@ -248,10 +248,9 @@ dns_ncache_addoptout(dns_message_t *message, dns_db_t *cache,
 		 * Copy the type and a zero rdata count to the buffer.
 		 */
 		isc_buffer_availableregion(&buffer, &r);
-		if (r.length < 4)
+		if (r.length < 5)
 			return (ISC_R_NOSPACE);
-		isc_buffer_putuint16(&buffer, 0);
-		isc_buffer_putuint16(&buffer, 0);
+		isc_buffer_putuint16(&buffer, 0);	/* type */
 		/*
 		 * RFC2308, section 5, says that negative answers without
 		 * SOAs should not be cached.
@@ -269,6 +268,9 @@ dns_ncache_addoptout(dns_message_t *message, dns_db_t *cache,
 			trust = dns_trust_authauthority;
 		} else
 			trust = dns_trust_additional;
+		isc_buffer_putuint8(&buffer, trust);	/* trust */
+		isc_buffer_putuint16(&buffer, 0);	/* count */
+
 		/*
 		 * Now add it to the cache.
 		 */
