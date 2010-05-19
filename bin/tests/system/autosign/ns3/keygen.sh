@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: keygen.sh,v 1.3.6.3 2010/01/18 23:48:01 tbox Exp $
+# $Id: keygen.sh,v 1.3.6.4 2010/05/19 07:47:11 marka Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -174,7 +174,8 @@ $KEYGEN -q -a RSASHA512 -b 1024 -r $RANDFILE $zone > /dev/null
 $SIGNER -S -3 beef -A -o $zone -f $zonefile $infile > /dev/null 2>&1
 
 #
-# secure-to-insecure transition test zone.
+# secure-to-insecure transition test zone; used to test removal of
+# keys via nsupdate
 #
 zone=secure-to-insecure.example
 zonefile="${zone}.db"
@@ -182,3 +183,16 @@ infile="${zonefile}.in"
 ksk=`$KEYGEN -q -r $RANDFILE -fk $zone`
 $KEYGEN -q -r $RANDFILE $zone > /dev/null
 $SIGNER -S -o $zone -f $zonefile $infile > /dev/null 2>&1
+
+#
+# another secure-to-insecure transition test zone; used to test
+# removal of keys on schedule.
+#
+zone=secure-to-insecure2.example
+zonefile="${zone}.db"
+infile="${zonefile}.in"
+ksk=`$KEYGEN -q -3 -r $RANDFILE -fk $zone`
+echo $ksk > ../del1.key
+zsk=`$KEYGEN -q -3 -r $RANDFILE $zone`
+echo $zsk > ../del2.key
+$SIGNER -S -3 beef -o $zone -f $zonefile $infile > /dev/null 2>&1
