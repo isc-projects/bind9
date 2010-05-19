@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.8 2010/05/14 04:38:52 marka Exp $
+# $Id: tests.sh,v 1.9 2010/05/19 07:45:38 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -614,7 +614,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking secure-to-insecure transition ($n)"
+echo "I:checking secure-to-insecure transition, nsupdate ($n)"
 $NSUPDATE > /dev/null 2>&1 <<END	|| status=1
 server 10.53.0.3 5300
 zone secure-to-insecure.example
@@ -625,6 +625,20 @@ sleep 2
 $DIG $DIGOPTS axfr secure-to-insecure.example @10.53.0.3 > dig.out.ns3.test$n || ret=1
 egrep 'RRSIG.*'" $newid "'\. ' dig.out.ns3.test$n > /dev/null && ret=1
 egrep '(DNSKEY|NSEC)' dig.out.ns3.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking secure-to-insecure transition, scheduled ($n)"
+file="ns3/`cat del1.key`.key"
+$SETTIME -I now -D now $file > /dev/null
+file="ns3/`cat del2.key`.key"
+$SETTIME -I now -D now $file > /dev/null
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 sign secure-to-insecure2.example. 2>&1 | sed 's/^/I:ns3 /'
+sleep 2
+$DIG $DIGOPTS axfr secure-to-insecure2.example @10.53.0.3 > dig.out.ns3.test$n || ret=1
+egrep 'RRSIG.*'" $newid "'\. ' dig.out.ns3.test$n > /dev/null && ret=1
+egrep '(DNSKEY|NSEC3)' dig.out.ns3.test$n > /dev/null && ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
