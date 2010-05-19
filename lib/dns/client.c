@@ -14,9 +14,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.6.32.3 2010/04/14 22:10:04 jinmei Exp $ */
+/* $Id: client.c,v 1.6.32.4 2010/05/19 07:11:19 marka Exp $ */
 
 #include <config.h>
+
+#include <stddef.h>
 
 #include <isc/app.h>
 #include <isc/mem.h>
@@ -2878,7 +2880,7 @@ typedef struct {
 	dns_rdata_t	rdata;
 	size_t		size;
 	isc_mem_t *	mctx;
-	unsigned char	data[0];
+	unsigned char	data[FLEXIBLE_ARRAY_MEMBER];
 } dns_client_updaterec_t;
 
 isc_result_t
@@ -2888,9 +2890,8 @@ dns_client_updaterec(dns_client_updateop_t op, dns_name_t *owner,
 		     dns_rdataset_t *rdataset, dns_rdatalist_t *rdatalist,
 		     dns_rdata_t *rdata, isc_mem_t *mctx)
 {
-	dns_client_updaterec_t *updaterec;
-	size_t size = sizeof(dns_client_updaterec_t);
-	isc_buffer_t *b = NULL;
+	dns_client_updaterec_t *updaterec = NULL;
+	size_t size = offsetof(dns_client_updaterec_t, data);
 
 	REQUIRE(op < updateop_max);
 	REQUIRE(owner != NULL);
@@ -2919,16 +2920,15 @@ dns_client_updaterec(dns_client_updateop_t op, dns_name_t *owner,
 		dns_rdataset_init(rdataset);
 		dns_rdatalist_init(&updaterec->rdatalist);
 		dns_rdata_init(&updaterec->rdata);
-		isc_buffer_init(b, b + 1,
-				size - sizeof(dns_client_updaterec_t));
-		dns_name_copy(owner, target, b);
+		isc_buffer_init(&updaterec->buffer, updaterec->data,
+				size - offsetof(dns_client_updaterec_t, data));
+		dns_name_copy(owner, target, &updaterec->buffer);
 		if (source != NULL) {
 			isc_region_t r;
 			dns_rdata_clone(source, rdata);
 			dns_rdata_toregion(rdata, &r);
-			rdata->data = isc_buffer_used(b);
-			isc_buffer_copyregion(b, &r);
-
+			rdata->data = isc_buffer_used(&updaterec->buffer);
+			isc_buffer_copyregion(&updaterec->buffer, &r);
 		}
 		updaterec->mctx = NULL;
 		isc_mem_attach(mctx, &updaterec->mctx);
@@ -2968,9 +2968,9 @@ dns_client_updaterec(dns_client_updateop_t op, dns_name_t *owner,
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 	dns_rdatalist_tordataset(rdatalist, rdataset);
 	ISC_LIST_APPEND(target->list, rdataset, link);
-	if (b != NULL) {
+	if (updaterec != NULL) {
 		target->attributes |= DNS_NAMEATTR_HASUPDATEREC;
-		dns_name_setbuffer(target, b);
+		dns_name_setbuffer(target, &updaterec->buffer);
 	}
 	if (op == updateop_add || op == updateop_delete)
 		target->attributes |= DNS_NAMEATTR_UPDATE;

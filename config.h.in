@@ -16,7 +16,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.122.32.2 2010/05/12 08:25:52 marka Exp $ */
+/* $Id: config.h.in,v 1.122.32.3 2010/05/19 07:13:53 marka Exp $ */
 
 /*! \file */
 
@@ -159,6 +159,15 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Solaris hack to get select_large_fdset. */
 #undef FD_SETSIZE
+
+/* Define to nothing if C supports flexible array members, and to 1 if it does
+   not. That way, with a declaration like `struct s { int n; double
+   d[FLEXIBLE_ARRAY_MEMBER]; };', the struct hack can be used with pre-C99
+   compilers. When computing the size of such an object, don't use 'sizeof
+   (struct s)' as it overestimates the size. Use 'offsetof (struct s, d)'
+   instead. Don't use 'offsetof (struct s, d[0])', as this doesn't work with
+   MSVC and with C++ compilers. */
+#undef FLEXIBLE_ARRAY_MEMBER
 
 /* Define to 1 if you have the `chroot' function. */
 #undef HAVE_CHROOT
