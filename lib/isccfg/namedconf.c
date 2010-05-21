@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.115 2010/05/13 23:50:27 tbox Exp $ */
+/* $Id: namedconf.c,v 1.116 2010/05/21 14:10:32 marka Exp $ */
 
 /*! \file */
 
@@ -847,6 +847,7 @@ options_clauses[] = {
 	{ "interface-interval", &cfg_type_uint32, 0 },
 	{ "listen-on", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
 	{ "listen-on-v6", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
+	{ "managed-keys-directory", &cfg_type_qstring, 0 },
 	{ "match-mapped-addresses", &cfg_type_boolean, 0 },
 	{ "memstatistics-file", &cfg_type_qstring, 0 },
 	{ "memstatistics", &cfg_type_boolean, 0 },

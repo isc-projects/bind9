@@ -1,3 +1,6 @@
+2903.	[bug]		managed-keys-directory missing from namedconf.c.
+			[RT #21370]
+
 2902.	[func]		Add regression test for change 2897. [RT #21040]
 
 2901.	[port]		Use AC_C_FLEXIBLE_ARRAY_MEMBER. [RT #21316]
