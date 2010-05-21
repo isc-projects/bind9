@@ -1,3 +1,5 @@
+2903.	[bug]		managed-keys-directory missing from namedconf.c.
+			[RT #21370]
 
 	--- 9.7.1b1 released ---
 
