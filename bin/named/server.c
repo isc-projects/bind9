@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.564 2010/03/04 06:17:01 marka Exp $ */
+/* $Id: server.c,v 1.568 2010/05/18 00:28:40 marka Exp $ */
 
 /*! \file */
 
@@ -23,6 +23,7 @@
 
 #include <stdlib.h>
 #include <unistd.h>
+#include <limits.h>
 
 #include <isc/app.h>
 #include <isc/base64.h>
@@ -36,6 +37,7 @@
 #include <isc/portset.h>
 #include <isc/print.h>
 #include <isc/resource.h>
+#include <isc/sha2.h>
 #include <isc/socket.h>
 #include <isc/stat.h>
 #include <isc/stats.h>
@@ -102,6 +104,10 @@
 #ifdef HAVE_LIBSCF
 #include <named/ns_smf_globals.h>
 #include <stdlib.h>
+#endif
+
+#ifndef PATH_MAX
+#define PATH_MAX 1024
 #endif
 
 /*%
@@ -223,11 +229,13 @@ static const struct {
 	{ "168.192.IN-ADDR.ARPA", ISC_TRUE },
 #endif
 
-	/* RFC 3330 */
+	/* RFC 5735 and RFC 5737 */
 	{ "0.IN-ADDR.ARPA", ISC_FALSE },	/* THIS NETWORK */
 	{ "127.IN-ADDR.ARPA", ISC_FALSE },	/* LOOPBACK */
 	{ "254.169.IN-ADDR.ARPA", ISC_FALSE },	/* LINK LOCAL */
 	{ "2.0.192.IN-ADDR.ARPA", ISC_FALSE },	/* TEST NET */
+	{ "100.51.198.IN-ADDR.ARPA", ISC_FALSE },	/* TEST NET 2 */
+	{ "113.0.203.IN-ADDR.ARPA", ISC_FALSE },	/* TEST NET 3 */
 	{ "255.255.255.255.IN-ADDR.ARPA", ISC_FALSE },	/* BROADCAST */
 
 	/* Local IPv6 Unicast Addresses */
@@ -239,6 +247,12 @@ static const struct {
 	{ "9.E.F.IP6.ARPA", ISC_FALSE },	/* LINK LOCAL */
 	{ "A.E.F.IP6.ARPA", ISC_FALSE },	/* LINK LOCAL */
 	{ "B.E.F.IP6.ARPA", ISC_FALSE },	/* LINK LOCAL */
+
+	/* Example Prefix, RFC 3849. */
+	{ "8.B.D.0.1.0.0.2.IP6.ARPA", ISC_FALSE },
+
+	/* ORCHID Prefix, RFC 4843. */
+	{ "0.1.1.0.0.2.IP6.ARPA", ISC_FALSE },
 
 	{ NULL, ISC_FALSE }
 };
@@ -272,7 +286,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	       cfg_aclconfctx_t *aclconf);
 
 static isc_result_t
-add_keydata_zone(dns_view_t *view, isc_mem_t *mctx);
+add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx);
 
 static void
 end_reserved_dispatches(ns_server_t *server, isc_boolean_t all);
@@ -627,13 +641,15 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 	isc_result_t result = ISC_R_SUCCESS;
 	const cfg_obj_t *view_keys = NULL;
 	const cfg_obj_t *global_keys = NULL;
+	const cfg_obj_t *view_managed_keys = NULL;
 	const cfg_obj_t *global_managed_keys = NULL;
 	const cfg_obj_t *builtin_keys = NULL;
 	const cfg_obj_t *builtin_managed_keys = NULL;
 	const cfg_obj_t *maps[4];
 	const cfg_obj_t *voptions = NULL;
 	const cfg_obj_t *options = NULL;
-	isc_boolean_t meta;
+	const cfg_obj_t *obj = NULL;
+	const char *directory;
 	int i = 0;
 
 	/* We don't need trust anchors for the _bind view */
@@ -642,14 +658,13 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 		return (ISC_R_SUCCESS);
 	}
 
-	meta = ISC_TF(strcmp(view->name, "_meta") == 0 &&
-		      view->rdclass == dns_rdataclass_in);
-
 	if (vconfig != NULL) {
 		voptions = cfg_tuple_get(vconfig, "options");
 		if (voptions != NULL) {
 			(void) cfg_map_get(voptions, "trusted-keys",
 					   &view_keys);
+			(void) cfg_map_get(voptions, "managed-keys",
+					   &view_managed_keys);
 			maps[i++] = voptions;
 		}
 	}
@@ -674,10 +689,7 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 		return (ISC_R_UNEXPECTED);
 	}
 
-	if (global_managed_keys != NULL)
-		ns_g_server->managedkeys = ISC_TRUE;
-
-	if (auto_dlv) {
+	if (auto_dlv && view->rdclass == dns_rdataclass_in) {
 		isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_SECURITY,
 			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
 			      "using built-in trusted-keys for view %s",
@@ -699,22 +711,30 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 					  &builtin_managed_keys);
 		}
 
+		if (builtin_keys != NULL)
+			CHECK(load_view_keys(builtin_keys, vconfig, view,
+					     ISC_FALSE, mctx));
 		if (builtin_managed_keys != NULL)
-			ns_g_server->managedkeys = ISC_TRUE;
-		CHECK(load_view_keys(builtin_keys, vconfig, view,
-				     ISC_FALSE, mctx));
-
-		if (meta)
 			CHECK(load_view_keys(builtin_managed_keys, vconfig,
 					     view, ISC_TRUE, mctx));
 	}
 
 	CHECK(load_view_keys(view_keys, vconfig, view, ISC_FALSE, mctx));
-	CHECK(load_view_keys(global_keys, vconfig, view, ISC_FALSE, mctx));
-
-	if (meta)
+	CHECK(load_view_keys(view_managed_keys, vconfig, view, ISC_TRUE, mctx));
+	if (view->rdclass == dns_rdataclass_in) {
+		CHECK(load_view_keys(global_keys, vconfig, view, ISC_FALSE,
+				     mctx));
 		CHECK(load_view_keys(global_managed_keys, vconfig, view,
-			       ISC_TRUE, mctx));
+				     ISC_TRUE, mctx));
+	}
+
+	/*
+	 * Add key zone for managed-keys.
+	 */
+	obj = NULL;
+	(void)ns_config_get(maps, "managed-keys-directory", &obj);
+	directory = obj != NULL ? cfg_obj_asstring(obj) : NULL;
+	CHECK(add_keydata_zone(view, directory, ns_g_mctx));
 
   cleanup:
 	return (result);
@@ -2921,30 +2941,33 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
  */
 
 #define KEYZONE "managed-keys.bind"
+#define MKEYS ".mkeys"
 
 static isc_result_t
-add_keydata_zone(dns_view_t *view, isc_mem_t *mctx) {
+add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 	isc_result_t result;
 	dns_zone_t *zone = NULL;
 	dns_acl_t *none = NULL;
-	dns_name_t zname;
-
-	if (!ns_g_server->managedkeys)
-		return (ISC_R_SUCCESS);
+	char filename[PATH_MAX];
+	char buffer[ISC_SHA256_DIGESTSTRINGLENGTH + sizeof(MKEYS)];
+	int n;
 
 	REQUIRE(view != NULL);
 
 	CHECK(dns_zone_create(&zone, mctx));
 
-	dns_name_init(&zname, NULL);
-	CHECK(dns_name_fromstring(&zname, KEYZONE, 0, mctx));
-	CHECK(dns_zone_setorigin(zone, &zname));
-	dns_name_free(&zname, mctx);
+	CHECK(dns_zone_setorigin(zone, dns_rootname));
 
-	CHECK(dns_zone_setfile(zone, KEYZONE));
-
-	if (view->hints == NULL)
-		dns_view_sethints(view, ns_g_server->in_roothints);
+	isc_sha256_data((void *)view->name, strlen(view->name), buffer);
+	strcat(buffer, MKEYS);
+	n = snprintf(filename, sizeof(filename), "%s%s%s",
+		     directory ? directory : "", directory ? "/" : "",
+		     strcmp(view->name, "_default") == 0 ? KEYZONE : buffer);
+	if (n < 0 || (size_t)n >= sizeof(filename)) {
+		result = (n < 0) ? ISC_R_FAILURE : ISC_R_NOSPACE;
+		goto cleanup;
+	}
+	CHECK(dns_zone_setfile(zone, filename));
 
 	dns_zone_setview(zone, view);
 	dns_zone_settype(zone, dns_zone_key);
@@ -2968,11 +2991,14 @@ add_keydata_zone(dns_view_t *view, isc_mem_t *mctx) {
 	dns_zone_setstats(zone, ns_g_server->zonestats);
 	CHECK(setquerystats(zone, mctx, ISC_FALSE));
 
-	CHECK(dns_view_addzone(view, zone));
+	if (view->managed_keys != NULL)
+		dns_zone_detach(&view->managed_keys);
+	dns_zone_attach(zone, &view->managed_keys);
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 		      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
-		      "set up %s meta-zone", KEYZONE);
+		      "set up managed keys zone for view %s, file '%s'",
+		      view->name, filename);
 
 cleanup:
 	if (zone != NULL)
@@ -4105,12 +4131,6 @@ load_configuration(const char *filename, ns_server_t *server,
 		CHECK(configure_view(view, config, vconfig,
 				     &cachelist, bindkeys,
 				     ns_g_mctx, &aclconfctx, ISC_FALSE));
-
-		if (!strcmp(view->name, "_meta")) {
-			result = add_keydata_zone(view, ns_g_mctx);
-			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		}
-
 		dns_view_freeze(view);
 		dns_view_detach(&view);
 		view = NULL;
@@ -4461,6 +4481,8 @@ load_zones(ns_server_t *server, isc_boolean_t stop) {
 	     view = ISC_LIST_NEXT(view, link))
 	{
 		CHECK(dns_view_load(view, stop));
+		if (view->managed_keys != NULL)
+			CHECK(dns_zone_load(view->managed_keys));
 	}
 
 	/*
@@ -4734,8 +4756,6 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	CHECKFATAL(server->bindkeysfile == NULL ? ISC_R_NOMEMORY :
 						  ISC_R_SUCCESS,
 		   "isc_mem_strdup");
-
-	server->managedkeys = ISC_FALSE;
 
 	server->dumpfile = isc_mem_strdup(server->mctx, "named_dump.db");
 	CHECKFATAL(server->dumpfile == NULL ? ISC_R_NOMEMORY : ISC_R_SUCCESS,
@@ -6407,8 +6427,7 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args,
 
 	view = dns_zone_getview(zone);
 	if (strcmp(view->name, "_default") == 0 ||
-	    strcmp(view->name, "_bind") == 0 ||
-	    strcmp(view->name, "_meta"))
+	    strcmp(view->name, "_bind") == 0)
 	{
 		vname = "";
 		sep = "";

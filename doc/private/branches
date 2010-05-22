@@ -320,15 +320,22 @@ rt20901a			new	fdupont	// 2010-01-20 10:24 +0000
 rt20903				new	fdupont	// 2010-01-26 12:16 +0000
 rt20904				new	fdupont	// 2010-01-18 13:55 +0000
 rt20924				new	fdupont	// 2010-01-22 17:23 +0000
+rt20924a			new	marka	// 2010-04-28 09:47 +0000
 rt20945				new	marka	// 2010-02-03 21:47 +0000
+rt20961				new	marka	// 2010-05-03 06:13 +0000
 rt20986				new	marka	// 2010-03-12 04:59 +0000
 rt20994				new	marka	// 2010-03-15 00:01 +0000
 rt20997				new	marka	// 2010-03-10 03:52 +0000
 rt21040				new	marka	// 2010-03-16 07:45 +0000
 rt21045				new	marka	// 2010-03-06 05:41 +0000
 rt21097				new	marka	// 2010-04-13 04:12 +0000
+rt21097_v9_5			new	marka	// 2010-05-14 02:01 +0000
 rt21122				new	sar	// 2010-04-08 16:28 +0000
 rt21154				new	
+rt21186				new	marka	// 2010-05-04 22:22 +0000
+rt21198				new	marka	// 2010-05-05 06:41 +0000
+rt21346				new	marka	// 2010-05-19 02:45 +0000
+rt21367				new	marka	// 2010-05-21 06:24 +0000
 shane_dbbackend			open	
 skan				open	explorer
 skan-metazones1			private	explorer
