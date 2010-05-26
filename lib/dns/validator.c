@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.164.12.20 2010/05/14 23:47:50 tbox Exp $ */
+/* $Id: validator.c,v 1.164.12.21 2010/05/26 06:58:16 marka Exp $ */
 
 #include <config.h>
 
@@ -2196,6 +2196,17 @@ validatezonekey(dns_validator_t *val) {
 		return (dlv_validatezonekey(val));
 
 	if (val->dsset == NULL) {
+
+		/*
+		 * We have a dlv sep.  Skip looking up the SEP from
+		 * {trusted,managed}-keys.  If the dlv sep is for the
+		 * root then it will have been handled above so we don't
+		 * need to check whether val->event->name is "." prior to
+		 * looking up the DS.
+		 */
+		if (val->havedlvsep)
+			goto find_ds;
+
 		/*
 		 * First, see if this key was signed by a trusted key.
 		 */
@@ -2228,13 +2239,13 @@ validatezonekey(dns_validator_t *val) {
 				  val->event->name, found) != ISC_R_SUCCESS) {
 				if (val->mustbesecure) {
 					validator_log(val, ISC_LOG_WARNING,
-						      "must be secure failure, "
-						      "not beneath secure root");
+						     "must be secure failure, "
+						     "not beneath secure root");
 					return (DNS_R_MUSTBESECURE);
 				} else
 					validator_log(val, ISC_LOG_DEBUG(3),
-						      "not beneath secure root");
-				if (val->view->dlv == NULL || DLVTRIED(val)) {
+						     "not beneath secure root");
+				if (val->view->dlv == NULL) {
 					markanswer(val, "validatezonekey (1)");
 					return (ISC_R_SUCCESS);
 				}
@@ -2270,17 +2281,6 @@ validatezonekey(dns_validator_t *val) {
 			}
 		}
 
-		/*
-		 * If this is the root name and there was no trusted key,
-		 * give up, since there's no DS at the root.
-		 */
-		if (dns_name_equal(event->name, dns_rootname)) {
-			if ((val->attributes & VALATTR_TRIEDVERIFY) != 0)
-				return (DNS_R_NOVALIDSIG);
-			else
-				return (DNS_R_NOVALIDDS);
-		}
-
 		if (atsep) {
 			/*
 			 * We have not found a key to verify this DNSKEY
@@ -2300,6 +2300,22 @@ validatezonekey(dns_validator_t *val) {
 			return (DNS_R_NOVALIDKEY);
 		}
 
+		/*
+		 * If this is the root name and there was no trusted key,
+		 * give up, since there's no DS at the root.
+		 */
+		if (dns_name_equal(event->name, dns_rootname)) {
+			if ((val->attributes & VALATTR_TRIEDVERIFY) != 0) {
+				validator_log(val, ISC_LOG_DEBUG(3),
+					      "root key failed to validate");
+				return (DNS_R_NOVALIDSIG);
+			} else {
+				validator_log(val, ISC_LOG_DEBUG(3),
+					      "no trusted root key");
+				return (DNS_R_NOVALIDDS);
+			}
+		}
+ find_ds:
 		/*
 		 * Otherwise, try to find the DS record.
 		 */

@@ -12,7 +12,7 @@
 ; OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 ; PERFORMANCE OF THIS SOFTWARE.
 
-; $Id: child.db.in,v 1.4 2007/06/19 23:47:02 tbox Exp $
+; $Id: child.db.in,v 1.4.332.1 2010/05/26 06:58:17 marka Exp $
 
 $TTL	120
 @		SOA	ns hostmaster.ns 1 3600 1200 604800 60
@@ -20,3 +20,5 @@ $TTL	120
 ns		A	10.53.0.3
 foo		TXT	foo
 bar		TXT	bar
+grand		NS	ns.grand
+ns.grand	A	10.53.0.6
