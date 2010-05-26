@@ -1,3 +1,6 @@
+2905.	[port]		aix: set use_atomic=yes with native compiler.
+			[RT #21402]
+
 2904.   [bug]           When using DLV, sub-zones of the zones in the DLV,
 			could be incorrectly marked as insecure instead of
 			secure leading to negative proofs failing.  This was
