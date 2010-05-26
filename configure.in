@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.457.26.19 $)
+AC_REVISION($Revision: 1.457.26.20 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -2253,6 +2253,8 @@ case "$enable_atomic" in
 				 use_atomic=yes])
 				]
 				)
+			else
+				use_atomic=yes
 			fi
 			;;
 		*)
