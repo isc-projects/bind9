@@ -1,3 +1,6 @@
+2905.	[port]		aix: set use_atomic=yes with native compiler.
+			[RT #21402]
+
 2901.	[port]		Use AC_C_FLEXIBLE_ARRAY_MEMBER. [RT #21316]
 
 2899.	[port]		win32: Support linking against OpenSSL 1.0.0.
