@@ -1,3 +1,8 @@
+2904.   [bug]           When using DLV, sub-zones of the zones in the DLV,
+			could be incorrectly marked as insecure instead of
+			secure leading to negative proofs failing.  This was
+			a unintended outcome from change 2890. [RT# 21392]
+
 2903.	[bug]		managed-keys-directory missing from namedconf.c.
 			[RT #21370]
 

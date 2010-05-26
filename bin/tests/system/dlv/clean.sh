@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.5 2007/09/26 03:22:43 marka Exp $
+# $Id: clean.sh,v 1.5.476.1 2010/05/26 06:30:43 marka Exp $
 
 rm -f random.data
 rm -f ns*/named.run
@@ -25,4 +25,11 @@ rm -f ns3/dlvset-*
 rm -f ns3/dsset-*
 rm -f ns3/keyset-*
 rm -f ns3/trusted.conf ns5/trusted.conf
+rm -f ns3/signer.err
+rm -f ns6/K*
+rm -f ns6/*.db
+rm -f ns6/*.signed
+rm -f ns6/dsset-*
+rm -f ns6/signer.err
 rm -f */named.memstats
+rm -f dig.out.ns*.test*

@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: conf.sh.in,v 1.43.8.2 2010/01/18 23:48:01 tbox Exp $
+# $Id: conf.sh.in,v 1.43.8.3 2010/05/26 06:30:43 marka Exp $
 
 #
 # Common configuration data for system tests, to be sourced into
@@ -47,8 +47,8 @@ CHECKCONF=$TOP/bin/check/named-checkconf
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
 # v6synth
-SUBDIRS="acl autosign cacheclean checkconf checknames dnssec forward glue ixfr
-    limits lwresd masterfile masterformat metadata notify nsupdate pending 
+SUBDIRS="acl autosign cacheclean checkconf checknames dlv dnssec forward glue
+    ixfr limits lwresd masterfile masterformat metadata notify nsupdate pending 
     resolver rrsetorder sortlist smartsign stub tkey unknown upforwd views
     xfer xferquota zonechecks"
 
