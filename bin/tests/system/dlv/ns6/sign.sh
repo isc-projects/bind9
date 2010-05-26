@@ -14,99 +14,31 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.7 2010/05/26 06:28:00 marka Exp $
-
-(cd ../ns6; ./sign.sh)
+# $Id: sign.sh,v 1.2 2010/05/26 06:28:00 marka Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
 RANDFILE=../random.data
-dlvsets=
 
-zone=child1.utld.
+zone=grand.child1.utld.
 infile=child.db.in
-zonefile=child1.utld.db
-outfile=child1.signed
-dlvzone=dlv.utld.
-dlvsets="$dlvsets dlvset-$zone"
-
-keyname1=`$KEYGEN -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null` 
-keyname2=`$KEYGEN -f KSK -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
-
-cat $infile $keyname1.key $keyname2.key ../ns6/dsset-grand.$zone >$zonefile
-
-$SIGNER -r $RANDFILE -l $dlvzone -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
-echo "I: signed $zone"
-
-
-zone=child3.utld.
-infile=child.db.in
-zonefile=child3.utld.db
-outfile=child3.signed
-dlvzone=dlv.utld.
-dlvsets="$dlvsets dlvset-$zone"
-
-keyname1=`$KEYGEN -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
-
-cat $infile $keyname1.key $keyname2.key ../ns6/dsset-grand.$zone >$zonefile
-
-$SIGNER -r $RANDFILE -l $dlvzone -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
-echo "I: signed $zone"
-
-
-zone=child4.utld.
-infile=child.db.in
-zonefile=child4.utld.db
-outfile=child4.signed
-dlvzone=dlv.utld.
-dlvsets="$dlvsets dlvset-$zone"
+zonefile=grand.child1.utld.db
+outfile=grand.child1.signed
 
 keyname1=`$KEYGEN -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
 keyname2=`$KEYGEN -f KSK -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
-$SIGNER -r $RANDFILE -l $dlvzone -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
+$SIGNER -g -r $RANDFILE -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
 echo "I: signed $zone"
 
 
-zone=child5.utld.
+zone=grand.child3.utld.
 infile=child.db.in
-zonefile=child5.utld.db
-outfile=child5.signed
-dlvzone=dlv.utld.
-dlvsets="$dlvsets dlvset-$zone"
-
-keyname1=`$KEYGEN -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
-
-cat $infile $keyname1.key $keyname2.key ../ns6/dsset-grand.$zone >$zonefile
-
-$SIGNER -r $RANDFILE -l $dlvzone -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
-echo "I: signed $zone"
-
-
-zone=child7.utld.
-infile=child.db.in
-zonefile=child7.utld.db
-outfile=child7.signed
-dlvzone=dlv.utld.
-
-keyname1=`$KEYGEN -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
-
-cat $infile $keyname1.key $keyname2.key ../ns6/dsset-grand.$zone >$zonefile
-
-$SIGNER -r $RANDFILE -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
-echo "I: signed $zone"
-
-
-zone=child8.utld.
-infile=child.db.in
-zonefile=child8.utld.db
-outfile=child8.signed
+zonefile=grand.child3.utld.db
+outfile=grand.child3.signed
 dlvzone=dlv.utld.
 
 keyname1=`$KEYGEN -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
@@ -114,63 +46,94 @@ keyname2=`$KEYGEN -f KSK -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
-$SIGNER -r $RANDFILE -l $dlvzone -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
+$SIGNER -g -r $RANDFILE -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
 echo "I: signed $zone"
 
 
-zone=child9.utld.
+zone=grand.child4.utld.
 infile=child.db.in
-zonefile=child9.utld.db
-outfile=child9.signed
+zonefile=grand.child4.utld.db
+outfile=grand.child4.signed
 dlvzone=dlv.utld.
-dlvsets="$dlvsets dlvset-$zone"
 
 keyname1=`$KEYGEN -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
 keyname2=`$KEYGEN -f KSK -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
-$SIGNER -r $RANDFILE -l $dlvzone -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
+$SIGNER -g -r $RANDFILE -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
 echo "I: signed $zone"
 
-zone=child10.utld.
+
+zone=grand.child5.utld.
 infile=child.db.in
-zonefile=child10.utld.db
-outfile=child10.signed
+zonefile=grand.child5.utld.db
+outfile=grand.child5.signed
 dlvzone=dlv.utld.
-dlvsets="$dlvsets dlvset-$zone"
 
 keyname1=`$KEYGEN -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
 keyname2=`$KEYGEN -f KSK -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
-$SIGNER -r $RANDFILE -l $dlvzone -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
+$SIGNER -g -r $RANDFILE -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
 echo "I: signed $zone"
 
 
-zone=dlv.utld.
-infile=dlv.db.in
-zonefile=dlv.utld.db
-outfile=dlv.signed
+zone=grand.child7.utld.
+infile=child.db.in
+zonefile=grand.child7.utld.db
+outfile=grand.child7.signed
 dlvzone=dlv.utld.
 
 keyname1=`$KEYGEN -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
 keyname2=`$KEYGEN -f KSK -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
 
-cat $infile $dlvsets $keyname1.key $keyname2.key >$zonefile
+cat $infile $keyname1.key $keyname2.key >$zonefile
 
-$SIGNER -r $RANDFILE -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
+$SIGNER -g -r $RANDFILE -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
 echo "I: signed $zone"
 
 
-grep -v '^;' $keyname2.key | $PERL -n -e '
-local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
-local $key = join("", @rest);
-print <<EOF
-trusted-keys {
-    "$dn" $flags $proto $alg "$key";
-};
-EOF
-' > trusted.conf
-cp trusted.conf ../ns5
+zone=grand.child8.utld.
+infile=child.db.in
+zonefile=grand.child8.utld.db
+outfile=grand.child8.signed
+dlvzone=dlv.utld.
+
+keyname1=`$KEYGEN -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
+
+cat $infile $keyname1.key $keyname2.key >$zonefile
+
+$SIGNER -g -r $RANDFILE -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
+echo "I: signed $zone"
+
+
+zone=grand.child9.utld.
+infile=child.db.in
+zonefile=grand.child9.utld.db
+outfile=grand.child9.signed
+dlvzone=dlv.utld.
+
+keyname1=`$KEYGEN -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
+
+cat $infile $keyname1.key $keyname2.key >$zonefile
+
+$SIGNER -g -r $RANDFILE -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
+echo "I: signed $zone"
+
+zone=grand.child10.utld.
+infile=child.db.in
+zonefile=grand.child10.utld.db
+outfile=grand.child10.signed
+dlvzone=dlv.utld.
+
+keyname1=`$KEYGEN -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
+
+cat $infile $keyname1.key $keyname2.key >$zonefile
+
+$SIGNER -g -r $RANDFILE -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
+echo "I: signed $zone"
