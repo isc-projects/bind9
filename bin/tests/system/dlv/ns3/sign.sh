@@ -14,9 +14,9 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.6.32.1 2010/05/26 06:30:43 marka Exp $
+# $Id: sign.sh,v 1.6.32.2 2010/05/26 07:00:01 marka Exp $
 
-(cd ../ns6; ./sign.sh)
+(cd ../ns6 && sh -e ./sign.sh)
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
