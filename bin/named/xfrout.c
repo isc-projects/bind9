@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.137 2010/05/27 03:23:56 marka Exp $ */
+/* $Id: xfrout.c,v 1.138 2010/05/27 23:51:08 tbox Exp $ */
 
 #include <config.h>
 
@@ -1068,7 +1068,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	else
 #endif
 		CHECK(xfrout_ctx_create(mctx, client, request->id,
-				        question_name, reqtype, question_class,
+					question_name, reqtype, question_class,
 					zone, db, ver, quota, stream,
 					dns_message_gettsigkey(request),
 					tsigbuf,
