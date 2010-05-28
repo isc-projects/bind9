@@ -1,4 +1,4 @@
-2906.	[bug]		Add RFC 5011 implementation issues. [RT #20903]
+2906.	[bug]		Address RFC 5011 implementation issues. [RT #20903]
 
 2905.	[port]		aix: set use_atomic=yes with native compiler.
 			[RT #21402]
