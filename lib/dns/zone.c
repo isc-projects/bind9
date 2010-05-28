@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.24 2010/05/18 02:35:11 tbox Exp $ */
+/* $Id: zone.c,v 1.540.2.25 2010/05/28 03:18:52 marka Exp $ */
 
 /*! \file */
 
@@ -2669,12 +2669,14 @@ set_refreshkeytimer(dns_zone_t *zone, dns_rdata_keydata_t *key,
 	if (key->removehd > now && key->removehd < then)
 		then = key->removehd;
 
-	isc_time_set(&timenow, now, 0);
-	isc_time_set(&timethen, ISC_MAX(then, now), 0);
+	TIME_NOW(&timenow);
+	if (then > now)
+		DNS_ZONE_TIME_ADD(&timenow, then - now, &timethen);
+	else
+		timethen = timenow;
 	if (isc_time_compare(&zone->refreshkeytime, &timenow) < 0 ||
-	    isc_time_compare(&timethen, &zone->refreshkeytime) < 0) {
+	    isc_time_compare(&timethen, &zone->refreshkeytime) < 0)
 		zone->refreshkeytime = timethen;
-	}
 	zone_settimer(zone, &timenow);
 }
 
@@ -6976,9 +6978,13 @@ matchkey(dns_rdataset_t *rdset, dns_rdata_t *rr) {
  *		MIN(15 days,
  *		    1/2 * OrigTTL,
  *		    1/2 * RRSigExpirationInterval))
+ * or for retries: MAX(1 hr,
+ *		       MIN(1 day,
+ *			   1/10 * OrigTTL,
+ *			   1/10 * RRSigExpirationInterval))
  */
 static inline isc_stdtime_t
-refresh_time(dns_keyfetch_t *kfetch) {
+refresh_time(dns_keyfetch_t *kfetch, isc_boolean_t retry) {
 	isc_result_t result;
 	isc_uint32_t t;
 	dns_rdataset_t *rdset;
@@ -7000,19 +7006,35 @@ refresh_time(dns_keyfetch_t *kfetch) {
 	dns_rdataset_current(rdset, &sigrr);
 	result = dns_rdata_tostruct(&sigrr, &sig, NULL);
 
-	t = sig.originalttl / 2;
+	if (!retry) {
+		t = sig.originalttl / 2;
 
-	if (isc_serial_gt(sig.timeexpire, now)) {
-		isc_uint32_t exp = (sig.timeexpire - now) / 2;
-		if (t > exp)
-			t = exp;
+		if (isc_serial_gt(sig.timeexpire, now)) {
+			isc_uint32_t exp = (sig.timeexpire - now) / 2;
+			if (t > exp)
+				t = exp;
+		}
+
+		if (t > (15*DAY))
+			t = (15*DAY);
+
+		if (t < HOUR)
+			t = HOUR;
+	} else {
+		t = sig.originalttl / 10;
+
+		if (isc_serial_gt(sig.timeexpire, now)) {
+			isc_uint32_t exp = (sig.timeexpire - now) / 10;
+			if (t > exp)
+				t = exp;
+		}
+
+		if (t > DAY)
+			t = DAY;
+
+		if (t < HOUR)
+			t = HOUR;
 	}
-
-	if (t > (15*DAY))
-		t = (15*DAY);
-
-	if (t < HOUR)
-		t = HOUR;
 
 	return (now + t);
 }
@@ -7023,7 +7045,8 @@ refresh_time(dns_keyfetch_t *kfetch) {
  * hold zone lock.
  */
 static isc_result_t
-minimal_update(dns_keyfetch_t *kfetch, dns_dbversion_t *ver, dns_diff_t *diff) {
+minimal_update(dns_keyfetch_t *kfetch, dns_dbversion_t *ver, dns_diff_t *diff)
+{
 	isc_result_t result;
 	isc_buffer_t keyb;
 	unsigned char key_buf[4096];
@@ -7048,7 +7071,7 @@ minimal_update(dns_keyfetch_t *kfetch, dns_dbversion_t *ver, dns_diff_t *diff) {
 
 		/* Update refresh timer */
 		CHECK(dns_rdata_tostruct(&rdata, &keydata, NULL));
-		keydata.refresh = refresh_time(kfetch);
+		keydata.refresh = refresh_time(kfetch, ISC_TRUE);
 		set_refreshkeytimer(zone, &keydata, now);
 
 		dns_rdata_reset(&rdata);
@@ -7145,7 +7168,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	dns_fetchevent_t *devent;
 	dns_keyfetch_t *kfetch;
 	dns_zone_t *zone;
-	isc_mem_t *mctx;
+	isc_mem_t *mctx = NULL;
 	dns_keytable_t *secroots = NULL;
 	dns_dbversion_t *ver = NULL;
 	dns_diff_t diff;
@@ -7173,7 +7196,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 
 	kfetch = event->ev_arg;
 	zone = kfetch->zone;
-	mctx = zone->mctx;
+	isc_mem_attach(zone->mctx, &mctx);
 	keyname = dns_fixedname_name(&kfetch->name);
 
 	devent = (dns_fetchevent_t *) event;
@@ -7197,6 +7220,12 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	dns_db_newversion(kfetch->db, &ver);
 	dns_diff_init(mctx, &diff);
 
+	zone->refreshkeycount--;
+	alldone = ISC_TF(zone->refreshkeycount == 0);
+
+	if (alldone)
+		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESHING);
+
 	/* Fetch failed */
 	if (eresult != ISC_R_SUCCESS ||
 	    !dns_rdataset_isassociated(&kfetch->dnskeyset)) {
@@ -7204,6 +7233,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 			     "Unable to fetch DNSKEY set "
 			     "'%s': %s", namebuf, dns_result_totext(eresult));
 		CHECK(minimal_update(kfetch, ver, &diff));
+		changed = ISC_TRUE;
 		goto failure;
 	}
 
@@ -7213,6 +7243,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 			     "No DNSKEY RRSIGs found for "
 			     "'%s': %s", namebuf, dns_result_totext(eresult));
 		CHECK(minimal_update(kfetch, ver, &diff));
+		changed = ISC_TRUE;
 		goto failure;
 	}
 
@@ -7320,7 +7351,8 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 					     "from %s; restarting acceptance "
 					     "timer", namebuf);
 				keydata.addhd = now + MONTH;
-				keydata.refresh = refresh_time(kfetch);
+				keydata.refresh = refresh_time(kfetch,
+							       ISC_FALSE);
 			} else if (keydata.addhd == 0) {
 				keydata.addhd = now;
 			} else if (keydata.removehd == 0) {
@@ -7331,7 +7363,8 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 			} else if (now > keydata.removehd) {
 				deletekey = ISC_TRUE;
 			} else {
-				keydata.refresh = refresh_time(kfetch);
+				keydata.refresh = refresh_time(kfetch,
+							       ISC_FALSE);
 			}
 
 			if  (secure || deletekey) {
@@ -7488,7 +7521,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 
 		if (updatekey) {
 			/* Set refresh timer */
-			keydata.refresh = refresh_time(kfetch);
+			keydata.refresh = refresh_time(kfetch, ISC_FALSE);
 			dns_rdata_reset(&keydatarr);
 			isc_buffer_init(&keyb, key_buf, sizeof(key_buf));
 			dns_rdata_fromstruct(&keydatarr, zone->rdclass,
@@ -7506,7 +7539,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 			dns_keydata_fromdnskey(&keydata, &dnskey, 0, 0, 0,
 					       NULL);
 			keydata.addhd = initializing ? now : now + MONTH;
-			keydata.refresh = refresh_time(kfetch);
+			keydata.refresh = refresh_time(kfetch, ISC_FALSE);
 			dns_rdata_reset(&keydatarr);
 			isc_buffer_init(&keyb, key_buf, sizeof(key_buf));
 			dns_rdata_fromstruct(&keydatarr, zone->rdclass,
@@ -7544,16 +7577,10 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 		fail_secure(zone->view->viewlist, keyname);
 
   failure:
-	zone->refreshkeycount--;
-	alldone = ISC_TF(zone->refreshkeycount == 0);
-
 	if (changed) {
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADED);
 		zone_needdump(zone, 30);
 	}
-
-	if (alldone)
-		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESHING);
 
 	UNLOCK_ZONE(zone);
 
@@ -7578,6 +7605,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 
 	dns_name_free(keyname, mctx);
 	isc_mem_put(mctx, kfetch, sizeof(dns_keyfetch_t));
+	isc_mem_detach(&mctx);
 
 	if (secroots != NULL)
 		dns_keytable_detach(&secroots);
@@ -13434,13 +13462,14 @@ clear_keylist(dns_dnsseckeylist_t *list, isc_mem_t *mctx) {
 	}
 }
 
+/* Called once; *timep should be set to the current time. */
 static isc_result_t
 next_keyevent(dst_key_t *key, isc_stdtime_t *timep) {
 	isc_result_t result;
 	isc_stdtime_t now, then = 0, event;
 	int i;
 
-	isc_stdtime_get(&now);
+	now = *timep;
 
 	for (i = 0; i <= DST_MAX_TIMES; i++) {
 		result = dst_key_gettime(key, i, &event);
@@ -13709,6 +13738,8 @@ zone_rekey(dns_zone_t *zone) {
 	const char *dir;
 	isc_mem_t *mctx;
 	isc_stdtime_t now;
+	isc_time_t timenow;
+	isc_interval_t ival;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -13722,7 +13753,6 @@ zone_rekey(dns_zone_t *zone) {
 	dir = dns_zone_getkeydirectory(zone);
 	mctx = zone->mctx;
 	dns_diff_init(mctx, &diff);
-	isc_stdtime_get(&now);
 
 	CHECK(dns_zone_getdb(zone, &db));
 	CHECK(dns_db_newversion(db, &ver));
@@ -13741,11 +13771,14 @@ zone_rekey(dns_zone_t *zone) {
 				     dns_rdatatype_none, 0, &keyset, &keysigs);
 	if (result == ISC_R_SUCCESS) {
 		ttl = keyset.ttl;
-		CHECK(dns_dnssec_keylistfromrdataset(&zone->origin, dir,
-						     mctx, &keyset,
-						     &keysigs, &soasigs,
-						     ISC_FALSE, ISC_FALSE,
-						     &dnskeys));
+		result = dns_dnssec_keylistfromrdataset(&zone->origin, dir,
+							mctx, &keyset,
+							&keysigs, &soasigs,
+							ISC_FALSE, ISC_FALSE,
+							&dnskeys);
+		/* Can't get keys for some reason; try again later. */
+		if (result != ISC_R_SUCCESS)
+			goto trylater;
 	} else if (result != ISC_R_NOTFOUND)
 		goto failure;
 
@@ -13759,15 +13792,13 @@ zone_rekey(dns_zone_t *zone) {
 					       ISC_TF(!check_ksk),
 					       mctx, logmsg);
 
-		/* Keys couldn't be updated for some reason; try again later. */
+		/* Keys couldn't be updated for some reason;
+		 * try again later. */
 		if (result != ISC_R_SUCCESS) {
-			isc_interval_t ival;
 			dns_zone_log(zone, ISC_LOG_ERROR, "zone_rekey:"
 				     "couldn't update zone keys: %s",
 				     isc_result_totext(result));
-			isc_interval_set(&ival, HOUR, 0);
-			isc_time_nowplusinterval(&zone->refreshkeytime, &ival);
-			goto failure;
+			goto trylater;
 		}
 
 		/* See if any pre-existing keys have newly become active */
@@ -13869,12 +13900,14 @@ zone_rekey(dns_zone_t *zone) {
 		UNLOCK_ZONE(zone);
 	}
 
+	isc_stdtime_get(&now);
+	TIME_NOW(&timenow);
 	isc_time_settoepoch(&zone->refreshkeytime);
 	for (key = ISC_LIST_HEAD(dnskeys);
 	     key != NULL;
 	     key = ISC_LIST_NEXT(key, link)) {
 		isc_stdtime_t then;
-		isc_time_t timenow, timethen;
+		isc_time_t timethen;
 
 		/*
 		 * If we are doing automatic key maintenance and the
@@ -13884,15 +13917,15 @@ zone_rekey(dns_zone_t *zone) {
 		if (!DNS_ZONEKEY_OPTION(zone, DNS_ZONEKEY_MAINTAIN))
 			break;
 
+		then = now;
 		result = next_keyevent(key->key, &then);
 		if (result != ISC_R_SUCCESS)
 			continue;
 
-		isc_time_set(&timethen, then, 0);
+		DNS_ZONE_TIME_ADD(&timenow, then - now, &timethen);
 		LOCK_ZONE(zone);
 		if (isc_time_isepoch(&zone->refreshkeytime) ||
 		    isc_time_compare(&timethen, &zone->refreshkeytime) < 0) {
-			TIME_NOW(&timenow);
 			zone->refreshkeytime = timethen;
 			zone_settimer(zone, &timenow);
 		}
@@ -13918,6 +13951,12 @@ zone_rekey(dns_zone_t *zone) {
 		dns_db_detachnode(db, &node);
 	if (db != NULL)
 		dns_db_detach(&db);
+	return;
+
+ trylater:
+	isc_interval_set(&ival, HOUR, 0);
+	isc_time_nowplusinterval(&zone->refreshkeytime, &ival);
+	goto failure;
 }
 
 void
