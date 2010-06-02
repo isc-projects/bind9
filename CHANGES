@@ -1,3 +1,6 @@
+2908.	[bug]		It was possible for re-signing to stop after removing
+			a DNSKEY. [RT #21384]
+
 2905.	[port]		aix: set use_atomic=yes with native compiler.
 			[RT #21402]
 
