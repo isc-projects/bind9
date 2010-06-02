@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.113.4.3 2010/05/21 14:13:48 marka Exp $ */
+/* $Id: namedconf.c,v 1.113.4.4 2010/06/02 01:10:06 marka Exp $ */
 
 /*! \file */
 
@@ -64,6 +64,8 @@ parse_optional_keyvalue(cfg_parser_t *pctx, const cfg_type_t *type,
 static isc_result_t
 parse_updatepolicy(cfg_parser_t *pctx, const cfg_type_t *type,
 		   cfg_obj_t **ret);
+static void
+print_updatepolicy(cfg_printer_t *pctx, const cfg_obj_t *obj);
 
 static void
 doc_updatepolicy(cfg_printer_t *pctx, const cfg_type_t *type);
@@ -342,8 +344,8 @@ static cfg_type_t cfg_type_grant = {
 };
 
 static cfg_type_t cfg_type_updatepolicy = {
-	"update_policy", parse_updatepolicy, NULL, doc_updatepolicy,
-	&cfg_rep_list, &cfg_type_grant
+	"update_policy", parse_updatepolicy, print_updatepolicy,
+	doc_updatepolicy, &cfg_rep_list, &cfg_type_grant
 };
 
 static isc_result_t
@@ -379,6 +381,14 @@ parse_updatepolicy(cfg_parser_t *pctx, const cfg_type_t *type,
 
  cleanup:
 	return (result);
+}
+
+static void
+print_updatepolicy(cfg_printer_t *pctx, const cfg_obj_t *obj) {
+	if (cfg_obj_isstring(obj))
+		cfg_print_ustring(pctx, obj);
+	else
+		cfg_print_bracketed_list(pctx, obj);
 }
 
 static void

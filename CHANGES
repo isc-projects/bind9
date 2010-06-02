@@ -1,3 +1,6 @@
+2909.	[bug]		named-checkzone -p could die if "update-policy local;"
+			was specified in named.conf. [RT #21416]
+
 2908.	[bug]		It was possible for re-signing to stop after removing
 			a DNSKEY. [RT #21384]
 

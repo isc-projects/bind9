@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.3 2007/06/19 23:47:01 tbox Exp $
+# $Id: tests.sh,v 1.3.558.1 2010/06/02 01:10:06 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -26,6 +26,11 @@ $CHECKCONF good.conf > /dev/null 2>&1 || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I: checking that named-checkconf prints a known good config"
+ret=0
+$CHECKCONF -p good.conf > /dev/null 2>&1 || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
 echo "I: checking that named-checkconf handles a known bad config"
 
 ret=1
