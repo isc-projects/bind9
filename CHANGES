@@ -1,3 +1,6 @@
+2907.	[bug]		The export version of libdns had undefined references.
+			[RT #21444]
+
 	--- 9.7.1rc1 released ---
 
 2906.	[bug]		Address RFC 5011 implementation issues. [RT #20903]

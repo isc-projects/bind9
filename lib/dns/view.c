@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.159.8.4 2010/05/14 04:49:40 marka Exp $ */
+/* $Id: view.c,v 1.159.8.5 2010/06/02 00:41:34 marka Exp $ */
 
 /*! \file */
 
@@ -362,8 +362,10 @@ destroy(dns_view_t *view) {
 		dns_stats_detach(&view->resquerystats);
 	if (view->secroots_priv != NULL)
 		dns_keytable_detach(&view->secroots_priv);
+#ifdef BIND9
 	if (view->managed_keys != NULL)
 		dns_zone_detach(&view->managed_keys);
+#endif
 	dns_fwdtable_destroy(&view->fwdtable);
 	dns_aclenv_destroy(&view->aclenv);
 	DESTROYLOCK(&view->lock);
