@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.25 2010/05/28 03:18:52 marka Exp $ */
+/* $Id: zone.c,v 1.540.2.26 2010/06/02 01:00:28 marka Exp $ */
 
 /*! \file */
 
@@ -4551,7 +4551,7 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 
 		if (type != dns_rdatatype_dnskey) {
 			result = update_one_rr(db, ver, diff,
-					       DNS_DIFFOP_DEL, name,
+					       DNS_DIFFOP_DELRESIGN, name,
 					       rdataset.ttl, &rdata);
 			dns_rdata_reset(&rdata);
 			if (result != ISC_R_SUCCESS)
@@ -4593,7 +4593,7 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 					break;
 				}
 				result = update_one_rr(db, ver, diff,
-						       DNS_DIFFOP_DEL,
+						       DNS_DIFFOP_DELRESIGN,
 						       name, rdataset.ttl,
 						       &rdata);
 				break;
@@ -4604,8 +4604,9 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		 * delete the RRSIG.
 		 */
 		if (!found)
-			result = update_one_rr(db, ver, diff, DNS_DIFFOP_DEL,
-					       name, rdataset.ttl, &rdata);
+			result = update_one_rr(db, ver, diff,
+					       DNS_DIFFOP_DELRESIGN, name,
+					       rdataset.ttl, &rdata);
 		dns_rdata_reset(&rdata);
 		if (result != ISC_R_SUCCESS)
 			break;
@@ -6417,7 +6418,7 @@ del_sig(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 			    rrsig.keyid != keyid)
 				continue;
 			CHECK(update_one_rr(db, version, diff,
-					    DNS_DIFFOP_DEL, name,
+					    DNS_DIFFOP_DELRESIGN, name,
 					    rdataset.ttl, &rdata));
 		}
 		dns_rdataset_disassociate(&rdataset);
