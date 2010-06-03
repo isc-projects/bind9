@@ -484,6 +484,7 @@
 ./bin/tests/system/dlv/ns5/hints		ZONE	2004
 ./bin/tests/system/dlv/ns5/named.conf		CONF-C	2004,2006,2007
 ./bin/tests/system/dlv/ns5/rndc.conf		CONF-C	2004
+./bin/tests/system/dlv/ns6/hints		ZONE	2010
 ./bin/tests/system/dlv/setup.sh			SH	2004
 ./bin/tests/system/dlv/tests.sh			SH	2004
 ./bin/tests/system/dnssec/README		TXT.BRIEF	2000,2001,2002,2004
