@@ -1,3 +1,6 @@
+2911.	[bug]		dnssec-signzone didn't handle out of zone records well.
+			[RT #21367]
+
 2910.	[func]		Sanity check Kerberos credentials. [RT #20986]
 
 2909.	[bug]		named-checkconf -p could die if "update-policy local;"
