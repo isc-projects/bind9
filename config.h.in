@@ -16,7 +16,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.106.40.15 2010/05/26 23:49:07 marka Exp $ */
+/* $Id: config.h.in,v 1.106.40.16 2010/06/03 02:35:53 marka Exp $ */
 
 /*! \file */
 
@@ -189,6 +189,12 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the <krb5.h> header file. */
+#undef HAVE_KRB5_H
+
+/* Define to 1 if you have the <krb5/krb5.h> header file. */
+#undef HAVE_KRB5_KRB5_H
 
 /* Define to 1 if you have the `c' library (-lc). */
 #undef HAVE_LIBC
