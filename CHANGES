@@ -1,3 +1,6 @@
+2912.	[func]		Windows clients don't like UPDATE responses that clear
+			the zone section. [RT #20986]
+
 2911.	[bug]		dnssec-signzone didn't handle out of zone records well.
 			[RT #21367]
 
