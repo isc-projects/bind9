@@ -1,3 +1,7 @@
+2900.	[bug]	 	The placeholder negative caching element was not
+			properly constructed triggering a INSIST in 
+			dns_ncache_towire(). [RT #21346]
+
 2890.	[bug]		Handle the introduction of new trusted-keys and
 			DS, DLV RRsets better. [RT #21097]
 
