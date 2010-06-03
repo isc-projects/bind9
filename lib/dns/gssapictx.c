@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gssapictx.c,v 1.14.104.2 2010/03/12 23:49:55 tbox Exp $ */
+/* $Id: gssapictx.c,v 1.14.104.3 2010/06/03 02:31:58 marka Exp $ */
 
 #include <config.h>
 
@@ -29,6 +29,7 @@
 #include <isc/mem.h>
 #include <isc/once.h>
 #include <isc/print.h>
+#include <isc/platform.h>
 #include <isc/random.h>
 #include <isc/string.h>
 #include <isc/time.h>
@@ -66,6 +67,7 @@
  * we include SPNEGO's OID.
  */
 #if defined(GSSAPI)
+#include ISC_PLATFORM_KRB5HEADER
 
 static unsigned char krb5_mech_oid_bytes[] = {
 	0x2a, 0x86, 0x48, 0x86, 0xf7, 0x12, 0x01, 0x02, 0x02
@@ -191,6 +193,54 @@ log_cred(const gss_cred_id_t cred) {
 }
 #endif
 
+#ifdef GSSAPI
+/*
+ * check for the most common configuration errors.
+ *
+ * The errors checked for are:
+ *   - tkey-gssapi-credential doesn't start with DNS/
+ *   - the default realm in /etc/krb5.conf and the
+ *     tkey-gssapi-credential bind config option don't match
+ */
+static void
+dst_gssapi_check_config(const char *gss_name) {
+	const char *p;
+	krb5_context krb5_ctx;
+	char *krb5_realm = NULL;
+
+	if (strncasecmp(gss_name, "DNS/", 4) != 0) {
+		gss_log(ISC_LOG_ERROR, "tkey-gssapi-credential (%s) "
+			"should start with 'DNS/'", gss_name);
+		return;
+	}
+
+	if (krb5_init_context(&krb5_ctx) != 0) {
+		gss_log(ISC_LOG_ERROR, "Unable to initialise krb5 context");
+		return;
+	}
+	if (krb5_get_default_realm(krb5_ctx, &krb5_realm) != 0) {
+		gss_log(ISC_LOG_ERROR, "Unable to get krb5 default realm");
+		krb5_free_context(krb5_ctx);
+		return;
+	}
+	p = strchr(gss_name, '/');
+	if (p == NULL) {
+		gss_log(ISC_LOG_ERROR, "badly formatted "
+			"tkey-gssapi-credentials (%s)", gss_name);
+		krb5_free_context(krb5_ctx);
+		return;
+	}
+	if (strcasecmp(p + 1, krb5_realm) != 0) {
+		gss_log(ISC_LOG_ERROR, "default realm from krb5.conf (%s) "
+			"does not match tkey-gssapi-credential (%s)",
+			krb5_realm, gss_name);
+		krb5_free_context(krb5_ctx);
+		return;
+	}
+	krb5_free_context(krb5_ctx);
+}
+#endif
+
 isc_result_t
 dst_gssapi_acquirecred(dns_name_t *name, isc_boolean_t initiate,
 		       gss_cred_id_t *cred)
@@ -223,6 +273,8 @@ dst_gssapi_acquirecred(dns_name_t *name, isc_boolean_t initiate,
 		gret = gss_import_name(&minor, &gnamebuf,
 				       GSS_C_NO_OID, &gname);
 		if (gret != GSS_S_COMPLETE) {
+			dst_gssapi_check_config((char *)array);
+
 			gss_log(3, "failed gss_import_name: %s",
 				gss_error_tostring(gret, minor, buf,
 						   sizeof(buf)));
@@ -254,6 +306,7 @@ dst_gssapi_acquirecred(dns_name_t *name, isc_boolean_t initiate,
 			initiate ? "initiate" : "accept",
 			(char *)gnamebuf.value,
 			gss_error_tostring(gret, minor, buf, sizeof(buf)));
+		dst_gssapi_check_config((char *)array);
 		return (ISC_R_FAILURE);
 	}
 
