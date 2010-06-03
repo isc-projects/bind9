@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.258.4.3 2010/06/03 03:32:25 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.258.4.4 2010/06/03 23:49:23 tbox Exp $ */
 
 /*! \file */
 
@@ -2112,9 +2112,9 @@ nsecify(void) {
 				check_result(result, "dns_dbiterator_next()");
 			dns_db_detachnode(gdb, &node);
 			continue;
-		} 
+		}
 
-		if (dns_name_equal(name, gorigin)) 
+		if (dns_name_equal(name, gorigin))
 			remove_records(node, dns_rdatatype_nsec3param);
 
 		if (delegation(name, node, &nsttl)) {
@@ -2516,21 +2516,21 @@ nsec3ify(unsigned int hashalg, unsigned int iterations,
 	while (!done) {
 		result = dns_dbiterator_current(dbiter, &node, name);
 		check_dns_dbiterator_current(result);
-                /*
-                 * Skip out-of-zone records.
-                 */
-                if (!dns_name_issubdomain(name, gorigin)) {
-                        result = dns_dbiterator_next(dbiter);
-                        if (result == ISC_R_NOMORE)
-                                done = ISC_TRUE;
-                        else
-                                check_result(result, "dns_dbiterator_next()");
-                        dns_db_detachnode(gdb, &node);
-                        continue;
-                }
- 
-                if (dns_name_equal(name, gorigin))
-                        remove_records(node, dns_rdatatype_nsec);
+		/*
+		 * Skip out-of-zone records.
+		 */
+		if (!dns_name_issubdomain(name, gorigin)) {
+			result = dns_dbiterator_next(dbiter);
+			if (result == ISC_R_NOMORE)
+				done = ISC_TRUE;
+			else
+				check_result(result, "dns_dbiterator_next()");
+			dns_db_detachnode(gdb, &node);
+			continue;
+		}
+
+		if (dns_name_equal(name, gorigin))
+			remove_records(node, dns_rdatatype_nsec);
 
 		result = dns_dbiterator_next(dbiter);
 		nextnode = NULL;
@@ -2659,7 +2659,7 @@ nsec3ify(unsigned int hashalg, unsigned int iterations,
 				check_result(result, "dns_dbiterator_next()");
 			dns_db_detachnode(gdb, &node);
 			continue;
-		} 
+		}
 		result = dns_dbiterator_next(dbiter);
 		nextnode = NULL;
 		while (result == ISC_R_SUCCESS) {
