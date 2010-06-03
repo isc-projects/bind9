@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.204.94.6 2010/06/03 04:28:36 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.204.94.7 2010/06/03 23:30:34 marka Exp $ */
 
 /*! \file */
 
@@ -1203,6 +1203,8 @@ signapex(void) {
 
 	dns_fixedname_init(&fixed);
 	name = dns_fixedname_name(&fixed);
+	result = dns_dbiterator_seek(gdbiter, gorigin);
+	check_result(result, "dns_dbiterator_seek()");
 	result = dns_dbiterator_current(gdbiter, &node, name);
 	check_result(result, "dns_dbiterator_current()");
 	signname(node, name);
@@ -1257,6 +1259,13 @@ assignwork(isc_task_t *task, isc_task_t *worker) {
 		if (result != ISC_R_SUCCESS)
 			fatal("failure iterating database: %s",
 			      isc_result_totext(result));
+                /*
+                 * The origin was handled by signapex().
+                 */
+                if (dns_name_equal(name, gorigin)) {
+                        dns_db_detachnode(gdb, &node);
+                        goto next;
+                }
 		dns_rdataset_init(&nsec);
 		result = dns_db_findrdataset(gdb, node, gversion,
 					     dns_rdatatype_nsec, 0, 0,
@@ -1269,7 +1278,7 @@ assignwork(isc_task_t *task, isc_task_t *worker) {
 			dns_rdataset_disassociate(&nsec);
 		if (!found)
 			dns_db_detachnode(gdb, &node);
-
+ next:
 		result = dns_dbiterator_next(gdbiter);
 		if (result == ISC_R_NOMORE) {
 			finished = ISC_TRUE;
