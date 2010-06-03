@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.209.12.19 2010/06/03 03:38:53 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.209.12.20 2010/06/03 23:47:48 tbox Exp $ */
 
 /*! \file */
 
@@ -2047,9 +2047,9 @@ nsecify(void) {
 				check_result(result, "dns_dbiterator_next()");
 			dns_db_detachnode(gdb, &node);
 			continue;
-		} 
+		}
 
-		if (dns_name_equal(name, gorigin)) 
+		if (dns_name_equal(name, gorigin))
 			remove_records(node, dns_rdatatype_nsec3param);
 
 		if (delegation(name, node, &nsttl)) {
@@ -2370,7 +2370,7 @@ nsec3ify(unsigned int hashalg, unsigned int iterations,
 				check_result(result, "dns_dbiterator_next()");
 			dns_db_detachnode(gdb, &node);
 			continue;
-		} 
+		}
 
 		if (dns_name_equal(name, gorigin))
 			remove_records(node, dns_rdatatype_nsec);
@@ -2502,7 +2502,7 @@ nsec3ify(unsigned int hashalg, unsigned int iterations,
 				check_result(result, "dns_dbiterator_next()");
 			dns_db_detachnode(gdb, &node);
 			continue;
-		} 
+		}
 		result = dns_dbiterator_next(dbiter);
 		nextnode = NULL;
 		while (result == ISC_R_SUCCESS) {
