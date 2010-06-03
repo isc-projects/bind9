@@ -1,6 +1,11 @@
 2905.	[port]		aix: set use_atomic=yes with native compiler.
 			[RT #21402]
 
+2904.   [bug]           When using DLV, sub-zones of the zones in the DLV,
+			could be incorrectly marked as insecure instead of
+			secure leading to negative proofs failing.  This was
+			a unintended outcome from change 2890. [RT# 21392]
+
 2901.	[port]		Use AC_C_FLEXIBLE_ARRAY_MEMBER. [RT #21316]
 
 2900.	[bug]		The placeholder negative caching element was not
