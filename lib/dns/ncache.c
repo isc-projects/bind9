@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ncache.c,v 1.36.18.7 2010/06/03 00:21:52 marka Exp $ */
+/* $Id: ncache.c,v 1.36.18.8 2010/06/03 23:46:10 tbox Exp $ */
 
 /*! \file */
 
@@ -597,7 +597,7 @@ dns_ncache_getrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
 
 isc_result_t
 dns_ncache_getsigrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
-		          dns_rdatatype_t covers, dns_rdataset_t *rdataset)
+			  dns_rdatatype_t covers, dns_rdataset_t *rdataset)
 {
 	dns_name_t tname;
 	dns_rdata_rrsig_t rrsig;

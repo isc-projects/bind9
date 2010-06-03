@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.119.18.56 2010/06/03 00:36:02 marka Exp $ */
+/* $Id: validator.c,v 1.119.18.57 2010/06/03 23:46:10 tbox Exp $ */
 
 /*! \file */
 
@@ -627,7 +627,7 @@ dsvalidated(isc_task_t *task, isc_event_t *event) {
 			} else if (val->view->dlv == NULL || DLVTRIED(val)) {
 				markanswer(val, "dsvalidated");
 				result = ISC_R_SUCCESS;;
-			} else 
+			} else
 				result = startfinddlvsep(val, name);
 		} else if ((val->attributes & VALATTR_INSECURITY) != 0) {
 			result = proveunsecure(val, have_dsset, ISC_TRUE);
@@ -1252,7 +1252,7 @@ get_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo) {
 		 */
 		val->keyset = &val->frdataset;
 		if ((DNS_TRUST_PENDING(val->frdataset.trust) ||
-	             DNS_TRUST_ANSWER(val->frdataset.trust)) &&
+		     DNS_TRUST_ANSWER(val->frdataset.trust)) &&
 		    dns_rdataset_isassociated(&val->fsigrdataset))
 		{
 			/*
@@ -2167,7 +2167,7 @@ start_positive_validation(dns_validator_t *val) {
 
 /*%
  * val_rdataset_first and val_rdataset_next provide iteration methods
- * that hide whether we are iterating across a message or a  negative 
+ * that hide whether we are iterating across a message or a  negative
  * cache rdataset.
  */
 static isc_result_t
@@ -2205,7 +2205,7 @@ val_rdataset_first(dns_validator_t *val, dns_name_t **namep,
 
 static isc_result_t
 val_rdataset_next(dns_validator_t *val, dns_name_t **namep,
-		  dns_rdataset_t **rdatasetp) 
+		  dns_rdataset_t **rdatasetp)
 {
 	dns_message_t *message = val->event->message;
 	isc_result_t result = ISC_R_SUCCESS;
@@ -2232,7 +2232,7 @@ val_rdataset_next(dns_validator_t *val, dns_name_t **namep,
 	} else {
 		dns_rdataset_disassociate(*rdatasetp);
 		result = dns_rdataset_next(val->event->rdataset);
-		if (result == ISC_R_SUCCESS) 
+		if (result == ISC_R_SUCCESS)
 			dns_ncache_current(val->event->rdataset, *namep,
 					   *rdatasetp);
 	}
@@ -2268,7 +2268,7 @@ checkwildcard(dns_validator_t *val) {
 		name = NULL;
 		rdataset = NULL;
 	}
- 
+
 	for (result = val_rdataset_first(val, &name, &rdataset);
 	     result == ISC_R_SUCCESS;
 	     result = val_rdataset_next(val, &name, &rdataset))
@@ -2433,7 +2433,7 @@ validate_ncache(dns_validator_t *val, isc_boolean_t resume) {
 
 		if (val->frdataset.type == dns_rdatatype_rrsig)
 			continue;
-	
+
 		result = dns_ncache_getsigrdataset(val->event->rdataset, name,
 						   rdataset->type,
 						   &val->fsigrdataset);
@@ -2499,8 +2499,8 @@ nsecvalidate(dns_validator_t *val, isc_boolean_t resume) {
 
 	if (resume)
 		validator_log(val, ISC_LOG_DEBUG(3), "resuming nsecvalidate");
-	
-	if (val->event->message == NULL) 
+
+	if (val->event->message == NULL)
 		result = validate_ncache(val, resume);
 	else
 		result = validate_authority(val, resume);
@@ -3030,17 +3030,17 @@ proveunsecure(dns_validator_t *val, isc_boolean_t have_ds, isc_boolean_t resume)
 			 * There is no DS.  If this is a delegation,
 			 * we maybe done.
 			 */
-                        /*
-                         * If we have "trust == answer" then this namespace
-                         * has switched from insecure to should be secure.
-                         */
-                        if (DNS_TRUST_PENDING(val->frdataset.trust) ||
-                            DNS_TRUST_ANSWER(val->frdataset.trust)) {
-                                result = create_validator(val, tname,
-                                                          dns_rdatatype_ds,
-                                                          &val->frdataset,
-                                                          NULL, dsvalidated,
-                                                          "proveunsecure");
+			/*
+			 * If we have "trust == answer" then this namespace
+			 * has switched from insecure to should be secure.
+			 */
+			if (DNS_TRUST_PENDING(val->frdataset.trust) ||
+			    DNS_TRUST_ANSWER(val->frdataset.trust)) {
+				result = create_validator(val, tname,
+							  dns_rdatatype_ds,
+							  &val->frdataset,
+							  NULL, dsvalidated,
+							  "proveunsecure");
 				 if (result != ISC_R_SUCCESS)
 					goto out;
 				return (DNS_R_WAIT);
