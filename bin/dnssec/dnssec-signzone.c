@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.204.94.5 2009/07/21 06:45:06 tbox Exp $ */
+/* $Id: dnssec-signzone.c,v 1.204.94.6 2010/06/03 04:28:36 marka Exp $ */
 
 /*! \file */
 
@@ -1381,6 +1381,15 @@ nsecify(void) {
 
 	while (!done) {
 		dns_dbiterator_current(dbiter, &node, name);
+		if (!dns_name_issubdomain(name, gorigin)) {
+			dns_db_detachnode(gdb, &node);
+			result = dns_dbiterator_next(dbiter);
+			if (result == ISC_R_NOMORE)
+				done = ISC_TRUE;
+			else
+				check_result(result, "dns_dbiterator_next()");
+			continue;
+		}
 		if (delegation(name, node, NULL)) {
 			zonecut = dns_fixedname_name(&fzonecut);
 			dns_name_copy(name, zonecut, NULL);
