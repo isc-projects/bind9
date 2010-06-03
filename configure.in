@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.489.22.7 $)
+AC_REVISION($Revision: 1.489.22.8 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -822,7 +822,7 @@ case "$use_gssapi" in
 		    "-lgssapi" \
 		    "-lgssapi -lkrb5 -ldes -lcrypt -lasn1 -lroken -lcom_err" \
 		    "-lgssapi -lkrb5 -lcrypto -lcrypt -lasn1 -lroken -lcom_err" \
-		    "-lgss"
+		    "-lgss -lkrb5"
 		do
 		    # Note that this does not include $saved_libs, because
 		    # on FreeBSD machines this configure script has added
@@ -831,7 +831,7 @@ case "$use_gssapi" in
 		    # when you are trying to build with KTH in /usr/lib.
 		    LIBS="-L$use_gssapi/lib $TRY_LIBS"
 		    AC_MSG_CHECKING(linking as $TRY_LIBS)
-		    AC_TRY_LINK( , [gss_acquire_cred();],
+		    AC_TRY_LINK( , [gss_acquire_cred();krb5_init_context()],
 				gssapi_linked=yes, gssapi_linked=no)
 		    case $gssapi_linked in
 		    yes) AC_MSG_RESULT(yes); break ;;
