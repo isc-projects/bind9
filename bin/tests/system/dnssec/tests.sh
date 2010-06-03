@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.53.48.5 2010/06/03 03:38:53 marka Exp $
+# $Id: tests.sh,v 1.53.48.6 2010/06/03 21:45:31 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -897,8 +897,8 @@ zone=example
 key1=`$KEYGEN -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone`
 key2=`$KEYGEN -r $RANDFILE -f KSK -a NSEC3RSASHA1 -b 1024 -n zone $zone`
 cat example.db.in $key1.key $key2.key > example.db
-$SIGNER -3 - -o example -f example.db example.db > /dev/null 2>&1
-grep "JIEIDARU68SM01LPOROGNS2AUEE8ERCP.example. 0 IN NSEC3 1 0 100 - JIEIDARU68SM01LPOROGNS2AUEE8ERCP A NS SOA RRSIG DNSKEY NSEC3PARAM" example.db > /dev/null 
+$SIGNER -3 - -i 10 -o example -f example.db example.db > /dev/null 2>&1
+grep "IQF9LQTLKKNFK0KVIFELRAK4IC4QLTMG.example. 0 IN NSEC3 1 0 10 - IQF9LQTLKKNFK0KVIFELRAK4IC4QLTMG A NS SOA RRSIG DNSKEY NSEC3PARAM" example.db > /dev/null 
 ) || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
