@@ -1,3 +1,20 @@
+2912.	[func]		Windows clients don't like UPDATE responses that clear
+			the zone section. [RT #20986]
+
+2911.	[bug]		dnssec-signzone didn't handle out of zone records well.
+			[RT #21367]
+
+2910.	[func]		Sanity check Kerberos credentials. [RT #20986]
+
+2909.	[bug]		named-checkconf -p could die if "update-policy local;"
+			was specified in named.conf. [RT #21416]
+
+2908.	[bug]		It was possible for re-signing to stop after removing
+			a DNSKEY. [RT #21384]
+
+2907.	[bug]		The export version of libdns had undefined references.
+			[RT #21444]
+
 2906.	[bug]		Address RFC 5011 implementation issues. [RT #20903]
 
 2905.	[port]		aix: set use_atomic=yes with native compiler.
