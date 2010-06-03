@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.45.60.5 2009/02/16 23:46:44 tbox Exp $ */
+/* $Id: platform.h.in,v 1.45.60.6 2010/06/03 02:39:05 marka Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -213,6 +213,12 @@
  * the GSSAPI header.
  */
 @ISC_PLATFORM_GSSAPIHEADER@
+
+/*
+ * Defined to <krb5.h> or <krb5/krb5.h> for how to include
+ * the KRB5 header.
+ */
+@ISC_PLATFORM_KRB5HEADER@
 
 /*
  * Type used for resource limits.

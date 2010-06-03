@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.432.60.42 $)
+AC_REVISION($Revision: 1.432.60.43 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -709,6 +709,13 @@ case "$use_gssapi" in
 		    AC_MSG_ERROR([gssapi.h not found])
 		fi
 
+		AC_CHECK_HEADERS(krb5.h krb5/krb5.h,
+		    [ISC_PLATFORM_KRB5HEADER="#define ISC_PLATFORM_KRB5HEADER <$ac_header>"])
+
+		if test "$ISC_PLATFORM_KRB5HEADER" = ""; then
+		    AC_MSG_ERROR([gssapi.h not found])
+		fi
+
 		CPPFLAGS="$saved_cppflags"
 
 		#
@@ -810,6 +817,7 @@ esac
 
 AC_SUBST(ISC_PLATFORM_HAVEGSSAPI)
 AC_SUBST(ISC_PLATFORM_GSSAPIHEADER)
+AC_SUBST(ISC_PLATFORM_KRB5HEADER)
 
 AC_SUBST(USE_GSSAPI)
 AC_SUBST(DST_GSSAPI_INC)
