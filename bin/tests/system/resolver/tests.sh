@@ -15,13 +15,27 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.9 2007/06/19 23:47:05 tbox Exp $
+# $Id: tests.sh,v 1.9.128.1 2010/06/03 00:21:21 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 status=0
 
+echo "I:checking non-cachable NXDOMAIN response handling"
+ret=0
+$DIG +tcp nxdomain.example.net @10.53.0.1 a -p 5300 > dig.out || ret=1
+grep "status: NXDOMAIN" dig.out > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking non-cachable NODATA response handling"
+ret=0
+$DIG +tcp nodata.example.net @10.53.0.1 a -p 5300 > dig.out || ret=1
+grep "status: NOERROR" dig.out > /dev/null || ret=1
+
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
 echo "I:checking handling of bogus referrals"
 # If the server has the "INSIST(!external)" bug, this query will kill it.
 $DIG +tcp www.example.com. a @10.53.0.1 -p 5300 >/dev/null || status=1
@@ -34,6 +48,7 @@ $DIG +tcp cname2.example.com. a @10.53.0.1 -p 5300 >/dev/null || status=1
 
 echo "I:check that server is still running"
 $DIG +tcp www.example.com. a @10.53.0.1 -p 5300 >/dev/null || status=1
+
 
 echo "I:exit status: $status"
 exit $status
