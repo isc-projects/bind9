@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: diff.h,v 1.17 2009/01/17 23:47:43 tbox Exp $ */
+/* $Id: diff.h,v 1.17.186.1 2010/06/04 00:14:53 marka Exp $ */
 
 #ifndef DNS_DIFF_H
 #define DNS_DIFF_H 1
@@ -70,7 +70,7 @@ typedef enum {
 	DNS_DIFFOP_DEL = 1,		/*%< Delete an RR. */
 	DNS_DIFFOP_EXISTS = 2,		/*%< Assert RR existence. */
 	DNS_DIFFOP_ADDRESIGN = 4,	/*%< ADD + RESIGN. */
-	DNS_DIFFOP_DELRESIGN = 5,	/*%< DEL + RESIGN. */
+	DNS_DIFFOP_DELRESIGN = 5	/*%< DEL + RESIGN. */
 } dns_diffop_t;
 
 typedef struct dns_difftuple dns_difftuple_t;
