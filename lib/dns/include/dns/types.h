@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.126.62.9 2010/06/03 00:16:31 marka Exp $ */
+/* $Id: types.h,v 1.126.62.10 2010/06/05 23:46:58 tbox Exp $ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1

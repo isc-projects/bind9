@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.204.94.7 2010/06/03 23:30:34 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.204.94.8 2010/06/05 23:46:57 tbox Exp $ */
 
 /*! \file */
 
@@ -1259,13 +1259,13 @@ assignwork(isc_task_t *task, isc_task_t *worker) {
 		if (result != ISC_R_SUCCESS)
 			fatal("failure iterating database: %s",
 			      isc_result_totext(result));
-                /*
-                 * The origin was handled by signapex().
-                 */
-                if (dns_name_equal(name, gorigin)) {
-                        dns_db_detachnode(gdb, &node);
-                        goto next;
-                }
+		/*
+		 * The origin was handled by signapex().
+		 */
+		if (dns_name_equal(name, gorigin)) {
+			dns_db_detachnode(gdb, &node);
+			goto next;
+		}
 		dns_rdataset_init(&nsec);
 		result = dns_db_findrdataset(gdb, node, gversion,
 					     dns_rdatatype_nsec, 0, 0,

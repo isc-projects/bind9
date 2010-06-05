@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ncache.h,v 1.23.128.2 2010/06/03 23:46:48 tbox Exp $ */
+/* $Id: ncache.h,v 1.23.128.3 2010/06/05 23:46:58 tbox Exp $ */
 
 #ifndef DNS_NCACHE_H
 #define DNS_NCACHE_H 1
@@ -163,7 +163,7 @@ dns_ncache_getrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
 
 isc_result_t
 dns_ncache_getsigrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
-                          dns_rdatatype_t covers, dns_rdataset_t *rdataset);
+			  dns_rdatatype_t covers, dns_rdataset_t *rdataset);
 /*%<
  * Similar to dns_ncache_getrdataset() but get the rrsig that matches.
  */
