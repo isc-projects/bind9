@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_api.c,v 1.65 2009/03/02 23:47:43 tbox Exp $ */
+/* $Id: t_api.c,v 1.66 2010/06/07 03:42:37 marka Exp $ */
 
 /*! \file */
 
@@ -399,6 +399,9 @@ t_result(int result) {
 			break;
 		case T_THREADONLY:
 			p = "THREADONLY";
+			break;
+		case T_PKCS11ONLY:
+			p = "PKCS11ONLY";
 			break;
 		default:
 			p = "UNKNOWN";
