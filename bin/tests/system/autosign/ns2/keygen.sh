@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: keygen.sh,v 1.3.6.3 2010/01/18 23:48:01 tbox Exp $
+# $Id: keygen.sh,v 1.3.6.4 2010/06/07 04:47:26 marka Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -52,6 +52,10 @@ zone=bar
 zonefile="${zone}.db"
 infile="${zonefile}.in"
 cat $infile > $zonefile
-sh revkeys.shar > /dev/null
+for i in Xbar.+005+30676.key Xbar.+005+30804.key Xbar.+005+30676.private \
+	 Xbar.+005+30804.private
+do
+	cp $i `echo $i | sed s/X/K/`
+done
 $KEYGEN -3 -q -r $RANDFILE $zone > /dev/null
 $DSFROMKEY Kbar.+005+30804.key > dsset-bar.

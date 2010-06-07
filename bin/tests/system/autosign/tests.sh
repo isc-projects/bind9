@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.4.6.5 2010/05/19 07:47:11 marka Exp $
+# $Id: tests.sh,v 1.4.6.6 2010/06/07 04:47:26 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -22,19 +22,36 @@ SYSTEMTESTTOP=..
 status=0
 n=0
 
-
 DIGOPTS="+tcp +noadd +nosea +nostat +nocmd +dnssec -p 5300"
 
-echo "I:waiting 30 seconds for autosign changes to take effect"
-sleep 30
-
-echo "I:checking that zone transfer worked ($n)"
-ret=0
-$DIG $DIGOPTS a.example. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
-$DIG $DIGOPTS a.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns3.test$n || ret=1
+#
+#  The NSEC record at the apex of the zone and its RRSIG records are
+#  added as part of the last step in signing a zone.  We wait for the
+#  NSEC records to appear before proceeding with a counter to prevent
+#  infinite loops if there is a error.
+#
+echo "I:waiting for autosign changes to take effect"
+i=0
+while [ $i -lt 30 ]
+do
+	ret=0
+	for z in bar example private.secure.example
+	do
+		$DIG $DIGOPTS $z. @10.53.0.2 nsec > dig.out.ns2.test$n || ret=1
+		grep "NS SOA" dig.out.ns2.test$n > /dev/null || ret=1
+	done
+	for z in bar example
+	do 
+		$DIG $DIGOPTS $z. @10.53.0.3 nsec > dig.out.ns3.test$n || ret=1
+		grep "NS SOA" dig.out.ns3.test$n > /dev/null || ret=1
+	done
+	i=`expr $i + 1`
+	if [ $ret = 0 ]; then break; fi
+	echo "I:waiting ... ($i)"
+	sleep 2
+done
 n=`expr $n + 1`
-if [ $ret != 0 ]; then echo "I:failed"; fi
+if [ $ret != 0 ]; then echo "I:failed"; else echo "I:done"; fi
 status=`expr $status + $ret`
 
 echo "I:checking NSEC->NSEC3 conversion prerequisites ($n)"

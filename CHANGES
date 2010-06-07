@@ -1,3 +1,6 @@
+2914.	[bug]		Make the "autosign" system test more portable.
+			[RT #20997]
+
 2913.	[func]		Add pkcs#11 system tests. [RT #20784]
 
 2912.	[func]		Windows clients don't like UPDATE responses that clear
