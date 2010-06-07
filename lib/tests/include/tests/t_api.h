@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_api.h,v 1.22 2007/06/19 23:47:24 tbox Exp $ */
+/* $Id: t_api.h,v 1.23 2010/06/07 03:42:37 marka Exp $ */
 
 #ifndef TESTS_T_API_H
 #define TESTS_T_API_H 1
@@ -40,6 +40,7 @@
 #define	T_UNSUPPORTED	0x4
 #define	T_UNTESTED	0x5
 #define	T_THREADONLY	0x6
+#define	T_PKCS11ONLY	0x7
 
 /*
  *
