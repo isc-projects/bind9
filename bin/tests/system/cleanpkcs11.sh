@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2010  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: cleanpkcs11.sh,v 1.2 2010/06/07 03:42:37 marka Exp $
+# $Id: cleanpkcs11.sh,v 1.3 2010/06/08 23:50:24 tbox Exp $
 
 if [ ! -x ../../pkcs11/pkcs11-destroy ]; then exit 1; fi
 
