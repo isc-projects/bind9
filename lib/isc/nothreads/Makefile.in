@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.10 2009/12/05 23:31:41 each Exp $
+# $Id: Makefile.in,v 1.10.2.1 2010/06/09 01:50:01 marka Exp $
 
 top_srcdir =	@top_srcdir@
 srcdir =	@top_srcdir@/lib/isc/nothreads
@@ -28,9 +28,11 @@ CINCLUDES =	-I${srcdir}/include \
 CDEFINES =
 CWARNINGS =
 
-OBJS =		condition.@O@ mutex.@O@ thread.@O@
+THREADOPTOBJS = condition.@O@ mutex.@O@
+OBJS =		@THREADOPTOBJS@ thread.@O@
 
-SRCS =		condition.c mutex.c thread.c
+THREADOPTSRCS = condition.c mutex.c
+SRCS =		@THREADOPTSRCS@ thread.c
 
 SUBDIRS =	include
 TARGETS =	${OBJS}
