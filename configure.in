@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.432.60.45 $)
+AC_REVISION($Revision: 1.432.60.46 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -512,10 +512,14 @@ case "$use_openssl" in
 		AC_MSG_RESULT(no)
 		DST_OPENSSL_INC=""
 		USE_OPENSSL=""
+		OPENSSLLINKOBJS=""
+		OPENSSLLINKSRCS=""
 		;;
 	auto)
 		DST_OPENSSL_INC=""
 		USE_OPENSSL=""
+		OPENSSLLINKOBJS=""
+		OPENSSLLINKSRCS=""
 		AC_MSG_ERROR(
 [OpenSSL was not found in any of $openssldirs; use --with-openssl=/path
 If you don't want OpenSSL, use --without-openssl])
@@ -659,6 +663,8 @@ esac
 		fi
 		CFLAGS="$saved_cflags"
 		LIBS="$saved_libs"
+		OPENSSLLINKOBJS='${OPENSSLLINKOBJS}'
+		OPENSSLLINKSRCS='${OPENSSLLINKSRCS}'
 		;;
 esac
 
@@ -669,6 +675,8 @@ esac
 
 AC_SUBST(USE_OPENSSL)
 AC_SUBST(DST_OPENSSL_INC)
+AC_SUBST(OPENSSLLINKOBJS)
+AC_SUBST(OPENSSLLINKSRCS)
 DNS_CRYPTO_LIBS="$DNS_CRYPTO_LIBS $DNS_OPENSSL_LIBS"
 
 AC_MSG_CHECKING(for GSSAPI library)
@@ -917,6 +925,8 @@ then
 	fi
 	ALWAYS_DEFINES="-D_REENTRANT"
 	ISC_PLATFORM_USETHREADS="#define ISC_PLATFORM_USETHREADS 1"
+	THREADOPTOBJS='${THREADOPTOBJS}'
+	THREADOPTSRCS='${THREADOPTSRCS}'
 	thread_dir=pthreads
 	#
 	# We'd like to use sigwait() too
@@ -995,11 +1005,15 @@ then
 else
 	ISC_PLATFORM_USETHREADS="#undef ISC_PLATFORM_USETHREADS"
 	thread_dir=nothreads
+	THREADOPTOBJS=""
+	THREADOPTSRCS=""
 	ALWAYS_DEFINES=""
 fi
 
 AC_SUBST(ALWAYS_DEFINES)
 AC_SUBST(ISC_PLATFORM_USETHREADS)
+AC_SUBST(THREADOPTOBJS)
+AC_SUBST(THREADOPTSRCS)
 ISC_THREAD_DIR=$thread_dir
 AC_SUBST(ISC_THREAD_DIR)
 
