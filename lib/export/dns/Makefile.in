@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.4.2.1 2010/06/09 01:50:01 marka Exp $
+# $Id: Makefile.in,v 1.4.2.2 2010/06/09 13:24:41 tbox Exp $
 
 top_srcdir =	@top_srcdir@
 srcdir =	@top_srcdir@/lib/dns
@@ -43,7 +43,7 @@ LIBS =		@LIBS@
 
 # Alphabetically
 
-OPENSSLLINKOBJS = openssl_link.@O@ openssldh_link.@O@ openssldsa_link.@O \
+OPENSSLLINKOBJS = openssl_link.@O@ openssldh_link.@O@ openssldsa_link.@O@ \
 		opensslrsa_link.@O@
 
 DSTOBJS =	@OPENSSLLINKOBJS@ \
