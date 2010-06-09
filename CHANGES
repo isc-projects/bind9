@@ -1,3 +1,6 @@
+2915.	[cleanup]	Be smarter about which objects we attempt to compile
+			based on configure options. [RT #21444]
+
 2914.	[bug]		Make the "autosign" system test more portable.
 			[RT #20997]
 
