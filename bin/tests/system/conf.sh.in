@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: conf.sh.in,v 1.39.166.4 2010/05/27 23:48:19 tbox Exp $
+# $Id: conf.sh.in,v 1.39.166.5 2010/06/10 06:22:02 marka Exp $
 
 #
 # Common configuration data for system tests, to be sourced into
@@ -50,6 +50,17 @@ SUBDIRS="acl cacheclean checkconf checknames dlv dnssec forward glue ixfr
 
 # PERL will be an empty string if no perl interpreter was found.
 PERL=@PERL@
+if test -n "$PERL"
+then
+	if $PERL -e "use IO::Socket::INET6;" 2> /dev/null
+	then
+		TESTSOCK6="$PERL $TOP/bin/tests/system/testsock6.pl"
+	else
+		TESTSOCK6=false
+	fi
+else
+	TESTSOCK6=false
+fi
 
 export NAMED LWRESD DIG NSUPDATE KEYGEN SIGNER KEYSIGNER KEYSETTOOL PERL \
-    SUBDIRS RNDC CHECKZONE
+    SUBDIRS RNDC CHECKZONE TESTSOCK6
