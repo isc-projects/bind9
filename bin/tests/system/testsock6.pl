@@ -1,5 +1,6 @@
-# Copyright (C) 2004, 2007, 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
-# Copyright (C) 2000, 2001  Internet Software Consortium.
+#!/usr/bin/perl
+#
+# Copyright (C) 2010  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -13,28 +14,19 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.12 2010/06/09 23:50:58 tbox Exp $
+# $Id: testsock6.pl,v 1.3 2010/06/11 23:46:49 tbox Exp $
 
-top_srcdir =	@top_srcdir@
-srcdir =	@top_srcdir@/lib/isc/nothreads
-VPATH =		@top_srcdir@/lib/isc/nothreads
+# Test whether the interfaces on 10.53.0.* are up.
 
-CINCLUDES =	-I${srcdir}/include \
-		-I${srcdir}/../unix/include \
-		-I../include \
-		-I${srcdir}/../include \
-		-I${srcdir}/..
+require 5.001;
 
-CDEFINES =
-CWARNINGS =
+use IO::Socket::INET6;
 
-THREADOPTOBJS = condition.@O@ mutex.@O@
-OBJS =		@THREADOPTOBJS@ thread.@O@
-
-THREADOPTSRCS = condition.c mutex.c
-SRCS =		@THREADOPTSRCS@ thread.c
-
-SUBDIRS =	include
-TARGETS =	${OBJS}
-
-@BIND9_MAKE_RULES@
+foreach $addr ($ARGV) {
+	my $sock;
+	$sock = IO::Socket::INET6->new(LocalAddr => $addr,
+                                       LocalPort => 0,
+                                       Proto     => tcp)
+                             or die "Can't bind : $@\n";
+	close($sock);
+}
