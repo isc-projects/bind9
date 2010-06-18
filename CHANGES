@@ -19,6 +19,8 @@
 
 2910.	[func]		Sanity check Kerberos credentials. [RT #20986]
 
+	--- 9.7.1 released ---
+
 	--- 9.7.1rc1 released ---
 
 2909.	[bug]		named-checkconf -p could die if "update-policy local;"
