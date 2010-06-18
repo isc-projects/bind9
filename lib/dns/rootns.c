@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rootns.c,v 1.36.270.3 2010/06/18 02:13:01 marka Exp $ */
+/* $Id: rootns.c,v 1.36.270.4 2010/06/18 05:37:15 marka Exp $ */
 
 /*! \file */
 
@@ -71,7 +71,7 @@ static char root_ns[] =
 "H.ROOT-SERVERS.NET.     3600000 IN      A       128.63.2.53\n"
 "H.ROOT-SERVERS.NET.     3600000 IN      AAAA    2001:500:1::803F:235\n"
 "I.ROOT-SERVERS.NET.     3600000 IN      A       192.36.148.17\n"
-"I.ROOT-SERVERS.NET.     3600000 IN      A       2001:7fe::53\n"
+"I.ROOT-SERVERS.NET.     3600000 IN      AAAA    2001:7fe::53\n"
 "J.ROOT-SERVERS.NET.     3600000 IN      A       192.58.128.30\n"
 "J.ROOT-SERVERS.NET.     3600000 IN      AAAA    2001:503:C27::2:30\n"
 "K.ROOT-SERVERS.NET.     3600000 IN      A       193.0.14.129\n"
