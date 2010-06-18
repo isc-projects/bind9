@@ -1,3 +1,5 @@
+2918.	[maint]		Add AAAA address for I.ROOT-SERVERS.NET.
+
 2917.	[func]		Virtual time test framework. [RT #20801]
 
 2916.	[func]		Add framework to use IPv6 in tests.
