@@ -1072,6 +1072,7 @@
 ./bin/tests/timers/.cvsignore			X	1999,2000,2001
 ./bin/tests/timers/Makefile.in			MAKE	1999,2000,2001,2002,2004,2007,2009
 ./bin/tests/timers/t_timers.c			C	1999,2000,2001,2004,2007,2008,2009
+./bin/tests/virtual-time/README			TXT.BRIEF	2010
 ./bin/tests/wire_test.c				C	1999,2000,2001,2004,2005,2007
 ./bin/tests/wire_test.data			X	1999,2000,2001
 ./bin/tests/wire_test.data2			X	1999,2000,2001
