@@ -1,3 +1,5 @@
+2918.	[maint]		Add AAAA address for I.ROOT-SERVERS.NET.
+
 2916.	[func]		Add framework to use IPv6 in tests.
 			fd92:7065:b8e:ffff::1 ... fd92:7065:b8e:ffff::7
 
