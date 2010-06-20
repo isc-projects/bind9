@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #
-# Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,12 +14,12 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: bindkeys.pl,v 1.4 2010/06/20 07:18:30 marka Exp $
+# $Id: bindkeys.pl,v 1.5 2010/06/20 23:46:45 tbox Exp $
 
 use strict;
 use warnings;
 
-my $rev = '$Id: bindkeys.pl,v 1.4 2010/06/20 07:18:30 marka Exp $';
+my $rev = '$Id: bindkeys.pl,v 1.5 2010/06/20 23:46:45 tbox Exp $';
 $rev =~ s/\$//g;
 $rev =~ s/,v//g;
 $rev =~ s/Id: //;
