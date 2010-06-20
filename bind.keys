@@ -1,3 +1,4 @@
+/* $Id: bind.keys,v 1.6 2010/06/20 07:15:28 marka Exp $ */
 managed-keys {
         # NOTE: This key is current as of October 2009.
         # If it fails to initialize correctly, it may have expired;
