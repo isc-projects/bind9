@@ -1,3 +1,4 @@
+/* $Id: */
 trusted-keys {
         # NOTE: This key is current as of September 2009.
         # If it doesn't work, it may have expired; see
