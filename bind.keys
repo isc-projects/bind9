@@ -1,3 +1,4 @@
+/* $Id: bind.keys,v 1.2.2.3 2010/06/20 07:32:07 marka Exp $ */
 trusted-keys {
         # NOTE: This key is current as of September 2009.
         # If it doesn't work, it may have expired; see
