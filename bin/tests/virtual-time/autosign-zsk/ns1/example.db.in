@@ -1,0 +1,12 @@
+$TTL 60	; 1 mn (to avoid to delay activation with ttl > prepublish)
+@			IN SOA	ns root (
+				2000042100   	; serial
+				600         	; refresh
+				600         	; retry
+				12000   	; expire
+				600       	; minimum
+				)
+			NS	ns
+ns			A	10.53.0.1
+
+txt			TXT	"recursed"
