@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.335.8.4 2010/06/22 04:02:39 marka Exp $ */
+/* $Id: query.c,v 1.335.8.5 2010/06/22 23:46:34 tbox Exp $ */
 
 /*! \file */
 
@@ -4670,7 +4670,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		    is_v4_client(client) &&
 		    ns_client_checkaclsilent(client, NULL,
 					     client->view->v4_aaaa_acl,
-					     ISC_TRUE) == ISC_R_SUCCESS) 
+					     ISC_TRUE) == ISC_R_SUCCESS)
 			filter_aaaa = ISC_TRUE;
 		else
 			filter_aaaa = ISC_FALSE;
