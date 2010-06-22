@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.450.4.7 2010/05/14 04:49:40 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.450.4.8 2010/06/22 06:18:07 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -5017,6 +5017,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> max-cache-size <replaceable>size_spec</replaceable> ; </optional>
     <optional> match-mapped-addresses <replaceable>yes_or_no</replaceable>; </optional>
     <optional> filter-aaaa-on-v4 ( <replaceable>yes_or_no</replaceable> | <replaceable>break-dnssec</replaceable> ); </optional>
+    <optional> filter-aaaa { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> preferred-glue ( <replaceable>A</replaceable> | <replaceable>AAAA</replaceable> | <replaceable>NONE</replaceable> ); </optional>
     <optional> edns-udp-size <replaceable>number</replaceable>; </optional>
     <optional> max-udp-size <replaceable>number</replaceable>; </optional>
@@ -6281,7 +6282,7 @@ options {
                 </para>
                 <para>
                   If <userinput>yes</userinput>,
-                  the DNS client is at an IPv4 address,
+                  the DNS client is at an IPv4 address, in <command>filter-aaaa</command>,
                   and if the response does not include DNSSEC signatures, 
                   then all AAAA records are deleted from the response.
                   This filtering applies to all responses and not only
@@ -6970,6 +6971,17 @@ options {
                   query. Queries
                   from these addresses will not be responded to. The default
                   is <userinput>none</userinput>.
+                </para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term><command>filter-aaaa</command></term>
+              <listitem>
+                <para>
+                  Specifies a list of addresses to which
+		  <command>filter-aaaa-on-v4</command>
+                  is applies.  The default is <userinput>any</userinput>.
                 </para>
               </listitem>
             </varlistentry>
