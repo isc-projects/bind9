@@ -1,7 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
-# Copyright (C) 2000, 2001  Internet Software Consortium.
+# Copyright (C) 2010  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: testsock6.pl,v 1.4 2010/06/22 03:58:36 marka Exp $
+# $Id: testsock6.pl,v 1.5 2010/06/22 23:46:52 tbox Exp $
 
 # Test whether the interfaces on 10.53.0.* are up.
 
@@ -47,7 +46,7 @@ foreach $addr ($ARGV) {
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: testsock6.pl,v 1.4 2010/06/22 03:58:36 marka Exp $
+# $Id: testsock6.pl,v 1.5 2010/06/22 23:46:52 tbox Exp $
 
 # Test whether the interfaces on 10.53.0.* are up.
 

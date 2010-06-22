@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.117 2010/06/22 03:58:38 marka Exp $ */
+/* $Id: check.c,v 1.118 2010/06/22 23:46:52 tbox Exp $ */
 
 /*! \file */
 
@@ -518,8 +518,8 @@ check_filteraaaa(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 	else if (cfg_obj_isboolean(obj))
 		filter = cfg_obj_asboolean(obj) ? dns_v4_aaaa_filter :
 						  dns_v4_aaaa_ok;
-	else 
-		filter = dns_v4_aaaa_break_dnssec; 	/* break-dnssec */	
+	else
+		filter = dns_v4_aaaa_break_dnssec; 	/* break-dnssec */
 
 	if (viewname == NULL) {
 		viewname = "";
