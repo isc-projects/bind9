@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.335.8.3 2010/03/12 23:49:51 tbox Exp $ */
+/* $Id: query.c,v 1.335.8.4 2010/06/22 04:02:39 marka Exp $ */
 
 /*! \file */
 
@@ -3702,6 +3702,18 @@ query_findclosestnsec3(dns_name_t *qname, dns_db_t *db,
 	return;
 }
 
+#ifdef ALLOW_FILTER_AAAA_ON_V4
+static isc_boolean_t
+is_v4_client(ns_client_t *client) {
+	if (isc_sockaddr_pf(&client->peeraddr) == AF_INET)
+		return (ISC_TRUE);
+	if (isc_sockaddr_pf(&client->peeraddr) == AF_INET6 &&
+	    IN6_IS_ADDR_V4MAPPED(&client->peeraddr.type.sin6.sin6_addr))
+		return (ISC_TRUE);
+	return (ISC_FALSE);
+}
+#endif
+
 /*
  * Do the bulk of query processing for the current query of 'client'.
  * If 'event' is non-NULL, we are returning from recursion and 'qtype'
@@ -4642,7 +4654,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 
 	if (type == dns_rdatatype_any) {
 #ifdef ALLOW_FILTER_AAAA_ON_V4
-		isc_boolean_t have_aaaa, have_a, have_sig;
+		isc_boolean_t have_aaaa, have_a, have_sig, filter_aaaa;
 
 		/*
 		 * The filter-aaaa-on-v4 option should
@@ -4654,6 +4666,14 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		have_aaaa = ISC_FALSE;
 		have_a = !authoritative;
 		have_sig = ISC_FALSE;
+		if (client->view->v4_aaaa != dns_v4_aaaa_ok &&
+		    is_v4_client(client) &&
+		    ns_client_checkaclsilent(client, NULL,
+					     client->view->v4_aaaa_acl,
+					     ISC_TRUE) == ISC_R_SUCCESS) 
+			filter_aaaa = ISC_TRUE;
+		else
+			filter_aaaa = ISC_FALSE;
 #endif
 		/*
 		 * XXXRTH  Need to handle zonecuts with special case
@@ -4687,9 +4707,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			 * Notice the presence of A and AAAAs so
 			 * that AAAAs can be hidden from IPv4 clients.
 			 */
-			if (client->view->v4_aaaa != dns_v4_aaaa_ok &&
-			    client->peeraddr_valid &&
-			    client->peeraddr.type.sa.sa_family == AF_INET) {
+			if (filter_aaaa) {
 				if (rdataset->type == dns_rdatatype_aaaa)
 					have_aaaa = ISC_TRUE;
 				else if (rdataset->type == dns_rdatatype_a)
@@ -4746,7 +4764,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		 * Filter AAAAs if there is an A and there is no signature
 		 * or we are supposed to break DNSSEC.
 		 */
-		if (have_aaaa && have_a &&
+		if (filter_aaaa && have_aaaa && have_a &&
 		    (!have_sig || !WANTDNSSEC(client) ||
 		     client->view->v4_aaaa == dns_v4_aaaa_break_dnssec))
 			client->attributes |= NS_CLIENTATTR_FILTER_AAAA;
@@ -4823,8 +4841,10 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		 * unneeded that it is best to keep it as short as possible.
 		 */
 		if (client->view->v4_aaaa != dns_v4_aaaa_ok &&
-		    client->peeraddr_valid &&
-		    client->peeraddr.type.sa.sa_family == AF_INET &&
+		    is_v4_client(client) &&
+		    ns_client_checkaclsilent(client, NULL,
+					     client->view->v4_aaaa_acl,
+					     ISC_TRUE) == ISC_R_SUCCESS &&
 		    (!WANTDNSSEC(client) ||
 		     sigrdataset == NULL ||
 		     !dns_rdataset_isassociated(sigrdataset) ||

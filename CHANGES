@@ -1,3 +1,6 @@
+2920.	[func]		Allow 'filter-aaaa-on-v4' to be applied selectively
+			to IPv4 clients.  New acl 'filter-aaaa' (default any).
+
 2919.	[func]		Add autosign-ksk and autosign-zsk virtual time tests.
 			[RT #20840]
 

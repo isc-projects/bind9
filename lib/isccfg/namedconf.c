@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.113.4.4 2010/06/02 01:10:06 marka Exp $ */
+/* $Id: namedconf.c,v 1.113.4.5 2010/06/22 04:02:45 marka Exp $ */
 
 /*! \file */
 
@@ -122,9 +122,7 @@ static cfg_type_t cfg_type_zone;
 static cfg_type_t cfg_type_zoneopts;
 static cfg_type_t cfg_type_dynamically_loadable_zones;
 static cfg_type_t cfg_type_dynamically_loadable_zones_opts;
-#ifdef ALLOW_FILTER_AAAA_ON_V4
 static cfg_type_t cfg_type_v4_aaaa;
-#endif
 
 /*
  * Clauses that can be found in a 'dynamically loadable zones' statement
@@ -1059,7 +1057,13 @@ view_clauses[] = {
 	{ "use-queryport-pool", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "zero-no-soa-ttl-cache", &cfg_type_boolean, 0 },
 #ifdef ALLOW_FILTER_AAAA_ON_V4
+	{ "filter-aaaa", &cfg_type_bracketed_aml, 0 },
 	{ "filter-aaaa-on-v4", &cfg_type_v4_aaaa, 0 },
+#else
+	{ "filter-aaaa", &cfg_type_bracketed_aml,
+	   CFG_CLAUSEFLAG_NOTCONFIGURED },
+	{ "filter-aaaa-on-v4", &cfg_type_v4_aaaa,
+	   CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif
 	{ NULL, NULL, 0 }
 };
@@ -1610,7 +1614,6 @@ static cfg_type_t cfg_type_ixfrdifftype = {
 	&cfg_rep_string, ixfrdiff_enums,
 };
 
-#ifdef ALLOW_FILTER_AAAA_ON_V4
 static const char *v4_aaaa_enums[] = { "break-dnssec", NULL };
 static isc_result_t
 parse_v4_aaaa(cfg_parser_t *pctx, const cfg_type_t *type,
@@ -1622,7 +1625,6 @@ static cfg_type_t cfg_type_v4_aaaa = {
 	doc_enum_or_other, &cfg_rep_string, v4_aaaa_enums,
 };
 
-#endif
 static keyword_type_t key_kw = { "key", &cfg_type_astring };
 
 LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_keyref = {

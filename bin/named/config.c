@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.106.4.2 2010/05/14 23:49:18 tbox Exp $ */
+/* $Id: config.c,v 1.106.4.3 2010/06/22 04:02:39 marka Exp $ */
 
 /*! \file */
 
@@ -161,6 +161,7 @@ options {\n\
 "
 #ifdef ALLOW_FILTER_AAAA_ON_V4
 "	filter-aaaa-on-v4 no;\n\
+ 	filter-aaaa { any; };\n\
 "
 #endif
 
