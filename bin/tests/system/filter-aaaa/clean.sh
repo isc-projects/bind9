@@ -1,5 +1,6 @@
-# Copyright (C) 2004, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
-# Copyright (C) 2000, 2001  Internet Software Consortium.
+#!/bin/sh
+#
+# Copyright (C) 2010  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -13,33 +14,27 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.32 2010/06/22 03:58:36 marka Exp $
+# $Id: clean.sh,v 1.2 2010/06/22 03:58:36 marka Exp $
 
-srcdir =	@srcdir@
-VPATH =		@srcdir@
-top_srcdir =	@top_srcdir@
+rm -f ns1/K*
+rm -f ns1/*.signed
+rm -f ns1/signer.err
+rm -f ns1/dsset-*
+rm -f ns1/named.run
+rm -f ns1/named.memstats
 
-@BIND9_MAKE_INCLUDES@
+rm -f ns2/named.run
+rm -f ns2/named.memstats
 
-SUBDIRS =	filter-aaaa lwresd tkey 
-TARGETS =
+rm -f ns3/named.run
+rm -f ns3/named.memstats
 
-@BIND9_MAKE_RULES@
+rm -f ns4/K*
+rm -f ns4/*.signed
+rm -f ns4/signer.err
+rm -f ns4/dsset-*
+rm -f ns4/named.run
+rm -f ns4/named.memstats
 
-# Running the scripts below is bypassed when a separate
-# build directory is used.
-
-check: test
-
-test: subdirs
-	if test -f ./runall.sh; then sh ./runall.sh; fi
-
-testclean clean distclean::
-	if test -f ./cleanall.sh; then sh ./cleanall.sh; fi
-
-distclean::
-	rm -f conf.sh
-
-installdirs:
-
-install::
+rm -f random.data
+rm -f dig.out.*

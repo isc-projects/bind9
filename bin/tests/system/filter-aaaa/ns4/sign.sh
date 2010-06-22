@@ -1,5 +1,6 @@
-# Copyright (C) 2004, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
-# Copyright (C) 2000, 2001  Internet Software Consortium.
+#!/bin/sh
+#
+# Copyright (C) 2010  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -13,33 +14,23 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.32 2010/06/22 03:58:36 marka Exp $
+# $Id: sign.sh,v 1.2 2010/06/22 03:58:38 marka Exp $
 
-srcdir =	@srcdir@
-VPATH =		@srcdir@
-top_srcdir =	@top_srcdir@
+SYSTEMTESTTOP=../..
+. $SYSTEMTESTTOP/conf.sh
 
-@BIND9_MAKE_INCLUDES@
+RANDFILE=../random.data
+dlvsets=
 
-SUBDIRS =	filter-aaaa lwresd tkey 
-TARGETS =
+zone=signed.
+infile=signed.db.in
+zonefile=signed.db.signed
+outfile=signed.db.signed
 
-@BIND9_MAKE_RULES@
+keyname1=`$KEYGEN -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
 
-# Running the scripts below is bypassed when a separate
-# build directory is used.
+cat $infile $keyname1.key $keyname2.key >$zonefile
 
-check: test
-
-test: subdirs
-	if test -f ./runall.sh; then sh ./runall.sh; fi
-
-testclean clean distclean::
-	if test -f ./cleanall.sh; then sh ./cleanall.sh; fi
-
-distclean::
-	rm -f conf.sh
-
-installdirs:
-
-install::
+$SIGNER -r $RANDFILE -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
+echo "I: signed $zone"

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.568 2010/05/18 00:28:40 marka Exp $ */
+/* $Id: server.c,v 1.569 2010/06/22 03:58:36 marka Exp $ */
 
 /*! \file */
 
@@ -2128,8 +2128,10 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 		else
 			INSIST(0);
 	}
-
+	CHECK(configure_view_acl(vconfig, config, "filter-aaaa", NULL,
+				 actx, ns_g_mctx, &view->v4_aaaa_acl));
 #endif
+
 	obj = NULL;
 	result = ns_config_get(maps, "dnssec-enable", &obj);
 	INSIST(result == ISC_R_SUCCESS);
