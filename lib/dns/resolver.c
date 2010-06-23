@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.384.14.20.10.2 2010/06/23 01:51:30 marka Exp $ */
+/* $Id: resolver.c,v 1.384.14.20.10.3 2010/06/23 23:46:25 tbox Exp $ */
 
 /*! \file */
 
@@ -5822,22 +5822,22 @@ fctx_decreference(fetchctx_t *fctx) {
 	INSIST(fctx->references > 0);
 	fctx->references--;
 	if (fctx->references == 0) {
-                /*
-                 * No one cares about the result of this fetch anymore.
-                 */
-                if (fctx->pending == 0 && fctx->nqueries == 0 &&
-                    ISC_LIST_EMPTY(fctx->validators) && SHUTTINGDOWN(fctx)) {
-                        /*
-                         * This fctx is already shutdown; we were just
-                         * waiting for the last reference to go away.
-                         */
-                        bucket_empty = fctx_destroy(fctx);
-                } else {
-                        /*
-                         * Initiate shutdown.
-                         */
-                        fctx_shutdown(fctx);
-                }
+		/*
+		 * No one cares about the result of this fetch anymore.
+		 */
+		if (fctx->pending == 0 && fctx->nqueries == 0 &&
+		    ISC_LIST_EMPTY(fctx->validators) && SHUTTINGDOWN(fctx)) {
+			/*
+			 * This fctx is already shutdown; we were just
+			 * waiting for the last reference to go away.
+			 */
+			bucket_empty = fctx_destroy(fctx);
+		} else {
+			/*
+			 * Initiate shutdown.
+			 */
+			fctx_shutdown(fctx);
+		}
 	}
 	return (bucket_empty);
 }
