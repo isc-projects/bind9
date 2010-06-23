@@ -1,3 +1,6 @@
+2921.	[bug]		The resolver could attempt to destroy a fetch context
+			to soon.  [RT #19878]
+
 2904.   [bug]           When using DLV, sub-zones of the zones in the DLV,
 			could be incorrectly marked as insecure instead of
 			secure leading to negative proofs failing.  This was
