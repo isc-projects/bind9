@@ -1,7 +1,7 @@
 2922.	[contrib]	Update zkt to version 1.0.
 
 2921.	[bug]		The resolver could attempt to destroy a fetch context
-			to soon.  [RT #19878]
+			too soon.  [RT #19878]
 
 2920.	[func]		Allow 'filter-aaaa-on-v4' to be applied selectively
 			to IPv4 clients.  New acl 'filter-aaaa' (default any).
