@@ -37,14 +37,6 @@
 #ifndef CONFIG_ZKT_H
 # define CONFIG_ZKT_H
 
-#ifndef HAS_TIMEGM
-# define	HAS_TIMEGM	1
-#endif
-
-#ifndef LOG_FNAMETMPL
-# define	LOG_FNAMETMPL	"/zkt-%04d-%02d-%02dT%02d%02d%02dZ.log"
-#endif
-
 /* don't change anything below this */
 /* the values here are determined or settable via the ./configure script */
 
@@ -52,12 +44,12 @@
 # define	HAS_UTYPES	1
 #endif
 
-#ifndef HAVE_GETOPT_LONG
-# define	HAVE_GETOPT_LONG	1
-#endif
+/* # define	HAVE_TIMEGM		1	*/
+/* # define	HAVE_GETOPT_LONG	1	*/
+/* # define	HAVE_STRFTIME		1	*/
 
-#ifndef HAVE_STRFTIME
-# define	HAVE_STRFTIME	1
+#ifndef COLOR_MODE
+# define	COLOR_MODE	1
 #endif
 
 #ifndef TTL_IN_KEYFILE_ALLOWED
@@ -84,6 +76,10 @@
 # define	LOG_WITH_LEVEL		1
 #endif
 
+#ifndef ALWAYS_CHECK_KEYSETFILES
+# define	ALWAYS_CHECK_KEYSETFILES	1
+#endif
+
 #ifndef CONFIG_PATH
 # define	CONFIG_PATH	"/var/named/"
 #endif
@@ -104,9 +100,9 @@
 
 #ifndef ZKT_VERSION
 # if defined(USE_TREE) && USE_TREE
-#  define	ZKT_VERSION	"vT0.98 (c) Feb 2005 - Sep 2008 Holger Zuleger hznet.de"
+#  define	ZKT_VERSION	"vT0.99c (c) Feb 2005 - Aug 2009 Holger Zuleger hznet.de"
 # else
-#  define	ZKT_VERSION	"v0.98 (c) Feb 2005 - Sep 2008 Holger Zuleger hznet.de"
+#  define	ZKT_VERSION	"v0.99c (c) Feb 2005 - Aug 2009 Holger Zuleger hznet.de"
 # endif
 #endif
 

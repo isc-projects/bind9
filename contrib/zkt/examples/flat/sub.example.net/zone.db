@@ -7,7 +7,7 @@
 $TTL 7200
 
 @ 	IN SOA	ns1.example.net. hostmaster.example.net.  (
-				2         ; Serial
+				3         ; Serial
 				86400	; Refresh	(RIPE recommendation if NOTIFY is used)
 				1800	; Retry
 				2W	; Expire

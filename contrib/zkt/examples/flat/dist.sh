@@ -4,6 +4,8 @@
 #
 #	(c) Jul 2008 Holger Zuleger  hznet.de
 #
+#	Feb 2010	action "distkeys" added 
+#
 #	This shell script will be run by dnssec-signer as a distribution
 #	and reload command if:
 #
@@ -49,6 +51,16 @@ view=""
 test $# -gt 3 && view="$4"
 
 case $action in
+distkeys)
+	if test -n "$view"
+	then
+		echo "scp K$zone+* $server:$dir/$view/$zone/"
+		: scp K$zone+* $server:$dir/$view/$zone/
+	else
+		echo "scp K$zone+* $server:$dir/$zone/"
+		: scp K$zone+* $server:$dir/$zone/
+	fi
+	;;
 distribute)
 	if test -n "$view"
 	then
@@ -60,8 +72,8 @@ distribute)
 	fi
 	;;
 reload)
-	echo "rndc $action $zone $view"
-	: rndc $action $zone $view
+	echo "rndc $action $domain $view"
+	: rndc $action $domain $view
 	;;
 *)
 	usage "illegal action $action"

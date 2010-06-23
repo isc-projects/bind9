@@ -197,6 +197,7 @@ int	zone_readdir (const char *dir, const char *zone, const char *zfile, zone_t *
 	char	*p;
 	char	path[MAX_PATHSIZE+1];
 	char	*signed_ext = ".signed";
+	zconf_t	*localconf = NULL;
 
 	assert (dir != NULL && *dir != '\0');
 	assert (conf != NULL);
@@ -229,10 +230,9 @@ int	zone_readdir (const char *dir, const char *zone, const char *zfile, zone_t *
 	dbg_val1 ("zone_readdir: check local config file %s\n", path);
 	if ( fileexist (path) )			/* load local config file */
 	{
-		zconf_t	*localconf;
-
 		localconf = dupconfig (conf);
 		conf = loadconfig (path, localconf);
+		/* do not free localconf, because a ptr to it will be added to the zone by zone_new() */
 	}
 
 	if ( zfile == NULL )
@@ -293,7 +293,7 @@ zone_t	*zone_add (zone_t **list, zone_t *new)
 		curr = curr->next;
 	}
 
-	if ( curr == *list )	/* add node at the beginning of the list */
+	if ( curr == *list )	/* add node at the begining of the list */
 		*list = new;
 	else			/* add node at end or between two nodes */
 		last->next = new;
