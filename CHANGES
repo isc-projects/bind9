@@ -1,3 +1,6 @@
+2921.	[bug]		The resolver could attempt to destroy a fetch context
+			to soon.  [RT #19878]
+
 2918.	[maint]		Add AAAA address for I.ROOT-SERVERS.NET.
 
 2916.	[func]		Add framework to use IPv6 in tests.
