@@ -1,3 +1,6 @@
+2921.	[bug]		The resolver could attempt to destroy a fetch context
+			to soon.  [RT #19878]
+
 2900.	[bug]		The placeholder negative caching element was not
 			properly constructed triggering a INSIST in 
 			dns_ncache_towire(). [RT #21346]
