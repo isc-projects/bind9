@@ -1,3 +1,6 @@
+2923.	[bug]		'dig +trace' could drop core after "connection
+			timeout". [RT #21514]
+
 2922.	[contrib]	Update zkt to version 1.0.
 
 2921.	[bug]		The resolver could attempt to destroy a fetch context
