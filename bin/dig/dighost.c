@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.328.22.2 2010/05/18 02:35:11 tbox Exp $ */
+/* $Id: dighost.c,v 1.328.22.3 2010/06/24 07:29:07 marka Exp $ */
 
 /*! \file
  *  \note
@@ -2401,6 +2401,15 @@ force_timeout(dig_lookup_t *l, dig_query_t *query) {
 		      isc_result_totext(ISC_R_NOMEMORY));
 	}
 	isc_task_send(global_task, &event);
+
+	/*
+	 * The timer may have expired if, for example, get_address() takes
+	 * long time and the timer was running on a different thread.
+	 * We need to cancel the possible timeout event not to confuse
+	 * ourselves due to the duplicate events.
+	 */
+	if (l->timer != NULL)
+		isc_timer_detach(&l->timer);
 }
 
 
@@ -2424,7 +2433,7 @@ send_tcp_connect(dig_query_t *query) {
 	query->waiting_connect = ISC_TRUE;
 	query->lookup->current_query = query;
 	result = get_address(query->servname, port, &query->sockaddr);
-	if (result == ISC_R_NOTFOUND) {
+	if (result != ISC_R_SUCCESS) {
 		/*
 		 * This servname doesn't have an address.  Try the next server
 		 * by triggering an immediate 'timeout' (we lie, but the effect
@@ -2506,7 +2515,7 @@ send_udp(dig_query_t *query) {
 		/* XXX Check the sense of this, need assertion? */
 		query->waiting_connect = ISC_FALSE;
 		result = get_address(query->servname, port, &query->sockaddr);
-		if (result == ISC_R_NOTFOUND) {
+		if (result != ISC_R_SUCCESS) {
 			/* This servname doesn't have an address. */
 			force_timeout(l, query);
 			return;
