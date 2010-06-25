@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.569 2010/06/22 03:58:36 marka Exp $ */
+/* $Id: server.c,v 1.570 2010/06/25 03:24:05 marka Exp $ */
 
 /*! \file */
 
@@ -4353,6 +4353,12 @@ load_configuration(const char *filename, ns_server_t *server,
 	       "strdup");
 
 	obj = NULL;
+	result = ns_config_get(maps, "secroots-file", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	CHECKM(setstring(server, &server->secrootsfile, cfg_obj_asstring(obj)),
+	       "strdup");
+
+	obj = NULL;
 	result = ns_config_get(maps, "recursing-file", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	CHECKM(setstring(server, &server->recfile, cfg_obj_asstring(obj)),
@@ -4763,6 +4769,11 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	CHECKFATAL(server->dumpfile == NULL ? ISC_R_NOMEMORY : ISC_R_SUCCESS,
 		   "isc_mem_strdup");
 
+	server->secrootsfile = isc_mem_strdup(server->mctx, "named.secroots");
+	CHECKFATAL(server->secrootsfile == NULL ? ISC_R_NOMEMORY :
+						  ISC_R_SUCCESS,
+		   "isc_mem_strdup");
+
 	server->recfile = isc_mem_strdup(server->mctx, "named.recursing");
 	CHECKFATAL(server->recfile == NULL ? ISC_R_NOMEMORY : ISC_R_SUCCESS,
 		   "isc_mem_strdup");
@@ -4833,6 +4844,7 @@ ns_server_destroy(ns_server_t **serverp) {
 	isc_mem_free(server->mctx, server->statsfile);
 	isc_mem_free(server->mctx, server->bindkeysfile);
 	isc_mem_free(server->mctx, server->dumpfile);
+	isc_mem_free(server->mctx, server->secrootsfile);
 	isc_mem_free(server->mctx, server->recfile);
 
 	if (server->version != NULL)
@@ -5690,6 +5702,68 @@ ns_server_dumpdb(ns_server_t *server, char *args) {
  cleanup:
 	if (dctx != NULL)
 		dumpcontext_destroy(dctx);
+	return (result);
+}
+
+isc_result_t
+ns_server_dumpsecroots(ns_server_t *server, char *args) {
+	dns_view_t *view;
+	dns_keytable_t *secroots = NULL;
+	isc_result_t result;
+	char *ptr;
+	FILE *fp = NULL;
+	isc_time_t now;
+	char tbuf[64];
+
+	/* Skip the command name. */
+	ptr = next_token(&args, " \t");
+	if (ptr == NULL)
+		return (ISC_R_UNEXPECTEDEND);
+	ptr = next_token(&args, " \t");
+
+	CHECKMF(isc_stdio_open(server->secrootsfile, "w", &fp),
+		"could not open secroots dump file", server->secrootsfile);
+	TIME_NOW(&now);
+	isc_time_formattimestamp(&now, tbuf, sizeof(tbuf));
+	fprintf(fp, "%s\n", tbuf);
+
+ nextview:
+	for (view = ISC_LIST_HEAD(server->viewlist);
+	     view != NULL;
+	     view = ISC_LIST_NEXT(view, link))
+	{
+		if (ptr != NULL && strcmp(view->name, ptr) != 0)
+			continue;
+		if (secroots != NULL)
+			dns_keytable_detach(&secroots);
+		result = dns_view_getsecroots(view, &secroots);
+		if (result == ISC_R_NOTFOUND) {
+			result = ISC_R_SUCCESS;
+			continue;
+		}			
+		fprintf(fp, "\n Start view %s\n\n", view->name);
+		CHECK(dns_keytable_dump(secroots, fp));
+	}
+	if (ptr != NULL) {
+		ptr = next_token(&args, " \t");
+		if (ptr != NULL)
+			goto nextview;
+	}
+
+ cleanup:
+	if (secroots != NULL)
+		dns_keytable_detach(&secroots);
+	if (fp != NULL)
+		(void)isc_stdio_close(fp);
+	if (result == ISC_R_SUCCESS)
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+			      "dumpsecroots complete");
+	else
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "dumpsecroots failed: %s",
+			      dns_result_totext(result));
 	return (result);
 }
 
