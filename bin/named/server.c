@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.556.8.14 2010/06/25 03:51:06 marka Exp $ */
+/* $Id: server.c,v 1.556.8.15 2010/06/25 23:46:33 tbox Exp $ */
 
 /*! \file */
 
@@ -5740,7 +5740,7 @@ ns_server_dumpsecroots(ns_server_t *server, char *args) {
 		if (result == ISC_R_NOTFOUND) {
 			result = ISC_R_SUCCESS;
 			continue;
-		}			
+		}
 		fprintf(fp, "\n Start view %s\n\n", view->name);
 		CHECK(dns_keytable_dump(secroots, fp));
 	}
