@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.62 2010/06/25 03:24:05 marka Exp $
+# $Id: tests.sh,v 1.63 2010/06/25 07:28:46 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -939,9 +939,9 @@ ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 secroots 2>&1 | sed 's/^/I:ns1 /'
 keyid=`cat ns1/managed.key.id`
 linecount=`grep "./RSAMD5/$keyid ; trusted" ns4/named.secroots | wc -l`
-[ "$linecount" -eq 2 ] || ret=1
+[ "$linecount" -eq 1 ] || ret=1
 linecount=`cat ns4/named.secroots | wc -l`
-[ "$linecount" -eq 9 ] || ret=1
+[ "$linecount" -eq 5 ] || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
