@@ -1,3 +1,7 @@
+2924.	[func]		'rndc  secroots'  dump a combined summary of the
+			current managed keys combined with trusted keys.
+			[RT #20904]
+
 2923.	[bug]		'dig +trace' could drop core after "connection
 			timeout". [RT #21514]
 

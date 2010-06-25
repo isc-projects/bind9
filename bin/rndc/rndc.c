@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.126.66.1 2009/12/18 07:59:09 each Exp $ */
+/* $Id: rndc.c,v 1.126.66.2 2010/06/25 03:51:06 marka Exp $ */
 
 /*! \file */
 
@@ -123,6 +123,8 @@ command is one of the following:\n\
   querylog	Toggle query logging.\n\
   dumpdb [-all|-cache|-zones] [view ...]\n\
 		Dump cache(s) to the dump file (named_dump.db).\n\
+  secroots [view ...]\n\
+		Write security roots to the secroots file.\n\
   stop		Save pending updates to master files and stop the server.\n\
   stop -p	Save pending updates to master files and stop the server\n\
 		reporting process id.\n\

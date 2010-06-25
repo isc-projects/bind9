@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keytable.h,v 1.20.4.1 2010/01/13 19:31:53 each Exp $ */
+/* $Id: keytable.h,v 1.20.4.2 2010/06/25 03:51:07 marka Exp $ */
 
 #ifndef DNS_KEYTABLE_H
 #define DNS_KEYTABLE_H 1
@@ -408,6 +408,12 @@ dns_keytable_issecuredomain(dns_keytable_t *keytable, dns_name_t *name,
  *\li	ISC_R_SUCCESS
  *
  *\li	Any other result is an error.
+ */
+
+isc_result_t
+dns_keytable_dump(dns_keytable_t *keytable, FILE *fp);
+/*%<
+ * Dump the keytable on fp.
  */
 
 dst_key_t *
