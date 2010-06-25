@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.110 2010/06/22 23:46:52 tbox Exp $ */
+/* $Id: config.c,v 1.111 2010/06/25 03:24:05 marka Exp $ */
 
 /*! \file */
 
@@ -80,6 +80,7 @@ options {\n\
 	bindkeys-file \"" NS_SYSCONFDIR "/bind.keys\";\n\
 	port 53;\n\
 	recursing-file \"named.recursing\";\n\
+	secroots-file \"named.secroots\";\n\
 "
 #ifdef PATH_RANDOMDEV
 "\

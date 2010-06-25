@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.61 2010/06/04 00:04:39 marka Exp $
+# $Id: tests.sh,v 1.62 2010/06/25 03:24:05 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -930,6 +930,19 @@ cat example.db.in $key1.key $key2.key > example.db
 $SIGNER -3 - -H 10 -o example -f example.db example.db > /dev/null 2>&1
 grep "IQF9LQTLKKNFK0KVIFELRAK4IC4QLTMG.example. 0 IN NSEC3 1 0 10 - IQF9LQTLKKNFK0KVIFELRAK4IC4QLTMG A NS SOA RRSIG DNSKEY NSEC3PARAM" example.db > /dev/null 
 ) || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+# Test that "rndc secroots" is able to dump trusted keys
+echo "I:checking rndc secroots ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 secroots 2>&1 | sed 's/^/I:ns1 /'
+keyid=`cat ns1/managed.key.id`
+linecount=`grep "./RSAMD5/$keyid ; trusted" ns4/named.secroots | wc -l`
+[ "$linecount" -eq 2 ] || ret=1
+linecount=`cat ns4/named.secroots | wc -l`
+[ "$linecount" -eq 9 ] || ret=1
+n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 

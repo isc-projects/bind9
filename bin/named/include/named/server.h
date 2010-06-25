@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.106 2010/05/14 23:50:39 tbox Exp $ */
+/* $Id: server.h,v 1.107 2010/06/25 03:24:05 marka Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -54,6 +54,7 @@ struct ns_server {
 	dns_acl_t		*blackholeacl;
 	char *			statsfile;	/*%< Statistics file name */
 	char *			dumpfile;	/*%< Dump file name */
+	char *			secrootsfile;	/*%< Secroots file name */
 	char *			bindkeysfile;	/*%< bind.keys file name */
 	char *			recfile;	/*%< Recursive file name */
 	isc_boolean_t		version_set;	/*%< User has set version */
@@ -243,6 +244,12 @@ ns_server_dumpstats(ns_server_t *server);
  */
 isc_result_t
 ns_server_dumpdb(ns_server_t *server, char *args);
+
+/*%
+ * Dump the current security roots to the secroots file.
+ */
+isc_result_t
+ns_server_dumpsecroots(ns_server_t *server, char *args);
 
 /*%
  * Change or increment the server debug level.

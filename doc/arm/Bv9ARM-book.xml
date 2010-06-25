@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.458 2010/06/22 06:16:34 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.459 2010/06/25 03:24:05 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -1300,6 +1300,19 @@ zone "eng.example.com" {
                         the
                         dump file for the specified views.  If no view is
                         specified, all
+                        views are dumped.
+                      </para>
+                    </listitem>
+                  </varlistentry>
+
+                  <varlistentry>
+                    <term><userinput>secroots
+                        <optional><replaceable>view ...</replaceable></optional></userinput></term>
+                    <listitem>
+                      <para>
+                        Dump the server's security roots to the secroots
+                        file for the specified views.  If no view is
+                        specified, security roots for all
                         views are dumped.
                       </para>
                     </listitem>
@@ -5361,6 +5374,18 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		See the discussion of <command>dnssec-lookaside</command>
 		for details.  If not specified, the default is
 		<filename>/etc/bind.keys</filename>.
+              </para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term><command>secroots-file</command></term>
+            <listitem>
+              <para>
+                The pathname of the file the server dumps
+                security roots to when instructed to do so with
+                <command>rndc secroots</command>.
+                If not specified, the default is <filename>named.secroots</filename>.
               </para>
             </listitem>
           </varlistentry>

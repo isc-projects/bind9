@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.30 2009/10/28 00:27:10 marka Exp $
+# $Id: sign.sh,v 1.31 2010/06/25 03:24:05 marka Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -53,3 +53,8 @@ cp trusted.conf ../ns3/trusted.conf
 cp trusted.conf ../ns4/trusted.conf
 cp trusted.conf ../ns6/trusted.conf
 cp trusted.conf ../ns7/trusted.conf
+#
+#  Save keyid for managed key id test.
+#
+keyid=`expr $keyname : 'K.+001+\(.*\)'`
+echo "$keyid" > managed.key.id
