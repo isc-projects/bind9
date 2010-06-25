@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.166.34.3 2009/04/03 20:18:59 marka Exp $ */
+/* $Id: main.c,v 1.166.34.4 2010/06/25 23:57:03 marka Exp $ */
 
 /*! \file */
 
@@ -446,13 +446,15 @@ parse_command_line(int argc, char *argv[]) {
 			/* XXXJAB should we make a copy? */
 			ns_g_chrootdir = isc_commandline_argument;
 			break;
-		case 'T':
+		case 'T':	/* NOT DOCUMENTED */
 			/*
 			 * clienttest: make clients single shot with their
 			 * 	       own memory context.
 			 */
 			if (strcmp(isc_commandline_argument, "clienttest") == 0)
 				ns_g_clienttest = ISC_TRUE;
+			else if (!strcmp(isc_commandline_argument, "nosoa"))
+				ns_g_nosoa;
 			else
 				fprintf(stderr, "unknown -T flag '%s\n",
 					isc_commandline_argument);

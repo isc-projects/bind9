@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.164.12.21 2010/05/26 06:58:16 marka Exp $ */
+/* $Id: validator.c,v 1.164.12.22 2010/06/25 23:57:04 marka Exp $ */
 
 #include <config.h>
 
@@ -2871,11 +2871,9 @@ validate_authority(dns_validator_t *val, isc_boolean_t resume) {
 	dns_message_t *message = val->event->message;
 	isc_result_t result;
 
-	if (!resume) {
+	if (!resume)
 		result = dns_message_firstname(message, DNS_SECTION_AUTHORITY);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-	} else
+	else
 		result = ISC_R_SUCCESS;
 
 	for (;
@@ -2959,11 +2957,9 @@ validate_ncache(dns_validator_t *val, isc_boolean_t resume) {
 	dns_name_t *name;
 	isc_result_t result;
 
-	if (!resume) {
+	if (!resume)
 		result = dns_rdataset_first(val->event->rdataset);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-	} else
+	else
 		result = dns_rdataset_next(val->event->rdataset);
 
 	for (;
