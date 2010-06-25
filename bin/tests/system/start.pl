@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: start.pl,v 1.13 2008/01/02 23:47:01 tbox Exp $
+# $Id: start.pl,v 1.13.396.1 2010/06/25 23:52:08 marka Exp $
 
 # Framework for starting test servers.
 # Based on the type of server specified, check for port availability, remove
@@ -131,6 +131,8 @@ sub start_server {
 		} else {
 			$command .= "-m record,size,mctx ";
 			$command .= "-T clienttest ";
+			$command .= "-T nosoa " 
+				if (-e "$testdir/$server/named.nosoa");
 			$command .= "-c named.conf -d 99 -g";
 		}
 		$command .= " >named.run 2>&1 &";
