@@ -1,5 +1,4 @@
-; Copyright (C) 2004, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
-; Copyright (C) 2000, 2001  Internet Software Consortium.
+; Copyright (C) 2010  Internet Systems Consortium, Inc. ("ISC")
 ;
 ; Permission to use, copy, modify, and/or distribute this software for any
 ; purpose with or without fee is hereby granted, provided that the above
@@ -13,31 +12,16 @@
 ; OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 ; PERFORMANCE OF THIS SOFTWARE.
 
-; $Id: secure.example.db.in,v 1.13.336.1 2010/06/26 00:02:45 marka Exp $
+; $Id: nosoa.secure.example.db,v 1.2.8.2 2010/06/26 00:02:45 marka Exp $
 
-$TTL 300	; 5 minutes
-@			IN SOA	mname1. . (
-				2000042407 ; serial
-				20         ; refresh (20 seconds)
-				20         ; retry (20 seconds)
-				1814400    ; expire (3 weeks)
-				3600       ; minimum (1 hour)
-				)
-			NS	ns
-ns			A	10.53.0.3
-
-a			A	10.0.0.1
-b			A	10.0.0.2
-d			A	10.0.0.4
-z			A	10.0.0.26
-a.a.a.a.a.a.a.a.a.a.e	A	10.0.0.27
-x			CNAME	a
-
-private			NS	ns.private
-ns.private		A	10.53.0.2
-
-insecure		NS	ns.insecure
-ns.insecure		A	10.53.0.2
-
-nosoa 			NS	ns.nosoa
-ns.nosoa		A	10.53.0.7
+$TTL 300        ; 5 minutes
+@                       IN SOA  mname1. . (
+                                2010062400 ; serial
+                                20         ; refresh (20 seconds)
+                                20         ; retry (20 seconds)
+                                1814400    ; expire (3 weeks)
+                                3600       ; minimum (1 hour)
+                                )
+@                       IN NS   ns
+ns			IN A	10.53.0.7
+a			IN A	1.2.3.4
