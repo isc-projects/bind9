@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.114.4.4 2010/06/22 23:46:34 tbox Exp $ */
+/* $Id: check.c,v 1.114.4.5 2010/06/26 05:31:17 marka Exp $ */
 
 /*! \file */
 
@@ -501,7 +501,7 @@ check_filteraaaa(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 	const cfg_obj_t *options, *aclobj, *obj = NULL;
 	dns_acl_t *acl = NULL;
 	isc_result_t result = ISC_R_SUCCESS, tresult;
-	isc_boolean_t filter;
+	dns_v4_aaaa_t filter;
 	const char *forview = " for view ";
 
 	if (voptions != NULL)
