@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.313.20.16.10.1 2010/06/26 00:02:44 marka Exp $ */
+/* $Id: query.c,v 1.313.20.16.10.2 2010/06/26 23:46:14 tbox Exp $ */
 
 /*! \file */
 
@@ -4381,7 +4381,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 #endif
 		    dns_zone_getzeronosoattl(zone))
 			result = query_addsoa(client, db, version, ISC_TRUE,
-				          dns_rdataset_isassociated(rdataset));
+					  dns_rdataset_isassociated(rdataset));
 		else
 			result = query_addsoa(client, db, version, ISC_FALSE,
 					  dns_rdataset_isassociated(rdataset));
