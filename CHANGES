@@ -1,3 +1,5 @@
+2925.	[bug]		Named failed to accept uncachable negative responses
+			from insecure zones. [RT# 21555]
 
 	--- 9.7.1 released ---
 
