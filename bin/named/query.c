@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.313.20.19 2010/06/25 23:57:03 marka Exp $ */
+/* $Id: query.c,v 1.313.20.20 2010/06/26 23:45:53 tbox Exp $ */
 
 /*! \file */
 
@@ -4381,7 +4381,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 #endif
 		    dns_zone_getzeronosoattl(zone))
 			result = query_addsoa(client, db, version, ISC_TRUE,
-				          dns_rdataset_isassociated(rdataset));
+					  dns_rdataset_isassociated(rdataset));
 		else
 			result = query_addsoa(client, db, version, ISC_FALSE,
 					  dns_rdataset_isassociated(rdataset));
