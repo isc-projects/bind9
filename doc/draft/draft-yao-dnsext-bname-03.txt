@@ -3,13 +3,13 @@
 Network Working Group                                             J. Yao
 Internet-Draft                                                    X. Lee
 Intended status: Standards Track                                   CNNIC
-Expires: December 14, 2010                                      P. Vixie
+Expires: December 30, 2010                                      P. Vixie
                                             Internet Software Consortium
-                                                           June 15, 2010
+                                                           June 28, 2010
 
 
                       Bundle DNS Name Redirection
-                     draft-yao-dnsext-bname-02.txt
+                     draft-yao-dnsext-bname-03.txt
 
 Abstract
 
@@ -34,7 +34,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on December 14, 2010.
+   This Internet-Draft will expire on December 30, 2010.
 
 Copyright Notice
 
@@ -51,7 +51,7 @@ Copyright Notice
 
 
 
-Yao, et al.             Expires December 14, 2010               [Page 1]
+Yao, et al.             Expires December 30, 2010               [Page 1]
 
 Internet-Draft                    bname                        June 2010
 
@@ -85,17 +85,20 @@ Table of Contents
      4.1.  Processing by Servers  . . . . . . . . . . . . . . . . . .  5
      4.2.  Processing by Resolvers  . . . . . . . . . . . . . . . . .  7
    5.  BNAME in DNSSEC  . . . . . . . . . . . . . . . . . . . . . . .  8
+     5.1.  BNAME Validating . . . . . . . . . . . . . . . . . . . . .  8
+     5.2.  BNAME alias algorithm identifiers  . . . . . . . . . . . .  9
    6.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . .  9
    7.  Security Considerations  . . . . . . . . . . . . . . . . . . .  9
-   8.  Acknowledgements . . . . . . . . . . . . . . . . . . . . . . .  9
-   9.  Change History . . . . . . . . . . . . . . . . . . . . . . . .  9
-     9.1.  draft-yao-dnsext-bname: Version 00 . . . . . . . . . . . .  9
-     9.2.  draft-yao-dnsext-bname: Version 01 . . . . . . . . . . . .  9
-     9.3.  draft-yao-dnsext-bname: Version 02 . . . . . . . . . . . .  9
+   8.  Acknowledgements . . . . . . . . . . . . . . . . . . . . . . . 10
+   9.  Change History . . . . . . . . . . . . . . . . . . . . . . . . 10
+     9.1.  draft-yao-dnsext-bname: Version 00 . . . . . . . . . . . . 10
+     9.2.  draft-yao-dnsext-bname: Version 01 . . . . . . . . . . . . 10
+     9.3.  draft-yao-dnsext-bname: Version 02 . . . . . . . . . . . . 10
+     9.4.  draft-yao-dnsext-bname: Version 03 . . . . . . . . . . . . 10
    10. References . . . . . . . . . . . . . . . . . . . . . . . . . . 10
      10.1. Normative References . . . . . . . . . . . . . . . . . . . 10
-     10.2. Informative References . . . . . . . . . . . . . . . . . . 11
-   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 11
+     10.2. Informative References . . . . . . . . . . . . . . . . . . 12
+   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 12
 
 
 
@@ -104,10 +107,7 @@ Table of Contents
 
 
 
-
-
-
-Yao, et al.             Expires December 14, 2010               [Page 2]
+Yao, et al.             Expires December 30, 2010               [Page 2]
 
 Internet-Draft                    bname                        June 2010
 
@@ -163,7 +163,7 @@ Internet-Draft                    bname                        June 2010
 
 
 
-Yao, et al.             Expires December 14, 2010               [Page 3]
+Yao, et al.             Expires December 30, 2010               [Page 3]
 
 Internet-Draft                    bname                        June 2010
 
@@ -219,7 +219,7 @@ Internet-Draft                    bname                        June 2010
 
 
 
-Yao, et al.             Expires December 14, 2010               [Page 4]
+Yao, et al.             Expires December 30, 2010               [Page 4]
 
 Internet-Draft                    bname                        June 2010
 
@@ -275,7 +275,7 @@ Internet-Draft                    bname                        June 2010
 
 
 
-Yao, et al.             Expires December 14, 2010               [Page 5]
+Yao, et al.             Expires December 30, 2010               [Page 5]
 
 Internet-Draft                    bname                        June 2010
 
@@ -331,7 +331,7 @@ Internet-Draft                    bname                        June 2010
 
 
 
-Yao, et al.             Expires December 14, 2010               [Page 6]
+Yao, et al.             Expires December 30, 2010               [Page 6]
 
 Internet-Draft                    bname                        June 2010
 
@@ -387,7 +387,7 @@ Internet-Draft                    bname                        June 2010
 
 
 
-Yao, et al.             Expires December 14, 2010               [Page 7]
+Yao, et al.             Expires December 30, 2010               [Page 7]
 
 Internet-Draft                    bname                        June 2010
 
@@ -431,6 +431,8 @@ Internet-Draft                    bname                        June 2010
 
 5.  BNAME in DNSSEC
 
+5.1.  BNAME Validating
+
    With the deployment of DNSSEC, more and more servers and resolvers
    will support DNSSEC.  In order to make BNAME valid in DNSSEC
    verification, the DNSSEC enabled resolvers and servers MUST support
@@ -438,23 +440,47 @@ Internet-Draft                    bname                        June 2010
    will never be signed.  DNSSEC validators MUST understand BNAME,
    verify the BNAME and then checking that the CNAME was properly
    synthesized in order to verify the synthesized CNAME.  In any
-   negative response, the NSEC or NSEC3 [RFC5155] record type bit map
-   SHOULD be checked to see that there was no BNAME that could have been
 
 
 
-Yao, et al.             Expires December 14, 2010               [Page 8]
+Yao, et al.             Expires December 30, 2010               [Page 8]
 
 Internet-Draft                    bname                        June 2010
 
 
+   negative response, the NSEC or NSEC3 [RFC5155] record type bit map
+   SHOULD be checked to see that there was no BNAME that could have been
    applied.  If the BNAME bit in the type bit map is set and the query
    type is not BNAME, then BNAME substitution should have been done.
+
+5.2.  BNAME alias algorithm identifiers
+
+   In order to prevent BNAME-unaware resolvers from attempting to
+   validate responses from BNAME-signed zones, this specification
+   allocates two new DNSKEY algorithm identifiers.  Algorithm Y, DSA-
+   BNAME-SHA1 is an alias for algorithm 3, DSA.  Algorithm Z, RSASHA1-
+   BNAME-SHA1 is an alias for algorithm 5, RSASHA1.  These are not new
+   algorithms, they are additional identifiers for the existing
+   algorithms.  Zones signed according to this specification MUST only
+   use these algorithm identifiers for their DNSKEY RRs.  The BNAME-
+   unaware resolvers will not know these new identifiers and treat
+   responses from the BNAME signed zone as insecure, otherwise the bname
+   RR will be regarded as bogus if there is no such a mechanism.  These
+   algorithm identifiers are used with the BNAME hash algorithm SHA1.
+   Using other BNAME hash algorithms requires allocation of a new alias.
+   Validating resolvers which follow the BNAME specification MUST
+   recognize the new alias algorithm identifier.
 
 
 6.  IANA Considerations
 
-   IANA is requested to assignment the number to XX.
+   IANA is requested to assign the number to XX.  This document updates
+   the IANA registry "DNS SECURITY ALGORITHM NUMBERS".  IANA is
+   requested to assign the number to Y and Z.
+
+   [[anchor14: Note in draft: before this document goes to WG Last call,
+   it is better that we list all DNSSEC algorithms that need to be
+   aliased to reflect compatibility with this extension.]]
 
 
 7.  Security Considerations
@@ -469,6 +495,15 @@ Internet-Draft                    bname                        June 2010
    aliases unless they are properly configured.
 
 
+
+
+
+
+Yao, et al.             Expires December 30, 2010               [Page 9]
+
+Internet-Draft                    bname                        June 2010
+
+
 8.  Acknowledgements
 
    Because the BNAME is very similar to DNAME, the authors learn a lot
@@ -476,12 +511,14 @@ Internet-Draft                    bname                        June 2010
    DNSEXT mailling list.  Thanks a lot to all in the list.  Many
    important comments and suggestions are contributed by many members of
    the DNSEXT and DNSOP WGs.  The authors especially thanks the
-   following ones:Niall O'Reilly, Glen Zorn for improving this document.
+   following ones:Niall O'Reilly, Glen Zorn, Mark Andrews, George
+   Barwood,Olafur Gudmundsson, Sun Guonian and Hanfeng for improving
+   this document.
 
 
 9.  Change History
 
-   [[anchor14: RFC Editor: Please remove this section.]]
+   [[anchor17: RFC Editor: Please remove this section.]]
 
 9.1.  draft-yao-dnsext-bname: Version 00
 
@@ -494,18 +531,13 @@ Internet-Draft                    bname                        June 2010
 
 9.3.  draft-yao-dnsext-bname: Version 02
 
-
-
-
-
-
-Yao, et al.             Expires December 14, 2010               [Page 9]
-
-Internet-Draft                    bname                        June 2010
-
-
    o  Add the DNSSEC discussion
    o  Improve the text
+
+9.4.  draft-yao-dnsext-bname: Version 03
+
+   o  Update the DNSSEC discussion
+   o  Update the IANA consideration
 
 
 10.  References
@@ -520,6 +552,14 @@ Internet-Draft                    bname                        June 2010
               RFC 2671, August 1999.
 
    [RFC1034]  Mockapetris, P., "Domain names - concepts and facilities",
+
+
+
+Yao, et al.             Expires December 30, 2010              [Page 10]
+
+Internet-Draft                    bname                        June 2010
+
+
               STD 13, RFC 1034, November 1987.
 
    [RFC1035]  Mockapetris, P., "Domain names - implementation and
@@ -553,13 +593,6 @@ Internet-Draft                    bname                        June 2010
               Domain Names (IDN) Registration and Administration for
               Chinese, Japanese, and Korean", RFC 3743, April 2004.
 
-
-
-Yao, et al.             Expires December 14, 2010              [Page 10]
-
-Internet-Draft                    bname                        June 2010
-
-
    [RFC4033]  Arends, R., Austein, R., Larson, M., Massey, D., and S.
               Rose, "DNS Security Introduction and Requirements",
               RFC 4033, March 2005.
@@ -575,6 +608,13 @@ Internet-Draft                    bname                        June 2010
    [RFC5155]  Laurie, B., Sisson, G., Arends, R., and D. Blacka, "DNS
               Security (DNSSEC) Hashed Authenticated Denial of
               Existence", RFC 5155, March 2008.
+
+
+
+Yao, et al.             Expires December 30, 2010              [Page 11]
+
+Internet-Draft                    bname                        June 2010
+
 
 10.2.  Informative References
 
@@ -604,18 +644,6 @@ Authors' Addresses
    Email: lee@cnnic.cn
 
 
-
-
-
-
-
-
-
-Yao, et al.             Expires December 14, 2010              [Page 11]
-
-Internet-Draft                    bname                        June 2010
-
-
    Paul Vixie
    Internet Software Consortium
    950 Charter Street
@@ -639,35 +667,7 @@ Internet-Draft                    bname                        June 2010
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Yao, et al.             Expires December 14, 2010              [Page 12]
+Yao, et al.             Expires December 30, 2010              [Page 12]
 
 
 
