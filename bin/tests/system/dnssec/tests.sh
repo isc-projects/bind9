@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.53.48.8 2010/06/25 23:57:03 marka Exp $
+# $Id: tests.sh,v 1.53.48.9 2010/06/28 01:38:44 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -844,7 +844,8 @@ status=`expr $status + $ret`
 echo "I:checking a non-cachable NODATA works ($n)"
 ret=0
 $DIG $DIGOPTS +noauth a.nosoa.secure.example. txt @10.53.0.7 \
-	> dig.out.ns2.test$n || ret=1
+	> dig.out.ns7.test$n || ret=1
+grep "AUTHORITY: 0" dig.out.ns7.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +noauth a.nosoa.secure.example. txt @10.53.0.4 \
 	> dig.out.ns4.test$n || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
@@ -855,7 +856,8 @@ status=`expr $status + $ret`
 echo "I:checking a non-cachable NXDOMAIN works ($n)"
 ret=0
 $DIG $DIGOPTS +noauth b.nosoa.secure.example. txt @10.53.0.7 \
-	> dig.out.ns2.test$n || ret=1
+	> dig.out.ns7.test$n || ret=1
+grep "AUTHORITY: 0" dig.out.ns7.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +noauth b.nosoa.secure.example. txt @10.53.0.4 \
 	> dig.out.ns4.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
