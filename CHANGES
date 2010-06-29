@@ -1,3 +1,5 @@
+2926.	[rollback]	Temporarially rollback change 2748. [RT #21594]
+
 2925.	[bug]		Named failed to accept uncachable negative responses
 			from insecure zones. [RT# 21555]
 

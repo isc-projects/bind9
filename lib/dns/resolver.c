@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.413.14.8 2010/04/20 23:49:58 tbox Exp $ */
+/* $Id: resolver.c,v 1.413.14.8.6.1 2010/06/29 04:49:49 marka Exp $ */
 
 /*! \file */
 
@@ -5628,7 +5628,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 		 * trying other servers.
 		 */
 		if (dns_name_equal(ns_name, &fctx->domain)) {
-			log_formerr(fctx, "sideways referral");
+			log_formerr(fctx, "non-improving referral");
 			return (DNS_R_FORMERR);
 		}
 
@@ -6425,6 +6425,31 @@ iscname(fetchctx_t *fctx) {
 	return (result == ISC_R_SUCCESS ? ISC_TRUE : ISC_FALSE);
 }
 
+#ifdef notyet_betterreferral
+static isc_boolean_t
+betterreferral(fetchctx_t *fctx) {
+	isc_result_t result;
+	dns_name_t *name;
+	dns_rdataset_t *rdataset;
+	dns_message_t *message = fctx->rmessage;
+
+	for (result = dns_message_firstname(message, DNS_SECTION_AUTHORITY);
+	     result == ISC_R_SUCCESS;
+	     result = dns_message_nextname(message, DNS_SECTION_AUTHORITY)) {
+		name = NULL;
+		dns_message_currentname(message, DNS_SECTION_AUTHORITY, &name);
+		if (!dns_name_issubdomain(name, &fctx->domain))
+			continue;
+		for (rdataset = ISC_LIST_HEAD(name->list);
+		     rdataset != NULL;
+		     rdataset = ISC_LIST_NEXT(rdataset, link))
+			if (rdataset->type == dns_rdatatype_ns)
+				return (ISC_TRUE);
+	}
+	return (ISC_FALSE);
+}
+#endif
+
 static void
 resquery_response(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -6904,8 +6929,20 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			 * it as a valid answer.
 			 */
 			result = answer_response(fctx);
+#ifdef notyet_betterreferral
+		} else if (fctx->type != dns_rdatatype_ns &&
+			   !betterreferral(fctx)) {
+#else
+		} else if (fctx->type != dns_rdatatype_ns) {
+#endif
+			/*
+			 * Lame response !!!.
+			 */
+			result = answer_response(fctx);
 		} else {
+#ifdef notyet_betterreferral
 			if (fctx->type == dns_rdatatype_ns) {
+#endif
 				/*
 				 * A BIND 8 server could incorrectly return a
 				 * non-authoritative answer to an NS query
@@ -6916,6 +6953,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				 */
 				result = noanswer_response(fctx, NULL,
 						   LOOK_FOR_NS_IN_ANSWER);
+#ifdef notyet_betterreferral
 			} else {
 				/*
 				 * Some other servers may still somehow include
@@ -6932,6 +6970,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				result = noanswer_response(fctx, NULL,
 						   LOOK_FOR_GLUE_IN_ANSWER);
 			}
+#endif
 			if (result != DNS_R_DELEGATION) {
 				/*
 				 * At this point, AA is not set, the response
