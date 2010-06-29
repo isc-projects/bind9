@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.106 2009/12/04 21:09:32 marka Exp $ */
+/* $Id: config.c,v 1.106.4.2 2010/05/14 23:49:18 tbox Exp $ */
 
 /*! \file */
 
@@ -238,18 +238,6 @@ view \"_bind\" chaos {\n\
 	};\n\
 };\n\
 "
-
-"#\n\
-#  The \"_meta\" view is for zones that are used to store internal\n\
-#  information for named, such as managed keys.  The zones are defined\n\
-#  elsewhere.\n\
-#\n\
-view \"_meta\" in {\n\
-	recursion no;\n\
-	notify no;\n\
-};\n\
-"
-
 "#\n\
 #  Default trusted key(s) for builtin DLV support\n\
 #  (used if \"dnssec-lookaside auto;\" is set and\n\

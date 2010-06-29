@@ -133,6 +133,7 @@ options {
         listen-on [ port <integer> ] { <address_match_element>; ... };
         listen-on-v6 [ port <integer> ] { <address_match_element>; ... };
         maintain-ixfr-base <boolean>; // obsolete
+        managed-keys-directory <quoted_string>;
         masterfile-format ( text | raw );
         match-mapped-addresses <boolean>;
         max-acache-size <size_no_default>;
@@ -186,7 +187,7 @@ options {
             <quoted_string> ] <string> <string>; ... };
         serial-queries <integer>; // obsolete
         serial-query-rate <integer>;
-        server-id ( <quoted_string> | none |;
+        server-id ( <quoted_string> | none | hostname );
         session-keyalg <string>;
         session-keyfile ( <quoted_string> | none );
         session-keyname <string>;

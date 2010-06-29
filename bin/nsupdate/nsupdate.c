@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.173 2009/09/29 15:06:06 fdupont Exp $ */
+/* $Id: nsupdate.c,v 1.173.66.4 2010/05/18 06:24:27 marka Exp $ */
 
 /*! \file */
 
@@ -2097,6 +2097,10 @@ send_update(dns_name_t *zonename, isc_sockaddr_t *master,
 		fprintf(stderr, "Sending update to %s\n", addrbuf);
 	}
 
+	/* Windows doesn't like the tsig name to be compressed. */
+	if (updatemsg->tsigname)
+		updatemsg->tsigname->attributes |= DNS_NAMEATTR_NOCOMPRESS;
+
 	result = dns_request_createvia3(requestmgr, updatemsg, srcaddr,
 					master, options, tsigkey, timeout,
 					udp_timeout, udp_retries, global_task,
@@ -2694,6 +2698,7 @@ start_update(void) {
 		dns_name_init(name, NULL);
 		dns_name_clone(userzone, name);
 	} else {
+		dns_rdataset_t *tmprdataset;
 		result = dns_message_firstname(updatemsg, section);
 		if (result == ISC_R_NOMORE) {
 			section = DNS_SECTION_PREREQUISITE;
@@ -2711,6 +2716,19 @@ start_update(void) {
 		dns_message_currentname(updatemsg, section, &firstname);
 		dns_name_init(name, NULL);
 		dns_name_clone(firstname, name);
+		/*
+		 * Looks to see if the first name references a DS record
+		 * and if that name is not the root remove a label as DS
+		 * records live in the parent zone so we need to start our
+		 * search one label up.
+		 */
+		tmprdataset = ISC_LIST_HEAD(firstname->list);
+		if (section == DNS_SECTION_UPDATE &&
+		    !dns_name_equal(firstname, dns_rootname) &&
+		    tmprdataset->type == dns_rdatatype_ds) {
+		    unsigned int labels = dns_name_countlabels(name);
+		    dns_name_getlabelsequence(name, 1, labels - 1, name);
+		}
 	}
 
 	ISC_LIST_INIT(name->list);
