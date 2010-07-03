@@ -16,6 +16,12 @@
 2890.	[bug]		Handle the introduction of new trusted-keys and
 			DS, DLV RRsets better. [RT #21097]
 
+2678.	[func]		Treat DS queries as if "minimal-response yes;"
+			was set. [RT #20258]
+
+2427.	[func]		Treat DNSKEY queries as if "minimal-response yes;"
+			was set. [RT #18528]
+
 	--- 9.4-ESV-R2 released ---
 
 2876.	[bug]		Named could return SERVFAIL for negative responses
