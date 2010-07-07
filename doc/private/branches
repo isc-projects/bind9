@@ -22,6 +22,7 @@ custom_ATT_v9_6_1_P1		new	cathya	// 2009-10-22 13:24 +0000
 custom_CISCO_v9_3_4_P1		private	marka	// 2007-11-23 04:19 +0000
 custom_DENIC_v9_7_1_P1		new	jinmei	// 2010-07-01 18:06 +0000
 custom_DYNDNS_v9_6		new	each	// 2009-06-19 15:34 +0000
+custom_DYNDNS_v9_7		new	each	// 2010-07-07 18:54 +0000
 custom_NOM_v9_5_0a7		private	
 custom_NOM_v9_5_0b2		new	marka	// 2008-03-06 06:45 +0000
 custom_NOM_v9_5_0b2+		new	marka	// 2008-03-06 06:13 +0000
@@ -276,6 +277,7 @@ rt20310				new	each	// 2009-09-25 00:29 +0000
 rt20310a			new	each	// 2009-10-09 04:31 +0000
 rt20339				new	vjs	// 2009-09-29 20:44 +0000
 rt20340				new	marka	// 2009-10-09 06:29 +0000
+rt20363				new	fdupont	// 2010-07-07 16:14 +0000
 rt20369				new	fdupont	// 2009-10-06 08:41 +0000
 rt20369a			new	fdupont	// 2009-10-06 14:25 +0000
 rt20372				new	each	// 2009-10-06 22:08 +0000
