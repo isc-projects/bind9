@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.423 2010/06/23 23:46:58 tbox Exp $ */
+/* $Id: resolver.c,v 1.424 2010/07/04 00:48:57 marka Exp $ */
 
 /*! \file */
 
@@ -5628,7 +5628,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 		 * trying other servers.
 		 */
 		if (dns_name_equal(ns_name, &fctx->domain)) {
-			log_formerr(fctx, "sideways referral");
+			log_formerr(fctx, "non-improving referral");
 			return (DNS_R_FORMERR);
 		}
 
@@ -6450,6 +6450,29 @@ iscname(fetchctx_t *fctx) {
 	return (result == ISC_R_SUCCESS ? ISC_TRUE : ISC_FALSE);
 }
 
+static isc_boolean_t
+betterreferral(fetchctx_t *fctx) {
+	isc_result_t result;
+	dns_name_t *name;
+	dns_rdataset_t *rdataset;
+	dns_message_t *message = fctx->rmessage;
+
+	for (result = dns_message_firstname(message, DNS_SECTION_AUTHORITY);
+	     result == ISC_R_SUCCESS;
+	     result = dns_message_nextname(message, DNS_SECTION_AUTHORITY)) {
+		name = NULL;
+		dns_message_currentname(message, DNS_SECTION_AUTHORITY, &name);
+		if (!dns_name_issubdomain(name, &fctx->domain))
+			continue;
+		for (rdataset = ISC_LIST_HEAD(name->list);
+		     rdataset != NULL;
+		     rdataset = ISC_LIST_NEXT(rdataset, link))
+			if (rdataset->type == dns_rdatatype_ns)
+				return (ISC_TRUE);
+	}
+	return (ISC_FALSE);
+}
+
 static void
 resquery_response(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -6927,6 +6950,12 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			 * A BIND8 server could return a non-authoritative
 			 * answer when a CNAME is followed.  We should treat
 			 * it as a valid answer.
+			 */
+			result = answer_response(fctx);
+		} else if (fctx->type != dns_rdatatype_ns &&
+			   !betterreferral(fctx)) {
+			/*
+			 * Lame response !!!.
 			 */
 			result = answer_response(fctx);
 		} else {
