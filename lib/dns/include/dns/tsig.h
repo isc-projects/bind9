@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig.h,v 1.51.128.1 2010/07/09 05:16:10 each Exp $ */
+/* $Id: tsig.h,v 1.51.128.2 2010/07/09 23:45:33 tbox Exp $ */
 
 #ifndef DNS_TSIG_H
 #define DNS_TSIG_H 1
@@ -89,8 +89,8 @@ struct dns_tsigkey {
 
 #define dns_tsigkey_identity(tsigkey) \
 	((tsigkey) == NULL ? NULL : \
-         (tsigkey)->generated ? ((tsigkey)->creator) : \
-         (&((tsigkey)->name)))
+	 (tsigkey)->generated ? ((tsigkey)->creator) : \
+	 (&((tsigkey)->name)))
 
 ISC_LANG_BEGINDECLS
 

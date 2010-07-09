@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.154.56.12 2010/07/09 06:48:13 each Exp $ */
+/* $Id: nsupdate.c,v 1.154.56.13 2010/07/09 23:45:33 tbox Exp $ */
 
 /*! \file */
 
@@ -1383,7 +1383,7 @@ evaluate_realm(char *cmdline) {
 		fatal("out of memory");
 	return (STATUS_MORE);
 #else
-        UNUSED(cmdline);
+	UNUSED(cmdline);
 	return (STATUS_SYNTAX);
 #endif
 }
