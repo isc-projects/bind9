@@ -181,7 +181,7 @@
 ./bin/nsupdate/Makefile.in			MAKE	2000,2001,2002,2004,2006,2007,2008
 ./bin/nsupdate/nsupdate.1			MAN	DOCBOOK
 ./bin/nsupdate/nsupdate.c			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
-./bin/nsupdate/nsupdate.docbook			SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
+./bin/nsupdate/nsupdate.docbook			SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
 ./bin/nsupdate/nsupdate.html			HTML	DOCBOOK
 ./bin/nsupdate/win32/nsupdate.dsp		X	2001,2004,2005
 ./bin/nsupdate/win32/nsupdate.dsw		X	2001
@@ -1746,7 +1746,7 @@
 ./lib/dns/include/dns/master.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2008
 ./lib/dns/include/dns/masterdump.h		C	1999,2000,2001,2002,2004,2005,2006,2007,2008
 ./lib/dns/include/dns/message.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
-./lib/dns/include/dns/name.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2009
+./lib/dns/include/dns/name.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2009,2010
 ./lib/dns/include/dns/ncache.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010
 ./lib/dns/include/dns/nsec.h			C	1999,2000,2001,2003,2004,2005,2006,2007,2008
 ./lib/dns/include/dns/nsec3.h			C	2008,2009
@@ -1778,7 +1778,7 @@
 ./lib/dns/include/dns/time.h			C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/timer.h			C	2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/tkey.h			C	1999,2000,2001,2004,2005,2006,2007,2009
-./lib/dns/include/dns/tsig.h			C	1999,2000,2001,2002,2004,2005,2006,2007
+./lib/dns/include/dns/tsig.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2010
 ./lib/dns/include/dns/ttl.h			C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/types.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
 ./lib/dns/include/dns/validator.h		C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
@@ -1956,7 +1956,7 @@
 ./lib/dns/tcpmsg.c				C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/time.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2007,2009,2010
 ./lib/dns/timer.c				C	2000,2001,2004,2005,2007
-./lib/dns/tkey.c				C	1999,2000,2001,2003,2004,2005,2006,2007,2008
+./lib/dns/tkey.c				C	1999,2000,2001,2003,2004,2005,2006,2007,2008,2010
 ./lib/dns/tsig.c				C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2010
 ./lib/dns/ttl.c					C	1999,2000,2001,2004,2005,2007
 ./lib/dns/validator.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
