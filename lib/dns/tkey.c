@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.93 2010/07/09 05:13:15 each Exp $
+ * $Id: tkey.c,v 1.94 2010/07/09 23:46:51 tbox Exp $
  */
 /*! \file */
 #include <config.h>
