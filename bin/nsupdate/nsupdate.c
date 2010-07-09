@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.154.56.11 2010/07/09 05:16:00 each Exp $ */
+/* $Id: nsupdate.c,v 1.154.56.12 2010/07/09 06:48:13 each Exp $ */
 
 /*! \file */
 
@@ -38,6 +38,7 @@
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/parseint.h>
+#include <isc/print.h>
 #include <isc/random.h>
 #include <isc/region.h>
 #include <isc/sockaddr.h>
