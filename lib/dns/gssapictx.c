@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gssapictx.c,v 1.12.118.3 2010/06/03 02:34:03 marka Exp $ */
+/* $Id: gssapictx.c,v 1.12.118.4 2010/07/09 05:15:05 each Exp $ */
 
 #include <config.h>
 
@@ -132,7 +132,7 @@ name_to_gbuffer(dns_name_t *name, isc_buffer_t *buffer,
 		namep = &tname;
 	}
 
-	result = dns_name_totext(namep, ISC_FALSE, buffer);
+	result = dns_name_toprincipal(namep, buffer);
 	isc_buffer_putuint8(buffer, 0);
 	isc_buffer_usedregion(buffer, &r);
 	REGION_TO_GBUFFER(r, *gbuffer);
@@ -336,12 +336,15 @@ dst_gssapi_identitymatchesrealmkrb5(dns_name_t *signer, dns_name_t *name,
 	char rbuf[DNS_NAME_FORMATSIZE];
 	char *sname;
 	char *rname;
+	isc_buffer_t buffer;
 
 	/*
 	 * It is far, far easier to write the names we are looking at into
 	 * a string, and do string operations on them.
 	 */
-	dns_name_format(signer, sbuf, sizeof(sbuf));
+	isc_buffer_init(&buffer, sbuf, sizeof(sbuf));
+	dns_name_toprincipal(signer, &buffer);
+	isc_buffer_putuint8(&buffer, 0);
 	if (name != NULL)
 		dns_name_format(name, nbuf, sizeof(nbuf));
 	dns_name_format(realm, rbuf, sizeof(rbuf));
@@ -351,7 +354,7 @@ dst_gssapi_identitymatchesrealmkrb5(dns_name_t *signer, dns_name_t *name,
 	 * does not exist, we don't have something we like, so we fail our
 	 * compare.
 	 */
-	rname = strstr(sbuf, "\\@");
+	rname = strchr(sbuf, '@');
 	if (rname == NULL)
 		return (isc_boolean_false);
 	*rname = '\0';
@@ -405,12 +408,15 @@ dst_gssapi_identitymatchesrealmms(dns_name_t *signer, dns_name_t *name,
 	char *sname;
 	char *nname;
 	char *rname;
+	isc_buffer_t buffer;
 
 	/*
 	 * It is far, far easier to write the names we are looking at into
 	 * a string, and do string operations on them.
 	 */
-	dns_name_format(signer, sbuf, sizeof(sbuf));
+	isc_buffer_init(&buffer, sbuf, sizeof(sbuf));
+	dns_name_toprincipal(signer, &buffer);
+	isc_buffer_putuint8(&buffer, 0);
 	if (name != NULL)
 		dns_name_format(name, nbuf, sizeof(nbuf));
 	dns_name_format(realm, rbuf, sizeof(rbuf));
@@ -420,17 +426,17 @@ dst_gssapi_identitymatchesrealmms(dns_name_t *signer, dns_name_t *name,
 	 * does not exist, we don't have something we like, so we fail our
 	 * compare.
 	 */
-	rname = strstr(sbuf, "\\@");
+	rname = strchr(sbuf, '@');
 	if (rname == NULL)
 		return (isc_boolean_false);
-	sname = strstr(sbuf, "\\$");
+	sname = strchr(sbuf, '$');
 	if (sname == NULL)
 		return (isc_boolean_false);
 
 	/*
 	 * Verify that the $ and @ follow one another.
 	 */
-	if (rname - sname != 2)
+	if (rname - sname != 1)
 		return (isc_boolean_false);
 
 	/*
@@ -442,8 +448,7 @@ dst_gssapi_identitymatchesrealmms(dns_name_t *signer, dns_name_t *name,
 	 *    machinename$@EXAMPLE.COM
 	 * format.
 	 */
-	*rname = '\0';
-	rname += 2;
+	rname++;
 	*sname = '\0';
 	sname = sbuf;
 

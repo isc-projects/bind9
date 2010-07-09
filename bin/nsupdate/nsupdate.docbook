@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: nsupdate.docbook,v 1.34.48.3 2009/03/09 04:21:56 marka Exp $ -->
+<!-- $Id: nsupdate.docbook,v 1.34.48.4 2010/07/09 05:15:04 each Exp $ -->
 <refentry id="man.nsupdate">
   <refentryinfo>
     <date>Jun 30, 2000</date>
@@ -354,6 +354,45 @@
               The <command>key</command> command
               overrides any key specified on the command line via
               <option>-y</option> or <option>-k</option>.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+            <command>gsstsig</command>
+          </term>
+          <listitem>
+            <para>
+	      Use GSS-TSIG to sign the updated.  This is equivalent to
+	      specifying <option>-g</option> on the commandline.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+            <command>oldgsstsig</command>
+          </term>
+          <listitem>
+            <para>
+	      Use the Windows 2000 version of GSS-TSIG to sign the updated.
+	      This is equivalent to specifying <option>-o</option> on the
+	      commandline.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+            <command>realm</command>
+            <arg choice="req"><optional>realm_name</optional></arg>
+          </term>
+          <listitem>
+            <para>
+	      When using GSS-TSIG use <parameter>realm_name</parameter> rather
+	      than the default realm in <filename>krb5.conf</filename>.  If no
+	      realm is specified the saved realm is cleared.
             </para>
           </listitem>
         </varlistentry>
