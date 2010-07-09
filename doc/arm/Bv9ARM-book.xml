@@ -35,7 +35,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.51 2010/02/25 10:31:03 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.340.24.52 2010/07/09 05:16:01 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4974,7 +4974,7 @@ category notify { null; };
 		the server can acquire through the default system
 		key file, normally <filename>/etc/krb5.keytab</filename>.
 		Normally this principal is of the form
-		"<userinput>dns/</userinput><varname>server.domain</varname>".
+		"<userinput>DNS/</userinput><varname>server.domain</varname>".
 		To use GSS-TSIG, <command>tkey-domain</command>
 		must also be set.
 	      </para>
