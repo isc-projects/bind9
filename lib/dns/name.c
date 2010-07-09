@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.169.104.2 2010/05/12 23:50:01 tbox Exp $ */
+/* $Id: name.c,v 1.169.104.3 2010/07/09 05:14:08 each Exp $ */
 
 /*! \file */
 
@@ -1324,6 +1324,21 @@ isc_result_t
 dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 		isc_buffer_t *target)
 {
+	unsigned int options = DNS_NAME_MASTERFILE;
+
+	if (omit_final_dot)
+		options |= DNS_NAME_OMITFINALDOT;
+	return (dns_name_totext2(name, options, target));
+}
+
+isc_result_t
+dns_name_toprincipal(dns_name_t *name, isc_buffer_t *target) {
+	return (dns_name_totext2(name, DNS_NAME_OMITFINALDOT, target));
+}
+
+isc_result_t
+dns_name_totext2(dns_name_t *name, unsigned int options, isc_buffer_t *target)
+{
 	unsigned char *ndata;
 	char *tdata;
 	unsigned int nlen, tlen;
@@ -1337,6 +1352,8 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 	dns_name_totextfilter_t totext_filter_proc = NULL;
 	isc_result_t result;
 #endif
+	isc_boolean_t omit_final_dot =
+		ISC_TF(options & DNS_NAME_OMITFINALDOT);
 
 	/*
 	 * This function assumes the name is in proper uncompressed
@@ -1412,15 +1429,17 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 			while (count > 0) {
 				c = *ndata;
 				switch (c) {
+				/* Special modifiers in zone files. */
+				case 0x40: /* '@' */
+				case 0x24: /* '$' */
+					if ((options & DNS_NAME_MASTERFILE) == 0)
+						goto no_escape;
 				case 0x22: /* '"' */
 				case 0x28: /* '(' */
 				case 0x29: /* ')' */
 				case 0x2E: /* '.' */
 				case 0x3B: /* ';' */
 				case 0x5C: /* '\\' */
-				/* Special modifiers in zone files. */
-				case 0x40: /* '@' */
-				case 0x24: /* '$' */
 					if (trem < 2)
 						return (ISC_R_NOSPACE);
 					*tdata++ = '\\';
@@ -1430,6 +1449,7 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 					trem -= 2;
 					nlen--;
 					break;
+				no_escape:
 				default:
 					if (c > 0x20 && c < 0x7f) {
 						if (trem == 0)
