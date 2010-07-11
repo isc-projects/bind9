@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.c,v 1.38 2010/06/25 23:46:51 tbox Exp $ */
+/* $Id: control.c,v 1.39 2010/07/11 00:12:57 each Exp $ */
 
 /*! \file */
 
@@ -191,6 +191,10 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 		result = ns_server_validation(ns_g_server, command);
 	} else if (command_compare(command, NS_COMMAND_SIGN)) {
 		result = ns_server_sign(ns_g_server, command);
+	} else if (command_compare(command, NS_COMMAND_ADDZONE)) {
+		result = ns_server_add_zone(ns_g_server, command);
+	} else if (command_compare(command, NS_COMMAND_DELZONE)) {
+		result = ns_server_del_zone(ns_g_server, command);
 	} else {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_CONTROL, ISC_LOG_WARNING,

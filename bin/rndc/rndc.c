@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.129 2010/06/25 23:46:51 tbox Exp $ */
+/* $Id: rndc.c,v 1.130 2010/07/11 00:12:57 each Exp $ */
 
 /*! \file */
 
@@ -143,6 +143,10 @@ command is one of the following:\n\
   validation newstate [view]\n\
 		Enable / disable DNSSEC validation.\n\
   *restart	Restart the server.\n\
+  addzone [\"file\"] zone [class [view]] { zone-options }\n\
+		Add zone to given view. Requires new-zone-file option.\n\
+  delzone [\"file\"] zone [class [view]]\n\
+		Removes zone from given view. Requires new-zone-file option.\n\
 \n\
 * == not yet implemented\n\
 Version: %s\n",
