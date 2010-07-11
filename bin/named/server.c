@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.572 2010/07/11 00:12:57 each Exp $ */
+/* $Id: server.c,v 1.573 2010/07/11 23:46:54 tbox Exp $ */
 
 /*! \file */
 
@@ -4117,7 +4117,7 @@ load_configuration(const char *filename, ns_server_t *server,
 		CHECK(configure_view(view, config, vconfig,
 				     &cachelist, bindkeys,
 				     ns_g_mctx, &aclconfctx, ISC_TRUE));
-  
+
 		if (vconfig != NULL) {
 			/*
 			 * Are we preserving config for dynamically added
@@ -6659,7 +6659,7 @@ ns_server_add_zone(ns_server_t *server, char *args) {
 	obj = cfg_tuple_get(parms, "filepart");
 	if (obj && cfg_obj_isstring(obj))
 		filepart = cfg_obj_asstring(obj);
-	
+
 	if (filepart != NULL && *filepart != '\0') {
 		/* No hidden fles or full paths */
 		if (*filepart == '.' ||
@@ -7005,7 +7005,7 @@ ns_server_del_zone(ns_server_t *server, char *args) {
 	if (ifp != NULL && result == ISC_R_SUCCESS) {
 		char *found = NULL, *p;
 		size_t n;
-		
+
 		/* Create a temporary file */
 		CHECK(isc_string_printf(buf, 1023, "%s.%d", filename,
 					getpid()));
@@ -7066,7 +7066,7 @@ ns_server_del_zone(ns_server_t *server, char *args) {
 		/* Just spool the remainder of the file out */
 		while ((n = fread(buf, 1, 1024, ifp)) > 0)
 			fwrite(buf, 1, n, ofp);
-		
+
 		/* Move temporary into place */
 		CHECK(isc_file_rename(tmpname, filename));
 	}
