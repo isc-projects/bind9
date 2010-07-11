@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.113.4.7 2010/07/11 00:12:19 each Exp $ */
+/* $Id: namedconf.c,v 1.113.4.8 2010/07/11 05:44:05 each Exp $ */
 
 /*! \file */
 
@@ -889,7 +889,6 @@ options_clauses[] = {
 	{ "use-ixfr", &cfg_type_boolean, 0 },
 	{ "version", &cfg_type_qstringornone, 0 },
 	{ "flush-zones-on-shutdown", &cfg_type_boolean, 0 },
-	{ "new-zone-file", &cfg_type_qstringornone, 0 },
 	{ NULL, NULL, 0 }
 };
 
