@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.113.4.8 2010/07/11 05:44:05 each Exp $ */
+/* $Id: namedconf.c,v 1.113.4.9 2010/07/11 23:46:36 tbox Exp $ */
 
 /*! \file */
 
@@ -1841,7 +1841,7 @@ static cfg_type_t cfg_type_optional_class = {
  */
 static isc_result_t
 parse_optional_qstr(cfg_parser_t *pctx, const cfg_type_t *type,
-                    cfg_obj_t **ret)
+		    cfg_obj_t **ret)
 {
 	isc_result_t result;
 	UNUSED(type);
