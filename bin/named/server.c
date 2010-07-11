@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.556.8.15 2010/06/25 23:46:33 tbox Exp $ */
+/* $Id: server.c,v 1.556.8.16 2010/07/11 00:12:18 each Exp $ */
 
 /*! \file */
 
@@ -24,6 +24,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
+#include <ctype.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include <isc/app.h>
 #include <isc/base64.h>
@@ -290,6 +293,15 @@ add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx);
 
 static void
 end_reserved_dispatches(ns_server_t *server, isc_boolean_t all);
+
+/*
+ * Stores config for building zones after the fact
+ */
+static cfg_obj_t *nzf_config = NULL;
+static cfg_parser_t *nzf_parser = NULL;
+static const char *nzf_file = NULL;
+static const cfg_obj_t *nzf_option = NULL;
+static cfg_aclconfctx_t nzf_actx;
 
 /*%
  * Configure a single view ACL at '*aclp'.  Get its configuration from
@@ -3999,6 +4011,17 @@ load_configuration(const char *filename, ns_server_t *server,
 		}
 	}
 
+	/* Are we preserving config for adding zones dynamically? */
+	obj = NULL;
+	result = cfg_map_get(options, "new-zone-file", &obj);
+	if (obj && nzf_option == NULL) {
+		nzf_file = cfg_obj_asstring(obj);
+		if (nzf_file && *nzf_file) {
+			/* Remember this configuration */
+			nzf_option = config;
+		}
+	}
+
 	/*
 	 * Rescan the interface list to pick up changes in the
 	 * listen-on option.  It's important that we do this before we try
@@ -4094,6 +4117,20 @@ load_configuration(const char *filename, ns_server_t *server,
 		CHECK(configure_view(view, config, vconfig,
 				     &cachelist, bindkeys,
 				     ns_g_mctx, &aclconfctx, ISC_TRUE));
+  
+		if (vconfig != NULL) {
+			/*
+			 * Are we preserving config for dynamically added
+			 * zones?
+			 */
+			const cfg_obj_t *voptions;
+			voptions = cfg_tuple_get(vconfig, "options");
+			obj = NULL;
+			result = cfg_map_get(voptions, "new-zone-file", &obj);
+			if (obj && nzf_option == NULL)
+				nzf_option = config;
+		}
+
 		dns_view_freeze(view);
 		dns_view_detach(&view);
 	}
@@ -4415,7 +4452,16 @@ load_configuration(const char *filename, ns_server_t *server,
 	if (v6portset != NULL)
 		isc_portset_destroy(ns_g_mctx, &v6portset);
 
-	cfg_aclconfctx_destroy(&aclconfctx);
+	/* Preserve config, we'll need it when adding zones */
+	if (nzf_option != NULL) {
+		nzf_parser = conf_parser;
+		conf_parser = NULL;
+		nzf_config = config;
+		config = NULL;
+		memcpy(&nzf_actx, &aclconfctx, sizeof(cfg_aclconfctx_t));
+	} else {
+		cfg_aclconfctx_destroy(&aclconfctx);
+	}
 
 	if (conf_parser != NULL) {
 		if (config != NULL)
@@ -4622,6 +4668,12 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 
 	cfg_obj_destroy(ns_g_parser, &ns_g_config);
 	cfg_parser_destroy(&ns_g_parser);
+
+	if (nzf_config) {
+		cfg_aclconfctx_destroy(&nzf_actx);
+		cfg_obj_destroy(nzf_parser, &nzf_config);
+		cfg_parser_destroy(&nzf_parser);
+	}
 
 	for (view = ISC_LIST_HEAD(server->viewlist);
 	     view != NULL;
@@ -5096,7 +5148,9 @@ next_token(char **stringp, const char *delim) {
  * set '*zonep' to NULL.
  */
 static isc_result_t
-zone_from_args(ns_server_t *server, char *args, dns_zone_t **zonep) {
+zone_from_args(ns_server_t *server, char *args, dns_zone_t **zonep,
+	       const char **zonename)
+{
 	char *input, *ptr;
 	const char *zonetxt;
 	char *classtxt;
@@ -5120,6 +5174,8 @@ zone_from_args(ns_server_t *server, char *args, dns_zone_t **zonep) {
 	zonetxt = next_token(&input, " \t");
 	if (zonetxt == NULL)
 		return (ISC_R_SUCCESS);
+	if (zonename)
+		*zonename = zonetxt;
 
 	/* Look for the optional class name. */
 	classtxt = next_token(&input, " \t");
@@ -5180,7 +5236,7 @@ ns_server_retransfercommand(ns_server_t *server, char *args) {
 	dns_zone_t *zone = NULL;
 	dns_zonetype_t type;
 
-	result = zone_from_args(server, args, &zone);
+	result = zone_from_args(server, args, &zone, NULL);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (zone == NULL)
@@ -5204,7 +5260,7 @@ ns_server_reloadcommand(ns_server_t *server, char *args, isc_buffer_t *text) {
 	dns_zonetype_t type;
 	const char *msg = NULL;
 
-	result = zone_from_args(server, args, &zone);
+	result = zone_from_args(server, args, &zone, NULL);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (zone == NULL) {
@@ -5264,7 +5320,7 @@ ns_server_notifycommand(ns_server_t *server, char *args, isc_buffer_t *text) {
 	dns_zone_t *zone = NULL;
 	const unsigned char msg[] = "zone notify queued";
 
-	result = zone_from_args(server, args, &zone);
+	result = zone_from_args(server, args, &zone, NULL);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (zone == NULL)
@@ -5289,7 +5345,7 @@ ns_server_refreshcommand(ns_server_t *server, char *args, isc_buffer_t *text) {
 	const unsigned char msg2[] = "not a slave or stub zone";
 	dns_zonetype_t type;
 
-	result = zone_from_args(server, args, &zone);
+	result = zone_from_args(server, args, &zone, NULL);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (zone == NULL)
@@ -6385,7 +6441,7 @@ ns_server_sign(ns_server_t *server, char *args) {
 	dns_zonetype_t type;
 	isc_uint16_t keyopts;
 
-	result = zone_from_args(server, args, &zone);
+	result = zone_from_args(server, args, &zone, NULL);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (zone == NULL)
@@ -6425,7 +6481,7 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args,
 	isc_boolean_t frozen;
 	const char *msg = NULL;
 
-	result = zone_from_args(server, args, &zone);
+	result = zone_from_args(server, args, &zone, NULL);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (zone == NULL) {
@@ -6543,3 +6599,503 @@ ns_smf_add_message(isc_buffer_t *text) {
 	return (ISC_R_SUCCESS);
 }
 #endif /* HAVE_LIBSCF */
+
+/*
+ * Act on an "addzone" command from the command channel.
+ */
+isc_result_t
+ns_server_add_zone(ns_server_t *server, char *args) {
+	isc_result_t	     result;
+	isc_buffer_t	     argbuf;
+	size_t		     arglen, len;
+	cfg_parser_t	    *parser = NULL;
+	cfg_obj_t	    *config = NULL;
+	const cfg_obj_t     *vconfig = NULL;
+	const cfg_obj_t     *views = NULL;
+	const cfg_listelt_t *element;
+	const cfg_obj_t     *parms = NULL;
+	const cfg_obj_t     *obj = NULL;
+	const char	    *zonename;
+	const char	    *classname = NULL;
+	const char	    *argp;
+	const char	    *viewname = NULL;
+	dns_rdataclass_t     rdclass;
+	dns_view_t	    *view = 0;
+	isc_buffer_t	     buf, *nbuf = NULL;
+	dns_name_t	     dnsname;
+	const char	    *filename = 0;
+	const char	    *filepart = NULL;
+	char		     fnamebuf[512];
+	struct stat	     sb;
+	dns_zone_t	    *zone = NULL;
+	FILE		    *fp = NULL;
+
+	/* Are we accepting new zones? */
+	if (nzf_option == NULL)
+		return (ISC_R_FAILURE);
+
+	/* Try to parse the argument string */
+	arglen = strlen(args);
+	isc_buffer_init(&argbuf, args, arglen);
+	isc_buffer_add(&argbuf, strlen(args));
+	CHECK(cfg_parser_create(server->mctx, ns_g_lctx, &parser));
+	CHECK(cfg_parse_buffer(parser, &argbuf, &cfg_type_addzoneconf,
+			       &config));
+	CHECK(cfg_map_get(config, "addzone", &parms));
+
+	zonename = cfg_obj_asstring(cfg_tuple_get(parms, "name"));
+	isc_buffer_init(&buf, zonename, strlen(zonename));
+	isc_buffer_add(&buf, strlen(zonename));
+	dns_name_init(&dnsname, NULL);
+	isc_buffer_allocate(server->mctx, &nbuf, 256);
+	dns_name_setbuffer(&dnsname, nbuf);
+	CHECK(dns_name_fromtext(&dnsname, &buf, dns_rootname, ISC_FALSE, NULL));
+
+	/*
+	 * If new-zone-file indicates a directory rather than a file,
+	 * then "filepart" is the filename in the directory in which to
+	 * write the zone configuration text.
+	 */
+	obj = cfg_tuple_get(parms, "filepart");
+	if (obj && cfg_obj_isstring(obj))
+		filepart = cfg_obj_asstring(obj);
+	
+	if (filepart != NULL && *filepart != '\0') {
+		/* No hidden fles or full paths */
+		if (*filepart == '.' ||
+#ifdef WIN32
+		    *filepart == '\\' ||
+#endif
+		    *filepart == '/')
+		{
+			result = ISC_R_INVALIDFILE;
+			goto cleanup;
+		}
+		/* No crawling up the directory tree */
+		if (strstr(filepart, "..") != NULL) {
+			result = ISC_R_INVALIDFILE;
+			goto cleanup;
+		}
+	}
+
+	/* Make sense of optional class argument */
+	obj = cfg_tuple_get(parms, "class");
+	CHECK(ns_config_getclass(obj, dns_rdataclass_in, &rdclass));
+	if (rdclass != dns_rdataclass_in && obj)
+		classname = cfg_obj_asstring(obj);
+
+	/* Make sense of optional view argument */
+	obj = cfg_tuple_get(parms, "view");
+	if (obj && cfg_obj_isstring(obj))
+		viewname = cfg_obj_asstring(obj);
+	if (viewname == NULL || *viewname == '\0')
+		viewname = "_default";
+	CHECK(dns_viewlist_find(&server->viewlist, viewname, rdclass, &view));
+
+	/* Zone shouldn't already exist */
+	result = dns_zt_find(view->zonetable, &dnsname, 0, NULL, &zone);
+	if (result == ISC_R_SUCCESS) {
+		result = ISC_R_EXISTS;
+		goto cleanup;
+	} else if (result == DNS_R_PARTIALMATCH) {
+		/* Create our sub-zone anyway */
+		dns_zone_detach(&zone);
+		zone = NULL;
+	}
+	else if (result != ISC_R_NOTFOUND)
+		goto cleanup;
+
+	/* Find configuration for this view */
+	(void)cfg_map_get(nzf_config, "view", &views);
+	for (element = cfg_list_first(views);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		const char *vname;
+
+		vconfig = cfg_listelt_value(element);
+		vname = cfg_obj_asstring(cfg_tuple_get(vconfig, "name"));
+		if (vname && !strcasecmp(vname, viewname)) {
+			/* What is save file for this view? */
+			if (vconfig != NULL) {
+				const cfg_obj_t *voptions;
+				voptions = cfg_tuple_get(vconfig, "options");
+				if (voptions) {
+					obj = NULL;
+					result = cfg_map_get(voptions,
+							     "new-zone-file",
+							     &obj);
+					if (result == ISC_R_SUCCESS)
+						filename =
+							cfg_obj_asstring(obj);
+				}
+			}
+			break;
+		}
+		vconfig = NULL;
+	}
+
+	/* Can we add and remove zones in this view? */
+	if (filename == NULL || *filename == '\0')
+		filename = nzf_file;
+
+	if (filename == NULL || *filename == '\0') {
+		/* No adding zones in this view */
+		result = ISC_R_FAILURE;
+		goto cleanup;
+	}
+
+	/* Possibly contruct a full path */
+	if (filepart != NULL && *filepart != '\0') {
+		snprintf(fnamebuf, 512, "%s/%s", filename, filepart);
+		filename = fnamebuf;
+	}
+
+	/* Path must be an existing file */
+	if (stat(filename, &sb) < 0) {
+		result = ISC_R_FILENOTFOUND;
+		goto cleanup;
+	}
+	if (!S_ISREG(sb.st_mode)) {
+		result = ISC_R_FILENOTFOUND;
+		goto cleanup;
+	}
+
+	/* Mark zone unfrozen so that zone can be added. */
+	dns_view_thaw(view);
+	result = configure_zone(nzf_option, parms, vconfig,
+		server->mctx, view, &nzf_actx);
+	dns_view_freeze(view);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
+
+	/* Is it there yet? */
+	CHECK(dns_zt_find(view->zonetable, &dnsname, 0, NULL, &zone));
+
+	/*
+	 * Load the zone from the master file.  If this fails, we'll
+	 * need to undo the configuration we've done already.
+	 */
+	result = dns_zone_loadnew(zone);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+			      "addzone failed; reverting.");
+
+		/* If the zone loaded partially, unload it */
+		dns_db_t *dbp = NULL;
+		if (dns_zone_getdb(zone, &dbp) == ISC_R_SUCCESS) {
+			dns_db_detach(&dbp);
+			dns_zone_unload(zone);
+		}
+
+		/* Remove the zone from the zone table */
+		dns_zt_unmount(view->zonetable, zone);
+		goto cleanup;
+	}
+
+	/* Write zone configuration out to our save file */
+	CHECK(isc_stdio_open(filename, "a", &fp));
+
+	/* Emit just the zone name from args */
+	CHECK(isc_stdio_write("zone ", 5, 1, fp, &len));
+	CHECK(isc_stdio_write(zonename, strlen(zonename), 1, fp, &len));
+	CHECK(isc_stdio_write(" ", 1, 1, fp, &len));
+
+	/* Classname, if not default */
+	if (classname != NULL && *classname != '\0') {
+		CHECK(isc_stdio_write(classname, strlen(classname), 1, fp,
+				      &len));
+		CHECK(isc_stdio_write(" ", 1, 1, fp, &len));
+	}
+
+	/* Find beginning of option block from args */
+	for (argp = args; *argp; argp++, arglen--) {
+		if (*argp == '{') {	/* Assume matching '}' */
+			/* Add that to our file */
+			CHECK(isc_stdio_write(argp, arglen, 1, fp, &len));
+
+			/* Make sure we end with a LF */
+			if (argp[arglen-1] != '\n') {
+				CHECK(isc_stdio_write("\n", 1, 1, fp, &len));
+			}
+			break;
+		}
+	}
+
+	CHECK(isc_stdio_close(fp));
+	fp = NULL;
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				  NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+				  "zone %s added to view %s via addzone",
+				  zonename, viewname);
+
+	result = ISC_R_SUCCESS;
+
+ cleanup:
+	if (fp != NULL)
+		isc_stdio_close(fp);
+	if (parser != NULL) {
+		if (config != NULL)
+			cfg_obj_destroy(parser, &config);
+		cfg_parser_destroy(&parser);
+	}
+	if (zone != NULL)
+		dns_zone_detach(&zone);
+	if (view != NULL)
+		dns_view_detach(&view);
+	if (nbuf != NULL)
+		isc_buffer_free(&nbuf);
+
+	return (result);
+}
+
+/*
+ * Pull an optional quoted filepart out of an arglist, shuffling memory
+ * so we can hand it off to zone_from_args() later
+ */
+static char *
+extract_optional_qstring(char **args) {
+	char  *p = *args;
+	char  *str, *d;
+	char   quote;
+
+	/* Skip past the command name */
+	while (isspace(*p))
+		p++;
+	while (*p && !isspace(*p))
+		p++;
+
+	/* Look for an open quote */
+	while (isspace(*p))
+		p++;
+	if (*p != '\'' && *p !=  '"')
+		return (NULL);
+
+	/* Move that string to the front of the buf */
+	quote = *p++;
+	str = d = *args;
+	while (*p && *p != quote)
+		*d++ = *p++;
+	if (!*p)
+		return (NULL);  /* No matching close quote */
+
+	/* End that string */
+	*d++ = 0;
+	*args = d;
+
+	/* A bogus command name to placate zone_from_args() */
+	*d++ = 'X';
+
+	/* Cover over any remainder with spaces */
+	while (d <= p)
+		*d++ = ' ';
+
+	return (str);
+}
+
+/*
+ * Act on a "delzone" command from the command channel.
+ */
+isc_result_t
+ns_server_del_zone(ns_server_t *server, char *args) {
+	isc_result_t	       result;
+	dns_zone_t	      *zone = NULL;
+	dns_view_t	      *view = NULL;
+	const cfg_obj_t       *views = NULL;
+	const cfg_obj_t       *obj = NULL;
+	const cfg_obj_t       *vconfig = NULL;
+	dns_db_t	      *dbp = NULL;
+	const char	      *filename = NULL;
+	char		      *filepart = NULL;
+	char		       fnamebuf[512];
+	char		      *tmpname = NULL;
+	const cfg_listelt_t   *element;
+	char		       buf[1024];
+	const char	      *zonename = NULL;
+	size_t		       znamelen = 0;
+	FILE		      *ifp = NULL, *ofp = NULL;
+
+	/* Only accept removes if we're accepting adds */
+	if (nzf_option == NULL)
+		return (ISC_R_FAILURE);
+
+	/* Possibly a filename in quotes */
+	filepart = extract_optional_qstring(&args);
+	if (filepart != NULL && *filepart != '\0') {
+		/* No hidden fles or full paths */
+		if (*filepart == '.' ||
+#ifdef WIN32
+		    *filepart == '\\' ||
+#endif
+		    *filepart == '/')
+		{
+			result = ISC_R_INVALIDFILE;
+			goto cleanup;
+		}
+		/* No crawling up the directory tree */
+		if (strstr(filepart, "..") != NULL) {
+			result = ISC_R_INVALIDFILE;
+			goto cleanup;
+		}
+	}
+
+	/* Make sense of rest of params */
+	CHECK(zone_from_args(server, args, &zone, &zonename));
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	if (zone == NULL) {
+		result = ISC_R_UNEXPECTEDEND;
+		goto cleanup;
+	}
+
+	if (zonename != NULL && *zonename != '\0')
+		znamelen = strlen(zonename);
+
+	/* Dig out configuration for this zone */
+	view = dns_zone_getview(zone);
+	(void)cfg_map_get(nzf_config, "view", &views);
+	for (element = cfg_list_first(views);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		const char *vname;
+
+		vconfig = cfg_listelt_value(element);
+		vname = cfg_obj_asstring(cfg_tuple_get(vconfig, "name"));
+		if (vname != NULL && !strcasecmp(vname, view->name)) {
+			/* What is save file for this view? */
+			if (vconfig != NULL) {
+				const cfg_obj_t *voptions;
+				voptions = cfg_tuple_get(vconfig, "options");
+				if (voptions != NULL) {
+					obj = NULL;
+					result = cfg_map_get(voptions,
+							     "new-zone-file",
+							     &obj);
+					if (result == ISC_R_SUCCESS)
+						filename =
+							cfg_obj_asstring(obj);
+				}
+			}
+			break;
+		}
+		vconfig = NULL;
+	}
+
+	/* Can we add and remove zones in this view? */
+	if (filename == NULL || *filename == '\0')
+		filename = nzf_file;
+
+	if (filename == NULL || *filename == '\0') {
+		/* No adding zones in this view */
+		result = ISC_R_FAILURE;
+		goto cleanup;
+	}
+
+	/* Possibly contruct a full path */
+	if (filepart != NULL && *filepart != '\0') {
+		snprintf(fnamebuf, 512, "%s/%s", filename, filepart);
+		filename = fnamebuf;
+	}
+
+	/* Rewrite zone list */
+	result = isc_stdio_open(filename, "r", &ifp);
+	if (ifp != NULL && result == ISC_R_SUCCESS) {
+		char *found = NULL, *p;
+		size_t n;
+		
+		/* Create a temporary file */
+		CHECK(isc_string_printf(buf, 1023, "%s.%d", filename,
+					getpid()));
+		if (!(tmpname = isc_mem_strdup(server->mctx, buf))) {
+			result = ISC_R_NOMEMORY;
+			goto cleanup;
+		}
+		CHECK(isc_stdio_open(tmpname, "w", &ofp));
+
+		/* Look for the entry for that zone */
+		while (fgets(buf, 1024, ifp)) {
+			/* A 'zone' line */
+			if (strncasecmp(buf, "zone", 4)) {
+				fputs(buf, ofp);
+				continue;
+			}
+			p = buf+4;
+
+			/* Locate a name */
+			while (*p && ((*p == '"') || isspace(*p)))
+				p++;
+
+			/* Is that the zone we're looking for */
+			if (strncasecmp(p, zonename, znamelen)) {
+				fputs(buf, ofp);
+				continue;
+			}
+
+			/* And nothing else? */
+			p += znamelen;
+			if (isspace(*p) || *p == '"' || *p == '{') {
+				/* This must be the entry */
+				found = p;
+				break;
+			}
+
+			/* Spit it out, keep looking */
+			fputs(buf, ofp);
+		}
+
+		/* Skip over an option block (matching # of braces) */
+		if (found) {
+			int obrace = 0, cbrace = 0;
+			while (1) {
+				while (*p) {
+					if (*p == '{') obrace++;
+					if (*p == '}') cbrace++;
+					p++;
+				}
+				if (obrace && (obrace == cbrace))
+					break;
+				if (!fgets(buf, 1024, ifp))
+					break;
+				p = buf;
+			}
+		}
+
+		/* Just spool the remainder of the file out */
+		while ((n = fread(buf, 1, 1024, ifp)) > 0)
+			fwrite(buf, 1, n, ofp);
+		
+		/* Move temporary into place */
+		CHECK(isc_file_rename(tmpname, filename));
+	}
+
+	/* Stop answering for this zone */
+	if (dns_zone_getdb(zone, &dbp) == ISC_R_SUCCESS) {
+		dns_db_detach(&dbp);
+		dns_zone_unload(zone);
+	}
+
+	CHECK(dns_zt_unmount(view->zonetable, zone));
+
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				  NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+				  "zone %s removed via delzone", zonename);
+
+	result = ISC_R_SUCCESS;
+
+ cleanup:
+	if (ifp != NULL)
+		isc_stdio_close(ifp);
+	if (ofp != NULL) {
+		isc_stdio_close(ofp);
+		isc_file_remove(tmpname);
+	}
+	if (tmpname != NULL)
+		isc_mem_free(server->mctx, tmpname);
+	if (zone != NULL)
+		dns_zone_detach(&zone);
+
+	return (result);
+}

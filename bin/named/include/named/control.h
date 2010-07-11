@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.h,v 1.27.50.2 2010/06/25 23:46:33 tbox Exp $ */
+/* $Id: control.h,v 1.27.50.3 2010/07/11 00:12:18 each Exp $ */
 
 #ifndef NAMED_CONTROL_H
 #define NAMED_CONTROL_H 1
@@ -59,6 +59,8 @@
 #define NS_COMMAND_NOTIFY	"notify"
 #define NS_COMMAND_VALIDATION	"validation"
 #define NS_COMMAND_SIGN 	"sign"
+#define NS_COMMAND_ADDZONE	"addzone"
+#define NS_COMMAND_DELZONE	"delzone"
 
 isc_result_t
 ns_controls_create(ns_server_t *server, ns_controls_t **ctrlsp);

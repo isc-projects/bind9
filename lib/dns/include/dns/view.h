@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.120.8.4 2010/06/22 04:02:45 marka Exp $ */
+/* $Id: view.h,v 1.120.8.5 2010/07/11 00:12:19 each Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -416,7 +416,7 @@ dns_view_addzone(dns_view_t *view, dns_zone_t *zone);
 void
 dns_view_freeze(dns_view_t *view);
 /*%<
- * Freeze view.
+ * Freeze view.  No changes can be made to view configuration while frozen.
  *
  * Requires:
  *
@@ -427,6 +427,21 @@ dns_view_freeze(dns_view_t *view);
  *\li	'view' is frozen.
  */
 
+void
+dns_view_thaw(dns_view_t *view);
+/*%<
+ * Thaw view.  This allows zones to be added or removed at runtime.  This is
+ * NOT thread-safe; the caller MUST have run isc_task_exclusive() prior to
+ * thawing the view.
+ *
+ * Requires:
+ *
+ *\li	'view' is a valid, frozen view.
+ *
+ * Ensures:
+ *
+ *\li	'view' is no longer frozen.
+ */
 isc_result_t
 dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	      isc_stdtime_t now, unsigned int options, isc_boolean_t use_hints,
