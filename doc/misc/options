@@ -162,7 +162,6 @@ options {
         multiple-cnames <boolean>; // obsolete
         named-xfer <quoted_string>; // obsolete
         new-zone-file ( <quoted_string> | none );
-        new-zone-file ( <quoted_string> | none );
         notify <notifytype>;
         notify-delay <integer>;
         notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
