@@ -250,6 +250,7 @@ dns_keytable_delete
 dns_keytable_deletekeynode
 dns_keytable_detach
 dns_keytable_detachkeynode
+dns_keytable_dump
 dns_keytable_find
 dns_keytable_finddeepestmatch
 dns_keytable_findkeynode
@@ -373,9 +374,11 @@ dns_name_setbuffer
 dns_name_settotextfilter
 dns_name_split
 dns_name_tofilenametext
+dns_name_toprincipal
 dns_name_toregion
 dns_name_tostring
 dns_name_totext
+dns_name_totext2
 dns_name_towire
 dns_ncache_add
 dns_ncache_getrdataset
@@ -706,6 +709,7 @@ dns_view_setresquerystats
 dns_view_setresstats
 dns_view_setrootdelonly
 dns_view_simplefind
+dns_view_thaw
 dns_view_weakattach
 dns_view_weakdetach
 dns_viewlist_find
@@ -778,6 +782,7 @@ dns_zone_idetach
 dns_zone_isforced
 dns_zone_load
 dns_zone_loadandthaw
+dns_zone_loadnew
 dns_zone_log
 dns_zone_maintenance
 dns_zone_markdirty
