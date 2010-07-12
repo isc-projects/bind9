@@ -1,3 +1,14 @@
+2930.	[experimental]	New "rndc addzone" and "rndc delzone" commads
+			allow dynamic addition and deletion of zones.
+			To enable this feature, specify a "new-zone-file"
+			option at the view or options level in named.conf.
+			Zone configuration information for the new zones
+			will be written into that file.  To make the new
+			zones persist after a restart, "include" the file
+			into named.conf in the appropriate view.  (Note:
+			This feature is not yet documented, and its syntax
+			is expected to change.) [RT #19447]
+
 2929.	[bug]		Improved handling of GSS security contexts: 
 			 - added LRU expiration for generated TSIGs
 			 - added the ability to use a non-default realm

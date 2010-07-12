@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.424 2010/07/04 00:48:57 marka Exp $ */
+/* $Id: resolver.c,v 1.425 2010/07/11 00:12:57 each Exp $ */
 
 /*! \file */
 
@@ -7684,13 +7684,11 @@ dns_resolver_prime(dns_resolver_t *res) {
 
 void
 dns_resolver_freeze(dns_resolver_t *res) {
-
 	/*
 	 * Freeze resolver.
 	 */
 
 	REQUIRE(VALID_RESOLVER(res));
-	REQUIRE(!res->frozen);
 
 	res->frozen = ISC_TRUE;
 }

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.165 2010/06/22 03:58:38 marka Exp $ */
+/* $Id: view.c,v 1.166 2010/07/11 00:12:57 each Exp $ */
 
 /*! \file */
 
@@ -709,7 +709,27 @@ dns_view_setdstport(dns_view_t *view, in_port_t dstport) {
 	view->dstport = dstport;
 }
 
+void
+dns_view_freeze(dns_view_t *view) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(!view->frozen);
+
+	if (view->resolver != NULL) {
+		INSIST(view->cachedb != NULL);
+		dns_resolver_freeze(view->resolver);
+	}
+	view->frozen = ISC_TRUE;
+}
+
 #ifdef BIND9
+void
+dns_view_thaw(dns_view_t *view) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(view->frozen);
+
+	view->frozen = ISC_FALSE;
+}
+
 isc_result_t
 dns_view_addzone(dns_view_t *view, dns_zone_t *zone) {
 	isc_result_t result;
@@ -722,18 +742,6 @@ dns_view_addzone(dns_view_t *view, dns_zone_t *zone) {
 	return (result);
 }
 #endif
-
-void
-dns_view_freeze(dns_view_t *view) {
-	REQUIRE(DNS_VIEW_VALID(view));
-	REQUIRE(!view->frozen);
-
-	if (view->resolver != NULL) {
-		INSIST(view->cachedb != NULL);
-		dns_resolver_freeze(view->resolver);
-	}
-	view->frozen = ISC_TRUE;
-}
 
 #ifdef BIND9
 isc_result_t

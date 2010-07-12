@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.107 2010/06/25 03:24:05 marka Exp $ */
+/* $Id: server.h,v 1.108 2010/07/11 00:12:57 each Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -318,5 +318,17 @@ ns_add_reserved_dispatch(ns_server_t *server, const isc_sockaddr_t *addr);
  */
 isc_result_t
 ns_server_validation(ns_server_t *server, char *args);
+
+/*%
+ * Add a zone to a running process
+ */
+isc_result_t
+ns_server_add_zone(ns_server_t *server, char *args);
+
+/*%
+ * Deletes a zone from a running process
+ */
+isc_result_t
+ns_server_del_zone(ns_server_t *server, char *args);
 
 #endif /* NAMED_SERVER_H */

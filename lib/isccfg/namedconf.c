@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.119 2010/06/25 03:24:05 marka Exp $ */
+/* $Id: namedconf.c,v 1.122 2010/07/11 23:46:54 tbox Exp $ */
 
 /*! \file */
 
@@ -101,6 +101,7 @@ static cfg_type_t cfg_type_negated;
 static cfg_type_t cfg_type_notifytype;
 static cfg_type_t cfg_type_optional_allow;
 static cfg_type_t cfg_type_optional_class;
+static cfg_type_t cfg_type_optional_qstring;
 static cfg_type_t cfg_type_optional_facility;
 static cfg_type_t cfg_type_optional_keyref;
 static cfg_type_t cfg_type_optional_port;
@@ -1057,6 +1058,7 @@ view_clauses[] = {
 	{ "transfer-format", &cfg_type_transferformat, 0 },
 	{ "use-queryport-pool", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "zero-no-soa-ttl-cache", &cfg_type_boolean, 0 },
+	{ "new-zone-file", &cfg_type_qstringornone, 0 },
 #ifdef ALLOW_FILTER_AAAA_ON_V4
 	{ "filter-aaaa", &cfg_type_bracketed_aml, 0 },
 	{ "filter-aaaa-on-v4", &cfg_type_v4_aaaa, 0 },
@@ -1394,6 +1396,42 @@ logging_clausesets[] = {
 };
 static cfg_type_t cfg_type_logging = {
 	"logging", cfg_parse_map, cfg_print_map, cfg_doc_map, &cfg_rep_map, logging_clausesets };
+
+
+/*%
+ * For parsing an 'addzone' statement
+ */
+
+/*%
+ * A zone statement.
+ */
+static cfg_tuplefielddef_t addzone_fields[] = {
+	{ "filepart", &cfg_type_optional_qstring, 0 },
+	{ "name", &cfg_type_astring, 0 },
+	{ "class", &cfg_type_optional_class, 0 },
+	{ "view", &cfg_type_optional_class, 0 },
+	{ "options", &cfg_type_zoneopts, 0 },
+	{ NULL, NULL, 0 }
+};
+static cfg_type_t cfg_type_addzone = {
+	"addzone", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple, &cfg_rep_tuple, addzone_fields };
+
+static cfg_clausedef_t
+addzoneconf_clauses[] = {
+	{ "addzone", &cfg_type_addzone, 0 },
+	{ NULL, NULL, 0 }
+};
+
+static cfg_clausedef_t *
+addzoneconf_clausesets[] = {
+	addzoneconf_clauses,
+	NULL
+};
+
+LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_addzoneconf = {
+	"addzoneconf", cfg_parse_mapbody, cfg_print_mapbody, cfg_doc_mapbody,
+	&cfg_rep_map, addzoneconf_clausesets
+};
 
 
 static isc_result_t
@@ -1795,6 +1833,30 @@ parse_optional_class(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret
 
 static cfg_type_t cfg_type_optional_class = {
 	"optional_class", parse_optional_class, NULL, cfg_doc_terminal,
+	NULL, NULL
+};
+
+/*%
+ * An optional string, distinguished by being in quotes
+ */
+static isc_result_t
+parse_optional_qstr(cfg_parser_t *pctx, const cfg_type_t *type,
+		    cfg_obj_t **ret)
+{
+	isc_result_t result;
+	UNUSED(type);
+	CHECK(cfg_peektoken(pctx, CFG_LEXOPT_QSTRING));
+	if (pctx->token.type == isc_tokentype_qstring)
+		CHECK(cfg_parse_obj(pctx, &cfg_type_qstring, ret));
+	else
+		CHECK(cfg_parse_obj(pctx, &cfg_type_void, ret));
+ cleanup:
+	return (result);
+}
+
+
+static cfg_type_t cfg_type_optional_qstring = {
+	"optional_quoted_string", parse_optional_qstr, NULL, cfg_doc_terminal,
 	NULL, NULL
 };
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.161 2009/12/04 21:09:32 marka Exp $ */
+/* $Id: zoneconf.c,v 1.163 2010/07/11 23:46:54 tbox Exp $ */
 
 /*% */
 
@@ -557,6 +557,28 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	result = cfg_map_get(zoptions, "file", &obj);
 	if (result == ISC_R_SUCCESS)
 		filename = cfg_obj_asstring(obj);
+
+	/*
+	 * Unless we're using some alternative database, a master zone
+	 * will be needing a master file.
+	 */
+	if (ztype == dns_zone_master && cpval == default_dbtype) {
+		if (filename == NULL) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      "zone '%s': 'file' not specified",
+				      zname);
+			return (ISC_R_FAILURE);
+		}
+
+		if (!isc_file_exists(filename)) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      "zone '%s': master file not found",
+				      zname);
+			return (ISC_R_NOTFOUND);
+		}
+	}
 
 	masterformat = dns_masterformat_text;
 	obj = NULL;

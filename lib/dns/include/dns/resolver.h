@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.66 2010/02/25 05:08:01 tbox Exp $ */
+/* $Id: resolver.h,v 1.67 2010/07/11 00:12:57 each Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
@@ -180,7 +180,7 @@ dns_resolver_freeze(dns_resolver_t *res);
  *
  * Requires:
  *
- *\li	'res' is a valid, unfrozen resolver.
+ *\li	'res' is a valid resolver.
  *
  * Ensures:
  *
