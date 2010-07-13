@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.113.4.5 2010/06/22 04:02:45 marka Exp $ */
+/* $Id: namedconf.c,v 1.113.4.2 2010/05/13 23:49:11 tbox Exp $ */
 
 /*! \file */
 
@@ -64,8 +64,6 @@ parse_optional_keyvalue(cfg_parser_t *pctx, const cfg_type_t *type,
 static isc_result_t
 parse_updatepolicy(cfg_parser_t *pctx, const cfg_type_t *type,
 		   cfg_obj_t **ret);
-static void
-print_updatepolicy(cfg_printer_t *pctx, const cfg_obj_t *obj);
 
 static void
 doc_updatepolicy(cfg_printer_t *pctx, const cfg_type_t *type);
@@ -122,7 +120,9 @@ static cfg_type_t cfg_type_zone;
 static cfg_type_t cfg_type_zoneopts;
 static cfg_type_t cfg_type_dynamically_loadable_zones;
 static cfg_type_t cfg_type_dynamically_loadable_zones_opts;
+#ifdef ALLOW_FILTER_AAAA_ON_V4
 static cfg_type_t cfg_type_v4_aaaa;
+#endif
 
 /*
  * Clauses that can be found in a 'dynamically loadable zones' statement
@@ -342,8 +342,8 @@ static cfg_type_t cfg_type_grant = {
 };
 
 static cfg_type_t cfg_type_updatepolicy = {
-	"update_policy", parse_updatepolicy, print_updatepolicy,
-	doc_updatepolicy, &cfg_rep_list, &cfg_type_grant
+	"update_policy", parse_updatepolicy, NULL, doc_updatepolicy,
+	&cfg_rep_list, &cfg_type_grant
 };
 
 static isc_result_t
@@ -379,14 +379,6 @@ parse_updatepolicy(cfg_parser_t *pctx, const cfg_type_t *type,
 
  cleanup:
 	return (result);
-}
-
-static void
-print_updatepolicy(cfg_printer_t *pctx, const cfg_obj_t *obj) {
-	if (cfg_obj_isstring(obj))
-		cfg_print_ustring(pctx, obj);
-	else
-		cfg_print_bracketed_list(pctx, obj);
 }
 
 static void
@@ -855,7 +847,6 @@ options_clauses[] = {
 	{ "interface-interval", &cfg_type_uint32, 0 },
 	{ "listen-on", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
 	{ "listen-on-v6", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
-	{ "managed-keys-directory", &cfg_type_qstring, 0 },
 	{ "match-mapped-addresses", &cfg_type_boolean, 0 },
 	{ "memstatistics-file", &cfg_type_qstring, 0 },
 	{ "memstatistics", &cfg_type_boolean, 0 },
@@ -1057,13 +1048,7 @@ view_clauses[] = {
 	{ "use-queryport-pool", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "zero-no-soa-ttl-cache", &cfg_type_boolean, 0 },
 #ifdef ALLOW_FILTER_AAAA_ON_V4
-	{ "filter-aaaa", &cfg_type_bracketed_aml, 0 },
 	{ "filter-aaaa-on-v4", &cfg_type_v4_aaaa, 0 },
-#else
-	{ "filter-aaaa", &cfg_type_bracketed_aml,
-	   CFG_CLAUSEFLAG_NOTCONFIGURED },
-	{ "filter-aaaa-on-v4", &cfg_type_v4_aaaa,
-	   CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif
 	{ NULL, NULL, 0 }
 };
@@ -1614,6 +1599,7 @@ static cfg_type_t cfg_type_ixfrdifftype = {
 	&cfg_rep_string, ixfrdiff_enums,
 };
 
+#ifdef ALLOW_FILTER_AAAA_ON_V4
 static const char *v4_aaaa_enums[] = { "break-dnssec", NULL };
 static isc_result_t
 parse_v4_aaaa(cfg_parser_t *pctx, const cfg_type_t *type,
@@ -1625,6 +1611,7 @@ static cfg_type_t cfg_type_v4_aaaa = {
 	doc_enum_or_other, &cfg_rep_string, v4_aaaa_enums,
 };
 
+#endif
 static keyword_type_t key_kw = { "key", &cfg_type_astring };
 
 LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_keyref = {

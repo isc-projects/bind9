@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: grammar.h,v 1.19.136.1 2010/06/22 04:02:45 marka Exp $ */
+/* $Id: grammar.h,v 1.19 2009/06/11 23:47:55 tbox Exp $ */
 
 #ifndef ISCCFG_GRAMMAR_H
 #define ISCCFG_GRAMMAR_H 1
@@ -53,8 +53,6 @@
 #define CFG_CLAUSEFLAG_CALLBACK		0x00000020
 /*% A option that is only used in testing. */
 #define CFG_CLAUSEFLAG_TESTONLY		0x00000040
-/*% A configuration option that was not configured at compile time. */
-#define CFG_CLAUSEFLAG_NOTCONFIGURED	0x00000080
 
 typedef struct cfg_clausedef cfg_clausedef_t;
 typedef struct cfg_tuplefielddef cfg_tuplefielddef_t;

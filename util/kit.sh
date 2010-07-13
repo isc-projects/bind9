@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: kit.sh,v 1.40.48.1 2010/06/22 04:02:45 marka Exp $
+# $Id: kit.sh,v 1.40 2009/10/13 03:03:05 marka Exp $
 
 # Make a release kit
 #
@@ -63,11 +63,11 @@ mkdir $tmpdir || {
     exit 1
 }
 
+cd $tmpdir || exit 1
 
-cvs update -p -r $tag version >version.tmp
+cvs checkout -p -r $tag bind9/version >version.tmp
 . ./version.tmp
 
-cd $tmpdir || exit 1
 
 if $snapshot
 then
@@ -164,20 +164,6 @@ fi
 if test doc/arm/Bv9ARM-book.xml -nt doc/arm/Bv9ARM.pdf
 then
 	echo "WARNING: ARM source is newer than the PDF version."
-fi
-
-ok=ok
-for f in doc/arm/*.html
-do
-	if test "$f" -nt doc/arm/Bv9ARM.pdf
-	then
-		ok=
-	fi
-done
-
-if test "$ok" != ok
-then
-	echo "WARNING: ARM html version is newer tham pdf version."
 fi
 
 for f in `find . -name "*.docbook" -print`

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.159.8.6 2010/06/22 04:02:44 marka Exp $ */
+/* $Id: view.c,v 1.159.8.4 2010/05/14 04:49:40 marka Exp $ */
 
 /*! \file */
 
@@ -179,8 +179,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->flush = ISC_FALSE;
 	view->dlv = NULL;
 	view->maxudp = 0;
+#ifdef ALLOW_FILTER_AAAA_ON_V4
 	view->v4_aaaa = dns_v4_aaaa_ok;
-	view->v4_aaaa_acl = NULL;
+#endif
 	dns_fixedname_init(&view->dlv_fixed);
 	view->managed_keys = NULL;
 
@@ -314,8 +315,6 @@ destroy(dns_view_t *view) {
 		dns_acl_detach(&view->upfwdacl);
 	if (view->denyansweracl != NULL)
 		dns_acl_detach(&view->denyansweracl);
-	if (view->v4_aaaa_acl != NULL)
-		dns_acl_detach(&view->v4_aaaa_acl);
 	if (view->answeracl_exclude != NULL)
 		dns_rbt_destroy(&view->answeracl_exclude);
 	if (view->denyanswernames != NULL)
@@ -363,10 +362,8 @@ destroy(dns_view_t *view) {
 		dns_stats_detach(&view->resquerystats);
 	if (view->secroots_priv != NULL)
 		dns_keytable_detach(&view->secroots_priv);
-#ifdef BIND9
 	if (view->managed_keys != NULL)
 		dns_zone_detach(&view->managed_keys);
-#endif
 	dns_fwdtable_destroy(&view->fwdtable);
 	dns_aclenv_destroy(&view->aclenv);
 	DESTROYLOCK(&view->lock);

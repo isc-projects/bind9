@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.120.8.4 2010/06/22 04:02:45 marka Exp $ */
+/* $Id: view.h,v 1.120.8.3 2010/05/14 23:49:21 tbox Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -154,8 +154,9 @@ struct dns_view {
 	dns_name_t *			dlv;
 	dns_fixedname_t			dlv_fixed;
 	isc_uint16_t			maxudp;
+#ifdef ALLOW_FILTER_AAAA_ON_V4
 	dns_v4_aaaa_t			v4_aaaa;
-	dns_acl_t *			v4_aaaa_acl;
+#endif
 
 	/*
 	 * Configurable data for server use only,

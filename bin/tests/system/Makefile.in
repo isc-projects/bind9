@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.31.268.1 2010/06/22 04:02:40 marka Exp $
+# $Id: Makefile.in,v 1.31 2008/09/25 04:02:38 tbox Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -21,7 +21,7 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_MAKE_INCLUDES@
 
-SUBDIRS =	filter-aaaa lwresd tkey 
+SUBDIRS =	lwresd tkey
 TARGETS =
 
 @BIND9_MAKE_RULES@

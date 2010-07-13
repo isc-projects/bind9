@@ -133,7 +133,6 @@ options {
         listen-on [ port <integer> ] { <address_match_element>; ... };
         listen-on-v6 [ port <integer> ] { <address_match_element>; ... };
         maintain-ixfr-base <boolean>; // obsolete
-        managed-keys-directory <quoted_string>;
         masterfile-format ( text | raw );
         match-mapped-addresses <boolean>;
         max-acache-size <size_no_default>;

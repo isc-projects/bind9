@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.132.104.1 2010/06/22 04:02:45 marka Exp $ */
+/* $Id: parser.c,v 1.132 2009/09/02 23:43:54 each Exp $ */
 
 /*! \file */
 
@@ -1238,14 +1238,6 @@ cfg_parse_mapbody(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
 		if ((clause->flags & CFG_CLAUSEFLAG_NYI) != 0)
 			cfg_parser_warning(pctx, 0, "option '%s' is "
 				       "not implemented", clause->name);
-
-		if ((clause->flags & CFG_CLAUSEFLAG_NOTCONFIGURED) != 0) {
-			cfg_parser_warning(pctx, 0, "option '%s' is not "
-					   "configured", clause->name);
-			result = ISC_R_FAILURE;
-			goto cleanup;
-		}
-
 		/*
 		 * Don't log options with CFG_CLAUSEFLAG_NEWDEFAULT
 		 * set here - we need to log the *lack* of such an option,
@@ -1487,7 +1479,6 @@ static struct flagtext {
 	{ CFG_CLAUSEFLAG_OBSOLETE, "obsolete" },
 	{ CFG_CLAUSEFLAG_NEWDEFAULT, "default changed" },
 	{ CFG_CLAUSEFLAG_TESTONLY, "test only" },
-	{ CFG_CLAUSEFLAG_NOTCONFIGURED, "not configured" },
 	{ 0, NULL }
 };
 
