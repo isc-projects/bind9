@@ -1,4 +1,6 @@
-2931.	[bug]		Temporarily and partially disable change 2864
+	--- 9.7.1-P2 released ---
+
+2931.	[security]	Temporarily and partially disable change 2864
 			because it would cause inifinite attempts of RRSIG
 			queries.  This is an urgent care fix; we'll
 			revisit the issue and complete the fix later.
