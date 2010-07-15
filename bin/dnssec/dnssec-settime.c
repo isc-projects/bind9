@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-settime.c,v 1.19 2009/10/27 18:56:49 each Exp $ */
+/* $Id: dnssec-settime.c,v 1.19.34.6 2010/02/03 01:02:17 each Exp $ */
 
 /*! \file */
 
@@ -58,10 +58,10 @@ usage(void) {
 	fprintf(stderr, "Version: %s\n", VERSION);
 	fprintf(stderr, "General options:\n");
 #ifdef USE_PKCS11
-	fprintf(stderr, "\t\tname of an OpenSSL engine to use "
-				"(default is \"pkcs11\")\n");
+	fprintf(stderr, "    -E engine:          specify OpenSSL engine "
+						 "(default \"pkcs11\")\n");
 #else
-	fprintf(stderr, "\t\tname of an OpenSSL engine to use\n");
+	fprintf(stderr, "    -E engine:          specify OpenSSL engine\n");
 #endif
 	fprintf(stderr, "    -f:                 force update of old-style "
 						 "keys\n");
@@ -71,16 +71,16 @@ usage(void) {
 	fprintf(stderr, "Timing options:\n");
 	fprintf(stderr, "    -P date/[+-]offset/none: set/unset key "
 						     "publication date\n");
-	fprintf(stderr, "    -A date/[+-]offset/none: set key "
+	fprintf(stderr, "    -A date/[+-]offset/none: set/unset key "
 						     "activation date\n");
-	fprintf(stderr, "    -R date/[+-]offset/none: set key "
+	fprintf(stderr, "    -R date/[+-]offset/none: set/unset key "
 						     "revocation date\n");
-	fprintf(stderr, "    -I date/[+-]offset/none: set key "
+	fprintf(stderr, "    -I date/[+-]offset/none: set/unset key "
 						     "inactivation date\n");
-	fprintf(stderr, "    -D date/[+-]offset/none: set key "
+	fprintf(stderr, "    -D date/[+-]offset/none: set/unset key "
 						     "deletion date\n");
 	fprintf(stderr, "Printing options:\n");
-	fprintf(stderr, "    -p C/P/A/R/U/D/all: print a particular time "
+	fprintf(stderr, "    -p C/P/A/R/I/D/all: print a particular time "
 						"value or values "
 						"[default: all]\n");
 	fprintf(stderr, "    -u:                 print times in unix epoch "

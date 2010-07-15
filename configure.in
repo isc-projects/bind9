@@ -1,4 +1,4 @@
-# Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 1998-2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.489 $)
+AC_REVISION($Revision: 1.489.22.5 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -282,6 +282,7 @@ AC_C_CONST
 AC_C_INLINE
 AC_C_VOLATILE
 AC_CHECK_FUNC(sysctlbyname, AC_DEFINE(HAVE_SYSCTLBYNAME))
+AC_C_FLEXIBLE_ARRAY_MEMBER
 
 #
 # Older versions of HP/UX don't define seteuid() and setegid()
@@ -1162,7 +1163,7 @@ IRIX_DNSSEC_WARNINGS_HACK=""
 if test "X$GCC" = "Xyes"; then
 	AC_MSG_CHECKING(if "$CC" supports -fno-strict-aliasing)
 	SAVE_CFLAGS=$CFLAGS
-	CFLAGS=-fno-strict-aliasing
+	CFLAGS="$CFLAGS -fno-strict-aliasing"
 	AC_TRY_COMPILE(,, [FNOSTRICTALIASING=yes],[FNOSTRICTALIASING=no])
 	CFLAGS=$SAVE_CFLAGS
 	if test "$FNOSTRICTALIASING" = "yes"; then
@@ -2474,6 +2475,8 @@ case "$enable_atomic" in
 				 use_atomic=yes])
 				]
 				)
+			else
+				use_atomic=yes
 			fi
 			;;
 		*)
@@ -3282,6 +3285,18 @@ AC_CONFIG_FILES([
 #
 
 AC_OUTPUT
+
+#
+# Now that the Makefiles exist we can ensure that everything is rebuilt.
+#
+AC_ARG_WITH(make-clean,
+[  --with-make-clean      Run "make clean" at end of configure [[yes|no]].],
+    make_clean="$withval", make_clean="yes")
+case "$make_clean" in
+yes)
+	make clean
+	;;
+esac
 
 if test "X$USE_OPENSSL" = "X"; then
 cat << \EOF                                                             

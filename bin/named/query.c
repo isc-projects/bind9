@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.335 2009/11/28 15:57:36 vjs Exp $ */
+/* $Id: query.c,v 1.335.8.3.6.3 2010/07/15 01:38:15 jinmei Exp $ */
 
 /*! \file */
 
@@ -56,6 +56,7 @@
 #include <dns/zt.h>
 
 #include <named/client.h>
+#include <named/globals.h>
 #include <named/log.h>
 #include <named/server.h>
 #include <named/sortlist.h>
@@ -2038,7 +2039,7 @@ query_addrrset(ns_client_t *client, dns_name_t **namep,
 
 static inline isc_result_t
 query_addsoa(ns_client_t *client, dns_db_t *db, dns_dbversion_t *version,
-	     isc_boolean_t zero_ttl)
+	     isc_boolean_t zero_ttl, isc_boolean_t isassociated)
 {
 	dns_name_t *name;
 	dns_dbnode_t *node;
@@ -2054,6 +2055,12 @@ query_addsoa(ns_client_t *client, dns_db_t *db, dns_dbversion_t *version,
 	name = NULL;
 	rdataset = NULL;
 	node = NULL;
+
+	/*
+	 * Don't add the SOA record for test which set "-T nosoa".
+	 */
+	if (ns_g_nosoa && (!WANTDNSSEC(client) || !isassociated))
+		return (ISC_R_SUCCESS);
 
 	/*
 	 * Get resources and make 'name' be the database origin.
@@ -3737,8 +3744,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	dns_rdataset_t *noqname;
 	isc_boolean_t resuming;
 	int line = -1;
-	dns_rdataset_t tmprdataset;
-	unsigned int dboptions;
 
 	CTRACE("query_find");
 
@@ -3956,49 +3961,9 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	/*
 	 * Now look for an answer in the database.
 	 */
-	dboptions = client->query.dboptions;
-	if (sigrdataset == NULL && client->view->enablednssec) {
-		/*
-		 * If the client doesn't want DNSSEC we still want to
-		 * look for any data pending validation to save a remote
-		 * lookup if possible.
-		 */
-		dns_rdataset_init(&tmprdataset);
-		sigrdataset = &tmprdataset;
-		dboptions |= DNS_DBFIND_PENDINGOK;
-	}
- refind:
 	result = dns_db_find(db, client->query.qname, version, type,
-			     dboptions, client->now, &node, fname,
-			     rdataset, sigrdataset);
-	/*
-	 * If we have found pending data try to validate it.
-	 * If the data does not validate as secure and we can't
-	 * use the unvalidated data requery the database with
-	 * pending disabled to prevent infinite looping.
-	 */
-	if (result != ISC_R_SUCCESS || !DNS_TRUST_PENDING(rdataset->trust))
-		goto validation_done;
-	if (validate(client, db, fname, rdataset, sigrdataset))
-		goto validation_done;
-	if (rdataset->trust != dns_trust_pending_answer ||
-	    !PENDINGOK(client->query.dboptions)) {
-		dns_rdataset_disassociate(rdataset);
-		if (sigrdataset != NULL &&
-		    dns_rdataset_isassociated(sigrdataset))
-			dns_rdataset_disassociate(sigrdataset);
-		if (sigrdataset == &tmprdataset)
-			sigrdataset = NULL;
-		dns_db_detachnode(db, &node);
-		dboptions &= ~DNS_DBFIND_PENDINGOK;
-		goto refind;
-	}
- validation_done:
-	if (sigrdataset == &tmprdataset) {
-		if (dns_rdataset_isassociated(sigrdataset))
-			dns_rdataset_disassociate(sigrdataset);
-		sigrdataset = NULL;
-	}
+			     client->query.dboptions, client->now,
+			     &node, fname, rdataset, sigrdataset);
 
  resume:
 	CTRACE("query_find: resume");
@@ -4374,7 +4339,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		/*
 		 * Add SOA.
 		 */
-		result = query_addsoa(client, db, version, ISC_FALSE);
+		result = query_addsoa(client, db, version, ISC_FALSE,
+				      dns_rdataset_isassociated(rdataset));
 		if (result != ISC_R_SUCCESS) {
 			QUERY_ERROR(result);
 			goto cleanup;
@@ -4422,9 +4388,11 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		    zone != NULL &&
 #endif
 		    dns_zone_getzeronosoattl(zone))
-			result = query_addsoa(client, db, version, ISC_TRUE);
+			result = query_addsoa(client, db, version, ISC_TRUE,
+					  dns_rdataset_isassociated(rdataset));
 		else
-			result = query_addsoa(client, db, version, ISC_FALSE);
+			result = query_addsoa(client, db, version, ISC_FALSE,
+					  dns_rdataset_isassociated(rdataset));
 		if (result != ISC_R_SUCCESS) {
 			QUERY_ERROR(result);
 			goto cleanup;
@@ -4800,7 +4768,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			/*
 			 * We didn't match any rdatasets.
 			 */
-			if (qtype == dns_rdatatype_rrsig &&
+			if ((qtype == dns_rdatatype_rrsig ||
+			     qtype == dns_rdatatype_sig) &&
 			    result == ISC_R_NOMORE) {
 				/*
 				 * XXXRTH  If this is a secure zone and we
@@ -4809,6 +4778,18 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				 * glue.  Ugh.
 				 */
 				if (!is_zone) {
+					/*
+					 * Note: this is dead code because
+					 * is_zone is always true due to the
+					 * condition above.  But naive
+					 * recursion would cause infinite
+					 * attempts of recursion because
+					 * the answer to (RR)SIG queries
+					 * won't be cached.  Until we figure
+					 * out what we should do and implement
+					 * it we intentionally keep this code
+					 * dead.
+					 */
 					authoritative = ISC_FALSE;
 					dns_rdatasetiter_destroy(&rdsiter);
 					if (RECURSIONOK(client)) {
@@ -4834,7 +4815,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				 * Add SOA.
 				 */
 				result = query_addsoa(client, db, version,
-						      ISC_FALSE);
+						      ISC_FALSE, ISC_FALSE);
 				if (result == ISC_R_SUCCESS)
 					result = ISC_R_NOMORE;
 			} else {

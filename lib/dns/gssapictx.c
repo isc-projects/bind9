@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gssapictx.c,v 1.14 2009/09/02 23:48:02 tbox Exp $ */
+/* $Id: gssapictx.c,v 1.14.104.2 2010/03/12 23:49:55 tbox Exp $ */
 
 #include <config.h>
 
@@ -488,8 +488,12 @@ dst_gssapi_initctx(dns_name_t *name, isc_buffer_t *intoken,
 		gintokenp = NULL;
 	}
 
+	/*
+	 * Note that we don't set GSS_C_SEQUENCE_FLAG as Windows DNS
+	 * servers don't like it.
+	 */
 	flags = GSS_C_REPLAY_FLAG | GSS_C_MUTUAL_FLAG | GSS_C_DELEG_FLAG |
-		GSS_C_SEQUENCE_FLAG | GSS_C_INTEG_FLAG;
+		GSS_C_INTEG_FLAG;
 
 	gret = gss_init_sec_context(&minor, GSS_C_NO_CREDENTIAL, gssctx,
 				    gname, GSS_SPNEGO_MECHANISM, flags,

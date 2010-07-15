@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.128 2009/10/12 20:48:12 each Exp $ */
+/* $Id: result.c,v 1.128.50.2 2010/02/25 05:25:53 tbox Exp $ */
 
 /*! \file */
 
@@ -157,7 +157,9 @@ static const char *text[DNS_R_NRESULTS] = {
 	"MX is an address",		       /*%< 102 DNS_R_MXISADDRESS */
 	"duplicate query",		       /*%< 103 DNS_R_DUPLICATE */
 	"invalid NSEC3 owner name (wildcard)", /*%< 104 DNS_R_INVALIDNSEC3 */
+
 	"not master",			       /*%< 105 DNS_R_NOTMASTER */
+	"broken trust chain",		       /*%< 106 DNS_R_BROKENCHAIN */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {
