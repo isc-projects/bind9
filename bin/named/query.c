@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.313.20.20 2010/06/26 23:45:53 tbox Exp $ */
+/* $Id: query.c,v 1.313.20.21 2010/07/15 01:30:32 jinmei Exp $ */
 
 /*! \file */
 
@@ -4714,7 +4714,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		if (fname != NULL)
 			dns_message_puttempname(client->message, &fname);
 
-		if (n == 0) {
+		if (n == 0 && is_zone) {
 			/*
 			 * We didn't match any rdatasets.
 			 */
@@ -4728,6 +4728,18 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				 * glue.  Ugh.
 				 */
 				if (!is_zone) {
+					/*
+					 * Note: this is dead code because
+					 * is_zone is always true due to the
+					 * condition above.  But naive
+					 * recursion would cause infinite
+					 * attempts of recursion because
+					 * the answer to (RR)SIG queries
+					 * won't be cached.  Until we figure
+					 * out what we should do and implement
+					 * it we intentionally keep this code
+					 * dead.
+					 */
 					authoritative = ISC_FALSE;
 					dns_rdatasetiter_destroy(&rdsiter);
 					if (RECURSIONOK(client)) {
