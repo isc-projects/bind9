@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.55.32.3.8.2 2010/06/28 01:41:34 marka Exp $
+# $Id: tests.sh,v 1.55.32.3.8.3 2010/07/15 01:38:15 jinmei Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -938,6 +938,29 @@ then
 else
     echo "I:The DNSSEC update test requires the Net::DNS library." >&2
 fi
+
+# Check direct query for RRSIG.  If we first ask for normal (non RRSIG)
+# record, the corresponding RRSIG should be cached and subsequent query
+# for RRSIG will be returned with the cached record.
+echo "I:checking RRSIG query from cache ($n)"
+ret=0
+$DIG $DIGOPTS normalthenrrsig.secure.example. @10.53.0.4 a > /dev/null || ret=1
+ans=`$DIG $DIGOPTS +short normalthenrrsig.secure.example. @10.53.0.4 rrsig` || ret=1
+expect=`$DIG $DIGOPTS +short normalthenrrsig.secure.example. @10.53.0.3 rrsig | grep '^A' ` || ret=1
+test "$ans" = "$expect" || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+# Check direct query for RRSIG: If it's not cached with other records,
+# it should result in an empty response.
+echo "I:checking RRSIG query not in cache ($n)"
+ret=0
+ans=`$DIG $DIGOPTS +short rrsigonly.secure.example. @10.53.0.4 rrsig` || ret=1
+test -z "$ans" || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
 
 echo "I:exit status: $status"
 exit $status
