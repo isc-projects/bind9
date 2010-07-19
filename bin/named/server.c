@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.556.8.19 2010/07/19 05:14:47 marka Exp $ */
+/* $Id: server.c,v 1.556.8.20 2010/07/19 06:14:11 marka Exp $ */
 
 /*! \file */
 
@@ -7067,7 +7067,7 @@ ns_server_del_zone(ns_server_t *server, char *args) {
 		}
 
 		/* Just spool the remainder of the file out */
-		while ((n = fread(buf, 1, 1024, ifp)) > 0)
+		while ((n = fread(buf, 1, 1024, ifp)) > 0U)
 			fwrite(buf, 1, n, ofp);
 
 		/* Move temporary into place */
