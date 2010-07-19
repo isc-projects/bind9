@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.556.8.18 2010/07/12 18:52:23 each Exp $ */
+/* $Id: server.c,v 1.556.8.19 2010/07/19 05:14:47 marka Exp $ */
 
 /*! \file */
 
@@ -6863,13 +6863,13 @@ extract_optional_qstring(char **args) {
 	char   quote;
 
 	/* Skip past the command name */
-	while (isspace(*p))
+	while (isspace((unsigned char)*p))
 		p++;
-	while (*p && !isspace(*p))
+	while (*p && !isspace((unsigned char)*p))
 		p++;
 
 	/* Look for an open quote */
-	while (isspace(*p))
+	while (isspace((unsigned char)*p))
 		p++;
 	if (*p != '\'' && *p !=  '"')
 		return (NULL);
@@ -7026,7 +7026,8 @@ ns_server_del_zone(ns_server_t *server, char *args) {
 			p = buf+4;
 
 			/* Locate a name */
-			while (*p && ((*p == '"') || isspace(*p)))
+			while (*p &&
+			       ((*p == '"') || isspace((unsigned char)*p)))
 				p++;
 
 			/* Is that the zone we're looking for */
@@ -7037,7 +7038,8 @@ ns_server_del_zone(ns_server_t *server, char *args) {
 
 			/* And nothing else? */
 			p += znamelen;
-			if (isspace(*p) || *p == '"' || *p == '{') {
+			if (isspace((unsigned char)*p) ||
+			    *p == '"' || *p == '{') {
 				/* This must be the entry */
 				found = p;
 				break;
