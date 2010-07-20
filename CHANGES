@@ -1,10 +1,11 @@
+	--- 9.7.2b1 released ---
+
 2931.	[bug]		Temporarily and partially disable change 2864
 			because it would cause inifinite attempts of RRSIG
 			queries.  This is an urgent care fix; we'll
 			revisit the issue and complete the fix later.
 			[RT #21710]
 
-	--- 9.7.2b1 released ---
 
 2930.	[experimental]	New "rndc addzone" and "rndc delzone" commads
 			allow dynamic addition and deletion of zones.
