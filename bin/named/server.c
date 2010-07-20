@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.576 2010/07/20 04:46:49 marka Exp $ */
+/* $Id: server.c,v 1.577 2010/07/20 04:52:21 marka Exp $ */
 
 /*! \file */
 
@@ -7051,7 +7051,7 @@ ns_server_del_zone(ns_server_t *server, char *args) {
 		/* Skip over an option block (matching # of braces) */
 		if (found) {
 			int obrace = 0, cbrace = 0;
-			while (1) {
+			for (;;) {
 				while (*p) {
 					if (*p == '{') obrace++;
 					if (*p == '}') cbrace++;
