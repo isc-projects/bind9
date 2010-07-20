@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.556.8.20 2010/07/19 06:14:11 marka Exp $ */
+/* $Id: server.c,v 1.556.8.21 2010/07/20 04:48:01 marka Exp $ */
 
 /*! \file */
 
@@ -7008,8 +7008,8 @@ ns_server_del_zone(ns_server_t *server, char *args) {
 		size_t n;
 
 		/* Create a temporary file */
-		CHECK(isc_string_printf(buf, 1023, "%s.%d", filename,
-					getpid()));
+		CHECK(isc_string_printf(buf, 1023, "%s.%ld", filename,
+					(long)getpid()));
 		if (!(tmpname = isc_mem_strdup(server->mctx, buf))) {
 			result = ISC_R_NOMEMORY;
 			goto cleanup;
