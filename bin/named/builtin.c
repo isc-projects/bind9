@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: builtin.c,v 1.15 2009/03/01 02:45:38 each Exp $ */
+/* $Id: builtin.c,v 1.16 2010/08/03 16:40:45 jinmei Exp $ */
 
 /*! \file
  * \brief
@@ -133,6 +133,7 @@ do_authors_lookup(dns_sdblookup_t *lookup) {
 		"Andreas Gustafsson",
 		"Bob Halley",
 		"Evan Hunt",
+		"JINMEI Tatuya",
 		"David Lawrence",
 		"Danny Mayer",
 		"Damien Neil",
