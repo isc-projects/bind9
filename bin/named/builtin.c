@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: builtin.c,v 1.12 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id: builtin.c,v 1.12.334.1 2010/08/03 16:46:16 jinmei Exp $ */
 
 /*! \file
  * \brief
@@ -131,6 +131,7 @@ do_authors_lookup(dns_sdblookup_t *lookup) {
 		"Ben Cottrell",
 		"Michael Graff",
 		"Andreas Gustafsson",
+		"JINMEI Tatuya",
 		"Bob Halley",
 		"David Lawrence",
 		"Danny Mayer",
