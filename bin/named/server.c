@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.573 2010/07/11 23:46:54 tbox Exp $ */
+/* $Id: server.c,v 1.577 2010/07/20 04:52:21 marka Exp $ */
 
 /*! \file */
 
@@ -6862,13 +6862,13 @@ extract_optional_qstring(char **args) {
 	char   quote;
 
 	/* Skip past the command name */
-	while (isspace(*p))
+	while (isspace((unsigned char)*p))
 		p++;
-	while (*p && !isspace(*p))
+	while (*p && !isspace((unsigned char)*p))
 		p++;
 
 	/* Look for an open quote */
-	while (isspace(*p))
+	while (isspace((unsigned char)*p))
 		p++;
 	if (*p != '\'' && *p !=  '"')
 		return (NULL);
@@ -7007,8 +7007,8 @@ ns_server_del_zone(ns_server_t *server, char *args) {
 		size_t n;
 
 		/* Create a temporary file */
-		CHECK(isc_string_printf(buf, 1023, "%s.%d", filename,
-					getpid()));
+		CHECK(isc_string_printf(buf, 1023, "%s.%ld", filename,
+					(long)getpid()));
 		if (!(tmpname = isc_mem_strdup(server->mctx, buf))) {
 			result = ISC_R_NOMEMORY;
 			goto cleanup;
@@ -7025,7 +7025,8 @@ ns_server_del_zone(ns_server_t *server, char *args) {
 			p = buf+4;
 
 			/* Locate a name */
-			while (*p && ((*p == '"') || isspace(*p)))
+			while (*p &&
+			       ((*p == '"') || isspace((unsigned char)*p)))
 				p++;
 
 			/* Is that the zone we're looking for */
@@ -7036,7 +7037,8 @@ ns_server_del_zone(ns_server_t *server, char *args) {
 
 			/* And nothing else? */
 			p += znamelen;
-			if (isspace(*p) || *p == '"' || *p == '{') {
+			if (isspace((unsigned char)*p) ||
+			    *p == '"' || *p == '{') {
 				/* This must be the entry */
 				found = p;
 				break;
@@ -7049,7 +7051,7 @@ ns_server_del_zone(ns_server_t *server, char *args) {
 		/* Skip over an option block (matching # of braces) */
 		if (found) {
 			int obrace = 0, cbrace = 0;
-			while (1) {
+			for (;;) {
 				while (*p) {
 					if (*p == '{') obrace++;
 					if (*p == '}') cbrace++;
@@ -7064,7 +7066,7 @@ ns_server_del_zone(ns_server_t *server, char *args) {
 		}
 
 		/* Just spool the remainder of the file out */
-		while ((n = fread(buf, 1, 1024, ifp)) > 0)
+		while ((n = fread(buf, 1, 1024, ifp)) > 0U)
 			fwrite(buf, 1, n, ofp);
 
 		/* Move temporary into place */

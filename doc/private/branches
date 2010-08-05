@@ -21,6 +21,7 @@ custom_ATT_v9_4_3_P4		new	cathya	// 2009-12-24 15:12 +0000
 custom_ATT_v9_6_1_P1		new	cathya	// 2009-10-22 13:24 +0000
 custom_CISCO_v9_3_4_P1		private	marka	// 2007-11-23 04:19 +0000
 custom_DENIC_v9_7_1_P1		new	jinmei	// 2010-07-01 18:06 +0000
+custom_DENIC_v9_7_1_P2		new	jinmei	// 2010-08-05 00:00 +0000
 custom_DYNDNS_v9_6		new	each	// 2009-06-19 15:34 +0000
 custom_DYNDNS_v9_7		new	each	// 2010-07-07 18:54 +0000
 custom_NOM_v9_5_0a7		private	
@@ -336,6 +337,7 @@ rt20994				new	marka	// 2010-03-15 00:01 +0000
 rt20997				new	marka	// 2010-03-10 03:52 +0000
 rt21040				new	marka	// 2010-03-16 07:45 +0000
 rt21045				new	marka	// 2010-03-06 05:41 +0000
+rt21050				new	each	// 2010-07-16 05:30 +0000
 rt21097				new	marka	// 2010-04-13 04:12 +0000
 rt21097_v9_5			new	marka	// 2010-05-14 02:01 +0000
 rt21122				new	sar	// 2010-04-08 16:28 +0000
@@ -359,6 +361,7 @@ rt21581				new	fdupont	// 2010-06-23 21:26 +0000
 rt21594				new	marka	// 2010-06-25 06:48 +0000
 rt21610				new	marka	// 2010-06-29 09:51 +0000
 rt21710				new	jinmei	// 2010-07-14 22:28 +0000
+rt21727				new	each	// 2010-07-16 19:53 +0000
 shane_dbbackend			open	
 skan				open	explorer
 skan-metazones1			private	explorer
