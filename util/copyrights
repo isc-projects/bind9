@@ -4,7 +4,7 @@
 ./FAQ						X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
 ./FAQ.xml					SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
 ./Makefile.in					MAKE	1998,1999,2000,2001,2002,2004,2005,2006,2007,2009
-./README					X	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
+./README					X	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
 ./README.idnkit					X	2005,2009
 ./acconfig.h					C	1999,2000,2001,2002,2003,2004,2005,2007,2009
 ./aclocal.m4					X	1999,2000,2001
@@ -1231,7 +1231,7 @@
 ./doc/arm/Bv9ARM.ch09.html			X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
 ./doc/arm/Bv9ARM.ch10.html			X	2005,2006,2007,2008,2009,2010
 ./doc/arm/Bv9ARM.html				X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
-./doc/arm/Bv9ARM.pdf				X	2007,2008,2009
+./doc/arm/Bv9ARM.pdf				X	2007,2008,2009,2010
 ./doc/arm/Makefile.in				MAKE	2001,2002,2004,2005,2006,2007,2009
 ./doc/arm/README-SGML				TXT.BRIEF	2000,2001,2004
 ./doc/arm/isc-logo.eps				X	2005,2010
@@ -1756,7 +1756,7 @@
 ./lib/bind/resolv/res_update.c			X	2001,2002,2003,2004,2005
 ./lib/bind9/.cvsignore				X	2001
 ./lib/bind9/Makefile.in				MAKE	2001,2004,2007
-./lib/bind9/api					X	2001,2006,2008,2009
+./lib/bind9/api					X	2001,2006,2008,2009,2010
 ./lib/bind9/check.c				C	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
 ./lib/bind9/getaddresses.c			C	2001,2002,2004,2005,2007
 ./lib/bind9/include/.cvsignore			X	2001
@@ -1778,7 +1778,7 @@
 ./lib/dns/acache.c				C	2004,2005,2006,2007,2008
 ./lib/dns/acl.c					C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009
 ./lib/dns/adb.c					C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
-./lib/dns/api					X	1999,2000,2001,2006,2008,2009
+./lib/dns/api					X	1999,2000,2001,2006,2008,2009,2010
 ./lib/dns/byaddr.c				C	2000,2001,2002,2003,2004,2005,2007
 ./lib/dns/cache.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./lib/dns/callbacks.c				C	1999,2000,2001,2004,2005,2007
@@ -2072,7 +2072,7 @@
 ./lib/isc/alpha/include/isc/.cvsignore		X	2007
 ./lib/isc/alpha/include/isc/Makefile.in		MAKE	2007
 ./lib/isc/alpha/include/isc/atomic.h		C	2005,2007,2009
-./lib/isc/api					X	1999,2000,2001,2006,2008,2009
+./lib/isc/api					X	1999,2000,2001,2006,2008,2009,2010
 ./lib/isc/assertions.c				C	1997,1998,1999,2000,2001,2004,2005,2007,2008
 ./lib/isc/base64.c				C	1998,1999,2000,2001,2003,2004,2005,2007,2009
 ./lib/isc/bitstring.c				C	1999,2000,2001,2004,2005,2007
@@ -2419,7 +2419,7 @@
 ./lib/isccfg/.cvsignore				X	2001
 ./lib/isccfg/Makefile.in			MAKE	2001,2002,2003,2004,2005,2007
 ./lib/isccfg/aclconf.c				C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009
-./lib/isccfg/api				X	2001,2006,2008
+./lib/isccfg/api				X	2001,2006,2008,2010
 ./lib/isccfg/include/.cvsignore			X	2001
 ./lib/isccfg/include/Makefile.in		MAKE	2001,2004,2007
 ./lib/isccfg/include/isccfg/.cvsignore		X	2001
@@ -2614,7 +2614,7 @@
 ./util/update-drafts.pl				PERL	2000,2001,2004,2007
 ./util/update_branches				PERL	2005,2007
 ./util/update_copyrights			PERL	1998,1999,2000,2001,2004,2005,2006,2007,2008,2009,2010
-./version					X	1998,1999,2000,2001,2003,2005,2006,2007,2008,2009
+./version					X	1998,1999,2000,2001,2003,2005,2006,2007,2008,2009,2010
 ./win32utils/BINDBuild.dsw			X	2001,2005,2006
 ./win32utils/BuildAll.bat			BAT	2001,2002,2004,2005,2006,2007
 ./win32utils/BuildOpenSSL.bat			BAT	2007
