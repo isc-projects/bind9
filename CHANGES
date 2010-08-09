@@ -1,3 +1,6 @@
+2932.	[cleanup]	Corrected a numbering error in the "dnssec" test.
+			[RT #21597]
+
 2931.	[bug]		Temporarily and partially disable change 2864
 			because it would cause inifinite attempts of RRSIG
 			queries.  This is an urgent care fix; we'll
