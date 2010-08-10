@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.173.66.6 2010/07/09 23:46:27 tbox Exp $ */
+/* $Id: nsupdate.c,v 1.173.66.7 2010/08/10 09:54:11 marka Exp $ */
 
 /*! \file */
 
@@ -488,6 +488,19 @@ parse_hmac(dns_name_t **hmac, const char *hmacstr, size_t len) {
 	return (digestbits);
 }
 
+static int
+basenamelen(const char *file) {
+        int len = strlen(file);
+
+        if (len > 1 && file[len - 1] == '.')
+                len -= 1;
+        else if (len > 8 && strcmp(file + len - 8, ".private") == 0)
+                len -= 8;
+        else if (len > 4 && strcmp(file + len - 4, ".key") == 0)
+                len -= 4;
+	return (len);
+}
+
 static void
 setup_keystr(void) {
 	unsigned char *secret = NULL;
@@ -641,8 +654,9 @@ setup_keyfile(isc_mem_t *mctx, isc_log_t *lctx) {
 	}
 
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "could not read key from %s: %s\n",
-			keyfile, isc_result_totext(result));
+		fprintf(stderr, "could not read key from %.*s.{private,key}: "
+				"%s\n", basenamelen(keyfile), keyfile,
+				isc_result_totext(result));
 		return;
 	}
 
