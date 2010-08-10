@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.163.48.11 2010/08/10 09:46:02 marka Exp $ */
+/* $Id: nsupdate.c,v 1.163.48.12 2010/08/10 23:46:53 tbox Exp $ */
 
 /*! \file */
 
@@ -555,14 +555,14 @@ setup_keystr(void) {
 
 static int
 basenamelen(const char *file) {
-        int len = strlen(file);
+	int len = strlen(file);
 
-        if (len > 1 && file[len - 1] == '.')
-                len -= 1;
-        else if (len > 8 && strcmp(file + len - 8, ".private") == 0)
-                len -= 8;
-        else if (len > 4 && strcmp(file + len - 4, ".key") == 0)
-                len -= 4;
+	if (len > 1 && file[len - 1] == '.')
+		len -= 1;
+	else if (len > 8 && strcmp(file + len - 8, ".private") == 0)
+		len -= 8;
+	else if (len > 4 && strcmp(file + len - 4, ".key") == 0)
+		len -= 4;
 	return (len);
 }
 
