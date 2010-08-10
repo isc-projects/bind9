@@ -1,3 +1,6 @@
+2934.	[bug]		Use ANSI C compliant shift range in lib/isc/entropy.c.
+			[RT #21871]
+
 2933.	[bug]		'dig +nsid' used stack memory after it went out of
 			scope.  This could potentially result in a unknown,
 			potentially malformed, EDNS option being sent instead
