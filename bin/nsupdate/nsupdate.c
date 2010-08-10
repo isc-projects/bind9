@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.163.48.10 2010/07/09 23:45:50 tbox Exp $ */
+/* $Id: nsupdate.c,v 1.163.48.11 2010/08/10 09:46:02 marka Exp $ */
 
 /*! \file */
 
@@ -553,6 +553,19 @@ setup_keystr(void) {
 		isc_mem_free(mctx, secret);
 }
 
+static int
+basenamelen(const char *file) {
+        int len = strlen(file);
+
+        if (len > 1 && file[len - 1] == '.')
+                len -= 1;
+        else if (len > 8 && strcmp(file + len - 8, ".private") == 0)
+                len -= 8;
+        else if (len > 4 && strcmp(file + len - 4, ".key") == 0)
+                len -= 4;
+	return (len);
+}
+
 static void
 setup_keyfile(void) {
 	dst_key_t *dstkey = NULL;
@@ -565,8 +578,9 @@ setup_keyfile(void) {
 				       DST_TYPE_PRIVATE | DST_TYPE_KEY, mctx,
 				       &dstkey);
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "could not read key from %s: %s\n",
-			keyfile, isc_result_totext(result));
+		fprintf(stderr, "could not read key from %.*s.{private,key}: "
+				"%s\n", basenamelen(keyfile), keyfile,
+				isc_result_totext(result));
 		return;
 	}
 	switch (dst_key_alg(dstkey)) {
