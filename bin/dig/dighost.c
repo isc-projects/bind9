@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.311.70.14 2010/06/24 07:30:46 marka Exp $ */
+/* $Id: dighost.c,v 1.311.70.15 2010/08/10 08:45:44 marka Exp $ */
 
 /*! \file
  *  \note
@@ -1201,14 +1201,15 @@ add_opt(dns_message_t *msg, isc_uint16_t udpsize, isc_uint16_t edns,
 	if (dnssec)
 		rdatalist->ttl |= DNS_MESSAGEEXTFLAG_DO;
 	if (nsid) {
-		unsigned char data[4];
-		isc_buffer_t buf;
+		isc_buffer_t *b = NULL;
 
-		isc_buffer_init(&buf, data, sizeof(data));
-		isc_buffer_putuint16(&buf, DNS_OPT_NSID);
-		isc_buffer_putuint16(&buf, 0);
-		rdata->data = data;
-		rdata->length = sizeof(data);
+		result = isc_buffer_allocate(mctx, &b, 4);
+		check_result(result, "isc_buffer_allocate");
+		isc_buffer_putuint16(b, DNS_OPT_NSID);
+		isc_buffer_putuint16(b, 0);
+		rdata->data = isc_buffer_base(b);
+		rdata->length = isc_buffer_usedlength(b);
+		dns_message_takebuffer(msg, &b);
 	} else {
 		rdata->data = NULL;
 		rdata->length = 0;
