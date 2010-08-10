@@ -1,3 +1,6 @@
+2935.	[bug]		nsupdate: improve 'file not found' error message.
+			[RT #21871]
+
 2934.	[bug]		Use ANSI C compliant shift range in lib/isc/entropy.c.
 			[RT #21871]
 
