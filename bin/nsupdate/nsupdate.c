@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.173.66.7 2010/08/10 09:54:11 marka Exp $ */
+/* $Id: nsupdate.c,v 1.173.66.8 2010/08/10 23:47:45 tbox Exp $ */
 
 /*! \file */
 
@@ -490,14 +490,14 @@ parse_hmac(dns_name_t **hmac, const char *hmacstr, size_t len) {
 
 static int
 basenamelen(const char *file) {
-        int len = strlen(file);
+	int len = strlen(file);
 
-        if (len > 1 && file[len - 1] == '.')
-                len -= 1;
-        else if (len > 8 && strcmp(file + len - 8, ".private") == 0)
-                len -= 8;
-        else if (len > 4 && strcmp(file + len - 4, ".key") == 0)
-                len -= 4;
+	if (len > 1 && file[len - 1] == '.')
+		len -= 1;
+	else if (len > 8 && strcmp(file + len - 8, ".private") == 0)
+		len -= 8;
+	else if (len > 4 && strcmp(file + len - 4, ".key") == 0)
+		len -= 4;
 	return (len);
 }
 
