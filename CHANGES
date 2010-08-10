@@ -1,3 +1,8 @@
+2933.	[bug]		'dig +nsid' used stack memory after it went out of
+			scope.  This could potentially result in a unknown,
+			potentially malformed, EDNS option being sent instead
+			of the desired NSID option. [RT #21781]
+
 2932.	[cleanup]	Corrected a numbering error in the "dnssec" test.
 			[RT #21597]
 
