@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namespace.h,v 1.5 2009/10/01 01:30:01 sar Exp $ */
+/* $Id: namespace.h,v 1.5.62.1 2010/08/11 22:56:59 jinmei Exp $ */
 
 #ifndef ISCAPI_NAMESPACE_H
 #define ISCAPI_NAMESPACE_H 1
@@ -67,6 +67,7 @@
 #define isc_mem_getquota isc__mem_getquota
 #define isc_mem_gettag isc__mem_gettag
 #define isc_mem_inuse isc__mem_inuse
+#define isc_mem_isovermem isc__mem_isovermem
 #define isc_mem_setname isc__mem_setname
 #define isc_mem_setwater isc__mem_setwater
 #define isc_mem_printallactive isc__mem_printallactive
