@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.158 2010/08/11 23:11:45 jinmei Exp $ */
+/* $Id: mem.c,v 1.159 2010/08/11 23:46:42 tbox Exp $ */
 
 /*! \file */
 
@@ -1287,7 +1287,7 @@ isc___mem_get(isc_mem_t *ctx0, size_t size FLARG) {
 
 	ADD_TRACE(ctx, ptr, size, file, line);
 	if (ctx->hi_water != 0U && ctx->inuse > ctx->hi_water &&
-	    !ctx->is_overmem) { 
+	    !ctx->is_overmem) {
 		ctx->is_overmem = ISC_TRUE;
 	}
 	if (ctx->hi_water != 0U && !ctx->hi_called &&
@@ -1543,7 +1543,7 @@ isc___mem_allocate(isc_mem_t *ctx0, size_t size FLARG) {
 	ADD_TRACE(ctx, si, si[-1].u.size, file, line);
 #endif
 	if (ctx->hi_water != 0U && ctx->inuse > ctx->hi_water &&
-	    !ctx->is_overmem) { 
+	    !ctx->is_overmem) {
 		ctx->is_overmem = ISC_TRUE;
 	}
 
