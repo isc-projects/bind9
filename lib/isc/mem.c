@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.157 2010/08/11 22:54:58 jinmei Exp $ */
+/* $Id: mem.c,v 1.158 2010/08/11 23:11:45 jinmei Exp $ */
 
 /*! \file */
 
@@ -1779,6 +1779,8 @@ isc__mem_setwater(isc_mem_t *ctx0, isc_mem_water_t water, void *water_arg,
 ISC_MEMFUNC_SCOPE isc_boolean_t
 isc__mem_isovermem(isc_mem_t *ctx0) {
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
+
+	REQUIRE(VALID_CONTEXT(ctx));
 
 	/*
 	 * We don't bother to lock the context because 100% accuracy isn't
