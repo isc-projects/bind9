@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.156 2010/05/12 00:46:55 marka Exp $ */
+/* $Id: mem.c,v 1.157 2010/08/11 22:54:58 jinmei Exp $ */
 
 /*! \file */
 
@@ -144,6 +144,7 @@ struct isc__mem {
 	size_t			hi_water;
 	size_t			lo_water;
 	isc_boolean_t		hi_called;
+	isc_boolean_t		is_overmem;
 	isc_mem_water_t		water;
 	void *			water_arg;
 	ISC_LIST(isc__mempool_t) pools;
@@ -269,6 +270,8 @@ ISC_MEMFUNC_SCOPE size_t
 isc__mem_getquota(isc_mem_t *ctx);
 ISC_MEMFUNC_SCOPE size_t
 isc__mem_inuse(isc_mem_t *ctx);
+ISC_MEMFUNC_SCOPE isc_boolean_t
+isc__mem_isovermem(isc_mem_t *ctx);
 ISC_MEMFUNC_SCOPE void
 isc__mem_setwater(isc_mem_t *ctx, isc_mem_water_t water, void *water_arg,
 		  size_t hiwater, size_t lowater);
@@ -345,6 +348,7 @@ static struct isc__memmethods {
 		isc__mem_setwater,
 		isc__mem_waterack,
 		isc__mem_inuse,
+		isc__mem_isovermem,
 		isc__mempool_create
 	}
 #ifndef BIND9
@@ -939,6 +943,7 @@ isc__mem_createx2(size_t init_max_size, size_t target_size,
 	ctx->hi_water = 0;
 	ctx->lo_water = 0;
 	ctx->hi_called = ISC_FALSE;
+	ctx->is_overmem = ISC_FALSE;
 	ctx->water = NULL;
 	ctx->water_arg = NULL;
 	ctx->common.impmagic = MEM_MAGIC;
@@ -1281,6 +1286,10 @@ isc___mem_get(isc_mem_t *ctx0, size_t size FLARG) {
 	}
 
 	ADD_TRACE(ctx, ptr, size, file, line);
+	if (ctx->hi_water != 0U && ctx->inuse > ctx->hi_water &&
+	    !ctx->is_overmem) { 
+		ctx->is_overmem = ISC_TRUE;
+	}
 	if (ctx->hi_water != 0U && !ctx->hi_called &&
 	    ctx->inuse > ctx->hi_water) {
 		call_water = ISC_TRUE;
@@ -1338,6 +1347,10 @@ isc___mem_put(isc_mem_t *ctx0, void *ptr, size_t size FLARG) {
 	 * when the context was pushed over hi_water but then had
 	 * isc_mem_setwater() called with 0 for hi_water and lo_water.
 	 */
+	if (ctx->is_overmem &&
+	    (ctx->inuse < ctx->lo_water || ctx->lo_water == 0U)) {
+		ctx->is_overmem = ISC_FALSE;
+	}
 	if (ctx->hi_called &&
 	    (ctx->inuse < ctx->lo_water || ctx->lo_water == 0U)) {
 		if (ctx->water != NULL)
@@ -1529,6 +1542,11 @@ isc___mem_allocate(isc_mem_t *ctx0, size_t size FLARG) {
 #if ISC_MEM_TRACKLINES
 	ADD_TRACE(ctx, si, si[-1].u.size, file, line);
 #endif
+	if (ctx->hi_water != 0U && ctx->inuse > ctx->hi_water &&
+	    !ctx->is_overmem) { 
+		ctx->is_overmem = ISC_TRUE;
+	}
+
 	if (ctx->hi_water != 0U && !ctx->hi_called &&
 	    ctx->inuse > ctx->hi_water) {
 		ctx->hi_called = ISC_TRUE;
@@ -1619,6 +1637,11 @@ isc___mem_free(isc_mem_t *ctx0, void *ptr FLARG) {
 	 * when the context was pushed over hi_water but then had
 	 * isc_mem_setwater() called with 0 for hi_water and lo_water.
 	 */
+	if (ctx->is_overmem &&
+	    (ctx->inuse < ctx->lo_water || ctx->lo_water == 0U)) {
+		ctx->is_overmem = ISC_FALSE;
+	}
+
 	if (ctx->hi_called &&
 	    (ctx->inuse < ctx->lo_water || ctx->lo_water == 0U)) {
 		ctx->hi_called = ISC_FALSE;
@@ -1751,6 +1774,18 @@ isc__mem_setwater(isc_mem_t *ctx0, isc_mem_water_t water, void *water_arg,
 
 	if (callwater && oldwater != NULL)
 		(oldwater)(oldwater_arg, ISC_MEM_LOWATER);
+}
+
+ISC_MEMFUNC_SCOPE isc_boolean_t
+isc__mem_isovermem(isc_mem_t *ctx0) {
+	isc__mem_t *ctx = (isc__mem_t *)ctx0;
+
+	/*
+	 * We don't bother to lock the context because 100% accuracy isn't
+	 * necessary (and even if we locked the context the returned value
+	 * could be different from the actual state when it's used anyway)
+	 */
+	return (ctx->is_overmem);
 }
 
 ISC_MEMFUNC_SCOPE void
