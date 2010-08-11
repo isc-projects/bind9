@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.26 2010/06/02 01:00:28 marka Exp $ */
+/* $Id: zone.c,v 1.540.2.27 2010/08/11 18:19:57 each Exp $ */
 
 /*! \file */
 
@@ -317,6 +317,11 @@ struct dns_zone {
 	 * Autosigning/key-maintenance options
 	 */
 	isc_uint32_t		keyopts;
+
+	/*%
+	 * True if added by "rndc addzone"
+	 */
+	isc_boolean_t           added;
 };
 
 #define DNS_ZONE_FLAG(z,f) (ISC_TF(((z)->flags & (f)) != 0))
@@ -827,6 +832,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->signatures = 10;
 	zone->nodes = 100;
 	zone->privatetype = (dns_rdatatype_t)0xffffU;
+	zone->added = ISC_FALSE;
 
 	zone->magic = ZONE_MAGIC;
 
@@ -13991,4 +13997,18 @@ dns_zone_nscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version,
 				  ISC_FALSE);
 	dns_db_detachnode(db, &node);
 	return (result);
+}
+
+void
+dns_zone_setadded(dns_zone_t *zone, isc_boolean_t added) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	LOCK_ZONE(zone);
+	zone->added = added;
+	UNLOCK_ZONE(zone);
+}
+
+isc_boolean_t
+dns_zone_getadded(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	return (zone->added);
 }

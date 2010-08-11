@@ -1,3 +1,15 @@
+2936.	[func]		Improved configuration syntax and multiple-view
+			support for addzone/delzone feature (see change
+			#2930).  Removed "new-zone-file" option, replaced
+			with "allow-new-zones (yes|no)".  The new-zone-file
+			for each view is now created automatically, with
+			a filename generated from a hash of the view name.
+			It is no longer necessary to "include" the
+			new-zone-file in named.conf; this happens
+			automatically.  Zones that were not added via
+			"rndc addzone" can no longer be removed with
+			"rndc delzone". [RT #19447]
+
 2935.	[bug]		nsupdate: improve 'file not found' error message.
 			[RT #21871]
 
@@ -19,7 +31,6 @@
 			queries.  This is an urgent care fix; we'll
 			revisit the issue and complete the fix later.
 			[RT #21710]
-
 
 2930.	[experimental]	New "rndc addzone" and "rndc delzone" commads
 			allow dynamic addition and deletion of zones.

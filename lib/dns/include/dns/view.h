@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.120.8.5 2010/07/11 00:12:19 each Exp $ */
+/* $Id: view.h,v 1.120.8.6 2010/08/11 18:19:58 each Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -176,6 +176,14 @@ struct dns_view {
 	dns_viewlist_t *		viewlist;
 
 	dns_zone_t *			managed_keys;
+
+#ifdef BIND9
+	/* File in which to store configuration for newly added zones */
+	char *				new_zone_file;
+
+	void *				new_zone_config;
+	void				(*cfg_destroy)(void **);
+#endif
 };
 
 #define DNS_VIEW_MAGIC			ISC_MAGIC('V','i','e','w')
@@ -992,6 +1000,27 @@ dns_view_untrust(dns_view_t *view, dns_name_t *keyname,
  * \li	'keyname' is valid.
  * \li	'mctx' is valid.
  * \li	'dnskey' is valid.
+ */
+
+void
+dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
+		     void (*cfg_destroy)(void **));
+/*%<
+ * Set whether or not to allow zones to be created or deleted at runtime.
+ *
+ * If 'allow' is ISC_TRUE, determines the filename into which new zone
+ * configuration will be written.  Preserves the configuration context
+ * (a pointer to which is passed in 'cfgctx') for use when parsing new
+ * zone configuration.  'cfg_destroy' points to a callback routine to
+ * destroy the configuration context when the view is destroyed.  (This
+ * roundabout method is used in order to avoid libdns having a dependency
+ * on libisccfg and libbind9.)
+ *
+ * If 'allow' is ISC_FALSE, removes any existing references to
+ * configuration context and frees any memory.
+ *
+ * Requires:
+ * \li 'view' is valid.
  */
 
 #endif /* DNS_VIEW_H */

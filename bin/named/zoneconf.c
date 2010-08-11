@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.161.4.2 2010/07/11 23:46:35 tbox Exp $ */
+/* $Id: zoneconf.c,v 1.161.4.3 2010/08/11 18:19:55 each Exp $ */
 
 /*% */
 
@@ -135,8 +135,11 @@ configure_zone_acl(const cfg_obj_t *zconfig, const cfg_obj_t *vconfig,
 	}
 
 	/* Check for default ACLs that haven't been parsed yet */
-	if (vconfig != NULL)
-		maps[i++] = cfg_tuple_get(vconfig, "options");
+	if (vconfig != NULL) {
+		const cfg_obj_t *options = cfg_tuple_get(vconfig, "options");
+		if (options != NULL)
+			maps[i++] = options;
+	}
 	if (config != NULL) {
 		const cfg_obj_t *options = NULL;
 		(void)cfg_map_get(config, "options", &options);
