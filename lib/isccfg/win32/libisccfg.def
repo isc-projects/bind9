@@ -18,6 +18,7 @@ cfg_obj_assockaddr
 cfg_obj_asstring
 cfg_obj_asuint32
 cfg_obj_asuint64
+cfg_obj_attach
 cfg_obj_destroy
 cfg_obj_file
 cfg_obj_isboolean

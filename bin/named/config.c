@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.111 2010/06/25 03:24:05 marka Exp $ */
+/* $Id: config.c,v 1.112 2010/08/11 18:14:18 each Exp $ */
 
 /*! \file */
 
@@ -159,6 +159,7 @@ options {\n\
 	max-clients-per-query 100;\n\
 	zero-no-soa-ttl-cache no;\n\
 	nsec3-test-zone no;\n\
+	allow-new-zones no;\n\
 "
 #ifdef ALLOW_FILTER_AAAA_ON_V4
 "	filter-aaaa-on-v4 no;\n\
@@ -218,6 +219,7 @@ options {\n\
 view \"_bind\" chaos {\n\
 	recursion no;\n\
 	notify no;\n\
+	allow-new-zones no;\n\
 \n\
 	zone \"version.bind\" chaos {\n\
 		type master;\n\
