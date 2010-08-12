@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.167 2010/08/11 18:14:19 each Exp $ */
+/* $Id: view.c,v 1.168 2010/08/12 04:04:14 each Exp $ */
 
 /*! \file */
 
@@ -1656,7 +1656,6 @@ dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
 	}
 #else
 	UNUSED(allow);
-	UNUSED(parser);
 	UNUSED(cfgctx);
 	UNUSED(cfg_destroy);
 #endif
