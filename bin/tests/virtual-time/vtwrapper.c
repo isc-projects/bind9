@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: vtwrapper.c,v 1.3 2010/06/18 23:46:42 tbox Exp $ */
+/* $Id: vtwrapper.c,v 1.4 2010/08/12 09:31:50 fdupont Exp $ */
 
 #define _GNU_SOURCE
 #include <sys/syscall.h>
@@ -278,7 +278,7 @@ kevent(int kq, struct kevent *changelist, int nchanges,
 		       nevents, &ts);
 #else
 	return syscall(SYS_kevent, kq, changelist, nchanges, eventlist,
-			nevents, timeout);
+		       nevents, timeout);
 #endif
 }
 #endif
