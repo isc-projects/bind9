@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem_api.c,v 1.5.104.2 2010/04/09 23:49:48 tbox Exp $ */
+/* $Id: mem_api.c,v 1.5.104.3 2010/08/12 21:31:33 jinmei Exp $ */
 
 #include <config.h>
 
@@ -197,6 +197,13 @@ isc_mem_inuse(isc_mem_t *mctx) {
 	REQUIRE(ISCAPI_MCTX_VALID(mctx));
 
 	return (mctx->methods->inuse(mctx));
+}
+
+isc_boolean_t
+isc_mem_isovermem(isc_mem_t *mctx) {
+	REQUIRE(ISCAPI_MCTX_VALID(mctx));
+
+	return (mctx->methods->isovermem(mctx));
 }
 
 void
