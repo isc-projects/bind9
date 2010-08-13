@@ -1,4 +1,4 @@
-2940.	[func]		Check that named successfully skips NSEC3 records
+2939.	[func]		Check that named successfully skips NSEC3 records
 			that fail to match the NSEC3PARAM record currently
 			in use. [RT# 21868]
 
