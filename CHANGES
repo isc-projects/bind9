@@ -1,3 +1,7 @@
+2939.	[func]		Check that named successfully skips NSEC3 records
+			that fail to match the NSEC3PARAM record currently
+			in use. [RT# 21868]
+
 2938.	[bug]		When generating signed responses, from a signed zone
 			that uses NSEC3, named would use a uninitialised
 			pointer if it needed to skip a NSEC3 record because
