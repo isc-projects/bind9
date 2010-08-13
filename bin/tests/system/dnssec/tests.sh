@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.53.48.4.4.2 2010/06/28 01:43:01 marka Exp $
+# $Id: tests.sh,v 1.53.48.4.4.3 2010/08/13 07:25:21 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -894,6 +894,17 @@ ret=0
 $DIG $DIGOPTS rfc2535.example. SOA @10.53.0.3 \
 	> dig.out.ns3.test$n || ret=1
 grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+#
+# RT21868 regression test.
+#
+echo "I:checking NSEC3 zone with mismatched NSEC3PARAM / NSEC parameters ($n)"
+ret=0
+$DIG $DIGOPTS non-exist.badparam. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
+grep "status: NXDOMAIN" dig.out.ns2.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

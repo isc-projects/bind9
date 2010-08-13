@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.270.12.16.10.2 2010/08/11 23:42:53 jinmei Exp $ */
+/* $Id: rbtdb.c,v 1.270.12.16.10.3 2010/08/13 07:25:21 marka Exp $ */
 
 /*! \file */
 
@@ -3208,6 +3208,9 @@ matchparams(rdatasetheader_t *header, rbtdb_search_t *search)
 	return (ISC_FALSE);
 }
 
+/*
+ * Find node of the NSEC/NSEC3 record that is 'name'.
+ */
 static inline isc_result_t
 find_closest_nsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 		  dns_name_t *foundname, dns_rdataset_t *rdataset,

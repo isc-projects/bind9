@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.30.48.8 2010/01/15 23:47:33 tbox Exp $
+# $Id: sign.sh,v 1.30.48.8.4.1 2010/08/13 07:25:22 marka Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -114,3 +114,19 @@ dlvkeyname=`$KEYGEN -r $RANDFILE -a RSAMD5 -b 768 -n zone $dlvzone`
 cat $dlvinfile $dlvkeyname.key dlvset-$privzone > $dlvzonefile
 
 $SIGNER -P -g -r $RANDFILE -o $dlvzone $dlvzonefile > /dev/null
+
+
+# Sign the badparam secure file
+
+zone=badparam.
+infile=badparam.db.in
+zonefile=badparam.db
+
+keyname1=`$KEYGEN -r $RANDFILE -a RSASHA256 -b 1024 -n zone -f KSK $zone`
+keyname2=`$KEYGEN -r $RANDFILE -a RSASHA256 -b 1024 -n zone $zone`
+
+cat $infile $keyname1.key $keyname2.key >$zonefile
+
+$SIGNER -P -3 - -H 1 -g -r $RANDFILE -o $zone -k $keyname1 $zonefile $keyname2 > /dev/null
+
+sed 's/IN NSEC3 1 0 1 /IN NSEC3 1 0 10 /' $zonefile.signed > $zonefile.bad
