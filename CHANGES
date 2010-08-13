@@ -1,3 +1,7 @@
+2940.	[func]		Check that named successfully skips NSEC3 records
+			that fail to match the NSEC3PARAM record currently
+			in use. [RT# 21868]
+
 2937.	[bug]		Worked around an apparent race condition in over
 			memory conditions.  Without this fix a DNS cache DB or
 			ADB could incorrectly stay in an over memory state,
