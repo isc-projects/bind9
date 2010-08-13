@@ -537,6 +537,7 @@
 ./bin/tests/system/acl/ns2/named4.conf		CONF-C	2008
 ./bin/tests/system/acl/setup.sh			SH	2008
 ./bin/tests/system/acl/tests.sh			SH	2008
+./bin/tests/system/addzone/ns2/default.nzf.in	X	2010
 ./bin/tests/system/autosign/clean.sh		SH	2009,2010
 ./bin/tests/system/autosign/ns1/.cvsignore	X	2009
 ./bin/tests/system/autosign/ns1/keygen.sh	SH	2009,2010
