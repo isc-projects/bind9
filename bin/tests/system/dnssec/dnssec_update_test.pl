@@ -32,7 +32,7 @@
 #
 #    perl -MCPAN -e "install Net::DNS"
 #
-# $Id: dnssec_update_test.pl,v 1.5 2007/06/19 23:47:02 tbox Exp $
+# $Id: dnssec_update_test.pl,v 1.6 2010/08/13 06:46:24 marka Exp $
 #
 
 use Getopt::Std;
@@ -97,9 +97,9 @@ section("Delete the name");
 test("NOERROR", ["update", rr_del("a.$zone")]);
 
 if ($failures) {
-    print "I:$failures tests failed.\n";
+    print "I:$failures update tests failed.\n";
 } else {
-    print "I:All tests successful.\n";
+    print "I:All update tests successful.\n";
 }
 
 exit $failures;
