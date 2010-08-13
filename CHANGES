@@ -1,3 +1,5 @@
+2939.	[placeholder]
+
 2938.	[bug]		When generating signed responses, from a signed zone
 			that uses NSEC3, named would use a uninitialised
 			pointer if it needed to skip a NSEC3 record because
