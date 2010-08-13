@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.55.32.12 2010/08/09 22:35:06 each Exp $
+# $Id: tests.sh,v 1.55.32.13 2010/08/13 07:00:40 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -991,6 +991,17 @@ echo "I:checking RRSIG query not in cache ($n)"
 ret=0
 ans=`$DIG $DIGOPTS +short rrsigonly.secure.example. @10.53.0.4 rrsig` || ret=1
 test -z "$ans" || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+#
+# RT21868 regression test.
+#
+echo "I:checking NSEC3 zone with mismatched NSEC3PARAM / NSEC parameters ($n)"
+ret=0
+$DIG $DIGOPTS non-exist.badparam. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
+grep "status: NXDOMAIN" dig.out.ns2.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

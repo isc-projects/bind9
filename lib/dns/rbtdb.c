@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.292.8.10 2010/08/11 22:56:58 jinmei Exp $ */
+/* $Id: rbtdb.c,v 1.292.8.11 2010/08/13 07:00:39 marka Exp $ */
 
 /*! \file */
 
@@ -3275,6 +3275,9 @@ matchparams(rdatasetheader_t *header, rbtdb_search_t *search)
 	return (ISC_FALSE);
 }
 
+/*
+ * Find node of the NSEC/NSEC3 record that is 'name'.
+ */
 static inline isc_result_t
 previous_closest_nsec(dns_rdatatype_t type, rbtdb_search_t *search,
 		    dns_name_t *name, dns_name_t *origin,
@@ -3286,15 +3289,15 @@ previous_closest_nsec(dns_rdatatype_t type, rbtdb_search_t *search,
 	dns_rbtnode_t *nsecnode;
 	isc_result_t result;
 
+	REQUIRE(nodep != NULL && *nodep == NULL);
+
 	if (type == dns_rdatatype_nsec3) {
 		result = dns_rbtnodechain_prev(&search->chain, NULL, NULL);
 		if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN)
 			return (result);
 		result = dns_rbtnodechain_current(&search->chain, name, origin,
 						  nodep);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-		return (ISC_R_SUCCESS);
+		return (result);
 	}
 
 	dns_fixedname_init(&ftarget);
@@ -3327,11 +3330,11 @@ previous_closest_nsec(dns_rdatatype_t type, rbtdb_search_t *search,
 				 * Try the previous node in the NSEC tree.
 				 */
 				result = dns_rbtnodechain_prev(nsecchain,
-							name, origin);
+							       name, origin);
 				if (result == DNS_R_NEWORIGIN)
 					result = ISC_R_SUCCESS;
-			} else if (result == ISC_R_NOTFOUND
-				   || result == DNS_R_PARTIALMATCH) {
+			} else if (result == ISC_R_NOTFOUND ||
+				   result == DNS_R_PARTIALMATCH) {
 				result = dns_rbtnodechain_current(nsecchain,
 							name, origin, NULL);
 				if (result == ISC_R_NOTFOUND)
@@ -3348,8 +3351,6 @@ previous_closest_nsec(dns_rdatatype_t type, rbtdb_search_t *search,
 			result = dns_rbtnodechain_prev(nsecchain, name, origin);
 			if (result == DNS_R_NEWORIGIN)
 				result = ISC_R_SUCCESS;
-			if (result != ISC_R_SUCCESS)
-				return (result);
 		}
 		if (result != ISC_R_SUCCESS)
 			return (result);
@@ -3373,10 +3374,7 @@ previous_closest_nsec(dns_rdatatype_t type, rbtdb_search_t *search,
 		 * same name as the node in the auxiliary NSEC tree, except for
 		 * nodes in the auxiliary tree that are awaiting deletion.
 		 */
-		if (result == DNS_R_PARTIALMATCH)
-			result = ISC_R_NOTFOUND;
-
-		if (result != ISC_R_NOTFOUND) {
+		if (result != DNS_R_PARTIALMATCH && result != ISC_R_NOTFOUND) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_CACHE, ISC_LOG_ERROR,
 				      "previous_closest_nsec(): %s",
@@ -3386,6 +3384,11 @@ previous_closest_nsec(dns_rdatatype_t type, rbtdb_search_t *search,
 	}
 }
 
+/*
+ * Find the NSEC/NSEC3 which is or before the current point on the
+ * search chain.  For NSEC3 records only NSEC3 records that match the
+ * current NSEC3PARAM record are considered.
+ */
 static inline isc_result_t
 find_closest_nsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 		  dns_name_t *foundname, dns_rdataset_t *rdataset,
@@ -3419,15 +3422,16 @@ find_closest_nsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 	 * Use the auxiliary tree only starting with the second node in the
 	 * hope that the original node will be right much of the time.
 	 */
-		dns_fixedname_init(&fname);
-		name = dns_fixedname_name(&fname);
-		dns_fixedname_init(&forigin);
-		origin = dns_fixedname_name(&forigin);
+	dns_fixedname_init(&fname);
+	name = dns_fixedname_name(&fname);
+	dns_fixedname_init(&forigin);
+	origin = dns_fixedname_name(&forigin);
  again:
 	node = NULL;
+	prevnode = NULL;
 	result = dns_rbtnodechain_current(&search->chain, name, origin, &node);
-		if (result != ISC_R_SUCCESS)
-			return (result);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 	do {
 		NODE_LOCK(&(search->rbtdb->node_locks[node->locknum].lock),
 			  isc_rwlocktype_read);
@@ -3478,8 +3482,10 @@ find_closest_nsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 				empty_node = ISC_TRUE;
 				found = NULL;
 				foundsig = NULL;
-				result = dns_rbtnodechain_prev(&search->chain,
-							       NULL, NULL);
+				result = previous_closest_nsec(type, search,
+							       name, origin,	
+							       &prevnode, NULL,
+							       NULL);
 			} else if (found != NULL &&
 				   (foundsig != NULL || !need_sig)) {
 				/*
@@ -3519,8 +3525,10 @@ find_closest_nsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 				 */
 				empty_node = ISC_TRUE;
 				result = previous_closest_nsec(type, search,
-							name, origin, &prevnode,
-							&nsecchain, &first);
+							       name, origin,
+							       &prevnode,
+							       &nsecchain,
+							       &first);
 			} else {
 				/*
 				 * We found an active node, but either the
@@ -3541,6 +3549,7 @@ find_closest_nsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 		NODE_UNLOCK(&(search->rbtdb->node_locks[node->locknum].lock),
 			    isc_rwlocktype_read);
 		node = prevnode;
+		prevnode = NULL;
 	} while (empty_node && result == ISC_R_SUCCESS);
 
 	if (!first)
