@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2010  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2002  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -32,7 +32,7 @@
 #
 #    perl -MCPAN -e "install Net::DNS"
 #
-# $Id: dnssec_update_test.pl,v 1.5.332.1 2010/08/13 07:21:39 marka Exp $
+# $Id: dnssec_update_test.pl,v 1.5.332.2 2010/08/13 23:45:52 tbox Exp $
 #
 
 use Getopt::Std;
