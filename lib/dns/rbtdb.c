@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.292.8.11 2010/08/13 07:00:39 marka Exp $ */
+/* $Id: rbtdb.c,v 1.292.8.12 2010/08/13 23:46:28 tbox Exp $ */
 
 /*! \file */
 
@@ -3483,7 +3483,7 @@ find_closest_nsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 				found = NULL;
 				foundsig = NULL;
 				result = previous_closest_nsec(type, search,
-							       name, origin,	
+							       name, origin,
 							       &prevnode, NULL,
 							       NULL);
 			} else if (found != NULL &&
