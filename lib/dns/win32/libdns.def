@@ -250,6 +250,7 @@ dns_keytable_delete
 dns_keytable_deletekeynode
 dns_keytable_detach
 dns_keytable_detachkeynode
+dns_keytable_dump
 dns_keytable_find
 dns_keytable_finddeepestmatch
 dns_keytable_findkeynode
@@ -702,10 +703,12 @@ dns_view_setcache2
 dns_view_setdstport
 dns_view_sethints
 dns_view_setkeyring
+dns_view_setnewzones
 dns_view_setresquerystats
 dns_view_setresstats
 dns_view_setrootdelonly
 dns_view_simplefind
+dns_view_thaw
 dns_view_weakattach
 dns_view_weakdetach
 dns_viewlist_find
@@ -734,6 +737,7 @@ dns_zone_flush
 dns_zone_forcereload
 dns_zone_forwardupdate
 dns_zone_fulldumptostream
+dns_zone_getadded
 dns_zone_getchecknames
 dns_zone_getclass
 dns_zone_getdb
@@ -778,6 +782,7 @@ dns_zone_idetach
 dns_zone_isforced
 dns_zone_load
 dns_zone_loadandthaw
+dns_zone_loadnew
 dns_zone_log
 dns_zone_maintenance
 dns_zone_markdirty
@@ -790,6 +795,7 @@ dns_zone_refresh
 dns_zone_rekey
 dns_zone_replacedb
 dns_zone_setacache
+dns_zone_setadded
 dns_zone_setalsonotify
 dns_zone_setaltxfrsource4
 dns_zone_setaltxfrsource6

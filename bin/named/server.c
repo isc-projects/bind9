@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.578 2010/08/11 18:14:18 each Exp $ */
+/* $Id: server.c,v 1.579 2010/08/13 14:33:31 fdupont Exp $ */
 
 /*! \file */
 
@@ -6752,12 +6752,13 @@ ns_server_add_zone(ns_server_t *server, char *args) {
 	 */
 	result = dns_zone_loadnew(zone);
 	if (result != ISC_R_SUCCESS) {
+		dns_db_t *dbp = NULL;
+
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
 			      "addzone failed; reverting.");
 
 		/* If the zone loaded partially, unload it */
-		dns_db_t *dbp = NULL;
 		if (dns_zone_getdb(zone, &dbp) == ISC_R_SUCCESS) {
 			dns_db_detach(&dbp);
 			dns_zone_unload(zone);
