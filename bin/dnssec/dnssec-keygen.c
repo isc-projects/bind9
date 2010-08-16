@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.113 2010/08/16 22:21:06 marka Exp $ */
+/* $Id: dnssec-keygen.c,v 1.114 2010/08/16 23:46:51 tbox Exp $ */
 
 /*! \file */
 
@@ -553,7 +553,7 @@ main(int argc, char **argv) {
 			else if (strcasecmp(type, "NOCONF") == 0)
 				flags |= DNS_KEYTYPE_NOCONF;
 			else if (strcasecmp(type, "NOAUTHCONF") == 0) {
-				flags |= (DNS_KEYTYPE_NOAUTH | 
+				flags |= (DNS_KEYTYPE_NOAUTH |
 					  DNS_KEYTYPE_NOCONF);
 				if (size < 0)
 					size = 0;
@@ -660,7 +660,7 @@ main(int argc, char **argv) {
 			fatal("Key %s has no inactivation date.\n\t"
 			      "You must use dnssec-settime -I to set one "
 			      "before generating a successor.", keystr);
-		
+
 		publish = activate - prepub;
 		if (publish < now)
 			fatal("Key %s becomes inactive\n\t"
@@ -676,10 +676,10 @@ main(int argc, char **argv) {
 			fprintf(stderr, "%s: WARNING: Key %s has no removal "
 					"date;\n\t it will remain in the zone "
 					"indefinitely after rollover.\n\t "
-                                        "You can use dnssec-settime -D to "
-                                        "change this.\n", program, keystr);
+					"You can use dnssec-settime -D to "
+					"change this.\n", program, keystr);
 
-                setpub = setact = ISC_TRUE;
+		setpub = setact = ISC_TRUE;
 	}
 
 	switch (alg) {
@@ -997,7 +997,7 @@ main(int argc, char **argv) {
 	ret = dst_key_buildfilename(key, 0, NULL, &buf);
 	printf("%s\n", filename);
 	dst_key_free(&key);
-        if (prevkey != NULL)
+	if (prevkey != NULL)
 		dst_key_free(&prevkey);
 
 	cleanup_logging(&log);

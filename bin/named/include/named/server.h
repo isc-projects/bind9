@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.109 2010/08/16 22:21:06 marka Exp $ */
+/* $Id: server.h,v 1.110 2010/08/16 23:46:52 tbox Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -295,7 +295,7 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args,
 		 isc_buffer_t *text);
 
 /*%
- * Update a zone's DNSKEY set from the key repository.  If 
+ * Update a zone's DNSKEY set from the key repository.  If
  * the command that triggered the call to this function was "sign",
  * then force a full signing of the zone.  If it was "loadkeys",
  * then don't sign the zone; any needed changes to signatures can

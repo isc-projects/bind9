@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.580 2010/08/16 22:21:06 marka Exp $ */
+/* $Id: server.c,v 1.581 2010/08/16 23:46:51 tbox Exp $ */
 
 /*! \file */
 
@@ -6493,7 +6493,7 @@ ns_server_rekey(ns_server_t *server, char *args) {
 
 	keyopts = dns_zone_getkeyopts(zone);
 
-        /* "rndc loadkeys" requires "auto-dnssec maintain". */
+	/* "rndc loadkeys" requires "auto-dnssec maintain". */
 	if ((keyopts & DNS_ZONEKEY_ALLOW) == 0)
 		result = ISC_R_NOPERM;
 	else if ((keyopts & DNS_ZONEKEY_MAINTAIN) == 0 && !fullsign)
