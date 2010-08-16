@@ -9,6 +9,9 @@
 2941.	[bug]		sdb and sdlz (dlz's zone database) failed to support
 			DNAME at the zone apex.  [RT #21610]
 
+2940.	[port]		Remove connection aborted error message on
+			Windows. [RT #21549]
+
 2939.	[func]		Check that named successfully skips NSEC3 records
 			that fail to match the NSEC3PARAM record currently
 			in use. [RT# 21868]
