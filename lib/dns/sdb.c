@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.71.54.2 2010/02/25 05:25:53 tbox Exp $ */
+/* $Id: sdb.c,v 1.71.54.3 2010/08/16 05:14:15 marka Exp $ */
 
 /*! \file */
 
@@ -836,13 +836,6 @@ find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	result = DNS_R_NXDOMAIN;
 
 	for (i = olabels; i <= nlabels; i++) {
-		/*
-		 * Unless this is an explicit lookup at the origin, don't
-		 * look at the origin.
-		 */
-		if (i == olabels && i != nlabels)
-			continue;
-
 		/*
 		 * Look up the next label.
 		 */
