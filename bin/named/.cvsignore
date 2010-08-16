@@ -1,0 +1,7 @@
+Makefile
+.libs
+*.la
+*.lo
+named
+named-symtbl.c
+lwresd
