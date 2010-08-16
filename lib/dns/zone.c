@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.28 2010/08/16 22:27:17 marka Exp $ */
+/* $Id: zone.c,v 1.540.2.29 2010/08/16 23:46:30 tbox Exp $ */
 
 /*! \file */
 
@@ -13940,7 +13940,7 @@ zone_rekey(dns_zone_t *zone) {
 					     dns_result_totext(result));
 				}
 			}
-                }
+		}
 
 
 		if (fullsign) {
@@ -13984,7 +13984,7 @@ zone_rekey(dns_zone_t *zone) {
 					continue;
 
 				result = dns_rdata_tostruct(&tuple->rdata,
-			 				    &dnskey, NULL);
+							    &dnskey, NULL);
 				RUNTIME_CHECK(result == ISC_R_SUCCESS);
 				dns_rdata_toregion(&tuple->rdata, &r);
 				algorithm = dnskey.algorithm;
@@ -14002,11 +14002,11 @@ zone_rekey(dns_zone_t *zone) {
 			}
 		}
 
-                /*
-                 * Clear fullsign flag, if it was set, so we don't do
-                 * another full signing next time
-                 */
-                zone->keyopts &= ~DNS_ZONEKEY_FULLSIGN;
+		/*
+		 * Clear fullsign flag, if it was set, so we don't do
+		 * another full signing next time
+		 */
+		zone->keyopts &= ~DNS_ZONEKEY_FULLSIGN;
 
 		/*
 		 * Cause the zone to add/delete NSEC3 chains for the

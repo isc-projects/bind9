@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-settime.c,v 1.19.34.7 2010/08/16 22:27:16 marka Exp $ */
+/* $Id: dnssec-settime.c,v 1.19.34.8 2010/08/16 23:46:30 tbox Exp $ */
 
 /*! \file */
 
@@ -353,7 +353,7 @@ main(int argc, char **argv) {
 			fatal("-S and -A cannot be used together");
 
 		result = dst_key_fromnamedfile(predecessor, directory,
-					       DST_TYPE_PUBLIC | 
+					       DST_TYPE_PUBLIC |
 					       DST_TYPE_PRIVATE,
 					       mctx, &prevkey);
 		if (result != ISC_R_SUCCESS)
@@ -384,7 +384,7 @@ main(int argc, char **argv) {
 			fatal("Predecessor has no inactivation date. "
 			      "You must set one before\n\t"
 			      "generating a successor.");
-		
+
 		pub = act - prepub;
 		if (pub < now)
 			fatal("Predecessor will become inactive before the\n\t"
@@ -401,7 +401,7 @@ main(int argc, char **argv) {
 					"indefinitely after rollover.\n",
 					program);
 
-                changed = setpub = setact = ISC_TRUE;
+		changed = setpub = setact = ISC_TRUE;
 		dst_key_free(&prevkey);
 	} else {
 		if (prepub < 0)
