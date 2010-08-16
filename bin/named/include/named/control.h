@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.h,v 1.30 2010/07/11 00:12:57 each Exp $ */
+/* $Id: control.h,v 1.31 2010/08/16 22:21:06 marka Exp $ */
 
 #ifndef NAMED_CONTROL_H
 #define NAMED_CONTROL_H 1
@@ -59,6 +59,7 @@
 #define NS_COMMAND_NOTIFY	"notify"
 #define NS_COMMAND_VALIDATION	"validation"
 #define NS_COMMAND_SIGN 	"sign"
+#define NS_COMMAND_LOADKEYS 	"loadkeys"
 #define NS_COMMAND_ADDZONE	"addzone"
 #define NS_COMMAND_DELZONE	"delzone"
 

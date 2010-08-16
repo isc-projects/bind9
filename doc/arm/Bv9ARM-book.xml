@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.461 2010/08/11 18:14:19 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.462 2010/08/16 22:21:06 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -1179,10 +1179,11 @@ zone "eng.example.com" {
                         Fetch all DNSSEC keys for the given zone
                         from the key directory (see
                         <command>key-directory</command> in
-                        <xref linkend="options"/>), and merge them
-                        into the zone's DNSKEY RRset.  If the DNSKEY RRset
-                        is changed as a result of this, then the zone is
-                        automatically re-signed with the new key set.
+                        <xref linkend="options"/>).  If they are within
+                        their publication period, merge them into the
+                        zone's DNSKEY RRset.  If the DNSKEY RRset
+                        is changed, then the zone is automatically
+                        re-signed with the new key set.
                       </para>
                       <para>
                         This command requires that the
@@ -1190,6 +1191,34 @@ zone "eng.example.com" {
                         to <literal>allow</literal>,
                         <literal>maintain</literal>, or
                         <literal>create</literal>,  and also requires
+                        the zone to be configured to allow dynamic DNS.
+                        See <xref linkend="dynamic_update_policies"/> for
+                        more details.
+                      </para>
+                    </listitem>
+                  </varlistentry>
+
+                  <varlistentry>
+                    <term><userinput>loadkeys <replaceable>zone</replaceable>
+                        <optional><replaceable>class</replaceable>
+           <optional><replaceable>view</replaceable></optional></optional></userinput></term>
+                    <listitem>
+                      <para>
+                        Fetch all DNSSEC keys for the given zone
+                        from the key directory (see
+                        <command>key-directory</command> in
+                        <xref linkend="options"/>).  If they are within
+                        their publication period, merge them into the
+                        zone's DNSKEY RRset.  Unlike <command>rndc
+                        sign</command>, however, the zone is not
+                        immediately re-signed by the new keys, but is
+                        allowed to incrementally re-sign over time.
+                      </para>
+                      <para>
+                        This command requires that the
+                        <command>auto-dnssec</command> zone option to
+                        be set to <literal>maintain</literal> or
+                        <literal>create</literal>, and also requires
                         the zone to be configured to allow dynamic DNS.
                         See <xref linkend="dynamic_update_policies"/> for
                         more details.
@@ -10614,16 +10643,27 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                   </para>
                   <para>
                     <command>auto-dnssec allow;</command> permits
-                    keys to be updated and the zone re-signed whenever the
-                    user issues the command <command>rndc sign
+                    keys to be updated and the zone fully re-signed
+                    whenever the user issues the command <command>rndc sign
                     <replaceable>zonename</replaceable></command>.
                   </para>
                   <para>
                     <command>auto-dnssec maintain;</command> includes the
                     above, but also automatically adjusts the zone's DNSSEC
                     keys on schedule, according to the keys' timing metadata
-                    (see <xref linkend="man.dnssec-keygen"/> and
-                    <xref linkend="man.dnssec-settime"/>).
+                    (see <xref linkend="man.dnyssec-keygen"/> and
+                    <xref linkend="man.dnssec-settime"/>).  The command
+                    <command>rndc sign
+                    <replaceable>zonename</replaceable></command> causes
+                    <command>named</command> to load keys from the key
+                    repository and sign the zone with all keys that are
+                    active. 
+                    <command>rndc loadkeys
+                    <replaceable>zonename</replaceable></command> causes
+                    <command>named</command> to load keys from the key
+                    repository and schedule key maintenance events to occur
+                    in the future, but it does not sign the full zone
+                    immediately.
                   </para>
                   <para>
                     <command>auto-dnssec create;</command> includes the
