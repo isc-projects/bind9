@@ -1,3 +1,6 @@
+2941.	[bug]		sdb and sdlz (dlz's zone database) failed to support
+			DNAME at the zone apex.  [RT #21610]
+
 2940.	[port]		Remove connection aborted error message on
 			Windows. [RT #21549]
 
