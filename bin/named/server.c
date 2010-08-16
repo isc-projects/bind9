@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.556.8.23 2010/08/11 18:19:55 each Exp $ */
+/* $Id: server.c,v 1.556.8.24 2010/08/16 22:27:16 marka Exp $ */
 
 /*! \file */
 
@@ -6466,14 +6466,18 @@ ns_server_tsiglist(ns_server_t *server, isc_buffer_t *text) {
 }
 
 /*
- * Act on a "sign" command from the command channel.
+ * Act on a "sign" or "loadkeys" command from the command channel.
  */
 isc_result_t
-ns_server_sign(ns_server_t *server, char *args) {
+ns_server_rekey(ns_server_t *server, char *args) {
 	isc_result_t result;
 	dns_zone_t *zone = NULL;
 	dns_zonetype_t type;
 	isc_uint16_t keyopts;
+	isc_boolean_t fullsign = ISC_FALSE;
+
+	if (strncasecmp(args, NS_COMMAND_SIGN, strlen(NS_COMMAND_SIGN)) == 0)
+	    fullsign = ISC_TRUE;
 
 	result = zone_from_args(server, args, &zone, NULL);
 	if (result != ISC_R_SUCCESS)
@@ -6488,10 +6492,14 @@ ns_server_sign(ns_server_t *server, char *args) {
 	}
 
 	keyopts = dns_zone_getkeyopts(zone);
-	if ((keyopts & DNS_ZONEKEY_ALLOW) != 0)
-		dns_zone_rekey(zone);
-	else
+
+        /* "rndc loadkeys" requires "auto-dnssec maintain". */
+	if ((keyopts & DNS_ZONEKEY_ALLOW) == 0)
 		result = ISC_R_NOPERM;
+	else if ((keyopts & DNS_ZONEKEY_MAINTAIN) == 0 && !fullsign)
+		result = ISC_R_NOPERM;
+	else
+		dns_zone_rekey(zone, fullsign);
 
 	dns_zone_detach(&zone);
 	return (result);

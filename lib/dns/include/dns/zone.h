@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.174.4.3 2010/08/13 23:46:28 tbox Exp $ */
+/* $Id: zone.h,v 1.174.4.4 2010/08/16 22:27:18 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -89,6 +89,7 @@ typedef enum {
 #define DNS_ZONEKEY_ALLOW	0x00000001U	/*%< fetch keys on command */
 #define DNS_ZONEKEY_MAINTAIN	0x00000002U	/*%< publish/sign on schedule */
 #define DNS_ZONEKEY_CREATE	0x00000004U	/*%< make keys when needed */
+#define DNS_ZONEKEY_FULLSIGN    0x00000008U     /*%< roll to new keys immediately */
 
 #ifndef DNS_ZONE_MINREFRESH
 #define DNS_ZONE_MINREFRESH		    300	/*%< 5 minutes */
@@ -1779,9 +1780,14 @@ dns_zone_getprivatetype(dns_zone_t *zone);
  */
 
 void
-dns_zone_rekey(dns_zone_t *zone);
+dns_zone_rekey(dns_zone_t *zone, isc_boolean_t fullsign);
 /*%<
  * Update the zone's DNSKEY set from the key repository.
+ *
+ * If 'fullsign' is true, trigger an immediate full signing of
+ * the zone with the new key.  Otherwise, if there are no keys or
+ * if the new keys are for algorithms that have already signed the
+ * zone, then the zone can be re-signed incrementally.
  */
 
 isc_result_t
