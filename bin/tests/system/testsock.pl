@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: testsock.pl,v 1.14 2004/03/05 04:59:13 marka Exp $
+# $Id: testsock.pl,v 1.14.18.1 2010/08/17 04:12:05 marka Exp $
 
 # Test whether the interfaces on 10.53.0.* are up.
 
@@ -33,7 +33,7 @@ my @ids;
 if ($id != 0) {
 	@ids = ($id);
 } else {
-	@ids = (1..5);
+	@ids = (1..6);
 }
 
 foreach $id (@ids) {
