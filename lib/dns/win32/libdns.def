@@ -705,6 +705,7 @@ dns_view_setcache2
 dns_view_setdstport
 dns_view_sethints
 dns_view_setkeyring
+dns_view_setnewzones
 dns_view_setresquerystats
 dns_view_setresstats
 dns_view_setrootdelonly
