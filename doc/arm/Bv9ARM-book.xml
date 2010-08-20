@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.450.4.13 2010/08/20 00:17:40 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.450.4.14 2010/08/20 01:36:45 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -8483,6 +8483,14 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   and clamp the SOA refresh and retry times to the specified
                   values.
                 </para>
+		<para>
+		  The following defaults apply.
+		  <command>min-refresh-time</command> 300 seconds,
+		  <command>max-refresh-time</command> 2419200 seconds
+		  (4 weeks), <command>min-retry-time</command> 500 seconds,
+		  and <command>max-retry-time</command> 1209600 seconds
+		  (2 weeks).
+		</para>
               </listitem>
             </varlistentry>
 
