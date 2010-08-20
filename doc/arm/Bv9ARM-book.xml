@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.450.4.12 2010/08/16 22:27:17 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.450.4.13 2010/08/20 00:17:40 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -8737,9 +8737,12 @@ XXX: end of RFC1918 addresses #defined out -->
 	      <listitem>127.IN-ADDR.ARPA</listitem>
 	      <listitem>254.169.IN-ADDR.ARPA</listitem>
 	      <listitem>2.0.192.IN-ADDR.ARPA</listitem>
+	      <listitem>100.51.198.IN-ADDR.ARPA</listitem>
+	      <listitem>113.0.203.IN-ADDR.ARPA</listitem>
 	      <listitem>255.255.255.255.IN-ADDR.ARPA</listitem>
 	      <listitem>0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.IP6.ARPA</listitem>
 	      <listitem>1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.IP6.ARPA</listitem>
+	      <listitem>8.B.D.0.1.0.0.2.IP6.ARPA</listitem>
 	      <listitem>D.F.IP6.ARPA</listitem>
 	      <listitem>8.E.F.IP6.ARPA</listitem>
 	      <listitem>9.E.F.IP6.ARPA</listitem>
