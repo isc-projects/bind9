@@ -1,3 +1,8 @@
+2945.	[doc]		Update empty-zones list in ARM. [RT #21772]
+
+2944.	[maint]		Remove ORCHID prefix from built in empty zones.
+			[RT #21772]
+
 2937.	[bug]		Worked around an apparent race condition in over
 			memory conditions.  Without this fix a DNS cache DB or
 			ADB could incorrectly stay in an over memory state,
