@@ -1,3 +1,8 @@
+2945.	[doc]		Update empty-zones list in ARM. [RT #21772]
+
+2944.	[maint]		Remove ORCHID prefix from built in empty zones.
+			[RT #21772]
+
 2942.	[contrib]	zone2sqlite failed to setup the entropy sources.
 			[RT #21610]
 
