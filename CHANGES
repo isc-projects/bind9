@@ -1,3 +1,8 @@
+2945.	[doc]		Update empty-zones list in ARM. [RT #21772]
+
+2944.	[maint]		Remove ORCHID prefix from built in empty zones.
+			[RT #21772]
+
 2943.	[func]		Add support to load new keys into managed zones
 			without signing immediately with "rndc loadkeys".
 			Add support to link keys with "dnssec-keygen -S"
