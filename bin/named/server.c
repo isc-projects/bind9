@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.556.8.26 2010/08/20 00:17:40 marka Exp $ */
+/* $Id: server.c,v 1.556.8.27 2010/08/24 01:01:45 marka Exp $ */
 
 /*! \file */
 
@@ -6942,7 +6942,7 @@ ns_server_del_zone(ns_server_t *server, char *args) {
 
 			/* Just spool the remainder of the file out */
 			result = isc_stdio_read(buf, 1, 1024, ifp, &n);
-			while (n > 0) {
+			while (n > 0U) {
 				if (result == ISC_R_EOF)
 					result = ISC_R_SUCCESS;
 				CHECK(result);
