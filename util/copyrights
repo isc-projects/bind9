@@ -232,9 +232,9 @@
 ./bin/pkcs11/.cvsignore				X	2009
 ./bin/pkcs11/Makefile.in			MAKE	2009
 ./bin/pkcs11/OLD-PKCS11-NOTES			X	2009
-./bin/pkcs11/include/pkcs11.h			C	2009
-./bin/pkcs11/include/pkcs11f.h			C	2009
-./bin/pkcs11/include/pkcs11t.h			C	2009
+./bin/pkcs11/include/pkcs11.h			X	2009
+./bin/pkcs11/include/pkcs11f.h			X	2009
+./bin/pkcs11/include/pkcs11t.h			X	2009
 ./bin/pkcs11/openssl-0.9.8k-patch		X	2009
 ./bin/pkcs11/openssl-0.9.8l-patch		X	2009
 ./bin/pkcs11/pkcs11-destroy.8			MAN	DOCBOOK
@@ -249,9 +249,9 @@
 ./bin/pkcs11/pkcs11-list.c			X	2009
 ./bin/pkcs11/pkcs11-list.docbook		SGML	2009
 ./bin/pkcs11/pkcs11-list.html			HTML	DOCBOOK
-./bin/pkcs11/unix/cryptoki.h			C	2009
+./bin/pkcs11/unix/cryptoki.h			X	2009
 ./bin/pkcs11/unix/unix.c			C	2009
-./bin/pkcs11/win32/cryptoki.h			C	2009
+./bin/pkcs11/win32/cryptoki.h			X	2009
 ./bin/pkcs11/win32/destroy.dsp			X	2009
 ./bin/pkcs11/win32/destroy.dsw			X	2009
 ./bin/pkcs11/win32/destroy.mak			X	2009
