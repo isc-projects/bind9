@@ -1,4 +1,4 @@
-Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+Copyright (C) 2004, 2010  Internet Systems Consortium, Inc. ("ISC")
 Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
@@ -57,4 +57,4 @@ The tests can be run individually like this:
 
 To run all the tests, just type "make test".
 
-$Id: README,v 1.13 2010/08/25 04:51:51 marka Exp $
+$Id: README,v 1.14 2010/08/25 23:46:37 tbox Exp $
