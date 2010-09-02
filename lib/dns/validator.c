@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.119.18.58 2010/06/26 00:11:50 marka Exp $ */
+/* $Id: validator.c,v 1.119.18.59 2010/09/02 07:21:53 marka Exp $ */
 
 /*! \file */
 
@@ -1819,7 +1819,7 @@ validatezonekey(dns_validator_t *val) {
 		     result == ISC_R_SUCCESS;
 		     result = dns_rdataset_next(val->event->sigrdataset))
 		{
-			dns_keynode_t *keynode = NULL, *nextnode = NULL;
+			dns_keynode_t *keynode = NULL;
 			dns_fixedname_t fixed;
 			dns_name_t *found;
 
@@ -1860,6 +1860,7 @@ validatezonekey(dns_validator_t *val) {
 			    result == ISC_R_SUCCESS)
 				atsep = ISC_TRUE;
 			while (result == ISC_R_SUCCESS) {
+				dns_keynode_t *nextnode = NULL;
 				dstkey = dns_keynode_key(keynode);
 				result = verify(val, dstkey, &sigrdata,
 						sig.keyid);

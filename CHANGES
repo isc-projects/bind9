@@ -16,6 +16,9 @@
 2890.	[bug]		Handle the introduction of new trusted-keys and
 			DS, DLV RRsets better. [RT #21097]
 
+2869.	[bug]		Fix arguments to dns_keytable_findnextkeynode() call.
+			[RT #20877]
+
 2678.	[func]		Treat DS queries as if "minimal-response yes;"
 			was set. [RT #20258]
 
