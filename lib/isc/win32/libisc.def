@@ -262,6 +262,7 @@ isc_mem_getname
 isc_mem_getquota
 isc_mem_gettag
 isc_mem_inuse
+isc_mem_isovermem
 isc_mem_ondestroy
 isc_mem_references
 isc_mem_setdestroycheck
@@ -448,13 +449,13 @@ isc_socketmgr_create2
 isc_socketmgr_destroy
 isc_socketmgr_getmaxsockets
 isc_socketmgr_setstats
-isc_stats_create
 isc_stats_attach
-isc_stats_detach
-isc_stats_ncounters
-isc_stats_increment
+isc_stats_create
 isc_stats_decrement
+isc_stats_detach
 isc_stats_dump
+isc_stats_increment
+isc_stats_ncounters
 isc_stdio_close
 isc_stdio_flush
 isc_stdio_open
