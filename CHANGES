@@ -32,6 +32,9 @@
 2890.	[bug]		Handle the introduction of new trusted-keys and
 			DS, DLV RRsets better. [RT #21097]
 
+2869.	[bug]		Fix arguments to dns_keytable_findnextkeynode() call.
+			[RT #20877]
+
 	--- 9.6-ESV-R1 released ---
 
 2876.	[bug]		Named could return SERVFAIL for negative responses
