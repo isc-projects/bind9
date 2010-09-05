@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.572 2010/08/16 23:46:52 tbox Exp $ */
+/* $Id: zone.c,v 1.573 2010/09/05 12:14:26 fdupont Exp $ */
 
 /*! \file */
 
@@ -10710,7 +10710,8 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 						  NULL, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			if (isc_serial_le(serial, oldserial)) {
-			  dns_zone_log(zone, ISC_LOG_INFO,
+				dns_zone_log(zone,
+					     ISC_LOG_INFO,
 					     "notify from %s: "
 					     "zone is up to date",
 					     fromtext);
