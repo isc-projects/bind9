@@ -1,3 +1,6 @@
+2949.	[bug]		dns_view_setnewzones() contained a memory leak if
+			it was called multiple times. [RT #21942]
+
 2948.	[port]		MacOS: provide a mechanism to configure the test 
 			interfaces at reboot. See bin/tests/system/README
 			for details.
