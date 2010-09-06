@@ -1,3 +1,7 @@
+2950.	[bug]		named failed to perform a SOA up to date check when
+			falling back to TCP on UDP timeouts when
+			ixfr-from-differences was set. [RT #21595]
+			
 2949.	[bug]		dns_view_setnewzones() contained a memory leak if
 			it was called multiple times. [RT #21942]
 
