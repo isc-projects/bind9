@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.572 2010/08/16 23:46:52 tbox Exp $ */
+/* $Id: zone.c,v 1.574 2010/09/06 04:41:13 marka Exp $ */
 
 /*! \file */
 
@@ -10710,7 +10710,8 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 						  NULL, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			if (isc_serial_le(serial, oldserial)) {
-			  dns_zone_log(zone, ISC_LOG_INFO,
+				dns_zone_log(zone,
+					     ISC_LOG_INFO,
 					     "notify from %s: "
 					     "zone is up to date",
 					     fromtext);
@@ -11914,6 +11915,7 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 	isc_sockaddr_t sourceaddr;
 	isc_sockaddr_t masteraddr;
 	isc_time_t now;
+	const char *soa_before = "";
 
 	UNUSED(task);
 
@@ -11941,6 +11943,8 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 	isc_netaddr_fromsockaddr(&masterip, &zone->masteraddr);
 	(void)dns_peerlist_peerbyaddr(zone->view->peers, &masterip, &peer);
 
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_SOABEFOREAXFR))
+		soa_before = "SOA before ";
 	/*
 	 * Decide whether we should request IXFR or AXFR.
 	 */
@@ -11951,8 +11955,12 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 		xfrtype = dns_rdatatype_axfr;
 	} else if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IXFRFROMDIFFS)) {
 		dns_zone_log(zone, ISC_LOG_DEBUG(1), "ixfr-from-differences "
-			     "set, requesting AXFR from %s", master);
-		xfrtype = dns_rdatatype_axfr;
+			     "set, requesting %sAXFR from %s", soa_before,
+			     master);
+		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_SOABEFOREAXFR))
+			xfrtype = dns_rdatatype_soa;
+		else
+			xfrtype = dns_rdatatype_axfr;
 	} else if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FORCEXFER)) {
 		dns_zone_log(zone, ISC_LOG_DEBUG(1),
 			     "forced reload, requesting AXFR of "
@@ -11977,8 +11985,8 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 		}
 		if (use_ixfr == ISC_FALSE) {
 			dns_zone_log(zone, ISC_LOG_DEBUG(1),
-				     "IXFR disabled, requesting AXFR from %s",
-				     master);
+				     "IXFR disabled, requesting %sAXFR from %s",
+				     soa_before, master);
 			if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_SOABEFOREAXFR))
 				xfrtype = dns_rdatatype_soa;
 			else
