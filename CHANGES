@@ -1,3 +1,6 @@
+2949.	[bug]		dns_view_setnewzones() contained a memory leak if
+			it was called multiple times. [RT #21942]
+
 	--- 9.7.2 released ---
 
 2946.	[doc]		Document the default values for the minimum and maximum
