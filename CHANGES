@@ -1,3 +1,7 @@
+2950.	[bug]		named failed to perform a SOA up to date check when
+			falling back to TCP on UDP timeouts when
+			ixfr-from-differences was set. [RT #21595]
+ 
 2946.	[doc]		Document the default values for the minimum and maximum
 			zone refresh and retry values in the ARM. [RT #21886]
 
