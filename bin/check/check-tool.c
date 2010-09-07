@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.c,v 1.35.36.3.24.1 2010/09/07 01:56:05 marka Exp $ */
+/* $Id: check-tool.c,v 1.35.36.3.24.2 2010/09/07 23:46:25 tbox Exp $ */
 
 /*! \file */
 
@@ -670,22 +670,22 @@ dump_zone(const char *zonename, dns_zone_t *zone, const char *filename,
 #ifdef _WIN32
 void
 InitSockets(void) {
-        WORD wVersionRequested;
-        WSADATA wsaData;
-        int err;
+	WORD wVersionRequested;
+	WSADATA wsaData;
+	int err;
 
-        wVersionRequested = MAKEWORD(2, 0);
+	wVersionRequested = MAKEWORD(2, 0);
 
-        err = WSAStartup( wVersionRequested, &wsaData );
-        if (err != 0) {
-                fprintf(stderr, "WSAStartup() failed: %d\n", err);
-                exit(1);
-        }
+	err = WSAStartup( wVersionRequested, &wsaData );
+	if (err != 0) {
+		fprintf(stderr, "WSAStartup() failed: %d\n", err);
+		exit(1);
+	}
 }
 
 void
 DestroySockets(void) {
-        WSACleanup();
+	WSACleanup();
 }
 #endif
 
