@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.270.12.23 2010/09/07 01:12:24 marka Exp $ */
+/* $Id: rbtdb.c,v 1.270.12.24 2010/09/07 01:37:05 marka Exp $ */
 
 /*! \file */
 
@@ -7155,7 +7155,7 @@ dns_rbtdb_create
 			free_rbtdb(rbtdb, ISC_FALSE, NULL);
 			return (result);
 		}
-		nsec3node->nsec = DNS_RBT_NSEC_NSEC3;
+		nsec3node->nsec3 = 1;
 		/*
 		 * We need to give the nsec3 origin node the right locknum.
 		 */
