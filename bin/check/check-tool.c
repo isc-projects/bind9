@@ -15,13 +15,17 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.c,v 1.39 2009/09/01 00:22:24 jinmei Exp $ */
+/* $Id: check-tool.c,v 1.39.104.1 2010/09/07 01:52:22 marka Exp $ */
 
 /*! \file */
 
 #include <config.h>
 
 #include <stdio.h>
+
+#ifdef _WIN32
+#include <Winsock2.h>
+#endif
 
 #include "check-tool.h"
 #include <isc/buffer.h>
@@ -661,3 +665,26 @@ dump_zone(const char *zonename, dns_zone_t *zone, const char *filename,
 
 	return (result);
 }
+
+#ifdef _WIN32
+void
+InitSockets(void) {
+        WORD wVersionRequested;
+        WSADATA wsaData;
+        int err;
+
+        wVersionRequested = MAKEWORD(2, 0);
+
+        err = WSAStartup( wVersionRequested, &wsaData );
+        if (err != 0) {
+                fprintf(stderr, "WSAStartup() failed: %d\n", err);
+                exit(1);
+        }
+}
+
+void
+DestroySockets(void) {
+        WSACleanup();
+}
+#endif
+
