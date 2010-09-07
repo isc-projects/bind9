@@ -1,3 +1,6 @@
+2952.	[port]		win32: named-checkzone and named-checkconf failed
+			to initialise winsock. [RT #21932]
+
 2951.	[bug]		named failed to generate a correct signed response
 			in a optout, delegation only zone with no secure
 			delegations. [RT #22007]
