@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.30.48.8.4.2 2010/09/07 01:15:55 marka Exp $
+# $Id: sign.sh,v 1.30.48.8.4.3 2010/09/07 02:06:00 marka Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -136,8 +136,8 @@ zone=single-nsec3.
 infile=single-nsec3.db.in
 zonefile=single-nsec3.db
 
-keyname1=`$KEYGEN -q -r $RANDFILE -a RSASHA256 -b 1024 -n zone -f KSK $zone`
-keyname2=`$KEYGEN -q -r $RANDFILE -a RSASHA256 -b 1024 -n zone $zone`
+keyname1=`$KEYGEN -r $RANDFILE -a RSASHA256 -b 1024 -n zone -f KSK $zone`
+keyname2=`$KEYGEN -r $RANDFILE -a RSASHA256 -b 1024 -n zone $zone`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
