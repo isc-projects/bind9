@@ -1,3 +1,7 @@
+2951.	[bug]		named failed to generate a correct signed response
+			in a optout, delegation only zone with no secure
+			delegations. [RT #22007]
+
 	--- 9.6-ESV-R2 released ---
 
 2939.	[func]		Check that named successfully skips NSEC3 records
