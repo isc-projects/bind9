@@ -1,3 +1,7 @@
+2953.	[bug]		Silence spurious "expected covering NSEC3, got an
+			exact match" message when returning a wildcard
+			no data response. [RT #21744]
+
 2952.	[port]		win32: named-checkzone and named-checkconf failed
 			to initialise winsock. [RT #21932]
 
