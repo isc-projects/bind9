@@ -1,3 +1,14 @@
+2953.	[bug]		Silence spurious "expected covering NSEC3, got an
+			exact match" message when returning a wildcard
+			no data response. [RT #21744]
+
+2952.	[port]		win32: named-checkzone and named-checkconf failed
+			to initialise winsock. [RT #21932]
+
+2951.	[bug]		named failed to generate a correct signed response
+			in a optout, delegation only zone with no secure
+			delegations. [RT #22007]
+
 2950.	[bug]		named failed to perform a SOA up to date check when
 			falling back to TCP on UDP timeouts when
 			ixfr-from-differences was set. [RT #21595]
