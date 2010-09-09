@@ -46,6 +46,8 @@ BIND 9
 BIND 9.5.3
 
         BIND 9.5.3 is a maintenance release, fixing bugs in 9.5.2.
+	BIND 9.5.3 is intended to be the last release in the BIND 9.5.x
+	series.
 
 BIND 9.5.2
 
