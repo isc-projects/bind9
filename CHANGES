@@ -1,3 +1,6 @@
+
+	--- 9.6.3b1 released ---
+
 2953.	[bug]		Silence spurious "expected covering NSEC3, got an
 			exact match" message when returning a wildcard
 			no data response. [RT #21744]
