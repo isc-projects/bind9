@@ -1,3 +1,5 @@
+2956.	[port]		Enable atomic operations on the PowerPC64. [RT #21899]
+
 2955.	[func]		Provide more detail in the recursing log. [RT #22043]
 
 2954.	[bug]		contrib: dlz_mysql_driver.c bad error handling on
