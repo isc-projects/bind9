@@ -1,4 +1,6 @@
 2954.	[bug]		contrib: dlz_mysql_driver.c bad error handling on
+2956.	[port]		Enable atomic operations on the PowerPC64. [RT #21899]
+
 			build_sqldbinstance failure. [RT #21623]
 
 2953.	[bug]		Silence spurious "expected covering NSEC3, got an
