@@ -1,3 +1,5 @@
+2954.	[bug]		contrib: dlz_mysql_driver.c bad error handling on
+			build_sqldbinstance failure. [RT #21623]
 
 	--- 9.6.3b1 released ---
 
