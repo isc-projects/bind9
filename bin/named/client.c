@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.266 2009/10/26 23:14:53 each Exp $ */
+/* $Id: client.c,v 1.267 2010/09/13 03:37:43 marka Exp $ */
 
 #include <config.h>
 
@@ -2763,9 +2763,14 @@ void
 ns_client_dumprecursing(FILE *f, ns_clientmgr_t *manager) {
 	ns_client_t *client;
 	char namebuf[DNS_NAME_FORMATSIZE];
+	char original[DNS_NAME_FORMATSIZE];
 	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
+	char typebuf[DNS_RDATATYPE_FORMATSIZE];
+	char classbuf[DNS_RDATACLASS_FORMATSIZE];
 	const char *name;
 	const char *sep;
+	const char *origfor;
+	dns_rdataset_t *rdataset;
 
 	REQUIRE(VALID_MANAGER(manager));
 
@@ -2783,8 +2788,31 @@ ns_client_dumprecursing(FILE *f, ns_clientmgr_t *manager) {
 			sep = "";
 		}
 		dns_name_format(client->query.qname, namebuf, sizeof(namebuf));
-		fprintf(f, "; client %s%s%s: '%s' requesttime %d\n",
-			peerbuf, sep, name, namebuf, client->requesttime);
+		if (client->query.qname != client->query.origqname &&
+		    client->query.origqname != NULL) {
+			origfor = " for ";
+			dns_name_format(client->query.origqname, original,
+					sizeof(original));
+		} else {
+			origfor = "";
+			original[0] = '\0';
+		}
+		rdataset = ISC_LIST_HEAD(client->query.qname->list);
+		if (rdataset == NULL && client->query.origqname != NULL)
+			rdataset = ISC_LIST_HEAD(client->query.origqname->list);
+		if (rdataset != NULL) {
+			dns_rdatatype_format(rdataset->type, typebuf,
+					     sizeof(typebuf));
+			dns_rdataclass_format(rdataset->rdclass, classbuf,
+					      sizeof(classbuf));
+		} else {
+			strcpy(typebuf, "-");
+			strcpy(classbuf, "-");
+		}
+		fprintf(f, "; client %s%s%s: id %u '%s/%s/%s'%s%s "
+			"requesttime %d\n", peerbuf, sep, name,
+			client->message->id, namebuf, typebuf, classbuf,
+			origfor, original, client->requesttime);
 		client = ISC_LIST_NEXT(client, link);
 	}
 	UNLOCK(&manager->lock);
