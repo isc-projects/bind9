@@ -359,6 +359,7 @@ rt21474				new	jinmei	// 2010-06-07 21:13 +0000
 rt21555				new	marka	// 2010-06-22 05:00 +0000
 rt21581				new	fdupont	// 2010-06-23 21:26 +0000
 rt21594				new	marka	// 2010-06-25 06:48 +0000
+rt21594_regres			new	marka	// 2010-09-14 01:35 +0000
 rt21610				new	marka	// 2010-06-29 09:51 +0000
 rt21670				new	fdupont	// 2010-09-06 12:15 +0000
 rt21710				new	jinmei	// 2010-07-14 22:28 +0000
@@ -376,6 +377,7 @@ rt21991				new	marka	// 2010-08-27 08:25 +0000
 rt22007				new	marka	// 2010-08-31 03:36 +0000
 rt22059				new	marka	// 2010-09-09 00:20 +0000
 rt22062				new	fdupont	// 2010-09-10 09:45 +0000
+rt22076				new	marka	// 2010-09-14 06:10 +0000
 shane_dbbackend			open	
 skan				open	explorer
 skan-metazones1			private	explorer
