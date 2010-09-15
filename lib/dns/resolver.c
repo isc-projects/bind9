@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.413.14.12 2010/09/13 23:25:22 marka Exp $ */
+/* $Id: resolver.c,v 1.413.14.13 2010/09/15 12:23:17 marka Exp $ */
 
 /*! \file */
 
@@ -6462,7 +6462,7 @@ betterreferral(fetchctx_t *fctx) {
 	     result = dns_message_nextname(message, DNS_SECTION_AUTHORITY)) {
 		name = NULL;
 		dns_message_currentname(message, DNS_SECTION_AUTHORITY, &name);
-		if (!dns_name_issubdomain(name, &fctx->domain))
+		if (!isstrictsubdomain(name, &fctx->domain))
 			continue;
 		for (rdataset = ISC_LIST_HEAD(name->list);
 		     rdataset != NULL;

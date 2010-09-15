@@ -1,3 +1,6 @@
+2961.	[bug]		Be still more selective about the non-authoritative
+			answers we apply change 2748 to. [RT #22074]
+
 2960.	[func]		Check that named accepts non-authoritative answers.
 			[RT #21594]
 
