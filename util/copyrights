@@ -819,7 +819,7 @@
 ./bin/tests/system/lwresd/resolv.conf		CONF-SH	2000,2001,2004,2007
 ./bin/tests/system/lwresd/tests.sh		SH	2000,2001,2004,2007
 ./bin/tests/system/masterfile/.cvsignore	X	2001
-./bin/tests/system/masterfile/clean.sh		SH	2001,2004,2007
+./bin/tests/system/masterfile/clean.sh		SH	2001,2004,2007,2010
 ./bin/tests/system/masterfile/knowngood.dig.out	X	2001,2004
 ./bin/tests/system/masterfile/ns1/.cvsignore	X	2001
 ./bin/tests/system/masterfile/ns1/include.db	ZONE	2001,2004,2007
@@ -827,7 +827,9 @@
 ./bin/tests/system/masterfile/ns1/sub.db	ZONE	2001,2004,2007
 ./bin/tests/system/masterfile/ns1/ttl1.db	ZONE	2001,2004,2007
 ./bin/tests/system/masterfile/ns1/ttl2.db	ZONE	2001,2004,2007
-./bin/tests/system/masterfile/tests.sh		SH	2001,2004,2007
+./bin/tests/system/masterfile/ns2/example.db	ZONE	2010
+./bin/tests/system/masterfile/ns2/named.conf	CONF-C	2010
+./bin/tests/system/masterfile/tests.sh		SH	2001,2004,2007,2010
 ./bin/tests/system/masterformat/clean.sh	SH	2005,2007
 ./bin/tests/system/masterformat/ns1/.cvsignore	X	2009
 ./bin/tests/system/masterformat/ns1/compile.sh	SH	2005,2006,2007
@@ -918,7 +920,11 @@
 ./bin/tests/system/resolver/ns1/.cvsignore	X	2001
 ./bin/tests/system/resolver/ns1/named.conf	CONF-C	2000,2001,2004,2007,2009
 ./bin/tests/system/resolver/ns1/root.hint	ZONE	2000,2001,2004,2007
+./bin/tests/system/resolver/ns4/named.conf	CONF-C	2010
 ./bin/tests/system/resolver/ns4/named.noaa	TXT.BRIEF	2010
+./bin/tests/system/resolver/ns4/root.db		ZONE	2010
+./bin/tests/system/resolver/ns5/named.conf	CONF-C	2010
+./bin/tests/system/resolver/ns5/root.hint	ZONE	2010
 ./bin/tests/system/resolver/prereq.sh		SH	2000,2001,2004,2007
 ./bin/tests/system/resolver/tests.sh		SH	2000,2001,2004,2007,2009,2010
 ./bin/tests/system/rrsetorder/clean.sh		SH	2006,2007,2008
@@ -1934,7 +1940,7 @@
 ./lib/dns/ncache.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2010
 ./lib/dns/nsec.c				C	1999,2000,2001,2003,2004,2005,2007,2008,2009
 ./lib/dns/nsec3.c				C	2006,2008,2009,2010
-./lib/dns/openssl_link.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
+./lib/dns/openssl_link.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
 ./lib/dns/openssldh_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009
 ./lib/dns/openssldsa_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009
 ./lib/dns/opensslrsa_link.c			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
