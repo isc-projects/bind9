@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.11.142.4 2010/09/15 15:45:16 each Exp $
+# $Id: tests.sh,v 1.11.142.5 2010/09/15 23:23:22 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -125,7 +125,7 @@ echo "I: RT21594 regression test check setup ($n)"
 ret=0
 # Check that "aa" is not being set by the authoritative server.
 $DIG +tcp . @10.53.0.4 soa -p 5300 > dig.ns4.out.${n} || ret=1
-grep -E 'flags:( (qr|rd|ra|cd|ad))* *;' dig.ns4.out.${n} > /dev/null || ret=1
+grep 'flags: qr rd;' dig.ns4.out.${n} > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
