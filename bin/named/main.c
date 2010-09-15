@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.178 2010/06/26 23:46:49 tbox Exp $ */
+/* $Id: main.c,v 1.179 2010/09/15 12:07:55 marka Exp $ */
 
 /*! \file */
 
@@ -509,6 +509,8 @@ parse_command_line(int argc, char *argv[]) {
 				ns_g_clienttest = ISC_TRUE;
 			else if (!strcmp(isc_commandline_argument, "nosoa"))
 				ns_g_nosoa = ISC_TRUE;
+			else if (!strcmp(isc_commandline_argument, "noaa"))
+				ns_g_noaa = ISC_TRUE;
 			else if (!strcmp(isc_commandline_argument, "maxudp512"))
 				maxudp = 512;
 			else if (!strcmp(isc_commandline_argument, "maxudp1460"))

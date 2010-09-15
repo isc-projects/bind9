@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.344 2010/09/07 02:28:17 marka Exp $ */
+/* $Id: query.c,v 1.345 2010/09/15 12:07:55 marka Exp $ */
 
 /*! \file */
 
@@ -5365,8 +5365,12 @@ ns_query_start(ns_client_t *client) {
 	/*
 	 * Assume authoritative response until it is known to be
 	 * otherwise.
+	 *
+	 * If "-T noaa" has been set on the command line don't set
+	 * AA on authoritative answers.
 	 */
-	message->flags |= DNS_MESSAGEFLAG_AA;
+	if (!ns_g_noaa)
+		message->flags |= DNS_MESSAGEFLAG_AA;
 
 	/*
 	 * Set AD.  We must clear it if we add non-validated data to a
