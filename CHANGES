@@ -1,3 +1,6 @@
+
+	--- 9.7.2-P1 released ---
+
 2961.	[bug]		Be still more selective about the non-authoritative
 			answers we apply change 2748 to. [RT #22074]
 
