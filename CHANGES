@@ -1,3 +1,6 @@
+2960.	[func]		Check that named accepts non-authoritative answers.
+			[RT #21594]
+
 2959.	[func]		Check that named starts with a missing masterfile.
 			[RT #22076]
 
