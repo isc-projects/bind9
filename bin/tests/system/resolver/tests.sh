@@ -15,12 +15,13 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.9.332.2 2010/05/19 09:31:12 tbox Exp $
+# $Id: tests.sh,v 1.9.332.3 2010/09/15 12:16:50 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 status=0
+n=0
 
 echo "I:checking non-cachable NXDOMAIN response handling"
 ret=0
@@ -49,6 +50,41 @@ $DIG +tcp cname2.example.com. a @10.53.0.1 -p 5300 >/dev/null || status=1
 echo "I:check that server is still running"
 $DIG +tcp www.example.com. a @10.53.0.1 -p 5300 >/dev/null || status=1
 
+n=`expr $n + 1`
+echo "I: RT21594 regression test check setup ($n)"
+ret=0
+# Check that "aa" is not being set by the authoritative server.
+$DIG +tcp . @10.53.0.4 soa -p 5300 > dig.ns4.out.${n} || ret=1
+grep 'flags:\( \(qr\|rd\|ra\|cd\|ad\)\)* *;' dig.ns4.out.${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I: RT21594 regression test positive answers ($n)"
+ret=0
+# Check that resolver accepts the non-authoritative positive answers.
+$DIG +tcp . @10.53.0.5 soa -p 5300 > dig.ns5.out.${n} || ret=1
+grep "status: NOERROR" dig.ns5.out.${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I: RT21594 regression test NODATA answers ($n)"
+ret=0
+# Check that resolver accepts the non-authoritative nodata answers.
+$DIG +tcp . @10.53.0.5 txt -p 5300 > dig.ns5.out.${n} || ret=1
+grep "status: NOERROR" dig.ns5.out.${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I: RT21594 regression test NXDOMAIN answers ($n)"
+ret=0
+# Check that resolver accepts the non-authoritative positive answers.
+$DIG +tcp noexistant @10.53.0.5 txt -p 5300 > dig.ns5.out.${n} || ret=1
+grep "status: NXDOMAIN" dig.ns5.out.${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
 
 echo "I:exit status: $status"
 exit $status
