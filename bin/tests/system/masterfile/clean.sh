@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.5 2007/09/26 03:22:44 marka Exp $
+# $Id: clean.sh,v 1.5.476.1 2010/09/15 03:36:41 marka Exp $
 
-rm -f dig.out
+rm -f dig.out.*
 rm -f */named.memstats
