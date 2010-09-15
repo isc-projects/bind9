@@ -37,4 +37,7 @@
 #ifndef DOMAINCMP_H
 # define DOMAINCMP_H
 extern	int	domaincmp (const char *a, const char *b);
+extern	int	domaincmp_dir (const char *a, const char *b, int subdomain_above);
+extern	int	isparentdomain (const char *child, const char *parent, int level);
+extern	int	issubdomain (const char *child, const char *parent);
 #endif

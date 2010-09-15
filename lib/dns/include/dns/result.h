@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.118 2009/10/12 23:48:02 tbox Exp $ */
+/* $Id: result.h,v 1.118.50.2 2010/02/25 05:25:53 tbox Exp $ */
 
 #ifndef DNS_RESULT_H
 #define DNS_RESULT_H 1
@@ -149,8 +149,9 @@
 #define DNS_R_DUPLICATE			(ISC_RESULTCLASS_DNS + 103)
 #define DNS_R_INVALIDNSEC3		(ISC_RESULTCLASS_DNS + 104)
 #define DNS_R_NOTMASTER 		(ISC_RESULTCLASS_DNS + 105)
+#define DNS_R_BROKENCHAIN		(ISC_RESULTCLASS_DNS + 106)
 
-#define DNS_R_NRESULTS			106	/*%< Number of results */
+#define DNS_R_NRESULTS			107	/*%< Number of results */
 
 /*
  * DNS wire format rcodes.

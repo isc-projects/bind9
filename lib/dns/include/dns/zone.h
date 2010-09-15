@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.174 2009/12/04 22:06:37 tbox Exp $ */
+/* $Id: zone.h,v 1.174.4.4 2010/08/16 22:27:18 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -89,6 +89,7 @@ typedef enum {
 #define DNS_ZONEKEY_ALLOW	0x00000001U	/*%< fetch keys on command */
 #define DNS_ZONEKEY_MAINTAIN	0x00000002U	/*%< publish/sign on schedule */
 #define DNS_ZONEKEY_CREATE	0x00000004U	/*%< make keys when needed */
+#define DNS_ZONEKEY_FULLSIGN    0x00000008U     /*%< roll to new keys immediately */
 
 #ifndef DNS_ZONE_MINREFRESH
 #define DNS_ZONE_MINREFRESH		    300	/*%< 5 minutes */
@@ -1778,10 +1779,15 @@ dns_zone_getprivatetype(dns_zone_t *zone);
  * will not be permanent.
  */
 
-isc_result_t
-dns_zone_rekey(dns_zone_t *zone);
+void
+dns_zone_rekey(dns_zone_t *zone, isc_boolean_t fullsign);
 /*%<
  * Update the zone's DNSKEY set from the key repository.
+ *
+ * If 'fullsign' is true, trigger an immediate full signing of
+ * the zone with the new key.  Otherwise, if there are no keys or
+ * if the new keys are for algorithms that have already signed the
+ * zone, then the zone can be re-signed incrementally.
  */
 
 isc_result_t
@@ -1802,6 +1808,25 @@ dns_zone_nscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version,
  * 	ISC_R_SUCCESS if there were no errors examining the zone contents.
  */
 
+void
+dns_zone_setadded(dns_zone_t *zone, isc_boolean_t added);
+/*%
+ * Sets the value of zone->added, which should be ISC_TRUE for
+ * zones that were originally added by "rndc addzone".
+ *
+ * Requires:
+ * \li	'zone' to be valid.
+ */
+
+isc_boolean_t
+dns_zone_getadded(dns_zone_t *zone);
+/*%
+ * Returns ISC_TRUE if the zone was originally added at runtime
+ * using "rndc addzone".
+ *
+ * Requires:
+ * \li	'zone' to be valid.
+ */
 
 ISC_LANG_ENDDECLS
 

@@ -442,7 +442,7 @@ bdbhpt_allnodes(const char *zone, void *driverarg, void *dbdata,
 		xfr_cursor->c_close(xfr_cursor);
 
 	if (dns_cursor != NULL)
-		dns_cursor->c_close(xfr_cursor);
+		dns_cursor->c_close(dns_cursor);
 
 	return result;
 }
