@@ -14,9 +14,10 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.2.2.2 2010/08/11 18:19:55 each Exp $
+# $Id: clean.sh,v 1.2.2.2.6.1 2010/09/15 03:42:59 marka Exp $
 
 rm -f dig.out.*
+rm -f rndc.out.*
 rm -f ns2/named.conf
 rm -f */named.memstats
 rm -f ns2/*.nzf

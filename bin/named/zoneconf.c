@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.161.4.3 2010/08/11 18:19:55 each Exp $ */
+/* $Id: zoneconf.c,v 1.161.4.3.6.1 2010/09/15 03:42:58 marka Exp $ */
 
 /*% */
 
@@ -565,22 +565,13 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	 * Unless we're using some alternative database, a master zone
 	 * will be needing a master file.
 	 */
-	if (ztype == dns_zone_master && cpval == default_dbtype) {
-		if (filename == NULL) {
-			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
-				      "zone '%s': 'file' not specified",
-				      zname);
-			return (ISC_R_FAILURE);
-		}
-
-		if (!isc_file_exists(filename)) {
-			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
-				      "zone '%s': master file not found",
-				      zname);
-			return (ISC_R_NOTFOUND);
-		}
+	if (ztype == dns_zone_master && cpval == default_dbtype &&
+	    filename == NULL) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "zone '%s': 'file' not specified",
+			      zname);
+		return (ISC_R_FAILURE);
 	}
 
 	masterformat = dns_masterformat_text;

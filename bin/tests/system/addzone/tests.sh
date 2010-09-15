@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.2.2.2 2010/08/11 18:19:55 each Exp $
+# $Id: tests.sh,v 1.2.2.2.6.1 2010/09/15 03:42:59 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -51,6 +51,19 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:adding new zone with missing master file ($n)"
+ret=0
+$DIG $DIGOPTS +all @10.53.0.2 a.missing.example a > dig.out.ns2.pre.$n || ret=1
+grep "status: NOERROR" dig.out.ns2.pre.$n > /dev/null || ret=1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 addzone 'missing.example { type master; file "missing.db"; };' 2> rndc.out.ns2.$n
+grep "file not found" rndc.out.ns2.$n > /dev/null || ret=1
+$DIG $DIGOPTS +all @10.53.0.2 a.missing.example a > dig.out.ns2.post.$n || ret=1
+grep "status: NOERROR" dig.out.ns2.post.$n > /dev/null || ret=1
+$PERL ../digcomp.pl dig.out.ns2.pre.$n dig.out.ns2.post.$n || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:deleting previously added zone ($n)"
 ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 delzone previous.example 2>&1 | sed 's/^/I:ns2 /'
@@ -71,9 +84,10 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:attempt to delete a normally-loaded zone (should fail) ($n)"
+echo "I:attempt to delete a normally-loaded zone ($n)"
 ret=0
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 delzone normal.example 2>&1 | sed 's/^/I:ns2 /'
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 delzone normal.example 2> rndc.out.ns2.$n
+grep "permission denied" rndc.out.ns2.$n > /dev/null || ret=1
 $DIG $DIGOPTS @10.53.0.2 a.normal.example a > dig.out.ns2.$n
 grep 'status: NOERROR' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.normal.example' dig.out.ns2.$n > /dev/null || ret=1
@@ -109,9 +123,10 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:attempting to add zone to internal view (should fail) ($n)"
+echo "I:attempting to add zone to internal view ($n)"
 ret=0
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 addzone 'added.example in internal { type master; file "added.db"; };' 2>&1 | sed 's/^/I:ns2 /'
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 addzone 'added.example in internal { type master; file "added.db"; };' 2> rndc.out.ns2.$n
+grep "permission denied" rndc.out.ns2.$n > /dev/null || ret=1
 $DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.added.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
 n=`expr $n + 1`
