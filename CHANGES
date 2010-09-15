@@ -1,3 +1,6 @@
+2959.	[func]		Check that named starts with a missing masterfile.
+			[RT #22076]
+
 2957.	[bug]		entropy_get() and entropy_getpseudo() failed to match
 			the API for RAND_bytes() and RAND_pseudo_bytes()
 			respectively. [RT #21962]
