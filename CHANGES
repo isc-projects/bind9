@@ -1,3 +1,6 @@
+2962.	[port]		win32: add more dependancies to BINDBuild.dsw.
+			[RT #22062]
+
 2961.	[bug]		Be still more selective about the non-authoritative
 			answers we apply change 2748 to. [RT #22074]
 
