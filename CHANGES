@@ -1,4 +1,4 @@
-2962.	[port]		win32: add more dependancies to BINDBuild.dsw.
+2962.	[port]		win32: add more dependencies to BINDBuild.dsw.
 			[RT #22062]
 
 2952.	[port]		win32: named-checkzone and named-checkconf failed
