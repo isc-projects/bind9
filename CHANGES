@@ -83,7 +83,7 @@
 			[RT #21597]
 
 2931.	[bug]		Temporarily and partially disable change 2864
-			because it would cause inifinite attempts of RRSIG
+			because it would cause infinite attempts of RRSIG
 			queries.  This is an urgent care fix; we'll
 			revisit the issue and complete the fix later.
 			[RT #21710]
@@ -162,7 +162,7 @@
 2885.	[bug]		Improve -fno-strict-aliasing support probing in
 			configure. [RT #21080]
 
-2884.	[bug]		Insufficient valadation in dns_name_getlabelsequence().
+2884.	[bug]		Insufficient validation in dns_name_getlabelsequence().
 			[RT #21283]
 
 2883.	[bug]		'dig +short' failed to handle really large datasets.
