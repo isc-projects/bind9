@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.464 2010/08/20 01:31:10 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.465 2010/09/21 19:47:57 ebersman Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -10662,7 +10662,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                     <command>auto-dnssec maintain;</command> includes the
                     above, but also automatically adjusts the zone's DNSSEC
                     keys on schedule, according to the keys' timing metadata
-                    (see <xref linkend="man.dnyssec-keygen"/> and
+                    (see <xref linkend="man.dnssec-keygen"/> and
                     <xref linkend="man.dnssec-settime"/>).  The command
                     <command>rndc sign
                     <replaceable>zonename</replaceable></command> causes
