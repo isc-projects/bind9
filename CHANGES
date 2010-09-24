@@ -1,3 +1,6 @@
+2963.	[security]	The allow-query acl was being applied instead of the
+			allow-query-cache acl to cache lookups. [RT #22114]
+
 2962.	[port]		win32: add more dependencies to BINDBuild.dsw.
 			[RT #22062]
 
