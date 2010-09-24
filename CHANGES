@@ -1,3 +1,7 @@
+2964.	[bug]		view->queryacl was being overloaded.  Seperate the
+			usage into view->queryacl, view->cacheacl and
+			view->queryonacl. [RT #22114]
+
 2962.	[port]		win32: add more dependencies to BINDBuild.dsw.
 			[RT #22062]
 

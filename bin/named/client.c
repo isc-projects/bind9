@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.259.12.3 2009/01/29 22:40:33 jinmei Exp $ */
+/* $Id: client.c,v 1.259.12.4 2010/09/24 08:09:07 marka Exp $ */
 
 #include <config.h>
 
@@ -1859,13 +1859,13 @@ client_request(isc_task_t *task, isc_event_t *event) {
 				     client->view->recursionacl,
 				     ISC_TRUE) == ISC_R_SUCCESS &&
 	    ns_client_checkaclsilent(client, NULL,
-				     client->view->queryacl,
+				     client->view->cacheacl,
 				     ISC_TRUE) == ISC_R_SUCCESS &&
 	    ns_client_checkaclsilent(client, &client->interface->addr,
 				     client->view->recursiononacl,
 				     ISC_TRUE) == ISC_R_SUCCESS &&
 	    ns_client_checkaclsilent(client, &client->interface->addr,
-				     client->view->queryonacl,
+				     client->view->cacheonacl,
 				     ISC_TRUE) == ISC_R_SUCCESS)
 		ra = ISC_TRUE;
 
