@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.583 2010/08/24 01:00:31 marka Exp $ */
+/* $Id: server.c,v 1.584 2010/09/24 05:09:02 marka Exp $ */
 
 /*! \file */
 
@@ -1444,6 +1444,9 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 		dns_acache_setcachesize(view->acache, max_acache_size);
 	}
 
+	CHECK(configure_view_acl(NULL, ns_g_config, "allow-query", NULL, actx,
+			         ns_g_mctx, &view->queryacl));
+	
 	/*
 	 * Configure the zones.
 	 */
@@ -2051,16 +2054,14 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 	 * "allow-recursion", and "allow-recursion-on" acls if
 	 * configured in named.conf.
 	 */
-	if (view->queryacl == NULL)
-		CHECK(configure_view_acl(vconfig, config,
-					 "allow-query-cache", NULL,
-					 actx, ns_g_mctx, &view->queryacl));
+	CHECK(configure_view_acl(vconfig, config, "allow-query-cache", NULL,
+				 actx, ns_g_mctx, &view->cacheacl));
 	CHECK(configure_view_acl(vconfig, config, "allow-query-cache-on", NULL,
-				 actx, ns_g_mctx, &view->queryonacl));
-	if (view->queryonacl == NULL)
+				 actx, ns_g_mctx, &view->cacheonacl));
+	if (view->cacheonacl == NULL)
 		CHECK(configure_view_acl(NULL, ns_g_config,
 					 "allow-query-cache-on", NULL, actx,
-					 ns_g_mctx, &view->queryonacl));
+					 ns_g_mctx, &view->cacheonacl));
 	if (strcmp(view->name, "_bind") != 0) {
 		CHECK(configure_view_acl(vconfig, config, "allow-recursion",
 					 NULL, actx, ns_g_mctx,
@@ -2076,14 +2077,20 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 	 * "allow-recursion" inherits from "allow-query-cache" if set,
 	 * otherwise from "allow-query" if set.
 	 */
-	if (view->queryacl == NULL && view->recursionacl != NULL)
-		dns_acl_attach(view->recursionacl, &view->queryacl);
-	if (view->queryacl == NULL && view->recursion)
+	if (view->cacheacl == NULL && view->recursionacl != NULL)
+		dns_acl_attach(view->recursionacl, &view->cacheacl);
+        /*
+         * XXXEACH: This call to configure_view_acl() is redundant.  We
+         * are leaving it as it is because we are making a minimal change
+         * for a patch release.  In the future this should be changed to
+         * dns_acl_attach(view->queryacl, &view->cacheacl).
+         */
+	if (view->cacheacl == NULL && view->recursion)
 		CHECK(configure_view_acl(vconfig, config, "allow-query", NULL,
-					 actx, ns_g_mctx, &view->queryacl));
+					 actx, ns_g_mctx, &view->cacheacl));
 	if (view->recursion &&
-	    view->recursionacl == NULL && view->queryacl != NULL)
-		dns_acl_attach(view->queryacl, &view->recursionacl);
+	    view->recursionacl == NULL && view->cacheacl != NULL)
+		dns_acl_attach(view->cacheacl, &view->recursionacl);
 
 	/*
 	 * Set default "allow-recursion", "allow-recursion-on" and
@@ -2099,15 +2106,14 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 					 "allow-recursion-on", NULL,
 					 actx, ns_g_mctx,
 					 &view->recursiononacl));
-	if (view->queryacl == NULL) {
+	if (view->cacheacl == NULL) {
 		if (view->recursion)
 			CHECK(configure_view_acl(NULL, ns_g_config,
 						 "allow-query-cache", NULL,
 						 actx, ns_g_mctx,
-						 &view->queryacl));
-		else if (view->new_zone_file == NULL) {
-			CHECK(dns_acl_none(ns_g_mctx, &view->queryacl));
-		}
+						 &view->cacheacl));
+                else
+                        CHECK(dns_acl_none(mctx, &view->cacheacl));
 	}
 
 	/*
