@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1997-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.153 2009/09/02 23:43:54 each Exp $ */
+/* $Id: mem.c,v 1.153.104.6 2010/08/11 23:46:20 tbox Exp $ */
 
 /*! \file */
 
@@ -75,7 +75,7 @@ struct debuglink {
 };
 
 #define FLARG_PASS	, file, line
-#define FLARG		, const char *file, int line
+#define FLARG		, const char *file, unsigned int line
 #else
 #define FLARG_PASS
 #define FLARG
@@ -144,6 +144,7 @@ struct isc__mem {
 	size_t			hi_water;
 	size_t			lo_water;
 	isc_boolean_t		hi_called;
+	isc_boolean_t		is_overmem;
 	isc_mem_water_t		water;
 	void *			water_arg;
 	ISC_LIST(isc__mempool_t) pools;
@@ -269,6 +270,8 @@ ISC_MEMFUNC_SCOPE size_t
 isc__mem_getquota(isc_mem_t *ctx);
 ISC_MEMFUNC_SCOPE size_t
 isc__mem_inuse(isc_mem_t *ctx);
+ISC_MEMFUNC_SCOPE isc_boolean_t
+isc__mem_isovermem(isc_mem_t *ctx);
 ISC_MEMFUNC_SCOPE void
 isc__mem_setwater(isc_mem_t *ctx, isc_mem_water_t water, void *water_arg,
 		  size_t hiwater, size_t lowater);
@@ -345,6 +348,7 @@ static struct isc__memmethods {
 		isc__mem_setwater,
 		isc__mem_waterack,
 		isc__mem_inuse,
+		isc__mem_isovermem,
 		isc__mempool_create
 	}
 #ifndef BIND9
@@ -394,6 +398,7 @@ add_trace_entry(isc__mem_t *mctx, const void *ptr, unsigned int size
 {
 	debuglink_t *dl;
 	unsigned int i;
+	unsigned int mysize = size;
 
 	if ((isc_mem_debugging & ISC_MEM_DEBUGTRACE) != 0)
 		fprintf(stderr, isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
@@ -405,10 +410,10 @@ add_trace_entry(isc__mem_t *mctx, const void *ptr, unsigned int size
 	if (mctx->debuglist == NULL)
 		return;
 
-	if (size > mctx->max_size)
-		size = mctx->max_size;
+	if (mysize > mctx->max_size)
+		mysize = mctx->max_size;
 
-	dl = ISC_LIST_HEAD(mctx->debuglist[size]);
+	dl = ISC_LIST_HEAD(mctx->debuglist[mysize]);
 	while (dl != NULL) {
 		if (dl->count == DEBUGLIST_COUNT)
 			goto next;
@@ -443,7 +448,7 @@ add_trace_entry(isc__mem_t *mctx, const void *ptr, unsigned int size
 	dl->line[0] = line;
 	dl->count = 1;
 
-	ISC_LIST_PREPEND(mctx->debuglist[size], dl, link);
+	ISC_LIST_PREPEND(mctx->debuglist[mysize], dl, link);
 	mctx->debuglistcnt++;
 }
 
@@ -938,6 +943,7 @@ isc__mem_createx2(size_t init_max_size, size_t target_size,
 	ctx->hi_water = 0;
 	ctx->lo_water = 0;
 	ctx->hi_called = ISC_FALSE;
+	ctx->is_overmem = ISC_FALSE;
 	ctx->water = NULL;
 	ctx->water_arg = NULL;
 	ctx->common.impmagic = MEM_MAGIC;
@@ -1049,13 +1055,13 @@ destroy(isc__mem_t *ctx) {
 	unsigned int i;
 	isc_ondestroy_t ondest;
 
-	ctx->common.impmagic = 0;
-	ctx->common.magic = 0;
-
 	LOCK(&lock);
 	ISC_LIST_UNLINK(contexts, ctx, link);
 	totallost += ctx->inuse;
 	UNLOCK(&lock);
+
+	ctx->common.impmagic = 0;
+	ctx->common.magic = 0;
 
 	INSIST(ISC_LIST_EMPTY(ctx->pools));
 
@@ -1280,6 +1286,10 @@ isc___mem_get(isc_mem_t *ctx0, size_t size FLARG) {
 	}
 
 	ADD_TRACE(ctx, ptr, size, file, line);
+	if (ctx->hi_water != 0U && ctx->inuse > ctx->hi_water &&
+	    !ctx->is_overmem) {
+		ctx->is_overmem = ISC_TRUE;
+	}
 	if (ctx->hi_water != 0U && !ctx->hi_called &&
 	    ctx->inuse > ctx->hi_water) {
 		call_water = ISC_TRUE;
@@ -1337,6 +1347,10 @@ isc___mem_put(isc_mem_t *ctx0, void *ptr, size_t size FLARG) {
 	 * when the context was pushed over hi_water but then had
 	 * isc_mem_setwater() called with 0 for hi_water and lo_water.
 	 */
+	if (ctx->is_overmem &&
+	    (ctx->inuse < ctx->lo_water || ctx->lo_water == 0U)) {
+		ctx->is_overmem = ISC_FALSE;
+	}
 	if (ctx->hi_called &&
 	    (ctx->inuse < ctx->lo_water || ctx->lo_water == 0U)) {
 		if (ctx->water != NULL)
@@ -1528,6 +1542,11 @@ isc___mem_allocate(isc_mem_t *ctx0, size_t size FLARG) {
 #if ISC_MEM_TRACKLINES
 	ADD_TRACE(ctx, si, si[-1].u.size, file, line);
 #endif
+	if (ctx->hi_water != 0U && ctx->inuse > ctx->hi_water &&
+	    !ctx->is_overmem) {
+		ctx->is_overmem = ISC_TRUE;
+	}
+
 	if (ctx->hi_water != 0U && !ctx->hi_called &&
 	    ctx->inuse > ctx->hi_water) {
 		ctx->hi_called = ISC_TRUE;
@@ -1618,6 +1637,11 @@ isc___mem_free(isc_mem_t *ctx0, void *ptr FLARG) {
 	 * when the context was pushed over hi_water but then had
 	 * isc_mem_setwater() called with 0 for hi_water and lo_water.
 	 */
+	if (ctx->is_overmem &&
+	    (ctx->inuse < ctx->lo_water || ctx->lo_water == 0U)) {
+		ctx->is_overmem = ISC_FALSE;
+	}
+
 	if (ctx->hi_called &&
 	    (ctx->inuse < ctx->lo_water || ctx->lo_water == 0U)) {
 		ctx->hi_called = ISC_FALSE;
@@ -1750,6 +1774,20 @@ isc__mem_setwater(isc_mem_t *ctx0, isc_mem_water_t water, void *water_arg,
 
 	if (callwater && oldwater != NULL)
 		(oldwater)(oldwater_arg, ISC_MEM_LOWATER);
+}
+
+ISC_MEMFUNC_SCOPE isc_boolean_t
+isc__mem_isovermem(isc_mem_t *ctx0) {
+	isc__mem_t *ctx = (isc__mem_t *)ctx0;
+
+	REQUIRE(VALID_CONTEXT(ctx));
+
+	/*
+	 * We don't bother to lock the context because 100% accuracy isn't
+	 * necessary (and even if we locked the context the returned value
+	 * could be different from the actual state when it's used anyway)
+	 */
+	return (ctx->is_overmem);
 }
 
 ISC_MEMFUNC_SCOPE void

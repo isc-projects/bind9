@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.81 2009/11/10 18:31:47 each Exp $ */
+/* $Id: socket.c,v 1.81.22.1 2010/08/16 22:55:17 marka Exp $ */
 
 /* This code uses functions which are only available on Server 2003 and
  * higher, and Windows XP and higher.
@@ -2439,7 +2439,8 @@ SocketIoThread(LPVOID ThreadContext) {
 				send_recvdone_abort(sock, isc_result);
 				if ((isc_result == ISC_R_UNEXPECTED) ||
 				    ((isc_result == ISC_R_CONNECTIONRESET) &&
-				     (errstatus != ERROR_OPERATION_ABORTED)) ||
+				     (errstatus != ERROR_OPERATION_ABORTED) &&
+				     (errstatus != ERROR_CONNECTION_ABORTED)) ||
 				    (isc_result == ISC_R_HOSTUNREACH)) {
 					UNEXPECTED_ERROR(__FILE__, __LINE__,
 						"SOCKET_RECV: Windows error code: %d, returning ISC error %d",

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.c,v 1.36 2009/10/12 20:48:11 each Exp $ */
+/* $Id: control.c,v 1.36.50.4 2010/08/16 22:27:16 marka Exp $ */
 
 /*! \file */
 
@@ -153,6 +153,8 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 	} else if (command_compare(command, NS_COMMAND_DUMPDB)) {
 		ns_server_dumpdb(ns_g_server, command);
 		result = ISC_R_SUCCESS;
+	} else if (command_compare(command, NS_COMMAND_SECROOTS)) {
+		result = ns_server_dumpsecroots(ns_g_server, command);
 	} else if (command_compare(command, NS_COMMAND_TRACE)) {
 		result = ns_server_setdebuglevel(ns_g_server, command);
 	} else if (command_compare(command, NS_COMMAND_NOTRACE)) {
@@ -187,8 +189,13 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 		result = ns_server_notifycommand(ns_g_server, command, text);
 	} else if (command_compare(command, NS_COMMAND_VALIDATION)) {
 		result = ns_server_validation(ns_g_server, command);
-	} else if (command_compare(command, NS_COMMAND_SIGN)) {
-		result = ns_server_sign(ns_g_server, command);
+	} else if (command_compare(command, NS_COMMAND_SIGN) ||
+		   command_compare(command, NS_COMMAND_LOADKEYS)) {
+		result = ns_server_rekey(ns_g_server, command);
+	} else if (command_compare(command, NS_COMMAND_ADDZONE)) {
+		result = ns_server_add_zone(ns_g_server, command);
+	} else if (command_compare(command, NS_COMMAND_DELZONE)) {
+		result = ns_server_del_zone(ns_g_server, command);
 	} else {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_CONTROL, ISC_LOG_WARNING,
