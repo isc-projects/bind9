@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.556.8.27.6.1 2010/09/24 06:32:56 marka Exp $ */
+/* $Id: server.c,v 1.556.8.27.6.2 2010/09/24 08:31:08 tbox Exp $ */
 
 /*! \file */
 
@@ -1445,8 +1445,8 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 	}
 
 	CHECK(configure_view_acl(NULL, ns_g_config, "allow-query", NULL, actx,
-			         ns_g_mctx, &view->queryacl));
-	
+				 ns_g_mctx, &view->queryacl));
+
 	/*
 	 * Configure the zones.
 	 */
@@ -2079,12 +2079,12 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 	 */
 	if (view->cacheacl == NULL && view->recursionacl != NULL)
 		dns_acl_attach(view->recursionacl, &view->cacheacl);
-        /*
-         * XXXEACH: This call to configure_view_acl() is redundant.  We
-         * are leaving it as it is because we are making a minimal change
-         * for a patch release.  In the future this should be changed to
-         * dns_acl_attach(view->queryacl, &view->cacheacl).
-         */
+	/*
+	 * XXXEACH: This call to configure_view_acl() is redundant.  We
+	 * are leaving it as it is because we are making a minimal change
+	 * for a patch release.  In the future this should be changed to
+	 * dns_acl_attach(view->queryacl, &view->cacheacl).
+	 */
 	if (view->cacheacl == NULL && view->recursion)
 		CHECK(configure_view_acl(vconfig, config, "allow-query", NULL,
 					 actx, ns_g_mctx, &view->cacheacl));
@@ -2112,8 +2112,8 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 						 "allow-query-cache", NULL,
 						 actx, ns_g_mctx,
 						 &view->cacheacl));
-                else
-                        CHECK(dns_acl_none(mctx, &view->cacheacl));
+		else
+			CHECK(dns_acl_none(mctx, &view->cacheacl));
 	}
 
 	/*
