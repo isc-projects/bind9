@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2004, 2007-2009  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 2010  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_hashes.c,v 1.2.4.3 2010/09/29 04:27:59 marka Exp $ */
+/* $Id: t_hashes.c,v 1.2.4.4 2010/09/29 23:46:05 tbox Exp $ */
 
 /*
  * -d1 or larger shows hash or HMAC result even if correct
