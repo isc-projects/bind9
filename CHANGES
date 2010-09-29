@@ -1,3 +1,6 @@
+2965.	[func]		Test HMAC functions using test data from RFC 2104 and
+			RFC 4634. [RT #21702]
+
 2964.	[bug]		view->queryacl was being overloaded.  Seperate the
 			usage into view->queryacl, view->cacheacl and
 			view->queryonacl. [RT #22114]
