@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_hashes.c,v 1.2.2.2 2010/09/29 04:06:07 marka Exp $ */
+/* $Id: t_hashes.c,v 1.2.2.3 2010/09/29 04:29:16 marka Exp $ */
 
 /*
  * -d1 or larger shows hash or HMAC result even if correct
@@ -28,9 +28,10 @@
 #include <isc/hmacmd5.h>
 #include <isc/hmacsha.h>
 #include <isc/md5.h>
+#include <isc/print.h>
 #include <isc/sha1.h>
-#include <isc/util.h>
 #include <isc/string.h>
+#include <isc/util.h>
 
 #include <tests/t_api.h>
 
