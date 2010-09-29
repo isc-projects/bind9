@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.520.12.11.10.2 2010/09/29 00:03:32 marka Exp $ */
+/* $Id: server.c,v 1.520.12.11.10.3 2010/09/29 23:46:31 tbox Exp $ */
 
 /*! \file */
 
@@ -1133,8 +1133,8 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	}
 
 	CHECK(configure_view_acl(NULL, ns_g_config, "allow-query", actx,
-			         ns_g_mctx, &view->queryacl));
-	
+				 ns_g_mctx, &view->queryacl));
+
 	/*
 	 * Configure the zones.
 	 */

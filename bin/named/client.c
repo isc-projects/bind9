@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.259.12.3.24.1 2010/09/29 00:03:32 marka Exp $ */
+/* $Id: client.c,v 1.259.12.3.24.2 2010/09/29 23:46:31 tbox Exp $ */
 
 #include <config.h>
 
