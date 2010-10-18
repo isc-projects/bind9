@@ -1,3 +1,8 @@
+2966.	[bug]		isc_print_vsnprintf() failed to check if there was
+			space available in the buffer when adding a left
+			justified character with a non zero width,
+			(e.g. "%-1c"). [RT #22270]
+
 2964.	[bug]		view->queryacl was being overloaded.  Seperate the
 			usage into view->queryacl, view->cacheacl and
 			view->queryonacl. [RT #22114]
