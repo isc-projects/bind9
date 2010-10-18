@@ -3,6 +3,9 @@
 			justified character with a non zero width,
 			(e.g. "%-1c"). [RT #22270]
 
+2962.	[port]		win32: add more dependancies to BINDBuild.dsw.
+			[RT #22062]
+
 	--- 9.4-ESV-R3 released ---
 
 2925.	[bug]		Named failed to accept uncachable negative responses
