@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print.c,v 1.33.128.2 2008/02/18 23:46:30 tbox Exp $ */
+/* $Id: print.c,v 1.33.128.3 2010/10/18 04:06:37 marka Exp $ */
 
 /*! \file */
 
@@ -468,7 +468,7 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 			if (width > 0) {
 				count += width;
 				width--;
-				if (left) {
+				if (left && size > 1) {
 					*str++ = c;
 					size--;
 				}
