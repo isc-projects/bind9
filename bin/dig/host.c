@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.120 2009/09/29 15:06:05 fdupont Exp $ */
+/* $Id: host.c,v 1.121 2010/10/19 02:48:17 marka Exp $ */
 
 /*! \file */
 
@@ -628,7 +628,9 @@ pre_parse_args(int argc, char **argv) {
 		case 'v': break;
 		case 'w': break;
 		case 'C': break;
-		case 'D': break;
+		case 'D':
+			debugging = ISC_TRUE;
+			break;
 		case 'N': break;
 		case 'R': break;
 		case 'T': break;
@@ -795,7 +797,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			ndots = atoi(isc_commandline_argument);
 			break;
 		case 'D':
-			debugging = ISC_TRUE;
+			/* Handled by pre_parse_args(). */
 			break;
 		case '4':
 			if (have_ipv4) {
