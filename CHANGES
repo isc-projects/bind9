@@ -1,3 +1,6 @@
+2967.	[bug]		'host -D' now turns on debugging messages earlier.
+			[RT #22361]
+
 2966.	[bug]		isc_print_vsnprintf() failed to check if there was
 			space available in the buffer when adding a left
 			justified character with a non zero width,
