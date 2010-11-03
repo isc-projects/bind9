@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: kit.sh,v 1.43 2010/06/23 23:46:58 tbox Exp $
+# $Id: kit.sh,v 1.44 2010/11/03 01:04:36 marka Exp $
 
 # Make a release kit
 #
@@ -76,8 +76,16 @@ then
     RELEASETYPE=s
     RELEASEVER=${dstamp}${releasetag}
     shift
-    tag="$@"
-    arg=-D
+    case $tag in
+    HEAD)
+	tag="$@"
+	arg=-D
+	;;
+    *)
+	arg="-r $tag -D"
+	tag="$@"
+	;;
+    esac
 fi
 
 version=${MAJORVER}.${MINORVER}${PATCHVER:+.}${PATCHVER}${RELEASETYPE}${RELEASEVER}
