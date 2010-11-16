@@ -375,6 +375,7 @@ rt22309				new	marka	// 2010-10-15 09:30 +0000
 rt22363				new	marka	// 2010-10-26 04:57 +0000
 rt22363_v9_6			new	marka	// 2010-10-26 04:50 +0000
 rt22388				new	each	// 2010-10-25 21:55 +0000
+rt22418				new	sar	// 2010-11-03 19:56 +0000
 rt22434				new	each	// 2010-10-30 01:10 +0000
 shane_dbbackend			open	
 skan				open	explorer
@@ -437,6 +438,8 @@ v9_7				active	each	// 2009-12-08 20:59 +0000
 v9_7_0_patch			active	marka	// 2010-02-25 03:05 +0000
 v9_7_1_patch			active	marka	// 2010-06-15 00:47 +0000
 v9_7_2_patch			active	marka	// 2010-09-13 22:37 +0000
+win64				new	marka	// 2010-11-04 00:17 +0000
+win64sizet			new	marka	// 2010-11-08 05:04 +0000
 
 
 a6_remove			closed

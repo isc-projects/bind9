@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.70 2010/09/07 00:58:35 marka Exp $
+# $Id: tests.sh,v 1.71 2010/11/16 01:14:51 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -1033,6 +1033,14 @@ $DIG $DIGOPTS +norec single-nsec3. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
 grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
 grep "3KL3NK1HKQ4IUEEHBEF12VGFKUETNBAN.*NSEC3 1 1 1 - 3KL3NK1HKQ4IUEEHBEF12VGFKUETNBAN" dig.out.ns2.test$n > /dev/null || ret=1
 n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking that a zone finishing the transition from RSASHA1 to RSASHA256 validates secure ($n)"
+ret=0
+$DIG $DIGOPTS ns algroll. @10.53.0.4 > dig.out.ns4.test$n || ret=1
+grep "NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
+grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 

@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: httpd.c,v 1.18 2010/02/04 23:49:13 tbox Exp $ */
+/* $Id: httpd.c,v 1.20 2010/11/16 05:38:31 marka Exp $ */
 
 /*! \file */
 
