@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.164.12.11.8.3 2010/04/21 04:29:01 marka Exp $ */
+/* $Id: validator.c,v 1.164.12.11.8.4 2010/11/16 02:06:37 marka Exp $ */
 
 #include <config.h>
 
@@ -387,6 +387,7 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 	isc_boolean_t want_destroy;
 	isc_result_t result;
 	isc_result_t eresult;
+	isc_result_t saved_result;
 
 	UNUSED(task);
 	INSIST(event->ev_type == DNS_EVENT_FETCHDONE);
@@ -423,6 +424,17 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 				val->keyset = &val->frdataset;
 		}
 		result = validate(val, ISC_TRUE);
+		if (result == DNS_R_NOVALIDSIG &&
+		    (val->attributes & VALATTR_TRIEDVERIFY) == 0)
+		{
+			saved_result = result;
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "falling back to insecurity proof");
+			val->attributes |= VALATTR_INSECURITY;
+			result = proveunsecure(val, ISC_FALSE, ISC_FALSE);
+			if (result == DNS_R_NOTINSECURE)
+				result = saved_result;
+		}
 		if (result != DNS_R_WAIT)
 			validator_done(val, result);
 	} else {
@@ -613,6 +625,7 @@ keyvalidated(isc_task_t *task, isc_event_t *event) {
 	isc_boolean_t want_destroy;
 	isc_result_t result;
 	isc_result_t eresult;
+	isc_result_t saved_result;
 
 	UNUSED(task);
 	INSIST(event->ev_type == DNS_EVENT_VALIDATORDONE);
@@ -639,6 +652,17 @@ keyvalidated(isc_task_t *task, isc_event_t *event) {
 		if (val->frdataset.trust >= dns_trust_secure)
 			(void) get_dst_key(val, val->siginfo, &val->frdataset);
 		result = validate(val, ISC_TRUE);
+		if (result == DNS_R_NOVALIDSIG &&
+		    (val->attributes & VALATTR_TRIEDVERIFY) == 0)
+		{
+			saved_result = result;
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "falling back to insecurity proof");
+			val->attributes |= VALATTR_INSECURITY;
+			result = proveunsecure(val, ISC_FALSE, ISC_FALSE);
+			if (result == DNS_R_NOTINSECURE)
+				result = saved_result;
+		}
 		if (result != DNS_R_WAIT)
 			validator_done(val, result);
 	} else {
@@ -1869,9 +1893,11 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 		 * was known and "sufficiently good".
 		 */
 		if (!dns_resolver_algorithm_supported(val->view->resolver,
-						      event->name,
-						      val->siginfo->algorithm))
+						    event->name,
+						    val->siginfo->algorithm)) {
+			resume = ISC_FALSE;
 			continue;
+		}
 
 		if (!resume) {
 			result = get_key(val, val->siginfo);
@@ -1882,16 +1908,12 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 		}
 
 		/*
-		 * The key is insecure, so mark the data as insecure also.
+		 * There isn't a secure DNSKEY for this signature so move
+		 * onto the next RRSIG.
 		 */
 		if (val->key == NULL) {
-			if (val->mustbesecure) {
-				validator_log(val, ISC_LOG_WARNING,
-					      "must be secure failure");
-				return (DNS_R_MUSTBESECURE);
-			}
-			markanswer(val);
-			return (ISC_R_SUCCESS);
+			resume = ISC_FALSE;
+			continue;
 		}
 
 		do {
@@ -3556,6 +3578,20 @@ proveunsecure(dns_validator_t *val, isc_boolean_t have_ds, isc_boolean_t resume)
 				 */
 				result = DNS_R_NOVALIDNSEC;
 				goto out;
+			} else if (DNS_TRUST_PENDING(val->frdataset.trust) ||
+				   DNS_TRUST_ANSWER(val->frdataset.trust)) {
+				/*
+				 * If we have "trust == answer" then this namespace
+				 * has switched from insecure to should be secure.
+				 */
+				result = create_validator(val, tname,
+							  dns_rdatatype_ds,
+							  &val->frdataset,
+							  NULL, dsvalidated,
+							  "proveunsecure");
+				if (result != ISC_R_SUCCESS)
+					goto out;
+				return (DNS_R_WAIT);
 			} else if (val->frdataset.trust < dns_trust_secure) {
 				/*
 				 * This shouldn't happen, since the negative
