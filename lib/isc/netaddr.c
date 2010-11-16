@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.c,v 1.38 2007/06/18 23:47:44 tbox Exp $ */
+/* $Id: netaddr.c,v 1.39 2010/11/16 00:43:02 marka Exp $ */
 
 /*! \file */
 
@@ -187,6 +187,9 @@ isc_netaddr_format(const isc_netaddr_t *na, char *array, unsigned int size) {
 
 	isc_buffer_init(&buf, array, size);
 	result = isc_netaddr_totext(na, &buf);
+
+	if (size == 0)
+		return;
 
 	/*
 	 * Null terminate.
