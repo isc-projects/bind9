@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.11.142.2.18.3 2010/09/15 23:24:03 marka Exp $
+# $Id: tests.sh,v 1.11.142.2.18.4 2010/11/16 07:04:08 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -154,6 +154,31 @@ ret=0
 $DIG +tcp noexistant @10.53.0.5 txt -p 5300 > dig.ns5.out.${n} || ret=1
 grep "status: NXDOMAIN" dig.ns5.out.${n} > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:check that replacement of additional data by a negative cache no data entry clears the additional RRSIGs ($n)"
+ret=0
+$DIG +tcp mx example.net @10.53.0.7 -p 5300 > dig.ns7.out.${n} || ret=1
+grep "status: NOERROR" dig.ns7.out.${n} > /dev/null || ret=1
+if [ $ret = 1 ]; then echo "I:mx priming failed"; fi
+$NSUPDATE << EOF
+server 10.53.0.6 5300
+zone example.net
+update delete mail.example.net A
+update add mail.example.net 0 AAAA ::1
+send
+EOF
+$DIG +tcp a mail.example.net @10.53.0.7 -p 5300 > dig.ns7.out.${n} || ret=2
+grep "status: NOERROR" dig.ns7.out.${n} > /dev/null || ret=2
+grep "ANSWER: 0" dig.ns7.out.${n} > /dev/null || ret=2
+if [ $ret = 2 ]; then echo "I:ncache priming failed"; fi
+$DIG +tcp mx example.net @10.53.0.7 -p 5300 > dig.ns7.out.${n} || ret=3
+grep "status: NOERROR" dig.ns7.out.${n} > /dev/null || ret=3
+$DIG +tcp rrsig mail.example.net +norec @10.53.0.7 -p 5300 > dig.ns7.out.${n}  || ret=4
+grep "status: NOERROR" dig.ns7.out.${n} > /dev/null || ret=4
+grep "ANSWER: 0" dig.ns7.out.${n} > /dev/null || ret=4
+if [ $ret != 0 ]; then echo "I:failed"; ret=1; fi
 status=`expr $status + $ret`
 
 echo "I:exit status: $status"
