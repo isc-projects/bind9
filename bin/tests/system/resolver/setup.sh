@@ -1,6 +1,7 @@
-#!/bin/sh
+#!/bin/sh -e
 #
-# Copyright (C) 2008, 2009  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,12 +15,8 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.3.142.1 2010/11/16 07:28:37 marka Exp $
+# $Id: setup.sh,v 1.2.4.2 2010/11/16 07:28:37 marka Exp $
 
-#
-# Clean up after resolver tests.
-#
-rm -f */named.memstats
-rm -f dig.out
-rm -f ns6/K*
-rm -f ns6/example.net.db.signed ns6/example.net.db
+../../../tools/genrandom 400 random.data
+
+(cd ns6 && sh keygen.sh)
