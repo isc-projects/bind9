@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.556.8.27.6.2 2010/09/24 08:31:08 tbox Exp $ */
+/* $Id: server.c,v 1.556.8.27.6.3 2010/11/16 02:26:24 sar Exp $ */
 
 /*! \file */
 
@@ -1444,8 +1444,13 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 		dns_acache_setcachesize(view->acache, max_acache_size);
 	}
 
-	CHECK(configure_view_acl(NULL, ns_g_config, "allow-query", NULL, actx,
+	CHECK(configure_view_acl(vconfig, config, "allow-query", NULL, actx,
 				 ns_g_mctx, &view->queryacl));
+	if (view->queryacl == NULL) {
+		CHECK(configure_view_acl(NULL, ns_g_config, "allow-query",
+					 NULL, actx, ns_g_mctx,
+					 &view->queryacl));
+	}
 
 	/*
 	 * Configure the zones.
