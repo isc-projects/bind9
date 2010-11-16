@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.196.18.62 2010/11/16 08:01:09 marka Exp $ */
+/* $Id: rbtdb.c,v 1.196.18.63 2010/11/16 23:45:24 tbox Exp $ */
 
 /*! \file */
 
@@ -4461,7 +4461,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 			covers = RBTDB_RDATATYPE_EXT(newheader->type);
 			sigtype = RBTDB_RDATATYPE_VALUE(dns_rdatatype_rrsig,
 							covers);
-			
+
 			for (topheader = rbtnode->data;
 			     topheader != NULL;
 			     topheader = topheader->next) {
