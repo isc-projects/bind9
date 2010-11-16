@@ -4,6 +4,11 @@
 			unexpected RRSIG was also returned with the NO DATA
 			cache entry.  [RT #22288]
 
+2969.	[security]	Fix acl type processing so that allow-query works
+			in options and view statements.  Also add a new
+			set of tests to verify proper functioning.
+			[RT #22418]
+
 2968.	[security]	Named could fail to prove a data set was insecure
 			before marking it as insecure.  One set of conditions
 			that can trigger this occurs naturally when rolling
