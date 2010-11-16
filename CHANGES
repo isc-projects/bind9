@@ -1,3 +1,9 @@
+2970.	[security]	Adding a NO DATA negative cache entry failed to clear
+			any matching RRSIG records.  A subsequent lookup of
+			of NO DATA cache entry could trigger a INSIST when the
+			unexpected RRSIG was also returned with the NO DATA
+			cache entry.  [RT #22288]
+
 2968.	[security]	Named could fail to prove a data set was insecure
 			before marking it as insecure.  One set of conditions
 			that can trigger this occurs naturally when rolling
