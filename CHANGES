@@ -1,3 +1,8 @@
+2968.	[security]	Named could fail to prove a data set was insecure
+			before marking it as insecure.  One set of conditions
+			that can trigger this occurs naturally when rolling
+			DNSKEY algorithms.  [RT #22309]
+
 2967.	[bug]		'host -D' now turns on debugging messages earlier.
 			[RT #22361]
 
