@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.122 2010/10/19 23:47:10 tbox Exp $ */
+/* $Id: host.c,v 1.123 2010/11/16 00:46:00 marka Exp $ */
 
 /*! \file */
 
@@ -824,8 +824,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	if (isc_commandline_index >= argc)
 		show_usage();
 
-	strncpy(hostname, argv[isc_commandline_index], sizeof(hostname));
-	hostname[sizeof(hostname)-1]=0;
+	strlcpy(hostname, argv[isc_commandline_index], sizeof(hostname));
+
 	if (argc > isc_commandline_index + 1) {
 		set_nameserver(argv[isc_commandline_index+1]);
 		debug("server is %s", argv[isc_commandline_index+1]);
