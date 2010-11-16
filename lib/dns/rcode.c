@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rcode.c,v 1.13 2010/11/16 00:53:36 marka Exp $ */
+/* $Id: rcode.c,v 1.14 2010/11/16 05:38:31 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -493,9 +493,6 @@ dns_rdataclass_format(dns_rdataclass_t rdclass,
 	isc_result_t result;
 	isc_buffer_t buf;
 
-	if (size == 0U)
-		return;
-
 	isc_buffer_init(&buf, array, size);
 	result = dns_rdataclass_totext(rdclass, &buf);
 	/*
@@ -507,6 +504,8 @@ dns_rdataclass_format(dns_rdataclass_t rdclass,
 		else
 			result = ISC_R_NOSPACE;
 	}
-	if (result != ISC_R_SUCCESS)
-		strlcpy(array, "<unknown>", size);
+	if (result != ISC_R_SUCCESS) {
+		snprintf(array, size, "<unknown>");
+		array[size - 1] = '\0';
+	}
 }

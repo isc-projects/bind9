@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdatalist.c,v 1.39 2010/11/16 00:50:28 marka Exp $ */
+/* $Id: rdatalist.c,v 1.40 2010/11/16 05:38:31 marka Exp $ */
 
 /*! \file */
 
@@ -53,8 +53,6 @@ static dns_rdatasetmethods_t methods = {
 
 void
 dns_rdatalist_init(dns_rdatalist_t *rdatalist) {
-
-	REQUIRE(rdatalist != NULL);
 
 	/*
 	 * Initialize rdatalist.
@@ -127,8 +125,6 @@ isc_result_t
 isc__rdatalist_next(dns_rdataset_t *rdataset) {
 	dns_rdata_t *rdata;
 
-	REQUIRE(rdataset != NULL);
-
 	rdata = rdataset->private2;
 	if (rdata == NULL)
 		return (ISC_R_NOMORE);
@@ -145,8 +141,6 @@ void
 isc__rdatalist_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 	dns_rdata_t *list_rdata;
 
-	REQUIRE(rdataset != NULL);
-
 	list_rdata = rdataset->private2;
 	INSIST(list_rdata != NULL);
 
@@ -155,10 +149,6 @@ isc__rdatalist_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 
 void
 isc__rdatalist_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
-
-	REQUIRE(source != NULL);
-	REQUIRE(target != NULL);
-
 	*target = *source;
 
 	/*
@@ -172,8 +162,6 @@ isc__rdatalist_count(dns_rdataset_t *rdataset) {
 	dns_rdatalist_t *rdatalist;
 	dns_rdata_t *rdata;
 	unsigned int count;
-
-	REQUIRE(rdataset != NULL);
 
 	rdatalist = rdataset->private1;
 
@@ -192,8 +180,6 @@ isc__rdatalist_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name) {
 	dns_rdataset_t *negsig = NULL;
 	dns_rdataset_t *rdset;
 	dns_ttl_t ttl;
-
-	REQUIRE(rdataset != NULL);
 
 	for (rdset = ISC_LIST_HEAD(name->list);
 	     rdset != NULL;
@@ -242,9 +228,7 @@ isc__rdatalist_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 	dns_rdataset_t *tnegsig = NULL;
 	dns_name_t *noqname = rdataset->private6;
 
-	REQUIRE(rdataset != NULL);
 	REQUIRE((rdataset->attributes & DNS_RDATASETATTR_NOQNAME) != 0);
-
 	(void)dns_name_dynamic(noqname);	/* Sanity Check. */
 
 	for (rdataset = ISC_LIST_HEAD(noqname->list);
@@ -283,8 +267,6 @@ isc__rdatalist_addclosest(dns_rdataset_t *rdataset, dns_name_t *name) {
 	dns_rdataset_t *negsig = NULL;
 	dns_rdataset_t *rdset;
 	dns_ttl_t ttl;
-
-	REQUIRE(rdataset != NULL);
 
 	for (rdset = ISC_LIST_HEAD(name->list);
 	     rdset != NULL;
@@ -333,9 +315,7 @@ isc__rdatalist_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
 	dns_rdataset_t *tnegsig = NULL;
 	dns_name_t *closest = rdataset->private7;
 
-	REQUIRE(rdataset != NULL);
 	REQUIRE((rdataset->attributes & DNS_RDATASETATTR_CLOSEST) != 0);
-
 	(void)dns_name_dynamic(closest);	/* Sanity Check. */
 
 	for (rdataset = ISC_LIST_HEAD(closest->list);
