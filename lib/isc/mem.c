@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1997-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.145.120.4.22.1 2010/11/17 06:47:11 marka Exp $ */
+/* $Id: mem.c,v 1.145.120.4.22.2 2010/11/17 23:45:59 tbox Exp $ */
 
 /*! \file */
 
@@ -1105,7 +1105,7 @@ isc__mem_get(isc_mem_t *ctx, size_t size FLARG) {
 
 	ADD_TRACE(ctx, ptr, size, file, line);
 	if (ctx->hi_water != 0U && ctx->inuse > ctx->hi_water &&
-	    !ctx->is_overmem) { 
+	    !ctx->is_overmem) {
 		ctx->is_overmem = ISC_TRUE;
 	}
 	if (ctx->hi_water != 0U && !ctx->hi_called &&
@@ -1356,7 +1356,7 @@ isc__mem_allocate(isc_mem_t *ctx, size_t size FLARG) {
 	ADD_TRACE(ctx, si, si[-1].u.size, file, line);
 #endif
 	if (ctx->hi_water != 0U && ctx->inuse > ctx->hi_water &&
-	    !ctx->is_overmem) { 
+	    !ctx->is_overmem) {
 		ctx->is_overmem = ISC_TRUE;
 	}
 
