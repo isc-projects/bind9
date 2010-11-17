@@ -1,3 +1,7 @@
+2971.	[bug]		Fixed a bug that caused journal files not to be
+			compacted on Windows systems as a result of
+			non-POSIX-compliant rename() semantics. [RT #22434]
+
 2970.	[security]	Adding a NO DATA negative cache entry failed to clear
 			any matching RRSIG records.  A subsequent lookup of
 			of NO DATA cache entry could trigger a INSIST when the
@@ -46,8 +50,6 @@
 
 2954.	[bug]		contrib: dlz_mysql_driver.c bad error handling on
 			build_sqldbinstance failure. [RT #21623]
-
-	--- 9.6.3b1 released ---
 
 2953.	[bug]		Silence spurious "expected covering NSEC3, got an
 			exact match" message when returning a wildcard
