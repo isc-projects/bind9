@@ -13,6 +13,23 @@
 			that can trigger this occurs naturally when rolling
 			DNSKEY algorithms.  [RT #22309]
 
+2937.	[bug]		Worked around an apparent race condition in over
+			memory conditions.  Without this fix a DNS cache DB or
+			ADB could incorrectly stay in an over memory state,
+			effectively refusing further caching, which
+			subsequently made a BIND 9 caching server unworkable.
+			This fix prevents this problem from happening by
+			polling the state of the memory context, rather than
+			making a copy of the state, which appeared to cause
+			a race.  This is a "workaround" in that it doesn't
+			solve the possible race per se, but several experiments
+			proved this change solves the symptom.  Also, the
+			polling overhead hasn't been reported to be an issue.
+			This bug should only affect a caching server that
+			specifies a finite max-cache-size.  It's also quite
+			likely that the bug happens only when enabling threads,
+			but it's not confirmed yet. [RT #21818]
+
 	--- 9.6.2-P2 released ---
 
 2876.	[bug]		Named could return SERVFAIL for negative responses
