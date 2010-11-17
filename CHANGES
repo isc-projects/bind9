@@ -1,3 +1,7 @@
+2971.	[bug]		Fixed a bug that caused journal files not to be
+			compacted on Windows systems as a result of
+			non-POSIX-compliant rename() semantics. [RT #22434]
+
 2970.	[security]	Adding a NO DATA negative cache entry failed to clear
 			any matching RRSIG records.  A subsequent lookup of
 			of NO DATA cache entry could trigger a INSIST when the
