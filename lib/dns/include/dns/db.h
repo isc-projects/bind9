@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.76.18.15 2010/11/17 10:21:02 marka Exp $ */
+/* $Id: db.h,v 1.76.18.16 2010/11/17 23:45:12 tbox Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -652,7 +652,7 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *	dns_trust_glue.
  *
  * \li	If 'options' does not have #DNS_DBFIND_ADDITIONALOK set, then no
- *	additional records will be returned.  Only caches can have 
+ *	additional records will be returned.  Only caches can have
  *	rdataset with trust dns_trust_additional.
  *
  * \li	If 'options' does not have #DNS_DBFIND_PENDINGOK set, then no
