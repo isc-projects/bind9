@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.30.48.12 2010/11/16 02:23:43 marka Exp $
+# $Id: sign.sh,v 1.30.48.13 2010/11/17 10:43:14 marka Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -152,10 +152,10 @@ zone=algroll.
 infile=algroll.db.in
 zonefile=algroll.db
 
-keyold1=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone -fk $zone`
-keyold2=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
-keynew1=`$KEYGEN -q -r $RANDFILE -a RSASHA256 -b 1024 -n zone -fk $zone`
-keynew2=`$KEYGEN -q -r $RANDFILE -a RSASHA256 -b 1024 -n zone $zone`
+keyold1=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 1024 -n zone -f KSK $zone`
+keyold2=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
+keynew1=`$KEYGEN -r $RANDFILE -a RSASHA256 -b 1024 -n zone -f KSK $zone`
+keynew2=`$KEYGEN -r $RANDFILE -a RSASHA256 -b 1024 -n zone $zone`
 
 cat $infile $keynew1.key $keynew2.key >$zonefile
 
