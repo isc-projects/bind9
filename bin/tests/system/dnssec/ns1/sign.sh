@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.25.48.7.2.1 2010/11/16 02:06:37 marka Exp $
+# $Id: sign.sh,v 1.25.48.7.2.2 2010/11/17 10:44:44 marka Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -28,15 +28,15 @@ zonefile=root.db
 
 (cd ../ns2 && sh sign.sh )
 
-cp ../ns2/keyset-example. .
-cp ../ns2/keyset-dlv. .
+cp ../ns2/dsset-example. .
+cp ../ns2/dsset-dlv. .
 grep "8 [12]" ../ns2/dsset-algroll. > dsset-algroll.
 
 keyname=`$KEYGEN -r $RANDFILE -a RSAMD5 -b 768 -n zone $zone`
 
-cat $infile $keyname.key > $zonefile
+cat $infile $keyname.key dsset-example. dsset-dlv. dsset-algroll. > $zonefile
 
-$SIGNER -P -g -r $RANDFILE -o $zone $zonefile > /dev/null
+$SIGNER -P -r $RANDFILE -o $zone $zonefile > /dev/null
 
 # Configure the resolving server with a trusted key.
 
