@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: keygen.sh,v 1.2.12.2 2010/11/16 08:01:08 marka Exp $
+# $Id: keygen.sh,v 1.2.12.3 2010/11/17 10:11:43 marka Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -25,7 +25,7 @@ zone=example.net
 zonefile="${zone}.db"
 infile="${zonefile}.in"
 cp $infile $zonefile
-ksk=`$KEYGEN -q -3 -r $RANDFILE -fk $zone`
-zsk=`$KEYGEN -q -3 -r $RANDFILE $zone`
+ksk=`$KEYGEN -a RSASHA1 -b 1024 -n zone -r $RANDFILE -f KSK $zone`
+zsk=`$KEYGEN -a RSASHA1 -b 1024 -n zone -r $RANDFILE $zone`
 cat $ksk.key $zsk.key >> $zonefile
-$SIGNER -P -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
+$SIGNER -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
