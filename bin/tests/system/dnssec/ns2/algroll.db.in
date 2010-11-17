@@ -1,5 +1,4 @@
-; Copyright (C) 2004, 2007-2010  Internet Systems Consortium, Inc. ("ISC")
-; Copyright (C) 2000-2002  Internet Software Consortium.
+; Copyright (C) 2010  Internet Systems Consortium, Inc. ("ISC")
 ;
 ; Permission to use, copy, modify, and/or distribute this software for any
 ; purpose with or without fee is hereby granted, provided that the above
@@ -13,7 +12,7 @@
 ; OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 ; PERFORMANCE OF THIS SOFTWARE.
 
-; $Id: algroll.db.in,v 1.2.10.2 2010/11/16 02:23:43 marka Exp $
+; $Id: algroll.db.in,v 1.2.10.3 2010/11/17 23:45:45 tbox Exp $
 
 $TTL 30	; 5 minutes
 @			IN SOA	mname1. . (
