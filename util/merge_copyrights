@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: merge_copyrights,v 1.35 2009/12/03 04:45:10 marka Exp $
+# $Id: merge_copyrights,v 1.36 2010/11/17 03:16:21 marka Exp $
 
 %file_types = ();
 %file_years = ();
@@ -74,7 +74,7 @@ while (<FILES>) {
 	    $file_types{$_} = "MAN";
 	} elsif ($base =~ /\/Makefile$/) {
 	    $file_types{$_} = "MAKE";
-	} elsif ($base =~ /\/(named|rndc).?\.conf$/) {
+	} elsif ($base =~ /\/(named|rndc).{0,2}\.conf$/) {
 	    $file_types{$_} = "CONF-C";
 	} elsif ($base =~ /\/resolv.?\.conf$/) {
 	    $file_types{$_} = "CONF-SH";
