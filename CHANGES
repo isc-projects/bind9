@@ -17,6 +17,8 @@
 2962.	[port]		win32: add more dependancies to BINDBuild.dsw.
 			[RT #22062]
 
+2786.	[bug]		Additional could be promoted to answer. [RT #20663]
+
 	--- 9.4-ESV-R3 released ---
 
 2925.	[bug]		Named failed to accept uncachable negative responses
