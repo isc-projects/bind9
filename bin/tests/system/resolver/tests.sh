@@ -15,12 +15,13 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.7.18.3 2010/11/16 08:01:08 marka Exp $
+# $Id: tests.sh,v 1.7.18.4 2010/11/17 10:10:55 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 status=0
+n=0
 
 echo "I:checking non-cachable NXDOMAIN response handling"
 ret=0
