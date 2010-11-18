@@ -1,3 +1,8 @@
+2973.	[bug]		bind.keys.h was being removed by the "make clean"
+			at the end of configure resulting in build failures
+			where there is very old version of perl installed.
+			Move it to "make maintainer-clean". [RT #22230]
+
 2972.	[bug]		win32: address windows socket errors. [RT #21906]
 
 2971.	[bug]		Fixed a bug that caused journal files not to be
