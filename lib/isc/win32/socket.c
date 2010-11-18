@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.70.54.6 2010/11/18 00:37:54 marka Exp $ */
+/* $Id: socket.c,v 1.70.54.7 2010/11/18 00:58:40 tbox Exp $ */
 
 /* This code uses functions which are only available on Server 2003 and
  * higher, and Windows XP and higher.
@@ -2328,7 +2328,7 @@ restart_accept(isc_socket_t *parent, IoCompletionInfo *lpo)
 {
 	isc_socket_t *nsock = lpo->adev->newsocket;
 	SOCKET new_fd;
-		
+
 	/*
 	 * AcceptEx() requires we pass in a socket.  Note that we carefully
 	 * do not close the previous socket in case of an error message returned by
@@ -2343,7 +2343,7 @@ restart_accept(isc_socket_t *parent, IoCompletionInfo *lpo)
 	nsock->fd = new_fd;
 
 	memset(&lpo->overlapped, 0, sizeof(lpo->overlapped));
-		
+
 	ISCAcceptEx(parent->fd,
 		    nsock->fd,				/* Accepted Socket */
 		    lpo->acceptbuffer,			/* Buffer for initial Recv */
@@ -2356,7 +2356,7 @@ restart_accept(isc_socket_t *parent, IoCompletionInfo *lpo)
 
 	InterlockedDecrement(&nsock->manager->iocp_total);
 	iocompletionport_update(nsock);
-	
+
 	return (ISC_R_SUCCESS);
 }
 
