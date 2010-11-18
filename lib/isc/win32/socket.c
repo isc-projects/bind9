@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.84 2010/11/18 00:24:00 marka Exp $ */
+/* $Id: socket.c,v 1.85 2010/11/18 00:59:43 tbox Exp $ */
 
 /* This code uses functions which are only available on Server 2003 and
  * higher, and Windows XP and higher.
@@ -2329,7 +2329,7 @@ restart_accept(isc_socket_t *parent, IoCompletionInfo *lpo)
 {
 	isc_socket_t *nsock = lpo->adev->newsocket;
 	SOCKET new_fd;
-		
+
 	/*
 	 * AcceptEx() requires we pass in a socket.  Note that we carefully
 	 * do not close the previous socket in case of an error message returned by
@@ -2344,7 +2344,7 @@ restart_accept(isc_socket_t *parent, IoCompletionInfo *lpo)
 	nsock->fd = new_fd;
 
 	memset(&lpo->overlapped, 0, sizeof(lpo->overlapped));
-		
+
 	ISCAcceptEx(parent->fd,
 		    nsock->fd,				/* Accepted Socket */
 		    lpo->acceptbuffer,			/* Buffer for initial Recv */
@@ -2357,7 +2357,7 @@ restart_accept(isc_socket_t *parent, IoCompletionInfo *lpo)
 
 	InterlockedDecrement(&nsock->manager->iocp_total);
 	iocompletionport_update(nsock);
-	
+
 	return (ISC_R_SUCCESS);
 }
 
