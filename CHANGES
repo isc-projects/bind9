@@ -1,3 +1,6 @@
+
+	--- 9.6.2-P3 released ---
+
 2972.	[bug]		win32: address windows socket errors. [RT #21906]
 
 2971.	[bug]		Fixed a bug that caused journal files not to be
