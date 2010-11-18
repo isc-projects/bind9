@@ -4,12 +4,18 @@
 			any matching RRSIG records.  A subsequent lookup of
 			of NO DATA cache entry could trigger a INSIST when the
 			unexpected RRSIG was also returned with the NO DATA
-			cache entry.  [RT #22288]
+			cache entry.
+
+			CVSS: 7.1 (AV:N/AC:M/Au:N/C:N/I:N/A:C/E:P/RL:O/RC:C)
+			CVE-2010-3613, VU#706148. [RT #22288]
 
 2968.	[security]	Named could fail to prove a data set was insecure
 			before marking it as insecure.  One set of conditions
 			that can trigger this occurs naturally when rolling
-			DNSKEY algorithms.  [RT #22309]
+			DNSKEY algorithms.
+
+			CVSS: 5.0 (AV:N/AC:L/Au:N/C:N/I:P/A:N/E:P/RL:O/RC:C)
+			CVE-2010-3614, VU#837744. [RT #22309]
 
 2966.	[bug]		isc_print_vsnprintf() failed to check if there was
 			space available in the buffer when adding a left
