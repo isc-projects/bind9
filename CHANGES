@@ -13,7 +13,6 @@
 			unexpected RRSIG was also returned with the NO DATA
 			cache entry.
 
-			CVSS: 7.8 (AV:N/AC:L/Au:N/C:N/I:N/A:C)
 			CVE-2010-3613, VU#706148. [RT #22288]
 
 2968.	[security]	Named could fail to prove a data set was insecure
@@ -21,7 +20,6 @@
 			that can trigger this occurs naturally when rolling
 			DNSKEY algorithms.
 
-			CVSS: 5.0 (AV:N/AC:L/Au:N/C:N/I:P/A:N)
 			CVE-2010-3614, VU#837744. [RT #22309]
 
 2937.	[bug]		Worked around an apparent race condition in over
