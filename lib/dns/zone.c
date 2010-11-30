@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.31 2010/11/30 02:27:38 each Exp $ */
+/* $Id: zone.c,v 1.540.2.32 2010/11/30 23:46:15 tbox Exp $ */
 
 /*! \file */
 
@@ -3639,7 +3639,7 @@ exit_check(dns_zone_t *zone) {
 }
 
 static isc_boolean_t
-zone_check_ns(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version, 
+zone_check_ns(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version,
 	      dns_name_t *name, isc_boolean_t logit)
 {
 	isc_result_t result;
