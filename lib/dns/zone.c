@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.574 2010/09/06 04:41:13 marka Exp $ */
+/* $Id: zone.c,v 1.575 2010/11/30 02:27:08 each Exp $ */
 
 /*! \file */
 
@@ -3639,8 +3639,8 @@ exit_check(dns_zone_t *zone) {
 }
 
 static isc_boolean_t
-zone_check_ns(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
-	      isc_boolean_t logit)
+zone_check_ns(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version, 
+	      dns_name_t *name, isc_boolean_t logit)
 {
 	isc_result_t result;
 	char namebuf[DNS_NAME_FORMATSIZE];
@@ -3660,13 +3660,13 @@ zone_check_ns(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 	dns_fixedname_init(&fixed);
 	foundname = dns_fixedname_name(&fixed);
 
-	result = dns_db_find(db, name, NULL, dns_rdatatype_a,
+	result = dns_db_find(db, name, version, dns_rdatatype_a,
 			     0, 0, NULL, foundname, NULL, NULL);
 	if (result == ISC_R_SUCCESS)
 		return (ISC_TRUE);
 
 	if (result == DNS_R_NXRRSET) {
-		result = dns_db_find(db, name, NULL, dns_rdatatype_aaaa,
+		result = dns_db_find(db, name, version, dns_rdatatype_aaaa,
 				     0, 0, NULL, foundname, NULL, NULL);
 		if (result == ISC_R_SUCCESS)
 			return (ISC_TRUE);
@@ -3738,7 +3738,7 @@ zone_count_ns_rr(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
 			result = dns_rdata_tostruct(&rdata, &ns, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			if (dns_name_issubdomain(&ns.name, &zone->origin) &&
-			    !zone_check_ns(zone, db, &ns.name, logit))
+			    !zone_check_ns(zone, db, version, &ns.name, logit))
 				ecount++;
 		}
 		count++;

@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.28 2009/09/04 17:14:58 each Exp $
+# $Id: tests.sh,v 1.29 2010/11/30 02:27:07 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -61,8 +61,8 @@ update add updated.example.nil. 600 TXT Foo
 update delete t.example.nil.
 
 END
-echo "I:sleeping 15 seconds for server to incorporate changes"
-sleep 15
+echo "I:sleeping 5 seconds for server to incorporate changes"
+sleep 5
 
 echo "I:fetching first copy of zone after update"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
@@ -97,6 +97,48 @@ post=`$DIG +short new.other.nil. @10.53.0.1 a -p 5300` || status=1
 
 echo "I:comparing post-update copy to known good data"
 $PERL ../digcomp.pl knowngood.ns1.after dig.out.ns1 || status=1
+
+echo "I:testing zone consistency checks"
+# inserting an NS record without a corresponding A or AAAA record should fail
+$NSUPDATE -l -p 5300 -k ns1/session.key > nsupdate.out 2>&1 << END && status=1
+update add other.nil. 600 in ns ns3.other.nil.
+send
+END
+grep REFUSED nsupdate.out > /dev/null 2>&1 || status=1
+# ...but should work if an A record is inserted first:
+$NSUPDATE -l -p 5300 -k ns1/session.key > nsupdate.out 2>&1 << END || status=1
+update add ns4.other.nil 600 in a 10.53.0.1
+send
+update add other.nil. 600 in ns ns4.other.nil.
+send
+END
+grep REFUSED nsupdate.out > /dev/null 2>&1 && status=1
+# ...or if an AAAA record does:
+$NSUPDATE -l -p 5300 -k ns1/session.key > nsupdate.out 2>&1 << END || status=1
+update add ns5.other.nil 600 in aaaa 2001:db8::1
+send
+update add other.nil. 600 in ns ns5.other.nil.
+send
+END
+grep REFUSED nsupdate.out > /dev/null 2>&1 && status=1
+# ...or if the NS and A/AAAA are inserted together:
+$NSUPDATE -l -p 5300 -k ns1/session.key > nsupdate.out 2>&1 << END || status=1
+update add other.nil. 600 in ns ns6.other.nil.
+update add ns6.other.nil 600 in a 10.53.0.1
+send
+END
+grep REFUSED nsupdate.out > /dev/null 2>&1 && status=1
+
+echo "I:sleeping 5 seconds for server to incorporate changes"
+sleep 5
+
+echo "I:checking result of update"
+$DIG +short @10.53.0.1 -p 5300 ns other.nil > dig.out.ns1 || status=1
+grep ns3.other.nil dig.out.ns1 > /dev/null 2>&1 && status=1
+grep ns4.other.nil dig.out.ns1 > /dev/null 2>&1 || status=1
+grep ns5.other.nil dig.out.ns1 > /dev/null 2>&1 || status=1
+grep ns6.other.nil dig.out.ns1 > /dev/null 2>&1 || status=1
+
 
 if $PERL -e 'use Net::DNS;' 2>/dev/null
 then

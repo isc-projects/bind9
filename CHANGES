@@ -1,3 +1,8 @@
+2974.	[bug]		Some vaild UPDATE requests could fail due to a
+			consistency check examining the existing version
+			of the zone rather than the new version resulting
+			from the UPDATE. [RT #22413]
+
 2973.	[bug]		bind.keys.h was being removed by the "make clean"
 			at the end of configure resulting in build failures
 			where there is very old version of perl installed.
