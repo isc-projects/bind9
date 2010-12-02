@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig.h,v 1.55 2010/07/09 23:46:51 tbox Exp $ */
+/* $Id: tsig.h,v 1.56 2010/12/02 23:22:42 marka Exp $ */
 
 #ifndef DNS_TSIG_H
 #define DNS_TSIG_H 1
@@ -103,7 +103,7 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 
 isc_result_t
 dns_tsigkey_createfromkey(dns_name_t *name, dns_name_t *algorithm,
-			  dst_key_t *dstkey, isc_boolean_t generated,
+			  dst_key_t **dstkeyp, isc_boolean_t generated,
 			  dns_name_t *creator, isc_stdtime_t inception,
 			  isc_stdtime_t expire, isc_mem_t *mctx,
 			  dns_tsig_keyring_t *ring, dns_tsigkey_t **key);

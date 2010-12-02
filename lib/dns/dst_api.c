@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.51 2010/05/13 03:08:30 marka Exp $
+ * $Id: dst_api.c,v 1.52 2010/12/02 23:22:42 marka Exp $
  */
 
 /*! \file */
@@ -544,6 +544,7 @@ dst_key_fromnamedfile(const char *filename, const char *dirname,
 
 	*keyp = key;
 	return (ISC_R_SUCCESS);
+
  out:
 	if (pubkey != NULL)
 		dst_key_free(&pubkey);
