@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.270.12.25 2010/11/16 07:35:03 marka Exp $ */
+/* $Id: rbtdb.c,v 1.270.12.26 2010/12/02 05:09:58 marka Exp $ */
 
 /*! \file */
 
@@ -2096,7 +2096,7 @@ cleanup_dead_nodes_callback(isc_task_t *task, isc_event_t *event) {
 	unsigned int locknum;
 	unsigned int refs;
 
-	RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_write);
+	RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_write);
 	for (locknum = 0; locknum < rbtdb->node_lock_count; locknum++) {
 		NODE_LOCK(&rbtdb->node_locks[locknum].lock,
 			  isc_rwlocktype_write);
@@ -2106,7 +2106,7 @@ cleanup_dead_nodes_callback(isc_task_t *task, isc_event_t *event) {
 		NODE_UNLOCK(&rbtdb->node_locks[locknum].lock,
 			    isc_rwlocktype_write);
 	}
-	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
+	RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_write);
 	if (again)
 		isc_task_send(task, &event);
 	else {
