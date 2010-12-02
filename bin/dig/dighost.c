@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.311.70.15 2010/08/10 08:45:44 marka Exp $ */
+/* $Id: dighost.c,v 1.311.70.16 2010/12/02 23:40:27 marka Exp $ */
 
 /*! \file
  *  \note
@@ -246,7 +246,7 @@ isc_result_t	  opentmpkey(isc_mem_t *mctx, const char *file,
 			     char **tempp, FILE **fp);
 isc_result_t	  removetmpkey(isc_mem_t *mctx, const char *file);
 void		  clean_trustedkey(void);
-void		  insert_trustedkey(dst_key_t  * key);
+void		  insert_trustedkey(dst_key_t **key);
 #if DIG_SIGCHASE_BU
 isc_result_t	  getneededrr(dns_message_t *msg);
 void		  sigchase_bottom_up(dns_message_t *msg);
@@ -963,14 +963,13 @@ setup_file_key(void) {
 		goto failure;
 	}
 	result = dns_tsigkey_createfromkey(dst_key_name(dstkey), hmacname,
-					   dstkey, ISC_FALSE, NULL, 0, 0,
+					   &dstkey, ISC_FALSE, NULL, 0, 0,
 					   mctx, NULL, &key);
 	if (result != ISC_R_SUCCESS) {
 		printf(";; Couldn't create key %s: %s\n",
 		       keynametext, isc_result_totext(result));
 		goto failure;
 	}
-	dstkey = NULL;
  failure:
 	if (dstkey != NULL)
 		dst_key_free(&dstkey);
@@ -3868,14 +3867,15 @@ sigchase_scanname(dns_rdatatype_t type, dns_rdatatype_t covers,
 }
 
 void
-insert_trustedkey(dst_key_t * key)
+insert_trustedkey(dst_key_t **keyp)
 {
-	if (key == NULL)
+	if (*keyp == NULL)
 		return;
 	if (tk_list.nb_tk >= MAX_TRUSTED_KEY)
 		return;
 
-	tk_list.key[tk_list.nb_tk++] = key;
+	tk_list.key[tk_list.nb_tk++] = *keyp;
+	*keyp = NULL;
 	return;
 }
 
@@ -4049,11 +4049,12 @@ get_trusted_key(isc_mem_t *mctx)
 			fclose(fp);
 			return (ISC_R_FAILURE);
 		}
-		insert_trustedkey(key);
 #if 0
 		dst_key_tofile(key, DST_TYPE_PUBLIC,"/tmp");
 #endif
-		key = NULL;
+		insert_trustedkey(&key);
+		if (key != NULL)
+			dst_key_free(&key);
 	}
 	return (ISC_R_SUCCESS);
 }

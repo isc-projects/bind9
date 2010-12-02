@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.136.18.3 2010/07/09 05:15:05 each Exp $
+ * $Id: tsig.c,v 1.136.18.4 2010/12/02 23:40:28 marka Exp $
  */
 /*! \file */
 #include <config.h>
@@ -247,7 +247,7 @@ tsig_log(dns_tsigkey_t *key, int level, const char *fmt, ...) {
 
 isc_result_t
 dns_tsigkey_createfromkey(dns_name_t *name, dns_name_t *algorithm,
-			  dst_key_t *dstkey, isc_boolean_t generated,
+			  dst_key_t **dstkeyp, isc_boolean_t generated,
 			  dns_name_t *creator, isc_stdtime_t inception,
 			  isc_stdtime_t expire, isc_mem_t *mctx,
 			  dns_tsig_keyring_t *ring, dns_tsigkey_t **key)
@@ -255,6 +255,7 @@ dns_tsigkey_createfromkey(dns_name_t *name, dns_name_t *algorithm,
 	dns_tsigkey_t *tkey;
 	isc_result_t ret;
 	unsigned int refs = 0;
+	dst_key_t *dstkey;
 
 	REQUIRE(key == NULL || *key == NULL);
 	REQUIRE(name != NULL);
@@ -262,6 +263,10 @@ dns_tsigkey_createfromkey(dns_name_t *name, dns_name_t *algorithm,
 	REQUIRE(mctx != NULL);
 	REQUIRE(key != NULL || ring != NULL);
 
+	if (dstkeyp != NULL)
+		dstkey = *dstkeyp;
+	else
+		dstkey = NULL;
 	tkey = (dns_tsigkey_t *) isc_mem_get(mctx, sizeof(dns_tsigkey_t));
 	if (tkey == NULL)
 		return (ISC_R_NOMEMORY);
@@ -360,6 +365,8 @@ dns_tsigkey_createfromkey(dns_name_t *name, dns_name_t *algorithm,
 	tkey->key = dstkey;
 	tkey->ring = ring;
 
+	if (dstkeyp != NULL)
+		*dstkeyp = NULL;
 	if (key != NULL)
 		refs++;
 	if (ring != NULL)
@@ -609,7 +616,7 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 	} else if (length > 0)
 		return (DNS_R_BADALG);
 
-	result = dns_tsigkey_createfromkey(name, algorithm, dstkey,
+	result = dns_tsigkey_createfromkey(name, algorithm, &dstkey,
 					   generated, creator,
 					   inception, expire, mctx, ring, key);
 	if (result != ISC_R_SUCCESS && dstkey != NULL)

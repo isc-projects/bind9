@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.16.12.10 2010/01/15 19:38:53 each Exp $
+ * $Id: dst_api.c,v 1.16.12.11 2010/12/02 23:40:28 marka Exp $
  */
 
 /*! \file */
@@ -503,6 +503,7 @@ dst_key_fromnamedfile(const char *filename, int type, isc_mem_t *mctx,
 
 	*keyp = key;
 	return (ISC_R_SUCCESS);
+
  out:
 	if (newfilename != NULL)
 		isc_mem_put(mctx, newfilename, newfilenamelen);

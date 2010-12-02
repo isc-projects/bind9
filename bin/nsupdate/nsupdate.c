@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.163.48.12 2010/08/10 23:46:53 tbox Exp $ */
+/* $Id: nsupdate.c,v 1.163.48.13 2010/12/02 23:40:27 marka Exp $ */
 
 /*! \file */
 
@@ -605,7 +605,7 @@ setup_keyfile(void) {
 	}
 	if (hmacname != NULL) {
 		result = dns_tsigkey_createfromkey(dst_key_name(dstkey),
-						   hmacname, dstkey, ISC_FALSE,
+						   hmacname, &dstkey, ISC_FALSE,
 						   NULL, 0, 0, mctx, NULL,
 						   &tsigkey);
 		if (result != ISC_R_SUCCESS) {

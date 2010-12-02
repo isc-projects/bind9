@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.483.36.21 2010/09/06 04:49:19 marka Exp $ */
+/* $Id: zone.c,v 1.483.36.22 2010/12/02 23:40:28 marka Exp $ */
 
 /*! \file */
 
@@ -3656,6 +3656,7 @@ find_zone_keys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
 	const char *directory = dns_zone_getkeydirectory(zone);
+
 	CHECK(dns_db_findnode(db, dns_db_origin(db), ISC_FALSE, &node));
 	result = dns_dnssec_findzonekeys2(db, ver, node, dns_db_origin(db),
 					  directory, mctx, maxkeys, keys,

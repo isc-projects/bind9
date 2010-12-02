@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keydelete.c,v 1.11 2007/06/19 23:47:06 tbox Exp $ */
+/* $Id: keydelete.c,v 1.11.332.1 2010/12/02 23:40:27 marka Exp $ */
 
 #include <config.h>
 
@@ -230,7 +230,7 @@ main(int argc, char **argv) {
 	CHECK("dst_key_fromnamedfile", result);
 	result = dns_tsigkey_createfromkey(dst_key_name(dstkey),
 					   DNS_TSIG_HMACMD5_NAME,
-					   dstkey, ISC_TRUE, NULL, 0, 0,
+					   &dstkey, ISC_TRUE, NULL, 0, 0,
 					   mctx, ring, &tsigkey);
 	CHECK("dns_tsigkey_createfromkey", result);
 
