@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsec.h,v 1.3.104.1 2010/12/02 23:26:58 marka Exp $ */
+/* $Id: tsec.h,v 1.3.104.2 2010/12/02 23:46:30 tbox Exp $ */
 
 #ifndef DNS_TSEC_H
 #define DNS_TSEC_H 1
