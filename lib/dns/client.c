@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.6.32.4 2010/05/19 07:11:19 marka Exp $ */
+/* $Id: client.c,v 1.6.32.5 2010/12/02 23:26:57 marka Exp $ */
 
 #include <config.h>
 
@@ -1424,6 +1424,8 @@ dns_client_addtrustedkey(dns_client_t *client, dns_rdataclass_t rdclass,
 	result = dns_keytable_add(secroots, ISC_FALSE, &dstkey);
 
  cleanup:
+	if (dstkey != NULL)
+		dns_key_free(&dstkey);
 	if (view != NULL)
 		dns_view_detach(&view);
 	if (secroots != NULL)

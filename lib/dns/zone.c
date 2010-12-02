@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.32 2010/11/30 23:46:15 tbox Exp $ */
+/* $Id: zone.c,v 1.540.2.33 2010/12/02 23:26:57 marka Exp $ */
 
 /*! \file */
 
@@ -2831,6 +2831,7 @@ trust_key(dns_viewlist_t *viewlist, dns_name_t *keyname,
 	isc_buffer_t buffer;
 	dns_view_t *view;
 	dns_keytable_t *sr = NULL;
+	dst_key_t *dstkey = NULL;
 
 	/* Convert dnskey to DST key. */
 	isc_buffer_init(&buffer, data, sizeof(data));
@@ -2839,18 +2840,19 @@ trust_key(dns_viewlist_t *viewlist, dns_name_t *keyname,
 
 	for (view = ISC_LIST_HEAD(*viewlist); view != NULL;
 	     view = ISC_LIST_NEXT(view, link)) {
-		dst_key_t *key = NULL;
 
 		result = dns_view_getsecroots(view, &sr);
 		if (result != ISC_R_SUCCESS)
 			continue;
 
-		CHECK(dns_dnssec_keyfromrdata(keyname, &rdata, mctx, &key));
-		CHECK(dns_keytable_add(sr, ISC_TRUE, &key));
+		CHECK(dns_dnssec_keyfromrdata(keyname, &rdata, mctx, &dstkey));
+		CHECK(dns_keytable_add(sr, ISC_TRUE, &dstkey));
 		dns_keytable_detach(&sr);
 	}
 
   failure:
+	if (dstkey != NULL)
+		dst_key_free(&dstkey);
 	if (sr != NULL)
 		dns_keytable_detach(&sr);
 	return;
@@ -3235,6 +3237,7 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 			dns_fixedname_t fname;
 			dns_name_t *keyname;
 			dst_key_t *key;
+
 			key = dns_keynode_key(keynode);
 			dns_fixedname_init(&fname);
 
@@ -4450,6 +4453,7 @@ find_zone_keys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
 	const char *directory = dns_zone_getkeydirectory(zone);
+
 	CHECK(dns_db_findnode(db, dns_db_origin(db), ISC_FALSE, &node));
 	result = dns_dnssec_findzonekeys2(db, ver, node, dns_db_origin(db),
 					  directory, mctx, maxkeys, keys,

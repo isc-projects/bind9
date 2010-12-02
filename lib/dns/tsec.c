@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsec.c,v 1.4 2009/09/02 23:48:02 tbox Exp $ */
+/* $Id: tsec.c,v 1.4.104.1 2010/12/02 23:26:57 marka Exp $ */
 
 #include <config.h>
 
@@ -44,20 +44,24 @@ struct dns_tsec {
 };
 
 isc_result_t
-dns_tsec_create(isc_mem_t *mctx, dns_tsectype_t type, dst_key_t *key,
+dns_tsec_create(isc_mem_t *mctx, dns_tsectype_t type, dst_key_t **keyp,
 		dns_tsec_t **tsecp)
 {
 	isc_result_t result;
 	dns_tsec_t *tsec;
 	dns_tsigkey_t *tsigkey = NULL;
 	dns_name_t *algname;
+	dst_key_t *key;
 
+	REQUIRE(keyp != NULL && *keyp != NULL);
 	REQUIRE(mctx != NULL);
 	REQUIRE(tsecp != NULL && *tsecp == NULL);
 
 	tsec = isc_mem_get(mctx, sizeof(*tsec));
 	if (tsec == NULL)
 		return (ISC_R_NOMEMORY);
+
+	key = *keyp;
 
 	tsec->type = type;
 	tsec->mctx = mctx;
@@ -88,7 +92,7 @@ dns_tsec_create(isc_mem_t *mctx, dns_tsectype_t type, dst_key_t *key,
 			return (DNS_R_BADALG);
 		}
 		result = dns_tsigkey_createfromkey(dst_key_name(key),
-						   algname, key, ISC_FALSE,
+						   algname, keyp, ISC_FALSE,
 						   NULL, 0, 0, mctx, NULL,
 						   &tsigkey);
 		if (result != ISC_R_SUCCESS) {
@@ -99,6 +103,7 @@ dns_tsec_create(isc_mem_t *mctx, dns_tsectype_t type, dst_key_t *key,
 		break;
 	case dns_tsectype_sig0:
 		tsec->ukey.key = key;
+		*keyp = NULL;
 		break;
 	default:
 		INSIST(0);
@@ -107,7 +112,7 @@ dns_tsec_create(isc_mem_t *mctx, dns_tsectype_t type, dst_key_t *key,
 	tsec->magic = DNS_TSEC_MAGIC;
 
 	*tsecp = tsec;
-
+	ENSURE(*keyp == NULL);
 	return (ISC_R_SUCCESS);
 }
 
