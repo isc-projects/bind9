@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.h,v 1.65 2009/09/02 18:38:40 jinmei Exp $ */
+/* $Id: task.h,v 1.65.104.1 2010/12/03 22:04:49 each Exp $ */
 
 #ifndef ISC_TASK_H
 #define ISC_TASK_H 1
@@ -597,6 +597,16 @@ isc_task_getcurrenttime(isc_task_t *task, isc_stdtime_t *t);
  *
  * Ensures:
  *\li	'*t' has the "current time".
+ */
+
+isc_boolean_t
+isc__task_exiting(isc_task_t *t);
+/*%<
+ * Returns ISC_TRUE if the task is in the process of shutting down,
+ * ISC_FALSE otherwise.
+ *
+ * Requires:
+ *\li	'task' is a valid task.
  */
 
 /*****
