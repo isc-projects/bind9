@@ -1,3 +1,5 @@
+2978.	[port]		hpux: look for <devpoll.h> [RT #21919]
+
 2976.	[bug]		named could die on exit after negotiating a GSS-TSIG
 			key. [RT #22573]
 			

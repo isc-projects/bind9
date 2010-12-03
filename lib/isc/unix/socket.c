@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.308.12.14 2010/03/12 03:26:41 marka Exp $ */
+/* $Id: socket.c,v 1.308.12.15 2010/12/03 00:59:31 marka Exp $ */
 
 /*! \file */
 
@@ -67,7 +67,11 @@
 #include <sys/epoll.h>
 #endif
 #ifdef ISC_PLATFORM_HAVEDEVPOLL
+#if defined(HAVE_SYS_DEVPOLL_H)
 #include <sys/devpoll.h>
+#elif defined(HAVE_DEVPOLL_H)
+#include <devpoll.h>
+#endif
 #endif
 
 #include "errno2result.h"
