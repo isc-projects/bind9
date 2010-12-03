@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sample-update.c,v 1.5.66.3 2010/12/03 12:04:24 marka Exp $ */
+/* $Id: sample-update.c,v 1.5.66.4 2010/12/03 21:48:11 marka Exp $ */
 
 #include <config.h>
 
@@ -745,9 +745,10 @@ setup_tsec(char *keyfile, isc_mem_t *mctx) {
 	else
 		tsectype = dns_tsectype_sig0;
 
-	result = dns_tsec_create(mctx, tsectype, dstkey, &tsec);
+	result = dns_tsec_create(mctx, tsectype, &dstkey, &tsec);
 	if (result != ISC_R_SUCCESS) {
-		dst_key_free(&dstkey);
+		if (dstkey != NULL)
+			dst_key_free(&dstkey);
 		fprintf(stderr, "could not create tsec: %s\n",
 			isc_result_totext(result));
 		exit(1);
