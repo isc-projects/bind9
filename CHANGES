@@ -1,3 +1,6 @@
+2977.	[bug]		'nsupdate -l' report if the session key is missing.
+			[RT #21670]
+
 2976.	[bug]		named could die on exit after negotiating a GSS-TSIG
 			key. [RT #22573]
 			
