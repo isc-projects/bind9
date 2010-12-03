@@ -1,3 +1,7 @@
+2979.	[bug]		named could deadlock during shutdown if two
+			"rndc stop" commands were issued at the same
+			time. [RT #22108]
+
 2978.	[port]		hpux: look for <devpoll.h> [RT #21919]
 
 2977.	[bug]		'nsupdate -l' report if the session key is missing.

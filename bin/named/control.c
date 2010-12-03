@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.c,v 1.40 2010/08/16 22:21:06 marka Exp $ */
+/* $Id: control.c,v 1.41 2010/12/03 22:05:19 each Exp $ */
 
 /*! \file */
 
@@ -129,11 +129,16 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 		 * isc_app_shutdown below.
 		 */
 #endif
+		/* Do not flush master files */
 		ns_server_flushonshutdown(ns_g_server, ISC_FALSE);
 		ns_os_shutdownmsg(command, text);
 		isc_app_shutdown();
 		result = ISC_R_SUCCESS;
 	} else if (command_compare(command, NS_COMMAND_STOP)) {
+		/*
+		 * "stop" is the same as "halt" except it does
+		 * flush master files.
+		 */
 #ifdef HAVE_LIBSCF
 		if (ns_smf_got_instance == 1 && ns_smf_chroot == 1) {
 			result = ns_smf_add_message(text);
