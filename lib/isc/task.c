@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008, 2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.107.120.1 2010/12/03 22:03:40 each Exp $ */
+/* $Id: task.c,v 1.107.120.2 2010/12/03 23:45:47 tbox Exp $ */
 
 /*! \file
  * \author Principal Author: Bob Halley
