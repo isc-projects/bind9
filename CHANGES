@@ -17,14 +17,12 @@
 			unexpected RRSIG was also returned with the NO DATA
 			cache entry.
 
-			CVSS: 7.8 (AV:N/AC:L/Au:N/C:N/I:N/A:C)
 			CVE-2010-3613, VU#706148. [RT #22288]
 
 2969.	[security]	Fix acl type processing so that allow-query works
 			in options and view statements.  Also add a new
 			set of tests to verify proper functioning.
 
-			CVSS: 7.8 (AV:N/AC:L/Au:N/C:C/I:N/A:N)
 			CVE-2010-3615, VU#510208. [RT #22418]
 
 2968.	[security]	Named could fail to prove a data set was insecure
@@ -32,7 +30,6 @@
 			that can trigger this occurs naturally when rolling
 			DNSKEY algorithms.
 
-			CVSS: 5.0 (AV:N/AC:L/Au:N/C:N/I:P/A:N)
 			CVE-2010-3614, VU#837744. [RT #22309]
 
 2967.	[bug]		'host -D' now turns on debugging messages earlier.
