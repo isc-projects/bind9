@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.28.102.2 2010/11/30 23:46:15 tbox Exp $
+# $Id: tests.sh,v 1.28.102.3 2010/12/03 00:39:46 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -238,6 +238,15 @@ $PERL $SYSTEMTESTTOP/start.pl --noclean . ns1
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd updated4.example.nil.\
 	@10.53.0.1 a -p 5300 > dig.out.ns1 || status=1
 $PERL ../digcomp.pl knowngood.ns1.afterstop dig.out.ns1 || status=1
+
+ret=0
+echo "I:check that 'nsupdate -l' with a missing keyfile reports the missing file"
+$NSUPDATE -l -p 5300 -k ns1/nonexistant.key 2> nsupdate.out < /dev/null
+grep ns1/nonexistant.key nsupdate.out > /dev/null || ret=1
+if test $ret -ne 0
+then
+echo "I:failed"; status=1
+fi
 
 echo "I:exit status: $status"
 exit $status

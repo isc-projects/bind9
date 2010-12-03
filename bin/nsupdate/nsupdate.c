@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.173.66.9 2010/12/02 23:26:56 marka Exp $ */
+/* $Id: nsupdate.c,v 1.173.66.10 2010/12/03 00:39:46 marka Exp $ */
 
 /*! \file */
 
@@ -901,9 +901,12 @@ setup_system(void) {
 
 	if (keystr != NULL)
 		setup_keystr();
-	else if (local_only)
-		read_sessionkey(mctx, lctx);
-	else if (keyfile != NULL)
+	else if (local_only) {
+		result = read_sessionkey(mctx, lctx);
+		if (result != ISC_R_SUCCESS)
+			fatal("can't read key from %s: %s\n",
+			      keyfile, isc_result_totext(result));
+	} else if (keyfile != NULL)
 		setup_keyfile(mctx, lctx);
 }
 
