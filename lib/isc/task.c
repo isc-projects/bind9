@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.111.60.2 2010/12/03 23:46:20 tbox Exp $ */
+/* $Id: task.c,v 1.111.60.3 2010/12/04 13:27:10 marka Exp $ */
 
 /*! \file
  * \author Principal Author: Bob Halley
@@ -1483,7 +1483,7 @@ isc__task_register() {
 #endif
 
 isc_boolean_t
-isc__task_exiting(isc_task_t *t) {
+isc_task_exiting(isc_task_t *t) {
 	isc__task_t *task = (isc__task_t *)t;
 
 	REQUIRE(VALID_TASK(task));
