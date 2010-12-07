@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.16.34.3 2010/12/03 00:39:46 marka Exp $
+# $Id: clean.sh,v 1.16.34.4 2010/12/07 03:01:37 marka Exp $
 
 #
 # Clean up after zone transfer tests.
@@ -29,3 +29,8 @@ rm -f ns2/example.bk
 rm -f ns2/update.bk
 rm -f */named.memstats
 rm -f nsupdate.out
+rm -f ns3/example.db.jnl ns3/example.db
+rm -f ns3/nsec3param.test.db.signed.jnl ns3/nsec3param.test.db ns3/nsec3param.test.db.signed ns3/dsset-nsec3param.test.
+rm -f ns3/K*
+rm -f dig.out.ns3.*
+rm -f jp.out.ns3.*

@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.14 2009/12/04 03:33:15 marka Exp $
+# $Id: setup.sh,v 1.14.4.1 2010/12/07 03:01:37 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -25,9 +25,11 @@ SYSTEMTESTTOP=..
 #
 
 rm -f ns1/*.jnl ns1/example.db ns2/*.jnl ns2/example.bk
+rm -f ns3/example.db.jnl
 
 cp -f ns1/example1.db ns1/example.db
 sed 's/example.nil/other.nil/g' ns1/example1.db > ns1/other.db
+cp -f ns3/example.db.in ns3/example.db
 
 # update_test.pl has its own zone file because it
 # requires a specific NS record set.
@@ -48,3 +50,5 @@ EOF
 
 ../../../tools/genrandom 400 random.data
 $DDNSCONFGEN -q -r random.data -z example.nil > ns1/ddns.key
+
+(cd ns3; sh -e sign.sh)
