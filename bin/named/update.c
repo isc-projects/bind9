@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.183 2010/12/07 02:53:33 marka Exp $ */
+/* $Id: update.c,v 1.184 2010/12/07 23:47:01 tbox Exp $ */
 
 #include <config.h>
 
@@ -3187,17 +3187,17 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 			next = ISC_LIST_NEXT(tuple, link);
 	}
 
- 	/*
- 	 * Preserve any ongoing changes from a BIND 9.6.x upgrade.
+	/*
+	 * Preserve any ongoing changes from a BIND 9.6.x upgrade.
 	 *
 	 * Any NSEC3PARAM records with flags other than OPTOUT named
 	 * in managing and should not be touched so revert such changes
 	 * taking into account any TTL change of the NSEC3PARAM RRset.
- 	 */
- 	for (tuple = ISC_LIST_HEAD(temp_diff.tuples);
- 	     tuple != NULL; tuple = next) {
- 		next = ISC_LIST_NEXT(tuple, link);
- 		if ((tuple->rdata.data[1] & ~DNS_NSEC3FLAG_OPTOUT) != 0) {
+	 */
+	for (tuple = ISC_LIST_HEAD(temp_diff.tuples);
+	     tuple != NULL; tuple = next) {
+		next = ISC_LIST_NEXT(tuple, link);
+		if ((tuple->rdata.data[1] & ~DNS_NSEC3FLAG_OPTOUT) != 0) {
 			/*
 			 * If we havn't had any adds then the tuple->ttl must
 			 * be the original ttl and should be used for any
@@ -3207,16 +3207,16 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 				ttl = tuple->ttl;
 				ttl_good = ISC_TRUE;
 			}
- 			op = (tuple->op == DNS_DIFFOP_DEL) ?
- 			     DNS_DIFFOP_ADD : DNS_DIFFOP_DEL;
- 			CHECK(dns_difftuple_create(diff->mctx, op, name,
- 						   ttl, &tuple->rdata,
+			op = (tuple->op == DNS_DIFFOP_DEL) ?
+			     DNS_DIFFOP_ADD : DNS_DIFFOP_DEL;
+			CHECK(dns_difftuple_create(diff->mctx, op, name,
+						   ttl, &tuple->rdata,
 						   &newtuple));
- 			CHECK(do_one_tuple(&newtuple, db, ver, diff));
- 			ISC_LIST_UNLINK(temp_diff.tuples, tuple, link);
- 			dns_diff_appendminimal(diff, &tuple);
- 		}
- 	}
+			CHECK(do_one_tuple(&newtuple, db, ver, diff));
+			ISC_LIST_UNLINK(temp_diff.tuples, tuple, link);
+			dns_diff_appendminimal(diff, &tuple);
+		}
+	}
 
 	/*
 	 * We now have just the actual changes to the NSEC3PARAM RRset.
