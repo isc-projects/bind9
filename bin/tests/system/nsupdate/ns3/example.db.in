@@ -1,0 +1,4 @@
+example. 10 IN SOA example. hostmaster.example. 1 3600 900 2419200 3600
+example. 10 IN NS example.
+example. 10 IN A 10.53.0.3
+example. 10 IN NSEC3PARAM 1 1 0 -

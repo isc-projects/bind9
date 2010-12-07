@@ -1,3 +1,6 @@
+2980.	[bug]		named didn't properly handle UPDATES that changed the
+			TTL of the NSEC3PARAM RRset. [RT #22363]
+
 2979.	[bug]		named could deadlock during shutdown if two
 			"rndc stop" commands were issued at the same
 			time. [RT #22108]
