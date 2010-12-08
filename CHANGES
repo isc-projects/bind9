@@ -1,3 +1,12 @@
+2981.	[func]		Partial DNS64 support (AAAA synthesis). [RT #21991]
+
+2980.	[bug]		named didn't properly handle UPDATES that changed the
+			TTL of the NSEC3PARAM RRset. [RT #22363]
+
+2979.	[bug]		named could deadlock during shutdown if two
+			"rndc stop" commands were issued at the same
+			time. [RT #22108]
+
 2978.	[port]		hpux: look for <devpoll.h> [RT #21919]
 
 2977.	[bug]		'nsupdate -l' report if the session key is missing.

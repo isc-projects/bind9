@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.120 2010/08/11 18:14:19 each Exp $ */
+/* $Id: check.c,v 1.121 2010/12/08 02:46:16 marka Exp $ */
 
 /*! \file */
 
@@ -417,6 +417,106 @@ check_viewacls(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 	}
 	return (result);
 }
+
+static const unsigned char zeros[16];
+
+static isc_result_t
+check_dns64(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
+	    const cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx)
+{
+	isc_result_t result = ISC_R_SUCCESS;
+	const cfg_obj_t *dns64 = NULL;
+	const cfg_obj_t *options;
+	const cfg_listelt_t *element;
+	const cfg_obj_t *map, *obj;
+	isc_netaddr_t na, sa;
+	unsigned int prefixlen;
+	int nbytes;
+	int i;
+
+	static const char *acls[] = { "client", "exclude", "mapped", NULL};
+
+	if (voptions != NULL)
+		cfg_map_get(voptions, "dns64", &dns64);
+	if (config != NULL && dns64 == NULL) {
+		options = NULL;
+		cfg_map_get(config, "options", &options);
+		if (options != NULL)
+			cfg_map_get(options, "dns64", &dns64);
+	}
+	if (dns64 == NULL)
+		return (ISC_R_SUCCESS);
+
+	for (element = cfg_list_first(dns64);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		map = cfg_listelt_value(element);
+		obj = cfg_map_getname(map);
+
+		cfg_obj_asnetprefix(obj, &na, &prefixlen);
+		if (na.family != AF_INET6) {
+			cfg_obj_log(map, logctx, ISC_LOG_ERROR,
+				    "dns64 requires a IPv6 prefix");
+			result = ISC_R_FAILURE;
+			continue;
+		}
+		
+		if (prefixlen != 32 && prefixlen != 40 && prefixlen != 48 &&
+		    prefixlen != 56 && prefixlen != 64 && prefixlen != 96) {
+			cfg_obj_log(map, logctx, ISC_LOG_ERROR,
+				    "bad prefix length %u [32/40/48/56/64/96]",
+				    prefixlen);
+			result = ISC_R_FAILURE;
+			continue;
+		}
+
+		for (i = 0; acls[i] != NULL; i++) {
+			obj = NULL;
+			(void)cfg_map_get(map, acls[i], &obj);
+			if (obj != NULL) {
+				dns_acl_t *acl = NULL;
+				isc_result_t tresult;
+
+				tresult = cfg_acl_fromconfig(obj, config,
+							     logctx, actx,
+							     mctx, 0, &acl);
+				if (acl != NULL)
+					dns_acl_detach(&acl);
+				if (tresult != ISC_R_SUCCESS)
+					result = tresult;
+			}
+		}
+
+		obj = NULL;
+		(void)cfg_map_get(map, "suffix", &obj);
+		if (obj != NULL) {
+			isc_netaddr_fromsockaddr(&sa, cfg_obj_assockaddr(obj));
+			if (sa.family != AF_INET6) {
+				cfg_obj_log(map, logctx, ISC_LOG_ERROR,
+					    "dns64 requires a IPv6 suffix");
+				result = ISC_R_FAILURE;
+				continue;
+			}
+			nbytes = prefixlen / 8 + 4;
+			if (prefixlen >= 32 && prefixlen <= 64)
+				nbytes++;
+			if (memcmp(sa.type.in6.s6_addr, zeros, nbytes) != 0) {
+				char netaddrbuf[ISC_NETADDR_FORMATSIZE];
+				isc_netaddr_format(&sa, netaddrbuf,
+						   sizeof(netaddrbuf));
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "bad suffix '%s' leading "
+					    "%u octets not zeros",
+					    netaddrbuf, nbytes);
+				result = ISC_R_FAILURE;
+			}
+		}
+	}
+
+	return (result);
+}
+
 
 /*
  * Check allow-recursion and allow-recursion-on acls, and also log a
@@ -2098,6 +2198,10 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 
 	tresult = check_filteraaaa(&actx, voptions, viewname, config,
 				   logctx, mctx);
+	if (tresult != ISC_R_SUCCESS)
+		result = tresult;
+
+	tresult = check_dns64(&actx, voptions, config, logctx, mctx);
 	if (tresult != ISC_R_SUCCESS)
 		result = tresult;
 

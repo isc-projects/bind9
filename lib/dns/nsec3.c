@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3.c,v 1.18 2010/06/02 00:38:29 marka Exp $ */
+/* $Id: nsec3.c,v 1.19 2010/12/07 02:53:34 marka Exp $ */
 
 #include <config.h>
 
@@ -1143,6 +1143,7 @@ dns_nsec3param_deletechains(dns_db_t *db, dns_dbversion_t *ver,
 		CHECK(do_one_tuple(&tuple, db, ver, diff));
 		INSIST(tuple == NULL);
 
+		rdata.data = buf;
 		buf[2] = DNS_NSEC3FLAG_REMOVE | DNS_NSEC3FLAG_NONSEC;
 
 		CHECK(rr_exists(db, ver, origin, &rdata, &flag));

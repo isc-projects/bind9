@@ -100,6 +100,14 @@ options {
         directory <quoted_string>;
         disable-algorithms <string> { <string>; ... };
         disable-empty-zone <string>;
+        dns64 <netprefix> {
+                break-dnssec <boolean>;
+                clients { <address_match_element>; ... };
+                exclude { <address_match_element>; ... };
+                mapped { <address_match_element>; ... };
+                recursive-only <boolean>;
+                suffix <ipv6_address>;
+        };
         dnssec-accept-expired <boolean>;
         dnssec-dnskey-kskonly <boolean>;
         dnssec-enable <boolean>;
@@ -302,6 +310,14 @@ view <string> <optional_class> {
         disable-empty-zone <string>;
         dlz <string> {
                 database <string>;
+        };
+        dns64 <netprefix> {
+                break-dnssec <boolean>;
+                clients { <address_match_element>; ... };
+                exclude { <address_match_element>; ... };
+                mapped { <address_match_element>; ... };
+                recursive-only <boolean>;
+                suffix <ipv6_address>;
         };
         dnssec-accept-expired <boolean>;
         dnssec-dnskey-kskonly <boolean>;

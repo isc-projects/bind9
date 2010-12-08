@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namespace.h,v 1.7 2010/08/13 23:47:03 tbox Exp $ */
+/* $Id: namespace.h,v 1.9 2010/12/04 13:25:59 marka Exp $ */
 
 #ifndef ISCAPI_NAMESPACE_H
 #define ISCAPI_NAMESPACE_H 1
@@ -129,6 +129,7 @@
 #define isc_task_create isc__task_create
 #define isc_task_attach isc__task_attach
 #define isc_task_detach isc__task_detach
+/* #define isc_task_exiting isc__task_exiting XXXMPA */
 #define isc_task_send isc__task_send
 #define isc_task_sendanddetach isc__task_sendanddetach
 #define isc_task_purgerange isc__task_purgerange

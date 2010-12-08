@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.346 2010/09/24 05:09:02 marka Exp $ */
+/* $Id: query.c,v 1.347 2010/12/08 02:46:15 marka Exp $ */
 
 /*! \file */
 
@@ -34,6 +34,7 @@
 #ifdef DLZ
 #include <dns/dlz.h>
 #endif
+#include <dns/dns64.h>
 #include <dns/dnssec.h>
 #include <dns/events.h>
 #include <dns/message.h>
@@ -61,6 +62,17 @@
 #include <named/server.h>
 #include <named/sortlist.h>
 #include <named/xfrout.h>
+
+#if 0
+/*
+ * It has been recommended that DNS64 be changed to return excluded
+ * AAAA addresses if DNS64 synthesis does not occur.  This minimises
+ * the impact on the lookup results.  While most DNS AAAA lookups are
+ * done to send IP packets to a host, not all of them are and filtering
+ * excluded addresses has a negative impact on those uses.
+ */
+#define dns64_bis_return_excluded_addresses 1
+#endif
 
 /*% Partial answer? */
 #define PARTIALANSWER(c)	(((c)->query.attributes & \
@@ -92,6 +104,12 @@
 /*% Secure? */
 #define SECURE(c)		(((c)->query.attributes & \
 				  NS_QUERYATTR_SECURE) != 0)
+/*% DNS64 A lookup? */
+#define DNS64(c)		(((c)->query.attributes & \
+				  NS_QUERYATTR_DNS64) != 0)
+
+#define DNS64EXCLUDE(c)		(((c)->query.attributes & \
+				  NS_QUERYATTR_DNS64EXCLUDE) != 0)
 
 /*% No QNAME Proof? */
 #define NOQNAME(r)		(((r)->attributes & \
@@ -252,6 +270,19 @@ ns_query_cancel(ns_client_t *client) {
 }
 
 static inline void
+query_putrdataset(ns_client_t *client, dns_rdataset_t **rdatasetp) {
+	dns_rdataset_t *rdataset = *rdatasetp;
+
+	CTRACE("query_putrdataset");
+	if (rdataset != NULL) {
+		if (dns_rdataset_isassociated(rdataset))
+			dns_rdataset_disassociate(rdataset);
+		dns_message_puttemprdataset(client->message, rdatasetp);
+	}
+	CTRACE("query_putrdataset: done");
+}
+
+static inline void
 query_reset(ns_client_t *client, isc_boolean_t everything) {
 	isc_buffer_t *dbuf, *dbuf_next;
 	ns_dbversion_t *dbversion, *dbversion_next;
@@ -285,6 +316,18 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 	if (client->query.authzone != NULL)
 		dns_zone_detach(&client->query.authzone);
 
+	if (client->query.dns64_aaaa != NULL)
+		query_putrdataset(client, &client->query.dns64_aaaa);
+	if (client->query.dns64_sigaaaa != NULL)
+		query_putrdataset(client, &client->query.dns64_sigaaaa);
+	if (client->query.dns64_aaaaok != NULL) {
+		isc_mem_put(client->mctx, client->query.dns64_aaaaok,
+			    client->query.dns64_aaaaoklen *
+			    sizeof(isc_boolean_t));
+		client->query.dns64_aaaaok =  NULL;
+		client->query.dns64_aaaaoklen =  0;
+	}
+
 	query_freefreeversions(client, everything);
 
 	for (dbuf = ISC_LIST_HEAD(client->query.namebufs);
@@ -311,12 +354,13 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 	client->query.restarts = 0;
 	client->query.timerset = ISC_FALSE;
 	client->query.origqname = NULL;
-	client->query.qname = NULL;
 	client->query.dboptions = 0;
 	client->query.fetchoptions = 0;
 	client->query.gluedb = NULL;
 	client->query.authdbset = ISC_FALSE;
 	client->query.isreferral = ISC_FALSE;
+	client->query.dns64_options = 0;
+	client->query.dns64_ttl = ISC_UINT32_MAX;
 }
 
 static void
@@ -473,20 +517,6 @@ query_newrdataset(ns_client_t *client) {
 	return (rdataset);
 }
 
-static inline void
-query_putrdataset(ns_client_t *client, dns_rdataset_t **rdatasetp) {
-	dns_rdataset_t *rdataset = *rdatasetp;
-
-	CTRACE("query_putrdataset");
-	if (rdataset != NULL) {
-		if (dns_rdataset_isassociated(rdataset))
-			dns_rdataset_disassociate(rdataset);
-		dns_message_puttemprdataset(client->message, rdatasetp);
-	}
-	CTRACE("query_putrdataset: done");
-}
-
-
 static inline isc_result_t
 query_newdbversion(ns_client_t *client, unsigned int n) {
 	unsigned int i;
@@ -549,6 +579,10 @@ ns_query_init(ns_client_t *client) {
 	client->query.authzone = NULL;
 	client->query.authdbset = ISC_FALSE;
 	client->query.isreferral = ISC_FALSE;
+	client->query.dns64_aaaa = NULL;
+	client->query.dns64_sigaaaa = NULL;
+	client->query.dns64_aaaaok = NULL;
+	client->query.dns64_aaaaoklen = 0;
 	query_reset(client, ISC_FALSE);
 	result = query_newdbversion(client, 3);
 	if (result != ISC_R_SUCCESS) {
@@ -1958,6 +1992,323 @@ query_addrdataset(ns_client_t *client, dns_name_t *fname,
 	CTRACE("query_addrdataset: done");
 }
 
+static isc_result_t
+query_dns64(ns_client_t *client, dns_name_t **namep, dns_rdataset_t *rdataset,
+	    dns_rdataset_t *sigrdataset, isc_buffer_t *dbuf,
+	    dns_section_t section)
+{
+	dns_name_t *name, *mname;
+	dns_rdata_t *dns64_rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdatalist_t *dns64_rdatalist;
+	dns_rdataset_t *dns64_rdataset;
+	dns_rdataset_t *mrdataset;
+	isc_buffer_t *buffer;
+	isc_region_t r;
+	isc_result_t result;
+	dns_view_t *view = client->view;
+	isc_netaddr_t netaddr;
+	dns_dns64_t *dns64;
+	unsigned int flags = 0;
+
+	/*%
+	 * To the current response for 'client', add the answer RRset
+	 * '*rdatasetp' and an optional signature set '*sigrdatasetp', with
+	 * owner name '*namep', to section 'section', unless they are
+	 * already there.  Also add any pertinent additional data.
+	 *
+	 * If 'dbuf' is not NULL, then '*namep' is the name whose data is
+	 * stored in 'dbuf'.  In this case, query_addrrset() guarantees that
+	 * when it returns the name will either have been kept or released.
+	 */
+	CTRACE("query_dns64");
+	name = *namep;
+	mname = NULL;
+	mrdataset = NULL;
+	buffer = NULL;
+	dns64_rdata = NULL;
+	dns64_rdataset = NULL;
+	dns64_rdatalist = NULL;
+	result = dns_message_findname(client->message, section,
+				      name, dns_rdatatype_aaaa,
+				      rdataset->covers,
+				      &mname, &mrdataset);
+	if (result == ISC_R_SUCCESS) {
+		/*
+		 * We've already got an RRset of the given name and type.
+		 * There's nothing else to do;
+		 */
+		CTRACE("query_dns64: dns_message_findname succeeded: done");
+		if (dbuf != NULL)
+			query_releasename(client, namep);
+		return (ISC_R_SUCCESS);
+	} else if (result == DNS_R_NXDOMAIN) {
+		/*
+		 * The name doesn't exist.
+		 */
+		if (dbuf != NULL)
+			query_keepname(client, name, dbuf);
+		dns_message_addname(client->message, name, section);
+		*namep = NULL;
+		mname = name;
+	} else {
+		RUNTIME_CHECK(result == DNS_R_NXRRSET);
+		if (dbuf != NULL)
+			query_releasename(client, namep);
+	}
+
+	if (rdataset->trust != dns_trust_secure &&
+	    (section == DNS_SECTION_ANSWER ||
+	     section == DNS_SECTION_AUTHORITY))
+		client->query.attributes &= ~NS_QUERYATTR_SECURE;
+
+	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
+
+	result = isc_buffer_allocate(client->mctx, &buffer, view->dns64cnt *
+				     16 * dns_rdataset_count(rdataset));
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	result = dns_message_gettemprdataset(client->message, &dns64_rdataset);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	result = dns_message_gettemprdatalist(client->message,
+					      &dns64_rdatalist);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	dns_rdataset_init(dns64_rdataset);
+	dns_rdatalist_init(dns64_rdatalist);
+	dns64_rdatalist->rdclass = dns_rdataclass_in;
+	dns64_rdatalist->type = dns_rdatatype_aaaa;
+	if (client->query.dns64_ttl != ISC_UINT32_MAX)
+		dns64_rdatalist->ttl = ISC_MIN(rdataset->ttl,
+					       client->query.dns64_ttl);
+	else
+		dns64_rdatalist->ttl = ISC_MIN(rdataset->ttl, 600);
+
+	if (RECURSIONOK(client))
+		flags |= DNS_DNS64_RECURSIVE;
+
+	/*
+	 * We use the signatures from the A lookup to set DNS_DNS64_DNSSEC
+	 * as this provides a easy way to see if the answer was signed.
+	 */
+	if (sigrdataset != NULL && dns_rdataset_isassociated(sigrdataset))
+		flags |= DNS_DNS64_DNSSEC;
+
+	for (result = dns_rdataset_first(rdataset);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(rdataset)) {
+		for (dns64 = ISC_LIST_HEAD(client->view->dns64);
+		     dns64 != NULL; dns64 = dns_dns64_next(dns64)) {
+			
+			dns_rdataset_current(rdataset, &rdata);
+			isc__buffer_availableregion(buffer, &r);
+			INSIST(r.length >= 16);
+			result = dns_dns64_aaaafroma(dns64, &netaddr,
+						     client->signer, 
+						     &ns_g_server->aclenv,
+						     flags, rdata.data, r.base);
+			if (result != ISC_R_SUCCESS) {
+				dns_rdata_reset(&rdata);
+				continue;
+			}
+			isc_buffer_add(buffer, 16);
+			isc_buffer_remainingregion(buffer, &r);
+			isc_buffer_forward(buffer, 16);
+			result = dns_message_gettemprdata(client->message,
+							  &dns64_rdata);
+			if (result != ISC_R_SUCCESS)
+				goto cleanup;
+			dns_rdata_init(dns64_rdata);
+			dns_rdata_fromregion(dns64_rdata, dns_rdataclass_in,
+					     dns_rdatatype_aaaa, &r);
+			ISC_LIST_APPEND(dns64_rdatalist->rdata, dns64_rdata,
+					link);
+			dns64_rdata = NULL;
+			dns_rdata_reset(&rdata);
+		}
+	}
+	if (result != ISC_R_NOMORE)
+		goto cleanup;
+
+	if (ISC_LIST_EMPTY(dns64_rdatalist->rdata))
+		goto cleanup;
+
+	result = dns_rdatalist_tordataset(dns64_rdatalist, dns64_rdataset);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	client->query.attributes |= NS_QUERYATTR_NOADDITIONAL;
+	dns64_rdataset->trust = rdataset->trust;
+	query_addrdataset(client, mname, dns64_rdataset);
+	dns64_rdataset = NULL;
+	dns64_rdatalist = NULL;
+	dns_message_takebuffer(client->message, &buffer);
+	result = ISC_R_SUCCESS;
+
+ cleanup:
+	if (buffer != NULL)
+		isc_buffer_free(&buffer);
+
+	if (dns64_rdata != NULL)
+		dns_message_puttemprdata(client->message, &dns64_rdata);
+
+	if (dns64_rdataset != NULL)
+		dns_message_puttemprdataset(client->message, &dns64_rdataset);
+
+	if (dns64_rdatalist != NULL) {
+		for (dns64_rdata = ISC_LIST_HEAD(dns64_rdatalist->rdata);
+		     dns64_rdata != NULL;
+		     dns64_rdata = ISC_LIST_HEAD(dns64_rdatalist->rdata))
+		{
+			ISC_LIST_UNLINK(dns64_rdatalist->rdata,
+					dns64_rdata, link);
+			dns_message_puttemprdata(client->message, &dns64_rdata);
+		}
+		dns_message_puttemprdatalist(client->message, &dns64_rdatalist);
+	}
+
+	CTRACE("query_dns64: done");
+	return (result);
+}
+
+static void
+query_filter64(ns_client_t *client, dns_name_t **namep,
+	       dns_rdataset_t *rdataset, isc_buffer_t *dbuf,
+	       dns_section_t section)
+{
+	dns_name_t *name, *mname;
+	dns_rdata_t *myrdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdatalist_t *myrdatalist;
+	dns_rdataset_t *myrdataset;
+	isc_buffer_t *buffer;
+	isc_region_t r;
+	isc_result_t result;
+	unsigned int i;
+
+	CTRACE("query_filter64");
+
+	INSIST(client->query.dns64_aaaaok != NULL);
+	INSIST(client->query.dns64_aaaaoklen == dns_rdataset_count(rdataset));
+
+	name = *namep;
+	mname = NULL;
+	buffer = NULL;
+	myrdata = NULL;
+	myrdataset = NULL;
+	myrdatalist = NULL;
+	result = dns_message_findname(client->message, section,
+				      name, dns_rdatatype_aaaa,
+				      rdataset->covers,
+				      &mname, &myrdataset);
+	if (result == ISC_R_SUCCESS) {
+		/*
+		 * We've already got an RRset of the given name and type.
+		 * There's nothing else to do;
+		 */
+		CTRACE("query_filter64: dns_message_findname succeeded: done");
+		if (dbuf != NULL)
+			query_releasename(client, namep);
+		return;
+	} else if (result == DNS_R_NXDOMAIN) {
+		mname = name;
+		*namep = NULL;
+	} else {
+		RUNTIME_CHECK(result == DNS_R_NXRRSET);
+		if (dbuf != NULL)
+			query_releasename(client, namep);
+		dbuf = NULL;
+	}
+
+	if (rdataset->trust != dns_trust_secure &&
+	    (section == DNS_SECTION_ANSWER ||
+	     section == DNS_SECTION_AUTHORITY))
+		client->query.attributes &= ~NS_QUERYATTR_SECURE;
+
+	result = isc_buffer_allocate(client->mctx, &buffer,
+				     16 * dns_rdataset_count(rdataset));
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	result = dns_message_gettemprdataset(client->message, &myrdataset);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	result = dns_message_gettemprdatalist(client->message, &myrdatalist);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	dns_rdataset_init(myrdataset);
+	dns_rdatalist_init(myrdatalist);
+	myrdatalist->rdclass = dns_rdataclass_in;
+	myrdatalist->type = dns_rdatatype_aaaa;
+	myrdatalist->ttl = rdataset->ttl;
+
+	i = 0;
+	for (result = dns_rdataset_first(rdataset);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(rdataset)) {
+		if (!client->query.dns64_aaaaok[i++])
+			continue;
+		dns_rdataset_current(rdataset, &rdata);
+		INSIST(rdata.length == 16);
+		isc_buffer_putmem(buffer, rdata.data, rdata.length);
+		isc_buffer_remainingregion(buffer, &r);
+		isc_buffer_forward(buffer, rdata.length);
+		result = dns_message_gettemprdata(client->message, &myrdata);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
+		dns_rdata_init(myrdata);
+		dns_rdata_fromregion(myrdata, dns_rdataclass_in,
+				     dns_rdatatype_aaaa, &r);
+		ISC_LIST_APPEND(myrdatalist->rdata, myrdata, link);
+		myrdata = NULL;
+		dns_rdata_reset(&rdata);
+	}
+	if (result != ISC_R_NOMORE)
+		goto cleanup;
+
+	result = dns_rdatalist_tordataset(myrdatalist, myrdataset);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	client->query.attributes |= NS_QUERYATTR_NOADDITIONAL;
+	if (mname == name) {
+		if (dbuf != NULL)
+			query_keepname(client, name, dbuf);
+		dns_message_addname(client->message, name, section);
+		dbuf = NULL;
+	}
+	myrdataset->trust = rdataset->trust;
+	query_addrdataset(client, mname, myrdataset);
+	myrdataset = NULL;
+	myrdatalist = NULL;
+	dns_message_takebuffer(client->message, &buffer);
+
+ cleanup:
+	if (buffer != NULL)
+		isc_buffer_free(&buffer);
+
+	if (myrdata != NULL)
+		dns_message_puttemprdata(client->message, &myrdata);
+
+	if (myrdataset != NULL)
+		dns_message_puttemprdataset(client->message, &myrdataset);
+
+	if (myrdatalist != NULL) {
+		for (myrdata = ISC_LIST_HEAD(myrdatalist->rdata);
+		     myrdata != NULL;
+		     myrdata = ISC_LIST_HEAD(myrdatalist->rdata))
+		{
+			ISC_LIST_UNLINK(myrdatalist->rdata, myrdata, link);
+			dns_message_puttemprdata(client->message, &myrdata);
+		}
+		dns_message_puttemprdatalist(client->message, &myrdatalist);
+	}
+	if (dbuf != NULL)
+		query_releasename(client, &name);
+
+	CTRACE("query_filter64: done");
+}
+
 static void
 query_addrrset(ns_client_t *client, dns_name_t **namep,
 	       dns_rdataset_t **rdatasetp, dns_rdataset_t **sigrdatasetp,
@@ -2036,7 +2387,7 @@ query_addrrset(ns_client_t *client, dns_name_t **namep,
 
 static inline isc_result_t
 query_addsoa(ns_client_t *client, dns_db_t *db, dns_dbversion_t *version,
-	     isc_boolean_t zero_ttl, isc_boolean_t isassociated)
+	     unsigned int override_ttl, isc_boolean_t isassociated)
 {
 	dns_name_t *name;
 	dns_dbnode_t *node;
@@ -2119,10 +2470,11 @@ query_addsoa(ns_client_t *client, dns_db_t *db, dns_dbversion_t *version,
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 
-		if (zero_ttl) {
-			rdataset->ttl = 0;
+		if (override_ttl != ISC_UINT32_MAX &&
+		    override_ttl < rdataset->ttl) {
+			rdataset->ttl = override_ttl;
 			if (sigrdataset != NULL)
-				sigrdataset->ttl = 0;
+				sigrdataset->ttl = override_ttl;
 		}
 
 		/*
@@ -3718,6 +4070,53 @@ is_v4_client(ns_client_t *client) {
 }
 #endif
 
+static isc_boolean_t
+dns64_aaaaok(ns_client_t *client, dns_rdataset_t *rdataset,
+	     dns_rdataset_t *sigrdataset)
+{
+	isc_netaddr_t netaddr;
+	dns_dns64_t *dns64 = ISC_LIST_HEAD(client->view->dns64);
+	unsigned int flags = 0;
+	unsigned int i, count;
+	isc_boolean_t *aaaaok;
+	 
+	INSIST(client->query.dns64_aaaaok == NULL);
+	INSIST(client->query.dns64_aaaaoklen == 0);
+	INSIST(client->query.dns64_aaaa == NULL);
+	INSIST(client->query.dns64_sigaaaa == NULL);
+
+	if (dns64 == NULL)
+		return (ISC_TRUE);
+
+	if (RECURSIONOK(client))
+		flags |= DNS_DNS64_RECURSIVE;
+
+	if (sigrdataset != NULL && dns_rdataset_isassociated(sigrdataset))
+		flags |= DNS_DNS64_DNSSEC;
+
+	count = dns_rdataset_count(rdataset);
+	aaaaok = isc_mem_get(client->mctx, sizeof(isc_boolean_t) * count);
+
+	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
+	if (dns_dns64_aaaaok(dns64, &netaddr, client->signer,
+			     &ns_g_server->aclenv, flags, rdataset,
+			     aaaaok, count)) {
+		for (i = 0; i < count; i++) {
+			if (aaaaok != NULL && !aaaaok[i]) {
+				client->query.dns64_aaaaok = aaaaok;
+				client->query.dns64_aaaaoklen = count;
+				break;
+			}
+		}
+		if (i == count)
+			isc_mem_put(client->mctx, aaaaok,
+				    sizeof(isc_boolean_t) * count);
+		return (ISC_TRUE);
+	}
+	isc_mem_put(client->mctx, aaaaok, sizeof(isc_boolean_t) * count);
+	return (ISC_FALSE);
+}
+
 /*
  * Do the bulk of query processing for the current query of 'client'.
  * If 'event' is non-NULL, we are returning from recursion and 'qtype'
@@ -3753,6 +4152,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	dns_rdataset_t *noqname;
 	isc_boolean_t resuming;
 	int line = -1;
+	isc_boolean_t dns64_exclude, dns64;
 
 	CTRACE("query_find");
 
@@ -3778,6 +4178,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	zone = NULL;
 	need_wildcardproof = ISC_FALSE;
 	empty_wild = ISC_FALSE;
+	dns64_exclude = dns64 = ISC_FALSE;
 	options = 0;
 	resuming = ISC_FALSE;
 	is_zone = ISC_FALSE;
@@ -3787,7 +4188,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		 * We're returning from recursion.  Restore the query context
 		 * and resume.
 		 */
-
 		want_restart = ISC_FALSE;
 		authoritative = ISC_FALSE;
 
@@ -3800,6 +4200,14 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		node = event->node;
 		rdataset = event->rdataset;
 		sigrdataset = event->sigrdataset;
+		if (DNS64(client)) {
+			client->query.attributes &= ~NS_QUERYATTR_DNS64;
+			dns64 = ISC_TRUE;
+		}
+		if (DNS64EXCLUDE(client)) {
+			client->query.attributes &= ~NS_QUERYATTR_DNS64EXCLUDE;
+			dns64_exclude = ISC_TRUE;
+		}
 
 		/*
 		 * We'll need some resources...
@@ -3823,7 +4231,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 
 		result = event->result;
 		resuming = ISC_TRUE;
-
 		goto resume;
 	}
 
@@ -4029,10 +4436,16 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			if (RECURSIONOK(client)) {
 				result = query_recurse(client, qtype,
 						       NULL, NULL, resuming);
-				if (result == ISC_R_SUCCESS)
+				if (result == ISC_R_SUCCESS) {
 					client->query.attributes |=
 						NS_QUERYATTR_RECURSING;
-				else
+					if (dns64)
+						client->query.attributes |=
+							NS_QUERYATTR_DNS64;
+					if (dns64_exclude)
+						client->query.attributes |=
+						      NS_QUERYATTR_DNS64EXCLUDE;
+				} else
 					RECURSE_ERROR(result);
 				goto cleanup;
 			} else {
@@ -4205,13 +4618,28 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 					result = query_recurse(client, qtype,
 							       NULL, NULL,
 							       resuming);
+				else if (dns64)
+					result = query_recurse(client, 
+							       dns_rdatatype_a,
+							       NULL, NULL,
+							       resuming);
 				else
 					result = query_recurse(client, qtype,
 							       fname, rdataset,
 							       resuming);
-				if (result == ISC_R_SUCCESS)
+				
+				if (result == ISC_R_SUCCESS) {
 					client->query.attributes |=
 						NS_QUERYATTR_RECURSING;
+					if (dns64)
+						client->query.attributes |=
+							NS_QUERYATTR_DNS64;
+					if (dns64_exclude)
+						client->query.attributes |=
+						      NS_QUERYATTR_DNS64EXCLUDE;
+				} else if (result == DNS_R_DUPLICATE ||
+					 result == DNS_R_DROP)
+					QUERY_ERROR(result);
 				else
 					RECURSE_ERROR(result);
 			} else {
@@ -4251,11 +4679,74 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			}
 		}
 		goto cleanup;
+
 	case DNS_R_EMPTYNAME:
-		result = DNS_R_NXRRSET;
-		/* FALLTHROUGH */
 	case DNS_R_NXRRSET:
+	nxrrset:
 		INSIST(is_zone);
+
+#ifdef dns64_bis_return_excluded_addresses
+		if (dns64)
+#else
+		if (dns64 && !dns64_exclude)
+#endif
+		{
+			/*
+			 * Restore the answers from the previous AAAA lookup.
+			 */
+			if (rdataset != NULL)
+				query_putrdataset(client, &rdataset);
+			if (sigrdataset != NULL)
+				query_putrdataset(client, &sigrdataset);
+			rdataset = client->query.dns64_aaaa;
+			sigrdataset = client->query.dns64_sigaaaa;
+			if (fname == NULL) {
+				dbuf = query_getnamebuf(client);
+				if (dbuf == NULL) {
+					QUERY_ERROR(DNS_R_SERVFAIL);
+					goto cleanup;
+				}
+				fname = query_newname(client, dbuf, &b);
+				if (fname == NULL) {
+					QUERY_ERROR(DNS_R_SERVFAIL);
+					goto cleanup;
+				}
+			}
+			dns_name_copy(client->query.qname, fname, NULL);
+			client->query.dns64_aaaa = NULL;
+			client->query.dns64_sigaaaa = NULL;
+			dns64 = ISC_FALSE;
+#ifdef dns64_bis_return_excluded_addresses
+			/*
+			 * Resume the diverted processing of the AAAA response?
+			 */
+			if (dns64_excluded)
+				break;
+#endif
+		} else if (result == DNS_R_NXRRSET && 
+		           !ISC_LIST_EMPTY(client->view->dns64) &&
+		           client->message->rdclass == dns_rdataclass_in &&
+		           qtype == dns_rdatatype_aaaa)
+		{
+			/*
+			 * Look to see if there are A records for this
+			 * name.
+			 */
+			INSIST(client->query.dns64_aaaa == NULL);
+			INSIST(client->query.dns64_sigaaaa == NULL);
+			client->query.dns64_aaaa = rdataset;
+			client->query.dns64_sigaaaa = sigrdataset;
+			query_releasename(client, &fname);
+			dns_db_detachnode(db, &node);
+			rdataset = NULL;
+			sigrdataset = NULL;
+			type = qtype = dns_rdatatype_a;
+			dns64 = ISC_TRUE;
+			goto db_find;
+		}
+
+		result = DNS_R_NXRRSET;
+
 		/*
 		 * Look for a NSEC3 record if we don't have a NSEC record.
 		 */
@@ -4348,7 +4839,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		/*
 		 * Add SOA.
 		 */
-		result = query_addsoa(client, db, version, ISC_FALSE,
+		result = query_addsoa(client, db, version, ISC_UINT32_MAX,
 				      dns_rdataset_isassociated(rdataset));
 		if (result != ISC_R_SUCCESS) {
 			QUERY_ERROR(result);
@@ -4397,10 +4888,11 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		    zone != NULL &&
 #endif
 		    dns_zone_getzeronosoattl(zone))
-			result = query_addsoa(client, db, version, ISC_TRUE,
+			result = query_addsoa(client, db, version, 0,
 					  dns_rdataset_isassociated(rdataset));
 		else
-			result = query_addsoa(client, db, version, ISC_FALSE,
+			result = query_addsoa(client, db, version,
+					      ISC_UINT32_MAX,
 					  dns_rdataset_isassociated(rdataset));
 		if (result != ISC_R_SUCCESS) {
 			QUERY_ERROR(result);
@@ -4431,6 +4923,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 
 	case DNS_R_NCACHENXDOMAIN:
 	case DNS_R_NCACHENXRRSET:
+	ncache_nxrrset:
 		INSIST(!is_zone);
 		authoritative = ISC_FALSE;
 		/*
@@ -4446,6 +4939,66 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		    client->message->rdclass == dns_rdataclass_in &&
 		    dns_name_countlabels(fname) == 7)
 			warn_rfc1918(client, fname, rdataset);
+
+#ifdef dns64_bis_return_excluded_addresses
+		if (dns64)
+#else
+		if (dns64 && !dns64_exclude)
+#endif
+		{
+			/*
+			 * Restore the answers from the previous AAAA lookup.
+			 */
+			if (rdataset != NULL)
+				query_putrdataset(client, &rdataset);
+			if (sigrdataset != NULL)
+				query_putrdataset(client, &sigrdataset);
+			rdataset = client->query.dns64_aaaa;
+			sigrdataset = client->query.dns64_sigaaaa;
+			if (fname == NULL) {
+				dbuf = query_getnamebuf(client);
+				if (dbuf == NULL) {
+					QUERY_ERROR(DNS_R_SERVFAIL);
+					goto cleanup;
+				}
+				fname = query_newname(client, dbuf, &b);
+				if (fname == NULL) {
+					QUERY_ERROR(DNS_R_SERVFAIL);
+					goto cleanup;
+				}
+			}
+			dns_name_copy(client->query.qname, fname, NULL);
+			client->query.dns64_aaaa = NULL;
+			client->query.dns64_sigaaaa = NULL;
+			dns64 = ISC_FALSE;
+#ifdef dns64_bis_return_excluded_addresses
+			if (dns64_excluded)
+				break;
+#endif
+		} else if (result == DNS_R_NCACHENXRRSET &&
+			   !ISC_LIST_EMPTY(client->view->dns64) &&
+			   client->message->rdclass == dns_rdataclass_in &&
+			   qtype == dns_rdatatype_aaaa)
+		{
+			/*
+			 * Look to see if there are A records for this
+			 * name.
+			 */
+			INSIST(client->query.dns64_aaaa == NULL);
+			INSIST(client->query.dns64_sigaaaa == NULL);
+			client->query.dns64_aaaa = rdataset;
+			client->query.dns64_sigaaaa = sigrdataset;
+			client->query.dns64_ttl = rdataset->ttl;
+			query_releasename(client, &fname);
+			dns_db_detachnode(db, &node);
+			rdataset = NULL;
+			sigrdataset = NULL;
+			fname = NULL;
+			type = qtype = dns_rdatatype_a;
+			dns64 = ISC_TRUE;
+			goto db_find;
+		}
+
 		/*
 		 * We don't call query_addrrset() because we don't need any
 		 * of its extra features (and things would probably break!).
@@ -4831,7 +5384,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				 * Add SOA.
 				 */
 				result = query_addsoa(client, db, version,
-						      ISC_FALSE, ISC_FALSE);
+						      ISC_UINT32_MAX,
+						      ISC_FALSE);
 				if (result == ISC_R_SUCCESS)
 					result = ISC_R_NOMORE;
 			} else {
@@ -4937,6 +5491,32 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			}
 		}
 #endif
+		/*
+		 * Check to see if the AAAA RRset has non-excluded addresses
+		 * in it.  If not look for a A RRset.
+		 */
+		INSIST(client->query.dns64_aaaaok == NULL);
+
+		if (qtype == dns_rdatatype_aaaa && !dns64_exclude &&
+		    !ISC_LIST_EMPTY(client->view->dns64) &&
+		    client->message->rdclass == dns_rdataclass_in &&
+		    !dns64_aaaaok(client, rdataset, sigrdataset)) {
+			/*
+			 * Look to see if there are A records for this
+			 * name.
+			 */
+			client->query.dns64_aaaa = rdataset;
+			client->query.dns64_sigaaaa = sigrdataset;
+			client->query.dns64_ttl = rdataset->ttl;
+			query_releasename(client, &fname);
+			dns_db_detachnode(db, &node);
+			rdataset = NULL;
+			sigrdataset = NULL;
+			type = qtype = dns_rdatatype_a;
+			dns64_exclude = dns64 = ISC_TRUE;
+			goto db_find;
+		}
+
 		if (sigrdataset != NULL)
 			sigrdatasetp = &sigrdataset;
 		else
@@ -4952,8 +5532,43 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		    dns_name_equal(client->query.qname, dns_rootname))
 			client->query.attributes &= ~NS_QUERYATTR_NOADDITIONAL;
 
-		query_addrrset(client, &fname, &rdataset, sigrdatasetp, dbuf,
-			       DNS_SECTION_ANSWER);
+		if (dns64) {
+			qtype = type = dns_rdatatype_aaaa;
+			result = query_dns64(client, &fname, rdataset,
+					     sigrdataset, dbuf,
+					     DNS_SECTION_ANSWER);
+			dns_rdataset_disassociate(rdataset);
+			dns_message_puttemprdataset(client->message, &rdataset);
+			if (result == ISC_R_NOMORE) {
+#ifndef dns64_bis_return_excluded_addresses
+				if (dns64_exclude) {
+					if (!is_zone)
+						goto cleanup;
+					/*
+					 * Add a fake the SOA record.
+					 */
+					result = query_addsoa(client, db,
+							      version, 600,
+							      ISC_FALSE);
+					goto cleanup;
+				}
+#endif
+				if (is_zone)
+					goto nxrrset;
+				else
+					goto ncache_nxrrset;
+			} else if (result != ISC_R_SUCCESS) {
+				eresult = result;
+				goto cleanup;
+			}
+		} else if (client->query.dns64_aaaaok != NULL) {
+			query_filter64(client, &fname, rdataset, dbuf,
+				       DNS_SECTION_ANSWER);
+			query_putrdataset(client, &rdataset);
+		} else	 
+			query_addrrset(client, &fname, &rdataset,
+				       sigrdatasetp, dbuf, DNS_SECTION_ANSWER);
+		
 		if (noqname != NULL)
 			query_addnoqnameproof(client, noqname);
 		/*

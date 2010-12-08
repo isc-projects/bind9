@@ -15,12 +15,13 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.31 2010/12/03 00:37:33 marka Exp $
+# $Id: tests.sh,v 1.32 2010/12/07 02:53:34 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 status=0
+n=0
 
 # wait for zone transfer to complete
 tries=0
@@ -223,6 +224,90 @@ fi
 
 echo "I:end RT #482 regression test"
 
+n=`expr $n + 1`
+echo "I:start NSEC3PARAM changes via UPDATE on a unsigned zone test ($n)"
+ret=0
+$NSUPDATE << EOF
+server 10.53.0.3 5300
+update add example 3600 nsec3param 1 0 0 -
+send
+EOF
+
+sleep 1
+
+# the zone is not signed.  The nsec3param records should be removed.
+# this also proves that the server is still running.
+$DIG +tcp +noadd +nosea +nostat +noquest +nocmd +norec example.\
+	@10.53.0.3 nsec3param -p 5300 > dig.out.ns3.$n || ret=1
+grep "ANSWER: 0" dig.out.ns3.$n > /dev/null || ret=1
+grep "flags:[^;]* aa[ ;]" dig.out.ns3.$n > /dev/null || ret=1
+if [ $ret != 0 ] ; then echo "I: failed"; status=`expr $ret + $status`; fi
+
+n=`expr $n + 1`
+echo "I:change the NSEC3PARAM ttl via update ($n)"
+ret=0
+$NSUPDATE << EOF
+server 10.53.0.3 5300
+update add nsec3param.test 3600 NSEC3PARAM 1 0 1 -
+send
+EOF
+
+sleep 1
+
+$DIG +tcp +noadd +nosea +nostat +noquest +nocmd +norec nsec3param.test.\
+        @10.53.0.3 nsec3param -p 5300 > dig.out.ns3.$n || ret=1
+grep "ANSWER: 1" dig.out.ns3.$n > /dev/null || ret=1
+grep "3600.*NSEC3PARAM" dig.out.ns3.$n > /dev/null || ret=1
+grep "flags:[^;]* aa[ ;]" dig.out.ns3.$n > /dev/null || ret=1
+if [ $ret != 0 ] ; then echo "I: failed"; status=`expr $ret + $status`; fi
+
+n=`expr $n + 1`
+echo "I:add a new the NSEC3PARAM via update ($n)"
+ret=0
+$NSUPDATE << EOF
+server 10.53.0.3 5300
+update add nsec3param.test 3600 NSEC3PARAM 1 0 4 -
+send
+EOF
+
+sleep 1
+
+$DIG +tcp +noadd +nosea +nostat +noquest +nocmd +norec nsec3param.test.\
+        @10.53.0.3 nsec3param -p 5300 > dig.out.ns3.$n || ret=1
+grep "ANSWER: 2" dig.out.ns3.$n > /dev/null || ret=1
+grep "NSEC3PARAM 1 0 4 -" dig.out.ns3.$n > /dev/null || ret=1
+grep "flags:[^;]* aa[ ;]" dig.out.ns3.$n > /dev/null || ret=1
+if [ $ret != 0 ] ; then echo "I: failed"; status=`expr $ret + $status`; fi
+
+n=`expr $n + 1`
+echo "I:add, delete and change the ttl of the NSEC3PARAM rrset via update ($n)"
+ret=0
+$NSUPDATE << EOF
+server 10.53.0.3 5300
+update delete nsec3param.test NSEC3PARAM
+update add nsec3param.test 7200 NSEC3PARAM 1 0 5 -
+send
+EOF
+
+sleep 1
+
+$DIG +tcp +noadd +nosea +nostat +noquest +nocmd +norec nsec3param.test.\
+        @10.53.0.3 nsec3param -p 5300 > dig.out.ns3.$n || ret=1
+grep "ANSWER: 1" dig.out.ns3.$n > /dev/null || ret=1
+grep "7200.*NSEC3PARAM 1 0 5 -" dig.out.ns3.$n > /dev/null || ret=1
+grep "flags:[^;]* aa[ ;]" dig.out.ns3.$n > /dev/null || ret=1
+$JOURNALPRINT ns3/nsec3param.test.db.signed.jnl > jp.out.ns3.$n
+# intermediate TTL changes.
+grep "add nsec3param.test.	7200	IN	NSEC3PARAM 1 0 4 -" jp.out.ns3.$n > /dev/null || ret=1
+grep "add nsec3param.test.	7200	IN	NSEC3PARAM 1 0 1 -" jp.out.ns3.$n > /dev/null || ret=1
+# delayed adds and deletes.
+grep "add nsec3param.test.	0	IN	TYPE65534 .# 6 000180000500" jp.out.ns3.$n > /dev/null || ret=1
+grep "add nsec3param.test.	0	IN	TYPE65534 .# 6 000140000100" jp.out.ns3.$n > /dev/null || ret=1
+grep "add nsec3param.test.	0	IN	TYPE65534 .# 6 000140000400" jp.out.ns3.$n > /dev/null || ret=1
+if [ $ret != 0 ] ; then echo "I: failed"; status=`expr $ret + $status`; fi
+
+
+
 echo "I:testing that rndc stop updates the master file"
 $NSUPDATE -k ns1/ddns.key <<END > /dev/null || status=1
 server 10.53.0.1 5300
@@ -247,6 +332,7 @@ if test $ret -ne 0
 then
 echo "I:failed"; status=1
 fi
+
 
 echo "I:exit status: $status"
 exit $status
