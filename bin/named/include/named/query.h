@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.h,v 1.42 2010/09/24 08:31:23 tbox Exp $ */
+/* $Id: query.h,v 1.43 2010/12/08 02:46:15 marka Exp $ */
 
 #ifndef NAMED_QUERY_H
 #define NAMED_QUERY_H 1
@@ -27,6 +27,7 @@
 #include <isc/netaddr.h>
 
 #include <dns/types.h>
+#include <dns/rdataset.h>
 
 #include <named/types.h>
 
@@ -57,6 +58,12 @@ struct ns_query {
 	isc_bufferlist_t		namebufs;
 	ISC_LIST(ns_dbversion_t)	activeversions;
 	ISC_LIST(ns_dbversion_t)	freeversions;
+	dns_rdataset_t *		dns64_aaaa;
+	dns_rdataset_t *		dns64_sigaaaa;
+	isc_boolean_t *			dns64_aaaaok;
+	unsigned int			dns64_aaaaoklen;
+	unsigned int			dns64_options;
+	unsigned int			dns64_ttl;
 };
 
 #define NS_QUERYATTR_RECURSIONOK	0x0001
@@ -73,6 +80,9 @@ struct ns_query {
 #define NS_QUERYATTR_NOADDITIONAL	0x0800
 #define NS_QUERYATTR_CACHEACLOKVALID	0x1000
 #define NS_QUERYATTR_CACHEACLOK		0x2000
+#define NS_QUERYATTR_DNS64		0x4000
+#define NS_QUERYATTR_DNS64EXCLUDE	0x8000
+
 
 isc_result_t
 ns_query_init(ns_client_t *client);

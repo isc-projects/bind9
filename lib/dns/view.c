@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.170 2010/09/24 05:09:03 marka Exp $ */
+/* $Id: view.c,v 1.171 2010/12/08 02:46:16 marka Exp $ */
 
 /*! \file */
 
@@ -34,6 +34,7 @@
 #include <dns/cache.h>
 #include <dns/db.h>
 #include <dns/dlz.h>
+#include <dns/dns64.h>
 #include <dns/dnssec.h>
 #include <dns/events.h>
 #include <dns/forward.h>
@@ -145,6 +146,8 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->resstats = NULL;
 	view->resquerystats = NULL;
 	view->cacheshared = ISC_FALSE;
+	ISC_LIST_INIT(view->dns64);
+	view->dns64cnt = 0;
 
 	/*
 	 * Initialize configuration data with default values.
@@ -256,6 +259,8 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 
 static inline void
 destroy(dns_view_t *view) {
+	dns_dns64_t *dns64;
+
 	REQUIRE(!ISC_LINK_LINKED(view, link));
 	REQUIRE(isc_refcount_current(&view->references) == 0);
 	REQUIRE(view->weakrefs == 0);
@@ -373,6 +378,12 @@ destroy(dns_view_t *view) {
 		dns_stats_detach(&view->resquerystats);
 	if (view->secroots_priv != NULL)
 		dns_keytable_detach(&view->secroots_priv);
+	for (dns64 = ISC_LIST_HEAD(view->dns64);
+	     dns64 != NULL;
+	     dns64 = ISC_LIST_HEAD(view->dns64)) {
+		dns_dns64_unlink(&view->dns64, dns64);
+		dns_dns64_destroy(&dns64);
+	}
 #ifdef BIND9
 	if (view->managed_keys != NULL)
 		dns_zone_detach(&view->managed_keys);

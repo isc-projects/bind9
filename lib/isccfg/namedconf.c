@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.123 2010/08/11 18:14:20 each Exp $ */
+/* $Id: namedconf.c,v 1.124 2010/12/08 02:46:17 marka Exp $ */
 
 /*! \file */
 
@@ -984,6 +984,31 @@ static cfg_type_t cfg_type_lookaside = {
 	&cfg_rep_tuple, lookaside_fields
 };
 
+/*
+ * DNS64.
+ */
+static cfg_clausedef_t
+dns64_clauses[] = {
+	{ "clients", &cfg_type_bracketed_aml, 0 },
+	{ "mapped", &cfg_type_bracketed_aml, 0 },
+	{ "exclude", &cfg_type_bracketed_aml, 0 },
+	{ "suffix", &cfg_type_netaddr6, 0 },
+	{ "recursive-only", &cfg_type_boolean, 0 },
+	{ "break-dnssec", &cfg_type_boolean, 0 },
+	{ NULL, NULL, 0 },
+};
+
+static cfg_clausedef_t *
+dns64_clausesets[] = {
+	dns64_clauses,
+	NULL
+};
+
+static cfg_type_t cfg_type_dns64 = {
+	"dns64", cfg_parse_netprefix_map, cfg_print_map, cfg_doc_map,
+	&cfg_rep_map, dns64_clausesets
+};
+
 /*%
  * Clauses that can be found within the 'view' statement,
  * with defaults in the 'options' statement.
@@ -1013,6 +1038,7 @@ view_clauses[] = {
 	{ "disable-algorithms", &cfg_type_disablealgorithm,
 	  CFG_CLAUSEFLAG_MULTI },
 	{ "disable-empty-zone", &cfg_type_astring, CFG_CLAUSEFLAG_MULTI },
+	{ "dns64", &cfg_type_dns64, CFG_CLAUSEFLAG_MULTI },
 	{ "dnssec-accept-expired", &cfg_type_boolean, 0 },
 	{ "dnssec-enable", &cfg_type_boolean, 0 },
 	{ "dnssec-lookaside", &cfg_type_lookaside, CFG_CLAUSEFLAG_MULTI },

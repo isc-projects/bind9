@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.587 2010/12/02 23:22:41 marka Exp $ */
+/* $Id: server.c,v 1.588 2010/12/08 02:46:15 marka Exp $ */
 
 /*! \file */
 
@@ -63,6 +63,7 @@
 #ifdef DLZ
 #include <dns/dlz.h>
 #endif
+#include <dns/dns64.h>
 #include <dns/forward.h>
 #include <dns/journal.h>
 #include <dns/keytable.h>
@@ -1356,6 +1357,7 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 	isc_boolean_t zero_no_soattl;
 	cfg_parser_t *newzones_parser = NULL;
 	cfg_obj_t *nzfconf = NULL;
+	dns_acl_t *clients = NULL, *mapped = NULL, *excluded = NULL;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -1618,6 +1620,89 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 	INSIST(result == ISC_R_SUCCESS);
 	zero_no_soattl = cfg_obj_asboolean(obj);
 
+	obj = NULL;
+	result = ns_config_get(maps, "dns64", &obj);
+	if (result == ISC_R_SUCCESS && strcmp(view->name, "_bind") &&
+	    strcmp(view->name, "_meta")) {
+		const cfg_listelt_t *element;
+		isc_netaddr_t na, suffix, *sp;
+		unsigned int prefixlen;
+
+		for (element = cfg_list_first(obj);
+		     element != NULL;
+		     element = cfg_list_next(element))
+		{
+			const cfg_obj_t *map = cfg_listelt_value(element);
+			dns_dns64_t *dns64 = NULL;
+			unsigned int dns64options = 0;
+
+			cfg_obj_asnetprefix(cfg_map_getname(map), &na,
+					    &prefixlen);
+
+			obj = NULL;
+			(void)cfg_map_get(map, "suffix", &obj);
+			if (obj != NULL) {
+				sp = &suffix;
+				isc_netaddr_fromsockaddr(sp,
+						      cfg_obj_assockaddr(obj));
+			} else
+				sp = NULL;
+			
+			clients = mapped = excluded = NULL;
+			obj = NULL;
+			(void)cfg_map_get(map, "clients", &obj);
+			if (obj != NULL) {
+				result = cfg_acl_fromconfig(obj, config,
+							    ns_g_lctx, actx,
+							    mctx, 0, &clients);
+				if (result != ISC_R_SUCCESS)
+					goto cleanup;
+			}
+			obj = NULL;
+			(void)cfg_map_get(map, "mapped", &obj);
+			if (obj != NULL) {
+				result = cfg_acl_fromconfig(obj, config,
+							    ns_g_lctx, actx,
+							    mctx, 0, &mapped);
+				if (result != ISC_R_SUCCESS)
+					goto cleanup;
+			}
+			obj = NULL;
+			(void)cfg_map_get(map, "exclude", &obj);
+			if (obj != NULL) {
+				result = cfg_acl_fromconfig(obj, config,
+							    ns_g_lctx, actx,
+							    mctx, 0, &excluded);
+				if (result != ISC_R_SUCCESS)
+					goto cleanup;
+			}
+
+			obj = NULL;
+			(void)cfg_map_get(map, "recursive-only", &obj);
+			if (obj != NULL && cfg_obj_asboolean(obj))
+				dns64options |= DNS_DNS64_RECURSIVE_ONLY;
+
+			obj = NULL;
+			(void)cfg_map_get(map, "break-dnssec", &obj);
+			if (obj != NULL && cfg_obj_asboolean(obj))
+				dns64options |= DNS_DNS64_BREAK_DNSSEC;
+			
+			result = dns_dns64_create(mctx, &na, prefixlen, sp,
+						  clients, mapped, excluded,
+						  dns64options, &dns64);
+			if (result != ISC_R_SUCCESS)
+				goto cleanup;
+			dns_dns64_append(&view->dns64, dns64);
+			view->dns64cnt++;
+			if (clients != NULL)
+				dns_acl_detach(&clients);
+			if (mapped != NULL)
+				dns_acl_detach(&mapped);
+			if (excluded != NULL)
+				dns_acl_detach(&excluded);
+		}
+	}
+	
 	obj = NULL;
 	result = ns_config_get(maps, "dnssec-accept-expired", &obj);
 	INSIST(result == ISC_R_SUCCESS);
@@ -2518,6 +2603,12 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 	result = ISC_R_SUCCESS;
 
  cleanup:
+	if (clients != NULL)
+		dns_acl_detach(&clients);
+	if (mapped != NULL)
+		dns_acl_detach(&mapped);
+	if (excluded != NULL)
+		dns_acl_detach(&excluded);
 	if (ring != NULL)
 		dns_tsigkeyring_destroy(&ring);
 	if (zone != NULL)

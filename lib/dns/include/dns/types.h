@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.142 2010/06/22 03:58:38 marka Exp $ */
+/* $Id: types.h,v 1.143 2010/12/08 02:46:16 marka Exp $ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
@@ -67,6 +67,8 @@ typedef struct dns_dispatchevent		dns_dispatchevent_t;
 typedef struct dns_dispatchlist			dns_dispatchlist_t;
 typedef struct dns_dispatchmgr			dns_dispatchmgr_t;
 typedef struct dns_dispentry			dns_dispentry_t;
+typedef struct dns_dns64			dns_dns64_t;
+typedef ISC_LIST(dns_dns64_t)			dns_dns64list_t;
 typedef struct dns_dnsseckey			dns_dnsseckey_t;
 typedef ISC_LIST(dns_dnsseckey_t)		dns_dnsseckeylist_t;
 typedef struct dns_dumpctx			dns_dumpctx_t;

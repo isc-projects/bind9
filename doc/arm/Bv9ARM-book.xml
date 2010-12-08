@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.465 2010/09/21 19:47:57 ebersman Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.466 2010/12/08 02:46:16 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -5120,6 +5120,14 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> match-mapped-addresses <replaceable>yes_or_no</replaceable>; </optional>
     <optional> filter-aaaa-on-v4 ( <replaceable>yes_or_no</replaceable> | <replaceable>break-dnssec</replaceable> ); </optional>
     <optional> filter-aaaa { <replaceable>address_match_list</replaceable> }; </optional>
+    <optional> dns64 <replaceable>IPv6-prefix</replaceable> {
+	<optional> clients { <replaceable>address_match_list</replaceable> }; </optional>
+	<optional> mapped { <replaceable>address_match_list</replaceable> }; </optional>
+        <optional> exclude { <replaceable>address_match_list</replaceable> }; </optional>
+	<optional> suffix IPv6-address; </optional>
+	<optional> recursion-only <replaceable>yes_or_no</replaceable>; </optional>
+	<optional> break-dnssec <replaceable>yes_or_no</replaceable>; </optional>
+    }; </optional>;
     <optional> preferred-glue ( <replaceable>A</replaceable> | <replaceable>AAAA</replaceable> | <replaceable>NONE</replaceable> ); </optional>
     <optional> edns-udp-size <replaceable>number</replaceable>; </optional>
     <optional> max-udp-size <replaceable>number</replaceable>; </optional>
@@ -5709,6 +5717,63 @@ options {
               </para>
             </listitem>
           </varlistentry>
+
+	  <varlistentry>
+	    <term><command>dns64</command></term>
+            <listitem>
+	      <para>
+		This directive instructs <command>named</command> to
+		return mapped IPv4 addresses to AAAA queries when
+		there are no AAAA records.  It is intended to be
+		used in conjunction with a NAT64.  Each
+		<command>dns64</command> defines one DNS64 prefix.
+		Multiple DNS64 prefixes can be defined.
+	      </para>
+	      <para>
+		Compatible IPv6 prefixes have lengths of 32, 40, 48, 56,
+		64 and 96 as per RFC 6052.
+	      </para>
+	      <para>
+		Each <command>dns64</command> supports a optional
+		<command>clients</command> acl which defines which clients
+		see this directive.  If not defined it defaults to
+		<userinput>any;</userinput>.
+	      </para>
+	      <para>
+		Each <command>dns64</command> supports a optional
+		<command>mapped</command> acl which selects which
+		IPv4 addresses are to be mapped are in the corresponding	
+		A RRset.  If not defined it defaults to
+		<userinput>any;</userinput>.
+	      </para>
+	      <para>
+		Each <command>dns64</command> supports a optional
+		<command>exclude</command> acl which selects which
+		IPv6 addresses will be ignored for the purposes
+		of determining if dns64 is to be applied.  Any
+		non matching address will prevent any further
+		DNS64 processing from occuring for this client.
+	      </para>
+	      <para>
+		A optional <command>suffix</command> can also
+		be defined to set the bits trailing the mapped
+		IPv4 address bits.  By default these bits are
+		set to <userinput>::</userinput>.  The bits
+		matching the prefix and mapped IPv4 address
+		must be zero.
+	      </para>
+<programlisting>
+	acl rfc1918 { 10/8; 192.168/16; 172.16/12; };
+
+        dns64 64:FF9B::/96 {
+                clients { any; };
+                mapped { !rfc1918; any; };
+                exclude { 64:FF9B::/96; ::ffff:0000:0000/96; };
+                suffix ::;
+        };
+</programlisting>
+            </listitem>
+	  </varlistentry>
 
         </variablelist>
 
