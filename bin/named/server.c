@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.588 2010/12/08 02:46:15 marka Exp $ */
+/* $Id: server.c,v 1.589 2010/12/08 23:47:05 tbox Exp $ */
 
 /*! \file */
 
@@ -1647,7 +1647,7 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 						      cfg_obj_assockaddr(obj));
 			} else
 				sp = NULL;
-			
+
 			clients = mapped = excluded = NULL;
 			obj = NULL;
 			(void)cfg_map_get(map, "clients", &obj);
@@ -1686,7 +1686,7 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 			(void)cfg_map_get(map, "break-dnssec", &obj);
 			if (obj != NULL && cfg_obj_asboolean(obj))
 				dns64options |= DNS_DNS64_BREAK_DNSSEC;
-			
+
 			result = dns_dns64_create(mctx, &na, prefixlen, sp,
 						  clients, mapped, excluded,
 						  dns64options, &dns64);
@@ -1702,7 +1702,7 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 				dns_acl_detach(&excluded);
 		}
 	}
-	
+
 	obj = NULL;
 	result = ns_config_get(maps, "dnssec-accept-expired", &obj);
 	INSIST(result == ISC_R_SUCCESS);

@@ -1,6 +1,20 @@
 /*
- * Copyright
+ * Copyright (C) 2010  Internet Systems Consortium, Inc. ("ISC")
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
  */
+
+/* $Id: dns64.h,v 1.3 2010/12/08 23:51:56 tbox Exp $ */
 
 #ifndef DNS_DNS64_H
 #define DNS_DNS64_H 1
@@ -41,7 +55,7 @@ dns_dns64_create(isc_mem_t *mctx, isc_netaddr_t *prefix,
  *
  * 'prefix' and 'prefixlen' defined the leading bits of the AAAA records
  * to be synthesised.  'suffix' defines the bits after the A records bits.
- * If suffix is NULL zeros will be used for these bits.  'client' defines 
+ * If suffix is NULL zeros will be used for these bits.  'client' defines
  * for which clients this record applies.  If 'client' is NULL then all
  * clients apply.  'mapped' defines which A records are candidated for
  * mapping.  If 'mapped' is NULL then all A records will be mapped.
@@ -87,8 +101,8 @@ dns_dns64_destroy(dns_dns64_t **dns64p);
 
 isc_result_t
 dns_dns64_aaaafroma(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
-                    const dns_name_t *reqsigner, const dns_aclenv_t *env,
-                    unsigned int flags, unsigned char *a, unsigned char *aaaa);
+		    const dns_name_t *reqsigner, const dns_aclenv_t *env,
+		    unsigned int flags, unsigned char *a, unsigned char *aaaa);
 /*
  * dns_dns64_aaaafroma() determines whether to perform a DNS64 address
  * synthesis from 'a' based on 'dns64', 'reqaddr', 'reqsigner', 'env',
@@ -135,8 +149,8 @@ dns_dns64_unlink(dns_dns64list_t *list, dns_dns64_t *dns64);
 
 isc_boolean_t
 dns_dns64_aaaaok(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
-                 const dns_name_t *reqsigner, const dns_aclenv_t *env,
-                 unsigned int flags, dns_rdataset_t *rdataset,
+		 const dns_name_t *reqsigner, const dns_aclenv_t *env,
+		 unsigned int flags, dns_rdataset_t *rdataset,
 		 isc_boolean_t *aaaaok, size_t aaaaoklen);
 /*
  * Determine if there are any non-excluded AAAA records in from the

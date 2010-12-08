@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.121 2010/12/08 02:46:16 marka Exp $ */
+/* $Id: check.c,v 1.122 2010/12/08 23:47:06 tbox Exp $ */
 
 /*! \file */
 
@@ -461,7 +461,7 @@ check_dns64(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 			result = ISC_R_FAILURE;
 			continue;
 		}
-		
+
 		if (prefixlen != 32 && prefixlen != 40 && prefixlen != 48 &&
 		    prefixlen != 56 && prefixlen != 64 && prefixlen != 96) {
 			cfg_obj_log(map, logctx, ISC_LOG_ERROR,

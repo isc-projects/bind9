@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.347 2010/12/08 02:46:15 marka Exp $ */
+/* $Id: query.c,v 1.348 2010/12/08 23:47:05 tbox Exp $ */
 
 /*! \file */
 
@@ -2101,12 +2101,12 @@ query_dns64(ns_client_t *client, dns_name_t **namep, dns_rdataset_t *rdataset,
 	     result = dns_rdataset_next(rdataset)) {
 		for (dns64 = ISC_LIST_HEAD(client->view->dns64);
 		     dns64 != NULL; dns64 = dns_dns64_next(dns64)) {
-			
+
 			dns_rdataset_current(rdataset, &rdata);
 			isc__buffer_availableregion(buffer, &r);
 			INSIST(r.length >= 16);
 			result = dns_dns64_aaaafroma(dns64, &netaddr,
-						     client->signer, 
+						     client->signer,
 						     &ns_g_server->aclenv,
 						     flags, rdata.data, r.base);
 			if (result != ISC_R_SUCCESS) {
@@ -4079,7 +4079,7 @@ dns64_aaaaok(ns_client_t *client, dns_rdataset_t *rdataset,
 	unsigned int flags = 0;
 	unsigned int i, count;
 	isc_boolean_t *aaaaok;
-	 
+
 	INSIST(client->query.dns64_aaaaok == NULL);
 	INSIST(client->query.dns64_aaaaoklen == 0);
 	INSIST(client->query.dns64_aaaa == NULL);
@@ -4619,7 +4619,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 							       NULL, NULL,
 							       resuming);
 				else if (dns64)
-					result = query_recurse(client, 
+					result = query_recurse(client,
 							       dns_rdatatype_a,
 							       NULL, NULL,
 							       resuming);
@@ -4627,7 +4627,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 					result = query_recurse(client, qtype,
 							       fname, rdataset,
 							       resuming);
-				
+
 				if (result == ISC_R_SUCCESS) {
 					client->query.attributes |=
 						NS_QUERYATTR_RECURSING;
@@ -4723,10 +4723,10 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			if (dns64_excluded)
 				break;
 #endif
-		} else if (result == DNS_R_NXRRSET && 
-		           !ISC_LIST_EMPTY(client->view->dns64) &&
-		           client->message->rdclass == dns_rdataclass_in &&
-		           qtype == dns_rdatatype_aaaa)
+		} else if (result == DNS_R_NXRRSET &&
+			   !ISC_LIST_EMPTY(client->view->dns64) &&
+			   client->message->rdclass == dns_rdataclass_in &&
+			   qtype == dns_rdatatype_aaaa)
 		{
 			/*
 			 * Look to see if there are A records for this
@@ -5565,10 +5565,10 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			query_filter64(client, &fname, rdataset, dbuf,
 				       DNS_SECTION_ANSWER);
 			query_putrdataset(client, &rdataset);
-		} else	 
+		} else
 			query_addrrset(client, &fname, &rdataset,
 				       sigrdatasetp, dbuf, DNS_SECTION_ANSWER);
-		
+
 		if (noqname != NULL)
 			query_addnoqnameproof(client, noqname);
 		/*
