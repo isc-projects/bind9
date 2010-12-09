@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.171 2010/12/08 02:46:16 marka Exp $ */
+/* $Id: view.c,v 1.172 2010/12/09 04:53:48 marka Exp $ */
 
 /*! \file */
 
@@ -34,7 +34,9 @@
 #include <dns/cache.h>
 #include <dns/db.h>
 #include <dns/dlz.h>
+#ifdef BIND9
 #include <dns/dns64.h>
+#endif
 #include <dns/dnssec.h>
 #include <dns/events.h>
 #include <dns/forward.h>
@@ -259,7 +261,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 
 static inline void
 destroy(dns_view_t *view) {
+#ifdef BIND9
 	dns_dns64_t *dns64;
+#endif
 
 	REQUIRE(!ISC_LINK_LINKED(view, link));
 	REQUIRE(isc_refcount_current(&view->references) == 0);
@@ -378,13 +382,13 @@ destroy(dns_view_t *view) {
 		dns_stats_detach(&view->resquerystats);
 	if (view->secroots_priv != NULL)
 		dns_keytable_detach(&view->secroots_priv);
+#ifdef BIND9
 	for (dns64 = ISC_LIST_HEAD(view->dns64);
 	     dns64 != NULL;
 	     dns64 = ISC_LIST_HEAD(view->dns64)) {
 		dns_dns64_unlink(&view->dns64, dns64);
 		dns_dns64_destroy(&dns64);
 	}
-#ifdef BIND9
 	if (view->managed_keys != NULL)
 		dns_zone_detach(&view->managed_keys);
 	dns_view_setnewzones(view, ISC_FALSE, NULL, NULL);
