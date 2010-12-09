@@ -189,6 +189,13 @@ dns_dlzfindzone
 dns_dlzregister
 dns_dlzstrtoargv
 dns_dlzunregister
+dns_dns64_aaaafroma
+dns_dns64_aaaaok
+dns_dns64_append
+dns_dns64_create
+dns_dns64_destroy
+dns_dns64_next
+dns_dns64_unlink
 dns_dnssec_findmatchingkeys
 dns_dnssec_findzonekeys
 dns_dnssec_findzonekeys2
@@ -891,6 +898,7 @@ dst_gssapi_acceptctx
 dst_gssapi_acquirecred
 dst_gssapi_initctx
 dst_key_alg
+dst_key_attach
 dst_key_buildfilename
 dst_key_class
 dst_key_compare
