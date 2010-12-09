@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dns64.c,v 1.3 2010/12/08 23:51:56 tbox Exp $ */
+/* $Id: dns64.c,v 1.4 2010/12/09 04:01:43 marka Exp $ */
 
 #include <config.h>
 
@@ -169,6 +169,8 @@ dns_dns64_aaaafroma(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 	INSIST(nbytes <= 12);
 	/* Copy prefix. */
 	memcpy(aaaa, dns64->bits, nbytes);
+	if (nbytes == 8)
+		aaaa[nbytes++] = 0;
 	/* Copy mapped address. */
 	for (i = 0; i < 4U; i++) {
 		aaaa[nbytes++] = a[i];
