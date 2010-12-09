@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dns64.c,v 1.4 2010/12/09 04:01:43 marka Exp $ */
+/* $Id: dns64.c,v 1.5 2010/12/09 04:17:15 marka Exp $ */
 
 #include <config.h>
 
@@ -169,6 +169,7 @@ dns_dns64_aaaafroma(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 	INSIST(nbytes <= 12);
 	/* Copy prefix. */
 	memcpy(aaaa, dns64->bits, nbytes);
+	/* Bits 64-71 are zeros. draft-ietf-behave-address-format-04 */
 	if (nbytes == 8)
 		aaaa[nbytes++] = 0;
 	/* Copy mapped address. */
