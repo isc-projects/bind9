@@ -831,6 +831,7 @@ dst_gssapi_acceptctx
 dst_gssapi_acquirecred
 dst_gssapi_initctx
 dst_key_alg
+dst_key_attach
 dst_key_buildfilename
 dst_key_class
 dst_key_compare
