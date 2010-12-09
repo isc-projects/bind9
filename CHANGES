@@ -1,3 +1,5 @@
+	--- 9.7.3b1 released ---
+
 2982.	[bug]		Reference count dst keys.  dst_key_attach() can be used
 			increment the reference count.
 
