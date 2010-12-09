@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.185 2010/12/09 00:54:33 marka Exp $ */
+/* $Id: nsupdate.c,v 1.186 2010/12/09 04:31:57 tbox Exp $ */
 
 /*! \file */
 
@@ -694,7 +694,7 @@ setup_keyfile(isc_mem_t *mctx, isc_log_t *lctx) {
 				keyfile, isc_result_totext(result));
 			return;
 		}
-	} else 
+	} else
 		dst_key_attach(dstkey, &sig0key);
 }
 
