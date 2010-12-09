@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsec.h,v 1.5 2010/12/02 23:46:56 tbox Exp $ */
+/* $Id: tsec.h,v 1.6 2010/12/09 00:54:34 marka Exp $ */
 
 #ifndef DNS_TSEC_H
 #define DNS_TSEC_H 1
@@ -65,7 +65,7 @@ typedef enum {
 } dns_tsectype_t;
 
 isc_result_t
-dns_tsec_create(isc_mem_t *mctx, dns_tsectype_t type, dst_key_t **keyp,
+dns_tsec_create(isc_mem_t *mctx, dns_tsectype_t type, dst_key_t *key,
 		dns_tsec_t **tsecp);
 /*%<
  * Create a TSEC structure and stores a type-dependent key structure in it.

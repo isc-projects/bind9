@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig.h,v 1.56 2010/12/02 23:22:42 marka Exp $ */
+/* $Id: tsig.h,v 1.57 2010/12/09 00:54:34 marka Exp $ */
 
 #ifndef DNS_TSIG_H
 #define DNS_TSIG_H 1
@@ -103,7 +103,7 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 
 isc_result_t
 dns_tsigkey_createfromkey(dns_name_t *name, dns_name_t *algorithm,
-			  dst_key_t **dstkeyp, isc_boolean_t generated,
+			  dst_key_t *dstkey, isc_boolean_t generated,
 			  dns_name_t *creator, isc_stdtime_t inception,
 			  isc_stdtime_t expire, isc_mem_t *mctx,
 			  dns_tsig_keyring_t *ring, dns_tsigkey_t **key);
@@ -117,12 +117,15 @@ dns_tsigkey_createfromkey(dns_name_t *name, dns_name_t *algorithm,
  *	allows a transient key with an invalid algorithm to exist long enough
  *	to generate a BADKEY response.
  *
+ *	If dns_tsigkey_createfromkey is successful a new reference to 'dstkey'
+ *	will have been made.
+ *
  *	Requires:
  *\li		'name' is a valid dns_name_t
  *\li		'algorithm' is a valid dns_name_t
  *\li		'secret' is a valid pointer
  *\li		'length' is an integer >= 0
- *\li		'key' is a valid dst key or NULL
+ *\li		'dstkey' is a valid dst key or NULL
  *\li		'creator' points to a valid dns_name_t or is NULL
  *\li		'mctx' is a valid memory context
  *\li		'ring' is a valid TSIG keyring or NULL

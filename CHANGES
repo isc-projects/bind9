@@ -1,3 +1,10 @@
+2982.	[bug]		Reference count dst keys.  dst_key_attach() can be used
+			increment the reference count.
+
+			Note: dns_tsigkey_createfromkey() callers should now
+			always call dst_key_free() rather than setting it
+			to NULL on success. [RT #22672]
+
 2981.	[func]		Partial DNS64 support (AAAA synthesis). [RT #21991]
 
 2980.	[bug]		named didn't properly handle UPDATES that changed the

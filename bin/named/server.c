@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.589 2010/12/08 23:47:05 tbox Exp $ */
+/* $Id: server.c,v 1.590 2010/12/09 00:54:33 marka Exp $ */
 
 /*! \file */
 
@@ -3658,7 +3658,7 @@ generate_session_key(const char *filename, const char *keynamestr,
 
 	/* Store the key in tsigkey. */
 	isc_stdtime_get(&now);
-	CHECK(dns_tsigkey_createfromkey(dst_key_name(key), algname, &key,
+	CHECK(dns_tsigkey_createfromkey(dst_key_name(key), algname, key,
 					ISC_FALSE, NULL, now, now, mctx, NULL,
 					&tsigkey));
 
@@ -3680,6 +3680,8 @@ generate_session_key(const char *filename, const char *keynamestr,
 
 	RUNTIME_CHECK(isc_stdio_flush(fp) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_stdio_close(fp) == ISC_R_SUCCESS);
+
+	dst_key_free(&key);
 
 	*tsigkeyp = tsigkey;
 

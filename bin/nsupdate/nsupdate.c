@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.184 2010/12/03 00:37:33 marka Exp $ */
+/* $Id: nsupdate.c,v 1.185 2010/12/09 00:54:33 marka Exp $ */
 
 /*! \file */
 
@@ -641,6 +641,9 @@ setup_keyfile(isc_mem_t *mctx, isc_log_t *lctx) {
 
 	debug("Creating key...");
 
+	if (sig0key != NULL)
+		dst_key_free(&sig0key);
+
 	/* Try reading the key from a K* pair */
 	result = dst_key_fromnamedfile(keyfile, NULL,
 				       DST_TYPE_PRIVATE | DST_TYPE_KEY, mctx,
@@ -682,17 +685,17 @@ setup_keyfile(isc_mem_t *mctx, isc_log_t *lctx) {
 	}
 	if (hmacname != NULL) {
 		result = dns_tsigkey_createfromkey(dst_key_name(dstkey),
-						   hmacname, &dstkey, ISC_FALSE,
+						   hmacname, dstkey, ISC_FALSE,
 						   NULL, 0, 0, mctx, NULL,
 						   &tsigkey);
+		dst_key_free(&dstkey);
 		if (result != ISC_R_SUCCESS) {
 			fprintf(stderr, "could not create key from %s: %s\n",
 				keyfile, isc_result_totext(result));
-			dst_key_free(&dstkey);
 			return;
 		}
-	} else
-		sig0key = dstkey;
+	} else 
+		dst_key_attach(dstkey, &sig0key);
 }
 
 static void
