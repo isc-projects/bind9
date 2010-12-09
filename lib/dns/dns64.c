@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dns64.c,v 1.5 2010/12/09 04:17:15 marka Exp $ */
+/* $Id: dns64.c,v 1.6 2010/12/09 04:59:09 marka Exp $ */
 
 #include <config.h>
 
@@ -103,7 +103,7 @@ dns_dns64_create(isc_mem_t *mctx, isc_netaddr_t *prefix,
 	isc_mem_attach(mctx, &new->mctx);
 	*dns64 = new;
 	return (ISC_R_SUCCESS);
-};
+}
 
 void
 dns_dns64_destroy(dns_dns64_t **dns64p) {
