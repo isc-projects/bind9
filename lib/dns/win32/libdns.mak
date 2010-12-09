@@ -134,6 +134,7 @@ CLEAN :
 	-@erase "$(INTDIR)\dispatch.obj"
 	-@erase "$(INTDIR)\dlz.obj"
 	-@erase "$(INTDIR)\DLLMain.obj"
+	-@erase "$(INTDIR)\dns64.obj"
 	-@erase "$(INTDIR)\dnssec.obj"
 	-@erase "$(INTDIR)\ds.obj"
 	-@erase "$(INTDIR)\dst_api.obj"
@@ -266,6 +267,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\dispatch.obj" \
 	"$(INTDIR)\dlz.obj" \
 	"$(INTDIR)\DLLMain.obj" \
+	"$(INTDIR)\dns64.obj" \
 	"$(INTDIR)\dnssec.obj" \
 	"$(INTDIR)\ds.obj" \
 	"$(INTDIR)\forward.obj" \
@@ -391,6 +393,8 @@ CLEAN :
 	-@erase "$(INTDIR)\dlz.sbr"
 	-@erase "$(INTDIR)\DLLMain.obj"
 	-@erase "$(INTDIR)\DLLMain.sbr"
+	-@erase "$(INTDIR)\dns64.obj"
+	-@erase "$(INTDIR)\dns64.sbr"
 	-@erase "$(INTDIR)\dnssec.obj"
 	-@erase "$(INTDIR)\dnssec.sbr"
 	-@erase "$(INTDIR)\ds.obj"
@@ -590,6 +594,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\dispatch.sbr" \
 	"$(INTDIR)\dlz.sbr" \
 	"$(INTDIR)\DLLMain.sbr" \
+	"$(INTDIR)\dns64.sbr" \
 	"$(INTDIR)\dnssec.sbr" \
 	"$(INTDIR)\ds.sbr" \
 	"$(INTDIR)\forward.sbr" \
@@ -681,6 +686,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\dispatch.obj" \
 	"$(INTDIR)\dlz.obj" \
 	"$(INTDIR)\DLLMain.obj" \
+	"$(INTDIR)\dns64.obj" \
 	"$(INTDIR)\dnssec.obj" \
 	"$(INTDIR)\ds.obj" \
 	"$(INTDIR)\forward.obj" \
@@ -1018,6 +1024,24 @@ SOURCE=.\DLLMain.c
 
 
 "$(INTDIR)\DLLMain.obj"	"$(INTDIR)\DLLMain.sbr" : $(SOURCE) "$(INTDIR)"
+
+
+!ENDIF 
+
+SOURCE=..\dns64.c
+
+!IF  "$(CFG)" == "libdns - Win32 Release"
+
+
+"$(INTDIR)\dns64.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libdns - Win32 Debug"
+
+
+"$(INTDIR)\dns64.obj"	"$(INTDIR)\dns64.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 

@@ -162,6 +162,10 @@ SOURCE=..\include\dns\dlz.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\dns\dns64.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\dns\dnssec.h
 # End Source File
 # Begin Source File
@@ -483,6 +487,10 @@ SOURCE=..\dlz.c
 # Begin Source File
 
 SOURCE=.\DLLMain.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\dns64.c
 # End Source File
 # Begin Source File
 
