@@ -1,3 +1,10 @@
+2982.	[bug]		Reference count dst keys.  dst_key_attach() can be used
+			increment the reference count.
+
+			Note: dns_tsigkey_createfromkey() callers should now
+			always call dst_key_free() rather than setting it
+			to NULL on success. [RT #22672]
+
 2979.	[bug]		named could deadlock during shutdown if two
 			"rndc stop" commands were issued at the same
 			time. [RT #22108]

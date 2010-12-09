@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.311.70.16 2010/12/02 23:40:27 marka Exp $ */
+/* $Id: dighost.c,v 1.311.70.17 2010/12/09 01:12:54 marka Exp $ */
 
 /*! \file
  *  \note
@@ -963,7 +963,7 @@ setup_file_key(void) {
 		goto failure;
 	}
 	result = dns_tsigkey_createfromkey(dst_key_name(dstkey), hmacname,
-					   &dstkey, ISC_FALSE, NULL, 0, 0,
+					   dstkey, ISC_FALSE, NULL, 0, 0,
 					   mctx, NULL, &key);
 	if (result != ISC_R_SUCCESS) {
 		printf(";; Couldn't create key %s: %s\n",

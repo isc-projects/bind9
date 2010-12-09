@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.90.118.3 2010/12/02 23:40:28 marka Exp $
+ * $Id: tkey.c,v 1.90.118.4 2010/12/09 01:12:55 marka Exp $
  */
 /*! \file */
 #include <config.h>
@@ -491,10 +491,11 @@ process_gsstkey(dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 			expire = now + lifetime;
 #endif
 		RETERR(dns_tsigkey_createfromkey(name, &tkeyin->algorithm,
-						 &dstkey, ISC_TRUE,
+						 dstkey, ISC_TRUE,
 						 dns_fixedname_name(&principal),
 						 now, expire, ring->mctx, ring,
 						 NULL));
+		dst_key_free(&dstkey);
 		tkeyout->inception = now;
 		tkeyout->expire = expire;
 	} else {
@@ -1273,9 +1274,10 @@ dns_tkey_processgssresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 				  &dstkey));
 
 	RETERR(dns_tsigkey_createfromkey(tkeyname, DNS_TSIG_GSSAPI_NAME,
-					 &dstkey, ISC_FALSE, NULL,
+					 dstkey, ISC_FALSE, NULL,
 					 rtkey.inception, rtkey.expire,
 					 ring->mctx, ring, outkey));
+	dst_key_free(&dstkey);
 	dns_rdata_freestruct(&rtkey);
 	return (result);
 
@@ -1408,9 +1410,10 @@ dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 					 (win2k
 					  ? DNS_TSIG_GSSAPIMS_NAME
 					  : DNS_TSIG_GSSAPI_NAME),
-					 &dstkey, ISC_TRUE, NULL,
+					 dstkey, ISC_TRUE, NULL,
 					 rtkey.inception, rtkey.expire,
 					 ring->mctx, ring, outkey));
+	dst_key_free(&dstkey);
 	dns_rdata_freestruct(&rtkey);
 	return (result);
 
