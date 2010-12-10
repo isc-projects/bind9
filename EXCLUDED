@@ -1,0 +1,3 @@
+2948.	[port]		MacOS: provide a mechanism to configure the test 
+			interfaces at reboot. See bin/tests/system/README
+			for details.
