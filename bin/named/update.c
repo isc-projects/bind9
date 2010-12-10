@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.176.4.8 2010/12/07 23:46:26 tbox Exp $ */
+/* $Id: update.c,v 1.176.4.9 2010/12/10 04:47:48 marka Exp $ */
 
 #include <config.h>
 
@@ -3108,7 +3108,7 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	dns_diffop_t op;
 	isc_boolean_t flag;
 	dns_name_t *name = dns_zone_getorigin(zone);
-	dns_rdatatype_t privatetype = dns_zone_getprivatetype(zone);;
+	dns_rdatatype_t privatetype = dns_zone_getprivatetype(zone);
 	isc_uint32_t ttl = 0;
 	isc_boolean_t ttl_good = ISC_FALSE;
 
