@@ -1,5 +1,7 @@
 	--- 9.8.0a1 released ---
 
+2983.	[bug]		Include "loadkeys" in rndc help output. [RT #22493]
+
 2982.	[bug]		Reference count dst keys.  dst_key_attach() can be used
 			increment the reference count.
 
