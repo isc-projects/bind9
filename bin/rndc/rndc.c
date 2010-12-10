@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.130 2010/07/11 00:12:57 each Exp $ */
+/* $Id: rndc.c,v 1.131 2010/12/10 19:20:47 johnd Exp $ */
 
 /*! \file */
 
@@ -119,6 +119,8 @@ command is one of the following:\n\
   reconfig	Reload configuration file and new zones only.\n\
   sign zone [class [view]]\n\
 		Update zone keys, and sign as needed.\n\
+  loadkeys zone [class [view]]\n\
+		Update keys without signing immediately.\n\
   stats		Write server statistics to the statistics file.\n\
   querylog	Toggle query logging.\n\
   dumpdb [-all|-cache|-zones] [view ...]\n\
