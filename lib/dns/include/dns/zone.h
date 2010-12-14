@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.178 2010/08/16 22:21:07 marka Exp $ */
+/* $Id: zone.h,v 1.179 2010/12/14 00:39:59 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1686,7 +1686,7 @@ void
 dns_zone_setcheckmx(dns_zone_t *zone, dns_checkmxfunc_t checkmx);
 /*%<
  *	Set the post load integrity callback function 'checkmx'.
- *	'checkmx' will be called if the MX is not within the zone.
+ *	'checkmx' will be called if the MX TARGET is not within the zone.
  *
  * Require:
  *	'zone' to be a valid zone.
@@ -1705,8 +1705,8 @@ dns_zone_setchecksrv(dns_zone_t *zone, dns_checkmxfunc_t checksrv);
 void
 dns_zone_setcheckns(dns_zone_t *zone, dns_checknsfunc_t checkns);
 /*%<
- *	Set the post load integrity callback function 'checkmx'.
- *	'checkmx' will be called if the MX is not within the zone.
+ *	Set the post load integrity callback function 'checkns'.
+ *	'checkns' will be called if the NS TARGET is not within the zone.
  *
  * Require:
  *	'zone' to be a valid zone.
