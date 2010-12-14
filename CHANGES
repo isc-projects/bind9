@@ -1,3 +1,6 @@
+2984.	[bug]		Don't run MX checks when the target of the MX record
+			is ".".  [RT #22645]
+
 	--- 9.6.3b1 released ---
 
 2982.	[bug]		Reference count dst keys.  dst_key_attach() can be used

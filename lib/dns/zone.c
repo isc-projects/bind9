@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.483.36.22 2010/12/02 23:40:28 marka Exp $ */
+/* $Id: zone.c,v 1.483.36.23 2010/12/14 00:48:22 marka Exp $ */
 
 /*! \file */
 
@@ -1700,6 +1700,12 @@ zone_check_mx(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 	dns_fixedname_t fixed;
 	dns_name_t *foundname;
 	int level;
+
+	/*
+	 * "." means the services does not exist.
+	 */
+	if (dns_name_equal(name, dns_rootname))
+		return (ISC_TRUE);
 
 	/*
 	 * Outside of zone.
