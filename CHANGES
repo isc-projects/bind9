@@ -1,3 +1,6 @@
+2984.	[bug]		Don't run MX checks when the target of the MX record
+			is ".".  [RT #22645]
+
 2983.	[bug]		Include "loadkeys" in rndc help output. [RT #22493]
 
 	--- 9.7.3b1 released ---
