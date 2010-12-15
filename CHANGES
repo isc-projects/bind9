@@ -1,3 +1,5 @@
+2985.	[bug]		Add a regression test for change #2896. [RT #21324]
+
 2984.	[bug]		Don't run MX checks when the target of the MX record
 			is ".".  [RT #22645]
 
