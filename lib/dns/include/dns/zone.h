@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.180 2010/12/16 09:51:30 jinmei Exp $ */
+/* $Id: zone.h,v 1.181 2010/12/16 23:47:08 tbox Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -390,7 +390,7 @@ dns_zone_setdb(dns_zone_t *zone, dns_db_t *db);
  *	database which is not loaded from a file or zone transfer.
  *	It can be used for a general purpose zone, but right now its use
  *	is limited to static-stub zones to avoid possible undiscovered
- *	problems in the general cases. 
+ *	problems in the general cases.
  *
  * Require:
  *\li	'zone' to be a valid zone of static-stub.

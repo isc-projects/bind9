@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.166 2010/12/16 09:51:27 jinmei Exp $ */
+/* $Id: zoneconf.c,v 1.167 2010/12/16 23:47:08 tbox Exp $ */
 
 /*% */
 
@@ -562,7 +562,7 @@ static isc_result_t
 configure_staticstub(const cfg_obj_t *zconfig, dns_zone_t *zone,
 		     const char *zname, const char *dbtype)
 {
-	int i = 0; 
+	int i = 0;
 	const cfg_obj_t *obj;
 	isc_mem_t *mctx = dns_zone_getmctx(zone);
 	dns_db_t *db = NULL;
@@ -1443,7 +1443,7 @@ ns_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig) {
 
 	/*
 	 * We always reconfigure a static-stub zone for simplicity, assuming
-	 * the amount of data to be loaded is small. 
+	 * the amount of data to be loaded is small.
 	 */
 	if (zonetype_fromconfig(zoptions) == dns_zone_staticstub)
 		return (ISC_FALSE);
