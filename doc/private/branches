@@ -22,6 +22,7 @@ custom_ATT_v9_6_1_P1		private	cathya	// 2009-10-22 13:24 +0000
 custom_CISCO_v9_3_4_P1		private	marka	// 2007-11-23 04:19 +0000
 custom_DENIC_v9_7_1_P1		private	jinmei	// 2010-07-01 18:06 +0000
 custom_DENIC_v9_7_1_P2		private	jinmei	// 2010-08-05 00:00 +0000
+custom_DENIC_v9_7_2_P3		new	
 custom_DYNDNS_v9_6		private	each	// 2009-06-19 15:34 +0000
 custom_DYNDNS_v9_7		private	each	// 2010-07-07 18:54 +0000
 custom_NOM_v9_5_0a7		private	
