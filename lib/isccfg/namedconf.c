@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.124 2010/12/08 02:46:17 marka Exp $ */
+/* $Id: namedconf.c,v 1.125 2010/12/16 09:51:30 jinmei Exp $ */
 
 /*! \file */
 
@@ -593,7 +593,8 @@ static cfg_type_t cfg_type_forwardtype = {
 };
 
 static const char *zonetype_enums[] = {
-	"master", "slave", "stub", "hint", "forward", "delegation-only", NULL };
+	"master", "slave", "stub", "static-stub", "hint", "forward",
+	"delegation-only", NULL };
 static cfg_type_t cfg_type_zonetype = {
 	"zonetype", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
 	&cfg_rep_string, &zonetype_enums
@@ -1233,6 +1234,8 @@ zone_only_clauses[] = {
 	{ "check-names", &cfg_type_checkmode, 0 },
 	{ "ixfr-from-differences", &cfg_type_boolean, 0 },
 	{ "auto-dnssec", &cfg_type_autodnssec, 0 },
+	{ "server-addresses", &cfg_type_bracketed_sockaddrlist, 0 },
+	{ "server-names", &cfg_type_namelist, 0 },
 	{ NULL, NULL, 0 }
 };
 

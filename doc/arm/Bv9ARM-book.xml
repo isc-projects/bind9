@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.466 2010/12/08 02:46:16 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.467 2010/12/16 09:51:29 jinmei Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -9893,6 +9893,14 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
 };
 
 zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replaceable></optional> {
+    type static-stub;
+    <optional> allow-query { <replaceable>address_match_list</replaceable> }; </optional>
+    <optional> server-addresses { <optional> <replaceable>ip_addr</replaceable> ; ... </optional> }; </optional>
+    <optional> server-names { <optional> <replaceable>namelist</replaceable> </optional> }; </optional>  
+    <optional> zone-statistics <replaceable>yes_or_no</replaceable> ; </optional>
+};
+
+zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replaceable></optional> {
     type forward;
     <optional> forward (<constant>only</constant>|<constant>first</constant>) ; </optional>
     <optional> forwarders { <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
@@ -10034,6 +10042,55 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                         authoritative
                         servers for that domain.
                       </para>
+                    </entry>
+                  </row>
+                  <row rowsep="0">
+                    <entry colname="1">
+                      <para>
+                        <varname>static-stub</varname>
+                      </para>
+                    </entry>
+                    <entry colname="2">
+                      <para>
+			A static-stub zone is similar to a stub zone
+			with the following exceptions:
+			the zone data is statically configured, rather
+			than transferred from a master server;
+			when recursion is necessary for a query that
+			matches a static-stub zone, the locally
+			configured data (nameserver names and glue addresses)
+			is always used even if different authoritative
+			information is cached.
+                      </para>
+                      <para>
+			Zone data is configured via the
+			<command>server-addresses</command> and
+			<command>server-names</command> zone options.
+                      </para>
+		      <para>
+			The zone data is maintained in the form of NS
+			and (if necessary) glue A or AAAA RRs
+			internally, which can be seen by dumping zone
+			databases by <command>rndc dumpdb -all</command>.
+			The configured RRs are considered local configuration
+			parameters rather than public data.
+			Non recursive queries (i.e., those with the RD
+			bit off) to a static-stub zone are therefore
+			prohibited and will be responded with REFUSED.
+		      </para>
+		      <para>
+			Since the data is statically configured, no
+			zone maintenance action takes place for a static-stub
+			zone.
+			For example, there is no periodic refresh
+			attempt, and an incoming notify message
+			will be rejected with an rcode of NOTAUTH.
+		      </para>
+		      <para>
+			Each static-stub zone is configured with
+			internally generated NS and (if necessary)
+			glue A or AAAA RRs 
+		      </para>
                     </entry>
                   </row>
                   <row rowsep="0">
@@ -10559,6 +10616,84 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                     <command>statistics-file</command> defined in
                     the server options.
                   </para>
+                </listitem>
+              </varlistentry>
+
+              <varlistentry>
+                <term><command>server-addresses</command></term>
+                <listitem>
+                  <para>
+                    Only meaningful for static-stub zones.
+		    This is a list of IP addresses to which queries
+		    should be sent in recursive resolution for the
+		    zone.
+		    A non empty list for this option will internally
+		    configure the apex NS RR with associated glue A or
+		    AAAA RRs.
+                  </para>
+		  <para>
+		    For example, if "example.com" is configured as a
+		    static-stub zone with 192.0.2.1 and 2001:db8::1234
+		    in a <command>server-addresses</command> option,
+		    the following RRs will be internally configured.
+		  </para>
+<programlisting>example.com. NS example.com.
+example.com. A 192.0.2.1
+example.com. AAAA 2001:db8::1234</programlisting>
+		  <para>
+		    These records are internally used to resolve
+		    names under the static-stub zone.
+		    For instance, if the server receives a query for
+		    "www.example.com" with the RD bit on, the server
+		    will initiate recursive resolution and send
+		    queries to 192.0.2.1 and/or 2001:db8::1234.
+		  </para>
+                </listitem>
+              </varlistentry>
+
+              <varlistentry>
+                <term><command>server-names</command></term>
+                <listitem>
+                  <para>
+                    Only meaningful for static-stub zones.
+		    This is a list of domain names of nameservers that
+		    act as authoritative servers of the static-stub
+		    zone.
+		    These names will be resolved to IP addresses when
+		    <command>named</command> needs to send queries to
+		    these servers.
+		    To make this supplemental resolution successful,
+		    these names must not be a subdomain of the origin
+		    name of static-stub zone.
+		    That is, when "example.net" is the origin of a
+		    static-stub zone, "ns.example" and
+		    "master.example.com" can be specified in the
+		    <command>server-names</command> option, but
+		    "ns.example.net" cannot, and will be rejected by
+		    the configuration parser.
+		  </para>
+		  <para>
+		    A non empty list for this option will internally
+		    configure the apex NS RR with the specified names.
+		    For example, if "example.com" is configured as a
+		    static-stub zone with "ns1.example.net" and
+		    "ns2.example.net"
+		    in a <command>server-names</command> option,
+		    the following RRs will be internally configured.
+		  </para>
+<programlisting>example.com. NS ns1.example.net.
+example.com. NS ns2.example.net.
+</programlisting>
+		  <para>
+		    These records are internally used to resolve
+		    names under the static-stub zone.
+		    For instance, if the server receives a query for
+		    "www.example.com" with the RD bit on, the server
+		    initiate recursive resolution,
+		    resolve "ns1.example.net" and/or
+		    "ns2.example.net" to IP addresses, and then send
+		    queries to (one or more of) these addresses.
+		  </para>
                 </listitem>
               </varlistentry>
 

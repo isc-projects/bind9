@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.578 2010/12/14 00:39:59 marka Exp $ */
+/* $Id: zone.c,v 1.579 2010/12/16 09:51:29 jinmei Exp $ */
 
 /*! \file */
 
@@ -4414,6 +4414,17 @@ dns_zone_getdb(dns_zone_t *zone, dns_db_t **dpb) {
 	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 
 	return (result);
+}
+
+void
+dns_zone_setdb(dns_zone_t *zone, dns_db_t *db) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(zone->type == dns_zone_staticstub);
+
+	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_write);
+	REQUIRE(zone->db == NULL);
+	dns_db_attach(db, &zone->db);
+	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_write);
 }
 
 /*

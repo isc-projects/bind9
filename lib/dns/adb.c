@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.251 2010/11/16 05:38:31 marka Exp $ */
+/* $Id: adb.c,v 1.252 2010/12/16 09:51:29 jinmei Exp $ */
 
 /*! \file
  *
@@ -2999,10 +2999,20 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype)
 	else
 		adbname->fetch6_err = FIND_ERR_UNEXPECTED;
 
-	result = dns_view_find(adb->view, &adbname->name, rdtype, now,
-			       NAME_GLUEOK(adbname) ? DNS_DBFIND_GLUEOK : 0,
-			       ISC_TF(NAME_HINTOK(adbname)),
-			       NULL, NULL, fname, &rdataset, NULL);
+	/*
+	 * We need to specify whether to search static-stub zones (if
+	 * configured) depending on whether this is a "start at zone" lookup,
+	 * i.e., whether it's a "bailiwick" glue.  If it's bailiwick (in which
+	 * case NAME_STARTATZONE is set) we need to stop the search at any
+	 * matching static-stub zone without looking into the cache to honor
+	 * the configuration on which server we should send queries to.
+	 */
+	result = dns_view_find2(adb->view, &adbname->name, rdtype, now,
+				NAME_GLUEOK(adbname) ? DNS_DBFIND_GLUEOK : 0,
+				ISC_TF(NAME_HINTOK(adbname)),
+				(adbname->flags & NAME_STARTATZONE) != 0 ?
+				ISC_TRUE : ISC_FALSE,
+				NULL, NULL, fname, &rdataset, NULL);
 
 	/* XXXVIX this switch statement is too sparse to gen a jump table. */
 	switch (result) {

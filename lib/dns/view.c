@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.172 2010/12/09 04:53:48 marka Exp $ */
+/* $Id: view.c,v 1.173 2010/12/16 09:51:29 jinmei Exp $ */
 
 /*! \file */
 
@@ -790,12 +790,23 @@ isc_result_t
 dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	      isc_stdtime_t now, unsigned int options, isc_boolean_t use_hints,
 	      dns_db_t **dbp, dns_dbnode_t **nodep, dns_name_t *foundname,
-	      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
+	      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
+	return (dns_view_find2(view, name, type, now, options, use_hints,
+			       ISC_FALSE, dbp, nodep, foundname, rdataset,
+			       sigrdataset));
+}
+
+isc_result_t
+dns_view_find2(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
+	       isc_stdtime_t now, unsigned int options,
+	       isc_boolean_t use_hints, isc_boolean_t use_static_stub,
+	       dns_db_t **dbp, dns_dbnode_t **nodep, dns_name_t *foundname,
+	       dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
 {
 	isc_result_t result;
 	dns_db_t *db, *zdb;
 	dns_dbnode_t *node, *znode;
-	isc_boolean_t is_cache;
+	isc_boolean_t is_cache, is_staticstub_zone;
 	dns_rdataset_t zrdataset, zsigrdataset;
 	dns_zone_t *zone;
 
@@ -828,14 +839,23 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	zone = NULL;
 	db = NULL;
 	node = NULL;
+	is_staticstub_zone = ISC_FALSE;
 #ifdef BIND9
 	result = dns_zt_find(view->zonetable, name, 0, NULL, &zone);
+	if (zone != NULL && dns_zone_gettype(zone) == dns_zone_staticstub &&
+	    !use_static_stub) {
+		result = ISC_R_NOTFOUND;
+	}
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 		result = dns_zone_getdb(zone, &db);
 		if (result != ISC_R_SUCCESS && view->cachedb != NULL)
 			dns_db_attach(view->cachedb, &db);
 		else if (result != ISC_R_SUCCESS)
 			goto cleanup;
+		if (dns_zone_gettype(zone) == dns_zone_staticstub &&
+		    dns_name_equal(name, dns_zone_getorigin(zone))) {
+			is_staticstub_zone = ISC_TRUE;
+		}
 	} else if (result == ISC_R_NOTFOUND && view->cachedb != NULL)
 		dns_db_attach(view->cachedb, &db);
 #else
@@ -855,8 +875,7 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	result = dns_db_find(db, name, NULL, type, options,
 			     now, &node, foundname, rdataset, sigrdataset);
 
-	if (result == DNS_R_DELEGATION ||
-	    result == ISC_R_NOTFOUND) {
+	if (result == DNS_R_DELEGATION || result == ISC_R_NOTFOUND) {
 		if (dns_rdataset_isassociated(rdataset))
 			dns_rdataset_disassociate(rdataset);
 		if (sigrdataset != NULL &&
@@ -866,10 +885,13 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 			dns_db_detachnode(db, &node);
 		if (!is_cache) {
 			dns_db_detach(&db);
-			if (view->cachedb != NULL) {
+			if (view->cachedb != NULL && !is_staticstub_zone) {
 				/*
 				 * Either the answer is in the cache, or we
 				 * don't know it.
+				 * Note that if the result comes from a
+				 * static-stub zone we stop the search here
+				 * (see the function description in view.h).
 				 */
 				is_cache = ISC_TRUE;
 				dns_db_attach(view->cachedb, &db);
@@ -899,7 +921,7 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		 */
 		result = ISC_R_NOTFOUND;
 	} else if (result == DNS_R_GLUE) {
-		if (view->cachedb != NULL) {
+		if (view->cachedb != NULL && !is_staticstub_zone) {
 			/*
 			 * We found an answer, but the cache may be better.
 			 * Remember what we've got and go look in the cache.
@@ -1060,7 +1082,7 @@ dns_view_findzonecut2(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 {
 	isc_result_t result;
 	dns_db_t *db;
-	isc_boolean_t is_cache, use_zone, try_hints;
+	isc_boolean_t is_cache, use_zone, try_hints, is_staticstub_zone;
 	dns_zone_t *zone;
 	dns_name_t *zfname;
 	dns_rdataset_t zrdataset, zsigrdataset;
@@ -1072,6 +1094,7 @@ dns_view_findzonecut2(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 	db = NULL;
 	zone = NULL;
 	use_zone = ISC_FALSE;
+	is_staticstub_zone = ISC_FALSE;
 	try_hints = ISC_FALSE;
 	zfname = NULL;
 
@@ -1087,8 +1110,11 @@ dns_view_findzonecut2(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 	 */
 #ifdef BIND9
 	result = dns_zt_find(view->zonetable, name, 0, NULL, &zone);
-	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
+	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 		result = dns_zone_getdb(zone, &db);
+		if (dns_zone_gettype(zone) == dns_zone_staticstub)
+			is_staticstub_zone = ISC_TRUE;
+	}
 #else
 	result = ISC_R_NOTFOUND;
 #endif
@@ -1154,7 +1180,9 @@ dns_view_findzonecut2(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 					    fname, rdataset, sigrdataset);
 		if (result == ISC_R_SUCCESS) {
 			if (zfname != NULL &&
-			    !dns_name_issubdomain(fname, zfname)) {
+			    (!dns_name_issubdomain(fname, zfname) ||
+			     (dns_zone_staticstub &&
+			      dns_name_equal(fname, zfname)))) {
 				/*
 				 * We found a zonecut in the cache, but our
 				 * zone delegation is better.

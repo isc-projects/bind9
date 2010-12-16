@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.122 2010/12/08 23:47:06 tbox Exp $ */
+/* $Id: check.c,v 1.123 2010/12/16 09:51:29 jinmei Exp $ */
 
 /*! \file */
 
@@ -1225,7 +1225,8 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 #define HINTZONE	8
 #define FORWARDZONE	16
 #define DELEGATIONZONE	32
-#define CHECKACL	64
+#define STATICSTUBZONE	64
+#define CHECKACL	128
 
 typedef struct {
 	const char *name;
@@ -1238,7 +1239,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	       dns_rdataclass_t defclass, cfg_aclconfctx_t *actx,
 	       isc_log_t *logctx, isc_mem_t *mctx)
 {
-	const char *zname;
+	const char *znamestr;
 	const char *typestr;
 	unsigned int ztype;
 	const cfg_obj_t *zoptions;
@@ -1248,11 +1249,14 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	unsigned int i;
 	dns_rdataclass_t zclass;
 	dns_fixedname_t fixedname;
+	dns_name_t *zname = NULL;
 	isc_buffer_t b;
 	isc_boolean_t root = ISC_FALSE;
+	const cfg_listelt_t *element;
 
 	static optionstable options[] = {
-	{ "allow-query", MASTERZONE | SLAVEZONE | STUBZONE | CHECKACL },
+	{ "allow-query", MASTERZONE | SLAVEZONE | STUBZONE | CHECKACL |
+	  STATICSTUBZONE },
 	{ "allow-notify", SLAVEZONE | CHECKACL },
 	{ "allow-transfer", MASTERZONE | SLAVEZONE | CHECKACL },
 	{ "notify", MASTERZONE | SLAVEZONE },
@@ -1281,7 +1285,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	{ "sig-signing-nodes", MASTERZONE },
 	{ "sig-signing-type", MASTERZONE },
 	{ "sig-signing-signatures", MASTERZONE },
-	{ "zone-statistics", MASTERZONE | SLAVEZONE | STUBZONE },
+	{ "zone-statistics", MASTERZONE | SLAVEZONE | STUBZONE |
+	  STATICSTUBZONE},
 	{ "allow-update", MASTERZONE | CHECKACL },
 	{ "allow-update-forwarding", SLAVEZONE | CHECKACL },
 	{ "file", MASTERZONE | SLAVEZONE | STUBZONE | HINTZONE },
@@ -1304,6 +1309,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	{ "dnssec-dnskey-kskonly", MASTERZONE },
 	{ "auto-dnssec", MASTERZONE },
 	{ "try-tcp-refresh", SLAVEZONE },
+	{ "server-addresses", STATICSTUBZONE },
+	{ "server-names", STATICSTUBZONE },
 	};
 
 	static optionstable dialups[] = {
@@ -1313,7 +1320,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	{ "passive", SLAVEZONE | STUBZONE },
 	};
 
-	zname = cfg_obj_asstring(cfg_tuple_get(zconfig, "name"));
+	znamestr = cfg_obj_asstring(cfg_tuple_get(zconfig, "name"));
 
 	zoptions = cfg_tuple_get(zconfig, "options");
 
@@ -1321,7 +1328,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	(void)cfg_map_get(zoptions, "type", &obj);
 	if (obj == NULL) {
 		cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
-			    "zone '%s': type not present", zname);
+			    "zone '%s': type not present", znamestr);
 		return (ISC_R_FAILURE);
 	}
 
@@ -1332,6 +1339,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		ztype = SLAVEZONE;
 	else if (strcasecmp(typestr, "stub") == 0)
 		ztype = STUBZONE;
+	else if (strcasecmp(typestr, "static-stub") == 0)
+		ztype = STATICSTUBZONE;
 	else if (strcasecmp(typestr, "forward") == 0)
 		ztype = FORWARDZONE;
 	else if (strcasecmp(typestr, "hint") == 0)
@@ -1341,7 +1350,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	else {
 		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 			    "zone '%s': invalid type %s",
-			    zname, typestr);
+			    znamestr, typestr);
 		return (ISC_R_FAILURE);
 	}
 
@@ -1355,14 +1364,14 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		if (result != ISC_R_SUCCESS) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "zone '%s': invalid class %s",
-				    zname, r.base);
+				    znamestr, r.base);
 			return (ISC_R_FAILURE);
 		}
 		if (zclass != defclass) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "zone '%s': class '%s' does not "
 				    "match view/default class",
-				    zname, r.base);
+				    znamestr, r.base);
 			return (ISC_R_FAILURE);
 		}
 	}
@@ -1373,26 +1382,25 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 * deals with strings.
 	 */
 	dns_fixedname_init(&fixedname);
-	isc_buffer_init(&b, zname, strlen(zname));
-	isc_buffer_add(&b, strlen(zname));
+	isc_buffer_init(&b, znamestr, strlen(znamestr));
+	isc_buffer_add(&b, strlen(znamestr));
 	tresult = dns_name_fromtext(dns_fixedname_name(&fixedname), &b,
 				    dns_rootname, DNS_NAME_DOWNCASE, NULL);
 	if (tresult != ISC_R_SUCCESS) {
 		cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
-			    "zone '%s': is not a valid name", zname);
+			    "zone '%s': is not a valid name", znamestr);
 		result = ISC_R_FAILURE;
 	} else {
 		char namebuf[DNS_NAME_FORMATSIZE];
 
-		dns_name_format(dns_fixedname_name(&fixedname),
-				namebuf, sizeof(namebuf));
+		zname = dns_fixedname_name(&fixedname);
+		dns_name_format(zname, namebuf, sizeof(namebuf));
 		tresult = nameexist(zconfig, namebuf, ztype == HINTZONE ? 1 : 2,
 				    symtab, "zone '%s': already exists "
 				    "previous definition: %s:%u", logctx, mctx);
 		if (tresult != ISC_R_SUCCESS)
 			result = tresult;
-		if (dns_name_equal(dns_fixedname_name(&fixedname),
-				   dns_rootname))
+		if (dns_name_equal(zname, dns_rootname))
 			root = ISC_TRUE;
 	}
 
@@ -1411,13 +1419,15 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 					    "option '%s' is not allowed "
 					    "in '%s' zone '%s'",
-					    options[i].name, typestr, zname);
+					    options[i].name, typestr,
+					    znamestr);
 					result = ISC_R_FAILURE;
 			} else
 				cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
 					    "option '%s' is not allowed "
 					    "in '%s' zone '%s'",
-					    options[i].name, typestr, zname);
+					    options[i].name, typestr,
+					    znamestr);
 		}
 		obj = NULL;
 		if ((options[i].allowed & ztype) != 0 &&
@@ -1439,7 +1449,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		if (cfg_map_get(zoptions, "masters", &obj) != ISC_R_SUCCESS) {
 			cfg_obj_log(zoptions, logctx, ISC_LOG_ERROR,
 				    "zone '%s': missing 'masters' entry",
-				    zname);
+				    znamestr);
 			result = ISC_R_FAILURE;
 		} else {
 			isc_uint32_t count;
@@ -1450,7 +1460,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			if (tresult == ISC_R_SUCCESS && count == 0) {
 				cfg_obj_log(zoptions, logctx, ISC_LOG_ERROR,
 					    "zone '%s': empty 'masters' entry",
-					    zname);
+					    znamestr);
 				result = ISC_R_FAILURE;
 			}
 		}
@@ -1472,7 +1482,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "zone '%s': 'allow-update' is ignored "
 				    "when 'update-policy' is present",
-				    zname);
+				    znamestr);
 			result = ISC_R_FAILURE;
 		} else if (res2 == ISC_R_SUCCESS &&
 			   check_update_policy(obj, logctx) != ISC_R_SUCCESS)
@@ -1531,7 +1541,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 						    "dialup type '%s' is not "
 						    "allowed in '%s' "
 						    "zone '%s'",
-						    str, typestr, zname);
+						    str, typestr, znamestr);
 					result = ISC_R_FAILURE;
 				}
 				break;
@@ -1539,7 +1549,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			if (i == sizeof(dialups) / sizeof(dialups[0])) {
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 					    "invalid dialup type '%s' in zone "
-					    "'%s'", str, zname);
+					    "'%s'", str, znamestr);
 				result = ISC_R_FAILURE;
 			}
 		}
@@ -1561,6 +1571,78 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	}
 	if (check_forward(zoptions, obj, logctx) != ISC_R_SUCCESS)
 		result = ISC_R_FAILURE;
+
+	/*
+	 * Check validity of static stub server addresses.
+	 */
+	obj = NULL;
+	(void)cfg_map_get(zoptions, "server-addresses", &obj);
+	if (ztype == STATICSTUBZONE && obj != NULL) {
+		for (element = cfg_list_first(obj);
+		     element != NULL;
+		     element = cfg_list_next(element))
+		{
+			isc_sockaddr_t sa;
+			isc_netaddr_t na;
+			obj = cfg_listelt_value(element);
+			sa = *cfg_obj_assockaddr(obj);
+
+			if (isc_sockaddr_getport(&sa) != 0) {
+				result = ISC_R_FAILURE;
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "port is not configurable for "
+					    "static stub server-addresses");
+			}
+
+			isc_netaddr_fromsockaddr(&na, &sa);
+			if (isc_netaddr_getzone(&na) != 0) {
+				result = ISC_R_FAILURE;
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "scoped address is not allowed "
+					    "for static stub "
+					    "server-addresses");
+			}
+		}
+	}
+
+	/*
+	 * Check validity of static stub server names.
+	 */
+	obj = NULL;
+	(void)cfg_map_get(zoptions, "server-names", &obj);
+	if (zname != NULL && ztype == STATICSTUBZONE && obj != NULL) {
+		for (element = cfg_list_first(obj);
+		     element != NULL;
+		     element = cfg_list_next(element))
+		{
+			const char *snamestr;
+			dns_fixedname_t fixed_sname;
+			isc_buffer_t b2;
+			dns_name_t *sname;
+
+			obj = cfg_listelt_value(element);
+			snamestr = cfg_obj_asstring(obj);
+
+			dns_fixedname_init(&fixed_sname);
+			isc_buffer_init(&b2, snamestr, strlen(snamestr));
+			isc_buffer_add(&b2, strlen(snamestr));
+			sname = dns_fixedname_name(&fixed_sname);
+			tresult = dns_name_fromtext(sname, &b2, dns_rootname,
+						    0, NULL);
+			if (tresult != ISC_R_SUCCESS) {
+				cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
+					    "server-name '%s' is not a valid "
+					    "name", snamestr);
+				result = ISC_R_FAILURE;
+			} else if (dns_name_issubdomain(sname, zname)) {
+				cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
+					    "server-name '%s' must not be a "
+					    "subdomain of zone name '%s'",
+					    snamestr, znamestr);
+				result = ISC_R_FAILURE;
+			}
+		}
+	}
 
 	/*
 	 * Check various options.
@@ -1585,7 +1667,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		    (ztype == MASTERZONE || ztype == HINTZONE)) {
 			cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
 				    "zone '%s': missing 'file' entry",
-				    zname);
+				    znamestr);
 			result = tresult;
 		}
 	}
