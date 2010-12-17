@@ -12,26 +12,13 @@
 ; OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 ; PERFORMANCE OF THIS SOFTWARE.
 
-; $Id: example.zone.in,v 1.2 2010/12/16 09:51:28 jinmei Exp $
+; $Id: root.db,v 1.1 2010/12/17 00:57:38 marka Exp $
 
-$ORIGIN .
-$TTL 300	; 5 minutes
-example			IN SOA	ns3.example. hostmaster.example. (
-				2010080900 ; serial
-				20         ; refresh (20 seconds)
-				20         ; retry (20 seconds)
-				1814400    ; expire (3 weeks)
-				3600       ; minimum (1 hour)
-				)
-example.		NS	ns4.example. ; fake
-example.		A	10.53.0.4    ; fake
-example.		AAAA	::1	     ; fake
+$TTL	120
+@		SOA	ns.utld hostmaster.ns.utld ( 46 3600 1200 604800 60 )
+@		NS	ns.utld
+ns.utld		A	10.53.0.1
+;
+example.com.	NS	example.
 
-ns4.example.		A	10.53.0.4
-data.example.		TXT	"some" "test" "data"
-data2.example.		TXT	"2nd test data"
-data3.example.		TXT	"3rd test data"
-data4.example.		TXT	"4th test data"
-
-sub.example.		NS	ns.sub.example.
-ns.sub.example.		A	10.53.0.4
+ns.example.net.	A	10.53.0.3

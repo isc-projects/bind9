@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.2 2010/12/16 09:51:28 jinmei Exp $
+# $Id: sign.sh,v 1.3 2010/12/17 00:57:39 marka Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -22,8 +22,8 @@ SYSTEMTESTTOP=../..
 RANDFILE=../random.data
 
 zone=example.
-infile=example.zone.in
-zonefile=example.zone
+infile=example.db.in
+zonefile=example.db
 
 (cd ../ns4 && sh -e sign.sh )
 

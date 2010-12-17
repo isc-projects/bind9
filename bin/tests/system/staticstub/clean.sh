@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.2 2010/12/16 09:51:27 jinmei Exp $
+# $Id: clean.sh,v 1.3 2010/12/17 00:57:38 marka Exp $
 
 rm -rf */*.signed
 rm -rf */K*
@@ -26,6 +26,6 @@ rm -f ns?/named.memstats
 rm -f ns?/named_dump.db
 rm -f ns2/named.conf
 rm -f ns3/named.conf
-rm -f ns3/example.zone
-rm -f ns4/sub.example.zone
+rm -f ns3/example.db
+rm -f ns4/sub.example.db
 rm -f dig.out.*

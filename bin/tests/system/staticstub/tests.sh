@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.2 2010/12/16 09:51:27 jinmei Exp $
+# $Id: tests.sh,v 1.3 2010/12/17 00:57:38 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -111,7 +111,7 @@ $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 reload 2>&1 | sed 's/^/I:ns3 /
 $DIG +tcp data2.sub.example. @10.53.0.2 txt -p 5300 > dig.out.ns2.test2.$n || ret=1
 grep "2nd sub test data" dig.out.ns2.test2.$n > /dev/null || ret=1
 # re-enable the parent
-sed 's/EXAMPLE_ZONE_PLACEHOLDER/zone "example" { type master; file "example.zone.signed"; };/' ns3/named.conf.in > ns3/named.conf
+sed 's/EXAMPLE_ZONE_PLACEHOLDER/zone "example" { type master; file "example.db.signed"; };/' ns3/named.conf.in > ns3/named.conf
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 reload 2>&1 | sed 's/^/I:ns3 /'
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
