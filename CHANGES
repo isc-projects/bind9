@@ -1,13 +1,13 @@
+2986.	[func]		Add new zone type "static-stub".  It's like a stub
+			zone, but the nameserver names and/or their IP
+			addresses are statically configured. [RT #21474]
+
 2985.	[bug]		Add a regression test for change #2896. [RT #21324]
 
 2984.	[bug]		Don't run MX checks when the target of the MX record
 			is ".".  [RT #22645]
 
 2983.	[bug]		Include "loadkeys" in rndc help output. [RT #22493]
-
-2947.	[func]		Add new zone type "static-stub".  It's like a stub
-			zone, but the nameserver names and/or their IP
-			addresses are statically configured. [RT #21474]
 
 	--- 9.8.0a1 released ---
 
@@ -139,6 +139,8 @@
 2948.	[port]		MacOS: provide a mechanism to configure the test 
 			interfaces at reboot. See bin/tests/system/README
 			for details.
+
+2947.	[placeholder]
 
 2946.	[doc]		Document the default values for the minimum and maximum
 			zone refresh and retry values in the ARM. [RT #21886]
