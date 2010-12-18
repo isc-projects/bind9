@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.173 2010/12/16 09:51:29 jinmei Exp $ */
+/* $Id: view.c,v 1.174 2010/12/18 11:47:13 marka Exp $ */
 
 /*! \file */
 
@@ -812,6 +812,7 @@ dns_view_find2(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 
 #ifndef BIND9
 	UNUSED(use_hints);
+	UNUSED(use_static_stub);
 #endif
 
 	/*
