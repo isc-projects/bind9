@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.2.4.3 2009/12/30 08:34:30 jinmei Exp $
+# $Id: clean.sh,v 1.2.4.4 2010/12/18 02:23:31 each Exp $
 
 rm -rf */*.signed
 rm -rf */*.jnl
@@ -28,3 +28,7 @@ rm -rf ns2/example.db
 rm -rf ns2/example.com.db
 rm -rf random.data
 rm -rf nsupdate.out.test
+rm -f ns1/keyset-.
+rm -f ns2/keyset-example.
+rm -f ns2/keyset-example.com.
+

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2008, 2010  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2008-2010  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,12 +14,15 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.1.84.2 2010/11/17 23:45:45 tbox Exp $
+# $Id: clean.sh,v 1.1.84.3 2010/12/18 02:23:31 each Exp $
 
 #
 # Clean up after resolver tests.
 #
 rm -f */named.memstats
+rm -f dig.out dig.*.out.*
 rm -f ns6/K*
 rm -f ns6/example.net.db.signed ns6/example.net.db
-
+rm -f ns6/keyset-example.net. ns6/dsset-example.net.
+rm -f ns6/example.net.db.signed.jnl
+rm -f random.data
