@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdlz.c,v 1.26 2010/12/18 01:56:22 each Exp $ */
+/* $Id: sdlz.c,v 1.27 2010/12/18 23:47:11 tbox Exp $ */
 
 /*! \file */
 
@@ -1691,9 +1691,9 @@ dns_sdlzssumatch(dns_name_t *signer, dns_name_t *name, isc_netaddr_t *tcpaddr,
 		return (ISC_FALSE);
 
 	/*
-         * Format the request elements. sdlz operates on strings, not
+	 * Format the request elements. sdlz operates on strings, not
 	 * structures
-         */
+	 */
 	if (signer)
 		dns_name_format(signer, b_signer, sizeof(b_signer));
 	else
@@ -1711,7 +1711,7 @@ dns_sdlzssumatch(dns_name_t *signer, dns_name_t *name, isc_netaddr_t *tcpaddr,
 	if (key)
 		dst_key_format(key, b_key, sizeof(b_key));
 	else
-		b_key[0] = 0;		
+		b_key[0] = 0;
 
 	tkey_token = dst_key_tkeytoken(key);
 

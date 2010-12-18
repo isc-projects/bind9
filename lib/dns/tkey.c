@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.97 2010/12/18 01:56:22 each Exp $
+ * $Id: tkey.c,v 1.98 2010/12/18 23:47:11 tbox Exp $
  */
 /*! \file */
 #include <config.h>
@@ -434,7 +434,7 @@ process_gsstkey(dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 	isc_buffer_t *outtoken = NULL;
 	gss_ctx_id_t gss_ctx = NULL;
 
-	/* 
+	/*
 	 * You have to define either a gss credential (principal) to
 	 * accept with tkey-gssapi-credential, or you have to
 	 * configure a specific keytab (with tkey-gssapi-keytab) in
@@ -443,9 +443,9 @@ process_gsstkey(dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 	if (tctx->gsscred == NULL && tctx->gssapi_keytab == NULL) {
 		tkey_log("process_gsstkey(): no tkey-gssapi-credential "
 			 "or tkey-gssapi-keytab configured");
- 		return (ISC_R_NOPERM);
+		return (ISC_R_NOPERM);
 	}
- 
+
 	if (!dns_name_equal(&tkeyin->algorithm, DNS_TSIG_GSSAPI_NAME) &&
 	    !dns_name_equal(&tkeyin->algorithm, DNS_TSIG_GSSAPIMS_NAME)) {
 		tkeyout->error = dns_tsigerror_badalg;
@@ -468,7 +468,7 @@ process_gsstkey(dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 	dns_fixedname_init(&principal);
 
 	/*
-	 * Note that tctx->gsscred may be NULL if tctx->gssapi_keytab is set 
+	 * Note that tctx->gsscred may be NULL if tctx->gssapi_keytab is set
 	 */
 	result = dst_gssapi_acceptctx(tctx->gsscred, tctx->gssapi_keytab,
 				      &intoken,
