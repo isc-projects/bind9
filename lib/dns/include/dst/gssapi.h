@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gssapi.h,v 1.12 2010/12/18 01:56:22 each Exp $ */
+/* $Id: gssapi.h,v 1.13 2010/12/18 14:46:21 marka Exp $ */
 
 #ifndef DST_GSSAPI_H
 #define DST_GSSAPI_H 1
@@ -37,7 +37,9 @@
 #include <gssapi/gssapi_krb5.h>
 #else
 #include ISC_PLATFORM_GSSAPIHEADER
+#ifdef ISC_PLATFORM_GSSAPI_KRB5_HEADER
 #include ISC_PLATFORM_GSSAPI_KRB5_HEADER
+#endif
 #endif
 #ifndef GSS_SPNEGO_MECHANISM
 #define GSS_SPNEGO_MECHANISM ((void*)0)

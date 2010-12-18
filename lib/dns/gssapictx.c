@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gssapictx.c,v 1.19 2010/12/18 01:56:22 each Exp $ */
+/* $Id: gssapictx.c,v 1.20 2010/12/18 14:46:21 marka Exp $ */
 
 #include <config.h>
 
@@ -746,16 +746,21 @@ dst_gssapi_acceptctx(gss_cred_id_t cred,
 	else
 		context = *ctxout;
 
-	if (gssapi_keytab) {
-	       gret = gsskrb5_register_acceptor_identity(gssapi_keytab);
-	       if (gret != GSS_S_COMPLETE) {
-		       gss_log(3, "failed "
-				  "gsskrb5_register_acceptor_identity(%s): %s",
-			       gssapi_keytab,
-			       gss_error_tostring(gret, minor,
-						  buf, sizeof(buf)));
-		       return (DNS_R_INVALIDTKEY);
-	       }
+	if (gssapi_keytab != NULL) {
+#ifdef ISC_PLATFORM_GSSAPI_KRB5_HEADER
+		return (ISC_R_NOTIMPLEMENTED);
+#else
+
+		gret = gsskrb5_register_acceptor_identity(gssapi_keytab);
+		if (gret != GSS_S_COMPLETE) {
+			gss_log(3, "failed "
+				"gsskrb5_register_acceptor_identity(%s): %s",
+				gssapi_keytab,
+				gss_error_tostring(gret, minor,
+						   buf, sizeof(buf)));
+			return (DNS_R_INVALIDTKEY);
+		}
+#endif
 	}
 
 	gret = gss_accept_sec_context(&minor, &context, cred, &gintoken,
