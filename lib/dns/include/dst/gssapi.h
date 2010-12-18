@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gssapi.h,v 1.11 2009/01/17 23:47:43 tbox Exp $ */
+/* $Id: gssapi.h,v 1.12 2010/12/18 01:56:22 each Exp $ */
 
 #ifndef DST_GSSAPI_H
 #define DST_GSSAPI_H 1
@@ -34,8 +34,10 @@
  * MSVC does not like macros in #include lines.
  */
 #include <gssapi/gssapi.h>
+#include <gssapi/gssapi_krb5.h>
 #else
 #include ISC_PLATFORM_GSSAPIHEADER
+#include ISC_PLATFORM_GSSAPI_KRB5_HEADER
 #endif
 #ifndef GSS_SPNEGO_MECHANISM
 #define GSS_SPNEGO_MECHANISM ((void*)0)
@@ -90,7 +92,8 @@ dst_gssapi_releasecred(gss_cred_id_t *cred);
 
 isc_result_t
 dst_gssapi_initctx(dns_name_t *name, isc_buffer_t *intoken,
-		   isc_buffer_t *outtoken, gss_ctx_id_t *gssctx);
+		   isc_buffer_t *outtoken, gss_ctx_id_t *gssctx,
+		   dns_name_t *zone, isc_mem_t *mctx, char **err_message);
 /*
  *	Initiates a GSS context.
  *
@@ -108,10 +111,12 @@ dst_gssapi_initctx(dns_name_t *name, isc_buffer_t *intoken,
  *		ISC_R_SUCCESS   msg was successfully updated to include the
  * 				query to be sent
  *		other		an error occurred while building the message
+ *		*err_message	optional error message
  */
 
 isc_result_t
 dst_gssapi_acceptctx(gss_cred_id_t cred,
+		     const char *gssapi_keytab,
 		     isc_region_t *intoken, isc_buffer_t **outtoken,
 		     gss_ctx_id_t *context, dns_name_t *principal,
 		     isc_mem_t *mctx);

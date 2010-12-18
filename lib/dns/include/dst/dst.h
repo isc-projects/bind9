@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.27 2010/12/09 04:31:57 tbox Exp $ */
+/* $Id: dst.h,v 1.28 2010/12/18 01:56:22 each Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -470,7 +470,7 @@ dst_key_getgssctx(const dst_key_t *key);
 
 isc_result_t
 dst_key_fromgssapi(dns_name_t *name, gss_ctx_id_t gssctx, isc_mem_t *mctx,
-		   dst_key_t **keyp);
+		   dst_key_t **keyp, isc_region_t *intoken);
 /*%<
  * Converts a GSSAPI opaque context id into a DST key.
  *
@@ -831,11 +831,20 @@ dst_key_setprivateformat(dst_key_t *key, int major, int minor);
 #define DST_KEY_FORMATSIZE (DNS_NAME_FORMATSIZE + DNS_SECALG_FORMATSIZE + 7)
 
 void
-dst_key_format(dst_key_t *key, char *cp, unsigned int size);
+dst_key_format(const dst_key_t *key, char *cp, unsigned int size);
 /*%<
  * Write the uniquely identifying information about the key (name,
  * algorithm, key ID) into a string 'cp' of size 'size'.
  */
+
+
+isc_buffer_t *
+dst_key_tkeytoken(const dst_key_t *key);
+/*%<
+ * Return the token from the TKEY request, if any.  If this key was
+ * not negotiated via TKEY, return NULL.
+ */
+
 
 ISC_LANG_ENDDECLS
 

@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gsstest.c,v 1.8 2009/09/02 23:48:01 tbox Exp $ */
+/* $Id: gsstest.c,v 1.9 2010/12/18 01:56:19 each Exp $ */
 
 #include <config.h>
 
@@ -304,7 +304,7 @@ initctx2(isc_task_t *task, isc_event_t *event) {
 	result = dns_tkey_processgssresponse(query, response,
 					     dns_fixedname_name(&gssname),
 					     &gssctx, &outtoken,
-					     &tsigkey, ring);
+					     &tsigkey, ring, NULL);
 	gssctx = *gssctxp;
 	CHECK("dns_tkey_processgssresponse", result);
 	printf("Context accepted\n");

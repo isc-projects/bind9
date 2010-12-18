@@ -16,7 +16,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.136 2010/12/03 00:57:57 marka Exp $ */
+/* $Id: config.h.in,v 1.137 2010/12/18 01:56:17 each Exp $ */
 
 /*! \file */
 
@@ -193,8 +193,14 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the <gssapi/gssapi.h> header file. */
 #undef HAVE_GSSAPI_GSSAPI_H
 
+/* Define to 1 if you have the <gssapi/gssapi_krb5.h> header file. */
+#undef HAVE_GSSAPI_GSSAPI_KRB5_H
+
 /* Define to 1 if you have the <gssapi.h> header file. */
 #undef HAVE_GSSAPI_H
+
+/* Define to 1 if you have the <gssapi_krb5.h> header file. */
+#undef HAVE_GSSAPI_KRB5_H
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
@@ -378,14 +384,10 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */
-#if defined AC_APPLE_UNIVERSAL_BUILD
-# if defined __BIG_ENDIAN__
-#  define WORDS_BIGENDIAN 1
-# endif
-#else
-# ifndef WORDS_BIGENDIAN
-#  undef WORDS_BIGENDIAN
-# endif
+#if defined __BIG_ENDIAN__
+# define WORDS_BIGENDIAN 1
+#elif ! defined __LITTLE_ENDIAN__
+# undef WORDS_BIGENDIAN
 #endif
 
 /* Define to empty if `const' does not conform to ANSI C. */

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.590 2010/12/09 00:54:33 marka Exp $ */
+/* $Id: server.c,v 1.591 2010/12/18 01:56:19 each Exp $ */
 
 /*! \file */
 
@@ -1290,6 +1290,27 @@ cache_sharable(dns_view_t *originview, dns_view_t *view,
 	return (ISC_TRUE);
 }
 
+#ifdef DLZ
+/*
+ * Callback from DLZ configure when the driver sets up a writeable zone
+ */
+static isc_result_t
+dlzconfigure_callback(dns_view_t *view, dns_zone_t *zone) {
+	dns_name_t *origin = dns_zone_getorigin(zone);
+	dns_rdataclass_t zclass = view->rdclass;
+	isc_result_t result;
+
+	result = dns_zonemgr_managezone(ns_g_server->zonemgr, zone);
+	if (result != ISC_R_SUCCESS)
+		return result;
+	dns_zone_setstats(zone, ns_g_server->zonestats);
+
+	return ns_zone_configure_writeable_dlz(view->dlzdatabase,
+					       zone, zclass, origin);
+}
+#endif
+
+
 /*
  * Configure 'view' according to 'vconfig', taking defaults from 'config'
  * where values are missing in 'vconfig'.
@@ -1561,6 +1582,14 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 					       &view->dlzdatabase);
 			isc_mem_free(mctx, s);
 			isc_mem_put(mctx, dlzargv, dlzargc * sizeof(*dlzargv));
+			if (result != ISC_R_SUCCESS)
+				goto cleanup;
+
+			/*
+			 * If the dlz backend supports configuration,
+			 * then call its configure method now.
+			 */
+			result = dns_dlzconfigure(view, dlzconfigure_callback);
 			if (result != ISC_R_SUCCESS)
 				goto cleanup;
 		}

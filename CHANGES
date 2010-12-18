@@ -1,3 +1,25 @@
+2989.	[func]		Added support for writable DLZ zones. (Contributed
+			by Andrew Tridgell of the Samba project.) [RT #22629]
+
+2988.	[experimental]	Added a "dlopen" DLZ driver, allowing the creation
+			of external DLZ drivers that can be loaded as
+			shared objects at runtime rather than linked with
+			named.  Currently this is switched on via a
+			compile-time option, "configure --with-dlz-dlopen".
+			Note: the syntax for configuring DLZ zones
+			is likely to be refined in future releases.
+			(Contributed by Andrew Tridgell of the Samba
+			project.) [RT #22629]
+
+2987.	[func]		Improve ease of configuring TKEY/GSS updates by
+			adding a "tkey-gssapi-keytab" option.  If set,
+			updates will be allowed with any key matching
+			a principal in the specified keytab file.
+			"tkey-gssapi-credential" is no longer required
+			and is expected to be deprecated.  (Contributed
+			by Andrew Tridgell of the Samba project.)
+			[RT #22629]
+
 2986.	[func]		Add new zone type "static-stub".  It's like a stub
 			zone, but the nameserver names and/or their IP
 			addresses are statically configured. [RT #21474]

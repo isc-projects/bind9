@@ -15,16 +15,18 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gssapictx.c,v 1.18 2010/07/09 05:13:15 each Exp $ */
+/* $Id: gssapictx.c,v 1.19 2010/12/18 01:56:22 each Exp $ */
 
 #include <config.h>
 
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <isc/buffer.h>
 #include <isc/dir.h>
 #include <isc/entropy.h>
+#include <isc/file.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
 #include <isc/once.h>
@@ -201,9 +203,12 @@ log_cred(const gss_cred_id_t cred) {
  *   - tkey-gssapi-credential doesn't start with DNS/
  *   - the default realm in /etc/krb5.conf and the
  *     tkey-gssapi-credential bind config option don't match
+ *
+ * Note that if tkey-gssapi-keytab is set then these configure checks
+ * are not performed, and runtime errors from gssapi are used instead
  */
 static void
-dst_gssapi_check_config(const char *gss_name) {
+check_config(const char *gss_name) {
 	const char *p;
 	krb5_context krb5_ctx;
 	char *krb5_realm = NULL;
@@ -263,7 +268,7 @@ dst_gssapi_acquirecred(dns_name_t *name, isc_boolean_t initiate,
 	 * here when we're in the acceptor role, which would let us
 	 * default the hostname and use a compiled in default service
 	 * name of "DNS", giving one less thing to configure in
-	 * named.conf.  Unfortunately, this creates a circular
+	 * named.conf.	Unfortunately, this creates a circular
 	 * dependency due to DNS-based realm lookup in at least one
 	 * GSSAPI implementation (Heimdal).  Oh well.
 	 */
@@ -273,7 +278,7 @@ dst_gssapi_acquirecred(dns_name_t *name, isc_boolean_t initiate,
 		gret = gss_import_name(&minor, &gnamebuf,
 				       GSS_C_NO_OID, &gname);
 		if (gret != GSS_S_COMPLETE) {
-			dst_gssapi_check_config((char *)array);
+			check_config((char *)array);
 
 			gss_log(3, "failed gss_import_name: %s",
 				gss_error_tostring(gret, minor, buf,
@@ -306,7 +311,7 @@ dst_gssapi_acquirecred(dns_name_t *name, isc_boolean_t initiate,
 			initiate ? "initiate" : "accept",
 			(char *)gnamebuf.value,
 			gss_error_tostring(gret, minor, buf, sizeof(buf)));
-		dst_gssapi_check_config((char *)array);
+		check_config((char *)array);
 		return (ISC_R_FAILURE);
 	}
 
@@ -361,7 +366,7 @@ dst_gssapi_identitymatchesrealmkrb5(dns_name_t *signer, dns_name_t *name,
 	rname += 2;
 
 	/*
-	 * Find the host portion of the signer's name.  We do this by
+	 * Find the host portion of the signer's name.	We do this by
 	 * searching for the first / character.  We then check to make
 	 * certain the instance name is "host"
 	 *
@@ -440,7 +445,7 @@ dst_gssapi_identitymatchesrealmms(dns_name_t *signer, dns_name_t *name,
 		return (isc_boolean_false);
 
 	/*
-	 * Find the host portion of the signer's name.  Zero out the $ so
+	 * Find the host portion of the signer's name.	Zero out the $ so
 	 * it terminates the signer's name, and skip past the @ for
 	 * the realm.
 	 *
@@ -454,7 +459,7 @@ dst_gssapi_identitymatchesrealmms(dns_name_t *signer, dns_name_t *name,
 
 	/*
 	 * Find the first . in the target name, and make it the end of
-	 * the string.   The rest of the name has to match the realm.
+	 * the string.	 The rest of the name has to match the realm.
 	 */
 	if (name != NULL) {
 		nname = strchr(nbuf, '.');
@@ -510,9 +515,110 @@ dst_gssapi_releasecred(gss_cred_id_t *cred) {
 #endif
 }
 
+#ifdef GSSAPI
+/*
+ * GSSAPI with krb5 doesn't have a way to set the default realm, as it
+ * doesn't offer any access to the krb5 context that it uses. The only
+ * way to do an nsupdate call on a realm that isn't the default realm in
+ * /etc/krb5.conf is to create a temporary krb5.conf and put the right
+ * realm in there as the default realm, then set KRB5_CONFIG to point
+ * at that temporary krb5.conf. This is a disgusting hack, but it is
+ * the best we can do with GSSAPI.
+ *
+ * To try to reduce the impact, this routine checks if the default
+ * realm is already correct. If it is, then we don't need to do
+ * anything. If not, then we create the temporary krb5.conf.
+ */
+static void
+check_zone(dns_name_t *zone, isc_mem_t *mctx, char **tmpfile) {
+	krb5_context ctx;
+	int kret;
+	char *realm;
+	char buf[1024];
+	isc_result_t ret;
+	FILE *fp = NULL;
+	char *p, *template;
+
+	if (getenv("KRB5_CONFIG") != NULL) {
+		/* the user has specifically set a KRB5_CONFIG to
+		   use. Don't override it, as they may know what they are
+		   doing */
+		return;
+	}
+
+	dns_name_format(zone, buf, sizeof(buf));
+
+	/* gssapi wants the realm in upper case */
+	for (p=buf; *p; p++) {
+		if (islower((int)*p))
+			*p = toupper((int)*p);
+	}
+
+	kret = krb5_init_context(&ctx);
+	if (kret != 0)
+		return;
+
+	kret = krb5_get_default_realm(ctx, &realm);
+	if (kret == 0 && strcmp(buf, realm) == 0) {
+		/* the krb5.conf is correct. */
+		krb5_free_context(ctx);
+		return;
+	}
+
+	gss_log(3, "zone '%s' doesn't match KRB5 default realm '%s'",
+		buf, realm);
+
+	template = isc_mem_strdup(mctx, "/tmp/krb5.conf.XXXXXX");
+	if (template == NULL) {
+		krb5_free_context(ctx);
+		return;
+	}
+
+	ret = isc_file_openunique(template, &fp);
+	if (ret != ISC_R_SUCCESS) {
+		krb5_free_context(ctx);
+		return;
+	}
+
+	fprintf(fp, "[libdefaults]\n");
+	fprintf(fp, "\tdefault_realm = %s\n", buf);
+	fprintf(fp, "\tdns_lookup_kdc = true\n");
+	fclose(fp);
+
+	setenv("KRB5_CONFIG", template, 1);
+
+	*tmpfile = template;
+
+	krb5_free_context(ctx);
+}
+
+/*
+ * Format a gssapi error message info into a char ** on the given memory
+ * context. This is used to return gssapi error messages back up the
+ * call chain for reporting to the user.
+ */
+static void
+gss_err_message(isc_mem_t *mctx, isc_uint32_t major, isc_uint32_t minor,
+		char **err_message)
+{
+	char buf[1024];
+	char *estr;
+
+	if (err_message == NULL || mctx == NULL) {
+		/* the caller doesn't want any error messages */
+		return;
+	}
+
+	estr = gss_error_tostring(major, minor, buf, sizeof(buf));
+	if (estr)
+		(*err_message) = isc_mem_strdup(mctx, estr);
+}
+#endif
+
 isc_result_t
 dst_gssapi_initctx(dns_name_t *name, isc_buffer_t *intoken,
-		   isc_buffer_t *outtoken, gss_ctx_id_t *gssctx)
+		   isc_buffer_t *outtoken, gss_ctx_id_t *gssctx,
+		   dns_name_t *zone, isc_mem_t *mctx, char **err_message)
 {
 #ifdef GSSAPI
 	isc_region_t r;
@@ -523,10 +629,15 @@ dst_gssapi_initctx(dns_name_t *name, isc_buffer_t *intoken,
 	isc_result_t result;
 	gss_buffer_desc gnamebuf;
 	unsigned char array[DNS_NAME_MAXTEXT + 1];
-	char buf[1024];
+	char *tmpfile = NULL;
 
 	/* Client must pass us a valid gss_ctx_id_t here */
 	REQUIRE(gssctx != NULL);
+	REQUIRE(mctx != NULL);
+
+	if (zone != NULL && mctx != NULL) {
+		check_zone(zone, mctx, &tmpfile);
+	}
 
 	isc_buffer_init(&namebuf, array, sizeof(array));
 	name_to_gbuffer(name, &namebuf, &gnamebuf);
@@ -534,6 +645,7 @@ dst_gssapi_initctx(dns_name_t *name, isc_buffer_t *intoken,
 	/* Get the name as a GSS name */
 	gret = gss_import_name(&minor, &gnamebuf, GSS_C_NO_OID, &gname);
 	if (gret != GSS_S_COMPLETE) {
+		gss_err_message(mctx, gret, minor, err_message);
 		result = ISC_R_FAILURE;
 		goto out;
 	}
@@ -550,8 +662,7 @@ dst_gssapi_initctx(dns_name_t *name, isc_buffer_t *intoken,
 	 * Note that we don't set GSS_C_SEQUENCE_FLAG as Windows DNS
 	 * servers don't like it.
 	 */
-	flags = GSS_C_REPLAY_FLAG | GSS_C_MUTUAL_FLAG | GSS_C_DELEG_FLAG |
-		GSS_C_INTEG_FLAG;
+	flags = GSS_C_REPLAY_FLAG | GSS_C_MUTUAL_FLAG | GSS_C_INTEG_FLAG;
 
 	gret = gss_init_sec_context(&minor, GSS_C_NO_CREDENTIAL, gssctx,
 				    gname, GSS_SPNEGO_MECHANISM, flags,
@@ -559,9 +670,9 @@ dst_gssapi_initctx(dns_name_t *name, isc_buffer_t *intoken,
 				    NULL, &gouttoken, &ret_flags, NULL);
 
 	if (gret != GSS_S_COMPLETE && gret != GSS_S_CONTINUE_NEEDED) {
-		gss_log(3, "Failure initiating security context");
-		gss_log(3, "%s", gss_error_tostring(gret, minor,
-						    buf, sizeof(buf)));
+		gss_err_message(mctx, gret, minor, err_message);
+		gss_log(3, "Failure initiating security context: %s",
+			*err_message);
 		result = ISC_R_FAILURE;
 		goto out;
 	}
@@ -587,12 +698,20 @@ dst_gssapi_initctx(dns_name_t *name, isc_buffer_t *intoken,
 		result = DNS_R_CONTINUE;
 
  out:
+	if (tmpfile) {
+		unsetenv("KRB5_CONFIG");
+		isc_file_remove(tmpfile);
+		isc_mem_free(mctx, tmpfile);
+	}
 	return (result);
 #else
 	UNUSED(name);
 	UNUSED(intoken);
 	UNUSED(outtoken);
 	UNUSED(gssctx);
+	UNUSED(zone);
+	UNUSED(mctx);
+	UNUSED(err_message);
 
 	return (ISC_R_NOTIMPLEMENTED);
 #endif
@@ -600,6 +719,7 @@ dst_gssapi_initctx(dns_name_t *name, isc_buffer_t *intoken,
 
 isc_result_t
 dst_gssapi_acceptctx(gss_cred_id_t cred,
+		     const char *gssapi_keytab,
 		     isc_region_t *intoken, isc_buffer_t **outtoken,
 		     gss_ctx_id_t *ctxout, dns_name_t *principal,
 		     isc_mem_t *mctx)
@@ -625,6 +745,18 @@ dst_gssapi_acceptctx(gss_cred_id_t cred,
 		context = GSS_C_NO_CONTEXT;
 	else
 		context = *ctxout;
+
+	if (gssapi_keytab) {
+	       gret = gsskrb5_register_acceptor_identity(gssapi_keytab);
+	       if (gret != GSS_S_COMPLETE) {
+		       gss_log(3, "failed "
+				  "gsskrb5_register_acceptor_identity(%s): %s",
+			       gssapi_keytab,
+			       gss_error_tostring(gret, minor,
+						  buf, sizeof(buf)));
+		       return (DNS_R_INVALIDTKEY);
+	       }
+	}
 
 	gret = gss_accept_sec_context(&minor, &context, cred, &gintoken,
 				      GSS_C_NO_CHANNEL_BINDINGS, &gname,
@@ -717,6 +849,7 @@ dst_gssapi_acceptctx(gss_cred_id_t cred,
 	return (result);
 #else
 	UNUSED(cred);
+	UNUSED(gssapi_keytab);
 	UNUSED(intoken);
 	UNUSED(outtoken);
 	UNUSED(ctxout);

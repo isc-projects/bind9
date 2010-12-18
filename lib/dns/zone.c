@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.579 2010/12/16 09:51:29 jinmei Exp $ */
+/* $Id: zone.c,v 1.580 2010/12/18 01:56:22 each Exp $ */
 
 /*! \file */
 
@@ -3418,6 +3418,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	 */
 
 	switch (zone->type) {
+	case dns_zone_dlz:
 	case dns_zone_master:
 	case dns_zone_slave:
 	case dns_zone_stub:
@@ -14188,4 +14189,17 @@ isc_boolean_t
 dns_zone_getadded(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	return (zone->added);
+}
+
+isc_result_t
+dns_zone_dlzpostload(dns_zone_t *zone, dns_db_t *db)
+{
+	isc_time_t loadtime;
+	isc_result_t result;
+	TIME_NOW(&loadtime);
+
+	LOCK_ZONE(zone);
+	result = zone_postload(zone, db, loadtime, ISC_R_SUCCESS);
+	UNLOCK_ZONE(zone);
+	return result;
 }

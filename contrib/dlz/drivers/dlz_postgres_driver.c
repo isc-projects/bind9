@@ -1310,7 +1310,14 @@ static dns_sdlzmethods_t dlz_postgres_methods = {
 	postgres_lookup,
 	postgres_authority,
 	postgres_allnodes,
-	postgres_allowzonexfr
+	postgres_allowzonexfr,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
 };
 
 /*%

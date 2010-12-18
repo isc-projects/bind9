@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkeyconf.c,v 1.31 2009/09/02 23:48:01 tbox Exp $ */
+/* $Id: tkeyconf.c,v 1.32 2010/12/18 01:56:19 each Exp $ */
 
 /*! \file */
 
@@ -113,6 +113,18 @@ ns_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
 		RETERR(dns_name_fromtext(name, &b, dns_rootname, 0, NULL));
 		RETERR(dst_gssapi_acquirecred(name, ISC_FALSE, &tctx->gsscred));
 	}
+
+	obj = NULL;
+	result = cfg_map_get(options, "tkey-gssapi-keytab", &obj);
+	if (result == ISC_R_SUCCESS) {
+		s = cfg_obj_asstring(obj);
+		tctx->gssapi_keytab = isc_mem_strdup(mctx, s);
+		if (tctx->gssapi_keytab == NULL) {
+			result = ISC_R_NOMEMORY;
+			goto failure;
+		}
+	}
+
 
 	*tctxp = tctx;
 	return (ISC_R_SUCCESS);

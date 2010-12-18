@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.167 2010/12/16 23:47:08 tbox Exp $ */
+/* $Id: zoneconf.c,v 1.168 2010/12/18 01:56:19 each Exp $ */
 
 /*% */
 
@@ -39,6 +39,7 @@
 #include <dns/rdataset.h>
 #include <dns/rdatalist.h>
 #include <dns/result.h>
+#include <dns/sdlz.h>
 #include <dns/ssu.h>
 #include <dns/stats.h>
 #include <dns/view.h>
@@ -1428,6 +1429,31 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 
 	return (ISC_R_SUCCESS);
 }
+
+
+#ifdef DLZ
+/*
+ * Set up a DLZ zone as writeable
+ */
+isc_result_t
+ns_zone_configure_writeable_dlz(dns_dlzdb_t *dlzdatabase, dns_zone_t *zone,
+				dns_rdataclass_t rdclass, dns_name_t *name)
+{
+	dns_db_t *db = NULL;
+	isc_time_t now;
+	isc_result_t result;
+
+	TIME_NOW(&now);
+
+	dns_zone_settype(zone, dns_zone_dlz);
+	result = dns_sdlz_setdb(dlzdatabase, rdclass, name, &db);
+	if (result != ISC_R_SUCCESS)
+		return result;
+	result = dns_zone_dlzpostload(zone, db);
+	dns_db_detach(&db);
+	return result;
+}
+#endif
 
 isc_boolean_t
 ns_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig) {

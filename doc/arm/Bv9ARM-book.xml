@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.467 2010/12/16 09:51:29 jinmei Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.468 2010/12/18 01:56:21 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -1792,8 +1792,9 @@ controls {
       </para>
 
       <para>
-        The <command>tkey-gssapi-credential</command> and
-	<command>tkey-domain</command> clauses in the
+        The <command>tkey-gssapi-credential</command>,
+        <command>tkey-gssapi-keytab</command>
+        and <command>tkey-domain</command> clauses in the
 	<command>options</command> statement enable the
 	server to negotiate keys that can be matched against those
 	in <command>update-policy</command> or
@@ -4973,6 +4974,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> key-directory <replaceable>path_name</replaceable>; </optional>
     <optional> managed-keys-directory <replaceable>path_name</replaceable>; </optional>
     <optional> named-xfer <replaceable>path_name</replaceable>; </optional>
+    <optional> tkey-gssapi-keytab <replaceable>path_name</replaceable>; </optional>
     <optional> tkey-gssapi-credential <replaceable>principal</replaceable>; </optional>
     <optional> tkey-domain <replaceable>domainname</replaceable>; </optional>
     <optional> tkey-dhkey <replaceable>key_name</replaceable> <replaceable>key_tag</replaceable>; </optional>
@@ -5330,19 +5332,33 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	  </varlistentry>
 
 	  <varlistentry>
+	    <term><command>tkey-gssapi-keytab</command></term>
+	    <listitem>
+	      <para>
+		The KRB5 keytab file to use for GSS-TSIG updates. If
+		this option is set and tkey-gssapi-credential is not
+		set, then updates will be allowed with any key
+		matching a principal in the specified keytab.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+
+	  <varlistentry>
 	    <term><command>tkey-gssapi-credential</command></term>
 	    <listitem>
 	      <para>
 		The security credential with which the server should
 		authenticate keys requested by the GSS-TSIG protocol.
 		Currently only Kerberos 5 authentication is available
-		and the credential is a Kerberos principal which
-		the server can acquire through the default system
-		key file, normally <filename>/etc/krb5.keytab</filename>.
-		Normally this principal is of the form
-		"<userinput>DNS/</userinput><varname>server.domain</varname>".
-		To use GSS-TSIG, <command>tkey-domain</command>
-		must also be set.
+		and the credential is a Kerberos principal which the
+		server can acquire through the default system key
+		file, normally <filename>/etc/krb5.keytab</filename>.
+		The location keytab file can be overridden using the
+		tkey-gssapi-keytab option. Normally this principal is
+		of the form "<userinput>DNS/</userinput><varname>server.domain</varname>".
+		To use GSS-TSIG, <command>tkey-domain</command> must
+		also be set if a specific keytab is not set with
+		tkey-gssapi-keytab.
 	      </para>
 	    </listitem>
 	  </varlistentry>
@@ -5364,7 +5380,8 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		should be the server's domain name, or an otherwise
 		non-existent subdomain like
 		"_tkey.<varname>domainname</varname>".  If you are
-		using GSS-TSIG, this variable must be defined.
+		using GSS-TSIG, this variable must be defined, unless
+		you specify a specific keytab using tkey-gssapi-keytab.
 	      </para>
 	    </listitem>
 	  </varlistentry>

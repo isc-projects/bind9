@@ -217,6 +217,7 @@ options {
         tkey-dhkey <quoted_string> <integer>;
         tkey-domain <quoted_string>;
         tkey-gssapi-credential <quoted_string>;
+        tkey-gssapi-keytab <quoted_string>;
         topology { <address_match_element>; ... }; // not implemented
         transfer-format ( many-answers | one-answer );
         transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
@@ -511,7 +512,7 @@ view <string> <optional_class> {
                 update-policy ( local | { ( grant | deny ) <string> ( name
                     | subdomain | wildcard | self | selfsub | selfwild |
                     krb5-self | ms-self | krb5-subdomain | ms-subdomain |
-                    tcp-self | 6to4-self | zonesub ) [ <string> ]
+                    tcp-self | 6to4-self | zonesub | external ) [ <string> ]
                     <rrtypelist>; ... };
                 use-alt-transfer-source <boolean>;
                 zero-no-soa-ttl <boolean>;
@@ -594,7 +595,7 @@ zone <string> <optional_class> {
         update-policy ( local | { ( grant | deny ) <string> ( name |
             subdomain | wildcard | self | selfsub | selfwild | krb5-self |
             ms-self | krb5-subdomain | ms-subdomain | tcp-self | 6to4-self
-            | zonesub ) [ <string> ] <rrtypelist>; ... };
+            | zonesub | external ) [ <string> ] <rrtypelist>; ... };
         use-alt-transfer-source <boolean>;
         zero-no-soa-ttl <boolean>;
         zone-statistics <boolean>;

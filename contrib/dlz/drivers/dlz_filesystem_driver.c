@@ -996,7 +996,14 @@ static dns_sdlzmethods_t dlz_fs_methods = {
 	fs_lookup,
 	NULL,
 	fs_allnodes,
-	fs_allowzonexfr
+	fs_allowzonexfr,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
 };
 
 /*%

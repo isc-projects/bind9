@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.125 2010/12/16 09:51:30 jinmei Exp $ */
+/* $Id: namedconf.c,v 1.126 2010/12/18 01:56:23 each Exp $ */
 
 /*! \file */
 
@@ -879,6 +879,7 @@ options_clauses[] = {
 	{ "tcp-listen-queue", &cfg_type_uint32, 0 },
 	{ "tkey-dhkey", &cfg_type_tkey_dhkey, 0 },
 	{ "tkey-gssapi-credential", &cfg_type_qstring, 0 },
+	{ "tkey-gssapi-keytab", &cfg_type_qstring, 0 },
 	{ "tkey-domain", &cfg_type_qstring, 0 },
 	{ "transfers-per-ns", &cfg_type_uint32, 0 },
 	{ "transfers-in", &cfg_type_uint32, 0 },

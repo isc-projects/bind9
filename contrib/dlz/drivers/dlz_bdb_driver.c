@@ -742,7 +742,14 @@ static dns_sdlzmethods_t dlz_bdb_methods = {
 	bdb_lookup,
 	NULL,
 	bdb_allnodes,
-	bdb_allowzonexfr
+	bdb_allowzonexfr,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
 };
 
 /*%

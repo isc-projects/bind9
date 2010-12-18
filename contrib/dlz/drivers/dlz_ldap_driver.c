@@ -1287,7 +1287,14 @@ static dns_sdlzmethods_t dlz_ldap_methods = {
 	dlz_ldap_lookup,
 	dlz_ldap_authority,
 	dlz_ldap_allnodes,
-	dlz_ldap_allowzonexfr
+	dlz_ldap_allowzonexfr,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
 };
 
 /*%

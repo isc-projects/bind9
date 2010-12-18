@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.181 2010/12/16 23:47:08 tbox Exp $ */
+/* $Id: zone.h,v 1.182 2010/12/18 01:56:22 each Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -42,7 +42,8 @@ typedef enum {
 	dns_zone_slave,
 	dns_zone_stub,
 	dns_zone_staticstub,
-	dns_zone_key
+	dns_zone_key,
+	dns_zone_dlz
 } dns_zonetype_t;
 
 #define DNS_ZONEOPT_SERVERS	  0x00000001U	/*%< perform server checks */
@@ -1843,6 +1844,12 @@ dns_zone_getadded(dns_zone_t *zone);
  *
  * Requires:
  * \li	'zone' to be valid.
+ */
+
+isc_result_t
+dns_zone_dlzpostload(dns_zone_t *zone, dns_db_t *db);
+/*%
+ * Load the origin names for a writeable DLZ database.
  */
 
 ISC_LANG_ENDDECLS

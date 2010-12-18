@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.186 2010/12/09 04:31:57 tbox Exp $ */
+/* $Id: nsupdate.c,v 1.187 2010/12/18 01:56:19 each Exp $ */
 
 /*! \file */
 
@@ -205,7 +205,7 @@ typedef struct nsu_gssinfo {
 } nsu_gssinfo_t;
 
 static void
-start_gssrequest(dns_name_t *master);
+start_gssrequest(dns_name_t *master, dns_name_t *zone);
 static void
 send_gssrequest(isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
 		dns_message_t *msg, dns_request_t **request,
@@ -2371,7 +2371,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		dns_name_dup(zonename, mctx, &tmpzonename);
 		dns_name_init(&restart_master, NULL);
 		dns_name_dup(&master, mctx, &restart_master);
-		start_gssrequest(&master);
+		start_gssrequest(&master, zonename);
 	} else {
 		send_update(zonename, serveraddr, localaddr);
 		setzoneclass(dns_rdataclass_none);
@@ -2432,7 +2432,7 @@ sendrequest(isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
 
 #ifdef GSSAPI
 static void
-start_gssrequest(dns_name_t *master)
+start_gssrequest(dns_name_t *master, dns_name_t *zone)
 {
 	gss_ctx_id_t context;
 	isc_buffer_t buf;
@@ -2444,6 +2444,7 @@ start_gssrequest(dns_name_t *master)
 	dns_fixedname_t fname;
 	char namestr[DNS_NAME_FORMATSIZE];
 	char keystr[DNS_NAME_FORMATSIZE];
+	char *err_message = NULL;
 
 	debug("start_gssrequest");
 	usevc = ISC_TRUE;
@@ -2512,9 +2513,11 @@ start_gssrequest(dns_name_t *master)
 	/* Build first request. */
 	context = GSS_C_NO_CONTEXT;
 	result = dns_tkey_buildgssquery(rmsg, keyname, servname, NULL, 0,
-					&context, use_win2k_gsstsig);
+					&context, use_win2k_gsstsig,
+					zone, mctx, &err_message);
 	if (result == ISC_R_FAILURE)
-		fatal("Check your Kerberos ticket, it may have expired.");
+		fatal("tkey query failed: %s",
+		      err_message != NULL ? err_message : "unknown error");
 	if (result != ISC_R_SUCCESS)
 		fatal("dns_tkey_buildgssquery failed: %s",
 		      isc_result_totext(result));
@@ -2563,6 +2566,7 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_t buf;
 	dns_name_t *servname;
 	dns_fixedname_t fname;
+	char *err_message = NULL;
 
 	UNUSED(task);
 
@@ -2632,7 +2636,7 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 		else
 			use_win2k_gsstsig = ISC_TRUE;
 		tried_other_gsstsig = ISC_TRUE;
-		start_gssrequest(&restart_master);
+		start_gssrequest(&restart_master, zonename);
 		goto done;
 	}
 
@@ -2651,7 +2655,8 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 	tsigkey = NULL;
 	result = dns_tkey_gssnegotiate(tsigquery, rcvmsg, servname,
 				       &context, &tsigkey, gssring,
-				       use_win2k_gsstsig);
+				       use_win2k_gsstsig,
+				       &tmpzonename, &err_message);
 	switch (result) {
 
 	case DNS_R_CONTINUE:
@@ -2694,7 +2699,9 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 		break;
 
 	default:
-		fatal("dns_tkey_negotiategss: %s", isc_result_totext(result));
+		fatal("dns_tkey_negotiategss: %s %s",
+		      isc_result_totext(result),
+		      err_message != NULL ? err_message : "");
 	}
 
  done:
