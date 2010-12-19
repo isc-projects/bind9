@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.conf.5,v 1.42 2010/05/15 01:14:24 tbox Exp $
+.\" $Id: named.conf.5,v 1.43 2010/12/19 01:14:05 tbox Exp $
 .\"
 .hy 0
 .ad l
@@ -195,6 +195,7 @@ options {
 	tcp\-listen\-queue \fIinteger\fR;
 	tkey\-dhkey \fIquoted_string\fR \fIinteger\fR;
 	tkey\-gssapi\-credential \fIquoted_string\fR;
+	tkey\-gssapi\-keytab \fIquoted_string\fR;
 	tkey\-domain \fIquoted_string\fR;
 	transfers\-per\-ns \fIinteger\fR;
 	transfers\-in \fIinteger\fR;

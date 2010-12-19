@@ -512,7 +512,7 @@ view <string> <optional_class> {
                 update-policy ( local | { ( grant | deny ) <string> ( name
                     | subdomain | wildcard | self | selfsub | selfwild |
                     krb5-self | ms-self | krb5-subdomain | ms-subdomain |
-                    tcp-self | 6to4-self | zonesub | external ) [ <string> ]
+                    tcp-self | 6to4-self | zonesub ) [ <string> ]
                     <rrtypelist>; ... };
                 use-alt-transfer-source <boolean>;
                 zero-no-soa-ttl <boolean>;
@@ -595,7 +595,7 @@ zone <string> <optional_class> {
         update-policy ( local | { ( grant | deny ) <string> ( name |
             subdomain | wildcard | self | selfsub | selfwild | krb5-self |
             ms-self | krb5-subdomain | ms-subdomain | tcp-self | 6to4-self
-            | zonesub | external ) [ <string> ] <rrtypelist>; ... };
+            | zonesub ) [ <string> ] <rrtypelist>; ... };
         use-alt-transfer-source <boolean>;
         zero-no-soa-ttl <boolean>;
         zone-statistics <boolean>;
