@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dlz.h,v 1.10 2010/12/18 01:56:22 each Exp $ */
+/* $Id: dlz.h,v 1.11 2010/12/19 02:51:41 each Exp $ */
 
 /*! \file dns/dlz.h */
 
@@ -218,7 +218,9 @@ struct dns_dlzdb {
 	dns_dlzimplementation_t	*implementation;
 	void			*dbdata;
 	dlzconfigure_callback_t configure_callback;
+#ifdef BIND9
 	dns_ssutable_t 		*ssutable;
+#endif
 };
 
 
