@@ -1,3 +1,7 @@
+2990.	[bug]		'dnssec-settime -S' no longer tests prepublication
+			interval validity when the interval is set to 0.
+			[RT #22761]
+
 2989.	[func]		Added support for writable DLZ zones. (Contributed
 			by Andrew Tridgell of the Samba project.) [RT #22629]
 
