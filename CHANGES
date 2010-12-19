@@ -1,3 +1,7 @@
+2990.	[bug]		'dnssec-settime -S' no longer tests prepublication
+			interval validity when the interval is set to 0.
+			[RT #22761]
+
 2985.	[bug]		Add a regression test for change #2896. [RT #21324]
 
 2984.	[bug]		Don't run MX checks when the target of the MX record
