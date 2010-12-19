@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdlz.c,v 1.27 2010/12/18 23:47:11 tbox Exp $ */
+/* $Id: sdlz.c,v 1.28 2010/12/19 02:37:08 each Exp $ */
 
 /*! \file */
 
@@ -1578,7 +1578,6 @@ dns_sdlzcreate(isc_mem_t *mctx, const char *dlzname, unsigned int argc,
 		sdlz_log(ISC_LOG_ERROR, "SDLZ driver failed to load.");
 	}
 
-	sdlz_log(ISC_LOG_INFO, "%s: done", __FUNCTION__);
 	return (result);
 }
 
