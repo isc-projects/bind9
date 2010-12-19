@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gssapictx.c,v 1.20 2010/12/18 14:46:21 marka Exp $ */
+/* $Id: gssapictx.c,v 1.21 2010/12/19 21:32:35 each Exp $ */
 
 #include <config.h>
 
@@ -747,10 +747,9 @@ dst_gssapi_acceptctx(gss_cred_id_t cred,
 		context = *ctxout;
 
 	if (gssapi_keytab != NULL) {
-#ifdef ISC_PLATFORM_GSSAPI_KRB5_HEADER
+#ifndef ISC_PLATFORM_GSSAPI_KRB5_HEADER
 		return (ISC_R_NOTIMPLEMENTED);
 #else
-
 		gret = gsskrb5_register_acceptor_identity(gssapi_keytab);
 		if (gret != GSS_S_COMPLETE) {
 			gss_log(3, "failed "
