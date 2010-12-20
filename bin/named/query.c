@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.348 2010/12/08 23:47:05 tbox Exp $ */
+/* $Id: query.c,v 1.349 2010/12/16 09:51:27 jinmei Exp $ */
 
 /*! \file */
 
@@ -658,6 +658,16 @@ query_validatezonedb(ns_client_t *client, dns_name_t *name,
 	    client->query.authdbset &&
 	    db != client->query.authdb)
 		goto refuse;
+
+	/*
+	 * Non recursive query to a static-stub zone is prohibited; its
+	 * zone content is not public data, but a part of local configuration
+	 * and should not be disclosed.
+	 */
+	if (dns_zone_gettype(zone) == dns_zone_staticstub &&
+	    !RECURSIONOK(client)) {
+		goto refuse;
+	}
 
 	/*
 	 * If the zone has an ACL, we'll check it, otherwise
@@ -4135,6 +4145,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdatasetiter_t *rdsiter;
 	isc_boolean_t want_restart, authoritative, is_zone, need_wildcardproof;
+	isc_boolean_t is_staticstub_zone;
 	unsigned int n, nlabels;
 	dns_namereln_t namereln;
 	int order;
@@ -4182,6 +4193,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	options = 0;
 	resuming = ISC_FALSE;
 	is_zone = ISC_FALSE;
+	is_staticstub_zone = ISC_FALSE;
 
 	if (event != NULL) {
 		/*
@@ -4329,8 +4341,12 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		goto cleanup;
 	}
 
-	if (is_zone)
+	is_staticstub_zone = ISC_FALSE;
+	if (is_zone) {
 		authoritative = ISC_TRUE;
+		if (dns_zone_gettype(zone) == dns_zone_staticstub)
+			is_staticstub_zone = ISC_TRUE;
+	}
 
 	if (event == NULL && client->query.restarts == 0) {
 		if (is_zone) {
@@ -4576,12 +4592,22 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			}
 		} else {
 			if (zfname != NULL &&
-			    !dns_name_issubdomain(fname, zfname)) {
+			    (!dns_name_issubdomain(fname, zfname) ||
+			     (is_staticstub_zone &&
+			      dns_name_equal(fname, zfname)))) {
 				/*
-				 * We've already got a delegation from
-				 * authoritative data, and it is better
-				 * than what we found in the cache.  Use
-				 * it instead of the cache delegation.
+				 * In the following cases use "authoritative"
+				 * data instead of the cache delegation:
+				 * 1. We've already got a delegation from
+				 *    authoritative data, and it is better
+				 *    than what we found in the cache.
+				 * 2. The query name matches the origin name
+				 *    of a static-stub zone.  This needs to be
+				 *    considered for the case where the NS of
+				 *    the static-stub zone and the cached NS
+				 *    are different.  We still need to contact
+				 *    the nameservers configured in the
+				 *    static-stub zone.
 				 */
 				query_releasename(client, &fname);
 				fname = zfname;

@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.46 2010/05/14 23:50:39 tbox Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.47 2010/12/18 01:56:19 each Exp $ -->
 <refentry>
   <refentryinfo>
     <date>Aug 13, 2004</date>
@@ -225,6 +225,7 @@ options {
 	tcp-listen-queue <replaceable>integer</replaceable>;
 	tkey-dhkey <replaceable>quoted_string</replaceable> <replaceable>integer</replaceable>;
 	tkey-gssapi-credential <replaceable>quoted_string</replaceable>;
+	tkey-gssapi-keytab <replaceable>quoted_string</replaceable>;
 	tkey-domain <replaceable>quoted_string</replaceable>;
 	transfers-per-ns <replaceable>integer</replaceable>;
 	transfers-in <replaceable>integer</replaceable>;

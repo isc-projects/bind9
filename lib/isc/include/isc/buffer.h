@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: buffer.h,v 1.53 2008/09/25 04:02:39 tbox Exp $ */
+/* $Id: buffer.h,v 1.54 2010/12/18 01:56:22 each Exp $ */
 
 #ifndef ISC_BUFFER_H
 #define ISC_BUFFER_H 1
@@ -623,7 +623,7 @@ isc__buffer_putmem(isc_buffer_t *b, const unsigned char *base,
  *
  */
 
-void
+void 
 isc__buffer_putstr(isc_buffer_t *b, const char *source);
 /*!<
  * \brief Copy 'source' into 'b', not including terminating NUL.

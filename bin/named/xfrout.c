@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.138 2010/05/27 23:51:08 tbox Exp $ */
+/* $Id: xfrout.c,v 1.139 2010/12/18 01:56:19 each Exp $ */
 
 #include <config.h>
 
@@ -863,6 +863,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 		switch(dns_zone_gettype(zone)) {
 			case dns_zone_master:
 			case dns_zone_slave:
+			case dns_zone_dlz:
 				break;	/* Master and slave zones are OK for transfer. */
 			default:
 				FAILQ(DNS_R_NOTAUTH, "non-authoritative zone", question_name, question_class);

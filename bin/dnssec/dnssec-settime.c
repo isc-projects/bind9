@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-settime.c,v 1.27 2010/08/16 23:46:51 tbox Exp $ */
+/* $Id: dnssec-settime.c,v 1.28 2010/12/19 07:29:36 each Exp $ */
 
 /*! \file */
 
@@ -386,7 +386,7 @@ main(int argc, char **argv) {
 			      "generating a successor.");
 
 		pub = act - prepub;
-		if (pub < now)
+		if (pub < now && prepub != 0)
 			fatal("Predecessor will become inactive before the\n\t"
 			      "prepublication period ends.  Either change "
 			      "its inactivation date,\n\t"

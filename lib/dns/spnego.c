@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: spnego.c,v 1.12 2009/07/21 06:53:09 marka Exp $ */
+/* $Id: spnego.c,v 1.13 2010/12/18 01:56:22 each Exp $ */
 
 /*! \file
  * \brief
@@ -172,6 +172,8 @@
 /* asn1_err.h */
 /* Generated from ../../../lib/asn1/asn1_err.et */
 
+#ifndef ERROR_TABLE_BASE_asn1
+/* these may be brought in already via gssapi_krb5.h */
 typedef enum asn1_error_number {
 	ASN1_BAD_TIMEFORMAT = 1859794432,
 	ASN1_MISSING_FIELD = 1859794433,
@@ -186,6 +188,7 @@ typedef enum asn1_error_number {
 } asn1_error_number;
 
 #define ERROR_TABLE_BASE_asn1 1859794432
+#endif
 
 #define __asn1_common_definitions__
 

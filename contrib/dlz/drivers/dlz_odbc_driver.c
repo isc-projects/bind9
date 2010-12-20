@@ -1506,7 +1506,14 @@ static dns_sdlzmethods_t dlz_odbc_methods = {
 	odbc_lookup,
 	odbc_authority,
 	odbc_allnodes,
-	odbc_allowzonexfr
+	odbc_allowzonexfr,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
 };
 
 /*%

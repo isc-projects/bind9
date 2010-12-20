@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_internal.h,v 1.25 2010/12/09 04:31:57 tbox Exp $ */
+/* $Id: dst_internal.h,v 1.26 2010/12/18 01:56:22 each Exp $ */
 
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1
@@ -128,6 +128,7 @@ struct dst_key {
 	int		fmt_minor;     /*%< private key format, minor version */
 
 	dst_func_t *    func;	       /*%< crypto package specific functions */
+	isc_buffer_t   *key_tkeytoken; /*%< TKEY token data */
 };
 
 struct dst_context {

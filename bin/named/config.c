@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.112 2010/08/11 18:14:18 each Exp $ */
+/* $Id: config.c,v 1.113 2010/12/16 09:51:27 jinmei Exp $ */
 
 /*! \file */
 
@@ -374,6 +374,8 @@ ns_config_getzonetype(const cfg_obj_t *zonetypeobj) {
 		ztype = dns_zone_slave;
 	else if (strcasecmp(str, "stub") == 0)
 		ztype = dns_zone_stub;
+	else if (strcasecmp(str, "static-stub") == 0)
+		ztype = dns_zone_staticstub;
 	else
 		INSIST(0);
 	return (ztype);

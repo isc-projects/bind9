@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dlz_drivers.c,v 1.2 2005/09/05 00:10:55 marka Exp $ */
+/* $Id: dlz_drivers.c,v 1.3 2010/12/18 01:56:20 each Exp $ */
 
 /*! \file */
 
@@ -59,6 +59,10 @@
 
 #ifdef DLZ_ODBC
 #include <dlz/dlz_odbc_driver.h>
+#endif
+
+#ifdef DLZ_DLOPEN
+#include <dlz/dlz_dlopen_driver.h>
 #endif
 
 /*%
@@ -115,6 +119,12 @@ dlz_drivers_init(void) {
 		return (result);
 #endif
 
+#ifdef DLZ_DLOPEN
+	result = dlz_dlopen_init();
+	if (result != ISC_R_SUCCESS)
+		return (result);
+#endif
+
 	return (result);
 }
 
@@ -152,6 +162,10 @@ dlz_drivers_clear(void) {
 
 #ifdef DLZ_ODBC
         dlz_odbc_clear();
+#endif
+
+#ifdef DLZ_DLOPEN
+        dlz_dlopen_clear();
 #endif
 
 }

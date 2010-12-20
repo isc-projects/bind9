@@ -807,7 +807,14 @@ static dns_sdlzmethods_t dlz_bdbhpt_methods = {
 	bdbhpt_lookup,
 	NULL,
 	bdbhpt_allnodes,
-	bdbhpt_allowzonexfr
+	bdbhpt_allowzonexfr,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
 };
 
 /*%

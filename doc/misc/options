@@ -217,6 +217,7 @@ options {
         tkey-dhkey <quoted_string> <integer>;
         tkey-domain <quoted_string>;
         tkey-gssapi-credential <quoted_string>;
+        tkey-gssapi-keytab <quoted_string>;
         topology { <address_match_element>; ... }; // not implemented
         transfer-format ( many-answers | one-answer );
         transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
@@ -493,6 +494,9 @@ view <string> <optional_class> {
                 nsec3-test-zone <boolean>; // test only
                 pubkey <integer> <integer> <integer>
                     <quoted_string>; // obsolete
+                server-addresses { ( <ipv4_address> | <ipv6_address> ) [
+                    port <integer> ]; ... };
+                server-names { <quoted_string>; ... };
                 sig-signing-nodes <integer>;
                 sig-signing-signatures <integer>;
                 sig-signing-type <integer>;
@@ -502,8 +506,8 @@ view <string> <optional_class> {
                 transfer-source-v6 ( <ipv6_address> | * ) [ port (
                     <integer> | * ) ];
                 try-tcp-refresh <boolean>;
-                type ( master | slave | stub | hint | forward |
-                    delegation-only );
+                type ( master | slave | stub | static-stub | hint | forward
+                    | delegation-only );
                 update-check-ksk <boolean>;
                 update-policy ( local | { ( grant | deny ) <string> ( name
                     | subdomain | wildcard | self | selfsub | selfwild |
@@ -575,6 +579,9 @@ zone <string> <optional_class> {
         notify-to-soa <boolean>;
         nsec3-test-zone <boolean>; // test only
         pubkey <integer> <integer> <integer> <quoted_string>; // obsolete
+        server-addresses { ( <ipv4_address> | <ipv6_address> ) [ port
+            <integer> ]; ... };
+        server-names { <quoted_string>; ... };
         sig-signing-nodes <integer>;
         sig-signing-signatures <integer>;
         sig-signing-type <integer>;
@@ -582,7 +589,8 @@ zone <string> <optional_class> {
         transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
         transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
         try-tcp-refresh <boolean>;
-        type ( master | slave | stub | hint | forward | delegation-only );
+        type ( master | slave | stub | static-stub | hint | forward |
+            delegation-only );
         update-check-ksk <boolean>;
         update-policy ( local | { ( grant | deny ) <string> ( name |
             subdomain | wildcard | self | selfsub | selfwild | krb5-self |

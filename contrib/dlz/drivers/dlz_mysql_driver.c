@@ -1013,7 +1013,14 @@ static dns_sdlzmethods_t dlz_mysql_methods = {
 	mysql_lookup,
 	mysql_authority,
 	mysql_allnodes,
-	mysql_allowzonexfr
+	mysql_allowzonexfr,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
 };
 
 /*%

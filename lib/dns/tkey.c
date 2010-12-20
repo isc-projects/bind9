@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.96 2010/12/09 00:54:34 marka Exp $
+ * $Id: tkey.c,v 1.98 2010/12/18 23:47:11 tbox Exp $
  */
 /*! \file */
 #include <config.h>
@@ -99,6 +99,7 @@ dns_tkeyctx_create(isc_mem_t *mctx, isc_entropy_t *ectx, dns_tkeyctx_t **tctxp)
 	tctx->dhkey = NULL;
 	tctx->domain = NULL;
 	tctx->gsscred = NULL;
+	tctx->gssapi_keytab = NULL;
 
 	*tctxp = tctx;
 	return (ISC_R_SUCCESS);
@@ -120,6 +121,9 @@ dns_tkeyctx_destroy(dns_tkeyctx_t **tctxp) {
 		if (dns_name_dynamic(tctx->domain))
 			dns_name_free(tctx->domain, mctx);
 		isc_mem_put(mctx, tctx->domain, sizeof(dns_name_t));
+	}
+	if (tctx->gssapi_keytab != NULL) {
+		isc_mem_free(mctx, tctx->gssapi_keytab);
 	}
 	if (tctx->gsscred != NULL)
 		dst_gssapi_releasecred(&tctx->gsscred);
@@ -430,8 +434,17 @@ process_gsstkey(dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 	isc_buffer_t *outtoken = NULL;
 	gss_ctx_id_t gss_ctx = NULL;
 
-	if (tctx->gsscred == NULL)
+	/*
+	 * You have to define either a gss credential (principal) to
+	 * accept with tkey-gssapi-credential, or you have to
+	 * configure a specific keytab (with tkey-gssapi-keytab) in
+	 * order to use gsstkey
+	 */
+	if (tctx->gsscred == NULL && tctx->gssapi_keytab == NULL) {
+		tkey_log("process_gsstkey(): no tkey-gssapi-credential "
+			 "or tkey-gssapi-keytab configured");
 		return (ISC_R_NOPERM);
+	}
 
 	if (!dns_name_equal(&tkeyin->algorithm, DNS_TSIG_GSSAPI_NAME) &&
 	    !dns_name_equal(&tkeyin->algorithm, DNS_TSIG_GSSAPIMS_NAME)) {
@@ -454,7 +467,11 @@ process_gsstkey(dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 
 	dns_fixedname_init(&principal);
 
-	result = dst_gssapi_acceptctx(tctx->gsscred, &intoken,
+	/*
+	 * Note that tctx->gsscred may be NULL if tctx->gssapi_keytab is set
+	 */
+	result = dst_gssapi_acceptctx(tctx->gsscred, tctx->gssapi_keytab,
+				      &intoken,
 				      &outtoken, &gss_ctx,
 				      dns_fixedname_name(&principal),
 				      tctx->mctx);
@@ -479,7 +496,8 @@ process_gsstkey(dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 #endif
 		isc_uint32_t expire;
 
-		RETERR(dst_key_fromgssapi(name, gss_ctx, ring->mctx, &dstkey));
+		RETERR(dst_key_fromgssapi(name, gss_ctx, ring->mctx,
+					  &dstkey, &intoken));
 		/*
 		 * Limit keys to 1 hour or the context's lifetime whichever
 		 * is smaller.
@@ -984,7 +1002,8 @@ dns_tkey_builddhquery(dns_message_t *msg, dst_key_t *key, dns_name_t *name,
 isc_result_t
 dns_tkey_buildgssquery(dns_message_t *msg, dns_name_t *name, dns_name_t *gname,
 		       isc_buffer_t *intoken, isc_uint32_t lifetime,
-		       gss_ctx_id_t *context, isc_boolean_t win2k)
+		       gss_ctx_id_t *context, isc_boolean_t win2k,
+		       dns_name_t *zone, isc_mem_t *mctx, char **err_message)
 {
 	dns_rdata_tkey_t tkey;
 	isc_result_t result;
@@ -998,9 +1017,11 @@ dns_tkey_buildgssquery(dns_message_t *msg, dns_name_t *name, dns_name_t *gname,
 	REQUIRE(name != NULL);
 	REQUIRE(gname != NULL);
 	REQUIRE(context != NULL);
+	REQUIRE(mctx != NULL);
 
 	isc_buffer_init(&token, array, sizeof(array));
-	result = dst_gssapi_initctx(gname, NULL, &token, context);
+	result = dst_gssapi_initctx(gname, NULL, &token, context, zone,
+				    mctx, err_message);
 	if (result != DNS_R_CONTINUE && result != ISC_R_SUCCESS)
 		return (result);
 
@@ -1217,7 +1238,7 @@ isc_result_t
 dns_tkey_processgssresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 			    dns_name_t *gname, gss_ctx_id_t *context,
 			    isc_buffer_t *outtoken, dns_tsigkey_t **outkey,
-			    dns_tsig_keyring_t *ring)
+			    dns_tsig_keyring_t *ring, char **err_message)
 {
 	dns_rdata_t rtkeyrdata = DNS_RDATA_INIT, qtkeyrdata = DNS_RDATA_INIT;
 	dns_name_t *tkeyname;
@@ -1231,6 +1252,7 @@ dns_tkey_processgssresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	REQUIRE(qmsg != NULL);
 	REQUIRE(rmsg != NULL);
 	REQUIRE(gname != NULL);
+	REQUIRE(ring != NULL);
 	if (outkey != NULL)
 		REQUIRE(*outkey == NULL);
 
@@ -1267,10 +1289,11 @@ dns_tkey_processgssresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 
 	isc_buffer_init(outtoken, array, sizeof(array));
 	isc_buffer_init(&intoken, rtkey.key, rtkey.keylen);
-	RETERR(dst_gssapi_initctx(gname, &intoken, outtoken, context));
+	RETERR(dst_gssapi_initctx(gname, &intoken, outtoken, context,
+				  NULL, ring->mctx, err_message));
 
 	RETERR(dst_key_fromgssapi(dns_rootname, *context, rmsg->mctx,
-				  &dstkey));
+				  &dstkey, NULL));
 
 	RETERR(dns_tsigkey_createfromkey(tkeyname, DNS_TSIG_GSSAPI_NAME,
 					 dstkey, ISC_FALSE, NULL,
@@ -1348,7 +1371,8 @@ isc_result_t
 dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 		      dns_name_t *server, gss_ctx_id_t *context,
 		      dns_tsigkey_t **outkey, dns_tsig_keyring_t *ring,
-		      isc_boolean_t win2k)
+		      isc_boolean_t win2k, dns_name_t *zone,
+		      char **err_message)
 {
 	dns_rdata_t rtkeyrdata = DNS_RDATA_INIT, qtkeyrdata = DNS_RDATA_INIT;
 	dns_name_t *tkeyname;
@@ -1392,12 +1416,13 @@ dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 	isc_buffer_init(&intoken, rtkey.key, rtkey.keylen);
 	isc_buffer_init(&outtoken, array, sizeof(array));
 
-	result = dst_gssapi_initctx(server, &intoken, &outtoken, context);
+	result = dst_gssapi_initctx(server, &intoken, &outtoken, context,
+				    zone, ring->mctx, err_message);
 	if (result != DNS_R_CONTINUE && result != ISC_R_SUCCESS)
 		return (result);
 
 	RETERR(dst_key_fromgssapi(dns_rootname, *context, rmsg->mctx,
-				  &dstkey));
+				  &dstkey, NULL));
 
 	/*
 	 * XXXSRA This seems confused.  If we got CONTINUE from initctx,

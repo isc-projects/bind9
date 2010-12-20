@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.128 2010/12/08 02:46:16 marka Exp $ */
+/* $Id: view.h,v 1.129 2010/12/16 09:51:29 jinmei Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -459,9 +459,24 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	      isc_stdtime_t now, unsigned int options, isc_boolean_t use_hints,
 	      dns_db_t **dbp, dns_dbnode_t **nodep, dns_name_t *foundname,
 	      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
+isc_result_t
+dns_view_find2(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
+	       isc_stdtime_t now, unsigned int options,
+	       isc_boolean_t use_hints, isc_boolean_t use_static_stub,
+	       dns_db_t **dbp, dns_dbnode_t **nodep, dns_name_t *foundname,
+	       dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
 /*%<
  * Find an rdataset whose owner name is 'name', and whose type is
  * 'type'.
+ * In general, this function first searches view's zone and cache DBs for the
+ * best match data against 'name'.  If nothing found there, and if 'use_hints'
+ * is ISC_TRUE, the view's hint DB (if configured) is searched.
+ * If the view is configured with a static-stub zone which gives the longest
+ * match for 'name' among the zones, however, the cache DB is not consulted
+ * unless 'use_static_stub' is ISC_FALSE (see below about this argument).
+ *
+ * dns_view_find() is a backward compatible version equivalent to
+ * dns_view_find2() with use_static_stub argument being ISC_FALSE.
  *
  * Notes:
  *
@@ -476,6 +491,23 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
  *	database, the result code will be DNS_R_HINT.  If the name is found
  *	in the hints database but not the type, the result code will be
  *	#DNS_R_HINTNXRRSET.
+ *
+ *\li	If 'use_static_stub' is ISC_FALSE and the longest match zone for 'name'
+ *	is a static-stub zone, it's ignored and the cache and/or hints will be
+ *	searched.  In the majority of the cases this argument should be
+ *	ISC_FALSE.  The only known usage of this argument being ISC_TRUE is
+ *	if this search is for a "bailiwick" glue A or AAAA RRset that may
+ *	best match a static-stub zone.  Consider the following example:
+ *	this view is configured with a static-stub zone "example.com",
+ *	and an attempt of recursive resolution needs to send a query for the
+ *	zone.  In this case it's quite likely that the resolver is trying to
+ *	find A/AAAA RRs for the apex name "example.com".  And, to honor the
+ *	static-stub configuration it needs to return the glue RRs in the
+ *	static-stub zone even if that exact RRs coming from the authoritative
+ *	zone has been cached.
+ *	In other general cases, the requested data is better to be
+ *	authoritative, either locally configured or retrieved from an external
+ *	server, and the data in the static-stub zone should better be ignored.
  *
  *\li	'foundname' must meet the requirements of dns_db_find().
  *

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.578 2010/12/14 00:39:59 marka Exp $ */
+/* $Id: zone.c,v 1.580 2010/12/18 01:56:22 each Exp $ */
 
 /*! \file */
 
@@ -3418,6 +3418,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	 */
 
 	switch (zone->type) {
+	case dns_zone_dlz:
 	case dns_zone_master:
 	case dns_zone_slave:
 	case dns_zone_stub:
@@ -4414,6 +4415,17 @@ dns_zone_getdb(dns_zone_t *zone, dns_db_t **dpb) {
 	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 
 	return (result);
+}
+
+void
+dns_zone_setdb(dns_zone_t *zone, dns_db_t *db) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(zone->type == dns_zone_staticstub);
+
+	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_write);
+	REQUIRE(zone->db == NULL);
+	dns_db_attach(db, &zone->db);
+	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_write);
 }
 
 /*
@@ -14177,4 +14189,17 @@ isc_boolean_t
 dns_zone_getadded(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	return (zone->added);
+}
+
+isc_result_t
+dns_zone_dlzpostload(dns_zone_t *zone, dns_db_t *db)
+{
+	isc_time_t loadtime;
+	isc_result_t result;
+	TIME_NOW(&loadtime);
+
+	LOCK_ZONE(zone);
+	result = zone_postload(zone, db, loadtime, ISC_R_SUCCESS);
+	UNLOCK_ZONE(zone);
+	return result;
 }

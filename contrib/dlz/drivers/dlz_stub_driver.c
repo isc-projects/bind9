@@ -164,7 +164,7 @@ stub_dlz_findzonedb(void *driverarg, void *dbdata, const char *name)
 	if (strcmp(cd->myzone, name) == 0)
 		return (ISC_R_SUCCESS);
 	else
-		return (ISC_R_SUCCESS);
+		return (ISC_R_NOTFOUND);
 }
 
 
@@ -279,7 +279,14 @@ static dns_sdlzmethods_t dlz_stub_methods = {
 	stub_dlz_lookup,
 	stub_dlz_authority,
 	stub_dlz_allnodes,
-	stub_dlz_allowzonexfr
+	stub_dlz_allowzonexfr,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
 };
 
 /*%
