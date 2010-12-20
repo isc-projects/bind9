@@ -25,8 +25,9 @@ EOF
 	return 1
     }
 
-    out="$($DIG $DIGOPTS -t $type -q $host | egrep ^$host)"
-    [ $(echo "$out" | grep "$digout" | wc -l) -eq 1 ] || {
+    out=`$DIG $DIGOPTS -t $type -q $host | egrep ^$host`
+    lines=`echo "$out" | grep "$digout" | wc -l`
+    [ $lines -eq 1 ] || {
 	echo "I:dig output incorrect for $host $type $cmd: $out"
 	return 1
     }
