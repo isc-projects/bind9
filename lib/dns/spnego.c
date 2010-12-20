@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006-2010  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: spnego.c,v 1.13 2010/12/18 01:56:22 each Exp $ */
+/* $Id: spnego.c,v 1.14 2010/12/20 23:47:21 tbox Exp $ */
 
 /*! \file
  * \brief

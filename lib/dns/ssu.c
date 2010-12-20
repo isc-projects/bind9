@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008, 2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -17,7 +17,7 @@
 
 /*! \file */
 /*
- * $Id: ssu.c,v 1.35 2010/12/18 01:56:22 each Exp $
+ * $Id: ssu.c,v 1.36 2010/12/20 23:47:21 tbox Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -495,7 +495,7 @@ dns_ssutable_checkrules(dns_ssutable_t *table, dns_name_t *signer,
 		}
 
 		if (rule->ntypes == 0) {
-			/* 
+			/*
 			 * If this is a DLZ rule, then the DLZ ssu
 			 * checks will have already checked
 			 * the type.

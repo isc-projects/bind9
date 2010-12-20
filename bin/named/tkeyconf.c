@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkeyconf.c,v 1.32 2010/12/18 01:56:19 each Exp $ */
+/* $Id: tkeyconf.c,v 1.33 2010/12/20 23:47:20 tbox Exp $ */
 
 /*! \file */
 

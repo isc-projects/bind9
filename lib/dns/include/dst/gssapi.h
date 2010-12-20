@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gssapi.h,v 1.13 2010/12/18 14:46:21 marka Exp $ */
+/* $Id: gssapi.h,v 1.14 2010/12/20 23:47:21 tbox Exp $ */
 
 #ifndef DST_GSSAPI_H
 #define DST_GSSAPI_H 1

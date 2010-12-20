@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkey.h,v 1.29 2010/12/18 01:56:22 each Exp $ */
+/* $Id: tkey.h,v 1.30 2010/12/20 23:47:21 tbox Exp $ */
 
 #ifndef DNS_TKEY_H
 #define DNS_TKEY_H 1

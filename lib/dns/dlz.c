@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2005, 2007, 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dlz.c,v 1.9 2010/12/19 02:51:40 each Exp $ */
+/* $Id: dlz.c,v 1.10 2010/12/20 23:47:20 tbox Exp $ */
 
 /*! \file */
 
@@ -577,7 +577,7 @@ dns_dlz_writeablezone(dns_view_t *view, const char *zone_name) {
 
 	if (dlzdatabase->ssutable == NULL) {
 		result = dns_ssutable_createdlz(dlzdatabase->mctx,
-						&dlzdatabase->ssutable, 
+						&dlzdatabase->ssutable,
 						view->dlzdatabase);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
