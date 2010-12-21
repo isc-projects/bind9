@@ -1,3 +1,7 @@
+2994.	[port]		NetBSD: use pthreads by default on NetBSD >= 5.0, and
+			do not use threads on earlier versions.  Also kill
+			the unproven-pthreads, mit-pthreads, and ptl2 support.
+
 2993.	[func]		Dynamically grow adb hash tables. [RT #21186]
 
 2992.	[contrib]	contrib/check-secure-delegation.pl:  A simple tool
