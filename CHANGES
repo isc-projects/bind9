@@ -1,3 +1,5 @@
+2993.	[func]		Dynamically grow adb hash tables. [RT #21186]
+
 2992.	[contrib]	contrib/check-secure-delegation.pl:  A simple tool
 			for looking at a secure delegation. [RT #22059]
 
