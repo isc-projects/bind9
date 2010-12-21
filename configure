@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-# $Id: configure,v 1.443.26.22 2010/12/03 00:59:55 marka Exp $
+# $Id: configure,v 1.443.26.23 2010/12/21 04:33:58 marka Exp $
 #
 # Portions Copyright (C) 1996-2001  Nominum, Inc.
 #
@@ -1043,7 +1043,6 @@ with_pkcs11
 with_gssapi
 with_randomdev
 enable_threads
-with_ptl2
 with_libxml2
 enable_largefile
 with_purify
@@ -1733,7 +1732,6 @@ Optional Packages:
   --with-pkcs11           Build with PKCS11 support
   --with-gssapi=PATH      Specify path for system-supplied GSSAPI
   --with-randomdev=PATH   Specify path for random device
-  --with-ptl2		on NetBSD, use the ptl2 thread library (experimental)
   --with-libxml2=PATH     Build with libxml2 library yes|no|path
   --with-purify=PATH      use Rational purify
   --with-libtool          use GNU libtool
@@ -4442,7 +4440,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 4445 "configure"' > conftest.$ac_ext
+  echo '#line 4443 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -6736,11 +6734,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:6739: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:6737: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:6743: \$? = $ac_status" >&5
+   echo "$as_me:6741: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7026,11 +7024,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7029: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7027: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7033: \$? = $ac_status" >&5
+   echo "$as_me:7031: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7130,11 +7128,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7133: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7131: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:7137: \$? = $ac_status" >&5
+   echo "$as_me:7135: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -9155,7 +9153,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9158 "configure"
+#line 9156 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -9255,7 +9253,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9258 "configure"
+#line 9256 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11600,11 +11598,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:11603: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:11601: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:11607: \$? = $ac_status" >&5
+   echo "$as_me:11605: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -11704,11 +11702,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:11707: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:11705: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:11711: \$? = $ac_status" >&5
+   echo "$as_me:11709: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -13287,11 +13285,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13290: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13288: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:13294: \$? = $ac_status" >&5
+   echo "$as_me:13292: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13391,11 +13389,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13394: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13392: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13398: \$? = $ac_status" >&5
+   echo "$as_me:13396: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -15556,11 +15554,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:15559: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:15557: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:15563: \$? = $ac_status" >&5
+   echo "$as_me:15561: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -15846,11 +15844,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:15849: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:15847: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:15853: \$? = $ac_status" >&5
+   echo "$as_me:15851: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -15950,11 +15948,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:15953: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:15951: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:15957: \$? = $ac_status" >&5
+   echo "$as_me:15955: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -21159,15 +21157,11 @@ case $host in
 *-*-sysv*OpenUNIX*)
         # UnixWare
 	use_threads=true ;;
+*-netbsd1234.*)
+	# NetBSD earlier than NetBSD 5.0 has poor pthreads.  Don't use it by default.
+	use_threads=false ;;
 *-netbsd*)
-	if test -r /usr/lib/libpthread.so ; then
-	    use_threads=true
-	else
-	    # Socket I/O optimizations introduced in 9.2 expose a
-	    # bug in unproven-pthreads; see PR #12650
-	    use_threads=false
-	fi
-	;;
+	use_threads=true ;;
 *-openbsd*)
 	# OpenBSD users have reported that named dumps core on
 	# startup when built with threads.
@@ -21223,64 +21217,6 @@ then
 	# Search for / configure pthreads in a system-dependent fashion.
 	#
 	case "$host" in
-	  *-netbsd*)
-		# NetBSD has multiple pthreads implementations.	 The
-		# recommended one to use is "unproven-pthreads".  The
-		# older "mit-pthreads" may also work on some NetBSD
-		# versions.  The PTL2 thread library does not
-		# currently work with bind9, but can be chosen with
-		# the --with-ptl2 option for those who wish to
-		# experiment with it.
-		CC="gcc"
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking which NetBSD thread library to use" >&5
-$as_echo_n "checking which NetBSD thread library to use... " >&6; }
-
-
-# Check whether --with-ptl2 was given.
-if test "${with_ptl2+set}" = set; then :
-  withval=$with_ptl2; use_ptl2="$withval"
-else
-  use_ptl2="no"
-fi
-
-
-		: ${LOCALBASE:=/usr/pkg}
-
-		if test "X$use_ptl2" = "Xyes"
-		then
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: PTL2" >&5
-$as_echo "PTL2" >&6; }
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: linking with PTL2 is highly experimental and not expected to work" >&5
-$as_echo "$as_me: WARNING: linking with PTL2 is highly experimental and not expected to work" >&2;}
-			CC=ptlgcc
-		else
-			if test -r /usr/lib/libpthread.so
-			then
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: native" >&5
-$as_echo "native" >&6; }
-				LIBS="-lpthread $LIBS"
-			else
-				if test ! -d $LOCALBASE/pthreads
-				then
-					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: none" >&5
-$as_echo "none" >&6; }
-					as_fn_error $? "\"could not find thread libraries\"" "$LINENO" 5
-				fi
-
-				if $use_threads
-				then
-					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: mit-pthreads/unproven-pthreads" >&5
-$as_echo "mit-pthreads/unproven-pthreads" >&6; }
-					pkg="$LOCALBASE/pthreads"
-					lib1="-L$pkg/lib -Wl,-R$pkg/lib"
-					lib2="-lpthread -lm -lgcc -lpthread"
-					LIBS="$lib1 $lib2 $LIBS"
-					CPPFLAGS="$CPPFLAGS -I$pkg/include"
-					STD_CINCLUDES="$STD_CINCLUDES -I$pkg/include"
-				fi
-			fi
-		fi
-		;;
 		*-freebsd*)
 			# We don't want to set -lpthread as that break
 			# the ability to choose threads library at final
