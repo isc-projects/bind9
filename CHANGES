@@ -1,3 +1,7 @@
+2994.	[port]		NetBSD: use pthreads by default on NetBSD >= 5.0, and
+			do not use threads on earlier versions.  Also kill
+			the unproven-pthreads, mit-pthreads, and ptl2 support.
+
 2984.	[bug]		Don't run MX checks when the target of the MX record
 			is ".".  [RT #22645]
 
