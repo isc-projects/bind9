@@ -1365,6 +1365,7 @@
 ./conftools/perllib/dnsconf/named1.conf		CONF-C	2000,2001,2004,2007
 ./conftools/perllib/dnsconf/test.pl		PERL	2000,2001,2004,2007
 ./contrib/.cvsignore				X	2000,2001
+./contrib/check-secure-delegation.pl.in		PERL	2010
 ./contrib/dbus/GetForwarders			X	2006
 ./contrib/dbus/INSTALL				X	2006
 ./contrib/dbus/Makefile.9.3.2b1			X	2006
@@ -1786,6 +1787,7 @@
 ./contrib/zkt/zkt.h				X	2008
 ./contrib/zkt/zone.c				X	2008,2009,2010
 ./contrib/zkt/zone.h				X	2008
+./contrib/zone-edit.sh.in			SH	2010
 ./doc/.cvsignore				X	2000,2001
 ./doc/Makefile.in				MAKE	2000,2001,2004,2005,2006,2007
 ./doc/arm/.cvsignore				X	2000,2001,2005

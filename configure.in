@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.507 $)
+AC_REVISION($Revision: 1.508 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -3298,6 +3298,7 @@ AC_CONFIG_FILES([
 	bin/tools/Makefile
 	bin/dnssec/Makefile
 	bin/pkcs11/Makefile
+	contrib/check-secure-delegation.pl
 	doc/Makefile
 	doc/arm/Makefile
 	doc/misc/Makefile

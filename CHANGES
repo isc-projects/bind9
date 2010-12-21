@@ -1,3 +1,6 @@
+2992.	[contrib]	contrib/check-secure-delegation.pl:  A simple tool
+			for looking at a secure delegation. [RT #22059]
+
 2991.	[contrib]	contrib/zone-edit.sh: A simple zone editing tool for
 			dynamic zones. [RT #22365]
 
