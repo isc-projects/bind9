@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.253 2010/12/21 03:11:42 marka Exp $ */
+/* $Id: adb.c,v 1.254 2010/12/21 23:47:08 tbox Exp $ */
 
 /*! \file
  *
@@ -492,10 +492,10 @@ ttlclamp(dns_ttl_t ttl) {
 static const unsigned nbuckets[] = { 1021, 1531, 2039, 3067, 4093, 6143,
 				     8191, 12281, 16381, 24571, 32749,
 				     49193, 65521, 98299, 131071, 199603,
-				     262139, 393209, 524287, 768431, 1048573, 
+				     262139, 393209, 524287, 768431, 1048573,
 				     1572853, 2097143, 3145721, 4194301,
 				     6291449, 8388593, 12582893, 16777213,
-				     25165813, 33554393, 50331599, 67108859, 
+				     25165813, 33554393, 50331599, 67108859,
 				     100663291, 134217689, 201326557,
 				     268535431, 0 };
 
@@ -510,7 +510,7 @@ grow_entries(isc_task_t *task, isc_event_t *ev) {
 	isc_result_t result;
 	unsigned int *newentry_refcnt = NULL;
 	unsigned int i, n, bucket;
-	
+
 	adb = ev->ev_arg;
 	INSIST(DNS_ADB_VALID(adb));
 
@@ -644,10 +644,10 @@ grow_entries(isc_task_t *task, isc_event_t *ev) {
  done:
 	isc_task_endexclusive(task);
 
-        LOCK(&adb->lock);
-        if (dec_adb_irefcnt(adb))
-                check_exit(adb);
-        UNLOCK(&adb->lock);
+	LOCK(&adb->lock);
+	if (dec_adb_irefcnt(adb))
+		check_exit(adb);
+	UNLOCK(&adb->lock);
 	DP(ISC_LOG_INFO, "adb: grow_entries finished");
 }
 
@@ -662,7 +662,7 @@ grow_names(isc_task_t *task, isc_event_t *ev) {
 	isc_result_t result;
 	unsigned int *newname_refcnt = NULL;
 	unsigned int i, n, bucket;
-	
+
 	adb = ev->ev_arg;
 	INSIST(DNS_ADB_VALID(adb));
 
@@ -792,10 +792,10 @@ grow_names(isc_task_t *task, isc_event_t *ev) {
  done:
 	isc_task_endexclusive(task);
 
-        LOCK(&adb->lock);
-        if (dec_adb_irefcnt(adb))
-                check_exit(adb);
-        UNLOCK(&adb->lock);
+	LOCK(&adb->lock);
+	if (dec_adb_irefcnt(adb))
+		check_exit(adb);
+	UNLOCK(&adb->lock);
 	DP(ISC_LOG_INFO, "adb: grow_names finished");
 }
 
@@ -1625,13 +1625,13 @@ new_adbname(dns_adb_t *adb, dns_name_t *dnsname) {
 	LOCK(&adb->namescntlock);
 	adb->namescnt++;
 	if (!adb->grownames_sent && adb->namescnt > (adb->nnames * 8)) {
-                isc_event_t *event = &adb->grownames;
+		isc_event_t *event = &adb->grownames;
 		inc_adb_irefcnt(adb);
-                isc_task_send(adb->task, &event);
+		isc_task_send(adb->task, &event);
 		adb->grownames_sent = ISC_TRUE;
 	}
 	UNLOCK(&adb->namescntlock);
-	
+
 	return (name);
 }
 
@@ -1750,9 +1750,9 @@ new_adbentry(dns_adb_t *adb) {
 	adb->entriescnt++;
 	if (!adb->growentries_sent &&
 	    adb->entriescnt > (adb->nentries * 8)) {
-                isc_event_t *event = &adb->growentries;
+		isc_event_t *event = &adb->growentries;
 		inc_adb_irefcnt(adb);
-                isc_task_send(adb->task, &event);
+		isc_task_send(adb->task, &event);
 		adb->growentries_sent = ISC_TRUE;
 	}
 	UNLOCK(&adb->entriescntlock);
