@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.179 2010/09/15 12:07:55 marka Exp $ */
+/* $Id: main.c,v 1.180 2010/12/22 03:59:02 marka Exp $ */
 
 /*! \file */
 
@@ -70,6 +70,12 @@
 #include <named/ns_smf_globals.h>
 #endif
 
+#ifdef OPENSSL
+#include <openssl/opensslv.h>
+#endif
+#ifdef HAVE_LIBXML2
+#include <libxml/xmlversion.h>
+#endif
 /*
  * Include header files for database drivers here.
  */
@@ -528,6 +534,14 @@ parse_command_line(int argc, char *argv[]) {
 		case 'V':
 			printf("BIND %s built with %s\n", ns_g_version,
 				ns_g_configargs);
+#ifdef OPENSSL
+			printf("using OpenSSL version: %s\n",
+			       OPENSSL_VERSION_TEXT);
+#endif
+#ifdef HAVE_LIBXML2
+			printf("using libxml2 version: %s\n",
+			       LIBXML_DOTTED_VERSION);
+#endif
 			exit(0);
 		case 'F':
 			/* Reserved for FIPS mode */

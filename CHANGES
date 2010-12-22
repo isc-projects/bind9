@@ -1,3 +1,6 @@
+2997.	[func]		named -V now reports the OpenSSL and libxml2 verions
+			it was compiled against. [RT #22687]
+
 2996.	[security]	Temporarily disable SO_ACCEPTFILTER support.
 			[RT #22589]
 
