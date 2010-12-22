@@ -1,3 +1,6 @@
+2996.	[security]	Temporarily disable SO_ACCEPTFILTER support.
+			[RT #22589]
+
 2995.	[bug]		The Kerberos realm was not being correctly extracted
 			from the signer's identity. [RT #22770]
 
