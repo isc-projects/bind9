@@ -1,3 +1,6 @@
+2998.	[func]		Add isc_task_beginexclusive and isc_task_endexclusive
+			to the task api. [RT #22776]
+
 2997.	[func]		named -V now reports the OpenSSL and libxml2 verions
 			it was compiled against. [RT #22687]
 
