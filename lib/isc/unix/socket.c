@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.237.18.68 2009/09/07 02:17:09 marka Exp $ */
+/* $Id: socket.c,v 1.237.18.69 2010/12/22 03:35:21 marka Exp $ */
 
 /*! \file */
 
@@ -4334,9 +4334,16 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr,
 	return (ISC_R_SUCCESS);
 }
 
+/*
+ * Enable this only for specific OS versions, and only when they have repaired
+ * their problems with it.  Until then, this is is broken and needs to be
+ * diabled by default.  See RT22589 for details.
+ */
+#undef ENABLE_ACCEPTFILTER
+
 isc_result_t
 isc_socket_filter(isc_socket_t *sock, const char *filter) {
-#ifdef SO_ACCEPTFILTER
+#if defined(SO_ACCEPTFILTER) && defined(ENABLE_ACCEPTFILTER)
 	char strbuf[ISC_STRERRORSIZE];
 	struct accept_filter_arg afa;
 #else
@@ -4346,7 +4353,7 @@ isc_socket_filter(isc_socket_t *sock, const char *filter) {
 
 	REQUIRE(VALID_SOCKET(sock));
 
-#ifdef SO_ACCEPTFILTER
+#if defined(SO_ACCEPTFILTER) && defined(ENABLE_ACCEPTFILTER)
 	bzero(&afa, sizeof(afa));
 	strncpy(afa.af_name, filter, sizeof(afa.af_name));
 	if (setsockopt(sock->fd, SOL_SOCKET, SO_ACCEPTFILTER,

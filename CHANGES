@@ -1,3 +1,6 @@
+2996.	[security]	Temporarily disable SO_ACCEPTFILTER support.
+			[RT #22589]
+
 	--- 9.4-ESV-R4 released ---
 
 2970.	[security]	Adding a NO DATA negative cache entry failed to clear
