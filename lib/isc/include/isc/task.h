@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.h,v 1.68 2010/12/04 22:27:29 marka Exp $ */
+/* $Id: task.h,v 1.69 2010/12/22 13:05:20 marka Exp $ */
 
 #ifndef ISC_TASK_H
 #define ISC_TASK_H 1
@@ -125,6 +125,8 @@ typedef struct isc_taskmethods {
 	unsigned int (*purgerange)(isc_task_t *task, void *sender,
 				   isc_eventtype_t first, isc_eventtype_t last,
 				   void *tag);
+	isc_result_t (*beginexclusive)(isc_task_t *task);
+	void (*endexclusive)(isc_task_t *task);
 } isc_taskmethods_t;
 
 /*%
