@@ -1,3 +1,6 @@
+2995.	[bug]		The Kerberos realm was not being correctly extracted
+			from the signer's identity. [RT #22770]
+
 2994.	[port]		NetBSD: use pthreads by default on NetBSD >= 5.0, and
 			do not use threads on earlier versions.  Also kill
 			the unproven-pthreads, mit-pthreads, and ptl2 support.
