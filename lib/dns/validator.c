@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.196 2010/11/16 01:14:51 marka Exp $ */
+/* $Id: validator.c,v 1.197 2010/12/23 04:07:58 marka Exp $ */
 
 #include <config.h>
 
@@ -253,9 +253,17 @@ dlv_algorithm_supported(dns_validator_t *val) {
 						      dlv.algorithm))
 			continue;
 
+#ifdef HAVE_OPENSSL_GOST
+		if (dlv.digest_type != DNS_DSDIGEST_SHA256 &&
+		    dlv.digest_type != DNS_DSDIGEST_SHA1 &&
+		    dlv.digest_type != DNS_DSDIGEST_GOST)
+			continue;
+#else
 		if (dlv.digest_type != DNS_DSDIGEST_SHA256 &&
 		    dlv.digest_type != DNS_DSDIGEST_SHA1)
 			continue;
+#endif
+
 
 		return (ISC_TRUE);
 	}
@@ -2137,7 +2145,7 @@ dlv_validatezonekey(dns_validator_t *val) {
 	dns_rdataset_t trdataset;
 	isc_boolean_t supported_algorithm;
 	isc_result_t result;
-	isc_uint8_t digest_type;
+	char digest_types[256];
 
 	validator_log(val, ISC_LOG_DEBUG(3), "dlv_validatezonekey");
 
@@ -2154,7 +2162,7 @@ dlv_validatezonekey(dns_validator_t *val) {
 	 * need to ignore DNS_DSDIGEST_SHA1 if a DNS_DSDIGEST_SHA256
 	 * is present.
 	 */
-	digest_type = DNS_DSDIGEST_SHA1;
+	memset(digest_types, 1, sizeof(digest_types));
 	for (result = dns_rdataset_first(&val->dlv);
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(&val->dlv)) {
@@ -2170,7 +2178,7 @@ dlv_validatezonekey(dns_validator_t *val) {
 
 		if (dlv.digest_type == DNS_DSDIGEST_SHA256 &&
 		    dlv.length == ISC_SHA256_DIGESTLENGTH) {
-			digest_type = DNS_DSDIGEST_SHA256;
+			digest_types[DNS_DSDIGEST_SHA1] = 0;
 			break;
 		}
 	}
@@ -2188,7 +2196,7 @@ dlv_validatezonekey(dns_validator_t *val) {
 						   dlv.digest_type))
 			continue;
 
-		if (dlv.digest_type != digest_type)
+		if (digest_types[dlv.digest_type] == 0)
 			continue;
 
 		if (!dns_resolver_algorithm_supported(val->view->resolver,
@@ -2271,7 +2279,7 @@ validatezonekey(dns_validator_t *val) {
 	dst_key_t *dstkey;
 	isc_boolean_t supported_algorithm;
 	isc_boolean_t atsep = ISC_FALSE;
-	isc_uint8_t digest_type;
+	char digest_types[256];
 
 	/*
 	 * Caller must be holding the validator lock.
@@ -2502,7 +2510,7 @@ validatezonekey(dns_validator_t *val) {
 	 * need to ignore DNS_DSDIGEST_SHA1 if a DNS_DSDIGEST_SHA256
 	 * is present.
 	 */
-	digest_type = DNS_DSDIGEST_SHA1;
+	memset(digest_types, 1, sizeof(digest_types));
 	for (result = dns_rdataset_first(val->dsset);
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(val->dsset)) {
@@ -2518,7 +2526,7 @@ validatezonekey(dns_validator_t *val) {
 
 		if (ds.digest_type == DNS_DSDIGEST_SHA256 &&
 		    ds.length == ISC_SHA256_DIGESTLENGTH) {
-			digest_type = DNS_DSDIGEST_SHA256;
+			digest_types[DNS_DSDIGEST_SHA1] = 0;
 			break;
 		}
 	}
@@ -2536,7 +2544,7 @@ validatezonekey(dns_validator_t *val) {
 						   ds.digest_type))
 			continue;
 
-		if (ds.digest_type != digest_type)
+		if (digest_types[ds.digest_type] == 0)
 			continue;
 
 		if (!dns_resolver_algorithm_supported(val->view->resolver,

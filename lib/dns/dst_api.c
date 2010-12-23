@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.54 2010/12/18 01:56:22 each Exp $
+ * $Id: dst_api.c,v 1.55 2010/12/23 04:07:58 marka Exp $
  */
 
 /*! \file */
@@ -223,6 +223,9 @@ dst_lib_init2(isc_mem_t *mctx, isc_entropy_t *ectx,
 	RETERR(dst__openssldsa_init(&dst_t_func[DST_ALG_NSEC3DSA]));
 #endif
 	RETERR(dst__openssldh_init(&dst_t_func[DST_ALG_DH]));
+#ifdef HAVE_OPENSSL_GOST
+	RETERR(dst__opensslgost_init(&dst_t_func[DST_ALG_ECCGOST]));
+#endif
 #endif /* OPENSSL */
 #ifdef GSSAPI
 	RETERR(dst__gssapi_init(&dst_t_func[DST_ALG_GSSAPI]));
@@ -1113,6 +1116,9 @@ dst_key_sigsize(const dst_key_t *key, unsigned int *n) {
 	case DST_ALG_NSEC3DSA:
 		*n = DNS_SIG_DSASIGSIZE;
 		break;
+	case DST_ALG_ECCGOST:
+		*n = DNS_SIG_GOSTSIGSIZE;
+		break;
 	case DST_ALG_HMACMD5:
 		*n = 16;
 		break;
@@ -1375,6 +1381,7 @@ issymmetric(const dst_key_t *key) {
 	case DST_ALG_DSA:
 	case DST_ALG_NSEC3DSA:
 	case DST_ALG_DH:
+	case DST_ALG_ECCGOST:
 		return (ISC_FALSE);
 	case DST_ALG_HMACMD5:
 	case DST_ALG_GSSAPI:
@@ -1647,7 +1654,8 @@ algorithm_status(unsigned int alg) {
 	    alg == DST_ALG_DSA || alg == DST_ALG_DH ||
 	    alg == DST_ALG_HMACMD5 || alg == DST_ALG_NSEC3DSA ||
 	    alg == DST_ALG_NSEC3RSASHA1 ||
-	    alg == DST_ALG_RSASHA256 || alg == DST_ALG_RSASHA512)
+	    alg == DST_ALG_RSASHA256 || alg == DST_ALG_RSASHA512 ||
+	    alg == DST_ALG_ECCGOST)
 		return (DST_R_NOCRYPTO);
 #endif
 	return (DST_R_UNSUPPORTEDALG);

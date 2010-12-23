@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.508 $)
+AC_REVISION($Revision: 1.509 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -517,6 +517,7 @@ then
 		fi
 	done
 fi
+OPENSSL_GOST=""
 case "$use_openssl" in
 	no)
 		AC_MSG_RESULT(no)
@@ -672,6 +673,42 @@ esac
 			AC_MSG_RESULT(no)
 		fi
 		AC_CHECK_FUNCS(EVP_sha256 EVP_sha512)
+
+		AC_MSG_CHECKING(for OpenSSL GOST support)
+		have_gost=""
+		AC_TRY_RUN([
+#include <openssl/conf.h>
+#include <openssl/engine.h>
+int main() {
+#if (OPENSSL_VERSION_NUMBER >= 0x10000000L)
+	ENGINE *e;
+
+	OPENSSL_config(NULL);
+
+	e = ENGINE_by_id("gost");
+	if (e == NULL)
+		return (1);
+	if (ENGINE_init(e) <= 0)
+		return (1);
+	return (0);
+#else
+	return (1);
+#endif
+}
+],
+		[AC_MSG_RESULT(yes)
+		have_gost="yes"],
+		[AC_MSG_RESULT(no)
+		have_gost="no"])
+		case $have_gost in
+		yes)
+			OPENSSL_GOST="yes"
+			AC_DEFINE(HAVE_OPENSSL_GOST, 1,
+				  [Define if your OpenSSL version supports GOST.])
+			;;
+		*)
+			;;
+		esac
 		CFLAGS="$saved_cflags"
 		LIBS="$saved_libs"
 		OPENSSLLINKOBJS='${OPENSSLLINKOBJS}'
@@ -689,6 +726,7 @@ AC_SUBST(USE_OPENSSL)
 AC_SUBST(DST_OPENSSL_INC)
 AC_SUBST(OPENSSLLINKOBJS)
 AC_SUBST(OPENSSLLINKSRCS)
+AC_SUBST(OPENSSL_GOST)
 DNS_CRYPTO_LIBS="$DNS_CRYPTO_LIBS $DNS_OPENSSL_LIBS"
 
 #
@@ -840,7 +878,12 @@ case "$use_gssapi" in
 		    # -L/usr/local/lib to LIBS, which can make the
 		    # -lgssapi_krb5 test succeed with shared libraries even
 		    # when you are trying to build with KTH in /usr/lib.
-		    LIBS="-L$use_gssapi/lib $TRY_LIBS"
+		    if test "$use_gssapi" = "/usr"
+		    then
+			    LIBS="$TRY_LIBS"
+		    else
+			    LIBS="-L$use_gssapi/lib $TRY_LIBS"
+		    fi
 		    AC_MSG_CHECKING(linking as $TRY_LIBS)
 		    AC_TRY_LINK( , [gss_acquire_cred();krb5_init_context()],
 				gssapi_linked=yes, gssapi_linked=no)
@@ -3289,6 +3332,7 @@ AC_CONFIG_FILES([
 	bin/tests/sockaddr/Makefile
 	bin/tests/system/Makefile
 	bin/tests/system/conf.sh
+	bin/tests/system/gost/prereq.sh
 	bin/tests/system/filter-aaaa/Makefile
 	bin/tests/system/lwresd/Makefile
 	bin/tests/system/tkey/Makefile

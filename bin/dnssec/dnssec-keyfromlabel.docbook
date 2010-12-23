@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-keyfromlabel.docbook,v 1.17 2010/01/19 23:48:55 tbox Exp $ -->
+<!-- $Id: dnssec-keyfromlabel.docbook,v 1.18 2010/12/23 04:07:59 marka Exp $ -->
 <refentry id="man.dnssec-keyfromlabel">
   <refentryinfo>
     <date>February 8, 2008</date>
@@ -93,7 +93,7 @@
 	  <para>
 	    Selects the cryptographic algorithm.  The value of
             <option>algorithm</option> must be one of RSAMD5, RSASHA1,
-	    DSA, NSEC3RSASHA1, NSEC3DSA, RSASHA256 or RSASHA512.
+	    DSA, NSEC3RSASHA1, NSEC3DSA, RSASHA256, RSASHA512 or ECCGOST.
 	    These values are case insensitive.
 	  </para>
           <para>

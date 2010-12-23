@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_internal.h,v 1.26 2010/12/18 01:56:22 each Exp $ */
+/* $Id: dst_internal.h,v 1.27 2010/12/23 04:07:58 marka Exp $ */
 
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1
@@ -209,6 +209,9 @@ isc_result_t dst__opensslrsa_init(struct dst_func **funcp,
 isc_result_t dst__openssldsa_init(struct dst_func **funcp);
 isc_result_t dst__openssldh_init(struct dst_func **funcp);
 isc_result_t dst__gssapi_init(struct dst_func **funcp);
+#ifdef HAVE_OPENSSL_GOST
+isc_result_t dst__opensslgost_init(struct dst_func **funcp);
+#endif
 
 /*%
  * Destructors

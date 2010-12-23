@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-dsfromkey.docbook,v 1.10 2009/08/26 21:56:05 jreed Exp $ -->
+<!-- $Id: dnssec-dsfromkey.docbook,v 1.11 2010/12/23 04:07:59 marka Exp $ -->
 <refentry id="man.dnssec-dsfromkey">
   <refentryinfo>
     <date>August 26, 2009</date>
@@ -105,8 +105,8 @@
         <listitem>
           <para>
             Select the digest algorithm. The value of
-            <option>algorithm</option> must be one of SHA-1 (SHA1) or
-            SHA-256 (SHA256). These values are case insensitive.
+            <option>algorithm</option> must be one of SHA-1 (SHA1),
+            SHA-256 (SHA256) or GOST. These values are case insensitive.
           </para>
         </listitem>
       </varlistentry>

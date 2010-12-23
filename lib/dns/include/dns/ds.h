@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ds.h,v 1.10 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: ds.h,v 1.11 2010/12/23 04:07:58 marka Exp $ */
 
 #ifndef DNS_DS_H
 #define DNS_DS_H 1
@@ -26,6 +26,11 @@
 
 #define DNS_DSDIGEST_SHA1 (1)
 #define DNS_DSDIGEST_SHA256 (2)
+#define DNS_DSDIGEST_GOST (3)
+
+/* should not be here... */
+
+#define ISC_GOST_DIGESTLENGTH 32U
 
 /*
  * Assuming SHA-256 digest type.

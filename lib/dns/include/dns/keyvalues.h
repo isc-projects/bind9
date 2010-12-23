@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keyvalues.h,v 1.27 2009/10/22 02:21:31 each Exp $ */
+/* $Id: keyvalues.h,v 1.28 2010/12/23 04:07:58 marka Exp $ */
 
 #ifndef DNS_KEYVALUES_H
 #define DNS_KEYVALUES_H 1
@@ -70,6 +70,7 @@
 #define DNS_KEYALG_NSEC3RSASHA1	7
 #define DNS_KEYALG_RSASHA256	8
 #define DNS_KEYALG_RSASHA512	10
+#define DNS_KEYALG_ECCGOST	12
 #define DNS_KEYALG_INDIRECT	252
 #define DNS_KEYALG_PRIVATEDNS	253
 #define DNS_KEYALG_PRIVATEOID	254     /*%< Key begins with OID giving alg */
@@ -97,5 +98,7 @@
 #define DNS_SIG_DSAMAXBITS	1024
 #define DNS_SIG_DSAMINBYTES	213
 #define DNS_SIG_DSAMAXBYTES	405
+
+#define DNS_SIG_GOSTSIGSIZE	64
 
 #endif /* DNS_KEYVALUES_H */

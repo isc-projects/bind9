@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.114 2010/08/16 23:46:51 tbox Exp $ */
+/* $Id: dnssec-keygen.c,v 1.115 2010/12/23 04:07:59 marka Exp $ */
 
 /*! \file */
 
@@ -84,7 +84,7 @@ usage(void) {
 	fprintf(stderr, "    -a <algorithm>:\n");
 	fprintf(stderr, "        RSA | RSAMD5 | DSA | RSASHA1 | NSEC3RSASHA1"
 				" | NSEC3DSA |\n");
-	fprintf(stderr, "        RSASHA256 | RSASHA512 |\n");
+	fprintf(stderr, "        RSASHA256 | RSASHA512 | ECCGOST |\n");
 	fprintf(stderr, "        DH | HMAC-MD5 | HMAC-SHA1 | HMAC-SHA224 | "
 				"HMAC-SHA256 | \n");
 	fprintf(stderr, "        HMAC-SHA384 | HMAC-SHA512\n");
@@ -101,6 +101,7 @@ usage(void) {
 	fprintf(stderr, "        DSA:\t\t[512..1024] and divisible by 64\n");
 	fprintf(stderr, "        NSEC3DSA:\t[512..1024] and divisible "
 				"by 64\n");
+	fprintf(stderr, "        ECCGOST:\tignored\n");
 	fprintf(stderr, "        HMAC-MD5:\t[1..512]\n");
 	fprintf(stderr, "        HMAC-SHA1:\t[1..160]\n");
 	fprintf(stderr, "        HMAC-SHA224:\t[1..224]\n");
@@ -129,6 +130,7 @@ usage(void) {
 			"records with (default: 0)\n");
 	fprintf(stderr, "    -T <rrtype>: DNSKEY | KEY (default: DNSKEY; "
 			"use KEY for SIG(0))\n");
+	fprintf(stderr, "        ECCGOST:\tignored\n");
 	fprintf(stderr, "    -t <type>: "
 			"AUTHCONF | NOAUTHCONF | NOAUTH | NOCONF "
 			"(default: AUTHCONF)\n");
@@ -542,7 +544,8 @@ main(int argc, char **argv) {
 
 		if (use_nsec3 &&
 		    alg != DST_ALG_NSEC3DSA && alg != DST_ALG_NSEC3RSASHA1 &&
-		    alg != DST_ALG_RSASHA256 && alg!= DST_ALG_RSASHA512) {
+		    alg != DST_ALG_RSASHA256 && alg!= DST_ALG_RSASHA512 &&
+		    alg != DST_ALG_ECCGOST) {
 			fatal("%s is incompatible with NSEC3; "
 			      "do not use the -3 option", algname);
 		}
@@ -574,9 +577,8 @@ main(int argc, char **argv) {
 					fprintf(stderr, "key size not "
 							"specified; defaulting "
 							"to %d\n", size);
-			} else {
+			} else if (alg != DST_ALG_ECCGOST)
 				fatal("key size not specified (-b option)");
-			}
 		}
 
 		if (!oldstyle && prepub > 0) {
@@ -703,6 +705,8 @@ main(int argc, char **argv) {
 		if (size != 0 && !dsa_size_ok(size))
 			fatal("invalid DSS key size: %d", size);
 		break;
+	case DST_ALG_ECCGOST:
+		break;
 	case DST_ALG_HMACMD5:
 		options |= DST_TYPE_KEY;
 		if (size < 1 || size > 512)
@@ -767,7 +771,8 @@ main(int argc, char **argv) {
 
 	if (!(alg == DNS_KEYALG_RSAMD5 || alg == DNS_KEYALG_RSASHA1 ||
 	      alg == DNS_KEYALG_NSEC3RSASHA1 || alg == DNS_KEYALG_RSASHA256 ||
-	      alg == DNS_KEYALG_RSASHA512) && rsa_exp != 0)
+	      alg == DNS_KEYALG_RSASHA512 || alg == DST_ALG_ECCGOST) &&
+	    rsa_exp != 0)
 		fatal("specified RSA exponent for a non-RSA key");
 
 	if (alg != DNS_KEYALG_DH && generator != 0)
@@ -839,6 +844,7 @@ main(int argc, char **argv) {
 
 	case DNS_KEYALG_DSA:
 	case DNS_KEYALG_NSEC3DSA:
+	case DST_ALG_ECCGOST:
 		show_progress = ISC_TRUE;
 		/* fall through */
 

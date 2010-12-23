@@ -31,7 +31,7 @@
 
 /*%
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.26 2010/01/11 10:49:14 fdupont Exp $
+ * $Id: dst_parse.c,v 1.27 2010/12/23 04:07:58 marka Exp $
  */
 
 #include <config.h>
@@ -103,6 +103,8 @@ static struct parse_map map[] = {
 	{TAG_DSA_BASE, "Base(g):"},
 	{TAG_DSA_PRIVATE, "Private_value(x):"},
 	{TAG_DSA_PUBLIC, "Public_value(y):"},
+
+	{TAG_GOST_PRIVASN1, "GostAsn1:"},
 
 	{TAG_HMACMD5_KEY, "Key:"},
 	{TAG_HMACMD5_BITS, "Bits:"},
@@ -240,6 +242,15 @@ check_dsa(const dst_private_t *priv) {
 }
 
 static int
+check_gost(const dst_private_t *priv) {
+	if (priv->nelements != GOST_NTAGS)
+		return (-1);
+	if (priv->elements[0].tag != TAG(DST_ALG_ECCGOST, 0))
+		return (-1);
+	return (0);
+}
+
+static int
 check_hmac_md5(const dst_private_t *priv, isc_boolean_t old) {
 	int i, j;
 
@@ -296,6 +307,8 @@ check_data(const dst_private_t *priv, const unsigned int alg,
 		return (check_dh(priv));
 	case DST_ALG_DSA:
 		return (check_dsa(priv));
+	case DST_ALG_ECCGOST:
+		return (check_gost(priv));
 	case DST_ALG_HMACMD5:
 		return (check_hmac_md5(priv, old));
 	case DST_ALG_HMACSHA1:
@@ -586,6 +599,9 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 		break;
 	case DST_ALG_RSASHA512:
 		fprintf(fp, "(RSASHA512)\n");
+		break;
+	case DST_ALG_ECCGOST:
+		fprintf(fp, "(ECC-GOST)\n");
 		break;
 	case DST_ALG_HMACMD5:
 		fprintf(fp, "(HMAC_MD5)\n");

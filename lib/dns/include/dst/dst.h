@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.28 2010/12/18 01:56:22 each Exp $ */
+/* $Id: dst.h,v 1.29 2010/12/23 04:07:59 marka Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -58,6 +58,7 @@ typedef struct dst_context 	dst_context_t;
 #define DST_ALG_NSEC3RSASHA1	7
 #define DST_ALG_RSASHA256	8
 #define DST_ALG_RSASHA512	10
+#define DST_ALG_ECCGOST		12
 #define DST_ALG_HMACMD5		157
 #define DST_ALG_GSSAPI		160
 #define DST_ALG_HMACSHA1	161	/* XXXMPA */

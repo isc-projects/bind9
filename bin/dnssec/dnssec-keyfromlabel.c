@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keyfromlabel.c,v 1.31 2010/01/19 23:48:55 tbox Exp $ */
+/* $Id: dnssec-keyfromlabel.c,v 1.32 2010/12/23 04:07:59 marka Exp $ */
 
 /*! \file */
 
@@ -55,7 +55,7 @@ int verbose;
 
 static const char *algs = "RSA | RSAMD5 | DH | DSA | RSASHA1 |"
 			  " NSEC3DSA | NSEC3RSASHA1 |"
-			  " RSASHA256 | RSASHA512";
+			  " RSASHA256 | RSASHA512 | ECCGOST";
 
 ISC_PLATFORM_NORETURN_PRE static void
 usage(void) ISC_PLATFORM_NORETURN_POST;
@@ -364,7 +364,8 @@ main(int argc, char **argv) {
 
 	if (use_nsec3 &&
 	    alg != DST_ALG_NSEC3DSA && alg != DST_ALG_NSEC3RSASHA1 &&
-	    alg != DST_ALG_RSASHA256 && alg != DST_ALG_RSASHA512) {
+	    alg != DST_ALG_RSASHA256 && alg != DST_ALG_RSASHA512 &&
+	    alg != DST_ALG_ECCGOST) {
 		fatal("%s is incompatible with NSEC3; "
 		      "do not use the -3 option", algname);
 	}
