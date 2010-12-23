@@ -16,7 +16,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.140 2010/12/21 04:31:27 marka Exp $ */
+/* $Id: config.h.in,v 1.141 2010/12/23 04:09:28 marka Exp $ */
 
 /*! \file */
 
@@ -270,6 +270,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to 1 if you have the <net/if6.h> header file. */
 #undef HAVE_NET_IF6_H
+
+/* Define if your OpenSSL version supports GOST. */
+#undef HAVE_OPENSSL_GOST
 
 /* Define to 1 if you have the <regex.h> header file. */
 #undef HAVE_REGEX_H
