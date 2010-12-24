@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gssapictx.c,v 1.22 2010/12/22 02:33:12 marka Exp $ */
+/* $Id: gssapictx.c,v 1.23 2010/12/24 02:20:47 each Exp $ */
 
 #include <config.h>
 
@@ -517,82 +517,6 @@ dst_gssapi_releasecred(gss_cred_id_t *cred) {
 
 #ifdef GSSAPI
 /*
- * GSSAPI with krb5 doesn't have a way to set the default realm, as it
- * doesn't offer any access to the krb5 context that it uses. The only
- * way to do an nsupdate call on a realm that isn't the default realm in
- * /etc/krb5.conf is to create a temporary krb5.conf and put the right
- * realm in there as the default realm, then set KRB5_CONFIG to point
- * at that temporary krb5.conf. This is a disgusting hack, but it is
- * the best we can do with GSSAPI.
- *
- * To try to reduce the impact, this routine checks if the default
- * realm is already correct. If it is, then we don't need to do
- * anything. If not, then we create the temporary krb5.conf.
- */
-static void
-check_zone(dns_name_t *zone, isc_mem_t *mctx, char **tmpfile) {
-	krb5_context ctx;
-	int kret;
-	char *realm;
-	char buf[1024];
-	isc_result_t ret;
-	FILE *fp = NULL;
-	char *p, *template;
-
-	if (getenv("KRB5_CONFIG") != NULL) {
-		/* the user has specifically set a KRB5_CONFIG to
-		   use. Don't override it, as they may know what they are
-		   doing */
-		return;
-	}
-
-	dns_name_format(zone, buf, sizeof(buf));
-
-	/* gssapi wants the realm in upper case */
-	for (p=buf; *p; p++) {
-		if (islower((int)*p))
-			*p = toupper((int)*p);
-	}
-
-	kret = krb5_init_context(&ctx);
-	if (kret != 0)
-		return;
-
-	kret = krb5_get_default_realm(ctx, &realm);
-	if (kret == 0 && strcmp(buf, realm) == 0) {
-		/* the krb5.conf is correct. */
-		krb5_free_context(ctx);
-		return;
-	}
-
-	gss_log(3, "zone '%s' doesn't match KRB5 default realm '%s'",
-		buf, realm);
-
-	template = isc_mem_strdup(mctx, "/tmp/krb5.conf.XXXXXX");
-	if (template == NULL) {
-		krb5_free_context(ctx);
-		return;
-	}
-
-	ret = isc_file_openunique(template, &fp);
-	if (ret != ISC_R_SUCCESS) {
-		krb5_free_context(ctx);
-		return;
-	}
-
-	fprintf(fp, "[libdefaults]\n");
-	fprintf(fp, "\tdefault_realm = %s\n", buf);
-	fprintf(fp, "\tdns_lookup_kdc = true\n");
-	fclose(fp);
-
-	setenv("KRB5_CONFIG", template, 1);
-
-	*tmpfile = template;
-
-	krb5_free_context(ctx);
-}
-
-/*
  * Format a gssapi error message info into a char ** on the given memory
  * context. This is used to return gssapi error messages back up the
  * call chain for reporting to the user.
@@ -634,10 +558,6 @@ dst_gssapi_initctx(dns_name_t *name, isc_buffer_t *intoken,
 	/* Client must pass us a valid gss_ctx_id_t here */
 	REQUIRE(gssctx != NULL);
 	REQUIRE(mctx != NULL);
-
-	if (zone != NULL && mctx != NULL) {
-		check_zone(zone, mctx, &tmpfile);
-	}
 
 	isc_buffer_init(&namebuf, array, sizeof(array));
 	name_to_gbuffer(name, &namebuf, &gnamebuf);

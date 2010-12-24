@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.143 2010/12/09 00:54:34 marka Exp $
+ * $Id: tsig.c,v 1.144 2010/12/24 02:20:47 each Exp $
  */
 /*! \file */
 #include <config.h>
@@ -203,8 +203,10 @@ tsig_log(dns_tsigkey_t *key, int level, const char *fmt, ...) {
 	else
 		strcpy(namestr, "<null>");
 
-	if (key != NULL && key->generated)
+	if (key != NULL && key->generated && key->creator)
 		dns_name_format(key->creator, creatorstr, sizeof(creatorstr));
+	else
+		strcpy(creatorstr, "<null>");
 
 	va_start(ap, fmt);
 	vsnprintf(message, sizeof(message), fmt, ap);

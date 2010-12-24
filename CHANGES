@@ -1,3 +1,11 @@
+3000.	[bug]		More TKEY/GSS fixes:
+			 - nsupdate can now get the default realm from
+			   the user's Kerberos principal
+			 - corrected gsstest compilation flags
+			 - improved documentation
+			 - fixed some NULL dereferences
+			[RT #22795]
+
 2999.	[func]		Add GOST support (RFC 5933). [RT #20639]
 
 2998.	[func]		Add isc_task_beginexclusive and isc_task_endexclusive

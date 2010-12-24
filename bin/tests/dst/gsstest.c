@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gsstest.c,v 1.10 2010/12/20 23:47:20 tbox Exp $ */
+/* $Id: gsstest.c,v 1.11 2010/12/24 02:20:47 each Exp $ */
 
 #include <config.h>
 
@@ -359,7 +359,7 @@ initctx1(isc_task_t *task, isc_event_t *event) {
 	printf("Initctx - context name we're using: %s\n", contextname);
 
 	printf("Negotiating GSSAPI context: ");
-	printf(gssid);
+	printf("%s", gssid);
 	printf("\n");
 
 	/*
@@ -388,7 +388,8 @@ initctx1(isc_task_t *task, isc_event_t *event) {
 	gssctx = GSS_C_NO_CONTEXT;
 	result = dns_tkey_buildgssquery(query, dns_fixedname_name(&servername),
 					dns_fixedname_name(&gssname),
-					NULL, 36000, &gssctx, ISC_TRUE);
+					NULL, 36000, &gssctx, ISC_TRUE,
+					NULL, mctx, NULL);
 	CHECK("dns_tkey_buildgssquery", result);
 
 	printf("Sending context token to server\n");

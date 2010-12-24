@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.349 2010/12/16 09:51:27 jinmei Exp $ */
+/* $Id: query.c,v 1.350 2010/12/24 02:20:47 each Exp $ */
 
 /*! \file */
 
@@ -4342,7 +4342,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	}
 
 	is_staticstub_zone = ISC_FALSE;
-	if (is_zone) {
+	if (is_zone && zone != NULL) {
 		authoritative = ISC_TRUE;
 		if (dns_zone_gettype(zone) == dns_zone_staticstub)
 			is_staticstub_zone = ISC_TRUE;
