@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.188 2010/12/24 02:20:47 each Exp $ */
+/* $Id: nsupdate.c,v 1.189 2010/12/24 23:47:05 tbox Exp $ */
 
 /*! \file */
 
@@ -2443,7 +2443,7 @@ get_ticket_realm(isc_mem_t *mctx)
 	krb5_ccache ccache;
 	krb5_principal princ;
 	char *name, *ticket_realm;
-	
+
 	rc = krb5_init_context(&ctx);
 	if (rc != 0)
 		return;
@@ -2453,7 +2453,7 @@ get_ticket_realm(isc_mem_t *mctx)
 		krb5_free_context(ctx);
 		return;
 	}
-		
+
 	rc = krb5_cc_get_principal(ctx, ccache, &princ);
 	if (rc != 0) {
 		krb5_cc_close(ctx, ccache);
