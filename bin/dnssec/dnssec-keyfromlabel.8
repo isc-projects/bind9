@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-keyfromlabel.8,v 1.17 2010/01/20 01:14:19 tbox Exp $
+.\" $Id: dnssec-keyfromlabel.8,v 1.18 2010/12/24 01:14:20 tbox Exp $
 .\"
 .hy 0
 .ad l
@@ -47,7 +47,7 @@ of the key is specified on the command line. This must match the name of the zon
 .RS 4
 Selects the cryptographic algorithm. The value of
 \fBalgorithm\fR
-must be one of RSAMD5, RSASHA1, DSA, NSEC3RSASHA1, NSEC3DSA, RSASHA256 or RSASHA512. These values are case insensitive.
+must be one of RSAMD5, RSASHA1, DSA, NSEC3RSASHA1, NSEC3DSA, RSASHA256, RSASHA512 or ECCGOST. These values are case insensitive.
 .sp
 If no algorithm is specified, then RSASHA1 will be used by default, unless the
 \fB\-3\fR
