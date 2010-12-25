@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.470 2010/12/24 02:20:47 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.471 2010/12/25 22:01:35 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -1795,8 +1795,8 @@ controls {
 	Dynamic updates using Kerberos signed requests can be made
 	using the TKEY/GSS protocol by setting either the
 	<command>tkey-gssapi-keytab</command> option, or alternatively
-	by setting both the <command>tkey-gssapi-credential<command/>
-	and <command>tkey-domain<command/> options. Once enabled,
+	by setting both the <command>tkey-gssapi-credential</command>
+	and <command>tkey-domain</command> options. Once enabled,
 	Kerberos signed requests will be matched against the update
 	policies for the zone, using the Kerberos principal as the
 	signer for the request.
