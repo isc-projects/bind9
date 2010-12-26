@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.189 2010/12/24 23:47:05 tbox Exp $ */
+/* $Id: nsupdate.c,v 1.190 2010/12/26 23:24:18 marka Exp $ */
 
 /*! \file */
 
@@ -81,6 +81,7 @@
 
 #ifdef GSSAPI
 #include <dst/gssapi.h>
+#include ISC_PLATFORM_KRB5HEADER
 #endif
 #include <bind9/getaddresses.h>
 
