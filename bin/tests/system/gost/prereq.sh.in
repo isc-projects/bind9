@@ -14,10 +14,10 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: prereq.sh.in,v 1.3 2010/12/24 07:27:15 marka Exp $
+# $Id: prereq.sh.in,v 1.4 2010/12/27 13:38:43 marka Exp $
 
 OPENSSL_GOST="@OPENSSL_GOST@"
-if ! test -n "$OPENSSL_GOST"
+if test -z "$OPENSSL_GOST"
 then
     echo "I:This test requires a openssl version with gost support." >&2
     exit 255
