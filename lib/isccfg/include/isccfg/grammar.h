@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: grammar.h,v 1.22 2010/08/11 18:14:20 each Exp $ */
+/* $Id: grammar.h,v 1.23 2011/01/03 23:45:08 each Exp $ */
 
 #ifndef ISCCFG_GRAMMAR_H
 #define ISCCFG_GRAMMAR_H 1
@@ -328,8 +328,14 @@ cfg_parse_rawport(cfg_parser_t *pctx, unsigned int flags, in_port_t *port);
 isc_result_t
 cfg_parse_sockaddr(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret);
 
+isc_result_t
+cfg_parse_boolean(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret);
+
 void
 cfg_print_sockaddr(cfg_printer_t *pctx, const cfg_obj_t *obj);
+
+void
+cfg_print_boolean(cfg_printer_t *pctx, const cfg_obj_t *obj);
 
 void
 cfg_doc_sockaddr(cfg_printer_t *pctx, const cfg_type_t *type);

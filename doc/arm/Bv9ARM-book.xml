@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.471 2010/12/25 22:01:35 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.472 2011/01/03 23:45:08 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -2614,13 +2614,23 @@ allow-update { key host1-host2. ;};
 
 	<para>
 	  To enable <command>named</command> to validate answers from
-	  other servers, the <command>dnssec-enable</command> and
-	  <command>dnssec-validation</command> options must both be
-          set to yes (the default setting in <acronym>BIND</acronym> 9.5
-          and later), and at least one trust anchor must be configured
+	  other servers, the <command>dnssec-enable</command> option
+          must be set to <userinput>yes</userinput>, and the
+          <command>dnssec-validation</command> options must be set to 
+          <userinput>yes</userinput> or <userinput>auto</userinput>.
+        </para>
+	  
+	<para>
+          If <command>dnssec-validation</command> is set to
+          <userinput>auto</userinput>, then a default
+          trust anchor for the DNS root zone will be used.
+          If it is set to <userinput>yes</userinput>, however,
+          then at least one trust anchor must be configured
           with a <command>trusted-keys</command> or
           <command>managed-keys</command> statement in
-          <filename>named.conf</filename>.
+          <filename>named.conf</filename>, or DNSSEC validation
+          will not occur.  The default setting is
+          <userinput>yes</userinput>.
         </para>
 	  
 	<para>
@@ -5006,7 +5016,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> maintain-ixfr-base <replaceable>yes_or_no</replaceable>; </optional>
     <optional> ixfr-from-differences (<replaceable>yes_or_no</replaceable> | <constant>master</constant> | <constant>slave</constant>); </optional>
     <optional> dnssec-enable <replaceable>yes_or_no</replaceable>; </optional>
-    <optional> dnssec-validation <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> dnssec-validation (<replaceable>yes_or_no</replaceable> | <constant>auto</constant>); </optional>
     <optional> dnssec-lookaside ( <replaceable>auto</replaceable> | 
                         <replaceable>domain</replaceable> trust-anchor <replaceable>domain</replaceable> ); </optional>
     <optional> dnssec-must-be-secure <replaceable>domain yes_or_no</replaceable>; </optional>
@@ -5487,7 +5497,8 @@ badresp:1,adberr:0,findfail:0,valfail:0]
                 The pathname of a file to override the built-in trusted
 		keys provided by <command>named</command>.
 		See the discussion of <command>dnssec-lookaside</command>
-		for details.  If not specified, the default is
+                and <command>dnssec-validation</command> for details. 
+                If not specified, the default is
 		<filename>/etc/bind.keys</filename>.
               </para>
             </listitem>
@@ -5694,10 +5705,10 @@ options {
 	      </para>
               <para>
                 The default DLV key is stored in the file
-                <filename>bind.keys</filename>, which
-                <command>named</command> loads at startup if
-                <command>dnssec-lookaside</command> is set to
-                <constant>auto</constant>.  A copy of that file is
+                <filename>bind.keys</filename>;
+                <command>named</command> will load that key at
+                startup if <command>dnssec-lookaside</command> is set to
+                <constant>auto</constant>.  A copy of the file is
                 installed along with <acronym>BIND</acronym> 9, and is
                 current as of the release date.  If the DLV key expires, a
                 new copy of <filename>bind.keys</filename> can be downloaded
@@ -5711,10 +5722,10 @@ options {
                 to be recompiled with a new key when the DLV key expires.)
               </para>
               <para>
-                NOTE: Using <filename>bind.keys</filename> to store
-                locally-configured keys is possible, but not
-                recommended, as the file will be overwritten whenever
-                <acronym>BIND</acronym> 9 is re-installed or upgraded.
+                NOTE: <command>named</command> only loads certain specific
+                keys from <filename>bind.keys</filename>:  those for the
+                DLV zone and for the DNS root zone.  The file cannot be
+                used to store keys for other zones.
               </para>
             </listitem>
           </varlistentry>
@@ -6595,7 +6606,15 @@ options {
                   Enable DNSSEC validation in <command>named</command>.
 		  Note <command>dnssec-enable</command> also needs to be
 		  set to <userinput>yes</userinput> to be effective.
-                  The default is <userinput>yes</userinput>.
+                  If set to <userinput>no</userinput>, DNSSEC validation
+                  is disabled.  If set to <userinput>auto</userinput>,
+                  DNSSEC validation is enabled, and a default
+                  trust-anchor for the DNS root zone is used.  If set to
+                  <userinput>yes</userinput>, DNSSEC validation is enabled,
+                  but a trust anchor must be manually configured using
+                  a <command>trusted-keys</command> or
+                  <command>managed-keys</command> statement.  The default
+                  is <userinput>yes</userinput>.
                 </para>
               </listitem>
             </varlistentry>

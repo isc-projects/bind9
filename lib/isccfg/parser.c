@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.137 2010/11/16 05:38:31 marka Exp $ */
+/* $Id: parser.c,v 1.138 2011/01/03 23:45:08 each Exp $ */
 
 /*! \file */
 
@@ -868,8 +868,8 @@ cfg_obj_asboolean(const cfg_obj_t *obj) {
 	return (obj->value.boolean);
 }
 
-static isc_result_t
-parse_boolean(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
+isc_result_t
+cfg_parse_boolean(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
 {
 	isc_result_t result;
 	isc_boolean_t value;
@@ -908,8 +908,8 @@ parse_boolean(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
 	return (result);
 }
 
-static void
-print_boolean(cfg_printer_t *pctx, const cfg_obj_t *obj) {
+void
+cfg_print_boolean(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	if (obj->value.boolean)
 		cfg_print_chars(pctx, "yes", 3);
 	else
@@ -917,7 +917,7 @@ print_boolean(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 }
 
 cfg_type_t cfg_type_boolean = {
-	"boolean", parse_boolean, print_boolean, cfg_doc_terminal,
+	"boolean", cfg_parse_boolean, cfg_print_boolean, cfg_doc_terminal,
 	&cfg_rep_boolean, NULL
 };
 

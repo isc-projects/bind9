@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.34 2010/11/16 01:14:51 marka Exp $
+# $Id: sign.sh,v 1.35 2011/01/03 23:45:07 each Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -39,7 +39,6 @@ cat $infile $keyname.key > $zonefile
 $SIGNER -P -g -r $RANDFILE -o $zone $zonefile > /dev/null
 
 # Configure the resolving server with a trusted key.
-
 cat $keyname.key | grep -v '^; ' | $PERL -n -e '
 local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
 local $key = join("", @rest);
@@ -49,11 +48,23 @@ trusted-keys {
 };
 EOF
 ' > trusted.conf
+
+# ...or with a managed key.
+cat $keyname.key | grep -v '^; ' | $PERL -n -e '
+local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
+local $key = join("", @rest);
+print <<EOF
+managed-keys {
+    "$dn" initial-key $flags $proto $alg "$key";
+};
+EOF
+' > managed.conf
 cp trusted.conf ../ns2/trusted.conf
 cp trusted.conf ../ns3/trusted.conf
 cp trusted.conf ../ns4/trusted.conf
 cp trusted.conf ../ns6/trusted.conf
 cp trusted.conf ../ns7/trusted.conf
+cp managed.conf ../ns4/managed.conf
 #
 #  Save keyid for managed key id test.
 #

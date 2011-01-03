@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.591 2010/12/18 01:56:19 each Exp $ */
+/* $Id: server.c,v 1.592 2011/01/03 23:45:07 each Exp $ */
 
 /*! \file */
 
@@ -602,7 +602,8 @@ dstkey_fromconfig(const cfg_obj_t *vconfig, const cfg_obj_t *key,
 
 static isc_result_t
 load_view_keys(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
-	       dns_view_t *view, isc_boolean_t managed, isc_mem_t *mctx)
+	       dns_view_t *view, isc_boolean_t managed,
+	       dns_name_t *keyname, isc_mem_t *mctx)
 {
 	const cfg_listelt_t *elt, *elt2;
 	const cfg_obj_t *key, *keylist;
@@ -630,6 +631,16 @@ load_view_keys(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
 			if (result != ISC_R_SUCCESS)
 				goto cleanup;
 
+			/*
+			 * If keyname was specified, we only add that key.
+			 */
+			if (keyname != NULL &&
+		  	    !dns_name_equal(keyname, dst_key_name(dstkey)))
+			{
+				dst_key_free(&dstkey);
+				continue;
+			}
+
 			CHECK(dns_keytable_add(secroots, managed, &dstkey));
 		}
 	}
@@ -653,15 +664,14 @@ load_view_keys(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
 static isc_result_t
 configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 			  const cfg_obj_t *config, const cfg_obj_t *bindkeys,
-			  isc_boolean_t auto_dlv, isc_mem_t *mctx)
+			  isc_boolean_t auto_dlv, isc_boolean_t auto_root,
+			  isc_mem_t *mctx)
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	const cfg_obj_t *view_keys = NULL;
 	const cfg_obj_t *global_keys = NULL;
 	const cfg_obj_t *view_managed_keys = NULL;
 	const cfg_obj_t *global_managed_keys = NULL;
-	const cfg_obj_t *builtin_keys = NULL;
-	const cfg_obj_t *builtin_managed_keys = NULL;
 	const cfg_obj_t *maps[4];
 	const cfg_obj_t *voptions = NULL;
 	const cfg_obj_t *options = NULL;
@@ -707,9 +717,12 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 	}
 
 	if (auto_dlv && view->rdclass == dns_rdataclass_in) {
+		const cfg_obj_t *builtin_keys = NULL;
+		const cfg_obj_t *builtin_managed_keys = NULL;
+
 		isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_SECURITY,
 			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
-			      "using built-in trusted-keys for view %s",
+			      "using built-in DLV key for view %s",
 			      view->name);
 
 		/*
@@ -730,19 +743,56 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 
 		if (builtin_keys != NULL)
 			CHECK(load_view_keys(builtin_keys, vconfig, view,
-					     ISC_FALSE, mctx));
+					     ISC_FALSE, view->dlv, mctx));
 		if (builtin_managed_keys != NULL)
 			CHECK(load_view_keys(builtin_managed_keys, vconfig,
-					     view, ISC_TRUE, mctx));
+					     view, ISC_TRUE, view->dlv, mctx));
 	}
 
-	CHECK(load_view_keys(view_keys, vconfig, view, ISC_FALSE, mctx));
-	CHECK(load_view_keys(view_managed_keys, vconfig, view, ISC_TRUE, mctx));
+	if (auto_root && view->rdclass == dns_rdataclass_in) {
+		const cfg_obj_t *builtin_keys = NULL;
+		const cfg_obj_t *builtin_managed_keys = NULL;
+
+		isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_SECURITY,
+			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+			      "using built-in root key for view %s",
+			      view->name);
+
+		/*
+		 * If bind.keys exists, it overrides the managed-keys
+		 * clause hard-coded in ns_g_config.
+		 */
+		if (bindkeys != NULL) {
+			(void)cfg_map_get(bindkeys, "trusted-keys",
+					  &builtin_keys);
+			(void)cfg_map_get(bindkeys, "managed-keys",
+					  &builtin_managed_keys);
+		} else {
+			(void)cfg_map_get(ns_g_config, "trusted-keys",
+					  &builtin_keys);
+			(void)cfg_map_get(ns_g_config, "managed-keys",
+					  &builtin_managed_keys);
+		}
+
+		if (builtin_keys != NULL)
+			CHECK(load_view_keys(builtin_keys, vconfig, view,
+					     ISC_FALSE, dns_rootname, mctx));
+		if (builtin_managed_keys != NULL)
+			CHECK(load_view_keys(builtin_managed_keys, vconfig,
+					     view, ISC_TRUE, dns_rootname,
+					     mctx));
+	}
+
+	CHECK(load_view_keys(view_keys, vconfig, view, ISC_FALSE,
+			     NULL, mctx));
+	CHECK(load_view_keys(view_managed_keys, vconfig, view, ISC_TRUE,
+			     NULL, mctx));
+
 	if (view->rdclass == dns_rdataclass_in) {
 		CHECK(load_view_keys(global_keys, vconfig, view, ISC_FALSE,
-				     mctx));
+				     NULL, mctx));
 		CHECK(load_view_keys(global_managed_keys, vconfig, view,
-				     ISC_TRUE, mctx));
+				     ISC_TRUE, NULL, mctx));
 	}
 
 	/*
@@ -1374,6 +1424,7 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 	isc_stats_t *resstats = NULL;
 	dns_stats_t *resquerystats = NULL;
 	isc_boolean_t auto_dlv = ISC_FALSE;
+	isc_boolean_t auto_root = ISC_FALSE;
 	ns_cache_t *nsc;
 	isc_boolean_t zero_no_soattl;
 	cfg_parser_t *newzones_parser = NULL;
@@ -1740,7 +1791,13 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 	obj = NULL;
 	result = ns_config_get(maps, "dnssec-validation", &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	view->enablevalidation = cfg_obj_asboolean(obj);
+	if (cfg_obj_isboolean(obj)) {
+		view->enablevalidation = cfg_obj_asboolean(obj);
+	} else {
+		/* If dnssec-validation is not boolean, it must be "auto" */
+		view->enablevalidation = ISC_TRUE;
+		auto_root = ISC_TRUE;
+	}
 
 	obj = NULL;
 	result = ns_config_get(maps, "max-cache-ttl", &obj);
@@ -2362,24 +2419,6 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 			dns_name_t *dlv;
 
 			obj = cfg_listelt_value(element);
-#if 0
-			dns_fixedname_t fixed;
-			dns_name_t *name;
-
-			/*
-			 * When we support multiple dnssec-lookaside
-			 * entries this is how to find the domain to be
-			 * checked. XXXMPA
-			 */
-			dns_fixedname_init(&fixed);
-			name = dns_fixedname_name(&fixed);
-			str = cfg_obj_asstring(cfg_tuple_get(obj,
-							     "domain"));
-			isc_buffer_init(&b, str, strlen(str));
-			isc_buffer_add(&b, strlen(str));
-			CHECK(dns_name_fromtext(name, &b, dns_rootname,
-						0, NULL));
-#endif
 			str = cfg_obj_asstring(cfg_tuple_get(obj,
 							     "trust-anchor"));
 			isc_buffer_init(&b, str, strlen(str));
@@ -2397,7 +2436,7 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 	 * "security roots".
 	 */
 	CHECK(configure_view_dnsseckeys(view, vconfig, config, bindkeys,
-					auto_dlv, mctx));
+					auto_dlv, auto_root, mctx));
 	dns_resolver_resetmustbesecure(view->resolver);
 	obj = NULL;
 	result = ns_config_get(maps, "dnssec-must-be-secure", &obj);

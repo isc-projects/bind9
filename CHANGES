@@ -1,3 +1,7 @@
+3001.	[func]		Added a default trust anchor for the root zone, which
+			can be switched on by setting "dnssec-validation auto;"
+			in the named.conf options. [RT #21727]
+
 3000.	[bug]		More TKEY/GSS fixes:
 			 - nsupdate can now get the default realm from
 			   the user's Kerberos principal

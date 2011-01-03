@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.17 2009/10/27 22:25:37 marka Exp $
+# $Id: setup.sh,v 1.18 2011/01/03 23:45:07 each Exp $
 
 ../../../tools/genrandom 400 random.data
 
@@ -23,4 +23,6 @@ cd ns1 && sh sign.sh
 
 echo "a.bogus.example.	A	10.0.0.22" >>../ns3/bogus.example.db.signed
 
+cd ../ns4 && cp -f named1.conf named.conf
 cd ../ns5 && cp -f trusted.conf.bad trusted.conf
+

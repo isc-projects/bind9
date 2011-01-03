@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.126 2010/12/18 01:56:23 each Exp $ */
+/* $Id: namedconf.c,v 1.127 2011/01/03 23:45:08 each Exp $ */
 
 /*! \file */
 
@@ -659,9 +659,59 @@ static cfg_type_t cfg_type_qstringornone = {
 };
 
 /*%
+ * A boolean ("yes" or "no"), or the special keyword "auto".
+ * Used in the dnssec-validation option.
+ */
+static void
+print_auto(cfg_printer_t *pctx, const cfg_obj_t *obj) {
+	UNUSED(obj);
+	cfg_print_cstr(pctx, "auto");
+}
+
+static cfg_type_t cfg_type_auto = {
+	"auto", NULL, print_auto, NULL, &cfg_rep_void, NULL
+};
+
+static isc_result_t
+parse_boolorauto(cfg_parser_t *pctx, const cfg_type_t *type,
+		    cfg_obj_t **ret)
+{
+	isc_result_t result;
+
+	CHECK(cfg_gettoken(pctx, CFG_LEXOPT_QSTRING));
+	if (pctx->token.type == isc_tokentype_string &&
+	    strcasecmp(TOKEN_STRING(pctx), "auto") == 0)
+		return (cfg_create_obj(pctx, &cfg_type_auto, ret));
+	cfg_ungettoken(pctx);
+	return (cfg_parse_boolean(pctx, type, ret));
+ cleanup:
+	return (result);
+}
+
+static void
+print_boolorauto(cfg_printer_t *pctx, const cfg_obj_t *obj) {
+	if (obj->type->rep == &cfg_rep_void)
+		cfg_print_chars(pctx, "auto", 4);
+	else if (obj->value.boolean)
+		cfg_print_chars(pctx, "yes", 3);
+	else
+		cfg_print_chars(pctx, "no", 2);
+}
+
+static void
+doc_boolorauto(cfg_printer_t *pctx, const cfg_type_t *type) {
+	UNUSED(type);
+	cfg_print_cstr(pctx, "( yes | no | auto )");
+}
+
+static cfg_type_t cfg_type_boolorauto = {
+	"boolorauto", parse_boolorauto, print_boolorauto,
+	doc_boolorauto, NULL, NULL
+};
+
+/*%
  * keyword hostname
  */
-
 static void
 print_hostname(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	UNUSED(obj);
@@ -893,7 +943,6 @@ options_clauses[] = {
 	{ NULL, NULL, 0 }
 };
 
-
 static cfg_type_t cfg_type_namelist = {
 	"namelist", cfg_parse_bracketed_list, cfg_print_bracketed_list,
 	cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_qstring };
@@ -1046,7 +1095,7 @@ view_clauses[] = {
 	{ "dnssec-lookaside", &cfg_type_lookaside, CFG_CLAUSEFLAG_MULTI },
 	{ "dnssec-must-be-secure",  &cfg_type_mustbesecure,
 	  CFG_CLAUSEFLAG_MULTI },
-	{ "dnssec-validation", &cfg_type_boolean, 0 },
+	{ "dnssec-validation", &cfg_type_boolorauto, 0 },
 	{ "dual-stack-servers", &cfg_type_nameportiplist, 0 },
 	{ "edns-udp-size", &cfg_type_uint32, 0 },
 	{ "empty-contact", &cfg_type_astring, 0 },

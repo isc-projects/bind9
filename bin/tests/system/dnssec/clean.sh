@@ -15,9 +15,10 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.31 2010/12/18 02:12:44 each Exp $
+# $Id: clean.sh,v 1.32 2011/01/03 23:45:07 each Exp $
 
-rm -f */K* */keyset-* */dsset-* */dlvset-* */signedkey-* */*.signed */trusted.conf */tmp* */*.jnl */*.bk
+rm -f */K* */keyset-* */dsset-* */dlvset-* */signedkey-* */*.signed
+rm -f */trusted.conf */managed.conf */tmp* */*.jnl */*.bk
 rm -f ns1/root.db ns2/example.db ns3/secure.example.db
 rm -f ns3/unsecure.example.db ns3/bogus.example.db ns3/keyless.example.db
 rm -f ns3/dynamic.example.db ns3/dynamic.example.db.signed.jnl
@@ -44,4 +45,4 @@ rm -f ns1/managed.key.id
 rm -f signer/example.db
 rm -f ns2/algroll.db
 rm -f ns3/kskonly.example.db
-
+rm -f ns4/named.conf
