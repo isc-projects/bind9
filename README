@@ -48,9 +48,8 @@ BIND 9.4-ESV (Extended Support Version)
 	and incorporates the final maintenance release fixing bugs
 	in BIND 9.4.3.
 
-	BIND 9.4-ESV will be supported until December 31, 2010, at
-	which time you will need to upgrade to the current release
-	of BIND.
+	BIND 9.4-ESV will be supported until May 31, 2011, at which
+	time you will need to upgrade to the current release of BIND.
 
 BIND 9.4.3
 
