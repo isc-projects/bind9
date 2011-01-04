@@ -1,3 +1,6 @@
+3002.	[bug]		isc_mutex_init_errcheck() failed to destroy attr.
+			[RT #22766]
+
 2996.	[security]	Temporarily disable SO_ACCEPTFILTER support.
 			[RT #22589]
 
