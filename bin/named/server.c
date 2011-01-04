@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.592 2011/01/03 23:45:07 each Exp $ */
+/* $Id: server.c,v 1.593 2011/01/04 23:47:13 tbox Exp $ */
 
 /*! \file */
 
@@ -635,7 +635,7 @@ load_view_keys(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
 			 * If keyname was specified, we only add that key.
 			 */
 			if (keyname != NULL &&
-		  	    !dns_name_equal(keyname, dst_key_name(dstkey)))
+			    !dns_name_equal(keyname, dst_key_name(dstkey)))
 			{
 				dst_key_free(&dstkey);
 				continue;
