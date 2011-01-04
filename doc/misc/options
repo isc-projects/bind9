@@ -114,7 +114,7 @@ options {
         dnssec-lookaside <string> trust-anchor <string>;
         dnssec-must-be-secure <string> <boolean>;
         dnssec-secure-to-insecure <boolean>;
-        dnssec-validation <boolean>;
+        dnssec-validation ( yes | no | auto );
         dual-stack-servers [ port <integer> ] { ( <quoted_string> [ port
             <integer> ] | <ipv4_address> [ port <integer> ] |
             <ipv6_address> [ port <integer> ] ); ... };
@@ -326,7 +326,7 @@ view <string> <optional_class> {
         dnssec-lookaside <string> trust-anchor <string>;
         dnssec-must-be-secure <string> <boolean>;
         dnssec-secure-to-insecure <boolean>;
-        dnssec-validation <boolean>;
+        dnssec-validation ( yes | no | auto );
         dual-stack-servers [ port <integer> ] { ( <quoted_string> [ port
             <integer> ] | <ipv4_address> [ port <integer> ] |
             <ipv6_address> [ port <integer> ] ); ... };
