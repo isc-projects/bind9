@@ -1,3 +1,6 @@
+3002.	[bug]		isc_mutex_init_errcheck() failed to destroy attr.
+			[RT #22766]
+
 3001.	[func]		Added a default trust anchor for the root zone, which
 			can be switched on by setting "dnssec-validation auto;"
 			in the named.conf options. [RT #21727]
