@@ -17,7 +17,7 @@
 
 /*! \file */
 /*
- * $Id: ssu.c,v 1.36 2010/12/20 23:47:21 tbox Exp $
+ * $Id: ssu.c,v 1.37 2011/01/06 23:24:38 each Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -485,6 +485,12 @@ dns_ssutable_checkrules(dns_ssutable_t *table, dns_name_t *signer,
 					continue;
 			}
 			if (!dns_name_equal(stfself, name))
+				continue;
+			break;
+		case DNS_SSUMATCHTYPE_EXTERNAL:
+			if (!dns_ssu_external_match(rule->identity, signer,
+					 	    name, tcpaddr, type, key,
+						    table->mctx))
 				continue;
 			break;
 		case DNS_SSUMATCHTYPE_DLZ:

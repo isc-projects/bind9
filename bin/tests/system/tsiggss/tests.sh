@@ -52,6 +52,15 @@ export KRB5CCNAME
 test_update testdenied.example.nil. A "86400 A 10.53.0.12" "10.53.0.12" && status=1
 test_update testdenied.example.nil. TXT "86400 TXT helloworld" "helloworld" || status=1
 
+echo "I:testing external update policy"
+test_update testcname.example.nil. TXT "86400 CNAME testdenied.example.nil" "testdenied" && status=1
+perl ./authsock.pl --type=CNAME --path=ns1/auth.sock --pidfile=authsock.pid --timeout=120 &
+sleep 1
+test_update testcname.example.nil. TXT "86400 CNAME testdenied.example.nil" "testdenied" || status=1
+test_update testcname.example.nil. TXT "86400 A 10.53.0.13" "10.53.0.13" && status=1
+
 [ $status -eq 0 ] && echo "I:tsiggss tests all OK"
+
+kill $(cat authsock.pid)
 
 exit $status

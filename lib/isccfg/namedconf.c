@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.128 2011/01/04 23:47:14 tbox Exp $ */
+/* $Id: namedconf.c,v 1.129 2011/01/06 23:24:39 each Exp $ */
 
 /*! \file */
 
@@ -313,7 +313,7 @@ doc_matchname(cfg_printer_t *pctx, const cfg_type_t *type) {
 static const char *matchtype_enums[] = {
 	"name", "subdomain", "wildcard", "self", "selfsub", "selfwild",
 	"krb5-self", "ms-self", "krb5-subdomain", "ms-subdomain",
-	"tcp-self", "6to4-self", "zonesub", NULL };
+	"tcp-self", "6to4-self", "zonesub", "external", NULL };
 
 static cfg_type_t cfg_type_matchtype = {
 	"matchtype", parse_matchtype, cfg_print_ustring,

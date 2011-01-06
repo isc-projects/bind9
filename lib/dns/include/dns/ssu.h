@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ssu.h,v 1.26 2010/12/20 23:47:21 tbox Exp $ */
+/* $Id: ssu.h,v 1.27 2011/01/06 23:24:38 each Exp $ */
 
 #ifndef DNS_SSU_H
 #define DNS_SSU_H 1
@@ -41,7 +41,8 @@ ISC_LANG_BEGINDECLS
 #define DNS_SSUMATCHTYPE_SUBDOMAINKRB5	9
 #define DNS_SSUMATCHTYPE_TCPSELF	10
 #define DNS_SSUMATCHTYPE_6TO4SELF	11
-#define DNS_SSUMATCHTYPE_DLZ		12
+#define DNS_SSUMATCHTYPE_EXTERNAL	12
+#define DNS_SSUMATCHTYPE_DLZ		13
 #define DNS_SSUMATCHTYPE_MAX 		12  /* max value */
 
 isc_result_t
@@ -195,6 +196,16 @@ isc_result_t	dns_ssutable_nextrule(dns_ssurule_t *rule,
  *\li	#ISC_R_SUCCESS
  *\li	#ISC_R_NOMORE
  */
+
+
+/*%<
+ * Check a policy rule via an external application
+ */
+isc_boolean_t
+dns_ssu_external_match(dns_name_t *identity, dns_name_t *signer,
+		       dns_name_t *name, isc_netaddr_t *tcpaddr,
+		       dns_rdatatype_t type, const dst_key_t *key,
+		       isc_mem_t *mctx);
 
 ISC_LANG_ENDDECLS
 

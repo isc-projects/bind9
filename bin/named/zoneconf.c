@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.168 2010/12/18 01:56:19 each Exp $ */
+/* $Id: zoneconf.c,v 1.169 2011/01/06 23:24:38 each Exp $ */
 
 /*% */
 
@@ -262,7 +262,9 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 		else if (strcasecmp(str, "zonesub") == 0) {
 			mtype = DNS_SSUMATCHTYPE_SUBDOMAIN;
 			usezone = ISC_TRUE;
-		} else
+		} else if (strcasecmp(str, "external") == 0)
+			mtype = DNS_SSUMATCHTYPE_EXTERNAL;
+		else
 			INSIST(0);
 
 		dns_fixedname_init(&fident);

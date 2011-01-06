@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gsstest.c,v 1.11 2010/12/24 02:20:47 each Exp $ */
+/* $Id: gsstest.c,v 1.12 2011/01/06 23:24:38 each Exp $ */
 
 #include <config.h>
 
@@ -97,15 +97,17 @@ static void
 console(isc_task_t *task, isc_event_t *event)
 {
 	char buf[32];
+	int c;
+
 	isc_event_t *ev = NULL;
 
 	isc_event_free(&event);
 
 	while(1) {
 		printf("\nCommand => ");
-		scanf("%s", buf);
+		c = scanf("%s", buf);
 
-		if(strcmp(buf, "quit") == 0) {
+		if(c == EOF || strcmp(buf, "quit") == 0) {
 			isc_app_shutdown();
 			return;
 		}
@@ -200,13 +202,15 @@ sendquery(isc_task_t *task, isc_event_t *event)
 	isc_buffer_t buf;
 	isc_buffer_t outbuf;
 	char output[10 * 1024];
-
 	static char host[256];
+	int c;
 
 	isc_event_free(&event);
 
 	printf("Query => ");
-	scanf("%s", host);
+	c = scanf("%s", host);
+	if (c == EOF)
+		return;
 
 	dns_fixedname_init(&queryname);
 	isc_buffer_init(&buf, host, strlen(host));
@@ -348,11 +352,14 @@ initctx1(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_t buf;
 	dns_message_t *query;
 	dns_request_t *request;
+	int c;
 
 	isc_event_free(&event);
 
 	printf("Initctx - GSS name => ");
-	scanf("%s", gssid);
+	c = scanf("%s", gssid);
+	if (c == EOF)
+		return;
 
 	sprintf(contextname, "gsstest.context.%d.", (int)time(NULL));
 

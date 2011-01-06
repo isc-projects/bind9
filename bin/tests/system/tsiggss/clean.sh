@@ -5,3 +5,4 @@
 
 rm -f ns1/*.jnl ns1/update.txt
 rm -f */named.memstats
+rm -f authsock.pid

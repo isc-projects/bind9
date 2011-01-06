@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.473 2011/01/04 23:47:13 tbox Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.474 2011/01/06 23:24:38 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -11065,7 +11065,7 @@ example.com. NS ns2.example.net.
 	      <varname>krb5-subdomain</varname>,
 	      <varname>ms-subdomain</varname>,
 	      <varname>tcp-self</varname>, <varname>6to4-self</varname>,
-	      and <varname>zonesub</varname>.
+	      <varname>zonesub</varname>, and <varname>external</varname>.
             </para>
             <informaltable>
               <tgroup cols="2" colsep="0" rowsep="0" tgroupstyle="4Level-table">
@@ -11223,14 +11223,56 @@ example.com. NS ns2.example.net.
 		      </note>
 		    </entry>
 		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			<varname>external</varname>
+		      </para>
+		    </entry> <entry colname="2">
+		      <para>
+			This rule allows <command>named</command>
+			to defer the decision of whether to allow a
+			given update to an external daemon.
+		      </para>
+		      <para>
+			The method of communicating with the daemon is
+			specified in the <replaceable>identity</replaceable>
+			field, the format of which is
+			"<constant>local:</constant><replaceable>path</replaceable>",
+			where <replaceable>path</replaceable> is the location
+                        of a UNIX-domain socket.  (Currently, "local" is the
+                        only supported mechanism.)
+		      </para>
+		      <para>
+			Requests to the external daemon are sent over the
+			UNIX-domain socket as datagrams with the following
+			format:
+		      </para>
+		      <programlisting>
+   Protocol version number (4 bytes, network byte order, currently 1)
+   Request length (4 bytes, network byte order)
+   Signer (null-terminated string)
+   Name (null-terminated string)
+   TCP source address (null-terminated string)
+   Rdata type (null-terminated string)
+   Key (null-terminated string)
+   TKEY token length (4 bytes, network byte order)
+   TKEY token (remainder of packet)</programlisting>
+		      <para>
+			The daemon replies with a four-byte value in
+			network byte order, containing either 0 or 1; 0
+			indicates that the specified update is not
+			permitted, and 1 indicates that it is.
+		      </para>
+		    </entry>
+		  </row>
                 </tbody>
               </tgroup>
             </informaltable>
 
             <para>
               In all cases, the <replaceable>name</replaceable>
-              field must
-              specify a fully-qualified domain name.
+              field must specify a fully-qualified domain name.
             </para>
 
 	    <para>
