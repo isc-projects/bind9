@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008, 2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008, 2010, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -17,7 +17,7 @@
 
 /*! \file */
 /*
- * $Id: ssu.c,v 1.37 2011/01/06 23:24:38 each Exp $
+ * $Id: ssu.c,v 1.38 2011/01/06 23:47:00 tbox Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -489,7 +489,7 @@ dns_ssutable_checkrules(dns_ssutable_t *table, dns_name_t *signer,
 			break;
 		case DNS_SSUMATCHTYPE_EXTERNAL:
 			if (!dns_ssu_external_match(rule->identity, signer,
-					 	    name, tcpaddr, type, key,
+						    name, tcpaddr, type, key,
 						    table->mctx))
 				continue;
 			break;

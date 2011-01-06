@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008, 2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008, 2010, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ssu.h,v 1.27 2011/01/06 23:24:38 each Exp $ */
+/* $Id: ssu.h,v 1.28 2011/01/06 23:47:00 tbox Exp $ */
 
 #ifndef DNS_SSU_H
 #define DNS_SSU_H 1
