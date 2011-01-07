@@ -185,6 +185,7 @@ CLEAN :
 	-@erase "$(INTDIR)\sdlz.obj"
 	-@erase "$(INTDIR)\soa.obj"
 	-@erase "$(INTDIR)\ssu.obj"
+	-@erase "$(INTDIR)\ssu_external.obj"
 	-@erase "$(INTDIR)\stats.obj"
 	-@erase "$(INTDIR)\tcpmsg.obj"
 	-@erase "$(INTDIR)\time.obj"
@@ -307,6 +308,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\sdlz.obj" \
 	"$(INTDIR)\soa.obj" \
 	"$(INTDIR)\ssu.obj" \
+	"$(INTDIR)\ssu_external.obj" \
 	"$(INTDIR)\stats.obj" \
 	"$(INTDIR)\tcpmsg.obj" \
 	"$(INTDIR)\time.obj" \
@@ -498,7 +500,9 @@ CLEAN :
 	-@erase "$(INTDIR)\soa.obj"
 	-@erase "$(INTDIR)\soa.sbr"
 	-@erase "$(INTDIR)\ssu.obj"
+	-@erase "$(INTDIR)\ssu_external.obj"
 	-@erase "$(INTDIR)\ssu.sbr"
+	-@erase "$(INTDIR)\ssu_external.sbr"
 	-@erase "$(INTDIR)\stats.obj"
 	-@erase "$(INTDIR)\stats.sbr"
 	-@erase "$(INTDIR)\tcpmsg.obj"
@@ -634,6 +638,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\sdlz.sbr" \
 	"$(INTDIR)\soa.sbr" \
 	"$(INTDIR)\ssu.sbr" \
+	"$(INTDIR)\ssu_external.sbr" \
 	"$(INTDIR)\stats.sbr" \
 	"$(INTDIR)\tcpmsg.sbr" \
 	"$(INTDIR)\time.sbr" \
@@ -726,6 +731,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\sdlz.obj" \
 	"$(INTDIR)\soa.obj" \
 	"$(INTDIR)\ssu.obj" \
+	"$(INTDIR)\ssu_external.obj" \
 	"$(INTDIR)\stats.obj" \
 	"$(INTDIR)\tcpmsg.obj" \
 	"$(INTDIR)\time.obj" \
@@ -1745,6 +1751,24 @@ SOURCE=..\ssu.c
 
 
 "$(INTDIR)\ssu.obj"	"$(INTDIR)\ssu.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\ssu_external.c
+
+!IF  "$(CFG)" == "libdns - Win32 Release"
+
+
+"$(INTDIR)\ssu_external.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libdns - Win32 Debug"
+
+
+"$(INTDIR)\ssu_external.obj"	"$(INTDIR)\ssu_external.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 

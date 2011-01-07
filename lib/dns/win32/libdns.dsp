@@ -650,6 +650,10 @@ SOURCE=..\ssu.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\ssu_external.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\stats.c
 # End Source File
 # Begin Source File

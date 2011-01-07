@@ -629,6 +629,7 @@ dns_secproto_totext
 dns_soa_getminimum
 dns_soa_getserial
 dns_soa_setserial
+dns_ssu_external_match
 dns_ssutable_addrule
 dns_ssutable_attach
 dns_ssutable_checkrules
