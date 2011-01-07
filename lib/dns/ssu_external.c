@@ -233,7 +233,7 @@ dns_ssu_external_match(dns_name_t *identity,
 
 	/* Receive the reply */
 	ret = read(fd, &reply, sizeof(uint32_t));
-	if (ret != sizeof(uint32_t)) {
+	if (ret != (ssize_t) sizeof(uint32_t)) {
 		char strbuf[ISC_STRERRORSIZE];
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		ssu_e_log(3, "ssu_external: unable to receive reply - %s",

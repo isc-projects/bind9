@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: builtin.c,v 1.18 2011/01/07 04:31:38 marka Exp $ */
+/* $Id: builtin.c,v 1.19 2011/01/07 21:42:03 each Exp $ */
 
 /*! \file
  * \brief
@@ -97,7 +97,7 @@ dns64_cname(const char *zone, const char *name, dns_sdblookup_t *lookup) {
 	 */
 	zlen = strlen(zone);
 	nlen = strlen(name);
-	if ((zlen + nlen) > 71U || zlen < 8U || (nlen % 2) != 1)
+	if ((zlen + nlen) > 71U || zlen < 8U || (nlen % 2) != 1U)
 		return (ISC_R_NOTFOUND);
 
 	/*
@@ -116,12 +116,12 @@ dns64_cname(const char *zone, const char *name, dns_sdblookup_t *lookup) {
 	 * are byte aligned and we correctly return ISC_R_NOTFOUND or
 	 * ISC_R_SUCCESS.  We will not generate a CNAME in this case.
 	 */
-	i = (nlen % 4) == 1 ? 1 : 0;
+	i = (nlen % 4) == 1U ? 1 : 0;
 	j = nlen;
 	memset(v, 0, sizeof(v));
-	while (j >= 1) {
+	while (j >= 1U) {
 		INSIST((i/2) < sizeof(v));
-		if (j > 1 && name[1] != '.')
+		if (j > 1U && name[1] != '.')
 			return (ISC_R_NOTFOUND);
 		v[i/2] >>= 4;
 		if ((s = strchr(hex, name[0])) != NULL)
@@ -130,7 +130,7 @@ dns64_cname(const char *zone, const char *name, dns_sdblookup_t *lookup) {
 			v[i/2] |= (s - HEX) << 4;
 		else
 			return (ISC_R_NOTFOUND);
-		if (j > 1)
+		if (j > 1U)
 			j -= 2;
 		else
 			j -= 1;
@@ -160,7 +160,7 @@ dns64_cname(const char *zone, const char *name, dns_sdblookup_t *lookup) {
 		 * The nibbles that map to this byte must be zero for 'name'
 		 * to exist in the zone.
 		 */
-		if (nlen > 11 && v[nlen/4 - 3] != 0)
+		if (nlen > 11U && v[nlen/4 - 3] != 0)
 			return (ISC_R_NOTFOUND);
 		/*
 		 * If the total length is not 71 then this is a empty node
@@ -176,7 +176,7 @@ dns64_cname(const char *zone, const char *name, dns_sdblookup_t *lookup) {
 		 * The nibbles that map to this byte must be zero for 'name'
 		 * to exist in the zone.
 		 */
-		if (nlen > 7 && v[nlen/4 - 2] != 0)
+		if (nlen > 7U && v[nlen/4 - 2] != 0)
 			return (ISC_R_NOTFOUND);
 		/*
 		 * If the total length is not 71 then this is a empty node
@@ -192,7 +192,7 @@ dns64_cname(const char *zone, const char *name, dns_sdblookup_t *lookup) {
 		 * The nibbles that map to this byte must be zero for 'name'
 		 * to exist in the zone.
 		 */
-		if (nlen > 3 && v[nlen/4 - 1] != 0)
+		if (nlen > 3U && v[nlen/4 - 1] != 0)
 			return (ISC_R_NOTFOUND);
 		/*
 		 * If the total length is not 71 then this is a empty node
