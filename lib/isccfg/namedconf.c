@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.129 2011/01/06 23:24:39 each Exp $ */
+/* $Id: namedconf.c,v 1.130 2011/01/07 04:31:39 marka Exp $ */
 
 /*! \file */
 
@@ -1090,6 +1090,8 @@ view_clauses[] = {
 	  CFG_CLAUSEFLAG_MULTI },
 	{ "disable-empty-zone", &cfg_type_astring, CFG_CLAUSEFLAG_MULTI },
 	{ "dns64", &cfg_type_dns64, CFG_CLAUSEFLAG_MULTI },
+	{ "dns64-server", &cfg_type_astring, 0 },
+	{ "dns64-contact", &cfg_type_astring, 0 },
 	{ "dnssec-accept-expired", &cfg_type_boolean, 0 },
 	{ "dnssec-enable", &cfg_type_boolean, 0 },
 	{ "dnssec-lookaside", &cfg_type_lookaside, CFG_CLAUSEFLAG_MULTI },

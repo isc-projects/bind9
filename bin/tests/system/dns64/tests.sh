@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.2 2010/12/08 02:46:15 marka Exp $
+# $Id: tests.sh,v 1.3 2011/01/07 04:31:38 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -1240,6 +1240,33 @@ ret=0
 $DIG $DIGOPTS +dnssec cname-non-existent.signed. @10.53.0.2 -b 10.53.0.2 aaaa > dig.out.ns2.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns2.test$n > /dev/null || ret=1
 grep "ANSWER: 2," dig.out.ns2.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I: checking reverse mapping ($n)"
+ret=0
+$DIG $DIGOPTS -x 2001:aaaa::10.0.0.1 @10.53.0.2 > dig.out.ns2.test$n || ret=1
+grep -i "CNAME.1.0.0.10.IN-ADDR.ARPA.$" dig.out.ns2.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+list=`$DIG $DIGOPTS -b 10.53.0.6 @10.53.0.2 +short aaaa a-only.example | sort`
+for a in $list
+do
+	ret=0
+	echo "I: checking reverse mapping of $a ($n)"
+	$DIG $DIGOPTS -x $a @10.53.0.2 > dig.out.ns2.test$n || ret=1
+	grep -i "CNAME.5.3.2.1.IN-ADDR.ARPA." dig.out.ns2.test$n > /dev/null || ret=1
+	n=`expr $n + 1`
+	if [ $ret != 0 ]; then echo "I:failed"; fi
+	status=`expr $status + $ret`
+done
+
+echo "I: checking dns64-server and dns64-contact ($n)"
+$DIG $DIGOPTS soa 0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.a.a.a.a.1.0.0.2.ip6.arpa @10.53.0.2 > dig.out.ns2.test$n || ret=1
+grep "SOA.dns64.example.net..hostmaster.example.net." dig.out.ns2.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

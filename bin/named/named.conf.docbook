@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.47 2010/12/18 01:56:19 each Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.48 2011/01/07 04:31:38 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>Aug 13, 2004</date>
@@ -288,6 +288,17 @@ options {
 	dnssec-must-be-secure <replaceable>string</replaceable> <replaceable>boolean</replaceable>;
 	dnssec-accept-expired <replaceable>boolean</replaceable>;
 
+	dns64-server <replaceable>string</replaceable>;
+	dns64-contact <replaceable>string</replaceable>;
+	dns64 <replaceable>prefix</replaceable> {
+		clients { <replacable>acl</replacable>; };
+		exclude { <replacable>acl</replacable>; };
+		mapped { <replacable>acl</replacable>; };
+		break-dnssec <replaceable>boolean</replaceable>;
+		recursive-only <replaceable>boolean</replaceable>;
+		suffix <replaceable>ipv6_address</replaceable>;
+	};
+
 	empty-server <replaceable>string</replaceable>;
 	empty-contact <replaceable>string</replaceable>;
 	empty-zones-enable <replaceable>boolean</replaceable>;
@@ -462,6 +473,17 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	dnssec-lookaside <replaceable>string</replaceable> trust-anchor <replaceable>string</replaceable>;
 	dnssec-must-be-secure <replaceable>string</replaceable> <replaceable>boolean</replaceable>;
 	dnssec-accept-expired <replaceable>boolean</replaceable>;
+
+	dns64-server <replaceable>string</replaceable>;
+	dns64-contact <replaceable>string</replaceable>;
+	dns64 <replaceable>prefix</replaceable> {
+		clients { <replacable>acl</replacable>; };
+		exclude { <replacable>acl</replacable>; };
+		mapped { <replacable>acl</replacable>; };
+		break-dnssec <replaceable>boolean</replaceable>;
+		recursive-only <replaceable>boolean</replaceable>;
+		suffix <replaceable>ipv6_address</replaceable>;
+	};
 
 	empty-server <replaceable>string</replaceable>;
 	empty-contact <replaceable>string</replaceable>;

@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.474 2011/01/06 23:24:38 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.475 2011/01/07 04:31:38 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -5142,6 +5142,8 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<optional> recursion-only <replaceable>yes_or_no</replaceable>; </optional>
 	<optional> break-dnssec <replaceable>yes_or_no</replaceable>; </optional>
     }; </optional>;
+    <optional> dns64-server <replaceable>name</replaceable> </optional>
+    <optional> dns64-contact <replaceable>name</replaceable> </optional>
     <optional> preferred-glue ( <replaceable>A</replaceable> | <replaceable>AAAA</replaceable> | <replaceable>NONE</replaceable> ); </optional>
     <optional> edns-udp-size <replaceable>number</replaceable>; </optional>
     <optional> max-udp-size <replaceable>number</replaceable>; </optional>
@@ -5762,6 +5764,16 @@ options {
 	      <para>
 		Compatible IPv6 prefixes have lengths of 32, 40, 48, 56,
 		64 and 96 as per RFC 6052.
+	      </para>
+	      <para>
+		Additionally a reverse IP6.ARPA zone will be created for
+		the prefix to provide a mapping from the IP6.ARPA names
+		to the corresponding IN-ADDR.ARPA names using synthesized
+		CNAMEs.  <command>dns64-server</command> and
+		<command>dns64-contact</command> can be used to specify
+		the name of the server and contact for the zones. These
+		are settable at the view / options level.  These are
+		not settable on a per-prefix basis.
 	      </para>
 	      <para>
 		Each <command>dns64</command> supports a optional

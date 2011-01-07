@@ -1,3 +1,5 @@
+3004.	[func]		DNS64 reverse support. [RT #22769]
+
 3003.	[experimental]	Added update-policy match type "external",
 			enabliing named to defer the decision of whether to
 			allow a dynamic update to an external daemon.

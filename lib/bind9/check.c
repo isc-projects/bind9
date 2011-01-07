@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.123 2010/12/16 09:51:29 jinmei Exp $ */
+/* $Id: check.c,v 1.124 2011/01/07 04:31:39 marka Exp $ */
 
 /*! \file */
 
@@ -696,6 +696,12 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 	{ "statistics-interval", 60, 28 * 24 * 60 },	/* 28 days */
 	};
 
+	static const char *server_contact[] = {
+		"empty-server", "empty-contact",
+		"dns64-server", "dns64-contact",
+		NULL
+	};
+
 	/*
 	 * Check that fields specified in units of time other than seconds
 	 * have reasonable values.
@@ -938,38 +944,29 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 	}
 
 	/*
+	 * Check server/contacts for syntactic validity.
+	 */
+	for (i= 0; server_contact[i] != NULL; i++) {
+		obj = NULL;
+		(void)cfg_map_get(options, server_contact[i], &obj);
+		if (obj != NULL) {
+			str = cfg_obj_asstring(obj);
+			isc_buffer_init(&b, str, strlen(str));
+			isc_buffer_add(&b, strlen(str));
+			tresult = dns_name_fromtext(dns_fixedname_name(&fixed),
+						    &b, dns_rootname, 0, NULL);
+			if (tresult != ISC_R_SUCCESS) {
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "%s: invalid name '%s'",
+					    server_contact[i], str);
+				result = ISC_R_FAILURE;
+			}
+		}
+	}
+
+	/*
 	 * Check empty zone configuration.
 	 */
-	obj = NULL;
-	(void)cfg_map_get(options, "empty-server", &obj);
-	if (obj != NULL) {
-		str = cfg_obj_asstring(obj);
-		isc_buffer_init(&b, str, strlen(str));
-		isc_buffer_add(&b, strlen(str));
-		tresult = dns_name_fromtext(dns_fixedname_name(&fixed), &b,
-					    dns_rootname, 0, NULL);
-		if (tresult != ISC_R_SUCCESS) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "empty-server: invalid name '%s'", str);
-			result = ISC_R_FAILURE;
-		}
-	}
-
-	obj = NULL;
-	(void)cfg_map_get(options, "empty-contact", &obj);
-	if (obj != NULL) {
-		str = cfg_obj_asstring(obj);
-		isc_buffer_init(&b, str, strlen(str));
-		isc_buffer_add(&b, strlen(str));
-		tresult = dns_name_fromtext(dns_fixedname_name(&fixed), &b,
-					    dns_rootname, 0, NULL);
-		if (tresult != ISC_R_SUCCESS) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "empty-contact: invalid name '%s'", str);
-			result = ISC_R_FAILURE;
-		}
-	}
-
 	obj = NULL;
 	(void)cfg_map_get(options, "disable-empty-zone", &obj);
 	for (element = cfg_list_first(obj);

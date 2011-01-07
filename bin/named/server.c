@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.594 2011/01/07 00:50:06 each Exp $ */
+/* $Id: server.c,v 1.595 2011/01/07 04:31:38 marka Exp $ */
 
 /*! \file */
 
@@ -1360,6 +1360,83 @@ dlzconfigure_callback(dns_view_t *view, dns_zone_t *zone) {
 }
 #endif
 
+static isc_result_t
+dns64_reverse(dns_view_t *view, isc_mem_t *mctx, isc_netaddr_t *na,
+	      unsigned int prefixlen, const char *server,
+	      const char *contact)
+{
+	char *cp;
+	char reverse[48+sizeof("ip6.arpa.")];
+	const char *dns64_dbtype[4] = { "_builtin", "dns64", ".", "." };
+	const char *sep = ": view ";
+	const char *viewname = view->name;
+	const unsigned char *s6;
+	dns_fixedname_t fixed;
+	dns_name_t *name;
+	dns_zone_t *zone = NULL;
+	int dns64_dbtypec = 4;
+	isc_buffer_t b;
+	isc_result_t result;
+
+	REQUIRE(prefixlen == 32 || prefixlen == 40 || prefixlen == 48 ||
+		prefixlen == 56 || prefixlen == 64 || prefixlen == 96);
+
+	if (!strcmp(viewname, "_default")) {
+		sep = "";
+		viewname = "";
+	}
+
+	/*
+	 * Construct the reverse name of the zone.
+	 */
+	cp = reverse;
+	s6 = na->type.in6.s6_addr;
+	while (prefixlen > 0) {
+		prefixlen -= 8;
+		sprintf(cp, "%x.%x.", s6[prefixlen/8] & 0xf,
+			(s6[prefixlen/8] >> 4) & 0xf);
+		cp += 4;
+	}
+	strcat(cp, "ip6.arpa.");
+
+	/*
+	 * Create the actual zone.
+	 */
+	if (server != NULL)
+		dns64_dbtype[2] = server;
+	if (contact != NULL)
+		dns64_dbtype[3] = contact;
+	dns_fixedname_init(&fixed);
+	name = dns_fixedname_name(&fixed);
+	isc_buffer_init(&b, reverse, strlen(reverse));
+	isc_buffer_add(&b, strlen(reverse));
+	CHECK(dns_name_fromtext(name, &b, dns_rootname, 0, NULL));
+	CHECK(dns_zone_create(&zone, mctx));
+	CHECK(dns_zone_setorigin(zone, name));
+	dns_zone_setview(zone, view);
+	CHECK(dns_zonemgr_managezone(ns_g_server->zonemgr, zone));
+	dns_zone_setclass(zone, view->rdclass);
+	dns_zone_settype(zone, dns_zone_master);
+	dns_zone_setstats(zone, ns_g_server->zonestats);
+	CHECK(dns_zone_setdbtype(zone, dns64_dbtypec, dns64_dbtype));
+	if (view->queryacl != NULL)
+		dns_zone_setqueryacl(zone, view->queryacl);
+	if (view->queryonacl != NULL)
+		dns_zone_setqueryonacl(zone, view->queryonacl);
+	dns_zone_setdialup(zone, dns_dialuptype_no);
+	dns_zone_setnotifytype(zone, dns_notifytype_no);
+	dns_zone_setoption(zone, DNS_ZONEOPT_NOCHECKNS, ISC_TRUE);
+	CHECK(setquerystats(zone, mctx, ISC_FALSE));	/* XXXMPA */
+	CHECK(dns_view_addzone(view, zone));
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
+		      ISC_LOG_INFO, "dns64 reverse zone%s%s: %s", sep,
+		      viewname, reverse);
+
+cleanup:
+	if (zone != NULL)
+		dns_zone_detach(&zone);
+	return (result);
+}
 
 /*
  * Configure 'view' according to 'vconfig', taking defaults from 'config'
@@ -1707,6 +1784,22 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 		const cfg_listelt_t *element;
 		isc_netaddr_t na, suffix, *sp;
 		unsigned int prefixlen;
+		const char *server, *contact;
+		const cfg_obj_t *myobj;
+
+		myobj = NULL;
+		result = ns_config_get(maps, "dns64-server", &myobj);
+		if (result == ISC_R_SUCCESS)
+			server = cfg_obj_asstring(myobj);
+		else
+			server = NULL;
+
+		myobj = NULL;
+		result = ns_config_get(maps, "dns64-contact", &myobj);
+		if (result == ISC_R_SUCCESS)
+			contact = cfg_obj_asstring(myobj);
+		else
+			contact = NULL;
 
 		for (element = cfg_list_first(obj);
 		     element != NULL;
@@ -1774,6 +1867,10 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 				goto cleanup;
 			dns_dns64_append(&view->dns64, dns64);
 			view->dns64cnt++;
+			result = dns64_reverse(view, mctx, &na, prefixlen,
+					       server, contact);
+			if (result != ISC_R_SUCCESS)
+				goto cleanup;
 			if (clients != NULL)
 				dns_acl_detach(&clients);
 			if (mapped != NULL)
