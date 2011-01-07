@@ -140,7 +140,7 @@
 ./bin/named/bind9.xsl				SGML	2006,2007,2008,2009
 ./bin/named/bind9.xsl.h				X	2007,2008,2009
 ./bin/named/bindkeys.pl				PERL	2009,2010,2011
-./bin/named/builtin.c				C	2001,2002,2003,2004,2005,2007,2009,2010
+./bin/named/builtin.c				C	2001,2002,2003,2004,2005,2007,2009,2010,2011
 ./bin/named/client.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
 ./bin/named/config.c				C	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
 ./bin/named/control.c				C	2001,2002,2003,2004,2005,2006,2007,2009,2010
@@ -191,7 +191,7 @@
 ./bin/named/main.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
 ./bin/named/named.8				MAN	DOCBOOK
 ./bin/named/named.conf.5			MAN	DOCBOOK
-./bin/named/named.conf.docbook			SGML	2004,2005,2006,2007,2008,2009,2010
+./bin/named/named.conf.docbook			SGML	2004,2005,2006,2007,2008,2009,2010,2011
 ./bin/named/named.conf.html			HTML	DOCBOOK
 ./bin/named/named.docbook			SGML	2000,2001,2003,2004,2005,2006,2007,2008,2009
 ./bin/named/named.html				HTML	DOCBOOK
@@ -383,6 +383,7 @@
 ./bin/tests/gxba_test.c				C	2000,2001,2004,2005,2007
 ./bin/tests/gxbn_test.c				C	2000,2001,2004,2005,2007
 ./bin/tests/hash_test.c				C	2000,2001,2004,2005,2006,2007
+./bin/tests/hashes/.cvsignore			X	2011
 ./bin/tests/hashes/Makefile.in			MAKE	2010
 ./bin/tests/hashes/t_hashes.c			C	2010
 ./bin/tests/headerdep_test.sh.in		SH	2000,2001,2004,2007
@@ -726,9 +727,9 @@
 ./bin/tests/system/dns64/ns1/named.conf		CONF-C	2010
 ./bin/tests/system/dns64/ns1/root.db		ZONE	2010
 ./bin/tests/system/dns64/ns1/sign.sh		SH	2010
-./bin/tests/system/dns64/ns2/named.conf		CONF-C	2010
+./bin/tests/system/dns64/ns2/named.conf		CONF-C	2010,2011
 ./bin/tests/system/dns64/setup.sh		SH	2010
-./bin/tests/system/dns64/tests.sh		SH	2010
+./bin/tests/system/dns64/tests.sh		SH	2010,2011
 ./bin/tests/system/dnssec/README		TXT.BRIEF	2000,2001,2002,2004,2011
 ./bin/tests/system/dnssec/clean.sh		SH	2000,2001,2002,2004,2007,2008,2009,2010,2011
 ./bin/tests/system/dnssec/dnssec_update_test.pl	PERL	2002,2004,2007,2010
@@ -857,6 +858,7 @@
 ./bin/tests/system/glue/tests.sh		SH	2000,2001,2003,2004,2007
 ./bin/tests/system/glue/xx.good			X	2000,2001
 ./bin/tests/system/glue/yy.good			X	2000,2001,2003
+./bin/tests/system/gost/.cvsignore		X	2011
 ./bin/tests/system/gost/clean.sh		SH	2010
 ./bin/tests/system/gost/ns1/named.conf		CONF-C	2010
 ./bin/tests/system/gost/ns1/root.db.in		ZONE	2010
@@ -1151,6 +1153,7 @@
 ./bin/tests/system/tsig/ns1/example.db		ZONE	2005,2006,2007,2009
 ./bin/tests/system/tsig/ns1/named.conf		CONF-C	2005,2006,2007
 ./bin/tests/system/tsig/tests.sh		SH	2005,2006,2007
+./bin/tests/system/tsiggss/authsock.pl		PERL	2011
 ./bin/tests/system/tsiggss/clean.sh		SH	2010,2011
 ./bin/tests/system/tsiggss/ns1/administrator.ccache	X	2010
 ./bin/tests/system/tsiggss/ns1/dns.keytab	X	2010
@@ -1256,7 +1259,7 @@
 ./bin/tests/timers/.cvsignore			X	1999,2000,2001
 ./bin/tests/timers/Makefile.in			MAKE	1999,2000,2001,2002,2004,2007,2009
 ./bin/tests/timers/t_timers.c			C	1999,2000,2001,2004,2007,2008,2009
-./bin/tests/virtual-time/.cvsignore		X	2010
+./bin/tests/virtual-time/.cvsignore		X	2010,2011
 ./bin/tests/virtual-time/Makefile.in		MAKE	2010
 ./bin/tests/virtual-time/README			TXT.BRIEF	2010
 ./bin/tests/virtual-time/autosign-ksk/clean.sh	SH	2010
@@ -1374,7 +1377,7 @@
 ./conftools/perllib/dnsconf/Makefile.PL		PERL	2000,2001,2004,2007
 ./conftools/perllib/dnsconf/named1.conf		CONF-C	2000,2001,2004,2007
 ./conftools/perllib/dnsconf/test.pl		PERL	2000,2001,2004,2007
-./contrib/.cvsignore				X	2000,2001
+./contrib/.cvsignore				X	2000,2001,2011
 ./contrib/check-secure-delegation.pl.in		PERL	2010
 ./contrib/dbus/GetForwarders			X	2006
 ./contrib/dbus/INSTALL				X	2006
@@ -1656,7 +1659,7 @@
 ./contrib/query-loc-0.4.0/query-loc.1		X	2008
 ./contrib/query-loc-0.4.0/query-loc.c		X	2008
 ./contrib/query-loc-0.4.0/reconf		X	2008
-./contrib/queryperf/.cvsignore			X	2001
+./contrib/queryperf/.cvsignore			X	2001,2011
 ./contrib/queryperf/Makefile.in			X	2001,2004
 ./contrib/queryperf/README			X	2001
 ./contrib/queryperf/config.h.in			X	2007
@@ -1892,7 +1895,7 @@
 ./doc/misc/sort-options.pl			PERL	2007
 ./doc/private/CHANGES				X	2000,2001
 ./doc/private/SRCID				X	2009,2010,2011
-./doc/private/branches				X	2002,2003,2004,2005,2006,2007,2008,2009,2010
+./doc/private/branches				X	2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
 ./doc/private/bugfix-by-assertion		X	2001
 ./doc/private/delete-list			X	2005,2006,2007,2008,2009,2010
 ./doc/private/options				TXT.BRIEF	2000,2001,2004
@@ -1931,7 +1934,7 @@
 ./lib/bind9/.cvsignore				X	2001
 ./lib/bind9/Makefile.in				MAKE	2001,2004,2007,2009
 ./lib/bind9/api					X	2001,2006,2008,2009,2010
-./lib/bind9/check.c				C	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
+./lib/bind9/check.c				C	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
 ./lib/bind9/getaddresses.c			C	2001,2002,2004,2005,2007
 ./lib/bind9/include/.cvsignore			X	2001
 ./lib/bind9/include/Makefile.in			MAKE	2001,2004,2007
@@ -2238,6 +2241,7 @@
 ./lib/dns/spnego_asn1.c				C	2006,2007
 ./lib/dns/spnego_asn1.pl			PERL	2006,2007
 ./lib/dns/ssu.c					C	2000,2001,2003,2004,2005,2006,2007,2008,2010,2011
+./lib/dns/ssu_external.c			C	2011
 ./lib/dns/stats.c				C	2000,2001,2004,2005,2007,2008,2009
 ./lib/dns/tcpmsg.c				C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/time.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2007,2009,2010
@@ -2253,10 +2257,10 @@
 ./lib/dns/win32/gen.dsp				X	2001
 ./lib/dns/win32/gen.dsw				X	2001
 ./lib/dns/win32/gen.mak				X	2001,2006
-./lib/dns/win32/libdns.def			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
-./lib/dns/win32/libdns.dsp			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
+./lib/dns/win32/libdns.def			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
+./lib/dns/win32/libdns.dsp			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
 ./lib/dns/win32/libdns.dsw			X	2001
-./lib/dns/win32/libdns.mak			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
+./lib/dns/win32/libdns.mak			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
 ./lib/dns/win32/version.c			C	1998,1999,2000,2001,2004,2007
 ./lib/dns/xfrin.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ./lib/dns/zone.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
