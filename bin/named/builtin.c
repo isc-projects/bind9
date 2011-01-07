@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009-2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: builtin.c,v 1.19 2011/01/07 21:42:03 each Exp $ */
+/* $Id: builtin.c,v 1.20 2011/01/07 23:47:07 tbox Exp $ */
 
 /*! \file
  * \brief
@@ -139,7 +139,7 @@ dns64_cname(const char *zone, const char *name, dns_sdblookup_t *lookup) {
 	}
 
 	/*
- 	 * If we get here then we know name only consisted of nibbles.
+	 * If we get here then we know name only consisted of nibbles.
 	 * Now we need to determine if the name exists or not and whether
 	 * it corresponds to a empty node in the zone or there should be
 	 * a CNAME.
@@ -224,7 +224,7 @@ dns64_cname(const char *zone, const char *name, dns_sdblookup_t *lookup) {
 		 * If the total length is not 71 then this is a empty node
 		 * so return success.
 		 */
-		if (nlen + zlen != 71U)	
+		if (nlen + zlen != 71U)
 			return (ISC_R_SUCCESS);
 		snprintf(reverse, sizeof(reverse), "%u.%u.%u.%u.in-addr.arpa.",
 			 v[0], v[1], v[2], v[3]);

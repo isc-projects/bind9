@@ -1,19 +1,20 @@
 /*
  * Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
- * Written by Andrew Tridgell
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
  * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
- * AND FITNESS.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
  * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
  * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
  * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
+
+/* $Id: ssu_external.c,v 1.4 2011/01/07 23:47:07 tbox Exp $ */
 
 /*
  * This implements external update-policy rules.  This allows permission
@@ -64,7 +65,7 @@ static int
 ux_socket_connect(const char *path) {
 	int fd = -1;
 #ifdef ISC_PLATFORM_HAVESYSUNH
-        struct sockaddr_un addr;
+	struct sockaddr_un addr;
 
 	REQUIRE(path != NULL);
 
@@ -75,9 +76,9 @@ ux_socket_connect(const char *path) {
 		return (-1);
 	}
 
-        memset(&addr, 0, sizeof(addr));
-        addr.sun_family = AF_UNIX;
-        strncpy(addr.sun_path, path, sizeof(addr.sun_path));
+	memset(&addr, 0, sizeof(addr));
+	addr.sun_family = AF_UNIX;
+	strncpy(addr.sun_path, path, sizeof(addr.sun_path));
 
 	fd = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (fd == -1) {
@@ -92,7 +93,7 @@ ux_socket_connect(const char *path) {
 		char strbuf[ISC_STRERRORSIZE];
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		ssu_e_log(3, "ssu_external: unable to connect to "
-		             "socket '%s' - %s",
+			     "socket '%s' - %s",
 			  path, strbuf);
 		close(fd);
 		return (-1);
@@ -171,7 +172,7 @@ dns_ssu_external_match(dns_name_t *identity,
 	if (key)
 		dst_key_format(key, b_key, sizeof(b_key));
 	else
-		b_key[0] = 0;		
+		b_key[0] = 0;
 
 	if (tkey_token) {
 		isc_buffer_region(tkey_token, &token_region);
