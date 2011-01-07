@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.556.8.32 2010/12/09 01:05:28 marka Exp $ */
+/* $Id: server.c,v 1.556.8.33 2011/01/07 00:53:18 each Exp $ */
 
 /*! \file */
 
@@ -6893,7 +6893,7 @@ ns_server_del_zone(ns_server_t *server, char *args) {
 	/* Rewrite zone list */
 	result = isc_stdio_open(filename, "r", &ifp);
 	if (ifp != NULL && result == ISC_R_SUCCESS) {
-		char *found = NULL, *p;
+		char *found = NULL, *p = NULL;
 		size_t n;
 
 		/* Create a temporary file */
