@@ -1,3 +1,9 @@
+3005.	[port]		Solaris: Work around the lack of
+			gsskrb5_register_acceptor_identity() by setting
+			the KRB5_KTNAME environment variable to the
+			contents of tkey-gssapi-keytab.  Also fixed
+			test errors on MacOSX.  [RT #22853]
+
 3004.	[func]		DNS64 reverse support. [RT #22769]
 
 3003.	[experimental]	Added update-policy match type "external",

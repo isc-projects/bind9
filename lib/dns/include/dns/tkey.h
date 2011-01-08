@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkey.h,v 1.30 2010/12/20 23:47:21 tbox Exp $ */
+/* $Id: tkey.h,v 1.31 2011/01/08 00:33:12 each Exp $ */
 
 #ifndef DNS_TKEY_H
 #define DNS_TKEY_H 1
@@ -125,7 +125,7 @@ isc_result_t
 dns_tkey_buildgssquery(dns_message_t *msg, dns_name_t *name, dns_name_t *gname,
 		       isc_buffer_t *intoken, isc_uint32_t lifetime,
 		       gss_ctx_id_t *context, isc_boolean_t win2k,
-		       dns_name_t *zone, isc_mem_t *mctx, char **err_message);
+		       isc_mem_t *mctx, char **err_message);
 /*%<
  *	Builds a query containing a TKEY that will generate a GSSAPI context.
  *	The key is requested to have the specified lifetime (in seconds).
@@ -218,8 +218,7 @@ isc_result_t
 dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 		      dns_name_t *server, gss_ctx_id_t *context,
 		      dns_tsigkey_t **outkey, dns_tsig_keyring_t *ring,
-		      isc_boolean_t win2k, dns_name_t *zone,
-		      char **err_message);
+		      isc_boolean_t win2k, char **err_message);
 
 /*
  *	Client side negotiation of GSS-TSIG.  Process the response

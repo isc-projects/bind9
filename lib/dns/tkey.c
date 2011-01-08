@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.98 2010/12/18 23:47:11 tbox Exp $
+ * $Id: tkey.c,v 1.99 2011/01/08 00:33:12 each Exp $
  */
 /*! \file */
 #include <config.h>
@@ -1003,7 +1003,7 @@ isc_result_t
 dns_tkey_buildgssquery(dns_message_t *msg, dns_name_t *name, dns_name_t *gname,
 		       isc_buffer_t *intoken, isc_uint32_t lifetime,
 		       gss_ctx_id_t *context, isc_boolean_t win2k,
-		       dns_name_t *zone, isc_mem_t *mctx, char **err_message)
+		       isc_mem_t *mctx, char **err_message)
 {
 	dns_rdata_tkey_t tkey;
 	isc_result_t result;
@@ -1020,7 +1020,7 @@ dns_tkey_buildgssquery(dns_message_t *msg, dns_name_t *name, dns_name_t *gname,
 	REQUIRE(mctx != NULL);
 
 	isc_buffer_init(&token, array, sizeof(array));
-	result = dst_gssapi_initctx(gname, NULL, &token, context, zone,
+	result = dst_gssapi_initctx(gname, NULL, &token, context,
 				    mctx, err_message);
 	if (result != DNS_R_CONTINUE && result != ISC_R_SUCCESS)
 		return (result);
@@ -1290,7 +1290,7 @@ dns_tkey_processgssresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	isc_buffer_init(outtoken, array, sizeof(array));
 	isc_buffer_init(&intoken, rtkey.key, rtkey.keylen);
 	RETERR(dst_gssapi_initctx(gname, &intoken, outtoken, context,
-				  NULL, ring->mctx, err_message));
+				  ring->mctx, err_message));
 
 	RETERR(dst_key_fromgssapi(dns_rootname, *context, rmsg->mctx,
 				  &dstkey, NULL));
@@ -1371,8 +1371,7 @@ isc_result_t
 dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 		      dns_name_t *server, gss_ctx_id_t *context,
 		      dns_tsigkey_t **outkey, dns_tsig_keyring_t *ring,
-		      isc_boolean_t win2k, dns_name_t *zone,
-		      char **err_message)
+		      isc_boolean_t win2k, char **err_message)
 {
 	dns_rdata_t rtkeyrdata = DNS_RDATA_INIT, qtkeyrdata = DNS_RDATA_INIT;
 	dns_name_t *tkeyname;
@@ -1417,7 +1416,7 @@ dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 	isc_buffer_init(&outtoken, array, sizeof(array));
 
 	result = dst_gssapi_initctx(server, &intoken, &outtoken, context,
-				    zone, ring->mctx, err_message);
+				    ring->mctx, err_message);
 	if (result != DNS_R_CONTINUE && result != ISC_R_SUCCESS)
 		return (result);
 

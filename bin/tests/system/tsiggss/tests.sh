@@ -9,7 +9,8 @@ status=0
 DIGOPTS="@10.53.0.1 -p 5300"
 
 # we don't want a KRB5_CONFIG setting breaking the tests
-unset KRB5_CONFIG
+KRB5_CONFIG=/dev/null
+export KRB5_CONFIG
 
 test_update() {
     host="$1"
@@ -28,7 +29,7 @@ EOF
 	return 1
     }
 
-    out=`$DIG $DIGOPTS -t $type -q $host | egrep ^$host`
+    out=`$DIG $DIGOPTS -t $type -q $host | egrep "^${host}"`
     lines=`echo "$out" | grep "$digout" | wc -l`
     [ $lines -eq 1 ] || {
 	echo "I:dig output incorrect for $host $type $cmd: $out"
@@ -38,7 +39,7 @@ EOF
 }
 
 echo "I:testing updates as administrator"
-KRB5CCNAME=`pwd`/ns1/administrator.ccache
+KRB5CCNAME="FILE:"`pwd`/ns1/administrator.ccache
 export KRB5CCNAME
 
 test_update testdc1.example.nil. A "86400 A 10.53.0.10" "10.53.0.10" || status=1
@@ -46,7 +47,7 @@ test_update testdc2.example.nil. A "86400 A 10.53.0.11" "10.53.0.11" || status=1
 test_update denied.example.nil. TXT "86400 TXT helloworld" "helloworld" && status=1
 
 echo "I:testing updates as a user"
-KRB5CCNAME=`pwd`/ns1/testdenied.ccache
+KRB5CCNAME="FILE:"`pwd`/ns1/testdenied.ccache
 export KRB5CCNAME
 
 test_update testdenied.example.nil. A "86400 A 10.53.0.12" "10.53.0.12" && status=1
@@ -61,6 +62,6 @@ test_update testcname.example.nil. TXT "86400 A 10.53.0.13" "10.53.0.13" && stat
 
 [ $status -eq 0 ] && echo "I:tsiggss tests all OK"
 
-kill $(cat authsock.pid)
+kill `cat authsock.pid`
 
 exit $status

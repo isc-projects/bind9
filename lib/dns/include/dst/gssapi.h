@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gssapi.h,v 1.14 2010/12/20 23:47:21 tbox Exp $ */
+/* $Id: gssapi.h,v 1.15 2011/01/08 00:33:12 each Exp $ */
 
 #ifndef DST_GSSAPI_H
 #define DST_GSSAPI_H 1
@@ -95,7 +95,7 @@ dst_gssapi_releasecred(gss_cred_id_t *cred);
 isc_result_t
 dst_gssapi_initctx(dns_name_t *name, isc_buffer_t *intoken,
 		   isc_buffer_t *outtoken, gss_ctx_id_t *gssctx,
-		   dns_name_t *zone, isc_mem_t *mctx, char **err_message);
+		   isc_mem_t *mctx, char **err_message);
 /*
  *	Initiates a GSS context.
  *

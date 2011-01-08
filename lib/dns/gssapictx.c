@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gssapictx.c,v 1.23 2010/12/24 02:20:47 each Exp $ */
+/* $Id: gssapictx.c,v 1.24 2011/01/08 00:33:12 each Exp $ */
 
 #include <config.h>
 
@@ -542,7 +542,7 @@ gss_err_message(isc_mem_t *mctx, isc_uint32_t major, isc_uint32_t minor,
 isc_result_t
 dst_gssapi_initctx(dns_name_t *name, isc_buffer_t *intoken,
 		   isc_buffer_t *outtoken, gss_ctx_id_t *gssctx,
-		   dns_name_t *zone, isc_mem_t *mctx, char **err_message)
+		   isc_mem_t *mctx, char **err_message)
 {
 #ifdef GSSAPI
 	isc_region_t r;
@@ -629,7 +629,6 @@ dst_gssapi_initctx(dns_name_t *name, isc_buffer_t *intoken,
 	UNUSED(intoken);
 	UNUSED(outtoken);
 	UNUSED(gssctx);
-	UNUSED(zone);
 	UNUSED(mctx);
 	UNUSED(err_message);
 
@@ -654,6 +653,7 @@ dst_gssapi_acceptctx(gss_cred_id_t cred,
 	gss_name_t gname = NULL;
 	isc_result_t result;
 	char buf[1024];
+	char *kt = NULL;
 
 	REQUIRE(outtoken != NULL && *outtoken == NULL);
 
@@ -667,9 +667,7 @@ dst_gssapi_acceptctx(gss_cred_id_t cred,
 		context = *ctxout;
 
 	if (gssapi_keytab != NULL) {
-#ifndef ISC_PLATFORM_GSSAPI_KRB5_HEADER
-		return (ISC_R_NOTIMPLEMENTED);
-#else
+#ifdef ISC_PLATFORM_GSSAPI_KRB5_HEADER
 		gret = gsskrb5_register_acceptor_identity(gssapi_keytab);
 		if (gret != GSS_S_COMPLETE) {
 			gss_log(3, "failed "
@@ -679,6 +677,10 @@ dst_gssapi_acceptctx(gss_cred_id_t cred,
 						   buf, sizeof(buf)));
 			return (DNS_R_INVALIDTKEY);
 		}
+#else
+		kt = isc_mem_allocate(mctx, strlen(gssapi_keytab) + 13);
+		sprintf(kt, "KRB5_KTNAME=%s", gssapi_keytab);
+		putenv(kt);
 #endif
 	}
 
@@ -769,6 +771,9 @@ dst_gssapi_acceptctx(gss_cred_id_t cred,
 				gss_error_tostring(gret, minor, buf,
 						   sizeof(buf)));
 	}
+
+	if (kt != NULL)
+		isc_mem_free(mctx, kt);
 
 	return (result);
 #else
