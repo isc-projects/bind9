@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.190 2010/12/26 23:24:18 marka Exp $ */
+/* $Id: nsupdate.c,v 1.191 2011/01/08 01:26:01 each Exp $ */
 
 /*! \file */
 
@@ -206,7 +206,7 @@ typedef struct nsu_gssinfo {
 } nsu_gssinfo_t;
 
 static void
-start_gssrequest(dns_name_t *master, dns_name_t *zone);
+start_gssrequest(dns_name_t *master);
 static void
 send_gssrequest(isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
 		dns_message_t *msg, dns_request_t **request,
@@ -2372,7 +2372,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		dns_name_dup(zonename, mctx, &tmpzonename);
 		dns_name_init(&restart_master, NULL);
 		dns_name_dup(&master, mctx, &restart_master);
-		start_gssrequest(&master, zonename);
+		start_gssrequest(&master);
 	} else {
 		send_update(zonename, serveraddr, localaddr);
 		setzoneclass(dns_rdataclass_none);
@@ -2485,8 +2485,7 @@ get_ticket_realm(isc_mem_t *mctx)
 
 
 static void
-start_gssrequest(dns_name_t *master, dns_name_t *zone)
-{
+start_gssrequest(dns_name_t *master) {
 	gss_ctx_id_t context;
 	isc_buffer_t buf;
 	isc_result_t result;
@@ -2570,7 +2569,7 @@ start_gssrequest(dns_name_t *master, dns_name_t *zone)
 	context = GSS_C_NO_CONTEXT;
 	result = dns_tkey_buildgssquery(rmsg, keyname, servname, NULL, 0,
 					&context, use_win2k_gsstsig,
-					zone, mctx, &err_message);
+					mctx, &err_message);
 	if (result == ISC_R_FAILURE)
 		fatal("tkey query failed: %s",
 		      err_message != NULL ? err_message : "unknown error");
@@ -2692,7 +2691,7 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 		else
 			use_win2k_gsstsig = ISC_TRUE;
 		tried_other_gsstsig = ISC_TRUE;
-		start_gssrequest(&restart_master, zonename);
+		start_gssrequest(&restart_master);
 		goto done;
 	}
 
@@ -2712,7 +2711,7 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 	result = dns_tkey_gssnegotiate(tsigquery, rcvmsg, servname,
 				       &context, &tsigkey, gssring,
 				       use_win2k_gsstsig,
-				       &tmpzonename, &err_message);
+				       &err_message);
 	switch (result) {
 
 	case DNS_R_CONTINUE:
