@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keydelete.c,v 1.16 2010/12/09 00:54:33 marka Exp $ */
+/* $Id: keydelete.c,v 1.17 2011/01/10 13:09:49 marka Exp $ */
 
 #include <config.h>
 
@@ -247,6 +247,8 @@ main(int argc, char **argv) {
 	isc_socket_detach(&sock);
 	isc_socketmgr_destroy(&socketmgr);
 	isc_timermgr_destroy(&timermgr);
+
+	dns_tsigkeyring_detach(&ring);
 
 	dns_tsigkey_detach(&tsigkey);
 

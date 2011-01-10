@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keycreate.c,v 1.18 2009/09/01 00:22:25 jinmei Exp $ */
+/* $Id: keycreate.c,v 1.19 2011/01/10 13:09:49 marka Exp $ */
 
 #include <config.h>
 
@@ -276,6 +276,7 @@ main(int argc, char *argv[]) {
 	view = NULL;
 	RUNCHECK(dns_view_create(mctx, 0, "_test", &view));
 	dns_view_setkeyring(view, ring);
+	dns_tsigkeyring_detach(&ring);
 
 	sock = NULL;
 	RUNCHECK(isc_socket_create(socketmgr, PF_INET, isc_sockettype_udp,
