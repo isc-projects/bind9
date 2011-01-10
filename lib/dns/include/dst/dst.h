@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.29 2010/12/23 04:07:59 marka Exp $ */
+/* $Id: dst.h,v 1.30 2011/01/10 05:32:04 marka Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -845,6 +845,31 @@ dst_key_tkeytoken(const dst_key_t *key);
  * Return the token from the TKEY request, if any.  If this key was
  * not negotiated via TKEY, return NULL.
  */
+
+
+isc_result_t
+dst_key_dump(dst_key_t *key, isc_mem_t *mctx, char **buffer, int *length);
+/*%<
+ * Allocate 'buffer' and dump the key into it in base64 format. The buffer
+ * is not NUL terminated. The length of the buffer is returned in *length.
+ *
+ * 'buffer' needs to be freed using isc_mem_put(mctx, buffer, length);
+ *
+ * Requires:
+ *	'buffer' to be non NULL and *buffer to be NULL.
+ *	'length' to be non NULL and *length to be zero.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
+ *	ISC_R_NOTIMPLEMENTED
+ *	others.
+ */
+
+isc_result_t
+dst_key_restore(dns_name_t *name, unsigned int alg, unsigned int flags,
+                unsigned int protocol, dns_rdataclass_t rdclass,
+                isc_mem_t *mctx, const char *keystr, dst_key_t **keyp);
 
 
 ISC_LANG_ENDDECLS

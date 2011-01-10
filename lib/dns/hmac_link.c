@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.17 2010/01/07 23:48:54 tbox Exp $
+ * $Id: hmac_link.c,v 1.18 2011/01/10 05:32:03 marka Exp $
  */
 
 #include <config.h>
@@ -325,6 +325,8 @@ static dst_func_t hmacmd5_functions = {
 	hmacmd5_parse,
 	NULL, /*%< cleanup */
 	NULL, /*%< fromlabel */
+	NULL, /*%< dump */
+	NULL, /*%< restore */
 };
 
 isc_result_t
@@ -599,6 +601,8 @@ static dst_func_t hmacsha1_functions = {
 	hmacsha1_parse,
 	NULL, /* cleanup */
 	NULL, /* fromlabel */
+	NULL, /* dump */
+	NULL, /* restore */
 };
 
 isc_result_t
@@ -875,6 +879,8 @@ static dst_func_t hmacsha224_functions = {
 	hmacsha224_parse,
 	NULL, /* cleanup */
 	NULL, /* fromlabel */
+	NULL, /* dump */
+	NULL, /* restore */
 };
 
 isc_result_t
@@ -1151,6 +1157,8 @@ static dst_func_t hmacsha256_functions = {
 	hmacsha256_parse,
 	NULL, /* cleanup */
 	NULL, /* fromlabel */
+	NULL, /* dump */
+	NULL, /* restore */
 };
 
 isc_result_t
@@ -1427,6 +1435,8 @@ static dst_func_t hmacsha384_functions = {
 	hmacsha384_parse,
 	NULL, /* cleanup */
 	NULL, /* fromlabel */
+	NULL, /* dump */
+	NULL, /* restore */
 };
 
 isc_result_t
@@ -1703,6 +1713,8 @@ static dst_func_t hmacsha512_functions = {
 	hmacsha512_parse,
 	NULL, /* cleanup */
 	NULL, /* fromlabel */
+	NULL, /* dump */
+	NULL, /* restore */
 };
 
 isc_result_t

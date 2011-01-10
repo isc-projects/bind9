@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.192 2011/01/08 23:47:00 tbox Exp $ */
+/* $Id: nsupdate.c,v 1.193 2011/01/10 05:32:03 marka Exp $ */
 
 /*! \file */
 
@@ -416,7 +416,7 @@ reset_system(void) {
 		if (tsigkey != NULL)
 			dns_tsigkey_detach(&tsigkey);
 		if (gssring != NULL)
-			dns_tsigkeyring_destroy(&gssring);
+			dns_tsigkeyring_detach(&gssring);
 		tried_other_gsstsig = ISC_FALSE;
 	}
 }
@@ -2502,7 +2502,7 @@ start_gssrequest(dns_name_t *master) {
 	usevc = ISC_TRUE;
 
 	if (gssring != NULL)
-		dns_tsigkeyring_destroy(&gssring);
+		dns_tsigkeyring_detach(&gssring);
 	gssring = NULL;
 	result = dns_tsigkeyring_create(mctx, &gssring);
 
@@ -2866,8 +2866,8 @@ cleanup(void) {
 		dns_tsigkey_detach(&tsigkey);
 	}
 	if (gssring != NULL) {
-		ddebug("Destroying GSS-TSIG keyring");
-		dns_tsigkeyring_destroy(&gssring);
+		ddebug("Detaching GSS-TSIG keyring");
+		dns_tsigkeyring_detach(&gssring);
 	}
 	if (kserver != NULL) {
 		isc_mem_put(mctx, kserver, sizeof(isc_sockaddr_t));

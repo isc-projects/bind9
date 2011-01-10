@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_internal.h,v 1.27 2010/12/23 04:07:58 marka Exp $ */
+/* $Id: dst_internal.h,v 1.28 2011/01/10 05:32:03 marka Exp $ */
 
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1
@@ -191,6 +191,9 @@ struct dst_func {
 
 	isc_result_t (*fromlabel)(dst_key_t *key, const char *engine,
 				  const char *label, const char *pin);
+	isc_result_t (*dump)(dst_key_t *key, isc_mem_t *mctx, char **buffer,
+			     int *length);
+	isc_result_t (*restore)(dst_key_t *key, const char *keystr);
 };
 
 /*%

@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: spnego.c,v 1.14 2010/12/20 23:47:21 tbox Exp $ */
+/* $Id: spnego.c,v 1.15 2011/01/10 05:32:03 marka Exp $ */
 
 /*! \file
  * \brief
@@ -412,7 +412,7 @@ code_NegTokenArg(OM_uint32 * minor_status,
 {
 	OM_uint32 ret;
 	u_char *buf;
-	size_t buf_size, buf_len;
+	size_t buf_size, buf_len = 0;
 
 	buf_size = 1024;
 	buf = malloc(buf_size);

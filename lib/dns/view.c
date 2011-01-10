@@ -15,13 +15,15 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.174 2010/12/18 11:47:13 marka Exp $ */
+/* $Id: view.c,v 1.175 2011/01/10 05:32:03 marka Exp $ */
 
 /*! \file */
 
 #include <config.h>
 
+#include <isc/file.h>
 #include <isc/hash.h>
+#include <isc/print.h>
 #include <isc/sha2.h>
 #include <isc/stats.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
@@ -234,7 +236,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 
  cleanup_dynkeys:
 #endif
-	dns_tsigkeyring_destroy(&view->dynamickeys);
+	dns_tsigkeyring_detach(&view->dynamickeys);
 
  cleanup_references:
 	isc_refcount_destroy(&view->references);
@@ -278,10 +280,41 @@ destroy(dns_view_t *view) {
 #endif
 	if (view->peers != NULL)
 		dns_peerlist_detach(&view->peers);
-	if (view->dynamickeys != NULL)
-		dns_tsigkeyring_destroy(&view->dynamickeys);
+
+	if (view->dynamickeys != NULL) {
+		isc_result_t result;
+		char template[20];
+		char keyfile[20];
+		FILE *fp = NULL;
+		int n;
+
+		n = snprintf(keyfile, sizeof(keyfile), "%s.tsigkeys",
+			     view->name);
+		if (n > 0 && (size_t)n < sizeof(keyfile)) {
+			result = isc_file_mktemplate(keyfile, template,
+						     sizeof(template));
+			if (result == ISC_R_SUCCESS)
+				(void)isc_file_openuniqueprivate(template, &fp);
+		}
+		if (fp == NULL)
+			dns_tsigkeyring_detach(&view->dynamickeys);
+		else {
+			result = dns_tsigkeyring_dumpanddetach(
+							&view->dynamickeys, fp);
+			if (result == ISC_R_SUCCESS) {
+				if (fclose(fp) == 0)
+					result = isc_file_rename(template,
+							         keyfile);
+				if (result != ISC_R_SUCCESS)
+					(void)remove(template);
+			} else {
+				(void)fclose(fp);
+				(void)remove(template);
+			}
+		}
+	}
 	if (view->statickeys != NULL)
-		dns_tsigkeyring_destroy(&view->statickeys);
+		dns_tsigkeyring_detach(&view->statickeys);
 	if (view->adb != NULL)
 		dns_adb_detach(&view->adb);
 	if (view->resolver != NULL)
@@ -725,8 +758,46 @@ dns_view_setkeyring(dns_view_t *view, dns_tsig_keyring_t *ring) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(ring != NULL);
 	if (view->statickeys != NULL)
-		dns_tsigkeyring_destroy(&view->statickeys);
-	view->statickeys = ring;
+		dns_tsigkeyring_detach(&view->statickeys);
+	dns_tsigkeyring_attach(ring, &view->statickeys);
+}
+
+void
+dns_view_setdynamickeyring(dns_view_t *view, dns_tsig_keyring_t *ring) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(ring != NULL);
+	if (view->dynamickeys != NULL)
+		dns_tsigkeyring_detach(&view->dynamickeys);
+	dns_tsigkeyring_attach(ring, &view->dynamickeys);
+}
+
+void
+dns_view_getdynamickeyring(dns_view_t *view, dns_tsig_keyring_t **ringp) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(ringp != NULL && *ringp == NULL);
+	if (view->dynamickeys != NULL)
+		dns_tsigkeyring_attach(view->dynamickeys, ringp);
+}
+
+void
+dns_view_restorekeyring(dns_view_t *view) {
+	FILE *fp;
+	char keyfile[20];
+	int n;
+
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	if (view->dynamickeys != NULL) {
+		n = snprintf(keyfile, sizeof(keyfile), "%s.tsigkeys",
+			     view->name);
+		if (n > 0 && (size_t)n < sizeof(keyfile)) {
+			fp = fopen(keyfile, "r");
+			if (fp != NULL) {
+				dns_keyring_restore(view->dynamickeys, fp);
+				(void)fclose(fp);
+			}
+		}
+	}
 }
 
 void

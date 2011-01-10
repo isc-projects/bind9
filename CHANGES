@@ -1,3 +1,7 @@
+3006.	[func]		Allow dynamically generated TSIG keys to be preserved
+			across restarts of named.  Initially this is for
+			TSIG keys generated using GSSAPI. [RT #22639]
+
 3005.	[port]		Solaris: Work around the lack of
 			gsskrb5_register_acceptor_identity() by setting
 			the KRB5_KTNAME environment variable to the

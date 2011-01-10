@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.130 2010/02/25 05:08:01 tbox Exp $ */
+/* $Id: result.c,v 1.131 2011/01/10 05:32:03 marka Exp $ */
 
 /*! \file */
 
@@ -160,6 +160,7 @@ static const char *text[DNS_R_NRESULTS] = {
 
 	"not master",			       /*%< 105 DNS_R_NOTMASTER */
 	"broken trust chain",		       /*%< 106 DNS_R_BROKENCHAIN */
+	"expired",			       /*%< 106 DNS_R_EXPIRED */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {

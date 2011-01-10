@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.37 2009/10/30 05:08:23 marka Exp $
+ * $Id: opensslrsa_link.c,v 1.38 2011/01/10 05:32:03 marka Exp $
  */
 #ifdef OPENSSL
 #include <config.h>
@@ -1386,6 +1386,8 @@ static dst_func_t opensslrsa_functions = {
 	opensslrsa_parse,
 	NULL, /*%< cleanup */
 	opensslrsa_fromlabel,
+	NULL, /*%< dump */
+	NULL, /*%< restore */
 };
 
 isc_result_t

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.120 2010/02/25 05:08:01 tbox Exp $ */
+/* $Id: result.h,v 1.121 2011/01/10 05:32:03 marka Exp $ */
 
 #ifndef DNS_RESULT_H
 #define DNS_RESULT_H 1
@@ -150,8 +150,9 @@
 #define DNS_R_INVALIDNSEC3		(ISC_RESULTCLASS_DNS + 104)
 #define DNS_R_NOTMASTER 		(ISC_RESULTCLASS_DNS + 105)
 #define DNS_R_BROKENCHAIN		(ISC_RESULTCLASS_DNS + 106)
+#define DNS_R_EXPIRED			(ISC_RESULTCLASS_DNS + 107)
 
-#define DNS_R_NRESULTS			107	/*%< Number of results */
+#define DNS_R_NRESULTS			108	/*%< Number of results */
 
 /*
  * DNS wire format rcodes.
