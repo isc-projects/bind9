@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsigconf.c,v 1.33 2009/09/01 00:22:25 jinmei Exp $ */
+/* $Id: tsigconf.c,v 1.34 2011/01/10 05:32:03 marka Exp $ */
 
 /*! \file */
 
@@ -178,6 +178,6 @@ ns_tsigkeyring_fromconfig(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	return (ISC_R_SUCCESS);
 
  failure:
-	dns_tsigkeyring_destroy(&ring);
+	dns_tsigkeyring_detach(&ring);
 	return (result);
 }

@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gsstest.c,v 1.13 2011/01/06 23:47:00 tbox Exp $ */
+/* $Id: gsstest.c,v 1.14 2011/01/08 01:26:01 each Exp $ */
 
 #include <config.h>
 
@@ -396,7 +396,7 @@ initctx1(isc_task_t *task, isc_event_t *event) {
 	result = dns_tkey_buildgssquery(query, dns_fixedname_name(&servername),
 					dns_fixedname_name(&gssname),
 					NULL, 36000, &gssctx, ISC_TRUE,
-					NULL, mctx, NULL);
+					mctx, NULL);
 	CHECK("dns_tkey_buildgssquery", result);
 
 	printf("Sending context token to server\n");

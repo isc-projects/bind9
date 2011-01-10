@@ -108,6 +108,8 @@ options {
                 recursive-only <boolean>;
                 suffix <ipv6_address>;
         };
+        dns64-contact <string>;
+        dns64-server <string>;
         dnssec-accept-expired <boolean>;
         dnssec-dnskey-kskonly <boolean>;
         dnssec-enable <boolean>;
@@ -320,6 +322,8 @@ view <string> <optional_class> {
                 recursive-only <boolean>;
                 suffix <ipv6_address>;
         };
+        dns64-contact <string>;
+        dns64-server <string>;
         dnssec-accept-expired <boolean>;
         dnssec-dnskey-kskonly <boolean>;
         dnssec-enable <boolean>;
@@ -512,8 +516,8 @@ view <string> <optional_class> {
                 update-policy ( local | { ( grant | deny ) <string> ( name
                     | subdomain | wildcard | self | selfsub | selfwild |
                     krb5-self | ms-self | krb5-subdomain | ms-subdomain |
-                    tcp-self | 6to4-self | zonesub | external) [ <string> ]
-                    <rrtypelist>; ... };
+                    tcp-self | 6to4-self | zonesub | external ) [ <string>
+                    ] <rrtypelist>; ... };
                 use-alt-transfer-source <boolean>;
                 zero-no-soa-ttl <boolean>;
                 zone-statistics <boolean>;

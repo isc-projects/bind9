@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.55 2010/12/23 04:07:58 marka Exp $
+ * $Id: dst_api.c,v 1.56 2011/01/10 05:32:03 marka Exp $
  */
 
 /*! \file */
@@ -1179,6 +1179,48 @@ dst_key_format(const dst_key_t *key, char *cp, unsigned int size) {
 	dns_secalg_format((dns_secalg_t) dst_key_alg(key), algstr,
 			  sizeof(algstr));
 	snprintf(cp, size, "%s/%s/%d", namestr, algstr, dst_key_id(key));
+}
+
+isc_result_t
+dst_key_dump(dst_key_t *key, isc_mem_t *mctx, char **buffer, int *length) {
+
+	REQUIRE(buffer != NULL && *buffer == NULL);
+	REQUIRE(length != NULL && *length == 0);
+	REQUIRE(VALID_KEY(key));
+
+	if (key->func->isprivate == NULL)
+		return (ISC_R_NOTIMPLEMENTED);
+	return (key->func->dump(key, mctx, buffer, length));
+}
+
+isc_result_t
+dst_key_restore(dns_name_t *name, unsigned int alg, unsigned int flags,
+		unsigned int protocol, dns_rdataclass_t rdclass,
+		isc_mem_t *mctx, const char *keystr, dst_key_t **keyp)
+{
+	isc_result_t result;
+	dst_key_t *key;
+
+        REQUIRE(dst_initialized == ISC_TRUE);
+        REQUIRE(keyp != NULL && *keyp == NULL);
+
+        if (alg >= DST_MAX_ALGS || dst_t_func[alg] == NULL)
+                return (DST_R_UNSUPPORTEDALG);
+
+	if (dst_t_func[alg]->restore == NULL)
+		return (ISC_R_NOTIMPLEMENTED);
+
+	key = get_key_struct(name, alg, flags, protocol, 0, rdclass, mctx);
+	if (key == NULL)
+		return (ISC_R_NOMEMORY);
+
+	result = (dst_t_func[alg]->restore)(key, keystr);
+	if (result == ISC_R_SUCCESS)
+		*keyp = key;
+	else
+		dst_key_free(&key);
+
+	return (result);
 }
 
 /***

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.h,v 1.37 2009/08/28 03:13:08 each Exp $ */
+/* $Id: file.h,v 1.38 2011/01/10 05:32:04 marka Exp $ */
 
 #ifndef ISC_FILE_H
 #define ISC_FILE_H 1
@@ -100,6 +100,10 @@ isc_file_mktemplate(const char *path, char *buf, size_t buflen);
 
 isc_result_t
 isc_file_openunique(char *templet, FILE **fp);
+isc_result_t
+isc_file_openuniqueprivate(char *templet, FILE **fp);
+isc_result_t
+isc_file_openuniquemode(char *templet, int mode, FILE **fp);
 /*!<
  * \brief Create and open a file with a unique name based on 'templet'.
  *

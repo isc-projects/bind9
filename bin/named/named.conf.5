@@ -1,4 +1,4 @@
-.\" Copyright (C) 2004-2010 Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (C) 2004-2011 Internet Systems Consortium, Inc. ("ISC")
 .\" 
 .\" Permission to use, copy, modify, and/or distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.conf.5,v 1.43 2010/12/19 01:14:05 tbox Exp $
+.\" $Id: named.conf.5,v 1.44 2011/01/08 01:15:38 tbox Exp $
 .\"
 .hy 0
 .ad l
@@ -257,6 +257,16 @@ options {
 	dnssec\-lookaside ( \fIauto\fR | \fIdomain\fR trust\-anchor \fIdomain\fR );
 	dnssec\-must\-be\-secure \fIstring\fR \fIboolean\fR;
 	dnssec\-accept\-expired \fIboolean\fR;
+	dns64\-server \fIstring\fR;
+	dns64\-contact \fIstring\fR;
+	dns64 \fIprefix\fR {
+		clients { <replacable>acl</replacable>; };
+		exclude { <replacable>acl</replacable>; };
+		mapped { <replacable>acl</replacable>; };
+		break\-dnssec \fIboolean\fR;
+		recursive\-only \fIboolean\fR;
+		suffix \fIipv6_address\fR;
+	};
 	empty\-server \fIstring\fR;
 	empty\-contact \fIstring\fR;
 	empty\-zones\-enable \fIboolean\fR;
@@ -415,6 +425,16 @@ view \fIstring\fR \fIoptional_class\fR {
 	dnssec\-lookaside \fIstring\fR trust\-anchor \fIstring\fR;
 	dnssec\-must\-be\-secure \fIstring\fR \fIboolean\fR;
 	dnssec\-accept\-expired \fIboolean\fR;
+	dns64\-server \fIstring\fR;
+	dns64\-contact \fIstring\fR;
+	dns64 \fIprefix\fR {
+		clients { <replacable>acl</replacable>; };
+		exclude { <replacable>acl</replacable>; };
+		mapped { <replacable>acl</replacable>; };
+		break\-dnssec \fIboolean\fR;
+		recursive\-only \fIboolean\fR;
+		suffix \fIipv6_address\fR;
+	};
 	empty\-server \fIstring\fR;
 	empty\-contact \fIstring\fR;
 	empty\-zones\-enable \fIboolean\fR;
@@ -571,5 +591,5 @@ zone \fIstring\fR \fIoptional_class\fR {
 \fBrndc\fR(8),
 BIND 9 Administrator Reference Manual.
 .SH "COPYRIGHT"
-Copyright \(co 2004\-2010 Internet Systems Consortium, Inc. ("ISC")
+Copyright \(co 2004\-2011 Internet Systems Consortium, Inc. ("ISC")
 .br

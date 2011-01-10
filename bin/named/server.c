@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.595 2011/01/07 04:31:38 marka Exp $ */
+/* $Id: server.c,v 1.596 2011/01/10 05:32:03 marka Exp $ */
 
 /*! \file */
 
@@ -2197,7 +2197,23 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 					  ns_g_server->sessionkey));
 	}
 	dns_view_setkeyring(view, ring);
-	ring = NULL;		/* ownership transferred */
+	dns_tsigkeyring_detach(&ring);
+
+	/*
+	 * See if we can re-use a dynamic key ring.
+	 */
+	result = dns_viewlist_find(&ns_g_server->viewlist, view->name,
+				   view->rdclass, &pview);
+	if (result != ISC_R_NOTFOUND && result != ISC_R_SUCCESS)
+		goto cleanup;
+	if (pview != NULL) {
+		dns_view_getdynamickeyring(pview, &ring);
+		if (ring != NULL)
+			dns_view_setdynamickeyring(view, ring);
+		dns_tsigkeyring_detach(&ring);
+		dns_view_detach(&pview);
+	} else 
+		dns_view_restorekeyring(view);
 
 	/*
 	 * Configure the view's peer list.
@@ -2775,7 +2791,7 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 	if (excluded != NULL)
 		dns_acl_detach(&excluded);
 	if (ring != NULL)
-		dns_tsigkeyring_destroy(&ring);
+		dns_tsigkeyring_detach(&ring);
 	if (zone != NULL)
 		dns_zone_detach(&zone);
 	if (dispatch4 != NULL)

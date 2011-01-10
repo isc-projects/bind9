@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.3 2010/12/17 00:57:38 marka Exp $
+# $Id: tests.sh,v 1.4 2011/01/10 05:08:49 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -153,16 +153,21 @@ grep "example org data" dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
 # Note: for a short term workaround we use ::1, assuming it's configured and
 # usable for our tests.  We should eventually use the test ULA and available
 # checks introduced in change 2916.
-n=`expr $n + 1`
-echo "I:checking IPv6 static-stub address ($n)"
-ret=0
-$DIG +tcp data.example.info. @10.53.0.2 txt -p 5300 > dig.out.ns2.test$n || ret=1
-grep "example info data" dig.out.ns2.test$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo "I:failed"; fi
-status=`expr $status + $ret`
+if $PERL ../testsock6.pl ::1
+then
+    echo "I:checking IPv6 static-stub address ($n)"
+    ret=0
+    $DIG +tcp data.example.info. @10.53.0.2 txt -p 5300 > dig.out.ns2.test$n || ret=1
+    grep "example info data" dig.out.ns2.test$n > /dev/null || ret=1
+    if [ $ret != 0 ]; then echo "I:failed"; fi
+    status=`expr $status + $ret`
+else
+    echo "I:SKIPPED: checking IPv6 static-stub address ($n)"
+fi
 
 n=`expr $n + 1`
 echo "I:look for static-stub zone data with DNSSEC validation ($n)"

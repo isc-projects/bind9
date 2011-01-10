@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.269 2010/09/24 05:09:02 marka Exp $ */
+/* $Id: client.c,v 1.270 2011/01/10 05:32:03 marka Exp $ */
 
 #include <config.h>
 
@@ -1777,9 +1777,11 @@ client_request(isc_task_t *task, isc_event_t *event) {
 
 	}
 	if (result == ISC_R_SUCCESS) {
+		char namebuf[DNS_NAME_FORMATSIZE];
+		dns_name_format(&client->signername, namebuf, sizeof(namebuf));
 		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
-			      "request has valid signature");
+			      "request has valid signature: %s", namebuf);
 		client->signer = &client->signername;
 	} else if (result == ISC_R_NOTFOUND) {
 		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.190 2010/12/26 23:24:18 marka Exp $ */
+/* $Id: nsupdate.c,v 1.193 2011/01/10 05:32:03 marka Exp $ */
 
 /*! \file */
 
@@ -206,7 +206,7 @@ typedef struct nsu_gssinfo {
 } nsu_gssinfo_t;
 
 static void
-start_gssrequest(dns_name_t *master, dns_name_t *zone);
+start_gssrequest(dns_name_t *master);
 static void
 send_gssrequest(isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
 		dns_message_t *msg, dns_request_t **request,
@@ -416,7 +416,7 @@ reset_system(void) {
 		if (tsigkey != NULL)
 			dns_tsigkey_detach(&tsigkey);
 		if (gssring != NULL)
-			dns_tsigkeyring_destroy(&gssring);
+			dns_tsigkeyring_detach(&gssring);
 		tried_other_gsstsig = ISC_FALSE;
 	}
 }
@@ -2372,7 +2372,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		dns_name_dup(zonename, mctx, &tmpzonename);
 		dns_name_init(&restart_master, NULL);
 		dns_name_dup(&master, mctx, &restart_master);
-		start_gssrequest(&master, zonename);
+		start_gssrequest(&master);
 	} else {
 		send_update(zonename, serveraddr, localaddr);
 		setzoneclass(dns_rdataclass_none);
@@ -2485,8 +2485,7 @@ get_ticket_realm(isc_mem_t *mctx)
 
 
 static void
-start_gssrequest(dns_name_t *master, dns_name_t *zone)
-{
+start_gssrequest(dns_name_t *master) {
 	gss_ctx_id_t context;
 	isc_buffer_t buf;
 	isc_result_t result;
@@ -2503,7 +2502,7 @@ start_gssrequest(dns_name_t *master, dns_name_t *zone)
 	usevc = ISC_TRUE;
 
 	if (gssring != NULL)
-		dns_tsigkeyring_destroy(&gssring);
+		dns_tsigkeyring_detach(&gssring);
 	gssring = NULL;
 	result = dns_tsigkeyring_create(mctx, &gssring);
 
@@ -2570,7 +2569,7 @@ start_gssrequest(dns_name_t *master, dns_name_t *zone)
 	context = GSS_C_NO_CONTEXT;
 	result = dns_tkey_buildgssquery(rmsg, keyname, servname, NULL, 0,
 					&context, use_win2k_gsstsig,
-					zone, mctx, &err_message);
+					mctx, &err_message);
 	if (result == ISC_R_FAILURE)
 		fatal("tkey query failed: %s",
 		      err_message != NULL ? err_message : "unknown error");
@@ -2692,7 +2691,7 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 		else
 			use_win2k_gsstsig = ISC_TRUE;
 		tried_other_gsstsig = ISC_TRUE;
-		start_gssrequest(&restart_master, zonename);
+		start_gssrequest(&restart_master);
 		goto done;
 	}
 
@@ -2712,7 +2711,7 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 	result = dns_tkey_gssnegotiate(tsigquery, rcvmsg, servname,
 				       &context, &tsigkey, gssring,
 				       use_win2k_gsstsig,
-				       &tmpzonename, &err_message);
+				       &err_message);
 	switch (result) {
 
 	case DNS_R_CONTINUE:
@@ -2867,8 +2866,8 @@ cleanup(void) {
 		dns_tsigkey_detach(&tsigkey);
 	}
 	if (gssring != NULL) {
-		ddebug("Destroying GSS-TSIG keyring");
-		dns_tsigkeyring_destroy(&gssring);
+		ddebug("Detaching GSS-TSIG keyring");
+		dns_tsigkeyring_detach(&gssring);
 	}
 	if (kserver != NULL) {
 		isc_mem_put(mctx, kserver, sizeof(isc_sockaddr_t));

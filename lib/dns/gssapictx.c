@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gssapictx.c,v 1.24 2011/01/08 00:33:12 each Exp $ */
+/* $Id: gssapictx.c,v 1.26 2011/01/10 03:49:49 marka Exp $ */
 
 #include <config.h>
 
@@ -553,7 +553,6 @@ dst_gssapi_initctx(dns_name_t *name, isc_buffer_t *intoken,
 	isc_result_t result;
 	gss_buffer_desc gnamebuf;
 	unsigned char array[DNS_NAME_MAXTEXT + 1];
-	char *tmpfile = NULL;
 
 	/* Client must pass us a valid gss_ctx_id_t here */
 	REQUIRE(gssctx != NULL);
@@ -618,11 +617,6 @@ dst_gssapi_initctx(dns_name_t *name, isc_buffer_t *intoken,
 		result = DNS_R_CONTINUE;
 
  out:
-	if (tmpfile) {
-		unsetenv("KRB5_CONFIG");
-		isc_file_remove(tmpfile);
-		isc_mem_free(mctx, tmpfile);
-	}
 	return (result);
 #else
 	UNUSED(name);
@@ -653,7 +647,6 @@ dst_gssapi_acceptctx(gss_cred_id_t cred,
 	gss_name_t gname = NULL;
 	isc_result_t result;
 	char buf[1024];
-	char *kt = NULL;
 
 	REQUIRE(outtoken != NULL && *outtoken == NULL);
 
@@ -678,9 +671,19 @@ dst_gssapi_acceptctx(gss_cred_id_t cred,
 			return (DNS_R_INVALIDTKEY);
 		}
 #else
-		kt = isc_mem_allocate(mctx, strlen(gssapi_keytab) + 13);
-		sprintf(kt, "KRB5_KTNAME=%s", gssapi_keytab);
-		putenv(kt);
+		/*
+		 * Minimize memory leakage by only setting KRB5_KTNAME
+		 * if it needs to change.
+		 */
+		const char *old = getenv("KRB5_KTNAME");
+		if (old == NULL || strcmp(old, gssapi_keytab) != 0) {
+			char *kt = malloc(strlen(gssapi_keytab) + 13);
+			if (kt == NULL)
+				return (ISC_R_NOMEMORY);
+			sprintf(kt, "KRB5_KTNAME=%s", gssapi_keytab);
+			if (putenv(kt) != 0)
+				return (ISC_R_NOMEMORY);
+		}
 #endif
 	}
 
@@ -771,9 +774,6 @@ dst_gssapi_acceptctx(gss_cred_id_t cred,
 				gss_error_tostring(gret, minor, buf,
 						   sizeof(buf)));
 	}
-
-	if (kt != NULL)
-		isc_mem_free(mctx, kt);
 
 	return (result);
 #else

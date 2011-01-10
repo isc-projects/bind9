@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.129 2010/12/16 09:51:29 jinmei Exp $ */
+/* $Id: view.h,v 1.130 2011/01/10 05:32:04 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -376,6 +376,8 @@ dns_view_sethints(dns_view_t *view, dns_db_t *hints);
 
 void
 dns_view_setkeyring(dns_view_t *view, dns_tsig_keyring_t *ring);
+void
+dns_view_setdynamickeyring(dns_view_t *view, dns_tsig_keyring_t *ring);
 /*%<
  * Set the view's static TSIG keys
  *
@@ -389,6 +391,15 @@ dns_view_setkeyring(dns_view_t *view, dns_tsig_keyring_t *ring);
  * Ensures:
  *
  *\li      The static TSIG keyring of 'view' is 'ring'.
+ */
+
+void
+dns_view_getdynamickeyring(dns_view_t *view, dns_tsig_keyring_t **ringp);
+/*%<
+ * Return the views dynamic keys.
+ *
+ *   \li  'view' is a valid, unfrozen view.
+ *   \li  'ringp' != NULL && ringp == NULL.
  */
 
 void
@@ -1058,5 +1069,8 @@ dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
  * Requires:
  * \li 'view' is valid.
  */
+
+void
+dns_view_restorekeyring(dns_view_t *view);
 
 #endif /* DNS_VIEW_H */

@@ -48,7 +48,7 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: file.c,v 1.55 2009/08/28 03:13:08 each Exp $ */
+/* $Id: file.c,v 1.56 2011/01/10 05:32:04 marka Exp $ */
 
 /*! \file */
 
@@ -243,16 +243,26 @@ isc_file_renameunique(const char *file, char *templet) {
 	return (ISC_R_SUCCESS);
 }
 
-
 isc_result_t
 isc_file_openunique(char *templet, FILE **fp) {
+	int mode = S_IWUSR|S_IRUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH;
+	return (isc_file_openuniquemode(templet, mode, fp));
+}
+
+isc_result_t
+isc_file_openuniqueprivate(char *templet, FILE **fp) {
+	int mode = S_IWUSR|S_IRUSR;
+	return (isc_file_openuniquemode(templet, mode, fp));
+}
+
+isc_result_t
+isc_file_openuniquemode(char *templet, int mode, FILE **fp) {
 	int fd;
 	FILE *f;
 	isc_result_t result = ISC_R_SUCCESS;
 	char *x;
 	char *cp;
 	isc_uint32_t which;
-	int mode;
 
 	REQUIRE(templet != NULL);
 	REQUIRE(fp != NULL && *fp == NULL);
@@ -270,7 +280,6 @@ isc_file_openunique(char *templet, FILE **fp) {
 		x = cp--;
 	}
 
-	mode = S_IWUSR|S_IRUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH;
 
 	while ((fd = open(templet, O_RDWR|O_CREAT|O_EXCL, mode)) == -1) {
 		if (errno != EEXIST)

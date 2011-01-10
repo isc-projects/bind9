@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: openssldsa_link.c,v 1.18 2009/10/30 05:08:23 marka Exp $ */
+/* $Id: openssldsa_link.c,v 1.19 2011/01/10 05:32:03 marka Exp $ */
 
 #ifdef OPENSSL
 #ifndef USE_EVP
@@ -618,6 +618,8 @@ static dst_func_t openssldsa_functions = {
 	openssldsa_parse,
 	NULL, /*%< cleanup */
 	NULL, /*%< fromlabel */
+	NULL, /*%< dump */
+	NULL, /*%< restore */
 };
 
 isc_result_t
