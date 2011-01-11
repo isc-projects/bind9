@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.509 $)
+AC_REVISION($Revision: 1.510 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -3238,50 +3238,66 @@ AC_CONFIG_COMMANDS(
 #
 
 AC_CONFIG_FILES([
+  make/Makefile
+  make/mkdep
 	Makefile
-	make/Makefile
-	make/mkdep
+	bin/Makefile
+	bin/check/Makefile
+	bin/confgen/Makefile
+	bin/confgen/unix/Makefile
+	bin/dig/Makefile
+	bin/dnssec/Makefile
+	bin/named/Makefile
+	bin/named/unix/Makefile
+	bin/nsupdate/Makefile
+	bin/pkcs11/Makefile
+	bin/rndc/Makefile
+	bin/tests/Makefile
+	bin/tests/atomic/Makefile
+	bin/tests/db/Makefile
+	bin/tests/dst/Makefile
+	bin/tests/hashes/Makefile
+	bin/tests/headerdep_test.sh
+	bin/tests/master/Makefile
+	bin/tests/mem/Makefile
+	bin/tests/names/Makefile
+	bin/tests/net/Makefile
+	bin/tests/rbt/Makefile
+	bin/tests/sockaddr/Makefile
+	bin/tests/system/Makefile
+	bin/tests/system/conf.sh
+	bin/tests/system/filter-aaaa/Makefile
+	bin/tests/system/gost/prereq.sh
+	bin/tests/system/lwresd/Makefile
+	bin/tests/system/tkey/Makefile
+	bin/tests/tasks/Makefile
+	bin/tests/timers/Makefile
+	bin/tests/virtual-time/Makefile
+	bin/tests/virtual-time/conf.sh
+	bin/tools/Makefile
+	contrib/check-secure-delegation.pl
+	contrib/zone-edit.sh
+	doc/Makefile
+	doc/arm/Makefile
+	doc/doxygen/Doxyfile
+	doc/doxygen/Makefile
+	doc/doxygen/doxygen-input-filter
+	doc/misc/Makefile
+	doc/xsl/Makefile
+	doc/xsl/isc-docbook-chunk.xsl
+	doc/xsl/isc-docbook-html.xsl
+	doc/xsl/isc-docbook-latex.xsl
+	doc/xsl/isc-manpage.xsl
+	isc-config.sh
 	lib/Makefile
-	lib/isc/Makefile
-	lib/isc/include/Makefile
-	lib/isc/include/isc/Makefile
-	lib/isc/include/isc/platform.h
-	lib/isc/unix/Makefile
-	lib/isc/unix/include/Makefile
-	lib/isc/unix/include/isc/Makefile
-	lib/isc/nls/Makefile
-	lib/isc/$thread_dir/Makefile
-	lib/isc/$thread_dir/include/Makefile
-	lib/isc/$thread_dir/include/isc/Makefile
-	lib/isc/$arch/Makefile
-	lib/isc/$arch/include/Makefile
-	lib/isc/$arch/include/isc/Makefile
-	lib/isccc/Makefile
-	lib/isccc/include/Makefile
-	lib/isccc/include/isccc/Makefile
-	lib/isccfg/Makefile
-	lib/isccfg/include/Makefile
-	lib/isccfg/include/isccfg/Makefile
-	lib/irs/Makefile
-	lib/irs/include/Makefile
-	lib/irs/include/irs/Makefile
-	lib/irs/include/irs/netdb.h
-	lib/irs/include/irs/platform.h
+	lib/bind9/Makefile
+	lib/bind9/include/Makefile
+	lib/bind9/include/bind9/Makefile
 	lib/dns/Makefile
 	lib/dns/include/Makefile
 	lib/dns/include/dns/Makefile
 	lib/dns/include/dst/Makefile
 	lib/export/Makefile
-	lib/export/isc/Makefile
-	lib/export/isc/include/Makefile
-	lib/export/isc/include/isc/Makefile
-	lib/export/isc/unix/Makefile
-	lib/export/isc/unix/include/Makefile
-	lib/export/isc/unix/include/isc/Makefile
-	lib/export/isc/nls/Makefile
-	lib/export/isc/$thread_dir/Makefile
-	lib/export/isc/$thread_dir/include/Makefile
-	lib/export/isc/$thread_dir/include/isc/Makefile
 	lib/export/dns/Makefile
 	lib/export/dns/include/Makefile
 	lib/export/dns/include/dns/Makefile
@@ -3289,14 +3305,46 @@ AC_CONFIG_FILES([
 	lib/export/irs/Makefile
 	lib/export/irs/include/Makefile
 	lib/export/irs/include/irs/Makefile
+	lib/export/isc/$thread_dir/Makefile
+	lib/export/isc/$thread_dir/include/Makefile
+	lib/export/isc/$thread_dir/include/isc/Makefile
+	lib/export/isc/Makefile
+	lib/export/isc/include/Makefile
+	lib/export/isc/include/isc/Makefile
+	lib/export/isc/nls/Makefile
+	lib/export/isc/unix/Makefile
+	lib/export/isc/unix/include/Makefile
+	lib/export/isc/unix/include/isc/Makefile
 	lib/export/isccfg/Makefile
 	lib/export/isccfg/include/Makefile
 	lib/export/isccfg/include/isccfg/Makefile
 	lib/export/samples/Makefile
 	lib/export/samples/Makefile-postinstall
-	lib/bind9/Makefile
-	lib/bind9/include/Makefile
-	lib/bind9/include/bind9/Makefile
+	lib/irs/Makefile
+	lib/irs/include/Makefile
+	lib/irs/include/irs/Makefile
+	lib/irs/include/irs/netdb.h
+	lib/irs/include/irs/platform.h
+	lib/isc/$arch/Makefile
+	lib/isc/$arch/include/Makefile
+	lib/isc/$arch/include/isc/Makefile
+	lib/isc/$thread_dir/Makefile
+	lib/isc/$thread_dir/include/Makefile
+	lib/isc/$thread_dir/include/isc/Makefile
+	lib/isc/Makefile
+	lib/isc/include/Makefile
+	lib/isc/include/isc/Makefile
+	lib/isc/include/isc/platform.h
+	lib/isc/nls/Makefile
+	lib/isc/unix/Makefile
+	lib/isc/unix/include/Makefile
+	lib/isc/unix/include/isc/Makefile
+	lib/isccc/Makefile
+	lib/isccc/include/Makefile
+	lib/isccc/include/isccc/Makefile
+	lib/isccfg/Makefile
+	lib/isccfg/include/Makefile
+	lib/isccfg/include/isccfg/Makefile
 	lib/lwres/Makefile
 	lib/lwres/include/Makefile
 	lib/lwres/include/lwres/Makefile
@@ -3309,53 +3357,6 @@ AC_CONFIG_FILES([
 	lib/tests/Makefile
 	lib/tests/include/Makefile
 	lib/tests/include/tests/Makefile
-	bin/Makefile
-	bin/check/Makefile
-	bin/confgen/Makefile
-	bin/confgen/unix/Makefile
-	bin/named/Makefile
-	bin/named/unix/Makefile
-	bin/rndc/Makefile
-	bin/dig/Makefile
-	bin/nsupdate/Makefile
-	bin/tests/Makefile
-	bin/tests/names/Makefile
-	bin/tests/master/Makefile
-	bin/tests/rbt/Makefile
-	bin/tests/db/Makefile
-	bin/tests/tasks/Makefile
-	bin/tests/timers/Makefile
-	bin/tests/dst/Makefile
-	bin/tests/mem/Makefile
-	bin/tests/hashes/Makefile
-	bin/tests/net/Makefile
-	bin/tests/sockaddr/Makefile
-	bin/tests/system/Makefile
-	bin/tests/system/conf.sh
-	bin/tests/system/gost/prereq.sh
-	bin/tests/system/filter-aaaa/Makefile
-	bin/tests/system/lwresd/Makefile
-	bin/tests/system/tkey/Makefile
-	bin/tests/headerdep_test.sh
-	bin/tests/virtual-time/Makefile
-	bin/tests/virtual-time/conf.sh
-	bin/tools/Makefile
-	bin/dnssec/Makefile
-	bin/pkcs11/Makefile
-	contrib/check-secure-delegation.pl
-	doc/Makefile
-	doc/arm/Makefile
-	doc/misc/Makefile
-	isc-config.sh
-	doc/xsl/Makefile
-	doc/xsl/isc-docbook-chunk.xsl
-	doc/xsl/isc-docbook-html.xsl
-	doc/xsl/isc-docbook-latex.xsl
-	doc/xsl/isc-manpage.xsl
-	doc/doxygen/Doxyfile
-	doc/doxygen/Makefile
-	doc/doxygen/doxygen-input-filter
-	contrib/zone-edit.sh
 ])
 
 #
