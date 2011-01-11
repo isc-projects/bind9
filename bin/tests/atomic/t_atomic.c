@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_atomic.c,v 1.1 2011/01/11 21:36:22 mgraff Exp $ */
+/* $Id: t_atomic.c,v 1.2 2011/01/11 23:47:12 tbox Exp $ */
 
 #include <config.h>
 
@@ -76,7 +76,7 @@ void
 do_xadd(isc_task_t *task, isc_event_t *ev) {
 	counter_t *state = (counter_t *)ev->ev_arg;
 	int i;
-	
+
 	for (i = 0 ; i < COUNTS_PER_ITERATION ; i++) {
 		isc_atomic_xadd(&counter_32, 1);
 	}
@@ -100,10 +100,10 @@ test_atomic_xadd() {
 		 "ensure that isc_atomic_xadd() works.");
 
 	setup();
-	
+
 	memset(counters, 0, sizeof(counters));
 	counter_32 = 0;
-	
+
 	/*
 	 * Create our tasks, and allocate an event to get the counters going.
 	 */
@@ -111,7 +111,7 @@ test_atomic_xadd() {
 		tasks[i] = NULL;
 		CHECK(isc_task_create(task_manager, 0, &tasks[i]));
 		event = isc_event_allocate(mctx, NULL, 1000, do_xadd,
-				   	   &counters[i], sizeof(struct isc_event));
+					   &counters[i], sizeof(struct isc_event));
 		isc_task_sendanddetach(&tasks[i], &event);
 	}
 
@@ -122,7 +122,7 @@ test_atomic_xadd() {
 	if (counter_32 != EXPECTED_COUNT_32)
 		test_result = T_FAIL;
 	t_result(test_result);
-	
+
 	counter_32 = 0;
 }
 #endif
@@ -136,7 +136,7 @@ void
 do_xaddq(isc_task_t *task, isc_event_t *ev) {
 	counter_t *state = (counter_t *)ev->ev_arg;
 	int i;
-	
+
 	for (i = 0 ; i < COUNTS_PER_ITERATION ; i++) {
 		isc_atomic_xaddq(&counter_64, INCREMENT_64);
 	}
@@ -160,10 +160,10 @@ test_atomic_xaddq() {
 		 "ensure that isc_atomic_xaddq() works.");
 
 	setup();
-	
+
 	memset(counters, 0, sizeof(counters));
 	counter_64 = 0;
-	
+
 	/*
 	 * Create our tasks, and allocate an event to get the counters going.
 	 */
@@ -171,7 +171,7 @@ test_atomic_xaddq() {
 		tasks[i] = NULL;
 		CHECK(isc_task_create(task_manager, 0, &tasks[i]));
 		event = isc_event_allocate(mctx, NULL, 1000, do_xaddq,
-				   	   &counters[i], sizeof(struct isc_event));
+					   &counters[i], sizeof(struct isc_event));
 		isc_task_sendanddetach(&tasks[i], &event);
 	}
 
@@ -183,7 +183,7 @@ test_atomic_xaddq() {
 	if (counter_64 != EXPECTED_COUNT_64)
 		test_result = T_FAIL;
 	t_result(test_result);
-	
+
 	counter_64 = 0;
 }
 #endif

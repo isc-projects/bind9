@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.146 2011/01/10 07:38:22 marka Exp $
+ * $Id: tsig.c,v 1.147 2011/01/11 23:47:13 tbox Exp $
  */
 /*! \file */
 #include <config.h>
@@ -550,7 +550,7 @@ dst_alg_fromname(dns_name_t *algorithm) {
 	} else if (dns_name_equal(algorithm, DNS_TSIG_HMACSHA512_NAME)) {
 		return (DST_ALG_HMACSHA512);
 	} else if (dns_name_equal(algorithm, DNS_TSIG_GSSAPI_NAME)) {
-		return (DST_ALG_GSSAPI); 
+		return (DST_ALG_GSSAPI);
 	} else if (dns_name_equal(algorithm, DNS_TSIG_GSSAPIMS_NAME)) {
 		return (DST_ALG_GSSAPI);
 	} else
@@ -629,9 +629,9 @@ dump_key(dns_tsigkey_t *tkey, FILE *fp)
 {
 	char *buffer = NULL;
 	int length = 0;
-        char namestr[DNS_NAME_FORMATSIZE];
-        char creatorstr[DNS_NAME_FORMATSIZE];
-        char algorithmstr[DNS_NAME_FORMATSIZE];
+	char namestr[DNS_NAME_FORMATSIZE];
+	char creatorstr[DNS_NAME_FORMATSIZE];
+	char algorithmstr[DNS_NAME_FORMATSIZE];
 	isc_result_t result;
 
 	dns_name_format(&tkey->name, namestr, sizeof(namestr));

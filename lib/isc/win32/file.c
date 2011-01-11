@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2009, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.36 2011/01/10 05:32:04 marka Exp $ */
+/* $Id: file.c,v 1.37 2011/01/11 23:47:14 tbox Exp $ */
 
 #include <config.h>
 
@@ -345,7 +345,7 @@ isc_file_openuniquemode(char *templet, unsigned int mode, FILE **fp) {
 	if (fd == -1)
 		result = isc__errno2result(errno);
 	if (result == ISC_R_SUCCESS) {
-#if 1 
+#if 1
 		UNUSED(mode)
 #else
 		(void)fchmod(fd, mode);

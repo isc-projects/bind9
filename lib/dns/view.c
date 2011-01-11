@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.175 2011/01/10 05:32:03 marka Exp $ */
+/* $Id: view.c,v 1.176 2011/01/11 23:47:13 tbox Exp $ */
 
 /*! \file */
 
@@ -304,7 +304,7 @@ destroy(dns_view_t *view) {
 			if (result == ISC_R_SUCCESS) {
 				if (fclose(fp) == 0)
 					result = isc_file_rename(template,
-							         keyfile);
+								 keyfile);
 				if (result != ISC_R_SUCCESS)
 					(void)remove(template);
 			} else {

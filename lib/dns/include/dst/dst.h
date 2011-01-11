@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.30 2011/01/10 05:32:04 marka Exp $ */
+/* $Id: dst.h,v 1.31 2011/01/11 23:47:14 tbox Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -868,8 +868,8 @@ dst_key_dump(dst_key_t *key, isc_mem_t *mctx, char **buffer, int *length);
 
 isc_result_t
 dst_key_restore(dns_name_t *name, unsigned int alg, unsigned int flags,
-                unsigned int protocol, dns_rdataclass_t rdclass,
-                isc_mem_t *mctx, const char *keystr, dst_key_t **keyp);
+		unsigned int protocol, dns_rdataclass_t rdclass,
+		isc_mem_t *mctx, const char *keystr, dst_key_t **keyp);
 
 
 ISC_LANG_ENDDECLS

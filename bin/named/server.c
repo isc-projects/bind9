@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.596 2011/01/10 05:32:03 marka Exp $ */
+/* $Id: server.c,v 1.597 2011/01/11 23:47:12 tbox Exp $ */
 
 /*! \file */
 
@@ -2212,7 +2212,7 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 			dns_view_setdynamickeyring(view, ring);
 		dns_tsigkeyring_detach(&ring);
 		dns_view_detach(&pview);
-	} else 
+	} else
 		dns_view_restorekeyring(view);
 
 	/*

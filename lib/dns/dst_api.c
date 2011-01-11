@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.56 2011/01/10 05:32:03 marka Exp $
+ * $Id: dst_api.c,v 1.57 2011/01/11 23:47:13 tbox Exp $
  */
 
 /*! \file */
@@ -1201,11 +1201,11 @@ dst_key_restore(dns_name_t *name, unsigned int alg, unsigned int flags,
 	isc_result_t result;
 	dst_key_t *key;
 
-        REQUIRE(dst_initialized == ISC_TRUE);
-        REQUIRE(keyp != NULL && *keyp == NULL);
+	REQUIRE(dst_initialized == ISC_TRUE);
+	REQUIRE(keyp != NULL && *keyp == NULL);
 
-        if (alg >= DST_MAX_ALGS || dst_t_func[alg] == NULL)
-                return (DST_R_UNSUPPORTEDALG);
+	if (alg >= DST_MAX_ALGS || dst_t_func[alg] == NULL)
+		return (DST_R_UNSUPPORTEDALG);
 
 	if (dst_t_func[alg]->restore == NULL)
 		return (ISC_R_NOTIMPLEMENTED);
