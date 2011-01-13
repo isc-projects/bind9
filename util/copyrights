@@ -1,7 +1,7 @@
 ./.cvsignore					X	1998,1999,2000,2001,2004
 ./CHANGES					X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
 ./COPYRIGHT					TXT	1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
-./EXCLUDED					X	2010
+./EXCLUDED					X	2010,2011
 ./FAQ						X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
 ./FAQ.xml					SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
 ./HISTORY					X	2010
@@ -213,7 +213,7 @@
 ./bin/named/win32/named.dsp			X	2001,2004,2005,2008,2009
 ./bin/named/win32/named.dsw			X	2001
 ./bin/named/win32/named.mak			X	2001,2002,2004,2005,2006,2008,2009
-./bin/named/win32/ntservice.c			C	1999,2000,2001,2002,2004,2006,2007,2009
+./bin/named/win32/ntservice.c			C	1999,2000,2001,2002,2004,2006,2007,2009,2011
 ./bin/named/win32/os.c				C	1999,2000,2001,2002,2004,2005,2007,2008,2009
 ./bin/named/xfrout.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
 ./bin/named/zoneconf.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
@@ -1860,9 +1860,9 @@
 ./lib/bind9/version.c				C	2001,2004,2005,2007
 ./lib/bind9/win32/DLLMain.c			C	2001,2004,2007
 ./lib/bind9/win32/libbind9.def			X	2001
-./lib/bind9/win32/libbind9.dsp			X	2001,2004,2005,2009
+./lib/bind9/win32/libbind9.dsp			X	2001,2004,2005,2009,2011
 ./lib/bind9/win32/libbind9.dsw			X	2001
-./lib/bind9/win32/libbind9.mak			X	2001,2002,2004,2005,2006,2009
+./lib/bind9/win32/libbind9.mak			X	2001,2002,2004,2005,2006,2009,2011
 ./lib/bind9/win32/version.c			C	1998,1999,2000,2001,2004,2007
 ./lib/dns/.cvsignore				X	1998,1999,2000,2001
 ./lib/dns/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
@@ -2619,9 +2619,9 @@
 ./lib/isccc/version.c				C	1998,1999,2000,2001,2004,2005,2007
 ./lib/isccc/win32/DLLMain.c			C	2001,2004,2007
 ./lib/isccc/win32/libisccc.def			X	2001
-./lib/isccc/win32/libisccc.dsp			X	2001,2004,2005,2009
+./lib/isccc/win32/libisccc.dsp			X	2001,2004,2005,2009,2011
 ./lib/isccc/win32/libisccc.dsw			X	2001
-./lib/isccc/win32/libisccc.mak			X	2001,2002,2004,2005,2006,2009
+./lib/isccc/win32/libisccc.mak			X	2001,2002,2004,2005,2006,2009,2011
 ./lib/isccc/win32/version.c			C	2001,2004,2007
 ./lib/isccfg/.cvsignore				X	2001
 ./lib/isccfg/Makefile.in			MAKE	2001,2002,2003,2004,2005,2007,2009
@@ -2645,9 +2645,9 @@
 ./lib/isccfg/version.c				C	1998,1999,2000,2001,2004,2005,2007
 ./lib/isccfg/win32/DLLMain.c			C	2001,2004,2007
 ./lib/isccfg/win32/libisccfg.def		X	2001,2002,2005,2009,2010
-./lib/isccfg/win32/libisccfg.dsp		X	2001,2002,2004,2005,2009
+./lib/isccfg/win32/libisccfg.dsp		X	2001,2002,2004,2005,2009,2011
 ./lib/isccfg/win32/libisccfg.dsw		X	2001
-./lib/isccfg/win32/libisccfg.mak		X	2001,2002,2004,2005,2006,2009
+./lib/isccfg/win32/libisccfg.mak		X	2001,2002,2004,2005,2006,2009,2011
 ./lib/isccfg/win32/version.c			C	1998,1999,2000,2001,2004,2007
 ./lib/lwres/.cvsignore				X	2000,2001
 ./lib/lwres/Makefile.in				MAKE	2000,2001,2004,2005,2007
@@ -2767,9 +2767,9 @@
 ./lib/lwres/win32/include/lwres/netdb.h		C	2000,2001,2004,2006,2007
 ./lib/lwres/win32/include/lwres/platform.h	C	2000,2001,2004,2007
 ./lib/lwres/win32/liblwres.def			X	2001
-./lib/lwres/win32/liblwres.dsp			X	2001,2002,2004,2005,2007
+./lib/lwres/win32/liblwres.dsp			X	2001,2002,2004,2005,2007,2011
 ./lib/lwres/win32/liblwres.dsw			X	2001
-./lib/lwres/win32/liblwres.mak			X	2001,2002,2004,2005,2006,2007
+./lib/lwres/win32/liblwres.mak			X	2001,2002,2004,2005,2006,2007,2011
 ./lib/lwres/win32/lwconfig.c			C	2002,2004,2006,2007
 ./lib/lwres/win32/socket.c			C	2007
 ./lib/lwres/win32/version.c			C	1998,1999,2000,2001,2004,2007
@@ -2824,7 +2824,7 @@
 ./util/update-drafts.pl				PERL	2000,2001,2004,2007
 ./util/update_branches				PERL	2005,2007
 ./util/update_copyrights			PERL	1998,1999,2000,2001,2004,2005,2006,2007,2008,2009,2010
-./version					X	1998,1999,2000,2001,2003,2005,2006,2007,2008,2009,2010
+./version					X	1998,1999,2000,2001,2003,2005,2006,2007,2008,2009,2010,2011
 ./win32utils/BINDBuild.dsw			X	2001,2005,2006,2008,2009,2010
 ./win32utils/BuildAll.bat			BAT	2001,2002,2004,2005,2006,2007,2008,2009,2010
 ./win32utils/BuildPost.bat			BAT	2005,2006
