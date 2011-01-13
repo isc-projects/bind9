@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rpz.c,v 1.5 2011/01/13 04:59:25 tbox Exp $ */
+/* $Id: rpz.c,v 1.6 2011/01/13 06:48:14 marka Exp $ */
 
 /*! \file */
 
@@ -612,7 +612,7 @@ name2ipkey(dns_rpz_cidr_t *cidr, int level, dns_name_t *src_name,
 			return (ISC_R_FAILURE);
 		}
 		prefix += 96;
-		*tgt_prefix = prefix;
+		*tgt_prefix = (dns_rpz_cidr_bits_t)prefix;
 		tgt_ip->w[0] = 0;
 		tgt_ip->w[1] = 0;
 		tgt_ip->w[2] = ADDR_V4MAPPED;
@@ -630,7 +630,7 @@ name2ipkey(dns_rpz_cidr_t *cidr, int level, dns_name_t *src_name,
 		/*
 		 * Convert a text IPv6 address.
 		 */
-		*tgt_prefix = prefix;
+		*tgt_prefix = (dns_rpz_cidr_bits_t)prefix;
 		for (i = 0;
 		     ip_labels > 0 && i < DNS_RPZ_CIDR_WORDS * 2;
 		     ip_labels--) {
@@ -667,7 +667,7 @@ name2ipkey(dns_rpz_cidr_t *cidr, int level, dns_name_t *src_name,
 	/*
 	 * Check for 1s after the prefix length.
 	 */
-	bits = prefix;
+	bits = (dns_rpz_cidr_bits_t)prefix;
 	while (bits < DNS_RPZ_CIDR_KEY_BITS) {
 		dns_rpz_cidr_word_t aword;
 
@@ -685,7 +685,8 @@ name2ipkey(dns_rpz_cidr_t *cidr, int level, dns_name_t *src_name,
 	 * Convert the IPv6 address back to a canonical policy domain name
 	 * to ensure that it is in canonical form.
 	 */
-	if (ISC_R_SUCCESS != ip2name(cidr, tgt_ip, prefix, type, NULL, name) ||
+	if (ISC_R_SUCCESS != ip2name(cidr, tgt_ip, (dns_rpz_cidr_bits_t)prefix,
+				     type, NULL, name) ||
 	    !dns_name_equal(src_name, name)) {
 		badname(level, src_name, "; not canonical");
 		return (ISC_R_FAILURE);
