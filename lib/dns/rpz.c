@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rpz.c,v 1.3 2011/01/13 03:03:31 marka Exp $ */
+/* $Id: rpz.c,v 1.4 2011/01/13 04:20:03 marka Exp $ */
 
 /*! \file */
 
@@ -595,7 +595,7 @@ name2ipkey(dns_rpz_cidr_t *cidr, int level, dns_name_t *src_name,
 	cp = isc_buffer_base(&buffer);
 
 	prefix = strtoul(cp, &cp2, 10);
-	if (prefix < 1 || prefix > 128 || *cp2 != '.') {
+	if (prefix < 1U || prefix > 128U || *cp2 != '.') {
 		badname(level, src_name, ", bad prefix length");
 		return (ISC_R_FAILURE);
 	}
@@ -607,7 +607,7 @@ name2ipkey(dns_rpz_cidr_t *cidr, int level, dns_name_t *src_name,
 		 * Convert an IPv4 address
 		 * from the form "prefix.w.z.y.x"
 		 */
-		if (prefix > 32) {
+		if (prefix > 32U) {
 			badname(level, src_name, "; bad IPv4 prefix length");
 			return (ISC_R_FAILURE);
 		}
@@ -619,7 +619,7 @@ name2ipkey(dns_rpz_cidr_t *cidr, int level, dns_name_t *src_name,
 		tgt_ip->w[3] = 0;
 		for (i = 0; i < 32; i += 8) {
 			l = strtoul(cp, &cp2, 10);
-			if (l > 255 || (*cp2 != '.' && *cp2 != '\0')) {
+			if (l > 255U || (*cp2 != '.' && *cp2 != '\0')) {
 				badname(level, src_name, "; bad IPv4 address");
 				return (ISC_R_FAILURE);
 			}
@@ -645,7 +645,7 @@ name2ipkey(dns_rpz_cidr_t *cidr, int level, dns_name_t *src_name,
 				cp += 3;
 			} else {
 				l = strtoul(cp, &cp2, 16);
-				if (l > 0xffff ||
+				if (l > 0xffffu ||
 				    (*cp2 != '.' && *cp2 != '\0')) {
 					badname(level, src_name, "");
 					return (ISC_R_FAILURE);
