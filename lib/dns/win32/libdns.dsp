@@ -770,6 +770,10 @@ SOURCE=..\openssldsa_link.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\opensslgost_link.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\opensslrsa_link.c
 # End Source File
 # End Group
