@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.598 2011/01/13 01:59:25 marka Exp $ */
+/* $Id: server.c,v 1.599 2011/01/13 03:57:50 marka Exp $ */
 
 /*! \file */
 
@@ -1445,7 +1445,7 @@ configure_rpz(dns_view_t *view, const cfg_listelt_t *element) {
 	dns_fixedname_t fixed;
 	dns_name_t *origin;
 	dns_rpz_zone_t *old, *new;
-	dns_zone_t *zone;
+	dns_zone_t *zone = NULL;
 	isc_result_t result;
 	unsigned int l1, l2;
 
