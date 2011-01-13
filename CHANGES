@@ -1,5 +1,5 @@
 3007.	[bug]		Named failed to preserve the case of domain names in
-			rdata which is no compressable when writing master
+			rdata which is not compressible when writing master
 			files.  [RT #22863]
 
 2996.	[security]	Temporarily disable SO_ACCEPTFILTER support.
