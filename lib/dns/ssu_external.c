@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ssu_external.c,v 1.6 2011/01/13 06:41:05 marka Exp $ */
+/* $Id: ssu_external.c,v 1.7 2011/01/13 07:05:57 marka Exp $ */
 
 /*
  * This implements external update-policy rules.  This allows permission
@@ -25,8 +25,9 @@
 #include <config.h>
 #include <errno.h>
 #include <unistd.h>
-#include <sys/socket.h>
+
 #ifdef ISC_PLATFORM_HAVESYSUNH
+#include <sys/socket.h>
 #include <sys/un.h>
 #endif
 
@@ -143,7 +144,8 @@ dns_ssu_external_match(dns_name_t *identity,
 
 	/* For now only local: is supported */
 	if (strncmp(b_identity, "local:", 6) != 0) {
-		ssu_e_log(3, "ssu_external: invalid socket path '%s'", buf);
+		ssu_e_log(3, "ssu_external: invalid socket path '%s'",
+			  b_identity);
 		return (ISC_FALSE);
 	}
 	sock_path = &b_identity[6];
