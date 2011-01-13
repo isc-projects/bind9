@@ -1,3 +1,7 @@
+3007.	[bug]		Named failed to preserve the case of domain names in
+			rdata which is no compressable when writing master
+			files.  [RT #22863]
+
 3006.	[func]		Allow dynamically generated TSIG keys to be preserved
 			across restarts of named.  Initially this is for
 			TSIG keys generated using GSSAPI. [RT #22639]
