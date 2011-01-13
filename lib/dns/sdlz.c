@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdlz.c,v 1.30 2011/01/13 04:59:25 tbox Exp $ */
+/* $Id: sdlz.c,v 1.31 2011/01/13 06:29:16 marka Exp $ */
 
 /*! \file */
 
@@ -1682,7 +1682,7 @@ dns_sdlzssumatch(dns_name_t *signer, dns_name_t *name, isc_netaddr_t *tcpaddr,
 	char b_key[DST_KEY_FORMATSIZE];
 	isc_buffer_t *tkey_token;
 	isc_region_t token_region;
-	uint32_t token_len = 0;
+	isc_uint32_t token_len = 0;
 	isc_boolean_t ret;
 
 	REQUIRE(driverarg != NULL);
