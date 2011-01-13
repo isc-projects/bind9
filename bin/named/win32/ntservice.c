@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntservice.c,v 1.14 2009/06/23 23:47:44 tbox Exp $ */
+/* $Id: ntservice.c,v 1.14.132.1 2011/01/13 22:00:35 marka Exp $ */
 
 #include <config.h>
 #include <stdio.h>
@@ -70,7 +70,8 @@ int bindmain()
 	while (argv[i]) {
 		if (!strcmp(argv[i], "-f") ||
 		    !strcmp(argv[i], "-g") ||
-		    !strcmp(argv[i], "-v")) {
+		    !strcmp(argv[i], "-v") ||
+		    !strcmp(argv[i], "-V")) {
 			foreground = TRUE;
 			break;
 		}
