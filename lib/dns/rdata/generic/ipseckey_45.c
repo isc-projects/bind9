@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005, 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2005, 2009, 2011  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ipseckey_45.c,v 1.2.2.5 2011/01/13 02:18:28 marka Exp $ */
+/* $Id: ipseckey_45.c,v 1.2.2.6 2011/01/13 04:47:42 tbox Exp $ */
 
 #ifndef RDATA_GENERIC_IPSECKEY_45_C
 #define RDATA_GENERIC_IPSECKEY_45_C

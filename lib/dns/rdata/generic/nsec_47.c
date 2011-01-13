@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2008, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec_47.c,v 1.7.20.3 2011/01/13 02:18:29 marka Exp $ */
+/* $Id: nsec_47.c,v 1.7.20.4 2011/01/13 04:47:42 tbox Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
