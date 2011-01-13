@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.173 2011/01/13 01:59:27 marka Exp $ */
+/* $Id: name.c,v 1.174 2011/01/13 04:59:25 tbox Exp $ */
 
 /*! \file */
 
@@ -2402,7 +2402,7 @@ dns_name_fromstring(dns_name_t *target, const char *src, unsigned int options,
 isc_result_t
 dns_name_fromstring2(dns_name_t *target, const char *src,
 		     const dns_name_t *origin, unsigned int options,
-                     isc_mem_t *mctx)
+		     isc_mem_t *mctx)
 {
 	isc_result_t result;
 	isc_buffer_t buf;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.308 2011/01/13 01:59:27 marka Exp $ */
+/* $Id: rbtdb.c,v 1.309 2011/01/13 04:59:25 tbox Exp $ */
 
 /*! \file */
 
@@ -4610,7 +4610,7 @@ rpz_findips(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 		}
 
 		result = dns_rpz_cidr_find(rbtdb->rpz_cidr, &netaddr, rpz_type,
-				           selfname, qname, &prefix);
+					   selfname, qname, &prefix);
 		if (result != ISC_R_SUCCESS)
 			continue;
 
@@ -4663,7 +4663,7 @@ rpz_findips(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 				rpz_policy = DNS_RPZ_POLICY_RECORD;
 			} else {
 				rpz_policy = dns_rpz_decode_cname(&zrdataset,
-							          selfname);
+								  selfname);
 				if (rpz_policy == DNS_RPZ_POLICY_RECORD)
 					result = DNS_R_CNAME;
 			}

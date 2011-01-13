@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rpz.c,v 1.4 2011/01/13 04:20:03 marka Exp $ */
+/* $Id: rpz.c,v 1.5 2011/01/13 04:59:25 tbox Exp $ */
 
 /*! \file */
 
@@ -389,7 +389,7 @@ new_node(dns_rpz_cidr_t *cidr, const dns_rpz_cidr_key_t *ip,
 	memset(node, 0, sizeof(*node));
 
 	node->flags = flags & ~(DNS_RPZ_CIDR_FG_IP_DATA |
-			        DNS_RPZ_CIDR_FG_NSIP_DATA);
+				DNS_RPZ_CIDR_FG_NSIP_DATA);
 
 	node->bits = bits;
 	words = bits / DNS_RPZ_CIDR_WORD_BITS;
@@ -1082,7 +1082,7 @@ dns_rpz_cidr_deleteip(dns_rpz_cidr_t *cidr, dns_name_t *name) {
  */
 isc_result_t
 dns_rpz_cidr_find(dns_rpz_cidr_t *cidr, const isc_netaddr_t *netaddr,
-	          dns_rpz_type_t type, dns_name_t *canon_name,
+		  dns_rpz_type_t type, dns_name_t *canon_name,
 		  dns_name_t *search_name, dns_rpz_cidr_bits_t *prefix)
 {
 	dns_rpz_cidr_key_t tgt_ip;

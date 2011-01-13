@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009, 2011  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hip_55.c,v 1.7 2011/01/13 00:55:49 marka Exp $ */
+/* $Id: hip_55.c,v 1.8 2011/01/13 04:59:26 tbox Exp $ */
 
 /* reviewed: TBC */
 

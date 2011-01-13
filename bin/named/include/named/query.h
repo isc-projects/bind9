@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2010, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.h,v 1.44 2011/01/13 01:59:25 marka Exp $ */
+/* $Id: query.h,v 1.45 2011/01/13 04:59:24 tbox Exp $ */
 
 #ifndef NAMED_QUERY_H
 #define NAMED_QUERY_H 1

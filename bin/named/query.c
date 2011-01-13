@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.351 2011/01/13 01:59:25 marka Exp $ */
+/* $Id: query.c,v 1.352 2011/01/13 04:59:24 tbox Exp $ */
 
 /*! \file */
 
@@ -4970,40 +4970,40 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		 */
 		want_restart = ISC_FALSE;
 
-                rpz_st = client->query.rpz_st;
-                if (rpz_st != NULL &&
+		rpz_st = client->query.rpz_st;
+		if (rpz_st != NULL &&
 		    (rpz_st->state & DNS_RPZ_RECURSING) != 0) {
-                        is_zone = rpz_st->q.is_zone;
-                        authoritative = rpz_st->q.authoritative;
-                        zone = rpz_st->q.zone;
-                        rpz_st->q.zone = NULL;
-                        node = rpz_st->q.node;
-                        rpz_st->q.node = NULL;
-                        db = rpz_st->q.db;
-                        rpz_st->q.db = NULL;
-                        rdataset = rpz_st->q.rdataset;
-                        rpz_st->q.rdataset = NULL;
-                        sigrdataset = rpz_st->q.sigrdataset;
-                        rpz_st->q.sigrdataset = NULL;
-                        qtype = rpz_st->q.qtype;
- 
-                        if (event->node != NULL)
-                                dns_db_detachnode(db, &event->node);
-                        rpz_st->ns.db = event->db;
-                        rpz_st->ns.r_type = event->qtype;
-                        rpz_st->ns.r_rdataset = event->rdataset;
-                        if (event->sigrdataset != NULL &&
-                            dns_rdataset_isassociated(event->sigrdataset))
-                                dns_rdataset_disassociate(event->sigrdataset);
-                } else {
-                        authoritative = ISC_FALSE;
- 
-                        qtype = event->qtype;
-                        db = event->db;
-                        node = event->node;
-                        rdataset = event->rdataset;
-                        sigrdataset = event->sigrdataset;
-                }
+			is_zone = rpz_st->q.is_zone;
+			authoritative = rpz_st->q.authoritative;
+			zone = rpz_st->q.zone;
+			rpz_st->q.zone = NULL;
+			node = rpz_st->q.node;
+			rpz_st->q.node = NULL;
+			db = rpz_st->q.db;
+			rpz_st->q.db = NULL;
+			rdataset = rpz_st->q.rdataset;
+			rpz_st->q.rdataset = NULL;
+			sigrdataset = rpz_st->q.sigrdataset;
+			rpz_st->q.sigrdataset = NULL;
+			qtype = rpz_st->q.qtype;
+
+			if (event->node != NULL)
+				dns_db_detachnode(db, &event->node);
+			rpz_st->ns.db = event->db;
+			rpz_st->ns.r_type = event->qtype;
+			rpz_st->ns.r_rdataset = event->rdataset;
+			if (event->sigrdataset != NULL &&
+			    dns_rdataset_isassociated(event->sigrdataset))
+				dns_rdataset_disassociate(event->sigrdataset);
+		} else {
+			authoritative = ISC_FALSE;
+
+			qtype = event->qtype;
+			db = event->db;
+			node = event->node;
+			rdataset = event->rdataset;
+			sigrdataset = event->sigrdataset;
+		}
 
 		if (qtype == dns_rdatatype_rrsig || qtype == dns_rdatatype_sig)
 			type = dns_rdatatype_any;
@@ -5043,7 +5043,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			QUERY_ERROR(DNS_R_SERVFAIL);
 			goto cleanup;
 		}
-		if (rpz_st != NULL && 
+		if (rpz_st != NULL &&
 		    (rpz_st->state & DNS_RPZ_RECURSING) != 0) {
 			rpz_st->ns.r_result = event->result;
 			result = rpz_st->q.result;
@@ -5574,7 +5574,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				else
 					result = query_recurse(client, qtype,
 							 client->query.qname,
-						         fname, rdataset,
+							 fname, rdataset,
 							 resuming);
 
 				if (result == ISC_R_SUCCESS) {
@@ -6713,7 +6713,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			INSIST(line >= 0);
 			query_error(client, eresult, line);
 		}
- 		ns_client_detach(&client);
+		ns_client_detach(&client);
 	} else if (!RECURSING(client)) {
 		/*
 		 * We are done.  Set up sortlist data for the message

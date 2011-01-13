@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rpz.h,v 1.2 2011/01/13 01:59:28 marka Exp $ */
+/* $Id: rpz.h,v 1.3 2011/01/13 04:59:26 tbox Exp $ */
 
 #ifndef DNS_RPZ_H
 #define DNS_RPZ_H 1
@@ -150,10 +150,10 @@ typedef struct {
 const char *
 dns_rpz_type2str(dns_rpz_type_t type);
 
-dns_rpz_policy_t 
+dns_rpz_policy_t
 dns_rpz_str2policy(const char *str);
 
-void 
+void
 dns_rpz_set_need(isc_boolean_t need);
 
 isc_boolean_t
