@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ssu_external.c,v 1.5 2011/01/13 06:29:16 marka Exp $ */
+/* $Id: ssu_external.c,v 1.6 2011/01/13 06:41:05 marka Exp $ */
 
 /*
  * This implements external update-policy rules.  This allows permission
@@ -132,7 +132,7 @@ dns_ssu_external_match(dns_name_t *identity,
 	const char *sock_path;
 	size_t req_len;
 	isc_region_t token_region;
-	uint8_t *data;
+	unsigned char *data;
 	isc_buffer_t buf;
 	isc_uint32_t token_len = 0;
 	isc_uint32_t reply;

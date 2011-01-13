@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdlz.h,v 1.12 2011/01/13 06:29:16 marka Exp $ */
+/* $Id: sdlz.h,v 1.13 2011/01/13 06:41:05 marka Exp $ */
 
 /*! \file dns/sdlz.h */
 
@@ -237,7 +237,7 @@ typedef isc_boolean_t (*dns_sdlzssumatch_t)(const char *signer,
 					    const char *type,
 					    const char *key,
 					    isc_uint32_t keydatalen,
-					    uint8_t *keydata,
+					    unsigned char *keydata,
 					    void *driverarg,
 					    void *dbdata);
 
