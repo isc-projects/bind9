@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.177 2011/01/13 01:59:28 marka Exp $ */
+/* $Id: view.c,v 1.178 2011/01/13 09:53:04 marka Exp $ */
 
 /*! \file */
 
@@ -327,8 +327,11 @@ destroy(dns_view_t *view) {
 			dns_acache_putdb(view->acache, view->cachedb);
 		dns_acache_detach(&view->acache);
 	}
-#endif
 	dns_rpz_view_destroy(view);
+#else
+	INSIST(view->acache == NULL);
+	INSIST(ISC_LIST_EMPTY(view->rpz_zones));
+#endif
 	if (view->requestmgr != NULL)
 		dns_requestmgr_detach(&view->requestmgr);
 	if (view->task != NULL)

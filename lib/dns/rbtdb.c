@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.309 2011/01/13 04:59:25 tbox Exp $ */
+/* $Id: rbtdb.c,v 1.310 2011/01/13 09:53:04 marka Exp $ */
 
 /*! \file */
 
@@ -955,8 +955,10 @@ free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log, isc_event_t *event) {
 	if (rbtdb->rrsetstats != NULL)
 		dns_stats_detach(&rbtdb->rrsetstats);
 
+#ifdef BIND9
 	if (rbtdb->rpz_cidr != NULL)
 		dns_rpz_cidr_free(&rbtdb->rpz_cidr);
+#endif
 
 	isc_mem_put(rbtdb->common.mctx, rbtdb->node_locks,
 		    rbtdb->node_lock_count * sizeof(rbtdb_nodelock_t));
@@ -1493,12 +1495,14 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node)
 
 	switch (node->nsec) {
 	case DNS_RBT_NSEC_NORMAL:
+#ifdef BIND9
 		if (rbtdb->rpz_cidr != NULL) {
 			dns_fixedname_init(&fname);
 			name = dns_fixedname_name(&fname);
 			dns_rbt_fullnamefromnode(node, name);
 			dns_rpz_cidr_deleteip(rbtdb->rpz_cidr, name);
 		}
+#endif
 		result = dns_rbt_deletenode(rbtdb->tree, node, ISC_FALSE);
 		break;
 	case DNS_RBT_NSEC_HAS_NSEC:
@@ -1533,7 +1537,9 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node)
 			}
 		}
 		result = dns_rbt_deletenode(rbtdb->tree, node, ISC_FALSE);
+#ifdef BIND9
 		dns_rpz_cidr_deleteip(rbtdb->rpz_cidr, name);
+#endif
 		break;
 	case DNS_RBT_NSEC_NSEC:
 		result = dns_rbt_deletenode(rbtdb->nsec, node, ISC_FALSE);
@@ -2507,6 +2513,7 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 		node = NULL;
 		result = dns_rbt_addnode(rbtdb->tree, name, &node);
 		if (result == ISC_R_SUCCESS) {
+#ifdef BIND9
 			if (rbtdb->rpz_cidr != NULL) {
 				dns_fixedname_t fnamef;
 				dns_name_t *fname;
@@ -2516,6 +2523,7 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 				dns_rbt_fullnamefromnode(node, fname);
 				dns_rpz_cidr_addip(rbtdb->rpz_cidr, fname);
 			}
+#endif
 			dns_rbt_namefromnode(node, &nodename);
 #ifdef DNS_RBT_USEHASH
 			node->locknum = node->hashval % rbtdb->node_lock_count;
@@ -4534,6 +4542,7 @@ find_coveringnsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 /*
  * Mark a database for response policy rewriting.
  */
+#ifdef BIND9
 static void
 get_rpz_enabled(dns_db_t *db, dns_rpz_st_t *st)
 {
@@ -4722,6 +4731,7 @@ rpz_findips(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 	RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
 	return (ISC_R_SUCCESS);
 }
+#endif
 
 static isc_result_t
 cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
@@ -6797,8 +6807,10 @@ loadnode(dns_rbtdb_t *rbtdb, dns_name_t *name, dns_rbtnode_t **nodep,
 
 	noderesult = dns_rbt_addnode(rbtdb->tree, name, nodep);
 
+#ifdef BIND9
 	if (noderesult == ISC_R_SUCCESS)
 		dns_rpz_cidr_addip(rbtdb->rpz_cidr, name);
+#endif
 
 	if (!hasnsec)
 		return (noderesult);
@@ -7374,8 +7386,13 @@ static dns_dbmethods_t zone_methods = {
 	resigned,
 	isdnssec,
 	NULL,
+#ifdef BIND9
 	get_rpz_enabled,
 	rpz_findips
+#else
+	NULL,
+	NULL
+#endif
 };
 
 static dns_dbmethods_t cache_methods = {
@@ -7598,6 +7615,7 @@ dns_rbtdb_create
 		return (result);
 	}
 
+#ifdef BIND9
 	/*
 	 * Get ready for response policy IP address searching if at least one
 	 * zone has been configured as a response policy zone and this
@@ -7613,6 +7631,7 @@ dns_rbtdb_create
 			return (result);
 		}
 	}
+#endif
 
 	/*
 	 * In order to set the node callback bit correctly in zone databases,
