@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.597 2011/01/11 23:47:12 tbox Exp $ */
+/* $Id: server.c,v 1.598 2011/01/13 01:59:25 marka Exp $ */
 
 /*! \file */
 
@@ -1438,6 +1438,114 @@ cleanup:
 	return (result);
 }
 
+static isc_result_t
+configure_rpz(dns_view_t *view, const cfg_listelt_t *element) {
+	const cfg_obj_t *rpz_obj, *policy_obj;
+	const char *str;
+	dns_fixedname_t fixed;
+	dns_name_t *origin;
+	dns_rpz_zone_t *old, *new;
+	dns_zone_t *zone;
+	isc_result_t result;
+	unsigned int l1, l2;
+
+	new = isc_mem_get(view->mctx, sizeof(*new));
+	if (new == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto cleanup;
+	}
+
+	memset(new, 0, sizeof(*new));
+	dns_name_init(&new->nsdname, NULL);
+	dns_name_init(&new->origin, NULL);
+	dns_name_init(&new->cname, NULL);
+	ISC_LIST_INITANDAPPEND(view->rpz_zones, new, link);
+
+	rpz_obj = cfg_listelt_value(element);
+	policy_obj = cfg_tuple_get(rpz_obj, "policy");
+	if (cfg_obj_isvoid(policy_obj)) {
+		new->policy = DNS_RPZ_POLICY_GIVEN;
+	} else {
+		str = cfg_obj_asstring(policy_obj);
+		new->policy = dns_rpz_str2policy(str);
+		INSIST(new->policy != DNS_RPZ_POLICY_ERROR);
+	}
+
+	dns_fixedname_init(&fixed);
+	origin = dns_fixedname_name(&fixed);
+	str = cfg_obj_asstring(cfg_tuple_get(rpz_obj, "name"));
+	result = dns_name_fromstring(origin, str, DNS_NAME_DOWNCASE, NULL);
+	if (result != ISC_R_SUCCESS) {
+		cfg_obj_log(rpz_obj, ns_g_lctx, DNS_RPZ_ERROR_LEVEL,
+			    "invalid zone '%s'", str);
+		goto cleanup;
+	}
+
+	result = dns_name_fromstring2(&new->nsdname, DNS_RPZ_NSDNAME_ZONE,
+				      origin, DNS_NAME_DOWNCASE, view->mctx);
+	if (result != ISC_R_SUCCESS) {
+		cfg_obj_log(rpz_obj, ns_g_lctx, DNS_RPZ_ERROR_LEVEL,
+			    "invalid zone '%s'", str);
+		goto cleanup;
+	}
+
+	/*
+	 * The origin is part of 'nsdname' so we don't need to keep it
+	 * seperately.
+	 */
+	l1 = dns_name_countlabels(&new->nsdname);
+	l2 = dns_name_countlabels(origin);
+	dns_name_getlabelsequence(&new->nsdname, l1 - l2, l2, &new->origin);
+
+	/*
+	 * Are we configured to with the reponse policy zone?
+	 */
+	result = dns_view_findzone(view, &new->origin, &zone);
+	if (result != ISC_R_SUCCESS) {
+		cfg_obj_log(rpz_obj, ns_g_lctx, DNS_RPZ_ERROR_LEVEL,
+			    "unknown zone '%s'", str);
+		goto cleanup;
+	}
+
+	if (dns_zone_gettype(zone) != dns_zone_master &&
+	    dns_zone_gettype(zone) != dns_zone_slave) {
+		cfg_obj_log(rpz_obj, ns_g_lctx, DNS_RPZ_ERROR_LEVEL,
+			     "zone '%s' is neither master nor slave", str);
+		dns_zone_detach(&zone);
+		result = DNS_R_NOTMASTER;
+		goto cleanup;
+	}
+	dns_zone_detach(&zone);
+
+	for (old = ISC_LIST_HEAD(view->rpz_zones);
+	     old != new;
+	     old = ISC_LIST_NEXT(old, link)) {
+		++new->num;
+		if (dns_name_equal(&old->origin, &new->origin)) {
+			cfg_obj_log(rpz_obj, ns_g_lctx, DNS_RPZ_ERROR_LEVEL,
+				    "duplicate '%s'", str);
+			result = DNS_R_DUPLICATE;
+			goto cleanup;
+		}
+	}
+
+	if (new->policy == DNS_RPZ_POLICY_CNAME) {
+		str = cfg_obj_asstring(cfg_tuple_get(rpz_obj, "cname"));
+		result = dns_name_fromstring(&new->cname, str, 0, view->mctx);
+		if (result != ISC_R_SUCCESS) {
+			cfg_obj_log(rpz_obj, ns_g_lctx, DNS_RPZ_ERROR_LEVEL,
+				    "invalid cname '%s'", str);
+			goto cleanup;
+		}
+	}
+
+	return (ISC_R_SUCCESS);
+
+ cleanup:
+	dns_rpz_view_destroy(view);
+	return (result);
+}
+
 /*
  * Configure 'view' according to 'vconfig', taking defaults from 'config'
  * where values are missing in 'vconfig'.
@@ -2778,6 +2886,29 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 				      "automatic empty zone%s%s: %s",
 				      sep, viewname,  empty);
 			dns_zone_detach(&zone);
+		}
+	}
+
+	/*
+	 * Make the list of response policy zone names for views that
+	 * are used for real lookups and so care about hints.
+	 */
+	zonelist = NULL;
+	if (view->rdclass == dns_rdataclass_in && need_hints) {
+		obj = NULL;
+		result = ns_config_get(maps, "response-policy", &obj);
+		if (result == ISC_R_SUCCESS)
+			cfg_map_get(obj, "zone", &zonelist);
+	}
+	if (zonelist != NULL) {
+
+		for (element = cfg_list_first(zonelist);
+		     element != NULL;
+		     element = cfg_list_next(element)) {
+			result = configure_rpz(view, element);
+			if (result != ISC_R_SUCCESS)
+				goto cleanup;
+			dns_rpz_set_need(ISC_TRUE);
 		}
 	}
 

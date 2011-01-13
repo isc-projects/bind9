@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.475 2011/01/07 04:31:38 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.476 2011/01/13 01:59:27 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -5165,6 +5165,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> zero-no-soa-ttl-cache <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> deny-answer-addresses { <replaceable>address_match_list</replaceable> } <optional> except-from { <replaceable>namelist</replaceable> } </optional>;</optional>
     <optional> deny-answer-aliases { <replaceable>namelist</replaceable> } <optional> except-from { <replaceable>namelist</replaceable> } </optional>;</optional>
+    <optional> response-policy { <replaceable>zone_name</replaceable> <optional> policy <replaceable>given</replaceable> | <replaceable>no-op</replaceable> | <replaceable>nxdomain</replaceable> | <replaceable>nodata</replaceable> | <replaceable>cname domain</replaceable> </optional> ; } ; </optional>
 };
 </programlisting>
 
@@ -9182,6 +9183,143 @@ deny-answer-aliases { "example.net"; };
 	    Filtering out DNS records containing this address
 	    spuriously can break such applications.
 	  </para>
+	</sect3>
+
+        <sect3>
+	  <title>Response Policy Zone (RPZ) Rewriting</title>
+	  <para>
+	    <acronym>BIND</acronym> 9 includes an intentionally limited
+            mechanism to modify DNS responses for recursive requests
+            similar to email anti-spam DNS blacklists.
+            All response policy zones are named in the
+            <command>response-policy</command> option for the view or among the
+            global options if there is no response-policy option for the view.
+          </para>
+
+          <para>
+            The rules encoded in a response policy zone (RPZ) are applied
+            only to responses to queries that ask for recursion (RD=1).
+            RPZs are normal DNS zones containing largely valid RRsets
+            that can be queried normal if allowed.
+            It is usually best to restrict those queries with something like
+            <command>allow-query {none; };</command> or
+            <command>allow-query { 127.0.0.1; };</command>.
+          </para>
+
+          <para>
+            There are four kinds of RPZ rewrite rules.  QNAME rules are
+            applied to query names in requests and to targets of CNAME
+            records resolved in the process of generating the response.
+            The owner name of a QNAME rule is the query name relativized
+            to the RPZ.
+          </para>
+
+          <para>
+            IP rules are triggered by addresses in A and AAAA records.
+            All IP addresses in A or AAAA RRsets are tested and the rule
+            longest prefix is applied.  Ties between rules with equal prefixes
+            are broken in favor of the first RPZ mentioned in the
+            response-policy option.
+            The rule matching the smallest IP address is chosen among equal
+            prefix rules from a single RPZ.
+            IP rules are expressed in RRsets with owner names that are
+            subdomains of rpz-ip and encoding an IP address block, reversed
+            as in IN-ARPA.
+            prefix.B.B.B.B with prefix between 1 and 32 and B between 1 and 255
+            encodes an IPv4 address.
+            IPv6 addresses are encoded by with prefix.W.W.W.W.W.W.W.W or
+            prefix.WORDS.zz.WORDS.  The words in the standard IPv6 text
+            representation are reversed, "::" is replaced with ".zz.",
+            and ":" becomes ".".
+          </para>
+
+          <para>
+            NSDNAME rules match names in NS RRsets for the response or a
+            parent.  They are encoded as subdomains of rpz-nsdomain relativized
+            to the RPZ origin name.
+          </para>
+
+          <para>
+            NSIP rules match IP addresses in A and AAAA RRsets for names of
+            responsible servers or the names that can be matched by NSDNAME
+            rules.  The are encoded like IP rules except as subdomains of
+            rpz-nsip.
+	  </para>
+
+	  <para>
+            Authority verification issues and variations in authority data in
+	    the current version of <acronym>BIND</acronym> 9 can cause
+	    inconsistent results from NSIP and NSDNAME.  So they are available
+	    only when <acronym>BIND</acronym> is built with the
+	    <userinput>--enable-rpz-nsip</userinput> or
+	    <userinput>--enable-rpz-nsdname</userinput> options
+            on the "configure" command line.
+          </para>
+
+          <para>
+            Four policies can be expressed.
+            The <command>NXDOMAIN</command> policy causes a NXDOMAIN response
+            and is expressed with an RRset consisting of a single CNAME
+            whose target is the root domain (.).
+            <command>NODATA</command> generates NODATA or ANCOUNT=1 regardless
+            of query type.
+            It is expressed with a CNAME whose target is the wildcard
+            top-level domain (*.).
+            The <command>NO-OP</command> policy does not change the response
+            and is used to "poke holes" in policies for larger CIDR blocks or in
+            zones named later in the <command>response-policy</command> option.
+            The NO-OP policy is expressed by a CNAME with a target consisting
+            of the variable part of the owner name, such as "example.com." for
+            a QNAME rule or "128.1.0.0.127." for an IP rule.
+            The <command>CNAME</command> policy is used to replace the RRsets
+            of response.
+            A and AAAA RRsets are most common and useful to capture
+            an evil domain in a walled garden, but any valid set of RRsets
+            is possible.
+          </para>
+
+          <para>
+            All of the policies in an RPZ can be overridden with a
+            <command>policy</command> clause.
+            <command>given</command> says "do not override."
+            <command>no-op</command> says "do nothing" regardless of the policy
+            in RPZ records.
+            <command>nxdomain</command> causes all RPZ rules to generate
+            NXDOMAIN results.
+            <command>nodata</command> gives nodata.
+            <command>cname domain</command> causes all RPZ rules to act as if
+            the consisted of a "cname domain" record.
+          </para>
+
+          <para>
+            For example, you might use this option statement
+          </para>
+<programlisting>response-policy { zone "bl"; };</programlisting>
+          <para>
+            and this zone statement
+          </para>
+<programlisting>zone "bl" {type master; file "example/bl"; allow-query {none;}; };</programlisting>
+          <para>
+            with this zone file
+          </para>
+<programlisting>$TTL 1H
+@                   SOA LOCALHOST. named-mgr.example.com (1 1h 15m 30d 2h)
+
+; QNAME rules
+nxdomain.domain.com         CNAME   .
+nodata.domain.com           CNAME   *.
+bad.domain.com              A       10.0.0.1
+                            AAAA    2001:2::1
+ok.domain.com               CNAME   ok.domain.com.
+
+; IP rules rewriting all answers for 127/8 except 127.0.0.1
+8.0.0.0.127.ip              CNAME   .
+32.1.0.0.127.ip             CNAME   32.1.0.0.127.
+
+; NSDNAME and NSIP rules
+ns.domain.com.rpz-nsdname   CNAME   .
+48.zz.2.2001.rpz-nsip       CNAME   .
+</programlisting>
 	</sect3>
       </sect2>
 

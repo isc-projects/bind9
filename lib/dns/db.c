@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.95 2009/10/08 23:13:06 marka Exp $ */
+/* $Id: db.c,v 1.96 2011/01/13 01:59:27 marka Exp $ */
 
 /*! \file */
 
@@ -943,4 +943,22 @@ dns_db_resigned(dns_db_t *db, dns_rdataset_t *rdataset,
 {
 	if (db->methods->resigned != NULL)
 		(db->methods->resigned)(db, rdataset, version);
+}
+
+void
+dns_db_rpz_enabled(dns_db_t *db, dns_rpz_st_t *st)
+{
+	if (db->methods->rpz_enabled != NULL)
+		(db->methods->rpz_enabled)(db, st);
+}
+
+isc_result_t
+dns_db_rpz_findips(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
+		   dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version,
+		   dns_rdataset_t *ardataset, dns_rpz_st_t *st)
+{
+	if (db->methods->rpz_findips == NULL)
+		return (ISC_R_NOTIMPLEMENTED);
+	return ((db->methods->rpz_findips)(rpz, rpz_type, zone, db, version,
+					   ardataset, st));
 }

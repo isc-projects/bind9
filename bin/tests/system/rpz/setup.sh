@@ -1,5 +1,6 @@
-# Copyright (C) 2004, 2007, 2008, 2010  Internet Systems Consortium, Inc. ("ISC")
-# Copyright (C) 2000, 2001  Internet Software Consortium.
+#!/bin/sh
+#
+# Copyright (C) 2010  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -13,33 +14,10 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.34 2011/01/13 01:59:25 marka Exp $
+# $Id: setup.sh,v 1.2 2011/01/13 01:59:26 marka Exp $
 
-srcdir =	@srcdir@
-VPATH =		@srcdir@
-top_srcdir =	@top_srcdir@
+sh clean.sh
 
-@BIND9_MAKE_INCLUDES@
-
-SUBDIRS =	filter-aaaa lwresd rpz tkey
-TARGETS =
-
-@BIND9_MAKE_RULES@
-
-# Running the scripts below is bypassed when a separate
-# build directory is used.
-
-check: test
-
-test: subdirs
-	if test -f ./runall.sh; then sh ./runall.sh; fi
-
-testclean clean distclean::
-	if test -f ./cleanall.sh; then sh ./cleanall.sh; fi
-
-distclean::
-	rm -f conf.sh
-
-installdirs:
-
-install::
+for NM in '' -given -no-op -nodata -nxdomain -cname; do
+    cp -f ns3/base.db ns3/bl$NM.db
+done

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.74 2010/08/16 04:46:16 marka Exp $ */
+/* $Id: sdb.c,v 1.75 2011/01/13 01:59:27 marka Exp $ */
 
 /*! \file */
 
@@ -1254,6 +1254,8 @@ static dns_dbmethods_t sdb_methods = {
 	NULL,
 	NULL,
 	NULL,
+	NULL,
+	NULL
 };
 
 static isc_result_t
