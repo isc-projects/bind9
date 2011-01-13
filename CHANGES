@@ -1,3 +1,6 @@
+
+	--- 9.8.0b1 released ---
+
 3008.	[func]		Response policy zones (RPZ) support. [RT #21726]
 
 3007.	[bug]		Named failed to preserve the case of domain names in
