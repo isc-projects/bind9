@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.199.50.2 2009/02/16 23:47:15 tbox Exp $ */
+/* $Id: rdata.c,v 1.199.50.3 2011/01/13 02:06:12 marka Exp $ */
 
 /*! \file */
 
@@ -1133,6 +1133,11 @@ name_prefix(dns_name_t *name, dns_name_t *origin, dns_name_t *target) {
 	l2 = dns_name_countlabels(origin);
 
 	if (l1 == l2)
+		goto return_false;
+
+	/* Master files should be case preserving. */
+	dns_name_getlabelsequence(name, l1 - l2, l2, target);
+	if (!dns_name_caseequal(origin, target))
 		goto return_false;
 
 	dns_name_getlabelsequence(name, 0, l1 - l2, target);
