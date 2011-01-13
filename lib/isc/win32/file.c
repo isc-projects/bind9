@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.38 2011/01/13 06:21:15 marka Exp $ */
+/* $Id: file.c,v 1.39 2011/01/13 06:36:04 marka Exp $ */
 
 #include <config.h>
 
@@ -329,7 +329,7 @@ isc_file_openunique(char *templet, FILE **fp) {
 }
 
 isc_result_t
-isc_file_openuniquemode(char *templet, unsigned int mode, FILE **fp) {
+isc_file_openuniquemode(char *templet, int mode, FILE **fp) {
 	int fd;
 	FILE *f;
 	isc_result_t result = ISC_R_SUCCESS;
