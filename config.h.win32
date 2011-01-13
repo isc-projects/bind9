@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.win32,v 1.24 2009/11/24 02:09:28 marka Exp $ */
+/* $Id: config.h.win32,v 1.25 2011/01/13 06:08:58 marka Exp $ */
 
 /*
  * win32 configuration file
@@ -263,3 +263,11 @@ typedef long off_t;
 /** define if gai_strerror() exists */
 #define HAVE_GAISTRERROR
 
+/* Define if your OpenSSL version supports GOST. */
+#define HAVE_OPENSSL_GOST
+
+/* Define to enable rpz-nsdname rules. */
+#define ENABLE_RPZ_NSDNAME
+
+/* Define to enable rpz-nsip rules. */
+#define ENABLE_RPZ_NSIP
