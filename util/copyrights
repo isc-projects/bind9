@@ -1041,11 +1041,11 @@
 ./bin/tests/system/rpz/ns3/named.conf		CONF-C	2011
 ./bin/tests/system/rpz/rpz.c			C	2011
 ./bin/tests/system/rpz/setup.sh			SH	2011
-./bin/tests/system/rpz/test1			SH	2011
-./bin/tests/system/rpz/test2			SH	2011
-./bin/tests/system/rpz/test3			SH	2011
-./bin/tests/system/rpz/test4			SH	2011
-./bin/tests/system/rpz/test5			SH	2011
+./bin/tests/system/rpz/test1			X	2011
+./bin/tests/system/rpz/test2			X	2011
+./bin/tests/system/rpz/test3			X	2011
+./bin/tests/system/rpz/test4			X	2011
+./bin/tests/system/rpz/test5			X	2011
 ./bin/tests/system/rpz/tests.sh			SH	2011
 ./bin/tests/system/rrsetorder/clean.sh		SH	2006,2007,2008
 ./bin/tests/system/rrsetorder/dig.out.fixed.good	X	2006
