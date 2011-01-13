@@ -1,7 +1,7 @@
 3008.	[func]		Response policy zones (RPZ) support. [RT #21726]
 
 3007.	[bug]		Named failed to preserve the case of domain names in
-			rdata which is no compressable when writing master
+			rdata which is not compressible when writing master
 			files.  [RT #22863]
 
 3006.	[func]		Allow dynamically generated TSIG keys to be preserved
@@ -17,7 +17,7 @@
 3004.	[func]		DNS64 reverse support. [RT #22769]
 
 3003.	[experimental]	Added update-policy match type "external",
-			enabliing named to defer the decision of whether to
+			enabling named to defer the decision of whether to
 			allow a dynamic update to an external daemon.
 			(Contributed by Andrew Tridgell.) [RT #22758]
 
