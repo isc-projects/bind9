@@ -940,7 +940,7 @@ dst_key_name
 dst_key_paramcompare
 dst_key_proto
 dst_key_pubcompare
-dst_key_restory
+dst_key_restore
 dst_key_secretsize
 dst_key_setbits
 dst_key_setflags
