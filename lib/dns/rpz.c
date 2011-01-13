@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rpz.c,v 1.2 2011/01/13 01:59:27 marka Exp $ */
+/* $Id: rpz.c,v 1.3 2011/01/13 03:03:31 marka Exp $ */
 
 /*! \file */
 
@@ -24,6 +24,7 @@
 #include <isc/mem.h>
 #include <isc/net.h>
 #include <isc/netaddr.h>
+#include <isc/print.h>
 #include <isc/stdlib.h>
 #include <isc/string.h>
 #include <isc/util.h>
