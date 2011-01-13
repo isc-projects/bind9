@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.37 2011/01/11 23:47:14 tbox Exp $ */
+/* $Id: file.c,v 1.38 2011/01/13 06:21:15 marka Exp $ */
 
 #include <config.h>
 
@@ -346,7 +346,7 @@ isc_file_openuniquemode(char *templet, unsigned int mode, FILE **fp) {
 		result = isc__errno2result(errno);
 	if (result == ISC_R_SUCCESS) {
 #if 1
-		UNUSED(mode)
+		UNUSED(mode);
 #else
 		(void)fchmod(fd, mode);
 #endif
