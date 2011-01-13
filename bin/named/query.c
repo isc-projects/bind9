@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.352 2011/01/13 04:59:24 tbox Exp $ */
+/* $Id: query.c,v 1.353 2011/01/13 23:16:06 marka Exp $ */
 
 /*! \file */
 
@@ -6503,8 +6503,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 					 * if the recursion for the A succeeds.
 					 */
 					result = query_recurse(client,
-							client->query.qname,
 							dns_rdatatype_a,
+							client->query.qname,
 							NULL, NULL, resuming);
 					if (result == ISC_R_SUCCESS) {
 					    client->attributes |=
