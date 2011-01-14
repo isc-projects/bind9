@@ -1,8 +1,8 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print_p.h,v 1.2.2.2 2011/01/14 05:46:14 marka Exp $ */
+/* $Id: print_p.h,v 1.2.2.3 2011/01/14 23:45:15 tbox Exp $ */
 
 #ifndef LWRES_PRINT_P_H
 #define LWRES_PRINT_P_H 1
@@ -47,7 +47,7 @@
 
 #ifdef __GNUC__
 #define LWRES_FORMAT_PRINTF(fmt, args) \
-        __attribute__((__format__(__printf__, fmt, args)))
+	__attribute__((__format__(__printf__, fmt, args)))
 #else
 #define LWRES_FORMAT_PRINTF(fmt, args)
 #endif
