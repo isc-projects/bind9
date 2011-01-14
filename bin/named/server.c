@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.520.12.19 2010/11/16 02:43:23 sar Exp $ */
+/* $Id: server.c,v 1.520.12.20 2011/01/14 05:04:13 marka Exp $ */
 
 /*! \file */
 
@@ -5282,10 +5282,8 @@ ns_server_tsigdelete(ns_server_t *server, char *command, isc_buffer_t *text) {
 	n = snprintf((char *)isc_buffer_used(text),
 		     isc_buffer_availablelength(text),
 		     "%d tsig keys deleted.\n", foundkeys);
-	if (n >= isc_buffer_availablelength(text)) {
-		isc_task_endexclusive(server->task);
+	if (n >= isc_buffer_availablelength(text))
 		return (ISC_R_NOSPACE);
-	}
 	isc_buffer_add(text, n);
 
 	return (ISC_R_SUCCESS);
@@ -5401,10 +5399,8 @@ ns_server_tsiglist(ns_server_t *server, isc_buffer_t *text) {
 		n = snprintf((char *)isc_buffer_used(text),
 			     isc_buffer_availablelength(text),
 			     "no tsig keys found.\n");
-		if (n >= isc_buffer_availablelength(text)) {
-			isc_task_endexclusive(server->task);
+		if (n >= isc_buffer_availablelength(text))
 			return (ISC_R_NOSPACE);
-		}
 		isc_buffer_add(text, n);
 	}
 

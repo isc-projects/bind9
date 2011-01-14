@@ -21,6 +21,9 @@
 2984.	[bug]		Don't run MX checks when the target of the MX record
 			is ".".  [RT #22645]
 
+2817.	[cleanup]	Removed unnecessary isc_task_endexclusive() calls.
+			[RT #20768]
+
 	--- 9.6.3b1 released ---
 
 2982.	[bug]		Reference count dst keys.  dst_key_attach() can be used
@@ -38,7 +41,7 @@
 
 2976.	[bug]		named could die on exit after negotiating a GSS-TSIG
 			key. [RT #22573]
-			
+
 2975.	[bug]		rbtdb.c:cleanup_dead_nodes_callback() aquired the
 			wrong lock which could lead to server deadlock.
 			[RT #22614]
@@ -117,7 +120,7 @@
 2950.	[bug]		named failed to perform a SOA up to date check when
 			falling back to TCP on UDP timeouts when
 			ixfr-from-differences was set. [RT #21595]
- 
+
 2946.	[doc]		Document the default values for the minimum and maximum
 			zone refresh and retry values in the ARM. [RT #21886]
 
@@ -173,7 +176,7 @@
 			revisit the issue and complete the fix later.
 			[RT #21710]
 
-2929.	[bug]		Improved handling of GSS security contexts: 
+2929.	[bug]		Improved handling of GSS security contexts:
 			 - added LRU expiration for generated TSIGs
 			 - added the ability to use a non-default realm
                          - added new "realm" keyword in nsupdate
@@ -223,12 +226,12 @@
 2901.	[port]		Use AC_C_FLEXIBLE_ARRAY_MEMBER. [RT #21316]
 
 2900.	[bug]		The placeholder negative caching element was not
-			properly constructed triggering a INSIST in 
+			properly constructed triggering a INSIST in
 			dns_ncache_towire(). [RT #21346]
-			
+
 2899.	[port]		win32: Support linking against OpenSSL 1.0.0.
 
-2898.	[bug]		nslookup leaked memory when -domain=value was 
+2898.	[bug]		nslookup leaked memory when -domain=value was
 			specified. [RT #21301]
 
 2894.	[contrib]	DLZ LDAP support now use '$' not '%'. [RT #21294]
@@ -360,10 +363,10 @@
 
 2823.	[bug]		rbtdb.c:getsigningtime() was missing locks. [RT #20781]
 
-2819.	[cleanup]	Removed unnecessary DNS_POINTER_MAXHOPS define
+2819.	[cleanup]	Removed unnecessary DNS_POINTER_MAXHOPS define.
 			[RT #20771]
 
-2818.	[cleanup]	rndc could return an incorrect error code 
+2818.	[cleanup]	rndc could return an incorrect error code
 			when a zone was not found. [RT #20767]
 
 2815.	[bug]		Exclusively lock the task when freezing a zone.
@@ -579,7 +582,7 @@
 
 2621.	[doc]		Made copyright boilterplate consistent.  [RT #19833]
 
-2920.	[bug]		Delay thawing the zone until the reload of it has
+2620.	[bug]		Delay thawing the zone until the reload of it has
 			completed successfully.  [RT #19750]
 
 2618.	[bug]		The sdb and sdlz db_interator_seek() methods could
