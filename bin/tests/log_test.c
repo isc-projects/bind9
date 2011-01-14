@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log_test.c,v 1.26 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id: log_test.c,v 1.26.558.1 2011/01/14 00:43:43 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -306,16 +306,16 @@ main(int argc, char **argv) {
 	isc_log_write1(lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RBTDB,
 		       ISC_LOG_CRITICAL, "%s", message);
 	isc_log_write1(lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RBTDB,
-		       ISC_LOG_CRITICAL, message);
+		       ISC_LOG_CRITICAL, "%s", message);
 
 	isc_log_setduplicateinterval(lcfg, 1);
 	message = "This message should appear twice on stderr";
 
 	isc_log_write1(lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RBTDB,
-		       ISC_LOG_CRITICAL, message);
+		       ISC_LOG_CRITICAL, "%s", message);
 	sleep(2);
 	isc_log_write1(lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RBTDB,
-		       ISC_LOG_CRITICAL, message);
+		       ISC_LOG_CRITICAL, "%s", message);
 
 	/*
 	 * Review where everything went.
