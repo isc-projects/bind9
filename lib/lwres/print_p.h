@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print_p.h,v 1.2 2004/08/28 06:20:14 marka Exp $ */
+/* $Id: print_p.h,v 1.2.2.2 2011/01/14 05:46:14 marka Exp $ */
 
 #ifndef LWRES_PRINT_P_H
 #define LWRES_PRINT_P_H 1
@@ -67,17 +67,20 @@ LWRES_LANG_BEGINDECLS
 int
 lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap)
      LWRES_FORMAT_PRINTF(3, 0);
+#undef vsnprintf
 #define vsnprintf lwres__print_vsnprintf
 
 int
 lwres__print_snprintf(char *str, size_t size, const char *format, ...)
      LWRES_FORMAT_PRINTF(3, 4);
+#undef snprintf
 #define snprintf lwres__print_snprintf
 #endif /* LWRES_PLATFORM_NEEDVSNPRINTF */
 
 #ifdef LWRES_PLATFORM_NEEDSPRINTF
 int
 lwres__print_sprintf(char *str, const char *format, ...) LWRES_FORMAT_PRINTF(2, 3);
+#undef sprintf
 #define sprintf lwres__print_sprintf
 #endif
 
