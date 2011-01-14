@@ -65,6 +65,9 @@
                         interfaces at reboot. See bin/tests/system/README
                         for details.
 
+2940.   [port]          Remove connection aborted error message on
+                        Windows. [RT #21549]
+
 2938.   [bug]           When generating signed responses, from a signed zone
                         that uses NSEC3, named would use a uninitialised
                         pointer if it needed to skip a NSEC3 record because
