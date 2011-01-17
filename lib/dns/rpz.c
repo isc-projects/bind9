@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rpz.c,v 1.6 2011/01/13 06:48:14 marka Exp $ */
+/* $Id: rpz.c,v 1.7 2011/01/17 04:27:23 marka Exp $ */
 
 /*! \file */
 
@@ -706,7 +706,7 @@ ffbit(dns_rpz_cidr_word_t w) {
 
 	if (w == 0)
 		return (DNS_RPZ_CIDR_WORD_BITS);
-	for (bit = 0; (w & (1 << (DNS_RPZ_CIDR_WORD_BITS-1))) == 0; bit++)
+	for (bit = 0; (w & (1U << (DNS_RPZ_CIDR_WORD_BITS-1))) == 0; bit++)
 		w <<= 1;
 	return (bit);
 }
