@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: opensslgost_link.c,v 1.3 2010/12/23 23:47:08 tbox Exp $ */
+/* $Id: opensslgost_link.c,v 1.4 2011/01/19 03:09:14 marka Exp $ */
 
 #include <config.h>
 
@@ -371,6 +371,8 @@ static dst_func_t opensslgost_functions = {
 	opensslgost_parse,
 	opensslgost_cleanup,
 	NULL, /*%< fromlabel */
+	NULL, /*%< dump */
+	NULL  /*%< restore */
 };
 
 isc_result_t
