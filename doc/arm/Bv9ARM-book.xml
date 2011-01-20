@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.476 2011/01/13 01:59:27 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.477 2011/01/20 10:17:23 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -891,7 +891,7 @@ zone "eng.example.com" {
       </para>
       <para>
         For more detail on ordering responses, check the
-        <command>rrset-order</command> substatement in the
+        <command>rrset-order</command> sub-statement in the
         <command>options</command> statement, see
         <xref endterm="rrset_ordering_title" linkend="rrset_ordering"/>.
       </para>
@@ -5795,7 +5795,7 @@ options {
 		IPv6 addresses will be ignored for the purposes
 		of determining if dns64 is to be applied.  Any
 		non matching address will prevent any further
-		DNS64 processing from occuring for this client.
+		DNS64 processing from occurring for this client.
 	      </para>
 	      <para>
 		A optional <command>suffix</command> can also
@@ -8640,7 +8640,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  buffer (<command>edns-udp-size</command>).
 		</para>
 		<para>
-		  Setting this to a low value will encourge additional
+		  Setting this to a low value will encourage additional
 		  TCP traffic to the nameserver.
 		</para>
 	      </listitem>
@@ -9764,7 +9764,7 @@ ns.domain.com.rpz-nsdname   CNAME   .
             to the master file as soon as possible afterward; in the case
             of the managed key database, this will usually occur within 30
             seconds.  So, whenever <command>named</command> is using
-            automatic key maintenace, those two files can be expected to
+            automatic key maintenance, those two files can be expected to
             exist in the working directory.  (For this reason among others,
             the working directory should be always be writable by
             <command>named</command>.)
@@ -11026,7 +11026,7 @@ example.com. NS ns2.example.net.
                 <listitem>
                   <para>
                     Zones configured for dynamic DNS may also use this
-                    option to allow varying levels of autonatic DNSSEC key
+                    option to allow varying levels of automatic DNSSEC key
                     management. There are four possible settings:
                   </para>
                   <para>
