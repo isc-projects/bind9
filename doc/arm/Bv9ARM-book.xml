@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.477 2011/01/20 10:17:23 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.478 2011/01/22 01:21:05 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -5139,7 +5139,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<optional> mapped { <replaceable>address_match_list</replaceable> }; </optional>
         <optional> exclude { <replaceable>address_match_list</replaceable> }; </optional>
 	<optional> suffix IPv6-address; </optional>
-	<optional> recursion-only <replaceable>yes_or_no</replaceable>; </optional>
+	<optional> recursive-only <replaceable>yes_or_no</replaceable>; </optional>
 	<optional> break-dnssec <replaceable>yes_or_no</replaceable>; </optional>
     }; </optional>;
     <optional> dns64-server <replaceable>name</replaceable> </optional>
