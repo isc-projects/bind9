@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.511 $)
+AC_REVISION($Revision: 1.512 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -308,7 +308,7 @@ AC_TRY_COMPILE(, [
 	],
 	[AC_MSG_RESULT(no)],
 	[AC_MSG_RESULT(yes)
-	 AC_DEFINE(inline, )])
+	 AC_DEFINE(inline, ,[Define to empty if your compiler does not support "static inline".])])
 
 AC_TYPE_SIZE_T
 AC_CHECK_TYPE(ssize_t, int)
@@ -2730,6 +2730,42 @@ case "$enable_fixed" in
 esac
 
 #
+# Enable response policy rewriting using NS IP addresses
+#
+AC_ARG_ENABLE(rpz-nsip,
+	[  --enable-rpz-nsip	  enable rpz-nsip rules [[default=no]]],
+			enable_nsip="$enableval",
+			enable_nsip="no")
+case "$enable_nsip" in
+	yes)
+		AC_DEFINE(ENABLE_RPZ_NSIP, 1,
+			  [Define to enable rpz-nsip rules.])
+		;;
+	no)
+		;;
+	*)
+		;;
+esac
+
+#
+# Enable response policy rewriting using NS name
+#
+AC_ARG_ENABLE(rpz-nsdname,
+	[  --enable-rpz-nsdname	  enable rpz-nsdname rules [[default=no]]],
+			enable_nsdname="$enableval",
+			enable_nsdname="no")
+case "$enable_nsdname" in
+	yes)
+		AC_DEFINE(ENABLE_RPZ_NSDNAME, 1,
+			  [Define to enable rpz-nsdname rules.])
+		;;
+	no)
+		;;
+	*)
+		;;
+esac
+
+#
 # Activate "filter-aaaa-on-v4" or not?
 #
 AC_ARG_ENABLE(filter-aaaa,
@@ -3269,6 +3305,7 @@ AC_CONFIG_FILES([
 	bin/tests/system/filter-aaaa/Makefile
 	bin/tests/system/gost/prereq.sh
 	bin/tests/system/lwresd/Makefile
+	bin/tests/system/rpz/Makefile
 	bin/tests/system/tkey/Makefile
 	bin/tests/tasks/Makefile
 	bin/tests/timers/Makefile

@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2005-2007, 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2005-2007, 2009-2011  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdlz.h,v 1.11 2010/12/20 23:47:21 tbox Exp $ */
+/* $Id: sdlz.h,v 1.14 2011/01/13 08:50:29 tbox Exp $ */
 
 /*! \file dns/sdlz.h */
 
@@ -236,8 +236,8 @@ typedef isc_boolean_t (*dns_sdlzssumatch_t)(const char *signer,
 					    const char *tcpaddr,
 					    const char *type,
 					    const char *key,
-					    uint32_t keydatalen,
-					    uint8_t *keydata,
+					    isc_uint32_t keydatalen,
+					    unsigned char *keydata,
 					    void *driverarg,
 					    void *dbdata);
 

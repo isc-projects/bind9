@@ -16,7 +16,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.141 2010/12/23 04:09:28 marka Exp $ */
+/* $Id: config.h.in,v 1.144 2011/02/03 05:51:56 marka Exp $ */
 
 /*! \file */
 
@@ -159,6 +159,12 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to enable "rrset-order fixed" syntax. */
 #undef DNS_RDATASET_FIXED
+
+/* Define to enable rpz-nsdname rules. */
+#undef ENABLE_RPZ_NSDNAME
+
+/* Define to enable rpz-nsip rules. */
+#undef ENABLE_RPZ_NSIP
 
 /* Solaris hack to get select_large_fdset. */
 #undef FD_SETSIZE
@@ -412,11 +418,8 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
 
-/* Define to `__inline__' or `__inline' if that's what the C compiler
-   calls it, or to nothing if 'inline' is not supported under any name.  */
-#ifndef __cplusplus
+/* Define to empty if your compiler does not support "static inline". */
 #undef inline
-#endif
 
 /* Define to `unsigned int' if <sys/types.h> does not define. */
 #undef size_t

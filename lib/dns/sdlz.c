@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2005-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2005-2011  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdlz.c,v 1.28 2010/12/19 02:37:08 each Exp $ */
+/* $Id: sdlz.c,v 1.31 2011/01/13 06:29:16 marka Exp $ */
 
 /*! \file */
 
@@ -1237,6 +1237,8 @@ static dns_dbmethods_t sdlzdb_methods = {
 	NULL,
 	NULL,
 	NULL,
+	NULL,
+	NULL,
 	NULL
 };
 
@@ -1680,7 +1682,7 @@ dns_sdlzssumatch(dns_name_t *signer, dns_name_t *name, isc_netaddr_t *tcpaddr,
 	char b_key[DST_KEY_FORMATSIZE];
 	isc_buffer_t *tkey_token;
 	isc_region_t token_region;
-	uint32_t token_len = 0;
+	isc_uint32_t token_len = 0;
 	isc_boolean_t ret;
 
 	REQUIRE(driverarg != NULL);

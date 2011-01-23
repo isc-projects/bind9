@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.74 2010/08/16 04:46:16 marka Exp $ */
+/* $Id: sdb.c,v 1.76 2011/01/13 04:59:25 tbox Exp $ */
 
 /*! \file */
 
@@ -1254,6 +1254,8 @@ static dns_dbmethods_t sdb_methods = {
 	NULL,
 	NULL,
 	NULL,
+	NULL,
+	NULL
 };
 
 static isc_result_t

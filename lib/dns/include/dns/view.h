@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.131 2011/01/11 23:47:13 tbox Exp $ */
+/* $Id: view.h,v 1.132 2011/01/13 01:59:28 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -74,6 +74,7 @@
 #include <dns/acl.h>
 #include <dns/fixedname.h>
 #include <dns/rdatastruct.h>
+#include <dns/rpz.h>
 #include <dns/types.h>
 
 ISC_LANG_BEGINDECLS
@@ -160,6 +161,7 @@ struct dns_view {
 	dns_acl_t *			v4_aaaa_acl;
 	dns_dns64list_t 		dns64;
 	unsigned int 			dns64cnt;
+	ISC_LIST(dns_rpz_zone_t)	rpz_zones;
 
 	/*
 	 * Configurable data for server use only,

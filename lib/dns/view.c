@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.176 2011/01/11 23:47:13 tbox Exp $ */
+/* $Id: view.c,v 1.178 2011/01/13 09:53:04 marka Exp $ */
 
 /*! \file */
 
@@ -53,6 +53,7 @@
 #include <dns/request.h>
 #include <dns/resolver.h>
 #include <dns/result.h>
+#include <dns/rpz.h>
 #include <dns/stats.h>
 #include <dns/tsig.h>
 #include <dns/zone.h>
@@ -191,6 +192,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->maxudp = 0;
 	view->v4_aaaa = dns_v4_aaaa_ok;
 	view->v4_aaaa_acl = NULL;
+	ISC_LIST_INIT(view->rpz_zones);
 	dns_fixedname_init(&view->dlv_fixed);
 	view->managed_keys = NULL;
 #ifdef BIND9
@@ -325,6 +327,10 @@ destroy(dns_view_t *view) {
 			dns_acache_putdb(view->acache, view->cachedb);
 		dns_acache_detach(&view->acache);
 	}
+	dns_rpz_view_destroy(view);
+#else
+	INSIST(view->acache == NULL);
+	INSIST(ISC_LIST_EMPTY(view->rpz_zones));
 #endif
 	if (view->requestmgr != NULL)
 		dns_requestmgr_detach(&view->requestmgr);

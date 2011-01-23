@@ -194,6 +194,10 @@ options {
         request-ixfr <boolean>;
         request-nsid <boolean>;
         reserved-sockets <integer>;
+        response-policy {
+                zone <string> [ policy ( given | no-op | nxdomain | nodata
+                    | cname <domain> ) ];
+        };
         rfc2308-type1 <boolean>; // not yet implemented
         root-delegation-only [ exclude { <quoted_string>; ... } ];
         rrset-order { [ class <string> ] [ type <string> ] [ name
@@ -392,6 +396,10 @@ view <string> <optional_class> {
         recursion <boolean>;
         request-ixfr <boolean>;
         request-nsid <boolean>;
+        response-policy {
+                zone <string> [ policy ( given | no-op | nxdomain | nodata
+                    | cname <domain> ) ];
+        };
         rfc2308-type1 <boolean>; // not yet implemented
         root-delegation-only [ exclude { <quoted_string>; ... } ];
         rrset-order { [ class <string> ] [ type <string> ] [ name
