@@ -127,12 +127,12 @@
 
 2976.	[bug]		named could die on exit after negotiating a GSS-TSIG
 			key. [RT #22573]
-			
+
 2975.	[bug]		rbtdb.c:cleanup_dead_nodes_callback() aquired the
 			wrong lock which could lead to server deadlock.
 			[RT #22614]
 
-2974.	[bug]		Some vaild UPDATE requests could fail due to a
+2974.	[bug]		Some valid UPDATE requests could fail due to a
 			consistency check examining the existing version
 			of the zone rather than the new version resulting
 			from the UPDATE. [RT #22413]
@@ -225,11 +225,11 @@
 2950.	[bug]		named failed to perform a SOA up to date check when
 			falling back to TCP on UDP timeouts when
 			ixfr-from-differences was set. [RT #21595]
-			
+
 2949.	[bug]		dns_view_setnewzones() contained a memory leak if
 			it was called multiple times. [RT #21942]
 
-2948.	[port]		MacOS: provide a mechanism to configure the test 
+2948.	[port]		MacOS: provide a mechanism to configure the test
 			interfaces at reboot. See bin/tests/system/README
 			for details.
 
@@ -327,7 +327,7 @@
 			This feature is not yet documented, and its syntax
 			is expected to change.) [RT #19447]
 
-2929.	[bug]		Improved handling of GSS security contexts: 
+2929.	[bug]		Improved handling of GSS security contexts:
 			 - added LRU expiration for generated TSIGs
 			 - added the ability to use a non-default realm
                          - added new "realm" keyword in nsupdate
@@ -414,17 +414,17 @@ h
 2901.	[port]		Use AC_C_FLEXIBLE_ARRAY_MEMBER. [RT #21316]
 
 2900.	[bug]		The placeholder negative caching element was not
-			properly constructed triggering a INSIST in 
+			properly constructed triggering a INSIST in
 			dns_ncache_towire(). [RT #21346]
-			
+
 2899.	[port]		win32: Support linking against OpenSSL 1.0.0.
 
-2898.	[bug]		nslookup leaked memory when -domain=value was 
+2898.	[bug]		nslookup leaked memory when -domain=value was
 			specified. [RT #21301]
 
 2897.	[bug]		NSEC3 chains could be left behind when transitioning
 			to insecure. [RT #21040]
-			
+
 2896.	[bug]		"rndc sign" failed to properly update the zone
 			when adding a DNSKEY for publication only. [RT #21045]
 
@@ -670,7 +670,7 @@ h
 2819.	[cleanup]	Removed unnecessary DNS_POINTER_MAXHOPS define.
 			[RT #20771]
 
-2818.	[cleanup]	rndc could return an incorrect error code 
+2818.	[cleanup]	rndc could return an incorrect error code
 			when a zone was not found. [RT #20767]
 
 2817.	[cleanup]	Removed unnecessary isc_task_endexclusive() calls.
@@ -684,7 +684,7 @@ h
 
 2814.	[func]		Provide a definitive error message when a master
 			zone is not loaded. [RT #20757]
- 
+
 2813.	[bug]		Better handling of unreadable DNSSEC key files.
 			[RT #20710]
 
@@ -733,7 +733,7 @@ h
 
 			named-checkzone -r {ignore|warn|fail} (default warn)
 			named-compilezone -r {ignore|warn|fail} (default warn)
-			
+
 			named.conf: check-dup-records {ignore|warn|fail};
 
 2800.	[func]		Reject zones which have NS records which refer to
@@ -745,7 +745,7 @@ h
 			"dnssec-secure-to-insecure", and "dnskey-ksk-only"
 			to "dnssec-dnskey-kskonly", for clarity. [RT #20586]
 
-2798.	[bug]		Addressed bugs in managed-keys initialization 
+2798.	[bug]		Addressed bugs in managed-keys initialization
 			and rollover. [RT #20683]
 
 2797.	[bug]		Don't decrement the dispatch manager's maxbuffers.
