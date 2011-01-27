@@ -1,3 +1,6 @@
+3009.	[bug]		clients-per-query code didn't work as expected with
+			particular query patterns. [RT #22972]
+
 3007.	[bug]		Named failed to preserve the case of domain names in
 			rdata which is not compressible when writing master
 			files.  [RT #22863]
