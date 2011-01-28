@@ -1,0 +1,10 @@
+# $Id: version,v 1.53 2011/01/13 04:45:16 marka Exp $
+# 
+# This file must follow /bin/sh rules.  It is imported directly via
+# configure.
+#
+MAJORVER=9
+MINORVER=8
+PATCHVER=0
+RELEASETYPE=b
+RELEASEVER=1
