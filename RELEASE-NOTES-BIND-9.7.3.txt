@@ -2,7 +2,7 @@
 
 Introduction
 
-   BIND 9.7.3 is the current release of BIND 9.7.
+   BIND 9.7.3rc1 is the first release candidate of BIND 9.7.3.
 
    This document summarizes changes from BIND 9.7.1 to BIND 9.7.3. Please
    see the CHANGES file in the source code release for a complete list of
@@ -137,11 +137,6 @@ Bug Fixes
        the host prinicipal, make krb5-self updates fail. [RT #22770]
      * named failed to preserve the case of domain names in RDATA which is
        not compressible when writing master files. [RT #22863]
-     * There was a bug in how the clients-per-query code worked with some
-       query patterns. This could result, in rare circumstances, in having
-       all the client query slots filled with queries for the same DNS
-       label, essentially ignoring the max-clients-per-query setting. [RT
-       #22972]
 
 9.7.2-P3
 
