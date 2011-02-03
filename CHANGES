@@ -1,5 +1,5 @@
 3012.	[bug]		Remove DNSKEY TTL change pairs before generating
-			signing records for any remaing DNSKEY changes.
+			signing records for any remaining DNSKEY changes.
 			[RT #22590]
 
 3011.	[func]		Change the default query timeout from 30 seconds
