@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.353 2011/01/13 23:16:06 marka Exp $ */
+/* $Id: query.c,v 1.353.8.1 2011/02/03 07:39:02 marka Exp $ */
 
 /*! \file */
 
@@ -4847,6 +4847,40 @@ is_v4_client(ns_client_t *client) {
 }
 #endif
 
+static isc_uint32_t
+dns64_ttl(dns_db_t *db, dns_dbversion_t *version) {
+	dns_dbnode_t *node = NULL;
+	dns_rdata_soa_t soa;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdataset_t rdataset;
+	isc_result_t result;
+	isc_uint32_t ttl = ISC_UINT32_MAX;
+
+	result = dns_db_getoriginnode(db, &node);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	dns_rdataset_init(&rdataset);
+	result = dns_db_findrdataset(db, node, version, dns_rdatatype_soa,
+				     0, 0, &rdataset, NULL);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	result = dns_rdataset_first(&rdataset);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	dns_rdataset_current(&rdataset, &rdata);
+	result = dns_rdata_tostruct(&rdata, &soa, NULL);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	ttl = ISC_MIN(rdataset.ttl, soa.minimum);
+
+cleanup:
+	if (dns_rdataset_isassociated(&rdataset))
+		dns_rdataset_disassociate(&rdataset);
+	if (node != NULL)
+		dns_db_detachnode(db, &node);
+	return (ttl);
+}
+
 static isc_boolean_t
 dns64_aaaaok(ns_client_t *client, dns_rdataset_t *rdataset,
 	     dns_rdataset_t *sigrdataset)
@@ -5685,6 +5719,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			INSIST(client->query.dns64_sigaaaa == NULL);
 			client->query.dns64_aaaa = rdataset;
 			client->query.dns64_sigaaaa = sigrdataset;
+			client->query.dns64_ttl = dns64_ttl(db, version);
 			query_releasename(client, &fname);
 			dns_db_detachnode(db, &node);
 			rdataset = NULL;
@@ -5935,7 +5970,15 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			INSIST(client->query.dns64_sigaaaa == NULL);
 			client->query.dns64_aaaa = rdataset;
 			client->query.dns64_sigaaaa = sigrdataset;
-			client->query.dns64_ttl = rdataset->ttl;
+			/*
+			 * If the ttl is zero we need to workout if we have just
+			 * decremented to zero or if there was no negative cache
+			 * ttl in the answer.
+			 */
+			if (rdataset->ttl != 0)
+				client->query.dns64_ttl = rdataset->ttl;
+			else if (dns_rdataset_first(rdataset) == ISC_R_SUCCESS)
+				client->query.dns64_ttl = 0;
 			query_releasename(client, &fname);
 			dns_db_detachnode(db, &node);
 			rdataset = NULL;
@@ -6583,7 +6626,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 					if (!is_zone)
 						goto cleanup;
 					/*
-					 * Add a fake the SOA record.
+					 * Add a fake SOA record.
 					 */
 					result = query_addsoa(client, db,
 							      version, 600,
