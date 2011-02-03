@@ -15,12 +15,13 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.25 2007/06/19 23:47:04 tbox Exp $
+# $Id: tests.sh,v 1.25.332.1 2011/02/03 07:20:54 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 status=0
+n=0
 
 echo "I:fetching first copy of zone before update"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
@@ -157,5 +158,26 @@ $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd updated4.example.nil.\
 	@10.53.0.1 a -p 5300 > dig.out.ns1 || status=1
 $PERL ../digcomp.pl knowngood.ns1.afterstop dig.out.ns1 || status=1
 
+n=`expr $n + 1`
+ret=0
+echo "I:check that changes to the DNSKEY RRset TTL do not have side effects ($n)"
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd dnskey.test. \
+        @10.53.0.3 -p 5300 dnskey | \
+	sed -n 's/\(.*\)10.IN/update add \1600 IN/p' |
+	(echo server 10.53.0.3 5300; cat - ; echo send ) |
+$NSUPDATE 
+
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd dnskey.test. \
+	@10.53.0.3 -p 5300 any > dig.out.ns3.$n
+
+grep "600.*DNSKEY" dig.out.ns3.$n > /dev/null || ret=1
+grep TYPE65534 dig.out.ns3.$n > /dev/null && ret=1
+if test $ret -ne 0
+then
+	echo "I:failed"; status=1
+fi
+  
+  echo "I:exit status: $status"
+  exit $status
 echo "I:exit status: $status"
 exit $status

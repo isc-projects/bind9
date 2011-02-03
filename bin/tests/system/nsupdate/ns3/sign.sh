@@ -1,7 +1,6 @@
-#!/bin/sh
+#!/bin/sh -e
 #
-# Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
-# Copyright (C) 2000, 2001  Internet Software Consortium.
+# Copyright (C) 2010  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,17 +14,20 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.12.250.1 2011/02/03 07:20:53 marka Exp $
+# $Id: sign.sh,v 1.3.2.2 2011/02/03 07:20:54 marka Exp $
 
-#
-# Clean up after zone transfer tests.
-#
+SYSTEMTESTTOP=../..
+. $SYSTEMTESTTOP/conf.sh
 
-rm -f dig.out.ns1 dig.out.ns2 dig.out.ns1.after ns1/*.jnl ns2/*.jnl \
-    ns1/example.db ns1/update.db
-rm -f ns2/example.bk
-rm -f ns2/update.bk
-rm -f */named.memstats
-rm -f ns3/dnskey.test.db.signed.jnl ns3/dnskey.test.db ns3/dnskey.test.db.signed ns3/dsset-dnskey.test.
-rm -f ns3/K*
-rm -f dig.out.ns3.*
+RANDFILE=../random.data
+
+zone=dnskey.test.
+infile=dnskey.test.db.in
+zonefile=dnskey.test.db
+
+keyname1=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 1024 -n zone -f KSK $zone`
+keyname2=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
+
+cat $infile $keyname1.key $keyname2.key >$zonefile
+
+$SIGNER -P -r $RANDFILE -o $zone -k $keyname1 $zonefile $keyname2 > /dev/null

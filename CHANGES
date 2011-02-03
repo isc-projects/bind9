@@ -1,3 +1,7 @@
+3012.	[bug]		Remove DNSKEY TTL change pairs before generating
+			signing records for any remaining DNSKEY changes.
+			[RT #22590]
+
 	--- 9.6.3 released ---
 
 3009.	[bug]		clients-per-query code didn't work as expected with

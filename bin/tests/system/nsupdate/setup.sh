@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.10 2007/06/19 23:47:04 tbox Exp $
+# $Id: setup.sh,v 1.10.332.1 2011/02/03 07:20:53 marka Exp $
 
 #
 # jnl and database files MUST be removed before we start
@@ -40,3 +40,7 @@ update.nil              IN SOA  ns1.example.nil. hostmaster.example.nil. (
 update.nil.             NS      ns1.update.nil.
 ns1.update.nil.         A       10.53.0.2
 EOF
+
+../../genrandom 400 random.data
+
+(cd ns3; sh -e sign.sh)
