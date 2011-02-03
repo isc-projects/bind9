@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.429 2011/02/03 05:41:54 marka Exp $ */
+/* $Id: resolver.c,v 1.430 2011/02/03 12:18:11 tbox Exp $ */
 
 /*! \file */
 
@@ -8735,18 +8735,18 @@ dns_resolver_getoptions(dns_resolver_t *resolver) {
 unsigned int
 dns_resolver_gettimeout(dns_resolver_t *resolver) {
 	REQUIRE(VALID_RESOLVER(resolver));
-	
+
 	return (resolver->query_timeout);
 }
 
 void
 dns_resolver_settimeout(dns_resolver_t *resolver, unsigned int seconds) {
 	REQUIRE(VALID_RESOLVER(resolver));
-	
+
 	if (seconds == 0)
 		seconds = DEFAULT_QUERY_TIMEOUT;
 	if (seconds > MAXIMUM_QUERY_TIMEOUT)
 		seconds = MAXIMUM_QUERY_TIMEOUT;
-	
+
 	resolver->query_timeout = seconds;
 }

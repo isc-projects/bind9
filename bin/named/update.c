@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.187 2011/02/03 06:03:15 marka Exp $ */
+/* $Id: update.c,v 1.188 2011/02/03 12:18:10 tbox Exp $ */
 
 #include <config.h>
 
@@ -3436,7 +3436,7 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 	 */
 	for (tuple = ISC_LIST_HEAD(diff->tuples);
 	     tuple != NULL; tuple = next) {
-	
+
 		next = ISC_LIST_NEXT(tuple, link);
 
 		if (tuple->rdata.type != dns_rdatatype_dnskey)
@@ -3500,7 +3500,7 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 	     tuple = ISC_LIST_HEAD(temp_diff.tuples)) {
 
 		ISC_LIST_UNLINK(temp_diff.tuples, tuple, link);
-                ISC_LIST_APPEND(diff->tuples, tuple, link);
+		ISC_LIST_APPEND(diff->tuples, tuple, link);
 
 		dns_rdata_tostruct(&tuple->rdata, &dnskey, NULL);
 		if ((dnskey.flags &
