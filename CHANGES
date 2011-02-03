@@ -1,3 +1,6 @@
+3015.	[port]		win32: fix IN6_IS_ADDR_LINKLOCAL and
+			IN6_IS_ADDR_SITELOCAL macros. [RT #22724]
+
 3012.	[bug]		Remove DNSKEY TTL change pairs before generating
 			signing records for any remaining DNSKEY changes.
 			[RT #22590]
