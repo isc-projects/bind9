@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.599 2011/01/13 03:57:50 marka Exp $ */
+/* $Id: server.c,v 1.600 2011/02/03 00:21:55 each Exp $ */
 
 /*! \file */
 
@@ -3447,6 +3447,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 static isc_result_t
 add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 	isc_result_t result;
+	dns_view_t *pview = NULL;
 	dns_zone_t *zone = NULL;
 	dns_acl_t *none = NULL;
 	char filename[PATH_MAX];
@@ -3455,8 +3456,22 @@ add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 
 	REQUIRE(view != NULL);
 
-	CHECK(dns_zone_create(&zone, mctx));
+	/* See if we can re-use an existing keydata zone. */
+	result = dns_viewlist_find(&ns_g_server->viewlist,
+				   view->name, view->rdclass,
+				   &pview);
+	if (result != ISC_R_NOTFOUND &&
+	    result != ISC_R_SUCCESS)
+		return (result);
 
+	if (pview != NULL && pview->managed_keys != NULL) {
+		dns_zone_attach(pview->managed_keys, &view->managed_keys);
+		dns_view_detach(&pview);
+		return (ISC_R_SUCCESS);
+	}
+
+	/* No existing keydata zone was found; create one */
+	CHECK(dns_zone_create(&zone, mctx));
 	CHECK(dns_zone_setorigin(zone, dns_rootname));
 
 	isc_sha256_data((void *)view->name, strlen(view->name), buffer);
@@ -5020,11 +5035,14 @@ load_new_zones(ns_server_t *server, isc_boolean_t stop) {
 	     view = ISC_LIST_NEXT(view, link))
 	{
 		CHECK(dns_view_loadnew(view, stop));
+
+		/* Load managed-keys data */
+		if (view->managed_keys != NULL)
+			CHECK(dns_zone_loadnew(view->managed_keys));
 	}
+
 	/*
-	 * Force zone maintenance.  Do this after loading
-	 * so that we know when we need to force AXFR of
-	 * slave zones whose master files are missing.
+	 * Resume zone XFRs.
 	 */
 	dns_zonemgr_resumexfrs(server->zonemgr);
  cleanup:

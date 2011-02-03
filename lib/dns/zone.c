@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.582 2011/01/13 04:59:25 tbox Exp $ */
+/* $Id: zone.c,v 1.583 2011/02/03 00:21:55 each Exp $ */
 
 /*! \file */
 
@@ -2682,6 +2682,7 @@ set_refreshkeytimer(dns_zone_t *zone, dns_rdata_keydata_t *key,
 	const char me[] = "set_refreshkeytimer";
 	isc_stdtime_t then;
 	isc_time_t timenow, timethen;
+	char timebuf[80];
 
 	ENTER;
 	then = key->refresh;
@@ -2698,6 +2699,9 @@ set_refreshkeytimer(dns_zone_t *zone, dns_rdata_keydata_t *key,
 	if (isc_time_compare(&zone->refreshkeytime, &timenow) < 0 ||
 	    isc_time_compare(&timethen, &zone->refreshkeytime) < 0)
 		zone->refreshkeytime = timethen;
+
+	isc_time_formattimestamp(&zone->refreshkeytime, timebuf, 80);
+	dns_zone_log(zone, ISC_LOG_DEBUG(1), "next key refresh: %s", timebuf);
 	zone_settimer(zone, &timenow);
 }
 
