@@ -14,67 +14,67 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.2 2004/11/23 05:23:46 marka Exp $
+# $Id: tests.sh,v 1.2.2.2 2011/02/03 07:56:33 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 status=0
 
-#
+# This is a Warning in 9.6 and Fatal in 9.7
 echo "I: checking that we detect a NS which refers to a CNAME"
 if $CHECKZONE . cname.db > cname.out 2>&1
 then
-	echo "I:failed (status)"; status=1
-else
 	if grep "is a CNAME" cname.out > /dev/null
 	then
 		:
 	else
 		echo "I:failed (message)"; status=1
 	fi
+else
+	echo "I:failed (status)"; status=1
 fi
 
-#
+# This is a Warning in 9.6 and Fatal in 9.7
 echo "I: checking that we detect a NS which is below a DNAME"
 if $CHECKZONE . dname.db > dname.out 2>&1
 then
-	echo "I:failed (status)"; status=1
-else
 	if grep "is below a DNAME" dname.out > /dev/null
 	then
 		:
 	else
 		echo "I:failed (message)"; status=1
 	fi
+else
+	echo "I:failed (status)"; status=1
 fi
 
-#
+# This is a Warning in 9.6 and Fatal in 9.7
 echo "I: checking that we detect a NS which has no address records (A/AAAA)"
 if $CHECKZONE . noaddress.db > noaddress.out
 then
-	echo "I:failed (status)"; status=1
-else
 	if grep "has no address records" noaddress.out > /dev/null
 	then
 		:
 	else
 		echo "I:failed (message)"; status=1
 	fi
+else
+	echo "I:failed (status)"; status=1
 fi
 
-#
+# This is a Warning in 9.6 and Fatal in 9.7
 echo "I: checking that we detect a NS which has no records"
 if $CHECKZONE . nxdomain.db > nxdomain.out
 then
-	echo "I:failed (status)"; status=1
-else
 	if grep "has no address records" noaddress.out > /dev/null
 	then
 		:
 	else
 		echo "I:failed (message)"; status=1
 	fi
+else
+	echo "I:failed (status)"; status=1
 fi
 
 #
@@ -161,4 +161,4 @@ else
 	echo "I:failed (status)"; status=1
 fi
 echo "I:exit status: $status"
-exit $?
+exit $status

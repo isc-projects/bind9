@@ -1,3 +1,6 @@
+3014.	[bug]		Fix the zonechecks system test to match expected
+			behaviour for 9.4 and to fail on error. [RT #22905]
+
 3009.	[bug]		clients-per-query code didn't work as expected with
 			particular query patterns. [RT #22972]
 
