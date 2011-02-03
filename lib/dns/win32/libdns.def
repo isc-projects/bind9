@@ -576,7 +576,7 @@ dns_resolver_createfetch
 dns_resolver_createfetch2
 dns_resolver_destroyfetch
 dns_resolver_detach
-dns_resolver_dettimeout
+dns_resolver_settimeout
 dns_resolver_disable_algorithm
 dns_resolver_dispatchmgr
 dns_resolver_dispatchv4
