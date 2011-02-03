@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.599.8.2 2011/02/03 05:50:05 marka Exp $ */
+/* $Id: server.c,v 1.599.8.3 2011/02/03 12:17:49 tbox Exp $ */
 
 /*! \file */
 
@@ -2206,7 +2206,7 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 	if (lame_ttl > 1800)
 		lame_ttl = 1800;
 	dns_resolver_setlamettl(view->resolver, lame_ttl);
-	
+
 	/*
 	 * Set the resolver's query timeout.
 	 */
