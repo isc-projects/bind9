@@ -1,3 +1,6 @@
+3010.	[bug]		Fixed a bug where "rndc reconfig" stopped the timer
+			for refreshing managed-keys. [RT #22296]
+
 3009.	[bug]		clients-per-query code didn't work as expected with
 			particular query patterns. [RT #22972]
 
