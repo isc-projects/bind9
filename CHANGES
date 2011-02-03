@@ -1,3 +1,9 @@
+3011.	[func]		Change the default query timeout from 30 seconds
+			to 10.  Allow setting this in named.conf using the new
+			'resolver-query-timeout' option, which specifies a max
+			time in seconds.  0 means 'default' and anything longer
+			than 30 will be silently set to 30. [RT #22852]
+ 
 3010.	[bug]		Fixed a bug where "rndc reconfig" stopped the timer
 			for refreshing managed-keys. [RT #22296]
 
