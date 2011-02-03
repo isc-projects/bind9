@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.122.44.2 2009/01/18 23:47:35 tbox Exp $ */
+/* $Id: rndc.c,v 1.122.44.3 2011/02/03 11:50:52 marka Exp $ */
 
 /*! \file */
 
@@ -92,7 +92,7 @@ static void rndc_startconnect(isc_sockaddr_t *addr, isc_task_t *task);
 static void
 usage(int status) {
 	fprintf(stderr, "\
-Usage: %s [-c config] [-s server] [-p port]\n\
+Usage: %s [-b address] [-c config] [-s server] [-p port]\n\
 	[-k key-file ] [-y key] [-V] command\n\
 \n\
 command is one of the following:\n\
