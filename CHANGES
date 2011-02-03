@@ -1,3 +1,7 @@
+3012.	[bug]		Remove DNSKEY TTL change pairs before generating
+			signing records for any remaining DNSKEY changes.
+			[RT #22590]
+
 	--- 9.7.3 released ---
 
 3010.	[bug]		Fixed a bug where "rndc reconfig" stopped the timer
