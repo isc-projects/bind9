@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.186 2010/12/18 01:56:19 each Exp $ */
+/* $Id: update.c,v 1.187 2011/02/03 06:03:15 marka Exp $ */
 
 #include <config.h>
 
@@ -3371,8 +3371,7 @@ rollback_private(dns_db_t *db, dns_rdatatype_t privatetype,
 	 * Extract the changes to be rolled back.
 	 */
 	for (tuple = ISC_LIST_HEAD(diff->tuples);
-	     tuple != NULL;
-	     tuple = next) {
+	     tuple != NULL; tuple = next) {
 
 		next = ISC_LIST_NEXT(tuple, link);
 
@@ -3419,7 +3418,7 @@ static isc_result_t
 add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 		    dns_dbversion_t *ver, dns_diff_t *diff)
 {
-	dns_difftuple_t *tuple, *newtuple = NULL;
+	dns_difftuple_t *tuple, *newtuple = NULL, *next;
 	dns_rdata_dnskey_t dnskey;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_boolean_t flag;
@@ -3428,12 +3427,80 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 	isc_uint16_t keyid;
 	unsigned char buf[5];
 	dns_name_t *name = dns_db_origin(db);
+	dns_diff_t temp_diff;
 
+	dns_diff_init(diff->mctx, &temp_diff);
+
+	/*
+	 * Extract the DNSKEY tuples from the list.
+	 */
 	for (tuple = ISC_LIST_HEAD(diff->tuples);
-	     tuple != NULL;
-	     tuple = ISC_LIST_NEXT(tuple, link)) {
+	     tuple != NULL; tuple = next) {
+	
+		next = ISC_LIST_NEXT(tuple, link);
+
 		if (tuple->rdata.type != dns_rdatatype_dnskey)
 			continue;
+
+		ISC_LIST_UNLINK(diff->tuples, tuple, link);
+		ISC_LIST_APPEND(temp_diff.tuples, tuple, link);
+	}
+
+	/*
+	 * Extract TTL changes pairs, we don't need signing records for these.
+	 */
+	for (tuple = ISC_LIST_HEAD(temp_diff.tuples);
+	     tuple != NULL; tuple = next) {
+		if (tuple->op == DNS_DIFFOP_ADD) {
+			/*
+			 * Walk the temp_diff list looking for the
+			 * corresponding delete.
+			 */
+			next = ISC_LIST_HEAD(temp_diff.tuples);
+			while (next != NULL) {
+				unsigned char *next_data = next->rdata.data;
+				unsigned char *tuple_data = tuple->rdata.data;
+				if (next->op == DNS_DIFFOP_DEL &&
+				    dns_name_equal(&tuple->name, &next->name) &&
+				    next->rdata.length == tuple->rdata.length &&
+				    !memcmp(next_data, tuple_data,
+					    next->rdata.length)) {
+					ISC_LIST_UNLINK(temp_diff.tuples, next,
+							link);
+					ISC_LIST_APPEND(diff->tuples, next,
+							link);
+					break;
+				}
+				next = ISC_LIST_NEXT(next, link);
+			}
+			/*
+			 * If we have not found a pair move onto the next
+			 * tuple.
+			 */
+			if (next == NULL) {
+				next = ISC_LIST_NEXT(tuple, link);
+				continue;
+			}
+			/*
+			 * Find the next tuple to be processed before
+			 * unlinking then complete moving the pair to 'diff'.
+			 */
+			next = ISC_LIST_NEXT(tuple, link);
+			ISC_LIST_UNLINK(temp_diff.tuples, tuple, link);
+			ISC_LIST_APPEND(diff->tuples, tuple, link);
+		} else
+			next = ISC_LIST_NEXT(tuple, link);
+	}
+
+	/*
+	 * Process the remaining DNSKEY entries.
+	 */
+	for (tuple = ISC_LIST_HEAD(temp_diff.tuples);
+	     tuple != NULL;
+	     tuple = ISC_LIST_HEAD(temp_diff.tuples)) {
+
+		ISC_LIST_UNLINK(temp_diff.tuples, tuple, link);
+                ISC_LIST_APPEND(diff->tuples, tuple, link);
 
 		dns_rdata_tostruct(&tuple->rdata, &dnskey, NULL);
 		if ((dnskey.flags &
@@ -3475,7 +3542,9 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 			INSIST(newtuple == NULL);
 		}
 	}
+
  failure:
+	dns_diff_clear(&temp_diff);
 	return (result);
 }
 

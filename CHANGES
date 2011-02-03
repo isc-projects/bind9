@@ -1,3 +1,7 @@
+3012.	[bug]		Remove DNSKEY TTL change pairs before generating
+			signing records for any remaing DNSKEY changes.
+			[RT #22590]
+
 3011.	[func]		Change the default query timeout from 30 seconds
 			to 10.  Allow setting this in named.conf using the new
 			'resolver-query-timeout' option, which specifies a max
