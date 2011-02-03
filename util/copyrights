@@ -96,7 +96,7 @@
 ./bin/dnssec/dnssec-dsfromkey.html		HTML	DOCBOOK
 ./bin/dnssec/dnssec-keyfromlabel.8		MAN	DOCBOOK
 ./bin/dnssec/dnssec-keyfromlabel.c		C	2007,2008,2009,2010
-./bin/dnssec/dnssec-keyfromlabel.docbook	SGML	2008,2009,2010
+./bin/dnssec/dnssec-keyfromlabel.docbook	SGML	2008,2009,2010,2011
 ./bin/dnssec/dnssec-keyfromlabel.html		HTML	DOCBOOK
 ./bin/dnssec/dnssec-keygen.8			MAN	DOCBOOK
 ./bin/dnssec/dnssec-keygen.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
@@ -210,7 +210,7 @@
 ./bin/named/unix/Makefile.in			MAKE	1999,2000,2001,2004,2007,2009
 ./bin/named/unix/include/named/os.h		C	1999,2000,2001,2002,2004,2005,2007,2008,2009
 ./bin/named/unix/os.c				C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009
-./bin/named/update.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
+./bin/named/update.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
 ./bin/named/win32/include/named/ntservice.h	C	1999,2000,2001,2002,2003,2004,2007
 ./bin/named/win32/include/named/os.h		C	1999,2000,2001,2002,2004,2007,2008,2009
 ./bin/named/win32/named.dsp			X	2001,2004,2005,2008,2009
@@ -265,7 +265,7 @@
 ./bin/rndc/Makefile.in				MAKE	2000,2001,2002,2004,2007,2009
 ./bin/rndc/include/rndc/os.h			C	2001,2004,2005,2007,2009
 ./bin/rndc/rndc.8				MAN	DOCBOOK
-./bin/rndc/rndc.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
+./bin/rndc/rndc.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
 ./bin/rndc/rndc.conf				CONF-C	2000,2001,2004,2007
 ./bin/rndc/rndc.conf.5				MAN	DOCBOOK
 ./bin/rndc/rndc.conf.docbook			SGML	2000,2001,2004,2005,2007
@@ -914,7 +914,7 @@
 ./bin/tests/system/notify/setup.sh		SH	2000,2001,2004,2007
 ./bin/tests/system/notify/tests.sh		SH	2000,2001,2004,2007
 ./bin/tests/system/nsupdate/.cvsignore		X	2000,2001
-./bin/tests/system/nsupdate/clean.sh		SH	2000,2001,2004,2007,2009,2010
+./bin/tests/system/nsupdate/clean.sh		SH	2000,2001,2004,2007,2009,2010,2011
 ./bin/tests/system/nsupdate/knowngood.ns1.after	X	2000,2001,2003,2004,2009
 ./bin/tests/system/nsupdate/knowngood.ns1.afterstop	X	2001,2004
 ./bin/tests/system/nsupdate/knowngood.ns1.before	X	2000,2001,2003,2004,2009
@@ -923,12 +923,13 @@
 ./bin/tests/system/nsupdate/ns1/named.conf	CONF-C	2000,2001,2004,2005,2007,2009
 ./bin/tests/system/nsupdate/ns2/.cvsignore	X	2000,2001
 ./bin/tests/system/nsupdate/ns2/named.conf	CONF-C	2000,2001,2004,2007
+./bin/tests/system/nsupdate/ns3/dnskey.test.db.in	ZONE	2011
 ./bin/tests/system/nsupdate/ns3/example.db.in	ZONE	2010
-./bin/tests/system/nsupdate/ns3/named.conf	CONF-C	2010
+./bin/tests/system/nsupdate/ns3/named.conf	CONF-C	2010,2011
 ./bin/tests/system/nsupdate/ns3/nsec3param.test.db.in	ZONE	2010
-./bin/tests/system/nsupdate/ns3/sign.sh		SH	2010
+./bin/tests/system/nsupdate/ns3/sign.sh		SH	2010,2011
 ./bin/tests/system/nsupdate/setup.sh		SH	2000,2001,2004,2007,2009,2010
-./bin/tests/system/nsupdate/tests.sh		SH	2000,2001,2004,2007,2009,2010
+./bin/tests/system/nsupdate/tests.sh		SH	2000,2001,2004,2007,2009,2010,2011
 ./bin/tests/system/nsupdate/update_test.pl	PERL	2000,2001,2004,2007
 ./bin/tests/system/pending/clean.sh		SH	2009
 ./bin/tests/system/pending/ns1/named.conf	CONF-C	2009
@@ -2534,7 +2535,7 @@
 ./lib/isc/win32/include/isc/condition.h		C	1998,1999,2000,2001,2004,2007
 ./lib/isc/win32/include/isc/dir.h		C	1999,2000,2001,2004,2007
 ./lib/isc/win32/include/isc/int.h		C	1999,2000,2001,2004,2007
-./lib/isc/win32/include/isc/ipv6.h		C	1999,2000,2001,2002,2004,2005,2007
+./lib/isc/win32/include/isc/ipv6.h		C	1999,2000,2001,2002,2004,2005,2007,2011
 ./lib/isc/win32/include/isc/keyboard.h		C	2000,2001,2004,2007
 ./lib/isc/win32/include/isc/mutex.h		C	1998,1999,2000,2001,2004,2007,2008,2009
 ./lib/isc/win32/include/isc/net.h		C	1999,2000,2001,2002,2003,2004,2005,2007,2008
