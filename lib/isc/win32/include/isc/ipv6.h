@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ipv6.h,v 1.19.558.1 2011/02/03 08:18:01 marka Exp $ */
+/* $Id: ipv6.h,v 1.19.558.2 2011/02/03 12:17:23 tbox Exp $ */
 
 #ifndef ISC_IPV6_H
 #define ISC_IPV6_H 1
