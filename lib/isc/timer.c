@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.95 2009/10/05 17:30:49 fdupont Exp $ */
+/* $Id: timer.c,v 1.95.302.1 2011/02/03 05:50:07 marka Exp $ */
 
 /*! \file */
 
@@ -974,12 +974,13 @@ isc__timermgr_destroy(isc_timermgr_t **managerp) {
 	LOCK(&manager->lock);
 
 #ifdef USE_SHARED_MANAGER
-	if (manager->refs > 1) {
-		manager->refs--;
+	manager->refs--;
+	if (manager->refs > 0) {
 		UNLOCK(&manager->lock);
 		*managerp = NULL;
 		return;
 	}
+	timermgr = NULL;
 #endif /* USE_SHARED_MANAGER */
 
 #ifndef USE_TIMER_THREAD

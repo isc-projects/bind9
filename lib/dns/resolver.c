@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.428 2011/01/27 23:47:21 tbox Exp $ */
+/* $Id: resolver.c,v 1.428.6.1 2011/02/03 05:50:07 marka Exp $ */
 
 /*! \file */
 
@@ -103,6 +103,14 @@
 #define FCTXTRACE(m)
 #define FTRACE(m)
 #define QTRACE(m)
+#endif
+
+#ifndef DEFAULT_QUERY_TIMEOUT
+#define DEFAULT_QUERY_TIMEOUT 10  /* The default time in seconds for the whole query to live. */
+#endif
+
+#ifndef MAXIMUM_QUERY_TIMEOUT
+#define MAXIMUM_QUERY_TIMEOUT 30 /* The maximum time in seconds for the whole query to live. */
 #endif
 
 /*%
@@ -386,6 +394,7 @@ struct dns_resolver {
 	unsigned int			spillatmin;
 	isc_timer_t *			spillattimer;
 	isc_boolean_t			zero_no_soa_ttl;
+	unsigned int			query_timeout;
 
 	/* Locked by lock. */
 	unsigned int			references;
@@ -3658,7 +3667,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	/*
 	 * Compute an expiration time for the entire fetch.
 	 */
-	isc_interval_set(&interval, 30, 0);             /* XXXRTH constant */
+	isc_interval_set(&interval, res->query_timeout, 0);
 	iresult = isc_time_nowplusinterval(&fctx->expires, &interval);
 	if (iresult != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -7423,6 +7432,7 @@ dns_resolver_create(dns_view_t *view,
 	res->spillatmax = 100;
 	res->spillattimer = NULL;
 	res->zero_no_soa_ttl = ISC_FALSE;
+	res->query_timeout = DEFAULT_QUERY_TIMEOUT;
 	res->ndisps = 0;
 	res->nextdisp = 0; /* meaningless at this point, but init it */
 	res->nbuckets = ntasks;
@@ -8720,4 +8730,23 @@ dns_resolver_getoptions(dns_resolver_t *resolver) {
 	REQUIRE(VALID_RESOLVER(resolver));
 
 	return (resolver->options);
+}
+
+unsigned int
+dns_resolver_gettimeout(dns_resolver_t *resolver) {
+	REQUIRE(VALID_RESOLVER(resolver));
+	
+	return (resolver->query_timeout);
+}
+
+void
+dns_resolver_settimeout(dns_resolver_t *resolver, unsigned int seconds) {
+	REQUIRE(VALID_RESOLVER(resolver));
+	
+	if (seconds == 0)
+		seconds = DEFAULT_QUERY_TIMEOUT;
+	if (seconds > MAXIMUM_QUERY_TIMEOUT)
+		seconds = MAXIMUM_QUERY_TIMEOUT;
+	
+	resolver->query_timeout = seconds;
 }

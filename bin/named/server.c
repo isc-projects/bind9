@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.599.8.1 2011/02/03 00:20:50 each Exp $ */
+/* $Id: server.c,v 1.599.8.2 2011/02/03 05:50:05 marka Exp $ */
 
 /*! \file */
 
@@ -1615,6 +1615,7 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 	cfg_parser_t *newzones_parser = NULL;
 	cfg_obj_t *nzfconf = NULL;
 	dns_acl_t *clients = NULL, *mapped = NULL, *excluded = NULL;
+	unsigned int query_timeout;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -2205,6 +2206,15 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 	if (lame_ttl > 1800)
 		lame_ttl = 1800;
 	dns_resolver_setlamettl(view->resolver, lame_ttl);
+	
+	/*
+	 * Set the resolver's query timeout.
+	 */
+	obj = NULL;
+	result = ns_config_get(maps, "resolver-query-timeout", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	query_timeout = cfg_obj_asuint32(obj);
+	dns_resolver_settimeout(view->resolver, query_timeout);
 
 	/* Specify whether to use 0-TTL for negative response for SOA query */
 	dns_resolver_setzeronosoattl(view->resolver, zero_no_soattl);

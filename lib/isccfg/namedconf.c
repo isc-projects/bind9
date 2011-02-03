@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.131 2011/01/13 01:59:28 marka Exp $ */
+/* $Id: namedconf.c,v 1.131.8.1 2011/02/03 05:50:08 marka Exp $ */
 
 /*! \file */
 
@@ -1242,6 +1242,7 @@ view_clauses[] = {
 	{ "recursion", &cfg_type_boolean, 0 },
 	{ "request-ixfr", &cfg_type_boolean, 0 },
 	{ "request-nsid", &cfg_type_boolean, 0 },
+	{ "resolver-query-timeout", &cfg_type_uint32, 0 },
 	{ "rfc2308-type1", &cfg_type_boolean, CFG_CLAUSEFLAG_NYI },
 	{ "root-delegation-only",  &cfg_type_optional_exclude, 0 },
 	{ "rrset-order", &cfg_type_rrsetorder, 0 },

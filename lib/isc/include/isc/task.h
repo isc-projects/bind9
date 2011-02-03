@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.h,v 1.69 2010/12/22 13:05:20 marka Exp $ */
+/* $Id: task.h,v 1.69.14.1 2011/02/03 05:50:07 marka Exp $ */
 
 #ifndef ISC_TASK_H
 #define ISC_TASK_H 1
@@ -657,8 +657,10 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
  *
  *\li	#ISC_R_SUCCESS
  *\li	#ISC_R_NOMEMORY
- *\li	#ISC_R_NOTHREADS			No threads could be created.
+ *\li	#ISC_R_NOTHREADS		No threads could be created.
  *\li	#ISC_R_UNEXPECTED		An unexpected error occurred.
+ *\li	#ISC_R_SHUTTINGDOWN      	The non-threaded, shared, task
+ *					manager shutting down.
  */
 
 void

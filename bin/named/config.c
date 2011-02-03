@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.113 2010/12/16 09:51:27 jinmei Exp $ */
+/* $Id: config.c,v 1.113.16.1 2011/02/03 05:50:05 marka Exp $ */
 
 /*! \file */
 
@@ -89,6 +89,7 @@ options {\n\
 #endif
 "\
 	recursive-clients 1000;\n\
+	resolver-query-timeout 30;\n\
 	rrset-order {type NS order random; order cyclic; };\n\
 	serial-queries 20;\n\
 	serial-query-rate 20;\n\
