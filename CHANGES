@@ -1,3 +1,6 @@
+3017.	[doc]		dnssec-keyfromlabel -I was not properly documented.
+			[RT #22887]
+
 3016.	[bug]		rndc usage missing '-b'. [RT #22937]
 
 3015.	[port]		win32: fix IN6_IS_ADDR_LINKLOCAL and
