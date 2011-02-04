@@ -194,6 +194,7 @@ options {
         request-ixfr <boolean>;
         request-nsid <boolean>;
         reserved-sockets <integer>;
+        resolver-query-timeout <integer>;
         response-policy {
                 zone <string> [ policy ( given | no-op | nxdomain | nodata
                     | cname <domain> ) ];
@@ -396,6 +397,7 @@ view <string> <optional_class> {
         recursion <boolean>;
         request-ixfr <boolean>;
         request-nsid <boolean>;
+        resolver-query-timeout <integer>;
         response-policy {
                 zone <string> [ policy ( given | no-op | nxdomain | nodata
                     | cname <domain> ) ];
