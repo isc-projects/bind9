@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.583 2011/02/03 00:21:55 each Exp $ */
+/* $Id: zone.c,v 1.584 2011/02/07 00:10:36 marka Exp $ */
 
 /*! \file */
 
@@ -1599,7 +1599,8 @@ get_master_options(dns_zone_t *zone) {
 	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKWILDCARD))
 		options |= DNS_MASTER_CHECKWILDCARD;
 	if (zone->type == dns_zone_master &&
-	    (zone->update_acl != NULL || zone->ssutable != NULL))
+	    ((zone->update_acl != NULL && !dns_acl_isnone(zone->update_acl)) ||
+	      zone->ssutable != NULL))
 		options |= DNS_MASTER_RESIGN;
 	return (options);
 }
