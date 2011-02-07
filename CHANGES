@@ -1,3 +1,6 @@
+3018.	[bug]		Named failed to check for the "none;" acl when deciding
+			if a zone may need to be re-signed. RT #23120]
+
 3017.	[doc]		dnssec-keyfromlabel -I was not properly documented.
 			[RT #22887]
 
