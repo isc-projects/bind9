@@ -1,5 +1,5 @@
 3018.	[bug]		Named failed to check for the "none;" acl when deciding
-			if a zone may need to be re-signed. RT #23120]
+			if a zone may need to be re-signed. [RT #23120]
 
 	--- 9.8.0rc1 released ---
 
