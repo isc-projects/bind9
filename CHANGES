@@ -1,7 +1,7 @@
+	--- 9.8.0rc1 released ---
+
 3018.	[bug]		Named failed to check for the "none;" acl when deciding
 			if a zone may need to be re-signed. [RT #23120]
-
-	--- 9.8.0rc1 released ---
 
 3017.	[doc]		dnssec-keyfromlabel -I was not properly documented.
 			[RT #22887]
@@ -18,8 +18,7 @@
 			signing records for any remaining DNSKEY changes.
 			[RT #22590]
 
-3011.	[func]		Change the default query timeout from 30 seconds
-			to 10.  Allow setting this in named.conf using the new
+3011.	[func]		Allow setting this in named.conf using the new
 			'resolver-query-timeout' option, which specifies a max
 			time in seconds.  0 means 'default' and anything longer
 			than 30 will be silently set to 30. [RT #22852]
