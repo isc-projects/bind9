@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.53.48.14 2010/11/16 02:23:43 marka Exp $
+# $Id: tests.sh,v 1.53.48.15 2011/02/08 05:23:53 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -998,6 +998,7 @@ ret=0
 $DIG $DIGOPTS ns algroll. @10.53.0.4 > dig.out.ns4.test$n || ret=1
 grep "NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -1011,6 +1012,14 @@ then
 else
     echo "I:The DNSSEC update test requires the Net::DNS library." >&2
 fi
+
+echo "I:checking expired signatures remain with "'"allow-update { none; };"'" and no keys available ($n)"
+ret=0
+$DIG $DIGOPTS +noauth expired.example. +dnssec @10.53.0.3 soa > dig.out.ns3.test$n || ret=1
+grep "RRSIG.SOA" dig.out.ns3.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
 
 echo "I:exit status: $status"
 exit $status

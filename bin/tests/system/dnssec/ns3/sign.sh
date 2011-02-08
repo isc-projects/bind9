@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.25.48.7 2010/01/15 23:47:33 tbox Exp $
+# $Id: sign.sh,v 1.25.48.8 2011/02/08 05:23:53 marka Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -248,3 +248,16 @@ keyname=`$KEYGEN -r $RANDFILE -a RSASHA512 -b 1024 -n zone $zone`
 cat $infile $keyname.key >$zonefile
 
 $SIGNER -P -r $RANDFILE -o $zone $zonefile > /dev/null
+
+#
+# A zone with the expired signatures
+#
+zone=expired.example.
+infile=expired.example.db.in
+zonefile=expired.example.db
+
+kskname=`$KEYGEN -r $RANDFILE -a RSASHA512 -b 1024 -n zone -f KSK $zone`
+zskname=`$KEYGEN -r $RANDFILE -a RSASHA512 -b 1024 -n zone $zone`
+cat $infile $kskname.key $zskname.key >$zonefile
+$SIGNER -P -r $RANDFILE -o $zone -s +-10800 -e +3600 $zonefile > /dev/null 2>&1
+rm -f $kskname.* $zskname.*
