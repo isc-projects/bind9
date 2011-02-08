@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.428.6.2 2011/02/03 12:17:50 tbox Exp $ */
+/* $Id: resolver.c,v 1.428.6.3 2011/02/08 22:56:53 marka Exp $ */
 
 /*! \file */
 
@@ -106,7 +106,7 @@
 #endif
 
 #ifndef DEFAULT_QUERY_TIMEOUT
-#define DEFAULT_QUERY_TIMEOUT 10  /* The default time in seconds for the whole query to live. */
+#define DEFAULT_QUERY_TIMEOUT 30  /* The default time in seconds for the whole query to live. */
 #endif
 
 #ifndef MAXIMUM_QUERY_TIMEOUT
