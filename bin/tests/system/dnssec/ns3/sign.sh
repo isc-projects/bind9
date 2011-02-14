@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.34 2011/02/08 23:10:07 tbox Exp $
+# $Id: sign.sh,v 1.35 2011/02/14 23:53:44 marka Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -273,3 +273,15 @@ zskname=`$KEYGEN -q -r $RANDFILE $zone`
 cat $infile $kskname.key $zskname.key >$zonefile
 $SIGNER -P -r $RANDFILE -o $zone -s -3h -e +1h $zonefile > /dev/null 2>&1
 rm -f $kskname.* $zskname.*
+
+#
+# A NSEC3 signed zone that will have a DNSKEY added to it via UPDATE.
+#
+zone=update-nsec3.example.
+infile=update-nsec3.example.db.in
+zonefile=update-nsec3.example.db
+
+kskname=`$KEYGEN -q -3 -r $RANDFILE -fk $zone`
+zskname=`$KEYGEN -q -3 -r $RANDFILE $zone`
+cat $infile $kskname.key $zskname.key >$zonefile
+$SIGNER -P -3 - -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
