@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.53.48.16 2011/02/08 23:08:40 tbox Exp $
+# $Id: tests.sh,v 1.53.48.17 2011/02/15 00:16:37 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -1017,6 +1017,26 @@ echo "I:checking expired signatures remain with "'"allow-update { none; };"'" an
 ret=0
 $DIG $DIGOPTS +noauth expired.example. +dnssec @10.53.0.3 soa > dig.out.ns3.test$n || ret=1
 grep "RRSIG.SOA" dig.out.ns3.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking that the NSEC3 record for the apex is properly signed when a DNSKEY is added via UPDATE ($n)"
+ret=0
+(
+cd ns3
+kskname=`$KEYGEN -a RSASHA512 -b 1024 -n zone -r ../random.data -f KSK update-nsec3.example`
+(
+echo zone update-nsec3.example
+echo server 10.53.0.3 5300
+grep DNSKEY ${kskname}.key | sed -e 's/^/update add /' -e 's/IN/300 IN/'
+echo send
+) | $NSUPDATE
+)
+$DIG $DIGOPTS +dnssec a update-nsec3.example. @10.53.0.4 > dig.out.ns4.test$n || ret=1
+grep "NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
+grep "flags:.* ad[ ;]" dig.out.ns4.test$n > /dev/null || ret=1
+grep "NSEC3 .* TYPE65534" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
