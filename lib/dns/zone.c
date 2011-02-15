@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.38 2011/02/15 03:55:55 marka Exp $ */
+/* $Id: zone.c,v 1.540.2.39 2011/02/15 04:32:53 marka Exp $ */
 
 /*! \file */
 
@@ -13774,6 +13774,26 @@ signed_with_alg(dns_rdataset_t *rdataset, dns_secalg_t alg) {
 	return (ISC_FALSE);
 }
 
+static isc_result_t
+add_chains(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
+	   dns_diff_t *diff)
+{
+	dns_name_t *origin;
+	isc_boolean_t build_nsec3;
+	isc_result_t result;
+
+	origin = dns_db_origin(db);
+	CHECK(dns_private_chains(db, ver, zone->privatetype, NULL,
+				 &build_nsec3));
+	if (build_nsec3)
+		CHECK(dns_nsec3_addnsec3sx(db, ver, origin, zone->minimum,
+					   ISC_FALSE, zone->privatetype, diff));
+	CHECK(updatesecure(db, ver, origin, zone->minimum, ISC_TRUE, diff));
+
+ failure:
+	return (result);
+}
+
 static void
 zone_rekey(dns_zone_t *zone) {
 	isc_result_t result;
@@ -13878,6 +13898,7 @@ zone_rekey(dns_zone_t *zone) {
 			CHECK(add_signing_records(db, zone->privatetype, ver,
 						  &diff));
 			CHECK(increment_soa_serial(db, ver, &diff, mctx));
+			CHECK(add_chains(zone, db, ver, &diff));
 			CHECK(sign_apex(zone, db, ver, &diff, &sig_diff));
 			CHECK(zone_journal(zone, &sig_diff, "zone_rekey"));
 			commit = ISC_TRUE;
