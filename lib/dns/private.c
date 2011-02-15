@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: private.c,v 1.3 2009/10/09 23:48:09 tbox Exp $ */
+/* $Id: private.c,v 1.4 2011/02/15 18:23:34 fdupont Exp $ */
 
 #include "config.h"
 
@@ -149,7 +149,7 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
 	}
 
 	/*
-	 * Look to see if we also need to be creating a NSEC3 chains.
+	 * Look to see if we also need to be creating a NSEC3 chain.
 	 */
 	if (dns_rdataset_isassociated(&nsecset)) {
 		if (build_nsec != NULL)

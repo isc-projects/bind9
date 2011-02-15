@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.188 2011/02/03 12:18:10 tbox Exp $ */
+/* $Id: update.c,v 1.189 2011/02/15 18:20:43 fdupont Exp $ */
 
 #include <config.h>
 
@@ -3381,7 +3381,7 @@ rollback_private(dns_db_t *db, dns_rdatatype_t privatetype,
 
 		/*
 		 * Allow records which indicate that a zone has been
-		 * signed with a DNSKEY to be be removed.
+		 * signed with a DNSKEY to be removed.
 		 */
 		if (tuple->op == DNS_DIFFOP_DEL &&
 		    tuple->rdata.length == 5 &&
