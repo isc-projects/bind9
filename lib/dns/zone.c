@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.39 2011/02/15 04:32:53 marka Exp $ */
+/* $Id: zone.c,v 1.540.2.40 2011/02/15 05:40:16 marka Exp $ */
 
 /*! \file */
 
@@ -13627,7 +13627,7 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 
 static isc_result_t
 sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
-	  dns_diff_t *diff, dns_diff_t *sig_diff)
+	  dns_rdatatype_t type, dns_diff_t *diff)
 {
 	isc_result_t result;
 	isc_stdtime_t now, inception, soaexpire;
@@ -13651,15 +13651,23 @@ sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
 	keyset_kskonly = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_DNSKEYKSKONLY);
 
-	result = update_sigs(diff, db, ver, zone_keys, nkeys, zone,
-			     inception, soaexpire, now, check_ksk,
-			     keyset_kskonly, sig_diff);
+	result = del_sigs(zone, db, ver, &zone->origin, type, diff,
+			  zone_keys, nkeys, now);
+	if (result != ISC_R_SUCCESS) {
+		dns_zone_log(zone, ISC_LOG_ERROR,
+			     "sign_apex:del_sigs -> %s\n",
+			     dns_result_totext(result));
+		goto failure;
+	}
+
+	result = add_sigs(db, ver, &zone->origin, type, diff, zone_keys,
+			  nkeys, zone->mctx, inception, soaexpire,
+			  check_ksk, keyset_kskonly);
 
 	if (result != ISC_R_SUCCESS)
-		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "sign_apex:update_sigs -> %s\n",
+		dns_zone_log(zone, ISC_LOG_ERROR, "sign_apex:add_sigs -> %s\n",
 			     dns_result_totext(result));
-
+ failure:
 	for (i = 0; i < nkeys; i++)
 		dst_key_free(&zone_keys[i]);
 	return (result);
@@ -13774,26 +13782,6 @@ signed_with_alg(dns_rdataset_t *rdataset, dns_secalg_t alg) {
 	return (ISC_FALSE);
 }
 
-static isc_result_t
-add_chains(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
-	   dns_diff_t *diff)
-{
-	dns_name_t *origin;
-	isc_boolean_t build_nsec3;
-	isc_result_t result;
-
-	origin = dns_db_origin(db);
-	CHECK(dns_private_chains(db, ver, zone->privatetype, NULL,
-				 &build_nsec3));
-	if (build_nsec3)
-		CHECK(dns_nsec3_addnsec3sx(db, ver, origin, zone->minimum,
-					   ISC_FALSE, zone->privatetype, diff));
-	CHECK(updatesecure(db, ver, origin, zone->minimum, ISC_TRUE, diff));
-
- failure:
-	return (result);
-}
-
 static void
 zone_rekey(dns_zone_t *zone) {
 	isc_result_t result;
@@ -13803,7 +13791,7 @@ zone_rekey(dns_zone_t *zone) {
 	dns_rdataset_t soaset, soasigs, keyset, keysigs;
 	dns_dnsseckeylist_t dnskeys, keys, rmkeys;
 	dns_dnsseckey_t *key;
-	dns_diff_t diff, sig_diff;
+	dns_diff_t diff;
 	isc_boolean_t commit = ISC_FALSE, newactive = ISC_FALSE;
 	isc_boolean_t fullsign;
 	dns_ttl_t ttl = 3600;
@@ -13826,7 +13814,6 @@ zone_rekey(dns_zone_t *zone) {
 	dir = dns_zone_getkeydirectory(zone);
 	mctx = zone->mctx;
 	dns_diff_init(mctx, &diff);
-	dns_diff_init(mctx, &sig_diff);
 
 	CHECK(dns_zone_getdb(zone, &db));
 	CHECK(dns_db_newversion(db, &ver));
@@ -13895,12 +13882,14 @@ zone_rekey(dns_zone_t *zone) {
 		    dnskey_sane(zone, db, ver, &diff)) {
 			CHECK(dns_diff_apply(&diff, db, ver));
 			CHECK(clean_nsec3param(zone, db, ver, &diff));
+			CHECK(sign_apex(zone, db, ver, dns_rdatatype_dnskey,
+					&diff));
 			CHECK(add_signing_records(db, zone->privatetype, ver,
 						  &diff));
 			CHECK(increment_soa_serial(db, ver, &diff, mctx));
-			CHECK(add_chains(zone, db, ver, &diff));
-			CHECK(sign_apex(zone, db, ver, &diff, &sig_diff));
-			CHECK(zone_journal(zone, &sig_diff, "zone_rekey"));
+			CHECK(sign_apex(zone, db, ver, dns_rdatatype_soa,
+					&diff));
+			CHECK(zone_journal(zone, &diff, "zone_rekey"));
 			commit = ISC_TRUE;
 		}
 	}
@@ -13925,7 +13914,7 @@ zone_rekey(dns_zone_t *zone) {
 		 * Has a new key become active?  If so, is it for
 		 * a new algorithm?
 		 */
-		for (tuple = ISC_LIST_HEAD(sig_diff.tuples);
+		for (tuple = ISC_LIST_HEAD(diff.tuples);
 		     tuple != NULL;
 		     tuple = ISC_LIST_NEXT(tuple, link)) {
 			dns_rdata_dnskey_t dnskey;
@@ -14004,7 +13993,7 @@ zone_rekey(dns_zone_t *zone) {
 			 * the full zone, but only with the newly-added
 			 * keys.
 			 */
-			for (tuple = ISC_LIST_HEAD(sig_diff.tuples);
+			for (tuple = ISC_LIST_HEAD(diff.tuples);
 			     tuple != NULL;
 			     tuple = ISC_LIST_NEXT(tuple, link)) {
 				dns_rdata_dnskey_t dnskey;
@@ -14045,7 +14034,7 @@ zone_rekey(dns_zone_t *zone) {
 		 * Cause the zone to add/delete NSEC3 chains for the
 		 * deferred NSEC3PARAM changes.
 		 */
-		for (tuple = ISC_LIST_HEAD(sig_diff.tuples);
+		for (tuple = ISC_LIST_HEAD(diff.tuples);
 		     tuple != NULL;
 		     tuple = ISC_LIST_NEXT(tuple, link)) {
 			unsigned char buf[DNS_NSEC3PARAM_BUFFERSIZE];
@@ -14118,7 +14107,6 @@ zone_rekey(dns_zone_t *zone) {
 
  failure:
 	dns_diff_clear(&diff);
-	dns_diff_clear(&sig_diff);
 
 	clear_keylist(&dnskeys, mctx);
 	clear_keylist(&keys, mctx);
