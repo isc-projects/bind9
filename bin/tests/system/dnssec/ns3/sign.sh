@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.32.162.2 2011/02/14 23:59:33 marka Exp $
+# $Id: sign.sh,v 1.32.162.3 2011/02/15 22:06:27 marka Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -281,6 +281,36 @@ zone=update-nsec3.example.
 infile=update-nsec3.example.db.in
 zonefile=update-nsec3.example.db
 
+kskname=`$KEYGEN -q -3 -r $RANDFILE -fk $zone`
+zskname=`$KEYGEN -q -3 -r $RANDFILE $zone`
+cat $infile $kskname.key $zskname.key >$zonefile
+$SIGNER -P -3 - -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
+
+#
+# A NSEC signed zone that will have auto-dnssec enabled and
+# extra keys not in the initial signed zone.
+#
+zone=auto-nsec.example.
+infile=auto-nsec.example.db.in
+zonefile=auto-nsec.example.db
+
+kskname=`$KEYGEN -q -r $RANDFILE -fk $zone`
+zskname=`$KEYGEN -q -r $RANDFILE $zone`
+kskname=`$KEYGEN -q -r $RANDFILE -fk $zone`
+zskname=`$KEYGEN -q -r $RANDFILE $zone`
+cat $infile $kskname.key $zskname.key >$zonefile
+$SIGNER -P -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
+
+#
+# A NSEC3 signed zone that will have auto-dnssec enabled and
+# extra keys not in the initial signed zone.
+#
+zone=auto-nsec3.example.
+infile=auto-nsec3.example.db.in
+zonefile=auto-nsec3.example.db
+
+kskname=`$KEYGEN -q -3 -r $RANDFILE -fk $zone`
+zskname=`$KEYGEN -q -3 -r $RANDFILE $zone`
 kskname=`$KEYGEN -q -3 -r $RANDFILE -fk $zone`
 zskname=`$KEYGEN -q -3 -r $RANDFILE $zone`
 cat $infile $kskname.key $zskname.key >$zonefile
