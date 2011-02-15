@@ -15,13 +15,13 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.55.32.18 2011/02/15 00:03:02 marka Exp $
+# $Id: tests.sh,v 1.55.32.19 2011/02/15 22:09:35 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 status=0
-n=0
+n=1
 
 rm -f dig.out.*
 
@@ -1080,6 +1080,26 @@ $DIG $DIGOPTS +dnssec a update-nsec3.example. @10.53.0.4 > dig.out.ns4.test$n ||
 grep "NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 grep "flags:.* ad[ ;]" dig.out.ns4.test$n > /dev/null || ret=1
 grep "NSEC3 .* TYPE65534" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking that the NSEC record is properly generated when DNSKEY are added via auto-dnssec ($n)"
+ret=0
+$DIG $DIGOPTS +dnssec a auto-nsec.example. @10.53.0.4 > dig.out.ns4.test$n || ret=1
+grep "NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
+grep "flags:.* ad[ ;]" dig.out.ns4.test$n > /dev/null || ret=1
+grep "IN.NSEC[^3].* TYPE65534" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking that the NSEC3 record is properly generated when DNSKEY are added via auto-dnssec ($n)"
+ret=0
+$DIG $DIGOPTS +dnssec a auto-nsec3.example. @10.53.0.4 > dig.out.ns4.test$n || ret=1
+grep "NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
+grep "flags:.* ad[ ;]" dig.out.ns4.test$n > /dev/null || ret=1
+grep "IN.NSEC3 .* TYPE65534" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
