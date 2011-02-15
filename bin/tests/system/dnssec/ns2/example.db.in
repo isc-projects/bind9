@@ -13,7 +13,7 @@
 ; OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 ; PERFORMANCE OF THIS SOFTWARE.
 
-; $Id: example.db.in,v 1.25 2011/02/14 23:53:43 marka Exp $
+; $Id: example.db.in,v 1.26 2011/02/15 22:02:36 marka Exp $
 
 $TTL 300	; 5 minutes
 @			IN SOA	mname1. . (
@@ -110,3 +110,9 @@ ns.kskonly		A	10.53.0.3
 
 update-nsec3		NS	ns.update-nsec3
 ns.update-nsec3		A	10.53.0.3
+
+auto-nsec		NS	ns.auto-nsec
+ns.auto-nsec		A	10.53.0.3
+
+auto-nsec3		NS	ns.auto-nsec3
+ns.auto-nsec3		A	10.53.0.3

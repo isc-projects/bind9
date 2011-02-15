@@ -1,3 +1,6 @@
+3020.	[bug]		auto-dnssec failed to correctly update the zone when
+			changing the DNSKEY RRset. [RT #23232]
+
 3019.	[func]		Test: check apex NSEC3 records after adding DNSKEY
 			record via UPDATE. [RT #23229]
 
