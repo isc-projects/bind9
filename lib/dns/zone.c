@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.585 2011/02/15 22:02:36 marka Exp $ */
+/* $Id: zone.c,v 1.586 2011/02/17 02:57:22 marka Exp $ */
 
 /*! \file */
 
@@ -13603,7 +13603,8 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 		if (tuple->rdata.type != dns_rdatatype_dnskey)
 			continue;
 
-		dns_rdata_tostruct(&tuple->rdata, &dnskey, NULL);
+		result = dns_rdata_tostruct(&tuple->rdata, &dnskey, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		if ((dnskey.flags &
 		     (DNS_KEYFLAG_OWNERMASK|DNS_KEYTYPE_NOAUTH))
 			 != DNS_KEYOWNER_ZONE)
@@ -13656,6 +13657,7 @@ sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	isc_boolean_t check_ksk, keyset_kskonly;
 	dst_key_t *zone_keys[MAXZONEKEYS];
 	unsigned int nkeys = 0, i;
+	dns_difftuple_t *tuple;
 
 	result = find_zone_keys(zone, db, ver, zone->mctx, MAXZONEKEYS,
 				zone_keys, &nkeys);
@@ -13673,15 +13675,53 @@ sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
 	keyset_kskonly = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_DNSKEYKSKONLY);
 
+	/*
+	 * See if update_sigs will update DNSKEY signature and if not
+	 * cause them to sign so that so that newly activated keys
+	 * are used.
+	 */
+	for (tuple = ISC_LIST_HEAD(diff->tuples);
+             tuple != NULL;
+             tuple = ISC_LIST_NEXT(tuple, link)) {
+		if (tuple->rdata.type == dns_rdatatype_dnskey &&
+		    dns_name_equal(&tuple->name, &zone->origin))
+			break;
+	}
+
+	if (tuple == NULL) {
+                result = del_sigs(zone, db, ver, &zone->origin,
+			          dns_rdatatype_dnskey, sig_diff,
+			          zone_keys, nkeys, now);
+		if (result != ISC_R_SUCCESS) {
+			dns_zone_log(zone, ISC_LOG_ERROR,
+				     "sign_apex:del_sigs -> %s\n",
+				     dns_result_totext(result));
+			goto failure;
+		}
+		result = add_sigs(db, ver, &zone->origin, dns_rdatatype_dnskey,
+			          sig_diff, zone_keys, nkeys, zone->mctx,
+			          inception, soaexpire, check_ksk,
+			          keyset_kskonly);
+		if (result != ISC_R_SUCCESS) {
+			dns_zone_log(zone, ISC_LOG_ERROR,
+				     "sign_apex:add_sigs -> %s\n",
+				     dns_result_totext(result));
+			goto failure;
+		}
+	}
+
 	result = update_sigs(diff, db, ver, zone_keys, nkeys, zone,
 			     inception, soaexpire, now, check_ksk,
 			     keyset_kskonly, sig_diff);
 
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
 			     "sign_apex:update_sigs -> %s\n",
 			     dns_result_totext(result));
+		goto failure;
+	}
 
+ failure:
 	for (i = 0; i < nkeys; i++)
 		dst_key_free(&zone_keys[i]);
 	return (result);
@@ -14081,7 +14121,8 @@ zone_rekey(dns_zone_t *zone) {
 			if (!dns_nsec3param_fromprivate(&tuple->rdata, &rdata,
 							buf, sizeof(buf)))
 				continue;
-			dns_rdata_tostruct(&rdata, &nsec3param, NULL);
+			result = dns_rdata_tostruct(&rdata, &nsec3param, NULL);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			if (nsec3param.flags == 0)
 				continue;
 
