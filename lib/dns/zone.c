@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.586 2011/02/17 02:57:22 marka Exp $ */
+/* $Id: zone.c,v 1.587 2011/02/17 04:57:28 marka Exp $ */
 
 /*! \file */
 
@@ -14086,9 +14086,7 @@ zone_rekey(dns_zone_t *zone) {
 				keyid = dst_region_computeid(&r, algorithm);
 
 				result = zone_signwithkey(zone, algorithm,
-							  keyid,
-							  ISC_TF(tuple->op ==
-							      DNS_DIFFOP_DEL));
+							  keyid, ISC_FALSE);
 				if (result != ISC_R_SUCCESS) {
 					dns_zone_log(zone, ISC_LOG_ERROR,
 					     "zone_signwithkey failed: %s",
