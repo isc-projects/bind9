@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.587 2011/02/17 04:57:28 marka Exp $ */
+/* $Id: zone.c,v 1.588 2011/02/17 23:47:24 tbox Exp $ */
 
 /*! \file */
 
@@ -13681,17 +13681,17 @@ sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	 * are used.
 	 */
 	for (tuple = ISC_LIST_HEAD(diff->tuples);
-             tuple != NULL;
-             tuple = ISC_LIST_NEXT(tuple, link)) {
+	     tuple != NULL;
+	     tuple = ISC_LIST_NEXT(tuple, link)) {
 		if (tuple->rdata.type == dns_rdatatype_dnskey &&
 		    dns_name_equal(&tuple->name, &zone->origin))
 			break;
 	}
 
 	if (tuple == NULL) {
-                result = del_sigs(zone, db, ver, &zone->origin,
-			          dns_rdatatype_dnskey, sig_diff,
-			          zone_keys, nkeys, now);
+		result = del_sigs(zone, db, ver, &zone->origin,
+				  dns_rdatatype_dnskey, sig_diff,
+				  zone_keys, nkeys, now);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "sign_apex:del_sigs -> %s\n",
@@ -13699,9 +13699,9 @@ sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 			goto failure;
 		}
 		result = add_sigs(db, ver, &zone->origin, dns_rdatatype_dnskey,
-			          sig_diff, zone_keys, nkeys, zone->mctx,
-			          inception, soaexpire, check_ksk,
-			          keyset_kskonly);
+				  sig_diff, zone_keys, nkeys, zone->mctx,
+				  inception, soaexpire, check_ksk,
+				  keyset_kskonly);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "sign_apex:add_sigs -> %s\n",
