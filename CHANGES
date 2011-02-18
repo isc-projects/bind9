@@ -1,9 +1,13 @@
+3023.	[bug]		Named could be left in an inconsistent state when
+			receiving multiple AXFR response messages that were
+			not all TSIG-signed. [RT #23254]
+
 3021.	[bug]		Change #3010 was incomplete. [RT #22296]
 
 3020.	[bug]		auto-dnssec failed to correctly update the zone when
 			changing the DNSKEY RRset. [RT #23232]
 
-3019.	[func]		Test: check apex NSEC3 records after adding DNSKEY
+3019.	[test]		Test: check apex NSEC3 records after adding DNSKEY
 			record via UPDATE. [RT #23229]
 
 	--- 9.7.3 released ---
