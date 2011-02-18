@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.428.6.4 2011/02/18 23:04:04 mgraff Exp $ */
+/* $Id: resolver.c,v 1.428.6.5 2011/02/18 23:41:51 mgraff Exp $ */
 
 /*! \file */
 
@@ -2365,7 +2365,7 @@ add_bad(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo, isc_result_t reason,
  * Sort addrinfo list by RTT.
  */
 static void
-sort_adbfind(fetchctx_t *fctx, dns_adbfind_t *find) {
+sort_adbfind(dns_adbfind_t *find) {
 	dns_adbaddrinfo_t *best, *curr;
 	dns_adbaddrinfolist_t sorted;
 
@@ -2389,7 +2389,7 @@ sort_adbfind(fetchctx_t *fctx, dns_adbfind_t *find) {
  * Sort a list of finds by server RTT.
  */
 static void
-sort_finds(fetchctx_t *fctx, dns_adbfindlist_t *findlist) {
+sort_finds(dns_adbfindlist_t *findlist) {
 	dns_adbfind_t *best, *curr;
 	dns_adbfindlist_t sorted;
 	dns_adbaddrinfo_t *addrinfo, *bestaddrinfo;
@@ -2398,7 +2398,7 @@ sort_finds(fetchctx_t *fctx, dns_adbfindlist_t *findlist) {
 	for (curr = ISC_LIST_HEAD(*findlist);
 	     curr != NULL;
 	     curr = ISC_LIST_NEXT(curr, publink))
-		sort_adbfind(fctx, curr);
+		sort_adbfind(curr);
 
 	/* Lame N^2 bubble sort. */
 	ISC_LIST_INIT(sorted);
@@ -2783,8 +2783,8 @@ fctx_getaddresses(fetchctx_t *fctx, isc_boolean_t badcache) {
 		 * We've found some addresses.  We might still be looking
 		 * for more addresses.
 		 */
-		sort_finds(fctx, &fctx->finds);
-		sort_finds(fctx, &fctx->altfinds);
+		sort_finds(&fctx->finds);
+		sort_finds(&fctx->altfinds);
 		result = ISC_R_SUCCESS;
 	}
 
