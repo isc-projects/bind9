@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.428.6.3 2011/02/08 22:56:53 marka Exp $ */
+/* $Id: resolver.c,v 1.428.6.4 2011/02/18 23:04:04 mgraff Exp $ */
 
 /*! \file */
 
@@ -2362,76 +2362,12 @@ add_bad(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo, isc_result_t reason,
 }
 
 /*
- * Return 'bits' bits of random entropy from fctx->rand_buf,
- * refreshing it by calling isc_random_get() whenever the requested
- * number of bits is greater than the number in the buffer.
- */
-static inline isc_uint32_t
-random_bits(fetchctx_t *fctx, isc_uint32_t bits) {
-	isc_uint32_t ret = 0;
-
-	REQUIRE(VALID_FCTX(fctx));
-	REQUIRE(bits <= 32);
-	if (bits == 0)
-		return (0);
-
-	if (bits >= fctx->rand_bits) {
-		/* if rand_bits == 0, this is unnecessary but harmless */
-		bits -= fctx->rand_bits;
-		ret = fctx->rand_buf << bits;
-
-		/* refresh random buffer now */
-		isc_random_get(&fctx->rand_buf);
-		fctx->rand_bits = sizeof(fctx->rand_buf) * CHAR_BIT;
-	}
-
-	if (bits > 0) {
-		isc_uint32_t mask = 0xffffffff;
-		if (bits < 32) {
-			mask = (1 << bits) - 1;
-		}
-
-		ret |= fctx->rand_buf & mask;
-		fctx->rand_buf >>= bits;
-		fctx->rand_bits -= bits;
-	}
-
-	return (ret);
-}
-
-/*
- * Add some random jitter to a server's RTT value so that the
- * order of queries will be unpredictable.
- *
- * RTT values of servers which have been tried are fuzzed by 128 ms.
- * Servers that haven't been tried yet have their RTT set to a random
- * value between 0 ms and 7 ms; they should get to go first, but in
- * unpredictable order.
- */
-static inline void
-randomize_srtt(fetchctx_t *fctx, dns_adbaddrinfo_t *ai) {
-	if (TRIED(ai)) {
-		ai->srtt >>= 10; /* convert to milliseconds, near enough */
-		ai->srtt |= (ai->srtt & 0x80) | random_bits(fctx, 7);
-		ai->srtt <<= 10; /* now back to microseconds */
-	} else
-		ai->srtt = random_bits(fctx, 3) << 10;
-}
-
-/*
- * Sort addrinfo list by RTT (with random jitter)
+ * Sort addrinfo list by RTT.
  */
 static void
 sort_adbfind(fetchctx_t *fctx, dns_adbfind_t *find) {
 	dns_adbaddrinfo_t *best, *curr;
 	dns_adbaddrinfolist_t sorted;
-
-	/* Add jitter to SRTT values */
-	curr = ISC_LIST_HEAD(find->list);
-	while (curr != NULL) {
-		randomize_srtt(fctx, curr);
-		curr = ISC_LIST_NEXT(curr, publink);
-	}
 
 	/* Lame N^2 bubble sort. */
 	ISC_LIST_INIT(sorted);
@@ -2450,7 +2386,7 @@ sort_adbfind(fetchctx_t *fctx, dns_adbfind_t *find) {
 }
 
 /*
- * Sort a list of finds by server RTT (with random jitter)
+ * Sort a list of finds by server RTT.
  */
 static void
 sort_finds(fetchctx_t *fctx, dns_adbfindlist_t *findlist) {
@@ -2458,7 +2394,7 @@ sort_finds(fetchctx_t *fctx, dns_adbfindlist_t *findlist) {
 	dns_adbfindlist_t sorted;
 	dns_adbaddrinfo_t *addrinfo, *bestaddrinfo;
 
-	/* Sort each find's addrinfo list by SRTT (after adding jitter) */
+	/* Sort each find's addrinfo list by SRTT. */
 	for (curr = ISC_LIST_HEAD(*findlist);
 	     curr != NULL;
 	     curr = ISC_LIST_NEXT(curr, publink))
