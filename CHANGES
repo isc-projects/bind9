@@ -1,4 +1,8 @@
-3019.	[func]		Test: check apex NSEC3 records after adding DNSKEY
+3023.	[bug]		Named could be left in an inconsistent state when
+			receiving multiple AXFR response messages that were
+			not all TSIG-signed. [RT #23254]
+
+3019.	[test]		Test: check apex NSEC3 records after adding DNSKEY
 			record via UPDATE. [RT #23229]
 
 3018.	[bug]		Named failed to check for the "none;" acl when deciding
