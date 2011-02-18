@@ -1,3 +1,7 @@
+3023.	[bug]		Named could be left in an inconsistent state when
+			receiving multiple AXFR response messages that were
+			not all TSIG-signed. [RT #23254]
+
 3022.	[bug]		Fixed prz SERVFAILs after failed zone transfers
                         [RT #23246]
 
