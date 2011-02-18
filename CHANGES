@@ -1,4 +1,7 @@
-3024. [func]		RTT Banding removed due to minor security increase
+3025.	[bug]		Fixed a possible deadlock due to zone resigning.
+			[RT #22964]
+
+3024.	[func]		RTT Banding removed due to minor security increase
 			but major impact on resolver latency. [RT #23310]
 
 3023.	[bug]		Named could be left in an inconsistent state when

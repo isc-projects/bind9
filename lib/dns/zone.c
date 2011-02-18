@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.582.8.6 2011/02/17 23:46:51 tbox Exp $ */
+/* $Id: zone.c,v 1.582.8.7 2011/02/18 23:23:08 each Exp $ */
 
 /*! \file */
 
@@ -7916,7 +7916,8 @@ void
 dns_zone_markdirty(dns_zone_t *zone) {
 
 	LOCK_ZONE(zone);
-	set_resigntime(zone);	/* XXXMPA make separate call back */
+	if (zone->type == dns_zone_master)
+		set_resigntime(zone);	/* XXXMPA make separate call back */
 	zone_needdump(zone, DNS_DUMP_DELAY);
 	UNLOCK_ZONE(zone);
 }
