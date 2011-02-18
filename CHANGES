@@ -1,3 +1,6 @@
+3022.   [bug]           Fixed prz SERVFAILs after failed zone transfers
+                        [RT #23246]
+
 3021.	[bug]		Change #3010 was incomplete. [RT #22296]
 
 3020.	[bug]		auto-dnssec failed to correctly update the zone when
