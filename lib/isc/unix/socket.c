@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.335 2011/02/03 12:18:12 tbox Exp $ */
+/* $Id: socket.c,v 1.336 2011/02/18 04:19:05 marka Exp $ */
 
 /*! \file */
 
@@ -686,6 +686,8 @@ static const isc_statscounter_t fdwatchstatsindex[] = {
 	isc_sockstatscounter_fdwatchrecvfail
 };
 
+#if defined(USE_KQUEUE) || defined(USE_EPOLL) || defined(USE_DEVPOLL) || \
+    defined(USE_WATCHER_THREAD)
 static void
 manager_log(isc__socketmgr_t *sockmgr,
 	    isc_logcategory_t *category, isc_logmodule_t *module, int level,
@@ -708,6 +710,7 @@ manager_log(isc__socketmgr_t *sockmgr,
 	isc_log_write(isc_lctx, category, module, level,
 		      "sockmgr %p: %s", sockmgr, msgbuf);
 }
+#endif
 
 static void
 socket_log(isc__socket_t *sock, isc_sockaddr_t *address,
