@@ -1,5 +1,5 @@
-3024. [func]  RTT Banding removed due to minor security increase
-      but major impact on resolver latency. [RT #23310]
+3024. [func]		RTT Banding removed due to minor security increase
+			but major impact on resolver latency. [RT #23310]
 
 3023.	[bug]		Named could be left in an inconsistent state when
 			receiving multiple AXFR response messages that were
