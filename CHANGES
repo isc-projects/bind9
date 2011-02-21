@@ -1,3 +1,6 @@
+3033.	[cleanup]	Add two INSIST(bucket != DNS_ADB_INVALIDBUCKET).
+			[RT #22521]
+
 3032.	[bug]		rdatalist.c: add missing REQUIREs. [RT #22521]
 
 3031.	[bug]		dns_rdataclass_format() handle a zero sized buffer.

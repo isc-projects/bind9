@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.254 2010/12/21 23:47:08 tbox Exp $ */
+/* $Id: adb.c,v 1.254.14.1 2011/02/21 07:10:15 marka Exp $ */
 
 /*! \file
  *
@@ -2813,6 +2813,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	 */
 	bucket = DNS_ADB_INVALIDBUCKET;
 	adbname = find_name_and_lock(adb, name, find->options, &bucket);
+	INSIST(bucket != DNS_ADB_INVALIDBUCKET);
 	if (adb->name_sd[bucket]) {
 		DP(DEF_LEVEL,
 		   "dns_adb_createfind: returning ISC_R_SHUTTINGDOWN");
@@ -3945,6 +3946,7 @@ dns_adb_findaddrinfo(dns_adb_t *adb, isc_sockaddr_t *sa,
 	result = ISC_R_SUCCESS;
 	bucket = DNS_ADB_INVALIDBUCKET;
 	entry = find_entry_and_lock(adb, sa, &bucket, now);
+	INSIST(bucket != DNS_ADB_INVALIDBUCKET);
 	if (adb->entry_sd[bucket]) {
 		result = ISC_R_SHUTTINGDOWN;
 		goto unlock;
