@@ -2,10 +2,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title></title><link rel="stylesheet" href="release-notes.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /></head><body><div class="article"><div class="titlepage"><hr /></div>
 
-  <div class="section" title="Introduction"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="id2810020"></a>Introduction</h2></div></div></div>
+  <div class="section" title="Introduction"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="id2609042"></a>Introduction</h2></div></div></div>
     
     <p>
-			BIND 9.8.0rc1 is the first release candidate of BIND 9.8.
+			BIND 9.8.0 is the first production release of BIND 9.8.
 		</p>
     <p>
 			This document summarizes changes from BIND 9.7 to BIND 9.8.
@@ -14,7 +14,7 @@
 		</p>
   </div>
 
-  <div class="section" title="Download"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="id3676521"></a>Download</h2></div></div></div>
+  <div class="section" title="Download"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="id3475544"></a>Download</h2></div></div></div>
     
     <p>
 			The latest development versions of BIND 9 software can always be found
@@ -26,7 +26,7 @@
 		</p>
   </div>
 
-  <div class="section" title="Support"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="id3676554"></a>Support</h2></div></div></div>
+  <div class="section" title="Support"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="id3475577"></a>Support</h2></div></div></div>
     
     <p>Product support information is available on
       <a class="ulink" href="http://www.isc.org/services/support" target="_top">http://www.isc.org/services/support</a>
@@ -37,9 +37,9 @@
     </p>
   </div>
 
-  <div class="section" title="New Features"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="id3676510"></a>New Features</h2></div></div></div>
+  <div class="section" title="New Features"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="id3475533"></a>New Features</h2></div></div></div>
     
-		<div class="section" title="9.8.0"><div class="titlepage"><div><div><h3 class="title"><a id="id2810040"></a>9.8.0</h3></div></div></div>
+		<div class="section" title="9.8.0"><div class="titlepage"><div><div><h3 class="title"><a id="id2609063"></a>9.8.0</h3></div></div></div>
 			
 	    <div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
 The ADB hash table stores informations about which authoritative
@@ -108,13 +108,39 @@ DLZ correctly deals with NULL zone in a query. [RT 22795]
 </li><li class="listitem">
 TSIG correctly deals with a NULL tkey-&gt;creator. [RT 22795]
 </li></ul></div>
-</li></ul></div>
+</li><li class="listitem">
+A new test has been added to check the apex NSEC3 records after DNSKEY
+records have been added via dynamic update. [RT #23229]
+</li><li class="listitem">
+<p>
+RTT banding (randomized server selection on queries) was introduced in
+BIND releases in 2008, due to the Kaminsky cache poisoning bug. Instead
+of always picking the authoritative server with the lowest RTT to the
+caching resolver, all the authoritative servers within an RTT range were
+randomly used by the recursive server.
+</p>
+<p>
+While this did add an extra bit of randomness that an attacker had to
+overcome to poison a recursive server's cache, it also impacts the
+resolver's speed in answering end customer queries, since it's no
+longer the fastest auth server that gets asked. This means that
+performance optimizations, such using topologically close
+authoritative servers, are rendered ineffective.
+</p>
+<p>
+ISC has evaluated the amount of security added versus the performance
+hit to end users and has decided that RTT banding is causing more harm
+than good. Therefore, with this release, BIND is going back to the server
+selection used prior to adding RTT banding.
+[RT #23310]
+</p>
+				</li></ul></div>
 		</div>
   </div>
 
-  <div class="section" title="Feature Changes"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="id3676735"></a>Feature Changes</h2></div></div></div>
+  <div class="section" title="Feature Changes"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="id3475792"></a>Feature Changes</h2></div></div></div>
     
-		<div class="section" title="9.8.0"><div class="titlepage"><div><div><h3 class="title"><a id="id3676740"></a>9.8.0</h3></div></div></div>
+		<div class="section" title="9.8.0"><div class="titlepage"><div><div><h3 class="title"><a id="id3475798"></a>9.8.0</h3></div></div></div>
 			
 	    <div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
 					There is a new option in dig, +onesoa, that allows the final SOA record in an AXFR response to be suppressed. [RT #20929
@@ -132,17 +158,17 @@ will be silently set to 30.
 		</div>
   </div>
 
-  <div class="section" title="Security Fixes"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="id3676776"></a>Security Fixes</h2></div></div></div>
+  <div class="section" title="Security Fixes"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="id3475834"></a>Security Fixes</h2></div></div></div>
     
-		<div class="section" title="9.8.0"><div class="titlepage"><div><div><h3 class="title"><a id="id3676781"></a>9.8.0</h3></div></div></div>
+		<div class="section" title="9.8.0"><div class="titlepage"><div><div><h3 class="title"><a id="id3475839"></a>9.8.0</h3></div></div></div>
 			
 			<p>None.</p>
 		</div>
   </div>
 
-  <div class="section" title="Bug Fixes"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="id3676792"></a>Bug Fixes</h2></div></div></div>
+  <div class="section" title="Bug Fixes"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="id3475850"></a>Bug Fixes</h2></div></div></div>
     
-		<div class="section" title="9.8.0"><div class="titlepage"><div><div><h3 class="title"><a id="id3676797"></a>9.8.0</h3></div></div></div>
+		<div class="section" title="9.8.0"><div class="titlepage"><div><div><h3 class="title"><a id="id3475855"></a>9.8.0</h3></div></div></div>
 			
 	    <div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
 				BIND now builds with threads disabled in versions of NetBSD earlier
@@ -218,13 +244,23 @@ per current Windows OS. [RT #22724]
 				</li><li class="listitem">
 				Fixed GSS TSIG test problems for Solaris/MacOSX. [RT #22853]
 				</li><li class="listitem">
-				named failed to preserve the case of domain names in RDATA which is not compressible when writing master files. [RT #22863]
-				</li><li class="listitem">
+Prior to this fix, when named was was writing a zone to disk (as slave,
+when resigning, etc.), it might not correctly preserve the case of domain
+name labels within RDATA, if the RDATA was not compressible. The result is
+that when reloading the zone from disk would, named could serve data
+that did not match the RRSIG for that data, due to case mismatch. named
+now correctly preserves case. After upgrading to fixed code, the
+operator should either resign the data (on the master) or delete the
+disk file on the slave and reload the zone. [RT #22863]
+                                </li><li class="listitem">
 The man page for dnssec-keyfromlabel incorrectly had "-U" rather
 than the correct option "-I". [RT #22887]
                                 </li><li class="listitem">
 The "rndc" command usage statement was missing the "-b" option.
 [RT #22937]
+                                </li><li class="listitem">
+Fixed a possible deadlock due to zone re-signing.
+[RT #22964]
                                 </li><li class="listitem">
 The TTL for DNS64 synthesized answers was not always set correctly.
 [RT #23034]
@@ -234,11 +270,24 @@ being signed and configured for dynamic updates. A bug in the ACL
 processing for "allow-update { none; };" resulted in a zone that is
 supposed to be static being treated as a dynamic zone. Thus, name
 would try to sign/re-sign that zone erroneously. [RT #23120]
+                                </li><li class="listitem">
+When using auto-dnssec and updating DNSKEY records, named did correctly
+update the zone. [RT #23232]
+                                </li><li class="listitem">
+After a failed zone transfer of an RPZ (response policy zone), named
+would respond with SERVFAIL for subsequent queries in the RPZ zone. 
+[RT #23246]
+                                </li><li class="listitem">
+If a slave initiates a TSIG signed AXFR from the master and the master
+fails to correctly TSIG sign the final message, the slave would be left
+with the zone in an unclean state. named detected this error too late
+and named would crash with an INSIST. The order dependancy has been
+fixed. [RT #23254]
                                 </li></ul></div>
 		</div>
   </div>
 
-  <div class="section" title="Known issues in this release"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="id3676807"></a>Known issues in this release</h2></div></div></div>
+  <div class="section" title="Known issues in this release"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="id3475865"></a>Known issues in this release</h2></div></div></div>
     
     <div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
         <p>
@@ -247,7 +296,7 @@ would try to sign/re-sign that zone erroneously. [RT #23120]
       </li></ul></div>
   </div>
 
-  <div class="section" title="Thank You"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="id3676982"></a>Thank You</h2></div></div></div>
+  <div class="section" title="Thank You"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="id3476076"></a>Thank You</h2></div></div></div>
     
     <p>
       Thank you to everyone who assisted us in making this release possible.
