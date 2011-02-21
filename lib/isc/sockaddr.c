@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.c,v 1.73 2010/11/17 23:47:09 tbox Exp $ */
+/* $Id: sockaddr.c,v 1.74 2011/02/21 06:18:03 marka Exp $ */
 
 /*! \file */
 
@@ -181,6 +181,9 @@ void
 isc_sockaddr_format(const isc_sockaddr_t *sa, char *array, unsigned int size) {
 	isc_result_t result;
 	isc_buffer_t buf;
+
+	if (size == 0U)
+		return;
 
 	isc_buffer_init(&buf, array, size);
 	result = isc_sockaddr_totext(sa, &buf);
