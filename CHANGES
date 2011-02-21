@@ -1,3 +1,5 @@
+3034.	[cleanup]	nslookup: use strlcpy instead of safecopy. [RT #22521]
+
 3033.	[cleanup]	Add two INSIST(bucket != DNS_ADB_INVALIDBUCKET).
 			[RT #22521]
 
