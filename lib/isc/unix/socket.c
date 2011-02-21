@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.333 2010/12/22 03:08:36 marka Exp $ */
+/* $Id: socket.c,v 1.333.14.2 2011/02/18 04:01:16 marka Exp $ */
 
 /*! \file */
 
@@ -87,6 +87,7 @@
 
 #ifndef USE_WATCHER_THREAD
 #include "socket_p.h"
+#include "../task_p.h"
 #endif /* USE_WATCHER_THREAD */
 
 #if defined(SO_BSDCOMPAT) && defined(__linux__)
@@ -685,6 +686,8 @@ static const isc_statscounter_t fdwatchstatsindex[] = {
 	isc_sockstatscounter_fdwatchrecvfail
 };
 
+#if defined(USE_KQUEUE) || defined(USE_EPOLL) || defined(USE_DEVPOLL) || \
+    defined(USE_WATCHER_THREAD)
 static void
 manager_log(isc__socketmgr_t *sockmgr,
 	    isc_logcategory_t *category, isc_logmodule_t *module, int level,
@@ -707,6 +710,7 @@ manager_log(isc__socketmgr_t *sockmgr,
 	isc_log_write(isc_lctx, category, module, level,
 		      "sockmgr %p: %s", sockmgr, msgbuf);
 }
+#endif
 
 static void
 socket_log(isc__socket_t *sock, isc_sockaddr_t *address,
@@ -4262,38 +4266,32 @@ isc__socketmgr_destroy(isc_socketmgr_t **managerp) {
 	REQUIRE(VALID_MANAGER(manager));
 
 #ifdef USE_SHARED_MANAGER
-	if (manager->refs > 1) {
-		manager->refs--;
+	manager->refs--;
+	if (manager->refs > 0) {
 		*managerp = NULL;
 		return;
 	}
+	socketmgr = NULL;
 #endif /* USE_SHARED_MANAGER */
 
 	LOCK(&manager->lock);
 
-#ifdef USE_WATCHER_THREAD
 	/*
 	 * Wait for all sockets to be destroyed.
 	 */
 	while (!ISC_LIST_EMPTY(manager->socklist)) {
+#ifdef USE_WATCHER_THREAD
 		manager_log(manager, CREATION, "%s",
 			    isc_msgcat_get(isc_msgcat, ISC_MSGSET_SOCKET,
 					   ISC_MSG_SOCKETSREMAIN,
 					   "sockets exist"));
 		WAIT(&manager->shutdown_ok, &manager->lock);
-	}
 #else /* USE_WATCHER_THREAD */
-	/*
-	 * Hope all sockets have been destroyed.
-	 */
-	if (!ISC_LIST_EMPTY(manager->socklist)) {
-		manager_log(manager, CREATION, "%s",
-			    isc_msgcat_get(isc_msgcat, ISC_MSGSET_SOCKET,
-					   ISC_MSG_SOCKETSREMAIN,
-					   "sockets exist"));
-		INSIST(0);
-	}
+		UNLOCK(&manager->lock);
+		isc__taskmgr_dispatch(NULL);
+		LOCK(&manager->lock);
 #endif /* USE_WATCHER_THREAD */
+	}
 
 	UNLOCK(&manager->lock);
 

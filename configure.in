@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.512 $)
+AC_REVISION($Revision: 1.512.8.1 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -3299,6 +3299,7 @@ AC_CONFIG_FILES([
 	bin/tests/names/Makefile
 	bin/tests/net/Makefile
 	bin/tests/rbt/Makefile
+	bin/tests/resolver/Makefile
 	bin/tests/sockaddr/Makefile
 	bin/tests/system/Makefile
 	bin/tests/system/conf.sh

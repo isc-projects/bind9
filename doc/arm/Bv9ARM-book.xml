@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.478 2011/01/22 01:21:05 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.478.8.2 2011/02/03 07:39:02 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -5163,6 +5163,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> disable-empty-zone <replaceable>zone_name</replaceable> ; </optional>
     <optional> zero-no-soa-ttl <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> zero-no-soa-ttl-cache <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> resolver-query-timeout <replaceable>number</replaceable> ; </optional>
     <optional> deny-answer-addresses { <replaceable>address_match_list</replaceable> } <optional> except-from { <replaceable>namelist</replaceable> } </optional>;</optional>
     <optional> deny-answer-aliases { <replaceable>namelist</replaceable> } <optional> except-from { <replaceable>namelist</replaceable> } </optional>;</optional>
     <optional> response-policy { <replaceable>zone_name</replaceable> <optional> policy <replaceable>given</replaceable> | <replaceable>no-op</replaceable> | <replaceable>nxdomain</replaceable> | <replaceable>nodata</replaceable> | <replaceable>cname domain</replaceable> </optional> ; } ; </optional>
@@ -5777,24 +5778,24 @@ options {
 		not settable on a per-prefix basis.
 	      </para>
 	      <para>
-		Each <command>dns64</command> supports a optional
-		<command>clients</command> acl which defines which clients
-		see this directive.  If not defined it defaults to
-		<userinput>any;</userinput>.
+		Each <command>dns64</command> supports an optional
+		<command>clients</command> ACL that determines which
+                clients are affected by this directive.  If not defined,
+                it defaults to <userinput>any;</userinput>.
 	      </para>
 	      <para>
-		Each <command>dns64</command> supports a optional
-		<command>mapped</command> acl which selects which
-		IPv4 addresses are to be mapped are in the corresponding	
+		Each <command>dns64</command> supports an optional
+		<command>mapped</command> ACL that selects which
+		IPv4 addresses are to be mapped in the corresponding	
 		A RRset.  If not defined it defaults to
 		<userinput>any;</userinput>.
 	      </para>
 	      <para>
-		Each <command>dns64</command> supports a optional
-		<command>exclude</command> acl which selects which
+		Each <command>dns64</command> supports an optional
+		<command>exclude</command> ACL that selects which
 		IPv6 addresses will be ignored for the purposes
-		of determining if dns64 is to be applied.  Any
-		non matching address will prevent any further
+		of determining whether dns64 is to be applied.
+                Any non-matching address will prevent further
 		DNS64 processing from occurring for this client.
 	      </para>
 	      <para>
@@ -7217,6 +7218,18 @@ options {
               </listitem>
             </varlistentry>
 
+            <varlistentry>
+              <term><command>resolver-query-timeout</command></term>
+              <listitem>
+                <para>
+		  The amount of time the resolver will spend attempting
+		  to resolve a recursive query before failing.  The
+		  default is <literal>10</literal> and the maximum is
+		  <literal>30</literal>.  Setting it to <literal>0</literal>
+		  will result in the default being used.
+                </para>
+              </listitem>
+            </varlistentry>
           </variablelist>
 
         </sect3>

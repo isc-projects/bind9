@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.168 2009/12/02 23:15:14 marka Exp $ */
+/* $Id: dispatch.c,v 1.168.248.1 2011/02/03 05:50:06 marka Exp $ */
 
 /*! \file */
 
@@ -1747,8 +1747,10 @@ destroy_mgr(dns_dispatchmgr_t **mgrp) {
 	isc_mempool_destroy(&mgr->epool);
 	isc_mempool_destroy(&mgr->rpool);
 	isc_mempool_destroy(&mgr->dpool);
-	isc_mempool_destroy(&mgr->bpool);
-	isc_mempool_destroy(&mgr->spool);
+	if (mgr->bpool != NULL)
+		isc_mempool_destroy(&mgr->bpool);
+	if (mgr->spool != NULL)
+		isc_mempool_destroy(&mgr->spool);
 
 	DESTROYLOCK(&mgr->pool_lock);
 

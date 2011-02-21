@@ -576,6 +576,7 @@ dns_resolver_createfetch
 dns_resolver_createfetch2
 dns_resolver_destroyfetch
 dns_resolver_detach
+dns_resolver_settimeout
 dns_resolver_disable_algorithm
 dns_resolver_dispatchmgr
 dns_resolver_dispatchv4
@@ -585,6 +586,7 @@ dns_resolver_freeze
 dns_resolver_getbadcache
 dns_resolver_getlamettl
 dns_resolver_getoptions
+dns_resolver_gettimeout
 dns_resolver_getudpsize
 dns_resolver_getzeronosoattl
 dns_resolver_logfetch

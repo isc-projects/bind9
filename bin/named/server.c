@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.599 2011/01/13 03:57:50 marka Exp $ */
+/* $Id: server.c,v 1.599.8.4 2011/02/16 19:46:12 each Exp $ */
 
 /*! \file */
 
@@ -1615,6 +1615,7 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 	cfg_parser_t *newzones_parser = NULL;
 	cfg_obj_t *nzfconf = NULL;
 	dns_acl_t *clients = NULL, *mapped = NULL, *excluded = NULL;
+	unsigned int query_timeout;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -2205,6 +2206,15 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 	if (lame_ttl > 1800)
 		lame_ttl = 1800;
 	dns_resolver_setlamettl(view->resolver, lame_ttl);
+
+	/*
+	 * Set the resolver's query timeout.
+	 */
+	obj = NULL;
+	result = ns_config_get(maps, "resolver-query-timeout", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	query_timeout = cfg_obj_asuint32(obj);
+	dns_resolver_settimeout(view->resolver, query_timeout);
 
 	/* Specify whether to use 0-TTL for negative response for SOA query */
 	dns_resolver_setzeronosoattl(view->resolver, zero_no_soattl);
@@ -3447,6 +3457,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 static isc_result_t
 add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 	isc_result_t result;
+	dns_view_t *pview = NULL;
 	dns_zone_t *zone = NULL;
 	dns_acl_t *none = NULL;
 	char filename[PATH_MAX];
@@ -3455,8 +3466,23 @@ add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 
 	REQUIRE(view != NULL);
 
-	CHECK(dns_zone_create(&zone, mctx));
+	/* See if we can re-use an existing keydata zone. */
+	result = dns_viewlist_find(&ns_g_server->viewlist,
+				   view->name, view->rdclass,
+				   &pview);
+	if (result != ISC_R_NOTFOUND &&
+	    result != ISC_R_SUCCESS)
+		return (result);
 
+	if (pview != NULL && pview->managed_keys != NULL) {
+		dns_zone_attach(pview->managed_keys, &view->managed_keys);
+		dns_zone_setview(pview->managed_keys, view);
+		dns_view_detach(&pview);
+		return (ISC_R_SUCCESS);
+	}
+
+	/* No existing keydata zone was found; create one */
+	CHECK(dns_zone_create(&zone, mctx));
 	CHECK(dns_zone_setorigin(zone, dns_rootname));
 
 	isc_sha256_data((void *)view->name, strlen(view->name), buffer);
@@ -5020,11 +5046,14 @@ load_new_zones(ns_server_t *server, isc_boolean_t stop) {
 	     view = ISC_LIST_NEXT(view, link))
 	{
 		CHECK(dns_view_loadnew(view, stop));
+
+		/* Load managed-keys data */
+		if (view->managed_keys != NULL)
+			CHECK(dns_zone_loadnew(view->managed_keys));
 	}
+
 	/*
-	 * Force zone maintenance.  Do this after loading
-	 * so that we know when we need to force AXFR of
-	 * slave zones whose master files are missing.
+	 * Resume zone XFRs.
 	 */
 	dns_zonemgr_resumexfrs(server->zonemgr);
  cleanup:
