@@ -9,6 +9,7 @@ Branch				Status	Whom	// Comments
 				private		private branch
 				closed		finished with
 
+ans2_pl_fix			new	smann	// 2011-02-21 18:13 +0000
 branch_9_5_0_P1			active	each	// 2008-06-30 22:15 +0000
 custom_AFILIAS_v9_4_1_P1	private	marka	// 2007-08-30 01:11 +0000
 custom_AFIS_v9_4_0		private	marka	// 2007-04-23 05:08 +0000
@@ -410,6 +411,7 @@ rt23229				new	marka	// 2011-02-14 02:53 +0000
 rt23232				new	marka	// 2011-02-15 03:20 +0000
 rt23246				new	smann	// 2011-02-17 23:08 +0000
 rt23256				new	fdupont	// 2011-02-18 22:45 +0000
+rt23338				new	marka	// 2011-02-21 22:43 +0000
 shane_dbbackend			open	
 skan				open	explorer
 skan-metazones1			private	explorer
