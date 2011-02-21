@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.104 2010/11/17 23:47:08 tbox Exp $ */
+/* $Id: os.c,v 1.105 2011/02/21 07:14:43 marka Exp $ */
 
 /*! \file */
 
@@ -950,7 +950,7 @@ ns_os_shutdownmsg(char *command, isc_buffer_t *text) {
 		     isc_buffer_availablelength(text),
 		     "pid: %ld", (long)pid);
 	/* Only send a message if it is complete. */
-	if (n < isc_buffer_availablelength(text))
+	if (n > 0 && n < isc_buffer_availablelength(text))
 		isc_buffer_add(text, n);
 }
 
