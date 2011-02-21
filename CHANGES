@@ -8,7 +8,7 @@
 			receiving multiple AXFR response messages that were
 			not all TSIG-signed. [RT #23254]
 
-3022.	[bug]		Fixed prz SERVFAILs after failed zone transfers
+3022.	[bug]		Fixed rpz SERVFAILs after failed zone transfers
                         [RT #23246]
 
 3021.	[bug]		Change #3010 was incomplete. [RT #22296]
