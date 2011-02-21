@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.311.70.17 2010/12/09 01:12:54 marka Exp $ */
+/* $Id: dighost.c,v 1.311.70.18 2011/02/21 07:38:58 marka Exp $ */
 
 /*! \file
  *  \note
@@ -542,10 +542,8 @@ make_server(const char *servname, const char *userarg) {
 	if (srv == NULL)
 		fatal("memory allocation failure in %s:%d",
 		      __FILE__, __LINE__);
-	strncpy(srv->servername, servname, MXNAME);
-	strncpy(srv->userarg, userarg, MXNAME);
-	srv->servername[MXNAME-1] = 0;
-	srv->userarg[MXNAME-1] = 0;
+	strlcpy(srv->servername, servname, MXNAME);
+	strlcpy(srv->userarg, userarg, MXNAME);
 	ISC_LINK_INIT(srv, link);
 	return (srv);
 }
