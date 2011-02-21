@@ -90,11 +90,11 @@
 2976.	[bug]		named could die on exit after negotiating a GSS-TSIG
 			key. [RT #22573]
 			
-2975.	[bug]		rbtdb.c:cleanup_dead_nodes_callback() aquired the
+2975.	[bug]		rbtdb.c:cleanup_dead_nodes_callback() acquired the
 			wrong lock which could lead to server deadlock.
 			[RT #22614]
 
-2974.	[bug]		Some vaild UPDATE requests could fail due to a
+2974.	[bug]		Some valid UPDATE requests could fail due to a
 			consistency check examining the existing version
 			of the zone rather than the new version resulting
 			from the UPDATE. [RT #22413]
