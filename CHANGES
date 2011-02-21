@@ -1,3 +1,7 @@
+3027.	[bug]		Add documented REQUIREs to cfg_obj_asnetprefix() to
+			catch NULL pointer dereferences before they happen.
+			[RT #22521]
+
 3026.	[bug]		lib/isc/httpd.c: check that we have enough space
 			after calling grow_headerspace() and if not
 			re-call grow_headerspace() until we do. [RT #22521]

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.129 2008/09/25 04:02:39 tbox Exp $ */
+/* $Id: parser.c,v 1.129.48.1 2011/02/21 06:13:58 marka Exp $ */
 
 /*! \file */
 
@@ -1977,8 +1977,12 @@ cfg_obj_isnetprefix(const cfg_obj_t *obj) {
 
 void
 cfg_obj_asnetprefix(const cfg_obj_t *obj, isc_netaddr_t *netaddr,
-		    unsigned int *prefixlen) {
+		    unsigned int *prefixlen)
+{
 	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_netprefix);
+	REQUIRE(netaddr != NULL);
+	REQUIRE(prefixlen != NULL);
+
 	*netaddr = obj->value.netprefix.address;
 	*prefixlen = obj->value.netprefix.prefixlen;
 }
