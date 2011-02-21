@@ -1,3 +1,6 @@
+3028.	[bug]		isc_sockaddr_format() handle a zero sized buffer.
+			[RT #22521]
+
 3027.	[bug]		Add documented REQUIREs to cfg_obj_asnetprefix() to
 			catch NULL pointer dereferences before they happen.
 			[RT #22521]
