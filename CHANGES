@@ -1,3 +1,7 @@
+3026.	[bug]		lib/isc/httpd.c: check that we have enough space
+			after calling grow_headerspace() and if not
+			re-call grow_headerspace() until we do. [RT #22521]
+
 	--- 9.8.0 released ---
 
 3025.	[bug]		Fixed a possible deadlock due to zone resigning.
