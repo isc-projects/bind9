@@ -1,3 +1,6 @@
+3029.	[bug]		isc_netaddr_format() handle a zero sized buffer.
+			[RT #22521]
+
 3028.	[bug]		isc_sockaddr_format() handle a zero sized buffer.
 			[RT #22521]
 
