@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: httpd.c,v 1.16.64.2 2010/02/04 23:47:46 tbox Exp $ */
+/* $Id: httpd.c,v 1.16.64.3 2011/02/21 05:59:40 marka Exp $ */
 
 /*! \file */
 
@@ -821,7 +821,7 @@ isc_httpd_response(isc_httpd_t *httpd)
 	needlen += 3 + 1;  /* room for response code, always 3 bytes */
 	needlen += strlen(httpd->retmsg) + 2;  /* return msg + CRLF */
 
-	if (isc_buffer_availablelength(&httpd->headerbuffer) < needlen) {
+	while (isc_buffer_availablelength(&httpd->headerbuffer) < needlen) {
 		result = grow_headerspace(httpd);
 		if (result != ISC_R_SUCCESS)
 			return (result);
@@ -846,7 +846,7 @@ isc_httpd_addheader(isc_httpd_t *httpd, const char *name,
 		needlen += 2 + strlen(val); /* :<space> and val */
 	needlen += 2; /* CRLF */
 
-	if (isc_buffer_availablelength(&httpd->headerbuffer) < needlen) {
+	while (isc_buffer_availablelength(&httpd->headerbuffer) < needlen) {
 		result = grow_headerspace(httpd);
 		if (result != ISC_R_SUCCESS)
 			return (result);
@@ -869,7 +869,7 @@ isc_httpd_endheaders(isc_httpd_t *httpd)
 {
 	isc_result_t result;
 
-	if (isc_buffer_availablelength(&httpd->headerbuffer) < 2) {
+	while (isc_buffer_availablelength(&httpd->headerbuffer) < 2) {
 		result = grow_headerspace(httpd);
 		if (result != ISC_R_SUCCESS)
 			return (result);
@@ -893,7 +893,7 @@ isc_httpd_addheaderuint(isc_httpd_t *httpd, const char *name, int val) {
 	needlen += 2 + strlen(buf); /* :<space> and val */
 	needlen += 2; /* CRLF */
 
-	if (isc_buffer_availablelength(&httpd->headerbuffer) < needlen) {
+	while (isc_buffer_availablelength(&httpd->headerbuffer) < needlen) {
 		result = grow_headerspace(httpd);
 		if (result != ISC_R_SUCCESS)
 			return (result);
