@@ -1,3 +1,6 @@
+2037.	[doc]		Update COPYRIGHT to contain all the individual
+			copyright notices that cover various parts.
+
 2036.	[bug]		Check built-in zone arguments to see if the zone
 			is re-usable or not. [RT #21914]
 
