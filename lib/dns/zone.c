@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.582.8.7 2011/02/18 23:23:08 each Exp $ */
+/* $Id: zone.c,v 1.582.8.8 2011/02/22 04:25:56 marka Exp $ */
 
 /*! \file */
 
@@ -1379,6 +1379,7 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 	isc_time_t now;
 	isc_time_t loadtime, filetime;
 	dns_db_t *db = NULL;
+	isc_boolean_t rbt;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -1394,14 +1395,15 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 		goto cleanup;
 	}
 
-	if (zone->db != NULL && zone->masterfile == NULL) {
+
+	INSIST(zone->db_argc >= 1);
+
+	rbt = strcmp(zone->db_argv[0], "rbt") == 0 ||
+	      strcmp(zone->db_argv[0], "rbt64") == 0;
+
+	if (zone->db != NULL && zone->masterfile == NULL && rbt) {
 		/*
-		 * The zone has no master file configured, but it already
-		 * has a database.  It could be the built-in
-		 * version.bind. CH zone, a zone with a persistent
-		 * database being reloaded, or maybe a zone that
-		 * used to have a master file but whose configuration
-		 * was changed so that it no longer has one.  Do nothing.
+		 * The zone has no master file configured.
 		 */
 		result = ISC_R_SUCCESS;
 		goto cleanup;
@@ -1419,7 +1421,6 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 			result = ISC_R_SUCCESS;
 		goto cleanup;
 	}
-
 
 	/*
 	 * Store the current time before the zone is loaded, so that if the
@@ -1463,21 +1464,20 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 		}
 	}
 
-	INSIST(zone->db_argc >= 1);
-
 	/*
-	 * Built in zones don't need to be reloaded.
+	 * Built in zones (with the exception of empty zones) don't need
+	 * to be reloaded.
 	 */
 	if (zone->type == dns_zone_master &&
 	    strcmp(zone->db_argv[0], "_builtin") == 0 &&
+	    (zone->db_argc < 2 || strcmp(zone->db_argv[1], "empty") != 0) &&
 	    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED)) {
 		result = ISC_R_SUCCESS;
 		goto cleanup;
 	}
 
 	if ((zone->type == dns_zone_slave || zone->type == dns_zone_stub) &&
-	    (strcmp(zone->db_argv[0], "rbt") == 0 ||
-	     strcmp(zone->db_argv[0], "rbt64") == 0)) {
+	    rbt) {
 		if (zone->masterfile == NULL ||
 		    !isc_file_exists(zone->masterfile)) {
 			if (zone->masterfile != NULL) {
