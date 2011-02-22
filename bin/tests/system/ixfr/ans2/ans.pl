@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: ans.pl,v 1.7 2011/02/22 22:50:45 smann Exp $
+# $Id: ans.pl,v 1.8 2011/02/22 22:57:23 smann Exp $
 
 #
 # This is the name server from hell.  It provides canned
@@ -53,15 +53,6 @@
 # The server handles UDP and TCP queries.  Zone transfer
 # responses work, but must fit in a single 64 k message.
 #
-# Now you can add TSIG, just specify key/key data with:
-#
-#  /pattern <key> <key_data>/
-#  name ttl type rdata
-#  name ttl type rdata
-#
-#  Note that this data will still be sent with any request for
-#  pattern, only this data will be signed. Currently, this is only
-#  done for TCP.
 
 use IO::File;
 use IO::Socket;
