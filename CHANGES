@@ -1,3 +1,6 @@
+2036.	[bug]		Check built-in zone arguments to see if the zone
+			is re-usable or not. [RT #21914]
+
 3035.	[cleanup]	Simplify by using strlcpy. [RT #22521] 
 
 3034.	[cleanup]	nslookup: use strlcpy instead of safecopy. [RT #22521]
