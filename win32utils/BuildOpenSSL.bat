@@ -18,9 +18,10 @@ rem BuildOpenSSL.bat
 rem This script copys the OpenSSL dlls into place.
 rem This script may be modified by updateopenssl.pl.
 
-echo Copying the OpenSSL DLL.
+echo Copying the OpenSSL DLL and LICENSE.
 
 copy ..\..\openssl-0.9.8d\out32dll\libeay32.dll ..\Build\Release\
 copy ..\..\openssl-0.9.8d\out32dll\libeay32.dll ..\Build\Debug\
+copy ..\..\openssl-0.9.8l\LICENSE ..\Build\Release\OpenSSL-LICENSE
 
 rem Done
