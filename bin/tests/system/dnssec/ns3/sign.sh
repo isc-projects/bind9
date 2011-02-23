@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.30.32.6 2011/02/15 22:09:36 marka Exp $
+# $Id: sign.sh,v 1.30.32.7 2011/02/23 12:08:40 marka Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -315,3 +315,13 @@ kskname=`$KEYGEN -q -3 -r $RANDFILE -fk $zone`
 zskname=`$KEYGEN -q -3 -r $RANDFILE $zone`
 cat $infile $kskname.key $zskname.key >$zonefile
 $SIGNER -P -3 - -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
+
+#
+# Secure below cname test zone.
+#
+zone=secure.below-cname.example.
+infile=secure.below-cname.example.db.in
+zonefile=secure.below-cname.example.db
+keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
+cat $infile $keyname.key >$zonefile
+$SIGNER -P -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
