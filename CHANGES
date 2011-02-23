@@ -1,3 +1,5 @@
+2039.	[func]		Redirect on NXDOMAIN support. [RT #23146]
+
 2038.	[bug]		Install <dns/rpz.h>.  [RT #23342]
 
 2037.	[doc]		Update COPYRIGHT to contain all the individual

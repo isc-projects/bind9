@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.590 2011/02/22 04:14:30 marka Exp $ */
+/* $Id: zone.c,v 1.591 2011/02/23 03:08:11 marka Exp $ */
 
 /*! \file */
 
@@ -1058,6 +1058,7 @@ dns_zone_getserial(dns_zone_t *zone) {
  */
 void
 dns_zone_settype(dns_zone_t *zone, dns_zonetype_t type) {
+	char namebuf[1024];
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(type != dns_zone_none);
@@ -1068,6 +1069,12 @@ dns_zone_settype(dns_zone_t *zone, dns_zonetype_t type) {
 	LOCK_ZONE(zone);
 	REQUIRE(zone->type == dns_zone_none || zone->type == type);
 	zone->type = type;
+
+	if (zone->strnamerd != NULL)
+		isc_mem_free(zone->mctx, zone->strnamerd);
+
+	zone_namerd_tostr(zone, namebuf, sizeof namebuf);
+	zone->strnamerd = isc_mem_strdup(zone->mctx, namebuf);
 	UNLOCK_ZONE(zone);
 }
 
@@ -1367,6 +1374,8 @@ zone_isdynamic(dns_zone_t *zone) {
 	return (ISC_TF(zone->type == dns_zone_slave ||
 		       zone->type == dns_zone_stub ||
 		       zone->type == dns_zone_key ||
+		       (zone->type == dns_zone_redirect &&
+			zone->masters != NULL) ||
 		       (!zone->update_disabled && zone->ssutable != NULL) ||
 		       (!zone->update_disabled && zone->update_acl != NULL &&
 			!dns_acl_isnone(zone->update_acl))));
@@ -1476,7 +1485,8 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 		goto cleanup;
 	}
 
-	if ((zone->type == dns_zone_slave || zone->type == dns_zone_stub) &&
+	if ((zone->type == dns_zone_slave || zone->type == dns_zone_stub ||
+	     (zone->type == dns_zone_redirect && zone->masters != NULL)) &&
 	    rbt) {
 		if (zone->masterfile == NULL ||
 		    !isc_file_exists(zone->masterfile)) {
@@ -1514,7 +1524,9 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 			result = zone_startload(db, zone, loadtime);
 		} else {
 			result = DNS_R_NOMASTERFILE;
-			if (zone->type == dns_zone_master) {
+			if (zone->type == dns_zone_master ||
+			    (zone->type == dns_zone_redirect &&
+			     zone->masters == NULL)) {
 				dns_zone_log(zone, ISC_LOG_ERROR,
 					     "loading zone: "
 					     "no master file configured");
@@ -1580,7 +1592,8 @@ get_master_options(dns_zone_t *zone) {
 	unsigned int options;
 
 	options = DNS_MASTER_ZONE;
-	if (zone->type == dns_zone_slave)
+	if (zone->type == dns_zone_slave ||
+	    (zone->type == dns_zone_redirect && zone->masters == NULL))
 		options |= DNS_MASTER_SLAVE;
 	if (zone->type == dns_zone_key)
 		options |= DNS_MASTER_KEY;
@@ -3331,7 +3344,9 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	 */
 	if (result != ISC_R_SUCCESS && result != DNS_R_SEENINCLUDE) {
 		if (zone->type == dns_zone_slave ||
-		    zone->type == dns_zone_stub) {
+		    zone->type == dns_zone_stub ||
+		    (zone->type == dns_zone_redirect &&
+		     zone->masters == NULL)) {
 			if (result == ISC_R_FILENOTFOUND)
 				dns_zone_log(zone, ISC_LOG_DEBUG(1),
 					     "no master file");
@@ -3436,6 +3451,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	case dns_zone_master:
 	case dns_zone_slave:
 	case dns_zone_stub:
+	case dns_zone_redirect:
 		if (soacount != 1) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "has %d SOA records", soacount);
@@ -3452,7 +3468,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			result = DNS_R_BADZONE;
 			goto cleanup;
 		}
-		if (zone->type != dns_zone_stub) {
+		if (zone->type != dns_zone_stub &&
+		    zone->type != dns_zone_redirect) {
 			result = check_nsec3param(zone, db);
 			if (result != ISC_R_SUCCESS)
 				goto cleanup;
@@ -3527,7 +3544,9 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_HAVETIMERS);
 
 		if (zone->type == dns_zone_slave ||
-		    zone->type == dns_zone_stub) {
+		    zone->type == dns_zone_stub ||
+		    (zone->type == dns_zone_redirect &&
+	             zone->masters != NULL)) {
 			isc_time_t t;
 			isc_uint32_t delay;
 
@@ -3629,7 +3648,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
  cleanup:
 	if (zone->type == dns_zone_slave ||
 	    zone->type == dns_zone_stub ||
-	    zone->type == dns_zone_key) {
+	    zone->type == dns_zone_key ||
+	    (zone->type == dns_zone_redirect && zone->masters != NULL)) {
 		if (zone->journal != NULL)
 			zone_saveunique(zone, zone->journal, "jn-XXXXXXXX");
 		if (zone->masterfile != NULL)
@@ -3640,7 +3660,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		if (zone->task != NULL)
 			zone_settimer(zone, &now);
 		result = ISC_R_SUCCESS;
-	} else if (zone->type == dns_zone_master)
+	} else if (zone->type == dns_zone_master ||
+		   zone->type == dns_zone_redirect)
 		dns_zone_log(zone, ISC_LOG_ERROR, "not loaded due to errors.");
 	return (result);
 }
@@ -7803,6 +7824,9 @@ zone_maintenance(dns_zone_t *zone) {
 	 * Expire check.
 	 */
 	switch (zone->type) {
+	case dns_zone_redirect:
+		if (zone->masters == NULL)
+			break;
 	case dns_zone_slave:
 	case dns_zone_stub:
 		LOCK_ZONE(zone);
@@ -7821,6 +7845,9 @@ zone_maintenance(dns_zone_t *zone) {
 	 * Up to date check.
 	 */
 	switch (zone->type) {
+	case dns_zone_redirect:
+		if (zone->masters == NULL)
+			break;
 	case dns_zone_slave:
 	case dns_zone_stub:
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALREFRESH) &&
@@ -7838,6 +7865,7 @@ zone_maintenance(dns_zone_t *zone) {
 	case dns_zone_master:
 	case dns_zone_slave:
 	case dns_zone_key:
+	case dns_zone_redirect:
 		LOCK_ZONE(zone);
 		if (zone->masterfile != NULL &&
 		    isc_time_compare(&now, &zone->dumptime) >= 0 &&
@@ -9329,7 +9357,8 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 				     "master %s exceeded (source %s)",
 				     master, source);
 			/* Try with slave with TCP. */
-			if (zone->type == dns_zone_slave &&
+			if ((zone->type == dns_zone_slave ||
+			     zone->type == dns_zone_redirect) &&
 			    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_TRYTCPREFRESH)) {
 				if (!dns_zonemgr_unreachable(zone->zmgr,
 							     &zone->masteraddr,
@@ -9398,7 +9427,8 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 		 * Perhaps AXFR/IXFR is allowed even if SOA queries aren't.
 		 */
 		if (msg->rcode == dns_rcode_refused &&
-		    zone->type == dns_zone_slave)
+		    (zone->type == dns_zone_slave ||
+		     zone->type == dns_zone_redirect))
 			goto tcp_transfer;
 		goto next_master;
 	}
@@ -9407,7 +9437,8 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	 * If truncated punt to zone transfer which will query again.
 	 */
 	if ((msg->flags & DNS_MESSAGEFLAG_TC) != 0) {
-		if (zone->type == dns_zone_slave) {
+		if (zone->type == dns_zone_slave ||
+		    zone->type == dns_zone_redirect) {
 			dns_zone_log(zone, ISC_LOG_INFO,
 				     "refresh: truncated UDP answer, "
 				     "initiating TCP zone xfer "
@@ -9531,7 +9562,8 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 			dns_zone_log(zone, ISC_LOG_INFO,
 				     "refresh: skipping %s as master %s "
 				     "(source %s) is unreachable (cached)",
-				     zone->type == dns_zone_slave ?
+				     (zone->type == dns_zone_slave ||
+				      zone->type == dns_zone_redirect) ?
 				     "zone transfer" : "NS query",
 				     master, source);
 			goto next_master;
@@ -9541,7 +9573,8 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 		LOCK_ZONE(zone);
 		dns_request_destroy(&zone->request);
 		UNLOCK_ZONE(zone);
-		if (zone->type == dns_zone_slave) {
+		if (zone->type == dns_zone_slave ||
+		    zone->type == dns_zone_redirect) {
 			queue_xfrin(zone);
 		} else {
 			INSIST(zone->type == dns_zone_stub);
@@ -10332,6 +10365,11 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 	isc_time_settoepoch(&next);
 
 	switch (zone->type) {
+	case dns_zone_redirect:
+		if (zone->masters != NULL)
+			goto treat_as_slave;
+		/* FALLTHROUGH */
+
 	case dns_zone_master:
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY))
 			next = zone->notifytime;
@@ -10342,6 +10380,8 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 			    isc_time_compare(&zone->dumptime, &next) < 0)
 				next = zone->dumptime;
 		}
+		if (zone->type == dns_zone_redirect)
+			break;
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESHING) &&
 		    !isc_time_isepoch(&zone->refreshkeytime)) {
 			if (isc_time_isepoch(&next) ||
@@ -10371,9 +10411,10 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 		break;
 
 	case dns_zone_slave:
+	treat_as_slave:
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY))
 			next = zone->notifytime;
-		/*FALLTHROUGH*/
+		/* FALLTHROUGH */
 
 	case dns_zone_stub:
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESH) &&
@@ -11035,15 +11076,17 @@ zone_namerd_tostr(dns_zone_t *zone, char *buf, size_t length) {
 	 * Leave space for terminating '\0'.
 	 */
 	isc_buffer_init(&buffer, buf, length - 1);
-	if (dns_name_dynamic(&zone->origin))
-		result = dns_name_totext(&zone->origin, ISC_TRUE, &buffer);
-	if (result != ISC_R_SUCCESS &&
-	    isc_buffer_availablelength(&buffer) >= (sizeof("<UNKNOWN>") - 1))
-		isc_buffer_putstr(&buffer, "<UNKNOWN>");
+	if (zone->type != dns_zone_redirect && zone->type != dns_zone_key) {
+		if (dns_name_dynamic(&zone->origin))
+			result = dns_name_totext(&zone->origin, ISC_TRUE, &buffer);
+		if (result != ISC_R_SUCCESS &&
+		    isc_buffer_availablelength(&buffer) >= (sizeof("<UNKNOWN>") - 1))
+			isc_buffer_putstr(&buffer, "<UNKNOWN>");
 
-	if (isc_buffer_availablelength(&buffer) > 0)
-		isc_buffer_putstr(&buffer, "/");
-	(void)dns_rdataclass_totext(zone->rdclass, &buffer);
+		if (isc_buffer_availablelength(&buffer) > 0)
+			isc_buffer_putstr(&buffer, "/");
+		(void)dns_rdataclass_totext(zone->rdclass, &buffer);
+	}
 
 	if (zone->view != NULL && strcmp(zone->view->name, "_bind") != 0 &&
 	    strcmp(zone->view->name, "_default") != 0 &&
@@ -11152,8 +11195,9 @@ dns_zone_logc(dns_zone_t *zone, isc_logcategory_t *category,
 	vsnprintf(message, sizeof(message), fmt, ap);
 	va_end(ap);
 	isc_log_write(dns_lctx, category, DNS_LOGMODULE_ZONE,
-		      level, "%s %s: %s", (zone->type == dns_zone_key) ?
-		      "managed-keys-zone" : "zone", zone->strnamerd, message);
+		      level, "%s%s: %s", (zone->type == dns_zone_key) ?
+		      "managed-keys-zone" : (zone->type == dns_zone_redirect) ?
+		      "redirect-zone" : "zone ", zone->strnamerd, message);
 }
 
 void
@@ -11168,8 +11212,9 @@ dns_zone_log(dns_zone_t *zone, int level, const char *fmt, ...) {
 	vsnprintf(message, sizeof(message), fmt, ap);
 	va_end(ap);
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_ZONE,
-		      level, "%s %s: %s", (zone->type == dns_zone_key) ?
-		      "managed-keys-zone" : "zone", zone->strnamerd, message);
+		      level, "%s%s: %s", (zone->type == dns_zone_key) ?
+		      "managed-keys-zone" : (zone->type == dns_zone_redirect) ?
+		      "redirect-zone" : "zone ", zone->strnamerd, message);
 }
 
 static void
@@ -11447,8 +11492,10 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 					  &oldserial, NULL, NULL, NULL, NULL,
 					  NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		if (zone->type == dns_zone_slave &&
-		    !isc_serial_gt(serial, oldserial)) {
+		if ((zone->type == dns_zone_slave ||
+		     (zone->type == dns_zone_redirect &&
+		      zone->masters != NULL))
+		    && !isc_serial_gt(serial, oldserial)) {
 			isc_uint32_t serialmin, serialmax;
 			serialmin = (oldserial + 1) & 0xffffffffU;
 			serialmax = (oldserial + 0x7fffffffU) & 0xffffffffU;
@@ -13056,7 +13103,8 @@ void
 dns_zone_forcereload(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	if (zone->type == dns_zone_master)
+	if (zone->type == dns_zone_master ||
+	    (zone->type == dns_zone_redirect && zone->masters == NULL))
 		return;
 
 	LOCK_ZONE(zone);
@@ -13148,7 +13196,7 @@ dns_zone_dialup(dns_zone_t *zone) {
 
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALNOTIFY))
 		dns_zone_notify(zone);
-	if (zone->type != dns_zone_master &&
+	if (zone->type != dns_zone_master && zone->masters != NULL &&
 	    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALREFRESH))
 		dns_zone_refresh(zone);
 }

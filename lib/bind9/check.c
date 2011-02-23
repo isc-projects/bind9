@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.125 2011/01/07 23:47:07 tbox Exp $ */
+/* $Id: check.c,v 1.126 2011/02/23 03:08:10 marka Exp $ */
 
 /*! \file */
 
@@ -1223,7 +1223,9 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 #define FORWARDZONE	16
 #define DELEGATIONZONE	32
 #define STATICSTUBZONE	64
-#define CHECKACL	128
+#define REDIRECTZONE	128
+#define STREDIRECTZONE	0	/* Set to REDIRECTZONE to allow xfr-in. */
+#define CHECKACL	256
 
 typedef struct {
 	const char *name;
@@ -1252,30 +1254,30 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	const cfg_listelt_t *element;
 
 	static optionstable options[] = {
-	{ "allow-query", MASTERZONE | SLAVEZONE | STUBZONE | CHECKACL |
-	  STATICSTUBZONE },
+	{ "allow-query", MASTERZONE | SLAVEZONE | STUBZONE | REDIRECTZONE |
+	  CHECKACL | STATICSTUBZONE },
 	{ "allow-notify", SLAVEZONE | CHECKACL },
 	{ "allow-transfer", MASTERZONE | SLAVEZONE | CHECKACL },
 	{ "notify", MASTERZONE | SLAVEZONE },
 	{ "also-notify", MASTERZONE | SLAVEZONE },
-	{ "dialup", MASTERZONE | SLAVEZONE | STUBZONE },
+	{ "dialup", MASTERZONE | SLAVEZONE | STUBZONE | STREDIRECTZONE },
 	{ "delegation-only", HINTZONE | STUBZONE | DELEGATIONZONE },
 	{ "forward", MASTERZONE | SLAVEZONE | STUBZONE | FORWARDZONE },
 	{ "forwarders", MASTERZONE | SLAVEZONE | STUBZONE | FORWARDZONE },
-	{ "maintain-ixfr-base", MASTERZONE | SLAVEZONE },
-	{ "max-ixfr-log-size", MASTERZONE | SLAVEZONE },
+	{ "maintain-ixfr-base", MASTERZONE | SLAVEZONE | STREDIRECTZONE },
+	{ "max-ixfr-log-size", MASTERZONE | SLAVEZONE | STREDIRECTZONE },
 	{ "notify-source", MASTERZONE | SLAVEZONE },
 	{ "notify-source-v6", MASTERZONE | SLAVEZONE },
-	{ "transfer-source", SLAVEZONE | STUBZONE },
-	{ "transfer-source-v6", SLAVEZONE | STUBZONE },
-	{ "max-transfer-time-in", SLAVEZONE | STUBZONE },
+	{ "transfer-source", SLAVEZONE | STUBZONE | STREDIRECTZONE },
+	{ "transfer-source-v6", SLAVEZONE | STUBZONE | STREDIRECTZONE },
+	{ "max-transfer-time-in", SLAVEZONE | STUBZONE | STREDIRECTZONE },
 	{ "max-transfer-time-out", MASTERZONE | SLAVEZONE },
-	{ "max-transfer-idle-in", SLAVEZONE | STUBZONE },
+	{ "max-transfer-idle-in", SLAVEZONE | STUBZONE | STREDIRECTZONE },
 	{ "max-transfer-idle-out", MASTERZONE | SLAVEZONE },
-	{ "max-retry-time", SLAVEZONE | STUBZONE },
-	{ "min-retry-time", SLAVEZONE | STUBZONE },
-	{ "max-refresh-time", SLAVEZONE | STUBZONE },
-	{ "min-refresh-time", SLAVEZONE | STUBZONE },
+	{ "max-retry-time", SLAVEZONE | STUBZONE | STREDIRECTZONE },
+	{ "min-retry-time", SLAVEZONE | STUBZONE | STREDIRECTZONE },
+	{ "max-refresh-time", SLAVEZONE | STUBZONE | STREDIRECTZONE },
+	{ "min-refresh-time", SLAVEZONE | STUBZONE | STREDIRECTZONE },
 	{ "dnssec-secure-to-insecure", MASTERZONE },
 	{ "sig-validity-interval", MASTERZONE },
 	{ "sig-re-signing-interval", MASTERZONE },
@@ -1283,17 +1285,17 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	{ "sig-signing-type", MASTERZONE },
 	{ "sig-signing-signatures", MASTERZONE },
 	{ "zone-statistics", MASTERZONE | SLAVEZONE | STUBZONE |
-	  STATICSTUBZONE},
+	  STATICSTUBZONE| REDIRECTZONE },
 	{ "allow-update", MASTERZONE | CHECKACL },
 	{ "allow-update-forwarding", SLAVEZONE | CHECKACL },
-	{ "file", MASTERZONE | SLAVEZONE | STUBZONE | HINTZONE },
-	{ "journal", MASTERZONE | SLAVEZONE },
+	{ "file", MASTERZONE | SLAVEZONE | STUBZONE | HINTZONE | REDIRECTZONE },
+	{ "journal", MASTERZONE | SLAVEZONE | STREDIRECTZONE },
 	{ "ixfr-base", MASTERZONE | SLAVEZONE },
 	{ "ixfr-tmp-file", MASTERZONE | SLAVEZONE },
-	{ "masters", SLAVEZONE | STUBZONE },
+	{ "masters", SLAVEZONE | STUBZONE | REDIRECTZONE },
 	{ "pubkey", MASTERZONE | SLAVEZONE | STUBZONE },
 	{ "update-policy", MASTERZONE },
-	{ "database", MASTERZONE | SLAVEZONE | STUBZONE },
+	{ "database", MASTERZONE | SLAVEZONE | STUBZONE | REDIRECTZONE },
 	{ "key-directory", MASTERZONE },
 	{ "check-wildcard", MASTERZONE },
 	{ "check-mx", MASTERZONE },
@@ -1301,20 +1303,21 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	{ "integrity-check", MASTERZONE },
 	{ "check-mx-cname", MASTERZONE },
 	{ "check-srv-cname", MASTERZONE },
-	{ "masterfile-format", MASTERZONE | SLAVEZONE | STUBZONE | HINTZONE },
+	{ "masterfile-format", MASTERZONE | SLAVEZONE | STUBZONE | HINTZONE |
+	  REDIRECTZONE },
 	{ "update-check-ksk", MASTERZONE },
 	{ "dnssec-dnskey-kskonly", MASTERZONE },
 	{ "auto-dnssec", MASTERZONE },
-	{ "try-tcp-refresh", SLAVEZONE },
+	{ "try-tcp-refresh", SLAVEZONE | STREDIRECTZONE },
 	{ "server-addresses", STATICSTUBZONE },
 	{ "server-names", STATICSTUBZONE },
 	};
 
 	static optionstable dialups[] = {
-	{ "notify", MASTERZONE | SLAVEZONE },
-	{ "notify-passive", SLAVEZONE },
-	{ "refresh", SLAVEZONE | STUBZONE },
-	{ "passive", SLAVEZONE | STUBZONE },
+	{ "notify", MASTERZONE | SLAVEZONE | STREDIRECTZONE },
+	{ "notify-passive", SLAVEZONE | STREDIRECTZONE },
+	{ "refresh", SLAVEZONE | STUBZONE | STREDIRECTZONE },
+	{ "passive", SLAVEZONE | STUBZONE | STREDIRECTZONE },
 	};
 
 	znamestr = cfg_obj_asstring(cfg_tuple_get(zconfig, "name"));
@@ -1344,6 +1347,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		ztype = HINTZONE;
 	else if (strcasecmp(typestr, "delegation-only") == 0)
 		ztype = DELEGATIONZONE;
+	else if (strcasecmp(typestr, "redirect") == 0)
+		ztype = REDIRECTZONE;
 	else {
 		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 			    "zone '%s': invalid type %s",
@@ -1351,6 +1356,11 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		return (ISC_R_FAILURE);
 	}
 
+	if (ztype == REDIRECTZONE && strcmp(znamestr, ".") != 0) {
+		cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
+			    "redirect zones must be called \".\"");
+		return (ISC_R_FAILURE);
+	}
 	obj = cfg_tuple_get(zconfig, "class");
 	if (cfg_obj_isstring(obj)) {
 		isc_textregion_t r;
@@ -1392,7 +1402,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 
 		zname = dns_fixedname_name(&fixedname);
 		dns_name_format(zname, namebuf, sizeof(namebuf));
-		tresult = nameexist(zconfig, namebuf, ztype == HINTZONE ? 1 : 2,
+		tresult = nameexist(zconfig, namebuf, ztype == HINTZONE ? 1 :
+				    ztype == REDIRECTZONE ? 2 : 3,
 				    symtab, "zone '%s': already exists "
 				    "previous definition: %s:%u", logctx, mctx);
 		if (tresult != ISC_R_SUCCESS)

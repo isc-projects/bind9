@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.178 2011/01/13 09:53:04 marka Exp $ */
+/* $Id: view.c,v 1.179 2011/02/23 03:08:11 marka Exp $ */
 
 /*! \file */
 
@@ -195,6 +195,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	ISC_LIST_INIT(view->rpz_zones);
 	dns_fixedname_init(&view->dlv_fixed);
 	view->managed_keys = NULL;
+	view->redirect = NULL;
 #ifdef BIND9
 	view->new_zone_file = NULL;
 	view->new_zone_config = NULL;
@@ -430,6 +431,8 @@ destroy(dns_view_t *view) {
 	}
 	if (view->managed_keys != NULL)
 		dns_zone_detach(&view->managed_keys);
+	if (view->redirect != NULL)
+		dns_zone_detach(&view->redirect);
 	dns_view_setnewzones(view, ISC_FALSE, NULL, NULL);
 #endif
 	dns_fwdtable_destroy(&view->fwdtable);
@@ -498,6 +501,11 @@ view_flushanddetach(dns_view_t **viewp, isc_boolean_t flush) {
 			if (view->flush)
 				dns_zone_flush(view->managed_keys);
 			dns_zone_detach(&view->managed_keys);
+		}
+		if (view->redirect != NULL) {
+			if (view->flush)
+				dns_zone_flush(view->redirect);
+			dns_zone_detach(&view->redirect);
 		}
 #endif
 		done = all_done(view);

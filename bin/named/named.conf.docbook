@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.50 2011/02/03 05:41:52 marka Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.51 2011/02/23 03:08:08 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>Aug 13, 2004</date>
@@ -563,7 +563,7 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
     <title>ZONE</title>
     <literallayout>
 zone <replaceable>string</replaceable> <replaceable>optional_class</replaceable> {
-	type ( master | slave | stub | hint |
+	type ( master | slave | stub | hint | redirect |
 		forward | delegation-only );
 	file <replaceable>quoted_string</replaceable>;
 

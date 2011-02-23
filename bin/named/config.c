@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.115 2011/02/03 12:18:10 tbox Exp $ */
+/* $Id: config.c,v 1.116 2011/02/23 03:08:08 marka Exp $ */
 
 /*! \file */
 
@@ -377,6 +377,8 @@ ns_config_getzonetype(const cfg_obj_t *zonetypeobj) {
 		ztype = dns_zone_stub;
 	else if (strcasecmp(str, "static-stub") == 0)
 		ztype = dns_zone_staticstub;
+	else if (strcasecmp(str, "redirect") == 0)
+		ztype = dns_zone_redirect;
 	else
 		INSIST(0);
 	return (ztype);

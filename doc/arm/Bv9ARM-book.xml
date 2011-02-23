@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.480 2011/02/03 07:35:55 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.481 2011/02/23 03:08:10 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -10097,6 +10097,13 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
     <optional> delegation-only <replaceable>yes_or_no</replaceable> ; </optional>
 };
 
+zone <replaceable>"."</replaceable> <optional><replaceable>class</replaceable></optional> {
+    type redirect;
+    file <replaceable>string</replaceable> ;
+    <optional> masterfile-format (<constant>text</constant>|<constant>raw</constant>) ; </optional>
+    <optional> allow-query { <replaceable>address_match_list</replaceable> }; </optional>
+};
+
 zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replaceable></optional> {
     type delegation-only;
 };
@@ -10334,6 +10341,26 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                         IN, the server uses a compiled-in default set of root
                         servers hints.
                         Classes other than IN have no built-in defaults hints.
+                      </para>
+                    </entry>
+                  </row>
+                  <row rowsep="0">
+                    <entry colname="1">
+                      <para>
+                        <varname>redirect</varname>
+                      </para>
+                    </entry>
+                    <entry colname="2">
+                      <para>
+			Provides a source of answers when the normal resolution
+			returns NXDOMAIN.  Only one redirect zone is supported
+			per view.  <command>allow-query</command> can be used
+			to restrict which clients see these answers.
+                      </para>
+                      <para>
+			If the client has requested DNSSEC records (DO=1) and
+			the NXDOMAIN response is signed then no substitution
+			will occur.
                       </para>
                     </entry>
                   </row>

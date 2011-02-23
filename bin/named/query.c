@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.355 2011/02/18 15:18:30 smann Exp $ */
+/* $Id: query.c,v 1.356 2011/02/23 03:08:08 marka Exp $ */
 
 /*! \file */
 
@@ -4929,6 +4929,106 @@ dns64_aaaaok(ns_client_t *client, dns_rdataset_t *rdataset,
 }
 
 /*
+ * Look for the name and type in the redirection zone.  If found update
+ * the arguments as appropriate.  Return ISC_TRUE if a update was
+ * performed.
+ *
+ * Only perform the update if the client is in the allow query acl and
+ * returning the update would not cause a DNSSEC validation failure.
+ */
+static isc_boolean_t
+redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
+	 dns_dbnode_t **nodep, dns_db_t **dbp, dns_rdatatype_t qtype)
+{
+	dns_db_t *db = NULL;
+	dns_dbnode_t *node = NULL;
+	dns_fixedname_t fixed;
+	dns_name_t *found;
+	dns_rdataset_t trdataset;
+	isc_result_t result;
+	dns_rdatatype_t type;
+
+	CTRACE("redirect");
+
+	if (client->view->redirect == NULL)
+		return (ISC_FALSE);
+
+	dns_fixedname_init(&fixed);
+	found = dns_fixedname_name(&fixed);
+	dns_rdataset_init(&trdataset);
+
+	if (WANTDNSSEC(client) && dns_db_iszone(*dbp) && dns_db_issecure(*dbp))
+		return (ISC_FALSE);
+
+	if (WANTDNSSEC(client) && dns_rdataset_isassociated(rdataset)) {
+		if (rdataset->trust == dns_trust_secure)
+			return (ISC_FALSE);
+		if (rdataset->trust == dns_trust_ultimate &&
+		    (rdataset->type == dns_rdatatype_nsec ||
+		     rdataset->type == dns_rdatatype_nsec3))
+			return (ISC_FALSE);
+		if (rdataset->type == 0) {
+			for (result = dns_rdataset_first(rdataset);
+			     result == ISC_R_SUCCESS;
+			     result = dns_rdataset_next(rdataset)) {
+				dns_ncache_current(rdataset, found, &trdataset);
+				type = trdataset.type;
+				dns_rdataset_disassociate(&trdataset);
+				if (type == dns_rdatatype_nsec ||
+				    type == dns_rdatatype_nsec3 ||
+				    type == dns_rdatatype_rrsig)
+					return (ISC_FALSE);
+			}
+		}
+	}
+
+	result = ns_client_checkaclsilent(client, NULL,
+				 dns_zone_getqueryacl(client->view->redirect),
+                                          ISC_TRUE);
+	if (result != ISC_R_SUCCESS)
+		return (ISC_FALSE);
+
+	result = dns_zone_getdb(client->view->redirect, &db);
+	if (result != ISC_R_SUCCESS)
+		return (ISC_FALSE);
+
+	/*
+	 * Lookup the requested data in the redirect zone.
+	 */
+	result = dns_db_find(db, client->query.qname, NULL, qtype, 0,
+			     client->now, &node, found, &trdataset, NULL);
+	if (result != ISC_R_SUCCESS) {
+		if (dns_rdataset_isassociated(&trdataset))
+			dns_rdataset_disassociate(&trdataset);
+		if (node != NULL)
+			dns_db_detachnode(db, &node);
+		dns_db_detach(&db);
+		return (ISC_FALSE);
+	}
+	CTRACE("redirect: found data: done");
+
+	dns_name_copy(found, name, NULL);
+	if (dns_rdataset_isassociated(rdataset))
+		dns_rdataset_disassociate(rdataset);
+	if (dns_rdataset_isassociated(&trdataset)) {
+		dns_rdataset_clone(&trdataset, rdataset);
+		dns_rdataset_disassociate(&trdataset);
+	}
+	if (*nodep != NULL)
+		dns_db_detachnode(*dbp, nodep);
+	dns_db_detach(dbp);
+	dns_db_attachnode(db, node, nodep);
+	dns_db_attach(db, dbp);
+	dns_db_detachnode(db, &node);
+	dns_db_detach(&db);
+
+	client->query.attributes |= (NS_QUERYATTR_NOAUTHORITY |
+				     NS_QUERYATTR_NOADDITIONAL);
+
+	return (ISC_TRUE);
+}
+
+/*
  * Do the bulk of query processing for the current query of 'client'.
  * If 'event' is non-NULL, we are returning from recursion and 'qtype'
  * is ignored.  Otherwise, 'qtype' is the query type.
@@ -5844,6 +5944,11 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 
 	case DNS_R_NXDOMAIN:
 		INSIST(is_zone);
+		if (!empty_wild &&
+		    redirect(client, fname, rdataset, &node, &db, type)) {
+			result = ISC_R_SUCCESS;
+			break;
+		}
 		if (dns_rdataset_isassociated(rdataset)) {
 			/*
 			 * If we've got a NSEC record, we need to save the
@@ -5904,6 +6009,10 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		goto cleanup;
 
 	case DNS_R_NCACHENXDOMAIN:
+		if (redirect(client, fname, rdataset, &node, &db, type)) {
+			result = ISC_R_SUCCESS;
+			break;
+		}
 	case DNS_R_NCACHENXRRSET:
 	ncache_nxrrset:
 		INSIST(!is_zone);

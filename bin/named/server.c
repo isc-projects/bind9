@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.603 2011/02/16 19:48:12 each Exp $ */
+/* $Id: server.c,v 1.604 2011/02/23 03:08:09 marka Exp $ */
 
 /*! \file */
 
@@ -3342,6 +3342,37 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	}
 
 	/*
+	 * Redirect zones only require minimal configuration.
+	 */
+	if (strcasecmp(ztypestr, "redirect") == 0) {
+		if (view->redirect != NULL) {
+			cfg_obj_log(zconfig, ns_g_lctx, ISC_LOG_ERROR,
+				    "redirect zone already exists");
+			result = ISC_R_EXISTS;
+			goto cleanup;
+		}
+		result = dns_viewlist_find(&ns_g_server->viewlist, view->name,
+					   view->rdclass, &pview);
+		if (result != ISC_R_NOTFOUND && result != ISC_R_SUCCESS)
+			goto cleanup;
+		if (pview != NULL && pview->redirect != NULL) {
+			dns_zone_attach(pview->redirect, &zone);
+			dns_zone_setview(zone, view);
+		} else {
+			CHECK(dns_zone_create(&zone, mctx));
+			CHECK(dns_zone_setorigin(zone, origin));
+			dns_zone_setview(zone, view);
+			CHECK(dns_zonemgr_managezone(ns_g_server->zonemgr,
+						     zone));
+			dns_zone_setstats(zone, ns_g_server->zonestats);
+		}
+		CHECK(ns_zone_configure(config, vconfig, zconfig, aclconf,
+					zone));
+		dns_zone_attach(zone, &view->redirect);
+		goto cleanup;
+	}
+
+	/*
 	 * Check for duplicates in the new zone table.
 	 */
 	result = dns_view_findzone(view, origin, &dupzone);
@@ -3366,9 +3397,8 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	 *     options (e.g., an existing master zone cannot
 	 *     be reused if the options specify a slave zone)
 	 */
-	result = dns_viewlist_find(&ns_g_server->viewlist,
-				   view->name, view->rdclass,
-				   &pview);
+	result = dns_viewlist_find(&ns_g_server->viewlist, view->name,
+				   view->rdclass, &pview);
 	if (result != ISC_R_NOTFOUND && result != ISC_R_SUCCESS)
 		goto cleanup;
 	if (pview != NULL)
@@ -3923,6 +3953,9 @@ removed(dns_zone_t *zone, void *uap) {
 		break;
 	case dns_zone_stub:
 		type = "stub";
+		break;
+	case dns_zone_redirect:
+		type = "redirect";
 		break;
 	default:
 		type = "other";
@@ -5017,6 +5050,8 @@ load_zones(ns_server_t *server, isc_boolean_t stop) {
 		CHECK(dns_view_load(view, stop));
 		if (view->managed_keys != NULL)
 			CHECK(dns_zone_load(view->managed_keys));
+		if (view->redirect != NULL)
+			CHECK(dns_zone_load(view->redirect));
 	}
 
 	/*
@@ -5050,6 +5085,8 @@ load_new_zones(ns_server_t *server, isc_boolean_t stop) {
 		/* Load managed-keys data */
 		if (view->managed_keys != NULL)
 			CHECK(dns_zone_loadnew(view->managed_keys));
+		if (view->redirect != NULL)
+			CHECK(dns_zone_loadnew(view->redirect));
 	}
 
 	/*

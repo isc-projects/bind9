@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: conf.sh.in,v 1.60 2011/02/22 04:14:29 marka Exp $
+# $Id: conf.sh.in,v 1.61 2011/02/23 03:08:09 marka Exp $
 
 #
 # Common configuration data for system tests, to be sourced into
@@ -55,7 +55,7 @@ JOURNALPRINT=$TOP/bin/tools/named-journalprint
 SUBDIRS="acl allow_query addzone autosign cacheclean checkconf checknames
          database dlv @DLZ_SYSTEM_TEST@ dlzexternal dns64 dnssec forward
 	 glue gost ixfr limits lwresd masterfile masterformat metadata
-	 notify nsupdate pending pkcs11 resolver rpz rrsetorder
+	 notify nsupdate pending pkcs11 redirect resolver rpz rrsetorder
 	 sortlist smartsign staticstub stub tkey tsig tsiggss
 	 unknown upforwd views xfer xferquota zonechecks"
 

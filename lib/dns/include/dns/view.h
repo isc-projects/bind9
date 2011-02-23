@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.132 2011/01/13 01:59:28 marka Exp $ */
+/* $Id: view.h,v 1.133 2011/02/23 03:08:11 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -182,6 +182,7 @@ struct dns_view {
 	dns_viewlist_t *		viewlist;
 
 	dns_zone_t *			managed_keys;
+	dns_zone_t *			redirect;
 
 #ifdef BIND9
 	/* File in which to store configuration for newly added zones */
