@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.119.18.60 2010/11/16 04:17:44 marka Exp $ */
+/* $Id: validator.c,v 1.119.18.61 2011/02/23 13:15:39 marka Exp $ */
 
 /*! \file */
 
@@ -413,7 +413,8 @@ dsfetched(isc_task_t *task, isc_event_t *event) {
 		result = validatezonekey(val);
 		if (result != DNS_R_WAIT)
 			validator_done(val, result);
-	} else if (eresult == DNS_R_NXRRSET ||
+	} else if (eresult == DNS_R_CNAME ||
+		   eresult == DNS_R_NXRRSET ||
 		   eresult == DNS_R_NCACHENXRRSET ||
 		   eresult == DNS_R_SERVFAIL)	/* RFC 1034 parent? */
 	{
@@ -481,12 +482,16 @@ dsfetched2(isc_task_t *task, isc_event_t *event) {
 	LOCK(&val->lock);
 	if (CANCELED(val)) {
 		validator_done(val, ISC_R_CANCELED);
-	} else if (eresult == DNS_R_NXRRSET || eresult == DNS_R_NCACHENXRRSET) {
+	} else if (eresult == DNS_R_CNAME ||
+		   eresult == DNS_R_NXRRSET ||
+		   eresult == DNS_R_NCACHENXRRSET)
+	{
 		/*
 		 * There is no DS.  If this is a delegation, we're done.
 		 */
 		tname = dns_fixedname_name(&devent->foundname);
-		if (isdelegation(tname, &val->frdataset, eresult)) {
+		if (eresult != DNS_R_CNAME &&
+		    isdelegation(tname, &val->frdataset, eresult)) {
 			if (val->mustbesecure) {
 				validator_log(val, ISC_LOG_WARNING,
 					      "must be secure failure");
@@ -668,6 +673,60 @@ dsvalidated(isc_task_t *task, isc_event_t *event) {
 		}
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "dsvalidated: got %s",
+			      isc_result_totext(eresult));
+		validator_done(val, DNS_R_BROKENCHAIN);
+	}
+	want_destroy = exit_check(val);
+	UNLOCK(&val->lock);
+	if (want_destroy)
+		destroy(val);
+}
+
+/*%
+ * Callback when the CNAME record has been validated.
+ *
+ * Resumes validation of the unsecure zone proof.
+ */
+static void
+cnamevalidated(isc_task_t *task, isc_event_t *event) {
+	dns_validatorevent_t *devent;
+	dns_validator_t *val;
+	isc_boolean_t want_destroy;
+	isc_result_t result;
+	isc_result_t eresult;
+
+	UNUSED(task);
+	INSIST(event->ev_type == DNS_EVENT_VALIDATORDONE);
+
+	devent = (dns_validatorevent_t *)event;
+	val = devent->ev_arg;
+	eresult = devent->result;
+
+	isc_event_free(&event);
+	dns_validator_destroy(&val->subvalidator);
+
+	INSIST(val->event != NULL);
+	INSIST((val->attributes & VALATTR_INSECURITY) != 0);
+
+	validator_log(val, ISC_LOG_DEBUG(3), "in cnamevalidated");
+	LOCK(&val->lock);
+	if (CANCELED(val)) {
+		validator_done(val, ISC_R_CANCELED);
+	} else if (eresult == ISC_R_SUCCESS) {
+		validator_log(val, ISC_LOG_DEBUG(3), "cname with trust %d",
+			      val->frdataset.trust);
+		result = proveunsecure(val, ISC_FALSE, ISC_TRUE);
+		if (result != DNS_R_WAIT)
+			validator_done(val, result);
+	} else {
+		if (eresult != DNS_R_BROKENCHAIN) {
+			if (dns_rdataset_isassociated(&val->frdataset))
+				dns_rdataset_expire(&val->frdataset);
+			if (dns_rdataset_isassociated(&val->fsigrdataset))
+				dns_rdataset_expire(&val->fsigrdataset);
+		}
+		validator_log(val, ISC_LOG_DEBUG(3),
+			      "cnamevalidated: got %s",
 			      isc_result_totext(eresult));
 		validator_done(val, DNS_R_BROKENCHAIN);
 	}
@@ -1986,11 +2045,12 @@ validatezonekey(dns_validator_t *val) {
 			if (result != ISC_R_SUCCESS)
 				return (result);
 			return (DNS_R_WAIT);
-		} else if (result ==  DNS_R_NCACHENXDOMAIN ||
+		} else if (result == DNS_R_NCACHENXDOMAIN ||
 			   result == DNS_R_NCACHENXRRSET ||
 			   result == DNS_R_EMPTYNAME ||
 			   result == DNS_R_NXDOMAIN ||
-			   result == DNS_R_NXRRSET)
+			   result == DNS_R_NXRRSET ||
+			   result == DNS_R_CNAME)
 		{
 			/*
 			 * The DS does not exist.
@@ -3085,6 +3145,20 @@ proveunsecure(dns_validator_t *val, isc_boolean_t have_ds, isc_boolean_t resume)
 					return (ISC_R_SUCCESS);
 				}
 				return (startfinddlvsep(val, tname));
+			}
+			continue;
+		} else if (result == DNS_R_CNAME) {
+			if (DNS_TRUST_PENDING(val->frdataset.trust) ||
+			    DNS_TRUST_ANSWER(val->frdataset.trust)) {
+				result = create_validator(val, tname,
+							  dns_rdatatype_cname,
+							  &val->frdataset,
+							  NULL, cnamevalidated,
+							  "proveunsecure "
+							  "(cname)");
+				if (result != ISC_R_SUCCESS)
+					goto out;
+				return (DNS_R_WAIT);
 			}
 			continue;
 		} else if (result == ISC_R_SUCCESS) {

@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.18.18.3 2006/03/06 01:38:00 marka Exp $
+# $Id: sign.sh,v 1.18.18.4 2011/02/23 13:15:39 marka Exp $
 
 RANDFILE=../random.data
 
@@ -66,3 +66,13 @@ mv $zonefile.signed $zonefile.tmp
 <$zonefile.tmp perl -p -e 's/ keyless.example/ b.keyless.example/
     if /^a.b.keyless.example/../NXT/;' >$zonefile.signed
 rm -f $zonefile.tmp
+
+#
+# Secure below cname test zone.
+#
+zone=secure.below-cname.example.
+infile=secure.below-cname.example.db.in
+zonefile=secure.below-cname.example.db
+keyname=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
+cat $infile $keyname.key >$zonefile
+$SIGNER -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1

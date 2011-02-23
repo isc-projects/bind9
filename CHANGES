@@ -1,4 +1,8 @@
-2037.	[doc]		Update COPYRIGHT to contain all the individual
+3040.	[bug]		Named failed to validate insecure zones where a node
+			with a CNAME existed between the trust anchor and the
+			top of the zone. [RT #23338]
+
+3037.	[doc]		Update COPYRIGHT to contain all the individual
 			copyright notices that cover various parts.
 
 3014.	[bug]		Fix the zonechecks system test to match expected
