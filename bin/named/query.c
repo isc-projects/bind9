@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.356 2011/02/23 03:08:08 marka Exp $ */
+/* $Id: query.c,v 1.357 2011/02/23 23:47:19 tbox Exp $ */
 
 /*! \file */
 
@@ -4984,7 +4984,7 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 
 	result = ns_client_checkaclsilent(client, NULL,
 				 dns_zone_getqueryacl(client->view->redirect),
-                                          ISC_TRUE);
+					  ISC_TRUE);
 	if (result != ISC_R_SUCCESS)
 		return (ISC_FALSE);
 

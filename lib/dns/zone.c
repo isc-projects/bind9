@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.591 2011/02/23 03:08:11 marka Exp $ */
+/* $Id: zone.c,v 1.592 2011/02/23 23:47:20 tbox Exp $ */
 
 /*! \file */
 
@@ -3546,7 +3546,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		if (zone->type == dns_zone_slave ||
 		    zone->type == dns_zone_stub ||
 		    (zone->type == dns_zone_redirect &&
-	             zone->masters != NULL)) {
+		     zone->masters != NULL)) {
 			isc_time_t t;
 			isc_uint32_t delay;
 
