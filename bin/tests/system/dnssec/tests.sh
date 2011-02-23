@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.53.48.17 2011/02/15 00:16:37 marka Exp $
+# $Id: tests.sh,v 1.53.48.18 2011/02/23 12:48:20 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -1037,6 +1037,25 @@ $DIG $DIGOPTS +dnssec a update-nsec3.example. @10.53.0.4 > dig.out.ns4.test$n ||
 grep "NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 grep "flags:.* ad[ ;]" dig.out.ns4.test$n > /dev/null || ret=1
 grep "NSEC3 .* TYPE65534" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking that a insecure zone beneath a cname resolves ($n)"
+ret=0
+$DIG $DIGOPTS soa insecure.below-cname.example. @10.53.0.4 > dig.out.ns4.test$n || ret=1
+grep "NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking that a secure zone beneath a cname resolves ($n)"
+ret=0
+$DIG $DIGOPTS soa secure.below-cname.example. @10.53.0.4 > dig.out.ns4.test$n || ret=1
+grep "NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
+grep "ANSWER: 2," dig.out.ns4.test$n > /dev/null || ret=1
+grep "flags:.* ad[ ;]" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
