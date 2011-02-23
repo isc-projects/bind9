@@ -1,3 +1,7 @@
+3040.	[bug]		Named failed to validate insecure zones where a node
+			with a CNAME existed between the trust anchor and the
+			top of the zone. [RT #23338]
+
 3038.	[bug]		Install <dns/rpz.h>.  [RT #23342]
 
 3037.	[doc]		Update COPYRIGHT to contain all the individual
