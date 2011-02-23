@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.34 2011/02/14 23:53:43 marka Exp $
+# $Id: clean.sh,v 1.35 2011/02/23 11:30:34 marka Exp $
 
 rm -f */K* */keyset-* */dsset-* */dlvset-* */signedkey-* */*.signed
 rm -f */trusted.conf */managed.conf */tmp* */*.jnl */*.bk
@@ -47,3 +47,6 @@ rm -f signer/example.db
 rm -f ns2/algroll.db
 rm -f ns3/kskonly.example.db
 rm -f ns4/named.conf
+rm -f ns3/auto-nsec.example.db ns3/auto-nsec3.example.db
+rm -f ns3/secure.below-cname.example.db
+
