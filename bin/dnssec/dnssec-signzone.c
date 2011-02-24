@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.177.18.29 2009/07/21 06:44:32 tbox Exp $ */
+/* $Id: dnssec-signzone.c,v 1.177.18.30 2011/02/24 04:06:38 marka Exp $ */
 
 /*! \file */
 
@@ -435,32 +435,32 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 			if (!expired)
 				keep = ISC_TRUE;
 		} else if (issigningkey(key)) {
-			if (!expired && setverifies(name, set, key, &sigrdata))
-			{
+			if (!expired && rrsig.originalttl == set->ttl &&
+			    setverifies(name, set, key, &sigrdata)) {
 				vbprintf(2, "\trrsig by %s retained\n", sigstr);
 				keep = ISC_TRUE;
 				wassignedby[key->position] = ISC_TRUE;
 				nowsignedby[key->position] = ISC_TRUE;
 			} else {
 				vbprintf(2, "\trrsig by %s dropped - %s\n",
-					 sigstr,
-					 expired ? "expired" :
-						   "failed to verify");
+					 sigstr, expired ? "expired" :
+					 rrsig.originalttl != set->ttl ?
+					 "ttl change" : "failed to verify");
 				wassignedby[key->position] = ISC_TRUE;
 				resign = ISC_TRUE;
 			}
 		} else if (iszonekey(key)) {
-			if (!expired && setverifies(name, set, key, &sigrdata))
-			{
+			if (!expired && rrsig.originalttl == set->ttl &&
+			    setverifies(name, set, key, &sigrdata)) {
 				vbprintf(2, "\trrsig by %s retained\n", sigstr);
 				keep = ISC_TRUE;
 				wassignedby[key->position] = ISC_TRUE;
 				nowsignedby[key->position] = ISC_TRUE;
 			} else {
 				vbprintf(2, "\trrsig by %s dropped - %s\n",
-					 sigstr,
-					 expired ? "expired" :
-						   "failed to verify");
+					 sigstr, expired ? "expired" :
+					 rrsig.originalttl != set->ttl ?
+					 "ttl change" : "failed to verify");
 				wassignedby[key->position] = ISC_TRUE;
 			}
 		} else if (!expired) {

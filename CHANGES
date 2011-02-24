@@ -1,3 +1,6 @@
+3041.	[bug]		dnssec-signzone failed to generate new signatures on
+			ttl changes. [RT #23330]
+
 3040.	[bug]		Named failed to validate insecure zones where a node
 			with a CNAME existed between the trust anchor and the
 			top of the zone. [RT #23338]
