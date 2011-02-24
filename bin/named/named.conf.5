@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.conf.5,v 1.45 2011/02/04 01:14:14 tbox Exp $
+.\" $Id: named.conf.5,v 1.46 2011/02/24 01:14:20 tbox Exp $
 .\"
 .hy 0
 .ad l
@@ -503,7 +503,7 @@ view \fIstring\fR \fIoptional_class\fR {
 .RS 4
 .nf
 zone \fIstring\fR \fIoptional_class\fR {
-	type ( master | slave | stub | hint |
+	type ( master | slave | stub | hint | redirect |
 		forward | delegation\-only );
 	file \fIquoted_string\fR;
 	masters [ port \fIinteger\fR ] {

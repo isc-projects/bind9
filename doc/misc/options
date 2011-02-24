@@ -521,7 +521,7 @@ view <string> <optional_class> {
                     <integer> | * ) ];
                 try-tcp-refresh <boolean>;
                 type ( master | slave | stub | static-stub | hint | forward
-                    | delegation-only );
+                    | delegation-only | redirect );
                 update-check-ksk <boolean>;
                 update-policy ( local | { ( grant | deny ) <string> ( name
                     | subdomain | wildcard | self | selfsub | selfwild |
@@ -604,7 +604,7 @@ zone <string> <optional_class> {
         transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
         try-tcp-refresh <boolean>;
         type ( master | slave | stub | static-stub | hint | forward |
-            delegation-only );
+            delegation-only | redirect );
         update-check-ksk <boolean>;
         update-policy ( local | { ( grant | deny ) <string> ( name |
             subdomain | wildcard | self | selfsub | selfwild | krb5-self |
