@@ -1,6 +1,6 @@
 3042.	[bug]		dig +trace could fail attempting to use IPv6
 			addresses on systems with only IPv4 connectivity.
-			[RT# 23797]
+			[RT #23797]
 
 3041.	[bug]		dnssec-signzone failed to generate new signatures on
 			ttl changes. [RT #23330]
