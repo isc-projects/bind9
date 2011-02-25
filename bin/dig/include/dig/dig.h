@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.107.120.2 2009/01/06 23:47:26 tbox Exp $ */
+/* $Id: dig.h,v 1.107.120.3 2011/02/25 23:06:01 each Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -287,6 +287,9 @@ extern int idnoptions;
  */
 isc_result_t
 get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr);
+
+int
+getaddresses(dig_lookup_t *lookup, const char *host);
 
 isc_result_t
 get_reverse(char *reverse, size_t len, char *value, isc_boolean_t ip6_int,
