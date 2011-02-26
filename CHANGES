@@ -1,3 +1,9 @@
+3043.	[test]		Merged in the NetBSD ATF test framework (currently
+			version 0.12) for development of future unit tests.
+                        Use configure --with-atf to build ATF internally
+                        or configure --with-atf=prefix to use an external
+                        copy.  [RT #23209]
+
 3042.	[bug]		dig +trace could fail attempting to use IPv6
 			addresses on systems with only IPv4 connectivity.
 			[RT #23797]
