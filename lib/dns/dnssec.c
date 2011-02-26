@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.115 2009/11/24 23:48:12 tbox Exp $
+ * $Id: dnssec.c,v 1.115.10.4 2010/01/13 23:48:20 tbox Exp $
  */
 
 /*! \file */
@@ -37,6 +37,7 @@
 #include <dns/dnssec.h>
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
+#include <dns/log.h>
 #include <dns/message.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
@@ -663,7 +664,22 @@ dns_dnssec_findzonekeys2(dns_db_t *db, dns_dbversion_t *ver,
 			}
 		}
 
-		if (result == ISC_R_FILENOTFOUND) {
+		if (result != ISC_R_SUCCESS) {
+			char keybuf[DNS_NAME_FORMATSIZE];
+			char algbuf[DNS_SECALG_FORMATSIZE];
+			dns_name_format(dst_key_name(pubkey), keybuf,
+					sizeof(keybuf));
+			dns_secalg_format(dst_key_alg(pubkey), algbuf,
+					  sizeof(algbuf));
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+				      DNS_LOGMODULE_DNSSEC, ISC_LOG_WARNING,
+				      "dns_dnssec_findzonekeys2: error "
+				      "reading private key file %s/%s/%d: %s",
+				      keybuf, algbuf, dst_key_id(pubkey),
+				      isc_result_totext(result));
+		}
+
+		if (result == ISC_R_FILENOTFOUND || result == ISC_R_NOPERM) {
 			keys[count] = pubkey;
 			pubkey = NULL;
 			count++;
@@ -1233,9 +1249,23 @@ dns_dnssec_findmatchingkeys(dns_name_t *origin, const char *directory,
 				continue;
 
 			dstkey = NULL;
-			RETERR(dst_key_fromnamedfile(dir.entry.name, directory,
-					     DST_TYPE_PUBLIC | DST_TYPE_PRIVATE,
-					     mctx, &dstkey));
+			result = dst_key_fromnamedfile(dir.entry.name,
+						       directory,
+						       DST_TYPE_PUBLIC |
+						       DST_TYPE_PRIVATE,
+						       mctx, &dstkey);
+
+			if (result != ISC_R_SUCCESS) {
+				isc_log_write(dns_lctx,
+					      DNS_LOGCATEGORY_GENERAL,
+					      DNS_LOGMODULE_DNSSEC,
+					      ISC_LOG_WARNING,
+					      "dns_dnssec_findmatchingkeys: "
+					      "error reading key file %s: %s",
+					      dir.entry.name,
+					      isc_result_totext(result));
+				continue;
+			}
 
 			RETERR(dns_dnsseckey_create(mctx, &dstkey, &key));
 			key->source = dns_keysource_repository;
@@ -1418,7 +1448,50 @@ dns_dnssec_keylistfromrdataset(dns_name_t *origin,
 					  dst_key_alg(pubkey),
 					  DST_TYPE_PUBLIC|DST_TYPE_PRIVATE,
 					  directory, mctx, &privkey);
+
+		/*
+		 * If the key was revoked and the private file
+		 * doesn't exist, maybe it was revoked internally
+		 * by named.  Try loading the unrevoked version.
+		 */
 		if (result == ISC_R_FILENOTFOUND) {
+			isc_uint32_t flags;
+			flags = dst_key_flags(pubkey);
+			if ((flags & DNS_KEYFLAG_REVOKE) != 0) {
+				dst_key_setflags(pubkey,
+						 flags & ~DNS_KEYFLAG_REVOKE);
+				result = dst_key_fromfile(dst_key_name(pubkey),
+							  dst_key_id(pubkey),
+							  dst_key_alg(pubkey),
+							  DST_TYPE_PUBLIC|
+							  DST_TYPE_PRIVATE,
+							  directory,
+							  mctx, &privkey);
+				if (result == ISC_R_SUCCESS &&
+				    dst_key_pubcompare(pubkey, privkey,
+						       ISC_FALSE)) {
+					dst_key_setflags(privkey, flags);
+				}
+				dst_key_setflags(pubkey, flags);
+			}
+		}
+
+		if (result != ISC_R_SUCCESS) {
+			char keybuf[DNS_NAME_FORMATSIZE];
+			char algbuf[DNS_SECALG_FORMATSIZE];
+			dns_name_format(dst_key_name(pubkey), keybuf,
+					sizeof(keybuf));
+			dns_secalg_format(dst_key_alg(pubkey), algbuf,
+					  sizeof(algbuf));
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+				      DNS_LOGMODULE_DNSSEC, ISC_LOG_WARNING,
+				      "dns_dnssec_keylistfromrdataset: error "
+				      "reading private key file %s/%s/%d: %s",
+				      keybuf, algbuf, dst_key_id(pubkey),
+				      isc_result_totext(result));
+		}
+
+		if (result == ISC_R_FILENOTFOUND || result == ISC_R_NOPERM) {
 			addkey(keylist, &pubkey, savekeys, mctx);
 			goto skip;
 		}

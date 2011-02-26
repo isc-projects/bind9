@@ -2,7 +2,7 @@
               "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd"
 	       [<!ENTITY mdash "&#8212;">]>
 <!--
- - Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
  - Copyright (C) 2000-2003  Internet Software Consortium.
  -
  - Permission to use, copy, modify, and/or distribute this software for any
@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.450 2009/12/04 21:59:23 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.450.4.16 2011/01/31 01:35:20 tbox Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -30,6 +30,8 @@
       <year>2007</year>
       <year>2008</year>
       <year>2009</year>
+      <year>2010</year>
+      <year>2011</year>
       <holder>Internet Systems Consortium, Inc. ("ISC")</holder>
     </copyright>
     <copyright>
@@ -889,7 +891,7 @@ zone "eng.example.com" {
       </para>
       <para>
         For more detail on ordering responses, check the
-        <command>rrset-order</command> substatement in the
+        <command>rrset-order</command> sub-statement in the
         <command>options</command> statement, see
         <xref endterm="rrset_ordering_title" linkend="rrset_ordering"/>.
       </para>
@@ -1178,10 +1180,11 @@ zone "eng.example.com" {
                         Fetch all DNSSEC keys for the given zone
                         from the key directory (see
                         <command>key-directory</command> in
-                        <xref linkend="options"/>), and merge them
-                        into the zone's DNSKEY RRset.  If the DNSKEY RRset
-                        is changed as a result of this, then the zone is
-                        automatically re-signed with the new key set.
+                        <xref linkend="options"/>).  If they are within
+                        their publication period, merge them into the
+                        zone's DNSKEY RRset.  If the DNSKEY RRset
+                        is changed, then the zone is automatically
+                        re-signed with the new key set.
                       </para>
                       <para>
                         This command requires that the
@@ -1189,6 +1192,34 @@ zone "eng.example.com" {
                         to <literal>allow</literal>,
                         <literal>maintain</literal>, or
                         <literal>create</literal>,  and also requires
+                        the zone to be configured to allow dynamic DNS.
+                        See <xref linkend="dynamic_update_policies"/> for
+                        more details.
+                      </para>
+                    </listitem>
+                  </varlistentry>
+
+                  <varlistentry>
+                    <term><userinput>loadkeys <replaceable>zone</replaceable>
+                        <optional><replaceable>class</replaceable>
+           <optional><replaceable>view</replaceable></optional></optional></userinput></term>
+                    <listitem>
+                      <para>
+                        Fetch all DNSSEC keys for the given zone
+                        from the key directory (see
+                        <command>key-directory</command> in
+                        <xref linkend="options"/>).  If they are within
+                        their publication period, merge them into the
+                        zone's DNSKEY RRset.  Unlike <command>rndc
+                        sign</command>, however, the zone is not
+                        immediately re-signed by the new keys, but is
+                        allowed to incrementally re-sign over time.
+                      </para>
+                      <para>
+                        This command requires that the
+                        <command>auto-dnssec</command> zone option to
+                        be set to <literal>maintain</literal> or
+                        <literal>create</literal>, and also requires
                         the zone to be configured to allow dynamic DNS.
                         See <xref linkend="dynamic_update_policies"/> for
                         more details.
@@ -1305,6 +1336,19 @@ zone "eng.example.com" {
                   </varlistentry>
 
                   <varlistentry>
+                    <term><userinput>secroots
+                        <optional><replaceable>view ...</replaceable></optional></userinput></term>
+                    <listitem>
+                      <para>
+                        Dump the server's security roots to the secroots
+                        file for the specified views.  If no view is
+                        specified, security roots for all
+                        views are dumped.
+                      </para>
+                    </listitem>
+                  </varlistentry>
+
+                  <varlistentry>
                     <term><userinput>stop <optional>-p</optional></userinput></term>
                     <listitem>
                       <para>
@@ -1413,6 +1457,65 @@ zone "eng.example.com" {
                         Note <command>dnssec-enable</command> also needs to be
                         set to <userinput>yes</userinput> to be effective.
                         It defaults to enabled.
+                      </para>
+                    </listitem>
+                  </varlistentry>
+
+                  <varlistentry>
+                    <term><userinput>addzone
+                        <replaceable>zone</replaceable>
+                        <optional><replaceable>class</replaceable>
+                        <optional><replaceable>view</replaceable></optional></optional>
+                        <replaceable>configuration</replaceable>
+                    </userinput></term>
+                    <listitem>
+                      <para>
+                        Add a zone while the server is running.  This
+                        command requires the
+                        <command>allow-new-zones</command> option to be set
+                        to <userinput>yes</userinput>.  The
+                        <replaceable>configuration</replaceable> string
+                        specified on the command line is the zone
+                        configuration text that would ordinarily be
+                        placed in <filename>named.conf</filename>.
+                      </para>
+                      <para>
+                        The configuration is saved in a file called
+                       <filename><replaceable>hash</replaceable>.nzf</filename>,
+                        where <replaceable>hash</replaceable> is a
+                        cryptographic hash generated from the name of
+                        the view.  When <command>named</command> is
+                        restarted, the file will be loaded into the view
+                        configuration, so that zones that were added
+                        can persist after a restart.
+                      </para>
+                      <para>
+                        This sample <command>addzone</command> command
+                        would add the zone <literal>example.com</literal>
+                        to the default view:
+                      </para>
+                      <para>
+<prompt>$ </prompt><userinput>rndc addzone example.com '{ type master; file "example.com.db"; };'</userinput>
+                      </para>
+                      <para>
+                        (Note the brackets and semi-colon around the zone
+                        configuration text.)
+                      </para>
+                    </listitem>
+                  </varlistentry>
+
+                  <varlistentry>
+                    <term><userinput>delzone
+                        <replaceable>zone</replaceable>
+                        <optional><replaceable>class</replaceable>
+                        <optional><replaceable>view</replaceable></optional></optional>
+                    </userinput></term>
+                    <listitem>
+                      <para>
+                        Delete a zone while the server is running.
+                        Only zones that were originally added via
+                        <command>rndc addzone</command> can be deleted
+                        in this matter.
                       </para>
                     </listitem>
                   </varlistentry>
@@ -2654,6 +2757,13 @@ options {
       </sect2>
 
     </sect1>
+
+    <xi:include href="dnssec.xml"/>
+
+    <xi:include href="managed-keys.xml"/>
+
+    <xi:include href="pkcs11.xml"/>
+
     <sect1>
       <title>IPv6 Support in <acronym>BIND</acronym> 9</title>
 
@@ -4862,6 +4972,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> server-id <replaceable>server_id_string</replaceable>; </optional>
     <optional> directory <replaceable>path_name</replaceable>; </optional>
     <optional> key-directory <replaceable>path_name</replaceable>; </optional>
+    <optional> managed-keys-directory <replaceable>path_name</replaceable>; </optional>
     <optional> named-xfer <replaceable>path_name</replaceable>; </optional>
     <optional> tkey-gssapi-credential <replaceable>principal</replaceable>; </optional>
     <optional> tkey-domain <replaceable>domainname</replaceable>; </optional>
@@ -4913,6 +5024,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> check-mx-cname ( <replaceable>warn</replaceable> | <replaceable>fail</replaceable> | <replaceable>ignore</replaceable> ); </optional>
     <optional> check-srv-cname ( <replaceable>warn</replaceable> | <replaceable>fail</replaceable> | <replaceable>ignore</replaceable> ); </optional>
     <optional> check-sibling <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> allow-new-zones { <replaceable>yes_or_no</replaceable> }; </optional>
     <optional> allow-notify { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-query { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-query-on { <replaceable>address_match_list</replaceable> }; </optional>
@@ -5008,6 +5120,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> max-cache-size <replaceable>size_spec</replaceable> ; </optional>
     <optional> match-mapped-addresses <replaceable>yes_or_no</replaceable>; </optional>
     <optional> filter-aaaa-on-v4 ( <replaceable>yes_or_no</replaceable> | <replaceable>break-dnssec</replaceable> ); </optional>
+    <optional> filter-aaaa { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> preferred-glue ( <replaceable>A</replaceable> | <replaceable>AAAA</replaceable> | <replaceable>NONE</replaceable> ); </optional>
     <optional> edns-udp-size <replaceable>number</replaceable>; </optional>
     <optional> max-udp-size <replaceable>number</replaceable>; </optional>
@@ -5183,6 +5296,19 @@ badresp:1,adberr:0,findfail:0,valfail:0]
           </varlistentry>
 
           <varlistentry>
+            <term><command>managed-keys-directory</command></term>
+            <listitem>
+              <para>
+		The directory used to hold the files used to track managed keys.
+		By default it is the working directory.  It there are no
+		views then the file <filename>managed-keys.bind</filename>
+		otherwise a SHA256 hash of the view name is used with
+		<filename>.mkeys</filename> extension added.
+              </para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
             <term><command>named-xfer</command></term>
 	    <listitem>
 	      <para>
@@ -5207,7 +5333,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		the server can acquire through the default system
 		key file, normally <filename>/etc/krb5.keytab</filename>.
 		Normally this principal is of the form
-		"<userinput>dns/</userinput><varname>server.domain</varname>".
+		"<userinput>DNS/</userinput><varname>server.domain</varname>".
 		To use GSS-TSIG, <command>tkey-domain</command>
 		must also be set.
 	      </para>
@@ -5338,6 +5464,18 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		See the discussion of <command>dnssec-lookaside</command>
 		for details.  If not specified, the default is
 		<filename>/etc/bind.keys</filename>.
+              </para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term><command>secroots-file</command></term>
+            <listitem>
+              <para>
+                The pathname of the file the server dumps
+                security roots to when instructed to do so with
+                <command>rndc secroots</command>.
+                If not specified, the default is <filename>named.secroots</filename>.
               </para>
             </listitem>
           </varlistentry>
@@ -5579,6 +5717,18 @@ options {
           <title>Boolean Options</title>
 
           <variablelist>
+
+            <varlistentry>
+              <term><command>allow-new-zones</command></term>
+              <listitem>
+                <para>
+                  If <userinput>yes</userinput>, then zones can be
+                  added at runtime via <command>rndc addzone</command>
+                  or deleted via <command>rndc delzone</command>.
+                  The default is <userinput>no</userinput>.
+                </para>
+              </listitem>
+            </varlistentry>
 
             <varlistentry>
               <term><command>auth-nxdomain</command></term>
@@ -6259,7 +6409,7 @@ options {
                 </para>
                 <para>
                   If <userinput>yes</userinput>,
-                  the DNS client is at an IPv4 address,
+                  the DNS client is at an IPv4 address, in <command>filter-aaaa</command>,
                   and if the response does not include DNSSEC signatures, 
                   then all AAAA records are deleted from the response.
                   This filtering applies to all responses and not only
@@ -6616,9 +6766,26 @@ options {
 	      <term><command>dnssec-secure-to-insecure</command></term>
 	      <listitem>
 	        <para>
-		  Allow a zone to transition from secure to insecure by
-		  deleting all DNSKEY records.  The default is
-		  <command>no</command>.
+		  Allow a dynamic zone to transition from secure to
+                  insecure (i.e., signed to unsigned) by deleting all
+                  of the DNSKEY records.  The default is <command>no</command>.
+                  If set to <command>yes</command>, and if the DNSKEY RRset
+                  at the zone apex is deleted, all RRSIG and NSEC records
+                  will be removed from the zone as well.
+		</para>
+	        <para>
+                  If the zone uses NSEC3, then it is also necessary to
+                  delete the NSEC3PARAM RRset from the zone apex; this will
+                  cause the removal of all corresponding NSEC3 records.
+                  (It is expected that this requirement will be eliminated
+                  in a future release.)
+		</para>
+	        <para>
+                  Note that if a zone has been configured with
+                  <command>auto-dnssec maintain</command> and the
+                  private keys remain accessible in the key repository,
+                  then the zone will be automatically signed again the
+                  next time <command>named</command> is started.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -6931,6 +7098,17 @@ options {
                   query. Queries
                   from these addresses will not be responded to. The default
                   is <userinput>none</userinput>.
+                </para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term><command>filter-aaaa</command></term>
+              <listitem>
+                <para>
+                  Specifies a list of addresses to which
+		  <command>filter-aaaa-on-v4</command>
+                  is applies.  The default is <userinput>any</userinput>.
                 </para>
               </listitem>
             </varlistentry>
@@ -8151,6 +8329,13 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   <literal>1800</literal> (30 minutes).
                 </para>
 
+		<para>
+		  Lame-ttl also controls the amount of time DNSSEC
+		  validation failures are cached.  There is a minimum
+		  of 30 seconds applied to bad cache entries if the
+		  lame-ttl is set to less than 30 seconds.
+		</para>
+
               </listitem>
             </varlistentry>
 
@@ -8299,6 +8484,14 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   and clamp the SOA refresh and retry times to the specified
                   values.
                 </para>
+		<para>
+		  The following defaults apply.
+		  <command>min-refresh-time</command> 300 seconds,
+		  <command>max-refresh-time</command> 2419200 seconds
+		  (4 weeks), <command>min-retry-time</command> 500 seconds,
+		  and <command>max-retry-time</command> 1209600 seconds
+		  (2 weeks).
+		</para>
               </listitem>
             </varlistentry>
 
@@ -8343,7 +8536,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  buffer (<command>edns-udp-size</command>).
 		</para>
 		<para>
-		  Setting this to a low value will encourge additional
+		  Setting this to a low value will encourage additional
 		  TCP traffic to the nameserver.
 		</para>
 	      </listitem>
@@ -8419,7 +8612,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
               <listitem>
                 <para>
                   The delay, in seconds, between sending sets of notify
-                  messages for a zone.  The default is zero.
+                  messages for a zone.  The default is five (5) seconds.
                 </para>
               </listitem>
             </varlistentry>
@@ -8553,9 +8746,12 @@ XXX: end of RFC1918 addresses #defined out -->
 	      <listitem>127.IN-ADDR.ARPA</listitem>
 	      <listitem>254.169.IN-ADDR.ARPA</listitem>
 	      <listitem>2.0.192.IN-ADDR.ARPA</listitem>
+	      <listitem>100.51.198.IN-ADDR.ARPA</listitem>
+	      <listitem>113.0.203.IN-ADDR.ARPA</listitem>
 	      <listitem>255.255.255.255.IN-ADDR.ARPA</listitem>
 	      <listitem>0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.IP6.ARPA</listitem>
 	      <listitem>1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.IP6.ARPA</listitem>
+	      <listitem>8.B.D.0.1.0.0.2.IP6.ARPA</listitem>
 	      <listitem>D.F.IP6.ARPA</listitem>
 	      <listitem>8.E.F.IP6.ARPA</listitem>
 	      <listitem>9.E.F.IP6.ARPA</listitem>
@@ -9169,7 +9365,7 @@ deny-answer-aliases { "example.net"; };
 
       </sect2>
 
-        <sect2>
+	<sect2 id="trusted-keys">
           <title><command>trusted-keys</command> Statement Grammar</title>
 
 <programlisting><command>trusted-keys</command> {
@@ -9230,7 +9426,7 @@ deny-answer-aliases { "example.net"; };
 </programlisting>
 
         </sect2>
-	<sect2>
+	<sect2 id="managed-keys">
 	  <title><command>managed-keys</command> Statement Definition
 	    and Usage</title>
 	  <para>
@@ -9327,7 +9523,7 @@ deny-answer-aliases { "example.net"; };
             to the master file as soon as possible afterward; in the case
             of the managed key database, this will usually occur within 30
             seconds.  So, whenever <command>named</command> is using
-            automatic key maintenace, those two files can be expected to
+            automatic key maintenance, those two files can be expected to
             exist in the working directory.  (For this reason among others,
             the working directory should be always be writable by
             <command>named</command>.)
@@ -10454,21 +10650,32 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                 <listitem>
                   <para>
                     Zones configured for dynamic DNS may also use this
-                    option to allow varying levels of autonatic DNSSEC key
+                    option to allow varying levels of automatic DNSSEC key
                     management. There are four possible settings:
                   </para>
                   <para>
                     <command>auto-dnssec allow;</command> permits
-                    keys to be updated and the zone re-signed whenever the
-                    user issues the command <command>rndc sign
+                    keys to be updated and the zone fully re-signed
+                    whenever the user issues the command <command>rndc sign
                     <replaceable>zonename</replaceable></command>.
                   </para>
                   <para>
                     <command>auto-dnssec maintain;</command> includes the
                     above, but also automatically adjusts the zone's DNSSEC
                     keys on schedule, according to the keys' timing metadata
-                    (see <xref linkend="man.dnssec-keygen"/> and
-                    <xref linkend="man.dnssec-settime"/>).
+                    (see <xref linkend="man.dnyssec-keygen"/> and
+                    <xref linkend="man.dnssec-settime"/>).  The command
+                    <command>rndc sign
+                    <replaceable>zonename</replaceable></command> causes
+                    <command>named</command> to load keys from the key
+                    repository and sign the zone with all keys that are
+                    active. 
+                    <command>rndc loadkeys
+                    <replaceable>zonename</replaceable></command> causes
+                    <command>named</command> to load keys from the key
+                    repository and schedule key maintenance events to occur
+                    in the future, but it does not sign the full zone
+                    immediately.
                   </para>
                   <para>
                     <command>auto-dnssec create;</command> includes the
@@ -15632,7 +15839,11 @@ zone "example.com" {
           </bibliography>
         </sect2>
       </sect1>
+
+      <xi:include href="libdns.xml"/>
+
     </appendix>
+
 
     <reference id="Bv9ARM.ch10">
       <title>Manual pages</title>
@@ -15656,6 +15867,7 @@ zone "example.com" {
       <xi:include href="../../bin/confgen/ddns-confgen.docbook"/>
       <xi:include href="../../bin/tools/arpaname.docbook"/>
       <xi:include href="../../bin/tools/genrandom.docbook"/>
+      <xi:include href="../../bin/tools/isc-hmac-fixup.docbook"/>
       <xi:include href="../../bin/tools/nsec3hash.docbook"/>
     </reference>
 

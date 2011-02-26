@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsprobe.c,v 1.5 2009/09/29 15:06:06 fdupont Exp $ */
+/* $Id: nsprobe.c,v 1.5.66.2 2010/01/07 23:48:16 tbox Exp $ */
 
 #include <config.h>
 
@@ -107,7 +107,7 @@ struct probe_trans {
 	ISC_LIST(struct probe_ns) nslist;
 };
 
-struct stat {
+struct lcl_stat {
 	unsigned long valid;
 	unsigned long ignore;
 	unsigned long nxdomain;
@@ -300,7 +300,7 @@ static void
 update_stat(struct probe_trans *trans) {
 	struct probe_ns *pns;
 	struct server *server;
-	struct stat local_stat;
+	struct lcl_stat local_stat;
 	unsigned int err_count = 0;
 	const char *stattype;
 

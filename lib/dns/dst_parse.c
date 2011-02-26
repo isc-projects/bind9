@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -31,7 +31,7 @@
 
 /*%
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.23 2009/10/26 21:18:24 each Exp $
+ * $Id: dst_parse.c,v 1.23.36.3 2010/01/13 19:31:52 each Exp $
  */
 
 #include <config.h>
@@ -62,7 +62,7 @@ static const char *timetags[TIMING_NTAGS] = {
 	"Publish:",
 	"Activate:",
 	"Revoke:",
-	"Unpublish:",
+	"Inactive:",
 	"Delete:",
 	"DSPublish:"
 };
@@ -626,7 +626,7 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 		isc_buffer_usedregion(&b, &r);
 
 		fprintf(fp, "%s ", s);
-		fwrite(r.base, 1, r.length, fp);
+		isc_util_fwrite(r.base, 1, r.length, fp);
 		fprintf(fp, "\n");
 	}
 
@@ -651,7 +651,7 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 			isc_buffer_usedregion(&b, &r);
 
 			fprintf(fp, "%s ", timetags[i]);
-			fwrite(r.base, 1, r.length, fp);
+			isc_util_fwrite(r.base, 1, r.length, fp);
 			fprintf(fp, "\n");
 		}
 	}

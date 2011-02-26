@@ -476,6 +476,8 @@ int	linkfile (const char *fromfile, const char *tofile)
 
 /*****************************************************************
 **	copyfile (fromfile, tofile, dnskeyfile)
+**	copy fromfile into tofile.
+**	Add (optional) the content of dnskeyfile to tofile.
 *****************************************************************/
 int	copyfile (const char *fromfile, const char *tofile, const char *dnskeyfile)
 {
@@ -989,16 +991,15 @@ time_t	stop_timer (time_t start)
 
 /****************************************************************
 **
-**	int	gensalt (saltstr, sizeofstalstr, bits)
+**	int	gensalt (saltstr, sizeofsaltstr, bits)
 **
 **	generate a random hexstring of 'bits' salt and store it
 **	in saltstr. return 1 on success, otherwise 0.
 **
 *****************************************************************/
-int	gensalt (char *salt, size_t saltsize, int saltbits)
+int	gensalt (char *salt, size_t saltsize, int saltbits, unsigned int seed)
 {
 	static	char	hexstr[] = "0123456789ABCDEF";
-	static	int	seed = 0;
 	int	saltlen = 0;	/* current length of salt in hex nibbles */
 	int	i;
 	int	hex;

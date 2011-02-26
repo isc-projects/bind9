@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -w
 #
-# Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2007, 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 1998-2001, 2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: merge_copyrights,v 1.35 2009/12/03 04:45:10 marka Exp $
+# $Id: merge_copyrights,v 1.35.6.2 2010/11/17 23:46:32 tbox Exp $
 
 %file_types = ();
 %file_years = ();
@@ -74,7 +74,7 @@ while (<FILES>) {
 	    $file_types{$_} = "MAN";
 	} elsif ($base =~ /\/Makefile$/) {
 	    $file_types{$_} = "MAKE";
-	} elsif ($base =~ /\/(named|rndc).?\.conf$/) {
+	} elsif ($base =~ /\/(named|rndc).{0,2}\.conf$/) {
 	    $file_types{$_} = "CONF-C";
 	} elsif ($base =~ /\/resolv.?\.conf$/) {
 	    $file_types{$_} = "CONF-SH";

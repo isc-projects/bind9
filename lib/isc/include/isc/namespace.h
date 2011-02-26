@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namespace.h,v 1.5 2009/10/01 01:30:01 sar Exp $ */
+/* $Id: namespace.h,v 1.5.62.4 2010/12/04 13:27:10 marka Exp $ */
 
 #ifndef ISCAPI_NAMESPACE_H
 #define ISCAPI_NAMESPACE_H 1
@@ -67,6 +67,7 @@
 #define isc_mem_getquota isc__mem_getquota
 #define isc_mem_gettag isc__mem_gettag
 #define isc_mem_inuse isc__mem_inuse
+#define isc_mem_isovermem isc__mem_isovermem
 #define isc_mem_setname isc__mem_setname
 #define isc_mem_setwater isc__mem_setwater
 #define isc_mem_printallactive isc__mem_printallactive
@@ -128,6 +129,7 @@
 #define isc_task_create isc__task_create
 #define isc_task_attach isc__task_attach
 #define isc_task_detach isc__task_detach
+/* #define isc_task_exiting isc__task_exiting XXXMPA */
 #define isc_task_send isc__task_send
 #define isc_task_sendanddetach isc__task_sendanddetach
 #define isc_task_purgerange isc__task_purgerange

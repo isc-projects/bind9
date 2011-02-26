@@ -79,7 +79,7 @@ extern	void    fatal (char *fmt, ...);
 extern	void    logmesg (char *fmt, ...);
 extern	void	verbmesg (int verblvl, const zconf_t *conf, char *fmt, ...);
 extern	void	logflush (void);
-extern	int	gensalt (char *salt, size_t saltsize, int saltbits);
+extern	int	gensalt (char *salt, size_t saltsize, int saltbits, unsigned int seed);
 extern	char	*str_untaint (char *str);
 extern	char	*str_chop (char *str, char c);
 extern	int	is_dotfilename (const char *name);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.51 2009/12/04 21:09:32 marka Exp $ */
+/* $Id: named-checkconf.c,v 1.51.4.3 2010/09/07 01:52:22 marka Exp $ */
 
 /*! \file */
 
@@ -64,7 +64,7 @@ usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
 usage(void) {
-	fprintf(stderr, "usage: %s [-h] [-j] [-v] [-z] [-t directory] "
+	fprintf(stderr, "usage: %s [-h] [-j] [-p] [-v] [-z] [-t directory] "
 		"[named.conf]\n", program);
 	exit(1);
 }
@@ -488,6 +488,10 @@ main(int argc, char **argv) {
 	if (conffile == NULL || conffile[0] == '\0')
 		conffile = NAMED_CONFFILE;
 
+#ifdef _WIN32
+	InitSockets();
+#endif
+
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
 	RUNTIME_CHECK(setup_logging(mctx, stdout, &logc) == ISC_R_SUCCESS);
@@ -530,6 +534,10 @@ main(int argc, char **argv) {
 	isc_entropy_detach(&ectx);
 
 	isc_mem_destroy(&mctx);
+
+#ifdef _WIN32
+	DestroySockets();
+#endif
 
 	return (exit_status);
 }

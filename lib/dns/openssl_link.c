@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.27 2009/10/05 17:30:49 fdupont Exp $
+ * $Id: openssl_link.c,v 1.27.60.2 2010/09/15 12:38:04 tbox Exp $
  */
 #ifdef OPENSSL
 
@@ -79,7 +79,7 @@ entropy_get(unsigned char *buf, int num) {
 	if (num < 0)
 		return (-1);
 	result = dst__entropy_getdata(buf, (unsigned int) num, ISC_FALSE);
-	return (result == ISC_R_SUCCESS ? num : -1);
+	return (result == ISC_R_SUCCESS ? 1 : -1);
 }
 
 static int
@@ -93,7 +93,7 @@ entropy_getpseudo(unsigned char *buf, int num) {
 	if (num < 0)
 		return (-1);
 	result = dst__entropy_getdata(buf, (unsigned int) num, ISC_TRUE);
-	return (result == ISC_R_SUCCESS ? num : -1);
+	return (result == ISC_R_SUCCESS ? 1 : -1);
 }
 
 static void
