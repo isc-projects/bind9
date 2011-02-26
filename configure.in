@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.512.8.2 $)
+AC_REVISION($Revision: 1.512.8.3 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -3044,7 +3044,7 @@ if test "$atf" = yes; then
 	ATFBUILD=atf-src
 	AC_SUBST(ATFBUILD)
 	AC_CONFIG_COMMANDS([atf-config],
-		[cd unit/atf-src; ./configure --prefix $atfdir; cd ../..],
+		[cd unit/atf-src; sh ./configure --prefix $atfdir; cd ../..],
 		[atfdir=`pwd`/unit/atf])
 	AC_MSG_RESULT(building ATF from bind9/unit/atf-src)
 fi
