@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.457.26.28 $)
+AC_REVISION($Revision: 1.457.26.29 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -2709,6 +2709,34 @@ if test "$use_idn" != no; then
 fi
 AC_SUBST(IDNLIBS)
 
+#
+# Check whether to build Automated Test Framework unit tests
+#
+AC_ARG_WITH(atf,
+	[  --with-atf=ARG       Automated Test Framework support],
+	atf="$withval", atf="no")
+if test "$atf" = yes; then
+	atf=`pwd`/unit/atf
+	ATFBUILD=atf-src
+	AC_SUBST(ATFBUILD)
+	AC_CONFIG_COMMANDS([atf-config],
+		[cd unit/atf-src; sh ./configure --prefix $atfdir; cd ../..],
+		[atfdir=`pwd`/unit/atf])
+	AC_MSG_RESULT(building ATF from bind9/unit/atf-src)
+fi
+
+ATFLIBS=
+if test "$atf" != no; then
+	AC_DEFINE(ATF_TEST, 1, [define if ATF unit tests are to be built.])
+	STD_CINCLUDES="$STD_CINCLUDES -I$atf/include"
+	ATFBIN="$atf/bin"
+	ATFLIBS="-L $atf/lib -latf-c"
+	UNITTESTS=tests
+fi
+AC_SUBST(ATFBIN)
+AC_SUBST(ATFLIBS)
+AC_SUBST(UNITTESTS)
+
 AC_CHECK_HEADERS(locale.h)
 AC_CHECK_FUNCS(setlocale)
 
@@ -2975,6 +3003,7 @@ AC_CONFIG_FILES([
 	lib/dns/include/Makefile
 	lib/dns/include/dns/Makefile
 	lib/dns/include/dst/Makefile
+	lib/dns/tests/Makefile
 	lib/bind9/Makefile
 	lib/bind9/include/Makefile
 	lib/bind9/include/bind9/Makefile
@@ -2990,6 +3019,8 @@ AC_CONFIG_FILES([
 	lib/tests/Makefile
 	lib/tests/include/Makefile
 	lib/tests/include/tests/Makefile
+	unit/Makefile
+	unit/unittest.sh
 	bin/Makefile
 	bin/check/Makefile
 	bin/named/Makefile

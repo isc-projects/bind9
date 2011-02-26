@@ -1,5 +1,5 @@
 #! /bin/sh
-# Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 1996-2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -14,9 +14,15 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-# $Id: configure,v 1.443.26.23 2010/12/21 04:33:58 marka Exp $
+# $Id: configure,v 1.443.26.24 2011/02/26 05:45:54 each Exp $
 #
-# Portions Copyright (C) 1996-2001  Nominum, Inc.
+# 	Portions of this code release fall under one or more of the
+# 	following Copyright notices.  Please see individual source
+# 	files for details.
+#
+# 	For binary releases also see: OpenSSL-LICENSE.
+#
+# Copyright (C) 1996-2001  Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -29,14 +35,496 @@
 # WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+#
+#  -----------------------------------------------------------------------------
+#
+# Copyright (C) 1995-2000 by Network Associates, Inc.
+#
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND ISC AND NETWORK ASSOCIATES DISCLAIMS
+# ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE
+# FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+# IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+#
+#  -----------------------------------------------------------------------------
+#
+# Copyright (C) 2002 Stichting NLnet, Netherlands, stichting@nlnet.nl.
+#
+# Permission to use, copy, modify, and distribute this software for any
+# purpose with or without fee is hereby granted, provided that the
+# above copyright notice and this permission notice appear in all
+# copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND STICHTING NLNET
+# DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+# STICHTING NLNET BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+# CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+# OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+# OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE
+# USE OR PERFORMANCE OF THIS SOFTWARE.
+#
+# The development of Dynamically Loadable Zones (DLZ) for Bind 9 was
+# conceived and contributed by Rob Butler.
+#
+# Permission to use, copy, modify, and distribute this software for any
+# purpose with or without fee is hereby granted, provided that the
+# above copyright notice and this permission notice appear in all
+# copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND ROB BUTLER
+# DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+# ROB BUTLER BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+# CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+# OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+# OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE
+# USE OR PERFORMANCE OF THIS SOFTWARE.
+#
+#  -----------------------------------------------------------------------------
+#
+# Copyright (c) 1987, 1990, 1993, 1994
+#      The Regents of the University of California.  All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+# 3. All advertising materials mentioning features or use of this software
+#    must display the following acknowledgement:
+#      This product includes software developed by the University of
+#      California, Berkeley and its contributors.
+# 4. Neither the name of the University nor the names of its contributors
+#    may be used to endorse or promote products derived from this software
+#    without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+# SUCH DAMAGE.
+#
+#  -----------------------------------------------------------------------------
+#
+# Copyright (C) The Internet Society 2005.  This version of
+# this module is part of RFC 4178; see the RFC itself for
+# full legal notices.
+#
+# (The above copyright notice is per RFC 3978 5.6 (a), q.v.)
+#
+#  -----------------------------------------------------------------------------
+#
+# Copyright (c) 2004 Masarykova universita
+# (Masaryk University, Brno, Czech Republic)
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice,
+#    this list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the University nor the names of its contributors may
+#    be used to endorse or promote products derived from this software
+#    without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+#  -----------------------------------------------------------------------------
+#
+# Copyright (c) 1997 - 2003 Kungliga Tekniska Högskolan
+# (Royal Institute of Technology, Stockholm, Sweden).
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the Institute nor the names of its contributors
+#    may be used to endorse or promote products derived from this software
+#    without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+# SUCH DAMAGE.
+#
+#  -----------------------------------------------------------------------------
+#
+# Copyright (c) 1998 Doug Rabson
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+# SUCH DAMAGE.
+#
+#  -----------------------------------------------------------------------------
+#
+# Copyright ((c)) 2002, Rice University
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+#     * Redistributions of source code must retain the above copyright
+#     notice, this list of conditions and the following disclaimer.
+#
+#     * Redistributions in binary form must reproduce the above
+#     copyright notice, this list of conditions and the following
+#     disclaimer in the documentation and/or other materials provided
+#     with the distribution.
+#
+#     * Neither the name of Rice University (RICE) nor the names of its
+#     contributors may be used to endorse or promote products derived
+#     from this software without specific prior written permission.
+#
+#
+# This software is provided by RICE and the contributors on an "as is"
+# basis, without any representations or warranties of any kind, express
+# or implied including, but not limited to, representations or
+# warranties of non-infringement, merchantability or fitness for a
+# particular purpose. In no event shall RICE or contributors be liable
+# for any direct, indirect, incidental, special, exemplary, or
+# consequential damages (including, but not limited to, procurement of
+# substitute goods or services; loss of use, data, or profits; or
+# business interruption) however caused and on any theory of liability,
+# whether in contract, strict liability, or tort (including negligence
+# or otherwise) arising in any way out of the use of this software, even
+# if advised of the possibility of such damage.
+#
+#  -----------------------------------------------------------------------------
+#
+# Copyright (c) 1993 by Digital Equipment Corporation.
+#
+# Permission to use, copy, modify, and distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies, and that
+# the name of Digital Equipment Corporation not be used in advertising or
+# publicity pertaining to distribution of the document or software without
+# specific, written prior permission.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND DIGITAL EQUIPMENT CORP. DISCLAIMS ALL
+# WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES
+# OF MERCHANTABILITY AND FITNESS.   IN NO EVENT SHALL DIGITAL EQUIPMENT
+# CORPORATION BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+# DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+# PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
+# ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+# SOFTWARE.
+#
+#  -----------------------------------------------------------------------------
+#
+# Copyright 2000 Aaron D. Gifford.  All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+# 3. Neither the name of the copyright holder nor the names of contributors
+#    may be used to endorse or promote products derived from this software
+#    without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR(S) AND CONTRIBUTOR(S) ``AS IS'' AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR(S) OR CONTRIBUTOR(S) BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+# SUCH DAMAGE.
+#
+#  -----------------------------------------------------------------------------
+#
+# Copyright (c) 1998 Doug Rabson.
+# Copyright (c) 2001 Jake Burkholder.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+# SUCH DAMAGE.
+#
+#  -----------------------------------------------------------------------------
+#
+# Copyright (C) 1995, 1996, 1997, and 1998 WIDE Project.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+# 3. Neither the name of the project nor the names of its contributors
+#    may be used to endorse or promote products derived from this software
+#    without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE PROJECT AND CONTRIBUTORS ``AS IS'' AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE PROJECT OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+# SUCH DAMAGE.
+#
+#  -----------------------------------------------------------------------------
+#
+# Copyright (c) 1999-2000 by Nortel Networks Corporation
+#
+# Permission to use, copy, modify, and distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND NORTEL NETWORKS DISCLAIMS
+# ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
+# OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL NORTEL NETWORKS
+# BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES
+# OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
+# WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+# ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+# SOFTWARE.
+#
+#  -----------------------------------------------------------------------------
+#
+# Copyright (c) 2000-2002 Japan Network Information Center.  All rights reserved.
+#
+# By using this file, you agree to the terms and conditions set forth bellow.
+#
+#                         LICENSE TERMS AND CONDITIONS
+#
+# The following License Terms and Conditions apply, unless a different
+# license is obtained from Japan Network Information Center ("JPNIC"),
+# a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+# Chiyoda-ku, Tokyo 101-0047, Japan.
+#
+# 1. Use, Modification and Redistribution (including distribution of any
+#    modified or derived work) in source and/or binary forms is permitted
+#    under this License Terms and Conditions.
+#
+# 2. Redistribution of source code must retain the copyright notices as they
+#    appear in each source code file, this License Terms and Conditions.
+#
+# 3. Redistribution in binary form must reproduce the Copyright Notice,
+#    this License Terms and Conditions, in the documentation and/or other
+#    materials provided with the distribution.  For the purposes of binary
+#    distribution the "Copyright Notice" refers to the following language:
+#    "Copyright (c) 2000-2002 Japan Network Information Center.  All rights
+#    reserved."
+#
+# 4. The name of JPNIC may not be used to endorse or promote products
+#    derived from this Software without specific prior written approval of
+#    JPNIC.
+#
+# 5. Disclaimer/Limitation of Liability: THIS SOFTWARE IS PROVIDED BY JPNIC
+#    "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+#    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+#    PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL JPNIC BE LIABLE
+#    FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+#    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+#    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+#    BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+#    WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+#    OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+#    ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+#
+#  -----------------------------------------------------------------------------
+#
+# Copyright (C) 2004  Nominet, Ltd.
+#
+# Permission to use, copy, modify, and distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND NOMINET DISCLAIMS ALL WARRANTIES WITH
+# REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+# AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+# INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+# LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+# OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+# PERFORMANCE OF THIS SOFTWARE.
+#
+#  -----------------------------------------------------------------------------
+#
+# Portions Copyright RSA Security Inc.
+#
+# License to copy and use this software is granted provided that it is
+# identified as "RSA Security Inc. PKCS #11 Cryptographic Token Interface
+# (Cryptoki)" in all material mentioning or referencing this software.
+#
+# License is also granted to make and use derivative works provided that
+# such works are identified as "derived from the RSA Security Inc. PKCS #11
+# Cryptographic Token Interface (Cryptoki)" in all material mentioning or
+# referencing the derived work.
+#
+# RSA Security Inc. makes no representations concerning either the
+# merchantability of this software or the suitability of this software for
+# any particular purpose. It is provided "as is" without express or implied
+# warranty of any kind.
+#
+#  -----------------------------------------------------------------------------
+#
+# Copyright (c) 1996, David Mazieres <dm@uun.org>
+# Copyright (c) 2008, Damien Miller <djm@openbsd.org>
+#
+# Permission to use, copy, modify, and distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+# OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+#
+# -----------------------------------------------------------------------------
+#
+# Copyright (c) 2000-2001 The OpenSSL Project.  All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in
+#    the documentation and/or other materials provided with the
+#    distribution.
+#
+# 3. All advertising materials mentioning features or use of this
+#    software must display the following acknowledgment:
+#    "This product includes software developed by the OpenSSL Project
+#    for use in the OpenSSL Toolkit. (http://www.OpenSSL.org/)"
+#
+# 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
+#    endorse or promote products derived from this software without
+#    prior written permission. For written permission, please contact
+#    licensing@OpenSSL.org.
+#
+# 5. Products derived from this software may not be called "OpenSSL"
+#    nor may "OpenSSL" appear in their names without prior written
+#    permission of the OpenSSL Project.
+#
+# 6. Redistributions of any form whatsoever must retain the following
+#    acknowledgment:
+#    "This product includes software developed by the OpenSSL Project
+#    for use in the OpenSSL Toolkit (http://www.OpenSSL.org/)"
+#
+# THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
+# EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+# PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
+# ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+# NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+# STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+# OF THE POSSIBILITY OF SUCH DAMAGE.
+#
 # From configure.in Revision: 1.457.26.28 .
 # Guess values for system-dependent variables and create Makefiles.
-# Generated by GNU Autoconf 2.67.
+# Generated by GNU Autoconf 2.65.
 #
 #
 # Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001,
-# 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software
-# Foundation, Inc.
+# 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation,
+# Inc.
 #
 #
 # This configure script is free software; the Free Software Foundation
@@ -347,7 +835,7 @@ $as_echo X"$as_dir" |
       test -d "$as_dir" && break
     done
     test -z "$as_dirs" || eval "mkdir $as_dirs"
-  } || test -d "$as_dir" || as_fn_error $? "cannot create directory $as_dir"
+  } || test -d "$as_dir" || as_fn_error "cannot create directory $as_dir"
 
 
 } # as_fn_mkdir_p
@@ -387,19 +875,19 @@ else
 fi # as_fn_arith
 
 
-# as_fn_error STATUS ERROR [LINENO LOG_FD]
-# ----------------------------------------
+# as_fn_error ERROR [LINENO LOG_FD]
+# ---------------------------------
 # Output "`basename $0`: error: ERROR" to stderr. If LINENO and LOG_FD are
 # provided, also output the error to LOG_FD, referencing LINENO. Then exit the
-# script with STATUS, using 1 if that was 0.
+# script with status $?, using 1 if that was 0.
 as_fn_error ()
 {
-  as_status=$1; test $as_status -eq 0 && as_status=1
-  if test "$4"; then
-    as_lineno=${as_lineno-"$3"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
-    $as_echo "$as_me:${as_lineno-$LINENO}: error: $2" >&$4
+  as_status=$?; test $as_status -eq 0 && as_status=1
+  if test "$3"; then
+    as_lineno=${as_lineno-"$2"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+    $as_echo "$as_me:${as_lineno-$LINENO}: error: $1" >&$3
   fi
-  $as_echo "$as_me: error: $2" >&2
+  $as_echo "$as_me: error: $1" >&2
   as_fn_exit $as_status
 } # as_fn_error
 
@@ -715,7 +1203,7 @@ test -n "$DJDIR" || exec 7<&0 </dev/null
 exec 6>&1
 
 # Name of the host.
-# hostname on some systems (SVR3.2, old GNU/Linux) returns a bogus exit status,
+# hostname on some systems (SVR3.2, Linux) returns a bogus exit status,
 # so uname gets run too.
 ac_hostname=`(hostname || uname -n) 2>/dev/null | sed 1q`
 
@@ -799,6 +1287,10 @@ BIND9_ISCCFG_BUILDINCLUDE
 BIND9_ISCCC_BUILDINCLUDE
 BIND9_ISC_BUILDINCLUDE
 BIND9_TOP_BUILDDIR
+UNITTESTS
+ATFLIBS
+ATFBIN
+ATFBUILD
 IDNLIBS
 XSLT_DB2LATEX_ADMONITIONS
 XSLT_DB2LATEX_STYLE
@@ -1060,6 +1552,7 @@ with_idn
 with_libiconv
 with_iconv
 with_idnlib
+with_atf
 with_dlz_postgres
 with_dlz_mysql
 with_dlz_bdb
@@ -1146,9 +1639,8 @@ do
   fi
 
   case $ac_option in
-  *=?*) ac_optarg=`expr "X$ac_option" : '[^=]*=\(.*\)'` ;;
-  *=)   ac_optarg= ;;
-  *)    ac_optarg=yes ;;
+  *=*)	ac_optarg=`expr "X$ac_option" : '[^=]*=\(.*\)'` ;;
+  *)	ac_optarg=yes ;;
   esac
 
   # Accept the important Cygnus configure options, so we can diagnose typos.
@@ -1193,7 +1685,7 @@ do
     ac_useropt=`expr "x$ac_option" : 'x-*disable-\(.*\)'`
     # Reject names that are not valid shell variable names.
     expr "x$ac_useropt" : ".*[^-+._$as_cr_alnum]" >/dev/null &&
-      as_fn_error $? "invalid feature name: $ac_useropt"
+      as_fn_error "invalid feature name: $ac_useropt"
     ac_useropt_orig=$ac_useropt
     ac_useropt=`$as_echo "$ac_useropt" | sed 's/[-+.]/_/g'`
     case $ac_user_opts in
@@ -1219,7 +1711,7 @@ do
     ac_useropt=`expr "x$ac_option" : 'x-*enable-\([^=]*\)'`
     # Reject names that are not valid shell variable names.
     expr "x$ac_useropt" : ".*[^-+._$as_cr_alnum]" >/dev/null &&
-      as_fn_error $? "invalid feature name: $ac_useropt"
+      as_fn_error "invalid feature name: $ac_useropt"
     ac_useropt_orig=$ac_useropt
     ac_useropt=`$as_echo "$ac_useropt" | sed 's/[-+.]/_/g'`
     case $ac_user_opts in
@@ -1423,7 +1915,7 @@ do
     ac_useropt=`expr "x$ac_option" : 'x-*with-\([^=]*\)'`
     # Reject names that are not valid shell variable names.
     expr "x$ac_useropt" : ".*[^-+._$as_cr_alnum]" >/dev/null &&
-      as_fn_error $? "invalid package name: $ac_useropt"
+      as_fn_error "invalid package name: $ac_useropt"
     ac_useropt_orig=$ac_useropt
     ac_useropt=`$as_echo "$ac_useropt" | sed 's/[-+.]/_/g'`
     case $ac_user_opts in
@@ -1439,7 +1931,7 @@ do
     ac_useropt=`expr "x$ac_option" : 'x-*without-\(.*\)'`
     # Reject names that are not valid shell variable names.
     expr "x$ac_useropt" : ".*[^-+._$as_cr_alnum]" >/dev/null &&
-      as_fn_error $? "invalid package name: $ac_useropt"
+      as_fn_error "invalid package name: $ac_useropt"
     ac_useropt_orig=$ac_useropt
     ac_useropt=`$as_echo "$ac_useropt" | sed 's/[-+.]/_/g'`
     case $ac_user_opts in
@@ -1469,8 +1961,8 @@ do
   | --x-librar=* | --x-libra=* | --x-libr=* | --x-lib=* | --x-li=* | --x-l=*)
     x_libraries=$ac_optarg ;;
 
-  -*) as_fn_error $? "unrecognized option: \`$ac_option'
-Try \`$0 --help' for more information"
+  -*) as_fn_error "unrecognized option: \`$ac_option'
+Try \`$0 --help' for more information."
     ;;
 
   *=*)
@@ -1478,7 +1970,7 @@ Try \`$0 --help' for more information"
     # Reject names that are not valid shell variable names.
     case $ac_envvar in #(
       '' | [0-9]* | *[!_$as_cr_alnum]* )
-      as_fn_error $? "invalid variable name: \`$ac_envvar'" ;;
+      as_fn_error "invalid variable name: \`$ac_envvar'" ;;
     esac
     eval $ac_envvar=\$ac_optarg
     export $ac_envvar ;;
@@ -1496,13 +1988,13 @@ done
 
 if test -n "$ac_prev"; then
   ac_option=--`echo $ac_prev | sed 's/_/-/g'`
-  as_fn_error $? "missing argument to $ac_option"
+  as_fn_error "missing argument to $ac_option"
 fi
 
 if test -n "$ac_unrecognized_opts"; then
   case $enable_option_checking in
     no) ;;
-    fatal) as_fn_error $? "unrecognized options: $ac_unrecognized_opts" ;;
+    fatal) as_fn_error "unrecognized options: $ac_unrecognized_opts" ;;
     *)     $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2 ;;
   esac
 fi
@@ -1525,7 +2017,7 @@ do
     [\\/$]* | ?:[\\/]* )  continue;;
     NONE | '' ) case $ac_var in *prefix ) continue;; esac;;
   esac
-  as_fn_error $? "expected an absolute directory name for --$ac_var: $ac_val"
+  as_fn_error "expected an absolute directory name for --$ac_var: $ac_val"
 done
 
 # There might be people who depend on the old broken behavior: `$host'
@@ -1539,8 +2031,8 @@ target=$target_alias
 if test "x$host_alias" != x; then
   if test "x$build_alias" = x; then
     cross_compiling=maybe
-    $as_echo "$as_me: WARNING: if you wanted to set the --build type, don't use --host.
-    If a cross compiler is detected then cross compile mode will be used" >&2
+    $as_echo "$as_me: WARNING: If you wanted to set the --build type, don't use --host.
+    If a cross compiler is detected then cross compile mode will be used." >&2
   elif test "x$build_alias" != "x$host_alias"; then
     cross_compiling=yes
   fi
@@ -1555,9 +2047,9 @@ test "$silent" = yes && exec 6>/dev/null
 ac_pwd=`pwd` && test -n "$ac_pwd" &&
 ac_ls_di=`ls -di .` &&
 ac_pwd_ls_di=`cd "$ac_pwd" && ls -di .` ||
-  as_fn_error $? "working directory cannot be determined"
+  as_fn_error "working directory cannot be determined"
 test "X$ac_ls_di" = "X$ac_pwd_ls_di" ||
-  as_fn_error $? "pwd does not report name of working directory"
+  as_fn_error "pwd does not report name of working directory"
 
 
 # Find the source files, if location was not specified.
@@ -1596,11 +2088,11 @@ else
 fi
 if test ! -r "$srcdir/$ac_unique_file"; then
   test "$ac_srcdir_defaulted" = yes && srcdir="$ac_confdir or .."
-  as_fn_error $? "cannot find sources ($ac_unique_file) in $srcdir"
+  as_fn_error "cannot find sources ($ac_unique_file) in $srcdir"
 fi
 ac_msg="sources are in $srcdir, but \`cd $srcdir' does not work"
 ac_abs_confdir=`(
-	cd "$srcdir" && test -r "./$ac_unique_file" || as_fn_error $? "$ac_msg"
+	cd "$srcdir" && test -r "./$ac_unique_file" || as_fn_error "$ac_msg"
 	pwd)`
 # When building in place, set srcdir=.
 if test "$ac_abs_confdir" = "$ac_pwd"; then
@@ -1640,7 +2132,7 @@ Configuration:
       --help=short        display options specific to this package
       --help=recursive    display the short help of all the included packages
   -V, --version           display version information and exit
-  -q, --quiet, --silent   do not print \`checking ...' messages
+  -q, --quiet, --silent   do not print \`checking...' messages
       --cache-file=FILE   cache test results in FILE [disabled]
   -C, --config-cache      alias for \`--cache-file=config.cache'
   -n, --no-create         do not create output files
@@ -1741,6 +2233,7 @@ Optional Packages:
   --with-libiconv=IPREFIX GNU libiconv are in IPREFIX default PREFIX
   --with-iconv=LIBSPEC    specify iconv library default -liconv
   --with-idnlib=ARG       specify libidnkit
+  --with-atf=ARG       Automated Test Framework support
   --with-dlz-postgres=PATH   Build with Postgres DLZ driver yes|no|path.
                                (Required to use Postgres with DLZ)
   --with-dlz-mysql=PATH   Build with MySQL DLZ driver yes|no|path.
@@ -1839,9 +2332,9 @@ test -n "$ac_init_help" && exit $ac_status
 if $ac_init_version; then
   cat <<\_ACEOF
 configure
-generated by GNU Autoconf 2.67
+generated by GNU Autoconf 2.65
 
-Copyright (C) 2010 Free Software Foundation, Inc.
+Copyright (C) 2009 Free Software Foundation, Inc.
 This configure script is free software; the Free Software Foundation
 gives unlimited permission to copy, distribute and modify it.
 _ACEOF
@@ -1957,7 +2450,7 @@ $as_echo "$ac_try_echo"; } >&5
     mv -f conftest.er1 conftest.err
   fi
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; } > conftest.i && {
+  test $ac_status = 0; } >/dev/null && {
 	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
 	 test ! -s conftest.err
        }; then :
@@ -1981,10 +2474,10 @@ fi
 ac_fn_c_check_header_mongrel ()
 {
   as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
-  if eval "test \"\${$3+set}\"" = set; then :
+  if { as_var=$3; eval "test \"\${$as_var+set}\" = set"; }; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $2" >&5
 $as_echo_n "checking for $2... " >&6; }
-if eval "test \"\${$3+set}\"" = set; then :
+if { as_var=$3; eval "test \"\${$as_var+set}\" = set"; }; then :
   $as_echo_n "(cached) " >&6
 fi
 eval ac_res=\$$3
@@ -2020,7 +2513,7 @@ if ac_fn_c_try_cpp "$LINENO"; then :
 else
   ac_header_preproc=no
 fi
-rm -f conftest.err conftest.i conftest.$ac_ext
+rm -f conftest.err conftest.$ac_ext
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_header_preproc" >&5
 $as_echo "$ac_header_preproc" >&6; }
 
@@ -2047,7 +2540,7 @@ $as_echo "$as_me: WARNING: $2: proceeding with the compiler's result" >&2;}
 esac
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $2" >&5
 $as_echo_n "checking for $2... " >&6; }
-if eval "test \"\${$3+set}\"" = set; then :
+if { as_var=$3; eval "test \"\${$as_var+set}\" = set"; }; then :
   $as_echo_n "(cached) " >&6
 else
   eval "$3=\$ac_header_compiler"
@@ -2111,7 +2604,7 @@ ac_fn_c_check_header_compile ()
   as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $2" >&5
 $as_echo_n "checking for $2... " >&6; }
-if eval "test \"\${$3+set}\"" = set; then :
+if { as_var=$3; eval "test \"\${$as_var+set}\" = set"; }; then :
   $as_echo_n "(cached) " >&6
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -2141,7 +2634,7 @@ ac_fn_c_check_func ()
   as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $2" >&5
 $as_echo_n "checking for $2... " >&6; }
-if eval "test \"\${$3+set}\"" = set; then :
+if { as_var=$3; eval "test \"\${$as_var+set}\" = set"; }; then :
   $as_echo_n "(cached) " >&6
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -2259,7 +2752,7 @@ $as_echo "$ac_try_echo"; } >&5
     mv -f conftest.er1 conftest.err
   fi
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; } > conftest.i && {
+  test $ac_status = 0; } >/dev/null && {
 	 test -z "$ac_cxx_preproc_warn_flag$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        }; then :
@@ -2414,7 +2907,7 @@ ac_fn_c_check_type ()
   as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $2" >&5
 $as_echo_n "checking for $2... " >&6; }
-if eval "test \"\${$3+set}\"" = set; then :
+if { as_var=$3; eval "test \"\${$as_var+set}\" = set"; }; then :
   $as_echo_n "(cached) " >&6
 else
   eval "$3=no"
@@ -2463,7 +2956,7 @@ This file contains any messages produced by compilers while
 running configure, to aid debugging if configure makes a mistake.
 
 It was created by $as_me, which was
-generated by GNU Autoconf 2.67.  Invocation command line was
+generated by GNU Autoconf 2.65.  Invocation command line was
 
   $ $0 $@
 
@@ -2573,9 +3066,11 @@ trap 'exit_status=$?
   {
     echo
 
-    $as_echo "## ---------------- ##
+    cat <<\_ASBOX
+## ---------------- ##
 ## Cache variables. ##
-## ---------------- ##"
+## ---------------- ##
+_ASBOX
     echo
     # The following way of writing the cache mishandles newlines in values,
 (
@@ -2609,9 +3104,11 @@ $as_echo "$as_me: WARNING: cache variable $ac_var contains a newline" >&2;} ;;
 )
     echo
 
-    $as_echo "## ----------------- ##
+    cat <<\_ASBOX
+## ----------------- ##
 ## Output variables. ##
-## ----------------- ##"
+## ----------------- ##
+_ASBOX
     echo
     for ac_var in $ac_subst_vars
     do
@@ -2624,9 +3121,11 @@ $as_echo "$as_me: WARNING: cache variable $ac_var contains a newline" >&2;} ;;
     echo
 
     if test -n "$ac_subst_files"; then
-      $as_echo "## ------------------- ##
+      cat <<\_ASBOX
+## ------------------- ##
 ## File substitutions. ##
-## ------------------- ##"
+## ------------------- ##
+_ASBOX
       echo
       for ac_var in $ac_subst_files
       do
@@ -2640,9 +3139,11 @@ $as_echo "$as_me: WARNING: cache variable $ac_var contains a newline" >&2;} ;;
     fi
 
     if test -s confdefs.h; then
-      $as_echo "## ----------- ##
+      cat <<\_ASBOX
+## ----------- ##
 ## confdefs.h. ##
-## ----------- ##"
+## ----------- ##
+_ASBOX
       echo
       cat confdefs.h
       echo
@@ -2697,12 +3198,7 @@ _ACEOF
 ac_site_file1=NONE
 ac_site_file2=NONE
 if test -n "$CONFIG_SITE"; then
-  # We do not want a PATH search for config.site.
-  case $CONFIG_SITE in #((
-    -*)  ac_site_file1=./$CONFIG_SITE;;
-    */*) ac_site_file1=$CONFIG_SITE;;
-    *)   ac_site_file1=./$CONFIG_SITE;;
-  esac
+  ac_site_file1=$CONFIG_SITE
 elif test "x$prefix" != xNONE; then
   ac_site_file1=$prefix/share/config.site
   ac_site_file2=$prefix/etc/config.site
@@ -2717,11 +3213,7 @@ do
     { $as_echo "$as_me:${as_lineno-$LINENO}: loading site script $ac_site_file" >&5
 $as_echo "$as_me: loading site script $ac_site_file" >&6;}
     sed 's/^/| /' "$ac_site_file" >&5
-    . "$ac_site_file" \
-      || { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "failed to load site script $ac_site_file
-See \`config.log' for more details" "$LINENO" 5; }
+    . "$ac_site_file"
   fi
 done
 
@@ -2797,7 +3289,7 @@ if $ac_cache_corrupted; then
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
   { $as_echo "$as_me:${as_lineno-$LINENO}: error: changes in the environment can compromise the build" >&5
 $as_echo "$as_me: error: changes in the environment can compromise the build" >&2;}
-  as_fn_error $? "run \`make distclean' and/or \`rm $cache_file' and start over" "$LINENO" 5
+  as_fn_error "run \`make distclean' and/or \`rm $cache_file' and start over" "$LINENO" 5
 fi
 ## -------------------- ##
 ## Main body of script. ##
@@ -2817,22 +3309,16 @@ ac_config_headers="$ac_config_headers config.h"
 
 ac_aux_dir=
 for ac_dir in "$srcdir" "$srcdir/.." "$srcdir/../.."; do
-  if test -f "$ac_dir/install-sh"; then
-    ac_aux_dir=$ac_dir
-    ac_install_sh="$ac_aux_dir/install-sh -c"
-    break
-  elif test -f "$ac_dir/install.sh"; then
-    ac_aux_dir=$ac_dir
-    ac_install_sh="$ac_aux_dir/install.sh -c"
-    break
-  elif test -f "$ac_dir/shtool"; then
-    ac_aux_dir=$ac_dir
-    ac_install_sh="$ac_aux_dir/shtool install -c"
-    break
-  fi
+  for ac_t in install-sh install.sh shtool; do
+    if test -f "$ac_dir/$ac_t"; then
+      ac_aux_dir=$ac_dir
+      ac_install_sh="$ac_aux_dir/$ac_t -c"
+      break 2
+    fi
+  done
 done
 if test -z "$ac_aux_dir"; then
-  as_fn_error $? "cannot find install-sh, install.sh, or shtool in \"$srcdir\" \"$srcdir/..\" \"$srcdir/../..\"" "$LINENO" 5
+  as_fn_error "cannot find install-sh, install.sh, or shtool in \"$srcdir\" \"$srcdir/..\" \"$srcdir/../..\"" "$LINENO" 5
 fi
 
 # These three variables are undocumented and unsupported,
@@ -2846,7 +3332,7 @@ ac_configure="$SHELL $ac_aux_dir/configure"  # Please don't use this var.
 
 # Make sure we can run config.sub.
 $SHELL "$ac_aux_dir/config.sub" sun4 >/dev/null 2>&1 ||
-  as_fn_error $? "cannot run $SHELL $ac_aux_dir/config.sub" "$LINENO" 5
+  as_fn_error "cannot run $SHELL $ac_aux_dir/config.sub" "$LINENO" 5
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking build system type" >&5
 $as_echo_n "checking build system type... " >&6; }
@@ -2857,16 +3343,16 @@ else
 test "x$ac_build_alias" = x &&
   ac_build_alias=`$SHELL "$ac_aux_dir/config.guess"`
 test "x$ac_build_alias" = x &&
-  as_fn_error $? "cannot guess build type; you must specify one" "$LINENO" 5
+  as_fn_error "cannot guess build type; you must specify one" "$LINENO" 5
 ac_cv_build=`$SHELL "$ac_aux_dir/config.sub" $ac_build_alias` ||
-  as_fn_error $? "$SHELL $ac_aux_dir/config.sub $ac_build_alias failed" "$LINENO" 5
+  as_fn_error "$SHELL $ac_aux_dir/config.sub $ac_build_alias failed" "$LINENO" 5
 
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_build" >&5
 $as_echo "$ac_cv_build" >&6; }
 case $ac_cv_build in
 *-*-*) ;;
-*) as_fn_error $? "invalid value of canonical build" "$LINENO" 5;;
+*) as_fn_error "invalid value of canonical build" "$LINENO" 5;;
 esac
 build=$ac_cv_build
 ac_save_IFS=$IFS; IFS='-'
@@ -2891,7 +3377,7 @@ else
   ac_cv_host=$ac_cv_build
 else
   ac_cv_host=`$SHELL "$ac_aux_dir/config.sub" $host_alias` ||
-    as_fn_error $? "$SHELL $ac_aux_dir/config.sub $host_alias failed" "$LINENO" 5
+    as_fn_error "$SHELL $ac_aux_dir/config.sub $host_alias failed" "$LINENO" 5
 fi
 
 fi
@@ -2899,7 +3385,7 @@ fi
 $as_echo "$ac_cv_host" >&6; }
 case $ac_cv_host in
 *-*-*) ;;
-*) as_fn_error $? "invalid value of canonical host" "$LINENO" 5;;
+*) as_fn_error "invalid value of canonical host" "$LINENO" 5;;
 esac
 host=$ac_cv_host
 ac_save_IFS=$IFS; IFS='-'
@@ -2920,7 +3406,7 @@ case $host_os in *\ *) host_os=`echo "$host_os" | sed 's/ /-/g'`;; esac
 $as_echo_n "checking whether ${MAKE-make} sets \$(MAKE)... " >&6; }
 set x ${MAKE-make}
 ac_make=`$as_echo "$2" | sed 's/+/p/g; s/[^a-zA-Z0-9_]/_/g'`
-if eval "test \"\${ac_cv_prog_make_${ac_make}_set+set}\"" = set; then :
+if { as_var=ac_cv_prog_make_${ac_make}_set; eval "test \"\${$as_var+set}\" = set"; }; then :
   $as_echo_n "(cached) " >&6
 else
   cat >conftest.make <<\_ACEOF
@@ -2928,7 +3414,7 @@ SHELL = /bin/sh
 all:
 	@echo '@@@%%%=$(MAKE)=@@@%%%'
 _ACEOF
-# GNU make sometimes prints "make[1]: Entering ...", which would confuse us.
+# GNU make sometimes prints "make[1]: Entering...", which would confuse us.
 case `${MAKE-make} -f conftest.make 2>/dev/null` in
   *@@@%%%=?*=@@@%%%*)
     eval ac_cv_prog_make_${ac_make}_set=yes;;
@@ -3331,8 +3817,8 @@ fi
 
 test -z "$CC" && { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "no acceptable C compiler found in \$PATH
-See \`config.log' for more details" "$LINENO" 5; }
+as_fn_error "no acceptable C compiler found in \$PATH
+See \`config.log' for more details." "$LINENO" 5; }
 
 # Provide some information about the compiler.
 $as_echo "$as_me:${as_lineno-$LINENO}: checking for C compiler version" >&5
@@ -3446,8 +3932,9 @@ sed 's/^/| /' conftest.$ac_ext >&5
 
 { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error 77 "C compiler cannot create executables
-See \`config.log' for more details" "$LINENO" 5; }
+{ as_fn_set_status 77
+as_fn_error "C compiler cannot create executables
+See \`config.log' for more details." "$LINENO" 5; }; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
@@ -3489,8 +3976,8 @@ done
 else
   { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "cannot compute suffix of executables: cannot compile and link
-See \`config.log' for more details" "$LINENO" 5; }
+as_fn_error "cannot compute suffix of executables: cannot compile and link
+See \`config.log' for more details." "$LINENO" 5; }
 fi
 rm -f conftest conftest$ac_cv_exeext
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_exeext" >&5
@@ -3547,9 +4034,9 @@ $as_echo "$ac_try_echo"; } >&5
     else
 	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "cannot run C compiled programs.
+as_fn_error "cannot run C compiled programs.
 If you meant to cross compile, use \`--host'.
-See \`config.log' for more details" "$LINENO" 5; }
+See \`config.log' for more details." "$LINENO" 5; }
     fi
   fi
 fi
@@ -3600,8 +4087,8 @@ sed 's/^/| /' conftest.$ac_ext >&5
 
 { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "cannot compute suffix of object files: cannot compile
-See \`config.log' for more details" "$LINENO" 5; }
+as_fn_error "cannot compute suffix of object files: cannot compile
+See \`config.log' for more details." "$LINENO" 5; }
 fi
 rm -f conftest.$ac_cv_objext conftest.$ac_ext
 fi
@@ -3931,7 +4418,7 @@ esac
   done
 IFS=$as_save_IFS
   if test -z "$ac_cv_path_GREP"; then
-    as_fn_error $? "no acceptable grep could be found in $PATH$PATH_SEPARATOR/usr/xpg4/bin" "$LINENO" 5
+    as_fn_error "no acceptable grep could be found in $PATH$PATH_SEPARATOR/usr/xpg4/bin" "$LINENO" 5
   fi
 else
   ac_cv_path_GREP=$GREP
@@ -3997,7 +4484,7 @@ esac
   done
 IFS=$as_save_IFS
   if test -z "$ac_cv_path_EGREP"; then
-    as_fn_error $? "no acceptable egrep could be found in $PATH$PATH_SEPARATOR/usr/xpg4/bin" "$LINENO" 5
+    as_fn_error "no acceptable egrep could be found in $PATH$PATH_SEPARATOR/usr/xpg4/bin" "$LINENO" 5
   fi
 else
   ac_cv_path_EGREP=$EGREP
@@ -4094,7 +4581,7 @@ else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 fi
-test -z "$LD" && as_fn_error $? "no acceptable ld found in \$PATH" "$LINENO" 5
+test -z "$LD" && as_fn_error "no acceptable ld found in \$PATH" "$LINENO" 5
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking if the linker ($LD) is GNU ld" >&5
 $as_echo_n "checking if the linker ($LD) is GNU ld... " >&6; }
 if test "${lt_cv_prog_gnu_ld+set}" = set; then :
@@ -4440,7 +4927,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 4443 "configure"' > conftest.$ac_ext
+  echo '#line 4930 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -4647,7 +5134,7 @@ else
   # Broken: fails on valid input.
 continue
 fi
-rm -f conftest.err conftest.i conftest.$ac_ext
+rm -f conftest.err conftest.$ac_ext
 
   # OK, works on sane cases.  Now check whether nonexistent headers
   # can be detected and how.
@@ -4663,11 +5150,11 @@ else
 ac_preproc_ok=:
 break
 fi
-rm -f conftest.err conftest.i conftest.$ac_ext
+rm -f conftest.err conftest.$ac_ext
 
 done
 # Because of `break', _AC_PREPROC_IFELSE's cleaning code was skipped.
-rm -f conftest.i conftest.err conftest.$ac_ext
+rm -f conftest.err conftest.$ac_ext
 if $ac_preproc_ok; then :
   break
 fi
@@ -4706,7 +5193,7 @@ else
   # Broken: fails on valid input.
 continue
 fi
-rm -f conftest.err conftest.i conftest.$ac_ext
+rm -f conftest.err conftest.$ac_ext
 
   # OK, works on sane cases.  Now check whether nonexistent headers
   # can be detected and how.
@@ -4722,18 +5209,18 @@ else
 ac_preproc_ok=:
 break
 fi
-rm -f conftest.err conftest.i conftest.$ac_ext
+rm -f conftest.err conftest.$ac_ext
 
 done
 # Because of `break', _AC_PREPROC_IFELSE's cleaning code was skipped.
-rm -f conftest.i conftest.err conftest.$ac_ext
+rm -f conftest.err conftest.$ac_ext
 if $ac_preproc_ok; then :
 
 else
   { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "C preprocessor \"$CPP\" fails sanity check
-See \`config.log' for more details" "$LINENO" 5; }
+as_fn_error "C preprocessor \"$CPP\" fails sanity check
+See \`config.log' for more details." "$LINENO" 5; }
 fi
 
 ac_ext=c
@@ -4862,7 +5349,8 @@ do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_compile "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default
 "
-if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+eval as_val=\$$as_ac_Header
+   if test "x$as_val" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
 #define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
 _ACEOF
@@ -5184,7 +5672,7 @@ else
   # Broken: fails on valid input.
 continue
 fi
-rm -f conftest.err conftest.i conftest.$ac_ext
+rm -f conftest.err conftest.$ac_ext
 
   # OK, works on sane cases.  Now check whether nonexistent headers
   # can be detected and how.
@@ -5200,11 +5688,11 @@ else
 ac_preproc_ok=:
 break
 fi
-rm -f conftest.err conftest.i conftest.$ac_ext
+rm -f conftest.err conftest.$ac_ext
 
 done
 # Because of `break', _AC_PREPROC_IFELSE's cleaning code was skipped.
-rm -f conftest.i conftest.err conftest.$ac_ext
+rm -f conftest.err conftest.$ac_ext
 if $ac_preproc_ok; then :
   break
 fi
@@ -5243,7 +5731,7 @@ else
   # Broken: fails on valid input.
 continue
 fi
-rm -f conftest.err conftest.i conftest.$ac_ext
+rm -f conftest.err conftest.$ac_ext
 
   # OK, works on sane cases.  Now check whether nonexistent headers
   # can be detected and how.
@@ -5259,18 +5747,18 @@ else
 ac_preproc_ok=:
 break
 fi
-rm -f conftest.err conftest.i conftest.$ac_ext
+rm -f conftest.err conftest.$ac_ext
 
 done
 # Because of `break', _AC_PREPROC_IFELSE's cleaning code was skipped.
-rm -f conftest.i conftest.err conftest.$ac_ext
+rm -f conftest.err conftest.$ac_ext
 if $ac_preproc_ok; then :
 
 else
   { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "C++ preprocessor \"$CXXCPP\" fails sanity check
-See \`config.log' for more details" "$LINENO" 5; }
+as_fn_error "C++ preprocessor \"$CXXCPP\" fails sanity check
+See \`config.log' for more details." "$LINENO" 5; }
 fi
 
 ac_ext=cpp
@@ -5287,7 +5775,7 @@ ac_compile='$F77 -c $FFLAGS conftest.$ac_ext >&5'
 ac_link='$F77 -o conftest$ac_exeext $FFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_f77_compiler_gnu
 if test -n "$ac_tool_prefix"; then
-  for ac_prog in g77 xlf f77 frt pgf77 cf77 fort77 fl32 af77 xlf90 f90 pgf90 pghpf epcf90 gfortran g95 xlf95 f95 fort ifort ifc efc pgfortran pgf95 lf95 ftn
+  for ac_prog in g77 xlf f77 frt pgf77 cf77 fort77 fl32 af77 xlf90 f90 pgf90 pghpf epcf90 gfortran g95 xlf95 f95 fort ifort ifc efc pgf95 lf95 ftn
   do
     # Extract the first word of "$ac_tool_prefix$ac_prog", so it can be a program name with args.
 set dummy $ac_tool_prefix$ac_prog; ac_word=$2
@@ -5331,7 +5819,7 @@ fi
 fi
 if test -z "$F77"; then
   ac_ct_F77=$F77
-  for ac_prog in g77 xlf f77 frt pgf77 cf77 fort77 fl32 af77 xlf90 f90 pgf90 pghpf epcf90 gfortran g95 xlf95 f95 fort ifort ifc efc pgfortran pgf95 lf95 ftn
+  for ac_prog in g77 xlf f77 frt pgf77 cf77 fort77 fl32 af77 xlf90 f90 pgf90 pghpf epcf90 gfortran g95 xlf95 f95 fort ifort ifc efc pgf95 lf95 ftn
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
@@ -6734,11 +7222,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:6737: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7225: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:6741: \$? = $ac_status" >&5
+   echo "$as_me:7229: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7024,11 +7512,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7027: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7515: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7031: \$? = $ac_status" >&5
+   echo "$as_me:7519: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7128,11 +7616,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7131: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7619: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:7135: \$? = $ac_status" >&5
+   echo "$as_me:7623: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -9153,7 +9641,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9156 "configure"
+#line 9644 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -9253,7 +9741,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9256 "configure"
+#line 9744 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -9928,13 +10416,13 @@ $as_echo "$as_me: WARNING: using \`LTCC=$LTCC', extracted from \`$ofile'" >&2;}
     # Check whether tagname contains only valid characters
     case `$echo "X$tagname" | $Xsed -e 's:[-_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890,/]::g'` in
     "") ;;
-    *)  as_fn_error $? "invalid tag name: $tagname" "$LINENO" 5
+    *)  as_fn_error "invalid tag name: $tagname" "$LINENO" 5
 	;;
     esac
 
     if grep "^# ### BEGIN LIBTOOL TAG CONFIG: $tagname$" < "${ofile}" > /dev/null
     then
-      as_fn_error $? "tag name \"$tagname\" already exists" "$LINENO" 5
+      as_fn_error "tag name \"$tagname\" already exists" "$LINENO" 5
     fi
 
     # Update the list of available tags.
@@ -10149,7 +10637,7 @@ else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 fi
-test -z "$LD" && as_fn_error $? "no acceptable ld found in \$PATH" "$LINENO" 5
+test -z "$LD" && as_fn_error "no acceptable ld found in \$PATH" "$LINENO" 5
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking if the linker ($LD) is GNU ld" >&5
 $as_echo_n "checking if the linker ($LD) is GNU ld... " >&6; }
 if test "${lt_cv_prog_gnu_ld+set}" = set; then :
@@ -11598,11 +12086,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:11601: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12089: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:11605: \$? = $ac_status" >&5
+   echo "$as_me:12093: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -11702,11 +12190,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:11705: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12193: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:11709: \$? = $ac_status" >&5
+   echo "$as_me:12197: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -13285,11 +13773,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13288: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13776: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:13292: \$? = $ac_status" >&5
+   echo "$as_me:13780: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13389,11 +13877,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13392: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13880: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13396: \$? = $ac_status" >&5
+   echo "$as_me:13884: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -15554,11 +16042,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:15557: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16045: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:15561: \$? = $ac_status" >&5
+   echo "$as_me:16049: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -15844,11 +16332,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:15847: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16335: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:15851: \$? = $ac_status" >&5
+   echo "$as_me:16339: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -15948,11 +16436,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:15951: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16439: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:15955: \$? = $ac_status" >&5
+   echo "$as_me:16443: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -18516,7 +19004,7 @@ CC="$lt_save_CC"
 	;;
 
       *)
-	as_fn_error $? "Unsupported tag name: $tagname" "$LINENO" 5
+	as_fn_error "Unsupported tag name: $tagname" "$LINENO" 5
 	;;
       esac
 
@@ -18534,7 +19022,7 @@ CC="$lt_save_CC"
     chmod +x "$ofile"
   else
     rm -f "${ofile}T"
-    as_fn_error $? "unable to update list of available tagged configurations." "$LINENO" 5
+    as_fn_error "unable to update list of available tagged configurations." "$LINENO" 5
   fi
 fi
 
@@ -18686,7 +19174,7 @@ fi
 
 case "$enable_libbind" in
 	yes)
-		as_fn_error $? "'libbind' is no longer part of the BIND 9 distribution.
+		as_fn_error "'libbind' is no longer part of the BIND 9 distribution.
 It is available from http://www.isc.org as a separate download." "$LINENO" 5
 		;;
 	no|'')
@@ -18753,7 +19241,7 @@ LN=ln
 
 case "$AR" in
 	"")
-		as_fn_error $? "
+		as_fn_error "
 ar program not found.  Please fix your PATH to include the directory in
 which ar resides, or set AR in the environment with the full path to ar.
 " "$LINENO" 5
@@ -19285,8 +19773,8 @@ fi
 
 test -z "$CC" && { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "no acceptable C compiler found in \$PATH
-See \`config.log' for more details" "$LINENO" 5; }
+as_fn_error "no acceptable C compiler found in \$PATH
+See \`config.log' for more details." "$LINENO" 5; }
 
 # Provide some information about the compiler.
 $as_echo "$as_me:${as_lineno-$LINENO}: checking for C compiler version" >&5
@@ -19691,7 +20179,8 @@ ac_fn_c_check_header_compile "$LINENO" "$ac_header" "$as_ac_Header" "$ac_include
 #endif
 
 "
-if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+eval as_val=\$$as_ac_Header
+   if test "x$as_val" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
 #define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
 _ACEOF
@@ -20162,8 +20651,8 @@ $as_echo_n "checking epoll support... " >&6; }
 	if test "$cross_compiling" = yes; then :
   { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "cannot run test program while cross compiling
-See \`config.log' for more details" "$LINENO" 5; }
+as_fn_error "cannot run test program while cross compiling
+See \`config.log' for more details." "$LINENO" 5; }
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -20215,7 +20704,8 @@ yes)
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
-if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+eval as_val=\$$as_ac_Header
+   if test "x$as_val" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
 #define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
 _ACEOF
@@ -20269,7 +20759,7 @@ $as_echo "no" >&6; }
 	 LWRES_PLATFORM_NEEDSYSSELECTH="#define LWRES_PLATFORM_NEEDSYSSELECTH 1"
 		;;
 	no)
-		as_fn_error $? "need either working unistd.h or sys/select.h" "$LINENO" 5
+		as_fn_error "need either working unistd.h or sys/select.h" "$LINENO" 5
 		;;
 	esac
 
@@ -20283,7 +20773,7 @@ no)
 	     LWRES_PLATFORM_NEEDSYSSELECTH="#define LWRES_PLATFORM_NEEDSYSSELECTH 1"
 		;;
 	no)
-		as_fn_error $? "need either unistd.h or sys/select.h" "$LINENO" 5
+		as_fn_error "need either unistd.h or sys/select.h" "$LINENO" 5
 		;;
 	esac
 	;;
@@ -20514,7 +21004,7 @@ $as_echo "#define AC_APPLE_UNIVERSAL_BUILD 1" >>confdefs.h
 
      ;; #(
    *)
-     as_fn_error $? "unknown endianness
+     as_fn_error "unknown endianness
  presetting ac_cv_c_bigendian=no (or yes) will help" "$LINENO" 5 ;;
  esac
 
@@ -20561,7 +21051,7 @@ $as_echo "no" >&6; }
 		USE_OPENSSL=""
 		OPENSSLLINKOBJS=""
 		OPENSSLLINKSRCS=""
-		as_fn_error $? "OpenSSL was not found in any of $openssldirs; use --with-openssl=/path
+		as_fn_error "OpenSSL was not found in any of $openssldirs; use --with-openssl=/path
 If you don't want OpenSSL, use --without-openssl" "$LINENO" 5
 		;;
 	*)
@@ -20580,11 +21070,11 @@ If you don't want OpenSSL, use --without-openssl" "$LINENO" 5
 			then
 				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
 $as_echo "not found" >&6; }
-				as_fn_error $? "OpenSSL was not found in any of $openssldirs; use --with-openssl=/path" "$LINENO" 5
+				as_fn_error "OpenSSL was not found in any of $openssldirs; use --with-openssl=/path" "$LINENO" 5
 			fi
 		elif ! test -f "$use_openssl"/include/openssl/opensslv.h
 		then
-			as_fn_error $? "\"$use_openssl/include/openssl/opensslv.h\" not found" "$LINENO" 5
+			as_fn_error "\"$use_openssl/include/openssl/opensslv.h\" not found" "$LINENO" 5
 		fi
 		USE_OPENSSL='-DOPENSSL'
 		if test "$use_openssl" = "/usr"
@@ -20649,7 +21139,7 @@ $as_echo "yes" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-		 as_fn_error $? "Could not run test program using OpenSSL from
+		 as_fn_error "Could not run test program using OpenSSL from
 $use_openssl/lib and $use_openssl/include.
 Please check the argument to --with-openssl and your
 shared library configuration (e.g., LD_LIBRARY_PATH)." "$LINENO" 5
@@ -20699,7 +21189,7 @@ $as_echo "yes" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: unknown" >&5
 $as_echo "unknown" >&6; }
-		 as_fn_error $? "OpenSSL has unsupported dynamic loading" "$LINENO" 5
+		 as_fn_error "OpenSSL has unsupported dynamic loading" "$LINENO" 5
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
@@ -20775,7 +21265,8 @@ $as_echo "no" >&6; }
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
-if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
+eval as_val=\$$as_ac_var
+   if test "x$as_val" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
 #define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
 _ACEOF
@@ -20865,7 +21356,7 @@ $as_echo "disabled" >&6; }
 		USE_GSSAPI=''
 		;;
 	yes)
-		as_fn_error $? "--with-gssapi must specify a path" "$LINENO" 5
+		as_fn_error "--with-gssapi must specify a path" "$LINENO" 5
 		;;
 	*)
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: looking in $use_gssapi/lib" >&5
@@ -20877,7 +21368,8 @@ $as_echo "looking in $use_gssapi/lib" >&6; }
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
-if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+eval as_val=\$$as_ac_Header
+   if test "x$as_val" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
 #define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
 _ACEOF
@@ -20888,14 +21380,15 @@ done
 
 
 		if test "$ISC_PLATFORM_GSSAPIHEADER" = ""; then
-		    as_fn_error $? "gssapi.h not found" "$LINENO" 5
+		    as_fn_error "gssapi.h not found" "$LINENO" 5
 		fi
 
 		for ac_header in krb5.h krb5/krb5.h kerberosv5/krb5.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
-if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+eval as_val=\$$as_ac_Header
+   if test "x$as_val" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
 #define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
 _ACEOF
@@ -20906,7 +21399,7 @@ done
 
 
 		if test "$ISC_PLATFORM_KRB5HEADER" = ""; then
-		    as_fn_error $? "krb5.h not found" "$LINENO" 5
+		    as_fn_error "krb5.h not found" "$LINENO" 5
 		fi
 
 		CPPFLAGS="$saved_cppflags"
@@ -20976,7 +21469,7 @@ $as_echo "no" >&6; } ;;
 		done
 
 		case $gssapi_linked in
-		no) as_fn_error $? "could not determine proper GSSAPI linkage" "$LINENO" 5 ;;
+		no) as_fn_error "could not determine proper GSSAPI linkage" "$LINENO" 5 ;;
 		esac
 
 		#
@@ -21011,7 +21504,7 @@ $as_echo "no" >&6; } ;;
 			    NEW_LIBS="$NEW_LIBS $new_lib"
 			    ;;
 			*)
-			   as_fn_error $? "KTH vs MIT Kerberos confusion!" "$LINENO" 5
+			   as_fn_error "KTH vs MIT Kerberos confusion!" "$LINENO" 5
 			    ;;
 			esac
 		    done
@@ -21072,11 +21565,11 @@ $as_echo "$devrandom" >&6; }
 		as_ac_File=`$as_echo "ac_cv_file_$devrandom" | $as_tr_sh`
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $devrandom" >&5
 $as_echo_n "checking for $devrandom... " >&6; }
-if eval "test \"\${$as_ac_File+set}\"" = set; then :
+if { as_var=$as_ac_File; eval "test \"\${$as_var+set}\" = set"; }; then :
   $as_echo_n "(cached) " >&6
 else
   test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
+  as_fn_error "cannot check for file existence when cross compiling" "$LINENO" 5
 if test -r "$devrandom"; then
   eval "$as_ac_File=yes"
 else
@@ -21086,7 +21579,8 @@ fi
 eval ac_res=\$$as_ac_File
 	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
 $as_echo "$ac_res" >&6; }
-if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
+eval as_val=\$$as_ac_File
+   if test "x$as_val" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
 #define PATH_RANDOMDEV "$devrandom"
 _ACEOF
@@ -21095,7 +21589,7 @@ fi
 
 		;;
 	yes)
-		as_fn_error $? "--with-randomdev must specify a path" "$LINENO" 5
+		as_fn_error "--with-randomdev must specify a path" "$LINENO" 5
 		;;
 	no)
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
@@ -21198,7 +21692,7 @@ case "$enable_threads" in
 		# Use system-dependent default
 		;;
 	*)
-	    	as_fn_error $? "--enable-threads takes yes or no" "$LINENO" 5
+	    	as_fn_error "--enable-threads takes yes or no" "$LINENO" 5
 		;;
 esac
 
@@ -21428,7 +21922,7 @@ _ACEOF
   LIBS="-lc $LIBS"
 
 else
-  as_fn_error $? "\"could not find thread libraries\"" "$LINENO" 5
+  as_fn_error "\"could not find thread libraries\"" "$LINENO" 5
 fi
 
 fi
@@ -21660,7 +22154,7 @@ _ACEOF
   LIBS="-lc $LIBS"
 
 else
-  as_fn_error $? "\"could not find thread libraries\"" "$LINENO" 5
+  as_fn_error "\"could not find thread libraries\"" "$LINENO" 5
 fi
 
 fi
@@ -22456,7 +22950,7 @@ $as_echo "$purify_path" >&6; }
 			PURIFYFLAGS="`echo $PURIFYOPTIONS`"
 			PURIFY="$purify_path $PURIFYFLAGS"
 		else
-			as_fn_error $? "$purify_path not found.
+			as_fn_error "$purify_path not found.
 
 Please choose the proper path with the following command:
 
@@ -22616,7 +23110,7 @@ $as_echo "no" >&6; }
 $as_echo "$kame_path/lib/libinet6.a" >&6; }
 			LIBS="-L$kame_path/lib -linet6 $LIBS"
 		else
-			as_fn_error $? "$kame_path/lib/libinet6.a not found.
+			as_fn_error "$kame_path/lib/libinet6.a not found.
 
 Please choose the proper path with the following command:
 
@@ -23723,7 +24217,8 @@ case "$enable_linux_caps" in
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
-if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+eval as_val=\$$as_ac_Header
+   if test "x$as_val" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
 #define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
 _ACEOF
@@ -23913,7 +24408,7 @@ ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE int"
 else
 
 if test "$cross_compiling" = yes; then :
-  as_fn_error $? "this cannot happen" "$LINENO" 5
+  as_fn_error "this cannot happen" "$LINENO" 5
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -23930,7 +24425,7 @@ ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE long int"
 else
 
 if test "$cross_compiling" = yes; then :
-  as_fn_error $? "this cannot happen" "$LINENO" 5
+  as_fn_error "this cannot happen" "$LINENO" 5
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -23945,7 +24440,7 @@ if ac_fn_c_try_run "$LINENO"; then :
 $as_echo "long long int" >&6; }
 ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE long long int"
 else
-  as_fn_error $? "unable to determine sizeof rlim_cur" "$LINENO" 5
+  as_fn_error "unable to determine sizeof rlim_cur" "$LINENO" 5
 
 fi
 rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
@@ -25306,7 +25801,7 @@ else
 fi
 
 if test "$idnlib" = yes; then
-	as_fn_error $? "You must specify ARG for --with-idnlib." "$LINENO" 5
+	as_fn_error "You must specify ARG for --with-idnlib." "$LINENO" 5
 fi
 
 IDNLIBS=
@@ -25321,6 +25816,41 @@ $as_echo "#define WITH_IDN 1" >>confdefs.h
 		IDNLIBS="-L$idn_path/lib -lidnkit $iconvlib"
 	fi
 fi
+
+
+#
+# Check whether to build Automated Test Framework unit tests
+#
+
+# Check whether --with-atf was given.
+if test "${with_atf+set}" = set; then :
+  withval=$with_atf; atf="$withval"
+else
+  atf="no"
+fi
+
+if test "$atf" = yes; then
+	atf=`pwd`/unit/atf
+	ATFBUILD=atf-src
+
+	ac_config_commands="$ac_config_commands atf-config"
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: building ATF from bind9/unit/atf-src" >&5
+$as_echo "building ATF from bind9/unit/atf-src" >&6; }
+fi
+
+ATFLIBS=
+if test "$atf" != no; then
+
+$as_echo "#define ATF_TEST 1" >>confdefs.h
+
+	STD_CINCLUDES="$STD_CINCLUDES -I$atf/include"
+	ATFBIN="$atf/bin"
+	ATFLIBS="-L $atf/lib -latf-c"
+	UNITTESTS=tests
+fi
+
+
 
 
 for ac_header in locale.h
@@ -25565,7 +26095,7 @@ then
 
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
 $as_echo "not found" >&6; }
-	as_fn_error $? "No pg_config and PostgreSQL was not found in any of $pgdirs; use --with-dlz-postgres=/path or put pg_config in your path" "$LINENO" 5
+	as_fn_error "No pg_config and PostgreSQL was not found in any of $pgdirs; use --with-dlz-postgres=/path or put pg_config in your path" "$LINENO" 5
 fi
 
 case "$use_dlz_postgres" in
@@ -25672,7 +26202,7 @@ if test "$use_dlz_mysql" = "yes"
 then
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
 $as_echo "not found" >&6; }
-	as_fn_error $? "MySQL was not found in any of $mysqldirs; use --with-dlz-mysql=/path" "$LINENO" 5
+	as_fn_error "MySQL was not found in any of $mysqldirs; use --with-dlz-mysql=/path" "$LINENO" 5
 fi
 
 case "$use_dlz_mysql" in
@@ -25736,7 +26266,7 @@ $as_echo "no" >&6; }
 		else
 			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
 $as_echo "not found" >&6; }
-			as_fn_error $? "path $use_dlz_bdb does not exist" "$LINENO" 5
+			as_fn_error "path $use_dlz_bdb does not exist" "$LINENO" 5
 			bdbdirs=""
 		fi
 
@@ -25815,14 +26345,14 @@ $as_echo "not found" >&6; }
 		then
 			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
 $as_echo "not found" >&6; }
-			as_fn_error $? "could not find Berkeley DB include directory" "$LINENO" 5
+			as_fn_error "could not find Berkeley DB include directory" "$LINENO" 5
 		fi
 
 		if test "$dlz_bdb_libs" = "yes"
 		then
 			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
 $as_echo "not found" >&6; }
-			as_fn_error $? "could not find Berkeley DB library" "$LINENO" 5
+			as_fn_error "could not find Berkeley DB library" "$LINENO" 5
 		fi
 
 
@@ -25928,7 +26458,7 @@ if test "$use_dlz_ldap" = "yes"
 then
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
 $as_echo "not found" >&6; }
-	as_fn_error $? "LDAP headers were not found in any of $ldapdirs; use --with-dlz-ldap=/path" "$LINENO" 5
+	as_fn_error "LDAP headers were not found in any of $ldapdirs; use --with-dlz-ldap=/path" "$LINENO" 5
 fi
 
 case "$use_dlz_ldap" in
@@ -25997,7 +26527,7 @@ $as_echo "no" >&6; }
 	yes)
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
 $as_echo "not found" >&6; }
-		as_fn_error $? "ODBC headers were not found in any of $odbcdirs; use --with-dlz-odbc=/path" "$LINENO" 5
+		as_fn_error "ODBC headers were not found in any of $odbcdirs; use --with-dlz-odbc=/path" "$LINENO" 5
 		;;
 	*)
 
@@ -26116,7 +26646,7 @@ fi
 
 if test "$cross_compiling" = "yes"; then
 	if test -z "$BUILD_CC"; then
-		as_fn_error $? "BUILD_CC not set" "$LINENO" 5
+		as_fn_error "BUILD_CC not set" "$LINENO" 5
 	fi
 	BUILD_CFLAGS="$BUILD_CFLAGS"
 	BUILD_CPPFLAGS="$BUILD_CPPFLAGS"
@@ -26238,7 +26768,7 @@ ac_config_commands="$ac_config_commands chmod"
 # elsewhere if there's a good reason for doing so.
 #
 
-ac_config_files="$ac_config_files Makefile make/Makefile make/mkdep lib/Makefile lib/isc/Makefile lib/isc/include/Makefile lib/isc/include/isc/Makefile lib/isc/include/isc/platform.h lib/isc/unix/Makefile lib/isc/unix/include/Makefile lib/isc/unix/include/isc/Makefile lib/isc/nls/Makefile lib/isc/$thread_dir/Makefile lib/isc/$thread_dir/include/Makefile lib/isc/$thread_dir/include/isc/Makefile lib/isc/$arch/Makefile lib/isc/$arch/include/Makefile lib/isc/$arch/include/isc/Makefile lib/isccc/Makefile lib/isccc/include/Makefile lib/isccc/include/isccc/Makefile lib/isccfg/Makefile lib/isccfg/include/Makefile lib/isccfg/include/isccfg/Makefile lib/dns/Makefile lib/dns/include/Makefile lib/dns/include/dns/Makefile lib/dns/include/dst/Makefile lib/bind9/Makefile lib/bind9/include/Makefile lib/bind9/include/bind9/Makefile lib/lwres/Makefile lib/lwres/include/Makefile lib/lwres/include/lwres/Makefile lib/lwres/include/lwres/netdb.h lib/lwres/include/lwres/platform.h lib/lwres/man/Makefile lib/lwres/unix/Makefile lib/lwres/unix/include/Makefile lib/lwres/unix/include/lwres/Makefile lib/tests/Makefile lib/tests/include/Makefile lib/tests/include/tests/Makefile bin/Makefile bin/check/Makefile bin/named/Makefile bin/named/unix/Makefile bin/rndc/Makefile bin/rndc/unix/Makefile bin/dig/Makefile bin/nsupdate/Makefile bin/tests/Makefile bin/tests/names/Makefile bin/tests/master/Makefile bin/tests/rbt/Makefile bin/tests/db/Makefile bin/tests/tasks/Makefile bin/tests/timers/Makefile bin/tests/dst/Makefile bin/tests/mem/Makefile bin/tests/hashes/Makefile bin/tests/net/Makefile bin/tests/sockaddr/Makefile bin/tests/system/Makefile bin/tests/system/conf.sh bin/tests/system/lwresd/Makefile bin/tests/system/tkey/Makefile bin/tests/headerdep_test.sh bin/dnssec/Makefile doc/Makefile doc/arm/Makefile doc/misc/Makefile isc-config.sh doc/xsl/Makefile doc/xsl/isc-docbook-chunk.xsl doc/xsl/isc-docbook-html.xsl doc/xsl/isc-docbook-latex.xsl doc/xsl/isc-manpage.xsl doc/doxygen/Doxyfile doc/doxygen/Makefile doc/doxygen/doxygen-input-filter"
+ac_config_files="$ac_config_files Makefile make/Makefile make/mkdep lib/Makefile lib/isc/Makefile lib/isc/include/Makefile lib/isc/include/isc/Makefile lib/isc/include/isc/platform.h lib/isc/unix/Makefile lib/isc/unix/include/Makefile lib/isc/unix/include/isc/Makefile lib/isc/nls/Makefile lib/isc/$thread_dir/Makefile lib/isc/$thread_dir/include/Makefile lib/isc/$thread_dir/include/isc/Makefile lib/isc/$arch/Makefile lib/isc/$arch/include/Makefile lib/isc/$arch/include/isc/Makefile lib/isccc/Makefile lib/isccc/include/Makefile lib/isccc/include/isccc/Makefile lib/isccfg/Makefile lib/isccfg/include/Makefile lib/isccfg/include/isccfg/Makefile lib/dns/Makefile lib/dns/include/Makefile lib/dns/include/dns/Makefile lib/dns/include/dst/Makefile lib/dns/tests/Makefile lib/bind9/Makefile lib/bind9/include/Makefile lib/bind9/include/bind9/Makefile lib/lwres/Makefile lib/lwres/include/Makefile lib/lwres/include/lwres/Makefile lib/lwres/include/lwres/netdb.h lib/lwres/include/lwres/platform.h lib/lwres/man/Makefile lib/lwres/unix/Makefile lib/lwres/unix/include/Makefile lib/lwres/unix/include/lwres/Makefile lib/tests/Makefile lib/tests/include/Makefile lib/tests/include/tests/Makefile unit/Makefile unit/unittest.sh bin/Makefile bin/check/Makefile bin/named/Makefile bin/named/unix/Makefile bin/rndc/Makefile bin/rndc/unix/Makefile bin/dig/Makefile bin/nsupdate/Makefile bin/tests/Makefile bin/tests/names/Makefile bin/tests/master/Makefile bin/tests/rbt/Makefile bin/tests/db/Makefile bin/tests/tasks/Makefile bin/tests/timers/Makefile bin/tests/dst/Makefile bin/tests/mem/Makefile bin/tests/hashes/Makefile bin/tests/net/Makefile bin/tests/sockaddr/Makefile bin/tests/system/Makefile bin/tests/system/conf.sh bin/tests/system/lwresd/Makefile bin/tests/system/tkey/Makefile bin/tests/headerdep_test.sh bin/dnssec/Makefile doc/Makefile doc/arm/Makefile doc/misc/Makefile isc-config.sh doc/xsl/Makefile doc/xsl/isc-docbook-chunk.xsl doc/xsl/isc-docbook-html.xsl doc/xsl/isc-docbook-latex.xsl doc/xsl/isc-manpage.xsl doc/doxygen/Doxyfile doc/doxygen/Makefile doc/doxygen/doxygen-input-filter"
 
 
 #
@@ -26328,7 +26858,6 @@ DEFS=-DHAVE_CONFIG_H
 
 ac_libobjs=
 ac_ltlibobjs=
-U=
 for ac_i in : $LIBOBJS; do test "x$ac_i" = x: && continue
   # 1. Remove the extension, and $U if already installed.
   ac_script='s/\$U\././;s/\.o$//;s/\.obj$//'
@@ -26491,19 +27020,19 @@ export LANGUAGE
 (unset CDPATH) >/dev/null 2>&1 && unset CDPATH
 
 
-# as_fn_error STATUS ERROR [LINENO LOG_FD]
-# ----------------------------------------
+# as_fn_error ERROR [LINENO LOG_FD]
+# ---------------------------------
 # Output "`basename $0`: error: ERROR" to stderr. If LINENO and LOG_FD are
 # provided, also output the error to LOG_FD, referencing LINENO. Then exit the
-# script with STATUS, using 1 if that was 0.
+# script with status $?, using 1 if that was 0.
 as_fn_error ()
 {
-  as_status=$1; test $as_status -eq 0 && as_status=1
-  if test "$4"; then
-    as_lineno=${as_lineno-"$3"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
-    $as_echo "$as_me:${as_lineno-$LINENO}: error: $2" >&$4
+  as_status=$?; test $as_status -eq 0 && as_status=1
+  if test "$3"; then
+    as_lineno=${as_lineno-"$2"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+    $as_echo "$as_me:${as_lineno-$LINENO}: error: $1" >&$3
   fi
-  $as_echo "$as_me: error: $2" >&2
+  $as_echo "$as_me: error: $1" >&2
   as_fn_exit $as_status
 } # as_fn_error
 
@@ -26699,7 +27228,7 @@ $as_echo X"$as_dir" |
       test -d "$as_dir" && break
     done
     test -z "$as_dirs" || eval "mkdir $as_dirs"
-  } || test -d "$as_dir" || as_fn_error $? "cannot create directory $as_dir"
+  } || test -d "$as_dir" || as_fn_error "cannot create directory $as_dir"
 
 
 } # as_fn_mkdir_p
@@ -26753,7 +27282,7 @@ cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
 # values after options handling.
 ac_log="
 This file was extended by $as_me, which was
-generated by GNU Autoconf 2.67.  Invocation command line was
+generated by GNU Autoconf 2.65.  Invocation command line was
 
   CONFIG_FILES    = $CONFIG_FILES
   CONFIG_HEADERS  = $CONFIG_HEADERS
@@ -26819,10 +27348,10 @@ cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
 ac_cs_config="`$as_echo "$ac_configure_args" | sed 's/^ //; s/[\\""\`\$]/\\\\&/g'`"
 ac_cs_version="\\
 config.status
-configured by $0, generated by GNU Autoconf 2.67,
+configured by $0, generated by GNU Autoconf 2.65,
   with options \\"\$ac_cs_config\\"
 
-Copyright (C) 2010 Free Software Foundation, Inc.
+Copyright (C) 2009 Free Software Foundation, Inc.
 This config.status script is free software; the Free Software Foundation
 gives unlimited permission to copy, distribute and modify it."
 
@@ -26838,14 +27367,9 @@ ac_need_defaults=:
 while test $# != 0
 do
   case $1 in
-  --*=?*)
+  --*=*)
     ac_option=`expr "X$1" : 'X\([^=]*\)='`
     ac_optarg=`expr "X$1" : 'X[^=]*=\(.*\)'`
-    ac_shift=:
-    ;;
-  --*=)
-    ac_option=`expr "X$1" : 'X\([^=]*\)='`
-    ac_optarg=
     ac_shift=:
     ;;
   *)
@@ -26869,7 +27393,6 @@ do
     $ac_shift
     case $ac_optarg in
     *\'*) ac_optarg=`$as_echo "$ac_optarg" | sed "s/'/'\\\\\\\\''/g"` ;;
-    '') as_fn_error $? "missing file argument" ;;
     esac
     as_fn_append CONFIG_FILES " '$ac_optarg'"
     ac_need_defaults=false;;
@@ -26882,7 +27405,7 @@ do
     ac_need_defaults=false;;
   --he | --h)
     # Conflict between --help and --header
-    as_fn_error $? "ambiguous option: \`$1'
+    as_fn_error "ambiguous option: \`$1'
 Try \`$0 --help' for more information.";;
   --help | --hel | -h )
     $as_echo "$ac_cs_usage"; exit ;;
@@ -26891,7 +27414,7 @@ Try \`$0 --help' for more information.";;
     ac_cs_silent=: ;;
 
   # This is an error.
-  -*) as_fn_error $? "unrecognized option: \`$1'
+  -*) as_fn_error "unrecognized option: \`$1'
 Try \`$0 --help' for more information." ;;
 
   *) as_fn_append ac_config_targets " $1"
@@ -26932,6 +27455,11 @@ _ASBOX
 
 _ACEOF
 cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
+#
+# INIT-COMMANDS
+#
+atfdir=`pwd`/unit/atf
+
 _ACEOF
 
 cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
@@ -26943,6 +27471,7 @@ do
     "config.h") CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;
     "make/rules") CONFIG_FILES="$CONFIG_FILES make/rules" ;;
     "make/includes") CONFIG_FILES="$CONFIG_FILES make/includes" ;;
+    "atf-config") CONFIG_COMMANDS="$CONFIG_COMMANDS atf-config" ;;
     "contrib/dlz/bin/dlzbdb/Makefile") CONFIG_FILES="$CONFIG_FILES contrib/dlz/bin/dlzbdb/Makefile" ;;
     "$DLZ_DRIVER_RULES") CONFIG_FILES="$CONFIG_FILES $DLZ_DRIVER_RULES" ;;
     "chmod") CONFIG_COMMANDS="$CONFIG_COMMANDS chmod" ;;
@@ -26974,6 +27503,7 @@ do
     "lib/dns/include/Makefile") CONFIG_FILES="$CONFIG_FILES lib/dns/include/Makefile" ;;
     "lib/dns/include/dns/Makefile") CONFIG_FILES="$CONFIG_FILES lib/dns/include/dns/Makefile" ;;
     "lib/dns/include/dst/Makefile") CONFIG_FILES="$CONFIG_FILES lib/dns/include/dst/Makefile" ;;
+    "lib/dns/tests/Makefile") CONFIG_FILES="$CONFIG_FILES lib/dns/tests/Makefile" ;;
     "lib/bind9/Makefile") CONFIG_FILES="$CONFIG_FILES lib/bind9/Makefile" ;;
     "lib/bind9/include/Makefile") CONFIG_FILES="$CONFIG_FILES lib/bind9/include/Makefile" ;;
     "lib/bind9/include/bind9/Makefile") CONFIG_FILES="$CONFIG_FILES lib/bind9/include/bind9/Makefile" ;;
@@ -26989,6 +27519,8 @@ do
     "lib/tests/Makefile") CONFIG_FILES="$CONFIG_FILES lib/tests/Makefile" ;;
     "lib/tests/include/Makefile") CONFIG_FILES="$CONFIG_FILES lib/tests/include/Makefile" ;;
     "lib/tests/include/tests/Makefile") CONFIG_FILES="$CONFIG_FILES lib/tests/include/tests/Makefile" ;;
+    "unit/Makefile") CONFIG_FILES="$CONFIG_FILES unit/Makefile" ;;
+    "unit/unittest.sh") CONFIG_FILES="$CONFIG_FILES unit/unittest.sh" ;;
     "bin/Makefile") CONFIG_FILES="$CONFIG_FILES bin/Makefile" ;;
     "bin/check/Makefile") CONFIG_FILES="$CONFIG_FILES bin/check/Makefile" ;;
     "bin/named/Makefile") CONFIG_FILES="$CONFIG_FILES bin/named/Makefile" ;;
@@ -27028,7 +27560,7 @@ do
     "doc/doxygen/Makefile") CONFIG_FILES="$CONFIG_FILES doc/doxygen/Makefile" ;;
     "doc/doxygen/doxygen-input-filter") CONFIG_FILES="$CONFIG_FILES doc/doxygen/doxygen-input-filter" ;;
 
-  *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
+  *) as_fn_error "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
 done
 
@@ -27066,7 +27598,7 @@ $debug ||
 {
   tmp=./conf$$-$RANDOM
   (umask 077 && mkdir "$tmp")
-} || as_fn_error $? "cannot create a temporary directory in ." "$LINENO" 5
+} || as_fn_error "cannot create a temporary directory in ." "$LINENO" 5
 
 # Set up the scripts for CONFIG_FILES section.
 # No need to generate them if there are no CONFIG_FILES.
@@ -27100,7 +27632,7 @@ if test "x$ac_cr" = x; then
 fi
 ac_cs_awk_cr=`$AWK 'BEGIN { print "a\rb" }' </dev/null 2>/dev/null`
 if test "$ac_cs_awk_cr" = "a${ac_cr}b"; then
-  ac_cs_awk_cr='\\r'
+  ac_cs_awk_cr='\r'
 else
   ac_cs_awk_cr=$ac_cr
 fi
@@ -27117,7 +27649,7 @@ _ACEOF
   echo "_ACEOF"
 } >conf$$files.sh &&
 . ./conf$$files.sh ||
-  as_fn_error $? "could not make $CONFIG_STATUS" "$LINENO" 5
+  as_fn_error "could not make $CONFIG_STATUS" "$LINENO" 5
 rm -f conf$$files.sh
 
 {
@@ -27125,18 +27657,18 @@ rm -f conf$$files.sh
   echo "$ac_subst_vars" | sed 's/.*/&!$&$ac_delim/' &&
   echo "_ACEOF"
 } >conf$$subs.sh ||
-  as_fn_error $? "could not make $CONFIG_STATUS" "$LINENO" 5
-ac_delim_num=`echo "$ac_subst_vars" | grep -c '^'`
+  as_fn_error "could not make $CONFIG_STATUS" "$LINENO" 5
+ac_delim_num=`echo "$ac_subst_vars" | grep -c '$'`
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   . ./conf$$subs.sh ||
-    as_fn_error $? "could not make $CONFIG_STATUS" "$LINENO" 5
+    as_fn_error "could not make $CONFIG_STATUS" "$LINENO" 5
 
   ac_delim_n=`sed -n "s/.*$ac_delim\$/X/p" conf$$subs.awk | grep -c X`
   if test $ac_delim_n = $ac_delim_num; then
     break
   elif $ac_last_try; then
-    as_fn_error $? "could not make $CONFIG_STATUS" "$LINENO" 5
+    as_fn_error "could not make $CONFIG_STATUS" "$LINENO" 5
   else
     ac_delim="$ac_delim!$ac_delim _$ac_delim!! "
   fi
@@ -27231,28 +27763,20 @@ if sed "s/$ac_cr//" < /dev/null > /dev/null 2>&1; then
 else
   cat
 fi < "$tmp/subs1.awk" > "$tmp/subs.awk" \
-  || as_fn_error $? "could not setup config files machinery" "$LINENO" 5
+  || as_fn_error "could not setup config files machinery" "$LINENO" 5
 _ACEOF
 
-# VPATH may cause trouble with some makes, so we remove sole $(srcdir),
-# ${srcdir} and @srcdir@ entries from VPATH if srcdir is ".", strip leading and
+# VPATH may cause trouble with some makes, so we remove $(srcdir),
+# ${srcdir} and @srcdir@ from VPATH if srcdir is ".", strip leading and
 # trailing colons and then remove the whole line if VPATH becomes empty
 # (actually we leave an empty line to preserve line numbers).
 if test "x$srcdir" = x.; then
-  ac_vpsub='/^[	 ]*VPATH[	 ]*=[	 ]*/{
-h
-s///
-s/^/:/
-s/[	 ]*$/:/
-s/:\$(srcdir):/:/g
-s/:\${srcdir}:/:/g
-s/:@srcdir@:/:/g
-s/^:*//
+  ac_vpsub='/^[	 ]*VPATH[	 ]*=/{
+s/:*\$(srcdir):*/:/
+s/:*\${srcdir}:*/:/
+s/:*@srcdir@:*/:/
+s/^\([^=]*=[	 ]*\):*/\1/
 s/:*$//
-x
-s/\(=[	 ]*\).*/\1/
-G
-s/\n//
 s/^[^=]*=[	 ]*$//
 }'
 fi
@@ -27280,7 +27804,7 @@ for ac_last_try in false false :; do
   if test -z "$ac_t"; then
     break
   elif $ac_last_try; then
-    as_fn_error $? "could not make $CONFIG_HEADERS" "$LINENO" 5
+    as_fn_error "could not make $CONFIG_HEADERS" "$LINENO" 5
   else
     ac_delim="$ac_delim!$ac_delim _$ac_delim!! "
   fi
@@ -27365,7 +27889,7 @@ cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
 _ACAWK
 _ACEOF
 cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
-  as_fn_error $? "could not setup config headers machinery" "$LINENO" 5
+  as_fn_error "could not setup config headers machinery" "$LINENO" 5
 fi # test -n "$CONFIG_HEADERS"
 
 
@@ -27378,7 +27902,7 @@ do
   esac
   case $ac_mode$ac_tag in
   :[FHL]*:*);;
-  :L* | :C*:*) as_fn_error $? "invalid tag \`$ac_tag'" "$LINENO" 5;;
+  :L* | :C*:*) as_fn_error "invalid tag \`$ac_tag'" "$LINENO" 5;;
   :[FH]-) ac_tag=-:-;;
   :[FH]*) ac_tag=$ac_tag:$ac_tag.in;;
   esac
@@ -27406,7 +27930,7 @@ do
 	   [\\/$]*) false;;
 	   *) test -f "$srcdir/$ac_f" && ac_f="$srcdir/$ac_f";;
 	   esac ||
-	   as_fn_error 1 "cannot find input file: \`$ac_f'" "$LINENO" 5;;
+	   as_fn_error "cannot find input file: \`$ac_f'" "$LINENO" 5;;
       esac
       case $ac_f in *\'*) ac_f=`$as_echo "$ac_f" | sed "s/'/'\\\\\\\\''/g"`;; esac
       as_fn_append ac_file_inputs " '$ac_f'"
@@ -27433,7 +27957,7 @@ $as_echo "$as_me: creating $ac_file" >&6;}
 
     case $ac_tag in
     *:-:* | *:-) cat >"$tmp/stdin" \
-      || as_fn_error $? "could not create $ac_file" "$LINENO" 5 ;;
+      || as_fn_error "could not create $ac_file" "$LINENO" 5 ;;
     esac
     ;;
   esac
@@ -27569,22 +28093,22 @@ if $ac_cs_awk_getline; then
 else
   $AWK -f "$tmp/subs.awk" | $SHELL
 fi >$tmp/out \
-  || as_fn_error $? "could not create $ac_file" "$LINENO" 5
+  || as_fn_error "could not create $ac_file" "$LINENO" 5
 
 test -z "$ac_datarootdir_hack$ac_datarootdir_seen" &&
   { ac_out=`sed -n '/\${datarootdir}/p' "$tmp/out"`; test -n "$ac_out"; } &&
   { ac_out=`sed -n '/^[	 ]*datarootdir[	 ]*:*=/p' "$tmp/out"`; test -z "$ac_out"; } &&
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $ac_file contains a reference to the variable \`datarootdir'
-which seems to be undefined.  Please make sure it is defined" >&5
+which seems to be undefined.  Please make sure it is defined." >&5
 $as_echo "$as_me: WARNING: $ac_file contains a reference to the variable \`datarootdir'
-which seems to be undefined.  Please make sure it is defined" >&2;}
+which seems to be undefined.  Please make sure it is defined." >&2;}
 
   rm -f "$tmp/stdin"
   case $ac_file in
   -) cat "$tmp/out" && rm -f "$tmp/out";;
   *) rm -f "$ac_file" && mv "$tmp/out" "$ac_file";;
   esac \
-  || as_fn_error $? "could not create $ac_file" "$LINENO" 5
+  || as_fn_error "could not create $ac_file" "$LINENO" 5
  ;;
   :H)
   #
@@ -27595,19 +28119,19 @@ which seems to be undefined.  Please make sure it is defined" >&2;}
       $as_echo "/* $configure_input  */" \
       && eval '$AWK -f "$tmp/defines.awk"' "$ac_file_inputs"
     } >"$tmp/config.h" \
-      || as_fn_error $? "could not create $ac_file" "$LINENO" 5
+      || as_fn_error "could not create $ac_file" "$LINENO" 5
     if diff "$ac_file" "$tmp/config.h" >/dev/null 2>&1; then
       { $as_echo "$as_me:${as_lineno-$LINENO}: $ac_file is unchanged" >&5
 $as_echo "$as_me: $ac_file is unchanged" >&6;}
     else
       rm -f "$ac_file"
       mv "$tmp/config.h" "$ac_file" \
-	|| as_fn_error $? "could not create $ac_file" "$LINENO" 5
+	|| as_fn_error "could not create $ac_file" "$LINENO" 5
     fi
   else
     $as_echo "/* $configure_input  */" \
       && eval '$AWK -f "$tmp/defines.awk"' "$ac_file_inputs" \
-      || as_fn_error $? "could not create -" "$LINENO" 5
+      || as_fn_error "could not create -" "$LINENO" 5
   fi
  ;;
 
@@ -27618,6 +28142,7 @@ $as_echo "$as_me: executing $ac_file commands" >&6;}
 
 
   case $ac_file$ac_mode in
+    "atf-config":C) cd unit/atf-src; sh ./configure --prefix $atfdir; cd ../.. ;;
     "chmod":C) chmod a+x isc-config.sh doc/doxygen/doxygen-input-filter ;;
 
   esac
@@ -27629,7 +28154,7 @@ _ACEOF
 ac_clean_files=$ac_clean_files_save
 
 test $ac_write_fail = 0 ||
-  as_fn_error $? "write failure creating $CONFIG_STATUS" "$LINENO" 5
+  as_fn_error "write failure creating $CONFIG_STATUS" "$LINENO" 5
 
 
 # configure is writing to config.log, and then calls config.status.
@@ -27650,7 +28175,7 @@ if test "$no_create" != yes; then
   exec 5>>config.log
   # Use ||, not &&, to avoid exiting from the if with $? = 1, which
   # would make configure fail if this is the last instruction.
-  $ac_cs_success || as_fn_exit 1
+  $ac_cs_success || as_fn_exit $?
 fi
 if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: unrecognized options: $ac_unrecognized_opts" >&5
