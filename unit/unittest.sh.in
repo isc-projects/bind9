@@ -3,4 +3,7 @@
 PATH=${PATH}:@ATFBIN@
 export PATH
 
-atf-run | atf-report
+if [ -n "@ATFBIN@" ]
+then
+	atf-run | atf-report
+fi
