@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.515 $)
+AC_REVISION($Revision: 1.516 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -3054,7 +3054,7 @@ if test "$atf" != no; then
 	AC_DEFINE(ATF_TEST, 1, [define if ATF unit tests are to be built.])
 	STD_CINCLUDES="$STD_CINCLUDES -I$atf/include"
 	ATFBIN="$atf/bin"
-	ATFLIBS="-L $atf/lib -latf-c"
+	ATFLIBS="-L$atf/lib -latf-c"
 	UNITTESTS=tests
 fi
 AC_SUBST(ATFBIN)
