@@ -16,7 +16,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.143.8.2 2011/02/27 06:17:04 marka Exp $ */
+/* $Id: config.h.in,v 1.143.8.3 2011/02/27 13:30:04 marka Exp $ */
 
 /*! \file */
 
