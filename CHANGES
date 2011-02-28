@@ -1,3 +1,6 @@
+3045.	[test]		Move the testsock.pl sleep to autosign test suite.
+			[RT #23400]
+
 3044.	[bug]		Hold the socket manager lock while freeing the socket.
 			[RT #23333]
 
