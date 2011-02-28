@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnstest.c,v 1.2.4.2 2011/02/26 02:47:53 each Exp $ */
+/* $Id: dnstest.c,v 1.2.4.3 2011/02/28 01:19:28 tbox Exp $ */
 
 /*! \file */
 
@@ -46,12 +46,12 @@ static isc_boolean_t hash_active = ISC_FALSE, dst_active = ISC_FALSE;
  * Logging categories: this needs to match the list in bin/named/log.c.
  */
 static isc_logcategory_t categories[] = {
-	        { "",                0 },
-	        { "client",          0 },
-	        { "network",         0 },
-	        { "update",          0 },
-	        { "queries",         0 },
-	        { "unmatched",       0 },
+		{ "",                0 },
+		{ "client",          0 },
+		{ "network",         0 },
+		{ "update",          0 },
+		{ "queries",         0 },
+		{ "unmatched",       0 },
 		{ "update-security", 0 },
 		{ "query-errors",    0 },
 		{ NULL,              0 }

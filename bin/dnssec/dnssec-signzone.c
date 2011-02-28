@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.258.4.5 2011/02/24 03:14:36 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.258.4.6 2011/02/28 01:19:26 tbox Exp $ */
 
 /*! \file */
 

@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master_test.c,v 1.2.4.2 2011/02/26 02:47:53 each Exp $ */
+/* $Id: master_test.c,v 1.2.4.3 2011/02/28 01:19:28 tbox Exp $ */
 
 /*! \file */
 
@@ -107,7 +107,7 @@ test_master(const char *testfile) {
 ATF_TC(master_load);
 ATF_TC_HEAD(master_load, tc) {
 	atf_tc_set_md_var(tc, "descr", "dns_master_loadfile() loads a "
-			  	       "valid master file and returns success");
+				       "valid master file and returns success");
 }
 ATF_TC_BODY(master_load, tc) {
 	isc_result_t result;
@@ -128,7 +128,7 @@ ATF_TC_BODY(master_load, tc) {
 ATF_TC(master_unexpected);
 ATF_TC_HEAD(master_unexpected, tc) {
 	atf_tc_set_md_var(tc, "descr", "dns_master_loadfile() returns "
-			  	       "DNS_R_UNEXPECTED when file ends "
+				       "DNS_R_UNEXPECTED when file ends "
 				       "too soon");
 }
 ATF_TC_BODY(master_unexpected, tc) {
@@ -150,7 +150,7 @@ ATF_TC_BODY(master_unexpected, tc) {
 ATF_TC(master_noowner);
 ATF_TC_HEAD(master_noowner, tc) {
 	atf_tc_set_md_var(tc, "descr", "dns_master_loadfile() accepts broken "
-			  	       "zones with no TTL for first record "
+				       "zones with no TTL for first record "
 				       "if it is an SOA");
 }
 ATF_TC_BODY(master_noowner, tc) {
@@ -172,7 +172,7 @@ ATF_TC_BODY(master_noowner, tc) {
 ATF_TC(master_nottl);
 ATF_TC_HEAD(master_nottl, tc) {
 	atf_tc_set_md_var(tc, "descr", "dns_master_loadfile() returns "
-			  	       "DNS_R_NOOWNER when no owner name "
+				       "DNS_R_NOOWNER when no owner name "
 				       "is specified");
 }
 
@@ -195,7 +195,7 @@ ATF_TC_BODY(master_nottl, tc) {
 ATF_TC(master_badclass);
 ATF_TC_HEAD(master_badclass, tc) {
 	atf_tc_set_md_var(tc, "descr", "dns_master_loadfile() returns "
-			  	       "DNS_R_BADCLASS when record class "
+				       "DNS_R_BADCLASS when record class "
 				       "doesn't match zone class");
 }
 ATF_TC_BODY(master_badclass, tc) {
@@ -216,7 +216,7 @@ ATF_TC_BODY(master_badclass, tc) {
 ATF_TC(master_dnskey);
 ATF_TC_HEAD(master_dnskey, tc) {
 	atf_tc_set_md_var(tc, "descr", "dns_master_loadfile() understands "
-			  	       "DNSKEY with key material");
+				       "DNSKEY with key material");
 }
 ATF_TC_BODY(master_dnskey, tc) {
 	isc_result_t result;
@@ -237,7 +237,7 @@ ATF_TC_BODY(master_dnskey, tc) {
 ATF_TC(master_dnsnokey);
 ATF_TC_HEAD(master_dnsnokey, tc) {
 	atf_tc_set_md_var(tc, "descr", "dns_master_loadfile() understands "
-			  	       "DNSKEY with no key material");
+				       "DNSKEY with no key material");
 }
 ATF_TC_BODY(master_dnsnokey, tc) {
 	isc_result_t result;
@@ -257,7 +257,7 @@ ATF_TC_BODY(master_dnsnokey, tc) {
 ATF_TC(master_include);
 ATF_TC_HEAD(master_include, tc) {
 	atf_tc_set_md_var(tc, "descr", "dns_master_loadfile() understands "
-			  	       "$INCLUDE");
+				       "$INCLUDE");
 }
 ATF_TC_BODY(master_include, tc) {
 	isc_result_t result;
@@ -277,7 +277,7 @@ ATF_TC_BODY(master_include, tc) {
 ATF_TC(master_includefail);
 ATF_TC_HEAD(master_includefail, tc) {
 	atf_tc_set_md_var(tc, "descr", "dns_master_loadfile() understands "
-			  	       "$INCLUDE failures");
+				       "$INCLUDE failures");
 }
 ATF_TC_BODY(master_includefail, tc) {
 	isc_result_t result;
@@ -298,7 +298,7 @@ ATF_TC_BODY(master_includefail, tc) {
 ATF_TC(master_blanklines);
 ATF_TC_HEAD(master_blanklines, tc) {
 	atf_tc_set_md_var(tc, "descr", "dns_master_loadfile() handles "
-			  	       "non-empty blank lines");
+				       "non-empty blank lines");
 }
 ATF_TC_BODY(master_blanklines, tc) {
 	isc_result_t result;
@@ -318,7 +318,7 @@ ATF_TC_BODY(master_blanklines, tc) {
 ATF_TC(master_leadingzero);
 ATF_TC_HEAD(master_leadingzero, tc) {
 	atf_tc_set_md_var(tc, "descr", "dns_master_loadfile() allows "
-			  	       "leading zeroes in SOA");
+				       "leading zeroes in SOA");
 }
 ATF_TC_BODY(master_leadingzero, tc) {
 	isc_result_t result;
