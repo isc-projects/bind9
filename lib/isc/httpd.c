@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2008, 2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006-2008, 2010, 2011  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: httpd.c,v 1.20.40.1 2011/02/21 05:57:17 marka Exp $ */
+/* $Id: httpd.c,v 1.20.40.2 2011/02/28 01:20:03 tbox Exp $ */
 
 /*! \file */
 
