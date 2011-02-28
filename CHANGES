@@ -1,3 +1,6 @@
+3046.	[bug]		Use RRSIG original TTL to compute validated RRset
+			and RRSIG TTL. [RT #23332]
+
 3044.	[bug]		Hold the socket manager lock while freeing the socket.
 			[RT #23333]
 
