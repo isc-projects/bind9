@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.336 2011/02/18 04:19:05 marka Exp $ */
+/* $Id: socket.c,v 1.337 2011/02/28 12:48:30 marka Exp $ */
 
 /*! \file */
 
@@ -1997,9 +1997,10 @@ destroy(isc__socket_t **sockp) {
 		SIGNAL(&manager->shutdown_ok);
 #endif /* USE_WATCHER_THREAD */
 
-	UNLOCK(&manager->lock);
-
+	/* can't unlock manager as its memory context is still used */
 	free_socket(sockp);
+
+	UNLOCK(&manager->lock);
 }
 
 static isc_result_t
