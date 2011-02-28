@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.32.162.5 2011/02/28 01:20:01 tbox Exp $
+# $Id: sign.sh,v 1.32.162.6 2011/02/28 14:25:16 fdupont Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -325,3 +325,18 @@ zonefile=secure.below-cname.example.db
 keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
 cat $infile $keyname.key >$zonefile
 $SIGNER -P -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
+
+#
+# Patched TTL test zone.
+#
+zone=ttlpatch.example.
+infile=ttlpatch.example.db.in
+zonefile=ttlpatch.example.db
+signedfile=ttlpatch.example.db.signed
+patchedfile=ttlpatch.example.db.patched
+
+keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 768 -n zone $zone`
+cat $infile $keyname.key >$zonefile
+
+$SIGNER -P -r $RANDFILE -f $signedfile -o $zone $zonefile > /dev/null 2>&1
+sed 's/300/3600/' $signedfile > $patchedfile

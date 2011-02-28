@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.73.14.5 2011/02/24 03:11:48 marka Exp $
+# $Id: tests.sh,v 1.73.14.6 2011/02/28 14:25:16 fdupont Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -973,6 +973,18 @@ sed 's/60.IN.SOA./50 IN SOA /' example.db.before > example.db.changed
 $SIGNER -o example -f example.db.after example.db.changed > /dev/null 2>&1
 )
 grep "SOA 5 1 50" signer/example.db.after > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking validated data are not cached longer than originalttl ($n)"
+ret=0
+$DIG $DIGOPTS +ttl +noauth a.ttlpatch.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
+$DIG $DIGOPTS +ttl +noauth a.ttlpatch.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
+grep "3600.IN" dig.out.ns3.test$n > /dev/null || ret=1
+grep "300.IN" dig.out.ns3.test$n > /dev/null && ret=1
+grep "300.IN" dig.out.ns4.test$n > /dev/null || ret=1
+grep "3600.IN" dig.out.ns4.test$n > /dev/null && ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

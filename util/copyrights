@@ -792,6 +792,7 @@
 ./bin/tests/system/dnssec/ns3/secure.nsec3.example.db.in	ZONE	2008
 ./bin/tests/system/dnssec/ns3/secure.optout.example.db.in	ZONE	2008
 ./bin/tests/system/dnssec/ns3/sign.sh		SH	2000,2001,2002,2004,2006,2007,2008,2009,2010,2011
+./bin/tests/system/dnssec/ns3/ttlpatch.example.db.in	ZONE	2011
 ./bin/tests/system/dnssec/ns3/update-nsec3.example.db.in	ZONE	2011
 ./bin/tests/system/dnssec/ns4/.cvsignore	X	2000,2001
 ./bin/tests/system/dnssec/ns4/named.conf	CONF-C	2000,2001,2004,2006,2007,2010
