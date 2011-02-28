@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.164.12.25 2011/02/28 01:18:43 tbox Exp $ */
+/* $Id: validator.c,v 1.164.12.26 2011/02/28 14:44:00 fdupont Exp $ */
 
 #include <config.h>
 
@@ -2015,7 +2015,8 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 
 			isc_stdtime_get(&now);
 			ttl = ISC_MIN(event->rdataset->ttl,
-				      val->siginfo->timeexpire - now);
+				      ISC_MIN(val->siginfo->originalttl,
+					      val->siginfo->timeexpire - now));
 			if (val->keyset != NULL)
 				ttl = ISC_MIN(ttl, val->keyset->ttl);
 			event->rdataset->ttl = ttl;
