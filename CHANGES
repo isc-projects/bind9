@@ -1,3 +1,6 @@
+3044.	[bug]		Hold the socket manager lock while freeing the socket.
+			[RT #23333]
+
 3043.	[test]		Merged in the NetBSD ATF test framework (currently
 			version 0.12) for development of future unit tests.
                         Use configure --with-atf to build ATF internally
