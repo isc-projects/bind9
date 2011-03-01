@@ -711,6 +711,14 @@
 ./bin/tests/system/dlv/ns6/sign.sh		SH	2010
 ./bin/tests/system/dlv/setup.sh			SH	2004,2007,2009
 ./bin/tests/system/dlv/tests.sh			SH	2004,2007,2010
+./bin/tests/system/dlvauto/clean.sh		SH	2011
+./bin/tests/system/dlvauto/ns1/dlv.isc.org.db.in	ZONE	2011
+./bin/tests/system/dlvauto/ns1/named.conf	CONF-C	2011
+./bin/tests/system/dlvauto/ns1/root.db.in	ZONE	2011
+./bin/tests/system/dlvauto/ns1/sign.sh		SH	2011
+./bin/tests/system/dlvauto/ns2/named.conf	CONF-C	2011
+./bin/tests/system/dlvauto/setup.sh		SH	2011
+./bin/tests/system/dlvauto/tests.sh		SH	2011
 ./bin/tests/system/dlz/clean.sh			SH	2010
 ./bin/tests/system/dlz/ns1/dns-root/com/example/dns.d/@/DNAME=10=example.net.=	TXT.BRIEF	2010
 ./bin/tests/system/dlz/ns1/dns-root/com/example/dns.d/@/NS=10=example.com.=	TXT.BRIEF	2010
