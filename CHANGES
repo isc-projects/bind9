@@ -1,3 +1,5 @@
+3048.	[bug]		Fully seperate view key mangement. [RT #23419]
+
 3047.	[bug]		DNSKEY NODATA responses not cached fixed in
 			validator.c. Tests added to dnssec system test.
 			[RT #22908]
