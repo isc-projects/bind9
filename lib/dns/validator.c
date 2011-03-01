@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.197.14.3 2011/02/28 14:25:17 fdupont Exp $ */
+/* $Id: validator.c,v 1.197.14.4 2011/03/01 14:42:16 smann Exp $ */
 
 #include <config.h>
 
@@ -3040,12 +3040,10 @@ validate_authority(dns_validator_t *val, isc_boolean_t resume) {
 			 * infinite loop.  Avoid that.
 			 */
 			if (val->event->type == dns_rdatatype_dnskey &&
+			    rdataset->type == dns_rdatatype_nsec &&
 			    dns_name_equal(name, val->event->name))
 			{
 				dns_rdata_t nsec = DNS_RDATA_INIT;
-
-				if (rdataset->type != dns_rdatatype_nsec)
-					continue;
 
 				result = dns_rdataset_first(rdataset);
 				if (result != ISC_R_SUCCESS)
@@ -3120,12 +3118,10 @@ validate_ncache(dns_validator_t *val, isc_boolean_t resume) {
 		 * infinite loop.  Avoid that.
 		 */
 		if (val->event->type == dns_rdatatype_dnskey &&
+		    rdataset->type == dns_rdatatype_nsec &&
 		    dns_name_equal(name, val->event->name))
 		{
 			dns_rdata_t nsec = DNS_RDATA_INIT;
-
-			if (rdataset->type != dns_rdatatype_nsec)
-				continue;
 
 			result = dns_rdataset_first(rdataset);
 			if (result != ISC_R_SUCCESS)

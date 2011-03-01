@@ -1,3 +1,7 @@
+3047.   [bug]           DNSKEY NODATA responses not cached fixed in
+                        validator.c. Tests added to dnssec system test.
+                        [RT #22908]
+
 3046.	[bug]		Use RRSIG original TTL to compute validated RRset
 			and RRSIG TTL. [RT #23332]
 
