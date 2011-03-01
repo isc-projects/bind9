@@ -711,6 +711,14 @@
 ./bin/tests/system/dlv/ns6/sign.sh		SH	2010
 ./bin/tests/system/dlv/setup.sh			SH	2004,2007,2009
 ./bin/tests/system/dlv/tests.sh			SH	2004,2007,2010
+./bin/tests/system/dlvauto/clean.sh		SH	2011
+./bin/tests/system/dlvauto/ns1/dlv.isc.org.db.in	ZONE	2011
+./bin/tests/system/dlvauto/ns1/named.conf	CONF-C	2011
+./bin/tests/system/dlvauto/ns1/root.db.in	ZONE	2011
+./bin/tests/system/dlvauto/ns1/sign.sh		SH	2011
+./bin/tests/system/dlvauto/ns2/named.conf	CONF-C	2011
+./bin/tests/system/dlvauto/setup.sh		SH	2011
+./bin/tests/system/dlvauto/tests.sh		SH	2011
 ./bin/tests/system/dlz/clean.sh			SH	2010
 ./bin/tests/system/dlz/ns1/dns-root/com/example/dns.d/@/DNAME=10=example.net.=	TXT.BRIEF	2010
 ./bin/tests/system/dlz/ns1/dns-root/com/example/dns.d/@/NS=10=example.com.=	TXT.BRIEF	2010
@@ -2962,58 +2970,58 @@
 ./make/mkdep.in					X	1999,2000,2001,2006
 ./make/rules.in					MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011
 ./mkinstalldirs					X	1996
-./unit/.cvsignore	X			X	2011
-./unit/Makefile.in	X			MAKE	2011
-./unit/README	X				X	2011
-./unit/atf-src/.cvsignore	X		X	2011
-./unit/atf-src/AUTHORS	X			X	2011
-./unit/atf-src/Atffile	X			X	2011
-./unit/atf-src/COPYING	X			X	2011
-./unit/atf-src/INSTALL	X			X	2011
-./unit/atf-src/Makefile.am	X		X	2011
-./unit/atf-src/Makefile.in	X		X	2011
-./unit/atf-src/NEWS	X			X	2011
-./unit/atf-src/README	X			X	2011
-./unit/atf-src/aclocal.m4	X		X	2011
-./unit/atf-src/admin/Makefile.am.inc	X	X	2011
-./unit/atf-src/admin/check-install.sh	X	X	2011
-./unit/atf-src/admin/check-style-c.awk	X	X	2011
+./unit/.cvsignore				X	X,2011
+./unit/Makefile.in				X	MAKE,2011
+./unit/README					X	X,2011
+./unit/atf-src/.cvsignore			X	X,2011
+./unit/atf-src/AUTHORS				X	X,2011
+./unit/atf-src/Atffile				X	X,2011
+./unit/atf-src/COPYING				X	X,2011
+./unit/atf-src/INSTALL				X	X,2011
+./unit/atf-src/Makefile.am			X	X,2011
+./unit/atf-src/Makefile.in			X	X,2011
+./unit/atf-src/NEWS				X	X,2011
+./unit/atf-src/README				X	X,2011
+./unit/atf-src/aclocal.m4			X	X,2011
+./unit/atf-src/admin/Makefile.am.inc		X	X,2011
+./unit/atf-src/admin/check-install.sh		X	X,2011
+./unit/atf-src/admin/check-style-c.awk		X	X,2011
 ./unit/atf-src/admin/check-style-common.awk	X	2011
 ./unit/atf-src/admin/check-style-cpp.awk	X	2011
 ./unit/atf-src/admin/check-style-man.awk	X	2011
 ./unit/atf-src/admin/check-style-shell.awk	X	2011
-./unit/atf-src/admin/check-style.sh	X	X	2011
-./unit/atf-src/admin/compile	X		X	2011
-./unit/atf-src/admin/config.guess	X	X	2011
-./unit/atf-src/admin/config.sub	X		X	2011
-./unit/atf-src/admin/depcomp	X		X	2011
-./unit/atf-src/admin/install-sh	X		X	2011
-./unit/atf-src/admin/ltmain.sh	X		X	2011
-./unit/atf-src/admin/missing	X		X	2011
-./unit/atf-src/atf-c++.hpp	X		X	2011
-./unit/atf-src/atf-c++/.cvsignore	X	X	2011
-./unit/atf-src/atf-c++/Atffile	X		X	2011
-./unit/atf-src/atf-c++/Makefile.am.inc	X	X	2011
-./unit/atf-src/atf-c++/atf-c++-api.3	X	X	2011
-./unit/atf-src/atf-c++/atf-c++.pc.in	X	X	2011
-./unit/atf-src/atf-c++/atf_c++_test.cpp	X	X	2011
-./unit/atf-src/atf-c++/build.cpp	X	X	2011
-./unit/atf-src/atf-c++/build.hpp	X	X	2011
-./unit/atf-src/atf-c++/build_test.cpp	X	X	2011
-./unit/atf-src/atf-c++/check.cpp	X	X	2011
-./unit/atf-src/atf-c++/check.hpp	X	X	2011
-./unit/atf-src/atf-c++/check_test.cpp	X	X	2011
-./unit/atf-src/atf-c++/config.cpp	X	X	2011
-./unit/atf-src/atf-c++/config.hpp	X	X	2011
-./unit/atf-src/atf-c++/config_test.cpp	X	X	2011
+./unit/atf-src/admin/check-style.sh		X	X,2011
+./unit/atf-src/admin/compile			X	X,2011
+./unit/atf-src/admin/config.guess		X	X,2011
+./unit/atf-src/admin/config.sub			X	X,2011
+./unit/atf-src/admin/depcomp			X	X,2011
+./unit/atf-src/admin/install-sh			X	X,2011
+./unit/atf-src/admin/ltmain.sh			X	X,2011
+./unit/atf-src/admin/missing			X	X,2011
+./unit/atf-src/atf-c++.hpp			X	X,2011
+./unit/atf-src/atf-c++/.cvsignore		X	X,2011
+./unit/atf-src/atf-c++/Atffile			X	X,2011
+./unit/atf-src/atf-c++/Makefile.am.inc		X	X,2011
+./unit/atf-src/atf-c++/atf-c++-api.3		X	X,2011
+./unit/atf-src/atf-c++/atf-c++.pc.in		X	X,2011
+./unit/atf-src/atf-c++/atf_c++_test.cpp		X	X,2011
+./unit/atf-src/atf-c++/build.cpp		X	X,2011
+./unit/atf-src/atf-c++/build.hpp		X	X,2011
+./unit/atf-src/atf-c++/build_test.cpp		X	X,2011
+./unit/atf-src/atf-c++/check.cpp		X	X,2011
+./unit/atf-src/atf-c++/check.hpp		X	X,2011
+./unit/atf-src/atf-c++/check_test.cpp		X	X,2011
+./unit/atf-src/atf-c++/config.cpp		X	X,2011
+./unit/atf-src/atf-c++/config.hpp		X	X,2011
+./unit/atf-src/atf-c++/config_test.cpp		X	X,2011
 ./unit/atf-src/atf-c++/detail/.cvsignore	X	2011
-./unit/atf-src/atf-c++/detail/Atffile	X	X	2011
+./unit/atf-src/atf-c++/detail/Atffile		X	X,2011
 ./unit/atf-src/atf-c++/detail/Makefile.am.inc	X	2011
 ./unit/atf-src/atf-c++/detail/application.cpp	X	2011
 ./unit/atf-src/atf-c++/detail/application.hpp	X	2011
 ./unit/atf-src/atf-c++/detail/application_test.cpp	X	2011
-./unit/atf-src/atf-c++/detail/env.cpp	X	X	2011
-./unit/atf-src/atf-c++/detail/env.hpp	X	X	2011
+./unit/atf-src/atf-c++/detail/env.cpp		X	X,2011
+./unit/atf-src/atf-c++/detail/env.hpp		X	X,2011
 ./unit/atf-src/atf-c++/detail/env_test.cpp	X	2011
 ./unit/atf-src/atf-c++/detail/exceptions.cpp	X	2011
 ./unit/atf-src/atf-c++/detail/exceptions.hpp	X	2011
@@ -3021,8 +3029,8 @@
 ./unit/atf-src/atf-c++/detail/expand.cpp	X	2011
 ./unit/atf-src/atf-c++/detail/expand.hpp	X	2011
 ./unit/atf-src/atf-c++/detail/expand_test.cpp	X	2011
-./unit/atf-src/atf-c++/detail/fs.cpp	X	X	2011
-./unit/atf-src/atf-c++/detail/fs.hpp	X	X	2011
+./unit/atf-src/atf-c++/detail/fs.cpp		X	X,2011
+./unit/atf-src/atf-c++/detail/fs.hpp		X	X,2011
 ./unit/atf-src/atf-c++/detail/fs_test.cpp	X	2011
 ./unit/atf-src/atf-c++/detail/parser.cpp	X	2011
 ./unit/atf-src/atf-c++/detail/parser.hpp	X	2011
@@ -3034,226 +3042,226 @@
 ./unit/atf-src/atf-c++/detail/sanity_test.cpp	X	2011
 ./unit/atf-src/atf-c++/detail/test_helpers.cpp	X	2011
 ./unit/atf-src/atf-c++/detail/test_helpers.hpp	X	2011
-./unit/atf-src/atf-c++/detail/text.cpp	X	X	2011
-./unit/atf-src/atf-c++/detail/text.hpp	X	X	2011
+./unit/atf-src/atf-c++/detail/text.cpp		X	X,2011
+./unit/atf-src/atf-c++/detail/text.hpp		X	X,2011
 ./unit/atf-src/atf-c++/detail/text_test.cpp	X	2011
-./unit/atf-src/atf-c++/detail/ui.cpp	X	X	2011
-./unit/atf-src/atf-c++/detail/ui.hpp	X	X	2011
+./unit/atf-src/atf-c++/detail/ui.cpp		X	X,2011
+./unit/atf-src/atf-c++/detail/ui.hpp		X	X,2011
 ./unit/atf-src/atf-c++/detail/ui_test.cpp	X	2011
-./unit/atf-src/atf-c++/macros.hpp	X	X	2011
+./unit/atf-src/atf-c++/macros.hpp		X	X,2011
 ./unit/atf-src/atf-c++/macros_hpp_test.cpp	X	2011
-./unit/atf-src/atf-c++/macros_test.cpp	X	X	2011
+./unit/atf-src/atf-c++/macros_test.cpp		X	X,2011
 ./unit/atf-src/atf-c++/pkg_config_test.sh	X	2011
-./unit/atf-src/atf-c++/tests.cpp	X	X	2011
-./unit/atf-src/atf-c++/tests.hpp	X	X	2011
-./unit/atf-src/atf-c++/tests_test.cpp	X	X	2011
-./unit/atf-src/atf-c++/utils.hpp	X	X	2011
-./unit/atf-src/atf-c++/utils_test.cpp	X	X	2011
-./unit/atf-src/atf-c.h	X			X	2011
-./unit/atf-src/atf-c/.cvsignore	X		X	2011
-./unit/atf-src/atf-c/Atffile	X		X	2011
-./unit/atf-src/atf-c/Makefile.am.inc	X	X	2011
-./unit/atf-src/atf-c/atf-c-api.3	X	X	2011
-./unit/atf-src/atf-c/atf-c.pc.in	X	X	2011
-./unit/atf-src/atf-c/atf_c_test.c	X	X	2011
-./unit/atf-src/atf-c/build.c	X		X	2011
-./unit/atf-src/atf-c/build.h	X		X	2011
-./unit/atf-src/atf-c/build_test.c	X	X	2011
-./unit/atf-src/atf-c/check.c	X		X	2011
-./unit/atf-src/atf-c/check.h	X		X	2011
-./unit/atf-src/atf-c/check_test.c	X	X	2011
-./unit/atf-src/atf-c/config.c	X		X	2011
-./unit/atf-src/atf-c/config.h	X		X	2011
-./unit/atf-src/atf-c/config_test.c	X	X	2011
-./unit/atf-src/atf-c/defs.h.in	X		X	2011
-./unit/atf-src/atf-c/detail/.cvsignore	X	X	2011
-./unit/atf-src/atf-c/detail/Atffile	X	X	2011
+./unit/atf-src/atf-c++/tests.cpp		X	X,2011
+./unit/atf-src/atf-c++/tests.hpp		X	X,2011
+./unit/atf-src/atf-c++/tests_test.cpp		X	X,2011
+./unit/atf-src/atf-c++/utils.hpp		X	X,2011
+./unit/atf-src/atf-c++/utils_test.cpp		X	X,2011
+./unit/atf-src/atf-c.h				X	X,2011
+./unit/atf-src/atf-c/.cvsignore			X	X,2011
+./unit/atf-src/atf-c/Atffile			X	X,2011
+./unit/atf-src/atf-c/Makefile.am.inc		X	X,2011
+./unit/atf-src/atf-c/atf-c-api.3		X	X,2011
+./unit/atf-src/atf-c/atf-c.pc.in		X	X,2011
+./unit/atf-src/atf-c/atf_c_test.c		X	X,2011
+./unit/atf-src/atf-c/build.c			X	X,2011
+./unit/atf-src/atf-c/build.h			X	X,2011
+./unit/atf-src/atf-c/build_test.c		X	X,2011
+./unit/atf-src/atf-c/check.c			X	X,2011
+./unit/atf-src/atf-c/check.h			X	X,2011
+./unit/atf-src/atf-c/check_test.c		X	X,2011
+./unit/atf-src/atf-c/config.c			X	X,2011
+./unit/atf-src/atf-c/config.h			X	X,2011
+./unit/atf-src/atf-c/config_test.c		X	X,2011
+./unit/atf-src/atf-c/defs.h.in			X	X,2011
+./unit/atf-src/atf-c/detail/.cvsignore		X	X,2011
+./unit/atf-src/atf-c/detail/Atffile		X	X,2011
 ./unit/atf-src/atf-c/detail/Makefile.am.inc	X	2011
-./unit/atf-src/atf-c/detail/dynstr.c	X	X	2011
-./unit/atf-src/atf-c/detail/dynstr.h	X	X	2011
+./unit/atf-src/atf-c/detail/dynstr.c		X	X,2011
+./unit/atf-src/atf-c/detail/dynstr.h		X	X,2011
 ./unit/atf-src/atf-c/detail/dynstr_test.c	X	2011
-./unit/atf-src/atf-c/detail/env.c	X	X	2011
-./unit/atf-src/atf-c/detail/env.h	X	X	2011
-./unit/atf-src/atf-c/detail/env_test.c	X	X	2011
-./unit/atf-src/atf-c/detail/fs.c	X	X	2011
-./unit/atf-src/atf-c/detail/fs.h	X	X	2011
-./unit/atf-src/atf-c/detail/fs_test.c	X	X	2011
-./unit/atf-src/atf-c/detail/list.c	X	X	2011
-./unit/atf-src/atf-c/detail/list.h	X	X	2011
-./unit/atf-src/atf-c/detail/list_test.c	X	X	2011
-./unit/atf-src/atf-c/detail/map.c	X	X	2011
-./unit/atf-src/atf-c/detail/map.h	X	X	2011
-./unit/atf-src/atf-c/detail/map_test.c	X	X	2011
-./unit/atf-src/atf-c/detail/process.c	X	X	2011
-./unit/atf-src/atf-c/detail/process.h	X	X	2011
+./unit/atf-src/atf-c/detail/env.c		X	X,2011
+./unit/atf-src/atf-c/detail/env.h		X	X,2011
+./unit/atf-src/atf-c/detail/env_test.c		X	X,2011
+./unit/atf-src/atf-c/detail/fs.c		X	X,2011
+./unit/atf-src/atf-c/detail/fs.h		X	X,2011
+./unit/atf-src/atf-c/detail/fs_test.c		X	X,2011
+./unit/atf-src/atf-c/detail/list.c		X	X,2011
+./unit/atf-src/atf-c/detail/list.h		X	X,2011
+./unit/atf-src/atf-c/detail/list_test.c		X	X,2011
+./unit/atf-src/atf-c/detail/map.c		X	X,2011
+./unit/atf-src/atf-c/detail/map.h		X	X,2011
+./unit/atf-src/atf-c/detail/map_test.c		X	X,2011
+./unit/atf-src/atf-c/detail/process.c		X	X,2011
+./unit/atf-src/atf-c/detail/process.h		X	X,2011
 ./unit/atf-src/atf-c/detail/process_helpers.c	X	2011
 ./unit/atf-src/atf-c/detail/process_test.c	X	2011
-./unit/atf-src/atf-c/detail/sanity.c	X	X	2011
-./unit/atf-src/atf-c/detail/sanity.h	X	X	2011
+./unit/atf-src/atf-c/detail/sanity.c		X	X,2011
+./unit/atf-src/atf-c/detail/sanity.h		X	X,2011
 ./unit/atf-src/atf-c/detail/sanity_test.c	X	2011
 ./unit/atf-src/atf-c/detail/test_helpers.c	X	2011
 ./unit/atf-src/atf-c/detail/test_helpers.h	X	2011
 ./unit/atf-src/atf-c/detail/test_helpers_test.c	X	2011
-./unit/atf-src/atf-c/detail/text.c	X	X	2011
-./unit/atf-src/atf-c/detail/text.h	X	X	2011
-./unit/atf-src/atf-c/detail/text_test.c	X	X	2011
-./unit/atf-src/atf-c/detail/tp_main.c	X	X	2011
-./unit/atf-src/atf-c/detail/user.c	X	X	2011
-./unit/atf-src/atf-c/detail/user.h	X	X	2011
-./unit/atf-src/atf-c/detail/user_test.c	X	X	2011
-./unit/atf-src/atf-c/error.c	X		X	2011
-./unit/atf-src/atf-c/error.h	X		X	2011
-./unit/atf-src/atf-c/error_fwd.h	X	X	2011
-./unit/atf-src/atf-c/error_test.c	X	X	2011
-./unit/atf-src/atf-c/h_build.h	X		X	2011
-./unit/atf-src/atf-c/macros.h	X		X	2011
-./unit/atf-src/atf-c/macros_h_test.c	X	X	2011
-./unit/atf-src/atf-c/macros_test.c	X	X	2011
-./unit/atf-src/atf-c/pkg_config_test.sh	X	X	2011
-./unit/atf-src/atf-c/tc.c	X		X	2011
-./unit/atf-src/atf-c/tc.h	X		X	2011
-./unit/atf-src/atf-c/tc_test.c	X		X	2011
-./unit/atf-src/atf-c/tp.c	X		X	2011
-./unit/atf-src/atf-c/tp.h	X		X	2011
-./unit/atf-src/atf-c/tp_test.c	X		X	2011
-./unit/atf-src/atf-c/utils.c	X		X	2011
-./unit/atf-src/atf-c/utils.h	X		X	2011
-./unit/atf-src/atf-c/utils_test.c	X	X	2011
-./unit/atf-src/atf-config/.cvsignore	X	X	2011
-./unit/atf-src/atf-config/Atffile	X	X	2011
+./unit/atf-src/atf-c/detail/text.c		X	X,2011
+./unit/atf-src/atf-c/detail/text.h		X	X,2011
+./unit/atf-src/atf-c/detail/text_test.c		X	X,2011
+./unit/atf-src/atf-c/detail/tp_main.c		X	X,2011
+./unit/atf-src/atf-c/detail/user.c		X	X,2011
+./unit/atf-src/atf-c/detail/user.h		X	X,2011
+./unit/atf-src/atf-c/detail/user_test.c		X	X,2011
+./unit/atf-src/atf-c/error.c			X	X,2011
+./unit/atf-src/atf-c/error.h			X	X,2011
+./unit/atf-src/atf-c/error_fwd.h		X	X,2011
+./unit/atf-src/atf-c/error_test.c		X	X,2011
+./unit/atf-src/atf-c/h_build.h			X	X,2011
+./unit/atf-src/atf-c/macros.h			X	X,2011
+./unit/atf-src/atf-c/macros_h_test.c		X	X,2011
+./unit/atf-src/atf-c/macros_test.c		X	X,2011
+./unit/atf-src/atf-c/pkg_config_test.sh		X	X,2011
+./unit/atf-src/atf-c/tc.c			X	X,2011
+./unit/atf-src/atf-c/tc.h			X	X,2011
+./unit/atf-src/atf-c/tc_test.c			X	X,2011
+./unit/atf-src/atf-c/tp.c			X	X,2011
+./unit/atf-src/atf-c/tp.h			X	X,2011
+./unit/atf-src/atf-c/tp_test.c			X	X,2011
+./unit/atf-src/atf-c/utils.c			X	X,2011
+./unit/atf-src/atf-c/utils.h			X	X,2011
+./unit/atf-src/atf-c/utils_test.c		X	X,2011
+./unit/atf-src/atf-config/.cvsignore		X	X,2011
+./unit/atf-src/atf-config/Atffile		X	X,2011
 ./unit/atf-src/atf-config/Makefile.am.inc	X	2011
-./unit/atf-src/atf-config/atf-config.1	X	X	2011
+./unit/atf-src/atf-config/atf-config.1		X	X,2011
 ./unit/atf-src/atf-config/atf-config.cpp	X	2011
 ./unit/atf-src/atf-config/integration_test.sh	X	2011
-./unit/atf-src/atf-report/.cvsignore	X	X	2011
-./unit/atf-src/atf-report/Atffile	X	X	2011
+./unit/atf-src/atf-report/.cvsignore		X	X,2011
+./unit/atf-src/atf-report/Atffile		X	X,2011
 ./unit/atf-src/atf-report/Makefile.am.inc	X	2011
-./unit/atf-src/atf-report/atf-report.1	X	X	2011
+./unit/atf-src/atf-report/atf-report.1		X	X,2011
 ./unit/atf-src/atf-report/atf-report.cpp	X	2011
 ./unit/atf-src/atf-report/fail_helper.cpp	X	2011
 ./unit/atf-src/atf-report/integration_test.sh	X	2011
 ./unit/atf-src/atf-report/misc_helpers.cpp	X	2011
 ./unit/atf-src/atf-report/pass_helper.cpp	X	2011
-./unit/atf-src/atf-report/reader.cpp	X	X	2011
-./unit/atf-src/atf-report/reader.hpp	X	X	2011
+./unit/atf-src/atf-report/reader.cpp		X	X,2011
+./unit/atf-src/atf-report/reader.hpp		X	X,2011
 ./unit/atf-src/atf-report/reader_test.cpp	X	2011
 ./unit/atf-src/atf-report/tests-results.css	X	2011
 ./unit/atf-src/atf-report/tests-results.dtd	X	2011
 ./unit/atf-src/atf-report/tests-results.xsl	X	2011
-./unit/atf-src/atf-run/.cvsignore	X	X	2011
-./unit/atf-src/atf-run/Atffile	X		X	2011
-./unit/atf-src/atf-run/Makefile.am.inc	X	X	2011
-./unit/atf-src/atf-run/atf-run.1	X	X	2011
-./unit/atf-src/atf-run/atf-run.cpp	X	X	2011
-./unit/atf-src/atf-run/atffile.cpp	X	X	2011
-./unit/atf-src/atf-run/atffile.hpp	X	X	2011
-./unit/atf-src/atf-run/atffile_test.cpp	X	X	2011
+./unit/atf-src/atf-run/.cvsignore		X	X,2011
+./unit/atf-src/atf-run/Atffile			X	X,2011
+./unit/atf-src/atf-run/Makefile.am.inc		X	X,2011
+./unit/atf-src/atf-run/atf-run.1		X	X,2011
+./unit/atf-src/atf-run/atf-run.cpp		X	X,2011
+./unit/atf-src/atf-run/atffile.cpp		X	X,2011
+./unit/atf-src/atf-run/atffile.hpp		X	X,2011
+./unit/atf-src/atf-run/atffile_test.cpp		X	X,2011
 ./unit/atf-src/atf-run/bad_metadata_helper.c	X	2011
-./unit/atf-src/atf-run/config.cpp	X	X	2011
-./unit/atf-src/atf-run/config.hpp	X	X	2011
-./unit/atf-src/atf-run/config_test.cpp	X	X	2011
-./unit/atf-src/atf-run/expect_helpers.c	X	X	2011
-./unit/atf-src/atf-run/fs.cpp	X		X	2011
-./unit/atf-src/atf-run/fs.hpp	X		X	2011
-./unit/atf-src/atf-run/fs_test.cpp	X	X	2011
+./unit/atf-src/atf-run/config.cpp		X	X,2011
+./unit/atf-src/atf-run/config.hpp		X	X,2011
+./unit/atf-src/atf-run/config_test.cpp		X	X,2011
+./unit/atf-src/atf-run/expect_helpers.c		X	X,2011
+./unit/atf-src/atf-run/fs.cpp			X	X,2011
+./unit/atf-src/atf-run/fs.hpp			X	X,2011
+./unit/atf-src/atf-run/fs_test.cpp		X	X,2011
 ./unit/atf-src/atf-run/integration_test.sh	X	2011
-./unit/atf-src/atf-run/io.cpp	X		X	2011
-./unit/atf-src/atf-run/io.hpp	X		X	2011
-./unit/atf-src/atf-run/io_test.cpp	X	X	2011
-./unit/atf-src/atf-run/misc_helpers.cpp	X	X	2011
-./unit/atf-src/atf-run/pass_helper.cpp	X	X	2011
-./unit/atf-src/atf-run/requirements.cpp	X	X	2011
-./unit/atf-src/atf-run/requirements.hpp	X	X	2011
+./unit/atf-src/atf-run/io.cpp			X	X,2011
+./unit/atf-src/atf-run/io.hpp			X	X,2011
+./unit/atf-src/atf-run/io_test.cpp		X	X,2011
+./unit/atf-src/atf-run/misc_helpers.cpp		X	X,2011
+./unit/atf-src/atf-run/pass_helper.cpp		X	X,2011
+./unit/atf-src/atf-run/requirements.cpp		X	X,2011
+./unit/atf-src/atf-run/requirements.hpp		X	X,2011
 ./unit/atf-src/atf-run/requirements_test.cpp	X	2011
 ./unit/atf-src/atf-run/sample/atf-run.hooks	X	2011
 ./unit/atf-src/atf-run/sample/common.conf	X	2011
 ./unit/atf-src/atf-run/several_tcs_helper.c	X	2011
 ./unit/atf-src/atf-run/share/atf-run.hooks	X	2011
-./unit/atf-src/atf-run/signals.cpp	X	X	2011
-./unit/atf-src/atf-run/signals.hpp	X	X	2011
-./unit/atf-src/atf-run/signals_test.cpp	X	X	2011
-./unit/atf-src/atf-run/test-program.cpp	X	X	2011
-./unit/atf-src/atf-run/test-program.hpp	X	X	2011
+./unit/atf-src/atf-run/signals.cpp		X	X,2011
+./unit/atf-src/atf-run/signals.hpp		X	X,2011
+./unit/atf-src/atf-run/signals_test.cpp		X	X,2011
+./unit/atf-src/atf-run/test-program.cpp		X	X,2011
+./unit/atf-src/atf-run/test-program.hpp		X	X,2011
 ./unit/atf-src/atf-run/test_program_test.cpp	X	2011
-./unit/atf-src/atf-run/timer.cpp	X	X	2011
-./unit/atf-src/atf-run/timer.hpp	X	X	2011
-./unit/atf-src/atf-run/user.cpp	X		X	2011
-./unit/atf-src/atf-run/user.hpp	X		X	2011
-./unit/atf-src/atf-run/user_test.cpp	X	X	2011
+./unit/atf-src/atf-run/timer.cpp		X	X,2011
+./unit/atf-src/atf-run/timer.hpp		X	X,2011
+./unit/atf-src/atf-run/user.cpp			X	X,2011
+./unit/atf-src/atf-run/user.hpp			X	X,2011
+./unit/atf-src/atf-run/user_test.cpp		X	X,2011
 ./unit/atf-src/atf-run/zero_tcs_helper.c	X	2011
-./unit/atf-src/atf-sh/.cvsignore	X	X	2011
-./unit/atf-src/atf-sh/Atffile	X		X	2011
-./unit/atf-src/atf-sh/Makefile.am.inc	X	X	2011
-./unit/atf-src/atf-sh/atf-check.1	X	X	2011
-./unit/atf-src/atf-sh/atf-check.cpp	X	X	2011
-./unit/atf-src/atf-sh/atf-check_test.sh	X	X	2011
-./unit/atf-src/atf-sh/atf-sh-api.3	X	X	2011
-./unit/atf-src/atf-sh/atf-sh.1	X		X	2011
-./unit/atf-src/atf-sh/atf-sh.cpp	X	X	2011
-./unit/atf-src/atf-sh/atf_check_test.sh	X	X	2011
-./unit/atf-src/atf-sh/config_test.sh	X	X	2011
+./unit/atf-src/atf-sh/.cvsignore		X	X,2011
+./unit/atf-src/atf-sh/Atffile			X	X,2011
+./unit/atf-src/atf-sh/Makefile.am.inc		X	X,2011
+./unit/atf-src/atf-sh/atf-check.1		X	X,2011
+./unit/atf-src/atf-sh/atf-check.cpp		X	X,2011
+./unit/atf-src/atf-sh/atf-check_test.sh		X	X,2011
+./unit/atf-src/atf-sh/atf-sh-api.3		X	X,2011
+./unit/atf-src/atf-sh/atf-sh.1			X	X,2011
+./unit/atf-src/atf-sh/atf-sh.cpp		X	X,2011
+./unit/atf-src/atf-sh/atf_check_test.sh		X	X,2011
+./unit/atf-src/atf-sh/config_test.sh		X	X,2011
 ./unit/atf-src/atf-sh/integration_test.sh	X	2011
-./unit/atf-src/atf-sh/libatf-sh.subr	X	X	2011
-./unit/atf-src/atf-sh/misc_helpers.sh	X	X	2011
-./unit/atf-src/atf-sh/normalize_test.sh	X	X	2011
-./unit/atf-src/atf-sh/tc_test.sh	X	X	2011
-./unit/atf-src/atf-sh/tp_test.sh	X	X	2011
-./unit/atf-src/atf-version/.cvsignore	X	X	2011
+./unit/atf-src/atf-sh/libatf-sh.subr		X	X,2011
+./unit/atf-src/atf-sh/misc_helpers.sh		X	X,2011
+./unit/atf-src/atf-sh/normalize_test.sh		X	X,2011
+./unit/atf-src/atf-sh/tc_test.sh		X	X,2011
+./unit/atf-src/atf-sh/tp_test.sh		X	X,2011
+./unit/atf-src/atf-version/.cvsignore		X	X,2011
 ./unit/atf-src/atf-version/Makefile.am.inc	X	2011
 ./unit/atf-src/atf-version/atf-version.1	X	2011
 ./unit/atf-src/atf-version/atf-version.cpp	X	2011
 ./unit/atf-src/atf-version/generate-revision.sh	X	2011
-./unit/atf-src/bconfig.h.in	X		X	2011
-./unit/atf-src/bootstrap/.cvsignore	X	X	2011
+./unit/atf-src/bconfig.h.in			X	X,2011
+./unit/atf-src/bootstrap/.cvsignore		X	X,2011
 ./unit/atf-src/bootstrap/Makefile.am.inc	X	2011
 ./unit/atf-src/bootstrap/h_app_empty.cpp	X	2011
 ./unit/atf-src/bootstrap/h_app_opts_args.cpp	X	2011
 ./unit/atf-src/bootstrap/h_tp_atf_check_sh.sh	X	2011
-./unit/atf-src/bootstrap/h_tp_basic_c.c	X	X	2011
+./unit/atf-src/bootstrap/h_tp_basic_c.c		X	X,2011
 ./unit/atf-src/bootstrap/h_tp_basic_cpp.cpp	X	2011
 ./unit/atf-src/bootstrap/h_tp_basic_sh.sh	X	2011
-./unit/atf-src/bootstrap/h_tp_fail.sh	X	X	2011
-./unit/atf-src/bootstrap/h_tp_pass.sh	X	X	2011
-./unit/atf-src/bootstrap/package.m4	X	X	2011
+./unit/atf-src/bootstrap/h_tp_fail.sh		X	X,2011
+./unit/atf-src/bootstrap/h_tp_pass.sh		X	X,2011
+./unit/atf-src/bootstrap/package.m4		X	X,2011
 ./unit/atf-src/bootstrap/t_application_help.at	X	2011
 ./unit/atf-src/bootstrap/t_application_opts_args.at	X	2011
 ./unit/atf-src/bootstrap/t_atf_config.at	X	2011
-./unit/atf-src/bootstrap/t_atf_run.at	X	X	2011
+./unit/atf-src/bootstrap/t_atf_run.at		X	X,2011
 ./unit/atf-src/bootstrap/t_subr_atf_check.at	X	2011
 ./unit/atf-src/bootstrap/t_test_program_compare.at	X	2011
 ./unit/atf-src/bootstrap/t_test_program_filter.at	X	2011
 ./unit/atf-src/bootstrap/t_test_program_list.at	X	2011
 ./unit/atf-src/bootstrap/t_test_program_run.at	X	2011
-./unit/atf-src/bootstrap/testsuite	X	X	2011
-./unit/atf-src/bootstrap/testsuite.at	X	X	2011
-./unit/atf-src/configure	X		X	2011
-./unit/atf-src/configure.ac	X		X	2011
-./unit/atf-src/doc/.cvsignore	X		X	2011
-./unit/atf-src/doc/Makefile.am.inc	X	X	2011
-./unit/atf-src/doc/atf-formats.5	X	X	2011
-./unit/atf-src/doc/atf-test-case.4	X	X	2011
-./unit/atf-src/doc/atf-test-program.1	X	X	2011
-./unit/atf-src/doc/atf.7.in	X		X	2011
-./unit/atf-src/m4/compiler-flags.m4	X	X	2011
-./unit/atf-src/m4/cxx-std-funcs.m4	X	X	2011
-./unit/atf-src/m4/developer-mode.m4	X	X	2011
-./unit/atf-src/m4/libtool.m4	X		X	2011
-./unit/atf-src/m4/ltoptions.m4	X		X	2011
-./unit/atf-src/m4/ltsugar.m4	X		X	2011
-./unit/atf-src/m4/ltversion.m4	X		X	2011
-./unit/atf-src/m4/lt~obsolete.m4	X	X	2011
-./unit/atf-src/m4/module-application.m4	X	X	2011
-./unit/atf-src/m4/module-defs.m4	X	X	2011
-./unit/atf-src/m4/module-env.m4	X		X	2011
-./unit/atf-src/m4/module-fs.m4	X		X	2011
-./unit/atf-src/m4/module-sanity.m4	X	X	2011
-./unit/atf-src/m4/module-signals.m4	X	X	2011
-./unit/atf-src/m4/runtime-tool.m4	X	X	2011
-./unit/atf-src/test-programs/.cvsignore	X	X	2011
-./unit/atf-src/test-programs/Atffile	X	X	2011
+./unit/atf-src/bootstrap/testsuite		X	X,2011
+./unit/atf-src/bootstrap/testsuite.at		X	X,2011
+./unit/atf-src/configure			X	X,2011
+./unit/atf-src/configure.ac			X	X,2011
+./unit/atf-src/doc/.cvsignore			X	X,2011
+./unit/atf-src/doc/Makefile.am.inc		X	X,2011
+./unit/atf-src/doc/atf-formats.5		X	X,2011
+./unit/atf-src/doc/atf-test-case.4		X	X,2011
+./unit/atf-src/doc/atf-test-program.1		X	X,2011
+./unit/atf-src/doc/atf.7.in			X	X,2011
+./unit/atf-src/m4/compiler-flags.m4		X	X,2011
+./unit/atf-src/m4/cxx-std-funcs.m4		X	X,2011
+./unit/atf-src/m4/developer-mode.m4		X	X,2011
+./unit/atf-src/m4/libtool.m4			X	X,2011
+./unit/atf-src/m4/ltoptions.m4			X	X,2011
+./unit/atf-src/m4/ltsugar.m4			X	X,2011
+./unit/atf-src/m4/ltversion.m4			X	X,2011
+./unit/atf-src/m4/lt~obsolete.m4		X	X,2011
+./unit/atf-src/m4/module-application.m4		X	X,2011
+./unit/atf-src/m4/module-defs.m4		X	X,2011
+./unit/atf-src/m4/module-env.m4			X	X,2011
+./unit/atf-src/m4/module-fs.m4			X	X,2011
+./unit/atf-src/m4/module-sanity.m4		X	X,2011
+./unit/atf-src/m4/module-signals.m4		X	X,2011
+./unit/atf-src/m4/runtime-tool.m4		X	X,2011
+./unit/atf-src/test-programs/.cvsignore		X	X,2011
+./unit/atf-src/test-programs/Atffile		X	X,2011
 ./unit/atf-src/test-programs/Makefile.am.inc	X	2011
 ./unit/atf-src/test-programs/c_helpers.c	X	2011
-./unit/atf-src/test-programs/common.sh	X	X	2011
+./unit/atf-src/test-programs/common.sh		X	X,2011
 ./unit/atf-src/test-programs/config_test.sh	X	2011
 ./unit/atf-src/test-programs/cpp_helpers.cpp	X	2011
 ./unit/atf-src/test-programs/expect_test.sh	X	2011
@@ -3262,7 +3270,7 @@
 ./unit/atf-src/test-programs/result_test.sh	X	2011
 ./unit/atf-src/test-programs/sh_helpers.sh	X	2011
 ./unit/atf-src/test-programs/srcdir_test.sh	X	2011
-./unit/unittest.sh.in	X			SH	2011
+./unit/unittest.sh.in				X	SH,2011
 ./util/.cvsignore				X	2000,2001
 ./util/COPYRIGHT				X	1996,1997,1998,1999,2000,2001,2004,2007
 ./util/COPYRIGHT.BRIEF				X	1996,1997,1998,1999,2000,2001,2004
