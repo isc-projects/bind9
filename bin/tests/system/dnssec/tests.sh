@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.55.32.22 2011/02/28 14:28:00 fdupont Exp $
+# $Id: tests.sh,v 1.55.32.23 2011/03/01 16:47:13 smann Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -1149,6 +1149,26 @@ $DIG $DIGOPTS soa secure.below-cname.example. @10.53.0.4 > dig.out.ns4.test$n ||
 grep "NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 grep "ANSWER: 2," dig.out.ns4.test$n > /dev/null || ret=1
 grep "flags:.* ad[ ;]" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking dnskey query with no data still gets put in cache ($n)"
+ret=0
+myDIGOPTS="+noadd +nosea +nostat +noquest +nocomm +nocmd -p 5300 @10.53.0.4"
+firstVal=`$DIG $myDIGOPTS insecure.example. dnskey|awk '{ print $2 }'`
+sleep 1
+secondVal=`$DIG $myDIGOPTS insecure.example. dnskey|awk '{ print $2 }'`
+if [ $firstVal -eq $secondVal ]
+then
+	sleep 1
+	thirdVal=`$DIG $myDIGOPTS insecure.example. dnskey|awk '{ print $2 }'`
+	if [ $firstVal -eq $thirdVal ]
+	then
+		echo "I: cannot confirm query answer still in cache"
+		ret=1
+	fi
+fi
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

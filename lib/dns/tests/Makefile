@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile,v 1.1.2.1 2011/02/26 02:47:53 each Exp $
+# $Id: Makefile,v 1.1.2.2 2011/03/01 16:47:13 smann Exp $
 
 srcdir =	.
 
@@ -39,7 +39,7 @@ VERSION=9.7.3
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile,v 1.1.2.1 2011/02/26 02:47:53 each Exp $
+# $Id: Makefile,v 1.1.2.2 2011/03/01 16:47:13 smann Exp $
 
 # Search for machine-generated header files in the build tree,
 # and for normal headers in the source tree (${top_srcdir}).
@@ -47,27 +47,27 @@ VERSION=9.7.3
 # latter case, because there are no machine-generated OS-specific
 # headers.
 
-ISC_INCLUDES = -I/home/each/isc/bind97x/lib/isc/include \
+ISC_INCLUDES = -I/home/smann/isc/cvs/bind9-v9-7/lib/isc/include \
 	-I${top_srcdir}/lib/isc \
 	-I${top_srcdir}/lib/isc/include \
 	-I${top_srcdir}/lib/isc/unix/include \
-	-I${top_srcdir}/lib/isc/pthreads/include \
+	-I${top_srcdir}/lib/isc/nothreads/include \
 	-I${top_srcdir}/lib/isc/x86_32/include
 
-ISCCC_INCLUDES = -I/home/each/isc/bind97x/lib/isccc/include \
+ISCCC_INCLUDES = -I/home/smann/isc/cvs/bind9-v9-7/lib/isccc/include \
        -I${top_srcdir}/lib/isccc/include
 
-ISCCFG_INCLUDES = -I/home/each/isc/bind97x/lib/isccfg/include \
+ISCCFG_INCLUDES = -I/home/smann/isc/cvs/bind9-v9-7/lib/isccfg/include \
        -I${top_srcdir}/lib/isccfg/include
 
-DNS_INCLUDES = -I/home/each/isc/bind97x/lib/dns/include \
+DNS_INCLUDES = -I/home/smann/isc/cvs/bind9-v9-7/lib/dns/include \
 	-I${top_srcdir}/lib/dns/include
 
-LWRES_INCLUDES = -I/home/each/isc/bind97x/lib/lwres/include \
+LWRES_INCLUDES = -I/home/smann/isc/cvs/bind9-v9-7/lib/lwres/include \
 	-I${top_srcdir}/lib/lwres/unix/include \
 	-I${top_srcdir}/lib/lwres/include
 
-BIND9_INCLUDES = -I/home/each/isc/bind97x/lib/bind9/include \
+BIND9_INCLUDES = -I/home/smann/isc/cvs/bind9-v9-7/lib/bind9/include \
 	-I${top_srcdir}/lib/bind9/include
 
 TEST_INCLUDES = \
@@ -81,7 +81,7 @@ ISCDEPLIBS =	../../isc/libisc.a
 DNSLIBS =	../libdns.a  -lcrypto
 DNSDEPLIBS =	../libdns.a
 
-LIBS =		-lpthread  -lxml2 -L /home/each/isc/bind97x/unit/atf/lib -latf-c
+LIBS =		-lcap  -lxml2 -lz -lm 
 
 OBJS =		dnstest.o
 SRCS =		dnstest.c master_test.c
@@ -89,7 +89,7 @@ SRCS =		dnstest.c master_test.c
 SUBDIRS =
 TARGETS =	master_test
 
-# Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2009, 2011  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 1998-2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -104,7 +104,7 @@ TARGETS =	master_test
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile,v 1.1.2.1 2011/02/26 02:47:53 each Exp $
+# $Id: Makefile,v 1.1.2.2 2011/03/01 16:47:13 smann Exp $
 
 ###
 ### Common Makefile rules for BIND 9.
@@ -116,14 +116,14 @@ TARGETS =	master_test
 ### Note: paths that vary by Makefile MUST NOT be listed
 ### here, or they won't get expanded correctly.
 
-prefix =	/home/each/isc/tmp/try
+prefix =	/usr/local
 exec_prefix =	${prefix}
 bindir =	${exec_prefix}/bin
 sbindir =	${exec_prefix}/sbin
 includedir =	${prefix}/include
 libdir =	${exec_prefix}/lib
-sysconfdir =	${prefix}/etc
-localstatedir =	${prefix}/var
+sysconfdir =	/etc
+localstatedir =	/var
 mandir =	${datarootdir}/man
 datarootdir =   ${prefix}/share
 export_libdir =	${exec_prefix}/lib/bind9/
@@ -133,7 +133,7 @@ DESTDIR =
 
 
 
-top_builddir =	/home/each/isc/bind97x
+top_builddir =	/home/smann/isc/cvs/bind9-v9-7
 
 ###
 ### All
@@ -203,7 +203,7 @@ install clean distclean maintainer-clean doc docclean man manclean::
 CC = 		gcc
 CFLAGS =	-g -O2 -I/usr/include/libxml2
 LDFLAGS =	
-STD_CINCLUDES =	 -I/home/each/isc/bind97x/unit/atf/include
+STD_CINCLUDES =	
 STD_CDEFINES =	 -D_GNU_SOURCE
 STD_CWARNINGS =	 -W -Wall -Wmissing-prototypes -Wcast-qual -Wwrite-strings -Wformat -Wpointer-arith -fno-strict-aliasing
 
@@ -211,13 +211,13 @@ BUILD_CC = gcc
 BUILD_CFLAGS = -g -O2 -I/usr/include/libxml2
 BUILD_CPPFLAGS =  -D_GNU_SOURCE 
 BUILD_LDFLAGS = 
-BUILD_LIBS = -lpthread  -lxml2
+BUILD_LIBS = -lcap  -lxml2 -lz -lm
 
 .SUFFIXES:
 .SUFFIXES: .c .o
 
 ALWAYS_INCLUDES = -I${top_builddir}
-ALWAYS_DEFINES = -D_REENTRANT
+ALWAYS_DEFINES = 
 ALWAYS_WARNINGS =
 
 ALL_CPPFLAGS = \
@@ -230,7 +230,7 @@ ALL_CFLAGS = ${EXT_CFLAGS} ${ALL_CPPFLAGS} ${CFLAGS} \
 .c.o:
 	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} -c $<
 
-SHELL = /bin/bash
+SHELL = /bin/sh
 LIBTOOL = 
 LIBTOOL_MODE_COMPILE = ${LIBTOOL} 
 LIBTOOL_MODE_INSTALL = ${LIBTOOL} 
@@ -390,7 +390,7 @@ XSLTPROC =		/usr/bin/xsltproc --novalid --xinclude --nonet
 PERL =			/usr/bin/perl
 LATEX =			latex
 PDFLATEX =		pdflatex
-W3M =			/usr/bin/w3m
+W3M =			w3m
 
 ###
 ### Script language program used to create internal symbol tables
