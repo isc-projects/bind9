@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.593 2011/03/01 22:44:04 marka Exp $ */
+/* $Id: zone.c,v 1.594 2011/03/01 23:48:07 tbox Exp $ */
 
 /*! \file */
 
@@ -2853,7 +2853,7 @@ compute_tag(dns_name_t *name, dns_rdata_dnskey_t *dnskey, isc_mem_t *mctx,
 }
 
 /*
- * Add key to the security roots. 
+ * Add key to the security roots.
  */
 static void
 trust_key(dns_zone_t *zone, dns_name_t *keyname,

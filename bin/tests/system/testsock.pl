@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 2004, 2007, 2010  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2010, 2011  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: testsock.pl,v 1.19 2011/02/28 14:08:36 fdupont Exp $
+# $Id: testsock.pl,v 1.20 2011/03/01 23:48:05 tbox Exp $
 
 # Test whether the interfaces on 10.53.0.* are up.
 
