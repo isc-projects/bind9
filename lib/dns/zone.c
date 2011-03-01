@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.46 2011/02/22 04:30:46 marka Exp $ */
+/* $Id: zone.c,v 1.540.2.47 2011/03/01 23:22:42 marka Exp $ */
 
 /*! \file */
 
@@ -2831,16 +2831,15 @@ compute_tag(dns_name_t *name, dns_rdata_dnskey_t *dnskey, isc_mem_t *mctx,
 }
 
 /*
- * Add key to the security roots for all views.
+ * Add key to the security roots. 
  */
 static void
-trust_key(dns_viewlist_t *viewlist, dns_name_t *keyname,
+trust_key(dns_zone_t *zone, dns_name_t *keyname,
 	  dns_rdata_dnskey_t *dnskey, isc_mem_t *mctx) {
 	isc_result_t result;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	unsigned char data[4096];
 	isc_buffer_t buffer;
-	dns_view_t *view;
 	dns_keytable_t *sr = NULL;
 	dst_key_t *dstkey = NULL;
 
@@ -2849,17 +2848,13 @@ trust_key(dns_viewlist_t *viewlist, dns_name_t *keyname,
 	dns_rdata_fromstruct(&rdata, dnskey->common.rdclass,
 			     dns_rdatatype_dnskey, dnskey, &buffer);
 
-	for (view = ISC_LIST_HEAD(*viewlist); view != NULL;
-	     view = ISC_LIST_NEXT(view, link)) {
+	result = dns_view_getsecroots(zone->view, &sr);
+	if (result != ISC_R_SUCCESS)
+		goto failure;
 
-		result = dns_view_getsecroots(view, &sr);
-		if (result != ISC_R_SUCCESS)
-			continue;
-
-		CHECK(dns_dnssec_keyfromrdata(keyname, &rdata, mctx, &dstkey));
-		CHECK(dns_keytable_add(sr, ISC_TRUE, &dstkey));
-		dns_keytable_detach(&sr);
-	}
+	CHECK(dns_dnssec_keyfromrdata(keyname, &rdata, mctx, &dstkey));
+	CHECK(dns_keytable_add(sr, ISC_TRUE, &dstkey));
+	dns_keytable_detach(&sr);
 
   failure:
 	if (dstkey != NULL)
@@ -2870,37 +2865,16 @@ trust_key(dns_viewlist_t *viewlist, dns_name_t *keyname,
 }
 
 /*
- * Remove key from the security roots for all views.
- */
-static void
-untrust_key(dns_viewlist_t *viewlist, dns_name_t *keyname, isc_mem_t *mctx,
-	    dns_rdata_dnskey_t *dnskey)
-{
-	dns_view_t *view;
-
-	for (view = ISC_LIST_HEAD(*viewlist); view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-		dns_view_untrust(view, keyname, dnskey, mctx);
-}
-
-/*
- * Add a null key to the security roots for all views, so that all queries
+ * Add a null key to the security roots for so that all queries
  * to the zone will fail.
  */
 static void
-fail_secure(dns_viewlist_t *viewlist, dns_name_t *keyname) {
+fail_secure(dns_zone_t *zone, dns_name_t *keyname) {
 	isc_result_t result;
-	dns_view_t *view;
+	dns_keytable_t *sr = NULL;
 
-	for (view = ISC_LIST_HEAD(*viewlist);
-	     view != NULL;
-	     view = ISC_LIST_NEXT(view, link)) {
-		dns_keytable_t *sr = NULL;
-
-		result = dns_view_getsecroots(view, &sr);
-		if (result != ISC_R_SUCCESS)
-			continue;
-
+	result = dns_view_getsecroots(zone->view, &sr);
+	if (result == ISC_R_SUCCESS) {
 		dns_keytable_marksecure(sr, keyname);
 		dns_keytable_detach(&sr);
 	}
@@ -2908,8 +2882,7 @@ fail_secure(dns_viewlist_t *viewlist, dns_name_t *keyname) {
 
 /*
  * Scan a set of KEYDATA records from the key zone.  The ones that are
- * valid (i.e., the add holddown timer has expired) become trusted keys for
- * all views.
+ * valid (i.e., the add holddown timer has expired) become trusted keys.
  */
 static void
 load_secroots(dns_zone_t *zone, dns_name_t *name, dns_rdataset_t *rdataset) {
@@ -2918,22 +2891,14 @@ load_secroots(dns_zone_t *zone, dns_name_t *name, dns_rdataset_t *rdataset) {
 	dns_rdata_keydata_t keydata;
 	dns_rdata_dnskey_t dnskey;
 	isc_mem_t *mctx = zone->mctx;
-	dns_view_t *view = zone->view;
-	dns_viewlist_t *viewlist = view->viewlist;
 	int trusted = 0, revoked = 0, pending = 0;
 	isc_stdtime_t now;
+	dns_keytable_t *sr = NULL;
 
 	isc_stdtime_get(&now);
 
-	/* For each view, delete references to this key from secroots. */
-	for (view = ISC_LIST_HEAD(*viewlist); view != NULL;
-	     view = ISC_LIST_NEXT(view, link)) {
-		dns_keytable_t *sr = NULL;
-
-		result = dns_view_getsecroots(view, &sr);
-		if (result != ISC_R_SUCCESS)
-			continue;
-
+	result = dns_view_getsecroots(zone->view, &sr);
+	if (result == ISC_R_SUCCESS) {
 		dns_keytable_delete(sr, name);
 		dns_keytable_detach(&sr);
 	}
@@ -2971,7 +2936,7 @@ load_secroots(dns_zone_t *zone, dns_name_t *name, dns_rdataset_t *rdataset) {
 
 		/* Add to keytables. */
 		trusted++;
-		trust_key(viewlist, name, &dnskey, mctx);
+		trust_key(zone, name, &dnskey, mctx);
 	}
 
 	if (trusted == 0 && pending != 0) {
@@ -2984,7 +2949,7 @@ load_secroots(dns_zone_t *zone, dns_name_t *name, dns_rdataset_t *rdataset) {
 			     revoked, pending);
 		dns_zone_log(zone, ISC_LOG_ERROR,
 			     "All queries to '%s' will fail", namebuf);
-		fail_secure(viewlist, name);
+		fail_secure(zone, name);
 	}
 }
 
@@ -7465,8 +7430,8 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 					deletekey = ISC_TRUE;
 				} else if (keydata.removehd == 0) {
 					/* Remove from secroots */
-					untrust_key(zone->view->viewlist,
-						    keyname, mctx, &dnskey);
+					dns_view_untrust(zone->view, keyname,
+							 &dnskey, mctx);
 
 					/* If initializing, delete now */
 					if (keydata.addhd == 0)
@@ -7576,10 +7541,9 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 		}
 
 		if (trustkey) {
-			/* Trust this key in all views */
+			/* Trust this key. */
 			dns_rdata_tostruct(&dnskeyrr, &dnskey, NULL);
-			trust_key(zone->view->viewlist, keyname, &dnskey,
-				  mctx);
+			trust_key(zone, keyname, &dnskey, mctx);
 		}
 
 		if (!deletekey)
@@ -7596,7 +7560,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	 * the security roots; then all queries to the zone will fail.
 	 */
 	if (pending != 0)
-		fail_secure(zone->view->viewlist, keyname);
+		fail_secure(zone, keyname);
 
   failure:
 	if (changed) {

@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: conf.sh.in,v 1.43.8.12 2011/02/28 01:19:27 tbox Exp $
+# $Id: conf.sh.in,v 1.43.8.13 2011/03/01 23:22:41 marka Exp $
 
 #
 # Common configuration data for system tests, to be sourced into
@@ -53,7 +53,7 @@ JOURNALPRINT=$TOP/bin/tools/named-journalprint
 # load on the machine to make it unusable to other users.
 # v6synth
 SUBDIRS="acl allow_query addzone autosign cacheclean checkconf checknames
-	 database dlv @DLZ_SYSTEM_TEST@ dnssec forward glue
+	 database dlv autodlv @DLZ_SYSTEM_TEST@ dnssec forward glue
 	 ixfr limits lwresd masterfile masterformat metadata
 	 notify nsupdate pending pkcs11 resolver rrsetorder
 	 sortlist smartsign stub tkey unknown upforwd
