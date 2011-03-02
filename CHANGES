@@ -1,4 +1,4 @@
-3039.	[bug]		Save and restore the gid when creating creating
+3049.	[bug]		Save and restore the gid when creating creating
 			named.pid at startup. [RT #23290]
 
 3048.	[bug]		Fully separate view key mangement. [RT #23419]
