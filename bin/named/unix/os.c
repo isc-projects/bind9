@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.101.110.2 2011/02/21 23:46:38 tbox Exp $ */
+/* $Id: os.c,v 1.101.110.3 2011/03/02 00:05:11 marka Exp $ */
 
 /*! \file */
 
@@ -790,6 +790,9 @@ ns_os_openfile(const char *filename, mode_t mode, isc_boolean_t switch_user) {
 	free(f);
 
 	if (switch_user && runas_pw != NULL) {
+#ifndef HAVE_LINUXTHREADS
+		gid_t oldgid = getgid();
+#endif
 		/* Set UID/GID to the one we'll be running with eventually */
 		setperms(runas_pw->pw_uid, runas_pw->pw_gid);
 
@@ -797,7 +800,7 @@ ns_os_openfile(const char *filename, mode_t mode, isc_boolean_t switch_user) {
 
 #ifndef HAVE_LINUXTHREADS
 		/* Restore UID/GID to root */
-		setperms(0, 0);
+		setperms(0, oldgid);
 #endif /* HAVE_LINUXTHREADS */
 
 		if (fd == -1) {
