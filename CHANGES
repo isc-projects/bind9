@@ -1,3 +1,6 @@
+3051.	[bug]		NS records obsure DS records at the bottom of the
+			zone if both are present. [RT #23035]
+
 3041.	[bug]		dnssec-signzone failed to generate new signatures on
 			ttl changes. [RT #23330]
 
