@@ -1,3 +1,6 @@
+3051.	[bug]		NS records obsure DS records at the bottom of the
+			zone if both are present. [RT #23035]
+
 3050.	[bug]		The autosign system test was timing dependent.
 			Wait for the initial autosigning to complete
 			before running the rest of the test. [RT #23035]

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.292.8.17 2011/02/19 23:46:54 tbox Exp $ */
+/* $Id: rbtdb.c,v 1.292.8.18 2011/03/02 04:30:53 marka Exp $ */
 
 /*! \file */
 
@@ -2657,10 +2657,15 @@ zone_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 	/*
 	 * Did we find anything?
 	 */
-	if (dname_header != NULL) {
+	if (!IS_CACHE(search->rbtdb) && !IS_STUB(search->rbtdb) &&
+	    ns_header != NULL) {
 		/*
-		 * Note that DNAME has precedence over NS if both exist.
+		 * Note that NS has precedence over DNAME if both exist
+		 * in a zone.  Otherwise DNAME take precedence over NS.
 		 */
+		found = ns_header;
+		search->zonecut_sigrdataset = NULL;
+	} else if (dname_header != NULL) {
 		found = dname_header;
 		search->zonecut_sigrdataset = sigdname_header;
 	} else if (ns_header != NULL) {
