@@ -1,4 +1,7 @@
-3048.	[bug]		Fully seperate view key mangement. [RT #23419]
+3039.	[bug]		Save and restore the gid when creating creating
+			named.pid at startup. [RT #23290]
+
+3048.	[bug]		Fully separate view key mangement. [RT #23419]
 
 3047.	[bug]		DNSKEY NODATA responses not cached fixed in
 			validator.c. Tests added to dnssec system test.
