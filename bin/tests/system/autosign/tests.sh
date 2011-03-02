@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.14 2011/03/01 23:48:05 tbox Exp $
+# $Id: tests.sh,v 1.15 2011/03/02 04:08:58 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -41,14 +41,24 @@ i=0
 while [ $i -lt 30 ]
 do
 	ret=0
-	for z in bar example private.secure.example
+	#
+	# Wait for the root DNSKEY RRset to be fully signed.
+	#
+	$DIG $DIGOPTS . @10.53.0.1 dnskey > dig.out.ns1.test$n || ret=1
+	grep "ANSWER: 10," dig.out.ns1.test$n > /dev/null || ret=1
+	for z in .
 	do
-		$DIG $DIGOPTS $z. @10.53.0.2 nsec > dig.out.ns2.test$n || ret=1
+		$DIG $DIGOPTS $z @10.53.0.1 nsec > dig.out.ns1.test$n || ret=1
+		grep "NS SOA" dig.out.ns1.test$n > /dev/null || ret=1
+	done
+	for z in bar. example. private.secure.example.
+	do
+		$DIG $DIGOPTS $z @10.53.0.2 nsec > dig.out.ns2.test$n || ret=1
 		grep "NS SOA" dig.out.ns2.test$n > /dev/null || ret=1
 	done
-	for z in bar example
+	for z in bar. example.
 	do 
-		$DIG $DIGOPTS $z. @10.53.0.3 nsec > dig.out.ns3.test$n || ret=1
+		$DIG $DIGOPTS $z @10.53.0.3 nsec > dig.out.ns3.test$n || ret=1
 		grep "NS SOA" dig.out.ns3.test$n > /dev/null || ret=1
 	done
 	i=`expr $i + 1`
