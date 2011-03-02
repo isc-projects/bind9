@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.4.6.9 2011/03/02 04:13:02 marka Exp $
+# $Id: tests.sh,v 1.4.6.10 2011/03/02 09:06:30 fdupont Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -788,11 +788,11 @@ echo "I:checking revoked key with duplicate key ID (failure expected) ($n)"
 lret=0
 id=30676
 $DIG $DIGOPTS +multi dnskey bar @10.53.0.2 > dig.out.ns2.test$n || lret=1
-grep '; key id =.*'"$id"'$' dig.out.ns2.test$n || lret=1
+grep '; key id =.*'"$id"'$' dig.out.ns2.test$n > /dev/null || lret=1
 $DIG $DIGOPTS dnskey bar @10.53.0.4 > dig.out.ns4.test$n || lret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || lret=1
 n=`expr $n + 1`
-if [ $lret != 0 ]; then echo "I:failed"; fi
+if [ $lret != 0 ]; then echo "I:not yet implemented"; fi
 
 echo "I:exit status: $status"
 
