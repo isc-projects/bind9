@@ -1,3 +1,5 @@
+3052.	[test]		Fixed last autosign test report. [RT #23256]
+
 3051.	[bug]		NS records obsure DS records at the bottom of the
 			zone if both are present. [RT #23035]
 
