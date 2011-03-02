@@ -1,3 +1,6 @@
+3051.	[bug]		NS records obsure DS records at the bottom of the
+			zone if both are present. [RT #23035]
+
 3046.	[bug]		Use RRSIG original TTL to compute validated RRset
 			and RRSIG TTL. [RT #23332]
 
