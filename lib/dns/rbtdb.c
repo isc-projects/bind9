@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.196.18.65 2011/03/02 04:41:34 marka Exp $ */
+/* $Id: rbtdb.c,v 1.196.18.66 2011/03/02 23:45:32 tbox Exp $ */
 
 /*! \file */
 
