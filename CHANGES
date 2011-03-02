@@ -1,3 +1,7 @@
+3050.	[bug]		The autosign system test was timing dependent.
+			Wait for the initial autosigning to complete
+			before running the rest of the test. [RT #23035]
+
 3049.	[bug]		Save and restore the gid when creating creating
 			named.pid at startup. [RT #23290]
 
