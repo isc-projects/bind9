@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.15 2011/03/02 04:08:58 marka Exp $
+# $Id: tests.sh,v 1.16 2011/03/02 04:52:25 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -25,10 +25,6 @@ status=0
 n=0
 
 DIGOPTS="+tcp +noadd +nosea +nostat +nocmd +dnssec -p 5300"
-
-# wait a bit before testing changes
-# (was in testsock.pl (trailing sleep(1)), to be tuned from robie feedback)
-sleep 5
 
 #
 #  The NSEC record at the apex of the zone and its RRSIG records are
