@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: testsock.pl,v 1.16.558.2 2010/08/17 23:46:28 tbox Exp $
+# $Id: testsock.pl,v 1.16.558.3 2011/03/02 04:45:07 marka Exp $
 
 # Test whether the interfaces on 10.53.0.* are up.
 
@@ -47,5 +47,4 @@ foreach $id (@ids) {
 	    	or die sprintf("$0: bind(%s, %d): $!\n",
 			       inet_ntoa($addr), $port);
 	close(SOCK);
-	sleep(1);
 }
