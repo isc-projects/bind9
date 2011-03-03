@@ -5,5 +5,5 @@ export PATH
 
 if [ -n "@ATFBIN@" ]
 then
-	atf-run | atf-report
+	atf-run | atf-report -o csv:-
 fi
