@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.80.50.4 2011/03/03 04:45:59 each Exp $ */
+/* $Id: cache.c,v 1.80.50.5 2011/03/03 23:46:01 tbox Exp $ */
 
 /*! \file */
 
@@ -191,9 +191,9 @@ dns_cache_create2(isc_mem_t *cmctx, isc_taskmgr_t *taskmgr,
 
 isc_result_t
 dns_cache_create3(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
- 		  isc_timermgr_t *timermgr, dns_rdataclass_t rdclass,
- 		  const char *cachename, const char *db_type,
- 		  unsigned int db_argc, char **db_argv, dns_cache_t **cachep)
+		  isc_timermgr_t *timermgr, dns_rdataclass_t rdclass,
+		  const char *cachename, const char *db_type,
+		  unsigned int db_argc, char **db_argv, dns_cache_t **cachep)
 {
 	isc_result_t result;
 	dns_cache_t *cache;
