@@ -14,12 +14,12 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: unittest.sh.in,v 1.2.2.5 2011/03/03 07:59:47 marka Exp $
+# $Id: unittest.sh.in,v 1.2.2.6 2011/03/03 11:23:19 marka Exp $
 
 PATH=${PATH}:@ATFBIN@
 export PATH
 
 if [ -n "@ATFBIN@" ]
 then
-	atf-run | atf-report -o csv:-
+	atf-run | atf-report -o csv:- | cat
 fi
