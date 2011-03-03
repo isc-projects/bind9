@@ -12,13 +12,13 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.2.2.2 2011/03/01 23:15:18 marka Exp $
+# $Id: clean.sh,v 1.2.2.3 2011/03/03 16:18:12 each Exp $
 
 rm -f random.data
 rm -f ns1/K*
 rm -f ns1/*.signed
 rm -f ns1/*.db
-rm -f ns1/dlv.conf
+rm -f ns1/bind.keys
 rm -f ns1/*.mkeys.jnl
 rm -f ns1/*.mkeys
 rm -f */named.run
@@ -27,3 +27,4 @@ rm -f ns1/dsset-*.
 rm -f ns2/*.mkeys
 rm -f ns2/*.mkeys.jnl
 rm -f dig.out.ns?.test*
+rm -f ns2/named.secroots
