@@ -1,3 +1,6 @@
+3055.	[bug]		Load only the desired keys in the
+			"dnssec-lookaside auto" mode. [RT #23372]
+
 3053.	[bug]		Under a sustained high query load with a finite
 			max-cache-size, it was possible for cache memory
 			to be exhausted and not recovered. [RT #23371]
