@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.h,v 1.18 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: rbtdb.h,v 1.18.814.1 2011/03/03 04:43:02 each Exp $ */
 
 #ifndef DNS_RBTDB_H
 #define DNS_RBTDB_H 1
@@ -38,6 +38,19 @@ isc_result_t
 dns_rbtdb_create(isc_mem_t *mctx, dns_name_t *base, dns_dbtype_t type,
 		 dns_rdataclass_t rdclass, unsigned int argc, char *argv[],
 		 void *driverarg, dns_db_t **dbp);
+
+/*%<
+ * Create a new database of type "rbt" (or "rbt64").  Called via
+ * dns_db_create(); see documentation for that function for more details.
+ *
+ * If argv[0] is set, it points to a valid memory context to be used for
+ * allocation of heap memory.  Generally this is used for cache databases
+ * only.
+ *
+ * Requires:
+ *
+ * \li argc == 0 or argv[0] is a valid memory context.
+ */
 
 ISC_LANG_ENDDECLS
 
