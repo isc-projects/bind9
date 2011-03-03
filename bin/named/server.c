@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.556.8.37 2011/03/03 04:43:35 each Exp $ */
+/* $Id: server.c,v 1.556.8.38 2011/03/03 14:02:53 fdupont Exp $ */
 
 /*! \file */
 
@@ -601,7 +601,8 @@ dstkey_fromconfig(const cfg_obj_t *vconfig, const cfg_obj_t *key,
 
 static isc_result_t
 load_view_keys(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
-	       dns_view_t *view, isc_boolean_t managed, isc_mem_t *mctx)
+	       dns_view_t *view, isc_boolean_t managed,
+	       dns_name_t *keyname, isc_mem_t *mctx)
 {
 	const cfg_listelt_t *elt, *elt2;
 	const cfg_obj_t *key, *keylist;
@@ -628,6 +629,16 @@ load_view_keys(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
 			}
 			if (result != ISC_R_SUCCESS)
 				goto cleanup;
+
+			/*
+			 * If keyname was specified, we only add that key.
+			 */
+			if (keyname != NULL &&
+			    !dns_name_equal(keyname, dst_key_name(dstkey)))
+			{
+				dst_key_free(&dstkey);
+				continue;
+			}
 
 			CHECK(dns_keytable_add(secroots, managed, &dstkey));
 		}
@@ -729,19 +740,22 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 
 		if (builtin_keys != NULL)
 			CHECK(load_view_keys(builtin_keys, vconfig, view,
-					     ISC_FALSE, mctx));
+					     ISC_FALSE, view->dlv, mctx));
 		if (builtin_managed_keys != NULL)
 			CHECK(load_view_keys(builtin_managed_keys, vconfig,
-					     view, ISC_TRUE, mctx));
+					     view, ISC_TRUE, view->dlv, mctx));
 	}
 
-	CHECK(load_view_keys(view_keys, vconfig, view, ISC_FALSE, mctx));
-	CHECK(load_view_keys(view_managed_keys, vconfig, view, ISC_TRUE, mctx));
+	CHECK(load_view_keys(view_keys, vconfig, view, ISC_FALSE,
+			     NULL, mctx));
+	CHECK(load_view_keys(view_managed_keys, vconfig, view, ISC_TRUE,
+			     NULL, mctx));
+
 	if (view->rdclass == dns_rdataclass_in) {
 		CHECK(load_view_keys(global_keys, vconfig, view, ISC_FALSE,
-				     mctx));
+				     NULL, mctx));
 		CHECK(load_view_keys(global_managed_keys, vconfig, view,
-				     ISC_TRUE, mctx));
+				     ISC_TRUE, NULL, mctx));
 	}
 
 	/*
