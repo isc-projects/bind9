@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.512.8.5 $)
+AC_REVISION($Revision: 1.512.8.6 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -682,7 +682,9 @@ esac
 int main() {
 #if (OPENSSL_VERSION_NUMBER >= 0x10000000L)
 	ENGINE *e;
+	EC_KEY *ek;
 
+	ek = NULL;
 	OPENSSL_config(NULL);
 
 	e = ENGINE_by_id("gost");
