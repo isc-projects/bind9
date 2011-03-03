@@ -1,3 +1,6 @@
+3057.	[bug]		"rndc secroots" would abort after the first error
+			and so could miss some views. [RT #23488]
+
 3056.	[func]		Added support for URI resource record. [RT #23386]
 
 3054.	[bug]		Added elliptic curve support check in
