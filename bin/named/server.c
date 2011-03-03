@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.604 2011/02/23 03:08:09 marka Exp $ */
+/* $Id: server.c,v 1.605 2011/03/03 04:42:25 each Exp $ */
 
 /*! \file */
 
@@ -1587,7 +1587,7 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 	isc_uint32_t lame_ttl;
 	dns_tsig_keyring_t *ring = NULL;
 	dns_view_t *pview = NULL;	/* Production view */
-	isc_mem_t *cmctx;
+	isc_mem_t *cmctx = NULL, *hmctx = NULL;
 	dns_dispatch_t *dispatch4 = NULL;
 	dns_dispatch_t *dispatch6 = NULL;
 	isc_boolean_t reused_cache = ISC_FALSE;
@@ -1618,8 +1618,6 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 	unsigned int query_timeout;
 
 	REQUIRE(DNS_VIEW_VALID(view));
-
-	cmctx = NULL;
 
 	if (config != NULL)
 		(void)cfg_map_get(config, "options", &options);
@@ -2103,13 +2101,21 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 			 * view but is not yet configured.  If it is not the
 			 * view name but not a forward reference either, then it
 			 * is simply a named cache that is not shared.
+			 *
+			 * We use two separate memory contexts for the
+			 * cache, for the main cache memory and the heap
+			 * memory.
 			 */
 			CHECK(isc_mem_create(0, 0, &cmctx));
 			isc_mem_setname(cmctx, "cache", NULL);
-			CHECK(dns_cache_create2(cmctx, ns_g_taskmgr,
+			CHECK(isc_mem_create(0, 0, &hmctx));
+			isc_mem_setname(hmctx, "cache_heap", NULL);
+			CHECK(dns_cache_create3(cmctx, hmctx, ns_g_taskmgr,
 						ns_g_timermgr, view->rdclass,
 						cachename, "rbt", 0, NULL,
 						&cache));
+			isc_mem_detach(&cmctx);
+			isc_mem_detach(&hmctx);
 		}
 		nsc = isc_mem_get(mctx, sizeof(*nsc));
 		if (nsc == NULL) {
@@ -2947,6 +2953,8 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 		dns_order_detach(&order);
 	if (cmctx != NULL)
 		isc_mem_detach(&cmctx);
+	if (hmctx != NULL)
+		isc_mem_detach(&hmctx);
 
 	if (cache != NULL)
 		dns_cache_detach(&cache);
