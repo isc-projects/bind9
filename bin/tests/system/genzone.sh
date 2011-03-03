@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2009, 2011  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2001-2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: genzone.sh,v 1.12 2011/03/03 14:10:26 fdupont Exp $
+# $Id: genzone.sh,v 1.13 2011/03/03 23:47:31 tbox Exp $
 
 #
 # Set up a test zone

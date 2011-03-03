@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata_test.c,v 1.49 2011/03/03 14:10:26 fdupont Exp $ */
+/* $Id: rdata_test.c,v 1.50 2011/03/03 23:47:31 tbox Exp $ */
 
 #include <config.h>
 
