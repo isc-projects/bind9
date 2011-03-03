@@ -1,3 +1,6 @@
+3054.	[bug]		Added elliptic curve support check in
+			GOST OpenSSL engine detection. [RT #23485]
+
 3053.	[bug]		Under a sustained high query load with a finite
 			max-cache-size, it was possible for cache memory
 			to be exhausted and not recovered. [RT #23371]
