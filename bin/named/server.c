@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.520.12.21 2011/01/14 23:45:49 tbox Exp $ */
+/* $Id: server.c,v 1.520.12.22 2011/03/03 04:45:58 each Exp $ */
 
 /*! \file */
 
@@ -1033,7 +1033,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	isc_uint32_t lame_ttl;
 	dns_tsig_keyring_t *ring;
 	dns_view_t *pview = NULL;	/* Production view */
-	isc_mem_t *cmctx;
+	isc_mem_t *cmctx = NULL, *hmctx = NULL;
 	dns_dispatch_t *dispatch4 = NULL;
 	dns_dispatch_t *dispatch6 = NULL;
 	isc_boolean_t reused_cache = ISC_FALSE;
@@ -1055,8 +1055,6 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	isc_boolean_t zero_no_soattl;
 
 	REQUIRE(DNS_VIEW_VALID(view));
-
-	cmctx = NULL;
 
 	if (config != NULL)
 		(void)cfg_map_get(config, "options", &options);
@@ -1292,10 +1290,22 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 		dns_view_detach(&pview);
 	}
 	if (cache == NULL) {
+		/*
+		 * Create a cache.
+		 *
+		 * We use two separate memory contexts for the
+		 * cache, for the main cache memory and the heap
+		 * memory.
+		 */
 		CHECK(isc_mem_create(0, 0, &cmctx));
-		CHECK(dns_cache_create(cmctx, ns_g_taskmgr, ns_g_timermgr,
-				       view->rdclass, "rbt", 0, NULL, &cache));
 		isc_mem_setname(cmctx, "cache", NULL);
+		CHECK(isc_mem_create(0, 0, &hmctx));
+		isc_mem_setname(hmctx, "cache_heap", NULL);
+		CHECK(dns_cache_create3(cmctx, hmctx, ns_g_taskmgr,
+					ns_g_timermgr, view->rdclass,
+					NULL, "rbt", 0, NULL, &cache));
+		isc_mem_detach(&cmctx);
+		isc_mem_detach(&hmctx);
 	}
 	dns_view_setcache(view, cache);
 
@@ -2029,6 +2039,8 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 		dns_order_detach(&order);
 	if (cmctx != NULL)
 		isc_mem_detach(&cmctx);
+	if (hmctx != NULL)
+		isc_mem_detach(&hmctx);
 
 	if (cache != NULL)
 		dns_cache_detach(&cache);
