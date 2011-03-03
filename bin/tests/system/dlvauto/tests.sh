@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.2.4.2 2011/03/01 23:22:42 marka Exp $
+# $Id: tests.sh,v 1.2.4.3 2011/03/03 16:19:29 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -41,5 +41,19 @@ else
 	echo "I:failed"
 	status=1
 fi
+
+n=`expr $n + 1`
+echo "I:checking that only the DLV key was imported from bind.keys ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 secroots 2>&1 | sed 's/^/I:ns2 /'
+linecount=`grep "\./RSAMD5/.* ; managed" ns2/named.secroots | wc -l`
+[ "$linecount" -eq 0 ] || ret=1
+linecount=`grep "dlv.isc.org/RSAMD5/.* ; managed" ns2/named.secroots | wc -l`
+[ "$linecount" -eq 2 ] || ret=1
+linecount=`cat ns2/named.secroots | wc -l`
+[ "$linecount" -eq 13 ] || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
 
 exit $status

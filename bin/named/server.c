@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.556.8.38 2011/03/03 14:02:53 fdupont Exp $ */
+/* $Id: server.c,v 1.556.8.39 2011/03/03 16:19:29 each Exp $ */
 
 /*! \file */
 
@@ -5869,28 +5869,29 @@ ns_server_dumpsecroots(ns_server_t *server, char *args) {
 	isc_time_formattimestamp(&now, tbuf, sizeof(tbuf));
 	fprintf(fp, "%s\n", tbuf);
 
- nextview:
-	for (view = ISC_LIST_HEAD(server->viewlist);
-	     view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
-		if (ptr != NULL && strcmp(view->name, ptr) != 0)
-			continue;
-		if (secroots != NULL)
-			dns_keytable_detach(&secroots);
-		result = dns_view_getsecroots(view, &secroots);
-		if (result == ISC_R_NOTFOUND) {
-			result = ISC_R_SUCCESS;
-			continue;
+	do {
+		for (view = ISC_LIST_HEAD(server->viewlist);
+		     view != NULL;
+		     view = ISC_LIST_NEXT(view, link))
+		{
+			if (ptr != NULL && strcmp(view->name, ptr) != 0)
+				continue;
+			if (secroots != NULL)
+				dns_keytable_detach(&secroots);
+			result = dns_view_getsecroots(view, &secroots);
+			if (result == ISC_R_NOTFOUND) {
+				result = ISC_R_SUCCESS;
+				continue;
+			}
+			fprintf(fp, "\n Start view %s\n\n", view->name);
+			result = dns_keytable_dump(secroots, fp);
+			if (result != ISC_R_SUCCESS)
+				fprintf(fp, " dumpsecroots failed: %s\n",
+					isc_result_totext(result));
 		}
-		fprintf(fp, "\n Start view %s\n\n", view->name);
-		CHECK(dns_keytable_dump(secroots, fp));
-	}
-	if (ptr != NULL) {
-		ptr = next_token(&args, " \t");
 		if (ptr != NULL)
-			goto nextview;
-	}
+			ptr = next_token(&args, " \t");
+	} while (ptr != NULL);
 
  cleanup:
 	if (secroots != NULL)

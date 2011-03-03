@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.2.4.2 2011/03/01 23:22:42 marka Exp $
+# $Id: sign.sh,v 1.2.4.3 2011/03/03 16:19:29 each Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -25,20 +25,32 @@ zone=dlv.isc.org
 infile=dlv.isc.org.db.in
 zonefile=dlv.isc.org.db
 
-keyname=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 768 -n zone $zone`
-cat $infile $keyname.key > $zonefile
+dlvkey=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 768 -n zone $zone`
+cat $infile $dlvkey.key > $zonefile
 $SIGNER -P -g -r $RANDFILE -o $zone $zonefile > /dev/null
 
-cp root.db.in root.db
+zone=.
+infile=root.db.in
+zonefile=root.db
 
-# Configure the resolving server with a trusted key.
+rootkey=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 768 -n zone $zone`
+cat $infile $rootkey.key > $zonefile
+$SIGNER -P -g -r $RANDFILE -o $zone $zonefile > /dev/null
 
-cat $keyname.key | grep -v '^; ' | $PERL -n -e '
+# Create bind.keys file for the use of the resolving server
+echo "managed-keys {" > bind.keys
+cat $dlvkey.key | grep -v '^; ' | $PERL -n -e '
 local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
 local $key = join("", @rest);
 print <<EOF
-managed-keys {
     "$dn" initial-key $flags $proto $alg "$key";
-};
 EOF
-' >  dlv.conf
+' >>  bind.keys
+cat $rootkey.key | grep -v '^; ' | $PERL -n -e '
+local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
+local $key = join("", @rest);
+print <<EOF
+    "$dn" initial-key $flags $proto $alg "$key";
+EOF
+' >>  bind.keys
+echo "};" >> bind.keys

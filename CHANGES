@@ -1,3 +1,6 @@
+3057.	[bug]		"rndc secroots" would abort after the first error
+			and so could miss some views. [RT #23488]
+
 3055.	[bug]		Load only the desired keys in the
 			"dnssec-lookaside auto" mode. [RT #23372]
 
