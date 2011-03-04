@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.6 2010/08/16 22:21:06 marka Exp $
+# $Id: tests.sh,v 1.7 2011/03/04 22:20:21 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -63,7 +63,7 @@ cksk4=`$REVOKE $cksk3`
 $SETTIME -A now+20s $cksk2 > /dev/null
 
 echo I:signing child zone
-czoneout=`$SIGNER -Sg -r $RANDFILE -o $czone $cfile 2>&1`
+czoneout=`$SIGNER -Sg -e now+1d -X now+2d -r $RANDFILE -o $czone $cfile 2>&1`
 
 echo I:generating keys
 pzsk=`$KEYGEN -q -r $RANDFILE $pzone`
@@ -157,6 +157,14 @@ grep "$czgenerated" other.sigs > /dev/null && ret=1
 grep "$czpredecessor" other.sigs > /dev/null && ret=1
 grep "$czsuccessor" other.sigs > /dev/null && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking RRSIG expiry date correctness"
+dnskey_expiry=`$CHECKZONE -o - $czone $cfile.signed 2> /dev/null |
+              awk '$4 == "RRSIG" && $5 == "DNSKEY" {print $9; exit}'`
+soa_expiry=`$CHECKZONE -o - $czone $cfile.signed 2> /dev/null |
+           awk '$4 == "RRSIG" && $5 == "SOA" {print $9; exit}'`
+[ $dnskey_expiry -gt $soa_expiry ] || ret=1
 status=`expr $status + $ret`
 
 echo "I:waiting 20 seconds for key activation"

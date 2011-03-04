@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.264 2011/03/01 23:48:05 tbox Exp $ */
+/* $Id: dnssec-signzone.c,v 1.265 2011/03/04 22:20:20 each Exp $ */
 
 /*! \file */
 
@@ -124,7 +124,7 @@ struct signer_event {
 static dns_dnsseckeylist_t keylist;
 static unsigned int keycount = 0;
 isc_rwlock_t keylist_lock;
-static isc_stdtime_t starttime = 0, endtime = 0, now;
+static isc_stdtime_t starttime = 0, endtime = 0, dnskey_endtime = 0, now;
 static int cycle = -1;
 static int jitter = 0;
 static isc_boolean_t tryverify = ISC_FALSE;
@@ -206,7 +206,7 @@ signwithkey(dns_name_t *name, dns_rdataset_t *rdataset, dst_key_t *key,
 	    dns_ttl_t ttl, dns_diff_t *add, const char *logmsg)
 {
 	isc_result_t result;
-	isc_stdtime_t jendtime;
+	isc_stdtime_t jendtime, expiry;
 	char keystr[DST_KEY_FORMATSIZE];
 	dns_rdata_t trdata = DNS_RDATA_INIT;
 	unsigned char array[BUFSIZE];
@@ -216,7 +216,12 @@ signwithkey(dns_name_t *name, dns_rdataset_t *rdataset, dst_key_t *key,
 	dst_key_format(key, keystr, sizeof(keystr));
 	vbprintf(1, "\t%s %s\n", logmsg, keystr);
 
-	jendtime = (jitter != 0) ? isc_random_jitter(endtime, jitter) : endtime;
+	if (rdataset->type == dns_rdatatype_dnskey)
+		expiry = dnskey_endtime;
+	else
+		expiry = endtime;
+
+	jendtime = (jitter != 0) ? isc_random_jitter(expiry, jitter) : expiry;
 	isc_buffer_init(&b, array, sizeof(array));
 	result = dns_dnssec_sign(name, rdataset, key, &starttime, &jendtime,
 				 mctx, &b, &trdata);
@@ -416,9 +421,15 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 	char namestr[DNS_NAME_FORMATSIZE];
 	char typestr[TYPE_FORMATSIZE];
 	char sigstr[SIG_FORMATSIZE];
+	isc_stdtime_t expiry;
 
 	dns_name_format(name, namestr, sizeof(namestr));
 	type_format(set->type, typestr, sizeof(typestr));
+
+	if (set->type == dns_rdatatype_dnskey)
+		expiry = dnskey_endtime;
+	else
+		expiry = endtime;
 
 	ttl = ISC_MIN(set->ttl, endtime - starttime);
 
@@ -3259,10 +3270,16 @@ usage(void) {
 	fprintf(stderr, "update DS records based on child zones' "
 			"dsset-* files\n");
 	fprintf(stderr, "\t-s [YYYYMMDDHHMMSS|+offset]:\n");
-	fprintf(stderr, "\t\tRRSIG start time - absolute|offset (now - 1 hour)\n");
+	fprintf(stderr, "\t\tRRSIG start time "
+                                "- absolute|offset (now - 1 hour)\n");
 	fprintf(stderr, "\t-e [YYYYMMDDHHMMSS|+offset|\"now\"+offset]:\n");
-	fprintf(stderr, "\t\tRRSIG end time  - absolute|from start|from now "
+	fprintf(stderr, "\t\tRRSIG end time "
+                                "- absolute|from start|from now "
 				"(now + 30 days)\n");
+	fprintf(stderr, "\t-X [YYYYMMDDHHMMSS|+offset|\"now\"+offset]:\n");
+	fprintf(stderr, "\t\tDNSKEY RRSIG end "
+                                "- absolute|from start|from now "
+				"(matches -e)\n");
 	fprintf(stderr, "\t-i interval:\n");
 	fprintf(stderr, "\t\tcycle interval - resign "
 				"if < interval from end ( (end-start)/4 )\n");
@@ -3355,6 +3372,7 @@ int
 main(int argc, char *argv[]) {
 	int i, ch;
 	char *startstr = NULL, *endstr = NULL, *classname = NULL;
+	char *dnskey_endstr = NULL;
 	char *origin = NULL, *file = NULL, *output = NULL;
 	char *inputformatstr = NULL, *outputformatstr = NULL;
 	char *serialformatstr = NULL;
@@ -3386,7 +3404,7 @@ main(int argc, char *argv[]) {
 	isc_boolean_t set_iter = ISC_FALSE;
 
 #define CMDLINE_FLAGS \
-	"3:AaCc:Dd:E:e:f:FghH:i:I:j:K:k:l:m:n:N:o:O:pPr:s:ST:tuUv:xz"
+	"3:AaCc:Dd:E:e:f:FghH:i:I:j:K:k:l:m:n:N:o:O:pPr:s:ST:tuUv:X:xz"
 
 	/*
 	 * Process memory debugging argument first.
@@ -3609,6 +3627,10 @@ main(int argc, char *argv[]) {
 				fatal("verbose level must be numeric");
 			break;
 
+		case 'X':
+			dnskey_endstr = isc_commandline_argument;
+			break;
+
 		case 'x':
 			keyset_kskonly = ISC_TRUE;
 			break;
@@ -3656,10 +3678,18 @@ main(int argc, char *argv[]) {
 	} else
 		starttime = now - 3600;  /* Allow for some clock skew. */
 
-	if (endstr != NULL) {
+	if (endstr != NULL)
 		endtime = strtotime(endstr, now, starttime);
-	} else
+	else
 		endtime = starttime + (30 * 24 * 60 * 60);
+
+	if (dnskey_endstr != NULL) {
+		dnskey_endtime = strtotime(dnskey_endstr, now, starttime);
+                if (endstr != NULL && dnskey_endtime == endtime)
+                        fprintf(stderr, "WARNING: -e and -X were both set, "
+                                        "but have identical values.\n");
+	} else 
+		dnskey_endtime = endtime;
 
 	if (cycle == -1)
 		cycle = (endtime - starttime) / 4;
