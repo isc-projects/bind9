@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: start.pl,v 1.5.18.4 2006/03/05 23:58:51 marka Exp $
+# $Id: start.pl,v 1.5.18.5 2011/03/04 17:12:18 smann Exp $
 
 # Framework for starting test servers.
 # Based on the type of server specified, check for port availability, remove
@@ -33,6 +33,8 @@ use Getopt::Long;
 #   test - name of the test directory
 #   server - name of the server directory
 #   options - alternate options for the server
+#             NOTE: options must be specified with '-- "<option list>"',
+#              for instance: start.pl . ns1 -- "-c n.conf -d 43"
 
 my $usage = "usage: $0 [--noclean] test-directory [server-directory [server-options]]";
 my $noclean;
