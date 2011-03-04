@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.265 2011/03/04 22:20:20 each Exp $ */
+/* $Id: dnssec-signzone.c,v 1.266 2011/03/04 23:47:47 tbox Exp $ */
 
 /*! \file */
 
@@ -3271,14 +3271,14 @@ usage(void) {
 			"dsset-* files\n");
 	fprintf(stderr, "\t-s [YYYYMMDDHHMMSS|+offset]:\n");
 	fprintf(stderr, "\t\tRRSIG start time "
-                                "- absolute|offset (now - 1 hour)\n");
+				"- absolute|offset (now - 1 hour)\n");
 	fprintf(stderr, "\t-e [YYYYMMDDHHMMSS|+offset|\"now\"+offset]:\n");
 	fprintf(stderr, "\t\tRRSIG end time "
-                                "- absolute|from start|from now "
+				"- absolute|from start|from now "
 				"(now + 30 days)\n");
 	fprintf(stderr, "\t-X [YYYYMMDDHHMMSS|+offset|\"now\"+offset]:\n");
 	fprintf(stderr, "\t\tDNSKEY RRSIG end "
-                                "- absolute|from start|from now "
+				"- absolute|from start|from now "
 				"(matches -e)\n");
 	fprintf(stderr, "\t-i interval:\n");
 	fprintf(stderr, "\t\tcycle interval - resign "
@@ -3685,10 +3685,10 @@ main(int argc, char *argv[]) {
 
 	if (dnskey_endstr != NULL) {
 		dnskey_endtime = strtotime(dnskey_endstr, now, starttime);
-                if (endstr != NULL && dnskey_endtime == endtime)
-                        fprintf(stderr, "WARNING: -e and -X were both set, "
-                                        "but have identical values.\n");
-	} else 
+		if (endstr != NULL && dnskey_endtime == endtime)
+			fprintf(stderr, "WARNING: -e and -X were both set, "
+					"but have identical values.\n");
+	} else
 		dnskey_endtime = endtime;
 
 	if (cycle == -1)
