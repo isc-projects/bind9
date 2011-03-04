@@ -389,6 +389,7 @@ dns_name_tostring
 dns_name_totext
 dns_name_towire
 dns_ncache_add
+dns_ncache_current
 dns_ncache_getrdataset
 dns_ncache_towire
 dns_nsec3_active
@@ -596,6 +597,7 @@ dns_resolver_resetmustbesecure
 dns_resolver_setclientsperquery
 dns_resolver_setlamettl
 dns_resolver_setmustbesecure
+dns_resolver_settimeout
 dns_resolver_setudpsize
 dns_resolver_setzeronosoattl
 dns_resolver_shutdown
