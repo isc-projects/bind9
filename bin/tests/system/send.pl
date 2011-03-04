@@ -15,11 +15,11 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: send.pl,v 1.5 2007/06/19 23:47:00 tbox Exp $
+# $Id: send.pl,v 1.5.558.1 2011/03/04 22:07:35 each Exp $
 
 #
 # Send a file to a given address and port using TCP.  Used for
-# configuring the test server in ixfr/ans2/ans.pl.
+# configuring the test server in ans.pl.
 #
 
 use IO::File;
