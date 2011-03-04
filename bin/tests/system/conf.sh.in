@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: conf.sh.in,v 1.63 2011/03/02 04:49:05 marka Exp $
+# $Id: conf.sh.in,v 1.64 2011/03/04 14:07:03 smann Exp $
 
 #
 # Common configuration data for system tests, to be sourced into
@@ -54,10 +54,10 @@ JOURNALPRINT=$TOP/bin/tools/named-journalprint
 # v6synth
 SUBDIRS="acl allow_query addzone autosign cacheclean checkconf checknames
 	 checkzone database dlv dlvauto @DLZ_SYSTEM_TEST@ dlzexternal dns64
-	 dnssec forward glue gost ixfr limits lwresd masterfile masterformat
-	 metadata notify nsupdate pending pkcs11 redirect resolver rpz
-	 rrsetorder sortlist smartsign staticstub stub tkey tsig tsiggss
-	 unknown upforwd views xfer xferquota zonechecks"
+	 dnssec forward glue gost ixfr limits logfileconfig lwresd masterfile
+	 masterformat metadata notify nsupdate pending pkcs11 redirect
+	 resolver rpz rrsetorder sortlist smartsign staticstub stub tkey tsig
+	 tsiggss unknown upforwd views xfer xferquota zonechecks"
 
 # PERL will be an empty string if no perl interpreter was found.
 PERL=@PERL@
