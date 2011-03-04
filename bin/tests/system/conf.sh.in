@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: conf.sh.in,v 1.39.166.10 2011/03/02 04:43:22 marka Exp $
+# $Id: conf.sh.in,v 1.39.166.11 2011/03/04 14:59:29 smann Exp $
 
 #
 # Common configuration data for system tests, to be sourced into
@@ -45,7 +45,7 @@ CHECKCONF=$TOP/bin/check/named-checkconf
 # v6synth
 SUBDIRS="acl allow_query cacheclean checkconf checknames checkzone
 	 database dlv @DLZ_SYSTEM_TEST@ dnssec forward glue ixfr
-	 limits lwresd masterfile masterformat notify nsupdate
+	 limits logfileconfig lwresd masterfile masterformat notify nsupdate
 	 pending resolver rrsetorder sortlist stub tkey unknown upforwd
 	 views xfer xferquota zonechecks"
 
