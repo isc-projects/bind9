@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: start.pl,v 1.17 2011/03/04 14:07:03 smann Exp $
+# $Id: start.pl,v 1.18 2011/03/04 22:01:00 each Exp $
 
 # Framework for starting test servers.
 # Based on the type of server specified, check for port availability, remove
@@ -156,7 +156,11 @@ sub start_server {
 		$pid_file = "lwresd.pid";
 	} elsif ($server =~ /^ans/) {
 		$cleanup_files = "{ans.run}";
-		$command = "$PERL ./ans.pl ";
+                if (-e "$testdir/$server/ans.pl") {
+                        $command = "$PERL ans.pl";
+                } else {
+                        $command = "$PERL $topdir/ans.pl 10.53.0.$'";
+                }
 		if ($options) {
 			$command .= "$options";
 		} else {

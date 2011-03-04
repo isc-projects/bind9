@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.31 2007/06/19 23:47:07 tbox Exp $
+# $Id: tests.sh,v 1.32 2011/03/04 22:01:00 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -97,6 +97,108 @@ $PERL ../digcomp.pl dig2.good dig.out.ns3 || status=1
 
 # ns3 has a journal iff it received an IXFR.
 test -f ns3/example.bk.jnl || status=1 
+
+# now we test transfers with assorted TSIG glitches
+DIGCMD="$DIG $DIGOPTS @10.53.0.4 -p 5300"
+SENDCMD="$PERL ../send.pl 10.53.0.5 5301"
+RNDCCMD="$RNDC -s 10.53.0.4 -p 9953 -c ../common/rndc.conf"
+
+echo "I:testing that incorrectly signed transfers will fail..."
+echo "I:initial correctly-signed transfer should succeed"
+
+$SENDCMD < ans5/goodaxfr
+sleep 1
+
+# Initially, ns4 is not authoritative for anything.
+# Now that ans is up and running with the right data, we make it
+# a slave for nil.
+
+cat <<EOF >>ns4/named.conf
+zone "nil" {
+	type slave;
+	file "nil.db";
+	masters { 10.53.0.5 key tsig_key; };
+};
+EOF
+
+$RNDCCMD reload | sed 's/^/I:ns4 /'
+
+sleep 2
+
+$DIGCMD nil. TXT | grep 'initial AXFR' >/dev/null || {
+    echo "I:failed"
+    status=1
+}
+
+echo "I:unsigned transfer"
+
+$SENDCMD < ans5/unsigned
+sleep 1
+
+$RNDCCMD retransfer nil | sed 's/^/I:ns4 /'
+
+sleep 2
+
+$DIGCMD nil. TXT | grep 'unsigned AXFR' >/dev/null && {
+    echo "I:failed"
+    status=1
+}
+
+echo "I:bad keydata"
+
+$SENDCMD < ans5/badkeydata
+sleep 1
+
+$RNDCCMD retransfer nil | sed 's/^/I:ns4 /'
+
+sleep 2
+
+$DIGCMD nil. TXT | grep 'bad keydata AXFR' >/dev/null && {
+    echo "I:failed"
+    status=1
+}
+
+echo "I:partially-signed transfer"
+
+$SENDCMD < ans5/partial
+sleep 1
+
+$RNDCCMD retransfer nil | sed 's/^/I:ns4 /'
+
+sleep 2
+
+$DIGCMD nil. TXT | grep 'partially signed AXFR' >/dev/null && {
+    echo "I:failed"
+    status=1
+}
+
+echo "I:unknown key"
+
+$SENDCMD < ans5/unknownkey
+sleep 1
+
+$RNDCCMD retransfer nil | sed 's/^/I:ns4 /'
+
+sleep 2
+
+$DIGCMD nil. TXT | grep 'unknown key AXFR' >/dev/null && {
+    echo "I:failed"
+    status=1
+}
+
+echo "I:incorrect key"
+
+$SENDCMD < ans5/wrongkey
+sleep 1
+
+$RNDCCMD retransfer nil | sed 's/^/I:ns4 /'
+
+sleep 2
+
+$DIGCMD nil. TXT | grep 'incorrect key AXFR' >/dev/null && {
+    echo "I:failed"
+    status=1
+}
 
 echo "I:exit status: $status"
 exit $status
