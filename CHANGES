@@ -1,3 +1,5 @@
+3063.	[contrib]	More verbose error reporting from DLZ LDAP. [RT #23402]
+
 3062.	[func]		Made several changes to enhance human readability
 			of DNSSEC data in dig output and in generated
 			zone files:
