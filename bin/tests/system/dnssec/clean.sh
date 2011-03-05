@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.38 2011/03/04 14:07:03 smann Exp $
+# $Id: clean.sh,v 1.39 2011/03/05 06:35:40 marka Exp $
 
 exit
 
@@ -25,6 +25,7 @@ rm -f ns1/root.db ns2/example.db ns3/secure.example.db
 rm -f ns3/unsecure.example.db ns3/bogus.example.db ns3/keyless.example.db
 rm -f ns3/dynamic.example.db ns3/dynamic.example.db.signed.jnl
 rm -f ns3/rsasha256.example.db ns3/rsasha512.example.db
+rm -f ns3/split-dnssec.example.db
 rm -f ns2/private.secure.example.db
 rm -f ns2/badparam.db ns2/badparam.db.bad
 rm -f ns2/single-nsec3.db
@@ -55,3 +56,4 @@ rm -f signer/example.db.after signer/example.db.before
 rm -f signer/example.db.changed
 rm -f ns3/ttlpatch.example.db ns3/ttlpatch.example.db.signed
 rm -f ns3/ttlpatch.example.db.patched
+rm -f ns3/split-smart.example.db

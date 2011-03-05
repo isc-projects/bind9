@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.46 2011/02/28 14:21:35 fdupont Exp $
+# $Id: sign.sh,v 1.47 2011/03/05 06:35:41 marka Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -32,7 +32,8 @@ zonefile=example.db
 
 for subdomain in secure bogus dynamic keyless nsec3 optout nsec3-unknown \
     optout-unknown multiple rsasha256 rsasha512 kskonly update-nsec3 \
-    auto-nsec auto-nsec3 secure.below-cname ttlpatch
+    auto-nsec auto-nsec3 secure.below-cname ttlpatch split-dnssec \
+    split-smart
 do
 	cp ../ns3/dsset-$subdomain.example. .
 done

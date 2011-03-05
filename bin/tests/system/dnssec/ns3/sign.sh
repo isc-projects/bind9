@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.38 2011/02/28 14:21:35 fdupont Exp $
+# $Id: sign.sh,v 1.39 2011/03/05 06:35:41 marka Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -340,3 +340,32 @@ cat $infile $keyname.key >$zonefile
 
 $SIGNER -P -r $RANDFILE -f $signedfile -o $zone $zonefile > /dev/null 2>&1
 sed 's/300/3600/' $signedfile > $patchedfile
+
+#
+# Seperate DNSSEC records.
+#
+zone=split-dnssec.example.
+infile=split-dnssec.example.db.in
+zonefile=split-dnssec.example.db
+signedfile=split-dnssec.example.db.signed
+
+keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 768 -n zone $zone`
+cat $infile $keyname.key >$zonefile
+echo '$INCLUDE "'"$signedfile"'"' >> $zonefile
+: > $signedfile
+$SIGNER -P -r $RANDFILE -D -o $zone $zonefile > /dev/null 2>&1
+
+#
+# Seperate DNSSEC records smart signing.
+#
+zone=split-smart.example.
+infile=split-smart.example.db.in
+zonefile=split-smart.example.db
+signedfile=split-smart.example.db.signed
+
+keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 768 -n zone $zone`
+cp $infile $zonefile
+echo '$INCLUDE "'"$signedfile"'"' >> $zonefile
+: > $signedfile
+$SIGNER -P -S -r $RANDFILE -D -o $zone $zonefile > /dev/null 2>&1
+

@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.docbook,v 1.45 2011/03/04 22:20:20 each Exp $ -->
+<!-- $Id: dnssec-signzone.docbook,v 1.46 2011/03/05 06:35:40 marka Exp $ -->
 <refentry id="man.dnssec-signzone">
   <refentryinfo>
     <date>June 05, 2009</date>
@@ -60,6 +60,7 @@
       <arg><option>-a</option></arg>
       <arg><option>-c <replaceable class="parameter">class</replaceable></option></arg>
       <arg><option>-d <replaceable class="parameter">directory</replaceable></option></arg>
+      <arg><option>-D</option></arg>
       <arg><option>-E <replaceable class="parameter">engine</replaceable></option></arg>
       <arg><option>-e <replaceable class="parameter">end-time</replaceable></option></arg>
       <arg><option>-f <replaceable class="parameter">output-file</replaceable></option></arg>
@@ -148,6 +149,22 @@
           <para>
             Look for <filename>dsset-</filename> or
             <filename>keyset-</filename> files in <option>directory</option>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-D</term>
+        <listitem>
+          <para>
+	    Output only those record types automatically managed by
+	    <command>dnssec-signzone</command>, i.e. RRSIG, NSEC,
+	    NSEC3 and NSEC3PARAM records. If smart signing
+	    (<option>-S</option>) is used, DNSKEY records are also
+	    included. The resulting file can be included in the original
+	    zone file with <command>$INCLUDE</command>. This option
+	    cannot be combined with <option>-O raw</option> or serial
+	    number updating.
           </para>
         </listitem>
       </varlistentry>

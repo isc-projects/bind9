@@ -1,3 +1,6 @@
+3061.	[func]		New option "dnssec-signzone -D", only write out
+			generated DNSSEC records. [RT #22896]
+
 3060.	[func]		New option "dnssec-signzone -X <date>" allows
 			specification of a separate expiration date
 			for DNSKEY RRSIGs and other RRSIGs. [RT #22141]

@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.266 2011/03/04 23:47:47 tbox Exp $ */
+/* $Id: dnssec-signzone.c,v 1.267 2011/03/05 06:35:40 marka Exp $ */
 
 /*! \file */
 
@@ -171,6 +171,8 @@ static isc_boolean_t disable_zone_check = ISC_FALSE;
 static isc_boolean_t update_chain = ISC_FALSE;
 static isc_boolean_t set_keyttl = ISC_FALSE;
 static dns_ttl_t keyttl;
+static isc_boolean_t smartsign = ISC_FALSE;
+static isc_boolean_t output_dnssec_only = ISC_FALSE;
 
 #define INCSTAT(counter)		\
 	if (printstats) {		\
@@ -188,13 +190,69 @@ sign(isc_task_t *task, isc_event_t *event);
 
 static void
 dumpnode(dns_name_t *name, dns_dbnode_t *node) {
+	dns_rdataset_t rds;
+	dns_rdatasetiter_t *iter = NULL;
+	isc_buffer_t *buffer = NULL;
+	isc_region_t r;
 	isc_result_t result;
+	unsigned bufsize = 4096;
 
 	if (outputformat != dns_masterformat_text)
 		return;
-	result = dns_master_dumpnodetostream(mctx, gdb, gversion, node, name,
-					     masterstyle, fp);
-	check_result(result, "dns_master_dumpnodetostream");
+
+	if (!output_dnssec_only) {
+		result = dns_master_dumpnodetostream(mctx, gdb, gversion, node,
+						     name, masterstyle, fp);
+		check_result(result, "dns_master_dumpnodetostream");
+		return;
+	}
+
+	result = dns_db_allrdatasets(gdb, node, gversion, 0, &iter);
+	check_result(result, "dns_db_allrdatasets");
+
+	dns_rdataset_init(&rds);
+
+	result = isc_buffer_allocate(mctx, &buffer, bufsize);
+	check_result(result, "isc_buffer_allocate");
+
+	for (result = dns_rdatasetiter_first(iter);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdatasetiter_next(iter)) {
+	
+		dns_rdatasetiter_current(iter, &rds);
+
+		if (rds.type != dns_rdatatype_rrsig &&
+		    rds.type != dns_rdatatype_nsec &&
+		    rds.type != dns_rdatatype_nsec3 &&
+		    rds.type != dns_rdatatype_nsec3param &&
+		    (!smartsign || rds.type != dns_rdatatype_dnskey)) {
+			dns_rdataset_disassociate(&rds);
+			continue;
+		}
+
+		while (ISC_TRUE) {
+			result = dns_master_rdatasettotext(name, &rds,
+							   masterstyle, buffer);
+			if (result != ISC_R_NOSPACE)
+				break;
+
+			bufsize <<= 1;
+			isc_buffer_free(&buffer);
+			result = isc_buffer_allocate(mctx, &buffer, bufsize);
+			check_result(result, "isc_buffer_allocate");
+		}
+		check_result(result, "dns_master_rdatasettotext");
+
+		isc_buffer_usedregion(buffer, &r);
+		result = isc_stdio_write(r.base, 1, r.length, fp, NULL);
+		check_result(result, "isc_stdio_write");
+		isc_buffer_clear(buffer);
+
+		dns_rdataset_disassociate(&rds);
+	}
+
+	isc_buffer_free(&buffer);
+	dns_rdatasetiter_destroy(&iter);
 }
 
 /*%
@@ -3297,6 +3355,8 @@ usage(void) {
 	fprintf(stderr, "\t\tfile format of signed zone file (text)\n");
 	fprintf(stderr, "\t-N format:\n");
 	fprintf(stderr, "\t\tsoa serial format of signed zone file (keep)\n");
+	fprintf(stderr, "\t-D:\n");
+	fprintf(stderr, "\t\toutput only DNSSEC-related records\n");
 	fprintf(stderr, "\t-r randomdev:\n");
 	fprintf(stderr,	"\t\ta file containing random data\n");
 	fprintf(stderr, "\t-a:\t");
@@ -3397,7 +3457,6 @@ main(int argc, char *argv[]) {
 	isc_buffer_t b;
 	int len;
 	hashlist_t hashlist;
-	isc_boolean_t smartsign = ISC_FALSE;
 	isc_boolean_t make_keyset = ISC_FALSE;
 	isc_boolean_t set_salt = ISC_FALSE;
 	isc_boolean_t set_optout = ISC_FALSE;
@@ -3488,6 +3547,10 @@ main(int argc, char *argv[]) {
 			if (result != ISC_R_SUCCESS)
 				fatal("cannot open directory %s: %s",
 				      dsdir, isc_result_totext(result));
+			break;
+
+		case 'D':
+			output_dnssec_only = ISC_TRUE;
 			break;
 
 		case 'E':
@@ -3758,6 +3821,12 @@ main(int argc, char *argv[]) {
 			fatal("unknown soa serial format: %s\n",
 			      serialformatstr);
 	}
+
+	if (output_dnssec_only && outputformat != dns_masterformat_text)
+		fatal("option -D can only be used with \"-O text\"\n");
+
+	if (output_dnssec_only && serialformat != SOA_SERIAL_KEEP)
+		fatal("option -D can only be used with \"-N keep\"\n");
 
 	result = dns_master_stylecreate(&dsstyle,  DNS_STYLEFLAG_NO_TTL,
 					0, 24, 0, 0, 0, 8, mctx);
