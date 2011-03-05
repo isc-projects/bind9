@@ -140,7 +140,7 @@
 ./bin/named/interfacemgr.c			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009
 ./bin/named/listenlist.c			C	2000,2001,2004,2005,2007
 ./bin/named/log.c				C	1999,2000,2001,2002,2004,2005,2006,2007,2009
-./bin/named/logconf.c				C	1999,2000,2001,2004,2005,2006,2007
+./bin/named/logconf.c				C	1999,2000,2001,2004,2005,2006,2007,2011
 ./bin/named/lwaddr.c				C	2000,2001,2004,2005,2007,2008
 ./bin/named/lwdclient.c				C	2000,2001,2004,2005,2007
 ./bin/named/lwderror.c				C	2000,2001,2004,2005,2007
@@ -1095,7 +1095,7 @@
 ./contrib/dlz/drivers/dlz_bdbhpt_driver.c	X	2005,2010
 ./contrib/dlz/drivers/dlz_drivers.c		X	2005
 ./contrib/dlz/drivers/dlz_filesystem_driver.c	X	2005
-./contrib/dlz/drivers/dlz_ldap_driver.c		X	2005
+./contrib/dlz/drivers/dlz_ldap_driver.c		X	2005,2011
 ./contrib/dlz/drivers/dlz_mysql_driver.c	X	2005,2007,2009,2010
 ./contrib/dlz/drivers/dlz_odbc_driver.c		X	2005
 ./contrib/dlz/drivers/dlz_postgres_driver.c	X	2005,2007
