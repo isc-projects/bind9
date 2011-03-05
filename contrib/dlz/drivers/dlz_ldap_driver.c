@@ -507,16 +507,32 @@ ldap_process_results(LDAP *dbc, LDAPMessage *msg, char ** attrs,
 				result = dns_sdlz_putnamedrr(
 						(dns_sdlzallnodes_t *) ptr,
 						host, type, ttl, data);
-		}
-		else
+			if (result != ISC_R_SUCCESS)
+				isc_log_write(dns_lctx,
+					DNS_LOGCATEGORY_DATABASE,
+					DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
+					"dlz-ldap: putnamedrr failed "
+					"for \"%s %s %u %s\", %s",
+					host, type, ttl, data,
+					isc_result_totext(result));
+		} else {
 			result = dns_sdlz_putrr((dns_sdlzlookup_t *) ptr,
 						type, ttl, data);
+			if (result != ISC_R_SUCCESS)
+				isc_log_write(dns_lctx,
+					DNS_LOGCATEGORY_DATABASE,
+					DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
+					"dlz-ldap: putrr failed "
+					"for \"%s %u %s\", %s",
+					type, ttl, data,
+					isc_result_totext(result));
+		}
 
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
 				      "LDAP driver failed "
-				      "while sending data to Bind.");
+				      "while sending data to BIND.");
 			goto cleanup;
 		}
 
