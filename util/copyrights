@@ -1470,7 +1470,7 @@
 ./contrib/dlz/drivers/dlz_dlopen_driver.c	X	2010
 ./contrib/dlz/drivers/dlz_drivers.c		X	2005,2010
 ./contrib/dlz/drivers/dlz_filesystem_driver.c	X	2005,2010
-./contrib/dlz/drivers/dlz_ldap_driver.c		X	2005,2010
+./contrib/dlz/drivers/dlz_ldap_driver.c		X	2005,2010,2011
 ./contrib/dlz/drivers/dlz_mysql_driver.c	X	2005,2007,2009,2010
 ./contrib/dlz/drivers/dlz_odbc_driver.c		X	2005,2010
 ./contrib/dlz/drivers/dlz_postgres_driver.c	X	2005,2007,2010
