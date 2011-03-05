@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2009, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -48,7 +48,7 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: file.c,v 1.47.18.5 2011/03/04 17:12:20 smann Exp $ */
+/* $Id: file.c,v 1.47.18.6 2011/03/05 23:47:52 tbox Exp $ */
 
 /*! \file */
 

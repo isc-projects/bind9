@@ -1,8 +1,8 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2002  Internet Software Consortium.
  *
- * Permission to use, copy, modify, and distribute this software for any
+ * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.29.18.1 2011/03/04 17:12:20 smann Exp $ */
+/* $Id: file.c,v 1.29.18.2 2011/03/05 23:47:52 tbox Exp $ */
 
 #include <config.h>
 
@@ -213,9 +213,9 @@ isc_file_getmodtime(const char *file, isc_time_t *time) {
 			 &time->absolute))
 	{
 		close(fh);
-                errno = EINVAL;
-                return (isc__errno2result(errno));
-        }
+		errno = EINVAL;
+		return (isc__errno2result(errno));
+	}
 	close(fh);
 	return (ISC_R_SUCCESS);
 }
@@ -229,23 +229,23 @@ isc_file_settime(const char *file, isc_time_t *time) {
 	if ((fh = open(file, _O_RDWR | _O_BINARY)) < 0)
 		return (isc__errno2result(errno));
 
-        /*
+	/*
 	 * Set the date via the filedate system call and return.  Failing
-         * this call implies the new file times are not supported by the
-         * underlying file system.
-         */
+	 * this call implies the new file times are not supported by the
+	 * underlying file system.
+	 */
 	if (!SetFileTime((HANDLE) _get_osfhandle(fh),
 			 NULL,
 			 &time->absolute,
 			 &time->absolute))
 	{
 		close(fh);
-                errno = EINVAL;
-                return (isc__errno2result(errno));
-        }
+		errno = EINVAL;
+		return (isc__errno2result(errno));
+	}
 
 	close(fh);
-        return (ISC_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 
 }
 
@@ -474,7 +474,7 @@ isc_file_progname(const char *filename, char *progname, size_t namelen) {
 		return (ISC_R_SUCCESS);
 	}
 
-	/* 
+	/*
 	 * Copy the result to the buffer
 	 */
 	len = p - s;

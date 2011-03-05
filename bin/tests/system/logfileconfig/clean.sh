@@ -1,8 +1,6 @@
 #!/bin/sh
 #
 # Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
-# Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
-# Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -16,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.2.8.2 2011/03/04 17:12:18 smann Exp $
+# $Id: clean.sh,v 1.2.8.3 2011/03/05 23:47:52 tbox Exp $
 
 #
 # Clean up after log file tests
