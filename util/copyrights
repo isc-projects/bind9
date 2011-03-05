@@ -8,9 +8,6 @@
 ./HISTORY					X	2010
 ./Makefile.in					MAKE	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011
 ./README					X	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
-./RELEASE-NOTES-BIND-9.7.3.html			X	2011
-./RELEASE-NOTES-BIND-9.7.3.pdf			X	2011
-./RELEASE-NOTES-BIND-9.7.3.txt			X	2011
 ./acconfig.h					C	1999,2000,2001,2002,2003,2004,2005,2007,2008
 ./aclocal.m4					X	1999,2000,2001
 ./bin/.cvsignore				X	1998,1999,2000,2001
@@ -862,7 +859,6 @@
 ./bin/tests/system/glue/yy.good			X	2000,2001,2003
 ./bin/tests/system/ifconfig.sh			SH	2000,2001,2002,2003,2004,2007,2008,2009,2010
 ./bin/tests/system/ixfr/ans2/.cvsignore		X	2001
-./bin/tests/system/ixfr/ans2/ans.pl		PERL	2001,2004,2007
 ./bin/tests/system/ixfr/ans2/startme		X	2011
 ./bin/tests/system/ixfr/clean.sh		SH	2001,2004,2007
 ./bin/tests/system/ixfr/ns1/.cvsignore		X	2001
@@ -2204,7 +2200,6 @@
 ./lib/dns/tcpmsg.c				C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/tests/.cvsignore			X	2011
 ./lib/dns/tests/Atffile				X	2011
-./lib/dns/tests/Makefile			MAKE	2011
 ./lib/dns/tests/Makefile.in			MAKE	2011
 ./lib/dns/tests/dnstest.c			C	2011
 ./lib/dns/tests/dnstest.h			C	2011
