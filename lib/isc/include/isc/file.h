@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.h,v 1.37.106.1 2011/03/04 14:17:49 smann Exp $ */
+/* $Id: file.h,v 1.37.106.2 2011/03/05 23:51:38 tbox Exp $ */
 
 #ifndef ISC_FILE_H
 #define ISC_FILE_H 1
@@ -195,7 +195,7 @@ isc_file_isplainfile(const char *name);
  *		The file does not exist. This return code comes from
  *		errno=ENOENT when stat returns -1. This code is mentioned
  *		here, because in logconf.c, it is the one rcode that is
- *		permitted in addition to ISC_R_SUCCESS. This is done since 
+ *		permitted in addition to ISC_R_SUCCESS. This is done since
  *		the next call in logconf.c is to isc_stdio_open(), which
  *		will create the file if it can.
  *\li	#other ISC_R_* errors translated from errno
