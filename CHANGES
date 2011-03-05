@@ -1,3 +1,5 @@
+3063.	[contrib]	More verbose error reporting from DLZ LDAP. [RT #23402]
+
 3059.	[test]		Added a regression test for change #3023.
 
 3058.   [bug]           Cause named to terminate at startup or rndc reconfig/
