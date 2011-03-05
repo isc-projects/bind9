@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: logconf.c,v 1.42.334.1 2011/03/05 03:07:40 marka Exp $ */
+/* $Id: logconf.c,v 1.42.334.2 2011/03/05 23:51:01 tbox Exp $ */
 
 /*! \file */
 
@@ -131,7 +131,7 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *lctx) {
 	}
 
 	type = ISC_LOG_TONULL;
-	
+
 	if (fileobj != NULL) {
 		const cfg_obj_t *pathobj = cfg_tuple_get(fileobj, "file");
 		const cfg_obj_t *sizeobj = cfg_tuple_get(fileobj, "size");
@@ -141,7 +141,7 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *lctx) {
 		isc_offset_t size = 0;
 
 		type = ISC_LOG_TOFILE;
-		
+
 		if (versionsobj != NULL && cfg_obj_isuint32(versionsobj))
 			versions = cfg_obj_asuint32(versionsobj);
 		if (versionsobj != NULL && cfg_obj_isstring(versionsobj) &&
@@ -220,7 +220,7 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *lctx) {
 
 	if (result == ISC_R_SUCCESS && type == ISC_LOG_TOFILE) {
 		FILE *fp;
-		
+
 		/*
 		 * Test that the file can be opened, since isc_log_open()
 		 * can't effectively report failures when called in

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# Copyright (C) 2004-2008, 2010  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2008, 2010, 2011  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: start.pl,v 1.13.176.5 2011/03/04 22:10:59 each Exp $
+# $Id: start.pl,v 1.13.176.6 2011/03/05 23:51:01 tbox Exp $
 
 # Framework for starting test servers.
 # Based on the type of server specified, check for port availability, remove
