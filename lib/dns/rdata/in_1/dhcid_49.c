@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dhcid_49.c,v 1.7 2009/12/04 22:06:37 tbox Exp $ */
+/* $Id: dhcid_49.c,v 1.8 2011/03/05 19:39:07 each Exp $ */
 
 /* RFC 4701 */
 
@@ -52,8 +52,11 @@ totext_in_dhcid(ARGS_TOTEXT) {
 
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
 		RETERR(str_totext("( " /*)*/, target));
-	RETERR(isc_base64_totext(&sr, tctx->width - 2, tctx->linebreak,
-				 target));
+	if (tctx->width == 0)   /* No splitting */
+		RETERR(isc_base64_totext(&sr, 60, "", target));
+	else
+		RETERR(isc_base64_totext(&sr, tctx->width - 2,
+					 tctx->linebreak, target));
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {
 		RETERR(str_totext(/* ( */ " )", target));
 		if (rdata->length > 2) {

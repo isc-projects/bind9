@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.99 2009/11/17 23:55:18 marka Exp $ */
+/* $Id: masterdump.c,v 1.100 2011/03/05 19:39:06 each Exp $ */
 
 /*! \file */
 
@@ -74,6 +74,7 @@ struct dns_master_style {
 	unsigned int rdata_column;
 	unsigned int line_length;
 	unsigned int tab_width;
+	unsigned int split_width;
 };
 
 /*%
@@ -108,15 +109,16 @@ dns_master_style_default = {
 	DNS_STYLEFLAG_OMIT_TTL |
 	DNS_STYLEFLAG_TTL |
 	DNS_STYLEFLAG_COMMENT |
+	DNS_STYLEFLAG_RRCOMMENT |
 	DNS_STYLEFLAG_MULTILINE,
-	24, 24, 24, 32, 80, 8
+	24, 24, 24, 32, 80, 8, -1
 };
 
 LIBDNS_EXTERNAL_DATA const dns_master_style_t
 dns_master_style_full = {
 	DNS_STYLEFLAG_COMMENT |
 	DNS_STYLEFLAG_RESIGN,
-	46, 46, 46, 64, 120, 8
+	46, 46, 46, 64, 120, 8, -1
 };
 
 LIBDNS_EXTERNAL_DATA const dns_master_style_t
@@ -126,8 +128,9 @@ dns_master_style_explicitttl = {
 	DNS_STYLEFLAG_REL_OWNER |
 	DNS_STYLEFLAG_REL_DATA |
 	DNS_STYLEFLAG_COMMENT |
+	DNS_STYLEFLAG_RRCOMMENT |
 	DNS_STYLEFLAG_MULTILINE,
-	24, 32, 32, 40, 80, 8
+	24, 32, 32, 40, 80, 8, -1
 };
 
 LIBDNS_EXTERNAL_DATA const dns_master_style_t
@@ -137,13 +140,13 @@ dns_master_style_cache = {
 	DNS_STYLEFLAG_MULTILINE |
 	DNS_STYLEFLAG_TRUST |
 	DNS_STYLEFLAG_NCACHE,
-	24, 32, 32, 40, 80, 8
+	24, 32, 32, 40, 80, 8, -1
 };
 
 LIBDNS_EXTERNAL_DATA const dns_master_style_t
 dns_master_style_simple = {
 	0,
-	24, 32, 32, 40, 80, 8
+	24, 32, 32, 40, 80, 8, -1
 };
 
 /*%
@@ -152,7 +155,7 @@ dns_master_style_simple = {
 LIBDNS_EXTERNAL_DATA const dns_master_style_t
 dns_master_style_debug = {
 	DNS_STYLEFLAG_REL_OWNER,
-	24, 32, 40, 48, 80, 8
+	24, 32, 40, 48, 80, 8, -1
 };
 
 
@@ -373,7 +376,7 @@ ncache_summary(dns_rdataset_t *rdataset, isc_boolean_t omit_final_dot,
 				dns_rdataset_current(&rds, &rdata);
 				CHECK(str_totext(" ", target));
 				CHECK(dns_rdata_tofmttext(&rdata, dns_rootname,
-							  0, 0, " ", target));
+							  0, 0, 0, " ", target));
 				CHECK(str_totext("\n", target));
 			}
 		}
@@ -536,6 +539,7 @@ rdataset_totext(dns_rdataset_t *rdataset,
 						   ctx->style.flags,
 						   ctx->style.line_length -
 						       ctx->style.rdata_column,
+						   ctx->style.split_width,
 						   ctx->linebreak,
 						   target));
 
@@ -1788,6 +1792,19 @@ dns_master_stylecreate(dns_master_style_t **stylep, unsigned int flags,
 		       unsigned int line_length, unsigned int tab_width,
 		       isc_mem_t *mctx)
 {
+	return (dns_master_stylecreate2(stylep, flags, ttl_column,
+					class_column, type_column,
+					rdata_column, line_length,
+					tab_width, 0xffffffff, mctx));
+}
+
+isc_result_t
+dns_master_stylecreate2(dns_master_style_t **stylep, unsigned int flags,
+		        unsigned int ttl_column, unsigned int class_column,
+		        unsigned int type_column, unsigned int rdata_column,
+		        unsigned int line_length, unsigned int tab_width,
+			unsigned int split_width, isc_mem_t *mctx)
+{
 	dns_master_style_t *style;
 
 	REQUIRE(stylep != NULL && *stylep == NULL);
@@ -1802,6 +1819,7 @@ dns_master_stylecreate(dns_master_style_t **stylep, unsigned int flags,
 	style->rdata_column = rdata_column;
 	style->line_length = line_length;
 	style->tab_width = tab_width;
+	style->split_width = split_width;
 
 	*stylep = style;
 	return (ISC_R_SUCCESS);

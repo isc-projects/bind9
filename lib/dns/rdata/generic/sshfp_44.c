@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sshfp_44.c,v 1.9 2009/12/04 22:06:37 tbox Exp $ */
+/* $Id: sshfp_44.c,v 1.10 2011/03/05 19:39:07 each Exp $ */
 
 /* RFC 4255 */
 
@@ -96,7 +96,11 @@ totext_sshfp(ARGS_TOTEXT) {
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
 		RETERR(str_totext(" (", target));
 	RETERR(str_totext(tctx->linebreak, target));
-	RETERR(isc_hex_totext(&sr, tctx->width - 2, tctx->linebreak, target));
+	if (tctx->width == 0) /* No splitting */
+		RETERR(isc_hex_totext(&sr, 0, "", target));
+	else
+		RETERR(isc_hex_totext(&sr, tctx->width - 2,
+				      tctx->linebreak, target));
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
 		RETERR(str_totext(" )", target));
 	return (ISC_R_SUCCESS);

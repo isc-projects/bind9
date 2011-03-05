@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ds_43.c,v 1.16 2010/12/23 23:47:08 tbox Exp $ */
+/* $Id: ds_43.c,v 1.17 2011/03/05 19:39:07 each Exp $ */
 
 /* draft-ietf-dnsext-delegation-signer-05.txt */
 
@@ -134,7 +134,11 @@ totext_ds(ARGS_TOTEXT) {
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
 		RETERR(str_totext(" (", target));
 	RETERR(str_totext(tctx->linebreak, target));
-	RETERR(isc_hex_totext(&sr, tctx->width - 2, tctx->linebreak, target));
+	if (tctx->width == 0) /* No splitting */
+		RETERR(isc_hex_totext(&sr, 0, "", target));
+	else
+		RETERR(isc_hex_totext(&sr, tctx->width - 2,
+				      tctx->linebreak, target));
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
 		RETERR(str_totext(" )", target));
 	return (ISC_R_SUCCESS);

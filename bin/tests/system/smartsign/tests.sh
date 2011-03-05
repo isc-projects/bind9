@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.7 2011/03/04 22:20:21 each Exp $
+# $Id: tests.sh,v 1.8 2011/03/05 19:39:06 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -134,7 +134,7 @@ status=`expr $status + $ret`
 echo "I:checking child zone signatures"
 ret=0
 # check DNSKEY signatures first
-awk '$2 == "RRSIG" && $3 == "DNSKEY" { getline; print $2 }' $cfile.signed > dnskey.sigs
+awk '$2 == "RRSIG" && $3 == "DNSKEY" { getline; print $3 }' $cfile.signed > dnskey.sigs
 grep "$ckactive" dnskey.sigs > /dev/null || ret=1
 grep "$ckrevoked" dnskey.sigs > /dev/null || ret=1
 grep "$czactive" dnskey.sigs > /dev/null || ret=1
@@ -145,7 +145,7 @@ grep "$czpublished" dnskey.sigs > /dev/null && ret=1
 grep "$czinactive" dnskey.sigs > /dev/null && ret=1
 grep "$czgenerated" dnskey.sigs > /dev/null && ret=1
 # now check other signatures first
-awk '$2 == "RRSIG" && $3 != "DNSKEY" { getline; print $2 }' $cfile.signed | sort -un > other.sigs
+awk '$2 == "RRSIG" && $3 != "DNSKEY" { getline; print $3 }' $cfile.signed | sort -un > other.sigs
 # should not be there:
 grep "$ckactive" other.sigs > /dev/null && ret=1
 grep "$ckpublished" other.sigs > /dev/null && ret=1
@@ -181,7 +181,7 @@ status=`expr $status + $ret`
 
 echo "I:checking child zone signatures again"
 ret=0
-awk '$2 == "RRSIG" && $3 == "DNSKEY" { getline; print $2 }' $cfile.signed > dnskey.sigs
+awk '$2 == "RRSIG" && $3 == "DNSKEY" { getline; print $3 }' $cfile.signed > dnskey.sigs
 grep "$ckpublished" dnskey.sigs > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

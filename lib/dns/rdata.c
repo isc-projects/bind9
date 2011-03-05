@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.211 2011/03/03 14:10:27 fdupont Exp $ */
+/* $Id: rdata.c,v 1.212 2011/03/05 19:39:06 each Exp $ */
 
 /*! \file */
 
@@ -726,7 +726,13 @@ rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 				result = str_totext(" ( ", target);
 			else
 				result = str_totext(" ", target);
-			if (result == ISC_R_SUCCESS)
+
+			if (result != ISC_R_SUCCESS)
+				return (result);
+
+			if (tctx->width == 0) /* No splitting */
+				result = isc_hex_totext(&sr, 0, "", target);
+			else
 				result = isc_hex_totext(&sr, tctx->width - 2,
 							tctx->linebreak,
 							target);
@@ -759,7 +765,8 @@ dns_rdata_totext(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target)
 isc_result_t
 dns_rdata_tofmttext(dns_rdata_t *rdata, dns_name_t *origin,
 		    unsigned int flags, unsigned int width,
-		    const char *linebreak, isc_buffer_t *target)
+		    unsigned int split_width, const char *linebreak,
+		    isc_buffer_t *target)
 {
 	dns_rdata_textctx_t tctx;
 
@@ -770,11 +777,16 @@ dns_rdata_tofmttext(dns_rdata_t *rdata, dns_name_t *origin,
 	 */
 	tctx.origin = origin;
 	tctx.flags = flags;
-	if ((flags & DNS_STYLEFLAG_MULTILINE) != 0) {
+	if (split_width == 0xffffffff)
 		tctx.width = width;
+	else
+		tctx.width = split_width;
+
+	if ((flags & DNS_STYLEFLAG_MULTILINE) != 0)
 		tctx.linebreak = linebreak;
-	} else {
-		tctx.width = 60; /* Used for hex word length only. */
+	else {
+		if (split_width == 0xffffffff)
+			tctx.width = 60; /* Used for hex word length only. */
 		tctx.linebreak = " ";
 	}
 	return (rdata_totext(rdata, &tctx, target));

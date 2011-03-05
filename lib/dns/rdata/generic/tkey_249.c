@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkey_249.c,v 1.59 2009/12/04 22:06:37 tbox Exp $ */
+/* $Id: tkey_249.c,v 1.60 2011/03/05 19:39:07 each Exp $ */
 
 /*
  * Reviewed: Thu Mar 16 17:35:30 PST 2000 by halley.
@@ -201,8 +201,11 @@ totext_tkey(ARGS_TOTEXT) {
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
 		RETERR(str_totext(" (", target));
 	RETERR(str_totext(tctx->linebreak, target));
-	RETERR(isc_base64_totext(&dr, tctx->width - 2,
-				 tctx->linebreak, target));
+	if (tctx->width == 0)   /* No splitting */
+		RETERR(isc_base64_totext(&dr, 60, "", target));
+	else
+		RETERR(isc_base64_totext(&dr, tctx->width - 2,
+					 tctx->linebreak, target));
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
 		RETERR(str_totext(" ) ", target));
 	else
@@ -227,8 +230,11 @@ totext_tkey(ARGS_TOTEXT) {
 	    if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
 		    RETERR(str_totext(" (", target));
 	    RETERR(str_totext(tctx->linebreak, target));
-	    RETERR(isc_base64_totext(&dr, tctx->width - 2,
-				     tctx->linebreak, target));
+		if (tctx->width == 0)   /* No splitting */
+			RETERR(isc_base64_totext(&dr, 60, "", target));
+		else
+			RETERR(isc_base64_totext(&dr, tctx->width - 2,
+						 tctx->linebreak, target));
 	    if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
 		    RETERR(str_totext(" )", target));
 	}

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: opt_41.c,v 1.35 2009/12/04 22:06:37 tbox Exp $ */
+/* $Id: opt_41.c,v 1.36 2011/03/05 19:39:07 each Exp $ */
 
 /* Reviewed: Thu Mar 16 14:06:44 PST 2000 by gson */
 
@@ -76,8 +76,12 @@ totext_opt(ARGS_TOTEXT) {
 			RETERR(str_totext(tctx->linebreak, target));
 			or = r;
 			or.length = length;
-			RETERR(isc_base64_totext(&or, tctx->width - 2,
-						 tctx->linebreak, target));
+			if (tctx->width == 0)   /* No splitting */
+				RETERR(isc_base64_totext(&or, 60, "", target));
+			else
+				RETERR(isc_base64_totext(&or, tctx->width - 2,
+							 tctx->linebreak,
+							 target));
 			isc_region_consume(&r, length);
 			if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
 				RETERR(str_totext(" )", target));

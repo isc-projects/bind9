@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig_250.c,v 1.65 2009/12/04 22:06:37 tbox Exp $ */
+/* $Id: tsig_250.c,v 1.66 2011/03/05 19:39:06 each Exp $ */
 
 /* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
 
@@ -202,8 +202,11 @@ totext_any_tsig(ARGS_TOTEXT) {
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
 		RETERR(str_totext(" (", target));
 	RETERR(str_totext(tctx->linebreak, target));
-	RETERR(isc_base64_totext(&sigr, tctx->width - 2,
-				 tctx->linebreak, target));
+	if (tctx->width == 0)   /* No splitting */
+		RETERR(isc_base64_totext(&sigr, 60, "", target));
+	else
+		RETERR(isc_base64_totext(&sigr, tctx->width - 2,
+					 tctx->linebreak, target));
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
 		RETERR(str_totext(" ) ", target));
 	else
@@ -241,7 +244,10 @@ totext_any_tsig(ARGS_TOTEXT) {
 	/*
 	 * Other.
 	 */
-	return (isc_base64_totext(&sr, 60, " ", target));
+	if (tctx->width == 0)   /* No splitting */
+		return (isc_base64_totext(&sr, 60, "", target));
+	else
+		return (isc_base64_totext(&sr, 60, " ", target));
 }
 
 static inline isc_result_t

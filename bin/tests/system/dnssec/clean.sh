@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.39 2011/03/05 06:35:40 marka Exp $
+# $Id: clean.sh,v 1.40 2011/03/05 19:39:06 each Exp $
 
 exit
 
@@ -54,6 +54,7 @@ rm -f ns3/auto-nsec.example.db ns3/auto-nsec3.example.db
 rm -f ns3/secure.below-cname.example.db
 rm -f signer/example.db.after signer/example.db.before
 rm -f signer/example.db.changed
+rm -f signer/nsec3param.out
 rm -f ns3/ttlpatch.example.db ns3/ttlpatch.example.db.signed
 rm -f ns3/ttlpatch.example.db.patched
 rm -f ns3/split-smart.example.db

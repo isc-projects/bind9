@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.5 2009/12/02 17:54:45 each Exp $
+# $Id: tests.sh,v 1.6 2011/03/05 19:39:06 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -46,8 +46,8 @@ $SIGNER -Sg -o $pzone $pfile > /dev/null 2>&1
 awk '$2 ~ /RRSIG/ {
         type = $3;
         getline;
-	id = $2;
-	if ($3 ~ /'${czone}'/) {
+	id = $3;
+	if ($4 ~ /'${czone}'/) {
 		print type, id
 	}
 }' < ${cfile}.signed > sigs
@@ -56,7 +56,7 @@ awk '$2 ~ /DNSKEY/ {
 	flags = $3;
 	while ($0 !~ /key id =/)
 		getline;
-	id = $6;
+	id = $NF;
 	print flags, id;
 }' < ${cfile}.signed > keys
 

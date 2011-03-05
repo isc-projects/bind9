@@ -1,3 +1,15 @@
+3062.	[func]		Made several changes to enhance human readability
+			of DNSSEC data in dig output and in generated
+			zone files:
+			 - DNSKEY record comments are more verbose, no
+			   longer used in multiline mode only
+			 - multiline RRSIG records reformatted
+			 - multiline output mode for NSEC3PARAM records
+			 - "dig +norrcomments" suppresses DNSKEY comments
+			 - "dig +split=X" breaks hex/base64 records into
+			   fields of width X; "dig +nosplit" disables this.
+			[RT #22820]
+
 3061.	[func]		New option "dnssec-signzone -D", only write out
 			generated DNSSEC records. [RT #22896]
 

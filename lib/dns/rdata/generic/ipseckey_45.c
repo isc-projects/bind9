@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ipseckey_45.c,v 1.11 2011/01/13 04:59:26 tbox Exp $ */
+/* $Id: ipseckey_45.c,v 1.12 2011/03/05 19:39:07 each Exp $ */
 
 #ifndef RDATA_GENERIC_IPSECKEY_45_C
 #define RDATA_GENERIC_IPSECKEY_45_C
@@ -190,8 +190,11 @@ totext_ipseckey(ARGS_TOTEXT) {
 	 */
 	if (region.length > 0U) {
 		RETERR(str_totext(tctx->linebreak, target));
-		RETERR(isc_base64_totext(&region, tctx->width - 2,
-					 tctx->linebreak, target));
+		if (tctx->width == 0)   /* No splitting */
+			RETERR(isc_base64_totext(&region, 60, "", target));
+		else
+			RETERR(isc_base64_totext(&region, tctx->width - 2,
+						 tctx->linebreak, target));
 	}
 
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)

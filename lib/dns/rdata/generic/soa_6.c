@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: soa_6.c,v 1.64 2009/12/04 21:09:34 marka Exp $ */
+/* $Id: soa_6.c,v 1.65 2011/03/05 19:39:07 each Exp $ */
 
 /* Reviewed: Thu Mar 16 15:18:32 PST 2000 by explorer */
 
@@ -102,7 +102,7 @@ totext_soa(ARGS_TOTEXT) {
 
 	multiline = ISC_TF((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0);
 	if (multiline)
-		comment = ISC_TF((tctx->flags & DNS_STYLEFLAG_COMMENT) != 0);
+		comment = ISC_TF((tctx->flags & DNS_STYLEFLAG_RRCOMMENT) != 0);
 	else
 		comment = ISC_FALSE;
 
