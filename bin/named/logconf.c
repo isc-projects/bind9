@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: logconf.c,v 1.42.816.2 2011/03/05 03:08:10 marka Exp $ */
+/* $Id: logconf.c,v 1.42.816.3 2011/03/05 23:52:06 tbox Exp $ */
 
 /*! \file */
 
@@ -131,7 +131,7 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *lctx) {
 	}
 
 	type = ISC_LOG_TONULL;
-	
+
 	if (fileobj != NULL) {
 		const cfg_obj_t *pathobj = cfg_tuple_get(fileobj, "file");
 		const cfg_obj_t *sizeobj = cfg_tuple_get(fileobj, "size");
@@ -141,7 +141,7 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *lctx) {
 		isc_offset_t size = 0;
 
 		type = ISC_LOG_TOFILE;
-		
+
 		if (versionsobj != NULL && cfg_obj_isuint32(versionsobj))
 			versions = cfg_obj_asuint32(versionsobj);
 		if (versionsobj != NULL && cfg_obj_isstring(versionsobj) &&
@@ -220,17 +220,17 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *lctx) {
 
 	if (result == ISC_R_SUCCESS && type == ISC_LOG_TOFILE) {
 		FILE *fp;
-		
+
 		/*
 		 * Test to make sure that file is a plain file.
 		 * Fix defect #22771
 		*/
-                result = isc_file_isplainfile(dest.file.name);
-                if (result == ISC_R_SUCCESS || 
+		result = isc_file_isplainfile(dest.file.name);
+		if (result == ISC_R_SUCCESS ||
 		    result == ISC_R_FILENOTFOUND) {
 			/*
 			 * Test that the file can be opened, since
-			 * isc_log_open() can't effectively report 
+			 * isc_log_open() can't effectively report
 			 * failures when called in
 			 * isc_log_doit().
 			 */
@@ -238,7 +238,7 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *lctx) {
 			if (result != ISC_R_SUCCESS) {
 				syslog(LOG_ERR,
 					"isc_stdio_open '%s' failed: %s",
-					dest.file.name, 
+					dest.file.name,
 					isc_result_totext(result));
 				fprintf(stderr,
 					"isc_stdio_open '%s' failed: %s",

@@ -1,7 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
-# Copyright (C) 2001  Internet Software Consortium.
+# Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: ans.pl,v 1.2.2.2 2011/03/04 22:03:25 each Exp $
+# $Id: ans.pl,v 1.2.2.3 2011/03/05 23:52:08 tbox Exp $
 
 #
 # This is the name server from hell.  It provides canned
