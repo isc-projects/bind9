@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.100 2011/03/05 19:39:06 each Exp $ */
+/* $Id: masterdump.c,v 1.101 2011/03/05 23:52:30 tbox Exp $ */
 
 /*! \file */
 
@@ -1800,9 +1800,9 @@ dns_master_stylecreate(dns_master_style_t **stylep, unsigned int flags,
 
 isc_result_t
 dns_master_stylecreate2(dns_master_style_t **stylep, unsigned int flags,
-		        unsigned int ttl_column, unsigned int class_column,
-		        unsigned int type_column, unsigned int rdata_column,
-		        unsigned int line_length, unsigned int tab_width,
+			unsigned int ttl_column, unsigned int class_column,
+			unsigned int type_column, unsigned int rdata_column,
+			unsigned int line_length, unsigned int tab_width,
 			unsigned int split_width, isc_mem_t *mctx)
 {
 	dns_master_style_t *style;

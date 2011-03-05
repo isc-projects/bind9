@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.267 2011/03/05 06:35:40 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.268 2011/03/05 23:52:29 tbox Exp $ */
 
 /*! \file */
 
@@ -218,7 +218,7 @@ dumpnode(dns_name_t *name, dns_dbnode_t *node) {
 	for (result = dns_rdatasetiter_first(iter);
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdatasetiter_next(iter)) {
-	
+
 		dns_rdatasetiter_current(iter, &rds);
 
 		if (rds.type != dns_rdatatype_rrsig &&

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009, 2011  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keydata_65533.c,v 1.4 2011/03/05 19:39:07 each Exp $ */
+/* $Id: keydata_65533.c,v 1.5 2011/03/05 23:52:31 tbox Exp $ */
 
 #ifndef GENERIC_KEYDATA_65533_C
 #define GENERIC_KEYDATA_65533_C 1

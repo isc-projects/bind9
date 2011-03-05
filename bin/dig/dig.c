@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.240 2011/03/05 19:39:06 each Exp $ */
+/* $Id: dig.c,v 1.241 2011/03/05 23:52:29 tbox Exp $ */
 
 /*! \file */
 
@@ -463,7 +463,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	}
 	if (multiline || (nottl && noclass))
 		result = dns_master_stylecreate2(&style, styleflags,
-					 	 24, 24, 24, 32, 80, 8,
+						 24, 24, 24, 32, 80, 8,
 						 splitwidth, mctx);
 	else if (nottl || noclass)
 		result = dns_master_stylecreate2(&style, styleflags,
@@ -993,7 +993,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			default:
 				goto invalid_option;
 			}
-                        break;
+			break;
 		case 'r': /* rrcomments */
 			FULLCHECK("rrcomments");
 			rrcomments = state;
