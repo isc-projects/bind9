@@ -15,12 +15,13 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: logconf.c,v 1.35.18.7 2011/03/05 23:47:51 tbox Exp $ */
+/* $Id: logconf.c,v 1.35.18.8 2011/03/06 01:46:22 marka Exp $ */
 
 /*! \file */
 
 #include <config.h>
 
+#include <isc/file.h>
 #include <isc/offset.h>
 #include <isc/result.h>
 #include <isc/stdio.h>
