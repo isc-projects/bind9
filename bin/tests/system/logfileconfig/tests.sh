@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.2.2.3 2011/03/05 23:51:01 tbox Exp $
+# $Id: tests.sh,v 1.2.2.4 2011/03/07 16:10:33 smann Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -30,7 +30,7 @@ PIPEFILE="named_pipe"
 SYMFILE="named_sym"
 PIDFILE="${THISDIR}/${CONFDIR}/named.pid"
 myRNDC="$RNDC -c ${THISDIR}/${CONFDIR}/rndc.conf"
-myNAMED="$NAMED -c ${THISDIR}/${CONFDIR}/named.conf -m record,size,mctx -T clienttest -d 99"
+myNAMED="$NAMED -c ${THISDIR}/${CONFDIR}/named.conf -m record,size,mctx -d 99"
 
 # Stop the server and run through a series of tests with various config
 # files while controlling the stop/start of the server.
@@ -57,13 +57,23 @@ status=0
 echo "I:testing log file validity (only plain files allowed)"
 
 # First run with a known good config.
+kill `cat named.pid`
 echo > $PLAINFILE
 cp $PLAINCONF named.conf
-$myRNDC reconfig
+#$myRNDC reconfig
+$myNAMED > /dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	echo "I: $myNAMED failed to start (UNEXPECTED)"
+	echo "I:exit status: 2"
+	exit 2
+fi
+
 grep "reloading configuration failed" named.run > /dev/null 2>&1
 if [ $? -ne 0 ]
 then
 	echo "I: testing plain file succeeded"
+	kill `cat named.pid`
 else
 	echo "I: testing plain file failed (unexpected)"
 	echo "I:exit status: 1"
@@ -78,7 +88,14 @@ if [ $? -eq 0 ]
 then
 	cp $DIRCONF named.conf
 	echo > named.run
-	$myRNDC reconfig
+	#$myRNDC reconfig
+	$myNAMED > /dev/null 2>&1
+	if [ $? -eq 0 ]
+	then
+		echo "I: $myNAMED successfully started (UNEXPECTED)"
+		echo "I:exit status: 2"
+		exit 2
+	fi
 	grep "invalid file" named.run > /dev/null 2>&1
 	if [ $? -ne 0 ]
 	then
@@ -100,7 +117,14 @@ if [ $? -eq 0 ]
 then
 	cp $PIPECONF named.conf
 	echo > named.run
-	$myRNDC reconfig
+	#$myRNDC reconfig
+	$myNAMED > /dev/null 2>&1
+	if [ $? -eq 0 ]
+	then
+		echo "I: $myNAMED successfully started (UNEXPECTED)"
+		echo "I:exit status: 2"
+		exit 2
+	fi
 	grep "invalid file" named.run > /dev/null 2>&1
 	if [ $? -ne 0 ]
 	then
@@ -124,12 +148,20 @@ ln -s $PLAINFILE $SYMFILE >/dev/null 2>&1
 if [ $? -eq 0 ]
 then
 	cp $SYMCONF named.conf
-	$myRNDC reconfig
 	echo > named.run
+	#$myRNDC reconfig
+	$myNAMED > /dev/null 2>&1
+	if [ $? -ne 0 ]
+	then
+		echo "I: $myNAMED failed to started (UNEXPECTED)"
+		echo "I:exit status: 2"
+		exit 2
+	fi
 	grep "reloading configuration failed" named.run > /dev/null 2>&1
 	if [ $? -ne 0 ]
 	then
 		echo "I: testing symlink to plain file succeeded"
+		kill `cat named.pid`
 	else
 		echo "I: testing symlink to plain file failed (unexpected)"
 		echo "I:exit status: 1"
