@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: builtin.c,v 1.20 2011/01/07 23:47:07 tbox Exp $ */
+/* $Id: builtin.c,v 1.21 2011/03/07 15:29:32 fdupont Exp $ */
 
 /*! \file
  * \brief
@@ -302,6 +302,7 @@ do_authors_lookup(dns_sdblookup_t *lookup) {
 		"Mark Andrews",
 		"James Brister",
 		"Ben Cottrell",
+		"Francis Dupont",
 		"Michael Graff",
 		"Andreas Gustafsson",
 		"Bob Halley",
