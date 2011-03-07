@@ -1,3 +1,6 @@
+3064.	[bug]		powerpc: add sync instructions to the end of atomic
+			operations. [RT #23469]
+
 3063.	[contrib]	More verbose error reporting from DLZ LDAP. [RT #23402]
 
 3062.	[func]		Made several changes to enhance human readability
