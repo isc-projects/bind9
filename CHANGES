@@ -1,3 +1,6 @@
+3064.	[bug]		powerpc: add sync instructions to the end of atomic
+			operations. [RT #23469]
+
 3058.   [bug]           Cause named to terminate at startup or rndc reconfig/
                         reload to fail, if a log file specified in the conf
                         file isn't a plain file. [RT #22771]
