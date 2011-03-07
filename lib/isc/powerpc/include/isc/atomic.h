@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2005, 2007, 2011  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: atomic.h,v 1.1.6.7 2011/03/07 00:34:20 marka Exp $ */
+/* $Id: atomic.h,v 1.1.6.8 2011/03/07 23:45:29 tbox Exp $ */
 
 #ifndef ISC_ATOMIC_H
 #define ISC_ATOMIC_H 1
@@ -55,16 +55,16 @@ static inline int
 static int
 #endif
 isc_atomic_cmpxchg(atomic_p p, int old, int new) {
-        int orig = old;
+	int orig = old;
 
 #ifdef __GNUC__
-        asm("ics");
+	asm("ics");
 #else
-         __isync();
+	 __isync();
 #endif
-        if (compare_and_swap(p, &orig, new))
+	if (compare_and_swap(p, &orig, new))
 		return (old);
-        return (orig);
+	return (orig);
 }
 
 #elif defined(ISC_PLATFORM_USEGCCASM) || defined(ISC_PLATFORM_USEMACASM)
@@ -76,14 +76,14 @@ isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
 #ifdef ISC_PLATFORM_USEMACASM
 		"1:"
 		"lwarx r6, 0, %1\n"
-	    	"mr %0, r6\n"
+		"mr %0, r6\n"
 		"add r6, r6, %2\n"
 		"stwcx. r6, 0, %1\n"
 		"bne- 1b"
 #else
 		"1:"
 		"lwarx 6, 0, %1\n"
-	    	"mr %0, 6\n"
+		"mr %0, 6\n"
 		"add 6, 6, %2\n"
 		"stwcx. 6, 0, %1\n"
 		"bne- 1b\n"
