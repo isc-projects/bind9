@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: atomic.h,v 1.1.6.8 2011/03/07 23:45:29 tbox Exp $ */
+/* $Id: atomic.h,v 1.1.6.9 2011/03/08 00:49:33 marka Exp $ */
 
 #ifndef ISC_ATOMIC_H
 #define ISC_ATOMIC_H 1
@@ -79,7 +79,8 @@ isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
 		"mr %0, r6\n"
 		"add r6, r6, %2\n"
 		"stwcx. r6, 0, %1\n"
-		"bne- 1b"
+		"bne- 1b\n"
+		"sync"
 #else
 		"1:"
 		"lwarx 6, 0, %1\n"
@@ -105,7 +106,8 @@ isc_atomic_store(void *p, isc_int32_t val) {
 		"lwarx r6, 0, %0\n"
 		"lwz r6, %1\n"
 		"stwcx. r6, 0, %0\n"
-		"bne- 1b"
+		"bne- 1b\n"
+		"sync"
 #else
 		"1:"
 		"lwarx 6, 0, %0\n"
@@ -134,7 +136,8 @@ isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
 		"mr r6, %3\n"
 		"stwcx. r6, 0, %1\n"
 		"bne- 1b\n"
-		"2:"
+		"2:\n"
+		"sync"
 #else
 		"1:"
 		"lwarx 6, 0, %1\n"
