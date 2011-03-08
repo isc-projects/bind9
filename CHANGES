@@ -9,7 +9,7 @@
 			max-cache-size, it was possible for cache memory
 			to be exhausted and not recovered. [RT #23371]
 
-3051.	[bug]		NS records obsure DS records at the bottom of the
+3051.	[bug]		NS records obsure DNAME records at the bottom of the
 			zone if both are present. [RT #23035]
 
 3046.	[bug]		Use RRSIG original TTL to compute validated RRset
