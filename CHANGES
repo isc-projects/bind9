@@ -5,7 +5,7 @@
                         reload to fail, if a log file specified in the conf
                         file isn't a plain file. [RT #22771]
 
-3051.	[bug]		NS records obsure DS records at the bottom of the
+3051.	[bug]		NS records obsure DNAME records at the bottom of the
 			zone if both are present. [RT #23035]
 
 3041.	[bug]		dnssec-signzone failed to generate new signatures on
