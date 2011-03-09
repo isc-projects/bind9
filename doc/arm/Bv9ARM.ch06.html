@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.249.4.13 2011/01/31 02:10:39 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.249.4.14 2011/03/09 02:11:34 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -4445,7 +4445,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2585473"></a>Periodic Task Intervals</h4></div></div></div>
+<a name="id2585541"></a>Periodic Task Intervals</h4></div></div></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><span><strong class="command">cleaning-interval</strong></span></span></dt>
 <dd><p>
@@ -4910,7 +4910,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 <p>
                   Sets the advertised EDNS UDP buffer size in bytes
                   to control the size of packets received.
-                  Valid values are 1024 to 4096 (values outside this range
+                  Valid values are 512 to 4096 (values outside this range
                   will be silently adjusted).  The default value
                   is 4096.  The usual reason for setting
                   <span><strong class="command">edns-udp-size</strong></span> to a non-default
