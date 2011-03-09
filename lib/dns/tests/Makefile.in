@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.2.6.2 2011/02/26 05:46:09 each Exp $
+# $Id: Makefile.in,v 1.2.6.3 2011/03/09 07:31:47 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -37,10 +37,10 @@ DNSDEPLIBS =	../libdns.@A@
 LIBS =		@LIBS@ @ATFLIBS@
 
 OBJS =		dnstest.@O@
-SRCS =		dnstest.c master_test.c
+SRCS =		dnstest.c master_test.c time_test.c
 
 SUBDIRS =
-TARGETS =	master_test@EXEEXT@
+TARGETS =	master_test@EXEEXT@ time_test@EXEEXT@
 
 @BIND9_MAKE_RULES@
 
@@ -49,5 +49,9 @@ master_test@EXEEXT@: master_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 			master_test.@O@ dnstest.@O@ ${DNSLIBS} \
 				${ISCLIBS} ${LIBS}
 
+time_test@EXEEXT@: time_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+			time_test.@O@ dnstest.@O@ ${DNSLIBS} \
+				${ISCLIBS} ${LIBS}
 clean distclean::
 	rm -f ${TARGETS}
