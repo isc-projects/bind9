@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.450.4.16 2011/01/31 01:35:20 tbox Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.450.4.17 2011/03/09 00:51:40 ebersman Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -8501,7 +8501,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                 <para>
 		  Sets the advertised EDNS UDP buffer size in bytes
                   to control the size of packets received.
-                  Valid values are 1024 to 4096 (values outside this range
+                  Valid values are 512 to 4096 (values outside this range
 		  will be silently adjusted).  The default value
 		  is 4096.  The usual reason for setting
 		  <command>edns-udp-size</command> to a non-default
