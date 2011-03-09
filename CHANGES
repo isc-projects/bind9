@@ -1,3 +1,6 @@
+3065.	[bug]		RRSIG could have time stamps too far in the future.
+			[RT #23356]
+
 3064.	[bug]		powerpc: add sync instructions to the end of atomic
 			operations. [RT #23469]
 
