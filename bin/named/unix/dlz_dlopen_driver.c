@@ -1,45 +1,20 @@
 /*
- * Copyright (C) 2010,2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
  *
- * Written by Andrew Tridgell
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
  *
- * based on dlz_stub_driver.c
- * which is:
- * Copyright (C) 2002 Stichting NLnet, Netherlands, stichting@nlnet.nl.
- * Copyright (C) 1999-2001  Internet Software Consortium.
- * see dlz_stub_driver.c for details
- *
- * Permission to use, copy, modify, and distribute this software for any
- * purpose with or without fee is hereby granted, provided that the
- * above copyright notice and this permission notice appear in all
- * copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR
- * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
- * STICHTING NLNET BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
- * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE
- * USE OR PERFORMANCE OF THIS SOFTWARE.
- *
- * The development of Dynamically Loadable Zones (DLZ) for Bind 9 was
- * conceived and contributed by Rob Butler.
- *
- * Permission to use, copy, modify, and distribute this software for any
- * purpose with or without fee is hereby granted, provided that the
- * above copyright notice and this permission notice appear in all
- * copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND ROB BUTLER
- * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
- * ROB BUTLER BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
- * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE
- * USE OR PERFORMANCE OF THIS SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
  */
+
+/* $Id: dlz_dlopen_driver.c,v 1.1.4.3 2011/03/10 23:47:26 tbox Exp $ */
 
 #include <config.h>
 
@@ -162,7 +137,7 @@ dlopen_dlz_allnodes(const char *zone, void *driverarg, void *dbdata,
 
 static isc_result_t
 dlopen_dlz_allowzonexfr(void *driverarg, void *dbdata, const char *name,
-		        const char *client)
+			const char *client)
 {
 	dlopen_data_t *cd = (dlopen_data_t *) dbdata;
 	isc_result_t result;
@@ -237,7 +212,7 @@ dl_load_symbol(dlopen_data_t *cd, const char *symbol, isc_boolean_t mandatory) {
 	void *ptr = dlsym(cd->dl_handle, symbol);
 	if (ptr == NULL && mandatory) {
 		dlopen_log(ISC_LOG_ERROR,
-		           "dlz_dlopen: library '%s' is missing "
+			   "dlz_dlopen: library '%s' is missing "
 			   "required symbol '%s'", cd->dl_path, symbol);
 	}
 	return (ptr);
@@ -333,7 +308,7 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	cd->dlz_authority = dl_load_symbol(cd, "dlz_authority", ISC_FALSE);
 	cd->dlz_newversion = dl_load_symbol(cd, "dlz_newversion", ISC_FALSE);
 	cd->dlz_closeversion = dl_load_symbol(cd, "dlz_closeversion",
-				            ISC_TF(cd->dlz_newversion != NULL));
+					    ISC_TF(cd->dlz_newversion != NULL));
 	cd->dlz_configure = dl_load_symbol(cd, "dlz_configure", ISC_FALSE);
 	cd->dlz_ssumatch = dl_load_symbol(cd, "dlz_ssumatch", ISC_FALSE);
 	cd->dlz_addrdataset = dl_load_symbol(cd, "dlz_addrdataset", ISC_FALSE);
