@@ -400,6 +400,7 @@ rt22758				new	each	// 2010-12-17 22:51 +0000
 rt22769				new	marka	// 2010-12-20 01:32 +0000
 rt22771				new	smann	// 2011-02-10 16:02 +0000
 rt22820				new	each	// 2011-01-08 00:56 +0000
+rt22842				new	marka	// 2011-03-10 04:31 +0000
 rt22852				new	mgraff	// 2011-01-07 18:15 +0000
 rt22863				new	marka	// 2011-01-12 00:02 +0000
 rt22896				new	marka	// 2011-03-01 02:41 +0000
@@ -434,6 +435,7 @@ rt23467				new	each	// 2011-03-02 18:11 +0000
 rt23473				new	marka	// 2011-03-03 05:21 +0000
 rt23485				new	fdupont	// 2011-03-02 22:41 +0000
 rt23488				new	each	// 2011-03-02 16:57 +0000
+rt23580				new	marka	// 2011-03-10 01:19 +0000
 shane_dbbackend			open	
 skan				open	explorer
 skan-metazones1			private	explorer
@@ -449,6 +451,8 @@ sp1324				new	marka	// 2007-06-29 05:40 +0000
 sp1705				new	
 sp1705a				new	
 sp2708				new	marka	// 2009-08-20 02:00 +0000
+sp3881				new	smann	// 2011-03-10 18:49 +0000
+sp3881_special_edns0		new	smann	// 2011-03-10 21:13 +0000
 stats_lidl			open	
 v6source			open	
 v9_1				active		// security fixes only
