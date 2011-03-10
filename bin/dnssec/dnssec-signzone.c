@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.268 2011/03/05 23:52:29 tbox Exp $ */
+/* $Id: dnssec-signzone.c,v 1.269 2011/03/10 13:37:21 fdupont Exp $ */
 
 /*! \file */
 
@@ -230,7 +230,7 @@ dumpnode(dns_name_t *name, dns_dbnode_t *node) {
 			continue;
 		}
 
-		while (ISC_TRUE) {
+		for (;;) {
 			result = dns_master_rdatasettotext(name, &rds,
 							   masterstyle, buffer);
 			if (result != ISC_R_NOSPACE)
