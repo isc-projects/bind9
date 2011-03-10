@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.599.8.6 2011/03/03 16:18:12 each Exp $ */
+/* $Id: server.c,v 1.599.8.7 2011/03/10 04:29:15 each Exp $ */
 
 /*! \file */
 
@@ -60,9 +60,7 @@
 #include <dns/cache.h>
 #include <dns/db.h>
 #include <dns/dispatch.h>
-#ifdef DLZ
 #include <dns/dlz.h>
-#endif
 #include <dns/dns64.h>
 #include <dns/forward.h>
 #include <dns/journal.h>
@@ -1340,7 +1338,6 @@ cache_sharable(dns_view_t *originview, dns_view_t *view,
 	return (ISC_TRUE);
 }
 
-#ifdef DLZ
 /*
  * Callback from DLZ configure when the driver sets up a writeable zone
  */
@@ -1358,7 +1355,6 @@ dlzconfigure_callback(dns_view_t *view, dns_zone_t *zone) {
 	return ns_zone_configure_writeable_dlz(view->dlzdatabase,
 					       zone, zclass, origin);
 }
-#endif
 
 static isc_result_t
 dns64_reverse(dns_view_t *view, isc_mem_t *mctx, isc_netaddr_t *na,
@@ -1569,11 +1565,9 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 	const cfg_obj_t *forwarders;
 	const cfg_obj_t *alternates;
 	const cfg_obj_t *zonelist;
-#ifdef DLZ
 	const cfg_obj_t *dlz;
 	unsigned int dlzargc;
 	char **dlzargv;
-#endif
 	const cfg_obj_t *disabled;
 	const cfg_obj_t *obj;
 	const cfg_listelt_t *element;
@@ -1784,7 +1778,6 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 		}
 	}
 
-#ifdef DLZ
 	/*
 	 * Create Dynamically Loadable Zone driver.
 	 */
@@ -1829,7 +1822,6 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 				goto cleanup;
 		}
 	}
-#endif
 
 	/*
 	 * Obtain configuration parameters that affect the decision of whether

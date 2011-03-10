@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.512.8.6 $)
+AC_REVISION($Revision: 1.512.8.7 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -3141,28 +3141,95 @@ LIBIRS_API=$srcdir/lib/irs/api
 # Configure any DLZ drivers.
 #
 # If config.dlz.in selects one or more DLZ drivers, it will set
-# USE_DLZ to a non-empty value, which will be our clue to
-# enable the DLZ core functions.
+# CONTRIB_DLZ to a non-empty value, which will be our clue to
+# build DLZ drivers in contrib.
 #
 # This section has to come after the libtool stuff because it needs to
 # know how to name the driver object files.
 #
 
-USE_DLZ=""
+CONTRIB_DLZ=""
 DLZ_DRIVER_INCLUDES=""
 DLZ_DRIVER_LIBS=""
 DLZ_DRIVER_SRCS=""
 DLZ_DRIVER_OBJS=""
 DLZ_SYSTEM_TEST=""
 
+# 
+# Configure support for building a shared library object
+#
+# Even when libtool is available it can't always be relied upon
+# to build an object that can be dlopen()'ed, but this is necessary
+# for building the dlzexternal system test, so we'll try it the
+# old-fashioned way.
+#
+SO="so"
+SO_CFLAGS=""
+SO_LD=""
+SO_TARGETS=""
+
+AC_ARG_WITH(dlopen,
+	[  --with-dlopen=ARG       Support dynamically loadable DLZ drivers],
+	dlopen="$withval", dlopen="yes")
+
+if test "$dlopen" = "yes"; then
+        AC_CHECK_LIB(dl, dlclose, have_dl=yes, have_dl=no)
+        AC_CHECK_FUNCS(dlopen dlclose dlsym,,dlopen=no)
+fi
+
+if test "$dlopen" = "yes"; then
+	case $host in
+		*-linux*)
+			SO_CFLAGS="-fPIC"
+			if test "$have_dl" = "yes"
+			then
+				SO_LD="${CC} -shared"
+			else
+				SO_LD="ld -shared"
+			fi
+			;;
+		*-freebsd*|*-openbsd*|*-netbsd*)
+			SO_CFLAGS="-fpic"
+			SO_LD="ld -Bshareable -x"
+			;;
+		*-solaris*)
+			SO_CFLAGS="-KPIC"
+			SO_LD="ld -G -z text"
+                        ;;
+		*-hp-hpux*)
+			SO=sl
+			SO_CFLAGS="+z"
+			SO_LD="ld -b"
+                        ;;
+		*)
+			SO_CFLAGS="-fPIC"
+			;;
+	esac
+
+	if test "X$GCC" = "Xyes"; then
+		SO_CFLAGS="-fPIC"
+                test -n "$SO_LD" || SO_LD="${CC} -shared"
+	fi
+
+	# If we still don't know how to make shared objects, don't make any.
+	if test -n "$SO_LD"; then
+		SO_TARGETS="\${SO_TARGETS}"
+		AC_DEFINE(ISC_DLZ_DLOPEN, 1,
+			  [Define to allow building of objects for dlopen().])
+	fi
+fi
+
+AC_SUBST(SO)
+AC_SUBST(SO_CFLAGS)
+AC_SUBST(SO_LD)
+AC_SUBST(SO_TARGETS)
+
 sinclude(contrib/dlz/config.dlz.in)
+AC_MSG_CHECKING(contributed DLZ drivers)
 
-AC_MSG_CHECKING(for DLZ)
-
-if test -n "$USE_DLZ"
+if test -n "$CONTRIB_DLZ"
 then
 	AC_MSG_RESULT(yes)
-	USE_DLZ="-DDLZ $USE_DLZ"
 	DLZ_DRIVER_RULES=contrib/dlz/drivers/rules
 	AC_CONFIG_FILES([$DLZ_DRIVER_RULES])
 else
@@ -3170,7 +3237,7 @@ else
 	DLZ_DRIVER_RULES=/dev/null
 fi
 
-AC_SUBST(USE_DLZ)
+AC_SUBST(CONTRIB_DLZ)
 AC_SUBST(DLZ_DRIVER_INCLUDES)
 AC_SUBST(DLZ_DRIVER_LIBS)
 AC_SUBST(DLZ_DRIVER_SRCS)
@@ -3333,6 +3400,8 @@ AC_CONFIG_FILES([
 	bin/tests/sockaddr/Makefile
 	bin/tests/system/Makefile
 	bin/tests/system/conf.sh
+	bin/tests/system/dlzexternal/Makefile
+	bin/tests/system/dlzexternal/ns1/named.conf
 	bin/tests/system/filter-aaaa/Makefile
 	bin/tests/system/gost/prereq.sh
 	bin/tests/system/lwresd/Makefile

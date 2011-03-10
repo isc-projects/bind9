@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.180 2010/12/22 03:59:02 marka Exp $ */
+/* $Id: main.c,v 1.180.14.1 2011/03/10 04:29:14 each Exp $ */
 
 /*! \file */
 
@@ -51,6 +51,8 @@
 
 #include <dst/result.h>
 
+#include <dlz/dlz_dlopen_driver.h>
+
 /*
  * Defining NS_MAIN provides storage declarations (rather than extern)
  * for variables in named/globals.h.
@@ -81,10 +83,10 @@
  */
 /* #include "xxdb.h" */
 
+#ifdef CONTRIB_DLZ
 /*
- * Include DLZ drivers if appropriate.
+ * Include contributed DLZ drivers if appropriate.
  */
-#ifdef DLZ
 #include <dlz/dlz_drivers.h>
 #endif
 
@@ -856,9 +858,19 @@ setup(void) {
 	 */
 	/* xxdb_init(); */
 
-#ifdef DLZ
+#ifdef ISC_DLZ_DLOPEN
 	/*
-	 * Register any DLZ drivers.
+	 * Register the DLZ "dlopen" driver.
+	 */
+	result = dlz_dlopen_init(ns_g_mctx);
+	if (result != ISC_R_SUCCESS)
+		ns_main_earlyfatal("dlz_dlopen_init() failed: %s",
+				   isc_result_totext(result));
+#endif
+
+#if CONTRIB_DLZ
+	/*
+	 * Register any other contributed DLZ drivers.
 	 */
 	result = dlz_drivers_init();
 	if (result != ISC_R_SUCCESS)
@@ -882,11 +894,17 @@ cleanup(void) {
 	 */
 	/* xxdb_clear(); */
 
-#ifdef DLZ
+#ifdef CONTRIB_DLZ
 	/*
-	 * Unregister any DLZ drivers.
+	 * Unregister contributed DLZ drivers.
 	 */
 	dlz_drivers_clear();
+#endif
+#ifdef ISC_DLZ_DLOPEN
+	/*
+	 * Unregister "dlopen" DLZ driver.
+	 */
+	dlz_dlopen_clear();
 #endif
 
 	dns_name_destroy();

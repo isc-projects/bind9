@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.170 2011/01/06 23:47:00 tbox Exp $ */
+/* $Id: zoneconf.c,v 1.170.14.1 2011/03/10 04:29:15 each Exp $ */
 
 /*% */
 
@@ -1433,7 +1433,6 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 }
 
 
-#ifdef DLZ
 /*
  * Set up a DLZ zone as writeable
  */
@@ -1455,7 +1454,6 @@ ns_zone_configure_writeable_dlz(dns_dlzdb_t *dlzdatabase, dns_zone_t *zone,
 	dns_db_detach(&db);
 	return result;
 }
-#endif
 
 isc_boolean_t
 ns_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig) {

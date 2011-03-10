@@ -185,12 +185,14 @@ dns_dispatchmgr_setblackhole
 dns_dispatchmgr_setblackportlist
 dns_dispatchmgr_setstats
 dns_dlzallowzonexfr
+dns_dlzconfigure
 dns_dlzcreate
 dns_dlzdestroy
 dns_dlzfindzone
 dns_dlzregister
 dns_dlzstrtoargv
 dns_dlzunregister
+dns_dlz_writeablezone
 dns_dns64_aaaafroma
 dns_dns64_aaaaok
 dns_dns64_append
@@ -389,6 +391,7 @@ dns_name_tostring
 dns_name_totext
 dns_name_towire
 dns_ncache_add
+dns_ncache_current
 dns_ncache_getrdataset
 dns_ncache_towire
 dns_nsec3_active
@@ -598,6 +601,7 @@ dns_resolver_resetmustbesecure
 dns_resolver_setclientsperquery
 dns_resolver_setlamettl
 dns_resolver_setmustbesecure
+dns_resolver_settimeout
 dns_resolver_setudpsize
 dns_resolver_setzeronosoattl
 dns_resolver_shutdown
@@ -636,6 +640,7 @@ dns_sdb_unregister
 dns_sdlz_putnamedrr
 dns_sdlz_putrr
 dns_sdlz_putsoa
+dns_sdlz_setdb
 dns_sdlzregister
 dns_sdlzunregister
 dns_secalg_format
@@ -758,6 +763,7 @@ dns_zone_clearxfracl
 dns_zone_create
 dns_zone_detach
 dns_zone_dialup
+dns_zone_dlzpostload
 dns_zone_dump
 dns_zone_dumptostream
 dns_zone_dumptostream2
