@@ -14,20 +14,12 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: prereq.sh,v 1.4 2010/12/20 23:47:20 tbox Exp $
+# $Id: prereq.sh,v 1.5 2011/03/10 04:36:15 each Exp $
 
 TOP=${SYSTEMTESTTOP:=.}/../../../..
 
-# enable the dlzexternal test only if it builds and dlz-dlopen was enabled
-$TOP/bin/named/named -V | grep with.dlz.dlopen | grep -v with.dlz.dlopen=no > /dev/null || {
-    echo "I:not built with --with-dlz-dlopen=yes - skipping dlzexternal test"
-    exit 255
-}
-
-cd ../../../../contrib/dlz/example && make all > /dev/null || {
-    echo "I:build of dlz_example.so failed - skipping dlzexternal test"
-    exit 1
+./dlopen ||  {
+        echo "I:dlopen() not supported - skipping dlzexternal test"
+        exit 1
 }
 exit 0
-
-

@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.13 2009/12/05 23:31:40 each Exp $
+# $Id: Makefile.in,v 1.14 2011/03/10 04:36:14 each Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -22,14 +22,15 @@ top_srcdir =	@top_srcdir@
 @BIND9_MAKE_INCLUDES@
 
 CINCLUDES =	-I${srcdir}/include -I${srcdir}/../include \
+		${ISCCFG_INCLUDES} ${ISCCC_INCLUDES} \
 		${DNS_INCLUDES} ${ISC_INCLUDES}
 
 CDEFINES =
 CWARNINGS =
 
-OBJS =		os.@O@
+OBJS =		os.@O@ dlz_dlopen_driver.@O@
 
-SRCS =		os.c
+SRCS =		os.c dlz_dlopen_driver.c
 
 TARGETS =	${OBJS}
 

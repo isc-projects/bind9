@@ -1,3 +1,8 @@
+3066.	[func]		The DLZ "dlopen" driver is now built by default,
+			no longer requiring a configure option.  To
+			disable it, use "configure --without-dlopen".
+                        Driver also supported on win32.  [RT #23467]
+
 3065.	[bug]		RRSIG could have time stamps too far in the future.
 			[RT #23356]
 

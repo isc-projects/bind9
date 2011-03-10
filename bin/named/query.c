@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.357 2011/02/23 23:47:19 tbox Exp $ */
+/* $Id: query.c,v 1.358 2011/03/10 04:36:14 each Exp $ */
 
 /*! \file */
 
@@ -31,9 +31,7 @@
 #include <dns/adb.h>
 #include <dns/byaddr.h>
 #include <dns/db.h>
-#ifdef DLZ
 #include <dns/dlz.h>
-#endif
 #include <dns/dns64.h>
 #include <dns/dnssec.h>
 #include <dns/events.h>
@@ -1025,7 +1023,6 @@ query_getdb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 {
 	isc_result_t result;
 
-#ifdef DLZ
 	isc_result_t tresult;
 	unsigned int namelabels;
 	unsigned int zonelabels;
@@ -1091,16 +1088,10 @@ query_getdb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 			result = tresult;
 		}
 	}
-#else
-	result = query_getzonedb(client, name, qtype, options,
-				 zonep, dbp, versionp);
-#endif
 
 	/* If successful, Transfer ownership of zone. */
 	if (result == ISC_R_SUCCESS) {
-#ifdef DLZ
 		*zonep = zone;
-#endif
 		/*
 		 * If neither attempt above succeeded, return the cache instead
 		 */
@@ -5293,17 +5284,13 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 
 	if (event == NULL && client->query.restarts == 0) {
 		if (is_zone) {
-#ifdef DLZ
 			if (zone != NULL) {
 				/*
 				 * if is_zone = true, zone = NULL then this is
 				 * a DLZ zone.  Don't attempt to attach zone.
 				 */
-#endif
 				dns_zone_attach(zone, &client->query.authzone);
-#ifdef DLZ
 			}
-#endif
 			dns_db_attach(db, &client->query.authdb);
 		}
 		client->query.authdbset = ISC_TRUE;
@@ -5971,9 +5958,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		 * resolver and not have it cached.
 		 */
 		if (qtype == dns_rdatatype_soa &&
-#ifdef DLZ
 		    zone != NULL &&
-#endif
 		    dns_zone_getzeronosoattl(zone))
 			result = query_addsoa(client, db, version, 0,
 					  dns_rdataset_isassociated(rdataset));

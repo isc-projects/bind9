@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,34 +14,15 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named.conf,v 1.3 2010/12/20 23:47:20 tbox Exp $ */
+/* $Id: dlopen.c,v 1.2 2011/03/10 04:36:15 each Exp $ */
 
-controls { };
+#include <config.h>
 
-options {
-	query-source address 10.53.0.1;
-	notify-source 10.53.0.1;
-	transfer-source 10.53.0.1;
-	port 5300;
-	pid-file "named.pid";
-	session-keyfile "session.key";
-	listen-on { 10.53.0.1; 127.0.0.1; };
-	listen-on-v6 { none; };
-	recursion no;
-	notify yes;
-};
-
-key rndc_key {
-	secret "1234abcd8765";
-	algorithm hmac-md5;
-};
-
-include "ddns.key";
-
-controls {
-	inet 10.53.0.1 port 9953 allow { any; } keys { rndc_key; };
-};
-
-dlz "example zone" {
-	database "dlopen ../../../../../contrib/dlz/example/dlz_example.so example.nil";
-};
+int
+main() {
+#if defined(HAVE_DLOPEN) && defined(ISC_DLZ_DLOPEN)
+	return (0);
+#else
+	return (1);
+#endif
+}
