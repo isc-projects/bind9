@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.46.222.4 2010/09/07 23:46:05 tbox Exp $ */
+/* $Id: named-checkconf.c,v 1.46.222.5 2011/03/11 10:49:49 marka Exp $ */
 
 /*! \file */
 
@@ -187,7 +187,7 @@ configure_zone(const char *vclass, const char *view,
 		if (obj != NULL)
 			maps[i++] = obj;
 	}
-	maps[i++] = NULL;
+	maps[i] = NULL;
 
 	cfg_map_get(zoptions, "type", &typeobj);
 	if (typeobj == NULL)

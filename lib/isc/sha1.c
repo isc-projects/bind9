@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sha1.c,v 1.18 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: sha1.c,v 1.18.332.1 2011/03/11 10:49:58 marka Exp $ */
 
 /*	$NetBSD: sha1.c,v 1.5 2000/01/22 22:19:14 mycroft Exp $	*/
 /*	$OpenBSD: sha1.c,v 1.9 1997/07/23 21:12:32 kstailey Exp $	*/
@@ -220,6 +220,8 @@ transform(isc_uint32_t state[5], const unsigned char buffer[64]) {
 
 	/* Wipe variables */
 	a = b = c = d = e = 0;
+	/* Avoid compiler warnings */
+	POST(a); POST(b); POST(c); POST(d); POST(e);
 }
 
 

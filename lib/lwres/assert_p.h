@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: assert_p.h,v 1.14 2007/06/19 23:47:22 tbox Exp $ */
+/* $Id: assert_p.h,v 1.14.332.1 2011/03/11 10:50:00 marka Exp $ */
 
 #ifndef LWRES_ASSERT_P_H
 #define LWRES_ASSERT_P_H 1
@@ -28,6 +28,7 @@
 #define INSIST(x)		assert(x)
 
 #define UNUSED(x)		((void)(x))
+#define POST(x)			((void)(x))
 
 #define SPACE_OK(b, s)		(LWRES_BUFFER_AVAILABLECOUNT(b) >= (s))
 #define SPACE_REMAINING(b, s)	(LWRES_BUFFER_REMAINING(b) >= (s))

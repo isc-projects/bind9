@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_master.c,v 1.36.332.2 2009/01/22 23:47:05 tbox Exp $ */
+/* $Id: t_master.c,v 1.36.332.3 2011/03/11 10:49:52 marka Exp $ */
 
 #include <config.h>
 
@@ -77,7 +77,6 @@ test_master(char *testfile, char *origin, char *class, isc_result_t exp_result)
 	dns_rdataclass_t	rdataclass;
 	isc_textregion_t	textregion;
 
-	result = T_UNRESOLVED;
 	if (T1_mctx == NULL)
 		isc_result = isc_mem_create(0, 0, &T1_mctx);
 	else

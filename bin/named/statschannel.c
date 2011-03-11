@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: statschannel.c,v 1.14.64.11 2010/02/04 23:47:46 tbox Exp $ */
+/* $Id: statschannel.c,v 1.14.64.12 2011/03/11 10:49:51 marka Exp $ */
 
 /*! \file */
 
@@ -637,7 +637,7 @@ rdatasetstats_dump(dns_rdatastatstype_t type, isc_uint64_t val, void *arg) {
 
 static void
 opcodestat_dump(dns_opcode_t code, isc_uint64_t val, void *arg) {
-	FILE *fp = arg;
+	FILE *fp;
 	isc_buffer_t b;
 	char codebuf[64];
 	stats_dumparg_t *dumparg = arg;

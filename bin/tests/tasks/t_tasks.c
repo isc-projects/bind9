@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_tasks.c,v 1.40.332.2 2009/01/22 23:47:05 tbox Exp $ */
+/* $Id: t_tasks.c,v 1.40.332.3 2011/03/11 10:49:53 marka Exp $ */
 
 #include <config.h>
 
@@ -897,7 +897,6 @@ t_tasks4(void) {
 	T4_nfails = 0;
 	T4_flag = 0;
 
-	result = T_UNRESOLVED;
 	event_type = 4;
 
 	workers = 2;
@@ -1097,7 +1096,6 @@ t_tasks7(void) {
 	T7_sdflag = 0;
 	T7_eflag = 0;
 
-	result = T_UNRESOLVED;
 	event_type = 7;
 
 	workers = 2;

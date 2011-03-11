@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.151.12.13 2011/02/03 12:16:44 tbox Exp $ */
+/* $Id: update.c,v 1.151.12.14 2011/03/11 10:49:51 marka Exp $ */
 
 #include <config.h>
 
@@ -3627,7 +3627,6 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	 * Check Requestor's Permissions.  It seems a bit silly to do this
 	 * only after prerequisite testing, but that is what RFC2136 says.
 	 */
-	result = ISC_R_SUCCESS;
 	if (ssutable == NULL)
 		CHECK(checkupdateacl(client, dns_zone_getupdateacl(zone),
 				     "update", zonename, ISC_FALSE, ISC_FALSE));

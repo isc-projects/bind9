@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.199.50.5 2011/02/21 06:46:14 marka Exp $ */
+/* $Id: rdata.c,v 1.199.50.6 2011/03/11 10:49:55 marka Exp $ */
 
 /*! \file */
 
@@ -693,6 +693,7 @@ rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	if (use_default) {
 		strlcpy(buf, "\\# ", sizeof(buf));
 		result = str_totext(buf, target);
+		INSIST(result == ISC_R_SUCCESS);
 		dns_rdata_toregion(rdata, &sr);
 		INSIST(sr.length < 65536);
 		snprintf(buf, sizeof(buf), "%u", sr.length);

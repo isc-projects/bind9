@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.46.332.2 2008/12/30 23:46:49 tbox Exp $ */
+/* $Id: lwconfig.c,v 1.46.332.3 2011/03/11 10:50:00 marka Exp $ */
 
 /*! \file */
 
@@ -589,6 +589,7 @@ lwres_conf_parse(lwres_context_t *ctx, const char *filename) {
 		stopchar = getword(fp, word, sizeof(word));
 		if (stopchar == EOF) {
 			rval = LWRES_R_SUCCESS;
+			POST(rval);
 			break;
 		}
 

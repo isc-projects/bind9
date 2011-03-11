@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock.c,v 1.44.332.2 2009/01/18 23:47:41 tbox Exp $ */
+/* $Id: rwlock.c,v 1.44.332.3 2011/03/11 10:49:58 marka Exp $ */
 
 /*! \file */
 
@@ -261,6 +261,7 @@ isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 		}
 
 		cntflag = isc_atomic_xadd(&rwl->cnt_and_flag, READER_INCR);
+		POST(cntflag);
 		while (1) {
 			if ((rwl->cnt_and_flag & WRITER_ACTIVE) == 0)
 				break;

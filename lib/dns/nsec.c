@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec.c,v 1.11.48.2 2009/01/06 23:47:26 tbox Exp $ */
+/* $Id: nsec.c,v 1.11.48.3 2011/03/11 10:49:54 marka Exp $ */
 
 /*! \file */
 
@@ -182,7 +182,7 @@ dns_nsec_build(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 				    0, NULL);
 	if (result == DNS_R_UNCHANGED)
 		result = ISC_R_SUCCESS;
-	RETERR(result);
+
  failure:
 	if (dns_rdataset_isassociated(&rdataset))
 		dns_rdataset_disassociate(&rdataset);

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.129.48.2 2011/02/21 23:45:49 tbox Exp $ */
+/* $Id: parser.c,v 1.129.48.3 2011/03/11 10:49:59 marka Exp $ */
 
 /*! \file */
 
@@ -1875,6 +1875,7 @@ cfg_doc_netaddr(cfg_printer_t *pctx, const cfg_type_t *type) {
 			cfg_print_chars(pctx, " | ", 3);
 		cfg_print_chars(pctx, "*", 1);
 		n++;
+		POST(n);
 	}
 	if (*flagp != CFG_ADDR_V4OK && *flagp != CFG_ADDR_V6OK)
 		cfg_print_chars(pctx, " )", 2);
@@ -1914,7 +1915,7 @@ cfg_parse_netprefix(cfg_parser_t *pctx, const cfg_type_t *type,
 	cfg_obj_t *obj = NULL;
 	isc_result_t result;
 	isc_netaddr_t netaddr;
-	unsigned int addrlen, prefixlen;
+	unsigned int addrlen = 0, prefixlen;
 	UNUSED(type);
 
 	CHECK(cfg_parse_rawaddr(pctx, CFG_ADDR_V4OK | CFG_ADDR_V4PREFIXOK |
@@ -1927,7 +1928,6 @@ cfg_parse_netprefix(cfg_parser_t *pctx, const cfg_type_t *type,
 		addrlen = 128;
 		break;
 	default:
-		addrlen = 0;
 		INSIST(0);
 		break;
 	}
@@ -2066,6 +2066,7 @@ cfg_doc_sockaddr(cfg_printer_t *pctx, const cfg_type_t *type) {
 			cfg_print_chars(pctx, " | ", 3);
 		cfg_print_chars(pctx, "*", 1);
 		n++;
+		POST(n);
 	}
 	cfg_print_chars(pctx, " ) ", 3);
 	if (*flagp & CFG_ADDR_WILDOK) {

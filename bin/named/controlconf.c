@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.60 2008/07/23 23:27:54 marka Exp $ */
+/* $Id: controlconf.c,v 1.60.70.1 2011/03/11 10:49:50 marka Exp $ */
 
 /*! \file */
 
@@ -859,7 +859,7 @@ get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids) {
 		cfg_obj_log(key, ns_g_lctx, ISC_LOG_WARNING,
 			    "secret for key '%s' on command channel: %s",
 			    keyid->keyname, isc_result_totext(result));
-		CHECK(result);
+		goto cleanup;
 	}
 
 	keyid->secret.length = isc_buffer_usedlength(&b);

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.483.36.27 2011/02/22 04:33:49 marka Exp $ */
+/* $Id: zone.c,v 1.483.36.28 2011/03/11 10:49:57 marka Exp $ */
 
 /*! \file */
 
@@ -1934,8 +1934,7 @@ zone_check_glue(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 				dns_rdataset_disassociate(&aaaa);
 			return (answer);
 		}
-	} else
-		tresult = result;
+	}
 
 	dns_name_format(owner, ownerbuf, sizeof ownerbuf);
 	dns_name_format(name, namebuf, sizeof namebuf);
@@ -5528,7 +5527,7 @@ zone_sign(dns_zone_t *zone) {
 	isc_boolean_t build_nsec3 = ISC_FALSE, build_nsec = ISC_FALSE;
 	isc_boolean_t first;
 	isc_result_t result;
-	isc_stdtime_t now, inception, soaexpire, expire, stop;
+	isc_stdtime_t now, inception, soaexpire, expire;
 	isc_uint32_t jitter;
 	unsigned int i;
 	unsigned int nkeys = 0;
@@ -5583,7 +5582,6 @@ zone_sign(dns_zone_t *zone) {
 	 */
 	isc_random_get(&jitter);
 	expire = soaexpire - jitter % 3600;
-	stop = now + 5;
 
 	check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
 	if (check_ksk)
@@ -6171,7 +6169,7 @@ dns_zone_refresh(dns_zone_t *zone) {
 	isc_interval_set(&i, isc_random_jitter(zone->retry, zone->retry / 4),
 			 0);
 	result = isc_time_nowplusinterval(&zone->refreshtime, &i);
-	if (result |= ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		dns_zone_log(zone, ISC_LOG_WARNING,
 			     "isc_time_nowplusinterval() failed: %s",
 			     dns_result_totext(result));
@@ -7706,6 +7704,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	} else
 		zone_debuglog(zone, me, 1, "serial: new %u, old not loaded",
 			      serial);
+
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) ||
 	    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FORCEXFER) ||
 	    isc_serial_gt(serial, oldserial)) {
@@ -8280,6 +8279,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	 * XXX Optimisation: Create message when zone is setup and reuse.
 	 */
 	result = create_query(zone, dns_rdatatype_ns, &message);
+	INSIST(result == ISC_R_SUCCESS);
 
 	INSIST(zone->masterscnt > 0);
 	INSIST(zone->curmaster < zone->masterscnt);
@@ -8353,6 +8353,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 		break;
 	default:
 		result = ISC_R_NOTIMPLEMENTED;
+		POST(result);
 		goto cleanup;
 	}
 	timeout = 15;

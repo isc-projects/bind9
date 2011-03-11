@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.81.48.2 2010/01/15 23:47:31 tbox Exp $ */
+/* $Id: dnssec-keygen.c,v 1.81.48.3 2011/03/11 10:49:50 marka Exp $ */
 
 /*! \file */
 
@@ -513,10 +513,11 @@ main(int argc, char **argv) {
 			if (verbose > 0) {
 				isc_buffer_clear(&buf);
 				ret = dst_key_buildfilename(key, 0, NULL, &buf);
-				fprintf(stderr,
-					"%s: %s already exists, "
-					"generating a new key\n",
-					program, filename);
+				if (ret == ISC_R_SUCCESS)
+					fprintf(stderr,
+						"%s: %s already exists, "
+						"generating a new key\n",
+						program, filename);
 			}
 			dst_key_free(&key);
 		}
@@ -537,6 +538,9 @@ main(int argc, char **argv) {
 
 	isc_buffer_clear(&buf);
 	ret = dst_key_buildfilename(key, 0, NULL, &buf);
+	if (ret != ISC_R_SUCCESS)
+		fatal("dst_key_buildfilename returned: %s\n",
+		      isc_result_totext(ret));
 	printf("%s\n", filename);
 	dst_key_free(&key);
 
