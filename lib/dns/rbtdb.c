@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.292.8.19 2011/03/03 04:43:35 each Exp $ */
+/* $Id: rbtdb.c,v 1.292.8.20 2011/03/11 07:11:58 marka Exp $ */
 
 /*! \file */
 
@@ -4076,6 +4076,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	 */
 	if (search.need_cleanup) {
 		node = search.zonecut;
+		INSIST(node != NULL);
 		lock = &(search.rbtdb->node_locks[node->locknum].lock);
 
 		NODE_LOCK(lock, isc_rwlocktype_read);
@@ -4377,6 +4378,7 @@ find_deepest_zonecut(rbtdb_search_t *search, dns_rbtnode_t *node,
 					NODE_UNLOCK(lock, locktype);
 					NODE_LOCK(lock, isc_rwlocktype_write);
 					locktype = isc_rwlocktype_write;
+					POST(locktype);
 				}
 				if (need_headerupdate(found, search->now))
 					update_header(search->rbtdb, found,
@@ -4687,15 +4689,9 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 				    cname_ok &&
 				    cnamesig != NULL) {
 					/*
-					 * If we've already got the CNAME RRSIG,
-					 * use it, otherwise change sigtype
-					 * so that we find it.
+					 * If we've already got the
+					 * CNAME RRSIG, use it.
 					 */
-					if (cnamesig != NULL)
-						foundsig = cnamesig;
-					else
-						sigtype =
-						    RBTDB_RDATATYPE_SIGCNAME;
 					foundsig = cnamesig;
 				}
 			} else if (header->type == sigtype) {
@@ -4841,6 +4837,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		NODE_UNLOCK(lock, locktype);
 		NODE_LOCK(lock, isc_rwlocktype_write);
 		locktype = isc_rwlocktype_write;
+		POST(locktype);
 	}
 	if (update != NULL && need_headerupdate(update, search.now))
 		update_header(search.rbtdb, update, search.now);
@@ -4858,6 +4855,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	 */
 	if (search.need_cleanup) {
 		node = search.zonecut;
+		INSIST(node != NULL);
 		lock = &(search.rbtdb->node_locks[node->locknum].lock);
 
 		NODE_LOCK(lock, isc_rwlocktype_read);
@@ -5023,6 +5021,7 @@ cache_findzonecut(dns_db_t *db, dns_name_t *name, unsigned int options,
 			NODE_UNLOCK(lock, locktype);
 			NODE_LOCK(lock, isc_rwlocktype_write);
 			locktype = isc_rwlocktype_write;
+			POST(locktype);
 		}
 		if (need_headerupdate(found, search.now))
 			update_header(search.rbtdb, found, search.now);

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.233.62.5 2011/02/28 01:19:26 tbox Exp $ */
+/* $Id: dig.c,v 1.233.62.6 2011/03/11 07:11:51 marka Exp $ */
 
 /*! \file */
 
@@ -471,8 +471,6 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	}
 	if (!query->lookup->comments)
 		flags |= DNS_MESSAGETEXTFLAG_NOCOMMENTS;
-
-	result = ISC_R_SUCCESS;
 
 	result = isc_buffer_allocate(mctx, &buf, len);
 	check_result(result, "isc_buffer_allocate");
@@ -1557,7 +1555,6 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 						(isc_textregion_t *)&tr);
 					if (result == ISC_R_SUCCESS &&
 					    rdtype == dns_rdatatype_ixfr) {
-						result = DNS_R_UNKNOWN;
 						fprintf(stderr, ";; Warning, "
 							"ixfr requires a "
 							"serial number\n");

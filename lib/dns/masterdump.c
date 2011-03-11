@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.99.16.2 2011/03/11 01:28:29 each Exp $ */
+/* $Id: masterdump.c,v 1.99.16.3 2011/03/11 07:11:57 marka Exp $ */
 
 /*! \file */
 
@@ -1072,6 +1072,8 @@ dump_rdatasets_raw(isc_mem_t *mctx, dns_name_t *name,
 						   buffer, f);
 		}
 		dns_rdataset_disassociate(&rdataset);
+		if (result != ISC_R_SUCCESS)
+			return (result);
 	}
 
 	if (result == ISC_R_NOMORE)
@@ -1767,6 +1769,14 @@ dns_master_dumpnode(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 
 	result = dns_master_dumpnodetostream(mctx, db, version, node, name,
 					     style, f);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_ERROR,
+			      "dumping master file: %s: dump: %s", filename,
+			      isc_result_totext(result));
+		(void)isc_stdio_close(f);
+		return (ISC_R_UNEXPECTED);
+	}
 
 	result = isc_stdio_close(f);
 	if (result != ISC_R_SUCCESS) {

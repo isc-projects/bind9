@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: radix.c,v 1.23 2009/01/18 23:48:14 tbox Exp $ */
+/* $Id: radix.c,v 1.23.186.1 2011/03/11 07:12:01 marka Exp $ */
 
 /*
  * This source was adapted from MRT's RCS Ids:
@@ -275,7 +275,7 @@ isc_radix_search(isc_radix_tree_t *radix, isc_radix_node_t **target,
 	if (node && node->prefix)
 		stack[cnt++] = node;
 
-	while (--cnt >= 0) {
+	while (cnt-- > 0) {
 		node = stack[cnt];
 
 		if (_comp_with_mask(isc_prefix_tochar(node->prefix),

@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: httpd.c,v 1.16.284.4 2011/02/21 23:46:38 tbox Exp $ */
+/* $Id: httpd.c,v 1.16.284.5 2011/03/11 07:12:01 marka Exp $ */
 
 /*! \file */
 
@@ -315,7 +315,7 @@ isc_httpdmgr_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	isc_task_detach(&httpd->task);
 	isc_socket_detach(&httpd->sock);
 	isc_mem_detach(&httpd->mctx);
-	isc_mutex_destroy(&httpd->lock);
+	(void)isc_mutex_destroy(&httpd->lock);
 	isc_mem_put(mctx, httpd, sizeof(isc_httpdmgr_t));
 	return (result);
 }
@@ -364,7 +364,7 @@ httpdmgr_destroy(isc_httpdmgr_t *httpdmgr)
 	}
 
 	UNLOCK(&httpdmgr->lock);
-	isc_mutex_destroy(&httpdmgr->lock);
+	(void)isc_mutex_destroy(&httpdmgr->lock);
 
 	if (httpdmgr->ondestroy != NULL)
 		(httpdmgr->ondestroy)(httpdmgr->cb_arg);
@@ -586,6 +586,8 @@ isc_httpd_accept(isc_task_t *task, isc_event_t *ev)
 	r.length = HTTP_RECVLEN - 1;
 	result = isc_socket_recv(httpd->sock, &r, 1, task, isc_httpd_recvdone,
 				 httpd);
+	/* FIXME!!! */
+	POST(result);
 	NOTICE("accept queued recv on socket");
 
  requeue:
@@ -683,8 +685,9 @@ isc_httpd_recvdone(isc_task_t *task, isc_event_t *ev)
 		}
 		r.base = (unsigned char *)httpd->recvbuf + httpd->recvlen;
 		r.length = HTTP_RECVLEN - httpd->recvlen - 1;
-		result = isc_socket_recv(httpd->sock, &r, 1, task,
-					 isc_httpd_recvdone, httpd);
+		/* check return code? */
+		(void)isc_socket_recv(httpd->sock, &r, 1, task,
+				      isc_httpd_recvdone, httpd);
 		goto out;
 	} else if (result != ISC_R_SUCCESS) {
 		destroy_client(&httpd);
@@ -722,14 +725,14 @@ isc_httpd_recvdone(isc_task_t *task, isc_event_t *ev)
 				     &httpd->mimetype, &httpd->bodybuffer,
 				     &httpd->freecb, &httpd->freecb_arg);
 	if (result != ISC_R_SUCCESS) {
-	    result = httpd->mgr->render_500(httpd->url, httpd->querystring,
-					    NULL,
-					    &httpd->retcode,
-					    &httpd->retmsg,
-					    &httpd->mimetype,
-					    &httpd->bodybuffer,
-					    &httpd->freecb,
-					    &httpd->freecb_arg);
+		result = httpd->mgr->render_500(httpd->url, httpd->querystring,
+						NULL, &httpd->retcode,
+						&httpd->retmsg,
+						&httpd->mimetype,
+						&httpd->bodybuffer,
+						&httpd->freecb,
+						&httpd->freecb_arg);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
 
 	isc_httpd_response(httpd);
@@ -753,8 +756,9 @@ isc_httpd_recvdone(isc_task_t *task, isc_event_t *ev)
 	if (isc_buffer_length(&httpd->bodybuffer) > 0)
 		ISC_LIST_APPEND(httpd->bufflist, &httpd->bodybuffer, link);
 
-	result = isc_socket_sendv(httpd->sock, &httpd->bufflist, task,
-				  isc_httpd_senddone, httpd);
+	/* check return code? */
+	(void)isc_socket_sendv(httpd->sock, &httpd->bufflist, task,
+			       isc_httpd_senddone, httpd);
 
  out:
 	isc_event_free(&ev);
@@ -912,7 +916,6 @@ isc_httpd_senddone(isc_task_t *task, isc_event_t *ev)
 {
 	isc_httpd_t *httpd = ev->ev_arg;
 	isc_region_t r;
-	isc_result_t result;
 	isc_socketevent_t *sev = (isc_socketevent_t *)ev;
 
 	ENTER("senddone");
@@ -963,8 +966,9 @@ isc_httpd_senddone(isc_task_t *task, isc_event_t *ev)
 
 	r.base = (unsigned char *)httpd->recvbuf;
 	r.length = HTTP_RECVLEN - 1;
-	result = isc_socket_recv(httpd->sock, &r, 1, task, isc_httpd_recvdone,
-				 httpd);
+	/* check return code? */
+	(void)isc_socket_recv(httpd->sock, &r, 1, task,
+			      isc_httpd_recvdone, httpd);
 
 out:
 	isc_event_free(&ev);

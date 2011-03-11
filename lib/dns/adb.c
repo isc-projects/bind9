@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.247.172.4 2011/02/21 23:46:38 tbox Exp $ */
+/* $Id: adb.c,v 1.247.172.5 2011/03/11 07:11:56 marka Exp $ */
 
 /*! \file
  *
@@ -1853,7 +1853,6 @@ check_expire_name(dns_adbname_t **namep, isc_stdtime_t now) {
 static void
 check_stale_name(dns_adb_t *adb, int bucket, isc_stdtime_t now) {
 	int victims, max_victims;
-	isc_boolean_t result;
 	dns_adbname_t *victim, *next_victim;
 	isc_boolean_t overmem = isc_mem_isovermem(adb->mctx);
 	int scans = 0;
@@ -1875,7 +1874,7 @@ check_stale_name(dns_adb_t *adb, int bucket, isc_stdtime_t now) {
 		INSIST(!NAME_DEAD(victim));
 		scans++;
 		next_victim = ISC_LIST_PREV(victim, plink);
-		result = check_expire_name(&victim, now);
+		(void)check_expire_name(&victim, now);
 		if (victim == NULL) {
 			victims++;
 			goto next;
@@ -2299,6 +2298,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	REQUIRE((options & DNS_ADBFIND_ADDRESSMASK) != 0);
 
 	result = ISC_R_UNEXPECTED;
+	POST(result);
 	wanted_addresses = (options & DNS_ADBFIND_ADDRESSMASK);
 	wanted_fetches = 0;
 	query_pending = 0;
@@ -2705,6 +2705,7 @@ dns_adb_cancelfind(dns_adbfind_t *find) {
 	}
 	UNLOCK(&adb->namelocks[unlock_bucket]);
 	bucket = DNS_ADB_INVALIDBUCKET;
+	POST(bucket);
 
  cleanup:
 

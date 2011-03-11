@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.258.4.6 2011/02/28 01:19:26 tbox Exp $ */
+/* $Id: dnssec-signzone.c,v 1.258.4.7 2011/03/11 07:11:51 marka Exp $ */
 
 /*! \file */
 
@@ -1474,7 +1474,6 @@ verifyzone(void) {
 	isc_boolean_t done = ISC_FALSE;
 	isc_boolean_t first = ISC_TRUE;
 	isc_boolean_t goodksk = ISC_FALSE;
-	isc_boolean_t goodzsk = ISC_FALSE;
 	isc_result_t result;
 	unsigned char revoked_ksk[256];
 	unsigned char revoked_zsk[256];
@@ -1576,7 +1575,6 @@ verifyzone(void) {
 #endif
 			if (zsk_algorithms[dnskey.algorithm] != 255)
 				zsk_algorithms[dnskey.algorithm]++;
-			goodzsk = ISC_TRUE;
 		} else {
 			if (standby_zsk[dnskey.algorithm] != 255)
 				standby_zsk[dnskey.algorithm]++;
@@ -2199,6 +2197,7 @@ addnsec3param(const unsigned char *salt, size_t salt_length,
 	result = dns_rdata_fromstruct(&rdata, gclass,
 				      dns_rdatatype_nsec3param,
 				      &nsec3param, &b);
+	check_result(result, "dns_rdata_fromstruct()");
 	rdatalist.rdclass = rdata.rdclass;
 	rdatalist.type = rdata.type;
 	rdatalist.covers = 0;
@@ -2808,7 +2807,7 @@ loadzonekeys(isc_boolean_t preserve_keys, isc_boolean_t load_public) {
 	}
 	keyttl = rdataset.ttl;
 
-	/* Load keys corresponding to the existing DNSKEY RRset */
+	/* Load keys corresponding to the existing DNSKEY RRset. */
 	result = dns_dnssec_keylistfromrdataset(gorigin, directory, mctx,
 						&rdataset, &keysigs, &soasigs,
 						preserve_keys, load_public,

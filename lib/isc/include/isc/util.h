@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: util.h,v 1.30.558.1 2010/01/13 19:31:53 each Exp $ */
+/* $Id: util.h,v 1.30.558.2 2011/03/11 07:12:02 marka Exp $ */
 
 #ifndef ISC_UTIL_H
 #define ISC_UTIL_H 1
@@ -47,6 +47,11 @@
  * \endcode
  */
 #define UNUSED(x)      (void)(x)
+
+/*%
+ * The opposite: silent warnings about stored values which are never read.
+ */
+#define POST(x)        (void)(x)
 
 #define ISC_MAX(a, b)  ((a) > (b) ? (a) : (b))
 #define ISC_MIN(a, b)  ((a) < (b) ? (a) : (b))

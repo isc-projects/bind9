@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3.c,v 1.13.6.6 2010/12/07 03:01:40 marka Exp $ */
+/* $Id: nsec3.c,v 1.13.6.7 2011/03/11 07:11:58 marka Exp $ */
 
 #include <config.h>
 
@@ -557,7 +557,7 @@ dns_nsec3_addnsec3(dns_db_t *db, dns_dbversion_t *version,
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdataset_t rdataset;
 	int pass;
-	isc_boolean_t exists;
+	isc_boolean_t exists = ISC_FALSE;
 	isc_boolean_t maybe_remove_unsecure = ISC_FALSE;
 	isc_uint8_t flags;
 	isc_buffer_t buffer;

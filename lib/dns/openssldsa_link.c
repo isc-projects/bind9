@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: openssldsa_link.c,v 1.18 2009/10/30 05:08:23 marka Exp $ */
+/* $Id: openssldsa_link.c,v 1.18.28.1 2011/03/11 07:11:58 marka Exp $ */
 
 #ifdef OPENSSL
 #ifndef USE_EVP
@@ -252,7 +252,6 @@ openssldsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	dsasig->r = BN_bin2bn(cp, ISC_SHA1_DIGESTLENGTH, NULL);
 	cp += ISC_SHA1_DIGESTLENGTH;
 	dsasig->s = BN_bin2bn(cp, ISC_SHA1_DIGESTLENGTH, NULL);
-	cp += ISC_SHA1_DIGESTLENGTH;
 
 #if 0
 	pkey = EVP_PKEY_new();

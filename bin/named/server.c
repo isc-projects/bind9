@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.556.8.39 2011/03/03 16:19:29 each Exp $ */
+/* $Id: server.c,v 1.556.8.40 2011/03/11 07:11:52 marka Exp $ */
 
 /*! \file */
 
@@ -810,17 +810,12 @@ get_view_querysource_dispatch(const cfg_obj_t **maps,
 			      int af, dns_dispatch_t **dispatchp,
 			      isc_boolean_t is_firstview)
 {
-	isc_result_t result;
+	isc_result_t result = ISC_R_FAILURE;
 	dns_dispatch_t *disp;
 	isc_sockaddr_t sa;
 	unsigned int attrs, attrmask;
 	const cfg_obj_t *obj = NULL;
 	unsigned int maxdispatchbuffers;
-
-	/*
-	 * Make compiler happy.
-	 */
-	result = ISC_R_FAILURE;
 
 	switch (af) {
 	case AF_INET:
@@ -1403,6 +1398,7 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 		sep = "";
 		viewname = "";
 		forview = "";
+		POST(forview);
 	}
 
 	/*
@@ -2793,6 +2789,7 @@ create_view(const cfg_obj_t *vconfig, dns_viewlist_t *viewlist,
 		classobj = cfg_tuple_get(vconfig, "class");
 		result = ns_config_getclass(classobj, dns_rdataclass_in,
 					    &viewclass);
+		INSIST(result == ISC_R_SUCCESS);
 	} else {
 		viewname = "_default";
 		viewclass = dns_rdataclass_in;
@@ -3859,7 +3856,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	if (result == ISC_R_SUCCESS)
 		maps[i++] = options;
 	maps[i++] = ns_g_defaults;
-	maps[i++] = NULL;
+	maps[i] = NULL;
 
 	/*
 	 * If bind.keys exists, load it.  If "dnssec-lookaside auto"
@@ -4085,11 +4082,10 @@ load_configuration(const char *filename, ns_server_t *server,
 		if (options != NULL)
 			(void)cfg_map_get(options, "listen-on", &clistenon);
 		if (clistenon != NULL) {
-			result = ns_listenlist_fromconfig(clistenon,
-							  config,
-							  &aclconfctx,
-							  ns_g_mctx,
-							  &listenon);
+			/* check return code? */
+			(void)ns_listenlist_fromconfig(clistenon, config,
+						       &aclconfctx, ns_g_mctx,
+						       &listenon);
 		} else if (!ns_g_lwresdonly) {
 			/*
 			 * Not specified, use default.
@@ -4113,11 +4109,10 @@ load_configuration(const char *filename, ns_server_t *server,
 		if (options != NULL)
 			(void)cfg_map_get(options, "listen-on-v6", &clistenon);
 		if (clistenon != NULL) {
-			result = ns_listenlist_fromconfig(clistenon,
-							  config,
-							  &aclconfctx,
-							  ns_g_mctx,
-							  &listenon);
+			/* check return code? */
+			(void)ns_listenlist_fromconfig(clistenon, config,
+						       &aclconfctx, ns_g_mctx,
+						       &listenon);
 		} else if (!ns_g_lwresdonly) {
 			isc_boolean_t enable;
 			/*
@@ -4809,8 +4804,8 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 void
 ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	isc_result_t result;
-
 	ns_server_t *server = isc_mem_get(mctx, sizeof(*server));
+
 	if (server == NULL)
 		fatal("allocating server object", ISC_R_NOMEMORY);
 
@@ -5556,7 +5551,6 @@ ns_server_dumpstats(ns_server_t *server) {
 		"could not open statistics dump file", server->statsfile);
 
 	result = ns_stats_dump(server, fp);
-	CHECK(result);
 
  cleanup:
 	if (fp != NULL)
@@ -5744,6 +5738,7 @@ dumpdone(void *arg, isc_result_t result) {
 				fprintf(dctx->fp, "; %s\n",
 					dns_result_totext(result));
 				result = ISC_R_SUCCESS;
+				POST(result);
 				goto nextzone;
 			}
 			if (result != ISC_R_SUCCESS)

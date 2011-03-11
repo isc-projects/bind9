@@ -1,3 +1,6 @@
+3069.	[cleanup]	Silence warnings messages from clang static analysis.
+			[RT #20256]
+
 3068.	[bug]		Named failed to build with a OpenSSL without engine
 			support. [RT #23473]
 

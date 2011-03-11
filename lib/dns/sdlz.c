@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdlz.c,v 1.22.104.3 2010/08/16 05:14:15 marka Exp $ */
+/* $Id: sdlz.c,v 1.22.104.4 2011/03/11 07:11:59 marka Exp $ */
 
 /*! \file */
 
@@ -326,7 +326,7 @@ destroy(dns_sdlz_db_t *sdlz) {
 	sdlz->common.magic = 0;
 	sdlz->common.impmagic = 0;
 
-	isc_mutex_destroy(&sdlz->refcnt_lock);
+	(void)isc_mutex_destroy(&sdlz->refcnt_lock);
 
 	dns_name_free(&sdlz->common.origin, mctx);
 

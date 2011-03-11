@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc-confgen.c,v 1.5 2009/09/29 15:06:05 fdupont Exp $ */
+/* $Id: rndc-confgen.c,v 1.5.66.1 2011/03/11 07:11:51 marka Exp $ */
 
 /*! \file */
 
@@ -200,6 +200,7 @@ main(int argc, char **argv) {
 
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
+	POST(argv);
 
 	if (argc > 0)
 		usage(1);

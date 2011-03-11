@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.328.22.9 2011/02/25 23:01:56 each Exp $ */
+/* $Id: dighost.c,v 1.328.22.10 2011/03/11 07:11:51 marka Exp $ */
 
 /*! \file
  *  \note
@@ -1804,17 +1804,25 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 	if (numLookups > 1) {
 		isc_uint32_t i, j;
 		dig_serverlist_t my_server_list;
+		dig_server_t *next;
 
 		ISC_LIST_INIT(my_server_list);
 
-		for (i = numLookups; i > 0; i--) {
+		i = numLookups;
+		for (srv = ISC_LIST_HEAD(lookup->my_server_list);
+		     srv != NULL;
+		     srv = ISC_LIST_HEAD(lookup->my_server_list)) {
+			INSIST(i > 0);
 			isc_random_get(&j);
 			j %= i;
-			srv = ISC_LIST_HEAD(lookup->my_server_list);
-			while (j-- > 0)
-				srv = ISC_LIST_NEXT(srv, link);
+			next = ISC_LIST_NEXT(srv, link);
+			while (j-- > 0 && next != NULL) {
+				srv = next;
+				next = ISC_LIST_NEXT(srv, link);
+			}
 			ISC_LIST_DEQUEUE(lookup->my_server_list, srv, link);
 			ISC_LIST_APPEND(my_server_list, srv, link);
+			i--;
 		}
 		ISC_LIST_APPENDLIST(lookup->my_server_list,
 				    my_server_list, link);

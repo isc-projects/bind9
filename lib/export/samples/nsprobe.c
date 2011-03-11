@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsprobe.c,v 1.5.66.2 2010/01/07 23:48:16 tbox Exp $ */
+/* $Id: nsprobe.c,v 1.5.66.3 2011/03/11 07:12:00 marka Exp $ */
 
 #include <config.h>
 
@@ -787,6 +787,7 @@ resolve_nsaddress(isc_task_t *task, isc_event_t *event) {
 					fprintf(stderr, "resolve_nsaddress: "
 						"mem_get failed");
 					result = ISC_R_NOMEMORY;
+					POST(result);
 					goto cleanup;
 				}
 				isc_sockaddr_fromin(&server->address,
@@ -923,6 +924,7 @@ resolve_ns(isc_task_t *task, isc_event_t *event) {
 					fprintf(stderr,
 						"resolve_ns: mem_get failed");
 					result = ISC_R_NOMEMORY;
+					POST(result);
 					/*
 					 * XXX: should we continue with the
 					 * available servers anyway?

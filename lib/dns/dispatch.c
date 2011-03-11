@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.168 2009/12/02 23:15:14 marka Exp $ */
+/* $Id: dispatch.c,v 1.168.6.1 2011/03/11 07:11:56 marka Exp $ */
 
 /*! \file */
 
@@ -1295,7 +1295,6 @@ udp_recv(isc_event_t *ev_in, dns_dispatch_t *disp, dispsocket_t *dispsock) {
 	 * Look at flags.  If query, drop it. If response,
 	 * look to see where it goes.
 	 */
-	queue_response = ISC_FALSE;
 	if ((flags & DNS_MESSAGEFLAG_QR) == 0) {
 		/* query */
 		free_buffer(disp, ev->region.base, ev->region.length);
@@ -1554,7 +1553,6 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	 * Look at flags.  If query, drop it. If response,
 	 * look to see where it goes.
 	 */
-	queue_response = ISC_FALSE;
 	if ((flags & DNS_MESSAGEFLAG_QR) == 0) {
 		/*
 		 * Query.
@@ -2371,9 +2369,9 @@ qid_allocate(dns_dispatchmgr_t *mgr, unsigned int buckets,
 		qid->sock_table = isc_mem_get(mgr->mctx, buckets *
 					      sizeof(dispsocketlist_t));
 		if (qid->sock_table == NULL) {
-			isc_mem_put(mgr->mctx, qid, sizeof(*qid));
 			isc_mem_put(mgr->mctx, qid->qid_table,
 				    buckets * sizeof(dns_displist_t));
+			isc_mem_put(mgr->mctx, qid, sizeof(*qid));
 			return (ISC_R_NOMEMORY);
 		}
 	}
@@ -2983,7 +2981,6 @@ dns_dispatch_detach(dns_dispatch_t **dispp) {
 
 	INSIST(disp->refcount > 0);
 	disp->refcount--;
-	killit = ISC_FALSE;
 	if (disp->refcount == 0) {
 		if (disp->recv_pending > 0)
 			isc_socket_cancel(disp->socket, disp->task[0],
@@ -3256,7 +3253,6 @@ dns_dispatch_removeresponse(dns_dispentry_t **resp,
 	disp->requests--;
 	INSIST(disp->refcount > 0);
 	disp->refcount--;
-	killit = ISC_FALSE;
 	if (disp->refcount == 0) {
 		if (disp->recv_pending > 0)
 			isc_socket_cancel(disp->socket, disp->task[0],

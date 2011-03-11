@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.159.8.11 2010/09/24 05:54:06 marka Exp $ */
+/* $Id: view.c,v 1.159.8.12 2011/03/11 07:12:00 marka Exp $ */
 
 /*! \file */
 
@@ -1270,6 +1270,7 @@ dns_viewlist_findzone(dns_viewlist_t *list, dns_name_t *name,
 		if (result == DNS_R_PARTIALMATCH) {
 			dns_zone_detach(zp);
 			result = ISC_R_NOTFOUND;
+			POST(result);
 		}
 
 		if (zone2 != NULL) {

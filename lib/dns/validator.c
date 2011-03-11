@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.182.16.18 2011/03/01 16:47:13 smann Exp $ */
+/* $Id: validator.c,v 1.182.16.19 2011/03/11 07:11:59 marka Exp $ */
 
 #include <config.h>
 
@@ -320,7 +320,6 @@ isdelegation(dns_name_t *name, dns_rdataset_t *rdataset,
 	dns_fixedname_init(&fixed);
 	dns_name_downcase(name, dns_fixedname_name(&fixed), NULL);
 	name = dns_fixedname_name(&fixed);
-	result = dns_rdataset_first(rdataset);
 	for (result = dns_rdataset_first(rdataset);
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(rdataset))
@@ -1282,7 +1281,6 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 	dns_validatorevent_t *devent;
 	dns_validator_t *val;
 	dns_rdataset_t *rdataset;
-	dns_rdataset_t *sigrdataset;
 	isc_boolean_t want_destroy;
 	isc_result_t result;
 	isc_boolean_t exists, data;
@@ -1292,7 +1290,6 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 
 	devent = (dns_validatorevent_t *)event;
 	rdataset = devent->rdataset;
-	sigrdataset = devent->sigrdataset;
 	val = devent->ev_arg;
 	result = devent->result;
 	dns_validator_destroy(&val->subvalidator);
@@ -2501,8 +2498,10 @@ validatezonekey(dns_validator_t *val) {
 				validator_log(val, ISC_LOG_DEBUG(2),
 					      "unsigned DS record");
 				return (DNS_R_NOVALIDSIG);
-			} else
+			} else {
 				result = ISC_R_SUCCESS;
+				POST(result);
+			}
 		} else if (result == ISC_R_NOTFOUND) {
 			/*
 			 * We don't have the DS.  Find it.
@@ -2900,6 +2899,7 @@ findnsec3proofs(dns_validator_t *val) {
 	}
 	if (result != ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;
+	POST(result);
 
 	if (dns_name_countlabels(zonename) == 0)
 		return (ISC_R_SUCCESS);
@@ -4068,18 +4068,15 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		     isc_task_t *task, isc_taskaction_t action, void *arg,
 		     dns_validator_t **validatorp)
 {
-	isc_result_t result;
+	isc_result_t result = ISC_R_FAILURE;
 	dns_validator_t *val;
-	isc_task_t *tclone;
+	isc_task_t *tclone = NULL;
 	dns_validatorevent_t *event;
 
 	REQUIRE(name != NULL);
 	REQUIRE(rdataset != NULL ||
 		(rdataset == NULL && sigrdataset == NULL && message != NULL));
 	REQUIRE(validatorp != NULL && *validatorp == NULL);
-
-	tclone = NULL;
-	result = ISC_R_FAILURE;
 
 	val = isc_mem_get(view->mctx, sizeof(*val));
 	if (val == NULL)

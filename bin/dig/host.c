@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.120.66.4 2011/02/21 23:46:37 tbox Exp $ */
+/* $Id: host.c,v 1.120.66.5 2011/03/11 07:11:51 marka Exp $ */
 
 /*! \file */
 
@@ -521,6 +521,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 		if ((msg->flags & DNS_MESSAGEFLAG_CD) != 0) {
 			printf("%scd", did_flag ? " " : "");
 			did_flag = ISC_TRUE;
+			POST(did_flag);
 		}
 		printf("; QUERY: %u, ANSWER: %u, "
 		       "AUTHORITY: %u, ADDITIONAL: %u\n",

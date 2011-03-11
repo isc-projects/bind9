@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keyfromlabel.c,v 1.29.8.2 2010/01/19 23:48:12 tbox Exp $ */
+/* $Id: dnssec-keyfromlabel.c,v 1.29.8.3 2011/03/11 07:11:51 marka Exp $ */
 
 /*! \file */
 
@@ -517,6 +517,9 @@ main(int argc, char **argv) {
 	{
 		isc_buffer_clear(&buf);
 		ret = dst_key_buildfilename(key, 0, directory, &buf);
+		if (ret != ISC_R_SUCCESS)
+			fatal("dst_key_buildfilename returned: %s\n",
+			      isc_result_totext(ret));
 		if (exact)
 			fatal("%s: %s already exists\n", program, filename);
 
@@ -541,6 +544,9 @@ main(int argc, char **argv) {
 
 	isc_buffer_clear(&buf);
 	ret = dst_key_buildfilename(key, 0, NULL, &buf);
+	if (ret != ISC_R_SUCCESS)
+		fatal("dst_key_buildfilename returned: %s\n",
+		      isc_result_totext(ret));
 	printf("%s\n", filename);
 	dst_key_free(&key);
 

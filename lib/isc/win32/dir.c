@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dir.c,v 1.18 2009/01/18 23:48:14 tbox Exp $ */
+/* $Id: dir.c,v 1.18.186.1 2011/03/11 07:12:02 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -85,7 +85,7 @@ isc_dir_open(isc_dir_t *dir, const char *dirname) {
 	if (dir->dirname < p && *(p - 1) != '\\' && *(p - 1) != ':')
 		*p++ = '\\';
 	*p++ = '*';
-	*p++ = '\0';
+	*p = '\0';
 
 	/*
 	 * Open stream.

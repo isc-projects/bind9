@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.113.4.10 2010/08/11 18:19:58 each Exp $ */
+/* $Id: namedconf.c,v 1.113.4.11 2011/03/11 07:12:03 marka Exp $ */
 
 /*! \file */
 
@@ -2038,7 +2038,8 @@ static cfg_type_t cfg_type_controls_sockaddr = {
  * statement, which takes a single key with or without braces and semicolon.
  */
 static isc_result_t
-parse_server_key_kludge(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
+parse_server_key_kludge(cfg_parser_t *pctx, const cfg_type_t *type,
+			cfg_obj_t **ret)
 {
 	isc_result_t result;
 	isc_boolean_t braces = ISC_FALSE;
@@ -2048,7 +2049,7 @@ parse_server_key_kludge(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **
 	CHECK(cfg_peektoken(pctx, 0));
 	if (pctx->token.type == isc_tokentype_special &&
 	    pctx->token.value.as_char == '{') {
-		result = cfg_gettoken(pctx, 0);
+		CHECK(cfg_gettoken(pctx, 0));
 		braces = ISC_TRUE;
 	}
 

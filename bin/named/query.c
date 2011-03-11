@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.335.8.11 2010/09/24 05:54:05 marka Exp $ */
+/* $Id: query.c,v 1.335.8.12 2011/03/11 07:11:52 marka Exp $ */
 
 /*! \file */
 
@@ -1511,6 +1511,7 @@ query_addadditional2(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	need_addname = ISC_FALSE;
 	zone = NULL;
 	needadditionalcache = ISC_FALSE;
+	POST(needadditionalcache);
 	additionaltype = dns_rdatasetadditional_fromauth;
 	dns_name_init(&cfname, NULL);
 
