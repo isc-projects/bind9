@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.22.112.5 2010/09/15 12:37:35 tbox Exp $
+ * $Id: openssl_link.c,v 1.22.112.6 2011/03/11 01:39:11 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -47,16 +47,6 @@
 
 #include "dst_internal.h"
 #include "dst_openssl.h"
-
-#include <openssl/err.h>
-#include <openssl/rand.h>
-#include <openssl/evp.h>
-#include <openssl/conf.h>
-#include <openssl/crypto.h>
-
-#if defined(CRYPTO_LOCK_ENGINE) && (OPENSSL_VERSION_NUMBER >= 0x0090707f)
-#define USE_ENGINE 1
-#endif
 
 #ifdef USE_ENGINE
 #include <openssl/engine.h>
@@ -340,18 +330,15 @@ dst__openssl_toresult(isc_result_t fallback) {
 	return (result);
 }
 
+#if defined(USE_ENGINE)
 ENGINE *
 dst__openssl_getengine(const char *name) {
 
 	UNUSED(name);
 
-
-#if defined(USE_ENGINE)
 	return (he);
-#else
-	return (NULL);
-#endif
 }
+#endif
 
 isc_result_t
 dst__openssl_setdefault(const char *name) {
