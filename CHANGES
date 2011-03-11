@@ -1,3 +1,6 @@
+3073.	[bug]		managed-keys changes were not properly being recorded.
+			[RT #20256]
+
 3072.	[bug]		dns_dns64_aaaaok() potential NULL pointer dereference.
 			[RT #20256]
 
