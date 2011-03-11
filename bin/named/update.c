@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.186.16.3 2011/03/11 06:47:01 marka Exp $ */
+/* $Id: update.c,v 1.186.16.4 2011/03/11 12:54:11 marka Exp $ */
 
 #include <config.h>
 
@@ -1692,7 +1692,7 @@ next_active(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 {
 	isc_result_t result;
 	dns_dbiterator_t *dbit = NULL;
-	isc_boolean_t has_nsec;
+	isc_boolean_t has_nsec = ISC_FALSE;
 	unsigned int wraps = 0;
 	isc_boolean_t secure = dns_db_issecure(db);
 
