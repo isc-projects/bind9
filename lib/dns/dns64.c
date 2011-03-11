@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dns64.c,v 1.6 2010/12/09 04:59:09 marka Exp $ */
+/* $Id: dns64.c,v 1.7 2011/03/11 13:02:33 marka Exp $ */
 
 #include <config.h>
 
@@ -253,6 +253,8 @@ dns_dns64_aaaaok(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 		 */
 		if (dns64->excluded == NULL) {
 			answer = ISC_TRUE;
+			if (aaaaok == NULL)
+				goto done;
 			for (i = 0; i < aaaaoklen; i++)
 				aaaaok[i] = ISC_TRUE;
 			goto done;
