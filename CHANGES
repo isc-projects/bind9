@@ -1,3 +1,6 @@
+3071.	[bug]		has_nsec could be used unintialised in
+			update.c:next_active. [RT #20256]
+
 3069.	[cleanup]	Silence warnings messages from clang static analysis.
 			[RT #20256]
 
