@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.49 2011/03/11 07:12:00 marka Exp $ */
+/* $Id: zone.c,v 1.540.2.50 2011/03/11 13:24:36 marka Exp $ */
 
 /*! \file */
 
@@ -3122,6 +3122,7 @@ static isc_result_t
 sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_boolean_t changed = ISC_FALSE;
+	isc_boolean_t commit = ISC_FALSE;
 	dns_rbtnodechain_t chain;
 	dns_fixedname_t fn;
 	dns_name_t foundname, *origin;
@@ -3243,12 +3244,12 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 
 	if (changed) {
 		/* Write changes to journal file. */
-		result = increment_soa_serial(db, ver, &diff, zone->mctx);
-		if (result == ISC_R_SUCCESS)
-			zone_journal(zone, &diff, "sync_keyzone");
+		CHECK(increment_soa_serial(db, ver, &diff, zone->mctx));
+		CHECK(zone_journal(zone, &diff, "sync_keyzone"));
 
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADED);
 		zone_needdump(zone, 30);
+		commit = ISC_TRUE;
 	}
 
  failure:
@@ -3257,7 +3258,7 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 	if (sr != NULL)
 		dns_keytable_detach(&sr);
 	if (ver != NULL)
-		dns_db_closeversion(db, &ver, changed);
+		dns_db_closeversion(db, &ver, commit);
 	dns_diff_clear(&diff);
 
 	return (result);
@@ -7156,8 +7157,8 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	dns_keytable_t *secroots = NULL;
 	dns_dbversion_t *ver = NULL;
 	dns_diff_t diff;
-	isc_boolean_t changed = ISC_FALSE;
 	isc_boolean_t alldone = ISC_FALSE;
+	isc_boolean_t commit = ISC_FALSE;
 	dns_name_t *keyname;
 	dns_rdata_t sigrr = DNS_RDATA_INIT;
 	dns_rdata_t dnskeyrr = DNS_RDATA_INIT;
@@ -7217,8 +7218,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 			     "Unable to fetch DNSKEY set "
 			     "'%s': %s", namebuf, dns_result_totext(eresult));
 		CHECK(minimal_update(kfetch, ver, &diff));
-		changed = ISC_TRUE;
-		goto failure;
+		goto done;
 	}
 
 	/* No RRSIGs found */
@@ -7227,8 +7227,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 			     "No DNSKEY RRSIGs found for "
 			     "'%s': %s", namebuf, dns_result_totext(eresult));
 		CHECK(minimal_update(kfetch, ver, &diff));
-		changed = ISC_TRUE;
-		goto failure;
+		goto done;
 	}
 
 	/*
@@ -7356,7 +7355,6 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 				CHECK(update_one_rr(kfetch->db, ver, &diff,
 						    DNS_DIFFOP_DEL, keyname, 0,
 						    &keydatarr));
-				changed = ISC_TRUE;
 			}
 
 			if (!secure || deletekey)
@@ -7372,7 +7370,6 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 			CHECK(update_one_rr(kfetch->db, ver, &diff,
 					    DNS_DIFFOP_ADD, keyname, 0,
 					    &keydatarr));
-			changed = ISC_TRUE;
 
 			set_refreshkeytimer(zone, &keydata, now);
 		}
@@ -7496,12 +7493,10 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 		}
 
 		/* Delete old version */
-		if (deletekey || !newkey) {
+		if (deletekey || !newkey)
 			CHECK(update_one_rr(kfetch->db, ver, &diff,
 					    DNS_DIFFOP_DEL, keyname, 0,
 					    &keydatarr));
-			changed = ISC_TRUE;
-		}
 
 		if (updatekey) {
 			/* Set refresh timer */
@@ -7516,7 +7511,6 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 			CHECK(update_one_rr(kfetch->db, ver, &diff,
 					    DNS_DIFFOP_ADD, keyname, 0,
 					    &keydatarr));
-			changed = ISC_TRUE;
 		} else if (newkey) {
 			/* Convert DNSKEY to KEYDATA */
 			dns_rdata_tostruct(&dnskeyrr, &dnskey, NULL);
@@ -7534,7 +7528,6 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 			CHECK(update_one_rr(kfetch->db, ver, &diff,
 					    DNS_DIFFOP_ADD, keyname, 0,
 					    &keydatarr));
-			changed = ISC_TRUE;
 		}
 
 		if (trustkey) {
@@ -7559,23 +7552,23 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	if (pending != 0)
 		fail_secure(zone, keyname);
 
-  failure:
-	if (changed) {
+ done:
+
+	if (!ISC_LIST_EMPTY(diff.tuples)) {
+		/* Write changes to journal file. */
+		CHECK(increment_soa_serial(kfetch->db, ver, &diff, mctx));
+		CHECK(zone_journal(zone, &diff, "keyfetch_done"));
+		commit = ISC_TRUE;
+
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADED);
 		zone_needdump(zone, 30);
 	}
 
+  failure:
 	UNLOCK_ZONE(zone);
 
-	/* Write changes to journal file. */
-	if (alldone) {
-		result = increment_soa_serial(kfetch->db, ver, &diff, mctx);
-		if (result == ISC_R_SUCCESS)
-			result = zone_journal(zone, &diff, "keyfetch_done");
-	}
-
 	dns_diff_clear(&diff);
-	dns_db_closeversion(kfetch->db, &ver, changed);
+	dns_db_closeversion(kfetch->db, &ver, commit);
 	dns_db_detach(&kfetch->db);
 	dns_zone_detach(&kfetch->zone);
 
@@ -7703,8 +7696,8 @@ zone_refreshkeys(dns_zone_t *zone) {
 	}
 	if (!ISC_LIST_EMPTY(diff.tuples)) {
 		CHECK(increment_soa_serial(db, ver, &diff, zone->mctx));
+		CHECK(zone_journal(zone, &diff, "sync_keyzone"));
 		commit = ISC_TRUE;
-		zone_journal(zone, &diff, "sync_keyzone");
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADED);
 		zone_needdump(zone, 30);
 	}
