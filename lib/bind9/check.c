@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.114.4.7 2011/03/11 07:11:56 marka Exp $ */
+/* $Id: check.c,v 1.114.4.8 2011/03/11 17:21:30 each Exp $ */
 
 /*! \file */
 
@@ -1830,6 +1830,8 @@ check_trusted_key(const cfg_obj_t *key, isc_boolean_t managed,
 	flags = cfg_obj_asuint32(cfg_tuple_get(key, "flags"));
 	proto = cfg_obj_asuint32(cfg_tuple_get(key, "protocol"));
 	alg = cfg_obj_asuint32(cfg_tuple_get(key, "algorithm"));
+
+	dns_fixedname_init(&fkeyname);
 	keyname = dns_fixedname_name(&fkeyname);
 	keynamestr = cfg_obj_asstring(cfg_tuple_get(key, "name"));
 
