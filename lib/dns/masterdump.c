@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.102 2011/03/11 01:20:39 each Exp $ */
+/* $Id: masterdump.c,v 1.103 2011/03/11 01:28:10 each Exp $ */
 
 /*! \file */
 
@@ -1385,7 +1385,7 @@ dumptostreaminc(dns_dumpctx_t *dctx) {
 			isc_buffer_region(&buffer, &r);
 			isc_buffer_putuint32(&buffer, dns_masterformat_raw);
 			isc_buffer_putuint32(&buffer, DNS_RAWFORMAT_VERSION);
-#if (sizeof(isc_uint32_t) != sizeof(isc_stdtime_t))
+			if (sizeof(now32) != sizeof(dctx->now)) {
 				/*
 				 * We assume isc_stdtime_t is a 32-bit integer,
 				 * which should be the case on most cases.
@@ -1400,9 +1400,8 @@ dumptostreaminc(dns_dumpctx_t *dctx) {
 					      "dumping master file in raw "
 					      "format: stdtime is not 32bits");
 				now32 = 0;
-#else
+			} else
 				now32 = dctx->now;
-#endif
 			isc_buffer_putuint32(&buffer, now32);
 			INSIST(isc_buffer_usedlength(&buffer) <=
 			       sizeof(rawheader));
