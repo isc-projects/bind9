@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.594 2011/03/01 23:48:07 tbox Exp $ */
+/* $Id: zone.c,v 1.595 2011/03/11 06:11:25 marka Exp $ */
 
 /*! \file */
 
@@ -2006,8 +2006,7 @@ zone_check_glue(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 				dns_rdataset_disassociate(&aaaa);
 			return (answer);
 		}
-	} else
-		tresult = result;
+	}
 
 	dns_name_format(owner, ownerbuf, sizeof ownerbuf);
 	dns_name_format(name, namebuf, sizeof namebuf);
@@ -4914,7 +4913,7 @@ zone_resigninc(dns_zone_t *zone) {
 	}
 
 	/* Write changes to journal file. */
-	zone_journal(zone, &sig_diff, "zone_resigninc");
+	CHECK(zone_journal(zone, &sig_diff, "zone_resigninc"));
 
 	/* Everything has succeeded. Commit the changes. */
 	dns_db_closeversion(db, &version, ISC_TRUE);
@@ -5654,11 +5653,11 @@ zone_nsec3chain(dns_zone_t *zone) {
 	dns_nsec3chainlist_t cleanup;
 	dst_key_t *zone_keys[MAXZONEKEYS];
 	isc_int32_t signatures;
-	isc_boolean_t check_ksk, keyset_kskonly, is_ksk;
+	isc_boolean_t check_ksk, keyset_kskonly;
 	isc_boolean_t delegation;
 	isc_boolean_t first;
 	isc_result_t result;
-	isc_stdtime_t now, inception, soaexpire, expire, stop;
+	isc_stdtime_t now, inception, soaexpire, expire;
 	isc_uint32_t jitter;
 	unsigned int i;
 	unsigned int nkeys = 0;
@@ -5723,7 +5722,6 @@ zone_nsec3chain(dns_zone_t *zone) {
 	 */
 	isc_random_get(&jitter);
 	expire = soaexpire - jitter % 3600;
-	stop = now + 5;
 
 	check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
 	keyset_kskonly = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_DNSKEYKSKONLY);
@@ -5769,8 +5767,6 @@ zone_nsec3chain(dns_zone_t *zone) {
 		if (NSEC3REMOVE(nsec3chain->nsec3param.flags))
 			goto next_addchain;
 
-		is_ksk = ISC_FALSE;
-		delegation = ISC_FALSE;
 		dns_dbiterator_current(nsec3chain->dbiterator, &node, name);
 
 		if (nsec3chain->delete_nsec) {
@@ -6156,6 +6152,12 @@ zone_nsec3chain(dns_zone_t *zone) {
 		result = dns_db_getoriginnode(db, &node);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		result = dns_db_allrdatasets(db, node, version, 0, &iterator);
+		if (result != ISC_R_SUCCESS) {
+			dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain:"
+				     "dns_db_allrdatasets -> %s\n",
+				     dns_result_totext(result));
+			goto failure;
+		}
 		for (result = dns_rdatasetiter_first(iterator);
 		     result == ISC_R_SUCCESS;
 		     result = dns_rdatasetiter_next(iterator)) {
@@ -6278,7 +6280,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 	}
 
 	/* Write changes to journal file. */
-	zone_journal(zone, &sig_diff, "zone_nsec3chain");
+	CHECK(zone_journal(zone, &sig_diff, "zone_nsec3chain"));
 
 	LOCK_ZONE(zone);
 	zone_needdump(zone, DNS_DUMP_DELAY);
@@ -6488,12 +6490,11 @@ zone_sign(dns_zone_t *zone) {
 	isc_boolean_t build_nsec3 = ISC_FALSE;
 	isc_boolean_t first;
 	isc_result_t result;
-	isc_stdtime_t now, inception, soaexpire, expire, stop;
+	isc_stdtime_t now, inception, soaexpire, expire;
 	isc_uint32_t jitter;
 	unsigned int i, j;
 	unsigned int nkeys = 0;
 	isc_uint32_t nodes;
-	isc_boolean_t was_ksk;
 
 	dns_rdataset_init(&rdataset);
 	dns_fixedname_init(&fixed);
@@ -6545,7 +6546,6 @@ zone_sign(dns_zone_t *zone) {
 	 */
 	isc_random_get(&jitter);
 	expire = soaexpire - jitter % 3600;
-	stop = now + 5;
 
 	/*
 	 * We keep pulling nodes off each iterator in turn until
@@ -6589,8 +6589,6 @@ zone_sign(dns_zone_t *zone) {
 			goto next_signing;
 
 		delegation = ISC_FALSE;
-
-		was_ksk = ISC_FALSE;
 
 		if (first && signing->delete) {
 			/*
@@ -6850,9 +6848,7 @@ zone_sign(dns_zone_t *zone) {
 	/*
 	 * Write changes to journal file.
 	 */
-	result = zone_journal(zone, &sig_diff, "zone_sign");
-	if (result != ISC_R_SUCCESS)
-		goto failure;
+	CHECK(zone_journal(zone, &sig_diff, "zone_sign"));
 
  pauseall:
 	/*
@@ -7034,6 +7030,7 @@ refresh_time(dns_keyfetch_t *kfetch, isc_boolean_t retry) {
 
 	dns_rdataset_current(rdset, &sigrr);
 	result = dns_rdata_tostruct(&sigrr, &sig, NULL);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	if (!retry) {
 		t = sig.originalttl / 2;
@@ -7980,7 +7977,7 @@ dns_zone_refresh(dns_zone_t *zone) {
 	isc_interval_set(&i, isc_random_jitter(zone->retry, zone->retry / 4),
 			 0);
 	result = isc_time_nowplusinterval(&zone->refreshtime, &i);
-	if (result |= ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		dns_zone_log(zone, ISC_LOG_WARNING,
 			     "isc_time_nowplusinterval() failed: %s",
 			     dns_result_totext(result));
@@ -9518,6 +9515,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	} else
 		zone_debuglog(zone, me, 1, "serial: new %u, old not loaded",
 			      serial);
+
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) ||
 	    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FORCEXFER) ||
 	    isc_serial_gt(serial, oldserial)) {
@@ -10094,6 +10092,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	 * XXX Optimisation: Create message when zone is setup and reuse.
 	 */
 	result = create_query(zone, dns_rdatatype_ns, &message);
+	INSIST(result == ISC_R_SUCCESS);
 
 	INSIST(zone->masterscnt > 0);
 	INSIST(zone->curmaster < zone->masterscnt);
@@ -10167,6 +10166,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 		break;
 	default:
 		result = ISC_R_NOTIMPLEMENTED;
+		POST(result);
 		goto cleanup;
 	}
 	timeout = 15;

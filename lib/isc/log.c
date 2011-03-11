@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.99 2009/02/16 02:01:16 marka Exp $ */
+/* $Id: log.c,v 1.100 2011/03/11 06:11:26 marka Exp $ */
 
 /*! \file
  * \author  Principal Authors: DCL */
@@ -1342,9 +1342,10 @@ isc_log_open(isc_logchannel_t *channel) {
 		    (FILE_MAXSIZE(channel) > 0 &&
 		     statbuf.st_size >= FILE_MAXSIZE(channel)))
 			roll = regular_file;
-	} else if (errno == ENOENT)
+	} else if (errno == ENOENT) {
 		regular_file = ISC_TRUE;
-	else
+		POST(regular_file);
+	} else
 		result = ISC_R_INVALIDFILE;
 
 	/*

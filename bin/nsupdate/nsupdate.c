@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.193 2011/01/10 05:32:03 marka Exp $ */
+/* $Id: nsupdate.c,v 1.194 2011/03/11 06:11:22 marka Exp $ */
 
 /*! \file */
 
@@ -2260,6 +2260,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	}
 	check_result(result, "dns_request_getresponse");
 	section = DNS_SECTION_ANSWER;
+	POST(section);
 	if (debugging)
 		show_message(stderr, rcvmsg, "Reply from SOA query:");
 

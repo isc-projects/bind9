@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.269 2011/03/10 13:37:21 fdupont Exp $ */
+/* $Id: dnssec-signzone.c,v 1.270 2011/03/11 06:11:20 marka Exp $ */
 
 /*! \file */
 
@@ -479,15 +479,9 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 	char namestr[DNS_NAME_FORMATSIZE];
 	char typestr[TYPE_FORMATSIZE];
 	char sigstr[SIG_FORMATSIZE];
-	isc_stdtime_t expiry;
 
 	dns_name_format(name, namestr, sizeof(namestr));
 	type_format(set->type, typestr, sizeof(typestr));
-
-	if (set->type == dns_rdatatype_dnskey)
-		expiry = dnskey_endtime;
-	else
-		expiry = endtime;
 
 	ttl = ISC_MIN(set->ttl, endtime - starttime);
 
@@ -1543,7 +1537,6 @@ verifyzone(void) {
 	isc_boolean_t done = ISC_FALSE;
 	isc_boolean_t first = ISC_TRUE;
 	isc_boolean_t goodksk = ISC_FALSE;
-	isc_boolean_t goodzsk = ISC_FALSE;
 	isc_result_t result;
 	unsigned char revoked_ksk[256];
 	unsigned char revoked_zsk[256];
@@ -1645,7 +1638,6 @@ verifyzone(void) {
 #endif
 			if (zsk_algorithms[dnskey.algorithm] != 255)
 				zsk_algorithms[dnskey.algorithm]++;
-			goodzsk = ISC_TRUE;
 		} else {
 			if (standby_zsk[dnskey.algorithm] != 255)
 				standby_zsk[dnskey.algorithm]++;
@@ -2268,6 +2260,7 @@ addnsec3param(const unsigned char *salt, size_t salt_length,
 	result = dns_rdata_fromstruct(&rdata, gclass,
 				      dns_rdatatype_nsec3param,
 				      &nsec3param, &b);
+	check_result(result, "dns_rdata_fromstruct()");
 	rdatalist.rdclass = rdata.rdclass;
 	rdatalist.type = rdata.type;
 	rdatalist.covers = 0;
@@ -2877,7 +2870,7 @@ loadzonekeys(isc_boolean_t preserve_keys, isc_boolean_t load_public) {
 	}
 	keyttl = rdataset.ttl;
 
-	/* Load keys corresponding to the existing DNSKEY RRset */
+	/* Load keys corresponding to the existing DNSKEY RRset. */
 	result = dns_dnssec_keylistfromrdataset(gorigin, directory, mctx,
 						&rdataset, &keysigs, &soasigs,
 						preserve_keys, load_public,

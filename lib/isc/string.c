@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: string.c,v 1.20 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: string.c,v 1.21 2011/03/11 06:11:26 marka Exp $ */
 
 /*! \file */
 
@@ -165,14 +165,15 @@ isc_string_printf(char *target, size_t size, const char *format, ...) {
 }
 
 void
-isc_string_printf_truncate(char *target, size_t size, const char *format, ...) {
+isc_string_printf_truncate(char *target, size_t size, const char *format, ...)
+{
 	va_list args;
-	size_t n;
 
 	REQUIRE(size > 0U);
 
 	va_start(args, format);
-	n = vsnprintf(target, size, format, args);
+	/* check return code? */
+	(void)vsnprintf(target, size, format, args);
 	va_end(args);
 
 	ENSURE(strlen(target) < size);

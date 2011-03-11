@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.179 2011/02/23 03:08:11 marka Exp $ */
+/* $Id: view.c,v 1.180 2011/03/11 06:11:25 marka Exp $ */
 
 /*! \file */
 
@@ -1168,7 +1168,7 @@ dns_view_findzonecut2(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 {
 	isc_result_t result;
 	dns_db_t *db;
-	isc_boolean_t is_cache, use_zone, try_hints, is_staticstub_zone;
+	isc_boolean_t is_cache, use_zone, try_hints;
 	dns_zone_t *zone;
 	dns_name_t *zfname;
 	dns_rdataset_t zrdataset, zsigrdataset;
@@ -1180,7 +1180,6 @@ dns_view_findzonecut2(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 	db = NULL;
 	zone = NULL;
 	use_zone = ISC_FALSE;
-	is_staticstub_zone = ISC_FALSE;
 	try_hints = ISC_FALSE;
 	zfname = NULL;
 
@@ -1196,11 +1195,8 @@ dns_view_findzonecut2(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 	 */
 #ifdef BIND9
 	result = dns_zt_find(view->zonetable, name, 0, NULL, &zone);
-	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
+	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
 		result = dns_zone_getdb(zone, &db);
-		if (dns_zone_gettype(zone) == dns_zone_staticstub)
-			is_staticstub_zone = ISC_TRUE;
-	}
 #else
 	result = ISC_R_NOTFOUND;
 #endif
@@ -1399,6 +1395,7 @@ dns_viewlist_findzone(dns_viewlist_t *list, dns_name_t *name,
 		if (result == DNS_R_PARTIALMATCH) {
 			dns_zone_detach(zp);
 			result = ISC_R_NOTFOUND;
+			POST(result);
 		}
 
 		if (zone2 != NULL) {
