@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.119 2010/01/13 23:48:59 tbox Exp $
+ * $Id: dnssec.c,v 1.119.170.1 2011/03/11 06:47:03 marka Exp $
  */
 
 /*! \file */
@@ -553,6 +553,7 @@ key_active(dst_key_t *key) {
 
 	/* Is this an old-style key? */
 	result = dst_key_getprivateformat(key, &major, &minor);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	/*
 	 * Smart signing started with key format 1.3; prior to that, all
@@ -1095,6 +1096,7 @@ dns_dnsseckey_create(isc_mem_t *mctx, dst_key_t **dstkey,
 
 	/* Is this an old-style key? */
 	result = dst_key_getprivateformat(dk->key, &major, &minor);
+	INSIST(result == ISC_R_SUCCESS);
 
 	/* Smart signing started with key format 1.3 */
 	dk->legacy = ISC_TF(major == 1 && minor <= 2);
@@ -1673,9 +1675,6 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 
 		/* No match found in keys; add the new key. */
 		if (key2 == NULL) {
-			dns_dnsseckey_t *next;
-
-			next = ISC_LIST_NEXT(key1, link);
 			ISC_LIST_UNLINK(*newkeys, key1, link);
 			ISC_LIST_APPEND(*keys, key1, link);
 

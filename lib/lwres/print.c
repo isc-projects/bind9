@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print.c,v 1.10 2007/06/19 23:47:22 tbox Exp $ */
+/* $Id: print.c,v 1.10.814.1 2011/03/11 06:47:09 marka Exp $ */
 
 #include <config.h>
 
@@ -115,6 +115,7 @@ lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 		width = precision = 0;
 		head = "";
 		length = pad = zeropad = 0;
+		POST(length);
 
 		do {
 			if (*format == '#') {

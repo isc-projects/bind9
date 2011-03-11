@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.56 2008/02/15 23:46:51 tbox Exp $ */
+/* $Id: time.c,v 1.56.608.1 2011/03/11 06:47:08 marka Exp $ */
 
 /*! \file */
 
@@ -319,7 +319,7 @@ isc_time_microdiff(const isc_time_t *t1, const isc_time_t *t2) {
 	/*
 	 * Convert to microseconds.
 	 */
-	i3 = (i1 - i2) / NS_PER_US;
+	i3 /= NS_PER_US;
 
 	return (i3);
 }

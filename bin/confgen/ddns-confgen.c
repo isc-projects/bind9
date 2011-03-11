@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ddns-confgen.c,v 1.9 2009/09/29 15:06:05 fdupont Exp $ */
+/* $Id: ddns-confgen.c,v 1.9.308.1 2011/03/11 06:46:58 marka Exp $ */
 
 /*! \file */
 
@@ -160,6 +160,7 @@ main(int argc, char **argv) {
 
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
+	POST(argv);
 
 	if (self_domain != NULL && zone != NULL)
 		usage(1);	/* -s and -z cannot coexist */

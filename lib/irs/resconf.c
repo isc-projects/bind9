@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resconf.c,v 1.3 2009/09/02 23:48:02 tbox Exp $ */
+/* $Id: resconf.c,v 1.3.346.1 2011/03/11 06:47:07 marka Exp $ */
 
 /*! \file resconf.c */
 
@@ -517,6 +517,7 @@ irs_resconf_load(isc_mem_t *mctx, const char *filename, irs_resconf_t **confp)
 		stopchar = getword(fp, word, sizeof(word));
 		if (stopchar == EOF) {
 			rval = ISC_R_SUCCESS;
+			POST(rval);
 			break;
 		}
 

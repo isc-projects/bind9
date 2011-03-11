@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.353.8.3 2011/03/10 04:29:15 each Exp $ */
+/* $Id: query.c,v 1.353.8.4 2011/03/11 06:47:00 marka Exp $ */
 
 /*! \file */
 
@@ -1622,6 +1622,7 @@ query_addadditional2(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	need_addname = ISC_FALSE;
 	zone = NULL;
 	needadditionalcache = ISC_FALSE;
+	POST(needadditionalcache);
 	additionaltype = dns_rdatasetadditional_fromauth;
 	dns_name_init(&cfname, NULL);
 
@@ -4283,11 +4284,12 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype,
 		 * Check rules for the name if this it the first time,
 		 * i.e. we've not been recursing.
 		 */
-		result = DNS_R_SERVFAIL;
 		st->state &= ~(DNS_RPZ_HAVE_IP | DNS_RPZ_HAVE_NSIPv4 |
 			       DNS_RPZ_HAVE_NSIPv6 | DNS_RPZ_HAD_NSDNAME);
 		result = rpz_rewrite_name(client, qtype, client->query.qname,
 					  DNS_RPZ_TYPE_QNAME, &rdataset);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
 		if (st->m.policy != DNS_RPZ_POLICY_MISS)
 			goto cleanup;
 		if ((st->state & (DNS_RPZ_HAVE_NSIPv4 | DNS_RPZ_HAVE_NSIPv6 |
@@ -4393,9 +4395,10 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype,
 			    (st->state & DNS_RPZ_HAVE_NSIPv6) != 0 &&
 			    st->m.type != DNS_RPZ_TYPE_NSDNAME) {
 				result = rpz_rewrite_nsip(client,
-							dns_rdatatype_aaaa,
-							&ns.name, &ipdb, version,
-							&rdataset, resuming);
+							  dns_rdatatype_aaaa,
+							  &ns.name, &ipdb,
+							  version, &rdataset,
+							  resuming);
 			}
 			dns_rdata_freestruct(&ns);
 			if (ipdb != NULL)
@@ -4910,12 +4913,14 @@ dns64_aaaaok(ns_client_t *client, dns_rdataset_t *rdataset,
 				break;
 			}
 		}
-		if (i == count)
+		if (i == count && aaaaok != NULL)
 			isc_mem_put(client->mctx, aaaaok,
 				    sizeof(isc_boolean_t) * count);
 		return (ISC_TRUE);
 	}
-	isc_mem_put(client->mctx, aaaaok, sizeof(isc_boolean_t) * count);
+	if (aaaaok != NULL)
+		isc_mem_put(client->mctx, aaaaok,
+			    sizeof(isc_boolean_t) * count);
 	return (ISC_FALSE);
 }
 
@@ -5264,7 +5269,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			dns_name_copy(fname, rpz_st->fname, NULL);
 			rpz_st->q.result = result;
 			client->query.attributes |= NS_QUERYATTR_RECURSING;
-			result = ISC_R_SUCCESS;
 			goto cleanup;
 		default:
 			RECURSE_ERROR(rresult);
@@ -5715,8 +5719,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			dns64 = ISC_TRUE;
 			goto db_find;
 		}
-
-		result = DNS_R_NXRRSET;
 
 		/*
 		 * Look for a NSEC3 record if we don't have a NSEC record.
@@ -6613,9 +6615,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 					/*
 					 * Add a fake SOA record.
 					 */
-					result = query_addsoa(client, db,
-							      version, 600,
-							      ISC_FALSE);
+					(void)query_addsoa(client, db, version,
+							   600, ISC_FALSE);
 					goto cleanup;
 				}
 #endif

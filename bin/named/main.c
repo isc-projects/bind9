@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.180.14.2 2011/03/10 23:47:25 tbox Exp $ */
+/* $Id: main.c,v 1.180.14.3 2011/03/11 06:47:00 marka Exp $ */
 
 /*! \file */
 
@@ -562,6 +562,7 @@ parse_command_line(int argc, char *argv[]) {
 
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
+	POST(argv);
 
 	if (argc > 0) {
 		usage();

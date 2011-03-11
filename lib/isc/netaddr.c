@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.c,v 1.41.38.2 2011/02/28 01:20:03 tbox Exp $ */
+/* $Id: netaddr.c,v 1.41.38.3 2011/03/11 06:47:07 marka Exp $ */
 
 /*! \file */
 
@@ -69,10 +69,10 @@ isc_boolean_t
 isc_netaddr_eqprefix(const isc_netaddr_t *a, const isc_netaddr_t *b,
 		     unsigned int prefixlen)
 {
-	const unsigned char *pa, *pb;
-	unsigned int ipabytes; /* Length of whole IP address in bytes */
-	unsigned int nbytes;   /* Number of significant whole bytes */
-	unsigned int nbits;    /* Number of significant leftover bits */
+	const unsigned char *pa = NULL, *pb = NULL;
+	unsigned int ipabytes = 0; /* Length of whole IP address in bytes */
+	unsigned int nbytes;       /* Number of significant whole bytes */
+	unsigned int nbits;        /* Number of significant leftover bits */
 
 	REQUIRE(a != NULL && b != NULL);
 
@@ -94,8 +94,6 @@ isc_netaddr_eqprefix(const isc_netaddr_t *a, const isc_netaddr_t *b,
 		ipabytes = 16;
 		break;
 	default:
-		pa = pb = NULL; /* Avoid silly compiler warning. */
-		ipabytes = 0; /* Ditto. */
 		return (ISC_FALSE);
 	}
 
@@ -215,7 +213,7 @@ isc_netaddr_format(const isc_netaddr_t *na, char *array, unsigned int size) {
 isc_result_t
 isc_netaddr_prefixok(const isc_netaddr_t *na, unsigned int prefixlen) {
 	static const unsigned char zeros[16];
-	unsigned int nbits, nbytes, ipbytes;
+	unsigned int nbits, nbytes, ipbytes = 0;
 	const unsigned char *p;
 
 	switch (na->family) {
@@ -232,7 +230,6 @@ isc_netaddr_prefixok(const isc_netaddr_t *na, unsigned int prefixlen) {
 			return (ISC_R_RANGE);
 		break;
 	default:
-		ipbytes = 0;
 		return (ISC_R_NOTIMPLEMENTED);
 	}
 	nbytes = prefixlen / 8;
@@ -249,7 +246,7 @@ isc_netaddr_prefixok(const isc_netaddr_t *na, unsigned int prefixlen) {
 
 isc_result_t
 isc_netaddr_masktoprefixlen(const isc_netaddr_t *s, unsigned int *lenp) {
-	unsigned int nbits, nbytes, ipbytes, i;
+	unsigned int nbits = 0, nbytes = 0, ipbytes = 0, i;
 	const unsigned char *p;
 
 	switch (s->family) {
@@ -262,10 +259,8 @@ isc_netaddr_masktoprefixlen(const isc_netaddr_t *s, unsigned int *lenp) {
 		ipbytes = 16;
 		break;
 	default:
-		ipbytes = 0;
 		return (ISC_R_NOTIMPLEMENTED);
 	}
-	nbytes = nbits = 0;
 	for (i = 0; i < ipbytes; i++) {
 		if (p[i] != 0xFF)
 			break;
