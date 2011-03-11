@@ -1,3 +1,6 @@
+3067.	[bug]		ixfr-from-differences {master|slave}; failed to
+			select the master/slave zones.  [RT #23580]
+
 3066.	[func]		The DLZ "dlopen" driver is now built by default,
 			no longer requiring a configure option.  To
 			disable it, use "configure --without-dlopen".
