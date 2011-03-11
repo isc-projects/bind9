@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.37.28.1 2011/03/11 01:17:09 marka Exp $
+ * $Id: opensslrsa_link.c,v 1.37.28.2 2011/03/11 02:54:07 marka Exp $
  */
 #ifdef OPENSSL
 #include <config.h>
@@ -1145,7 +1145,9 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 #endif
 	isc_mem_t *mctx = key->mctx;
 	const char *engine = NULL, *label = NULL;
+#if defined(USE_ENGINE) || USE_EVP
 	EVP_PKEY *pkey = NULL;
+#endif
 
 #if USE_EVP
 	if (pub != NULL && pub->keydata.pkey != NULL)
