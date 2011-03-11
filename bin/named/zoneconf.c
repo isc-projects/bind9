@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.110.18.23 2006/05/16 03:39:57 marka Exp $ */
+/* $Id: zoneconf.c,v 1.110.18.24 2011/03/11 00:57:37 marka Exp $ */
 
 /*% */
 
@@ -582,10 +582,10 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		INSIST(result == ISC_R_SUCCESS);
 		if (cfg_obj_isboolean(obj))
 			ixfrdiff = cfg_obj_asboolean(obj);
-		else if (strcasecmp(cfg_obj_asstring(obj), "master") &&
+		else if (!strcasecmp(cfg_obj_asstring(obj), "master") &&
 			 ztype == dns_zone_master)
 			ixfrdiff = ISC_TRUE;
-		else if (strcasecmp(cfg_obj_asstring(obj), "slave") &&
+		else if (!strcasecmp(cfg_obj_asstring(obj), "slave") &&
 			ztype == dns_zone_slave)
 			ixfrdiff = ISC_TRUE;
 		else

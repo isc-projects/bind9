@@ -15,7 +15,12 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.3 2004/03/05 05:03:55 marka Exp $
+# $Id: setup.sh,v 1.3.18.1 2011/03/11 00:57:38 marka Exp $
 
+sh clean.sh
+
+sh ../genzone.sh 1 6 7 >ns1/slave.db
 sh ../genzone.sh 2 3 >ns2/example.db
 sh ../genzone.sh 2 3 >ns2/tsigzone.db
+sh ../genzone.sh 6 3 >ns6/master.db
+sh ../genzone.sh 7 >ns7/master2.db
