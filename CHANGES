@@ -1,3 +1,6 @@
+3072.	[bug]		dns_dns64_aaaaok() potential NULL pointer dereference.
+			[RT #20256]
+
 3071.	[bug]		has_nsec could be used unintialised in
 			update.c:next_active. [RT #20256]
 
