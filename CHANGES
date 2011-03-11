@@ -1,3 +1,6 @@
+3068.	[bug]		Named failed to build with a OpenSSL without engine
+			support. [RT #23473]
+
 3067.	[bug]		ixfr-from-differences {master|slave}; failed to
 			select the master/slave zones.  [RT #23580]
 
