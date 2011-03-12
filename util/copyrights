@@ -457,6 +457,7 @@
 ./bin/tests/system/cleanall.sh			SH	2000,2001,2004
 ./bin/tests/system/common/controls.conf		CONF-C	2000,2001,2004
 ./bin/tests/system/common/rndc.conf		CONF-C	2000,2001,2004
+./bin/tests/system/common/rndc.key		CONF-C	2011
 ./bin/tests/system/common/root.hint		ZONE	2000,2001,2004
 ./bin/tests/system/conf.sh.in			SH	2000,2001,2002,2003,2004,2005,2006,2008,2009,2010,2011
 ./bin/tests/system/dialup/ns1/.cvsignore	X	2000,2001
