@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.115.14.1 2011/03/11 06:46:59 marka Exp $ */
+/* $Id: dnssec-keygen.c,v 1.115.14.2 2011/03/12 04:59:14 tbox Exp $ */
 
 /*! \file */
 
