@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stdio.c,v 1.8 2007/06/19 23:47:18 tbox Exp $ */
+/* $Id: stdio.c,v 1.8.332.1 2011/03/12 04:48:03 marka Exp $ */
 
 #include <config.h>
 
@@ -23,6 +23,7 @@
 #include <unistd.h>
 
 #include <isc/stdio.h>
+#include <isc/stat.h>
 
 #include "errno2result.h"
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.31 2007/06/19 23:47:19 tbox Exp $ */
+/* $Id: file.c,v 1.31.332.1 2011/03/12 04:48:03 marka Exp $ */
 
 #include <config.h>
 
@@ -377,6 +377,23 @@ isc_file_exists(const char *pathname) {
 	REQUIRE(pathname != NULL);
 
 	return (ISC_TF(file_stats(pathname, &stats) == ISC_R_SUCCESS));
+}
+
+isc_result_t
+isc_file_isplainfile(const char *filename) {
+	/*
+	 * This function returns success if filename is a plain file.
+	 */
+	struct stat filestat;
+	memset(&filestat,0,sizeof(struct stat));
+
+	if ((stat(filename, &filestat)) == -1)
+		return(isc__errno2result(errno));
+
+	if(! S_ISREG(filestat.st_mode))
+		return(ISC_R_INVALIDFILE);
+
+	return(ISC_R_SUCCESS);
 }
 
 isc_boolean_t

@@ -20,6 +20,10 @@
 
 3059.	[test]		Added a regression test for change #3023.
 
+3058.	[bug]		Cause named to terminate at startup or rndc reconfig/
+			reload to fail, if a log file specified in the conf
+			file isn't a plain file. [RT #22771]
+
 3053.	[bug]		Under a sustained high query load with a finite
 			max-cache-size, it was possible for cache memory
 			to be exhausted and not recovered. [RT #23371]
