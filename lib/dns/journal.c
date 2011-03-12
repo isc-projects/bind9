@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007-2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.110.24.3 2011/03/11 07:11:57 marka Exp $ */
+/* $Id: journal.c,v 1.110.24.4 2011/03/12 04:58:27 tbox Exp $ */
 
 #include <config.h>
 

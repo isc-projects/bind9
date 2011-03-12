@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2008-2011  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: statschannel.c,v 1.24.40.3 2011/03/11 07:11:53 marka Exp $ */
+/* $Id: statschannel.c,v 1.24.40.4 2011/03/12 04:58:24 tbox Exp $ */
 
 /*! \file */
 

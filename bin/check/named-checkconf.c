@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007, 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009-2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.51.4.4 2011/03/11 07:11:50 marka Exp $ */
+/* $Id: named-checkconf.c,v 1.51.4.5 2011/03/12 04:58:23 tbox Exp $ */
 
 /*! \file */
 
