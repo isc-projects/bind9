@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_db.c,v 1.36.332.3 2011/03/11 10:49:52 marka Exp $ */
+/* $Id: t_db.c,v 1.36.332.4 2011/03/12 04:57:24 tbox Exp $ */
 
 #include <config.h>
 
@@ -2514,13 +2514,13 @@ t_dns_db_findnode_1(char **av) {
 	isc_buffer_add(&name_buffer, len);
 	dns_result = dns_name_fromtext(dns_fixedname_name(&dns_name),
 				&name_buffer, NULL, ISC_FALSE, NULL);
-        if (dns_result != ISC_R_SUCCESS) {
-                t_info("dns_name_fromtext failed %s\n",
-                               dns_result_totext(dns_result));
-                dns_db_detach(&db);
-                isc_mem_destroy(&mctx);
-                return(T_UNRESOLVED);
-        }
+	if (dns_result != ISC_R_SUCCESS) {
+		t_info("dns_name_fromtext failed %s\n",
+			       dns_result_totext(dns_result));
+		dns_db_detach(&db);
+		isc_mem_destroy(&mctx);
+		return(T_UNRESOLVED);
+	}
 
 	dns_result = dns_db_findnode(db, dns_fixedname_name(&dns_name),
 				ISC_FALSE, &nodep);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2007, 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2005-2007, 2009-2011  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sha2.c,v 1.13.332.5 2011/03/11 10:49:58 marka Exp $ */
+/* $Id: sha2.c,v 1.13.332.6 2011/03/12 04:57:28 tbox Exp $ */
 
 /*	$FreeBSD: src/sys/crypto/sha2/sha2.c,v 1.2.2.2 2002/03/05 08:36:47 ume Exp $	*/
 /*	$KAME: sha2.c,v 1.8 2001/11/08 01:07:52 itojun Exp $	*/
@@ -570,8 +570,8 @@ void isc_sha256_transform(isc_sha256_t *context, const isc_uint32_t* data) {
 
 	/* Clean up */
 	a = b = c = d = e = f = g = h = T1 = 0;
-        /* Avoid compiler warnings */
-        POST(a); POST(b); POST(c); POST(d); POST(e); POST(f);
+	/* Avoid compiler warnings */
+	POST(a); POST(b); POST(c); POST(d); POST(e); POST(f);
 	POST(g); POST(h); POST(T1);
 }
 
@@ -653,9 +653,9 @@ isc_sha256_transform(isc_sha256_t *context, const isc_uint32_t* data) {
 	context->state[7] += h;
 
 	/* Clean up */
-        a = b = c = d = e = f = g = h = T1 = T2 = 0;
-        /* Avoid compiler warnings */
-        POST(a); POST(b); POST(c); POST(d); POST(e); POST(f);
+	a = b = c = d = e = f = g = h = T1 = T2 = 0;
+	/* Avoid compiler warnings */
+	POST(a); POST(b); POST(c); POST(d); POST(e); POST(f);
 	POST(g); POST(h); POST(T1); POST(T2);
 }
 
@@ -928,8 +928,8 @@ void isc_sha512_transform(isc_sha512_t *context, const isc_uint64_t* data) {
 
 	/* Clean up */
 	a = b = c = d = e = f = g = h = T1 = 0;
-        /* Avoid compiler warnings */
-        POST(a); POST(b); POST(c); POST(d); POST(e); POST(f);
+	/* Avoid compiler warnings */
+	POST(a); POST(b); POST(c); POST(d); POST(e); POST(f);
 	POST(g); POST(h); POST(T1);
 }
 
@@ -1010,8 +1010,8 @@ isc_sha512_transform(isc_sha512_t *context, const isc_uint64_t* data) {
 
 	/* Clean up */
 	a = b = c = d = e = f = g = h = T1 = T2 = 0;
-        /* Avoid compiler warnings */
-        POST(a); POST(b); POST(c); POST(d); POST(e); POST(f);
+	/* Avoid compiler warnings */
+	POST(a); POST(b); POST(c); POST(d); POST(e); POST(f);
 	POST(g); POST(h); POST(T1); POST(T2);
 }
 

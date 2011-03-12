@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: logconf.c,v 1.42.334.3 2011/03/12 04:48:02 marka Exp $ */
+/* $Id: logconf.c,v 1.42.334.4 2011/03/12 04:57:23 tbox Exp $ */
 
 /*! \file */
 
@@ -225,12 +225,12 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *lctx) {
 		 * Test to make sure that file is a plain file.
 		 * Fix defect #22771
 		*/
-                result = isc_file_isplainfile(dest.file.name);
-                if (result == ISC_R_SUCCESS || 
+		result = isc_file_isplainfile(dest.file.name);
+		if (result == ISC_R_SUCCESS ||
 		    result == ISC_R_FILENOTFOUND) {
 			/*
 			 * Test that the file can be opened, since
-			 * isc_log_open() can't effectively report 
+			 * isc_log_open() can't effectively report
 			 * failures when called in
 			 * isc_log_doit().
 			 */
@@ -238,7 +238,7 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *lctx) {
 			if (result != ISC_R_SUCCESS) {
 				syslog(LOG_ERR,
 					"isc_stdio_open '%s' failed: %s",
-					dest.file.name, 
+					dest.file.name,
 					isc_result_totext(result));
 				fprintf(stderr,
 					"isc_stdio_open '%s' failed: %s",
