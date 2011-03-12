@@ -1303,6 +1303,7 @@
 ./bin/tests/system/xfer/ns4/named.conf.base	CONF-C	2011
 ./bin/tests/system/xfer/ns6/named.conf		CONF-C	2011
 ./bin/tests/system/xfer/ns7/named.conf		CONF-C	2011
+./bin/tests/system/xfer/prereq.sh		SH	2011
 ./bin/tests/system/xfer/setup.sh		SH	2001,2002,2004,2007,2011
 ./bin/tests/system/xfer/tests.sh		SH	2000,2001,2004,2005,2007,2011
 ./bin/tests/system/xferquota/clean.sh		SH	2000,2001,2004,2007
