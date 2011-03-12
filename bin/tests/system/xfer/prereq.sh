@@ -1,7 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
-# Copyright (C) 2001  Internet Software Consortium.
+# Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: prereq.sh,v 1.1.2.2 2011/03/12 21:25:43 marka Exp $
+# $Id: prereq.sh,v 1.1.2.3 2011/03/12 23:47:22 tbox Exp $
 
 if $PERL -e 'use Net::DNS;' 2>/dev/null
 then
