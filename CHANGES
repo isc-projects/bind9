@@ -55,7 +55,7 @@
 
 3058.	[bug]		Cause named to terminate at startup or rndc reconfig/
 			reload to fail, if a log file specified in the conf
-			file isn't a plain file. (RT #22771]
+			file isn't a plain file. [RT #22771]
 
 3057.	[bug]		"rndc secroots" would abort after the first error
 			and so could miss some views. [RT #23488]
