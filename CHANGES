@@ -1,3 +1,7 @@
+3074.	[bug]		Make the adb cache read through for zone data and
+			glue learn for zone named is authoritative for.
+			[RT #22842]
+
 3073.	[bug]		managed-keys changes were not properly being recorded.
 			[RT #20256]
 
