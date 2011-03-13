@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2008-2010  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2008-2011  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.3.142.4 2011/03/13 03:38:47 marka Exp $
+# $Id: clean.sh,v 1.3.142.5 2011/03/13 23:46:42 tbox Exp $
 
 #
 # Clean up after resolver tests.
