@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.247.172.5 2011/03/11 07:11:56 marka Exp $ */
+/* $Id: adb.c,v 1.247.172.6 2011/03/13 03:38:49 marka Exp $ */
 
 /*! \file
  *
@@ -594,6 +594,8 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 	if (rdataset->trust == dns_trust_glue ||
 	    rdataset->trust == dns_trust_additional)
 		rdataset->ttl = ADB_CACHE_MINIMUM;
+	else if (rdataset->trust == dns_trust_ultimate)
+		rdataset->ttl = 0;
 	else
 		rdataset->ttl = ttlclamp(rdataset->ttl);
 
