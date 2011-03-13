@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.17 2010/11/16 06:46:44 marka Exp $
+# $Id: tests.sh,v 1.17.38.1 2011/03/13 03:36:45 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -181,5 +181,45 @@ grep "ANSWER: 0" dig.ns7.out.${n} > /dev/null || ret=4
 if [ $ret != 0 ]; then echo "I:failed"; ret=1; fi
 status=`expr $status + $ret`
 
+if [ $ret != 0 ]; then echo "I:failed"; ret=1; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking that update a nameservers address has immediate effects ($n)"
+ret=0
+$DIG +tcp TXT foo.moves @10.53.0.7 -p 5300 > dig.ns7.foo.${n} || ret=1
+grep "From NS 5" dig.ns7.foo.${n} > /dev/null || ret=1 
+$NSUPDATE << EOF
+server 10.53.0.7 5300
+zone server
+update delete ns.server A
+update add ns.server 300 A 10.53.0.4
+send
+EOF
+sleep 1
+$DIG +tcp TXT bar.moves @10.53.0.7 -p 5300 > dig.ns7.bar.${n} || ret=1
+grep "From NS 4" dig.ns7.bar.${n} > /dev/null || ret=1
+
+if [ $ret != 0 ]; then echo "I:failed"; status=1; fi
+
+n=`expr $n + 1`
+echo "I:checking that update a nameservers glue has immediate effects ($n)"
+ret=0
+$DIG +tcp TXT foo.child.server @10.53.0.7 -p 5300 > dig.ns7.foo.${n} || ret=1
+grep "From NS 5" dig.ns7.foo.${n} > /dev/null || ret=1 
+$NSUPDATE << EOF
+server 10.53.0.7 5300
+zone server
+update delete ns.child.server A
+update add ns.child.server 300 A 10.53.0.4
+send
+EOF
+sleep 1
+$DIG +tcp TXT bar.child.server @10.53.0.7 -p 5300 > dig.ns7.bar.${n} || ret=1
+grep "From NS 4" dig.ns7.bar.${n} > /dev/null || ret=1
+
+if [ $ret != 0 ]; then echo "I:failed"; status=1; fi
+
 echo "I:exit status: $status"
+
 exit $status
