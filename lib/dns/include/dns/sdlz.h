@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdlz.h,v 1.15 2011/03/17 09:25:54 fdupont Exp $ */
+/* $Id: sdlz.h,v 1.16 2011/03/17 23:47:30 tbox Exp $ */
 
 /*! \file dns/sdlz.h */
 
@@ -355,7 +355,7 @@ dns_sdlz_putsoa_t dns_sdlz_putsoa;
  */
 
 
-typedef isc_result_t dns_sdlz_setdb_t(dns_dlzdb_t *dlzdatabase, 
+typedef isc_result_t dns_sdlz_setdb_t(dns_dlzdb_t *dlzdatabase,
 				      dns_rdataclass_t rdclass,
 				      dns_name_t *name,
 				      dns_db_t **dbp);
