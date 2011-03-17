@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.9 2011/03/05 23:52:30 tbox Exp $
+# $Id: tests.sh,v 1.10 2011/03/17 01:40:38 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -31,7 +31,7 @@ cfile=child.db
 
 echo I:generating keys
 # active zsk
-czsk1=`$KEYGEN -q -r $RANDFILE $czone`
+czsk1=`$KEYGEN -q -r $RANDFILE -L 30 $czone`
 
 # not yet published or active
 czsk2=`$KEYGEN -q -r $RANDFILE -P none -A none $czone`
@@ -50,7 +50,7 @@ czsk5=`$KEYGEN -q -r $RANDFILE -P now+12h -A now+12h -I now+24h $czone`
 czsk6=`$KEYGEN -q -r $RANDFILE -S $czsk5 -i 6h 2>&-` 
 
 # active ksk
-cksk1=`$KEYGEN -q -r $RANDFILE -fk $czone`
+cksk1=`$KEYGEN -q -r $RANDFILE -fk -L 30 $czone`
 
 # published but not YET active; will be active in 20 seconds
 cksk2=`$KEYGEN -q -r $RANDFILE -fk $czone`
@@ -128,6 +128,31 @@ grep "key id = $czpredecessor" $cfile.signed && echo pred is there
 grep "key id = $czsuccessor" $cfile.signed && echo succ is there
 #grep "key id = $czpredecessor" $cfile.signed > /dev/null && ret=1
 #grep "key id = $czsuccessor" $cfile.signed > /dev/null && ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking key TTLs are correct"
+grep "${czone}. 30 IN" ${czsk1}.key > /dev/null 2>&1 || ret=1
+grep "${czone}. 30 IN" ${cksk1}.key > /dev/null 2>&1 || ret=1
+grep "${czone}. IN" ${czsk2}.key > /dev/null 2>&1 || ret=1
+$SETTIME -L 45 ${czsk2} > /dev/null
+grep "${czone}. 45 IN" ${czsk2}.key > /dev/null 2>&1 || ret=1
+$SETTIME -L 0 ${czsk2} > /dev/null
+grep "${czone}. IN" ${czsk2}.key > /dev/null 2>&1 || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking key TTLs were imported correctly"
+awk 'BEGIN {r = 0} $2 == "DNSKEY" && $1 != 30 {r = 1} END {exit r}' \
+        ${cfile}.signed || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:re-signing and checking imported TTLs again"
+$SETTIME -L 15 ${czsk2} > /dev/null
+czoneout=`$SIGNER -Sg -e now+1d -X now+2d -r $RANDFILE -o $czone $cfile 2>&1`
+awk 'BEGIN {r = 0} $2 == "DNSKEY" && $1 != 15 {r = 1} END {exit r}' \
+        ${cfile}.signed || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 

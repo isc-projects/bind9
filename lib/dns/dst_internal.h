@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_internal.h,v 1.29 2011/01/11 23:47:13 tbox Exp $ */
+/* $Id: dst_internal.h,v 1.30 2011/03/17 01:40:39 each Exp $ */
 
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1
@@ -96,6 +96,7 @@ struct dst_key {
 	isc_uint16_t	key_id;		/*%< identifier of the key */
 	isc_uint16_t	key_bits;	/*%< hmac digest bits */
 	dns_rdataclass_t key_class;	/*%< class of the key record */
+	dns_ttl_t	key_ttl;	/*%< default/initial dnskey ttl */
 	isc_mem_t	*mctx;		/*%< memory context */
 	char		*engine;	/*%< engine name (HSM) */
 	char		*label;		/*%< engine label (HSM) */

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.31 2011/01/11 23:47:14 tbox Exp $ */
+/* $Id: dst.h,v 1.32 2011/03/17 01:40:39 each Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -730,6 +730,26 @@ void
 dst_key_setbits(dst_key_t *key, isc_uint16_t bits);
 /*%<
  * Set the number of digest bits required (0 == MAX).
+ *
+ * Requires:
+ *	"key" is a valid key.
+ */
+
+void
+dst_key_setttl(dst_key_t *key, dns_ttl_t ttl);
+/*%<
+ * Set the default TTL to use when converting the key
+ * to a KEY or DNSKEY RR.
+ *
+ * Requires:
+ *	"key" is a valid key.
+ */
+
+dns_ttl_t
+dst_key_getttl(const dst_key_t *key);
+/*%<
+ * Get the default TTL to use when converting the key
+ * to a KEY or DNSKEY RR.
  *
  * Requires:
  *	"key" is a valid key.

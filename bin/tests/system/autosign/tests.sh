@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.17 2011/03/02 09:03:45 fdupont Exp $
+# $Id: tests.sh,v 1.18 2011/03/17 01:40:36 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -178,6 +178,42 @@ $DIG $DIGOPTS +noauth q.nsec3-to-nsec.example. @10.53.0.4 a > dig.out.ns4.test$n
 $PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking TTLs of imported DNSKEYs (no default) ($n)"
+ret=0
+$DIG $DIGOPTS +tcp +noall +answer dnskey ttl1.example. @10.53.0.3 > dig.out.ns3.test$n || ret=1
+[ -s dig.out.ns3.test$n ] || ret=1
+awk 'BEGIN {r=0} $2 != 300 {r=1; print "I:found TTL " $2} END {exit r}' dig.out.ns3.test$n || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking TTLs of imported DNSKEYs (with default) ($n)"
+ret=0
+$DIG $DIGOPTS +tcp +noall +answer dnskey ttl2.example. @10.53.0.3 > dig.out.ns3.test$n || ret=1
+[ -s dig.out.ns3.test$n ] || ret=1
+awk 'BEGIN {r=0} $2 != 60 {r=1; print "I:found TTL " $2} END {exit r}' dig.out.ns3.test$n || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking TTLs of imported DNSKEYs (mismatched) ($n)"
+ret=0
+$DIG $DIGOPTS +tcp +noall +answer dnskey ttl3.example. @10.53.0.3 > dig.out.ns3.test$n || ret=1
+[ -s dig.out.ns3.test$n ] || ret=1
+awk 'BEGIN {r=0} $2 != 30 {r=1; print "I:found TTL " $2} END {exit r}' dig.out.ns3.test$n || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking TTLs of imported DNSKEYs (existing RRset) ($n)"
+ret=0
+$DIG $DIGOPTS +tcp +noall +answer dnskey ttl4.example. @10.53.0.3 > dig.out.ns3.test$n || ret=1
+[ -s dig.out.ns3.test$n ] || ret=1
+awk 'BEGIN {r=0} $2 != 30 {r=1; print "I:found TTL " $2} END {exit r}' dig.out.ns3.test$n || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

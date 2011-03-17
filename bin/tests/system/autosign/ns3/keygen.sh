@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: keygen.sh,v 1.8 2010/12/15 18:44:37 each Exp $
+# $Id: keygen.sh,v 1.9 2011/03/17 01:40:36 each Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -205,3 +205,36 @@ zonefile="${zone}.db"
 $KEYGEN -3 -q -r $RANDFILE -fk $zone > /dev/null
 $KEYGEN -3 -q -r $RANDFILE $zone > /dev/null
 $SIGNER -S -3 beef -o $zone -f $zonefile $infile > /dev/null 2>&1
+
+#
+# Key TTL tests.
+#
+
+# no default key TTL; DNSKEY should get SOA TTL
+zone=ttl1.example
+zonefile="${zone}.db"
+infile="${zonefile}.in"
+$KEYGEN -3 -q -r $RANDFILE -fk $zone > /dev/null
+$KEYGEN -3 -q -r $RANDFILE $zone > /dev/null
+cp $infile $zonefile
+
+# default key TTL should be used
+zone=ttl2.example 
+zonefile="${zone}.db"
+$KEYGEN -3 -q -r $RANDFILE -fk -L 60 $zone > /dev/null
+$KEYGEN -3 -q -r $RANDFILE -L 60 $zone > /dev/null
+cp $infile $zonefile
+
+# mismatched key TTLs, should use shortest
+zone=ttl3.example
+zonefile="${zone}.db"
+$KEYGEN -3 -q -r $RANDFILE -fk -L 30 $zone > /dev/null
+$KEYGEN -3 -q -r $RANDFILE -L 60 $zone > /dev/null
+cp $infile $zonefile
+
+# existing DNSKEY RRset, should retain TTL
+zone=ttl4.example
+zonefile="${zone}.db"
+$KEYGEN -3 -q -r $RANDFILE -L 30 -fk $zone > /dev/null
+cat ${infile} K${zone}.+*.key > $zonefile
+$KEYGEN -3 -q -r $RANDFILE -L 180 $zone > /dev/null

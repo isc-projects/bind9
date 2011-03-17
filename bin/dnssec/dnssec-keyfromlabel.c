@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keyfromlabel.c,v 1.34 2011/03/12 04:59:46 tbox Exp $ */
+/* $Id: dnssec-keyfromlabel.c,v 1.35 2011/03/17 01:40:34 each Exp $ */
 
 /*! \file */
 
@@ -84,6 +84,7 @@ usage(void) {
 	fprintf(stderr, "    -K directory: directory in which to place "
 			"key files\n");
 	fprintf(stderr, "    -k: generate a TYPE=KEY key\n");
+	fprintf(stderr, "    -L ttl: default key TTL\n");
 	fprintf(stderr, "    -n nametype: ZONE | HOST | ENTITY | USER | OTHER\n");
 	fprintf(stderr, "        (DNSKEY generation defaults to ZONE\n");
 	fprintf(stderr, "    -p protocol: default: 3 [dnssec]\n");
@@ -137,12 +138,13 @@ main(int argc, char **argv) {
 	dns_rdataclass_t rdclass;
 	int		options = DST_TYPE_PRIVATE | DST_TYPE_PUBLIC;
 	char		*label = NULL;
+	dns_ttl_t	ttl;
 	isc_stdtime_t	publish = 0, activate = 0, revoke = 0;
 	isc_stdtime_t	inactive = 0, delete = 0;
 	isc_stdtime_t	now;
 	isc_boolean_t	setpub = ISC_FALSE, setact = ISC_FALSE;
 	isc_boolean_t	setrev = ISC_FALSE, setinact = ISC_FALSE;
-	isc_boolean_t	setdel = ISC_FALSE;
+	isc_boolean_t	setdel = ISC_FALSE, setttl = ISC_FALSE;
 	isc_boolean_t	unsetpub = ISC_FALSE, unsetact = ISC_FALSE;
 	isc_boolean_t	unsetrev = ISC_FALSE, unsetinact = ISC_FALSE;
 	isc_boolean_t	unsetdel = ISC_FALSE;
@@ -164,7 +166,7 @@ main(int argc, char **argv) {
 	isc_stdtime_get(&now);
 
 	while ((ch = isc_commandline_parse(argc, argv,
-				"3a:Cc:E:f:K:kl:n:p:t:v:yFhGP:A:R:I:D:")) != -1)
+			"3a:Cc:E:f:K:kl:L:n:p:t:v:yFhGP:A:R:I:D:")) != -1)
 	{
 	    switch (ch) {
 		case '3':
@@ -201,6 +203,13 @@ main(int argc, char **argv) {
 			break;
 		case 'k':
 			options |= DST_TYPE_KEY;
+			break;
+		case 'L':
+			if (strcmp(isc_commandline_argument, "none") == 0)
+				ttl = 0;
+			else
+				ttl = strtottl(isc_commandline_argument);
+			setttl = ISC_TRUE;
 			break;
 		case 'l':
 			label = isc_mem_strdup(mctx, isc_commandline_argument);
@@ -508,6 +517,10 @@ main(int argc, char **argv) {
 		 */
 		dst_key_setprivateformat(key, 1, 2);
 	}
+
+	/* Set default key TTL */
+	if (setttl)
+		dst_key_setttl(key, ttl);
 
 	/*
 	 * Do not overwrite an existing key.  Warn LOUDLY if there
