@@ -1,3 +1,7 @@
+3075.	[bug]		dns_dnssec_findzonekeys{2} used a inconsistant
+			timestamp when determining which keys are active.
+			[RT #23642]
+
 3074.	[bug]		Make the adb cache read through for zone data and
 			glue learn for zone named is authoritative for.
 			[RT #22842]

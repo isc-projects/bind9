@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.121 2011/03/12 04:59:47 tbox Exp $
+ * $Id: dnssec.c,v 1.122 2011/03/17 01:17:21 marka Exp $
  */
 
 /*! \file */
@@ -543,9 +543,9 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 }
 
 static isc_boolean_t
-key_active(dst_key_t *key) {
+key_active(dst_key_t *key, isc_stdtime_t now) {
 	isc_result_t result;
-	isc_stdtime_t now, publish, active, revoke, inactive, delete;
+	isc_stdtime_t publish, active, revoke, inactive, delete;
 	isc_boolean_t pubset = ISC_FALSE, actset = ISC_FALSE;
 	isc_boolean_t revset = ISC_FALSE, inactset = ISC_FALSE;
 	isc_boolean_t delset = ISC_FALSE;
@@ -561,8 +561,6 @@ key_active(dst_key_t *key) {
 	 */
 	if (major == 1 && minor <= 2)
 		return (ISC_TRUE);
-
-	isc_stdtime_get(&now);
 
 	result = dst_key_gettime(key, DST_TIME_PUBLISH, &publish);
 	if (result == ISC_R_SUCCESS)
@@ -611,9 +609,12 @@ dns_dnssec_findzonekeys2(dns_db_t *db, dns_dbversion_t *ver,
 	isc_result_t result;
 	dst_key_t *pubkey = NULL;
 	unsigned int count = 0;
+	isc_stdtime_t now;
 
 	REQUIRE(nkeys != NULL);
 	REQUIRE(keys != NULL);
+
+	isc_stdtime_get(&now);
 
 	*nkeys = 0;
 	dns_rdataset_init(&rdataset);
@@ -693,7 +694,7 @@ dns_dnssec_findzonekeys2(dns_db_t *db, dns_dbversion_t *ver,
 		/*
 		 * If a key is marked inactive, skip it
 		 */
-		if (!key_active(keys[count])) {
+		if (!key_active(keys[count], now)) {
 			dst_key_free(&keys[count]);
 			keys[count] = pubkey;
 			pubkey = NULL;
