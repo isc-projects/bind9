@@ -1,3 +1,6 @@
+3078.	[func]		Added a new include file with function typedefs
+			for the DLZ "dlopen" driver. [RT #23629]
+
 3077.	[bug]		zone.c:zone_refreshkeys() incorrectly called
 			dns_zone_attach(), use zone->irefs instead. [RT #23303]
 
