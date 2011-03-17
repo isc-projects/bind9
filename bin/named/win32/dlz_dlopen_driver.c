@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dlz_dlopen_driver.c,v 1.4.2.2 2011/03/17 09:40:08 fdupont Exp $ */
+/* $Id: dlz_dlopen_driver.c,v 1.4.2.3 2011/03/17 09:41:07 fdupont Exp $ */
 
 #include <config.h>
 
@@ -25,8 +25,8 @@
 #include <stdlib.h>
 
 #include <dns/log.h>
-#include <dns/sdlz.h>
 #include <dns/result.h>
+#include <dns/dlz_dlopen.h>
 
 #include <isc/mem.h>
 #include <isc/print.h>
@@ -52,35 +52,21 @@ typedef struct dlopen_data {
 	int version;
 	isc_boolean_t in_configure;
 
-	int (*dlz_version)(unsigned int *flags);
-	isc_result_t (*dlz_create)(const char *dlzname,
-				   unsigned int argc, char *argv[],
-				   void **dbdata, ...);
-	isc_result_t (*dlz_findzonedb)(void *dbdata, const char *name);
-	isc_result_t (*dlz_lookup)(const char *zone, const char *name,
-				   void *dbdata, dns_sdlzlookup_t *lookup);
-	isc_result_t (*dlz_authority)(const char *zone, void *dbdata,
-				      dns_sdlzlookup_t *lookup);
-	isc_result_t (*dlz_allnodes)(const char *zone, void *dbdata,
-				     dns_sdlzallnodes_t *allnodes);
-	isc_result_t (*dlz_allowzonexfr)(void *dbdata, const char *name,
-					 const char *client);
-	isc_result_t (*dlz_newversion)(const char *zone, void *dbdata,
-				       void **versionp);
-	void         (*dlz_closeversion)(const char *zone, isc_boolean_t commit,
-					 void *dbdata, void **versionp);
-	isc_result_t (*dlz_configure)(dns_view_t *view, void *dbdata);
-	isc_boolean_t (*dlz_ssumatch)(const char *signer, const char *name,
-				      const char *tcpaddr, const char *type,
-				      const char *key, isc_uint32_t keydatalen,
-				      unsigned char *keydata, void *dbdata);
-	isc_result_t (*dlz_addrdataset)(const char *name, const char *rdatastr,
-					void *dbdata, void *version);
-	isc_result_t (*dlz_subrdataset)(const char *name, const char *rdatastr,
-					void *dbdata, void *version);
-	isc_result_t (*dlz_delrdataset)(const char *name, const char *type,
-					void *dbdata, void *version);
-	void         (*dlz_destroy)(void *dbdata);
+	dlz_dlopen_version_t *dlz_version;
+	dlz_dlopen_create_t *dlz_create;
+	dlz_dlopen_findzonedb_t *dlz_findzonedb;
+	dlz_dlopen_lookup_t *dlz_lookup;
+	dlz_dlopen_authority_t *dlz_authority;
+	dlz_dlopen_allnodes_t *dlz_allnodes;
+	dlz_dlopen_allowzonexfr_t *dlz_allowzonexfr;
+	dlz_dlopen_newversion_t *dlz_newversion;
+	dlz_dlopen_closeversion_t *dlz_closeversion;
+	dlz_dlopen_configure_t *dlz_configure;
+	dlz_dlopen_ssumatch_t *dlz_ssumatch;
+	dlz_dlopen_addrdataset_t *dlz_addrdataset;
+	dlz_dlopen_subrdataset_t *dlz_subrdataset;
+	dlz_dlopen_delrdataset_t *dlz_delrdataset;
+	dlz_dlopen_destroy_t *dlz_destroy;
 } dlopen_data_t;
 
 /* Modules can choose whether they are lock-safe or not. */
@@ -278,10 +264,14 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	}
 
 	/* Find the symbols */
-	cd->dlz_version = dl_load_symbol(cd, "dlz_version", ISC_TRUE);
-	cd->dlz_create = dl_load_symbol(cd, "dlz_create", ISC_TRUE);
-	cd->dlz_lookup = dl_load_symbol(cd, "dlz_lookup", ISC_TRUE);
-	cd->dlz_findzonedb = dl_load_symbol(cd, "dlz_findzonedb", ISC_TRUE);
+	cd->dlz_version = (dlz_dlopen_version_t *)
+		dl_load_symbol(cd, "dlz_version", ISC_TRUE);
+	cd->dlz_create = (dlz_dlopen_create_t *)
+		dl_load_symbol(cd, "dlz_create", ISC_TRUE);
+	cd->dlz_lookup = (dlz_dlopen_lookup_t *)
+		dl_load_symbol(cd, "dlz_lookup", ISC_TRUE);
+	cd->dlz_findzonedb = (dlz_dlopen_findzonedb_t *)
+		dl_load_symbol(cd, "dlz_findzonedb", ISC_TRUE);
 
 	if (cd->dlz_create == NULL ||
 	    cd->dlz_lookup == NULL ||
@@ -291,19 +281,28 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 		goto failed;
 	}
 
-	cd->dlz_allowzonexfr = dl_load_symbol(cd, "dlz_allowzonexfr",
-					      ISC_FALSE);
-	cd->dlz_allnodes = dl_load_symbol(cd, "dlz_allnodes",
-					  ISC_TF(cd->dlz_allowzonexfr != NULL));
-	cd->dlz_authority = dl_load_symbol(cd, "dlz_authority", ISC_FALSE);
-	cd->dlz_newversion = dl_load_symbol(cd, "dlz_newversion", ISC_FALSE);
-	cd->dlz_closeversion = dl_load_symbol(cd, "dlz_closeversion",
-					    ISC_TF(cd->dlz_newversion != NULL));
-	cd->dlz_configure = dl_load_symbol(cd, "dlz_configure", ISC_FALSE);
-	cd->dlz_ssumatch = dl_load_symbol(cd, "dlz_ssumatch", ISC_FALSE);
-	cd->dlz_addrdataset = dl_load_symbol(cd, "dlz_addrdataset", ISC_FALSE);
-	cd->dlz_subrdataset = dl_load_symbol(cd, "dlz_subrdataset", ISC_FALSE);
-	cd->dlz_delrdataset = dl_load_symbol(cd, "dlz_delrdataset", ISC_FALSE);
+	cd->dlz_allowzonexfr = (dlz_dlopen_allowzonexfr_t *)
+		dl_load_symbol(cd, "dlz_allowzonexfr", ISC_FALSE);
+	cd->dlz_allnodes = (dlz_dlopen_allnodes_t *)
+		dl_load_symbol(cd, "dlz_allnodes",
+			       ISC_TF(cd->dlz_allowzonexfr != NULL));
+	cd->dlz_authority = (dlz_dlopen_authority_t *)
+		dl_load_symbol(cd, "dlz_authority", ISC_FALSE);
+	cd->dlz_newversion = (dlz_dlopen_newversion_t *)
+		dl_load_symbol(cd, "dlz_newversion", ISC_FALSE);
+	cd->dlz_closeversion = (dlz_dlopen_closeversion_t *)
+		dl_load_symbol(cd, "dlz_closeversion",
+			       ISC_TF(cd->dlz_newversion != NULL));
+	cd->dlz_configure = (dlz_dlopen_configure_t *)
+		dl_load_symbol(cd, "dlz_configure", ISC_FALSE);
+	cd->dlz_ssumatch = (dlz_dlopen_ssumatch_t *)
+		dl_load_symbol(cd, "dlz_ssumatch", ISC_FALSE);
+	cd->dlz_addrdataset = (dlz_dlopen_addrdataset_t *)
+		dl_load_symbol(cd, "dlz_addrdataset", ISC_FALSE);
+	cd->dlz_subrdataset = (dlz_dlopen_subrdataset_t *)
+		dl_load_symbol(cd, "dlz_subrdataset", ISC_FALSE);
+	cd->dlz_delrdataset = (dlz_dlopen_delrdataset_t *)
+		dl_load_symbol(cd, "dlz_delrdataset", ISC_FALSE);
 
 	/* Check the version of the API is the same */
 	cd->version = cd->dlz_version(&cd->flags);
@@ -320,7 +319,7 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	 * extended version of dlz create, with the addition of
 	 * named function pointers for helper functions that the
 	 * driver will need. This avoids the need for the backend to
-	 * link the bind9 libraries
+	 * link the BIND9 libraries
 	 */
 	MAYBE_LOCK(cd);
 	result = cd->dlz_create(dlzname, argc-1, argv+1,
@@ -345,7 +344,7 @@ failed:
 	if (cd->dlzname)
 		isc_mem_free(mctx, cd->dlzname);
 	if (triedload)
-		isc_mutex_destroy(&cd->lock);
+		(void) isc_mutex_destroy(&cd->lock);
 	if (cd->dl_handle)
 		FreeLibrary(cd->dl_handle);
 	isc_mem_put(mctx, cd, sizeof(*cd));
@@ -378,7 +377,7 @@ dlopen_dlz_destroy(void *driverarg, void *dbdata) {
 	if (cd->dl_handle)
 		FreeLibrary(cd->dl_handle);
 
-	isc_mutex_destroy(&cd->lock);
+	(void) isc_mutex_destroy(&cd->lock);
 
 	mctx = cd->mctx;
 	isc_mem_put(mctx, cd, sizeof(*cd));
