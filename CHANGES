@@ -1,3 +1,6 @@
+3077.	[bug]		zone.c:zone_refreshkeys() incorrectly called
+			dns_zone_attach(), use zone->irefs instead. [RT #23303]
+
 3076.	[func]		New '-L' option in dnssec-keygen, dnsset-settime, and
 			dnssec-keyfromlabel sets the default TTL of the
 			key.  When possible, automatic signing will use that
