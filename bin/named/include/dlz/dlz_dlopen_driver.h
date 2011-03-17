@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dlz_dlopen_driver.h,v 1.3 2011/03/10 23:47:49 tbox Exp $ */
+/* $Id: dlz_dlopen_driver.h,v 1.4 2011/03/17 09:25:53 fdupont Exp $ */
 
 #ifndef DLZ_DLOPEN_DRIVER_H
 #define DLZ_DLOPEN_DRIVER_H
@@ -24,7 +24,4 @@ dlz_dlopen_init(isc_mem_t *mctx);
 
 void
 dlz_dlopen_clear(void);
-
-#define DLZ_DLOPEN_VERSION 1
-
 #endif

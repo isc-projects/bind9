@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dlz.h,v 1.12 2010/12/20 23:47:21 tbox Exp $ */
+/* $Id: dlz.h,v 1.13 2011/03/17 09:25:54 fdupont Exp $ */
 
 /*! \file dns/dlz.h */
 
@@ -318,9 +318,9 @@ dns_dlzunregister(dns_dlzimplementation_t **dlzimp);
  */
 
 
-isc_result_t
-dns_dlz_writeablezone(dns_view_t *view, const char *zone_name);
-
+typedef isc_result_t dns_dlz_writeablezone_t(dns_view_t *view,
+					     const char *zone_name);
+dns_dlz_writeablezone_t dns_dlz_writeablezone;
 /*%<
  * creates a writeable DLZ zone. Must be called from within the
  * configure() method of a DLZ driver.

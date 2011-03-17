@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: driver.c,v 1.3 2011/03/10 23:47:49 tbox Exp $ */
+/* $Id: driver.c,v 1.4 2011/03/17 09:25:54 fdupont Exp $ */
 
 /*
  * This provides a very simple example of an external loadable DLZ
@@ -34,6 +34,7 @@
 #include <isc/util.h>
 
 #include <dns/types.h>
+#include <dns/dlz_dlopen.h>
 
 #include "driver.h"
 
@@ -51,6 +52,8 @@ struct record {
 
 #define MAX_RECORDS 100
 
+typedef void log_t(int level, const char *fmt, ...);
+
 struct dlz_example_data {
 	char *zone_name;
 
@@ -62,13 +65,10 @@ struct dlz_example_data {
 	isc_boolean_t transaction_started;
 
 	/* Helper functions from the dlz_dlopen driver */
-	void (*log)(int level, const char *fmt, ...);
-	isc_result_t (*putrr)(dns_sdlzlookup_t *handle, const char *type,
-			      dns_ttl_t ttl, const char *data);
-	isc_result_t (*putnamedrr)(dns_sdlzlookup_t *handle, const char *name,
-				   const char *type, dns_ttl_t ttl,
-				   const char *data);
-	isc_result_t (*writeable_zone)(dns_view_t *view, const char *zone_name);
+	log_t *log;
+	dns_sdlz_putrr_t *putrr;
+	dns_sdlz_putnamedrr_t *putnamedrr;
+	dns_dlz_writeablezone_t *writeable_zone;
 };
 
 static isc_boolean_t
@@ -96,7 +96,7 @@ add_name(struct dlz_example_data *state, struct record *list,
 	int first_empty = -1;
 
 	for (i = 0; i < MAX_RECORDS; i++) {
-		if (first_empty == -1 && strlen(list[i].name) == 0) {
+		if (first_empty == -1 && strlen(list[i].name) == 0U) {
 			first_empty = i;
 		}
 		if (strcasecmp(list[i].name, name) != 0)
@@ -167,13 +167,13 @@ b9_add_helper(struct dlz_example_data *state,
 	      const char *helper_name, void *ptr)
 {
 	if (strcmp(helper_name, "log") == 0)
-		state->log = ptr;
+		state->log = (log_t *)ptr;
 	if (strcmp(helper_name, "putrr") == 0)
-		state->putrr = ptr;
+		state->putrr = (dns_sdlz_putrr_t *)ptr;
 	if (strcmp(helper_name, "putnamedrr") == 0)
-		state->putnamedrr = ptr;
+		state->putnamedrr = (dns_sdlz_putnamedrr_t *)ptr;
 	if (strcmp(helper_name, "writeable_zone") == 0)
-		state->writeable_zone = ptr;
+		state->writeable_zone = (dns_dlz_writeablezone_t *)ptr;
 }
 
 
@@ -319,7 +319,7 @@ dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
 
 	for (i = 0; i < MAX_RECORDS; i++) {
 		isc_result_t result;
-		if (strlen(state->current[i].name) == 0) {
+		if (strlen(state->current[i].name) == 0U) {
 			continue;
 		}
 		result = state->putnamedrr(allnodes, state->current[i].name,
@@ -381,7 +381,7 @@ dlz_closeversion(const char *zone, isc_boolean_t commit,
 			   "dlz_example: committing transaction on zone %s",
 			   zone);
 		for (i = 0; i < MAX_RECORDS; i++) {
-			if (strlen(state->adds[i].name) > 0) {
+			if (strlen(state->adds[i].name) > 0U) {
 				add_name(state, &state->current[0],
 					 state->adds[i].name,
 					 state->adds[i].type,
@@ -390,7 +390,7 @@ dlz_closeversion(const char *zone, isc_boolean_t commit,
 			}
 		}
 		for (i = 0; i < MAX_RECORDS; i++) {
-			if (strlen(state->deletes[i].name) > 0) {
+			if (strlen(state->deletes[i].name) > 0U) {
 				del_name(state, &state->current[0],
 					 state->deletes[i].name,
 					 state->deletes[i].type,
