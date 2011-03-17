@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.50 2011/03/11 13:24:36 marka Exp $ */
+/* $Id: zone.c,v 1.540.2.51 2011/03/17 05:30:21 marka Exp $ */
 
 /*! \file */
 
@@ -7174,6 +7174,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	isc_stdtime_t now;
 	int pending = 0;
 	isc_boolean_t secure;
+	isc_boolean_t free_needed;
 
 	UNUSED(task);
 	INSIST(event != NULL && event->ev_type == DNS_EVENT_FETCHDONE);
@@ -7195,15 +7196,19 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 	dns_resolver_destroyfetch(&kfetch->fetch);
 
+	LOCK_ZONE(zone);
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING) || zone->view == NULL)
+		goto cleanup;
+
 	isc_stdtime_get(&now);
 	dns_name_format(keyname, namebuf, sizeof(namebuf));
 
 	result = dns_view_getsecroots(zone->view, &secroots);
 	INSIST(result == ISC_R_SUCCESS);
 
-	LOCK_ZONE(zone);
-	dns_db_newversion(kfetch->db, &ver);
 	dns_diff_init(mctx, &diff);
+
+	CHECK(dns_db_newversion(kfetch->db, &ver));
 
 	zone->refreshkeycount--;
 	alldone = ISC_TF(zone->refreshkeycount == 0);
@@ -7565,12 +7570,17 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	}
 
   failure:
-	UNLOCK_ZONE(zone);
 
 	dns_diff_clear(&diff);
-	dns_db_closeversion(kfetch->db, &ver, commit);
+	if (ver != NULL)
+		dns_db_closeversion(kfetch->db, &ver, commit);
+
+ cleanup:
 	dns_db_detach(&kfetch->db);
-	dns_zone_detach(&kfetch->zone);
+
+	INSIST(zone->irefs > 0);
+	zone->irefs--;
+	kfetch->zone = NULL;
 
 	if (dns_rdataset_isassociated(&kfetch->keydataset))
 		dns_rdataset_disassociate(&kfetch->keydataset);
@@ -7585,6 +7595,11 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 
 	if (secroots != NULL)
 		dns_keytable_detach(&secroots);
+
+	free_needed = exit_check(zone);
+	UNLOCK_ZONE(zone);
+	if (free_needed)
+		zone_free(zone);
 }
 
 /*
@@ -7609,13 +7624,20 @@ zone_refreshkeys(dns_zone_t *zone) {
 
 	isc_stdtime_get(&now);
 
+	LOCK_ZONE(zone);
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {
+		isc_time_settoepoch(&zone->refreshkeytime);
+		UNLOCK_ZONE(zone);
+		return;
+	}
+
 	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
 	dns_db_attach(zone->db, &db);
 	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 
-	LOCK_ZONE(zone);
-	dns_db_newversion(db, &ver);
 	dns_diff_init(zone->mctx, &diff);
+
+	CHECK(dns_db_newversion(db, &ver));
 
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_REFRESHING);
 
@@ -7671,8 +7693,9 @@ zone_refreshkeys(dns_zone_t *zone) {
 		zone->refreshkeycount++;
 
 		kfetch = isc_mem_get(zone->mctx, sizeof(dns_keyfetch_t));
-		kfetch->zone = NULL;
-		dns_zone_attach(zone, &kfetch->zone);
+		kfetch->zone = zone;
+		zone->irefs++;
+		INSIST(zone->irefs != 0);
 		dns_fixedname_init(&kfetch->name);
 		dns_name_dup(name, zone->mctx,
 			     dns_fixedname_name(&kfetch->name));
@@ -7701,12 +7724,15 @@ zone_refreshkeys(dns_zone_t *zone) {
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADED);
 		zone_needdump(zone, 30);
 	}
+
   failure:
 	UNLOCK_ZONE(zone);
 
-	dns_rriterator_destroy(&rrit);
 	dns_diff_clear(&diff);
-	dns_db_closeversion(db, &ver, commit);
+	if (ver != NULL) {
+		dns_rriterator_destroy(&rrit);
+		dns_db_closeversion(db, &ver, commit);
+	}
 	dns_db_detach(&db);
 }
 
@@ -10000,7 +10026,13 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 			dns_db_settask(stub->db, zone->task);
 		}
 
-		dns_db_newversion(stub->db, &stub->version);
+		result = dns_db_newversion(stub->db, &stub->version);
+		if (result != ISC_R_SUCCESS) {
+			dns_zone_log(zone, ISC_LOG_INFO, "refreshing stub: "
+				     "dns_db_newversion() failed: %s",
+				     dns_result_totext(result));
+			goto cleanup;
+		}
 
 		/*
 		 * Update SOA record.
@@ -10008,8 +10040,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 		result = dns_db_findnode(stub->db, &zone->origin, ISC_TRUE,
 					 &node);
 		if (result != ISC_R_SUCCESS) {
-			dns_zone_log(zone, ISC_LOG_INFO,
-				     "refreshing stub: "
+			dns_zone_log(zone, ISC_LOG_INFO, "refreshing stub: "
 				     "dns_db_findnode() failed: %s",
 				     dns_result_totext(result));
 			goto cleanup;
