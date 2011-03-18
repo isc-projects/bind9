@@ -748,6 +748,13 @@
 ./bin/tests/system/dlzexternal/prereq.sh	SH	2010,2011
 ./bin/tests/system/dlzexternal/setup.sh		SH	2010
 ./bin/tests/system/dlzexternal/tests.sh		SH	2010,2011
+./bin/tests/system/dname/clean.sh		SH	2011
+./bin/tests/system/dname/tests.sh		SH	2011
+./bin/tests/system/dname/ns1/named.conf		CONF-C	2011
+./bin/tests/system/dname/ns1/root.db		ZONE	2011
+./bin/tests/system/dname/ns2/named.conf		CONF-C	2011
+./bin/tests/system/dname/ns2/example.db		ZONE	2011
+./bin/tests/system/dname/ns4/named.conf		CONF-C	2011
 ./bin/tests/system/dns64/clean.sh		SH	2010
 ./bin/tests/system/dns64/conf/bad1.conf		CONF-C	2010
 ./bin/tests/system/dns64/conf/bad2.conf		CONF-C	2010
