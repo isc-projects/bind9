@@ -1,3 +1,6 @@
+3081.	[bug]		Failure of DNAME substitution did not return
+			YXDOMAIN. [RT #23591]
+
 3080.	[cleanup]	Replaced compile time constant by STDTIME_ON_32BITS.
 			[RT #23587]
 
