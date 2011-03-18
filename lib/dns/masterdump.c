@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.99.16.4 2011/03/12 04:58:27 tbox Exp $ */
+/* $Id: masterdump.c,v 1.99.16.5 2011/03/18 09:07:02 fdupont Exp $ */
 
 /*! \file */
 
@@ -1383,23 +1383,24 @@ dumptostreaminc(dns_dumpctx_t *dctx) {
 			isc_buffer_region(&buffer, &r);
 			isc_buffer_putuint32(&buffer, dns_masterformat_raw);
 			isc_buffer_putuint32(&buffer, DNS_RAWFORMAT_VERSION);
-			if (sizeof(now32) != sizeof(dctx->now)) {
-				/*
-				 * We assume isc_stdtime_t is a 32-bit integer,
-				 * which should be the case on most cases.
-				 * If it turns out to be uncommon, we'll need
-				 * to bump the version number and revise the
-				 * header format.
-				 */
-				isc_log_write(dns_lctx,
-					      ISC_LOGCATEGORY_GENERAL,
-					      DNS_LOGMODULE_MASTERDUMP,
-					      ISC_LOG_INFO,
-					      "dumping master file in raw "
-					      "format: stdtime is not 32bits");
-				now32 = 0;
-			} else
-				now32 = dctx->now;
+#if !defined(STDTIME_ON_32BITS) || (STDTIME_ON_32BITS + 0) != 1
+			/*
+			 * We assume isc_stdtime_t is a 32-bit integer,
+			 * which should be the case on most cases.
+			 * If it turns out to be uncommon, we'll need
+			 * to bump the version number and revise the
+			 * header format.
+			 */
+			isc_log_write(dns_lctx,
+				      ISC_LOGCATEGORY_GENERAL,
+				      DNS_LOGMODULE_MASTERDUMP,
+				      ISC_LOG_INFO,
+				      "dumping master file in raw "
+				      "format: stdtime is not 32bits");
+			now32 = 0;
+#else
+			now32 = dctx->now;
+#endif
 			isc_buffer_putuint32(&buffer, now32);
 			INSIST(isc_buffer_usedlength(&buffer) <=
 			       sizeof(rawheader));
