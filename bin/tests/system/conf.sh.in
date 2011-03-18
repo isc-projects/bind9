@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: conf.sh.in,v 1.43.8.15 2011/03/04 14:17:49 smann Exp $
+# $Id: conf.sh.in,v 1.43.8.16 2011/03/18 21:37:08 fdupont Exp $
 
 #
 # Common configuration data for system tests, to be sourced into
@@ -52,12 +52,12 @@ JOURNALPRINT=$TOP/bin/tools/named-journalprint
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
 # v6synth
-SUBDIRS="acl allow_query addzone autosign cacheclean checkconf checknames
-	 checkzone database dlv autodlv @DLZ_SYSTEM_TEST@ dnssec forward glue
-	 ixfr limits logfileconfig lwresd masterfile masterformat metadata
-	 notify nsupdate pending pkcs11 resolver rrsetorder
-	 sortlist smartsign stub tkey unknown upforwd
-	 views xfer xferquota zonechecks"
+SUBDIRS="acl allow_query addzone autosign cacheclean checkconf
+	 checknames checkzone database dlv autodlv @DLZ_SYSTEM_TEST@
+	 dname dnssec forward glue ixfr limits logfileconfig lwresd
+	 masterfile masterformat metadata notify nsupdate pending
+	 pkcs11 resolver rrsetorder sortlist smartsign stub tkey
+	 unknown upforwd views xfer xferquota zonechecks"
 
 # PERL will be an empty string if no perl interpreter was found.
 PERL=@PERL@
