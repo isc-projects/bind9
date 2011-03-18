@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.34 2011/02/03 12:18:11 tbox Exp $
+# $Id: tests.sh,v 1.35 2011/03/18 02:08:45 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -346,7 +346,7 @@ $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd dnskey.test. \
 	@10.53.0.3 -p 5300 any > dig.out.ns3.$n
 
 grep "600.*DNSKEY" dig.out.ns3.$n > /dev/null || ret=1
-grep TYPE65534 dig.out.ns3.$n > dev/null && ret=1
+grep TYPE65534 dig.out.ns3.$n > /dev/null && ret=1
 if test $ret -ne 0
 then
 echo "I:failed"; status=1
