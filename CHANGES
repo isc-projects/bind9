@@ -1,3 +1,6 @@
+3080.	[cleanup]	Replaced compile time constant by STDTIME_ON_32BITS.
+			[RT #23587]
+
 3079.	[bug]		Handle isc_event_allocate failures in t_tasks.
 			[RT #23572]
 
