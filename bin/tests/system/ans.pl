@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: ans.pl,v 1.3 2011/03/05 23:52:29 tbox Exp $
+# $Id: ans.pl,v 1.4 2011/03/18 04:41:15 each Exp $
 
 #
 # This is the name server from hell.  It provides canned
@@ -69,6 +69,12 @@ use Data::Dumper;
 use Net::DNS;
 use Net::DNS::Packet;
 use strict;
+
+# Ignore SIGPIPE so we won't fail if peer closes a TCP socket early
+local $SIG{PIPE} = 'IGNORE';
+
+# Flush logged output after every line
+local $| = 1;
 
 # We default to listening on 10.53.0.2 for historical reasons
 # XXX: we should also be able to specify IPv6
