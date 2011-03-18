@@ -597,6 +597,13 @@
 ./bin/tests/system/dlz/ns1/dns-root/com/example/xfr.d/10.53.0.1	TXT.BRIEF	2010
 ./bin/tests/system/dlz/ns1/named.conf		CONF-C	2010
 ./bin/tests/system/dlz/tests.sh			SH	2010
+./bin/tests/system/dname/clean.sh		SH	2011
+./bin/tests/system/dname/tests.sh		SH	2011
+./bin/tests/system/dname/ns1/named.conf		CONF-C	2011
+./bin/tests/system/dname/ns1/root.db		ZONE	2011
+./bin/tests/system/dname/ns2/named.conf		CONF-C	2011
+./bin/tests/system/dname/ns2/example.db		ZONE	2011
+./bin/tests/system/dname/ns4/named.conf		CONF-C	2011
 ./bin/tests/system/dnssec/README		TXT.BRIEF	2000,2001,2002,2004
 ./bin/tests/system/dnssec/clean.sh		SH	2000,2001,2002,2004,2007,2008,2010,2011
 ./bin/tests/system/dnssec/dnssec_update_test.pl	PERL	2002,2004,2007,2010
