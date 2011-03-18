@@ -1,3 +1,6 @@
+3079.	[bug]		Handle isc_event_allocate failures in t_tasks.
+			[RT #23572]
+
 3077.	[bug]		zone.c:zone_refreshkeys() incorrectly called
 			dns_zone_attach(), use zone->irefs instead. [RT #23303]
 
