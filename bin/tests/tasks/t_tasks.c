@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_tasks.c,v 1.46 2011/03/18 07:40:25 marka Exp $ */
+/* $Id: t_tasks.c,v 1.47 2011/03/18 23:47:36 tbox Exp $ */
 
 #include <config.h>
 
@@ -1941,12 +1941,12 @@ t_tasks11(int purgable) {
 	if (event1 == NULL) {
 		t_info("isc_event_allocate failed\n");
 		isc_task_destroy(&task);
-                isc_taskmgr_destroy(&tmgr);
-                isc_mem_destroy(&mctx);
-                DESTROYLOCK(&T11_mx);
-                (void) isc_condition_destroy(&T11_cv);
-                return(T_UNRESOLVED);
-        }
+		isc_taskmgr_destroy(&tmgr);
+		isc_mem_destroy(&mctx);
+		DESTROYLOCK(&T11_mx);
+		(void) isc_condition_destroy(&T11_cv);
+		return(T_UNRESOLVED);
+	}
 	isc_task_send(task, &event1);
 
 	event2 = isc_event_allocate(mctx, (void *)1, (isc_eventtype_t)1,
@@ -1954,12 +1954,12 @@ t_tasks11(int purgable) {
 	if (event2 == NULL) {
 		t_info("isc_event_allocate failed\n");
 		isc_task_destroy(&task);
-                isc_taskmgr_destroy(&tmgr);
-                isc_mem_destroy(&mctx);
-                DESTROYLOCK(&T11_mx);
-                (void) isc_condition_destroy(&T11_cv);
-                return(T_UNRESOLVED);
-        }
+		isc_taskmgr_destroy(&tmgr);
+		isc_mem_destroy(&mctx);
+		DESTROYLOCK(&T11_mx);
+		(void) isc_condition_destroy(&T11_cv);
+		return(T_UNRESOLVED);
+	}
 	event2_clone = event2;
 	if (purgable)
 		event2->ev_attributes &= ~ISC_EVENTATTR_NOPURGE;
