@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keyfromlabel.c,v 1.35 2011/03/17 01:40:34 each Exp $ */
+/* $Id: dnssec-keyfromlabel.c,v 1.36 2011/03/18 02:16:43 marka Exp $ */
 
 /*! \file */
 
@@ -138,7 +138,7 @@ main(int argc, char **argv) {
 	dns_rdataclass_t rdclass;
 	int		options = DST_TYPE_PRIVATE | DST_TYPE_PUBLIC;
 	char		*label = NULL;
-	dns_ttl_t	ttl;
+	dns_ttl_t	ttl = 0;
 	isc_stdtime_t	publish = 0, activate = 0, revoke = 0;
 	isc_stdtime_t	inactive = 0, delete = 0;
 	isc_stdtime_t	now;
