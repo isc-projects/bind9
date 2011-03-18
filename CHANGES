@@ -1,3 +1,6 @@
+3079.	[bug]		Handle isc_event_allocate failures in t_tasks.
+			[RT #23572]
+
 3078.	[func]		Added a new include file with function typedefs
 			for the DLZ "dlopen" driver. [RT #23629]
 
