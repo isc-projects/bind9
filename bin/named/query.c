@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.335.8.13 2011/03/12 04:58:24 tbox Exp $ */
+/* $Id: query.c,v 1.335.8.14 2011/03/19 10:06:40 marka Exp $ */
 
 /*! \file */
 
@@ -4604,18 +4604,19 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			goto cleanup;
 		}
 		result = dns_name_concatenate(prefix, tname, fname, NULL);
+
+		/*
+		 * RFC2672, section 4.1, subsection 3c says
+		 * we should return YXDOMAIN if the constructed
+		 * name would be too long.
+		 */
+		if (result == DNS_R_NAMETOOLONG)
+			client->message->rcode = dns_rcode_yxdomain;
 		if (result != ISC_R_SUCCESS) {
 			dns_message_puttempname(client->message, &tname);
-			if (result == ISC_R_NOSPACE) {
-				/*
-				 * RFC2672, section 4.1, subsection 3c says
-				 * we should return YXDOMAIN if the constructed
-				 * name would be too long.
-				 */
-				client->message->rcode = dns_rcode_yxdomain;
-			}
 			goto cleanup;
 		}
+
 		query_keepname(client, fname, dbuf);
 		/*
 		 * Synthesize a CNAME for this DNAME.
