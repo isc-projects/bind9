@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.c,v 1.47.814.1 2011/03/19 02:06:57 each Exp $ */
+/* $Id: zt.c,v 1.47.814.2 2011/03/19 02:08:44 each Exp $ */
 
 /*! \file */
 
@@ -298,8 +298,6 @@ freezezones(dns_zone_t *zone, void *uap) {
 	int level;
 
 	if (dns_zone_gettype(zone) != dns_zone_master)
-		return (ISC_R_SUCCESS);
-	if (!dns_zone_isdynamic(zone))
 		return (ISC_R_SUCCESS);
 
 	frozen = dns_zone_getupdatedisabled(zone);
