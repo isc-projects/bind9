@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.105 2011/03/18 09:00:44 fdupont Exp $ */
+/* $Id: masterdump.c,v 1.106 2011/03/20 02:31:54 marka Exp $ */
 
 /*! \file */
 
@@ -111,14 +111,14 @@ dns_master_style_default = {
 	DNS_STYLEFLAG_COMMENT |
 	DNS_STYLEFLAG_RRCOMMENT |
 	DNS_STYLEFLAG_MULTILINE,
-	24, 24, 24, 32, 80, 8, -1
+	24, 24, 24, 32, 80, 8, UINT_MAX
 };
 
 LIBDNS_EXTERNAL_DATA const dns_master_style_t
 dns_master_style_full = {
 	DNS_STYLEFLAG_COMMENT |
 	DNS_STYLEFLAG_RESIGN,
-	46, 46, 46, 64, 120, 8, -1
+	46, 46, 46, 64, 120, 8, UINT_MAX
 };
 
 LIBDNS_EXTERNAL_DATA const dns_master_style_t
@@ -130,7 +130,7 @@ dns_master_style_explicitttl = {
 	DNS_STYLEFLAG_COMMENT |
 	DNS_STYLEFLAG_RRCOMMENT |
 	DNS_STYLEFLAG_MULTILINE,
-	24, 32, 32, 40, 80, 8, -1
+	24, 32, 32, 40, 80, 8, UINT_MAX
 };
 
 LIBDNS_EXTERNAL_DATA const dns_master_style_t
@@ -140,13 +140,13 @@ dns_master_style_cache = {
 	DNS_STYLEFLAG_MULTILINE |
 	DNS_STYLEFLAG_TRUST |
 	DNS_STYLEFLAG_NCACHE,
-	24, 32, 32, 40, 80, 8, -1
+	24, 32, 32, 40, 80, 8, UINT_MAX
 };
 
 LIBDNS_EXTERNAL_DATA const dns_master_style_t
 dns_master_style_simple = {
 	0,
-	24, 32, 32, 40, 80, 8, -1
+	24, 32, 32, 40, 80, 8, UINT_MAX
 };
 
 /*%
@@ -155,7 +155,7 @@ dns_master_style_simple = {
 LIBDNS_EXTERNAL_DATA const dns_master_style_t
 dns_master_style_debug = {
 	DNS_STYLEFLAG_REL_OWNER,
-	24, 32, 40, 48, 80, 8, -1
+	24, 32, 40, 48, 80, 8, UINT_MAX
 };
 
 

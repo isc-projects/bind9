@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.h,v 1.79 2011/03/05 23:52:30 tbox Exp $ */
+/* $Id: rdata.h,v 1.80 2011/03/20 02:31:53 marka Exp $ */
 
 #ifndef DNS_RDATA_H
 #define DNS_RDATA_H 1
@@ -450,8 +450,8 @@ dns_rdata_tofmttext(dns_rdata_t *rdata, dns_name_t *origin, unsigned int flags,
  *
  * base64 rdata text (e.g., DNSKEY records) will be split into chunks
  * of 'split_width' characters.  If split_width == 0, the text will
- * not be split at all.  If split_width == 0xffffffff, then it is undefined
- * and falls back to the default value of 'width'
+ * not be split at all.  If split_width == UINT_MAX (0xffffffff), then
+ * it is undefined and falls back to the default value of 'width'
  */
 
 isc_result_t
