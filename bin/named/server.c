@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.609 2011/03/21 07:22:11 each Exp $ */
+/* $Id: server.c,v 1.610 2011/03/21 15:39:05 each Exp $ */
 
 /*! \file */
 
@@ -7073,7 +7073,7 @@ ns_server_sync(ns_server_t *server, char *args, isc_buffer_t *text) {
 			zonename, sizeof(zonename));
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 		      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
-		      "dumping zone '%s/%s'%s%s%s: %s",
+		      "sync: dumping zone '%s/%s'%s%s%s: %s",
 		      zonename, classstr, sep, vname,
 		      cleanup ? ", removing journal file" : "",
 		      isc_result_totext(result));
