@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.41.40.6 2011/03/21 01:06:50 marka Exp $
+# $Id: sign.sh,v 1.41.40.7 2011/03/21 20:32:15 marka Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -163,19 +163,22 @@ cat $infile $keynew1.key $keynew2.key >$zonefile
 $SIGNER -P -r $RANDFILE -o $zone -k $keyold1 -k $keynew1 $zonefile $keyold1 $keyold2 $keynew1 $keynew2 > /dev/null
 
 #
-# 
+# Make a zone big enough that it takes several seconds to generate a new
+# nsec3 chain.
 #
 zone=nsec3chain-test
-zonefile=nsec3chain-test.db.signed
-
-cat > $zonefile << EOF
+zonefile=nsec3chain-test.db
+cat > $zonefile << 'EOF'
+$TTL 10
 @	10	SOA	ns2 hostmaster 0 3600 1200 864000 1200
 @	10	NS	ns2
 @	10	NS	ns3
 ns2	10	A	10.53.0.2
 ns3	10	A	10.53.0.3
 EOF
-awk 'END { for (i = 0; i < 1000; i++)
+awk 'END { for (i = 0; i < 300; i++)
 	print "host" i, 10, "NS", "ns.elsewhere"; }' < /dev/null >> $zonefile
-k=`$KEYGEN -q -r $RANDFILE -a RSASHA256 -b 1024 -n zone -fk $zone`
-k=`$KEYGEN -q -r $RANDFILE -a RSASHA256 -b 1024 -n zone $zone`
+key1=`$KEYGEN -q -r $RANDFILE -a RSASHA256 -b 1024 -n zone -fk $zone`
+key2=`$KEYGEN -q -r $RANDFILE -a RSASHA256 -b 1024 -n zone $zone`
+cat $key1.key $key2.key >> $zonefile
+$SIGNER -P -3 - -A -H 1 -g -r $RANDFILE -o $zone -k $key1 $zonefile $key2 > /dev/null
