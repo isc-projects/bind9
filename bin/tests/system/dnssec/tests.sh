@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.85 2011/03/21 07:26:47 each Exp $
+# $Id: tests.sh,v 1.86 2011/03/21 20:31:22 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -1292,22 +1292,20 @@ ret=0
 (
 echo zone nsec3chain-test
 echo server 10.53.0.2 5300
-grep DNSKEY ns2/Knsec3chain-test.*.key |
-sed -e 's/.*://' -e 's/^/update add /' -e 's/IN/300 IN/'
-echo update add nsec3chain-test. 0 nsec3param 1 0 1 -
+echo update add nsec3chain-test. 0 nsec3param 1 0 1 123456
 echo send
 ) | $NSUPDATE
 for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18
 do
 	$DIG $DIGOPTS nsec3param nsec3chain-test @10.53.0.2 > dig.out.ns2.test$n || ret=1
-	if grep "ANSWER: 2," dig.out.ns2.test$n >/dev/null
+	if grep "ANSWER: 3," dig.out.ns2.test$n >/dev/null
 	then
 		break;
 	fi
 	echo "I:sleeping ...."
 	sleep 3
 done;
-grep "ANSWER: 2," dig.out.ns2.test$n > /dev/null || ret=1
+grep "ANSWER: 3," dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:nsec3 chain generation not complete"; fi
 sleep 3
 $DIG $DIGOPTS +noauth +nodnssec soa nsec3chain-test @10.53.0.2 > dig.out.ns2.test$n || ret=1
