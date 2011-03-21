@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: driver.c,v 1.1.4.4 2011/03/17 09:41:07 fdupont Exp $ */
+/* $Id: driver.c,v 1.1.4.5 2011/03/21 00:31:52 marka Exp $ */
 
 /*
  * This provides a very simple example of an external loadable DLZ
@@ -39,7 +39,11 @@
 #include "driver.h"
 
 #ifdef WIN32
-#define strtok_r(a, b, c)	strtok_s(a, b, c)
+#define STRTOK_R(a, b, c)	strtok_s(a, b, c)
+#elif defined(_REENTRANT)
+#define STRTOK_R(a, b, c)       strtok_r(a, b, c)
+#else
+#define STRTOK_R(a, b, c)       strtok(a, b)
 #endif
 
 /* For this simple example, use fixed sized strings */
@@ -474,7 +478,9 @@ modrdataset(struct dlz_example_data *state, const char *name,
 	char *full_name, *dclass, *type, *data, *ttlstr;
 	char *buf = strdup(rdatastr);
 	isc_result_t result;
+#if defined(WIN32) || defined(_REENTRANT)
 	char *saveptr = NULL;
+#endif
 
 	/*
 	 * The format is:
@@ -484,23 +490,23 @@ modrdataset(struct dlz_example_data *state, const char *name,
 	 * for the type used by dig
 	 */
 
-	full_name = strtok_r(buf, "\t", &saveptr);
+	full_name = STRTOK_R(buf, "\t", &saveptr);
 	if (full_name == NULL)
 		return (ISC_R_FAILURE);
 
-	ttlstr = strtok_r(NULL, "\t", &saveptr);
+	ttlstr = STRTOK_R(NULL, "\t", &saveptr);
 	if (ttlstr == NULL)
 		return (ISC_R_FAILURE);
 
-	dclass = strtok_r(NULL, "\t", &saveptr);
+	dclass = STRTOK_R(NULL, "\t", &saveptr);
 	if (dclass == NULL)
 		return (ISC_R_FAILURE);
 
-	type = strtok_r(NULL, "\t", &saveptr);
+	type = STRTOK_R(NULL, "\t", &saveptr);
 	if (type == NULL)
 		return (ISC_R_FAILURE);
 
-	data = strtok_r(NULL, "\t", &saveptr);
+	data = STRTOK_R(NULL, "\t", &saveptr);
 	if (data == NULL)
 		return (ISC_R_FAILURE);
 
