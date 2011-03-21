@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.610 2011/03/21 15:39:05 each Exp $ */
+/* $Id: server.c,v 1.611 2011/03/21 18:38:39 each Exp $ */
 
 /*! \file */
 
@@ -7127,7 +7127,7 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args,
 		return (DNS_R_NOTMASTER);
 	}
 
-	if (freeze && !dns_zone_isdynamic(zone)) {
+	if (freeze && !dns_zone_isdynamic(zone, ISC_TRUE)) {
 		dns_zone_detach(&zone);
 		return (DNS_R_NOTDYNAMIC);
 	}

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.599 2011/03/21 07:22:13 each Exp $ */
+/* $Id: zone.c,v 1.600 2011/03/21 18:38:40 each Exp $ */
 
 /*! \file */
 
@@ -1368,17 +1368,23 @@ dns_zone_getjournal(dns_zone_t *zone) {
  * or an "allow-update" ACL with a value other than exactly "{ none; }".
  */
 isc_boolean_t
-dns_zone_isdynamic(dns_zone_t *zone) {
+dns_zone_isdynamic(dns_zone_t *zone, isc_boolean_t ignore_freeze) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	return (ISC_TF(zone->type == dns_zone_slave ||
-		       zone->type == dns_zone_stub ||
-		       zone->type == dns_zone_key ||
-		       (zone->type == dns_zone_redirect &&
-			zone->masters != NULL) ||
-		       (!zone->update_disabled && zone->ssutable != NULL) ||
-		       (!zone->update_disabled && zone->update_acl != NULL &&
-			!dns_acl_isnone(zone->update_acl))));
+	if (zone->type == dns_zone_slave || zone->type == dns_zone_stub ||
+	    zone->type == dns_zone_key ||
+	    (zone->type == dns_zone_redirect && zone->masters != NULL))
+		return (ISC_TRUE);
+
+	/* If !ignore_freeze, we need check whether updates are disabled.  */
+	if (zone->type == dns_zone_master &&
+	    (!zone->update_disabled || ignore_freeze) &&
+	    ((zone->ssutable != NULL) ||
+	     (zone->update_acl != NULL && !dns_acl_isnone(zone->update_acl))))
+		return (ISC_TRUE);
+
+	return (ISC_FALSE);
+
 }
 
 static isc_result_t
@@ -1417,7 +1423,7 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 		goto cleanup;
 	}
 
-	if (zone->db != NULL && dns_zone_isdynamic(zone)) {
+	if (zone->db != NULL && dns_zone_isdynamic(zone, ISC_FALSE)) {
 		/*
 		 * This is a slave, stub, or dynamically updated
 		 * zone being reloaded.  Do nothing - the database
@@ -2601,7 +2607,7 @@ check_nsec3param(dns_zone_t *zone, dns_db_t *db) {
 	isc_result_t result;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_boolean_t dynamic = (zone->type == dns_zone_master) ?
-				dns_zone_isdynamic(zone) : ISC_FALSE;
+				dns_zone_isdynamic(zone, ISC_FALSE) : ISC_FALSE;
 
 	dns_rdataset_init(&rdataset);
 	result = dns_db_findnode(db, &zone->origin, ISC_FALSE, &node);

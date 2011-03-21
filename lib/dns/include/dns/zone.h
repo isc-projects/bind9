@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.185 2011/03/21 07:22:14 each Exp $ */
+/* $Id: zone.h,v 1.186 2011/03/21 18:38:40 each Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1854,7 +1854,7 @@ dns_zone_dlzpostload(dns_zone_t *zone, dns_db_t *db);
  */
 
 isc_boolean_t
-dns_zone_isdynamic(dns_zone_t *zone);
+dns_zone_isdynamic(dns_zone_t *zone, isc_boolean_t ignore_freeze);
 /*%
  * Return true iff the zone is "dynamic", in the sense that the zone's
  * master file (if any) is written by the server, rather than being
@@ -1863,6 +1863,9 @@ dns_zone_isdynamic(dns_zone_t *zone);
  * This is true for slave zones, stub zones, key zones, and zones that
  * allow dynamic updates either by having an update policy ("ssutable")
  * or an "allow-update" ACL with a value other than exactly "{ none; }".
+ *
+ * If 'ignore_freeze' is true, then the zone which has had updates disabled
+ * will still report itself to be dynamic.
  *
  * Requires:
  * \li	'zone' to be valid.

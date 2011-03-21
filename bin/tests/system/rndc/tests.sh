@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.2 2011/03/21 18:06:06 each Exp $
+# $Id: tests.sh,v 1.3 2011/03/21 18:38:40 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -42,7 +42,7 @@ if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 echo "I:rndc freeze"
-$RNDCCMD freeze nil | sed 's/^/I:ns2 /'
+$RNDCCMD freeze | sed 's/^/I:ns2 /'
 
 echo "I:checking zone was dumped"
 ret=0
@@ -70,7 +70,7 @@ if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 echo "I:rndc thaw"
-$RNDCCMD thaw nil | sed 's/^/I:ns2 /'
+$RNDCCMD thaw | sed 's/^/I:ns2 /'
 
 echo "I:checking zone now writable"
 ret=0
