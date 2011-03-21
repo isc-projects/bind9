@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.18 2011/03/17 01:40:36 each Exp $
+# $Id: tests.sh,v 1.19 2011/03/21 16:53:44 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -128,15 +128,12 @@ END
 echo "I:waiting for change to take effect"
 sleep 3
 
-# Send rndc freeze command to ns1, ns2 and ns3, to force the dynamically
+# Send rndc sync command to ns1, ns2 and ns3, to force the dynamically
 # signed zones to be dumped to their zone files
 echo "I:dumping zone files"
-$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 freeze 2>&1 | sed 's/^/I:ns1 /'
-$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 thaw 2>&1 | sed 's/^/I:ns1 /'
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 freeze 2>&1 | sed 's/^/I:ns2 /'
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 thaw 2>&1 | sed 's/^/I:ns2 /'
-$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 freeze 2>&1 | sed 's/^/I:ns3 /'
-$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 thaw 2>&1 | sed 's/^/I:ns3 /'
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 sync 2>&1 | sed 's/^/I:ns1 /'
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 sync 2>&1 | sed 's/^/I:ns2 /'
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 sync 2>&1 | sed 's/^/I:ns3 /'
 
 echo "I:checking expired signatures were updated ($n)"
 ret=0
