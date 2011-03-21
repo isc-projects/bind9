@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.58 2011/03/17 01:40:39 each Exp $
+ * $Id: dst_api.c,v 1.59 2011/03/21 19:54:03 each Exp $
  */
 
 /*! \file */
@@ -1785,5 +1785,6 @@ dst__entropy_status(void) {
 
 isc_buffer_t *
 dst_key_tkeytoken(const dst_key_t *key) {
+	REQUIRE(VALID_KEY(key));
 	return (key->key_tkeytoken);
 }

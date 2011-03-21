@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.194 2011/03/11 06:11:22 marka Exp $ */
+/* $Id: nsupdate.c,v 1.195 2011/03/21 19:54:02 each Exp $ */
 
 /*! \file */
 
@@ -145,7 +145,7 @@ static dns_name_t tmpzonename;
 static dns_name_t restart_master;
 static dns_tsig_keyring_t *gssring = NULL;
 static dns_tsigkey_t *tsigkey = NULL;
-static dst_key_t *sig0key;
+static dst_key_t *sig0key = NULL;
 static lwres_context_t *lwctx = NULL;
 static lwres_conf_t *lwconf;
 static isc_sockaddr_t *servers;
@@ -2879,6 +2879,9 @@ cleanup(void) {
 		realm = NULL;
 	}
 #endif
+
+	if (sig0key != NULL)
+		dst_key_free(&sig0key);
 
 	ddebug("Shutting down task manager");
 	isc_taskmgr_destroy(&taskmgr);
