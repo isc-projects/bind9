@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.483.36.28 2011/03/11 10:49:57 marka Exp $ */
+/* $Id: zone.c,v 1.483.36.29 2011/03/21 01:17:14 marka Exp $ */
 
 /*! \file */
 
@@ -5325,6 +5325,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 
 	LOCK_ZONE(zone);
 	zone_needdump(zone, DNS_DUMP_DELAY);
+	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
 	UNLOCK_ZONE(zone);
 
  done:
