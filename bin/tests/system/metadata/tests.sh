@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.5 2009/12/02 17:54:45 each Exp $
+# $Id: tests.sh,v 1.5.250.1 2011/03/21 15:56:12 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -130,6 +130,17 @@ $SIGNER  -Sg -o $czone -f ${cfile}.new ${cfile}.signed > /dev/null 2>&1
 echo "I:checking that standby KSK is now active ($n)"
 ret=0
 grep "DNSKEY $rolling"'$' sigs > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking update of an old-style key"
+ret=0
+# printing metadata should not work with an old-style key
+$SETTIME -pall `cat oldstyle.key` > /dev/null 2>&1 && ret=1
+$SETTIME -f `cat oldstyle.key` > /dev/null 2>&1 || ret=1
+# but now it should
+$SETTIME -pall `cat oldstyle.key` > /dev/null 2>&1 || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

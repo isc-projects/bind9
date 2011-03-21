@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.3 2009/11/30 23:48:02 tbox Exp $
+# $Id: setup.sh,v 1.3.250.1 2011/03/21 15:56:12 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -65,4 +65,7 @@ echo $pzsk > parent.zsk.key
 
 pksk=`$KEYGEN -q -r $RANDFILE -fk $pzone`
 echo $pksk > parent.ksk.key
+
+oldstyle=`$KEYGEN -Cq -r $RANDFILE $pzone`
+echo $oldstyle > oldstyle.key
 
