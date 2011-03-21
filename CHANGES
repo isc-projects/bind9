@@ -1,3 +1,6 @@
+3087.	[bug]		DDNS updates using SIG(0) with update-policy match
+			type "external" could cause a crash. [RT #23735]
+
 3086.	[bug]		Running dnssec-settime -f on an old-style key will
 			now force an update to the new key format even if no
 			other change has been specified, using "-P now -A now"

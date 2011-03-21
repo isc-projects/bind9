@@ -14,9 +14,17 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.3 2010/12/20 23:47:20 tbox Exp $
+# $Id: setup.sh,v 1.3.14.1 2011/03/21 19:53:34 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-rm -f ns1/*.jnl 
+RANDFILE="random.data"
+
+
+rm -f ns1/*.jnl ns1/K*.key ns1/K*.private ns1/_default.tsigkeys
+
+../../../tools/genrandom 400 $RANDFILE
+
+key=`$KEYGEN -Cq -K ns1 -a DSA -b 512 -r $RANDFILE -n HOST -T KEY key.example.nil.`
+cat ns1/example.nil.db.in ns1/${key}.key > ns1/example.nil.db
