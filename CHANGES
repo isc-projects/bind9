@@ -1,3 +1,6 @@
+3083.	[bug]		NOTIFY messages were not being sent when generating
+			a NSEC3 chain incrementally. [RT #23702]
+
 3081.	[bug]		Failure of DNAME substitution did not return
 			YXDOMAIN. [RT #23591]
 
