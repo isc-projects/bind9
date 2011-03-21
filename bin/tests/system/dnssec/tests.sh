@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.55.32.24 2011/03/21 01:08:11 marka Exp $
+# $Id: tests.sh,v 1.55.32.25 2011/03/21 03:31:28 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -1183,7 +1183,7 @@ sed -e 's/.*://' -e 's/^/update add /' -e 's/IN/300 IN/'
 echo update add nsec3chain-test. 0 nsec3param 1 0 1 -
 echo send
 ) | $NSUPDATE
-for i in 1 2 3 4 5 6 7 8 9 
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18
 do
 	$DIG $DIGOPTS nsec3param nsec3chain-test @10.53.0.2 > dig.out.ns2.test$n || ret=1
 	if grep "ANSWER: 2," dig.out.ns2.test$n >/dev/null
