@@ -1,3 +1,6 @@
+3083.	[bug]		NOTIFY messages were not being sent when generating
+			a NSEC3 chain incrementally. [RT #23702]
+
 3082.	[port]		strtok_r is threads only. [RT #23747]
 
 3081.	[bug]		Failure of DNAME substitution did not return
