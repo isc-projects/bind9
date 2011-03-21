@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.482 2011/03/09 00:48:17 ebersman Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.483 2011/03/21 07:22:12 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -1235,15 +1235,12 @@ zone "eng.example.com" {
                     <listitem>
                       <para>
                         Suspend updates to a dynamic zone.  If no zone is
-                        specified,
-                        then all zones are suspended.  This allows manual
-                        edits to be made to a zone normally updated by dynamic
-                        update.  It
-                        also causes changes in the journal file to be synced
-                        into the master
-                        and the journal file to be removed.  All dynamic
-                        update attempts will
-                        be refused while the zone is frozen.
+                        specified, then all zones are suspended.  This allows
+                        manual edits to be made to a zone normally updated by
+                        dynamic update.  It also causes changes in the
+                        journal file to be synced into the master file.
+                        All dynamic update attempts will be refused while
+                        the zone is frozen.
                       </para>
                     </listitem>
                   </varlistentry>
@@ -1255,15 +1252,28 @@ zone "eng.example.com" {
            <optional><replaceable>view</replaceable></optional></optional></optional></userinput></term>
                     <listitem>
                       <para>
-                        Enable updates to a frozen dynamic zone.  If no zone
-                        is
-                        specified, then all frozen zones are enabled.  This
-                        causes
-                        the server to reload the zone from disk, and
-                        re-enables dynamic updates
-                        after the load has completed.  After a zone is thawed,
-                        dynamic updates
-                        will no longer be refused.
+                        Enable updates to a frozen dynamic zone.  If no
+                        zone is specified, then all frozen zones are
+                        enabled.  This causes the server to reload the zone
+                        from disk, and re-enables dynamic updates after the
+                        load has completed.  After a zone is thawed,
+                        dynamic updates will no longer be refused.
+                      </para>
+                    </listitem>
+                  </varlistentry>
+
+                  <varlistentry>
+                    <term><userinput>sync
+                        <optional>-clean</optional>
+                        <optional><replaceable>zone</replaceable>
+       <optional><replaceable>class</replaceable>
+           <optional><replaceable>view</replaceable></optional></optional></optional></userinput></term>
+                    <listitem>
+                      <para>
+                        Sync changes in the journal file for a dynamic zone
+                        to the master file.  If the "-clean" option is
+                        specified, the journal file is also removed.  If
+                        no zone is specified, then all zones are synced.
                       </para>
                     </listitem>
                   </varlistentry>

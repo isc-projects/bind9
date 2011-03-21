@@ -1,3 +1,9 @@
+3084.	[func]		A new command "rndc sync" dumps pending changes in
+			a dynamic zone to disk; "rndc sync -clean" also
+			removes the journal file after syncing.  Also,
+			"rndc freeze" no longer removes journal files.
+			[RT #22473]
+
 3083.	[bug]		NOTIFY messages were not being sent when generating
 			a NSEC3 chain incrementally. [RT #23702]
 

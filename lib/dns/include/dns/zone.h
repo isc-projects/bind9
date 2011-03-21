@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.184 2011/03/01 23:48:07 tbox Exp $ */
+/* $Id: zone.h,v 1.185 2011/03/21 07:22:14 each Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1851,6 +1851,21 @@ isc_result_t
 dns_zone_dlzpostload(dns_zone_t *zone, dns_db_t *db);
 /*%
  * Load the origin names for a writeable DLZ database.
+ */
+
+isc_boolean_t
+dns_zone_isdynamic(dns_zone_t *zone);
+/*%
+ * Return true iff the zone is "dynamic", in the sense that the zone's
+ * master file (if any) is written by the server, rather than being
+ * updated manually and read by the server.
+ *
+ * This is true for slave zones, stub zones, key zones, and zones that
+ * allow dynamic updates either by having an update policy ("ssutable")
+ * or an "allow-update" ACL with a value other than exactly "{ none; }".
+ *
+ * Requires:
+ * \li	'zone' to be valid.
  */
 
 ISC_LANG_ENDDECLS
