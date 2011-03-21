@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-settime.c,v 1.19.34.9 2010/12/19 07:27:23 each Exp $ */
+/* $Id: dnssec-settime.c,v 1.19.34.10 2011/03/21 15:55:48 each Exp $ */
 
 /*! \file */
 
@@ -512,6 +512,16 @@ main(int argc, char **argv) {
 		dst_key_settime(key, DST_TIME_DELETE, del);
 	else if (unsetdel)
 		dst_key_unsettime(key, DST_TIME_DELETE);
+
+	/*
+	 * No metadata changes were made but we're forcing an upgrade
+	 * to the new format anyway: use "-P now -A now" as the default
+	 */
+	if (force && !changed) {
+		dst_key_settime(key, DST_TIME_PUBLISH, now);
+		dst_key_settime(key, DST_TIME_ACTIVATE, now);
+		changed = ISC_TRUE;
+	}
 
 	/*
 	 * Print out time values, if -p was used.

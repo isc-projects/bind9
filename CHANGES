@@ -1,3 +1,8 @@
+3086.	[bug]		Running dnssec-settime -f on an old-style key will
+			now force an update to the new key format even if no
+			other change has been specified, using "-P now -A now"
+			as default values.  [RT #22474]
+
 3083.	[bug]		NOTIFY messages were not being sent when generating
 			a NSEC3 chain incrementally. [RT #23702]
 
