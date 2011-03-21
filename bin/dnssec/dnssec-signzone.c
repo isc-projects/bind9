@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.271 2011/03/11 12:37:01 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.272 2011/03/21 07:26:47 each Exp $ */
 
 /*! \file */
 
@@ -172,6 +172,7 @@ static isc_boolean_t update_chain = ISC_FALSE;
 static isc_boolean_t set_keyttl = ISC_FALSE;
 static dns_ttl_t keyttl;
 static isc_boolean_t smartsign = ISC_FALSE;
+static isc_boolean_t remove_orphans = ISC_FALSE;
 static isc_boolean_t output_dnssec_only = ISC_FALSE;
 
 #define INCSTAT(counter)		\
@@ -317,6 +318,12 @@ issigningkey(dns_dnsseckey_t *key) {
 }
 
 static inline isc_boolean_t
+ispublishedkey(dns_dnsseckey_t *key) {
+	return ((key->force_publish || key->hint_publish) &&
+		!key->hint_remove);
+}
+
+static inline isc_boolean_t
 iszonekey(dns_dnsseckey_t *key) {
 	return (ISC_TF(dns_name_equal(dst_key_name(key->key), gorigin) &&
 		       dst_key_iszonekey(key->key)));
@@ -362,6 +369,8 @@ keythatsigned(dns_rdata_rrsig_t *rrsig) {
 	isc_result_t result;
 	dst_key_t *pubkey = NULL, *privkey = NULL;
 	dns_dnsseckey_t *key = NULL;
+	isc_stdtime_t delete;
+	isc_boolean_t delset;
 
 	isc_rwlock_lock(&keylist_lock, isc_rwlocktype_read);
 	key = keythatsigned_unlocked(rrsig);
@@ -401,7 +410,16 @@ keythatsigned(dns_rdata_rrsig_t *rrsig) {
 	} else {
 		dns_dnsseckey_create(mctx, &pubkey, &key);
 	}
-	key->force_publish = ISC_TRUE;
+
+	result = dst_key_gettime(key->key, DST_TIME_DELETE, &delete);
+	if (result == ISC_R_SUCCESS)
+		delset = ISC_TRUE;
+
+	if (delset && delete <= now)
+		key->force_publish = ISC_FALSE;
+	else
+		key->force_publish = ISC_TRUE;
+
 	key->force_sign = ISC_FALSE;
 	ISC_LIST_APPEND(keylist, key, link);
 
@@ -544,10 +562,9 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 				 "private dnskey not found\n",
 				 sigstr);
 		} else if (key == NULL || future) {
+			keep = (!expired && !remove_orphans);
 			vbprintf(2, "\trrsig by %s %s - dnskey not found\n",
-				 expired ? "retained" : "dropped", sigstr);
-			if (!expired)
-				keep = ISC_TRUE;
+				 keep ? "retained" : "dropped", sigstr);
 		} else if (issigningkey(key)) {
 			if (!expired && rrsig.originalttl == set->ttl &&
 			    setverifies(name, set, key->key, &sigrdata)) {
@@ -563,6 +580,9 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 				wassignedby[key->index] = ISC_TRUE;
 				resign = ISC_TRUE;
 			}
+		} else if (!ispublishedkey(key) && remove_orphans) {
+			vbprintf(2, "\trrsig by %s dropped - dnskey removed\n",
+				 sigstr);
 		} else if (iszonekey(key)) {
 			if (!expired && rrsig.originalttl == set->ttl &&
 			    setverifies(name, set, key->key, &sigrdata)) {
@@ -639,7 +659,7 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 	     key != NULL;
 	     key = ISC_LIST_NEXT(key, link))
 	{
-		if (nowsignedby[key->index])
+		if (nowsignedby[key->index] && !ispublishedkey(key))
 			continue;
 
 		if (!issigningkey(key))
@@ -3457,7 +3477,7 @@ main(int argc, char *argv[]) {
 	isc_boolean_t set_iter = ISC_FALSE;
 
 #define CMDLINE_FLAGS \
-	"3:AaCc:Dd:E:e:f:FghH:i:I:j:K:k:l:m:n:N:o:O:pPr:s:ST:tuUv:X:xz"
+	"3:AaCc:Dd:E:e:f:FghH:i:I:j:K:k:l:m:n:N:o:O:PpRr:s:ST:tuUv:X:xz"
 
 	/*
 	 * Process memory debugging argument first.
@@ -3645,6 +3665,10 @@ main(int argc, char *argv[]) {
 
 		case 'p':
 			pseudorandom = ISC_TRUE;
+			break;
+
+		case 'R':
+			remove_orphans = ISC_TRUE;
 			break;
 
 		case 'r':

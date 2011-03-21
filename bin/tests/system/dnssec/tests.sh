@@ -15,10 +15,12 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.84 2011/03/21 03:30:48 marka Exp $
+# $Id: tests.sh,v 1.85 2011/03/21 07:26:47 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
+
+RANDFILE=random.data
 
 status=0
 n=1
@@ -930,12 +932,11 @@ status=`expr $status + $ret`
 
 echo "I:checking that we can sign a zone with out-of-zone records ($n)"
 ret=0
+zone=example
+key1=`$KEYGEN -K signer -q -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone`
+key2=`$KEYGEN -K signer -q -r $RANDFILE -f KSK -a NSEC3RSASHA1 -b 1024 -n zone $zone`
 (
 cd signer
-RANDFILE=../random.data
-zone=example
-key1=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone`
-key2=`$KEYGEN -q -r $RANDFILE -f KSK -a NSEC3RSASHA1 -b 1024 -n zone $zone`
 cat example.db.in $key1.key $key2.key > example.db
 $SIGNER -o example -f example.db example.db > /dev/null 2>&1
 ) || ret=1
@@ -945,12 +946,11 @@ status=`expr $status + $ret`
 
 echo "I:checking that we can sign a zone (NSEC3) with out-of-zone records ($n)"
 ret=0
+zone=example
+key1=`$KEYGEN -K signer -q -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone`
+key2=`$KEYGEN -K signer -q -r $RANDFILE -f KSK -a NSEC3RSASHA1 -b 1024 -n zone $zone`
 (
 cd signer
-RANDFILE=../random.data
-zone=example
-key1=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone`
-key2=`$KEYGEN -q -r $RANDFILE -f KSK -a NSEC3RSASHA1 -b 1024 -n zone $zone`
 cat example.db.in $key1.key $key2.key > example.db
 $SIGNER -3 - -H 10 -o example -f example.db example.db > /dev/null 2>&1
 awk '/^IQF9LQTLK/ {
@@ -969,18 +969,53 @@ status=`expr $status + $ret`
 
 echo "I:checking that dnsssec-signzone updates originalttl on ttl changes ($n)"
 ret=0
+zone=example
+key1=`$KEYGEN -K signer -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
+key2=`$KEYGEN -K signer -q -r $RANDFILE -f KSK -a RSASHA1 -b 1024 -n zone $zone`
 (
 cd signer
-RANDFILE=../random.data
-zone=example
-key1=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
-key2=`$KEYGEN -q -r $RANDFILE -f KSK -a RSASHA1 -b 1024 -n zone $zone`
 cat example.db.in $key1.key $key2.key > example.db
 $SIGNER -o example -f example.db.before example.db > /dev/null 2>&1
 sed 's/60.IN.SOA./50 IN SOA /' example.db.before > example.db.changed
 $SIGNER -o example -f example.db.after example.db.changed > /dev/null 2>&1
 )
 grep "SOA 5 1 50" signer/example.db.after > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking dnssec-signzone keeps valid signatures from removed keys"
+ret=0
+zone=example
+key1=`$KEYGEN -K signer -q -r $RANDFILE -f KSK -a RSASHA1 -b 1024 -n zone $zone`
+key2=`$KEYGEN -K signer -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
+keyid2=`echo $key2 | sed 's/^Kexample.+005+0*//'`
+key3=`$KEYGEN -K signer -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
+keyid3=`echo $key3 | sed 's/^Kexample.+005+0*//'`
+(
+cd signer
+cat example.db.in $key1.key $key2.key > example.db
+$SIGNER -D -o example example.db > /dev/null 2>&1
+
+# now switch out key2 for key3 and resign the zone
+cat example.db.in $key1.key $key3.key > example.db
+echo '$INCLUDE "example.db.signed"' >> example.db
+$SIGNER -D -o example example.db > /dev/null 2>&1
+) || ret=1
+grep " $keyid2 " signer/example.db.signed > /dev/null 2>&1 || ret=1
+grep " $keyid3 " signer/example.db.signed > /dev/null 2>&1 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking dnssec-signzone -R purges signatures from removed keys"
+ret=0
+(
+cd signer
+$SIGNER -RD -o example example.db > /dev/null 2>&1
+) || ret=1
+grep " $keyid2 " signer/example.db.signed > /dev/null 2>&1 && ret=1
+grep " $keyid3 " signer/example.db.signed > /dev/null 2>&1 || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

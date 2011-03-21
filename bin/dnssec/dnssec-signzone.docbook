@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.docbook,v 1.48 2011/03/17 01:40:35 each Exp $ -->
+<!-- $Id: dnssec-signzone.docbook,v 1.49 2011/03/21 07:26:47 each Exp $ -->
 <refentry id="man.dnssec-signzone">
   <refentryinfo>
     <date>June 05, 2009</date>
@@ -76,8 +76,9 @@
       <arg><option>-N <replaceable class="parameter">soa-serial-format</replaceable></option></arg>
       <arg><option>-o <replaceable class="parameter">origin</replaceable></option></arg>
       <arg><option>-O <replaceable class="parameter">output-format</replaceable></option></arg>
-      <arg><option>-p</option></arg>
       <arg><option>-P</option></arg>
+      <arg><option>-p</option></arg>
+      <arg><option>-R</option></arg>
       <arg><option>-r <replaceable class="parameter">randomdev</replaceable></option></arg>
       <arg><option>-S</option></arg>
       <arg><option>-s <replaceable class="parameter">start-time</replaceable></option></arg>
@@ -465,6 +466,24 @@
         </listitem>
       </varlistentry>
 
+      <varlistentry>
+        <term>-R</term>
+        <listitem>
+          <para>
+	    Remove signatures from keys that no longer exist.
+          </para>
+          <para>
+            Normally, when a previously-signed zone is passed as input
+            to the signer, and a DNSKEY record has been removed and
+            replaced with a new one, signatures from the old key 
+            that are still within their validity period are retained.
+	    This allows the zone to continue to validate with cached
+	    copies of the old DNSKEY RRset.  The <option>-R</option> forces
+            <command>dnssec-signzone</command> to remove all orphaned
+            signatures.
+          </para>
+        </listitem>
+      </varlistentry>
       <varlistentry>
         <term>-r <replaceable class="parameter">randomdev</replaceable></term>
         <listitem>
