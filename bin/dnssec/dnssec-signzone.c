@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.272 2011/03/21 07:26:47 each Exp $ */
+/* $Id: dnssec-signzone.c,v 1.273 2011/03/21 16:17:57 each Exp $ */
 
 /*! \file */
 
@@ -370,7 +370,7 @@ keythatsigned(dns_rdata_rrsig_t *rrsig) {
 	dst_key_t *pubkey = NULL, *privkey = NULL;
 	dns_dnsseckey_t *key = NULL;
 	isc_stdtime_t delete;
-	isc_boolean_t delset;
+	isc_boolean_t delset = ISC_FALSE;
 
 	isc_rwlock_lock(&keylist_lock, isc_rwlocktype_read);
 	key = keythatsigned_unlocked(rrsig);
