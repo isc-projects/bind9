@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-settime.c,v 1.30 2011/03/17 23:47:29 tbox Exp $ */
+/* $Id: dnssec-settime.c,v 1.31 2011/03/21 15:56:35 each Exp $ */
 
 /*! \file */
 
@@ -237,7 +237,6 @@ main(int argc, char **argv) {
 				ttl = 0;
 			else
 				ttl = strtottl(isc_commandline_argument);
-			changed = ISC_TRUE;
 			setttl = ISC_TRUE;
 			break;
 		case 'v':
@@ -525,6 +524,19 @@ main(int argc, char **argv) {
 
 	if (setttl)
 		dst_key_setttl(key, ttl);
+
+	/*
+	 * No metadata changes were made but we're forcing an upgrade
+	 * to the new format anyway: use "-P now -A now" as the default
+	 */
+	if (force && !changed) {
+		dst_key_settime(key, DST_TIME_PUBLISH, now);
+		dst_key_settime(key, DST_TIME_ACTIVATE, now);
+		changed = ISC_TRUE;
+	}
+
+	if (!changed && setttl)
+		changed = ISC_TRUE;
 
 	/*
 	 * Print out time values, if -p was used.
