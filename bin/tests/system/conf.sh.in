@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: conf.sh.in,v 1.65 2011/03/18 21:14:19 fdupont Exp $
+# $Id: conf.sh.in,v 1.66 2011/03/21 18:06:06 each Exp $
 
 #
 # Common configuration data for system tests, to be sourced into
@@ -56,7 +56,7 @@ SUBDIRS="acl allow_query addzone autosign cacheclean checkconf
 	 checknames checkzone database dlv dlvauto @DLZ_SYSTEM_TEST@
 	 dlzexternal dname dns64 dnssec forward glue gost ixfr limits
 	 logfileconfig lwresd masterfile masterformat metadata notify
-	 nsupdate pending pkcs11 redirect resolver rpz rrsetorder
+	 nsupdate pending pkcs11 redirect resolver rndc rpz rrsetorder
 	 sortlist smartsign staticstub stub tkey tsig tsiggss unknown
 	 upforwd views xfer xferquota zonechecks"
 
