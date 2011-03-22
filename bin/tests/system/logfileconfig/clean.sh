@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.2.4.3 2011/03/05 23:52:08 tbox Exp $
+# $Id: clean.sh,v 1.2.4.4 2011/03/22 18:24:08 smann Exp $
 
 #
 # Clean up after log file tests
@@ -22,5 +22,5 @@
 rm -f ns1/named.pid ns1/named.run
 rm -f ns1/named.memstats ns1/dig.out
 rm -f ns1/named_log ns1/named_pipe ns1/named_sym
+rm -f ns1/named.conf
 rm -rf ns1/named_dir
-cp ns1/named.plain ns1/named.conf

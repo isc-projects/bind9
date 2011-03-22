@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.2.4.3 2011/03/05 23:52:08 tbox Exp $
+# $Id: tests.sh,v 1.2.4.4 2011/03/22 18:24:08 smann Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -37,9 +37,6 @@ myNAMED="$NAMED -c ${THISDIR}/${CONFDIR}/named.conf -m record,size,mctx -T clien
 # Have to stop the stock server because it uses "-g"
 #
 $PERL ../stop.pl . ns1
-
-# Make sure everything is cleaned up
-sh ./clean.sh
 
 cd $CONFDIR
 
