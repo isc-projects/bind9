@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.258.4.8 2011/03/11 12:42:47 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.258.4.9 2011/03/22 03:30:33 each Exp $ */
 
 /*! \file */
 
@@ -338,7 +338,7 @@ keythatsigned(dns_rdata_rrsig_t *rrsig) {
 	} else {
 		dns_dnsseckey_create(mctx, &pubkey, &key);
 	}
-	key->force_publish = ISC_TRUE;
+	key->force_publish = ISC_FALSE;
 	key->force_sign = ISC_FALSE;
 	ISC_LIST_APPEND(keylist, key, link);
 
