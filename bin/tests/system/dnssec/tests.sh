@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.86 2011/03/21 20:31:22 marka Exp $
+# $Id: tests.sh,v 1.87 2011/03/22 00:41:53 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -984,7 +984,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking dnssec-signzone keeps valid signatures from removed keys"
+echo "I:checking dnssec-signzone keeps valid signatures from removed keys ($n)"
 ret=0
 zone=example
 key1=`$KEYGEN -K signer -q -r $RANDFILE -f KSK -a RSASHA1 -b 1024 -n zone $zone`
@@ -1008,7 +1008,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking dnssec-signzone -R purges signatures from removed keys"
+echo "I:checking dnssec-signzone -R purges signatures from removed keys ($n)"
 ret=0
 (
 cd signer
