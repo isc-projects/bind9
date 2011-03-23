@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2009, 2011  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,10 +14,11 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.5 2011/03/21 23:47:21 tbox Exp $
+# $Id: setup.sh,v 1.3 2011/03/22 23:47:30 tbox Exp $
 
-rm -f K* dsset-* *.signed *.new random.data
-rm -f zsk.key ksk.key parent.ksk.key parent.zsk.key 
-rm -f pending.key rolling.key standby.key inact.key
-rm -f prerev.key postrev.key oldstyle.key
-rm -f keys sigs
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
+
+sh clean.sh
+
+cp ns1/named.plain ns1/named.conf

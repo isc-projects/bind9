@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.273 2011/03/21 16:17:57 each Exp $ */
+/* $Id: dnssec-signzone.c,v 1.274 2011/03/22 03:19:38 each Exp $ */
 
 /*! \file */
 
@@ -369,8 +369,6 @@ keythatsigned(dns_rdata_rrsig_t *rrsig) {
 	isc_result_t result;
 	dst_key_t *pubkey = NULL, *privkey = NULL;
 	dns_dnsseckey_t *key = NULL;
-	isc_stdtime_t delete;
-	isc_boolean_t delset = ISC_FALSE;
 
 	isc_rwlock_lock(&keylist_lock, isc_rwlocktype_read);
 	key = keythatsigned_unlocked(rrsig);
@@ -406,22 +404,15 @@ keythatsigned(dns_rdata_rrsig_t *rrsig) {
 				  directory, mctx, &privkey);
 	if (result == ISC_R_SUCCESS) {
 		dst_key_free(&pubkey);
-		dns_dnsseckey_create(mctx, &privkey, &key);
-	} else {
-		dns_dnsseckey_create(mctx, &pubkey, &key);
-	}
+		result = dns_dnsseckey_create(mctx, &privkey, &key);
+	} else
+		result = dns_dnsseckey_create(mctx, &pubkey, &key);
 
-	result = dst_key_gettime(key->key, DST_TIME_DELETE, &delete);
-	if (result == ISC_R_SUCCESS)
-		delset = ISC_TRUE;
-
-	if (delset && delete <= now)
+	if (result == ISC_R_SUCCESS) {
 		key->force_publish = ISC_FALSE;
-	else
-		key->force_publish = ISC_TRUE;
-
-	key->force_sign = ISC_FALSE;
-	ISC_LIST_APPEND(keylist, key, link);
+		key->force_sign = ISC_FALSE;
+		ISC_LIST_APPEND(keylist, key, link);
+	}
 
 	isc_rwlock_unlock(&keylist_lock, isc_rwlocktype_write);
 	return (key);

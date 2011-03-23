@@ -13,7 +13,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: dnssec-settime.html,v 1.15 2011/03/18 01:14:33 tbox Exp $ -->
+<!-- $Id: dnssec-settime.html,v 1.16 2011/03/22 01:14:25 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -65,7 +65,9 @@
             fail when attempting to update a legacy key.  With this option,
             the key will be recreated in the new format, but with the
             original key data retained.  The key's creation date will be
-            set to the present time. 
+            set to the present time.  If no other values are specified, 
+            then the key's publication and activation dates will also 
+            be set to the present time.
 	  </p></dd>
 <dt><span class="term">-K <em class="replaceable"><code>directory</code></em></span></dt>
 <dd><p>
