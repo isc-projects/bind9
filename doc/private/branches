@@ -26,6 +26,7 @@ custom_DENIC_v9_7_1_P2		private	jinmei	// 2010-08-05 00:00 +0000
 custom_DENIC_v9_7_2_P3		new	
 custom_DYNDNS_v9_6		private	each	// 2009-06-19 15:34 +0000
 custom_DYNDNS_v9_7		private	each	// 2010-07-07 18:54 +0000
+custom_NOMINET_v9_7		new	each	// 2011-03-24 18:01 +0000
 custom_NOM_v9_5_0a7		private	
 custom_NOM_v9_5_0b2		private	marka	// 2008-03-06 06:45 +0000
 custom_NOM_v9_5_0b2+		private	marka	// 2008-03-06 06:13 +0000
@@ -417,6 +418,7 @@ rt23034				new	marka	// 2011-01-28 03:26 +0000
 rt23035				new	marka	// 2011-01-28 05:24 +0000
 rt23035_take2			new	marka	// 2011-02-24 04:17 +0000
 rt23035_take3			new	fdupont	// 2011-02-25 12:51 +0000
+rt23136				new	smann	// 2011-03-24 17:05 +0000
 rt23146				new	marka	// 2011-02-08 05:28 +0000
 rt23209				new	each	// 2011-02-11 01:36 +0000
 rt23229				new	marka	// 2011-02-14 02:53 +0000
@@ -454,6 +456,7 @@ rt23687				new	smann	// 2011-03-21 23:18 +0000
 rt23702				new	marka	// 2011-03-18 02:01 +0000
 rt23735				new	each	// 2011-03-19 20:23 +0000
 rt23738				new	smann	// 2011-03-23 19:43 +0000
+rt23769				new	each	// 2011-03-24 01:27 +0000
 shane_dbbackend			open	
 skan				open	explorer
 skan-metazones1			private	explorer
@@ -517,6 +520,7 @@ v9_7				active	each	// 2009-12-08 20:59 +0000
 v9_7_0_patch			active	marka	// 2010-02-25 03:05 +0000
 v9_7_1_patch			active	marka	// 2010-06-15 00:47 +0000
 v9_7_2_patch			active	marka	// 2010-09-13 22:37 +0000
+v9_7_3				new	marka	// 2011-01-31 03:25 +0000
 v9_7_3_P3_patch			new	marka	// 2010-11-29 04:27 +0000
 v9_8				new	marka	// 2011-01-30 00:18 +0000
 win64				new	marka	// 2010-11-04 00:17 +0000
