@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.519 $)
+AC_REVISION($Revision: 1.520 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -797,8 +797,8 @@ AC_SUBST(PKCS11_PROVIDER)
 
 AC_MSG_CHECKING(for GSSAPI library)
 AC_ARG_WITH(gssapi,
-[  --with-gssapi=PATH      Specify path for system-supplied GSSAPI],
-    use_gssapi="$withval", use_gssapi="no")
+[  --with-gssapi=PATH      Specify path for system-supplied GSSAPI [[default=yes]]],
+    use_gssapi="$withval", use_gssapi="yes")
 
 gssapidirs="/usr/local /usr/pkg /usr/kerberos /usr"
 if test "$use_gssapi" = "yes"
@@ -810,6 +810,7 @@ then
 			use_gssapi=$d
 			break
 		fi
+		use_gssapi="no"
 	done
 fi
 

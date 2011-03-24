@@ -1,3 +1,5 @@
+3090.	[func]		Make --with-gssapi default [RT #23738]
+
 3089.	[func]		dnssec-dsfromkey now supports reading keys from
 			standard input "dnssec-dsfromkey -f -". [RT# 20662]
 
