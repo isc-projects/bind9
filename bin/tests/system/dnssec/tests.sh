@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.87 2011/03/22 00:41:53 marka Exp $
+# $Id: tests.sh,v 1.88 2011/03/24 02:10:23 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -1311,6 +1311,15 @@ sleep 3
 $DIG $DIGOPTS +noauth +nodnssec soa nsec3chain-test @10.53.0.2 > dig.out.ns2.test$n || ret=1
 $DIG $DIGOPTS +noauth +nodnssec soa nsec3chain-test @10.53.0.3 > dig.out.ns3.test$n || ret=1
 $PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns3.test$n || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:check dnssec-dsfromkey from stdin($n)"
+ret=0
+$DIG $DIGOPTS dnskey algroll. @10.53.0.2 | \
+        $DSFROMKEY -f - algroll. > dig.out.ns2.test$n || ret=1
+diff -b dig.out.ns2.test$n ns1/dsset-algroll. > /dev/null 2>&1 || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
