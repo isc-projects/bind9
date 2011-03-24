@@ -2,7 +2,7 @@
                "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd"
                [<!ENTITY mdash "&#8212;">]>
 <!--
- - Copyright (C) 2008-2010  Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2008-2011  Internet Systems Consortium, Inc. ("ISC")
  -
  - Permission to use, copy, modify, and/or distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-dsfromkey.docbook,v 1.13 2011/03/24 02:10:23 marka Exp $ -->
+<!-- $Id: dnssec-dsfromkey.docbook,v 1.14 2011/03/24 23:47:48 tbox Exp $ -->
 <refentry id="man.dnssec-dsfromkey">
   <refentryinfo>
     <date>August 26, 2009</date>
@@ -39,6 +39,7 @@
       <year>2008</year>
       <year>2009</year>
       <year>2010</year>
+      <year>2011</year>
       <holder>Internet Systems Consortium, Inc. ("ISC")</holder>
     </copyright>
   </docinfo>

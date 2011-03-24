@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2008-2011  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-dsfromkey.c,v 1.20 2011/03/24 02:10:23 marka Exp $ */
+/* $Id: dnssec-dsfromkey.c,v 1.21 2011/03/24 23:47:48 tbox Exp $ */
 
 /*! \file */
 
@@ -91,7 +91,7 @@ db_load_from_stream(dns_db_t *db, FILE *fp) {
 				       &callbacks, mctx);
 	if (result != ISC_R_SUCCESS)
 		fatal("can't load from input: %s", isc_result_totext(result));
-	
+
 	result = dns_db_endload(db, &callbacks.add_private);
 	if (result != ISC_R_SUCCESS)
 		fatal("dns_db_endload failed: %s", isc_result_totext(result));
