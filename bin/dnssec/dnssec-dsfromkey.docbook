@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-dsfromkey.docbook,v 1.14 2011/03/24 23:47:48 tbox Exp $ -->
+<!-- $Id: dnssec-dsfromkey.docbook,v 1.15 2011/03/25 03:08:44 marka Exp $ -->
 <refentry id="man.dnssec-dsfromkey">
   <refentryinfo>
     <date>August 26, 2009</date>
@@ -133,7 +133,7 @@
             from <option>file</option>.  If the zone name is the same as
             <option>file</option>, then it may be omitted.
           </para>
-          </para>
+          <para>
             If <option>file</option> is set to <literal>"-"</literal>, then
             the zone data is read from the standard input.  This makes it
             possible to use the output of the <command>dig</command>
