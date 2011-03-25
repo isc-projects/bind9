@@ -14,11 +14,12 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.7 2010/12/18 02:12:43 each Exp $
+# $Id: clean.sh,v 1.7.16.1 2011/03/25 23:53:52 each Exp $
 
 rm -f */K* */dsset-* */*.signed */trusted.conf */tmp* */*.jnl */*.bk
 rm -f active.key inact.key del.key unpub.key standby.key rev.key
 rm -f nopriv.key vanishing.key del1.key del2.key
+rm -f delayksk.key delayzsk.key
 rm -f nsupdate.out
 rm -f */core
 rm -f */example.bk

@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.12.18.3 2011/03/02 23:47:27 tbox Exp $
+# $Id: tests.sh,v 1.12.18.4 2011/03/25 23:53:52 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -764,10 +764,62 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:waiting for former active key to be removed"
-sleep 10
+echo "I:checking delayed key publication/activation ($n)"
+ret=0
+zsk=`cat delayzsk.key`
+ksk=`cat delayksk.key`
+# publication and activation times should be unset
+$SETTIME -K ns3 -pA -pP $zsk | grep -v UNSET > /dev/null 2>&1 && ret=1
+$SETTIME -K ns3 -pA -pP $ksk | grep -v UNSET > /dev/null 2>&1 && ret=1
+$DIG $DIGOPTS +noall +answer dnskey delay.example. @10.53.0.3 > dig.out.ns3.test$n || ret=1
+# DNSKEY not expected:
+awk 'BEGIN {r=1} $4=="DNSKEY" {r=0} END {exit r}' dig.out.ns3.test$n && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
 
-echo "I:checking key was removed ($n)"
+echo "I:checking scheduled key publication, not activation ($n)"
+ret=0
+$SETTIME -K ns3 -P now+3s -A none $zsk > /dev/null 2>&1
+$SETTIME -K ns3 -P now+3s -A none $ksk > /dev/null 2>&1
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 loadkeys delay.example. 2>&1 | sed 's/^/I:ns2 /'
+
+echo "I:waiting for changes to take effect"
+sleep 5
+
+$DIG $DIGOPTS +noall +answer dnskey delay.example. @10.53.0.3 > dig.out.ns3.test$n || ret=1
+# DNSKEY expected:
+awk 'BEGIN {r=1} $4=="DNSKEY" {r=0} END {exit r}' dig.out.ns3.test$n || ret=1
+# RRSIG not expected:
+awk 'BEGIN {r=1} $4=="RRSIG" {r=0} END {exit r}' dig.out.ns3.test$n && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking scheduled key activation ($n)"
+ret=0
+$SETTIME -K ns3 -A now+3s $zsk > /dev/null 2>&1
+$SETTIME -K ns3 -A now+3s $ksk > /dev/null 2>&1
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 loadkeys delay.example. 2>&1 | sed 's/^/I:ns2 /'
+
+echo "I:waiting for changes to take effect"
+sleep 5
+
+$DIG $DIGOPTS +noall +answer dnskey delay.example. @10.53.0.3 > dig.out.ns3.1.test$n || ret=1
+# DNSKEY expected:
+awk 'BEGIN {r=1} $4=="DNSKEY" {r=0} END {exit r}' dig.out.ns3.1.test$n || ret=1
+# RRSIG expected:
+awk 'BEGIN {r=1} $4=="RRSIG" {r=0} END {exit r}' dig.out.ns3.1.test$n || ret=1
+$DIG $DIGOPTS +noall +answer a a.delay.example. @10.53.0.3 > dig.out.ns3.2.test$n || ret=1
+# A expected:
+awk 'BEGIN {r=1} $4=="A" {r=0} END {exit r}' dig.out.ns3.2.test$n || ret=1
+# RRSIG expected:
+awk 'BEGIN {r=1} $4=="RRSIG" {r=0} END {exit r}' dig.out.ns3.2.test$n || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking former active key was removed ($n)"
 ret=0
 $DIG $DIGOPTS +multi dnskey . @10.53.0.1 > dig.out.ns1.test$n || ret=1
 grep '; key id =.*'"$oldid"'$' dig.out.ns1.test$n > /dev/null && ret=1

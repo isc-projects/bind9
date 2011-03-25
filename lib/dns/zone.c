@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.582.8.14 2011/03/21 01:06:50 marka Exp $ */
+/* $Id: zone.c,v 1.582.8.15 2011/03/25 23:53:52 each Exp $ */
 
 /*! \file */
 
@@ -4485,6 +4485,7 @@ static void
 set_key_expiry_warning(dns_zone_t *zone, isc_stdtime_t when, isc_stdtime_t now)
 {
 	unsigned int delta;
+	char timebuf[80];
 
 	zone->key_expiry = when;
 	if (when <= now) {
@@ -4492,19 +4493,22 @@ set_key_expiry_warning(dns_zone_t *zone, isc_stdtime_t when, isc_stdtime_t now)
 			     "DNSKEY RRSIG(s) have expired");
 		isc_time_settoepoch(&zone->keywarntime);
 	} else if (when < now + 7 * 24 * 3600) {
+		isc_time_t t;
+		isc_time_set(&t, when, 0);
+		isc_time_formattimestamp(&t, timebuf, 80);
 		dns_zone_log(zone, ISC_LOG_WARNING,
-			     "DNSKEY RRSIG(s) will expire at %u",
-			     when);	/* XXXMPA convert to date. */
+			     "DNSKEY RRSIG(s) will expire within 7 days: %s",
+			     timebuf);
 		delta = when - now;
 		delta--;		/* loop prevention */
 		delta /= 24 * 3600;	/* to whole days */
 		delta *= 24 * 3600;	/* to seconds */
 		isc_time_set(&zone->keywarntime, when - delta, 0);
 	}  else {
-		dns_zone_log(zone, ISC_LOG_NOTICE, /* XXMPA ISC_LOG_DEBUG(1) */
-			     "setting keywarntime to %u - 7 days",
-			     when);	/* XXXMPA convert to date. */
 		isc_time_set(&zone->keywarntime, when - 7 * 24 * 3600, 0);
+		isc_time_formattimestamp(&zone->refreshkeytime, timebuf, 80);
+		dns_zone_log(zone, ISC_LOG_NOTICE,
+			     "setting keywarntime to %s", timebuf);
 	}
 }
 
@@ -7229,6 +7233,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	INSIST(result == ISC_R_SUCCESS);
 
 	dns_diff_init(mctx, &diff);
+	diff.resign = zone->sigresigninginterval;
 
 	CHECK(dns_db_newversion(kfetch->db, &ver));
 
@@ -13879,6 +13884,7 @@ zone_rekey(dns_zone_t *zone) {
 	mctx = zone->mctx;
 	dns_diff_init(mctx, &diff);
 	dns_diff_init(mctx, &sig_diff);
+	sig_diff.resign = zone->sigresigninginterval;
 
 	CHECK(dns_zone_getdb(zone, &db));
 	CHECK(dns_db_newversion(db, &ver));
@@ -13975,14 +13981,15 @@ zone_rekey(dns_zone_t *zone) {
 
 		/*
 		 * Has a new key become active?  If so, is it for
-		 * a new algorithm?
+		 * a new algorithm?  In that event, we need to sign the
+		 * zone fully.  If there's a new key, but it's for an
+		 * already-existing algorithm, then the zone signing
+		 * can be handled incrementally.
 		 */
-		for (tuple = ISC_LIST_HEAD(sig_diff.tuples);
-		     tuple != NULL;
-		     tuple = ISC_LIST_NEXT(tuple, link)) {
-			dns_rdata_dnskey_t dnskey;
-
-			if (tuple->rdata.type != dns_rdatatype_dnskey)
+		for (key = ISC_LIST_HEAD(dnskeys);
+		     key != NULL;
+		     key = ISC_LIST_NEXT(key, link)) {
+			if (!key->first_sign)
 				continue;
 
 			newkey = ISC_TRUE;
@@ -13991,24 +13998,18 @@ zone_rekey(dns_zone_t *zone) {
 				break;
 			}
 
-			result = dns_rdata_tostruct(&tuple->rdata,
-						    &dnskey, NULL);
-			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-			if (!signed_with_alg(&keysigs,
-					     dnskey.algorithm)) {
+			if (signed_with_alg(&keysigs, dst_key_alg(key->key))) {
+				/*
+				 * This isn't a new algorithm; clear
+				 * first_sign so we won't sign the
+				 * whole zone with this key later
+				 */
+				key->first_sign = ISC_FALSE;
+			} else {
 				newalg = ISC_TRUE;
 				break;
 			}
 		}
-
-		/*
-		 * If we found a new algorithm, we need to sign the
-		 * zone fully.  If there's a new key, but it's for an
-		 * already-existing algorithm, then the zone signing
-		 * can be handled incrementally.
-		 */
-		if (newkey && !newalg)
-			set_resigntime(zone);
 
 		/* Remove any signatures from removed keys.  */
 		if (!ISC_LIST_EMPTY(rmkeys)) {
@@ -14053,30 +14054,19 @@ zone_rekey(dns_zone_t *zone) {
 			/*
 			 * We haven't been told to sign fully, but a new
 			 * algorithm was added to the DNSKEY.  We sign
-			 * the full zone, but only with the newly-added
+			 * the full zone, but only with newly active
 			 * keys.
 			 */
-			for (tuple = ISC_LIST_HEAD(sig_diff.tuples);
-			     tuple != NULL;
-			     tuple = ISC_LIST_NEXT(tuple, link)) {
-				dns_rdata_dnskey_t dnskey;
-				dns_secalg_t algorithm;
-				isc_region_t r;
-				isc_uint16_t keyid;
-
-				if (tuple->rdata.type != dns_rdatatype_dnskey ||
-				    tuple->op == DNS_DIFFOP_DEL)
+			for (key = ISC_LIST_HEAD(dnskeys);
+			     key != NULL;
+			     key = ISC_LIST_NEXT(key, link)) {
+				if (!key->first_sign)
 					continue;
 
-				result = dns_rdata_tostruct(&tuple->rdata,
-							    &dnskey, NULL);
-				RUNTIME_CHECK(result == ISC_R_SUCCESS);
-				dns_rdata_toregion(&tuple->rdata, &r);
-				algorithm = dnskey.algorithm;
-				keyid = dst_region_computeid(&r, algorithm);
-
-				result = zone_signwithkey(zone, algorithm,
-							  keyid, ISC_FALSE);
+				result = zone_signwithkey(zone,
+							  dst_key_alg(key->key),
+							  dst_key_id(key->key),
+							  ISC_FALSE);
 				if (result != ISC_R_SUCCESS) {
 					dns_zone_log(zone, ISC_LOG_ERROR,
 					     "zone_signwithkey failed: %s",
@@ -14121,6 +14111,11 @@ zone_rekey(dns_zone_t *zone) {
 					     dns_result_totext(result));
 			}
 		}
+
+		/*
+		 * Schedule the next resigning event
+		 */
+		set_resigntime(zone);
 		UNLOCK_ZONE(zone);
 	}
 
