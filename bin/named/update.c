@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.176.4.13 2011/03/11 12:55:27 marka Exp $ */
+/* $Id: update.c,v 1.176.4.14 2011/03/25 23:54:33 each Exp $ */
 
 #include <config.h>
 
@@ -2390,7 +2390,7 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 								   name, diff));
 			}
 			CHECK(add_exposed_sigs(client, zone, db, newver, name,
-					       cut, diff, zone_keys, nkeys,
+					       cut, &sig_diff, zone_keys, nkeys,
 					       inception, expire, check_ksk,
 					       keyset_kskonly));
 		}
@@ -2549,7 +2549,7 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 						   privatetype, &nsec_diff));
 		} else {
 			CHECK(add_exposed_sigs(client, zone, db, newver, name,
-					       cut, diff, zone_keys, nkeys,
+					       cut, &sig_diff, zone_keys, nkeys,
 					       inception, expire, check_ksk,
 					       keyset_kskonly));
 			CHECK(dns_nsec3_addnsec3sx(db, newver, name, nsecttl,
