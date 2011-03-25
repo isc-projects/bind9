@@ -1,3 +1,10 @@
+3092.	[bug]		Signatures for records at the zone apex could go
+			stale due to an incorrect timer setting. [RT #23769]
+
+3091.	[bug]		Fixed a bug in which zone keys that were published
+			and then subsequently activated could fail to trigger
+			automatic signing. [RT #22991]
+
 3090.	[func]		Make --with-gssapi default [RT #23738]
 
 3089.	[func]		dnssec-dsfromkey now supports reading keys from

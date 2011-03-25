@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: keygen.sh,v 1.10 2011/03/17 23:47:30 tbox Exp $
+# $Id: keygen.sh,v 1.11 2011/03/25 23:53:02 each Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -238,3 +238,13 @@ zonefile="${zone}.db"
 $KEYGEN -3 -q -r $RANDFILE -L 30 -fk $zone > /dev/null
 cat ${infile} K${zone}.+*.key > $zonefile
 $KEYGEN -3 -q -r $RANDFILE -L 180 $zone > /dev/null
+
+#
+# A zone with a DNSKEY RRset that is published before it's activated
+#
+zone=delay.example
+zonefile="${zone}.db"
+ksk=`$KEYGEN -G -q -3 -r $RANDFILE -fk $zone`
+echo $ksk > ../delayksk.key
+zsk=`$KEYGEN -G -q -3 -r $RANDFILE $zone`
+echo $zsk > ../delayzsk.key
