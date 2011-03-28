@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006, 2007, 2009, 2011  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gsstest.c,v 1.8.104.1 2011/03/28 05:16:01 marka Exp $ */
+/* $Id: gsstest.c,v 1.8.104.2 2011/03/28 23:46:38 tbox Exp $ */
 
 #include <config.h>
 
