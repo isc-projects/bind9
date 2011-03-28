@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-# $Id: configure,v 1.499 2011/03/10 06:34:57 tbox Exp $
+# $Id: configure,v 1.500 2011/03/24 18:17:29 tbox Exp $
 #
 # 	Portions of this code release fall under one or more of the
 # 	following Copyright notices.  Please see individual source
@@ -2267,7 +2267,7 @@ Optional Packages:
 			  (Required for DNSSEC)
   --with-pkcs11=PATH      Build with PKCS11 support yes|no|path
                           (PATH is for the PKCS11 provider)
-  --with-gssapi=PATH      Specify path for system-supplied GSSAPI
+  --with-gssapi=PATH      Specify path for system-supplied GSSAPI [default=yes]
   --with-randomdev=PATH   Specify path for random device
   --with-libxml2=PATH     Build with libxml2 library yes|no|path
   --with-purify=PATH      use Rational purify
@@ -21554,7 +21554,7 @@ $as_echo_n "checking for GSSAPI library... " >&6; }
 if test "${with_gssapi+set}" = set; then :
   withval=$with_gssapi; use_gssapi="$withval"
 else
-  use_gssapi="no"
+  use_gssapi="yes"
 fi
 
 
@@ -21568,6 +21568,7 @@ then
 			use_gssapi=$d
 			break
 		fi
+		use_gssapi="no"
 	done
 fi
 
