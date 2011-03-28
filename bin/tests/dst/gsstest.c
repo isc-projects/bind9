@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gsstest.c,v 1.14 2011/01/08 01:26:01 each Exp $ */
+/* $Id: gsstest.c,v 1.15 2011/03/28 05:11:43 marka Exp $ */
 
 #include <config.h>
 
@@ -103,7 +103,7 @@ console(isc_task_t *task, isc_event_t *event)
 
 	isc_event_free(&event);
 
-	while(1) {
+	for (;;) {
 		printf("\nCommand => ");
 		c = scanf("%s", buf);
 
@@ -418,7 +418,7 @@ setup(void)
 	struct in_addr inaddr;
 	int c;
 
-	while (1) {
+	for (;;) {
 		printf("Server IP => ");
 		c = scanf("%s", serveraddress);
 
@@ -432,7 +432,7 @@ setup(void)
 			return;
 		}
 
-	};
+	}
 }
 
 int
