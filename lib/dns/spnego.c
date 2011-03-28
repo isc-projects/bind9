@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: spnego.c,v 1.8.118.4 2009/07/21 07:27:13 marka Exp $ */
+/* $Id: spnego.c,v 1.8.118.5 2011/03/28 03:46:43 marka Exp $ */
 
 /*! \file
  * \brief
@@ -374,7 +374,7 @@ cmp_gss_type(gss_buffer_t token, gss_OID oid)
 	unsigned char *p;
 	size_t len;
 
-	if (token->length == 0)
+	if (token->length == 0U)
 		return (GSS_S_DEFECTIVE_TOKEN);
 
 	p = token->value;
@@ -382,7 +382,7 @@ cmp_gss_type(gss_buffer_t token, gss_OID oid)
 		return (GSS_S_DEFECTIVE_TOKEN);
 	len = *p++;
 	if (len & 0x80) {
-		if ((len & 0x7f) > 4)
+		if ((len & 0x7f) > 4U)
 			return (GSS_S_DEFECTIVE_TOKEN);
 		p += len & 0x7f;
 	}
@@ -528,7 +528,7 @@ send_accept(OM_uint32 * minor_status,
 		*minor_status = ENOMEM;
 		return (GSS_S_FAILURE);
 	}
-	if (mech_token != NULL && mech_token->length != 0) {
+	if (mech_token != NULL && mech_token->length != 0U) {
 		resp.responseToken = malloc(sizeof(*resp.responseToken));
 		if (resp.responseToken == NULL) {
 			free_NegTokenResp(&resp);
@@ -672,7 +672,7 @@ gss_accept_sec_context_spnego(OM_uint32 *minor_status,
 		ot = &obuf;
 	}
 	ret = send_accept(&minor_status2, output_token, ot, pref);
-	if (ot != NULL && ot->length != 0)
+	if (ot != NULL && ot->length != 0U)
 		gss_release_buffer(&minor_status2, ot);
 
 	return (ret);
@@ -689,7 +689,7 @@ gssapi_verify_mech_header(u_char ** str,
 	int e;
 	u_char *p = *str;
 
-	if (total_len < 1)
+	if (total_len < 1U)
 		return (GSS_S_DEFECTIVE_TOKEN);
 	if (*p++ != 0x60)
 		return (GSS_S_DEFECTIVE_TOKEN);
@@ -789,7 +789,7 @@ der_get_int(const unsigned char *p, size_t len,
 	int val = 0;
 	size_t oldlen = len;
 
-	if (len > 0) {
+	if (len > 0U) {
 		val = (signed char)*p++;
 		while (--len)
 			val = val * 256 + *p++;
@@ -806,11 +806,11 @@ der_get_length(const unsigned char *p, size_t len,
 {
 	size_t v;
 
-	if (len <= 0)
+	if (len <= 0U)
 		return (ASN1_OVERRUN);
 	--len;
 	v = *p++;
-	if (v < 128) {
+	if (v < 128U) {
 		*val = v;
 		if (size)
 			*size = 1;
@@ -819,7 +819,7 @@ der_get_length(const unsigned char *p, size_t len,
 		size_t l;
 		unsigned tmp;
 
-		if (v == 0x80) {
+		if (v == 0x80U) {
 			*val = ASN1_INDEFINITE;
 			if (size)
 				*size = 1;
@@ -844,7 +844,7 @@ der_get_octet_string(const unsigned char *p, size_t len,
 {
 	data->length = len;
 	data->data = malloc(len);
-	if (data->data == NULL && data->length != 0)
+	if (data->data == NULL && data->length != 0U)
 		return (ENOMEM);
 	memcpy(data->data, p, len);
 	if (size)
@@ -859,23 +859,23 @@ der_get_oid(const unsigned char *p, size_t len,
 	int n;
 	size_t oldlen = len;
 
-	if (len < 1)
+	if (len < 1U)
 		return (ASN1_OVERRUN);
 
 	data->components = malloc(len * sizeof(*data->components));
-	if (data->components == NULL && len != 0)
+	if (data->components == NULL && len != 0U)
 		return (ENOMEM);
 	data->components[0] = (*p) / 40;
 	data->components[1] = (*p) % 40;
 	--len;
 	++p;
-	for (n = 2; len > 0; ++n) {
+	for (n = 2; len > 0U; ++n) {
 		unsigned u = 0;
 
 		do {
 			--len;
 			u = u * 128 + (*p++ % 128);
-		} while (len > 0 && p[-1] & 0x80);
+		} while (len > 0U && p[-1] & 0x80);
 		data->components[n] = u;
 	}
 	if (p[-1] & 0x80) {
@@ -893,7 +893,7 @@ der_get_tag(const unsigned char *p, size_t len,
 	    Der_class *class, Der_type *type,
 	    int *tag, size_t *size)
 {
-	if (len < 1)
+	if (len < 1U)
 		return (ASN1_OVERRUN);
 	*class = (Der_class) (((*p) >> 6) & 0x03);
 	*type = (Der_type) (((*p) >> 5) & 0x01);
@@ -1083,7 +1083,7 @@ len_unsigned(unsigned val)
 static size_t
 length_len(size_t len)
 {
-	if (len < 128)
+	if (len < 128U)
 		return (1);
 	else
 		return (len_unsigned(len) + 1);
@@ -1105,7 +1105,7 @@ der_put_unsigned(unsigned char *p, size_t len, unsigned val, size_t *size)
 	unsigned char *base = p;
 
 	if (val) {
-		while (len > 0 && val) {
+		while (len > 0U && val) {
 			*p-- = val % 256;
 			val /= 256;
 			--len;
@@ -1132,14 +1132,14 @@ der_put_int(unsigned char *p, size_t len, int val, size_t *size)
 
 	if (val >= 0) {
 		do {
-			if (len < 1)
+			if (len < 1U)
 				return (ASN1_OVERFLOW);
 			*p-- = val % 256;
 			len--;
 			val /= 256;
 		} while (val);
 		if (p[1] >= 128) {
-			if (len < 1)
+			if (len < 1U)
 				return (ASN1_OVERFLOW);
 			*p-- = 0;
 			len--;
@@ -1147,14 +1147,14 @@ der_put_int(unsigned char *p, size_t len, int val, size_t *size)
 	} else {
 		val = ~val;
 		do {
-			if (len < 1)
+			if (len < 1U)
 				return (ASN1_OVERFLOW);
 			*p-- = ~(val % 256);
 			len--;
 			val /= 256;
 		} while (val);
 		if (p[1] < 128) {
-			if (len < 1)
+			if (len < 1U)
 				return (ASN1_OVERFLOW);
 			*p-- = 0xff;
 			len--;
@@ -1167,9 +1167,9 @@ der_put_int(unsigned char *p, size_t len, int val, size_t *size)
 static int
 der_put_length(unsigned char *p, size_t len, size_t val, size_t *size)
 {
-	if (len < 1)
+	if (len < 1U)
 		return (ASN1_OVERFLOW);
-	if (val < 128) {
+	if (val < 128U) {
 		*p = val;
 		*size = 1;
 		return (0);
@@ -1210,20 +1210,20 @@ der_put_oid(unsigned char *p, size_t len,
 	for (n = data->length - 1; n >= 2; --n) {
 		unsigned	u = data->components[n];
 
-		if (len < 1)
+		if (len < 1U)
 			return (ASN1_OVERFLOW);
 		*p-- = u % 128;
 		u /= 128;
 		--len;
 		while (u > 0) {
-			if (len < 1)
+			if (len < 1U)
 				return (ASN1_OVERFLOW);
 			*p-- = 128 + u % 128;
 			u /= 128;
 			--len;
 		}
 	}
-	if (len < 1)
+	if (len < 1U)
 		return (ASN1_OVERFLOW);
 	*p-- = 40 * data->components[0] + data->components[1];
 	*size = base - p;
@@ -1234,7 +1234,7 @@ static int
 der_put_tag(unsigned char *p, size_t len, Der_class class, Der_type type,
 	    int tag, size_t *size)
 {
-	if (len < 1)
+	if (len < 1U)
 		return (ASN1_OVERFLOW);
 	*p = (class << 6) | (type << 5) | tag;	/* XXX */
 	*size = 1;
@@ -1400,7 +1400,7 @@ gssapi_spnego_encapsulate(OM_uint32 * minor_status,
 	}
 	p = gssapi_mech_make_header(output_token->value, len, mech);
 	if (p == NULL) {
-		if (output_token->length != 0)
+		if (output_token->length != 0U)
 			gss_release_buffer(minor_status, output_token);
 		return (GSS_S_FAILURE);
 	}
@@ -1448,7 +1448,7 @@ gssapi_krb5_get_mech(const u_char *ptr,
 	const u_char *p = ptr;
 	int e;
 
-	if (total_len < 1)
+	if (total_len < 1U)
 		return (-1);
 	if (*p++ != 0x60)
 		return (-1);
@@ -1518,7 +1518,7 @@ spnego_initial(OM_uint32 *minor_status,
 		ret = major_status;
 		goto end;
 	}
-	if (krb5_output_token.length > 0) {
+	if (krb5_output_token.length > 0U) {
 		token_init.mechToken = malloc(sizeof(*token_init.mechToken));
 		if (token_init.mechToken == NULL) {
 			*minor_status = ENOMEM;
@@ -1585,7 +1585,7 @@ end:
 		token_init.mechToken = NULL;
 	}
 	free_NegTokenInit(&token_init);
-	if (krb5_output_token.length != 0)
+	if (krb5_output_token.length != 0U)
 		gss_release_buffer(&minor_status2, &krb5_output_token);
 	if (buf)
 		free(buf);
@@ -1755,7 +1755,7 @@ gss_init_sec_context_spnego(OM_uint32 *minor_status,
 
 	/* Figure out whether we're starting over or processing a reply */
 
-	if (input_token == GSS_C_NO_BUFFER || input_token->length == 0)
+	if (input_token == GSS_C_NO_BUFFER || input_token->length == 0U)
 		return (spnego_initial(minor_status,
 				       initiator_cred_handle,
 				       context_handle,
