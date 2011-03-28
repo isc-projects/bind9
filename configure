@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-# $Id: configure,v 1.500 2011/03/24 18:17:29 tbox Exp $
+# $Id: configure,v 1.501 2011/03/28 22:49:25 tbox Exp $
 #
 # 	Portions of this code release fall under one or more of the
 # 	following Copyright notices.  Please see individual source
@@ -21558,15 +21558,23 @@ else
 fi
 
 
-gssapidirs="/usr/local /usr/pkg /usr/kerberos /usr"
+# gssapi is just the framework, we really require kerberos v5, so
+# look for those headers (the gssapi headers must be there, too)
+# The problem with this implementation is that it doesn't allow
+# for the specification of gssapi and krb5 headers in different locations
+# This probably ought to be fixed.
+krb5dirs="/usr/local /usr/local/krb5 /usr/local/kerberosv5 /usr/local/kerberos /usr/pkg /usr/krb5 /usr/kerberosv5 /usr/kerberos /usr"
 if test "$use_gssapi" = "yes"
 then
-	for d in $gssapidirs
+	for d in $krb5dirs
 	do
-		if test -f $d/include/gssapi/gssapi.h -o -f $d/include/gssapi.h
+		if test -f $d/include/gssapi/gssapi_krb5.h -o -f $d/include/krb5.h
 		then
-			use_gssapi=$d
-			break
+			if test -f $d/include/gssapi/gssapi.h -o -f $d/include/gssapi.h
+			then
+				use_gssapi=$d
+				break
+			fi
 		fi
 		use_gssapi="no"
 	done
