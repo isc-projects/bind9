@@ -173,7 +173,7 @@ static	int	gettok (FILE *fp, char *val, size_t valsize)
 		bufend = buf + sizeof (buf) - 1;
 		do
 			*p++ = tolower (c);
-		while ( (c = getc (fp)) != EOF && p < bufend && isalpha (c) );
+		while ( (c = getc (fp)) != EOF && p < bufend && (isalpha (c) || c == '-') );
 		*p = '\0';
 		ungetc (c, fp);
 
@@ -186,14 +186,14 @@ static	int	gettok (FILE *fp, char *val, size_t valsize)
 
 /*****************************************************************
 **
-**	parse_namedconf (const char *filename, int (*func) ())
+**	parse_namedconf (const char *filename, chroot_dir, dir, dirsize, int (*func) ())
 **
 **	Very dumb named.conf parser.
 **	- In a zone declaration the _first_ keyword MUST be "type"
 **	- For every master zone "func (directory, zone, filename)" will be called
 **
 *****************************************************************/
-int	parse_namedconf (const char *filename, char *dir, size_t dirsize, int (*func) ())
+int	parse_namedconf (const char *filename, const char *chroot_dir, char *dir, size_t dirsize, int (*func) ())
 {
 	FILE	*fp;
 	int	tok;
@@ -234,7 +234,15 @@ int	parse_namedconf (const char *filename, char *dir, size_t dirsize, int (*func
 					snprintf (path, sizeof (path), "%s/%s", dir, strval);
 				else
 					snprintf (path, sizeof (path), "%s", strval);
-				snprintf (dir, dirsize, "%s", path);
+
+				/* prepend chroot directory (do it only once) */
+				if ( chroot_dir && *chroot_dir )
+				{
+					snprintf (dir, dirsize, "%s%s%s", chroot_dir, *path == '/' ? "": "/", path);
+					chroot_dir = NULL;
+				}
+				else
+					snprintf (dir, dirsize, "%s", path);
 				dbg_val ("parse_namedconf: new dir \"%s\" \n", dir);
 			}	
 		}	
@@ -246,7 +254,7 @@ int	parse_namedconf (const char *filename, char *dir, size_t dirsize, int (*func
 					snprintf (path, sizeof (path), "%s/%s", dir, strval);
 				else
 					snprintf (path, sizeof (path), "%s", strval);
-				if ( !parse_namedconf (path, dir, dirsize, func) )
+				if ( !parse_namedconf (path, chroot_dir, dir, dirsize, func) )
 					return 0;
 			}
 			else
@@ -310,8 +318,8 @@ main (int argc, char *argv[])
 
 	directory[0] = '\0';
 	if ( --argc == 0 )
-		parse_namedconf ("/var/named/named.conf", directory, sizeof (directory), printzone);
+		parse_namedconf ("/var/named/named.conf", NULL, directory, sizeof (directory), printzone);
 	else 
-		parse_namedconf (argv[1], directory, sizeof (directory), printzone);
+		parse_namedconf (argv[1], NULL, directory, sizeof (directory), printzone);
 }
 #endif

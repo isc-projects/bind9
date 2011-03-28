@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.66 2008/09/24 03:16:58 tbox Exp $ */
+/* $Id: sdb.c,v 1.66.48.6 2010/08/16 05:21:42 marka Exp $ */
 
 /*! \file */
 
@@ -837,13 +837,6 @@ find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 
 	for (i = olabels; i <= nlabels; i++) {
 		/*
-		 * Unless this is an explicit lookup at the origin, don't
-		 * look at the origin.
-		 */
-		if (i == olabels && i != nlabels)
-			continue;
-
-		/*
 		 * Look up the next label.
 		 */
 		dns_name_getlabelsequence(name, nlabels - i, i, xname);
@@ -880,9 +873,12 @@ find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 				{
 					result = DNS_R_ZONECUT;
 					dns_rdataset_disassociate(rdataset);
-					if (sigrdataset != NULL)
+					if (sigrdataset != NULL &&
+					    dns_rdataset_isassociated
+							(sigrdataset)) {
 						dns_rdataset_disassociate
 								(sigrdataset);
+					}
 				} else
 					result = DNS_R_DELEGATION;
 				break;
@@ -1384,6 +1380,8 @@ static dns_rdatasetmethods_t methods = {
 	NULL,
 	NULL,
 	NULL,
+	NULL,
+	NULL,
 	NULL
 };
 
@@ -1455,9 +1453,11 @@ dbiterator_seek(dns_dbiterator_t *iterator, dns_name_t *name) {
 	sdb_dbiterator_t *sdbiter = (sdb_dbiterator_t *)iterator;
 
 	sdbiter->current = ISC_LIST_HEAD(sdbiter->nodelist);
-	while (sdbiter->current != NULL)
+	while (sdbiter->current != NULL) {
 		if (dns_name_equal(sdbiter->current->name, name))
 			return (ISC_R_SUCCESS);
+		sdbiter->current = ISC_LIST_NEXT(sdbiter->current, link);
+	}
 	return (ISC_R_NOTFOUND);
 }
 

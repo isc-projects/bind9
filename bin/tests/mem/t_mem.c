@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_mem.c,v 1.13 2007/06/19 23:47:00 tbox Exp $ */
+/* $Id: t_mem.c,v 1.13.332.2 2009/01/22 23:47:05 tbox Exp $ */
 
 #include <config.h>
 
@@ -190,7 +190,7 @@ t1(void) {
 	int	rval;
 	int	result;
 
-	t_assert("mem", 1, T_REQUIRED, a1);
+	t_assert("mem", 1, T_REQUIRED, "%s", a1);
 
 	rval = memtest();
 

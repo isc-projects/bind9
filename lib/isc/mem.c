@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1997-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.145 2008/04/02 02:37:42 marka Exp $ */
+/* $Id: mem.c,v 1.145.120.9 2010/08/11 23:45:49 tbox Exp $ */
 
 /*! \file */
 
@@ -52,7 +52,7 @@ LIBISC_EXTERNAL_DATA unsigned int isc_mem_debugging = ISC_MEM_DEBUGGING;
 
 #define DEF_MAX_SIZE		1100
 #define DEF_MEM_TARGET		4096
-#define ALIGNMENT_SIZE		8		/*%< must be a power of 2 */
+#define ALIGNMENT_SIZE		8U		/*%< must be a power of 2 */
 #define NUM_BASIC_BLOCKS	64		/*%< must be > 1 */
 #define TABLE_INCREMENT		1024
 #define DEBUGLIST_COUNT		1024
@@ -72,7 +72,7 @@ struct debuglink {
 };
 
 #define FLARG_PASS	, file, line
-#define FLARG		, const char *file, int line
+#define FLARG		, const char *file, unsigned int line
 #else
 #define FLARG_PASS
 #define FLARG
@@ -141,6 +141,7 @@ struct isc_mem {
 	size_t			hi_water;
 	size_t			lo_water;
 	isc_boolean_t		hi_called;
+	isc_boolean_t		is_overmem;
 	isc_mem_water_t		water;
 	void *			water_arg;
 	ISC_LIST(isc_mempool_t)	pools;
@@ -220,6 +221,7 @@ add_trace_entry(isc_mem_t *mctx, const void *ptr, unsigned int size
 {
 	debuglink_t *dl;
 	unsigned int i;
+	unsigned int mysize = size;
 
 	if ((isc_mem_debugging & ISC_MEM_DEBUGTRACE) != 0)
 		fprintf(stderr, isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
@@ -231,10 +233,10 @@ add_trace_entry(isc_mem_t *mctx, const void *ptr, unsigned int size
 	if (mctx->debuglist == NULL)
 		return;
 
-	if (size > mctx->max_size)
-		size = mctx->max_size;
+	if (mysize > mctx->max_size)
+		mysize = mctx->max_size;
 
-	dl = ISC_LIST_HEAD(mctx->debuglist[size]);
+	dl = ISC_LIST_HEAD(mctx->debuglist[mysize]);
 	while (dl != NULL) {
 		if (dl->count == DEBUGLIST_COUNT)
 			goto next;
@@ -269,7 +271,7 @@ add_trace_entry(isc_mem_t *mctx, const void *ptr, unsigned int size
 	dl->line[0] = line;
 	dl->count = 1;
 
-	ISC_LIST_PREPEND(mctx->debuglist[size], dl, link);
+	ISC_LIST_PREPEND(mctx->debuglist[mysize], dl, link);
 	mctx->debuglistcnt++;
 }
 
@@ -764,6 +766,7 @@ isc_mem_createx2(size_t init_max_size, size_t target_size,
 	ctx->hi_water = 0;
 	ctx->lo_water = 0;
 	ctx->hi_called = ISC_FALSE;
+	ctx->is_overmem = ISC_FALSE;
 	ctx->water = NULL;
 	ctx->water_arg = NULL;
 	ctx->magic = MEM_MAGIC;
@@ -875,12 +878,12 @@ destroy(isc_mem_t *ctx) {
 	unsigned int i;
 	isc_ondestroy_t ondest;
 
-	ctx->magic = 0;
-
 	LOCK(&lock);
 	ISC_LIST_UNLINK(contexts, ctx, link);
 	totallost += ctx->inuse;
 	UNLOCK(&lock);
+
+	ctx->magic = 0;
 
 	INSIST(ISC_LIST_EMPTY(ctx->pools));
 
@@ -1102,6 +1105,10 @@ isc__mem_get(isc_mem_t *ctx, size_t size FLARG) {
 	}
 
 	ADD_TRACE(ctx, ptr, size, file, line);
+	if (ctx->hi_water != 0U && ctx->inuse > ctx->hi_water &&
+	    !ctx->is_overmem) {
+		ctx->is_overmem = ISC_TRUE;
+	}
 	if (ctx->hi_water != 0U && !ctx->hi_called &&
 	    ctx->inuse > ctx->hi_water) {
 		call_water = ISC_TRUE;
@@ -1159,6 +1166,10 @@ isc__mem_put(isc_mem_t *ctx, void *ptr, size_t size FLARG)
 	 * when the context was pushed over hi_water but then had
 	 * isc_mem_setwater() called with 0 for hi_water and lo_water.
 	 */
+	if (ctx->is_overmem &&
+	    (ctx->inuse < ctx->lo_water || ctx->lo_water == 0U)) {
+		ctx->is_overmem = ISC_FALSE;
+	}
 	if (ctx->hi_called &&
 	    (ctx->inuse < ctx->lo_water || ctx->lo_water == 0U)) {
 		if (ctx->water != NULL)
@@ -1191,7 +1202,7 @@ print_active(isc_mem_t *mctx, FILE *out) {
 		const char *format;
 		isc_boolean_t found;
 
-		fprintf(out, isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
+		fprintf(out, "%s", isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
 					    ISC_MSG_DUMPALLOC,
 					    "Dump of all outstanding "
 					    "memory allocations:\n"));
@@ -1217,7 +1228,7 @@ print_active(isc_mem_t *mctx, FILE *out) {
 			}
 		}
 		if (!found)
-			fprintf(out, isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
+			fprintf(out, "%s", isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
 						    ISC_MSG_NONE, "\tNone.\n"));
 	}
 }
@@ -1259,7 +1270,7 @@ isc_mem_stats(isc_mem_t *ctx, FILE *out) {
 	 */
 	pool = ISC_LIST_HEAD(ctx->pools);
 	if (pool != NULL) {
-		fprintf(out, isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
+		fprintf(out, "%s", isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
 					    ISC_MSG_POOLSTATS,
 					    "[Pool statistics]\n"));
 		fprintf(out, "%15s %10s %10s %10s %10s %10s %10s %10s %1s\n",
@@ -1345,6 +1356,11 @@ isc__mem_allocate(isc_mem_t *ctx, size_t size FLARG) {
 #if ISC_MEM_TRACKLINES
 	ADD_TRACE(ctx, si, si[-1].u.size, file, line);
 #endif
+	if (ctx->hi_water != 0U && ctx->inuse > ctx->hi_water &&
+	    !ctx->is_overmem) {
+		ctx->is_overmem = ISC_TRUE;
+	}
+
 	if (ctx->hi_water != 0U && !ctx->hi_called &&
 	    ctx->inuse > ctx->hi_water) {
 		ctx->hi_called = ISC_TRUE;
@@ -1363,6 +1379,40 @@ isc__mem_allocate(isc_mem_t *ctx, size_t size FLARG) {
 		(ctx->water)(ctx->water_arg, ISC_MEM_HIWATER);
 
 	return (si);
+}
+
+void *
+isc__mem_reallocate(isc_mem_t *ctx, void *ptr, size_t size FLARG) {
+	void *new_ptr = NULL;
+	size_t oldsize, copysize;
+
+	REQUIRE(VALID_CONTEXT(ctx));
+
+	/*
+	 * This function emulates the realloc(3) standard library function:
+	 * - if size > 0, allocate new memory; and if ptr is non NULL, copy
+	 *   as much of the old contents to the new buffer and free the old one.
+	 *   Note that when allocation fails the original pointer is intact;
+	 *   the caller must free it.
+	 * - if size is 0 and ptr is non NULL, simply free the given ptr.
+	 * - this function returns:
+	 *     pointer to the newly allocated memory, or
+	 *     NULL if allocation fails or doesn't happen.
+	 */
+	if (size > 0U) {
+		new_ptr = isc__mem_allocate(ctx, size FLARG_PASS);
+		if (new_ptr != NULL && ptr != NULL) {
+			oldsize = (((size_info *)ptr)[-1]).u.size;
+			INSIST(oldsize >= ALIGNMENT_SIZE);
+			oldsize -= ALIGNMENT_SIZE;
+			copysize = oldsize > size ? size : oldsize;
+			memcpy(new_ptr, ptr, copysize);
+			isc__mem_free(ctx, ptr FLARG_PASS);
+		}
+	} else if (ptr != NULL)
+		isc__mem_free(ctx, ptr FLARG_PASS);
+
+	return (new_ptr);
 }
 
 void
@@ -1399,6 +1449,11 @@ isc__mem_free(isc_mem_t *ctx, void *ptr FLARG) {
 	 * when the context was pushed over hi_water but then had
 	 * isc_mem_setwater() called with 0 for hi_water and lo_water.
 	 */
+	if (ctx->is_overmem &&
+	    (ctx->inuse < ctx->lo_water || ctx->lo_water == 0U)) {
+		ctx->is_overmem = ISC_FALSE;
+	}
+
 	if (ctx->hi_called &&
 	    (ctx->inuse < ctx->lo_water || ctx->lo_water == 0U)) {
 		ctx->hi_called = ISC_FALSE;
@@ -1523,6 +1578,18 @@ isc_mem_setwater(isc_mem_t *ctx, isc_mem_water_t water, void *water_arg,
 
 	if (callwater && oldwater != NULL)
 		(oldwater)(oldwater_arg, ISC_MEM_LOWATER);
+}
+
+isc_boolean_t
+isc_mem_isovermem(isc_mem_t *ctx) {
+	REQUIRE(VALID_CONTEXT(ctx));
+
+	/*
+	 * We don't bother to lock the context because 100% accuracy isn't
+	 * necessary (and even if we locked the context the returned value
+	 * could be different from the actual state when it's used anyway)
+	 */
+	return (ctx->is_overmem);
 }
 
 void

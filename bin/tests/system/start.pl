@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2008, 2010  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: start.pl,v 1.13 2008/01/02 23:47:01 tbox Exp $
+# $Id: start.pl,v 1.13.176.3 2010/09/15 12:16:50 marka Exp $
 
 # Framework for starting test servers.
 # Based on the type of server specified, check for port availability, remove
@@ -131,6 +131,10 @@ sub start_server {
 		} else {
 			$command .= "-m record,size,mctx ";
 			$command .= "-T clienttest ";
+			$command .= "-T nosoa " 
+				if (-e "$testdir/$server/named.nosoa");
+			$command .= "-T noaa " 
+				if (-e "$testdir/$server/named.noaa");
 			$command .= "-c named.conf -d 99 -g";
 		}
 		$command .= " >named.run 2>&1 &";

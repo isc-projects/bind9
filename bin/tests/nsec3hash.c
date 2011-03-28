@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006, 2008, 2009  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3hash.c,v 1.4 2008/09/26 01:31:19 marka Exp $ */
+/* $Id: nsec3hash.c,v 1.4.48.2 2009/10/06 23:47:22 tbox Exp $ */
 
 #include <config.h>
 
@@ -32,6 +32,7 @@
 
 #include <dns/fixedname.h>
 #include <dns/name.h>
+#include <dns/nsec3.h>
 #include <dns/types.h>
 
 const char *program = "nsec3hash";
@@ -67,7 +68,7 @@ main(int argc, char **argv) {
 	isc_region_t region;
 	isc_result_t result;
 	unsigned char hash[NSEC3_MAX_HASH_LENGTH];
-	unsigned char salt[255];
+	unsigned char salt[DNS_NSEC3_SALTSIZE];
 	unsigned char text[1024];
 	unsigned int hash_alg;
 	unsigned int length;
@@ -85,7 +86,7 @@ main(int argc, char **argv) {
 		result = isc_hex_decodestring(argv[1], &buffer);
 		check_result(result, "isc_hex_decodestring(salt)");
 		salt_length = isc_buffer_usedlength(&buffer);
-		if (salt_length > 255U)
+		if (salt_length > DNS_NSEC3_SALTSIZE)
 			fatal("salt too long");
 	}
 	hash_alg = atoi(argv[2]);

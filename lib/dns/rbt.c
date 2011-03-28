@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.142 2008/09/24 02:46:22 marka Exp $ */
+/* $Id: rbt.c,v 1.142.50.3 2009/10/20 05:06:04 marka Exp $ */
 
 /*! \file */
 
@@ -85,9 +85,9 @@ struct dns_rbt {
 #define HASHVAL(node)           ((node)->hashval)
 #define COLOR(node)             ((node)->color)
 #define NAMELEN(node)           ((node)->namelen)
+#define OLDNAMELEN(node)        ((node)->oldnamelen)
 #define OFFSETLEN(node)         ((node)->offsetlen)
 #define ATTRS(node)             ((node)->attributes)
-#define PADBYTES(node)          ((node)->padbytes)
 #define IS_ROOT(node)           ISC_TF((node)->is_root == 1)
 #define FINDCALLBACK(node)      ISC_TF((node)->find_callback == 1)
 
@@ -100,13 +100,23 @@ struct dns_rbt {
 #define LOCKNUM(node)   ((node)->locknum)
 
 /*%
- * The variable length stuff stored after the node.
+ * The variable length stuff stored after the node has the following
+ * structure.
+ *
+ *	<name_data>{1..255}<oldoffsetlen>{1}<offsets>{1..128}
+ *
+ * <name_data> contains the name of the node when it was created.
+ * <oldoffsetlen> contains the length of <offsets> when the node was created.
+ * <offsets> contains the offets into name for each label when the node was
+ * created.
  */
+
 #define NAME(node)      ((unsigned char *)((node) + 1))
-#define OFFSETS(node)   (NAME(node) + NAMELEN(node))
+#define OFFSETS(node)   (NAME(node) + OLDNAMELEN(node) + 1)
+#define OLDOFFSETLEN(node) (OFFSETS(node)[-1])
 
 #define NODE_SIZE(node) (sizeof(*node) + \
-			 NAMELEN(node) + OFFSETLEN(node) + PADBYTES(node))
+			 OLDNAMELEN(node) + OLDOFFSETLEN(node) + 1)
 
 /*%
  * Color management.
@@ -120,7 +130,7 @@ struct dns_rbt {
  * Chain management.
  *
  * The "ancestors" member of chains were removed, with their job now
- * being wholy handled by parent pointers (which didn't exist, because
+ * being wholly handled by parent pointers (which didn't exist, because
  * of memory concerns, when chains were first implemented).
  */
 #define ADD_LEVEL(chain, node) \
@@ -553,11 +563,6 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 
 				NAMELEN(current) = prefix->length;
 				OFFSETLEN(current) = prefix->labels;
-				memcpy(OFFSETS(current), prefix->offsets,
-				       prefix->labels);
-				PADBYTES(current) +=
-				       (current_name.length - prefix->length) +
-				       (current_name.labels - prefix->labels);
 
 				/*
 				 * Set up the new root of the next level.
@@ -1423,7 +1428,7 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 	 * Allocate space for the node structure, the name, and the offsets.
 	 */
 	node = (dns_rbtnode_t *)isc_mem_get(mctx, sizeof(*node) +
-					    region.length + labels);
+					    region.length + labels + 1);
 
 	if (node == NULL)
 		return (ISC_R_NOMEMORY);
@@ -1460,10 +1465,12 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 	 *      The offsets table could be made smaller by eliminating the
 	 *      first offset, which is always 0.  This requires changes to
 	 *      lib/dns/name.c.
+	 *
+	 * Note: OLDOFFSETLEN *must* be assigned *after* OLDNAMELEN is assigned
+	 * 	 as it uses OLDNAMELEN.
 	 */
-	NAMELEN(node) = region.length;
-	PADBYTES(node) = 0;
-	OFFSETLEN(node) = labels;
+	OLDNAMELEN(node) = NAMELEN(node) = region.length;
+	OLDOFFSETLEN(node) = OFFSETLEN(node) = labels;
 	ATTRS(node) = name->attributes;
 
 	memcpy(NAME(node), region.base, region.length);
@@ -1940,7 +1947,7 @@ dns_rbt_deletefromlevel(dns_rbtnode_t *delete, dns_rbtnode_t **rootp) {
 			} else {
 				/*
 				 * Child is parent's right child.
-				 * Everything is doen the same as above,
+				 * Everything is done the same as above,
 				 * except mirrored.
 				 */
 				sibling = LEFT(parent);
@@ -2513,7 +2520,7 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 		 * reached without having traversed any left links, ascend one
 		 * level and look for either a right link off the point of
 		 * ascent, or search for a left link upward again, repeating
-		 * ascents until either case is true.
+		 * ascends until either case is true.
 		 */
 		do {
 			while (! IS_ROOT(current)) {

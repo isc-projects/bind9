@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.c,v 1.50 2008/09/26 23:47:06 tbox Exp $ */
+/* $Id: acl.c,v 1.50.44.3 2009/01/18 23:47:35 tbox Exp $ */
 
 /*! \file */
 
@@ -191,7 +191,7 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
 {
 	isc_uint16_t bitlen, family;
 	isc_prefix_t pfx;
-	isc_radix_node_t *node;
+	isc_radix_node_t *node = NULL;
 	const isc_netaddr_t *addr;
 	isc_netaddr_t v4addr;
 	isc_result_t result;
@@ -264,7 +264,7 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
  * If pos is set to false, then the nested ACL is to be negated.  This
  * means reverse the sense of each *positive* element or IP table node,
  * but leave negatives alone, so as to prevent a double-negative causing
- * an unexpected postive match in the parent ACL.
+ * an unexpected positive match in the parent ACL.
  */
 isc_result_t
 dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, isc_boolean_t pos)
@@ -360,7 +360,7 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, isc_boolean_t pos)
  * Like dns_acl_match, but matches against the single ACL element 'e'
  * rather than a complete ACL, and returns ISC_TRUE iff it matched.
  *
- * To determine whether the match was prositive or negative, the
+ * To determine whether the match was positive or negative, the
  * caller should examine e->negative.  Since the element 'e' may be
  * a reference to a named ACL or a nested ACL, a matching element
  * returned through 'matchelt' is not necessarily 'e' itself.

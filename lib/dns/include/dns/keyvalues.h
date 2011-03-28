@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keyvalues.h,v 1.23 2008/09/25 04:02:39 tbox Exp $ */
+/* $Id: keyvalues.h,v 1.23.48.4 2010/01/15 23:47:33 tbox Exp $ */
 
 #ifndef DNS_KEYVALUES_H
 #define DNS_KEYVALUES_H 1
@@ -42,7 +42,7 @@
 #define DNS_KEYOWNER_ENTITY	0x0200	/*%< key is assoc. with entity eg host */
 #define DNS_KEYOWNER_ZONE	0x0100	/*%< key is zone key */
 #define DNS_KEYOWNER_RESERVED	0x0300	/*%< reserved meaning */
-#define DNS_KEYFLAG_RESERVED8	0x0080	/*%< reserved - must be zero */
+#define DNS_KEYFLAG_REVOKE	0x0080	/*%< key revoked (per rfc5001) */
 #define DNS_KEYFLAG_RESERVED9	0x0040	/*%< reserved - must be zero */
 #define DNS_KEYFLAG_RESERVED10	0x0020	/*%< reserved - must be zero */
 #define DNS_KEYFLAG_RESERVED11	0x0010	/*%< reserved - must be zero */
@@ -69,6 +69,8 @@
 #define DNS_KEYALG_ECC		4
 #define DNS_KEYALG_RSASHA1	5
 #define DNS_KEYALG_NSEC3RSASHA1	7
+#define DNS_KEYALG_RSASHA256	8
+#define DNS_KEYALG_RSASHA512	10
 #define DNS_KEYALG_INDIRECT	252
 #define DNS_KEYALG_PRIVATEDNS	253
 #define DNS_KEYALG_PRIVATEOID	254     /*%< Key begins with OID giving alg */

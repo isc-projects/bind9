@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.131 2008/10/29 02:54:20 marka Exp $ */
+/* $Id: xfrout.c,v 1.131.26.6 2010/05/27 23:48:18 tbox Exp $ */
 
 #include <config.h>
 
@@ -23,6 +23,7 @@
 #include <isc/mem.h>
 #include <isc/timer.h>
 #include <isc/print.h>
+#include <isc/stats.h>
 #include <isc/util.h>
 
 #include <dns/db.h>
@@ -150,12 +151,12 @@ static void
 db_rr_iterator_destroy(db_rr_iterator_t *it);
 
 static inline void
-inc_stats(dns_zone_t *zone, dns_statscounter_t counter) {
-	dns_generalstats_increment(ns_g_server->nsstats, counter);
+inc_stats(dns_zone_t *zone, isc_statscounter_t counter) {
+	isc_stats_increment(ns_g_server->nsstats, counter);
 	if (zone != NULL) {
-		dns_stats_t *zonestats = dns_zone_getrequeststats(zone);
+		isc_stats_t *zonestats = dns_zone_getrequeststats(zone);
 		if (zonestats != NULL)
-			dns_generalstats_increment(zonestats, counter);
+			isc_stats_increment(zonestats, counter);
 	}
 }
 
@@ -984,11 +985,13 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 #ifdef DLZ
 	{
 		/*
-		 * Normal zone table does not have a match.  Try the DLZ database
+		 * Normal zone table does not have a match.
+		 * Try the DLZ database
 		 */
 		if (client->view->dlzdatabase != NULL) {
 			result = dns_dlzallowzonexfr(client->view,
-						     question_name, &client->peeraddr,
+						     question_name,
+						     &client->peeraddr,
 						     &db);
 
 			if (result == ISC_R_NOPERM) {
@@ -1208,7 +1211,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	}
 
 	/*
-	 * Bracket the the data stream with SOAs.
+	 * Bracket the data stream with SOAs.
 	 */
 	CHECK(soa_rrstream_create(mctx, db, ver, &soa_stream));
 	CHECK(compound_rrstream_create(mctx, &soa_stream, &data_stream,
@@ -1227,9 +1230,9 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 
 #ifdef DLZ
 	if (is_dlz)
-		CHECK(xfrout_ctx_create(mctx, client, request->id, question_name,
-					reqtype, question_class, zone, db, ver,
-					quota, stream,
+		CHECK(xfrout_ctx_create(mctx, client, request->id,
+					question_name, reqtype, question_class,
+					zone, db, ver, quota, stream,
 					dns_message_gettsigkey(request),
 					tsigbuf,
 					3600,
@@ -1239,9 +1242,9 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 					&xfr));
 	else
 #endif
-		CHECK(xfrout_ctx_create(mctx, client, request->id, question_name,
-					reqtype, question_class, zone, db, ver,
-					quota, stream,
+		CHECK(xfrout_ctx_create(mctx, client, request->id,
+					question_name, reqtype, question_class,
+					zone, db, ver, quota, stream,
 					dns_message_gettsigkey(request),
 					tsigbuf,
 					dns_zone_getmaxxfrout(zone),
@@ -1423,7 +1426,7 @@ failure:
  *
  * Requires:
  *	The stream iterator is initialized and points at an RR,
- *      or possiby at the end of the stream (that is, the
+ *      or possibly at the end of the stream (that is, the
  *      _first method of the iterator has been called).
  */
 static void

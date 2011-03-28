@@ -1,4 +1,212 @@
-zkt 0.97 -- 
+zkt 1.0 -- 15. June 2010
+
+* feat	"/dev/urandom" check added to checkconfig()
+
+* feat	Config compability switch (-C) added to zkt-conf
+
+* feat	zkt-ls has a new switch -s to change sorting of domains from
+	subdomain before parent to subdomain below the parent
+
+* feat	"zkt-ls -T" prints only parent trust anchor
+
+zkt 1.0rc1 -- 1. Apr 2010 (The 1.0 release was sponsored by DOMINIC(r) )
+
+* feat	Several config parameter are printed now in a more consistent and
+	user friendly form.
+	SerialFormat "Incremental" could be abbreviated as "inc" on input.
+
+* bug	use of AC_ARG_ENABLE macros changed in a way that it is possible
+	to use it as a "--disable-FEATURE" switch.
+
+* port	no longer checking for malloc() in configue script.
+	Mainly because it checks only if malloc(0) is allowed and we do
+	not need this.
+
+* port	--disable-color-mode added to configure script
+
+* bug	Makro PRINT_AGE_OF_YEAR renamed to PRINT_AGE_WITH_YEAR in configure.ac
+
+* misc	man page zkt-keyman added
+
+* misc	New command zkt-keyman added as replacement for dnssec-zkt's key
+	management functionality
+
+* misc	man page zkt-ls added
+
+* port	Check for ncurses added to Makefile.in
+
+* misc	Color mode (Option -C) added to zkt-ls (experimental)
+	New source file tcap.c.
+
+* misc	Deprecate "single linked list" version of ZKT. The binary tree
+	version is the default for years, so the VERSION string does no
+	longer contain a "T".  Now, if someone insist on the single link
+	list version (configure --disable-tree) a "S" is added to the
+	version string.
+	Anyway, the code for the single link list version does no longer
+	have the same functionality and will be removed in one of the later
+	releases.
+
+* misc	New command zkt-ls added as replacement for dnssec-zkt's key
+	listing functionality
+
+* func	New key algorithms RSASHA256 and RSAHSHA512 added to dki.[ch]
+	and zconf.c
+	New parameter NSEC3 added. Now it's possible to configure
+	an NSEC3_OPTOUT zone.
+
+* bug	Token parsing function gettok() fixed to recognize tokens
+	with dashes ("zone-statistics" was seen as "zone").
+	Thanks to Andreas Baess for finding this bug.
+	
+* bug	Fixed bug in (re)salting dynamic zones.
+	sig_zone() and gensalt() needs parameter change for this
+
+* func	New option -a added to zkt-conf
+
+* func	In zconf.c CONF_TIMEINT parameter are now able to recognize 
+	"unset" values (which is represented internaly as 0)
+
+* func	Set Max_TTL to sig lifetime for dynamic zones or if Max_TTL
+	is less than 1.
+	max_ttl checks in checkconfig() fixed.
+
+* func	printconfigdiff() added to zconf.c and used by zkt-conf.
+	Now local configs are printed as diff to site wide config.
+
+* misc	man page zkt-signer.8 changed to new command syntax
+
+* func	Per domain logging added. Use parameter LogDomainDir to
+	enable it. For more details see file README.logging.
+
+* func	distribute.sh supports new action type "distkeys" but is
+	currently not used
+
+* misc	LOG_FNAMETMPL changed and moved from config_zkt.h to log.h
+	
+* misc	Default soa serial format changed from "Incremental"
+	to "Unixtime"
+
+* func	dnssec-signer command renamed to zkt-signer. Man page updated.
+
+* func	New command zkt-conf added as replacement for dnssec-zkt -Z
+
+* misc	timeint2str() is now global (zconf.c)
+
+* func	zfparse.c - a rudimentary zone file parser
+	scans minimum and maximum ttl values; adds $INCLUDE dnskey.db
+
+zkt 0.99d -- Not released
+
+* func	Option SIG_DnsKeyKSK for DNSKEY signing with KSK only 
+	added (only useful with BIND9.7)
+
+* misc	For BIND 9.7 compability:
+	Run dnssec-signzone in compability mode ("-C") if
+	SigGenerateDS is true.
+	Run dnssec-keygen in compability mode ("-C -q")
+	Add option -u to dnssec-signzone if NSEC3 chaining is requested
+
+zkt 0.99c -- 1. Aug 2009
+
+* misc	dnssec-signer command line option vars changed to storage
+	class static.
+
+* port	setenv() replaced by putenv() in misc.c
+
+* misc	Install binaries in prefix/bin instead of $HOME/bin.
+	Fixing some spelling errors in dnssec-signzone.8 and
+	dnssec-zkt.8.
+	Thanks to Mans Nilsson.
+
+* port	timegm() check added to configure.ac
+
+* misc	configure.ac, Makefile.in, and doc is now part of distribution
+
+* bug	off by one error fixed in splitpath()
+
+* misc	is_dotfile() renamed to is_dotfilename() (misc.c)
+
+* misc	inc_soaserial() sourced out to soaserial.c
+
+* misc	reload() functions sourced out to nscomm.c
+
+* bug	Introducing parameter "KeyAlgorithm" for both ZSK and
+	KSK keys instead of separate KSK and ZSK algorithms.
+	New functions dki_algo() and dki_findalgo().
+
+* bug	Redirect stderr message (additionally to stdout) of
+	dnssec-signzone command to pipe.
+	Pick up last line of output for logging.
+
+* misc	"Sig_GenerateDS" is no longer a hidden parameter.
+
+* misc	"make clean" now remove the binary files
+	New target "distclean" added to Makefile
+
+* bug	Wrong typecast in zconf.c parsing CONF_TIMEINT (Thanks to Frederick
+	Soderblum and Peter Norin for the patch)
+	Changed all TIMEINT parameter values to long.
+
+* bug	If someone changes the zone.db file in dynamic mode, this will be treated
+	the same way as an initial setup, so the zone.db file will be used as new
+	input file (Thanks to Shane Wegner for this patch)
+
+* bug	Option nsec3_param added to dnssec-signzone command for dynamic zones.
+
+* func	New option "NamedChrootDir" added to dnssec.conf to specify the
+	directory of a chrooted named. Without such an option
+	"dnssec-signer -N named.conf" couldn't find the zone file directory.
+
+* misc 	Default ZSK lifetime set to 12 weeks instead of 3 months (30days) to
+	suppress the warning message about ZSK keysize of 512 bits.
+
+zkt 0.98 -- 28. Dec 2008
+
+* misc 	Target "install-man" added to Makefile
+	man files moved to sub directory "man"
+
+* func	If a BIND version greater equal 9.6.0 is used, option -d doesn't
+	initiate a resigning of a zone. It's just for key rollover.
+
+* func	New pseudo algorithms for NSEC3 DNSKEYS added.
+	Support of NSEC3 hashing if a BIND version greater equal 9.6.0
+	is used. New parameter "SaltBits" added to the config file to
+	set the salt length in bits (default is 24 which means 6 hex nibbles). 
+	The number of hash iterations is set to the default value of
+	dnssec-signzone which depends on key size.
+
+* misc	Renaming of all example zone directories so that the directory
+	name does not end with a dot (Necessary for installing the
+	source tree in an MS-Windows environment).
+	str_tolowerdup() renamed to domain_canonicdup() and code added
+	to append a dot to the domain name if it's not already there.
+
+* misc	Add 'sec' (second) qualifier to debug output in kskrollover().
+
+* bug	Remove a trailing '/' at the -D argument.
+
+* misc	Configure script now uses the BIND_UTIL_PATH out of config_zkt.h
+	if the BIND dnssec-signzone command is not found
+
+* bug	A zone with only a standby key signing key (which means w/o an
+	active ksk) aborts the dnssec-signer command.
+	Fixed by Shane Kerr.
+
+* func	Changed inc_serial() so that the SOA record parser accepts a label
+	other than '@' and an optional ttl value before the class and SOA
+	RR identifier (Both are case insensitive). Thanks to Shane Kerr 
+	for the suggestion.
+
+* bug	Change of global configured key liftetime during a zone signing
+	key rollover results in unnecessary additional pre-published
+	zone signing keys (Thanks to Frank Behrens for the patch)
+
+* misc	Sig_Random config file parameter defaults now to false
+
+* bug	The man page refers the wrong licence (GPL instead of BSD)
+
+zkt 0.97 -- 5. Aug 2008
 
 * bug	LG_* logging level wasn't mapped to syslog level in lg_mesg().
 	gettock() in ncparse.c did not recognize C single line comments "//"
@@ -111,7 +319,7 @@ zkt 0.95 -- 19. April 2008
 	commandline option -O (--option or --config-option)
 
 * misc	Function fatal() now has an exit code of 127.
-	This is neccessary because values from 1 to 64 are
+	This is necessary because values from 1 to 64 are
 	reflecting the number of errors occured.
 
 * func	Errorlog functionality added
@@ -405,7 +613,7 @@ zkt 0.63 -- 14. June 2005
 zkt 0.62 -- 13. May 2005
 
 * func	dnssec-signer: Option -o added.
-	Now it works a little bit more like dnssec-signzone.
+	Now it works a bit more like dnssec-signzone.
 
 * func	strlist.c: prepstrlist and unprepstrlist functions get a
 	second parameter for the delimiter.

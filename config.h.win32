@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2006-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2006-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.win32,v 1.19 2008/09/25 07:44:12 marka Exp $ */
+/* $Id: config.h.win32,v 1.19.48.2 2009/11/24 23:47:34 tbox Exp $ */
 
 /*
  * win32 configuration file
@@ -234,3 +234,13 @@ typedef long off_t;
  * Windows doesn't use configure so just set "default" here.
  */
 #define CONFIGARGS "default"
+
+/** define if struct addrinfo exists */
+#define HAVE_ADDRINFO
+
+/** define if getaddrinfo() exists */
+#define HAVE_GETADDRINFO
+
+/** define if gai_strerror() exists */
+#define HAVE_GAISTRERROR
+

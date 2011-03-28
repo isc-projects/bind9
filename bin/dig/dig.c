@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.225 2008/10/28 23:47:06 tbox Exp $ */
+/* $Id: dig.c,v 1.225.26.7 2010/05/13 00:43:37 marka Exp $ */
 
 /*! \file */
 
@@ -110,6 +110,24 @@ static const char * const rcodetext[] = {
 	"RESERVED15",
 	"BADVERS"
 };
+
+/*% safe rcodetext[] */
+static char *
+rcode_totext(dns_rcode_t rcode)
+{
+	static char buf[sizeof("?65535")];
+	union {
+		const char *consttext;
+		char *deconsttext;
+	} totext;
+
+	if (rcode >= (sizeof(rcodetext)/sizeof(rcodetext[0]))) {
+		snprintf(buf, sizeof(buf), "?%u", rcode);
+		totext.deconsttext = buf;
+	} else
+		totext.consttext = rcodetext[rcode];
+	return totext.deconsttext;
+}
 
 /*% print usage */
 static void
@@ -288,6 +306,8 @@ say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 		ADD_STRING(buf, " ");
 	}
 	result = dns_rdata_totext(rdata, NULL, buf);
+	if (result == ISC_R_NOSPACE)
+		return (result);
 	check_result(result, "dns_rdata_totext");
 	if (query->lookup->identify) {
 		TIME_NOW(&now);
@@ -310,10 +330,8 @@ short_answer(dns_message_t *msg, dns_messagetextflag_t flags,
 {
 	dns_name_t *name;
 	dns_rdataset_t *rdataset;
-	isc_buffer_t target;
 	isc_result_t result, loopresult;
 	dns_name_t empty_name;
-	char t[4096];
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 
 	UNUSED(flags);
@@ -329,8 +347,6 @@ short_answer(dns_message_t *msg, dns_messagetextflag_t flags,
 		name = NULL;
 		dns_message_currentname(msg, DNS_SECTION_ANSWER, &name);
 
-		isc_buffer_init(&target, t, sizeof(t));
-
 		for (rdataset = ISC_LIST_HEAD(name->list);
 		     rdataset != NULL;
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
@@ -339,6 +355,8 @@ short_answer(dns_message_t *msg, dns_messagetextflag_t flags,
 				dns_rdataset_current(rdataset, &rdata);
 				result = say_message(&rdata, query,
 						     buf);
+				if (result == ISC_R_NOSPACE)
+					return (result);
 				check_result(result, "say_message");
 				loopresult = dns_rdataset_next(rdataset);
 				dns_rdata_reset(&rdata);
@@ -469,7 +487,8 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 		if (headers) {
 			printf(";; ->>HEADER<<- opcode: %s, status: %s, "
 			       "id: %u\n",
-			       opcodetext[msg->opcode], rcodetext[msg->rcode],
+			       opcodetext[msg->opcode],
+			       rcode_totext(msg->rcode),
 			       msg->id);
 			printf(";; flags:");
 			if ((msg->flags & DNS_MESSAGEFLAG_QR) != 0)
@@ -486,6 +505,8 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 				printf(" ad");
 			if ((msg->flags & DNS_MESSAGEFLAG_CD) != 0)
 				printf(" cd");
+			if ((msg->flags & 0x0040U) != 0)
+				printf("; MBZ: 0x4");
 
 			printf("; QUERY: %u, ANSWER: %u, "
 			       "AUTHORITY: %u, ADDITIONAL: %u\n",
@@ -801,7 +822,9 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		switch (cmd[1]) {
 		case 'e': /* defname */
 			FULLCHECK("defname");
-			usesearch = state;
+			if (!lookup->trace) {
+				usesearch = state;
+			}
 			break;
 		case 'n': /* dnssec */
 			FULLCHECK("dnssec");
@@ -843,7 +866,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			lookup->identify = state;
 			break;
 		case 'g': /* ignore */
-		default: /* Inherets default for compatibility */
+		default: /* Inherits default for compatibility */
 			FULLCHECK("ignore");
 			lookup->ignore = ISC_TRUE;
 		}
@@ -941,7 +964,9 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		switch (cmd[1]) {
 		case 'e': /* search */
 			FULLCHECK("search");
-			usesearch = state;
+			if (!lookup->trace) {
+				usesearch = state;
+			}
 			break;
 		case 'h':
 			if (cmd[2] != 'o')
@@ -962,8 +987,10 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				break;
 			case 'w': /* showsearch */
 				FULLCHECK("showsearch");
-				showsearch = state;
-				usesearch = state;
+				if (!lookup->trace) {
+					showsearch = state;
+					usesearch = state;
+				}
 				break;
 			default:
 				goto invalid_option;
@@ -1022,6 +1049,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 					lookup->section_additional = ISC_FALSE;
 					lookup->section_authority = ISC_TRUE;
 					lookup->section_question = ISC_FALSE;
+					usesearch = ISC_FALSE;
 				}
 				break;
 			case 'i': /* tries */

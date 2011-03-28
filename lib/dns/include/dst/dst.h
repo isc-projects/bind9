@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008, 2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.12 2008/09/24 02:46:23 marka Exp $ */
+/* $Id: dst.h,v 1.12.50.3 2010/12/09 01:12:55 marka Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -53,6 +53,8 @@ typedef struct dst_context 	dst_context_t;
 #define DST_ALG_RSASHA1		5
 #define DST_ALG_NSEC3DSA	6
 #define DST_ALG_NSEC3RSASHA1	7
+#define DST_ALG_RSASHA256	8
+#define DST_ALG_RSASHA512	10
 #define DST_ALG_HMACMD5		157
 #define DST_ALG_GSSAPI		160
 #define DST_ALG_HMACSHA1	161	/* XXXMPA */
@@ -504,6 +506,16 @@ dst_key_paramcompare(const dst_key_t *key1, const dst_key_t *key2);
  * Returns:
  *\li 	ISC_TRUE
  * \li	ISC_FALSE
+ */
+
+void
+dst_key_attach(dst_key_t *source, dst_key_t **target);
+/*
+ * Attach to a existing key increasing the reference count.
+ *
+ * Requires:
+ *\li 'source' to be a valid key.
+ *\li 'target' to be non-NULL and '*target' to be NULL.
  */
 
 void

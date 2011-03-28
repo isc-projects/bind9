@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000-2002  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.53 2008/09/25 04:02:38 tbox Exp $
+# $Id: tests.sh,v 1.53.48.14 2010/11/16 02:23:43 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -522,6 +522,41 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:Checking that a bad CNAME signature is caught after a +CD query ($n)"
+ret=0
+#prime
+$DIG $DIGOPTS +cd bad-cname.example. @10.53.0.4 > dig.out.ns4.prime$n || ret=1
+#check: requery with +CD.  pending data should be returned even if it's bogus
+expect="a.example.
+10.0.0.1"
+ans=`$DIG $DIGOPTS +cd +nodnssec +short bad-cname.example. @10.53.0.4` || ret=1
+test "$ans" = "$expect" || ret=1
+test $ret = 0 || echo I:failed, got "'""$ans""'", expected "'""$expect""'"
+#check: requery without +CD.  bogus cached data should be rejected.
+$DIG $DIGOPTS +nodnssec bad-cname.example. @10.53.0.4 > dig.out.ns4.test$n || ret=1
+grep "SERVFAIL" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:Checking that a bad DNAME signature is caught after a +CD query ($n)"
+ret=0
+#prime
+$DIG $DIGOPTS +cd a.bad-dname.example. @10.53.0.4 > dig.out.ns4.prime$n || ret=1
+#check: requery with +CD.  pending data should be returned even if it's bogus
+expect="example.
+a.example.
+10.0.0.1"
+ans=`$DIG $DIGOPTS +cd +nodnssec +short a.bad-dname.example. @10.53.0.4` || ret=1
+test "$ans" = "$expect" || ret=1
+test $ret = 0 || echo I:failed, got "'""$ans""'", expected "'""$expect""'"
+#check: requery without +CD.  bogus cached data should be rejected.
+$DIG $DIGOPTS +nodnssec a.bad-dname.example. @10.53.0.4 > dig.out.ns4.test$n || ret=1
+grep "SERVFAIL" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 # Check the insecure.secure.example domain (insecurity proof)
 
 echo "I:checking 2-server insecurity proof ($n)"
@@ -603,6 +638,26 @@ $PERL ../digcomp.pl dig.out.ns4.test$n dig.out.ns5.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 # Note - this is looking for failure, hence the &&
 grep "flags:.*ad.*QUERY" dig.out.ns5.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking positive validation RSASHA256 NSEC ($n)"
+ret=0
+$DIG $DIGOPTS +noauth a.rsasha256.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
+$DIG $DIGOPTS +noauth a.rsasha256.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
+$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking positive validation RSASHA512 NSEC ($n)"
+ret=0
+$DIG $DIGOPTS +noauth a.rsasha512.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
+$DIG $DIGOPTS +noauth a.rsasha512.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
+$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -786,6 +841,30 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:checking a non-cachable NODATA works ($n)"
+ret=0
+$DIG $DIGOPTS +noauth a.nosoa.secure.example. txt @10.53.0.7 \
+	> dig.out.ns7.test$n || ret=1
+grep "AUTHORITY: 0" dig.out.ns7.test$n > /dev/null || ret=1
+$DIG $DIGOPTS +noauth a.nosoa.secure.example. txt @10.53.0.4 \
+	> dig.out.ns4.test$n || ret=1
+grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking a non-cachable NXDOMAIN works ($n)"
+ret=0
+$DIG $DIGOPTS +noauth b.nosoa.secure.example. txt @10.53.0.7 \
+	> dig.out.ns7.test$n || ret=1
+grep "AUTHORITY: 0" dig.out.ns7.test$n > /dev/null || ret=1
+$DIG $DIGOPTS +noauth b.nosoa.secure.example. txt @10.53.0.4 \
+	> dig.out.ns4.test$n || ret=1
+grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 #
 # private.secure.example is served by the same server as its
 # grand parent and there is not a secure delegation from secure.example
@@ -816,6 +895,109 @@ $DIG $DIGOPTS rfc2535.example. SOA @10.53.0.3 \
 	> dig.out.ns3.test$n || ret=1
 grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
 n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking that we can sign a zone with out-of-zone records ($n)"
+ret=0
+(
+cd signer
+RANDFILE=../random.data
+zone=example
+key1=`$KEYGEN -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone`
+key2=`$KEYGEN -r $RANDFILE -f KSK -a NSEC3RSASHA1 -b 1024 -n zone $zone`
+cat example.db.in $key1.key $key2.key > example.db
+$SIGNER -o example -f example.db example.db > /dev/null 2>&1
+) || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking that we can sign a zone (NSEC3) with out-of-zone records ($n)"
+ret=0
+(
+cd signer
+RANDFILE=../random.data
+zone=example
+key1=`$KEYGEN -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone`
+key2=`$KEYGEN -r $RANDFILE -f KSK -a NSEC3RSASHA1 -b 1024 -n zone $zone`
+cat example.db.in $key1.key $key2.key > example.db
+$SIGNER -3 - -H 10 -o example -f example.db example.db > /dev/null 2>&1
+grep "IQF9LQTLKKNFK0KVIFELRAK4IC4QLTMG.example. 0 IN NSEC3 1 0 10 - IQF9LQTLKKNFK0KVIFELRAK4IC4QLTMG A NS SOA RRSIG DNSKEY NSEC3PARAM" example.db > /dev/null 
+) || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+# Check direct query for RRSIG.  If we first ask for normal (non RRSIG)
+# record, the corresponding RRSIG should be cached and subsequent query
+# for RRSIG will be returned with the cached record.
+echo "I:checking RRSIG query from cache ($n)"
+ret=0
+$DIG $DIGOPTS normalthenrrsig.secure.example. @10.53.0.4 a > /dev/null || ret=1
+ans=`$DIG $DIGOPTS +short normalthenrrsig.secure.example. @10.53.0.4 rrsig` || ret=1
+expect=`$DIG $DIGOPTS +short normalthenrrsig.secure.example. @10.53.0.3 rrsig | grep '^A' ` || ret=1
+test "$ans" = "$expect" || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+# Check direct query for RRSIG: If it's not cached with other records,
+# it should result in an empty response.
+echo "I:checking RRSIG query not in cache ($n)"
+ret=0
+ans=`$DIG $DIGOPTS +short rrsigonly.secure.example. @10.53.0.4 rrsig` || ret=1
+test -z "$ans" || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+#
+# RT21868 regression test.
+#
+echo "I:checking NSEC3 zone with mismatched NSEC3PARAM / NSEC parameters ($n)"
+ret=0
+$DIG $DIGOPTS non-exist.badparam. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
+grep "status: NXDOMAIN" dig.out.ns2.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+#
+# RT22007 regression test.
+#
+echo "I:checking optout NSEC3 referral with only insecure delegations ($n)"
+ret=0
+$DIG $DIGOPTS +norec delegation.single-nsec3. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
+grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
+grep "3KL3NK1HKQ4IUEEHBEF12VGFKUETNBAN.*NSEC3 1 1 1 - 3KL3NK1HKQ4IUEEHBEF12VGFKUETNBAN" dig.out.ns2.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking optout NSEC3 NXDOMAIN with only insecure delegations ($n)"
+ret=0
+$DIG $DIGOPTS +norec nonexist.single-nsec3. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
+grep "status: NXDOMAIN" dig.out.ns2.test$n > /dev/null || ret=1
+grep "3KL3NK1HKQ4IUEEHBEF12VGFKUETNBAN.*NSEC3 1 1 1 - 3KL3NK1HKQ4IUEEHBEF12VGFKUETNBAN" dig.out.ns2.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+
+status=`expr $status + $ret`
+echo "I:checking optout NSEC3 nodata with only insecure delegations ($n)"
+ret=0
+$DIG $DIGOPTS +norec single-nsec3. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
+grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
+grep "3KL3NK1HKQ4IUEEHBEF12VGFKUETNBAN.*NSEC3 1 1 1 - 3KL3NK1HKQ4IUEEHBEF12VGFKUETNBAN" dig.out.ns2.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking that a zone finishing the transition from RSASHA1 to RSASHA256 validates secure ($n)"
+ret=0
+$DIG $DIGOPTS ns algroll. @10.53.0.4 > dig.out.ns4.test$n || ret=1
+grep "NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
+grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 

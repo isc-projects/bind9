@@ -55,11 +55,17 @@
 # define	MAX_PATHSIZE	(MAX_DNAMESIZE + 1 + MAX_FNAMESIZE)
 
 /* algorithm types */
-# define	DK_ALGO_RSA	1	/* RFC2537 */
-# define	DK_ALGO_DH	2	/* RFC2539 */
-# define	DK_ALGO_DSA	3	/* RFC2536 (mandatory) */
-# define	DK_ALGO_EC	4	/* */
-# define	DK_ALGO_RSASHA1	5	/* RFC3110 */
+# define	DK_ALGO_RSA		1	/* RFC2537 */
+# define	DK_ALGO_DH		2	/* RFC2539 */
+# define	DK_ALGO_DSA		3	/* RFC2536 (mandatory) */
+# define	DK_ALGO_EC		4	/* */
+# define	DK_ALGO_RSASHA1		5	/* RFC3110 */
+# define	DK_ALGO_NSEC3DSA	6	/* symlink to alg 3 RFC5155 */
+# define	DK_ALGO_NSEC3RSASHA1	7	/* symlink to alg 5 RFC5155 */
+# define	DK_ALGO_RSASHA256	8	/* RFCxxx */
+# define	DK_ALGO_RSASHA512	10	/* RFCxxx */
+# define	DK_ALGO_NSEC3RSASHA256	DK_ALGO_RSASHA256	/* same as non nsec algorithm RFCxxx */
+# define	DK_ALGO_NSEC3RSASHA512	DK_ALGO_RSASHA512	/* same as non nsec algorithm RFCxxx */
 
 /* protocol types */
 # define	DK_PROTO_DNS	3
@@ -135,9 +141,10 @@ dki_t	**tdelete (const dki_t *dkp, dki_t **tree, int(*compar)(const dki_t *, con
 void	twalk (const dki_t *root, void (*action)(const dki_t **nodep, VISIT which, int depth));
 
 extern	void	dki_tfree (dki_t **tree);
-extern	dki_t	*dki_tadd (dki_t **tree, dki_t *new);
+extern	dki_t	*dki_tadd (dki_t **tree, dki_t *new, int sub_before);
 extern	int	dki_tagcmp (const dki_t *a, const dki_t *b);
 extern	int	dki_namecmp (const dki_t *a, const dki_t *b);
+extern	int	dki_revnamecmp (const dki_t *a, const dki_t *b);
 extern	int	dki_allcmp (const dki_t *a, const dki_t *b);
 #endif
 
@@ -161,6 +168,7 @@ extern	int	dki_isdepreciated (const dki_t *dkp);
 extern	int	dki_isrevoked (const dki_t *dkp);
 extern	int	dki_isactive (const dki_t *dkp);
 extern	int	dki_ispublished (const dki_t *dkp);
+extern	time_t	dki_algo (const dki_t *dkp);
 extern	time_t	dki_time (const dki_t *dkp);
 extern	time_t	dki_exptime (const dki_t *dkp);
 extern	time_t	dki_gentime (const dki_t *dkp);
@@ -177,9 +185,11 @@ extern	dki_t	*dki_add (dki_t **dkp, dki_t *new);
 extern	const dki_t	*dki_tsearch (const dki_t *tree, int tag, const char *name);
 extern	const dki_t	*dki_search (const dki_t *list, int tag, const char *name);
 extern	const dki_t	*dki_find (const dki_t *list, int ksk, int status, int first);
+extern	const dki_t	*dki_findalgo (const dki_t *list, int ksk, int alg, int status, int no);
 extern	void	dki_free (dki_t *dkp);
 extern	void	dki_freelist (dki_t **listp);
 extern	char	*dki_algo2str (int algo);
+extern	char	*dki_algo2sstr (int algo);
 extern	const char	*dki_geterrstr (void);
 
 #endif

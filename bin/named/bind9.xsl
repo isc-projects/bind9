@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
- - Copyright (C) 2006-2008  Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2006-2009  Internet Systems Consortium, Inc. ("ISC")
  -
  - Permission to use, copy, modify, and/or distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: bind9.xsl,v 1.19 2008/07/17 23:43:26 jinmei Exp $ -->
+<!-- $Id: bind9.xsl,v 1.19.82.2 2009/01/29 23:47:43 tbox Exp $ -->
 
 <xsl:stylesheet version="1.0"
    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -247,6 +247,17 @@ div.statcounter br {
 	  </table>
 	  <br/>
 	</xsl:for-each>
+
+	<div class="statcounter">
+	  <h2>Socket I/O Statistics</h2>
+	  <xsl:for-each select="server/sockstat">
+	    <dl>
+	      <dt><xsl:value-of select="name"/></dt>
+	      <dd><xsl:value-of select="counter"/></dd>
+	    </dl>
+	  </xsl:for-each>
+	  <br/>
+	</div>
 
 	<br/>
 

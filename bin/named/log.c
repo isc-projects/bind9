@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.46 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id: log.c,v 1.46.334.3 2009/01/07 01:50:14 jinmei Exp $ */
 
 /*! \file */
 
@@ -44,6 +44,7 @@ static isc_logcategory_t categories[] = {
 	{ "queries",	 		0 },
 	{ "unmatched",	 		0 },
 	{ "update-security",		0 },
+	{ "query-errors",		0 },
 	{ NULL, 			0 }
 };
 
@@ -120,7 +121,7 @@ ns_log_setdefaultchannels(isc_logconfig_t *lcfg) {
 	/*
 	 * By default, the logging library makes "default_debug" log to
 	 * stderr.  In BIND, we want to override this and log to named.run
-	 * instead, unless the the -g option was given.
+	 * instead, unless the -g option was given.
 	 */
 	if (! ns_g_logstderr) {
 		destination.file.stream = NULL;

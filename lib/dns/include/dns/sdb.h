@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.h,v 1.21 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: sdb.h,v 1.21.332.2 2009/01/18 23:47:41 tbox Exp $ */
 
 #ifndef DNS_SDB_H
 #define DNS_SDB_H 1
@@ -127,12 +127,12 @@ dns_sdb_register(const char *drivername, const dns_sdbmethods_t *methods,
  * The allnodes function, if non-NULL, fills in an opaque structure to be
  * used by a database iterator.  This allows the zone to be transferred.
  * This may use a considerable amount of memory for large zones, and the
- * zone transfer may not be fully RFC1035 compliant if the zone is 
+ * zone transfer may not be fully RFC1035 compliant if the zone is
  * frequently changed.
  *
  * The create function will be called for each zone configured
  * into the name server using this database type.  It can be used
- * to create a "database object" containg zone specific data,
+ * to create a "database object" containing zone specific data,
  * which can make use of the database arguments specified in the
  * name server configuration.
  *

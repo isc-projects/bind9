@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,13 +15,14 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.150 2008/06/17 03:14:20 marka Exp $ */
+/* $Id: view.c,v 1.150.84.6 2010/09/24 08:09:08 marka Exp $ */
 
 /*! \file */
 
 #include <config.h>
 
 #include <isc/hash.h>
+#include <isc/stats.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/task.h>
 #include <isc/util.h>
@@ -167,6 +168,8 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->acceptexpired = ISC_FALSE;
 	view->minimalresponses = ISC_FALSE;
 	view->transfer_format = dns_one_answer;
+	view->cacheacl = NULL;
+	view->cacheonacl = NULL;
 	view->queryacl = NULL;
 	view->queryonacl = NULL;
 	view->recursionacl = NULL;
@@ -293,6 +296,10 @@ destroy(dns_view_t *view) {
 		dns_acl_detach(&view->matchclients);
 	if (view->matchdestinations != NULL)
 		dns_acl_detach(&view->matchdestinations);
+	if (view->cacheacl != NULL)
+		dns_acl_detach(&view->cacheacl);
+	if (view->cacheonacl != NULL)
+		dns_acl_detach(&view->cacheonacl);
 	if (view->queryacl != NULL)
 		dns_acl_detach(&view->queryacl);
 	if (view->queryonacl != NULL)
@@ -347,7 +354,7 @@ destroy(dns_view_t *view) {
 		view->rootexclude = NULL;
 	}
 	if (view->resstats != NULL)
-		dns_stats_detach(&view->resstats);
+		isc_stats_detach(&view->resstats);
 	if (view->resquerystats != NULL)
 		dns_stats_detach(&view->resquerystats);
 	dns_keytable_detach(&view->trustedkeys);
@@ -1249,7 +1256,8 @@ dns_view_getpeertsig(dns_view_t *view, isc_netaddr_t *peeraddr,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	return (dns_view_gettsig(view, keyname, keyp));
+	result = dns_view_gettsig(view, keyname, keyp);
+	return ((result == ISC_R_NOTFOUND) ? ISC_R_FAILURE : result);
 }
 
 isc_result_t
@@ -1269,10 +1277,11 @@ dns_view_dumpdbtostream(dns_view_t *view, FILE *fp) {
 
 	(void)fprintf(fp, ";\n; Cache dump of view '%s'\n;\n", view->name);
 	result = dns_master_dumptostream(view->mctx, view->cachedb, NULL,
-					  &dns_master_style_cache, fp);
+					 &dns_master_style_cache, fp);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	dns_adb_dump(view->adb, fp);
+	dns_resolver_printbadcache(view->resolver, fp);
 	return (ISC_R_SUCCESS);
 }
 
@@ -1293,6 +1302,8 @@ dns_view_flushcache(dns_view_t *view) {
 	dns_cache_attachdb(view->cache, &view->cachedb);
 	if (view->acache != NULL)
 		dns_acache_setdb(view->acache, view->cachedb);
+	if (view->resolver != NULL)
+		dns_resolver_flushbadcache(view->resolver, NULL);
 
 	dns_adb_flush(view->adb);
 	return (ISC_R_SUCCESS);
@@ -1307,6 +1318,8 @@ dns_view_flushname(dns_view_t *view, dns_name_t *name) {
 		dns_adb_flushname(view->adb, name);
 	if (view->cache == NULL)
 		return (ISC_R_SUCCESS);
+	if (view->resolver != NULL)
+		dns_resolver_flushbadcache(view->resolver, name);
 	return (dns_cache_flushname(view->cache, name));
 }
 
@@ -1431,21 +1444,21 @@ dns_view_freezezones(dns_view_t *view, isc_boolean_t value) {
 }
 
 void
-dns_view_setresstats(dns_view_t *view, dns_stats_t *stats) {
+dns_view_setresstats(dns_view_t *view, isc_stats_t *stats) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
 	REQUIRE(view->resstats == NULL);
 
-	dns_stats_attach(stats, &view->resstats);
+	isc_stats_attach(stats, &view->resstats);
 }
 
 void
-dns_view_getresstats(dns_view_t *view, dns_stats_t **statsp) {
+dns_view_getresstats(dns_view_t *view, isc_stats_t **statsp) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
 	if (view->resstats != NULL)
-		dns_stats_attach(view->resstats, statsp);
+		isc_stats_attach(view->resstats, statsp);
 }
 
 void

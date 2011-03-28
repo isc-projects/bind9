@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2010  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: ans.pl,v 1.10 2007/09/24 04:13:25 marka Exp $
+# $Id: ans.pl,v 1.10.252.2 2010/05/19 09:31:12 tbox Exp $
 
 #
 # Ad hoc name server
@@ -61,6 +61,11 @@ for (;;) {
 		# Data for the "cname + other data / 2" test: same RRs in opposite order
 		$packet->push("answer", new Net::DNS::RR("cname2.example.com 300 A 1.2.3.4"));
 		$packet->push("answer", new Net::DNS::RR("cname2.example.com 300 CNAME cname2.example.com"));
+	} elsif ($qname =~ /^nodata\.example\.net$/i) {
+		$packet->header->aa(1);
+	} elsif ($qname =~ /^nxdomain\.example\.net$/i) {
+		$packet->header->aa(1);
+		$packet->header->rcode(NXDOMAIN);
 	} else {
 		# Data for the "bogus referrals" test
 		$packet->push("authority", new Net::DNS::RR("below.www.example.com 300 NS ns.below.www.example.com"));

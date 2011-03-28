@@ -161,6 +161,7 @@ CLEAN :
 	-@erase "$(INTDIR)\parseint.obj"
 	-@erase "$(INTDIR)\portset.obj"
 	-@erase "$(INTDIR)\quota.obj"
+	-@erase "$(INTDIR)\radix.obj"
 	-@erase "$(INTDIR)\random.obj"
 	-@erase "$(INTDIR)\ratelimiter.obj"
 	-@erase "$(INTDIR)\refcount.obj"
@@ -173,6 +174,7 @@ CLEAN :
 	-@erase "$(INTDIR)\sha2.obj"
 	-@erase "$(INTDIR)\sockaddr.obj"
 	-@erase "$(INTDIR)\socket.obj"
+	-@erase "$(INTDIR)\stats.obj"
 	-@erase "$(INTDIR)\stdio.obj"
 	-@erase "$(INTDIR)\stdtime.obj"
 	-@erase "$(INTDIR)\strerror.obj"
@@ -262,6 +264,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\netscope.obj" \
 	"$(INTDIR)\ondestroy.obj" \
 	"$(INTDIR)\quota.obj" \
+	"$(INTDIR)\radix.obj" \
 	"$(INTDIR)\random.obj" \
 	"$(INTDIR)\ratelimiter.obj" \
 	"$(INTDIR)\refcount.obj" \
@@ -271,6 +274,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\sha1.obj" \
 	"$(INTDIR)\sha2.obj" \
 	"$(INTDIR)\sockaddr.obj" \
+	"$(INTDIR)\stats.obj" \
 	"$(INTDIR)\string.obj" \
 	"$(INTDIR)\symtab.obj" \
 	"$(INTDIR)\task.obj" \
@@ -394,6 +398,8 @@ CLEAN :
 	-@erase "$(INTDIR)\portset.sbr"
 	-@erase "$(INTDIR)\quota.obj"
 	-@erase "$(INTDIR)\quota.sbr"
+	-@erase "$(INTDIR)\radix.obj"
+	-@erase "$(INTDIR)\radix.sbr"
 	-@erase "$(INTDIR)\random.obj"
 	-@erase "$(INTDIR)\random.sbr"
 	-@erase "$(INTDIR)\ratelimiter.obj"
@@ -418,6 +424,8 @@ CLEAN :
 	-@erase "$(INTDIR)\sockaddr.sbr"
 	-@erase "$(INTDIR)\socket.obj"
 	-@erase "$(INTDIR)\socket.sbr"
+	-@erase "$(INTDIR)\stats.obj"
+	-@erase "$(INTDIR)\stats.sbr"
 	-@erase "$(INTDIR)\stdio.obj"
 	-@erase "$(INTDIR)\stdio.sbr"
 	-@erase "$(INTDIR)\stdtime.obj"
@@ -519,6 +527,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\netscope.sbr" \
 	"$(INTDIR)\ondestroy.sbr" \
 	"$(INTDIR)\quota.sbr" \
+	"$(INTDIR)\radix.sbr" \
 	"$(INTDIR)\random.sbr" \
 	"$(INTDIR)\ratelimiter.sbr" \
 	"$(INTDIR)\refcount.sbr" \
@@ -528,6 +537,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\sha1.sbr" \
 	"$(INTDIR)\sha2.sbr" \
 	"$(INTDIR)\sockaddr.sbr" \
+	"$(INTDIR)\stats.sbr" \
 	"$(INTDIR)\string.sbr" \
 	"$(INTDIR)\symtab.sbr" \
 	"$(INTDIR)\task.sbr" \
@@ -603,6 +613,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\netscope.obj" \
 	"$(INTDIR)\ondestroy.obj" \
 	"$(INTDIR)\quota.obj" \
+	"$(INTDIR)\radix.obj" \
 	"$(INTDIR)\random.obj" \
 	"$(INTDIR)\ratelimiter.obj" \
 	"$(INTDIR)\refcount.obj" \
@@ -612,6 +623,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\sha1.obj" \
 	"$(INTDIR)\sha2.obj" \
 	"$(INTDIR)\sockaddr.obj" \
+	"$(INTDIR)\stats.obj" \
 	"$(INTDIR)\string.obj" \
 	"$(INTDIR)\symtab.obj" \
 	"$(INTDIR)\task.obj" \
@@ -830,22 +842,6 @@ SOURCE=.\ipv6.c
 
 !ENDIF 
 
-
-SOURCE=..\iterated_hash.c
-
-!IF  "$(CFG)" == "libisc - Win32 Release"
-
-
-"$(INTDIR)\iterated_hash.obj" : $(SOURCE) "$(INTDIR)"
-
-
-!ELSEIF  "$(CFG)" == "libisc - Win32 Debug"
-
-
-"$(INTDIR)\iterated_hash.obj"	"$(INTDIR)\iterated_hash.sbr" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
 
 SOURCE=.\keyboard.c
 
@@ -1411,6 +1407,24 @@ SOURCE=..\inet_pton.c
 
 !ENDIF 
 
+SOURCE=..\iterated_hash.c
+
+!IF  "$(CFG)" == "libisc - Win32 Release"
+
+
+"$(INTDIR)\iterated_hash.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libisc - Win32 Debug"
+
+
+"$(INTDIR)\iterated_hash.obj"	"$(INTDIR)\iterated_hash.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 SOURCE=..\lex.c
 
 !IF  "$(CFG)" == "libisc - Win32 Release"
@@ -1856,6 +1870,24 @@ SOURCE=..\sockaddr.c
 
 
 "$(INTDIR)\sockaddr.obj"	"$(INTDIR)\sockaddr.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\stats.c
+
+!IF  "$(CFG)" == "libisc - Win32 Release"
+
+
+"$(INTDIR)\stats.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libisc - Win32 Debug"
+
+
+"$(INTDIR)\stats.obj"	"$(INTDIR)\stats.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec.c,v 1.11 2008/09/25 04:02:38 tbox Exp $ */
+/* $Id: nsec.c,v 1.11.48.2 2009/01/06 23:47:26 tbox Exp $ */
 
 /*! \file */
 
@@ -220,7 +220,7 @@ dns_nsec_typepresent(dns_rdata_t *nsec, dns_rdatatype_t type) {
 						   type % 256));
 		break;
 	}
-	dns_rdata_freestruct(&nsec);
+	dns_rdata_freestruct(&nsecstruct);
 	return (present);
 }
 

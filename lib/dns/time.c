@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.31 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: time.c,v 1.31.332.4 2010/04/21 23:48:05 tbox Exp $ */
 
 /*! \file */
 
@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <time.h>
+#include <ctype.h>
 
 #include <isc/print.h>
 #include <isc/region.h>
@@ -132,6 +133,14 @@ dns_time64_fromtext(const char *source, isc_int64_t *target) {
 
 	if (strlen(source) != 14U)
 		return (DNS_R_SYNTAX);
+	/*
+	 * Confirm the source only consists digits.  sscanf() allows some
+	 * minor exceptions.
+	 */
+	for (i = 0; i < 14; i++) {
+		if (!isdigit((unsigned char)source[i]))
+			return (DNS_R_SYNTAX);
+	}
 	if (sscanf(source, "%4d%2d%2d%2d%2d%2d",
 		   &year, &month, &day, &hour, &minute, &second) != 6)
 		return (DNS_R_SYNTAX);
@@ -145,7 +154,7 @@ dns_time64_fromtext(const char *source, isc_int64_t *target) {
 	RANGE(0, 60, second);		/* 60 == leap second. */
 
 	/*
-	 * Calulate seconds since epoch.
+	 * Calculate seconds since epoch.
 	 */
 	value = second + (60 * minute) + (3600 * hour) + ((day - 1) * 86400);
 	for (i = 0; i < (month - 1); i++)

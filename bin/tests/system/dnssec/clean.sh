@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2008, 2010  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000-2002  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,13 +15,16 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.23 2008/09/25 04:02:38 tbox Exp $
+# $Id: clean.sh,v 1.23.48.6 2010/12/18 02:23:31 each Exp $
 
 rm -f */K* */keyset-* */dsset-* */dlvset-* */signedkey-* */*.signed */trusted.conf */tmp* */*.jnl */*.bk
 rm -f ns1/root.db ns2/example.db ns3/secure.example.db
 rm -f ns3/unsecure.example.db ns3/bogus.example.db ns3/keyless.example.db
 rm -f ns3/dynamic.example.db ns3/dynamic.example.db.signed.jnl
+rm -f ns3/rsasha256.example.db ns3/rsasha512.example.db
 rm -f ns2/private.secure.example.db
+rm -f ns2/badparam.db ns2/badparam.db.bad
+rm -f ns2/single-nsec3.db
 rm -f */example.bk
 rm -f dig.out.*
 rm -f random.data
@@ -36,3 +39,5 @@ rm -f ns3/optout.nsec3.example.db
 rm -f ns3/optout.optout.example.db
 rm -f ns3/secure.nsec3.example.db
 rm -f ns3/secure.optout.example.db
+rm -f signer/example.db
+rm -f ns2/algroll.db

@@ -195,7 +195,7 @@ int	main (int argc, char *argv[])
 			action = c;
 			if ( !optarg )
 				usage ("ksk rollover requires an domain argument", config);
-			kskdomain = str_tolowerdup (optarg);
+			kskdomain = domain_canonicdup (optarg);
 			break;
 		case 'T':
 			trustedkeyflag = 1;
@@ -218,15 +218,7 @@ int	main (int argc, char *argv[])
 		case 19:
 		case 20:
 			if ( (keyname = parsetag (optarg, &searchtag)) != NULL )
-			{
-				int len = strlen (keyname);
-				if ( len > 0 && keyname[len-1] != '.' )
-				{
-					snprintf (str, sizeof(str), "%s.", keyname);
-					keyname = str;
-				}
-			}
-			keyname = str_tolowerdup (keyname);
+				keyname = domain_canonicdup (keyname);
 			action = c;
 			break;
 		case 'a':		/* age */
@@ -315,6 +307,7 @@ int	main (int argc, char *argv[])
 	/* it's better to do this before we read the whole directory tree */
 	if ( action == 'Z' )
 	{
+		fprintf (stderr, "The use of -Z is deprecated. Please use zkt-conf instead\n");
 		printconfig ("stdout", config);
 		return 0;
 	}
@@ -436,7 +429,7 @@ static	void    usage (char *mesg, zconf_t *cp)
         sopt_usage ("\tusage: %s -C <name> [-k] [-dpr] [-c config] [dir ...]\n", progname);
         lopt_usage ("\tusage: %s --create=<name> [-k] [-dpr] [-c config] [dir ...]\n", progname);
         fprintf (stderr, "\t\tKSK (use -k):  %s %d bits\n", dki_algo2str (cp->k_algo), cp->k_bits);
-        fprintf (stderr, "\t\tZSK (default): %s %d bits\n", dki_algo2str (cp->z_algo), cp->z_bits);
+        fprintf (stderr, "\t\tZSK (default): %s %d bits\n", dki_algo2str (cp->k_algo), cp->z_bits);
         fprintf (stderr, "\n");
         fprintf (stderr, "Change key status of specified key to published, active or depreciated\n");
         fprintf (stderr, "\t(<keyspec> := tag | tag:name) \n");
@@ -516,7 +509,7 @@ static	void	createkey (const char *keyname, const dki_t *list, const zconf_t *co
 	}
 	
 	if  ( zskflag )
-		dkp = dki_new (dir, keyname, DKI_ZSK, conf->z_algo, conf->z_bits, conf->z_random, conf->z_life / DAYSEC);
+		dkp = dki_new (dir, keyname, DKI_ZSK, conf->k_algo, conf->z_bits, conf->z_random, conf->z_life / DAYSEC);
 	else
 		dkp = dki_new (dir, keyname, DKI_KSK, conf->k_algo, conf->k_bits, conf->k_random, conf->k_life / DAYSEC);
 	if ( dkp == NULL )
@@ -665,7 +658,7 @@ static	void	ksk_roll (const char *keyname, int phase, const dki_t *list, const z
 		}
 
 		// dkp = keylist;	/* use old key to create the parent file */
-		if ( (dkp = (dki_t *)dki_find (keylist, 1, 'a', 1)) == NULL )	/* find the oldest active ksk to create the parent file */
+		if ( (dkp = (dki_t *)dki_findalgo (keylist, 1, conf->k_algo, 'a', 1)) == NULL )	/* find the oldest active ksk to create the parent file */
 			fatal ("ksk_rollover phase1: Couldn't find the old active key\n");
 		if ( !create_parent_file (path, phase, key_ttl, dkp) )
 			fatal ("Couldn't create parentfile %s\n", path);
@@ -751,7 +744,7 @@ static	int	parsedirectory (const char *dir, dki_t **listp)
 
 	while ( (dentp = readdir (dirp)) != NULL )
 	{
-		if ( is_dotfile (dentp->d_name) )
+		if ( is_dotfilename (dentp->d_name) )
 			continue;
 
 		dbg_val ("directory: check %s\n", dentp->d_name);
@@ -766,7 +759,7 @@ static	int	parsedirectory (const char *dir, dki_t **listp)
 			{
 				// fprintf (stderr, "parsedir: tssearch (%d %s)\n", dkp, dkp->name);
 #if defined (USE_TREE) && USE_TREE
-				dki_tadd (listp, dkp);
+				dki_tadd (listp, dkp, 1);
 #else
 				dki_add (listp, dkp);
 #endif
@@ -788,7 +781,7 @@ static	void	parsefile (const char *file, dki_t **listp)
 	{
 		if ( (dkp = dki_read (path, file)) )	/* read DNS key file ... */
 #if defined (USE_TREE) && USE_TREE
-			dki_tadd (listp, dkp);		/* ... and add to tree */
+			dki_tadd (listp, dkp, 1);		/* ... and add to tree */
 #else
 			dki_add (listp, dkp);		/* ... and add to list */
 #endif

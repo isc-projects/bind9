@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.166 2008/10/24 01:24:54 marka Exp $ */
+/* $Id: main.c,v 1.166.34.7 2010/09/15 12:16:49 marka Exp $ */
 
 /*! \file */
 
@@ -139,7 +139,7 @@ assertion_failed(const char *file, int line, isc_assertiontype_t type,
 
 	if (ns_g_lctx != NULL) {
 		/*
-		 * Reset the assetion callback in case it is the log
+		 * Reset the assertion callback in case it is the log
 		 * routines causing the assertion.
 		 */
 		isc_assertion_setcallback(NULL);
@@ -446,13 +446,17 @@ parse_command_line(int argc, char *argv[]) {
 			/* XXXJAB should we make a copy? */
 			ns_g_chrootdir = isc_commandline_argument;
 			break;
-		case 'T':
+		case 'T':	/* NOT DOCUMENTED */
 			/*
 			 * clienttest: make clients single shot with their
 			 * 	       own memory context.
 			 */
 			if (strcmp(isc_commandline_argument, "clienttest") == 0)
 				ns_g_clienttest = ISC_TRUE;
+			else if (!strcmp(isc_commandline_argument, "nosoa"))
+				ns_g_nosoa = ISC_TRUE;
+			else if (!strcmp(isc_commandline_argument, "noaa"))
+				ns_g_noaa = ISC_TRUE;
 			else
 				fprintf(stderr, "unknown -T flag '%s\n",
 					isc_commandline_argument);
@@ -747,7 +751,7 @@ setup(void) {
 
 #ifdef DLZ
 	/*
-	 * Registyer any DLZ drivers.
+	 * Register any DLZ drivers.
 	 */
 	result = dlz_drivers_init();
 	if (result != ISC_R_SUCCESS)
@@ -879,10 +883,10 @@ main(int argc, char *argv[]) {
 	 * strings named.core | grep "named version:"
 	 */
 	strlcat(version,
-#ifdef __DATE__
-		"named version: BIND " VERSION " (" __DATE__ ")",
-#else
+#if defined(NO_VERSION_DATE) || !defined(__DATE__)
 		"named version: BIND " VERSION,
+#else
+		"named version: BIND " VERSION " (" __DATE__ ")",
 #endif
 		sizeof(version));
 	result = isc_file_progname(*argv, program_name, sizeof(program_name));
