@@ -1,3 +1,5 @@
+3093.	[bug]		Fix gssapi/kerberos dependencies [RT #23836]
+
 3092.	[bug]		Signatures for records at the zone apex could go
 			stale due to an incorrect timer setting. [RT #23769]
 

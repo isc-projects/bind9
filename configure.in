@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.520 $)
+AC_REVISION($Revision: 1.521 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -800,15 +800,23 @@ AC_ARG_WITH(gssapi,
 [  --with-gssapi=PATH      Specify path for system-supplied GSSAPI [[default=yes]]],
     use_gssapi="$withval", use_gssapi="yes")
 
-gssapidirs="/usr/local /usr/pkg /usr/kerberos /usr"
+# gssapi is just the framework, we really require kerberos v5, so
+# look for those headers (the gssapi headers must be there, too)
+# The problem with this implementation is that it doesn't allow
+# for the specification of gssapi and krb5 headers in different locations
+# This probably ought to be fixed.
+krb5dirs="/usr/local /usr/local/krb5 /usr/local/kerberosv5 /usr/local/kerberos /usr/pkg /usr/krb5 /usr/kerberosv5 /usr/kerberos /usr"
 if test "$use_gssapi" = "yes"
 then
-	for d in $gssapidirs
+	for d in $krb5dirs
 	do
-		if test -f $d/include/gssapi/gssapi.h -o -f $d/include/gssapi.h
+		if test -f $d/include/gssapi/gssapi_krb5.h -o -f $d/include/krb5.h
 		then
-			use_gssapi=$d
-			break
+			if test -f $d/include/gssapi/gssapi.h -o -f $d/include/gssapi.h
+			then
+				use_gssapi=$d
+				break
+			fi
 		fi
 		use_gssapi="no"
 	done
