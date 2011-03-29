@@ -5,7 +5,7 @@
 
 3091.	[bug]		Fixed a bug in which zone keys that were published
 			and then subsequently activated could fail to trigger
-			automatic signing. [RT #22991]
+			automatic signing. [RT #22911]
 
 3090.	[func]		Make --with-gssapi default [RT #23738]
 
@@ -175,7 +175,7 @@
 
 3042.	[bug]		dig +trace could fail attempting to use IPv6
 			addresses on systems with only IPv4 connectivity.
-			[RT #23797]
+			[RT #23297]
 
 3041.	[bug]		dnssec-signzone failed to generate new signatures on
 			ttl changes. [RT #23330]
