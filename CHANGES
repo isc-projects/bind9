@@ -3,7 +3,7 @@
 
 3091.	[bug]		Fixed a bug in which zone keys that were published
 			and then subsequently activated could fail to trigger
-			automatic signing. [RT #22991]
+			automatic signing. [RT #22911]
 
 3088.   [bug]           Remove bin/tests/system/logfileconfig/ns1/named.conf
                         and add setup.sh in order to resolve changing
@@ -111,7 +111,7 @@
 
 3042.	[bug]		dig +trace could fail attempting to use IPv6
 			addresses on systems with only IPv4 connectivity.
-			[RT #23797]
+			[RT #23297]
 
 3041.	[bug]		dnssec-signzone failed to generate new signatures on
 			ttl changes. [RT #23330]
