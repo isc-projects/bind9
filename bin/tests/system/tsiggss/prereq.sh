@@ -14,14 +14,14 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: prereq.sh,v 1.3 2010/12/20 23:47:20 tbox Exp $
+# $Id: prereq.sh,v 1.4 2011/03/30 15:48:41 smann Exp $
 
 TOP=${SYSTEMTESTTOP:=.}/../../../..
 
 # enable the tsiggss test only if gssapi was enabled
-$TOP/bin/named/named -V | grep with.gssapi | grep -v with-gssapi=no > /dev/null || {
-    echo "I:BIND9 was not built with --with-gssapi"
-    exit 255
+./gssapi_krb5 ||  {
+        echo "I:gssapi and krb5 not supported - skipping tsiggss test"
+        exit 255
 }
 
 exit 0

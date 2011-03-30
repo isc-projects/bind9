@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.521 $)
+AC_REVISION($Revision: 1.522 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -803,23 +803,34 @@ AC_ARG_WITH(gssapi,
 # gssapi is just the framework, we really require kerberos v5, so
 # look for those headers (the gssapi headers must be there, too)
 # The problem with this implementation is that it doesn't allow
-# for the specification of gssapi and krb5 headers in different locations
-# This probably ought to be fixed.
-krb5dirs="/usr/local /usr/local/krb5 /usr/local/kerberosv5 /usr/local/kerberos /usr/pkg /usr/krb5 /usr/kerberosv5 /usr/kerberos /usr"
+# for the specification of gssapi and krb5 headers in different locations,
+# which probably ought to be fixed although fixing might raise the issue of
+# trying to build with incompatible versions of gssapi and krb5.
 if test "$use_gssapi" = "yes"
 then
-	for d in $krb5dirs
-	do
-		if test -f $d/include/gssapi/gssapi_krb5.h -o -f $d/include/krb5.h
+	# first, deal with the obvious
+	if test \( -f /usr/include/kerberosv5/krb5.h -o \
+		   -f /usr/include/krb5/krb5.h -o \
+		   -f /usr/include/krb5.h \)   -a -f /usr/include/gssapi.h
+	then
+		use_gssapi=/usr
+	else
+	    krb5dirs="/usr/local /usr/local/krb5 /usr/local/kerberosv5 /usr/local/kerberos /usr/pkg /usr/krb5 /usr/kerberosv5 /usr/kerberos /usr"
+	    for d in $krb5dirs
+	    do
+		if test -f $d/include/gssapi/gssapi_krb5.h -o \
+		        -f $d/include/krb5.h
 		then
-			if test -f $d/include/gssapi/gssapi.h -o -f $d/include/gssapi.h
+			if test -f $d/include/gssapi/gssapi.h -o \
+			        -f $d/include/gssapi.h
 			then
 				use_gssapi=$d
 				break
 			fi
 		fi
 		use_gssapi="no"
-	done
+	    done
+	fi
 fi
 
 case "$use_gssapi" in
@@ -3416,6 +3427,7 @@ AC_CONFIG_FILES([
 	bin/tests/system/lwresd/Makefile
 	bin/tests/system/rpz/Makefile
 	bin/tests/system/tkey/Makefile
+	bin/tests/system/tsiggss/Makefile
 	bin/tests/tasks/Makefile
 	bin/tests/timers/Makefile
 	bin/tests/virtual-time/Makefile
