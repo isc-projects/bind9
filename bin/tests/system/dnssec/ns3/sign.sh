@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.39 2011/03/05 06:35:41 marka Exp $
+# $Id: sign.sh,v 1.40 2011/03/31 15:58:51 each Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -339,7 +339,8 @@ keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 768 -n zone $zone`
 cat $infile $keyname.key >$zonefile
 
 $SIGNER -P -r $RANDFILE -f $signedfile -o $zone $zonefile > /dev/null 2>&1
-sed 's/300/3600/' $signedfile > $patchedfile
+$CHECKZONE -D -s full $zone $signedfile 2> /dev/null | \
+    awk '{$2 = "3600"; print}' > $patchedfile
 
 #
 # Seperate DNSSEC records.
