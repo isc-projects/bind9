@@ -139,7 +139,7 @@
 3038.	[bug]		Install <dns/rpz.h>.  [RT #23342]
 
 3037.	[doc]		Update COPYRIGHT to contain all the individual
-			3opyright notices that cover various parts.
+			copyright notices that cover various parts.
 
 3036.	[bug]		Check built-in zone arguments to see if the zone
 			is re-usable or not. [RT #21914]
