@@ -9,6 +9,9 @@ Branch				Status	Whom	// Comments
 				private		private branch
 				closed		finished with
 
+ATT2_9_7_3_w_rt22852		new	smann	// 2011-04-04 18:28 +0000
+ATT_9_7_3_w_rt22852		new	smann	// 2011-04-04 17:42 +0000
+ATT_9_7_3_w_rt23392		new	smann	// 2011-04-04 17:01 +0000
 ans2_pl_fix			new	smann	// 2011-02-21 18:13 +0000
 branch_9_5_0_P1			active	each	// 2008-06-30 22:15 +0000
 custom_AFILIAS_v9_4_1_P1	private	marka	// 2007-08-30 01:11 +0000
