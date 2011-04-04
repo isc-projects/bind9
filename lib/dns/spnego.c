@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: spnego.c,v 1.12.126.3 2011/03/28 23:46:39 tbox Exp $ */
+/* $Id: spnego.c,v 1.12.126.4 2011/04/04 11:11:41 marka Exp $ */
 
 /*! \file
  * \brief
@@ -1119,7 +1119,7 @@ der_put_unsigned(unsigned char *p, size_t len, unsigned val, size_t *size)
 			*size = base - p;
 			return (0);
 		}
-	} else if (len < 1)
+	} else if (len < 1U)
 		return (ASN1_OVERFLOW);
 	else {
 		*p = 0;
