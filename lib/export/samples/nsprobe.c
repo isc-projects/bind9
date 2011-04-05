@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsprobe.c,v 1.9 2011/03/12 04:59:48 tbox Exp $ */
+/* $Id: nsprobe.c,v 1.10 2011/04/05 06:33:50 marka Exp $ */
 
 #include <config.h>
 
@@ -1099,8 +1099,8 @@ main(int argc, char *argv[]) {
 
 	if (res->ai_addrlen > sizeof(sa.type)) {
 		fprintf(stderr,
-			"assumption failure: addrlen is too long: %d\n",
-			res->ai_addrlen);
+			"assumption failure: addrlen is too long: %ld\n",
+			(long)res->ai_addrlen);
 		exit(1);
 	}
 	memcpy(&sa.type.sa, res->ai_addr, res->ai_addrlen);
