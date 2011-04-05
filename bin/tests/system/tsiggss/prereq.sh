@@ -14,12 +14,12 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: prereq.sh,v 1.5 2011/03/30 23:47:12 tbox Exp $
+# $Id: prereq.sh,v 1.6 2011/04/05 16:10:39 smann Exp $
 
 TOP=${SYSTEMTESTTOP:=.}/../../../..
 
 # enable the tsiggss test only if gssapi was enabled
-./gssapi_krb5 ||  {
+./gssapi_krb ||  {
         echo "I:gssapi and krb5 not supported - skipping tsiggss test"
         exit 255
 }
