@@ -1,3 +1,5 @@
+3094.	[doc]		Expand dns64 documentation.
+
 3092.	[bug]		Signatures for records at the zone apex could go
 			stale due to an incorrect timer setting. [RT #23769]
 
