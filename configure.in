@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.523 $)
+AC_REVISION($Revision: 1.524 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -812,7 +812,7 @@ then
 	if test \( -f /usr/include/kerberosv5/krb5.h -o \
 		   -f /usr/include/krb5/krb5.h -o \
 		   -f /usr/include/krb5.h \)   -a \
-		\( -f /usr/include/gssapi.h -o
+		\( -f /usr/include/gssapi.h -o \
 		   -f /usr/include/gssapi/gssapi.h \)
 	then
 		use_gssapi=/usr
