@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-# $Id: configure,v 1.503 2011/04/05 19:20:21 tbox Exp $
+# $Id: configure,v 1.504 2011/04/06 21:21:03 tbox Exp $
 #
 # 	Portions of this code release fall under one or more of the
 # 	following Copyright notices.  Please see individual source
@@ -21570,7 +21570,7 @@ then
 	if test \( -f /usr/include/kerberosv5/krb5.h -o \
 		   -f /usr/include/krb5/krb5.h -o \
 		   -f /usr/include/krb5.h \)   -a \
-		\( -f /usr/include/gssapi.h -o
+		\( -f /usr/include/gssapi.h -o \
 		   -f /usr/include/gssapi/gssapi.h \)
 	then
 		use_gssapi=/usr
