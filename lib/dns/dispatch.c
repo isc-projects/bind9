@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.116.18.42 2009/12/02 23:36:35 marka Exp $ */
+/* $Id: dispatch.c,v 1.116.18.43 2011/04/06 15:05:24 marka Exp $ */
 
 /*! \file */
 
@@ -769,7 +769,8 @@ get_dispsocket(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 			continue;
 
 		result = open_socket(sockmgr, &localaddr, 0, &sock);
-		if (result == ISC_R_SUCCESS || result != ISC_R_ADDRINUSE)
+		if (result == ISC_R_SUCCESS ||
+		    (result != ISC_R_ADDRINUSE && result != ISC_R_NOPERM))
 			break;
 	}
 
