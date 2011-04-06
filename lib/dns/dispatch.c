@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.171 2011/03/11 06:11:23 marka Exp $ */
+/* $Id: dispatch.c,v 1.172 2011/04/06 10:27:16 marka Exp $ */
 
 /*! \file */
 
@@ -913,6 +913,12 @@ get_dispsocket(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 			}
 			portentry->refs++;
 			break;
+		} else if (result == ISC_R_NOPERM) {
+			char buf[ISC_SOCKADDR_FORMATSIZE];
+			isc_sockaddr_format(&localaddr, buf, sizeof(buf));
+			dispatch_log(disp, ISC_LOG_WARNING,
+				     "open_socket(%s) -> %s: continuing",
+				     buf, isc_result_totext(result));
 		} else if (result != ISC_R_ADDRINUSE)
 			break;
 	}

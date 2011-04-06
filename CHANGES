@@ -1,3 +1,6 @@
+3095.	[bug]		Handle isolated reserved ports in the port range.
+			[RT #23957]
+
 3094.	[doc]		Expand dns64 documentation.
 
 3093.	[bug]		Fix gssapi/kerberos dependencies [RT #23836]
