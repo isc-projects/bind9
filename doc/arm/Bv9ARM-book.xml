@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.483 2011/03/21 07:22:12 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.484 2011/04/06 04:20:58 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -5801,12 +5801,15 @@ options {
 		<userinput>any;</userinput>.
 	      </para>
 	      <para>
-		Each <command>dns64</command> supports an optional
-		<command>exclude</command> ACL that selects which
-		IPv6 addresses will be ignored for the purposes
-		of determining whether dns64 is to be applied.
-                Any non-matching address will prevent further
-		DNS64 processing from occurring for this client.
+		Normally, DNS64 won't apply to a domain name that
+		owns one or more AAAA records; these records will
+		simply be returned.  The optional
+		<command>exclude</command> ACL allows specification
+		of a list of IPv6 addresses that will be ignored
+		if they appear in a domain name's AAAA records, and
+		DNS64 will be applied to any A records the domain
+		name owns.  If not defined, <command>exclude</command>
+		defaults to none.
 	      </para>
 	      <para>
 		A optional <command>suffix</command> can also
@@ -5815,6 +5818,21 @@ options {
 		set to <userinput>::</userinput>.  The bits
 		matching the prefix and mapped IPv4 address
 		must be zero.
+	      </para>
+	      <para>
+		If <command>recursive-only</command> is set to
+		<command>yes</command> the DNS64 synthesis will
+		only happen for recursive queries.  The default
+		is <command>no</command>.
+	      </para>
+	      <para>
+		If <command>break-dnssec</command> is set to
+		<command>yes</command> the DNS64 synthesis will
+		happen even if the result, if validated, would
+		cause a DNSSEC validation failure.  If this option
+		is set to <command>no</command> (the default), the DO
+		is set on the incoming query, and there are RRSIGs on
+		the applicable records, then synthesis will not happen.
 	      </para>
 <programlisting>
 	acl rfc1918 { 10/8; 192.168/16; 172.16/12; };
