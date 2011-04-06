@@ -1,3 +1,6 @@
+3095.	[bug]		Handle isolated reserved ports in the port range.
+			[RT #23957]
+
 3092.	[bug]		Signatures for records at the zone apex could go
 			stale due to an incorrect timer setting. [RT #23769]
 
