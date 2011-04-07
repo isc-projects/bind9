@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gssapictx.c,v 1.12.118.7 2011/03/28 23:45:57 tbox Exp $ */
+/* $Id: gssapictx.c,v 1.12.118.8 2011/04/07 23:07:37 marka Exp $ */
 
 #include <config.h>
 
@@ -617,14 +617,14 @@ dst_gssapi_acceptctx(gss_cred_id_t cred,
 
 	REQUIRE(outtoken != NULL && *outtoken == NULL);
 
-	log_cred(cred);
-
 	REGION_TO_GBUFFER(*intoken, gintoken);
 
 	if (*ctxout == NULL)
 		context = GSS_C_NO_CONTEXT;
 	else
 		context = *ctxout;
+
+	log_cred(cred);
 
 	gret = gss_accept_sec_context(&minor, &context, cred, &gintoken,
 				      GSS_C_NO_CHANNEL_BINDINGS, &gname,
