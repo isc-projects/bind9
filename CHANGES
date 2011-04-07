@@ -1,5 +1,5 @@
-3096.	[bug]		Set KRB5_KTNAME before calling log_cred() in
-			dst_gssapi_acceptctx(). [RT #24004]
+
+	--- 9.7.4b1 released ---
 
 3095.	[bug]		Handle isolated reserved ports in the port range.
 			[RT #23957]
