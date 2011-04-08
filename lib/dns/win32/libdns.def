@@ -58,6 +58,7 @@ dns_cache_attachdb
 dns_cache_clean
 dns_cache_create
 dns_cache_create2
+dns_cache_create3
 dns_cache_detach
 dns_cache_dump
 dns_cache_flush
@@ -184,6 +185,7 @@ dns_dispatchmgr_setavailports
 dns_dispatchmgr_setblackhole
 dns_dispatchmgr_setblackportlist
 dns_dispatchmgr_setstats
+dns_dlz_writeablezone
 dns_dlzallowzonexfr
 dns_dlzconfigure
 dns_dlzcreate
@@ -192,7 +194,6 @@ dns_dlzfindzone
 dns_dlzregister
 dns_dlzstrtoargv
 dns_dlzunregister
-dns_dlz_writeablezone
 dns_dns64_aaaafroma
 dns_dns64_aaaaok
 dns_dns64_append
@@ -579,7 +580,6 @@ dns_resolver_createfetch
 dns_resolver_createfetch2
 dns_resolver_destroyfetch
 dns_resolver_detach
-dns_resolver_settimeout
 dns_resolver_disable_algorithm
 dns_resolver_dispatchmgr
 dns_resolver_dispatchv4
@@ -601,6 +601,7 @@ dns_resolver_resetmustbesecure
 dns_resolver_setclientsperquery
 dns_resolver_setlamettl
 dns_resolver_setmustbesecure
+dns_resolver_settimeout
 dns_resolver_settimeout
 dns_resolver_setudpsize
 dns_resolver_setzeronosoattl
