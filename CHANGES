@@ -11,7 +11,7 @@
 			and then subsequently activated could fail to trigger
 			automatic signing. [RT #22911]
 
-3088.   [bug]           Remove bin/tests/system/logfileconfig/ns1/named.conf
+3088.	[bug]           Remove bin/tests/system/logfileconfig/ns1/named.conf
                         and add setup.sh in order to resolve changing
                         named.conf issue.  [RT #23687]
 
@@ -71,7 +71,7 @@
 
 3059.	[test]		Added a regression test for change #3023.
 
-3058.   [bug]           Cause named to terminate at startup or rndc reconfig/
+3058.	[bug]           Cause named to terminate at startup or rndc reconfig/
                         reload to fail, if a log file specified in the conf
                         file isn't a plain file. [RT #22771]
 
@@ -99,7 +99,7 @@
 
 3048.	[bug]		Fully separate view key mangement. [RT #23419]
 
-3047.   [bug]		DNSKEY NODATA responses not cached fixed in
+3047.	[bug]		DNSKEY NODATA responses not cached fixed in
 			validator.c. Tests added to dnssec system test.
 			[RT #22908]
 
@@ -132,7 +132,7 @@
 3036.	[bug]		Check built-in zone arguments to see if the zone
 			is re-usable or not. [RT #21914]
 
-3035.	[cleanup]	Simplify by using strlcpy. [RT #22521] 
+3035.	[cleanup]	Simplify by using strlcpy. [RT #22521]
 
 3034.	[cleanup]	nslookup: use strlcpy instead of safecopy. [RT #22521]
 
@@ -160,7 +160,7 @@
 3026.	[bug]		lib/isc/httpd.c: check that we have enough space
 			after calling grow_headerspace() and if not
 			re-call grow_headerspace() until we do. [RT #22521]
-			
+
 3025.	[bug]		Fixed a possible deadlock due to zone resigning.
 			[RT #22964]
 
@@ -252,7 +252,7 @@
 
 2976.	[bug]		named could die on exit after negotiating a GSS-TSIG
 			key. [RT #22573]
-			
+
 2975.	[bug]		rbtdb.c:cleanup_dead_nodes_callback() acquired the
 			wrong lock which could lead to server deadlock.
 			[RT #22614]
@@ -346,7 +346,7 @@
 2950.	[bug]		named failed to perform a SOA up to date check when
 			falling back to TCP on UDP timeouts when
 			ixfr-from-differences was set. [RT #21595]
-			
+
 2949.	[bug]		dns_view_setnewzones() contained a memory leak if
 			it was called multiple times. [RT #21942]
 
@@ -451,7 +451,7 @@
 			This feature is not yet documented, and its syntax
 			is expected to change.) [RT #19447]
 
-2929.	[bug]		Improved handling of GSS security contexts: 
+2929.	[bug]		Improved handling of GSS security contexts:
 			 - added LRU expiration for generated TSIGs
 			 - added the ability to use a non-default realm
                          - added new "realm" keyword in nsupdate
@@ -522,7 +522,7 @@
 2905.	[port]		aix: set use_atomic=yes with native compiler.
 			[RT #21402]
 
-2904.   [bug]           When using DLV, sub-zones of the zones in the DLV,
+2904.	[bug]           When using DLV, sub-zones of the zones in the DLV,
 			could be incorrectly marked as insecure instead of
 			secure leading to negative proofs failing.  This was
 			a unintended outcome from change 2890. [RT# 21392]
@@ -537,17 +537,17 @@
 2901.	[port]		Use AC_C_FLEXIBLE_ARRAY_MEMBER. [RT #21316]
 
 2900.	[bug]		The placeholder negative caching element was not
-			properly constructed triggering a INSIST in 
+			properly constructed triggering a INSIST in
 			dns_ncache_towire(). [RT #21346]
-			
+
 2899.	[port]		win32: Support linking against OpenSSL 1.0.0.
 
-2898.	[bug]		nslookup leaked memory when -domain=value was 
+2898.	[bug]		nslookup leaked memory when -domain=value was
 			specified. [RT #21301]
 
 2897.	[bug]		NSEC3 chains could be left behind when transitioning
 			to insecure. [RT #21040]
-			
+
 2896.	[bug]		"rndc sign" failed to properly update the zone
 			when adding a DNSKEY for publication only. [RT #21045]
 
@@ -787,7 +787,7 @@
 2819.	[cleanup]	Removed unnecessary DNS_POINTER_MAXHOPS define.
 			[RT #20771]
 
-2818.	[cleanup]	rndc could return an incorrect error code 
+2818.	[cleanup]	rndc could return an incorrect error code
 			when a zone was not found. [RT #20767]
 
 2817.	[cleanup]	Removed unnecessary isc_task_endexclusive() calls.
@@ -801,7 +801,7 @@
 
 2814.	[func]		Provide a definitive error message when a master
 			zone is not loaded. [RT #20757]
- 
+
 2813.	[bug]		Better handling of unreadable DNSSEC key files.
 			[RT #20710]
 
@@ -850,7 +850,7 @@
 
 			named-checkzone -r {ignore|warn|fail} (default warn)
 			named-compilezone -r {ignore|warn|fail} (default warn)
-			
+
 			named.conf: check-dup-records {ignore|warn|fail};
 
 2800.	[func]		Reject zones which have NS records which refer to
@@ -862,7 +862,7 @@
 			"dnssec-secure-to-insecure", and "dnskey-ksk-only"
 			to "dnssec-dnskey-kskonly", for clarity. [RT #20586]
 
-2798.	[bug]		Addressed bugs in managed-keys initialization 
+2798.	[bug]		Addressed bugs in managed-keys initialization
 			and rollover. [RT #20683]
 
 2797.	[bug]		Don't decrement the dispatch manager's maxbuffers.
@@ -887,7 +887,7 @@
 
 2790.	[bug]		Handle DS queries to stub zones. [RT #20440]
 
-2789.   [bug]           Fixed an INSIST in dispatch.c [RT #20576]
+2789.	[bug]           Fixed an INSIST in dispatch.c [RT #20576]
 
 2788.	[bug]		dnssec-signzone could sign with keys that were
 			not requested [RT #20625]
@@ -1783,7 +1783,7 @@
 2529.	[cleanup]	Upgrade libtool to silence complaints from recent
 			version of autoconf. [RT #18657]
 
-2528.   [cleanup]	Silence spurious configure warning about
+2528.	[cleanup]	Silence spurious configure warning about
 			--datarootdir [RT #19096]
 
 2527.	[placeholder]
@@ -2068,13 +2068,13 @@
 2441.	[bug]		isc_radix_insert() could copy radix tree nodes
 			incompletely. [RT #18573]
 
-2440.   [bug]		named-checkconf used an incorrect test to determine
+2440.	[bug]		named-checkconf used an incorrect test to determine
 			if an ACL was set to none.
 
-2439.   [bug]		Potential NULL dereference in dns_acl_isanyornone().
+2439.	[bug]		Potential NULL dereference in dns_acl_isanyornone().
 			[RT #18559]
 
-2438.   [bug]		Timeouts could be logged incorrectly under win32.
+2438.	[bug]		Timeouts could be logged incorrectly under win32.
 
 2437.	[bug]		Sockets could be closed too early, leading to
 			inconsistent states in the socket module. [RT #18298]
@@ -2088,7 +2088,7 @@
 
 2433.	[tuning]	Set initial timeout to 800ms.
 
-2432.   [bug]		More Windows socket handling improvements.  Stop
+2432.	[bug]		More Windows socket handling improvements.  Stop
 			using I/O events and use IO Completion Ports
 			throughout.  Rewrite the receive path logic to make
 			it easier to support multiple simultaneous
@@ -2123,7 +2123,7 @@
 			epoll and /dev/poll to be selected at compile
 			time. [RT #18277]
 
-2423.   [security]	Randomize server selection on queries, so as to
+2423.	[security]	Randomize server selection on queries, so as to
                         make forgery a little more difficult.  Instead of
                         always preferring the server with the lowest RTT,
                         pick a server with RTT within the same 128
@@ -2137,7 +2137,7 @@
 			Use caution: this option may not work for some
 			operating systems without rebuilding named.
 
-2420.   [bug]		Windows socket handling cleanup.  Let the io
+2420.	[bug]		Windows socket handling cleanup.  Let the io
 			completion event send out canceled read/write
 			done events, which keeps us from writing to memory
 			we no longer have ownership of.  Add debugging
@@ -2459,7 +2459,7 @@
 2316.	[port]		Missing #include <isc/print.h> in lib/dns/gssapictx.c.
 			[RT #17513]
 
-2315.   [bug]           Used incorrect address family for mapped IPv4
+2315.	[bug]           Used incorrect address family for mapped IPv4
                         addresses in acl.c. [RT #17519]
 
 2314.	[bug]		Uninitialized memory use on error path in
@@ -2471,13 +2471,13 @@
 2312.	[cleanup]	Silence Coverity warning in lib/isc/unix/socket.c.
 			[RT #17458]
 
-2311.   [bug]           IPv6 addresses could match IPv4 ACL entries and
+2311.	[bug]           IPv6 addresses could match IPv4 ACL entries and
                         vice versa. [RT #17462]
 
 2310.	[bug]		dig, host, nslookup: flush stdout before emitting
 			debug/fatal messages.  [RT #17501]
 
-2309.   [cleanup]       Fix Coverity warnings in lib/dns/acl.c and iptable.c.
+2309.	[cleanup]       Fix Coverity warnings in lib/dns/acl.c and iptable.c.
                         [RT #17455]
 
 2308.	[cleanup]	Silence Coverity warning in bin/named/controlconf.c.
@@ -2530,7 +2530,7 @@
 2292.	[bug]		Log if the working directory is not writable.
 			[RT #17312]
 
-2291.   [bug]           PR_SET_DUMPABLE may be set too late.  Also report
+2291.	[bug]           PR_SET_DUMPABLE may be set too late.  Also report
 			failure to set PR_SET_DUMPABLE. [RT #17312]
 
 2290.	[bug]		Let AD in the query signal that the client wants AD
@@ -2568,7 +2568,7 @@
 2280.	[func]		Allow the experimental http server to be reached
 			over IPv6 as well as IPv4. [RT #17332]
 
-2279.   [bug]           Use setsockopt(SO_NOSIGPIPE), when available,
+2279.	[bug]           Use setsockopt(SO_NOSIGPIPE), when available,
 			to protect applications from receiving spurious
 			SIGPIPE signals when using the resolver.
 
@@ -2603,7 +2603,7 @@
 
 	--- 9.5.0b1 released ---
 
-2267.   [bug]           Radix tree node_num value could be set incorrectly,
+2267.	[bug]           Radix tree node_num value could be set incorrectly,
                         causing positive ACL matches to look like negative
                         ones.  [RT #17311]
 
@@ -2621,7 +2621,7 @@
 2262.	[bug]		Error status from all but the last view could be
 			lost. [RT #17292]
 
-2261.   [bug]           Fix memory leak with "any" and "none" ACLs [RT #17272]
+2261.	[bug]           Fix memory leak with "any" and "none" ACLs [RT #17272]
 
 2260.	[bug]		Reported wrong clients-per-query when increasing the
 			value. [RT #17236]
