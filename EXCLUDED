@@ -375,9 +375,6 @@
 2657.	[cleanup]	Lower "journal file <path> does not exist, creating it"
 			log level to debug 1. [RT #20058]
 
-2655.   [doc]           Document that key-directory does not affect
-                        bind.keys, rndc.key or session.key.  [RT #20155]
-
 2654.   [bug]           Improve error reporting on duplicated names for
                         deny-answer-xxx. [RT #20164]
 
@@ -425,10 +422,98 @@
 			"insecurity proof failed" instead of "not
 			insecure". [RT #19400]
 
-2537.   [func]          Added more statistics counters including those on socket
-                        I/O events and query RTT histograms. [RT #18802]
+2525.   [experimental]	New logging category "query-errors" to provide detailed
+			internal information about query failures, especially
+			about server failures. [RT #19027]
 
-2525.   [func]          New logging category "query-errors" to provide detailed
-                        internal information about query failures, especially
-                        about server failures. [RT #19027]
+2537.	[func]		Added more statistics counters including those on socket
+			I/O events and query RTT histograms. [RT #18802]
 
+2655.	[doc]		Document that key-directory does not affect
+			rndc.key.  [RT #20155]
+
+2834.	[bug]		HMAC-SHA* keys that were longer than the algorithm
+			digest length were used incorrectly, leading to
+			interoperability problems with other DNS
+			implementations.  This has been corrected.
+			(Note: If an oversize key is in use, and
+			compatibility is needed with an older release of
+			BIND, the new tool "isc-hmac-fixup" can convert
+			the key secret to a form that will work with all
+			versions.) [RT #20751]
+
+2840.	[bug]		Temporary fixed pkcs11-destroy usage check.
+			[RT #20760]
+
+3010.	[bug]		Fixed a bug where "rndc reconfig" stopped the timer
+			for refreshing managed-keys. [RT #22296]
+
+3013.	[bug]		The DNS64 ttl was not always being set as expected.
+			[RT #23034]
+
+3017.	[doc]		dnssec-keyfromlabel -I was not properly documented.
+			[RT #22887]
+
+3020.	[bug]		auto-dnssec failed to correctly update the zone when
+			changing the DNSKEY RRset. [RT #23232]
+
+3021.	[bug]		Change #3010 was incomplete. [RT #22296]
+
+3022.	[bug]		Fixed rpz SERVFAILs after failed zone transfers
+                        [RT #23246]
+
+3038.	[bug]		Install <dns/rpz.h>.  [RT #23342]
+
+3045.	[removed]	Replaced by change #3050.
+
+3048.	[bug]		Fully separate view key mangement. [RT #23419]
+
+3050.	[bug]		The autosign system test was timing dependent.
+			Wait for the initial autosigning to complete
+			before running the rest of the test. [RT #23035]
+
+3052.	[test]		Fixed last autosign test report. [RT #23256]
+
+3054.	[bug]		Added elliptic curve support check in
+			GOST OpenSSL engine detection. [RT #23485]
+
+3057.	[bug]		"rndc secroots" would abort after the first error
+			and so could miss some views. [RT #23488]
+
+3072.	[bug]		dns_dns64_aaaaok() potential NULL pointer dereference.
+			[RT #20256]
+
+3073.	[bug]		managed-keys changes were not properly being recorded.
+			[RT #20256]
+
+3075.	[bug]		dns_dnssec_findzonekeys{2} used a inconsistant
+			timestamp when determining which keys are active.
+			[RT #23642]
+
+3077.	[bug]		zone.c:zone_refreshkeys() incorrectly called
+			dns_zone_attach(), use zone->irefs instead. [RT #23303]
+
+3082.	[port]		strtok_r is threads only. [RT #23747]
+
+3086.	[bug]		Running dnssec-settime -f on an old-style key will
+			now force an update to the new key format even if no
+			other change has been specified, using "-P now -A now"
+			as default values.  [RT #22474]
+
+3087.	[bug]		DDNS updates using SIG(0) with update-policy match
+			type "external" could cause a crash. [RT #23735]
+
+3091.	[bug]		Fixed a bug in which zone keys that were published
+			and then subsequently activated could fail to trigger
+			automatic signing. [RT #22911]
+
+3094.	[doc]		Expand dns64 documentation.
+
+3096.	[bug]		Set KRB5_KTNAME before calling log_cred() in
+			dst_gssapi_acceptctx(). [RT #24004]
+
+2655.	[doc]		Document that key-directory does not affect
+			bind.keys, rndc.key or session.key.  [RT #20155]
+
+2810.   [doc]           Clarified the process of transitioning an NSEC3 zone
+                        to insecure. [RT #20746]
