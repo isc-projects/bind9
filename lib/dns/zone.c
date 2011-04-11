@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.410.18.61 2009/09/24 21:38:52 jinmei Exp $ */
+/* $Id: zone.c,v 1.410.18.62 2011/04/11 21:11:01 each Exp $ */
 
 /*! \file */
 
@@ -3140,7 +3140,7 @@ dns_zone_refresh(dns_zone_t *zone) {
 	isc_interval_set(&i, isc_random_jitter(zone->retry, zone->retry / 4),
 			 0);
 	result = isc_time_nowplusinterval(&zone->refreshtime, &i);
-	if (result |= ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		dns_zone_log(zone, ISC_LOG_WARNING,
 			     "isc_time_nowplusinterval() failed: %s",
 			     dns_result_totext(result));
