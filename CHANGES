@@ -1,3 +1,5 @@
+3097.	[test]		Add a tool to test handling of malformed packets.
+			[RT #24096]
 
 	--- 9.7.4b1 released ---
 
