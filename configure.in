@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.512.8.7 $)
+AC_REVISION($Revision: 1.512.8.8 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -797,20 +797,42 @@ AC_SUBST(PKCS11_PROVIDER)
 
 AC_MSG_CHECKING(for GSSAPI library)
 AC_ARG_WITH(gssapi,
-[  --with-gssapi=PATH      Specify path for system-supplied GSSAPI],
-    use_gssapi="$withval", use_gssapi="no")
+[  --with-gssapi=PATH      Specify path for system-supplied GSSAPI [[default=yes]]],
+    use_gssapi="$withval", use_gssapi="yes")
 
-gssapidirs="/usr/local /usr/pkg /usr/kerberos /usr"
+# gssapi is just the framework, we really require kerberos v5, so
+# look for those headers (the gssapi headers must be there, too)
+# The problem with this implementation is that it doesn't allow
+# for the specification of gssapi and krb5 headers in different locations,
+# which probably ought to be fixed although fixing might raise the issue of
+# trying to build with incompatible versions of gssapi and krb5.
 if test "$use_gssapi" = "yes"
 then
-	for d in $gssapidirs
-	do
-		if test -f $d/include/gssapi/gssapi.h -o -f $d/include/gssapi.h
+	# first, deal with the obvious
+	if test \( -f /usr/include/kerberosv5/krb5.h -o \
+		   -f /usr/include/krb5/krb5.h -o \
+		   -f /usr/include/krb5.h \)   -a \
+		\( -f /usr/include/gssapi.h -o \
+		   -f /usr/include/gssapi/gssapi.h \)
+	then
+		use_gssapi=/usr
+	else
+	    krb5dirs="/usr/local /usr/local/krb5 /usr/local/kerberosv5 /usr/local/kerberos /usr/pkg /usr/krb5 /usr/kerberosv5 /usr/kerberos /usr"
+	    for d in $krb5dirs
+	    do
+		if test -f $d/include/gssapi/gssapi_krb5.h -o \
+		        -f $d/include/krb5.h
 		then
-			use_gssapi=$d
-			break
+			if test -f $d/include/gssapi/gssapi.h -o \
+			        -f $d/include/gssapi.h
+			then
+				use_gssapi=$d
+				break
+			fi
 		fi
-	done
+		use_gssapi="no"
+	    done
+	fi
 fi
 
 case "$use_gssapi" in
@@ -3407,6 +3429,7 @@ AC_CONFIG_FILES([
 	bin/tests/system/lwresd/Makefile
 	bin/tests/system/rpz/Makefile
 	bin/tests/system/tkey/Makefile
+	bin/tests/system/tsiggss/Makefile
 	bin/tests/tasks/Makefile
 	bin/tests/timers/Makefile
 	bin/tests/virtual-time/Makefile

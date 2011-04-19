@@ -11,12 +11,16 @@
 
 3094.	[doc]		Expand dns64 documentation.
 
+3093.   [bug]           Fix gssapi/kerberos dependencies [RT #23836]
+
 3092.	[bug]		Signatures for records at the zone apex could go
 			stale due to an incorrect timer setting. [RT #23769]
 
 3091.	[bug]		Fixed a bug in which zone keys that were published
 			and then subsequently activated could fail to trigger
 			automatic signing. [RT #22911]
+
+3090.   [func]          Make --with-gssapi default [RT #23738]
 
 3088.	[bug]		Remove bin/tests/system/logfileconfig/ns1/named.conf
 			and add setup.sh in order to resolve changing
