@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.2 2010/08/16 04:46:15 marka Exp $
+# $Id: tests.sh,v 1.2.76.1 2011/04/19 22:31:43 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -35,6 +35,7 @@ $DIG $DIGOPTS +norec foo.example.com. \
 grep "status: NOERROR" dig.out.ns1.test$n > /dev/null || ret=1
 grep "example.com..*DNAME.*example.net." dig.out.ns1.test$n > /dev/null || ret=1
 grep "foo.example.com..*CNAME.*foo.example.net." dig.out.ns1.test$n > /dev/null || ret=1
+grep "flags:[^;]* aa[ ;]" dig.out.ns1.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
