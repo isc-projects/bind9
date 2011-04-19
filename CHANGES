@@ -1,3 +1,6 @@
+3099.	[test]		"dlz" system test now runs but gives R:SKIPPED if
+			not compiled with --with-dlz-filesystem.  [RT #24146]
+
 3097.	[test]		Add a tool to test handling of malformed packets.
 			[RT #24096]
 
