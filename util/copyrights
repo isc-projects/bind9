@@ -738,7 +738,8 @@
 ./bin/tests/system/dlz/ns1/dns-root/com/example/dns.d/@/SOA=10=ns.example.com.=root.example.com.=2010062900=0=0=0=10=	TXT.BRIEF	2010
 ./bin/tests/system/dlz/ns1/dns-root/com/example/xfr.d/10.53.0.1	TXT.BRIEF	2010
 ./bin/tests/system/dlz/ns1/named.conf		CONF-C	2010
-./bin/tests/system/dlz/tests.sh			SH	2010
+./bin/tests/system/dlz/prereq.sh.in		SH	2011
+./bin/tests/system/dlz/tests.sh			SH	2010,2011
 ./bin/tests/system/dlzexternal/Makefile.in	MAKE	2011
 ./bin/tests/system/dlzexternal/clean.sh		SH	2010
 ./bin/tests/system/dlzexternal/dlopen.c		C	2011
