@@ -1,3 +1,5 @@
+	--- 9.8.1b2 released ---
+
 3099.	[test]		"dlz" system test now runs but gives R:SKIPPED if
 			not compiled with --with-dlz-filesystem.  [RT #24146]
 
@@ -6,8 +8,6 @@
 
 3097.	[test]		Add a tool to test handling of malformed packets.
 			[RT #24096]
-
-	--- 9.8.1b1 released ---
 
 3096.	[bug]		Set KRB5_KTNAME before calling log_cred() in
 			dst_gssapi_acceptctx(). [RT #24004]
