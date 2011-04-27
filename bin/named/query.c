@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.353.8.2 2011/02/18 15:27:58 smann Exp $ */
+/* $Id: query.c,v 1.353.8.2.2.1 2011/04/27 17:06:27 each Exp $ */
 
 /*! \file */
 
@@ -4087,9 +4087,15 @@ rpz_find(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qnamef,
 			if (dns_rdataset_isassociated(*rdatasetp))
 				dns_rdataset_disassociate(*rdatasetp);
 			dns_db_detachnode(*dbp, nodep);
-			result = dns_db_find(*dbp, qnamef, version, qtype, 0,
-					     client->now, nodep, found,
-					     *rdatasetp, NULL);
+
+			if (qtype == dns_rdatatype_rrsig ||
+			    qtype == dns_rdatatype_sig)
+				result = DNS_R_NXRRSET;
+			else 
+				result = dns_db_find(*dbp, qnamef, version,
+						     qtype, 0, client->now,
+						     nodep, found, *rdatasetp,
+						     NULL);
 		}
 	}
 	switch (result) {

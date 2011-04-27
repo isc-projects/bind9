@@ -1,3 +1,9 @@
+	--- 9.8.0-P1 released ---
+
+3100.	[security]	Certain response policy zone configurations could
+			trigger an INSIST when receiving a query of type
+			RRSIG. [RT #24280]
+
 	--- 9.8.0 released ---
 
 3025.	[bug]		Fixed a possible deadlock due to zone resigning.
