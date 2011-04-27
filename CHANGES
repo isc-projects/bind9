@@ -1,3 +1,7 @@
+3100.	[security]	Certain response policy zone configurations could
+			trigger an INSIST when receiving a query of type
+			RRSIG. [RT #24280]
+
 	--- 9.8.1b2 released ---
 
 3099.	[test]		"dlz" system test now runs but gives R:SKIPPED if

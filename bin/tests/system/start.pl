@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: start.pl,v 1.16.54.3 2011/03/05 23:52:08 tbox Exp $
+# $Id: start.pl,v 1.16.54.4 2011/04/27 17:43:06 each Exp $
 
 # Framework for starting test servers.
 # Based on the type of server specified, check for port availability, remove
@@ -36,9 +36,10 @@ use Getopt::Long;
 #             NOTE: options must be specified with '-- "<option list>"',
 #              for instance: start.pl . ns1 -- "-c n.conf -d 43"
 
-my $usage = "usage: $0 [--noclean] test-directory [server-directory [server-options]]";
-my $noclean;
-GetOptions('noclean' => \$noclean);
+my $usage = "usage: $0 [--noclean] [--restart] test-directory [server-directory [server-options]]";
+my $noclean = '';
+my $restart = '';
+GetOptions('noclean' => \$noclean, 'restart' => \$restart);
 my $test = $ARGV[0];
 my $server = $ARGV[1];
 my $options = $ARGV[2];
@@ -139,7 +140,11 @@ sub start_server {
 				if (-e "$testdir/$server/named.noaa");
 			$command .= "-c named.conf -d 99 -g";
 		}
-		$command .= " >named.run 2>&1 &";
+		if ($restart) {
+			$command .= " >>named.run 2>&1 &";
+		} else {
+			$command .= " >named.run 2>&1 &";
+		}
 		$pid_file = "named.pid";
 	} elsif ($server =~ /^lwresd/) {
 		$cleanup_files = "{lwresd.run}";
@@ -152,7 +157,11 @@ sub start_server {
 			$command .= "-C resolv.conf -d 99 -g ";
 			$command .= "-i lwresd.pid -P 9210 -p 5300";
 		}
-		$command .= " >lwresd.run 2>&1 &";
+		if ($restart) {
+			$command .= " >>lwresd.run 2>&1 &";
+		} else {
+			$command .= " >lwresd.run 2>&1 &";
+		}
 		$pid_file = "lwresd.pid";
 	} elsif ($server =~ /^ans/) {
 		$cleanup_files = "{ans.run}";
@@ -166,7 +175,11 @@ sub start_server {
 		} else {
 			$command .= "";
 		}
-		$command .= " >ans.run 2>&1 &";
+		if ($restart) {
+			$command .= " >>ans.run 2>&1 &";
+		} else {
+			$command .= " >ans.run 2>&1 &";
+		}
 		$pid_file = "ans.pid";
 	} else {
 		print "I:Unknown server type $server\n";
@@ -206,8 +219,8 @@ sub verify_server {
 	while (1) {
 		my $return = system("$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd -p 5300 version.bind. chaos txt \@10.53.0.$n > dig.out");
 		last if ($return == 0);
-		print `grep ";" dig.out`;
 		if (++$tries >= 30) {
+			print `grep ";" dig.out > /dev/null`;
 			print "I:no response from $server\n";
 			print "R:FAIL\n";
 			system("$PERL $topdir/stop.pl $testdir");
