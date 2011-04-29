@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.12.18.4 2011/03/25 23:53:52 each Exp $
+# $Id: tests.sh,v 1.12.18.5 2011/04/29 21:41:59 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -845,6 +845,43 @@ $DIG $DIGOPTS dnskey bar @10.53.0.4 > dig.out.ns4.test$n || lret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || lret=1
 n=`expr $n + 1`
 if [ $lret != 0 ]; then echo "I:not yet implemented"; fi
+
+echo "I:checking key event timers are always set ($n)"
+# this is a regression test for a bug in which the next key event could
+# be scheduled for the present moment, and then never fire.  check for
+# visible evidence of this error in the logs:
+awk '/next key event/ {if ($1 == $8 && $2 == $9) exit 1}' */named.run || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+# this confirms that key events are never scheduled more than
+# a given number of seconds into the future, and that the last
+# event scheduled is precisely that far in the future.
+check_interval () {
+        awk '/next key event/ {print $2 ":" $9}' $1/named.run |
+            awk -F: -vinterval=$2 '
+                     {
+                       if ($6 == 0)
+                         $6 = 25;
+                       x = ($6+ $5*60 + $4*3600) - ($3 + $2*60 + $1*3600);
+                       if (x != int(x))
+                         x = int(x + 1);
+                       if (x > interval)
+                         exit (1);
+                     }
+                     END { if (x != interval) exit(1) }'
+        return $?
+}
+
+echo "I:checking automatic key reloading interval ($n)"
+ret=0
+check_interval ns1 3600 || ret=1
+check_interval ns2 3600 || ret=1
+check_interval ns3 3600 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
 
 echo "I:exit status: $status"
 

@@ -1,3 +1,6 @@
+3101.	[bug]		Zones using automatic key maintenance could fail
+			to check the key repository for updates. [RT #23744]
+
 3100.	[security]	Certain response policy zone configurations could
 			trigger an INSIST when receiving a query of type
 			RRSIG. [RT #24280]
