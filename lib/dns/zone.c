@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.602 2011/04/29 21:37:15 each Exp $ */
+/* $Id: zone.c,v 1.603 2011/04/29 23:47:18 tbox Exp $ */
 
 /*! \file */
 
@@ -14319,7 +14319,7 @@ dns_zone_setrefreshkeyinterval(dns_zone_t *zone, isc_uint32_t interval) {
 	if (interval == 0)
 		return (ISC_R_RANGE);
 	/* Maximum value: 24 hours (3600 minutes) */
-	if (interval > (24 * 60)) 
+	if (interval > (24 * 60))
 		interval = (24 * 60);
 	/* Multiply by 60 for seconds */
 	zone->refreshkeyinterval = interval * 60;
