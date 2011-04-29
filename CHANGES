@@ -1,3 +1,6 @@
+3101.	[bug]		Zones using automatic key maintenance could fail
+			to check the key repository for updates. [RT #23744]
+
 3099.	[test]		"dlz" system test now runs but gives R:SKIPPED if
 			not compiled with --with-dlz-filesystem.  [RT #24146]
 

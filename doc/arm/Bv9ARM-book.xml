@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.450.4.17 2011/03/09 00:51:40 ebersman Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.450.4.18 2011/04/29 21:43:36 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -10675,7 +10675,12 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                     <command>named</command> to load keys from the key
                     repository and schedule key maintenance events to occur
                     in the future, but it does not sign the full zone
-                    immediately.
+                    immediately.  Note: once keys have been loaded for a
+                    zone the first time, the repository will be searched
+                    for changes periodically, regardless of whether
+                    <command>rndc loadkeys</command> is used.  The recheck
+                    interval is hard-coded to
+                    one hour.
                   </para>
                   <para>
                     <command>auto-dnssec create;</command> includes the

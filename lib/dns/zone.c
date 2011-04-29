@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.53 2011/03/25 23:54:34 each Exp $ */
+/* $Id: zone.c,v 1.540.2.54 2011/04/29 21:43:37 each Exp $ */
 
 /*! \file */
 
@@ -14097,48 +14097,51 @@ zone_rekey(dns_zone_t *zone) {
 		UNLOCK_ZONE(zone);
 	}
 
+	/*
+	 * If we are doing automatic key maintenance and the key metadata
+	 * indicates there is a key change event scheduled in the future,
+	 * set the key refresh timer.
+	 */
 	isc_stdtime_get(&now);
 	TIME_NOW(&timenow);
 	isc_time_settoepoch(&zone->refreshkeytime);
-	for (key = ISC_LIST_HEAD(dnskeys);
-	     key != NULL;
-	     key = ISC_LIST_NEXT(key, link)) {
-		isc_stdtime_t then;
-		isc_time_t timethen;
-
-		/*
-		 * If we are doing automatic key maintenance and the
-		 * key metadata indicates there is a key change event
-		 * scheduled in the future, set the key refresh timer.
-		 */
-		if (!DNS_ZONEKEY_OPTION(zone, DNS_ZONEKEY_MAINTAIN))
-			break;
-
-		then = now;
-		result = next_keyevent(key->key, &then);
-		if (result != ISC_R_SUCCESS)
-			continue;
-
-		DNS_ZONE_TIME_ADD(&timenow, then - now, &timethen);
-		LOCK_ZONE(zone);
-		if (isc_time_isepoch(&zone->refreshkeytime) ||
-		    isc_time_compare(&timethen, &zone->refreshkeytime) < 0) {
-			zone->refreshkeytime = timethen;
-			zone_settimer(zone, &timenow);
-		}
-		UNLOCK_ZONE(zone);
-	}
 
 	/*
-	 * If no key event is scheduled, we should still check the key
-	 * repository for updates every so often.  (Currently this is
-	 * hard-coded to 12 hours, but it could be configurable.)
+	 * If we're doing key maintenance, set the key refresh timer to
+	 * the next scheduled key event or to one hour in the future,
+	 * whichever is sooner.
 	 */
-	if (isc_time_isepoch(&zone->refreshkeytime))
-		DNS_ZONE_TIME_ADD(&timenow, (3600 * 12), &zone->refreshkeytime);
+	if (DNS_ZONEKEY_OPTION(zone, DNS_ZONEKEY_MAINTAIN)) {
+		isc_time_t timethen;
+		isc_stdtime_t then;
 
-	isc_time_formattimestamp(&zone->refreshkeytime, timebuf, 80);
-	dns_zone_log(zone, ISC_LOG_INFO, "next key event: %s", timebuf);
+		LOCK_ZONE(zone);
+		DNS_ZONE_TIME_ADD(&timenow, HOUR, &timethen);
+		zone->refreshkeytime = timethen;
+		UNLOCK_ZONE(zone);
+
+		for (key = ISC_LIST_HEAD(dnskeys);
+		     key != NULL;
+		     key = ISC_LIST_NEXT(key, link)) {
+			then = now;
+			result = next_keyevent(key->key, &then);
+			if (result != ISC_R_SUCCESS)
+				continue;
+
+			DNS_ZONE_TIME_ADD(&timenow, then - now, &timethen);
+			LOCK_ZONE(zone);
+			if (isc_time_compare(&timethen,
+					     &zone->refreshkeytime) < 0) {
+				zone->refreshkeytime = timethen;
+			}
+			UNLOCK_ZONE(zone);
+		}
+
+		zone_settimer(zone, &timenow);
+
+		isc_time_formattimestamp(&zone->refreshkeytime, timebuf, 80);
+		dns_zone_log(zone, ISC_LOG_INFO, "next key event: %s", timebuf);
+	}
 
  failure:
 	dns_diff_clear(&diff);
