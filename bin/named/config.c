@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.116 2011/02/23 03:08:08 marka Exp $ */
+/* $Id: config.c,v 1.117 2011/04/29 21:37:14 each Exp $ */
 
 /*! \file */
 
@@ -210,6 +210,7 @@ options {\n\
 	zero-no-soa-ttl yes;\n\
 	update-check-ksk yes;\n\
 	dnssec-dnskey-kskonly no;\n\
+	dnssec-loadkeys-interval 60;\n\
 	try-tcp-refresh yes; /* BIND 8 compat */\n\
 };\n\
 "

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.174 2011/03/11 06:11:21 marka Exp $ */
+/* $Id: zoneconf.c,v 1.175 2011/04/29 21:37:14 each Exp $ */
 
 /*% */
 
@@ -1229,6 +1229,12 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		dns_zone_setoption(zone, DNS_ZONEOPT_DNSKEYKSKONLY,
 				   cfg_obj_asboolean(obj));
+
+		obj = NULL;
+		result = ns_config_get(maps, "dnssec-loadkeys-interval", &obj);
+		INSIST(result == ISC_R_SUCCESS && obj != NULL);
+		RETERR(dns_zone_setrefreshkeyinterval(zone,
+						      cfg_obj_asuint32(obj)));
 	} else if (ztype == dns_zone_slave) {
 		RETERR(configure_zone_acl(zconfig, vconfig, config,
 					  allow_update_forwarding, ac, zone,

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.186 2011/03/21 18:38:40 each Exp $ */
+/* $Id: zone.h,v 1.187 2011/04/29 21:37:15 each Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1866,6 +1866,18 @@ dns_zone_isdynamic(dns_zone_t *zone, isc_boolean_t ignore_freeze);
  *
  * If 'ignore_freeze' is true, then the zone which has had updates disabled
  * will still report itself to be dynamic.
+ *
+ * Requires:
+ * \li	'zone' to be valid.
+ */
+
+isc_result_t
+dns_zone_setrefreshkeyinterval(dns_zone_t *zone, isc_uint32_t interval);
+/*%
+ * Sets the frequency, in minutes, with which the key repository will be
+ * checked to see if the keys for this zone have been updated.  Any value
+ * higher than 1440 minutes (24 hours) will be silently reduced.  A
+ * value of zero will return an out-of-range error.
  *
  * Requires:
  * \li	'zone' to be valid.

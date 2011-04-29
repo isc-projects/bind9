@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.484 2011/04/06 04:20:58 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.485 2011/04/29 21:37:14 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -5060,6 +5060,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> allow-update-forwarding { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> update-check-ksk <replaceable>yes_or_no</replaceable>; </optional>
     <optional> dnssec-dnskey-kskonly <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> dnssec-loadkeys-interval <replaceable>number</replaceable>; </optional>
     <optional> dnssec-secure-to-insecure <replaceable>yes_or_no</replaceable> ;</optional>
     <optional> try-tcp-refresh <replaceable>yes_or_no</replaceable>; </optional>
     <optional> allow-v6-synthesis { <replaceable>address_match_list</replaceable> }; </optional>
@@ -6880,6 +6881,26 @@ options {
 		  The default is <command>no</command>.  If
                   <command>update-check-ksk</command> is set to
                   <literal>no</literal>, this option is ignored.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>dnssec-loadkeys-interval</command></term>
+	      <listitem>
+	        <para>
+                  When a zone is configured with <command>auto-dnssec
+                  maintain;</command> its key repository must be checked
+                  periodically to see if any new keys have been added
+                  or any existing keys' timing metadata has been updated
+                  (see <xref linkend="man.dnssec-keygen"/> and
+                  <xref linkend="man.dnssec-settime"/>).  The
+                  <command>dnssec-loadkeys-interval</command> option
+                  sets the frequency of autoatic repository checks, in
+                  minutes.  The default is <literal>60</literal> (1 hour),
+                  the minimum is <literal>1</literal> (1 minute), and the
+                  maximum is <literal>1440</literal> (24 hours); any higher
+                  value is silently reduced.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -10024,6 +10045,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
     <optional> allow-update-forwarding { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> update-check-ksk <replaceable>yes_or_no</replaceable>; </optional>
     <optional> dnssec-dnskey-kskonly <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> dnssec-loadkeys-interval <replaceable>number</replaceable>; </optional>
     <optional> dnssec-secure-to-insecure <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> try-tcp-refresh <replaceable>yes_or_no</replaceable>; </optional>
     <optional> also-notify { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ;
@@ -11119,7 +11141,12 @@ example.com. NS ns2.example.net.
                     <command>named</command> to load keys from the key
                     repository and schedule key maintenance events to occur
                     in the future, but it does not sign the full zone
-                    immediately.
+                    immediately.  Note: once keys have been loaded for a
+                    zone the first time, the repository will be searched
+                    for changes periodically, regardless of whether
+                    <command>rndc loadkeys</command> is used.  The recheck
+                    interval is defined by
+                    <command>dnssec-loadkeys-interval</command>.)
                   </para>
                   <para>
                     <command>auto-dnssec create;</command> includes the

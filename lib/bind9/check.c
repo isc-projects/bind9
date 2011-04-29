@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.128 2011/03/11 17:19:05 each Exp $ */
+/* $Id: check.c,v 1.129 2011/04/29 21:37:15 each Exp $ */
 
 /*! \file */
 
@@ -1307,6 +1307,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	  REDIRECTZONE },
 	{ "update-check-ksk", MASTERZONE },
 	{ "dnssec-dnskey-kskonly", MASTERZONE },
+	{ "dnssec-loadkeys-interval", MASTERZONE },
 	{ "auto-dnssec", MASTERZONE },
 	{ "try-tcp-refresh", SLAVEZONE | STREDIRECTZONE },
 	{ "server-addresses", STATICSTUBZONE },

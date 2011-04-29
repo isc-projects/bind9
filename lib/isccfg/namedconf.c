@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.134 2011/03/11 06:11:27 marka Exp $ */
+/* $Id: namedconf.c,v 1.135 2011/04/29 21:37:15 each Exp $ */
 
 /*! \file */
 
@@ -1341,6 +1341,7 @@ zone_clauses[] = {
 	{ "check-wildcard", &cfg_type_boolean, 0 },
 	{ "dialup", &cfg_type_dialuptype, 0 },
 	{ "dnssec-dnskey-kskonly", &cfg_type_boolean, 0 },
+	{ "dnssec-loadkeys-interval", &cfg_type_uint32, 0 },
 	{ "dnssec-secure-to-insecure", &cfg_type_boolean, 0 },
 	{ "forward", &cfg_type_forwardtype, 0 },
 	{ "forwarders", &cfg_type_portiplist, 0 },
