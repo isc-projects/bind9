@@ -113,6 +113,7 @@ options {
         dnssec-accept-expired <boolean>;
         dnssec-dnskey-kskonly <boolean>;
         dnssec-enable <boolean>;
+        dnssec-loadkeys-interval <integer>;
         dnssec-lookaside <string> trust-anchor <string>;
         dnssec-must-be-secure <string> <boolean>;
         dnssec-secure-to-insecure <boolean>;
@@ -332,6 +333,7 @@ view <string> <optional_class> {
         dnssec-accept-expired <boolean>;
         dnssec-dnskey-kskonly <boolean>;
         dnssec-enable <boolean>;
+        dnssec-loadkeys-interval <integer>;
         dnssec-lookaside <string> trust-anchor <string>;
         dnssec-must-be-secure <string> <boolean>;
         dnssec-secure-to-insecure <boolean>;
@@ -472,6 +474,7 @@ view <string> <optional_class> {
                 delegation-only <boolean>;
                 dialup <dialuptype>;
                 dnssec-dnskey-kskonly <boolean>;
+                dnssec-loadkeys-interval <integer>;
                 dnssec-secure-to-insecure <boolean>;
                 file <quoted_string>;
                 forward ( first | only );
@@ -560,6 +563,7 @@ zone <string> <optional_class> {
         delegation-only <boolean>;
         dialup <dialuptype>;
         dnssec-dnskey-kskonly <boolean>;
+        dnssec-loadkeys-interval <integer>;
         dnssec-secure-to-insecure <boolean>;
         file <quoted_string>;
         forward ( first | only );
