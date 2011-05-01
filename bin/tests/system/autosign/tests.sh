@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.12.18.5 2011/04/29 21:41:59 each Exp $
+# $Id: tests.sh,v 1.12.18.6 2011/05/01 11:32:34 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -860,17 +860,20 @@ status=`expr $status + $ret`
 # event scheduled is precisely that far in the future.
 check_interval () {
         awk '/next key event/ {print $2 ":" $9}' $1/named.run |
-            awk -F: -vinterval=$2 '
+	sed 's/\.//g' |
+            awk -F: '
                      {
                        if ($6 == 0)
                          $6 = 25;
-                       x = ($6+ $5*60 + $4*3600) - ($3 + $2*60 + $1*3600);
+                       x = ($6+ $5*60000 + $4*3600000) -
+			   ($3+ $2*60000 + $1*3600000);
+		       x = x/1000;
                        if (x != int(x))
                          x = int(x + 1);
                        if (x > interval)
                          exit (1);
                      }
-                     END { if (x != interval) exit(1) }'
+                     END { if (x != interval) exit(1) }' interval=$2
         return $?
 }
 
