@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.12.18.6 2011/05/01 11:32:34 marka Exp $
+# $Id: tests.sh,v 1.12.18.7 2011/05/01 21:37:53 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -865,8 +865,7 @@ check_interval () {
                      {
                        if ($6 == 0)
                          $6 = 25;
-                       x = ($6+ $5*60000 + $4*3600000) -
-			   ($3+ $2*60000 + $1*3600000);
+                       x = ($6+ $5*60000 + $4*3600000) - ($3+ $2*60000 + $1*3600000);
 		       x = x/1000;
                        if (x != int(x))
                          x = int(x + 1);
