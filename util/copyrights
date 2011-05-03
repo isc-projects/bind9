@@ -503,7 +503,7 @@
 ./bin/tests/system/dnssec/ns1/.cvsignore	X	2000,2001
 ./bin/tests/system/dnssec/ns1/named.conf	CONF-C	2000,2001,2004,2006
 ./bin/tests/system/dnssec/ns1/root.db.in	ZONE	2000,2001,2004,2010
-./bin/tests/system/dnssec/ns1/sign.sh		SH	2000,2001,2002,2003,2004,2006,2010
+./bin/tests/system/dnssec/ns1/sign.sh		SH	2000,2001,2002,2003,2004,2006,2010,2011
 ./bin/tests/system/dnssec/ns2/.cvsignore	X	2000,2001
 ./bin/tests/system/dnssec/ns2/algroll.db.in	ZONE	2010
 ./bin/tests/system/dnssec/ns2/dlv.db.in		ZONE	2004
