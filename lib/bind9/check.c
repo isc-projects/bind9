@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.130 2011/05/05 16:13:35 each Exp $ */
+/* $Id: check.c,v 1.131 2011/05/05 18:04:01 each Exp $ */
 
 /*! \file */
 
@@ -2227,10 +2227,10 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		(void)cfg_map_get(voptions, "dnssec-validation", &obj);
 	if (obj == NULL)
 		(void)cfg_map_get(config, "dnssec-validation", &obj);
-	if (obj == NULL)
+	if (obj == NULL) {
 		enablevalidation = ISC_TRUE;
 		valstr = "yes";
-	else if (cfg_obj_isboolean(obj)) {
+	} else if (cfg_obj_isboolean(obj)) {
 		enablevalidation = cfg_obj_asboolean(obj);
 		valstr = enablevalidation ? "yes" : "no";
 	} else {
