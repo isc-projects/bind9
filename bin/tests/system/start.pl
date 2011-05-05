@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: start.pl,v 1.13.396.6 2011/03/05 23:51:38 tbox Exp $
+# $Id: start.pl,v 1.13.396.7 2011/05/05 04:56:02 marka Exp $
 
 # Framework for starting test servers.
 # Based on the type of server specified, check for port availability, remove
@@ -183,13 +183,21 @@ sub start_server {
 		unlink glob $cleanup_files;
 	}
 
-	system "$command";
+	# get the shell to report the pid of the server ($!)
+	$command .= "echo \$!";
 
+	# start the server
+	my $child = `$command`;
+
+	# wait up to 14 seconds for the server to start and to write the
+	# pid file otherwise kill this server and any others that have
+	# already been started
 	my $tries = 0;
-	while (!-f $pid_file) {
+	while (!-s $pid_file) {
 		if (++$tries > 14) {
-			print "I:Couldn't start server $server\n";
+			print "I:Couldn't start server $server (pid=$child)\n";
 			print "R:FAIL\n";
+			system "kill -9 $child" if ("$child" ne "");
 			system "$PERL $topdir/stop.pl $testdir";
 			exit 1;
 		}
