@@ -1,3 +1,6 @@
+3106.	[func]		When logging client requests, include the name of
+			the TSIG key if any. [RT #23619]
+
 3105.   [bug]           GOST support can be suppressed by "configure
                         --without-gost" [RT #24367]
 

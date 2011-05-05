@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.271 2011/01/11 23:47:12 tbox Exp $ */
+/* $Id: client.c,v 1.272 2011/05/05 20:04:24 each Exp $ */
 
 #include <config.h>
 
@@ -2682,19 +2682,30 @@ ns_client_logv(ns_client_t *client, isc_logcategory_t *category,
 {
 	char msgbuf[2048];
 	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
-	const char *name = "";
-	const char *sep = "";
+	char signerbuf[DNS_NAME_FORMATSIZE];
+	const char *viewname = "";
+	const char *sep1 = "", *sep2 = "";
+	const char *signer = "";
 
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
+
 	ns_client_name(client, peerbuf, sizeof(peerbuf));
+
+	if (client->signer != NULL) {
+		dns_name_format(client->signer, signerbuf, sizeof(signerbuf));
+		sep1 = "/key ";
+		signer = signerbuf;
+	}
+
 	if (client->view != NULL && strcmp(client->view->name, "_bind") != 0 &&
 	    strcmp(client->view->name, "_default") != 0) {
-		name = client->view->name;
-		sep = ": view ";
+		sep2 = ": view ";
+		viewname = client->view->name;
 	}
 
 	isc_log_write(ns_g_lctx, category, module, level,
-		      "client %s%s%s: %s", peerbuf, sep, name, msgbuf);
+		      "client %s%s%s%s%s: %s",
+		      peerbuf, sep1, signer, sep2, viewname, msgbuf);
 }
 
 void
