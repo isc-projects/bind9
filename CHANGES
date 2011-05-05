@@ -1,3 +1,5 @@
+3104.	[bug]		Better support for cross-compiling. [RT #24367]
+
 3101.	[bug]		Zones using automatic key maintenance could fail
 			to check the key repository for updates. [RT #23744]
 
