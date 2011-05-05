@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.129 2011/04/29 21:37:15 each Exp $ */
+/* $Id: check.c,v 1.130 2011/05/05 16:13:35 each Exp $ */
 
 /*! \file */
 
@@ -2101,6 +2101,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	cfg_aclconfctx_t actx;
 	const cfg_obj_t *obj;
 	isc_boolean_t enablednssec, enablevalidation;
+	const char *valstr = "no";
 
 	/*
 	 * Check that all zone statements are syntactically correct and
@@ -2227,13 +2228,20 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	if (obj == NULL)
 		(void)cfg_map_get(config, "dnssec-validation", &obj);
 	if (obj == NULL)
-		enablevalidation = ISC_FALSE;	/* XXXMPA Change for 9.5. */
-	else
+		enablevalidation = ISC_TRUE;
+		valstr = "yes";
+	else if (cfg_obj_isboolean(obj)) {
 		enablevalidation = cfg_obj_asboolean(obj);
+		valstr = enablevalidation ? "yes" : "no";
+	} else {
+		enablevalidation = ISC_TRUE;
+		valstr = "auto";
+	}
 
 	if (enablevalidation && !enablednssec)
 		cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
-			    "'dnssec-validation yes;' and 'dnssec-enable no;'");
+			    "'dnssec-validation %s;' and 'dnssec-enable no;'",
+			    valstr);
 
 	/*
 	 * Check trusted-keys and managed-keys.

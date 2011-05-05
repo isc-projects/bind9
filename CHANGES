@@ -1,3 +1,7 @@
+3103.	[bug]		Configuring 'dnssec-validation auto' in a view
+			instead of in the options statement could trigger
+			an assertion failure in named-checkconf. [RT #24382]
+
 3102.	[func]		New 'dnssec-loadkeys-interval' option configures
 			how often, in minutes, to check the key repository
 			for updates when using automatic key maintenance.
