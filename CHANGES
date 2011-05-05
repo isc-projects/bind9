@@ -1,3 +1,8 @@
+3105.   [bug]           GOST support can be suppressed by "configure
+                        --without-gost" [RT #24367]
+
+3104.   [bug]           Better support for cross-compiling. [RT #24367]
+
 3103.	[bug]		Configuring 'dnssec-validation auto' in a view
 			instead of in the options statement could trigger
 			an assertion failure in named-checkconf. [RT #24382]
