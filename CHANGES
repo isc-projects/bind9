@@ -1,3 +1,7 @@
+3103.	[bug]		Configuring 'dnssec-validation auto' in a view
+			instead of in the options statement could trigger
+			an assertion failure in named-checkconf. [RT #24382]
+
 3101.	[bug]		Zones using automatic key maintenance could fail
 			to check the key repository for updates. [RT #23744]
 
