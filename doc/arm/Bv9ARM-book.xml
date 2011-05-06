@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.486 2011/05/06 21:23:50 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.487 2011/05/06 21:41:43 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -3616,7 +3616,9 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
               <entry colname="2">
                 <para>
                   defines a named masters list for
-                  inclusion in stub and slave zone masters clauses.
+                  inclusion in stub and slave zones'
+                  <command>masters</command> or 
+                  <command>also-notify</command> lists.
                 </para>
               </entry>
             </row>
@@ -4975,7 +4977,8 @@ badresp:1,adberr:0,findfail:0,valfail:0]
           Usage</title>
         <para><command>masters</command>
 	  lists allow for a common set of masters to be easily used by
-          multiple stub and slave zones.
+          multiple stub and slave zones in their <command>masters</command>
+          or <command>also-notify</command> lists.
         </para>
       </sect2>
 
@@ -7558,6 +7561,8 @@ avoid-v6-udp-ports {};
                   An optional TSIG key can also be specified with each
                   address to cause the notify messages to be signed; this
                   can be useful when sending notifies to multiple views.
+                  In place of explicit addresses, one or more named
+                  <command>masters<command> lists can be used.
                 </para>
                 <para>
                   If an <command>also-notify</command> list
