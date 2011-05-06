@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.115.10.7 2011/03/17 01:22:27 marka Exp $
+ * $Id: dnssec.c,v 1.115.10.8 2011/05/06 21:07:23 each Exp $
  */
 
 /*! \file */
@@ -1018,13 +1018,6 @@ dns_dnssec_selfsigns(dns_rdata_t *rdata, dns_name_t *name,
 		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 		     isc_boolean_t ignoretime, isc_mem_t *mctx)
 {
-	dst_key_t *dstkey = NULL;
-	dns_keytag_t keytag;
-	dns_rdata_dnskey_t key;
-	dns_rdata_rrsig_t sig;
-	dns_rdata_t sigrdata = DNS_RDATA_INIT;
-	isc_result_t result;
-
 	INSIST(rdataset->type == dns_rdatatype_key ||
 	       rdataset->type == dns_rdatatype_dnskey);
 	if (rdataset->type == dns_rdatatype_key) {
@@ -1034,6 +1027,27 @@ dns_dnssec_selfsigns(dns_rdata_t *rdata, dns_name_t *name,
 		INSIST(sigrdataset->type == dns_rdatatype_rrsig);
 		INSIST(sigrdataset->covers == dns_rdatatype_dnskey);
 	}
+
+	return (dns_dnssec_signs(rdata, name, rdataset, sigrdataset,
+				 ignoretime, mctx));
+
+}
+
+isc_boolean_t
+dns_dnssec_signs(dns_rdata_t *rdata, dns_name_t *name,
+		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
+		     isc_boolean_t ignoretime, isc_mem_t *mctx)
+{
+	dst_key_t *dstkey = NULL;
+	dns_keytag_t keytag;
+	dns_rdata_dnskey_t key;
+	dns_rdata_rrsig_t sig;
+	dns_rdata_t sigrdata = DNS_RDATA_INIT;
+	isc_result_t result;
+
+	INSIST(sigrdataset->type == dns_rdatatype_rrsig);
+	if (sigrdataset->covers != rdataset->type)
+		return (ISC_FALSE);
 
 	result = dns_dnssec_keyfromrdata(name, rdata, mctx, &dstkey);
 	if (result != ISC_R_SUCCESS)
