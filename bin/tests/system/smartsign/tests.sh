@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.6 2010/08/16 22:21:06 marka Exp $
+# $Id: tests.sh,v 1.6.70.1 2011/05/06 21:07:49 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -95,6 +95,18 @@ echo "$czoneout" | grep 'ZSKs: 1 active, 2 stand-by, 0 revoked' > /dev/null || r
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:rechecking dnssec-signzone output with -x"
+ret=0
+# use an alternate output file so -x doesn't interfere with later checks
+pzoneout=`$SIGNER -Sxg -r $RANDFILE -o $pzone -f ${pzone}2.signed $pfile 2>&1`
+czoneout=`$SIGNER -Sxg -r $RANDFILE -o $czone -f ${czone}2.signed $cfile 2>&1`
+echo "$pzoneout" | grep 'KSKs: 1 active, 0 stand-by, 0 revoked' > /dev/null || ret=1
+echo "$pzoneout"| grep 'ZSKs: 1 active, 0 present, 0 revoked' > /dev/null || ret=1
+echo "$czoneout"| grep 'KSKs: 1 active, 1 stand-by, 1 revoked' > /dev/null || ret=1
+echo "$czoneout"| grep 'ZSKs: 1 active, 2 present, 0 revoked' > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:checking parent zone DNSKEY set"
 ret=0
 grep "key id = $pzid" $pfile.signed > /dev/null || ret=1
@@ -144,7 +156,7 @@ grep "$ckpublished" dnskey.sigs > /dev/null && ret=1
 grep "$czpublished" dnskey.sigs > /dev/null && ret=1
 grep "$czinactive" dnskey.sigs > /dev/null && ret=1
 grep "$czgenerated" dnskey.sigs > /dev/null && ret=1
-# now check other signatures first
+# now check other signatures
 awk '$2 == "RRSIG" && $3 != "DNSKEY" { getline; print $2 }' $cfile.signed | sort -un > other.sigs
 # should not be there:
 grep "$ckactive" other.sigs > /dev/null && ret=1

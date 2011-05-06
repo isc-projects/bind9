@@ -1,3 +1,6 @@
+3107.	[bug]		dnssec-signzone: Report the correct number of ZSKs
+			when using -x. [RT #20852]
+
 3105.   [bug]           GOST support can be suppressed by "configure
                         --without-gost" [RT #24367]
 
