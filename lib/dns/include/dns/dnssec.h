@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007, 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009-2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec.h,v 1.40.10.2 2011/05/06 21:07:23 each Exp $ */
+/* $Id: dnssec.h,v 1.40.10.3 2011/05/06 23:46:35 tbox Exp $ */
 
 #ifndef DNS_DNSSEC_H
 #define DNS_DNSSEC_H 1
@@ -216,14 +216,14 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 
 isc_boolean_t
 dns_dnssec_selfsigns(dns_rdata_t *rdata, dns_name_t *name,
-                     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
-                     isc_boolean_t ignoretime, isc_mem_t *mctx);
+		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
+		     isc_boolean_t ignoretime, isc_mem_t *mctx);
 
 
 isc_boolean_t
 dns_dnssec_signs(dns_rdata_t *rdata, dns_name_t *name,
-                 dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
-                 isc_boolean_t ignoretime, isc_mem_t *mctx);
+		 dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
+		 isc_boolean_t ignoretime, isc_mem_t *mctx);
 /*%<
  * Verify that 'rdataset' is validly signed in 'sigrdataset' by
  * the key in 'rdata'.
