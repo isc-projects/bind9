@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.175 2011/04/29 21:37:14 each Exp $ */
+/* $Id: zoneconf.c,v 1.176 2011/05/06 21:23:50 each Exp $ */
 
 /*% */
 
@@ -999,17 +999,18 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		obj = NULL;
 		result = ns_config_get(maps, "also-notify", &obj);
 		if (result == ISC_R_SUCCESS) {
-			isc_sockaddr_t *addrs = NULL;
 			isc_uint32_t addrcount;
-			result = ns_config_getiplist(config, obj, 0, mctx,
-						     &addrs, &addrcount);
-			if (result != ISC_R_SUCCESS)
-				return (result);
-			result = dns_zone_setalsonotify(zone, addrs,
-							addrcount);
-			ns_config_putiplist(mctx, &addrs, addrcount);
-			if (result != ISC_R_SUCCESS)
-				return (result);
+			addrs = NULL;
+			keynames = NULL;
+			RETERR(ns_config_getipandkeylist(config, obj, mctx,
+							 &addrs, &keynames,
+							 &addrcount));
+			result = dns_zone_setalsonotifywithkeys(zone, addrs,
+								keynames,
+								addrcount);
+			ns_config_putipandkeylist(mctx, &addrs, &keynames,
+						  addrcount);
+			RETERR(result);
 		} else
 			RETERR(dns_zone_setalsonotify(zone, NULL, 0));
 

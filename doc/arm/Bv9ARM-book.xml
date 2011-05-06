@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.485 2011/04/29 21:37:14 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.486 2011/05/06 21:23:50 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -5106,8 +5106,9 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> notify-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> notify-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> notify-to-soa <replaceable>yes_or_no</replaceable> ; </optional>
-    <optional> also-notify { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ;
-                  <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
+    <optional> also-notify { <replaceable>ip_addr</replaceable>
+                    <optional>port <replaceable>ip_port</replaceable></optional> <optional>key <replaceable>keyname</replaceable></optional> ;
+                    <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> <optional>key <replaceable>keyname</replaceable></optional> ; ... </optional> }; </optional>
     <optional> max-ixfr-log-size <replaceable>number</replaceable>; </optional>
     <optional> max-journal-size <replaceable>size_spec</replaceable>; </optional>
     <optional> coresize <replaceable>size_spec</replaceable> ; </optional>
@@ -7554,6 +7555,11 @@ avoid-v6-udp-ports {};
                   <command>also-notify</command> address to send
                   the notify messages to a port other than the
                   default of 53.
+                  An optional TSIG key can also be specified with each
+                  address to cause the notify messages to be signed; this
+                  can be useful when sending notifies to multiple views.
+                </para>
+                <para>
                   If an <command>also-notify</command> list
                   is given in a <command>zone</command> statement,
                   it will override
@@ -10048,8 +10054,9 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
     <optional> dnssec-loadkeys-interval <replaceable>number</replaceable>; </optional>
     <optional> dnssec-secure-to-insecure <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> try-tcp-refresh <replaceable>yes_or_no</replaceable>; </optional>
-    <optional> also-notify { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ;
-                  <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
+    <optional> also-notify { <replaceable>ip_addr</replaceable>
+    <optional>port <replaceable>ip_port</replaceable></optional> <optional>key <replaceable>keyname</replaceable></optional> ;
+                  <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> <optional>key <replaceable>keyname</replaceable></optional> ; ... </optional> }; </optional>
     <optional> check-names (<constant>warn</constant>|<constant>fail</constant>|<constant>ignore</constant>) ; </optional>
     <optional> dialup <replaceable>dialup_option</replaceable> ; </optional>
     <optional> file <replaceable>string</replaceable> ; </optional>
@@ -10560,6 +10567,9 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                     with each <command>also-notify</command>
                     address to send the notify
                     messages to a port other than the default of 53.
+                    A TSIG key may also be specified to cause the
+                    <literal>NOTIFY</literal> to be signed by the
+                    given key.
                     <command>also-notify</command> is not
                     meaningful for stub zones.
                     The default is the empty list.

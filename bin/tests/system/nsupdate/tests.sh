@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.35 2011/03/18 02:08:45 each Exp $
+# $Id: tests.sh,v 1.36 2011/05/06 21:23:50 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -350,6 +350,18 @@ grep TYPE65534 dig.out.ns3.$n > /dev/null && ret=1
 if test $ret -ne 0
 then
 echo "I:failed"; status=1
+fi
+
+n=`expr $n + 1`
+ret=0
+echo "I:check notify with TSIG worked ($n)"
+# if the alternate view received a notify--meaning, the notify was
+# validly signed by "altkey"--then the zonefile update.alt.bk will
+# will have been created.
+[ -f ns2/update.alt.bk ] || ret=1
+if [ $ret -ne 0 ]; then
+    echo "I:failed"
+    status=1
 fi
 
 echo "I:exit status: $status"

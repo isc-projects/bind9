@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.603 2011/04/29 23:47:18 tbox Exp $ */
+/* $Id: zone.c,v 1.604 2011/05/06 21:23:51 each Exp $ */
 
 /*! \file */
 
@@ -229,6 +229,7 @@ struct dns_zone {
 	isc_sockaddr_t		masteraddr;
 	dns_notifytype_t	notifytype;
 	isc_sockaddr_t		*notify;
+	dns_name_t		**notifykeynames;
 	unsigned int		notifycnt;
 	isc_sockaddr_t		notifyfrom;
 	isc_task_t		*task;
@@ -448,6 +449,7 @@ struct dns_notify {
 	dns_request_t		*request;
 	dns_name_t		ns;
 	isc_sockaddr_t		dst;
+	dns_tsigkey_t		*key;
 	ISC_LINK(dns_notify_t)	link;
 };
 
@@ -787,6 +789,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->masterscnt = 0;
 	zone->curmaster = 0;
 	zone->notify = NULL;
+	zone->notifykeynames = NULL;
 	zone->notifytype = dns_notifytype_yes;
 	zone->notifycnt = 0;
 	zone->task = NULL;
@@ -4194,48 +4197,8 @@ dns_zone_getnotifysrc6(dns_zone_t *zone) {
 	return (&zone->notifysrc6);
 }
 
-isc_result_t
-dns_zone_setalsonotify(dns_zone_t *zone, const isc_sockaddr_t *notify,
-		       isc_uint32_t count)
-{
-	isc_sockaddr_t *new;
-
-	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE(count == 0 || notify != NULL);
-
-	LOCK_ZONE(zone);
-	if (zone->notify != NULL) {
-		isc_mem_put(zone->mctx, zone->notify,
-			    zone->notifycnt * sizeof(*new));
-		zone->notify = NULL;
-		zone->notifycnt = 0;
-	}
-	if (count != 0) {
-		new = isc_mem_get(zone->mctx, count * sizeof(*new));
-		if (new == NULL) {
-			UNLOCK_ZONE(zone);
-			return (ISC_R_NOMEMORY);
-		}
-		memcpy(new, notify, count * sizeof(*new));
-		zone->notify = new;
-		zone->notifycnt = count;
-	}
-	UNLOCK_ZONE(zone);
-	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
-dns_zone_setmasters(dns_zone_t *zone, const isc_sockaddr_t *masters,
-		    isc_uint32_t count)
-{
-	isc_result_t result;
-
-	result = dns_zone_setmasterswithkeys(zone, masters, NULL, count);
-	return (result);
-}
-
 static isc_boolean_t
-same_masters(const isc_sockaddr_t *old, const isc_sockaddr_t *new,
+same_addrs(const isc_sockaddr_t *old, const isc_sockaddr_t *new,
 	     isc_uint32_t count)
 {
 	unsigned int i;
@@ -4265,15 +4228,172 @@ same_keynames(dns_name_t **old, dns_name_t **new, isc_uint32_t count) {
 	return (ISC_TRUE);
 }
 
+static void
+clear_addresskeylist(isc_sockaddr_t **addrsp, dns_name_t ***keynamesp,
+		     unsigned int *countp, isc_mem_t *mctx)
+{
+	unsigned int count;
+	isc_sockaddr_t *addrs;
+	dns_name_t **keynames;
+
+	REQUIRE(countp != NULL && addrsp != NULL && keynamesp != NULL);
+
+	count = *countp;
+	addrs = *addrsp;
+	keynames = *keynamesp;
+
+	if (addrs != NULL) {
+		isc_mem_put(mctx, addrs, count * sizeof(isc_sockaddr_t));
+		addrs = *addrsp = NULL;
+	}
+
+	if (keynames != NULL) {
+		unsigned int i;
+		for (i = 0; i < count; i++) {
+			if (keynames[i] != NULL) {
+				dns_name_free(keynames[i], mctx);
+				isc_mem_put(mctx, keynames[i],
+					    sizeof(dns_name_t));
+				keynames[i] = NULL;
+			}
+		}
+		isc_mem_put(mctx, keynames, count * sizeof(dns_name_t *));
+		keynames = *keynamesp = NULL;
+	}
+
+	count = *countp = 0;
+}
+
+static isc_result_t
+set_addrkeylist(unsigned int count,
+		const isc_sockaddr_t *addrs, isc_sockaddr_t **newaddrsp,
+		dns_name_t **names, dns_name_t ***newnamesp,
+		isc_mem_t *mctx)
+{
+	isc_result_t result;
+	isc_sockaddr_t *newaddrs = NULL;
+	dns_name_t **newnames = NULL;
+	unsigned int i;
+
+	REQUIRE(newaddrsp != NULL && *newaddrsp == NULL);
+	REQUIRE(newnamesp != NULL && *newnamesp == NULL);
+
+	newaddrs = isc_mem_get(mctx, count * sizeof(*newaddrs));
+	if (newaddrs == NULL)
+		return (ISC_R_NOMEMORY);
+	memcpy(newaddrs, addrs, count * sizeof(*newaddrs));
+
+	newnames = NULL;
+	if (names != NULL) {
+		newnames = isc_mem_get(mctx, count * sizeof(*newnames));
+		if (newnames == NULL) {
+			isc_mem_put(mctx, newaddrs, count * sizeof(*newaddrs));
+			return (ISC_R_NOMEMORY);
+		}
+		for (i = 0; i < count; i++)
+			newnames[i] = NULL;
+		for (i = 0; i < count; i++) {
+			if (names[i] != NULL) {
+				newnames[i] = isc_mem_get(mctx,
+							 sizeof(dns_name_t));
+				if (newnames[i] == NULL)
+					goto allocfail;
+				dns_name_init(newnames[i], NULL);
+				result = dns_name_dup(names[i], mctx,
+						      newnames[i]);
+				if (result != ISC_R_SUCCESS) {
+				allocfail:
+					for (i = 0; i < count; i++)
+						if (newnames[i] != NULL)
+							dns_name_free(
+							       newnames[i],
+							       mctx);
+					isc_mem_put(mctx, newaddrs,
+						    count * sizeof(*newaddrs));
+					isc_mem_put(mctx, newnames,
+						    count * sizeof(*newnames));
+					return (ISC_R_NOMEMORY);
+				}
+			}
+		}
+	}
+
+	*newaddrsp = newaddrs;
+	*newnamesp = newnames;
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_zone_setalsonotify(dns_zone_t *zone, const isc_sockaddr_t *notify,
+		       isc_uint32_t count)
+{
+	return (dns_zone_setalsonotifywithkeys(zone, notify, NULL, count));
+}
+
+isc_result_t
+dns_zone_setalsonotifywithkeys(dns_zone_t *zone, const isc_sockaddr_t *notify,
+			       dns_name_t **keynames, isc_uint32_t count)
+{
+	isc_result_t result;
+	isc_sockaddr_t *newaddrs = NULL;
+	dns_name_t **newnames = NULL;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(count == 0 || notify != NULL);
+	if (keynames != NULL)
+		REQUIRE(count != 0);
+
+	LOCK_ZONE(zone);
+
+	if (count == zone->notifycnt &&
+	    same_addrs(zone->notify, notify, count) &&
+	    same_keynames(zone->notifykeynames, keynames, count))
+		goto unlock;
+
+	clear_addresskeylist(&zone->notify, &zone->notifykeynames,
+			     &zone->notifycnt, zone->mctx);
+
+	if (count == 0)
+		goto unlock;
+
+	/*
+	 * Set up the notify and notifykey lists
+	 */
+	result = set_addrkeylist(count, notify, &newaddrs,
+				 keynames, &newnames, zone->mctx);
+	if (result != ISC_R_SUCCESS)
+		goto unlock;
+
+	/*
+	 * Everything is ok so attach to the zone.
+	 */
+	zone->notify = newaddrs;
+	zone->notifykeynames = newnames;
+	zone->notifycnt = count;
+ unlock:
+	UNLOCK_ZONE(zone);
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_zone_setmasters(dns_zone_t *zone, const isc_sockaddr_t *masters,
+		    isc_uint32_t count)
+{
+	isc_result_t result;
+
+	result = dns_zone_setmasterswithkeys(zone, masters, NULL, count);
+	return (result);
+}
+
 isc_result_t
 dns_zone_setmasterswithkeys(dns_zone_t *zone,
 			    const isc_sockaddr_t *masters,
 			    dns_name_t **keynames,
 			    isc_uint32_t count)
 {
-	isc_sockaddr_t *new;
 	isc_result_t result = ISC_R_SUCCESS;
-	dns_name_t **newname;
+	isc_sockaddr_t *newaddrs = NULL;
+	dns_name_t **newnames = NULL;
 	isc_boolean_t *newok;
 	unsigned int i;
 
@@ -4291,38 +4411,24 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone,
 	 * unlock and exit.
 	 */
 	if (count != zone->masterscnt ||
-	    !same_masters(zone->masters, masters, count) ||
+	    !same_addrs(zone->masters, masters, count) ||
 	    !same_keynames(zone->masterkeynames, keynames, count)) {
 		if (zone->request != NULL)
 			dns_request_cancel(zone->request);
 	} else
 		goto unlock;
-	if (zone->masters != NULL) {
-		isc_mem_put(zone->mctx, zone->masters,
-			    zone->masterscnt * sizeof(*new));
-		zone->masters = NULL;
-	}
-	if (zone->masterkeynames != NULL) {
-		for (i = 0; i < zone->masterscnt; i++) {
-			if (zone->masterkeynames[i] != NULL) {
-				dns_name_free(zone->masterkeynames[i],
-					      zone->mctx);
-				isc_mem_put(zone->mctx,
-					    zone->masterkeynames[i],
-					    sizeof(dns_name_t));
-				zone->masterkeynames[i] = NULL;
-			}
-		}
-		isc_mem_put(zone->mctx, zone->masterkeynames,
-			    zone->masterscnt * sizeof(dns_name_t *));
-		zone->masterkeynames = NULL;
-	}
+
+	/*
+	 * This needs to happen before clear_addresskeylist() sets
+	 * zone->masterscnt to 0:
+	 */
 	if (zone->mastersok != NULL) {
 		isc_mem_put(zone->mctx, zone->mastersok,
 			    zone->masterscnt * sizeof(isc_boolean_t));
 		zone->mastersok = NULL;
 	}
-	zone->masterscnt = 0;
+	clear_addresskeylist(&zone->masters, &zone->masterkeynames,
+			     &zone->masterscnt, zone->mctx);
 	/*
 	 * If count == 0, don't allocate any space for masters, mastersok or
 	 * keynames so internally, those pointers are NULL if count == 0
@@ -4331,75 +4437,33 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone,
 		goto unlock;
 
 	/*
-	 * masters must contain count elements!
-	 */
-	new = isc_mem_get(zone->mctx, count * sizeof(*new));
-	if (new == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto unlock;
-	}
-	memcpy(new, masters, count * sizeof(*new));
-
-	/*
-	 * Similarly for mastersok.
+	 * mastersok must contain count elements
 	 */
 	newok = isc_mem_get(zone->mctx, count * sizeof(*newok));
 	if (newok == NULL) {
 		result = ISC_R_NOMEMORY;
-		isc_mem_put(zone->mctx, new, count * sizeof(*new));
+		isc_mem_put(zone->mctx, newaddrs, count * sizeof(*newaddrs));
 		goto unlock;
 	};
 	for (i = 0; i < count; i++)
 		newok[i] = ISC_FALSE;
 
 	/*
-	 * if keynames is non-NULL, it must contain count elements!
+	 * Now set up the masters and masterkey lists
 	 */
-	newname = NULL;
-	if (keynames != NULL) {
-		newname = isc_mem_get(zone->mctx, count * sizeof(*newname));
-		if (newname == NULL) {
-			result = ISC_R_NOMEMORY;
-			isc_mem_put(zone->mctx, new, count * sizeof(*new));
-			isc_mem_put(zone->mctx, newok, count * sizeof(*newok));
-			goto unlock;
-		}
-		for (i = 0; i < count; i++)
-			newname[i] = NULL;
-		for (i = 0; i < count; i++) {
-			if (keynames[i] != NULL) {
-				newname[i] = isc_mem_get(zone->mctx,
-							 sizeof(dns_name_t));
-				if (newname[i] == NULL)
-					goto allocfail;
-				dns_name_init(newname[i], NULL);
-				result = dns_name_dup(keynames[i], zone->mctx,
-						      newname[i]);
-				if (result != ISC_R_SUCCESS) {
-				allocfail:
-					for (i = 0; i < count; i++)
-						if (newname[i] != NULL)
-							dns_name_free(
-							       newname[i],
-							       zone->mctx);
-					isc_mem_put(zone->mctx, new,
-						    count * sizeof(*new));
-					isc_mem_put(zone->mctx, newok,
-						    count * sizeof(*newok));
-					isc_mem_put(zone->mctx, newname,
-						    count * sizeof(*newname));
-					goto unlock;
-				}
-			}
-		}
+	result = set_addrkeylist(count, masters, &newaddrs,
+				 keynames, &newnames, zone->mctx);
+	if (result != ISC_R_SUCCESS) {
+		isc_mem_put(zone->mctx, newok, count * sizeof(*newok));
+		goto unlock;
 	}
 
 	/*
 	 * Everything is ok so attach to the zone.
 	 */
-	zone->masters = new;
 	zone->mastersok = newok;
-	zone->masterkeynames = newname;
+	zone->masters = newaddrs;
+	zone->masterkeynames = newnames;
 	zone->masterscnt = count;
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NOMASTERS);
 
@@ -8480,6 +8544,8 @@ notify_destroy(dns_notify_t *notify, isc_boolean_t locked) {
 		dns_request_destroy(&notify->request);
 	if (dns_name_dynamic(&notify->ns))
 		dns_name_free(&notify->ns, notify->mctx);
+	if (notify->key != NULL)
+		dns_tsigkey_detach(&notify->key);
 	mctx = notify->mctx;
 	isc_mem_put(notify->mctx, notify, sizeof(*notify));
 	isc_mem_detach(&mctx);
@@ -8501,6 +8567,7 @@ notify_create(isc_mem_t *mctx, unsigned int flags, dns_notify_t **notifyp) {
 	notify->zone = NULL;
 	notify->find = NULL;
 	notify->request = NULL;
+	notify->key = NULL;
 	isc_sockaddr_any(&notify->dst);
 	dns_name_init(&notify->ns, NULL);
 	ISC_LINK_INIT(notify, link);
@@ -8645,15 +8712,23 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	isc_netaddr_fromsockaddr(&dstip, &notify->dst);
-	isc_sockaddr_format(&notify->dst, addrbuf, sizeof(addrbuf));
-	result = dns_view_getpeertsig(notify->zone->view, &dstip, &key);
-	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
-		notify_log(notify->zone, ISC_LOG_ERROR, "NOTIFY to %s not "
-			   "sent. Peer TSIG key lookup failure.", addrbuf);
-		goto cleanup_message;
+	if (notify->key != NULL) {
+		/* Transfer ownership of key */
+		key = notify->key;
+		notify->key = NULL;
+	} else {
+		isc_netaddr_fromsockaddr(&dstip, &notify->dst);
+		isc_sockaddr_format(&notify->dst, addrbuf, sizeof(addrbuf));
+		result = dns_view_getpeertsig(notify->zone->view, &dstip, &key);
+		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
+			notify_log(notify->zone, ISC_LOG_ERROR,
+				   "NOTIFY to %s not sent. "
+				   "Peer TSIG key lookup failure.", addrbuf);
+			goto cleanup_message;
+		}
 	}
 
+	/* XXX: should we log the tsig key too? */
 	notify_log(notify->zone, ISC_LOG_DEBUG(3), "sending notify to %s",
 		   addrbuf);
 	if (notify->zone->view->peers != NULL) {
@@ -8855,14 +8930,30 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 	 */
 	LOCK_ZONE(zone);
 	for (i = 0; i < zone->notifycnt; i++) {
+		dns_tsigkey_t *key = NULL;
+
 		dst = zone->notify[i];
 		if (notify_isqueued(zone, NULL, &dst))
 			continue;
+
 		result = notify_create(zone->mctx, flags, &notify);
 		if (result != ISC_R_SUCCESS)
 			continue;
+
 		zone_iattach(zone, &notify->zone);
 		notify->dst = dst;
+
+		if ((zone->notifykeynames != NULL) &&
+		    (zone->notifykeynames[i] != NULL)) {
+			dns_view_t *view = dns_zone_getview(zone);
+			dns_name_t *keyname = zone->notifykeynames[i];
+			result = dns_view_gettsig(view, keyname, &key);
+			if (result == ISC_R_SUCCESS) {
+				notify->key = key;
+				key = NULL;
+			}
+		}
+
 		ISC_LIST_APPEND(zone->notifies, notify, link);
 		result = notify_send_queue(notify);
 		if (result != ISC_R_SUCCESS)

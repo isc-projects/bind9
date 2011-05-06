@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.16 2010/12/07 23:47:02 tbox Exp $
+# $Id: setup.sh,v 1.17 2011/05/06 21:23:50 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -25,6 +25,7 @@ SYSTEMTESTTOP=..
 #
 
 rm -f ns1/*.jnl ns1/example.db ns2/*.jnl ns2/example.bk
+rm -f ns2/update.bk ns2/update.alt.bk
 rm -f ns3/example.db.jnl
 
 cp -f ns1/example1.db ns1/example.db

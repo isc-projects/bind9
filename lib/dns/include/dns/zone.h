@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.187 2011/04/29 21:37:15 each Exp $ */
+/* $Id: zone.h,v 1.188 2011/05/06 21:23:51 each Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -557,9 +557,15 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone,
 isc_result_t
 dns_zone_setalsonotify(dns_zone_t *zone, const isc_sockaddr_t *notify,
 		       isc_uint32_t count);
+isc_result_t
+dns_zone_setalsonotifywithkeys(dns_zone_t *zone, const isc_sockaddr_t *notify,
+							   dns_name_t **keynames, isc_uint32_t count);
 /*%<
  *	Set the list of additional servers to be notified when
  *	a zone changes.	 To clear the list use 'count = 0'.
+ *
+ *	dns_zone_alsonotifywithkeys() allows each notify address to
+ *	be associated with a TSIG key.
  *
  * Require:
  *\li	'zone' to be a valid zone.
