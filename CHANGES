@@ -1,3 +1,10 @@
+3108.	[cleanup]	dnssec-signzone: Clarified some error and
+			warning messages; removed #ifdef ALLOW_KSKLESS_ZONES
+			code (use -P instead). [RT #20852]
+			
+3107.	[bug]		dnssec-signzone: Report the correct number of ZSKs
+			when using -x. [RT #20852]
+
 3106.	[func]		When logging client requests, include the name of
 			the TSIG key if any. [RT #23619]
 

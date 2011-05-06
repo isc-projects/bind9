@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.10 2011/03/17 01:40:38 each Exp $
+# $Id: tests.sh,v 1.11 2011/05/06 21:08:33 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -92,6 +92,18 @@ echo "$pzoneout" | grep 'KSKs: 1 active, 0 stand-by, 0 revoked' > /dev/null || r
 echo "$pzoneout" | grep 'ZSKs: 1 active, 0 stand-by, 0 revoked' > /dev/null || ret=1
 echo "$czoneout" | grep 'KSKs: 1 active, 1 stand-by, 1 revoked' > /dev/null || ret=1
 echo "$czoneout" | grep 'ZSKs: 1 active, 2 stand-by, 0 revoked' > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:rechecking dnssec-signzone output with -x"
+ret=0
+# use an alternate output file so -x doesn't interfere with later checks
+pzoneout=`$SIGNER -Sxg -r $RANDFILE -o $pzone -f {$pfile}2.signed $pfile 2>&1`
+czoneout=`$SIGNER -Sxg -e now+1d -X now+2d -r $RANDFILE -o $czone -f ${cfile}2.signed $cfile 2>&1`
+echo "$pzoneout" | grep 'KSKs: 1 active, 0 stand-by, 0 revoked' > /dev/null || ret=1
+echo "$pzoneout" | grep 'ZSKs: 1 active, 0 present, 0 revoked' > /dev/null || ret=1
+echo "$czoneout" | grep 'KSKs: 1 active, 1 stand-by, 1 revoked' > /dev/null || ret=1
+echo "$czoneout" | grep 'ZSKs: 1 active, 2 present, 0 revoked' > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 

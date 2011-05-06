@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.274 2011/03/22 03:19:38 each Exp $ */
+/* $Id: dnssec-signzone.c,v 1.275 2011/05/06 21:08:33 each Exp $ */
 
 /*! \file */
 
@@ -1525,14 +1525,14 @@ verifynode(dns_name_t *name, dns_dbnode_t *node, isc_boolean_t delegation,
 /*%
  * Verify that certain things are sane:
  *
- *   The apex has a DNSKEY record with at least one KSK, and at least
+ *   The apex has a DNSKEY RRset with at least one KSK, and at least
  *   one ZSK if the -x flag was not used.
  *
- *   The DNSKEY record was signed with at least one of the KSKs in this
- *   set.
+ *   The DNSKEY record was signed with at least one of the KSKs in
+ *   the DNSKEY RRset.
  *
  *   The rest of the zone was signed with at least one of the ZSKs
- *   present in the DNSKEY RRSET.
+ *   present in the DNSKEY RRset.
  */
 static void
 verifyzone(void) {
@@ -1543,8 +1543,8 @@ verifyzone(void) {
 	dns_name_t *name, *nextname, *zonecut;
 	dns_rdata_dnskey_t dnskey;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
-	dns_rdataset_t rdataset;
-	dns_rdataset_t sigrdataset;
+	dns_rdataset_t keyset, soaset;
+	dns_rdataset_t keysigs, soasigs;
 	int i;
 	isc_boolean_t done = ISC_FALSE;
 	isc_boolean_t first = ISC_TRUE;
@@ -1557,10 +1557,6 @@ verifyzone(void) {
 	unsigned char ksk_algorithms[256];
 	unsigned char zsk_algorithms[256];
 	unsigned char bad_algorithms[256];
-#ifdef ALLOW_KSKLESS_ZONES
-	isc_boolean_t allzsksigned = ISC_TRUE;
-	unsigned char self_algorithms[256];
-#endif
 
 	if (disable_zone_check)
 		return;
@@ -1570,17 +1566,29 @@ verifyzone(void) {
 		fatal("failed to find the zone's origin: %s",
 		      isc_result_totext(result));
 
-	dns_rdataset_init(&rdataset);
-	dns_rdataset_init(&sigrdataset);
+	dns_rdataset_init(&keyset);
+	dns_rdataset_init(&keysigs);
+	dns_rdataset_init(&soaset);
+	dns_rdataset_init(&soasigs);
+
 	result = dns_db_findrdataset(gdb, node, gversion,
 				     dns_rdatatype_dnskey,
-				     0, 0, &rdataset, &sigrdataset);
+				     0, 0, &keyset, &keysigs);
+	if (result != ISC_R_SUCCESS)
+		fatal("Zone contains no DNSSEC keys\n");
+
+	result = dns_db_findrdataset(gdb, node, gversion,
+				     dns_rdatatype_soa,
+				     0, 0, &soaset, &soasigs);
 	dns_db_detachnode(gdb, &node);
 	if (result != ISC_R_SUCCESS)
-		fatal("cannot find DNSKEY rrset\n");
+		fatal("Zone contains no SOA record\n");
 
-	if (!dns_rdataset_isassociated(&sigrdataset))
-		fatal("cannot find DNSKEY RRSIGs\n");
+	if (!dns_rdataset_isassociated(&keysigs))
+		fatal("DNSKEY is not signed (keys offline or inactive?)\n");
+
+	if (!dns_rdataset_isassociated(&soasigs))
+		fatal("SOA is not signed (keys offline or inactive?)\n");
 
 	memset(revoked_ksk, 0, sizeof(revoked_ksk));
 	memset(revoked_zsk, 0, sizeof(revoked_zsk));
@@ -1589,19 +1597,16 @@ verifyzone(void) {
 	memset(ksk_algorithms, 0, sizeof(ksk_algorithms));
 	memset(zsk_algorithms, 0, sizeof(zsk_algorithms));
 	memset(bad_algorithms, 0, sizeof(bad_algorithms));
-#ifdef ALLOW_KSKLESS_ZONES
-	memset(self_algorithms, 0, sizeof(self_algorithms));
-#endif
 
 	/*
 	 * Check that the DNSKEY RR has at least one self signing KSK
 	 * and one ZSK per algorithm in it (or, if -x was used, one
 	 * self-signing KSK).
 	 */
-	for (result = dns_rdataset_first(&rdataset);
+	for (result = dns_rdataset_first(&keyset);
 	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset)) {
-		dns_rdataset_current(&rdataset, &rdata);
+	     result = dns_rdataset_next(&keyset)) {
+		dns_rdataset_current(&keyset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &dnskey, NULL);
 		check_result(result, "dns_rdata_tostruct");
 
@@ -1609,8 +1614,8 @@ verifyzone(void) {
 			;
 		else if ((dnskey.flags & DNS_KEYFLAG_REVOKE) != 0) {
 			if ((dnskey.flags & DNS_KEYFLAG_KSK) != 0 &&
-			    !dns_dnssec_selfsigns(&rdata, gorigin, &rdataset,
-						  &sigrdataset, ISC_FALSE,
+			    !dns_dnssec_selfsigns(&rdata, gorigin, &keyset,
+						  &keysigs, ISC_FALSE,
 						  mctx)) {
 				char namebuf[DNS_NAME_FORMATSIZE];
 				char buffer[1024];
@@ -1632,8 +1637,8 @@ verifyzone(void) {
 				 revoked_zsk[dnskey.algorithm] != 255)
 				revoked_zsk[dnskey.algorithm]++;
 		} else if ((dnskey.flags & DNS_KEYFLAG_KSK) != 0) {
-			if (dns_dnssec_selfsigns(&rdata, gorigin, &rdataset,
-					      &sigrdataset, ISC_FALSE, mctx)) {
+			if (dns_dnssec_selfsigns(&rdata, gorigin, &keyset,
+					      &keysigs, ISC_FALSE, mctx)) {
 				if (ksk_algorithms[dnskey.algorithm] != 255)
 					ksk_algorithms[dnskey.algorithm]++;
 				goodksk = ISC_TRUE;
@@ -1641,52 +1646,33 @@ verifyzone(void) {
 				if (standby_ksk[dnskey.algorithm] != 255)
 					standby_ksk[dnskey.algorithm]++;
 			}
-		} else if (dns_dnssec_selfsigns(&rdata, gorigin, &rdataset,
-						&sigrdataset, ISC_FALSE,
+		} else if (dns_dnssec_selfsigns(&rdata, gorigin, &keyset,
+						&keysigs, ISC_FALSE,
 						mctx)) {
-#ifdef ALLOW_KSKLESS_ZONES
-			if (self_algorithms[dnskey.algorithm] != 255)
-				self_algorithms[dnskey.algorithm]++;
-#endif
+			if (zsk_algorithms[dnskey.algorithm] != 255)
+				zsk_algorithms[dnskey.algorithm]++;
+		} else if (dns_dnssec_signs(&rdata, gorigin, &soaset,
+					    &soasigs, ISC_FALSE, mctx)) {
 			if (zsk_algorithms[dnskey.algorithm] != 255)
 				zsk_algorithms[dnskey.algorithm]++;
 		} else {
 			if (standby_zsk[dnskey.algorithm] != 255)
 				standby_zsk[dnskey.algorithm]++;
-#ifdef ALLOW_KSKLESS_ZONES
-			allzsksigned = ISC_FALSE;
-#endif
 		}
 		dns_rdata_freestruct(&dnskey);
 		dns_rdata_reset(&rdata);
 	}
-	dns_rdataset_disassociate(&sigrdataset);
+	dns_rdataset_disassociate(&keysigs);
+	dns_rdataset_disassociate(&soaset);
+	dns_rdataset_disassociate(&soasigs);
 
-#ifdef ALLOW_KSKLESS_ZONES
-	if (!goodksk) {
-		if (!ignore_kskflag)
-			fprintf(stderr, "No self signing KSK found. Using "
-					"self signed ZSK's for active "
-					"algorithm list.\n");
-		memcpy(ksk_algorithms, self_algorithms, sizeof(ksk_algorithms));
-		if (!allzsksigned)
-			fprintf(stderr, "warning: not all ZSK's are self "
-				"signed.\n");
-	}
-#else
-	if (!goodksk) {
-		fatal("no self signed KSK's found");
-	}
-#endif
+	if (!goodksk)
+		fatal("No self-signed KSK DNSKEY found.  Supply an active\n"
+		      "key with the KSK flag set, or use '-P'.");
 
 	fprintf(stderr, "Verifying the zone using the following algorithms:");
 	for (i = 0; i < 256; i++) {
-#ifdef ALLOW_KSKLESS_ZONES
-		if (ksk_algorithms[i] != 0 || zsk_algorithms[i] != 0)
-#else
-		if (ksk_algorithms[i] != 0)
-#endif
-		{
+		if (ksk_algorithms[i] != 0) {
 			dns_secalg_format(i, algbuf, sizeof(algbuf));
 			fprintf(stderr, " %s", algbuf);
 		}
@@ -1749,7 +1735,7 @@ verifyzone(void) {
 			dns_name_copy(name, zonecut, NULL);
 			isdelegation = ISC_TRUE;
 		}
-		verifynode(name, node, isdelegation, &rdataset,
+		verifynode(name, node, isdelegation, &keyset,
 			   ksk_algorithms, bad_algorithms);
 		result = dns_dbiterator_next(dbiter);
 		nextnode = NULL;
@@ -1786,13 +1772,13 @@ verifyzone(void) {
 	     result = dns_dbiterator_next(dbiter) ) {
 		result = dns_dbiterator_current(dbiter, &node, name);
 		check_dns_dbiterator_current(result);
-		verifynode(name, node, ISC_FALSE, &rdataset,
+		verifynode(name, node, ISC_FALSE, &keyset,
 			   ksk_algorithms, bad_algorithms);
 		dns_db_detachnode(gdb, &node);
 	}
 	dns_dbiterator_destroy(&dbiter);
 
-	dns_rdataset_disassociate(&rdataset);
+	dns_rdataset_disassociate(&keyset);
 
 	/*
 	 * If we made it this far, we have what we consider a properly signed
