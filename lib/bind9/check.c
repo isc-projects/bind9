@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.114.4.10 2011/05/07 05:52:58 each Exp $ */
+/* $Id: check.c,v 1.114.4.11 2011/05/07 23:46:36 tbox Exp $ */
 
 /*! \file */
 
@@ -1912,7 +1912,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	const cfg_obj_t *obj;
 	isc_boolean_t enablednssec, enablevalidation;
 
- 	/*
+	/*
 	 * Get global options block
 	 */
 	(void)cfg_map_get(config, "options", &options);
