@@ -1,3 +1,6 @@
+3110.	[bug]		dnssec-signzone: Wrong error message could appear
+			when attempting to sign with no KSK. [RT #24369]
+
 3107.	[bug]		dnssec-signzone: Report the correct number of ZSKs
 			when using -x. [RT #20852]
 

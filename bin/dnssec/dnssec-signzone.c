@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.262.110.6 2011/05/06 21:07:49 each Exp $ */
+/* $Id: dnssec-signzone.c,v 1.262.110.7 2011/05/07 00:24:41 each Exp $ */
 
 /*! \file */
 
@@ -3830,6 +3830,8 @@ main(int argc, char *argv[]) {
 		nokeys = ISC_TRUE;
 	}
 
+	warnifallksk(gdb);
+
 	if (IS_NSEC3) {
 		unsigned int max;
 		result = dns_nsec3_maxiterations(gdb, NULL, mctx, &max);
@@ -3838,8 +3840,6 @@ main(int argc, char *argv[]) {
 			fatal("NSEC3 iterations too big for weakest DNSKEY "
 			      "strength. Maximum iterations allowed %u.", max);
 	}
-
-	warnifallksk(gdb);
 
 	gversion = NULL;
 	result = dns_db_newversion(gdb, &gversion);
