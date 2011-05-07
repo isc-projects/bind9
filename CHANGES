@@ -1,3 +1,7 @@
+3111.   [bug]           Improved consistency checks for dnssec-enable and
+                        dnssec-validation, added test cases to the
+                        checkconf system test. [RT #24398]
+
 3110.	[bug]		dnssec-signzone: Wrong error message could appear
 			when attempting to sign with no KSK. [RT #24369]
 
