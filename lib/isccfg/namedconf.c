@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.131.8.2 2011/03/11 06:47:08 marka Exp $ */
+/* $Id: namedconf.c,v 1.131.8.3 2011/05/07 05:53:24 each Exp $ */
 
 /*! \file */
 
@@ -1131,6 +1131,24 @@ static cfg_type_t cfg_type_rpz = {
  * dnssec-lookaside
  */
 
+static void
+print_lookaside(cfg_printer_t *pctx, const cfg_obj_t *obj)
+{
+	const cfg_obj_t *domain = obj->value.tuple[0];
+
+	if (domain->value.string.length == 4 &&
+	    strncmp(domain->value.string.base, "auto", 4) == 0)
+		cfg_print_cstr(pctx, "auto");
+	else
+		cfg_print_tuple(pctx, obj);
+}
+
+static void
+doc_lookaside(cfg_printer_t *pctx, const cfg_type_t *type) {
+	UNUSED(type);
+	cfg_print_cstr(pctx, "( <string> trust-anchor <string> | auto )");
+}
+
 static keyword_type_t trustanchor_kw = { "trust-anchor", &cfg_type_astring };
 
 static cfg_type_t cfg_type_optional_trustanchor = {
@@ -1145,7 +1163,7 @@ static cfg_tuplefielddef_t lookaside_fields[] = {
 };
 
 static cfg_type_t cfg_type_lookaside = {
-	"lookaside", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	"lookaside", cfg_parse_tuple, print_lookaside, doc_lookaside,
 	&cfg_rep_tuple, lookaside_fields
 };
 

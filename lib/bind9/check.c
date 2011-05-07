@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.125.14.4 2011/05/05 18:02:09 each Exp $ */
+/* $Id: check.c,v 1.125.14.5 2011/05/07 05:53:24 each Exp $ */
 
 /*! \file */
 
@@ -2088,8 +2088,14 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	isc_result_t tresult = ISC_R_SUCCESS;
 	cfg_aclconfctx_t actx;
 	const cfg_obj_t *obj;
+	const cfg_obj_t *options = NULL;
 	isc_boolean_t enablednssec, enablevalidation;
 	const char *valstr = "no";
+
+	/*
+	 * Get global options block
+	 */
+	(void)cfg_map_get(config, "options", &options);
 
 	/*
 	 * Check that all zone statements are syntactically correct and
@@ -2126,8 +2132,6 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	 * Check that forwarding is reasonable.
 	 */
 	if (voptions == NULL) {
-		const cfg_obj_t *options = NULL;
-		(void)cfg_map_get(config, "options", &options);
 		if (options != NULL)
 			if (check_forward(options, NULL,
 					  logctx) != ISC_R_SUCCESS)
@@ -2141,8 +2145,6 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	 * Check that dual-stack-servers is reasonable.
 	 */
 	if (voptions == NULL) {
-		const cfg_obj_t *options = NULL;
-		(void)cfg_map_get(config, "options", &options);
 		if (options != NULL)
 			if (check_dual_stack(options, logctx) != ISC_R_SUCCESS)
 				result = ISC_R_FAILURE;
@@ -2203,8 +2205,8 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	obj = NULL;
 	if (voptions != NULL)
 		(void)cfg_map_get(voptions, "dnssec-enable", &obj);
-	if (obj == NULL)
-		(void)cfg_map_get(config, "dnssec-enable", &obj);
+	if (obj == NULL && options != NULL)
+		(void)cfg_map_get(options, "dnssec-enable", &obj);
 	if (obj == NULL)
 		enablednssec = ISC_TRUE;
 	else
@@ -2213,10 +2215,10 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	obj = NULL;
 	if (voptions != NULL)
 		(void)cfg_map_get(voptions, "dnssec-validation", &obj);
-	if (obj == NULL)
-		(void)cfg_map_get(config, "dnssec-validation", &obj);
+	if (obj == NULL && options != NULL)
+		(void)cfg_map_get(options, "dnssec-validation", &obj);
 	if (obj == NULL) {
-		enablevalidation = ISC_TRUE;
+		enablevalidation = enablednssec;
 		valstr = "yes";
 	} else if (cfg_obj_isboolean(obj)) {
 		enablevalidation = cfg_obj_asboolean(obj);
