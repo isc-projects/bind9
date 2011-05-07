@@ -1,3 +1,6 @@
+3110.	[bug]		dnssec-signzone: Wrong error message could appear
+			when attempting to sign with no KSK. [RT #24369]
+
 3109.	[func]		The also-notify option now uses the same syntax
 			as a zone's masters clause.  This means it is
 			now possible to specify a TSIG key to use when
