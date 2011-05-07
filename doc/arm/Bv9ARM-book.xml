@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.487 2011/05/06 21:41:43 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.488 2011/05/07 14:39:17 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -7562,7 +7562,7 @@ avoid-v6-udp-ports {};
                   address to cause the notify messages to be signed; this
                   can be useful when sending notifies to multiple views.
                   In place of explicit addresses, one or more named
-                  <command>masters<command> lists can be used.
+                  <command>masters</command> lists can be used.
                 </para>
                 <para>
                   If an <command>also-notify</command> list
