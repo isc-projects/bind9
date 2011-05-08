@@ -113,7 +113,7 @@ options {
         dnssec-accept-expired <boolean>;
         dnssec-dnskey-kskonly <boolean>;
         dnssec-enable <boolean>;
-        dnssec-lookaside <string> trust-anchor <string>;
+        dnssec-lookaside ( <string> trust-anchor <string> | auto );
         dnssec-must-be-secure <string> <boolean>;
         dnssec-secure-to-insecure <boolean>;
         dnssec-validation ( yes | no | auto );
@@ -332,7 +332,7 @@ view <string> <optional_class> {
         dnssec-accept-expired <boolean>;
         dnssec-dnskey-kskonly <boolean>;
         dnssec-enable <boolean>;
-        dnssec-lookaside <string> trust-anchor <string>;
+        dnssec-lookaside ( <string> trust-anchor <string> | auto );
         dnssec-must-be-secure <string> <boolean>;
         dnssec-secure-to-insecure <boolean>;
         dnssec-validation ( yes | no | auto );
