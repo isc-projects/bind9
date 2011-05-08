@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.488 2011/05/07 14:39:17 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.489 2011/05/08 06:49:18 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -10059,9 +10059,9 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
     <optional> dnssec-loadkeys-interval <replaceable>number</replaceable>; </optional>
     <optional> dnssec-secure-to-insecure <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> try-tcp-refresh <replaceable>yes_or_no</replaceable>; </optional>
-    <optional> also-notify { <replaceable>ip_addr</replaceable>
-    <optional>port <replaceable>ip_port</replaceable></optional> <optional>key <replaceable>keyname</replaceable></optional> ;
-                  <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> <optional>key <replaceable>keyname</replaceable></optional> ; ... </optional> }; </optional>
+    <optional> also-notify <optional>port <replaceable>ip_port</replaceable></optional> { ( <replaceable>masters_list</replaceable> | <replaceable>ip_addr</replaceable>
+                              <optional>port <replaceable>ip_port</replaceable></optional>
+                              <optional>key <replaceable>key</replaceable></optional> ) ; <optional>...</optional> }; </optional>
     <optional> check-names (<constant>warn</constant>|<constant>fail</constant>|<constant>ignore</constant>) ; </optional>
     <optional> dialup <replaceable>dialup_option</replaceable> ; </optional>
     <optional> file <replaceable>string</replaceable> ; </optional>
