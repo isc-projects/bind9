@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.conf.5,v 1.46 2011/02/24 01:14:20 tbox Exp $
+.\" $Id: named.conf.5,v 1.47 2011/05/09 01:14:45 tbox Exp $
 .\"
 .hy 0
 .ad l
@@ -290,7 +290,8 @@ options {
 	notify\-delay \fIseconds\fR;
 	notify\-to\-soa \fIboolean\fR;
 	also\-notify [ port \fIinteger\fR ] { ( \fIipv4_address\fR | \fIipv6_address\fR )
-		[ port \fIinteger\fR ]; ... };
+		[ port \fIinteger\fR ]; ...
+		[ key \fIkeyname\fR ] ... };
 	allow\-notify { \fIaddress_match_element\fR; ... };
 	forward ( first | only );
 	forwarders [ port \fIinteger\fR ] {
@@ -459,7 +460,8 @@ view \fIstring\fR \fIoptional_class\fR {
 	notify\-delay \fIseconds\fR;
 	notify\-to\-soa \fIboolean\fR;
 	also\-notify [ port \fIinteger\fR ] { ( \fIipv4_address\fR | \fIipv6_address\fR )
-		[ port \fIinteger\fR ]; ... };
+		[ port \fIinteger\fR ]; ...
+		[ key \fIkeyname\fR ] ... };
 	allow\-notify { \fIaddress_match_element\fR; ... };
 	forward ( first | only );
 	forwarders [ port \fIinteger\fR ] {
@@ -545,7 +547,8 @@ zone \fIstring\fR \fIoptional_class\fR {
 	notify\-delay \fIseconds\fR;
 	notify\-to\-soa \fIboolean\fR;
 	also\-notify [ port \fIinteger\fR ] { ( \fIipv4_address\fR | \fIipv6_address\fR )
-		[ port \fIinteger\fR ]; ... };
+		[ port \fIinteger\fR ]; ...
+		[ key \fIkeyname\fR ] ... };
 	allow\-notify { \fIaddress_match_element\fR; ... };
 	forward ( first | only );
 	forwarders [ port \fIinteger\fR ] {

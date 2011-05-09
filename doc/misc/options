@@ -67,8 +67,9 @@ options {
         allow-update { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
         allow-v6-synthesis { <address_match_element>; ... }; // obsolete
-        also-notify [ port <integer> ] { ( <ipv4_address> | <ipv6_address>
-            ) [ port <integer> ]; ... };
+        also-notify [ port <integer> ] { ( <masters> | <ipv4_address> [
+            port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key
+            <string> ]; ... };
         alt-transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
         alt-transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> |
             * ) ];
@@ -114,7 +115,7 @@ options {
         dnssec-dnskey-kskonly <boolean>;
         dnssec-enable <boolean>;
         dnssec-loadkeys-interval <integer>;
-        dnssec-lookaside <string> trust-anchor <string>;
+        dnssec-lookaside ( <string> trust-anchor <string> | auto );
         dnssec-must-be-secure <string> <boolean>;
         dnssec-secure-to-insecure <boolean>;
         dnssec-validation ( yes | no | auto );
@@ -291,8 +292,9 @@ view <string> <optional_class> {
         allow-update { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
         allow-v6-synthesis { <address_match_element>; ... }; // obsolete
-        also-notify [ port <integer> ] { ( <ipv4_address> | <ipv6_address>
-            ) [ port <integer> ]; ... };
+        also-notify [ port <integer> ] { ( <masters> | <ipv4_address> [
+            port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key
+            <string> ]; ... };
         alt-transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
         alt-transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> |
             * ) ];
@@ -334,7 +336,7 @@ view <string> <optional_class> {
         dnssec-dnskey-kskonly <boolean>;
         dnssec-enable <boolean>;
         dnssec-loadkeys-interval <integer>;
-        dnssec-lookaside <string> trust-anchor <string>;
+        dnssec-lookaside ( <string> trust-anchor <string> | auto );
         dnssec-must-be-secure <string> <boolean>;
         dnssec-secure-to-insecure <boolean>;
         dnssec-validation ( yes | no | auto );
@@ -455,8 +457,9 @@ view <string> <optional_class> {
                 allow-transfer { <address_match_element>; ... };
                 allow-update { <address_match_element>; ... };
                 allow-update-forwarding { <address_match_element>; ... };
-                also-notify [ port <integer> ] { ( <ipv4_address> |
-                    <ipv6_address> ) [ port <integer> ]; ... };
+                also-notify [ port <integer> ] { ( <masters> |
+                    <ipv4_address> [ port <integer> ] | <ipv6_address> [
+                    port <integer> ] ) [ key <string> ]; ... };
                 alt-transfer-source ( <ipv4_address> | * ) [ port (
                     <integer> | * ) ];
                 alt-transfer-source-v6 ( <ipv6_address> | * ) [ port (
@@ -545,8 +548,9 @@ zone <string> <optional_class> {
         allow-transfer { <address_match_element>; ... };
         allow-update { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
-        also-notify [ port <integer> ] { ( <ipv4_address> | <ipv6_address>
-            ) [ port <integer> ]; ... };
+        also-notify [ port <integer> ] { ( <masters> | <ipv4_address> [
+            port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key
+            <string> ]; ... };
         alt-transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
         alt-transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> |
             * ) ];
