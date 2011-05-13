@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.450.4.18 2011/04/29 21:43:36 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.450.4.19 2011/05/13 14:15:57 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -6588,17 +6588,6 @@ options {
 	      </listitem>
 	    </varlistentry>
 
-	    <varlistentry>
-	      <term><command>check-mx</command></term>
-	      <listitem>
-		<para>
-		  Check whether the MX record appears to refer to a IP address.
-		  The default is to <command>warn</command>.  Other possible
-		  values are <command>fail</command> and
-		  <command>ignore</command>.
-		</para>
-	      </listitem>
-	    </varlistentry>
 	    <varlistentry>
 	      <term><command>check-mx</command></term>
 	      <listitem>
