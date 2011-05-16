@@ -2393,7 +2393,7 @@
 ./lib/export/.cvsignore				X	2009
 ./lib/export/Makefile.in			MAKE	2009
 ./lib/export/dns/.cvsignore			X	2009
-./lib/export/dns/Makefile.in			MAKE	2009,2010
+./lib/export/dns/Makefile.in			MAKE	2009,2010,2011
 ./lib/export/dns/include/.cvsignore		X	2009
 ./lib/export/dns/include/Makefile.in		MAKE	2009
 ./lib/export/dns/include/dns/.cvsignore		X	2009
@@ -2401,7 +2401,7 @@
 ./lib/export/dns/include/dst/.cvsignore		X	2009
 ./lib/export/dns/include/dst/Makefile.in	MAKE	2009
 ./lib/export/irs/.cvsignore			X	2009
-./lib/export/irs/Makefile.in			MAKE	2009
+./lib/export/irs/Makefile.in			MAKE	2009,2011
 ./lib/export/irs/include/.cvsignore		X	2009
 ./lib/export/irs/include/Makefile.in		MAKE	2009
 ./lib/export/irs/include/irs/.cvsignore		X	2009
@@ -2434,7 +2434,7 @@
 ./lib/export/isc/unix/include/isc/.cvsignore	X	2009
 ./lib/export/isc/unix/include/isc/Makefile.in	MAKE	2009
 ./lib/export/isccfg/.cvsignore			X	2009
-./lib/export/isccfg/Makefile.in			MAKE	2009
+./lib/export/isccfg/Makefile.in			MAKE	2009,2011
 ./lib/export/isccfg/include/.cvsignore		X	2009
 ./lib/export/isccfg/include/Makefile.in		MAKE	2009
 ./lib/export/isccfg/include/isccfg/.cvsignore	X	2009
