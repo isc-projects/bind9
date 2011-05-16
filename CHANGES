@@ -1,3 +1,5 @@
+	--- 9.8.1b1 released ---
+
 3112.	[doc]		Add missing descriptions of the update policy name
 			types "ms-self", "ms-subdomain", "krb5-self" and
 			"krb5-subdomain", which allow machines to update
@@ -28,8 +30,6 @@
 3100.	[security]	Certain response policy zone configurations could
 			trigger an INSIST when receiving a query of type
 			RRSIG. [RT #24280]
-
-	--- 9.8.1b2 released ---
 
 3099.	[test]		"dlz" system test now runs but gives R:SKIPPED if
 			not compiled with --with-dlz-filesystem.  [RT #24146]
