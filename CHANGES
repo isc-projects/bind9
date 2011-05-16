@@ -1,3 +1,8 @@
+3112.	[doc]		Add missing descriptions of the update policy name
+			types "ms-self", "ms-subdomain", "krb5-self" and
+			"krb5-subdomain", which allow machines to update
+			their own records, to the BIND 9 ARM.
+
 3110.	[bug]		dnssec-signzone: Wrong error message could appear
 			when attempting to sign with no KSK. [RT #24369]
 
