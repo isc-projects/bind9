@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.489 2011/05/08 06:49:18 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.490 2011/05/16 04:09:34 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -11314,7 +11314,13 @@ example.com. NS ns2.example.net.
 	      The <replaceable>identity</replaceable> field must
 	      contain a fully-qualified domain name.
 	    </para>
-
+	    <para>
+	      For nametypes <varname>krb5-self</varname>,
+	      <varname>ms-self</varname>, <varname>krb5-subdomain</varname>,
+              and <varname>ms-subdomain</varname> the
+	      <replaceable>identity</replaceable> field specifies
+	      the Windows or Kerberos realm of the machine belongs to.
+	    </para>
             <para>
               The <replaceable>nametype</replaceable> field has 13
               values:
@@ -11443,6 +11449,70 @@ example.com. NS ns2.example.net.
 			This rule is similar to <varname>self</varname>
 			except that only subdomains of
 			<varname>self</varname> can be updated.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			<varname>ms-self</varname>
+		      </para>
+		    </entry> <entry colname="2">
+		      <para>
+			This rule takes a Windows machine principal
+			(machine$@REALM) for machine in REALM and
+			and converts it machine.realm allowing the machine 
+                        to update machine.realm.  The REALM to be matched
+			is specified in the <replacable>identity</replacable>
+			field.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			<varname>ms-subdomain</varname>
+		      </para>
+		    </entry> <entry colname="2">
+		      <para>
+			This rule takes a Windows machine principal 
+			(machine$@REALM) for machine in REALM and
+			converts it to machine.realm allowing the machine
+			to update subdomains of machine.realm.  The REALM
+			to be matched is specified in the
+			<replacable>identity</replacable> field.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			<varname>krb5-self</varname>
+		      </para>
+		    </entry> <entry colname="2">
+		      <para>
+			This rule takes a Kerberos machine principal
+			(host/machine@REALM) for machine in REALM and
+			and converts it machine.realm allowing the machine 
+                        to update machine.realm.  The REALM to be matched
+			is specified in the <replacable>identity</replacable>
+			field.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			<varname>krb5-subdomain</varname>
+		      </para>
+		    </entry> <entry colname="2">
+		      <para>
+			This rule takes a Kerberos machine principal 
+			(host/machine@REALM) for machine in REALM and
+			converts it to machine.realm allowing the machine
+			to update subdomains of machine.realm.  The REALM
+			to be matched is specified in the
+			<replacable>identity</replacable> field.
 		      </para>
 		    </entry>
 		  </row>
