@@ -1,3 +1,6 @@
+3113.	[doc]		Document the relationship between serial-query-rate
+			and NOTIFY messages.
+
 3112.	[doc]		Add missing descriptions of the update policy name
 			types "ms-self", "ms-subdomain", "krb5-self" and
 			"krb5-subdomain", which allow machines to update
