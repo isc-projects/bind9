@@ -197,6 +197,7 @@ dns_dnssec_keyfromrdata
 dns_dnssec_keylistfromrdataset
 dns_dnssec_selfsigns
 dns_dnssec_sign
+dns_dnssec_signs
 dns_dnssec_signmessage
 dns_dnssec_updatekeys
 dns_dnssec_verify
