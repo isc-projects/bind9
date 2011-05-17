@@ -1,3 +1,6 @@
+3113.	[doc]		Document the relationship between serial-query-rate
+			and NOTIFY messages.
+
 	--- 9.8.1b1 released ---
 
 3112.	[doc]		Add missing descriptions of the update policy name
