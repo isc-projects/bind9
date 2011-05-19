@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.582.8.16 2011/04/29 21:42:00 each Exp $ */
+/* $Id: zone.c,v 1.582.8.17 2011/05/19 04:42:51 each Exp $ */
 
 /*! \file */
 
@@ -109,12 +109,20 @@
 
 #define NSEC3REMOVE(x) (((x) & DNS_NSEC3FLAG_REMOVE) != 0)
 
+/*%
+ * Key flags
+ */
+#define REVOKE(x) ((dst_key_flags(x) & DNS_KEYFLAG_REVOKE) != 0)
+#define KSK(x) ((dst_key_flags(x) & DNS_KEYFLAG_KSK) != 0)
+#define ALG(x) dst_key_alg(x)
+
 /*
  * Default values.
  */
 #define DNS_DEFAULT_IDLEIN 3600		/*%< 1 hour */
 #define DNS_DEFAULT_IDLEOUT 3600	/*%< 1 hour */
 #define MAX_XFER_TIME (2*3600)		/*%< Documented default is 2 hours */
+#define RESIGN_DELAY 3600		/*%< 1 hour */
 
 #ifndef DNS_MAX_EXPIRE
 #define DNS_MAX_EXPIRE	14515200	/*%< 24 weeks */
@@ -213,6 +221,7 @@ struct dns_zone {
 	isc_uint32_t		expire;
 	isc_uint32_t		minimum;
 	isc_stdtime_t		key_expiry;
+	isc_stdtime_t		log_key_expired_timer;
 	char			*keydirectory;
 
 	isc_uint32_t		maxrefresh;
@@ -660,6 +669,8 @@ static isc_result_t delete_nsec(dns_db_t *db, dns_dbversion_t *ver,
 				dns_dbnode_t *node, dns_name_t *name,
 				dns_diff_t *diff);
 static void zone_rekey(dns_zone_t *zone);
+static isc_boolean_t delsig_ok(dns_rdata_rrsig_t *rrsig_ptr,
+			       dst_key_t **keys, unsigned int nkeys);
 
 #define ENTER zone_debuglog(zone, me, 1, "enter")
 
@@ -805,6 +816,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->timer = NULL;
 	zone->idlein = DNS_DEFAULT_IDLEIN;
 	zone->idleout = DNS_DEFAULT_IDLEOUT;
+	zone->log_key_expired_timer = 0;
 	ISC_LIST_INIT(zone->notifies);
 	isc_sockaddr_any(&zone->notifysrc4);
 	isc_sockaddr_any6(&zone->notifysrc6);
@@ -3582,6 +3594,39 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			resume_signingwithkey(zone);
 			resume_addnsec3chain(zone);
 		}
+
+		if (zone->type == dns_zone_master &&
+		    zone_isdynamic(zone) &&
+		    dns_db_issecure(db)) {
+			dns_name_t *name;
+			dns_fixedname_t fixed;
+			dns_rdataset_t next;
+
+			dns_rdataset_init(&next);
+			dns_fixedname_init(&fixed);
+			name = dns_fixedname_name(&fixed);
+
+			result = dns_db_getsigningtime(db, &next, name);
+			if (result == ISC_R_SUCCESS) {
+				isc_stdtime_t timenow;
+				char namebuf[DNS_NAME_FORMATSIZE];
+				char typebuf[DNS_RDATATYPE_FORMATSIZE];
+
+				isc_stdtime_get(&timenow);
+				dns_name_format(name, namebuf, sizeof(namebuf));
+				dns_rdatatype_format(next.covers,
+						     typebuf, sizeof(typebuf));
+				dns_zone_log(zone, ISC_LOG_DEBUG(3),
+					     "next resign: %s/%s in %d seconds",
+					     namebuf, typebuf,
+					     next.resign - timenow);
+				dns_rdataset_disassociate(&next);
+			} else 
+				dns_zone_log(zone, ISC_LOG_WARNING,
+					     "signed dynamic zone has no "
+					     "resign event scheduled");
+		}
+
 		zone_settimer(zone, &now);
 	}
 
@@ -4513,6 +4558,31 @@ set_key_expiry_warning(dns_zone_t *zone, isc_stdtime_t when, isc_stdtime_t now)
 }
 
 /*
+ * Helper function to del_sigs(). We don't want to delete RRSIGs that
+ * have no new key.
+ */
+static isc_boolean_t
+delsig_ok(dns_rdata_rrsig_t *rrsig_ptr, dst_key_t **keys, unsigned int nkeys) {
+	unsigned int i = 0;
+
+	for (i = 0; i < nkeys; i++) {
+		if ((rrsig_ptr->algorithm == dst_key_alg(keys[i])) &&
+		    (rrsig_ptr->keyid != dst_key_id(keys[i]))) {
+			if ((dst_key_isprivate(keys[i])) && !KSK(keys[i])) {
+				/*
+				 * Success - found a private key, which
+				 * means it is an active key and thus, it
+				 * is OK to delete the RRSIG
+				 */
+				return (ISC_TRUE);
+			}
+		}
+	}
+
+	return (ISC_FALSE);
+}
+
+/*
  * Delete expired RRsigs and any RRsigs we are about to re-sign.
  * See also update.c:del_keysigs().
  */
@@ -4561,13 +4631,49 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		if (type != dns_rdatatype_dnskey) {
-			result = update_one_rr(db, ver, diff,
+			if(delsig_ok(&rrsig, keys, nkeys)) {
+				result = update_one_rr(db, ver, diff,
 					       DNS_DIFFOP_DELRESIGN, name,
 					       rdataset.ttl, &rdata);
-			dns_rdata_reset(&rdata);
-			if (result != ISC_R_SUCCESS)
-				break;
-			continue;
+				dns_db_resigned(db, &rdataset, ver);
+				dns_rdata_reset(&rdata);
+				if (result != ISC_R_SUCCESS)
+					break;
+				continue;
+			} else {
+				/*
+				 * At this point, we've got an RRSIG,
+				 * which is signed by an inactive key. 
+				 * An administrator needs to provide a new
+				 * key/alg, but until that time, we want to
+				 * keep the old RRSIG.  Resetting the timer
+				 * here will ensure that we don't
+				 * constantly recheck this expired record.
+				 *
+				 * Note: dns_db_setsigningtime() will
+				 * assert if called after dns_db_resigned().
+				 */
+				isc_stdtime_t recheck = now + RESIGN_DELAY;
+				dns_db_setsigningtime(db, &rdataset, recheck);
+
+				/* 
+				 * log the key id and algorithm of
+				 * the inactive key with no replacement
+				 */
+				if((isc_log_getdebuglevel(dns_lctx) > 3) ||
+				   (zone->log_key_expired_timer <= now)) {
+					dns_zone_log(zone, ISC_LOG_WARNING,
+						     "del_sigs(): "
+						     "keyid: %u/algorithm: %u "
+						     "is not active and there "
+						     "is no replacement. "
+						     "Not deleting.",
+						     rrsig.keyid,
+						     rrsig.algorithm);
+					zone->log_key_expired_timer = now + 
+									3600;
+				}
+			}
 		}
 
 		/*
@@ -4670,10 +4776,6 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		INSIST(!dns_rdataset_isassociated(&rdataset));
 		goto failure;
 	}
-
-#define REVOKE(x) ((dst_key_flags(x) & DNS_KEYFLAG_REVOKE) != 0)
-#define KSK(x) ((dst_key_flags(x) & DNS_KEYFLAG_KSK) != 0)
-#define ALG(x) dst_key_alg(x)
 
 	for (i = 0; i < nkeys; i++) {
 		isc_boolean_t both = ISC_FALSE;
@@ -4813,6 +4915,8 @@ zone_resigninc(dns_zone_t *zone) {
 	while (result == ISC_R_SUCCESS) {
 		resign = rdataset.resign;
 		covers = rdataset.covers;
+		dns_rdataset_disassociate(&rdataset);
+
 		/*
 		 * Stop if we hit the SOA as that means we have walked the
 		 * entire zone.  The SOA record should always be the most
@@ -4820,18 +4924,8 @@ zone_resigninc(dns_zone_t *zone) {
 		 */
 		/* XXXMPA increase number of RRsets signed pre call */
 		if (covers == dns_rdatatype_soa || i++ > zone->signatures ||
-		    resign > stop) {
-			/*
-			 * Ensure that we don't loop resigning the SOA.
-			 */
-			if (covers == dns_rdatatype_soa)
-				dns_db_resigned(db, &rdataset, version);
-			dns_rdataset_disassociate(&rdataset);
+		    resign > stop)
 			break;
-		}
-
-		dns_db_resigned(db, &rdataset, version);
-		dns_rdataset_disassociate(&rdataset);
 
 		result = del_sigs(zone, db, version, name, covers, &sig_diff,
 				  zone_keys, nkeys, now);
@@ -4841,6 +4935,7 @@ zone_resigninc(dns_zone_t *zone) {
 				     dns_result_totext(result));
 			break;
 		}
+
 		result = add_sigs(db, version, name, covers, &sig_diff,
 				  zone_keys, nkeys, zone->mctx, inception,
 				  expire, check_ksk, keyset_kskonly);

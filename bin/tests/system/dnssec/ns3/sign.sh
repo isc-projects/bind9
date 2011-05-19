@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.32.162.7 2011/03/31 15:56:44 each Exp $
+# $Id: sign.sh,v 1.32.162.8 2011/05/19 04:42:51 each Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -341,3 +341,13 @@ cat $infile $keyname.key >$zonefile
 $SIGNER -P -r $RANDFILE -f $signedfile -o $zone $zonefile > /dev/null 2>&1
 $CHECKZONE -D -s full $zone $signedfile 2> /dev/null | \
     awk '{$2 = "3600"; print}' > $patchedfile
+
+zone="expiring.example."
+infile="expiring.example.db.in"
+zonefile="expiring.example.db"
+signedfile="expiring.example.db.signed"
+kskname=`$KEYGEN -q -r $RANDFILE $zone`
+zskname=`$KEYGEN -q -r $RANDFILE -f KSK $zone`
+cp $infile $zonefile
+$SIGNER -S -r $RANDFILE -e now+1mi -o $zone $zonefile > /dev/null 2>&1
+rm -f ${zskname}.private ${kskname}.private
