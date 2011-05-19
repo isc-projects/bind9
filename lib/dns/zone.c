@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.605 2011/05/19 00:31:57 smann Exp $ */
+/* $Id: zone.c,v 1.606 2011/05/19 04:28:33 each Exp $ */
 
 /*! \file */
 
@@ -5015,11 +5015,6 @@ zone_resigninc(dns_zone_t *zone) {
 		/* XXXMPA increase number of RRsets signed pre call */
 		if (covers == dns_rdatatype_soa || i++ > zone->signatures ||
 		    resign > stop) {
-			/*
-			 * Ensure that we don't loop resigning the SOA.
-			 */
-			if (covers == dns_rdatatype_soa)
-				dns_db_resigned(db, &rdataset, version);
 			dns_rdataset_disassociate(&rdataset);
 			break;
 		}
