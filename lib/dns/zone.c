@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.608 2011/05/19 04:44:58 each Exp $ */
+/* $Id: zone.c,v 1.609 2011/05/19 21:29:07 each Exp $ */
 
 /*! \file */
 
@@ -4681,7 +4681,7 @@ delsig_ok(dns_rdata_rrsig_t *rrsig_ptr, dst_key_t **keys, unsigned int nkeys) {
 static isc_result_t
 del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	 dns_rdatatype_t type, dns_diff_t *diff, dst_key_t **keys,
-	 unsigned int nkeys, isc_stdtime_t now)
+	 unsigned int nkeys, isc_stdtime_t now, isc_boolean_t incremental)
 {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
@@ -4727,7 +4727,8 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 				result = update_one_rr(db, ver, diff,
 					       DNS_DIFFOP_DELRESIGN, name,
 					       rdataset.ttl, &rdata);
-				dns_db_resigned(db, &rdataset, ver);
+				if (incremental)
+					dns_db_resigned(db, &rdataset, ver);
 				dns_rdata_reset(&rdata);
 				if (result != ISC_R_SUCCESS)
 					break;
@@ -4745,8 +4746,12 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 				 * Note: dns_db_setsigningtime() will
 				 * assert if called after dns_db_resigned().
 				 */
-				isc_stdtime_t recheck = now + RESIGN_DELAY;
-				dns_db_setsigningtime(db, &rdataset, recheck);
+				if (incremental) {
+					isc_stdtime_t recheck = now +
+						RESIGN_DELAY;
+					dns_db_setsigningtime(db, &rdataset,
+							      recheck);
+				}
 
 				/* 
 				 * log the key id and algorithm of
@@ -5020,7 +5025,7 @@ zone_resigninc(dns_zone_t *zone) {
 			break;
 
 		result = del_sigs(zone, db, version, name, covers, &sig_diff,
-				  zone_keys, nkeys, now);
+				  zone_keys, nkeys, now, ISC_TRUE);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "zone_resigninc:del_sigs -> %s\n",
@@ -5053,7 +5058,7 @@ zone_resigninc(dns_zone_t *zone) {
 		goto failure;
 
 	result = del_sigs(zone, db, version, &zone->origin, dns_rdatatype_soa,
-			  &sig_diff, zone_keys, nkeys, now);
+			  &sig_diff, zone_keys, nkeys, now, ISC_TRUE);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
 			     "zone_resigninc:del_sigs -> %s\n",
@@ -5770,7 +5775,7 @@ update_sigs(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *version,
 	     tuple = ISC_LIST_HEAD(diff->tuples)) {
 		result = del_sigs(zone, db, version, &tuple->name,
 				  tuple->rdata.type, sig_diff,
-				  zone_keys, nkeys, now);
+				  zone_keys, nkeys, now, ISC_FALSE);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "update_sigs:del_sigs -> %s\n",
@@ -6426,7 +6431,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 		goto done;
 
 	result = del_sigs(zone, db, version, &zone->origin, dns_rdatatype_soa,
-			  &sig_diff, zone_keys, nkeys, now);
+			  &sig_diff, zone_keys, nkeys, now, ISC_FALSE);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain:"
 			     "del_sigs -> %s\n", dns_result_totext(result));
@@ -6987,7 +6992,7 @@ zone_sign(dns_zone_t *zone) {
 	commit = ISC_TRUE;
 
 	result = del_sigs(zone, db, version, &zone->origin, dns_rdatatype_soa,
-			  &sig_diff, zone_keys, nkeys, now);
+			  &sig_diff, zone_keys, nkeys, now, ISC_FALSE);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
 			     "zone_sign:del_sigs -> %s\n",
@@ -13927,7 +13932,7 @@ sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	if (tuple == NULL) {
 		result = del_sigs(zone, db, ver, &zone->origin,
 				  dns_rdatatype_dnskey, sig_diff,
-				  zone_keys, nkeys, now);
+				  zone_keys, nkeys, now, ISC_FALSE);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "sign_apex:del_sigs -> %s\n",
