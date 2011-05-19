@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.607 2011/05/19 04:33:17 each Exp $ */
+/* $Id: zone.c,v 1.608 2011/05/19 04:44:58 each Exp $ */
 
 /*! \file */
 
@@ -3625,7 +3625,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		}
 
 		if (zone->type == dns_zone_master &&
-		    dns_zone_isdynamic(zone, ISC_TRUE) &&
+		    dns_zone_isdynamic(zone, ISC_FALSE) &&
 		    dns_db_issecure(db)) {
 			dns_name_t *name;
 			dns_fixedname_t fixed;
