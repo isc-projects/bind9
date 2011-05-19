@@ -1,3 +1,6 @@
+3114.	[bug]		Retain signed RRSET if key is inactive and there is
+			no replacement key. [RT #23136 task 1]
+
 3113.	[doc]		Document the relationship between serial-query-rate
 			and NOTIFY messages.
 

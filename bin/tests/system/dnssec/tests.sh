@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.88 2011/03/24 02:10:23 marka Exp $
+# $Id: tests.sh,v 1.89 2011/05/19 00:31:57 smann Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -1315,12 +1315,20 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:check dnssec-dsfromkey from stdin($n)"
+echo "I:check dnssec-dsfromkey from stdin ($n)"
 ret=0
 $DIG $DIGOPTS dnskey algroll. @10.53.0.2 | \
         $DSFROMKEY -f - algroll. > dig.out.ns2.test$n || ret=1
 diff -b dig.out.ns2.test$n ns1/dsset-algroll. > /dev/null 2>&1 || ret=1
 n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:testing soon-to-expire RRSIGs without a replacement private key ($n)"
+ret=0
+$DIG +noall +answer +dnssec +nottl -p 5300 expiring.example ns @10.53.0.3 | grep RRSIG > dig.out.ns3.test$n 2>&1
+# there must be a signature here
+[ -s dig.out.ns3.test$n ] || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
