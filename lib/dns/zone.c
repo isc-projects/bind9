@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.582.8.18 2011/05/19 21:28:26 each Exp $ */
+/* $Id: zone.c,v 1.582.8.19 2011/05/19 23:46:59 tbox Exp $ */
 
 /*! \file */
 
@@ -3621,7 +3621,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 					     namebuf, typebuf,
 					     next.resign - timenow);
 				dns_rdataset_disassociate(&next);
-			} else 
+			} else
 				dns_zone_log(zone, ISC_LOG_WARNING,
 					     "signed dynamic zone has no "
 					     "resign event scheduled");
@@ -4644,7 +4644,7 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 			} else {
 				/*
 				 * At this point, we've got an RRSIG,
-				 * which is signed by an inactive key. 
+				 * which is signed by an inactive key.
 				 * An administrator needs to provide a new
 				 * key/alg, but until that time, we want to
 				 * keep the old RRSIG.  Resetting the timer
@@ -4661,7 +4661,7 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 							      recheck);
 				}
 
-				/* 
+				/*
 				 * log the key id and algorithm of
 				 * the inactive key with no replacement
 				 */
@@ -4675,7 +4675,7 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 						     "Not deleting.",
 						     rrsig.keyid,
 						     rrsig.algorithm);
-					zone->log_key_expired_timer = now + 
+					zone->log_key_expired_timer = now +
 									3600;
 				}
 			}
