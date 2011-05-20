@@ -1,3 +1,7 @@
+3115.	[bug]		Named could fail to return requested data when
+			following a CNAME that points into the same zone.
+			[RT #2445]
+
 3114.	[bug]		Retain expired RRSIGs in dynamic zones if key is
 			inactive and there is no replacement key. [RT #23136]
 
