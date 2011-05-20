@@ -1,6 +1,6 @@
 3115.	[bug]		Named could fail to return requested data when
 			following a CNAME that points into the same zone.
-			[RT #2445]
+			[RT #24455]
 
 3113.	[doc]		Document the relationship between serial-query-rate
 			and NOTIFY messages.
