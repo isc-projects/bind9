@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.491 2011/05/17 04:48:51 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.492 2011/05/23 20:10:02 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -1189,10 +1189,10 @@ zone "eng.example.com" {
                       <para>
                         This command requires that the
                         <command>auto-dnssec</command> zone option to be set
-                        to <literal>allow</literal>,
-                        <literal>maintain</literal>, or
-                        <literal>create</literal>,  and also requires
-                        the zone to be configured to allow dynamic DNS.
+                        to <literal>allow</literal> or
+                        <literal>maintain</literal>,
+                        and also requires the zone to be configured to
+                        allow dynamic DNS.
                         See <xref linkend="dynamic_update_policies"/> for
                         more details.
                       </para>
@@ -1218,9 +1218,9 @@ zone "eng.example.com" {
                       <para>
                         This command requires that the
                         <command>auto-dnssec</command> zone option to
-                        be set to <literal>maintain</literal> or
-                        <literal>create</literal>, and also requires
-                        the zone to be configured to allow dynamic DNS.
+                        be set to <literal>maintain</literal>,
+                        and also requires the zone to be configured to
+                        allow dynamic DNS.
                         See <xref linkend="dynamic_update_policies"/> for
                         more details.
                       </para>
@@ -5062,6 +5062,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> allow-update { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-update-forwarding { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> update-check-ksk <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> dnssec-update-mode ( <replaceable>maintain</replaceable> | <replaceable>no-resign</replaceable> ); </optional>
     <optional> dnssec-dnskey-kskonly <replaceable>yes_or_no</replaceable>; </optional>
     <optional> dnssec-loadkeys-interval <replaceable>number</replaceable>; </optional>
     <optional> dnssec-secure-to-insecure <replaceable>yes_or_no</replaceable> ;</optional>
@@ -5851,6 +5852,41 @@ options {
 </programlisting>
             </listitem>
 	  </varlistentry>
+
+	  <varlistentry>
+	    <term><command>dnssec-update-mode</command></term>
+	    <listitem>
+	        <para>
+                  If this option is set to its default value of
+                  <literal>maintain</literal> in a zone of type
+                  <literal>master</literal> which is DNSSEC-signed
+                  and configured to allow dynamic updates (see
+                  <xref linkend="dynamic_update_policies"/>), and
+                  if <command>named</command> has access to the
+                  private signing key(s) for the zone, then
+                  <command>named</command> will automatically sign all new
+                  or changed records and maintain signatures for the zone
+                  by regenerating RRSIG records whenever they approach
+                  their expiration date.
+		</para>
+		<para>
+                  If the option is changed to <literal>no-resign</literal>,
+                  then <command>named</command> will sign all new or
+                  changed records, but scheduled maintenance of
+                  signatures is disabled.
+                </para>
+                <para>
+                  With either of these settings, <command>named</command>
+                  will reject updates to a DNSSEC-signed zone when the
+                  signing keys are inactive or unavailable to
+                  <command>named</command>.  (A planned third option,
+                  <literal>external</literal>, will disable all automatic
+                  signing and allow DNSSEC data to be submitted into a zone
+                  via dyanmic update; this is not yet implemented.)
+		</para>
+	    </listitem>
+	  </varlistentry>
+
 
         </variablelist>
 
@@ -10052,7 +10088,7 @@ view "external" {
     <optional> min-retry-time <replaceable>number</replaceable> ; </optional>
     <optional> max-retry-time <replaceable>number</replaceable> ; </optional>
     <optional> key-directory <replaceable>path_name</replaceable>; </optional>
-    <optional> auto-dnssec <constant>allow</constant>|<constant>maintain</constant>|<constant>create</constant>|<constant>off</constant>; </optional>
+    <optional> auto-dnssec <constant>allow</constant>|<constant>maintain</constant>|<constant>off</constant>; </optional>
     <optional> zero-no-soa-ttl <replaceable>yes_or_no</replaceable> ; </optional>
 };
 
@@ -10064,6 +10100,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
     <optional> allow-transfer { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-update-forwarding { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> update-check-ksk <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> dnssec-update-mode ( <replaceable>maintain</replaceable> | <replaceable>no-resign</replaceable> ); </optional>
     <optional> dnssec-dnskey-kskonly <replaceable>yes_or_no</replaceable>; </optional>
     <optional> dnssec-loadkeys-interval <replaceable>number</replaceable>; </optional>
     <optional> dnssec-secure-to-insecure <replaceable>yes_or_no</replaceable> ; </optional>
@@ -10667,6 +10704,16 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
               </varlistentry>
 
 	      <varlistentry>
+	        <term><command>dnssec-update-mode</command></term>
+                <listitem>
+                  <para>
+                    See the description of
+                    <command>dnssec-update-mode</command> in <xref linkend="options"/>.
+                  </para>
+                </listitem>
+              </varlistentry>
+
+	      <varlistentry>
 	        <term><command>dnssec-dnskey-kskonly</command></term>
                 <listitem>
                   <para>
@@ -11141,7 +11188,7 @@ example.com. NS ns2.example.net.
                   <para>
                     Zones configured for dynamic DNS may also use this
                     option to allow varying levels of automatic DNSSEC key
-                    management. There are four possible settings:
+                    management. There are three possible settings:
                   </para>
                   <para>
                     <command>auto-dnssec allow;</command> permits
@@ -11171,13 +11218,6 @@ example.com. NS ns2.example.net.
                     <command>rndc loadkeys</command> is used.  The recheck
                     interval is defined by
                     <command>dnssec-loadkeys-interval</command>.)
-                  </para>
-                  <para>
-                    <command>auto-dnssec create;</command> includes the
-                    above, but also allows <command>named</command>
-                    to create new keys in the key repository when needed.
-                    (NOTE: This option is not yet implemented; the syntax is
-                    being reserved for future use.)
                   </para>
                   <para>
                     The default setting is <command>auto-dnssec off</command>.

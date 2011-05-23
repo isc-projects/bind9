@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.188 2011/05/06 21:23:51 each Exp $ */
+/* $Id: zone.h,v 1.189 2011/05/23 20:10:03 each Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -93,6 +93,7 @@ typedef enum {
 #define DNS_ZONEKEY_MAINTAIN	0x00000002U	/*%< publish/sign on schedule */
 #define DNS_ZONEKEY_CREATE	0x00000004U	/*%< make keys when needed */
 #define DNS_ZONEKEY_FULLSIGN    0x00000008U     /*%< roll to new keys immediately */
+#define DNS_ZONEKEY_NORESIGN	0x00000010U	/*%< no automatic resigning */
 
 #ifndef DNS_ZONE_MINREFRESH
 #define DNS_ZONE_MINREFRESH		    300	/*%< 5 minutes */

@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.89 2011/05/19 00:31:57 smann Exp $
+# $Id: tests.sh,v 1.90 2011/05/23 20:10:02 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -1329,6 +1329,49 @@ ret=0
 $DIG +noall +answer +dnssec +nottl -p 5300 expiring.example ns @10.53.0.3 | grep RRSIG > dig.out.ns3.test$n 2>&1
 # there must be a signature here
 [ -s dig.out.ns3.test$n ] || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:testing new records are signed with 'no-resign' ($n)"
+ret=0
+(
+echo zone nosign.example
+echo server 10.53.0.3 5300
+echo update add new.nosign.example 300 in txt "hi there"
+echo send
+) | $NSUPDATE
+sleep 1
+$DIG +noall +answer +dnssec -p 5300 txt new.nosign.example @10.53.0.3 \
+        > dig.out.ns3.test$n 2>&1
+grep RRSIG dig.out.ns3.test$n > /dev/null 2>&1 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:testing expiring records aren't resigned with 'no-resign' ($n)"
+ret=0
+$DIG +noall +answer +dnssec +nottl -p 5300 nosign.example ns @10.53.0.3 | \
+        grep RRSIG | sed 's/[ 	][ 	]*/ /g' > dig.out.ns3.test$n 2>&1
+# the NS RRSIG should not be changed
+cmp -s nosign.before dig.out.ns3.test$n || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:testing updates fail with no private key ($n)"
+ret=0
+rm -f ns3/Knosign.example.*.private
+(
+echo zone nosign.example
+echo server 10.53.0.3 5300
+echo update add fail.nosign.example 300 in txt "reject me"
+echo send
+) | $NSUPDATE > /dev/null 2>&1 && ret=1
+$DIG +noall +answer +dnssec -p 5300 fail.nosign.example txt @10.53.0.3 \
+        > dig.out.ns3.test$n 2>&1
+[ -s dig.out.ns3.test$n ] && ret=1
+n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 

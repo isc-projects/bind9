@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.137 2011/05/07 05:55:17 each Exp $ */
+/* $Id: namedconf.c,v 1.138 2011/05/23 20:10:03 each Exp $ */
 
 /*! \file */
 
@@ -541,11 +541,16 @@ static cfg_type_t cfg_type_bracketed_sockaddrlist = {
 	&cfg_rep_list, &cfg_type_sockaddr
 };
 
-static const char *autodnssec_enums[] = { "allow", "maintain", "create",
-					  "off", NULL };
+static const char *autodnssec_enums[] = { "allow", "maintain", "off", NULL };
 static cfg_type_t cfg_type_autodnssec = {
 	"autodnssec", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
 	&cfg_rep_string, &autodnssec_enums
+};
+
+static const char *dnssecupdatemode_enums[] = { "maintain", "no-resign", NULL };
+static cfg_type_t cfg_type_dnssecupdatemode = {
+	"dnssecupdatemode", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
+	&cfg_rep_string, &dnssecupdatemode_enums
 };
 
 static cfg_type_t cfg_type_rrsetorder = {
@@ -1360,6 +1365,7 @@ zone_clauses[] = {
 	{ "dnssec-dnskey-kskonly", &cfg_type_boolean, 0 },
 	{ "dnssec-loadkeys-interval", &cfg_type_uint32, 0 },
 	{ "dnssec-secure-to-insecure", &cfg_type_boolean, 0 },
+	{ "dnssec-update-mode", &cfg_type_dnssecupdatemode, 0 },
 	{ "forward", &cfg_type_forwardtype, 0 },
 	{ "forwarders", &cfg_type_portiplist, 0 },
 	{ "key-directory", &cfg_type_qstring, 0 },

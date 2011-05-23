@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.610 2011/05/19 23:47:17 tbox Exp $ */
+/* $Id: zone.c,v 1.611 2011/05/23 20:10:02 each Exp $ */
 
 /*! \file */
 
@@ -3625,6 +3625,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		}
 
 		if (zone->type == dns_zone_master &&
+		    !DNS_ZONEKEY_OPTION(zone, DNS_ZONEKEY_NORESIGN) &&
 		    dns_zone_isdynamic(zone, ISC_FALSE) &&
 		    dns_db_issecure(db)) {
 			dns_name_t *name;
@@ -4956,10 +4957,14 @@ zone_resigninc(dns_zone_t *zone) {
 	dns_diff_init(zone->mctx, &sig_diff);
 	sig_diff.resign = zone->sigresigninginterval;
 
+
 	/*
-	 * Updates are disabled.  Pause for 5 minutes.
+	 * Zone is frozen or automatic resigning is disabled.
+	 * Pause for 5 minutes.
 	 */
-	if (zone->update_disabled) {
+	if (zone->update_disabled ||
+	    DNS_ZONEKEY_OPTION(zone, DNS_ZONEKEY_NORESIGN))
+	{
 		result = ISC_R_FAILURE;
 		goto failure;
 	}

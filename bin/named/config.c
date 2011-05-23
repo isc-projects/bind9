@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.117 2011/04/29 21:37:14 each Exp $ */
+/* $Id: config.c,v 1.118 2011/05/23 20:10:01 each Exp $ */
 
 /*! \file */
 
@@ -209,6 +209,7 @@ options {\n\
 	check-srv-cname warn;\n\
 	zero-no-soa-ttl yes;\n\
 	update-check-ksk yes;\n\
+	dnssec-update-mode maintain;\n\
 	dnssec-dnskey-kskonly no;\n\
 	dnssec-loadkeys-interval 60;\n\
 	try-tcp-refresh yes; /* BIND 8 compat */\n\

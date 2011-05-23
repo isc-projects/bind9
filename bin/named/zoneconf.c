@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.176 2011/05/06 21:23:50 each Exp $ */
+/* $Id: zoneconf.c,v 1.177 2011/05/23 20:10:01 each Exp $ */
 
 /*% */
 
@@ -1248,7 +1248,6 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	 */
 	if (ztype == dns_zone_master) {
 		isc_boolean_t allow = ISC_FALSE, maint = ISC_FALSE;
-		isc_boolean_t create = ISC_FALSE;
 
 		obj = NULL;
 		result = ns_config_get(maps, "check-wildcard", &obj);
@@ -1338,15 +1337,25 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 				allow = ISC_TRUE;
 			else if (strcasecmp(arg, "maintain") == 0)
 				allow = maint = ISC_TRUE;
-			else if (strcasecmp(arg, "create") == 0)
-				allow = maint = create = ISC_TRUE;
 			else if (strcasecmp(arg, "off") == 0)
 				;
 			else
 				INSIST(0);
 			dns_zone_setkeyopt(zone, DNS_ZONEKEY_ALLOW, allow);
 			dns_zone_setkeyopt(zone, DNS_ZONEKEY_MAINTAIN, maint);
-			dns_zone_setkeyopt(zone, DNS_ZONEKEY_CREATE, create);
+		}
+
+		obj = NULL;
+		result = cfg_map_get(zoptions, "dnssec-update-mode", &obj);
+		if (result == ISC_R_SUCCESS) {
+			const char *arg = cfg_obj_asstring(obj);
+			if (strcasecmp(arg, "no-resign") == 0)
+				dns_zone_setkeyopt(zone, DNS_ZONEKEY_NORESIGN,
+						   ISC_TRUE);
+			else if (strcasecmp(arg, "maintain") == 0)
+				;
+			else
+				INSIST(0);
 		}
 	}
 
