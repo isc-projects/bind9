@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.170.14.3 2011/03/11 06:47:01 marka Exp $ */
+/* $Id: zoneconf.c,v 1.170.14.4 2011/05/23 20:56:10 each Exp $ */
 
 /*% */
 
@@ -1214,7 +1214,6 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	 */
 	if (ztype == dns_zone_master) {
 		isc_boolean_t allow = ISC_FALSE, maint = ISC_FALSE;
-		isc_boolean_t create = ISC_FALSE;
 
 		obj = NULL;
 		result = ns_config_get(maps, "check-wildcard", &obj);
@@ -1304,15 +1303,12 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 				allow = ISC_TRUE;
 			else if (strcasecmp(arg, "maintain") == 0)
 				allow = maint = ISC_TRUE;
-			else if (strcasecmp(arg, "create") == 0)
-				allow = maint = create = ISC_TRUE;
 			else if (strcasecmp(arg, "off") == 0)
 				;
 			else
 				INSIST(0);
 			dns_zone_setkeyopt(zone, DNS_ZONEKEY_ALLOW, allow);
 			dns_zone_setkeyopt(zone, DNS_ZONEKEY_MAINTAIN, maint);
-			dns_zone_setkeyopt(zone, DNS_ZONEKEY_CREATE, create);
 		}
 	}
 

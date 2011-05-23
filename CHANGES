@@ -1,3 +1,7 @@
+3117.	[cleanup]	Remove doc and parser references to the
+			never-implemented 'auto-dnssec create' option.
+			[RT #24533]
+
 3115.	[bug]		Named could fail to return requested data when
 			following a CNAME that points into the same zone.
 			[RT #24455]

@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.478.8.7 2011/05/17 05:21:22 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.478.8.8 2011/05/23 20:56:11 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -1188,11 +1188,11 @@ zone "eng.example.com" {
                       </para>
                       <para>
                         This command requires that the
-                        <command>auto-dnssec</command> zone option to be set
-                        to <literal>allow</literal>,
-                        <literal>maintain</literal>, or
-                        <literal>create</literal>,  and also requires
-                        the zone to be configured to allow dynamic DNS.
+                        <command>auto-dnssec</command> zone option be set
+                        to <literal>allow</literal> or
+                        <literal>maintain</literal>,
+                        and also requires the zone to be configured to
+                        allow dynamic DNS.
                         See <xref linkend="dynamic_update_policies"/> for
                         more details.
                       </para>
@@ -1217,10 +1217,10 @@ zone "eng.example.com" {
                       </para>
                       <para>
                         This command requires that the
-                        <command>auto-dnssec</command> zone option to
-                        be set to <literal>maintain</literal> or
-                        <literal>create</literal>, and also requires
-                        the zone to be configured to allow dynamic DNS.
+                        <command>auto-dnssec</command> zone option
+                        be set to <literal>maintain</literal>,
+                        and also requires the zone to be configured to
+                        allow dynamic DNS.
                         See <xref linkend="dynamic_update_policies"/> for
                         more details.
                       </para>
@@ -10010,7 +10010,7 @@ view "external" {
     <optional> min-retry-time <replaceable>number</replaceable> ; </optional>
     <optional> max-retry-time <replaceable>number</replaceable> ; </optional>
     <optional> key-directory <replaceable>path_name</replaceable>; </optional>
-    <optional> auto-dnssec <constant>allow</constant>|<constant>maintain</constant>|<constant>create</constant>|<constant>off</constant>; </optional>
+    <optional> auto-dnssec <constant>allow</constant>|<constant>maintain</constant>|<constant>off</constant>; </optional>
     <optional> zero-no-soa-ttl <replaceable>yes_or_no</replaceable> ; </optional>
 };
 
@@ -10022,6 +10022,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
     <optional> allow-transfer { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-update-forwarding { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> update-check-ksk <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> dnssec-update-mode ( <replaceable>maintain</replaceable> | <replaceable>no-resign</replaceable> ); </optional>
     <optional> dnssec-dnskey-kskonly <replaceable>yes_or_no</replaceable>; </optional>
     <optional> dnssec-secure-to-insecure <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> try-tcp-refresh <replaceable>yes_or_no</replaceable>; </optional>
@@ -11067,7 +11068,7 @@ example.com. NS ns2.example.net.
                   <para>
                     Zones configured for dynamic DNS may also use this
                     option to allow varying levels of automatic DNSSEC key
-                    management. There are four possible settings:
+                    management. There are three possible settings:
                   </para>
                   <para>
                     <command>auto-dnssec allow;</command> permits
