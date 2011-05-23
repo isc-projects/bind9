@@ -1,3 +1,6 @@
+
+	--- 9.4-ESV-R5rc1 released ---
+
 3113.	[doc]		Document the relationship between serial-query-rate
 			and NOTIFY messages.
 
