@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.163.48.17 2011/03/12 04:57:24 tbox Exp $ */
+/* $Id: nsupdate.c,v 1.163.48.18 2011/05/23 22:24:12 each Exp $ */
 
 /*! \file */
 
@@ -617,8 +617,10 @@ setup_keyfile(void) {
 				keyfile, isc_result_totext(result));
 			return;
 		}
-	} else
+	} else {
 		dst_key_attach(dstkey, &sig0key);
+		dst_key_free(&dstkey);
+	}
 }
 
 static void
@@ -2706,6 +2708,9 @@ cleanup(void) {
 		realm = NULL;
 	}
 #endif
+
+	if (sig0key != NULL)
+		dst_key_free(&sig0key);
 
 	ddebug("Shutting down task manager");
 	isc_taskmgr_destroy(&taskmgr);

@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.25.332.2 2011/02/03 12:16:45 tbox Exp $
+# $Id: tests.sh,v 1.25.332.3 2011/05/23 22:24:12 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -58,6 +58,15 @@ $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
 echo "I:comparing post-update copies to known good data"
 $PERL ../digcomp.pl knowngood.ns1.after dig.out.ns1 || status=1
 $PERL ../digcomp.pl knowngood.ns1.after dig.out.ns2 || status=1
+
+ret=0
+echo "I:check SIG(0) key is accepted"
+key=`$KEYGEN -r random.data -a NSEC3RSASHA1 -b 512 -k -n ENTITY xxx 2> /dev/null`
+echo "" | $NSUPDATE -k ${key}.private > /dev/null 2>&1 || ret=1
+if [ $ret -ne 0 ]; then
+    echo "I:failed"
+    status=1
+fi
 
 if $PERL -e 'use Net::DNS;' 2>/dev/null
 then
