@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.20.24.2 2011/02/28 01:20:01 tbox Exp $
+# $Id: clean.sh,v 1.20.24.3 2011/05/23 22:12:15 each Exp $
 
 #
 # Clean up after zone transfer tests.
@@ -35,3 +35,4 @@ rm -f ns3/dnskey.test.db.signed.jnl ns3/dnskey.test.db ns3/dnskey.test.db.signed
 rm -f ns3/K*
 rm -f dig.out.ns3.*
 rm -f jp.out.ns3.*
+rm -f Kxxx.*
