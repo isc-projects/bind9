@@ -2,7 +2,7 @@
 
 Introduction
 
-   BIND 9.3-ESV-R5 is a maintenance release for BIND 9.4-ESV.
+   BIND 9.4-ESV-R5 is a maintenance release for BIND 9.4-ESV.
 
    This document summarizes changes from BIND 9.4-ESV-R4 to BIND
    9.4-ESV-R5. Please see the CHANGES file in the source code release for
