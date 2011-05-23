@@ -1,3 +1,6 @@
+
+	--- 9.6-ESV-R5rc1 released ---
+
 3118.	[bug]		nsupdate could dump core on shutdown when using
 			SIG(0) keys. [RT #24604]
 
