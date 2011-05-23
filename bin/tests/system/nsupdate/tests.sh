@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.28.102.7 2011/03/18 02:06:58 each Exp $
+# $Id: tests.sh,v 1.28.102.8 2011/05/23 22:23:05 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -139,6 +139,15 @@ grep ns3.other.nil dig.out.ns1 > /dev/null 2>&1 && status=1
 grep ns4.other.nil dig.out.ns1 > /dev/null 2>&1 || status=1
 grep ns5.other.nil dig.out.ns1 > /dev/null 2>&1 || status=1
 grep ns6.other.nil dig.out.ns1 > /dev/null 2>&1 || status=1
+
+ret=0
+echo "I:check SIG(0) key is accepted"
+key=`$KEYGEN -q -r random.data -a NSEC3RSASHA1 -b 512 -T KEY -n ENTITY xxx`
+echo "" | $NSUPDATE -k ${key}.private > /dev/null 2>&1 || ret=1
+if [ $ret -ne 0 ]; then
+    echo "I:failed"
+    status=1
+fi
 
 
 if $PERL -e 'use Net::DNS;' 2>/dev/null
