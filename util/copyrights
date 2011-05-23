@@ -816,6 +816,7 @@
 ./bin/tests/system/dnssec/ns3/kskonly.example.db.in	ZONE	2010
 ./bin/tests/system/dnssec/ns3/multiple.example.db.in	ZONE	2006,2008
 ./bin/tests/system/dnssec/ns3/named.conf	CONF-C	2000,2001,2002,2004,2006,2007,2008,2009,2010,2011
+./bin/tests/system/dnssec/ns3/nosign.example.db.in	ZONE	2011
 ./bin/tests/system/dnssec/ns3/nsec3-unknown.example.db.in	ZONE	2006,2008
 ./bin/tests/system/dnssec/ns3/nsec3.example.db.in	ZONE	2006,2008
 ./bin/tests/system/dnssec/ns3/nsec3.nsec3.example.db.in	ZONE	2008
