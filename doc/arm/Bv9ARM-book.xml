@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.492 2011/05/23 20:10:02 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.493 2011/05/23 20:11:14 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -1188,7 +1188,7 @@ zone "eng.example.com" {
                       </para>
                       <para>
                         This command requires that the
-                        <command>auto-dnssec</command> zone option to be set
+                        <command>auto-dnssec</command> zone option be set
                         to <literal>allow</literal> or
                         <literal>maintain</literal>,
                         and also requires the zone to be configured to
@@ -1217,7 +1217,7 @@ zone "eng.example.com" {
                       </para>
                       <para>
                         This command requires that the
-                        <command>auto-dnssec</command> zone option to
+                        <command>auto-dnssec</command> zone option
                         be set to <literal>maintain</literal>,
                         and also requires the zone to be configured to
                         allow dynamic DNS.
