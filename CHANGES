@@ -1,3 +1,7 @@
+3117.	[cleanup]	Remove doc and parser references to the
+			never-implemented 'auto-dnssec create' option.
+			[RT #24533]
+
 3113.	[doc]		Document the relationship between serial-query-rate
 			and NOTIFY messages.
 
