@@ -118,6 +118,7 @@ options {
         dnssec-lookaside ( <string> trust-anchor <string> | auto );
         dnssec-must-be-secure <string> <boolean>;
         dnssec-secure-to-insecure <boolean>;
+        dnssec-update-mode ( maintain | no-resign );
         dnssec-validation ( yes | no | auto );
         dual-stack-servers [ port <integer> ] { ( <quoted_string> [ port
             <integer> ] | <ipv4_address> [ port <integer> ] |
@@ -339,6 +340,7 @@ view <string> <optional_class> {
         dnssec-lookaside ( <string> trust-anchor <string> | auto );
         dnssec-must-be-secure <string> <boolean>;
         dnssec-secure-to-insecure <boolean>;
+        dnssec-update-mode ( maintain | no-resign );
         dnssec-validation ( yes | no | auto );
         dual-stack-servers [ port <integer> ] { ( <quoted_string> [ port
             <integer> ] | <ipv4_address> [ port <integer> ] |
@@ -464,7 +466,7 @@ view <string> <optional_class> {
                     <integer> | * ) ];
                 alt-transfer-source-v6 ( <ipv6_address> | * ) [ port (
                     <integer> | * ) ];
-                auto-dnssec ( allow | maintain | create | off );
+                auto-dnssec ( allow | maintain | off );
                 check-dup-records ( fail | warn | ignore );
                 check-integrity <boolean>;
                 check-mx ( fail | warn | ignore );
@@ -479,6 +481,7 @@ view <string> <optional_class> {
                 dnssec-dnskey-kskonly <boolean>;
                 dnssec-loadkeys-interval <integer>;
                 dnssec-secure-to-insecure <boolean>;
+                dnssec-update-mode ( maintain | no-resign );
                 file <quoted_string>;
                 forward ( first | only );
                 forwarders [ port <integer> ] { ( <ipv4_address> |
@@ -554,7 +557,7 @@ zone <string> <optional_class> {
         alt-transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
         alt-transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> |
             * ) ];
-        auto-dnssec ( allow | maintain | create | off );
+        auto-dnssec ( allow | maintain | off );
         check-dup-records ( fail | warn | ignore );
         check-integrity <boolean>;
         check-mx ( fail | warn | ignore );
@@ -569,6 +572,7 @@ zone <string> <optional_class> {
         dnssec-dnskey-kskonly <boolean>;
         dnssec-loadkeys-interval <integer>;
         dnssec-secure-to-insecure <boolean>;
+        dnssec-update-mode ( maintain | no-resign );
         file <quoted_string>;
         forward ( first | only );
         forwarders [ port <integer> ] { ( <ipv4_address> | <ipv6_address> )
