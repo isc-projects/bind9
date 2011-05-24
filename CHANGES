@@ -15,7 +15,7 @@
 3110.	[bug]		dnssec-signzone: Wrong error message could appear
 			when attempting to sign with no KSK. [RT #24369]
 
-3104.   [bug]           Better support for cross-compiling. [RT #24367]
+3104.	[bug]		Better support for cross-compiling. [RT #24367]
 
 3099.	[test]		"dlz" system test now runs but gives R:SKIPPED if
 			not compiled with --with-dlz-filesystem.  [RT #24146]
