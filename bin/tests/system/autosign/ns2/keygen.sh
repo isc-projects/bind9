@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: keygen.sh,v 1.7 2010/06/07 04:45:43 marka Exp $
+# $Id: keygen.sh,v 1.8 2011/05/26 04:25:47 each Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -57,5 +57,5 @@ for i in Xbar.+005+30676.key Xbar.+005+30804.key Xbar.+005+30676.private \
 do
 	cp $i `echo $i | sed s/X/K/`
 done
-$KEYGEN -3 -q -r $RANDFILE $zone > /dev/null
+$KEYGEN -q -r $RANDFILE $zone > /dev/null
 $DSFROMKEY Kbar.+005+30804.key > dsset-bar.
