@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.582.8.19 2011/05/19 23:46:59 tbox Exp $ */
+/* $Id: zone.c,v 1.582.8.20 2011/05/26 04:25:09 each Exp $ */
 
 /*! \file */
 
@@ -13680,7 +13680,8 @@ rr_exists(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
  */
 static isc_result_t
 add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
-		    dns_dbversion_t *ver, dns_diff_t *diff)
+		    dns_dbversion_t *ver, dns_diff_t *diff,
+		    isc_boolean_t sign_all)
 {
 	dns_difftuple_t *tuple, *newtuple = NULL;
 	dns_rdata_dnskey_t dnskey;
@@ -13719,13 +13720,16 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 		rdata.type = privatetype;
 		rdata.rdclass = tuple->rdata.rdclass;
 
-		CHECK(rr_exists(db, ver, name, &rdata, &flag));
-		if (flag)
-			continue;
-		CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD,
-					   name, 0, &rdata, &newtuple));
-		CHECK(do_one_tuple(&newtuple, db, ver, diff));
-		INSIST(newtuple == NULL);
+		if (sign_all || tuple->op == DNS_DIFFOP_DEL) {
+			CHECK(rr_exists(db, ver, name, &rdata, &flag));
+			if (flag)
+				continue;
+			CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD,
+						   name, 0, &rdata, &newtuple));
+			CHECK(do_one_tuple(&newtuple, db, ver, diff));
+			INSIST(newtuple == NULL);
+		}
+
 		/*
 		 * Remove any record which says this operation has already
 		 * completed.
@@ -13962,6 +13966,7 @@ zone_rekey(dns_zone_t *zone) {
 	dns_dnsseckey_t *key;
 	dns_diff_t diff, sig_diff;
 	isc_boolean_t commit = ISC_FALSE, newactive = ISC_FALSE;
+	isc_boolean_t newalg = ISC_FALSE;
 	isc_boolean_t fullsign;
 	dns_ttl_t ttl = 3600;
 	const char *dir;
@@ -14039,52 +14044,11 @@ zone_rekey(dns_zone_t *zone) {
 			goto trylater;
 		}
 
-		/* See if any pre-existing keys have newly become active */
-		for (key = ISC_LIST_HEAD(dnskeys);
-		     key != NULL;
-		     key = ISC_LIST_NEXT(key, link)) {
-			if (key->first_sign) {
-				newactive = ISC_TRUE;
-				break;
-			}
-		}
-
-		if ((newactive || fullsign || !ISC_LIST_EMPTY(diff.tuples)) &&
-		    dnskey_sane(zone, db, ver, &diff)) {
-			CHECK(dns_diff_apply(&diff, db, ver));
-			CHECK(clean_nsec3param(zone, db, ver, &diff));
-			CHECK(add_signing_records(db, zone->privatetype, ver,
-						  &diff));
-			CHECK(increment_soa_serial(db, ver, &diff, mctx));
-			CHECK(add_chains(zone, db, ver, &diff));
-			CHECK(sign_apex(zone, db, ver, &diff, &sig_diff));
-			CHECK(zone_journal(zone, &sig_diff, "zone_rekey"));
-			commit = ISC_TRUE;
-		}
-	}
-
-	dns_db_closeversion(db, &ver, commit);
-
-	if (commit) {
-		isc_time_t timenow;
-		dns_difftuple_t *tuple;
-		isc_boolean_t newkey = ISC_FALSE;
-		isc_boolean_t newalg = ISC_FALSE;
-
-		LOCK_ZONE(zone);
-		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
-
-		zone_needdump(zone, DNS_DUMP_DELAY);
-
-		TIME_NOW(&timenow);
-		zone_settimer(zone, &timenow);
-
-		/*
-		 * Has a new key become active?  If so, is it for
-		 * a new algorithm?  In that event, we need to sign the
-		 * zone fully.  If there's a new key, but it's for an
-		 * already-existing algorithm, then the zone signing
-		 * can be handled incrementally.
+		/* See if any pre-existing keys have newly become active;
+		 * also, see if any new key is for a new algorithm, as in that
+		 * event, we need to sign the zone fully.  (If there's a new
+		 * key, but it's for an already-existing algorithm, then
+		 * the zone signing can be handled incrementally.)
 		 */
 		for (key = ISC_LIST_HEAD(dnskeys);
 		     key != NULL;
@@ -14092,7 +14056,8 @@ zone_rekey(dns_zone_t *zone) {
 			if (!key->first_sign)
 				continue;
 
-			newkey = ISC_TRUE;
+			newactive = ISC_TRUE;
+
 			if (!dns_rdataset_isassociated(&keysigs)) {
 				newalg = ISC_TRUE;
 				break;
@@ -14111,6 +14076,35 @@ zone_rekey(dns_zone_t *zone) {
 			}
 		}
 
+		if ((newactive || fullsign || !ISC_LIST_EMPTY(diff.tuples)) &&
+		    dnskey_sane(zone, db, ver, &diff)) {
+			CHECK(dns_diff_apply(&diff, db, ver));
+			CHECK(clean_nsec3param(zone, db, ver, &diff));
+			CHECK(add_signing_records(db, zone->privatetype,
+						  ver, &diff,
+						  ISC_TF(newalg || fullsign)));
+			CHECK(increment_soa_serial(db, ver, &diff, mctx));
+			CHECK(add_chains(zone, db, ver, &diff));
+			CHECK(sign_apex(zone, db, ver, &diff, &sig_diff));
+			CHECK(zone_journal(zone, &sig_diff, "zone_rekey"));
+			commit = ISC_TRUE;
+		}
+	}
+
+	dns_db_closeversion(db, &ver, commit);
+
+	if (commit) {
+		isc_time_t timenow;
+		dns_difftuple_t *tuple;
+
+		LOCK_ZONE(zone);
+		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
+
+		zone_needdump(zone, DNS_DUMP_DELAY);
+
+		TIME_NOW(&timenow);
+		zone_settimer(zone, &timenow);
+
 		/* Remove any signatures from removed keys.  */
 		if (!ISC_LIST_EMPTY(rmkeys)) {
 			for (key = ISC_LIST_HEAD(rmkeys);
@@ -14127,7 +14121,6 @@ zone_rekey(dns_zone_t *zone) {
 				}
 			}
 		}
-
 
 		if (fullsign) {
 			/*

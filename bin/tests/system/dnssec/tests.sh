@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.73.14.11 2011/05/19 04:42:50 each Exp $
+# $Id: tests.sh,v 1.73.14.12 2011/05/26 04:25:08 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -26,6 +26,34 @@ n=1
 rm -f dig.out.*
 
 DIGOPTS="+tcp +noadd +nosea +nostat +nocmd +dnssec -p 5300"
+
+# convert private-type records to readable form
+showprivate () {
+    echo "-- $@ --"
+    $DIG $DIGOPTS +nodnssec +short @$2 -t type65534 $1 | cut -f3 -d' ' |
+        while read record; do
+            perl -e 'my $rdata = pack("H*", @ARGV[0]);
+                die "invalid record" unless length($rdata) == 5;
+                my ($alg, $key, $remove, $complete) = unpack("CnCC", $rdata);
+                my $action = "signing";
+                $action = "removing" if $remove;
+                my $state = " (incomplete)";
+                $state = " (complete)" if $complete;
+                print ("$action: alg: $alg, key: $key$state\n");' $record
+        done
+}
+
+# check that signing records are marked as complete
+checkprivate () {
+    ret=0
+    x=`showprivate "$@"`
+    echo $x | grep incomplete >&- 2>&- && ret=1
+    [ $ret = 1 ] && {
+        echo "$x"
+        echo "I:failed"
+    }
+    return $ret
+}
 
 # Check the example. domain
 
@@ -1170,7 +1198,7 @@ ret=0
 $DIG $DIGOPTS +dnssec a auto-nsec.example. @10.53.0.4 > dig.out.ns4.test$n || ret=1
 grep "NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 grep "flags:.* ad[ ;]" dig.out.ns4.test$n > /dev/null || ret=1
-grep "IN.NSEC[^3].* TYPE65534" dig.out.ns4.test$n > /dev/null || ret=1
+grep "IN.NSEC[^3].* DNSKEY" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -1180,7 +1208,18 @@ ret=0
 $DIG $DIGOPTS +dnssec a auto-nsec3.example. @10.53.0.4 > dig.out.ns4.test$n || ret=1
 grep "NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 grep "flags:.* ad[ ;]" dig.out.ns4.test$n > /dev/null || ret=1
-grep "IN.NSEC3 .* TYPE65534" dig.out.ns4.test$n > /dev/null || ret=1
+grep "IN.NSEC3 .* DNSKEY" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking that signing records have been marked as complete ($n)"
+ret=0
+checkprivate dynamic.example 10.53.0.3 || ret=1
+checkprivate update-nsec3.example 10.53.0.3 || ret=1
+checkprivate auto-nsec3.example 10.53.0.3 || ret=1
+checkprivate expiring.example 10.53.0.3 || ret=1
+checkprivate auto-nsec.example 10.53.0.3 || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
