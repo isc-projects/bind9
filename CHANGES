@@ -1,3 +1,7 @@
+3120.	[bug]		Named could fail to validate zones list in a DLV
+			that validated insecure without using DLV and had
+			DS records in the parent zone. [RT #24631]
+
 3119.	[bug]		When rolling to a new DNSSEC key, a private-type
 			record could be created and never marked complete.
 			[RT #23253]

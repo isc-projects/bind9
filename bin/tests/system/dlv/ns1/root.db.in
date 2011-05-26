@@ -12,7 +12,7 @@
 ; OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 ; PERFORMANCE OF THIS SOFTWARE.
 
-; $Id: root.db,v 1.4 2007/06/19 23:47:02 tbox Exp $
+; $Id: root.db.in,v 1.2 2011/05/26 04:35:01 marka Exp $
 
 $TTL	120
 @		SOA	ns.rootservers.utld hostmaster.ns.rootservers.utld (
@@ -22,3 +22,5 @@ ns		A	10.53.0.1
 ;
 utld		NS	ns.utld
 ns.utld		A	10.53.0.2
+druz		NS	ns.druz
+ns.druz		A	10.53.0.2
