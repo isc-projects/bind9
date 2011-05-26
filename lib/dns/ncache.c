@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2010, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ncache.c,v 1.36.18.9 2011/05/26 23:13:38 each Exp $ */
+/* $Id: ncache.c,v 1.36.18.10 2011/05/26 23:45:12 tbox Exp $ */
 
 /*! \file */
 
