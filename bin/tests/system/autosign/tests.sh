@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.4.6.18 2011/05/03 00:37:24 marka Exp $
+# $Id: tests.sh,v 1.4.6.19 2011/05/26 23:10:11 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -25,6 +25,34 @@ status=0
 n=0
 
 DIGOPTS="+tcp +noadd +nosea +nostat +nocmd +dnssec -p 5300"
+
+# convert private-type records to readable form
+showprivate () {
+    echo "-- $@ --"
+    $DIG $DIGOPTS +nodnssec +short @$2 -t type65534 $1 | cut -f3 -d' ' |
+        while read record; do
+            perl -e 'my $rdata = pack("H*", @ARGV[0]);
+                die "invalid record" unless length($rdata) == 5;
+                my ($alg, $key, $remove, $complete) = unpack("CnCC", $rdata);
+                my $action = "signing";
+                $action = "removing" if $remove;
+                my $state = " (incomplete)";
+                $state = " (complete)" if $complete;
+                print ("$action: alg: $alg, key: $key$state\n");' $record
+        done
+}
+
+# check that signing records are marked as complete
+checkprivate () {
+    ret=0
+    x=`showprivate "$@"`
+    echo $x | grep incomplete >&- 2>&- && ret=1
+    [ $ret = 1 ] && {
+        echo "$x"
+        echo "I:failed"
+    }
+    return $ret
+}
 
 #
 #  The NSEC record at the apex of the zone and its RRSIG records are
@@ -708,13 +736,14 @@ oldfile=`cat active.key`
 oldid=`sed 's/^K.+007+0*//' < active.key`
 newfile=`cat standby.key`
 newid=`sed 's/^K.+007+0*//' < standby.key`
-$SETTIME -K ns1 -I now -D now+15 $oldfile > /dev/null
+$SETTIME -K ns1 -I now+2s -D now+15 $oldfile > /dev/null
 $SETTIME -K ns1 -i 0 -S $oldfile $newfile > /dev/null
 
 # note previous zone serial number
 oldserial=`$DIG $DIGOPTS +short soa . @10.53.0.1 | awk '{print $3}'`
 
 $RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 loadkeys . 2>&1 | sed 's/^/I:ns1 /'
+sleep 4
 
 echo "I:revoking key to duplicated key ID"
 $SETTIME -R now -K ns2 Kbar.+005+30676.key > /dev/null
@@ -739,6 +768,36 @@ grep 'RRSIG.*'" $newid "'\. ' dig.out.ns1.test$n > /dev/null && ret=1
 grep 'RRSIG.*'" $oldid "'\. ' dig.out.ns1.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking that signing records have been marked as complete ($n)"
+ret=0
+checkprivate . 10.53.0.1 || ret=1
+checkprivate bar 10.53.0.2 || ret=1
+checkprivate example 10.53.0.2 || ret=1
+checkprivate private.secure.example 10.53.0.3 || ret=1
+checkprivate nsec3.example 10.53.0.3 || ret=1
+checkprivate nsec3.nsec3.example 10.53.0.3 || ret=1
+checkprivate nsec3.optout.example 10.53.0.3 || ret=1
+checkprivate nsec3-to-nsec.example 10.53.0.3 || ret=1
+checkprivate nsec.example 10.53.0.3 || ret=1
+checkprivate oldsigs.example 10.53.0.3 || ret=1
+checkprivate optout.example 10.53.0.3 || ret=1
+checkprivate optout.nsec3.example 10.53.0.3 || ret=1
+checkprivate optout.optout.example 10.53.0.3 || ret=1
+checkprivate prepub.example 10.53.0.3 || ret=1
+checkprivate rsasha256.example 10.53.0.3 || ret=1
+checkprivate rsasha512.example 10.53.0.3 || ret=1
+checkprivate secure.example 10.53.0.3 || ret=1
+checkprivate secure.nsec3.example 10.53.0.3 || ret=1
+checkprivate secure.optout.example 10.53.0.3 || ret=1
+checkprivate secure-to-insecure2.example 10.53.0.3 || ret=1
+checkprivate secure-to-insecure.example 10.53.0.3 || ret=1
+checkprivate ttl1.example 10.53.0.3 || ret=1
+checkprivate ttl2.example 10.53.0.3 || ret=1
+checkprivate ttl3.example 10.53.0.3 || ret=1
+checkprivate ttl4.example 10.53.0.3 || ret=1
+n=`expr $n + 1`
 status=`expr $status + $ret`
 
 echo "I:forcing full sign"
