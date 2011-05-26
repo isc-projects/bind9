@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ncache.c,v 1.50.124.2 2011/02/28 01:20:02 tbox Exp $ */
+/* $Id: ncache.c,v 1.50.124.3 2011/05/26 23:10:44 each Exp $ */
 
 /*! \file */
 
@@ -186,7 +186,7 @@ dns_ncache_addoptout(dns_message_t *message, dns_db_t *cache,
 					 */
 					isc_buffer_availableregion(&buffer,
 								   &r);
-					if (r.length < 2)
+					if (r.length < 3)
 						return (ISC_R_NOSPACE);
 					isc_buffer_putuint16(&buffer,
 							     rdataset->type);
