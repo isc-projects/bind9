@@ -1,4 +1,4 @@
-3120.	[bug]		Named could fail to validate zones list in a DLV
+3120.	[bug]		Named could fail to validate zones listed in a DLV
 			that validated insecure without using DLV and had
 			DS records in the parent zone. [RT #24631]
 
