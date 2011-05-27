@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.h,v 1.69 2010/02/25 05:08:01 tbox Exp $ */
+/* $Id: rdataset.h,v 1.69.148.1 2011/05/27 04:40:09 marka Exp $ */
 
 #ifndef DNS_RDATASET_H
 #define DNS_RDATASET_H 1
@@ -648,6 +648,12 @@ void
 dns_rdataset_expire(dns_rdataset_t *rdataset);
 /*%<
  * Mark the rdataset to be expired in the backing database.
+ */
+
+const char *
+dns_trust_totext(dns_trust_t trust);
+/*
+ * Display trust in textual form.
  */
 
 ISC_LANG_ENDDECLS
