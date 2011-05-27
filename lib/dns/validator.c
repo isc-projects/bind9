@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.119.18.62 2011/02/27 23:45:16 tbox Exp $ */
+/* $Id: validator.c,v 1.119.18.63 2011/05/27 01:46:22 marka Exp $ */
 
 /*! \file */
 
@@ -331,7 +331,8 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 		validator_done(val, ISC_R_CANCELED);
 	} else if (eresult == ISC_R_SUCCESS) {
 		validator_log(val, ISC_LOG_DEBUG(3),
-			      "keyset with trust %d", rdataset->trust);
+			      "keyset with trust %s",
+			      dns_trust_totext(rdataset->trust));
 		/*
 		 * Only extract the dst key if the keyset is secure.
 		 */
@@ -408,7 +409,8 @@ dsfetched(isc_task_t *task, isc_event_t *event) {
 		validator_done(val, ISC_R_CANCELED);
 	} else if (eresult == ISC_R_SUCCESS) {
 		validator_log(val, ISC_LOG_DEBUG(3),
-			      "dsset with trust %d", rdataset->trust);
+			      "dsset with trust %s",
+			       dns_trust_totext(rdataset->trust));
 		val->dsset = &val->frdataset;
 		result = validatezonekey(val);
 		if (result != DNS_R_WAIT)
@@ -567,7 +569,8 @@ keyvalidated(isc_task_t *task, isc_event_t *event) {
 		validator_done(val, ISC_R_CANCELED);
 	} else if (eresult == ISC_R_SUCCESS) {
 		validator_log(val, ISC_LOG_DEBUG(3),
-			      "keyset with trust %d", val->frdataset.trust);
+			      "keyset with trust %s",
+			      dns_trust_totext(val->frdataset.trust));
 		/*
 		 * Only extract the dst key if the keyset is secure.
 		 */
@@ -638,10 +641,10 @@ dsvalidated(isc_task_t *task, isc_event_t *event) {
 		isc_boolean_t have_dsset;
 		dns_name_t *name;
 		validator_log(val, ISC_LOG_DEBUG(3),
-			      "%s with trust %d",
+			      "%s with trust %s",
 			      val->frdataset.type == dns_rdatatype_ds ?
 			      "dsset" : "ds non-existance",
-			      val->frdataset.trust);
+			      dns_trust_totext(val->frdataset.trust));
 		have_dsset = ISC_TF(val->frdataset.type == dns_rdatatype_ds);
 		name = dns_fixedname_name(&val->fname);
 		if ((val->attributes & VALATTR_INSECURITY) != 0 &&
@@ -713,8 +716,8 @@ cnamevalidated(isc_task_t *task, isc_event_t *event) {
 	if (CANCELED(val)) {
 		validator_done(val, ISC_R_CANCELED);
 	} else if (eresult == ISC_R_SUCCESS) {
-		validator_log(val, ISC_LOG_DEBUG(3), "cname with trust %d",
-			      val->frdataset.trust);
+		validator_log(val, ISC_LOG_DEBUG(3), "cname with trust %s",
+			      dns_trust_totext(val->frdataset.trust));
 		result = proveunsecure(val, ISC_FALSE, ISC_TRUE);
 		if (result != DNS_R_WAIT)
 			validator_done(val, result);
@@ -1052,8 +1055,8 @@ view_find(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type) {
 		INSIST(type == dns_rdatatype_dlv);
 		if (val->frdataset.trust != dns_trust_secure) {
 			validator_log(val, ISC_LOG_DEBUG(3),
-				      "covering nsec: trust %u",
-				      val->frdataset.trust);
+				      "covering nsec: trust %s",
+				      dns_trust_totext(val->frdataset.trust));
 			goto notfound;
 		}
 		result = dns_rdataset_first(&val->frdataset);
@@ -1370,8 +1373,8 @@ get_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo) {
 			 * See if we've got the key used in the signature.
 			 */
 			validator_log(val, ISC_LOG_DEBUG(3),
-				      "keyset with trust %d",
-				      val->frdataset.trust);
+				      "keyset with trust %s",
+				      dns_trust_totext(val->frdataset.trust));
 			result = get_dst_key(val, siginfo, val->keyset);
 			if (result != ISC_R_SUCCESS) {
 				/*
@@ -2076,8 +2079,11 @@ validatezonekey(dns_validator_t *val) {
 				      "must be secure failure");
 			return (DNS_R_MUSTBESECURE);
 		}
-		markanswer(val, "validatezonekey (2)");
-		return (ISC_R_SUCCESS);
+		if (val->view->dlv == NULL || DLVTRIED(val)) {
+			markanswer(val, "validatezonekey (2)");
+			return (ISC_R_SUCCESS);
+		}
+		return (startfinddlvsep(val, val->event->name));
 	}
 
 	/*
@@ -2685,7 +2691,8 @@ dlvvalidated(isc_task_t *task, isc_event_t *event) {
 		validator_done(val, ISC_R_CANCELED);
 	} else if (eresult == ISC_R_SUCCESS) {
 		validator_log(val, ISC_LOG_DEBUG(3),
-			      "dlvset with trust %d", val->frdataset.trust);
+			      "dlvset with trust %s",
+			      dns_trust_totext(val->frdataset.trust));
 		dns_rdataset_clone(&val->frdataset, &val->dlv);
 		val->havedlvsep = ISC_TRUE;
 		if (dlv_algorithm_supported(val))

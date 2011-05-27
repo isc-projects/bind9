@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.73.18.19 2009/11/25 04:50:24 marka Exp $ */
+/* $Id: masterdump.c,v 1.73.18.20 2011/05/27 01:46:22 marka Exp $ */
 
 /*! \file */
 
@@ -784,6 +784,13 @@ static const char *trustnames[] = {
 	"secure",
 	"local" /* aka ultimate */
 };
+
+const char *
+dns_trust_totext(dns_trust_t trust) {
+        if (trust >= sizeof(trustnames)/sizeof(*trustnames))
+                return ("bad");
+        return (trustnames[trust]);
+}
 
 static isc_result_t
 dump_rdatasets_text(isc_mem_t *mctx, dns_name_t *name,

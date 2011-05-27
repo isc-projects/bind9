@@ -3,6 +3,10 @@
                         trigger an off-by-one error in the ncache code
                         and crash named. [RT #24650]
 
+3120.	[bug]		Named could fail to validate zones list in a DLV
+			that validated insecure without using DLV and had
+			DS records in the parent zone. [RT #24631]
+
 	--- 9.4-ESV-R5rc1 released ---
 
 3113.	[doc]		Document the relationship between serial-query-rate
