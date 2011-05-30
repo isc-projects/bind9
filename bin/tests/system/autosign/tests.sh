@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.27 2011/05/26 04:25:47 each Exp $
+# $Id: tests.sh,v 1.28 2011/05/30 07:25:19 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -765,11 +765,12 @@ file="ns1/`cat vanishing.key`.private"
 rm -f $file
 
 echo "I:preparing ZSK roll"
+starttime=`date +%s`
 oldfile=`cat active.key`
 oldid=`sed 's/^K.+007+0*//' < active.key`
 newfile=`cat standby.key`
 newid=`sed 's/^K.+007+0*//' < standby.key`
-$SETTIME -K ns1 -I now+2s -D now+15 $oldfile > /dev/null
+$SETTIME -K ns1 -I now+2s -D now+25 $oldfile > /dev/null
 $SETTIME -K ns1 -i 0 -S $oldfile $newfile > /dev/null
 
 # note previous zone serial number
@@ -911,6 +912,16 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+#
+# Work out how long we need to sleep. Allow 4 seconds for the records
+# to be removed.
+#
+now=`date +%s`
+sleep=`expr $starttime + 29 - $now`
+case $sleep in
+-*|0);;
+*) echo "I: sleep $sleep"; sleep $sleep;;
+esac
 echo "I:checking former active key was removed ($n)"
 ret=0
 $DIG $DIGOPTS +multi dnskey . @10.53.0.1 > dig.out.ns1.test$n || ret=1
