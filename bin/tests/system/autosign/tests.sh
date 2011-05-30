@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.12.18.12 2011/05/30 07:26:41 marka Exp $
+# $Id: tests.sh,v 1.12.18.13 2011/05/30 22:31:28 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -732,7 +732,7 @@ file="ns1/`cat vanishing.key`.private"
 rm -f $file
 
 echo "I:preparing ZSK roll"
-starttime=`date +%s`
+starttime=`$PERL -e 'print time(), "\n";'`
 oldfile=`cat active.key`
 oldid=`sed 's/^K.+007+0*//' < active.key`
 newfile=`cat standby.key`
@@ -879,17 +879,17 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:checking former active key was removed ($n)"
 #
 # Work out how long we need to sleep. Allow 4 seconds for the records
 # to be removed.
 #
-now=`date +%s`
+now=`$PERL -e 'print time(), "\n";'`
 sleep=`expr $starttime + 29 - $now`
 case $sleep in
 -*|0);;
-*) echo "I: sleep $sleep"; sleep $sleep;;
+*) echo "I:waiting for timer to have activated"; sleep $sleep;;
 esac
-echo "I:checking former active key was removed ($n)"
 ret=0
 $DIG $DIGOPTS +multi dnskey . @10.53.0.1 > dig.out.ns1.test$n || ret=1
 grep '; key id =.*'"$oldid"'$' dig.out.ns1.test$n > /dev/null && ret=1
