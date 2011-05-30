@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.11 2011/05/06 21:08:33 each Exp $
+# $Id: tests.sh,v 1.12 2011/05/30 15:13:49 smann Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -125,23 +125,47 @@ grep "$ckrevoked" dsset.out > /dev/null && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+# There is some weirdness in Solaris 10 (Generic_120011-14), which
+# is why the next section has all those echo $ret > /dev/null;sync
+# commands
 echo "I:checking child zone DNSKEY set"
 ret=0
 grep "key id = $ckactive" $cfile.signed > /dev/null || ret=1
+echo $ret > /dev/null
+sync
 grep "key id = $ckpublished" $cfile.signed > /dev/null || ret=1
+echo $ret > /dev/null
+sync
 grep "key id = $ckrevoked" $cfile.signed > /dev/null || ret=1
+echo $ret > /dev/null
+sync
 grep "key id = $czactive" $cfile.signed > /dev/null || ret=1
+echo $ret > /dev/null
+sync
 grep "key id = $czpublished" $cfile.signed > /dev/null || ret=1
+echo $ret > /dev/null
+sync
 grep "key id = $czinactive" $cfile.signed > /dev/null || ret=1
+echo $ret > /dev/null
+sync
 # should not be there, hence the &&
 grep "key id = $ckprerevoke" $cfile.signed > /dev/null && ret=1
+echo $ret > /dev/null
+sync
 grep "key id = $czgenerated" $cfile.signed > /dev/null && ret=1
+echo $ret > /dev/null
+sync
 grep "key id = $czpredecessor" $cfile.signed && echo pred is there
+echo $ret > /dev/null
+sync
 grep "key id = $czsuccessor" $cfile.signed && echo succ is there
+echo $ret > /dev/null
+sync
 #grep "key id = $czpredecessor" $cfile.signed > /dev/null && ret=1
 #grep "key id = $czsuccessor" $cfile.signed > /dev/null && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
+# end solaris weirdness
 
 echo "I:checking key TTLs are correct"
 grep "${czone}. 30 IN" ${czsk1}.key > /dev/null 2>&1 || ret=1
@@ -168,33 +192,71 @@ awk 'BEGIN {r = 0} $2 == "DNSKEY" && $1 != 15 {r = 1} END {exit r}' \
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+# There is some weirdness in Solaris 10 (Generic_120011-14), which
+# is why the next section has all those echo $ret > /dev/null;sync
+# commands
 echo "I:checking child zone signatures"
 ret=0
 # check DNSKEY signatures first
 awk '$2 == "RRSIG" && $3 == "DNSKEY" { getline; print $3 }' $cfile.signed > dnskey.sigs
 grep "$ckactive" dnskey.sigs > /dev/null || ret=1
+echo $ret > /dev/null
+sync
 grep "$ckrevoked" dnskey.sigs > /dev/null || ret=1
+echo $ret > /dev/null
+sync
 grep "$czactive" dnskey.sigs > /dev/null || ret=1
+echo $ret > /dev/null
+sync
 # should not be there:
 grep "$ckprerevoke" dnskey.sigs > /dev/null && ret=1
+echo $ret > /dev/null
+sync
 grep "$ckpublished" dnskey.sigs > /dev/null && ret=1
+echo $ret > /dev/null
+sync
 grep "$czpublished" dnskey.sigs > /dev/null && ret=1
+echo $ret > /dev/null
+sync
 grep "$czinactive" dnskey.sigs > /dev/null && ret=1
+echo $ret > /dev/null
+sync
 grep "$czgenerated" dnskey.sigs > /dev/null && ret=1
+echo $ret > /dev/null
+sync
 # now check other signatures first
 awk '$2 == "RRSIG" && $3 != "DNSKEY" { getline; print $3 }' $cfile.signed | sort -un > other.sigs
 # should not be there:
 grep "$ckactive" other.sigs > /dev/null && ret=1
+echo $ret > /dev/null
+sync
 grep "$ckpublished" other.sigs > /dev/null && ret=1
+echo $ret > /dev/null
+sync
 grep "$ckprerevoke" other.sigs > /dev/null && ret=1
+echo $ret > /dev/null
+sync
 grep "$ckrevoked" other.sigs > /dev/null && ret=1
+echo $ret > /dev/null
+sync
 grep "$czpublished" other.sigs > /dev/null && ret=1
+echo $ret > /dev/null
+sync
 grep "$czinactive" other.sigs > /dev/null && ret=1
+echo $ret > /dev/null
+sync
 grep "$czgenerated" other.sigs > /dev/null && ret=1
+echo $ret > /dev/null
+sync
 grep "$czpredecessor" other.sigs > /dev/null && ret=1
+echo $ret > /dev/null
+sync
 grep "$czsuccessor" other.sigs > /dev/null && ret=1
+echo $ret > /dev/null
+sync
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
+# end solaris weirdness
 
 echo "I:checking RRSIG expiry date correctness"
 dnskey_expiry=`$CHECKZONE -o - $czone $cfile.signed 2> /dev/null |
