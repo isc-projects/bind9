@@ -2,16 +2,16 @@
 
 Introduction
 
-   BIND 9.4-ESV-R5 is a maintenance release for BIND 9.4-ESV.
+   BIND 9.4-ESV-R5rc1 is the first release candidate of BIND 9.4-ESV-R5.
 
    This document summarizes changes from BIND 9.4-ESV-R4 to BIND
-   9.4-ESV-R5. Please see the CHANGES file in the source code release for
-   a complete list of all changes.
+   9.4-ESV-R5rc1. Please see the CHANGES file in the source code release
+   for a complete list of all changes.
 
 Download
 
    The latest release of BIND 9 software can always be found on our web
-   site at http://www.isc.org/software/bind. There you will find
+   site at http://www.isc.org/downloads/all. There you will find
    additional information about each release, source code, and some
    pre-compiled versions for certain operating systems.
 
@@ -25,27 +25,32 @@ Support
 
 New Features
 
-9.4-ESV-R5
+9.4-ESV-R5rc1
 
    None.
 
 Feature Changes
 
-9.4-ESV-R5
+9.4-ESV-R5rc1
 
    None.
 
 Security Fixes
 
-9.4-ESV-R5
+9.4-ESV-R5rc1
 
      * A bug in NetBSD and FreeBSD kernels with SO_ACCEPTFILTER enabled
        allows for a TCP DoS attack. Until there is a kernel fix, ISC is
        disabling SO_ACCEPTFILTER support in BIND. [RT #22589]
+     * named, set up to be a caching resolver, is vulnerable to a user
+       querying a domain with very large resource record sets (RRSets)
+       when trying to negatively cache the response. Due to an off-by-one
+       error, caching the response could cause named to crash. [RT #24650]
+       [CVE-2011-1910]
 
 Bug Fixes
 
-9.4-ESV-R5
+9.4-ESV-R5rc1
 
      * During RFC5011 processing some journal write errors were not
        detected. This could lead to managed-keys changes being committed
@@ -99,6 +104,9 @@ Bug Fixes
        setup.sh in order to resolve changing named.conf issue. [RT #23687]
      * The autosign tests attempted to open ports within reserved ranges.
        Test now avoids those ports. [RT #23957]
+     * Named could fail to validate zones list in a DLV that validated
+       insecure without using DLV and had DS records in the parent zone.
+       [RT #24631]
 
 Thank You
 
