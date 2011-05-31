@@ -2,18 +2,18 @@
 
 Introduction
 
-   BIND 9.7.4 is the current release of BIND 9.7.
+   BIND 9.7.4rc1 is the first release candidate of BIND 9.7.4.
 
-   This document summarizes changes from BIND 9.7.3 to BIND 9.7.4. Please
-   see the CHANGES file in the source code release for a complete list of
-   all changes.
+   This document summarizes changes from BIND 9.7.3 to BIND 9.7.4rc1.
+   Please see the CHANGES file in the source code release for a complete
+   list of all changes.
 
 Download
 
    The latest version of BIND 9 software can always be found on our web
-   site at http://www.isc.org/downloads. There you will find additional
-   information about each release, source code, and some pre-compiled
-   versions for certain operating systems.
+   site at http://www.isc.org/downloads/all. There you will find
+   additional information about each release, source code, and some
+   pre-compiled versions for certain operating systems.
 
 Support
 
@@ -25,7 +25,7 @@ Support
 
 New Features
 
-9.7.4
+9.7.4rc1
 
      * A new test has been added to check the apex NSEC3 records after
        DNSKEY records have been added via dynamic update. [RT #23229]
@@ -34,7 +34,7 @@ New Features
 
 Feature Changes
 
-9.7.4
+9.7.4rc1
 
      * Merged in the NetBSD ATF test framework (currently version 0.12)
        for development of future unit tests. Use configure --with-atf to
@@ -45,13 +45,17 @@ Feature Changes
 
 Security Fixes
 
-9.7.4
+9.7.4rc1
 
-     * None
+     * named, set up to be a caching resolver, is vulnerable to a user
+       querying a domain with very large resource record sets (RRSets)
+       when trying to negatively cache the response. Due to an off-by-one
+       error, caching the response could cause named to crash. [RT #24650]
+       [CVE-2011-1910]
 
 Bug Fixes
 
-9.7.4
+9.7.4rc1
 
      * During RFC5011 processing some journal write errors were not
        detected. This could lead to managed-keys changes being committed
@@ -182,6 +186,14 @@ Bug Fixes
        KSK, it would give an incorrect error "NSEC3 iterations too big for
        weakest DNSKEY strength" rather than the correct "failed to find
        keys at the zone apex: not found" [RT #24369]
+     * Improved consistency checks for dnssec-enable and
+       dnssec-validation, added test cases to the checkconf system test.
+       [RT #24398]
+     * nsupdate could dump core on shutdown when using SIG(0) keys. [RT
+       #24604]
+     * Named could fail to validate zones list in a DLV that validated
+       insecure without using DLV and had DS records in the parent zone.
+       [RT #24631]
 
 Known issues in this release
 
