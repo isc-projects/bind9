@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.h,v 1.67.186.4 2011/05/28 00:15:26 tbox Exp $ */
+/* $Id: rdataset.h,v 1.67.186.5 2011/06/02 20:23:49 each Exp $ */
 
 #ifndef DNS_RDATASET_H
 #define DNS_RDATASET_H 1
@@ -652,7 +652,7 @@ dns_rdataset_expire(dns_rdataset_t *rdataset);
 
 const char *
 dns_trust_totext(dns_trust_t trust);
-/*
+/*%<
  * Display trust in textual form.
  */
 
