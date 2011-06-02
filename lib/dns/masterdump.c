@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.99 2009/11/17 23:55:18 marka Exp $ */
+/* $Id: masterdump.c,v 1.99.328.1 2011/06/02 20:08:01 each Exp $ */
 
 /*! \file */
 
@@ -835,26 +835,6 @@ dump_order_compare(const void *a, const void *b) {
 
 #define MAXSORT 64
 
-static const char *trustnames[] = {
-	"none",
-	"pending-additional",
-	"pending-answer",
-	"additional",
-	"glue",
-	"answer",
-	"authauthority",
-	"authanswer",
-	"secure",
-	"local" /* aka ultimate */
-};
-
-const char *
-dns_trust_totext(dns_trust_t trust) {
-	if (trust >= sizeof(trustnames)/sizeof(*trustnames))
-		return ("bad");
-	return (trustnames[trust]);
-}
-
 static isc_result_t
 dump_rdatasets_text(isc_mem_t *mctx, dns_name_t *name,
 		    dns_rdatasetiter_t *rdsiter, dns_totext_ctx_t *ctx,
@@ -894,10 +874,7 @@ dump_rdatasets_text(isc_mem_t *mctx, dns_name_t *name,
 	for (i = 0; i < n; i++) {
 		dns_rdataset_t *rds = sorted[i];
 		if (ctx->style.flags & DNS_STYLEFLAG_TRUST) {
-			unsigned int trust = rds->trust;
-			INSIST(trust < (sizeof(trustnames) /
-					sizeof(trustnames[0])));
-			fprintf(f, "; %s\n", trustnames[trust]);
+			fprintf(f, "; %s\n", dns_trust_totext(rds->trust));
 		}
 		if (rds->type == 0 &&
 		    (ctx->style.flags & DNS_STYLEFLAG_NCACHE) == 0) {
