@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.353.8.2.2.1 2011/04/27 17:06:27 each Exp $ */
+/* $Id: query.c,v 1.353.8.2.2.2 2011/06/02 23:47:28 tbox Exp $ */
 
 /*! \file */
 
@@ -4091,7 +4091,7 @@ rpz_find(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qnamef,
 			if (qtype == dns_rdatatype_rrsig ||
 			    qtype == dns_rdatatype_sig)
 				result = DNS_R_NXRRSET;
-			else 
+			else
 				result = dns_db_find(*dbp, qnamef, version,
 						     qtype, 0, client->now,
 						     nodep, found, *rdatasetp,
