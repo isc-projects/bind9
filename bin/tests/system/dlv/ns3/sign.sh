@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007, 2010  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2010, 2011  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.4.332.2.6.1 2011/05/27 00:19:18 each Exp $
+# $Id: sign.sh,v 1.4.332.2.6.2 2011/06/02 23:46:21 tbox Exp $
 
 (cd ../ns6 && sh -e sign.sh)
 
