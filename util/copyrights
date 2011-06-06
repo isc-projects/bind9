@@ -683,7 +683,6 @@
 ./bin/tests/system/digcomp.pl			PERL	2000,2001,2004,2007
 ./bin/tests/system/dlv/clean.sh			SH	2004,2007,2010,2011
 ./bin/tests/system/dlv/ns1/named.conf		CONF-C	2004,2007,2011
-./bin/tests/system/dlv/ns1/root.db		ZONE	2004,2007
 ./bin/tests/system/dlv/ns1/root.db.in		ZONE	2011
 ./bin/tests/system/dlv/ns1/rootservers.utld.db	ZONE	2004,2007
 ./bin/tests/system/dlv/ns1/sign.sh		SH	2011
@@ -790,7 +789,6 @@
 ./bin/tests/system/dnssec/ns3/sign.sh		SH	2000,2001,2002,2004,2006,2007,2008,2009,2010,2011
 ./bin/tests/system/dnssec/ns3/update-nsec3.example.db.in	ZONE	2011
 ./bin/tests/system/dnssec/ns4/.cvsignore	X	2000,2001
-./bin/tests/system/dnssec/ns4/named.conf	CONF-C	2000,2001,2004,2006,2007,2010
 ./bin/tests/system/dnssec/ns4/named1.conf	CONF-C	2011
 ./bin/tests/system/dnssec/ns4/named2.conf	CONF-C	2011
 ./bin/tests/system/dnssec/ns5/.cvsignore	X	2000,2001
