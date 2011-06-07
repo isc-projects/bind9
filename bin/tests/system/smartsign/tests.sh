@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.13 2011/05/31 13:52:06 marka Exp $
+# $Id: tests.sh,v 1.14 2011/06/07 01:45:38 smann Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -60,7 +60,8 @@ echo I:revoking key
 # revoking key changes its ID
 cksk3=`$KEYGEN -q -r $RANDFILE -fk $czone`
 cksk4=`$REVOKE $cksk3`
-$SETTIME -A now+20s $cksk2 > /dev/null
+# using now+30s to fix RT 24561
+$SETTIME -A now+30s $cksk2 > /dev/null
 
 echo I:signing child zone
 czoneout=`$SIGNER -Sg -e now+1d -X now+2d -r $RANDFILE -o $czone $cfile 2>&1`
@@ -125,47 +126,23 @@ grep "$ckrevoked" dsset.out > /dev/null && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-# There is some weirdness in Solaris 10 (Generic_120011-14), which
-# is why the next section has all those echo $ret > /dev/null;sync
-# commands
 echo "I:checking child zone DNSKEY set"
 ret=0
 grep "key id = $ckactive" $cfile.signed > /dev/null || ret=1
-echo $ret > /dev/null
-sync
 grep "key id = $ckpublished" $cfile.signed > /dev/null || ret=1
-echo $ret > /dev/null
-sync
 grep "key id = $ckrevoked" $cfile.signed > /dev/null || ret=1
-echo $ret > /dev/null
-sync
 grep "key id = $czactive" $cfile.signed > /dev/null || ret=1
-echo $ret > /dev/null
-sync
 grep "key id = $czpublished" $cfile.signed > /dev/null || ret=1
-echo $ret > /dev/null
-sync
 grep "key id = $czinactive" $cfile.signed > /dev/null || ret=1
-echo $ret > /dev/null
-sync
 # should not be there, hence the &&
 grep "key id = $ckprerevoke" $cfile.signed > /dev/null && ret=1
-echo $ret > /dev/null
-sync
 grep "key id = $czgenerated" $cfile.signed > /dev/null && ret=1
-echo $ret > /dev/null
-sync
 grep "key id = $czpredecessor" $cfile.signed && echo pred is there
-echo $ret > /dev/null
-sync
 grep "key id = $czsuccessor" $cfile.signed && echo succ is there
-echo $ret > /dev/null
-sync
 #grep "key id = $czpredecessor" $cfile.signed > /dev/null && ret=1
 #grep "key id = $czsuccessor" $cfile.signed > /dev/null && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
-# end solaris weirdness
 
 echo "I:checking key TTLs are correct"
 grep "${czone}. 30 IN" ${czsk1}.key > /dev/null 2>&1 || ret=1
@@ -292,7 +269,6 @@ if [ $ret != 0 ]; then
     echo "I:failed";
 fi
 status=`expr $status + $ret`
-# end solaris weirdness
 
 echo "I:checking RRSIG expiry date correctness"
 dnskey_expiry=`$CHECKZONE -o - $czone $cfile.signed 2> /dev/null |
@@ -302,8 +278,8 @@ soa_expiry=`$CHECKZONE -o - $czone $cfile.signed 2> /dev/null |
 [ $dnskey_expiry -gt $soa_expiry ] || ret=1
 status=`expr $status + $ret`
 
-echo "I:waiting 20 seconds for key activation"
-sleep 20
+echo "I:waiting 30 seconds for key activation"
+sleep 30
 echo "I:re-signing child zone"
 czoneout2=`$SIGNER -Sg -r $RANDFILE -o $czone -f $cfile.new $cfile.signed 2>&1`
 mv $cfile.new $cfile.signed
