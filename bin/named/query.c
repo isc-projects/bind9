@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.364 2011/05/20 05:09:30 marka Exp $ */
+/* $Id: query.c,v 1.365 2011/06/08 22:13:50 each Exp $ */
 
 /*! \file */
 
@@ -4971,7 +4971,7 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 		    (rdataset->type == dns_rdatatype_nsec ||
 		     rdataset->type == dns_rdatatype_nsec3))
 			return (ISC_FALSE);
-		if (rdataset->type == 0) {
+		if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0) {
 			for (result = dns_rdataset_first(rdataset);
 			     result == ISC_R_SUCCESS;
 			     result = dns_rdataset_next(rdataset)) {
