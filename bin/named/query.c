@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.353.8.2.2.2 2011/06/02 23:47:28 tbox Exp $ */
+/* $Id: query.c,v 1.353.8.2.2.3 2011/06/08 23:52:50 marka Exp $ */
 
 /*! \file */
 
@@ -637,6 +637,7 @@ query_findversion(ns_client_t *client, dns_db_t *db)
 		dns_db_attach(db, &dbversion->db);
 		dns_db_currentversion(db, &dbversion->version);
 		dbversion->acl_checked = ISC_FALSE;
+		dbversion->queryok = ISC_FALSE;
 		ISC_LIST_APPEND(client->query.activeversions,
 				dbversion, link);
 	}
@@ -768,6 +769,7 @@ query_validatezonedb(ns_client_t *client, dns_name_t *name,
 		dbversion->queryok = ISC_FALSE;
 		return (DNS_R_REFUSED);
 	}
+	dbversion->queryok = ISC_TRUE;
 
  approved:
 	/* Transfer ownership, if necessary. */

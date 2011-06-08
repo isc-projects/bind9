@@ -2,6 +2,10 @@
 			dns_rdataset_totext() that could cause named to
 			crash with an assertion failure. [RT #24777]
 
+3115.	[bug]		Named could fail to return requested data when
+			following a CNAME that points into the same zone.
+			[RT #2445]
+
 	--- 9.8.0-P2 released ---
 
 3121.   [security]      An authoritative name server sending a negative
