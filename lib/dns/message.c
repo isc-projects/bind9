@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.245.50.7 2010/06/03 05:29:03 marka Exp $ */
+/* $Id: message.c,v 1.245.50.7.6.1 2011/06/08 22:03:10 each Exp $ */
 
 /*! \file */
 
@@ -2481,7 +2481,7 @@ dns_message_reply(dns_message_t *msg, isc_boolean_t want_question_section) {
 	    msg->opcode != dns_opcode_notify)
 		want_question_section = ISC_FALSE;
 	if (msg->opcode == dns_opcode_update)
-		first_section = DNS_SECTION_ADDITIONAL;
+		first_section = DNS_SECTION_PREREQUISITE;
 	else if (want_question_section) {
 		if (!msg->question_ok)
 			return (DNS_R_FORMERR);
