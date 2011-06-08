@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.32.24.4 2011/05/23 22:12:15 each Exp $
+# $Id: tests.sh,v 1.32.24.5 2011/06/08 23:02:41 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -147,6 +147,62 @@ echo "" | $NSUPDATE -k ${key}.private > /dev/null 2>&1 || ret=1
 if [ $ret -ne 0 ]; then
     echo "I:failed"
     status=1
+fi
+
+n=`expr $n + 1`
+ret=0
+echo "I:check TYPE=0 update is rejected by nsupdate ($n)"
+$NSUPDATE <<END > nsupdate.out 2>&1 && ret=1
+    server 10.53.0.1 5300
+    ttl 300
+    update add example.nil. in type0 ""
+    send
+END
+grep "unknown class/type" nsupdate.out > /dev/null 2>&1 ||
+ret=1
+if [ $ret -ne 0 ]; then
+    echo "I:failed"
+    status=1
+fi
+
+n=`expr $n + 1`
+ret=0
+echo "I:check TYPE=0 prerequuisite is handled ($n)"
+$NSUPDATE <<END > nsupdate.out 2>&1 && ret=1
+    server 10.53.0.1 5300
+    prereq nxrrset example.nil. type0
+    send
+END
+$DIG +tcp version.bind txt ch @10.53.0.1 -p 5300 > dig.out.ns1.$n
+grep "status: NOERROR" dig.out.ns1.$n > /dev/null || ret=1
+if [ $ret -ne 0 ]; then
+    echo "I:failed"
+    status=1
+fi
+
+n=`expr $n + 1`
+ret=0
+echo "I:check that TYPE=0 update is handled ($n)"
+echo "a0e4280000010000000100000000060001c00c000000fe000000000000" |
+$PERL ../packet.pl -a 10.53.0.1 -p 5300 -t tcp > /dev/null
+$DIG +tcp version.bind txt ch @10.53.0.1 -p 5300 > dig.out.ns1.$n
+grep "status: NOERROR" dig.out.ns1.$n > /dev/null || ret=1
+if test $ret -ne 0
+then
+	echo "I:failed"
+        status=1
+fi
+
+n=`expr $n + 1`
+echo "I:check that TYPE=0 additional data is handled ($n)"
+echo "a0e4280000010000000000010000060001c00c000000fe000000000000" |
+$PERL ../packet.pl -a 10.53.0.1 -p 5300 -t tcp > /dev/null
+$DIG +tcp version.bind txt ch @10.53.0.1 -p 5300 > dig.out.ns1.$n
+grep "status: NOERROR" dig.out.ns1.$n > /dev/null || ret=1
+if test $ret -ne 0
+then
+	echo "I:failed"
+        status=1
 fi
 
 if $PERL -e 'use Net::DNS;' 2>/dev/null

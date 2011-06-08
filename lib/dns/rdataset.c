@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.86.148.3 2011/05/27 04:40:08 marka Exp $ */
+/* $Id: rdataset.c,v 1.86.148.4 2011/06/08 23:02:42 each Exp $ */
 
 /*! \file */
 
@@ -344,7 +344,7 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 		count = 1;
 		result = dns_rdataset_first(rdataset);
 		INSIST(result == ISC_R_NOMORE);
-	} else if (rdataset->type == 0) {
+	} else if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0) {
 		/*
 		 * This is a negative caching rdataset.
 		 */
