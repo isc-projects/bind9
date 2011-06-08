@@ -1,3 +1,7 @@
+3123.	[security]	Change #2912 exposed a latent flaw in
+			dns_rdataset_totext() that could cause named to
+			crash with an assertion failure. [RT #24777]
+
 	--- 9.8.0-P2 released ---
 
 3121.   [security]      An authoritative name server sending a negative
