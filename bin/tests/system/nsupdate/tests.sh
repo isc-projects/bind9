@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.28.102.9 2011/06/08 23:15:42 each Exp $
+# $Id: tests.sh,v 1.28.102.10 2011/06/09 00:15:38 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -149,7 +149,6 @@ if [ $ret -ne 0 ]; then
     status=1
 fi
 
-
 n=`expr $n + 1`
 ret=0
 echo "I:check TYPE=0 update is rejected by nsupdate ($n)"
@@ -168,8 +167,8 @@ fi
 
 n=`expr $n + 1`
 ret=0
-echo "I:check TYPE=0 prerequuisite is handled ($n)"
-$NSUPDATE <<END > nsupdate.out 2>&1 && ret=1
+echo "I:check TYPE=0 prerequisite is handled ($n)"
+$NSUPDATE -k ns1/ddns.key <<END > nsupdate.out 2>&1 || ret=1
     server 10.53.0.1 5300
     prereq nxrrset example.nil. type0
     send
