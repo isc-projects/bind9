@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.353.8.10 2011/06/09 00:53:55 marka Exp $ */
+/* $Id: query.c,v 1.353.8.11 2011/06/09 03:14:03 marka Exp $ */
 
 /*! \file */
 
@@ -4105,8 +4105,13 @@ rpz_find(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qnamef,
 		}
 		break;
 	case DNS_R_DNAME:
-		policy = DNS_RPZ_POLICY_RECORD;
-		break;
+		/*
+		 * DNAME policy RRs have very few if any uses that are not
+		 * better served with simple wildcards.  Making the work would
+		 * require complications to get the number of labels matched
+		 * in the name or the found name itself to the main DNS_R_DNAME
+		 * case in query_find(). So fall through to treat them as NODATA.
+		 */
 	case DNS_R_NXRRSET:
 		policy = DNS_RPZ_POLICY_NODATA;
 		break;

@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.3.8.2 2011/06/09 00:53:55 marka Exp $
+# $Id: tests.sh,v 1.3.8.3 2011/06/09 03:14:04 marka Exp $
 
 # test response policy zones (RPZ)
 
@@ -152,7 +152,9 @@ status=0
 
 start_test "RPZ QNAME rewrites" test1
 nxdomain a0-1.tld2
-nodata a3-1.tld2
+nodata a1-1.tld2
+nodata a1-2.tld2
+nodata sub.a1-2.tld2
 a12 a4-1.sub1.tld2
 end_test
 
@@ -265,6 +267,7 @@ if [ $ret != 0 ]; then
     (cd ..; $PERL start.pl --noclean --restart rpz ns3)
 fi
 status=`expr $status + $ret`
+
 
 if test "$status" -eq 0; then
     rm -f dig.out*
