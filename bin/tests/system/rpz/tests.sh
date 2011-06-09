@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.3.130.1 2011/04/27 17:06:27 each Exp $
+# $Id: tests.sh,v 1.3.130.2 2011/06/09 00:56:09 marka Exp $
 
 # test response policy zones (RPZ)
 
@@ -223,6 +223,7 @@ $DIGCMD a3-1.tld2 -trrsig @$s3 > /dev/null 2>&1
 $DIGCMD a3-2.tld2 -trrsig @$s3 > /dev/null 2>&1
 $DIGCMD a3-5.tld2 -trrsig @$s3 > /dev/null 2>&1
 $DIGCMD www.redirect -trrsig @$s3 > /dev/null 2>&1
+$DIGCMD www.cname-redirect -trrsig @$s3 > /dev/null 2>&1
 
 $RNDC -c ../common/rndc.conf -s $s3 -p 9953 status > /dev/null 2>&1 || ret=1
 if [ $ret != 0 ]; then
@@ -239,6 +240,24 @@ $DIGCMD a3-1.tld2 -tsig @$s3 > /dev/null 2>&1
 $DIGCMD a3-2.tld2 -tsig @$s3 > /dev/null 2>&1
 $DIGCMD a3-5.tld2 -tsig @$s3 > /dev/null 2>&1
 $DIGCMD www.redirect -tsig @$s3 > /dev/null 2>&1
+$DIGCMD www.cname-redirect -tsig @$s3 > /dev/null 2>&1
+
+$RNDC -c ../common/rndc.conf -s $s3 -p 9953 status > /dev/null 2>&1 || ret=1
+if [ $ret != 0 ]; then
+    echo "I:failed";
+    (cd ..; $PERL start.pl --noclean --restart rpz ns3)
+fi
+status=`expr $status + $ret`
+
+ret=0
+echo "I:checking ANY queries"
+# We don't actually care about the query results; the important
+# thing is the server handles SIG queries okay
+$DIGCMD a3-1.tld2 -tany @$s3 > /dev/null 2>&1
+$DIGCMD a3-2.tld2 -tany @$s3 > /dev/null 2>&1
+$DIGCMD a3-5.tld2 -tany @$s3 > /dev/null 2>&1
+$DIGCMD www.redirect -tany @$s3 > /dev/null 2>&1
+$DIGCMD www.cname-redirect -tany @$s3 > /dev/null 2>&1
 
 $RNDC -c ../common/rndc.conf -s $s3 -p 9953 status > /dev/null 2>&1 || ret=1
 if [ $ret != 0 ]; then
