@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.275.8.7 2011/05/24 02:37:16 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.275.8.8 2011/06/09 07:17:50 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -92,10 +92,10 @@
             Statement Grammar</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2591571"><span><strong class="command">zone</strong></span> Statement Definition and Usage</a></span></dt>
 </dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2595043">Zone File</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2594974">Zone File</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#types_of_resource_records_and_when_to_use_them">Types of Resource Records and When to Use Them</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2597137">Discussion of MX Records</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2597205">Discussion of MX Records</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#Setting_TTLs">Setting TTLs</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2597820">Inverse Mapping in IPv4</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2597947">Other Zone File Directives</a></span></dt>
@@ -5523,8 +5523,8 @@ deny-answer-aliases { "example.net"; };
 <p>
             The rules encoded in a response policy zone (RPZ) are applied
             only to responses to queries that ask for recursion (RD=1).
-            RPZs are normal DNS zones containing largely valid RRsets
-            that can be queried normal if allowed.
+            RPZs are normal DNS zones containing RRsets
+            that can be queried normally if allowed.
             It is usually best to restrict those queries with something like
             <span><strong class="command">allow-query {none; };</strong></span> or
             <span><strong class="command">allow-query { 127.0.0.1; };</strong></span>.
@@ -5535,6 +5535,8 @@ deny-answer-aliases { "example.net"; };
             records resolved in the process of generating the response.
             The owner name of a QNAME rule is the query name relativized
             to the RPZ.
+            The records in a rewrite rule are usually A, AAAA, or special
+            CNAMEs, but can be any type except DNAME.
           </p>
 <p>
             IP rules are triggered by addresses in A and AAAA records.
@@ -5627,6 +5629,7 @@ nodata.domain.com           CNAME   *.
 bad.domain.com              A       10.0.0.1
                             AAAA    2001:2::1
 ok.domain.com               CNAME   ok.domain.com.
+*.badzone.domain.com        CNAME   garden.example.com.
 
 ; IP rules rewriting all answers for 127/8 except 127.0.0.1
 8.0.0.0.127.ip              CNAME   .
@@ -6655,7 +6658,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2592225"></a>Zone Options</h4></div></div></div>
+<a name="id2592293"></a>Zone Options</h4></div></div></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><span><strong class="command">allow-notify</strong></span></span></dt>
 <dd><p>
@@ -7532,7 +7535,7 @@ example.com. NS ns2.example.net.
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2595043"></a>Zone File</h2></div></div></div>
+<a name="id2594974"></a>Zone File</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="types_of_resource_records_and_when_to_use_them"></a>Types of Resource Records and When to Use Them</h3></div></div></div>
@@ -7545,7 +7548,7 @@ example.com. NS ns2.example.net.
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2595061"></a>Resource Records</h4></div></div></div>
+<a name="id2594993"></a>Resource Records</h4></div></div></div>
 <p>
               A domain name identifies a node.  Each node has a set of
               resource information, which may be empty.  The set of resource
@@ -8282,7 +8285,7 @@ example.com. NS ns2.example.net.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2596616"></a>Textual expression of RRs</h4></div></div></div>
+<a name="id2596548"></a>Textual expression of RRs</h4></div></div></div>
 <p>
               RRs are represented in binary form in the packets of the DNS
               protocol, and are usually represented in highly encoded form
@@ -8485,7 +8488,7 @@ example.com. NS ns2.example.net.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2597137"></a>Discussion of MX Records</h3></div></div></div>
+<a name="id2597205"></a>Discussion of MX Records</h3></div></div></div>
 <p>
             As described above, domain servers store information as a
             series of resource records, each of which contains a particular
@@ -10430,7 +10433,7 @@ HOST-127.EXAMPLE. MX 0 .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2602257"></a>Socket I/O Statistics Counters</h4></div></div></div>
+<a name="id2602188"></a>Socket I/O Statistics Counters</h4></div></div></div>
 <p>
               Socket I/O statistics counters are defined per socket
               types, which are
@@ -10585,7 +10588,7 @@ HOST-127.EXAMPLE. MX 0 .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2602698"></a>Compatibility with <span class="emphasis"><em>BIND</em></span> 8 Counters</h4></div></div></div>
+<a name="id2602630"></a>Compatibility with <span class="emphasis"><em>BIND</em></span> 8 Counters</h4></div></div></div>
 <p>
               Most statistics counters that were available
               in <span><strong class="command">BIND</strong></span> 8 are also supported in
