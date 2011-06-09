@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.353.8.9 2011/05/20 05:12:18 marka Exp $ */
+/* $Id: query.c,v 1.353.8.10 2011/06/09 00:53:55 marka Exp $ */
 
 /*! \file */
 
@@ -5316,6 +5316,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				break;
 			case DNS_RPZ_POLICY_RECORD:
 				if (type == dns_rdatatype_any &&
+				    result != DNS_R_CNAME &&
 				    dns_rdataset_isassociated(rdataset))
 					dns_rdataset_disassociate(rdataset);
 				break;

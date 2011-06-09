@@ -1,3 +1,7 @@
+3125.	[security]	Using wildcard CNAME records as a replacement with
+			RPZ caused named to exit with a assertion failure.
+			[RT #24715]
+
 3124.	[bug]		Use an rdataset attribute flag to indicate
 			negative-cache records rather than using rrtype 0;
 			this will prevent problems when that rrtype is
