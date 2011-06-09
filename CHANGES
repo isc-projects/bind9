@@ -1,3 +1,5 @@
+	--- 9.8.0-P3 released ---
+
 3126.	[security]	Using DNAME record to generate replacements caused
 			RPZ to exit with a assertion failure. [RT #23766]
 
