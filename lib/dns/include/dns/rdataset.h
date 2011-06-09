@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.h,v 1.51.18.13 2011/05/27 23:49:08 tbox Exp $ */
+/* $Id: rdataset.h,v 1.51.18.14 2011/06/09 00:42:48 each Exp $ */
 
 #ifndef DNS_RDATASET_H
 #define DNS_RDATASET_H 1
@@ -187,6 +187,7 @@ struct dns_rdataset {
 #define DNS_RDATASETATTR_CHECKNAMES	0x00008000	/*%< Used by resolver. */
 #define DNS_RDATASETATTR_REQUIREDGLUE	0x00010000
 #define DNS_RDATASETATTR_LOADORDER	0x00020000
+#define DNS_RDATASETATTR_NEGATIVE	0x00200000
 
 /*%
  * _OMITDNSSEC:
