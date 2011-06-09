@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.94.50.9 2011/05/27 05:04:17 marka Exp $ */
+/* $Id: masterdump.c,v 1.94.50.10 2011/06/09 00:16:34 each Exp $ */
 
 /*! \file */
 
@@ -356,6 +356,7 @@ rdataset_totext(dns_rdataset_t *rdataset,
 	isc_uint32_t current_ttl;
 	isc_boolean_t current_ttl_valid;
 	dns_rdatatype_t type;
+	unsigned int type_start;
 
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 
@@ -437,29 +438,26 @@ rdataset_totext(dns_rdataset_t *rdataset,
 		 * Type.
 		 */
 
-		if (rdataset->type == 0) {
+		if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0) {
 			type = rdataset->covers;
 		} else {
 			type = rdataset->type;
 		}
 
-		{
-			unsigned int type_start;
-			INDENT_TO(type_column);
-			type_start = target->used;
-			if (rdataset->type == 0)
-				RETERR(str_totext("\\-", target));
-			result = dns_rdatatype_totext(type, target);
-			if (result != ISC_R_SUCCESS)
-				return (result);
-			column += (target->used - type_start);
-		}
+		INDENT_TO(type_column);
+		type_start = target->used;
+		if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0)
+			RETERR(str_totext("\\-", target));
+		result = dns_rdatatype_totext(type, target);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		column += (target->used - type_start);
 
 		/*
 		 * Rdata.
 		 */
 		INDENT_TO(rdata_column);
-		if (rdataset->type == 0) {
+		if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0) {
 			if (NXDOMAIN(rdataset))
 				RETERR(str_totext(";-$NXDOMAIN\n", target));
 			else
@@ -813,7 +811,7 @@ dump_rdatasets_text(isc_mem_t *mctx, dns_name_t *name,
 		dns_rdataset_t *rds = sorted[i];
 		if (ctx->style.flags & DNS_STYLEFLAG_TRUST)
 			fprintf(f, "; %s\n", dns_trust_totext(rds->trust));
-		if (rds->type == 0 &&
+		if (((rds->attributes & DNS_RDATASETATTR_NEGATIVE) != 0) &&
 		    (ctx->style.flags & DNS_STYLEFLAG_NCACHE) == 0) {
 			/* Omit negative cache entries */
 		} else {
@@ -978,7 +976,7 @@ dump_rdatasets_raw(isc_mem_t *mctx, dns_name_t *name,
 		dns_rdataset_init(&rdataset);
 		dns_rdatasetiter_current(rdsiter, &rdataset);
 
-		if (rdataset.type == 0 &&
+		if (((rdataset.attributes & DNS_RDATASETATTR_NEGATIVE) != 0) &&
 		    (ctx->style.flags & DNS_STYLEFLAG_NCACHE) == 0) {
 			/* Omit negative cache entries */
 		} else {
