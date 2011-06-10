@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.276 2011/05/07 00:31:13 each Exp $ */
+/* $Id: dnssec-signzone.c,v 1.277 2011/06/10 01:51:08 each Exp $ */
 
 /*! \file */
 
@@ -3852,10 +3852,15 @@ main(int argc, char *argv[]) {
 		hashlist_init(&hashlist, dns_db_nodecount(gdb) * 2,
 			      hash_length);
 		result = dns_nsec_nseconly(gdb, gversion, &answer);
-		check_result(result, "dns_nsec_nseconly");
-		if (answer)
+		if (result == ISC_R_NOTFOUND)
+			fprintf(stderr, "%s: warning: NSEC3 generation "
+				"requested with no DNSKEY; ignoring\n",
+				program);
+		else if (result != ISC_R_SUCCESS)
+			check_result(result, "dns_nsec_nseconly");
+		else if (answer)
 			fatal("NSEC3 generation requested with "
-			      "NSEC only DNSKEY");
+			      "NSEC-only DNSKEY");
 	}
 
 	/*

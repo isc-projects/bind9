@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec.c,v 1.15 2011/03/12 04:59:48 tbox Exp $ */
+/* $Id: nsec.c,v 1.16 2011/06/10 01:51:09 each Exp $ */
 
 /*! \file */
 
@@ -245,10 +245,8 @@ dns_nsec_nseconly(dns_db_t *db, dns_dbversion_t *version,
 				     0, 0, &rdataset, NULL);
 	dns_db_detachnode(db, &node);
 
-	if (result == ISC_R_NOTFOUND) {
+	if (result == ISC_R_NOTFOUND)
 		*answer = ISC_FALSE;
-		return (ISC_R_SUCCESS);
-	}
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	for (result = dns_rdataset_first(&rdataset);

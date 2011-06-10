@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.613 2011/06/10 01:32:38 each Exp $ */
+/* $Id: zone.c,v 1.614 2011/06/10 01:51:09 each Exp $ */
 
 /*! \file */
 
@@ -61,6 +61,7 @@
 #include <dns/private.h>
 #include <dns/rbt.h>
 #include <dns/rcode.h>
+#include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
@@ -2428,12 +2429,21 @@ resume_signingwithkey(dns_zone_t *zone) {
 static isc_result_t
 zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param) {
 	dns_nsec3chain_t *nsec3chain, *current;
+	dns_dbversion_t *version = NULL;
+	isc_boolean_t nseconly = ISC_FALSE, nsec3ok = ISC_FALSE;
 	isc_result_t result;
 	isc_time_t now;
 	unsigned int options = 0;
 	char saltbuf[255*2+1];
-	char flags[sizeof("REMOVE|CREATE|NONSEC|OPTOUT")];
+	char flags[sizeof("INITIAL|REMOVE|CREATE|NONSEC|OPTOUT")];
 	int i;
+
+	dns_db_currentversion(zone->db, &version);
+	result = dns_nsec_nseconly(zone->db, version, &nseconly);
+	nsec3ok = (result == ISC_R_SUCCESS && !nseconly);
+	dns_db_closeversion(zone->db, &version, ISC_FALSE);
+	if (!nsec3ok && (nsec3param->flags & DNS_NSEC3FLAG_REMOVE) == 0)
+		return (ISC_R_SUCCESS);
 
 	nsec3chain = isc_mem_get(zone->mctx, sizeof *nsec3chain);
 	if (nsec3chain == NULL)
@@ -2461,6 +2471,12 @@ zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param) {
 		flags[0] = '\0';
 		if (nsec3param->flags & DNS_NSEC3FLAG_REMOVE)
 			strlcat(flags, "REMOVE", sizeof(flags));
+		if (nsec3param->flags & DNS_NSEC3FLAG_INITIAL) {
+			if (flags[0] == '\0')
+				strlcpy(flags, "INITIAL", sizeof(flags));
+			else
+				strlcat(flags, "|INITIAL", sizeof(flags));
+		}
 		if (nsec3param->flags & DNS_NSEC3FLAG_CREATE) {
 			if (flags[0] == '\0')
 				strlcpy(flags, "CREATE", sizeof(flags));
@@ -2489,6 +2505,7 @@ zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param) {
 		     "zone_addnsec3chain(%u,%s,%u,%s)",
 		      nsec3param->hash, flags, nsec3param->iterations,
 		      saltbuf);
+
 	for (current = ISC_LIST_HEAD(zone->nsec3chain);
 	     current != NULL;
 	     current = ISC_LIST_NEXT(current, link)) {
@@ -2541,6 +2558,7 @@ resume_addnsec3chain(dns_zone_t *zone) {
 	dns_rdataset_t rdataset;
 	isc_result_t result;
 	dns_rdata_nsec3param_t nsec3param;
+	isc_boolean_t nseconly = ISC_FALSE, nsec3ok = ISC_FALSE;
 
 	if (zone->privatetype == 0)
 		return;
@@ -2550,6 +2568,10 @@ resume_addnsec3chain(dns_zone_t *zone) {
 		goto cleanup;
 
 	dns_db_currentversion(zone->db, &version);
+
+	result = dns_nsec_nseconly(zone->db, version, &nseconly);
+	nsec3ok = (result == ISC_R_SUCCESS && !nseconly);
+
 	dns_rdataset_init(&rdataset);
 	result = dns_db_findrdataset(zone->db, node, version,
 				     zone->privatetype, dns_rdatatype_none,
@@ -2573,8 +2595,9 @@ resume_addnsec3chain(dns_zone_t *zone) {
 			continue;
 		result = dns_rdata_tostruct(&rdata, &nsec3param, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		if ((nsec3param.flags & DNS_NSEC3FLAG_CREATE) != 0 ||
-		    (nsec3param.flags & DNS_NSEC3FLAG_REMOVE) != 0) {
+		if (((nsec3param.flags & DNS_NSEC3FLAG_REMOVE) != 0) ||
+		    ((nsec3param.flags & DNS_NSEC3FLAG_CREATE) != 0 && nsec3ok))
+		{
 			result = zone_addnsec3chain(zone, &nsec3param);
 			if (result != ISC_R_SUCCESS) {
 				dns_zone_log(zone, ISC_LOG_ERROR,
@@ -5541,6 +5564,7 @@ fixup_nsec3param(dns_db_t *db, dns_dbversion_t *ver, dns_nsec3chain_t *chain,
 	isc_buffer_t buffer;
 	unsigned char parambuf[DNS_NSEC3PARAM_BUFFERSIZE];
 	dns_ttl_t ttl = 0;
+	isc_boolean_t nseconly = ISC_FALSE, nsec3ok = ISC_FALSE;
 
 	dns_rdataset_init(&rdataset);
 
@@ -5591,6 +5615,10 @@ fixup_nsec3param(dns_db_t *db, dns_dbversion_t *ver, dns_nsec3chain_t *chain,
 
 	if (active)
 		goto add;
+
+	result = dns_nsec_nseconly(db, ver, &nseconly);
+	nsec3ok = (result == ISC_R_SUCCESS && !nseconly);
+
 	/*
 	 * Delete all private records which match that in nsec3chain.
 	 */
@@ -5613,7 +5641,9 @@ fixup_nsec3param(dns_db_t *db, dns_dbversion_t *ver, dns_nsec3chain_t *chain,
 			continue;
 		CHECK(dns_rdata_tostruct(&rdata, &nsec3param, NULL));
 
-		if (nsec3param.hash != chain->nsec3param.hash ||
+		if ((!nsec3ok &&
+		     (nsec3param.flags & DNS_NSEC3FLAG_INITIAL) != 0) ||
+		    nsec3param.hash != chain->nsec3param.hash ||
 		    nsec3param.iterations != chain->nsec3param.iterations ||
 		    nsec3param.salt_length != chain->nsec3param.salt_length ||
 		    memcmp(nsec3param.salt, chain->nsec3param.salt,
@@ -6181,7 +6211,8 @@ zone_nsec3chain(dns_zone_t *zone) {
 		 * of removing this NSEC3 chain.
 		 */
 		if (first && !updatensec &&
-		    (nsec3chain->nsec3param.flags & DNS_NSEC3FLAG_NONSEC) == 0) {
+		    (nsec3chain->nsec3param.flags & DNS_NSEC3FLAG_NONSEC) == 0)
+		{
 			result = need_nsec_chain(db, version,
 						 &nsec3chain->nsec3param,
 						 &buildnsecchain);
@@ -14048,8 +14079,12 @@ dnskey_sane(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	}
 
 	/* Check existing DB for NSEC-only DNSKEY */
-	if (!nseconly)
-		CHECK(dns_nsec_nseconly(db, ver, &nseconly));
+	if (!nseconly) {
+		result = dns_nsec_nseconly(db, ver, &nseconly);
+		if (result == ISC_R_NOTFOUND)
+			result = ISC_R_SUCCESS;
+		CHECK(result);
+	}
 
 	/* Check existing DB for NSEC3 */
 	if (!nsec3)
@@ -14391,6 +14426,13 @@ zone_rekey(dns_zone_t *zone) {
 					     dns_result_totext(result));
 			}
 		}
+
+		/*
+		 * Activate any NSEC3 chain updates that may have
+		 * been scheduled before this rekey.
+		 */
+		if (fullsign || newalg) 
+			resume_addnsec3chain(zone);
 
 		/*
 		 * Schedule the next resigning event

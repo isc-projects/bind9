@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.30 2011/06/10 01:32:37 each Exp $
+# $Id: tests.sh,v 1.31 2011/06/10 01:51:09 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -96,9 +96,11 @@ status=`expr $status + $ret`
 
 echo "I:checking NSEC->NSEC3 conversion prerequisites ($n)"
 ret=0
-# this command should result in an empty file:
-$DIG $DIGOPTS +noall +answer nsec3.example. nsec3param @10.53.0.3 > dig.out.ns3.test$n || ret=1
-grep "NSEC3PARAM" dig.out.ns3.test$n > /dev/null && ret=1
+# these commands should result in an empty file:
+$DIG $DIGOPTS +noall +answer nsec3.example. nsec3param @10.53.0.3 > dig.out.ns3.1.test$n || ret=1
+grep "NSEC3PARAM" dig.out.ns3.1.test$n > /dev/null && ret=1
+$DIG $DIGOPTS +noall +answer autonsec3.example. nsec3param @10.53.0.3 > dig.out.ns3.2.test$n || ret=1
+grep "NSEC3PARAM" dig.out.ns3.2.test$n > /dev/null && ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -123,6 +125,9 @@ send
 zone nsec3.example.
 update add nsec3.example. 3600 NSEC3PARAM 1 0 10 BEEF
 send
+zone autonsec3.example.
+update add autonsec3.example. 3600 NSEC3PARAM 1 1 10 BEEF
+send
 zone nsec3.optout.example.
 update add nsec3.optout.example. 3600 NSEC3PARAM 1 0 10 BEEF
 send
@@ -141,6 +146,21 @@ zone nsec.example.
 update add nsec.example. 3600 NSEC3PARAM 1 0 10 BEEF
 send
 END
+
+echo "I:checking for nsec3param in unsigned zone ($n)"
+ret=0
+$DIG $DIGOPTS +noall +answer autonsec3.example. nsec3param @10.53.0.3 > dig.out.ns3.test$n || ret=1
+grep "NSEC3PARAM" dig.out.ns3.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:signing preset nsec3 zone"
+zsk=`cat autozsk.key`
+ksk=`cat autoksk.key`
+$SETTIME -K ns3 -P now -A now $zsk > /dev/null 2>&1
+$SETTIME -K ns3 -P now -A now $ksk > /dev/null 2>&1
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 loadkeys autonsec3.example. 2>&1 | sed 's/^/I:ns3 /'
 
 echo "I:waiting for changes to take effect"
 sleep 3
@@ -179,6 +199,20 @@ $DIG $DIGOPTS nsec3.example. nsec3param @10.53.0.3 > dig.out.ns3.ok.test$n || re
 grep "status: NOERROR" dig.out.ns3.ok.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +noauth q.nsec3.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS +noauth q.nsec3.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
+$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
+grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking direct NSEC3 autosigning succeeded ($n)"
+ret=0
+$DIG $DIGOPTS +noall +answer autonsec3.example. nsec3param @10.53.0.3 > dig.out.ns3.ok.test$n || ret=1
+[ -s  dig.out.ns3.ok.test$n ] || ret=1
+grep "NSEC3PARAM" dig.out.ns3.ok.test$n > /dev/null || ret=1
+$DIG $DIGOPTS +noauth q.autonsec3.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
+$DIG $DIGOPTS +noauth q.autonsec3.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
 $PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
@@ -713,13 +747,13 @@ send
 END
 sleep 2
 $DIG $DIGOPTS axfr secure-to-insecure.example @10.53.0.3 > dig.out.ns3.test$n || ret=1
-egrep 'RRSIG.*'" $newid "'\. ' dig.out.ns3.test$n > /dev/null && ret=1
-egrep '(DNSKEY|NSEC)' dig.out.ns3.test$n > /dev/null && ret=1
+egrep '(RRSIG|DNSKEY|NSEC)' dig.out.ns3.test$n > /dev/null && ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 echo "I:checking secure-to-insecure transition, scheduled ($n)"
+ret=0
 file="ns3/`cat del1.key`.key"
 $SETTIME -I now -D now $file > /dev/null
 file="ns3/`cat del2.key`.key"
@@ -727,8 +761,7 @@ $SETTIME -I now -D now $file > /dev/null
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 sign secure-to-insecure2.example. 2>&1 | sed 's/^/I:ns3 /'
 sleep 2
 $DIG $DIGOPTS axfr secure-to-insecure2.example @10.53.0.3 > dig.out.ns3.test$n || ret=1
-egrep 'RRSIG.*'" $newid "'\. ' dig.out.ns3.test$n > /dev/null && ret=1
-egrep '(DNSKEY|NSEC3)' dig.out.ns3.test$n > /dev/null && ret=1
+egrep '(RRSIG|DNSKEY|NSEC3)' dig.out.ns3.test$n > /dev/null && ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

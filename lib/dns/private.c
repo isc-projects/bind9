@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: private.c,v 1.5 2011/02/15 23:47:36 tbox Exp $ */
+/* $Id: private.c,v 1.6 2011/06/10 01:51:09 each Exp $ */
 
 #include "config.h"
 
@@ -44,6 +44,7 @@
 
 #define REMOVE(x) (((x) & DNS_NSEC3FLAG_REMOVE) != 0)
 #define CREATE(x) (((x) & DNS_NSEC3FLAG_CREATE) != 0)
+#define INITIAL(x) (((x) & DNS_NSEC3FLAG_INITIAL) != 0)
 #define NONSEC(x) (((x) & DNS_NSEC3FLAG_NONSEC) != 0)
 
 #define CHECK(x) do {					\

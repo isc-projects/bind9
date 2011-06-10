@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3.c,v 1.22 2011/06/08 22:13:50 each Exp $ */
+/* $Id: nsec3.c,v 1.23 2011/06/10 01:51:09 each Exp $ */
 
 #include <config.h>
 
@@ -49,6 +49,7 @@
 
 #define OPTOUT(x) (((x) & DNS_NSEC3FLAG_OPTOUT) != 0)
 #define CREATE(x) (((x) & DNS_NSEC3FLAG_CREATE) != 0)
+#define INITIAL(x) (((x) & DNS_NSEC3FLAG_INITIAL) != 0)
 #define REMOVE(x) (((x) & DNS_NSEC3FLAG_REMOVE) != 0)
 
 static void

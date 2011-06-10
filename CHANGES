@@ -1,3 +1,11 @@
+3128.	[func]		Inserting an NSEC3PARAM via dynamic update in an
+			auto-dnssec zone that has not been signed yet
+			will cause it to be signed with the specified NSEC3
+			parameters when keys are activated.  The
+			NSEC3PARAM record will not appear in the zone until
+			it is signed, but the parameters will be stored.
+			[RT #23684]
+
 3127.	[bug]		'rndc thaw' will now remove a zone's journal file
 			if the zone serial number has been changed and
 			ixfr-from-differences is not in use.  [RT #24687]
