@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.193 2011/06/10 01:51:08 each Exp $ */
+/* $Id: update.c,v 1.194 2011/06/10 23:47:31 tbox Exp $ */
 
 #include <config.h>
 
@@ -3073,7 +3073,7 @@ check_dnssec(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 
 		/*
 		 * An NSEC3PARAM update can proceed without a DNSKEY (it
-		 * will trigger a delayed change), so we can ignore 
+		 * will trigger a delayed change), so we can ignore
 		 * ISC_R_NOTFOUND here.
 		 */
 		if (result == ISC_R_NOTFOUND)

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.614 2011/06/10 01:51:09 each Exp $ */
+/* $Id: zone.c,v 1.615 2011/06/10 23:47:32 tbox Exp $ */
 
 /*! \file */
 
@@ -3467,7 +3467,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			jserial = serial;
 			result = ISC_R_SUCCESS;
 		}
-		
+
 		if (jserial != serial) {
 			dns_zone_log(zone, ISC_LOG_INFO,
 				     "journal file is out of date: "
@@ -14431,7 +14431,7 @@ zone_rekey(dns_zone_t *zone) {
 		 * Activate any NSEC3 chain updates that may have
 		 * been scheduled before this rekey.
 		 */
-		if (fullsign || newalg) 
+		if (fullsign || newalg)
 			resume_addnsec3chain(zone);
 
 		/*
