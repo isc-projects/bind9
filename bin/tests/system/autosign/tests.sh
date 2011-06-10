@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.29 2011/05/30 22:32:06 marka Exp $
+# $Id: tests.sh,v 1.30 2011/06/10 01:32:37 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -994,6 +994,15 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:exit status: $status"
+echo "I:checking for key reloading loops ($n)"
+ret=0
+# every key event should schedule a successor, so these should be equal
+rekey_calls=`grep "reconfiguring zone keys" ns*/named.run | wc -l`
+rekey_events=`grep "next key event" ns*/named.run | wc -l`
+[ "$rekey_calls" = "$rekey_events" ] || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
 
+echo "I:exit status: $status"
 exit $status

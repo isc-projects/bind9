@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.494 2011/06/09 03:10:17 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.495 2011/06/10 01:32:38 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -1257,7 +1257,13 @@ zone "eng.example.com" {
                         enabled.  This causes the server to reload the zone
                         from disk, and re-enables dynamic updates after the
                         load has completed.  After a zone is thawed,
-                        dynamic updates will no longer be refused.
+                        dynamic updates will no longer be refused.  If
+                        the zone has changed and the
+                        <command>ixfr-from-differences</command> option is
+                        in use, then the journal file will be updated to
+                        reflect changes in the zone.  Otherwise, if the
+                        zone has changed, any existing journal file will be
+                        removed.
                       </para>
                     </listitem>
                   </varlistentry>

@@ -1,3 +1,7 @@
+3127.	[bug]		'rndc thaw' will now remove a zone's journal file
+			if the zone serial number has been changed and
+			ixfr-from-differences is not in use.  [RT #24687]
+
 3126.	[security]	Using DNAME record to generate replacements caused
 			RPZ to exit with a assertion failure. [RT #23766]
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.612 2011/05/26 04:25:47 each Exp $ */
+/* $Id: zone.c,v 1.613 2011/06/10 01:32:38 each Exp $ */
 
 /*! \file */
 
@@ -1594,8 +1594,8 @@ dns_zone_loadandthaw(dns_zone_t *zone) {
 	case DNS_R_CONTINUE:
 		/* Deferred thaw. */
 		break;
-	case ISC_R_SUCCESS:
 	case DNS_R_UPTODATE:
+	case ISC_R_SUCCESS:
 	case DNS_R_SEENINCLUDE:
 		zone->update_disabled = ISC_FALSE;
 		break;
@@ -3413,9 +3413,6 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			needdump = ISC_TRUE;
 	}
 
-	zone->loadtime = loadtime;
-
-	dns_zone_log(zone, ISC_LOG_DEBUG(1), "loaded");
 	/*
 	 * Obtain ns, soa and cname counts for top of zone.
 	 */
@@ -3427,6 +3424,48 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		dns_zone_log(zone, ISC_LOG_ERROR,
 			     "could not find NS and/or SOA records");
 	}
+
+	/*
+	 * Check to make sure the journal is up to date, and remove the
+	 * journal file if it isn't, as we wouldn't be able to apply
+	 * updates otherwise.
+	 */
+	if (zone->journal != NULL && dns_zone_isdynamic(zone, ISC_TRUE) &&
+	    ! DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IXFRFROMDIFFS)) {
+		isc_uint32_t jserial;
+		dns_journal_t *journal = NULL;
+
+		result = dns_journal_open(zone->mctx, zone->journal,
+					  ISC_FALSE, &journal);
+		if (result == ISC_R_SUCCESS) {
+			jserial = dns_journal_last_serial(journal);
+			dns_journal_destroy(&journal);
+		} else {
+			jserial = serial;
+			result = ISC_R_SUCCESS;
+		}
+		
+		if (jserial != serial) {
+			dns_zone_log(zone, ISC_LOG_INFO,
+				     "journal file is out of date: "
+				     "removing journal file");
+			if (remove(zone->journal) < 0 && errno != ENOENT) {
+				char strbuf[ISC_STRERRORSIZE];
+				isc__strerror(errno, strbuf, sizeof(strbuf));
+				isc_log_write(dns_lctx,
+					      DNS_LOGCATEGORY_GENERAL,
+					      DNS_LOGMODULE_ZONE,
+					      ISC_LOG_WARNING,
+					      "unable to remove journal "
+					      "'%s': '%s'",
+					      zone->journal, strbuf);
+			}
+		}
+	}
+
+	zone->loadtime = loadtime;
+
+	dns_zone_log(zone, ISC_LOG_DEBUG(1), "loaded");
 
 	/*
 	 * Master / Slave / Stub zones require both NS and SOA records at
@@ -14159,14 +14198,11 @@ zone_rekey(dns_zone_t *zone) {
 				     dns_rdatatype_none, 0, &keyset, &keysigs);
 	if (result == ISC_R_SUCCESS) {
 		ttl = keyset.ttl;
-		result = dns_dnssec_keylistfromrdataset(&zone->origin, dir,
-							mctx, &keyset,
-							&keysigs, &soasigs,
-							ISC_FALSE, ISC_FALSE,
-							&dnskeys);
-		/* Can't get keys for some reason; try again later. */
-		if (result != ISC_R_SUCCESS)
-			goto trylater;
+		CHECK(dns_dnssec_keylistfromrdataset(&zone->origin, dir,
+						     mctx, &keyset,
+						     &keysigs, &soasigs,
+						     ISC_FALSE, ISC_FALSE,
+						     &dnskeys));
 	} else if (result != ISC_R_NOTFOUND)
 		goto failure;
 
@@ -14192,7 +14228,7 @@ zone_rekey(dns_zone_t *zone) {
 			dns_zone_log(zone, ISC_LOG_ERROR, "zone_rekey:"
 				     "couldn't update zone keys: %s",
 				     isc_result_totext(result));
-			goto trylater;
+			goto failure;
 		}
 
 		/* See if any pre-existing keys have newly become active;
@@ -14410,7 +14446,7 @@ zone_rekey(dns_zone_t *zone) {
 		dns_zone_log(zone, ISC_LOG_INFO, "next key event: %s", timebuf);
 	}
 
- failure:
+ done:
 	dns_diff_clear(&diff);
 	dns_diff_clear(&sig_diff);
 
@@ -14432,10 +14468,14 @@ zone_rekey(dns_zone_t *zone) {
 		dns_db_detach(&db);
 	return;
 
- trylater:
-	isc_interval_set(&ival, HOUR, 0);
+ failure:
+	/*
+	 * Something went wrong; try again in ten minutes or
+	 * after a key refresh interval, whichever is shorter.
+	 */
+	isc_interval_set(&ival, ISC_MIN(zone->refreshkeyinterval, 600), 0);
 	isc_time_nowplusinterval(&zone->refreshkeytime, &ival);
-	goto failure;
+	goto done;
 }
 
 void
