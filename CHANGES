@@ -1,9 +1,10 @@
+
+	--- 9.4-ESV-R5rc1 released ---
+
 3124.	[bug]		Use an rdataset attribute flag to indicate
 			negative-cache records rather than using rrtype 0;
 			this will prevent problems when that rrtype is
 			used in actual DNS packets. [RT #24777]
-
-	--- 9.4-ESV-R5rc1 released ---
 
 3121.   [security]      An authoritative name server sending a negative
                         response containing a very large RRset could
