@@ -1,3 +1,5 @@
+	--- 9.6-ESV-R5rc1 released ---
+
 3124.	[bug]		Use an rdataset attribute flag to indicate
 			negative-cache records rather than using rrtype 0;
 			this will prevent problems when that rrtype is
@@ -6,8 +8,6 @@
 3123.	[security]	Change #2912 exposed a latent flaw in
 			dns_rdataset_totext() that could cause named to
 			crash with an assertion failure. [RT #24777]
-
-	--- 9.6-ESV-R5rc1 released ---
 
 3121.   [security]      An authoritative name server sending a negative
                         response containing a very large RRset could
