@@ -1,9 +1,9 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2011  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000, 2001  Internet Software Consortium.
 #
-# Permission to use, copy, modify, and/or distribute this software for any
+# Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
 # copyright notice and this permission notice appear in all copies.
 #
@@ -15,13 +15,12 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.23.18.2 2011/06/09 07:12:57 tbox Exp $
+# $Id: tests.sh,v 1.23 2004/03/05 05:01:55 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 status=0
-n=0
 
 echo "I:fetching first copy of zone before update"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
@@ -58,60 +57,6 @@ $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
 echo "I:comparing post-update copies to known good data"
 $PERL ../digcomp.pl knowngood.ns1.after dig.out.ns1 || status=1
 $PERL ../digcomp.pl knowngood.ns1.after dig.out.ns2 || status=1
-
-n=`expr $n + 1`
-ret=0
-echo "I:check TYPE=0 update is rejected by nsupdate ($n)"
-$NSUPDATE <<END > nsupdate.out 2>&1 && ret=1
-    server 10.53.0.1 5300
-    update add example.nil. 300 in type0 ""
-    send
-END
-grep "unknown class/type" nsupdate.out > /dev/null 2>&1 || ret=1
-if [ $ret -ne 0 ]; then
-    echo "I:failed"
-    status=1
-fi
-
-n=`expr $n + 1`
-ret=0
-echo "I:check TYPE=0 prerequisite is handled ($n)"
-$NSUPDATE <<END > nsupdate.out 2>&1 || ret=1
-    server 10.53.0.1 5300
-    prereq nxrrset example.nil. type0
-    send
-END
-$DIG +tcp version.bind txt ch @10.53.0.1 -p 5300 > dig.out.ns1.$n
-grep "status: NOERROR" dig.out.ns1.$n > /dev/null || ret=1
-if [ $ret -ne 0 ]; then
-    echo "I:failed"
-    status=1
-fi
-
-n=`expr $n + 1`
-ret=0
-echo "I:check that TYPE=0 update is handled ($n)"
-echo "a0e4280000010000000100000000060001c00c000000fe000000000000" |
-$PERL ../packet.pl -a 10.53.0.1 -p 5300 -t tcp > /dev/null
-$DIG +tcp version.bind txt ch @10.53.0.1 -p 5300 > dig.out.ns1.$n
-grep "status: NOERROR" dig.out.ns1.$n > /dev/null || ret=1
-if test $ret -ne 0
-then
-	echo "I:failed"
-        status=1
-fi
-
-n=`expr $n + 1`
-echo "I:check that TYPE=0 additional data is handled ($n)"
-echo "a0e4280000010000000000010000060001c00c000000fe000000000000" |
-$PERL ../packet.pl -a 10.53.0.1 -p 5300 -t tcp > /dev/null
-$DIG +tcp version.bind txt ch @10.53.0.1 -p 5300 > dig.out.ns1.$n
-grep "status: NOERROR" dig.out.ns1.$n > /dev/null || ret=1
-if test $ret -ne 0
-then
-	echo "I:failed"
-        status=1
-fi
 
 if $PERL -e 'use Net::DNS;' 2>/dev/null
 then
