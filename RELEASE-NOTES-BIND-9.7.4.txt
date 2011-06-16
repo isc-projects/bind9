@@ -47,6 +47,9 @@ Security Fixes
 
 9.7.4rc1
 
+     * Change #2912 (see CHANGES) exposed a latent bug in the DNS message
+       processing code that could allow certain UPDATE requests to crash
+       named. [RT #24777] [CVE-2011-2464]
      * named, set up to be a caching resolver, is vulnerable to a user
        querying a domain with very large resource record sets (RRSets)
        when trying to negatively cache the response. Due to an off-by-one
@@ -57,6 +60,9 @@ Bug Fixes
 
 9.7.4rc1
 
+     * Improved the mechanism for flagging database entries as negative
+       cache records; the former method, RR type 0, could be ambiguous.
+       [RT #24777]
      * During RFC5011 processing some journal write errors were not
        detected. This could lead to managed-keys changes being committed
        but not recorded in the journal files, causing potential
