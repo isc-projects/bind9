@@ -52,6 +52,9 @@ Bug Fixes
 
 9.4-ESV-R5rc1
 
+     * Improved the mechanism for flagging database entries as negative
+       cache records; the former method, RR type 0, could be ambiguous.
+       [RT #24777]
      * During RFC5011 processing some journal write errors were not
        detected. This could lead to managed-keys changes being committed
        but not recorded in the journal files, causing potential
