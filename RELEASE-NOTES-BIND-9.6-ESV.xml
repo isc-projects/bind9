@@ -1,32 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
- - Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
- -
- - Permission to use, copy, modify, and/or distribute this software for any
- - purpose with or without fee is hereby granted, provided that the above
- - copyright notice and this permission notice appear in all copies.
- -
- - THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
- - REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
- - AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
- - INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
- - LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
- - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- - PERFORMANCE OF THIS SOFTWARE.
--->
-
-<!-- $Id: RELEASE-NOTES-BIND-9.6-ESV.xml,v 1.1.2.4 2011/05/31 00:51:10 tbox Exp $ -->
-
 <article xmlns="http://docbook.org/ns/docbook" 
          xmlns:xl="http://www.w3.org/1999/xlink" version="5.0">
 
   <section>
     <title>Introduction</title>
     <para>
-			BIND 9.6-ESV-R5 is a maintenance release for BIND 9.6-ESV.
+			BIND 9.6-ESV-R5rc1 is the first release
+			candidate of BIND 9.6-ESV-R5.
 		</para>
     <para>
-			This document summarizes changes from BIND 9.6-ESV-R4 to BIND 9.6-ESV-R5.
+			This document summarizes changes from BIND 9.6-ESV-R4 to BIND 9.6-ESV-R5rc1.
 			Please see the CHANGES file in the source code release for a
 			complete list of all changes.
 		</para>
@@ -37,7 +20,7 @@
     <para>
 			The latest release of BIND 9 software can always be found
 	 		on our web site at
-      <link xl:href="http://www.isc.org/software/bind">http://www.isc.org/software/bind</link>.
+      <link xl:href="http://www.isc.org/downloads/all">http://www.isc.org/downloads/all</link>.
   		There you will find additional information about each release,
  			source code, and some pre-compiled versions for certain operating
  			systems.
@@ -58,7 +41,7 @@
   <section>
     <title>New Features</title>
 		<section>
-			<title>9.6-ESV-R5</title>
+			<title>9.6-ESV-R5rc1</title>
 			<itemizedlist>
 <listitem>
 Added a tool able to generate malformed packets to allow testing
@@ -70,9 +53,30 @@ of how named handles them.
   </section>
 
   <section>
+    <title>Security Fixes</title>
+		<section>
+			<title>9.6-ESV-R5rc1</title>
+			<itemizedlist>
+<listitem>
+Change #2912 (see CHANGES) exposed a latent bug in the DNS message
+processing code that could allow certain UPDATE requests to crash named.
+[RT #24777] [CVE-2011-2464]
+</listitem>
+<listitem>
+named, set up to be a caching resolver, is vulnerable to a
+user querying a domain with very large resource record sets (RRSets)
+when trying to negatively cache the response. Due to an off-by-one
+error, caching the response could cause named to crash. [RT #24650]
+[CVE-2011-1910]
+</listitem>
+			</itemizedlist>
+		</section>
+  </section>
+
+  <section>
     <title>Feature Changes</title>
 		<section>
-			<title>9.6-ESV-R5</title>
+			<title>9.6-ESV-R5rc1</title>
 			<itemizedlist>
 <listitem>
 Merged in the NetBSD ATF test framework (currently
@@ -95,8 +99,13 @@ Replaced compile time constant with STDTIME_ON_32BITS.
   <section>
     <title>Bug Fixes</title>
 		<section>
-			<title>9.6-ESV-R5</title>
+			<title>9.6-ESV-R5rc1</title>
 	    <itemizedlist>
+<listitem>
+Improved the mechanism for flagging database entries as negative
+cache records; the former method, RR type 0, could be ambiguous.
+[RT #24777]
+</listitem>
 <listitem>
 During RFC5011 processing some journal write errors were not detected.
 This could lead to managed-keys changes being committed but not 
@@ -127,6 +136,9 @@ reload to fail, if a log file specified in the
 conf file isn't a plain file. (RT #22771]
 </listitem>
 <listitem>
+After an external code review, a code cleanup was done. [RT #22521]
+</listitem>
+<listitem>
 named now forces the ADB cache time for glue related data to zero  
 instead of relying on TTL.  This corrects problematic behavior in cases  
 where a server was authoritative for the A record of a nameserver for a  
@@ -138,8 +150,8 @@ Fix the zonechecks system test to fail on error (warning in 9.6,
 fatal in 9.7) to match behaviour for 9.4. [RT #22905]
 </listitem>
 <listitem>
-Fixed precedence order bug with NS and DNAME records if both are present.
-[RT #23035]
+Fixed precedence order bug with NS and DNAME records if both are
+present. (Also fixed timing of autosign test in 9.7+) [RT #23035]
 </listitem>
 <listitem>
 The secure zone update feature in named is based on the zone being
@@ -247,6 +259,13 @@ When trying sign with NSEC3, if dnssec-signzone couldn't find the
 KSK, it would give an incorrect error "NSEC3 iterations too big for
 weakest DNSKEY strength" rather than the correct "failed to find
 keys at the zone apex: not found" [RT #24369]
+</listitem>
+<listitem>
+nsupdate could dump core on shutdown when using SIG(0) keys. [RT #24604]
+</listitem>
+<listitem>
+Named could fail to validate zones list in a DLV that validated insecure
+without using DLV and had DS records in the parent zone. [RT #24631]
 </listitem>
 			</itemizedlist>
 		</section>
