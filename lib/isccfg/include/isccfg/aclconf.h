@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007, 2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2010, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.h,v 1.12.72.1 2011/06/17 07:04:32 each Exp $ */
+/* $Id: aclconf.h,v 1.12.72.2 2011/06/17 23:47:12 tbox Exp $ */
 
 #ifndef ISCCFG_ACLCONF_H
 #define ISCCFG_ACLCONF_H 1

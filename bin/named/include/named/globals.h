@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: globals.h,v 1.89.54.1 2011/06/17 07:04:31 each Exp $ */
+/* $Id: globals.h,v 1.89.54.2 2011/06/17 23:47:10 tbox Exp $ */
 
 #ifndef NAMED_GLOBALS_H
 #define NAMED_GLOBALS_H 1
