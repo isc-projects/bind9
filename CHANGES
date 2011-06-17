@@ -1,3 +1,7 @@
+3129.	[bug]		Named could crash on 'rndc reconfig' when
+			allow-new-zones was set to yes and named ACLs
+			were used, [RT #22739]
+
 3128.	[func]		Inserting an NSEC3PARAM via dynamic update in an
 			auto-dnssec zone that has not been signed yet
 			will cause it to be signed with the specified NSEC3
