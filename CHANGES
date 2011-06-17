@@ -1,3 +1,7 @@
+3129.	[bug]		Named could crash on 'rndc reconfig' when
+			allow-new-zones was set to yes and named ACLs
+			were used, [RT #22739]
+
 	--- 9.8.1b2 released ---
 
 3126.	[security]	Using DNAME record to generate replacements caused

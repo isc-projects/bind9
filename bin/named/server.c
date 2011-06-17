@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.599.8.8 2011/03/11 06:47:00 marka Exp $ */
+/* $Id: server.c,v 1.599.8.9 2011/06/17 07:04:31 each Exp $ */
 
 /*! \file */
 
@@ -210,7 +210,7 @@ struct cfg_context {
 	isc_mem_t *			mctx;
 	cfg_obj_t *			config;
 	cfg_parser_t *			parser;
-	cfg_aclconfctx_t		actx;
+	cfg_aclconfctx_t *		actx;
 };
 
 /*
@@ -302,7 +302,7 @@ static void
 end_reserved_dispatches(ns_server_t *server, isc_boolean_t all);
 
 static void
-cfgctx_destroy(void **cfgp);
+newzone_cfgctx_destroy(void **cfgp);
 
 /*%
  * Configure a single view ACL at '*aclp'.  Get its configuration from
@@ -1738,9 +1738,9 @@ configure_view(dns_view_t *view, cfg_parser_t* parser,
 			if (config != NULL)
 				cfg_obj_attach(config, &cfg->config);
 			cfg_parser_attach(parser, &cfg->parser);
-			cfg_aclconfctx_clone(actx, &cfg->actx);
+			cfg_aclconfctx_attach(actx, &cfg->actx);
 		}
-		dns_view_setnewzones(view, allow, cfg, cfgctx_destroy);
+		dns_view_setnewzones(view, allow, cfg, newzone_cfgctx_destroy);
 	}
 
 	/*
@@ -4146,7 +4146,6 @@ static isc_result_t
 load_configuration(const char *filename, ns_server_t *server,
 		   isc_boolean_t first_time)
 {
-	cfg_aclconfctx_t aclconfctx;
 	cfg_obj_t *config = NULL, *bindkeys = NULL;
 	cfg_parser_t *conf_parser = NULL, *bindkeys_parser = NULL;
 	const cfg_listelt_t *element;
@@ -4175,7 +4174,6 @@ load_configuration(const char *filename, ns_server_t *server,
 	unsigned int maxsocks;
 	ns_cache_t *nsc;
 
-	cfg_aclconfctx_init(&aclconfctx);
 	ISC_LIST_INIT(viewlist);
 	ISC_LIST_INIT(builtin_viewlist);
 	ISC_LIST_INIT(cachelist);
@@ -4183,6 +4181,11 @@ load_configuration(const char *filename, ns_server_t *server,
 	/* Ensure exclusive access to configuration data. */
 	result = isc_task_beginexclusive(server->task);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+	/* Create the ACL configuration context */
+	if (ns_g_aclconfctx != NULL)
+		cfg_aclconfctx_detach(&ns_g_aclconfctx);
+	CHECK(cfg_aclconfctx_create(ns_g_mctx, &ns_g_aclconfctx));
 
 	/*
 	 * Parse the global default pseudo-config file.
@@ -4334,8 +4337,9 @@ load_configuration(const char *filename, ns_server_t *server,
 	else
 		isc_quota_soft(&server->recursionquota, 0);
 
-	CHECK(configure_view_acl(NULL, config, "blackhole", NULL, &aclconfctx,
-				 ns_g_mctx, &server->blackholeacl));
+	CHECK(configure_view_acl(NULL, config, "blackhole", NULL,
+				 ns_g_aclconfctx, ns_g_mctx,
+				 &server->blackholeacl));
 	if (server->blackholeacl != NULL)
 		dns_dispatchmgr_setblackhole(ns_g_dispatchmgr,
 					     server->blackholeacl);
@@ -4345,7 +4349,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	INSIST(result == ISC_R_SUCCESS);
 	server->aclenv.match_mapped = cfg_obj_asboolean(obj);
 
-	CHECKM(ns_statschannels_configure(ns_g_server, config, &aclconfctx),
+	CHECKM(ns_statschannels_configure(ns_g_server, config, ns_g_aclconfctx),
 	       "configuring statistics server(s)");
 
 	/*
@@ -4475,8 +4479,8 @@ load_configuration(const char *filename, ns_server_t *server,
 		if (clistenon != NULL) {
 			/* check return code? */
 			(void)ns_listenlist_fromconfig(clistenon, config,
-						       &aclconfctx, ns_g_mctx,
-						       &listenon);
+						       ns_g_aclconfctx,
+						       ns_g_mctx, &listenon);
 		} else if (!ns_g_lwresdonly) {
 			/*
 			 * Not specified, use default.
@@ -4502,8 +4506,8 @@ load_configuration(const char *filename, ns_server_t *server,
 		if (clistenon != NULL) {
 			/* check return code? */
 			(void)ns_listenlist_fromconfig(clistenon, config,
-						       &aclconfctx, ns_g_mctx,
-						       &listenon);
+						       ns_g_aclconfctx,
+						       ns_g_mctx, &listenon);
 		} else if (!ns_g_lwresdonly) {
 			isc_boolean_t enable;
 			/*
@@ -4614,7 +4618,7 @@ load_configuration(const char *filename, ns_server_t *server,
 		INSIST(view != NULL);
 		CHECK(configure_view(view, conf_parser, config, vconfig,
 				     &cachelist, bindkeys,
-				     ns_g_mctx, &aclconfctx, ISC_TRUE));
+				     ns_g_mctx, ns_g_aclconfctx, ISC_TRUE));
 		dns_view_freeze(view);
 		dns_view_detach(&view);
 	}
@@ -4633,7 +4637,7 @@ load_configuration(const char *filename, ns_server_t *server,
 		CHECK(create_view(NULL, &viewlist, &view));
 		CHECK(configure_view(view, conf_parser, config, NULL,
 				     &cachelist, bindkeys,
-				     ns_g_mctx, &aclconfctx, ISC_TRUE));
+				     ns_g_mctx, ns_g_aclconfctx, ISC_TRUE));
 		dns_view_freeze(view);
 		dns_view_detach(&view);
 	}
@@ -4653,7 +4657,7 @@ load_configuration(const char *filename, ns_server_t *server,
 		CHECK(create_view(vconfig, &builtin_viewlist, &view));
 		CHECK(configure_view(view, conf_parser, config, vconfig,
 				     &cachelist, bindkeys,
-				     ns_g_mctx, &aclconfctx, ISC_FALSE));
+				     ns_g_mctx, ns_g_aclconfctx, ISC_FALSE));
 		dns_view_freeze(view);
 		dns_view_detach(&view);
 		view = NULL;
@@ -4694,7 +4698,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	 * Bind the control port(s).
 	 */
 	CHECKM(ns_controls_configure(ns_g_server->controls, config,
-				     &aclconfctx),
+				     ns_g_aclconfctx),
 	       "binding control channel(s)");
 
 	/*
@@ -4936,8 +4940,6 @@ load_configuration(const char *filename, ns_server_t *server,
 	if (v6portset != NULL)
 		isc_portset_destroy(ns_g_mctx, &v6portset);
 
-	cfg_aclconfctx_clear(&aclconfctx);
-
 	if (conf_parser != NULL) {
 		if (config != NULL)
 			cfg_obj_destroy(conf_parser, &config);
@@ -5143,6 +5145,9 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	ns_controls_shutdown(server->controls);
 	end_reserved_dispatches(server, ISC_TRUE);
 	cleanup_session_key(server, server->mctx);
+
+	if (ns_g_aclconfctx != NULL)
+		cfg_aclconfctx_detach(&ns_g_aclconfctx);
 
 	cfg_obj_destroy(ns_g_parser, &ns_g_config);
 	cfg_parser_destroy(&ns_g_parser);
@@ -7184,7 +7189,7 @@ ns_server_add_zone(ns_server_t *server, char *args) {
 	/* Mark view unfrozen so that zone can be added */
 	dns_view_thaw(view);
 	result = configure_zone(cfg->config, parms, vconfig,
-				server->mctx, view, &cfg->actx, ISC_FALSE);
+				server->mctx, view, cfg->actx, ISC_FALSE);
 	dns_view_freeze(view);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
@@ -7433,23 +7438,22 @@ ns_server_del_zone(ns_server_t *server, char *args) {
 }
 
 static void
-cfgctx_destroy(void **cfgp) {
+newzone_cfgctx_destroy(void **cfgp) {
 	struct cfg_context *cfg;
-	isc_mem_t *mctx;
 
 	REQUIRE(cfgp != NULL && *cfgp != NULL);
+
 	cfg = *cfgp;
-	mctx = cfg->mctx;
-	cfg->mctx = NULL;
+
+	if (cfg->actx != NULL)
+		cfg_aclconfctx_detach(&cfg->actx);
 
 	if (cfg->parser != NULL) {
 		if (cfg->config != NULL)
 			cfg_obj_destroy(cfg->parser, &cfg->config);
 		cfg_parser_destroy(&cfg->parser);
 	}
-	cfg_aclconfctx_clear(&cfg->actx);
 
-	isc_mem_put(mctx, cfg, sizeof(*cfg));
-	isc_mem_detach(&mctx);
+	isc_mem_putanddetach(&cfg->mctx, cfg, sizeof(*cfg));
 	*cfgp = NULL;
 }
