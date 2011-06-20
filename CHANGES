@@ -15,7 +15,7 @@
 			ixfr-from-differences is not in use.  [RT #24687]
 
 3126.	[security]	Using DNAME record to generate replacements caused
-			RPZ to exit with a assertion failure. [RT #23766]
+			RPZ to exit with a assertion failure. [RT #24766]
 
 3125.	[security]	Using wildcard CNAME records as a replacement with
 			RPZ caused named to exit with a assertion failure.
