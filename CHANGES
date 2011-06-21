@@ -1,9 +1,11 @@
-	--- 9.7.3-P2 released ---
+	--- 9.7.3-P3 released ---
 
 3124.	[bug]		Use an rdataset attribute flag to indicate
 			negative-cache records rather than using rrtype 0;
 			this will prevent problems when that rrtype is
 			used in actual DNS packets.  [RT #24777]
+
+	--- 9.7.3-P2 released (withdrawn) ---
 
 3123.	[security]	Change #2912 exposed a latent flaw in
 			dns_rdataset_totext() that could cause named to
