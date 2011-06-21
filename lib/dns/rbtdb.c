@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.310.8.1 2011/02/18 23:23:08 each Exp $ */
+/* $Id: rbtdb.c,v 1.310.8.1.2.1 2011/06/21 20:15:48 each Exp $ */
 
 /*! \file */
 
@@ -279,6 +279,7 @@ typedef ISC_LIST(dns_rbtnode_t)         rbtnodelist_t;
 #define RDATASET_ATTR_RESIGN            0x0020
 #define RDATASET_ATTR_STATCOUNT         0x0040
 #define RDATASET_ATTR_OPTOUT		0x0080
+#define RDATASET_ATTR_NEGATIVE          0x0100
 
 typedef struct acache_cbarg {
 	dns_rdatasetadditional_t        type;
@@ -317,6 +318,8 @@ struct acachectl {
 	(((header)->attributes & RDATASET_ATTR_RESIGN) != 0)
 #define OPTOUT(header) \
 	(((header)->attributes & RDATASET_ATTR_OPTOUT) != 0)
+#define NEGATIVE(header) \
+	(((header)->attributes & RDATASET_ATTR_NEGATIVE) != 0)
 
 #define DEFAULT_NODE_LOCK_COUNT         7       /*%< Should be prime. */
 
@@ -696,11 +699,13 @@ update_rrsetstats(dns_rbtdb_t *rbtdb, rdatasetheader_t *header,
 	/* At the moment we count statistics only for cache DB */
 	INSIST(IS_CACHE(rbtdb));
 
-	if (NXDOMAIN(header))
-		statattributes = DNS_RDATASTATSTYPE_ATTR_NXDOMAIN;
-	else if (RBTDB_RDATATYPE_BASE(header->type) == 0) {
-		statattributes = DNS_RDATASTATSTYPE_ATTR_NXRRSET;
-		base = RBTDB_RDATATYPE_EXT(header->type);
+	if (NEGATIVE(header)) {
+		if (NXDOMAIN(header))
+			statattributes = DNS_RDATASTATSTYPE_ATTR_NXDOMAIN;
+		else {
+			statattributes = DNS_RDATASTATSTYPE_ATTR_NXRRSET;
+			base = RBTDB_RDATATYPE_EXT(header->type);
+		}
 	} else
 		base = RBTDB_RDATATYPE_BASE(header->type);
 
@@ -2780,6 +2785,8 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	rdataset->covers = RBTDB_RDATATYPE_EXT(header->type);
 	rdataset->ttl = header->rdh_ttl - now;
 	rdataset->trust = header->trust;
+	if (NEGATIVE(header))
+		rdataset->attributes |= DNS_RDATASETATTR_NEGATIVE;
 	if (NXDOMAIN(header))
 		rdataset->attributes |= DNS_RDATASETATTR_NXDOMAIN;
 	if (OPTOUT(header))
@@ -5011,7 +5018,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		*nodep = node;
 	}
 
-	if (RBTDB_RDATATYPE_BASE(found->type) == 0) {
+	if (NEGATIVE(found)) {
 		/*
 		 * We found a negative cache entry.
 		 */
@@ -5680,7 +5687,7 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	if (found == NULL)
 		return (ISC_R_NOTFOUND);
 
-	if (RBTDB_RDATATYPE_BASE(found->type) == 0) {
+	if (NEGATIVE(found)) {
 		/*
 		 * We found a negative cache entry.
 		 */
@@ -5891,7 +5898,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 	negtype = 0;
 	if (rbtversion == NULL && !newheader_nx) {
 		rdtype = RBTDB_RDATATYPE_BASE(newheader->type);
-		if (rdtype == 0) {
+		if (NEGATIVE(newheader)) {
 			/*
 			 * We're adding a negative cache entry.
 			 */
@@ -6433,6 +6440,8 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	} else {
 		newheader->serial = 1;
 		newheader->resign = 0;
+		if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0)
+			newheader->attributes |= RDATASET_ATTR_NEGATIVE;
 		if ((rdataset->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
 			newheader->attributes |= RDATASET_ATTR_NXDOMAIN;
 		if ((rdataset->attributes & DNS_RDATASETATTR_OPTOUT) != 0)
@@ -8158,7 +8167,7 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator) {
 
 	type = header->type;
 	rdtype = RBTDB_RDATATYPE_BASE(header->type);
-	if (rdtype == 0) {
+	if (NEGATIVE(header)) {
 		covers = RBTDB_RDATATYPE_EXT(header->type);
 		negtype = RBTDB_RDATATYPE_VALUE(covers, 0);
 	} else
