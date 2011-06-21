@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.32.24.6 2011/06/09 00:15:16 each Exp $
+# $Id: tests.sh,v 1.32.24.7 2011/06/21 22:14:54 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -196,6 +196,18 @@ fi
 n=`expr $n + 1`
 echo "I:check that TYPE=0 additional data is handled ($n)"
 echo "a0e4280000010000000000010000060001c00c000000fe000000000000" |
+$PERL ../packet.pl -a 10.53.0.1 -p 5300 -t tcp > /dev/null
+$DIG +tcp version.bind txt ch @10.53.0.1 -p 5300 > dig.out.ns1.$n
+grep "status: NOERROR" dig.out.ns1.$n > /dev/null || ret=1
+if test $ret -ne 0
+then
+	echo "I:failed"
+        status=1
+fi
+
+n=`expr $n + 1`
+echo "I:check that update to undefined class is handled ($n)"
+echo "a0e4280000010001000000000000060101c00c000000fe000000000000" |
 $PERL ../packet.pl -a 10.53.0.1 -p 5300 -t tcp > /dev/null
 $DIG +tcp version.bind txt ch @10.53.0.1 -p 5300 > dig.out.ns1.$n
 grep "status: NOERROR" dig.out.ns1.$n > /dev/null || ret=1
