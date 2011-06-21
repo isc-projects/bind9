@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.245.50.7.6.2 2011/06/08 23:46:25 tbox Exp $ */
+/* $Id: message.c,v 1.245.50.7.6.3 2011/06/21 20:13:22 each Exp $ */
 
 /*! \file */
 
@@ -2469,7 +2469,7 @@ dns_message_peekheader(isc_buffer_t *source, dns_messageid_t *idp,
 
 isc_result_t
 dns_message_reply(dns_message_t *msg, isc_boolean_t want_question_section) {
-	unsigned int first_section;
+	unsigned int clear_after;
 	isc_result_t result;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
@@ -2481,15 +2481,15 @@ dns_message_reply(dns_message_t *msg, isc_boolean_t want_question_section) {
 	    msg->opcode != dns_opcode_notify)
 		want_question_section = ISC_FALSE;
 	if (msg->opcode == dns_opcode_update)
-		first_section = DNS_SECTION_PREREQUISITE;
+		clear_after = DNS_SECTION_PREREQUISITE;
 	else if (want_question_section) {
 		if (!msg->question_ok)
 			return (DNS_R_FORMERR);
-		first_section = DNS_SECTION_ANSWER;
+		clear_after = DNS_SECTION_ANSWER;
 	} else
-		first_section = DNS_SECTION_QUESTION;
+		clear_after = DNS_SECTION_QUESTION;
 	msg->from_to_wire = DNS_MESSAGE_INTENTRENDER;
-	msgresetnames(msg, first_section);
+	msgresetnames(msg, clear_after);
 	msgresetopt(msg);
 	msgresetsigs(msg, ISC_TRUE);
 	msginitprivate(msg);

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.h,v 1.65.50.4.6.2 2011/06/02 23:46:22 tbox Exp $ */
+/* $Id: rdataset.h,v 1.65.50.4.6.3 2011/06/21 20:13:23 each Exp $ */
 
 #ifndef DNS_RDATASET_H
 #define DNS_RDATASET_H 1
@@ -203,6 +203,7 @@ struct dns_rdataset {
 #define DNS_RDATASETATTR_RESIGN		0x00040000
 #define DNS_RDATASETATTR_CLOSEST	0x00080000
 #define DNS_RDATASETATTR_OPTOUT		0x00100000	/*%< OPTOUT proof */
+#define DNS_RDATASETATTR_NEGATIVE	0x00200000
 
 /*%
  * _OMITDNSSEC:
