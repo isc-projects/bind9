@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.275.8.8 2011/06/09 07:17:50 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.275.8.9 2011/06/22 02:37:18 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -59,15 +59,15 @@
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#controls_statement_definition_and_usage"><span><strong class="command">controls</strong></span> Statement Definition and
           Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2575418"><span><strong class="command">include</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2575504"><span><strong class="command">include</strong></span> Statement Definition and
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2575435"><span><strong class="command">include</strong></span> Statement Definition and
           Usage</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2575527"><span><strong class="command">key</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2575550"><span><strong class="command">key</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2575459"><span><strong class="command">key</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2575482"><span><strong class="command">key</strong></span> Statement Definition and Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2575709"><span><strong class="command">logging</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2575835"><span><strong class="command">logging</strong></span> Statement Definition and
           Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2577834"><span><strong class="command">lwres</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2577908"><span><strong class="command">lwres</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2577976"><span><strong class="command">lwres</strong></span> Statement Definition and Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2578040"><span><strong class="command">masters</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2578084"><span><strong class="command">masters</strong></span> Statement Definition and
           Usage</a></span></dt>
@@ -99,7 +99,7 @@
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#Setting_TTLs">Setting TTLs</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2597820">Inverse Mapping in IPv4</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2597947">Other Zone File Directives</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2598152"><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2598220"><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#zonefile_format">Additional File Formats</a></span></dt>
 </dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch06.html#statistics">BIND9 Statistics</a></span></dt>
@@ -1059,7 +1059,7 @@
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2575504"></a><span><strong class="command">include</strong></span> Statement Definition and
+<a name="id2575435"></a><span><strong class="command">include</strong></span> Statement Definition and
           Usage</h3></div></div></div>
 <p>
           The <span><strong class="command">include</strong></span> statement inserts the
@@ -1074,7 +1074,7 @@
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2575527"></a><span><strong class="command">key</strong></span> Statement Grammar</h3></div></div></div>
+<a name="id2575459"></a><span><strong class="command">key</strong></span> Statement Grammar</h3></div></div></div>
 <pre class="programlisting"><span><strong class="command">key</strong></span> <em class="replaceable"><code>key_id</code></em> {
     algorithm <em class="replaceable"><code>string</code></em>;
     secret <em class="replaceable"><code>string</code></em>;
@@ -1083,7 +1083,7 @@
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2575550"></a><span><strong class="command">key</strong></span> Statement Definition and Usage</h3></div></div></div>
+<a name="id2575482"></a><span><strong class="command">key</strong></span> Statement Definition and Usage</h3></div></div></div>
 <p>
           The <span><strong class="command">key</strong></span> statement defines a shared
           secret key for use with TSIG (see <a href="Bv9ARM.ch04.html#tsig" title="TSIG">the section called &#8220;TSIG&#8221;</a>)
@@ -1997,7 +1997,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2577908"></a><span><strong class="command">lwres</strong></span> Statement Definition and Usage</h3></div></div></div>
+<a name="id2577976"></a><span><strong class="command">lwres</strong></span> Statement Definition and Usage</h3></div></div></div>
 <p>
           The <span><strong class="command">lwres</strong></span> statement configures the
           name
@@ -8285,7 +8285,7 @@ example.com. NS ns2.example.net.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2596548"></a>Textual expression of RRs</h4></div></div></div>
+<a name="id2596616"></a>Textual expression of RRs</h4></div></div></div>
 <p>
               RRs are represented in binary form in the packets of the DNS
               protocol, and are usually represented in highly encoded form
@@ -8860,7 +8860,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2598046"></a>The <span><strong class="command">$INCLUDE</strong></span> Directive</h4></div></div></div>
+<a name="id2598115"></a>The <span><strong class="command">$INCLUDE</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$INCLUDE</strong></span>
               <em class="replaceable"><code>filename</code></em>
@@ -8896,7 +8896,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2598116"></a>The <span><strong class="command">$TTL</strong></span> Directive</h4></div></div></div>
+<a name="id2598184"></a>The <span><strong class="command">$TTL</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$TTL</strong></span>
               <em class="replaceable"><code>default-ttl</code></em>
@@ -8915,7 +8915,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2598152"></a><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</h3></div></div></div>
+<a name="id2598220"></a><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</h3></div></div></div>
 <p>
             Syntax: <span><strong class="command">$GENERATE</strong></span>
             <em class="replaceable"><code>range</code></em>

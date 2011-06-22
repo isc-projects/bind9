@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch09.html,v 1.246.8.7 2011/06/09 07:17:52 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch09.html,v 1.246.8.8 2011/06/22 02:37:19 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -57,9 +57,9 @@
 </dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch09.html#bind9.library">BIND 9 DNS Library Support</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2608080">Prerequisite</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2608089">Compilation</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2608114">Installation</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2607329">Prerequisite</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2607338">Compilation</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2607363">Installation</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2608145">Known Defects/Restrictions</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2608221">The dns.conf File</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2608248">Sample Applications</a></span></dt>
@@ -260,7 +260,7 @@
           </p>
 <div class="bibliography">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2603685"></a>Bibliography</h4></div></div></div>
+<a name="id2603753"></a>Bibliography</h4></div></div></div>
 <div class="bibliodiv">
 <h3 class="title">Standards</h3>
 <div class="biblioentry">
@@ -648,7 +648,7 @@
 </ul></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2608080"></a>Prerequisite</h3></div></div></div>
+<a name="id2607329"></a>Prerequisite</h3></div></div></div>
 <p>GNU make is required to build the export libraries (other
   part of BIND 9 can still be built with other types of make). In
   the reminder of this document, "make" means GNU make. Note that
@@ -657,7 +657,7 @@
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2608089"></a>Compilation</h3></div></div></div>
+<a name="id2607338"></a>Compilation</h3></div></div></div>
 <pre class="screen">
 $ <strong class="userinput"><code>./configure --enable-exportlib <em class="replaceable"><code>[other flags]</code></em></code></strong>
 $ <strong class="userinput"><code>make</code></strong>
@@ -672,7 +672,7 @@ $ <strong class="userinput"><code>make</code></strong>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2608114"></a>Installation</h3></div></div></div>
+<a name="id2607363"></a>Installation</h3></div></div></div>
 <pre class="screen">
 $ <strong class="userinput"><code>cd lib/export</code></strong>
 $ <strong class="userinput"><code>make install</code></strong>
@@ -864,7 +864,7 @@ $ <strong class="userinput"><code>make</code></strong>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2608401"></a>sample-request: a simple DNS transaction client</h4></div></div></div>
+<a name="id2608537"></a>sample-request: a simple DNS transaction client</h4></div></div></div>
 <p>
   It sends a query to a specified server, and
   prints the response with minimal processing. It doesn't act as a
@@ -905,7 +905,7 @@ $ <strong class="userinput"><code>make</code></strong>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2608465"></a>sample-gai: getaddrinfo() and getnameinfo() test code</h4></div></div></div>
+<a name="id2608601"></a>sample-gai: getaddrinfo() and getnameinfo() test code</h4></div></div></div>
 <p>
   This is a test program
   to check getaddrinfo() and getnameinfo() behavior. It takes a
@@ -922,7 +922,7 @@ $ <strong class="userinput"><code>make</code></strong>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2608480"></a>sample-update: a simple dynamic update client program</h4></div></div></div>
+<a name="id2608616"></a>sample-update: a simple dynamic update client program</h4></div></div></div>
 <p>
   It accepts a single update command as a
   command-line argument, sends an update request message to the
