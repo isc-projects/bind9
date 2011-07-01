@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.615 2011/06/10 23:47:32 tbox Exp $ */
+/* $Id: zone.c,v 1.616 2011/07/01 02:25:48 marka Exp $ */
 
 /*! \file */
 
@@ -76,6 +76,7 @@
 #include <dns/ssu.h>
 #include <dns/stats.h>
 #include <dns/tsig.h>
+#include <dns/update.h>
 #include <dns/xfrin.h>
 #include <dns/zone.h>
 
@@ -339,6 +340,11 @@ struct dns_zone {
 	 * whether a rpz radix was needed when last loaded
 	 */
 	isc_boolean_t           rpz_zone;
+
+	/*%
+	 * Serial number update method.
+	 */
+	dns_updatemethod_t	updatemethod;
 };
 
 #define DNS_ZONE_FLAG(z,f) (ISC_TF(((z)->flags & (f)) != 0))
@@ -3069,8 +3075,8 @@ update_one_rr(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff,
 }
 
 static isc_result_t
-increment_soa_serial(dns_db_t *db, dns_dbversion_t *ver,
-		     dns_diff_t *diff, isc_mem_t *mctx) {
+update_soa_serial(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff,
+		  isc_mem_t *mctx, dns_updatemethod_t method) {
 	dns_difftuple_t *deltuple = NULL;
 	dns_difftuple_t *addtuple = NULL;
 	isc_uint32_t serial;
@@ -3081,12 +3087,7 @@ increment_soa_serial(dns_db_t *db, dns_dbversion_t *ver,
 	addtuple->op = DNS_DIFFOP_ADD;
 
 	serial = dns_soa_getserial(&addtuple->rdata);
-
-	/* RFC1982 */
-	serial = (serial + 1) & 0xFFFFFFFF;
-	if (serial == 0)
-		serial = 1;
-
+	serial = dns_update_soaserial(serial, method);
 	dns_soa_setserial(serial, &addtuple->rdata);
 	CHECK(do_one_tuple(&deltuple, db, ver, diff));
 	CHECK(do_one_tuple(&addtuple, db, ver, diff));
@@ -3311,7 +3312,8 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 
 	if (changed) {
 		/* Write changes to journal file. */
-		CHECK(increment_soa_serial(db, ver, &diff, zone->mctx));
+		CHECK(update_soa_serial(db, ver, &diff, zone->mctx,
+					zone->updatemethod));
 		CHECK(zone_journal(zone, &diff, "sync_keyzone"));
 
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADED);
@@ -5133,10 +5135,11 @@ zone_resigninc(dns_zone_t *zone) {
 		goto failure;
 	}
 
-	result = increment_soa_serial(db, version, &sig_diff, zone->mctx);
+	result = update_soa_serial(db, version, &sig_diff, zone->mctx,
+				   zone->updatemethod);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "zone_resigninc:increment_soa_serial -> %s\n",
+			     "zone_resigninc:update_soa_serial -> %s\n",
 			     dns_result_totext(result));
 		goto failure;
 	}
@@ -6513,10 +6516,11 @@ zone_nsec3chain(dns_zone_t *zone) {
 		goto failure;
 	}
 
-	result = increment_soa_serial(db, version, &sig_diff, zone->mctx);
+	result = update_soa_serial(db, version, &sig_diff, zone->mctx,
+				   zone->updatemethod);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain:"
-			     "increment_soa_serial -> %s\n",
+			     "update_soa_serial -> %s\n",
 			     dns_result_totext(result));
 		goto failure;
 	}
@@ -7075,10 +7079,11 @@ zone_sign(dns_zone_t *zone) {
 		goto failure;
 	}
 
-	result = increment_soa_serial(db, version, &sig_diff, zone->mctx);
+	result = update_soa_serial(db, version, &sig_diff, zone->mctx,
+				   zone->updatemethod);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "zone_sign:increment_soa_serial -> %s\n",
+			     "zone_sign:update_soa_serial -> %s\n",
 			     dns_result_totext(result));
 		goto failure;
 	}
@@ -7855,7 +7860,8 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 
 	if (!ISC_LIST_EMPTY(diff.tuples)) {
 		/* Write changes to journal file. */
-		CHECK(increment_soa_serial(kfetch->db, ver, &diff, mctx));
+		CHECK(update_soa_serial(kfetch->db, ver, &diff, mctx,
+					zone->updatemethod));
 		CHECK(zone_journal(zone, &diff, "keyfetch_done"));
 		commit = ISC_TRUE;
 
@@ -8012,7 +8018,8 @@ zone_refreshkeys(dns_zone_t *zone) {
 					 &kfetch->fetch);
 	}
 	if (!ISC_LIST_EMPTY(diff.tuples)) {
-		CHECK(increment_soa_serial(db, ver, &diff, zone->mctx));
+		CHECK(update_soa_serial(db, ver, &diff, zone->mctx,
+					zone->updatemethod));
 		CHECK(zone_journal(zone, &diff, "sync_keyzone"));
 		commit = ISC_TRUE;
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADED);
@@ -14305,7 +14312,8 @@ zone_rekey(dns_zone_t *zone) {
 			CHECK(add_signing_records(db, zone->privatetype,
 						  ver, &diff,
 						  ISC_TF(newalg || fullsign)));
-			CHECK(increment_soa_serial(db, ver, &diff, mctx));
+			CHECK(update_soa_serial(db, ver, &diff, mctx,
+						zone->updatemethod));
 			CHECK(add_chains(zone, db, ver, &diff));
 			CHECK(sign_apex(zone, db, ver, &diff, &sig_diff));
 			CHECK(zone_journal(zone, &sig_diff, "zone_rekey"));
@@ -14595,4 +14603,16 @@ dns_zone_setrefreshkeyinterval(dns_zone_t *zone, isc_uint32_t interval) {
 	/* Multiply by 60 for seconds */
 	zone->refreshkeyinterval = interval * 60;
 	return (ISC_R_SUCCESS);
+}
+
+void
+dns_zone_setserialupdatemethod(dns_zone_t *zone, dns_updatemethod_t method) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	zone->updatemethod = method;
+}
+
+dns_updatemethod_t
+dns_zone_getserialupdatemethod(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	return(zone->updatemethod);
 }

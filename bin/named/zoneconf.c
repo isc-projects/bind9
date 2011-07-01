@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.177 2011/05/23 20:10:01 each Exp $ */
+/* $Id: zoneconf.c,v 1.178 2011/07/01 02:25:47 marka Exp $ */
 
 /*% */
 
@@ -1357,6 +1357,16 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			else
 				INSIST(0);
 		}
+
+		obj = NULL;
+		result = ns_config_get(maps, "serial-update-method", &obj);
+		INSIST(result == ISC_R_SUCCESS && obj != NULL);
+		if (strcasecmp(cfg_obj_asstring(obj), "unixtime") == 0)
+			dns_zone_setserialupdatemethod(zone,
+						    dns_updatemethod_unixtime);
+		else
+			dns_zone_setserialupdatemethod(zone,
+						  dns_updatemethod_increment);
 	}
 
 	/*

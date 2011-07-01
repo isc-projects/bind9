@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.40 2011/06/21 22:15:05 each Exp $
+# $Id: tests.sh,v 1.41 2011/07/01 02:25:47 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -215,6 +215,27 @@ if test $ret -ne 0
 then
 	echo "I:failed"
         status=1
+fi
+
+n=`expr $n + 1`
+echo "I:check that unixtime serial number is correctly generated ($n)"
+oldserial=`$DIG +short unixtime.nil. soa @10.53.0.1 -p 5300 | awk '{print $3}'` || ret=1
+$NSUPDATE <<END > /dev/null 2>&1 || ret=1
+    server 10.53.0.1 5300
+    ttl 600
+    update add new.unixtime.nil in a 1.2.3.4
+    send
+END
+now=`$PERL -e 'print time()."\n";'`
+sleep 1
+serial=`$DIG +short unixtime.nil. soa @10.53.0.1 -p 5300 | awk '{print $3}'` || ret=1
+[ "$oldserial" -ne "$serial" ] || ret=1
+# allow up to 2 seconds difference between the serial
+# number and the unix epoch date but no more
+$PERL -e 'exit 1 if abs($ARGV[1] - $ARGV[0]) > 2;' $now $serial || ret=1
+if [ $ret -ne 0 ]; then
+    echo "I:failed"
+    status=1
 fi
 
 if $PERL -e 'use Net::DNS;' 2>/dev/null

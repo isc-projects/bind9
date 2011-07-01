@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.189 2011/05/23 20:10:03 each Exp $ */
+/* $Id: zone.h,v 1.190 2011/07/01 02:25:48 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1890,6 +1890,26 @@ dns_zone_setrefreshkeyinterval(dns_zone_t *zone, isc_uint32_t interval);
  * \li	'zone' to be valid.
  */
 
+void
+dns_zone_setserialupdatemethod(dns_zone_t *zone, dns_updatemethod_t method);
+/*%
+ * Sets the update method to use when incrementing the zone serial number
+ * due to a DDNS update.  Valid options are dns_updatemethod_increment
+ * and dns_updatemethod_unixtime.
+ *
+ * Requires:
+ * \li	'zone' to be valid.
+ */
+
+dns_updatemethod_t
+dns_zone_getserialupdatemethod(dns_zone_t *zone);
+/*%
+ * Returns the update method to be used when incrementing the zone serial
+ * number due to a DDNS update.
+ *
+ * Requires:
+ * \li	'zone' to be valid.
+ */
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_ZONE_H */

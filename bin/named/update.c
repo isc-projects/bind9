@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.194 2011/06/10 23:47:31 tbox Exp $ */
+/* $Id: update.c,v 1.195 2011/07/01 02:25:47 marka Exp $ */
 
 #include <config.h>
 
@@ -47,6 +47,7 @@
 #include <dns/soa.h>
 #include <dns/ssu.h>
 #include <dns/tsig.h>
+#include <dns/update.h>
 #include <dns/view.h>
 #include <dns/zone.h>
 #include <dns/zt.h>
@@ -1425,8 +1426,8 @@ get_current_rr(dns_message_t *msg, dns_section_t section,
 	 */
 
 static isc_result_t
-increment_soa_serial(dns_db_t *db, dns_dbversion_t *ver,
-		     dns_diff_t *diff, isc_mem_t *mctx)
+update_soa_serial(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff,
+		  isc_mem_t *mctx, dns_updatemethod_t method)
 {
 	dns_difftuple_t *deltuple = NULL;
 	dns_difftuple_t *addtuple = NULL;
@@ -1438,12 +1439,7 @@ increment_soa_serial(dns_db_t *db, dns_dbversion_t *ver,
 	addtuple->op = DNS_DIFFOP_ADD;
 
 	serial = dns_soa_getserial(&addtuple->rdata);
-
-	/* RFC1982 */
-	serial = (serial + 1) & 0xFFFFFFFF;
-	if (serial == 0)
-		serial = 1;
-
+	serial = dns_update_soaserial(serial, method);
 	dns_soa_setserial(serial, &addtuple->rdata);
 	CHECK(do_one_tuple(&deltuple, db, ver, diff));
 	CHECK(do_one_tuple(&addtuple, db, ver, diff));
@@ -4187,7 +4183,8 @@ update_action(isc_task_t *task, isc_event_t *event) {
 		 * changed as a result of an update operation.
 		 */
 		if (! soa_serial_changed) {
-			CHECK(increment_soa_serial(db, ver, &diff, mctx));
+			CHECK(update_soa_serial(db, ver, &diff, mctx,
+				       dns_zone_getserialupdatemethod(zone)));
 		}
 
 		CHECK(check_mx(client, zone, db, ver, &diff));

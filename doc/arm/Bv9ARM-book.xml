@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.496 2011/06/21 05:33:21 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.497 2011/07/01 02:25:47 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -10099,6 +10099,7 @@ view "external" {
     <optional> key-directory <replaceable>path_name</replaceable>; </optional>
     <optional> auto-dnssec <constant>allow</constant>|<constant>maintain</constant>|<constant>off</constant>; </optional>
     <optional> zero-no-soa-ttl <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> serial-update-method <constant>increment</constant>|<constant>unixtime</constant>; </optional>
 };
 
 zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replaceable></optional> {
@@ -11230,6 +11231,31 @@ example.com. NS ns2.example.net.
                   </para>
                   <para>
                     The default setting is <command>auto-dnssec off</command>.
+                  </para>
+                </listitem>
+              </varlistentry>
+
+              <varlistentry>
+                <term><command>serial-update-method</command></term>
+                <listitem>
+                  <para>
+                    Zones configured for dynamic DNS may use this
+                    option to set the update method that will be used for
+                    the zone serial number in the SOA record.
+                  </para>
+                  <para>
+                    With the default setting of
+                    <command>serial-update-method increment;</command>, the
+                    SOA serial number will be incremented by one each time
+                    the zone is updated.
+                  </para>
+                  <para>
+                    When set to 
+                    <command>serial-update-method unixtime;</command>, the
+                    SOA serial number will be set to the number of seconds
+                    since the UNIX epoch, unless the serial number is
+                    already greater than or equal to that value, in which
+                    case it is simply incremented by one.
                   </para>
                 </listitem>
               </varlistentry>

@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.18 2011/05/06 23:47:29 tbox Exp $
+# $Id: setup.sh,v 1.19 2011/07/01 02:25:47 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -30,6 +30,7 @@ rm -f ns3/example.db.jnl
 
 cp -f ns1/example1.db ns1/example.db
 sed 's/example.nil/other.nil/g' ns1/example1.db > ns1/other.db
+sed 's/example.nil/unixtime.nil/g' ns1/example1.db > ns1/unixtime.db
 cp -f ns3/example.db.in ns3/example.db
 
 # update_test.pl has its own zone file because it
