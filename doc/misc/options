@@ -209,6 +209,7 @@ options {
         secroots-file <quoted_string>;
         serial-queries <integer>; // obsolete
         serial-query-rate <integer>;
+        serial-update-method ( increment | unixtime );
         server-id ( <quoted_string> | none | hostname );
         session-keyalg <string>;
         session-keyfile ( <quoted_string> | none );
@@ -412,6 +413,7 @@ view <string> <optional_class> {
         root-delegation-only [ exclude { <quoted_string>; ... } ];
         rrset-order { [ class <string> ] [ type <string> ] [ name
             <quoted_string> ] <string> <string>; ... };
+        serial-update-method ( increment | unixtime );
         server <netprefix> {
                 bogus <boolean>;
                 edns <boolean>;
@@ -517,6 +519,7 @@ view <string> <optional_class> {
                 nsec3-test-zone <boolean>; // test only
                 pubkey <integer> <integer> <integer>
                     <quoted_string>; // obsolete
+                serial-update-method ( increment | unixtime );
                 server-addresses { ( <ipv4_address> | <ipv6_address> ) [
                     port <integer> ]; ... };
                 server-names { <quoted_string>; ... };
@@ -605,6 +608,7 @@ zone <string> <optional_class> {
         notify-to-soa <boolean>;
         nsec3-test-zone <boolean>; // test only
         pubkey <integer> <integer> <integer> <quoted_string>; // obsolete
+        serial-update-method ( increment | unixtime );
         server-addresses { ( <ipv4_address> | <ipv6_address> ) [ port
             <integer> ]; ... };
         server-names { <quoted_string>; ... };
