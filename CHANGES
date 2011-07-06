@@ -1,3 +1,7 @@
+3132.	[tuning]	Expanded zone task table from 8 to 17 buckets,
+			added ZONE_TASKS define in zone.c to make it easier
+			to hand-tune this value. [RT #24406]
+
 3129.	[bug]		Named could crash on 'rndc reconfig' when
 			allow-new-zones was set to yes and named ACLs
 			were used. [RT #22739]

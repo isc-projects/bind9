@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.582.8.20 2011/05/26 04:25:09 each Exp $ */
+/* $Id: zone.c,v 1.582.8.21 2011/07/06 19:02:40 each Exp $ */
 
 /*! \file */
 
@@ -100,6 +100,13 @@
 
 #define IO_MAGIC			ISC_MAGIC('Z', 'm', 'I', 'O')
 #define DNS_IO_VALID(load)		ISC_MAGIC_VALID(load, IO_MAGIC)
+
+/*
+ * Size of the zone task table.  For best results, this should be a
+ * prime number, approximately 1% of the maximum number of authoritative
+ * zones expected to be served by this server.
+ */
+#define ZONE_TASKS 17
 
 /*%
  * Ensure 'a' is at least 'min' but not more than 'max'.
@@ -12455,8 +12462,8 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	zmgr->transfersperns = 2;
 
 	/* Create the zone task pool. */
-	result = isc_taskpool_create(taskmgr, mctx,
-				     8 /* XXX */, 2, &zmgr->zonetasks);
+	result = isc_taskpool_create(taskmgr, mctx, ZONE_TASKS, 2,
+				     &zmgr->zonetasks);
 	if (result != ISC_R_SUCCESS)
 		goto free_rwlock;
 
