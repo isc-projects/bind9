@@ -1,3 +1,2 @@
 Makefile
-master_test
-ncache_test
+*_test
