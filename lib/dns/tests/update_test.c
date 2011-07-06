@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update_test.c,v 1.3 2011/07/01 23:47:44 tbox Exp $ */
+/* $Id: update_test.c,v 1.4 2011/07/06 18:11:35 each Exp $ */
 
 /* $Id: */
 
@@ -65,7 +65,7 @@ ATF_TC_BODY(increment, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL);
+	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	new = dns_update_soaserial(old, dns_updatemethod_increment);
 	ATF_REQUIRE_EQ(isc_serial_lt(old, new), ISC_TRUE);
@@ -86,7 +86,7 @@ ATF_TC_BODY(increment_past_zero, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL);
+	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	new = dns_update_soaserial(old, dns_updatemethod_increment);
 	ATF_REQUIRE_EQ(isc_serial_lt(old, new), ISC_TRUE);
@@ -109,7 +109,7 @@ ATF_TC_BODY(past_to_unix, tc) {
 	set_mystdtime(2011, 6, 22);
 	old = mystdtime - 1;
 
-	result = dns_test_begin(NULL);
+	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	new = dns_update_soaserial(old, dns_updatemethod_unixtime);
 	ATF_REQUIRE_EQ(isc_serial_lt(old, new), ISC_TRUE);
@@ -132,7 +132,7 @@ ATF_TC_BODY(now_to_unix, tc) {
 	set_mystdtime(2011, 6, 22);
 	old = mystdtime;
 
-	result = dns_test_begin(NULL);
+	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	new = dns_update_soaserial(old, dns_updatemethod_unixtime);
 	ATF_REQUIRE_EQ(isc_serial_lt(old, new), ISC_TRUE);
@@ -155,7 +155,7 @@ ATF_TC_BODY(future_to_unix, tc) {
 	set_mystdtime(2011, 6, 22);
 	old = mystdtime + 1;
 
-	result = dns_test_begin(NULL);
+	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	new = dns_update_soaserial(old, dns_updatemethod_unixtime);
 	ATF_REQUIRE_EQ(isc_serial_lt(old, new), ISC_TRUE);
@@ -179,7 +179,7 @@ ATF_TC_BODY(undefined_plus1_to_unix, tc) {
 	old = mystdtime ^ 0x80000000u;
 	old += 1;
 
-	result = dns_test_begin(NULL);
+	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	new = dns_update_soaserial(old, dns_updatemethod_unixtime);
 	ATF_REQUIRE_EQ(isc_serial_lt(old, new), ISC_TRUE);
@@ -203,7 +203,7 @@ ATF_TC_BODY(undefined_minus1_to_unix, tc) {
 	old = mystdtime ^ 0x80000000u;
 	old -= 1;
 
-	result = dns_test_begin(NULL);
+	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	new = dns_update_soaserial(old, dns_updatemethod_unixtime);
 	ATF_REQUIRE_EQ(isc_serial_lt(old, new), ISC_TRUE);
@@ -226,7 +226,7 @@ ATF_TC_BODY(undefined_to_unix, tc) {
 	set_mystdtime(2011, 6, 22);
 	old = mystdtime ^ 0x80000000u;
 
-	result = dns_test_begin(NULL);
+	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	new = dns_update_soaserial(old, dns_updatemethod_unixtime);
 	ATF_REQUIRE_EQ(isc_serial_lt(old, new), ISC_TRUE);
@@ -249,7 +249,7 @@ ATF_TC_BODY(unixtime_zero, tc) {
 	mystdtime = 0;
 	old = 0xfffffff0;
 
-	result = dns_test_begin(NULL);
+	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	new = dns_update_soaserial(old, dns_updatemethod_unixtime);
 	ATF_REQUIRE_EQ(isc_serial_lt(old, new), ISC_TRUE);
