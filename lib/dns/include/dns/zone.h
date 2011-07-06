@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.190 2011/07/01 02:25:48 marka Exp $ */
+/* $Id: zone.h,v 1.191 2011/07/06 01:36:32 each Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1388,13 +1388,26 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		   isc_timermgr_t *timermgr, isc_socketmgr_t *socketmgr,
 		   dns_zonemgr_t **zmgrp);
 /*%<
- * Create a zone manager.
+ * Create a zone manager.  Note: the zone manager will not be able to
+ * manage any zones until dns_zonemgr_setsize() has been run.
  *
  * Requires:
  *\li	'mctx' to be a valid memory context.
  *\li	'taskmgr' to be a valid task manager.
  *\li	'timermgr' to be a valid timer manager.
  *\li	'zmgrp'	to point to a NULL pointer.
+ */
+
+isc_result_t
+dns_zonemgr_setsize(dns_zonemgr_t *zmgr, int num_zones);
+/*%<
+ *	Set the size of the zone manager task pool.  This must be run
+ *	before zmgr can be used for managing zones.  Currently, it can only
+ *	be run once; the task pool cannot be resized.
+ *
+ * Requires:
+ *\li	zmgr is a valid zone manager.
+ *\li	zmgr->zonetasks has been initialized.
  */
 
 isc_result_t

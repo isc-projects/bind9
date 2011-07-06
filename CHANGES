@@ -1,3 +1,7 @@
+3131.	[func]		Improve scalability by allocating one zone task
+			per 100 zones at startup time, rather than using a
+			fixed-size task table. [RT #24406]
+
 3130.	[func]		Support alternate methods for managing a dynamic
 			zone's serial number.  Two methods are currently
 			defined using serial-update-method, "increment"
