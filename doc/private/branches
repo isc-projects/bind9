@@ -418,6 +418,7 @@ rt22908				new	smann	// 2011-02-23 17:05 +0000
 rt22911				new	each	// 2011-03-20 19:27 +0000
 rt22964				new	marka	// 2011-02-11 12:57 +0000
 rt22992				new	johnd	// 2011-01-24 20:54 +0000
+rt22992a			new	each	// 2011-07-07 15:41 +0000
 rt23034				new	marka	// 2011-01-28 03:26 +0000
 rt23035				new	marka	// 2011-01-28 05:24 +0000
 rt23035_take2			new	marka	// 2011-02-24 04:17 +0000
@@ -487,6 +488,7 @@ rt24941				new	each	// 2011-06-25 16:56 +0000
 rt24950				new	marka	// 2011-06-27 22:53 +0000
 rt24985				new	vjs	// 2011-06-30 03:36 +0000
 rt24990				new	each	// 2011-07-06 20:35 +0000
+rt25067				new	ckb	// 2011-07-07 18:11 +0000
 shane_dbbackend			open	
 skan				open	explorer
 skan-metazones1			private	explorer
