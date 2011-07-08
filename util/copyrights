@@ -606,9 +606,11 @@
 ./bin/tests/system/autosign/ns2/private.secure.example.db.in	ZONE	2009
 ./bin/tests/system/autosign/ns3/.cvsignore	X	2009
 ./bin/tests/system/autosign/ns3/delay.example.db	ZONE	2011
+./bin/tests/system/autosign/ns3/inaczsk.example.db.in	ZONE	2011
 ./bin/tests/system/autosign/ns3/insecure.example.db	ZONE	2009
 ./bin/tests/system/autosign/ns3/keygen.sh	SH	2009,2010,2011
 ./bin/tests/system/autosign/ns3/named.conf	CONF-C	2009,2010,2011
+./bin/tests/system/autosign/ns3/nozsk.example.db.in	ZONE	2011
 ./bin/tests/system/autosign/ns3/nsec.example.db.in	ZONE	2010
 ./bin/tests/system/autosign/ns3/nsec3-to-nsec.example.db.in	ZONE	2010
 ./bin/tests/system/autosign/ns3/nsec3.example.db.in	ZONE	2009
