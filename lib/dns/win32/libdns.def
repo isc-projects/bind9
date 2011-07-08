@@ -908,6 +908,7 @@ dns_zonemgr_releasezone
 dns_zonemgr_resumexfrs
 dns_zonemgr_setiolimit
 dns_zonemgr_setserialqueryrate
+dns_zonemgr_setsize
 dns_zonemgr_settransfersin
 dns_zonemgr_settransfersperns
 dns_zonemgr_shutdown

@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.2.2.3 2011/03/09 07:27:37 marka Exp $
+# $Id: Makefile.in,v 1.2.2.4 2011/07/08 22:57:25 smann Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -37,10 +37,10 @@ DNSDEPLIBS =	../libdns.@A@
 LIBS =		@LIBS@ @ATFLIBS@
 
 OBJS =		dnstest.@O@
-SRCS =		dnstest.c master_test.c time_test.c
+SRCS =		dnstest.c master_test.c time_test.c zonemgr_test.c
 
 SUBDIRS =
-TARGETS =	master_test@EXEEXT@ time_test@EXEEXT@
+TARGETS =	master_test@EXEEXT@ time_test@EXEEXT@ zonemgr_test@EXEEXT@
 
 @BIND9_MAKE_RULES@
 
@@ -53,5 +53,11 @@ time_test@EXEEXT@: time_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			time_test.@O@ dnstest.@O@ ${DNSLIBS} \
 				${ISCLIBS} ${LIBS}
+
+zonemgr_test@EXEEXT@: zonemgr_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+			zonemgr_test.@O@ dnstest.@O@ ${DNSLIBS} \
+				${ISCLIBS} ${LIBS}
+
 clean distclean::
 	rm -f ${TARGETS}

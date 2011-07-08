@@ -1,8 +1,10 @@
+	--- 9.8.1b3 released ---
+
 3133.	[bug]		Change #3114 was incomplete. [RT #24577]
 
-3132.	[tuning]	Expanded zone task table from 8 to 17 buckets,
-			added ZONE_TASKS define in zone.c to make it easier
-			to hand-tune this value. [RT #24406]
+3131.   [tuning]        Improve scalability by allocating one zone task
+                        per 100 zones at startup time, rather than using a
+                        fixed-size task table. [RT #24406]
 
 3129.	[bug]		Named could crash on 'rndc reconfig' when
 			allow-new-zones was set to yes and named ACLs

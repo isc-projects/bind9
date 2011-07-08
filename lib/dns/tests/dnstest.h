@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnstest.h,v 1.2.2.2 2011/02/26 02:36:46 each Exp $ */
+/* $Id: dnstest.h,v 1.2.2.3 2011/07/08 22:57:25 smann Exp $ */
 
 /*! \file */
 
@@ -42,9 +42,14 @@
 extern isc_mem_t *mctx;
 extern isc_entropy_t *ectx;
 extern isc_log_t *lctx;
+isc_taskmgr_t *taskmgr;
+isc_timermgr_t *timermgr;
+isc_socketmgr_t *socketmgr;
+int ncpus;
+
 
 isc_result_t
-dns_test_begin(FILE *logfile);
+dns_test_begin(FILE *logfile, isc_boolean_t create_managers);
 
 void
 dns_test_end(void);
