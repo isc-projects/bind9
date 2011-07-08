@@ -613,9 +613,11 @@
 ./bin/tests/system/autosign/ns2/private.secure.example.db.in	ZONE	2009
 ./bin/tests/system/autosign/ns3/.cvsignore	X	2009
 ./bin/tests/system/autosign/ns3/delay.example.db	ZONE	2011
+./bin/tests/system/autosign/ns3/inaczsk.example.db.in	ZONE	2011
 ./bin/tests/system/autosign/ns3/insecure.example.db	ZONE	2009
 ./bin/tests/system/autosign/ns3/keygen.sh	SH	2009,2010,2011
 ./bin/tests/system/autosign/ns3/named.conf	CONF-C	2009,2010,2011
+./bin/tests/system/autosign/ns3/nozsk.example.db.in	ZONE	2011
 ./bin/tests/system/autosign/ns3/nsec.example.db.in	ZONE	2010
 ./bin/tests/system/autosign/ns3/nsec3-to-nsec.example.db.in	ZONE	2010
 ./bin/tests/system/autosign/ns3/nsec3.example.db.in	ZONE	2009
@@ -2173,7 +2175,7 @@
 ./lib/dns/include/dns/version.h			C	2001,2004,2005,2006,2007
 ./lib/dns/include/dns/view.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
 ./lib/dns/include/dns/xfrin.h			C	1999,2000,2001,2003,2004,2005,2006,2007,2009
-./lib/dns/include/dns/zone.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
+./lib/dns/include/dns/zone.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
 ./lib/dns/include/dns/zonekey.h			C	2001,2004,2005,2006,2007
 ./lib/dns/include/dns/zt.h			C	1999,2000,2001,2002,2004,2005,2006,2007
 ./lib/dns/include/dst/.cvsignore		X	2000,2001,2004
@@ -2472,7 +2474,7 @@
 ./lib/irs/resconf.c				C	2009,2011
 ./lib/irs/version.c				C	2009
 ./lib/isc/.cvsignore				X	1998,1999,2000,2001
-./lib/isc/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
+./lib/isc/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
 ./lib/isc/alpha/.cvsignore			X	2007
 ./lib/isc/alpha/Makefile.in			MAKE	2007
 ./lib/isc/alpha/include/.cvsignore		X	2007
@@ -2581,7 +2583,7 @@
 ./lib/isc/include/isc/string.h			C	2000,2001,2003,2004,2005,2006,2007
 ./lib/isc/include/isc/symtab.h			C	1996,1997,1998,1999,2000,2001,2004,2005,2006,2007,2009
 ./lib/isc/include/isc/task.h			C	1998,1999,2000,2001,2003,2004,2005,2006,2007,2009,2010,2011
-./lib/isc/include/isc/taskpool.h		C	1999,2000,2001,2004,2005,2006,2007
+./lib/isc/include/isc/taskpool.h		C	1999,2000,2001,2004,2005,2006,2007,2011
 ./lib/isc/include/isc/timer.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009
 ./lib/isc/include/isc/types.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./lib/isc/include/isc/util.h			C	1998,1999,2000,2001,2004,2005,2006,2007,2010,2011
@@ -2682,7 +2684,7 @@
 ./lib/isc/task.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
 ./lib/isc/task_api.c				C	2009,2010
 ./lib/isc/task_p.h				C	2000,2001,2004,2005,2007,2009
-./lib/isc/taskpool.c				C	1999,2000,2001,2004,2005,2007
+./lib/isc/taskpool.c				C	1999,2000,2001,2004,2005,2007,2011
 ./lib/isc/timer.c				C	1998,1999,2000,2001,2002,2004,2005,2007,2008,2009,2011
 ./lib/isc/timer_api.c				C	2009
 ./lib/isc/timer_p.h				C	2000,2001,2004,2005,2007,2009
