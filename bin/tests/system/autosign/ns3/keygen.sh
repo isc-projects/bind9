@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: keygen.sh,v 1.8.18.2 2011/03/26 23:47:13 tbox Exp $
+# $Id: keygen.sh,v 1.8.18.3 2011/07/08 01:45:58 each Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -215,3 +215,27 @@ ksk=`$KEYGEN -G -q -3 -r $RANDFILE -fk $zone`
 echo $ksk > ../delayksk.key
 zsk=`$KEYGEN -G -q -3 -r $RANDFILE $zone`
 echo $zsk > ../delayzsk.key
+
+#
+# A zone with signatures that are already expired, and the private ZSK
+# is missing.
+#
+zone=nozsk.example
+zonefile="${zone}.db"
+$KEYGEN -q -3 -r $RANDFILE -fk $zone > /dev/null
+zsk=`$KEYGEN -q -3 -r $RANDFILE $zone`
+$SIGNER -S -P -s now-1mo -e now-1mi -o $zone -f $zonefile ${zonefile}.in > /dev/null 2>&1
+echo $zsk > ../missingzsk.key
+rm -f ${zsk}.private
+
+#
+# A zone with signatures that are already expired, and the private ZSK
+# is inactive.
+#
+zone=inaczsk.example
+zonefile="${zone}.db"
+$KEYGEN -q -3 -r $RANDFILE -fk $zone > /dev/null
+zsk=`$KEYGEN -q -3 -r $RANDFILE $zone`
+$SIGNER -S -P -s now-1mo -e now-1mi -o $zone -f $zonefile ${zonefile}.in > /dev/null 2>&1
+echo $zsk > ../inactivezsk.key
+$SETTIME -I now $zsk > /dev/null

@@ -1,3 +1,5 @@
+3133.	[bug]		Change #3114 was incomplete. [RT #24577]
+
 3132.	[tuning]	Expanded zone task table from 8 to 17 buckets,
 			added ZONE_TASKS define in zone.c to make it easier
 			to hand-tune this value. [RT #24406]
