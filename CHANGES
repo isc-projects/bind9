@@ -1,3 +1,5 @@
+3133.	[bug]		Change #3114 was incomplete. [RT #24577]
+
 3132.	[placeholder]
 
 3131.	[func]		Improve scalability by allocating one zone task

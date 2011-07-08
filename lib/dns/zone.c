@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.617 2011/07/06 01:36:31 each Exp $ */
+/* $Id: zone.c,v 1.618 2011/07/08 01:43:26 each Exp $ */
 
 /*! \file */
 
@@ -4722,21 +4722,30 @@ static isc_boolean_t
 delsig_ok(dns_rdata_rrsig_t *rrsig_ptr, dst_key_t **keys, unsigned int nkeys) {
 	unsigned int i = 0;
 
+	/*
+	 * It's okay to delete a signature if there is an active ZSK
+	 * with the same algorithm
+	 */
 	for (i = 0; i < nkeys; i++) {
-		if ((rrsig_ptr->algorithm == dst_key_alg(keys[i])) &&
-		    (rrsig_ptr->keyid != dst_key_id(keys[i]))) {
-			if ((dst_key_isprivate(keys[i])) && !KSK(keys[i])) {
-				/*
-				 * Success - found a private key, which
-				 * means it is an active key and thus, it
-				 * is OK to delete the RRSIG
-				 */
-				return (ISC_TRUE);
-			}
-		}
+		if (rrsig_ptr->algorithm == dst_key_alg(keys[i]) &&
+		    (dst_key_isprivate(keys[i])) && !KSK(keys[i]))
+			return (ISC_TRUE);
 	}
 
-	return (ISC_FALSE);
+	/*
+	 * Failing that, it is *not* okay to delete a signature
+	 * if the associated public key is still in the DNSKEY RRset
+	 */
+	for (i = 0; i < nkeys; i++) {
+		if ((rrsig_ptr->algorithm == dst_key_alg(keys[i])) &&
+		    (rrsig_ptr->keyid == dst_key_id(keys[i])))
+			return (ISC_FALSE);
+	}
+
+	/*
+	 * But if the key is gone, then go ahead.
+	 */
+	return (ISC_TRUE);
 }
 
 /*
@@ -4754,7 +4763,7 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	unsigned int i;
 	dns_rdata_rrsig_t rrsig;
-	isc_boolean_t found;
+	isc_boolean_t found, changed;
 	isc_stdtime_t warn = 0, maybe = 0;
 
 	dns_rdataset_init(&rdataset);
@@ -4780,6 +4789,7 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		goto failure;
 	}
 
+	changed = ISC_FALSE;
 	for (result = dns_rdataset_first(&rdataset);
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(&rdataset)) {
@@ -4788,54 +4798,57 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		if (type != dns_rdatatype_dnskey) {
-			if(delsig_ok(&rrsig, keys, nkeys)) {
+			if (delsig_ok(&rrsig, keys, nkeys)) {
 				result = update_one_rr(db, ver, diff,
 					       DNS_DIFFOP_DELRESIGN, name,
 					       rdataset.ttl, &rdata);
 				if (incremental)
-					dns_db_resigned(db, &rdataset, ver);
+					changed = ISC_TRUE;
 				dns_rdata_reset(&rdata);
 				if (result != ISC_R_SUCCESS)
 					break;
-				continue;
 			} else {
 				/*
 				 * At this point, we've got an RRSIG,
 				 * which is signed by an inactive key.
 				 * An administrator needs to provide a new
 				 * key/alg, but until that time, we want to
-				 * keep the old RRSIG.  Resetting the timer
-				 * here will ensure that we don't
-				 * constantly recheck this expired record.
-				 *
-				 * Note: dns_db_setsigningtime() will
-				 * assert if called after dns_db_resigned().
+				 * keep the old RRSIG.  Marking the key as
+				 * offline will prevent us spinning waiting
+				 * for the private part.
 				 */
 				if (incremental) {
-					isc_stdtime_t recheck = now +
-						RESIGN_DELAY;
-					dns_db_setsigningtime(db, &rdataset,
-							      recheck);
+					result = offline(db, ver, diff, name,
+							 rdataset.ttl, &rdata);
+					changed = ISC_TRUE;
+					if (result != ISC_R_SUCCESS)
+						break;
 				}
 
 				/*
-				 * log the key id and algorithm of
+				 * Log the key id and algorithm of
 				 * the inactive key with no replacement
 				 */
-				if((isc_log_getdebuglevel(dns_lctx) > 3) ||
-				   (zone->log_key_expired_timer <= now)) {
+				if (zone->log_key_expired_timer <= now) {
+					char origin[DNS_NAME_FORMATSIZE];
+					char algbuf[DNS_NAME_FORMATSIZE];
+					dns_name_format(&zone->origin, origin,
+							sizeof(origin));
+					dns_secalg_format(rrsig.algorithm,
+							  algbuf,
+							  sizeof(algbuf));
 					dns_zone_log(zone, ISC_LOG_WARNING,
-						     "del_sigs(): "
-						     "keyid: %u/algorithm: %u "
-						     "is not active and there "
-						     "is no replacement. "
-						     "Not deleting.",
-						     rrsig.keyid,
-						     rrsig.algorithm);
+						     "Key %s/%s/%d "
+						     "missing or inactive "
+						     "and has no replacement: "
+						     "retaining signatures.",
+						     origin, algbuf, 
+						     rrsig.keyid);
 					zone->log_key_expired_timer = now +
 									3600;
 				}
 			}
+			continue;
 		}
 
 		/*
@@ -4878,6 +4891,7 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 				break;
 			}
 		}
+
 		/*
 		 * If there is not a matching DNSKEY then
 		 * delete the RRSIG.
@@ -4890,6 +4904,10 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		if (result != ISC_R_SUCCESS)
 			break;
 	}
+
+	if (changed && (rdataset.attributes & DNS_RDATASETATTR_RESIGN) != 0)
+		dns_db_resigned(db, &rdataset, ver);
+
 	dns_rdataset_disassociate(&rdataset);
 	if (result == ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;
@@ -5135,6 +5153,13 @@ zone_resigninc(dns_zone_t *zone) {
 		goto failure;
 	}
 
+	/*
+	 * Did we change anything in the zone?
+	 */
+	if (ISC_LIST_EMPTY(sig_diff.tuples))
+		goto failure;
+
+	/* Increment SOA serial if we have made changes */
 	result = update_soa_serial(db, version, &sig_diff, zone->mctx,
 				   zone->updatemethod);
 	if (result != ISC_R_SUCCESS) {

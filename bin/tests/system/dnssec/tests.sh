@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.91 2011/05/26 04:25:47 each Exp $
+# $Id: tests.sh,v 1.92 2011/07/08 01:43:26 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -1017,9 +1017,9 @@ ret=0
 zone=example
 key1=`$KEYGEN -K signer -q -r $RANDFILE -f KSK -a RSASHA1 -b 1024 -n zone $zone`
 key2=`$KEYGEN -K signer -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
-keyid2=`echo $key2 | sed 's/^Kexample.+005+0*//'`
+keyid2=`echo $key2 | sed 's/^Kexample.+005+0*\([0-9]\)/\1/'`
 key3=`$KEYGEN -K signer -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
-keyid3=`echo $key3 | sed 's/^Kexample.+005+0*//'`
+keyid3=`echo $key3 | sed 's/^Kexample.+005+0*\([0-9]\)/\1/'`
 (
 cd signer
 cat example.db.in $key1.key $key2.key > example.db
