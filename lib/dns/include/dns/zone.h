@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.182.16.1 2011/07/08 22:57:25 smann Exp $ */
+/* $Id: zone.h,v 1.182.16.2 2011/07/08 23:47:16 tbox Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
