@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.1.4.7 2011/05/06 23:46:35 tbox Exp $
+# $Id: tests.sh,v 1.1.4.8 2011/07/08 01:46:42 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -72,19 +72,19 @@ pksk=`$KEYGEN -q -r $RANDFILE -fk $pzone`
 echo I:signing parent zone
 pzoneout=`$SIGNER -Sg -r $RANDFILE -o $pzone $pfile 2>&1`
 
-czactive=`echo $czsk1 | sed 's/^K.*+005+0*//'`
-czgenerated=`echo $czsk2 | sed 's/^K.*+005+0*//'`
-czpublished=`echo $czsk3 | sed 's/^K.*+005+0*//'`
-czinactive=`echo $czsk4 | sed 's/^K.*+005+0*//'`
-czpredecessor=`echo $czsk5 | sed 's/^K.*+005+0*//'`
-czsuccessor=`echo $czsk6 | sed 's/^K.*+005+0*//'`
-ckactive=`echo $cksk1 | sed 's/^K.*+005+0*//'`
-ckpublished=`echo $cksk2 | sed 's/^K.*+005+0*//'`
-ckprerevoke=`echo $cksk3 | sed 's/^K.*+005+0*//'`
+czactive=`echo $czsk1 | sed 's/^K.*+005+0*\([0-9]\)/\1/'`
+czgenerated=`echo $czsk2 | sed 's/^K.*+005+0*\([0-9]\)/\1/'`
+czpublished=`echo $czsk3 | sed 's/^K.*+005+0*\([0-9]\)/\1/'`
+czinactive=`echo $czsk4 | sed 's/^K.*+005+0*\([0-9]\)/\1/'`
+czpredecessor=`echo $czsk5 | sed 's/^K.*+005+0*\([0-9]\)/\1/'`
+czsuccessor=`echo $czsk6 | sed 's/^K.*+005+0*\([0-9]\)/\1/'`
+ckactive=`echo $cksk1 | sed 's/^K.*+005+0*\([0-9]\)/\1/'`
+ckpublished=`echo $cksk2 | sed 's/^K.*+005+0*\([0-9]\)/\1/'`
+ckprerevoke=`echo $cksk3 | sed 's/^K.*+005+0*\([0-9]\)/\1/'`
 ckrevoked=`echo $cksk4 | sed 's/.*+005+0*\([0-9]*\)/\1/'`
 
-pzid=`echo $pzsk | sed 's/^K.*+005+0*//'`
-pkid=`echo $pksk | sed 's/^K.*+005+0*//'`
+pzid=`echo $pzsk | sed 's/^K.*+005+0*\([0-9]\)/\1/'`
+pkid=`echo $pksk | sed 's/^K.*+005+0*\([0-9]\)/\1/'`
 
 echo "I:checking dnssec-signzone output matches expectations"
 ret=0
