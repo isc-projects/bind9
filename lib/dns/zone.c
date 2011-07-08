@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.618 2011/07/08 01:43:26 each Exp $ */
+/* $Id: zone.c,v 1.619 2011/07/08 23:47:54 tbox Exp $ */
 
 /*! \file */
 
@@ -4842,7 +4842,7 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 						     "missing or inactive "
 						     "and has no replacement: "
 						     "retaining signatures.",
-						     origin, algbuf, 
+						     origin, algbuf,
 						     rrsig.keyid);
 					zone->log_key_expired_timer = now +
 									3600;
