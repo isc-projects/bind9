@@ -5,7 +5,6 @@ EXPORTS
 
 cfg_acl_fromconfig
 cfg_aclconfctx_attach
-cfg_aclconfctx_clear
 cfg_aclconfctx_create
 cfg_aclconfctx_detach
 cfg_list_first
