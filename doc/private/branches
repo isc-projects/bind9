@@ -489,6 +489,8 @@ rt24950				new	marka	// 2011-06-27 22:53 +0000
 rt24985				new	vjs	// 2011-06-30 03:36 +0000
 rt24990				new	each	// 2011-07-06 20:35 +0000
 rt25067				new	ckb	// 2011-07-07 18:11 +0000
+rt25084-v9_6			new	mgraff	// 2011-07-13 14:40 +0000
+rt25084-v9_7			new	mgraff	// 2011-07-13 14:35 +0000
 shane_dbbackend			open	
 skan				open	explorer
 skan-metazones1			private	explorer
