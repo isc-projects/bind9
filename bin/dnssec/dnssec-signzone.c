@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.278 2011/07/19 04:09:27 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.279 2011/07/19 23:47:48 tbox Exp $ */
 
 /*! \file */
 
@@ -3410,8 +3410,8 @@ print_stats(isc_time_t *timer_start, isc_time_t *timer_finish,
 
 	time_us = isc_time_microdiff(sign_finish, sign_start);
 	time_ms = time_us / 1000;
-	printf("Signing time in seconds:           %7u.%03u\n", 
-	       (unsigned int) (time_ms / 1000), 
+	printf("Signing time in seconds:           %7u.%03u\n",
+	       (unsigned int) (time_ms / 1000),
 	       (unsigned int) (time_ms % 1000));
 	if (time_us > 0) {
 		sig_ms = ((isc_uint64_t)nsigned * 1000000000) / time_us;
@@ -3422,8 +3422,8 @@ print_stats(isc_time_t *timer_start, isc_time_t *timer_finish,
 
 	time_us = isc_time_microdiff(timer_finish, timer_start);
 	time_ms = time_us / 1000;
-	printf("Runtime in seconds:                %7u.%03u\n", 
-	       (unsigned int) (time_ms / 1000), 
+	printf("Runtime in seconds:                %7u.%03u\n",
+	       (unsigned int) (time_ms / 1000),
 	       (unsigned int) (time_ms % 1000));
 }
 
