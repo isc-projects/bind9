@@ -1,3 +1,6 @@
+3134.	[bug]		Improve the accuracy of dnssec-signzone's signing
+			statistics. [RT #16030]
+
 	--- 9.8.1b3 released ---
 
 3133.	[bug]		Change #3114 was incomplete. [RT #24577]
