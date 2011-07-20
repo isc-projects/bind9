@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.483.36.29 2011/03/21 01:17:14 marka Exp $ */
+/* $Id: zone.c,v 1.483.36.30 2011/07/20 00:33:35 ckb Exp $ */
 
 /*! \file */
 
@@ -10476,6 +10476,28 @@ dns_zone_first(dns_zonemgr_t *zmgr, dns_zone_t **first) {
 		return (ISC_R_SUCCESS);
 }
 
+/*
+ * Size of the zone task table.  For best results, this should be a
+ * prime number, approximately 1% of the maximum number of authoritative
+ * zones expected to be served by this server.
+ */
+#define DEFAULT_ZONE_TASKS 101
+static int
+calculate_zone_tasks(void) {
+        int ntasks = DEFAULT_ZONE_TASKS;
+
+#ifdef HAVE_GETENV
+        char *env = getenv("BIND9_ZONE_TASKS_HINT");
+        if (env != NULL)
+                ntasks = atoi(env);
+        
+        if (ntasks < DEFAULT_ZONE_TASKS)
+                ntasks = DEFAULT_ZONE_TASKS;
+#endif
+        
+        return (ntasks);
+}
+
 /***
  ***	Zone manager.
  ***/
@@ -10488,6 +10510,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	dns_zonemgr_t *zmgr;
 	isc_result_t result;
 	isc_interval_t interval;
+        int zone_tasks = calculate_zone_tasks();
 
 	zmgr = isc_mem_get(mctx, sizeof(*zmgr));
 	if (zmgr == NULL)
@@ -10513,10 +10536,13 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	zmgr->transfersperns = 2;
 
 	/* Create the zone task pool. */
-	result = isc_taskpool_create(taskmgr, mctx,
-				     8 /* XXX */, 2, &zmgr->zonetasks);
+	result = isc_taskpool_create(taskmgr, mctx, zone_tasks, 2,
+				     &zmgr->zonetasks);
 	if (result != ISC_R_SUCCESS)
 		goto free_rwlock;
+	
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_ZONE,
+		ISC_LOG_NOTICE, "Using %d tasks for zone loading", zone_tasks);
 
 	/* Create a single task for queueing of SOA queries. */
 	result = isc_task_create(taskmgr, 1, &zmgr->task);
