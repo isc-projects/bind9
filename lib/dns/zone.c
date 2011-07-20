@@ -15,13 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.620 2011/07/20 14:28:24 ckb Exp $ */
+/* $Id: zone.c,v 1.621 2011/07/20 16:28:28 ckb Exp $ */
 
 /*! \file */
 
 #include <config.h>
 #include <errno.h>
-#include <stdlib.h>
 
 #include <isc/file.h>
 #include <isc/mutex.h>
