@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.61 2011/07/19 23:57:14 ckb Exp $ */
+/* $Id: zone.c,v 1.540.2.62 2011/07/20 23:46:50 tbox Exp $ */
 
 /*! \file */
 
@@ -12430,18 +12430,18 @@ dns_zone_first(dns_zonemgr_t *zmgr, dns_zone_t **first) {
 #define DEFAULT_ZONE_TASKS 101
 static int
 calculate_zone_tasks(void) {
-        int ntasks = DEFAULT_ZONE_TASKS;
+	int ntasks = DEFAULT_ZONE_TASKS;
 
 #ifdef HAVE_GETENV
-        char *env = getenv("BIND9_ZONE_TASKS_HINT");
-        if (env != NULL)
-                ntasks = atoi(env);
-        
-        if (ntasks < DEFAULT_ZONE_TASKS)
-                ntasks = DEFAULT_ZONE_TASKS;
+	char *env = getenv("BIND9_ZONE_TASKS_HINT");
+	if (env != NULL)
+		ntasks = atoi(env);
+
+	if (ntasks < DEFAULT_ZONE_TASKS)
+		ntasks = DEFAULT_ZONE_TASKS;
 #endif
-        
-        return (ntasks);
+
+	return (ntasks);
 }
 
 /***
@@ -12456,7 +12456,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	dns_zonemgr_t *zmgr;
 	isc_result_t result;
 	isc_interval_t interval;
-        int zone_tasks = calculate_zone_tasks();
+	int zone_tasks = calculate_zone_tasks();
 
 	zmgr = isc_mem_get(mctx, sizeof(*zmgr));
 	if (zmgr == NULL)
@@ -12486,7 +12486,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 				     &zmgr->zonetasks);
 	if (result != ISC_R_SUCCESS)
 		goto free_rwlock;
-	
+
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_ZONE,
 		ISC_LOG_NOTICE, "Using %d tasks for zone loading", zone_tasks);
 
