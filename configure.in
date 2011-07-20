@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.489.22.21 $)
+AC_REVISION($Revision: 1.489.22.22 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -289,6 +289,11 @@ AC_C_FLEXIBLE_ARRAY_MEMBER
 #
 AC_CHECK_FUNCS(seteuid setresuid)
 AC_CHECK_FUNCS(setegid setresgid)
+
+#
+# Check for getenv()
+#
+AC_CHECK_FUNCS(getenv)
 
 #
 # UnixWare 7.1.1 with the feature supplement to the UDK compiler

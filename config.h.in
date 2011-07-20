@@ -16,7 +16,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.122.32.16 2011/02/27 06:25:03 marka Exp $ */
+/* $Id: config.h.in,v 1.122.32.17 2011/07/20 00:00:23 ckb Exp $ */
 
 /*! \file */
 
@@ -193,6 +193,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 
+/* Define to 1 if you have the `getenv' function. */
+#undef HAVE_GETENV
+
 /* Define to 1 if you have the <gssapi/gssapi.h> header file. */
 #undef HAVE_GSSAPI_GSSAPI_H
 
@@ -365,6 +368,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Sets which flag to pass to open/fcntl to make non-blocking
    (O_NDELAY/O_NONBLOCK). */
 #undef PORT_NONBLOCK
+
+/* The size of `void *', as computed by sizeof. */
+#undef SIZEOF_VOID_P
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
