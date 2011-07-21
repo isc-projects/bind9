@@ -1,3 +1,7 @@
+3135.	[port]		FreeBSD: workaround broken IPV6_USE_MIN_MTU processing.
+			See http://www.freebsd.org/cgi/query-pr.cgi?pr=158307
+			[RT #24950]
+
 3134.	[bug]		Improve the accuracy of dnssec-signzone's signing
 			statistics. [RT #16030]
 
