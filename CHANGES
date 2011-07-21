@@ -4,16 +4,19 @@
 
 3133.	[bug]		Change #3114 was incomplete. [RT #24577]
 
-3132.	[bug]		Workaround for excessive startup time with 
-			large number of zones;
- 			allow setting of an environment variable to tune 
- 			the number of tasks. default is 8, reccommend 
- 			200 zones per task. If you have 200000 zones:
- 			csh: setenv BIND9_ZONE_TASKS_HINT 1000
- 			sh:  BIND9_ZONE_TASKS_HINT=1000;
- 			     export BIND9_ZONE_TASKS_HINT
- 			Applicable to 9.7, 9.6, auto-tuned in 9.8 and up.
- 			 [RT #25084]
+3132.	[bug]		Workaround for excessive startup time with large
+			number of zones; allow setting of an environment
+			variable to tune the number of tasks, default is 8,
+			recommends 200 zones per task.  If you have 200000
+			zones set the BIND9_ZONE_TASKS_HINT environment
+			variable to 1000 before starting named:
+
+			csh: setenv BIND9_ZONE_TASKS_HINT 1000
+			sh:  BIND9_ZONE_TASKS_HINT=1000;
+			     export BIND9_ZONE_TASKS_HINT
+
+			Applicable to 9.7, 9.6, auto-tuned in 9.8 and up.
+			[RT #25084]
 
 	--- 9.7.4rc1 released ---
 
