@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.308.12.21 2011/07/21 01:48:05 marka Exp $ */
+/* $Id: socket.c,v 1.308.12.22 2011/07/21 23:46:12 tbox Exp $ */
 
 /*! \file */
 
@@ -1230,7 +1230,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 #if defined(IPV6_USE_MIN_MTU)
 		/*
 		 * Set IPV6_USE_MIN_MTU as a per packet option as FreeBSD
-		 * ignores setsockopt(IPV6_USE_MIN_MTU) when IPV6_PKTINFO 
+		 * ignores setsockopt(IPV6_USE_MIN_MTU) when IPV6_PKTINFO
 		 * is used.
 		 */
 		cmsgp = (struct cmsghdr *)(sock->sendcmsgbuf +
