@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.621 2011/07/20 16:28:28 ckb Exp $ */
+/* $Id: zone.c,v 1.622 2011/07/21 06:26:09 marka Exp $ */
 
 /*! \file */
 
@@ -9662,7 +9662,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 					goto tcp_transfer;
 				}
 				dns_zone_log(zone, ISC_LOG_DEBUG(1),
-					     "refresh: skipped tcp fallback"
+					     "refresh: skipped tcp fallback "
 					     "as master %s (source %s) is "
 					     "unreachable (cached)",
 					      master, source);
