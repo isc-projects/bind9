@@ -61,6 +61,9 @@
 			following a CNAME that points into the same zone.
 			[RT #24455]
 
+3114.	[bug]		Retain expired RRSIGs in dynamic zones if key is
+			inactive and there is no replacement key. [RT #23136]
+
 3113.	[doc]		Document the relationship between serial-query-rate
 			and NOTIFY messages.
 
@@ -690,7 +693,7 @@
 2927.	[placeholder]
 
 2926.	[placeholder]
-h
+
 2925.	[bug]		Named failed to accept uncachable negative responses
 			from insecure zones. [RT# 21555]
 
