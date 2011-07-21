@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.237.18.71 2011/07/21 01:55:56 marka Exp $ */
+/* $Id: socket.c,v 1.237.18.72 2011/07/21 23:45:14 tbox Exp $ */
 
 /*! \file */
 
@@ -1112,7 +1112,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 #if defined(IPV6_USE_MIN_MTU)
 		/*
 		 * Set IPV6_USE_MIN_MTU as a per packet option as FreeBSD
-		 * ignores setsockopt(IPV6_USE_MIN_MTU) when IPV6_PKTINFO 
+		 * ignores setsockopt(IPV6_USE_MIN_MTU) when IPV6_PKTINFO
 		 * is used.
 		 */
 		cmsgp = (struct cmsghdr *)(sock->sendcmsgbuf +
