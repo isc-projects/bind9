@@ -4,6 +4,10 @@
 			See http://www.freebsd.org/cgi/query-pr.cgi?pr=158307
 			[RT #24950]
 
+3023.	[bug]		Named could be left in an inconsistent state when
+			receiving multiple AXFR response messages that were
+			not all TSIG-signed. [RT #23254]
+
 	--- 9.4-ESV-R5rc1 released ---
 
 3124.	[bug]		Use an rdataset attribute flag to indicate
