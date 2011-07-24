@@ -227,6 +227,11 @@ void	dki_tfree (dki_t **tree)
 }
 #endif
 
+#if defined(BIND_VERSION) && BIND_VERSION >= 970
+# define	KEYGEN_COMPMODE	"-C -q "	/* this is the compability mode needed by BIND 9.7 */
+#else
+# define	KEYGEN_COMPMODE	""
+#endif
 /*****************************************************************
 **	dki_new ()
 **	create new keyfile
@@ -250,15 +255,15 @@ dki_t	*dki_new (const char *dir, const char *name, int ksk, int algo, int bitsiz
 	if ( rfile && *rfile )
 		snprintf (randfile, sizeof (randfile), "-r %.250s ", rfile);
 		
-	if ( algo == DK_ALGO_RSA || algo == DK_ALGO_RSASHA1 )
+	if ( algo == DK_ALGO_RSA || algo == DK_ALGO_RSASHA1 || algo == DK_ALGO_RSASHA256 || algo == DK_ALGO_RSASHA512 )
 		expflag = "-e ";
 
 	if ( dir && *dir )
-		snprintf (cmdline, sizeof (cmdline), "cd %s ; %s %s%s-n ZONE -a %s -b %d %s %s",
-			dir, KEYGENCMD, randfile, expflag, dki_algo2str(algo), bitsize, flag, name);
+		snprintf (cmdline, sizeof (cmdline), "cd %s ; %s %s%s%s-n ZONE -a %s -b %d %s %s",
+			dir, KEYGENCMD, KEYGEN_COMPMODE, randfile, expflag, dki_algo2str(algo), bitsize, flag, name);
 	else
-		snprintf (cmdline, sizeof (cmdline), "%s %s%s-n ZONE -a %s -b %d %s %s",
-			KEYGENCMD, randfile, expflag, dki_algo2str(algo), bitsize, flag, name);
+		snprintf (cmdline, sizeof (cmdline), "%s %s%s%s-n ZONE -a %s -b %d %s %s",
+			KEYGENCMD, KEYGEN_COMPMODE, randfile, expflag, dki_algo2str(algo), bitsize, flag, name);
 
 	dbg_msg (cmdline);
 
@@ -400,7 +405,7 @@ int	dki_readdir (const char *dir, dki_t **listp, int recursive)
 
 	while ( (dentp = readdir (dirp)) != NULL )
 	{
-		if ( is_dotfile (dentp->d_name) )
+		if ( is_dotfilename (dentp->d_name) )
 			continue;
 
 		dbg_val ("directory: check %s\n", dentp->d_name);
@@ -625,11 +630,36 @@ char	*dki_algo2str (int algo)
 {
 	switch ( algo )
 	{
-	case DK_ALGO_RSA:	return ("RSAMD5");
-	case DK_ALGO_DH:	return ("DH");
-	case DK_ALGO_DSA:	return ("DSA");
-	case DK_ALGO_EC:	return ("EC");
-	case DK_ALGO_RSASHA1:	return ("RSASHA1");
+	case DK_ALGO_RSA:		return ("RSAMD5");
+	case DK_ALGO_DH:		return ("DH");
+	case DK_ALGO_DSA:		return ("DSA");
+	case DK_ALGO_EC:		return ("EC");
+	case DK_ALGO_RSASHA1:		return ("RSASHA1");
+	case DK_ALGO_NSEC3DSA:		return ("NSEC3DSA");
+	case DK_ALGO_NSEC3RSASHA1:	return ("NSEC3RSASHA1");
+	case DK_ALGO_RSASHA256:		return ("RSASHA256");
+	case DK_ALGO_RSASHA512:		return ("RSASHA512");
+	}
+	return ("unknown");
+}
+
+/*****************************************************************
+**	dki_algo2sstr ()
+**	return a short string describing the key algorithm
+*****************************************************************/
+char	*dki_algo2sstr (int algo)
+{
+	switch ( algo )
+	{
+	case DK_ALGO_RSA:		return ("RSAMD5");
+	case DK_ALGO_DH:		return ("DH");
+	case DK_ALGO_DSA:		return ("DSA");
+	case DK_ALGO_EC:		return ("EC");
+	case DK_ALGO_RSASHA1:		return ("RSASHA1");
+	case DK_ALGO_NSEC3DSA:		return ("N3DSA");
+	case DK_ALGO_NSEC3RSASHA1:	return ("N3RSA1");
+	case DK_ALGO_RSASHA256:		return ("RSASHA2");
+	case DK_ALGO_RSASHA512:		return ("RSASHA5");
 	}
 	return ("unknown");
 }
@@ -658,7 +688,6 @@ int	dki_prt_dnskeyttl (const dki_t *dkp, FILE *fp, int ttl)
 {
 	char	*p;
 
-	dki_estr[0] = '\0';
 	if ( dkp == NULL )
 		return 0;
 
@@ -690,7 +719,6 @@ int	dki_prt_dnskey_raw (const dki_t *dkp, FILE *fp)
 {
 	int	days;
 
-	dki_estr[0] = '\0';
 	if ( dkp == NULL )
 		return 0;
 
@@ -720,7 +748,6 @@ int	dki_prt_comment (const dki_t *dkp, FILE *fp)
 {
 	int	len = 0;
 
-	dki_estr[0] = '\0';
 	if ( dkp == NULL )
 		return len;
 	len += fprintf (fp, "; %s  ", dkp->name);
@@ -740,7 +767,6 @@ int	dki_prt_trustedkey (const dki_t *dkp, FILE *fp)
 	int	spaces;
 	int	len = 0;
 
-	dki_estr[0] = '\0';
 	if ( dkp == NULL )
 		return len;
 	len += fprintf (fp, "\"%s\"  ", dkp->name);
@@ -771,7 +797,6 @@ int	dki_cmp (const dki_t *a, const dki_t *b)
 {
 	int	res;
 
-	dki_estr[0] = '\0';
 	if ( a == NULL ) return -1;
 	if ( b == NULL ) return 1;
 
@@ -795,7 +820,6 @@ int	dki_allcmp (const dki_t *a, const dki_t *b)
 {
 	int	res;
 
-	dki_estr[0] = '\0';
 	if ( a == NULL ) return -1;
 	if ( b == NULL ) return 1;
 
@@ -821,18 +845,28 @@ int	dki_allcmp (const dki_t *a, const dki_t *b)
 *****************************************************************/
 int	dki_namecmp (const dki_t *a, const dki_t *b)
 {
-	dki_estr[0] = '\0';
 	if ( a == NULL ) return -1;
 	if ( b == NULL ) return 1;
 
 	return domaincmp (a->name, b->name);
 }
+
+/*****************************************************************
+**	dki_revnamecmp () 	return <0 | 0 | >0
+*****************************************************************/
+int	dki_revnamecmp (const dki_t *a, const dki_t *b)
+{
+	if ( a == NULL ) return -1;
+	if ( b == NULL ) return 1;
+
+	return domaincmp_dir (a->name, b->name, 0);
+}
+
 /*****************************************************************
 **	dki_tagcmp () 	return <0 | 0 | >0
 *****************************************************************/
 int	dki_tagcmp (const dki_t *a, const dki_t *b)
 {
-	dki_estr[0] = '\0';
 	if ( a == NULL ) return -1;
 	if ( b == NULL ) return 1;
 
@@ -845,7 +879,6 @@ int	dki_tagcmp (const dki_t *a, const dki_t *b)
 *****************************************************************/
 int	dki_timecmp (const dki_t *a, const dki_t *b)
 {
-	dki_estr[0] = '\0';
 	if ( a == NULL ) return -1;
 	if ( b == NULL ) return 1;
 
@@ -853,11 +886,19 @@ int	dki_timecmp (const dki_t *a, const dki_t *b)
 }
 
 /*****************************************************************
+**	dki_algo ()	return the algorithm of the key
+*****************************************************************/
+time_t	dki_algo (const dki_t *dkp)
+{
+	assert (dkp != NULL);
+	return (dkp->algo);
+}
+
+/*****************************************************************
 **	dki_time ()	return the timestamp of the key
 *****************************************************************/
 time_t	dki_time (const dki_t *dkp)
 {
-	dki_estr[0] = '\0';
 	assert (dkp != NULL);
 	return (dkp->time);
 }
@@ -867,7 +908,6 @@ time_t	dki_time (const dki_t *dkp)
 *****************************************************************/
 time_t	dki_exptime (const dki_t *dkp)
 {
-	dki_estr[0] = '\0';
 	assert (dkp != NULL);
 	return (dkp->exptime);
 }
@@ -877,7 +917,6 @@ time_t	dki_exptime (const dki_t *dkp)
 *****************************************************************/
 time_t	dki_lifetime (const dki_t *dkp)
 {
-	dki_estr[0] = '\0';
 	assert (dkp != NULL);
 	return (dkp->lifetime);
 }
@@ -887,7 +926,6 @@ time_t	dki_lifetime (const dki_t *dkp)
 *****************************************************************/
 ushort	dki_lifetimedays (const dki_t *dkp)
 {
-	dki_estr[0] = '\0';
 	assert (dkp != NULL);
 	return (dkp->lifetime / DAYSEC);
 }
@@ -897,7 +935,6 @@ ushort	dki_lifetimedays (const dki_t *dkp)
 *****************************************************************/
 time_t	dki_gentime (const dki_t *dkp)
 {
-	dki_estr[0] = '\0';
 	assert (dkp != NULL);
 	return (dkp->gentime > 0L ? dkp->gentime: dkp->time);
 }
@@ -912,7 +949,6 @@ ushort	dki_setlifetime (dki_t *dkp, int days)
 	ulong	lifetsec;
 	char	path[MAX_PATHSIZE+1];
 
-	dki_estr[0] = '\0';
 	assert (dkp != NULL);
 
 	lifetsec = dkp->lifetime;		/* old lifetime */
@@ -938,7 +974,6 @@ time_t	dki_setexptime (dki_t *dkp, time_t sec)
 	char	path[MAX_PATHSIZE+1];
 	time_t	oldexptime;
 
-	dki_estr[0] = '\0';
 	assert (dkp != NULL);
 
 	dbg_val1 ("dki_setexptime (%ld)\n", sec);
@@ -959,7 +994,6 @@ time_t	dki_setexptime (dki_t *dkp, time_t sec)
 *****************************************************************/
 int	dki_age (const dki_t *dkp, time_t curr)
 {
-	dki_estr[0] = '\0';
 	assert (dkp != NULL);
 	return ((ulong)curr - (ulong)dkp->time);
 }
@@ -969,7 +1003,6 @@ int	dki_age (const dki_t *dkp, time_t curr)
 *****************************************************************/
 dk_flag_t	dki_getflag (const dki_t *dkp, time_t curr)
 {
-	dki_estr[0] = '\0';
 	return dkp->flags;
 }
 
@@ -978,7 +1011,6 @@ dk_flag_t	dki_getflag (const dki_t *dkp, time_t curr)
 *****************************************************************/
 dk_flag_t	dki_setflag (dki_t *dkp, dk_flag_t flag)
 {
-	dki_estr[0] = '\0';
 	return dkp->flags |= (ushort)flag;
 }
 
@@ -987,7 +1019,6 @@ dk_flag_t	dki_setflag (dki_t *dkp, dk_flag_t flag)
 *****************************************************************/
 dk_flag_t	dki_unsetflag (dki_t *dkp, dk_flag_t flag)
 {
-	dki_estr[0] = '\0';
 	return dkp->flags &= ~((ushort)flag);
 }
 
@@ -996,7 +1027,6 @@ dk_flag_t	dki_unsetflag (dki_t *dkp, dk_flag_t flag)
 *****************************************************************/
 int	dki_isksk (const dki_t *dkp)
 {
-	dki_estr[0] = '\0';
 	assert (dkp != NULL);
 	return (dkp->flags & DK_FLAG_KSK) == DK_FLAG_KSK;
 }
@@ -1006,7 +1036,6 @@ int	dki_isksk (const dki_t *dkp)
 *****************************************************************/
 int	dki_isrevoked (const dki_t *dkp)
 {
-	dki_estr[0] = '\0';
 	assert (dkp != NULL);
 	return (dkp->flags & DK_FLAG_REVOKE) == DK_FLAG_REVOKE;
 }
@@ -1016,7 +1045,6 @@ int	dki_isrevoked (const dki_t *dkp)
 *****************************************************************/
 int	dki_isdepreciated (const dki_t *dkp)
 {
-	dki_estr[0] = '\0';
 	return dki_status (dkp) == DKI_DEPRECIATED;
 }
 
@@ -1025,7 +1053,6 @@ int	dki_isdepreciated (const dki_t *dkp)
 *****************************************************************/
 int	dki_isactive (const dki_t *dkp)
 {
-	dki_estr[0] = '\0';
 	return dki_status (dkp) == DKI_ACTIVE;
 }
 
@@ -1034,7 +1061,6 @@ int	dki_isactive (const dki_t *dkp)
 *****************************************************************/
 int	dki_ispublished (const dki_t *dkp)
 {
-	dki_estr[0] = '\0';
 	return dki_status (dkp) == DKI_PUBLISHED;
 }
 
@@ -1044,7 +1070,6 @@ int	dki_ispublished (const dki_t *dkp)
 *****************************************************************/
 dk_status_t	dki_status (const dki_t *dkp)
 {
-	dki_estr[0] = '\0';
 	assert (dkp != NULL);
 	return (dkp->status);
 }
@@ -1054,7 +1079,6 @@ dk_status_t	dki_status (const dki_t *dkp)
 *****************************************************************/
 const	char	*dki_statusstr (const dki_t *dkp)
 {
-	dki_estr[0] = '\0';
 	assert (dkp != NULL);
 	switch ( dkp->status )
 	{
@@ -1078,7 +1102,6 @@ dki_t	*dki_add (dki_t **list, dki_t *new)
 	dki_t	*curr;
 	dki_t	*last;
 
-	dki_estr[0] = '\0';
 	if ( list == NULL )
 		return NULL;
 	if ( new == NULL )
@@ -1108,7 +1131,6 @@ const dki_t	*dki_search (const dki_t *list, int tag, const char *name)
 {
 	const dki_t	*curr;
 
-	dki_estr[0] = '\0';
 	curr = list;
 	if ( tag )
 		while ( curr && (tag != curr->tag ||
@@ -1127,12 +1149,14 @@ const dki_t	*dki_search (const dki_t *list, int tag, const char *name)
 /*****************************************************************
 **	dki_tadd ()	add a key to the given tree
 *****************************************************************/
-dki_t	*dki_tadd (dki_t **tree, dki_t *new)
+dki_t	*dki_tadd (dki_t **tree, dki_t *new, int sub_before)
 {
 	dki_t	**p;
 
-	dki_estr[0] = '\0';
-	p = tsearch (new, tree, dki_namecmp);
+	if ( sub_before )
+		p = tsearch (new, tree, dki_namecmp);
+	else
+		p = tsearch (new, tree, dki_revnamecmp);
 	if ( *p == new )
 		dbg_val ("dki_tadd: New entry %s added\n", new->name);
 	else
@@ -1153,7 +1177,6 @@ const dki_t	*dki_tsearch (const dki_t *tree, int tag, const char *name)
 	dki_t	search;
 	dki_t	**p;
 
-	dki_estr[0] = '\0';
 	search.tag = tag;
 	snprintf (search.name, sizeof (search.name), "%s", name);
 	p = tfind (&search, &tree, dki_namecmp);
@@ -1172,10 +1195,30 @@ const dki_t	*dki_find (const dki_t *list, int ksk, int status, int no)
 	const	dki_t	*dkp;
 	const	dki_t	*last;
 
-	dki_estr[0] = '\0';
 	last = NULL;
 	for ( dkp = list; no > 0 && dkp; dkp = dkp->next )
 		if ( dki_isksk (dkp) == ksk && dki_status (dkp) == status )
+		{
+			no--;
+			last = dkp;
+		}
+
+	return last;
+}
+
+/*****************************************************************
+**	dki_findalgo ()	find the n'th ksk or zsk key with given
+**			algorithm and status
+*****************************************************************/
+const dki_t	*dki_findalgo (const dki_t *list, int ksk, int alg, int status, int no)
+{
+	const	dki_t	*dkp;
+	const	dki_t	*last;
+
+	last = NULL;
+	for ( dkp = list; no > 0 && dkp; dkp = dkp->next )
+		if ( dki_isksk (dkp) == ksk && dki_algo (dkp) == alg &&
+						dki_status (dkp) == status )
 		{
 			no--;
 			last = dkp;

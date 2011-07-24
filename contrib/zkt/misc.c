@@ -61,12 +61,10 @@
 
 extern	const	char	*progname;
 
-static	int	inc_soa_serial (FILE *fp, int use_unixtime);
-
 /*****************************************************************
 **	getnameappendix (progname, basename)
 **	return a pointer to the substring in progname subsequent
-**	following basename "-".
+**	following "<basename>-".
 *****************************************************************/
 const	char	*getnameappendix (const char *progname, const char *basename)
 {
@@ -94,7 +92,8 @@ const	char	*getnameappendix (const char *progname, const char *basename)
 
 /*****************************************************************
 **	getdefconfname (view)
-**	returns the default configuration file name
+**	returns a pointer to a dynamic string containing the
+**	default configuration file name
 *****************************************************************/
 const	char	*getdefconfname (const char *view)
 {
@@ -105,13 +104,14 @@ const	char	*getdefconfname (const char *view)
 	
 	if ( (file = getenv ("ZKT_CONFFILE")) == NULL )
 		file = CONFIG_FILE;
+	dbg_val2 ("getdefconfname (%s) file = %s\n", view ? view : "NULL", file);
 
 	if ( view == NULL || *view == '\0' || (p = strrchr (file, '.')) == NULL )
 		return strdup (file);
 
 	size = strlen (file) + strlen (view) + 1 + 1;
 	if ( (buf = malloc (size)) == NULL )
-		return file;
+		return strdup (file);
 
 	dbg_val1 ("0123456789o123456789o123456789\tsize=%d\n", size);
 	dbg_val4 ("%.*s-%s%s\n", p - file, file, view, p);
@@ -120,6 +120,39 @@ const	char	*getdefconfname (const char *view)
 	return buf;	
 }
 
+/*****************************************************************
+**	domain_canonicdup (s)
+**	returns NULL or a pointer to a dynamic string containing the
+**	canonic (all lower case letters and ending with a '.')
+**	domain name
+*****************************************************************/
+char	*domain_canonicdup (const char *s)
+{
+	char	*new;
+	char	*p;
+	int	len;
+	int	add_dot;
+
+	if ( s == NULL )
+		return NULL;
+
+	add_dot = 0;
+	len = strlen (s);
+	if ( len > 0 && s[len-1] != '.' )
+		add_dot = len++;
+
+	if ( (new = p = malloc (len + 1)) == NULL )
+		return NULL;
+
+	while ( *s )
+		*p++ = tolower (*s++);
+	if ( add_dot )
+		*p++ = '.';
+	*p = '\0';
+
+	return new;
+}
+#if 0		/* replaced by domain_canonicdup */
 /*****************************************************************
 **	str_tolowerdup (s)
 *****************************************************************/
@@ -137,6 +170,7 @@ char	*str_tolowerdup (const char *s)
 
 	return new;
 }
+#endif
 
 /*****************************************************************
 **	str_delspace (s)
@@ -147,8 +181,8 @@ char	*str_delspace (char *s)
 	char	*start;
 	char	*p;
 
-	if ( !s )	/* is there a string ? */
-		return s;
+	if ( !s )	/* no string present ? */
+		return NULL;
 
 	start = s;
 	for ( p = s; *p; p++ )
@@ -273,14 +307,18 @@ void	parseurl (char *url, char **proto, char **host, char **port, char **para)
 }
 
 /*****************************************************************
-**	splitpath (path, size, filename)
+**	splitpath (path, pathsize, filename)
+**	if filename is build of "path/file" then copy filename to path
+**	and split of the filename part.
+**	return pointer to filename part in path or NULL if path is too
+**	small to hold "path+filename"
 *****************************************************************/
-const	char	*splitpath (char *path, size_t size, const char *filename)
+const	char	*splitpath (char *path, size_t psize, const char *filename)
 {
 	char 	*p;
 
 	if ( !path )
-		return filename;
+		return NULL;
 
 	*path = '\0';
 	if ( !filename )
@@ -288,11 +326,11 @@ const	char	*splitpath (char *path, size_t size, const char *filename)
 
 	if ( (p = strrchr (filename, '/')) )	/* file arg contains path ? */
 	{
-		if ( strlen (filename) > size )
+		if ( strlen (filename) + 1 > psize )
 			return filename;
 
-		strcpy (path, filename);
-		path[p-filename] = '\0';
+		strcpy (path, filename);	/* copy whole filename to path */
+		path[p-filename] = '\0';	/* split of the file part */
 		filename = ++p;
 	}
 	return filename;
@@ -394,11 +432,11 @@ int	is_keyfilename (const char *name)
 }
 
 /*****************************************************************
-**	is_dotfile (name)
+**	is_dotfilename (name)
 **	Check if the given pathname 'name' looks like "." or "..".
 **	Returns 0 | 1
 *****************************************************************/
-int	is_dotfile (const char *name)
+int	is_dotfilename (const char *name)
 {
 	if ( name && (
 	     (name[0] == '.' && name[1] == '\0') || 
@@ -438,6 +476,8 @@ int	linkfile (const char *fromfile, const char *tofile)
 
 /*****************************************************************
 **	copyfile (fromfile, tofile, dnskeyfile)
+**	copy fromfile into tofile.
+**	Add (optional) the content of dnskeyfile to tofile.
 *****************************************************************/
 int	copyfile (const char *fromfile, const char *tofile, const char *dnskeyfile)
 {
@@ -753,22 +793,23 @@ time_t	timestr2time (const char *timestr)
 	t.tm_mon -= 1;
 	t.tm_isdst = 0;
 
-#if defined(HAS_TIMEGM) && HAS_TIMEGM
+#if defined(HAVE_TIMEGM) && HAVE_TIMEGM
 	sec = timegm (&t);
 #else
 	{
-	time_t ret;
-	char *tz;
+	char	tzstr[31+1];
+	char	*tz;
 
 	tz = getenv("TZ");
-	// setenv("TZ", "", 1);
-	setenv("TZ", "UTC", 1);
+	snprintf (tzstr, sizeof (tzstr), "TZ=%s", "UTC");
+	putenv (tzstr);
 	tzset();
 	sec = mktime(&t);
 	if (tz)
-		setenv("TZ", tz, 1);
+		snprintf (tzstr, sizeof (tzstr), "TZ=%s", tz);
 	else
-		unsetenv("TZ");
+		snprintf (tzstr, sizeof (tzstr), "TZ=%s", "");
+	putenv (tzstr);
 	tzset();
 	}
 #endif
@@ -947,166 +988,40 @@ time_t	stop_timer (time_t start)
 	return stop - start;
 }
 
+
 /****************************************************************
 **
-**	int	inc_serial (filename, use_unixtime)
+**	int	gensalt (saltstr, sizeofsaltstr, bits)
 **
-**	This function depends on a special syntax formating the
-**	SOA record in the zone file!!
+**	generate a random hexstring of 'bits' salt and store it
+**	in saltstr. return 1 on success, otherwise 0.
 **
-**	To match the SOA record, the SOA RR must be formatted
-**	like this:
-**	@    IN  SOA <master.fq.dn.> <hostmaster.fq.dn.> (
-**	<SPACEes or TABs>      1234567890; serial number 
-**	<SPACEes or TABs>      86400	 ; other values
-**				...
-**	The space from the first digit of the serial number to
-**	the first none white space char or to the end of the line
-**	must be at least 10 characters!
-**	So you have to left justify the serial number in a field
-**	of at least 10 characters like this:
-**	<SPACEes or TABs>      1         ; Serial 
-**
-****************************************************************/
-int	inc_serial (const char *fname, int use_unixtime)
+*****************************************************************/
+int	gensalt (char *salt, size_t saltsize, int saltbits, unsigned int seed)
 {
-	FILE	*fp;
-	char	buf[4095+1];
-	char	master[254+1];
-	int	error;
+	static	char	hexstr[] = "0123456789ABCDEF";
+	int	saltlen = 0;	/* current length of salt in hex nibbles */
+	int	i;
+	int	hex;
 
-	/**
-	   since BIND 9.4, there is a dnssec-signzone option available for
-	   serial number increment.
-	   If the user request "unixtime" than use this mechanism 
-	**/
-#if defined(BIND_VERSION) && BIND_VERSION >= 940
-	if ( use_unixtime )
+	if ( seed == 0 )
+		srandom (seed = (unsigned int)time (NULL));
+
+	saltlen = saltbits / 4;
+	if ( saltlen+1 > saltsize )
 		return 0;
-#endif
-	if ( (fp = fopen (fname, "r+")) == NULL )
-		return -1;
 
-		/* read until the line matches the beginning of a soa record ... */
-	while ( fgets (buf, sizeof buf, fp) &&
-		    sscanf (buf, "@ IN SOA %255s %*s (\n", master) != 1 )
-		;
-
-	if ( feof (fp) )
+	for ( i = 0; i < saltlen; i++ )
 	{
-		fclose (fp);
-		return -2;
+		hex = random () % 16;
+		assert ( hex >= 0 && hex < 16 );
+		salt[i] = hexstr[hex];
 	}
+	salt[i] = '\0';
 
-	error = inc_soa_serial (fp, use_unixtime);	/* .. inc soa serial no ... */
-
-	if ( fclose (fp) != 0 )
-		return -5;
-	return error;
+	return 1;
 }
 
-/*****************************************************************
-**	return the serial number of the current day in the form
-**	of YYYYmmdd00
-*****************************************************************/
-static	ulong	today_serialtime ()
-{
-	struct	tm	*t;
-	ulong	serialtime;
-	time_t	now;
-
-	now =  time (NULL);
-	t = gmtime (&now);
-	serialtime = (t->tm_year + 1900) * 10000;
-	serialtime += (t->tm_mon+1) * 100;
-	serialtime += t->tm_mday;
-	serialtime *= 100;
-
-	return serialtime;
-}
-
-/*****************************************************************
-**	inc_soa_serial (fp, use_unixtime)
-**	increment the soa serial number of the file 'fp'
-**	'fp' must be opened "r+"
-*****************************************************************/
-static	int	inc_soa_serial (FILE *fp, int use_unixtime)
-{
-	int	c;
-	long	pos,	eos;
-	ulong	serial;
-	int	digits;
-	ulong	today;
-
-	/* move forward until any non ws reached */
-	while ( (c = getc (fp)) != EOF && isspace (c) )
-		;
-	ungetc (c, fp);		/* push back the last char */
-
-	pos = ftell (fp);	/* mark position */
-
-	serial = 0L;	/* read in the current serial number */
-	/* be aware of the trailing space in the format string !! */
-	if ( fscanf (fp, "%lu ", &serial) != 1 )	/* try to get serial no */
-		return -3;
-	eos = ftell (fp);	/* mark first non digit/ws character pos */
-
-	digits = eos - pos;
-	if ( digits < 10 )	/* not enough space for serial no ? */
-		return -4;
-
-	if ( use_unixtime )
-		today = time (NULL);
-	else
-	{
-		today = today_serialtime ();	/* YYYYmmdd00 */
-		if ( serial > 1970010100L && serial < today )	
-			serial = today;			/* set to current time */
-		serial++;			/* increment anyway */
-	}
-
-	fseek (fp, pos, SEEK_SET);	/* go back to the beginning */
-	fprintf (fp, "%-*lu", digits, serial);	/* write as many chars as before */
-
-	return 1;	/* yep! */
-}
-
-/*****************************************************************
-**	return the error text of the inc_serial return coode
-*****************************************************************/
-const	char	*inc_errstr (int err)
-{
-	switch ( err )
-	{
-	case -1:	return "couldn't open zone file for modifying";
-	case -2:	return "unexpected end of file";
-	case -3:	return "no serial number found in zone file";
-	case -4:	return "not enough space left for serialno";
-	case -5:	return "error on closing zone file";
-	}
-	return "";
-}
-
-#ifdef SOA_TEST
-const char *progname;
-main (int argc, char *argv[])
-{
-	ulong	now;
-	int	err;
-	char	cmd[255];
-
-	progname = *argv;
-
-	now = today_serialtime ();
-	printf ("now = %lu\n", now);
-
-	if ( (err = inc_serial (argv[1]), 0) < 0 )
-		error ("can't change serial errno=%d\n", err);
-
-	snprintf (cmd, sizeof(cmd), "head -15 %s", argv[1]);
-	system (cmd);
-}
-#endif
 
 #ifdef COPYZONE_TEST
 const char *progname;

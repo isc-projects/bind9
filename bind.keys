@@ -1,0 +1,27 @@
+/* $Id: bind.keys,v 1.2.2.4 2011/01/04 19:15:12 each Exp $ */
+# This file contains current trust anchors for the DNS root zone (".")
+# and for the ISC DNSSEC Lookaside Validation zone ("dlv.isc.org").  It is
+# provided within BIND 9 for convenience of configuration.  To use these
+# keys, copy the trusted-keys statement below into named.conf, or else set
+# named.conf to "include" this file.
+#
+# These keys are current as of January 2011.  If any key fails to
+# work correctly, it may have expired.  In that event, you should
+# replace this file with a current version.  The latest version of
+# bind.keys can always be obtained from ISC at https://www.isc.org/bind-keys.
+#
+# (NOTE: If this file is used via the "include" directive in named.conf,
+# then it is NOT advisable to modify it.  In BIND 9.7 and higher, this file
+# is used directly by named.  Upgrades to BIND may overwrite the file and
+# eliminate any user-configured keys.  Furthermore, in those versions of
+# BIND, this file can only be used for a specific set of domain names, and
+# any other trust anchors configured here would be ignored.  So, while it
+# is possible to use this file for other trust anchors in BIND 9.6, doing
+# so may lead to problems when you upgrade.)
+trusted-keys {
+	# ISC DLV: See https://www.isc.org/solutions/dlv for details.
+	dlv.isc.org. 257 3 5 "BEAAAAPHMu/5onzrEE7z1egmhg/WPO0+juoZrW3euWEn4MxDCE1+lLy2 brhQv5rN32RKtMzX6Mj70jdzeND4XknW58dnJNPCxn8+jAGl2FZLK8t+ 1uq4W+nnA3qO2+DL+k6BD4mewMLbIYFwe0PG73Te9fZ2kJb56dhgMde5 ymX4BI/oQ+cAK50/xvJv00Frf8kw6ucMTwFlgPe+jnGxPPEmHAte/URk Y62ZfkLoBAADLHQ9IrS2tryAe7mbBZVcOwIeU/Rw/mRx/vwwMCTgNboM QKtUdvNXDrYJDSHZws3xiRXF1Rf+al9UmZfSav/4NWLKjHzpT59k/VSt TDN0YUuWrBNh";
+	# ROOT KEY: See https://data.iana.org/root-anchors/root-anchors.xml
+	# for current trust anchor information.
+	. 257 3 8 "AwEAAagAIKlVZrpC6Ia7gEzahOR+9W29euxhJhVVLOyQbSEW0O8gcCjF FVQUTf6v58fLjwBd0YI0EzrAcQqBGCzh/RStIoO8g0NfnfL2MTJRkxoX bfDaUeVPQuYEhg37NZWAJQ9VnMVDxP/VHL496M/QZxkjf5/Efucp2gaD X6RS6CXpoY68LsvPVjR0ZSwzz1apAzvN9dlzEheX7ICJBBtuA6G3LQpz W5hOA2hzCTMjJPJ8LbqF6dsV6DoBQzgul0sGIcGOYl7OyQdXfZ57relS Qageu+ipAdTTJ25AsRTAoub8ONGcLmqrAmRLKBP1dfwhYB4N7knNnulq QxA+Uk1ihz0=";
+};

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.93 2008/07/23 23:27:54 marka Exp $ */
+/* $Id: interfacemgr.c,v 1.93.70.4 2011/03/12 04:57:23 tbox Exp $ */
 
 /*! \file */
 
@@ -379,7 +379,7 @@ ns_interface_setup(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 		}
 	}
 	*ifpret = ifp;
-	return (ISC_R_SUCCESS);
+	return (result);
 
  cleanup_interface:
 	ISC_LIST_UNLINK(ifp->mgr->interfaces, ifp, link);
@@ -518,7 +518,7 @@ setup_locals(ns_interfacemgr_t *mgr, isc_interface_t *interface) {
 	result = isc_netaddr_masktoprefixlen(&interface->netmask,
 					     &prefixlen);
 
-	/* Non contigious netmasks not allowed by IPv6 arch. */
+	/* Non contiguous netmasks not allowed by IPv6 arch. */
 	if (result != ISC_R_SUCCESS && netaddr->family == AF_INET6)
 		return (result);
 
@@ -964,7 +964,6 @@ isc_boolean_t
 ns_interfacemgr_listeningon(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr) {
 	isc_sockaddr_t *old;
 
-	old = ISC_LIST_HEAD(mgr->listenon);
 	for (old = ISC_LIST_HEAD(mgr->listenon);
 	     old != NULL;
 	     old = ISC_LIST_NEXT(old, link))

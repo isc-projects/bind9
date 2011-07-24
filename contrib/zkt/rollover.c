@@ -72,7 +72,24 @@ static	dki_t	*genkey (dki_t **listp, const char *dir, const char *domain, int ks
 	if ( ksk )
 		dkp = dki_new (dir, domain, DKI_KSK, conf->k_algo, conf->k_bits, conf->k_random, conf->k_life / DAYSEC);
 	else
-		dkp = dki_new (dir, domain, DKI_ZSK, conf->z_algo, conf->z_bits, conf->z_random, conf->z_life / DAYSEC);
+		dkp = dki_new (dir, domain, DKI_ZSK, conf->k_algo, conf->z_bits, conf->z_random, conf->z_life / DAYSEC);
+	dki_add (listp, dkp);
+	dki_setstatus (dkp, status);
+
+	return dkp;
+}
+
+static	dki_t	*genkey2 (dki_t **listp, const char *dir, const char *domain, int ksk, const zconf_t *conf, int status)
+{
+	dki_t	*dkp;
+
+	if ( listp == NULL || domain == NULL )
+		return NULL;
+
+	if ( ksk )
+		dkp = dki_new (dir, domain, DKI_KSK, conf->k2_algo, conf->k_bits, conf->k_random, conf->k_life / DAYSEC);
+	else
+		dkp = dki_new (dir, domain, DKI_ZSK, conf->k2_algo, conf->z_bits, conf->z_random, conf->z_life / DAYSEC);
 	dki_add (listp, dkp);
 	dki_setstatus (dkp, status);
 
@@ -235,7 +252,7 @@ static	int	kskrollover (dki_t *ksk, zone_t *zonelist, zone_t *zp)
 	/* check if we have to change the ksk ? */
 	if ( lifetime > 0 && age > lifetime && !fileexist (path) )	/* lifetime is over and no kskrollover in progress */
 	{
-		/* we are using hierachical mode and the parent directory contains a signed zone ? */
+		/* we are in hierachical mode and the parent directory contains a signed zone ? */
 		if ( z->keysetdir && strcmp (z->keysetdir, "..") == 0 && is_parentdirsigned (zonelist, zp) )
 		{
 			verbmesg (2, z, "\t\tkskrollover: create new key signing key\n");
@@ -249,7 +266,7 @@ static	int	kskrollover (dki_t *ksk, zone_t *zonelist, zone_t *zp)
 			lg_mesg (LG_INFO, "\"%s\": kskrollover phase1: New key %d generated", zp->zone, ksk->tag);
 
 			/* find the oldest active ksk to create the parent file */
-			if ( (ksk = (dki_t *)dki_find (zp->keys, 1, 'a', 1)) == NULL )
+			if ( (ksk = (dki_t *)dki_findalgo (zp->keys, DKI_KSK, zp->conf->k_algo, 'a', 1)) == NULL )
 				lg_mesg (LG_ERROR, "kskrollover phase1: Couldn't find the old active key\n");
 			if ( !create_parent_file (path, 1, z->key_ttl, ksk) )
 				lg_mesg (LG_ERROR, "Couldn't create parentfile %s\n", path);
@@ -276,7 +293,7 @@ static	int	kskrollover (dki_t *ksk, zone_t *zonelist, zone_t *zp)
 	parfile_age = file_age (path);
 
 	/* TODO: Set these values to the one found in the parent dnssec.conf file */
-	parent_propagation = 5 * MINSEC;
+	parent_propagation = PARENT_PROPAGATION;
 	parent_resign = z->resign;
 	parent_keyttl = z->key_ttl;
 
@@ -293,7 +310,7 @@ static	int	kskrollover (dki_t *ksk, zone_t *zonelist, zone_t *zp)
 			return 1;
 		}
 		else
-			verbmesg (2, z, "\t\tkskrollover: we are in state 1 and waiting for propagation of the new key (parentfile %d < prop %d + keyttl %d\n", parfile_age, z->proptime, z->key_ttl);
+			verbmesg (2, z, "\t\tkskrollover: we are in state 1 and waiting for propagation of the new key (parentfile %dsec < prop %dsec + keyttl %dsec\n", parfile_age, z->proptime, z->key_ttl);
 		break;
 	case 2:	/* we are currently in state two (propagation of new key to the parent) */
 #if 0
@@ -318,7 +335,7 @@ static	int	kskrollover (dki_t *ksk, zone_t *zonelist, zone_t *zp)
 #if 0
 			verbmesg (2, z, "\t\tkskrollover: we are in state 2 and  waiting for parent propagation (parentfile %d < parentprop %d + parentresig %d + parentkeyttl %d\n", parfile_age, parent_propagation, parent_resign, parent_keyttl);
 #else
-			verbmesg (2, z, "\t\tkskrollover: we are in state 2 and  waiting for parent propagation (parentfile %d < parentprop %d + parentkeyttl %d\n", parfile_age, parent_propagation, parent_keyttl);
+			verbmesg (2, z, "\t\tkskrollover: we are in state 2 and waiting for parent propagation (parentfile %dsec < parentprop %dsec + parentkeyttl %dsec\n", parfile_age, parent_propagation, parent_keyttl);
 #endif
 		break;
 	default:
@@ -373,10 +390,11 @@ int	ksk5011status (dki_t **listp, const char *dir, const char *domain, const zco
 	{
 		exptime = get_exptime (dkp, z);
 		if ( dki_isrevoked (dkp) )
-			lg_mesg (LG_DEBUG, "Rev Exptime: %s", time2str (exptime, 's'));
+			lg_mesg (LG_DEBUG, "zone \"%s\": found revoked key (id=%d exptime=%s); waiting for remove hold down time",
+							domain, dkp->tag, time2str (exptime, 's'));
 
 		/* revoked key is older than 30 days? */
-		if ( dki_isrevoked (dkp) && currtime > exptime + (DAYSEC * 30) )
+		if ( dki_isrevoked (dkp) && currtime > exptime + REMOVE_HOLD_DOWN )
 		{
 			verbmesg (1, z, "\tRemove revoked key %d which is older than 30 days\n", dkp->tag);
 			lg_mesg (LG_NOTICE, "zone \"%s\": removing revoked key %d", domain, dkp->tag);
@@ -387,7 +405,7 @@ int	ksk5011status (dki_t **listp, const char *dir, const char *domain, const zco
 			else				/* anywhere in the middle of the list */
 				prev->next = dki_remove (dkp);
 
-			ret |= 01;		/* from now on a resigning is neccessary */
+			ret |= 01;		/* from now on a resigning is necessary */
 		}
 
 		/* remember oldest standby and active key */
@@ -396,8 +414,8 @@ int	ksk5011status (dki_t **listp, const char *dir, const char *domain, const zco
 		if ( dki_status (dkp) == DKI_ACTIVE )
 			activekey = dkp;
 	}
-
-	if ( standbykey == NULL && ret == 0 )	/* no standby key and also no revoked key found ? */
+				/* no activekey or no standby key and also no revoked key found ? */
+	if ( activekey == NULL || (standbykey == NULL && ret == 0) )
 		return ret;				/* Seems that this is a non rfc5011 zone! */
 
 	ret |= 02;		/* Zone looks like a rfc5011 zone */
@@ -408,9 +426,9 @@ int	ksk5011status (dki_t **listp, const char *dir, const char *domain, const zco
 	lg_mesg (LG_DEBUG, "Stb time: %s", time2str (dki_time (standbykey), 's'));
 	lg_mesg (LG_DEBUG, "Stb time+wait: %s", time2str (dki_time (standbykey) + min (DAYSEC * 30, z->key_ttl), 's'));
 #endif
-	/* At the time we first introduce a standby key, the lifetime of the current KSK should not be expired, */
+	/* At the first time we introduce a standby key, the lifetime of the current KSK shouldn't be expired, */
 	/* otherwise we run into an (nearly) immediate key rollover!	*/
-	if ( currtime > exptime && currtime > dki_time (standbykey) + min (DAYSEC * 30, z->key_ttl) )
+	if ( currtime > exptime && currtime > dki_time (standbykey) + min (ADD_HOLD_DOWN, z->key_ttl) )
 	{
 		lg_mesg (LG_NOTICE, "\"%s\": starting rfc5011 rollover", domain);
 		verbmesg (1, z, "\tLifetime of Key Signing Key %d exceeded (%s): Starting rfc5011 rollover!\n",
@@ -423,7 +441,7 @@ int	ksk5011status (dki_t **listp, const char *dir, const char *domain, const zco
 			lg_mesg (LG_ERROR, "\%s\": can't generate new standby KSK", domain);
 		}
 		else
-			lg_mesg (LG_INFO, "\"%s\": generated new standby KSK %d", domain, dkp->tag);
+			lg_mesg (LG_NOTICE, "\"%s\": generated new standby KSK %d", domain, dkp->tag);
 
 		/* standby key gets active  */
 		verbmesg (2, z, "\t\t=>Activating old standby key %d \n", standbykey->tag);
@@ -434,7 +452,7 @@ int	ksk5011status (dki_t **listp, const char *dir, const char *domain, const zco
 		dki_setstatus (activekey, DKI_REVOKED);	
 		dki_setexptime (activekey, currtime);	/* now the key is expired */
 
-		ret |= 01;		/* resigning neccessary */
+		ret |= 01;		/* resigning necessary */
 	}
 
 	return ret;
@@ -446,7 +464,7 @@ int	ksk5011status (dki_t **listp, const char *dir, const char *domain, const zco
 **	If there is no key signing key present create a new one.
 **	Prints out a warning message if the lifetime of the current
 **	key signing key is over.
-**	Returns 1 if a resigning of the zone is neccessary, otherwise
+**	Returns 1 if a resigning of the zone is necessary, otherwise
 **	the function returns 0.
 *****************************************************************/
 int	kskstatus (zone_t *zonelist, zone_t *zp)
@@ -462,7 +480,7 @@ int	kskstatus (zone_t *zonelist, zone_t *zp)
 
 	verbmesg (1, z, "\tCheck KSK status\n");
 	/* check if a key signing key exist ? */
-	akey = (dki_t *)dki_find (zp->keys, 1, 'a', 1);
+	akey = (dki_t *)dki_findalgo (zp->keys, DKI_KSK, z->k_algo, 'a', 1);
 	if ( akey == NULL )
 	{
 		verbmesg (1, z, "\tNo active KSK found: generate new one\n");
@@ -477,8 +495,30 @@ int	kskstatus (zone_t *zonelist, zone_t *zp)
 			lg_mesg (LG_INFO, "\"%s\": generated new KSK %d", zp->zone, akey->tag);
 		return akey != NULL;	/* return value of 1 forces a resigning of the zone */
 	}
-	else	/* try to start a full automatic ksk rollover */
+	else	/* try to start a full automated ksk rollover */
 		kskrollover (akey, zonelist, zp);
+
+	/* is a second algorithm requested ? (since 0.99) */
+	if ( z->k2_algo && z->k2_algo != z->k_algo )
+	{
+		/* check for ksk supporting the additional algorithm */
+		akey = (dki_t *)dki_findalgo (zp->keys, DKI_KSK, z->k2_algo, 'a', 1);
+		if ( akey == NULL )
+		{
+			verbmesg (1, z, "\tNo active KSK for additional algorithm found: generate new one\n");
+			akey = genkey2 (&zp->keys, zp->dir, zp->zone, DKI_KSK, z, DKI_ACTIVE);
+			if ( !akey )
+			{
+				error ("\tcould not generate new KSK for additional algorithm\n");
+				lg_mesg (LG_ERROR, "\"%s\": can't generate new KSK for 2nd algorithm: \"%s\"",
+									zp->zone, dki_geterrstr());
+			}
+			else
+				lg_mesg (LG_INFO, "\"%s\": generated new KSK %d for additional algorithm",
+										zp->zone, akey->tag);
+			return 1;	/* return value of 1 forces a resigning of the zone */
+		}
+	}
 
 	return 0;
 }
@@ -486,7 +526,7 @@ int	kskstatus (zone_t *zonelist, zone_t *zp)
 /*****************************************************************
 **	zskstatus ()
 **	Check the zsk status of a zone.
-**	Returns 1 if a resigning of the zone is neccessary, otherwise
+**	Returns 1 if a resigning of the zone is necessary, otherwise
 **	the function returns 0.
 *****************************************************************/
 int	zskstatus (dki_t **listp, const char *dir, const char *domain, const zconf_t *z)
@@ -540,7 +580,7 @@ int	zskstatus (dki_t **listp, const char *dir, const char *domain, const zconf_t
 	/* check status of active key */
 	dbg_msg("zskstatus check status of active key ");
 	lifetime = z->z_life;			/* global configured lifetime for zsk */
-	akey = (dki_t *)dki_find (*listp, 0, 'a', 1);
+	akey = (dki_t *)dki_findalgo (*listp, DKI_ZSK, z->k_algo, 'a', 1);
 	if ( akey == NULL && lifetime > 0 )	/* no active key found */
 	{
 		verbmesg (1, z, "\tNo active ZSK found: generate new one\n");
@@ -560,9 +600,9 @@ int	zskstatus (dki_t **listp, const char *dir, const char *domain, const zconf_t
 					lifetime, (OFFSET) , akey->tag, dki_age (akey, currtime) );
 
 			/* depreciate the key only if there is another active or published key */
-			if ( (nextkey = (dki_t *)dki_find (*listp, 0, 'a', 2)) == NULL ||
+			if ( (nextkey = (dki_t *)dki_findalgo (*listp, DKI_ZSK, z->k_algo, 'a', 2)) == NULL ||
 			      nextkey == akey )
-				nextkey = (dki_t *)dki_find (*listp, 0, 'p', 1);
+				nextkey = (dki_t *)dki_findalgo (*listp, DKI_ZSK, z->k_algo, 'p', 1);
 
 			/* Is the published key sufficient long in the zone ? */
 			/* As mentioned by Olaf, this should be the ttl of the DNSKEY RR ! */
@@ -576,6 +616,7 @@ int	zskstatus (dki_t **listp, const char *dir, const char *domain, const zconf_t
 				lg_mesg (LG_NOTICE, "\"%s\": lifetime of zone signing key %d exceeded: ZSK rollover done", domain, akey->tag);
 				akey = nextkey;
 				nextkey = NULL;
+				lifetime = dki_lifetime (akey);	/* set lifetime to lt of the new active key (F. Behrens) */
 			}
 			else
 			{
@@ -585,12 +626,12 @@ int	zskstatus (dki_t **listp, const char *dir, const char *domain, const zconf_t
 			}
 		}
 	}
-	/* Should we add a new publish key?  This is neccessary if the active
+	/* Should we add a new publish key?  This is necessary if the active
 	 * key will be expired at the next re-signing interval (The published
 	 * time will be checked just before the active key will be removed.
 	 * See above).
 	 */
-	nextkey = (dki_t *)dki_find (*listp, 0, 'p', 1);
+	nextkey = (dki_t *)dki_findalgo (*listp, DKI_ZSK, z->k_algo, 'p', 1);
 	if ( nextkey == NULL && lifetime > 0 && (akey == NULL ||
 	     dki_age (akey, currtime + z->resign) > lifetime - (OFFSET)) )
 	{
@@ -610,6 +651,29 @@ int	zskstatus (dki_t **listp, const char *dir, const char *domain, const zconf_t
 								domain, dki_geterrstr());
 		}
 	}
+
+	/* is a second algorithm requested ? (since 0.99) */
+	if ( z->k2_algo && z->k2_algo != z->k_algo )
+	{
+		/* check for zsk supporting the additional algorithm */
+		akey = (dki_t *)dki_findalgo (*listp, DKI_ZSK, z->k2_algo, 'a', 1);
+		if ( akey == NULL )
+		{
+			verbmesg (1, z, "\tNo active ZSK for second algorithm found: generate new one\n");
+			akey = genkey2 (listp, dir, domain, DKI_ZSK, z, DKI_ACTIVE);
+			if ( !akey )
+			{
+				error ("\tcould not generate new ZSK for 2nd algorithm\n");
+				lg_mesg (LG_ERROR, "\"%s\": can't generate new ZSK for 2nd algorithm: \"%s\"",
+									domain, dki_geterrstr());
+			}
+			else
+				lg_mesg (LG_INFO, "\"%s\": generated new ZSK %d for 2nd algorithm",
+										domain, akey->tag);
+			return 1;	/* return value of 1 forces a resigning of the zone */
+		}
+	}
+
 	return keychange;
 }
 

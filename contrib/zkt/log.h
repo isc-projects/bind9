@@ -42,6 +42,15 @@
 # include <time.h>
 # include <syslog.h>
 
+#ifndef LOG_FNAMETMPL
+# define	LOG_FNAMETMPL	"/zkt-%04d-%02d-%02dT%02d%02d%02dZ+log"
+#endif
+
+#ifndef LOG_DOMAINTMPL
+# define	LOG_DOMAINTMPL	"zktlog-%s"
+#endif
+
+
 typedef enum {
 	LG_NONE = 0,
 	LG_DEBUG,
@@ -61,6 +70,8 @@ extern	long	lg_seterrcnt (long value);
 extern	long	lg_reseterrcnt (void);
 extern	int	lg_open (const char *progname, const char *facility, const char *syslevel, const char *path, const char *file, const char *filelevel);
 extern	int	lg_close (void);
+extern	int	lg_zone_start (const char *dir, const char *domain);
+extern	int	lg_zone_end (void);
 extern	void	lg_args (lg_lvl_t level, int argc, char * const argv[]);
 extern	void	lg_mesg (int level, char *fmt, ...);
 #endif

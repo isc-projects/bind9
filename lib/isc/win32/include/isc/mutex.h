@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mutex.h,v 1.20 2008/09/12 04:46:25 marka Exp $ */
+/* $Id: mutex.h,v 1.20.56.2 2009/01/18 23:47:41 tbox Exp $ */
 
 #ifndef ISC_MUTEX_H
 #define ISC_MUTEX_H 1
@@ -28,7 +28,7 @@
 typedef CRITICAL_SECTION isc_mutex_t;
 
 /*
- * This definition is here since somve versions of WINBASE.H
+ * This definition is here since some versions of WINBASE.H
  * omits it for some reason.
  */
 #if (_WIN32_WINNT < 0x0400)

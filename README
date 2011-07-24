@@ -42,6 +42,39 @@ BIND 9
 		Stichting NLnet - NLnet Foundation
 		Nominum, Inc.
 
+BIND 9.6-ESV-R5 (Extended Support Version)
+
+	BIND 9.4-ESV-R5 is a maintenance release, fixing bugs in BIND
+	9.6-ESV-R4.
+
+BIND 9.6.3/BIND 9.6-ESV-R4
+
+	BIND 9.6.3/BIND 9.6-ESV-R4 is a maintenance release, fixing bugs
+	in 9.6.2.
+
+BIND 9.6.2
+
+	BIND 9.6.2 is a maintenance release, fixing bugs in 9.6.1.
+        It also introduces support for the SHA-2 DNSSEC algorithms,
+        RSASHA256 and RSASHA512.
+
+        Known issues in this release:
+
+        - A validating resolver that has been incorrectly configured with
+          an invalid trust anchor will be unable to resolve names covered
+          by that trust anchor.  In all current versions of BIND 9, such a
+          resolver will also generate significant unnecessary DNS traffic
+          while trying to validate.  The latter problem will be addressed
+          in future BIND 9 releases.  In the meantime, to avoid these
+          problems, exercise caution when configuring "trusted-keys":
+          make sure all keys are correct and current when you add them,
+          and update your configuration in a timely manner when keys
+          roll over.
+
+BIND 9.6.1
+
+	BIND 9.6.1 is a maintenance release, fixing bugs in 9.6.0.
+
 BIND 9.6.0
 
         BIND 9.6.0 includes a number of changes from BIND 9.5 and earlier
@@ -97,13 +130,14 @@ BIND 9.4.0
 
 	rndc now allows addresses to be set in the server clauses.
 
-	New option "allow-query-cache".  This lets allow-query be
-	used to specify the default zone access level rather than
-	having to have every zone override the global value.
-	allow-query-cache can be set at both the options and view
-	levels. If allow-query-cache is not set then allow-recursion
-	is used if set, otherwise allow-query is used if set, otherwise
-	the default (localhost; localnets;) is used.
+	New option "allow-query-cache".  This lets "allow-query"
+	be used to specify the default zone access level rather
+	than having to have every zone override the global value.
+	"allow-query-cache" can be set at both the options and view
+	levels.  If "allow-query-cache" is not set then "allow-recursion"
+	is used if set, otherwise "allow-query" is used if set
+	unless "recursion no;" is set in which case "none;" is used,
+	otherwise the default (localhost; localnets;) is used.
 
 	rndc: the source address can now be specified.
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_master.c,v 1.36 2007/06/19 23:47:00 tbox Exp $ */
+/* $Id: t_master.c,v 1.36.332.4 2011/03/12 04:57:24 tbox Exp $ */
 
 #include <config.h>
 
@@ -77,7 +77,6 @@ test_master(char *testfile, char *origin, char *class, isc_result_t exp_result)
 	dns_rdataclass_t	rdataclass;
 	isc_textregion_t	textregion;
 
-	result = T_UNRESOLVED;
 	if (T1_mctx == NULL)
 		isc_result = isc_mem_create(0, 0, &T1_mctx);
 	else
@@ -185,7 +184,7 @@ static const char *a1 =	"dns_master_loadfile loads a valid master file and "
 static void
 t1(void) {
 	int	result;
-	t_assert("dns_master_loadfile", 1, T_REQUIRED, a1);
+	t_assert("dns_master_loadfile", 1, T_REQUIRED, "%s", a1);
 	result = test_master_x("dns_master_load_1_data");
 	t_result(result);
 }
@@ -197,7 +196,7 @@ static const char *a2 =
 static void
 t2(void) {
 	int	result;
-	t_assert("dns_master_loadfile", 2, T_REQUIRED, a2);
+	t_assert("dns_master_loadfile", 2, T_REQUIRED, "%s", a2);
 	result = test_master_x("dns_master_load_2_data");
 	t_result(result);
 }
@@ -208,7 +207,7 @@ static const char *a3 =	"dns_master_loadfile returns DNS_R_NOOWNER when the "
 static void
 t3() {
 	int	result;
-	t_assert("dns_master_loadfile", 3, T_REQUIRED, a3);
+	t_assert("dns_master_loadfile", 3, T_REQUIRED, "%s", a3);
 	result = test_master_x("dns_master_load_3_data");
 	t_result(result);
 }
@@ -220,7 +219,7 @@ static const char *a4 =	"dns_master_loadfile accepts broken zone files "
 static void
 t4() {
 	int	result;
-	t_assert("dns_master_loadfile", 4, T_REQUIRED, a4);
+	t_assert("dns_master_loadfile", 4, T_REQUIRED, "%s", a4);
 	result = test_master_x("dns_master_load_4_data");
 	t_result(result);
 }
@@ -232,7 +231,7 @@ static void
 t5() {
 	int	result;
 
-	t_assert("dns_master_loadfile", 5, T_REQUIRED, a5);
+	t_assert("dns_master_loadfile", 5, T_REQUIRED, "%s", a5);
 	result = test_master_x("dns_master_load_5_data");
 
 	t_result(result);
@@ -246,7 +245,7 @@ static void
 t6() {
 	int	result;
 
-	t_assert("dns_master_loadfile", 6, T_REQUIRED, a6);
+	t_assert("dns_master_loadfile", 6, T_REQUIRED, "%s", a6);
 	result = test_master_x("dns_master_load_6_data");
 
 	t_result(result);
@@ -260,7 +259,7 @@ static void
 t7() {
 	int	result;
 
-	t_assert("dns_master_loadfile", 7, T_REQUIRED, a7);
+	t_assert("dns_master_loadfile", 7, T_REQUIRED, "%s", a7);
 	result = test_master_x("dns_master_load_7_data");
 
 	t_result(result);
@@ -273,7 +272,7 @@ static void
 t8() {
 	int	result;
 
-	t_assert("dns_master_loadfile", 8, T_REQUIRED, a8);
+	t_assert("dns_master_loadfile", 8, T_REQUIRED, "%s", a8);
 	result = test_master_x("dns_master_load_8_data");
 
 	t_result(result);
@@ -286,7 +285,7 @@ static void
 t9() {
 	int	result;
 
-	t_assert("dns_master_loadfile", 9, T_REQUIRED, a9);
+	t_assert("dns_master_loadfile", 9, T_REQUIRED, "%s", a9);
 	result = test_master_x("dns_master_load_9_data");
 
 	t_result(result);
@@ -299,7 +298,7 @@ static void
 t10() {
 	int	result;
 
-	t_assert("dns_master_loadfile", 10, T_REQUIRED, a10);
+	t_assert("dns_master_loadfile", 10, T_REQUIRED, "%s", a10);
 	result = test_master_x("dns_master_load_10_data");
 
 	t_result(result);
@@ -312,7 +311,7 @@ static void
 t11() {
 	int	result;
 
-	t_assert("dns_master_loadfile", 11, T_REQUIRED, a11);
+	t_assert("dns_master_loadfile", 11, T_REQUIRED, "%s", a11);
 	result = test_master_x("dns_master_load_11_data");
 
 	t_result(result);

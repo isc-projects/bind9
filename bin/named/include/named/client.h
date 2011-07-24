@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.86 2008/04/03 02:01:08 marka Exp $ */
+/* $Id: client.h,v 1.86.120.2 2009/01/18 23:47:34 tbox Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -162,7 +162,7 @@ struct ns_client {
 #define NS_CLIENT_VALID(c)		ISC_MAGIC_VALID(c, NS_CLIENT_MAGIC)
 
 #define NS_CLIENTATTR_TCP		0x01
-#define NS_CLIENTATTR_RA		0x02 /*%< Client gets recusive service */
+#define NS_CLIENTATTR_RA		0x02 /*%< Client gets recursive service */
 #define NS_CLIENTATTR_PKTINFO		0x04 /*%< pktinfo is valid */
 #define NS_CLIENTATTR_MULTICAST		0x08 /*%< recv'd from multicast */
 #define NS_CLIENTATTR_WANTDNSSEC	0x10 /*%< include dnssec records */

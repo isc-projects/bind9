@@ -57,6 +57,7 @@ dns_cache_attach
 dns_cache_attachdb
 dns_cache_clean
 dns_cache_create
+dns_cache_create3
 dns_cache_detach
 dns_cache_dump
 dns_cache_flush
@@ -187,6 +188,7 @@ dns_dlzunregister
 dns_dnssec_findzonekeys
 dns_dnssec_findzonekeys2
 dns_dnssec_keyfromrdata
+dns_dnssec_selfsigns
 dns_dnssec_sign
 dns_dnssec_signmessage
 dns_dnssec_verify
@@ -466,6 +468,7 @@ dns_rdataset_clone
 dns_rdataset_count
 dns_rdataset_current
 dns_rdataset_disassociate
+dns_rdataset_expire
 dns_rdataset_first
 dns_rdataset_getadditional
 dns_rdataset_getclosest
@@ -477,6 +480,7 @@ dns_rdataset_makequestion
 dns_rdataset_next
 dns_rdataset_putadditional
 dns_rdataset_setadditional
+dns_rdataset_settrust
 dns_rdataset_totext
 dns_rdataset_towire
 dns_rdataset_towiresorted
@@ -519,6 +523,7 @@ dns_requestmgr_detach
 dns_requestmgr_shutdown
 dns_requestmgr_whenshutdown
 dns_resolver_addalternate
+dns_resolver_addbadcache
 dns_resolver_algorithm_supported
 dns_resolver_attach
 dns_resolver_cancelfetch
@@ -531,13 +536,17 @@ dns_resolver_disable_algorithm
 dns_resolver_dispatchmgr
 dns_resolver_dispatchv4
 dns_resolver_dispatchv6
+dns_resolver_flushbadcache
 dns_resolver_freeze
+dns_resolver_getbadcache
 dns_resolver_getlamettl
 dns_resolver_getoptions
 dns_resolver_getudpsize
 dns_resolver_getzeronosoattl
+dns_resolver_logfetch
 dns_resolver_nrunning
 dns_resolver_prime
+dns_resolver_printbadcache
 dns_resolver_reset_algorithms
 dns_resolver_resetmustbesecure
 dns_resolver_setclientsperquery
@@ -599,6 +608,7 @@ dns_tkey_processgssresponse
 dns_tkey_processquery
 dns_tkeyctx_create
 dns_tkeyctx_destroy
+dns_trust_totext
 dns_tsig_sign
 dns_tsig_verify
 dns_tsigkey_attach
@@ -699,6 +709,8 @@ dns_zone_getorigin
 dns_zone_getprivatetype
 dns_zone_getqueryacl
 dns_zone_getrequeststats
+dns_zone_getserial
+dns_zone_getserial2
 dns_zone_getsigresigninginterval
 dns_zone_getsigvalidityinterval
 dns_zone_getssutable
@@ -716,6 +728,7 @@ dns_zone_iattach
 dns_zone_idetach
 dns_zone_isforced
 dns_zone_load
+dns_zone_loadandthaw
 dns_zone_log
 dns_zone_maintenance
 dns_zone_markdirty
@@ -820,6 +833,7 @@ dst_gssapi_acceptctx
 dst_gssapi_acquirecred
 dst_gssapi_initctx
 dst_key_alg
+dst_key_attach
 dst_key_buildfilename
 dst_key_class
 dst_key_compare
@@ -830,6 +844,7 @@ dst_key_frombuffer
 dst_key_fromdns
 dst_key_fromfile
 dst_key_fromgssapi
+dst_key_fromlabel
 dst_key_fromnamedfile
 dst_key_generate
 dst_key_id

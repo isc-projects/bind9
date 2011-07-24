@@ -1,4 +1,4 @@
-# Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 1998-2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.457 $)
+AC_REVISION($Revision: 1.457.26.35 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -28,7 +28,19 @@ AC_CONFIG_HEADER(config.h)
 AC_CANONICAL_HOST
 
 AC_PROG_MAKE_SET
-AC_PROG_RANLIB
+
+#
+# GNU libtool support
+#
+case $build_os in
+sunos*)
+    # Just set the maximum command line length for sunos as it otherwise
+    # takes a exceptionally long time to work it out. Required for libtool.
+    lt_cv_sys_max_cmd_len=4096;
+    ;;
+esac
+
+AC_PROG_LIBTOOL
 AC_PROG_INSTALL
 AC_PROG_LN_S
 
@@ -53,7 +65,7 @@ esac
 #
 # Make very sure that these are the first files processed by
 # config.status, since we use the processed output as the input for
-# AC_SUBST_FILE() subsitutions in other files.
+# AC_SUBST_FILE() substitutions in other files.
 #
 AC_CONFIG_FILES([make/rules make/includes])
 
@@ -227,7 +239,7 @@ fi
 # OS dependent CC flags
 #
 case "$host" in
-	# OSF 5.0: recv/send are only avaliable with -D_POSIX_PII_SOCKET or
+	# OSF 5.0: recv/send are only available with -D_POSIX_PII_SOCKET or
 	# -D_XOPEN_SOURCE_EXTENDED.
 	*-dec-osf*)
 		STD_CDEFINES="$STD_CDEFINES -D_POSIX_PII_SOCKET"
@@ -268,6 +280,12 @@ AC_C_CONST
 AC_C_INLINE
 AC_C_VOLATILE
 AC_CHECK_FUNC(sysctlbyname, AC_DEFINE(HAVE_SYSCTLBYNAME))
+AC_C_FLEXIBLE_ARRAY_MEMBER
+
+#
+# Check for getenv()
+#
+AC_CHECK_FUNCS(getenv)
 
 #
 # UnixWare 7.1.1 with the feature supplement to the UDK compiler
@@ -367,10 +385,10 @@ AC_SUBST(ISC_PLATFORM_HAVEKQUEUE)
 # so we need to try running the code, not just test its existence.
 #
 AC_ARG_ENABLE(epoll,
-	[  --enable-epoll          use Linux epoll when available [[default=yes]]],
-	      want_epoll="$enableval",  want_epoll="yes")
+[  --enable-epoll          use Linux epoll when available [[default=auto]]],
+	      want_epoll="$enableval",  want_epoll="auto")
 case $want_epoll in
-yes)
+auto)
 	AC_MSG_CHECKING(epoll support)
 	AC_TRY_RUN([
 #include <sys/epoll.h>
@@ -384,6 +402,9 @@ int main() {
 	ISC_PLATFORM_HAVEEPOLL="#define ISC_PLATFORM_HAVEEPOLL 1"],
 	[AC_MSG_RESULT(no)
 	ISC_PLATFORM_HAVEEPOLL="#undef ISC_PLATFORM_HAVEEPOLL"])
+	;;
+yes)
+	ISC_PLATFORM_HAVEEPOLL="#define ISC_PLATFORM_HAVEEPOLL 1"
 	;;
 *)
 	ISC_PLATFORM_HAVEEPOLL="#undef ISC_PLATFORM_HAVEEPOLL"
@@ -399,7 +420,7 @@ AC_ARG_ENABLE(devpoll,
 	      want_devpoll="$enableval",  want_devpoll="yes")
 case $want_devpoll in
 yes)
-	AC_CHECK_HEADERS(sys/devpoll.h,
+	AC_CHECK_HEADERS(sys/devpoll.h devpoll.h,
 	ISC_PLATFORM_HAVEDEVPOLL="#define ISC_PLATFORM_HAVEDEVPOLL 1"
 	,
 	ISC_PLATFORM_HAVEDEVPOLL="#undef ISC_PLATFORM_HAVEDEVPOLL"
@@ -463,7 +484,7 @@ AC_C_BIGENDIAN
 OPENSSL_WARNING=
 AC_MSG_CHECKING(for OpenSSL library)
 AC_ARG_WITH(openssl,
-[  --with-openssl[=PATH]   Build with OpenSSL [yes|no|path].
+[  --with-openssl[=PATH]     Build with OpenSSL [yes|no|path].
 			  (Required for DNSSEC)],
     use_openssl="$withval", use_openssl="auto")
 
@@ -484,11 +505,17 @@ case "$use_openssl" in
 		AC_MSG_RESULT(no)
 		DST_OPENSSL_INC=""
 		USE_OPENSSL=""
+		OPENSSLLINKOBJS=""
+		OPENSSLLINKSRCS=""
 		;;
 	auto)
 		DST_OPENSSL_INC=""
 		USE_OPENSSL=""
-		AC_MSG_RESULT(not found)
+		OPENSSLLINKOBJS=""
+		OPENSSLLINKSRCS=""
+		AC_MSG_ERROR(
+[OpenSSL was not found in any of $openssldirs; use --with-openssl=/path
+If you don't want OpenSSL, use --without-openssl])
 		;;
 	*)
 		if test "$use_openssl" = "yes"
@@ -508,6 +535,9 @@ case "$use_openssl" in
 				AC_MSG_ERROR(
 [OpenSSL was not found in any of $openssldirs; use --with-openssl=/path])
 			fi
+		elif ! test -f "$use_openssl"/include/openssl/opensslv.h
+		then
+			AC_MSG_ERROR(["$use_openssl/include/openssl/opensslv.h" not found])
 		fi
 		USE_OPENSSL='-DOPENSSL'
 		if test "$use_openssl" = "/usr"
@@ -624,8 +654,12 @@ esac
 		else
 			AC_MSG_RESULT(no)
 		fi
+		AC_CHECK_FUNCS(EVP_sha256 EVP_sha512)
 		CFLAGS="$saved_cflags"
 		LIBS="$saved_libs"
+		OPENSSLLINKOBJS='${OPENSSLLINKOBJS}'
+		OPENSSLLINKSRCS='${OPENSSLLINKSRCS}'
+
 		;;
 esac
 
@@ -636,6 +670,8 @@ esac
 
 AC_SUBST(USE_OPENSSL)
 AC_SUBST(DST_OPENSSL_INC)
+AC_SUBST(OPENSSLLINKOBJS)
+AC_SUBST(OPENSSLLINKSRCS)
 DNS_CRYPTO_LIBS="$DNS_CRYPTO_LIBS $DNS_OPENSSL_LIBS"
 
 #
@@ -646,7 +682,7 @@ DNS_CRYPTO_LIBS="$DNS_CRYPTO_LIBS $DNS_OPENSSL_LIBS"
 
 AC_MSG_CHECKING(for PKCS11 support)
 AC_ARG_WITH(pkcs11,
-[  --with-pkcs11     Build with PKCS11 support],
+[  --with-pkcs11           Build with PKCS11 support],
    use_pkcs11="yes", use_pkcs11="no")
 
 case "$use_pkcs11" in
@@ -664,7 +700,7 @@ AC_SUBST(USE_PKCS11)
 
 AC_MSG_CHECKING(for GSSAPI library)
 AC_ARG_WITH(gssapi,
-[  --with-gssapi=PATH   Specify path for system-supplied GSSAPI],
+[  --with-gssapi=PATH      Specify path for system-supplied GSSAPI],
     use_gssapi="$withval", use_gssapi="no")
 
 gssapidirs="/usr/local /usr/pkg /usr/kerberos /usr"
@@ -700,6 +736,13 @@ case "$use_gssapi" in
 		    AC_MSG_ERROR([gssapi.h not found])
 		fi
 
+		AC_CHECK_HEADERS(krb5.h krb5/krb5.h kerberosv5/krb5.h,
+		    [ISC_PLATFORM_KRB5HEADER="#define ISC_PLATFORM_KRB5HEADER <$ac_header>"])
+
+		if test "$ISC_PLATFORM_KRB5HEADER" = ""; then
+		    AC_MSG_ERROR([krb5.h not found])
+		fi
+
 		CPPFLAGS="$saved_cppflags"
 
 		#
@@ -730,7 +773,7 @@ case "$use_gssapi" in
 		    "-lgssapi" \
 		    "-lgssapi -lkrb5 -ldes -lcrypt -lasn1 -lroken -lcom_err" \
 		    "-lgssapi -lkrb5 -lcrypto -lcrypt -lasn1 -lroken -lcom_err" \
-		    "-lgss"
+		    "-lgss -lkrb5"
 		do
 		    # Note that this does not include $saved_libs, because
 		    # on FreeBSD machines this configure script has added
@@ -739,7 +782,7 @@ case "$use_gssapi" in
 		    # when you are trying to build with KTH in /usr/lib.
 		    LIBS="-L$use_gssapi/lib $TRY_LIBS"
 		    AC_MSG_CHECKING(linking as $TRY_LIBS)
-		    AC_TRY_LINK( , [gss_acquire_cred();],
+		    AC_TRY_LINK( , [gss_acquire_cred();krb5_init_context()],
 				gssapi_linked=yes, gssapi_linked=no)
 		    case $gssapi_linked in
 		    yes) AC_MSG_RESULT(yes); break ;;
@@ -801,6 +844,7 @@ esac
 
 AC_SUBST(ISC_PLATFORM_HAVEGSSAPI)
 AC_SUBST(ISC_PLATFORM_GSSAPIHEADER)
+AC_SUBST(ISC_PLATFORM_KRB5HEADER)
 
 AC_SUBST(USE_GSSAPI)
 AC_SUBST(DST_GSSAPI_INC)
@@ -818,7 +862,7 @@ AC_SUBST(DNS_CRYPTO_LIBS)
 #
 AC_MSG_CHECKING(for random device)
 AC_ARG_WITH(randomdev,
-[  --with-randomdev=PATH Specify path for random device],
+[  --with-randomdev=PATH   Specify path for random device],
     use_randomdev="$withval", use_randomdev="unspec")
 
 case "$use_randomdev" in
@@ -900,6 +944,8 @@ then
 	fi
 	ALWAYS_DEFINES="-D_REENTRANT"
 	ISC_PLATFORM_USETHREADS="#define ISC_PLATFORM_USETHREADS 1"
+	THREADOPTOBJS='${THREADOPTOBJS}'
+	THREADOPTSRCS='${THREADOPTSRCS}'
 	thread_dir=pthreads
 	#
 	# We'd like to use sigwait() too
@@ -978,11 +1024,15 @@ then
 else
 	ISC_PLATFORM_USETHREADS="#undef ISC_PLATFORM_USETHREADS"
 	thread_dir=nothreads
+	THREADOPTOBJS=""
+	THREADOPTSRCS=""
 	ALWAYS_DEFINES=""
 fi
 
 AC_SUBST(ALWAYS_DEFINES)
 AC_SUBST(ISC_PLATFORM_USETHREADS)
+AC_SUBST(THREADOPTOBJS)
+AC_SUBST(THREADOPTSRCS)
 ISC_THREAD_DIR=$thread_dir
 AC_SUBST(ISC_THREAD_DIR)
 
@@ -991,7 +1041,7 @@ AC_SUBST(ISC_THREAD_DIR)
 #
 AC_MSG_CHECKING(for libxml2 library)
 AC_ARG_WITH(libxml2,
-[  --with-libxml2[=PATH]   Build with libxml2 library [yes|no|path]],
+[  --with-libxml2[=PATH]     Build with libxml2 library [yes|no|path]],
     use_libxml2="$withval", use_libxml2="auto")
 
 case "$use_libxml2" in
@@ -1078,7 +1128,7 @@ IRIX_DNSSEC_WARNINGS_HACK=""
 if test "X$GCC" = "Xyes"; then
 	AC_MSG_CHECKING(if "$CC" supports -fno-strict-aliasing)
 	SAVE_CFLAGS=$CFLAGS
-	CFLAGS=-fno-strict-aliasing
+	CFLAGS="$CFLAGS -fno-strict-aliasing"
 	AC_TRY_COMPILE(,, [FNOSTRICTALIASING=yes],[FNOSTRICTALIASING=no])
 	CFLAGS=$SAVE_CFLAGS
 	if test "$FNOSTRICTALIASING" = "yes"; then
@@ -1155,7 +1205,6 @@ AC_CHECK_FUNC(catgets, AC_DEFINE(HAVE_CATGETS),)
 #
 # AC_CHECK_LIB(xnet, socket, ,
 #    AC_CHECK_LIB(socket, socket)
-#    AC_CHECK_LIB(nsl, inet_ntoa)
 # )
 #
 # Use this for now, instead:
@@ -1163,9 +1212,11 @@ AC_CHECK_FUNC(catgets, AC_DEFINE(HAVE_CATGETS),)
 case "$host" in
 	mips-sgi-irix*)
 		;;
+	*-linux*)
+		;;
 	*)
 		AC_CHECK_LIB(socket, socket)
-		AC_CHECK_LIB(nsl, inet_ntoa)
+		AC_CHECK_LIB(nsl, inet_addr)
 		;;
 esac
 
@@ -1184,7 +1235,7 @@ esac
 #
 AC_MSG_CHECKING(whether to use purify)
 AC_ARG_WITH(purify,
-	[  --with-purify[=PATH]	use Rational purify],
+	[  --with-purify[=PATH]      use Rational purify],
 	use_purify="$withval", use_purify="no")
 
 case "$use_purify" in
@@ -1221,19 +1272,9 @@ esac
 
 AC_SUBST(PURIFY)
 
-#
-# GNU libtool support
-#
-case $build_os in
-sunos*)
-    # Just set the maximum command line length for sunos as it otherwise
-    # takes a exceptionally long time to work it out. Required for libtool.
-    lt_cv_sys_max_cmd_len=4096;
-    ;;
-esac
 
 AC_ARG_WITH(libtool,
-	    [  --with-libtool	use GNU libtool (following indented options supported)],
+	    [  --with-libtool          use GNU libtool],
 	    use_libtool="$withval", use_libtool="no")
 
 case $use_libtool in
@@ -1285,14 +1326,14 @@ AC_SUBST(LIBTOOL_IN_MAIN)
 
 #
 # Here begins a very long section to determine the system's networking
-# capabilities.  The order of the tests is signficant.
+# capabilities.  The order of the tests is significant.
 #
 
 #
 # IPv6
 #
 AC_ARG_ENABLE(ipv6,
-	[  --enable-ipv6		use IPv6 [default=autodetect]])
+	[  --enable-ipv6           use IPv6 [default=autodetect]])
 
 case "$enable_ipv6" in
 	yes|''|autodetect)
@@ -1323,7 +1364,7 @@ AC_TRY_COMPILE([
 #
 AC_MSG_CHECKING(for Kame IPv6 support)
 AC_ARG_WITH(kame,
-	[  --with-kame[=PATH]	use Kame IPv6 [default path /usr/local/v6]],
+	[  --with-kame[=PATH]	  use Kame IPv6 [default path /usr/local/v6]],
 	use_kame="$withval", use_kame="no")
 
 case "$use_kame" in
@@ -1569,10 +1610,8 @@ char a[16],b[64]; return(inet_ntop(AF_INET6, a, b, sizeof(b)) == (char*)0);}],
 	ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_ntop.$O"
 	ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_ntop.c"
 	ISC_PLATFORM_NEEDNTOP="#define ISC_PLATFORM_NEEDNTOP 1"],
-	[AC_MSG_RESULT(assuming inet_ntop needed)
-	ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_ntop.$O"
-	ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_ntop.c"
-	ISC_PLATFORM_NEEDNTOP="#define ISC_PLATFORM_NEEDNTOP 1"])
+	[AC_MSG_RESULT(assuming inet_ntop not needed)
+	ISC_PLATFORM_NEEDNTOP="#undef ISC_PLATFORM_NEEDNTOP"])
 
 
 # On NetBSD 1.4.2 and maybe others, inet_pton() incorrectly accepts
@@ -1594,32 +1633,13 @@ main() { char a[16]; return (inet_pton(AF_INET, "1.2.3", a) == 1 ? 1 :
 	ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_pton.$O"
 	ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_pton.c"
 	ISC_PLATFORM_NEEDPTON="#define ISC_PLATFORM_NEEDPTON 1"],
-	[AC_MSG_RESULT(assuming target platform has working inet_pton)
-	ISC_PLATFORM_NEEDPTON="#undef ISC_PLATFORM_NEEDPTON"],
 	[AC_MSG_RESULT(assuming inet_pton needed)
 	ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_pton.$O"
 	ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_pton.c"
-	ISC_PLATFORM_NEEDPTON="#define ISC_PLATFORM_NEEDPTON 1"],
-	[AC_MSG_RESULT(assuming target platform has working inet_pton)
-	ISC_PLATFORM_NEEDPTON="#undef ISC_PLATFORM_NEEDPTON"])
-
-AC_MSG_CHECKING([for inet_aton])
-AC_TRY_LINK([
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>],
-	[struct in_addr in; inet_aton(0, &in); return (0);],
-	[AC_MSG_RESULT(yes)
-	ISC_PLATFORM_NEEDATON="#undef ISC_PLATFORM_NEEDATON"],
-
-	[AC_MSG_RESULT(no)
-	ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_aton.$O"
-	ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_aton.c"
-	ISC_PLATFORM_NEEDATON="#define ISC_PLATFORM_NEEDATON 1"])
+	ISC_PLATFORM_NEEDPTON="#define ISC_PLATFORM_NEEDPTON 1"])
 
 AC_SUBST(ISC_PLATFORM_NEEDNTOP)
 AC_SUBST(ISC_PLATFORM_NEEDPTON)
-AC_SUBST(ISC_PLATFORM_NEEDATON)
 
 #
 # Look for a 4.4BSD-style sa_len member in struct sockaddr.
@@ -1788,7 +1808,7 @@ AC_SUBST(ISC_LWRES_GETADDRINFOPROTO)
 AC_SUBST(ISC_LWRES_GETNAMEINFOPROTO)
 
 AC_ARG_ENABLE(getifaddrs,
-[  --enable-getifaddrs    Enable the use of getifaddrs() [[yes|no]].],
+[  --enable-getifaddrs     Enable the use of getifaddrs() [[yes|no]].],
     want_getifaddrs="$enableval",  want_getifaddrs="yes")
 
 #
@@ -1910,7 +1930,7 @@ AC_SUBST(ISC_EXTRA_SRCS)
 # Use our own SPNEGO implementation?
 #
 AC_ARG_ENABLE(isc-spnego,
-	[  --disable-isc-spnego		use SPNEGO from GSSAPI library])
+	[  --disable-isc-spnego    use SPNEGO from GSSAPI library])
 
 if test -n "$USE_GSSAPI"
 then
@@ -1936,7 +1956,7 @@ AC_SUBST(DST_EXTRA_SRCS)
 # values of type isc_int64_t. This will normally be "ll", but where
 # the compiler treats "long long" as a alias for "long" and printf
 # doesn't know about "long long" use "l".  Hopefully the sprintf
-# will produce a inconsistant result in the later case.  If the compiler
+# will produce a inconsistent result in the later case.  If the compiler
 # fails due to seeing "%lld" we fall back to "l".
 #
 # Digital Unix 4.0 (gcc?) (long long) is 64 bits as is its long. It uses
@@ -1972,9 +1992,19 @@ AC_SUBST(LWRES_PLATFORM_QUADFORMAT)
 #
 # Security Stuff
 #
-AC_CHECK_FUNC(chroot, AC_DEFINE(HAVE_CHROOT))
+# Note it is very recommended to *not* disable chroot(),
+# this is only because chroot() was made obsolete by Posix.
+AC_ARG_ENABLE(chroot,
+	[  --disable-chroot        disable chroot])
+case "$enable_chroot" in
+	yes|'')
+		AC_CHECK_FUNCS(chroot)
+		;;
+	no)
+		;;
+esac
 AC_ARG_ENABLE(linux-caps,
-	[  --disable-linux-caps	disable linux capabilities])
+	[  --disable-linux-caps	  disable linux capabilities])
 case "$enable_linux_caps" in
 	yes|'')
 		AC_CHECK_HEADERS(linux/capability.h sys/capability.h)
@@ -2008,7 +2038,7 @@ esac
 #
 AC_CHECK_FUNC(tzset, AC_DEFINE(HAVE_TZSET))
 
-AC_MSG_CHECKING(for optarg decarartion)
+AC_MSG_CHECKING(for optarg declaration)
 AC_TRY_COMPILE([
 #include <unistd.h>
 ],
@@ -2059,8 +2089,9 @@ ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE long long int"],
 ],[AC_MSG_ERROR(this cannot happen)])
 ],[AC_MSG_ERROR(this cannot happen)])
 ],[
-ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE long long int"
-AC_MSG_RESULT(cannot determine type of rlim_cur when cross compiling - assuming long long int)])
+AC_ARG_WITH(rlimtype, , rlimtype="$withval", rlimtype="long long int")
+ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE $rlimtype"
+AC_MSG_RESULT(cannot determine type of rlim_cur when cross compiling - assuming $rlimtype)])
 ])
 AC_SUBST(ISC_PLATFORM_RLIMITTYPE)
 
@@ -2135,7 +2166,7 @@ case "$host" in
 		hack_shutup_pthreadonceinit=yes
 		;;
 	*-solaris2.1[[0-9]])
-		hack_shutup_pthreadonceinit=yes
+		AC_TRY_COMPILE([ #include <pthread.h> ], [ static pthread_once_t once_test = { PTHREAD_ONCE_INIT }; ], [hack_shutup_pthreadonceinit=yes], )
 		;;
 esac
 
@@ -2207,17 +2238,51 @@ yes)
 esac
 AC_SUBST(ISC_PLATFORM_HAVEIFNAMETOINDEX)
 
+AC_CHECK_FUNCS(nanosleep)
+
 #
 # Machine architecture dependent features
 #
 AC_ARG_ENABLE(atomic,
-	[  --enable-atomic	enable machine specific atomic operations
-			[[default=autodetect]]],
+	[  --enable-atomic	  enable machine specific atomic operations
+			  [[default=autodetect]]],
 			enable_atomic="$enableval",
 			enable_atomic="autodetect")
 case "$enable_atomic" in
 	yes|''|autodetect)
-		use_atomic=yes
+		case "$host" in
+		powerpc-ibm-aix*)
+			if test "X$GCC" = "Xyes"; then
+				AC_MSG_CHECKING([if asm("isc"); works])
+				AC_TRY_COMPILE(,[
+				main() { asm("ics"); exit(0); }
+				],
+				[AC_MSG_RESULT(yes)
+				 use_atomic=yes],
+				[
+				saved_cflags="$CFLAGS"
+				CFLAGS="$CFLAGS -Wa,-many"
+				AC_TRY_RUN([
+				main() { asm("ics"); exit(0); }
+				],
+				[AC_MSG_RESULT([yes, required -Wa,-many])
+				 use_atomic=yes],
+				[AC_MSG_RESULT([no, use_atomic disabled])
+				 CFLAGS="$saved_cflags"
+				 use_atomic=no],
+				[AC_MSG_RESULT([cross compile, assume yes])
+				 CFLAGS="$saved_cflags"
+				 use_atomic=yes])
+				]
+				)
+			else
+				use_atomic=yes
+			fi
+			;;
+		*)
+			use_atomic=yes
+			;;
+		esac
 		;;
 	no)
 		use_atomic=no
@@ -2233,24 +2298,27 @@ if test "$use_atomic" = "yes"; then
 	[i[3456]86-*])
 		# XXX: some old x86 architectures actually do not support
 		#      (some of) these operations.  Do we need stricter checks?
-AC_TRY_RUN([
-main() {
-	exit((sizeof(void *) == 8) ? 0 : 1);
-}
-],
-		[arch=x86_64
-		have_xaddq=yes],
-		[arch=x86_32],
-		[arch=x86_32])
+                AC_CHECK_SIZEOF([void *])
+		if test $ac_cv_sizeof_void_p = 8; then
+			arch=x86_64
+			have_xaddq=yes
+		else
+			arch=x86_32
+		fi
 	;;
-	x86_64-*)
-		have_xaddq=yes
-		arch=x86_64
+	x86_64-*|amd64-*)
+                AC_CHECK_SIZEOF([void *])
+		if test $ac_cv_sizeof_void_p = 8; then
+			arch=x86_64
+			have_xaddq=yes
+		else
+			arch=x86_32
+		fi
 	;;
 	alpha*-*)
 		arch=alpha
 	;;
-	powerpc-*)
+	powerpc-*|powerpc64-*)
 		arch=powerpc
 	;;
 	mips-*|mipsel-*|mips64-*|mips64el-*)
@@ -2350,9 +2418,9 @@ else
 fi
 
 if test "$have_xaddq" = "yes"; then
-        ISC_PLATFORM_HAVEXADDQ="#define ISC_PLATFORM_HAVEXADDQ 1"
+	ISC_PLATFORM_HAVEXADDQ="#define ISC_PLATFORM_HAVEXADDQ 1"
 else
-        ISC_PLATFORM_HAVEXADDQ="#undef ISC_PLATFORM_HAVEXADDQ"
+	ISC_PLATFORM_HAVEXADDQ="#undef ISC_PLATFORM_HAVEXADDQ"
 fi
 
 AC_SUBST(ISC_PLATFORM_HAVEXADD)
@@ -2372,14 +2440,14 @@ AC_SUBST(ISC_ARCH_DIR)
 # Activate "rrset-order fixed" or not?
 #
 AC_ARG_ENABLE(fixed-rrset,
-	[  --enable-fixed-rrset        enable fixed rrset ordering
-			[[default=no]]],
+	[  --enable-fixed-rrset    enable fixed rrset ordering
+			  [[default=no]]],
 			enable_fixed="$enableval",
 			enable_fixed="no")
 case "$enable_fixed" in
 	yes)
 		AC_DEFINE(DNS_RDATASET_FIXED, 1,
-                          [Define to enable "rrset-order fixed" syntax.])
+			  [Define to enable "rrset-order fixed" syntax.])
 		;;
 	no)
 		;;
@@ -2499,7 +2567,7 @@ AC_SUBST($1)
 #
 AC_MSG_CHECKING(for Docbook-XSL path)
 AC_ARG_WITH(docbook-xsl,
-[  --with-docbook-xsl=PATH    Specify path for Docbook-XSL stylesheets],
+[  --with-docbook-xsl=PATH Specify path for Docbook-XSL stylesheets],
    docbook_path="$withval", docbook_path="auto")
 case "$docbook_path" in
 auto)
@@ -2567,7 +2635,7 @@ AC_SUBST(XSLT_DB2LATEX_ADMONITIONS)
 # IDN support
 #
 AC_ARG_WITH(idn,
-	[  --with-idn[=MPREFIX]   enable IDN support using idnkit [default PREFIX]],
+	[  --with-idn[=MPREFIX]      enable IDN support using idnkit [default PREFIX]],
 	use_idn="$withval", use_idn="no")
 case "$use_idn" in
 yes)
@@ -2587,7 +2655,7 @@ esac
 iconvinc=
 iconvlib=
 AC_ARG_WITH(libiconv,
-	[  --with-libiconv[=IPREFIX]   GNU libiconv are in IPREFIX [default PREFIX]],
+	[  --with-libiconv[=IPREFIX] GNU libiconv are in IPREFIX [default PREFIX]],
 	use_libiconv="$withval", use_libiconv="no")
 case "$use_libiconv" in
 yes)
@@ -2606,7 +2674,7 @@ no)
 esac
 
 AC_ARG_WITH(iconv,
-	[  --with-iconv[=LIBSPEC]   specify iconv library [default -liconv]],
+	[  --with-iconv[=LIBSPEC]    specify iconv library [default -liconv]],
 	iconvlib="$withval")
 case "$iconvlib" in
 no)
@@ -2618,7 +2686,7 @@ yes)
 esac
 
 AC_ARG_WITH(idnlib,
-	[  --with-idnlib=ARG    specify libidnkit],
+	[  --with-idnlib=ARG       specify libidnkit],
 	idnlib="$withval", idnlib="no")
 if test "$idnlib" = yes; then
 	AC_MSG_ERROR([You must specify ARG for --with-idnlib.])
@@ -2635,6 +2703,34 @@ if test "$use_idn" != no; then
 	fi
 fi
 AC_SUBST(IDNLIBS)
+
+#
+# Check whether to build Automated Test Framework unit tests
+#
+AC_ARG_WITH(atf,
+	[  --with-atf=ARG       Automated Test Framework support],
+	atf="$withval", atf="no")
+if test "$atf" = yes; then
+	atf=`pwd`/unit/atf
+	ATFBUILD=atf-src
+	AC_SUBST(ATFBUILD)
+	AC_CONFIG_COMMANDS([atf-config],
+		[cd unit/atf-src; ${SHELL} ./configure MISSING=: --prefix $atfdir; cd ../..],
+		[atfdir=`pwd`/unit/atf])
+	AC_MSG_RESULT(building ATF from bind9/unit/atf-src)
+fi
+
+ATFLIBS=
+if test "$atf" != no; then
+	AC_DEFINE(ATF_TEST, 1, [define if ATF unit tests are to be built.])
+	STD_CINCLUDES="$STD_CINCLUDES -I$atf/include"
+	ATFBIN="$atf/bin"
+	ATFLIBS="-L$atf/lib -latf-c"
+	UNITTESTS=tests
+fi
+AC_SUBST(ATFBIN)
+AC_SUBST(ATFLIBS)
+AC_SUBST(UNITTESTS)
 
 AC_CHECK_HEADERS(locale.h)
 AC_CHECK_FUNCS(setlocale)
@@ -2674,7 +2770,7 @@ AC_SUBST_FILE(BIND9_MAKE_RULES)
 BIND9_MAKE_RULES=$BIND9_TOP_BUILDDIR/make/rules
 
 . $srcdir/version
-BIND9_VERSION="VERSION=${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}"
+BIND9_VERSION="VERSION=${MAJORVER}.${MINORVER}${PATCHVER:+.}${PATCHVER}${RELEASETYPE}${RELEASEVER}"
 AC_SUBST(BIND9_VERSION)
 
 if test -z "$ac_configure_args"; then
@@ -2723,6 +2819,7 @@ DLZ_DRIVER_INCLUDES=""
 DLZ_DRIVER_LIBS=""
 DLZ_DRIVER_SRCS=""
 DLZ_DRIVER_OBJS=""
+DLZ_SYSTEM_TEST=""
 
 sinclude(contrib/dlz/config.dlz.in)
 
@@ -2744,6 +2841,7 @@ AC_SUBST(DLZ_DRIVER_INCLUDES)
 AC_SUBST(DLZ_DRIVER_LIBS)
 AC_SUBST(DLZ_DRIVER_SRCS)
 AC_SUBST(DLZ_DRIVER_OBJS)
+AC_SUBST(DLZ_SYSTEM_TEST)
 AC_SUBST_FILE(DLZ_DRIVER_RULES)
 
 if test "$cross_compiling" = "yes"; then
@@ -2900,6 +2998,7 @@ AC_CONFIG_FILES([
 	lib/dns/include/Makefile
 	lib/dns/include/dns/Makefile
 	lib/dns/include/dst/Makefile
+	lib/dns/tests/Makefile
 	lib/bind9/Makefile
 	lib/bind9/include/Makefile
 	lib/bind9/include/bind9/Makefile
@@ -2915,6 +3014,8 @@ AC_CONFIG_FILES([
 	lib/tests/Makefile
 	lib/tests/include/Makefile
 	lib/tests/include/tests/Makefile
+	unit/Makefile
+	unit/unittest.sh
 	bin/Makefile
 	bin/check/Makefile
 	bin/named/Makefile
@@ -2932,10 +3033,12 @@ AC_CONFIG_FILES([
 	bin/tests/timers/Makefile
 	bin/tests/dst/Makefile
 	bin/tests/mem/Makefile
+	bin/tests/hashes/Makefile
 	bin/tests/net/Makefile
 	bin/tests/sockaddr/Makefile
 	bin/tests/system/Makefile
 	bin/tests/system/conf.sh
+	bin/tests/system/dlz/prereq.sh
 	bin/tests/system/lwresd/Makefile
 	bin/tests/system/tkey/Makefile
 	bin/tests/headerdep_test.sh
@@ -2959,6 +3062,24 @@ AC_CONFIG_FILES([
 #
 
 AC_OUTPUT
+
+#
+# Now that the Makefiles exist we can ensure that everything is rebuilt.
+#
+AC_ARG_WITH(make-clean,
+[  --with-make-clean      Run "make clean" at end of configure [[yes|no]].],
+    make_clean="$withval", make_clean="yes")
+case "$make_clean" in
+yes)
+	make clean
+	;;
+esac
+
+if test "X$USE_OPENSSL" = "X"; then
+cat << \EOF                                                             
+BIND is being built without OpenSSL. This means it will not have DNSSEC support.
+EOF
+fi
 
 if test "X$OPENSSL_WARNING" != "X"; then
 cat << \EOF

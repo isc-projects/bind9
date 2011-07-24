@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.199 2008/09/24 02:46:22 marka Exp $ */
+/* $Id: rdata.c,v 1.199.50.6 2011/03/11 10:49:55 marka Exp $ */
 
 /*! \file */
 
@@ -693,6 +693,7 @@ rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	if (use_default) {
 		strlcpy(buf, "\\# ", sizeof(buf));
 		result = str_totext(buf, target);
+		INSIST(result == ISC_R_SUCCESS);
 		dns_rdata_toregion(rdata, &sr);
 		INSIST(sr.length < 65536);
 		snprintf(buf, sizeof(buf), "%u", sr.length);
@@ -735,7 +736,7 @@ dns_rdata_totext(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target)
 isc_result_t
 dns_rdata_tofmttext(dns_rdata_t *rdata, dns_name_t *origin,
 		    unsigned int flags, unsigned int width,
-		    char *linebreak, isc_buffer_t *target)
+		    const char *linebreak, isc_buffer_t *target)
 {
 	dns_rdata_textctx_t tctx;
 
@@ -948,6 +949,9 @@ dns_rdatatype_format(dns_rdatatype_t rdtype,
 	isc_result_t result;
 	isc_buffer_t buf;
 
+	if (size == 0U)
+		return;
+
 	isc_buffer_init(&buf, array, size);
 	result = dns_rdatatype_totext(rdtype, &buf);
 	/*
@@ -959,10 +963,8 @@ dns_rdatatype_format(dns_rdatatype_t rdtype,
 		else
 			result = ISC_R_NOSPACE;
 	}
-	if (result != ISC_R_SUCCESS) {
-		snprintf(array, size, "<unknown>");
-		array[size - 1] = '\0';
-	}
+	if (result != ISC_R_SUCCESS)
+		strlcpy(array, "<unknown>", size);
 }
 
 /*
@@ -1133,6 +1135,11 @@ name_prefix(dns_name_t *name, dns_name_t *origin, dns_name_t *target) {
 	l2 = dns_name_countlabels(origin);
 
 	if (l1 == l2)
+		goto return_false;
+
+	/* Master files should be case preserving. */
+	dns_name_getlabelsequence(name, l1 - l2, l2, target);
+	if (!dns_name_caseequal(origin, target))
 		goto return_false;
 
 	dns_name_getlabelsequence(name, 0, l1 - l2, target);

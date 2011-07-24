@@ -31,6 +31,7 @@ isc__mem_free
 isc__mem_get
 isc__mem_put
 isc__mem_putanddetach
+isc__mem_reallocate
 isc__mem_strdup
 isc__mempool_get
 isc__mempool_put
@@ -113,6 +114,7 @@ isc_file_getmodtime
 isc_file_isabsolute
 isc_file_ischdiridempotent
 isc_file_iscurrentdir
+isc_file_isplainfile
 isc_file_mktemplate
 isc_file_openunique
 isc_file_progname
@@ -261,6 +263,7 @@ isc_mem_getname
 isc_mem_getquota
 isc_mem_gettag
 isc_mem_inuse
+isc_mem_isovermem
 isc_mem_ondestroy
 isc_mem_references
 isc_mem_setdestroycheck
@@ -382,14 +385,17 @@ isc_sha1_update
 isc_sha224_final
 isc_sha224_init
 isc_sha224_update
+isc_sha256_data
 isc_sha256_final
 isc_sha256_init
+isc_sha256_invalidate
 isc_sha256_update
 isc_sha384_final
 isc_sha384_init
 isc_sha384_update
 isc_sha512_final
 isc_sha512_init
+isc_sha512_invalidate
 isc_sha512_update
 isc_sockaddr_any
 isc_sockaddr_any6
@@ -444,6 +450,14 @@ isc_socketmgr_create
 isc_socketmgr_create2
 isc_socketmgr_destroy
 isc_socketmgr_getmaxsockets
+isc_socketmgr_setstats
+isc_stats_attach
+isc_stats_create
+isc_stats_decrement
+isc_stats_detach
+isc_stats_dump
+isc_stats_increment
+isc_stats_ncounters
 isc_stdio_close
 isc_stdio_flush
 isc_stdio_open

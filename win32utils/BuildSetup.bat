@@ -60,6 +60,8 @@ copy ..\bin\nsupdate\*.html ..\Build\Release
 copy ..\bin\check\*.html ..\Build\Release
 copy ..\bin\dnssec\dnssec-keygen.html ..\Build\Release
 copy ..\bin\dnssec\dnssec-signzone.html ..\Build\Release
+copy ..\bin\dnssec\dnssec-dsfromkey.html ..\Build\Release
+copy ..\bin\dnssec\dnssec-keyfromlabel.html ..\Build\Release
 
 echo Copying the migration notes.
 

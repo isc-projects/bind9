@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: peer.h,v 1.33 2008/04/03 06:09:05 tbox Exp $ */
+/* $Id: peer.h,v 1.33.118.2 2009/01/18 23:47:41 tbox Exp $ */
 
 #ifndef DNS_PEER_H
 #define DNS_PEER_H 1
@@ -78,7 +78,7 @@ struct dns_peer {
 	isc_sockaddr_t	       *transfer_source;
 	isc_sockaddr_t	       *notify_source;
 	isc_sockaddr_t	       *query_source;
-	isc_uint16_t		udpsize;		/* recieve size */
+	isc_uint16_t		udpsize;		/* receive size */
 	isc_uint16_t		maxudp;			/* transmit size */
 
 	isc_uint32_t		bitflags;

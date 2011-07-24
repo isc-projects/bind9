@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.82 2008/07/22 03:43:04 marka Exp $ */
+/* $Id: request.c,v 1.82.72.4 2011/03/12 04:57:27 tbox Exp $ */
 
 /*! \file */
 
@@ -95,7 +95,7 @@ struct dns_request {
 #define DNS_REQUEST_F_SENDING 0x0002
 #define DNS_REQUEST_F_CANCELED 0x0004	/*%< ctlevent received, or otherwise
 					   synchronously canceled */
-#define DNS_REQUEST_F_TIMEDOUT 0x0008	/*%< cancelled due to a timeout */
+#define DNS_REQUEST_F_TIMEDOUT 0x0008	/*%< canceled due to a timeout */
 #define DNS_REQUEST_F_TCP 0x0010	/*%< This request used TCP */
 #define DNS_REQUEST_CANCELED(r) \
 	(((r)->flags & DNS_REQUEST_F_CANCELED) != 0)
@@ -197,7 +197,7 @@ dns_requestmgr_create(isc_mem_t *mctx,
 		dns_dispatch_attach(dispatchv6, &requestmgr->dispatchv6);
 	requestmgr->mctx = NULL;
 	isc_mem_attach(mctx, &requestmgr->mctx);
-	requestmgr->eref = 1;	/* implict attach */
+	requestmgr->eref = 1;	/* implicit attach */
 	requestmgr->iref = 0;
 	ISC_LIST_INIT(requestmgr->whenshutdown);
 	ISC_LIST_INIT(requestmgr->requests);
@@ -428,12 +428,10 @@ req_send(dns_request_t *request, isc_task_t *task, isc_sockaddr_t *address) {
 	isc_region_t r;
 	isc_socket_t *socket;
 	isc_result_t result;
-	unsigned int dispattr;
 
 	req_log(ISC_LOG_DEBUG(3), "req_send: request %p", request);
 
 	REQUIRE(VALID_REQUEST(request));
-	dispattr = dns_dispatch_getattributes(request->dispatch);
 	socket = req_getsocket(request);
 	isc_buffer_usedregion(request->query, &r);
 	/*

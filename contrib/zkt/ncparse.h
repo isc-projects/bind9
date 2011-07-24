@@ -37,5 +37,5 @@
 
 #ifndef NCPARSE_H
 # define NCPARSE_H
-extern	int	parse_namedconf (const char *filename, char *dir, size_t dirsize, int (*func) ());
+extern	int	parse_namedconf (const char *filename, const char *chroot_dir, char *dir, size_t dirsize, int (*func) ());
 #endif

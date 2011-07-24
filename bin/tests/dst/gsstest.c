@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006, 2007, 2011  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gsstest.c,v 1.6 2007/06/19 23:47:00 tbox Exp $ */
+/* $Id: gsstest.c,v 1.6.332.2 2011/03/28 23:45:57 tbox Exp $ */
 
 #include <config.h>
 
@@ -101,23 +101,23 @@ console(isc_task_t *task, isc_event_t *event)
 
 	isc_event_free(&event);
 
-	while(1) {
+	for (;;) {
 		printf("\nCommand => ");
 		scanf("%s", buf);
 
-		if(strcmp(buf, "quit") == 0) {
+		if (strcmp(buf, "quit") == 0) {
 			isc_app_shutdown();
 			return;
 		}
 
-		if(strcmp(buf, "initctx") == 0) {
+		if (strcmp(buf, "initctx") == 0) {
 			ev = isc_event_allocate(mctx, (void *)1, 1, initctx1,
 						NULL, sizeof(*event));
 			isc_task_send(task, &ev);
 			return;
 		}
 
-		if(strcmp(buf, "query") == 0) {
+		if (strcmp(buf, "query") == 0) {
 			ev = isc_event_allocate(mctx, (void *)1, 1, sendquery,
 						NULL, sizeof(*event));
 			isc_task_send(task, &ev);
@@ -175,7 +175,7 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 end:
 	if (query)
 		dns_message_destroy(&query);
-	
+
 	if (reqev->request)
 		dns_request_destroy(&reqev->request);
 
@@ -184,7 +184,7 @@ end:
 	event = isc_event_allocate(mctx, (void *)1, 1, console, NULL,
 				   sizeof(*event));
 	isc_task_send(task, &event);
-	return;		
+	return;
 }
 
 
@@ -202,7 +202,7 @@ sendquery(isc_task_t *task, isc_event_t *event)
 	char output[10 * 1024];
 
 	static char host[256];
-	
+
 	isc_event_free(&event);
 
 	printf("Query => ");
@@ -314,7 +314,7 @@ initctx2(isc_task_t *task, isc_event_t *event) {
 	rdataset = ISC_LIST_HEAD(question_name->list);
 	INSIST(rdataset != NULL);
 	qtype = rdataset->type;
-	if(qtype == dns_rdatatype_tkey) {
+	if (qtype == dns_rdatatype_tkey) {
 		printf("Received TKEY response from server\n");
 		printf("Context completed\n");
 	} else {
@@ -324,18 +324,18 @@ initctx2(isc_task_t *task, isc_event_t *event) {
 		tsigkey = NULL;
 	}
 
-	if(response)
+	if (response)
 		dns_message_destroy(&response);
 
 end:
-	if(query)
+	if (query)
 		dns_message_destroy(&query);
 
-	if(reqev->request)
+	if (reqev->request)
 		dns_request_destroy(&reqev->request);
 
 	isc_event_free(&event);
-	
+
 	event = isc_event_allocate(mctx, (void *)1, 1, console, NULL,
 				   sizeof(*event));
 	isc_task_send(task, &event);
@@ -357,14 +357,14 @@ initctx1(isc_task_t *task, isc_event_t *event) {
 	sprintf(contextname, "gsstest.context.%d.", (int)time(NULL));
 
 	printf("Initctx - context name we're using: %s\n", contextname);
-	
+
 	printf("Negotiating GSSAPI context: ");
 	printf(gssid);
 	printf("\n");
 
 	/*
 	 * Setup a GSSAPI context with the server
-	 */ 
+	 */
 	dns_fixedname_init(&servername);
 	isc_buffer_init(&buf, contextname, strlen(contextname));
 	isc_buffer_add(&buf, strlen(contextname));
@@ -372,7 +372,7 @@ initctx1(isc_task_t *task, isc_event_t *event) {
 				   dns_rootname, ISC_FALSE, NULL);
 	CHECK("dns_name_fromtext", result);
 
-	/* Make name happen */	
+	/* Make name happen */
 	dns_fixedname_init(&gssname);
 	isc_buffer_init(&buf, gssid, strlen(gssid));
 	isc_buffer_add(&buf, strlen(gssid));
@@ -410,11 +410,11 @@ setup(void)
 	struct in_addr inaddr;
 	int c;
 
-	while (1) {
+	for (;;) {
 		printf("Server IP => ");
 		c = scanf("%s", serveraddress);
 
-		if(c == EOF || strcmp(serveraddress, "quit") == 0) {
+		if (c == EOF || strcmp(serveraddress, "quit") == 0) {
 			isc_app_shutdown();
 			return;
 		}
@@ -423,8 +423,8 @@ setup(void)
 			isc_sockaddr_fromin(&address, &inaddr, PORT);
 			return;
 		}
-	
-	};
+
+	}
 }
 
 int
@@ -446,7 +446,7 @@ main(int argc, char *argv[]) {
 
 	UNUSED(argv);
 	UNUSED(argc);
-	
+
 	RUNCHECK(isc_app_start());
 
 	dns_result_register();
@@ -519,7 +519,7 @@ main(int argc, char *argv[]) {
 				   &sock));
 
 	setup();
-	
+
 	RUNCHECK(isc_app_onrun(mctx, task, console, NULL));
 
 	(void)isc_app_run();
@@ -529,10 +529,10 @@ main(int argc, char *argv[]) {
 
 	dns_requestmgr_shutdown(requestmgr);
 	dns_requestmgr_detach(&requestmgr);
-	
+
 	dns_dispatch_detach(&dispatchv4);
 	dns_dispatchmgr_destroy(&dispatchmgr);
-	
+
 	isc_timermgr_destroy(&timermgr);
 
 	isc_task_detach(&task);

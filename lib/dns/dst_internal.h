@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2008, 2010  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_internal.h,v 1.11 2008/04/01 23:47:10 tbox Exp $ */
+/* $Id: dst_internal.h,v 1.11.120.3 2010/12/09 01:12:55 marka Exp $ */
 
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1
@@ -41,7 +41,9 @@
 #include <isc/region.h>
 #include <isc/types.h>
 #include <isc/md5.h>
+#include <isc/refcount.h>
 #include <isc/sha1.h>
+#include <isc/sha2.h>
 #include <isc/hmacmd5.h>
 #include <isc/hmacsha.h>
 
@@ -82,6 +84,7 @@ typedef struct dst_hmacsha512_key dst_hmacsha512_key_t;
 /*% DST Key Structure */
 struct dst_key {
 	unsigned int	magic;
+	isc_refcount_t	refs;
 	dns_name_t *	key_name;	/*%< name of the key */
 	unsigned int	key_size;	/*%< size of the key in bits */
 	unsigned int	key_proto;	/*%< protocols this key is used for */
@@ -97,7 +100,7 @@ struct dst_key {
 		void *generic;
 		gss_ctx_id_t gssctx;
 #ifdef OPENSSL
-#if USE_EVP_RSA
+#if !defined(USE_EVP) || !USE_EVP
 		RSA *rsa;
 #endif
 		DSA *dsa;
@@ -124,6 +127,8 @@ struct dst_context {
 		dst_gssapi_signverifyctx_t *gssctx;
 		isc_md5_t *md5ctx;
 		isc_sha1_t *sha1ctx;
+		isc_sha256_t *sha256ctx;
+		isc_sha512_t *sha512ctx;
 		isc_hmacmd5_t *hmacmd5ctx;
 		isc_hmacsha1_t *hmacsha1ctx;
 		isc_hmacsha224_t *hmacsha224ctx;
@@ -183,7 +188,8 @@ isc_result_t dst__hmacsha224_init(struct dst_func **funcp);
 isc_result_t dst__hmacsha256_init(struct dst_func **funcp);
 isc_result_t dst__hmacsha384_init(struct dst_func **funcp);
 isc_result_t dst__hmacsha512_init(struct dst_func **funcp);
-isc_result_t dst__opensslrsa_init(struct dst_func **funcp);
+isc_result_t dst__opensslrsa_init(struct dst_func **funcp,
+				  unsigned char algorithm);
 isc_result_t dst__openssldsa_init(struct dst_func **funcp);
 isc_result_t dst__openssldh_init(struct dst_func **funcp);
 isc_result_t dst__gssapi_init(struct dst_func **funcp);

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2008, 2010, 2011  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: start.pl,v 1.13 2008/01/02 23:47:01 tbox Exp $
+# $Id: start.pl,v 1.13.176.8 2011/05/05 23:23:15 smann Exp $
 
 # Framework for starting test servers.
 # Based on the type of server specified, check for port availability, remove
@@ -33,6 +33,8 @@ use Getopt::Long;
 #   test - name of the test directory
 #   server - name of the server directory
 #   options - alternate options for the server
+#             NOTE: options must be specified with '-- "<option list>"',
+#              for instance: start.pl . ns1 -- "-c n.conf -d 43"
 
 my $usage = "usage: $0 [--noclean] test-directory [server-directory [server-options]]";
 my $noclean;
@@ -131,6 +133,10 @@ sub start_server {
 		} else {
 			$command .= "-m record,size,mctx ";
 			$command .= "-T clienttest ";
+			$command .= "-T nosoa " 
+				if (-e "$testdir/$server/named.nosoa");
+			$command .= "-T noaa " 
+				if (-e "$testdir/$server/named.noaa");
 			$command .= "-c named.conf -d 99 -g";
 		}
 		$command .= " >named.run 2>&1 &";
@@ -150,7 +156,11 @@ sub start_server {
 		$pid_file = "lwresd.pid";
 	} elsif ($server =~ /^ans/) {
 		$cleanup_files = "{ans.run}";
-		$command = "$PERL ./ans.pl ";
+                if (-e "$testdir/$server/ans.pl") {
+                        $command = "$PERL ans.pl";
+                } else {
+                        $command = "$PERL $topdir/ans.pl 10.53.0.$'";
+                }
 		if ($options) {
 			$command .= "$options";
 		} else {
@@ -173,13 +183,22 @@ sub start_server {
 		unlink glob $cleanup_files;
 	}
 
-	system "$command";
+	# get the shell to report the pid of the server ($!)
+	$command .= "echo \$!";
 
+	# start the server
+	my $child = `$command`;
+	$child =~ s/\s+$//g;
+
+	# wait up to 14 seconds for the server to start and to write the
+	# pid file otherwise kill this server and any others that have
+	# already been started
 	my $tries = 0;
-	while (!-f $pid_file) {
+	while (!-s $pid_file) {
 		if (++$tries > 14) {
-			print "I:Couldn't start server $server\n";
+			print "I:Couldn't start server $server (pid=$child)\n";
 			print "R:FAIL\n";
+			system "kill -9 $child" if ("$child" ne "");
 			system "$PERL $topdir/stop.pl $testdir";
 			exit 1;
 		}

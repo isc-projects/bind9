@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2007, 2008, 2010, 2011  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keyfromlabel.c,v 1.4 2008/09/24 02:46:21 marka Exp $ */
+/* $Id: dnssec-keyfromlabel.c,v 1.4.50.4 2011/03/12 04:57:22 tbox Exp $ */
 
 /*! \file */
 
@@ -48,7 +48,8 @@ const char *program = "dnssec-keyfromlabel";
 int verbose;
 
 static const char *algs = "RSA | RSAMD5 | DH | DSA | RSASHA1 |"
-			  " NSEC3DSA | NSEC3RSASHA1";
+			  " NSEC3DSA | NSEC3RSASHA1 |"
+			  " RSASHA256 | RSASHA512";
 
 static void
 usage(void) {
@@ -296,6 +297,9 @@ main(int argc, char **argv) {
 	if (ret == ISC_R_SUCCESS) {
 		isc_buffer_clear(&buf);
 		ret = dst_key_buildfilename(key, 0, NULL, &buf);
+		if (ret != ISC_R_SUCCESS)
+			fatal("dst_key_buildfilename returned: %s\n",
+			      isc_result_totext(ret));
 		fprintf(stderr, "%s: %s already exists\n",
 			program, filename);
 		dst_key_free(&key);
@@ -312,6 +316,9 @@ main(int argc, char **argv) {
 
 	isc_buffer_clear(&buf);
 	ret = dst_key_buildfilename(key, 0, NULL, &buf);
+	if (ret != ISC_R_SUCCESS)
+		fatal("dst_key_buildfilename returned: %s\n",
+		      isc_result_totext(ret));
 	printf("%s\n", filename);
 	dst_key_free(&key);
 

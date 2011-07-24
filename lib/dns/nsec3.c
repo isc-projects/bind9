@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006, 2008, 2009  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3.c,v 1.5 2008/09/26 01:24:55 marka Exp $ */
+/* $Id: nsec3.c,v 1.6.12.4 2009/11/03 23:47:46 tbox Exp $ */
 
 #include <config.h>
 
@@ -87,6 +87,8 @@ dns_nsec3_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 	unsigned int i, window;
 	int octet;
 	isc_boolean_t found;
+	isc_boolean_t found_ns;
+	isc_boolean_t need_rrsig;
 
 	unsigned char *nsec_bits, *bm;
 	unsigned int max_type;
@@ -140,7 +142,7 @@ dns_nsec3_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 	result = dns_db_allrdatasets(db, node, version, 0, &rdsiter);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	found = ISC_FALSE;
+	found = found_ns = need_rrsig = ISC_FALSE;
 	for (result = dns_rdatasetiter_first(rdsiter);
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdatasetiter_next(rdsiter))
@@ -152,11 +154,26 @@ dns_nsec3_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 			if (rdataset.type > max_type)
 				max_type = rdataset.type;
 			set_bit(bm, rdataset.type, 1);
-			found = ISC_TRUE;
+			/*
+			 * Work out if we need to set the RRSIG bit for
+			 * this node.  We set the RRSIG bit if either of
+			 * the following conditions are met:
+			 * 1) We have a SOA or DS then we need to set
+			 *    the RRSIG bit as both always will be signed.
+			 * 2) We set the RRSIG bit if we don't have
+			 *    a NS record but do have other data.
+			 */
+			if (rdataset.type == dns_rdatatype_soa ||
+			    rdataset.type == dns_rdatatype_ds)
+				need_rrsig = ISC_TRUE;
+			else if (rdataset.type == dns_rdatatype_ns)
+				found_ns = ISC_TRUE;
+			else
+				found = ISC_TRUE;
 		}
 		dns_rdataset_disassociate(&rdataset);
 	}
-	if (found) {
+	if ((found && !found_ns) || need_rrsig) {
 		if (dns_rdatatype_rrsig > max_type)
 			max_type = dns_rdatatype_rrsig;
 		set_bit(bm, dns_rdatatype_rrsig, 1);
@@ -941,6 +958,42 @@ dns_nsec3_addnsec3s(dns_db_t *db, dns_dbversion_t *version,
 	return (result);
 }
 
+/*%
+ * Determine whether any NSEC3 records that were associated with
+ * 'name' should be deleted or if they should continue to exist.
+ * ISC_TRUE indicates they should be deleted.
+ * ISC_FALSE indicates they should be retained.
+ */
+static isc_result_t
+deleteit(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
+	 isc_boolean_t *yesno)
+{
+	isc_result_t result;
+	dns_fixedname_t foundname;
+	dns_fixedname_init(&foundname);
+
+	result = dns_db_find(db, name, ver, dns_rdatatype_any,
+			     DNS_DBFIND_GLUEOK | DNS_DBFIND_NOWILD,
+			     (isc_stdtime_t) 0, NULL,
+			     dns_fixedname_name(&foundname),
+			     NULL, NULL);
+	if (result == DNS_R_EMPTYNAME || result == ISC_R_SUCCESS ||
+	    result ==  DNS_R_ZONECUT) {
+		*yesno = ISC_FALSE;
+		return (ISC_R_SUCCESS);
+	}
+	if (result == DNS_R_GLUE || result == DNS_R_DNAME ||
+	    result == DNS_R_DELEGATION || result == DNS_R_NXDOMAIN) {
+		*yesno = ISC_TRUE;
+		return (ISC_R_SUCCESS);
+	}
+	/*
+	 * Silence compiler.
+	 */
+	*yesno = ISC_TRUE;
+	return (result);
+}
+
 isc_result_t
 dns_nsec3_delnsec3(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 		   const dns_rdata_nsec3param_t *nsec3param, dns_diff_t *diff)
@@ -959,7 +1012,7 @@ dns_nsec3_delnsec3(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdataset_t rdataset;
 	int pass;
-	isc_boolean_t exists;
+	isc_boolean_t yesno;
 	isc_buffer_t buffer;
 	isc_result_t result;
 	unsigned char *salt;
@@ -1094,8 +1147,8 @@ dns_nsec3_delnsec3(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 		if (labels <= dns_name_countlabels(origin))
 			break;
 		dns_name_getlabelsequence(&empty, 1, labels, &empty);
-		CHECK(name_exists(db, version, &empty, &exists));
-		if (exists)
+		CHECK(deleteit(db, version, &empty, &yesno));
+		if (!yesno)
 			break;
 
 		CHECK(dns_nsec3_hashname(&fixed, nexthash, &next_length,

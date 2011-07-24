@@ -39,7 +39,7 @@
 # define ZCONF_H
 
 
-# define	MINSEC	60
+# define	MINSEC	60L
 # define	HOURSEC	(MINSEC * 60)
 # define	DAYSEC	(HOURSEC * 24)
 # define	WEEKSEC	(DAYSEC * 7)
@@ -64,24 +64,34 @@
 #if 0
 # define	ZSK_LIFETIME	((SIG_VALID_DAYS * 3) * DAYSEC)	/* set to three times the sig validity */
 #else
-# define	ZSK_LIFETIME	((MONTH * 3) * DAYSEC)	/* set fixed to 3 month */
+# if 0
+#  define	ZSK_LIFETIME	((MONTH * 3) * DAYSEC)	/* set fixed to 3 month */
+# else
+#  define	ZSK_LIFETIME	(12 * WEEKSEC)	/* set fixed to 3 month */
+# endif
 #endif
 
-# define	KSK_ALGO	(DK_ALGO_RSASHA1)
+/* # define	KSK_ALGO	(DK_ALGO_RSASHA1)	KSK_ALGO renamed to KEY_ALGO (v0.99) */
+# define	KEY_ALGO	(DK_ALGO_RSASHA1)	/* general KEY_ALGO used for both ksk and zsk */
+# define	ADDITIONAL_KEY_ALGO	0
 # define	KSK_BITS	(1300)
 # define	KSK_RANDOM	"/dev/urandom"	/* was NULL before v0.94 */
-# define	ZSK_ALGO	(DK_ALGO_RSASHA1)
+/* # define	ZSK_ALGO	(DK_ALGO_RSASHA1)	ZSK_ALGO has to be the same as KSK, so this is no longer used (v0.99) */
 # define	ZSK_BITS	(512)
 # define	ZSK_RANDOM	"/dev/urandom"
+# define	NSEC3		0		/* by default nsec3 is off */
+# define	SALTLEN		24		/* salt length in bits (resolution is 4 bits)*/
 
 # define	ZONEDIR		"."
 # define	RECURSIVE	0
 # define	PRINTTIME	1
 # define	PRINTAGE	0
 # define	LJUST		0
+# define	LSCOLORTERM	NULL	/* or "" */
 # define	KEYSETDIR	NULL	/* keysets */
 # define	LOGFILE		""
 # define	LOGLEVEL	"error"
+# define	LOGDOMAINDIR	""
 # define	SYSLOGFACILITY	"none"
 # define	SYSLOGLEVEL	"notice"
 # define	VERBOSELOG	0
@@ -89,10 +99,12 @@
 # define	DNSKEYFILE	"dnskey.db"
 # define	LOOKASIDEDOMAIN	""	/* "dlv.trusted-keys.de" */
 # define	SIG_RANDOM	NULL	/* "/dev/urandom" */
-# define	SIG_PSEUDO	1
+# define	SIG_PSEUDO	0
 # define	SIG_GENDS	1
+# define	SIG_DNSKEY_KSK	0	/* Sign DNSKEY RR with KSK only */
 # define	SIG_PARAM	""
 # define	DIST_CMD	NULL	/* default is to run "rndc reload" */
+# define	NAMED_CHROOT	NULL	/* default is none */
 
 #ifndef CONFIG_PATH
 # define	CONFIG_PATH	"/var/named/"
@@ -114,6 +126,12 @@ typedef	enum {
 } serial_form_t;
 
 typedef	enum {
+	NSEC3_OFF = 0,
+	NSEC3_ON,
+	NSEC3_OPTOUT
+} nsec3_t;
+
+typedef	enum {
 	none = 0,
 	user,
 	local0, local1, local2, local3, local4, local5, local6, local7
@@ -125,29 +143,35 @@ typedef	struct zconf	{
 	int	printtime;
 	int	printage;
 	int	ljust;
-	int	sigvalidity;	/* should be less than expire time */
-	int	max_ttl;	/* should be set to the maximum used ttl in the zone */
-	int	key_ttl;
-	int	proptime;	/* expected time offset for zone propagation */
+	char	*colorterm;
+	long	sigvalidity;	/* should be less than expire time */
+	long	max_ttl;	/* should be set to the maximum used ttl in the zone */
+	long	key_ttl;
+	long	proptime;	/* expected time offset for zone propagation */
 #if defined (DEF_TTL)
-	int	def_ttl;	/* default ttl set in soa record  */
+	long	def_ttl;	/* default ttl set in soa record  */
 #endif
 	serial_form_t	serialform;	/* format of serial no */
-	int	resign;		/* resign interval */
+	long	resign;		/* resign interval */
 
-	int	k_life;
 	int	k_algo;
+	int	k2_algo;
+	long	k_life;
 	int	k_bits;
 	char	*k_random;
-	int	z_life;
-	int	z_algo;
+	long	z_life;
+	/* int	z_algo;		no longer used; renamed to k2_algo (v0.99) */
 	int	z_bits;
 	char	*z_random;
+	nsec3_t	nsec3;		/* 0 == off; 1 == on; 2 == on with optout */
+	int	saltbits;
 
 	char	*view;
+	int	noexec;
 	// char	*errlog;
 	char	*logfile;
 	char	*loglevel;
+	char	*logdomaindir;
 	char	*syslogfacility;
 	char	*sysloglevel;
 	int	verboselog;
@@ -159,15 +183,21 @@ typedef	struct zconf	{
 	char	*sig_random;
 	int	sig_pseudo;
 	int	sig_gends;
+	int	sig_dnskeyksk;
 	char	*sig_param;
 	char	*dist_cmd;	/* cmd to run instead of "rndc reload" */
+	char	*chroot_dir;	/* chroot directory of named */
 } zconf_t;
 
+extern	const char	*timeint2str (unsigned long val);
 extern	zconf_t	*loadconfig (const char *filename, zconf_t *z);
 extern	zconf_t	*loadconfig_fromstr (const char *str, zconf_t *z);
 extern	zconf_t	*dupconfig (const zconf_t *conf);
+extern	zconf_t	*freeconfig (zconf_t *conf);
 extern	int	setconfigpar (zconf_t *conf, char *entry, const void *pval);
 extern	int	printconfig (const char *fname, const zconf_t *cp);
+extern	int	printconfigdiff (const char *fname, const zconf_t *ref, const zconf_t *z);
 extern	int	checkconfig (const zconf_t *z);
+extern	void	setconfigversion (int version);
 
 #endif

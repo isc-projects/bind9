@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.130 2008/09/24 02:46:23 marka Exp $ */
+/* $Id: types.h,v 1.130.50.7 2010/05/14 23:47:50 tbox Exp $ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
@@ -108,7 +108,6 @@ typedef struct dns_signature			dns_signature_t;
 typedef struct dns_ssurule			dns_ssurule_t;
 typedef struct dns_ssutable			dns_ssutable_t;
 typedef struct dns_stats			dns_stats_t;
-typedef int					dns_statscounter_t;
 typedef isc_uint32_t				dns_rdatastatstype_t;
 typedef struct dns_tkeyctx			dns_tkeyctx_t;
 typedef isc_uint16_t				dns_trust_t;
@@ -259,42 +258,57 @@ enum {
 	dns_trust_none = 0,
 #define dns_trust_none			((dns_trust_t)dns_trust_none)
 
-	/*% Subject to DNSSEC validation but has not yet been validated */
-	dns_trust_pending = 1,
-#define dns_trust_pending		((dns_trust_t)dns_trust_pending)
+	/*%
+	 * Subject to DNSSEC validation but has not yet been validated
+	 * dns_trust_pending_additional (from the additional section).
+	 */
+	dns_trust_pending_additional = 1,
+#define dns_trust_pending_additional \
+		 ((dns_trust_t)dns_trust_pending_additional)
+
+	dns_trust_pending_answer = 2,
+#define dns_trust_pending_answer	((dns_trust_t)dns_trust_pending_answer)
 
 	/*% Received in the additional section of a response. */
-	dns_trust_additional = 2,
+	dns_trust_additional = 3,
 #define dns_trust_additional		((dns_trust_t)dns_trust_additional)
 
 	/* Received in a referral response. */
-	dns_trust_glue = 3,
+	dns_trust_glue = 4,
 #define dns_trust_glue			((dns_trust_t)dns_trust_glue)
 
-	/* Answser from a non-authoritative server */
-	dns_trust_answer = 4,
+	/* Answer from a non-authoritative server */
+	dns_trust_answer = 5,
 #define dns_trust_answer		((dns_trust_t)dns_trust_answer)
 
 	/*  Received in the authority section as part of an
 	    authoritative response */
-	dns_trust_authauthority = 5,
+	dns_trust_authauthority = 6,
 #define dns_trust_authauthority		((dns_trust_t)dns_trust_authauthority)
 
-	/* Answser from an authoritative server */
-	dns_trust_authanswer = 6,
+	/* Answer from an authoritative server */
+	dns_trust_authanswer = 7,
 #define dns_trust_authanswer		((dns_trust_t)dns_trust_authanswer)
 
 	/* Successfully DNSSEC validated */
-	dns_trust_secure = 7,
+	dns_trust_secure = 8,
 #define dns_trust_secure		((dns_trust_t)dns_trust_secure)
 
 	/* This server is authoritative */
-	dns_trust_ultimate = 8
+	dns_trust_ultimate = 9
 #define dns_trust_ultimate		((dns_trust_t)dns_trust_ultimate)
 };
 
+#define DNS_TRUST_PENDING(x)		((x) == dns_trust_pending_answer || \
+					 (x) == dns_trust_pending_additional)
+#define DNS_TRUST_ADDITIONAL(x)		((x) == dns_trust_additional || \
+					 (x) == dns_trust_pending_additional)
+#define DNS_TRUST_GLUE(x)		((x) == dns_trust_glue)
+#define DNS_TRUST_ANSWER(x)		((x) == dns_trust_answer)
+
+
 /*%
- * Name checking severites.
+ * Name checking severities.
  */
 typedef enum {
 	dns_severity_ignore,

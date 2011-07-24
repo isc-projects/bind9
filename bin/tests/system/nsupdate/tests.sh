@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2011  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,12 +15,13 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.25 2007/06/19 23:47:04 tbox Exp $
+# $Id: tests.sh,v 1.25.332.5 2011/06/21 22:14:29 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 status=0
+n=0
 
 echo "I:fetching first copy of zone before update"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
@@ -57,6 +58,83 @@ $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
 echo "I:comparing post-update copies to known good data"
 $PERL ../digcomp.pl knowngood.ns1.after dig.out.ns1 || status=1
 $PERL ../digcomp.pl knowngood.ns1.after dig.out.ns2 || status=1
+
+ret=0
+echo "I:check SIG(0) key is accepted"
+key=`$KEYGEN -r random.data -a NSEC3RSASHA1 -b 512 -k -n ENTITY xxx 2> /dev/null`
+echo "" | $NSUPDATE -k ${key}.private > /dev/null 2>&1 || ret=1
+if [ $ret -ne 0 ]; then
+    echo "I:failed"
+    status=1
+fi
+
+n=`expr $n + 1`
+ret=0
+echo "I:check TYPE=0 update is rejected by nsupdate ($n)"
+$NSUPDATE <<END > nsupdate.out 2>&1 && ret=1
+    server 10.53.0.1 5300
+    ttl 300
+    update add example.nil. in type0 ""
+    send
+END
+grep "unknown class/type" nsupdate.out > /dev/null 2>&1 ||
+ret=1
+if [ $ret -ne 0 ]; then
+    echo "I:failed"
+    status=1
+fi
+
+n=`expr $n + 1`
+ret=0
+echo "I:check TYPE=0 prerequisite is handled ($n)"
+$NSUPDATE <<END > nsupdate.out 2>&1 || ret=1
+    server 10.53.0.1 5300
+    prereq nxrrset example.nil. type0
+    send
+END
+$DIG +tcp version.bind txt ch @10.53.0.1 -p 5300 > dig.out.ns1.$n
+grep "status: NOERROR" dig.out.ns1.$n > /dev/null || ret=1
+if [ $ret -ne 0 ]; then
+    echo "I:failed"
+    status=1
+fi
+
+n=`expr $n + 1`
+ret=0
+echo "I:check that TYPE=0 update is handled ($n)"
+echo "a0e4280000010000000100000000060001c00c000000fe000000000000" |
+$PERL ../packet.pl -a 10.53.0.1 -p 5300 -t tcp > /dev/null
+$DIG +tcp version.bind txt ch @10.53.0.1 -p 5300 > dig.out.ns1.$n
+grep "status: NOERROR" dig.out.ns1.$n > /dev/null || ret=1
+if test $ret -ne 0
+then
+	echo "I:failed"
+        status=1
+fi
+
+n=`expr $n + 1`
+echo "I:check that TYPE=0 additional data is handled ($n)"
+echo "a0e4280000010000000000010000060001c00c000000fe000000000000" |
+$PERL ../packet.pl -a 10.53.0.1 -p 5300 -t tcp > /dev/null
+$DIG +tcp version.bind txt ch @10.53.0.1 -p 5300 > dig.out.ns1.$n
+grep "status: NOERROR" dig.out.ns1.$n > /dev/null || ret=1
+if test $ret -ne 0
+then
+	echo "I:failed"
+        status=1
+fi
+
+n=`expr $n + 1`
+echo "I:check that update to undefined class is handled ($n)"
+echo "a0e4280000010001000000000000060101c00c000000fe000000000000" |
+$PERL ../packet.pl -a 10.53.0.1 -p 5300 -t tcp > /dev/null
+$DIG +tcp version.bind txt ch @10.53.0.1 -p 5300 > dig.out.ns1.$n
+grep "status: NOERROR" dig.out.ns1.$n > /dev/null || ret=1
+if test $ret -ne 0
+then
+	echo "I:failed"
+        status=1
+fi
 
 if $PERL -e 'use Net::DNS;' 2>/dev/null
 then
@@ -156,6 +234,25 @@ $PERL $SYSTEMTESTTOP/start.pl --noclean . ns1
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd updated4.example.nil.\
 	@10.53.0.1 a -p 5300 > dig.out.ns1 || status=1
 $PERL ../digcomp.pl knowngood.ns1.afterstop dig.out.ns1 || status=1
+
+n=`expr $n + 1`
+ret=0
+echo "I:check that changes to the DNSKEY RRset TTL do not have side effects ($n)"
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd dnskey.test. \
+        @10.53.0.3 -p 5300 dnskey | \
+	sed -n 's/\(.*\)10.IN/update add \1600 IN/p' |
+	(echo server 10.53.0.3 5300; cat - ; echo send ) |
+$NSUPDATE 
+
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd dnskey.test. \
+	@10.53.0.3 -p 5300 any > dig.out.ns3.$n
+
+grep "600.*DNSKEY" dig.out.ns3.$n > /dev/null || ret=1
+grep TYPE65534 dig.out.ns3.$n > /dev/null && ret=1
+if test $ret -ne 0
+then
+	echo "I:failed"; status=1
+fi
 
 echo "I:exit status: $status"
 exit $status

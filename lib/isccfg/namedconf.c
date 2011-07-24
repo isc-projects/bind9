@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2008, 2010, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2002, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.92 2008/09/27 23:35:31 jinmei Exp $ */
+/* $Id: namedconf.c,v 1.92.44.4 2011/03/12 04:57:33 tbox Exp $ */
 
 /*! \file */
 
@@ -464,7 +464,7 @@ static cfg_type_t cfg_type_transferformat = {
 static void
 print_none(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	UNUSED(obj);
-	cfg_print_chars(pctx, "none", 4);
+	cfg_print_cstr(pctx, "none");
 }
 
 static cfg_type_t cfg_type_none = {
@@ -492,7 +492,7 @@ parse_qstringornone(cfg_parser_t *pctx, const cfg_type_t *type,
 static void
 doc_qstringornone(cfg_printer_t *pctx, const cfg_type_t *type) {
 	UNUSED(type);
-	cfg_print_chars(pctx, "( <quoted_string> | none )", 26);
+	cfg_print_cstr(pctx, "( <quoted_string> | none )");
 }
 
 static cfg_type_t cfg_type_qstringornone = {
@@ -505,7 +505,7 @@ static cfg_type_t cfg_type_qstringornone = {
 static void
 print_hostname(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	UNUSED(obj);
-	cfg_print_chars(pctx, "hostname", 4);
+	cfg_print_cstr(pctx, "hostname");
 }
 
 static cfg_type_t cfg_type_hostname = {
@@ -538,7 +538,7 @@ parse_serverid(cfg_parser_t *pctx, const cfg_type_t *type,
 static void
 doc_serverid(cfg_printer_t *pctx, const cfg_type_t *type) {
 	UNUSED(type);
-	cfg_print_chars(pctx, "( <quoted_string> | none | hostname )", 26);
+	cfg_print_cstr(pctx, "( <quoted_string> | none | hostname )");
 }
 
 static cfg_type_t cfg_type_serverid = {
@@ -887,7 +887,7 @@ parse_optional_uint32(cfg_parser_t *pctx, const cfg_type_t *type,
 static void
 doc_optional_uint32(cfg_printer_t *pctx, const cfg_type_t *type) {
 	UNUSED(type);
-	cfg_print_chars(pctx, "[ <integer> ]", 13);
+	cfg_print_cstr(pctx, "[ <integer> ]");
 }
 
 static cfg_type_t cfg_type_optional_uint32 = {
@@ -1626,9 +1626,9 @@ static void
 print_querysource(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	isc_netaddr_t na;
 	isc_netaddr_fromsockaddr(&na, &obj->value.sockaddr);
-	cfg_print_chars(pctx, "address ", 8);
+	cfg_print_cstr(pctx, "address ");
 	cfg_print_rawaddr(pctx, &na);
-	cfg_print_chars(pctx, " port ", 6);
+	cfg_print_cstr(pctx, " port ");
 	cfg_print_rawuint(pctx, isc_sockaddr_getport(&obj->value.sockaddr));
 }
 
@@ -1746,7 +1746,8 @@ static cfg_type_t cfg_type_controls_sockaddr = {
  * statement, which takes a single key with or without braces and semicolon.
  */
 static isc_result_t
-parse_server_key_kludge(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
+parse_server_key_kludge(cfg_parser_t *pctx, const cfg_type_t *type,
+			cfg_obj_t **ret)
 {
 	isc_result_t result;
 	isc_boolean_t braces = ISC_FALSE;
@@ -1756,7 +1757,7 @@ parse_server_key_kludge(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **
 	CHECK(cfg_peektoken(pctx, 0));
 	if (pctx->token.type == isc_tokentype_special &&
 	    pctx->token.value.as_char == '{') {
-		result = cfg_gettoken(pctx, 0);
+		CHECK(cfg_gettoken(pctx, 0));
 		braces = ISC_TRUE;
 	}
 
@@ -1926,11 +1927,11 @@ static void
 print_logfile(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	cfg_print_obj(pctx, obj->value.tuple[0]); /* file */
 	if (obj->value.tuple[1]->type->print != cfg_print_void) {
-		cfg_print_chars(pctx, " versions ", 10);
+		cfg_print_cstr(pctx, " versions ");
 		cfg_print_obj(pctx, obj->value.tuple[1]);
 	}
 	if (obj->value.tuple[2]->type->print != cfg_print_void) {
-		cfg_print_chars(pctx, " size ", 6);
+		cfg_print_cstr(pctx, " size ");
 		cfg_print_obj(pctx, obj->value.tuple[2]);
 	}
 }
