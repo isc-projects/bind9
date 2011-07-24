@@ -173,7 +173,7 @@ static	int	gettok (FILE *fp, char *val, size_t valsize)
 		bufend = buf + sizeof (buf) - 1;
 		do
 			*p++ = tolower (c);
-		while ( (c = getc (fp)) != EOF && p < bufend && isalpha (c) );
+		while ( (c = getc (fp)) != EOF && p < bufend && (isalpha (c) || c == '-') );
 		*p = '\0';
 		ungetc (c, fp);
 

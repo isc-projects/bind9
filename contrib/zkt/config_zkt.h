@@ -37,10 +37,6 @@
 #ifndef CONFIG_ZKT_H
 # define CONFIG_ZKT_H
 
-#ifndef LOG_FNAMETMPL
-# define	LOG_FNAMETMPL	"/zkt-%04d-%02d-%02dT%02d%02d%02dZ.log"
-#endif
-
 /* don't change anything below this */
 /* the values here are determined or settable via the ./configure script */
 
@@ -51,6 +47,10 @@
 /* # define	HAVE_TIMEGM		1	*/
 /* # define	HAVE_GETOPT_LONG	1	*/
 /* # define	HAVE_STRFTIME		1	*/
+
+#ifndef COLOR_MODE
+# define	COLOR_MODE	1
+#endif
 
 #ifndef TTL_IN_KEYFILE_ALLOWED
 # define	TTL_IN_KEYFILE_ALLOWED	1

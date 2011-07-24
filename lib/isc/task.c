@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.111 2009/10/05 17:30:49 fdupont Exp $ */
+/* $Id: task.c,v 1.111.60.3 2010/12/04 13:27:10 marka Exp $ */
 
 /*! \file
  * \author Principal Author: Bob Halley
@@ -1481,6 +1481,15 @@ isc__task_register() {
 	return (isc_task_register(isc__taskmgr_create));
 }
 #endif
+
+isc_boolean_t
+isc_task_exiting(isc_task_t *t) {
+	isc__task_t *task = (isc__task_t *)t;
+
+	REQUIRE(VALID_TASK(task));
+	return (TASK_SHUTTINGDOWN(task));
+}
+
 
 #if defined(HAVE_LIBXML2) && defined(BIND9)
 void

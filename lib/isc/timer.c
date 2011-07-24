@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007-2009, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.95 2009/10/05 17:30:49 fdupont Exp $ */
+/* $Id: timer.c,v 1.95.60.2 2011/03/12 04:58:30 tbox Exp $ */
 
 /*! \file */
 
@@ -333,7 +333,9 @@ schedule(isc__timer_t *timer, isc_time_t *now, isc_boolean_t signal_ok) {
 
 static inline void
 deschedule(isc__timer_t *timer) {
+#ifdef USE_TIMER_THREAD
 	isc_boolean_t need_wakeup = ISC_FALSE;
+#endif
 	isc__timermgr_t *manager;
 
 	/*
@@ -342,8 +344,10 @@ deschedule(isc__timer_t *timer) {
 
 	manager = timer->manager;
 	if (timer->index > 0) {
+#ifdef USE_TIMER_THREAD
 		if (timer->index == 1)
 			need_wakeup = ISC_TRUE;
+#endif
 		isc_heap_delete(manager->heap, timer->index);
 		timer->index = 0;
 		INSIST(manager->nscheduled > 0);
@@ -527,6 +531,7 @@ isc__timer_reset(isc_timer_t *timer0, isc_timertype_t type,
 	REQUIRE(VALID_TIMER(timer));
 	manager = timer->manager;
 	REQUIRE(VALID_MANAGER(manager));
+
 	if (expires == NULL)
 		expires = isc_time_epoch;
 	if (interval == NULL)
@@ -549,8 +554,6 @@ isc__timer_reset(isc_timer_t *timer0, isc_timertype_t type,
 		 */
 		isc_time_settoepoch(&now);
 	}
-
-	manager = timer->manager;
 
 	LOCK(&manager->lock);
 	LOCK(&timer->lock);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009-2011  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsprobe.c,v 1.5 2009/09/29 15:06:06 fdupont Exp $ */
+/* $Id: nsprobe.c,v 1.5.66.5 2011/04/05 06:35:37 marka Exp $ */
 
 #include <config.h>
 
@@ -107,7 +107,7 @@ struct probe_trans {
 	ISC_LIST(struct probe_ns) nslist;
 };
 
-struct stat {
+struct lcl_stat {
 	unsigned long valid;
 	unsigned long ignore;
 	unsigned long nxdomain;
@@ -300,7 +300,7 @@ static void
 update_stat(struct probe_trans *trans) {
 	struct probe_ns *pns;
 	struct server *server;
-	struct stat local_stat;
+	struct lcl_stat local_stat;
 	unsigned int err_count = 0;
 	const char *stattype;
 
@@ -787,6 +787,7 @@ resolve_nsaddress(isc_task_t *task, isc_event_t *event) {
 					fprintf(stderr, "resolve_nsaddress: "
 						"mem_get failed");
 					result = ISC_R_NOMEMORY;
+					POST(result);
 					goto cleanup;
 				}
 				isc_sockaddr_fromin(&server->address,
@@ -923,6 +924,7 @@ resolve_ns(isc_task_t *task, isc_event_t *event) {
 					fprintf(stderr,
 						"resolve_ns: mem_get failed");
 					result = ISC_R_NOMEMORY;
+					POST(result);
 					/*
 					 * XXX: should we continue with the
 					 * available servers anyway?
@@ -1097,8 +1099,8 @@ main(int argc, char *argv[]) {
 
 	if (res->ai_addrlen > sizeof(sa.type)) {
 		fprintf(stderr,
-			"assumption failure: addrlen is too long: %d\n",
-			res->ai_addrlen);
+			"assumption failure: addrlen is too long: %ld\n",
+			(long)res->ai_addrlen);
 		exit(1);
 	}
 	memcpy(&sa.type.sa, res->ai_addr, res->ai_addrlen);

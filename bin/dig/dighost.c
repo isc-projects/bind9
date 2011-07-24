@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.328 2009/11/10 17:27:40 each Exp $ */
+/* $Id: dighost.c,v 1.328.22.10 2011/03/11 07:11:51 marka Exp $ */
 
 /*! \file
  *  \note
@@ -252,7 +252,7 @@ isc_result_t	  opentmpkey(isc_mem_t *mctx, const char *file,
 			     char **tempp, FILE **fp);
 isc_result_t	  removetmpkey(isc_mem_t *mctx, const char *file);
 void		  clean_trustedkey(void);
-void		  insert_trustedkey(dst_key_t  * key);
+void		  insert_trustedkey(dst_key_t **key);
 #if DIG_SIGCHASE_BU
 isc_result_t	  getneededrr(dns_message_t *msg);
 void		  sigchase_bottom_up(dns_message_t *msg);
@@ -566,10 +566,8 @@ make_server(const char *servname, const char *userarg) {
 	if (srv == NULL)
 		fatal("memory allocation failure in %s:%d",
 		      __FILE__, __LINE__);
-	strncpy(srv->servername, servname, MXNAME);
-	strncpy(srv->userarg, userarg, MXNAME);
-	srv->servername[MXNAME-1] = 0;
-	srv->userarg[MXNAME-1] = 0;
+	strlcpy(srv->servername, servname, MXNAME);
+	strlcpy(srv->userarg, userarg, MXNAME);
 	ISC_LINK_INIT(srv, link);
 	return (srv);
 }
@@ -1142,7 +1140,6 @@ setup_file_key(void) {
 		       keynametext, isc_result_totext(result));
 		goto failure;
 	}
-	dstkey = NULL;
  failure:
 	if (dstkey != NULL)
 		dst_key_free(&dstkey);
@@ -1162,12 +1159,21 @@ make_searchlist_entry(char *domain) {
 }
 
 static void
+clear_searchlist(void) {
+	dig_searchlist_t *search;
+	while ((search = ISC_LIST_HEAD(search_list)) != NULL) {
+		ISC_LIST_UNLINK(search_list, search, link);
+		isc_mem_free(mctx, search);
+	}
+}
+
+static void
 create_search_list(lwres_conf_t *confdata) {
 	int i;
 	dig_searchlist_t *search;
 
 	debug("create_search_list()");
-	ISC_LIST_INIT(search_list);
+	clear_searchlist();
 
 	for (i = 0; i < confdata->searchnxt; i++) {
 		search = make_searchlist_entry(confdata->search[i]);
@@ -1210,7 +1216,7 @@ setup_system(void) {
 	else { /* No search list. Use the domain name if any */
 		if (lwconf->domainname != NULL) {
 			domain = make_searchlist_entry(lwconf->domainname);
-			ISC_LIST_INITANDAPPEND(search_list, domain, link);
+			ISC_LIST_APPEND(search_list, domain, link);
 			domain  = NULL;
 		}
 	}
@@ -1263,15 +1269,6 @@ setup_system(void) {
 
 #endif
 
-}
-
-static void
-clear_searchlist(void) {
-	dig_searchlist_t *search;
-	while ((search = ISC_LIST_HEAD(search_list)) != NULL) {
-		ISC_LIST_UNLINK(search_list, search, link);
-		isc_mem_free(mctx, search);
-	}
 }
 
 /*%
@@ -1386,14 +1383,15 @@ add_opt(dns_message_t *msg, isc_uint16_t udpsize, isc_uint16_t edns,
 	if (dnssec)
 		rdatalist->ttl |= DNS_MESSAGEEXTFLAG_DO;
 	if (nsid) {
-		unsigned char data[4];
-		isc_buffer_t buf;
+		isc_buffer_t *b = NULL;
 
-		isc_buffer_init(&buf, data, sizeof(data));
-		isc_buffer_putuint16(&buf, DNS_OPT_NSID);
-		isc_buffer_putuint16(&buf, 0);
-		rdata->data = data;
-		rdata->length = sizeof(data);
+		result = isc_buffer_allocate(mctx, &b, 4);
+		check_result(result, "isc_buffer_allocate");
+		isc_buffer_putuint16(b, DNS_OPT_NSID);
+		isc_buffer_putuint16(b, 0);
+		rdata->data = isc_buffer_base(b);
+		rdata->length = isc_buffer_usedlength(b);
+		dns_message_takebuffer(msg, &b);
 	} else {
 		rdata->data = NULL;
 		rdata->length = 0;
@@ -1767,8 +1765,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 			dns_rdata_freestruct(&ns);
 
 			/* Initialize lookup if we've not yet */
-			debug("found NS %d %s", numLookups, namestr);
-			numLookups++;
+			debug("found NS %s", namestr);
 			if (!success) {
 				success = ISC_TRUE;
 				lookup_counter++;
@@ -1790,9 +1787,8 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 				domain = dns_fixedname_name(&lookup->fdomain);
 				dns_name_copy(name, domain, NULL);
 			}
-			srv = make_server(namestr, namestr);
-			debug("adding server %s", srv->servername);
-			ISC_LIST_APPEND(lookup->my_server_list, srv, link);
+			debug("adding server %s", namestr);
+			numLookups += getaddresses(lookup, namestr);
 			dns_rdata_reset(&rdata);
 		}
 	}
@@ -1808,17 +1804,25 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 	if (numLookups > 1) {
 		isc_uint32_t i, j;
 		dig_serverlist_t my_server_list;
+		dig_server_t *next;
 
 		ISC_LIST_INIT(my_server_list);
 
-		for (i = numLookups; i > 0; i--) {
+		i = numLookups;
+		for (srv = ISC_LIST_HEAD(lookup->my_server_list);
+		     srv != NULL;
+		     srv = ISC_LIST_HEAD(lookup->my_server_list)) {
+			INSIST(i > 0);
 			isc_random_get(&j);
 			j %= i;
-			srv = ISC_LIST_HEAD(lookup->my_server_list);
-			while (j-- > 0)
-				srv = ISC_LIST_NEXT(srv, link);
+			next = ISC_LIST_NEXT(srv, link);
+			while (j-- > 0 && next != NULL) {
+				srv = next;
+				next = ISC_LIST_NEXT(srv, link);
+			}
 			ISC_LIST_DEQUEUE(lookup->my_server_list, srv, link);
 			ISC_LIST_APPEND(my_server_list, srv, link);
+			i--;
 		}
 		ISC_LIST_APPENDLIST(lookup->my_server_list,
 				    my_server_list, link);
@@ -2401,6 +2405,15 @@ force_timeout(dig_lookup_t *l, dig_query_t *query) {
 		      isc_result_totext(ISC_R_NOMEMORY));
 	}
 	isc_task_send(global_task, &event);
+
+	/*
+	 * The timer may have expired if, for example, get_address() takes
+	 * long time and the timer was running on a different thread.
+	 * We need to cancel the possible timeout event not to confuse
+	 * ourselves due to the duplicate events.
+	 */
+	if (l->timer != NULL)
+		isc_timer_detach(&l->timer);
 }
 
 
@@ -2424,7 +2437,7 @@ send_tcp_connect(dig_query_t *query) {
 	query->waiting_connect = ISC_TRUE;
 	query->lookup->current_query = query;
 	result = get_address(query->servname, port, &query->sockaddr);
-	if (result == ISC_R_NOTFOUND) {
+	if (result != ISC_R_SUCCESS) {
 		/*
 		 * This servname doesn't have an address.  Try the next server
 		 * by triggering an immediate 'timeout' (we lie, but the effect
@@ -2506,7 +2519,7 @@ send_udp(dig_query_t *query) {
 		/* XXX Check the sense of this, need assertion? */
 		query->waiting_connect = ISC_FALSE;
 		result = get_address(query->servname, port, &query->sockaddr);
-		if (result == ISC_R_NOTFOUND) {
+		if (result != ISC_R_SUCCESS) {
 			/* This servname doesn't have an address. */
 			force_timeout(l, query);
 			return;
@@ -3532,6 +3545,31 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 	return (ISC_R_SUCCESS);
 }
 
+int
+getaddresses(dig_lookup_t *lookup, const char *host) {
+	isc_result_t result;
+	isc_sockaddr_t sockaddrs[DIG_MAX_ADDRESSES];
+	isc_netaddr_t netaddr;
+	int count, i;
+	dig_server_t *srv;
+	char tmp[ISC_NETADDR_FORMATSIZE];
+
+	result = bind9_getaddresses(host, 0, sockaddrs,
+				    DIG_MAX_ADDRESSES, &count);
+	if (result != ISC_R_SUCCESS)
+		fatal("couldn't get address for '%s': %s",
+		      host, isc_result_totext(result));
+
+	for (i = 0; i < count; i++) {
+		isc_netaddr_fromsockaddr(&netaddr, &sockaddrs[i]);
+		isc_netaddr_format(&netaddr, tmp, sizeof(tmp));
+		srv = make_server(tmp, host);
+		ISC_LIST_APPEND(lookup->my_server_list, srv, link);
+	}
+
+	return count;
+}
+
 /*%
  * Initiate either a TCP or UDP lookup
  */
@@ -4043,14 +4081,15 @@ sigchase_scanname(dns_rdatatype_t type, dns_rdatatype_t covers,
 }
 
 void
-insert_trustedkey(dst_key_t * key)
+insert_trustedkey(dst_key_t **keyp)
 {
-	if (key == NULL)
+	if (*keyp == NULL)
 		return;
 	if (tk_list.nb_tk >= MAX_TRUSTED_KEY)
 		return;
 
-	tk_list.key[tk_list.nb_tk++] = key;
+	tk_list.key[tk_list.nb_tk++] = *keyp;
+	*keyp = NULL;
 	return;
 }
 
@@ -4224,11 +4263,12 @@ get_trusted_key(isc_mem_t *mctx)
 			fclose(fp);
 			return (ISC_R_FAILURE);
 		}
-		insert_trustedkey(key);
 #if 0
 		dst_key_tofile(key, DST_TYPE_PUBLIC,"/tmp");
 #endif
-		key = NULL;
+		insert_trustedkey(&key);
+		if (key != NULL)
+			dst_key_free(&key);
 	}
 	return (ISC_R_SUCCESS);
 }

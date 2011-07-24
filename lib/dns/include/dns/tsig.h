@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig.h,v 1.53 2009/06/11 23:47:55 tbox Exp $ */
+/* $Id: tsig.h,v 1.53.136.4 2010/12/09 01:05:29 marka Exp $ */
 
 #ifndef DNS_TSIG_H
 #define DNS_TSIG_H 1
@@ -62,6 +62,13 @@ struct dns_tsig_keyring {
 	unsigned int writecount;
 	isc_rwlock_t lock;
 	isc_mem_t *mctx;
+	/*
+	 * LRU list of generated key along with a count of the keys on the
+	 * list and a maximum size.
+	 */
+	unsigned int generated;
+	unsigned int maxgenerated;
+	ISC_LIST(dns_tsigkey_t) lru;
 };
 
 struct dns_tsigkey {
@@ -77,6 +84,7 @@ struct dns_tsigkey {
 	isc_stdtime_t		expire;		/*%< end of validity period */
 	dns_tsig_keyring_t	*ring;		/*%< the enclosing keyring */
 	isc_refcount_t		refs;		/*%< reference counter */
+	ISC_LINK(dns_tsigkey_t) link;
 };
 
 #define dns_tsigkey_identity(tsigkey) \
@@ -109,12 +117,15 @@ dns_tsigkey_createfromkey(dns_name_t *name, dns_name_t *algorithm,
  *	allows a transient key with an invalid algorithm to exist long enough
  *	to generate a BADKEY response.
  *
+ *	If dns_tsigkey_createfromkey is successful a new reference to 'dstkey'
+ *	will have been made.
+ *
  *	Requires:
  *\li		'name' is a valid dns_name_t
  *\li		'algorithm' is a valid dns_name_t
  *\li		'secret' is a valid pointer
  *\li		'length' is an integer >= 0
- *\li		'key' is a valid dst key or NULL
+ *\li		'dstkey' is a valid dst key or NULL
  *\li		'creator' points to a valid dns_name_t or is NULL
  *\li		'mctx' is a valid memory context
  *\li		'ring' is a valid TSIG keyring or NULL

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.335 2009/11/28 15:57:36 vjs Exp $ */
+/* $Id: query.c,v 1.335.8.14 2011/03/19 10:06:40 marka Exp $ */
 
 /*! \file */
 
@@ -56,6 +56,7 @@
 #include <dns/zt.h>
 
 #include <named/client.h>
+#include <named/globals.h>
 #include <named/log.h>
 #include <named/server.h>
 #include <named/sortlist.h>
@@ -819,17 +820,15 @@ query_getcachedb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 		return (DNS_R_REFUSED);
 	dns_db_attach(client->view->cachedb, &db);
 
-	if ((client->query.attributes &
-	     NS_QUERYATTR_QUERYOKVALID) != 0) {
+	if ((client->query.attributes & NS_QUERYATTR_CACHEACLOKVALID) != 0) {
 		/*
-		 * We've evaluated the view's queryacl already.  If
-		 * NS_QUERYATTR_QUERYOK is set, then the client is
+		 * We've evaluated the view's cacheacl already.  If
+		 * NS_QUERYATTR_CACHEACLOK is set, then the client is
 		 * allowed to make queries, otherwise the query should
 		 * be refused.
 		 */
 		check_acl = ISC_FALSE;
-		if ((client->query.attributes &
-		     NS_QUERYATTR_QUERYOK) == 0)
+		if ((client->query.attributes & NS_QUERYATTR_CACHEACLOK) == 0)
 			goto refuse;
 	} else {
 		/*
@@ -843,16 +842,15 @@ query_getcachedb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 		char msg[NS_CLIENT_ACLMSGSIZE("query (cache)")];
 
 		result = ns_client_checkaclsilent(client, NULL,
-						  client->view->queryacl,
+						  client->view->cacheacl,
 						  ISC_TRUE);
 		if (result == ISC_R_SUCCESS) {
 			/*
-			 * We were allowed by the default
-			 * "allow-query" ACL.  Remember this so we
-			 * don't have to check again.
+			 * We were allowed by the "allow-query-cache" ACL.
+			 * Remember this so we don't have to check again.
 			 */
 			client->query.attributes |=
-				NS_QUERYATTR_QUERYOK;
+				NS_QUERYATTR_CACHEACLOK;
 			if (log && isc_log_wouldlog(ns_g_lctx,
 						     ISC_LOG_DEBUG(3)))
 			{
@@ -875,9 +873,9 @@ query_getcachedb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 		}
 		/*
 		 * We've now evaluated the view's query ACL, and
-		 * the NS_QUERYATTR_QUERYOK attribute is now valid.
+		 * the NS_QUERYATTR_CACHEACLOKVALID attribute is now valid.
 		 */
-		client->query.attributes |= NS_QUERYATTR_QUERYOKVALID;
+		client->query.attributes |= NS_QUERYATTR_CACHEACLOKVALID;
 
 		if (result != ISC_R_SUCCESS)
 			goto refuse;
@@ -1513,6 +1511,7 @@ query_addadditional2(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	need_addname = ISC_FALSE;
 	zone = NULL;
 	needadditionalcache = ISC_FALSE;
+	POST(needadditionalcache);
 	additionaltype = dns_rdatasetadditional_fromauth;
 	dns_name_init(&cfname, NULL);
 
@@ -2038,7 +2037,7 @@ query_addrrset(ns_client_t *client, dns_name_t **namep,
 
 static inline isc_result_t
 query_addsoa(ns_client_t *client, dns_db_t *db, dns_dbversion_t *version,
-	     isc_boolean_t zero_ttl)
+	     isc_boolean_t zero_ttl, isc_boolean_t isassociated)
 {
 	dns_name_t *name;
 	dns_dbnode_t *node;
@@ -2054,6 +2053,12 @@ query_addsoa(ns_client_t *client, dns_db_t *db, dns_dbversion_t *version,
 	name = NULL;
 	rdataset = NULL;
 	node = NULL;
+
+	/*
+	 * Don't add the SOA record for test which set "-T nosoa".
+	 */
+	if (ns_g_nosoa && (!WANTDNSSEC(client) || !isassociated))
+		return (ISC_R_SUCCESS);
 
 	/*
 	 * Get resources and make 'name' be the database origin.
@@ -2792,7 +2797,7 @@ query_addds(ns_client_t *client, dns_db_t *db, dns_dbnode_t *node,
 static void
 query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 		       dns_dbversion_t *version, dns_name_t *name,
-		       isc_boolean_t ispositive)
+		       isc_boolean_t ispositive, isc_boolean_t nodata)
 {
 	isc_buffer_t *dbuf, b;
 	dns_name_t *fname;
@@ -2980,7 +2985,7 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 			goto cleanup;
 
 		query_findclosestnsec3(wname, db, NULL, client, rdataset,
-				       sigrdataset, fname, ISC_FALSE, NULL);
+				       sigrdataset, fname, nodata, NULL);
 		if (!dns_rdataset_isassociated(rdataset))
 			goto cleanup;
 		query_addrrset(client, &fname, &rdataset, &sigrdataset,
@@ -3083,7 +3088,7 @@ query_addnxrrsetnsec(ns_client_t *client, dns_db_t *db,
 
 	/* XXX */
 	query_addwildcardproof(client, db, version, client->query.qname,
-			       ISC_TRUE);
+			       ISC_TRUE, ISC_FALSE);
 
 	/*
 	 * We'll need some resources...
@@ -3702,6 +3707,18 @@ query_findclosestnsec3(dns_name_t *qname, dns_db_t *db,
 	return;
 }
 
+#ifdef ALLOW_FILTER_AAAA_ON_V4
+static isc_boolean_t
+is_v4_client(ns_client_t *client) {
+	if (isc_sockaddr_pf(&client->peeraddr) == AF_INET)
+		return (ISC_TRUE);
+	if (isc_sockaddr_pf(&client->peeraddr) == AF_INET6 &&
+	    IN6_IS_ADDR_V4MAPPED(&client->peeraddr.type.sin6.sin6_addr))
+		return (ISC_TRUE);
+	return (ISC_FALSE);
+}
+#endif
+
 /*
  * Do the bulk of query processing for the current query of 'client'.
  * If 'event' is non-NULL, we are returning from recursion and 'qtype'
@@ -3737,8 +3754,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	dns_rdataset_t *noqname;
 	isc_boolean_t resuming;
 	int line = -1;
-	dns_rdataset_t tmprdataset;
-	unsigned int dboptions;
 
 	CTRACE("query_find");
 
@@ -3956,49 +3971,9 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	/*
 	 * Now look for an answer in the database.
 	 */
-	dboptions = client->query.dboptions;
-	if (sigrdataset == NULL && client->view->enablednssec) {
-		/*
-		 * If the client doesn't want DNSSEC we still want to
-		 * look for any data pending validation to save a remote
-		 * lookup if possible.
-		 */
-		dns_rdataset_init(&tmprdataset);
-		sigrdataset = &tmprdataset;
-		dboptions |= DNS_DBFIND_PENDINGOK;
-	}
- refind:
 	result = dns_db_find(db, client->query.qname, version, type,
-			     dboptions, client->now, &node, fname,
-			     rdataset, sigrdataset);
-	/*
-	 * If we have found pending data try to validate it.
-	 * If the data does not validate as secure and we can't
-	 * use the unvalidated data requery the database with
-	 * pending disabled to prevent infinite looping.
-	 */
-	if (result != ISC_R_SUCCESS || !DNS_TRUST_PENDING(rdataset->trust))
-		goto validation_done;
-	if (validate(client, db, fname, rdataset, sigrdataset))
-		goto validation_done;
-	if (rdataset->trust != dns_trust_pending_answer ||
-	    !PENDINGOK(client->query.dboptions)) {
-		dns_rdataset_disassociate(rdataset);
-		if (sigrdataset != NULL &&
-		    dns_rdataset_isassociated(sigrdataset))
-			dns_rdataset_disassociate(sigrdataset);
-		if (sigrdataset == &tmprdataset)
-			sigrdataset = NULL;
-		dns_db_detachnode(db, &node);
-		dboptions &= ~DNS_DBFIND_PENDINGOK;
-		goto refind;
-	}
- validation_done:
-	if (sigrdataset == &tmprdataset) {
-		if (dns_rdataset_isassociated(sigrdataset))
-			dns_rdataset_disassociate(sigrdataset);
-		sigrdataset = NULL;
-	}
+			     client->query.dboptions, client->now,
+			     &node, fname, rdataset, sigrdataset);
 
  resume:
 	CTRACE("query_find: resume");
@@ -4353,7 +4328,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				query_releasename(client, &fname);
 				query_addwildcardproof(client, db, version,
 						       client->query.qname,
-						       ISC_FALSE);
+						       ISC_FALSE, ISC_TRUE);
 			}
 		}
 		if (dns_rdataset_isassociated(rdataset)) {
@@ -4374,7 +4349,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		/*
 		 * Add SOA.
 		 */
-		result = query_addsoa(client, db, version, ISC_FALSE);
+		result = query_addsoa(client, db, version, ISC_FALSE,
+				      dns_rdataset_isassociated(rdataset));
 		if (result != ISC_R_SUCCESS) {
 			QUERY_ERROR(result);
 			goto cleanup;
@@ -4422,9 +4398,11 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		    zone != NULL &&
 #endif
 		    dns_zone_getzeronosoattl(zone))
-			result = query_addsoa(client, db, version, ISC_TRUE);
+			result = query_addsoa(client, db, version, ISC_TRUE,
+					  dns_rdataset_isassociated(rdataset));
 		else
-			result = query_addsoa(client, db, version, ISC_FALSE);
+			result = query_addsoa(client, db, version, ISC_FALSE,
+					  dns_rdataset_isassociated(rdataset));
 		if (result != ISC_R_SUCCESS) {
 			QUERY_ERROR(result);
 			goto cleanup;
@@ -4439,7 +4417,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 					       &sigrdataset,
 					       NULL, DNS_SECTION_AUTHORITY);
 			query_addwildcardproof(client, db, version,
-					       client->query.qname, ISC_FALSE);
+					       client->query.qname, ISC_FALSE,
+					       ISC_FALSE);
 		}
 
 		/*
@@ -4625,18 +4604,19 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			goto cleanup;
 		}
 		result = dns_name_concatenate(prefix, tname, fname, NULL);
+
+		/*
+		 * RFC2672, section 4.1, subsection 3c says
+		 * we should return YXDOMAIN if the constructed
+		 * name would be too long.
+		 */
+		if (result == DNS_R_NAMETOOLONG)
+			client->message->rcode = dns_rcode_yxdomain;
 		if (result != ISC_R_SUCCESS) {
 			dns_message_puttempname(client->message, &tname);
-			if (result == ISC_R_NOSPACE) {
-				/*
-				 * RFC2672, section 4.1, subsection 3c says
-				 * we should return YXDOMAIN if the constructed
-				 * name would be too long.
-				 */
-				client->message->rcode = dns_rcode_yxdomain;
-			}
 			goto cleanup;
 		}
+
 		query_keepname(client, fname, dbuf);
 		/*
 		 * Synthesize a CNAME for this DNAME.
@@ -4684,7 +4664,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 
 	if (type == dns_rdatatype_any) {
 #ifdef ALLOW_FILTER_AAAA_ON_V4
-		isc_boolean_t have_aaaa, have_a, have_sig;
+		isc_boolean_t have_aaaa, have_a, have_sig, filter_aaaa;
 
 		/*
 		 * The filter-aaaa-on-v4 option should
@@ -4696,6 +4676,14 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		have_aaaa = ISC_FALSE;
 		have_a = !authoritative;
 		have_sig = ISC_FALSE;
+		if (client->view->v4_aaaa != dns_v4_aaaa_ok &&
+		    is_v4_client(client) &&
+		    ns_client_checkaclsilent(client, NULL,
+					     client->view->v4_aaaa_acl,
+					     ISC_TRUE) == ISC_R_SUCCESS)
+			filter_aaaa = ISC_TRUE;
+		else
+			filter_aaaa = ISC_FALSE;
 #endif
 		/*
 		 * XXXRTH  Need to handle zonecuts with special case
@@ -4729,9 +4717,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			 * Notice the presence of A and AAAAs so
 			 * that AAAAs can be hidden from IPv4 clients.
 			 */
-			if (client->view->v4_aaaa != dns_v4_aaaa_ok &&
-			    client->peeraddr_valid &&
-			    client->peeraddr.type.sa.sa_family == AF_INET) {
+			if (filter_aaaa) {
 				if (rdataset->type == dns_rdatatype_aaaa)
 					have_aaaa = ISC_TRUE;
 				else if (rdataset->type == dns_rdatatype_a)
@@ -4788,7 +4774,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		 * Filter AAAAs if there is an A and there is no signature
 		 * or we are supposed to break DNSSEC.
 		 */
-		if (have_aaaa && have_a &&
+		if (filter_aaaa && have_aaaa && have_a &&
 		    (!have_sig || !WANTDNSSEC(client) ||
 		     client->view->v4_aaaa == dns_v4_aaaa_break_dnssec))
 			client->attributes |= NS_CLIENTATTR_FILTER_AAAA;
@@ -4800,7 +4786,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			/*
 			 * We didn't match any rdatasets.
 			 */
-			if (qtype == dns_rdatatype_rrsig &&
+			if ((qtype == dns_rdatatype_rrsig ||
+			     qtype == dns_rdatatype_sig) &&
 			    result == ISC_R_NOMORE) {
 				/*
 				 * XXXRTH  If this is a secure zone and we
@@ -4809,6 +4796,18 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				 * glue.  Ugh.
 				 */
 				if (!is_zone) {
+					/*
+					 * Note: this is dead code because
+					 * is_zone is always true due to the
+					 * condition above.  But naive
+					 * recursion would cause infinite
+					 * attempts of recursion because
+					 * the answer to (RR)SIG queries
+					 * won't be cached.  Until we figure
+					 * out what we should do and implement
+					 * it we intentionally keep this code
+					 * dead.
+					 */
 					authoritative = ISC_FALSE;
 					dns_rdatasetiter_destroy(&rdsiter);
 					if (RECURSIONOK(client)) {
@@ -4834,7 +4833,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				 * Add SOA.
 				 */
 				result = query_addsoa(client, db, version,
-						      ISC_FALSE);
+						      ISC_FALSE, ISC_FALSE);
 				if (result == ISC_R_SUCCESS)
 					result = ISC_R_NOMORE;
 			} else {
@@ -4864,8 +4863,10 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		 * unneeded that it is best to keep it as short as possible.
 		 */
 		if (client->view->v4_aaaa != dns_v4_aaaa_ok &&
-		    client->peeraddr_valid &&
-		    client->peeraddr.type.sa.sa_family == AF_INET &&
+		    is_v4_client(client) &&
+		    ns_client_checkaclsilent(client, NULL,
+					     client->view->v4_aaaa_acl,
+					     ISC_TRUE) == ISC_R_SUCCESS &&
 		    (!WANTDNSSEC(client) ||
 		     sigrdataset == NULL ||
 		     !dns_rdataset_isassociated(sigrdataset) ||
@@ -4991,7 +4992,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	if (need_wildcardproof && dns_db_issecure(db))
 		query_addwildcardproof(client, db, version,
 				       dns_fixedname_name(&wildcardname),
-				       ISC_TRUE);
+				       ISC_TRUE, ISC_FALSE);
  cleanup:
 	CTRACE("query_find: cleanup");
 	/*
@@ -5363,8 +5364,12 @@ ns_query_start(ns_client_t *client) {
 	/*
 	 * Assume authoritative response until it is known to be
 	 * otherwise.
+	 *
+	 * If "-T noaa" has been set on the command line don't set
+	 * AA on authoritative answers.
 	 */
-	message->flags |= DNS_MESSAGEFLAG_AA;
+	if (!ns_g_noaa)
+		message->flags |= DNS_MESSAGEFLAG_AA;
 
 	/*
 	 * Set AD.  We must clear it if we add non-validated data to a

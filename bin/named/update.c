@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.176 2009/12/04 21:09:32 marka Exp $ */
+/* $Id: update.c,v 1.176.4.14 2011/03/25 23:54:33 each Exp $ */
 
 #include <config.h>
 
@@ -1250,11 +1250,10 @@ replaces_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
 			return (ISC_FALSE);
 		INSIST(db_rr->length >= 4 && update_rr->length >= 4);
 		/*
-		 * Replace records added in this UPDATE request.
+		 * Replace NSEC3PARAM records that only differ by the
+		 * flags field.
 		 */
 		if (db_rr->data[0] == update_rr->data[0] &&
-		    (db_rr->data[1] & DNS_NSEC3FLAG_UPDATE) != 0 &&
-		    (update_rr->data[1] & DNS_NSEC3FLAG_UPDATE) != 0 &&
 		    memcmp(db_rr->data+2, update_rr->data+2,
 			   update_rr->length - 2) == 0)
 			return (ISC_TRUE);
@@ -1688,7 +1687,7 @@ next_active(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 {
 	isc_result_t result;
 	dns_dbiterator_t *dbit = NULL;
-	isc_boolean_t has_nsec;
+	isc_boolean_t has_nsec = ISC_FALSE;
 	unsigned int wraps = 0;
 	isc_boolean_t secure = dns_db_issecure(db);
 
@@ -1941,6 +1940,7 @@ add_sigs(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 		CHECK(update_one_rr(db, ver, diff, DNS_DIFFOP_ADDRESIGN, name,
 				    rdataset.ttl, &sig_rdata));
 		dns_rdata_reset(&sig_rdata);
+		isc_buffer_init(&buffer, data, sizeof(data));
 		added_sig = ISC_TRUE;
 	}
 	if (!added_sig) {
@@ -2390,7 +2390,7 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 								   name, diff));
 			}
 			CHECK(add_exposed_sigs(client, zone, db, newver, name,
-					       cut, diff, zone_keys, nkeys,
+					       cut, &sig_diff, zone_keys, nkeys,
 					       inception, expire, check_ksk,
 					       keyset_kskonly));
 		}
@@ -2549,7 +2549,7 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 						   privatetype, &nsec_diff));
 		} else {
 			CHECK(add_exposed_sigs(client, zone, db, newver, name,
-					       cut, diff, zone_keys, nkeys,
+					       cut, &sig_diff, zone_keys, nkeys,
 					       inception, expire, check_ksk,
 					       keyset_kskonly));
 			CHECK(dns_nsec3_addnsec3sx(db, newver, name, nsecttl,
@@ -3034,61 +3034,62 @@ static isc_result_t
 check_dnssec(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	     dns_dbversion_t *ver, dns_diff_t *diff)
 {
-	dns_diff_t temp_diff;
-	dns_diffop_t op;
-	dns_difftuple_t *tuple, *newtuple = NULL, *next;
-	isc_boolean_t flag;
+	dns_difftuple_t *tuple;
+	isc_boolean_t nseconly = ISC_FALSE, nsec3 = ISC_FALSE;
 	isc_result_t result;
 	unsigned int iterations = 0, max;
 	dns_rdatatype_t privatetype = dns_zone_getprivatetype(zone);
 
-	dns_diff_init(diff->mctx, &temp_diff);
+	/* Scan the tuples for an NSEC-only DNSKEY or an NSEC3PARAM */
+	for (tuple = ISC_LIST_HEAD(diff->tuples);
+	     tuple != NULL;
+	     tuple = ISC_LIST_NEXT(tuple, link)) {
+		if (tuple->op != DNS_DIFFOP_ADD)
+			continue;
 
-	CHECK(dns_nsec_nseconly(db, ver, &flag));
+		if (tuple->rdata.type == dns_rdatatype_dnskey) {
+			isc_uint8_t alg;
+			alg = tuple->rdata.data[3];
+			if (alg == DST_ALG_RSAMD5 || alg == DST_ALG_RSASHA1 ||
+			    alg == DST_ALG_DSA || alg == DST_ALG_ECC) {
+				nseconly = ISC_TRUE;
+				break;
+			}
+		} else if (tuple->rdata.type == dns_rdatatype_nsec3param) {
+			nsec3 = ISC_TRUE;
+			break;
+		}
+	}
 
-	if (flag)
+	/* Check existing DB for NSEC-only DNSKEY */
+	if (!nseconly)
+		CHECK(dns_nsec_nseconly(db, ver, &nseconly));
+
+	/* Check existing DB for NSEC3 */
+	if (!nsec3)
 		CHECK(dns_nsec3_activex(db, ver, ISC_FALSE,
-					privatetype, &flag));
-	if (flag) {
-		update_log(client, zone, ISC_LOG_WARNING,
+					privatetype, &nsec3));
+
+	/* Refuse to allow NSEC3 with NSEC-only keys */
+	if (nseconly && nsec3) {
+		update_log(client, zone, ISC_LOG_ERROR,
 			   "NSEC only DNSKEYs and NSEC3 chains not allowed");
-	} else {
-		CHECK(get_iterations(db, ver, privatetype, &iterations));
-		CHECK(dns_nsec3_maxiterations(db, ver, client->mctx, &max));
-		if (max != 0 && iterations > max) {
-			flag = ISC_TRUE;
-			update_log(client, zone, ISC_LOG_WARNING,
-				   "too many NSEC3 iterations (%u) for "
-				   "weakest DNSKEY (%u)", iterations, max);
-		}
-	}
-	if (flag) {
-		for (tuple = ISC_LIST_HEAD(diff->tuples);
-		     tuple != NULL;
-		     tuple = next) {
-			next = ISC_LIST_NEXT(tuple, link);
-			if (tuple->rdata.type != dns_rdatatype_dnskey &&
-			    tuple->rdata.type != dns_rdatatype_nsec3param)
-				continue;
-			op = (tuple->op == DNS_DIFFOP_DEL) ?
-			     DNS_DIFFOP_ADD : DNS_DIFFOP_DEL;
-			CHECK(dns_difftuple_create(temp_diff.mctx, op,
-						   &tuple->name, tuple->ttl,
-						   &tuple->rdata, &newtuple));
-			CHECK(do_one_tuple(&newtuple, db, ver, &temp_diff));
-			INSIST(newtuple == NULL);
-		}
-		for (tuple = ISC_LIST_HEAD(temp_diff.tuples);
-		     tuple != NULL;
-		     tuple = ISC_LIST_HEAD(temp_diff.tuples)) {
-			ISC_LIST_UNLINK(temp_diff.tuples, tuple, link);
-			dns_diff_appendminimal(diff, &tuple);
-		}
+		result = DNS_R_REFUSED;
+		goto failure;
 	}
 
+	/* Verify NSEC3 params */
+	CHECK(get_iterations(db, ver, privatetype, &iterations));
+	CHECK(dns_nsec3_maxiterations(db, ver, client->mctx, &max));
+	if (max != 0 && iterations > max) {
+		update_log(client, zone, ISC_LOG_ERROR,
+			   "too many NSEC3 iterations (%u) for "
+			   "weakest DNSKEY (%u)", iterations, max);
+		result = DNS_R_REFUSED;
+		goto failure;
+	}
 
  failure:
-	dns_diff_clear(&temp_diff);
 	return (result);
 }
 
@@ -3107,7 +3108,9 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	dns_diffop_t op;
 	isc_boolean_t flag;
 	dns_name_t *name = dns_zone_getorigin(zone);
-	dns_rdatatype_t privatetype = dns_zone_getprivatetype(zone);;
+	dns_rdatatype_t privatetype = dns_zone_getprivatetype(zone);
+	isc_uint32_t ttl = 0;
+	isc_boolean_t ttl_good = ISC_FALSE;
 
 	update_log(client, zone, ISC_LOG_DEBUG(3),
 		    "checking for NSEC3PARAM changes");
@@ -3130,65 +3133,172 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 		ISC_LIST_APPEND(temp_diff.tuples, tuple, link);
 	}
 
+	/*
+	 * Extract TTL changes pairs, we don't need to convert these to
+	 * delayed changes.
+	 */
 	for (tuple = ISC_LIST_HEAD(temp_diff.tuples);
 	     tuple != NULL; tuple = next) {
-
 		if (tuple->op == DNS_DIFFOP_ADD) {
-			next = ISC_LIST_NEXT(tuple, link);
+			if (!ttl_good) {
+				/*
+				 * Any adds here will contain the final
+				 * NSEC3PARAM RRset TTL.
+				 */
+				ttl = tuple->ttl;
+				ttl_good = ISC_TRUE;
+			}
+			/*
+			 * Walk the temp_diff list looking for the
+			 * corresponding delete.
+			 */
+			next = ISC_LIST_HEAD(temp_diff.tuples);
 			while (next != NULL) {
 				unsigned char *next_data = next->rdata.data;
 				unsigned char *tuple_data = tuple->rdata.data;
-				if (next_data[0] != tuple_data[0] ||
-					/* Ignore flags. */
+				if (next->op == DNS_DIFFOP_DEL &&
+				    next->rdata.length == tuple->rdata.length &&
+				    !memcmp(next_data, tuple_data,
+					    next->rdata.length)) {
+					ISC_LIST_UNLINK(temp_diff.tuples, next,
+							link);
+					ISC_LIST_APPEND(diff->tuples, next,
+							link);
+					break;
+				}
+				next = ISC_LIST_NEXT(next, link);
+			}
+			/*
+			 * If we have not found a pair move onto the next
+			 * tuple.
+			 */
+			if (next == NULL) {
+				next = ISC_LIST_NEXT(tuple, link);
+				continue;
+			}
+			/*
+			 * Find the next tuple to be processed before
+			 * unlinking then complete moving the pair to 'diff'.
+			 */
+			next = ISC_LIST_NEXT(tuple, link);
+			ISC_LIST_UNLINK(temp_diff.tuples, tuple, link);
+			ISC_LIST_APPEND(diff->tuples, tuple, link);
+		} else
+			next = ISC_LIST_NEXT(tuple, link);
+	}
+
+	/*
+	 * Preserve any ongoing changes from a BIND 9.6.x upgrade.
+	 *
+	 * Any NSEC3PARAM records with flags other than OPTOUT named
+	 * in managing and should not be touched so revert such changes
+	 * taking into account any TTL change of the NSEC3PARAM RRset.
+	 */
+	for (tuple = ISC_LIST_HEAD(temp_diff.tuples);
+	     tuple != NULL; tuple = next) {
+		next = ISC_LIST_NEXT(tuple, link);
+		if ((tuple->rdata.data[1] & ~DNS_NSEC3FLAG_OPTOUT) != 0) {
+			/*
+			 * If we havn't had any adds then the tuple->ttl must
+			 * be the original ttl and should be used for any
+			 * future changes.
+			 */
+			if (!ttl_good) {
+				ttl = tuple->ttl;
+				ttl_good = ISC_TRUE;
+			}
+			op = (tuple->op == DNS_DIFFOP_DEL) ?
+			     DNS_DIFFOP_ADD : DNS_DIFFOP_DEL;
+			CHECK(dns_difftuple_create(diff->mctx, op, name,
+						   ttl, &tuple->rdata,
+						   &newtuple));
+			CHECK(do_one_tuple(&newtuple, db, ver, diff));
+			ISC_LIST_UNLINK(temp_diff.tuples, tuple, link);
+			dns_diff_appendminimal(diff, &tuple);
+		}
+	}
+
+	/*
+	 * We now have just the actual changes to the NSEC3PARAM RRset.
+	 * Convert the adds to delayed adds and the deletions into delayed
+	 * deletions.
+	 */
+	for (tuple = ISC_LIST_HEAD(temp_diff.tuples);
+	     tuple != NULL; tuple = next) {
+		/*
+		 * If we havn't had any adds then the tuple->ttl must be the
+		 * original ttl and should be used for any future changes.
+		 */
+		if (!ttl_good) {
+			ttl = tuple->ttl;
+			ttl_good = ISC_TRUE;
+		}
+		if (tuple->op == DNS_DIFFOP_ADD) {
+			/*
+			 * Look for any deletes which match this ADD ignoring
+			 * OPTOUT.  We don't need to explictly remove them as
+			 * they will be removed a side effect of processing
+			 * the add.
+			 */
+			next = ISC_LIST_HEAD(temp_diff.tuples);
+			while (next != NULL) {
+				unsigned char *next_data = next->rdata.data;
+				unsigned char *tuple_data = tuple->rdata.data;
+				if (next->op != DNS_DIFFOP_DEL ||
+				    next->rdata.length != tuple->rdata.length ||
+				    next_data[0] != tuple_data[0] ||
 				    next_data[2] != tuple_data[2] ||
 				    next_data[3] != tuple_data[3] ||
-				    next_data[4] != tuple_data[4] ||
-				    !memcmp(&next_data[5], &tuple_data[5],
-					    tuple_data[4])) {
+				    memcmp(next_data + 4, tuple_data + 4,
+					   tuple->rdata.length - 4)) {
 					next = ISC_LIST_NEXT(next, link);
 					continue;
 				}
-				op = (next->op == DNS_DIFFOP_DEL) ?
-				     DNS_DIFFOP_ADD : DNS_DIFFOP_DEL;
-				CHECK(dns_difftuple_create(diff->mctx, op,
-							   name, next->ttl,
-							   &next->rdata,
-							   &newtuple));
-				CHECK(do_one_tuple(&newtuple, db, ver, diff));
 				ISC_LIST_UNLINK(temp_diff.tuples, next, link);
-				dns_diff_appendminimal(diff, &next);
-				next = ISC_LIST_NEXT(tuple, link);
+				ISC_LIST_APPEND(diff->tuples, next, link);
+				next = ISC_LIST_HEAD(temp_diff.tuples);
 			}
-
-			INSIST(tuple->rdata.data[1] & DNS_NSEC3FLAG_UPDATE);
-
 			/*
 			 * See if we already have a CREATE request in progress.
 			 */
 			dns_nsec3param_toprivate(&tuple->rdata, &rdata,
 						 privatetype, buf, sizeof(buf));
 			buf[2] |= DNS_NSEC3FLAG_CREATE;
-			buf[2] &= ~DNS_NSEC3FLAG_UPDATE;
-
 			CHECK(rr_exists(db, ver, name, &rdata, &flag));
 
 			if (!flag) {
 				CHECK(dns_difftuple_create(diff->mctx,
 							   DNS_DIFFOP_ADD,
-							   name, tuple->ttl,
-							   &rdata,
+							   name, 0, &rdata,
 							   &newtuple));
 				CHECK(do_one_tuple(&newtuple, db, ver, diff));
 			}
 
 			/*
-			 * Remove the temporary add record.
+			 * Remove any existing CREATE request to add an
+			 * otherwise indentical chain with a reversed
+			 * OPTOUT state.
 			 */
-			CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_DEL,
-						   name, tuple->ttl,
-						   &tuple->rdata, &newtuple));
-			CHECK(do_one_tuple(&newtuple, db, ver, diff));
+			buf[2] ^= DNS_NSEC3FLAG_OPTOUT;
+			CHECK(rr_exists(db, ver, name, &rdata, &flag));
+
+			if (flag) {
+				CHECK(dns_difftuple_create(diff->mctx,
+							   DNS_DIFFOP_DEL,
+							   name, 0, &rdata,
+							   &newtuple));
+				CHECK(do_one_tuple(&newtuple, db, ver, diff));
+			}
+
+			/*
+			 * Find the next tuple to be processed and remove the
+			 * temporary add record.
+			 */
 			next = ISC_LIST_NEXT(tuple, link);
+			CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_DEL,
+						   name, ttl, &tuple->rdata,
+						   &newtuple));
+			CHECK(do_one_tuple(&newtuple, db, ver, diff));
 			ISC_LIST_UNLINK(temp_diff.tuples, tuple, link);
 			dns_diff_appendminimal(diff, &tuple);
 			dns_rdata_reset(&rdata);
@@ -3196,48 +3306,33 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 			next = ISC_LIST_NEXT(tuple, link);
 	}
 
-	/*
-	 * Reverse any pending changes.
-	 */
 	for (tuple = ISC_LIST_HEAD(temp_diff.tuples);
 	     tuple != NULL; tuple = next) {
-		next = ISC_LIST_NEXT(tuple, link);
-		if ((tuple->rdata.data[1] & ~DNS_NSEC3FLAG_OPTOUT) != 0) {
-			op = (tuple->op == DNS_DIFFOP_DEL) ?
-			     DNS_DIFFOP_ADD : DNS_DIFFOP_DEL;
-			CHECK(dns_difftuple_create(diff->mctx, op, name,
-						   tuple->ttl, &tuple->rdata,
-						   &newtuple));
-			CHECK(do_one_tuple(&newtuple, db, ver, diff));
-			ISC_LIST_UNLINK(temp_diff.tuples, tuple, link);
-			dns_diff_appendminimal(diff, &tuple);
-		}
-	}
 
-	/*
-	 * Convert deletions into delayed deletions.
-	 */
-	for (tuple = ISC_LIST_HEAD(temp_diff.tuples);
-	     tuple != NULL; tuple = next) {
+		INSIST(ttl_good);
+
 		next = ISC_LIST_NEXT(tuple, link);
 		/*
 		 * See if we already have a REMOVE request in progress.
 		 */
-		dns_nsec3param_toprivate(&tuple->rdata, &rdata,
-					 privatetype, buf, sizeof(buf));
-		buf[2] |= DNS_NSEC3FLAG_REMOVE;
+		dns_nsec3param_toprivate(&tuple->rdata, &rdata, privatetype,
+					 buf, sizeof(buf));
+
+		buf[2] |= DNS_NSEC3FLAG_REMOVE | DNS_NSEC3FLAG_NONSEC;
 
 		CHECK(rr_exists(db, ver, name, &rdata, &flag));
+		if (!flag) {
+			buf[2] &= ~DNS_NSEC3FLAG_NONSEC;
+			CHECK(rr_exists(db, ver, name, &rdata, &flag));
+		}
 
 		if (!flag) {
 			CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD,
-						   name, tuple->ttl, &rdata,
-						   &newtuple));
+						   name, 0, &rdata, &newtuple));
 			CHECK(do_one_tuple(&newtuple, db, ver, diff));
 		}
 		CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD, name,
-					   tuple->ttl, &tuple->rdata,
-					   &newtuple));
+					   ttl, &tuple->rdata, &newtuple));
 		CHECK(do_one_tuple(&newtuple, db, ver, diff));
 		ISC_LIST_UNLINK(temp_diff.tuples, tuple, link);
 		dns_diff_appendminimal(diff, &tuple);
@@ -3270,8 +3365,7 @@ rollback_private(dns_db_t *db, dns_rdatatype_t privatetype,
 	 * Extract the changes to be rolled back.
 	 */
 	for (tuple = ISC_LIST_HEAD(diff->tuples);
-	     tuple != NULL;
-	     tuple = next) {
+	     tuple != NULL; tuple = next) {
 
 		next = ISC_LIST_NEXT(tuple, link);
 
@@ -3318,7 +3412,7 @@ static isc_result_t
 add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 		    dns_dbversion_t *ver, dns_diff_t *diff)
 {
-	dns_difftuple_t *tuple, *newtuple = NULL;
+	dns_difftuple_t *tuple, *newtuple = NULL, *next;
 	dns_rdata_dnskey_t dnskey;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_boolean_t flag;
@@ -3327,12 +3421,80 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 	isc_uint16_t keyid;
 	unsigned char buf[5];
 	dns_name_t *name = dns_db_origin(db);
+	dns_diff_t temp_diff;
 
+	dns_diff_init(diff->mctx, &temp_diff);
+
+	/*
+	 * Extract the DNSKEY tuples from the list.
+	 */
 	for (tuple = ISC_LIST_HEAD(diff->tuples);
-	     tuple != NULL;
-	     tuple = ISC_LIST_NEXT(tuple, link)) {
+	     tuple != NULL; tuple = next) {
+
+		next = ISC_LIST_NEXT(tuple, link);
+
 		if (tuple->rdata.type != dns_rdatatype_dnskey)
 			continue;
+
+		ISC_LIST_UNLINK(diff->tuples, tuple, link);
+		ISC_LIST_APPEND(temp_diff.tuples, tuple, link);
+	}
+
+	/*
+	 * Extract TTL changes pairs, we don't need signing records for these.
+	 */
+	for (tuple = ISC_LIST_HEAD(temp_diff.tuples);
+	     tuple != NULL; tuple = next) {
+		if (tuple->op == DNS_DIFFOP_ADD) {
+			/*
+			 * Walk the temp_diff list looking for the
+			 * corresponding delete.
+			 */
+			next = ISC_LIST_HEAD(temp_diff.tuples);
+			while (next != NULL) {
+				unsigned char *next_data = next->rdata.data;
+				unsigned char *tuple_data = tuple->rdata.data;
+				if (next->op == DNS_DIFFOP_DEL &&
+				    dns_name_equal(&tuple->name, &next->name) &&
+				    next->rdata.length == tuple->rdata.length &&
+				    !memcmp(next_data, tuple_data,
+					    next->rdata.length)) {
+					ISC_LIST_UNLINK(temp_diff.tuples, next,
+							link);
+					ISC_LIST_APPEND(diff->tuples, next,
+							link);
+					break;
+				}
+				next = ISC_LIST_NEXT(next, link);
+			}
+			/*
+			 * If we have not found a pair move onto the next
+			 * tuple.
+			 */
+			if (next == NULL) {
+				next = ISC_LIST_NEXT(tuple, link);
+				continue;
+			}
+			/*
+			 * Find the next tuple to be processed before
+			 * unlinking then complete moving the pair to 'diff'.
+			 */
+			next = ISC_LIST_NEXT(tuple, link);
+			ISC_LIST_UNLINK(temp_diff.tuples, tuple, link);
+			ISC_LIST_APPEND(diff->tuples, tuple, link);
+		} else
+			next = ISC_LIST_NEXT(tuple, link);
+	}
+
+	/*
+	 * Process the remaining DNSKEY entries.
+	 */
+	for (tuple = ISC_LIST_HEAD(temp_diff.tuples);
+	     tuple != NULL;
+	     tuple = ISC_LIST_HEAD(temp_diff.tuples)) {
+
+		ISC_LIST_UNLINK(temp_diff.tuples, tuple, link);
+		ISC_LIST_APPEND(diff->tuples, tuple, link);
 
 		dns_rdata_tostruct(&tuple->rdata, &dnskey, NULL);
 		if ((dnskey.flags &
@@ -3374,126 +3536,9 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 			INSIST(newtuple == NULL);
 		}
 	}
- failure:
-	return (result);
-}
-
-/*
- * Mark all NSEC3 chains for deletion without creating a NSEC chain as
- * a side effect of deleting the last chain.
- */
-static isc_result_t
-delete_chains(dns_db_t *db, dns_dbversion_t *ver, dns_zone_t *zone,
-	      dns_diff_t *diff)
-{
-	dns_dbnode_t *node = NULL;
-	dns_difftuple_t *tuple = NULL;
-	dns_name_t next;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	dns_rdataset_t rdataset;
-	isc_boolean_t flag;
-	isc_result_t result = ISC_R_SUCCESS;
-	unsigned char buf[DNS_NSEC3PARAM_BUFFERSIZE + 1];
-	dns_name_t *origin = dns_zone_getorigin(zone);
-	dns_rdatatype_t privatetype = dns_zone_getprivatetype(zone);
-
-	dns_name_init(&next, NULL);
-	dns_rdataset_init(&rdataset);
-
-	result = dns_db_getoriginnode(db, &node);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	/*
-	 * Cause all NSEC3 chains to be deleted.
-	 */
-	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_nsec3param,
-				     0, (isc_stdtime_t) 0, &rdataset, NULL);
-	if (result == ISC_R_NOTFOUND)
-		goto try_private;
-	if (result != ISC_R_SUCCESS)
-		goto failure;
-
-	for (result = dns_rdataset_first(&rdataset);
-	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset)) {
-		dns_rdata_t private = DNS_RDATA_INIT;
-
-		dns_rdataset_current(&rdataset, &rdata);
-
-		CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_DEL, origin,
-					   rdataset.ttl, &rdata, &tuple));
-		CHECK(do_one_tuple(&tuple, db, ver, diff));
-		INSIST(tuple == NULL);
-
-		dns_nsec3param_toprivate(&rdata, &private, privatetype,
-					 buf, sizeof(buf));
-		buf[2] = DNS_NSEC3FLAG_REMOVE | DNS_NSEC3FLAG_NONSEC;
-
-		CHECK(rr_exists(db, ver, origin, &rdata, &flag));
-
-		if (!flag) {
-			CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD,
-						   origin, 0, &rdata, &tuple));
-			CHECK(do_one_tuple(&tuple, db, ver, diff));
-			INSIST(tuple == NULL);
-		}
-		dns_rdata_reset(&rdata);
-	}
-	if (result != ISC_R_NOMORE)
-		goto failure;
-
-	dns_rdataset_disassociate(&rdataset);
-
- try_private:
-	if (privatetype == 0)
-		goto success;
-	result = dns_db_findrdataset(db, node, ver, privatetype, 0,
-				     (isc_stdtime_t) 0, &rdataset, NULL);
-	if (result == ISC_R_NOTFOUND)
-		goto success;
-	if (result != ISC_R_SUCCESS)
-		goto failure;
-
-	for (result = dns_rdataset_first(&rdataset);
-	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset)) {
-		dns_rdataset_current(&rdataset, &rdata);
-		INSIST(rdata.length <= sizeof(buf));
-		memcpy(buf, rdata.data, rdata.length);
-
-		if (buf[0] != 0 ||
-		    buf[2] == (DNS_NSEC3FLAG_REMOVE | DNS_NSEC3FLAG_NONSEC)) {
-			dns_rdata_reset(&rdata);
-			continue;
-		}
-
-		CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_DEL, origin,
-					   0, &rdata, &tuple));
-		CHECK(do_one_tuple(&tuple, db, ver, diff));
-		INSIST(tuple == NULL);
-
-		buf[2] = DNS_NSEC3FLAG_REMOVE | DNS_NSEC3FLAG_NONSEC;
-
-		CHECK(rr_exists(db, ver, origin, &rdata, &flag));
-
-		if (!flag) {
-			CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD,
-						   origin, 0, &rdata, &tuple));
-			CHECK(do_one_tuple(&tuple, db, ver, diff));
-			INSIST(tuple == NULL);
-		}
-		dns_rdata_reset(&rdata);
-	}
-	if (result != ISC_R_NOMORE)
-		goto failure;
- success:
-	result = ISC_R_SUCCESS;
 
  failure:
-	if (dns_rdataset_isassociated(&rdataset))
-		dns_rdataset_disassociate(&rdataset);
-	dns_db_detachnode(db, &node);
+	dns_diff_clear(&temp_diff);
 	return (result);
 }
 
@@ -3535,7 +3580,6 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	unsigned int options;
 	dns_difftuple_t *tuple;
 	dns_rdata_dnskey_t dnskey;
-	unsigned char buf[DNS_NSEC3PARAM_BUFFERSIZE];
 	isc_boolean_t had_dnskey;
 	dns_rdatatype_t privatetype = dns_zone_getprivatetype(zone);
 
@@ -3684,7 +3728,6 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	 * Check Requestor's Permissions.  It seems a bit silly to do this
 	 * only after prerequisite testing, but that is what RFC2136 says.
 	 */
-	result = ISC_R_SUCCESS;
 	if (ssutable == NULL)
 		CHECK(checkupdateacl(client, dns_zone_getupdateacl(zone),
 				     "update", zonename, ISC_FALSE, ISC_FALSE));
@@ -3920,19 +3963,6 @@ update_action(isc_task_t *task, isc_event_t *event) {
 						   "flag");
 					continue;
 				}
-
-				/*
-				 * NSEC3CHAIN creation flag.
-				 */
-				INSIST(rdata.length <= sizeof(buf));
-				memcpy(buf, rdata.data, rdata.length);
-				buf[1] |= DNS_NSEC3FLAG_UPDATE;
-				rdata.data = buf;
-
-				/*
-				 * Force the TTL to zero for NSEC3PARAM records.
-				 */
-				ttl = 0;
 			}
 
 			if ((options & DNS_ZONEOPT_CHECKWILDCARD) != 0 &&
@@ -4156,7 +4186,8 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			 * the last signature for the DNSKEY records are
 			 * remove any NSEC chain present will also be removed.
 			 */
-			 CHECK(delete_chains(db, ver, zone, &diff));
+			 CHECK(dns_nsec3param_deletechains(db, ver, zone,
+							   &diff));
 		} else if (has_dnskey && isdnssec(db, ver, privatetype)) {
 			isc_uint32_t interval;
 			interval = dns_zone_getsigvalidityinterval(zone);

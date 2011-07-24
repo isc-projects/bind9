@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.47 2009/11/07 03:36:58 each Exp $
+ * $Id: dst_api.c,v 1.47.22.5 2010/12/09 01:05:28 marka Exp $
  */
 
 /*! \file */
@@ -49,7 +49,9 @@
 #include <isc/lex.h>
 #include <isc/mem.h>
 #include <isc/once.h>
+#include <isc/platform.h>
 #include <isc/print.h>
+#include <isc/refcount.h>
 #include <isc/random.h>
 #include <isc/string.h>
 #include <isc/time.h>
@@ -543,6 +545,7 @@ dst_key_fromnamedfile(const char *filename, const char *dirname,
 
 	*keyp = key;
 	return (ISC_R_SUCCESS);
+
  out:
 	if (pubkey != NULL)
 		dst_key_free(&pubkey);
@@ -1014,9 +1017,21 @@ dst_key_paramcompare(const dst_key_t *key1, const dst_key_t *key2) {
 }
 
 void
+dst_key_attach(dst_key_t *source, dst_key_t **target) {
+
+	REQUIRE(dst_initialized == ISC_TRUE);
+	REQUIRE(target != NULL && *target == NULL);
+	REQUIRE(VALID_KEY(source));
+
+	isc_refcount_increment(&source->refs, NULL);
+	*target = source;
+}
+
+void
 dst_key_free(dst_key_t **keyp) {
 	isc_mem_t *mctx;
 	dst_key_t *key;
+	unsigned int refs;
 
 	REQUIRE(dst_initialized == ISC_TRUE);
 	REQUIRE(keyp != NULL && VALID_KEY(*keyp));
@@ -1024,6 +1039,11 @@ dst_key_free(dst_key_t **keyp) {
 	key = *keyp;
 	mctx = key->mctx;
 
+	isc_refcount_decrement(&key->refs, &refs);
+	if (refs != 0)
+		return;
+
+	isc_refcount_destroy(&key->refs);
 	if (key->keydata.generic != NULL) {
 		INSIST(key->func->destroy != NULL);
 		key->func->destroy(key);
@@ -1163,14 +1183,22 @@ get_key_struct(dns_name_t *name, unsigned int alg,
 	memset(key, 0, sizeof(dst_key_t));
 	key->magic = KEY_MAGIC;
 
+	result = isc_refcount_init(&key->refs, 1);
+	if (result != ISC_R_SUCCESS) {
+		isc_mem_put(mctx, key, sizeof(dst_key_t));
+		return (NULL);
+	}
+
 	key->key_name = isc_mem_get(mctx, sizeof(dns_name_t));
 	if (key->key_name == NULL) {
+		isc_refcount_destroy(&key->refs);
 		isc_mem_put(mctx, key, sizeof(dst_key_t));
 		return (NULL);
 	}
 	dns_name_init(key->key_name, NULL);
 	result = dns_name_dup(name, mctx, key->key_name);
 	if (result != ISC_R_SUCCESS) {
+		isc_refcount_destroy(&key->refs);
 		isc_mem_put(mctx, key->key_name, sizeof(dns_name_t));
 		isc_mem_put(mctx, key, sizeof(dst_key_t));
 		return (NULL);
@@ -1346,9 +1374,16 @@ issymmetric(const dst_key_t *key) {
 static void
 printtime(const dst_key_t *key, int type, const char *tag, FILE *stream) {
 	isc_result_t result;
+#ifdef ISC_PLATFORM_USETHREADS
+	char output[26]; /* Minimum buffer as per ctime_r() specification. */
+#else
 	const char *output;
+#endif
 	isc_stdtime_t when;
 	time_t t;
+	char utc[sizeof("YYYYMMDDHHSSMM")];
+	isc_buffer_t b;
+	isc_region_t r;
 
 	result = dst_key_gettime(key, type, &when);
 	if (result == ISC_R_NOTFOUND)
@@ -1356,8 +1391,30 @@ printtime(const dst_key_t *key, int type, const char *tag, FILE *stream) {
 
 	/* time_t and isc_stdtime_t might be different sizes */
 	t = when;
+#ifdef ISC_PLATFORM_USETHREADS
+#ifdef WIN32
+	if (ctime_s(output, sizeof(output), &t) != 0)
+		goto error;
+#else
+	if (ctime_r(&t, output) == NULL)
+		goto error;
+#endif
+#else
 	output = ctime(&t);
-	fprintf(stream, "%s: %s", tag, output);
+#endif
+
+	isc_buffer_init(&b, utc, sizeof(utc));
+	result = dns_time32_totext(when, &b);
+	if (result != ISC_R_SUCCESS)
+		goto error;
+
+	isc_buffer_usedregion(&b, &r);
+	fprintf(stream, "%s: %.*s (%.*s)\n", tag, (int)r.length, r.base,
+		 (int)strlen(output) - 1, output);
+	return;
+
+ error:
+	fprintf(stream, "%s: (set, unable to display)\n", tag);
 }
 
 /*%
@@ -1450,7 +1507,7 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 	fprintf(fp, " ");
 
 	isc_buffer_usedregion(&classb, &r);
-	fwrite(r.base, 1, r.length, fp);
+	isc_util_fwrite(r.base, 1, r.length, fp);
 
 	if ((type & DST_TYPE_KEY) != 0)
 		fprintf(fp, " KEY ");
@@ -1458,7 +1515,7 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 		fprintf(fp, " DNSKEY ");
 
 	isc_buffer_usedregion(&textb, &r);
-	fwrite(r.base, 1, r.length, fp);
+	isc_util_fwrite(r.base, 1, r.length, fp);
 
 	fputc('\n', fp);
 	fflush(fp);

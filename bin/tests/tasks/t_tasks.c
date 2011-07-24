@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_tasks.c,v 1.42 2009/01/22 23:47:54 tbox Exp $ */
+/* $Id: t_tasks.c,v 1.42.184.4 2011/03/18 23:46:45 tbox Exp $ */
 
 #include <config.h>
 
@@ -744,6 +744,14 @@ t_tasks3(void) {
 	 */
 	event = isc_event_allocate(mctx, &senders[1], event_type, t3_event1,
 				   NULL, sizeof(*event));
+	if (event == NULL) {
+		t_info("isc_event_allocate failed\n");
+		(void) isc_mutex_unlock(&T3_mx);
+		isc_task_destroy(&task);
+		isc_taskmgr_destroy(&tmgr);
+		isc_mem_destroy(&mctx);
+		return(T_UNRESOLVED);
+	}
 	isc_task_send(task, &event);
 
 	/*
@@ -752,6 +760,14 @@ t_tasks3(void) {
 	for (cnt = 0; cnt < T3_NEVENTS; ++cnt) {
 		event = isc_event_allocate(mctx, &senders[1], event_type,
 					   t3_event2, NULL, sizeof(*event));
+		if (event == NULL) {
+			t_info("isc_event_allocate failed\n");
+			(void) isc_mutex_unlock(&T3_mx);
+			isc_task_destroy(&task);
+			isc_taskmgr_destroy(&tmgr);
+			isc_mem_destroy(&mctx);
+			return(T_UNRESOLVED);
+		}
 		isc_task_send(task, &event);
 	}
 
@@ -897,7 +913,6 @@ t_tasks4(void) {
 	T4_nfails = 0;
 	T4_flag = 0;
 
-	result = T_UNRESOLVED;
 	event_type = 4;
 
 	workers = 2;
@@ -969,6 +984,15 @@ t_tasks4(void) {
 	 */
 	event = isc_event_allocate(mctx, &senders[1], event_type, t4_event1,
 				   NULL, sizeof(*event));
+	if (event == NULL) {
+		t_info("isc_event_allocate failed\n");
+		DESTROYLOCK(&T4_mx);
+		isc_task_destroy(&task);
+		(void) isc_condition_destroy(&T4_cv);
+		isc_taskmgr_destroy(&tmgr);
+		isc_mem_destroy(&mctx);
+		return(T_UNRESOLVED);
+	}
 	isc_task_send(task, &event);
 
 	isc_task_shutdown(task);
@@ -1097,7 +1121,6 @@ t_tasks7(void) {
 	T7_sdflag = 0;
 	T7_eflag = 0;
 
-	result = T_UNRESOLVED;
 	event_type = 7;
 
 	workers = 2;
@@ -1178,6 +1201,15 @@ t_tasks7(void) {
 
 	event = isc_event_allocate(mctx, &senders[1], event_type, t7_event1,
 				   NULL, sizeof(*event));
+	if (event == NULL) {
+		t_info("isc_event_allocate failed\n");
+		DESTROYLOCK(&T7_mx);
+		(void) isc_condition_destroy(&T7_cv);
+		isc_task_destroy(&task);
+		isc_taskmgr_destroy(&tmgr);
+		isc_mem_destroy(&mctx);
+		return(T_UNRESOLVED);
+	}
 	isc_task_send(task, &event);
 
 	isc_task_shutdown(task);
@@ -1502,6 +1534,16 @@ t_taskpurge_x(int sender, int type, int tag, void *purge_sender,
 	event = isc_event_allocate(mctx, (void *)1, (isc_eventtype_t)T_CONTROL,
 				   t10_event1, NULL, sizeof(*event));
 
+	if (event == NULL) {
+		t_info("isc_event_allocate failed\n");
+		isc_task_destroy(&task);
+		isc_taskmgr_destroy(&tmgr);
+		isc_mem_destroy(&mctx);
+		DESTROYLOCK(&T10_mx);
+		(void) isc_condition_destroy(&T10_cv);
+		++*nprobs;
+		return;
+	}
 	isc_task_send(task, &event);
 
 	/*
@@ -1518,6 +1560,17 @@ t_taskpurge_x(int sender, int type, int tag, void *purge_sender,
 					    &senders[sender + sender_cnt],
 					    (isc_eventtype_t)(type + type_cnt),
 					    t10_event2, NULL, sizeof(*event));
+
+				if (eventtab[event_cnt] == NULL) {
+					t_info("isc_event_allocate failed\n");
+					isc_task_destroy(&task);
+					isc_taskmgr_destroy(&tmgr);
+					isc_mem_destroy(&mctx);
+					DESTROYLOCK(&T10_mx);
+					(void) isc_condition_destroy(&T10_cv);
+					++*nprobs;
+					return;
+				}
 
 				eventtab[event_cnt]->ev_tag =
 					(void *)((uintptr_t)tag + tag_cnt);
@@ -1890,11 +1943,28 @@ t_tasks11(int purgable) {
 	 */
 	event1 = isc_event_allocate(mctx, (void *)1, (isc_eventtype_t)1,
 				    t11_event1, NULL, sizeof(*event1));
-
+	if (event1 == NULL) {
+		t_info("isc_event_allocate failed\n");
+		isc_task_destroy(&task);
+		isc_taskmgr_destroy(&tmgr);
+		isc_mem_destroy(&mctx);
+		DESTROYLOCK(&T11_mx);
+		(void) isc_condition_destroy(&T11_cv);
+		return(T_UNRESOLVED);
+	}
 	isc_task_send(task, &event1);
 
 	event2 = isc_event_allocate(mctx, (void *)1, (isc_eventtype_t)1,
 				    t11_event2, NULL, sizeof(*event2));
+	if (event2 == NULL) {
+		t_info("isc_event_allocate failed\n");
+		isc_task_destroy(&task);
+		isc_taskmgr_destroy(&tmgr);
+		isc_mem_destroy(&mctx);
+		DESTROYLOCK(&T11_mx);
+		(void) isc_condition_destroy(&T11_cv);
+		return(T_UNRESOLVED);
+	}
 	event2_clone = event2;
 	if (purgable)
 		event2->ev_attributes &= ~ISC_EVENTATTR_NOPURGE;

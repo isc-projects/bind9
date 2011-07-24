@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009-2011  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-settime.c,v 1.19 2009/10/27 18:56:49 each Exp $ */
+/* $Id: dnssec-settime.c,v 1.19.34.12 2011/06/02 20:23:48 each Exp $ */
 
 /*! \file */
 
@@ -58,10 +58,10 @@ usage(void) {
 	fprintf(stderr, "Version: %s\n", VERSION);
 	fprintf(stderr, "General options:\n");
 #ifdef USE_PKCS11
-	fprintf(stderr, "\t\tname of an OpenSSL engine to use "
-				"(default is \"pkcs11\")\n");
+	fprintf(stderr, "    -E engine:          specify OpenSSL engine "
+						 "(default \"pkcs11\")\n");
 #else
-	fprintf(stderr, "\t\tname of an OpenSSL engine to use\n");
+	fprintf(stderr, "    -E engine:          specify OpenSSL engine\n");
 #endif
 	fprintf(stderr, "    -f:                 force update of old-style "
 						 "keys\n");
@@ -71,18 +71,17 @@ usage(void) {
 	fprintf(stderr, "Timing options:\n");
 	fprintf(stderr, "    -P date/[+-]offset/none: set/unset key "
 						     "publication date\n");
-	fprintf(stderr, "    -A date/[+-]offset/none: set key "
+	fprintf(stderr, "    -A date/[+-]offset/none: set/unset key "
 						     "activation date\n");
-	fprintf(stderr, "    -R date/[+-]offset/none: set key "
+	fprintf(stderr, "    -R date/[+-]offset/none: set/unset key "
 						     "revocation date\n");
-	fprintf(stderr, "    -I date/[+-]offset/none: set key "
+	fprintf(stderr, "    -I date/[+-]offset/none: set/unset key "
 						     "inactivation date\n");
-	fprintf(stderr, "    -D date/[+-]offset/none: set key "
+	fprintf(stderr, "    -D date/[+-]offset/none: set/unset key "
 						     "deletion date\n");
 	fprintf(stderr, "Printing options:\n");
-	fprintf(stderr, "    -p C/P/A/R/U/D/all: print a particular time "
-						"value or values "
-						"[default: all]\n");
+	fprintf(stderr, "    -p C/P/A/R/I/D/all: print a particular time "
+						"value or values\n");
 	fprintf(stderr, "    -u:                 print times in unix epoch "
 						"format\n");
 	fprintf(stderr, "Output:\n");
@@ -117,20 +116,27 @@ printtime(dst_key_t *key, int type, const char *tag, isc_boolean_t epoch,
 
 int
 main(int argc, char **argv) {
-	isc_result_t result;
+	isc_result_t	result;
 #ifdef USE_PKCS11
-	const char *engine = "pkcs11";
+	const char	*engine = "pkcs11";
 #else
-	const char *engine = NULL;
+	const char	*engine = NULL;
 #endif
-	char *filename = NULL, *directory = NULL;
-	char newname[1024];
-	char keystr[DST_KEY_FORMATSIZE];
-	char *endp, *p;
-	int ch;
-	isc_entropy_t *ectx = NULL;
-	dst_key_t *key = NULL;
-	isc_buffer_t buf;
+	char		*filename = NULL, *directory = NULL;
+	char		newname[1024];
+	char		keystr[DST_KEY_FORMATSIZE];
+	char		*endp, *p;
+	int		ch;
+	isc_entropy_t	*ectx = NULL;
+	const char	*predecessor = NULL;
+	dst_key_t	*prevkey = NULL;
+	dst_key_t	*key = NULL;
+	isc_buffer_t	buf;
+	dns_name_t	*name = NULL;
+	dns_secalg_t 	alg = 0;
+	unsigned int 	size = 0;
+	isc_uint16_t	flags = 0;
+	int		prepub = -1;
 	isc_stdtime_t	now;
 	isc_stdtime_t	pub = 0, act = 0, rev = 0, inact = 0, del = 0;
 	isc_boolean_t	setpub = ISC_FALSE, setact = ISC_FALSE;
@@ -159,8 +165,8 @@ main(int argc, char **argv) {
 
 	isc_stdtime_get(&now);
 
-	while ((ch = isc_commandline_parse(argc, argv,
-					   "E:fK:uhp:v:P:A:R:I:D:")) != -1) {
+#define CMDLINE_FLAGS "A:D:E:fhI:i:K:P:p:R:S:uv:"
+	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
 		case 'E':
 			engine = isc_commandline_argument;
@@ -293,6 +299,12 @@ main(int argc, char **argv) {
 						now, now);
 			}
 			break;
+		case 'S':
+			predecessor = isc_commandline_argument;
+			break;
+		case 'i':
+			prepub = strtottl(isc_commandline_argument);
+			break;
 		case '?':
 			if (isc_commandline_option != '?')
 				fprintf(stderr, "%s: invalid argument -%c\n",
@@ -314,17 +326,6 @@ main(int argc, char **argv) {
 	if (argc > isc_commandline_index + 1)
 		fatal("Extraneous arguments");
 
-	if (directory != NULL) {
-		filename = argv[isc_commandline_index];
-	} else {
-		result = isc_file_splitpath(mctx, argv[isc_commandline_index],
-					    &directory, &filename);
-		if (result != ISC_R_SUCCESS)
-			fatal("cannot process filename %s: %s",
-			      argv[isc_commandline_index],
-			      isc_result_totext(result));
-	}
-
 	if (ectx == NULL)
 		setup_entropy(mctx, NULL, &ectx);
 	result = isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE);
@@ -337,6 +338,105 @@ main(int argc, char **argv) {
 		      isc_result_totext(result));
 	isc_entropy_stopcallbacksources(ectx);
 
+	if (predecessor != NULL) {
+		char keystr[DST_KEY_FORMATSIZE];
+		isc_stdtime_t when;
+		int major, minor;
+
+		if (prepub == -1)
+			prepub = (30 * 86400);
+
+		if (setpub || unsetpub)
+			fatal("-S and -P cannot be used together");
+		if (setact || unsetact)
+			fatal("-S and -A cannot be used together");
+
+		result = dst_key_fromnamedfile(predecessor, directory,
+					       DST_TYPE_PUBLIC |
+					       DST_TYPE_PRIVATE,
+					       mctx, &prevkey);
+		if (result != ISC_R_SUCCESS)
+			fatal("Invalid keyfile %s: %s",
+			      filename, isc_result_totext(result));
+		if (!dst_key_isprivate(prevkey))
+			fatal("%s is not a private key", filename);
+
+		name = dst_key_name(prevkey);
+		alg = dst_key_alg(prevkey);
+		size = dst_key_size(prevkey);
+		flags = dst_key_flags(prevkey);
+
+		dst_key_format(prevkey, keystr, sizeof(keystr));
+		dst_key_getprivateformat(prevkey, &major, &minor);
+		if (major != DST_MAJOR_VERSION || minor < DST_MINOR_VERSION)
+			fatal("Predecessor has incompatible format "
+			      "version %d.%d\n\t", major, minor);
+
+		result = dst_key_gettime(prevkey, DST_TIME_ACTIVATE, &when);
+		if (result != ISC_R_SUCCESS)
+			fatal("Predecessor has no activation date. "
+			      "You must set one before\n\t"
+			      "generating a successor.");
+
+		result = dst_key_gettime(prevkey, DST_TIME_INACTIVE, &act);
+		if (result != ISC_R_SUCCESS)
+			fatal("Predecessor has no inactivation date. "
+			      "You must set one before\n\t"
+			      "generating a successor.");
+
+		pub = act - prepub;
+		if (pub < now && prepub != 0)
+			fatal("Predecessor will become inactive before the\n\t"
+			      "prepublication period ends.  Either change "
+			      "its inactivation date,\n\t"
+			      "or use the -i option to set a shorter "
+			      "prepublication interval.");
+
+		result = dst_key_gettime(prevkey, DST_TIME_DELETE, &when);
+		if (result != ISC_R_SUCCESS)
+			fprintf(stderr, "%s: WARNING: Predecessor has no "
+					"removal date;\n\t"
+					"it will remain in the zone "
+					"indefinitely after rollover.\n",
+					program);
+
+		changed = setpub = setact = ISC_TRUE;
+		dst_key_free(&prevkey);
+	} else {
+		if (prepub < 0)
+			prepub = 0;
+
+		if (prepub > 0) {
+			if (setpub && setact && (act - prepub) < pub)
+				fatal("Activation and publication dates "
+				      "are closer together than the\n\t"
+				      "prepublication interval.");
+
+			if (setpub && !setact) {
+				setact = ISC_TRUE;
+				act = pub + prepub;
+			} else if (setact && !setpub) {
+				setpub = ISC_TRUE;
+				pub = act - prepub;
+			}
+
+			if ((act - prepub) < now)
+				fatal("Time until activation is shorter "
+				      "than the\n\tprepublication interval.");
+		}
+	}
+
+	if (directory != NULL) {
+		filename = argv[isc_commandline_index];
+	} else {
+		result = isc_file_splitpath(mctx, argv[isc_commandline_index],
+					    &directory, &filename);
+		if (result != ISC_R_SUCCESS)
+			fatal("cannot process filename %s: %s",
+			      argv[isc_commandline_index],
+			      isc_result_totext(result));
+	}
+
 	result = dst_key_fromnamedfile(filename, directory,
 				       DST_TYPE_PUBLIC | DST_TYPE_PRIVATE,
 				       mctx, &key);
@@ -348,6 +448,17 @@ main(int argc, char **argv) {
 		fatal("%s is not a private key", filename);
 
 	dst_key_format(key, keystr, sizeof(keystr));
+
+	if (predecessor != NULL) {
+		if (!dns_name_equal(name, dst_key_name(key)))
+			fatal("Key name mismatch");
+		if (alg != dst_key_alg(key))
+			fatal("Key algorithm mismatch");
+		if (size != dst_key_size(key))
+			fatal("Key size mismatch");
+		if (flags != dst_key_flags(key))
+			fatal("Key flags mismatch");
+	}
 
 	if (force)
 		set_keyversion(key);
@@ -400,6 +511,16 @@ main(int argc, char **argv) {
 		dst_key_settime(key, DST_TIME_DELETE, del);
 	else if (unsetdel)
 		dst_key_unsettime(key, DST_TIME_DELETE);
+
+	/*
+	 * No metadata changes were made but we're forcing an upgrade
+	 * to the new format anyway: use "-P now -A now" as the default
+	 */
+	if (force && !changed) {
+		dst_key_settime(key, DST_TIME_PUBLISH, now);
+		dst_key_settime(key, DST_TIME_ACTIVATE, now);
+		changed = ISC_TRUE;
+	}
 
 	/*
 	 * Print out time values, if -p was used.

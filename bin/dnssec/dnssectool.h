@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007-2010  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.h,v 1.29 2009/10/26 21:18:24 each Exp $ */
+/* $Id: dnssectool.h,v 1.29.36.2 2010/01/19 23:48:13 tbox Exp $ */
 
 #ifndef DNSSECTOOL_H
 #define DNSSECTOOL_H 1
@@ -76,4 +76,8 @@ check_keyversion(dst_key_t *key, char *keystr);
 
 void
 set_keyversion(dst_key_t *key);
+
+isc_boolean_t
+key_collision(isc_uint16_t id, dns_name_t *name, const char *dir,
+	      dns_secalg_t alg, isc_mem_t *mctx, isc_boolean_t *exact);
 #endif /* DNSSEC_DNSSECTOOL_H */
