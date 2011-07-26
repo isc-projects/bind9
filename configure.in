@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.512.8.11 $)
+AC_REVISION($Revision: 1.512.8.12 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -267,6 +267,14 @@ case "$host" in
 		STD_CDEFINES="$STD_CDEFINES -D_GNU_SOURCE"
 		CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
 		;;
+	#
+	# Starting with OSX 10.7 (Lion) we must choose which IPv6 API to use.
+	# Setting this is sufficient to select the correct behavior for BIND 9.
+	#
+	*-darwin*)
+	  STD_CDEFINES="$STD_CDEFINES -D__APPLE_USE_RFC_3542"
+	  CPPFLAGS="$CPPFLAGS -D__APPLE_USE_RFC_3542"
+	  ;;
 esac
 
 AC_HEADER_STDC
