@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.32 2011/07/08 01:43:26 each Exp $
+# $Id: tests.sh,v 1.33 2011/07/26 04:28:35 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -728,7 +728,7 @@ status=`expr $status + $ret`
 
 echo "I:checking that standby key does not sign records ($n)"
 ret=0
-ed=`sed 's/^K.+007+0*\([0-9]\)/\1/' < standby.key`
+id=`sed 's/^K.+007+0*\([0-9]\)/\1/' < standby.key`
 $DIG $DIGOPTS dnskey . @10.53.0.1 > dig.out.ns1.test$n || ret=1
 grep 'RRSIG.*'" $id "'\. ' dig.out.ns1.test$n > /dev/null && ret=1
 n=`expr $n + 1`
