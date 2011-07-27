@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_tasks.c,v 1.48 2011/07/27 07:02:21 marka Exp $ */
+/* $Id: t_tasks.c,v 1.49 2011/07/27 07:45:55 marka Exp $ */
 
 #include <config.h>
 
@@ -807,14 +807,14 @@ t_tasks3(void) {
 	T3_flag = 1;
 	isc_result = isc_condition_signal(&T3_cv);
 	if (isc_result != ISC_R_SUCCESS) {
-		t_info("isc_task_send failed %s\n",
+		t_info("isc_condition_signal failed %s\n",
 				isc_result_totext(isc_result));
 		++T3_nprobs;
 	}
 
 	isc_result = isc_mutex_unlock(&T3_mx);
 	if (isc_result != ISC_R_SUCCESS) {
-		t_info("isc_task_send failed %s\n",
+		t_info("isc_mutex_unlock failed %s\n",
 				isc_result_totext(isc_result));
 		++T3_nprobs;
 	}
