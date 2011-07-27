@@ -1,9 +1,10 @@
 #!/bin/sh
 
-PATH=${PATH}:@ATFBIN@
+PATH="@ATFBIN@:${PATH}"
 export PATH
 
 if [ -n "@ATFBIN@" ]
 then
-	atf-run | atf-report -o csv:- | cat
+        # | cat is there to force non-fancy output
+	atf-run | atf-report | cat
 fi
