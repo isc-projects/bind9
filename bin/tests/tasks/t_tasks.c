@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_tasks.c,v 1.32.18.9 2011/07/27 07:09:50 marka Exp $ */
+/* $Id: t_tasks.c,v 1.32.18.10 2011/07/27 07:33:43 marka Exp $ */
 
 #include <config.h>
 
@@ -736,7 +736,10 @@ t_tasks3(void) {
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_task_create failed %s\n",
 		       isc_result_totext(isc_result));
-		isc_mutex_unlock(&T3_mx);
+		isc_result = isc_mutex_unlock(&T3_mx);
+		if (isc_result != ISC_R_SUCCESS)
+			t_info("isc_mutex_unlock failed %s\n",
+			       isc_result_totext(isc_result));
 		isc_taskmgr_destroy(&tmgr);
 		isc_mem_destroy(&mctx);
 		return(T_UNRESOLVED);
@@ -765,7 +768,10 @@ t_tasks3(void) {
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_task_send failed %s\n",
 				isc_result_totext(isc_result));
-		isc_mutex_unlock(&T3_mx);
+		isc_result = isc_mutex_unlock(&T3_mx);
+		if (isc_result != ISC_R_SUCCESS)
+			t_info("isc_mutex_unlock failed %s\n",
+			       isc_result_totext(isc_result));
 		isc_task_destroy(&task);
 		isc_taskmgr_destroy(&tmgr);
 		isc_mem_destroy(&mctx);
@@ -776,7 +782,10 @@ t_tasks3(void) {
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_task_send failed %s\n",
 				isc_result_totext(isc_result));
-		isc_mutex_unlock(&T3_mx);
+		isc_result = isc_mutex_unlock(&T3_mx);
+		if (isc_result != ISC_R_SUCCESS)
+			t_info("isc_mutex_unlock failed %s\n",
+			       isc_result_totext(isc_result));
 		isc_task_destroy(&task);
 		isc_taskmgr_destroy(&tmgr);
 		isc_mem_destroy(&mctx);
@@ -791,14 +800,14 @@ t_tasks3(void) {
 	T3_flag = 1;
 	isc_result = isc_condition_signal(&T3_cv);
 	if (isc_result != ISC_R_SUCCESS) {
-		t_info("isc_task_send failed %s\n",
+		t_info("isc_condition_signal failed %s\n",
 				isc_result_totext(isc_result));
 		++T3_nprobs;
 	}
 
 	isc_result = isc_mutex_unlock(&T3_mx);
 	if (isc_result != ISC_R_SUCCESS) {
-		t_info("isc_task_send failed %s\n",
+		t_info("isc_mutex_unlock failed %s\n",
 				isc_result_totext(isc_result));
 		++T3_nprobs;
 	}
