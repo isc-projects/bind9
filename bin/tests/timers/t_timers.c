@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2008, 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2008, 2009, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_timers.c,v 1.23.18.6 2011/07/27 07:04:55 marka Exp $ */
+/* $Id: t_timers.c,v 1.23.18.7 2011/07/27 23:45:15 tbox Exp $ */
 
 #include <config.h>
 
