@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_tasks.c,v 1.42.184.4 2011/03/18 23:46:45 tbox Exp $ */
+/* $Id: t_tasks.c,v 1.42.184.5 2011/07/27 07:08:13 marka Exp $ */
 
 #include <config.h>
 
@@ -68,6 +68,7 @@ t1_callback(isc_task_t *task, isc_event_t *event) {
 
 static void
 t1_shutdown(isc_task_t *task, isc_event_t *event) {
+
 	UNUSED(task);
 
 	t_info("shutdown %s\n", (char *)event->ev_arg);
@@ -76,6 +77,7 @@ t1_shutdown(isc_task_t *task, isc_event_t *event) {
 
 static void
 my_tick(isc_task_t *task, isc_event_t *event) {
+
 	UNUSED(task);
 
 	t_info("%s\n", (char *)event->ev_arg);
@@ -400,7 +402,7 @@ t2_shutdown(isc_task_t *task, isc_event_t *event) {
 
 	isc_result_t	isc_result;
 
-	task = task; /* notused */
+	UNUSED(task);
 
 	if (event->ev_arg != NULL) {
 		isc_task_destroy((isc_task_t**) &event->ev_arg);
@@ -594,7 +596,8 @@ static	int		T3_nprobs;
 
 static void
 t3_sde1(isc_task_t *task, isc_event_t *event) {
-	task = task;
+
+	UNUSED(task);
 
 	if (T3_nevents != T3_NEVENTS) {
 		t_info("Some events were not processed\n");
@@ -612,7 +615,7 @@ t3_sde1(isc_task_t *task, isc_event_t *event) {
 static void
 t3_sde2(isc_task_t *task, isc_event_t *event) {
 
-	task = task;
+	UNUSED(task);
 
 	if (T3_nevents != T3_NEVENTS) {
 		t_info("Some events were not processed\n");
@@ -631,7 +634,7 @@ static void
 t3_event1(isc_task_t *task, isc_event_t *event) {
 	isc_result_t	isc_result;
 
-	task = task;
+	UNUSED(task);
 
 	isc_result = isc_mutex_lock(&T3_mx);
 	if (isc_result != ISC_R_SUCCESS) {
@@ -654,7 +657,7 @@ t3_event1(isc_task_t *task, isc_event_t *event) {
 
 static void
 t3_event2(isc_task_t *task, isc_event_t *event) {
-	task = task;
+	UNUSED(task);
 
 	++T3_nevents;
 	isc_event_free(&event);
@@ -1306,7 +1309,7 @@ static void
 t10_event1(isc_task_t *task, isc_event_t *event) {
 	isc_result_t	isc_result;
 
-	task = task;
+	UNUSED(task);
 
 	isc_result = isc_mutex_lock(&T10_mx);
 	if (isc_result != ISC_R_SUCCESS) {
@@ -1341,7 +1344,7 @@ t10_event2(isc_task_t *task, isc_event_t *event) {
 	int	type_match;
 	int	tag_match;
 
-	task = task;
+	UNUSED(task);
 
 	sender_match = 0;
 	type_match = 0;
@@ -1397,7 +1400,7 @@ static void
 t10_sde(isc_task_t *task, isc_event_t *event) {
 	isc_result_t	isc_result;
 
-	task = task;
+	UNUSED(task);
 
 	isc_result = isc_mutex_lock(&T10_mx);
 	if (isc_result != ISC_R_SUCCESS) {
@@ -1785,7 +1788,7 @@ static void
 t11_event1(isc_task_t *task, isc_event_t *event) {
 	isc_result_t	isc_result;
 
-	task = task;
+	UNUSED(task);
 
 	isc_result = isc_mutex_lock(&T11_mx);
 	if (isc_result != ISC_R_SUCCESS) {
