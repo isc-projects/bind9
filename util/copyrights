@@ -891,11 +891,11 @@
 ./bin/tests/task_test.c				C	1998,1999,2000,2001,2004
 ./bin/tests/tasks/.cvsignore			X	1999,2000,2001
 ./bin/tests/tasks/Makefile.in			MAKE	1998,1999,2000,2001,2002,2004
-./bin/tests/tasks/t_tasks.c			C	1998,1999,2000,2001,2004,2005,2009
+./bin/tests/tasks/t_tasks.c			C	1998,1999,2000,2001,2004,2005,2009,2011
 ./bin/tests/timer_test.c			C	1998,1999,2000,2001,2004
 ./bin/tests/timers/.cvsignore			X	1999,2000,2001
 ./bin/tests/timers/Makefile.in			MAKE	1999,2000,2001,2002,2004
-./bin/tests/timers/t_timers.c			C	1999,2000,2001,2004,2008,2009
+./bin/tests/timers/t_timers.c			C	1999,2000,2001,2004,2008,2009,2011
 ./bin/tests/wire_test.c				C	1999,2000,2001,2004,2005
 ./bin/tests/wire_test.data			X	1999,2000,2001
 ./bin/tests/wire_test.data2			X	1999,2000,2001
@@ -1770,7 +1770,7 @@
 ./lib/bind/resolv/res_mkupdate.h		X	2001,2004,2005
 ./lib/bind/resolv/res_private.h			X	2001,2002,2003,2005
 ./lib/bind/resolv/res_query.c			X	2001,2003,2004,2005,2008
-./lib/bind/resolv/res_send.c			X	2001,2002,2003,2004,2005,2006,2007,2008
+./lib/bind/resolv/res_send.c			X	2001,2002,2003,2004,2005,2006,2007,2008,2011
 ./lib/bind/resolv/res_sendsigned.c		X	2001,2004,2005,2006
 ./lib/bind/resolv/res_update.c			X	2001,2002,2003,2004,2005
 ./lib/bind9/.cvsignore				X	2001
