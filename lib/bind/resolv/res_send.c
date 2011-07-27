@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_send.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: res_send.c,v 1.9.18.10 2008/01/27 02:06:26 marka Exp $";
+static const char rcsid[] = "$Id: res_send.c,v 1.9.18.11 2011/07/27 07:25:23 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /*! \file
@@ -1028,8 +1028,6 @@ Aerror(const res_state statp, FILE *file, const char *string, int error,
 	int save = errno;
 	char hbuf[NI_MAXHOST];
 	char sbuf[NI_MAXSERV];
-
-	alen = alen;
 
 	if ((statp->options & RES_DEBUG) != 0U) {
 		if (getnameinfo(address, alen, hbuf, sizeof(hbuf),
