@@ -1,3 +1,6 @@
+3138.	[bug]		Address memory leaks and out-of-order operations when
+			shutting named down. [RT #25210]
+
 3137.	[func]		Improve hardware scalability by allowing multiple
 			worker threads to process incoming UDP packets.
 			This can significantly increase query throughput

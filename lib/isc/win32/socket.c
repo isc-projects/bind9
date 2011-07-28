@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.88 2011/07/28 04:04:37 each Exp $ */
+/* $Id: socket.c,v 1.89 2011/07/28 04:27:27 marka Exp $ */
 
 /* This code uses functions which are only available on Server 2003 and
  * higher, and Windows XP and higher.
@@ -3346,6 +3346,7 @@ isc__socket_accept(isc_socket_t *sock,
 	 */
 	isc_task_attach(task, &ntask);
 	if (isc_task_exiting(ntask)) {
+		free_socket(&nsock, __LINE__);
 		isc_task_detach(&ntask);
 		isc_event_free(ISC_EVENT_PTR(&adev));
 		UNLOCK(&sock->lock);

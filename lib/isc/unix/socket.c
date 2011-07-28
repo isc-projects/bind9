@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.341 2011/07/28 04:04:37 each Exp $ */
+/* $Id: socket.c,v 1.342 2011/07/28 04:27:26 marka Exp $ */
 
 /*! \file */
 
@@ -4538,9 +4538,8 @@ isc__socket_recvv(isc_socket_t *sock0, isc_bufferlist_t *buflist,
 	INSIST(sock->bound);
 
 	dev = allocate_socketevent(sock, ISC_SOCKEVENT_RECVDONE, action, arg);
-	if (dev == NULL) {
+	if (dev == NULL)
 		return (ISC_R_NOMEMORY);
-	}
 
 	/*
 	 * UDP sockets are always partial read
@@ -4744,9 +4743,8 @@ isc__socket_sendto(isc_socket_t *sock0, isc_region_t *region,
 	INSIST(sock->bound);
 
 	dev = allocate_socketevent(sock, ISC_SOCKEVENT_SENDDONE, action, arg);
-	if (dev == NULL) {
+	if (dev == NULL)
 		return (ISC_R_NOMEMORY);
-	}
 
 	dev->region = *region;
 
@@ -4785,9 +4783,8 @@ isc__socket_sendtov(isc_socket_t *sock0, isc_bufferlist_t *buflist,
 	REQUIRE(iocount > 0);
 
 	dev = allocate_socketevent(sock, ISC_SOCKEVENT_SENDDONE, action, arg);
-	if (dev == NULL) {
+	if (dev == NULL)
 		return (ISC_R_NOMEMORY);
-	}
 
 	/*
 	 * Move each buffer from the passed in list to our internal one.
@@ -5205,6 +5202,7 @@ isc__socket_accept(isc_socket_t *sock0,
 	 */
 	isc_task_attach(task, &ntask);
 	if (isc_task_exiting(ntask)) {
+		free_socket(&nsock);
 		isc_task_detach(&ntask);
 		isc_event_free(ISC_EVENT_PTR(&dev));
 		UNLOCK(&sock->lock);
