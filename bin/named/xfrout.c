@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.136.132.2 2010/05/27 23:49:54 tbox Exp $ */
+/* $Id: xfrout.c,v 1.136.132.3 2011/07/28 04:37:34 marka Exp $ */
 
 #include <config.h>
 
@@ -1084,9 +1084,9 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 
 	CHECK(xfr->stream->methods->first(xfr->stream));
 
-	if (xfr->tsigkey != NULL) {
+	if (xfr->tsigkey != NULL)
 		dns_name_format(&xfr->tsigkey->name, keyname, sizeof(keyname));
-	} else
+	else
 		keyname[0] = '\0';
 	if (is_poll)
 		xfrout_log1(client, question_name, question_class,
@@ -1156,7 +1156,8 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	xfr = isc_mem_get(mctx, sizeof(*xfr));
 	if (xfr == NULL)
 		return (ISC_R_NOMEMORY);
-	xfr->mctx = mctx;
+	xfr->mctx = NULL;
+	isc_mem_attach(mctx, &xfr->mctx);
 	xfr->client = NULL;
 	ns_client_attach(client, &xfr->client);
 	xfr->id = id;
@@ -1530,6 +1531,7 @@ sendstream(xfrout_ctx_t *xfr) {
 static void
 xfrout_ctx_destroy(xfrout_ctx_t **xfrp) {
 	xfrout_ctx_t *xfr = *xfrp;
+	ns_client_t *client = NULL;
 
 	INSIST(xfr->sends == 0);
 
@@ -1553,9 +1555,14 @@ xfrout_ctx_destroy(xfrout_ctx_t **xfrp) {
 	if (xfr->db != NULL)
 		dns_db_detach(&xfr->db);
 
+	/*
+	 * We want to detch the client after we have released the memory
+	 * context as ns_client_detach checks the memory reference count.
+	 */
+	ns_client_attach(xfr->client, &client);
 	ns_client_detach(&xfr->client);
-
-	isc_mem_put(xfr->mctx, xfr, sizeof(*xfr));
+	isc_mem_putanddetach(&xfr->mctx, xfr, sizeof(*xfr));
+	ns_client_detach(&client);
 
 	*xfrp = NULL;
 }

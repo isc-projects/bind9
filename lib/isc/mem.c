@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.153.104.6 2010/08/11 23:46:20 tbox Exp $ */
+/* $Id: mem.c,v 1.153.104.7 2011/07/28 04:37:35 marka Exp $ */
 
 /*! \file */
 
@@ -1273,7 +1273,7 @@ isc___mem_get(isc_mem_t *ctx0, size_t size FLARG) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
 	if ((isc_mem_debugging & (ISC_MEM_DEBUGSIZE|ISC_MEM_DEBUGCTX)) != 0)
-		return (isc_mem_allocate((isc_mem_t *)ctx, size));
+		return (isc___mem_allocate((isc_mem_t *)ctx, size FLARG_PASS));
 
 	if ((ctx->flags & ISC_MEMFLAG_INTERNAL) != 0) {
 		MCTXLOCK(ctx, &ctx->lock);
