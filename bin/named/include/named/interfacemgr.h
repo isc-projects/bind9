@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.h,v 1.34 2011/07/28 04:04:36 each Exp $ */
+/* $Id: interfacemgr.h,v 1.35 2011/07/28 23:47:58 tbox Exp $ */
 
 #ifndef NAMED_INTERFACEMGR_H
 #define NAMED_INTERFACEMGR_H 1
@@ -66,7 +66,7 @@
 
 #define NS_INTERFACEFLAG_ANYADDR	0x01U	/*%< bound to "any" address */
 #define MAX_UDP_DISPATCH 128		/*%< Maximum number of UDP dispatchers
-                                                     to start per interface */
+						     to start per interface */
 /*% The nameserver interface structure */
 struct ns_interface {
 	unsigned int		magic;		/*%< Magic number. */

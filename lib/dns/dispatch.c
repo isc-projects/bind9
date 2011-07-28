@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.173 2011/07/28 04:04:36 each Exp $ */
+/* $Id: dispatch.c,v 1.174 2011/07/28 23:47:58 tbox Exp $ */
 
 /*! \file */
 
@@ -906,7 +906,7 @@ get_dispsocket(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 		if (portentry != NULL)
 			bindoptions |= ISC_SOCKET_REUSEADDRESS;
 		result = open_socket(sockmgr, &localaddr, bindoptions, &sock,
-			             NULL);
+				     NULL);
 		if (result == ISC_R_SUCCESS) {
 			if (portentry == NULL) {
 				portentry = new_portentry(disp, port);
@@ -2707,7 +2707,7 @@ dns_dispatch_getudp_dup(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 				disp->attributes |= DNS_DISPATCHATTR_NOLISTEN;
 				if (disp->recv_pending != 0)
 					isc_socket_cancel(disp->socket,
-						          disp->task[0],
+							  disp->task[0],
 							  ISC_SOCKCANCEL_RECV);
 			}
 

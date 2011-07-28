@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.343 2011/07/28 11:42:41 marka Exp $ */
+/* $Id: socket.c,v 1.344 2011/07/28 23:47:59 tbox Exp $ */
 
 /*! \file */
 
@@ -2642,8 +2642,8 @@ isc__socket_dup(isc_socket_t *sock0, isc_socket_t **socketp) {
 	REQUIRE(socketp != NULL && *socketp == NULL);
 
 	return (socket_create((isc_socketmgr_t *) sock->manager,
-                              sock->pf, sock->type, socketp,
-                              sock0));
+			      sock->pf, sock->type, socketp,
+			      sock0));
 }
 
 #ifdef BIND9

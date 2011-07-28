@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.275 2011/07/28 04:27:26 marka Exp $ */
+/* $Id: client.c,v 1.276 2011/07/28 23:47:58 tbox Exp $ */
 
 #include <config.h>
 
@@ -2568,7 +2568,7 @@ ns_clientmgr_createclients(ns_clientmgr_t *manager, unsigned int n,
 			if (client != NULL) {
 				MTRACE("recycle");
 				ISC_LIST_UNLINK(manager->inactive, client,
-					        link);
+						link);
 				client->list = NULL;
 			} else {
 				MTRACE("create new");
