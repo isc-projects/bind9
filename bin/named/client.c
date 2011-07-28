@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.271.10.1 2011/05/05 23:53:16 marka Exp $ */
+/* $Id: client.c,v 1.271.10.2 2011/07/28 04:30:54 marka Exp $ */
 
 #include <config.h>
 
@@ -1312,6 +1312,12 @@ ns_client_isself(dns_view_t *myview, dns_tsigkey_t *mykey,
 	isc_netaddr_t netdst;
 
 	UNUSED(arg);
+
+	/*
+	 * ns_g_server->interfacemgr is task exclusive locked.
+	 */
+	if (ns_g_server->interfacemgr == NULL)
+		return (ISC_TRUE);
 
 	if (!ns_interfacemgr_listeningon(ns_g_server->interfacemgr, dstaddr))
 		return (ISC_FALSE);
