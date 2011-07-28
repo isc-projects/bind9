@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.3 2011/07/28 04:04:37 each Exp $
+# $Id: Makefile.in,v 1.4 2011/07/28 21:05:09 ckb Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -35,10 +35,10 @@ ISCDEPLIBS =	../libisc.@A@
 LIBS =		@LIBS@ @ATFLIBS@
 
 OBJS =		isctest.@O@
-SRCS =		isctest.c taskpool_test.c socket_test.c
+SRCS =		isctest.c taskpool_test.c socket_test.c hash_test.c
 
 SUBDIRS =
-TARGETS =	taskpool_test@EXEEXT@ socket_test@EXEEXT@
+TARGETS =	taskpool_test@EXEEXT@ socket_test@EXEEXT@ hash_test@EXEEXT@
 
 @BIND9_MAKE_RULES@
 
@@ -49,6 +49,10 @@ taskpool_test@EXEEXT@: taskpool_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 socket_test@EXEEXT@: socket_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			socket_test.@O@ isctest.@O@ ${ISCLIBS} ${LIBS}
+
+hash_test@EXEEXT@: hash_test.@O@ ${ISCDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+			hash_test.@O@ ${ISCLIBS} ${LIBS}
 
 clean distclean::
 	rm -f ${TARGETS}
