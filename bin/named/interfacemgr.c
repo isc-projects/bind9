@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.98 2011/07/28 04:04:36 each Exp $ */
+/* $Id: interfacemgr.c,v 1.99 2011/07/28 11:16:04 marka Exp $ */
 
 /*! \file */
 
@@ -184,11 +184,14 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 {
 	ns_interface_t *ifp;
 	isc_result_t result;
+	int disp;
 
 	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
+
 	ifp = isc_mem_get(mgr->mctx, sizeof(*ifp));
 	if (ifp == NULL)
 		return (ISC_R_NOMEMORY);
+
 	ifp->mgr = NULL;
 	ifp->generation = mgr->generation;
 	ifp->addr = *addr;
@@ -196,7 +199,6 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	strncpy(ifp->name, name, sizeof(ifp->name));
 	ifp->name[sizeof(ifp->name)-1] = '\0';
 	ifp->clientmgr = NULL;
-	int disp;
 
 	result = isc_mutex_init(&ifp->lock);
 	if (result != ISC_R_SUCCESS)
@@ -216,6 +218,7 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 		ifp->udpdispatch[disp] = NULL;
 
 	ifp->tcpsocket = NULL;
+
 	/*
 	 * Create a single TCP client object.  It will replace itself
 	 * with a new one as soon as it gets a connection, so the actual
@@ -239,6 +242,7 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 
  clientmgr_create_failure:
 	DESTROYLOCK(&ifp->lock);
+
  lock_create_failure:
 	ifp->magic = 0;
 	isc_mem_put(mgr->mctx, ifp, sizeof(*ifp));
@@ -416,8 +420,9 @@ ns_interface_shutdown(ns_interface_t *ifp) {
 static void
 ns_interface_destroy(ns_interface_t *ifp) {
 	isc_mem_t *mctx = ifp->mgr->mctx;
-	REQUIRE(NS_INTERFACE_VALID(ifp));
 	int disp;
+
+	REQUIRE(NS_INTERFACE_VALID(ifp));
 
 	ns_interface_shutdown(ifp);
 
@@ -427,6 +432,7 @@ ns_interface_destroy(ns_interface_t *ifp) {
 						    DNS_DISPATCHATTR_NOLISTEN);
 			dns_dispatch_detach(&(ifp->udpdispatch[disp]));
 		}
+
 	if (ifp->tcpsocket != NULL)
 		isc_socket_detach(&ifp->tcpsocket);
 
