@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2010, 2011  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: filter-aaaa.c,v 1.2.108.1 2011/07/28 01:24:39 marka Exp $ */
+/* $Id: filter-aaaa.c,v 1.2.108.2 2011/07/28 23:47:16 tbox Exp $ */
 
 #include <config.h>
 #include <isc/util.h>
