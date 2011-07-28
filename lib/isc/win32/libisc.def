@@ -88,6 +88,7 @@ isc__socket_close
 isc__socket_connect
 isc__socket_create
 isc__socket_detach
+isc__socket_dup
 isc__socket_filter
 isc__socket_getname
 isc__socket_getpeername

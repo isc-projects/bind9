@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namespace.h,v 1.9 2010/12/04 13:25:59 marka Exp $ */
+/* $Id: namespace.h,v 1.10 2011/07/28 04:04:37 each Exp $ */
 
 #ifndef ISCAPI_NAMESPACE_H
 #define ISCAPI_NAMESPACE_H 1
@@ -88,6 +88,7 @@
 #define isc_mempool_getfillcount isc__mempool_getfillcount
 
 #define isc_socket_create isc__socket_create
+#define isc_socket_dup isc__socket_dup
 #define isc_socket_attach isc__socket_attach
 #define isc_socket_detach isc__socket_detach
 #define isc_socketmgr_create isc__socketmgr_create

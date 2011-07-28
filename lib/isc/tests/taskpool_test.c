@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: taskpool_test.c,v 1.2 2011/07/06 05:05:52 each Exp $ */
+/* $Id: taskpool_test.c,v 1.3 2011/07/28 04:04:37 each Exp $ */
 
 /*! \file */
 
@@ -44,7 +44,7 @@ ATF_TC_BODY(create_pool, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL);
+	result = isc_test_begin(NULL, ISC_TRUE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_taskpool_create(taskmgr, mctx, 8, 2, &pool);
@@ -68,7 +68,7 @@ ATF_TC_BODY(expand_pool, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL);
+	result = isc_test_begin(NULL, ISC_TRUE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_taskpool_create(taskmgr, mctx, 10, 2, &pool1);
@@ -121,7 +121,7 @@ ATF_TC_BODY(get_tasks, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL);
+	result = isc_test_begin(NULL, ISC_TRUE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_taskpool_create(taskmgr, mctx, 2, 2, &pool);

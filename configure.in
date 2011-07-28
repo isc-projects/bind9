@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.528 $)
+AC_REVISION($Revision: 1.529 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -2552,7 +2552,7 @@ yes)
 esac
 AC_SUBST(ISC_PLATFORM_HAVEIFNAMETOINDEX)
 
-AC_CHECK_FUNCS(nanosleep)
+AC_CHECK_FUNCS(nanosleep usleep)
 
 #
 # Machine architecture dependent features

@@ -1,3 +1,8 @@
+3137.	[func]		Improve hardware scalability by allowing multiple
+			worker threads to process incoming UDP packets.
+			This can significantly increase query throughput
+			on some systems.  [RT #22992]
+
 3136.	[func]		Add RFC 1918 reverse zones to the list of built-in 
 			empty zones switched on by the 'empty-zones-enable'
 			option. [RT #24990]

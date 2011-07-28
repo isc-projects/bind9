@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: isctest.h,v 1.2 2011/07/06 05:05:52 each Exp $ */
+/* $Id: isctest.h,v 1.3 2011/07/28 04:04:37 each Exp $ */
 
 /*! \file */
 
@@ -42,10 +42,12 @@ extern isc_mem_t *mctx;
 extern isc_entropy_t *ectx;
 extern isc_log_t *lctx;
 extern isc_taskmgr_t *taskmgr;
+isc_timermgr_t *timermgr;
+isc_socketmgr_t *socketmgr;
 extern int ncpus;
 
 isc_result_t
-isc_test_begin(FILE *logfile);
+isc_test_begin(FILE *logfile, isc_boolean_t start_managers);
 
 void
 isc_test_end(void);

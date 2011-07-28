@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.94 2009/10/01 01:30:01 sar Exp $ */
+/* $Id: socket.h,v 1.95 2011/07/28 04:04:37 each Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -447,6 +447,12 @@ isc_socket_create(isc_socketmgr_t *manager,
  *\li	#ISC_R_NOMEMORY
  *\li	#ISC_R_NORESOURCES
  *\li	#ISC_R_UNEXPECTED
+ */
+
+isc_result_t
+isc_socket_dup(isc_socket_t *sock0, isc_socket_t **socketp);
+/*%<
+ * Duplicate an existing socket, reusing its file descriptor.
  */
 
 void
@@ -1100,6 +1106,11 @@ const char *isc_socket_getname(isc_socket_t *socket);
 void *isc_socket_gettag(isc_socket_t *socket);
 /*%<
  * Get the tag associated with a socket, if any.
+ */
+
+int isc_socket_getfd(isc_socket_t *socket);
+/*%<
+ * Get the file descriptor associated with a socket
  */
 
 void
