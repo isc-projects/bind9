@@ -14,14 +14,17 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: filter-aaaa.c,v 1.2 2010/06/22 03:58:36 marka Exp $ */
+/* $Id: filter-aaaa.c,v 1.2.108.1 2011/07/28 01:24:39 marka Exp $ */
 
 #include <config.h>
+#include <isc/util.h>
 
 int
 main(int argc, char **argv) {
-	argc = argc;
-	argv = argv;
+
+	UNUSED(argc);
+	UNUSED(argv);
+
 #ifdef ALLOW_FILTER_AAAA_ON_V4
 	return (0);
 #else
