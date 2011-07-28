@@ -1,3 +1,7 @@
+3136.	[func]		Add RFC 1918 reverse zones to the list of built-in 
+			empty zones switched on by the 'empty-zones-enable'
+			option. [RT #24990]
+
 3135.	[port]		FreeBSD: workaround broken IPV6_USE_MIN_MTU processing.
 			See http://www.freebsd.org/cgi/query-pr.cgi?pr=158307
 			[RT #24950]
