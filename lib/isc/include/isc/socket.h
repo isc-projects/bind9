@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.95 2011/07/28 04:04:37 each Exp $ */
+/* $Id: socket.h,v 1.96 2011/07/28 11:42:41 marka Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -296,6 +296,8 @@ typedef struct isc_socketmethods {
 	isc_sockettype_t (*gettype)(isc_socket_t *sock);
 	void		(*ipv6only)(isc_socket_t *sock, isc_boolean_t yes);
 	isc_result_t    (*fdwatchpoke)(isc_socket_t *sock, int flags);
+	isc_result_t		(*dup)(isc_socket_t *socket,
+				  isc_socket_t **socketp);
 } isc_socketmethods_t;
 
 /*%

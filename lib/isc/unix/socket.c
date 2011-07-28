@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.342 2011/07/28 04:27:26 marka Exp $ */
+/* $Id: socket.c,v 1.343 2011/07/28 11:42:41 marka Exp $ */
 
 /*! \file */
 
@@ -551,6 +551,8 @@ isc__socket_fdwatchcreate(isc_socketmgr_t *manager, int fd, int flags,
 			  isc_task_t *task, isc_socket_t **socketp);
 ISC_SOCKETFUNC_SCOPE isc_result_t
 isc__socket_fdwatchpoke(isc_socket_t *sock, int flags);
+ISC_SOCKETFUNC_SCOPE isc_result_t
+isc__socket_dup(isc_socket_t *sock, isc_socket_t **socketp);
 
 static struct {
 	isc_socketmethods_t methods;
@@ -574,7 +576,8 @@ static struct {
 		isc__socket_getsockname,
 		isc__socket_gettype,
 		isc__socket_ipv6only,
-		isc__socket_fdwatchpoke
+		isc__socket_fdwatchpoke,
+		isc__socket_dup
 	}
 #ifndef BIND9
 	,
@@ -769,6 +772,7 @@ FIX_IPV6_RECVPKTINFO(isc__socket_t *sock)
 	if (setsockopt(sock->fd, IPPROTO_IPV6, IPV6_RECVPKTINFO,
 		       (void *)&on, sizeof(on)) < 0) {
 
+		isc__strerror(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "setsockopt(%d, IPV6_RECVPKTINFO) "
 				 "%s: %s", sock->fd,
@@ -2474,8 +2478,9 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 		 */
 		if (sock->pf == AF_INET6) {
 			int action = IPV6_PMTUDISC_DONT;
-			(void)setsockopt(sock->fd, IPPROTO_IPV6, IPV6_MTU_DISCOVER,
-					 &action, sizeof(action));
+			(void)setsockopt(sock->fd, IPPROTO_IPV6,
+					 IPV6_MTU_DISCOVER, &action,
+					 sizeof(action));
 		}
 #endif
 #endif /* ISC_PLATFORM_HAVEIPV6 */
@@ -5714,7 +5719,7 @@ isc__socket_ipv6only(isc_socket_t *sock0, isc_boolean_t yes) {
 		if (setsockopt(sock->fd, IPPROTO_IPV6, IPV6_V6ONLY,
 			       (void *)&onoff, sizeof(int)) < 0) {
 			char strbuf[ISC_STRERRORSIZE];
-
+			isc__strerror(errno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "setsockopt(%d, IPV6_V6ONLY) "
 					 "%s: %s", sock->fd,

@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket_api.c,v 1.5 2009/10/01 01:30:01 sar Exp $ */
+/* $Id: socket_api.c,v 1.6 2011/07/28 11:42:41 marka Exp $ */
 
 #include <config.h>
 
@@ -213,4 +213,12 @@ isc_socket_fdwatchpoke(isc_socket_t *sock, int flags)
 	REQUIRE(ISCAPI_SOCKET_VALID(sock));
 
 	return(sock->methods->fdwatchpoke(sock, flags));
+}
+
+isc_result_t
+isc_socket_dup(isc_socket_t *sock, isc_socket_t **socketp) {
+	REQUIRE(ISCAPI_SOCKET_VALID(sock));
+	REQUIRE(socketp != NULL && *socketp == NULL);
+
+	return(sock->methods->dup(sock, socketp));
 }
