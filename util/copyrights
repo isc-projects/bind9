@@ -2736,6 +2736,7 @@
 ./lib/isc/tests/.cvsignore			X	2011
 ./lib/isc/tests/Atffile				X	2011
 ./lib/isc/tests/Makefile.in			MAKE	2011
+./lib/isc/tests/hash_test.c			C	2011
 ./lib/isc/tests/isctest.c			C	2011
 ./lib/isc/tests/isctest.h			C	2011
 ./lib/isc/tests/socket_test.c			C	2011
