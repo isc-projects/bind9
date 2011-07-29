@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hash_test.c,v 1.2 2011/07/28 23:40:09 ckb Exp $ */
+/* $Id: hash_test.c,v 1.3 2011/07/29 23:47:52 tbox Exp $ */
 
 /* ! \file */
 
@@ -46,9 +46,9 @@ int i = 0;
 isc_result_t
 tohexstr(unsigned char *d, unsigned int len, char *out);
 /*
- * Precondition: a hexadecimal number in *d, the length of that number in len, 
+ * Precondition: a hexadecimal number in *d, the length of that number in len,
  *   and a pointer to a character array to put the output (*out).
- * Postcondition: A String representation of the given hexadecimal number is 
+ * Postcondition: A String representation of the given hexadecimal number is
  *   placed into the array *out
  *
  * 'out' MUST point to an array of at least len / 2 + 1
@@ -96,7 +96,7 @@ ATF_TC_BODY(isc_sha1, tc) {
 	isc_sha1_t sha1;
 
 	UNUSED(tc);
-	
+
 	/*
 	 * These are the various test vectors.  All of these are passed
 	 * through the hash function and the results are compared to the
@@ -198,9 +198,9 @@ ATF_TC_BODY(isc_sha1, tc) {
 		},
 		{ NULL, 0, NULL, 1 }
 	};
-	
+
 	hash_testcase_t *testcase = testcases;
-	
+
 	while (testcase->input != NULL && testcase->result != NULL) {
 		isc_sha1_init(&sha1);
 		for(i = 0; i < testcase->repeats; i++) {
@@ -225,7 +225,7 @@ ATF_TC_BODY(isc_sha224, tc) {
 	isc_sha224_t sha224;
 
 	UNUSED(tc);
-	
+
 	/*
 	 * These are the various test vectors.  All of these are passed
 	 * through the hash function and the results are compared to the
@@ -325,9 +325,9 @@ ATF_TC_BODY(isc_sha224, tc) {
 		},
 		{ NULL, 0, NULL, 1 }
 	};
-	
+
 	hash_testcase_t *testcase = testcases;
-	
+
 	while (testcase->input != NULL && testcase->result != NULL) {
 		isc_sha224_init(&sha224);
 		for(i = 0; i < testcase->repeats; i++) {
@@ -358,7 +358,7 @@ ATF_TC_BODY(isc_sha256, tc) {
 	isc_sha256_t sha256;
 
 	UNUSED(tc);
-	
+
 	/*
 	 * These are the various test vectors.  All of these are passed
 	 * through the hash function and the results are compared to the
@@ -396,7 +396,7 @@ ATF_TC_BODY(isc_sha256, tc) {
 #if 0
 		/* Test 5 -- unimplemented optional functionality */
 		{
-			TEST_INPUT(""), 
+			TEST_INPUT(""),
 			"0xXXX",
 			1
 		},
@@ -457,9 +457,9 @@ ATF_TC_BODY(isc_sha256, tc) {
 		},
 		{ NULL, 0, NULL, 1 }
 	};
-	
+
 	hash_testcase_t *testcase = testcases;
-	
+
 	while (testcase->input != NULL && testcase->result != NULL) {
 		isc_sha256_init(&sha256);
 		for(i = 0; i < testcase->repeats; i++) {
@@ -490,7 +490,7 @@ ATF_TC_BODY(isc_sha384, tc) {
 	isc_sha384_t sha384;
 
 	UNUSED(tc);
-	
+
 	/*
 	 * These are the various test vectors.  All of these are passed
 	 * through the hash function and the results are compared to the
@@ -603,9 +603,9 @@ ATF_TC_BODY(isc_sha384, tc) {
 		},
 		{ NULL, 0, NULL, 1 }
 	};
-	
+
 	hash_testcase_t *testcase = testcases;
-	
+
 	while (testcase->input != NULL && testcase->result != NULL) {
 		isc_sha384_init(&sha384);
 		for(i = 0; i < testcase->repeats; i++) {
@@ -636,7 +636,7 @@ ATF_TC_BODY(isc_sha512, tc) {
 	isc_sha512_t sha512;
 
 	UNUSED(tc);
-	
+
 	/*
 	 * These are the various test vectors.  All of these are passed
 	 * through the hash function and the results are compared to the
@@ -750,9 +750,9 @@ ATF_TC_BODY(isc_sha512, tc) {
 		},
 		{ NULL, 0, NULL, 1 }
 	};
-	
+
 	hash_testcase_t *testcase = testcases;
-	
+
 	while (testcase->input != NULL && testcase->result != NULL) {
 		isc_sha512_init(&sha512);
 		for(i = 0; i < testcase->repeats; i++) {
@@ -783,7 +783,7 @@ ATF_TC_BODY(isc_md5, tc) {
 	isc_md5_t md5;
 
 	UNUSED(tc);
-	
+
 	/*
 	 * These are the various test vectors.  All of these are passed
 	 * through the hash function and the results are compared to the
@@ -829,9 +829,9 @@ ATF_TC_BODY(isc_md5, tc) {
 		},
 		{ NULL, 0, NULL, 1 }
 	};
-	
+
 	hash_testcase_t *testcase = testcases;
-	
+
 	while (testcase->input != NULL && testcase->result != NULL) {
 		isc_md5_init(&md5);
 		for(i = 0; i < testcase->repeats; i++) {
@@ -846,7 +846,7 @@ ATF_TC_BODY(isc_md5, tc) {
 		testcase++;
 	}
 }
-	
+
 /* HMAC-SHA1 test */
 ATF_TC(isc_hmacsha1);
 ATF_TC_HEAD(isc_hmacsha1, tc) {
@@ -872,7 +872,7 @@ ATF_TC_BODY(isc_hmacsha1, tc) {
 		{
 			TEST_INPUT("\x77\x68\x61\x74\x20\x64\x6f\x20\x79\x61"
 				   "\x20\x77\x61\x6e\x74\x20\x66\x6f\x72\x20"
-				   "\x6e\x6f\x74\x68\x69\x6e\x67\x3f"), 
+				   "\x6e\x6f\x74\x68\x69\x6e\x67\x3f"),
 			"0xEFFCDF6AE5EB2FA2D27416D5F184DF9C259A7C79",
 			1
 		},
@@ -897,7 +897,7 @@ ATF_TC_BODY(isc_hmacsha1, tc) {
 			1
 		},
 #if 0
-     		/* Test 5 -- unimplemented optional functionality */
+		/* Test 5 -- unimplemented optional functionality */
 		{
 			TEST_INPUT("Test With Truncation"),
 			"0x4C1A03424B55E07FE7F27BE1",
@@ -907,7 +907,7 @@ ATF_TC_BODY(isc_hmacsha1, tc) {
 		/* Test 6 */
 		{
 			TEST_INPUT("Test Using Larger Than Block-Size Key - "
-				   "Hash Key First"), 
+				   "Hash Key First"),
 			"0xAA4AE5E15272D00E95705637CE8A3B55ED402112", 1 },
 		/* Test 7 */
 		{
@@ -918,9 +918,9 @@ ATF_TC_BODY(isc_hmacsha1, tc) {
 		},
 		{ NULL, 0, NULL, 1 }
 	};
-	
+
 	hash_testcase_t *testcase = testcases;
-	
+
 	hash_test_key_t test_keys[] = {
 		/* Key 1 */
 		{ "\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b"
@@ -928,7 +928,7 @@ ATF_TC_BODY(isc_hmacsha1, tc) {
 		/* Key 2 */
 		{ "Jefe", 4 },
 		/* Key 3 */
-	        { "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
+		{ "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 		  "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa", 20 },
 		/* Key 4 */
 		{ "\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a"
@@ -959,9 +959,9 @@ ATF_TC_BODY(isc_hmacsha1, tc) {
 		  "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa", 80 },
 		{ "", 0 }
 	};
-	
+
 	hash_test_key_t *test_key = test_keys;
-	
+
 	while (testcase->input != NULL && testcase->result != NULL) {
 		memcpy(buffer, test_key->key, test_key->len);
 		isc_hmacsha1_init(&hmacsha1, buffer, test_key->len);
@@ -986,7 +986,7 @@ ATF_TC_BODY(isc_hmacsha224, tc) {
 	isc_hmacsha224_t hmacsha224;
 
 	UNUSED(tc);
-	
+
 	/*
 	 * These are the various test vectors.  All of these are passed
 	 * through the hash function and the results are compared to the
@@ -1004,7 +1004,7 @@ ATF_TC_BODY(isc_hmacsha224, tc) {
 		{
 			TEST_INPUT("\x77\x68\x61\x74\x20\x64\x6f\x20\x79\x61"
 				   "\x20\x77\x61\x6e\x74\x20\x66\x6f\x72\x20"
-				   "\x6e\x6f\x74\x68\x69\x6e\x67\x3f"), 
+				   "\x6e\x6f\x74\x68\x69\x6e\x67\x3f"),
 			"0xA30E01098BC6DBBF45690F3A7E9E6D0F8BBEA2A39E61480"
 				"08FD05E44",
 			1
@@ -1032,7 +1032,7 @@ ATF_TC_BODY(isc_hmacsha224, tc) {
 			1
 		},
 #if 0
-     		/* Test 5 -- unimplemented optional functionality */
+		/* Test 5 -- unimplemented optional functionality */
 		{
 			TEST_INPUT("Test With Truncation"),
 			"0x4C1A03424B55E07FE7F27BE1",
@@ -1071,9 +1071,9 @@ ATF_TC_BODY(isc_hmacsha224, tc) {
 		},
 		{ NULL, 0, NULL, 1 }
 	};
-	
+
 	hash_testcase_t *testcase = testcases;
-	
+
 	hash_test_key_t test_keys[] = {
 		/* Key 1 */
 		{ "\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b"
@@ -1122,9 +1122,9 @@ ATF_TC_BODY(isc_hmacsha224, tc) {
 		  "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa", 131 },
 		{ "", 0 }
 	};
-	
+
 	hash_test_key_t *test_key = test_keys;
-	
+
 	while (testcase->input != NULL && testcase->result != NULL) {
 		memcpy(buffer, test_key->key, test_key->len);
 		isc_hmacsha224_init(&hmacsha224, buffer, test_key->len);
@@ -1149,7 +1149,7 @@ ATF_TC_BODY(isc_hmacsha256, tc) {
 	isc_hmacsha256_t hmacsha256;
 
 	UNUSED(tc);
-	
+
 	/*
 	 * These are the various test vectors.  All of these are passed
 	 * through the hash function and the results are compared to the
@@ -1195,7 +1195,7 @@ ATF_TC_BODY(isc_hmacsha256, tc) {
 			1
 		},
 #if 0
-     		/* Test 5 -- unimplemented optional functionality */
+		/* Test 5 -- unimplemented optional functionality */
 		{
 			TEST_INPUT("Test With Truncation"),
 			"0x4C1A03424B55E07FE7F27BE1",
@@ -1232,11 +1232,11 @@ ATF_TC_BODY(isc_hmacsha256, tc) {
 				"938A7F51535C3A35E2",
 			1
 		},
-      		{ NULL, 0, NULL, 1 }
+		{ NULL, 0, NULL, 1 }
 	};
-	
+
 	hash_testcase_t *testcase = testcases;
-	
+
 	hash_test_key_t test_keys[] = {
 		/* Key 1 */
 		{ "\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b"
@@ -1285,9 +1285,9 @@ ATF_TC_BODY(isc_hmacsha256, tc) {
 		  "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa", 131 },
 		{ "", 0 }
 	};
-	
+
 	hash_test_key_t *test_key = test_keys;
-	
+
 	while (testcase->input != NULL && testcase->result != NULL) {
 		memcpy(buffer, test_key->key, test_key->len);
 		isc_hmacsha256_init(&hmacsha256, buffer, test_key->len);
@@ -1312,7 +1312,7 @@ ATF_TC_BODY(isc_hmacsha384, tc) {
 	isc_hmacsha384_t hmacsha384;
 
 	UNUSED(tc);
-	
+
 	/*
 	 * These are the various test vectors.  All of these are passed
 	 * through the hash function and the results are compared to the
@@ -1362,7 +1362,7 @@ ATF_TC_BODY(isc_hmacsha384, tc) {
 			1
 		},
 #if 0
-     		/* Test 5 -- unimplemented optional functionality */
+		/* Test 5 -- unimplemented optional functionality */
 		{
 			TEST_INPUT("Test With Truncation"),
 			"0x4C1A03424B55E07FE7F27BE1",
@@ -1403,9 +1403,9 @@ ATF_TC_BODY(isc_hmacsha384, tc) {
 		},
 		{ NULL, 0, NULL, 1 }
 	};
-	
+
 	hash_testcase_t *testcase = testcases;
-	
+
 	hash_test_key_t test_keys[] = {
 		/* Key 1 */
 		{ "\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b"
@@ -1454,9 +1454,9 @@ ATF_TC_BODY(isc_hmacsha384, tc) {
 		  "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa", 131 },
 		{ "", 0 }
 	};
-	
+
 	hash_test_key_t *test_key = test_keys;
-	
+
 	while (testcase->input != NULL && testcase->result != NULL) {
 		memcpy(buffer, test_key->key, test_key->len);
 		isc_hmacsha384_init(&hmacsha384, buffer, test_key->len);
@@ -1481,7 +1481,7 @@ ATF_TC_BODY(isc_hmacsha512, tc) {
 	isc_hmacsha512_t hmacsha512;
 
 	UNUSED(tc);
-	
+
 	/*
 	 * These are the various test vectors.  All of these are passed
 	 * through the hash function and the results are compared to the
@@ -1531,7 +1531,7 @@ ATF_TC_BODY(isc_hmacsha512, tc) {
 			1
 		},
 #if 0
-     		/* Test 5 -- unimplemented optional functionality */
+		/* Test 5 -- unimplemented optional functionality */
 		{
 			TEST_INPUT("Test With Truncation"),
 			"0x4C1A03424B55E07FE7F27BE1",
@@ -1541,7 +1541,7 @@ ATF_TC_BODY(isc_hmacsha512, tc) {
 		/* Test 6 */
 		{
 			TEST_INPUT("Test Using Larger Than Block-Size Key - "
-				   "Hash Key First"), 
+				   "Hash Key First"),
 			"0x80B24263C7C1A3EBB71493C1DD7BE8B49B46D1F41B4AEE"
 				"C1121B013783F8F3526B56D037E05F2598BD0FD2"
 				"215D6A1E5295E64F73F63F0AEC8B915A985D786598",
@@ -1572,9 +1572,9 @@ ATF_TC_BODY(isc_hmacsha512, tc) {
 		},
 		{ NULL, 0, NULL, 1 }
 	};
-	
+
 	hash_testcase_t *testcase = testcases;
-	
+
 	hash_test_key_t test_keys[] = {
 		/* Key 1 */
 		{ "\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b"
@@ -1623,9 +1623,9 @@ ATF_TC_BODY(isc_hmacsha512, tc) {
 		  "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa", 131 },
 		{ "", 0 }
 	};
-	
+
 	hash_test_key_t *test_key = test_keys;
-	
+
 	while (testcase->input != NULL && testcase->result != NULL) {
 		memcpy(buffer, test_key->key, test_key->len);
 		isc_hmacsha512_init(&hmacsha512, buffer, test_key->len);
@@ -1651,7 +1651,7 @@ ATF_TC_BODY(isc_hmacmd5, tc) {
 	isc_hmacmd5_t hmacmd5;
 
 	UNUSED(tc);
-	
+
 	/*
 	 * These are the various test vectors.  All of these are passed
 	 * through the hash function and the results are compared to the
@@ -1668,7 +1668,7 @@ ATF_TC_BODY(isc_hmacmd5, tc) {
 		{
 			TEST_INPUT("\x77\x68\x61\x74\x20\x64\x6f\x20\x79"
 				   "\x61\x20\x77\x61\x6e\x74\x20\x66\x6f"
-				   "\x72\x20\x6e\x6f\x74\x68\x69\x6e\x67\x3f"), 
+				   "\x72\x20\x6e\x6f\x74\x68\x69\x6e\x67\x3f"),
 			"0x750C783E6AB0B503EAA86E310A5DB738", 1
 		},
 		/* Test 3 */
@@ -1692,7 +1692,7 @@ ATF_TC_BODY(isc_hmacmd5, tc) {
 			1
 		},
 #if 0
-     		/* Test 5 -- unimplemented optional functionality */
+		/* Test 5 -- unimplemented optional functionality */
 		{
 			TEST_INPUT("Test With Truncation"),
 			"0x4C1A03424B55E07FE7F27BE1",
@@ -1701,7 +1701,7 @@ ATF_TC_BODY(isc_hmacmd5, tc) {
 		/* Test 6 -- unimplemented optional functionality */
 		{
 			TEST_INPUT("Test Using Larger Than Block-Size Key - "
-				   "Hash Key First"), 
+				   "Hash Key First"),
 			"0xAA4AE5E15272D00E95705637CE8A3B55ED402112",
 			1
 		 },
@@ -1715,9 +1715,9 @@ ATF_TC_BODY(isc_hmacmd5, tc) {
 #endif
 		{ NULL, 0, NULL, 1 }
 	};
-	
+
 	hash_testcase_t *testcase = testcases;
-	
+
 	hash_test_key_t test_keys[] = {
 		/* Key 1 */
 		{ "\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b"
@@ -1766,9 +1766,9 @@ ATF_TC_BODY(isc_hmacmd5, tc) {
 #endif
 		{ "", 0 }
 	};
-	
+
 	hash_test_key_t *test_key = test_keys;
-	
+
 	while (testcase->input != NULL && testcase->result != NULL) {
 		memcpy(buffer, test_key->key, test_key->len);
 		isc_hmacmd5_init(&hmacmd5, buffer, test_key->len);
