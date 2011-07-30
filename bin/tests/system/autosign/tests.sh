@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.27 2011/05/26 04:25:47 each Exp $
+# $Id: tests.sh,v 1.34 2011/07/26 04:42:20 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -96,9 +96,11 @@ status=`expr $status + $ret`
 
 echo "I:checking NSEC->NSEC3 conversion prerequisites ($n)"
 ret=0
-# this command should result in an empty file:
-$DIG $DIGOPTS +noall +answer nsec3.example. nsec3param @10.53.0.3 > dig.out.ns3.test$n || ret=1
-grep "NSEC3PARAM" dig.out.ns3.test$n > /dev/null && ret=1
+# these commands should result in an empty file:
+$DIG $DIGOPTS +noall +answer nsec3.example. nsec3param @10.53.0.3 > dig.out.ns3.1.test$n || ret=1
+grep "NSEC3PARAM" dig.out.ns3.1.test$n > /dev/null && ret=1
+$DIG $DIGOPTS +noall +answer autonsec3.example. nsec3param @10.53.0.3 > dig.out.ns3.2.test$n || ret=1
+grep "NSEC3PARAM" dig.out.ns3.2.test$n > /dev/null && ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -123,6 +125,9 @@ send
 zone nsec3.example.
 update add nsec3.example. 3600 NSEC3PARAM 1 0 10 BEEF
 send
+zone autonsec3.example.
+update add autonsec3.example. 3600 NSEC3PARAM 1 1 10 BEEF
+send
 zone nsec3.optout.example.
 update add nsec3.optout.example. 3600 NSEC3PARAM 1 0 10 BEEF
 send
@@ -142,6 +147,21 @@ update add nsec.example. 3600 NSEC3PARAM 1 0 10 BEEF
 send
 END
 
+echo "I:checking for nsec3param in unsigned zone ($n)"
+ret=0
+$DIG $DIGOPTS +noall +answer autonsec3.example. nsec3param @10.53.0.3 > dig.out.ns3.test$n || ret=1
+grep "NSEC3PARAM" dig.out.ns3.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:signing preset nsec3 zone"
+zsk=`cat autozsk.key`
+ksk=`cat autoksk.key`
+$SETTIME -K ns3 -P now -A now $zsk > /dev/null 2>&1
+$SETTIME -K ns3 -P now -A now $ksk > /dev/null 2>&1
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 loadkeys autonsec3.example. 2>&1 | sed 's/^/I:ns3 /'
+
 echo "I:waiting for changes to take effect"
 sleep 3
 
@@ -155,6 +175,40 @@ END
 
 echo "I:waiting for change to take effect"
 sleep 3
+
+echo "I:checking that expired RRSIGs from missing key are not deleted ($n)"
+ret=0
+missing=`sed 's/^K.*+007+0*\([0-9]\)/\1/' < missingzsk.key`
+$JOURNALPRINT ns3/nozsk.example.db.jnl | \
+   awk '{if ($1 == "del" && $5 == "RRSIG" && $12 == id) {exit 1}} END {exit 0}' id=$missing || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking that expired RRSIGs from inactive key are not deleted ($n)"
+ret=0
+inactive=`sed 's/^K.*+007+0*\([0-9]\)/\1/' < inactivezsk.key`
+$JOURNALPRINT ns3/inaczsk.example.db.jnl | \
+   awk '{if ($1 == "del" && $5 == "RRSIG" && $12 == id) {exit 1}} END {exit 0}' id=$inactive || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking that non-replaceable RRSIGs are logged only once ($n)"
+ret=0
+loglines=`grep "Key nozsk.example/NSEC3RSASHA1/$missing .* retaining signatures" ns3/named.run | wc -l`
+[ "$loglines" -eq 1 ] || ret=1
+loglines=`grep "Key inaczsk.example/NSEC3RSASHA1/$missing .* retaining signatures" ns3/named.run | wc -l`
+[ "$loglines" -eq 1 ] || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking serial is not incremented when signatures are unchanged ($n)"
+ret=0
+newserial=`$DIG $DIGOPTS +short soa nozsk.example @10.53.0.3 | awk '$0 !~ /SOA/ {print $3}'`
+[ "$newserial" -eq 2 ] || ret=1
+newserial=`$DIG $DIGOPTS +short soa inaczsk.example @10.53.0.3 | awk '$0 !~ /SOA/ {print $3}'`
+[ "$newserial" -eq 2 ] || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
 
 # Send rndc sync command to ns1, ns2 and ns3, to force the dynamically
 # signed zones to be dumped to their zone files
@@ -179,6 +233,20 @@ $DIG $DIGOPTS nsec3.example. nsec3param @10.53.0.3 > dig.out.ns3.ok.test$n || re
 grep "status: NOERROR" dig.out.ns3.ok.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +noauth q.nsec3.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS +noauth q.nsec3.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
+$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
+grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking direct NSEC3 autosigning succeeded ($n)"
+ret=0
+$DIG $DIGOPTS +noall +answer autonsec3.example. nsec3param @10.53.0.3 > dig.out.ns3.ok.test$n || ret=1
+[ -s  dig.out.ns3.ok.test$n ] || ret=1
+grep "NSEC3PARAM" dig.out.ns3.ok.test$n > /dev/null || ret=1
+$DIG $DIGOPTS +noauth q.autonsec3.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
+$DIG $DIGOPTS +noauth q.autonsec3.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
 $PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
@@ -631,7 +699,7 @@ status=`expr $status + $ret`
 
 echo "I:checking that revoked key is present ($n)"
 ret=0
-id=`sed 's/^K.+007+0*//' < rev.key`
+id=`sed 's/^K.+007+0*\([0-9]\)/\1/' < rev.key`
 id=`expr $id + 128 % 65536`
 $DIG $DIGOPTS +multi dnskey . @10.53.0.1 > dig.out.ns1.test$n || ret=1
 grep '; key id = '"$id"'$' dig.out.ns1.test$n > /dev/null || ret=1
@@ -641,7 +709,7 @@ status=`expr $status + $ret`
 
 echo "I:checking that revoked key self-signs ($n)"
 ret=0
-id=`sed 's/^K.+007+0*//' < rev.key`
+id=`sed 's/^K.+007+0*\([0-9]\)/\1/' < rev.key`
 id=`expr $id + 128 % 65536`
 $DIG $DIGOPTS dnskey . @10.53.0.1 > dig.out.ns1.test$n || ret=1
 grep 'RRSIG.*'" $id "'\. ' dig.out.ns1.test$n > /dev/null || ret=1
@@ -651,7 +719,7 @@ status=`expr $status + $ret`
 
 echo "I:checking for unpublished key ($n)"
 ret=0
-id=`sed 's/^K.+007+0*//' < unpub.key`
+id=`sed 's/^K.+007+0*\([0-9]\)/\1/' < unpub.key`
 $DIG $DIGOPTS +multi dnskey . @10.53.0.1 > dig.out.ns1.test$n || ret=1
 grep '; key id = '"$id"'$' dig.out.ns1.test$n > /dev/null && ret=1
 n=`expr $n + 1`
@@ -660,7 +728,7 @@ status=`expr $status + $ret`
 
 echo "I:checking that standby key does not sign records ($n)"
 ret=0
-ed=`sed 's/^K.+007+0*//' < standby.key`
+id=`sed 's/^K.+007+0*\([0-9]\)/\1/' < standby.key`
 $DIG $DIGOPTS dnskey . @10.53.0.1 > dig.out.ns1.test$n || ret=1
 grep 'RRSIG.*'" $id "'\. ' dig.out.ns1.test$n > /dev/null && ret=1
 n=`expr $n + 1`
@@ -669,7 +737,7 @@ status=`expr $status + $ret`
 
 echo "I:checking that deactivated key does not sign records  ($n)"
 ret=0
-id=`sed 's/^K.+007+0*//' < inact.key`
+id=`sed 's/^K.+007+0*\([0-9]\)/\1/' < inact.key`
 $DIG $DIGOPTS dnskey . @10.53.0.1 > dig.out.ns1.test$n || ret=1
 grep 'RRSIG.*'" $id "'\. ' dig.out.ns1.test$n > /dev/null && ret=1
 n=`expr $n + 1`
@@ -678,7 +746,7 @@ status=`expr $status + $ret`
 
 echo "I:checking insertion of public-only key ($n)"
 ret=0
-id=`sed 's/^K.+007+0*//' < nopriv.key`
+id=`sed 's/^K.+007+0*\([0-9]\)/\1/' < nopriv.key`
 file="ns1/`cat nopriv.key`.key"
 keydata=`grep DNSKEY $file`
 $NSUPDATE > /dev/null 2>&1 <<END	|| status=1
@@ -697,7 +765,7 @@ status=`expr $status + $ret`
 
 echo "I:checking key deletion ($n)"
 ret=0
-id=`sed 's/^K.+007+0*//' < del.key`
+id=`sed 's/^K.+007+0*\([0-9]\)/\1/' < del.key`
 $DIG $DIGOPTS +multi dnskey . @10.53.0.1 > dig.out.ns1.test$n || ret=1
 grep '; key id = '"$id"'$' dig.out.ns1.test$n > /dev/null && ret=1
 n=`expr $n + 1`
@@ -713,13 +781,13 @@ send
 END
 sleep 2
 $DIG $DIGOPTS axfr secure-to-insecure.example @10.53.0.3 > dig.out.ns3.test$n || ret=1
-egrep 'RRSIG.*'" $newid "'\. ' dig.out.ns3.test$n > /dev/null && ret=1
-egrep '(DNSKEY|NSEC)' dig.out.ns3.test$n > /dev/null && ret=1
+egrep '(RRSIG|DNSKEY|NSEC)' dig.out.ns3.test$n > /dev/null && ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 echo "I:checking secure-to-insecure transition, scheduled ($n)"
+ret=0
 file="ns3/`cat del1.key`.key"
 $SETTIME -I now -D now $file > /dev/null
 file="ns3/`cat del2.key`.key"
@@ -727,8 +795,7 @@ $SETTIME -I now -D now $file > /dev/null
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 sign secure-to-insecure2.example. 2>&1 | sed 's/^/I:ns3 /'
 sleep 2
 $DIG $DIGOPTS axfr secure-to-insecure2.example @10.53.0.3 > dig.out.ns3.test$n || ret=1
-egrep 'RRSIG.*'" $newid "'\. ' dig.out.ns3.test$n > /dev/null && ret=1
-egrep '(DNSKEY|NSEC3)' dig.out.ns3.test$n > /dev/null && ret=1
+egrep '(RRSIG|DNSKEY|NSEC3)' dig.out.ns3.test$n > /dev/null && ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -765,11 +832,12 @@ file="ns1/`cat vanishing.key`.private"
 rm -f $file
 
 echo "I:preparing ZSK roll"
+starttime=`$PERL -e 'print time(), "\n";'`
 oldfile=`cat active.key`
-oldid=`sed 's/^K.+007+0*//' < active.key`
+oldid=`sed 's/^K.+007+0*\([0-9]\)/\1/' < active.key`
 newfile=`cat standby.key`
-newid=`sed 's/^K.+007+0*//' < standby.key`
-$SETTIME -K ns1 -I now+2s -D now+15 $oldfile > /dev/null
+newid=`sed 's/^K.+007+0*\([0-9]\)/\1/' < standby.key`
+$SETTIME -K ns1 -I now+2s -D now+25 $oldfile > /dev/null
 $SETTIME -K ns1 -i 0 -S $oldfile $newfile > /dev/null
 
 # note previous zone serial number
@@ -843,7 +911,6 @@ echo "I:checking former standby key has now signed fully ($n)"
 ret=0
 $DIG $DIGOPTS txt . @10.53.0.1 > dig.out.ns1.test$n || ret=1
 grep 'RRSIG.*'" $newid "'\. ' dig.out.ns1.test$n > /dev/null || ret=1
-grep 'RRSIG.*'" $oldid "'\. ' dig.out.ns1.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -912,6 +979,16 @@ if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 echo "I:checking former active key was removed ($n)"
+#
+# Work out how long we need to sleep. Allow 4 seconds for the records
+# to be removed.
+#
+now=`$PERL -e 'print time(), "\n";'`
+sleep=`expr $starttime + 29 - $now`
+case $sleep in
+-*|0);;
+*) echo "I:waiting for timer to have activated"; sleep $sleep;;
+esac
 ret=0
 $DIG $DIGOPTS +multi dnskey . @10.53.0.1 > dig.out.ns1.test$n || ret=1
 grep '; key id =.*'"$oldid"'$' dig.out.ns1.test$n > /dev/null && ret=1
@@ -921,7 +998,7 @@ status=`expr $status + $ret`
 
 echo "I:checking private key file removal caused no immediate harm ($n)"
 ret=0
-id=`sed 's/^K.+007+0*//' < vanishing.key`
+id=`sed 's/^K.+007+0*\([0-9]\)/\1/' < vanishing.key`
 $DIG $DIGOPTS dnskey . @10.53.0.1 > dig.out.ns1.test$n || ret=1
 grep 'RRSIG.*'" $id "'\. ' dig.out.ns1.test$n > /dev/null || ret=1
 n=`expr $n + 1`
@@ -983,6 +1060,15 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:exit status: $status"
+echo "I:checking for key reloading loops ($n)"
+ret=0
+# every key event should schedule a successor, so these should be equal
+rekey_calls=`grep "reconfiguring zone keys" ns*/named.run | wc -l`
+rekey_events=`grep "next key event" ns*/named.run | wc -l`
+[ "$rekey_calls" = "$rekey_events" ] || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
 
+echo "I:exit status: $status"
 exit $status

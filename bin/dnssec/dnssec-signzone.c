@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.276 2011/05/07 00:31:13 each Exp $ */
+/* $Id: dnssec-signzone.c,v 1.279 2011/07/19 23:47:48 tbox Exp $ */
 
 /*! \file */
 
@@ -3395,28 +3395,36 @@ removetempfile(void) {
 }
 
 static void
-print_stats(isc_time_t *timer_start, isc_time_t *timer_finish) {
-	isc_uint64_t runtime_us;   /* Runtime in microseconds */
-	isc_uint64_t runtime_ms;   /* Runtime in milliseconds */
+print_stats(isc_time_t *timer_start, isc_time_t *timer_finish,
+	    isc_time_t *sign_start, isc_time_t *sign_finish)
+{
+	isc_uint64_t time_us;      /* Time in microseconds */
+	isc_uint64_t time_ms;      /* Time in milliseconds */
 	isc_uint64_t sig_ms;	   /* Signatures per millisecond */
-
-	runtime_us = isc_time_microdiff(timer_finish, timer_start);
 
 	printf("Signatures generated:               %10d\n", nsigned);
 	printf("Signatures retained:                %10d\n", nretained);
 	printf("Signatures dropped:                 %10d\n", ndropped);
 	printf("Signatures successfully verified:   %10d\n", nverified);
 	printf("Signatures unsuccessfully verified: %10d\n", nverifyfailed);
-	runtime_ms = runtime_us / 1000;
-	printf("Runtime in seconds:                %7u.%03u\n",
-	       (unsigned int) (runtime_ms / 1000),
-	       (unsigned int) (runtime_ms % 1000));
-	if (runtime_us > 0) {
-		sig_ms = ((isc_uint64_t)nsigned * 1000000000) / runtime_us;
+
+	time_us = isc_time_microdiff(sign_finish, sign_start);
+	time_ms = time_us / 1000;
+	printf("Signing time in seconds:           %7u.%03u\n",
+	       (unsigned int) (time_ms / 1000),
+	       (unsigned int) (time_ms % 1000));
+	if (time_us > 0) {
+		sig_ms = ((isc_uint64_t)nsigned * 1000000000) / time_us;
 		printf("Signatures per second:             %7u.%03u\n",
 		       (unsigned int) sig_ms / 1000,
 		       (unsigned int) sig_ms % 1000);
 	}
+
+	time_us = isc_time_microdiff(timer_finish, timer_start);
+	time_ms = time_us / 1000;
+	printf("Runtime in seconds:                %7u.%03u\n",
+	       (unsigned int) (time_ms / 1000),
+	       (unsigned int) (time_ms % 1000));
 }
 
 int
@@ -3431,6 +3439,7 @@ main(int argc, char *argv[]) {
 	int ndskeys = 0;
 	char *endp;
 	isc_time_t timer_start, timer_finish;
+	isc_time_t sign_start, sign_finish;
 	dns_dnsseckey_t *key;
 	isc_result_t result;
 	isc_log_t *log = NULL;
@@ -3852,10 +3861,15 @@ main(int argc, char *argv[]) {
 		hashlist_init(&hashlist, dns_db_nodecount(gdb) * 2,
 			      hash_length);
 		result = dns_nsec_nseconly(gdb, gversion, &answer);
-		check_result(result, "dns_nsec_nseconly");
-		if (answer)
+		if (result == ISC_R_NOTFOUND)
+			fprintf(stderr, "%s: warning: NSEC3 generation "
+				"requested with no DNSKEY; ignoring\n",
+				program);
+		else if (result != ISC_R_SUCCESS)
+			check_result(result, "dns_nsec_nseconly");
+		else if (answer)
 			fatal("NSEC3 generation requested with "
-			      "NSEC only DNSKEY");
+			      "NSEC-only DNSKEY");
 	}
 
 	/*
@@ -3996,6 +4010,7 @@ main(int argc, char *argv[]) {
 		RUNTIME_CHECK(isc_mutex_init(&statslock) == ISC_R_SUCCESS);
 
 	presign();
+	TIME_NOW(&sign_start);
 	signapex();
 	if (!finished) {
 		/*
@@ -4020,6 +4035,7 @@ main(int argc, char *argv[]) {
 	isc_taskmgr_destroy(&taskmgr);
 	isc_mem_put(mctx, tasks, ntasks * sizeof(isc_task_t *));
 	postsign();
+	TIME_NOW(&sign_finish);
 	verifyzone();
 
 	if (outputformat != dns_masterformat_text) {
@@ -4073,7 +4089,8 @@ main(int argc, char *argv[]) {
 
 	if (printstats) {
 		TIME_NOW(&timer_finish);
-		print_stats(&timer_start, &timer_finish);
+		print_stats(&timer_start, &timer_finish,
+			    &sign_start, &sign_finish);
 	}
 
 	return (0);

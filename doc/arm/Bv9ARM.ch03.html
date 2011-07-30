@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch03.html,v 1.85 2011/05/24 01:14:43 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch03.html,v 1.86 2011/06/11 01:14:43 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -54,7 +54,7 @@
 <dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2568364">Name Server Operations</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2568370">Tools for Use With the Name Server Daemon</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2570339">Signals</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2570342">Signals</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -549,7 +549,13 @@ zone "eng.example.com" {
                         enabled.  This causes the server to reload the zone
                         from disk, and re-enables dynamic updates after the
                         load has completed.  After a zone is thawed,
-                        dynamic updates will no longer be refused.
+                        dynamic updates will no longer be refused.  If
+                        the zone has changed and the
+                        <span><strong class="command">ixfr-from-differences</strong></span> option is
+                        in use, then the journal file will be updated to
+                        reflect changes in the zone.  Otherwise, if the
+                        zone has changed, any existing journal file will be
+                        removed.
                       </p></dd>
 <dt><span class="term"><strong class="userinput"><code>sync
                         [<span class="optional">-clean</span>]
@@ -878,7 +884,7 @@ controls {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2570339"></a>Signals</h3></div></div></div>
+<a name="id2570342"></a>Signals</h3></div></div></div>
 <p>
           Certain UNIX signals cause the name server to take specific
           actions, as described in the following table.  These signals can

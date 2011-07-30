@@ -1,3 +1,78 @@
+3139.	[test]		Added tests from RFC 6234, RFC 2202, and RFC 1321
+			for the hashing algorithms (md5, sha1 - sha512, and
+			their hmac counterparts).  [RT #25067] 
+
+3138.	[bug]		Address memory leaks and out-of-order operations when
+			shutting named down. [RT #25210]
+
+3137.	[func]		Improve hardware scalability by allowing multiple
+			worker threads to process incoming UDP packets.
+			This can significantly increase query throughput
+			on some systems.  [RT #22992]
+
+3136.	[func]		Add RFC 1918 reverse zones to the list of built-in 
+			empty zones switched on by the 'empty-zones-enable'
+			option. [RT #24990]
+
+3135.	[port]		FreeBSD: workaround broken IPV6_USE_MIN_MTU processing.
+			See http://www.freebsd.org/cgi/query-pr.cgi?pr=158307
+			[RT #24950]
+
+3134.	[bug]		Improve the accuracy of dnssec-signzone's signing
+			statistics. [RT #16030]
+
+3133.	[bug]		Change #3114 was incomplete. [RT #24577]
+
+3132.	[placeholder]
+
+3131.	[tuning]	Improve scalability by allocating one zone task
+			per 100 zones at startup time, rather than using a
+			fixed-size task table. [RT #24406]
+
+3130.	[func]		Support alternate methods for managing a dynamic
+			zone's serial number.  Two methods are currently
+			defined using serial-update-method, "increment"
+			(default) and "unixtime".  [RT #23849]
+
+3129.	[bug]		Named could crash on 'rndc reconfig' when
+			allow-new-zones was set to yes and named ACLs
+			were used. [RT #22739]
+
+3128.	[func]		Inserting an NSEC3PARAM via dynamic update in an
+			auto-dnssec zone that has not been signed yet
+			will cause it to be signed with the specified NSEC3
+			parameters when keys are activated.  The
+			NSEC3PARAM record will not appear in the zone until
+			it is signed, but the parameters will be stored.
+			[RT #23684]
+
+3127.	[bug]		'rndc thaw' will now remove a zone's journal file
+			if the zone serial number has been changed and
+			ixfr-from-differences is not in use.  [RT #24687]
+
+3126.	[security]	Using DNAME record to generate replacements caused
+			RPZ to exit with a assertion failure. [RT #24766]
+
+3125.	[security]	Using wildcard CNAME records as a replacement with
+			RPZ caused named to exit with a assertion failure.
+			[RT #24715]
+
+3124.	[bug]		Use an rdataset attribute flag to indicate
+			negative-cache records rather than using rrtype 0;
+			this will prevent problems when that rrtype is
+			used in actual DNS packets. [RT #24777]
+
+3123.	[security]	Change #2912 exposed a latent flaw in
+			dns_rdataset_totext() that could cause named to
+			crash with an assertion failure. [RT #24777]
+
+3122.	[cleanup]	dnssec-settime: corrected usage message. [RT #24664]
+
+3121.   [security]      An authoritative name server sending a negative
+                        response containing a very large RRset could
+                        trigger an off-by-one error in the ncache code
+                        and crash named. [RT #24650]
+
 3120.	[bug]		Named could fail to validate zones listed in a DLV
 			that validated insecure without using DLV and had
 			DS records in the parent zone. [RT #24631]

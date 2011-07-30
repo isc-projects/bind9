@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.493 2011/05/23 20:11:14 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.498 2011/07/28 03:18:17 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -70,7 +70,7 @@
       </para>
 
       <para>
-        This version of the manual corresponds to BIND version 9.7.
+        This version of the manual corresponds to BIND version 9.9.
       </para>
 
     </sect1>
@@ -1257,7 +1257,13 @@ zone "eng.example.com" {
                         enabled.  This causes the server to reload the zone
                         from disk, and re-enables dynamic updates after the
                         load has completed.  After a zone is thawed,
-                        dynamic updates will no longer be refused.
+                        dynamic updates will no longer be refused.  If
+                        the zone has changed and the
+                        <command>ixfr-from-differences</command> option is
+                        in use, then the journal file will be updated to
+                        reflect changes in the zone.  Otherwise, if the
+                        zone has changed, any existing journal file will be
+                        removed.
                       </para>
                     </listitem>
                   </varlistentry>
@@ -8944,7 +8950,6 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	  <para>
 	    The current list of empty zones is:
 	    <itemizedlist>
-<!-- XXX: The RFC1918 addresses are #defined out in sources currently.
 	      <listitem>10.IN-ADDR.ARPA</listitem>
 	      <listitem>16.172.IN-ADDR.ARPA</listitem>
 	      <listitem>17.172.IN-ADDR.ARPA</listitem>
@@ -8963,7 +8968,6 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      <listitem>30.172.IN-ADDR.ARPA</listitem>
 	      <listitem>31.172.IN-ADDR.ARPA</listitem>
 	      <listitem>168.192.IN-ADDR.ARPA</listitem>
-XXX: end of RFC1918 addresses #defined out -->
 	      <listitem>0.IN-ADDR.ARPA</listitem>
 	      <listitem>127.IN-ADDR.ARPA</listitem>
 	      <listitem>254.169.IN-ADDR.ARPA</listitem>
@@ -9317,8 +9321,8 @@ deny-answer-aliases { "example.net"; };
           <para>
             The rules encoded in a response policy zone (RPZ) are applied
             only to responses to queries that ask for recursion (RD=1).
-            RPZs are normal DNS zones containing largely valid RRsets
-            that can be queried normal if allowed.
+            RPZs are normal DNS zones containing RRsets
+            that can be queried normally if allowed.
             It is usually best to restrict those queries with something like
             <command>allow-query {none; };</command> or
             <command>allow-query { 127.0.0.1; };</command>.
@@ -9330,6 +9334,8 @@ deny-answer-aliases { "example.net"; };
             records resolved in the process of generating the response.
             The owner name of a QNAME rule is the query name relativized
             to the RPZ.
+	    The records in a rewrite rule are usually A, AAAA, or special
+	    CNAMEs, but can be any type except DNAME.
           </para>
 
           <para>
@@ -9429,6 +9435,7 @@ nodata.domain.com           CNAME   *.
 bad.domain.com              A       10.0.0.1
                             AAAA    2001:2::1
 ok.domain.com               CNAME   ok.domain.com.
+*.badzone.domain.com	    CNAME   garden.example.com.
 
 ; IP rules rewriting all answers for 127/8 except 127.0.0.1
 8.0.0.0.127.ip              CNAME   .
@@ -10090,6 +10097,7 @@ view "external" {
     <optional> key-directory <replaceable>path_name</replaceable>; </optional>
     <optional> auto-dnssec <constant>allow</constant>|<constant>maintain</constant>|<constant>off</constant>; </optional>
     <optional> zero-no-soa-ttl <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> serial-update-method <constant>increment</constant>|<constant>unixtime</constant>; </optional>
 };
 
 zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replaceable></optional> {
@@ -11221,6 +11229,31 @@ example.com. NS ns2.example.net.
                   </para>
                   <para>
                     The default setting is <command>auto-dnssec off</command>.
+                  </para>
+                </listitem>
+              </varlistentry>
+
+              <varlistentry>
+                <term><command>serial-update-method</command></term>
+                <listitem>
+                  <para>
+                    Zones configured for dynamic DNS may use this
+                    option to set the update method that will be used for
+                    the zone serial number in the SOA record.
+                  </para>
+                  <para>
+                    With the default setting of
+                    <command>serial-update-method increment;</command>, the
+                    SOA serial number will be incremented by one each time
+                    the zone is updated.
+                  </para>
+                  <para>
+                    When set to 
+                    <command>serial-update-method unixtime;</command>, the
+                    SOA serial number will be set to the number of seconds
+                    since the UNIX epoch, unless the serial number is
+                    already greater than or equal to that value, in which
+                    case it is simply incremented by one.
                   </para>
                 </listitem>
               </varlistentry>

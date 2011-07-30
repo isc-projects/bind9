@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.364 2011/05/20 05:09:30 marka Exp $ */
+/* $Id: query.c,v 1.367 2011/06/09 03:10:17 marka Exp $ */
 
 /*! \file */
 
@@ -4105,8 +4105,13 @@ rpz_find(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qnamef,
 		}
 		break;
 	case DNS_R_DNAME:
-		policy = DNS_RPZ_POLICY_RECORD;
-		break;
+		/*
+		 * DNAME policy RRs have very few if any uses that are not
+		 * better served with simple wildcards.  Making the work would
+		 * require complications to get the number of labels matched
+		 * in the name or the found name itself to the main DNS_R_DNAME
+		 * case in query_find(). So fall through to treat them as NODATA.
+		 */
 	case DNS_R_NXRRSET:
 		policy = DNS_RPZ_POLICY_NODATA;
 		break;
@@ -4971,7 +4976,7 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 		    (rdataset->type == dns_rdatatype_nsec ||
 		     rdataset->type == dns_rdatatype_nsec3))
 			return (ISC_FALSE);
-		if (rdataset->type == 0) {
+		if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0) {
 			for (result = dns_rdataset_first(rdataset);
 			     result == ISC_R_SUCCESS;
 			     result = dns_rdataset_next(rdataset)) {
@@ -5416,6 +5421,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				break;
 			case DNS_RPZ_POLICY_RECORD:
 				if (type == dns_rdatatype_any &&
+				    result != DNS_R_CNAME &&
 				    dns_rdataset_isassociated(rdataset))
 					dns_rdataset_disassociate(rdataset);
 				break;

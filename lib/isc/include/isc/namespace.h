@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009-2011  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namespace.h,v 1.9 2010/12/04 13:25:59 marka Exp $ */
+/* $Id: namespace.h,v 1.11 2011/07/28 23:47:59 tbox Exp $ */
 
 #ifndef ISCAPI_NAMESPACE_H
 #define ISCAPI_NAMESPACE_H 1
@@ -88,6 +88,7 @@
 #define isc_mempool_getfillcount isc__mempool_getfillcount
 
 #define isc_socket_create isc__socket_create
+#define isc_socket_dup isc__socket_dup
 #define isc_socket_attach isc__socket_attach
 #define isc_socket_detach isc__socket_detach
 #define isc_socketmgr_create isc__socketmgr_create

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.87 2010/12/09 06:08:05 marka Exp $ */
+/* $Id: socket.c,v 1.90 2011/07/28 23:47:59 tbox Exp $ */
 
 /* This code uses functions which are only available on Server 2003 and
  * higher, and Windows XP and higher.
@@ -265,7 +265,8 @@ struct isc_socket {
 	unsigned int		listener : 1,	/* listener socket */
 				connected : 1,
 				pending_connect : 1, /* connect pending */
-				bound : 1;	/* bound to local addr */
+				bound : 1,	/* bound to local addr */
+				dupped : 1;     /* created by isc_socket_dup() */
 	unsigned int		pending_iocp;	/* Should equal the counters below. Debug. */
 	unsigned int		pending_recv;  /* Number of outstanding recv() calls. */
 	unsigned int		pending_send;  /* Number of outstanding send() calls. */
@@ -351,6 +352,10 @@ enum {
 #define MAXSCATTERGATHER_SEND	(ISC_SOCKET_MAXSCATTERGATHER)
 #define MAXSCATTERGATHER_RECV	(ISC_SOCKET_MAXSCATTERGATHER)
 
+static isc_result_t socket_create(isc_socketmgr_t *manager0, int pf,
+				  isc_sockettype_t type,
+				  isc_socket_t **socketp,
+				  isc_socket_t *dup_socket);
 static isc_threadresult_t WINAPI SocketIoThread(LPVOID ThreadContext);
 static void maybe_free_socket(isc_socket_t **, int);
 static void free_socket(isc_socket_t **, int);
@@ -1461,6 +1466,7 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 	sock->connected = 0;
 	sock->pending_connect = 0;
 	sock->bound = 0;
+	sock->dupped = 0;
 	memset(sock->name, 0, sizeof(sock->name));	// zero the name field
 	_set_state(sock, SOCK_INITIALIZED);
 
@@ -1623,9 +1629,10 @@ free_socket(isc_socket_t **sockp, int lineno) {
  * called with 'arg' as the arg value.  The new socket is returned
  * in 'socketp'.
  */
-isc_result_t
-isc__socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
-		  isc_socket_t **socketp) {
+static isc_result_t
+socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
+	      isc_socket_t **socketp, isc_socket_t *dup_socket)
+{
 	isc_socket_t *sock = NULL;
 	isc_result_t result;
 #if defined(USE_CMSG)
@@ -1647,27 +1654,35 @@ isc__socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		return (result);
 
 	sock->pf = pf;
-	switch (type) {
-	case isc_sockettype_udp:
-		sock->fd = socket(pf, SOCK_DGRAM, IPPROTO_UDP);
-		if (sock->fd != INVALID_SOCKET) {
-			result = connection_reset_fix(sock->fd);
-			if (result != ISC_R_SUCCESS) {
-				socket_log(__LINE__, sock, NULL, EVENT, NULL, 0, 0,
-					"closed %d %d %d con_reset_fix_failed",
-					sock->pending_recv, sock->pending_send,
-					sock->references);
-				closesocket(sock->fd);
-				_set_state(sock, SOCK_CLOSED);
-				sock->fd = INVALID_SOCKET;
-				free_socket(&sock, __LINE__);
-				return (result);
+	if (dup_socket == NULL) {
+		switch (type) {
+		case isc_sockettype_udp:
+			sock->fd = socket(pf, SOCK_DGRAM, IPPROTO_UDP);
+			if (sock->fd != INVALID_SOCKET) {
+				result = connection_reset_fix(sock->fd);
+				if (result != ISC_R_SUCCESS) {
+					socket_log(__LINE__, sock,
+						NULL, EVENT, NULL, 0, 0,
+						"closed %d %d %d "
+						"con_reset_fix_failed",
+						sock->pending_recv,
+						sock->pending_send,
+						sock->references);
+					closesocket(sock->fd);
+					_set_state(sock, SOCK_CLOSED);
+					sock->fd = INVALID_SOCKET;
+					free_socket(&sock, __LINE__);
+					return (result);
+				}
 			}
+			break;
+		case isc_sockettype_tcp:
+			sock->fd = socket(pf, SOCK_STREAM, IPPROTO_TCP);
+			break;
 		}
-		break;
-	case isc_sockettype_tcp:
-		sock->fd = socket(pf, SOCK_STREAM, IPPROTO_TCP);
-		break;
+	} else {
+		sock->fd = dup(dup_socket->fd);
+		sock->dupped = 1;
 	}
 
 	if (sock->fd == INVALID_SOCKET) {
@@ -1786,10 +1801,27 @@ isc__socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 	InterlockedIncrement(&manager->totalSockets);
 	UNLOCK(&manager->lock);
 
-	socket_log(__LINE__, sock, NULL, CREATION, isc_msgcat, ISC_MSGSET_SOCKET,
-		   ISC_MSG_CREATED, "created %u type %u", sock->fd, type);
+	socket_log(__LINE__, sock, NULL, CREATION, isc_msgcat,
+		   ISC_MSGSET_SOCKET, ISC_MSG_CREATED,
+		   "created %u type %u", sock->fd, type);
 
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc__socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
+		   isc_socket_t **socketp)
+{
+	return (socket_create(manager, pf, type, socketp, NULL));
+}
+
+isc_result_t
+isc__socket_dup(isc_socket_t *sock, isc_socket_t **socketp) {
+	REQUIRE(VALID_SOCKET(sock));
+	REQUIRE(socketp != NULL && *socketp == NULL);
+
+	return (socket_create(sock->manager, sock->pf, sock->type,
+			      socketp, sock));
 }
 
 isc_result_t
@@ -3314,6 +3346,7 @@ isc__socket_accept(isc_socket_t *sock,
 	 */
 	isc_task_attach(task, &ntask);
 	if (isc_task_exiting(ntask)) {
+		free_socket(&nsock, __LINE__);
 		isc_task_detach(&ntask);
 		isc_event_free(ISC_EVENT_PTR(&adev));
 		UNLOCK(&sock->lock);

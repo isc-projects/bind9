@@ -185,6 +185,7 @@ dns_dispatchmgr_setavailports
 dns_dispatchmgr_setblackhole
 dns_dispatchmgr_setblackportlist
 dns_dispatchmgr_setstats
+dns_dlz_writeablezone
 dns_dlzallowzonexfr
 dns_dlzconfigure
 dns_dlzcreate
@@ -193,7 +194,6 @@ dns_dlzfindzone
 dns_dlzregister
 dns_dlzstrtoargv
 dns_dlzunregister
-dns_dlz_writeablezone
 dns_dns64_aaaafroma
 dns_dns64_aaaaok
 dns_dns64_append
@@ -208,8 +208,8 @@ dns_dnssec_keyfromrdata
 dns_dnssec_keylistfromrdataset
 dns_dnssec_selfsigns
 dns_dnssec_sign
-dns_dnssec_signs
 dns_dnssec_signmessage
+dns_dnssec_signs
 dns_dnssec_updatekeys
 dns_dnssec_verify
 dns_dnssec_verify2
@@ -697,6 +697,7 @@ dns_tsigrcode_fromtext
 dns_tsigrcode_totext
 dns_ttl_fromtext
 dns_ttl_totext
+dns_update_soaserial
 dns_validator_cancel
 dns_validator_create
 dns_validator_destroy
@@ -800,6 +801,7 @@ dns_zone_getqueryacl
 dns_zone_getrequeststats
 dns_zone_getserial
 dns_zone_getserial2
+dns_zone_getserialupdatemethod
 dns_zone_getsigresigninginterval
 dns_zone_getsigvalidityinterval
 dns_zone_getssutable
@@ -875,6 +877,7 @@ dns_zone_setprivatetype
 dns_zone_setqueryacl
 dns_zone_setqueryonacl
 dns_zone_setrequeststats
+dns_zone_setserialupdatemethod
 dns_zone_setsignatures
 dns_zone_setsigresigninginterval
 dns_zone_setsigvalidityinterval
@@ -907,6 +910,7 @@ dns_zonemgr_releasezone
 dns_zonemgr_resumexfrs
 dns_zonemgr_setiolimit
 dns_zonemgr_setserialqueryrate
+dns_zonemgr_setsize
 dns_zonemgr_settransfersin
 dns_zonemgr_settransfersperns
 dns_zonemgr_shutdown

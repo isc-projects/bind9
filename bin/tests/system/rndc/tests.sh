@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.3 2011/03/21 18:38:40 each Exp $
+# $Id: tests.sh,v 1.4 2011/06/10 01:32:37 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -161,6 +161,67 @@ status=`expr $status + $ret`
 echo "I:checking that freezing static zones is not allowed"
 ret=0
 $RNDCCMD freeze static 2>&1 | grep 'not dynamic' > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking that journal is removed when serial is changed before thaw"
+ret=0
+sleep 1
+$NSUPDATE -p 5300 -k ns2/session.key > /dev/null 2>&1 <<END || ret=1
+server 10.53.0.2
+zone other.
+update add text6.other. 600 IN TXT "addition 6"
+send
+END
+[ -s ns2/other.db.jnl ] || ret=1
+$RNDCCMD freeze other 2>&1 | sed 's/^/I:ns2 /'
+serial=`awk '$3 == "serial" {print $1}' ns2/other.db`
+newserial=`expr $serial + 1`
+sed s/$serial/$newserial/ ns2/other.db > ns2/other.db.new
+echo 'frozen TXT "frozen addition"' >> ns2/other.db.new
+mv -f ns2/other.db.new ns2/other.db
+$RNDCCMD thaw 2>&1 | sed 's/^/I:ns2 /'
+sleep 1
+[ -f ns2/other.db.jnl ] && ret=1
+$NSUPDATE -p 5300 -k ns2/session.key > /dev/null 2>&1 <<END || ret=1
+server 10.53.0.2
+zone other.
+update add text7.other. 600 IN TXT "addition 7"
+send
+END
+$DIGCMD text6.other. TXT | grep 'addition 6' >/dev/null || ret=1
+$DIGCMD text7.other. TXT | grep 'addition 7' >/dev/null || ret=1
+$DIGCMD frozen.other. TXT | grep 'frozen addition' >/dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking that journal is kept when ixfr-from-differences is in use"
+ret=0
+$NSUPDATE -p 5300 -k ns2/session.key > /dev/null 2>&1 <<END || ret=1
+server 10.53.0.2
+zone nil.
+update add text6.nil. 600 IN TXT "addition 6"
+send
+END
+[ -s ns2/nil.db.jnl ] || ret=1
+$RNDCCMD freeze nil 2>&1 | sed 's/^/I:ns2 /'
+serial=`awk '$3 == "serial" {print $1}' ns2/nil.db`
+newserial=`expr $serial + 1`
+sed s/$serial/$newserial/ ns2/nil.db > ns2/nil.db.new
+echo 'frozen TXT "frozen addition"' >> ns2/nil.db.new
+mv -f ns2/nil.db.new ns2/nil.db
+$RNDCCMD thaw 2>&1 | sed 's/^/I:ns2 /'
+sleep 1
+[ -s ns2/nil.db.jnl ] || ret=1
+$NSUPDATE -p 5300 -k ns2/session.key > /dev/null 2>&1 <<END || ret=1
+server 10.53.0.2
+zone nil.
+update add text7.nil. 600 IN TXT "addition 7"
+send
+END
+$DIGCMD text6.nil. TXT | grep 'addition 6' >/dev/null || ret=1
+$DIGCMD text7.nil. TXT | grep 'addition 7' >/dev/null || ret=1
+$DIGCMD frozen.nil. TXT | grep 'frozen addition' >/dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 

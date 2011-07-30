@@ -1,6 +1,6 @@
 #!/bin/sh -e
 #
-# Copyright (C) 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2009-2011  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: keygen.sh,v 1.8 2011/05/26 04:25:47 each Exp $
+# $Id: keygen.sh,v 1.10 2011/06/10 01:51:09 each Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -24,7 +24,7 @@ RANDFILE=../random.data
 # Have the child generate subdomain keys and pass DS sets to us.
 ( cd ../ns3 && sh keygen.sh )
 
-for subdomain in secure nsec3 optout rsasha256 rsasha512 nsec3-to-nsec oldsigs
+for subdomain in secure nsec3 autonsec3 optout rsasha256 rsasha512 nsec3-to-nsec oldsigs
 do
 	cp ../ns3/dsset-$subdomain.example. .
 done

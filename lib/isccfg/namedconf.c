@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.138 2011/05/23 20:10:03 each Exp $ */
+/* $Id: namedconf.c,v 1.139 2011/07/01 02:25:48 marka Exp $ */
 
 /*! \file */
 
@@ -551,6 +551,12 @@ static const char *dnssecupdatemode_enums[] = { "maintain", "no-resign", NULL };
 static cfg_type_t cfg_type_dnssecupdatemode = {
 	"dnssecupdatemode", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
 	&cfg_rep_string, &dnssecupdatemode_enums
+};
+
+static const char *updatemethods_enums[] = { "increment", "unixtime", NULL };
+static cfg_type_t cfg_type_updatemethod = {
+	"updatemethod", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
+	&cfg_rep_string, &updatemethods_enums
 };
 
 static cfg_type_t cfg_type_rrsetorder = {
@@ -1388,6 +1394,7 @@ zone_clauses[] = {
 	{ "notify-source-v6", &cfg_type_sockaddr6wild, 0 },
 	{ "notify-to-soa", &cfg_type_boolean, 0 },
 	{ "nsec3-test-zone", &cfg_type_boolean, CFG_CLAUSEFLAG_TESTONLY },
+	{ "serial-update-method", &cfg_type_updatemethod, 0 },
 	{ "sig-signing-nodes", &cfg_type_uint32, 0 },
 	{ "sig-signing-signatures", &cfg_type_uint32, 0 },
 	{ "sig-signing-type", &cfg_type_uint32, 0 },

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.203 2011/05/26 04:35:02 marka Exp $ */
+/* $Id: validator.c,v 1.204 2011/06/08 22:13:51 each Exp $ */
 
 #include <config.h>
 
@@ -128,6 +128,8 @@
 
 #define SHUTDOWN(v)		(((v)->attributes & VALATTR_SHUTDOWN) != 0)
 #define CANCELED(v)		(((v)->attributes & VALATTR_CANCELED) != 0)
+
+#define NEGATIVE(r)	(((r)->attributes & DNS_RDATASETATTR_NEGATIVE) != 0)
 
 static void
 destroy(dns_validator_t *val);
@@ -746,7 +748,7 @@ dsvalidated(isc_task_t *task, isc_event_t *event) {
 		name = dns_fixedname_name(&val->fname);
 		if ((val->attributes & VALATTR_INSECURITY) != 0 &&
 		    val->frdataset.covers == dns_rdatatype_ds &&
-		    val->frdataset.type == 0 &&
+		    NEGATIVE(&val->frdataset) &&
 		    isdelegation(name, &val->frdataset, DNS_R_NCACHENXRRSET)) {
 			if (val->mustbesecure) {
 				validator_log(val, ISC_LOG_WARNING,
@@ -4045,7 +4047,7 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 			val->attributes |= VALATTR_NEEDNODATA;
 		result = nsecvalidate(val, ISC_FALSE);
 	} else if (val->event->rdataset != NULL &&
-		    val->event->rdataset->type == 0)
+		    NEGATIVE(val->event->rdataset))
 	{
 		/*
 		 * This is a nonexistence validation.

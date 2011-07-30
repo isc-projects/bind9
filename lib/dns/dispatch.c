@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.172 2011/04/06 10:27:16 marka Exp $ */
+/* $Id: dispatch.c,v 1.174 2011/07/28 23:47:58 tbox Exp $ */
 
 /*! \file */
 
@@ -312,14 +312,16 @@ static isc_result_t get_udpsocket(dns_dispatchmgr_t *mgr,
 				  dns_dispatch_t *disp,
 				  isc_socketmgr_t *sockmgr,
 				  isc_sockaddr_t *localaddr,
-				  isc_socket_t **sockp);
+				  isc_socket_t **sockp,
+				  isc_socket_t *dup_socket);
 static isc_result_t dispatch_createudp(dns_dispatchmgr_t *mgr,
 				       isc_socketmgr_t *sockmgr,
 				       isc_taskmgr_t *taskmgr,
 				       isc_sockaddr_t *localaddr,
 				       unsigned int maxrequests,
 				       unsigned int attributes,
-				       dns_dispatch_t **dispp);
+				       dns_dispatch_t **dispp,
+				       isc_socket_t *dup_socket);
 static isc_boolean_t destroy_mgr_ok(dns_dispatchmgr_t *mgr);
 static void destroy_mgr(dns_dispatchmgr_t **mgrp);
 static isc_result_t qid_allocate(dns_dispatchmgr_t *mgr, unsigned int buckets,
@@ -327,7 +329,8 @@ static isc_result_t qid_allocate(dns_dispatchmgr_t *mgr, unsigned int buckets,
 				 isc_boolean_t needaddrtable);
 static void qid_destroy(isc_mem_t *mctx, dns_qid_t **qidp);
 static isc_result_t open_socket(isc_socketmgr_t *mgr, isc_sockaddr_t *local,
-				unsigned int options, isc_socket_t **sockp);
+				unsigned int options, isc_socket_t **sockp,
+				isc_socket_t *dup_socket);
 static isc_boolean_t portavailable(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 				   isc_sockaddr_t *sockaddrp);
 
@@ -902,7 +905,8 @@ get_dispsocket(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 		portentry = port_search(disp, port);
 		if (portentry != NULL)
 			bindoptions |= ISC_SOCKET_REUSEADDRESS;
-		result = open_socket(sockmgr, &localaddr, bindoptions, &sock);
+		result = open_socket(sockmgr, &localaddr, bindoptions, &sock,
+				     NULL);
 		if (result == ISC_R_SUCCESS) {
 			if (portentry == NULL) {
 				portentry = new_portentry(disp, port);
@@ -1787,19 +1791,14 @@ destroy_mgr(dns_dispatchmgr_t **mgrp) {
 
 static isc_result_t
 open_socket(isc_socketmgr_t *mgr, isc_sockaddr_t *local,
-	    unsigned int options, isc_socket_t **sockp)
+	    unsigned int options, isc_socket_t **sockp,
+	    isc_socket_t *dup_socket)
 {
 	isc_socket_t *sock;
 	isc_result_t result;
 
 	sock = *sockp;
-	if (sock == NULL) {
-		result = isc_socket_create(mgr, isc_sockaddr_pf(local),
-					   isc_sockettype_udp, &sock);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-		isc_socket_setname(sock, "dispatcher", NULL);
-	} else {
+	if (sock != NULL) {
 #ifdef BIND9
 		result = isc_socket_open(sock);
 		if (result != ISC_R_SUCCESS)
@@ -1807,7 +1806,18 @@ open_socket(isc_socketmgr_t *mgr, isc_sockaddr_t *local,
 #else
 		INSIST(0);
 #endif
+	} else if (dup_socket != NULL) {
+		result = isc_socket_dup(dup_socket, &sock);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	} else {
+		result = isc_socket_create(mgr, isc_sockaddr_pf(local),
+					isc_sockettype_udp, &sock);
+		if (result != ISC_R_SUCCESS)
+			return (result);
 	}
+
+	isc_socket_setname(sock, "dispatcher", NULL);
 
 #ifndef ISC_ALLOW_MAPPED
 	isc_socket_ipv6only(sock, ISC_TRUE);
@@ -2646,13 +2656,13 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 }
 
 isc_result_t
-dns_dispatch_getudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
+dns_dispatch_getudp_dup(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 		    isc_taskmgr_t *taskmgr, isc_sockaddr_t *localaddr,
 		    unsigned int buffersize,
 		    unsigned int maxbuffers, unsigned int maxrequests,
 		    unsigned int buckets, unsigned int increment,
 		    unsigned int attributes, unsigned int mask,
-		    dns_dispatch_t **dispp)
+		    dns_dispatch_t **dispp, dns_dispatch_t *dup_dispatch)
 {
 	isc_result_t result;
 	dns_dispatch_t *disp = NULL;
@@ -2683,28 +2693,31 @@ dns_dispatch_getudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 	/*
 	 * See if we have a dispatcher that matches.
 	 */
-	result = dispatch_find(mgr, localaddr, attributes, mask, &disp);
-	if (result == ISC_R_SUCCESS) {
-		disp->refcount++;
+	if (dup_dispatch == NULL) {
+		result = dispatch_find(mgr, localaddr, attributes, mask, &disp);
+		if (result == ISC_R_SUCCESS) {
+			disp->refcount++;
 
-		if (disp->maxrequests < maxrequests)
-			disp->maxrequests = maxrequests;
+			if (disp->maxrequests < maxrequests)
+				disp->maxrequests = maxrequests;
 
-		if ((disp->attributes & DNS_DISPATCHATTR_NOLISTEN) == 0 &&
-		    (attributes & DNS_DISPATCHATTR_NOLISTEN) != 0)
-		{
-			disp->attributes |= DNS_DISPATCHATTR_NOLISTEN;
-			if (disp->recv_pending != 0)
-				isc_socket_cancel(disp->socket, disp->task[0],
-						  ISC_SOCKCANCEL_RECV);
+			if ((disp->attributes & DNS_DISPATCHATTR_NOLISTEN) == 0
+			    && (attributes & DNS_DISPATCHATTR_NOLISTEN) != 0)
+			{
+				disp->attributes |= DNS_DISPATCHATTR_NOLISTEN;
+				if (disp->recv_pending != 0)
+					isc_socket_cancel(disp->socket,
+							  disp->task[0],
+							  ISC_SOCKCANCEL_RECV);
+			}
+
+			UNLOCK(&disp->lock);
+			UNLOCK(&mgr->lock);
+
+			*dispp = disp;
+
+			return (ISC_R_SUCCESS);
 		}
-
-		UNLOCK(&disp->lock);
-		UNLOCK(&mgr->lock);
-
-		*dispp = disp;
-
-		return (ISC_R_SUCCESS);
 	}
 
  createudp:
@@ -2712,7 +2725,11 @@ dns_dispatch_getudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 	 * Nope, create one.
 	 */
 	result = dispatch_createudp(mgr, sockmgr, taskmgr, localaddr,
-				    maxrequests, attributes, &disp);
+				    maxrequests, attributes, &disp,
+				    dup_dispatch == NULL
+					    ? NULL
+					    : dup_dispatch->socket);
+
 	if (result != ISC_R_SUCCESS) {
 		UNLOCK(&mgr->lock);
 		return (result);
@@ -2720,7 +2737,22 @@ dns_dispatch_getudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 
 	UNLOCK(&mgr->lock);
 	*dispp = disp;
+
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_dispatch_getudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
+		    isc_taskmgr_t *taskmgr, isc_sockaddr_t *localaddr,
+		    unsigned int buffersize,
+		    unsigned int maxbuffers, unsigned int maxrequests,
+		    unsigned int buckets, unsigned int increment,
+		    unsigned int attributes, unsigned int mask,
+		    dns_dispatch_t **dispp)
+{
+	return dns_dispatch_getudp_dup(mgr, sockmgr, taskmgr, localaddr,
+		    buffersize, maxbuffers, maxrequests, buckets, increment,
+		    attributes, mask, dispp, NULL);
 }
 
 /*
@@ -2734,7 +2766,7 @@ dns_dispatch_getudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 static isc_result_t
 get_udpsocket(dns_dispatchmgr_t *mgr, dns_dispatch_t *disp,
 	      isc_socketmgr_t *sockmgr, isc_sockaddr_t *localaddr,
-	      isc_socket_t **sockp)
+	      isc_socket_t **sockp, isc_socket_t *dup_socket)
 {
 	unsigned int i, j;
 	isc_socket_t *held[DNS_DISPATCH_HELD];
@@ -2774,7 +2806,7 @@ get_udpsocket(dns_dispatchmgr_t *mgr, dns_dispatch_t *disp,
 					nports)];
 			isc_sockaddr_setport(&localaddr_bound, prt);
 			result = open_socket(sockmgr, &localaddr_bound,
-					     0, &sock);
+					     0, &sock, NULL);
 			if (result == ISC_R_SUCCESS ||
 			    result != ISC_R_ADDRINUSE) {
 				disp->localport = prt;
@@ -2790,7 +2822,8 @@ get_udpsocket(dns_dispatchmgr_t *mgr, dns_dispatch_t *disp,
 	} else {
 		/* Allow to reuse address for non-random ports. */
 		result = open_socket(sockmgr, localaddr,
-				     ISC_SOCKET_REUSEADDRESS, &sock);
+				     ISC_SOCKET_REUSEADDRESS, &sock,
+				     dup_socket);
 
 		if (result == ISC_R_SUCCESS)
 			*sockp = sock;
@@ -2802,7 +2835,7 @@ get_udpsocket(dns_dispatchmgr_t *mgr, dns_dispatch_t *disp,
 	i = 0;
 
 	for (j = 0; j < 0xffffU; j++) {
-		result = open_socket(sockmgr, localaddr, 0, &sock);
+		result = open_socket(sockmgr, localaddr, 0, &sock, NULL);
 		if (result != ISC_R_SUCCESS)
 			goto end;
 		else if (!anyport)
@@ -2841,7 +2874,8 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 		   isc_sockaddr_t *localaddr,
 		   unsigned int maxrequests,
 		   unsigned int attributes,
-		   dns_dispatch_t **dispp)
+		   dns_dispatch_t **dispp,
+		   isc_socket_t *dup_socket)
 {
 	isc_result_t result;
 	dns_dispatch_t *disp;
@@ -2857,9 +2891,21 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 		return (result);
 
 	if ((attributes & DNS_DISPATCHATTR_EXCLUSIVE) == 0) {
-		result = get_udpsocket(mgr, disp, sockmgr, localaddr, &sock);
+		result = get_udpsocket(mgr, disp, sockmgr, localaddr, &sock,
+				       dup_socket);
 		if (result != ISC_R_SUCCESS)
 			goto deallocate_dispatch;
+
+		if (isc_log_wouldlog(dns_lctx, 90)) {
+			char addrbuf[ISC_SOCKADDR_FORMATSIZE];
+
+			isc_sockaddr_format(localaddr, addrbuf,
+					    ISC_SOCKADDR_FORMATSIZE);
+			mgr_log(mgr, LVL(90), "dns_dispatch_createudp: Created"
+				" UDP dispatch for %s with socket fd %d\n",
+				addrbuf, isc_socket_getfd(sock));
+		}
+
 	} else {
 		isc_sockaddr_t sa_any;
 
@@ -2871,7 +2917,7 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 		 */
 		isc_sockaddr_anyofpf(&sa_any, isc_sockaddr_pf(localaddr));
 		if (!isc_sockaddr_eqaddr(&sa_any, localaddr)) {
-			result = open_socket(sockmgr, localaddr, 0, &sock);
+			result = open_socket(sockmgr, localaddr, 0, &sock, NULL);
 			if (sock != NULL)
 				isc_socket_detach(&sock);
 			if (result != ISC_R_SUCCESS)
@@ -2938,6 +2984,7 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 		dispatch_log(disp, LVL(90), "created socket %p", disp->socket);
 
 	*dispp = disp;
+
 	return (result);
 
 	/*
