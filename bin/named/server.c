@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.556.8.40 2011/03/11 07:11:52 marka Exp $ */
+/* $Id: server.c,v 1.556.8.41 2011/08/02 04:57:54 each Exp $ */
 
 /*! \file */
 
@@ -221,7 +221,6 @@ static const struct {
 	const char	*zone;
 	isc_boolean_t	rfc1918;
 } empty_zones[] = {
-#ifdef notyet
 	/* RFC 1918 */
 	{ "10.IN-ADDR.ARPA", ISC_TRUE },
 	{ "16.172.IN-ADDR.ARPA", ISC_TRUE },
@@ -241,7 +240,6 @@ static const struct {
 	{ "30.172.IN-ADDR.ARPA", ISC_TRUE },
 	{ "31.172.IN-ADDR.ARPA", ISC_TRUE },
 	{ "168.192.IN-ADDR.ARPA", ISC_TRUE },
-#endif
 
 	/* RFC 5735 and RFC 5737 */
 	{ "0.IN-ADDR.ARPA", ISC_FALSE },	/* THIS NETWORK */

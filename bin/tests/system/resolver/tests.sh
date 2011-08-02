@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.11.142.8 2011/03/13 23:46:42 tbox Exp $
+# $Id: tests.sh,v 1.11.142.9 2011/08/02 04:57:54 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -218,6 +218,50 @@ sleep 1
 $DIG +tcp TXT bar.child.server @10.53.0.7 -p 5300 > dig.ns7.bar.${n} || ret=1
 grep "From NS 4" dig.ns7.bar.${n} > /dev/null || ret=1
 
+if [ $ret != 0 ]; then echo "I:failed"; status=1; fi
+
+n=`expr $n + 1`
+echo "I:checking empty RFC 1918 reverse zones ($n)"
+ret=0
+# Check that "aa" is being set by the resolver for RFC 1918 zones
+# except the one that has been deliberately disabled
+$DIG @10.53.0.7 -p 5300 -x 10.1.1.1 > dig.ns4.out.1.${n} || ret=1
+grep 'flags: qr aa rd ra;' dig.ns4.out.1.${n} > /dev/null || ret=1
+$DIG @10.53.0.7 -p 5300 -x 192.168.1.1 > dig.ns4.out.2.${n} || ret=1
+grep 'flags: qr aa rd ra;' dig.ns4.out.2.${n} > /dev/null || ret=1
+$DIG @10.53.0.7 -p 5300 -x 172.16.1.1  > dig.ns4.out.3.${n} || ret=1
+grep 'flags: qr aa rd ra;' dig.ns4.out.3.${n} > /dev/null || ret=1
+$DIG @10.53.0.7 -p 5300 -x 172.17.1.1 > dig.ns4.out.4.${n} || ret=1
+grep 'flags: qr aa rd ra;' dig.ns4.out.4.${n} > /dev/null || ret=1
+$DIG @10.53.0.7 -p 5300 -x 172.18.1.1 > dig.ns4.out.5.${n} || ret=1
+grep 'flags: qr aa rd ra;' dig.ns4.out.5.${n} > /dev/null || ret=1
+$DIG @10.53.0.7 -p 5300 -x 172.19.1.1 > dig.ns4.out.6.${n} || ret=1
+grep 'flags: qr aa rd ra;' dig.ns4.out.6.${n} > /dev/null || ret=1
+$DIG @10.53.0.7 -p 5300 -x 172.21.1.1 > dig.ns4.out.7.${n} || ret=1
+grep 'flags: qr aa rd ra;' dig.ns4.out.7.${n} > /dev/null || ret=1
+$DIG @10.53.0.7 -p 5300 -x 172.22.1.1 > dig.ns4.out.8.${n} || ret=1
+grep 'flags: qr aa rd ra;' dig.ns4.out.8.${n} > /dev/null || ret=1
+$DIG @10.53.0.7 -p 5300 -x 172.23.1.1 > dig.ns4.out.9.${n} || ret=1
+grep 'flags: qr aa rd ra;' dig.ns4.out.9.${n} > /dev/null || ret=1
+$DIG @10.53.0.7 -p 5300 -x 172.24.1.1 > dig.ns4.out.11.${n} || ret=1
+grep 'flags: qr aa rd ra;' dig.ns4.out.11.${n} > /dev/null || ret=1
+$DIG @10.53.0.7 -p 5300 -x 172.25.1.1 > dig.ns4.out.12.${n} || ret=1
+grep 'flags: qr aa rd ra;' dig.ns4.out.12.${n} > /dev/null || ret=1
+$DIG @10.53.0.7 -p 5300 -x 172.26.1.1 > dig.ns4.out.13.${n} || ret=1
+grep 'flags: qr aa rd ra;' dig.ns4.out.13.${n} > /dev/null || ret=1
+$DIG @10.53.0.7 -p 5300 -x 172.27.1.1 > dig.ns4.out.14.${n} || ret=1
+grep 'flags: qr aa rd ra;' dig.ns4.out.14.${n} > /dev/null || ret=1
+$DIG @10.53.0.7 -p 5300 -x 172.28.1.1 > dig.ns4.out.15.${n} || ret=1
+grep 'flags: qr aa rd ra;' dig.ns4.out.15.${n} > /dev/null || ret=1
+$DIG @10.53.0.7 -p 5300 -x 172.29.1.1 > dig.ns4.out.16.${n} || ret=1
+grep 'flags: qr aa rd ra;' dig.ns4.out.16.${n} > /dev/null || ret=1
+$DIG @10.53.0.7 -p 5300 -x 172.30.1.1 > dig.ns4.out.17.${n} || ret=1
+grep 'flags: qr aa rd ra;' dig.ns4.out.17.${n} > /dev/null || ret=1
+$DIG @10.53.0.7 -p 5300 -x 172.31.1.1 > dig.ns4.out.18.${n} || ret=1
+grep 'flags: qr aa rd ra;' dig.ns4.out.18.${n} > /dev/null || ret=1
+# but this one should NOT be authoritative
+$DIG @10.53.0.7 -p 5300 -x 172.20.1.1 > dig.ns4.out.19.${n} || ret=1
+grep 'flags: qr rd ra;' dig.ns4.out.19.${n} > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; status=1; fi
 
 echo "I:exit status: $status"
