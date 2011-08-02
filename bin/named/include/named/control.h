@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.h,v 1.33 2011/03/21 23:47:21 tbox Exp $ */
+/* $Id: control.h,v 1.34 2011/08/02 20:36:12 each Exp $ */
 
 #ifndef NAMED_CONTROL_H
 #define NAMED_CONTROL_H 1
@@ -47,6 +47,7 @@
 #define NS_COMMAND_NOTRACE	"notrace"
 #define NS_COMMAND_FLUSH	"flush"
 #define NS_COMMAND_FLUSHNAME	"flushname"
+#define NS_COMMAND_FLUSHTREE	"flushtree"
 #define NS_COMMAND_STATUS	"status"
 #define NS_COMMAND_TSIGLIST	"tsig-list"
 #define NS_COMMAND_TSIGDELETE	"tsig-delete"

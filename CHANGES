@@ -1,3 +1,7 @@
+3140.	[func]		New command "rndc flushtree <name>" clears the 
+			specified name from the server cache along with
+			all names under it. [RT #19970]
+
 3139.	[test]		Added tests from RFC 6234, RFC 2202, and RFC 1321
 			for the hashing algorithms (md5, sha1 - sha512, and
 			their hmac counterparts).  [RT #25067] 

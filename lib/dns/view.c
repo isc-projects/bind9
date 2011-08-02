@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.180 2011/03/11 06:11:25 marka Exp $ */
+/* $Id: view.c,v 1.181 2011/08/02 20:36:12 each Exp $ */
 
 /*! \file */
 
@@ -1529,16 +1529,23 @@ dns_view_flushcache2(dns_view_t *view, isc_boolean_t fixuponly) {
 
 isc_result_t
 dns_view_flushname(dns_view_t *view, dns_name_t *name) {
+	return (dns_view_flushnode(view, name, ISC_FALSE));
+}
+
+isc_result_t
+dns_view_flushnode(dns_view_t *view, dns_name_t *name, isc_boolean_t tree) {
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
-	if (view->adb != NULL)
-		dns_adb_flushname(view->adb, name);
-	if (view->cache == NULL)
-		return (ISC_R_SUCCESS);
-	if (view->resolver != NULL)
-		dns_resolver_flushbadcache(view->resolver, name);
-	return (dns_cache_flushname(view->cache, name));
+	if (!tree) {
+		if (view->adb != NULL)
+			dns_adb_flushname(view->adb, name);
+		if (view->cache == NULL)
+			return (ISC_R_SUCCESS);
+		if (view->resolver != NULL)
+			dns_resolver_flushbadcache(view->resolver, name);
+	}
+	return (dns_cache_flushnode(view->cache, name, tree));
 }
 
 isc_result_t

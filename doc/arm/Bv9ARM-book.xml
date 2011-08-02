@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.498 2011/07/28 03:18:17 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.499 2011/08/02 20:36:12 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -1431,10 +1431,29 @@ zone "eng.example.com" {
                   </varlistentry>
 
                   <varlistentry>
-                    <term><userinput>flushname</userinput> <replaceable>name</replaceable></term>
+                    <term><userinput>flushname</userinput>
+                       <replaceable>name</replaceable>
+                       <optional><replaceable>view<replaceable></optional>
+                       </term>
                     <listitem>
                       <para>
-                        Flushes the given name from the server's cache.
+                        Flushes the given name from the server's DNS cache,
+                        and from the server's nameserver address database
+                        if applicable.
+                      </para>
+                    </listitem>
+                  </varlistentry>
+
+                  <varlistentry>
+                    <term><userinput>flushtree</userinput>
+                       <replaceable>name</replaceable>
+                       <optional><replaceable>view<replaceable></optional>
+                       </term>
+                    <listitem>
+                      <para>
+                        Flushes the given name, and all of its subdomains,
+                        from the server's DNS cache.  (The server's
+                        nameserver address database is not affected.)
                       </para>
                     </listitem>
                   </varlistentry>
