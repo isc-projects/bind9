@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.6 2007/09/26 03:22:43 marka Exp $
+# $Id: clean.sh,v 1.7 2011/08/03 05:37:59 each Exp $
 
 #
 # Clean up after cache cleaner tests.
@@ -23,3 +23,4 @@
 
 rm -f dig.out.ns2
 rm -f */named.memstats
+rm -f ns2/named_dump.db
