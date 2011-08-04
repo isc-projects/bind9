@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.499 2011/08/02 20:36:12 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.500 2011/08/03 01:19:10 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -1433,7 +1433,7 @@ zone "eng.example.com" {
                   <varlistentry>
                     <term><userinput>flushname</userinput>
                        <replaceable>name</replaceable>
-                       <optional><replaceable>view<replaceable></optional>
+                       <optional><replaceable>view</replaceable></optional>
                        </term>
                     <listitem>
                       <para>
@@ -1447,7 +1447,7 @@ zone "eng.example.com" {
                   <varlistentry>
                     <term><userinput>flushtree</userinput>
                        <replaceable>name</replaceable>
-                       <optional><replaceable>view<replaceable></optional>
+                       <optional><replaceable>view</replaceable></optional>
                        </term>
                     <listitem>
                       <para>
