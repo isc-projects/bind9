@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch04.html,v 1.138 2011/07/29 01:14:30 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch04.html,v 1.139 2011/08/04 01:14:43 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -49,43 +49,43 @@
 <dt><span class="sect1"><a href="Bv9ARM.ch04.html#dynamic_update">Dynamic Update</a></span></dt>
 <dd><dl><dt><span class="sect2"><a href="Bv9ARM.ch04.html#journal">The journal file</a></span></dt></dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch04.html#incremental_zone_transfers">Incremental Zone Transfers (IXFR)</a></span></dt>
-<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2570849">Split DNS</a></span></dt>
-<dd><dl><dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2570935">Example split DNS setup</a></span></dt></dl></dd>
+<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2570876">Split DNS</a></span></dt>
+<dd><dl><dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2570894">Example split DNS setup</a></span></dt></dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch04.html#tsig">TSIG</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2571436">Generate Shared Keys for Each Pair of Hosts</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2571578">Copying the Shared Secret to Both Machines</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2571589">Informing the Servers of the Key's Existence</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2564048">Instructing the Server to Use the Key</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2564105">TSIG Key Based Access Control</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2564154">Errors</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2571532">Generate Shared Keys for Each Pair of Hosts</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2571606">Copying the Shared Secret to Both Machines</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2571617">Informing the Servers of the Key's Existence</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2571653">Instructing the Server to Use the Key</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2571779">TSIG Key Based Access Control</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2571828">Errors</a></span></dt>
 </dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2571950">TKEY</a></span></dt>
-<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2572000">SIG(0)</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2571842">TKEY</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2571959">SIG(0)</a></span></dt>
 <dt><span class="sect1"><a href="Bv9ARM.ch04.html#DNSSEC">DNSSEC</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2572204">Generating Keys</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2572283">Signing the Zone</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2572364">Configuring Servers</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2572027">Generating Keys</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2572174">Signing the Zone</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2572256">Configuring Servers</a></span></dt>
 </dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch04.html#rfc5011.support">Dynamic Trust Anchor Management</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2607636">Validating Resolver</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2563421">Authoritative Server</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2607664">Validating Resolver</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2607686">Authoritative Server</a></span></dt>
 </dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch04.html#pkcs11">PKCS #11 (Cryptoki) support</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2609479">Prerequisites</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2571725">Building BIND 9 with PKCS#11</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2607729">PKCS #11 Tools</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2607760">Using the HSM</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2609869">Specifying the engine on the command line</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2609984">Running named with automatic zone re-signing</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2609507">Prerequisites</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2607730">Building BIND 9 with PKCS#11</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2607825">PKCS #11 Tools</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2607856">Using the HSM</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2609965">Specifying the engine on the command line</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2610011">Running named with automatic zone re-signing</a></span></dt>
 </dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2572652">IPv6 Support in <acronym class="acronym">BIND</acronym> 9</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2572544">IPv6 Support in <acronym class="acronym">BIND</acronym> 9</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2572851">Address Lookups Using AAAA Records</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2572872">Address to Name Lookups Using Nibble Format</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2572674">Address Lookups Using AAAA Records</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2572695">Address to Name Lookups Using Nibble Format</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -240,7 +240,7 @@
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2570849"></a>Split DNS</h2></div></div></div>
+<a name="id2570876"></a>Split DNS</h2></div></div></div>
 <p>
         Setting up different views, or visibility, of the DNS space to
         internal and external resolvers is usually referred to as a
@@ -270,7 +270,7 @@
       </p>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2570935"></a>Example split DNS setup</h3></div></div></div>
+<a name="id2570894"></a>Example split DNS setup</h3></div></div></div>
 <p>
         Let's say a company named <span class="emphasis"><em>Example, Inc.</em></span>
         (<code class="literal">example.com</code>)
@@ -527,7 +527,7 @@ nameserver 172.16.72.4
       </p>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2571436"></a>Generate Shared Keys for Each Pair of Hosts</h3></div></div></div>
+<a name="id2571532"></a>Generate Shared Keys for Each Pair of Hosts</h3></div></div></div>
 <p>
           A shared secret is generated to be shared between <span class="emphasis"><em>host1</em></span> and <span class="emphasis"><em>host2</em></span>.
           An arbitrary key name is chosen: "host1-host2.". The key name must
@@ -535,7 +535,7 @@ nameserver 172.16.72.4
         </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2571453"></a>Automatic Generation</h4></div></div></div>
+<a name="id2571549"></a>Automatic Generation</h4></div></div></div>
 <p>
             The following command will generate a 128-bit (16 byte) HMAC-SHA256
             key as described above. Longer keys are better, but shorter keys
@@ -559,7 +559,7 @@ nameserver 172.16.72.4
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2571560"></a>Manual Generation</h4></div></div></div>
+<a name="id2571588"></a>Manual Generation</h4></div></div></div>
 <p>
             The shared secret is simply a random sequence of bits, encoded
             in base-64. Most ASCII strings are valid base-64 strings (assuming
@@ -574,7 +574,7 @@ nameserver 172.16.72.4
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2571578"></a>Copying the Shared Secret to Both Machines</h3></div></div></div>
+<a name="id2571606"></a>Copying the Shared Secret to Both Machines</h3></div></div></div>
 <p>
           This is beyond the scope of DNS. A secure transport mechanism
           should be used. This could be secure FTP, ssh, telephone, etc.
@@ -582,7 +582,7 @@ nameserver 172.16.72.4
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2571589"></a>Informing the Servers of the Key's Existence</h3></div></div></div>
+<a name="id2571617"></a>Informing the Servers of the Key's Existence</h3></div></div></div>
 <p>
           Imagine <span class="emphasis"><em>host1</em></span> and <span class="emphasis"><em>host 2</em></span>
           are
@@ -609,7 +609,7 @@ key host1-host2. {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2564048"></a>Instructing the Server to Use the Key</h3></div></div></div>
+<a name="id2571653"></a>Instructing the Server to Use the Key</h3></div></div></div>
 <p>
           Since keys are shared between two hosts only, the server must
           be told when keys are to be used. The following is added to the <code class="filename">named.conf</code> file
@@ -641,7 +641,7 @@ server 10.1.2.3 {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2564105"></a>TSIG Key Based Access Control</h3></div></div></div>
+<a name="id2571779"></a>TSIG Key Based Access Control</h3></div></div></div>
 <p>
           <acronym class="acronym">BIND</acronym> allows IP addresses and ranges
           to be specified in ACL
@@ -668,7 +668,7 @@ allow-update { key host1-host2. ;};
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2564154"></a>Errors</h3></div></div></div>
+<a name="id2571828"></a>Errors</h3></div></div></div>
 <p>
           The processing of TSIG signed messages can result in
           several errors. If a signed message is sent to a non-TSIG aware
@@ -694,7 +694,7 @@ allow-update { key host1-host2. ;};
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2571950"></a>TKEY</h2></div></div></div>
+<a name="id2571842"></a>TKEY</h2></div></div></div>
 <p><span><strong class="command">TKEY</strong></span>
         is a mechanism for automatically generating a shared secret
         between two hosts.  There are several "modes" of
@@ -730,7 +730,7 @@ allow-update { key host1-host2. ;};
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2572000"></a>SIG(0)</h2></div></div></div>
+<a name="id2571959"></a>SIG(0)</h2></div></div></div>
 <p>
         <acronym class="acronym">BIND</acronym> 9 partially supports DNSSEC SIG(0)
             transaction signatures as specified in RFC 2535 and RFC 2931.
@@ -791,7 +791,7 @@ allow-update { key host1-host2. ;};
       </p>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2572204"></a>Generating Keys</h3></div></div></div>
+<a name="id2572027"></a>Generating Keys</h3></div></div></div>
 <p>
           The <span><strong class="command">dnssec-keygen</strong></span> program is used to
           generate keys.
@@ -847,7 +847,7 @@ allow-update { key host1-host2. ;};
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2572283"></a>Signing the Zone</h3></div></div></div>
+<a name="id2572174"></a>Signing the Zone</h3></div></div></div>
 <p>
           The <span><strong class="command">dnssec-signzone</strong></span> program is used
           to sign a zone.
@@ -889,7 +889,7 @@ allow-update { key host1-host2. ;};
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2572364"></a>Configuring Servers</h3></div></div></div>
+<a name="id2572256"></a>Configuring Servers</h3></div></div></div>
 <p>
           To enable <span><strong class="command">named</strong></span> to respond appropriately
           to DNS requests from DNSSEC aware clients,
@@ -1052,7 +1052,7 @@ options {
   configuration files.</p>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2607636"></a>Validating Resolver</h3></div></div></div>
+<a name="id2607664"></a>Validating Resolver</h3></div></div></div>
 <p>To configure a validating resolver to use RFC 5011 to
     maintain a trust anchor, configure the trust anchor using a 
     <span><strong class="command">managed-keys</strong></span> statement. Information about
@@ -1063,7 +1063,7 @@ options {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2563421"></a>Authoritative Server</h3></div></div></div>
+<a name="id2607686"></a>Authoritative Server</h3></div></div></div>
 <p>To set up an authoritative zone for RFC 5011 trust anchor
     maintenance, generate two (or more) key signing keys (KSKs) for
     the zone. Sign the zone with one of them; this is the "active"
@@ -1137,7 +1137,7 @@ $ <strong class="userinput"><code>dnssec-signzone -S -K keys example.net</code><
   Debian Linux, Solaris x86 and Windows Server 2003.</p>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2609479"></a>Prerequisites</h3></div></div></div>
+<a name="id2609507"></a>Prerequisites</h3></div></div></div>
 <p>See the HSM vendor documentation for information about
     installing, initializing, testing and troubleshooting the
     HSM.</p>
@@ -1211,7 +1211,7 @@ $ <strong class="userinput"><code>patch -p1 -d openssl-0.9.8l \
     when we configure BIND 9.</p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2563836"></a>Building OpenSSL for the AEP Keyper on Linux</h4></div></div></div>
+<a name="id2563796"></a>Building OpenSSL for the AEP Keyper on Linux</h4></div></div></div>
 <p>The AEP Keyper is a highly secure key storage device,
       but does not provide hardware cryptographic acceleration. It
       can carry out cryptographic operations, but it is probably
@@ -1243,7 +1243,7 @@ $ <strong class="userinput"><code>./Configure linux-generic32 -m32 -pthread \
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2571620"></a>Building OpenSSL for the SCA 6000 on Solaris</h4></div></div></div>
+<a name="id2580864"></a>Building OpenSSL for the SCA 6000 on Solaris</h4></div></div></div>
 <p>The SCA-6000 PKCS #11 provider is installed as a system
       library, libpkcs11. It is a true crypto accelerator, up to 4
       times faster than any CPU, so the flavor shall be
@@ -1287,12 +1287,12 @@ $ <strong class="userinput"><code>./Configure solaris64-x86_64-cc \
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2571725"></a>Building BIND 9 with PKCS#11</h3></div></div></div>
+<a name="id2607730"></a>Building BIND 9 with PKCS#11</h3></div></div></div>
 <p>When building BIND 9, the location of the custom-built
     OpenSSL library must be specified via configure.</p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2571734"></a>Configuring BIND 9 for Linux</h4></div></div></div>
+<a name="id2607738"></a>Configuring BIND 9 for Linux</h4></div></div></div>
 <p>To link with the PKCS #11 provider, threads must be
       enabled in the BIND 9 build.</p>
 <p>The PKCS #11 library for the AEP Keyper is currently
@@ -1308,7 +1308,7 @@ $ <strong class="userinput"><code>./configure CC="gcc -m32" --enable-threads \
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2607673"></a>Configuring BIND 9 for Solaris</h4></div></div></div>
+<a name="id2607769"></a>Configuring BIND 9 for Solaris</h4></div></div></div>
 <p>To link with the PKCS #11 provider, threads must be
       enabled in the BIND 9 build.</p>
 <pre class="screen">
@@ -1331,7 +1331,7 @@ $ <strong class="userinput"><code>./configure CC="cc -xarch=amd64" --enable-thre
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2607729"></a>PKCS #11 Tools</h3></div></div></div>
+<a name="id2607825"></a>PKCS #11 Tools</h3></div></div></div>
 <p>BIND 9 includes a minimal set of tools to operate the
     HSM, including 
     <span><strong class="command">pkcs11-keygen</strong></span> to generate a new key pair
@@ -1349,7 +1349,7 @@ $ <strong class="userinput"><code>./configure CC="cc -xarch=amd64" --enable-thre
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2607760"></a>Using the HSM</h3></div></div></div>
+<a name="id2607856"></a>Using the HSM</h3></div></div></div>
 <p>First, we must set up the runtime environment so the
     OpenSSL and PKCS #11 libraries can be loaded:</p>
 <pre class="screen">
@@ -1437,7 +1437,7 @@ example.net.signed
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2609869"></a>Specifying the engine on the command line</h3></div></div></div>
+<a name="id2609965"></a>Specifying the engine on the command line</h3></div></div></div>
 <p>The OpenSSL engine can be specified in 
     <span><strong class="command">named</strong></span> and all of the BIND 
     <span><strong class="command">dnssec-*</strong></span> tools by using the "-E
@@ -1458,7 +1458,7 @@ $ <strong class="userinput"><code>dnssec-signzone -E '' -S example.net</code></s
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2609984"></a>Running named with automatic zone re-signing</h3></div></div></div>
+<a name="id2610011"></a>Running named with automatic zone re-signing</h3></div></div></div>
 <p>If you want 
     <span><strong class="command">named</strong></span> to dynamically re-sign zones using HSM
     keys, and/or to to sign new records inserted via nsupdate, then
@@ -1494,7 +1494,7 @@ $ <strong class="userinput"><code>dnssec-signzone -E '' -S example.net</code></s
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2572652"></a>IPv6 Support in <acronym class="acronym">BIND</acronym> 9</h2></div></div></div>
+<a name="id2572544"></a>IPv6 Support in <acronym class="acronym">BIND</acronym> 9</h2></div></div></div>
 <p>
         <acronym class="acronym">BIND</acronym> 9 fully supports all currently
         defined forms of IPv6 name to address and address to name
@@ -1532,7 +1532,7 @@ $ <strong class="userinput"><code>dnssec-signzone -E '' -S example.net</code></s
       </p>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2572851"></a>Address Lookups Using AAAA Records</h3></div></div></div>
+<a name="id2572674"></a>Address Lookups Using AAAA Records</h3></div></div></div>
 <p>
           The IPv6 AAAA record is a parallel to the IPv4 A record,
           and, unlike the deprecated A6 record, specifies the entire
@@ -1551,7 +1551,7 @@ host            3600    IN      AAAA    2001:db8::1
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2572872"></a>Address to Name Lookups Using Nibble Format</h3></div></div></div>
+<a name="id2572695"></a>Address to Name Lookups Using Nibble Format</h3></div></div></div>
 <p>
           When looking up an address in nibble format, the address
           components are simply reversed, just as in IPv4, and
