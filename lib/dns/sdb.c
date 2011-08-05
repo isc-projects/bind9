@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.66.48.6 2010/08/16 05:21:42 marka Exp $ */
+/* $Id: sdb.c,v 1.66.48.7 2011/08/05 06:00:42 marka Exp $ */
 
 /*! \file */
 
@@ -1332,7 +1332,7 @@ dns_sdb_create(isc_mem_t *mctx, dns_name_t *origin, dns_dbtype_t type,
  cleanup_origin:
 	dns_name_free(&sdb->common.origin, mctx);
  cleanup_lock:
-	isc_mutex_destroy(&sdb->lock);
+	(void)isc_mutex_destroy(&sdb->lock);
  cleanup_mctx:
 	isc_mem_put(mctx, sdb, sizeof(dns_sdb_t));
 	isc_mem_detach(&mctx);
