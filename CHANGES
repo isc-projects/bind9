@@ -1,3 +1,5 @@
+	--- 9.8.1rc1 released ---
+
 3141.	[bug]		Silence spurious "zone serial (0) unchanged" messages
 			associated with empty zones. [RT #25079]
 
