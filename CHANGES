@@ -1,3 +1,6 @@
+3141.	[bug]		Silence spurious "zone serial unchanged" messages
+			associated with empty zones. [RT #25079]
+
 3138.	[bug]		Address memory leaks and out-of-order operations when
 			shutting named down. [RT #25210]
 
