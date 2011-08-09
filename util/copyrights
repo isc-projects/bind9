@@ -634,6 +634,8 @@
 ./bin/tests/system/autosign/prereq.sh		SH	2009,2010
 ./bin/tests/system/autosign/setup.sh		SH	2009,2010
 ./bin/tests/system/autosign/tests.sh		SH	2009,2010,2011
+./bin/tests/system/builtin/ns1/named.conf	CONF-C	2011
+./bin/tests/system/builtin/tests.sh		SH	2011
 ./bin/tests/system/cacheclean/clean.sh		SH	2001,2004,2007
 ./bin/tests/system/cacheclean/dig.batch		X	2001
 ./bin/tests/system/cacheclean/knowngood.dig.out	X	2001
