@@ -1,3 +1,6 @@
+3141.	[bug]		Silence spurious "zone serial (0) unchanged" messages
+			associated with empty zones. [RT #25079]
+
 3140.	[func]		New command "rndc flushtree <name>" clears the 
 			specified name from the server cache along with
 			all names under it. [RT #19970]
