@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.89 2010/08/11 22:54:58 jinmei Exp $ */
+/* $Id: mem.h,v 1.90 2011/08/09 10:29:23 fdupont Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -334,7 +334,7 @@ isc_mem_createx2(size_t max_size, size_t target_size,
  * ISC_MEMFLAG_INTERNAL is not set, 'target_size' is ignored.
  *
  * 'max_size' is also used to size the statistics arrays and the array
- * used to record active memory when ISC_MEM_DEBUGRECORD is set.  Settin
+ * used to record active memory when ISC_MEM_DEBUGRECORD is set.  Setting
  * 'max_size' too low can have detrimental effects on performance.
  *
  * A memory context created using isc_mem_createx() will obtain
