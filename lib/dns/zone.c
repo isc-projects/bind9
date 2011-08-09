@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.582.8.25 2011/07/21 06:25:17 marka Exp $ */
+/* $Id: zone.c,v 1.582.8.26 2011/08/09 02:34:24 marka Exp $ */
 
 /*! \file */
 
@@ -3477,7 +3477,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 				dns_zone_log(zone, ISC_LOG_ERROR,
 					     "zone serial (%u/%u) has gone "
 					     "backwards", serial, oldserial);
-			else if (serial == oldserial && !hasinclude)
+			else if (serial == oldserial && !hasinclude &&
+				 strcmp(zone->db_argv[0], "_builtin") != 0)
 				dns_zone_log(zone, ISC_LOG_ERROR,
 					     "zone serial (%u) unchanged. "
 					     "zone may fail to transfer "
