@@ -650,6 +650,8 @@
 ./bin/tests/system/autosign/prereq.sh		SH	2009,2010
 ./bin/tests/system/autosign/setup.sh		SH	2009,2010
 ./bin/tests/system/autosign/tests.sh		SH	2009,2010,2011
+./bin/tests/system/builtin/ns1/named.conf	CONF-C	2011
+./bin/tests/system/builtin/tests.sh		SH	2011
 ./bin/tests/system/cacheclean/clean.sh		SH	2001,2004,2007,2011
 ./bin/tests/system/cacheclean/dig.batch		X	2001
 ./bin/tests/system/cacheclean/knowngood.dig.out	X	2001
@@ -2598,7 +2600,7 @@
 ./lib/isc/include/isc/log.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2009
 ./lib/isc/include/isc/magic.h			C	1999,2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/md5.h			C	2000,2001,2004,2005,2006,2007,2009,2010
-./lib/isc/include/isc/mem.h			C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2008,2009,2010
+./lib/isc/include/isc/mem.h			C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2008,2009,2010,2011
 ./lib/isc/include/isc/msgcat.h			C	1999,2000,2001,2004,2005,2007
 ./lib/isc/include/isc/msgs.h			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./lib/isc/include/isc/mutexblock.h		C	1999,2000,2001,2004,2005,2006,2007
