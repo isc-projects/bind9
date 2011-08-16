@@ -506,7 +506,7 @@
 ./bin/tests/rbt_test.c				C	1999,2000,2001,2004,2005,2007,2009
 ./bin/tests/rbt_test.out			X	1999,2000,2001
 ./bin/tests/rbt_test.txt			SH	1999,2000,2001,2004,2007
-./bin/tests/rdata_test.c			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
+./bin/tests/rdata_test.c			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2011
 ./bin/tests/resolv.conf.sample			CONF-SH	2000,2001,2004,2007
 ./bin/tests/rwlock_test.c			C	1998,1999,2000,2001,2004,2005,2007
 ./bin/tests/serial_test.c			C	1999,2000,2001,2003,2004,2007
@@ -2144,8 +2144,8 @@
 ./lib/dns/rdata/generic/mr_9.h			C	1998,1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/generic/mx_15.c			C	1998,1999,2000,2001,2003,2004,2005,2007,2009
 ./lib/dns/rdata/generic/mx_15.h			C	1998,1999,2000,2001,2004,2005,2007
-./lib/dns/rdata/generic/naptr_35.c		C	1999,2000,2001,2003,2004,2005,2007,2008,2009
-./lib/dns/rdata/generic/naptr_35.h		C	1999,2000,2001,2004,2005,2007
+./lib/dns/rdata/generic/naptr_35.c		C	1999,2000,2001,2003,2004,2005,2007,2008,2009,2011
+./lib/dns/rdata/generic/naptr_35.h		C	1999,2000,2001,2004,2005,2007,2011
 ./lib/dns/rdata/generic/ns_2.c			C	1998,1999,2000,2001,2004,2007,2009
 ./lib/dns/rdata/generic/ns_2.h			C	1998,1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/generic/nsec3_50.c		C	2008,2009
