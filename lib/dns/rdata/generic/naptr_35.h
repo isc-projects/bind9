@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -18,9 +18,9 @@
 #ifndef GENERIC_NAPTR_35_H
 #define GENERIC_NAPTR_35_H 1
 
-/* $Id: naptr_35.h,v 1.1 2011/08/16 00:02:37 marka Exp $ */
+/* $Id: naptr_35.h,v 1.2 2011/08/16 23:46:36 tbox Exp $ */
 
-/*! 
+/*!
  *  \brief Per RFC2915 */
 
 typedef struct dns_rdata_naptr {
