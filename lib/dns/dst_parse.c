@@ -31,7 +31,7 @@
 
 /*%
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.27 2010/12/23 04:07:58 marka Exp $
+ * $Id: dst_parse.c,v 1.28 2011/08/18 04:52:35 marka Exp $
  */
 
 #include <config.h>
@@ -641,9 +641,7 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 		}
 		isc_buffer_usedregion(&b, &r);
 
-		fprintf(fp, "%s ", s);
-		isc_util_fwrite(r.base, 1, r.length, fp);
-		fprintf(fp, "\n");
+               fprintf(fp, "%s %.*s\n", s, (int)r.length, r.base);
 	}
 
 	/* Add the metadata tags */
@@ -661,14 +659,15 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 
 			isc_buffer_init(&b, buffer, sizeof(buffer));
 			result = dns_time32_totext(when, &b);
-			if (result != ISC_R_SUCCESS)
-				continue;
+                       if (result != ISC_R_SUCCESS) {
+                               fclose(fp);
+                               return (DST_R_INVALIDPRIVATEKEY);
+                       }
 
 			isc_buffer_usedregion(&b, &r);
 
-			fprintf(fp, "%s ", timetags[i]);
-			isc_util_fwrite(r.base, 1, r.length, fp);
-			fprintf(fp, "\n");
+                       fprintf(fp, "%s %.*s\n", timetags[i], (int)r.length,
+                                r.base);
 		}
 	}
 

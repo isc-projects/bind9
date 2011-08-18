@@ -1,3 +1,5 @@
+3143.	[bug]		Silence clang compiler warnings. [RT #25174]
+
 3142.	[bug]		NAPTR is class agnostic. [RT #25429]
 
 3141.	[bug]		Silence spurious "zone serial (0) unchanged" messages
