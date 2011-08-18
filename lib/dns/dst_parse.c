@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -31,7 +31,7 @@
 
 /*%
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.23.36.4 2011/08/18 05:04:37 marka Exp $
+ * $Id: dst_parse.c,v 1.23.36.5 2011/08/18 23:45:29 tbox Exp $
  */
 
 #include <config.h>
@@ -625,7 +625,7 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 		}
 		isc_buffer_usedregion(&b, &r);
 
-               fprintf(fp, "%s %.*s\n", s, (int)r.length, r.base);
+	       fprintf(fp, "%s %.*s\n", s, (int)r.length, r.base);
 	}
 
 	/* Add the metadata tags */
@@ -643,15 +643,15 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 
 			isc_buffer_init(&b, buffer, sizeof(buffer));
 			result = dns_time32_totext(when, &b);
-                       if (result != ISC_R_SUCCESS) {
-                               fclose(fp);
-                               return (DST_R_INVALIDPRIVATEKEY);
-                       }
+		       if (result != ISC_R_SUCCESS) {
+			       fclose(fp);
+			       return (DST_R_INVALIDPRIVATEKEY);
+		       }
 
 			isc_buffer_usedregion(&b, &r);
 
-                       fprintf(fp, "%s %.*s\n", timetags[i], (int)r.length,
-                                r.base);
+		       fprintf(fp, "%s %.*s\n", timetags[i], (int)r.length,
+				r.base);
 		}
 	}
 
