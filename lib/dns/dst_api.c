@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.62 2011/08/18 17:41:54 marka Exp $
+ * $Id: dst_api.c,v 1.63 2011/08/18 23:46:34 tbox Exp $
  */
 
 /*! \file */
@@ -1580,7 +1580,7 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 
 	isc_buffer_usedregion(&classb, &r);
 	if ((unsigned)isc_util_fwrite(r.base, 1, r.length, fp) != r.length)
-               ret = DST_R_WRITEERROR;
+	       ret = DST_R_WRITEERROR;
 
 	if ((type & DST_TYPE_KEY) != 0)
 		fprintf(fp, " KEY ");
@@ -1589,7 +1589,7 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 
 	isc_buffer_usedregion(&textb, &r);
 	if ((unsigned)isc_util_fwrite(r.base, 1, r.length, fp) != r.length)
-               ret = DST_R_WRITEERROR;
+	       ret = DST_R_WRITEERROR;
 
 	fputc('\n', fp);
 	fflush(fp);
