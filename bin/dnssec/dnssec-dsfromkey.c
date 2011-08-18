@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2008-2011  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-dsfromkey.c,v 1.2.14.7 2011/08/18 05:14:33 marka Exp $ */
+/* $Id: dnssec-dsfromkey.c,v 1.2.14.8 2011/08/18 23:45:12 tbox Exp $ */
 
 /*! \file */
 
@@ -219,7 +219,7 @@ emitds(unsigned int dtype, dns_rdata_t *rdata)
 	printf(" %.*s", (int)r.length, r.base);
 
 	isc_buffer_usedregion(&textb, &r);
-        printf(" DS %.*s\n", (int)r.length, r.base);
+	printf(" DS %.*s\n", (int)r.length, r.base);
 }
 
 static void

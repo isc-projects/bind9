@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -31,7 +31,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.16.12.15 2011/08/18 17:42:24 marka Exp $
+ * $Id: dst_api.c,v 1.16.12.16 2011/08/18 23:45:12 tbox Exp $
  */
 
 /*! \file */
@@ -1194,7 +1194,7 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 
 	isc_buffer_usedregion(&classb, &r);
 	if ((unsigned)isc_util_fwrite(r.base, 1, r.length, fp) != r.length)
-               ret = DST_R_WRITEERROR;
+	       ret = DST_R_WRITEERROR;
 
 	if ((type & DST_TYPE_KEY) != 0)
 		fprintf(fp, " KEY ");
@@ -1203,7 +1203,7 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 
 	isc_buffer_usedregion(&textb, &r);
 	if ((unsigned)isc_util_fwrite(r.base, 1, r.length, fp) != r.length)
-               ret = DST_R_WRITEERROR;
+	       ret = DST_R_WRITEERROR;
 
 	fputc('\n', fp);
 	fflush(fp);
