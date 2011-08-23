@@ -6,7 +6,10 @@ export PATH
 if [ -n "@ATFBIN@" ]
 then
 	atf-run > atf.out
-        status=$?
-        atf-report < atf.out
-        [ $status -eq 0 ] && rm -f atf.out
+	status=$?
+
+        # | cat is there to force non-fancy output
+	atf-report < atf.out | cat
+
+	[ $status -eq 0 ] && rm -f atf.out
 fi
