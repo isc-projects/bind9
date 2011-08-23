@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dbiterator_test.c,v 1.1.4.2 2011/08/23 00:57:11 each Exp $ */
+/* $Id: dbiterator_test.c,v 1.1.4.3 2011/08/23 02:51:11 each Exp $ */
 
 /*! \file */
 
@@ -26,6 +26,7 @@
 
 #include <dns/db.h>
 #include <dns/dbiterator.h>
+#include <dns/fixedname.h>
 #include <dns/name.h>
 
 #include "dnstest.h"
@@ -97,7 +98,7 @@ test_create(const atf_tc_t *tc) {
 	dns_db_t *db = NULL;
 	dns_dbiterator_t *iter = NULL;
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = setup_db(atf_tc_get_md_var(tc, "X-filename"),
@@ -146,7 +147,7 @@ test_walk(const atf_tc_t *tc) {
 	dns_fixedname_init(&f);
 	name = dns_fixedname_name(&f);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = setup_db(atf_tc_get_md_var(tc, "X-filename"),
@@ -206,7 +207,7 @@ static void test_reverse(const atf_tc_t *tc) {
 	dns_fixedname_init(&f);
 	name = dns_fixedname_name(&f);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = setup_db(atf_tc_get_md_var(tc, "X-filename"),
@@ -266,7 +267,7 @@ static void test_seek(const atf_tc_t *tc) {
 	dns_fixedname_init(&f2);
 	seekname = dns_fixedname_name(&f2);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = setup_db(atf_tc_get_md_var(tc, "X-filename"),
@@ -334,7 +335,7 @@ static void test_seek_empty(const atf_tc_t *tc) {
 	dns_fixedname_init(&f1);
 	seekname = dns_fixedname_name(&f1);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = setup_db(atf_tc_get_md_var(tc, "X-filename"),
@@ -391,7 +392,7 @@ static void test_seek_nx(const atf_tc_t *tc) {
 	dns_fixedname_init(&f1);
 	seekname = dns_fixedname_name(&f1);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = setup_db(atf_tc_get_md_var(tc, "X-filename"),
