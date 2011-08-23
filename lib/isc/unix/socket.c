@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.344 2011/07/28 23:47:59 tbox Exp $ */
+/* $Id: socket.c,v 1.345 2011/08/23 17:02:53 each Exp $ */
 
 /*! \file */
 
@@ -5879,8 +5879,8 @@ isc__socket_register() {
 }
 #endif
 
-int
-isc_socket_getfd(isc_socket_t *socket0) {
+ISC_SOCKETFUNC_SCOPE int
+isc__socket_getfd(isc_socket_t *socket0) {
 	isc__socket_t *socket = (isc__socket_t *)socket0;
 
 	return ((short) socket->fd);

@@ -90,6 +90,7 @@ isc__socket_create
 isc__socket_detach
 isc__socket_dup
 isc__socket_filter
+isc__socket_getfd
 isc__socket_getname
 isc__socket_getpeername
 isc__socket_getsockname

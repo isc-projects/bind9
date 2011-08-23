@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namespace.h,v 1.11 2011/07/28 23:47:59 tbox Exp $ */
+/* $Id: namespace.h,v 1.12 2011/08/23 17:02:53 each Exp $ */
 
 #ifndef ISCAPI_NAMESPACE_H
 #define ISCAPI_NAMESPACE_H 1
@@ -111,6 +111,7 @@
 #define isc_socket_listen isc__socket_listen
 #define isc_socket_accept isc__socket_accept
 #define isc_socket_connect isc__socket_connect
+#define isc_socket_getfd isc__socket_getfd
 #define isc_socket_getname isc__socket_getname
 #define isc_socket_gettag isc__socket_gettag
 #define isc_socket_getpeername isc__socket_getpeername

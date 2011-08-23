@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.90 2011/07/28 23:47:59 tbox Exp $ */
+/* $Id: socket.c,v 1.91 2011/08/23 17:02:53 each Exp $ */
 
 /* This code uses functions which are only available on Server 2003 and
  * higher, and Windows XP and higher.
@@ -1681,7 +1681,12 @@ socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 			break;
 		}
 	} else {
-		sock->fd = dup(dup_socket->fd);
+		/*
+		 * XXX: dup() is deprecated in windows, use _dup()
+		 * instead.  In future we may want to investigate
+		 * WSADuplicateSocket().
+		 */
+		sock->fd = _dup(dup_socket->fd);
 		sock->dupped = 1;
 	}
 
