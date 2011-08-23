@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.2.4.4 2011/08/23 00:57:46 each Exp $
+# $Id: Makefile.in,v 1.2.4.5 2011/08/23 01:29:14 each Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -63,3 +63,4 @@ unit::
 
 clean distclean::
 	rm -f ${TARGETS}
+	rm -f atf.out

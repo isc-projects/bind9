@@ -1,3 +1,6 @@
+3145.	[test]		Capture output of ATF unit tests in "./atf.out" if
+			there were any errors while running them. [RT #25527]
+
 3144.	[bug]		dns_dbiterator_seek() could trigger an assert when
 			used with a nonexistent database node. [RT #25358]
 
