@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.5 2011/07/06 01:36:32 each Exp $
+# $Id: Makefile.in,v 1.6 2011/08/23 00:59:23 each Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -38,11 +38,11 @@ LIBS =		@LIBS@ @ATFLIBS@
 
 OBJS =		dnstest.@O@
 SRCS =		dnstest.c master_test.c time_test.c update_test.c \
-		zonemgr_test.c
+		zonemgr_test.c dbiterator_test.c
 
 SUBDIRS =
 TARGETS =	master_test@EXEEXT@ time_test@EXEEXT@ update_test@EXEEXT@ \
-		zonemgr_test@EXEEXT@
+		zonemgr_test@EXEEXT@ dbiterator_test@EXEEXT@
 
 @BIND9_MAKE_RULES@
 
@@ -65,6 +65,14 @@ zonemgr_test@EXEEXT@: zonemgr_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			zonemgr_test.@O@ dnstest.@O@ ${DNSLIBS} \
 				${ISCLIBS} ${LIBS}
+
+dbiterator_test@EXEEXT@: dbiterator_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+			dbiterator_test.@O@ dnstest.@O@ ${DNSLIBS} \
+				${ISCLIBS} ${LIBS}
+
+unit::
+	sh ${top_srcdir}/unit/unittest.sh
 
 clean distclean::
 	rm -f ${TARGETS}
