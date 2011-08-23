@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dbiterator_test.c,v 1.2 2011/08/23 00:59:23 each Exp $ */
+/* $Id: dbiterator_test.c,v 1.3 2011/08/23 03:43:03 marka Exp $ */
 
 /*! \file */
 
@@ -23,6 +23,7 @@
 #include <atf-c.h>
 
 #include <unistd.h>
+#include <stdlib.h>
 
 #include <dns/db.h>
 #include <dns/dbiterator.h>
