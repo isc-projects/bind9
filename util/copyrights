@@ -6,7 +6,7 @@
 ./FAQ.xml					SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
 ./HISTORY					X	2010
 ./Makefile.in					MAKE	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011
-./README					X	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
+./README					X	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
 ./REDIRECT-NOTES				X	2011
 ./acconfig.h					C	1999,2000,2001,2002,2003,2004,2005,2007,2008
 ./aclocal.m4					X	1999,2000,2001
@@ -2507,7 +2507,7 @@
 ./lib/export/samples/sample.c			C	2009
 ./lib/irs/.cvsignore				X	2009
 ./lib/irs/Makefile.in				MAKE	2009
-./lib/irs/api					X	2009,2010
+./lib/irs/api					X	2009,2010,2011
 ./lib/irs/context.c				C	2009
 ./lib/irs/dnsconf.c				C	2009
 ./lib/irs/gai_strerror.c			C	2009
@@ -2871,7 +2871,7 @@
 ./lib/isccc/.cvsignore				X	2001
 ./lib/isccc/Makefile.in				MAKE	2001,2003,2004,2007,2009,2011
 ./lib/isccc/alist.c				C.NOM	2001,2004,2005,2007
-./lib/isccc/api					X	2001,2006,2008,2009,2010
+./lib/isccc/api					X	2001,2006,2008,2009,2010,2011
 ./lib/isccc/base64.c				C.NOM	2001,2004,2005,2007
 ./lib/isccc/cc.c				C.NOM	2001,2002,2003,2004,2005,2006,2007
 ./lib/isccc/ccmsg.c				C.NOM	2001,2004,2005,2007
@@ -2931,7 +2931,7 @@
 ./lib/isccfg/win32/version.c			C	1998,1999,2000,2001,2004,2007
 ./lib/lwres/.cvsignore				X	2000,2001
 ./lib/lwres/Makefile.in				MAKE	2000,2001,2004,2005,2007
-./lib/lwres/api					X	2000,2001,2006,2008,2009,2010
+./lib/lwres/api					X	2000,2001,2006,2008,2009,2010,2011
 ./lib/lwres/assert_p.h				C	2000,2001,2004,2005,2007,2011
 ./lib/lwres/context.c				C	2000,2001,2003,2004,2005,2007,2008,2009
 ./lib/lwres/context_p.h				C	2000,2001,2004,2005,2007,2008
