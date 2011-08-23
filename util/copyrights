@@ -2236,9 +2236,12 @@
 ./lib/dns/tests/.cvsignore			X	2011
 ./lib/dns/tests/Atffile				X	2011
 ./lib/dns/tests/Makefile.in			MAKE	2011
+./lib/dns/tests/dbiterator_test.c		C	2011
 ./lib/dns/tests/dnstest.c			C	2011
 ./lib/dns/tests/dnstest.h			C	2011
 ./lib/dns/tests/master_test.c			C	2011
+./lib/dns/tests/testdata/dbiterator/zone1.data	ZONE	2011
+./lib/dns/tests/testdata/dbiterator/zone2.data	ZONE	2011
 ./lib/dns/tests/testdata/master/master1.data	X	2011
 ./lib/dns/tests/testdata/master/master10.data	X	2011
 ./lib/dns/tests/testdata/master/master11.data	X	2011
