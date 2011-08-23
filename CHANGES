@@ -1,3 +1,6 @@
+3144.	[bug]		dns_dbiterator_seek() could trigger an assert when
+			used with a nonexistent database node. [RT #25358]
+
 3143.	[bug]		Silence clang compiler warnings. [RT #25174]
 
 3142.	[bug]		NAPTR is class agnostic. [RT #25429]
