@@ -1,3 +1,5 @@
+	--- 9.9.0a1 released ---
+
 3145.	[test]		Capture output of ATF unit tests in "./atf.out" if
 			there were any errors while running them. [RT #25527]
 
