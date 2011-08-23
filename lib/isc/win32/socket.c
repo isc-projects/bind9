@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.91 2011/08/23 17:02:53 each Exp $ */
+/* $Id: socket.c,v 1.92 2011/08/23 18:24:33 each Exp $ */
 
 /* This code uses functions which are only available on Server 2003 and
  * higher, and Windows XP and higher.
@@ -3824,6 +3824,11 @@ isc__socket_getname(isc_socket_t *socket) {
 void *
 isc__socket_gettag(isc_socket_t *socket) {
 	return (socket->tag);
+}
+
+int
+isc__socket_getfd(isc_socket_t *socket) {
+	return ((short) socket->fd);
 }
 
 void
