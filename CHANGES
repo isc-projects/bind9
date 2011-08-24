@@ -1,3 +1,5 @@
+3146.   [test]		Fixed gcc4.6.0 errors in ATF. [RT #25598]
+
 3145.	[test]		Capture output of ATF unit tests in "./atf.out" if
 			there were any errors while running them. [RT #25527]
 
