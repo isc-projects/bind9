@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.97 2011/07/28 23:47:59 tbox Exp $ */
+/* $Id: socket.h,v 1.98 2011/08/24 23:17:52 marka Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -298,6 +298,7 @@ typedef struct isc_socketmethods {
 	isc_result_t    (*fdwatchpoke)(isc_socket_t *sock, int flags);
 	isc_result_t		(*dup)(isc_socket_t *socket,
 				  isc_socket_t **socketp);
+	int 		(*getfd)(isc_socket_t *socket);
 } isc_socketmethods_t;
 
 /*%
