@@ -48,7 +48,7 @@ BIND 9
 	For a detailed list of user-visible changes from
 	previous releases, see the CHANGES file.
 
-BIND 9.8.1b1
+BIND 9.8.1
 
         BIND 9.8.1 includes a number of bug fixes and enhancements from
 	BIND 9.8 and earlier releases.  New features include:
