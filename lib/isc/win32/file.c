@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.37 2011/01/11 23:47:14 tbox Exp $ */
+/* $Id: file.c,v 1.39.8.1 2011/03/04 14:10:13 smann Exp $ */
 
 #include <config.h>
 
@@ -329,7 +329,7 @@ isc_file_openunique(char *templet, FILE **fp) {
 }
 
 isc_result_t
-isc_file_openuniquemode(char *templet, unsigned int mode, FILE **fp) {
+isc_file_openuniquemode(char *templet, int mode, FILE **fp) {
 	int fd;
 	FILE *f;
 	isc_result_t result = ISC_R_SUCCESS;
@@ -346,7 +346,7 @@ isc_file_openuniquemode(char *templet, unsigned int mode, FILE **fp) {
 		result = isc__errno2result(errno);
 	if (result == ISC_R_SUCCESS) {
 #if 1
-		UNUSED(mode)
+		UNUSED(mode);
 #else
 		(void)fchmod(fd, mode);
 #endif
@@ -396,6 +396,23 @@ isc_file_exists(const char *pathname) {
 	REQUIRE(pathname != NULL);
 
 	return (ISC_TF(file_stats(pathname, &stats) == ISC_R_SUCCESS));
+}
+
+isc_result_t
+isc_file_isplainfile(const char *filename) {
+	/*
+	 * This function returns success if filename is a plain file.
+	 */
+	struct stat filestat;
+	memset(&filestat,0,sizeof(struct stat));
+
+	if ((stat(filename, &filestat)) == -1)
+		return(isc__errno2result(errno));
+
+	if(! S_ISREG(filestat.st_mode))
+		return(ISC_R_INVALIDFILE);
+
+	return(ISC_R_SUCCESS);
 }
 
 isc_boolean_t

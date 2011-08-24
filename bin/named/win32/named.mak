@@ -129,6 +129,7 @@ CLEAN :
 	-@erase "$(INTDIR)\config.obj"
 	-@erase "$(INTDIR)\control.obj"
 	-@erase "$(INTDIR)\controlconf.obj"
+	-@erase "$(INTDIR)\dlz_dlopen_driver.obj"
 	-@erase "$(INTDIR)\interfacemgr.obj"
 	-@erase "$(INTDIR)\listenlist.obj"
 	-@erase "$(INTDIR)\log.obj"
@@ -162,7 +163,7 @@ CLEAN :
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-CPP_PROJ=/nologo /MD /W3 /GX /O2 /I "../../../../../openssl-0.9.8l/inc32/openssl/include" /I "./" /I "../../../" /I "../../../../libxml2-2.7.3/include" /I "../win32/include" /I "../include" /I "../../../lib/isc/win32" /I "../../../lib/isc/win32/include" /I "../../../lib/isc/include" /I "../../../lib/isc/noatomic/include" /I "../../../lib/dns/win32/include" /I "../../../lib/dns/include" /I "../../../lib/isccc/include" /I "../../../lib/lwres/win32/include" /I "../../../lib/lwres/include" /I "../../../lib/isccfg/include" /I "../../../lib/bind9/include" /D "OPENSSL" /D "WIN32" /D "NDEBUG" /D "__STDC__" /D "_CONSOLE" /D "_MBCS" /Fp"$(INTDIR)\named.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MD /W3 /GX /O2 /I "../../../../openssl-0.9.8l/inc32" /I "./" /I "../../../" /I "../../../../libxml2-2.7.3/include" /I "../win32/include" /I "../include" /I "../../../lib/isc/win32" /I "../../../lib/isc/win32/include" /I "../../../lib/isc/include" /I "../../../lib/isc/noatomic/include" /I "../../../lib/dns/win32/include" /I "../../../lib/dns/include" /I "../../../lib/isccc/include" /I "../../../lib/lwres/win32/include" /I "../../../lib/lwres/include" /I "../../../lib/isccfg/include" /I "../../../lib/bind9/include" /D "OPENSSL" /D "WIN32" /D "NDEBUG" /D "__STDC__" /D "_CONSOLE" /D "_MBCS" /Fp"$(INTDIR)\named.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\named.bsc" 
 BSC32_SBRS= \
@@ -174,6 +175,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\config.obj" \
 	"$(INTDIR)\control.obj" \
 	"$(INTDIR)\controlconf.obj" \
+	"$(INTDIR)\dlz_dlopen_driver.obj" \
 	"$(INTDIR)\interfacemgr.obj" \
 	"$(INTDIR)\listenlist.obj" \
 	"$(INTDIR)\log.obj" \
@@ -247,6 +249,8 @@ CLEAN :
 	-@erase "$(INTDIR)\control.sbr"
 	-@erase "$(INTDIR)\controlconf.obj"
 	-@erase "$(INTDIR)\controlconf.sbr"
+	-@erase "$(INTDIR)\dlz_dlopen_driver.obj"
+	-@erase "$(INTDIR)\dlz_dlopen_driver.sbr"
 	-@erase "$(INTDIR)\interfacemgr.obj"
 	-@erase "$(INTDIR)\interfacemgr.sbr"
 	-@erase "$(INTDIR)\listenlist.obj"
@@ -311,7 +315,7 @@ CLEAN :
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-CPP_PROJ=/nologo /MDd /W3 /Gm /GX /ZI /Od /I "../../../../../openssl-0.9.8l/inc32/openssl/include" /I "./" /I "../../../" /I "../../../../libxml2-2.7.3/include" /I "../win32/include" /I "../include" /I "../../../lib/isc/win32" /I "../../../lib/isc/win32/include" /I "../../../lib/isc/include" /I "../../../lib/isc/noatomic/include" /I "../../../lib/dns/win32/include" /I "../../../lib/dns/include" /I "../../../lib/isccc/include" /I "../../../lib/lwres/win32/include" /I "../../../lib/lwres/include" /I "../../../lib/isccfg/include" /I "../../../lib/bind9/include" /D "OPENSSL" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /D "i386" /FR"$(INTDIR)\\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+CPP_PROJ=/nologo /MDd /W3 /Gm /GX /ZI /Od /I "../../../../openssl-0.9.8l/inc32" /I "./" /I "../../../" /I "../../../../libxml2-2.7.3/include" /I "../win32/include" /I "../include" /I "../../../lib/isc/win32" /I "../../../lib/isc/win32/include" /I "../../../lib/isc/include" /I "../../../lib/isc/noatomic/include" /I "../../../lib/dns/win32/include" /I "../../../lib/dns/include" /I "../../../lib/isccc/include" /I "../../../lib/lwres/win32/include" /I "../../../lib/lwres/include" /I "../../../lib/isccfg/include" /I "../../../lib/bind9/include" /D "OPENSSL" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /D "i386" /FR"$(INTDIR)\\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\named.bsc" 
 BSC32_SBRS= \
@@ -319,6 +323,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\config.sbr" \
 	"$(INTDIR)\control.sbr" \
 	"$(INTDIR)\controlconf.sbr" \
+	"$(INTDIR)\dlz_dlopen_driver.sbr" \
 	"$(INTDIR)\interfacemgr.sbr" \
 	"$(INTDIR)\listenlist.sbr" \
 	"$(INTDIR)\log.sbr" \
@@ -359,6 +364,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\config.obj" \
 	"$(INTDIR)\control.obj" \
 	"$(INTDIR)\controlconf.obj" \
+	"$(INTDIR)\dlz_dlopen_driver.obj" \
 	"$(INTDIR)\interfacemgr.obj" \
 	"$(INTDIR)\listenlist.obj" \
 	"$(INTDIR)\log.obj" \
@@ -528,6 +534,22 @@ SOURCE=..\controlconf.c
 
 "$(INTDIR)\controlconf.obj"	"$(INTDIR)\controlconf.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=.\dlz_dlopen_driver.c
+
+!IF  "$(CFG)" == "named - Win32 Release"
+
+
+"$(INTDIR)\dlz_dlopen_driver.obj" : $(SOURCE) "$(INTDIR)"
+
+
+!ELSEIF  "$(CFG)" == "named - Win32 Debug"
+
+
+"$(INTDIR)\dlz_dlopen_driver.obj"	"$(INTDIR)\dlz_dlopen_driver.sbr" : $(SOURCE) "$(INTDIR)"
 
 
 !ENDIF 

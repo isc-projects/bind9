@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.33 2011/01/04 23:47:13 tbox Exp $
+# $Id: clean.sh,v 1.33.14.4 2011/02/28 14:25:16 fdupont Exp $
 
 rm -f */K* */keyset-* */dsset-* */dlvset-* */signedkey-* */*.signed
 rm -f */trusted.conf */managed.conf */tmp* */*.jnl */*.bk
@@ -32,6 +32,7 @@ rm -f random.data
 rm -f ns2/dlv.db
 rm -f ns3/multiple.example.db ns3/nsec3-unknown.example.db ns3/nsec3.example.db
 rm -f ns3/optout-unknown.example.db ns3/optout.example.db
+rm -f ns3/expired.example.db ns3/update-nsec3.example.db
 rm -f ns7/multiple.example.bk ns7/nsec3.example.bk ns7/optout.example.bk
 rm -f */named.memstats
 rm -f ns3/nsec3.nsec3.example.db
@@ -46,3 +47,9 @@ rm -f signer/example.db
 rm -f ns2/algroll.db
 rm -f ns3/kskonly.example.db
 rm -f ns4/named.conf
+rm -f ns3/auto-nsec.example.db ns3/auto-nsec3.example.db
+rm -f ns3/secure.below-cname.example.db
+rm -f signer/example.db.after signer/example.db.before
+rm -f signer/example.db.changed
+rm -f ns3/ttlpatch.example.db ns3/ttlpatch.example.db.signed
+rm -f ns3/ttlpatch.example.db.patched

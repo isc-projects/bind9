@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2006, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2006, 2007, 2009, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntservice.c,v 1.14 2009/06/23 23:47:44 tbox Exp $ */
+/* $Id: ntservice.c,v 1.16 2011/01/13 08:50:29 tbox Exp $ */
 
 #include <config.h>
 #include <stdio.h>
@@ -70,7 +70,8 @@ int bindmain()
 	while (argv[i]) {
 		if (!strcmp(argv[i], "-f") ||
 		    !strcmp(argv[i], "-g") ||
-		    !strcmp(argv[i], "-v")) {
+		    !strcmp(argv[i], "-v") ||
+		    !strcmp(argv[i], "-V")) {
 			foreground = TRUE;
 			break;
 		}

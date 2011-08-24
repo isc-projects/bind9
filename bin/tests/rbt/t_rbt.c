@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_rbt.c,v 1.33 2009/09/01 00:22:25 jinmei Exp $ */
+/* $Id: t_rbt.c,v 1.33.346.2 2011/03/12 04:59:15 tbox Exp $ */
 
 #include <config.h>
 
@@ -398,8 +398,7 @@ test_rbt_gen(char *filename, char *command, char *testname,
 				result = T_FAIL;
 			}
 		} else {
-			t_info("create_name failed %s\n",
-				dns_result_totext(dns_result));
+			t_info("create_name failed\n");
 			result = T_UNRESOLVED;
 		}
 	} else if ((strcmp(command, "delete") == 0) ||
@@ -1112,8 +1111,8 @@ t_dns_rbtnodechain_first(char *dbfile, char *expected_firstname,
 		t_info("dns_rbtnodechain_first unexpectedly returned %s\n",
 		       dns_result_totext(dns_result));
 
-	nfails = t_namechk(dns_result, &dns_name, expected_firstname,
-			   &dns_origin, expected_firstorigin, DNS_R_NEWORIGIN);
+	nfails += t_namechk(dns_result, &dns_name, expected_firstname,
+			    &dns_origin, expected_firstorigin, DNS_R_NEWORIGIN);
 
 	dns_fixedname_init(&dns_name);
 	dns_result = dns_rbtnodechain_next(&chain,
@@ -1303,8 +1302,8 @@ t_dns_rbtnodechain_last(char *dbfile, char *expected_lastname,
 		t_info("dns_rbtnodechain_last unexpectedly returned %s\n",
 		       dns_result_totext(dns_result));
 	}
-	nfails = t_namechk(dns_result, &dns_name, expected_lastname,
-			   &dns_origin, expected_lastorigin, DNS_R_NEWORIGIN);
+	nfails += t_namechk(dns_result, &dns_name, expected_lastname,
+			    &dns_origin, expected_lastorigin, DNS_R_NEWORIGIN);
 
 	t_info("testing for previous name of %s, origin of %s\n",
 	       expected_prevname, expected_prevorigin);

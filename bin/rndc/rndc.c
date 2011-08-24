@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.131 2010/12/10 19:20:47 johnd Exp $ */
+/* $Id: rndc.c,v 1.131.20.2 2011/02/28 01:19:59 tbox Exp $ */
 
 /*! \file */
 
@@ -96,7 +96,7 @@ usage(int status) ISC_PLATFORM_NORETURN_POST;
 static void
 usage(int status) {
 	fprintf(stderr, "\
-Usage: %s [-c config] [-s server] [-p port]\n\
+Usage: %s [-b address] [-c config] [-s server] [-p port]\n\
 	[-k key-file ] [-y key] [-V] command\n\
 \n\
 command is one of the following:\n\

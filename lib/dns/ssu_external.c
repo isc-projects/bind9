@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ssu_external.c,v 1.4 2011/01/07 23:47:07 tbox Exp $ */
+/* $Id: ssu_external.c,v 1.7.8.1 2011/03/21 19:53:34 each Exp $ */
 
 /*
  * This implements external update-policy rules.  This allows permission
@@ -25,8 +25,9 @@
 #include <config.h>
 #include <errno.h>
 #include <unistd.h>
-#include <sys/socket.h>
+
 #ifdef ISC_PLATFORM_HAVESYSUNH
+#include <sys/socket.h>
 #include <sys/un.h>
 #endif
 
@@ -127,15 +128,15 @@ dns_ssu_external_match(dns_name_t *identity,
 	char b_addr[ISC_NETADDR_FORMATSIZE];
 	char b_type[DNS_RDATATYPE_FORMATSIZE];
 	char b_key[DST_KEY_FORMATSIZE];
-	isc_buffer_t *tkey_token;
+	isc_buffer_t *tkey_token = NULL;
 	int fd;
 	const char *sock_path;
 	size_t req_len;
 	isc_region_t token_region;
-	uint8_t *data;
+	unsigned char *data;
 	isc_buffer_t buf;
-	uint32_t token_len = 0;
-	uint32_t reply;
+	isc_uint32_t token_len = 0;
+	isc_uint32_t reply;
 	ssize_t ret;
 
 	/* The identity contains local:/path/to/socket */
@@ -143,7 +144,8 @@ dns_ssu_external_match(dns_name_t *identity,
 
 	/* For now only local: is supported */
 	if (strncmp(b_identity, "local:", 6) != 0) {
-		ssu_e_log(3, "ssu_external: invalid socket path '%s'", buf);
+		ssu_e_log(3, "ssu_external: invalid socket path '%s'",
+			  b_identity);
 		return (ISC_FALSE);
 	}
 	sock_path = &b_identity[6];
@@ -152,42 +154,41 @@ dns_ssu_external_match(dns_name_t *identity,
 	if (fd == -1)
 		return (ISC_FALSE);
 
-	tkey_token = dst_key_tkeytoken(key);
+	if (key != NULL) {
+		dst_key_format(key, b_key, sizeof(b_key));
+		tkey_token = dst_key_tkeytoken(key);
+	} else
+		b_key[0] = 0;
+
+	if (tkey_token != NULL) {
+		isc_buffer_region(tkey_token, &token_region);
+		token_len = token_region.length;
+	}
 
 	/* Format the request elements */
-	if (signer)
+	if (signer != NULL)
 		dns_name_format(signer, b_signer, sizeof(b_signer));
 	else
 		b_signer[0] = 0;
 
 	dns_name_format(name, b_name, sizeof(b_name));
 
-	if (tcpaddr)
+	if (tcpaddr != NULL)
 		isc_netaddr_format(tcpaddr, b_addr, sizeof(b_addr));
 	else
 		b_addr[0] = 0;
 
 	dns_rdatatype_format(type, b_type, sizeof(b_type));
 
-	if (key)
-		dst_key_format(key, b_key, sizeof(b_key));
-	else
-		b_key[0] = 0;
-
-	if (tkey_token) {
-		isc_buffer_region(tkey_token, &token_region);
-		token_len = token_region.length;
-	}
-
 	/* Work out how big the request will be */
-	req_len = sizeof(uint32_t)     + /* Format version */
-		  sizeof(uint32_t)     + /* Length */
+	req_len = sizeof(isc_uint32_t)     + /* Format version */
+		  sizeof(isc_uint32_t)     + /* Length */
 		  strlen(b_signer) + 1 + /* Signer */
 		  strlen(b_name) + 1   + /* Name */
 		  strlen(b_addr) + 1   + /* Address */
 		  strlen(b_type) + 1   + /* Type */
 		  strlen(b_key) + 1    + /* Key */
-		  sizeof(uint32_t)     + /* tkey_token length */
+		  sizeof(isc_uint32_t)     + /* tkey_token length */
 		  token_len;             /* tkey_token */
 
 
@@ -233,8 +234,8 @@ dns_ssu_external_match(dns_name_t *identity,
 	}
 
 	/* Receive the reply */
-	ret = read(fd, &reply, sizeof(uint32_t));
-	if (ret != (ssize_t) sizeof(uint32_t)) {
+	ret = read(fd, &reply, sizeof(isc_uint32_t));
+	if (ret != (ssize_t) sizeof(isc_uint32_t)) {
 		char strbuf[ISC_STRERRORSIZE];
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		ssu_e_log(3, "ssu_external: unable to receive reply - %s",

@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.conf.5,v 1.44 2011/01/08 01:15:38 tbox Exp $
+.\" $Id: named.conf.5,v 1.44.12.1 2011/02/03 12:29:12 tbox Exp $
 .\"
 .hy 0
 .ad l
@@ -224,6 +224,7 @@ options {
 	queryport\-pool\-ports \fIinteger\fR;
 	queryport\-pool\-updateinterval \fIinteger\fR;
 	cleaning\-interval \fIinteger\fR;
+	resolver\-query\-timeout \fIinteger\fR;
 	min\-roots \fIinteger\fR; // not implemented
 	lame\-ttl \fIinteger\fR;
 	max\-ncache\-ttl \fIinteger\fR;
@@ -393,6 +394,7 @@ view \fIstring\fR \fIoptional_class\fR {
 	queryport\-pool\-ports \fIinteger\fR;
 	queryport\-pool\-updateinterval \fIinteger\fR;
 	cleaning\-interval \fIinteger\fR;
+	resolver\-query\-timeout \fIinteger\fR;
 	min\-roots \fIinteger\fR; // not implemented
 	lame\-ttl \fIinteger\fR;
 	max\-ncache\-ttl \fIinteger\fR;

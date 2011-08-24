@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.475 2011/01/07 04:31:38 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.478.8.11 2011/08/02 04:58:46 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -70,7 +70,7 @@
       </para>
 
       <para>
-        This version of the manual corresponds to BIND version 9.7.
+        This version of the manual corresponds to BIND version 9.8.
       </para>
 
     </sect1>
@@ -891,7 +891,7 @@ zone "eng.example.com" {
       </para>
       <para>
         For more detail on ordering responses, check the
-        <command>rrset-order</command> substatement in the
+        <command>rrset-order</command> sub-statement in the
         <command>options</command> statement, see
         <xref endterm="rrset_ordering_title" linkend="rrset_ordering"/>.
       </para>
@@ -1188,11 +1188,11 @@ zone "eng.example.com" {
                       </para>
                       <para>
                         This command requires that the
-                        <command>auto-dnssec</command> zone option to be set
-                        to <literal>allow</literal>,
-                        <literal>maintain</literal>, or
-                        <literal>create</literal>,  and also requires
-                        the zone to be configured to allow dynamic DNS.
+                        <command>auto-dnssec</command> zone option be set
+                        to <literal>allow</literal> or
+                        <literal>maintain</literal>,
+                        and also requires the zone to be configured to
+                        allow dynamic DNS.
                         See <xref linkend="dynamic_update_policies"/> for
                         more details.
                       </para>
@@ -1217,10 +1217,10 @@ zone "eng.example.com" {
                       </para>
                       <para>
                         This command requires that the
-                        <command>auto-dnssec</command> zone option to
-                        be set to <literal>maintain</literal> or
-                        <literal>create</literal>, and also requires
-                        the zone to be configured to allow dynamic DNS.
+                        <command>auto-dnssec</command> zone option
+                        be set to <literal>maintain</literal>,
+                        and also requires the zone to be configured to
+                        allow dynamic DNS.
                         See <xref linkend="dynamic_update_policies"/> for
                         more details.
                       </para>
@@ -5139,7 +5139,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<optional> mapped { <replaceable>address_match_list</replaceable> }; </optional>
         <optional> exclude { <replaceable>address_match_list</replaceable> }; </optional>
 	<optional> suffix IPv6-address; </optional>
-	<optional> recursion-only <replaceable>yes_or_no</replaceable>; </optional>
+	<optional> recursive-only <replaceable>yes_or_no</replaceable>; </optional>
 	<optional> break-dnssec <replaceable>yes_or_no</replaceable>; </optional>
     }; </optional>;
     <optional> dns64-server <replaceable>name</replaceable> </optional>
@@ -5163,8 +5163,10 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> disable-empty-zone <replaceable>zone_name</replaceable> ; </optional>
     <optional> zero-no-soa-ttl <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> zero-no-soa-ttl-cache <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> resolver-query-timeout <replaceable>number</replaceable> ; </optional>
     <optional> deny-answer-addresses { <replaceable>address_match_list</replaceable> } <optional> except-from { <replaceable>namelist</replaceable> } </optional>;</optional>
     <optional> deny-answer-aliases { <replaceable>namelist</replaceable> } <optional> except-from { <replaceable>namelist</replaceable> } </optional>;</optional>
+    <optional> response-policy { <replaceable>zone_name</replaceable> <optional> policy <replaceable>given</replaceable> | <replaceable>no-op</replaceable> | <replaceable>nxdomain</replaceable> | <replaceable>nodata</replaceable> | <replaceable>cname domain</replaceable> </optional> ; } ; </optional>
 };
 </programlisting>
 
@@ -5776,25 +5778,28 @@ options {
 		not settable on a per-prefix basis.
 	      </para>
 	      <para>
-		Each <command>dns64</command> supports a optional
-		<command>clients</command> acl which defines which clients
-		see this directive.  If not defined it defaults to
-		<userinput>any;</userinput>.
+		Each <command>dns64</command> supports an optional
+		<command>clients</command> ACL that determines which
+                clients are affected by this directive.  If not defined,
+                it defaults to <userinput>any;</userinput>.
 	      </para>
 	      <para>
-		Each <command>dns64</command> supports a optional
-		<command>mapped</command> acl which selects which
-		IPv4 addresses are to be mapped are in the corresponding	
+		Each <command>dns64</command> supports an optional
+		<command>mapped</command> ACL that selects which
+		IPv4 addresses are to be mapped in the corresponding	
 		A RRset.  If not defined it defaults to
 		<userinput>any;</userinput>.
 	      </para>
 	      <para>
-		Each <command>dns64</command> supports a optional
-		<command>exclude</command> acl which selects which
-		IPv6 addresses will be ignored for the purposes
-		of determining if dns64 is to be applied.  Any
-		non matching address will prevent any further
-		DNS64 processing from occuring for this client.
+		Normally, DNS64 won't apply to a domain name that
+		owns one or more AAAA records; these records will
+		simply be returned.  The optional
+		<command>exclude</command> ACL allows specification
+		of a list of IPv6 addresses that will be ignored
+		if they appear in a domain name's AAAA records, and
+		DNS64 will be applied to any A records the domain
+		name owns.  If not defined, <command>exclude</command>
+		defaults to none.
 	      </para>
 	      <para>
 		A optional <command>suffix</command> can also
@@ -5803,6 +5808,21 @@ options {
 		set to <userinput>::</userinput>.  The bits
 		matching the prefix and mapped IPv4 address
 		must be zero.
+	      </para>
+	      <para>
+		If <command>recursive-only</command> is set to
+		<command>yes</command> the DNS64 synthesis will
+		only happen for recursive queries.  The default
+		is <command>no</command>.
+	      </para>
+	      <para>
+		If <command>break-dnssec</command> is set to
+		<command>yes</command> the DNS64 synthesis will
+		happen even if the result, if validated, would
+		cause a DNSSEC validation failure.  If this option
+		is set to <command>no</command> (the default), the DO
+		is set on the incoming query, and there are RRSIGs on
+		the applicable records, then synthesis will not happen.
 	      </para>
 <programlisting>
 	acl rfc1918 { 10/8; 192.168/16; 172.16/12; };
@@ -7216,6 +7236,18 @@ options {
               </listitem>
             </varlistentry>
 
+            <varlistentry>
+              <term><command>resolver-query-timeout</command></term>
+              <listitem>
+                <para>
+		  The amount of time the resolver will spend attempting
+		  to resolve a recursive query before failing.  The
+		  default is <literal>10</literal> and the maximum is
+		  <literal>30</literal>.  Setting it to <literal>0</literal>
+		  will result in the default being used.
+                </para>
+              </listitem>
+            </varlistentry>
           </variablelist>
 
         </sect3>
@@ -7556,22 +7588,27 @@ avoid-v6-udp-ports {};
 
             <varlistentry>
               <term><command>serial-query-rate</command></term>
-              <listitem>
-                <para>
-                  Slave servers will periodically query master servers
-                  to find out if zone serial numbers have changed. Each such
-                  query uses
-                  a minute amount of the slave server's network bandwidth.  To
-                  limit the
-                  amount of bandwidth used, BIND 9 limits the rate at which
-                  queries are
-                  sent.  The value of the <command>serial-query-rate</command> option,
-                  an integer, is the maximum number of queries sent per
-                  second.
-                  The default is 20.
-                </para>
-              </listitem>
-            </varlistentry>
+	      <listitem>
+		<para>
+		  Slave servers will periodically query master
+		  servers to find out if zone serial numbers have
+		  changed. Each such query uses a minute amount of
+		  the slave server's network bandwidth.  To limit
+		  the amount of bandwidth used, BIND 9 limits the
+		  rate at which queries are sent.  The value of the
+		  <command>serial-query-rate</command> option, an
+		  integer, is the maximum number of queries sent
+		  per second.  The default is 20.
+		</para>
+		<para>
+		  In addition to controlling the rate SOA refresh
+		  queries are issued at
+		  <command>serial-query-rate</command> also controls
+		  the rate at which NOTIFY messages are sent from
+		  both master and slave zones.
+		</para>
+	      </listitem>
+	    </varlistentry>
 
             <varlistentry>
               <term><command>serial-queries</command></term>
@@ -8604,7 +8641,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                 <para>
 		  Sets the advertised EDNS UDP buffer size in bytes
                   to control the size of packets received.
-                  Valid values are 1024 to 4096 (values outside this range
+                  Valid values are 512 to 4096 (values outside this range
 		  will be silently adjusted).  The default value
 		  is 4096.  The usual reason for setting
 		  <command>edns-udp-size</command> to a non-default
@@ -8639,7 +8676,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  buffer (<command>edns-udp-size</command>).
 		</para>
 		<para>
-		  Setting this to a low value will encourge additional
+		  Setting this to a low value will encourage additional
 		  TCP traffic to the nameserver.
 		</para>
 	      </listitem>
@@ -8717,6 +8754,10 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   The delay, in seconds, between sending sets of notify
                   messages for a zone.  The default is five (5) seconds.
                 </para>
+                <para>
+		  The overall rate that NOTIFY messages are sent for all
+		  zones is controlled by <command>serial-query-rate</command>.
+		</para>
               </listitem>
             </varlistentry>
 	  </variablelist>
@@ -8825,7 +8866,6 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	  <para>
 	    The current list of empty zones is:
 	    <itemizedlist>
-<!-- XXX: The RFC1918 addresses are #defined out in sources currently.
 	      <listitem>10.IN-ADDR.ARPA</listitem>
 	      <listitem>16.172.IN-ADDR.ARPA</listitem>
 	      <listitem>17.172.IN-ADDR.ARPA</listitem>
@@ -8844,7 +8884,6 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      <listitem>30.172.IN-ADDR.ARPA</listitem>
 	      <listitem>31.172.IN-ADDR.ARPA</listitem>
 	      <listitem>168.192.IN-ADDR.ARPA</listitem>
-XXX: end of RFC1918 addresses #defined out -->
 	      <listitem>0.IN-ADDR.ARPA</listitem>
 	      <listitem>127.IN-ADDR.ARPA</listitem>
 	      <listitem>254.169.IN-ADDR.ARPA</listitem>
@@ -9182,6 +9221,146 @@ deny-answer-aliases { "example.net"; };
 	    Filtering out DNS records containing this address
 	    spuriously can break such applications.
 	  </para>
+	</sect3>
+
+        <sect3>
+	  <title>Response Policy Zone (RPZ) Rewriting</title>
+	  <para>
+	    <acronym>BIND</acronym> 9 includes an intentionally limited
+            mechanism to modify DNS responses for recursive requests
+            similar to email anti-spam DNS blacklists.
+            All response policy zones are named in the
+            <command>response-policy</command> option for the view or among the
+            global options if there is no response-policy option for the view.
+          </para>
+
+          <para>
+            The rules encoded in a response policy zone (RPZ) are applied
+            only to responses to queries that ask for recursion (RD=1).
+            RPZs are normal DNS zones containing RRsets
+            that can be queried normally if allowed.
+            It is usually best to restrict those queries with something like
+            <command>allow-query {none; };</command> or
+            <command>allow-query { 127.0.0.1; };</command>.
+          </para>
+
+          <para>
+            There are four kinds of RPZ rewrite rules.  QNAME rules are
+            applied to query names in requests and to targets of CNAME
+            records resolved in the process of generating the response.
+            The owner name of a QNAME rule is the query name relativized
+            to the RPZ.
+	    The records in a rewrite rule are usually A, AAAA, or special
+	    CNAMEs, but can be any type except DNAME.
+          </para>
+
+          <para>
+            IP rules are triggered by addresses in A and AAAA records.
+            All IP addresses in A or AAAA RRsets are tested and the rule
+            longest prefix is applied.  Ties between rules with equal prefixes
+            are broken in favor of the first RPZ mentioned in the
+            response-policy option.
+            The rule matching the smallest IP address is chosen among equal
+            prefix rules from a single RPZ.
+            IP rules are expressed in RRsets with owner names that are
+            subdomains of rpz-ip and encoding an IP address block, reversed
+            as in IN-ARPA.
+            prefix.B.B.B.B with prefix between 1 and 32 and B between 1 and 255
+            encodes an IPv4 address.
+            IPv6 addresses are encoded by with prefix.W.W.W.W.W.W.W.W or
+            prefix.WORDS.zz.WORDS.  The words in the standard IPv6 text
+            representation are reversed, "::" is replaced with ".zz.",
+            and ":" becomes ".".
+          </para>
+
+          <para>
+            NSDNAME rules match names in NS RRsets for the response or a
+            parent.  They are encoded as subdomains of rpz-nsdomain relativized
+            to the RPZ origin name.
+          </para>
+
+          <para>
+            NSIP rules match IP addresses in A and AAAA RRsets for names of
+            responsible servers or the names that can be matched by NSDNAME
+            rules.  The are encoded like IP rules except as subdomains of
+            rpz-nsip.
+	  </para>
+
+	  <para>
+            Authority verification issues and variations in authority data in
+	    the current version of <acronym>BIND</acronym> 9 can cause
+	    inconsistent results from NSIP and NSDNAME.  So they are available
+	    only when <acronym>BIND</acronym> is built with the
+	    <userinput>--enable-rpz-nsip</userinput> or
+	    <userinput>--enable-rpz-nsdname</userinput> options
+            on the "configure" command line.
+          </para>
+
+          <para>
+            Four policies can be expressed.
+            The <command>NXDOMAIN</command> policy causes a NXDOMAIN response
+            and is expressed with an RRset consisting of a single CNAME
+            whose target is the root domain (.).
+            <command>NODATA</command> generates NODATA or ANCOUNT=1 regardless
+            of query type.
+            It is expressed with a CNAME whose target is the wildcard
+            top-level domain (*.).
+            The <command>NO-OP</command> policy does not change the response
+            and is used to "poke holes" in policies for larger CIDR blocks or in
+            zones named later in the <command>response-policy</command> option.
+            The NO-OP policy is expressed by a CNAME with a target consisting
+            of the variable part of the owner name, such as "example.com." for
+            a QNAME rule or "128.1.0.0.127." for an IP rule.
+            The <command>CNAME</command> policy is used to replace the RRsets
+            of response.
+            A and AAAA RRsets are most common and useful to capture
+            an evil domain in a walled garden, but any valid set of RRsets
+            is possible.
+          </para>
+
+          <para>
+            All of the policies in an RPZ can be overridden with a
+            <command>policy</command> clause.
+            <command>given</command> says "do not override."
+            <command>no-op</command> says "do nothing" regardless of the policy
+            in RPZ records.
+            <command>nxdomain</command> causes all RPZ rules to generate
+            NXDOMAIN results.
+            <command>nodata</command> gives nodata.
+            <command>cname domain</command> causes all RPZ rules to act as if
+            the consisted of a "cname domain" record.
+          </para>
+
+          <para>
+            For example, you might use this option statement
+          </para>
+<programlisting>response-policy { zone "bl"; };</programlisting>
+          <para>
+            and this zone statement
+          </para>
+<programlisting>zone "bl" {type master; file "example/bl"; allow-query {none;}; };</programlisting>
+          <para>
+            with this zone file
+          </para>
+<programlisting>$TTL 1H
+@                   SOA LOCALHOST. named-mgr.example.com (1 1h 15m 30d 2h)
+
+; QNAME rules
+nxdomain.domain.com         CNAME   .
+nodata.domain.com           CNAME   *.
+bad.domain.com              A       10.0.0.1
+                            AAAA    2001:2::1
+ok.domain.com               CNAME   ok.domain.com.
+*.badzone.domain.com	    CNAME   garden.example.com.
+
+; IP rules rewriting all answers for 127/8 except 127.0.0.1
+8.0.0.0.127.ip              CNAME   .
+32.1.0.0.127.ip             CNAME   32.1.0.0.127.
+
+; NSDNAME and NSIP rules
+ns.domain.com.rpz-nsdname   CNAME   .
+48.zz.2.2001.rpz-nsip       CNAME   .
+</programlisting>
 	</sect3>
       </sect2>
 
@@ -9626,7 +9805,7 @@ deny-answer-aliases { "example.net"; };
             to the master file as soon as possible afterward; in the case
             of the managed key database, this will usually occur within 30
             seconds.  So, whenever <command>named</command> is using
-            automatic key maintenace, those two files can be expected to
+            automatic key maintenance, those two files can be expected to
             exist in the working directory.  (For this reason among others,
             the working directory should be always be writable by
             <command>named</command>.)
@@ -9832,7 +10011,7 @@ view "external" {
     <optional> min-retry-time <replaceable>number</replaceable> ; </optional>
     <optional> max-retry-time <replaceable>number</replaceable> ; </optional>
     <optional> key-directory <replaceable>path_name</replaceable>; </optional>
-    <optional> auto-dnssec <constant>allow</constant>|<constant>maintain</constant>|<constant>create</constant>|<constant>off</constant>; </optional>
+    <optional> auto-dnssec <constant>allow</constant>|<constant>maintain</constant>|<constant>off</constant>; </optional>
     <optional> zero-no-soa-ttl <replaceable>yes_or_no</replaceable> ; </optional>
 };
 
@@ -9844,6 +10023,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
     <optional> allow-transfer { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-update-forwarding { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> update-check-ksk <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> dnssec-update-mode ( <replaceable>maintain</replaceable> | <replaceable>no-resign</replaceable> ); </optional>
     <optional> dnssec-dnskey-kskonly <replaceable>yes_or_no</replaceable>; </optional>
     <optional> dnssec-secure-to-insecure <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> try-tcp-refresh <replaceable>yes_or_no</replaceable>; </optional>
@@ -10888,8 +11068,8 @@ example.com. NS ns2.example.net.
                 <listitem>
                   <para>
                     Zones configured for dynamic DNS may also use this
-                    option to allow varying levels of autonatic DNSSEC key
-                    management. There are four possible settings:
+                    option to allow varying levels of automatic DNSSEC key
+                    management. There are three possible settings:
                   </para>
                   <para>
                     <command>auto-dnssec allow;</command> permits
@@ -10913,7 +11093,12 @@ example.com. NS ns2.example.net.
                     <command>named</command> to load keys from the key
                     repository and schedule key maintenance events to occur
                     in the future, but it does not sign the full zone
-                    immediately.
+                    immediately.  Note: once keys have been loaded for a
+                    zone the first time, the repository will be searched
+                    for changes periodically, regardless of whether
+                    <command>rndc loadkeys</command> is used.  The recheck
+                    interval is hard-coded to
+                    one hour.
                   </para>
                   <para>
                     <command>auto-dnssec create;</command> includes the
@@ -11066,7 +11251,13 @@ example.com. NS ns2.example.net.
 	      The <replaceable>identity</replaceable> field must
 	      contain a fully-qualified domain name.
 	    </para>
-
+	    <para>
+	      For nametypes <varname>krb5-self</varname>,
+	      <varname>ms-self</varname>, <varname>krb5-subdomain</varname>,
+              and <varname>ms-subdomain</varname> the
+	      <replaceable>identity</replaceable> field specifies
+	      the Windows or Kerberos realm of the machine belongs to.
+	    </para>
             <para>
               The <replaceable>nametype</replaceable> field has 13
               values:
@@ -11195,6 +11386,70 @@ example.com. NS ns2.example.net.
 			This rule is similar to <varname>self</varname>
 			except that only subdomains of
 			<varname>self</varname> can be updated.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			<varname>ms-self</varname>
+		      </para>
+		    </entry> <entry colname="2">
+		      <para>
+			This rule takes a Windows machine principal
+			(machine$@REALM) for machine in REALM and
+			and converts it machine.realm allowing the machine 
+                        to update machine.realm.  The REALM to be matched
+			is specified in the <replacable>identity</replacable>
+			field.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			<varname>ms-subdomain</varname>
+		      </para>
+		    </entry> <entry colname="2">
+		      <para>
+			This rule takes a Windows machine principal 
+			(machine$@REALM) for machine in REALM and
+			converts it to machine.realm allowing the machine
+			to update subdomains of machine.realm.  The REALM
+			to be matched is specified in the
+			<replacable>identity</replacable> field.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			<varname>krb5-self</varname>
+		      </para>
+		    </entry> <entry colname="2">
+		      <para>
+			This rule takes a Kerberos machine principal
+			(host/machine@REALM) for machine in REALM and
+			and converts it machine.realm allowing the machine 
+                        to update machine.realm.  The REALM to be matched
+			is specified in the <replacable>identity</replacable>
+			field.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			<varname>krb5-subdomain</varname>
+		      </para>
+		    </entry> <entry colname="2">
+		      <para>
+			This rule takes a Kerberos machine principal 
+			(host/machine@REALM) for machine in REALM and
+			converts it to machine.realm allowing the machine
+			to update subdomains of machine.realm.  The REALM
+			to be matched is specified in the
+			<replacable>identity</replacable> field.
 		      </para>
 		    </entry>
 		  </row>
