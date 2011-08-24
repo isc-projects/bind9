@@ -135,13 +135,12 @@ capture_stream_process(void *v, atf_process_child_t *c)
 {
     struct capture_stream *s = v;
 
-    bool eof;
     switch (s->m_base.m_type) {
     case stdout_type:
-        eof = read_line(atf_process_child_stdout(c), &s->m_msg);
+        (void) read_line(atf_process_child_stdout(c), &s->m_msg);
         break;
     case stderr_type:
-        eof = read_line(atf_process_child_stderr(c), &s->m_msg);
+        (void) read_line(atf_process_child_stderr(c), &s->m_msg);
         break;
     default:
         UNREACHABLE;
