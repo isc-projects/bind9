@@ -1,3 +1,5 @@
+	--- 9.8.1 released ---
+
 	--- 9.8.1rc1 released ---
 
 3141.	[bug]		Silence spurious "zone serial (0) unchanged" messages
@@ -9,6 +11,11 @@
 3136.	[func]		Add RFC 1918 reverse zones to the list of built-in 
 			empty zones switched on by the 'empty-zones-enable'
 			option. [RT #24990]
+
+			Note: empty-zones-enable must be "yes;" or a empty
+			zone needs to be disabled in named.conf for RFC 1918
+			zones to be activated.  This requirement may be
+			removed in future releases.
 
 3135.	[port]		FreeBSD: workaround broken IPV6_USE_MIN_MTU processing.
 			See http://www.freebsd.org/cgi/query-pr.cgi?pr=158307
