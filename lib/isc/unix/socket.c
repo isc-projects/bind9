@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.326.20.15 2011/08/25 08:11:31 marka Exp $ */
+/* $Id: socket.c,v 1.326.20.16 2011/08/25 10:26:17 marka Exp $ */
 
 /*! \file */
 
@@ -3742,8 +3742,6 @@ watcher(void *uap) {
 #ifdef ISC_SOCKET_USE_POLLWATCH
 	pollstate_t pollstate = poll_idle;
 #endif
-
-	isc_os_minprivs();
 
 #if defined (USE_SELECT)
 	/*
