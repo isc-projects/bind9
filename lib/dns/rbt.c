@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.146.278.2 2011/03/12 04:59:17 tbox Exp $ */
+/* $Id: rbt.c,v 1.146.278.3 2011/08/25 06:12:57 marka Exp $ */
 
 /*! \file */
 
@@ -1929,6 +1929,8 @@ dns_rbt_deletefromlevel(dns_rbtnode_t *delete, dns_rbtnode_t **rootp) {
 					sibling = RIGHT(parent);
 				}
 
+				INSIST(sibling != NULL);
+
 				if (IS_BLACK(LEFT(sibling)) &&
 				    IS_BLACK(RIGHT(sibling))) {
 					MAKE_RED(sibling);
@@ -1964,6 +1966,8 @@ dns_rbt_deletefromlevel(dns_rbtnode_t *delete, dns_rbtnode_t **rootp) {
 					rotate_right(parent, rootp);
 					sibling = LEFT(parent);
 				}
+
+				INSIST(sibling != NULL);
 
 				if (IS_BLACK(LEFT(sibling)) &&
 				    IS_BLACK(RIGHT(sibling))) {
