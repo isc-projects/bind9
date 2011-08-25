@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.308.12.24 2011/07/29 02:20:20 marka Exp $ */
+/* $Id: socket.c,v 1.308.12.25 2011/08/25 08:13:43 marka Exp $ */
 
 /*! \file */
 
@@ -3508,7 +3508,6 @@ static isc_threadresult_t
 watcher(void *uap) {
 	isc_socketmgr_t *manager = uap;
 	isc_boolean_t done;
-	int ctlfd;
 	int cc;
 #ifdef USE_KQUEUE
 	const char *fnname = "kevent()";
@@ -3520,16 +3519,21 @@ watcher(void *uap) {
 #elif defined (USE_SELECT)
 	const char *fnname = "select()";
 	int maxfd;
+	int ctlfd;
 #endif
 	char strbuf[ISC_STRERRORSIZE];
 #ifdef ISC_SOCKET_USE_POLLWATCH
 	pollstate_t pollstate = poll_idle;
 #endif
 
+	isc_os_minprivs();
+
+#if defined (USE_SELECT)
 	/*
 	 * Get the control fd here.  This will never change.
 	 */
 	ctlfd = manager->pipe_fds[0];
+#endif
 	done = ISC_FALSE;
 	while (!done) {
 		do {
