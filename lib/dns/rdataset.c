@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.84.186.6 2011/06/08 23:15:43 each Exp $ */
+/* $Id: rdataset.c,v 1.84.186.7 2011/08/25 06:30:00 marka Exp $ */
 
 /*! \file */
 
@@ -442,11 +442,11 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 			j = val % count;
 			for (i = 0; i < count; i++) {
 				if (order != NULL)
-					sorted[j].key = (*order)(&shuffled[i],
+					sorted[i].key = (*order)(&shuffled[j],
 								 order_arg);
 				else
-					sorted[j].key = 0; /* Unused */
-				sorted[j].rdata = &shuffled[i];
+					sorted[i].key = 0; /* Unused */
+				sorted[i].rdata = &shuffled[j];
 				j++;
 				if (j == count)
 					j = 0; /* Wrap around. */
