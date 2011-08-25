@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-dsfromkey.c,v 1.21 2011/03/24 23:47:48 tbox Exp $ */
+/* $Id: dnssec-dsfromkey.c,v 1.22 2011/08/18 04:52:35 marka Exp $ */
 
 /*! \file */
 
@@ -292,12 +292,10 @@ emit(unsigned int dtype, isc_boolean_t showall, char *lookaside,
 		fatal("can't print class");
 
 	isc_buffer_usedregion(&nameb, &r);
-	isc_util_fwrite(r.base, 1, r.length, stdout);
-
-	putchar(' ');
+       printf("%.*s ", (int)r.length, r.base);
 
 	isc_buffer_usedregion(&classb, &r);
-	isc_util_fwrite(r.base, 1, r.length, stdout);
+       printf("%.*s", (int)r.length, r.base);
 
 	if (lookaside == NULL)
 		printf(" DS ");
@@ -305,8 +303,7 @@ emit(unsigned int dtype, isc_boolean_t showall, char *lookaside,
 		printf(" DLV ");
 
 	isc_buffer_usedregion(&textb, &r);
-	isc_util_fwrite(r.base, 1, r.length, stdout);
-	putchar('\n');
+       printf("%.*s\n", (int)r.length, r.base);
 }
 
 ISC_PLATFORM_NORETURN_PRE static void

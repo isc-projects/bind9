@@ -1,3 +1,17 @@
+	--- 9.9.0a1 released ---
+
+3146.   [test]		Fixed gcc4.6.0 errors in ATF. [RT #25598]
+
+3145.	[test]		Capture output of ATF unit tests in "./atf.out" if
+			there were any errors while running them. [RT #25527]
+
+3144.	[bug]		dns_dbiterator_seek() could trigger an assert when
+			used with a nonexistent database node. [RT #25358]
+
+3143.	[bug]		Silence clang compiler warnings. [RT #25174]
+
+3142.	[bug]		NAPTR is class agnostic. [RT #25429]
+
 3141.	[bug]		Silence spurious "zone serial (0) unchanged" messages
 			associated with empty zones. [RT #25079]
 

@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket_api.c,v 1.7 2011/07/28 23:47:59 tbox Exp $ */
+/* $Id: socket_api.c,v 1.8 2011/08/24 23:17:52 marka Exp $ */
 
 #include <config.h>
 
@@ -221,4 +221,11 @@ isc_socket_dup(isc_socket_t *sock, isc_socket_t **socketp) {
 	REQUIRE(socketp != NULL && *socketp == NULL);
 
 	return(sock->methods->dup(sock, socketp));
+}
+
+int
+isc_socket_getfd(isc_socket_t *sock) {
+	REQUIRE(ISCAPI_SOCKET_VALID(sock));
+
+	return(sock->methods->getfd(sock));
 }

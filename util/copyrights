@@ -6,7 +6,7 @@
 ./FAQ.xml					SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
 ./HISTORY					X	2010
 ./Makefile.in					MAKE	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011
-./README					X	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
+./README					X	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
 ./REDIRECT-NOTES				X	2011
 ./acconfig.h					C	1999,2000,2001,2002,2003,2004,2005,2007,2008
 ./aclocal.m4					X	1999,2000,2001
@@ -2125,7 +2125,7 @@
 ./lib/dns/dst_internal.h			C.NAI	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011
 ./lib/dns/dst_lib.c				C	1999,2000,2001,2004,2005,2007
 ./lib/dns/dst_openssl.h				C	2002,2004,2005,2007,2008,2009,2011
-./lib/dns/dst_parse.c				C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010
+./lib/dns/dst_parse.c				C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011
 ./lib/dns/dst_parse.h				C.NAI	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010
 ./lib/dns/dst_result.c				C	1999,2000,2001,2004,2005,2007,2008
 ./lib/dns/ecdb.c				C	2009,2010,2011
@@ -2308,6 +2308,8 @@
 ./lib/dns/rdata/generic/mr_9.h			C	1998,1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/generic/mx_15.c			C	1998,1999,2000,2001,2003,2004,2005,2007,2009
 ./lib/dns/rdata/generic/mx_15.h			C	1998,1999,2000,2001,2004,2005,2007
+./lib/dns/rdata/generic/naptr_35.c		C	1999,2000,2001,2003,2004,2005,2007,2008,2009,2011
+./lib/dns/rdata/generic/naptr_35.h		C	1999,2000,2001,2004,2005,2007,2011
 ./lib/dns/rdata/generic/ns_2.c			C	1998,1999,2000,2001,2004,2007,2009
 ./lib/dns/rdata/generic/ns_2.h			C	1998,1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/generic/nsec3_50.c		C	2008,2009,2011
@@ -2364,8 +2366,6 @@
 ./lib/dns/rdata/in_1/dhcid_49.h			C	2006,2007
 ./lib/dns/rdata/in_1/kx_36.c			C	1999,2000,2001,2003,2004,2005,2007,2009
 ./lib/dns/rdata/in_1/kx_36.h			C	1999,2000,2001,2004,2005,2007
-./lib/dns/rdata/in_1/naptr_35.c			C	1999,2000,2001,2003,2004,2005,2007,2008,2009
-./lib/dns/rdata/in_1/naptr_35.h			C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/in_1/nsap-ptr_23.c		C	1999,2000,2001,2004,2005,2007,2009
 ./lib/dns/rdata/in_1/nsap-ptr_23.h		C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/in_1/nsap_22.c			C	1999,2000,2001,2002,2004,2005,2007,2009
@@ -2404,9 +2404,12 @@
 ./lib/dns/tests/.cvsignore			X	2011
 ./lib/dns/tests/Atffile				X	2011
 ./lib/dns/tests/Makefile.in			MAKE	2011
+./lib/dns/tests/dbiterator_test.c		C	2011
 ./lib/dns/tests/dnstest.c			C	2011
 ./lib/dns/tests/dnstest.h			C	2011
 ./lib/dns/tests/master_test.c			C	2011
+./lib/dns/tests/testdata/dbiterator/zone1.data	ZONE	2011
+./lib/dns/tests/testdata/dbiterator/zone2.data	X	2011
 ./lib/dns/tests/testdata/master/master1.data	X	2011
 ./lib/dns/tests/testdata/master/master10.data	X	2011
 ./lib/dns/tests/testdata/master/master11.data	X	2011
@@ -2504,7 +2507,7 @@
 ./lib/export/samples/sample.c			C	2009
 ./lib/irs/.cvsignore				X	2009
 ./lib/irs/Makefile.in				MAKE	2009
-./lib/irs/api					X	2009,2010
+./lib/irs/api					X	2009,2010,2011
 ./lib/irs/context.c				C	2009
 ./lib/irs/dnsconf.c				C	2009
 ./lib/irs/gai_strerror.c			C	2009
@@ -2868,7 +2871,7 @@
 ./lib/isccc/.cvsignore				X	2001
 ./lib/isccc/Makefile.in				MAKE	2001,2003,2004,2007,2009,2011
 ./lib/isccc/alist.c				C.NOM	2001,2004,2005,2007
-./lib/isccc/api					X	2001,2006,2008,2009,2010
+./lib/isccc/api					X	2001,2006,2008,2009,2010,2011
 ./lib/isccc/base64.c				C.NOM	2001,2004,2005,2007
 ./lib/isccc/cc.c				C.NOM	2001,2002,2003,2004,2005,2006,2007
 ./lib/isccc/ccmsg.c				C.NOM	2001,2004,2005,2007
@@ -2928,7 +2931,7 @@
 ./lib/isccfg/win32/version.c			C	1998,1999,2000,2001,2004,2007
 ./lib/lwres/.cvsignore				X	2000,2001
 ./lib/lwres/Makefile.in				MAKE	2000,2001,2004,2005,2007
-./lib/lwres/api					X	2000,2001,2006,2008,2009,2010
+./lib/lwres/api					X	2000,2001,2006,2008,2009,2010,2011
 ./lib/lwres/assert_p.h				C	2000,2001,2004,2005,2007,2011
 ./lib/lwres/context.c				C	2000,2001,2003,2004,2005,2007,2008,2009
 ./lib/lwres/context_p.h				C	2000,2001,2004,2005,2007,2008

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.344 2011/07/28 23:47:59 tbox Exp $ */
+/* $Id: socket.c,v 1.346 2011/08/24 23:17:52 marka Exp $ */
 
 /*! \file */
 
@@ -553,6 +553,8 @@ ISC_SOCKETFUNC_SCOPE isc_result_t
 isc__socket_fdwatchpoke(isc_socket_t *sock, int flags);
 ISC_SOCKETFUNC_SCOPE isc_result_t
 isc__socket_dup(isc_socket_t *sock, isc_socket_t **socketp);
+ISC_SOCKETFUNC_SCOPE int
+isc__socket_getfd(isc_socket_t *sock);
 
 static struct {
 	isc_socketmethods_t methods;
@@ -577,7 +579,8 @@ static struct {
 		isc__socket_gettype,
 		isc__socket_ipv6only,
 		isc__socket_fdwatchpoke,
-		isc__socket_dup
+		isc__socket_dup,
+		isc__socket_getfd
 	}
 #ifndef BIND9
 	,
@@ -5879,8 +5882,8 @@ isc__socket_register() {
 }
 #endif
 
-int
-isc_socket_getfd(isc_socket_t *socket0) {
+ISC_SOCKETFUNC_SCOPE int
+isc__socket_getfd(isc_socket_t *socket0) {
 	isc__socket_t *socket = (isc__socket_t *)socket0;
 
 	return ((short) socket->fd);

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.315 2011/06/08 22:13:50 each Exp $ */
+/* $Id: rbtdb.c,v 1.316 2011/08/23 00:59:23 each Exp $ */
 
 /*! \file */
 
@@ -8480,7 +8480,7 @@ dbiterator_last(dns_dbiterator_t *iterator) {
 
 static isc_result_t
 dbiterator_seek(dns_dbiterator_t *iterator, dns_name_t *name) {
-	isc_result_t result;
+	isc_result_t result, tresult;
 	rbtdb_dbiterator_t *rbtdbiter = (rbtdb_dbiterator_t *)iterator;
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)iterator->db;
 	dns_name_t *iname, *origin;
@@ -8523,13 +8523,14 @@ dbiterator_seek(dns_dbiterator_t *iterator, dns_name_t *name) {
 					  DNS_RBTFIND_EMPTYDATA, NULL, NULL);
 		if (result == DNS_R_PARTIALMATCH) {
 			dns_rbtnode_t *node = NULL;
-			result = dns_rbt_findnode(rbtdb->nsec3, name, NULL,
+			tresult = dns_rbt_findnode(rbtdb->nsec3, name, NULL,
 						  &node, &rbtdbiter->nsec3chain,
 						  DNS_RBTFIND_EMPTYDATA,
 						  NULL, NULL);
-			if (result == ISC_R_SUCCESS) {
+			if (tresult == ISC_R_SUCCESS) {
 				rbtdbiter->node = node;
 				rbtdbiter->current = &rbtdbiter->nsec3chain;
+				result = tresult;
 			}
 		}
 	}

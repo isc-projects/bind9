@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata_test.c,v 1.50 2011/03/03 23:47:31 tbox Exp $ */
+/* $Id: rdata_test.c,v 1.51 2011/08/16 03:00:02 marka Exp $ */
 
 #include <config.h>
 
@@ -185,8 +185,8 @@ viastruct(dns_rdata_t *rdata, isc_mem_t *mctx,
 		break;
 	}
 	case dns_rdatatype_naptr: {
-		dns_rdata_in_naptr_t in_naptr;
-		result = dns_rdata_tostruct(rdata, sp = &in_naptr, NULL);
+		dns_rdata_naptr_t naptr;
+		result = dns_rdata_tostruct(rdata, sp = &naptr, NULL);
 		break;
 	}
 	case dns_rdatatype_ns: {
@@ -452,8 +452,8 @@ viastruct(dns_rdata_t *rdata, isc_mem_t *mctx,
 		break;
 	}
 	case dns_rdatatype_naptr: {
-		dns_rdata_in_naptr_t in_naptr;
-		result = dns_rdata_tostruct(rdata, sp = &in_naptr, mctx);
+		dns_rdata_naptr_t naptr;
+		result = dns_rdata_tostruct(rdata, sp = &naptr, mctx);
 		break;
 	}
 	case dns_rdatatype_ns: {
@@ -748,8 +748,8 @@ viastruct(dns_rdata_t *rdata, isc_mem_t *mctx,
 		break;
 	}
 	case dns_rdatatype_naptr: {
-		dns_rdata_in_naptr_t in_naptr;
-		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &in_naptr, b);
+		dns_rdata_naptr_t naptr;
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &naptr, b);
 		break;
 	}
 	case dns_rdatatype_ns: {

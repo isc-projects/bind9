@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update_test.c,v 1.4 2011/07/06 18:11:35 each Exp $ */
+/* $Id: update_test.c,v 1.5 2011/08/23 01:29:38 each Exp $ */
 
 /* $Id: */
 
@@ -69,7 +69,7 @@ ATF_TC_BODY(increment, tc) {
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	new = dns_update_soaserial(old, dns_updatemethod_increment);
 	ATF_REQUIRE_EQ(isc_serial_lt(old, new), ISC_TRUE);
-	ATF_CHECK(new != 0);
+	ATF_CHECK_MSG(new != 0, "new (%d) should not equal 0", new);
 	ATF_REQUIRE_EQ(new, 51);
 	dns_test_end();
 }

@@ -175,6 +175,7 @@ dns_dispatch_detach
 dns_dispatch_getlocaladdress
 dns_dispatch_getsocket
 dns_dispatch_getudp
+dns_dispatch_getudp_dup
 dns_dispatch_importrecv
 dns_dispatch_removeresponse
 dns_dispatch_starttcp
@@ -295,6 +296,7 @@ dns_master_loadstreaminc
 dns_master_questiontotext
 dns_master_rdatasettotext
 dns_master_stylecreate
+dns_master_stylecreate2
 dns_master_styledestroy
 dns_message_addname
 dns_message_checksig
@@ -719,6 +721,7 @@ dns_view_flushanddetach
 dns_view_flushcache
 dns_view_flushcache2
 dns_view_flushname
+dns_view_flushnode
 dns_view_freeze
 dns_view_freezezones
 dns_view_getdynamickeyring
@@ -836,6 +839,7 @@ dns_zone_replacedb
 dns_zone_setacache
 dns_zone_setadded
 dns_zone_setalsonotify
+dns_zone_setalsonotifywithkeys
 dns_zone_setaltxfrsource4
 dns_zone_setaltxfrsource6
 dns_zone_setcheckmx
@@ -876,6 +880,7 @@ dns_zone_setorigin
 dns_zone_setprivatetype
 dns_zone_setqueryacl
 dns_zone_setqueryonacl
+dns_zone_setrefreshkeyinterval
 dns_zone_setrequeststats
 dns_zone_setserialupdatemethod
 dns_zone_setsignatures

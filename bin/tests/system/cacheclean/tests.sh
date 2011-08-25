@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.7 2011/08/02 23:47:51 tbox Exp $
+# $Id: tests.sh,v 1.8 2011/08/23 00:59:23 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -129,6 +129,12 @@ in_cache txt third1.second1.top1.flushtest.example && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:check flushing a nonexistent name"
+ret=0
+$RNDC $RNDCOPTS flushname fake.flushtest.example || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:check flushing of namespaces"
 ret=0
 clear_cache
@@ -152,6 +158,12 @@ $RNDC $RNDCOPTS flushtree top2.flushtest.example
 in_cache txt second1.top2.flushtest.example && ret=1
 in_cache txt second2.top2.flushtest.example && ret=1
 in_cache txt second3.top2.flushtest.example && ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:check flushing a nonexistent namespace"
+ret=0
+$RNDC $RNDCOPTS flushtree fake.flushtest.example || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
