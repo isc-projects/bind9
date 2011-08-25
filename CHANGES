@@ -43,8 +43,6 @@
 	--- 9.6-ESV-R5rc1 released ---
 
 3124.	[bug]		Use an rdataset attribute flag to indicate
-
-3124.	[bug]		Use an rdataset attribute flag to indicate
 			negative-cache records rather than using rrtype 0;
 			this will prevent problems when that rrtype is
 			used in actual DNS packets. [RT #24777]
