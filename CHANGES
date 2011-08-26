@@ -20,6 +20,9 @@
 			empty zones switched on by the 'empty-zones-enable'
 			option. [RT #24990]
 
+3134.	[bug]		Improve the accuracy of dnssec-signzone's signing
+			statistics. [RT #16030]
+
 	--- 9.6-ESV-R5 released ---
 
 3135.	[port]		FreeBSD: workaround broken IPV6_USE_MIN_MTU processing.
