@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.124 2011/05/06 21:08:33 each Exp $
+ * $Id: dnssec.c,v 1.125 2011/08/26 05:29:48 marka Exp $
  */
 
 /*! \file */
@@ -1705,10 +1705,8 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 				shortest = thisttl;
 		}
 
-		if (shortest != 0) {
-			found_ttl = ISC_TRUE;
+		if (shortest != 0)
 			ttl = shortest;
-		}
 	}
 
 	/*
