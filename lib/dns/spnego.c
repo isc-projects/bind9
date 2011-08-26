@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: spnego.c,v 1.16.10.2 2011/04/04 11:10:57 marka Exp $ */
+/* $Id: spnego.c,v 1.16.10.3 2011/08/26 04:43:49 marka Exp $ */
 
 /*! \file
  * \brief
@@ -948,8 +948,8 @@ der_match_tag_and_length(const unsigned char *p, size_t len,
 	e = der_get_length(p, len, length_ret, &l);
 	if (e)
 		return (e);
-	p += l;
-	len -= l;
+	/* p += l; */
+	/* len -= l; */
 	ret += l;
 	if (size)
 		*size = ret;
@@ -978,8 +978,8 @@ decode_enumerated(const unsigned char *p, size_t len, void *num, size_t *size)
 	e = der_get_int(p, reallen, num, &l);
 	if (e)
 		return (e);
-	p += l;
-	len -= l;
+	/* p += l; */
+	/* len -= l; */
 	ret += l;
 	if (size)
 		*size = ret;
@@ -1006,7 +1006,7 @@ decode_octet_string(const unsigned char *p, size_t len,
 	if (e)
 		return (e);
 	p += l;
-	len -= l;
+	/* len -= l; */
 	ret += l;
 	if (len < slen)
 		return (ASN1_OVERRUN);
@@ -1014,8 +1014,8 @@ decode_octet_string(const unsigned char *p, size_t len,
 	e = der_get_octet_string(p, slen, k, &l);
 	if (e)
 		return (e);
-	p += l;
-	len -= l;
+	/* p += l; */
+	/* len -= l; */
 	ret += l;
 	if (size)
 		*size = ret;
@@ -1050,8 +1050,8 @@ decode_oid(const unsigned char *p, size_t len,
 	e = der_get_oid(p, slen, k, &l);
 	if (e)
 		return (e);
-	p += l;
-	len -= l;
+	/* p += l; */
+	/* len -= l; */
 	ret += l;
 	if (size)
 		*size = ret;
@@ -1261,8 +1261,8 @@ der_put_length_and_tag(unsigned char *p, size_t len, size_t len_val,
 	e = der_put_tag(p, len, class, type, tag, &l);
 	if (e)
 		return (e);
-	p -= l;
-	len -= l;
+	/* p -= l; */
+	/* len -= l; */
 	ret += l;
 	*size = ret;
 	return (0);
@@ -1285,8 +1285,8 @@ encode_enumerated(unsigned char *p, size_t len, const void *data, size_t *size)
 	e = der_put_length_and_tag(p, len, l, ASN1_C_UNIV, PRIM, UT_Enumerated, &l);
 	if (e)
 		return (e);
-	p -= l;
-	len -= l;
+	/* p -= l; */
+	/* len -= l; */
 	ret += l;
 	*size = ret;
 	return (0);
@@ -1309,8 +1309,8 @@ encode_octet_string(unsigned char *p, size_t len,
 	e = der_put_length_and_tag(p, len, l, ASN1_C_UNIV, PRIM, UT_OctetString, &l);
 	if (e)
 		return (e);
-	p -= l;
-	len -= l;
+	/* p -= l; */
+	/* len -= l; */
 	ret += l;
 	*size = ret;
 	return (0);
@@ -1333,8 +1333,8 @@ encode_oid(unsigned char *p, size_t len,
 	e = der_put_length_and_tag(p, len, l, ASN1_C_UNIV, PRIM, UT_OID, &l);
 	if (e)
 		return (e);
-	p -= l;
-	len -= l;
+	/* p -= l; */
+	/* len -= l; */
 	ret += l;
 	*size = ret;
 	return (0);
