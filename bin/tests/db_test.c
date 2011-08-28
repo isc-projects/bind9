@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db_test.c,v 1.68 2009/09/02 23:48:01 tbox Exp $ */
+/* $Id: db_test.c,v 1.68.346.1 2011/08/28 23:55:57 marka Exp $ */
 
 /*! \file
  * \author
@@ -70,14 +70,10 @@ static isc_boolean_t		ascending = ISC_TRUE;
 
 static void
 print_result(const char *message, isc_result_t result) {
-	size_t len;
 
-	if (message == NULL) {
-		len = 0;
+	if (message == NULL)
 		message = "";
-	}
-	len = strlen(message);
-	printf("%s%sresult %08x: %s\n", message, (len == 0U) ? "" : " ",
+	printf("%s%sresult %08x: %s\n", message, (*message == '\0') ? "" : " ",
 	       result, isc_result_totext(result));
 }
 
@@ -449,6 +445,7 @@ main(int argc, char *argv[]) {
 
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
+	POST(argv);
 
 	if (argc != 0)
 		printf("ignoring trailing arguments\n");
