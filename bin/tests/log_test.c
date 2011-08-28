@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log_test.c,v 1.28 2011/01/14 00:51:43 tbox Exp $ */
+/* $Id: log_test.c,v 1.28.8.1 2011/08/28 23:48:26 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -27,6 +27,7 @@
 #include <isc/commandline.h>
 #include <isc/mem.h>
 #include <isc/string.h>
+#include <isc/util.h>
 
 #include <dns/log.h>
 
@@ -94,6 +95,7 @@ main(int argc, char **argv) {
 
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
+	POST(argv);
 
 	if (argc > 0) {
 		fprintf(stderr, usage, progname);
