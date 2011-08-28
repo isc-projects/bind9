@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: shutdown_test.c,v 1.23 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id: shutdown_test.c,v 1.23.558.1 2011/08/28 08:13:42 marka Exp $ */
 
 #include <config.h>
 
@@ -168,7 +168,7 @@ new_task(isc_mem_t *mctx, const char *name) {
 int
 main(int argc, char *argv[]) {
 	unsigned int workers;
-	t_info *t1, *t2, *t3;
+	t_info *t1, *t2;
 	isc_task_t *task;
 	isc_mem_t *mctx, *mctx2;
 
@@ -197,7 +197,7 @@ main(int argc, char *argv[]) {
 	/*
 	 * Test run-triggered shutdown.
 	 */
-	t3 = new_task(mctx2, "foo");
+	(void)new_task(mctx2, "foo");
 
 	/*
 	 * Test implicit shutdown.
