@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsecify.c,v 1.10 2009/09/02 23:48:01 tbox Exp $ */
+/* $Id: nsecify.c,v 1.10.104.1 2011/08/28 23:37:40 marka Exp $ */
 
 #include <config.h>
 
@@ -157,6 +157,7 @@ nsecify(char *filename) {
 	result = dns_db_createiterator(db, 0, &dbiter);
 	check_result(result, "dns_db_createiterator()");
 	result = dns_dbiterator_first(dbiter);
+	check_result(result, "dns_dbiterator_first()");
 	node = NULL;
 	result = next_active(db, wversion, dbiter, name, &node);
 	while (result == ISC_R_SUCCESS) {
