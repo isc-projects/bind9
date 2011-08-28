@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata_test.c,v 1.51 2011/08/16 03:00:02 marka Exp $ */
+/* $Id: rdata_test.c,v 1.52 2011/08/28 09:10:41 marka Exp $ */
 
 #include <config.h>
 
@@ -988,6 +988,15 @@ main(int argc, char *argv[]) {
 			type = token.value.as_ulong;
 			isc_buffer_init(&tbuf, outbuf, sizeof(outbuf));
 			result = dns_rdatatype_totext(type, &tbuf);
+			if (result != ISC_R_SUCCESS) {
+				fprintf(stdout,
+					"dns_rdatatype_totext "
+					"returned %s(%d)\n",
+					dns_result_totext(result), result);
+				fflush(stdout);
+				need_eol = 1;
+				continue;
+			}
 			fprintf(stdout, "type = %.*s(%d)\n",
 				(int)tbuf.used, (char*)tbuf.base, type);
 		} else if (token.type == isc_tokentype_string) {
@@ -1020,6 +1029,14 @@ main(int argc, char *argv[]) {
 			class = token.value.as_ulong;
 			isc_buffer_init(&tbuf, outbuf, sizeof(outbuf));
 			result = dns_rdatatype_totext(class, &tbuf);
+			if (result != ISC_R_SUCCESS) {
+				fprintf(stdout, "dns_rdatatype_totext "
+					"returned %s(%d)\n",
+					dns_result_totext(result), result);
+				fflush(stdout);
+				need_eol = 1;
+				continue;
+			}
 			fprintf(stdout, "class = %.*s(%d)\n",
 				(int)tbuf.used, (char*)tbuf.base, class);
 		} else if (token.type == isc_tokentype_string) {
