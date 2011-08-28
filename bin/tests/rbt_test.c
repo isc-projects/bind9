@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt_test.c,v 1.48 2007/06/19 23:46:59 tbox Exp $ */
+/* $Id: rbt_test.c,v 1.48.332.1 2011/08/28 09:29:50 marka Exp $ */
 
 #include <config.h>
 
@@ -89,7 +89,7 @@ delete_name(void *data, void *arg) {
 
 	UNUSED(arg);
 	name = data;
-	isc_mem_put(mctx, data, sizeof(dns_name_t) + DNSNAMELEN);
+	isc_mem_put(mctx, name, sizeof(*name) + DNSNAMELEN);
 }
 
 static void
@@ -281,6 +281,7 @@ main(int argc, char **argv) {
 
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
+	POST(argv);
 
 	if (argc > 1) {
 		printf("Usage: %s [-m]\n", progname);
