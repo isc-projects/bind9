@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: shutdown_test.c,v 1.24 2011/08/28 08:10:13 marka Exp $ */
+/* $Id: shutdown_test.c,v 1.25 2011/08/28 23:46:41 tbox Exp $ */
 
 #include <config.h>
 
