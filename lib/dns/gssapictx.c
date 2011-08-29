@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gssapictx.c,v 1.14.104.8 2011/04/07 23:06:06 marka Exp $ */
+/* $Id: gssapictx.c,v 1.14.104.9 2011/08/29 06:38:35 marka Exp $ */
 
 #include <config.h>
 
@@ -133,6 +133,7 @@ name_to_gbuffer(dns_name_t *name, isc_buffer_t *buffer,
 	}
 
 	result = dns_name_toprincipal(namep, buffer);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	isc_buffer_putuint8(buffer, 0);
 	isc_buffer_usedregion(buffer, &r);
 	REGION_TO_GBUFFER(r, *gbuffer);
@@ -304,7 +305,7 @@ dst_gssapi_acquirecred(dns_name_t *name, isc_boolean_t initiate,
 	if (gret != GSS_S_COMPLETE) {
 		gss_log(3, "failed to acquire %s credentials for %s: %s",
 			initiate ? "initiate" : "accept",
-			(char *)gnamebuf.value,
+			(gname != NULL) ? (char *)gnamebuf.value : "?",
 			gss_error_tostring(gret, minor, buf, sizeof(buf)));
 		dst_gssapi_check_config((char *)array);
 		return (ISC_R_FAILURE);
@@ -312,12 +313,14 @@ dst_gssapi_acquirecred(dns_name_t *name, isc_boolean_t initiate,
 
 	gss_log(4, "acquired %s credentials for %s",
 		initiate ? "initiate" : "accept",
-		(char *)gnamebuf.value);
+		(gname != NULL) ? (char *)gnamebuf.value : "?");
 
 	log_cred(*cred);
 
 	return (ISC_R_SUCCESS);
 #else
+	REQUIRE(cred != NULL && *cred == NULL);
+
 	UNUSED(name);
 	UNUSED(initiate);
 	UNUSED(cred);
@@ -337,13 +340,15 @@ dst_gssapi_identitymatchesrealmkrb5(dns_name_t *signer, dns_name_t *name,
 	char *sname;
 	char *rname;
 	isc_buffer_t buffer;
+	isc_result_t result;
 
 	/*
 	 * It is far, far easier to write the names we are looking at into
 	 * a string, and do string operations on them.
 	 */
 	isc_buffer_init(&buffer, sbuf, sizeof(sbuf));
-	dns_name_toprincipal(signer, &buffer);
+	result = dns_name_toprincipal(signer, &buffer);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	isc_buffer_putuint8(&buffer, 0);
 	if (name != NULL)
 		dns_name_format(name, nbuf, sizeof(nbuf));
@@ -409,13 +414,15 @@ dst_gssapi_identitymatchesrealmms(dns_name_t *signer, dns_name_t *name,
 	char *nname;
 	char *rname;
 	isc_buffer_t buffer;
+	isc_result_t result;
 
 	/*
 	 * It is far, far easier to write the names we are looking at into
 	 * a string, and do string operations on them.
 	 */
 	isc_buffer_init(&buffer, sbuf, sizeof(sbuf));
-	dns_name_toprincipal(signer, &buffer);
+	result = dns_name_toprincipal(signer, &buffer);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	isc_buffer_putuint8(&buffer, 0);
 	if (name != NULL)
 		dns_name_format(name, nbuf, sizeof(nbuf));
