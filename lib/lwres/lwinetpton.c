@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1996-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -19,7 +19,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char rcsid[] = "$Id: lwinetpton.c,v 1.13 2011/08/29 05:58:31 marka Exp $";
+static char rcsid[] = "$Id: lwinetpton.c,v 1.14 2011/08/29 23:46:44 tbox Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
@@ -41,7 +41,7 @@ static char rcsid[] = "$Id: lwinetpton.c,v 1.13 2011/08/29 05:58:31 marka Exp $"
 static int inet_pton4(const char *src, unsigned char *dst);
 static int inet_pton6(const char *src, unsigned char *dst);
 
-/*! 
+/*!
  * int
  * lwres_net_pton(af, src, dst)
  *	convert from presentation format (which usually means ASCII printable)
