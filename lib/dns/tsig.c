@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.138.136.7 2011/08/25 23:45:28 tbox Exp $
+ * $Id: tsig.c,v 1.138.136.8 2011/08/29 04:04:42 marka Exp $
  */
 /*! \file */
 #include <config.h>
@@ -838,8 +838,10 @@ dns_tsig_sign(dns_message_t *msg) {
 		}
 		/* Digest the timesigned and fudge */
 		isc_buffer_clear(&databuf);
-		if (tsig.error == dns_tsigerror_badtime)
+		if (tsig.error == dns_tsigerror_badtime) {
+			INSIST(response);
 			tsig.timesigned = querytsig.timesigned;
+		}
 		isc_buffer_putuint48(&databuf, tsig.timesigned);
 		isc_buffer_putuint16(&databuf, tsig.fudge);
 		isc_buffer_usedregion(&databuf, &r);
