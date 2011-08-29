@@ -19,7 +19,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char rcsid[] = "$Id: lwinetpton.c,v 1.12 2007/06/19 23:47:22 tbox Exp $";
+static char rcsid[] = "$Id: lwinetpton.c,v 1.12.558.1 2011/08/29 06:00:29 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
@@ -103,7 +103,12 @@ inet_pton4(const char *src, unsigned char *dst) {
 		} else if (ch == '.' && saw_digit) {
 			if (octets == 4)
 				return (0);
-			*++tp = 0;
+			/*
+			 * "clang --analyse" generates warnings using:
+			 * 		*++tp = 0;
+			 */
+			tp++;
+			*tp = 0;
 			saw_digit = 0;
 		} else
 			return (0);
