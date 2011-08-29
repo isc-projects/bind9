@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007-2009, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsecify.c,v 1.10.104.1 2011/08/28 23:37:40 marka Exp $ */
+/* $Id: nsecify.c,v 1.10.104.2 2011/08/29 23:45:33 tbox Exp $ */
 
 #include <config.h>
 
