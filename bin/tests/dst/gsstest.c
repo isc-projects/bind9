@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gsstest.c,v 1.6.332.2 2011/03/28 23:45:57 tbox Exp $ */
+/* $Id: gsstest.c,v 1.6.332.3 2011/08/29 23:26:54 marka Exp $ */
 
 #include <config.h>
 
@@ -144,13 +144,13 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 
 	REQUIRE(reqev != NULL);
 
+	query = reqev->ev_arg;
+
 	if (reqev->result != ISC_R_SUCCESS) {
 		fprintf(stderr, "I:request event result: %s\n",
 			isc_result_totext(reqev->result));
 		goto end;
 	}
-
-	query = reqev->ev_arg;
 
 	response = NULL;
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &response);
@@ -172,7 +172,7 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 	if (response)
 		dns_message_destroy(&response);
 
-end:
+ end:
 	if (query)
 		dns_message_destroy(&query);
 
@@ -216,6 +216,8 @@ sendquery(isc_task_t *task, isc_event_t *event)
 	CHECK("dns_name_fromtext", result);
 
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &message);
+	if (result != ISC_R_SUCCESS)
+		goto end;
 
 	message->opcode = dns_opcode_query;
 	message->rdclass = dns_rdataclass_in;
@@ -252,13 +254,13 @@ sendquery(isc_task_t *task, isc_event_t *event)
 
 	return;
 
-	end:
-		if (qname != NULL)
-			dns_message_puttempname(message, &qname);
-		if (qrdataset != NULL)
-			dns_message_puttemprdataset(message, &qrdataset);
-		if (message != NULL)
-			dns_message_destroy(&message);
+ end:
+	if (qname != NULL)
+		dns_message_puttempname(message, &qname);
+	if (qrdataset != NULL)
+		dns_message_puttemprdataset(message, &qrdataset);
+	if (message != NULL)
+		dns_message_destroy(&message);
 }
 
 static void
@@ -276,13 +278,13 @@ initctx2(isc_task_t *task, isc_event_t *event) {
 
 	REQUIRE(reqev != NULL);
 
+	query = reqev->ev_arg;
+
 	if (reqev->result != ISC_R_SUCCESS) {
 		fprintf(stderr, "I:request event result: %s\n",
 			isc_result_totext(reqev->result));
 		goto end;
 	}
-
-	query = reqev->ev_arg;
 
 	response = NULL;
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &response);
@@ -327,7 +329,7 @@ initctx2(isc_task_t *task, isc_event_t *event) {
 	if (response)
 		dns_message_destroy(&response);
 
-end:
+ end:
 	if (query)
 		dns_message_destroy(&query);
 
@@ -398,7 +400,7 @@ initctx1(isc_task_t *task, isc_event_t *event) {
 	CHECK("dns_request_create", result);
 
 	return;
-end:
+ end:
 	event = isc_event_allocate(mctx, (void *)1, 1, console, NULL,
 				   sizeof(*event));
 	isc_task_send(task, &event);return;
