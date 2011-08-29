@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.8 2011/08/23 00:59:23 each Exp $
+# $Id: tests.sh,v 1.9 2011/08/29 03:31:29 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -106,7 +106,7 @@ nrecords=`grep flushtest.example ns2/named_dump.db | grep -v '^;' | wc -l`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:check flushing of individual nodes"
+echo "I:check flushing of individual nodes (interior node)"
 ret=0
 clear_cache
 load_cache
@@ -114,12 +114,20 @@ load_cache
 in_cache txt top1.flushtest.example || ret=1
 $RNDC $RNDCOPTS flushname top1.flushtest.example
 in_cache txt top1.flushtest.example && ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
 
+echo "I:check flushing of individual nodes (leaf node, under the interior node)"
+ret=0
 # leaf node, under the interior node (should still exist)
 in_cache txt third2.second1.top1.flushtest.example || ret=1
 $RNDC $RNDCOPTS flushname third2.second1.top1.flushtest.example
 in_cache txt third2.second1.top1.flushtest.example && ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
 
+echo "I:check flushing of individual nodes (another leaf node, with both positive and negative cache entries)"
+ret=0
 # another leaf node, with both positive and negative cache entries
 in_cache a third1.second1.top1.flushtest.example || ret=1
 in_cache txt third1.second1.top1.flushtest.example || ret=1
