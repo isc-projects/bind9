@@ -174,7 +174,7 @@
 ./bin/named/include/named/types.h		C	1999,2000,2001,2004,2005,2006,2007,2008,2009
 ./bin/named/include/named/update.h		C	1999,2000,2001,2004,2005,2007
 ./bin/named/include/named/xfrout.h		C	1999,2000,2001,2004,2005,2007
-./bin/named/include/named/zoneconf.h		C	1999,2000,2001,2002,2004,2005,2006,2007,2010
+./bin/named/include/named/zoneconf.h		C	1999,2000,2001,2002,2004,2005,2006,2007,2010,2011
 ./bin/named/interfacemgr.c			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011
 ./bin/named/listenlist.c			C	2000,2001,2004,2005,2007
 ./bin/named/log.c				C	1999,2000,2001,2002,2004,2005,2006,2007,2009
@@ -285,7 +285,7 @@
 ./bin/tests/Kchild.example.+003+04017.key	X	2000,2001
 ./bin/tests/Kchild.example.+003+04017.private	X	2000,2001
 ./bin/tests/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
-./bin/tests/adb_test.c				C	1999,2000,2001,2004,2005,2007,2009
+./bin/tests/adb_test.c				C	1999,2000,2001,2004,2005,2007,2009,2011
 ./bin/tests/atomic/.cvsignore			X	2011
 ./bin/tests/atomic/Makefile.in			MAKE	2011
 ./bin/tests/atomic/t_atomic.c			C	2011
@@ -941,6 +941,16 @@
 ./bin/tests/system/gost/setup.sh		SH	2010
 ./bin/tests/system/gost/tests.sh		SH	2010
 ./bin/tests/system/ifconfig.sh			SH	2000,2001,2002,2003,2004,2007,2008,2009,2010
+./bin/tests/system/inline/clean.sh		SH	2011
+./bin/tests/system/inline/ns1/named.conf	CONF-C	2011
+./bin/tests/system/inline/ns2/bits.db.in	ZONE	2011
+./bin/tests/system/inline/ns2/named.conf	CONF-C	2011
+./bin/tests/system/inline/ns3/named.conf	CONF-C	2011
+./bin/tests/system/inline/ns3/sign.sh		SH	2011
+./bin/tests/system/inline/ns4/named.conf	CONF-C	2011
+./bin/tests/system/inline/ns4/noixfr.db.in	ZONE	2011
+./bin/tests/system/inline/setup.sh		SH	2011
+./bin/tests/system/inline/tests.sh		SH	2011
 ./bin/tests/system/ixfr/ans2/.cvsignore		X	2001
 ./bin/tests/system/ixfr/ans2/startme		X	2011
 ./bin/tests/system/ixfr/clean.sh		SH	2001,2004,2007
@@ -2161,11 +2171,11 @@
 ./lib/dns/include/dns/dnssec.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2010,2011
 ./lib/dns/include/dns/ds.h			C	2002,2004,2005,2006,2007,2010
 ./lib/dns/include/dns/ecdb.h			C	2009
-./lib/dns/include/dns/events.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2010
+./lib/dns/include/dns/events.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2010,2011
 ./lib/dns/include/dns/fixedname.h		C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/forward.h			C	2000,2001,2004,2005,2006,2007,2009
 ./lib/dns/include/dns/iptable.h			C	2007
-./lib/dns/include/dns/journal.h			C	1999,2000,2001,2004,2005,2006,2007,2008,2009
+./lib/dns/include/dns/journal.h			C	1999,2000,2001,2004,2005,2006,2007,2008,2009,2011
 ./lib/dns/include/dns/keydata.h			C	2009
 ./lib/dns/include/dns/keyflags.h		C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/keytable.h		C	2000,2001,2004,2005,2007,2009,2010
@@ -2939,7 +2949,7 @@
 ./lib/lwres/getaddrinfo.c			C.BSDI	1999,2000,2001,2004,2005,2006,2007,2008
 ./lib/lwres/gethost.c				C	2000,2001,2004,2005,2007
 ./lib/lwres/getipnode.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2009
-./lib/lwres/getnameinfo.c			C.PORTION	1999,2000,2001,2003,2004,2005,2007
+./lib/lwres/getnameinfo.c			C.PORTION	1999,2000,2001,2003,2004,2005,2007,2011
 ./lib/lwres/getrrset.c				C	2000,2001,2002,2003,2004,2005,2007
 ./lib/lwres/herror.c				C.PORTION	2000,2001,2003,2004,2005,2007,2011
 ./lib/lwres/include/.cvsignore			X	2000,2001
