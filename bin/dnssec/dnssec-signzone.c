@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.209.12.26 2011/08/26 23:45:10 tbox Exp $ */
+/* $Id: dnssec-signzone.c,v 1.209.12.27 2011/08/30 12:23:14 marka Exp $ */
 
 /*! \file */
 
@@ -2898,6 +2898,9 @@ print_version(FILE *fp) {
 
 	fprintf(fp, "; dnssec_signzone version " VERSION "\n");
 }
+
+ISC_PLATFORM_NORETURN_PRE static void
+usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
 usage(void) {

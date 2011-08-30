@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.166.34.9 2011/03/12 04:57:23 tbox Exp $ */
+/* $Id: main.c,v 1.166.34.10 2011/08/30 12:23:15 marka Exp $ */
 
 /*! \file */
 
@@ -129,6 +129,10 @@ ns_main_earlyfatal(const char *format, ...) {
 	exit(1);
 }
 
+ISC_PLATFORM_NORETURN_PRE static void
+assertion_failed(const char *file, int line, isc_assertiontype_t type,
+		 const char *cond) ISC_PLATFORM_NORETURN_POST;
+
 static void
 assertion_failed(const char *file, int line, isc_assertiontype_t type,
 		 const char *cond)
@@ -162,9 +166,10 @@ assertion_failed(const char *file, int line, isc_assertiontype_t type,
 	exit(1);
 }
 
-static void
+ISC_PLATFORM_NORETURN_PRE static void
 library_fatal_error(const char *file, int line, const char *format,
-		    va_list args) ISC_FORMAT_PRINTF(3, 0);
+		    va_list args)
+ISC_FORMAT_PRINTF(3, 0) ISC_PLATFORM_NORETURN_POST;
 
 static void
 library_fatal_error(const char *file, int line, const char *format,

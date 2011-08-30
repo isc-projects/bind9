@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.81.48.4 2011/03/12 04:57:23 tbox Exp $ */
+/* $Id: dnssec-keygen.c,v 1.81.48.5 2011/08/30 12:23:14 marka Exp $ */
 
 /*! \file */
 
@@ -71,6 +71,9 @@ static isc_boolean_t
 dsa_size_ok(int size) {
 	return (ISC_TF(size >= 512 && size <= 1024 && size % 64 == 0));
 }
+
+ISC_PLATFORM_NORETURN_PRE static void
+usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
 usage(void) {

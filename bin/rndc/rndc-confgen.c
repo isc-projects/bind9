@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc-confgen.c,v 1.26 2008/10/15 23:47:31 tbox Exp $ */
+/* $Id: rndc-confgen.c,v 1.26.44.1 2011/08/30 12:23:15 marka Exp $ */
 
 /*! \file */
 
@@ -67,6 +67,9 @@ const char *progname;
 isc_boolean_t verbose = ISC_FALSE;
 
 const char *keyfile, *keydef;
+
+ISC_PLATFORM_NORETURN_PRE static void
+usage(int status) ISC_PLATFORM_NORETURN_POST;
 
 static void
 usage(int status) {

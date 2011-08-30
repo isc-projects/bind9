@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: assertions.h,v 1.26 2008/10/15 23:47:31 tbox Exp $
+ * $Id: assertions.h,v 1.26.44.1 2011/08/30 12:23:16 marka Exp $
  */
 /*! \file isc/assertions.h
  */
@@ -41,7 +41,9 @@ typedef void (*isc_assertioncallback_t)(const char *, int, isc_assertiontype_t,
 					const char *);
 
 /* coverity[+kill] */
-LIBISC_EXTERNAL_DATA extern isc_assertioncallback_t isc_assertion_failed;
+ISC_PLATFORM_NORETURN_PRE
+void isc_assertion_failed(const char *, int, isc_assertiontype_t,
+			  const char *) ISC_PLATFORM_NORETURN_POST;
 
 void
 isc_assertion_setcallback(isc_assertioncallback_t);

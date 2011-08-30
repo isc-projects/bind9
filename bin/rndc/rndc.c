@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.122.44.4 2011/02/03 12:16:44 tbox Exp $ */
+/* $Id: rndc.c,v 1.122.44.5 2011/08/30 12:23:16 marka Exp $ */
 
 /*! \file */
 
@@ -88,6 +88,9 @@ static isc_socket_t *sock = NULL;
 static isc_uint32_t serial;
 
 static void rndc_startconnect(isc_sockaddr_t *addr, isc_task_t *task);
+
+ISC_PLATFORM_NORETURN_PRE static void
+usage(int status) ISC_PLATFORM_NORETURN_POST;
 
 static void
 usage(int status) {

@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-dsfromkey.c,v 1.2.14.8 2011/08/18 23:45:12 tbox Exp $ */
+/* $Id: dnssec-dsfromkey.c,v 1.2.14.9 2011/08/30 12:23:14 marka Exp $ */
 
 /*! \file */
 
@@ -221,6 +221,9 @@ emitds(unsigned int dtype, dns_rdata_t *rdata)
 	isc_buffer_usedregion(&textb, &r);
 	printf(" DS %.*s\n", (int)r.length, r.base);
 }
+
+ISC_PLATFORM_NORETURN_PRE static void
+usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
 usage(void) {

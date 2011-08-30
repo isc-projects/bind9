@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keyfromlabel.c,v 1.4.50.4 2011/03/12 04:57:22 tbox Exp $ */
+/* $Id: dnssec-keyfromlabel.c,v 1.4.50.5 2011/08/30 12:23:14 marka Exp $ */
 
 /*! \file */
 
@@ -50,6 +50,9 @@ int verbose;
 static const char *algs = "RSA | RSAMD5 | DH | DSA | RSASHA1 |"
 			  " NSEC3DSA | NSEC3RSASHA1 |"
 			  " RSASHA256 | RSASHA512";
+
+ISC_PLATFORM_NORETURN_PRE static void
+usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
 usage(void) {

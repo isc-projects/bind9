@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.163.48.18 2011/05/23 22:24:12 each Exp $ */
+/* $Id: nsupdate.c,v 1.163.48.19 2011/08/30 12:23:15 marka Exp $ */
 
 /*! \file */
 
@@ -174,8 +174,9 @@ typedef struct nsu_requestinfo {
 static void
 sendrequest(isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
 	    dns_message_t *msg, dns_request_t **request);
-static void
-fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
+ISC_PLATFORM_NORETURN_POST static void
+fatal(const char *format, ...)
+ISC_FORMAT_PRINTF(1, 2) ISC_PLATFORM_NORETURN_POST;
 
 static void
 debug(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);

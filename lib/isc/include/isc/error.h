@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: error.h,v 1.20 2007/06/19 23:47:18 tbox Exp $ */
+/* $Id: error.h,v 1.20.332.1 2011/08/30 12:23:16 marka Exp $ */
 
 #ifndef ISC_ERROR_H
 #define ISC_ERROR_H 1
@@ -26,6 +26,7 @@
 
 #include <isc/formatcheck.h>
 #include <isc/lang.h>
+#include <isc/platform.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -45,9 +46,9 @@ isc_error_unexpected(const char *, int, const char *, ...)
      ISC_FORMAT_PRINTF(3, 4);
 
 /*% fatal error */
-void
+ISC_PLATFORM_NORETURN_PRE void
 isc_error_fatal(const char *, int, const char *, ...)
-     ISC_FORMAT_PRINTF(3, 4);
+ISC_FORMAT_PRINTF(3, 4) ISC_PLATFORM_NORETURN_POST;
 
 /*% runtimecheck error */
 void

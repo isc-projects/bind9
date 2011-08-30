@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.51.34.6 2010/09/07 23:46:06 tbox Exp $ */
+/* $Id: named-checkzone.c,v 1.51.34.7 2011/08/30 12:23:13 marka Exp $ */
 
 /*! \file */
 
@@ -69,6 +69,9 @@ static enum { progmode_check, progmode_compile } progmode;
 			return (result); \
 		} \
 	} while (0)
+
+ISC_PLATFORM_NORETURN_PRE static void
+usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
 usage(void) {
