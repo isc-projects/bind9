@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.h,v 1.3 2011/08/30 05:16:15 marka Exp $ */
+/* $Id: update.h,v 1.4 2011/08/30 13:02:39 marka Exp $ */
 
 #ifndef DNS_UPDATE_H
 #define DNS_UPDATE_H 1
@@ -28,6 +28,7 @@
 #include <isc/lang.h>
 
 #include <dns/types.h>
+#include <dns/diff.h>
 
 typedef struct {
 	void (*func)(void *arg, dns_zone_t *zone, int level,
