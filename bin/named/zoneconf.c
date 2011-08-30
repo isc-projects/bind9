@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.179 2011/08/30 05:16:11 marka Exp $ */
+/* $Id: zoneconf.c,v 1.180 2011/08/30 12:45:43 marka Exp $ */
 
 /*% */
 
@@ -1234,7 +1234,6 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 
 	if (ztype == dns_zone_master || raw != NULL) {
 		isc_boolean_t allow = ISC_FALSE, maint = ISC_FALSE;
-		isc_boolean_t create = ISC_FALSE;
 
 		obj = NULL;
 		result = ns_config_get(maps, "sig-validity-interval", &obj);
@@ -1328,8 +1327,6 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	 * Primary master functionality.
 	 */
 	if (ztype == dns_zone_master) {
-		isc_boolean_t allow = ISC_FALSE, maint = ISC_FALSE;
-
 		obj = NULL;
 		result = ns_config_get(maps, "check-wildcard", &obj);
 		if (result == ISC_R_SUCCESS)
