@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.181 2011/08/02 20:36:12 each Exp $ */
+/* $Id: view.c,v 1.182 2011/08/30 21:14:50 marka Exp $ */
 
 /*! \file */
 
@@ -1728,6 +1728,9 @@ isc_result_t
 dns_view_issecuredomain(dns_view_t *view, dns_name_t *name,
 			 isc_boolean_t *secure_domain) {
 	REQUIRE(DNS_VIEW_VALID(view));
+
+	if (view->secroots_priv == NULL)
+		return (ISC_R_NOTFOUND);
 	return (dns_keytable_issecuredomain(view->secroots_priv, name,
 					    secure_domain));
 }
