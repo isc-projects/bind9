@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.191 2011/07/06 01:36:32 each Exp $ */
+/* $Id: zone.h,v 1.192 2011/08/30 05:16:15 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -44,7 +44,7 @@ typedef enum {
 	dns_zone_staticstub,
 	dns_zone_key,
 	dns_zone_dlz,
-	dns_zone_redirect,
+	dns_zone_redirect
 } dns_zonetype_t;
 
 #define DNS_ZONEOPT_SERVERS	  0x00000001U	/*%< perform server checks */
@@ -1923,6 +1923,13 @@ dns_zone_getserialupdatemethod(dns_zone_t *zone);
  * Requires:
  * \li	'zone' to be valid.
  */
+
+void
+dns_zone_link(dns_zone_t *zone, dns_zone_t *raw);
+
+void
+dns_zone_getraw(dns_zone_t *zone, dns_zone_t **raw);
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_ZONE_H */

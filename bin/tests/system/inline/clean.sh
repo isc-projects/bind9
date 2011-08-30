@@ -1,0 +1,11 @@
+rm -f */named.memstats
+rm -f */named.run
+rm -f */trusted.conf
+rm -f ns2/bits.db
+rm -f ns3/K*
+rm -f ns3/bits.bk
+rm -f ns3/bits.bk.jnl
+rm -f ns3/bits.bk.signed
+rm -f ns3/bits.bk.signed.jnl
+rm -f ns4/noixfr.db
+rm -f random.data

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.119 2011/07/01 02:25:47 marka Exp $ */
+/* $Id: config.c,v 1.120 2011/08/30 05:16:10 marka Exp $ */
 
 /*! \file */
 
@@ -199,6 +199,7 @@ options {\n\
 	sig-signing-nodes 100;\n\
 	sig-signing-signatures 10;\n\
 	sig-signing-type 65534;\n\
+	inline-signing no;\n\
 	zone-statistics false;\n\
 	max-journal-size unlimited;\n\
 	ixfr-from-differences false;\n\
@@ -294,7 +295,8 @@ ns_checknames_get(const cfg_obj_t **maps, const char *which,
 		if (maps[i] == NULL)
 			return (ISC_R_NOTFOUND);
 		checknames = NULL;
-		if (cfg_map_get(maps[i], "check-names", &checknames) == ISC_R_SUCCESS) {
+		if (cfg_map_get(maps[i], "check-names",
+			        &checknames) == ISC_R_SUCCESS) {
 			/*
 			 * Zone map entry is not a list.
 			 */
@@ -307,7 +309,8 @@ ns_checknames_get(const cfg_obj_t **maps, const char *which,
 			     element = cfg_list_next(element)) {
 				value = cfg_listelt_value(element);
 				type = cfg_tuple_get(value, "type");
-				if (strcasecmp(cfg_obj_asstring(type), which) == 0) {
+				if (strcasecmp(cfg_obj_asstring(type),
+					       which) == 0) {
 					*obj = cfg_tuple_get(value, "mode");
 					return (ISC_R_SUCCESS);
 				}

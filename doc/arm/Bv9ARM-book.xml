@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.500 2011/08/03 01:19:10 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.501 2011/08/30 05:16:13 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -10115,6 +10115,7 @@ view "external" {
     <optional> max-retry-time <replaceable>number</replaceable> ; </optional>
     <optional> key-directory <replaceable>path_name</replaceable>; </optional>
     <optional> auto-dnssec <constant>allow</constant>|<constant>maintain</constant>|<constant>off</constant>; </optional>
+    <optional> inline-signing <replacable>yes_or_no</replacable>; </optional>
     <optional> zero-no-soa-ttl <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> serial-update-method <constant>increment</constant>|<constant>unixtime</constant>; </optional>
 };
@@ -11276,6 +11277,20 @@ example.com. NS ns2.example.net.
                   </para>
                 </listitem>
               </varlistentry>
+
+              <varlistentry>
+                <term><command>inline-signing</command></term>
+		<listitem>
+		  <para>
+		    <command>inline-signing</command> is used to enable
+		    bump in the wire signing of a zone, where a
+		    unsigned zone is transfered in or loaded from
+		    disk and a signed version of the zone is served,
+		    with possibly, a different serial number.  This
+		    behaviour is disabled by default.
+		  </para>
+		</listitem>
+	      </varlistentry>
 
               <varlistentry>
                 <term><command>multi-master</command></term>

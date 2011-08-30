@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.h,v 1.37 2009/11/04 23:48:18 tbox Exp $ */
+/* $Id: journal.h,v 1.38 2011/08/30 05:16:15 marka Exp $ */
 
 #ifndef DNS_JOURNAL_H
 #define DNS_JOURNAL_H 1
@@ -45,6 +45,10 @@
  *** Defines.
  ***/
 #define DNS_JOURNALOPT_RESIGN	0x00000001
+
+#define DNS_JOURNAL_READ	0x00000000	/* ISC_FALSE */
+#define DNS_JOURNAL_CREATE	0x00000001	/* ISC_TRUE */
+#define DNS_JOURNAL_WRITE	0x00000002
 
 /***
  *** Types
@@ -95,16 +99,15 @@ dns_db_createsoatuple(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
  */
 
 isc_result_t
-dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
+dns_journal_open(isc_mem_t *mctx, const char *filename, unsigned int mode,
 		 dns_journal_t **journalp);
 /*%<
  * Open the journal file 'filename' and create a dns_journal_t object for it.
  *
- * If 'write' is ISC_TRUE, the journal is open for writing.  If it does
- * not exist, it is created.
- *
- * If 'write' is ISC_FALSE, the journal is open for reading.  If it does
- * not exist, ISC_R_NOTFOUND is returned.
+ * DNS_JOURNAL_CREATE open the journal for reading and writing and create
+ * the journal if it does not exist.
+ * DNS_JOURNAL_WRITE open the journal for readinge and writing.
+ * DNS_JOURNAL_READ open the journal for reading only.
  */
 
 void
@@ -282,6 +285,14 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, isc_uint32_t serial,
  * Attempt to compact the journal if it is greater that 'target_size'.
  * Changes from 'serial' onwards will be preserved.  If the journal
  * exists and is non-empty 'serial' must exist in the journal.
+ */
+
+isc_uint32_t
+dns_journal_get_bitws(dns_journal_t *j);
+void
+dns_journal_set_bitws(dns_journal_t *j, isc_uint32_t bitws);
+/*%<
+ * Get and set bump in the wire serial.
  */
 
 ISC_LANG_ENDDECLS

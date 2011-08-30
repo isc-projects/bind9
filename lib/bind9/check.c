@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.133 2011/06/17 07:05:02 each Exp $ */
+/* $Id: check.c,v 1.134 2011/08/30 05:16:14 marka Exp $ */
 
 /*! \file */
 
@@ -1225,7 +1225,7 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 #define STATICSTUBZONE	64
 #define REDIRECTZONE	128
 #define STREDIRECTZONE	0	/* Set to REDIRECTZONE to allow xfr-in. */
-#define CHECKACL	256
+#define CHECKACL	512
 
 typedef struct {
 	const char *name;
@@ -1255,7 +1255,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 
 	static optionstable options[] = {
 	{ "allow-query", MASTERZONE | SLAVEZONE | STUBZONE | REDIRECTZONE |
-	  CHECKACL | STATICSTUBZONE },
+	   CHECKACL | STATICSTUBZONE },
 	{ "allow-notify", SLAVEZONE | CHECKACL },
 	{ "allow-transfer", MASTERZONE | SLAVEZONE | CHECKACL },
 	{ "notify", MASTERZONE | SLAVEZONE },
@@ -1279,13 +1279,14 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	{ "max-refresh-time", SLAVEZONE | STUBZONE | STREDIRECTZONE },
 	{ "min-refresh-time", SLAVEZONE | STUBZONE | STREDIRECTZONE },
 	{ "dnssec-secure-to-insecure", MASTERZONE },
-	{ "sig-validity-interval", MASTERZONE },
-	{ "sig-re-signing-interval", MASTERZONE },
-	{ "sig-signing-nodes", MASTERZONE },
-	{ "sig-signing-type", MASTERZONE },
-	{ "sig-signing-signatures", MASTERZONE },
+	{ "sig-re-signing-interval", MASTERZONE | SLAVEZONE },
+	{ "sig-signing-nodes", MASTERZONE | SLAVEZONE },
+	{ "sig-signing-signatures", MASTERZONE | SLAVEZONE },
+	{ "sig-signing-type", MASTERZONE | SLAVEZONE },
+	{ "sig-validity-interval", MASTERZONE | SLAVEZONE },
+	{ "signing", MASTERZONE | SLAVEZONE },
 	{ "zone-statistics", MASTERZONE | SLAVEZONE | STUBZONE |
-	  STATICSTUBZONE| REDIRECTZONE },
+	  STATICSTUBZONE | REDIRECTZONE },
 	{ "allow-update", MASTERZONE | CHECKACL },
 	{ "allow-update-forwarding", SLAVEZONE | CHECKACL },
 	{ "file", MASTERZONE | SLAVEZONE | STUBZONE | HINTZONE | REDIRECTZONE },
@@ -1296,7 +1297,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	{ "pubkey", MASTERZONE | SLAVEZONE | STUBZONE },
 	{ "update-policy", MASTERZONE },
 	{ "database", MASTERZONE | SLAVEZONE | STUBZONE | REDIRECTZONE },
-	{ "key-directory", MASTERZONE },
+	{ "key-directory", MASTERZONE | SLAVEZONE },
 	{ "check-wildcard", MASTERZONE },
 	{ "check-mx", MASTERZONE },
 	{ "check-dup-records", MASTERZONE },
@@ -1308,7 +1309,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	{ "update-check-ksk", MASTERZONE },
 	{ "dnssec-dnskey-kskonly", MASTERZONE },
 	{ "dnssec-loadkeys-interval", MASTERZONE },
-	{ "auto-dnssec", MASTERZONE },
+	{ "auto-dnssec", MASTERZONE | SLAVEZONE },
 	{ "try-tcp-refresh", SLAVEZONE | STREDIRECTZONE },
 	{ "server-addresses", STATICSTUBZONE },
 	{ "server-names", STATICSTUBZONE },

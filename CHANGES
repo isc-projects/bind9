@@ -1,3 +1,5 @@
+3147.	[func]		Initial inline signing support.  [RT #23657]
+
 	--- 9.9.0a1 released ---
 
 3146.   [test]		Fixed gcc4.6.0 errors in ATF. [RT #25598]

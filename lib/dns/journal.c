@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.114 2011/03/12 04:59:48 tbox Exp $ */
+/* $Id: journal.c,v 1.115 2011/08/30 05:16:14 marka Exp $ */
 
 #include <config.h>
 
@@ -213,6 +213,8 @@ typedef union {
 		journal_rawpos_t 	end;
 		/*% Number of index entries following the header. */
 		unsigned char 		index_size[4];
+		/*% Bump in the wire serial. */
+		unsigned char           bitws[4];
 	} h;
 	/* Pad the header to a fixed size. */
 	unsigned char pad[JOURNAL_HEADER_SIZE];
@@ -252,6 +254,7 @@ typedef struct {
 	journal_pos_t 	begin;
 	journal_pos_t 	end;
 	isc_uint32_t	index_size;
+	isc_uint32_t	bitws;
 } journal_header_t;
 
 /*%
@@ -284,7 +287,7 @@ typedef struct {
  */
 
 static journal_header_t
-initial_journal_header = { ";BIND LOG V9\n", { 0, 0 }, { 0, 0 }, 0 };
+initial_journal_header = { ";BIND LOG V9\n", { 0, 0 }, { 0, 0 }, 0, 0 };
 
 #define JOURNAL_EMPTY(h) ((h)->begin.offset == (h)->end.offset)
 
@@ -292,7 +295,8 @@ typedef enum {
 	JOURNAL_STATE_INVALID,
 	JOURNAL_STATE_READ,
 	JOURNAL_STATE_WRITE,
-	JOURNAL_STATE_TRANSACTION
+	JOURNAL_STATE_TRANSACTION,
+	JOURNAL_STATE_BITWS
 } journal_state_t;
 
 struct dns_journal {
@@ -353,6 +357,7 @@ journal_header_decode(journal_rawheader_t *raw, journal_header_t *cooked) {
 	journal_pos_decode(&raw->h.begin, &cooked->begin);
 	journal_pos_decode(&raw->h.end, &cooked->end);
 	cooked->index_size = decode_uint32(raw->h.index_size);
+	cooked->bitws = decode_uint32(raw->h.bitws);
 }
 
 static void
@@ -363,6 +368,7 @@ journal_header_encode(journal_header_t *cooked, journal_rawheader_t *raw) {
 	journal_pos_encode(&raw->h.begin, &cooked->begin);
 	journal_pos_encode(&raw->h.end, &cooked->end);
 	encode_uint32(cooked->index_size, raw->h.index_size);
+	encode_uint32(cooked->bitws, raw->h.bitws);
 }
 
 /*
@@ -667,13 +673,17 @@ journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 }
 
 isc_result_t
-dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
+dns_journal_open(isc_mem_t *mctx, const char *filename, unsigned int mode,
 		 dns_journal_t **journalp) {
 	isc_result_t result;
 	int namelen;
 	char backup[1024];
+	isc_boolean_t write, create;
 
-	result = journal_open(mctx, filename, write, write, journalp);
+	create = ISC_TF(mode & DNS_JOURNAL_CREATE);
+	write = ISC_TF(mode & (DNS_JOURNAL_WRITE|DNS_JOURNAL_CREATE));
+
+	result = journal_open(mctx, filename, write, create, journalp);
 	if (result == ISC_R_NOTFOUND) {
 		namelen = strlen(filename);
 		if (namelen > 4 && strcmp(filename + namelen - 4, ".jnl") == 0)
@@ -944,7 +954,8 @@ dns_journal_begin_transaction(dns_journal_t *j) {
 	journal_rawxhdr_t hdr;
 
 	REQUIRE(DNS_JOURNAL_VALID(j));
-	REQUIRE(j->state == JOURNAL_STATE_WRITE);
+	REQUIRE(j->state == JOURNAL_STATE_WRITE ||
+		j->state == JOURNAL_STATE_BITWS);
 
 	/*
 	 * Find the file offset where the new transaction should
@@ -1067,7 +1078,21 @@ dns_journal_commit(dns_journal_t *j) {
 	journal_rawheader_t rawheader;
 
 	REQUIRE(DNS_JOURNAL_VALID(j));
-	REQUIRE(j->state == JOURNAL_STATE_TRANSACTION);
+	REQUIRE(j->state == JOURNAL_STATE_TRANSACTION ||
+	        j->state == JOURNAL_STATE_BITWS);
+
+	/*
+	 * Just write out a updated header.
+	 */
+	if (j->state == JOURNAL_STATE_BITWS) {
+		CHECK(journal_fsync(j));
+		journal_header_encode(&j->header, &rawheader);
+		CHECK(journal_seek(j, 0));
+		CHECK(journal_write(j, &rawheader, sizeof(rawheader)));
+		CHECK(journal_fsync(j));
+		j->state = JOURNAL_STATE_WRITE;
+		return (ISC_R_SUCCESS);
+	}
 
 	/*
 	 * Perform some basic consistency checks.
@@ -1124,19 +1149,24 @@ dns_journal_commit(dns_journal_t *j) {
 	 */
 	CHECK(journal_fsync(j));
 
-	/*
-	 * Update the transaction header.
-	 */
-	CHECK(journal_seek(j, j->x.pos[0].offset));
-	CHECK(journal_write_xhdr(j, (j->x.pos[1].offset - j->x.pos[0].offset) -
-				 sizeof(journal_rawxhdr_t),
-				 j->x.pos[0].serial, j->x.pos[1].serial));
+	if (j->state == JOURNAL_STATE_TRANSACTION) {
+		isc_offset_t offset;
+		offset = (j->x.pos[1].offset - j->x.pos[0].offset) -
+				 sizeof(journal_rawxhdr_t);
+		/*
+		 * Update the transaction header.
+		 */
+		CHECK(journal_seek(j, j->x.pos[0].offset));
+		CHECK(journal_write_xhdr(j, offset, j->x.pos[0].serial,
+					 j->x.pos[1].serial));
+	}
 
 	/*
 	 * Update the journal header.
 	 */
 	if (JOURNAL_EMPTY(&j->header)) {
 		j->header.begin = j->x.pos[0];
+		j->header.bitws = j->header.begin.serial;
 	}
 	j->header.end = j->x.pos[1];
 	journal_header_encode(&j->header, &rawheader);
@@ -1415,6 +1445,7 @@ dns_journal_print(isc_mem_t *mctx, const char *filename, FILE *file) {
 		return (result);
 	}
 
+	fprintf(file, "BITWS = %u\n", j->header.bitws);
 	dns_diff_init(j->mctx, &diff);
 
 	/*
@@ -1497,12 +1528,31 @@ dns_journal_print(isc_mem_t *mctx, const char *filename, FILE *file) {
 /*
  * Miscellaneous accessors.
  */
-isc_uint32_t dns_journal_first_serial(dns_journal_t *j) {
+isc_uint32_t
+dns_journal_first_serial(dns_journal_t *j) {
 	return (j->header.begin.serial);
 }
 
-isc_uint32_t dns_journal_last_serial(dns_journal_t *j) {
+isc_uint32_t
+dns_journal_last_serial(dns_journal_t *j) {
 	return (j->header.end.serial);
+}
+
+void
+dns_journal_set_bitws(dns_journal_t *j, isc_uint32_t bitws) {
+
+	REQUIRE(j->state == JOURNAL_STATE_WRITE ||
+		j->state == JOURNAL_STATE_BITWS ||
+		j->state == JOURNAL_STATE_TRANSACTION);
+
+	j->header.bitws = bitws;
+	if (j->state == JOURNAL_STATE_WRITE)
+		j->state = JOURNAL_STATE_BITWS;
+}
+
+isc_uint32_t
+dns_journal_get_bitws(dns_journal_t *j) {
+	return (j->header.bitws);
 }
 
 /**************************************************************************/
@@ -2145,6 +2195,7 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, isc_uint32_t serial,
 		new->header.begin.offset = indexend;
 		new->header.end.serial = j->header.end.serial;
 		new->header.end.offset = indexend + copy_length;
+		new->header.bitws = j->header.bitws;
 
 		/*
 		 * Update the journal header.
