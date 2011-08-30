@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getnameinfo.c,v 1.39 2007/06/19 23:47:22 tbox Exp $ */
+/* $Id: getnameinfo.c,v 1.39.814.1 2011/08/30 00:19:46 marka Exp $ */
 
 /*! \file */
 
@@ -219,6 +219,7 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 	default:
 		port = 0;
 		addr = NULL;
+		POST(port); POST(addr);
 		INSIST(0);
 	}
 	proto = (flags & NI_DGRAM) ? "udp" : "tcp";
