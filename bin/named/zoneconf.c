@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.180 2011/08/30 12:45:43 marka Exp $ */
+/* $Id: zoneconf.c,v 1.181 2011/08/30 23:46:51 tbox Exp $ */
 
 /*% */
 
@@ -861,7 +861,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		dns_zone_settype(zone, dns_zone_master);
 	} else
 		dns_zone_settype(zone, ztype);
-	
+
 
 	obj = NULL;
 	result = cfg_map_get(zoptions, "database", &obj);
@@ -1314,7 +1314,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			dns_zone_setkeyopt(zone, DNS_ZONEKEY_ALLOW, allow);
 			dns_zone_setkeyopt(zone, DNS_ZONEKEY_MAINTAIN, maint);
 		}
-	} 
+	}
 
 	if (ztype == dns_zone_slave) {
 		RETERR(configure_zone_acl(zconfig, vconfig, config,
@@ -1452,7 +1452,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 							     keynames, count);
 			ns_config_putipandkeylist(mctx, &addrs, &keynames,
 						  count);
-		} else 
+		} else
 			result = dns_zone_setmasters(mayberaw, NULL, 0);
 		RETERR(result);
 
@@ -1513,13 +1513,13 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		result = ns_config_get(maps, "alt-transfer-source", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		RETERR(dns_zone_setaltxfrsource4(mayberaw,
-					         cfg_obj_assockaddr(obj)));
+						 cfg_obj_assockaddr(obj)));
 
 		obj = NULL;
 		result = ns_config_get(maps, "alt-transfer-source-v6", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		RETERR(dns_zone_setaltxfrsource6(mayberaw,
-					         cfg_obj_assockaddr(obj)));
+						 cfg_obj_assockaddr(obj)));
 
 		obj = NULL;
 		(void)ns_config_get(maps, "use-alt-transfer-source", &obj);
@@ -1610,7 +1610,7 @@ ns_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig) {
 		return (ISC_FALSE);
 
 	obj = NULL;
-        (void)cfg_map_get(zoptions, "signing", &obj);
+	(void)cfg_map_get(zoptions, "signing", &obj);
 	if (obj == NULL || !cfg_obj_asboolean(obj)) {
 		dns_zone_t *raw = NULL;
 		dns_zone_getraw(zone, &raw);

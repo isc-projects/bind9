@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.626 2011/08/30 14:01:53 marka Exp $ */
+/* $Id: zone.c,v 1.627 2011/08/30 23:46:52 tbox Exp $ */
 
 /*! \file */
 
@@ -11791,7 +11791,7 @@ struct secure_serial {
 static void
 update_log_cb(void *arg, dns_zone_t *zone, int level, const char *message) {
 	UNUSED(arg);
-        dns_zone_log(zone, level, "%s", message);
+	dns_zone_log(zone, level, "%s", message);
 }
 
 static void
@@ -11807,7 +11807,7 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 	isc_uint32_t oldserial, newserial;
 	dns_diffop_t op = DNS_DIFFOP_ADD;
 	dns_diff_t diff;
- 	dns_difftuple_t *tuple = NULL, *soatuple = NULL;
+	dns_difftuple_t *tuple = NULL, *soatuple = NULL;
 	dns_update_log_t log = { update_log_cb, NULL };
 	isc_time_t timenow;
 
@@ -11815,7 +11815,7 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 	end = ((struct secure_serial *)event)->serial;
 
 	dns_diff_init(zone->mctx, &diff);
-	
+
 	UNUSED(task);
 	CHECK(dns_journal_open(zone->raw->mctx, zone->raw->journal,
 			       DNS_JOURNAL_WRITE, &rjournal));
@@ -11892,9 +11892,9 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 
 		op = (n_soa == 1) ? DNS_DIFFOP_DEL : DNS_DIFFOP_ADD;
 
-                CHECK(dns_difftuple_create(diff.mctx, op, name, ttl, rdata,
-                                           &tuple));
-                dns_diff_appendminimal(&diff, &tuple);
+		CHECK(dns_difftuple_create(diff.mctx, op, name, ttl, rdata,
+					   &tuple));
+		dns_diff_appendminimal(&diff, &tuple);
 	}
 	if (result == ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;
@@ -12000,7 +12000,7 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 	dns_rdataset_t rdataset;
 	dns_dbversion_t *version = NULL;
 	isc_time_t loadtime;
-	
+
 	UNUSED(task);
 
 	zone = event->ev_arg;
@@ -12008,7 +12008,7 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 	dns_fixedname_init(&fname);
 	name = dns_fixedname_name(&fname);
 	dns_rdataset_init(&rdataset);
-	
+
 	TIME_NOW(&loadtime);
 
 	result = dns_db_create(zone->mctx, zone->db_argv[0],
@@ -12057,7 +12057,7 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 						    &rdataset, 0, NULL);
 			if (result != ISC_R_SUCCESS)
 				goto failure;
-		
+
 			dns_rdataset_disassociate(&rdataset);
 		}
 		dns_rdatasetiter_destroy(&rdsit);
@@ -12068,15 +12068,15 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 	dns_db_closeversion(db, &version, ISC_TRUE);
 	LOCK_ZONE(zone);
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
-        result = zone_postload(zone, db, loadtime, ISC_R_SUCCESS);
+	result = zone_postload(zone, db, loadtime, ISC_R_SUCCESS);
 	zone_needdump(zone, 0); /* XXXMPA */
-        UNLOCK_ZONE(zone);
+	UNLOCK_ZONE(zone);
 
  failure:
 	if (result != ISC_R_SUCCESS)
 		dns_zone_log(zone, ISC_LOG_ERROR, "receive_secure_db: %s",
 			     dns_result_totext(result));
-	
+
 	if (dns_rdataset_isassociated(&rdataset))
 		dns_rdataset_disassociate(&rdataset);
 	if (db != NULL) {
@@ -15097,7 +15097,7 @@ void
 dns_zone_getraw(dns_zone_t *zone, dns_zone_t **raw) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(raw != NULL && *raw == NULL);
-	
+
 	LOCK(&zone->lock);
 	if (zone->raw != NULL)
 		dns_zone_attach(zone->raw, raw);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007, 2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2010, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.h,v 1.29 2011/08/30 05:16:11 marka Exp $ */
+/* $Id: zoneconf.h,v 1.30 2011/08/30 23:46:51 tbox Exp $ */
 
 #ifndef NS_ZONECONF_H
 #define NS_ZONECONF_H 1

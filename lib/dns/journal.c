@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.115 2011/08/30 05:16:14 marka Exp $ */
+/* $Id: journal.c,v 1.116 2011/08/30 23:46:52 tbox Exp $ */
 
 #include <config.h>
 
@@ -1079,7 +1079,7 @@ dns_journal_commit(dns_journal_t *j) {
 
 	REQUIRE(DNS_JOURNAL_VALID(j));
 	REQUIRE(j->state == JOURNAL_STATE_TRANSACTION ||
-	        j->state == JOURNAL_STATE_BITWS);
+		j->state == JOURNAL_STATE_BITWS);
 
 	/*
 	 * Just write out a updated header.

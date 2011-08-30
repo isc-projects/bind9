@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.h,v 1.4 2011/08/30 13:02:39 marka Exp $ */
+/* $Id: update.h,v 1.5 2011/08/30 23:46:53 tbox Exp $ */
 
 #ifndef DNS_UPDATE_H
 #define DNS_UPDATE_H 1
@@ -32,7 +32,7 @@
 
 typedef struct {
 	void (*func)(void *arg, dns_zone_t *zone, int level,
-		     const char *message); 
+		     const char *message);
 	void *arg;
 } dns_update_log_t;
 
@@ -56,8 +56,8 @@ dns_update_soaserial(isc_uint32_t serial, dns_updatemethod_t method);
 
 isc_result_t
 dns_update_signatures(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
-                      dns_dbversion_t *oldver, dns_dbversion_t *newver,
-                      dns_diff_t *diff, isc_uint32_t sigvalidityinterval);
+		      dns_dbversion_t *oldver, dns_dbversion_t *newver,
+		      dns_diff_t *diff, isc_uint32_t sigvalidityinterval);
 
 ISC_LANG_ENDDECLS
 

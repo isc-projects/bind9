@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.120 2011/08/30 05:16:10 marka Exp $ */
+/* $Id: config.c,v 1.121 2011/08/30 23:46:51 tbox Exp $ */
 
 /*! \file */
 
@@ -296,7 +296,7 @@ ns_checknames_get(const cfg_obj_t **maps, const char *which,
 			return (ISC_R_NOTFOUND);
 		checknames = NULL;
 		if (cfg_map_get(maps[i], "check-names",
-			        &checknames) == ISC_R_SUCCESS) {
+				&checknames) == ISC_R_SUCCESS) {
 			/*
 			 * Zone map entry is not a list.
 			 */
