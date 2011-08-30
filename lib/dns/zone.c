@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.624 2011/08/30 05:16:14 marka Exp $ */
+/* $Id: zone.c,v 1.625 2011/08/30 13:45:16 marka Exp $ */
 
 /*! \file */
 
@@ -11806,7 +11806,6 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 	dns_db_t *db = NULL;
 	dns_dbnode_t *node = NULL;
 	dns_dbversion_t *newver = NULL, *oldver = NULL;
-	unsigned int addopt, delopt;
 	isc_uint32_t oldserial, newserial;
 	dns_diffop_t op = DNS_DIFFOP_ADD;
 	dns_diff_t diff;
@@ -11847,9 +11846,6 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 	dns_db_attach(zone->db, &db);
 	dns_db_currentversion(db, &oldver);
 	CHECK(dns_db_newversion(db, &newver));
-
-	addopt = DNS_DBADD_MERGE | DNS_DBADD_EXACT | DNS_DBADD_EXACTTTL;
-	delopt = DNS_DBADD_EXACT;
 
 	for (result = dns_journal_first_rr(rjournal);
 	     result == ISC_R_SUCCESS;
