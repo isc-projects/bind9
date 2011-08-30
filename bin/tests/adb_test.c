@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb_test.c,v 1.71 2011/08/30 21:50:34 marka Exp $ */
+/* $Id: adb_test.c,v 1.72 2011/08/30 21:51:34 marka Exp $ */
 
 /*! \file */
 
@@ -266,7 +266,6 @@ lookup(const char *target) {
 				    now, NULL, view->dstport, &client->find);
 	if (result != ISC_R_SUCCESS)
 		printf("DNS_ADB_CREATEFIND -> %s\n", dns_result_totext(result));
-	// check_result(result, "dns_adb_createfind()");
 	dns_adb_dumpfind(client->find, stderr);
 
 	if ((client->find->options & DNS_ADBFIND_WANTEVENT) != 0) {
