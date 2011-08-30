@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.625 2011/08/30 13:45:16 marka Exp $ */
+/* $Id: zone.c,v 1.626 2011/08/30 14:01:53 marka Exp $ */
 
 /*! \file */
 
@@ -4384,13 +4384,14 @@ clear_addresskeylist(isc_sockaddr_t **addrsp, dns_name_t ***keynamesp,
 	REQUIRE(countp != NULL && addrsp != NULL && keynamesp != NULL);
 
 	count = *countp;
+	*countp = 0;
 	addrs = *addrsp;
+	*addrsp = NULL;
 	keynames = *keynamesp;
+	*keynamesp = NULL;
 
-	if (addrs != NULL) {
+	if (addrs != NULL)
 		isc_mem_put(mctx, addrs, count * sizeof(isc_sockaddr_t));
-		addrs = *addrsp = NULL;
-	}
 
 	if (keynames != NULL) {
 		unsigned int i;
@@ -4403,10 +4404,7 @@ clear_addresskeylist(isc_sockaddr_t **addrsp, dns_name_t ***keynamesp,
 			}
 		}
 		isc_mem_put(mctx, keynames, count * sizeof(dns_name_t *));
-		keynames = *keynamesp = NULL;
 	}
-
-	count = *countp = 0;
 }
 
 static isc_result_t
@@ -9661,7 +9659,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_soa_t soa;
 	isc_result_t result;
-	isc_uint32_t serial, oldserial;
+	isc_uint32_t serial, oldserial = 0;
 	unsigned int j;
 
 	zone = revent->ev_arg;
