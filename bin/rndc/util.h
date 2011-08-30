@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: util.h,v 1.10.332.2 2011/08/30 21:07:21 marka Exp $ */
+/* $Id: util.h,v 1.10.332.3 2011/08/30 23:45:12 tbox Exp $ */
 
 #ifndef RNDC_UTIL_H
 #define RNDC_UTIL_H 1
@@ -44,7 +44,7 @@ ISC_LANG_BEGINDECLS
 void
 notify(const char *fmt, ...) ISC_FORMAT_PRINTF(1, 2);
 
-ISC_PLATFORM_NORETURN_PRE void            
+ISC_PLATFORM_NORETURN_PRE void
 fatal(const char *format, ...)
 ISC_FORMAT_PRINTF(1, 2) ISC_PLATFORM_NORETURN_POST;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2008, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1997-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: assertions.c,v 1.23.44.1 2011/08/30 12:23:16 marka Exp $ */
+/* $Id: assertions.c,v 1.23.44.2 2011/08/30 23:45:13 tbox Exp $ */
 
 /*! \file */
 
@@ -46,9 +46,9 @@ void
 isc_assertion_failed(const char *file, int line, isc_assertiontype_t type,
 		     const char *cond)
 {
-        isc_assertion_failed_cb(file, line, type, cond);
-        abort();
-        /* NOTREACHED */
+	isc_assertion_failed_cb(file, line, type, cond);
+	abort();
+	/* NOTREACHED */
 }
 
 
