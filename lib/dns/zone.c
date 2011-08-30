@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.582.8.26 2011/08/09 02:34:24 marka Exp $ */
+/* $Id: zone.c,v 1.582.8.27 2011/08/30 14:03:31 marka Exp $ */
 
 /*! \file */
 
@@ -9404,7 +9404,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_soa_t soa;
 	isc_result_t result;
-	isc_uint32_t serial, oldserial;
+	isc_uint32_t serial, oldserial = 0;
 	unsigned int j;
 
 	zone = revent->ev_arg;
