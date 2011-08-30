@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: util.h,v 1.10.332.1 2011/08/30 12:23:16 marka Exp $ */
+/* $Id: util.h,v 1.10.332.2 2011/08/30 21:07:21 marka Exp $ */
 
 #ifndef RNDC_UTIL_H
 #define RNDC_UTIL_H 1
@@ -25,6 +25,7 @@
 #include <isc/lang.h>
 
 #include <isc/formatcheck.h>
+#include <isc/platform.h>
 
 #define NS_CONTROL_PORT		953
 
