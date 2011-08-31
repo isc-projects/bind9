@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.483.36.35 2011/08/30 14:05:34 marka Exp $ */
+/* $Id: zone.c,v 1.483.36.36 2011/08/31 03:40:39 marka Exp $ */
 
 /*! \file */
 
@@ -4729,11 +4729,11 @@ zone_nsec3chain(dns_zone_t *zone) {
 	dns_nsec3chainlist_t cleanup;
 	dst_key_t *zone_keys[MAXZONEKEYS];
 	isc_int32_t signatures;
-	isc_boolean_t check_ksk, is_ksk;
+	isc_boolean_t check_ksk;
 	isc_boolean_t delegation;
 	isc_boolean_t first;
 	isc_result_t result;
-	isc_stdtime_t now, inception, soaexpire, expire, stop;
+	isc_stdtime_t now, inception, soaexpire, expire;
 	isc_uint32_t jitter;
 	unsigned int i;
 	unsigned int nkeys = 0;
@@ -4798,7 +4798,6 @@ zone_nsec3chain(dns_zone_t *zone) {
 	 */
 	isc_random_get(&jitter);
 	expire = soaexpire - jitter % 3600;
-	stop = now + 5;
 
 	check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
 	if (check_ksk)
@@ -4845,21 +4844,19 @@ zone_nsec3chain(dns_zone_t *zone) {
 		if (NSEC3REMOVE(nsec3chain->nsec3param.flags))
 			goto next_addchain;
 
-		is_ksk = ISC_FALSE;
 		delegation = ISC_FALSE;
 		dns_dbiterator_current(nsec3chain->dbiterator, &node, name);
 
 		if (nsec3chain->delete_nsec) {
-			delegation = ISC_FALSE;
 			dns_dbiterator_pause(nsec3chain->dbiterator);
 			CHECK(delete_nsec(db, version, node, name, &nsec_diff));
 			goto next_addnode;
 		}
+
 		/*
 		 * On the first pass we need to check if the current node
 		 * has not been obscured.
 		 */
-		delegation = ISC_FALSE;
 		unsecure = ISC_FALSE;
 		if (first) {
 			dns_fixedname_t ffound;
