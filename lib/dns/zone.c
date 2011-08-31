@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.483.36.36 2011/08/31 03:40:39 marka Exp $ */
+/* $Id: zone.c,v 1.483.36.37 2011/08/31 07:47:56 marka Exp $ */
 
 /*! \file */
 
@@ -124,6 +124,7 @@ typedef struct dns_notify dns_notify_t;
 typedef struct dns_stub dns_stub_t;
 typedef struct dns_load dns_load_t;
 typedef struct dns_forward dns_forward_t;
+typedef ISC_LIST(dns_forward_t) dns_forwardlist_t;
 typedef struct dns_io dns_io_t;
 typedef ISC_LIST(dns_io_t) dns_iolist_t;
 typedef struct dns_signing dns_signing_t;
@@ -305,6 +306,11 @@ struct dns_zone {
 	isc_uint32_t		signatures;
 	isc_uint32_t		nodes;
 	dns_rdatatype_t		privatetype;
+ 
+	/*%
+	 * Outstanding forwarded UPDATE requests.
+	 */
+	dns_forwardlist_t	forwards;
 };
 
 #define DNS_ZONE_FLAG(z,f) (ISC_TF(((z)->flags & (f)) != 0))
@@ -466,6 +472,7 @@ struct dns_forward {
 	isc_sockaddr_t		addr;
 	dns_updatecallback_t	callback;
 	void			*callback_arg;
+	ISC_LINK(dns_forward_t)	link;
 };
 
 /*%
@@ -788,6 +795,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->signatures = 10;
 	zone->nodes = 100;
 	zone->privatetype = (dns_rdatatype_t)0xffffU;
+	ISC_LIST_INIT(zone->forwards);
 
 	zone->magic = ZONE_MAGIC;
 
@@ -6504,6 +6512,24 @@ notify_cancel(dns_zone_t *zone) {
 }
 
 static void
+forward_cancel(dns_zone_t *zone) {
+	dns_forward_t *forward;
+
+	/*
+	 * 'zone' locked by caller.
+	 */
+
+	REQUIRE(LOCKED_ZONE(zone));
+
+	for (forward = ISC_LIST_HEAD(zone->forwards);
+	     forward != NULL;
+	     forward = ISC_LIST_NEXT(forward, link)) {
+		if (forward->request != NULL)
+			dns_request_cancel(forward->request);
+	}
+}
+
+static void
 zone_unload(dns_zone_t *zone) {
 
 	/*
@@ -8408,6 +8434,7 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	INSIST(event->ev_type == DNS_EVENT_ZONECONTROL);
 	INSIST(isc_refcount_current(&zone->erefs) == 0);
+
 	zone_debuglog(zone, "zone_shutdown", 3, "shutting down");
 
 	/*
@@ -8465,6 +8492,8 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	}
 
 	notify_cancel(zone);
+
+	forward_cancel(zone);
 
 	if (zone->timer != NULL) {
 		isc_timer_detach(&zone->timer);
@@ -10258,8 +10287,13 @@ forward_destroy(dns_forward_t *forward) {
 		dns_request_destroy(&forward->request);
 	if (forward->msgbuf != NULL)
 		isc_buffer_free(&forward->msgbuf);
-	if (forward->zone != NULL)
+	if (forward->zone != NULL) {
+		LOCK(&forward->zone->lock);
+		if (ISC_LINK_LINKED(forward, link))
+			ISC_LIST_UNLINK(forward->zone->forwards, forward, link);
+		UNLOCK(&forward->zone->lock);
 		dns_zone_idetach(&forward->zone);
+	}
 	isc_mem_putanddetach(&forward->mctx, forward, sizeof(*forward));
 }
 
@@ -10269,6 +10303,12 @@ sendtomaster(dns_forward_t *forward) {
 	isc_sockaddr_t src;
 
 	LOCK_ZONE(forward->zone);
+
+	if (DNS_ZONE_FLAG(forward->zone, DNS_ZONEFLG_EXITING)) {
+		UNLOCK_ZONE(forward->zone);
+		return (ISC_R_CANCELED);
+	}
+
 	if (forward->which >= forward->zone->masterscnt) {
 		UNLOCK_ZONE(forward->zone);
 		return (ISC_R_NOMORE);
@@ -10299,6 +10339,11 @@ sendtomaster(dns_forward_t *forward) {
 				       forward->zone->task,
 				       forward_callback, forward,
 				       &forward->request);
+	if (result == ISC_R_SUCCESS) {
+		if (!ISC_LINK_LINKED(forward, link))
+			ISC_LIST_APPEND(forward->zone->forwards, forward, link);
+	}
+
  unlock:
 	UNLOCK_ZONE(forward->zone);
 	return (result);
@@ -10425,6 +10470,7 @@ dns_zone_forwardupdate(dns_zone_t *zone, dns_message_t *msg,
 	forward->mctx = 0;
 	forward->callback = callback;
 	forward->callback_arg = callback_arg;
+	ISC_LINK_INIT(forward, link);
 	forward->magic = FORWARD_MAGIC;
 
 	mr = dns_message_getrawmessage(msg);
@@ -10740,6 +10786,8 @@ dns_zonemgr_resumexfrs(dns_zonemgr_t *zmgr) {
 
 void
 dns_zonemgr_shutdown(dns_zonemgr_t *zmgr) {
+	dns_zone_t *zone;
+
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 
 	isc_ratelimiter_shutdown(zmgr->rl);
@@ -10748,6 +10796,18 @@ dns_zonemgr_shutdown(dns_zonemgr_t *zmgr) {
 		isc_task_destroy(&zmgr->task);
 	if (zmgr->zonetasks != NULL)
 		isc_taskpool_destroy(&zmgr->zonetasks);
+
+	RWLOCK(&zmgr->rwlock, isc_rwlocktype_read);
+	for (zone = ISC_LIST_HEAD(zmgr->zones);
+	     zone != NULL;
+	     zone = ISC_LIST_NEXT(zone, link))
+	{
+		LOCK_ZONE(zone);
+		forward_cancel(zone);
+		UNLOCK_ZONE(zone);
+	}
+	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_read);
+
 }
 
 static void

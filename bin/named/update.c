@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.151.12.16 2011/03/26 00:47:01 each Exp $ */
+/* $Id: update.c,v 1.151.12.17 2011/08/31 07:47:56 marka Exp $ */
 
 #include <config.h>
 
@@ -4369,6 +4369,12 @@ send_forward_event(ns_client_t *client, dns_zone_t *zone) {
 	update_event_t *event = NULL;
 	isc_task_t *zonetask = NULL;
 	ns_client_t *evclient;
+
+	/*
+	 * This may take some time so replace this client.
+	 */
+	if (!client->mortal && (client->attributes & NS_CLIENTATTR_TCP) == 0)
+		CHECK(ns_client_replace(client));
 
 	event = (update_event_t *)
 		isc_event_allocate(client->mctx, client, DNS_EVENT_UPDATE,
