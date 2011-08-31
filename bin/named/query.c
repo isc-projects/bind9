@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.313.20.27 2011/03/19 09:47:54 marka Exp $ */
+/* $Id: query.c,v 1.313.20.28 2011/08/31 23:33:23 marka Exp $ */
 
 /*! \file */
 
@@ -634,6 +634,7 @@ query_validatezonedb(ns_client_t *client, dns_name_t *name,
 	 */
 
 	check_acl = ISC_TRUE;	/* Keep compiler happy. */
+	POST(check_acl);
 	queryacl = NULL;
 
 	/*
@@ -4233,7 +4234,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		}
 		goto cleanup;
 	case DNS_R_EMPTYNAME:
-		result = DNS_R_NXRRSET;
 		/* FALLTHROUGH */
 	case DNS_R_NXRRSET:
 		INSIST(is_zone);
