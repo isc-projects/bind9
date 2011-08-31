@@ -1,3 +1,6 @@
+3148.	[bug]		Processing of normal queries could be stalled when
+			forwarding a UPDATE message. [RT #24711]
+
 3146.   [test]		Fixed gcc4.6.0 errors in ATF. [RT #25598]
 
 	--- 9.8.1 released ---
