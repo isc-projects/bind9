@@ -142,6 +142,7 @@ options {
         host-statistics <boolean>; // not implemented
         host-statistics-max <integer>; // not implemented
         hostname ( <quoted_string> | none );
+        inline-signing <boolean>;
         interface-interval <integer>;
         ixfr-from-differences <ixfrdiff>;
         key-directory <quoted_string>;
@@ -356,6 +357,7 @@ view <string> <optional_class> {
         forward ( first | only );
         forwarders [ port <integer> ] { ( <ipv4_address> | <ipv6_address> )
             [ port <integer> ]; ... };
+        inline-signing <boolean>;
         ixfr-from-differences <ixfrdiff>;
         key <string> {
                 algorithm <string>;
@@ -488,6 +490,7 @@ view <string> <optional_class> {
                 forward ( first | only );
                 forwarders [ port <integer> ] { ( <ipv4_address> |
                     <ipv6_address> ) [ port <integer> ]; ... };
+                inline-signing <boolean>;
                 ixfr-base <quoted_string>; // obsolete
                 ixfr-from-differences <boolean>;
                 ixfr-tmp-file <quoted_string>; // obsolete
@@ -580,6 +583,7 @@ zone <string> <optional_class> {
         forward ( first | only );
         forwarders [ port <integer> ] { ( <ipv4_address> | <ipv6_address> )
             [ port <integer> ]; ... };
+        inline-signing <boolean>;
         ixfr-base <quoted_string>; // obsolete
         ixfr-from-differences <boolean>;
         ixfr-tmp-file <quoted_string>; // obsolete

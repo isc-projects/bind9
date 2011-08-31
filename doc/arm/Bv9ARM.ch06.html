@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.290 2011/08/04 01:14:43 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.291 2011/08/31 01:14:42 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -90,16 +90,16 @@
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2590214"><span><strong class="command">view</strong></span> Statement Definition and Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#zone_statement_grammar"><span><strong class="command">zone</strong></span>
             Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2591881"><span><strong class="command">zone</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2591888"><span><strong class="command">zone</strong></span> Statement Definition and Usage</a></span></dt>
 </dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2595430">Zone File</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2595385">Zone File</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#types_of_resource_records_and_when_to_use_them">Types of Resource Records and When to Use Them</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2597524">Discussion of MX Records</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2597547">Discussion of MX Records</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#Setting_TTLs">Setting TTLs</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2598208">Inverse Mapping in IPv4</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2598334">Other Zone File Directives</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2598539"><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2598231">Inverse Mapping in IPv4</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2598358">Other Zone File Directives</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2598563"><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#zonefile_format">Additional File Formats</a></span></dt>
 </dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch06.html#statistics">BIND9 Statistics</a></span></dt>
@@ -6330,6 +6330,7 @@ view "external" {
     [<span class="optional"> max-retry-time <em class="replaceable"><code>number</code></em> ; </span>]
     [<span class="optional"> key-directory <em class="replaceable"><code>path_name</code></em>; </span>]
     [<span class="optional"> auto-dnssec <code class="constant">allow</code>|<code class="constant">maintain</code>|<code class="constant">off</code>; </span>]
+    [<span class="optional"> inline-signing <font color="red">&lt;replacable&gt;yes_or_no&lt;/replacable&gt;</font>; </span>]
     [<span class="optional"> zero-no-soa-ttl <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
     [<span class="optional"> serial-update-method <code class="constant">increment</code>|<code class="constant">unixtime</code>; </span>]
 };
@@ -6462,10 +6463,10 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2591881"></a><span><strong class="command">zone</strong></span> Statement Definition and Usage</h3></div></div></div>
+<a name="id2591888"></a><span><strong class="command">zone</strong></span> Statement Definition and Usage</h3></div></div></div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2591889"></a>Zone Types</h4></div></div></div>
+<a name="id2591895"></a>Zone Types</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -6745,7 +6746,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2592534"></a>Class</h4></div></div></div>
+<a name="id2592540"></a>Class</h4></div></div></div>
 <p>
               The zone's name may optionally be followed by a class. If
               a class is not specified, class <code class="literal">IN</code> (for <code class="varname">Internet</code>),
@@ -6767,7 +6768,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2592567"></a>Zone Options</h4></div></div></div>
+<a name="id2592573"></a>Zone Options</h4></div></div></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><span><strong class="command">allow-notify</strong></span></span></dt>
 <dd><p>
@@ -7233,6 +7234,15 @@ example.com. NS ns2.example.net.
                     case it is simply incremented by one.
                   </p>
 </dd>
+<dt><span class="term"><span><strong class="command">inline-signing</strong></span></span></dt>
+<dd><p>
+                    <span><strong class="command">inline-signing</strong></span> is used to enable
+                    bump in the wire signing of a zone, where a
+                    unsigned zone is transfered in or loaded from
+                    disk and a signed version of the zone is served,
+                    with possibly, a different serial number.  This
+                    behaviour is disabled by default.
+                  </p></dd>
 <dt><span class="term"><span><strong class="command">multi-master</strong></span></span></dt>
 <dd><p>
                     See the description of <span><strong class="command">multi-master</strong></span> in
@@ -7669,7 +7679,7 @@ example.com. NS ns2.example.net.
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2595430"></a>Zone File</h2></div></div></div>
+<a name="id2595385"></a>Zone File</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="types_of_resource_records_and_when_to_use_them"></a>Types of Resource Records and When to Use Them</h3></div></div></div>
@@ -7682,7 +7692,7 @@ example.com. NS ns2.example.net.
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2595448"></a>Resource Records</h4></div></div></div>
+<a name="id2595403"></a>Resource Records</h4></div></div></div>
 <p>
               A domain name identifies a node.  Each node has a set of
               resource information, which may be empty.  The set of resource
@@ -8419,7 +8429,7 @@ example.com. NS ns2.example.net.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2597003"></a>Textual expression of RRs</h4></div></div></div>
+<a name="id2596958"></a>Textual expression of RRs</h4></div></div></div>
 <p>
               RRs are represented in binary form in the packets of the DNS
               protocol, and are usually represented in highly encoded form
@@ -8622,7 +8632,7 @@ example.com. NS ns2.example.net.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2597524"></a>Discussion of MX Records</h3></div></div></div>
+<a name="id2597547"></a>Discussion of MX Records</h3></div></div></div>
 <p>
             As described above, domain servers store information as a
             series of resource records, each of which contains a particular
@@ -8878,7 +8888,7 @@ example.com. NS ns2.example.net.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2598208"></a>Inverse Mapping in IPv4</h3></div></div></div>
+<a name="id2598231"></a>Inverse Mapping in IPv4</h3></div></div></div>
 <p>
             Reverse name resolution (that is, translation from IP address
             to name) is achieved by means of the <span class="emphasis"><em>in-addr.arpa</em></span> domain
@@ -8939,7 +8949,7 @@ example.com. NS ns2.example.net.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2598334"></a>Other Zone File Directives</h3></div></div></div>
+<a name="id2598358"></a>Other Zone File Directives</h3></div></div></div>
 <p>
             The Master File Format was initially defined in RFC 1035 and
             has subsequently been extended. While the Master File Format
@@ -8954,7 +8964,7 @@ example.com. NS ns2.example.net.
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2598357"></a>The <span><strong class="command">@</strong></span> (at-sign)</h4></div></div></div>
+<a name="id2598380"></a>The <span><strong class="command">@</strong></span> (at-sign)</h4></div></div></div>
 <p>
               When used in the label (or name) field, the asperand or
               at-sign (@) symbol represents the current origin.
@@ -8965,7 +8975,7 @@ example.com. NS ns2.example.net.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2598373"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
+<a name="id2598396"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$ORIGIN</strong></span>
               <em class="replaceable"><code>domain-name</code></em>
@@ -8994,7 +9004,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2598434"></a>The <span><strong class="command">$INCLUDE</strong></span> Directive</h4></div></div></div>
+<a name="id2598457"></a>The <span><strong class="command">$INCLUDE</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$INCLUDE</strong></span>
               <em class="replaceable"><code>filename</code></em>
@@ -9030,7 +9040,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2598503"></a>The <span><strong class="command">$TTL</strong></span> Directive</h4></div></div></div>
+<a name="id2598526"></a>The <span><strong class="command">$TTL</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$TTL</strong></span>
               <em class="replaceable"><code>default-ttl</code></em>
@@ -9049,7 +9059,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2598539"></a><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</h3></div></div></div>
+<a name="id2598563"></a><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</h3></div></div></div>
 <p>
             Syntax: <span><strong class="command">$GENERATE</strong></span>
             <em class="replaceable"><code>range</code></em>
@@ -9473,7 +9483,7 @@ HOST-127.EXAMPLE. MX 0 .
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2599561"></a>Name Server Statistics Counters</h4></div></div></div>
+<a name="id2599585"></a>Name Server Statistics Counters</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -10030,7 +10040,7 @@ HOST-127.EXAMPLE. MX 0 .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2601171"></a>Zone Maintenance Statistics Counters</h4></div></div></div>
+<a name="id2601262"></a>Zone Maintenance Statistics Counters</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -10184,7 +10194,7 @@ HOST-127.EXAMPLE. MX 0 .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2601554"></a>Resolver Statistics Counters</h4></div></div></div>
+<a name="id2601645"></a>Resolver Statistics Counters</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -10567,7 +10577,7 @@ HOST-127.EXAMPLE. MX 0 .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2602644"></a>Socket I/O Statistics Counters</h4></div></div></div>
+<a name="id2602736"></a>Socket I/O Statistics Counters</h4></div></div></div>
 <p>
               Socket I/O statistics counters are defined per socket
               types, which are
@@ -10722,7 +10732,7 @@ HOST-127.EXAMPLE. MX 0 .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2603085"></a>Compatibility with <span class="emphasis"><em>BIND</em></span> 8 Counters</h4></div></div></div>
+<a name="id2603109"></a>Compatibility with <span class="emphasis"><em>BIND</em></span> 8 Counters</h4></div></div></div>
 <p>
               Most statistics counters that were available
               in <span><strong class="command">BIND</strong></span> 8 are also supported in
