@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.483.36.37 2011/08/31 07:47:56 marka Exp $ */
+/* $Id: zone.c,v 1.483.36.38 2011/08/31 23:45:13 tbox Exp $ */
 
 /*! \file */
 
@@ -306,7 +306,7 @@ struct dns_zone {
 	isc_uint32_t		signatures;
 	isc_uint32_t		nodes;
 	dns_rdatatype_t		privatetype;
- 
+
 	/*%
 	 * Outstanding forwarded UPDATE requests.
 	 */
