@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.66 2011/08/31 07:20:44 marka Exp $ */
+/* $Id: zone.c,v 1.540.2.67 2011/08/31 23:45:32 tbox Exp $ */
 
 /*! \file */
 
@@ -333,7 +333,7 @@ struct dns_zone {
 	 * True if added by "rndc addzone"
 	 */
 	isc_boolean_t           added;
- 
+
 	/*%
 	 * Outstanding forwarded UPDATE requests.
 	 */
