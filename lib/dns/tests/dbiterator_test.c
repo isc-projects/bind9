@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dbiterator_test.c,v 1.1.6.5 2011/08/23 23:53:26 tbox Exp $ */
+/* $Id: dbiterator_test.c,v 1.1.6.6 2011/08/31 00:47:57 marka Exp $ */
 
 /*! \file */
 
@@ -162,6 +162,9 @@ test_walk(const atf_tc_t *tc) {
 	     result == ISC_R_SUCCESS;
 	     result = dns_dbiterator_next(iter)) {
 		result = dns_dbiterator_current(iter, &node, name);
+		if (result == DNS_R_NEWORIGIN)
+			result = ISC_R_SUCCESS;
+		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 		dns_db_detachnode(db, &node);
 		i++;
 	}
@@ -222,6 +225,9 @@ static void test_reverse(const atf_tc_t *tc) {
 	     result == ISC_R_SUCCESS;
 	     result = dns_dbiterator_prev(iter)) {
 		result = dns_dbiterator_current(iter, &node, name);
+		if (result == DNS_R_NEWORIGIN)
+			result = ISC_R_SUCCESS;
+		ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 		dns_db_detachnode(db, &node);
 		i++;
 	}
@@ -286,6 +292,9 @@ static void test_seek(const atf_tc_t *tc) {
 
 	while (result == ISC_R_SUCCESS) {
 		result = dns_dbiterator_current(iter, &node, name);
+		if (result == DNS_R_NEWORIGIN)
+			result = ISC_R_SUCCESS;
+		ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 		dns_db_detachnode(db, &node);
 		result = dns_dbiterator_next(iter);
 		i++;
