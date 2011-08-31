@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.209.12.27 2011/08/30 12:23:14 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.209.12.28 2011/08/31 03:07:25 marka Exp $ */
 
 /*! \file */
 
@@ -533,7 +533,8 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 		}
 
 		if (keep) {
-			nowsignedby[key->position] = ISC_TRUE;
+			if (key != NULL)
+				nowsignedby[key->position] = ISC_TRUE;
 			INCSTAT(nretained);
 			if (sigset.ttl != ttl) {
 				vbprintf(2, "\tfixing ttl %s\n", sigstr);
