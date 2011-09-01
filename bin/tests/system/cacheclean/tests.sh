@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.9 2011/08/29 03:31:29 marka Exp $
+# $Id: tests.sh,v 1.10 2011/09/01 05:28:14 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -32,22 +32,24 @@ load_cache () {
         $RNDC $RNDCOPTS flush
 
 	# load the positive cache entries
-	$DIG $DIGOPTS txt top1.flushtest.example > /dev/null 2>1
-	$DIG $DIGOPTS txt second1.top1.flushtest.example > /dev/null 2>1
-	$DIG $DIGOPTS txt third1.second1.top1.flushtest.example > /dev/null 2>1
-	$DIG $DIGOPTS txt third2.second1.top1.flushtest.example > /dev/null 2>1
-	$DIG $DIGOPTS txt second2.top1.flushtest.example > /dev/null 2>1
-	$DIG $DIGOPTS txt second3.top1.flushtest.example > /dev/null 2>1
-	$DIG $DIGOPTS txt second1.top2.flushtest.example > /dev/null 2>1
-	$DIG $DIGOPTS txt second2.top2.flushtest.example > /dev/null 2>1
-	$DIG $DIGOPTS txt second3.top2.flushtest.example > /dev/null 2>1
-	$DIG $DIGOPTS txt top3.flushtest.example > /dev/null 2>1
-	$DIG $DIGOPTS txt second1.top3.flushtest.example > /dev/null 2>1
-	$DIG $DIGOPTS txt third1.second1.top3.flushtest.example > /dev/null 2>1
-	$DIG $DIGOPTS txt third2.second1.top3.flushtest.example > /dev/null 2>1
-	$DIG $DIGOPTS txt third1.second2.top3.flushtest.example > /dev/null 2>1
-	$DIG $DIGOPTS txt third2.second2.top3.flushtest.example > /dev/null 2>1
-	$DIG $DIGOPTS txt second3.top3.flushtest.example > /dev/null 2>1
+	$DIG $DIGOPTS -f - << EOF > /dev/null 2>1
+txt top1.flushtest.example
+txt second1.top1.flushtest.example
+txt third1.second1.top1.flushtest.example
+txt third2.second1.top1.flushtest.example
+txt second2.top1.flushtest.example
+txt second3.top1.flushtest.example
+txt second1.top2.flushtest.example
+txt second2.top2.flushtest.example
+txt second3.top2.flushtest.example
+txt top3.flushtest.example
+txt second1.top3.flushtest.example
+txt third1.second1.top3.flushtest.example
+txt third2.second1.top3.flushtest.example
+txt third1.second2.top3.flushtest.example
+txt third2.second2.top3.flushtest.example
+txt second3.top3.flushtest.example
+EOF
 
 	# load the negative cache entries
         # nxrrset:
@@ -57,8 +59,8 @@ load_cache () {
         # empty nonterminal:
 	$DIG $DIGOPTS txt second2.top3.flushtest.example > /dev/null
 
-	# sleep one second ensure the TTLs will be lower on cached data
-	sleep 1
+	# sleep 2 seconds ensure the TTLs will be lower on cached data
+	sleep 2
 }
 
 dump_cache () {
@@ -75,10 +77,10 @@ in_cache () {
         ttl=`$DIG $DIGOPTS "$@" | awk '{print $2}'`
         [ -z "$ttl" ] && {
                 ttl=`$DIG $DIGOPTS +noanswer +auth "$@" | awk '{print $2}'`
-                [ "$ttl" -eq 3600 ] && return 1
+                [ "$ttl" -ge 3599 ] && return 1
                 return 0
         }
-        [ "$ttl" -eq 3600 ] && return 1
+        [ "$ttl" -ge 3599 ] && return 1
         return 0
 }
 
