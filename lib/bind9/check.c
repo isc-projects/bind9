@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.114.4.11 2011/05/07 23:46:36 tbox Exp $ */
+/* $Id: check.c,v 1.114.4.12 2011/09/02 20:22:23 each Exp $ */
 
 /*! \file */
 
@@ -1907,7 +1907,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	isc_symtab_t *symtab = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult = ISC_R_SUCCESS;
-	cfg_aclconfctx_t actx;
+	cfg_aclconfctx_t *actx = NULL;
 	const cfg_obj_t *options = NULL;
 	const cfg_obj_t *obj;
 	isc_boolean_t enablednssec, enablevalidation;
@@ -1926,7 +1926,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	if (tresult != ISC_R_SUCCESS)
 		return (ISC_R_NOMEMORY);
 
-	cfg_aclconfctx_init(&actx);
+	cfg_aclconfctx_create(mctx, &actx);
 
 	if (voptions != NULL)
 		(void)cfg_map_get(voptions, "zone", &zones);
@@ -1941,7 +1941,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		const cfg_obj_t *zone = cfg_listelt_value(element);
 
 		tresult = check_zoneconf(zone, voptions, config, symtab,
-					 vclass, &actx, logctx, mctx);
+					 vclass, actx, logctx, mctx);
 		if (tresult != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}
@@ -2100,21 +2100,21 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	if (tresult != ISC_R_SUCCESS)
 		result = tresult;
 
-	tresult = check_viewacls(&actx, voptions, config, logctx, mctx);
+	tresult = check_viewacls(actx, voptions, config, logctx, mctx);
 	if (tresult != ISC_R_SUCCESS)
 		result = tresult;
 
-	tresult = check_recursionacls(&actx, voptions, viewname,
+	tresult = check_recursionacls(actx, voptions, viewname,
 				      config, logctx, mctx);
 	if (tresult != ISC_R_SUCCESS)
 		result = tresult;
 
-	tresult = check_filteraaaa(&actx, voptions, viewname, config,
+	tresult = check_filteraaaa(actx, voptions, viewname, config,
 				   logctx, mctx);
 	if (tresult != ISC_R_SUCCESS)
 		result = tresult;
 
-	cfg_aclconfctx_clear(&actx);
+	cfg_aclconfctx_detach(&actx);
 
 	return (result);
 }
@@ -2271,7 +2271,7 @@ bind9_check_controls(const cfg_obj_t *config, isc_log_t *logctx,
 		     isc_mem_t *mctx)
 {
 	isc_result_t result = ISC_R_SUCCESS, tresult;
-	cfg_aclconfctx_t actx;
+	cfg_aclconfctx_t *actx = NULL;
 	const cfg_listelt_t *element, *element2;
 	const cfg_obj_t *allow;
 	const cfg_obj_t *control;
@@ -2292,7 +2292,7 @@ bind9_check_controls(const cfg_obj_t *config, isc_log_t *logctx,
 
 	(void)cfg_map_get(config, "key", &keylist);
 
-	cfg_aclconfctx_init(&actx);
+	cfg_aclconfctx_create(mctx, &actx);
 
 	/*
 	 * INET: Check allow clause.
@@ -2312,7 +2312,7 @@ bind9_check_controls(const cfg_obj_t *config, isc_log_t *logctx,
 			control = cfg_listelt_value(element2);
 			allow = cfg_tuple_get(control, "allow");
 			tresult = cfg_acl_fromconfig(allow, config, logctx,
-						     &actx, mctx, 0, &acl);
+						     actx, mctx, 0, &acl);
 			if (acl != NULL)
 				dns_acl_detach(&acl);
 			if (tresult != ISC_R_SUCCESS)
@@ -2359,7 +2359,7 @@ bind9_check_controls(const cfg_obj_t *config, isc_log_t *logctx,
 				result = tresult;
 		}
 	}
-	cfg_aclconfctx_clear(&actx);
+	cfg_aclconfctx_detach(&actx);
 	return (result);
 }
 

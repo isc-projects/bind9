@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dbiterator_test.c,v 1.1.6.6 2011/08/31 00:47:57 marka Exp $ */
+/* $Id: dbiterator_test.c,v 1.1.6.7 2011/09/02 20:22:25 each Exp $ */
 
 /*! \file */
 
@@ -99,7 +99,7 @@ test_create(const atf_tc_t *tc) {
 	dns_db_t *db = NULL;
 	dns_dbiterator_t *iter = NULL;
 
-	result = dns_test_begin(NULL);
+	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = setup_db(atf_tc_get_md_var(tc, "X-filename"),
@@ -148,7 +148,7 @@ test_walk(const atf_tc_t *tc) {
 	dns_fixedname_init(&f);
 	name = dns_fixedname_name(&f);
 
-	result = dns_test_begin(NULL);
+	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = setup_db(atf_tc_get_md_var(tc, "X-filename"),
@@ -211,7 +211,7 @@ static void test_reverse(const atf_tc_t *tc) {
 	dns_fixedname_init(&f);
 	name = dns_fixedname_name(&f);
 
-	result = dns_test_begin(NULL);
+	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = setup_db(atf_tc_get_md_var(tc, "X-filename"),
@@ -274,7 +274,7 @@ static void test_seek(const atf_tc_t *tc) {
 	dns_fixedname_init(&f2);
 	seekname = dns_fixedname_name(&f2);
 
-	result = dns_test_begin(NULL);
+	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = setup_db(atf_tc_get_md_var(tc, "X-filename"),
@@ -345,7 +345,7 @@ static void test_seek_empty(const atf_tc_t *tc) {
 	dns_fixedname_init(&f1);
 	seekname = dns_fixedname_name(&f1);
 
-	result = dns_test_begin(NULL);
+	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = setup_db(atf_tc_get_md_var(tc, "X-filename"),
@@ -402,7 +402,7 @@ static void test_seek_nx(const atf_tc_t *tc) {
 	dns_fixedname_init(&f1);
 	seekname = dns_fixedname_name(&f1);
 
-	result = dns_test_begin(NULL);
+	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = setup_db(atf_tc_get_md_var(tc, "X-filename"),

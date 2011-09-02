@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: globals.h,v 1.86.60.3 2010/09/15 12:10:53 marka Exp $ */
+/* $Id: globals.h,v 1.86.60.4 2011/09/02 20:22:22 each Exp $ */
 
 #ifndef NAMED_GLOBALS_H
 #define NAMED_GLOBALS_H 1
@@ -26,6 +26,7 @@
 #include <isc/log.h>
 #include <isc/net.h>
 
+#include <isccfg/aclconf.h>
 #include <isccfg/cfg.h>
 
 #include <dns/zone.h>
@@ -102,6 +103,7 @@ EXTERN const char *		lwresd_g_resolvconffile	INIT("/etc"
 EXTERN isc_boolean_t		ns_g_conffileset	INIT(ISC_FALSE);
 EXTERN isc_boolean_t		lwresd_g_useresolvconf	INIT(ISC_FALSE);
 EXTERN isc_uint16_t		ns_g_udpsize		INIT(4096);
+EXTERN cfg_aclconfctx_t *	ns_g_aclconfctx		INIT(NULL);
 
 /*
  * Initial resource limits.

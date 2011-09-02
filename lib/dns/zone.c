@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.68 2011/09/02 14:42:34 smann Exp $ */
+/* $Id: zone.c,v 1.540.2.69 2011/09/02 20:22:23 each Exp $ */
 
 /*! \file */
 
@@ -12470,28 +12470,6 @@ dns_zone_first(dns_zonemgr_t *zmgr, dns_zone_t **first) {
 		return (ISC_R_SUCCESS);
 }
 
-/*
- * Size of the zone task table.  For best results, this should be a
- * prime number, approximately 1% of the maximum number of authoritative
- * zones expected to be served by this server.
- */
-#define DEFAULT_ZONE_TASKS 101
-static int
-calculate_zone_tasks(void) {
-	int ntasks = DEFAULT_ZONE_TASKS;
-
-#ifdef HAVE_GETENV
-	char *env = getenv("BIND9_ZONE_TASKS_HINT");
-	if (env != NULL)
-		ntasks = atoi(env);
-
-	if (ntasks < DEFAULT_ZONE_TASKS)
-		ntasks = DEFAULT_ZONE_TASKS;
-#endif
-
-	return (ntasks);
-}
-
 /***
  ***	Zone manager.
  ***/
@@ -12504,7 +12482,6 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	dns_zonemgr_t *zmgr;
 	isc_result_t result;
 	isc_interval_t interval;
-	int zone_tasks = calculate_zone_tasks();
 
 	zmgr = isc_mem_get(mctx, sizeof(*zmgr));
 	if (zmgr == NULL)
@@ -12529,19 +12506,10 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	zmgr->transfersin = 10;
 	zmgr->transfersperns = 2;
 
-	/* Create the zone task pool. */
-	result = isc_taskpool_create(taskmgr, mctx, zone_tasks, 2,
-				     &zmgr->zonetasks);
-	if (result != ISC_R_SUCCESS)
-		goto free_rwlock;
-
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_ZONE,
-		ISC_LOG_NOTICE, "Using %d tasks for zone loading", zone_tasks);
-
 	/* Create a single task for queueing of SOA queries. */
 	result = isc_task_create(taskmgr, 1, &zmgr->task);
 	if (result != ISC_R_SUCCESS)
-		goto free_taskpool;
+		goto free_rwlock;
 	isc_task_setname(zmgr->task, "zmgr", zmgr);
 	result = isc_ratelimiter_create(mctx, timermgr, zmgr->task,
 					&zmgr->rl);
@@ -12575,8 +12543,6 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	isc_ratelimiter_detach(&zmgr->rl);
  free_task:
 	isc_task_detach(&zmgr->task);
- free_taskpool:
-	isc_taskpool_destroy(&zmgr->zonetasks);
  free_rwlock:
 	isc_rwlock_destroy(&zmgr->rwlock);
  free_mem:
@@ -12592,16 +12558,16 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 
+	if (zmgr->zonetasks == NULL)
+		return (ISC_R_FAILURE);
+
 	RWLOCK(&zmgr->rwlock, isc_rwlocktype_write);
 	LOCK_ZONE(zone);
 	REQUIRE(zone->task == NULL);
 	REQUIRE(zone->timer == NULL);
 	REQUIRE(zone->zmgr == NULL);
 
-	isc_taskpool_gettask(zmgr->zonetasks,
-			     dns_name_hash(dns_zone_getorigin(zone),
-					   ISC_FALSE),
-			     &zone->task);
+	isc_taskpool_gettask(zmgr->zonetasks, &zone->task);
 
 	/*
 	 * Set the task name.  The tag will arbitrarily point to one
@@ -12694,6 +12660,7 @@ dns_zonemgr_detach(dns_zonemgr_t **zmgrp) {
 
 	if (free_now)
 		zonemgr_free(zmgr);
+	*zmgrp = NULL;
 }
 
 isc_result_t
@@ -12757,6 +12724,35 @@ dns_zonemgr_shutdown(dns_zonemgr_t *zmgr) {
 	}
 	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_read);
 
+}
+
+isc_result_t
+dns_zonemgr_setsize(dns_zonemgr_t *zmgr, int num_zones) {
+	isc_result_t result;
+	int ntasks = num_zones / 100;
+	isc_taskpool_t *pool = NULL;
+
+	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
+
+	/*
+	 * For anything fewer than 1000 zones we use 10 tasks in
+	 * the task pool.  More than that, and we'll scale at one
+	 * task per 100 zones.
+	 */
+	if (ntasks < 10)
+		ntasks = 10;
+
+	/* Create or resize the zone task pool. */
+	if (zmgr->zonetasks == NULL)
+		result = isc_taskpool_create(zmgr->taskmgr, zmgr->mctx,
+					     ntasks, 2, &pool);
+	else
+		result = isc_taskpool_expand(&zmgr->zonetasks, ntasks, &pool);
+
+	if (result == ISC_R_SUCCESS)
+		zmgr->zonetasks = pool;
+
+	return (result);
 }
 
 static void

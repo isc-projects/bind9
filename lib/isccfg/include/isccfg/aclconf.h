@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.h,v 1.10.470.2 2010/08/13 23:46:28 tbox Exp $ */
+/* $Id: aclconf.h,v 1.10.470.3 2011/09/02 20:22:27 each Exp $ */
 
 #ifndef ISCCFG_ACLCONF_H
 #define ISCCFG_ACLCONF_H 1
@@ -28,7 +28,8 @@
 
 typedef struct cfg_aclconfctx {
 	ISC_LIST(dns_acl_t) named_acl_cache;
-	ISC_LIST(dns_iptable_t) named_iptable_cache;
+	isc_mem_t *mctx;
+	isc_refcount_t references;
 } cfg_aclconfctx_t;
 
 /***
@@ -37,22 +38,23 @@ typedef struct cfg_aclconfctx {
 
 ISC_LANG_BEGINDECLS
 
-void
-cfg_aclconfctx_init(cfg_aclconfctx_t *ctx);
+isc_result_t
+cfg_aclconfctx_create(isc_mem_t *mctx, cfg_aclconfctx_t **ret);
 /*
- * Initialize an ACL configuration context.
+ * Creates and initializes an ACL configuration context.
  */
 
 void
-cfg_aclconfctx_clone(cfg_aclconfctx_t *src, cfg_aclconfctx_t *dest);
+cfg_aclconfctx_detach(cfg_aclconfctx_t **actxp);
 /*
- * Copy the contents of one ACL configuration context into another.
+ * Removes a reference to an ACL configuration context; when references
+ * reaches zero, clears the contents and deallocate the structure.
  */
 
 void
-cfg_aclconfctx_clear(cfg_aclconfctx_t *ctx);
+cfg_aclconfctx_attach(cfg_aclconfctx_t *src, cfg_aclconfctx_t **dest);
 /*
- * Clear the contents of an ACL configuration context.
+ * Attaches a pointer to an existing ACL configuration context.
  */
 
 isc_result_t

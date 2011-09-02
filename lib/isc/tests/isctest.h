@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnstest.h,v 1.2.4.3 2011/09/02 20:22:25 each Exp $ */
+/* $Id: isctest.h,v 1.3.24.2 2011/09/02 20:22:27 each Exp $ */
 
 /*! \file */
 
@@ -25,12 +25,11 @@
 #include <isc/hash.h>
 #include <isc/log.h>
 #include <isc/mem.h>
+#include <isc/result.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
-
-#include <dns/result.h>
 
 #define CHECK(r) \
 	do { \
@@ -42,15 +41,12 @@
 extern isc_mem_t *mctx;
 extern isc_entropy_t *ectx;
 extern isc_log_t *lctx;
-isc_taskmgr_t *taskmgr;
-isc_timermgr_t *timermgr;
-isc_socketmgr_t *socketmgr;
-int ncpus;
-
+extern isc_taskmgr_t *taskmgr;
+extern int ncpus;
 
 isc_result_t
-dns_test_begin(FILE *logfile, isc_boolean_t create_managers);
+isc_test_begin(FILE *logfile);
 
 void
-dns_test_end(void);
+isc_test_end(void);
 
