@@ -12,6 +12,10 @@
 3144.	[bug]		dns_dbiterator_seek() could trigger an assert when
 			used with a nonexistent database node. [RT #25358]
 
+3139.	[test]		Added tests from RFC 6234, RFC 2202, and RFC 1321
+			for the hashing algorithms (md5, sha1 - sha512, and
+			their hmac counterparts).  [RT #25067] 
+
 	--- 9.8.1 released ---
 
 	--- 9.8.1rc1 released ---
