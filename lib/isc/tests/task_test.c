@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task_test.c,v 1.2 2011/09/02 21:15:38 each Exp $ */
+/* $Id: task_test.c,v 1.3 2011/09/02 23:46:33 tbox Exp $ */
 
 /*! \file */
 
@@ -114,14 +114,14 @@ ATF_TC_BODY(all_events, tc) {
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	/* First event */
-	event = isc_event_allocate(mctx, task, ISC_TASKEVENT_TEST, 
+	event = isc_event_allocate(mctx, task, ISC_TASKEVENT_TEST,
 				   set, &a, sizeof (isc_event_t));
 	ATF_REQUIRE(event != NULL);
 
 	ATF_CHECK_EQ(a, 0);
 	isc_task_send(task, &event);
 
-	event = isc_event_allocate(mctx, task, ISC_TASKEVENT_TEST, 
+	event = isc_event_allocate(mctx, task, ISC_TASKEVENT_TEST,
 				   set, &b, sizeof (isc_event_t));
 	ATF_REQUIRE(event != NULL);
 
@@ -187,7 +187,7 @@ ATF_TC_BODY(privileged_events, tc) {
 	ATF_CHECK(!isc_task_privilege(task2));
 
 	/* First event: privileged */
-	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST, 
+	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST,
 				   set, &a, sizeof (isc_event_t));
 	ATF_REQUIRE(event != NULL);
 
@@ -195,7 +195,7 @@ ATF_TC_BODY(privileged_events, tc) {
 	isc_task_send(task1, &event);
 
 	/* Second event: not privileged */
-	event = isc_event_allocate(mctx, task2, ISC_TASKEVENT_TEST, 
+	event = isc_event_allocate(mctx, task2, ISC_TASKEVENT_TEST,
 				   set, &b, sizeof (isc_event_t));
 	ATF_REQUIRE(event != NULL);
 
@@ -203,7 +203,7 @@ ATF_TC_BODY(privileged_events, tc) {
 	isc_task_send(task2, &event);
 
 	/* Third event: privileged */
-	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST, 
+	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST,
 				   set, &c, sizeof (isc_event_t));
 	ATF_REQUIRE(event != NULL);
 
@@ -211,7 +211,7 @@ ATF_TC_BODY(privileged_events, tc) {
 	isc_task_send(task1, &event);
 
 	/* Fourth event: privileged */
-	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST, 
+	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST,
 				   set, &d, sizeof (isc_event_t));
 	ATF_REQUIRE(event != NULL);
 
@@ -219,7 +219,7 @@ ATF_TC_BODY(privileged_events, tc) {
 	isc_task_send(task1, &event);
 
 	/* Fifth event: not privileged */
-	event = isc_event_allocate(mctx, task2, ISC_TASKEVENT_TEST, 
+	event = isc_event_allocate(mctx, task2, ISC_TASKEVENT_TEST,
 				   set, &e, sizeof (isc_event_t));
 	ATF_REQUIRE(event != NULL);
 
@@ -316,7 +316,7 @@ ATF_TC_BODY(privilege_drop, tc) {
 	ATF_CHECK(!isc_task_privilege(task2));
 
 	/* First event: privileged */
-	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST, 
+	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST,
 				   set_and_drop, &a, sizeof (isc_event_t));
 	ATF_REQUIRE(event != NULL);
 
@@ -324,7 +324,7 @@ ATF_TC_BODY(privilege_drop, tc) {
 	isc_task_send(task1, &event);
 
 	/* Second event: not privileged */
-	event = isc_event_allocate(mctx, task2, ISC_TASKEVENT_TEST, 
+	event = isc_event_allocate(mctx, task2, ISC_TASKEVENT_TEST,
 				   set_and_drop, &b, sizeof (isc_event_t));
 	ATF_REQUIRE(event != NULL);
 
@@ -332,7 +332,7 @@ ATF_TC_BODY(privilege_drop, tc) {
 	isc_task_send(task2, &event);
 
 	/* Third event: privileged */
-	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST, 
+	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST,
 				   set_and_drop, &c, sizeof (isc_event_t));
 	ATF_REQUIRE(event != NULL);
 
@@ -340,7 +340,7 @@ ATF_TC_BODY(privilege_drop, tc) {
 	isc_task_send(task1, &event);
 
 	/* Fourth event: privileged */
-	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST, 
+	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST,
 				   set_and_drop, &d, sizeof (isc_event_t));
 	ATF_REQUIRE(event != NULL);
 
@@ -348,7 +348,7 @@ ATF_TC_BODY(privilege_drop, tc) {
 	isc_task_send(task1, &event);
 
 	/* Fifth event: not privileged */
-	event = isc_event_allocate(mctx, task2, ISC_TASKEVENT_TEST, 
+	event = isc_event_allocate(mctx, task2, ISC_TASKEVENT_TEST,
 				   set_and_drop, &e, sizeof (isc_event_t));
 	ATF_REQUIRE(event != NULL);
 

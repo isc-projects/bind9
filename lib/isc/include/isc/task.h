@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.h,v 1.72 2011/09/02 21:15:38 each Exp $ */
+/* $Id: task.h,v 1.73 2011/09/02 23:46:33 tbox Exp $ */
 
 #ifndef ISC_TASK_H
 #define ISC_TASK_H 1
@@ -626,7 +626,7 @@ void
 isc_task_setprivilege(isc_task_t *task, isc_boolean_t priv);
 /*%<
  * Set or unset the task's "privileged" flag depending on the value of
- * 'priv'. 
+ * 'priv'.
  *
  * Under normal circumstances this flag has no effect on the task behavior,
  * but when the task manager has been set to privileged exeuction mode via

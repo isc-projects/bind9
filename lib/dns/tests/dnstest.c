@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnstest.c,v 1.5 2011/09/02 21:15:37 each Exp $ */
+/* $Id: dnstest.c,v 1.6 2011/09/02 23:46:32 tbox Exp $ */
 
 /*! \file */
 
@@ -187,7 +187,7 @@ dns_test_end() {
 /*
  * Create a zone with origin 'name', return a pointer to the zone object in
  * 'zonep'.  If 'view' is set, add the zone to that view; otherwise, create
- * a new view for the purpose. 
+ * a new view for the purpose.
  *
  * If the created view is going to be needed by the caller subsequently,
  * then 'keepview' should be set to true; this will prevent the view
@@ -241,7 +241,7 @@ isc_result_t
 dns_test_setupzonemgr() {
 	isc_result_t result;
 	REQUIRE(zonemgr == NULL);
-	
+
 	result = dns_zonemgr_create(mctx, taskmgr, timermgr, socketmgr,
 				    &zonemgr);
 	return (result);
@@ -269,7 +269,7 @@ dns_test_releasezone(dns_zone_t *zone) {
 void
 dns_test_closezonemgr() {
 	REQUIRE(zonemgr != NULL);
-	
+
 	dns_zonemgr_shutdown(zonemgr);
 	dns_zonemgr_detach(&zonemgr);
 }

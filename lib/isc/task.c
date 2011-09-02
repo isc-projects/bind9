@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.118 2011/09/02 21:15:37 each Exp $ */
+/* $Id: task.c,v 1.119 2011/09/02 23:46:32 tbox Exp $ */
 
 /*! \file
  * \author Principal Author: Bob Halley
@@ -1232,7 +1232,7 @@ dispatch(isc__taskmgr_t *manager) {
 				push_readyq(manager, task);
 #else
 				ENQUEUE(new_ready_tasks, task, ready_link);
-				if ((task->flags & TASK_F_PRIVILEGED) != 0) 
+				if ((task->flags & TASK_F_PRIVILEGED) != 0)
 					ENQUEUE(new_priority_tasks, task,
 						ready_priority_link);
 #endif

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.629 2011/09/02 21:15:36 each Exp $ */
+/* $Id: zone.c,v 1.630 2011/09/02 23:46:32 tbox Exp $ */
 
 /*! \file */
 
@@ -1654,7 +1654,7 @@ zone_asyncload(isc_task_t *task, isc_event_t *event) {
 	LOCK_ZONE(zone);
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_LOADPENDING);
 	UNLOCK_ZONE(zone);
-	
+
 	/* Inform the zone table we've finished loading */
 	if (asl->loaded != NULL)
 		(asl->loaded)(asl->loaded_arg, zone, task);
@@ -13528,7 +13528,7 @@ dns_zonemgr_setsize(dns_zonemgr_t *zmgr, int num_zones) {
 	 * We always set all tasks in the zone-load task pool to
 	 * privileged.  This prevents other tasks in the system from
 	 * running while the server task manager is in privileged
-	 * mode.  
+	 * mode.
 	 *
 	 * NOTE: If we start using task privileges for any other
 	 * part of the system than zone tasks, then this will need to be

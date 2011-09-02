@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.c,v 1.51 2011/09/02 21:15:36 each Exp $ */
+/* $Id: zt.c,v 1.52 2011/09/02 23:46:32 tbox Exp $ */
 
 /*! \file */
 
@@ -294,7 +294,7 @@ dns_zt_asyncload(dns_zt_t *zt, dns_zt_allloaded_t alldone, void *arg) {
 }
 
 /*
- * Initiates asynchronous loading of zone 'zone'.  'callback' is a 
+ * Initiates asynchronous loading of zone 'zone'.  'callback' is a
  * pointer to a function which will be used to inform the caller when
  * the zone loading is complete.
  */

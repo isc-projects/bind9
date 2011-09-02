@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009-2011  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task_api.c,v 1.8 2011/09/02 21:15:38 each Exp $ */
+/* $Id: task_api.c,v 1.9 2011/09/02 23:46:32 tbox Exp $ */
 
 #include <config.h>
 

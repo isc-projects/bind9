@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt_test.c,v 1.2 2011/09/02 21:15:37 each Exp $ */
+/* $Id: zt_test.c,v 1.3 2011/09/02 23:46:32 tbox Exp $ */
 
 /*! \file */
 
@@ -91,7 +91,7 @@ ATF_TC_BODY(apply, tc) {
 
 	result = dns_test_makezone("foo", &zone, NULL, ISC_TRUE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	
+
 	view = dns_zone_getview(zone);
 	ATF_REQUIRE(view->zonetable != NULL);
 

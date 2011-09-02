@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2006, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2006, 2007, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1997-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: list.h,v 1.25 2011/09/02 21:15:38 each Exp $ */
+/* $Id: list.h,v 1.26 2011/09/02 23:46:33 tbox Exp $ */
 
 #ifndef ISC_LIST_H
 #define ISC_LIST_H 1
