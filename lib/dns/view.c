@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.182 2011/08/30 21:14:50 marka Exp $ */
+/* $Id: view.c,v 1.183 2011/09/02 21:15:35 each Exp $ */
 
 /*! \file */
 
@@ -1418,6 +1418,7 @@ isc_result_t
 dns_view_load(dns_view_t *view, isc_boolean_t stop) {
 
 	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(view->zonetable != NULL);
 
 	return (dns_zt_load(view->zonetable, stop));
 }
@@ -1426,9 +1427,20 @@ isc_result_t
 dns_view_loadnew(dns_view_t *view, isc_boolean_t stop) {
 
 	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(view->zonetable != NULL);
 
 	return (dns_zt_loadnew(view->zonetable, stop));
 }
+
+isc_result_t
+dns_view_asyncload(dns_view_t *view, dns_zt_allloaded_t callback, void *arg) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(view->zonetable != NULL);
+
+	return (dns_zt_asyncload(view->zonetable, callback, arg));
+}
+
+
 #endif /* BIND9 */
 
 isc_result_t

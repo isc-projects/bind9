@@ -14,11 +14,13 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: isctest.c,v 1.3 2011/07/28 04:04:37 each Exp $ */
+/* $Id: isctest.c,v 1.4 2011/09/02 21:15:38 each Exp $ */
 
 /*! \file */
 
 #include <config.h>
+
+#include <time.h>
 
 #include <isc/app.h>
 #include <isc/buffer.h>
@@ -153,3 +155,24 @@ isc_test_end() {
 		isc_mem_destroy(&mctx);
 }
 
+/*
+ * Sleep for 'usec' microseconds.
+ */
+void
+isc_test_nap(isc_uint32_t usec) {
+#ifdef HAVE_NANOSLEEP
+	struct timespec ts;
+
+	ts.tv_sec = usec / 1000000;
+	ts.tv_nsec = (usec % 1000000) * 1000;
+	nanosleep(&ts, NULL);
+#elif HAVE_USLEEP
+	usleep(usec);
+#else
+	/*
+	 * No fractional-second sleep function is available, so we
+	 * round up to the nearest second and sleep instead
+	 */
+	sleep((usec / 1000000) + 1);
+#endif
+}

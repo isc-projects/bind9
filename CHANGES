@@ -1,3 +1,8 @@
+3150.	[func]		Improved startup and reconfiguration time by
+			enabling zones to load in multiple threads. [RT #25333]
+
+3149.	[placeholder]
+
 3148.	[bug]		Processing of normal queries could be stalled when
 			forwarding a UPDATE message. [RT #24711]
 

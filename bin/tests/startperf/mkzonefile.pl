@@ -14,21 +14,38 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: makenames.pl,v 1.3 2011/09/02 21:15:35 each Exp $
+# $Id: mkzonefile.pl,v 1.2 2011/09/02 21:15:35 each Exp $
 use strict;
 
-die "Usage: makenames.pl <num> [<len>]" if (@ARGV == 0 || @ARGV > 2);
-my $len = 10;
-$len = @ARGV[1] if (@ARGV == 2);
+die "Usage: makenames.pl zonename num_records" if (@ARGV != 2);
+my $zname = @ARGV[0];
+my $nrecords = @ARGV[1];
 
-my @chars = split("", "abcdefghijklmnopqrstuvwxyz123456789");
+my @chars = split("", "abcdefghijklmnopqrstuvwxyz");
+
+print"\$TTL 300	; 5 minutes
+\$ORIGIN $zname.
+@			IN SOA	mname1. . (
+				2011080201 ; serial
+				20         ; refresh (20 seconds)
+				20         ; retry (20 seconds)
+				1814400    ; expire (3 weeks)
+				600        ; minimum (1 hour)
+				)
+			NS	ns
+ns			A	10.53.0.3\n";
 
 srand; 
-for (my $i = 0; $i < @ARGV[0]; $i++) {
+for (my $i = 0; $i < $nrecords; $i++) {
         my $name = "";
-        for (my $j = 0; $j < $len; $j++) {
-                my $r = rand 35;
+        for (my $j = 0; $j < 8; $j++) {
+                my $r = rand 25;
                 $name .= $chars[$r];
         }
-        print "$name" . ".example\n";
+        print "$name" . "\tIN\tA\t";
+        my $x = int rand 254;
+        my $y = int rand 254;
+        my $z = int rand 254;
+        print "10.$x.$y.$z\n";
 }
+

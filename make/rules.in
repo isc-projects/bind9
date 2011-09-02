@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: rules.in,v 1.70 2011/03/01 23:48:07 tbox Exp $
+# $Id: rules.in,v 1.71 2011/09/02 21:15:39 each Exp $
 
 ###
 ### Common Makefile rules for BIND 9.
@@ -88,7 +88,7 @@ testdirs:
 install:: all
 
 install clean distclean maintainer-clean doc docclean man manclean::
-	@for i in ${ALL_SUBDIRS}; do \
+	@for i in ${ALL_SUBDIRS} ${ALL_TESTDIRS}; do \
 		if [ "$$i" != "nulldir" -a -d $$i ]; then \
 			echo "making $@ in `pwd`/$$i"; \
 			(cd $$i; ${MAKE} ${MAKEDEFS} DESTDIR="${DESTDIR}" $@) || exit 1; \

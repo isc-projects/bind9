@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zonemgr_test.c,v 1.2 2011/07/06 05:05:51 each Exp $ */
+/* $Id: zonemgr_test.c,v 1.3 2011/09/02 21:15:37 each Exp $ */
 
 /*! \file */
 
@@ -33,41 +33,6 @@
 #include <dns/zone.h>
 
 #include "dnstest.h"
-
-static isc_result_t
-make_zone(const char *name, dns_zone_t **zonep) {
-	isc_result_t result;
-	dns_view_t *view = NULL;
-	dns_zone_t *zone = NULL;
-	isc_buffer_t buffer;
-	dns_fixedname_t fixorigin;
-	dns_name_t *origin;
-
-	CHECK(dns_view_create(mctx, dns_rdataclass_in, "view", &view));
-	CHECK(dns_zone_create(&zone, mctx));
-
-	isc_buffer_init(&buffer, name, strlen(name));
-	isc_buffer_add(&buffer, strlen(name));
-	dns_fixedname_init(&fixorigin);
-	origin = dns_fixedname_name(&fixorigin);
-	CHECK(dns_name_fromtext(origin, &buffer, dns_rootname, 0, NULL));
-	CHECK(dns_zone_setorigin(zone, origin));
-	dns_zone_setview(zone, view);
-	dns_zone_settype(zone, dns_zone_master);
-	dns_zone_setclass(zone, view->rdclass);
-
-	dns_view_detach(&view);
-	*zonep = zone;
-
-	return (ISC_R_SUCCESS);
-
-  cleanup:
-	if (zone != NULL)
-		dns_zone_detach(&zone);
-	if (view != NULL)
-		dns_view_detach(&view);
-	return (result);
-}
 
 /*
  * Individual unit tests
@@ -115,7 +80,7 @@ ATF_TC_BODY(zonemgr_managezone, tc) {
 				    &zonemgr);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = make_zone("foo", &zone);
+	result = dns_test_makezone("foo", &zone, NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	/* This should not succeed until the dns_zonemgr_setsize() is run */

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.192 2011/08/30 05:16:15 marka Exp $ */
+/* $Id: zone.h,v 1.193 2011/09/02 21:15:36 each Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -35,6 +35,7 @@
 #include <dns/masterdump.h>
 #include <dns/rdatastruct.h>
 #include <dns/types.h>
+#include <dns/zt.h>
 
 typedef enum {
 	dns_zone_none,
@@ -287,6 +288,7 @@ dns_zone_loadnew(dns_zone_t *zone);
 
 isc_result_t
 dns_zone_loadandthaw(dns_zone_t *zone);
+
 /*%<
  *	Cause the database to be loaded from its backing store.
  *	Confirm that the minimum requirements for the zone type are
@@ -309,6 +311,25 @@ dns_zone_loadandthaw(dns_zone_t *zone);
  *			  file system timestamps.
  *\li	DNS_R_BADZONE
  *\li	Any result value from dns_db_load().
+ */
+
+isc_result_t
+dns_zone_asyncload(dns_zone_t *zone, dns_zt_zoneloaded_t done, void *arg);
+/*%<
+ * Cause the database to be loaded from its backing store asynchronously.
+ * Other zone maintenance functions are suspended until this is complete.
+ * When finished, 'done' is called to inform the caller, with 'arg' as
+ * its first argument and 'zone' as its second.  (Normally, 'arg' is
+ * expected to point to the zone table but is left undefined for testing
+ * purposes.)
+ */
+
+isc_boolean_t
+dns__zone_loadpending(dns_zone_t *zone);
+/*%<
+ * Indicates whether the zone is waiting to be loaded asynchronously.
+ * (Not currently intended for use outside of this module and associated
+ * tests.)
  */
 
 void
@@ -1425,6 +1446,14 @@ dns_zonemgr_forcemaint(dns_zonemgr_t *zmgr);
 /*%<
  * Force zone maintenance of all zones managed by 'zmgr' at its
  * earliest convenience.
+ */
+
+void
+dns__zonemgr_run(isc_task_t *task, isc_event_t *event);
+/*%<
+ * Event handler to call dns_zonemgr_forcemaint(); used to start
+ * zone operations from a unit test.  Not intended for use outside
+ * libdns or related tests.
  */
 
 void

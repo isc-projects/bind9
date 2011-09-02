@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master_test.c,v 1.4 2011/07/06 01:36:32 each Exp $ */
+/* $Id: master_test.c,v 1.5 2011/09/02 21:15:37 each Exp $ */
 
 /*! \file */
 
@@ -84,14 +84,6 @@ test_master(const char *testfile) {
 
 	dns_rdatacallbacks_init_stdio(&callbacks);
 	callbacks.add = add_callback;
-
-	/*
-	 * atf-run changes us to a /tmp directory, so tests
-	 * that access test data files must first chdir to the proper
-	 * location.
-	 */
-	if (chdir(TESTS) == -1)
-		return (ISC_R_FAILURE);
 
 	result = dns_master_loadfile(testfile, &dns_origin, &dns_origin,
 				     dns_rdataclass_in, ISC_TRUE,

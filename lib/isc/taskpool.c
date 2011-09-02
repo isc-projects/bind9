@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: taskpool.c,v 1.20 2011/07/07 23:47:49 tbox Exp $ */
+/* $Id: taskpool.c,v 1.21 2011/09/02 21:15:38 each Exp $ */
 
 /*! \file */
 
@@ -163,9 +163,8 @@ isc_taskpool_destroy(isc_taskpool_t **poolp) {
 	unsigned int i;
 	isc_taskpool_t *pool = *poolp;
 	for (i = 0; i < pool->ntasks; i++) {
-		if (pool->tasks[i] != NULL) {
+		if (pool->tasks[i] != NULL)
 			isc_task_detach(&pool->tasks[i]);
-		}
 	}
 	isc_mem_put(pool->mctx, pool->tasks,
 		    pool->ntasks * sizeof(isc_task_t *));
@@ -173,4 +172,14 @@ isc_taskpool_destroy(isc_taskpool_t **poolp) {
 	*poolp = NULL;
 }
 
+void
+isc_taskpool_setprivilege(isc_taskpool_t *pool, isc_boolean_t priv) {
+	unsigned int i;
 
+	REQUIRE(pool != NULL);
+
+	for (i = 0; i < pool->ntasks; i++) {
+		if (pool->tasks[i] != NULL)
+			isc_task_setprivilege(pool->tasks[i], priv);
+	}
+}

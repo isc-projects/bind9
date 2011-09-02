@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: taskpool.h,v 1.17 2011/07/07 23:47:50 tbox Exp $ */
+/* $Id: taskpool.h,v 1.18 2011/09/02 21:15:38 each Exp $ */
 
 #ifndef ISC_TASKPOOL_H
 #define ISC_TASKPOOL_H 1
@@ -137,6 +137,19 @@ isc_taskpool_destroy(isc_taskpool_t **poolp);
  *
  * Requires:
  * \li	'*poolp' is a valid task pool.
+ */
+
+void
+isc_taskpool_setprivilege(isc_taskpool_t *pool, isc_boolean_t priv);
+/*%<
+ * Set the privilege flag on all tasks in 'pool' to 'priv'.  If 'priv' is
+ * true, then when the task manager is set into privileged mode, only
+ * tasks wihin this pool will be able to execute.  (Note:  It is important
+ * to turn the pool tasks' privilege back off before the last task finishes
+ * executing.)
+ *
+ * Requires:
+ * \li	'pool' is a valid task pool.
  */
 
 ISC_LANG_ENDDECLS

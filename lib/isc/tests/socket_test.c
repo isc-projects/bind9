@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket_test.c,v 1.3 2011/07/28 23:47:59 tbox Exp $ */
+/* $Id: socket_test.c,v 1.4 2011/09/02 21:15:38 each Exp $ */
 
 /*! \file */
 
@@ -56,22 +56,6 @@ event_done(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 }
 
-static void
-nap(isc_uint32_t usec) {
-#ifdef HAVE_NANOSLEEP
-	struct timespec ts;
-
-	ts.tv_sec = usec / 1000000;
-	ts.tv_nsec = (usec % 1000000) * 1000;
-	nanosleep(&ts, NULL);
-#elif HAVE_USLEEP
-	usleep(usec);
-#else
-	/* Round up to the nearest second and sleep, instead */
-	sleep((usec / 1000000) + 1);
-#endif
-}
-
 static isc_result_t
 waitfor(completion_t *completion) {
 	int i = 0;
@@ -80,7 +64,7 @@ waitfor(completion_t *completion) {
 		while (isc__taskmgr_ready(taskmgr))
 			isc__taskmgr_dispatch(taskmgr);
 #endif
-		nap(1000);
+		isc_test_nap(1000);
 	}
 	if (completion->done)
 		return (ISC_R_SUCCESS);

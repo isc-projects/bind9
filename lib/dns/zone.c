@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.628 2011/08/31 06:49:10 marka Exp $ */
+/* $Id: zone.c,v 1.629 2011/09/02 21:15:36 each Exp $ */
 
 /*! \file */
 
@@ -79,6 +79,7 @@
 #include <dns/update.h>
 #include <dns/xfrin.h>
 #include <dns/zone.h>
+#include <dns/zt.h>
 
 #include <dst/dst.h>
 
@@ -146,6 +147,7 @@ typedef ISC_LIST(dns_signing_t) dns_signinglist_t;
 typedef struct dns_nsec3chain dns_nsec3chain_t;
 typedef ISC_LIST(dns_nsec3chain_t) dns_nsec3chainlist_t;
 typedef struct dns_keyfetch dns_keyfetch_t;
+typedef struct dns_asyncload dns_asyncload_t;
 
 #define DNS_ZONE_CHECKLOCK
 #ifdef DNS_ZONE_CHECKLOCK
@@ -245,6 +247,7 @@ struct dns_zone {
 	unsigned int		notifycnt;
 	isc_sockaddr_t		notifyfrom;
 	isc_task_t		*task;
+	isc_task_t		*loadtask;
 	isc_sockaddr_t		notifysrc4;
 	isc_sockaddr_t		notifysrc6;
 	isc_sockaddr_t		xfrsource4;
@@ -402,7 +405,7 @@ struct dns_zone {
 #define DNS_ZONEFLG_NEEDCOMPACT 0x02000000U
 #define DNS_ZONEFLG_REFRESHING	0x04000000U	/*%< Refreshing keydata */
 #define DNS_ZONEFLG_THAW	0x08000000U
-/* #define DNS_ZONEFLG_XXXXX	0x10000000U   XXXMPA unused. */
+#define DNS_ZONEFLG_LOADPENDING	0x10000000U	/*%< Loading scheduled */
 #define DNS_ZONEFLG_NODELAY	0x20000000U
 
 #define DNS_ZONE_OPTION(z,o) (((z)->options & (o)) != 0)
@@ -436,6 +439,7 @@ struct dns_zonemgr {
 	isc_timermgr_t *	timermgr;
 	isc_socketmgr_t *	socketmgr;
 	isc_taskpool_t *	zonetasks;
+	isc_taskpool_t *	loadtasks;
 	isc_task_t *		task;
 	isc_ratelimiter_t *	rl;
 	isc_rwlock_t		rwlock;
@@ -591,6 +595,15 @@ struct dns_keyfetch {
 	dns_zone_t *zone;
 	dns_db_t *db;
 	dns_fetch_t *fetch;
+};
+
+/*%
+ * Hold state for an asynchronous load
+ */
+struct dns_asyncload {
+	dns_zone_t *zone;
+	dns_zt_zoneloaded_t loaded;
+	void *loaded_arg;
 };
 
 #define HOUR 3600
@@ -821,6 +834,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->notifytype = dns_notifytype_yes;
 	zone->notifycnt = 0;
 	zone->task = NULL;
+	zone->loadtask = NULL;
 	zone->update_acl = NULL;
 	zone->forward_acl = NULL;
 	zone->notify_acl = NULL;
@@ -932,6 +946,8 @@ zone_free(dns_zone_t *zone) {
 
 	if (zone->task != NULL)
 		isc_task_detach(&zone->task);
+	if (zone->loadtask != NULL)
+		isc_task_detach(&zone->loadtask);
 	if (zone->zmgr != NULL)
 		dns_zonemgr_releasezone(zone->zmgr, zone);
 
@@ -1458,7 +1474,6 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 		goto cleanup;
 	}
 
-
 	INSIST(zone->db_argc >= 1);
 
 	rbt = strcmp(zone->db_argv[0], "rbt") == 0 ||
@@ -1617,6 +1632,82 @@ dns_zone_loadnew(dns_zone_t *zone) {
 	return (zone_load(zone, DNS_ZONELOADFLAG_NOSTAT));
 }
 
+static void
+zone_asyncload(isc_task_t *task, isc_event_t *event) {
+	dns_asyncload_t *asl = event->ev_arg;
+	dns_zone_t *zone = asl->zone;
+	isc_result_t result = ISC_R_SUCCESS;
+
+	UNUSED(task);
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	if ((event->ev_attributes & ISC_EVENTATTR_CANCELED) != 0)
+		result = ISC_R_CANCELED;
+	isc_event_free(&event);
+	if (result == ISC_R_CANCELED ||
+	    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADPENDING))
+		return;
+
+	result = zone_load(zone, 0);
+
+	LOCK_ZONE(zone);
+	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_LOADPENDING);
+	UNLOCK_ZONE(zone);
+	
+	/* Inform the zone table we've finished loading */
+	if (asl->loaded != NULL)
+		(asl->loaded)(asl->loaded_arg, zone, task);
+
+	isc_mem_put(zone->mctx, asl, sizeof (*asl));
+}
+
+isc_result_t
+dns_zone_asyncload(dns_zone_t *zone, dns_zt_zoneloaded_t done, void *arg) {
+	isc_event_t *e;
+	dns_asyncload_t *asl = NULL;
+	isc_result_t result = ISC_R_SUCCESS;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	if (zone->zmgr == NULL)
+		return (ISC_R_FAILURE);
+
+	asl = isc_mem_get(zone->mctx, sizeof (*asl));
+	if (asl == NULL)
+		CHECK(ISC_R_NOMEMORY);
+
+	asl->zone = zone;
+	asl->loaded = done;
+	asl->loaded_arg = arg;
+
+	e = isc_event_allocate(zone->zmgr->mctx, zone->zmgr,
+			       DNS_EVENT_ZONELOAD,
+			       zone_asyncload, asl,
+			       sizeof(isc_event_t));
+	if (e == NULL)
+		CHECK(ISC_R_NOMEMORY);
+
+	LOCK_ZONE(zone);
+	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADPENDING);
+	isc_task_send(zone->loadtask, &e);
+	UNLOCK_ZONE(zone);
+
+	return (ISC_R_SUCCESS);
+
+  failure:
+	if (asl != NULL)
+		isc_mem_put(zone->mctx, asl, sizeof (*asl));
+	return (result);
+}
+
+isc_boolean_t
+dns__zone_loadpending(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	return (ISC_TF(DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADPENDING)));
+}
+
 isc_result_t
 dns_zone_loadandthaw(dns_zone_t *zone) {
 	isc_result_t result;
@@ -1754,7 +1845,7 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_MANYERRORS))
 		options |= DNS_MASTER_MANYERRORS;
 
-	if (zone->zmgr != NULL && zone->db != NULL && zone->task != NULL) {
+	if (zone->zmgr != NULL && zone->db != NULL && zone->loadtask != NULL) {
 		load = isc_mem_get(zone->mctx, sizeof(*load));
 		if (load == NULL)
 			return (ISC_R_NOMEMORY);
@@ -1773,7 +1864,7 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 					  &load->callbacks.add_private);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
-		result = zonemgr_getio(zone->zmgr, ISC_TRUE, zone->task,
+		result = zonemgr_getio(zone->zmgr, ISC_TRUE, zone->loadtask,
 				       zone_gotreadhandle, load,
 				       &zone->readio);
 		if (result != ISC_R_SUCCESS) {
@@ -3562,7 +3653,6 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			result = DNS_R_BADZONE;
 			goto cleanup;
 		}
-
 		if (zone->type == dns_zone_master &&
 		    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKDUPRR) &&
 		    !zone_check_dup(zone, db)) {
@@ -3760,6 +3850,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		dns_zone_log(zone, ISC_LOG_INFO, "loaded serial %u%s", serial,
 			     dns_db_issecure(db) ? " (DNSSEC signed)" : "");
 
+	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_LOADPENDING);
 	return (result);
 
  cleanup:
@@ -3780,6 +3871,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	} else if (zone->type == dns_zone_master ||
 		   zone->type == dns_zone_redirect)
 		dns_zone_log(zone, ISC_LOG_ERROR, "not loaded due to errors.");
+
 	return (result);
 }
 
@@ -8114,11 +8206,17 @@ zone_maintenance(dns_zone_t *zone) {
 	ENTER;
 
 	/*
+	 * Are we pending load/reload?
+	 */
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADPENDING))
+		return;
+
+	/*
 	 * Configuring the view of this zone may have
 	 * failed, for example because the config file
 	 * had a syntax error.	In that case, the view
-	 * adb or resolver, and we had better not try
-	 * to do maintenance on it.
+	 * adb or resolver will be NULL, and we had better not try
+	 * to do further maintenance on it.
 	 */
 	if (zone->view == NULL || zone->view->adb == NULL)
 		return;
@@ -8239,6 +8337,7 @@ zone_maintenance(dns_zone_t *zone) {
 			set_key_expiry_warning(zone, zone->key_expiry,
 					       isc_time_seconds(&now));
 		break;
+
 	default:
 		break;
 	}
@@ -13149,6 +13248,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	zmgr->timermgr = timermgr;
 	zmgr->socketmgr = socketmgr;
 	zmgr->zonetasks = NULL;
+	zmgr->loadtasks = NULL;
 	zmgr->task = NULL;
 	zmgr->rl = NULL;
 	ISC_LIST_INIT(zmgr->zones);
@@ -13224,6 +13324,7 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	REQUIRE(zone->zmgr == NULL);
 
 	isc_taskpool_gettask(zmgr->zonetasks, &zone->task);
+	isc_taskpool_gettask(zmgr->loadtasks, &zone->loadtask);
 
 	/*
 	 * Set the task name.  The tag will arbitrarily point to one
@@ -13231,6 +13332,7 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	 * to be managed last).
 	 */
 	isc_task_setname(zone->task, "zone", zone);
+	isc_task_setname(zone->loadtask, "loadzone", zone);
 
 	result = isc_timer_create(zmgr->timermgr, isc_timertype_inactive,
 				  NULL, NULL,
@@ -13238,7 +13340,7 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 				  &zone->timer);
 
 	if (result != ISC_R_SUCCESS)
-		goto cleanup_task;
+		goto cleanup_tasks;
 
 	/*
 	 * The timer "holds" a iref.
@@ -13252,7 +13354,8 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 
 	goto unlock;
 
- cleanup_task:
+ cleanup_tasks:
+	isc_task_detach(&zone->loadtask);
 	isc_task_detach(&zone->task);
 
  unlock:
@@ -13368,6 +13471,8 @@ dns_zonemgr_shutdown(dns_zonemgr_t *zmgr) {
 		isc_task_destroy(&zmgr->task);
 	if (zmgr->zonetasks != NULL)
 		isc_taskpool_destroy(&zmgr->zonetasks);
+	if (zmgr->loadtasks != NULL)
+		isc_taskpool_destroy(&zmgr->loadtasks);
 
 	RWLOCK(&zmgr->rwlock, isc_rwlocktype_read);
 	for (zone = ISC_LIST_HEAD(zmgr->zones);
@@ -13392,13 +13497,13 @@ dns_zonemgr_setsize(dns_zonemgr_t *zmgr, int num_zones) {
 
 	/*
 	 * For anything fewer than 1000 zones we use 10 tasks in
-	 * the task pool.  More than that, and we'll scale at one
+	 * the task pools.  More than that, and we'll scale at one
 	 * task per 100 zones.
 	 */
 	if (ntasks < 10)
 		ntasks = 10;
 
-	/* Create or resize the zone task pool. */
+	/* Create or resize the zone task pools. */
 	if (zmgr->zonetasks == NULL)
 		result = isc_taskpool_create(zmgr->taskmgr, zmgr->mctx,
 					     ntasks, 2, &pool);
@@ -13407,6 +13512,33 @@ dns_zonemgr_setsize(dns_zonemgr_t *zmgr, int num_zones) {
 
 	if (result == ISC_R_SUCCESS)
 		zmgr->zonetasks = pool;
+
+	pool = NULL;
+	if (zmgr->loadtasks  == NULL)
+		result = isc_taskpool_create(zmgr->taskmgr, zmgr->mctx,
+					     ntasks, 2, &pool);
+	else
+		result = isc_taskpool_expand(&zmgr->loadtasks, ntasks, &pool);
+
+	if (result == ISC_R_SUCCESS)
+		zmgr->loadtasks = pool;
+
+#ifdef BIND9
+	/*
+	 * We always set all tasks in the zone-load task pool to
+	 * privileged.  This prevents other tasks in the system from
+	 * running while the server task manager is in privileged
+	 * mode.  
+	 *
+	 * NOTE: If we start using task privileges for any other
+	 * part of the system than zone tasks, then this will need to be
+	 * revisted.  In that case we'd want to turn on privileges for
+	 * zone tasks only when we were loading, and turn them off the
+	 * rest of the time.  For now, however, it's okay to just
+	 * set it and forget it.
+	 */
+	isc_taskpool_setprivilege(zmgr->loadtasks, ISC_TRUE);
+#endif
 
 	return (result);
 }
@@ -13630,12 +13762,14 @@ zonemgr_getio(dns_zonemgr_t *zmgr, isc_boolean_t high,
 	io = isc_mem_get(zmgr->mctx, sizeof(*io));
 	if (io == NULL)
 		return (ISC_R_NOMEMORY);
+
 	io->event = isc_event_allocate(zmgr->mctx, task, DNS_EVENT_IOREADY,
 				       action, arg, sizeof(*io->event));
 	if (io->event == NULL) {
 		isc_mem_put(zmgr->mctx, io, sizeof(*io));
 		return (ISC_R_NOMEMORY);
 	}
+
 	io->zmgr = zmgr;
 	io->high = high;
 	io->task = NULL;
@@ -13655,9 +13789,8 @@ zonemgr_getio(dns_zonemgr_t *zmgr, isc_boolean_t high,
 	UNLOCK(&zmgr->iolock);
 	*iop = io;
 
-	if (!queue) {
+	if (!queue)
 		isc_task_send(io->task, &io->event);
-	}
 	return (ISC_R_SUCCESS);
 }
 

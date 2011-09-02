@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: list.h,v 1.24 2007/06/19 23:47:18 tbox Exp $ */
+/* $Id: list.h,v 1.25 2011/09/02 21:15:38 each Exp $ */
 
 #ifndef ISC_LIST_H
 #define ISC_LIST_H 1
@@ -164,6 +164,19 @@
 			(list1).tail->link.next = (list2).head; \
 			(list2).head->link.prev = (list1).tail; \
 			(list1).tail = (list2).tail; \
+		} \
+		(list2).head = NULL; \
+		(list2).tail = NULL; \
+	} while (0)
+
+#define ISC_LIST_PREPENDLIST(list1, list2, link) \
+	do { \
+		if (ISC_LIST_EMPTY(list1)) \
+			(list1) = (list2); \
+		else if (!ISC_LIST_EMPTY(list2)) { \
+			(list2).tail->link.next = (list1).head; \
+			(list1).head->link.prev = (list2).tail; \
+			(list1).head = (list2).head; \
 		} \
 		(list2).head = NULL; \
 		(list2).tail = NULL; \

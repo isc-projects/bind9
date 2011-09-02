@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: isctest.h,v 1.3 2011/07/28 04:04:37 each Exp $ */
+/* $Id: isctest.h,v 1.4 2011/09/02 21:15:38 each Exp $ */
 
 /*! \file */
 
@@ -52,3 +52,5 @@ isc_test_begin(FILE *logfile, isc_boolean_t start_managers);
 void
 isc_test_end(void);
 
+void
+isc_test_nap(isc_uint32_t usec);

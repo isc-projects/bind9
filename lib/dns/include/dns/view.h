@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.134 2011/08/02 20:36:13 each Exp $ */
+/* $Id: view.h,v 1.135 2011/09/02 21:15:36 each Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -76,6 +76,7 @@
 #include <dns/rdatastruct.h>
 #include <dns/rpz.h>
 #include <dns/types.h>
+#include <dns/zt.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -728,14 +729,21 @@ dns_view_load(dns_view_t *view, isc_boolean_t stop);
 
 isc_result_t
 dns_view_loadnew(dns_view_t *view, isc_boolean_t stop);
+
+isc_result_t
+dns_view_asyncload(dns_view_t *view, dns_zt_allloaded_t callback, void *arg);
 /*%<
  * Load zones attached to this view.  dns_view_load() loads
  * all zones whose master file has changed since the last
  * load; dns_view_loadnew() loads only zones that have never
  * been loaded.
  *
+ * dns_view_asyncload() loads zones asynchronously.  When all zones
+ * in the view have finished loading, 'callback' is called with argument
+ * 'arg' to inform the caller.
+ *
  * If 'stop' is ISC_TRUE, stop on the first error and return it.
- * If 'stop' is ISC_FALSE, ignore errors.
+ * If 'stop' is ISC_FALSE (or we are loading asynchronously), ignore errors.
  *
  * Requires:
  *

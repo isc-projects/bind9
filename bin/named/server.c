@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.617 2011/08/30 05:16:10 marka Exp $ */
+/* $Id: server.c,v 1.618 2011/09/02 21:15:30 each Exp $ */
 
 /*! \file */
 
@@ -39,6 +39,7 @@
 #include <isc/parseint.h>
 #include <isc/portset.h>
 #include <isc/print.h>
+#include <isc/refcount.h>
 #include <isc/resource.h>
 #include <isc/sha2.h>
 #include <isc/socket.h>
@@ -214,6 +215,16 @@ struct cfg_context {
 	cfg_obj_t *			nzconfig;
 	cfg_aclconfctx_t *		actx;
 };
+
+/*%
+ * Holds state information for the initial zone loading process.
+ * Uses the isc_refcount structure to count the number of views
+ * with pending zone loads, dereferencing as each view finishes.
+ */
+typedef struct {
+		ns_server_t *server;
+		isc_refcount_t refs;
+} ns_zoneload_t;
 
 /*
  * These zones should not leak onto the Internet.
@@ -5216,34 +5227,87 @@ load_configuration(const char *filename, ns_server_t *server,
 }
 
 static isc_result_t
-load_zones(ns_server_t *server, isc_boolean_t stop) {
+view_loaded(void *arg) {
 	isc_result_t result;
-	dns_view_t *view;
+	ns_zoneload_t *zl = (ns_zoneload_t *) arg;
+	ns_server_t *server = zl->server;
+	unsigned int refs;
 
-	result = isc_task_beginexclusive(server->task);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-
-	/*
-	 * Load zone data from disk.
-	 */
-	for (view = ISC_LIST_HEAD(server->viewlist);
-	     view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
-		CHECK(dns_view_load(view, stop));
-		if (view->managed_keys != NULL)
-			CHECK(dns_zone_load(view->managed_keys));
-		if (view->redirect != NULL)
-			CHECK(dns_zone_load(view->redirect));
-	}
 
 	/*
 	 * Force zone maintenance.  Do this after loading
 	 * so that we know when we need to force AXFR of
 	 * slave zones whose master files are missing.
+	 *
+	 * We use the zoneload reference counter to let us
+	 * know when all views are finished.
 	 */
-	CHECK(dns_zonemgr_forcemaint(server->zonemgr));
+	isc_refcount_decrement(&zl->refs, &refs);
+	if (refs != 0)
+		return (ISC_R_SUCCESS);
+
+	isc_refcount_destroy(&zl->refs);
+	isc_mem_put(server->mctx, zl, sizeof (*zl));
+
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
+		      ISC_LOG_NOTICE, "all zones loaded");
+	CHECKFATAL(dns_zonemgr_forcemaint(server->zonemgr),
+		   "forcing zone maintenance");
+
+	ns_os_started();
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
+		      ISC_LOG_NOTICE, "running");
+
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+load_zones(ns_server_t *server) {
+	isc_result_t result;
+	dns_view_t *view;
+	ns_zoneload_t *zl;
+	unsigned int refs = 0;
+
+	zl = isc_mem_get(server->mctx, sizeof (*zl));
+	if (zl == NULL)
+		return (ISC_R_NOMEMORY);
+	zl->server = server;
+
+	result = isc_task_beginexclusive(server->task);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+	isc_refcount_init(&zl->refs, 1);
+
+	/*
+	 * Schedule zones to be loaded from disk.
+	 */
+	for (view = ISC_LIST_HEAD(server->viewlist);
+	     view != NULL;
+	     view = ISC_LIST_NEXT(view, link))
+	{
+		if (view->managed_keys != NULL)
+			CHECK(dns_zone_load(view->managed_keys));
+		if (view->redirect != NULL)
+			CHECK(dns_zone_load(view->redirect));
+		isc_refcount_increment(&zl->refs, NULL);
+		CHECK(dns_view_asyncload(view, view_loaded, zl));
+	}
+
  cleanup:
+	isc_refcount_decrement(&zl->refs, &refs);
+	if (result != ISC_R_SUCCESS || refs == 0) {
+		isc_refcount_destroy(&zl->refs);
+		isc_mem_put(server->mctx, zl, sizeof (*zl));
+	} else {
+		/*
+		 * Place the task manager into privileged mode.  This
+		 * ensures that after we leave task-exclusive mode, no
+		 * other tasks will be able to run except for the ones
+		 * that are loading zones.
+		 */
+		isc_taskmgr_setmode(ns_g_taskmgr, isc_taskmgrmode_privileged);
+	}
+
 	isc_task_endexclusive(server->task);
 	return (result);
 }
@@ -5331,11 +5395,7 @@ run_server(isc_task_t *task, isc_event_t *event) {
 
 	isc_hash_init();
 
-	CHECKFATAL(load_zones(server, ISC_FALSE), "loading zones");
-
-	ns_os_started();
-	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
-		      ISC_LOG_NOTICE, "running");
+	CHECKFATAL(load_zones(server), "loading zones");
 }
 
 void
@@ -5770,7 +5830,7 @@ reload(ns_server_t *server) {
 	isc_result_t result;
 	CHECK(loadconfig(server));
 
-	result = load_zones(server, ISC_FALSE);
+	result = load_zones(server);
 	if (result == ISC_R_SUCCESS)
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,

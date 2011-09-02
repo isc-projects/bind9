@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.c,v 1.50 2011/03/21 23:47:21 tbox Exp $ */
+/* $Id: zt.c,v 1.51 2011/09/02 21:15:36 each Exp $ */
 
 /*! \file */
 
@@ -42,8 +42,11 @@ struct dns_zt {
 	isc_mem_t		*mctx;
 	dns_rdataclass_t	rdclass;
 	isc_rwlock_t		rwlock;
+	dns_zt_allloaded_t	loaddone;
+	void *			loaddone_arg;
 	/* Locked by lock. */
 	isc_uint32_t		references;
+	unsigned int		loads_pending;
 	dns_rbt_t		*table;
 };
 
@@ -57,10 +60,19 @@ static isc_result_t
 load(dns_zone_t *zone, void *uap);
 
 static isc_result_t
+asyncload(dns_zone_t *zone, void *callback);
+
+static isc_result_t
 loadnew(dns_zone_t *zone, void *uap);
 
 static isc_result_t
 freezezones(dns_zone_t *zone, void *uap);
+
+void
+startloading(dns_zt_t *zt, dns_zone_t *zone);
+
+void
+doneloading(dns_zt_t *zt, dns_zone_t *zone);
 
 isc_result_t
 dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **ztp)
@@ -87,6 +99,9 @@ dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **ztp)
 	zt->references = 1;
 	zt->rdclass = rdclass;
 	zt->magic = ZTMAGIC;
+	zt->loaddone = NULL;
+	zt->loaddone_arg = NULL;
+	zt->loads_pending = 0;
 	*ztp = zt;
 
 	return (ISC_R_SUCCESS);
@@ -243,10 +258,58 @@ static isc_result_t
 load(dns_zone_t *zone, void *uap) {
 	isc_result_t result;
 	UNUSED(uap);
+
 	result = dns_zone_load(zone);
 	if (result == DNS_R_CONTINUE || result == DNS_R_UPTODATE)
 		result = ISC_R_SUCCESS;
+
 	return (result);
+}
+
+isc_result_t
+dns_zt_asyncload(dns_zt_t *zt, dns_zt_allloaded_t alldone, void *arg) {
+	isc_result_t result, tresult;
+	int pending;
+
+	REQUIRE(VALID_ZT(zt));
+
+	RWLOCK(&zt->rwlock, isc_rwlocktype_read);
+
+	INSIST(zt->loads_pending == 0);
+
+	result = dns_zt_apply2(zt, ISC_FALSE, &tresult, asyncload, doneloading);
+
+	pending = zt->loads_pending;
+	if (pending != 0) {
+		zt->loaddone = alldone;
+		zt->loaddone_arg = arg;
+	}
+
+	RWUNLOCK(&zt->rwlock, isc_rwlocktype_read);
+
+	if (pending == 0)
+		alldone(arg);
+
+	return (result);
+}
+
+/*
+ * Initiates asynchronous loading of zone 'zone'.  'callback' is a 
+ * pointer to a function which will be used to inform the caller when
+ * the zone loading is complete.
+ */
+static isc_result_t
+asyncload(dns_zone_t *zone, void *callback) {
+	isc_result_t result;
+	dns_zt_t *zt;
+
+	REQUIRE(zone != NULL);
+	zt = dns_zone_getview(zone)->zonetable;
+
+	result = dns_zone_asyncload(zone, (dns_zt_zoneloaded_t) callback, zt);
+	if (result == ISC_R_SUCCESS)
+		zt->loads_pending++;
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -265,6 +328,7 @@ static isc_result_t
 loadnew(dns_zone_t *zone, void *uap) {
 	isc_result_t result;
 	UNUSED(uap);
+
 	result = dns_zone_loadnew(zone);
 	if (result == DNS_R_CONTINUE || result == DNS_R_UPTODATE ||
 	    result == DNS_R_DYNAMIC)
@@ -281,6 +345,8 @@ dns_zt_freezezones(dns_zt_t *zt, isc_boolean_t freeze) {
 	RWLOCK(&zt->rwlock, isc_rwlocktype_read);
 	result = dns_zt_apply2(zt, ISC_FALSE, &tresult, freezezones, &freeze);
 	RWUNLOCK(&zt->rwlock, isc_rwlocktype_read);
+	if (tresult == ISC_R_NOTFOUND)
+		tresult = ISC_R_SUCCESS;
 	return ((result == ISC_R_SUCCESS) ? tresult : result);
 }
 
@@ -364,6 +430,7 @@ dns_zt_apply2(dns_zt_t *zt, isc_boolean_t stop, isc_result_t *sub,
 		/*
 		 * The tree is empty.
 		 */
+		tresult = result;
 		result = ISC_R_NOMORE;
 	}
 	while (result == DNS_R_NEWORIGIN || result == ISC_R_SUCCESS) {
@@ -391,6 +458,35 @@ dns_zt_apply2(dns_zt_t *zt, isc_boolean_t stop, isc_result_t *sub,
 		*sub = tresult;
 
 	return (result);
+}
+
+/*
+ * Decrement the loads_pending counter; when counter reaches
+ * zero, call the loaddone callback that was initially set by
+ * dns_zt_asyncload().
+ */
+void
+doneloading(dns_zt_t *zt, dns_zone_t *zone) {
+	dns_zt_allloaded_t alldone = NULL;
+	void *arg = NULL;
+
+	UNUSED(zone);
+
+	REQUIRE(VALID_ZT(zt));
+
+	RWLOCK(&zt->rwlock, isc_rwlocktype_write);
+	INSIST(zt->loads_pending != 0);
+	zt->loads_pending--;
+	if (zt->loads_pending == 0) {
+		alldone = zt->loaddone;
+		arg = zt->loaddone_arg;
+		zt->loaddone = NULL;
+		zt->loaddone_arg = NULL;
+	}
+	RWUNLOCK(&zt->rwlock, isc_rwlocktype_write);
+
+	if (alldone != NULL)
+		alldone(arg);
 }
 
 /***
