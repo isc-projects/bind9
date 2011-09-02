@@ -15,7 +15,8 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.8 2007/06/19 23:47:06 tbox Exp $
+# $Id: setup.sh,v 1.8.814.1 2011/09/02 02:24:22 marka Exp $
 
 cp -f ns1/example1.db ns1/example.db
 rm -f ns1/example.db.jnl ns2/example.bk ns2/example.bk.jnl
+cp -f ns3/nomaster.db ns3/nomaster1.db
