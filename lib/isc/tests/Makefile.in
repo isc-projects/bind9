@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.2.8.2 2011/07/09 01:57:05 each Exp $
+# $Id: Makefile.in,v 1.2.8.3 2011/09/02 19:27:30 each Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -45,6 +45,9 @@ TARGETS =	taskpool_test@EXEEXT@
 taskpool_test@EXEEXT@: taskpool_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			taskpool_test.@O@ isctest.@O@ ${ISCLIBS} ${LIBS}
+
+unit::
+	sh ${top_srcdir}/unit/unittest.sh
 
 clean distclean::
 	rm -f ${TARGETS}

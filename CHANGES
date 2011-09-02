@@ -3,6 +3,12 @@
 
 3146.   [test]		Fixed gcc4.6.0 errors in ATF. [RT #25598]
 
+3145.	[test]		Capture output of ATF unit tests in "./atf.out" if
+			there were any errors while running them. [RT #25527]
+
+3144.	[bug]		dns_dbiterator_seek() could trigger an assert when
+			used with a nonexistent database node. [RT #25358]
+
 	--- 9.8.1 released ---
 
 	--- 9.8.1rc1 released ---

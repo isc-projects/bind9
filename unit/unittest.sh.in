@@ -14,12 +14,18 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: unittest.sh.in,v 1.2.2.6 2011/03/03 11:23:19 marka Exp $
+# $Id: unittest.sh.in,v 1.2.2.7 2011/09/02 19:27:30 each Exp $
 
 PATH=${PATH}:@ATFBIN@
 export PATH
 
 if [ -n "@ATFBIN@" ]
 then
-	atf-run | atf-report -o csv:- | cat
+	atf-run > atf.out
+	status=$?
+
+        # | cat is there to force non-fancy output
+	atf-report < atf.out | cat
+
+	[ $status -eq 0 ] && rm -f atf.out
 fi
