@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.313.20.28 2011/08/31 23:33:23 marka Exp $ */
+/* $Id: query.c,v 1.313.20.29 2011/09/02 21:53:54 each Exp $ */
 
 /*! \file */
 
@@ -4240,6 +4240,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		/*
 		 * Look for a NSEC3 record if we don't have a NSEC record.
 		 */
+ nxrrset_rrsig:
 		if (!dns_rdataset_isassociated(rdataset) &&
 		     WANTDNSSEC(client)) {
 			if ((fname->attributes & DNS_NAMEATTR_WILDCARD) == 0) {
@@ -4367,6 +4368,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			 */
 			query_releasename(client, &fname);
 		}
+
 		/*
 		 * Add SOA.  If the query was for a SOA record force the
 		 * ttl to zero so that it is possible for clients to find
@@ -4714,66 +4716,40 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		if (fname != NULL)
 			dns_message_puttempname(client->message, &fname);
 
-		if (n == 0 && is_zone) {
-			/*
-			 * We didn't match any rdatasets.
+		if (n == 0) {
+ 			/*
+			 * No matching rdatasets found in cache. If we were
+			 * searching for RRSIG/SIG, that's probably okay;
+			 * otherwise this is an error condition.
 			 */
 			if ((qtype == dns_rdatatype_rrsig ||
 			     qtype == dns_rdatatype_sig) &&
 			    result == ISC_R_NOMORE) {
-				/*
-				 * XXXRTH  If this is a secure zone and we
-				 * didn't find any SIGs, we should generate
-				 * an error unless we were searching for
-				 * glue.  Ugh.
-				 */
 				if (!is_zone) {
-					/*
-					 * Note: this is dead code because
-					 * is_zone is always true due to the
-					 * condition above.  But naive
-					 * recursion would cause infinite
-					 * attempts of recursion because
-					 * the answer to (RR)SIG queries
-					 * won't be cached.  Until we figure
-					 * out what we should do and implement
-					 * it we intentionally keep this code
-					 * dead.
-					 */
 					authoritative = ISC_FALSE;
 					dns_rdatasetiter_destroy(&rdsiter);
-					if (RECURSIONOK(client)) {
-						result = query_recurse(client,
-								       qtype,
-								       NULL,
-								       NULL,
-								       resuming);
-						if (result == ISC_R_SUCCESS)
-						    client->query.attributes |=
-							NS_QUERYATTR_RECURSING;
-						else
-						    RECURSE_ERROR(result);
-					}
+                                        client->attributes &= ~NS_CLIENTATTR_RA;
 					goto addauth;
 				}
-				/*
-				 * We were searching for SIG records in
-				 * a nonsecure zone.  Send a "no error,
-				 * no data" response.
-				 */
-				/*
-				 * Add SOA.
-				 */
-				result = query_addsoa(client, db, version,
-						      ISC_FALSE, ISC_FALSE);
-				if (result == ISC_R_SUCCESS)
-					result = ISC_R_NOMORE;
-			} else {
-				/*
-				 * Something went wrong.
-				 */
+
+				if (dns_db_issecure(db)) {
+					char namebuf[DNS_NAME_FORMATSIZE];
+					dns_name_format(client->query.qname,
+							namebuf,
+							sizeof(namebuf));
+					ns_client_log(client,
+						      DNS_LOGCATEGORY_DNSSEC,
+						      NS_LOGMODULE_QUERY,
+						      ISC_LOG_WARNING,
+						      "missing signature "
+						      "for %s", namebuf);
+				}
+
+				dns_rdatasetiter_destroy(&rdsiter);
+				fname = query_newname(client, dbuf, &b);
+				goto nxrrset_rrsig;
+			} else 
 				result = DNS_R_SERVFAIL;
-			}
 		}
 		dns_rdatasetiter_destroy(&rdsiter);
 		if (result != ISC_R_NOMORE) {
