@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.6.4.2 2011/09/02 20:22:26 each Exp $
+# $Id: Makefile.in,v 1.6.4.3 2011/09/02 22:23:08 each Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -35,16 +35,20 @@ ISCDEPLIBS =	../libisc.@A@
 LIBS =		@LIBS@ @ATFLIBS@
 
 OBJS =		isctest.@O@
-SRCS =		isctest.c taskpool_test.c
+SRCS =		isctest.c taskpool_test.c hash_test.c
 
 SUBDIRS =
-TARGETS =	taskpool_test@EXEEXT@
+TARGETS =	taskpool_test@EXEEXT@ hash_test@EXEEXT@
 
 @BIND9_MAKE_RULES@
 
 taskpool_test@EXEEXT@: taskpool_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			taskpool_test.@O@ isctest.@O@ ${ISCLIBS} ${LIBS}
+
+hash_test@EXEEXT@: hash_test.@O@ ${ISCDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+			hash_test.@O@ ${ISCLIBS} ${LIBS}
 
 unit::
 	sh ${top_srcdir}/unit/unittest.sh

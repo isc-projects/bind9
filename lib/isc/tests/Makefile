@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile,v 1.1.4.2 2011/09/02 20:22:26 each Exp $
+# $Id: Makefile,v 1.1.4.3 2011/09/02 22:23:08 each Exp $
 
 srcdir =	.
 
@@ -39,7 +39,7 @@ VERSION=9.7.4
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile,v 1.1.4.2 2011/09/02 20:22:26 each Exp $
+# $Id: Makefile,v 1.1.4.3 2011/09/02 22:23:08 each Exp $
 
 # Search for machine-generated header files in the build tree,
 # and for normal headers in the source tree (${top_srcdir}).
@@ -82,10 +82,10 @@ ISCDEPLIBS =	../libisc.a
 LIBS =		-lpthread  -lxml2 -L/home/each/isc/tmp/atf/lib -latf-c
 
 OBJS =		isctest.o
-SRCS =		isctest.c taskpool_test.c
+SRCS =		isctest.c taskpool_test.c hash_test.c
 
 SUBDIRS =
-TARGETS =	taskpool_test
+TARGETS =	taskpool_test hash_test
 
 # Copyright (C) 2004-2009, 2011  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 1998-2003  Internet Software Consortium.
@@ -102,7 +102,7 @@ TARGETS =	taskpool_test
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile,v 1.1.4.2 2011/09/02 20:22:26 each Exp $
+# $Id: Makefile,v 1.1.4.3 2011/09/02 22:23:08 each Exp $
 
 ###
 ### Common Makefile rules for BIND 9.
@@ -437,6 +437,10 @@ ALWAYS_MAKE_SYMTABLE =
 taskpool_test: taskpool_test.o isctest.o ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			taskpool_test.o isctest.o ${ISCLIBS} ${LIBS}
+
+hash_test: hash_test.o ${ISCDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+			hash_test.o ${ISCLIBS} ${LIBS}
 
 unit::
 	sh ${top_srcdir}/unit/unittest.sh
