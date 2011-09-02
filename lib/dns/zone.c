@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.67 2011/08/31 23:45:32 tbox Exp $ */
+/* $Id: zone.c,v 1.540.2.68 2011/09/02 14:42:34 smann Exp $ */
 
 /*! \file */
 
@@ -7892,7 +7892,7 @@ zone_maintenance(dns_zone_t *zone) {
 	 * Configuring the view of this zone may have
 	 * failed, for example because the config file
 	 * had a syntax error.	In that case, the view
-	 * adb or resolver, and we had better not try
+	 * db or resolver will be NULL, and we had better not try
 	 * to do maintenance on it.
 	 */
 	if (zone->view == NULL || zone->view->adb == NULL)
