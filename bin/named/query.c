@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.313.20.29 2011/09/02 21:53:54 each Exp $ */
+/* $Id: query.c,v 1.313.20.30 2011/09/02 23:45:15 tbox Exp $ */
 
 /*! \file */
 
@@ -4717,7 +4717,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			dns_message_puttempname(client->message, &fname);
 
 		if (n == 0) {
- 			/*
+			/*
 			 * No matching rdatasets found in cache. If we were
 			 * searching for RRSIG/SIG, that's probably okay;
 			 * otherwise this is an error condition.
@@ -4728,7 +4728,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				if (!is_zone) {
 					authoritative = ISC_FALSE;
 					dns_rdatasetiter_destroy(&rdsiter);
-                                        client->attributes &= ~NS_CLIENTATTR_RA;
+					client->attributes &= ~NS_CLIENTATTR_RA;
 					goto addauth;
 				}
 
@@ -4748,7 +4748,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				dns_rdatasetiter_destroy(&rdsiter);
 				fname = query_newname(client, dbuf, &b);
 				goto nxrrset_rrsig;
-			} else 
+			} else
 				result = DNS_R_SERVFAIL;
 		}
 		dns_rdatasetiter_destroy(&rdsiter);
