@@ -1,3 +1,6 @@
+3151.	[bug]		Queries for type RRSIG or SIG could be handled
+                        incorrectly.  [RT #21050]
+
 3149.	[tuning]	Improve scalability by allocating one zone
 			task per 100 zones at startup time.  (The
 			BIND9_ZONE_TASKS_HINT environment variable
