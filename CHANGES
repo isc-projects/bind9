@@ -19,6 +19,10 @@
 3141.	[bug]		Silence spurious "zone serial unchanged" messages
 			associated with empty zones. [RT #25079]
 
+3139.	[test]		Added tests from RFC 6234, RFC 2202, and RFC 1321
+			for the hashing algorithms (md5, sha1 - sha512, and
+			their hmac counterparts).  [RT #25067] 
+
 3138.	[bug]		Address memory leaks and out-of-order operations when
 			shutting named down. [RT #25210]
 
