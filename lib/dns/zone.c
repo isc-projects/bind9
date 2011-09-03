@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.630 2011/09/02 23:46:32 tbox Exp $ */
+/* $Id: zone.c,v 1.631 2011/09/03 16:15:08 each Exp $ */
 
 /*! \file */
 
@@ -1649,7 +1649,7 @@ zone_asyncload(isc_task_t *task, isc_event_t *event) {
 	    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADPENDING))
 		return;
 
-	result = zone_load(zone, 0);
+	zone_load(zone, 0);
 
 	LOCK_ZONE(zone);
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_LOADPENDING);

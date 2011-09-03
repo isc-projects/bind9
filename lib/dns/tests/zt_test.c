@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt_test.c,v 1.4 2011/09/03 06:13:30 each Exp $ */
+/* $Id: zt_test.c,v 1.5 2011/09/03 16:15:08 each Exp $ */
 
 /*! \file */
 
@@ -98,6 +98,7 @@ ATF_TC_BODY(apply, tc) {
 
 	ATF_CHECK_EQ(0, nzones);
 	result = dns_zt_apply(view->zonetable, ISC_FALSE, count_zone, &nzones);
+	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	ATF_CHECK_EQ(1, nzones);
 
 	/* These steps are necessary so the zone can be detached properly */
