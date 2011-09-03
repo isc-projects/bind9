@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt_test.c,v 1.3 2011/09/02 23:46:32 tbox Exp $ */
+/* $Id: zt_test.c,v 1.4 2011/09/03 06:13:30 each Exp $ */
 
 /*! \file */
 
@@ -51,11 +51,12 @@ count_zone(dns_zone_t *zone, void *uap) {
 }
 
 static isc_result_t
-load_done(dns_zt_t *zt, dns_zone_t *zone) {
+load_done(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task) {
 	/* We treat zt as a pointer to a boolean for testing purposes */
 	isc_boolean_t *done = (isc_boolean_t *) zt;
 
 	UNUSED(zone);
+	UNUSED(task);
 
 	*done = ISC_TRUE;
 	isc_app_shutdown();
