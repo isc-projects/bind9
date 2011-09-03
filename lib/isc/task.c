@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.119 2011/09/02 23:46:32 tbox Exp $ */
+/* $Id: task.c,v 1.120 2011/09/03 00:24:27 each Exp $ */
 
 /*! \file
  * \author Principal Author: Bob Halley
@@ -1255,11 +1255,11 @@ dispatch(isc__taskmgr_t *manager) {
 	}
 
 #ifndef USE_WORKER_THREADS
-	ISC_LIST_APPENDLIST(&manager->ready_tasks, new_ready_tasks, ready_link);
-	ISC_LIST_APPENDLIST(&manager->ready_priority_tasks, new_priority_tasks,
+	ISC_LIST_APPENDLIST(manager->ready_tasks, new_ready_tasks, ready_link);
+	ISC_LIST_APPENDLIST(manager->ready_priority_tasks, new_priority_tasks,
 			    ready_priority_link);
 	if (empty_readyq(manager))
-		manager->mode == isc_taskmgrmode_normal;
+		manager->mode = isc_taskmgrmode_normal;
 #endif
 
 	UNLOCK(&manager->lock);
