@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.c,v 1.52 2011/09/02 23:46:32 tbox Exp $ */
+/* $Id: zt.c,v 1.53 2011/09/03 19:53:15 each Exp $ */
 
 /*! \file */
 
@@ -25,6 +25,7 @@
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/string.h>
+#include <isc/task.h>
 #include <isc/util.h>
 
 #include <dns/log.h>
@@ -72,7 +73,7 @@ void
 startloading(dns_zt_t *zt, dns_zone_t *zone);
 
 void
-doneloading(dns_zt_t *zt, dns_zone_t *zone);
+doneloading(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task);
 
 isc_result_t
 dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **ztp)
@@ -466,11 +467,12 @@ dns_zt_apply2(dns_zt_t *zt, isc_boolean_t stop, isc_result_t *sub,
  * dns_zt_asyncload().
  */
 void
-doneloading(dns_zt_t *zt, dns_zone_t *zone) {
+doneloading(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task) {
 	dns_zt_allloaded_t alldone = NULL;
 	void *arg = NULL;
 
 	UNUSED(zone);
+	UNUSED(task);
 
 	REQUIRE(VALID_ZT(zt));
 
