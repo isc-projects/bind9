@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.c,v 1.27.62.3 2011/09/02 20:22:27 each Exp $ */
+/* $Id: aclconf.c,v 1.27.62.4 2011/09/03 16:05:32 each Exp $ */
 
 #include <config.h>
 
@@ -74,13 +74,11 @@ void
 cfg_aclconfctx_detach(cfg_aclconfctx_t **actxp) {
 	cfg_aclconfctx_t *actx;
 	dns_acl_t *dacl, *next;
-	isc_mem_t *mctx;
 	unsigned int refs;
 
 	REQUIRE(actxp != NULL && *actxp != NULL);
 
 	actx = *actxp;
-	mctx = actx->mctx;
 
 	isc_refcount_decrement(&actx->references, &refs);
 	if (refs == 0) {
