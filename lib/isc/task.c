@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.120 2011/09/03 00:24:27 each Exp $ */
+/* $Id: task.c,v 1.121 2011/09/03 13:54:06 marka Exp $ */
 
 /*! \file
  * \author Principal Author: Bob Halley
@@ -244,7 +244,7 @@ empty_readyq(isc__taskmgr_t *manager);
 static isc__task_t *
 pop_readyq(isc__taskmgr_t *manager);
 
-static void
+static inline void
 push_readyq(isc__taskmgr_t *manager, isc__task_t *task);
 
 static struct isc__taskmethods {
