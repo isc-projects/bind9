@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.121 2011/09/03 13:54:06 marka Exp $ */
+/* $Id: task.c,v 1.122 2011/09/03 16:27:51 each Exp $ */
 
 /*! \file
  * \author Principal Author: Bob Halley
@@ -238,10 +238,10 @@ isc__taskmgr_setmode(isc_taskmgr_t *manager0, isc_taskmgrmode_t mode);
 ISC_TASKFUNC_SCOPE isc_taskmgrmode_t
 isc__taskmgr_mode(isc_taskmgr_t *manager0);
 
-static isc_boolean_t
+static inline isc_boolean_t
 empty_readyq(isc__taskmgr_t *manager);
 
-static isc__task_t *
+static inline isc__task_t *
 pop_readyq(isc__taskmgr_t *manager);
 
 static inline void
