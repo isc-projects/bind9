@@ -14,12 +14,13 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnstest.c,v 1.6 2011/09/02 23:46:32 tbox Exp $ */
+/* $Id: dnstest.c,v 1.7 2011/09/03 19:22:43 each Exp $ */
 
 /*! \file */
 
 #include <config.h>
 
+#include <time.h>
 #include <unistd.h>
 
 #include <isc/app.h>
