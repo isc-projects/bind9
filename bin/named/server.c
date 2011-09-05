@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.520.12.26 2011/09/05 07:19:24 each Exp $ */
+/* $Id: server.c,v 1.520.12.27 2011/09/05 23:45:14 tbox Exp $ */
 
 /*! \file */
 
@@ -2293,7 +2293,7 @@ find_view(const cfg_obj_t *vconfig, dns_viewlist_t *viewlist,
 	result = get_viewinfo(vconfig, &viewname, &viewclass);
 	if (result != ISC_R_SUCCESS)
 		return (result);
- 
+
 	result = dns_viewlist_find(viewlist, viewname, viewclass, &view);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -2321,7 +2321,7 @@ create_view(const cfg_obj_t *vconfig, dns_viewlist_t *viewlist,
 	result = get_viewinfo(vconfig, &viewname, &viewclass);
 	if (result != ISC_R_SUCCESS)
 		return (result);
- 
+
 	result = dns_viewlist_find(viewlist, viewname, viewclass, &view);
 	if (result == ISC_R_SUCCESS)
 		return (ISC_R_EXISTS);
