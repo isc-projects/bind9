@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: util.h,v 1.30.332.4 2011/03/12 04:57:32 tbox Exp $ */
+/* $Id: util.h,v 1.30.332.5 2011/09/05 18:01:47 each Exp $ */
 
 #ifndef ISC_UTIL_H
 #define ISC_UTIL_H 1
@@ -234,15 +234,5 @@
  * Time
  */
 #define TIME_NOW(tp) 	RUNTIME_CHECK(isc_time_now((tp)) == ISC_R_SUCCESS)
-
-/*%
- * Prevent Linux spurious warnings
- */
-#if defined(__GNUC__) && (__GNUC__ > 3)
-#define isc_util_fwrite(a, b, c, d)	\
-	__builtin_expect(fwrite((a), (b), (c), (d)), (c))
-#else
-#define isc_util_fwrite(a, b, c, d)	fwrite((a), (b), (c), (d))
-#endif
 
 #endif /* ISC_UTIL_H */
