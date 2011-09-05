@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.c,v 1.54 2011/09/05 03:45:22 each Exp $ */
+/* $Id: zt.c,v 1.55 2011/09/05 06:27:05 each Exp $ */
 
 /*! \file */
 
@@ -69,10 +69,7 @@ loadnew(dns_zone_t *zone, void *uap);
 static isc_result_t
 freezezones(dns_zone_t *zone, void *uap);
 
-void
-startloading(dns_zt_t *zt, dns_zone_t *zone);
-
-isc_result_t
+static isc_result_t
 doneloading(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task);
 
 isc_result_t
@@ -466,7 +463,7 @@ dns_zt_apply2(dns_zt_t *zt, isc_boolean_t stop, isc_result_t *sub,
  * zero, call the loaddone callback that was initially set by
  * dns_zt_asyncload().
  */
-isc_result_t
+static isc_result_t
 doneloading(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task) {
 	dns_zt_allloaded_t alldone = NULL;
 	void *arg = NULL;
