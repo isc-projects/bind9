@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.h,v 1.61.332.4 2010/12/03 23:45:47 tbox Exp $ */
+/* $Id: task.h,v 1.61.332.5 2011/09/05 07:19:27 each Exp $ */
 
 #ifndef ISC_TASK_H
 #define ISC_TASK_H 1
@@ -93,6 +93,9 @@
 /*****
  ***** Tasks.
  *****/
+
+#define TASK_MAGIC			ISC_MAGIC('T', 'A', 'S', 'K')
+#define VALID_TASK(t)			ISC_MAGIC_VALID(t, TASK_MAGIC)
 
 ISC_LANG_BEGINDECLS
 

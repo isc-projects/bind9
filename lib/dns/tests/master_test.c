@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master_test.c,v 1.2.6.3 2011/02/28 01:18:47 tbox Exp $ */
+/* $Id: master_test.c,v 1.2.6.4 2011/09/05 07:19:26 each Exp $ */
 
 /*! \file */
 
@@ -114,7 +114,7 @@ ATF_TC_BODY(master_load, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL);
+	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = test_master("testdata/master/master1.data");
@@ -136,7 +136,7 @@ ATF_TC_BODY(master_unexpected, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL);
+	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = test_master("testdata/master/master2.data");
@@ -158,7 +158,7 @@ ATF_TC_BODY(master_noowner, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL);
+	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = test_master("testdata/master/master3.data");
@@ -181,7 +181,7 @@ ATF_TC_BODY(master_nottl, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL);
+	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = test_master("testdata/master/master4.data");
@@ -203,7 +203,7 @@ ATF_TC_BODY(master_badclass, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL);
+	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = test_master("testdata/master/master5.data");
@@ -223,7 +223,7 @@ ATF_TC_BODY(master_dnskey, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL);
+	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = test_master("testdata/master/master6.data");
@@ -244,7 +244,7 @@ ATF_TC_BODY(master_dnsnokey, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL);
+	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = test_master("testdata/master/master7.data");
@@ -264,7 +264,7 @@ ATF_TC_BODY(master_include, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL);
+	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = test_master("testdata/master/master8.data");
@@ -284,7 +284,7 @@ ATF_TC_BODY(master_includefail, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL);
+	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = test_master("testdata/master/master9.data");
@@ -305,7 +305,7 @@ ATF_TC_BODY(master_blanklines, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL);
+	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = test_master("testdata/master/master10.data");
@@ -325,7 +325,7 @@ ATF_TC_BODY(master_leadingzero, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL);
+	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = test_master("testdata/master/master11.data");

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.520.12.25 2011/08/30 12:23:15 marka Exp $ */
+/* $Id: server.c,v 1.520.12.26 2011/09/05 07:19:24 each Exp $ */
 
 /*! \file */
 
@@ -1145,6 +1145,10 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 		(void)cfg_map_get(voptions, "zone", &zonelist);
 	else
 		(void)cfg_map_get(config, "zone", &zonelist);
+
+	/*
+	 * Load zone configuration
+	 */
 	for (element = cfg_list_first(zonelist);
 	     element != NULL;
 	     element = cfg_list_next(element))
@@ -2243,6 +2247,61 @@ configure_forward(const cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
 	return (result);
 }
 
+static isc_result_t
+get_viewinfo(const cfg_obj_t *vconfig, const char **namep,
+	     dns_rdataclass_t *classp)
+{
+	isc_result_t result = ISC_R_SUCCESS;
+	const char *viewname;
+	dns_rdataclass_t viewclass;
+
+	REQUIRE(namep != NULL && *namep == NULL);
+	REQUIRE(classp != NULL);
+
+	if (vconfig != NULL) {
+		const cfg_obj_t *classobj = NULL;
+
+		viewname = cfg_obj_asstring(cfg_tuple_get(vconfig, "name"));
+		classobj = cfg_tuple_get(vconfig, "class");
+		result = ns_config_getclass(classobj, dns_rdataclass_in,
+					    &viewclass);
+	} else {
+		viewname = "_default";
+		viewclass = dns_rdataclass_in;
+	}
+
+	*namep = viewname;
+	*classp = viewclass;
+
+	return (result);
+}
+
+/*
+ * Find a view based on its configuration info and attach to it.
+ *
+ * If 'vconfig' is NULL, attach to the default view.
+ */
+static isc_result_t
+find_view(const cfg_obj_t *vconfig, dns_viewlist_t *viewlist,
+	  dns_view_t **viewp)
+{
+	isc_result_t result;
+	const char *viewname = NULL;
+	dns_rdataclass_t viewclass;
+	dns_view_t *view = NULL;
+
+	result = get_viewinfo(vconfig, &viewname, &viewclass);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+ 
+	result = dns_viewlist_find(viewlist, viewname, viewclass, &view);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	*viewp = view;
+	return (ISC_R_SUCCESS);
+}
+
 /*
  * Create a new view and add it to the list.
  *
@@ -2255,22 +2314,14 @@ create_view(const cfg_obj_t *vconfig, dns_viewlist_t *viewlist,
 	    dns_view_t **viewp)
 {
 	isc_result_t result;
-	const char *viewname;
+	const char *viewname = NULL;
 	dns_rdataclass_t viewclass;
 	dns_view_t *view = NULL;
 
-	if (vconfig != NULL) {
-		const cfg_obj_t *classobj = NULL;
-
-		viewname = cfg_obj_asstring(cfg_tuple_get(vconfig, "name"));
-		classobj = cfg_tuple_get(vconfig, "class");
-		result = ns_config_getclass(classobj, dns_rdataclass_in,
-					    &viewclass);
-		INSIST(result == ISC_R_SUCCESS);
-	} else {
-		viewname = "_default";
-		viewclass = dns_rdataclass_in;
-	}
+	result = get_viewinfo(vconfig, &viewname, &viewclass);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+ 
 	result = dns_viewlist_find(viewlist, viewname, viewclass, &view);
 	if (result == ISC_R_SUCCESS)
 		return (ISC_R_EXISTS);
@@ -2921,6 +2972,23 @@ removed(dns_zone_t *zone, void *uap) {
 	return (ISC_R_SUCCESS);
 }
 
+static int
+count_zones(const cfg_obj_t *conf) {
+	const cfg_obj_t *zonelist = NULL;
+	const cfg_listelt_t *element;
+	int n = 0;
+
+	REQUIRE(conf != NULL);
+
+	cfg_map_get(conf, "zone", &zonelist);
+	for (element = cfg_list_first(zonelist);
+	     element != NULL;
+	     element = cfg_list_next(element))
+		n++;
+
+	return (n);
+}
+
 static isc_result_t
 load_configuration(const char *filename, ns_server_t *server,
 		   isc_boolean_t first_time)
@@ -2951,6 +3019,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	isc_uint32_t reserved;
 	isc_uint32_t udpsize;
 	unsigned int maxsocks;
+	int num_zones = 0;
 
 	cfg_aclconfctx_init(&aclconfctx);
 	ISC_LIST_INIT(viewlist);
@@ -3322,24 +3391,72 @@ load_configuration(const char *filename, ns_server_t *server,
 	CHECK(isc_timer_reset(server->pps_timer, isc_timertype_ticker, NULL,
 			      &interval, ISC_FALSE));
 
-	/*
-	 * Configure and freeze all explicit views.  Explicit
-	 * views that have zones were already created at parsing
-	 * time, but views with no zones must be created here.
-	 */
 	views = NULL;
 	(void)cfg_map_get(config, "view", &views);
+
+	/*
+	 * Create the views and count all the configured zones in
+	 * order to correctly size the zone manager's task table.
+	 * (We only count zones for configured views; the built-in
+	 * "bind" view can be ignored as it only adds a negligible
+	 * number of zones.)
+	 *
+	 * If we're allowing new zones, we need to be able to find the
+	 * new zone file and count those as well.  So we setup the new
+	 * zone configuration context, but otherwise view configuration
+	 * waits until after the zone manager's task list has been sized.
+	 */
 	for (element = cfg_list_first(views);
 	     element != NULL;
 	     element = cfg_list_next(element))
 	{
 		const cfg_obj_t *vconfig = cfg_listelt_value(element);
+		const cfg_obj_t *voptions = cfg_tuple_get(vconfig, "options");
 		view = NULL;
 
 		CHECK(create_view(vconfig, &viewlist, &view));
 		INSIST(view != NULL);
+
+		num_zones += count_zones(voptions);
+		dns_view_detach(&view);
+	}
+
+	/*
+	 * If there were no explicit views then we do the default
+	 * view here.
+	 */
+	if (views == NULL) {
+		CHECK(create_view(NULL, &viewlist, &view));
+		INSIST(view != NULL);
+
+		num_zones = count_zones(config);
+		dns_view_detach(&view);
+	}
+
+	/*
+	 * Zones have been counted; set the zone manager task pool size.
+	 */
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+		      "sizing zone task pool based on %d zones", num_zones);
+	CHECK(dns_zonemgr_setsize(ns_g_server->zonemgr, num_zones));
+
+	/*
+	 * Configure and freeze all explicit views.  Explicit
+	 * views that have zones were already created at parsing
+	 * time, but views with no zones must be created here.
+	 */
+	for (element = cfg_list_first(views);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		const cfg_obj_t *vconfig = cfg_listelt_value(element);
+
+		view = NULL;
+		CHECK(find_view(vconfig, &viewlist, &view));
 		CHECK(configure_view(view, config, vconfig,
 				     ns_g_mctx, &aclconfctx, ISC_TRUE));
+
 		dns_view_freeze(view);
 		dns_view_detach(&view);
 	}
@@ -3355,7 +3472,7 @@ load_configuration(const char *filename, ns_server_t *server,
 		 * of zone statements, or we may have to create one.
 		 * In either case, we need to configure and freeze it.
 		 */
-		CHECK(create_view(NULL, &viewlist, &view));
+		CHECK(find_view(NULL, &viewlist, &view));
 		CHECK(configure_view(view, config, NULL, ns_g_mctx,
 				     &aclconfctx, ISC_TRUE));
 		dns_view_freeze(view);
@@ -3953,6 +4070,8 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	CHECKFATAL(dns_zonemgr_create(ns_g_mctx, ns_g_taskmgr, ns_g_timermgr,
 				      ns_g_socketmgr, &server->zonemgr),
 		   "dns_zonemgr_create");
+	CHECKFATAL(dns_zonemgr_setsize(server->zonemgr, 1000),
+		   "dns_zonemgr_setsize");
 
 	server->statsfile = isc_mem_strdup(server->mctx, "named.stats");
 	CHECKFATAL(server->statsfile == NULL ? ISC_R_NOMEMORY : ISC_R_SUCCESS,
@@ -4042,7 +4161,8 @@ ns_server_destroy(ns_server_t **serverp) {
 	if (server->server_id != NULL)
 		isc_mem_free(server->mctx, server->server_id);
 
-	dns_zonemgr_detach(&server->zonemgr);
+	if (server->zonemgr != NULL)
+		dns_zonemgr_detach(&server->zonemgr);
 
 	if (server->tkeyctx != NULL)
 		dns_tkeyctx_destroy(&server->tkeyctx);

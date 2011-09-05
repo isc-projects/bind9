@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.107.120.2 2010/12/03 23:45:47 tbox Exp $ */
+/* $Id: task.c,v 1.107.120.3 2011/09/05 07:19:27 each Exp $ */
 
 /*! \file
  * \author Principal Author: Bob Halley
@@ -71,9 +71,6 @@ static const char *statenames[] = {
 	"idle", "ready", "running", "done",
 };
 #endif
-
-#define TASK_MAGIC			ISC_MAGIC('T', 'A', 'S', 'K')
-#define VALID_TASK(t)			ISC_MAGIC_VALID(t, TASK_MAGIC)
 
 struct isc_task {
 	/* Not locked. */

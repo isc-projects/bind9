@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnstest.c,v 1.2.6.3 2011/02/28 01:18:43 tbox Exp $ */
+/* $Id: dnstest.c,v 1.2.6.4 2011/09/05 07:19:26 each Exp $ */
 
 /*! \file */
 
@@ -25,7 +25,11 @@
 #include <isc/entropy.h>
 #include <isc/hash.h>
 #include <isc/mem.h>
+#include <isc/os.h>
 #include <isc/string.h>
+#include <isc/socket.h>
+#include <isc/task.h>
+#include <isc/timer.h>
 #include <isc/util.h>
 
 #include <dns/log.h>
@@ -39,6 +43,10 @@
 isc_mem_t *mctx = NULL;
 isc_entropy_t *ectx = NULL;
 isc_log_t *lctx = NULL;
+isc_taskmgr_t *taskmgr = NULL;
+isc_timermgr_t *timermgr = NULL;
+isc_socketmgr_t *socketmgr = NULL;
+int ncpus;
 
 static isc_boolean_t hash_active = ISC_FALSE, dst_active = ISC_FALSE;
 
@@ -57,8 +65,37 @@ static isc_logcategory_t categories[] = {
 		{ NULL,              0 }
 };
 
+static void
+cleanup_managers() {
+	if (socketmgr != NULL)
+		isc_socketmgr_destroy(&socketmgr);
+	if (taskmgr != NULL)
+		isc_taskmgr_destroy(&taskmgr);
+	if (timermgr != NULL)
+		isc_timermgr_destroy(&timermgr);
+}
+
+static isc_result_t
+create_managers() {
+	isc_result_t result;
+#ifdef ISC_PLATFORM_USETHREADS
+	ncpus = isc_os_ncpus();
+#else
+	ncpus = 1;
+#endif
+
+	CHECK(isc_taskmgr_create(mctx, ncpus, 0, &taskmgr));
+	CHECK(isc_timermgr_create(mctx, &timermgr));
+	CHECK(isc_socketmgr_create(mctx, &socketmgr));
+	return (ISC_R_SUCCESS);
+
+  cleanup:
+	cleanup_managers();
+	return (result);
+}
+
 isc_result_t
-dns_test_begin(FILE *logfile) {
+dns_test_begin(FILE *logfile, isc_boolean_t start_managers) {
 	isc_result_t result;
 
 	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
@@ -94,6 +131,9 @@ dns_test_begin(FILE *logfile) {
 
 	dns_result_register();
 
+	if (start_managers)
+		CHECK(create_managers());
+
 	return (ISC_R_SUCCESS);
 
   cleanup:
@@ -115,6 +155,9 @@ dns_test_end() {
 	}
 	if (ectx != NULL)
 		isc_entropy_detach(&ectx);
+
+	cleanup_managers();
+
 	if (mctx != NULL)
 		isc_mem_destroy(&mctx);
 }
