@@ -14,12 +14,13 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gsstest.c,v 1.17 2011/08/29 23:21:48 marka Exp $ */
+/* $Id: gsstest.c,v 1.18 2011/09/05 17:39:37 each Exp $ */
 
 #include <config.h>
 
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include <isc/app.h>
 #include <isc/base64.h>
