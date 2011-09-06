@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2011  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.7 2011/09/06 22:29:32 smann Exp $
+# $Id: clean.sh,v 1.8 2011/09/06 23:46:27 tbox Exp $
 
 rm -f ns1/named.conf ns1/myftp.db
 rm -f ns3/*.jnl ns3/mytest.db ns3/subtest.db
