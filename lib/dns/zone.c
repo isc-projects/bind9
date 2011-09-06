@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.631 2011/09/03 16:15:08 each Exp $ */
+/* $Id: zone.c,v 1.632 2011/09/06 22:29:33 smann Exp $ */
 
 /*! \file */
 
@@ -349,6 +349,11 @@ struct dns_zone {
 	 * Serial number update method.
 	 */
 	dns_updatemethod_t	updatemethod;
+
+	/*%
+	 * whether ixfr is requested
+	 */
+	isc_boolean_t		requestixfr;
 
 	/*%
 	 * Outstanding forwarded UPDATE requests.
@@ -12824,7 +12829,7 @@ queue_xfrin(dns_zone_t *zone) {
  */
 static void
 got_transfer_quota(isc_task_t *task, isc_event_t *event) {
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	dns_peer_t *peer = NULL;
 	char master[ISC_SOCKADDR_FORMATSIZE];
 	char source[ISC_SOCKADDR_FORMATSIZE];
@@ -12872,16 +12877,6 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 			     "no database exists yet, requesting AXFR of "
 			     "initial version from %s", master);
 		xfrtype = dns_rdatatype_axfr;
-#if 0
-	} else if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IXFRFROMDIFFS)) {
-		dns_zone_log(zone, ISC_LOG_DEBUG(1), "ixfr-from-differences "
-			     "set, requesting %sAXFR from %s", soa_before,
-			     master);
-		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_SOABEFOREAXFR))
-			xfrtype = dns_rdatatype_soa;
-		else
-			xfrtype = dns_rdatatype_axfr;
-#endif
 	} else if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FORCEXFER)) {
 		dns_zone_log(zone, ISC_LOG_DEBUG(1),
 			     "forced reload, requesting AXFR of "
@@ -12897,13 +12892,10 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 		UNLOCK_ZONE(zone);
 	} else {
 		isc_boolean_t use_ixfr = ISC_TRUE;
-		if (peer != NULL &&
-		    dns_peer_getrequestixfr(peer, &use_ixfr) ==
-		    ISC_R_SUCCESS) {
-			; /* Using peer setting */
-		} else {
-			use_ixfr = zone->view->requestixfr;
-		}
+		if (peer != NULL)
+			result = dns_peer_getrequestixfr(peer, &use_ixfr);
+		if (peer == NULL || result != ISC_R_SUCCESS)
+			use_ixfr = zone->requestixfr;
 		if (use_ixfr == ISC_FALSE) {
 			dns_zone_log(zone, ISC_LOG_DEBUG(1),
 				     "IXFR disabled, requesting %sAXFR from %s",
@@ -15254,6 +15246,18 @@ dns_zone_setrefreshkeyinterval(dns_zone_t *zone, isc_uint32_t interval) {
 	/* Multiply by 60 for seconds */
 	zone->refreshkeyinterval = interval * 60;
 	return (ISC_R_SUCCESS);
+}
+
+void
+dns_zone_setrequestixfr(dns_zone_t *zone, isc_boolean_t bool) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	zone->requestixfr = bool;
+}
+
+isc_boolean_t
+dns_zone_getrequestixfr(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	return (zone->requestixfr);
 }
 
 void

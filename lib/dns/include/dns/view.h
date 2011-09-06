@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.135 2011/09/02 21:15:36 each Exp $ */
+/* $Id: view.h,v 1.136 2011/09/06 22:29:33 smann Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -142,7 +142,6 @@ struct dns_view {
 	dns_rbt_t *			answeracl_exclude;
 	dns_rbt_t *			denyanswernames;
 	dns_rbt_t *			answernames_exclude;
-	isc_boolean_t			requestixfr;
 	isc_boolean_t			provideixfr;
 	isc_boolean_t			requestnsid;
 	dns_ttl_t			maxcachettl;

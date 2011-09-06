@@ -15,9 +15,9 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.4 2007/06/19 23:47:03 tbox Exp $
+# $Id: setup.sh,v 1.5 2011/09/06 22:29:32 smann Exp $
 
-rm -f ns1/*.db ns1/*.jnl
+rm -f ns1/*.db ns1/*.jnl ns3/*.jnl ns4/*.jnl
 
 cat <<EOF >ns1/named.conf
 options {
@@ -41,3 +41,7 @@ controls {
 	inet 10.53.0.1 port 9953 allow { any; } keys { rndc_key; };
 };
 EOF
+
+# Setup initial db files for ns3
+cp ns3/mytest0.db ns3/mytest.db
+cp ns3/subtest0.db ns3/subtest.db

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.193 2011/09/02 21:15:36 each Exp $ */
+/* $Id: zone.h,v 1.194 2011/09/06 22:29:33 smann Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1927,6 +1927,25 @@ dns_zone_setrefreshkeyinterval(dns_zone_t *zone, isc_uint32_t interval);
  * checked to see if the keys for this zone have been updated.  Any value
  * higher than 1440 minutes (24 hours) will be silently reduced.  A
  * value of zero will return an out-of-range error.
+ *
+ * Requires:
+ * \li	'zone' to be valid.
+ */
+
+isc_boolean_t
+dns_zone_getrequestixfr(dns_zone_t *zone);
+/*%
+ * Returns the true/false value of the request-ixfr option in the zone.
+ *
+ * Requires:
+ * \li	'zone' to be valid.
+ */
+
+void
+dns_zone_setrequestixfr(dns_zone_t *zone, isc_boolean_t flag);
+/*%
+ * Sets the request-ixfr option for the zone. Either true or false. The
+ * default value is determined by the setting of this option in the view.
  *
  * Requires:
  * \li	'zone' to be valid.

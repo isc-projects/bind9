@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.501 2011/08/30 05:16:13 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.502 2011/09/06 22:29:32 smann Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -9555,8 +9555,9 @@ ns.domain.com.rpz-nsdname   CNAME   .
             the local server, acting as a slave, will request incremental zone
             transfers from the given remote server, a master. If not set, the
             value of the <command>request-ixfr</command> option in
-            the view or
-            global options block is used as a default.
+            the view or global options block is used as a default. It may
+            also be set in the zone block and, if set there, it will
+            override the global or view setting for that zone.
           </para>
 
           <para>
@@ -10093,6 +10094,7 @@ view "external" {
     <optional> ixfr-base <replaceable>string</replaceable> ; </optional>
     <optional> ixfr-from-differences <replaceable>yes_or_no</replaceable>; </optional>
     <optional> ixfr-tmp-file <replaceable>string</replaceable> ; </optional>
+    <optional> request-ixfr <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> maintain-ixfr-base <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> max-ixfr-log-size <replaceable>number</replaceable> ; </optional>
     <optional> max-transfer-idle-out <replaceable>number</replaceable> ; </optional>

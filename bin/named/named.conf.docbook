@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.52 2011/05/06 21:23:50 each Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.53 2011/09/06 22:29:32 smann Exp $ -->
 <refentry>
   <refentryinfo>
     <date>Aug 13, 2004</date>
@@ -630,6 +630,7 @@ zone <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	max-refresh-time <replaceable>integer</replaceable>;
 	min-refresh-time <replaceable>integer</replaceable>;
 	multi-master <replaceable>boolean</replaceable>;
+	request-ixfr <replaceable>boolean</replaceable>;
 	sig-validity-interval <replaceable>integer</replaceable>;
 
 	transfer-source ( <replaceable>ipv4_address</replaceable> | * )

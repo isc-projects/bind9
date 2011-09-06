@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.140 2011/08/30 05:16:15 marka Exp $ */
+/* $Id: namedconf.c,v 1.141 2011/09/06 22:29:33 smann Exp $ */
 
 /*! \file */
 
@@ -1395,6 +1395,7 @@ zone_clauses[] = {
 	{ "notify-to-soa", &cfg_type_boolean, 0 },
 	{ "nsec3-test-zone", &cfg_type_boolean, CFG_CLAUSEFLAG_TESTONLY },
 	{ "serial-update-method", &cfg_type_updatemethod, 0 },
+	{ "request-ixfr", &cfg_type_boolean, 0 },
 	{ "sig-signing-nodes", &cfg_type_uint32, 0 },
 	{ "sig-signing-signatures", &cfg_type_uint32, 0 },
 	{ "sig-signing-type", &cfg_type_uint32, 0 },

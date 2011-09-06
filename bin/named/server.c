@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.618 2011/09/02 21:15:30 each Exp $ */
+/* $Id: server.c,v 1.619 2011/09/06 22:29:32 smann Exp $ */
 
 /*! \file */
 
@@ -2549,11 +2549,6 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		CHECK(configure_view_acl(NULL, ns_g_config,
 					 "allow-update-forwarding", NULL, actx,
 					 ns_g_mctx, &view->upfwdacl));
-
-	obj = NULL;
-	result = ns_config_get(maps, "request-ixfr", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	view->requestixfr = cfg_obj_asboolean(obj);
 
 	obj = NULL;
 	result = ns_config_get(maps, "provide-ixfr", &obj);

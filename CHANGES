@@ -1,3 +1,6 @@
+3153.	[func]		Extend request-ixfr to zone level and remove the
+			side effect of forcing an AXFR.
+
 3152.	[cleanup]	Some versions of gcc and clang failed due to
 			incorrect use of __builtin_expect. [RT #25183]
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.181 2011/08/30 23:46:51 tbox Exp $ */
+/* $Id: zoneconf.c,v 1.182 2011/09/06 22:29:32 smann Exp $ */
 
 /*% */
 
@@ -1132,6 +1132,11 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		} else
 			dns_zone_setoption(zone, DNS_ZONEOPT_IXFRFROMDIFFS,
 					   ixfrdiff);
+
+		obj = NULL;
+		result = ns_config_get(maps, "request-ixfr", &obj);
+		INSIST(result == ISC_R_SUCCESS);
+		dns_zone_setrequestixfr(zone, cfg_obj_asboolean(obj));
 
 		checknames(ztype, maps, &obj);
 		INSIST(obj != NULL);
