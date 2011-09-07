@@ -1536,7 +1536,7 @@
 ./contrib/dlz/drivers/include/dlz/dlz_stub_driver.h	X	2005
 ./contrib/dlz/drivers/include/dlz/sdlz_helper.h	X	2005
 ./contrib/dlz/drivers/rules.in			X	2005,2010
-./contrib/dlz/drivers/sdlz_helper.c		X	2005,2010
+./contrib/dlz/drivers/sdlz_helper.c		X	2005,2010,2011
 ./contrib/dlz/example/Makefile			X	2010
 ./contrib/dlz/example/dlz_example.c		X	2010
 ./contrib/dlz/example/dlz_minimal.h		X	2010
