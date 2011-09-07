@@ -1,3 +1,6 @@
+3154.	[bug]		Attempting to print an empty rdataset could trigger
+			an assert. [RT #25452]
+
 3151.	[bug]		Queries for type RRSIG or SIG could be handled
                         incorrectly.  [RT #21050]
 

@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master_test.c,v 1.2.6.4 2011/09/05 07:19:26 each Exp $ */
+/* $Id: master_test.c,v 1.2.6.5 2011/09/07 19:11:53 each Exp $ */
 
 /*! \file */
 
@@ -27,8 +27,10 @@
 #include <dns/cache.h>
 #include <dns/callbacks.h>
 #include <dns/master.h>
+#include <dns/masterdump.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
+#include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 
 #include "dnstest.h"
@@ -334,6 +336,50 @@ ATF_TC_BODY(master_leadingzero, tc) {
 	dns_test_end();
 }
 
+ATF_TC(master_totext);
+ATF_TC_HEAD(master_totext, tc) {
+	atf_tc_set_md_var(tc, "descr", "masterfile totext tests");
+}
+ATF_TC_BODY(master_totext, tc) {
+	isc_result_t result;
+	dns_rdataset_t rdataset;
+	dns_rdatalist_t rdatalist;
+	isc_buffer_t target;
+	unsigned char buf[BIGBUFLEN];
+
+	UNUSED(tc);
+
+	result = dns_test_begin(NULL, ISC_FALSE);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	/* First, test with an empty rdataset */
+	rdatalist.rdclass = dns_rdataclass_in;
+	rdatalist.type = dns_rdatatype_none;
+	rdatalist.covers = dns_rdatatype_none;
+	rdatalist.ttl = 0;
+	ISC_LIST_INIT(rdatalist.rdata);
+	ISC_LINK_INIT(&rdatalist, link);
+
+	dns_rdataset_init(&rdataset);
+	result = dns_rdatalist_tordataset(&rdatalist, &rdataset);
+	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
+
+	isc_buffer_init(&target, buf, BIGBUFLEN);
+	result = dns_master_rdatasettotext(dns_rootname,
+					   &rdataset, &dns_master_style_debug,
+					   &target);
+	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
+	ATF_CHECK_EQ(isc_buffer_usedlength(&target), 0);
+
+	/*
+	 * XXX: We will also need to add tests for dumping various
+	 * rdata types, classes, etc, and comparing the results against
+	 * known-good output.
+	 */
+
+	dns_test_end();
+}
+
 /*
  * Main
  */
@@ -349,6 +395,7 @@ ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, master_includefail);
 	ATF_TP_ADD_TC(tp, master_blanklines);
 	ATF_TP_ADD_TC(tp, master_leadingzero);
+	ATF_TP_ADD_TC(tp, master_totext);
 
 	return (atf_no_error());
 }
