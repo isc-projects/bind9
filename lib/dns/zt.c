@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.c,v 1.55 2011/09/05 06:27:05 each Exp $ */
+/* $Id: zt.c,v 1.56 2011/09/07 00:50:06 marka Exp $ */
 
 /*! \file */
 
@@ -267,6 +267,7 @@ load(dns_zone_t *zone, void *uap) {
 isc_result_t
 dns_zt_asyncload(dns_zt_t *zt, dns_zt_allloaded_t alldone, void *arg) {
 	isc_result_t result, tresult;
+	static dns_zt_zoneloaded_t dl = doneloading;
 	int pending;
 
 	REQUIRE(VALID_ZT(zt));
@@ -275,7 +276,7 @@ dns_zt_asyncload(dns_zt_t *zt, dns_zt_allloaded_t alldone, void *arg) {
 
 	INSIST(zt->loads_pending == 0);
 
-	result = dns_zt_apply2(zt, ISC_FALSE, &tresult, asyncload, doneloading);
+	result = dns_zt_apply2(zt, ISC_FALSE, &tresult, asyncload, &dl);
 
 	pending = zt->loads_pending;
 	if (pending != 0) {
@@ -299,12 +300,13 @@ dns_zt_asyncload(dns_zt_t *zt, dns_zt_allloaded_t alldone, void *arg) {
 static isc_result_t
 asyncload(dns_zone_t *zone, void *callback) {
 	isc_result_t result;
+	dns_zt_zoneloaded_t *loaded = callback;
 	dns_zt_t *zt;
 
 	REQUIRE(zone != NULL);
 	zt = dns_zone_getview(zone)->zonetable;
 
-	result = dns_zone_asyncload(zone, (dns_zt_zoneloaded_t) callback, zt);
+	result = dns_zone_asyncload(zone, *loaded, zt);
 	if (result == ISC_R_SUCCESS)
 		zt->loads_pending++;
 	return (ISC_R_SUCCESS);
