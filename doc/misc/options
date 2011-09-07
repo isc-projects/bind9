@@ -196,6 +196,7 @@ options {
         recursion <boolean>;
         recursive-clients <integer>;
         request-ixfr <boolean>;
+        request-ixfr <boolean>;
         request-nsid <boolean>;
         reserved-sockets <integer>;
         resolver-query-timeout <integer>;
@@ -405,6 +406,7 @@ view <string> <optional_class> {
         queryport-pool-updateinterval <integer>; // obsolete
         recursion <boolean>;
         request-ixfr <boolean>;
+        request-ixfr <boolean>;
         request-nsid <boolean>;
         resolver-query-timeout <integer>;
         response-policy {
@@ -522,6 +524,7 @@ view <string> <optional_class> {
                 nsec3-test-zone <boolean>; // test only
                 pubkey <integer> <integer> <integer>
                     <quoted_string>; // obsolete
+                request-ixfr <boolean>;
                 serial-update-method ( increment | unixtime );
                 server-addresses { ( <ipv4_address> | <ipv6_address> ) [
                     port <integer> ]; ... };
@@ -612,6 +615,7 @@ zone <string> <optional_class> {
         notify-to-soa <boolean>;
         nsec3-test-zone <boolean>; // test only
         pubkey <integer> <integer> <integer> <quoted_string>; // obsolete
+        request-ixfr <boolean>;
         serial-update-method ( increment | unixtime );
         server-addresses { ( <ipv4_address> | <ipv6_address> ) [ port
             <integer> ]; ... };
