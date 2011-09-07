@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.108 2011/06/08 22:13:50 each Exp $ */
+/* $Id: masterdump.c,v 1.109 2011/09/07 19:11:13 each Exp $ */
 
 /*! \file */
 
@@ -419,12 +419,11 @@ rdataset_totext(dns_rdataset_t *rdataset,
 
 	rdataset->attributes |= DNS_RDATASETATTR_LOADORDER;
 	result = dns_rdataset_first(rdataset);
-	REQUIRE(result == ISC_R_SUCCESS);
 
 	current_ttl = ctx->current_ttl;
 	current_ttl_valid = ctx->current_ttl_valid;
 
-	do {
+	while (result == ISC_R_SUCCESS) {
 		column = 0;
 
 		/*
@@ -550,7 +549,7 @@ rdataset_totext(dns_rdataset_t *rdataset,
 
 		first = ISC_FALSE;
 		result = dns_rdataset_next(rdataset);
-	} while (result == ISC_R_SUCCESS);
+	}
 
 	if (result != ISC_R_NOMORE)
 		return (result);

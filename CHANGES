@@ -1,3 +1,6 @@
+3154.	[bug]		Attempting to print an empty rdataset could trigger
+			an assert. [RT #25452]
+
 3153.	[func]		Extend request-ixfr to zone level and remove the
 			side effect of forcing an AXFR. [RT #25156]
 
