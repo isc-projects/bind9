@@ -50,8 +50,6 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifdef DLZ
-
 #include <config.h>
 
 #include <dns/log.h>
@@ -527,5 +525,3 @@ sdlzh_get_parameter_value(isc_mem_t *mctx, const char *input, const char* key)
 
 	return isc_mem_strdup(mctx, value);
 }
-
-#endif

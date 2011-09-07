@@ -1,3 +1,6 @@
+3155.	[bug]		Fixed a build failure when using contrib DLZ
+			drivers (e.g., mysql, postgresql, etc). [RT #25710]
+
 3154.	[bug]		Attempting to print an empty rdataset could trigger
 			an assert. [RT #25452]
 
