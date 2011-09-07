@@ -1,0 +1,13 @@
+$ORIGIN sub.test.
+$TTL    15
+sub.test.  15  IN        SOA ns1.test.  hostmaster.test. (
+                              3 ; serial
+                              3H ; refresh
+                              15 ; retry
+                              1w ; expire
+                              3h ; minimum
+                             )
+       IN  NS     ns1.test.
+       IN  NS     ns2.test.
+host3  IN  A      192.168.10.123
+host4  IN  A      192.168.10.24
