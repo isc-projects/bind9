@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: taskpool.c,v 1.18.332.1 2011/09/05 07:19:27 each Exp $ */
+/* $Id: taskpool.c,v 1.18.332.2 2011/09/08 23:45:16 tbox Exp $ */
 
 /*! \file */
 
@@ -78,7 +78,7 @@ isc_taskpool_create(isc_taskmgr_t *tmgr, isc_mem_t *mctx,
 	isc_result_t result;
 
 	INSIST(ntasks > 0);
-	
+
 	/* Allocate the pool structure */
 	result = alloc_pool(tmgr, mctx, ntasks, quantum, &pool);
 	if (result != ISC_R_SUCCESS)

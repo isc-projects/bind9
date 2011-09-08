@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: taskpool.h,v 1.15.332.1 2011/09/05 07:19:27 each Exp $ */
+/* $Id: taskpool.h,v 1.15.332.2 2011/09/08 23:45:16 tbox Exp $ */
 
 #ifndef ISC_TASKPOOL_H
 #define ISC_TASKPOOL_H 1
@@ -83,7 +83,7 @@ isc_taskpool_create(isc_taskmgr_t *tmgr, isc_mem_t *mctx,
  *\li	#ISC_R_UNEXPECTED
  */
 
-void 
+void
 isc_taskpool_gettask(isc_taskpool_t *pool, isc_task_t **targetp);
 /*%<
  * Attach to a task from the pool.  Currently the next task is chosen
@@ -114,7 +114,7 @@ isc_taskpool_expand(isc_taskpool_t **sourcep, unsigned int size,
  * In either case, 'sourcep' is detached.
  *
  * Requires:
- * 
+ *
  * \li	'sourcep' is not NULL and '*source' is not NULL
  * \li	'targetp' is not NULL and '*source' is NULL
  *
