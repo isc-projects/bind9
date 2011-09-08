@@ -1,4 +1,3 @@
 Makefile
 atf.out
-master_test
-ncache_test
+*_test
