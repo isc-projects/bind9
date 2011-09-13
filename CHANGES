@@ -1,3 +1,6 @@
+
+	--- 9.9.0a2 released ---
+
 3155.	[bug]		Fixed a build failure when using contrib DLZ
 			drivers (e.g., mysql, postgresql, etc). [RT #25710]
 
