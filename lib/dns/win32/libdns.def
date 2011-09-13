@@ -699,6 +699,7 @@ dns_tsigrcode_fromtext
 dns_tsigrcode_totext
 dns_ttl_fromtext
 dns_ttl_totext
+dns_update_signatures
 dns_update_soaserial
 dns_validator_cancel
 dns_validator_create
@@ -706,6 +707,7 @@ dns_validator_destroy
 dns_validator_send
 dns_view_adddelegationonly
 dns_view_addzone
+dns_view_asyncload
 dns_view_attach
 dns_view_checksig
 dns_view_create
@@ -801,6 +803,7 @@ dns_zone_getoptions
 dns_zone_getorigin
 dns_zone_getprivatetype
 dns_zone_getqueryacl
+dns_zone_getraw
 dns_zone_getrequeststats
 dns_zone_getserial
 dns_zone_getserial2
@@ -822,6 +825,7 @@ dns_zone_iattach
 dns_zone_idetach
 dns_zone_isdynamic
 dns_zone_isforced
+dns_zone_link
 dns_zone_load
 dns_zone_loadandthaw
 dns_zone_loadnew
@@ -881,6 +885,7 @@ dns_zone_setprivatetype
 dns_zone_setqueryacl
 dns_zone_setqueryonacl
 dns_zone_setrefreshkeyinterval
+dns_zone_setrequestixfr
 dns_zone_setrequeststats
 dns_zone_setserialupdatemethod
 dns_zone_setsignatures
