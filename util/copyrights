@@ -166,7 +166,7 @@
 ./bin/named/sortlist.c				C	2000,2001,2004,2005,2006,2007
 ./bin/named/statschannel.c			C	2008,2009,2010,2011
 ./bin/named/tkeyconf.c				C	1999,2000,2001,2004,2005,2006,2007
-./bin/named/tsigconf.c				C	1999,2000,2001,2004,2005,2006,2007
+./bin/named/tsigconf.c				C	1999,2000,2001,2004,2005,2006,2007,2011
 ./bin/named/unix/.cvsignore			X	1999,2000,2001
 ./bin/named/unix/Makefile.in			MAKE	1999,2000,2001,2004,2007
 ./bin/named/unix/include/named/os.h		C	1999,2000,2001,2002,2004,2005,2007,2008
