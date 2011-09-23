@@ -1,3 +1,6 @@
+3157.	[tuning]	Reduce the time spent in "rndc reconfig" by parsing
+			the config file before pausing the server. [RT #21373]
+
 3156.	[placeholder]
 
 	--- 9.9.0a2 released ---
