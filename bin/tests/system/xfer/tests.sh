@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.31.332.3 2011/03/11 00:52:38 marka Exp $
+# $Id: tests.sh,v 1.31.332.4 2011/09/23 00:37:28 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -217,6 +217,11 @@ sleep 1
 # a slave for nil.
 
 cat <<EOF >>ns4/named.conf
+key tsig_key. {
+	secret "LSAnCU+Z";
+	algorithm hmac-md5;
+};
+
 zone "nil" {
 	type slave;
 	file "nil.db";
@@ -225,13 +230,37 @@ zone "nil" {
 EOF
 
 $RNDCCMD reload | sed 's/^/I:ns4 /'
-
 sleep 2
 
 $DIGCMD nil. TXT | grep 'initial AXFR' >/dev/null || {
     echo "I:failed"
     status=1
 }
+
+echo "I:retransfer with misconfigured key should fail"
+# this will fail, but should not harm named.
+cp -f ns4/named.conf.base ns4/named.conf
+cat <<EOF >>ns4/named.conf
+key tsig_key. {
+	secret "12345";
+	algorithm hmac-md5;
+};
+
+zone "nil" {
+	type slave;
+	file "nil.db";
+	masters { 10.53.0.5 key tsig_key; };
+};
+EOF
+
+$SENDCMD < ans5/goodaxfr
+sleep 1
+
+$RNDCCMD reload | sed 's/^/I:ns4 /'
+sleep 1
+
+$RNDCCMD retransfer nil | sed 's/^/I:ns4 /'
+sleep 1
 
 echo "I:unsigned transfer"
 

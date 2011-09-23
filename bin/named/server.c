@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.520.12.27 2011/09/05 23:45:14 tbox Exp $ */
+/* $Id: server.c,v 1.520.12.28 2011/09/23 00:37:28 each Exp $ */
 
 /*! \file */
 
@@ -1024,7 +1024,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	isc_uint32_t max_cache_size;
 	isc_uint32_t max_acache_size;
 	isc_uint32_t lame_ttl;
-	dns_tsig_keyring_t *ring;
+	dns_tsig_keyring_t *ring = NULL;
 	dns_view_t *pview = NULL;	/* Production view */
 	isc_mem_t *cmctx = NULL, *hmctx = NULL;
 	dns_dispatch_t *dispatch4 = NULL;
@@ -1492,9 +1492,9 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	/*
 	 * Configure the view's TSIG keys.
 	 */
-	ring = NULL;
 	CHECK(ns_tsigkeyring_fromconfig(config, vconfig, view->mctx, &ring));
 	dns_view_setkeyring(view, ring);
+	ring = NULL;		/* ownership transferred */
 
 	/*
 	 * Configure the view's peer list.
@@ -2023,6 +2023,8 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	result = ISC_R_SUCCESS;
 
  cleanup:
+	if (ring != NULL)
+		dns_tsigkeyring_destroy(&ring);
 	if (zone != NULL)
 		dns_zone_detach(&zone);
 	if (dispatch4 != NULL)
