@@ -46,6 +46,10 @@
 3134.	[bug]		Improve the accuracy of dnssec-signzone's signing
 			statistics. [RT #16030]
 
+3129.	[bug]		Named could crash on 'rndc reconfig' when
+			allow-new-zones was set to yes and named ACLs
+			were used, [RT #22739]
+
 	--- 9.7.4 released ---
 
 3135.	[port]		FreeBSD: workaround broken IPV6_USE_MIN_MTU processing.
