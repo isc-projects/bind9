@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.276 2011/07/28 23:47:58 tbox Exp $ */
+/* $Id: client.c,v 1.277 2011/10/04 16:04:22 each Exp $ */
 
 #include <config.h>
 
@@ -214,6 +214,8 @@ static void ns_client_checkactive(ns_client_t *client);
 static void client_start(isc_task_t *task, isc_event_t *event);
 static void client_request(isc_task_t *task, isc_event_t *event);
 static void ns_client_dumpmessage(ns_client_t *client, const char *reason);
+static isc_result_t get_client(ns_clientmgr_t *manager, ns_interface_t *ifp,
+			       dns_dispatch_t *disp, isc_boolean_t tcp);
 
 void
 ns_client_recursing(ns_client_t *client) {
@@ -2398,10 +2400,11 @@ ns_client_replace(ns_client_t *client) {
 
 	CTRACE("replace");
 
-	result = ns_clientmgr_createclients(client->manager,
-					    1, client->interface,
-					    (TCP_CLIENT(client) ?
-					     ISC_TRUE : ISC_FALSE));
+	LOCK(&client->manager->lock);
+	result = get_client(client->manager, client->interface,
+			    client->dispatch, TCP_CLIENT(client));
+	UNLOCK(&client->manager->lock);
+
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -2531,14 +2534,67 @@ ns_clientmgr_destroy(ns_clientmgr_t **managerp) {
 	*managerp = NULL;
 }
 
+static isc_result_t
+get_client(ns_clientmgr_t *manager, ns_interface_t *ifp,
+	   dns_dispatch_t *disp, isc_boolean_t tcp)
+{
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_event_t *ev;
+	ns_client_t *client;
+	MTRACE("get client");
+
+	/*
+	 * Allocate a client.  First try to get a recycled one;
+	 * if that fails, make a new one.
+	 */
+	client = NULL;
+	if (!ns_g_clienttest)
+		client = ISC_LIST_HEAD(manager->inactive);
+	if (client != NULL) {
+		MTRACE("recycle");
+		ISC_LIST_UNLINK(manager->inactive, client,
+				link);
+		client->list = NULL;
+	} else {
+		MTRACE("create new");
+		result = client_create(manager, &client);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	}
+
+	ns_interface_attach(ifp, &client->interface);
+	client->state = NS_CLIENTSTATE_READY;
+	INSIST(client->recursionquota == NULL);
+
+	if (tcp) {
+		client->attributes |= NS_CLIENTATTR_TCP;
+		isc_socket_attach(ifp->tcpsocket,
+				  &client->tcplistener);
+	} else {
+		isc_socket_t *sock;
+
+		dns_dispatch_attach(disp, &client->dispatch);
+		sock = dns_dispatch_getsocket(client->dispatch);
+		isc_socket_attach(sock, &client->udpsocket);
+	}
+
+	client->manager = manager;
+	ISC_LIST_APPEND(manager->active, client, link);
+	client->list = &manager->active;
+
+	INSIST(client->nctls == 0);
+	client->nctls++;
+	ev = &client->ctlevent;
+	isc_task_send(client->task, &ev);
+
+	return (ISC_R_SUCCESS);
+}
+
 isc_result_t
 ns_clientmgr_createclients(ns_clientmgr_t *manager, unsigned int n,
 			   ns_interface_t *ifp, isc_boolean_t tcp)
 {
 	isc_result_t result = ISC_R_SUCCESS;
-	isc_boolean_t success = ISC_FALSE;
-	unsigned int i;
-	ns_client_t *client;
 	unsigned int disp;
 
 	REQUIRE(VALID_MANAGER(manager));
@@ -2551,70 +2607,13 @@ ns_clientmgr_createclients(ns_clientmgr_t *manager, unsigned int n,
 	 * process.  If we didn't do this, then a client could get a
 	 * shutdown event and disappear out from under us.
 	 */
-
 	LOCK(&manager->lock);
-
 	for (disp = 0; disp < n; disp++) {
-		for (i = 0; i < n; i++) {
-			isc_event_t *ev;
-
-			/*
-			 * Allocate a client.  First try to get a recycled one;
-			 * if that fails, make a new one.
-			 */
-			client = NULL;
-			if (!ns_g_clienttest)
-				client = ISC_LIST_HEAD(manager->inactive);
-			if (client != NULL) {
-				MTRACE("recycle");
-				ISC_LIST_UNLINK(manager->inactive, client,
-						link);
-				client->list = NULL;
-			} else {
-				MTRACE("create new");
-				result = client_create(manager, &client);
-				if (result != ISC_R_SUCCESS)
-					break;
-			}
-
-			ns_interface_attach(ifp, &client->interface);
-			client->state = NS_CLIENTSTATE_READY;
-			INSIST(client->recursionquota == NULL);
-
-			if (tcp) {
-				client->attributes |= NS_CLIENTATTR_TCP;
-				isc_socket_attach(ifp->tcpsocket,
-						  &client->tcplistener);
-			} else {
-				isc_socket_t *sock;
-
-				dns_dispatch_attach(ifp->udpdispatch[disp],
-						    &client->dispatch);
-				sock = dns_dispatch_getsocket(client->dispatch);
-				isc_socket_attach(sock, &client->udpsocket);
-			}
-
-			client->manager = manager;
-			ISC_LIST_APPEND(manager->active, client, link);
-			client->list = &manager->active;
-
-			INSIST(client->nctls == 0);
-			client->nctls++;
-			ev = &client->ctlevent;
-			isc_task_send(client->task, &ev);
-
-			success = ISC_TRUE;
-		}
+		result = get_client(manager, ifp, ifp->udpdispatch[disp], tcp);
+		if (result != ISC_R_SUCCESS)
+			break;
 	}
-
 	UNLOCK(&manager->lock);
-
-	/*
-	 * If managed to create at least one client for
-	 * one dispatch, we declare victory.
-	 */
-	if (success)
-		return (ISC_R_SUCCESS);
 
 	return (result);
 }
@@ -2850,7 +2849,6 @@ ns_client_dumprecursing(FILE *f, ns_clientmgr_t *manager) {
 
 void
 ns_client_qnamereplace(ns_client_t *client, dns_name_t *name) {
-
 	if (client->manager != NULL)
 		LOCK(&client->manager->lock);
 	if (client->query.restarts > 0) {

@@ -1,3 +1,11 @@
+3159.	[bug]		On some platforms, named could assert on startup
+			when running in a chrooted environment without
+			/proc. [RT #25863]
+
+3158.	[bug]		Recursive servers would prefer a particular UDP
+			socket instead of using all available sockets.
+			[RT #26038]
+
 3157.	[tuning]	Reduce the time spent in "rndc reconfig" by parsing
 			the config file before pausing the server. [RT #21373]
 
