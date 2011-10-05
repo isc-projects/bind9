@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3_50.c,v 1.10 2011/03/07 13:42:11 marka Exp $ */
+/* $Id: nsec3_50.c,v 1.11 2011/10/05 03:47:59 marka Exp $ */
 
 /*
  * Copyright (C) 2004  Nominet, Ltd.
@@ -202,8 +202,10 @@ totext_nsec3(ARGS_TOTEXT) {
 	/* Types covered */
 	first = ISC_TRUE;
 	for (i = 0; i < sr.length; i += len) {
-		if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+		if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {
+			RETERR(str_totext(tctx->linebreak, target));
 			first = ISC_TRUE;
+		}
 		INSIST(i + 2 <= sr.length);
 		window = sr.base[i];
 		len = sr.base[i + 1];
