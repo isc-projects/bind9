@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.450.4.23 2011/08/02 04:57:54 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.450.4.24 2011/10/06 11:36:08 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4980,6 +4980,10 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> cache-file <replaceable>path_name</replaceable>; </optional>
     <optional> dump-file <replaceable>path_name</replaceable>; </optional>
     <optional> bindkeys-file <replaceable>path_name</replaceable>; </optional>
+    <optional> secroots-file <replaceable>path_name</replaceable>; </optional>
+    <optional> session-keyfile <replaceable>path_name</replaceable>; </optional>
+    <optional> session-keyname <replaceable>key_name</replaceable>; </optional>
+    <optional> session-keyalg <replaceable>algorithm_id</replaceable>; </optional>
     <optional> memstatistics <replaceable>yes_or_no</replaceable>; </optional>
     <optional> memstatistics-file <replaceable>path_name</replaceable>; </optional>
     <optional> pid-file <replaceable>path_name</replaceable>; </optional>
@@ -5475,7 +5479,8 @@ badresp:1,adberr:0,findfail:0,valfail:0]
                 The pathname of the file the server dumps
                 security roots to when instructed to do so with
                 <command>rndc secroots</command>.
-                If not specified, the default is <filename>named.secroots</filename>.
+                If not specified, the default is
+		<filename>named.secroots</filename>.
               </para>
             </listitem>
           </varlistentry>
@@ -5515,19 +5520,6 @@ badresp:1,adberr:0,findfail:0,valfail:0]
                 Valid values are hmac-sha1, hmac-sha224, hmac-sha256,
                 hmac-sha384, hmac-sha512 and hmac-md5.  If not
                 specified, the default is hmac-sha256.
-              </para>
-            </listitem>
-          </varlistentry>
-
-          <varlistentry>
-            <term><command>session-keyfile</command></term>
-            <listitem>
-              <para>
-                The pathname of the file into which to write a session TSIG
-                key for use by <command>nsupdate -l</command>.  (See the
-                discussion of the <command>update-policy</command>
-                statement's <userinput>local</userinput> option for more
-                details on this feature.)
               </para>
             </listitem>
           </varlistentry>
