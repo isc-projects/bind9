@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.93 2011/09/02 21:55:16 each Exp $
+# $Id: tests.sh,v 1.94 2011/10/06 22:11:39 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -982,11 +982,12 @@ cd signer
 cat example.db.in $key1.key $key2.key > example.db
 $SIGNER -3 - -H 10 -o example -f example.db example.db > /dev/null 2>&1
 awk '/^IQF9LQTLK/ {
-		printf("%s ", $0);
-		getline;
-		printf ("%s ", $0); 
-		getline;
-		print;
+		printf("%s", $0);
+		while (!match($0, "\\)")) {
+			getline;
+			printf (" %s", $0); 
+		}
+		printf("\n");
 	}' example.db | sed 's/[ 	][ 	]*/ /g' > nsec3param.out
 
 grep "IQF9LQTLKKNFK0KVIFELRAK4IC4QLTMG.example. 0 IN NSEC3 1 0 10 - ( IQF9LQTLKKNFK0KVIFELRAK4IC4QLTMG A NS SOA RRSIG DNSKEY NSEC3PARAM )" nsec3param.out > /dev/null 
