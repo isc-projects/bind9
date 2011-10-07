@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.520.12.28 2011/09/23 00:37:28 each Exp $ */
+/* $Id: server.c,v 1.520.12.29 2011/10/07 04:41:30 each Exp $ */
 
 /*! \file */
 
@@ -3022,13 +3022,10 @@ load_configuration(const char *filename, ns_server_t *server,
 	isc_uint32_t udpsize;
 	unsigned int maxsocks;
 	int num_zones = 0;
+	isc_boolean_t exclusive = ISC_FALSE;
 
 	cfg_aclconfctx_init(&aclconfctx);
 	ISC_LIST_INIT(viewlist);
-
-	/* Ensure exclusive access to configuration data. */
-	result = isc_task_beginexclusive(server->task);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	/*
 	 * Parse the global default pseudo-config file.
@@ -3095,6 +3092,13 @@ load_configuration(const char *filename, ns_server_t *server,
 		maps[i++] = options;
 	maps[i++] = ns_g_defaults;
 	maps[i] = NULL;
+
+	/* Ensure exclusive access to configuration data. */
+	if (!exclusive) {
+		result = isc_task_beginexclusive(server->task);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		exclusive = ISC_TRUE;
+	}
 
 	/*
 	 * Set process limits, which (usually) needs to be done as root.
@@ -3807,7 +3811,8 @@ load_configuration(const char *filename, ns_server_t *server,
 		adjust_interfaces(server, ns_g_mctx);
 
 	/* Relinquish exclusive access to configuration data. */
-	isc_task_endexclusive(server->task);
+	if (exclusive)
+		isc_task_endexclusive(server->task);
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 		      ISC_LOG_DEBUG(1), "load_configuration: %s",

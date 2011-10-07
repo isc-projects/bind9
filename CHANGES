@@ -1,3 +1,6 @@
+3157.	[tuning]	Reduce the time spent in "rndc reconfig" by parsing
+			the config file before pausing the server. [RT #21373]
+
 3156.   [bug]           Reconfiguring the server with an incorrectly
                         formatted TSIG key could cause a crash during
                         subsequent zone transfers.  [RT #20391]
