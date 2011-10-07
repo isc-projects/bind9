@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.556.8.43 2011/09/02 23:45:31 tbox Exp $ */
+/* $Id: server.c,v 1.556.8.44 2011/10/07 04:43:36 each Exp $ */
 
 /*! \file */
 
@@ -3887,14 +3887,11 @@ load_configuration(const char *filename, ns_server_t *server,
 	ns_cache_t *nsc;
 	struct cfg_context *nzctx;
 	int num_zones = 0;
+	isc_boolean_t exclusive = ISC_FALSE;
 
 	ISC_LIST_INIT(viewlist);
 	ISC_LIST_INIT(builtin_viewlist);
 	ISC_LIST_INIT(cachelist);
-
-	/* Ensure exclusive access to configuration data. */
-	result = isc_task_beginexclusive(server->task);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	/* Create the ACL configuration context */
 	if (ns_g_aclconfctx != NULL)
@@ -3989,6 +3986,13 @@ load_configuration(const char *filename, ns_server_t *server,
 		result = cfg_parse_file(bindkeys_parser, server->bindkeysfile,
 					&cfg_type_bindkeys, &bindkeys);
 		CHECK(result);
+	}
+
+	/* Ensure exclusive access to configuration data. */
+	if (!exclusive) {
+		result = isc_task_beginexclusive(server->task);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		exclusive = ISC_TRUE;
 	}
 
 	/*
@@ -4758,7 +4762,8 @@ load_configuration(const char *filename, ns_server_t *server,
 		adjust_interfaces(server, ns_g_mctx);
 
 	/* Relinquish exclusive access to configuration data. */
-	isc_task_endexclusive(server->task);
+	if (exclusive)
+		isc_task_endexclusive(server->task);
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 		      ISC_LOG_DEBUG(1), "load_configuration: %s",
