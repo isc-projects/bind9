@@ -1,3 +1,6 @@
+3161.	[bug]		zone.c:del_sigs failed to always reset rdata leading
+			assertion failures. [RT #25880]
+
 3160.	[bug]		When printing out a NSEC3 record in multiline form
 			the newline was not being printed causing type codes
 			to be run together. [RT #25873]
