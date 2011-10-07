@@ -1,6 +1,9 @@
 3161.	[bug]		zone.c:del_sigs failed to always reset rdata leading
 			assertion failures. [RT #25880]
 
+3157.	[tuning]	Reduce the time spent in "rndc reconfig" by parsing
+			the config file before pausing the server. [RT #21373]
+
 3155.	[bug]		Fixed a build failure when using contrib DLZ
 			drivers (e.g., mysql, postgresql, etc). [RT #25710]
 
