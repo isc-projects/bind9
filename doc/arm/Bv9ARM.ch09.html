@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch09.html,v 1.246.8.9 2011/08/03 02:35:11 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch09.html,v 1.246.8.10 2011/10/07 01:53:01 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -57,13 +57,13 @@
 </dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch09.html#bind9.library">BIND 9 DNS Library Support</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2608203">Prerequisite</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2608213">Compilation</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2608237">Installation</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2608268">Known Defects/Restrictions</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2608413">The dns.conf File</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2608440">Sample Applications</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2609345">Library References</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2607248">Prerequisite</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2607257">Compilation</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2607282">Installation</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2608405">Known Defects/Restrictions</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2608482">The dns.conf File</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2608508">Sample Applications</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2609140">Library References</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -331,7 +331,7 @@
 <a name="id2604405"></a><p>[<abbr class="abbrev">RFC4033</abbr>] <span class="authorgroup"><span class="firstname">R.</span> <span class="surname">Arends</span>, <span class="firstname">R.</span> <span class="surname">Austein</span>, <span class="firstname">M.</span> <span class="surname">Larson</span>, <span class="firstname">D.</span> <span class="surname">Massey</span>, and <span class="firstname">S.</span> <span class="surname">Rose</span>. </span><span class="title"><i>DNS Security Introduction and Requirements</i>. </span><span class="pubdate">March 2005. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2604470"></a><p>[<abbr class="abbrev">RFC4034</abbr>] <span class="authorgroup"><span class="firstname">R.</span> <span class="surname">Arends</span>, <span class="firstname">R.</span> <span class="surname">Austein</span>, <span class="firstname">M.</span> <span class="surname">Larson</span>, <span class="firstname">D.</span> <span class="surname">Massey</span>, and <span class="firstname">S.</span> <span class="surname">Rose</span>. </span><span class="title"><i>Resource Records for the DNS Security Extensions</i>. </span><span class="pubdate">March 2005. </span></p>
+<a name="id2604538"></a><p>[<abbr class="abbrev">RFC4034</abbr>] <span class="authorgroup"><span class="firstname">R.</span> <span class="surname">Arends</span>, <span class="firstname">R.</span> <span class="surname">Austein</span>, <span class="firstname">M.</span> <span class="surname">Larson</span>, <span class="firstname">D.</span> <span class="surname">Massey</span>, and <span class="firstname">S.</span> <span class="surname">Rose</span>. </span><span class="title"><i>Resource Records for the DNS Security Extensions</i>. </span><span class="pubdate">March 2005. </span></p>
 </div>
 <div class="biblioentry">
 <a name="id2604603"></a><p>[<abbr class="abbrev">RFC4035</abbr>] <span class="authorgroup"><span class="firstname">R.</span> <span class="surname">Arends</span>, <span class="firstname">R.</span> <span class="surname">Austein</span>, <span class="firstname">M.</span> <span class="surname">Larson</span>, <span class="firstname">D.</span> <span class="surname">Massey</span>, and <span class="firstname">S.</span> <span class="surname">Rose</span>. </span><span class="title"><i>Protocol Modifications for the DNS
@@ -403,16 +403,16 @@
 <a name="id2605249"></a><p>[<abbr class="abbrev">RFC2540</abbr>] <span class="authorgroup"><span class="firstname">D.</span> <span class="surname">Eastlake</span>, <span class="lineage">3rd</span>. </span><span class="title"><i>Detached Domain Name System (DNS) Information</i>. </span><span class="pubdate">March 1999. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2605278"></a><p>[<abbr class="abbrev">RFC2782</abbr>] <span class="author"><span class="firstname">A.</span> <span class="surname">Gulbrandsen</span>. </span><span class="author"><span class="firstname">P.</span> <span class="surname">Vixie</span>. </span><span class="author"><span class="firstname">L.</span> <span class="surname">Esibov</span>. </span><span class="title"><i>A DNS RR for specifying the location of services (DNS SRV)</i>. </span><span class="pubdate">February 2000. </span></p>
+<a name="id2605347"></a><p>[<abbr class="abbrev">RFC2782</abbr>] <span class="author"><span class="firstname">A.</span> <span class="surname">Gulbrandsen</span>. </span><span class="author"><span class="firstname">P.</span> <span class="surname">Vixie</span>. </span><span class="author"><span class="firstname">L.</span> <span class="surname">Esibov</span>. </span><span class="title"><i>A DNS RR for specifying the location of services (DNS SRV)</i>. </span><span class="pubdate">February 2000. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2605321"></a><p>[<abbr class="abbrev">RFC2915</abbr>] <span class="author"><span class="firstname">M.</span> <span class="surname">Mealling</span>. </span><span class="author"><span class="firstname">R.</span> <span class="surname">Daniel</span>. </span><span class="title"><i>The Naming Authority Pointer (NAPTR) DNS Resource Record</i>. </span><span class="pubdate">September 2000. </span></p>
+<a name="id2605389"></a><p>[<abbr class="abbrev">RFC2915</abbr>] <span class="author"><span class="firstname">M.</span> <span class="surname">Mealling</span>. </span><span class="author"><span class="firstname">R.</span> <span class="surname">Daniel</span>. </span><span class="title"><i>The Naming Authority Pointer (NAPTR) DNS Resource Record</i>. </span><span class="pubdate">September 2000. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2605354"></a><p>[<abbr class="abbrev">RFC3110</abbr>] <span class="author"><span class="firstname">D.</span> <span class="surname">Eastlake</span>, <span class="lineage">3rd</span>. </span><span class="title"><i>RSA/SHA-1 SIGs and RSA KEYs in the Domain Name System (DNS)</i>. </span><span class="pubdate">May 2001. </span></p>
+<a name="id2605422"></a><p>[<abbr class="abbrev">RFC3110</abbr>] <span class="author"><span class="firstname">D.</span> <span class="surname">Eastlake</span>, <span class="lineage">3rd</span>. </span><span class="title"><i>RSA/SHA-1 SIGs and RSA KEYs in the Domain Name System (DNS)</i>. </span><span class="pubdate">May 2001. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2605381"></a><p>[<abbr class="abbrev">RFC3123</abbr>] <span class="author"><span class="firstname">P.</span> <span class="surname">Koch</span>. </span><span class="title"><i>A DNS RR Type for Lists of Address Prefixes (APL RR)</i>. </span><span class="pubdate">June 2001. </span></p>
+<a name="id2605449"></a><p>[<abbr class="abbrev">RFC3123</abbr>] <span class="author"><span class="firstname">P.</span> <span class="surname">Koch</span>. </span><span class="title"><i>A DNS RR Type for Lists of Address Prefixes (APL RR)</i>. </span><span class="pubdate">June 2001. </span></p>
 </div>
 <div class="biblioentry">
 <a name="id2605473"></a><p>[<abbr class="abbrev">RFC3596</abbr>] <span class="authorgroup"><span class="firstname">S.</span> <span class="surname">Thomson</span>, <span class="firstname">C.</span> <span class="surname">Huitema</span>, <span class="firstname">V.</span> <span class="surname">Ksinant</span>, and <span class="firstname">M.</span> <span class="surname">Souissi</span>. </span><span class="title"><i><acronym class="acronym">DNS</acronym> Extensions to support IP
@@ -648,7 +648,7 @@
 </ul></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2608203"></a>Prerequisite</h3></div></div></div>
+<a name="id2607248"></a>Prerequisite</h3></div></div></div>
 <p>GNU make is required to build the export libraries (other
   part of BIND 9 can still be built with other types of make). In
   the reminder of this document, "make" means GNU make. Note that
@@ -657,7 +657,7 @@
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2608213"></a>Compilation</h3></div></div></div>
+<a name="id2607257"></a>Compilation</h3></div></div></div>
 <pre class="screen">
 $ <strong class="userinput"><code>./configure --enable-exportlib <em class="replaceable"><code>[other flags]</code></em></code></strong>
 $ <strong class="userinput"><code>make</code></strong>
@@ -672,7 +672,7 @@ $ <strong class="userinput"><code>make</code></strong>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2608237"></a>Installation</h3></div></div></div>
+<a name="id2607282"></a>Installation</h3></div></div></div>
 <pre class="screen">
 $ <strong class="userinput"><code>cd lib/export</code></strong>
 $ <strong class="userinput"><code>make install</code></strong>
@@ -694,7 +694,7 @@ $ <strong class="userinput"><code>make install</code></strong>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2608268"></a>Known Defects/Restrictions</h3></div></div></div>
+<a name="id2608405"></a>Known Defects/Restrictions</h3></div></div></div>
 <div class="itemizedlist"><ul type="disc">
 <li><p>Currently, win32 is not supported for the export
       library. (Normal BIND 9 application can be built as
@@ -734,7 +734,7 @@ $ <strong class="userinput"><code>make</code></strong>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2608413"></a>The dns.conf File</h3></div></div></div>
+<a name="id2608482"></a>The dns.conf File</h3></div></div></div>
 <p>The IRS library supports an "advanced" configuration file
   related to the DNS library for configuration parameters that
   would be beyond the capability of the
@@ -752,14 +752,14 @@ $ <strong class="userinput"><code>make</code></strong>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2608440"></a>Sample Applications</h3></div></div></div>
+<a name="id2608508"></a>Sample Applications</h3></div></div></div>
 <p>Some sample application programs using this API are
   provided for reference. The following is a brief description of
   these applications.
   </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2608449"></a>sample: a simple stub resolver utility</h4></div></div></div>
+<a name="id2608517"></a>sample: a simple stub resolver utility</h4></div></div></div>
 <p>
   It sends a query of a given name (of a given optional RR type) to a
   specified recursive server, and prints the result as a list of
@@ -1017,7 +1017,7 @@ $ <strong class="userinput"><code>sample-update -a sample-update -k Kxxx.+nnn+mm
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2609281"></a>nsprobe: domain/name server checker in terms of RFC 4074</h4></div></div></div>
+<a name="id2608871"></a>nsprobe: domain/name server checker in terms of RFC 4074</h4></div></div></div>
 <p>
   It checks a set
   of domains to see the name servers of the domains behave
@@ -1074,7 +1074,7 @@ $ <strong class="userinput"><code>sample-update -a sample-update -k Kxxx.+nnn+mm
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2609345"></a>Library References</h3></div></div></div>
+<a name="id2609140"></a>Library References</h3></div></div></div>
 <p>As of this writing, there is no formal "manual" of the
   libraries, except this document, header files (some of them
   provide pretty detailed explanations), and sample application
