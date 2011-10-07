@@ -1,3 +1,6 @@
+3161.	[bug]		zone.c:del_sigs failed to always reset rdata leading
+			assertion failures. [RT #25880]
+
 3155.	[bug]		Fixed a build failure when using contrib DLZ
 			drivers (e.g., mysql, postgresql, etc). [RT #25710]
 
