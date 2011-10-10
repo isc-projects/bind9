@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: start.pl,v 1.13.396.9 2011/10/10 19:29:40 smann Exp $
+# $Id: start.pl,v 1.13.396.10 2011/10/10 23:22:38 smann Exp $
 
 # Framework for starting test servers.
 # Based on the type of server specified, check for port availability, remove
@@ -144,7 +144,8 @@ sub start_server {
 			open(FH, "<", $args_file);
 			while(my $line=<FH>)
 			{
-				$line =~ s/\R//g;
+				#$line =~ s/\R//g;
+				chomp $line;
 				next if ($line =~ /^\s*$/); #discard blank lines
 				next if ($line =~ /^\s*#/); #discard comment lines
 				$line =~ s/#.*$//g;
