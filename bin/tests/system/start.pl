@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: start.pl,v 1.16.54.6 2011/05/05 22:58:59 smann Exp $
+# $Id: start.pl,v 1.16.54.7 2011/10/10 17:16:32 smann Exp $
 
 # Framework for starting test servers.
 # Based on the type of server specified, check for port availability, remove
@@ -23,6 +23,7 @@
 # If a server is specified, start it. Otherwise, start all servers for test.
 
 use strict;
+use Cwd;
 use Cwd 'abs_path';
 use Getopt::Long;
 
@@ -35,6 +36,12 @@ use Getopt::Long;
 #   options - alternate options for the server
 #             NOTE: options must be specified with '-- "<option list>"',
 #              for instance: start.pl . ns1 -- "-c n.conf -d 43"
+#             ALSO NOTE: this variable will be filled with the
+#		contents of the first non-commented/non-blank line of args
+#		in a file called "named.args" in an ns*/ subdirectory only
+#		the FIRST non-commented/non-blank line is used (everything
+#		else in the file is ignored. If "options" is already set,
+#		then "named.args" is ignored.
 
 my $usage = "usage: $0 [--noclean] [--restart] test-directory [server-directory [server-options]]";
 my $noclean = '';
@@ -81,14 +88,15 @@ if ($server) {
 	my @ns = grep /^ns[0-9]*$/, @files;
 	my @lwresd = grep /^lwresd[0-9]*$/, @files;
 	my @ans = grep /^ans[0-9]*$/, @files;
+	my $name;
 
 	# Start the servers we found.
 	&check_ports();
-	foreach (@ns, @lwresd, @ans) {
-		&start_server($_);
+	foreach $name(@ns, @lwresd, @ans) {
+		&start_server($name);
 	}
-	foreach (@ns) {
-		&verify_server($_);
+	foreach $name(@ns) {
+		&verify_server($name);
 	}
 }
 
@@ -125,11 +133,25 @@ sub start_server {
 	my $cleanup_files;
 	my $command;
 	my $pid_file;
+	my $args_file = getcwd() . "/" . $test . "/" . $server . "/" . "named.args";
 
 	if ($server =~ /^ns/) {
 		$cleanup_files = "{*.jnl,*.bk,*.st,named.run}";
 		$command = "$NAMED ";
 		if ($options) {
+			$command .= "$options";
+		} elsif (-e $args_file) {
+			open(FH, "<", $args_file);
+			while(my $line=<FH>)
+			{
+				$line =~ s/\R//g;
+				next if ($line =~ /^\s*$/); #discard blank lines
+				next if ($line =~ /^\s*#/); #discard comment lines
+				$line =~ s/#.*$//g;
+				$options = $line;
+				last;
+			}
+			close FH;
 			$command .= "$options";
 		} else {
 			$command .= "-m record,size,mctx ";
@@ -188,7 +210,7 @@ sub start_server {
 		exit 1;
 	}
 
-	#               print "I:starting server $server\n";
+	# print "I:starting server %s\n",$server;
 
 	chdir "$testdir/$server";
 

@@ -1,3 +1,7 @@
+3162.   [test]          start.pl: modified to allow for "named.args" in
+                        ns*/ subdirectory to override stock arguments to
+                        named. Largely from RT#26044, but no separate ticket.
+
 3161.	[bug]		zone.c:del_sigs failed to always reset rdata leading
 			assertion failures. [RT #25880]
 
