@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: start.pl,v 1.25 2011/10/09 22:47:15 smann Exp $
+# $Id: start.pl,v 1.26 2011/10/10 19:06:05 smann Exp $
 
 # Framework for starting test servers.
 # Based on the type of server specified, check for port availability, remove
@@ -133,7 +133,8 @@ sub start_server {
 	my $cleanup_files;
 	my $command;
 	my $pid_file;
-	my $args_file = getcwd() . "/" . $test . "/" . $server . "/" . "named.args";
+        my $cwd = getcwd();
+	my $args_file = $cwd . "/" . $test . "/" . $server . "/" . "named.args";
 
 	if ($server =~ /^ns/) {
 		$cleanup_files = "{*.jnl,*.bk,*.st,named.run}";
@@ -239,6 +240,9 @@ sub start_server {
 		}
 		sleep 1;
 	}
+
+        # go back to the top level directory
+	chdir $cwd;
 }
 
 sub verify_server {
