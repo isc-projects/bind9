@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnstest.c,v 1.7 2011/09/03 19:22:43 each Exp $ */
+/* $Id: dnstest.c,v 1.8 2011/10/10 02:46:16 marka Exp $ */
 
 /*! \file */
 
@@ -101,7 +101,6 @@ create_managers() {
 	CHECK(isc_timermgr_create(mctx, &timermgr));
 	CHECK(isc_socketmgr_create(mctx, &socketmgr));
 	CHECK(isc_task_create(taskmgr, 0, &maintask));
-	CHECK(isc_app_start());
 	return (ISC_R_SUCCESS);
 
   cleanup:
@@ -113,6 +112,8 @@ isc_result_t
 dns_test_begin(FILE *logfile, isc_boolean_t start_managers) {
 	isc_result_t result;
 
+	if (start_managers)
+		CHECK(isc_app_start());
 	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
 	CHECK(isc_mem_create(0, 0, &mctx));
 	CHECK(isc_entropy_create(mctx, &ectx));
