@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.95 2011/10/07 21:32:35 marka Exp $
+# $Id: tests.sh,v 1.96 2011/10/10 00:34:57 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -983,7 +983,7 @@ cat example.db.in $key1.key $key2.key > example.db
 $SIGNER -3 - -H 10 -o example -f example.db example.db > /dev/null 2>&1
 awk '/^IQF9LQTLK/ {
 		printf("%s", $0);
-		while (!match($0, "\\)")) {
+		while (!index($0, ")")) {
 			if (getline <= 0)
 				break;
 			printf (" %s", $0); 
