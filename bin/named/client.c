@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.277 2011/10/04 16:04:22 each Exp $ */
+/* $Id: client.c,v 1.278 2011/10/10 22:57:13 each Exp $ */
 
 #include <config.h>
 
@@ -24,6 +24,7 @@
 #include <isc/once.h>
 #include <isc/platform.h>
 #include <isc/print.h>
+#include <isc/queue.h>
 #include <isc/stats.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
@@ -116,15 +117,26 @@
 struct ns_clientmgr {
 	/* Unlocked. */
 	unsigned int			magic;
+
+	/* The queue object has its own locks */
+	client_queue_t			inactive;     /*%< To be recycled */
+
 	isc_mem_t *			mctx;
 	isc_taskmgr_t *			taskmgr;
 	isc_timermgr_t *		timermgr;
+
+	/* Lock covers manager state. */
 	isc_mutex_t			lock;
-	/* Locked by lock. */
 	isc_boolean_t			exiting;
-	client_list_t			active;		/*%< Active clients */
-	client_list_t			recursing;	/*%< Recursing clients */
-	client_list_t			inactive;	/*%< To be recycled */
+
+	/* Lock covers the clients list */
+	isc_mutex_t			listlock;
+	client_list_t			clients;      /*%< All active clients */
+
+	/* Lock covers the recursing list */
+	isc_mutex_t			reclock;
+	client_list_t			recursing;    /*%< Recursing clients */
+
 #if NMCTXS > 0
 	/*%< mctx pool for clients. */
 	unsigned int			nextmctx;
@@ -188,6 +200,12 @@ struct ns_clientmgr {
  * recursion quota, and an outstanding write request.
  */
 
+#define NS_CLIENTSTATE_RECURSING  5
+/*%<
+ * The client object is recursing.  It will be on the 'recursing'
+ * list.
+ */
+
 #define NS_CLIENTSTATE_MAX      9
 /*%<
  * Sentinel value used to indicate "no state".  When client->newstate
@@ -210,7 +228,6 @@ static void client_udprecv(ns_client_t *client);
 static void clientmgr_destroy(ns_clientmgr_t *manager);
 static isc_boolean_t exit_check(ns_client_t *client);
 static void ns_client_endrequest(ns_client_t *client);
-static void ns_client_checkactive(ns_client_t *client);
 static void client_start(isc_task_t *task, isc_event_t *event);
 static void client_request(isc_task_t *task, isc_event_t *event);
 static void ns_client_dumpmessage(ns_client_t *client, const char *reason);
@@ -220,12 +237,12 @@ static isc_result_t get_client(ns_clientmgr_t *manager, ns_interface_t *ifp,
 void
 ns_client_recursing(ns_client_t *client) {
 	REQUIRE(NS_CLIENT_VALID(client));
+	REQUIRE(client->state == NS_CLIENTSTATE_WORKING);
 
-	LOCK(&client->manager->lock);
-	ISC_LIST_UNLINK(*client->list, client, link);
-	ISC_LIST_APPEND(client->manager->recursing, client, link);
-	client->list = &client->manager->recursing;
-	UNLOCK(&client->manager->lock);
+	LOCK(&client->manager->reclock);
+	ISC_LIST_APPEND(client->manager->recursing, client, rlink);
+	client->state = NS_CLIENTSTATE_RECURSING;
+	UNLOCK(&client->manager->reclock);
 }
 
 void
@@ -233,15 +250,14 @@ ns_client_killoldestquery(ns_client_t *client) {
 	ns_client_t *oldest;
 	REQUIRE(NS_CLIENT_VALID(client));
 
-	LOCK(&client->manager->lock);
+	LOCK(&client->manager->reclock);
 	oldest = ISC_LIST_HEAD(client->manager->recursing);
 	if (oldest != NULL) {
+		ISC_LIST_UNLINK(client->manager->recursing, oldest, rlink);
+		UNLOCK(&client->manager->reclock);
 		ns_query_cancel(oldest);
-		ISC_LIST_UNLINK(*oldest->list, oldest, link);
-		ISC_LIST_APPEND(client->manager->active, oldest, link);
-		oldest->list = &client->manager->active;
-	}
-	UNLOCK(&client->manager->lock);
+	} else
+		UNLOCK(&client->manager->reclock);
 }
 
 void
@@ -270,15 +286,16 @@ ns_client_settimeout(ns_client_t *client, unsigned int seconds) {
  */
 static isc_boolean_t
 exit_check(ns_client_t *client) {
-	ns_clientmgr_t *locked_manager = NULL;
-	ns_clientmgr_t *destroy_manager = NULL;
+	isc_boolean_t destroy_manager = ISC_FALSE;
+	ns_clientmgr_t *manager = NULL;
 
 	REQUIRE(NS_CLIENT_VALID(client));
+	manager = client->manager;
 
 	if (client->state <= client->newstate)
 		return (ISC_FALSE); /* Business as usual. */
 
-	INSIST(client->newstate < NS_CLIENTSTATE_WORKING);
+	INSIST(client->newstate < NS_CLIENTSTATE_RECURSING);
 
 	/*
 	 * We need to detach from the view early when shutting down
@@ -295,13 +312,16 @@ exit_check(ns_client_t *client) {
 	    client->newstate == NS_CLIENTSTATE_FREED && client->view != NULL)
 		dns_view_detach(&client->view);
 
-	if (client->state == NS_CLIENTSTATE_WORKING) {
+	if (client->state == NS_CLIENTSTATE_WORKING ||
+	    client->state == NS_CLIENTSTATE_RECURSING)
+	{
 		INSIST(client->newstate <= NS_CLIENTSTATE_READING);
 		/*
 		 * Let the update processing complete.
 		 */
 		if (client->nupdates > 0)
 			return (ISC_TRUE);
+
 		/*
 		 * We are trying to abort request processing.
 		 */
@@ -324,23 +344,22 @@ exit_check(ns_client_t *client) {
 			 */
 			return (ISC_TRUE);
 		}
+
 		/*
 		 * I/O cancel is complete.  Burn down all state
 		 * related to the current request.  Ensure that
-		 * the client is on the active list and not the
-		 * recursing list.
+		 * the client is no longer on the recursing list.
 		 */
-		LOCK(&client->manager->lock);
-		if (client->list == &client->manager->recursing) {
-			ISC_LIST_UNLINK(*client->list, client, link);
-			ISC_LIST_APPEND(client->manager->active, client, link);
-			client->list = &client->manager->active;
+		if (client->state == NS_CLIENTSTATE_RECURSING) {
+			LOCK(&manager->reclock);
+			ISC_LIST_UNLINK(manager->recursing, client, rlink);
+			UNLOCK(&manager->reclock);
 		}
-		UNLOCK(&client->manager->lock);
 		ns_client_endrequest(client);
 
 		client->state = NS_CLIENTSTATE_READING;
 		INSIST(client->recursionquota == NULL);
+
 		if (NS_CLIENTSTATE_READING == client->newstate) {
 			client_read(client);
 			client->newstate = NS_CLIENTSTATE_MAX;
@@ -391,8 +410,27 @@ exit_check(ns_client_t *client) {
 		 * or UDP request, but we may have enough clients doing
 		 * that already.  Check whether this client needs to remain
 		 * active and force it to go inactive if not.
+		 *
+		 * UDP clients go inactive at this point, but TCP clients
+		 * may remain active if we have fewer active TCP client
+		 * objects than desired due to an earlier quota exhaustion.
 		 */
-		ns_client_checkactive(client);
+		if (client->mortal && TCP_CLIENT(client) && !ns_g_clienttest) {
+			LOCK(&client->interface->lock);
+			if (client->interface->ntcpcurrent <
+				    client->interface->ntcptarget)
+				client->mortal = ISC_FALSE;
+			UNLOCK(&client->interface->lock);
+		}
+
+		/*
+		 * We don't need the client; send it to the inactive
+		 * queue for recycling.
+		 */
+		if (client->mortal) {
+			if (client->newstate > NS_CLIENTSTATE_INACTIVE)
+				client->newstate = NS_CLIENTSTATE_INACTIVE;
+		}
 
 		if (NS_CLIENTSTATE_READY == client->newstate) {
 			if (TCP_CLIENT(client)) {
@@ -406,6 +444,7 @@ exit_check(ns_client_t *client) {
 
 	if (client->state == NS_CLIENTSTATE_READY) {
 		INSIST(client->newstate <= NS_CLIENTSTATE_INACTIVE);
+
 		/*
 		 * We are trying to enter the inactive state.
 		 */
@@ -413,25 +452,22 @@ exit_check(ns_client_t *client) {
 			isc_socket_cancel(client->tcplistener, client->task,
 					  ISC_SOCKCANCEL_ACCEPT);
 
-		if (! (client->naccepts == 0)) {
-			/* Still waiting for accept cancel completion. */
+		/* Still waiting for accept cancel completion. */
+		if (! (client->naccepts == 0))
 			return (ISC_TRUE);
-		}
-		/* Accept cancel is complete. */
 
+		/* Accept cancel is complete. */
 		if (client->nrecvs > 0)
 			isc_socket_cancel(client->udpsocket, client->task,
 					  ISC_SOCKCANCEL_RECV);
-		if (! (client->nrecvs == 0)) {
-			/* Still waiting for recv cancel completion. */
-			return (ISC_TRUE);
-		}
-		/* Recv cancel is complete. */
 
-		if (client->nctls > 0) {
-			/* Still waiting for control event to be delivered */
+		/* Still waiting for recv cancel completion. */
+		if (! (client->nrecvs == 0))
 			return (ISC_TRUE);
-		}
+
+		/* Still waiting for control event to be delivered */
+		if (client->nctls > 0)
+			return (ISC_TRUE);
 
 		/* Deactivate the client. */
 		if (client->interface)
@@ -451,7 +487,6 @@ exit_check(ns_client_t *client) {
 		client->attributes = 0;
 		client->mortal = ISC_FALSE;
 
-		LOCK(&client->manager->lock);
 		/*
 		 * Put the client on the inactive list.  If we are aiming for
 		 * the "freed" state, it will be removed from the inactive
@@ -459,10 +494,8 @@ exit_check(ns_client_t *client) {
 		 * that has been done, lest the manager decide to reactivate
 		 * the dying client inbetween.
 		 */
-		locked_manager = client->manager;
-		ISC_LIST_UNLINK(*client->list, client, link);
-		ISC_LIST_APPEND(client->manager->inactive, client, link);
-		client->list = &client->manager->inactive;
+		if (!ns_g_clienttest)
+			ISC_QUEUE_PUSH(manager->inactive, client, ilink);
 		client->state = NS_CLIENTSTATE_INACTIVE;
 		INSIST(client->recursionquota == NULL);
 
@@ -470,7 +503,7 @@ exit_check(ns_client_t *client) {
 			client->newstate = NS_CLIENTSTATE_MAX;
 			if (client->needshutdown)
 				isc_task_shutdown(client->task);
-			goto unlock;
+			return (ISC_TRUE);
 		}
 	}
 
@@ -495,27 +528,27 @@ exit_check(ns_client_t *client) {
 		isc_timer_detach(&client->timer);
 
 		if (client->tcpbuf != NULL)
-			isc_mem_put(client->mctx, client->tcpbuf, TCP_BUFFER_SIZE);
+			isc_mem_put(client->mctx, client->tcpbuf,
+				    TCP_BUFFER_SIZE);
 		if (client->opt != NULL) {
 			INSIST(dns_rdataset_isassociated(client->opt));
 			dns_rdataset_disassociate(client->opt);
-			dns_message_puttemprdataset(client->message, &client->opt);
+			dns_message_puttemprdataset(client->message,
+						    &client->opt);
 		}
+
 		dns_message_destroy(&client->message);
-		if (client->manager != NULL) {
-			ns_clientmgr_t *manager = client->manager;
-			if (locked_manager == NULL) {
-				LOCK(&manager->lock);
-				locked_manager = manager;
-			}
-			ISC_LIST_UNLINK(*client->list, client, link);
-			client->list = NULL;
+		if (manager != NULL) {
+			LOCK(&manager->listlock);
+			ISC_LIST_UNLINK(manager->clients, client, link);
+			LOCK(&manager->lock);
 			if (manager->exiting &&
-			    ISC_LIST_EMPTY(manager->active) &&
-			    ISC_LIST_EMPTY(manager->inactive) &&
-			    ISC_LIST_EMPTY(manager->recursing))
-				destroy_manager = manager;
+			    ISC_LIST_EMPTY(manager->clients))
+				destroy_manager = ISC_TRUE;
+			UNLOCK(&manager->lock);
+			UNLOCK(&manager->listlock);
 		}
+
 		/*
 		 * Detaching the task must be done after unlinking from
 		 * the manager's lists because the manager accesses
@@ -526,6 +559,7 @@ exit_check(ns_client_t *client) {
 
 		CTRACE("free");
 		client->magic = 0;
+
 		/*
 		 * Check that there are no other external references to
 		 * the memory context.
@@ -535,22 +569,10 @@ exit_check(ns_client_t *client) {
 			INSIST(0);
 		}
 		isc_mem_putanddetach(&client->mctx, client, sizeof(*client));
-
-		goto unlock;
 	}
 
- unlock:
-	if (locked_manager != NULL) {
-		UNLOCK(&locked_manager->lock);
-		locked_manager = NULL;
-	}
-
-	/*
-	 * Only now is it safe to destroy the client manager (if needed),
-	 * because we have accessed its lock for the last time.
-	 */
-	if (destroy_manager != NULL)
-		clientmgr_destroy(destroy_manager);
+	if (destroy_manager && manager != NULL)
+		clientmgr_destroy(manager);
 
 	return (ISC_TRUE);
 }
@@ -618,7 +640,8 @@ ns_client_endrequest(ns_client_t *client) {
 	INSIST(client->nsends == 0);
 	INSIST(client->nrecvs == 0);
 	INSIST(client->nupdates == 0);
-	INSIST(client->state == NS_CLIENTSTATE_WORKING);
+	INSIST(client->state == NS_CLIENTSTATE_WORKING ||
+	       client->state == NS_CLIENTSTATE_RECURSING);
 
 	CTRACE("endrequest");
 
@@ -651,46 +674,13 @@ ns_client_endrequest(ns_client_t *client) {
 	client->attributes &= NS_CLIENTATTR_TCP;
 }
 
-static void
-ns_client_checkactive(ns_client_t *client) {
-	if (client->mortal) {
-		/*
-		 * This client object should normally go inactive
-		 * at this point, but if we have fewer active client
-		 * objects than desired due to earlier quota exhaustion,
-		 * keep it active to make up for the shortage.
-		 */
-		isc_boolean_t need_another_client = ISC_FALSE;
-		if (TCP_CLIENT(client) && !ns_g_clienttest) {
-			LOCK(&client->interface->lock);
-			if (client->interface->ntcpcurrent <
-			    client->interface->ntcptarget)
-				need_another_client = ISC_TRUE;
-			UNLOCK(&client->interface->lock);
-		} else {
-			/*
-			 * The UDP client quota is enforced by making
-			 * requests fail rather than by not listening
-			 * for new ones.  Therefore, there is always a
-			 * full set of UDP clients listening.
-			 */
-		}
-		if (! need_another_client) {
-			/*
-			 * We don't need this client object.  Recycle it.
-			 */
-			if (client->newstate >= NS_CLIENTSTATE_INACTIVE)
-				client->newstate = NS_CLIENTSTATE_INACTIVE;
-		}
-	}
-}
-
 void
 ns_client_next(ns_client_t *client, isc_result_t result) {
 	int newstate;
 
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(client->state == NS_CLIENTSTATE_WORKING ||
+		client->state == NS_CLIENTSTATE_RECURSING ||
 		client->state == NS_CLIENTSTATE_READING);
 
 	CTRACE("next");
@@ -746,9 +736,6 @@ client_senddone(isc_task_t *task, isc_event_t *event) {
 		isc_mem_put(client->mctx, client->tcpbuf, TCP_BUFFER_SIZE);
 		client->tcpbuf = NULL;
 	}
-
-	if (exit_check(client))
-		return;
 
 	ns_client_next(client, ISC_R_SUCCESS);
 }
@@ -1389,10 +1376,9 @@ client_request(isc_task_t *task, isc_event_t *event) {
 
 	INSIST(client->recursionquota == NULL);
 
-	INSIST(client->state ==
-	       TCP_CLIENT(client) ?
-	       NS_CLIENTSTATE_READING :
-	       NS_CLIENTSTATE_READY);
+	INSIST(client->state == TCP_CLIENT(client) ?
+				       NS_CLIENTSTATE_READING :
+				       NS_CLIENTSTATE_READY);
 
 	ns_client_requests++;
 
@@ -2122,7 +2108,8 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	client->formerrcache.time = 0;
 	client->formerrcache.id = 0;
 	ISC_LINK_INIT(client, link);
-	client->list = NULL;
+	ISC_LINK_INIT(client, rlink);
+	ISC_QLINK_INIT(client, ilink);
 
 	/*
 	 * We call the init routines for the various kinds of client here,
@@ -2400,11 +2387,8 @@ ns_client_replace(ns_client_t *client) {
 
 	CTRACE("replace");
 
-	LOCK(&client->manager->lock);
 	result = get_client(client->manager, client->interface,
 			    client->dispatch, TCP_CLIENT(client));
-	UNLOCK(&client->manager->lock);
-
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -2428,9 +2412,7 @@ clientmgr_destroy(ns_clientmgr_t *manager) {
 	int i;
 #endif
 
-	REQUIRE(ISC_LIST_EMPTY(manager->active));
-	REQUIRE(ISC_LIST_EMPTY(manager->inactive));
-	REQUIRE(ISC_LIST_EMPTY(manager->recursing));
+	REQUIRE(ISC_LIST_EMPTY(manager->clients));
 
 	MTRACE("clientmgr_destroy");
 
@@ -2441,7 +2423,10 @@ clientmgr_destroy(ns_clientmgr_t *manager) {
 	}
 #endif
 
+	ISC_QUEUE_DESTROY(manager->inactive);
 	DESTROYLOCK(&manager->lock);
+	DESTROYLOCK(&manager->listlock);
+	DESTROYLOCK(&manager->reclock);
 	manager->magic = 0;
 	isc_mem_put(manager->mctx, manager, sizeof(*manager));
 }
@@ -2464,13 +2449,21 @@ ns_clientmgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_manager;
 
+	result = isc_mutex_init(&manager->listlock);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_lock;
+
+	result = isc_mutex_init(&manager->reclock);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_listlock;
+
 	manager->mctx = mctx;
 	manager->taskmgr = taskmgr;
 	manager->timermgr = timermgr;
 	manager->exiting = ISC_FALSE;
-	ISC_LIST_INIT(manager->active);
-	ISC_LIST_INIT(manager->inactive);
+	ISC_LIST_INIT(manager->clients);
 	ISC_LIST_INIT(manager->recursing);
+	ISC_QUEUE_INIT(manager->inactive, ilink);
 #if NMCTXS > 0
 	manager->nextmctx = 0;
 	for (i = 0; i < NMCTXS; i++)
@@ -2483,6 +2476,12 @@ ns_clientmgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	*managerp = manager;
 
 	return (ISC_R_SUCCESS);
+
+ cleanup_listlock:
+	isc_mutex_destroy(&manager->listlock);
+
+ cleanup_lock:
+	isc_mutex_destroy(&manager->lock);
 
  cleanup_manager:
 	isc_mem_put(manager->mctx, manager, sizeof(*manager));
@@ -2502,31 +2501,21 @@ ns_clientmgr_destroy(ns_clientmgr_t **managerp) {
 
 	MTRACE("destroy");
 
+	LOCK(&manager->listlock);
+
 	LOCK(&manager->lock);
-
 	manager->exiting = ISC_TRUE;
+	UNLOCK(&manager->lock);
 
-	for (client = ISC_LIST_HEAD(manager->recursing);
+	for (client = ISC_LIST_HEAD(manager->clients);
 	     client != NULL;
 	     client = ISC_LIST_NEXT(client, link))
 		isc_task_shutdown(client->task);
 
-	for (client = ISC_LIST_HEAD(manager->active);
-	     client != NULL;
-	     client = ISC_LIST_NEXT(client, link))
-		isc_task_shutdown(client->task);
-
-	for (client = ISC_LIST_HEAD(manager->inactive);
-	     client != NULL;
-	     client = ISC_LIST_NEXT(client, link))
-		isc_task_shutdown(client->task);
-
-	if (ISC_LIST_EMPTY(manager->active) &&
-	    ISC_LIST_EMPTY(manager->inactive) &&
-	    ISC_LIST_EMPTY(manager->recursing))
+	if (ISC_LIST_EMPTY(manager->clients))
 		need_destroy = ISC_TRUE;
 
-	UNLOCK(&manager->lock);
+	UNLOCK(&manager->listlock);
 
 	if (need_destroy)
 		clientmgr_destroy(manager);
@@ -2549,19 +2538,23 @@ get_client(ns_clientmgr_t *manager, ns_interface_t *ifp,
 	 */
 	client = NULL;
 	if (!ns_g_clienttest)
-		client = ISC_LIST_HEAD(manager->inactive);
-	if (client != NULL) {
+		ISC_QUEUE_POP(manager->inactive, ilink, client);
+
+	if (client != NULL)
 		MTRACE("recycle");
-		ISC_LIST_UNLINK(manager->inactive, client,
-				link);
-		client->list = NULL;
-	} else {
+	else {
 		MTRACE("create new");
+
 		result = client_create(manager, &client);
 		if (result != ISC_R_SUCCESS)
 			return (result);
+
+		LOCK(&manager->listlock);
+		ISC_LIST_APPEND(manager->clients, client, link);
+		UNLOCK(&manager->listlock);
 	}
 
+	client->manager = manager;
 	ns_interface_attach(ifp, &client->interface);
 	client->state = NS_CLIENTSTATE_READY;
 	INSIST(client->recursionquota == NULL);
@@ -2577,10 +2570,6 @@ get_client(ns_clientmgr_t *manager, ns_interface_t *ifp,
 		sock = dns_dispatch_getsocket(client->dispatch);
 		isc_socket_attach(sock, &client->udpsocket);
 	}
-
-	client->manager = manager;
-	ISC_LIST_APPEND(manager->active, client, link);
-	client->list = &manager->active;
 
 	INSIST(client->nctls == 0);
 	client->nctls++;
@@ -2803,7 +2792,7 @@ ns_client_dumprecursing(FILE *f, ns_clientmgr_t *manager) {
 
 	REQUIRE(VALID_MANAGER(manager));
 
-	LOCK(&manager->lock);
+	LOCK(&manager->reclock);
 	client = ISC_LIST_HEAD(manager->recursing);
 	while (client != NULL) {
 		ns_client_name(client, peerbuf, sizeof(peerbuf));
@@ -2816,6 +2805,8 @@ ns_client_dumprecursing(FILE *f, ns_clientmgr_t *manager) {
 			name = "";
 			sep = "";
 		}
+
+		LOCK(&client->query.fetchlock);
 		dns_name_format(client->query.qname, namebuf, sizeof(namebuf));
 		if (client->query.qname != client->query.origqname &&
 		    client->query.origqname != NULL) {
@@ -2838,19 +2829,19 @@ ns_client_dumprecursing(FILE *f, ns_clientmgr_t *manager) {
 			strcpy(typebuf, "-");
 			strcpy(classbuf, "-");
 		}
+		UNLOCK(&client->query.fetchlock);
 		fprintf(f, "; client %s%s%s: id %u '%s/%s/%s'%s%s "
 			"requesttime %d\n", peerbuf, sep, name,
 			client->message->id, namebuf, typebuf, classbuf,
 			origfor, original, client->requesttime);
 		client = ISC_LIST_NEXT(client, link);
 	}
-	UNLOCK(&manager->lock);
+	UNLOCK(&manager->reclock);
 }
 
 void
 ns_client_qnamereplace(ns_client_t *client, dns_name_t *name) {
-	if (client->manager != NULL)
-		LOCK(&client->manager->lock);
+	LOCK(&client->query.fetchlock);
 	if (client->query.restarts > 0) {
 		/*
 		 * client->query.qname was dynamically allocated.
@@ -2859,6 +2850,5 @@ ns_client_qnamereplace(ns_client_t *client, dns_name_t *name) {
 					&client->query.qname);
 	}
 	client->query.qname = name;
-	if (client->manager != NULL)
-		UNLOCK(&client->manager->lock);
+	UNLOCK(&client->query.fetchlock);
 }

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.91 2009/10/26 23:14:53 each Exp $ */
+/* $Id: client.h,v 1.92 2011/10/10 22:57:13 each Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -66,6 +66,7 @@
 #include <isc/magic.h>
 #include <isc/stdtime.h>
 #include <isc/quota.h>
+#include <isc/queue.h>
 
 #include <dns/fixedname.h>
 #include <dns/name.h>
@@ -80,8 +81,6 @@
 /***
  *** Types
  ***/
-
-typedef ISC_LIST(ns_client_t) client_list_t;
 
 /*% nameserver client structure */
 struct ns_client {
@@ -152,12 +151,14 @@ struct ns_client {
 		isc_stdtime_t		time;
 		dns_messageid_t		id;
 	} formerrcache;
+
 	ISC_LINK(ns_client_t)	link;
-	/*%
-	 * The list 'link' is part of, or NULL if not on any list.
-	 */
-	client_list_t		*list;
+	ISC_LINK(ns_client_t)	rlink;
+	ISC_QLINK(ns_client_t)	ilink;
 };
+
+typedef ISC_QUEUE(ns_client_t) client_queue_t;
+typedef ISC_LIST(ns_client_t) client_list_t;
 
 #define NS_CLIENT_MAGIC			ISC_MAGIC('N','S','C','c')
 #define NS_CLIENT_VALID(c)		ISC_MAGIC_VALID(c, NS_CLIENT_MAGIC)

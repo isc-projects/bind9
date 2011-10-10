@@ -1,3 +1,7 @@
+3163.	[bug]		Use finer-grained locking in client.c to address
+			concurrency problems with large numbers of threads.
+			[RT #26044]
+
 3162.	[test]		start.pl: modified to allow for "named.args" in
 			ns*/ subdirectory to override stock arguments to
 			named. Largely from RT#26044, but no separate ticket.
