@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: driver.c,v 1.5 2011/03/21 00:30:18 marka Exp $ */
+/* $Id: driver.c,v 1.6 2011/10/11 00:09:01 each Exp $ */
 
 /*
  * This provides a very simple example of an external loadable DLZ
@@ -152,7 +152,32 @@ del_name(struct dlz_example_data *state, struct record *list,
 	return (ISC_R_SUCCESS);
 }
 
+static isc_result_t
+fmt_address(isc_sockaddr_t *addr, char *buffer, size_t size) {
+	char addr_buf[100];
+	const char *ret;
+	isc_uint16_t port = 0;
 
+	switch (addr->type.sa.sa_family) {
+	case AF_INET:
+		port = ntohs(addr->type.sin.sin_port);
+		ret = inet_ntop(AF_INET, &addr->type.sin.sin_addr, addr_buf,
+				sizeof(addr_buf));
+		break;
+	case AF_INET6:
+		port = ntohs(addr->type.sin6.sin6_port);
+		ret = inet_ntop(AF_INET6, &addr->type.sin6.sin6_addr, addr_buf,
+				sizeof(addr_buf));
+	default:
+		return (ISC_R_FAILURE);
+	}
+
+	if (ret == NULL)
+		return (ISC_R_FAILURE);
+
+	snprintf(buffer, size, "%s#%u", addr_buf, port);
+	return (ISC_R_SUCCESS);
+}
 
 /*
  * Return the version of the API
@@ -260,17 +285,18 @@ dlz_findzonedb(void *dbdata, const char *name) {
 	return (ISC_R_NOTFOUND);
 }
 
-
-
 /*
  * Look up one record
  */
 isc_result_t
 dlz_lookup(const char *zone, const char *name, void *dbdata,
-	   dns_sdlzlookup_t *lookup)
+	   dns_sdlzlookup_t *lookup, dns_clientinfomethods_t *methods,
+	   dns_clientinfo_t *clientinfo)
 {
+	isc_result_t result;
 	struct dlz_example_data *state = (struct dlz_example_data *)dbdata;
 	isc_boolean_t found = ISC_FALSE;
+	isc_sockaddr_t *src;
 	char full_name[100];
 	int i;
 
@@ -281,21 +307,39 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	else
 		sprintf(full_name, "%s.%s", name, state->zone_name);
 
+	if (strcmp(name, "source-addr") == 0) {
+		char buf[100];
+		strcpy(buf, "unknown");
+		if (methods != NULL &&
+		    methods->version - methods->age >=
+			    DNS_CLIENTINFOMETHODS_VERSION)
+		{
+			methods->sourceip(clientinfo, &src);
+			fmt_address(src, buf, sizeof(buf));
+		}
+
+		fprintf(stderr, "connection from: %s\n", buf);
+
+		found = ISC_TRUE;
+		result = state->putrr(lookup, "TXT", 0, buf);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	}
+
 	for (i = 0; i < MAX_RECORDS; i++) {
 		if (strcasecmp(state->current[i].name, full_name) == 0) {
-			isc_result_t result;
 			found = ISC_TRUE;
 			result = state->putrr(lookup, state->current[i].type,
 					      state->current[i].ttl,
 					      state->current[i].data);
-			if (result != ISC_R_SUCCESS) {
+			if (result != ISC_R_SUCCESS)
 				return (result);
-			}
 		}
 	}
 
 	if (!found)
 		return (ISC_R_NOTFOUND);
+
 	return (ISC_R_SUCCESS);
 }
 

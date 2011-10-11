@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.316 2011/08/23 00:59:23 each Exp $ */
+/* $Id: rbtdb.c,v 1.317 2011/10/11 00:09:03 each Exp $ */
 
 /*! \file */
 
@@ -7408,11 +7408,13 @@ static dns_dbmethods_t zone_methods = {
 	NULL,
 #ifdef BIND9
 	get_rpz_enabled,
-	rpz_findips
+	rpz_findips,
 #else
 	NULL,
-	NULL
+	NULL,
 #endif
+	NULL,
+	NULL
 };
 
 static dns_dbmethods_t cache_methods = {
@@ -7452,6 +7454,8 @@ static dns_dbmethods_t cache_methods = {
 	NULL,
 	isdnssec,
 	getrrsetstats,
+	NULL,
+	NULL,
 	NULL,
 	NULL
 };

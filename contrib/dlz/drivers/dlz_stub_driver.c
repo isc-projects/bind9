@@ -170,13 +170,16 @@ stub_dlz_findzonedb(void *driverarg, void *dbdata, const char *name)
 
 static isc_result_t
 stub_dlz_lookup(const char *zone, const char *name, void *driverarg,
-		void *dbdata, dns_sdlzlookup_t *lookup)
+		void *dbdata, dns_sdlzlookup_t *lookup,
+		dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo)
 {
 	isc_result_t result;
 	config_data_t *cd;
 
 	UNUSED(zone);
 	UNUSED(driverarg);
+	UNUSED(methods);
+	UNUSED(clientinfo);
 
 	cd = (config_data_t *) dbdata;
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.620 2011/09/23 18:08:01 each Exp $ */
+/* $Id: server.c,v 1.621 2011/10/11 00:09:01 each Exp $ */
 
 /*! \file */
 
@@ -1355,11 +1355,11 @@ dlzconfigure_callback(dns_view_t *view, dns_zone_t *zone) {
 
 	result = dns_zonemgr_managezone(ns_g_server->zonemgr, zone);
 	if (result != ISC_R_SUCCESS)
-		return result;
+		return (result);
 	dns_zone_setstats(zone, ns_g_server->zonestats);
 
-	return ns_zone_configure_writeable_dlz(view->dlzdatabase,
-					       zone, zclass, origin);
+	return (ns_zone_configure_writeable_dlz(view->dlzdatabase,
+						zone, zclass, origin));
 }
 
 static isc_result_t

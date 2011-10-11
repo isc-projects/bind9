@@ -26,7 +26,7 @@ typedef unsigned int isc_result_t;
 typedef bool isc_boolean_t;
 typedef uint32_t dns_ttl_t;
 
-#define DLZ_DLOPEN_VERSION 1
+#define DLZ_DLOPEN_VERSION 2
 
 /* return this in flags to dlz_version() if thread safe */
 #define DNS_SDLZFLAG_THREADSAFE		0x00000001U
@@ -48,6 +48,7 @@ typedef uint32_t dns_ttl_t;
 typedef void *dns_sdlzlookup_t;
 typedef void *dns_sdlzallnodes_t;
 typedef void *dns_view_t;
+typedef void *dns_dlzclientcallback_t;
 
 /*
  * prototypes for the functions you can include in your driver
@@ -58,83 +59,109 @@ typedef void *dns_view_t;
  * dlz_version() is required for all DLZ external drivers. It should
  * return DLZ_DLOPEN_VERSION
  */
-int dlz_version(unsigned int *flags);
+int
+dlz_version(unsigned int *flags);
 
 /*
  * dlz_create() is required for all DLZ external drivers.
  */
-isc_result_t dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata, ...);
+isc_result_t
+dlz_create(const char *dlzname, unsigned int argc, char *argv[],
+           void **dbdata, ...);
 
 /*
  * dlz_destroy() is optional, and will be called when the driver is
  * unloaded if supplied
  */
-void dlz_destroy(void *dbdata);
+void
+dlz_destroy(void *dbdata);
 
 /*
-  dlz_findzonedb is required for all DLZ external drivers
+ * dlz_findzonedb is required for all DLZ external drivers
  */
-isc_result_t dlz_findzonedb(void *dbdata, const char *name);
+isc_result_t
+dlz_findzonedb(void *dbdata, const char *name);
 
 /*
-  dlz_lookup is required for all DLZ external drivers
+ * dlz_lookup is required for all DLZ external drivers
  */
-isc_result_t dlz_lookup(const char *zone, const char *name,
-			void *dbdata, dns_sdlzlookup_t *lookup);
+isc_result_t
+dlz_lookup(const char *zone, const char *name, void *dbdata,
+           dns_sdlzlookup_t *lookup);
 
 /*
-  dlz_allowzonexfr() is optional, and should be supplied if you want
-  to support zone transfers
+ * dlz_allowzonexfr() is optional, and should be supplied if you want to
+ * support zone transfers
  */
-isc_result_t dlz_allowzonexfr(void *dbdata, const char *name, const char *client);
+isc_result_t
+dlz_allowzonexfr(void *dbdata, const char *name, const char *client);
 
 
 /*
-  dlz_allnodes() is optional, but must be supplied if supply a
-  dlz_allowzonexfr() function
+ * dlz_allnodes() is optional, but must be supplied if supply a
+ * dlz_allowzonexfr() function
  */
-isc_result_t dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes);
+isc_result_t
+dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes);
 
 /*
-  dlz_newversion() is optional. It should be supplied if you want to
-  support dynamic updates.
+ * dlz_newversion() is optional. It should be supplied if you want to
+ * support dynamic updates.
  */
-isc_result_t dlz_newversion(const char *zone, void *dbdata, void **versionp);
+isc_result_t
+dlz_newversion(const char *zone, void *dbdata, void **versionp);
 
 /* 
-   dlz_closeversion() is optional, but must be supplied if you supply
-   a dlz_newversion() function
+ * dlz_closeversion() is optional, but must be supplied if you supply a
+ * dlz_newversion() function
  */
-void dlz_closeversion(const char *zone, isc_boolean_t commit, void *dbdata, void **versionp);
+void
+dlz_closeversion(const char *zone, isc_boolean_t commit, void *dbdata,
+                 void **versionp);
 
 /*
-  dlz_configure() is optional, but must be supplied if you want to
-  support dynamic updates
+ * dlz_configure() is optional, but must be supplied if you want to support
+ * dynamic updates
  */
-isc_result_t dlz_configure(dns_view_t *view, void *dbdata);
+isc_result_t
+dlz_configure(dns_view_t *view, void *dbdata);
 
 /*
-  dlz_ssumatch() is optional, but must be supplied if you want to
-  support dynamic updates
+ * dlz_setclientcallback() is optional, but must be supplied if you want
+ * to retrieve information about the client before sending a reply.
  */
-isc_boolean_t dlz_ssumatch(const char *signer, const char *name, const char *tcpaddr,
-			   const char *type, const char *key, uint32_t keydatalen, uint8_t *keydata,
-			   void *dbdata);
+isc_result_t
+dlz_setclientcallback(dns_dlzclientcallback_t callback);
 
 /*
-  dlz_addrdataset() is optional, but must be supplied if you want to
-  support dynamic updates
+ * dlz_ssumatch() is optional, but must be supplied if you want to support
+ * dynamic updates
  */
-isc_result_t dlz_addrdataset(const char *name, const char *rdatastr, void *dbdata, void *version);
+
+isc_boolean_t
+dlz_ssumatch(const char *signer, const char *name, const char *tcpaddr,
+             const char *type, const char *key, uint32_t keydatalen,
+             uint8_t *keydata, void *dbdata);
 
 /*
-  dlz_subrdataset() is optional, but must be supplied if you want to
-  support dynamic updates
+ * dlz_addrdataset() is optional, but must be supplied if you want to
+ * support dynamic updates
  */
-isc_result_t dlz_subrdataset(const char *name, const char *rdatastr, void *dbdata, void *version);
+isc_result_t
+dlz_addrdataset(const char *name, const char *rdatastr, void *dbdata,
+                void *version);
+
+/* dlz_subrdataset() is optional, but must be supplied if you want to
+ * support dynamic updates
+ */
+isc_result_t
+dlz_subrdataset(const char *name, const char *rdatastr, void *dbdata,
+                void *version);
 
 /*
-  dlz_delrdataset() is optional, but must be supplied if you want to
-  support dynamic updates
+ * dlz_delrdataset() is optional, but must be supplied if you want to
+ * support dynamic updates
  */
-isc_result_t dlz_delrdataset(const char *name, const char *type, void *dbdata, void *version);
+isc_result_t
+dlz_delrdataset(const char *name, const char *type, void *dbdata,
+                void *version);

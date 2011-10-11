@@ -913,10 +913,14 @@ dlz_ldap_findzone(void *driverarg, void *dbdata, const char *name) {
 
 static isc_result_t
 dlz_ldap_lookup(const char *zone, const char *name, void *driverarg,
-		void *dbdata, dns_sdlzlookup_t *lookup)
+		void *dbdata, dns_sdlzlookup_t *lookup,
+		dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo)
 {
 	isc_result_t result;
+
 	UNUSED(driverarg);
+	UNUSED(methods);
+	UNUSED(clientinfo);
 
 	if (strcmp(name, "*") == 0)
 		result = ldap_get_results(zone, "~", NULL, LOOKUP,

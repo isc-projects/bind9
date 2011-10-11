@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.182 2011/09/06 22:29:32 smann Exp $ */
+/* $Id: zoneconf.c,v 1.183 2011/10/11 00:09:01 each Exp $ */
 
 /*% */
 
@@ -1577,10 +1577,10 @@ ns_zone_configure_writeable_dlz(dns_dlzdb_t *dlzdatabase, dns_zone_t *zone,
 	dns_zone_settype(zone, dns_zone_dlz);
 	result = dns_sdlz_setdb(dlzdatabase, rdclass, name, &db);
 	if (result != ISC_R_SUCCESS)
-		return result;
+		return (result);
 	result = dns_zone_dlzpostload(zone, db);
 	dns_db_detach(&db);
-	return result;
+	return (result);
 }
 
 isc_boolean_t

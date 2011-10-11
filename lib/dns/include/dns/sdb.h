@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.h,v 1.23 2009/01/17 23:47:43 tbox Exp $ */
+/* $Id: sdb.h,v 1.24 2011/10/11 00:09:03 each Exp $ */
 
 #ifndef DNS_SDB_H
 #define DNS_SDB_H 1
@@ -35,6 +35,7 @@
 
 #include <isc/lang.h>
 
+#include <dns/clientinfo.h>
 #include <dns/types.h>
 
 /***
@@ -58,7 +59,9 @@ typedef struct dns_sdballnodes dns_sdballnodes_t;
 
 typedef isc_result_t
 (*dns_sdblookupfunc_t)(const char *zone, const char *name, void *dbdata,
-		       dns_sdblookup_t *);
+		       dns_sdblookup_t *lookup,
+		       dns_clientinfomethods_t *methods,
+		       dns_clientinfo_t *clientinfo);
 
 typedef isc_result_t
 (*dns_sdbauthorityfunc_t)(const char *zone, void *dbdata, dns_sdblookup_t *);

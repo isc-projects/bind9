@@ -1,3 +1,7 @@
+3164.	[func]		Enable DLZ modules to retrieve client information,
+			so that responses can be changed depending on the
+			source address of the query. [RT #25768]
+
 3163.	[bug]		Use finer-grained locking in client.c to address
 			concurrency problems with large numbers of threads.
 			[RT #26044]

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: pgsqldb.c,v 1.15 2007/06/19 23:47:07 tbox Exp $ */
+/* $Id: pgsqldb.c,v 1.16 2011/10/11 00:09:02 each Exp $ */
 
 #include <config.h>
 
@@ -111,9 +111,16 @@ maybe_reconnect(struct dbinfo *dbi) {
  * Queries are converted into SQL queries and issued synchronously.  Errors
  * are handled really badly.
  */
+#ifdef DNS_CLIENTINFO_VERSION
+static isc_result_t
+pgsqldb_lookup(const char *zone, const char *name, void *dbdata,
+	       dns_sdblookup_t *lookup, dns_clientinfomethods_t *methods,
+	       dns_clientinfo_t *clientinfo)
+#else
 static isc_result_t
 pgsqldb_lookup(const char *zone, const char *name, void *dbdata,
 	       dns_sdblookup_t *lookup)
+#endif /* DNS_CLIENTINFO_VERSION */
 {
 	isc_result_t result;
 	struct dbinfo *dbi = dbdata;
@@ -123,6 +130,10 @@ pgsqldb_lookup(const char *zone, const char *name, void *dbdata,
 	int i;
 
 	UNUSED(zone);
+#ifdef DNS_CLIENTINFO_VERSION
+	UNUSED(methods);
+	UNUSED(clientinfo);
+#endif /* DNS_CLIENTINFO_VERSION */
 
 	canonname = isc_mem_get(ns_g_mctx, strlen(name) * 2 + 1);
 	if (canonname == NULL)

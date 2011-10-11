@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dirdb.c,v 1.12 2007/06/19 23:47:07 tbox Exp $ */
+/* $Id: dirdb.c,v 1.13 2011/10/11 00:09:02 each Exp $ */
 
 /*
  * A simple database driver that returns basic information about
@@ -60,9 +60,16 @@ static dns_sdbimplementation_t *dirdb = NULL;
  * Any name will be interpreted as a pathname offset from the directory
  * specified in the configuration file.
  */
+#ifdef DNS_CLIENTINFO_VERSION
+static isc_result_t
+dirdb_lookup(const char *zone, const char *name, void *dbdata,
+	      dns_sdblookup_t *lookup, dns_clientinfomethods_t *methods,
+	      dns_clientinfo_t *clientinfo)
+#else
 static isc_result_t
 dirdb_lookup(const char *zone, const char *name, void *dbdata,
 	      dns_sdblookup_t *lookup)
+#endif /* DNS_CLIENTINFO_VERSION */
 {
 	char filename[255];
 	char filename2[255];
@@ -73,6 +80,10 @@ dirdb_lookup(const char *zone, const char *name, void *dbdata,
 
 	UNUSED(zone);
 	UNUSED(dbdata);
+#ifdef DNS_CLIENTINFO_VERSION
+	UNUSED(methods);
+	UNUSED(clientinfo);
+#endif /* DNS_CLIENTINFO_VERSION */
 
 	if (strcmp(name, "@") == 0)
 		snprintf(filename, sizeof(filename), "%s", (char *)dbdata);

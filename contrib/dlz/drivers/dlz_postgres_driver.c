@@ -1016,12 +1016,15 @@ postgres_authority(const char *zone, void *driverarg, void *dbdata,
 /*% if zone is supported, lookup up a (or multiple) record(s) in it */
 static isc_result_t
 postgres_lookup(const char *zone, const char *name, void *driverarg,
-		void *dbdata, dns_sdlzlookup_t *lookup)
+		void *dbdata, dns_sdlzlookup_t *lookup,
+		dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo)
 {
 	isc_result_t result;
 	PGresult *rs = NULL;
 
 	UNUSED(driverarg);
+	UNUSED(methods);
+	UNUSED(clientinfo);
 
 	/* run the query and get the result set from the database. */
 	result = postgres_get_resultset(zone, name, NULL, LOOKUP, dbdata, &rs);

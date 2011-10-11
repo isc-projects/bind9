@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.278 2011/10/10 22:57:13 each Exp $ */
+/* $Id: client.c,v 1.279 2011/10/11 00:09:01 each Exp $ */
 
 #include <config.h>
 
@@ -2851,4 +2851,15 @@ ns_client_qnamereplace(ns_client_t *client, dns_name_t *name) {
 	}
 	client->query.qname = name;
 	UNLOCK(&client->query.fetchlock);
+}
+
+isc_result_t
+ns_client_sourceip(dns_clientinfo_t *ci, isc_sockaddr_t **addrp) {
+	ns_client_t *client = (ns_client_t *) ci->data;
+		
+	REQUIRE(NS_CLIENT_VALID(client));
+	REQUIRE(addrp != NULL);
+
+	*addrp = &client->peeraddr;
+	return (ISC_R_SUCCESS);
 }

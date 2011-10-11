@@ -774,7 +774,8 @@ fs_findzone(void *driverarg, void *dbdata, const char *name)
 
 static isc_result_t
 fs_lookup(const char *zone, const char *name, void *driverarg,
-	  void *dbdata, dns_sdlzlookup_t *lookup)
+	  void *dbdata, dns_sdlzlookup_t *lookup,
+	  dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo)
 {
 	isc_result_t result;
 	char *path;
@@ -784,6 +785,8 @@ fs_lookup(const char *zone, const char *name, void *driverarg,
 
 	UNUSED(driverarg);
 	UNUSED(lookup);
+	UNUSED(methods);
+	UNUSED(clientinfo);
 
 	if (strcmp(name, "*") == 0)
 		/*

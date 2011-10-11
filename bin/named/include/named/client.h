@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.92 2011/10/10 22:57:13 each Exp $ */
+/* $Id: client.h,v 1.93 2011/10/11 00:09:01 each Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -68,6 +68,7 @@
 #include <isc/quota.h>
 #include <isc/queue.h>
 
+#include <dns/db.h>
 #include <dns/fixedname.h>
 #include <dns/name.h>
 #include <dns/rdataclass.h>
@@ -375,5 +376,8 @@ ns_client_isself(dns_view_t *myview, dns_tsigkey_t *mykey,
 /*%
  * Isself callback.
  */
+
+isc_result_t
+ns_client_sourceip(dns_clientinfo_t *ci, isc_sockaddr_t **addrp);
 
 #endif /* NAMED_CLIENT_H */

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tcldb.c,v 1.10 2007/06/19 23:47:10 tbox Exp $ */
+/* $Id: tcldb.c,v 1.11 2011/10/11 00:09:02 each Exp $ */
 
 /*
  * A simple database driver that calls a Tcl procedure to define
@@ -98,9 +98,16 @@ tcldb_driver_destroy(tcldb_driver_t **driverp) {
 /*
  * Perform a lookup, by invoking the Tcl procedure "lookup".
  */
+#ifdef DNS_CLIENTINFO_VERSION
+static isc_result_t
+tcldb_lookup(const char *zone, const char *name, void *dbdata,
+	      dns_sdblookup_t *lookup, dns_clientinfomethods_t *methods,
+	      dns_clientinfo_t *clientinfo)
+#else
 static isc_result_t
 tcldb_lookup(const char *zone, const char *name, void *dbdata,
 	      dns_sdblookup_t *lookup)
+#endif /* DNS_CLIENTINFO_VERSION */
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	int tclres;
@@ -109,6 +116,11 @@ tcldb_lookup(const char *zone, const char *name, void *dbdata,
 	int i;
 	char *cmdv[3];
 	char *cmd;
+
+#ifdef DNS_CLIENTINFO_VERSION
+	UNUSED(methods);
+	UNUSED(clientinfo);
+#endif /* DNS_CLIENTINFO_VERSION */
 
 	tcldb_driver_t *driver = (tcldb_driver_t *) dbdata;
 
