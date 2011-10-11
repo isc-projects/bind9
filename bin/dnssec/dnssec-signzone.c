@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.279 2011/07/19 23:47:48 tbox Exp $ */
+/* $Id: dnssec-signzone.c,v 1.280 2011/10/11 19:26:05 each Exp $ */
 
 /*! \file */
 
@@ -411,6 +411,7 @@ keythatsigned(dns_rdata_rrsig_t *rrsig) {
 	if (result == ISC_R_SUCCESS) {
 		key->force_publish = ISC_FALSE;
 		key->force_sign = ISC_FALSE;
+		key->index = keycount++;
 		ISC_LIST_APPEND(keylist, key, link);
 	}
 
@@ -557,36 +558,34 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 			vbprintf(2, "\trrsig by %s %s - dnskey not found\n",
 				 keep ? "retained" : "dropped", sigstr);
 		} else if (issigningkey(key)) {
+			wassignedby[key->index] = ISC_TRUE;
+
 			if (!expired && rrsig.originalttl == set->ttl &&
 			    setverifies(name, set, key->key, &sigrdata)) {
 				vbprintf(2, "\trrsig by %s retained\n", sigstr);
 				keep = ISC_TRUE;
-				wassignedby[key->index] = ISC_TRUE;
-				nowsignedby[key->index] = ISC_TRUE;
 			} else {
 				vbprintf(2, "\trrsig by %s dropped - %s\n",
 					 sigstr, expired ? "expired" :
 					 rrsig.originalttl != set->ttl ?
 					 "ttl change" : "failed to verify");
-				wassignedby[key->index] = ISC_TRUE;
 				resign = ISC_TRUE;
 			}
 		} else if (!ispublishedkey(key) && remove_orphans) {
 			vbprintf(2, "\trrsig by %s dropped - dnskey removed\n",
 				 sigstr);
 		} else if (iszonekey(key)) {
+			wassignedby[key->index] = ISC_TRUE;
+
 			if (!expired && rrsig.originalttl == set->ttl &&
 			    setverifies(name, set, key->key, &sigrdata)) {
 				vbprintf(2, "\trrsig by %s retained\n", sigstr);
 				keep = ISC_TRUE;
-				wassignedby[key->index] = ISC_TRUE;
-				nowsignedby[key->index] = ISC_TRUE;
 			} else {
 				vbprintf(2, "\trrsig by %s dropped - %s\n",
 					 sigstr, expired ? "expired" :
 					 rrsig.originalttl != set->ttl ?
 					 "ttl change" : "failed to verify");
-				wassignedby[key->index] = ISC_TRUE;
 			}
 		} else if (!expired) {
 			vbprintf(2, "\trrsig by %s retained\n", sigstr);
@@ -619,6 +618,7 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 			}
 		} else {
 			tuple = NULL;
+			vbprintf(2, "removing signature by %s\n", sigstr);
 			result = dns_difftuple_create(mctx, DNS_DIFFOP_DEL,
 						      name, sigset.ttl,
 						      &sigrdata, &tuple);
@@ -650,7 +650,7 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 	     key != NULL;
 	     key = ISC_LIST_NEXT(key, link))
 	{
-		if (nowsignedby[key->index] && !ispublishedkey(key))
+		if (nowsignedby[key->index])
 			continue;
 
 		if (!issigningkey(key))
@@ -3364,6 +3364,8 @@ usage(void) {
 	fprintf(stderr, "use pseudorandom data (faster but less secure)\n");
 	fprintf(stderr, "\t-P:\t");
 	fprintf(stderr, "disable post-sign verification\n");
+	fprintf(stderr, "\t-R:\t");
+	fprintf(stderr, "remove signatures from keys that no longer exist\n");
 	fprintf(stderr, "\t-T TTL:\tTTL for newly added DNSKEYs\n");
 	fprintf(stderr, "\t-t:\t");
 	fprintf(stderr, "print statistics\n");

@@ -1,3 +1,7 @@
+3165.	[bug]		dnssec-signzone could generate new signatures when
+			resigning, even when valid signatures were already
+			present. [RT #26025]
+
 3164.	[func]		Enable DLZ modules to retrieve client information,
 			so that responses can be changed depending on the
 			source address of the query. [RT #25768]

@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.96 2011/10/10 00:34:57 marka Exp $
+# $Id: tests.sh,v 1.97 2011/10/11 19:26:06 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -1046,6 +1046,26 @@ $SIGNER -RD -o example example.db > /dev/null 2>&1
 ) || ret=1
 grep " $keyid2 " signer/example.db.signed > /dev/null 2>&1 && ret=1
 grep " $keyid3 " signer/example.db.signed > /dev/null 2>&1 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking dnssec-signzone retains unexpired signatures ($n)"
+ret=0
+(
+cd signer
+$SIGNER -Sxt -o example example.db > signer.out.1 2>&1
+$SIGNER -Sxt -o example -f example.db.signed example.db.signed > signer.out.2 2>&1
+) || ret=1
+gen1=`awk '/generated/ {print $3}' signer/signer.out.1`
+retain1=`awk '/retained/ {print $3}' signer/signer.out.1`
+drop1=`awk '/dropped/ {print $3}' signer/signer.out.1`
+gen2=`awk '/generated/ {print $3}' signer/signer.out.2`
+retain2=`awk '/retained/ {print $3}' signer/signer.out.2`
+drop2=`awk '/dropped/ {print $3}' signer/signer.out.2`
+[ "$retain2" -eq `expr "$gen1" + "$retain1"` ] || ret=1
+[ "$gen2" -eq 0 ] || ret=1
+[ "$drop2" -eq 0 ] || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
