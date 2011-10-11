@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: builtin.c,v 1.21 2011/03/07 15:29:32 fdupont Exp $ */
+/* $Id: builtin.c,v 1.22 2011/10/11 02:39:03 marka Exp $ */
 
 /*! \file
  * \brief
@@ -241,11 +241,14 @@ dns64_cname(const char *zone, const char *name, dns_sdblookup_t *lookup) {
 
 static isc_result_t
 builtin_lookup(const char *zone, const char *name, void *dbdata,
-	       dns_sdblookup_t *lookup)
+	       dns_sdblookup_t *lookup, dns_clientinfomethods_t *methods,
+	       dns_clientinfo_t *clientinfo)
 {
 	builtin_t *b = (builtin_t *) dbdata;
 
 	UNUSED(zone);
+	UNUSED(methods);
+	UNUSED(clientinfo);
 
 	if (strcmp(name, "@") == 0)
 		return (b->do_lookup(lookup));
