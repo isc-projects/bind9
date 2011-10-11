@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: driver.c,v 1.6 2011/10/11 00:09:01 each Exp $ */
+/* $Id: driver.c,v 1.7 2011/10/11 00:53:15 marka Exp $ */
 
 /*
  * This provides a very simple example of an external loadable DLZ
@@ -29,6 +29,7 @@
 #include <stdarg.h>
 
 #include <isc/log.h>
+#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/types.h>
 #include <isc/util.h>
