@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ecdb.c,v 1.8 2011/01/14 00:51:43 tbox Exp $ */
+/* $Id: ecdb.c,v 1.9 2011/10/11 13:33:45 marka Exp $ */
 
 #include "config.h"
 
@@ -580,7 +580,9 @@ static dns_dbmethods_t ecdb_methods = {
 	NULL,			/* isdnssec */
 	NULL,			/* getrrsetstats */
 	NULL,			/* rpz_enabled */
-	NULL			/* rpz_findips */
+	NULL,			/* rpz_findips */
+	NULL,			/* findnodeext */
+	NULL			/* findext */
 };
 
 static isc_result_t
