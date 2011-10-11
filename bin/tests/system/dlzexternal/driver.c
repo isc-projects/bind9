@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: driver.c,v 1.7 2011/10/11 00:53:15 marka Exp $ */
+/* $Id: driver.c,v 1.8 2011/10/11 13:36:12 marka Exp $ */
 
 /*
  * This provides a very simple example of an external loadable DLZ
@@ -169,6 +169,7 @@ fmt_address(isc_sockaddr_t *addr, char *buffer, size_t size) {
 		port = ntohs(addr->type.sin6.sin6_port);
 		ret = inet_ntop(AF_INET6, &addr->type.sin6.sin6_addr, addr_buf,
 				sizeof(addr_buf));
+		break;
 	default:
 		return (ISC_R_FAILURE);
 	}
