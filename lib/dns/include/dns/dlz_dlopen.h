@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dlz_dlopen.h,v 1.3 2011/10/11 00:09:03 each Exp $ */
+/* $Id: dlz_dlopen.h,v 1.4 2011/10/11 23:46:45 tbox Exp $ */
 
 /*! \file dns/dlz_open.h */
 
@@ -123,7 +123,7 @@ typedef isc_result_t dlz_dlopen_configure_t (dns_view_t *view,
  * before sending a replay.
  */
 typedef isc_result_t dlz_dlopen_setclientcallback_t (dns_view_t *view,
-                                                     void *dbdata);
+						     void *dbdata);
 
 
 /*

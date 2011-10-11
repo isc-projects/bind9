@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.370 2011/10/11 00:09:01 each Exp $ */
+/* $Id: query.c,v 1.371 2011/10/11 23:46:44 tbox Exp $ */
 
 /*! \file */
 
@@ -1278,7 +1278,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	}
 	result = dns_db_findext(db, name, version, type,
 				client->query.dboptions |
-			         DNS_DBFIND_GLUEOK | DNS_DBFIND_ADDITIONALOK,
+				 DNS_DBFIND_GLUEOK | DNS_DBFIND_ADDITIONALOK,
 				client->now, &node, fname, &cm, &ci,
 				rdataset, sigrdataset);
 	if (result == DNS_R_GLUE &&
@@ -1771,7 +1771,7 @@ query_addadditional2(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 
 	result = dns_db_findext(db, name, version, type,
 				client->query.dboptions |
-			 	 DNS_DBFIND_GLUEOK | DNS_DBFIND_ADDITIONALOK,
+				 DNS_DBFIND_GLUEOK | DNS_DBFIND_ADDITIONALOK,
 				client->now, &node, fname, &cm, &ci,
 				NULL, NULL);
 	if (result == ISC_R_SUCCESS)

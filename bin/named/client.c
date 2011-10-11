@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.279 2011/10/11 00:09:01 each Exp $ */
+/* $Id: client.c,v 1.280 2011/10/11 23:46:44 tbox Exp $ */
 
 #include <config.h>
 
@@ -2856,7 +2856,7 @@ ns_client_qnamereplace(ns_client_t *client, dns_name_t *name) {
 isc_result_t
 ns_client_sourceip(dns_clientinfo_t *ci, isc_sockaddr_t **addrp) {
 	ns_client_t *client = (ns_client_t *) ci->data;
-		
+
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(addrp != NULL);
 

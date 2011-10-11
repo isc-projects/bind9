@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: clientinfo.h,v 1.2 2011/10/11 00:09:03 each Exp $ */
+/* $Id: clientinfo.h,v 1.3 2011/10/11 23:46:45 tbox Exp $ */
 
 #ifndef DNS_CLIENTINFO_H
 #define DNS_CLIENTINFO_H 1
@@ -31,7 +31,7 @@
  * The clientinfo interface is used by the DNS DB and DLZ interfaces;
  * it allows databases to modify their answers on the basis of information
  * about the client, such as source IP address.
- * 
+ *
  * dns_clientinfo_t contains a pointer to an opaque structure containing
  * client information in some form.  dns_clientinfomethods_t contains a
  * list of methods which operate on that opaque structure to return
