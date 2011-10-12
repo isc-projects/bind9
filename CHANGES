@@ -1,3 +1,6 @@
+3169.	[func]		Catch db/version mis-matches when call dns_db_*().
+			[RT #26017]
+
 3168.	[bug]		Nxdomain redirection could trigger a assert with
 			a ANY query. [RT #26017]
 
