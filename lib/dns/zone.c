@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.633 2011/10/07 02:55:04 marka Exp $ */
+/* $Id: zone.c,v 1.634 2011/10/12 00:10:20 marka Exp $ */
 
 /*! \file */
 
@@ -412,6 +412,7 @@ struct dns_zone {
 #define DNS_ZONEFLG_THAW	0x08000000U
 #define DNS_ZONEFLG_LOADPENDING	0x10000000U	/*%< Loading scheduled */
 #define DNS_ZONEFLG_NODELAY	0x20000000U
+#define DNS_ZONEFLG_SENDSECURE  0x40000000U
 
 #define DNS_ZONE_OPTION(z,o) (((z)->options & (o)) != 0)
 #define DNS_ZONEKEY_OPTION(z,o) (((z)->keyopts & (o)) != 0)
@@ -709,6 +710,7 @@ static isc_result_t delete_nsec(dns_db_t *db, dns_dbversion_t *ver,
 static void zone_rekey(dns_zone_t *zone);
 static isc_boolean_t delsig_ok(dns_rdata_rrsig_t *rrsig_ptr,
 			       dst_key_t **keys, unsigned int nkeys);
+static isc_result_t zone_send_securedb(dns_zone_t *zone, dns_db_t *db);
 
 #define ENTER zone_debuglog(zone, me, 1, "enter")
 
@@ -3458,6 +3460,16 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 	return (result);
 }
 
+static void
+maybe_send_securedb(dns_zone_t *zone) {
+	LOCK_ZONE(zone->raw);
+	if (zone->raw->db != NULL)
+		zone_send_securedb(zone->raw, zone->raw->db);
+	else 
+		DNS_ZONE_SETFLAG(zone->raw, DNS_ZONEFLG_SENDSECURE);
+	UNLOCK_ZONE(zone->raw);
+}
+
 static isc_result_t
 zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	      isc_result_t result)
@@ -3493,6 +3505,11 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 					     "failed: %s",
 					     zone->masterfile,
 					     dns_result_totext(result));
+		} else if (zone->type == dns_zone_master &&
+			   zone->raw != NULL && result == ISC_R_FILENOTFOUND) {
+			dns_zone_log(zone, ISC_LOG_DEBUG(1),
+				     "no master file, requesting db");
+			maybe_send_securedb(zone);
 		} else {
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "loading from master file %s failed: %s",
@@ -3797,6 +3814,9 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_write);
 		DNS_ZONE_SETFLAG(zone,
 				 DNS_ZONEFLG_LOADED|DNS_ZONEFLG_NEEDNOTIFY);
+		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_SENDSECURE) &&
+		    zone->secure != NULL)
+			zone_send_securedb(zone, db);
 	}
 
 	result = ISC_R_SUCCESS;
@@ -12239,6 +12259,7 @@ zone_send_securedb(dns_zone_t *zone, dns_db_t *db) {
 	((struct secure_db *)e)->db = dummy;
 
 	isc_task_send(zone->secure->task, &e);
+	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_SENDSECURE);
 	return (ISC_R_SUCCESS);
 }
 

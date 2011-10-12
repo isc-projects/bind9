@@ -12,16 +12,30 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.2 2011/08/30 23:46:52 tbox Exp $
+# $Id: clean.sh,v 1.3 2011/10/12 00:10:19 marka Exp $
 
 rm -f */named.memstats
 rm -f */named.run
 rm -f */trusted.conf
 rm -f ns2/bits.db
+rm -f ns2/bits.db.jnl
 rm -f ns3/K*
 rm -f ns3/bits.bk
 rm -f ns3/bits.bk.jnl
 rm -f ns3/bits.bk.signed
 rm -f ns3/bits.bk.signed.jnl
+rm -f ns3/noixfr.bk
+rm -f ns3/noixfr.bk.jnl
+rm -f ns3/noixfr.bk.signed
+rm -f ns3/noixfr.bk.signed.jnl
+rm -f ns4/K*
 rm -f ns4/noixfr.db
+rm -f ns4/noixfr.db.jnl
+rm -f ns5/K*
+rm -f ns5/named.conf
+rm -f ns5/bits.bk
+rm -f ns5/bits.bk.jnl
+rm -f ns5/bits.bk.signed
+rm -f ns5/bits.bk.signed.jnl
 rm -f random.data
+rm -f dig.out.ns*.test*

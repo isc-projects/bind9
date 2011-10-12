@@ -14,12 +14,13 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.2 2011/08/30 23:46:52 tbox Exp $
+# $Id: tests.sh,v 1.3 2011/10/12 00:10:19 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 DIGOPTS="+tcp +dnssec"
+RANDFILE=random.data
 
 status=0
 n=0
@@ -320,6 +321,29 @@ do
 	grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
 	grep "ANSWER: 2," dig.out.ns3.test$n > /dev/null || ret=1
 	grep "2011072460" dig.out.ns3.test$n > /dev/null || ret=1
+	if [ $ret = 0 ]; then break; fi
+	sleep 1
+done
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking turning on of inline signing in a slave zone via reload ($n)"
+$DIG $DIGOPTS @10.53.0.5 -p 5300 +dnssec bits SOA > dig.out.ns5.test$n
+grep "status: NOERROR" dig.out.ns5.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.ns5.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:setup broken"; fi
+status=`expr $status + $ret`
+cp ns5/named.conf.post ns5/named.conf
+(cd ns5; $KEYGEN -q -r ../$RANDFILE bits) > /dev/null 2>&1
+(cd ns5; $KEYGEN -q -r ../$RANDFILE -f KSK bits) > /dev/null 2>&1
+$RNDC -c ../common/rndc.conf -s 10.53.0.5 -p 9953 reload 2>&1 | sed 's/^/I:ns5 /'
+for i in 1 2 3 4 5 6 7 8 9 10
+do
+	ret=0
+	$DIG $DIGOPTS @10.53.0.5 -p 5300 bits SOA > dig.out.ns5.test$n
+	grep "status: NOERROR" dig.out.ns5.test$n > /dev/null || ret=1
+	grep "ANSWER: 2," dig.out.ns5.test$n > /dev/null || ret=1
 	if [ $ret = 0 ]; then break; fi
 	sleep 1
 done

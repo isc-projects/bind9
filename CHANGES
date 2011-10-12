@@ -1,3 +1,6 @@
+3166.	[bug]		Upgrading a zone to support inline-signing failed.
+			[RT #26014]
+
 3165.	[bug]		dnssec-signzone could generate new signatures when
 			resigning, even when valid signatures were already
 			present. [RT #26025]

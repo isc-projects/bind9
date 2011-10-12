@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.2 2011/08/30 23:46:52 tbox Exp $
+# $Id: setup.sh,v 1.3 2011/10/12 00:10:19 marka Exp $
 
 sh clean.sh
 
@@ -33,6 +33,8 @@ rm -f ns3/noixfr.bk
 rm -f ns3/noixfr.bk.jnl
 rm -f ns3/noixfr.bk.signed
 rm -f ns3/noixfr.bk.signed.jnl
+
+cp ns5/named.conf.pre ns5/named.conf
 
 ../../../tools/genrandom 400 random.data
 

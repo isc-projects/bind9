@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.183 2011/10/11 00:09:01 each Exp $ */
+/* $Id: zoneconf.c,v 1.184 2011/10/12 00:10:19 marka Exp $ */
 
 /*% */
 
@@ -1589,6 +1589,8 @@ ns_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig) {
 	const cfg_obj_t *obj = NULL;
 	const char *cfilename;
 	const char *zfilename;
+	dns_zone_t *raw = NULL;
+	isc_boolean_t has_raw;
 
 	zoptions = cfg_tuple_get(zconfig, "options");
 
@@ -1614,16 +1616,19 @@ ns_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig) {
 	       strcmp(cfilename, zfilename) == 0)))
 		return (ISC_FALSE);
 
+	dns_zone_getraw(zone, &raw);
+	if (raw != NULL) {
+		dns_zone_detach(&raw);
+		has_raw = ISC_TRUE;
+	} else
+		has_raw = ISC_FALSE;
+
 	obj = NULL;
-	(void)cfg_map_get(zoptions, "signing", &obj);
-	if (obj == NULL || !cfg_obj_asboolean(obj)) {
-		dns_zone_t *raw = NULL;
-		dns_zone_getraw(zone, &raw);
-		if (raw != NULL) {
-			dns_zone_detach(&raw);
-			return (ISC_FALSE);
-		}
-	}
+	(void)cfg_map_get(zoptions, "inline-signing", &obj);
+	if ((obj == NULL || !cfg_obj_asboolean(obj)) && has_raw)
+		return (ISC_FALSE);
+	if ((obj != NULL && cfg_obj_asboolean(obj)) && !has_raw)
+		return (ISC_FALSE);
 
 	return (ISC_TRUE);
 }
