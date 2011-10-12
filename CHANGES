@@ -1,3 +1,6 @@
+3169.	[func]		Catch db/version mis-matches when call dns_db_*().
+			[RT #26017]
+
 3167.	[bug]		Negative answers from forwarders were not being
 			correctly tagged making them appear to not be cached.
 			[RT #25380]
