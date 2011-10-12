@@ -951,6 +951,8 @@
 ./bin/tests/system/inline/ns3/sign.sh		SH	2011
 ./bin/tests/system/inline/ns4/named.conf	CONF-C	2011
 ./bin/tests/system/inline/ns4/noixfr.db.in	ZONE	2011
+./bin/tests/system/inline/ns5/named.conf.post	CONF-C	2011
+./bin/tests/system/inline/ns5/named.conf.pre	CONF-C	2011
 ./bin/tests/system/inline/setup.sh		SH	2011
 ./bin/tests/system/inline/tests.sh		SH	2011
 ./bin/tests/system/ixfr/ans2/.cvsignore		X	2001
