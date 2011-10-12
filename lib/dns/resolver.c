@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.384.14.33 2011/10/12 00:30:16 marka Exp $ */
+/* $Id: resolver.c,v 1.384.14.34 2011/10/12 01:40:32 marka Exp $ */
 
 /*! \file */
 
@@ -273,6 +273,7 @@ struct fetchctx {
 	unsigned int			findfail;
 	unsigned int			valfail;
 	isc_boolean_t			timeout;
+	dns_adbaddrinfo_t 		*addrinfo;
 };
 
 #define FCTX_MAGIC			ISC_MAGIC('F', '!', '!', '!')
@@ -3568,6 +3569,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	fctx->rand_buf = 0;
 	fctx->rand_bits = 0;
 	fctx->timeout = ISC_FALSE;
+	fctx->addrinfo = NULL;
 
 	dns_name_init(&fctx->nsname, NULL);
 	fctx->nsfetch = NULL;
@@ -5242,6 +5244,9 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 					if (aa)
 						rdataset->trust =
 						    dns_trust_authauthority;
+					else if (ISFORWARDER(fctx->addrinfo))
+						rdataset->trust =
+							dns_trust_answer;
 					else
 						rdataset->trust =
 							dns_trust_additional;
@@ -5295,6 +5300,9 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 					if (aa)
 						rdataset->trust =
 						    dns_trust_authauthority;
+					else if (ISFORWARDER(fctx->addrinfo))
+						rdataset->trust =
+							dns_trust_answer;
 					else
 						rdataset->trust =
 							dns_trust_additional;
@@ -5326,12 +5334,6 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 					if (aa)
 						rdataset->trust =
 						    dns_trust_authauthority;
-					else if (ISFORWARDER(fctx->addrinfo))
-						rdataset->trust =
-							dns_trust_answer;
-					else if (ISFORWARDER(fctx->addrinfo))
-						rdataset->trust =
-							dns_trust_answer;
 					else if (ISFORWARDER(fctx->addrinfo))
 						rdataset->trust =
 							dns_trust_answer;
@@ -6195,6 +6197,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 
 	fctx->timeouts = 0;
 	fctx->timeout = ISC_FALSE;
+	fctx->addrinfo = query->addrinfo;
 
 	/*
 	 * XXXRTH  We should really get the current time just once.  We
