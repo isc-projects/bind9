@@ -14,9 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update_test.c,v 1.5 2011/08/23 01:29:38 each Exp $ */
-
-/* $Id: */
+/* $Id: update_test.c,v 1.6 2011/10/12 23:09:35 marka Exp $ */
 
 /*! \file */
 

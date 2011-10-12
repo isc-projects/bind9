@@ -1,3 +1,6 @@
+3168.	[bug]		Nxdomain redirection could trigger a assert with
+			a ANY query. [RT #26017]
+
 3167.	[bug]		Negative answers from forwarders were not being
 			correctly tagged making them appear to not be cached.
 			[RT #25380]

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.371 2011/10/11 23:46:44 tbox Exp $ */
+/* $Id: query.c,v 1.372 2011/10/12 23:09:35 marka Exp $ */
 
 /*! \file */
 
@@ -5005,7 +5005,8 @@ dns64_aaaaok(ns_client_t *client, dns_rdataset_t *rdataset,
  */
 static isc_boolean_t
 redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
-	 dns_dbnode_t **nodep, dns_db_t **dbp, dns_rdatatype_t qtype)
+	 dns_dbnode_t **nodep, dns_db_t **dbp, dns_dbversion_t **versionp,
+	 dns_rdatatype_t qtype)
 {
 	dns_db_t *db = NULL;
 	dns_dbnode_t *node = NULL;
@@ -5016,6 +5017,7 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	dns_rdatatype_t type;
 	dns_clientinfomethods_t cm;
 	dns_clientinfo_t ci;
+	ns_dbversion_t *dbversion;
 
 	CTRACE("redirect");
 
@@ -5064,11 +5066,17 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	if (result != ISC_R_SUCCESS)
 		return (ISC_FALSE);
 
-	/*
-	 * Lookup the requested data in the redirect zone.
-	 */
-	result = dns_db_findext(db, client->query.qname, NULL, qtype, 0,
-				client->now, &node, found, &cm, &ci,
+	dbversion = query_findversion(client, db);
+	if (dbversion == NULL) {
+		dns_db_detach(&db);
+		return (ISC_FALSE);
+	}
+
+  	/*
+  	 * Lookup the requested data in the redirect zone.
+  	 */
+	result = dns_db_findext(db, client->query.qname, dbversion->version,
+				qtype, 0, client->now, &node, found, &cm, &ci,
 				&trdataset, NULL);
 	if (result != ISC_R_SUCCESS) {
 		if (dns_rdataset_isassociated(&trdataset))
@@ -5094,6 +5102,7 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	dns_db_attach(db, dbp);
 	dns_db_detachnode(db, &node);
 	dns_db_detach(&db);
+	*versionp = dbversion->version;
 
 	client->query.attributes |= (NS_QUERYATTR_NOAUTHORITY |
 				     NS_QUERYATTR_NOADDITIONAL);
@@ -6020,7 +6029,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	case DNS_R_NXDOMAIN:
 		INSIST(is_zone);
 		if (!empty_wild &&
-		    redirect(client, fname, rdataset, &node, &db, type))
+		    redirect(client, fname, rdataset, &node, &db, &version,
+			     type))
 			break;
 		if (dns_rdataset_isassociated(rdataset)) {
 			/*
@@ -6081,7 +6091,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		goto cleanup;
 
 	case DNS_R_NCACHENXDOMAIN:
-		if (redirect(client, fname, rdataset, &node, &db, type))
+		if (redirect(client, fname, rdataset, &node, &db, &version,
+			     type))
 			break;
 	case DNS_R_NCACHENXRRSET:
 	ncache_nxrrset:
