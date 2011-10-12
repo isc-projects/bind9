@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.372 2011/10/12 23:09:35 marka Exp $ */
+/* $Id: query.c,v 1.373 2011/10/12 23:46:33 tbox Exp $ */
 
 /*! \file */
 
@@ -5072,9 +5072,9 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 		return (ISC_FALSE);
 	}
 
-  	/*
-  	 * Lookup the requested data in the redirect zone.
-  	 */
+	/*
+	 * Lookup the requested data in the redirect zone.
+	 */
 	result = dns_db_findext(db, client->query.qname, dbversion->version,
 				qtype, 0, client->now, &node, found, &cm, &ci,
 				&trdataset, NULL);

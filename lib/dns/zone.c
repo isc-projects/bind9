@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.634 2011/10/12 00:10:20 marka Exp $ */
+/* $Id: zone.c,v 1.635 2011/10/12 23:46:34 tbox Exp $ */
 
 /*! \file */
 
@@ -3465,7 +3465,7 @@ maybe_send_securedb(dns_zone_t *zone) {
 	LOCK_ZONE(zone->raw);
 	if (zone->raw->db != NULL)
 		zone_send_securedb(zone->raw, zone->raw->db);
-	else 
+	else
 		DNS_ZONE_SETFLAG(zone->raw, DNS_ZONEFLG_SENDSECURE);
 	UNLOCK_ZONE(zone->raw);
 }
