@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: queue_test.c,v 1.2 2011/10/10 22:57:14 each Exp $ */
+/* $Id: queue_test.c,v 1.3 2011/10/12 02:17:53 marka Exp $ */
 
 /*! \file */
 
@@ -82,7 +82,7 @@ ATF_TC_BODY(queue_valid, tc) {
 	ATF_CHECK(! ISC_QUEUE_EMPTY(queue));
 
 	ISC_QUEUE_POP(queue, qlink, p);
-	ATF_CHECK(p != NULL);
+	ATF_REQUIRE(p != NULL);
 	ATF_CHECK_EQ(p->value, 1);
 	ATF_CHECK(ISC_QUEUE_EMPTY(queue));
 	ATF_CHECK(! ISC_QLINK_LINKED(p, qlink));
@@ -108,18 +108,23 @@ ATF_TC_BODY(queue_valid, tc) {
 	ATF_CHECK(ISC_QLINK_LINKED(&five, qlink));
 
 	ISC_QUEUE_POP(queue, qlink, p);
+	ATF_REQUIRE(p != NULL);
 	ATF_CHECK_EQ(p->value, 1);
 
 	ISC_QUEUE_POP(queue, qlink, p);
+	ATF_REQUIRE(p != NULL);
 	ATF_CHECK_EQ(p->value, 2);
 
 	ISC_QUEUE_POP(queue, qlink, p);
+	ATF_REQUIRE(p != NULL);
 	ATF_CHECK_EQ(p->value, 3);
 
 	ISC_QUEUE_POP(queue, qlink, p);
+	ATF_REQUIRE(p != NULL);
 	ATF_CHECK_EQ(p->value, 4);
 
 	ISC_QUEUE_POP(queue, qlink, p);
+	ATF_REQUIRE(p != NULL);
 	ATF_CHECK_EQ(p->value, 5);
 
 	ATF_CHECK(ISC_QUEUE_EMPTY(queue));
