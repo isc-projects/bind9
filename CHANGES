@@ -1,3 +1,7 @@
+3167.	[bug]		Negative answers from forwarders were not being
+			correctly tagged making them appear to not be cached.
+			[RT #25380]
+
 3166.	[bug]		Upgrading a zone to support inline-signing failed.
 			[RT #26014]
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.434 2011/06/08 22:13:50 each Exp $ */
+/* $Id: resolver.c,v 1.435 2011/10/12 00:18:11 marka Exp $ */
 
 /*! \file */
 
@@ -5418,6 +5418,9 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 					if (aa)
 						rdataset->trust =
 						    dns_trust_authauthority;
+					else if (ISFORWARDER(fctx->addrinfo))
+						rdataset->trust =
+							dns_trust_answer;
 					else
 						rdataset->trust =
 							dns_trust_additional;
@@ -5471,6 +5474,9 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 					if (aa)
 						rdataset->trust =
 						    dns_trust_authauthority;
+					else if (ISFORWARDER(fctx->addrinfo))
+						rdataset->trust =
+							dns_trust_answer;
 					else
 						rdataset->trust =
 							dns_trust_additional;
@@ -5512,6 +5518,9 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 					if (aa)
 						rdataset->trust =
 						    dns_trust_authauthority;
+					else if (ISFORWARDER(fctx->addrinfo))
+						rdataset->trust =
+							dns_trust_answer;
 					else
 						rdataset->trust =
 							dns_trust_additional;
