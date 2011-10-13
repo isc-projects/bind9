@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.1.4.8 2011/07/08 01:46:42 each Exp $
+# $Id: tests.sh,v 1.1.4.9 2011/10/13 04:42:02 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -117,11 +117,11 @@ status=`expr $status + $ret`
 echo "I:checking parent zone DS records"
 ret=0
 awk '$2 == "DS" {print $3}' $pfile.signed > dsset.out
-grep "$ckactive" dsset.out > /dev/null || ret=1
-grep "$ckpublished" dsset.out > /dev/null || ret=1
+grep -w "$ckactive" dsset.out > /dev/null || ret=1
+grep -w "$ckpublished" dsset.out > /dev/null || ret=1
 # revoked key should not be there, hence the &&
-grep "$ckprerevoke" dsset.out > /dev/null && ret=1
-grep "$ckrevoked" dsset.out > /dev/null && ret=1
+grep -w "$ckprerevoke" dsset.out > /dev/null && ret=1
+grep -w "$ckrevoked" dsset.out > /dev/null && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -147,27 +147,27 @@ echo "I:checking child zone signatures"
 ret=0
 # check DNSKEY signatures first
 awk '$2 == "RRSIG" && $3 == "DNSKEY" { getline; print $2 }' $cfile.signed > dnskey.sigs
-grep "$ckactive" dnskey.sigs > /dev/null || ret=1
-grep "$ckrevoked" dnskey.sigs > /dev/null || ret=1
-grep "$czactive" dnskey.sigs > /dev/null || ret=1
+grep -w "$ckactive" dnskey.sigs > /dev/null || ret=1
+grep -w "$ckrevoked" dnskey.sigs > /dev/null || ret=1
+grep -w "$czactive" dnskey.sigs > /dev/null || ret=1
 # should not be there:
-grep "$ckprerevoke" dnskey.sigs > /dev/null && ret=1
-grep "$ckpublished" dnskey.sigs > /dev/null && ret=1
-grep "$czpublished" dnskey.sigs > /dev/null && ret=1
-grep "$czinactive" dnskey.sigs > /dev/null && ret=1
-grep "$czgenerated" dnskey.sigs > /dev/null && ret=1
+grep -w "$ckprerevoke" dnskey.sigs > /dev/null && ret=1
+grep -w "$ckpublished" dnskey.sigs > /dev/null && ret=1
+grep -w "$czpublished" dnskey.sigs > /dev/null && ret=1
+grep -w "$czinactive" dnskey.sigs > /dev/null && ret=1
+grep -w "$czgenerated" dnskey.sigs > /dev/null && ret=1
 # now check other signatures
 awk '$2 == "RRSIG" && $3 != "DNSKEY" { getline; print $2 }' $cfile.signed | sort -un > other.sigs
 # should not be there:
-grep "$ckactive" other.sigs > /dev/null && ret=1
-grep "$ckpublished" other.sigs > /dev/null && ret=1
-grep "$ckprerevoke" other.sigs > /dev/null && ret=1
-grep "$ckrevoked" other.sigs > /dev/null && ret=1
-grep "$czpublished" other.sigs > /dev/null && ret=1
-grep "$czinactive" other.sigs > /dev/null && ret=1
-grep "$czgenerated" other.sigs > /dev/null && ret=1
-grep "$czpredecessor" other.sigs > /dev/null && ret=1
-grep "$czsuccessor" other.sigs > /dev/null && ret=1
+grep -w "$ckactive" other.sigs > /dev/null && ret=1
+grep -w "$ckpublished" other.sigs > /dev/null && ret=1
+grep -w "$ckprerevoke" other.sigs > /dev/null && ret=1
+grep -w "$ckrevoked" other.sigs > /dev/null && ret=1
+grep -w "$czpublished" other.sigs > /dev/null && ret=1
+grep -w "$czinactive" other.sigs > /dev/null && ret=1
+grep -w "$czgenerated" other.sigs > /dev/null && ret=1
+grep -w "$czpredecessor" other.sigs > /dev/null && ret=1
+grep -w "$czsuccessor" other.sigs > /dev/null && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -186,7 +186,7 @@ status=`expr $status + $ret`
 echo "I:checking child zone signatures again"
 ret=0
 awk '$2 == "RRSIG" && $3 == "DNSKEY" { getline; print $2 }' $cfile.signed > dnskey.sigs
-grep "$ckpublished" dnskey.sigs > /dev/null || ret=1
+grep -w "$ckpublished" dnskey.sigs > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
