@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.15 2011/07/08 01:43:26 each Exp $
+# $Id: tests.sh,v 1.16 2011/10/13 03:46:41 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -177,43 +177,43 @@ ret=0
 # check DNSKEY signatures first
 awk '$2 == "RRSIG" && $3 == "DNSKEY" { getline; print $3 }' $cfile.signed > dnskey.sigs
 sub=0
-grep "$ckactive" dnskey.sigs > /dev/null || sub=1
+grep -w "$ckactive" dnskey.sigs > /dev/null || sub=1
 if [ $sub != 0 ]; then echo "I:missing ckactive $ckactive (dnskey)"; ret=1; fi
 echo $ret > /dev/null
 sync
 sub=0
-grep "$ckrevoked" dnskey.sigs > /dev/null || sub=1
+grep -w "$ckrevoked" dnskey.sigs > /dev/null || sub=1
 if [ $sub != 0 ]; then echo "I:missing ckrevoke $ckrevoke (dnskey)"; ret=1; fi
 echo $ret > /dev/null
 sync
 sub=0
-grep "$czactive" dnskey.sigs > /dev/null || sub=1
+grep -w "$czactive" dnskey.sigs > /dev/null || sub=1
 if [ $sub != 0 ]; then echo "I:missing czactive $czactive (dnskey)"; ret=1; fi
 # should not be there:
 echo $ret > /dev/null
 sync
 sub=0
-grep "$ckprerevoke" dnskey.sigs > /dev/null && sub=1
+grep -w "$ckprerevoke" dnskey.sigs > /dev/null && sub=1
 if [ $sub != 0 ]; then echo "I:found ckprerevoke $ckprerevoke (dnskey)"; ret=1; fi
 echo $ret > /dev/null
 sync
 sub=0
-grep "$ckpublished" dnskey.sigs > /dev/null && sub=1
+grep -w "$ckpublished" dnskey.sigs > /dev/null && sub=1
 if [ $sub != 0 ]; then echo "I:found ckpublished $ckpublished (dnskey)"; ret=1; fi
 echo $ret > /dev/null
 sync
 sub=0
-grep "$czpublished" dnskey.sigs > /dev/null && sub=1
+grep -w "$czpublished" dnskey.sigs > /dev/null && sub=1
 if [ $sub != 0 ]; then echo "I:found czpublished $czpublished (dnskey)"; ret=1; fi
 echo $ret > /dev/null
 sync
 sub=0
-grep "$czinactive" dnskey.sigs > /dev/null && sub=1
+grep -w "$czinactive" dnskey.sigs > /dev/null && sub=1
 if [ $sub != 0 ]; then echo "I:found czinactive $czinactive (dnskey)"; ret=1; fi
 echo $ret > /dev/null
 sync
 sub=0
-grep "$czgenerated" dnskey.sigs > /dev/null && sub=1
+grep -w "$czgenerated" dnskey.sigs > /dev/null && sub=1
 if [ $sub != 0 ]; then echo "I:found czgenerated $czgenerated (dnskey)"; ret=1; fi
 # now check other signatures first
 awk '$2 == "RRSIG" && $3 != "DNSKEY" { getline; print $3 }' $cfile.signed | sort -un > other.sigs
@@ -221,47 +221,47 @@ awk '$2 == "RRSIG" && $3 != "DNSKEY" { getline; print $3 }' $cfile.signed | sort
 echo $ret > /dev/null
 sync
 sub=0
-grep "$ckactive" other.sigs > /dev/null && sub=1
+grep -w "$ckactive" other.sigs > /dev/null && sub=1
 if [ $sub != 0 ]; then echo "I:found ckactive $ckactive (other)"; ret=1; fi
 echo $ret > /dev/null
 sync
 sub=0
-grep "$ckpublished" other.sigs > /dev/null && sub=1
+grep -w "$ckpublished" other.sigs > /dev/null && sub=1
 if [ $sub != 0 ]; then echo "I:found ckpublished $ckpublished (other)"; ret=1; fi
 echo $ret > /dev/null
 sync
 sub=0
-grep "$ckprerevoke" other.sigs > /dev/null && sub=1
+grep -w "$ckprerevoke" other.sigs > /dev/null && sub=1
 if [ $sub != 0 ]; then echo "I:found ckprerevoke $ckprerevoke (other)"; ret=1; fi
 echo $ret > /dev/null
 sync
 sub=0
-grep "$ckrevoked" other.sigs > /dev/null && sub=1
+grep -w "$ckrevoked" other.sigs > /dev/null && sub=1
 if [ $sub != 0 ]; then echo "I:found ckrevoked $ckrevoked (other)"; ret=1; fi
 echo $ret > /dev/null
 sync
 sub=0
-grep "$czpublished" other.sigs > /dev/null && sub=1
+grep -w "$czpublished" other.sigs > /dev/null && sub=1
 if [ $sub != 0 ]; then echo "I:found czpublished $czpublished (other)"; ret=1; fi
 echo $ret > /dev/null
 sync
 sub=0
-grep "$czinactive" other.sigs > /dev/null && sub=1
+grep -w "$czinactive" other.sigs > /dev/null && sub=1
 if [ $sub != 0 ]; then echo "I:found czinactive $czinactive (other)"; ret=1; fi
 echo $ret > /dev/null
 sync
 sub=0
-grep "$czgenerated" other.sigs > /dev/null && sub=1
+grep -w "$czgenerated" other.sigs > /dev/null && sub=1
 if [ $sub != 0 ]; then echo "I:found czgenerated $czgenerated (other)"; ret=1; fi
 echo $ret > /dev/null
 sync
 sub=0
-grep "$czpredecessor" other.sigs > /dev/null && sub=1
+grep -w "$czpredecessor" other.sigs > /dev/null && sub=1
 if [ $sub != 0 ]; then echo "I:found czpredecessor $czpredecessor (other)"; ret=1; fi
 echo $ret > /dev/null
 sync
 sub=0
-grep "$czsuccessor" other.sigs > /dev/null && sub=1
+grep -w "$czsuccessor" other.sigs > /dev/null && sub=1
 if [ $sub != 0 ]; then echo "I:found czsuccessor $czsuccessor (other)"; ret=1; fi
 if [ $ret != 0 ]; then
     sed 's/^/I:dnskey sigs: /' < dnskey.sigs
