@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.12 2011/08/31 23:46:43 tbox Exp $ 
+# $Id: tests.sh,v 1.13 2011/10/13 22:18:05 marka Exp $ 
 
 # ns1 = stealth master
 # ns2 = slave with update forwarding disabled; not currently used
@@ -26,6 +26,20 @@ SYSTEMTESTTOP=..
 
 status=0
 
+
+echo "I:waiting for servers to be ready for testing"
+for i in 1 2 3 4 5 6 7 8 9 10
+do
+	ret=0
+	$DIG +tcp example. @10.53.0.1 soa -p 5300 > dig.out.ns1 || ret=1
+	grep "status: NOERROR" dig.out.ns1 > /dev/null ||  ret=1
+	$DIG +tcp example. @10.53.0.2 soa -p 5300 > dig.out.ns2 || ret=1
+	grep "status: NOERROR" dig.out.ns2 > /dev/null ||  ret=1
+	$DIG +tcp example. @10.53.0.3 soa -p 5300 > dig.out.ns3 || ret=1
+	grep "status: NOERROR" dig.out.ns3 > /dev/null ||  ret=1
+	test $ret = 0 && break
+	sleep 1
+done
 echo "I:fetching master copy of zone before update"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.\
 	@10.53.0.1 axfr -p 5300 > dig.out.ns1 || status=1
