@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dbversion_test.c,v 1.2.2.2 2011/10/12 23:54:01 marka Exp $ */
+/* $Id: dbversion_test.c,v 1.2.2.3 2011/10/13 07:53:33 marka Exp $ */
 
 /*! \file */
 
@@ -22,8 +22,9 @@
 
 #include <atf-c.h>
 
-#include <unistd.h>
+#include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
 
 #include <isc/file.h>
 #include <isc/result.h>
