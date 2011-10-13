@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.505 2011/10/13 01:32:33 vjs Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.506 2011/10/13 23:44:47 tbox Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -9414,15 +9414,20 @@ deny-answer-aliases { "example.net"; };
 	    <itemizedlist>
 	      <listitem>Among applicable zones, use the RPZ that appears first
 		in the response-policy option.
+	      </listitem>
 	      <listitem>Prefer QNAME to IP to NSDNAME to NSIP policy records
 		in a single RPZ
+	      </listitem>
 	      <listitem>Among applicable NSDNAME policy records, prefer the
 		policy record that matches the lexically smallest name
+	      </listitem>
 	      <listitem>Among IP or NSIP policy records, prefer the record
 		with the longest prefix.
+	      </listitem>
 	      <listitem>Among records with the same prefex length,
 		prefer the IP or NSIP policy record that matches
 		the smallest IP address.
+	      </listitem>
 	    </itemizedlist>
 	  </para>
 
@@ -9459,19 +9464,23 @@ deny-answer-aliases { "example.net"; };
 	      <listitem>A CNAME whose target is the root domain (.)
 		specifies the <command>NXDOMAIN</command> policy,
 		which generates an NXDOMAIN response.
+	      </listitem>
 	      <listitem>A CNAME whose target is the wildcard top-level
 		domain (*.) specifies the <command>NODATA</command> policy,
 		which rewrites the response to NODATA or ANCOUNT=1.
+	      </listitem>
 	      <listitem>A CNAME whose target is a wildcard hostname such
 		as *.example.com is used normally after the astrisk (*)
 		has been replaced with the query name.
 		These records are usually resolved with ordinary CNAMEs
 		outside the policy zones.  They can be useful for logging.
+	      </listitem>
 	      <listitem>The <command>PASSTHRU</command> policy is specified
 		by a CNAME whose target is the variable part of its own
 		owner name.  It causes the response to not be rewritten
 		and is most often used to "poke holes" in policies for
 		CIDR blocks.
+	      </listitem>
 	    </itemizedlist>
 	  </para>
 
@@ -9483,6 +9492,7 @@ deny-answer-aliases { "example.net"; };
 	    use this mechanism to redirect domains to its own walled garden.
 	    <itemizedlist>
 	      <listitem><command>GIVEN</command> says "do not override."
+	      </listitem>
 	      <listitem><command>DISABLED</command> causes policy records to do
 		nothing but log what they might have done.
 		The response to the DNS query will be written according to
@@ -9490,16 +9500,21 @@ deny-answer-aliases { "example.net"; };
 		Policy zones overridden with <command>DISABLED</command> should
 		appear first, because they will often not be logged
 		if a higher precedence policy is found first.
+	      </listitem>
 	      <listitem><command>PASSTHRU</command> causes all policy records
 		to act as if they were CNAME records with targets the variable
 		part of their owner name.  They protect the response from
 		being changed.
+	      </listitem>
 	      <listitem><command>NXDOMAIN</command> causes all RPZ records
 		to specify NXDOMAIN policies.
+	      </listitem>
 	      <listitem><command>NODATA</command> overrides with the
 		NODATA policy
+	      </listitem>
 	      <listitem><command>CNAME domain</command> causes all RPZ
 		policy records to act as if they were "cname domain" records.
+	      </listitem>
 	    </itemizedlist>
 	  </para>
 
