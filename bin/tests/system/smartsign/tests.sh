@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.16 2011/10/13 03:46:41 marka Exp $
+# $Id: tests.sh,v 1.17 2011/10/13 03:55:01 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -118,11 +118,11 @@ status=`expr $status + $ret`
 echo "I:checking parent zone DS records"
 ret=0
 awk '$2 == "DS" {print $3}' $pfile.signed > dsset.out
-grep "$ckactive" dsset.out > /dev/null || ret=1
-grep "$ckpublished" dsset.out > /dev/null || ret=1
+grep -w "$ckactive" dsset.out > /dev/null || ret=1
+grep -w "$ckpublished" dsset.out > /dev/null || ret=1
 # revoked key should not be there, hence the &&
-grep "$ckprerevoke" dsset.out > /dev/null && ret=1
-grep "$ckrevoked" dsset.out > /dev/null && ret=1
+grep -w "$ckprerevoke" dsset.out > /dev/null && ret=1
+grep -w "$ckrevoked" dsset.out > /dev/null && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -293,7 +293,7 @@ status=`expr $status + $ret`
 echo "I:checking child zone signatures again"
 ret=0
 awk '$2 == "RRSIG" && $3 == "DNSKEY" { getline; print $3 }' $cfile.signed > dnskey.sigs
-grep "$ckpublished" dnskey.sigs > /dev/null || ret=1
+grep -w "$ckpublished" dnskey.sigs > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
