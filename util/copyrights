@@ -917,7 +917,9 @@
 ./bin/tests/system/forward/ns4/.cvsignore	X	2000,2001
 ./bin/tests/system/forward/ns4/named.conf	CONF-C	2000,2001,2004,2007
 ./bin/tests/system/forward/ns4/root.db		ZONE	2000,2001,2004,2007
-./bin/tests/system/forward/tests.sh		SH	2000,2001,2004,2007
+./bin/tests/system/forward/ns5/named.conf	CONF-C	2011
+./bin/tests/system/forward/ns5/root.db		ZONE	2011
+./bin/tests/system/forward/tests.sh		SH	2000,2001,2004,2007,2011
 ./bin/tests/system/genzone.sh			SH	2001,2002,2003,2004,2007,2009,2011
 ./bin/tests/system/glue/clean.sh		SH	2000,2001,2004,2007
 ./bin/tests/system/glue/fi.good			X	2000,2001
@@ -1174,6 +1176,8 @@
 ./bin/tests/system/rpz/ns3/hints		ZONE	2011
 ./bin/tests/system/rpz/ns3/named.conf		CONF-C	2011
 ./bin/tests/system/rpz/ns4/hints		X	2011
+./bin/tests/system/rpz/ns4/named.conf		CONF-C	2011
+./bin/tests/system/rpz/ns4/tld4.db		ZONE	2011
 ./bin/tests/system/rpz/rpz.c			C	2011
 ./bin/tests/system/rpz/setup.sh			SH	2011
 ./bin/tests/system/rpz/test1			X	2011
@@ -2072,7 +2076,7 @@
 ./doc/private/SRCID				X	2009,2010,2011
 ./doc/private/branches				X	2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
 ./doc/private/bugfix-by-assertion		X	2001
-./doc/private/delete-list			X	2005,2006,2007,2008,2009,2010
+./doc/private/delete-list			X	2005,2006,2007,2008,2009,2010,2011
 ./doc/private/options				TXT.BRIEF	2000,2001,2004
 ./doc/todo/brister/todo				X	2000,2001
 ./doc/todo/bwelling/todo			X	2000,2001
@@ -2199,7 +2203,7 @@
 ./lib/dns/include/dns/keytable.h		C	2000,2001,2004,2005,2007,2009,2010
 ./lib/dns/include/dns/keyvalues.h		C	1999,2000,2001,2003,2004,2005,2006,2007,2008,2009,2010
 ./lib/dns/include/dns/lib.h			C	1999,2000,2001,2004,2005,2006,2007,2009
-./lib/dns/include/dns/log.h			C	1999,2000,2001,2003,2004,2005,2006,2007,2009
+./lib/dns/include/dns/log.h			C	1999,2000,2001,2003,2004,2005,2006,2007,2009,2011
 ./lib/dns/include/dns/lookup.h			C	2000,2001,2004,2005,2006,2007,2009
 ./lib/dns/include/dns/master.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009
 ./lib/dns/include/dns/masterdump.h		C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2011
@@ -2263,7 +2267,7 @@
 ./lib/dns/keydata.c				C	2009
 ./lib/dns/keytable.c				C	2000,2001,2004,2005,2007,2009,2010
 ./lib/dns/lib.c					C	1999,2000,2001,2004,2005,2007,2009
-./lib/dns/log.c					C	1999,2000,2001,2003,2004,2005,2006,2007,2009
+./lib/dns/log.c					C	1999,2000,2001,2003,2004,2005,2006,2007,2009,2011
 ./lib/dns/lookup.c				C	2000,2001,2003,2004,2005,2007
 ./lib/dns/master.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011
 ./lib/dns/masterdump.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011
@@ -2433,6 +2437,7 @@
 ./lib/dns/tests/Atffile				X	2011
 ./lib/dns/tests/Makefile.in			MAKE	2011
 ./lib/dns/tests/dbiterator_test.c		C	2011
+./lib/dns/tests/dbversion_test.c		C	2011
 ./lib/dns/tests/dnstest.c			C	2011
 ./lib/dns/tests/dnstest.h			C	2011
 ./lib/dns/tests/master_test.c			C	2011
