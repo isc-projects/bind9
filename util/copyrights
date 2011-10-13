@@ -2043,6 +2043,7 @@
 ./lib/dns/tests/Atffile				X	2011
 ./lib/dns/tests/Makefile.in			MAKE	2011
 ./lib/dns/tests/dbiterator_test.c		C	2011
+./lib/dns/tests/dbversion_test.c		C	2011
 ./lib/dns/tests/dnstest.c			C	2011
 ./lib/dns/tests/dnstest.h			C	2011
 ./lib/dns/tests/master_test.c			C	2011
