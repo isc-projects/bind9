@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dbversion_test.c,v 1.4 2011/10/13 13:13:52 marka Exp $ */
+/* $Id: dbversion_test.c,v 1.5 2011/10/13 22:48:24 tbox Exp $ */
 
 /*! \file */
 
@@ -44,7 +44,7 @@ static char tempname[11] = "dtXXXXXXXX";
 
 static void
 callback(const char *file, int line, isc_assertiontype_t type,
-         const char *cond)
+	 const char *cond)
 {
 	UNUSED(file); UNUSED(line); UNUSED(type); UNUSED(cond);
 	if (strcmp(tempname, "dtXXXXXXXX"))
@@ -60,12 +60,12 @@ static void
 setup_db() {
 	isc_result_t result;
 	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_zone,
-                               dns_rdataclass_in, 0, NULL, &db1);
+			       dns_rdataclass_in, 0, NULL, &db1);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	dns_db_newversion(db1, &v1);
 
 	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_zone,
-                               dns_rdataclass_in, 0, NULL, &db2);
+			       dns_rdataclass_in, 0, NULL, &db2);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	dns_db_newversion(db2, &v2);
 }
@@ -103,7 +103,7 @@ attachversion(isc_assertioncallback_t callback) {
 
 	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	
+
 	setup_db();
 
 	isc_assertion_setcallback(callback);
@@ -126,7 +126,7 @@ ATF_TC_HEAD(attachversion, tc) {
 ATF_TC_BODY(attachversion, tc) {
 
 	UNUSED(tc);
-	
+
 	attachversion(NULL);
 }
 
@@ -147,7 +147,7 @@ closeversion(isc_assertioncallback_t callback) {
 
 	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	
+
 	setup_db();
 
 	isc_assertion_setcallback(callback);
@@ -203,7 +203,7 @@ find(isc_assertioncallback_t callback) {
 	if (callback != NULL)
 		atf_tc_fail("dns_db_find did not assert");
 	ATF_REQUIRE_EQ(result, DNS_R_NXDOMAIN);
-	
+
 	close_db();
 
 	dns_test_end();
@@ -256,7 +256,7 @@ allrdatasets(isc_assertioncallback_t callback) {
 
 	dns_db_detachnode(db1, &node);
 	ATF_REQUIRE_EQ(node, NULL);
-	
+
 	close_db();
 
 	dns_test_end();
@@ -311,7 +311,7 @@ findrdataset(isc_assertioncallback_t callback) {
 
 	dns_db_detachnode(db1, &node);
 	ATF_REQUIRE_EQ(node, NULL);
-	
+
 	close_db();
 
 	dns_test_end();
@@ -366,7 +366,7 @@ deleterdataset(isc_assertioncallback_t callback) {
 
 	dns_db_detachnode(db1, &node);
 	ATF_REQUIRE_EQ(node, NULL);
-	
+
 	close_db();
 
 	dns_test_end();
@@ -428,7 +428,7 @@ subtract(isc_assertioncallback_t callback) {
 
 	dns_db_detachnode(db1, &node);
 	ATF_REQUIRE_EQ(node, NULL);
-	
+
 	close_db();
 
 	dns_test_end();
@@ -441,7 +441,7 @@ ATF_TC_HEAD(subtractrdataset, tc) {
 ATF_TC_BODY(subtractrdataset, tc) {
 
 	UNUSED(tc);
-	
+
 	subtract(NULL);
 }
 
@@ -538,7 +538,7 @@ addrdataset(isc_assertioncallback_t callback) {
 
 	dns_db_detachnode(db1, &node);
 	ATF_REQUIRE_EQ(node, NULL);
-	
+
 	close_db();
 
 	dns_test_end();

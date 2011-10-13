@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.374 2011/10/13 01:32:32 vjs Exp $ */
+/* $Id: query.c,v 1.375 2011/10/13 22:48:23 tbox Exp $ */
 
 /*! \file */
 
@@ -5686,7 +5686,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 						       fname, NULL);
 				RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			}
-  			rpz_clean(&zone, &db, &node, NULL);
+			rpz_clean(&zone, &db, &node, NULL);
 			if (rpz_st->m.rdataset != NULL) {
 				query_putrdataset(client, &rdataset);
 				rdataset = rpz_st->m.rdataset;
