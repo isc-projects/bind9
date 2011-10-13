@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dbversion_test.c,v 1.3 2011/10/13 07:56:32 marka Exp $ */
+/* $Id: dbversion_test.c,v 1.4 2011/10/13 13:13:52 marka Exp $ */
 
 /*! \file */
 
@@ -654,6 +654,7 @@ resigned(isc_assertioncallback_t callback) {
 
 	result = dns_rdata_fromstruct(&rdata, dns_rdataclass_in,
 				      dns_rdatatype_rrsig, &rrsig, &b);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	rdatalist.rdclass = dns_rdataclass_in;
 	rdatalist.type = dns_rdatatype_rrsig;
