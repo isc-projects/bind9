@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.7 2011/10/13 01:32:33 vjs Exp $
+# $Id: tests.sh,v 1.8 2011/10/13 13:03:51 marka Exp $
 
 # test response policy zones (RPZ)
 
@@ -55,7 +55,7 @@ TEST_NUM=0
 make_dignm () {
     TEST_NUM=`expr $TEST_NUM + 1`
     DIGNM=dig.out$GROUP_NM-$TEST_NUM
-    while test -e $DIGNM; do
+    while test -f $DIGNM; do
 	TEST_NUM="$TEST_NUM+"
 	DIGNM=dig.out$GROUP_NM-$TEST_NUM
     done
