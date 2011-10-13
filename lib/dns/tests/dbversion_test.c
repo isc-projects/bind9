@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dbversion_test.c,v 1.2.4.2 2011/10/13 00:06:02 marka Exp $ */
+/* $Id: dbversion_test.c,v 1.2.4.3 2011/10/13 00:51:59 marka Exp $ */
 
 /*! \file */
 
@@ -32,10 +32,11 @@
 #include <isc/msgcat.h>
 
 #include <dns/db.h>
+#include <dns/fixedname.h>
+#include <dns/nsec3.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
-#include <dns/nsec3.h>
 
 #include "dnstest.h"
 
@@ -423,7 +424,11 @@ subtract(isc_assertioncallback_t callback) {
 					 &rdataset, 0, NULL);
 	if (callback != NULL)
 		atf_tc_fail("dns_db_dns_db_subtractrdataset did not assert");
-	ATF_REQUIRE_EQ(result, DNS_R_UNCHANGED);
+	/*
+	 * 9.7 does support caching of a rdataset with no records so we get
+	 * ISC_R_FAILURE rather then DNS_R_UNCHANGED.
+	 */
+	ATF_REQUIRE_EQ(result, ISC_R_FAILURE);
 
 	dns_db_detachnode(db1, &node);
 	ATF_REQUIRE_EQ(node, NULL);
@@ -533,7 +538,11 @@ addrdataset(isc_assertioncallback_t callback) {
 				    0, NULL);
 	if (callback != NULL)
 		atf_tc_fail("dns_db_adddataset did not assert");
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	/*
+	 * 9.7 does support caching of a rdataset with no record so we get
+	 * ISC_R_FAILURE rather then ISC_R_SUCCESS.
+	 */
+	ATF_REQUIRE_EQ(result, ISC_R_FAILURE);
 
 	dns_db_detachnode(db1, &node);
 	ATF_REQUIRE_EQ(node, NULL);
