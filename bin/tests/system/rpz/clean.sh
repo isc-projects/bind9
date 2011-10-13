@@ -12,11 +12,11 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.3 2011/01/13 04:59:24 tbox Exp $
+# $Id: clean.sh,v 1.4 2011/10/13 01:32:32 vjs Exp $
 
 
 # Clean up after rpz tests.
 
-rm -f dig.out* nsupdate.tmp
-rm -f  */named.memstats */named.run */session.key
-rm -f ns3/bl*.db */*.jnl
+rm -f proto.* dig.out* nsupdate.tmp
+rm -f  */named.memstats */named.run */named.rpz */session.key
+rm -f ns3/bl*.db */*.jnl */*.core */*.pid

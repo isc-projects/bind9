@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.141 2011/09/06 22:29:33 smann Exp $ */
+/* $Id: namedconf.c,v 1.142 2011/10/13 01:32:34 vjs Exp $ */
 
 /*! \file */
 
@@ -1027,7 +1027,8 @@ static cfg_type_t cfg_type_masterformat = {
 
 /*
  *  response-policy {
- *	zone <string> [ policy (given|no-op|nxdomain|nodata|cname <domain> ) ];
+ *	zone <string> [ policy (given|disabled|passthru|
+ *					nxdomain|nodata|cname <domain> ) ];
  *  };
  *
  * this is a chimera of doc_optional_keyvalue() and cfg_doc_enum()
@@ -1095,7 +1096,8 @@ cleanup:
 }
 
 static const char *rpz_policies[] = {
-	"given", "no-op", "nxdomain", "nodata", "cname", NULL
+	"given", "disabled", "passthru", "no-op", "nxdomain", "nodata",
+	"cname", NULL
 };
 static cfg_type_t cfg_type_rpz_policylist = {
 	"policies", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,

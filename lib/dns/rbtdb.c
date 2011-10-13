@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.318 2011/10/12 23:09:35 marka Exp $ */
+/* $Id: rbtdb.c,v 1.319 2011/10/13 01:32:33 vjs Exp $ */
 
 /*! \file */
 
@@ -4588,15 +4588,19 @@ get_rpz_enabled(dns_db_t *db, dns_rpz_st_t *st)
  * Search the CDIR block tree of a response policy tree of trees for all of
  * the IP addresses in an A or AAAA rdataset.
  * Among the policies for all IPv4 and IPv6 addresses for a name, choose
- * the longest prefix.  Among those with the longest prefix, the first
- * configured policy.  Among answers for with the longest prefixes for
- * two or more IP addresses in the A and AAAA rdatasets the lexically
- * smallest address.
+ *	the earliest configured policy,
+ *	QNAME over IP over NSDNAME over NSIP,
+ *	the longest prefix,
+ *	the lexically smallest address.
+ * The caller must have already checked that any existing policy was not
+ * configured earlier than this policy zone and does not have a higher
+ * precedence type.
  */
 static isc_result_t
 rpz_findips(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 	    dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version,
-	    dns_rdataset_t *ardataset, dns_rpz_st_t *st)
+	    dns_rdataset_t *ardataset, dns_rpz_st_t *st,
+	    dns_name_t *query_qname)
 {
 	dns_rbtdb_t *rbtdb;
 	struct in_addr ina;
@@ -4617,8 +4621,6 @@ rpz_findips(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 
 	if (rbtdb->rpz_cidr == NULL) {
 		RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
-		dns_db_detach(&db);
-		dns_zone_detach(&zone);
 		return (ISC_R_UNEXPECTED);
 	}
 
@@ -4653,17 +4655,19 @@ rpz_findips(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 			continue;
 
 		/*
-		 * Choose the policy with the longest matching prefix.
-		 * Between policies with the same prefix, choose the first
-		 * configured.
+		 * If we already have a rule, discard this new rule if
+		 * is not better.
+		 * The caller has checked that st->m.rpz->num > rpz->num
+		 * or st->m.rpz->num == rpz->num and st->m.type >= rpz_type
 		 */
-		if (st->m.policy != DNS_RPZ_POLICY_MISS) {
-			if (prefix < st->m.prefix)
-				continue;
-			if (prefix == st->m.prefix &&
-			    rpz->num > st->m.rpz->num)
-				continue;
-		}
+		if (st->m.policy != DNS_RPZ_POLICY_MISS &&
+		    st->m.rpz->num == rpz->num &&
+		    (st->m.type < rpz_type ||
+		     (st->m.type == rpz_type &&
+		      (st->m.prefix > prefix ||
+		       (st->m.prefix == prefix &&
+			0 > dns_name_rdatacompare(st->qname, qname))))))
+			continue;
 
 		/*
 		 * We have rpz_st an entry with a prefix at least as long as
@@ -4677,8 +4681,8 @@ rpz_findips(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 			char namebuf[DNS_NAME_FORMATSIZE];
 
 			dns_name_format(qname, namebuf, sizeof(namebuf));
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-				      DNS_LOGMODULE_CACHE, DNS_RPZ_ERROR_LEVEL,
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ,
+				      DNS_LOGMODULE_RBTDB, DNS_RPZ_ERROR_LEVEL,
 				      "rpz_findips findnode(%s): %s",
 				      namebuf, isc_result_totext(result));
 			continue;
@@ -4702,7 +4706,8 @@ rpz_findips(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 			} else {
 				rpz_policy = dns_rpz_decode_cname(&zrdataset,
 								  selfname);
-				if (rpz_policy == DNS_RPZ_POLICY_RECORD)
+				if (rpz_policy == DNS_RPZ_POLICY_RECORD ||
+				    rpz_policy == DNS_RPZ_POLICY_WILDCNAME)
 					result = DNS_R_CNAME;
 			}
 			ttl = zrdataset.ttl;
@@ -4715,44 +4720,59 @@ rpz_findips(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 		/*
 		 * Use an overriding action specified in the configuration file
 		 */
-		if (rpz->policy != DNS_RPZ_POLICY_GIVEN &&
-		    rpz_policy != DNS_RPZ_POLICY_NO_OP)
-			rpz_policy = rpz->policy;
+		if (rpz->policy != DNS_RPZ_POLICY_GIVEN) {
+			/*
+			 * only log DNS_RPZ_POLICY_DISABLED hits
+			 */
+			if (rpz->policy == DNS_RPZ_POLICY_DISABLED) {
+				if (isc_log_wouldlog(dns_lctx,
+						     DNS_RPZ_INFO_LEVEL)) {
+					char qname_buf[DNS_NAME_FORMATSIZE];
+					char rpz_qname_buf[DNS_NAME_FORMATSIZE];
+					dns_name_format(query_qname, qname_buf,
+							sizeof(qname_buf));
+					dns_name_format(qname, rpz_qname_buf,
+							sizeof(rpz_qname_buf));
 
-		/*
-		 * We know the new prefix is at least as long as the current.
-		 * Prefer the new answer if the new prefix is longer.
-		 * Prefer the zone configured first if the prefixes are equal.
-		 * With two actions from the same zone, prefer the action
-		 * on the "smallest" name.
-		 */
-		if (st->m.policy == DNS_RPZ_POLICY_MISS ||
-		    prefix > st->m.prefix ||
-		    rpz->num <= st->m.rpz->num ||
-		    0 > dns_name_compare(qname, st->qname)) {
-			if (dns_rdataset_isassociated(st->m.rdataset))
-				dns_rdataset_disassociate(st->m.rdataset);
-			if (st->m.node != NULL)
-				dns_db_detachnode(st->m.db, &st->m.node);
-			if (st->m.db != NULL)
-				dns_db_detach(&st->m.db);
-			if (st->m.zone != NULL)
-				dns_zone_detach(&st->m.zone);
-			st->m.rpz = rpz;
-			st->m.type = rpz_type;
-			st->m.prefix = prefix;
-			st->m.policy = rpz_policy;
-			st->m.ttl = ttl;
-			st->m.result = result;
-			dns_name_copy(qname, st->qname, NULL);
-			if (rpz_policy == DNS_RPZ_POLICY_RECORD &&
-			    result != DNS_R_NXRRSET) {
-				dns_rdataset_clone(&zrdataset,st->m.rdataset);
-				dns_db_attachnode(db, node, &st->m.node);
+					isc_log_write(dns_lctx,
+						DNS_LOGCATEGORY_RPZ,
+						DNS_LOGMODULE_RBTDB,
+						DNS_RPZ_INFO_LEVEL,
+						"disabled rpz %s %s rewrite"
+						" %s via %s",
+						dns_rpz_type2str(rpz_type),
+						dns_rpz_policy2str(rpz_policy),
+						qname_buf, rpz_qname_buf);
+				}
+				continue;
 			}
-			dns_db_attach(db, &st->m.db);
-			dns_zone_attach(zone, &st->m.zone);
+
+			rpz_policy = rpz->policy;
 		}
+
+		if (dns_rdataset_isassociated(st->m.rdataset))
+			dns_rdataset_disassociate(st->m.rdataset);
+		if (st->m.node != NULL)
+			dns_db_detachnode(st->m.db, &st->m.node);
+		if (st->m.db != NULL)
+			dns_db_detach(&st->m.db);
+		if (st->m.zone != NULL)
+			dns_zone_detach(&st->m.zone);
+		st->m.rpz = rpz;
+		st->m.type = rpz_type;
+		st->m.prefix = prefix;
+		st->m.policy = rpz_policy;
+		st->m.ttl = ttl;
+		st->m.result = result;
+		dns_name_copy(qname, st->qname, NULL);
+		if ((rpz_policy == DNS_RPZ_POLICY_RECORD ||
+		    rpz_policy == DNS_RPZ_POLICY_WILDCNAME) &&
+		    result != DNS_R_NXRRSET) {
+			dns_rdataset_clone(&zrdataset,st->m.rdataset);
+			dns_db_attachnode(db, node, &st->m.node);
+		}
+		dns_db_attach(db, &st->m.db);
+		dns_zone_attach(zone, &st->m.zone);
 		if (dns_rdataset_isassociated(&zrdataset))
 			dns_rdataset_disassociate(&zrdataset);
 	}
