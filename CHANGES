@@ -1,3 +1,6 @@
+3171.	[bug]		Exclusively lock the task when adding a zone using
+			'rndc addzone'.  [RT #25600]
+
 3169.	[func]		Catch db/version mis-matches when call dns_db_*().
 			[RT #26017]
 
