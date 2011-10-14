@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: start.pl,v 1.16.54.9 2011/10/10 23:21:44 smann Exp $
+# $Id: start.pl,v 1.16.54.10 2011/10/14 03:51:03 marka Exp $
 
 # Framework for starting test servers.
 # Based on the type of server specified, check for port availability, remove
@@ -232,14 +232,15 @@ sub start_server {
 	# already been started
 	my $tries = 0;
 	while (!-s $pid_file) {
-		if (++$tries > 14) {
+		if (++$tries > 140) {
 			print "I:Couldn't start server $server (pid=$child)\n";
 			print "R:FAIL\n";
 			system "kill -9 $child" if ("$child" ne "");
 			system "$PERL $topdir/stop.pl $testdir";
 			exit 1;
 		}
-		sleep 1;
+		# sleep for 0.1 seconds
+		select undef,undef,undef,0.1;
 	}
 
         # go back to the top level directory

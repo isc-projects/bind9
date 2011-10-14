@@ -14,10 +14,11 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.3 2011/01/13 04:59:24 tbox Exp $
+# $Id: setup.sh,v 1.3.8.1 2011/10/14 03:51:03 marka Exp $
 
 sh clean.sh
 
-for NM in '' -given -no-op -nodata -nxdomain -cname; do
-    cp -f ns3/base.db ns3/bl$NM.db
+#  NO-OP is an obsolete synonym for PASSHTRU
+for NM in '' -2 -given -disabled -passthru -no-op -nodata -nxdomain -cname -wildcname -garden; do
+    sed -e "/SOA/s/blx/bl$NM/g" ns3/base.db >ns3/bl$NM.db
 done

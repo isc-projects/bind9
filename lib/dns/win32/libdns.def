@@ -622,6 +622,7 @@ dns_rpz_decode_cname
 dns_rpz_enabled
 dns_rpz_needed
 dns_rpz_new_cidr
+dns_rpz_policy2str
 dns_rpz_set_need
 dns_rpz_str2policy
 dns_rpz_type2str

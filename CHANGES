@@ -1,3 +1,9 @@
+3170.	[func]		RPZ update:
+			- fix precedence among competing rules
+			- improve ARM text including documenting rule precedence
+			- try to rewrite CNAME chains until first hit
+			- new "rpz" logging channel
+
 3169.	[func]		Catch db/version mis-matches when call dns_db_*().
 			[RT #26017]
 

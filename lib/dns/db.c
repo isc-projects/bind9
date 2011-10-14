@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.97 2011/01/13 04:59:25 tbox Exp $ */
+/* $Id: db.c,v 1.97.8.1 2011/10/14 03:51:06 marka Exp $ */
 
 /*! \file */
 
@@ -955,10 +955,11 @@ dns_db_rpz_enabled(dns_db_t *db, dns_rpz_st_t *st)
 isc_result_t
 dns_db_rpz_findips(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 		   dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version,
-		   dns_rdataset_t *ardataset, dns_rpz_st_t *st)
+		   dns_rdataset_t *ardataset, dns_rpz_st_t *st,
+		   dns_name_t *query_qname)
 {
 	if (db->methods->rpz_findips == NULL)
 		return (ISC_R_NOTIMPLEMENTED);
 	return ((db->methods->rpz_findips)(rpz, rpz_type, zone, db, version,
-					   ardataset, st));
+					   ardataset, st, query_qname));
 }
