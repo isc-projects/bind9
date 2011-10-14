@@ -1,3 +1,6 @@
+3171.	[port]		darwin 10.* and freebsd [89] are now built threaded by
+			default.
+
 3171.	[bug]		Exclusively lock the task when adding a zone using
 			'rndc addzone'.  [RT #25600]
 
