@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dlz_dlopen_driver.c,v 1.4 2011/03/17 09:25:53 fdupont Exp $ */
+/* $Id: dlz_dlopen_driver.c,v 1.5 2011/10/14 00:52:32 marka Exp $ */
 
 #include <config.h>
 
@@ -178,7 +178,9 @@ dlopen_dlz_findzonedb(void *driverarg, void *dbdata, const char *name)
 
 static isc_result_t
 dlopen_dlz_lookup(const char *zone, const char *name, void *driverarg,
-		  void *dbdata, dns_sdlzlookup_t *lookup)
+		  void *dbdata, dns_sdlzlookup_t *lookup,
+		  dns_clientinfomethods_t *methods,
+		  dns_clientinfo_t *clientinfo)
 {
 	dlopen_data_t *cd = (dlopen_data_t *) dbdata;
 	isc_result_t result;
@@ -186,7 +188,8 @@ dlopen_dlz_lookup(const char *zone, const char *name, void *driverarg,
 	UNUSED(driverarg);
 
 	MAYBE_LOCK(cd);
-	result = cd->dlz_lookup(zone, name, cd->dbdata, lookup);
+	result = cd->dlz_lookup(zone, name, cd->dbdata, lookup,
+				methods, clientinfo);
 	MAYBE_UNLOCK(cd);
 	return (result);
 }
