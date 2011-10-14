@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.599.8.13 2011/10/07 04:42:49 each Exp $ */
+/* $Id: server.c,v 1.599.8.14 2011/10/14 05:45:20 marka Exp $ */
 
 /*! \file */
 
@@ -7357,13 +7357,14 @@ ns_server_add_zone(ns_server_t *server, char *args) {
 	CHECK(isc_stdio_open(view->new_zone_file, "a", &fp));
 
 	/* Mark view unfrozen so that zone can be added */
+	isc_task_beginexclusive(server->task);
 	dns_view_thaw(view);
 	result = configure_zone(cfg->config, parms, vconfig,
 				server->mctx, view, cfg->actx, ISC_FALSE);
 	dns_view_freeze(view);
-	if (result != ISC_R_SUCCESS) {
+	isc_task_endexclusive(server->task);
+	if (result != ISC_R_SUCCESS)
 		goto cleanup;
-	}
 
 	/* Is it there yet? */
 	CHECK(dns_zt_find(view->zonetable, &dnsname, 0, NULL, &zone));

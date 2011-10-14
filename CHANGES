@@ -1,3 +1,6 @@
+3171.	[bug]		Exclusively lock the task when adding a zone using
+			'rndc addzone'.  [RT #25600]
+
 3170.	[func]		RPZ update:
 			- fix precedence among competing rules
 			- improve ARM text including documenting rule precedence
