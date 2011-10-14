@@ -201,8 +201,8 @@ options {
         reserved-sockets <integer>;
         resolver-query-timeout <integer>;
         response-policy {
-                zone <string> [ policy ( given | no-op | nxdomain | nodata
-                    | cname <domain> ) ];
+                zone <string> [ policy ( given | disabled | passthru |
+                    no-op | nxdomain | nodata | cname <domain> ) ];
         };
         rfc2308-type1 <boolean>; // not yet implemented
         root-delegation-only [ exclude { <quoted_string>; ... } ];
@@ -410,8 +410,8 @@ view <string> <optional_class> {
         request-nsid <boolean>;
         resolver-query-timeout <integer>;
         response-policy {
-                zone <string> [ policy ( given | no-op | nxdomain | nodata
-                    | cname <domain> ) ];
+                zone <string> [ policy ( given | disabled | passthru |
+                    no-op | nxdomain | nodata | cname <domain> ) ];
         };
         rfc2308-type1 <boolean>; // not yet implemented
         root-delegation-only [ exclude { <quoted_string>; ... } ];
