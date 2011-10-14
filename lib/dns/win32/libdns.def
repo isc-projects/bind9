@@ -71,6 +71,8 @@ dns_cache_setcleaninginterval
 dns_cache_setfilename
 dns_cert_fromtext
 dns_cert_totext
+dns_clientinfo_init
+dns_clientinfomethods_init
 dns_compress_add
 dns_compress_findglobal
 dns_compress_getedns
@@ -101,7 +103,9 @@ dns_db_dump
 dns_db_endload
 dns_db_expirenode
 dns_db_find
+dns_db_findext
 dns_db_findnode
+dns_db_findnodeext
 dns_db_findnsec3node
 dns_db_findrdataset
 dns_db_findzonecut
@@ -622,6 +626,7 @@ dns_rpz_decode_cname
 dns_rpz_enabled
 dns_rpz_needed
 dns_rpz_new_cidr
+dns_rpz_policy2str
 dns_rpz_set_need
 dns_rpz_str2policy
 dns_rpz_type2str
