@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.4.6.24 2011/07/26 04:41:06 marka Exp $
+# $Id: tests.sh,v 1.4.6.25 2011/10/14 07:26:42 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -635,7 +635,8 @@ status=`expr $status + $ret`
 echo "I:checking that revoked key is present ($n)"
 ret=0
 id=`sed 's/^K.+007+0*\([0-9]\)/\1/' < rev.key`
-id=`expr $id + 128 % 65536`
+id=`expr $id + 128`
+[ $id -gt 65535 ] && id=`expr $id % 65536 + 1`
 $DIG $DIGOPTS +multi dnskey . @10.53.0.1 > dig.out.ns1.test$n || ret=1
 grep '; key id = '"$id"'$' dig.out.ns1.test$n > /dev/null || ret=1
 n=`expr $n + 1`
@@ -645,7 +646,8 @@ status=`expr $status + $ret`
 echo "I:checking that revoked key self-signs ($n)"
 ret=0
 id=`sed 's/^K.+007+0*\([0-9]\)/\1/' < rev.key`
-id=`expr $id + 128 % 65536`
+id=`expr $id + 128`
+[ $id -gt 65535 ] && id=`expr $id % 65536 + 1`
 $DIG $DIGOPTS dnskey . @10.53.0.1 > dig.out.ns1.test$n || ret=1
 grep 'RRSIG.*'" $id "'\. ' dig.out.ns1.test$n > /dev/null || ret=1
 n=`expr $n + 1`
