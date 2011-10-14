@@ -1,3 +1,6 @@
+3171.	[bug]		Exclusively lock the task when adding a zone using
+			'rndc addzone'.  [RT #25600]
+
 	--- 9.9.0a3 released ---
 
 3170.	[func]		RPZ update:
