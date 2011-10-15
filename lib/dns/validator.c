@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.164.12.29 2011/06/09 00:16:37 each Exp $ */
+/* $Id: validator.c,v 1.164.12.30 2011/10/15 05:13:39 marka Exp $ */
 
 #include <config.h>
 
@@ -837,7 +837,7 @@ cnamevalidated(isc_task_t *task, isc_event_t *event) {
  * Return ISC_R_IGNORE when the NSEC is not the appropriate one.
  */
 static isc_result_t
-nsecnoexistnodata(dns_validator_t *val, dns_name_t* name, dns_name_t *nsecname,
+nsecnoexistnodata(dns_validator_t *val, dns_name_t *name, dns_name_t *nsecname,
 		  dns_rdataset_t *nsecset, isc_boolean_t *exists,
 		  isc_boolean_t *data, dns_name_t *wild)
 {
@@ -878,9 +878,11 @@ nsecnoexistnodata(dns_validator_t *val, dns_name_t* name, dns_name_t *nsecname,
 
 	if (order == 0) {
 		/*
-		 * The names are the same.
+		 * The names are the same.   If we are validating "."
+		 * then atparent should not be set as there is no parent.
 		 */
-		atparent = dns_rdatatype_atparent(val->event->type);
+		atparent = (olabels != 1) &&
+			   dns_rdatatype_atparent(val->event->type);
 		ns = dns_nsec_typepresent(&rdata, dns_rdatatype_ns);
 		soa = dns_nsec_typepresent(&rdata, dns_rdatatype_soa);
 		if (ns && !soa) {

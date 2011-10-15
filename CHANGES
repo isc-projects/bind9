@@ -1,3 +1,5 @@
+3173.	[port]		Correctly validate root DS responses. [RT #25726]
+
 3169.	[func]		Catch db/version mis-matches when call dns_db_*().
 			[RT #26017]
 
