@@ -1,3 +1,5 @@
+3173.	[port]		Correctly validate root DS responses. [RT #25726]
+
 3171.	[bug]		Exclusively lock the task when adding a zone using
 			'rndc addzone'.  [RT #25600]
 
