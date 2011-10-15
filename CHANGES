@@ -1,3 +1,5 @@
+3173.	[port]		Correctly validate root DS responses. [RT #25726]
+
 3172.	[port]		darwin 10.* and freebsd [89] are now built threaded by
 			default.
 
