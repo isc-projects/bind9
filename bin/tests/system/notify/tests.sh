@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2011  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,12 +15,23 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.33 2007/06/19 23:47:04 tbox Exp $
+# $Id: tests.sh,v 1.35 2011/10/14 23:46:34 tbox Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 status=0
+
+for i in 1 2 3 4 5 6 7 8 9 10
+do
+	ret=0
+	$DIG +tcp example @10.53.0.2 soa -p 5300 > dig.out.ns2 || ret=1
+	grep "status: NOERROR" dig.out.ns2 > /dev/null || ret=1
+	$DIG +tcp example @10.53.0.3 soa -p 5300 > dig.out.ns3 || ret=1
+	grep "status: NOERROR" dig.out.ns3 > /dev/null || ret=1
+	[ $ret = 0 ] && break
+	sleep 1
+done
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
 	@10.53.0.2 a -p 5300 > dig.out.ns2 || status=1
