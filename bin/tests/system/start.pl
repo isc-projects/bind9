@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: start.pl,v 1.13.176.10 2011/10/10 23:23:50 smann Exp $
+# $Id: start.pl,v 1.13.176.11 2011/10/17 02:37:57 marka Exp $
 
 # Framework for starting test servers.
 # Based on the type of server specified, check for port availability, remove
@@ -43,9 +43,10 @@ use Getopt::Long;
 #		else in the file is ignored. If "options" is already set,
 #		then "named.args" is ignored.
 
-my $usage = "usage: $0 [--noclean] test-directory [server-directory [server-options]]";
-my $noclean;
-GetOptions('noclean' => \$noclean);
+my $usage = "usage: $0 [--noclean] [--restart] test-directory [server-directory [server-options]]";
+my $noclean = '';
+my $restart = '';
+GetOptions('noclean' => \$noclean, 'restart' => \$restart);
 my $test = $ARGV[0];
 my $server = $ARGV[1];
 my $options = $ARGV[2];
@@ -163,7 +164,11 @@ sub start_server {
 				if (-e "$testdir/$server/named.noaa");
 			$command .= "-c named.conf -d 99 -g";
 		}
-		$command .= " >named.run 2>&1 &";
+		if ($restart) {
+			$command .= " >>named.run 2>&1 &";
+		} else {
+			$command .= " >named.run 2>&1 &";
+		}
 		$pid_file = "named.pid";
 	} elsif ($server =~ /^lwresd/) {
 		$cleanup_files = "{lwresd.run}";
@@ -176,7 +181,11 @@ sub start_server {
 			$command .= "-C resolv.conf -d 99 -g ";
 			$command .= "-i lwresd.pid -P 9210 -p 5300";
 		}
-		$command .= " >lwresd.run 2>&1 &";
+		if ($restart) {
+			$command .= " >>lwresd.run 2>&1 &";
+		} else {
+			$command .= " >lwresd.run 2>&1 &";
+		}
 		$pid_file = "lwresd.pid";
 	} elsif ($server =~ /^ans/) {
 		$cleanup_files = "{ans.run}";
@@ -190,7 +199,11 @@ sub start_server {
 		} else {
 			$command .= "";
 		}
-		$command .= " >ans.run 2>&1 &";
+		if ($restart) {
+			$command .= " >>ans.run 2>&1 &";
+		} else {
+			$command .= " >ans.run 2>&1 &";
+		}
 		$pid_file = "ans.pid";
 	} else {
 		print "I:Unknown server type $server\n";
