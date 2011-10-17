@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.18 2007/06/18 23:47:29 tbox Exp $
+# $Id: tests.sh,v 1.18.814.1 2011/10/17 05:43:18 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -36,6 +36,7 @@ $PERL $SYSTEMTESTTOP/start.pl . lwresd1 -- "-m record,size,mctx -c lwresd.conf -
 
 echo "I:using lwresd.conf"
 ret=0
+sleep 1 # allow lwresd to finish starting.
 ./lwtest || ret=1
 if [ $ret != 0 ]; then
 	echo "I:failed"
