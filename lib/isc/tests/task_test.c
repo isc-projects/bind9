@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task_test.c,v 1.3 2011/09/02 23:46:33 tbox Exp $ */
+/* $Id: task_test.c,v 1.4 2011/10/18 02:00:56 marka Exp $ */
 
 /*! \file */
 
@@ -106,6 +106,9 @@ ATF_TC_BODY(all_events, tc) {
 	UNUSED(tc);
 
 	counter = 1;
+
+	result = isc_mutex_init(&set_lock);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_test_begin(NULL, ISC_TRUE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
