@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2011  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.13 2011/10/17 01:33:27 marka Exp $
+# $Id: clean.sh,v 1.14 2011/10/17 23:46:33 tbox Exp $
 
 #
 # Clean up after zone transfer tests.
