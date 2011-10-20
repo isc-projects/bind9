@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.375 2011/10/13 22:48:23 tbox Exp $ */
+/* $Id: query.c,v 1.376 2011/10/20 21:42:11 marka Exp $ */
 
 /*! \file */
 
@@ -3378,8 +3378,9 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 				       sigrdataset, fname, ISC_TRUE, cname);
 		if (!dns_rdataset_isassociated(rdataset))
 			goto cleanup;
-		query_addrrset(client, &fname, &rdataset, &sigrdataset,
-			       dbuf, DNS_SECTION_AUTHORITY);
+		if (!ispositive)
+			query_addrrset(client, &fname, &rdataset, &sigrdataset,
+				       dbuf, DNS_SECTION_AUTHORITY);
 
 		/*
 		 * Replace resources which were consumed by query_addrrset.
