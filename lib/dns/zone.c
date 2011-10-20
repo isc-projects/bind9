@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.582.8.30 2011/10/07 02:58:42 marka Exp $ */
+/* $Id: zone.c,v 1.582.8.31 2011/10/20 21:23:50 marka Exp $ */
 
 /*! \file */
 
@@ -7279,8 +7279,7 @@ revocable(dns_keyfetch_t *kfetch, dns_rdata_keydata_t *keydata) {
 
 		if (dst_key_alg(dstkey) == sig.algorithm &&
 		    (dst_key_id(dstkey) == sig.keyid ||
-		     (sig.algorithm != 1 && sig.keyid ==
-		       ((dst_key_id(dstkey) + 128) & 0xffff)))) {
+		     dst_key_rid(dstkey) == sig.keyid)) {
 			result = dns_dnssec_verify2(keyname,
 					    &kfetch->dnskeyset,
 					    dstkey, ISC_FALSE, mctx, &sigrr,

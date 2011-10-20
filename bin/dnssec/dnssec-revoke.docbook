@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-revoke.docbook,v 1.7 2009/11/03 21:44:46 each Exp $ -->
+<!-- $Id: dnssec-revoke.docbook,v 1.7.266.1 2011/10/20 21:23:49 marka Exp $ -->
 <refentry id="man.dnssec-revoke">
   <refentryinfo>
     <date>June 1, 2009</date>
@@ -49,6 +49,7 @@
       <arg><option>-K <replaceable class="parameter">directory</replaceable></option></arg>
       <arg><option>-E <replaceable class="parameter">engine</replaceable></option></arg>
       <arg><option>-f</option></arg>
+      <arg><option>-R</option></arg>
       <arg choice="req">keyfile</arg>
     </cmdsynopsis>
   </refsynopsisdiv>
@@ -120,6 +121,16 @@
             Force overwrite: Causes <command>dnssec-revoke</command> to
             write the new key pair even if a file already exists matching
             the algorithm and key ID of the revoked key.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-R</term>
+        <listitem>
+          <para>
+	    Print the key tag of the key with the REVOKE bit set but do
+	    not revoke the key.
           </para>
         </listitem>
       </varlistentry>

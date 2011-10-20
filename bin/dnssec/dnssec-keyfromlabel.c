@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keyfromlabel.c,v 1.32.14.2 2011/03/12 04:59:14 tbox Exp $ */
+/* $Id: dnssec-keyfromlabel.c,v 1.32.14.3 2011/10/20 21:23:49 marka Exp $ */
 
 /*! \file */
 
@@ -514,8 +514,7 @@ main(int argc, char **argv) {
 	 * is a risk of ID collision due to this key or another key
 	 * being revoked.
 	 */
-	if (key_collision(dst_key_id(key), name, directory, alg, mctx, &exact))
-	{
+	if (key_collision(key, name, directory, mctx, &exact)) {
 		isc_buffer_clear(&buf);
 		ret = dst_key_buildfilename(key, 0, directory, &buf);
 		if (ret != ISC_R_SUCCESS)

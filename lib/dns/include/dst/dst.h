@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.31.10.1 2011/03/21 19:53:35 each Exp $ */
+/* $Id: dst.h,v 1.31.10.2 2011/10/20 21:23:50 marka Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -641,6 +641,9 @@ dst_key_flags(const dst_key_t *key);
 dns_keytag_t
 dst_key_id(const dst_key_t *key);
 
+dns_keytag_t
+dst_key_rid(const dst_key_t *key);
+
 dns_rdataclass_t
 dst_key_class(const dst_key_t *key);
 
@@ -706,9 +709,11 @@ dst_key_secretsize(const dst_key_t *key, unsigned int *n);
 
 isc_uint16_t
 dst_region_computeid(const isc_region_t *source, unsigned int alg);
+isc_uint16_t
+dst_region_computerid(const isc_region_t *source, unsigned int alg);
 /*%<
- * Computes the key id of the key stored in the provided region with the
- * given algorithm.
+ * Computes the (revoked) key id of the key stored in the provided
+ * region with the given algorithm.
  *
  * Requires:
  *\li	"source" contains a valid, non-NULL region.
