@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.108.8.8 2011/03/12 04:58:24 tbox Exp $ */
+/* $Id: dnssec-keygen.c,v 1.108.8.9 2011/10/20 21:26:16 marka Exp $ */
 
 /*! \file */
 
@@ -959,8 +959,7 @@ main(int argc, char **argv) {
 		 * if there is a risk of ID collision due to this key
 		 * or another key being revoked.
 		 */
-		if (key_collision(dst_key_id(key), name, directory,
-				  alg, mctx, NULL)) {
+		if (key_collision(key, name, directory, mctx, NULL)) {
 			conflict = ISC_TRUE;
 			if (null_key) {
 				dst_key_free(&key);

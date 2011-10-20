@@ -197,8 +197,8 @@ dns_dnssec_keyfromrdata
 dns_dnssec_keylistfromrdataset
 dns_dnssec_selfsigns
 dns_dnssec_sign
-dns_dnssec_signs
 dns_dnssec_signmessage
+dns_dnssec_signs
 dns_dnssec_updatekeys
 dns_dnssec_verify
 dns_dnssec_verify2
@@ -922,6 +922,7 @@ dst_key_name
 dst_key_paramcompare
 dst_key_proto
 dst_key_pubcompare
+dst_key_rid
 dst_key_secretsize
 dst_key_setbits
 dst_key_setflags
@@ -938,6 +939,7 @@ dst_lib_init
 dst_lib_init2
 dst_lib_initmsgcat
 dst_region_computeid
+dst_region_computerid
 dst_result_register
 dst_result_totext
 
