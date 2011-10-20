@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009-2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.60.162.1 2011/10/20 21:23:49 marka Exp $ */
+/* $Id: dnssectool.c,v 1.60.162.2 2011/10/20 23:46:27 tbox Exp $ */
 
 /*! \file */
 
@@ -419,7 +419,7 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 
 	if (exact != NULL)
 		*exact = ISC_FALSE;
- 
+
 	id = dst_key_id(dstkey);
 	rid = dst_key_rid(dstkey);
 	alg = dst_key_alg(dstkey);

@@ -1,6 +1,6 @@
 #!/bin/sh -e
 #
-# Copyright (C) 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2009-2011  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: keygen.sh,v 1.6.164.1 2011/10/20 21:23:50 marka Exp $
+# $Id: keygen.sh,v 1.6.164.2 2011/10/20 23:46:28 tbox Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
