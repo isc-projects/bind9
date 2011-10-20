@@ -977,6 +977,7 @@ dst_key_paramcompare
 dst_key_proto
 dst_key_pubcompare
 dst_key_restore
+dst_key_rid
 dst_key_secretsize
 dst_key_setbits
 dst_key_setflags
@@ -994,6 +995,7 @@ dst_lib_init
 dst_lib_init2
 dst_lib_initmsgcat
 dst_region_computeid
+dst_region_computerid
 dst_result_register
 dst_result_totext
 
