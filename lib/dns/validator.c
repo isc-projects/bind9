@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.164.12.31 2011/10/20 21:47:47 marka Exp $ */
+/* $Id: validator.c,v 1.164.12.32 2011/10/20 23:45:14 tbox Exp $ */
 
 #include <config.h>
 
@@ -2906,7 +2906,7 @@ findnsec3proofs(dns_validator_t *val) {
 				 namebuf, sizeof(namebuf));
 		validator_log(val, ISC_LOG_DEBUG(3), "closest encloser from "
 			      "wildcard signature '%s'", namebuf);
-                dns_name_copy(dns_fixedname_name(&val->closest), closest, NULL);
+		dns_name_copy(dns_fixedname_name(&val->closest), closest, NULL);
 		closestp = NULL;
 		setclosestp = NULL;
 	} else {
