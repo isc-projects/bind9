@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Andrew Tridgell
+ * Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the
@@ -17,13 +17,23 @@
  */
 
 /*
-  This header provides a minimal set of defines and typedefs needed
-  for building an external DLZ module for bind9. When creating a new
-  external DLZ driver, please copy this header into your own source
-  tree.
+ * This header provides a minimal set of defines and typedefs needed
+ * for building an external DLZ module for bind9. When creating a new
+ * external DLZ driver, please copy this header into your own source
+ * tree.
  */
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#ifdef ISC_PLATFORM_HAVESYSUNH
+#include <sys/un.h>
+#endif
+#include <net/if.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
 typedef unsigned int isc_result_t;
-typedef bool isc_boolean_t;
+typedef int isc_boolean_t;
 typedef uint32_t dns_ttl_t;
 
 #define DLZ_DLOPEN_VERSION 2
@@ -37,6 +47,10 @@ typedef uint32_t dns_ttl_t;
 #define ISC_R_NOTFOUND			23
 #define ISC_R_FAILURE			25
 
+/* boolean values */
+#define ISC_TRUE 1
+#define ISC_FALSE 0
+
 /* log levels */
 #define ISC_LOG_INFO		(-1)
 #define ISC_LOG_NOTICE		(-2)
@@ -44,20 +58,80 @@ typedef uint32_t dns_ttl_t;
 #define ISC_LOG_ERROR		(-4)
 #define ISC_LOG_CRITICAL	(-5)
 
-/* some opaque structures */
+/* other useful definitions */
+#define UNUSED(x) (void)(x)
+
+/* opaque structures */
 typedef void *dns_sdlzlookup_t;
 typedef void *dns_sdlzallnodes_t;
 typedef void *dns_view_t;
-typedef void *dns_dlzclientcallback_t;
 
 /*
- * prototypes for the functions you can include in your driver
+ * Method and type definitions needed for retrieval of client info
+ * from the caller.
+ */
+typedef struct isc_sockaddr {
+        union {
+		struct sockaddr         sa;
+		struct sockaddr_in      sin;
+		struct sockaddr_in6     sin6;
+#ifdef ISC_PLATFORM_HAVESYSUNH
+		struct sockaddr_un      sunix;
+#endif
+	}                               type;
+	unsigned int                    length;
+	void *				link;
+} isc_sockaddr_t;
+
+#define DNS_CLIENTINFO_VERSION 1
+typedef struct dns_clientinfo {
+	uint16_t version;
+	void *data;
+} dns_clientinfo_t;
+
+typedef isc_result_t (*dns_clientinfo_sourceip_t)(dns_clientinfo_t *client,
+						  isc_sockaddr_t **addrp);
+
+#define DNS_CLIENTINFOMETHODS_VERSION 1
+#define DNS_CLIENTINFOMETHODS_AGE 0
+
+typedef struct dns_clientinfomethods {
+	uint16_t version;
+	uint16_t age;
+	dns_clientinfo_sourceip_t sourceip;
+} dns_clientinfomethods_t;
+
+/*
+ * Method definitions for callbacks provided by the dlopen driver
+ */
+typedef void log_t(int level, const char *fmt, ...);
+
+typedef isc_result_t dns_sdlz_putrr_t(dns_sdlzlookup_t *lookup,
+				      const char *type,
+				      dns_ttl_t ttl,
+				      const char *data);
+
+typedef isc_result_t dns_sdlz_putnamedrr_t(dns_sdlzallnodes_t *allnodes,
+					   const char *name,
+					   const char *type,
+					   dns_ttl_t ttl,
+					   const char *data);
+
+typedef isc_result_t dns_dlz_writeablezone_t(dns_view_t *view,
+					     const char *zone_name);
+
+
+/*
+ * prototypes for the functions you can include in your module
  */
 
 
 /*
  * dlz_version() is required for all DLZ external drivers. It should
- * return DLZ_DLOPEN_VERSION
+ * return DLZ_DLOPEN_VERSION.  'flags' is updated to indicate capabilities
+ * of the module.  In particular, if the module is thread-safe then it
+ * sets 'flags' to include DNS_SDLZFLAG_THREADSAFE.  Other capability
+ * flags may be added in the future.
  */
 int
 dlz_version(unsigned int *flags);
@@ -87,7 +161,9 @@ dlz_findzonedb(void *dbdata, const char *name);
  */
 isc_result_t
 dlz_lookup(const char *zone, const char *name, void *dbdata,
-           dns_sdlzlookup_t *lookup);
+	   dns_sdlzlookup_t *lookup,
+	   dns_clientinfomethods_t *methods,
+	   dns_clientinfo_t *clientinfo);
 
 /*
  * dlz_allowzonexfr() is optional, and should be supplied if you want to
@@ -125,13 +201,6 @@ dlz_closeversion(const char *zone, isc_boolean_t commit, void *dbdata,
  */
 isc_result_t
 dlz_configure(dns_view_t *view, void *dbdata);
-
-/*
- * dlz_setclientcallback() is optional, but must be supplied if you want
- * to retrieve information about the client before sending a reply.
- */
-isc_result_t
-dlz_setclientcallback(dns_dlzclientcallback_t callback);
 
 /*
  * dlz_ssumatch() is optional, but must be supplied if you want to support
