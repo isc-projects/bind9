@@ -104,8 +104,8 @@
 ./bin/dnssec/dnssec-keygen.docbook		SGML	2000,2001,2002,2003,2004,2005,2007,2008,2009,2010
 ./bin/dnssec/dnssec-keygen.html			HTML	DOCBOOK
 ./bin/dnssec/dnssec-revoke.8			MAN	DOCBOOK
-./bin/dnssec/dnssec-revoke.c			C	2009,2010
-./bin/dnssec/dnssec-revoke.docbook		SGML	2009
+./bin/dnssec/dnssec-revoke.c			C	2009,2010,2011
+./bin/dnssec/dnssec-revoke.docbook		SGML	2009,2011
 ./bin/dnssec/dnssec-revoke.html			HTML	DOCBOOK
 ./bin/dnssec/dnssec-settime.8			MAN	DOCBOOK
 ./bin/dnssec/dnssec-settime.c			C	2009,2010,2011
@@ -115,8 +115,8 @@
 ./bin/dnssec/dnssec-signzone.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
 ./bin/dnssec/dnssec-signzone.docbook		SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./bin/dnssec/dnssec-signzone.html		HTML	DOCBOOK
-./bin/dnssec/dnssectool.c			C	2000,2001,2003,2004,2005,2007,2009,2010
-./bin/dnssec/dnssectool.h			C	2000,2001,2003,2004,2007,2008,2009,2010
+./bin/dnssec/dnssectool.c			C	2000,2001,2003,2004,2005,2007,2009,2010,2011
+./bin/dnssec/dnssectool.h			C	2000,2001,2003,2004,2007,2008,2009,2010,2011
 ./bin/dnssec/win32/dnssectool.dsp		X	2006,2009
 ./bin/dnssec/win32/dnssectool.dsw		X	2006,2009
 ./bin/dnssec/win32/dsfromkey.dsp		X	2008,2009
@@ -591,7 +591,7 @@
 ./bin/tests/system/ans.pl			PERL	2011
 ./bin/tests/system/autosign/clean.sh		SH	2009,2010,2011
 ./bin/tests/system/autosign/ns1/.cvsignore	X	2009
-./bin/tests/system/autosign/ns1/keygen.sh	SH	2009,2010
+./bin/tests/system/autosign/ns1/keygen.sh	SH	2009,2010,2011
 ./bin/tests/system/autosign/ns1/named.conf	CONF-C	2009
 ./bin/tests/system/autosign/ns1/root.db.in	ZONE	2009,2010
 ./bin/tests/system/autosign/ns2/.cvsignore	X	2009
@@ -1971,7 +1971,7 @@
 ./lib/dns/dnssec.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
 ./lib/dns/ds.c					C	2002,2003,2004,2005,2006,2007
 ./lib/dns/dst_api.c				C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
-./lib/dns/dst_internal.h			C.NAI	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010
+./lib/dns/dst_internal.h			C.NAI	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011
 ./lib/dns/dst_lib.c				C	1999,2000,2001,2004,2005,2007
 ./lib/dns/dst_openssl.h				C	2002,2004,2005,2007,2008,2009,2011
 ./lib/dns/dst_parse.c				C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011
@@ -2070,13 +2070,13 @@
 ./lib/dns/include/dns/zt.h			C	1999,2000,2001,2002,2004,2005,2006,2007
 ./lib/dns/include/dst/.cvsignore		X	2000,2001,2004
 ./lib/dns/include/dst/Makefile.in		MAKE	1998,1999,2000,2001,2004,2007
-./lib/dns/include/dst/dst.h			C	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010
+./lib/dns/include/dst/dst.h			C	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011
 ./lib/dns/include/dst/gssapi.h			C	2000,2001,2004,2005,2006,2007,2009
 ./lib/dns/include/dst/lib.h			C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dst/result.h			C	1999,2000,2001,2004,2005,2006,2007,2008
 ./lib/dns/iptable.c				C	2007,2008,2009
 ./lib/dns/journal.c				C	1999,2000,2001,2002,2004,2005,2007,2008,2009,2010,2011
-./lib/dns/key.c					C	2001,2004,2005,2006,2007
+./lib/dns/key.c					C	2001,2004,2005,2006,2007,2011
 ./lib/dns/keydata.c				C	2009
 ./lib/dns/keytable.c				C	2000,2001,2004,2005,2007,2009,2010
 ./lib/dns/lib.c					C	1999,2000,2001,2004,2005,2007,2009
