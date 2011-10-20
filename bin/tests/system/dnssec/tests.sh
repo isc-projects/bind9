@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.53.48.21 2011/10/15 05:13:39 marka Exp $
+# $Id: tests.sh,v 1.53.48.22 2011/10/20 21:47:47 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -79,6 +79,24 @@ $DIG $DIGOPTS a.wild.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
 $PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking positive wildcard answer NSEC3 ($n)"
+ret=0
+$DIG $DIGOPTS a.wild.nsec3.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
+grep "AUTHORITY: 4," dig.out.ns3.test$n > /dev/null || ret=1
+grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking positive wildcard answer NSEC3 ($n)"
+ret=0
+$DIG $DIGOPTS a.wild.nsec3.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
+grep "AUTHORITY: 4," dig.out.ns3.test$n > /dev/null || ret=1
+grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

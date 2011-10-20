@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.164.12.30 2011/10/15 05:13:39 marka Exp $ */
+/* $Id: validator.c,v 1.164.12.31 2011/10/20 21:47:47 marka Exp $ */
 
 #include <config.h>
 
@@ -1881,13 +1881,14 @@ verify(dns_validator_t *val, dst_key_t *key, dns_rdata_t *rdata,
 	isc_result_t result;
 	dns_fixedname_t fixed;
 	isc_boolean_t ignore = ISC_FALSE;
+	dns_name_t *wild;
 
 	val->attributes |= VALATTR_TRIEDVERIFY;
 	dns_fixedname_init(&fixed);
+	wild = dns_fixedname_name(&fixed);
  again:
 	result = dns_dnssec_verify2(val->event->name, val->event->rdataset,
-				    key, ignore, val->view->mctx, rdata,
-				    dns_fixedname_name(&fixed));
+				    key, ignore, val->view->mctx, rdata, wild);
 	if (result == DNS_R_SIGEXPIRED && val->view->acceptexpired) {
 		ignore = ISC_TRUE;
 		goto again;
@@ -1902,9 +1903,20 @@ verify(dns_validator_t *val, dst_key_t *key, dns_rdata_t *rdata,
 			      "verify rdataset (keyid=%u): %s",
 			      keyid, isc_result_totext(result));
 	if (result == DNS_R_FROMWILDCARD) {
-		if (!dns_name_equal(val->event->name,
-				    dns_fixedname_name(&fixed)))
+		if (!dns_name_equal(val->event->name, wild)) {
+			dns_name_t *closest;
+			unsigned int labels;
+
+			/*
+			 * Compute the closest encloser in case we need it
+			 * for the NSEC3 NOQNAME proof.
+			 */
+			closest = dns_fixedname_name(&val->closest);
+			dns_name_copy(wild, closest, NULL);
+			labels = dns_name_countlabels(closest) - 1;
+			dns_name_getlabelsequence(closest, 1, labels, closest);
 			val->attributes |= VALATTR_NEEDNOQNAME;
+		}
 		result = ISC_R_SUCCESS;
 	}
 	return (result);
@@ -2834,9 +2846,9 @@ findnsec3proofs(dns_validator_t *val) {
 	dns_name_t *name, tname;
 	isc_result_t result;
 	isc_boolean_t exists, data, optout, unknown;
-	isc_boolean_t setclosest, setnearest;
+	isc_boolean_t setclosest, setnearest, *setclosestp;
 	dns_fixedname_t fclosest, fnearest, fzonename;
-	dns_name_t *closest, *nearest, *zonename;
+	dns_name_t *closest, *nearest, *zonename, *closestp;
 	dns_name_t **proofs = val->event->proofs;
 	dns_rdataset_t *rdataset, trdataset;
 
@@ -2883,6 +2895,25 @@ findnsec3proofs(dns_validator_t *val) {
 	if (dns_name_countlabels(zonename) == 0)
 		return (ISC_R_SUCCESS);
 
+	/*
+	 * If the val->closest is set then we want to use it otherwise
+	 * we need to discover it.
+	 */
+	if (dns_name_countlabels(dns_fixedname_name(&val->closest)) != 0) {
+		char namebuf[DNS_NAME_FORMATSIZE];
+
+		dns_name_format(dns_fixedname_name(&val->closest),
+				 namebuf, sizeof(namebuf));
+		validator_log(val, ISC_LOG_DEBUG(3), "closest encloser from "
+			      "wildcard signature '%s'", namebuf);
+                dns_name_copy(dns_fixedname_name(&val->closest), closest, NULL);
+		closestp = NULL;
+		setclosestp = NULL;
+	} else {
+		closestp = closest;
+		setclosestp = &setclosest;
+	}
+
 	for (result = val_rdataset_first(val, &name, &rdataset);
 	     result == ISC_R_SUCCESS;
 	     result = val_rdataset_next(val, &name, &rdataset))
@@ -2900,8 +2931,8 @@ findnsec3proofs(dns_validator_t *val) {
 		unknown = ISC_FALSE;
 		(void)nsec3noexistnodata(val, val->event->name, name, rdataset,
 					 zonename, &exists, &data, &optout,
-					 &unknown, &setclosest, &setnearest,
-					 closest, nearest);
+					 &unknown, setclosestp, &setnearest,
+					 closestp, nearest);
 		if (setclosest)
 			proofs[DNS_VALIDATOR_CLOSESTENCLOSER] = name;
 		if (unknown)
