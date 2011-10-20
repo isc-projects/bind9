@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007-2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.h,v 1.32 2011/10/20 21:20:01 marka Exp $ */
+/* $Id: dnssectool.h,v 1.33 2011/10/20 23:46:51 tbox Exp $ */
 
 #ifndef DNSSECTOOL_H
 #define DNSSECTOOL_H 1
