@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.58.36.4 2011/10/20 23:46:04 tbox Exp $ */
+/* $Id: dnssectool.c,v 1.58.36.5 2011/10/21 03:56:55 marka Exp $ */
 
 /*! \file */
 
@@ -413,7 +413,7 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 	isc_boolean_t conflict = ISC_FALSE;
 	dns_dnsseckeylist_t matchkeys;
 	dns_dnsseckey_t *key = NULL;
-	isc_uint16_t id, oldid, flags;
+	isc_uint16_t id, oldid;
 	isc_uint32_t rid, roldid;
 	dns_secalg_t alg;
 
@@ -423,7 +423,6 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 	id = dst_key_id(dstkey);
 	rid = dst_key_rid(dstkey);
 	alg = dst_key_alg(dstkey);
-	flags = dst_key_flags(dstkey);
 
 	ISC_LIST_INIT(matchkeys);
 	result = dns_dnssec_findmatchingkeys(name, dir, mctx, &matchkeys);
