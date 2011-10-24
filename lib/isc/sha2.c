@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sha2.c,v 1.20 2011/03/12 04:59:49 tbox Exp $ */
+/* $Id: sha2.c,v 1.21 2011/10/24 22:51:29 mgraff Exp $ */
 
 /*	$FreeBSD: src/sys/crypto/sha2/sha2.c,v 1.2.2.2 2002/03/05 08:36:47 ume Exp $	*/
 /*	$KAME: sha2.c,v 1.8 2001/11/08 01:07:52 itojun Exp $	*/
@@ -905,7 +905,7 @@ isc_sha256_final(isc_uint8_t digest[], isc_sha256_t *context) {
 	}
 
 	/* Clean up state data: */
-	memset(context, 0, sizeof(context));
+	memset(context, 0, sizeof(*context));
 	usedspace = 0;
 	POST(usedspace);
 }
@@ -1229,7 +1229,7 @@ void isc_sha512_final(isc_uint8_t digest[], isc_sha512_t *context) {
 	}
 
 	/* Zero out state data */
-	memset(context, 0, sizeof(context));
+	memset(context, 0, sizeof(*context));
 }
 
 
@@ -1282,7 +1282,7 @@ isc_sha384_final(isc_uint8_t digest[], isc_sha384_t *context) {
 	}
 
 	/* Zero out state data */
-	memset(context, 0, sizeof(context));
+	memset(context, 0, sizeof(*context));
 }
 #endif /* !ISC_PLATFORM_OPENSSLHASH */
 
@@ -1313,7 +1313,7 @@ isc_sha224_end(isc_sha224_t *context, char buffer[]) {
 #ifdef ISC_PLATFORM_OPENSSLHASH
 		EVP_MD_CTX_cleanup(context);
 #else
-		memset(context, 0, sizeof(context));
+		memset(context, 0, sizeof(*context));
 #endif
 	}
 	memset(digest, 0, ISC_SHA224_DIGESTLENGTH);
@@ -1352,7 +1352,7 @@ isc_sha256_end(isc_sha256_t *context, char buffer[]) {
 #ifdef ISC_PLATFORM_OPENSSLHASH
 		EVP_MD_CTX_cleanup(context);
 #else
-		memset(context, 0, sizeof(context));
+		memset(context, 0, sizeof(*context));
 #endif
 	}
 	memset(digest, 0, ISC_SHA256_DIGESTLENGTH);
@@ -1391,7 +1391,7 @@ isc_sha512_end(isc_sha512_t *context, char buffer[]) {
 #ifdef ISC_PLATFORM_OPENSSLHASH
 		EVP_MD_CTX_cleanup(context);
 #else
-		memset(context, 0, sizeof(context));
+		memset(context, 0, sizeof(*context));
 #endif
 	}
 	memset(digest, 0, ISC_SHA512_DIGESTLENGTH);
@@ -1430,7 +1430,7 @@ isc_sha384_end(isc_sha384_t *context, char buffer[]) {
 #ifdef ISC_PLATFORM_OPENSSLHASH
 		EVP_MD_CTX_cleanup(context);
 #else
-		memset(context, 0, sizeof(context));
+		memset(context, 0, sizeof(*context));
 #endif
 	}
 	memset(digest, 0, ISC_SHA384_DIGESTLENGTH);
