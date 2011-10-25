@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.280 2011/10/11 23:46:44 tbox Exp $ */
+/* $Id: client.c,v 1.281 2011/10/25 16:21:21 each Exp $ */
 
 #include <config.h>
 
@@ -1956,6 +1956,11 @@ static isc_result_t
 get_clientmctx(ns_clientmgr_t *manager, isc_mem_t **mctxp) {
 	isc_mem_t *clientmctx;
 	isc_result_t result;
+#if NMCTXS > 0
+	unsigned int nextmctx;
+#endif
+
+	MTRACE("clientmctx");
 
 	/*
 	 * Caller must be holding the manager lock.
@@ -1967,19 +1972,21 @@ get_clientmctx(ns_clientmgr_t *manager, isc_mem_t **mctxp) {
 		return (result);
 	}
 #if NMCTXS > 0
-	INSIST(manager->nextmctx < NMCTXS);
-	clientmctx = manager->mctxpool[manager->nextmctx];
+	nextmctx = manager->nextmctx++;
+	if (manager->nextmctx == NMCTXS)
+		manager->nextmctx = 0;
+
+	INSIST(nextmctx < NMCTXS);
+
+	clientmctx = manager->mctxpool[nextmctx];
 	if (clientmctx == NULL) {
 		result = isc_mem_create(0, 0, &clientmctx);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		isc_mem_setname(clientmctx, "client", NULL);
 
-		manager->mctxpool[manager->nextmctx] = clientmctx;
+		manager->mctxpool[nextmctx] = clientmctx;
 	}
-	manager->nextmctx++;
-	if (manager->nextmctx == NMCTXS)
-		manager->nextmctx = 0;
 #else
 	clientmctx = manager->mctx;
 #endif
@@ -2545,7 +2552,9 @@ get_client(ns_clientmgr_t *manager, ns_interface_t *ifp,
 	else {
 		MTRACE("create new");
 
+		LOCK(&manager->lock);
 		result = client_create(manager, &client);
+		UNLOCK(&manager->lock);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 
@@ -2591,18 +2600,11 @@ ns_clientmgr_createclients(ns_clientmgr_t *manager, unsigned int n,
 
 	MTRACE("createclients");
 
-	/*
-	 * We MUST lock the manager lock for the entire client creation
-	 * process.  If we didn't do this, then a client could get a
-	 * shutdown event and disappear out from under us.
-	 */
-	LOCK(&manager->lock);
 	for (disp = 0; disp < n; disp++) {
 		result = get_client(manager, ifp, ifp->udpdispatch[disp], tcp);
 		if (result != ISC_R_SUCCESS)
 			break;
 	}
-	UNLOCK(&manager->lock);
 
 	return (result);
 }
