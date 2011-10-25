@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.6.70.4 2011/10/13 04:39:07 marka Exp $
+# $Id: tests.sh,v 1.6.70.5 2011/10/25 04:04:56 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -92,7 +92,11 @@ echo "$pzoneout" | grep 'KSKs: 1 active, 0 stand-by, 0 revoked' > /dev/null || r
 echo "$pzoneout" | grep 'ZSKs: 1 active, 0 stand-by, 0 revoked' > /dev/null || ret=1
 echo "$czoneout" | grep 'KSKs: 1 active, 1 stand-by, 1 revoked' > /dev/null || ret=1
 echo "$czoneout" | grep 'ZSKs: 1 active, 2 stand-by, 0 revoked' > /dev/null || ret=1
-if [ $ret != 0 ]; then echo "I:failed"; fi
+if [ $ret != 0 ]; then
+	echo "I: parent $pzoneout"
+	echo "I: child $czoneout"
+	echo "I:failed";
+fi
 status=`expr $status + $ret`
 
 echo "I:rechecking dnssec-signzone output with -x"
@@ -109,8 +113,14 @@ status=`expr $status + $ret`
 
 echo "I:checking parent zone DNSKEY set"
 ret=0
-grep "key id = $pzid" $pfile.signed > /dev/null || ret=1
-grep "key id = $pkid" $pfile.signed > /dev/null || ret=1
+grep "key id = $pzid" $pfile.signed > /dev/null || {
+	ret=1
+	echo "I: missing expected parent ZSK id = $pzid"
+}
+grep "key id = $pkid" $pfile.signed > /dev/null || {
+	ret=1
+	echo "I: missing expected parent KSK id = $pkid"
+}
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -127,17 +137,45 @@ status=`expr $status + $ret`
 
 echo "I:checking child zone DNSKEY set"
 ret=0
-grep "key id = $ckactive" $cfile.signed > /dev/null || ret=1
-grep "key id = $ckpublished" $cfile.signed > /dev/null || ret=1
-grep "key id = $ckrevoked" $cfile.signed > /dev/null || ret=1
-grep "key id = $czactive" $cfile.signed > /dev/null || ret=1
-grep "key id = $czpublished" $cfile.signed > /dev/null || ret=1
-grep "key id = $czinactive" $cfile.signed > /dev/null || ret=1
+grep "key id = $ckactive" $cfile.signed > /dev/null || {
+	ret=1
+	echo "I: missing expected child KSK id = $ckactive"
+}
+grep "key id = $ckpublished" $cfile.signed > /dev/null || {
+	ret=1
+	echo "I: missing expected child prepublished KSK id = $ckpublished"
+}
+grep "key id = $ckrevoked" $cfile.signed > /dev/null || {
+	ret=1
+	echo "I: missing expected child revoked KSK id = $ckrevoked"
+}
+grep "key id = $czactive" $cfile.signed > /dev/null || {
+	ret=1
+	echo "I: missing expected child ZSK id = $czactive"
+}
+grep "key id = $czpublished" $cfile.signed > /dev/null || {
+	ret=1
+	echo "I: missing expected child prepublished ZSK id = $czpublished"
+}
+grep "key id = $czinactive" $cfile.signed > /dev/null || {
+	ret=1
+	echo "I: missing expected child inactive ZSK id = $czinactive"
+}
 # should not be there, hence the &&
-grep "key id = $ckprerevoke" $cfile.signed > /dev/null && ret=1
-grep "key id = $czgenerated" $cfile.signed > /dev/null && ret=1
-grep "key id = $czpredecessor" $cfile.signed && echo pred is there
-grep "key id = $czsuccessor" $cfile.signed && echo succ is there
+grep "key id = $ckprerevoke" $cfile.signed > /dev/null && {
+	ret=1
+	echo "I: found unexpect child pre-revoke ZSK id = $ckprerevoke"
+}
+grep "key id = $czgenerated" $cfile.signed > /dev/null && {
+	ret=1
+	echo "I: found unexpected child generated ZSK id = $czgenerated"
+}
+grep "key id = $czpredecessor" $cfile.signed > /dev/null && {
+	echo "I: found unexpected ZSK predecessor id = $czpredecessor (ignored)"
+}
+grep "key id = $czsuccessor" $cfile.signed > /dev/null && {
+	echo "I: found unexpected ZSK successor id = $czsuccessor (ignored)"
+}
 #grep "key id = $czpredecessor" $cfile.signed > /dev/null && ret=1
 #grep "key id = $czsuccessor" $cfile.signed > /dev/null && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
