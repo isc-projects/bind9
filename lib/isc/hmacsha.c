@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hmacsha.c,v 1.8 2007/08/27 03:27:53 marka Exp $ */
+/* $Id: hmacsha.c,v 1.8.298.1 2011/10/25 03:11:17 marka Exp $ */
 
 /*
  * This code implements the HMAC-SHA1, HMAC-SHA224, HMAC-SHA256, HMAC-SHA384
@@ -64,8 +64,7 @@ isc_hmacsha1_init(isc_hmacsha1_t *ctx, const unsigned char *key,
 void
 isc_hmacsha1_invalidate(isc_hmacsha1_t *ctx) {
 	isc_sha1_invalidate(&ctx->sha1ctx);
-	memset(ctx->key, 0, sizeof(ctx->key));
-	memset(ctx, 0, sizeof(ctx));
+	memset(ctx, 0, sizeof(*ctx));
 }
 
 /*
@@ -145,8 +144,7 @@ isc_hmacsha224_init(isc_hmacsha224_t *ctx, const unsigned char *key,
 
 void
 isc_hmacsha224_invalidate(isc_hmacsha224_t *ctx) {
-	memset(ctx->key, 0, sizeof(ctx->key));
-	memset(ctx, 0, sizeof(ctx));
+	memset(ctx, 0, sizeof(*ctx));
 }
 
 /*
@@ -225,8 +223,7 @@ isc_hmacsha256_init(isc_hmacsha256_t *ctx, const unsigned char *key,
 
 void
 isc_hmacsha256_invalidate(isc_hmacsha256_t *ctx) {
-	memset(ctx->key, 0, sizeof(ctx->key));
-	memset(ctx, 0, sizeof(ctx));
+	memset(ctx, 0, sizeof(*ctx));
 }
 
 /*
@@ -305,8 +302,7 @@ isc_hmacsha384_init(isc_hmacsha384_t *ctx, const unsigned char *key,
 
 void
 isc_hmacsha384_invalidate(isc_hmacsha384_t *ctx) {
-	memset(ctx->key, 0, sizeof(ctx->key));
-	memset(ctx, 0, sizeof(ctx));
+	memset(ctx, 0, sizeof(*ctx));
 }
 
 /*
@@ -385,8 +381,7 @@ isc_hmacsha512_init(isc_hmacsha512_t *ctx, const unsigned char *key,
 
 void
 isc_hmacsha512_invalidate(isc_hmacsha512_t *ctx) {
-	memset(ctx->key, 0, sizeof(ctx->key));
-	memset(ctx, 0, sizeof(ctx));
+	memset(ctx, 0, sizeof(*ctx));
 }
 
 /*
