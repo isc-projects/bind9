@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.637 2011/10/25 01:54:22 marka Exp $ */
+/* $Id: zone.c,v 1.638 2011/10/25 04:38:14 marka Exp $ */
 
 /*! \file */
 
@@ -15338,7 +15338,6 @@ keydone(isc_task_t *task, isc_event_t *event) {
 	dns_dbnode_t *node = NULL;
 	dns_rdataset_t rdataset;
 	dns_diff_t diff;
-	isc_boolean_t have_rr = ISC_FALSE;
 	struct keydone *keydone = (struct keydone *)event;
 	dns_update_log_t log = { update_log_cb, NULL };
 
