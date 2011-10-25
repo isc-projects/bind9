@@ -1,3 +1,5 @@
+3179.	[port]		kfreebsd: build issues. [RT #26273]
+
 3178.	[bug]		A race condition introduced by change #3163 could
 			cause an assertion failure on shutdown. [RT #26271]
 
