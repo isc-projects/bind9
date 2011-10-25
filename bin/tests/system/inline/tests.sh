@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.3 2011/10/12 00:10:19 marka Exp $
+# $Id: tests.sh,v 1.4 2011/10/25 01:54:20 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -34,11 +34,80 @@ do
 	$DIG $DIGOPTS @10.53.0.3 -p 5300 bits TYPE65534 > dig.out.ns3.test$n
 	grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
 	grep "ANSWER: 3," dig.out.ns3.test$n > /dev/null || ret=1
-	records=`grep "TYPE65534.*05[0-9A-F][0-9A-F][0-9A-F][0-9A-F]0001" dig.out.ns3.test$n | wc -l`
+	records=`grep 'TYPE65534.*05[0-9A-F][0-9A-F][0-9A-F][0-9A-F]0001$' dig.out.ns3.test$n | wc -l`
 	[ $records = 2 ] || ret=1
 	if [ $ret = 0 ]; then break; fi
 	sleep 1
 done
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking removal of private type record via 'rndc keydone' ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.3 -p 5300 bits TYPE65534 > dig.out.ns3.test$n
+records=`sed -n -e 's/.*TYPE65534.*\(05[0-9A-F][0-9A-F][0-9A-F][0-9A-F]0001\)$/\1/p' dig.out.ns3.test$n`
+for record in $records
+do
+	$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 keydone "${record}" bits || ret=1
+	break;	# We only want to remove 1 record for now.
+done 2>&1 |sed 's/^/I:ns3 /'
+
+for i in 1 2 3 4 5 6 7 8 9 10
+do
+	ans=0
+	$DIG $DIGOPTS @10.53.0.3 -p 5300 bits TYPE65534 > dig.out.ns3.test$n
+	grep "ANSWER: 2," dig.out.ns3.test$n > /dev/null || ans=1
+	[ $ans = 1 ] || break
+	sleep 1
+done
+[ $ans = 0 ] || ret=1
+
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking private type was properly signed ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.6 -p 5300 bits TYPE65534 > dig.out.ns6.test$n
+grep "ANSWER: 2," dig.out.ns6.test$n > /dev/null || ret=1
+grep "flags:.* ad[ ;]" dig.out.ns6.test$n > /dev/null || ret=1
+
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking removal of remaining private type record via 'rndc keydone' ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.3 -p 5300 bits TYPE65534 > dig.out.ns3.test$n
+records=`sed -n -e 's/.*TYPE65534.*\(05[0-9A-F][0-9A-F][0-9A-F][0-9A-F]0001\)$/\1/p' dig.out.ns3.test$n`
+for record in $records
+do
+	$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 keydone "${record}" bits || ret=1
+done 2>&1 |sed 's/^/I:ns3 /'
+
+for i in 1 2 3 4 5 6 7 8 9 10
+do
+	ans=0
+	$DIG $DIGOPTS @10.53.0.3 -p 5300 bits TYPE65534 > dig.out.ns3.test$n
+	grep "ANSWER: 0," dig.out.ns3.test$n > /dev/null || ans=1
+	grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ans=1
+	[ $ans = 1 ] || break
+	sleep 1
+done
+[ $ans = 0 ] || ret=1
+
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking negative private type response was properly signed ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.6 -p 5300 bits TYPE65534 > dig.out.ns6.test$n
+grep "status: NOERROR" dig.out.ns6.test$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.ns6.test$n > /dev/null || ret=1
+grep "flags:.* ad[ ;]" dig.out.ns6.test$n > /dev/null || ret=1
+
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -195,7 +264,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I:restart bump in the wire signer server ($n)"
 ret=0
-$PERL ../start.pl --noclean . ns3 || ret=1
+$PERL ../start.pl --noclean --restart . ns3 || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 

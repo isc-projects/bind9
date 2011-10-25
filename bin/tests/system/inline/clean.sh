@@ -12,11 +12,15 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.3 2011/10/12 00:10:19 marka Exp $
+# $Id: clean.sh,v 1.4 2011/10/25 01:54:19 marka Exp $
 
 rm -f */named.memstats
 rm -f */named.run
 rm -f */trusted.conf
+rm -f ns1/K*
+rm -f ns1/dsset-*
+rm -f ns1/root.db
+rm -f ns1/root.db.signed
 rm -f ns2/bits.db
 rm -f ns2/bits.db.jnl
 rm -f ns3/K*

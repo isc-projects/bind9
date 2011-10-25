@@ -1,3 +1,5 @@
+#!/bin/sh -e
+#
 # Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -12,34 +14,28 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.4 2011/10/25 01:54:19 marka Exp $
+# $Id: sign.sh,v 1.2 2011/10/25 01:54:20 marka Exp $
 
-sh clean.sh
+SYSTEMTESTTOP=../..
+. $SYSTEMTESTTOP/conf.sh
 
-cp ns1/root.db.in ns1/root.db
-rm -f ns1/root.db.signed
+RANDFILE=../random.data
 
-touch ns2/trusted.conf
-cp ns2/bits.db.in ns2/bits.db
-rm -f ns2/bits.db.jnl
+zone=.
+rm -f K.+*+*.key
+rm -f K.+*+*.private
+keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 768 -n zone $zone`
+keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone -f KSK $zone`
+$SIGNER -S -x -T 1200 -o ${zone} root.db
 
-rm -f ns3/bits.bk
-rm -f ns3/bits.bk.jnl
-rm -f ns3/bits.bk.signed
-rm -f ns3/bits.bk.signed.jnl
+cat ${keyname}.key | grep -v '^; ' | $PERL -n -e '
+local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
+local $key = join("", @rest);
+print <<EOF
+trusted-keys {
+    "$dn" $flags $proto $alg "$key";
+};
+EOF
+' > trusted.conf
 
-touch ns4/trusted.conf
-cp ns4/noixfr.db.in ns4/noixfr.db
-rm -f ns4/noixfr.db.jnl
-
-rm -f ns3/noixfr.bk
-rm -f ns3/noixfr.bk.jnl
-rm -f ns3/noixfr.bk.signed
-rm -f ns3/noixfr.bk.signed.jnl
-
-cp ns5/named.conf.pre ns5/named.conf
-
-../../../tools/genrandom 400 random.data
-
-(cd ns3; sh -e sign.sh)
-(cd ns1; sh -e sign.sh)
+cp trusted.conf ../ns6/trusted.conf

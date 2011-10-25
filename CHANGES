@@ -1,3 +1,7 @@
+3177.	[func]		'rndc keydone', remove the indicator record that
+			named has finished signing the zone with the
+			corresponding key.  [RT #26206]
+
 3176.	[doc]		Corrected example code and added a README to the
 			sample external DLZ module in contrib/dlz/example.
 			[RT #26215]

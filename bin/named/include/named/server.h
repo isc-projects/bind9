@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.113 2011/08/02 20:36:12 each Exp $ */
+/* $Id: server.h,v 1.114 2011/10/25 01:54:19 marka Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -341,5 +341,11 @@ ns_server_add_zone(ns_server_t *server, char *args);
  */
 isc_result_t
 ns_server_del_zone(ns_server_t *server, char *args);
+
+/*%
+ * Deletes the matching key done private record from the zone.
+ */
+isc_result_t
+ns_server_keydone(ns_server_t *server, char *args);
 
 #endif /* NAMED_SERVER_H */

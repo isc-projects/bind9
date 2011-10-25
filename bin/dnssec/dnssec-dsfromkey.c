@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-dsfromkey.c,v 1.23 2011/09/03 05:51:29 each Exp $ */
+/* $Id: dnssec-dsfromkey.c,v 1.24 2011/10/25 01:54:18 marka Exp $ */
 
 /*! \file */
 
@@ -62,6 +62,7 @@ static dns_rdataclass_t rdclass;
 static dns_fixedname_t	fixed;
 static dns_name_t	*name = NULL;
 static isc_mem_t	*mctx = NULL;
+static isc_uint32_t	ttl;
 
 static isc_result_t
 initname(char *setname) {
@@ -294,6 +295,9 @@ emit(unsigned int dtype, isc_boolean_t showall, char *lookaside,
 	isc_buffer_usedregion(&nameb, &r);
 	printf("%.*s ", (int)r.length, r.base);
 
+	if (ttl != 0U)
+		printf("%u ", ttl);
+
 	isc_buffer_usedregion(&classb, &r);
 	printf("%.*s", (int)r.length, r.base);
 
@@ -329,6 +333,7 @@ usage(void) {
 	fprintf(stderr, "    -l: add lookaside zone and print DLV records\n");
 	fprintf(stderr, "    -s: read keyset from keyset-<dnsname> file\n");
 	fprintf(stderr, "    -c class: rdata class for DS set (default: IN)\n");
+	fprintf(stderr, "    -T TTL\n");
 	fprintf(stderr, "    -f file: read keyset from zone file\n");
 	fprintf(stderr, "    -A: when used with -f, "
 			"include all keys in DS set, not just KSKs\n");
@@ -368,7 +373,7 @@ main(int argc, char **argv) {
 	isc_commandline_errprint = ISC_FALSE;
 
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "12Aa:c:d:Ff:K:l:sv:h")) != -1) {
+					   "12Aa:c:d:Ff:K:l:sT:v:h")) != -1) {
 		switch (ch) {
 		case '1':
 			dtype = DNS_DSDIGEST_SHA1;
@@ -407,6 +412,9 @@ main(int argc, char **argv) {
 			break;
 		case 's':
 			usekeyset = ISC_TRUE;
+			break;
+		case 'T':
+			ttl = atol(isc_commandline_argument);
 			break;
 		case 'v':
 			verbose = strtol(isc_commandline_argument, &endp, 0);

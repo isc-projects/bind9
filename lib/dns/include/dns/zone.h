@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.194 2011/09/06 22:29:33 smann Exp $ */
+/* $Id: zone.h,v 1.195 2011/10/25 01:54:22 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1977,6 +1977,9 @@ dns_zone_link(dns_zone_t *zone, dns_zone_t *raw);
 
 void
 dns_zone_getraw(dns_zone_t *zone, dns_zone_t **raw);
+
+isc_result_t
+dns_zone_keydone(dns_zone_t *zone, const char *data);
 
 ISC_LANG_ENDDECLS
 

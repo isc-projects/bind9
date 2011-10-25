@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.506 2011/10/13 23:44:47 tbox Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.507 2011/10/25 01:54:21 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -1551,6 +1551,28 @@ zone "eng.example.com" {
                         Only zones that were originally added via
                         <command>rndc addzone</command> can be deleted
                         in this matter.
+                      </para>
+                    </listitem>
+                  </varlistentry>
+
+                  <varlistentry>
+                    <term><userinput>keydone
+                        <replaceable>rdata</replaceable>
+                        <replaceable>zone</replaceable>
+                        <optional><replaceable>class</replaceable>
+                        <optional><replaceable>view</replaceable></optional></optional>
+                    </userinput></term>
+                    <listitem>
+                      <para>
+			Remove the <command>sig-signing-type</command> record
+			which matches the <replaceable>rdata</replaceable>
+			(in hexadecimal) from the specified zone.  Only
+			<replaceable>rdata</replaceable> that
+			indicate that named has finished signing the zone
+			with the corresponding key will be removed. (i.e.
+			the first two characters are not "00", the
+			last four characters are "0001" and the total
+			length is 10 hexadecimal characters.
                       </para>
                     </listitem>
                   </varlistentry>
@@ -8703,6 +8725,15 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		<para>
 		  It is expected that this parameter may be removed
 		  in a future version once there is a standard type.
+		</para>
+		<para>
+		  These records can be removed from the zone once named
+		  has completed signing the zone with the matching key
+		  using <command>nsupdate</command> or
+		  <command>rndc keydone</command>.
+		  <command>rndc keydone</command> is the only supported
+		  way to remove these records from
+		  <command>inline-signing</command> zones.
 		</para>
 	      </listitem>
 	    </varlistentry>

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.134 2011/03/21 15:39:05 each Exp $ */
+/* $Id: rndc.c,v 1.135 2011/10/25 01:54:19 marka Exp $ */
 
 /*! \file */
 
@@ -154,6 +154,9 @@ command is one of the following:\n\
 		Add zone to given view. Requires new-zone-file option.\n\
   delzone [\"file\"] zone [class [view]]\n\
 		Removes zone from given view. Requires new-zone-file option.\n\
+  keydone rdata zone [class [view]]\n\
+		Remove the private record with the corresponding rdata from\n\
+		the given zone.\n\
 \n\
 * == not yet implemented\n\
 Version: %s\n",

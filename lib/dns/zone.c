@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.636 2011/10/20 21:20:02 marka Exp $ */
+/* $Id: zone.c,v 1.637 2011/10/25 01:54:22 marka Exp $ */
 
 /*! \file */
 
@@ -23,6 +23,7 @@
 #include <errno.h>
 
 #include <isc/file.h>
+#include <isc/hex.h>
 #include <isc/mutex.h>
 #include <isc/print.h>
 #include <isc/random.h>
@@ -30,9 +31,9 @@
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
 #include <isc/serial.h>
-#include <isc/strerror.h>
 #include <isc/stats.h>
 #include <isc/stdtime.h>
+#include <isc/strerror.h>
 #include <isc/string.h>
 #include <isc/taskpool.h>
 #include <isc/timer.h>
@@ -15318,4 +15319,145 @@ dns_zone_getraw(dns_zone_t *zone, dns_zone_t **raw) {
 	if (zone->raw != NULL)
 		dns_zone_attach(zone->raw, raw);
 	UNLOCK(&zone->lock);
+}
+
+struct keydone {
+	isc_event_t event;
+	unsigned int data[5];
+};
+
+static void
+keydone(isc_task_t *task, isc_event_t *event) {
+	const char *me = "keydone";
+	isc_boolean_t commit = ISC_FALSE;
+	isc_result_t result;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_dbversion_t *oldver = NULL, *newver = NULL;
+	dns_zone_t *zone;
+	dns_db_t *db = NULL;
+	dns_dbnode_t *node = NULL;
+	dns_rdataset_t rdataset;
+	dns_diff_t diff;
+	isc_boolean_t have_rr = ISC_FALSE;
+	struct keydone *keydone = (struct keydone *)event;
+	dns_update_log_t log = { update_log_cb, NULL };
+
+	UNUSED(task);
+
+	zone = event->ev_arg;
+	INSIST(DNS_ZONE_VALID(zone));
+
+	ENTER;
+
+	dns_rdataset_init(&rdataset);
+	dns_diff_init(zone->mctx, &diff);
+
+	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
+	if (zone->db != NULL) {
+		dns_db_attach(zone->db, &db);
+		dns_db_currentversion(db, &oldver);
+		result = dns_db_newversion(db, &newver);
+		if (result != ISC_R_SUCCESS) {
+			dns_zone_log(zone, ISC_LOG_ERROR,
+				     "keydone:dns_db_newversion -> %s\n",
+				     dns_result_totext(result));
+			goto failure;
+		}
+	} 
+	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
+	if (db == NULL)
+		goto failure;
+
+	result = dns_db_getoriginnode(db, &node);
+	if (result != ISC_R_SUCCESS)
+		goto failure;
+
+	result = dns_db_findrdataset(db, node, newver, zone->privatetype,
+				     dns_rdatatype_none, 0, &rdataset, NULL);
+	if (result == ISC_R_NOTFOUND) {
+		INSIST(!dns_rdataset_isassociated(&rdataset));
+		goto failure;
+	}
+	if (result != ISC_R_SUCCESS) {
+		INSIST(!dns_rdataset_isassociated(&rdataset));
+		goto failure;
+	}
+	for (result = dns_rdataset_first(&rdataset);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(&rdataset)) {
+		dns_rdataset_current(&rdataset, &rdata);
+		if (rdata.length != 5 ||
+		    memcmp(rdata.data, keydone->data, 5) != 0) {
+			dns_rdata_reset(&rdata);
+			continue;
+		}
+		CHECK(update_one_rr(db, newver, &diff, DNS_DIFFOP_DEL,
+				    &zone->origin, rdataset.ttl, &rdata));
+		dns_rdata_reset(&rdata);
+	}
+	
+	if (!ISC_LIST_EMPTY(diff.tuples)) {
+		/* Write changes to journal file. */
+		CHECK(update_soa_serial(db, newver, &diff, zone->mctx,
+					zone->updatemethod));
+		CHECK(dns_update_signatures(&log, zone, db, oldver, newver,
+					    &diff, zone->sigvalidityinterval));
+		CHECK(zone_journal(zone, &diff, NULL, "keydone"));
+		commit = ISC_TRUE;
+
+		LOCK_ZONE(zone);
+		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADED);
+		zone_needdump(zone, 30);
+		UNLOCK_ZONE(zone);
+	}
+
+ failure:
+	if (dns_rdataset_isassociated(&rdataset))
+		dns_rdataset_disassociate(&rdataset);
+	if (db != NULL) {
+		if (node != NULL)
+			dns_db_detachnode(db, &node);
+		if (oldver != NULL)
+			dns_db_closeversion(db, &oldver, ISC_FALSE);
+		if (newver != NULL)
+			dns_db_closeversion(db, &newver, commit);
+		dns_db_detach(&db);
+	}
+	dns_diff_clear(&diff);
+	isc_event_free(&event);
+	dns_zone_idetach(&zone);
+}
+
+isc_result_t
+dns_zone_keydone(dns_zone_t *zone, const char *data) {
+	isc_result_t result;
+	isc_event_t *e;
+	isc_buffer_t b;
+	dns_zone_t *dummy = NULL;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+
+	e = isc_event_allocate(zone->mctx, zone, DNS_EVENT_KEYDONE, keydone,
+			       zone, sizeof(struct keydone));
+	if (e == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto failure;
+	}
+
+	isc_buffer_init(&b, ((struct keydone*)e)->data,
+			sizeof(((struct keydone*)e)->data));
+	result = isc_hex_decodestring(data, &b);
+	if (result != ISC_R_SUCCESS)
+		goto failure;
+
+	zone_iattach(zone, &dummy);
+	isc_task_send(zone->task, &e);
+
+ failure:
+	if (e != NULL)
+		isc_event_free(&e);
+	UNLOCK_ZONE(zone);
+	return (result);
 }
