@@ -2524,7 +2524,7 @@
 ./lib/isc/heap.c				C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2010,2011
 ./lib/isc/hex.c					C	2000,2001,2002,2003,2004,2005,2007,2008
 ./lib/isc/hmacmd5.c				C	2000,2001,2004,2005,2006,2007,2009
-./lib/isc/hmacsha.c				C	2005,2006,2007,2009
+./lib/isc/hmacsha.c				C	2005,2006,2007,2009,2011
 ./lib/isc/httpd.c				C	2006,2007,2008,2010,2011
 ./lib/isc/ia64/.cvsignore			X	2007
 ./lib/isc/ia64/Makefile.in			MAKE	2007
