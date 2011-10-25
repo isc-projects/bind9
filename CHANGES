@@ -1,3 +1,5 @@
+3179.	[port]		kfreebsd: build issues. [RT #26273]
+
 3175.   [bug]           Fix how DNSSEC positive wildcard responses from a
 			NSEC3 signed zone are validated.  Stop sending a
 			unnecessary NSEC3 record when generating such
