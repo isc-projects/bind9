@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2005, 2007, 2011  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.6 2011/10/26 15:23:36 each Exp $
+# $Id: clean.sh,v 1.7 2011/10/26 23:46:14 tbox Exp $
 
 rm -f named-compilezone
 rm -f ns1/example.db.raw

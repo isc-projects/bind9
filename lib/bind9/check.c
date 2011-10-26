@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.135 2011/10/26 20:56:45 marka Exp $ */
+/* $Id: check.c,v 1.136 2011/10/26 23:46:15 tbox Exp $ */
 
 /*! \file */
 
@@ -1498,7 +1498,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			   check_update_policy(obj, logctx) != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 		ddns = ISC_TF(res1 == ISC_R_SUCCESS || res2 == ISC_R_SUCCESS);
-	
+
 		obj = NULL;
 		res1 = cfg_map_get(zoptions, "inline-signing", &obj);
 		if (res1 == ISC_R_SUCCESS)
