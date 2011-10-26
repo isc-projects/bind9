@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.4 2011/10/25 01:54:19 marka Exp $
+# $Id: setup.sh,v 1.5 2011/10/26 20:56:45 marka Exp $
 
 sh clean.sh
 
@@ -28,14 +28,27 @@ rm -f ns3/bits.bk.jnl
 rm -f ns3/bits.bk.signed
 rm -f ns3/bits.bk.signed.jnl
 
-touch ns4/trusted.conf
-cp ns4/noixfr.db.in ns4/noixfr.db
-rm -f ns4/noixfr.db.jnl
-
 rm -f ns3/noixfr.bk
 rm -f ns3/noixfr.bk.jnl
 rm -f ns3/noixfr.bk.signed
 rm -f ns3/noixfr.bk.signed.jnl
+
+rm -f ns3/master.db
+rm -f ns3/master.db.jnl
+rm -f ns3/master.db.signed
+rm -f ns3/master.db.signed.jnl
+
+rm -f ns3/dynamic.db
+rm -f ns3/dynamic.db.jnl
+rm -f ns3/dynamic.db.signed
+rm -f ns3/dynamic.db.signed.jnl
+
+cp ns3/master.db.in ns3/master.db
+cp ns3/master.db.in ns3/dynamic.db
+
+touch ns4/trusted.conf
+cp ns4/noixfr.db.in ns4/noixfr.db
+rm -f ns4/noixfr.db.jnl
 
 cp ns5/named.conf.pre ns5/named.conf
 

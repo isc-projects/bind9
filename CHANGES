@@ -1,3 +1,6 @@
+3181.	[func]		Inline-signing is now supported for master zones.
+			[RT #26224]
+
 3180.	[func]		Local copies of slave zones are now saved in raw
 			format by default, to improve startup performance.
 			'masterfile-format text;' can be used to override

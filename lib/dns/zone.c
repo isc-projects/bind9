@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.639 2011/10/25 23:46:58 tbox Exp $ */
+/* $Id: zone.c,v 1.640 2011/10/26 20:56:45 marka Exp $ */
 
 /*! \file */
 
@@ -651,6 +651,8 @@ static void zone_namerd_tostr(dns_zone_t *zone, char *buf, size_t length);
 static void zone_name_tostr(dns_zone_t *zone, char *buf, size_t length);
 static void zone_rdclass_tostr(dns_zone_t *zone, char *buf, size_t length);
 static void zone_viewname_tostr(dns_zone_t *zone, char *buf, size_t length);
+static isc_result_t zone_send_secureserial(dns_zone_t *zone,
+					   isc_uint32_t serial);
 
 #if 0
 /* ondestroy example */
@@ -8370,10 +8372,26 @@ zone_maintenance(dns_zone_t *zone) {
 
 void
 dns_zone_markdirty(dns_zone_t *zone) {
+	isc_uint32_t serial;
+	isc_result_t result;
 
 	LOCK_ZONE(zone);
-	if (zone->type == dns_zone_master)
+	if (zone->type == dns_zone_master) {
+		if (zone->secure != NULL) {
+			ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
+			if (zone->db != NULL) {
+				result = zone_get_from_db(zone, zone->db, NULL,
+							  NULL, &serial, NULL,
+							  NULL, NULL, NULL,
+							  NULL);
+			} else
+				result = DNS_R_NOTLOADED;
+			ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
+			if (result == ISC_R_SUCCESS)
+				zone_send_secureserial(zone, serial);
+		}
 		set_resigntime(zone);	/* XXXMPA make separate call back */
+	}
 	zone_needdump(zone, DNS_DUMP_DELAY);
 	UNLOCK_ZONE(zone);
 }
@@ -12383,10 +12401,8 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 				break;
 			}
 		}
-#if 0
-		if (zone->secure != NULL)
+		if (zone->type == dns_zone_master && zone->secure != NULL)
 			zone_send_secureserial(zone, serial);
-#endif
 	} else {
 		if (dump && zone->masterfile != NULL) {
 			/*

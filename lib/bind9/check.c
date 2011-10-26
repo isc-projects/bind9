@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.134 2011/08/30 05:16:14 marka Exp $ */
+/* $Id: check.c,v 1.135 2011/10/26 20:56:45 marka Exp $ */
 
 /*! \file */
 
@@ -1479,10 +1479,10 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	/*
 	 * Master zones can't have both "allow-update" and "update-policy".
 	 */
-	if (ztype == MASTERZONE) {
+	if (ztype == MASTERZONE || ztype == SLAVEZONE) {
 		isc_result_t res1, res2, res3;
 		const char *arg;
-		isc_boolean_t ddns;
+		isc_boolean_t ddns = ISC_FALSE, signing = ISC_FALSE;
 
 		obj = NULL;
 		res1 = cfg_map_get(zoptions, "allow-update", &obj);
@@ -1498,17 +1498,25 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			   check_update_policy(obj, logctx) != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 		ddns = ISC_TF(res1 == ISC_R_SUCCESS || res2 == ISC_R_SUCCESS);
+	
+		obj = NULL;
+		res1 = cfg_map_get(zoptions, "inline-signing", &obj);
+		if (res1 == ISC_R_SUCCESS)
+			signing = cfg_obj_asboolean(obj);
+		fprintf(stderr, "inline-signing -> %u\n", signing);
 
 		obj = NULL;
 		arg = "off";
 		res3 = cfg_map_get(zoptions, "auto-dnssec", &obj);
 		if (res3 == ISC_R_SUCCESS)
 			arg = cfg_obj_asstring(obj);
-		if (strcasecmp(arg, "off") != 0 && !ddns) {
+		if (strcasecmp(arg, "off") != 0 && !ddns && !signing) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "'auto-dnssec %s;' requires "
-				    "dynamic DNS to be configured in the zone",
-				    arg);
+				    "'auto-dnssec %s;' requires%s "
+				    "inline-signing to be configured for "
+				    "the zone", arg,
+				    (ztype == MASTERZONE) ?
+					 " dynamic DNS or" : "");
 			result = ISC_R_FAILURE;
 		}
 		if (strcasecmp(arg, "create") == 0) {

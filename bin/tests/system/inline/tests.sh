@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.4 2011/10/25 01:54:20 marka Exp $
+# $Id: tests.sh,v 1.5 2011/10/26 20:56:45 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -255,6 +255,158 @@ if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo "I:checking that the master zone signed on initial load ($n)"
+ret=0
+for i in 1 2 3 4 5 6 7 8 9 10
+do
+	ret=0
+	$DIG $DIGOPTS @10.53.0.3 -p 5300 master TYPE65534 > dig.out.ns3.test$n
+	grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
+	grep "ANSWER: 3," dig.out.ns3.test$n > /dev/null || ret=1
+	records=`grep 'TYPE65534.*05[0-9A-F][0-9A-F][0-9A-F][0-9A-F]0001$' dig.out.ns3.test$n | wc -l`
+	[ $records = 2 ] || ret=1
+	if [ $ret = 0 ]; then break; fi
+	sleep 1
+done
+if [ $ret != 0 ]; then echo "I:failed"; fi
+
+n=`expr $n + 1`
+echo "I:checking removal of private type record via 'rndc keydone' (master) ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.3 -p 5300 master TYPE65534 > dig.out.ns3.test$n
+records=`sed -n -e 's/.*TYPE65534.*\(05[0-9A-F][0-9A-F][0-9A-F][0-9A-F]0001\)$/\1/p' dig.out.ns3.test$n`
+for record in $records
+do
+	$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 keydone "${record}" master || ret=1
+	break;	# We only want to remove 1 record for now.
+done 2>&1 |sed 's/^/I:ns3 /'
+
+for i in 1 2 3 4 5 6 7 8 9
+do
+	ans=0
+	$DIG $DIGOPTS @10.53.0.3 -p 5300 master TYPE65534 > dig.out.ns3.test$n
+	grep "ANSWER: 2," dig.out.ns3.test$n > /dev/null || ans=1
+	[ $ans = 1 ] || break
+	sleep 1
+done
+[ $ans = 0 ] || ret=1
+
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking private type was properly signed (master) ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.6 -p 5300 master TYPE65534 > dig.out.ns6.test$n
+grep "ANSWER: 2," dig.out.ns6.test$n > /dev/null || ret=1
+grep "flags:.* ad[ ;]" dig.out.ns6.test$n > /dev/null || ret=1
+
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking removal of remaining private type record via 'rndc keydone' (master) ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.3 -p 5300 master TYPE65534 > dig.out.ns3.test$n
+records=`sed -n -e 's/.*TYPE65534.*\(05[0-9A-F][0-9A-F][0-9A-F][0-9A-F]0001\)$/\1/p' dig.out.ns3.test$n`
+for record in $records
+do
+	$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 keydone "${record}" master || ret=1
+done 2>&1 |sed 's/^/I:ns3 /'
+
+for i in 1 2 3 4 5 6 7 8 9
+do
+	ans=0
+	$DIG $DIGOPTS @10.53.0.3 -p 5300 master TYPE65534 > dig.out.ns3.test$n
+	grep "ANSWER: 0," dig.out.ns3.test$n > /dev/null || ans=1
+	grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ans=1
+	[ $ans = 1 ] || break
+	sleep 1
+done
+[ $ans = 0 ] || ret=1
+
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:check adding of record to unsigned master ($n)"
+ret=0
+sleep 1
+cp ns3/master2.db.in ns3/master.db
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 reload master || ret=1
+
+for i in 1 2 3 4 5 6 7 8 9
+do
+	ans=0
+	$DIG $DIGOPTS @10.53.0.3 -p 5300 e.master A > dig.out.ns3.test$n
+	grep "10.0.0.5" dig.out.ns3.test$n > /dev/null || ans=1
+	grep "ANSWER: 2," dig.out.ns3.test$n > /dev/null || ans=1
+	[ $ans = 1 ] || break
+	sleep 1
+done
+[ $ans = 0 ] || ret=1
+
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:check the added record was properly signed ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.3 -p 5300 e.master A > dig.out.ns6.test$n
+grep "10.0.0.5" dig.out.ns6.test$n > /dev/null || ans=1
+grep "ANSWER: 2," dig.out.ns6.test$n > /dev/null || ans=1
+grep "flags:.* ad[ ;]" dig.out.ns6.test$n > /dev/null || ans=1
+
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking that the dynamic master zone signed on initial load ($n)"
+ret=0
+for i in 1 2 3 4 5 6 7 8 9 10
+do
+	ret=0
+	$DIG $DIGOPTS @10.53.0.3 -p 5300 dynamic TYPE65534 > dig.out.ns3.test$n
+	grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
+	grep "ANSWER: 3," dig.out.ns3.test$n > /dev/null || ret=1
+	records=`grep 'TYPE65534.*05[0-9A-F][0-9A-F][0-9A-F][0-9A-F]0001$' dig.out.ns3.test$n | wc -l`
+	[ $records = 2 ] || ret=1
+	if [ $ret = 0 ]; then break; fi
+	sleep 1
+done
+if [ $ret != 0 ]; then echo "I:failed"; fi
+
+n=`expr $n + 1`
+echo "I:checking adding of record to unsigned master using UPDATE ($n)"
+ret=0
+
+[ -f ns3/dynamic.db.jnl ] && { ret=1 ; echo "I:journal exists (pretest)" ; }
+
+$NSUPDATE << EOF
+zone dynamic
+server 10.53.0.3 5300
+update add e.dynamic 0 A 1.2.3.4
+send
+EOF
+
+[ -f ns3/dynamic.db.jnl ] || { ret=1 ; echo "I:journal does not exist (posttest)" ; }
+
+for i in 1 2 3 4 5 6 7 8 9 10
+do 
+	ans=0
+	$DIG $DIGOPTS @10.53.0.3 -p 5300 e.dynamic > dig.out.ns3.test$n
+	grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ans=1
+	grep "ANSWER: 2," dig.out.ns3.test$n > /dev/null || ans=1
+	grep "1.2.3.4" dig.out.ns3.test$n > /dev/null || ans=1
+	[ $ans = 0 ] && break
+	sleep 1
+done
+[ $ans = 0 ] || { ret=1; echo "I:signed record not found"; cat dig.out.ns3.test$n ; }
+
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo "I:stop bump in the wire signer server ($n)"
 ret=0
 $PERL ../stop.pl . ns3 || ret=1
@@ -419,4 +571,5 @@ done
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+status=`expr $status + $ret`
 exit $status
