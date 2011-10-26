@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.184 2011/10/12 00:10:19 marka Exp $ */
+/* $Id: zoneconf.c,v 1.185 2011/10/26 15:23:36 each Exp $ */
 
 /*% */
 
@@ -909,7 +909,10 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		return (ISC_R_FAILURE);
 	}
 
-	masterformat = dns_masterformat_text;
+	if (ztype == dns_zone_slave)
+		masterformat = dns_masterformat_raw;
+	else
+		masterformat = dns_masterformat_text;
 	obj = NULL;
 	result= ns_config_get(maps, "masterfile-format", &obj);
 	if (result == ISC_R_SUCCESS) {

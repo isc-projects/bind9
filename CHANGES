@@ -1,3 +1,8 @@
+3180.	[func]		Local copies of slave zones are now saved in raw
+			format by default, to improve startup performance.
+			'masterfile-format text;' can be used to override
+			the default, if desired. [RT #25867]
+
 3179.	[port]		kfreebsd: build issues. [RT #26273]
 
 3178.	[bug]		A race condition introduced by change #3163 could

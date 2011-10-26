@@ -12,9 +12,10 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.6 2007/06/19 23:47:04 tbox Exp $
+# $Id: setup.sh,v 1.7 2011/10/26 15:23:36 each Exp $
 
 ln -s $CHECKZONE named-compilezone
 rm -f ns1/example.db.raw
 cp ns1/example.db ns2/
+cp ns2/formerly-text.db.in ns2/formerly-text.db
 cd ns1 && sh compile.sh
