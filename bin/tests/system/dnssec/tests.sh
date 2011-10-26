@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.73.14.15 2011/10/20 21:44:35 marka Exp $
+# $Id: tests.sh,v 1.73.14.16 2011/10/26 05:34:21 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -58,10 +58,16 @@ checkprivate () {
 # Check the example. domain
 
 echo "I:checking that zone transfer worked ($n)"
-ret=0
-$DIG $DIGOPTS a.example. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
-$DIG $DIGOPTS a.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns3.test$n || ret=1
+for i in 1 2 3 4 5 6 7 8 9
+do
+	ret=0
+	$DIG $DIGOPTS a.example. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
+	$DIG $DIGOPTS a.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
+	$PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns3.test$n > /dev/null || ret=1
+	[ $ret = 0 ] && break
+	sleep 1
+done
+$PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns3.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
