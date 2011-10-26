@@ -47,6 +47,7 @@ custom_tata_22992_26038_26044	new	smann	// 2011-10-12 19:26 +0000
 custom_tata_25966		new	smann	// 2011-10-12 22:22 +0000
 gsstsig4			open	sra	// head + gsstsig as of 12 may 2006
 gsstsig4_win32			open	danny	// sub-branch off gsstsig4 for windows development
+infoblox_testonly_24964		new	smann	// 2011-10-26 14:49 +0000
 jinmei-mmapzone-test		open		// mmap based zone file. very experimental, just for reference purposes
 jinmei_libdnsng			open	
 jinmei_lrucache			open	
@@ -520,6 +521,7 @@ rt25541_v96			new	each	// 2011-08-19 00:13 +0000
 rt25541_v97			new	each	// 2011-08-18 23:51 +0000
 rt25726				new	marka	// 2011-10-14 06:30 +0000
 rt25768				new	each	// 2011-09-09 02:20 +0000
+rt25867				new	each	// 2011-10-26 06:18 +0000
 rt26014				new	marka	// 2011-10-06 01:31 +0000
 rt26017				new	marka	// 2011-10-05 05:21 +0000
 rt26038				new	each	// 2011-10-03 21:46 +0000
