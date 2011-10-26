@@ -1,3 +1,8 @@
+3179.	[port]		kfreebsd: build issues. [RT #26273]
+
+3178.	[bug]		A race condition introduced by change #3163 could
+			cause an assertion failure on shutdown. [RT #26271]
+
 3177.	[func]		'rndc keydone', remove the indicator record that
 			named has finished signing the zone with the
 			corresponding key.  [RT #26206]

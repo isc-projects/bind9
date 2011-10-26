@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.637 2011/10/25 01:54:22 marka Exp $ */
+/* $Id: zone.c,v 1.639 2011/10/25 23:46:58 tbox Exp $ */
 
 /*! \file */
 
@@ -15338,7 +15338,6 @@ keydone(isc_task_t *task, isc_event_t *event) {
 	dns_dbnode_t *node = NULL;
 	dns_rdataset_t rdataset;
 	dns_diff_t diff;
-	isc_boolean_t have_rr = ISC_FALSE;
 	struct keydone *keydone = (struct keydone *)event;
 	dns_update_log_t log = { update_log_cb, NULL };
 
@@ -15363,7 +15362,7 @@ keydone(isc_task_t *task, isc_event_t *event) {
 				     dns_result_totext(result));
 			goto failure;
 		}
-	} 
+	}
 	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 	if (db == NULL)
 		goto failure;
@@ -15395,7 +15394,7 @@ keydone(isc_task_t *task, isc_event_t *event) {
 				    &zone->origin, rdataset.ttl, &rdata));
 		dns_rdata_reset(&rdata);
 	}
-	
+
 	if (!ISC_LIST_EMPTY(diff.tuples)) {
 		/* Write changes to journal file. */
 		CHECK(update_soa_serial(db, newver, &diff, zone->mctx,

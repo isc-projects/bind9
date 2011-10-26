@@ -947,6 +947,8 @@
 ./bin/tests/system/ifconfig.sh			SH	2000,2001,2002,2003,2004,2007,2008,2009,2010
 ./bin/tests/system/inline/clean.sh		SH	2011
 ./bin/tests/system/inline/ns1/named.conf	CONF-C	2011
+./bin/tests/system/inline/ns1/root.db.in	ZONE	2011
+./bin/tests/system/inline/ns1/sign.sh		SH	2011
 ./bin/tests/system/inline/ns2/bits.db.in	ZONE	2011
 ./bin/tests/system/inline/ns2/named.conf	CONF-C	2011
 ./bin/tests/system/inline/ns3/named.conf	CONF-C	2011
@@ -955,6 +957,7 @@
 ./bin/tests/system/inline/ns4/noixfr.db.in	ZONE	2011
 ./bin/tests/system/inline/ns5/named.conf.post	CONF-C	2011
 ./bin/tests/system/inline/ns5/named.conf.pre	CONF-C	2011
+./bin/tests/system/inline/ns6/named.conf	CONF-C	2011
 ./bin/tests/system/inline/setup.sh		SH	2011
 ./bin/tests/system/inline/tests.sh		SH	2011
 ./bin/tests/system/ixfr/ans2/.cvsignore		X	2001

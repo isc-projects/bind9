@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch03.html,v 1.87 2011/08/04 01:14:42 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch03.html,v 1.88 2011/10/26 01:14:51 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -54,7 +54,7 @@
 <dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2568364">Name Server Operations</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2568370">Tools for Use With the Name Server Daemon</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2570370">Signals</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2570480">Signals</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -746,6 +746,23 @@ zone "eng.example.com" {
                         <span><strong class="command">rndc addzone</strong></span> can be deleted
                         in this matter.
                       </p></dd>
+<dt><span class="term"><strong class="userinput"><code>keydone
+                        <em class="replaceable"><code>rdata</code></em>
+                        <em class="replaceable"><code>zone</code></em>
+                        [<span class="optional"><em class="replaceable"><code>class</code></em>
+                        [<span class="optional"><em class="replaceable"><code>view</code></em></span>]</span>]
+                    </code></strong></span></dt>
+<dd><p>
+                        Remove the <span><strong class="command">sig-signing-type</strong></span> record
+                        which matches the <em class="replaceable"><code>rdata</code></em>
+                        (in hexadecimal) from the specified zone.  Only
+                        <em class="replaceable"><code>rdata</code></em> that
+                        indicate that named has finished signing the zone
+                        with the corresponding key will be removed. (i.e.
+                        the first two characters are not "00", the
+                        last four characters are "0001" and the total
+                        length is 10 hexadecimal characters.
+                      </p></dd>
 </dl></div>
 <p>
                   A configuration file is required, since all
@@ -898,7 +915,7 @@ controls {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2570370"></a>Signals</h3></div></div></div>
+<a name="id2570480"></a>Signals</h3></div></div></div>
 <p>
           Certain UNIX signals cause the name server to take specific
           actions, as described in the following table.  These signals can
