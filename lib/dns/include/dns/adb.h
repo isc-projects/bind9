@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.h,v 1.85 2008/04/03 06:09:04 tbox Exp $ */
+/* $Id: adb.h,v 1.85.338.1 2011/10/27 20:29:42 smann Exp $ */
 
 #ifndef DNS_ADB_H
 #define DNS_ADB_H 1
@@ -546,6 +546,64 @@ dns_adb_adjustsrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
  *
  *\li	The srtt in addr will be updated to reflect the new global
  *	srtt value.  This may include changes made by others.
+ */
+
+unsigned int
+dns_adb_getednsflag(dns_adb_t *adb, dns_adbaddrinfo_t *addr, isc_stdtime_t now);
+/*%
+ * Get the EDNS big size
+ *
+ *\brief
+ * Return the edns_fetchopt_flag from the instant dns_adbentry struct
+ *    This value may be DNS_FETCHOPT_NOEDNS0, DNS_FETCHOPT_EDNS512,
+ *    or 0. If 0, the default maximum EDNS udp size is assumed.
+ *
+ * Requires:
+ *
+ *\li	adb be valid.
+ *
+ *\li	addr be valid.
+ */
+
+void
+dns_adb_setednssize(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
+		    unsigned int length);
+/*%
+ * Set the EDNS size
+ *
+ *\brief
+ * Record the biggest length of received packet and maintain information
+ * about reductions in udp size.
+ *
+ *\li length - size of packet
+ *\li now - current time in seconds
+ *
+ * Requires:
+ *
+ *\li	adb be valid.
+ *
+ *\li	addr be valid.
+ */
+
+void
+dns_adb_dropednssize(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
+                    unsigned int length, isc_stdtime_t now);
+/*%
+ * Drop the EDNS size
+ *
+ *\brief
+ * Record a notification that the packetsize has been dropped because of
+ * communication failures. If enough of these occur, this server's EDNS size
+ * will be dropped for DNS_ADB_EDNS_MAX_DROP_TIME.
+ *
+ *\li length - size of packet
+ *\li now - current time in seconds
+ *
+ * Requires:
+ *
+ *\li   adb be valid.
+ *
+ *\li   addr be valid.
  */
 
 void
