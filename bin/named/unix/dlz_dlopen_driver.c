@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dlz_dlopen_driver.c,v 1.5 2011/10/11 00:09:01 each Exp $ */
+/* $Id: dlz_dlopen_driver.c,v 1.6 2011/10/27 23:01:59 smann Exp $ */
 
 #include <config.h>
 
@@ -253,7 +253,7 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	isc_mutex_init(&cd->lock);
 
 	/* Open the library */
-	dlopen_flags = RTLD_NOW;
+	dlopen_flags = RTLD_NOW|RTLD_GLOBAL;
 
 #ifdef RTLD_DEEPBIND
 	/*
