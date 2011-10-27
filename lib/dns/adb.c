@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.259 2011/10/27 20:18:41 smann Exp $ */
+/* $Id: adb.c,v 1.260 2011/10/27 22:23:58 marka Exp $ */
 
 /*! \file
  *
@@ -4040,6 +4040,12 @@ void
 dns_adb_dropednssize(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 		    unsigned int length, isc_stdtime_t now)
 {
+	isc_stdtime_t expires_ts_to_use;
+	isc_boolean_t timer_setting_to_use;
+	unsigned int length_to_use;
+	unsigned int drop_counter_to_use;
+	unsigned int drop_ts_to_use;
+	unsigned int flag_to_use;
 	int bucket = 0;
 
 	REQUIRE(DNS_ADB_VALID(adb));
@@ -4053,12 +4059,12 @@ dns_adb_dropednssize(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 	bucket = addr->entry->lock_bucket;
 	LOCK(&adb->entrylocks[bucket]);
 
-	isc_stdtime_t expires_ts_to_use = addr->entry->edns_expires_timestamp;
-	isc_boolean_t timer_setting_to_use = addr->entry->edns_timer_set;
-	unsigned int length_to_use = addr->entry->edns_big_size;
-	unsigned int drop_counter_to_use = addr->entry->edns_drop_count;
-	unsigned int drop_ts_to_use = addr->entry->edns_drop_timestamp;
-	unsigned int flag_to_use = addr->entry->edns_fetch_flag;
+	expires_ts_to_use = addr->entry->edns_expires_timestamp;
+	timer_setting_to_use = addr->entry->edns_timer_set;
+	length_to_use = addr->entry->edns_big_size;
+	drop_counter_to_use = addr->entry->edns_drop_count;
+	drop_ts_to_use = addr->entry->edns_drop_timestamp;
+	flag_to_use = addr->entry->edns_fetch_flag;
 
 	/*
 	 * This function keeps a count of the number of times
