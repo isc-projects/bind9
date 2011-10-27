@@ -1,3 +1,8 @@
+3182.   [bug]           Auth servers behind firewalls which block packets
+                        greater than 512 bytes may cause other servers to
+                        perform poorly. Now, adb retains edns information
+                        and caches noedns servers. [RT #23392/24964]
+
 3179.	[port]		kfreebsd: build issues. [RT #26273]
 
 3175.   [bug]           Fix how DNSSEC positive wildcard responses from a
