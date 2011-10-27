@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.436 2011/10/27 20:18:42 smann Exp $ */
+/* $Id: resolver.c,v 1.437 2011/10/27 23:46:31 tbox Exp $ */
 
 /*! \file */
 
@@ -1795,7 +1795,7 @@ resquery_send(resquery_t *query) {
 	isc_netaddr_fromsockaddr(&ipaddr, &query->addrinfo->sockaddr);
 	(void) dns_peerlist_peerbyaddr(fctx->res->view->peers, &ipaddr, &peer);
 
-	/* 
+	/*
 	 * Get the fetchopt flag for this server from the adb cache
 	 * NOTE: if the NOEDNS flag has been set on addrinfo->flags,
 	 *       it will over write this below.
@@ -1850,7 +1850,7 @@ resquery_send(resquery_t *query) {
 			query->options |= DNS_FETCHOPT_EDNS512;
 			if (edns_fetchopt_flag != DNS_FETCHOPT_EDNS512) {
 				dns_adb_dropednssize(fctx->adb, query->addrinfo,
-					    	    512, now);
+						    512, now);
 				fctx->reason = "reducing the advertised EDNS "
 					       "UDP packet size to 512 octets";
 			} else

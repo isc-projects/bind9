@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.260 2011/10/27 22:23:58 marka Exp $ */
+/* $Id: adb.c,v 1.261 2011/10/27 23:46:31 tbox Exp $ */
 
 /*! \file
  *
@@ -288,7 +288,7 @@ struct dns_adbentry {
 	 *                   DNS_FETCHOPT_NOEDNS0, DNS_FETCHOPT_EDNS512 or
 	 *		     0 meaning use DNS_ADB_EDNS0_MAX_LEN)
 	 * edns_drop_count - keeps count of the number of times EDNS udpsize
-	 *		     was dropped - reset to 0 every 
+	 *		     was dropped - reset to 0 every
 	 *		     DNS_ADB_EDNS_RESET_TIME
 	 * edns_drop_timestamp - The time at which the first EDNS drop
 	 *			 in packet size was recorded
@@ -3993,7 +3993,7 @@ dns_adb_getednsflag(dns_adb_t *adb, dns_adbaddrinfo_t *addr, isc_stdtime_t now)
 		addr->entry->edns_fetch_flag = flag_to_use;
 		addr->entry->edns_expires_timestamp = 0;
 		addr->entry->edns_timer_set = isc_boolean_false;
-	
+
 	}
 
 	flag_to_use = addr->entry->edns_fetch_flag;
@@ -4070,7 +4070,7 @@ dns_adb_dropednssize(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 	 * This function keeps a count of the number of times
 	 * within DNS_ADB_EDNS_RESET_TIME that a particular server
 	 * has dropped the udpsize in order to communicate with the
-	 * server. If the number of times this occurs exceeds 
+	 * server. If the number of times this occurs exceeds
 	 * DNS_ADB_EDNS_MAX_DROP_COUNT, then the udpsize is reduced
 	 * by way of edns_fetch_flag for DNS_ADB_EDNS_MAX_DROP_TIME,
 	 * after which the largest size is retried again.
@@ -4080,7 +4080,7 @@ dns_adb_dropednssize(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 	if (length > length_to_use)
 		length_to_use = length;
 
-	if((now - addr->entry->edns_drop_timestamp) >= 
+	if((now - addr->entry->edns_drop_timestamp) >=
 			DNS_ADB_EDNS_RESET_TIME) {
 
 		drop_counter_to_use = 1;
@@ -4101,11 +4101,11 @@ dns_adb_dropednssize(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 				 * do so now. After DNS_ADB_EDNS_MAX_DROP_TIME,
 				 * we'll go back to the largest size
 				 */
-				expires_ts_to_use = 
+				expires_ts_to_use =
 					now + DNS_ADB_EDNS_MAX_DROP_TIME;
 				timer_setting_to_use = isc_boolean_true;
 			}
-			
+
 			if(length == 0)
 				flag_to_use = DNS_FETCHOPT_NOEDNS0;
 			else /* eventually, more edns sizes here */
@@ -4121,7 +4121,7 @@ dns_adb_dropednssize(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 	addr->entry->edns_fetch_flag = flag_to_use;
 	addr->entry->edns_expires_timestamp = expires_ts_to_use;
 	addr->entry->edns_timer_set = timer_setting_to_use;
-	
+
 	UNLOCK(&adb->entrylocks[bucket]);
 }
 
