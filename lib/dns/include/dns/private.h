@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009, 2011  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: private.h,v 1.4 2011/10/28 06:20:06 each Exp $ */
+/* $Id: private.h,v 1.5 2011/10/28 12:20:31 tbox Exp $ */
 
 #include <isc/lang.h>
 #include <isc/types.h>
