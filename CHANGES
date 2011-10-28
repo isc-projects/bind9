@@ -1,4 +1,4 @@
-3184.	[bug]		named had cpu usage when a redirect zone was
+3184.	[bug]		named had excessive cpu usage when a redirect zone was
 			configured. [RT #26013]
 
 3183.	[bug]		Added RTLD_GLOBAL flag to dlopen call. [RT #26301]
