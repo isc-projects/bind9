@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.261 2011/10/27 23:46:31 tbox Exp $ */
+/* $Id: adb.c,v 1.262 2011/10/28 04:57:34 marka Exp $ */
 
 /*! \file
  *
@@ -4038,11 +4038,11 @@ dns_adb_setednssize(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 
 void
 dns_adb_dropednssize(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
-		    unsigned int length, isc_stdtime_t now)
+		     unsigned int length, isc_stdtime_t now)
 {
 	isc_stdtime_t expires_ts_to_use;
 	isc_boolean_t timer_setting_to_use;
-	unsigned int length_to_use;
+	unsigned int  length_to_use;
 	unsigned int drop_counter_to_use;
 	unsigned int drop_ts_to_use;
 	unsigned int flag_to_use;
@@ -4062,7 +4062,6 @@ dns_adb_dropednssize(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 	expires_ts_to_use = addr->entry->edns_expires_timestamp;
 	timer_setting_to_use = addr->entry->edns_timer_set;
 	length_to_use = addr->entry->edns_big_size;
-	drop_counter_to_use = addr->entry->edns_drop_count;
 	drop_ts_to_use = addr->entry->edns_drop_timestamp;
 	flag_to_use = addr->entry->edns_fetch_flag;
 
@@ -4080,7 +4079,7 @@ dns_adb_dropednssize(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 	if (length > length_to_use)
 		length_to_use = length;
 
-	if((now - addr->entry->edns_drop_timestamp) >=
+	if ((now - addr->entry->edns_drop_timestamp) >=
 			DNS_ADB_EDNS_RESET_TIME) {
 
 		drop_counter_to_use = 1;
@@ -4089,13 +4088,13 @@ dns_adb_dropednssize(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 
 		drop_counter_to_use = addr->entry->edns_drop_count + 1;
 
-		if(drop_counter_to_use >= DNS_ADB_EDNS_MAX_DROP_COUNT) {
+		if (drop_counter_to_use >= DNS_ADB_EDNS_MAX_DROP_COUNT) {
 			/*
 			 * At this point, we are dropping down the
 			 * udpsize because we've had too many misses
 			 * at larger sizes.
 			 */
-			if(timer_setting_to_use == isc_boolean_false) {
+			if (timer_setting_to_use == isc_boolean_false) {
 				/*
 				 * if we haven't already set a timer,
 				 * do so now. After DNS_ADB_EDNS_MAX_DROP_TIME,
@@ -4106,7 +4105,7 @@ dns_adb_dropednssize(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 				timer_setting_to_use = isc_boolean_true;
 			}
 
-			if(length == 0)
+			if (length == 0)
 				flag_to_use = DNS_FETCHOPT_NOEDNS0;
 			else /* eventually, more edns sizes here */
 				flag_to_use = DNS_FETCHOPT_EDNS512;
