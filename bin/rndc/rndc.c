@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.135 2011/10/25 01:54:19 marka Exp $ */
+/* $Id: rndc.c,v 1.136 2011/10/28 06:20:05 each Exp $ */
 
 /*! \file */
 
@@ -154,9 +154,15 @@ command is one of the following:\n\
 		Add zone to given view. Requires new-zone-file option.\n\
   delzone [\"file\"] zone [class [view]]\n\
 		Removes zone from given view. Requires new-zone-file option.\n\
-  keydone rdata zone [class [view]]\n\
-		Remove the private record with the corresponding rdata from\n\
-		the given zone.\n\
+  signing -list zone [class [view]]\n\
+		List the private records showing the state of DNSSEC\n\
+		signing in the given zone.\n\
+  signing -clear <keyid>/<algorithm> zone [class [view]]\n\
+		Remove the private record that indicating the given key\n\
+		has finished signing the given zone.\n\
+  signing -clear all zone [class [view]]\n\
+		Remove the private records for all keys that have\n\
+		finished signing the given zone.\n\
 \n\
 * == not yet implemented\n\
 Version: %s\n",

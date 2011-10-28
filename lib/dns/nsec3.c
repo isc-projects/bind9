@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3.c,v 1.23 2011/06/10 01:51:09 each Exp $ */
+/* $Id: nsec3.c,v 1.24 2011/10/28 06:20:06 each Exp $ */
 
 #include <config.h>
 
@@ -1054,7 +1054,8 @@ rr_exists(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 #ifdef BIND9
 isc_result_t
 dns_nsec3param_deletechains(dns_db_t *db, dns_dbversion_t *ver,
-			    dns_zone_t *zone, dns_diff_t *diff)
+			    dns_zone_t *zone, isc_boolean_t nonsec,
+			    dns_diff_t *diff)
 {
 	dns_dbnode_t *node = NULL;
 	dns_difftuple_t *tuple = NULL;
@@ -1098,7 +1099,9 @@ dns_nsec3param_deletechains(dns_db_t *db, dns_dbversion_t *ver,
 
 		dns_nsec3param_toprivate(&rdata, &private, privatetype,
 					 buf, sizeof(buf));
-		buf[2] = DNS_NSEC3FLAG_REMOVE | DNS_NSEC3FLAG_NONSEC;
+		buf[2] = DNS_NSEC3FLAG_REMOVE;
+		if (nonsec)
+			buf[2] |= DNS_NSEC3FLAG_NONSEC;
 
 		CHECK(rr_exists(db, ver, origin, &private, &flag));
 
@@ -1129,15 +1132,14 @@ dns_nsec3param_deletechains(dns_db_t *db, dns_dbversion_t *ver,
 	for (result = dns_rdataset_first(&rdataset);
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(&rdataset)) {
+		dns_rdata_reset(&rdata);
 		dns_rdataset_current(&rdataset, &rdata);
 		INSIST(rdata.length <= sizeof(buf));
 		memcpy(buf, rdata.data, rdata.length);
 
-		if (buf[0] != 0 ||
-		    buf[2] == (DNS_NSEC3FLAG_REMOVE | DNS_NSEC3FLAG_NONSEC)) {
-			dns_rdata_reset(&rdata);
+		if (buf[0] != 0 || (buf[2] & DNS_NSEC3FLAG_REMOVE) != 0 ||
+		    (nonsec && (buf[2] & DNS_NSEC3FLAG_NONSEC) != 0))
 			continue;
-		}
 
 		CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_DEL, origin,
 					   0, &rdata, &tuple));
@@ -1145,7 +1147,9 @@ dns_nsec3param_deletechains(dns_db_t *db, dns_dbversion_t *ver,
 		INSIST(tuple == NULL);
 
 		rdata.data = buf;
-		buf[2] = DNS_NSEC3FLAG_REMOVE | DNS_NSEC3FLAG_NONSEC;
+		buf[2] = DNS_NSEC3FLAG_REMOVE;
+		if (nonsec)
+			buf[2] |= DNS_NSEC3FLAG_NONSEC;
 
 		CHECK(rr_exists(db, ver, origin, &rdata, &flag));
 
@@ -1155,7 +1159,6 @@ dns_nsec3param_deletechains(dns_db_t *db, dns_dbversion_t *ver,
 			CHECK(do_one_tuple(&tuple, db, ver, diff));
 			INSIST(tuple == NULL);
 		}
-		dns_rdata_reset(&rdata);
 	}
 	if (result != ISC_R_NOMORE)
 		goto failure;

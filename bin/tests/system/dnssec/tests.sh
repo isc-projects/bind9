@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.100 2011/10/26 05:32:56 marka Exp $
+# $Id: tests.sh,v 1.101 2011/10/28 06:20:05 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -1326,6 +1326,33 @@ checkprivate update-nsec3.example 10.53.0.3 || ret=1
 checkprivate auto-nsec3.example 10.53.0.3 || ret=1
 checkprivate expiring.example 10.53.0.3 || ret=1
 checkprivate auto-nsec.example 10.53.0.3 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:check rndc signing -list output ($n)"
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 signing -list dynamic.example 2>&1 > signing.out
+grep "No signing records found" signing.out > /dev/null 2>&1 || {
+        ret=1
+        sed 's/^/I:ns3 /' signing.out
+}
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 signing -list update-nsec3.example 2>&1 > signing.out
+grep "Done signing with key .*/NSEC3RSASHA1" signing.out > /dev/null 2>&1 || {
+        ret=1
+        sed 's/^/I:ns3 /' signing.out
+}
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:clear signing records ($n)"
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 signing -clear all update-nsec3.example > /dev/null || ret=1
+sleep 1
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 signing -list update-nsec3.example 2>&1 > signing.out
+grep "No signing records found" signing.out > /dev/null 2>&1 || {
+        ret=1
+        sed 's/^/I:ns3 /' signing.out
+}
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

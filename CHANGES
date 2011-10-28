@@ -1,3 +1,12 @@
+3185.	[func]		New 'rndc signing' option for auto-dnssec zones:
+			 - 'rndc signing -list' displays the current
+			   state of signing operations
+			 - 'rndc signing -clear' clears the signing state
+		  	   records for keys that have fully signed the zone
+			 - 'rndc signing -nsec3param' sets the NSEC3
+			   parameters for the zone
+			The 'rndc keydone' syntax is removed. [RT #23729]
+
 3184.	[bug]		named had excessive cpu usage when a redirect zone was
 			configured. [RT #26013]
 

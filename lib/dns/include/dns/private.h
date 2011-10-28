@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: private.h,v 1.3 2009/10/09 23:48:09 tbox Exp $ */
+/* $Id: private.h,v 1.4 2011/10/28 06:20:06 each Exp $ */
 
 #include <isc/lang.h>
 #include <isc/types.h>
@@ -47,6 +47,23 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
  *
  * Returns:
  * \li 	ISC_R_SUCCESS, 'build_nsec' and 'build_nsec3' will be valid.
+ * \li	other on error
+ */
+
+isc_result_t
+dns_private_totext(dns_rdata_t *private, isc_buffer_t *buffer);
+/*%<
+ * Convert a private-type RR 'private' to human-readable form,
+ * and place the result in 'buffer'.  The text should indicate
+ * which action the private-type record specifies and whether the
+ * action has been completed.
+ *
+ * Requires:
+ * \li	'private' is a valid rdata containing at least five bytes
+ * \li	'buffer' is a valid buffer
+ *
+ * Returns:
+ * \li 	ISC_R_SUCCESS
  * \li	other on error
  */
 
