@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.624 2011/10/28 06:20:04 each Exp $ */
+/* $Id: server.c,v 1.625 2011/10/28 12:08:04 tbox Exp $ */
 
 /*! \file */
 
@@ -7988,11 +7988,11 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
  cleanup:
 	if (dns_rdataset_isassociated(&privset))
 		dns_rdataset_disassociate(&privset);
- 	if (node != NULL)
+	if (node != NULL)
 		dns_db_detachnode(db, &node);
- 	if (version != NULL)
+	if (version != NULL)
 		dns_db_closeversion(db, &version, ISC_FALSE);
- 	if (db != NULL)
+	if (db != NULL)
 		dns_db_detach(&db);
 	if (zone != NULL)
 		dns_zone_detach(&zone);
