@@ -1,3 +1,5 @@
+	--- 9.9.0b1 released ---
+
 3186.	[bug]		Version/db mis-match in rpz code. [RT #26180]
 
 3185.	[func]		New 'rndc signing' option for auto-dnssec zones:
