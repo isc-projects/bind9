@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: prereq.sh,v 1.1.4.2 2011/10/28 02:21:35 smann Exp $
+# $Id: prereq.sh,v 1.1.4.3 2011/10/28 03:15:40 marka Exp $
 
 if $PERL -e 'use Net::DNS;' 2>/dev/null
 then
@@ -26,9 +26,9 @@ then
     		:
 	else
     		echo "I:This test requires the version 0.66 or later of the Net::DNS library." >&2
-    		exit 1
+    		exit 255
 	fi
 else
     echo "I:This test requires the Net::DNS library." >&2
-    exit 1
+    exit 255
 fi
