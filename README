@@ -92,7 +92,26 @@ BIND 9.9.0
 
 BIND 9.8.0
 
-	DNS64 support (AAAA synthesis only initially).
+        BIND 9.8.0 includes a number of changes from BIND 9.7 and earlier
+        releases.  New features include:
+
+        - Built-in trust anchor for the root zone, which can be
+          switched on via "dnssec-validation auto;"
+        - Support for DNS64.
+        - Support for response policy zones (RPZ).
+        - Support for writable DLZ zones.
+        - Improved ease of configuration of GSS/TSIG for
+          interoperability with Active Directory
+        - Support for GOST signing algorithm for DNSSEC.
+        - Removed RTT Banding from server selection algorithm.
+        - New "static-stub" zone type.
+        - Allow configuration of resolver timeouts via
+          "resolver-query-timeout" option.
+	- The DLZ "dlopen" driver is now built by default.
+	- Added a new include file with function typedefs
+          for the DLZ "dlopen" driver.
+	- Made "--with-gssapi" default.
+	- More verbose error reporting from DLZ LDAP.
 
 BIND 9.7.0
 
