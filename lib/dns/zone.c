@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.640 2011/10/26 20:56:45 marka Exp $ */
+/* $Id: zone.c,v 1.641 2011/10/28 00:36:54 marka Exp $ */
 
 /*! \file */
 
@@ -8336,6 +8336,7 @@ zone_maintenance(dns_zone_t *zone) {
 
 	switch (zone->type) {
 	case dns_zone_master:
+	case dns_zone_redirect:
 	case dns_zone_slave:
 		/*
 		 * Do we need to send out notify messages?
