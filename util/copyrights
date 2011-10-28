@@ -862,6 +862,7 @@
 ./bin/tests/system/edns/ans2/ans.pl		PERL	2011
 ./bin/tests/system/edns/clean.sh		SH	2011
 ./bin/tests/system/edns/ns1/named.conf		CONF-C	2011
+./bin/tests/system/edns/prereq.sh		SH	2011
 ./bin/tests/system/edns/setup.sh		SH	2011
 ./bin/tests/system/edns/tests.sh		SH	2011
 ./bin/tests/system/filter-aaaa/.cvsignore	X	2010
@@ -1550,7 +1551,7 @@
 ./contrib/dlz/drivers/sdlz_helper.c		X	2005,2010,2011
 ./contrib/dlz/example/Makefile			X	2010
 ./contrib/dlz/example/dlz_example.c		X	2010
-./contrib/dlz/example/dlz_minimal.h		X	2010
+./contrib/dlz/example/dlz_minimal.h		X	2010,2011
 ./contrib/idn/README.idnkit			X	2005,2009
 ./contrib/idn/idnkit-1.0-src/ChangeLog		X	2003
 ./contrib/idn/idnkit-1.0-src/DISTFILES		X	2003
