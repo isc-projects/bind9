@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.642 2011/10/28 06:20:06 each Exp $ */
+/* $Id: zone.c,v 1.643 2011/10/28 12:27:06 marka Exp $ */
 
 /*! \file */
 
@@ -15715,7 +15715,7 @@ dns_zone_setnsec3param(dns_zone_t *zone, isc_uint8_t hash, isc_uint8_t flags,
 		       isc_uint8_t iter, isc_uint8_t saltlen,
 		       unsigned char *salt, isc_boolean_t replace)
 {
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	dns_rdata_nsec3param_t param;
 	dns_rdata_t nrdata = DNS_RDATA_INIT;
 	dns_rdata_t prdata = DNS_RDATA_INIT;
