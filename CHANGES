@@ -1,3 +1,5 @@
+3186.	[bug]		Version/db mis-match in rpz code. [RT #26180]
+
 3185.	[func]		New 'rndc signing' option for auto-dnssec zones:
 			 - 'rndc signing -list' displays the current
 			   state of signing operations

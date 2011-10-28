@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.376 2011/10/20 21:42:11 marka Exp $ */
+/* $Id: query.c,v 1.377 2011/10/28 11:46:49 marka Exp $ */
 
 /*! \file */
 
@@ -3828,6 +3828,7 @@ rpz_st_clear(ns_client_t *client) {
 	dns_rpz_st_t *st = client->query.rpz_st;
 
 	rpz_clean(&st->m.zone, &st->m.db, &st->m.node, NULL);
+	st->m.version = NULL;
 	if (st->m.rdataset != NULL)
 		query_putrdataset(client, &st->m.rdataset);
 
@@ -4121,10 +4122,10 @@ rpz_rewrite_rrsets(ns_client_t *client, dns_rpz_type_t rpz_type,
 static isc_result_t
 rpz_find(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qnamef,
 	 dns_name_t *sname, dns_rpz_type_t rpz_type, dns_zone_t **zonep,
-	 dns_db_t **dbp, dns_dbnode_t **nodep, dns_rdataset_t **rdatasetp,
+	 dns_db_t **dbp, dns_dbversion_t **versionp,
+	 dns_dbnode_t **nodep, dns_rdataset_t **rdatasetp,
 	 dns_rpz_policy_t *policyp)
 {
-	dns_dbversion_t *version;
 	dns_rpz_policy_t policy;
 	dns_fixedname_t fixed;
 	dns_name_t *found;
@@ -4145,8 +4146,8 @@ rpz_find(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qnamef,
 	 * Try to get either a CNAME or the type of record demanded by the
 	 * request from the policy zone.
 	 */
-	version = NULL;
-	result = rpz_getdb(client, rpz_type, qnamef, zonep, dbp, &version);
+	*versionp = NULL;
+	result = rpz_getdb(client, rpz_type, qnamef, zonep, dbp, versionp);
 	if (result != ISC_R_SUCCESS) {
 		*policyp = DNS_RPZ_POLICY_MISS;
 		return (DNS_R_NXDOMAIN);
@@ -4154,14 +4155,14 @@ rpz_find(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qnamef,
 
 	dns_fixedname_init(&fixed);
 	found = dns_fixedname_name(&fixed);
-	result = dns_db_findext(*dbp, qnamef, version, dns_rdatatype_any, 0,
+	result = dns_db_findext(*dbp, qnamef, *versionp, dns_rdatatype_any, 0,
 				client->now, nodep, found, &cm, &ci,
 				*rdatasetp, NULL);
 	if (result == ISC_R_SUCCESS) {
 		dns_rdatasetiter_t *rdsiter;
 
 		rdsiter = NULL;
-		result = dns_db_allrdatasets(*dbp, *nodep, version, 0,
+		result = dns_db_allrdatasets(*dbp, *nodep, *versionp, 0,
 					     &rdsiter);
 		if (result != ISC_R_SUCCESS) {
 			dns_db_detachnode(*dbp, nodep);
@@ -4200,7 +4201,7 @@ rpz_find(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qnamef,
 			    qtype == dns_rdatatype_sig)
 				result = DNS_R_NXRRSET;
 			else
-				result = dns_db_findext(*dbp, qnamef, version,
+				result = dns_db_findext(*dbp, qnamef, *versionp,
 							qtype, 0, client->now,
 							nodep, found, &cm, &ci,
 							*rdatasetp, NULL);
@@ -4268,6 +4269,7 @@ rpz_rewrite_name(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 	dns_name_t *prefix, *suffix, *rpz_qname;
 	dns_zone_t *zone;
 	dns_db_t *db;
+	dns_dbversion_t *version;
 	dns_dbnode_t *node;
 	dns_rpz_policy_t policy;
 	unsigned int labels;
@@ -4329,7 +4331,8 @@ rpz_rewrite_name(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 		 * See if the policy record exists.
 		 */
 		result = rpz_find(client, qtype, rpz_qname, qname, rpz_type,
-				  &zone, &db, &node, rdatasetp, &policy);
+				  &zone, &db, &version, &node, rdatasetp,
+				  &policy);
 		switch (result) {
 		case DNS_R_NXDOMAIN:
 		case DNS_R_EMPTYNAME:
@@ -4388,6 +4391,7 @@ rpz_rewrite_name(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 			node = NULL;
 			st->m.db = db;
 			db = NULL;
+			st->m.version = version;
 			st->m.zone = zone;
 			zone = NULL;
 		}
@@ -5700,6 +5704,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			rpz_st->m.node = NULL;
 			db = rpz_st->m.db;
 			rpz_st->m.db = NULL;
+			version = rpz_st->m.version;
+			rpz_st->m.version = NULL;
 			zone = rpz_st->m.zone;
 			rpz_st->m.zone = NULL;
 
