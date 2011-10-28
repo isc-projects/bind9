@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch03.html,v 1.88 2011/10/26 01:14:51 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch03.html,v 1.89 2011/10/28 12:23:39 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -54,7 +54,7 @@
 <dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2568364">Name Server Operations</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2568370">Tools for Use With the Name Server Daemon</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2570480">Signals</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2570514">Signals</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -746,23 +746,52 @@ zone "eng.example.com" {
                         <span><strong class="command">rndc addzone</strong></span> can be deleted
                         in this matter.
                       </p></dd>
-<dt><span class="term"><strong class="userinput"><code>keydone
-                        <em class="replaceable"><code>rdata</code></em>
+<dt><span class="term"><strong class="userinput"><code>signing
+                        [<span class="optional">( -list | -clear <em class="replaceable"><code>keyid/algorithm</code></em> | -clear <code class="literal">all</code> | -nsec3param ( <em class="replaceable"><code>parameters</code></em> | <code class="literal">none</code> ) ) </span>]
                         <em class="replaceable"><code>zone</code></em>
                         [<span class="optional"><em class="replaceable"><code>class</code></em>
                         [<span class="optional"><em class="replaceable"><code>view</code></em></span>]</span>]
                     </code></strong></span></dt>
-<dd><p>
-                        Remove the <span><strong class="command">sig-signing-type</strong></span> record
-                        which matches the <em class="replaceable"><code>rdata</code></em>
-                        (in hexadecimal) from the specified zone.  Only
-                        <em class="replaceable"><code>rdata</code></em> that
-                        indicate that named has finished signing the zone
-                        with the corresponding key will be removed. (i.e.
-                        the first two characters are not "00", the
-                        last four characters are "0001" and the total
-                        length is 10 hexadecimal characters.
-                      </p></dd>
+<dd>
+<p>
+                        List, edit, or remove the DNSSEC signing state for 
+                        the specified zone.  The status of ongoing DNSSEC
+                        operations (such as signing or generating
+                        NSEC3 chains) is stored in the zone in the form
+                        of DNS resource records of type
+                        <span><strong class="command">sig-signing-type</strong></span>. 
+                        <span><strong class="command">rndc signing -list</strong></span> converts
+                        these records into a human-readable form,
+                        indicating which keys are currently signing
+                        or have finished signing the zone, and which NSEC3
+                        NSEC3 chains are being created or removed.
+                      </p>
+<p>
+                        <span><strong class="command">rndc signing -clear</strong></span> can remove
+                        a single key (specified in the same format that
+                        <span><strong class="command">rndc signing -list</strong></span> uses to
+                        display it), or all keys.  In either case, only
+                        completed keys are removed; any record indicating
+                        that a key has not yet finished signing the zone
+                        will be retained.
+                      </p>
+<p>
+                        <span><strong class="command">rndc signing -nsec3param</strong></span> sets
+                        the NSEC3 parameters for a zone.  This is the
+                        only supported mechanism for using NSEC3 with
+                        <span><strong class="command">inline-signing</strong></span> zones.
+                        Parameters are specified in the same format as
+                        an NSEC3PARAM resource record: hash algorithm,
+                        flags, iterations, salt.  For example, to set an
+                        NSEC3 chain using the SHA-1 hash algorithm,
+                        no opt-out flag, 10 iterations, and a salt value
+                        of "FFFF", use:
+                        <span><strong class="command">rndc signing -nsec3param 1 0 10 FFFF</strong></span>.
+                        <span><strong class="command">rndc signing -nsec3param none</strong></span>
+                        removes an existing NSEC3 chain and replaces it
+                        with NSEC.
+                      </p>
+</dd>
 </dl></div>
 <p>
                   A configuration file is required, since all
@@ -915,7 +944,7 @@ controls {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2570480"></a>Signals</h3></div></div></div>
+<a name="id2570514"></a>Signals</h3></div></div></div>
 <p>
           Certain UNIX signals cause the name server to take specific
           actions, as described in the following table.  These signals can
