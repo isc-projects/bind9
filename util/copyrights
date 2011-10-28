@@ -823,6 +823,7 @@
 ./bin/tests/system/edns/ans2/ans.pl		PERL	2011
 ./bin/tests/system/edns/clean.sh		SH	2011
 ./bin/tests/system/edns/ns1/named.conf		CONF-C	2011
+./bin/tests/system/edns/prereq.sh		SH	2011
 ./bin/tests/system/edns/setup.sh		SH	2011
 ./bin/tests/system/edns/tests.sh		SH	2011
 ./bin/tests/system/filter-aaaa/.cvsignore	X	2010
