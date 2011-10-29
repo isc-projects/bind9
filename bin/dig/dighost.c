@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.336.22.4 2011/03/11 06:46:58 marka Exp $ */
+/* $Id: dighost.c,v 1.336.22.5 2011/10/29 22:29:44 marka Exp $ */
 
 /*! \file
  *  \note
@@ -360,6 +360,8 @@ connect_timeout(isc_task_t *task, isc_event_t *event);
 static void
 launch_next_query(dig_query_t *query, isc_boolean_t include_question);
 
+static void
+send_tcp_connect(dig_query_t *query);
 
 static void *
 mem_alloc(void *arg, size_t size) {
@@ -787,6 +789,7 @@ make_empty_lookup(void) {
 	looknew->new_search = ISC_FALSE;
 	looknew->done_as_is = ISC_FALSE;
 	looknew->need_search = ISC_FALSE;
+	dns_fixedname_init(&looknew->fdomain);
 	ISC_LINK_INIT(looknew, link);
 	ISC_LIST_INIT(looknew->q);
 	ISC_LIST_INIT(looknew->my_server_list);
@@ -862,6 +865,8 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->tsigctx = NULL;
 	looknew->need_search = lookold->need_search;
 	looknew->done_as_is = lookold->done_as_is;
+	dns_name_copy(dns_fixedname_name(&lookold->fdomain),
+		      dns_fixedname_name(&looknew->fdomain), NULL);
 
 	if (servers)
 		clone_server_list(lookold->my_server_list,
@@ -1783,7 +1788,6 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 				lookup->trace_root = ISC_FALSE;
 				if (lookup->ns_search_only)
 					lookup->recurse = ISC_FALSE;
-				dns_fixedname_init(&lookup->fdomain);
 				domain = dns_fixedname_name(&lookup->fdomain);
 				dns_name_copy(name, domain, NULL);
 			}
@@ -1838,11 +1842,9 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
  * Return ISC_TRUE iff there was another searchlist entry.
  */
 static isc_boolean_t
-next_origin(dns_message_t *msg, dig_query_t *query) {
+next_origin(dig_query_t *query) {
 	dig_lookup_t *lookup;
 	dig_searchlist_t *search;
-
-	UNUSED(msg);
 
 	INSIST(!free_now);
 
@@ -2318,7 +2320,7 @@ send_done(isc_task_t *_task, isc_event_t *event) {
 	query->waiting_senddone = ISC_FALSE;
 	l = query->lookup;
 
-	if (l->ns_search_only && !l->trace_root) {
+	if (l->ns_search_only && !l->trace_root && !l->tcp_mode) {
 		debug("sending next, since searching");
 		next = ISC_LIST_NEXT(query, link);
 		if (next != NULL)
@@ -3360,7 +3362,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	if (!l->doing_xfr || l->xfr_q == query) {
 		if (msg->rcode != dns_rcode_noerror &&
 		    (l->origin != NULL || l->need_search)) {
-			if (!next_origin(msg, query) || showsearch) {
+			if (!next_origin(query) || showsearch) {
 				printmessage(query, msg, ISC_TRUE);
 				received(b->used, &sevent->address, query);
 			}
