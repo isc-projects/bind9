@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.626 2011/10/29 06:22:51 marka Exp $ */
+/* $Id: server.c,v 1.625 2011/10/28 12:08:04 tbox Exp $ */
 
 /*! \file */
 
@@ -7938,7 +7938,7 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 			isc_buffer_putuint8(text, 0);
 		} else
 			CHECK(result);
-	} else if (list) {
+	} else {
 		privatetype = dns_zone_getprivatetype(zone);
 		origin = dns_zone_getorigin(zone);
 		CHECK(dns_zone_getdb(zone, &db));
