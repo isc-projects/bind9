@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.136 2011/10/26 23:46:15 tbox Exp $ */
+/* $Id: check.c,v 1.137 2011/10/29 00:15:56 each Exp $ */
 
 /*! \file */
 
@@ -1503,7 +1503,6 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		res1 = cfg_map_get(zoptions, "inline-signing", &obj);
 		if (res1 == ISC_R_SUCCESS)
 			signing = cfg_obj_asboolean(obj);
-		fprintf(stderr, "inline-signing -> %u\n", signing);
 
 		obj = NULL;
 		arg = "off";

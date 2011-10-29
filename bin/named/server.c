@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.623 2011/10/25 01:54:19 marka Exp $ */
+/* $Id: server.c,v 1.626 2011/10/29 06:22:51 marka Exp $ */
 
 /*! \file */
 
@@ -34,6 +34,7 @@
 #include <isc/entropy.h>
 #include <isc/file.h>
 #include <isc/hash.h>
+#include <isc/hex.h>
 #include <isc/httpd.h>
 #include <isc/lex.h>
 #include <isc/parseint.h>
@@ -73,6 +74,7 @@
 #include <dns/order.h>
 #include <dns/peer.h>
 #include <dns/portlist.h>
+#include <dns/private.h>
 #include <dns/rbt.h>
 #include <dns/rdataclass.h>
 #include <dns/rdataset.h>
@@ -7858,46 +7860,142 @@ newzone_cfgctx_destroy(void **cfgp) {
 	*cfgp = NULL;
 }
 
-/*
- * Act on a "keydone" command from the command channel.
- */
 isc_result_t
-ns_server_keydone(ns_server_t *server, char *args) {
-	isc_result_t result;
+ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
+	isc_result_t result = ISC_R_SUCCESS;
 	dns_zone_t *zone = NULL;
-	const char *ptr = NULL;
+	dns_name_t *origin;
+	dns_db_t *db = NULL;
+	dns_dbnode_t *node = NULL;
+	dns_dbversion_t *version = NULL;
+	dns_rdatatype_t privatetype;
+	dns_rdataset_t privset;
+	isc_boolean_t first = ISC_TRUE;
+	isc_boolean_t list = ISC_FALSE, clear = ISC_FALSE;
+	isc_boolean_t chain = ISC_FALSE;
+	char keystr[DNS_SECALG_FORMATSIZE + 7];
+	isc_uint8_t hash = 0, flags = 0, iter = 0, saltlen = 0;
+	unsigned char salt[255];
+	const char *ptr;
+	size_t n;
 
+	dns_rdataset_init(&privset);
+
+	(void) next_token(&args, " \t");
 	ptr = next_token(&args, " \t");
-	if (ptr == NULL)
-		return (ISC_R_UNEXPECTEDEND);
+	if (strcasecmp(ptr, "-list") == 0)
+		list = ISC_TRUE;
+	else if (strcasecmp(ptr, "-clear") == 0) {
+		clear = ISC_TRUE;
+		ptr = next_token(&args, " \t");
+		memcpy(keystr, ptr, sizeof(keystr));
+	} else if(strcasecmp(ptr, "-nsec3param") == 0) {
+		const char *hashstr, *flagstr, *iterstr;
+		isc_buffer_t buf;
+		char nbuf[512];
 
-	ptr = next_token(&args, " \t");
-	if (ptr == NULL)
-		return (ISC_R_UNEXPECTEDEND);
-	/*
-	 * Is the rdata sane?
-	 */
-	if (strspn(ptr, "0123456789ABCDEFabcdef") != 10U ||
-	    strncmp(ptr, "00", 2) == 0 || strcmp(ptr + 6, "0001") != 0)
-		return (DNS_R_SYNTAX);
+		chain = ISC_TRUE;
+		hashstr = next_token(&args, " \t");
 
-	/*
-	 * Find the zone.
-	 */
-	result = zone_from_args(server, args, &zone, NULL, ISC_FALSE);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+		if (strcasecmp(hashstr, "none") == 0)
+			hash = 0;
+		else {
+			flagstr = next_token(&args, " \t");
+			iterstr = next_token(&args, " \t");
+			n = snprintf(nbuf, sizeof(nbuf), "%s %s %s",
+				     hashstr, flagstr, iterstr);
+			if (n == sizeof(nbuf))
+				return (ISC_R_NOSPACE);
+			n = sscanf(nbuf, "%hhd %hhd %hhd",
+				   &hash, &flags, &iter);
+			if (n != 3)
+				return (ISC_R_BADNUMBER);
+
+			ptr = next_token(&args, " \t");
+			isc_buffer_init(&buf, salt, sizeof(salt));
+			CHECK(isc_hex_decodestring(ptr, &buf));
+			saltlen = isc_buffer_usedlength(&buf);
+		}
+	} else
+		CHECK(ISC_R_NOTFOUND);
+
+	CHECK(zone_from_args(server, args, &zone, NULL, ISC_FALSE));
 	if (zone == NULL)
-		return(ISC_R_NOTFOUND);
+		CHECK(ISC_R_UNEXPECTEDEND);
 
-	if (dns_zone_gettype(zone) != dns_zone_master) {
-		result = DNS_R_NOTMASTER;
-		goto cleanup;
+	if (clear) {
+		result = dns_zone_keydone(zone, keystr);
+		if (result == ISC_R_SUCCESS) {
+			isc_buffer_putstr(text, "request queued");
+			isc_buffer_putuint8(text, 0);
+		} else
+			CHECK(result);
+	} else if (chain) {
+		result = dns_zone_setnsec3param(zone, hash, flags, iter,
+						saltlen, salt, ISC_TRUE);
+		if (result == ISC_R_SUCCESS) {
+			isc_buffer_putstr(text, "request queued");
+			isc_buffer_putuint8(text, 0);
+		} else
+			CHECK(result);
+	} else if (list) {
+		privatetype = dns_zone_getprivatetype(zone);
+		origin = dns_zone_getorigin(zone);
+		CHECK(dns_zone_getdb(zone, &db));
+		CHECK(dns_db_findnode(db, origin, ISC_FALSE, &node));
+		dns_db_currentversion(db, &version);
+
+		result = dns_db_findrdataset(db, node, version, privatetype,
+					     dns_rdatatype_none, 0,
+					     &privset, NULL);
+		if (result == ISC_R_NOTFOUND) {
+			isc_buffer_putstr(text, "No signing records found");
+			isc_buffer_putuint8(text, 0);
+			result = ISC_R_SUCCESS;
+			goto cleanup;
+		}
+
+		for (result = dns_rdataset_first(&privset);
+		     result == ISC_R_SUCCESS;
+		     result = dns_rdataset_next(&privset))
+		{
+			dns_rdata_t priv = DNS_RDATA_INIT;
+			char output[BUFSIZ];
+			isc_buffer_t buf;
+
+			dns_rdataset_current(&privset, &priv);
+
+			isc_buffer_init(&buf, output, sizeof(output));
+			CHECK(dns_private_totext(&priv, &buf));
+
+			if (!first)
+				isc_buffer_putstr(text, "\n");
+			first = ISC_FALSE;
+
+			n = snprintf((char *)isc_buffer_used(text),
+				     isc_buffer_availablelength(text),
+				     "%s", output);
+			if (n >= isc_buffer_availablelength(text))
+				CHECK(ISC_R_NOSPACE);
+
+			isc_buffer_add(text, n);
+		}
+
+		if (result == ISC_R_NOMORE)
+			result = ISC_R_SUCCESS;
 	}
 
-	result = dns_zone_keydone(zone, ptr);
-
  cleanup:
-	dns_zone_detach(&zone);
+	if (dns_rdataset_isassociated(&privset))
+		dns_rdataset_disassociate(&privset);
+	if (node != NULL)
+		dns_db_detachnode(db, &node);
+	if (version != NULL)
+		dns_db_closeversion(db, &version, ISC_FALSE);
+	if (db != NULL)
+		dns_db_detach(&db);
+	if (zone != NULL)
+		dns_zone_detach(&zone);
+
 	return (result);
 }

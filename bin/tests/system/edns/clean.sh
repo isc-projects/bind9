@@ -1,3 +1,5 @@
+#!/bin/sh
+#
 # Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -12,35 +14,10 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.5 2011/10/28 06:20:05 each Exp $
+# $Id: clean.sh,v 1.3 2011/10/27 23:46:30 tbox Exp $
 
-rm -f */named.memstats
-rm -f */named.run
-rm -f */trusted.conf
-rm -f ns1/K*
-rm -f ns1/dsset-*
-rm -f ns1/root.db
-rm -f ns1/root.db.signed
-rm -f ns2/bits.db
-rm -f ns2/bits.db.jnl
-rm -f ns3/K*
-rm -f ns3/bits.bk
-rm -f ns3/bits.bk.jnl
-rm -f ns3/bits.bk.signed
-rm -f ns3/bits.bk.signed.jnl
-rm -f ns3/noixfr.bk
-rm -f ns3/noixfr.bk.jnl
-rm -f ns3/noixfr.bk.signed
-rm -f ns3/noixfr.bk.signed.jnl
-rm -f ns4/K*
-rm -f ns4/noixfr.db
-rm -f ns4/noixfr.db.jnl
-rm -f ns5/K*
-rm -f ns5/named.conf
-rm -f ns5/bits.bk
-rm -f ns5/bits.bk.jnl
-rm -f ns5/bits.bk.signed
-rm -f ns5/bits.bk.signed.jnl
-rm -f random.data
-rm -f dig.out.ns*.test*
-rm -f signing.out*
+#
+# Clean up after zone transfer tests.
+#
+
+exit

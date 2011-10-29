@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.36 2011/10/20 21:20:01 marka Exp $
+# $Id: tests.sh,v 1.37 2011/10/28 06:20:05 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -126,7 +126,7 @@ zone nsec3.example.
 update add nsec3.example. 3600 NSEC3PARAM 1 0 10 BEEF
 send
 zone autonsec3.example.
-update add autonsec3.example. 3600 NSEC3PARAM 1 1 10 BEEF
+update add autonsec3.example. 3600 NSEC3PARAM 1 0 20 DEAF
 send
 zone nsec3.optout.example.
 update add nsec3.optout.example. 3600 NSEC3PARAM 1 0 10 BEEF
@@ -140,6 +140,7 @@ send
 END
 
 # try to convert nsec.example; this should fail due to non-NSEC key
+echo "I:preset nsec3param in unsigned zone via nsupdate ($n)"
 $NSUPDATE > nsupdate.out 2>&1 <<END
 server 10.53.0.3 5300
 zone nsec.example.
@@ -151,6 +152,27 @@ echo "I:checking for nsec3param in unsigned zone ($n)"
 ret=0
 $DIG $DIGOPTS +noall +answer autonsec3.example. nsec3param @10.53.0.3 > dig.out.ns3.test$n || ret=1
 grep "NSEC3PARAM" dig.out.ns3.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking for nsec3param signing record ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 signing -list autonsec3.example. > signing.out.test$n 2>&1
+grep "Pending NSEC3 chain 1 0 20 DEAF" signing.out.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:resetting nsec3param via rndc signing ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 signing -clear all autonsec3.example. > /dev/null 2>&1
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 signing -nsec3param 1 1 10 beef autonsec3.example. > /dev/null 2>&1
+sleep 1
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 signing -list autonsec3.example. > signing.out.test$n 2>&1
+grep "Pending NSEC3 chain 1 1 10 BEEF" signing.out.test$n > /dev/null || ret=1
+num=`grep "Pending " signing.out.test$n | wc -l`
+[ $num -eq 1 ] || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -268,6 +290,22 @@ $DIG $DIGOPTS +noall +answer nsec3-to-nsec.example. nsec3param @10.53.0.3 > dig.
 grep "NSEC3PARAM" dig.out.ns3.nx.test$n > /dev/null && ret=1
 $DIG $DIGOPTS +noauth q.nsec3-to-nsec.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS +noauth q.nsec3-to-nsec.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
+$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
+grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking NSEC3->NSEC conversion with 'rndc signing -nsec3param none' ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 signing -nsec3param none autonsec3.example. > /dev/null 2>&1
+sleep 2
+# this command should result in an empty file:
+$DIG $DIGOPTS +noall +answer autonsec3.example. nsec3param @10.53.0.3 > dig.out.ns3.nx.test$n || ret=1
+grep "NSEC3PARAM" dig.out.ns3.nx.test$n > /dev/null && ret=1
+$DIG $DIGOPTS +noauth q.autonsec3.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
+$DIG $DIGOPTS +noauth q.autonsec3.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
 $PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1

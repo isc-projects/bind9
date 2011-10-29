@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.43 2011/10/11 19:26:06 each Exp $
+# $Id: clean.sh,v 1.44 2011/10/28 06:20:05 each Exp $
 
 rm -f */K* */keyset-* */dsset-* */dlvset-* */signedkey-* */*.signed
 rm -f */trusted.conf */managed.conf */tmp* */*.jnl */*.bk
@@ -59,3 +59,4 @@ rm -f ns3/ttlpatch.example.db ns3/ttlpatch.example.db.signed
 rm -f ns3/ttlpatch.example.db.patched
 rm -f ns3/split-smart.example.db
 rm -f nosign.before
+rm -f signing.out*

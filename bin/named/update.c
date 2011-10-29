@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.197 2011/08/31 06:49:09 marka Exp $ */
+/* $Id: update.c,v 1.198 2011/10/28 06:20:04 each Exp $ */
 
 #include <config.h>
 
@@ -3068,7 +3068,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			 * remove any NSEC chain present will also be removed.
 			 */
 			 CHECK(dns_nsec3param_deletechains(db, ver, zone,
-							   &diff));
+							   ISC_TRUE, &diff));
 		} else if (has_dnskey && isdnssec(db, ver, privatetype)) {
 			isc_uint32_t interval;
 			dns_update_log_t log;

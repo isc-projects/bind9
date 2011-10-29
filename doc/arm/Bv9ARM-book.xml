@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.508 2011/10/26 15:23:37 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.509 2011/10/28 06:20:05 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -1556,23 +1556,50 @@ zone "eng.example.com" {
                   </varlistentry>
 
                   <varlistentry>
-                    <term><userinput>keydone
-                        <replaceable>rdata</replaceable>
+                    <term><userinput>signing
+                        <optional>( -list | -clear <replaceable>keyid/algorithm</replaceable> | -clear <literal>all</literal> | -nsec3param ( <replaceable>parameters</replaceable> | <literal>none</literal> ) ) </optional>
                         <replaceable>zone</replaceable>
                         <optional><replaceable>class</replaceable>
                         <optional><replaceable>view</replaceable></optional></optional>
                     </userinput></term>
                     <listitem>
                       <para>
-			Remove the <command>sig-signing-type</command> record
-			which matches the <replaceable>rdata</replaceable>
-			(in hexadecimal) from the specified zone.  Only
-			<replaceable>rdata</replaceable> that
-			indicate that named has finished signing the zone
-			with the corresponding key will be removed. (i.e.
-			the first two characters are not "00", the
-			last four characters are "0001" and the total
-			length is 10 hexadecimal characters.
+                        List, edit, or remove the DNSSEC signing state for 
+                        the specified zone.  The status of ongoing DNSSEC
+                        operations (such as signing or generating
+                        NSEC3 chains) is stored in the zone in the form
+                        of DNS resource records of type
+                        <command>sig-signing-type</command>. 
+                        <command>rndc signing -list</command> converts
+                        these records into a human-readable form,
+                        indicating which keys are currently signing
+                        or have finished signing the zone, and which NSEC3
+                        NSEC3 chains are being created or removed.
+                      </para>
+                      <para>
+                        <command>rndc signing -clear</command> can remove
+                        a single key (specified in the same format that
+                        <command>rndc signing -list</command> uses to
+                        display it), or all keys.  In either case, only
+                        completed keys are removed; any record indicating
+                        that a key has not yet finished signing the zone
+                        will be retained.
+                      </para>
+                      <para>
+                        <command>rndc signing -nsec3param</command> sets
+                        the NSEC3 parameters for a zone.  This is the
+                        only supported mechanism for using NSEC3 with
+                        <command>inline-signing</command> zones.
+                        Parameters are specified in the same format as
+                        an NSEC3PARAM resource record: hash algorithm,
+                        flags, iterations, salt.  For example, to set an
+                        NSEC3 chain using the SHA-1 hash algorithm,
+                        no opt-out flag, 10 iterations, and a salt value
+                        of "FFFF", use:
+                        <command>rndc signing -nsec3param 1 0 10 FFFF</command>.
+                        <command>rndc signing -nsec3param none</command>
+                        removes an existing NSEC3 chain and replaces it
+                        with NSEC.
                       </para>
                     </listitem>
                   </varlistentry>
@@ -8730,8 +8757,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  These records can be removed from the zone once named
 		  has completed signing the zone with the matching key
 		  using <command>nsupdate</command> or
-		  <command>rndc keydone</command>.
-		  <command>rndc keydone</command> is the only supported
+		  <command>rndc signing -clear</command>.
+		  <command>rndc signing -clear</command> is the only supported
 		  way to remove these records from
 		  <command>inline-signing</command> zones.
 		</para>

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.114 2011/10/25 01:54:19 marka Exp $ */
+/* $Id: server.h,v 1.115 2011/10/28 06:20:04 each Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -343,9 +343,8 @@ isc_result_t
 ns_server_del_zone(ns_server_t *server, char *args);
 
 /*%
- * Deletes the matching key done private record from the zone.
+ * Lists the status of the signing records for a given zone.
  */
 isc_result_t
-ns_server_keydone(ns_server_t *server, char *args);
-
+ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text);
 #endif /* NAMED_SERVER_H */

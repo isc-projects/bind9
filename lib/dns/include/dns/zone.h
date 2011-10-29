@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.195 2011/10/25 01:54:22 marka Exp $ */
+/* $Id: zone.h,v 1.196 2011/10/28 06:20:06 each Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1981,6 +1981,20 @@ dns_zone_getraw(dns_zone_t *zone, dns_zone_t **raw);
 isc_result_t
 dns_zone_keydone(dns_zone_t *zone, const char *data);
 
+isc_result_t
+dns_zone_setnsec3param(dns_zone_t *zone, isc_uint8_t hash, isc_uint8_t flags,
+		       isc_uint8_t iter, isc_uint8_t saltlen,
+		       unsigned char *salt, isc_boolean_t replace);
+/*%
+ * Set the NSEC3 parameters for the zone.
+ *
+ * If 'replace' is ISC_TRUE, then the existing NSEC3 chain, if any, will
+ * be replaced with the new one.  If 'hash' is zero, then the replacement
+ * chain will be NSEC rather than NSEC3.
+ *
+ * Requires:
+ * \li	'zone' to be valid.
+ */
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_ZONE_H */

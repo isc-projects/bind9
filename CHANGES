@@ -1,3 +1,26 @@
+	--- 9.9.0b1 released ---
+
+3186.	[bug]		Version/db mis-match in rpz code. [RT #26180]
+
+3185.	[func]		New 'rndc signing' option for auto-dnssec zones:
+			 - 'rndc signing -list' displays the current
+			   state of signing operations
+			 - 'rndc signing -clear' clears the signing state
+		  	   records for keys that have fully signed the zone
+			 - 'rndc signing -nsec3param' sets the NSEC3
+			   parameters for the zone
+			The 'rndc keydone' syntax is removed. [RT #23729]
+
+3184.	[bug]		named had excessive cpu usage when a redirect zone was
+			configured. [RT #26013]
+
+3183.	[bug]		Added RTLD_GLOBAL flag to dlopen call. [RT #26301]
+
+3182.   [bug]		Auth servers behind firewalls which block packets
+			greater than 512 bytes may cause other servers to
+			perform poorly. Now, adb retains edns information
+			and caches noedns servers. [RT #23392/24964]
+
 3181.	[func]		Inline-signing is now supported for master zones.
 			[RT #26224]
 

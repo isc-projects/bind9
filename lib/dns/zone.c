@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.640 2011/10/26 20:56:45 marka Exp $ */
+/* $Id: zone.c,v 1.643 2011/10/28 12:27:06 marka Exp $ */
 
 /*! \file */
 
@@ -8336,6 +8336,7 @@ zone_maintenance(dns_zone_t *zone) {
 
 	switch (zone->type) {
 	case dns_zone_master:
+	case dns_zone_redirect:
 	case dns_zone_slave:
 		/*
 		 * Do we need to send out notify messages?
@@ -14807,7 +14808,7 @@ clean_nsec3param(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	if (result != ISC_R_NOTFOUND)
 		goto failure;
 
-	result = dns_nsec3param_deletechains(db, ver, zone, diff);
+	result = dns_nsec3param_deletechains(db, ver, zone, ISC_TRUE, diff);
 
  failure:
 	if (node != NULL)
@@ -15339,8 +15340,11 @@ dns_zone_getraw(dns_zone_t *zone, dns_zone_t **raw) {
 
 struct keydone {
 	isc_event_t event;
-	unsigned int data[5];
+	isc_boolean_t all;
+	unsigned char data[5];
 };
+
+#define PENDINGFLAGS (DNS_NSEC3FLAG_CREATE|DNS_NSEC3FLAG_INITIAL)
 
 static void
 keydone(isc_task_t *task, isc_event_t *event) {
@@ -15356,6 +15360,7 @@ keydone(isc_task_t *task, isc_event_t *event) {
 	dns_diff_t diff;
 	struct keydone *keydone = (struct keydone *)event;
 	dns_update_log_t log = { update_log_cb, NULL };
+	isc_boolean_t clear_pending = ISC_FALSE;
 
 	UNUSED(task);
 
@@ -15397,17 +15402,31 @@ keydone(isc_task_t *task, isc_event_t *event) {
 		INSIST(!dns_rdataset_isassociated(&rdataset));
 		goto failure;
 	}
+
 	for (result = dns_rdataset_first(&rdataset);
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(&rdataset)) {
+		isc_boolean_t found = ISC_FALSE;
+
 		dns_rdataset_current(&rdataset, &rdata);
-		if (rdata.length != 5 ||
-		    memcmp(rdata.data, keydone->data, 5) != 0) {
-			dns_rdata_reset(&rdata);
-			continue;
-		}
-		CHECK(update_one_rr(db, newver, &diff, DNS_DIFFOP_DEL,
-				    &zone->origin, rdataset.ttl, &rdata));
+
+		if (keydone->all) {
+			if (rdata.length == 5 && rdata.data[0] != 0 &&
+			       rdata.data[3] == 0 && rdata.data[4] == 1)
+				found = ISC_TRUE;
+			else if (rdata.data[0] == 0 &&
+				 (rdata.data[2] & PENDINGFLAGS) != 0) {
+				found = ISC_TRUE;
+				clear_pending = ISC_TRUE;
+			}
+		} else if (rdata.length == 5 &&
+			   memcmp(rdata.data, keydone->data, 5) == 0)
+			found = ISC_TRUE;
+
+		if (found)
+			CHECK(update_one_rr(db, newver, &diff, DNS_DIFFOP_DEL,
+					    &zone->origin, rdataset.ttl,
+					    &rdata));
 		dns_rdata_reset(&rdata);
 	}
 
@@ -15415,8 +15434,13 @@ keydone(isc_task_t *task, isc_event_t *event) {
 		/* Write changes to journal file. */
 		CHECK(update_soa_serial(db, newver, &diff, zone->mctx,
 					zone->updatemethod));
-		CHECK(dns_update_signatures(&log, zone, db, oldver, newver,
-					    &diff, zone->sigvalidityinterval));
+
+		result = dns_update_signatures(&log, zone, db,
+					       oldver, newver, &diff,
+					       zone->sigvalidityinterval);
+		if (!clear_pending)
+			CHECK(result);
+
 		CHECK(zone_journal(zone, &diff, NULL, "keydone"));
 		commit = ISC_TRUE;
 
@@ -15444,11 +15468,12 @@ keydone(isc_task_t *task, isc_event_t *event) {
 }
 
 isc_result_t
-dns_zone_keydone(dns_zone_t *zone, const char *data) {
-	isc_result_t result;
+dns_zone_keydone(dns_zone_t *zone, const char *keystr) {
+	isc_result_t result = ISC_R_SUCCESS;
 	isc_event_t *e;
 	isc_buffer_t b;
 	dns_zone_t *dummy = NULL;
+	struct keydone *kd;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -15461,11 +15486,280 @@ dns_zone_keydone(dns_zone_t *zone, const char *data) {
 		goto failure;
 	}
 
-	isc_buffer_init(&b, ((struct keydone*)e)->data,
-			sizeof(((struct keydone*)e)->data));
-	result = isc_hex_decodestring(data, &b);
-	if (result != ISC_R_SUCCESS)
+	kd = (struct keydone *) e;
+	if (strcasecmp(keystr, "all") == 0)
+		kd->all = ISC_TRUE;
+	else {
+		isc_textregion_t r;
+		char *algstr;
+		dns_keytag_t keyid;
+		dns_secalg_t alg;
+		size_t n;
+
+		kd->all = ISC_FALSE;
+
+		n = sscanf(keystr, "%hd/", &keyid);
+		if (n == 0)
+			CHECK(ISC_R_FAILURE);
+
+		algstr = strchr(keystr, '/');
+		if (algstr != NULL)
+			algstr++;
+		else
+			CHECK(ISC_R_FAILURE);
+
+		DE_CONST(algstr, r.base);
+		r.length = strlen(algstr);
+		result = dns_secalg_fromtext(&alg, (isc_textregion_t *) &r);
+
+		if (result != ISC_R_SUCCESS) {
+			n = sscanf(algstr, "%hhd", &alg);
+			if (n == 0)
+				CHECK(result);
+		}
+
+		/* construct a private-type rdata */
+		isc_buffer_init(&b, kd->data, sizeof(kd->data));
+		isc_buffer_putuint8(&b, alg);
+		isc_buffer_putuint8(&b, (keyid & 0xff00) >> 8);
+		isc_buffer_putuint8(&b, (keyid & 0xff));
+		isc_buffer_putuint8(&b, 0);
+		isc_buffer_putuint8(&b, 1);
+	}
+
+	zone_iattach(zone, &dummy);
+	isc_task_send(zone->task, &e);
+
+ failure:
+	if (e != NULL)
+		isc_event_free(&e);
+	UNLOCK_ZONE(zone);
+	return (result);
+}
+
+struct nsec3param {
+	isc_event_t event;
+	unsigned char data[DNS_NSEC3PARAM_BUFFERSIZE + 1];
+	unsigned int length;
+	isc_boolean_t nsec;
+	isc_boolean_t replace;
+};
+
+static void
+setnsec3param(isc_task_t *task, isc_event_t *event) {
+	const char *me = "setnsec3param";
+	isc_boolean_t commit = ISC_FALSE;
+	isc_result_t result;
+	dns_dbversion_t *oldver = NULL, *newver = NULL;
+	dns_zone_t *zone;
+	dns_db_t *db = NULL;
+	dns_dbnode_t *node = NULL;
+	dns_rdataset_t prdataset, nrdataset;
+	dns_diff_t diff;
+	struct nsec3param *np = (struct nsec3param *)event;
+	dns_update_log_t log = { update_log_cb, NULL };
+	dns_rdata_t rdata;
+	isc_boolean_t nseconly;
+	isc_boolean_t exists = ISC_FALSE;
+
+	UNUSED(task);
+
+	zone = event->ev_arg;
+	INSIST(DNS_ZONE_VALID(zone));
+
+	ENTER;
+
+	dns_rdataset_init(&prdataset);
+	dns_rdataset_init(&nrdataset);
+	dns_diff_init(zone->mctx, &diff);
+
+	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
+	if (zone->db != NULL) {
+		dns_db_attach(zone->db, &db);
+		dns_db_currentversion(db, &oldver);
+		result = dns_db_newversion(db, &newver);
+		if (result != ISC_R_SUCCESS) {
+			dns_zone_log(zone, ISC_LOG_ERROR,
+				     "setnsec3param:dns_db_newversion -> %s\n",
+				     dns_result_totext(result));
+			goto failure;
+		}
+	}
+	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
+	if (db == NULL)
 		goto failure;
+
+	CHECK(dns_db_getoriginnode(db, &node));
+
+	/*
+	 * Does a private-type record already exist for this chain?
+	 */
+	result = dns_db_findrdataset(db, node, newver, zone->privatetype,
+				     dns_rdatatype_none, 0, &prdataset, NULL);
+	if (result == ISC_R_SUCCESS) {
+		for (result = dns_rdataset_first(&prdataset);
+		     result == ISC_R_SUCCESS;
+		     result = dns_rdataset_next(&prdataset)) {
+			dns_rdata_init(&rdata);
+			dns_rdataset_current(&prdataset, &rdata);
+
+			if (np->length == rdata.length &&
+			    memcmp(rdata.data, np->data, np->length) == 0) {
+				exists = ISC_TRUE;
+				break;
+			}
+		}
+	} else if (result != ISC_R_NOTFOUND) {
+		INSIST(!dns_rdataset_isassociated(&prdataset));
+		goto failure;
+	}
+
+	/*
+	 * Does the chain already exist?
+	 */
+	result = dns_db_findrdataset(db, node, newver,
+				     dns_rdatatype_nsec3param,
+				     dns_rdatatype_none, 0, &nrdataset, NULL);
+	if (result == ISC_R_SUCCESS) {
+		for (result = dns_rdataset_first(&nrdataset);
+		     result == ISC_R_SUCCESS;
+		     result = dns_rdataset_next(&nrdataset)) {
+			dns_rdata_init(&rdata);
+			dns_rdataset_current(&nrdataset, &rdata);
+
+			if (np->length == (rdata.length + 1) &&
+			    memcmp(rdata.data, np->data + 1,
+				   np->length - 1) == 0)
+			{
+				exists = ISC_TRUE;
+				break;
+			}
+		}
+	} else if (result != ISC_R_NOTFOUND) {
+		INSIST(!dns_rdataset_isassociated(&nrdataset));
+		goto failure;
+	}
+
+
+	/*
+	 * We need to remove any existing NSEC3 chains.
+	 */
+	if (!exists && np->replace && (np->length != 0 || np->nsec))
+		CHECK(dns_nsec3param_deletechains(db, newver, zone,
+						  !np->nsec, &diff));
+
+	if (!exists && np->length != 0) {
+		/*
+		 * We're creating an NSEC3 chain.
+		 *
+		 * If the zone is not currently capable of supporting
+		 * an NSEC3 chain, add the INITIAL flag, so these
+		 * parameters can be used later when NSEC3 becomes
+		 * available.
+		 */
+		dns_rdata_init(&rdata);
+
+		np->data[2] |= DNS_NSEC3FLAG_CREATE;
+		result = dns_nsec_nseconly(db, newver, &nseconly);
+		if (result == ISC_R_NOTFOUND || nseconly)
+			np->data[2] |= DNS_NSEC3FLAG_INITIAL;
+
+		rdata.length = np->length;
+		rdata.data = np->data;
+		rdata.type = zone->privatetype;
+		rdata.rdclass = zone->rdclass;
+		CHECK(update_one_rr(db, newver, &diff, DNS_DIFFOP_ADD,
+				    &zone->origin, 0, &rdata));
+	}
+
+	if (!ISC_LIST_EMPTY(diff.tuples)) {
+		/* Write changes to journal file. */
+		CHECK(update_soa_serial(db, newver, &diff, zone->mctx,
+					zone->updatemethod));
+		result = dns_update_signatures(&log, zone, db,
+					       oldver, newver, &diff,
+					       zone->sigvalidityinterval);
+		if (result != ISC_R_NOTFOUND)
+			CHECK(result);
+		CHECK(zone_journal(zone, &diff, NULL, "setnsec3param"));
+		commit = ISC_TRUE;
+
+		LOCK_ZONE(zone);
+		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADED);
+		zone_needdump(zone, 30);
+		UNLOCK_ZONE(zone);
+	}
+
+ failure:
+	if (dns_rdataset_isassociated(&prdataset))
+		dns_rdataset_disassociate(&prdataset);
+	if (dns_rdataset_isassociated(&nrdataset))
+		dns_rdataset_disassociate(&nrdataset);
+	if (node != NULL)
+		dns_db_detachnode(db, &node);
+	if (oldver != NULL)
+		dns_db_closeversion(db, &oldver, ISC_FALSE);
+	if (newver != NULL)
+		dns_db_closeversion(db, &newver, commit);
+	if (db != NULL)
+		dns_db_detach(&db);
+	if (commit)
+		resume_addnsec3chain(zone);
+	dns_diff_clear(&diff);
+	isc_event_free(&event);
+	dns_zone_idetach(&zone);
+}
+
+isc_result_t
+dns_zone_setnsec3param(dns_zone_t *zone, isc_uint8_t hash, isc_uint8_t flags,
+		       isc_uint8_t iter, isc_uint8_t saltlen,
+		       unsigned char *salt, isc_boolean_t replace)
+{
+	isc_result_t result = ISC_R_SUCCESS;
+	dns_rdata_nsec3param_t param;
+	dns_rdata_t nrdata = DNS_RDATA_INIT;
+	dns_rdata_t prdata = DNS_RDATA_INIT;
+	unsigned char nbuf[DNS_NSEC3PARAM_BUFFERSIZE];
+	struct nsec3param *np;
+	dns_zone_t *dummy = NULL;
+	isc_buffer_t b;
+	isc_event_t *e;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(salt != NULL);
+
+	LOCK_ZONE(zone);
+
+	e = isc_event_allocate(zone->mctx, zone, DNS_EVENT_SETNSEC3PARAM,
+			       setnsec3param, zone, sizeof(struct nsec3param));
+	if (e == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto failure;
+	}
+
+	np = (struct nsec3param *) e;
+	np->replace = replace;
+	if (hash == 0) {
+		np->length = 0;
+		np->nsec = ISC_TRUE;
+	} else {
+		param.common.rdclass = zone->rdclass;
+		param.common.rdtype = dns_rdatatype_nsec3param;
+		ISC_LINK_INIT(&param.common, link);
+		param.mctx = NULL;
+		param.hash = hash;
+		param.flags = flags;
+		param.iterations = iter;
+		param.salt_length = saltlen;
+		param.salt = salt;
+		isc_buffer_init(&b, nbuf, sizeof(nbuf));
+		CHECK(dns_rdata_fromstruct(&nrdata, zone->rdclass,
+					   dns_rdatatype_nsec3param,
+					   &param, &b));
+		dns_nsec3param_toprivate(&nrdata, &prdata, zone->privatetype,
+					 np->data, sizeof(np->data));
+		np->length = prdata.length;
+	}
 
 	zone_iattach(zone, &dummy);
 	isc_task_send(zone->task, &e);
