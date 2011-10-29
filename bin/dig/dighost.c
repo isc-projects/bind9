@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.328.22.10 2011/03/11 07:11:51 marka Exp $ */
+/* $Id: dighost.c,v 1.328.22.11 2011/10/29 22:31:29 marka Exp $ */
 
 /*! \file
  *  \note
@@ -1838,11 +1838,9 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
  * Return ISC_TRUE iff there was another searchlist entry.
  */
 static isc_boolean_t
-next_origin(dns_message_t *msg, dig_query_t *query) {
+next_origin(dig_query_t *query) {
 	dig_lookup_t *lookup;
 	dig_searchlist_t *search;
-
-	UNUSED(msg);
 
 	INSIST(!free_now);
 
@@ -3360,7 +3358,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	if (!l->doing_xfr || l->xfr_q == query) {
 		if (msg->rcode != dns_rcode_noerror &&
 		    (l->origin != NULL || l->need_search)) {
-			if (!next_origin(msg, query) || showsearch) {
+			if (!next_origin(query) || showsearch) {
 				printmessage(query, msg, ISC_TRUE);
 				received(b->used, &sevent->address, query);
 			}
