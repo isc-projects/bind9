@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.5 2011/10/28 06:20:05 each Exp $
+# $Id: clean.sh,v 1.6 2011/10/30 22:59:45 each Exp $
 
 rm -f */named.memstats
 rm -f */named.run
@@ -32,6 +32,14 @@ rm -f ns3/noixfr.bk
 rm -f ns3/noixfr.bk.jnl
 rm -f ns3/noixfr.bk.signed
 rm -f ns3/noixfr.bk.signed.jnl
+rm -f ns3/master.db
+rm -f ns3/master.db.jnl
+rm -f ns3/master.db.signed
+rm -f ns3/master.db.signed.jnl
+rm -f ns3/dynamic.db
+rm -f ns3/dynamic.db.jnl
+rm -f ns3/dynamic.db.signed
+rm -f ns3/dynamic.db.signed.jnl
 rm -f ns4/K*
 rm -f ns4/noixfr.db
 rm -f ns4/noixfr.db.jnl
@@ -41,6 +49,7 @@ rm -f ns5/bits.bk
 rm -f ns5/bits.bk.jnl
 rm -f ns5/bits.bk.signed
 rm -f ns5/bits.bk.signed.jnl
+rm -f */*.jbk
 rm -f random.data
 rm -f dig.out.ns*.test*
 rm -f signing.out*
