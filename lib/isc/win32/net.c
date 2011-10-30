@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.c,v 1.18.64.2 2009/09/23 23:47:15 tbox Exp $ */
+/* $Id: net.c,v 1.18.64.3 2011/10/30 23:46:38 marka Exp $ */
 
 #include <config.h>
 
@@ -166,7 +166,8 @@ try_ipv6only(void) {
 	}
 
 	on = 1;
-	if (setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY, &on, sizeof(on)) < 0) {
+	if (setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY, (const char *)&on,
+		       sizeof(on)) < 0) {
 		ipv6only_result = ISC_R_NOTFOUND;
 		goto close;
 	}
@@ -189,7 +190,8 @@ try_ipv6only(void) {
 	}
 
 	on = 1;
-	if (setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY, &on, sizeof(on)) < 0) {
+	if (setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY, (const char *)&on,
+		       sizeof(on)) < 0) {
 		ipv6only_result = ISC_R_NOTFOUND;
 		goto close;
 	}
