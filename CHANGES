@@ -1,3 +1,5 @@
+3187.	[port]		win32: support for Visual Studio 2008.	[RT #26356]
+
 3182.   [bug]           Auth servers behind firewalls which block packets
                         greater than 512 bytes may cause other servers to
                         perform poorly. Now, adb retains edns information
