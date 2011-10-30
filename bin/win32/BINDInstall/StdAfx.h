@@ -3,6 +3,11 @@
 //      are changed infrequently
 //
 
+/*
+ * Minimum version is Windows XP
+ */
+#define _WIN32_WINNT 0x0501
+
 #ifndef _CRT_SECURE_NO_DEPRECATE
 #define _CRT_SECURE_NO_DEPRECATE 1
 #endif

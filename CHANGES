@@ -1,3 +1,5 @@
+3187.	[port]		win32: support for Visual Studio 2008.	[RT #26356]
+
 	--- 9.9.0b1 released ---
 
 3186.	[bug]		Version/db mis-match in rpz code. [RT #26180]
