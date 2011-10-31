@@ -68,6 +68,7 @@ rt11398e			open	sra
 rt11543				open	jakob
 rt11733				open	jakob
 rt11733b			open	jakob
+rt1219				new	smann	// 2011-10-31 14:00 +0000
 rt13489				review	marka	// Solaris bug fixes
 rt13555				open	marka	// nslookup name failure
 rt13562				open	marka
@@ -459,6 +460,7 @@ rt23467				new	each	// 2011-03-02 18:11 +0000
 rt23473				new	marka	// 2011-03-03 05:21 +0000
 rt23485				new	fdupont	// 2011-03-02 22:41 +0000
 rt23488				new	each	// 2011-03-02 16:57 +0000
+rt23497				new	marka	// 2011-10-31 03:31 +0000
 rt23508				new	each	// 2011-05-04 18:49 +0000
 rt23569				new	each	// 2011-03-21 22:07 +0000
 rt23572				new	fdupont	// 2011-03-14 15:44 +0000
