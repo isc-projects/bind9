@@ -1127,6 +1127,7 @@
 ./bin/tests/system/rpz/ns2/tld2.db		ZONE	2011
 ./bin/tests/system/rpz/ns3/base.db		ZONE	2011
 ./bin/tests/system/rpz/ns3/crash1		X	2011
+./bin/tests/system/rpz/ns3/crash2		X	2011
 ./bin/tests/system/rpz/ns3/hints		ZONE	2011
 ./bin/tests/system/rpz/ns3/named.conf		CONF-C	2011
 ./bin/tests/system/rpz/ns4/hints		X	2011
