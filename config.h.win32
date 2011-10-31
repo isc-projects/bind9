@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2006-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2006-2009, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.win32,v 1.19.48.3 2011/10/30 23:46:37 marka Exp $ */
+/* $Id: config.h.win32,v 1.19.48.4 2011/10/31 23:45:36 tbox Exp $ */
 
 /*
  * win32 configuration file
