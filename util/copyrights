@@ -1370,7 +1370,7 @@
 ./bin/win32/BINDInstall/DirBrowse.cpp		C.PORTION	2001,2004,2007
 ./bin/win32/BINDInstall/DirBrowse.h		C.PORTION	2001,2004,2007
 ./bin/win32/BINDInstall/StdAfx.cpp		X	2001
-./bin/win32/BINDInstall/StdAfx.h		X	2001,2006
+./bin/win32/BINDInstall/StdAfx.h		X	2001,2006,2011
 ./bin/win32/BINDInstall/VersionInfo.cpp		X	2001,2008
 ./bin/win32/BINDInstall/VersionInfo.h		X	2001
 ./bin/win32/BINDInstall/res/BINDInstall.ico	X	2001
@@ -1379,7 +1379,7 @@
 ./bind.keys					X	2009,2010,2011
 ./config.guess					X	1998,1999,2000,2001,2004,2009
 ./config.h.in					X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
-./config.h.win32				C	1999,2000,2001,2004,2006,2007,2008,2009
+./config.h.win32				C	1999,2000,2001,2004,2006,2007,2008,2009,2011
 ./config.sub					X	1998,1999,2000,2001,2004
 ./config.threads.in				X	2005,2006,2010
 ./configure					X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
@@ -2680,7 +2680,7 @@
 ./lib/isc/win32/libisc.dsp			X	2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./lib/isc/win32/libisc.dsw			X	2001
 ./lib/isc/win32/libisc.mak			X	2001,2002,2003,2004,2005,2006,2007,2008,2009
-./lib/isc/win32/net.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2009
+./lib/isc/win32/net.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2009,2011
 ./lib/isc/win32/netdb.h				C	2000,2001,2004,2006,2007,2009
 ./lib/isc/win32/ntgroups.c			C	2001,2004,2006,2007,2009
 ./lib/isc/win32/ntpaths.c			C	2001,2004,2007,2009
