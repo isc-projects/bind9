@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rpz.h,v 1.3.8.1 2011/10/14 03:51:06 marka Exp $ */
+/* $Id: rpz.h,v 1.3.8.2 2011/10/31 02:55:07 marka Exp $ */
 
 #ifndef DNS_RPZ_H
 #define DNS_RPZ_H 1
@@ -105,6 +105,7 @@ typedef struct {
 		isc_result_t		result;
 		dns_zone_t		*zone;
 		dns_db_t		*db;
+		dns_dbversion_t		*version;
 		dns_dbnode_t		*node;
 		dns_rdataset_t		*rdataset;
 	} m;
