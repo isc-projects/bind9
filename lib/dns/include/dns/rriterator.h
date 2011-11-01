@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009, 2011  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rriterator.h,v 1.2.132.1 2011/11/01 03:59:35 each Exp $ */
+/* $Id: rriterator.h,v 1.2.132.2 2011/11/01 23:46:12 tbox Exp $ */
 
 #ifndef DNS_RRITERATOR_H
 #define DNS_RRITERATOR_H 1
