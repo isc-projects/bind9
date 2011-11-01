@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.643 2011/10/28 12:27:06 marka Exp $ */
+/* $Id: zone.c,v 1.644 2011/11/01 04:00:44 each Exp $ */
 
 /*! \file */
 
@@ -3360,7 +3360,7 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 	for (result = dns_rriterator_first(&rrit);
 	     result == ISC_R_SUCCESS;
 	     result = dns_rriterator_nextrrset(&rrit)) {
-		dns_rdataset_t *rdataset;
+		dns_rdataset_t *rdataset = NULL;
 		dns_name_t *rrname = NULL;
 		isc_uint32_t ttl;
 
@@ -8102,6 +8102,7 @@ zone_refreshkeys(dns_zone_t *zone) {
 	dns_rdata_keydata_t kd;
 	isc_stdtime_t now;
 	isc_boolean_t commit = ISC_FALSE;
+	isc_boolean_t fetching = ISC_FALSE, fetch_err = ISC_FALSE;
 
 	ENTER;
 	REQUIRE(zone->db != NULL);
@@ -8130,16 +8131,14 @@ zone_refreshkeys(dns_zone_t *zone) {
 	     result == ISC_R_SUCCESS;
 	     result = dns_rriterator_nextrrset(&rrit)) {
 		isc_stdtime_t timer = 0xffffffff;
+		dns_name_t *name = NULL, *kname = NULL;
+		dns_rdataset_t *kdset = NULL;
 		dns_keyfetch_t *kfetch;
-		dns_rdataset_t *kdset;
-		dns_name_t *name = NULL;
 		isc_uint32_t ttl;
 
 		dns_rriterator_current(&rrit, &name, &ttl, &kdset, NULL);
-		if (!dns_rdataset_isassociated(kdset))
-			continue;
-
-		if (kdset->type != dns_rdatatype_keydata)
+		if (kdset == NULL || kdset->type != dns_rdatatype_keydata ||
+		    !dns_rdataset_isassociated(kdset))
 			continue;
 
 		/*
@@ -8174,15 +8173,19 @@ zone_refreshkeys(dns_zone_t *zone) {
 		if (timer > now)
 			continue;
 
-		zone->refreshkeycount++;
-
 		kfetch = isc_mem_get(zone->mctx, sizeof(dns_keyfetch_t));
+		if (kfetch == NULL) {
+			fetch_err = ISC_TRUE;
+			goto failure;
+		}
+
+		zone->refreshkeycount++;
 		kfetch->zone = zone;
 		zone->irefs++;
 		INSIST(zone->irefs != 0);
 		dns_fixedname_init(&kfetch->name);
-		dns_name_dup(name, zone->mctx,
-			     dns_fixedname_name(&kfetch->name));
+		kname = dns_fixedname_name(&kfetch->name);
+		dns_name_dup(name, zone->mctx, kname);
 		dns_rdataset_init(&kfetch->dnskeyset);
 		dns_rdataset_init(&kfetch->dnskeysigset);
 		dns_rdataset_init(&kfetch->keydataset);
@@ -8191,15 +8194,29 @@ zone_refreshkeys(dns_zone_t *zone) {
 		dns_db_attach(db, &kfetch->db);
 		kfetch->fetch = NULL;
 
-		dns_resolver_createfetch(zone->view->resolver,
-					 dns_fixedname_name(&kfetch->name),
-					 dns_rdatatype_dnskey,
-					 NULL, NULL, NULL,
-					 DNS_FETCHOPT_NOVALIDATE,
-					 zone->task, keyfetch_done, kfetch,
-					 &kfetch->dnskeyset,
-					 &kfetch->dnskeysigset,
-					 &kfetch->fetch);
+		result = dns_resolver_createfetch(zone->view->resolver,
+						  kname, dns_rdatatype_dnskey,
+						  NULL, NULL, NULL,
+						  DNS_FETCHOPT_NOVALIDATE,
+						  zone->task,
+						  keyfetch_done, kfetch,
+						  &kfetch->dnskeyset,
+						  &kfetch->dnskeysigset,
+						  &kfetch->fetch);
+		if (result == ISC_R_SUCCESS)
+			fetching = ISC_TRUE;
+		else {
+			zone->refreshkeycount--;
+			zone->irefs--;
+			dns_db_detach(&kfetch->db);
+			dns_rdataset_disassociate(&kfetch->keydataset);
+			dns_name_free(kname, zone->mctx);
+			isc_mem_put(zone->mctx, kfetch, sizeof(dns_keyfetch_t));
+			dns_zone_log(zone, ISC_LOG_WARNING,
+				     "Failed to create fetch for "
+				     "DNSKEY update");
+			fetch_err = ISC_TRUE;
+		}
 	}
 	if (!ISC_LIST_EMPTY(diff.tuples)) {
 		CHECK(update_soa_serial(db, ver, &diff, zone->mctx,
@@ -8211,6 +8228,26 @@ zone_refreshkeys(dns_zone_t *zone) {
 	}
 
   failure:
+	if (fetch_err) {
+		/*
+		 * Error during a key fetch; retry in an hour.
+		 */
+		isc_time_t timenow, timethen;
+		char timebuf[80];
+
+		TIME_NOW(&timenow);
+		DNS_ZONE_TIME_ADD(&timenow, HOUR, &timethen);
+		zone->refreshkeytime = timethen;
+		zone_settimer(zone, &timenow);
+
+		isc_time_formattimestamp(&zone->refreshkeytime, timebuf, 80);
+		dns_zone_log(zone, ISC_LOG_DEBUG(1), "retry key refresh: %s",
+			     timebuf);
+
+		if (!fetching)
+			DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESHING);
+	}
+
 	UNLOCK_ZONE(zone);
 
 	dns_diff_clear(&diff);
