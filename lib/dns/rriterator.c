@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rriterator.c,v 1.2 2009/06/30 02:52:32 each Exp $ */
+/* $Id: rriterator.c,v 1.2.374.1 2011/11/01 04:00:05 each Exp $ */
 
 /*! \file */
 
@@ -187,6 +187,8 @@ dns_rriterator_current(dns_rriterator_t *it, dns_name_t **name,
 	REQUIRE(name != NULL && *name == NULL);
 	REQUIRE(VALID_RRITERATOR(it));
 	REQUIRE(it->result == ISC_R_SUCCESS);
+	REQUIRE(rdataset == NULL || *rdataset == NULL);
+	REQUIRE(rdata == NULL || *rdata == NULL);
 
 	*name = dns_fixedname_name(&it->fixedname);
 	*ttl = it->rdataset.ttl;
@@ -194,9 +196,9 @@ dns_rriterator_current(dns_rriterator_t *it, dns_name_t **name,
 	dns_rdata_reset(&it->rdata);
 	dns_rdataset_current(&it->rdataset, &it->rdata);
 
-	if (rdataset)
+	if (rdataset != NULL)
 		*rdataset = &it->rdataset;
 
-	if (rdata)
+	if (rdata != NULL)
 		*rdata = &it->rdata;
 }

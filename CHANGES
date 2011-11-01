@@ -1,3 +1,7 @@
+3188.	[bug]		zone.c:zone_refreshkeys() could fail to detach
+			references correctly when errors occurred, causing
+			a hang on shutdown. [RT #26372]
+
 3187.	[port]		win32: support for Visual Studio 2008.	[RT #26356]
 
 3186.	[bug]		Version/db mis-match in rpz code. [RT #26180]
