@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: runall.sh,v 1.8.332.2 2010/03/04 23:47:53 tbox Exp $
+# $Id: runall.sh,v 1.8.332.3 2011/11/01 18:33:25 each Exp $
 
 #
 # Run all the system tests.
@@ -26,13 +26,14 @@ SYSTEMTESTTOP=.
 
 status=0
 
-for d in $SUBDIRS
-do
-	sh run.sh $d || status=1
-done
+{
+    for d in $SUBDIRS
+    do
+            sh run.sh $d || status=1
+    done
 
-$PERL testsock.pl || {
-    cat <<EOF >&2
+    $PERL testsock.pl || {
+        cat <<EOF >&2
 I:
 I:NOTE: Many of the tests were skipped because they require that
 I:      the IP addresses 10.53.0.1 through 10.53.0.7 are configured 
@@ -40,7 +41,11 @@ I:	as alias addresses on the loopback interface.  Please run
 I:	"bin/tests/system/ifconfig.sh up" as root to configure them
 I:	and rerun the tests.
 EOF
-    exit 0;
-}
+        exit 0;
+    }
+} | tee "systests.output"
+
+echo "I:System test result summary:"
+grep '^R:' systests.output | sort | uniq -c | sed -e 's/^/I:   /' -e 's/R://'
 
 exit $status
