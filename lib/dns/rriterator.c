@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009, 2011  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rriterator.c,v 1.2.374.1 2011/11/01 04:00:05 each Exp $ */
+/* $Id: rriterator.c,v 1.2.374.2 2011/11/01 23:46:34 tbox Exp $ */
 
 /*! \file */
 
