@@ -1,3 +1,6 @@
+3190.	[bug]		Underflow in error handling in isc_mutexblock_init.
+			[RT #26397]
+
 3189.	[test]		Added a summary report after system tests. [RT #25517]
 
 3187.	[port]		win32: support for Visual Studio 2008.	[RT #26356]

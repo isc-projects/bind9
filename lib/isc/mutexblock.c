@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mutexblock.c,v 1.20 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: mutexblock.c,v 1.20.332.1 2011/11/01 22:05:38 marka Exp $ */
 
 /*! \file */
 
@@ -32,10 +32,9 @@ isc_mutexblock_init(isc_mutex_t *block, unsigned int count) {
 	for (i = 0; i < count; i++) {
 		result = isc_mutex_init(&block[i]);
 		if (result != ISC_R_SUCCESS) {
-			i--;
-			while (i > 0) {
-				DESTROYLOCK(&block[i]);
+			while (i > 0U) {
 				i--;
+				DESTROYLOCK(&block[i]);
 			}
 			return (result);
 		}
