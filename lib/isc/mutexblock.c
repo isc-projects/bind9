@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mutexblock.c,v 1.20.332.1 2011/11/01 22:05:38 marka Exp $ */
+/* $Id: mutexblock.c,v 1.20.332.2 2011/11/01 23:45:32 tbox Exp $ */
 
 /*! \file */
 
