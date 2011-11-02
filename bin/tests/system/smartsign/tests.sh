@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.6.70.5 2011/10/25 04:04:56 marka Exp $
+# $Id: tests.sh,v 1.6.70.6 2011/11/02 14:25:28 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -108,7 +108,11 @@ echo "$pzoneout" | grep 'KSKs: 1 active, 0 stand-by, 0 revoked' > /dev/null || r
 echo "$pzoneout"| grep 'ZSKs: 1 active, 0 present, 0 revoked' > /dev/null || ret=1
 echo "$czoneout"| grep 'KSKs: 1 active, 1 stand-by, 1 revoked' > /dev/null || ret=1
 echo "$czoneout"| grep 'ZSKs: 1 active, 2 present, 0 revoked' > /dev/null || ret=1
-if [ $ret != 0 ]; then echo "I:failed"; fi
+if [ $ret != 0 ]; then
+	echo "I: parent $pzoneout"
+	echo "I: child $czoneout"
+	echo "I:failed";
+fi
 status=`expr $status + $ret`
 
 echo "I:checking parent zone DNSKEY set"
