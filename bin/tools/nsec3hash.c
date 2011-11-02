@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec3hash.c,v 1.6 2009/10/06 21:20:44 each Exp $ */
+/* $Id: nsec3hash.c,v 1.6.56.1 2011/11/02 06:00:15 each Exp $ */
 
 #include <config.h>
 
@@ -60,7 +60,8 @@ check_result(isc_result_t result, const char *message) {
 
 static void
 usage() {
-	fatal("salt hash iterations domain");
+	printf("Usage: %s salt algorithm iterations domain\n", program);
+	exit(1);
 }
 
 int
