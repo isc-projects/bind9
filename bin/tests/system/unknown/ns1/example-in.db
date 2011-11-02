@@ -1,4 +1,4 @@
-; Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+; Copyright (C) 2004, 2007, 2011  Internet Systems Consortium, Inc. ("ISC")
 ; Copyright (C) 2000, 2001  Internet Software Consortium.
 ;
 ; Permission to use, copy, modify, and/or distribute this software for any
@@ -13,7 +13,7 @@
 ; OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 ; PERFORMANCE OF THIS SOFTWARE.
 
-; $Id: example-in.db,v 1.7.558.1 2011/11/02 01:11:58 marka Exp $
+; $Id: example-in.db,v 1.7.558.2 2011/11/02 23:45:34 tbox Exp $
 
 $TTL 300	; 5 minutes
 @			SOA	mname1. . (
