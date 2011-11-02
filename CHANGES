@@ -1,3 +1,6 @@
+3192.	[bug]		A query structure could be used after being freed.
+			[RT #22208]
+
 3191.	[bug]		Print NULL records using "unknown" format. [RT #26392]
 
 3190.	[bug]		Underflow in error handling in isc_mutexblock_init.
