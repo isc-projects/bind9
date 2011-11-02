@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.147.10.3 2011/08/29 04:04:05 marka Exp $
+ * $Id: tsig.c,v 1.147.10.4 2011/11/02 19:40:52 each Exp $
  */
 /*! \file */
 #include <config.h>
@@ -1043,7 +1043,7 @@ dns_tsig_sign(dns_message_t *msg) {
 				goto cleanup_context;
 
 			/*
-			 * Digest the error and other data.
+			 * Digest other data.
 			 */
 			if (tsig.otherlen > 0) {
 				r.length = tsig.otherlen;
