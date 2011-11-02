@@ -1,0 +1,6 @@
+Makefile
+.libs
+*.la
+*.lo
+rndc
+rndc-confgen

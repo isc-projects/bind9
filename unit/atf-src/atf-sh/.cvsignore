@@ -1,0 +1,13 @@
+.deps
+.dirstamp
+.libs
+atf-check
+atf-check_test
+atf-sh
+atf_check_test
+config_test
+integration_test
+misc_helpers
+normalize_test
+tc_test
+tp_test
