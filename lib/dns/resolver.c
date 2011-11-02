@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.437 2011/10/27 23:46:31 tbox Exp $ */
+/* $Id: resolver.c,v 1.438 2011/11/02 23:42:33 marka Exp $ */
 
 /*! \file */
 
@@ -1564,9 +1564,11 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		dns_dispatch_detach(&query->dispatch);
 
  cleanup_query:
-	query->magic = 0;
-	isc_mem_put(res->buckets[fctx->bucketnum].mctx,
-		    query, sizeof(*query));
+	if (query->connects == 0) {
+		query->magic = 0;
+		isc_mem_put(res->buckets[fctx->bucketnum].mctx,
+			    query, sizeof(*query));
+	}
 
  stop_idle_timer:
 	RUNTIME_CHECK(fctx_stopidletimer(fctx) == ISC_R_SUCCESS);
@@ -1684,6 +1686,7 @@ resquery_send(resquery_t *query) {
 	dns_compress_t cctx;
 	isc_boolean_t cleanup_cctx = ISC_FALSE;
 	isc_boolean_t secure_domain;
+	isc_boolean_t connecting = ISC_FALSE;
 	unsigned int edns_fetchopt_flag;
 	isc_stdtime_t now;
 
@@ -1996,6 +1999,7 @@ resquery_send(resquery_t *query) {
 						    query);
 			if (result != ISC_R_SUCCESS)
 				goto cleanup_message;
+			connecting = ISC_TRUE;
 			query->connects++;
 		}
 	}
@@ -2007,8 +2011,19 @@ resquery_send(resquery_t *query) {
 	 */
 	result = isc_socket_sendto(socket, &r, task, resquery_senddone,
 				   query, address, NULL);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
+		if (connecting) {
+			/*
+			 * This query is still connecting.
+			 * Mark it as canceled so that it will just be
+			 * cleaned up when the connected event is received.
+			 * Keep fctx around until the event is processed.
+			 */
+			query->fctx->nqueries++;
+			query->attributes |= RESQUERY_ATTR_CANCELED;
+		}
 		goto cleanup_message;
+	}
 
 	query->sends++;
 
