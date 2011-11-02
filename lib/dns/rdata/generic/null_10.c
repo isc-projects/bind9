@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: null_10.c,v 1.42 2007/06/19 23:47:17 tbox Exp $ */
+/* $Id: null_10.c,v 1.42.332.1 2011/11/02 01:16:30 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 13:57:50 PST 2000 by explorer */
 
@@ -43,11 +43,7 @@ static inline isc_result_t
 totext_null(ARGS_TOTEXT) {
 	REQUIRE(rdata->type == 10);
 
-	UNUSED(rdata);
-	UNUSED(tctx);
-	UNUSED(target);
-
-	return (DNS_R_SYNTAX);
+	return (unknown_totext(rdata, tctx, target));
 }
 
 static inline isc_result_t

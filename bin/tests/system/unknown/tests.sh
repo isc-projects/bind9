@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.10 2007/06/19 23:47:06 tbox Exp $
+# $Id: tests.sh,v 1.10.332.1 2011/11/02 01:16:31 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -62,6 +62,20 @@ do
 	fi
 	status=`expr $status + $ret`
 done
+
+echo "I:querying for NULL record"
+ret=0
+$DIG +short $DIGOPTS null.example null in > dig.out || ret=1
+echo '\# 1 00' | diff - dig.out || ret=1
+[ $ret = 0 ] || echo "I: failed"
+status=`expr $status + $ret`
+
+echo "I:querying for empty NULL record"
+ret=0
+$DIG +short $DIGOPTS empty.example null in > dig.out || ret=1
+echo '\# 0' | diff - dig.out || ret=1
+[ $ret = 0 ] || echo "I: failed"
+status=`expr $status + $ret`
 
 echo "I:querying for various representations of a CLASS10 TYPE1 record"
 for i in 1 2
