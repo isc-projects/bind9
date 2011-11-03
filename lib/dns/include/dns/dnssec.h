@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec.h,v 1.32.332.6 2009/06/22 23:47:18 tbox Exp $ */
+/* $Id: dnssec.h,v 1.32.332.7 2011/11/03 02:58:57 each Exp $ */
 
 #ifndef DNS_DNSSEC_H
 #define DNS_DNSSEC_H 1
@@ -30,6 +30,9 @@
 #include <dst/dst.h>
 
 ISC_LANG_BEGINDECLS
+
+/*%< Maximum number of keys supported in a zone. */
+#define DNS_MAXZONEKEYS 32
 
 isc_result_t
 dns_dnssec_keyfromrdata(dns_name_t *name, dns_rdata_t *rdata, isc_mem_t *mctx,
