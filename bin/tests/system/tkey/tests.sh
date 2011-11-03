@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.9 2009/07/19 23:47:55 tbox Exp $
+# $Id: tests.sh,v 1.9.126.1 2011/11/03 22:06:43 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -78,6 +78,35 @@ do
 	fi
 	status=`expr $status + $ret`
 done
+
+echo "I:creating new key using owner name bar.example."
+ret=0
+keyname=`./keycreate $dhkeyname bar.example.` || ret=1
+if [ $ret != 0 ]; then
+        echo "I:failed"
+        echo "I:exit status: $status"
+        exit $status
+fi
+status=`expr $status + $ret`
+
+echo "I:checking the key with 'rndc tsig-list'"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 tsig-list > rndc.out
+grep "key \"bar.example.server" rndc.out > /dev/null || ret=1
+if [ $ret != 0 ]; then
+        echo "I:failed"
+fi
+status=`expr $status + $ret`
+
+echo "I:deleting the key with 'rndc tsig-delete'"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 tsig-delete bar.example.server > /dev/null || ret=1
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 tsig-list > rndc.out
+grep "key \"bar.example.server" rndc.out > /dev/null && ret=1
+if [ $ret != 0 ]; then
+        echo "I:failed"
+fi
+status=`expr $status + $ret`
 
 echo "I:exit status: $status"
 exit $status
