@@ -1,3 +1,9 @@
+3194.	[doc]		Updated RFC references in the 'empty-zones-enable'
+			documentation. [RT #25203]
+
+3193.	[cleanup]	Changed MAXZONEKEYS to DNS_MAXZONEKEYS, moved to
+			dnssec.h. [RT #26415]
+
 3192.	[bug]		A query structure could be used after being freed.
 			[RT #22208]
 
