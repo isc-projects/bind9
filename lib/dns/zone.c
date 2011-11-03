@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.73 2011/11/03 02:56:17 each Exp $ */
+/* $Id: zone.c,v 1.540.2.74 2011/11/03 03:27:20 each Exp $ */
 
 /*! \file */
 
@@ -3320,7 +3320,11 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 					     zone->masterfile,
 					     dns_result_totext(result));
 		} else {
-			dns_zone_log(zone, ISC_LOG_ERROR,
+			int level = ISC_LOG_ERROR;
+			if (zone->type == dns_zone_key &&
+			    result == ISC_R_FILENOTFOUND)
+				level = ISC_LOG_DEBUG(1);
+			dns_zone_log(zone, level,
 				     "loading from master file %s failed: %s",
 				     zone->masterfile,
 				     dns_result_totext(result));
