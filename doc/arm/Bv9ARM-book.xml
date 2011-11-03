@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.509 2011/10/28 06:20:05 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.510 2011/11/03 03:08:33 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -9024,10 +9024,11 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	    and which queries should not be sent to the Internet's root
 	    servers.  The official servers which cover these namespaces
 	    return NXDOMAIN responses to these queries.  In particular,
-	    these cover the reverse namespace for addresses from RFC 1918 and
-	    RFC 3330.  They also include the reverse namespace for IPv6 local
-	    address (locally assigned), IPv6 link local addresses, the IPv6
-	    loopback address and the IPv6 unknown address.
+            these cover the reverse namespaces for addresses from
+            RFC 1918, RFC 4193, and RFC 5737.  They also include the
+            reverse namespace for IPv6 local address (locally assigned),
+            IPv6 link local addresses, the IPv6 loopback address and the
+            IPv6 unknown address.
 	  </para>
 	  <para>
 	    Named will attempt to determine if a built-in zone already exists
