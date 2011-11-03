@@ -1,3 +1,6 @@
+3200.	[doc]		Some rndc functions were undocumented or were
+			missing from 'rndc -h' output. [RT #25555]
+
 3196.   [bug]           nsupdate: return nonzero exit code when target zone
                         doesn't exist. [RT #25783]
 

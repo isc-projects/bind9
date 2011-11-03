@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.122.44.5 2011/08/30 12:23:16 marka Exp $ */
+/* $Id: rndc.c,v 1.122.44.6 2011/11/03 22:06:50 each Exp $ */
 
 /*! \file */
 
@@ -135,6 +135,10 @@ command is one of the following:\n\
 		Flush the given name from the server's cache(s)\n\
   status	Display status of the server.\n\
   recursing	Dump the queries that are currently recursing (named.recursing)\n\
+  tsig-list	List all currently active TSIG keys, including both statically\n\
+		configured and TKEY-negotiated keys.\n\
+  tsig-delete keyname [view]\n\
+		Delete a TKEY-negotiated TSIG key.\n\
   validation newstate [view]\n\
 		Enable / disable DNSSEC validation.\n\
   *restart	Restart the server.\n\
