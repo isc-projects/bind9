@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.c,v 1.46 2011/10/28 06:20:04 each Exp $ */
+/* $Id: control.c,v 1.47 2011/11/03 23:05:30 each Exp $ */
 
 /*! \file */
 
@@ -154,7 +154,7 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 	} else if (command_compare(command, NS_COMMAND_DUMPSTATS)) {
 		result = ns_server_dumpstats(ns_g_server);
 	} else if (command_compare(command, NS_COMMAND_QUERYLOG)) {
-		result = ns_server_togglequerylog(ns_g_server);
+		result = ns_server_togglequerylog(ns_g_server, command);
 	} else if (command_compare(command, NS_COMMAND_DUMPDB)) {
 		ns_server_dumpdb(ns_g_server, command);
 		result = ISC_R_SUCCESS;

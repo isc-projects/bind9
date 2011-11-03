@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.137 2011/11/03 22:06:21 each Exp $ */
+/* $Id: rndc.c,v 1.138 2011/11/03 23:05:30 each Exp $ */
 
 /*! \file */
 
@@ -127,7 +127,8 @@ command is one of the following:\n\
   loadkeys zone [class [view]]\n\
 		Update keys without signing immediately.\n\
   stats		Write server statistics to the statistics file.\n\
-  querylog	Toggle query logging.\n\
+  querylog newstate\n\
+		Enable / disable query logging.\n\
   dumpdb [-all|-cache|-zones] [view ...]\n\
 		Dump cache(s) to the dump file (named_dump.db).\n\
   secroots [view ...]\n\

@@ -1,3 +1,6 @@
+3201.	[func]		'rndc querylog' can now be given an on/off parameter
+			instead of only being used as a toggle. [RT #18351]
+
 3200.	[doc]		Some rndc functions were undocumented or were
 			missing from 'rndc -h' output. [RT #25555]
 

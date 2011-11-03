@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.512 2011/11/03 22:06:21 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.513 2011/11/03 23:05:31 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -1320,10 +1320,16 @@ zone "eng.example.com" {
                   </varlistentry>
 
                   <varlistentry>
-                    <term><userinput>querylog</userinput></term>
+                          <term><userinput>querylog</userinput>
+                                  <optional>on|off</optional>
                     <listitem>
                       <para>
-                        Toggle query logging. Query logging can also be enabled
+                        Enable or disable query logging.  (For backward
+                        compatibility, this command can also be used without
+                        an argument to toggle query logging on and off.)
+                      </para>
+                      <para>
+                        Query logging can also be enabled
                         by explicitly directing the <command>queries</command>
                         <command>category</command> to a
 		        <command>channel</command> in the
