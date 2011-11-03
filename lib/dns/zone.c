@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.582.8.32 2011/11/01 04:00:05 each Exp $ */
+/* $Id: zone.c,v 1.582.8.33 2011/11/03 02:55:34 each Exp $ */
 
 /*! \file */
 
@@ -4494,8 +4494,6 @@ was_dumping(dns_zone_t *zone) {
 	return (dumping);
 }
 
-#define MAXZONEKEYS 10
-
 static isc_result_t
 find_zone_keys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	       isc_mem_t *mctx, unsigned int maxkeys,
@@ -4876,7 +4874,7 @@ zone_resigninc(dns_zone_t *zone) {
 	dns_name_t *name;
 	dns_rdataset_t rdataset;
 	dns_rdatatype_t covers;
-	dst_key_t *zone_keys[MAXZONEKEYS];
+	dst_key_t *zone_keys[DNS_MAXZONEKEYS];
 	isc_boolean_t check_ksk, keyset_kskonly = ISC_FALSE;
 	isc_result_t result;
 	isc_stdtime_t now, inception, soaexpire, expire, stop;
@@ -4910,7 +4908,7 @@ zone_resigninc(dns_zone_t *zone) {
 		goto failure;
 	}
 
-	result = find_zone_keys(zone, db, version, zone->mctx, MAXZONEKEYS,
+	result = find_zone_keys(zone, db, version, zone->mctx, DNS_MAXZONEKEYS,
 				zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
@@ -5768,7 +5766,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 	dns_rdataset_t rdataset;
 	dns_nsec3chain_t *nsec3chain = NULL, *nextnsec3chain;
 	dns_nsec3chainlist_t cleanup;
-	dst_key_t *zone_keys[MAXZONEKEYS];
+	dst_key_t *zone_keys[DNS_MAXZONEKEYS];
 	isc_int32_t signatures;
 	isc_boolean_t check_ksk, keyset_kskonly;
 	isc_boolean_t delegation;
@@ -5820,7 +5818,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 	}
 
 	result = find_zone_keys(zone, db, version, zone->mctx,
-				MAXZONEKEYS, zone_keys, &nkeys);
+				DNS_MAXZONEKEYS, zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
 			     "zone_nsec3chain:find_zone_keys -> %s\n",
@@ -6599,7 +6597,7 @@ zone_sign(dns_zone_t *zone) {
 	dns_rdataset_t rdataset;
 	dns_signing_t *signing, *nextsigning;
 	dns_signinglist_t cleanup;
-	dst_key_t *zone_keys[MAXZONEKEYS];
+	dst_key_t *zone_keys[DNS_MAXZONEKEYS];
 	isc_int32_t signatures;
 	isc_boolean_t check_ksk, keyset_kskonly, is_ksk;
 	isc_boolean_t commit = ISC_FALSE;
@@ -6645,7 +6643,7 @@ zone_sign(dns_zone_t *zone) {
 	}
 
 	result = find_zone_keys(zone, db, version, zone->mctx,
-				MAXZONEKEYS, zone_keys, &nkeys);
+				DNS_MAXZONEKEYS, zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
 			     "zone_sign:find_zone_keys -> %s\n",
@@ -13897,11 +13895,11 @@ sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	isc_result_t result;
 	isc_stdtime_t now, inception, soaexpire;
 	isc_boolean_t check_ksk, keyset_kskonly;
-	dst_key_t *zone_keys[MAXZONEKEYS];
+	dst_key_t *zone_keys[DNS_MAXZONEKEYS];
 	unsigned int nkeys = 0, i;
 	dns_difftuple_t *tuple;
 
-	result = find_zone_keys(zone, db, ver, zone->mctx, MAXZONEKEYS,
+	result = find_zone_keys(zone, db, ver, zone->mctx, DNS_MAXZONEKEYS,
 				zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
@@ -14187,7 +14185,8 @@ zone_rekey(dns_zone_t *zone) {
 			goto trylater;
 		}
 
-		/* See if any pre-existing keys have newly become active;
+		/*
+		 * See if any pre-existing keys have newly become active;
 		 * also, see if any new key is for a new algorithm, as in that
 		 * event, we need to sign the zone fully.  (If there's a new
 		 * key, but it's for an already-existing algorithm, then
