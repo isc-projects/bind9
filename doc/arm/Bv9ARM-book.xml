@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.511 2011/11/03 04:53:27 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.512 2011/11/03 22:06:21 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -1492,6 +1492,31 @@ zone "eng.example.com" {
                         Note <command>dnssec-enable</command> also needs to be
                         set to <userinput>yes</userinput> to be effective.
                         It defaults to enabled.
+                      </para>
+                    </listitem>
+                  </varlistentry>
+
+                  <varlistentry>
+                    <term><userinput>tsig-list</userinput></term>
+                    <listitem>
+                      <para>
+                        List the names of all TSIG keys currently configured
+                        for use by <command>named</command> in each view.  The
+                        list both statically configured keys and dynamic
+                        TKEY-negotiated keys.
+                      </para>
+                    </listitem>
+                  </varlistentry>
+
+                  <varlistentry>
+                    <term><userinput>tsig-delete</userinput>
+                     <replaceable>keyname</replaceable>
+                     <optional><replaceable>view</replaceable></optional></term>
+                    <listitem>
+                      <para>
+                        Delete a given TKEY-negotated key from the server.
+                        (This does not apply to statically configured TSIG
+                        keys.)
                       </para>
                     </listitem>
                   </varlistentry>

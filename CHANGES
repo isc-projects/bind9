@@ -1,3 +1,6 @@
+3200.	[doc]		Some rndc functions were undocumented or were
+			missing from 'rndc -h' output. [RT #25555]
+
 3199.	[func]		When logging client information, include the name
 			being queried. [RT #25944]
 
