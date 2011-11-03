@@ -1,3 +1,6 @@
+3198.	[doc]		Clarified that dnssec-settime can alter keyfile
+			permissions. [RT #24866]
+
 3197.	[bug]		Don't try to log the filename and line number when 
 			the config parser can't open a file. [RT #22263]
 
