@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007, 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec.h,v 1.32.332.7 2011/11/03 02:58:57 each Exp $ */
+/* $Id: dnssec.h,v 1.32.332.8 2011/11/03 23:45:18 tbox Exp $ */
 
 #ifndef DNS_DNSSEC_H
 #define DNS_DNSSEC_H 1
