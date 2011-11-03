@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.627 2011/11/03 23:05:30 each Exp $ */
+/* $Id: server.c,v 1.628 2011/11/03 23:46:26 tbox Exp $ */
 
 /*! \file */
 
@@ -6149,7 +6149,7 @@ ns_server_togglequerylog(ns_server_t *server, char *args) {
 		value = ISC_TRUE;
 	else if (strcasecmp(ptr, "no") == 0 || strcasecmp(ptr, "off") == 0)
 		value = ISC_FALSE;
-	else 
+	else
 		return (ISC_R_NOTFOUND);
 
 	if (server->log_queries == value)
