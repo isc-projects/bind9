@@ -1,3 +1,6 @@
+3195.	[cleanup]	Silence "file not found" warnings when loading
+			managed-keys zone. [RT #26340]
+
 3194.	[doc]		Updated RFC references in the 'empty-zones-enable'
 			documentation. [RT #25203]
 
