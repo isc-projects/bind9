@@ -1,3 +1,6 @@
+3196.   [bug]           nsupdate: return nonzero exit code when target zone
+                        doesn't exist. [RT #25783]
+
 3194.	[doc]		Updated RFC references in the 'empty-zones-enable'
 			documentation. [RT #25203]
 
