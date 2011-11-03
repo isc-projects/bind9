@@ -1,3 +1,6 @@
+3199.	[func]		When logging client information, include the name
+			being queried. [RT #25944]
+
 3198.	[doc]		Clarified that dnssec-settime can alter keyfile
 			permissions. [RT #24866]
 
