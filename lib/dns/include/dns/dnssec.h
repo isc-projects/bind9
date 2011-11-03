@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec.h,v 1.46 2011/05/06 23:47:29 tbox Exp $ */
+/* $Id: dnssec.h,v 1.47 2011/11/03 02:54:47 each Exp $ */
 
 #ifndef DNS_DNSSEC_H
 #define DNS_DNSSEC_H 1
@@ -31,6 +31,9 @@
 #include <dst/dst.h>
 
 ISC_LANG_BEGINDECLS
+
+/*%< Maximum number of keys supported in a zone. */
+#define DNS_MAXZONEKEYS 32
 
 /*
  * Indicates how the signer found this key: in the key repository, at the

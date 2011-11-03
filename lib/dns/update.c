@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.5 2011/08/30 23:46:52 tbox Exp $ */
+/* $Id: update.c,v 1.6 2011/11/03 02:54:47 each Exp $ */
 
 #include <config.h>
 
@@ -713,8 +713,6 @@ delete_if(rr_predicate *predicate, dns_db_t *db, dns_dbversion_t *ver,
  * Incremental updating of NSECs and RRSIGs.
  */
 
-#define MAXZONEKEYS 32	/*%< Maximum number of zone keys supported. */
-
 /*%
  * We abuse the dns_diff_t type to represent a set of domain names
  * affected by the update.
@@ -1338,7 +1336,7 @@ dns_update_signatures(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	dns_diff_t nsec_diff;
 	dns_diff_t nsec_mindiff;
 	isc_boolean_t flag, build_nsec, build_nsec3;
-	dst_key_t *zone_keys[MAXZONEKEYS];
+	dst_key_t *zone_keys[DNS_MAXZONEKEYS];
 	unsigned int nkeys = 0;
 	unsigned int i;
 	isc_stdtime_t now, inception, expire;
@@ -1361,7 +1359,7 @@ dns_update_signatures(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	dns_diff_init(diff->mctx, &nsec_mindiff);
 
 	result = find_zone_keys(zone, db, newver, diff->mctx,
-				MAXZONEKEYS, zone_keys, &nkeys);
+				DNS_MAXZONEKEYS, zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
 		update_log(log, zone, ISC_LOG_ERROR,
 			   "could not get zone keys for secure dynamic update");
