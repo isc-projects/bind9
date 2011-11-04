@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.196 2011/10/28 06:20:06 each Exp $ */
+/* $Id: zone.h,v 1.197 2011/11/04 05:51:01 each Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1600,6 +1600,32 @@ dns_zonemgr_unreachableadd(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
 			   isc_sockaddr_t *local, isc_time_t *now);
 /*%<
  *	Add the pair of addresses to the unreachable cache.
+ *
+ * Requires:
+ *\li	'zmgr' to be a valid zone manager.
+ *\li	'remote' to be a valid sockaddr.
+ *\li	'local' to be a valid sockaddr.
+ */
+
+isc_boolean_t
+dns_zonemgr_unreachable(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
+			isc_sockaddr_t *local, isc_time_t *now);
+/*%<
+ *	Returns ISC_TRUE if the given local/remote address pair
+ *	is found in the zone maanger's unreachable cache.
+ *
+ * Requires:
+ *\li	'zmgr' to be a valid zone manager.
+ *\li	'remote' to be a valid sockaddr.
+ *\li	'local' to be a valid sockaddr.
+ *\li	'now' != NULL
+ */
+
+void
+dns_zonemgr_unreachabledel(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
+			   isc_sockaddr_t *local);
+/*%<
+ *	Remove the pair of addresses from the unreachable cache.
  *
  * Requires:
  *\li	'zmgr' to be a valid zone manager.
