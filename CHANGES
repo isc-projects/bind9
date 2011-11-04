@@ -1,3 +1,6 @@
+3202.	[bug]		NOEDNS caching on timeout was too agressive.
+			[RT #26416]
+
 3201.	[func]		'rndc querylog' can now be given an on/off parameter
 			instead of only being used as a toggle. [RT #18351]
 

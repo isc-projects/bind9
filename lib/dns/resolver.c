@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.438 2011/11/02 23:42:33 marka Exp $ */
+/* $Id: resolver.c,v 1.439 2011/11/04 03:38:44 marka Exp $ */
 
 /*! \file */
 
@@ -1846,6 +1846,7 @@ resquery_send(resquery_t *query) {
 		     fctx->timeouts > MAX_EDNS0_TIMEOUTS) &&
 		    (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
 			query->options |= DNS_FETCHOPT_NOEDNS0;
+			query->options |= DNS_FETCHOPT_CACHENOEDNS;
 			fctx->reason = "disabling EDNS";
 		} else if ((triededns(fctx, &query->addrinfo->sockaddr) ||
 			    fctx->timeouts >= 1) &&
@@ -1917,21 +1918,18 @@ resquery_send(resquery_t *query) {
 		goto cleanup_message;
 	}
 
-	if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0)
+	if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
 		add_triededns(fctx, &query->addrinfo->sockaddr);
 
-	if ((query->options & DNS_FETCHOPT_EDNS512) != 0)
-		add_triededns512(fctx, &query->addrinfo->sockaddr);
+		if ((query->options & DNS_FETCHOPT_EDNS512) != 0)
+			add_triededns512(fctx, &query->addrinfo->sockaddr);
+	}
 
 	/*
-	 * Clear CD if EDNS is not in use and set NOEDNS0 in adb.
+	 * Clear CD if EDNS is not in use.
 	 */
-	if ((query->options & DNS_FETCHOPT_NOEDNS0) != 0) {
+	if ((query->options & DNS_FETCHOPT_NOEDNS0) != 0) 
 		fctx->qmessage->flags &= ~DNS_MESSAGEFLAG_CD;
-		dns_adb_changeflags(fctx->adb, query->addrinfo,
-				    DNS_FETCHOPT_NOEDNS0,
-				    DNS_FETCHOPT_NOEDNS0);
-	}
 
 	/*
 	 * Add TSIG record tailored to the current recipient.
@@ -6580,6 +6578,23 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			}
 		}
 		goto done;
+	} else if ((query->options & DNS_FETCHOPT_NOEDNS0) != 0 &&
+		   (query->options & DNS_FETCHOPT_CACHENOEDNS) != 0 &&
+		   triededns512(fctx, &query->addrinfo->sockaddr)) {
+		char addrbuf[ISC_SOCKADDR_FORMATSIZE];
+		isc_sockaddr_format(&query->addrinfo->sockaddr, addrbuf,
+		sizeof(addrbuf));
+		/*
+		 * We had a successful response to a DNS_FETCHOPT_NOEDNS0
+		 * query.
+		 */
+		 isc_log_write(dns_lctx, DNS_LOGCATEGORY_EDNS_DISABLED,
+			       DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
+			       "%s: setting NOEDNS flag in adb cache for '%s'",
+			       fctx->info, addrbuf);
+		dns_adb_changeflags(fctx->adb, query->addrinfo,
+				    DNS_FETCHOPT_NOEDNS0,
+				    DNS_FETCHOPT_NOEDNS0);
 	}
 
 	message = fctx->rmessage;
@@ -6723,6 +6738,10 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 		isc_sockaddr_format(&query->addrinfo->sockaddr, addrbuf,
 				    sizeof(addrbuf));
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_EDNS_DISABLED,
+			      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
+			      "%s: changed rcode: setting NOEDNS flag in "
+			      "adb cache for '%s'", fctx->info, addrbuf);
 		dns_adb_changeflags(fctx->adb, query->addrinfo,
 				    DNS_FETCHOPT_NOEDNS0,
 				    DNS_FETCHOPT_NOEDNS0);
