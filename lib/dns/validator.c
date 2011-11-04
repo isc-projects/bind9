@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.207 2011/10/20 23:46:51 tbox Exp $ */
+/* $Id: validator.c,v 1.208 2011/11/04 05:36:28 each Exp $ */
 
 #include <config.h>
 
@@ -1930,7 +1930,9 @@ verify(dns_validator_t *val, dst_key_t *key, dns_rdata_t *rdata,
  again:
 	result = dns_dnssec_verify2(val->event->name, val->event->rdataset,
 				    key, ignore, val->view->mctx, rdata, wild);
-	if (result == DNS_R_SIGEXPIRED && val->view->acceptexpired) {
+	if ((result == DNS_R_SIGEXPIRED || result == DNS_R_SIGFUTURE) &&
+	    val->view->acceptexpired)
+	{
 		ignore = ISC_TRUE;
 		goto again;
 	}
@@ -1939,6 +1941,10 @@ verify(dns_validator_t *val, dst_key_t *key, dns_rdata_t *rdata,
 			      "accepted expired %sRRSIG (keyid=%u)",
 			      (result == DNS_R_FROMWILDCARD) ?
 			      "wildcard " : "", keyid);
+	else if (result == DNS_R_SIGEXPIRED || result == DNS_R_SIGFUTURE)
+		validator_log(val, ISC_LOG_INFO,
+			      "verify failed due to bad signature (keyid=%u): "
+			      "%s", keyid, isc_result_totext(result));
 	else
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "verify rdataset (keyid=%u): %s",

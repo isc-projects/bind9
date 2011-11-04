@@ -1,3 +1,6 @@
+3203.	[bug]		Increase log level to 'info' for validation failures
+			from expired or not-yet-valid RRSIGs. [RT #21796]
+
 3202.	[bug]		NOEDNS caching on timeout was too agressive.
 			[RT #26416]
 
