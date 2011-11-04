@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.242 2011/03/11 06:11:20 marka Exp $ */
+/* $Id: dig.c,v 1.243 2011/11/04 10:41:38 marka Exp $ */
 
 /*! \file */
 
@@ -187,7 +187,7 @@ help(void) {
 "                 +domain=###         (Set default domainname)\n"
 "                 +bufsize=###        (Set EDNS0 Max UDP packet size)\n"
 "                 +ndots=###          (Set NDOTS value)\n"
-"                 +edns=###           (Set EDNS version)\n"
+"                 +edns=###           (Set EDNS version) [0]\n"
 "                 +[no]search         (Set whether to use searchlist)\n"
 "                 +[no]showsearch     (Search with intermediate results)\n"
 "                 +[no]defname        (Ditto)\n"
@@ -216,7 +216,7 @@ help(void) {
 "                 +[no]qr             (Print question before sending)\n"
 "                 +[no]nssearch       (Search all authoritative nameservers)\n"
 "                 +[no]identify       (ID responders in short answers)\n"
-"                 +[no]trace          (Trace delegation down from root)\n"
+"                 +[no]trace          (Trace delegation down from root, [+dnssec])\n"
 "                 +[no]dnssec         (Request DNSSEC records)\n"
 "                 +[no]nsid           (Request Name Server ID)\n"
 #ifdef DIG_SIGCHASE
@@ -1124,6 +1124,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 					lookup->section_additional = ISC_FALSE;
 					lookup->section_authority = ISC_TRUE;
 					lookup->section_question = ISC_FALSE;
+					lookup->dnssec = ISC_TRUE;
 					usesearch = ISC_FALSE;
 				}
 				break;
@@ -1527,6 +1528,8 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 	if (!is_batchfile) {
 		debug("making new lookup");
 		default_lookup = make_empty_lookup();
+		default_lookup->adflag = ISC_TRUE;
+		default_lookup->edns = 0;
 
 #ifndef NOPOSIX
 		/*

@@ -1,3 +1,8 @@
+3205.	[func]		Upgrade dig's defaults to better reflect modern
+			nameserver behaviour.  Enable "dig +adflag" and
+			"dig +edns=0" by default.  Enable "+dnssec" when
+			running "dig +trace". [RT #23497]
+
 3204.	[bug]		When a master server that has been marked as
 			unreachable sends a NOTIFY, mark it reachable
 			again. [RT #25960]

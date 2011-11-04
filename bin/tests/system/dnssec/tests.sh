@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.102 2011/11/04 05:36:28 each Exp $
+# $Id: tests.sh,v 1.103 2011/11/04 10:41:38 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -86,6 +86,17 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+# test AD bit:
+#  - dig +noadflag 
+echo "I:checking that AD is not set without +adflag or +dnssec ($n)"
+ret=0
+$DIG $DIGOPTS +noauth +noadd +nodnssec +noadflag a.example. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
+$DIG $DIGOPTS +noauth +noadd +nodnssec +noadflag a.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
+$PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
 echo "I:checking for AD in authoritative answer ($n)"
 ret=0
 $DIG $DIGOPTS a.example. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
