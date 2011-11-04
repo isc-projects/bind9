@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.540.2.74 2011/11/03 03:27:20 each Exp $ */
+/* $Id: zone.c,v 1.540.2.75 2011/11/04 05:52:20 each Exp $ */
 
 /*! \file */
 
@@ -663,10 +663,6 @@ static void zone_saveunique(dns_zone_t *zone, const char *path,
 static void zone_maintenance(dns_zone_t *zone);
 static void zone_notify(dns_zone_t *zone, isc_time_t *now);
 static void dump_done(void *arg, isc_result_t result);
-static isc_boolean_t dns_zonemgr_unreachable(dns_zonemgr_t *zmgr,
-					     isc_sockaddr_t *remote,
-					     isc_sockaddr_t *local,
-					     isc_time_t *now);
 static isc_result_t zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm,
 				     isc_uint16_t keyid, isc_boolean_t delete);
 static isc_result_t delete_nsec(dns_db_t *db, dns_dbversion_t *ver,
@@ -9490,7 +9486,8 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 				if (!dns_zonemgr_unreachable(zone->zmgr,
 							     &zone->masteraddr,
 							     &zone->sourceaddr,
-							     &now)) {
+							     &now))
+				{
 					LOCK_ZONE(zone);
 					DNS_ZONE_SETFLAG(zone,
 						     DNS_ZONEFLG_SOABEFOREAXFR);
@@ -9684,7 +9681,8 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FORCEXFER) ||
 	    isc_serial_gt(serial, oldserial)) {
 		if (dns_zonemgr_unreachable(zone->zmgr, &zone->masteraddr,
-					    &zone->sourceaddr, &now)) {
+					    &zone->sourceaddr, &now))
+		{
 			dns_zone_log(zone, ISC_LOG_INFO,
 				     "refresh: skipping %s as master %s "
 				     "(source %s) is unreachable (cached)",
@@ -10791,6 +10789,7 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	char fromtext[ISC_SOCKADDR_FORMATSIZE];
 	int match = 0;
 	isc_netaddr_t netaddr;
+	isc_sockaddr_t local, remote;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -10940,7 +10939,10 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 		return (ISC_R_SUCCESS);
 	}
 	zone->notifyfrom = *from;
+	local = zone->masteraddr;
+	remote = zone->sourceaddr;
 	UNLOCK_ZONE(zone);
+	dns_zonemgr_unreachabledel(zone->zmgr, &local, &remote);
 	dns_zone_refresh(zone);
 	return (ISC_R_SUCCESS);
 }
@@ -12133,7 +12135,8 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 
 	isc_sockaddr_format(&zone->masteraddr, master, sizeof(master));
 	if (dns_zonemgr_unreachable(zone->zmgr, &zone->masteraddr,
-				    &zone->sourceaddr, &now)) {
+				    &zone->sourceaddr, &now))
+	{
 		isc_sockaddr_format(&zone->sourceaddr, source, sizeof(source));
 		dns_zone_log(zone, ISC_LOG_INFO,
 			     "got_transfer_quota: skipping zone transfer as "
@@ -13190,7 +13193,7 @@ dns_zonemgr_getserialqueryrate(dns_zonemgr_t *zmgr) {
 	return (zmgr->serialqueryrate);
 }
 
-static isc_boolean_t
+isc_boolean_t
 dns_zonemgr_unreachable(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
 			isc_sockaddr_t *local, isc_time_t *now)
 {
@@ -13217,6 +13220,43 @@ dns_zonemgr_unreachable(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
 	}
 	RWUNLOCK(&zmgr->rwlock, locktype);
 	return (ISC_TF(i < UNREACH_CHACHE_SIZE));
+}
+
+void
+dns_zonemgr_unreachabledel(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
+			   isc_sockaddr_t *local)
+{
+	unsigned int i;
+	isc_rwlocktype_t locktype;
+	isc_result_t result;
+
+	char master[ISC_SOCKADDR_FORMATSIZE];
+	char source[ISC_SOCKADDR_FORMATSIZE];
+
+	isc_sockaddr_format(remote, master, sizeof(master));
+	isc_sockaddr_format(local, source, sizeof(source));
+
+	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
+
+	locktype = isc_rwlocktype_read;
+	RWLOCK(&zmgr->rwlock, locktype);
+	for (i = 0; i < UNREACH_CHACHE_SIZE; i++) {
+		if (isc_sockaddr_equal(&zmgr->unreachable[i].remote, remote) &&
+		    isc_sockaddr_equal(&zmgr->unreachable[i].local, local)) {
+			result = isc_rwlock_tryupgrade(&zmgr->rwlock);
+			if (result == ISC_R_SUCCESS) {
+				locktype = isc_rwlocktype_write;
+				zmgr->unreachable[i].expire = 0;
+				isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+					      DNS_LOGMODULE_ZONE, ISC_LOG_INFO,
+					      "master %s (source %s) deleted "
+					      "from unreachable cache",
+					      master, source);
+			}
+			break;
+		}
+	}
+	RWUNLOCK(&zmgr->rwlock, locktype);
 }
 
 void
