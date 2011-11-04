@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.1.4.11 2011/11/02 14:41:33 marka Exp $
+# $Id: tests.sh,v 1.1.4.12 2011/11/04 09:04:38 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -60,7 +60,7 @@ echo I:revoking key
 # revoking key changes its ID
 cksk3=`$KEYGEN -q -r $RANDFILE -fk $czone`
 cksk4=`$REVOKE $cksk3`
-$SETTIME -A now+20s $cksk2 > /dev/null
+$SETTIME -A now+30s $cksk2 > /dev/null
 
 echo I:signing child zone
 czoneout=`$SIGNER -Sg -r $RANDFILE -o $czone $cfile 2>&1`
@@ -213,8 +213,8 @@ grep -w "$czsuccessor" other.sigs > /dev/null && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:waiting 20 seconds for key activation"
-sleep 20
+echo "I:waiting 30 seconds for key activation"
+sleep 30
 echo "I:re-signing child zone"
 czoneout2=`$SIGNER -Sg -r $RANDFILE -o $czone -f $cfile.new $cfile.signed 2>&1`
 mv $cfile.new $cfile.signed
