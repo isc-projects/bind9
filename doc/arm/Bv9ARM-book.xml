@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.510 2011/11/03 03:08:33 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.514 2011/11/04 02:25:17 tbox Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -1320,10 +1320,17 @@ zone "eng.example.com" {
                   </varlistentry>
 
                   <varlistentry>
-                    <term><userinput>querylog</userinput></term>
+		    <term><userinput>querylog</userinput>
+			  <optional>on|off</optional>
+		    </term>
                     <listitem>
                       <para>
-                        Toggle query logging. Query logging can also be enabled
+                        Enable or disable query logging.  (For backward
+                        compatibility, this command can also be used without
+                        an argument to toggle query logging on and off.)
+                      </para>
+                      <para>
+                        Query logging can also be enabled
                         by explicitly directing the <command>queries</command>
                         <command>category</command> to a
 		        <command>channel</command> in the
@@ -1492,6 +1499,31 @@ zone "eng.example.com" {
                         Note <command>dnssec-enable</command> also needs to be
                         set to <userinput>yes</userinput> to be effective.
                         It defaults to enabled.
+                      </para>
+                    </listitem>
+                  </varlistentry>
+
+                  <varlistentry>
+                    <term><userinput>tsig-list</userinput></term>
+                    <listitem>
+                      <para>
+                        List the names of all TSIG keys currently configured
+                        for use by <command>named</command> in each view.  The
+                        list both statically configured keys and dynamic
+                        TKEY-negotiated keys.
+                      </para>
+                    </listitem>
+                  </varlistentry>
+
+                  <varlistentry>
+                    <term><userinput>tsig-delete</userinput>
+                     <replaceable>keyname</replaceable>
+                     <optional><replaceable>view</replaceable></optional></term>
+                    <listitem>
+                      <para>
+                        Delete a given TKEY-negotated key from the server.
+                        (This does not apply to statically configured TSIG
+                        keys.)
                       </para>
                     </listitem>
                   </varlistentry>
@@ -15062,9 +15094,8 @@ HOST-127.EXAMPLE. MX 0 .
 // RFC1918 space and some reserved space, which is
 // commonly used in spoofing attacks.
 acl bogusnets {
-        0.0.0.0/8; 1.0.0.0/8; 2.0.0.0/8; 192.0.2.0/24;
-        224.0.0.0/3; 10.0.0.0/8; 172.16.0.0/12;
-        192.168.0.0/16;
+        0.0.0.0/8;  192.0.2.0/24; 224.0.0.0/3;
+        10.0.0.0/8; 172.16.0.0/12; 192.168.0.0/16;
 };
 
 // Set up an ACL called our-nets. Replace this with the

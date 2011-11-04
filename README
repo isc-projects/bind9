@@ -209,12 +209,12 @@ Building
 		AIX 4.3, 5L
 		CentOS 4, 4.5, 5
 		Darwin 9.0.0d1/ARM
-		Debian 4
-		Fedora Core 5, 7
-		FreeBSD 6.1
+		Debian 4, 5, 6
+		Fedora Core 5, 7, 8
+		FreeBSD 6, 7, 8
 		HP-UX 11.23 PA
-		MacOS X 10.4, 10.5
-		Red Hat Enterprise Linux 4, 5
+		MacOS X 10.5, 10.6, 10.7
+		Red Hat Enterprise Linux 4, 5, 6
 		SCO OpenServer 5.0.6
 		Slackware 9, 10
 		SuSE 9, 10

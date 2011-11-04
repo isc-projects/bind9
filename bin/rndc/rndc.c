@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.136 2011/10/28 06:20:05 each Exp $ */
+/* $Id: rndc.c,v 1.138 2011/11/03 23:05:30 each Exp $ */
 
 /*! \file */
 
@@ -127,7 +127,8 @@ command is one of the following:\n\
   loadkeys zone [class [view]]\n\
 		Update keys without signing immediately.\n\
   stats		Write server statistics to the statistics file.\n\
-  querylog	Toggle query logging.\n\
+  querylog newstate\n\
+		Enable / disable query logging.\n\
   dumpdb [-all|-cache|-zones] [view ...]\n\
 		Dump cache(s) to the dump file (named_dump.db).\n\
   secroots [view ...]\n\
@@ -145,11 +146,16 @@ command is one of the following:\n\
   flush [view]	Flushes the server's cache for a view.\n\
   flushname name [view]\n\
 		Flush the given name from the server's cache(s)\n\
+  flushtree name [view]\n\
+		Flush all names under the given name from the server's cache(s)\n\
   status	Display status of the server.\n\
   recursing	Dump the queries that are currently recursing (named.recursing)\n\
+  tsig-list	List all currently active TSIG keys, including both statically\n\
+		configured and TKEY-negotiated keys.\n\
+  tsig-delete keyname [view]	\n\
+		Delete a TKEY-negotiated TSIG key.\n\
   validation newstate [view]\n\
 		Enable / disable DNSSEC validation.\n\
-  *restart	Restart the server.\n\
   addzone [\"file\"] zone [class [view]] { zone-options }\n\
 		Add zone to given view. Requires new-zone-file option.\n\
   delzone [\"file\"] zone [class [view]]\n\
@@ -163,6 +169,7 @@ command is one of the following:\n\
   signing -clear all zone [class [view]]\n\
 		Remove the private records for all keys that have\n\
 		finished signing the given zone.\n\
+  *restart	Restart the server.\n\
 \n\
 * == not yet implemented\n\
 Version: %s\n",

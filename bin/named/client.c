@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.281 2011/10/25 16:21:21 each Exp $ */
+/* $Id: client.c,v 1.282 2011/11/03 21:14:22 each Exp $ */
 
 #include <config.h>
 
@@ -2689,10 +2689,11 @@ ns_client_logv(ns_client_t *client, isc_logcategory_t *category,
 {
 	char msgbuf[2048];
 	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
-	char signerbuf[DNS_NAME_FORMATSIZE];
+	char signerbuf[DNS_NAME_FORMATSIZE], qnamebuf[DNS_NAME_FORMATSIZE];
 	const char *viewname = "";
-	const char *sep1 = "", *sep2 = "";
-	const char *signer = "";
+	const char *sep1 = "", *sep2 = "", *sep3 = "", *sep4 = "";
+	const char *signer = "", *qname = "";
+	dns_name_t *q = NULL;
 
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
 
@@ -2704,15 +2705,25 @@ ns_client_logv(ns_client_t *client, isc_logcategory_t *category,
 		signer = signerbuf;
 	}
 
+	q = client->query.origqname != NULL
+		? client->query.origqname : client->query.qname;
+	if (q != NULL) {
+		dns_name_format(q, qnamebuf, sizeof(qnamebuf));
+		sep2 = " (";
+		sep3 = ")";
+		qname = qnamebuf;
+	}
+
 	if (client->view != NULL && strcmp(client->view->name, "_bind") != 0 &&
 	    strcmp(client->view->name, "_default") != 0) {
-		sep2 = ": view ";
+		sep4 = ": view ";
 		viewname = client->view->name;
 	}
 
 	isc_log_write(ns_g_lctx, category, module, level,
-		      "client %s%s%s%s%s: %s",
-		      peerbuf, sep1, signer, sep2, viewname, msgbuf);
+		      "client %s%s%s%s%s%s%s%s: %s",
+		      peerbuf, sep1, signer, sep2, qname, sep3,
+		      sep4, viewname, msgbuf);
 }
 
 void

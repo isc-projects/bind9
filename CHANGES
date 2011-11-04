@@ -1,3 +1,24 @@
+3202.	[bug]		NOEDNS caching on timeout was too agressive.
+			[RT #26416]
+
+3201.	[func]		'rndc querylog' can now be given an on/off parameter
+			instead of only being used as a toggle. [RT #18351]
+
+3200.	[doc]		Some rndc functions were undocumented or were
+			missing from 'rndc -h' output. [RT #25555]
+
+3199.	[func]		When logging client information, include the name
+			being queried. [RT #25944]
+
+3198.	[doc]		Clarified that dnssec-settime can alter keyfile
+			permissions. [RT #24866]
+
+3197.	[bug]		Don't try to log the filename and line number when 
+			the config parser can't open a file. [RT #22263]
+
+3196.   [bug]           nsupdate: return nonzero exit code when target zone
+                        doesn't exist. [RT #25783]
+
 3195.	[cleanup]	Silence "file not found" warnings when loading
 			managed-keys zone. [RT #26340]
 

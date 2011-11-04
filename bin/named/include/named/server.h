@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.115 2011/10/28 06:20:04 each Exp $ */
+/* $Id: server.h,v 1.116 2011/11/03 23:05:30 each Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -228,9 +228,10 @@ ns_server_retransfercommand(ns_server_t *server, char *args);
  */
 
 isc_result_t
-ns_server_togglequerylog(ns_server_t *server);
+ns_server_togglequerylog(ns_server_t *server, char *args);
 /*%<
- * Toggle logging of queries, as in BIND 8.
+ * Enable/disable logging of queries.  (Takes "yes" or "no" argument,
+ * but can also be used as a toggle for backward comptibility.)
  */
 
 /*%
