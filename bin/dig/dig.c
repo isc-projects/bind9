@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.243 2011/11/04 10:41:38 marka Exp $ */
+/* $Id: dig.c,v 1.244 2011/11/04 14:19:17 each Exp $ */
 
 /*! \file */
 
@@ -216,7 +216,7 @@ help(void) {
 "                 +[no]qr             (Print question before sending)\n"
 "                 +[no]nssearch       (Search all authoritative nameservers)\n"
 "                 +[no]identify       (ID responders in short answers)\n"
-"                 +[no]trace          (Trace delegation down from root, [+dnssec])\n"
+"                 +[no]trace          (Trace delegation down from root [+dnssec])\n"
 "                 +[no]dnssec         (Request DNSSEC records)\n"
 "                 +[no]nsid           (Request Name Server ID)\n"
 #ifdef DIG_SIGCHASE
