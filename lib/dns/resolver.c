@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.439 2011/11/04 03:38:44 marka Exp $ */
+/* $Id: resolver.c,v 1.440 2011/11/04 23:46:15 tbox Exp $ */
 
 /*! \file */
 
@@ -1928,7 +1928,7 @@ resquery_send(resquery_t *query) {
 	/*
 	 * Clear CD if EDNS is not in use.
 	 */
-	if ((query->options & DNS_FETCHOPT_NOEDNS0) != 0) 
+	if ((query->options & DNS_FETCHOPT_NOEDNS0) != 0)
 		fctx->qmessage->flags &= ~DNS_MESSAGEFLAG_CD;
 
 	/*
