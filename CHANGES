@@ -1,5 +1,5 @@
 3204.	[bug]		When a master server that has been marked as
-			unreachable but sends a NOTIFY, mark it reachable
+			unreachable sends a NOTIFY, mark it reachable
 			again. [RT #25960]
 
 3203.	[bug]		Increase log level to 'info' for validation failures
