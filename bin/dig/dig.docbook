@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.50 2011/11/04 10:41:38 marka Exp $ -->
+<!-- $Id: dig.docbook,v 1.51 2011/11/04 11:02:50 jreed Exp $ -->
 <refentry id="man.dig">
 
   <refentryinfo>
@@ -539,7 +539,7 @@
 	      from each server that was used to resolve the lookup.
 	    </para>
 	    <para>
-	      <commmand>+dnssec</command> is also set when +trace is
+	      <command>+dnssec</command> is also set when +trace is
 	      set to better emulate the default queries from a nameserver.
 	    </para>
 	  </listitem>
