@@ -54,7 +54,7 @@
 			responses. [RT #26200]
 
 3174.	[bug]		Always compute to revoked key tag from scratch.
-			[RT #24711]
+			[RT #26186]
 
 3173.	[port]		Correctly validate root DS responses. [RT #25726]
 
