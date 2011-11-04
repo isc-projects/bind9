@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch03.html,v 1.83.8.1 2011/05/24 02:37:17 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch03.html,v 1.83.8.2 2011/11/04 01:51:12 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -54,7 +54,7 @@
 <dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2568364">Name Server Operations</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2568370">Tools for Use With the Name Server Daemon</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2570378">Signals</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2570417">Signals</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -670,6 +670,21 @@ zone "eng.example.com" {
                         set to <strong class="userinput"><code>yes</code></strong> to be effective.
                         It defaults to enabled.
                       </p></dd>
+<dt><span class="term"><strong class="userinput"><code>tsig-list</code></strong></span></dt>
+<dd><p>
+                        List the names of all TSIG keys currently configured
+                        for use by <span><strong class="command">named</strong></span> in each view.  The
+                        list both statically configured keys and dynamic
+                        TKEY-negotiated keys.
+                      </p></dd>
+<dt><span class="term"><strong class="userinput"><code>tsig-delete</code></strong>
+                     <em class="replaceable"><code>keyname</code></em>
+                     [<span class="optional"><em class="replaceable"><code>view</code></em></span>]</span></dt>
+<dd><p>
+                        Delete a given TKEY-negotated key from the server.
+                        (This does not apply to statically configured TSIG
+                        keys.)
+                      </p></dd>
 <dt><span class="term"><strong class="userinput"><code>addzone
                         <em class="replaceable"><code>zone</code></em>
                         [<span class="optional"><em class="replaceable"><code>class</code></em>
@@ -873,7 +888,7 @@ controls {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2570378"></a>Signals</h3></div></div></div>
+<a name="id2570417"></a>Signals</h3></div></div></div>
 <p>
           Certain UNIX signals cause the name server to take specific
           actions, as described in the following table.  These signals can
