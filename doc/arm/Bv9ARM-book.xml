@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.513 2011/11/03 23:05:31 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.514 2011/11/04 02:25:17 tbox Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -1320,8 +1320,9 @@ zone "eng.example.com" {
                   </varlistentry>
 
                   <varlistentry>
-                          <term><userinput>querylog</userinput>
-                                  <optional>on|off</optional>
+		    <term><userinput>querylog</userinput>
+			  <optional>on|off</optional>
+		    </term>
                     <listitem>
                       <para>
                         Enable or disable query logging.  (For backward
