@@ -349,6 +349,48 @@ Documentation
 	in the other README files.
 
 
+Change Log
+
+	A detailed list of all changes to BIND 9 is included in the 
+	file CHANGES, with the most recent changes listed first.
+	Change notes include tags indicating the category of the
+	change that was made; these categories are:
+
+	   [func]	  New feature
+
+	   [bug]	  General bug fix
+
+	   [security]	  Fix for a significant security flaw
+
+	   [experimental] Used for new features when the syntax
+	   		  or other aspects of the design are still
+			  in flux and may change
+
+	   [port]	  Portability enhancement
+
+	   [maint]	  Updates to built-in data such as root
+			  server addresses and keys
+
+	   [tuning]	  Changes to built-in configuration defaults
+	   		  and constants to improve performanceo
+
+	   [protocol]	  Updates to the DNS protocol such as new
+			  RR types
+
+           [test]         Changes to the automatic tests, not
+                          affecting server functionality
+
+           [cleanup]      Minor corrections and refactoring
+
+	   [doc]	  Documentation
+
+	In general, [func] and [experimental] tags will only appear
+	in new-feature releases (i.e., those with version numbers
+	ending in zero).  Some new functionality may be backported to
+	older releases on a case-by-case basis.  All other change
+	types may be applied to all currently-supported releases.
+
+
 Bug Reports and Mailing Lists
 
 	Bugs reports should be sent to
