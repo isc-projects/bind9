@@ -1,3 +1,5 @@
+3207.	[contrib]	Fixed build error in Berkeley DB DLZ module. [RT #26444]
+
 3206.	[cleanup]	Add ISC information to log at start time. [RT #25484]
 
 3205.	[func]		Upgrade dig's defaults to better reflect modern
