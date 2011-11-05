@@ -1,3 +1,5 @@
+3206.	[cleanup]	Add ISC information to log at start time. [RT #25484]
+
 3205.	[func]		Upgrade dig's defaults to better reflect modern
 			nameserver behaviour.  Enable "dig +adflag" and
 			"dig +edns=0" by default.  Enable "+dnssec" when
