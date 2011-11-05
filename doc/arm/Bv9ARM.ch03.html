@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch03.html,v 1.89 2011/10/28 12:23:39 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch03.html,v 1.90 2011/11/05 01:14:49 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -54,7 +54,7 @@
 <dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2568364">Name Server Operations</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2568370">Tools for Use With the Name Server Daemon</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2570514">Signals</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2570628">Signals</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -588,9 +588,17 @@ zone "eng.example.com" {
 <dd><p>
                         Write server statistics to the statistics file.
                       </p></dd>
-<dt><span class="term"><strong class="userinput"><code>querylog</code></strong></span></dt>
-<dd><p>
-                        Toggle query logging. Query logging can also be enabled
+<dt><span class="term"><strong class="userinput"><code>querylog</code></strong>
+                          [<span class="optional">on|off</span>]
+                    </span></dt>
+<dd>
+<p>
+                        Enable or disable query logging.  (For backward
+                        compatibility, this command can also be used without
+                        an argument to toggle query logging on and off.)
+                      </p>
+<p>
+                        Query logging can also be enabled
                         by explicitly directing the <span><strong class="command">queries</strong></span>
                         <span><strong class="command">category</strong></span> to a
                         <span><strong class="command">channel</strong></span> in the
@@ -599,7 +607,8 @@ zone "eng.example.com" {
                         <span><strong class="command">querylog yes;</strong></span> in the
                         <span><strong class="command">options</strong></span> section of
                         <code class="filename">named.conf</code>.
-                      </p></dd>
+                      </p>
+</dd>
 <dt><span class="term"><strong class="userinput"><code>dumpdb
                         [<span class="optional">-all|-cache|-zone</span>]
                         [<span class="optional"><em class="replaceable"><code>view ...</code></em></span>]</code></strong></span></dt>
@@ -694,6 +703,21 @@ zone "eng.example.com" {
                         Note <span><strong class="command">dnssec-enable</strong></span> also needs to be
                         set to <strong class="userinput"><code>yes</code></strong> to be effective.
                         It defaults to enabled.
+                      </p></dd>
+<dt><span class="term"><strong class="userinput"><code>tsig-list</code></strong></span></dt>
+<dd><p>
+                        List the names of all TSIG keys currently configured
+                        for use by <span><strong class="command">named</strong></span> in each view.  The
+                        list both statically configured keys and dynamic
+                        TKEY-negotiated keys.
+                      </p></dd>
+<dt><span class="term"><strong class="userinput"><code>tsig-delete</code></strong>
+                     <em class="replaceable"><code>keyname</code></em>
+                     [<span class="optional"><em class="replaceable"><code>view</code></em></span>]</span></dt>
+<dd><p>
+                        Delete a given TKEY-negotated key from the server.
+                        (This does not apply to statically configured TSIG
+                        keys.)
                       </p></dd>
 <dt><span class="term"><strong class="userinput"><code>addzone
                         <em class="replaceable"><code>zone</code></em>
@@ -944,7 +968,7 @@ controls {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2570514"></a>Signals</h3></div></div></div>
+<a name="id2570628"></a>Signals</h3></div></div></div>
 <p>
           Certain UNIX signals cause the name server to take specific
           actions, as described in the following table.  These signals can

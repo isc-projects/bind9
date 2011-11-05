@@ -13,7 +13,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: dnssec-settime.html,v 1.16 2011/03/22 01:14:25 tbox Exp $ -->
+<!-- $Id: dnssec-settime.html,v 1.17 2011/11/05 01:14:48 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -52,7 +52,8 @@
       <code class="filename">Knnnn.+aaa+iiiii.private</code>) are regenerated.
       Metadata fields are stored in the private file.  A human-readable
       description of the metadata is also placed in comments in the key
-      file.
+      file.  The private file's permissions are always set to be
+      inaccessible to anyone other than the owner (mode 0600).
     </p>
 </div>
 <div class="refsect1" lang="en">
@@ -98,7 +99,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543594"></a><h2>TIMING OPTIONS</h2>
+<a name="id2543662"></a><h2>TIMING OPTIONS</h2>
 <p>
       Dates can be expressed in the format YYYYMMDD or YYYYMMDDHHMMSS.
       If the argument begins with a '+' or '-', it is interpreted as
@@ -177,7 +178,7 @@
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543733"></a><h2>PRINTING OPTIONS</h2>
+<a name="id2543801"></a><h2>PRINTING OPTIONS</h2>
 <p>
       <span><strong class="command">dnssec-settime</strong></span> can also be used to print the
       timing metadata associated with a key.
