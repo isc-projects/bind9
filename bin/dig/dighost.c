@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.311.70.22 2011/11/06 23:33:42 marka Exp $ */
+/* $Id: dighost.c,v 1.311.70.23 2011/11/06 23:45:15 tbox Exp $ */
 
 /*! \file
  *  \note
@@ -902,10 +902,10 @@ setup_text_key(void) {
 
 	secretsize = isc_buffer_usedlength(&secretbuf);
 
-        if (hmacname == NULL) {
-                result = DST_R_UNSUPPORTEDALG;
-                goto failure;
-        }
+	if (hmacname == NULL) {
+		result = DST_R_UNSUPPORTEDALG;
+		goto failure;
+	}
 
 	result = dns_name_fromtext(&keyname, namebuf, dns_rootname, ISC_FALSE,
 				   namebuf);
