@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.328.22.11 2011/10/29 22:31:29 marka Exp $ */
+/* $Id: dighost.c,v 1.328.22.12 2011/11/06 23:25:28 marka Exp $ */
 
 /*! \file
  *  \note
@@ -66,6 +66,7 @@
 #include <dns/tsig.h>
 
 #include <dst/dst.h>
+#include <dst/result.h>
 
 #include <isc/app.h>
 #include <isc/base64.h>
@@ -924,6 +925,11 @@ setup_text_key(void) {
 		goto failure;
 
 	secretsize = isc_buffer_usedlength(&secretbuf);
+
+	if (hmacname == NULL) {
+		result = DST_R_UNSUPPORTEDALG;
+		goto failure;
+	}
 
 	result = dns_name_fromtext(&keyname, namebuf, dns_rootname, 0, namebuf);
 	if (result != ISC_R_SUCCESS)
