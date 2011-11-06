@@ -1267,7 +1267,7 @@
 ./bin/tests/system/tsig/clean.sh		SH	2005,2006,2007
 ./bin/tests/system/tsig/ns1/example.db		ZONE	2005,2006,2007,2009
 ./bin/tests/system/tsig/ns1/named.conf		CONF-C	2005,2006,2007
-./bin/tests/system/tsig/tests.sh		SH	2005,2006,2007
+./bin/tests/system/tsig/tests.sh		SH	2005,2006,2007,2011
 ./bin/tests/system/tsiggss/Makefile.in		MAKE	2011
 ./bin/tests/system/tsiggss/authsock.pl		PERL	2011
 ./bin/tests/system/tsiggss/clean.sh		SH	2010,2011
