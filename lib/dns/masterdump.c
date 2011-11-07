@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.109 2011/09/07 19:11:13 each Exp $ */
+/* $Id: masterdump.c,v 1.110 2011/11/07 23:16:31 each Exp $ */
 
 /*! \file */
 
@@ -1150,20 +1150,52 @@ dns_dumpctx_cancel(dns_dumpctx_t *dctx) {
 }
 
 static isc_result_t
+flushandsync(FILE *f, isc_result_t result, const char *temp) {
+	isc_boolean_t logit = ISC_TF(result == ISC_R_SUCCESS);
+
+	if (result == ISC_R_SUCCESS)
+		result = isc_stdio_flush(f);
+	if (result != ISC_R_SUCCESS && logit) {
+		if (temp != NULL)
+			isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
+				      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_ERROR,
+				      "dumping to master file: %s: flush: %s",
+				      temp, isc_result_totext(result));
+		else
+			isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
+				      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_ERROR,
+				      "dumping to stream: flush: %s",
+				      isc_result_totext(result));
+		logit = ISC_FALSE;
+	}
+
+	if (result == ISC_R_SUCCESS)
+		result = isc_stdio_sync(f);
+	if (result != ISC_R_SUCCESS && logit) {
+		if (temp != NULL)
+			isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
+				      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_ERROR,
+				      "dumping to master file: %s: fsync: %s",
+				      temp, isc_result_totext(result));
+		else
+			isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
+				      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_ERROR,
+				      "dumping to stream: fsync: %s",
+				      isc_result_totext(result));
+	}
+	return (result);
+}
+
+static isc_result_t
 closeandrename(FILE *f, isc_result_t result, const char *temp, const char *file)
 {
 	isc_result_t tresult;
 	isc_boolean_t logit = ISC_TF(result == ISC_R_SUCCESS);
 
-	if (result == ISC_R_SUCCESS)
-		result = isc_stdio_sync(f);
-	if (result != ISC_R_SUCCESS && logit) {
-		isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_ERROR,
-			      "dumping master file: %s: fsync: %s",
-			      temp, isc_result_totext(result));
+	result = flushandsync(f, result, temp);
+	if (result != ISC_R_SUCCESS)
 		logit = ISC_FALSE;
-	}
+
 	tresult = isc_stdio_close(f);
 	if (result == ISC_R_SUCCESS)
 		result = tresult;
@@ -1211,7 +1243,8 @@ dump_quantum(isc_task_t *task, isc_event_t *event) {
 					 dctx->tmpfile, dctx->file);
 		if (tresult != ISC_R_SUCCESS && result == ISC_R_SUCCESS)
 			result = tresult;
-	}
+	} else
+		result = flushandsync(dctx->f, result, NULL);
 	(dctx->done)(dctx->done_arg, result);
 	isc_event_free(&event);
 	dns_dumpctx_detach(&dctx);
@@ -1544,6 +1577,8 @@ dns_master_dumptostream2(isc_mem_t *mctx, dns_db_t *db,
 	result = dumptostreaminc(dctx);
 	INSIST(result != DNS_R_CONTINUE);
 	dns_dumpctx_detach(&dctx);
+
+	result = flushandsync(f, result, NULL);
 	return (result);
 }
 

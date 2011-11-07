@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.docbook,v 1.49 2011/03/21 07:26:47 each Exp $ -->
+<!-- $Id: dnssec-signzone.docbook,v 1.50 2011/11/07 23:16:31 each Exp $ -->
 <refentry id="man.dnssec-signzone">
   <refentryinfo>
     <date>June 05, 2009</date>
@@ -288,8 +288,10 @@
           <para>
             The name of the output file containing the signed zone.  The
             default is to append <filename>.signed</filename> to
-            the
-            input filename.
+            the input filename.  If <option>output-file</option> is
+            set to <literal>"-"</literal>, then the signed zone is
+            written to the standard output, with a default output
+            format of "full".
           </para>
         </listitem>
       </varlistentry>
@@ -433,7 +435,9 @@
           <para>
             The format of the output file containing the signed zone.
 	    Possible formats are <command>"text"</command> (default)
-	    and <command>"raw"</command>.
+	    <command>"raw"</command>, and <command>"full"</command>,
+            which is text output in a format suitable for processing
+            by external scripts.
           </para>
         </listitem>
       </varlistentry>

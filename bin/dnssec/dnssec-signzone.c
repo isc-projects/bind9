@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.280 2011/10/11 19:26:05 each Exp $ */
+/* $Id: dnssec-signzone.c,v 1.281 2011/11/07 23:16:31 each Exp $ */
 
 /*! \file */
 
@@ -37,6 +37,7 @@
 
 #include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
 
 #include <isc/app.h>
 #include <isc/base32.h>
@@ -133,7 +134,7 @@ static isc_mem_t *mctx = NULL;
 static isc_entropy_t *ectx = NULL;
 static dns_ttl_t zone_soa_min_ttl;
 static dns_ttl_t soa_ttl;
-static FILE *fp;
+static FILE *fp = NULL;
 static char *tempfile = NULL;
 static const dns_master_style_t *masterstyle;
 static dns_masterformat_t inputformat = dns_masterformat_text;
@@ -174,6 +175,7 @@ static dns_ttl_t keyttl;
 static isc_boolean_t smartsign = ISC_FALSE;
 static isc_boolean_t remove_orphans = ISC_FALSE;
 static isc_boolean_t output_dnssec_only = ISC_FALSE;
+static isc_boolean_t output_stdout = ISC_FALSE;
 
 #define INCSTAT(counter)		\
 	if (printstats) {		\
@@ -3403,30 +3405,32 @@ print_stats(isc_time_t *timer_start, isc_time_t *timer_finish,
 	isc_uint64_t time_us;      /* Time in microseconds */
 	isc_uint64_t time_ms;      /* Time in milliseconds */
 	isc_uint64_t sig_ms;	   /* Signatures per millisecond */
+	FILE *out = output_stdout ? stderr : stdout;
 
-	printf("Signatures generated:               %10d\n", nsigned);
-	printf("Signatures retained:                %10d\n", nretained);
-	printf("Signatures dropped:                 %10d\n", ndropped);
-	printf("Signatures successfully verified:   %10d\n", nverified);
-	printf("Signatures unsuccessfully verified: %10d\n", nverifyfailed);
+	fprintf(out, "Signatures generated:               %10d\n", nsigned);
+	fprintf(out, "Signatures retained:                %10d\n", nretained);
+	fprintf(out, "Signatures dropped:                 %10d\n", ndropped);
+	fprintf(out, "Signatures successfully verified:   %10d\n", nverified);
+	fprintf(out, "Signatures unsuccessfully "
+		     "verified: %10d\n", nverifyfailed);
 
 	time_us = isc_time_microdiff(sign_finish, sign_start);
 	time_ms = time_us / 1000;
-	printf("Signing time in seconds:           %7u.%03u\n",
-	       (unsigned int) (time_ms / 1000),
-	       (unsigned int) (time_ms % 1000));
+	fprintf(out, "Signing time in seconds:           %7u.%03u\n",
+		(unsigned int) (time_ms / 1000),
+		(unsigned int) (time_ms % 1000));
 	if (time_us > 0) {
 		sig_ms = ((isc_uint64_t)nsigned * 1000000000) / time_us;
-		printf("Signatures per second:             %7u.%03u\n",
-		       (unsigned int) sig_ms / 1000,
-		       (unsigned int) sig_ms % 1000);
+		fprintf(out, "Signatures per second:             %7u.%03u\n",
+			(unsigned int) sig_ms / 1000,
+			(unsigned int) sig_ms % 1000);
 	}
 
 	time_us = isc_time_microdiff(timer_finish, timer_start);
 	time_ms = time_us / 1000;
-	printf("Runtime in seconds:                %7u.%03u\n",
-	       (unsigned int) (time_ms / 1000),
-	       (unsigned int) (time_ms % 1000));
+	fprintf(out, "Runtime in seconds:                %7u.%03u\n",
+		(unsigned int) (time_ms / 1000),
+		(unsigned int) (time_ms % 1000));
 }
 
 int
@@ -3453,7 +3457,7 @@ main(int argc, char *argv[]) {
 #endif
 	unsigned int eflags;
 	isc_boolean_t free_output = ISC_FALSE;
-	int tempfilelen;
+	int tempfilelen = 0;
 	dns_rdataclass_t rdclass;
 	isc_task_t **tasks = NULL;
 	isc_buffer_t b;
@@ -3565,6 +3569,8 @@ main(int argc, char *argv[]) {
 
 		case 'f':
 			output = isc_commandline_argument;
+			if (strcmp(output, "-") == 0)
+				output_stdout = ISC_TRUE;
 			break;
 
 		case 'g':
@@ -3811,7 +3817,10 @@ main(int argc, char *argv[]) {
 			outputformat = dns_masterformat_text;
 		else if (strcasecmp(outputformatstr, "raw") == 0)
 			outputformat = dns_masterformat_raw;
-		else
+		else if (strcasecmp(outputformatstr, "full") == 0) {
+			outputformat = dns_masterformat_text;
+			masterstyle = &dns_master_style_full;
+		} else
 			fatal("unknown file format: %s\n", outputformatstr);
 	}
 
@@ -3967,21 +3976,26 @@ main(int argc, char *argv[]) {
 		}
 	}
 
-	tempfilelen = strlen(output) + 20;
-	tempfile = isc_mem_get(mctx, tempfilelen);
-	if (tempfile == NULL)
-		fatal("out of memory");
+	if (output_stdout) {
+		fp = stdout;
+		if (outputformatstr == NULL)
+			masterstyle = &dns_master_style_full;
+	} else {
+		tempfilelen = strlen(output) + 20;
+		tempfile = isc_mem_get(mctx, tempfilelen);
+		if (tempfile == NULL)
+			fatal("out of memory"); 
 
-	result = isc_file_mktemplate(output, tempfile, tempfilelen);
-	check_result(result, "isc_file_mktemplate");
+		result = isc_file_mktemplate(output, tempfile, tempfilelen);
+		check_result(result, "isc_file_mktemplate"); 
 
-	fp = NULL;
-	result = isc_file_openunique(tempfile, &fp);
-	if (result != ISC_R_SUCCESS)
-		fatal("failed to open temporary output file: %s",
-		      isc_result_totext(result));
-	removefile = ISC_TRUE;
-	setfatalcallback(&removetempfile);
+		result = isc_file_openunique(tempfile, &fp);
+		if (result != ISC_R_SUCCESS)
+			fatal("failed to open temporary output file: %s",
+			      isc_result_totext(result));
+		removefile = ISC_TRUE;
+		setfatalcallback(&removetempfile);
+	}
 
 	print_time(fp);
 	print_version(fp);
@@ -4047,20 +4061,22 @@ main(int argc, char *argv[]) {
 		check_result(result, "dns_master_dumptostream2");
 	}
 
-	result = isc_stdio_close(fp);
-	check_result(result, "isc_stdio_close");
-	removefile = ISC_FALSE;
-
-	result = isc_file_rename(tempfile, output);
-	if (result != ISC_R_SUCCESS)
-		fatal("failed to rename temp file to %s: %s\n",
-		      output, isc_result_totext(result));
-
 	DESTROYLOCK(&namelock);
 	if (printstats)
 		DESTROYLOCK(&statslock);
 
-	printf("%s\n", output);
+	if (!output_stdout) {
+		result = isc_stdio_close(fp);
+		check_result(result, "isc_stdio_close");
+		removefile = ISC_FALSE; 
+
+		result = isc_file_rename(tempfile, output);
+		if (result != ISC_R_SUCCESS)
+			fatal("failed to rename temp file to %s: %s\n",
+			      output, isc_result_totext(result));
+
+		printf("%s\n", output);
+	}
 
 	dns_db_closeversion(gdb, &gversion, ISC_FALSE);
 	dns_db_detach(&gdb);
@@ -4071,7 +4087,8 @@ main(int argc, char *argv[]) {
 		dns_dnsseckey_destroy(mctx, &key);
 	}
 
-	isc_mem_put(mctx, tempfile, tempfilelen);
+	if (tempfilelen != 0)
+		isc_mem_put(mctx, tempfile, tempfilelen);
 
 	if (free_output)
 		isc_mem_free(mctx, output);

@@ -1,3 +1,7 @@
+3211.	[func]		dnssec-signzone: "-f -" prints to stdout; "-O full"
+			option prints in single-line-per-record format.
+			[RT #20287]
+
 3210.	[bug]		Canceling the oldest query due to recursive-client
 			overload could trigger an assertion failure. [RT #26463]
 
