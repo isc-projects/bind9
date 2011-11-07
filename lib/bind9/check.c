@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.114.4.12 2011/09/02 20:22:23 each Exp $ */
+/* $Id: check.c,v 1.114.4.13 2011/11/07 01:20:51 marka Exp $ */
 
 /*! \file */
 
@@ -571,8 +571,17 @@ typedef struct {
 	unsigned int max;
 } intervaltable;
 
+typedef enum {
+	optlevel_config,
+	optlevel_options,
+	optlevel_view,
+	optlevel_zone
+} optlevel_t;
+
 static isc_result_t
-check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
+check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
+	      optlevel_t optlevel)
+{
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
 	unsigned int i;
@@ -738,19 +747,23 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 		     element = cfg_list_next(element))
 		{
 			const char *dlv;
-			const cfg_obj_t *anchor;
+			const cfg_obj_t *dlvobj, *anchor;
 
 			obj = cfg_listelt_value(element);
 
-			dlv = cfg_obj_asstring(cfg_tuple_get(obj, "domain"));
 			anchor = cfg_tuple_get(obj, "trust-anchor");
+			dlvobj = cfg_tuple_get(obj, "domain");
+			dlv = cfg_obj_asstring(dlvobj);
 
 			/*
-			 * If domain is "auto" and trust anchor is missing,
-			 * skip remaining tests
+			 * If domain is "auto" or "no" and trust anchor
+			 * is missing, skip remaining tests
 			 */
-			if (!strcmp(dlv, "auto") && cfg_obj_isvoid(anchor))
-				continue;
+			if (cfg_obj_isvoid(anchor)) {
+				if (!strcasecmp(dlv, "no") ||
+				    !strcasecmp(dlv, "auto"))
+					continue;
+			}
 
 			isc_buffer_init(&b, dlv, strlen(dlv));
 			isc_buffer_add(&b, strlen(dlv));
@@ -802,8 +815,8 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 			} else {
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 					"dnssec-lookaside requires "
-					"either 'auto' or a domain and "
-					"trust anchor");
+					"either 'auto' or 'no', or a "
+					"domain and trust anchor");
 				if (result == ISC_R_SUCCESS)
 					result = ISC_R_FAILURE;
 			}
@@ -811,6 +824,21 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 
 		if (symtab != NULL)
 			isc_symtab_destroy(&symtab);
+	}
+
+	/*
+	 * Check auto-dnssec at the view/options level
+	 */
+	obj = NULL;
+	(void)cfg_map_get(options, "auto-dnssec", &obj);
+	if (obj != NULL) {
+		const char *arg = cfg_obj_asstring(obj);
+		if (optlevel != optlevel_zone && strcasecmp(arg, "off") != 0) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "auto-dnssec may only be activated at the "
+				    "zone level");
+			result = ISC_R_FAILURE;
+		}
 	}
 
 	/*
@@ -1465,7 +1493,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	/*
 	 * Check various options.
 	 */
-	tresult = check_options(zoptions, logctx, mctx);
+	tresult = check_options(zoptions, logctx, mctx, optlevel_zone);
 	if (tresult != ISC_R_SUCCESS)
 		result = tresult;
 
@@ -2090,13 +2118,16 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 				result = tresult;
 		}
 	}
+
 	/*
 	 * Check options.
 	 */
 	if (voptions != NULL)
-		tresult = check_options(voptions, logctx, mctx);
+		tresult = check_options(voptions, logctx, mctx,
+					optlevel_view);
 	else
-		tresult = check_options(config, logctx, mctx);
+		tresult = check_options(config, logctx, mctx,
+					optlevel_config);
 	if (tresult != ISC_R_SUCCESS)
 		result = tresult;
 
@@ -2383,7 +2414,8 @@ bind9_check_namedconf(const cfg_obj_t *config, isc_log_t *logctx,
 	(void)cfg_map_get(config, "options", &options);
 
 	if (options != NULL &&
-	    check_options(options, logctx, mctx) != ISC_R_SUCCESS)
+	    check_options(options, logctx, mctx,
+			  optlevel_options) != ISC_R_SUCCESS)
 		result = ISC_R_FAILURE;
 
 	if (bind9_check_logging(config, logctx, mctx) != ISC_R_SUCCESS)

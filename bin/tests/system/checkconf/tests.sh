@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.3.558.4 2011/05/07 23:46:35 tbox Exp $
+# $Id: tests.sh,v 1.3.558.5 2011/11/07 01:20:50 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -43,6 +43,7 @@ status=`expr $status + $ret`
 echo "I: checking named-checkconf dnssec warnings"
 ret=0
 $CHECKCONF dnssec.1 2>&1 | grep 'validation yes.*enable no' > /dev/null || ret=1
+$CHECKCONF dnssec.2 2>&1 | grep 'auto-dnssec may only be ' > /dev/null || ret=1
 $CHECKCONF dnssec.2 2>&1 | grep 'validation yes.*enable no' > /dev/null || ret=1
 # this one should have no warnings
 $CHECKCONF dnssec.3 2>&1 | grep '.*' && ret=1

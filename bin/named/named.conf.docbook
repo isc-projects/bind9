@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.44.4.2 2010/05/14 23:49:18 tbox Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.44.4.3 2011/11/07 01:20:50 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>Aug 13, 2004</date>
@@ -282,8 +282,7 @@ options {
 	disable-algorithms <replaceable>string</replaceable> { <replaceable>string</replaceable>; ... };
 	dnssec-enable <replaceable>boolean</replaceable>;
 	dnssec-validation <replaceable>boolean</replaceable>;
-	dnssec-lookaside <replaceable>string</replaceable> trust-anchor <replaceable>string</replaceable>;
-	dnssec-lookaside ( <replaceable>auto</replaceable> | <replaceable>domain</replaceable> trust-anchor <replaceable>domain</replaceable> );
+	dnssec-lookaside ( <replaceable>auto</replaceable> | <replaceable>no</replaceable> | <replaceable>domain</replaceable> trust-anchor <replaceable>domain</replaceable> );
 	dnssec-must-be-secure <replaceable>string</replaceable> <replaceable>boolean</replaceable>;
 	dnssec-accept-expired <replaceable>boolean</replaceable>;
 
@@ -458,7 +457,7 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	disable-algorithms <replaceable>string</replaceable> { <replaceable>string</replaceable>; ... };
 	dnssec-enable <replaceable>boolean</replaceable>;
 	dnssec-validation <replaceable>boolean</replaceable>;
-	dnssec-lookaside <replaceable>string</replaceable> trust-anchor <replaceable>string</replaceable>;
+	dnssec-lookaside ( <replaceable>auto</replaceable> | <replaceable>no</replaceable> | <replaceable>domain</replaceable> trust-anchor <replaceable>domain</replaceable> );
 	dnssec-must-be-secure <replaceable>string</replaceable> <replaceable>boolean</replaceable>;
 	dnssec-accept-expired <replaceable>boolean</replaceable>;
 

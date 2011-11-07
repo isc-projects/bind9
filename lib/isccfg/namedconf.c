@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.113.4.14 2011/05/23 20:55:24 each Exp $ */
+/* $Id: namedconf.c,v 1.113.4.15 2011/11/07 01:20:51 marka Exp $ */
 
 /*! \file */
 
@@ -980,7 +980,7 @@ print_lookaside(cfg_printer_t *pctx, const cfg_obj_t *obj)
 static void
 doc_lookaside(cfg_printer_t *pctx, const cfg_type_t *type) {
 	UNUSED(type);
-	cfg_print_cstr(pctx, "( <string> trust-anchor <string> | auto )");
+	cfg_print_cstr(pctx, "( <string> trust-anchor <string> | auto | no )");
 }
 
 static keyword_type_t trustanchor_kw = { "trust-anchor", &cfg_type_astring };
@@ -1154,6 +1154,7 @@ zone_clauses[] = {
 	{ "also-notify", &cfg_type_portiplist, 0 },
 	{ "alt-transfer-source", &cfg_type_sockaddr4wild, 0 },
 	{ "alt-transfer-source-v6", &cfg_type_sockaddr6wild, 0 },
+	{ "auto-dnssec", &cfg_type_autodnssec, 0 },
 	{ "check-dup-records", &cfg_type_checkmode, 0 },
 	{ "check-integrity", &cfg_type_boolean, 0 },
 	{ "check-mx", &cfg_type_checkmode, 0 },
@@ -1223,7 +1224,6 @@ zone_only_clauses[] = {
 	 */
 	{ "check-names", &cfg_type_checkmode, 0 },
 	{ "ixfr-from-differences", &cfg_type_boolean, 0 },
-	{ "auto-dnssec", &cfg_type_autodnssec, 0 },
 	{ NULL, NULL, 0 }
 };
 
