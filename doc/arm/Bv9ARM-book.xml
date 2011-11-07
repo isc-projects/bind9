@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.515 2011/11/07 00:14:11 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.516 2011/11/07 00:25:53 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -5155,7 +5155,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> dnssec-enable <replaceable>yes_or_no</replaceable>; </optional>
     <optional> dnssec-validation (<replaceable>yes_or_no</replaceable> | <constant>auto</constant>); </optional>
     <optional> dnssec-lookaside ( <replaceable>auto</replaceable> |
-			<replaceable>off</replaceable> |
+			<replaceable>no</replaceable> |
                         <replaceable>domain</replaceable> trust-anchor <replaceable>domain</replaceable> ); </optional>
     <optional> dnssec-must-be-secure <replaceable>domain yes_or_no</replaceable>; </optional>
     <optional> dnssec-accept-expired <replaceable>yes_or_no</replaceable>; </optional>
@@ -5838,7 +5838,7 @@ options {
 	      </para>
 	      <para>
 		If <command>dnssec-lookaside</command> is set to
-		<userinput>off</userinput>, then dnssec-lookaside
+		<userinput>no</userinput>, then dnssec-lookaside
 		is not used.
 	      </para>
               <para>

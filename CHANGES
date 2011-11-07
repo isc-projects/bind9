@@ -1,4 +1,4 @@
-3209.	[func]		Add "dnssec-lookaside 'off'".  [RT #24858]
+3209.	[func]		Add "dnssec-lookaside 'no'".  [RT #24858]
 
 3208.	[bug]		'dig -y' handle unknown tsig alorithm better.
 			[RT #25522]
