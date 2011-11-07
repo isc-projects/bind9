@@ -1,3 +1,6 @@
+3210.	[bug]		Canceling the oldest query due to recursive-client
+			overload could trigger an assertion failure. [RT #26463]
+
 3209.	[func]		Add "dnssec-lookaside 'no'".  [RT #24858]
 
 3208.	[bug]		'dig -y' handle unknown tsig alorithm better.

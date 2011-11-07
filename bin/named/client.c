@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.282 2011/11/03 21:14:22 each Exp $ */
+/* $Id: client.c,v 1.283 2011/11/07 23:03:09 each Exp $ */
 
 #include <config.h>
 
@@ -349,10 +349,16 @@ exit_check(ns_client_t *client) {
 		 * I/O cancel is complete.  Burn down all state
 		 * related to the current request.  Ensure that
 		 * the client is no longer on the recursing list.
+		 *
+		 * We need to check whether the client is still linked,
+		 * because it may already have been removed from the
+		 * recursing list by ns_client_killoldestquery()
 		 */
 		if (client->state == NS_CLIENTSTATE_RECURSING) {
 			LOCK(&manager->reclock);
-			ISC_LIST_UNLINK(manager->recursing, client, rlink);
+			if (ISC_LINK_LINKED(client, rlink))
+				ISC_LIST_UNLINK(manager->recursing,
+						client, rlink);
 			UNLOCK(&manager->reclock);
 		}
 		ns_client_endrequest(client);
