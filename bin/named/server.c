@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.599.8.14 2011/10/14 05:45:20 marka Exp $ */
+/* $Id: server.c,v 1.599.8.15 2011/11/07 00:31:47 marka Exp $ */
 
 /*! \file */
 
@@ -2596,14 +2596,19 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	if (result == ISC_R_SUCCESS) {
 		/* If set to "auto", use the version from the defaults */
 		const cfg_obj_t *dlvobj;
+		const char *dom;
 		dlvobj = cfg_listelt_value(cfg_list_first(obj));
-		if (!strcmp(cfg_obj_asstring(cfg_tuple_get(dlvobj, "domain")),
-			    "auto") &&
-		    cfg_obj_isvoid(cfg_tuple_get(dlvobj, "trust-anchor"))) {
-			auto_dlv = ISC_TRUE;
-			obj = NULL;
-			result = cfg_map_get(ns_g_defaults,
-					     "dnssec-lookaside", &obj);
+		dom = cfg_obj_asstring(cfg_tuple_get(dlvobj, "domain"));
+		if (cfg_obj_isvoid(cfg_tuple_get(dlvobj, "trust-anchor"))) {
+			/* If "no", skip; if "auto", use global default */
+			if (!strcasecmp(dom, "no"))
+				result = ISC_R_NOTFOUND;
+			else if (!strcasecmp(dom, "auto")) {
+				auto_dlv = ISC_TRUE;
+				obj = NULL;
+				result = cfg_map_get(ns_g_defaults,
+						     "dnssec-lookaside", &obj);
+			}
 		}
 	}
 
@@ -2842,7 +2847,8 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 			CHECK(dns_zone_create(&zone, mctx));
 			CHECK(dns_zone_setorigin(zone, name));
 			dns_zone_setview(zone, view);
-			CHECK(dns_zonemgr_managezone(ns_g_server->zonemgr, zone));
+			CHECK(dns_zonemgr_managezone(ns_g_server->zonemgr,
+						     zone));
 			dns_zone_setclass(zone, view->rdclass);
 			dns_zone_settype(zone, dns_zone_master);
 			dns_zone_setstats(zone, ns_g_server->zonestats);

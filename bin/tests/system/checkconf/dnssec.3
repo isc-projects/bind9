@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec.3,v 1.1.6.4 2011/05/08 07:09:28 marka Exp $ */
+/* $Id: dnssec.3,v 1.1.6.5 2011/11/07 00:31:48 marka Exp $ */
 
 options {
         dnssec-validation no;
@@ -28,4 +28,19 @@ view view1 {
 view view2 {
         match-clients { none; };
         dnssec-enable yes;
+};
+
+view view3 {
+        match-clients { none; };
+        dnssec-lookaside auto;
+};
+
+view view4 {
+        match-clients { none; };
+        dnssec-lookaside no;
+};
+
+view view5 {
+        match-clients { none; };
+        auto-dnssec off;
 };

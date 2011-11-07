@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.478.8.18 2011/11/03 22:06:31 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.478.8.19 2011/11/07 00:31:48 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -5060,7 +5060,8 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> ixfr-from-differences (<replaceable>yes_or_no</replaceable> | <constant>master</constant> | <constant>slave</constant>); </optional>
     <optional> dnssec-enable <replaceable>yes_or_no</replaceable>; </optional>
     <optional> dnssec-validation (<replaceable>yes_or_no</replaceable> | <constant>auto</constant>); </optional>
-    <optional> dnssec-lookaside ( <replaceable>auto</replaceable> | 
+    <optional> dnssec-lookaside ( <replaceable>auto</replaceable> |
+			<replaceable>no</replaceable> |
                         <replaceable>domain</replaceable> trust-anchor <replaceable>domain</replaceable> ); </optional>
     <optional> dnssec-must-be-secure <replaceable>domain yes_or_no</replaceable>; </optional>
     <optional> dnssec-accept-expired <replaceable>yes_or_no</replaceable>; </optional>
@@ -5737,6 +5738,11 @@ options {
 		<userinput>auto</userinput>, then built-in default
 		values for the DLV domain and trust anchor will be
 		used, along with a built-in key for validation.
+	      </para>
+	      <para>
+		If <command>dnssec-lookaside</command> is set to
+		<userinput>no</userinput>, then dnssec-lookaside
+		is not used.
 	      </para>
               <para>
                 The default DLV key is stored in the file
