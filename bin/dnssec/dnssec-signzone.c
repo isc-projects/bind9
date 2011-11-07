@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.281 2011/11/07 23:16:31 each Exp $ */
+/* $Id: dnssec-signzone.c,v 1.282 2011/11/07 23:46:50 tbox Exp $ */
 
 /*! \file */
 
@@ -3984,10 +3984,10 @@ main(int argc, char *argv[]) {
 		tempfilelen = strlen(output) + 20;
 		tempfile = isc_mem_get(mctx, tempfilelen);
 		if (tempfile == NULL)
-			fatal("out of memory"); 
+			fatal("out of memory");
 
 		result = isc_file_mktemplate(output, tempfile, tempfilelen);
-		check_result(result, "isc_file_mktemplate"); 
+		check_result(result, "isc_file_mktemplate");
 
 		result = isc_file_openunique(tempfile, &fp);
 		if (result != ISC_R_SUCCESS)
@@ -4068,7 +4068,7 @@ main(int argc, char *argv[]) {
 	if (!output_stdout) {
 		result = isc_stdio_close(fp);
 		check_result(result, "isc_stdio_close");
-		removefile = ISC_FALSE; 
+		removefile = ISC_FALSE;
 
 		result = isc_file_rename(tempfile, output);
 		if (result != ISC_R_SUCCESS)
