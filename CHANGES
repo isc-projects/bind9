@@ -1,4 +1,4 @@
-3211.	[bug]		rbtdb.c: failed to remove a node from the deadnodes list
+3212.	[bug]		rbtdb.c: failed to remove a node from the deadnodes list
 			prior to adding a reference to it leading a possible
 			assertion failure. [RT #23219]
 
