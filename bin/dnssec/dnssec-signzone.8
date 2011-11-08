@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-signzone.8,v 1.63 2011/03/22 01:14:25 tbox Exp $
+.\" $Id: dnssec-signzone.8,v 1.64 2011/11/08 01:14:49 tbox Exp $
 .\"
 .hy 0
 .ad l
@@ -147,7 +147,10 @@ must be later than
 .RS 4
 The name of the output file containing the signed zone. The default is to append
 \fI.signed\fR
-to the input filename.
+to the input filename. If
+\fBoutput\-file\fR
+is set to
+"\-", then the signed zone is written to the standard output, with a default output format of "full".
 .RE
 .PP
 \-h
@@ -229,8 +232,9 @@ The zone origin. If not specified, the name of the zone file is assumed to be th
 .RS 4
 The format of the output file containing the signed zone. Possible formats are
 \fB"text"\fR
-(default) and
-\fB"raw"\fR.
+(default)
+\fB"raw"\fR, and
+\fB"full"\fR, which is text output in a format suitable for processing by external scripts.
 .RE
 .PP
 \-p
