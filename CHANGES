@@ -1,3 +1,7 @@
+3212.	[bug]		rbtdb.c: failed to remove a node from the deadnodes
+			list prior to adding a reference to it leading a
+			possible assertion failure. [RT #23219]
+
 3208.	[bug]		'dig -y' handle unknown tsig alorithm better.
 			[RT #25522]
 
