@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.270.12.35 2011/11/08 21:20:57 marka Exp $ */
+/* $Id: rbtdb.c,v 1.270.12.36 2011/11/08 21:51:15 marka Exp $ */
 
 /*! \file */
 
@@ -2513,7 +2513,7 @@ findnodeintree(dns_rbtdb_t *rbtdb, dns_rbt_t *tree, dns_name_t *name,
 				}
 			}
 			if (tree == rbtdb->nsec3)
-				node->nsec = 1;
+				node->nsec3 = 1;
 		} else if (result != ISC_R_EXISTS) {
 			RWUNLOCK(&rbtdb->tree_lock, locktype);
 			return (result);
@@ -2521,7 +2521,7 @@ findnodeintree(dns_rbtdb_t *rbtdb, dns_rbt_t *tree, dns_name_t *name,
 	}
 
 	if (tree == rbtdb->nsec3)
-		INSIST(node->nsec == 1);
+		INSIST(node->nsec3 == 1);
 
 	reactivate_node(rbtdb, node, locktype);
 	RWUNLOCK(&rbtdb->tree_lock, locktype);
