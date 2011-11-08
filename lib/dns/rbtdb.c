@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.310.8.8 2011/10/14 03:51:06 marka Exp $ */
+/* $Id: rbtdb.c,v 1.310.8.9 2011/11/08 21:03:21 marka Exp $ */
 
 /*! \file */
 
@@ -1616,6 +1616,7 @@ new_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 	unsigned int lockrefs, noderefs;
 	isc_refcount_t *lockref;
 
+	INSIST(!ISC_LINK_LINKED(node, deadlink));
 	dns_rbtnode_refincrement0(node, &noderefs);
 	if (noderefs == 1) {    /* this is the first reference to the node */
 		lockref = &rbtdb->node_locks[node->locknum].references;
@@ -1642,8 +1643,6 @@ reactivate_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	isc_boolean_t need_relock = ISC_FALSE;
 
 	NODE_STRONGLOCK(&rbtdb->node_locks[node->locknum].lock);
-	new_reference(rbtdb, node);
-
 	NODE_WEAKLOCK(&rbtdb->node_locks[node->locknum].lock,
 		      isc_rwlocktype_read);
 	if (ISC_LINK_LINKED(node, deadlink))
@@ -1664,7 +1663,7 @@ reactivate_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		NODE_WEAKUNLOCK(&rbtdb->node_locks[node->locknum].lock,
 				isc_rwlocktype_write);
 	}
-
+	new_reference(rbtdb, node);
 	NODE_STRONGUNLOCK(&rbtdb->node_locks[node->locknum].lock);
 }
 
@@ -1830,6 +1829,7 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 					      ISC_LOG_INFO,
 					      "decrement_reference: failed to "
 					      "allocate pruning event");
+				INSIST(node->data == NULL);
 				INSIST(!ISC_LINK_LINKED(node, deadlink));
 				ISC_LIST_APPEND(rbtdb->deadnodes[bucket], node,
 						deadlink);
@@ -1853,6 +1853,7 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 			delete_node(rbtdb, node);
 		}
 	} else if (dns_rbtnode_refcurrent(node) == 0) {
+		INSIST(node->data == NULL);
 		INSIST(!ISC_LINK_LINKED(node, deadlink));
 		ISC_LIST_APPEND(rbtdb->deadnodes[bucket], node, deadlink);
 	} else
@@ -1924,11 +1925,10 @@ prune_tree(isc_task_t *task, isc_event_t *event) {
 			 * from the list beforehand as we do in
 			 * reactivate_node().
 			 */
-			new_reference(rbtdb, parent);
-			if (ISC_LINK_LINKED(parent, deadlink)) {
+			if (ISC_LINK_LINKED(parent, deadlink))
 				ISC_LIST_UNLINK(rbtdb->deadnodes[locknum],
 						parent, deadlink);
-			}
+			new_reference(rbtdb, parent);
 		} else
 			parent = NULL;
 
@@ -2500,20 +2500,19 @@ add_empty_wildcards(dns_rbtdb_t *rbtdb, dns_name_t *name) {
 }
 
 static isc_result_t
-findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
-	 dns_dbnode_t **nodep)
+findnodeintree(dns_rbtdb_t *rbtdb, dns_rbt_t *tree, dns_name_t *name,
+	       isc_boolean_t create, dns_dbnode_t **nodep)
 {
-	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	dns_rbtnode_t *node = NULL;
 	dns_name_t nodename;
 	isc_result_t result;
 	isc_rwlocktype_t locktype = isc_rwlocktype_read;
 
-	REQUIRE(VALID_RBTDB(rbtdb));
+	INSIST(tree == rbtdb->tree || tree == rbtdb->nsec3);
 
 	dns_name_init(&nodename, NULL);
 	RWLOCK(&rbtdb->tree_lock, locktype);
-	result = dns_rbt_findnode(rbtdb->tree, name, NULL, &node, NULL,
+	result = dns_rbt_findnode(tree, name, NULL, &node, NULL,
 				  DNS_RBTFIND_EMPTYDATA, NULL, NULL);
 	if (result != ISC_R_SUCCESS) {
 		RWUNLOCK(&rbtdb->tree_lock, locktype);
@@ -2529,10 +2528,10 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 		locktype = isc_rwlocktype_write;
 		RWLOCK(&rbtdb->tree_lock, locktype);
 		node = NULL;
-		result = dns_rbt_addnode(rbtdb->tree, name, &node);
+		result = dns_rbt_addnode(tree, name, &node);
 		if (result == ISC_R_SUCCESS) {
 #ifdef BIND9
-			if (rbtdb->rpz_cidr != NULL) {
+			if (tree == rbtdb->tree && rbtdb->rpz_cidr != NULL) {
 				dns_fixedname_t fnamef;
 				dns_name_t *fname;
 
@@ -2549,20 +2548,28 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 			node->locknum = dns_name_hash(&nodename, ISC_TRUE) %
 				rbtdb->node_lock_count;
 #endif
-			add_empty_wildcards(rbtdb, name);
+			if (tree == rbtdb->tree) {
+				add_empty_wildcards(rbtdb, name);
 
-			if (dns_name_iswildcard(name)) {
-				result = add_wildcard_magic(rbtdb, name);
-				if (result != ISC_R_SUCCESS) {
-					RWUNLOCK(&rbtdb->tree_lock, locktype);
-					return (result);
+				if (dns_name_iswildcard(name)) {
+					result = add_wildcard_magic(rbtdb, name);
+					if (result != ISC_R_SUCCESS) {
+						RWUNLOCK(&rbtdb->tree_lock, locktype);
+						return (result);
+					}
 				}
 			}
+			if (tree == rbtdb->nsec3)
+				node->nsec = DNS_RBT_NSEC_NSEC3;
 		} else if (result != ISC_R_EXISTS) {
 			RWUNLOCK(&rbtdb->tree_lock, locktype);
 			return (result);
 		}
 	}
+
+	if (tree == rbtdb->nsec3)
+		INSIST(node->nsec == DNS_RBT_NSEC_NSEC3);
+
 	reactivate_node(rbtdb, node, locktype);
 	RWUNLOCK(&rbtdb->tree_lock, locktype);
 
@@ -2572,60 +2579,25 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 }
 
 static isc_result_t
+findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
+	 dns_dbnode_t **nodep)
+{
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+
+	return (findnodeintree(rbtdb, rbtdb->tree, name, create, nodep));
+}
+
+static isc_result_t
 findnsec3node(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 	      dns_dbnode_t **nodep)
 {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
-	dns_rbtnode_t *node = NULL;
-	dns_name_t nodename;
-	isc_result_t result;
-	isc_rwlocktype_t locktype = isc_rwlocktype_read;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
-	dns_name_init(&nodename, NULL);
-	RWLOCK(&rbtdb->tree_lock, locktype);
-	result = dns_rbt_findnode(rbtdb->nsec3, name, NULL, &node, NULL,
-				  DNS_RBTFIND_EMPTYDATA, NULL, NULL);
-	if (result != ISC_R_SUCCESS) {
-		RWUNLOCK(&rbtdb->tree_lock, locktype);
-		if (!create) {
-			if (result == DNS_R_PARTIALMATCH)
-				result = ISC_R_NOTFOUND;
-			return (result);
-		}
-		/*
-		 * It would be nice to try to upgrade the lock instead of
-		 * unlocking then relocking.
-		 */
-		locktype = isc_rwlocktype_write;
-		RWLOCK(&rbtdb->tree_lock, locktype);
-		node = NULL;
-		result = dns_rbt_addnode(rbtdb->nsec3, name, &node);
-		if (result == ISC_R_SUCCESS) {
-			dns_rbt_namefromnode(node, &nodename);
-#ifdef DNS_RBT_USEHASH
-			node->locknum = node->hashval % rbtdb->node_lock_count;
-#else
-			node->locknum = dns_name_hash(&nodename, ISC_TRUE) %
-				rbtdb->node_lock_count;
-#endif
-			node->nsec = DNS_RBT_NSEC_NSEC3;
-		} else if (result != ISC_R_EXISTS) {
-			RWUNLOCK(&rbtdb->tree_lock, locktype);
-			return (result);
-		}
-	} else {
-		INSIST(node->nsec == DNS_RBT_NSEC_NSEC3);
-	}
-	NODE_STRONGLOCK(&rbtdb->node_locks[node->locknum].lock);
-	new_reference(rbtdb, node);
-	NODE_STRONGUNLOCK(&rbtdb->node_locks[node->locknum].lock);
-	RWUNLOCK(&rbtdb->tree_lock, locktype);
-
-	*nodep = (dns_dbnode_t *)node;
-
-	return (ISC_R_SUCCESS);
+	return (findnodeintree(rbtdb, rbtdb->nsec3, name, create, nodep));
 }
 
 static isc_result_t
