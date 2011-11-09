@@ -1,3 +1,5 @@
+	--- 9.8.2b1 released ---
+
 3213.	[doc]		Clarify ixfr-from-differences behavior. [RT #25188]
 
 3212.	[bug]		rbtdb.c: failed to remove a node from the deadnodes
