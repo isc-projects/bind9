@@ -1,3 +1,6 @@
+3214.	[func]		Add 'named -U' option to set the number of UDP
+			listener threads per interface. [RT #26485]
+			
 3213.	[doc]		Clarify ixfr-from-differences behavior. [RT #25188]
 
 3212.	[bug]		rbtdb.c: failed to remove a node from the deadnodes list

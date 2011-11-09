@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.629 2011/11/07 00:14:10 marka Exp $ */
+/* $Id: server.c,v 1.630 2011/11/09 18:44:03 each Exp $ */
 
 /*! \file */
 
@@ -6982,6 +6982,7 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 #ifdef ISC_PLATFORM_USETHREADS
 		     "CPUs found: %u\n"
 		     "worker threads: %u\n"
+		     "UDP listeners per interface: %u\n"
 #endif
 		     "number of zones: %u\n"
 		     "debug level: %d\n"
@@ -6994,7 +6995,7 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 		     "server is up and running",
 		     ns_g_version, ob, alt, cb,
 #ifdef ISC_PLATFORM_USETHREADS
-		     ns_g_cpus_detected, ns_g_cpus,
+		     ns_g_cpus_detected, ns_g_cpus, ns_g_udpdisp,
 #endif
 		     zonecount, ns_g_debuglevel, xferrunning, xferdeferred,
 		     soaqueries, server->log_queries ? "ON" : "OFF",

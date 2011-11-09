@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.100 2011/10/04 16:04:22 each Exp $ */
+/* $Id: interfacemgr.c,v 1.101 2011/11/09 18:44:03 each Exp $ */
 
 /*! \file */
 
@@ -268,7 +268,7 @@ ns_interface_listenudp(ns_interface_t *ifp) {
 	attrmask |= DNS_DISPATCHATTR_UDP | DNS_DISPATCHATTR_TCP;
 	attrmask |= DNS_DISPATCHATTR_IPV4 | DNS_DISPATCHATTR_IPV6;
 
-	ifp->nudpdispatch = ISC_MIN(ns_g_cpus, MAX_UDP_DISPATCH);
+	ifp->nudpdispatch = ISC_MIN(ns_g_udpdisp, MAX_UDP_DISPATCH);
 	for (disp = 0; disp < ifp->nudpdispatch; disp++) {
 		result = dns_dispatch_getudp_dup(ifp->mgr->dispatchmgr,
 						 ns_g_socketmgr,
