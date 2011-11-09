@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.450.4.29 2011/11/07 01:20:51 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.450.4.30 2011/11/09 05:54:17 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -1921,11 +1921,13 @@ controls {
       </para>
 
       <para>
-        When acting as a slave, <acronym>BIND</acronym> 9 will
-        attempt to use IXFR unless
-        it is explicitly disabled. For more information about disabling
-        IXFR, see the description of the <command>request-ixfr</command> clause
-        of the <command>server</command> statement.
+        When acting as a slave, <acronym>BIND</acronym> 9 will attempt
+        to use IXFR unless it is explicitly disabled via the
+        <command>request-ixfr</command> option or the use of
+        <command>ixfr-from-differences</command>.  For
+        more information about disabling IXFR, see the description
+        of the <command>request-ixfr</command> clause of the
+        <command>server</command> statement.
       </para>
     </sect1>
 
