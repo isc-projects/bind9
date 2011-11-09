@@ -1,3 +1,5 @@
+3215.	[bug]		'rndc recursing' could cause a core dump. [RT #26495]
+
 3214.	[func]		Add 'named -U' option to set the number of UDP
 			listener threads per interface. [RT #26485]
 			
