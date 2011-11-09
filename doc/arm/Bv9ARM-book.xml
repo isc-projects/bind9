@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.516 2011/11/07 00:25:53 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.517 2011/11/09 05:52:42 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -6742,13 +6742,14 @@ options {
               <term><command>ixfr-from-differences</command></term>
               <listitem>
                 <para>
-                  When <userinput>yes</userinput> and the server loads a new version of a master
-                  zone from its zone file or receives a new version of a slave
-                  file by a non-incremental zone transfer, it will compare
-                  the new version to the previous one and calculate a set
-                  of differences.  The differences are then logged in the
-                  zone's journal file such that the changes can be transmitted
-                  to downstream slaves as an incremental zone transfer.
+                  When <userinput>yes</userinput> and the server loads a new
+                  version of a master zone from its zone file or receives a
+                  new version of a slave file via zone transfer, it will
+                  compare the new version to the previous one and calculate
+                  a set of differences.  The differences are then logged in
+                  the zone's journal file such that the changes can be
+                  transmitted to downstream slaves as an incremental zone
+                  transfer.
                 </para>
                 <para>
                   By allowing incremental zone transfers to be used for
