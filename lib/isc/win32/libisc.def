@@ -45,6 +45,7 @@ isc_app_run
 isc_app_shutdown
 isc_app_start
 isc_app_unblock
+isc_assertion_failed
 isc_assertion_setcallback
 isc_assertion_typetotext
 isc_base32_decoderegion
