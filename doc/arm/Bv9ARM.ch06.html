@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.299 2011/11/07 01:15:04 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.300 2011/11/10 01:16:01 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -3448,13 +3448,14 @@ options {
 <dt><span class="term"><span><strong class="command">ixfr-from-differences</strong></span></span></dt>
 <dd>
 <p>
-                  When <strong class="userinput"><code>yes</code></strong> and the server loads a new version of a master
-                  zone from its zone file or receives a new version of a slave
-                  file by a non-incremental zone transfer, it will compare
-                  the new version to the previous one and calculate a set
-                  of differences.  The differences are then logged in the
-                  zone's journal file such that the changes can be transmitted
-                  to downstream slaves as an incremental zone transfer.
+                  When <strong class="userinput"><code>yes</code></strong> and the server loads a new
+                  version of a master zone from its zone file or receives a
+                  new version of a slave file via zone transfer, it will
+                  compare the new version to the previous one and calculate
+                  a set of differences.  The differences are then logged in
+                  the zone's journal file such that the changes can be
+                  transmitted to downstream slaves as an incremental zone
+                  transfer.
                 </p>
 <p>
                   By allowing incremental zone transfers to be used for
