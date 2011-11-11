@@ -110,9 +110,12 @@ are mandatory, others optional).
 
   - isc_result_t dlz_findzonedb(void *dbdata, const char *name);
 
-    Required for all external DLZ modules.  This indicates whether the
-    DLZ module can answer for a given zone.  Returns ISC_R_SUCCESS if
-    so, otherwise ISC_R_NOTFOUND.
+    Required for all external DLZ modules.  This indicates whether
+    the DLZ module can answer for the given name.  Returns ISC_R_SUCCESS
+    if so, and ISC_R_NOTFOUND if not.  As an optimization, it can
+    also return ISC_R_NOMORE: this indicates that the DLZ module has
+    no data for the given name or for any name above it in the DNS.
+    This prevents named from searching for a zone cut.
 
    - isc_result_t dlz_lookup(const char *zone, const char *name, void *dbdata,
                              dns_sdlzlookup_t *lookup,
