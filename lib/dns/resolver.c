@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.428.6.11 2011/11/02 23:44:53 marka Exp $ */
+/* $Id: resolver.c,v 1.428.6.12 2011/11/15 21:45:30 each Exp $ */
 
 /*! \file */
 
@@ -453,7 +453,7 @@ static isc_result_t ncache_adderesult(dns_message_t *message,
 				      dns_rdataset_t *ardataset,
 				      isc_result_t *eresultp);
 static void validated(isc_task_t *task, isc_event_t *event);
-static void maybe_destroy(fetchctx_t *fctx);
+static void maybe_destroy(fetchctx_t *fctx, isc_boolean_t locked);
 static void add_bad(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		    isc_result_t reason, badnstype_t badtype);
 
@@ -747,7 +747,7 @@ resquery_destroy(resquery_t **queryp) {
 
 	query->fctx->nqueries--;
 	if (SHUTTINGDOWN(query->fctx))
-		maybe_destroy(query->fctx);     /* Locks bucket. */
+		maybe_destroy(query->fctx, ISC_FALSE);     /* Locks bucket. */
 	query->magic = 0;
 	isc_mem_put(query->mctx, query, sizeof(*query));
 	*queryp = NULL;
@@ -3920,7 +3920,7 @@ clone_results(fetchctx_t *fctx) {
  *      '*fctx' is shutting down.
  */
 static void
-maybe_destroy(fetchctx_t *fctx) {
+maybe_destroy(fetchctx_t *fctx, isc_boolean_t locked) {
 	unsigned int bucketnum;
 	isc_boolean_t bucket_empty = ISC_FALSE;
 	dns_resolver_t *res = fctx->res;
@@ -3938,10 +3938,12 @@ maybe_destroy(fetchctx_t *fctx) {
 	}
 
 	bucketnum = fctx->bucketnum;
-	LOCK(&res->buckets[bucketnum].lock);
+	if (!locked)
+		LOCK(&res->buckets[bucketnum].lock);
 	if (fctx->references == 0 && ISC_LIST_EMPTY(fctx->validators))
 		bucket_empty = fctx_destroy(fctx);
-	UNLOCK(&res->buckets[bucketnum].lock);
+	if (!locked)
+		UNLOCK(&res->buckets[bucketnum].lock);
 
 	if (bucket_empty)
 		empty_bucket(res);
@@ -3986,6 +3988,8 @@ validated(isc_task_t *task, isc_event_t *event) {
 
 	FCTXTRACE("received validation completion event");
 
+	LOCK(&fctx->res->buckets[fctx->bucketnum].lock);
+
 	ISC_LIST_UNLINK(fctx->validators, vevent->validator, link);
 	fctx->validator = NULL;
 
@@ -4007,11 +4011,10 @@ validated(isc_task_t *task, isc_event_t *event) {
 	 * so, destroy the fctx.
 	 */
 	if (SHUTTINGDOWN(fctx) && !sentresponse) {
-		maybe_destroy(fctx);    /* Locks bucket. */
+		maybe_destroy(fctx, ISC_TRUE);
+		UNLOCK(&fctx->res->buckets[fctx->bucketnum].lock);
 		goto cleanup_event;
 	}
-
-	LOCK(&fctx->res->buckets[fctx->bucketnum].lock);
 
 	isc_stdtime_get(&now);
 
@@ -4225,7 +4228,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 		dns_db_detachnode(fctx->cache, &node);
 		UNLOCK(&fctx->res->buckets[fctx->bucketnum].lock);
 		if (SHUTTINGDOWN(fctx))
-			maybe_destroy(fctx);    /* Locks bucket. */
+			maybe_destroy(fctx, ISC_FALSE);    /* Locks bucket. */
 		goto cleanup_event;
 	}
 
@@ -4316,7 +4319,6 @@ validated(isc_task_t *task, isc_event_t *event) {
 		dns_db_detachnode(fctx->cache, &node);
 
 	UNLOCK(&fctx->res->buckets[fctx->bucketnum].lock);
-
 	fctx_done(fctx, result, __LINE__); /* Locks bucket. */
 
  cleanup_event:
