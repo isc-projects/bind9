@@ -1,3 +1,5 @@
+3216.   [bug]           resolver.c:validated() was not thread-safe. [RT #26478]
+
 	--- 9.7.5b1 released ---
 
 3213.	[doc]		Clarify ixfr-from-differences behavior. [RT #25188]
