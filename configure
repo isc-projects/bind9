@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-# $Id: configure,v 1.493.8.14 2011/11/05 05:18:14 tbox Exp $
+# $Id: configure,v 1.493.8.15 2011/11/16 00:43:36 tbox Exp $
 #
 # 	Portions of this code release fall under one or more of the
 # 	following Copyright notices.  Please see individual source
@@ -23450,9 +23450,9 @@ case $use_libtool in
 		O=lo
 		A=la
 		LIBTOOL_MKDEP_SED='s;\.o;\.lo;'
-		LIBTOOL_MODE_COMPILE='--mode=compile'
-		LIBTOOL_MODE_INSTALL='--mode=install'
-		LIBTOOL_MODE_LINK='--mode=link'
+		LIBTOOL_MODE_COMPILE='--mode=compile --tag=CC'
+		LIBTOOL_MODE_INSTALL='--mode=install --tag=CC'
+		LIBTOOL_MODE_LINK='--mode=link --tag=CC'
 		case "$host" in
 		*) LIBTOOL_ALLOW_UNDEFINED= ;;
 		esac
