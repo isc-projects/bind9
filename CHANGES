@@ -1,3 +1,7 @@
+3218.	[security]	Cache lookup could return RRSIG data associated with
+			nonexistent records, leading to an assertion
+			failure. [RT #26590]
+
 3217.	[cleanup]	Fix build problem with --disable-static. [RT #26476]
 
 3216.	[bug]		resolver.c:validated() was not thread-safe. [RT #26478]
