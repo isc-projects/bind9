@@ -1,4 +1,6 @@
-3216.   [bug]           resolver.c:validated() was not thread-safe. [RT #26478]
+3217.	[cleanup]	Fix build problem with --disable-static. [RT #26476]
+
+3216.	[bug]		resolver.c:validated() was not thread-safe. [RT #26478]
 
 3215.	[bug]		'rndc recursing' could cause a core dump. [RT #26495]
 
