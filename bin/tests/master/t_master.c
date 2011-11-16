@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_master.c,v 1.39 2009/09/01 00:22:25 jinmei Exp $ */
+/* $Id: t_master.c,v 1.39.346.2 2011/03/12 04:59:14 tbox Exp $ */
 
 #include <config.h>
 
@@ -77,7 +77,6 @@ test_master(char *testfile, char *origin, char *class, isc_result_t exp_result)
 	dns_rdataclass_t	rdataclass;
 	isc_textregion_t	textregion;
 
-	result = T_UNRESOLVED;
 	if (T1_mctx == NULL)
 		isc_result = isc_mem_create(0, 0, &T1_mctx);
 	else

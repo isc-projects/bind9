@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.74 2010/08/16 04:46:16 marka Exp $ */
+/* $Id: sdb.c,v 1.76.8.1 2011/03/14 13:40:14 fdupont Exp $ */
 
 /*! \file */
 
@@ -1254,6 +1254,8 @@ static dns_dbmethods_t sdb_methods = {
 	NULL,
 	NULL,
 	NULL,
+	NULL,
+	NULL
 };
 
 static isc_result_t
@@ -1332,7 +1334,7 @@ dns_sdb_create(isc_mem_t *mctx, dns_name_t *origin, dns_dbtype_t type,
  cleanup_origin:
 	dns_name_free(&sdb->common.origin, mctx);
  cleanup_lock:
-	isc_mutex_destroy(&sdb->lock);
+	(void)isc_mutex_destroy(&sdb->lock);
  cleanup_mctx:
 	isc_mem_put(mctx, sdb, sizeof(dns_sdb_t));
 	isc_mem_detach(&mctx);

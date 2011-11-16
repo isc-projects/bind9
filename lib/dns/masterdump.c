@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.99 2009/11/17 23:55:18 marka Exp $ */
+/* $Id: masterdump.c,v 1.99.258.7 2011/06/08 23:02:42 each Exp $ */
 
 /*! \file */
 
@@ -410,6 +410,7 @@ rdataset_totext(dns_rdataset_t *rdataset,
 	isc_uint32_t current_ttl;
 	isc_boolean_t current_ttl_valid;
 	dns_rdatatype_t type;
+	unsigned int type_start;
 
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 
@@ -491,29 +492,26 @@ rdataset_totext(dns_rdataset_t *rdataset,
 		 * Type.
 		 */
 
-		if (rdataset->type == 0) {
+		if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0) {
 			type = rdataset->covers;
 		} else {
 			type = rdataset->type;
 		}
 
-		{
-			unsigned int type_start;
-			INDENT_TO(type_column);
-			type_start = target->used;
-			if (rdataset->type == 0)
-				RETERR(str_totext("\\-", target));
-			result = dns_rdatatype_totext(type, target);
-			if (result != ISC_R_SUCCESS)
-				return (result);
-			column += (target->used - type_start);
-		}
+		INDENT_TO(type_column);
+		type_start = target->used;
+		if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0)
+			RETERR(str_totext("\\-", target));
+		result = dns_rdatatype_totext(type, target);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		column += (target->used - type_start);
 
 		/*
 		 * Rdata.
 		 */
 		INDENT_TO(rdata_column);
-		if (rdataset->type == 0) {
+		if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0) {
 			if (NXDOMAIN(rdataset))
 				RETERR(str_totext(";-$NXDOMAIN\n", target));
 			else
@@ -835,26 +833,6 @@ dump_order_compare(const void *a, const void *b) {
 
 #define MAXSORT 64
 
-static const char *trustnames[] = {
-	"none",
-	"pending-additional",
-	"pending-answer",
-	"additional",
-	"glue",
-	"answer",
-	"authauthority",
-	"authanswer",
-	"secure",
-	"local" /* aka ultimate */
-};
-
-const char *
-dns_trust_totext(dns_trust_t trust) {
-	if (trust >= sizeof(trustnames)/sizeof(*trustnames))
-		return ("bad");
-	return (trustnames[trust]);
-}
-
 static isc_result_t
 dump_rdatasets_text(isc_mem_t *mctx, dns_name_t *name,
 		    dns_rdatasetiter_t *rdsiter, dns_totext_ctx_t *ctx,
@@ -893,13 +871,9 @@ dump_rdatasets_text(isc_mem_t *mctx, dns_name_t *name,
 
 	for (i = 0; i < n; i++) {
 		dns_rdataset_t *rds = sorted[i];
-		if (ctx->style.flags & DNS_STYLEFLAG_TRUST) {
-			unsigned int trust = rds->trust;
-			INSIST(trust < (sizeof(trustnames) /
-					sizeof(trustnames[0])));
-			fprintf(f, "; %s\n", trustnames[trust]);
-		}
-		if (rds->type == 0 &&
+		if (ctx->style.flags & DNS_STYLEFLAG_TRUST)
+			fprintf(f, "; %s\n", dns_trust_totext(rds->trust));
+		if (((rds->attributes & DNS_RDATASETATTR_NEGATIVE) != 0) &&
 		    (ctx->style.flags & DNS_STYLEFLAG_NCACHE) == 0) {
 			/* Omit negative cache entries */
 		} else {
@@ -1064,7 +1038,7 @@ dump_rdatasets_raw(isc_mem_t *mctx, dns_name_t *name,
 		dns_rdataset_init(&rdataset);
 		dns_rdatasetiter_current(rdsiter, &rdataset);
 
-		if (rdataset.type == 0 &&
+		if (((rdataset.attributes & DNS_RDATASETATTR_NEGATIVE) != 0) &&
 		    (ctx->style.flags & DNS_STYLEFLAG_NCACHE) == 0) {
 			/* Omit negative cache entries */
 		} else {
@@ -1072,6 +1046,8 @@ dump_rdatasets_raw(isc_mem_t *mctx, dns_name_t *name,
 						   buffer, f);
 		}
 		dns_rdataset_disassociate(&rdataset);
+		if (result != ISC_R_SUCCESS)
+			return (result);
 	}
 
 	if (result == ISC_R_NOMORE)
@@ -1381,23 +1357,24 @@ dumptostreaminc(dns_dumpctx_t *dctx) {
 			isc_buffer_region(&buffer, &r);
 			isc_buffer_putuint32(&buffer, dns_masterformat_raw);
 			isc_buffer_putuint32(&buffer, DNS_RAWFORMAT_VERSION);
-			if (sizeof(now32) != sizeof(dctx->now)) {
-				/*
-				 * We assume isc_stdtime_t is a 32-bit integer,
-				 * which should be the case on most cases.
-				 * If it turns out to be uncommon, we'll need
-				 * to bump the version number and revise the
-				 * header format.
-				 */
-				isc_log_write(dns_lctx,
-					      ISC_LOGCATEGORY_GENERAL,
-					      DNS_LOGMODULE_MASTERDUMP,
-					      ISC_LOG_INFO,
-					      "dumping master file in raw "
-					      "format: stdtime is not 32bits");
-				now32 = 0;
-			} else
-				now32 = dctx->now;
+#if !defined(STDTIME_ON_32BITS) || (STDTIME_ON_32BITS + 0) != 1
+			/*
+			 * We assume isc_stdtime_t is a 32-bit integer,
+			 * which should be the case on most cases.
+			 * If it turns out to be uncommon, we'll need
+			 * to bump the version number and revise the
+			 * header format.
+			 */
+			isc_log_write(dns_lctx,
+				      ISC_LOGCATEGORY_GENERAL,
+				      DNS_LOGMODULE_MASTERDUMP,
+				      ISC_LOG_INFO,
+				      "dumping master file in raw "
+				      "format: stdtime is not 32bits");
+			now32 = 0;
+#else
+			now32 = dctx->now;
+#endif
 			isc_buffer_putuint32(&buffer, now32);
 			INSIST(isc_buffer_usedlength(&buffer) <=
 			       sizeof(rawheader));
@@ -1767,6 +1744,14 @@ dns_master_dumpnode(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 
 	result = dns_master_dumpnodetostream(mctx, db, version, node, name,
 					     style, f);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_ERROR,
+			      "dumping master file: %s: dump: %s", filename,
+			      isc_result_totext(result));
+		(void)isc_stdio_close(f);
+		return (ISC_R_UNEXPECTED);
+	}
 
 	result = isc_stdio_close(f);
 	if (result != ISC_R_SUCCESS) {

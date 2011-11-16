@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_db.c,v 1.39 2009/09/01 00:22:25 jinmei Exp $ */
+/* $Id: t_db.c,v 1.39.346.2 2011/03/12 04:59:14 tbox Exp $ */
 
 #include <config.h>
 
@@ -118,7 +118,6 @@ t_dns_db_load(char **av) {
 	isc_result_t		exp_load_result;
 	isc_result_t		exp_find_result;
 
-	result = T_UNRESOLVED;
 	db = NULL;
 	mctx = NULL;
 	ectx = NULL;
@@ -291,8 +290,6 @@ t_dns_db_zc_x(char *filename, char *db_type, char *origin, char *class,
 	isc_textregion_t	textregion;
 	isc_buffer_t		origin_buffer;
 	dns_fixedname_t		dns_origin;
-
-	result = T_UNRESOLVED;
 
 	db = NULL;
 	mctx = NULL;
@@ -769,8 +766,6 @@ t_dns_db_currentversion(char **av) {
 	dns_dbversion_t		*cversionp;
 	dns_dbversion_t		*nversionp;
 
-	result = T_UNRESOLVED;
-
 	filename = T_ARG(0);
 	db_type = T_ARG(1);
 	origin = T_ARG(2);
@@ -1049,8 +1044,6 @@ t_dns_db_newversion(char **av) {
 	dns_rdataclass_t	rdataclass;
 	dns_dbversion_t		*nversionp;
 	dns_rdatalist_t		rdatalist;
-
-	result = T_UNRESOLVED;
 
 	filename = T_ARG(0);
 	db_type = T_ARG(1);
@@ -1384,7 +1377,6 @@ t_dns_db_closeversion_1(char **av) {
 	existing_type = T_ARG(8);
 
 	nfails = 0;
-	result = T_UNRESOLVED;
 	db = NULL;
 	mctx = NULL;
 	ectx = NULL;
@@ -1796,7 +1788,6 @@ t_dns_db_closeversion_2(char **av) {
 	existing_type = T_ARG(8);
 
 	nfails = 0;
-	result = T_UNRESOLVED;
 	db = NULL;
 	mctx = NULL;
 	ectx = NULL;
@@ -2259,8 +2250,6 @@ t_dns_db_expirenode(char **av) {
 	mctx = NULL;
 	ectx = NULL;
 
-	result = T_UNRESOLVED;
-
 	/*
 	 * Find a node, mark it as stale, do a dns_db_find on the name and
 	 * expect it to fail.
@@ -2464,7 +2453,6 @@ t_dns_db_findnode_1(char **av) {
 	db = NULL;
 	mctx = NULL;
 	ectx = NULL;
-	result = T_UNRESOLVED;
 
 	t_info("testing using file %s and name %s\n", filename, find_name);
 
@@ -2526,6 +2514,13 @@ t_dns_db_findnode_1(char **av) {
 	isc_buffer_add(&name_buffer, len);
 	dns_result = dns_name_fromtext(dns_fixedname_name(&dns_name),
 				&name_buffer, NULL, 0, NULL);
+	if (dns_result != ISC_R_SUCCESS) {
+		t_info("dns_name_fromtext failed %s\n",
+			       dns_result_totext(dns_result));
+		dns_db_detach(&db);
+		isc_mem_destroy(&mctx);
+		return(T_UNRESOLVED);
+	}
 
 	dns_result = dns_db_findnode(db, dns_fixedname_name(&dns_name),
 				ISC_FALSE, &nodep);
@@ -2623,7 +2618,6 @@ t_dns_db_findnode_2(char **av) {
 	model = T_ARG(4);
 	newname = T_ARG(5);
 
-	result = T_UNRESOLVED;
 	db = NULL;
 	mctx = NULL;
 	ectx = NULL;
@@ -2682,6 +2676,15 @@ t_dns_db_findnode_2(char **av) {
 	isc_buffer_add(&name_buffer, len);
 	dns_result = dns_name_fromtext(dns_fixedname_name(&dns_name),
 				       &name_buffer, NULL, 0, NULL);
+	if (dns_result != ISC_R_SUCCESS) {
+		t_info("dns_name_fromtext returned %s\n",
+				dns_result_totext(dns_result));
+		dns_db_detach(&db);
+		isc_hash_destroy();
+		isc_entropy_detach(&ectx);
+		isc_mem_destroy(&mctx);
+		return(T_UNRESOLVED);
+	}
 
 	dns_result = dns_db_findnode(db, dns_fixedname_name(&dns_name),
 				     ISC_FALSE, &nodep);
@@ -2815,8 +2818,6 @@ t_dns_db_find_x(char **av) {
 	dns_rdataset_t		rdataset;
 	dns_rdatatype_t		rdatatype;
 	dns_dbversion_t		*cversionp;
-
-	result = T_UNRESOLVED;
 
 	dbfile = T_ARG(0);
 	dbtype = T_ARG(1);

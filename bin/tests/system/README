@@ -1,4 +1,4 @@
-Copyright (C) 2004, 2010  Internet Systems Consortium, Inc. ("ISC")
+Copyright (C) 2004, 2010, 2011  Internet Systems Consortium, Inc. ("ISC")
 Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
@@ -17,6 +17,7 @@ involving a different DNS setup.  They are:
   nsupdate/	Dynamic update and IXFR tests
   resolver/     Regression tests for resolver bugs that have been fixed
 		(not a complete resolver test suite)
+  rpz/		Tests of response policy zone (RPZ) rewriting
   stub/		Tests of stub zone functionality
   unknown/	Unknown type and class tests
   upforwd/	Update forwarding tests
@@ -57,4 +58,4 @@ The tests can be run individually like this:
 
 To run all the tests, just type "make test".
 
-$Id: README,v 1.14 2010/08/25 23:46:37 tbox Exp $
+$Id: README,v 1.16 2011/01/13 04:59:24 tbox Exp $

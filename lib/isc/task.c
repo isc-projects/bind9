@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.115 2010/12/22 05:19:01 marka Exp $ */
+/* $Id: task.c,v 1.115.14.2 2011/02/28 01:20:03 tbox Exp $ */
 
 /*! \file
  * \author Principal Author: Bob Halley
@@ -1210,6 +1210,8 @@ isc__taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 
 #ifdef USE_SHARED_MANAGER
 	if (taskmgr != NULL) {
+		if (taskmgr->refs == 0)
+			return (ISC_R_SHUTTINGDOWN);
 		taskmgr->refs++;
 		*managerp = (isc_taskmgr_t *)taskmgr;
 		return (ISC_R_SUCCESS);
@@ -1325,8 +1327,8 @@ isc__taskmgr_destroy(isc_taskmgr_t **managerp) {
 #endif /* USE_WORKER_THREADS */
 
 #ifdef USE_SHARED_MANAGER
-	if (manager->refs > 1) {
-		manager->refs--;
+	manager->refs--;
+	if (manager->refs > 0) {
 		*managerp = NULL;
 		return;
 	}
@@ -1396,6 +1398,9 @@ isc__taskmgr_destroy(isc_taskmgr_t **managerp) {
 		isc_mem_printallactive(stderr);
 #endif
 	INSIST(ISC_LIST_EMPTY(manager->tasks));
+#ifdef USE_SHARED_MANAGER
+	taskmgr = NULL;
+#endif
 #endif /* USE_WORKER_THREADS */
 
 	manager_free(manager);

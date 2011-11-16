@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -w
 #
-# Copyright (C) 2004-2007, 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2007, 2009-2011  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 1998-2001, 2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: merge_copyrights,v 1.38 2010/12/08 23:47:25 marka Exp $
+# $Id: merge_copyrights,v 1.38.22.3 2011/02/28 01:20:05 tbox Exp $
 
 %file_types = ();
 %file_years = ();
@@ -53,6 +53,8 @@ while (<FILES>) {
 
 	# Contributed code should maintain its own copyright.
 	if ($base =~ /\.\/contrib\//) {
+	     $file_types{$_} = "X";
+	} elsif ($base =~ /\.\/unit\/atf-src\//) {
 	     $file_types{$_} = "X";
 	} elsif ($base =~ /\/openssl-[a-z0-9.]*-patch$/) {
 	    $file_types{$_} = "X";
