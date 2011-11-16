@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.70 2011/11/04 03:38:44 marka Exp $ */
+/* $Id: resolver.h,v 1.71 2011/11/16 22:18:52 marka Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
@@ -96,7 +96,7 @@ typedef struct dns_fetchevent {
 #define DNS_FETCHOPT_EDNS512		0x40	     /*%< Advertise a 512 byte
 							  UDP buffer. */
 #define DNS_FETCHOPT_WANTNSID           0x80         /*%< Request NSID */
-#define DNS_FETCHOPT_CACHENOEDNS        0x100A	     /*%< This is a candidate
+#define DNS_FETCHOPT_CACHENOEDNS        0x100	     /*%< This is a candidate
 							  for setting NOEDNS
 							  in adb. */
 

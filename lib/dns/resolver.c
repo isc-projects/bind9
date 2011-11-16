@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.441 2011/11/15 21:44:53 each Exp $ */
+/* $Id: resolver.c,v 1.442 2011/11/16 22:18:52 marka Exp $ */
 
 /*! \file */
 
@@ -6580,6 +6580,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			}
 		}
 		goto done;
+#if 0
 	} else if ((query->options & DNS_FETCHOPT_NOEDNS0) != 0 &&
 		   (query->options & DNS_FETCHOPT_CACHENOEDNS) != 0 &&
 		   triededns512(fctx, &query->addrinfo->sockaddr)) {
@@ -6597,6 +6598,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		dns_adb_changeflags(fctx->adb, query->addrinfo,
 				    DNS_FETCHOPT_NOEDNS0,
 				    DNS_FETCHOPT_NOEDNS0);
+#endif
 	}
 
 	message = fctx->rmessage;

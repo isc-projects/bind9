@@ -932,6 +932,8 @@ dns_zonemgr_setsize
 dns_zonemgr_settransfersin
 dns_zonemgr_settransfersperns
 dns_zonemgr_shutdown
+dns_zonemgr_unreachable
+dns_zonemgr_unreachabledel
 dns_zt_apply
 dns_zt_attach
 dns_zt_create

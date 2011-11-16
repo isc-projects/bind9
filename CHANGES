@@ -1,3 +1,7 @@
+	--- 9.9.0b2 released ---
+
+3219.	[bug]		Disable NOEDNS caching following a timeout.
+
 3218.	[security]	Cache lookup could return RRSIG data associated with
 			nonexistent records, leading to an assertion
 			failure. [RT #26590]
