@@ -1,3 +1,5 @@
+3217.	[cleanup]	Fix build problem with --disable-static. [RT #26476]
+
 3216.   [bug]           resolver.c:validated() was not thread-safe. [RT #26478]
 
 	--- 9.8.2b1 released ---
