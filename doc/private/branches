@@ -553,6 +553,7 @@ rt26386				new	marka	// 2011-11-01 05:12 +0000
 rt26392				new	marka	// 2011-11-01 06:03 +0000
 rt26416				new	marka	// 2011-11-03 03:34 +0000
 rt26523				new	each	// 2011-11-15 16:42 +0000
+rt26587				new	each	// 2011-11-16 00:01 +0000
 shane_dbbackend			open	
 skan				open	explorer
 skan-metazones1			private	explorer
@@ -571,6 +572,7 @@ sp2708				new	marka	// 2009-08-20 02:00 +0000
 sp3881				new	smann	// 2011-03-10 18:49 +0000
 sp3881_9_7_3			new	smann	// 2011-04-01 16:06 +0000
 sp3881_special_edns0		new	smann	// 2011-03-10 21:13 +0000
+sp4560				new	marka	// 2011-11-16 07:51 +0000
 stats_lidl			open	
 v6source			open	
 v9_1				active		// security fixes only
@@ -602,6 +604,7 @@ v9_4_2_P2_win32			active	each	// 2008-08-21 00:20 +0000
 v9_4_2_patch			active		// security fixes 9.4.2 only	
 v9_4_3_patch			active	marka	// 2008-12-23 00:04 +0000
 v9_4_ESV_R4_patch		new	each	// 2011-05-26 22:46 +0000
+v9_4_ESV_R5_patch		new	each	// 2011-11-16 09:12 +0000
 v9_5				active	
 v9_5_0_P2_W1			active	mayer	// 2008-08-16 21:14 +0000
 v9_5_0_P2_danny			active	
@@ -614,6 +617,7 @@ v9_6_0_patch			active	marka	// 2008-12-23 01:13 +0000
 v9_6_1_patch			active	marka	// 2009-07-28 14:11 +0000
 v9_6_2_patch			active	marka	// 2010-02-25 03:11 +0000
 v9_6_ESV_R4_patch		new	each	// 2011-05-26 22:51 +0000
+v9_6_ESV_R5_patch		new	marka	// 2011-11-16 08:36 +0000
 v9_6_esv_branch			active	marka	// 2010-03-03 21:57 +0000
 v9_6_esv_branch_r4		new	marka	// 2011-03-28 08:18 +0000
 v9_7				active	each	// 2009-12-08 20:59 +0000
@@ -623,8 +627,10 @@ v9_7_2_patch			active	marka	// 2010-09-13 22:37 +0000
 v9_7_3				new	marka	// 2011-01-31 03:25 +0000
 v9_7_3_P3_patch			new	marka	// 2010-11-29 04:27 +0000
 v9_7_3_patch			new	each	// 2011-05-26 22:54 +0000
+v9_7_4_patch			new	marka	// 2011-11-16 09:00 +0000
 v9_8				new	marka	// 2011-01-30 00:18 +0000
 v9_8_0_patch			new	each	// 2011-04-27 15:35 +0000
+v9_8_1_patch			new	marka	// 2011-11-16 09:05 +0000
 win64				new	marka	// 2010-11-04 00:17 +0000
 win64sizet			new	marka	// 2010-11-08 05:04 +0000
 
