@@ -1,3 +1,5 @@
+3218.   [security]       Workaround INSIST failure. [RT #26590]
+
 	--- 9.6-ESV-R5 released ---
 
 3135.	[port]		FreeBSD: workaround broken IPV6_USE_MIN_MTU processing.
