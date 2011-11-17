@@ -630,6 +630,7 @@ v9_7_3_patch			new	each	// 2011-05-26 22:54 +0000
 v9_7_4_patch			new	marka	// 2011-11-16 09:00 +0000
 v9_8				new	marka	// 2011-01-30 00:18 +0000
 v9_8_0_patch			new	each	// 2011-04-27 15:35 +0000
+v9_8_1_forensics		new	marka	// 2011-11-16 23:52 +0000
 v9_8_1_patch			new	marka	// 2011-11-16 09:05 +0000
 win64				new	marka	// 2010-11-04 00:17 +0000
 win64sizet			new	marka	// 2010-11-08 05:04 +0000
