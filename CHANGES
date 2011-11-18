@@ -1,3 +1,7 @@
+3220.	[bug]		Change #3186 was incomplete; dns_db_rpz_findips()
+                        could fail to set the database version correctly,
+                        causing an assertion failure. [RT #26180]
+
 3218.	[security]	Cache lookup could return RRSIG data associated with
 			nonexistent records, leading to an assertion
 			failure. [RT #26590]

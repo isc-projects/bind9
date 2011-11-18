@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.310.8.10 2011/11/16 09:56:56 marka Exp $ */
+/* $Id: rbtdb.c,v 1.310.8.11 2011/11/18 19:31:24 each Exp $ */
 
 /*! \file */
 
@@ -4744,6 +4744,7 @@ rpz_findips(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 			dns_db_attachnode(db, node, &st->m.node);
 		}
 		dns_db_attach(db, &st->m.db);
+		st->m.version = version;
 		dns_zone_attach(zone, &st->m.zone);
 		if (dns_rdataset_isassociated(&zrdataset))
 			dns_rdataset_disassociate(&zrdataset);
