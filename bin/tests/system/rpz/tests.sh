@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.9 2011/10/28 11:46:50 marka Exp $
+# $Id: tests.sh,v 1.10 2011/11/18 19:32:13 each Exp $
 
 # test response policy zones (RPZ)
 
@@ -231,6 +231,7 @@ nochange a4-1-aaaa.tld2 -tAAAA
 addr 127.0.0.1	 a5-1-2.tld2		# 11 prefer smallest policy address
 addr 127.0.0.1	 a5-3.tld2		# 12 prefer first conflicting IP zone
 addr 14.14.14.14 a5-4.tld2		# 13 prefer QNAME to IP
+nxdomain c2.crash2.tld3			# 16 assert in rbtdb.c
 end_group
 
 # check that IP addresses for previous group were deleted from the radix tree
