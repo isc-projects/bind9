@@ -1,10 +1,10 @@
+	--- 9.7.5b1 released ---
+
 3218.	[security]	Cache lookup could return RRSIG data associated with
 			nonexistent records, leading to an assertion
 			failure. [RT #26590]
 
 3216.   [bug]           resolver.c:validated() was not thread-safe. [RT #26478]
-
-	--- 9.7.5b1 released ---
 
 3213.	[doc]		Clarify ixfr-from-differences behavior. [RT #25188]
 

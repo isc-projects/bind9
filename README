@@ -48,6 +48,15 @@ BIND 9
 	For a detailed list of user-visible changes from
 	previous releases, see the CHANGES file.
 
+BIND 9.7.5
+
+	BIND 9.7.5 includes a number of bug fixes and prevents a security
+	problem described in CVE-2011-4313
+
+BIND 9.7.4
+
+	BIND 9.7.4 is a maintenance release, fixing bugs in 9.7.3.
+
 BIND 9.7.3
 
 	BIND 9.7.3 is a maintenance release, fixing bugs in 9.7.2.
