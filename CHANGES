@@ -1,3 +1,5 @@
+	--- 9.8.2b1 released ---
+
 3220.	[bug]		Change #3186 was incomplete; dns_db_rpz_findips()
                         could fail to set the database version correctly,
                         causing an assertion failure. [RT #26180]
@@ -9,8 +11,6 @@
 3217.	[cleanup]	Fix build problem with --disable-static. [RT #26476]
 
 3216.   [bug]           resolver.c:validated() was not thread-safe. [RT #26478]
-
-	--- 9.8.2b1 released ---
 
 3213.	[doc]		Clarify ixfr-from-differences behavior. [RT #25188]
 
