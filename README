@@ -42,6 +42,11 @@ BIND 9
 		Stichting NLnet - NLnet Foundation
 		Nominum, Inc.
 
+BIND 9.6-ESV-R6 (Extended Support Version)
+
+	BIND 9.6-ESV-R6 includes a number of bug fixes and prevents a
+	security problem described in CVE-2011-4313
+
 BIND 9.6-ESV-R5 (Extended Support Version)
 
 	BIND 9.4-ESV-R5 is a maintenance release, fixing bugs in BIND
