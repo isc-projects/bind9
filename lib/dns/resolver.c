@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.384.14.36 2011/11/15 21:46:42 each Exp $ */
+/* $Id: resolver.c,v 1.384.14.37 2011/11/23 22:51:50 each Exp $ */
 
 /*! \file */
 
@@ -4002,8 +4002,10 @@ validated(isc_task_t *task, isc_event_t *event) {
 	 * so, destroy the fctx.
 	 */
 	if (SHUTTINGDOWN(fctx) && !sentresponse) {
+		isc_mutex_t *bucketlock =
+			&fctx->res->buckets[fctx->bucketnum].lock;
 		maybe_destroy(fctx, ISC_TRUE);
-		UNLOCK(&fctx->res->buckets[fctx->bucketnum].lock);
+		UNLOCK(bucketlock);
 		goto cleanup_event;
 	}
 
