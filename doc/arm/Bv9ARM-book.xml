@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.517 2011/11/09 05:52:42 each Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.518 2011/11/23 18:58:39 each Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -11479,8 +11479,8 @@ example.com. NS ns2.example.net.
                 <term><command>inline-signing</command></term>
 		<listitem>
 		  <para>
-		    <command>inline-signing</command> is used to enable
-		    bump in the wire signing of a zone, where a
+                    If <literal>yes</literal>, this enables
+		    "bump in the wire" signing of a zone, where a
 		    unsigned zone is transfered in or loaded from
 		    disk and a signed version of the zone is served,
 		    with possibly, a different serial number.  This
