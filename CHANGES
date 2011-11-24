@@ -1,8 +1,8 @@
+	--- 9.8.2b1 released ---
+
 3221.	[bug]		Fixed a potential coredump on shutdown due to
 			referencing fetch context after it's been freed.
 			[RT #26720]
-
-	--- 9.8.2b1 released ---
 
 3220.	[bug]		Change #3186 was incomplete; dns_db_rpz_findips()
                         could fail to set the database version correctly,
