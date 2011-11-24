@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.300 2011/11/10 01:16:01 tbox Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.301 2011/11/24 01:14:52 tbox Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -7369,8 +7369,8 @@ example.com. NS ns2.example.net.
 </dd>
 <dt><span class="term"><span><strong class="command">inline-signing</strong></span></span></dt>
 <dd><p>
-                    <span><strong class="command">inline-signing</strong></span> is used to enable
-                    bump in the wire signing of a zone, where a
+                    If <code class="literal">yes</code>, this enables
+                    "bump in the wire" signing of a zone, where a
                     unsigned zone is transfered in or loaded from
                     disk and a signed version of the zone is served,
                     with possibly, a different serial number.  This
@@ -10710,7 +10710,7 @@ HOST-127.EXAMPLE. MX 0 .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2603065"></a>Socket I/O Statistics Counters</h4></div></div></div>
+<a name="id2603133"></a>Socket I/O Statistics Counters</h4></div></div></div>
 <p>
               Socket I/O statistics counters are defined per socket
               types, which are
@@ -10865,7 +10865,7 @@ HOST-127.EXAMPLE. MX 0 .
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2603507"></a>Compatibility with <span class="emphasis"><em>BIND</em></span> 8 Counters</h4></div></div></div>
+<a name="id2603575"></a>Compatibility with <span class="emphasis"><em>BIND</em></span> 8 Counters</h4></div></div></div>
 <p>
               Most statistics counters that were available
               in <span><strong class="command">BIND</strong></span> 8 are also supported in
