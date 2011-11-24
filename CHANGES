@@ -1,8 +1,8 @@
+	--- 9.7.5b1 released ---
+
 3221.	[bug]		Fixed a potential coredump on shutdown due to
 			referencing fetch context after it's been freed.
 			[RT #26720]
-
-	--- 9.7.5b1 released ---
 
 3218.	[security]	Cache lookup could return RRSIG data associated with
 			nonexistent records, leading to an assertion
