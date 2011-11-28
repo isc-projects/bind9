@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.116 2011/08/30 23:46:52 tbox Exp $ */
+/* $Id: journal.c,v 1.117 2011/11/28 03:14:58 marka Exp $ */
 
 #include <config.h>
 
@@ -213,8 +213,8 @@ typedef union {
 		journal_rawpos_t 	end;
 		/*% Number of index entries following the header. */
 		unsigned char 		index_size[4];
-		/*% Bump in the wire serial. */
-		unsigned char           bitws[4];
+		/*% Source serial number. */
+		unsigned char           sourceserial[4];
 	} h;
 	/* Pad the header to a fixed size. */
 	unsigned char pad[JOURNAL_HEADER_SIZE];
@@ -254,7 +254,7 @@ typedef struct {
 	journal_pos_t 	begin;
 	journal_pos_t 	end;
 	isc_uint32_t	index_size;
-	isc_uint32_t	bitws;
+	isc_uint32_t	sourceserial;
 } journal_header_t;
 
 /*%
@@ -296,7 +296,7 @@ typedef enum {
 	JOURNAL_STATE_READ,
 	JOURNAL_STATE_WRITE,
 	JOURNAL_STATE_TRANSACTION,
-	JOURNAL_STATE_BITWS
+	JOURNAL_STATE_INLINE
 } journal_state_t;
 
 struct dns_journal {
@@ -357,7 +357,7 @@ journal_header_decode(journal_rawheader_t *raw, journal_header_t *cooked) {
 	journal_pos_decode(&raw->h.begin, &cooked->begin);
 	journal_pos_decode(&raw->h.end, &cooked->end);
 	cooked->index_size = decode_uint32(raw->h.index_size);
-	cooked->bitws = decode_uint32(raw->h.bitws);
+	cooked->sourceserial = decode_uint32(raw->h.sourceserial);
 }
 
 static void
@@ -368,7 +368,7 @@ journal_header_encode(journal_header_t *cooked, journal_rawheader_t *raw) {
 	journal_pos_encode(&raw->h.begin, &cooked->begin);
 	journal_pos_encode(&raw->h.end, &cooked->end);
 	encode_uint32(cooked->index_size, raw->h.index_size);
-	encode_uint32(cooked->bitws, raw->h.bitws);
+	encode_uint32(cooked->sourceserial, raw->h.sourceserial);
 }
 
 /*
@@ -955,7 +955,7 @@ dns_journal_begin_transaction(dns_journal_t *j) {
 
 	REQUIRE(DNS_JOURNAL_VALID(j));
 	REQUIRE(j->state == JOURNAL_STATE_WRITE ||
-		j->state == JOURNAL_STATE_BITWS);
+		j->state == JOURNAL_STATE_INLINE);
 
 	/*
 	 * Find the file offset where the new transaction should
@@ -1079,12 +1079,12 @@ dns_journal_commit(dns_journal_t *j) {
 
 	REQUIRE(DNS_JOURNAL_VALID(j));
 	REQUIRE(j->state == JOURNAL_STATE_TRANSACTION ||
-		j->state == JOURNAL_STATE_BITWS);
+		j->state == JOURNAL_STATE_INLINE);
 
 	/*
 	 * Just write out a updated header.
 	 */
-	if (j->state == JOURNAL_STATE_BITWS) {
+	if (j->state == JOURNAL_STATE_INLINE) {
 		CHECK(journal_fsync(j));
 		journal_header_encode(&j->header, &rawheader);
 		CHECK(journal_seek(j, 0));
@@ -1166,7 +1166,7 @@ dns_journal_commit(dns_journal_t *j) {
 	 */
 	if (JOURNAL_EMPTY(&j->header)) {
 		j->header.begin = j->x.pos[0];
-		j->header.bitws = j->header.begin.serial;
+		j->header.sourceserial = j->header.begin.serial;
 	}
 	j->header.end = j->x.pos[1];
 	journal_header_encode(&j->header, &rawheader);
@@ -1445,7 +1445,7 @@ dns_journal_print(isc_mem_t *mctx, const char *filename, FILE *file) {
 		return (result);
 	}
 
-	fprintf(file, "BITWS = %u\n", j->header.bitws);
+	fprintf(file, "Source serial = %u\n", j->header.sourceserial);
 	dns_diff_init(j->mctx, &diff);
 
 	/*
@@ -1539,20 +1539,20 @@ dns_journal_last_serial(dns_journal_t *j) {
 }
 
 void
-dns_journal_set_bitws(dns_journal_t *j, isc_uint32_t bitws) {
+dns_journal_set_sourceserial(dns_journal_t *j, isc_uint32_t sourceserial) {
 
 	REQUIRE(j->state == JOURNAL_STATE_WRITE ||
-		j->state == JOURNAL_STATE_BITWS ||
+		j->state == JOURNAL_STATE_INLINE ||
 		j->state == JOURNAL_STATE_TRANSACTION);
 
-	j->header.bitws = bitws;
+	j->header.sourceserial = sourceserial;
 	if (j->state == JOURNAL_STATE_WRITE)
-		j->state = JOURNAL_STATE_BITWS;
+		j->state = JOURNAL_STATE_INLINE;
 }
 
 isc_uint32_t
-dns_journal_get_bitws(dns_journal_t *j) {
-	return (j->header.bitws);
+dns_journal_get_sourceserial(dns_journal_t *j) {
+	return (j->header.sourceserial);
 }
 
 /**************************************************************************/
@@ -2195,7 +2195,7 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, isc_uint32_t serial,
 		new->header.begin.offset = indexend;
 		new->header.end.serial = j->header.end.serial;
 		new->header.end.offset = indexend + copy_length;
-		new->header.bitws = j->header.bitws;
+		new->header.sourceserial = j->header.sourceserial;
 
 		/*
 		 * Update the journal header.

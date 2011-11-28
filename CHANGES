@@ -1,3 +1,6 @@
+3222.	[cleanup]	Replace dns_journal_{get,set}_bitws with
+			dns_journal_{get,set}_sourceserial. [RT #26634]
+
 3221.	[bug]		Fixed a potential coredump on shutdown due to
 			referencing fetch context after it's been freed.
 			[RT #26720]

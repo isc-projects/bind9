@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.647 2011/11/04 05:51:01 each Exp $ */
+/* $Id: zone.c,v 1.648 2011/11/28 03:14:58 marka Exp $ */
 
 /*! \file */
 
@@ -3227,7 +3227,7 @@ update_soa_serial(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff,
  * Write all transactions in 'diff' to the zone journal file.
  */
 static isc_result_t
-zone_journal(dns_zone_t *zone, dns_diff_t *diff, isc_uint32_t *bitws,
+zone_journal(dns_zone_t *zone, dns_diff_t *diff, isc_uint32_t *sourceserial,
 	     const char *caller)
 {
 	const char me[] = "zone_journal";
@@ -3246,8 +3246,8 @@ zone_journal(dns_zone_t *zone, dns_diff_t *diff, isc_uint32_t *bitws,
 				     caller, dns_result_totext(result));
 			return (result);
 		}
-		if (bitws != NULL)
-			dns_journal_set_bitws(journal, *bitws);
+		if (sourceserial != NULL)
+			dns_journal_set_sourceserial(journal, *sourceserial);
 
 		result = dns_journal_write_transaction(journal, diff);
 		dns_journal_destroy(&journal);
@@ -12036,9 +12036,9 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND)
 		goto failure;
 
-	start = dns_journal_get_bitws(rjournal);
+	start = dns_journal_get_sourceserial(rjournal);
 	if (sjournal != NULL) {
-		isc_uint32_t serial = dns_journal_get_bitws(sjournal);
+		isc_uint32_t serial = dns_journal_get_sourceserial(sjournal);
 		/*
 		 * We write the secure journal first so if that exists
 		 * use its value provided it is greater that from the
@@ -12140,7 +12140,7 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 
 	CHECK(zone_journal(zone, &diff, &end, "receive_secure_serial"));
 
-	dns_journal_set_bitws(rjournal, end);
+	dns_journal_set_sourceserial(rjournal, end);
 	dns_journal_commit(rjournal);
 
 	LOCK_ZONE(zone);

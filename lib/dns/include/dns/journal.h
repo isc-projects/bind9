@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.h,v 1.39 2011/08/30 23:46:53 tbox Exp $ */
+/* $Id: journal.h,v 1.40 2011/11/28 03:14:59 marka Exp $ */
 
 #ifndef DNS_JOURNAL_H
 #define DNS_JOURNAL_H 1
@@ -288,11 +288,11 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, isc_uint32_t serial,
  */
 
 isc_uint32_t
-dns_journal_get_bitws(dns_journal_t *j);
+dns_journal_get_sourceserial(dns_journal_t *j);
 void
-dns_journal_set_bitws(dns_journal_t *j, isc_uint32_t bitws);
+dns_journal_set_sourceserial(dns_journal_t *j, isc_uint32_t sourceserial);
 /*%<
- * Get and set bump in the wire serial.
+ * Get and set source serial.
  */
 
 ISC_LANG_ENDDECLS
