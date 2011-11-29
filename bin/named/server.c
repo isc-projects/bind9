@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.630 2011/11/09 18:44:03 each Exp $ */
+/* $Id: server.c,v 1.631 2011/11/29 00:49:25 marka Exp $ */
 
 /*! \file */
 
@@ -6148,6 +6148,7 @@ ns_server_togglequerylog(ns_server_t *server, char *args) {
 	ptr = next_token(&args, " \t");
 	if (ptr == NULL)
 		return (ISC_R_UNEXPECTEDEND);
+
 	ptr = next_token(&args, " \t");
 	if (ptr == NULL)
 		value = server->log_queries ? ISC_FALSE : ISC_TRUE;
@@ -6568,6 +6569,7 @@ ns_server_dumpsecroots(ns_server_t *server, char *args) {
 	ptr = next_token(&args, " \t");
 	if (ptr == NULL)
 		return (ISC_R_UNEXPECTEDEND);
+
 	ptr = next_token(&args, " \t");
 
 	CHECKMF(isc_stdio_open(server->secrootsfile, "w", &fp),
@@ -7908,13 +7910,23 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 
 	dns_rdataset_init(&privset);
 
-	(void) next_token(&args, " \t");
+	/* Skip the command name. */
 	ptr = next_token(&args, " \t");
+	if (ptr == NULL)
+		return (ISC_R_UNEXPECTEDEND);
+
+	/* Find out what we are to do. */
+	ptr = next_token(&args, " \t");
+	if (ptr == NULL)
+		return (ISC_R_UNEXPECTEDEND);
+
 	if (strcasecmp(ptr, "-list") == 0)
 		list = ISC_TRUE;
 	else if (strcasecmp(ptr, "-clear") == 0) {
 		clear = ISC_TRUE;
 		ptr = next_token(&args, " \t");
+		if (ptr == NULL)
+			return (ISC_R_UNEXPECTEDEND);
 		memcpy(keystr, ptr, sizeof(keystr));
 	} else if(strcasecmp(ptr, "-nsec3param") == 0) {
 		const char *hashstr, *flagstr, *iterstr;
@@ -7923,12 +7935,17 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 
 		chain = ISC_TRUE;
 		hashstr = next_token(&args, " \t");
+		if (hashstr == NULL)
+			return (ISC_R_UNEXPECTEDEND);
 
 		if (strcasecmp(hashstr, "none") == 0)
 			hash = 0;
 		else {
 			flagstr = next_token(&args, " \t");
 			iterstr = next_token(&args, " \t");
+			if (flagstr == NULL || iterstr == NULL)
+				return (ISC_R_UNEXPECTEDEND);
+
 			n = snprintf(nbuf, sizeof(nbuf), "%s %s %s",
 				     hashstr, flagstr, iterstr);
 			if (n == sizeof(nbuf))
@@ -7939,12 +7956,14 @@ ns_server_signing(ns_server_t *server, char *args, isc_buffer_t *text) {
 				return (ISC_R_BADNUMBER);
 
 			ptr = next_token(&args, " \t");
+			if (ptr == NULL)
+				return (ISC_R_UNEXPECTEDEND);
 			isc_buffer_init(&buf, salt, sizeof(salt));
 			CHECK(isc_hex_decodestring(ptr, &buf));
 			saltlen = isc_buffer_usedlength(&buf);
 		}
 	} else
-		CHECK(ISC_R_NOTFOUND);
+		CHECK(DNS_R_SYNTAX);
 
 	CHECK(zone_from_args(server, args, &zone, NULL, ISC_FALSE));
 	if (zone == NULL)

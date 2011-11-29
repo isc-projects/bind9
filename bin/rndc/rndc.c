@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.138 2011/11/03 23:05:30 each Exp $ */
+/* $Id: rndc.c,v 1.139 2011/11/29 00:49:26 marka Exp $ */
 
 /*! \file */
 
@@ -169,6 +169,11 @@ command is one of the following:\n\
   signing -clear all zone [class [view]]\n\
 		Remove the private records for all keys that have\n\
 		finished signing the given zone.\n\
+  signing -nsec3param none zone [class [view]]\n\
+		Remove NSEC3 chains from zone.\n\
+  signing -nsec3param hash flags iterations salt zone [class [view]]\n\
+		Add NSEC3 chain to zone if already signed.\n\
+		Prime zone with NSEC3 chain if not yet signed.\n\
   *restart	Restart the server.\n\
 \n\
 * == not yet implemented\n\

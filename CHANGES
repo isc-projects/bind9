@@ -1,3 +1,5 @@
+3224.	[bug]		'rndc signing' argument parsing was broken. [RT #26684]
+
 3223.	[bug]		'task_test privilege_drop' generated false positives.
 			[RT #26766]
 
