@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.92 2011/08/23 18:24:33 each Exp $ */
+/* $Id: socket.c,v 1.93 2011/11/29 01:03:47 marka Exp $ */
 
 /* This code uses functions which are only available on Server 2003 and
  * higher, and Windows XP and higher.
@@ -1688,6 +1688,7 @@ socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		 */
 		sock->fd = _dup(dup_socket->fd);
 		sock->dupped = 1;
+		sock->bound = dup_socket->bound;
 	}
 
 	if (sock->fd == INVALID_SOCKET) {
@@ -3175,6 +3176,7 @@ isc__socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr,
 	}
 
 	INSIST(!sock->bound);
+	INSIST(!sock->dupped);
 
 	if (sock->pf != sockaddr->type.sa.sa_family) {
 		UNLOCK(&sock->lock);

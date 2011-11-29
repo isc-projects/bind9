@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket_test.c,v 1.4 2011/09/02 21:15:38 each Exp $ */
+/* $Id: socket_test.c,v 1.5 2011/11/29 01:03:47 marka Exp $ */
 
 /*! \file */
 
@@ -181,12 +181,10 @@ ATF_TC_BODY(udp_dup, tc) {
 
 	result = isc_socket_create(socketmgr, PF_INET, isc_sockettype_udp, &s2);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	result = isc_socket_dup(s2, &s3);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-
 	result = isc_socket_bind(s2, &addr2, ISC_SOCKET_REUSEADDRESS);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	result = isc_socket_bind(s3, &addr2, ISC_SOCKET_REUSEADDRESS);
+
+	result = isc_socket_dup(s2, &s3);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_task_create(taskmgr, 0, &task);
@@ -244,7 +242,6 @@ ATF_TC_BODY(udp_dup, tc) {
 
 	isc_test_end();
 }
-
 
 /*
  * Main
