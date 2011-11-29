@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.348 2011/08/25 11:37:13 marka Exp $ */
+/* $Id: socket.c,v 1.349 2011/11/29 01:03:47 marka Exp $ */
 
 /*! \file */
 
@@ -2270,6 +2270,7 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 	} else {
 		sock->fd = dup(dup_socket->fd);
 		sock->dupped = 1;
+		sock->bound = dup_socket->bound;
 	}
 	if (sock->fd == -1 && errno == EINTR && tries++ < 42)
 		goto again;
@@ -5028,54 +5029,55 @@ isc__socket_bind(isc_socket_t *sock0, isc_sockaddr_t *sockaddr,
 	LOCK(&sock->lock);
 
 	INSIST(!sock->bound);
+	INSIST(!sock->dupped);
 
 	if (sock->pf != sockaddr->type.sa.sa_family) {
 		UNLOCK(&sock->lock);
 		return (ISC_R_FAMILYMISMATCH);
 	}
-	if (!sock->dupped) {
-		/*
-		 * Only set SO_REUSEADDR when we want a specific port.
-		 */
-#ifdef AF_UNIX
-		if (sock->pf == AF_UNIX)
-			goto bind_socket;
-#endif
-		if ((options & ISC_SOCKET_REUSEADDRESS) != 0 &&
-		    isc_sockaddr_getport(sockaddr) != (in_port_t)0 &&
-		    setsockopt(sock->fd, SOL_SOCKET, SO_REUSEADDR, (void *)&on,
-			       sizeof(on)) < 0) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "setsockopt(%d) %s", sock->fd,
-					 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-							ISC_MSG_FAILED, "failed"));
-			/* Press on... */
-		}
-#ifdef AF_UNIX
-	 bind_socket:
-#endif
-		if (bind(sock->fd, &sockaddr->type.sa, sockaddr->length) < 0) {
-			inc_stats(sock->manager->stats,
-				  sock->statsindex[STATID_BINDFAIL]);
 
-			UNLOCK(&sock->lock);
-			switch (errno) {
-			case EACCES:
-				return (ISC_R_NOPERM);
-			case EADDRNOTAVAIL:
-				return (ISC_R_ADDRNOTAVAIL);
-			case EADDRINUSE:
-				return (ISC_R_ADDRINUSE);
-			case EINVAL:
-				return (ISC_R_BOUND);
-			default:
-				isc__strerror(errno, strbuf, sizeof(strbuf));
-				UNEXPECTED_ERROR(__FILE__, __LINE__, "bind: %s",
-						 strbuf);
-				return (ISC_R_UNEXPECTED);
-			}
+	/*
+	 * Only set SO_REUSEADDR when we want a specific port.
+	 */
+#ifdef AF_UNIX
+	if (sock->pf == AF_UNIX)
+		goto bind_socket;
+#endif
+	if ((options & ISC_SOCKET_REUSEADDRESS) != 0 &&
+	    isc_sockaddr_getport(sockaddr) != (in_port_t)0 &&
+	    setsockopt(sock->fd, SOL_SOCKET, SO_REUSEADDR, (void *)&on,
+		       sizeof(on)) < 0) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "setsockopt(%d) %s", sock->fd,
+				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+						ISC_MSG_FAILED, "failed"));
+		/* Press on... */
+	}
+#ifdef AF_UNIX
+ bind_socket:
+#endif
+	if (bind(sock->fd, &sockaddr->type.sa, sockaddr->length) < 0) {
+		inc_stats(sock->manager->stats,
+			  sock->statsindex[STATID_BINDFAIL]);
+
+		UNLOCK(&sock->lock);
+		switch (errno) {
+		case EACCES:
+			return (ISC_R_NOPERM);
+		case EADDRNOTAVAIL:
+			return (ISC_R_ADDRNOTAVAIL);
+		case EADDRINUSE:
+			return (ISC_R_ADDRINUSE);
+		case EINVAL:
+			return (ISC_R_BOUND);
+		default:
+			isc__strerror(errno, strbuf, sizeof(strbuf));
+			UNEXPECTED_ERROR(__FILE__, __LINE__, "bind: %s",
+					 strbuf);
+			return (ISC_R_UNEXPECTED);
 		}
 	}
+
 	socket_log(sock, sockaddr, TRACE,
 		   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_BOUND, "bound");
 	sock->bound = 1;
@@ -5718,6 +5720,7 @@ isc__socket_ipv6only(isc_socket_t *sock0, isc_boolean_t yes) {
 #endif
 
 	REQUIRE(VALID_SOCKET(sock));
+	INSIST(!sock->dupped);
 
 #ifdef IPV6_V6ONLY
 	if (sock->pf == AF_INET6) {
