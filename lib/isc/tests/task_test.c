@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task_test.c,v 1.4 2011/10/18 02:00:56 marka Exp $ */
+/* $Id: task_test.c,v 1.5 2011/11/29 00:41:28 marka Exp $ */
 
 /*! \file */
 
@@ -286,7 +286,7 @@ ATF_TC_BODY(privilege_drop, tc) {
 	isc_result_t result;
 	isc_task_t *task1 = NULL, *task2 = NULL;
 	isc_event_t *event;
-	int a = 0, b = 0, c = 0, d = 0, e = 0;
+	int a = -1, b = -1, c = -1, d = -1, e = -1;	/* non valid states */
 	int i = 0;
 
 	UNUSED(tc);
@@ -323,7 +323,7 @@ ATF_TC_BODY(privilege_drop, tc) {
 				   set_and_drop, &a, sizeof (isc_event_t));
 	ATF_REQUIRE(event != NULL);
 
-	ATF_CHECK_EQ(a, 0);
+	ATF_CHECK_EQ(a, -1);
 	isc_task_send(task1, &event);
 
 	/* Second event: not privileged */
@@ -331,7 +331,7 @@ ATF_TC_BODY(privilege_drop, tc) {
 				   set_and_drop, &b, sizeof (isc_event_t));
 	ATF_REQUIRE(event != NULL);
 
-	ATF_CHECK_EQ(b, 0);
+	ATF_CHECK_EQ(b, -1);
 	isc_task_send(task2, &event);
 
 	/* Third event: privileged */
@@ -339,7 +339,7 @@ ATF_TC_BODY(privilege_drop, tc) {
 				   set_and_drop, &c, sizeof (isc_event_t));
 	ATF_REQUIRE(event != NULL);
 
-	ATF_CHECK_EQ(c, 0);
+	ATF_CHECK_EQ(c, -1);
 	isc_task_send(task1, &event);
 
 	/* Fourth event: privileged */
@@ -347,7 +347,7 @@ ATF_TC_BODY(privilege_drop, tc) {
 				   set_and_drop, &d, sizeof (isc_event_t));
 	ATF_REQUIRE(event != NULL);
 
-	ATF_CHECK_EQ(d, 0);
+	ATF_CHECK_EQ(d, -1);
 	isc_task_send(task1, &event);
 
 	/* Fifth event: not privileged */
@@ -355,7 +355,7 @@ ATF_TC_BODY(privilege_drop, tc) {
 				   set_and_drop, &e, sizeof (isc_event_t));
 	ATF_REQUIRE(event != NULL);
 
-	ATF_CHECK_EQ(e, 0);
+	ATF_CHECK_EQ(e, -1);
 	isc_task_send(task2, &event);
 
 	ATF_CHECK_EQ(isc_taskmgr_mode(taskmgr), isc_taskmgrmode_normal);
@@ -366,8 +366,9 @@ ATF_TC_BODY(privilege_drop, tc) {
 	isc__taskmgr_resume(taskmgr);
 #endif
 
-	/* We're waiting for *any* variable to be set */
-	while ((a == 0 && b == 0 && c == 0 && d == 0 && e == 0) && i++ < 5000) {
+	/* We're waiting for all variables to be set. */
+	while ((a == -1 || b == -1 || c == -1 || d == -1 || e == -1) &&
+	       i++ < 5000) {
 #ifndef ISC_PLATFORM_USETHREADS
 		while (isc__taskmgr_ready(taskmgr))
 			isc__taskmgr_dispatch(taskmgr);
@@ -400,6 +401,7 @@ ATF_TC_BODY(privilege_drop, tc) {
 
 	isc_test_end();
 }
+
 /*
  * Main
  */

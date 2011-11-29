@@ -1,3 +1,6 @@
+3223.	[bug]		'task_test privilege_drop' generated false positives.
+			[RT #26766]
+
 3222.	[cleanup]	Replace dns_journal_{get,set}_bitws with
 			dns_journal_{get,set}_sourceserial. [RT #26634]
 
