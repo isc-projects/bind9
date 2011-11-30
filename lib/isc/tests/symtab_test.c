@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: symtab_test.c,v 1.1.4.3 2011/11/30 06:11:38 marka Exp $ */
+/* $Id: symtab_test.c,v 1.1.4.4 2011/11/30 21:19:07 marka Exp $ */
 
 /*! \file */
 
@@ -55,7 +55,7 @@ ATF_TC_BODY(symtab_grow, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE);
+	result = isc_test_begin(NULL);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_symtab_create(mctx, 3, undefine, NULL, ISC_FALSE, &st);
