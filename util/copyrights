@@ -1644,7 +1644,7 @@
 ./contrib/nslint-2.1a3/lbl/os-ultrix4.h		X	2001
 ./contrib/nslint-2.1a3/mkdep			X	2001
 ./contrib/nslint-2.1a3/nslint.8			X	2001
-./contrib/nslint-2.1a3/nslint.c			X	2001
+./contrib/nslint-2.1a3/nslint.c			X	2001,2011
 ./contrib/nslint-2.1a3/savestr.c		X	2001
 ./contrib/nslint-2.1a3/savestr.h		X	2001
 ./contrib/nslint-2.1a3/strerror.c		X	2001
@@ -1690,7 +1690,7 @@
 ./contrib/sdb/ldap/ldapdb.c			X	2001,2002,2003,2004
 ./contrib/sdb/ldap/ldapdb.h			X	2001
 ./contrib/sdb/ldap/zone2ldap.1			X	2001
-./contrib/sdb/ldap/zone2ldap.c			X	2001,2005,2008,2009
+./contrib/sdb/ldap/zone2ldap.c			X	2001,2005,2008,2009,2011
 ./contrib/sdb/pgsql/pgsqldb.c			C	2000,2001,2004,2007
 ./contrib/sdb/pgsql/pgsqldb.h			C	2000,2001,2004,2007
 ./contrib/sdb/pgsql/zonetodb.c			C	2000,2001,2002,2004,2005,2007,2008,2009
@@ -2222,7 +2222,7 @@
 ./lib/dns/rdata/in_1/px_26.h			C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/in_1/srv_33.c			C	1999,2000,2001,2003,2004,2005,2007,2009
 ./lib/dns/rdata/in_1/srv_33.h			C	1999,2000,2001,2004,2005,2007
-./lib/dns/rdata/in_1/wks_11.c			C	1999,2000,2001,2002,2004,2007,2009
+./lib/dns/rdata/in_1/wks_11.c			C	1999,2000,2001,2002,2004,2007,2009,2011
 ./lib/dns/rdata/in_1/wks_11.h			C	1999,2000,2001,2004,2007
 ./lib/dns/rdata/rdatastructpre.h		C	1999,2000,2001,2004,2007
 ./lib/dns/rdata/rdatastructsuf.h		C	1999,2000,2001,2004,2007
@@ -2480,7 +2480,7 @@
 ./lib/isc/include/isc/stdio.h			C	2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/stdlib.h			C	2003,2004,2005,2006,2007
 ./lib/isc/include/isc/string.h			C	2000,2001,2003,2004,2005,2006,2007
-./lib/isc/include/isc/symtab.h			C	1996,1997,1998,1999,2000,2001,2004,2005,2006,2007,2009
+./lib/isc/include/isc/symtab.h			C	1996,1997,1998,1999,2000,2001,2004,2005,2006,2007,2009,2011
 ./lib/isc/include/isc/task.h			C	1998,1999,2000,2001,2003,2004,2005,2006,2007,2009,2010
 ./lib/isc/include/isc/taskpool.h		C	1999,2000,2001,2004,2005,2006,2007,2011
 ./lib/isc/include/isc/timer.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009
@@ -2579,7 +2579,7 @@
 ./lib/isc/stats.c				C	2009
 ./lib/isc/string.c				C	1999,2000,2001,2003,2004,2005,2006,2007,2011
 ./lib/isc/strtoul.c				C	2003,2004,2005,2007
-./lib/isc/symtab.c				C	1996,1997,1998,1999,2000,2001,2004,2005,2007
+./lib/isc/symtab.c				C	1996,1997,1998,1999,2000,2001,2004,2005,2007,2011
 ./lib/isc/task.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
 ./lib/isc/task_api.c				C	2009
 ./lib/isc/task_p.h				C	2000,2001,2004,2005,2007,2009
@@ -2590,6 +2590,7 @@
 ./lib/isc/tests/hash_test.c			C	2011
 ./lib/isc/tests/isctest.c			C	2011
 ./lib/isc/tests/isctest.h			C	2011
+./lib/isc/tests/symtab_test.c			C	2011
 ./lib/isc/tests/taskpool_test.c			C	2011
 ./lib/isc/timer.c				C	1998,1999,2000,2001,2002,2004,2005,2007,2008,2009,2011
 ./lib/isc/timer_api.c				C	2009
