@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.336.22.6 2011/11/06 23:23:33 marka Exp $ */
+/* $Id: dighost.c,v 1.336.22.7 2011/11/30 00:51:37 marka Exp $ */
 
 /*! \file
  *  \note
@@ -4216,7 +4216,6 @@ opentmpkey(isc_mem_t *mctx, const char *file, char **tempp, FILE **fp) {
 	return (result);
 }
 
-
 isc_result_t
 get_trusted_key(isc_mem_t *mctx)
 {
@@ -4278,6 +4277,7 @@ get_trusted_key(isc_mem_t *mctx)
 		if (key != NULL)
 			dst_key_free(&key);
 	}
+	fclose(fp);
 	return (ISC_R_SUCCESS);
 }
 
