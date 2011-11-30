@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: driver.c,v 1.8 2011/10/11 13:36:12 marka Exp $ */
+/* $Id: driver.c,v 1.9 2011/11/30 00:48:51 marka Exp $ */
 
 /*
  * This provides a very simple example of an external loadable DLZ
@@ -236,6 +236,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	if (argc < 2) {
 		state->log(ISC_LOG_ERROR,
 			   "dlz_example: please specify a zone name");
+		dlz_destroy(state);
 		return (ISC_R_FAILURE);
 	}
 
@@ -521,12 +522,15 @@ static isc_result_t
 modrdataset(struct dlz_example_data *state, const char *name,
 	    const char *rdatastr, struct record *list)
 {
-	char *full_name, *dclass, *type, *data, *ttlstr;
-	char *buf = strdup(rdatastr);
+	char *full_name, *dclass, *type, *data, *ttlstr, *buf;
 	isc_result_t result;
 #if defined(WIN32) || defined(_REENTRANT)
 	char *saveptr = NULL;
 #endif
+
+	buf = strdup(rdatastr);
+	if (buf == NULL)
+		return (ISC_R_FAILURE);
 
 	/*
 	 * The format is:
@@ -538,28 +542,32 @@ modrdataset(struct dlz_example_data *state, const char *name,
 
 	full_name = STRTOK_R(buf, "\t", &saveptr);
 	if (full_name == NULL)
-		return (ISC_R_FAILURE);
+		goto error;
 
 	ttlstr = STRTOK_R(NULL, "\t", &saveptr);
 	if (ttlstr == NULL)
-		return (ISC_R_FAILURE);
+		goto error;
 
 	dclass = STRTOK_R(NULL, "\t", &saveptr);
 	if (dclass == NULL)
-		return (ISC_R_FAILURE);
+		goto error;
 
 	type = STRTOK_R(NULL, "\t", &saveptr);
 	if (type == NULL)
-		return (ISC_R_FAILURE);
+		goto error;
 
 	data = STRTOK_R(NULL, "\t", &saveptr);
 	if (data == NULL)
-		return (ISC_R_FAILURE);
+		goto error;
 
 	result = add_name(state, list, name, type,
 			  strtoul(ttlstr, NULL, 10), data);
 	free(buf);
 	return (result);
+
+ error:
+	free(buf);
+	return (ISC_R_FAILURE);
 }
 
 

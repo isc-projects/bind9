@@ -23,7 +23,7 @@ static const char copyright[] =
     "@(#) Copyright (c) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001\n\
 The Regents of the University of California.  All rights reserved.\n";
 static const char rcsid[] =
-    "@(#) $Id: nslint.c,v 1.1 2001/12/21 04:12:04 marka Exp $ (LBL)";
+    "@(#) $Id: nslint.c,v 1.2 2011/11/30 00:48:51 marka Exp $ (LBL)";
 #endif
 /*
  * nslint - perform consistency checks on dns files
@@ -1059,6 +1059,7 @@ process(register const char *file, register const char *domain,
 		++errors;
 		fprintf(stderr, "%s: %s/%s:%d bad in-addr.arpa domain\n",
 		    prog, cwd, file, n);
+		fclose(f);
 		return;
 	}
 
