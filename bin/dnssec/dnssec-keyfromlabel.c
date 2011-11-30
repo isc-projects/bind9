@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keyfromlabel.c,v 1.4.50.6 2011/08/31 03:09:22 marka Exp $ */
+/* $Id: dnssec-keyfromlabel.c,v 1.4.50.7 2011/11/30 00:54:47 marka Exp $ */
 
 /*! \file */
 
@@ -328,6 +328,9 @@ main(int argc, char **argv) {
 	if (verbose > 10)
 		isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);
+
+	if (freeit != NULL)
+		free(freeit);
 
 	return (0);
 }
