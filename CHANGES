@@ -1,3 +1,11 @@
+3228.   [tuning]        Dynamically grow symbol table to improve zone
+                        loading performance. [RT #26523]
+
+3227.	[bug]		Interim fix to make WKS's use of getprotobyname()
+			and getservbyname() self thread safe. [RT #26232]
+
+3226.	[bug]		Address minor resource leakages. [RT #26624]
+
 3225.	[bug]		Silence spurious "setsockopt(517, IPV6_V6ONLY) failed"
 			messages. [RT #26507]
 
