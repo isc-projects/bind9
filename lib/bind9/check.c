@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.138 2011/11/07 00:14:11 marka Exp $ */
+/* $Id: check.c,v 1.139 2011/11/30 04:27:17 each Exp $ */
 
 /*! \file */
 
@@ -2149,7 +2149,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	 * Check that all zone statements are syntactically correct and
 	 * there are no duplicate zones.
 	 */
-	tresult = isc_symtab_create(mctx, 100, freekey, mctx,
+	tresult = isc_symtab_create(mctx, 1000, freekey, mctx,
 				    ISC_FALSE, &symtab);
 	if (tresult != ISC_R_SUCCESS)
 		return (ISC_R_NOMEMORY);
@@ -2213,7 +2213,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	 * Check that all key statements are syntactically correct and
 	 * there are no duplicate keys.
 	 */
-	tresult = isc_symtab_create(mctx, 100, freekey, mctx,
+	tresult = isc_symtab_create(mctx, 1000, freekey, mctx,
 				    ISC_FALSE, &symtab);
 	if (tresult != ISC_R_SUCCESS)
 		return (ISC_R_NOMEMORY);
