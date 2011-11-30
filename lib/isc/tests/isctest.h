@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: isctest.h,v 1.2.8.2 2011/07/09 01:57:06 each Exp $ */
+/* $Id: isctest.h,v 1.2.8.3 2011/11/30 06:10:37 each Exp $ */
 
 /*! \file */
 
@@ -25,6 +25,7 @@
 #include <isc/hash.h>
 #include <isc/log.h>
 #include <isc/mem.h>
+#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/task.h>
