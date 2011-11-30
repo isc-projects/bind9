@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: symtab_test.c,v 1.2 2011/11/30 04:27:17 each Exp $ */
+/* $Id: symtab_test.c,v 1.3 2011/11/30 06:09:41 marka Exp $ */
 
 /*! \file */
 
@@ -25,6 +25,7 @@
 #include <unistd.h>
 
 #include <isc/symtab.h>
+#include <isc/print.h>
 
 #include "isctest.h"
 
