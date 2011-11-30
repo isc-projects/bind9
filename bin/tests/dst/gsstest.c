@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gsstest.c,v 1.8.104.4 2011/09/05 17:39:23 each Exp $ */
+/* $Id: gsstest.c,v 1.8.104.5 2011/11/30 00:53:35 marka Exp $ */
 
 #include <config.h>
 
@@ -133,7 +133,7 @@ static void
 recvresponse(isc_task_t *task, isc_event_t *event) {
 	dns_requestevent_t *reqev = (dns_requestevent_t *)event;
 	isc_result_t result, result2;
-	dns_message_t *query, *response = NULL;
+	dns_message_t *query = NULL, *response = NULL;
 	isc_buffer_t outtoken;
 	isc_buffer_t outbuf;
 	char output[10 * 1024];
@@ -170,14 +170,14 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 
 	CHECK("dns_request_getresponse", result2);
 
-	if (response)
+	if (response != NULL)
 		dns_message_destroy(&response);
 
  end:
-	if (query)
+	if (query != NULL)
 		dns_message_destroy(&query);
 
-	if (reqev->request)
+	if (reqev->request != NULL)
 		dns_request_destroy(&reqev->request);
 
 	isc_event_free(&event);
@@ -268,7 +268,7 @@ static void
 initctx2(isc_task_t *task, isc_event_t *event) {
 	dns_requestevent_t *reqev = (dns_requestevent_t *)event;
 	isc_result_t result;
-	dns_message_t *query, *response = NULL;
+	dns_message_t *query = NULL, *response = NULL;
 	isc_buffer_t outtoken;
 	unsigned char array[DNS_NAME_MAXTEXT + 1];
 	dns_rdataset_t *rdataset;
@@ -327,14 +327,13 @@ initctx2(isc_task_t *task, isc_event_t *event) {
 		tsigkey = NULL;
 	}
 
-	if (response)
-		dns_message_destroy(&response);
+	dns_message_destroy(&response);
 
  end:
-	if (query)
+	if (query != NULL)
 		dns_message_destroy(&query);
 
-	if (reqev->request)
+	if (reqev->request != NULL)
 		dns_request_destroy(&reqev->request);
 
 	isc_event_free(&event);
