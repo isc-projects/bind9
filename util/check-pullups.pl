@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: check-pullups.pl,v 1.12 2007/06/19 23:47:24 tbox Exp $
+# $Id: check-pullups.pl,v 1.12.332.1 2011/11/30 23:06:41 marka Exp $
 
 # Given two CHANGES files, list [bug] entries present in the
 # first one but not in the second one.
@@ -87,7 +87,7 @@ foreach my $c (sort {$a <=> $b} keys %$c1) {
 		print $c1->{$c}->{text};
 	}
 	if (exists($c2->{$c}) && $category ne "placeholder" &&
-	    $c2->{$c}->{text} ne $text) {
+	    !exists($c3->{$c}) && $c2->{$c}->{text} ne $text) {
 		if ($msg ne "TEXT\n") {
 			$msg = "TEXT\n";
 			print $msg;

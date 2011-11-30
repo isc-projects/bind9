@@ -16,14 +16,14 @@
  */
 
 /*
- * $Id: tkey.c,v 1.90.118.6 2011/03/12 04:57:28 tbox Exp $
+ * $Id: tkey.c,v 1.90.118.7 2011/11/30 23:06:40 marka Exp $
  */
 /*! \file */
 #include <config.h>
 
 #include <isc/buffer.h>
 #include <isc/entropy.h>
-#include <isc/md5.h>
+#include <isc/sha2.h>
 #include <isc/mem.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -45,7 +45,7 @@
 #include <dst/dst.h>
 #include <dst/gssapi.h>
 
-#define TKEY_RANDOM_AMOUNT 16
+#define TKEY_RANDOM_AMOUNT ISC_SHA256_DIGESTLENGTH
 
 #define RETERR(x) do { \
 	result = (x); \
@@ -215,6 +215,7 @@ static isc_result_t
 compute_secret(isc_buffer_t *shared, isc_region_t *queryrandomness,
 	       isc_region_t *serverrandomness, isc_buffer_t *secret)
 {
+#if 0
 	isc_md5_t md5ctx;
 	isc_region_t r, r2;
 	unsigned char digests[32];
@@ -259,7 +260,52 @@ compute_secret(isc_buffer_t *shared, isc_region_t *queryrandomness,
 		isc_buffer_add(secret, sizeof(digests));
 	}
 	return (ISC_R_SUCCESS);
+#else
+	isc_sha256_t sha256ctx;
+	isc_region_t r, r2;
+	unsigned char digests[ISC_SHA256_DIGESTLENGTH*2];
+	unsigned int i;
 
+	isc_buffer_usedregion(shared, &r);
+
+	/*
+	 * sha256 ( query data | DH value ).
+	 */
+	isc_sha256_init(&sha256ctx);
+	isc_sha256_update(&sha256ctx, queryrandomness->base,
+		       queryrandomness->length);
+	isc_sha256_update(&sha256ctx, r.base, r.length);
+	isc_sha256_final(digests, &sha256ctx);
+
+	/*
+	 * sha256 ( server data | DH value ).
+	 */
+	isc_sha256_init(&sha256ctx);
+	isc_sha256_update(&sha256ctx, serverrandomness->base,
+		       serverrandomness->length);
+	isc_sha256_update(&sha256ctx, r.base, r.length);
+	isc_sha256_final(&digests[ISC_SHA256_DIGESTLENGTH], &sha256ctx);
+
+	/*
+	 * XOR ( DH value, sha256-1 | sha256-2).
+	 */
+	isc_buffer_availableregion(secret, &r);
+	isc_buffer_usedregion(shared, &r2);
+	if (r.length < sizeof(digests) || r.length < r2.length)
+		return (ISC_R_NOSPACE);
+	if (r2.length > sizeof(digests)) {
+		memcpy(r.base, r2.base, r2.length);
+		for (i = 0; i < sizeof(digests); i++)
+			r.base[i] ^= digests[i];
+		isc_buffer_add(secret, r2.length);
+	} else {
+		memcpy(r.base, digests, sizeof(digests));
+		for (i = 0; i < r2.length; i++)
+			r.base[i] ^= r2.base[i];
+		isc_buffer_add(secret, sizeof(digests));
+	}
+	return (ISC_R_SUCCESS);
+#endif
 }
 
 static isc_result_t
@@ -288,12 +334,15 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 		return (DNS_R_REFUSED);
 	}
 
-	if (!dns_name_equal(&tkeyin->algorithm, DNS_TSIG_HMACMD5_NAME)) {
+	if (!dns_name_equal(&tkeyin->algorithm, DNS_TSIG_HMACSHA256_NAME) &&
+	    !dns_name_equal(&tkeyin->algorithm, DNS_TSIG_HMACMD5_NAME)) {
 		tkey_log("process_dhtkey: algorithms other than "
-			 "hmac-md5 are not supported");
+			 "hmac-md5 or hmac-sha256 are not supported");
 		tkeyout->error = dns_tsigerror_badalg;
 		return (ISC_R_SUCCESS);
 	}
+
+	tkey_log("process_dhtkey: tkeyin->algorithm ok");
 
 	/*
 	 * Look for a DH KEY record that will work with ours.
@@ -308,6 +357,7 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 					      &keyset);
 		if (result != ISC_R_SUCCESS)
 			continue;
+		tkey_log("process_dhtkey: found KEY rrset");
 
 		for (result = dns_rdataset_first(keyset);
 		     result == ISC_R_SUCCESS && !found_key;
@@ -321,10 +371,12 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 				continue;
 			}
 			if (dst_key_alg(pubkey) == DNS_KEYALG_DH) {
+				tkey_log("process_dhtkey: found DH");
 				if (dst_key_paramcompare(pubkey, tctx->dhkey))
 				{
 					found_key = ISC_TRUE;
 					ttl = keyset->ttl;
+					tkey_log("process_dhtkey: match");
 					break;
 				} else
 					found_incompatible = ISC_TRUE;
@@ -409,6 +461,7 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	return (ISC_R_SUCCESS);
 
  failure:
+	tkey_log("process_dhtkey: failure: %s", dns_result_totext(result));
 	if (!ISC_LIST_EMPTY(*namelist))
 		free_namelist(msg, namelist);
 	if (shared != NULL)

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: errno2result.c,v 1.17 2007/06/19 23:47:18 tbox Exp $ */
+/* $Id: errno2result.c,v 1.17.332.1 2011/11/30 23:06:41 marka Exp $ */
 
 /*! \file */
 
@@ -34,7 +34,7 @@
  * not already there.
  */
 isc_result_t
-isc__errno2result(int posixerrno) {
+isc___errno2result(int posixerrno, const char *file, unsigned int line) {
 	char strbuf[ISC_STRERRORSIZE];
 
 	switch (posixerrno) {
@@ -108,8 +108,7 @@ isc__errno2result(int posixerrno) {
 		return (ISC_R_CONNREFUSED);
 	default:
 		isc__strerror(posixerrno, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "unable to convert errno "
+		UNEXPECTED_ERROR(file, line, "unable to convert errno "
 				 "to isc_result: %d: %s",
 				 posixerrno, strbuf);
 		/*
