@@ -1,3 +1,6 @@
+3227.	[bug]		Interim fix to make WKS's use of getprotobyname()
+			and getservbyname() self thread safe. [RT #26232]
+
 3226.	[bug]		Address minor resource leakages. [RT #26624]
 
 	--- 9.6-ESV-R6b1 released ---
