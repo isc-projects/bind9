@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007, 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2009, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: wks_11.c,v 1.54.332.3 2011/11/30 01:23:38 marka Exp $ */
+/* $Id: wks_11.c,v 1.54.332.4 2011/11/30 23:45:14 tbox Exp $ */
 
 /* Reviewed: Fri Mar 17 15:01:49 PST 2000 by explorer */
 
@@ -34,7 +34,7 @@
 static isc_mutex_t wks_lock;
 
 static void init_lock(void) {
-        RUNTIME_CHECK(isc_mutex_init(&wks_lock) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_mutex_init(&wks_lock) == ISC_R_SUCCESS);
 }
 
 static isc_boolean_t
