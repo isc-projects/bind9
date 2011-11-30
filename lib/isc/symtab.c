@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: symtab.c,v 1.30.332.1 2011/11/30 04:25:09 each Exp $ */
+/* $Id: symtab.c,v 1.30.332.2 2011/11/30 06:08:12 marka Exp $ */
 
 /*! \file */
 
@@ -206,8 +206,9 @@ grow_table(isc_symtab_t *symtab) {
 		elt_t *elt, *nelt;
 
 		for (elt = HEAD(symtab->table[i]); elt != NULL; elt = nelt) {
-			nelt = NEXT(elt, link);
 			unsigned int hv;
+
+			nelt = NEXT(elt, link);
 
 			UNLINK(symtab->table[i], elt, link);
 			hv = hash(elt->key, symtab->case_sensitive);
