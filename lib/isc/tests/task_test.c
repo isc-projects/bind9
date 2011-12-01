@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task_test.c,v 1.5 2011/11/29 00:41:28 marka Exp $ */
+/* $Id: task_test.c,v 1.6 2011/12/01 22:30:37 marka Exp $ */
 
 /*! \file */
 
@@ -131,7 +131,7 @@ ATF_TC_BODY(all_events, tc) {
 	ATF_CHECK_EQ(b, 0);
 	isc_task_send(task, &event);
 
-	while (a == 0 && b == 0 && i++ < 5000) {
+	while ((a == 0 || b == 0) && i++ < 5000) {
 #ifndef ISC_PLATFORM_USETHREADS
 		while (isc__taskmgr_ready(taskmgr))
 			isc__taskmgr_dispatch(taskmgr);
