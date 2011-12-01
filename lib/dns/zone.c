@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.648 2011/11/28 03:14:58 marka Exp $ */
+/* $Id: zone.c,v 1.649 2011/12/01 15:58:46 smann Exp $ */
 
 /*! \file */
 
@@ -4732,6 +4732,7 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone,
 	/*
 	 * Everything is ok so attach to the zone.
 	 */
+	zone->curmaster = 0;
 	zone->mastersok = newok;
 	zone->masters = newaddrs;
 	zone->masterkeynames = newnames;
