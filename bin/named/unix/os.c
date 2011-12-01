@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.89.12.8 2011/11/30 23:06:40 marka Exp $ */
+/* $Id: os.c,v 1.89.12.9 2011/12/01 03:00:14 marka Exp $ */
 
 /*! \file */
 
@@ -460,16 +460,14 @@ ns_os_daemonize(void) {
 void
 ns_os_started(void) {
 	char buf = 0;
-	int n;
 
 	/*
 	 * Signal to the parent that we started successfully.
 	 */
 	if (dfd[0] != -1 && dfd[1] != -1) {
-		if ((n = write(dfd[1], &buf, 1)) != 1)
+		if (write(dfd[1], &buf, 1) != 1)
 			ns_main_earlyfatal("unable to signal parent that we "
-					   "otherwise started successfully "
-					   "(%d,%d).", n, errno);
+					   "otherwise started successfully.");
 		close(dfd[1]);
 		dfd[0] = dfd[1] = -1;
 	}

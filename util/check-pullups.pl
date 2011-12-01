@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 2004, 2007, 2011  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2001-2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: check-pullups.pl,v 1.12.332.2 2011/11/30 23:45:15 tbox Exp $
+# $Id: check-pullups.pl,v 1.12.332.3 2011/12/01 03:00:15 marka Exp $
 
 # Given two CHANGES files, list [bug] entries present in the
 # first one but not in the second one.
@@ -87,7 +87,7 @@ foreach my $c (sort {$a <=> $b} keys %$c1) {
 		print $c1->{$c}->{text};
 	}
 	if (exists($c2->{$c}) && $category ne "placeholder" &&
-	    !exists($c3->{$c}) && $c2->{$c}->{text} ne $text) {
+	    $c2->{$c}->{text} ne $text) {
 		if ($msg ne "TEXT\n") {
 			$msg = "TEXT\n";
 			print $msg;
