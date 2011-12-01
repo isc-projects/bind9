@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.343 2011/11/30 00:48:51 marka Exp $ */
+/* $Id: dighost.c,v 1.344 2011/12/01 00:53:58 marka Exp $ */
 
 /*! \file
  *  \note
@@ -82,6 +82,7 @@
 #include <isc/print.h>
 #include <isc/random.h>
 #include <isc/result.h>
+#include <isc/serial.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/timer.h>
@@ -743,7 +744,7 @@ make_empty_lookup(void) {
 	looknew->xfr_q = NULL;
 	looknew->current_query = NULL;
 	looknew->doing_xfr = ISC_FALSE;
-	looknew->ixfr_serial = ISC_FALSE;
+	looknew->ixfr_serial = 0;
 	looknew->trace = ISC_FALSE;
 	looknew->trace_root = ISC_FALSE;
 	looknew->identify = ISC_FALSE;
@@ -2869,8 +2870,10 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_soa_t soa;
-	isc_uint32_t serial;
+	isc_uint32_t ixfr_serial = query->lookup->ixfr_serial, serial;
 	isc_result_t result;
+	isc_boolean_t ixfr = query->lookup->rdtype == dns_rdatatype_ixfr;
+	isc_boolean_t axfr = query->lookup->rdtype == dns_rdatatype_axfr;
 
 	debug("check_for_more_data()");
 
@@ -2920,6 +2923,7 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 					query->second_rr_rcvd = ISC_TRUE;
 					query->second_rr_serial = 0;
 					debug("got the second rr as nonsoa");
+					axfr = ISC_TRUE;
 					goto next_rdata;
 				}
 
@@ -2929,6 +2933,7 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 				 */
 				if (rdata.type != dns_rdatatype_soa)
 					goto next_rdata;
+
 				/* Now we have an SOA.  Work with it. */
 				debug("got an SOA");
 				result = dns_rdata_tostruct(&rdata, &soa, NULL);
@@ -2938,15 +2943,17 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 				if (!query->first_soa_rcvd) {
 					query->first_soa_rcvd = ISC_TRUE;
 					query->first_rr_serial = serial;
-					debug("this is the first %d",
-					       query->lookup->ixfr_serial);
-					if (query->lookup->ixfr_serial >=
-					    serial)
+					debug("this is the first serial %u",
+					      serial);
+					if (ixfr && isc_serial_ge(ixfr_serial,
+								  serial)) {
+						debug("got up to date "
+						      "response");
 						goto doexit;
+					}
 					goto next_rdata;
 				}
-				if (query->lookup->rdtype ==
-				    dns_rdatatype_axfr) {
+				if (axfr) {
 					debug("doing axfr, got second SOA");
 					goto doexit;
 				}
@@ -2956,21 +2963,11 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 						      "empty zone");
 						goto doexit;
 					}
-					debug("this is the second %d",
-					       query->lookup->ixfr_serial);
+					debug("this is the second serial %u",
+					      serial);
 					query->second_rr_rcvd = ISC_TRUE;
 					query->second_rr_serial = serial;
 					goto next_rdata;
-				}
-				if (query->second_rr_serial == 0) {
-					/*
-					 * If the second RR was a non-SOA
-					 * record, and we're getting any
-					 * other SOA, then this is an
-					 * AXFR, and we're done.
-					 */
-					debug("done, since axfr");
-					goto doexit;
 				}
 				/*
 				 * If we get to this point, we're doing an
@@ -2987,7 +2984,7 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 					debug("done with ixfr");
 					goto doexit;
 				}
-				debug("meaningless soa %d", serial);
+				debug("meaningless soa %u", serial);
 			next_rdata:
 				result = dns_rdataset_next(rdataset);
 			} while (result == ISC_R_SUCCESS);

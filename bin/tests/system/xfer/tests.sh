@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.34 2011/03/11 00:43:53 marka Exp $
+# $Id: tests.sh,v 1.35 2011/12/01 00:53:58 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -200,6 +200,14 @@ test -f ns7/slave.bk.jnl || tmp=1
 
 if test $tmp != 0 ; then echo "I:failed"; fi
 status=`expr $status + $tmp`
+
+echo "I:check that a multi-message uncompressable zone transfers"
+$DIG axfr . -p 5300 @10.53.0.4 | grep SOA > axfr.out
+if test `wc -l < axfr.out` != 2
+then
+	 echo "I:failed"
+	 status=`expr $status + 1`
+fi
 
 # now we test transfers with assorted TSIG glitches
 DIGCMD="$DIG $DIGOPTS @10.53.0.4 -p 5300"
