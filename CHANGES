@@ -1,7 +1,7 @@
 3231.	[bug]		named could fail to send a uncompressable zone.
 			[RT #26796]
 
-3230.	[bug[		'dig axfr' failed to properly handle a multi-message
+3230.	[bug]		'dig axfr' failed to properly handle a multi-message
 			axfr with a serial of 0. [RT #26796]
 
 3229.	[bug]		Fix local variable to struct var assignment
