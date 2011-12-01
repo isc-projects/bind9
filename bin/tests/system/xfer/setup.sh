@@ -15,7 +15,10 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.5.558.3 2011/03/11 00:50:42 marka Exp $
+# $Id: setup.sh,v 1.5.558.4 2011/12/01 01:03:07 marka Exp $
+
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
 
 sh clean.sh
 
@@ -26,4 +29,6 @@ sh ../genzone.sh 6 3 >ns6/master.db
 sh ../genzone.sh 7 >ns7/master2.db
 
 rm -f ns4/*.db ns4/*.jnl
+cp -f ns4/root.db.in ns4/root.db
+$PERL -e 'for ($i=0;$i<10000;$i++){ printf("x%u 0 in a 10.53.0.1\n", $i);}' >> ns4/root.db
 cp -f ns4/named.conf.base ns4/named.conf
