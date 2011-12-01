@@ -67,17 +67,17 @@ rt10864				open	marka	// NSEC caching @ delegation
 rt11398d			open	sra	// doxygen dev
 rt11398e			open	sra
 rt11543				open	jakob
-rt11733				open	jakob
+rt11733				closed	jakob
 rt11733b			open	jakob
 rt1219				new	smann	// 2011-10-31 14:00 +0000
 rt13489				review	marka	// Solaris bug fixes
 rt13555				open	marka	// nslookup name failure
 rt13562				open	marka
-rt14654				open	
+rt14654				closed	
 rt14815				open		// stats blind spots	
-rt14895				open	jinmei
-rt14895b			open	jinmei
-rt14951a			open	
+rt14895				closed	jinmei
+rt14895b			closed	jinmei
+rt14951a			closed	
 rt15327				open	
 rt15452a			open	marka	// NSEC3
 rt15452b			new	marka	// 2008-04-04 05:06 +0000
@@ -94,27 +94,27 @@ rt16402				open
 rt16428				open	
 rt16443				open	marka	// post 9.4.0
 rt16519				open	marka	// epsilon for .DE
-rt16671				open	marka	// Silence Coverity reports
-rt16760				open	explorer	// 2007-03-19 14:59 +0000
+rt16671				16671	marka	// Silence Coverity reports
+rt16760				closed	explorer	// 2007-03-19 14:59 +0000
 rt16806				open	marka	// 2007-04-24 04:38 +0000
-rt16844				open	marka	// EVP conversion
+rt16844				closed	marka	// EVP conversion
 rt16857				open	marka	// 2007-05-14 03:45 +0000
-rt17061				open	marka	// 2007-08-02 02:08 +0000
-rt17091				open	evan
-rt17099				open	marka	// 2007-09-02 23:42 +0000
-rt17138				open	marka	// 2007-09-11 01:39 +0000
-rt17146				open	
+rt17061				closed	marka	// 2007-08-02 02:08 +0000
+rt17091				closed	evan
+rt17099				closed	marka	// 2007-09-02 23:42 +0000
+rt17138				closed	marka	// 2007-09-11 01:39 +0000
+rt17146				closed	
 rt17151				open	marka	// 2007-09-18 00:34 +0000
 rt17214				review	jakob
 rt17214b			new	each	// 2008-05-07 00:27 +0000
 rt17224				new	marka	// 2008-02-08 04:24 +0000
 rt17261				new	marka	// 2008-01-22 13:29 +0000
-rt1727				open		// ixfr-from-differences workfile
+rt1727				closed		// ixfr-from-differences workfile
 rt17301				new	marka	// 2008-01-08 04:27 +0000
 rt17312				new	marka	// 2008-01-04 05:16 +0000
-rt17347				open	each	// 2007-12-17 23:48 +0000
-rt17374				open	each	// 2007-12-19 05:51 +0000
-rt17375				open	each	// 2007-12-20 16:47 +0000
+rt17347				closed	each	// 2007-12-17 23:48 +0000
+rt17374				closed	each	// 2007-12-19 05:51 +0000
+rt17375				closed	each	// 2007-12-20 16:47 +0000
 rt17435				new	
 rt17441				new	marka	// 2008-01-08 03:41 +0000
 rt17451				new	fdupont	// Delete RB tree order
@@ -533,33 +533,33 @@ rt25452				new	each	// 2011-09-06 17:14 +0000
 rt25541_v96			new	each	// 2011-08-19 00:13 +0000
 rt25541_v97			new	each	// 2011-08-18 23:51 +0000
 rt25690				new	marka	// 2011-11-04 04:53 +0000
-rt25726				new	marka	// 2011-10-14 06:30 +0000
+rt25726				closed	marka	// 2011-10-14 06:30 +0000
 rt25768				new	each	// 2011-09-09 02:20 +0000
 rt25867				new	each	// 2011-10-26 06:18 +0000
 rt25960				new	each	// 2011-11-03 03:22 +0000
-rt26014				new	marka	// 2011-10-06 01:31 +0000
-rt26017				new	marka	// 2011-10-05 05:21 +0000
+rt26014				closed	marka	// 2011-10-06 01:31 +0000
+rt26017				closed	marka	// 2011-10-05 05:21 +0000
 rt26038				new	each	// 2011-10-03 21:46 +0000
 rt26044				new	each	// 2011-10-04 16:08 +0000
 rt26172				new	vjs	// 2011-10-15 22:19 +0000
 rt26180				new	vjs	// 2011-10-16 17:07 +0000
 rt26186				new	marka	// 2011-10-17 11:20 +0000
-rt26200				new	marka	// 2011-10-19 03:46 +0000
-rt26206				new	marka	// 2011-10-19 03:28 +0000
+rt26200				closed	marka	// 2011-10-19 03:46 +0000
+rt26206				closed	marka	// 2011-10-19 03:28 +0000
 rt26215				new	each	// 2011-10-20 16:23 +0000
-rt26224				new	marka	// 2011-10-20 11:35 +0000
+rt26224				closed	marka	// 2011-10-20 11:35 +0000
 rt26232				new	each	// 2011-11-08 00:48 +0000
 rt26386				new	marka	// 2011-11-01 05:12 +0000
-rt26392				new	marka	// 2011-11-01 06:03 +0000
-rt26416				new	marka	// 2011-11-03 03:34 +0000
-rt26507				new	marka	// 2011-11-21 05:33 +0000
+rt26392				closed	marka	// 2011-11-01 06:03 +0000
+rt26416				closed	marka	// 2011-11-03 03:34 +0000
+rt26507				closed	marka	// 2011-11-21 05:33 +0000
 rt26523				new	each	// 2011-11-15 16:42 +0000
 rt26587				new	each	// 2011-11-16 00:01 +0000
-rt26624				new	marka	// 2011-11-18 11:47 +0000
+rt26624				closed	marka	// 2011-11-18 11:47 +0000
+rt26684				closed	marka	// 2011-11-28 05:59 +0000
+rt26796				closed	marka	// 2011-11-29 06:37 +0000
 rt26632				new	marka	// 2011-11-30 05:18 +0000
 rt26677				new	marka	// 2011-11-29 23:26 +0000
-rt26684				new	marka	// 2011-11-28 05:59 +0000
-rt26796				new	marka	// 2011-11-29 06:37 +0000
 rt26830				new	marka	// 2011-11-30 22:58 +0000
 shane_dbbackend			open	
 skan				open	explorer
