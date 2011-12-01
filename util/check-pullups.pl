@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2011  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2001-2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: check-pullups.pl,v 1.12.332.3 2011/12/01 03:00:15 marka Exp $
+# $Id: check-pullups.pl,v 1.12.332.4 2011/12/01 23:45:29 tbox Exp $
 
 # Given two CHANGES files, list [bug] entries present in the
 # first one but not in the second one.
