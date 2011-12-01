@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.247.172.10 2011/10/28 05:00:03 marka Exp $ */
+/* $Id: adb.c,v 1.247.172.11 2011/12/01 00:20:32 smann Exp $ */
 
 /*! \file
  *
@@ -3647,6 +3647,7 @@ dns_adb_dropednssize(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 	addr->entry->edns_fetch_flag = flag_to_use;
 	addr->entry->edns_expires_timestamp = expires_ts_to_use;
 	addr->entry->edns_timer_set = timer_setting_to_use;
+	addr->entry->edns_big_size = length_to_use;
 
 	UNLOCK(&adb->entrylocks[bucket]);
 }
