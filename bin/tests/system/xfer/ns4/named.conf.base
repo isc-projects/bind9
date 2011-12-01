@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named.conf.base,v 1.2.2.2 2011/03/04 22:03:27 each Exp $ */
+/* $Id: named.conf.base,v 1.2.2.3 2011/12/01 01:00:51 marka Exp $ */
 
 options {
 	query-source address 10.53.0.4;
@@ -45,4 +45,9 @@ key tsig_key. {
 
 controls {
 	inet 10.53.0.4 port 9953 allow { any; } keys { rndc_key; };
+};
+
+zone "." {
+	type master;
+	file "root.db";
 };
