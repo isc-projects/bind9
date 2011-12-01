@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named.conf.base,v 1.2.6.3 2011/09/23 00:37:28 each Exp $ */
+/* $Id: named.conf.base,v 1.2.6.4 2011/12/01 01:05:02 marka Exp $ */
 
 options {
 	query-source address 10.53.0.4;
@@ -40,4 +40,9 @@ key unused_key. {
 
 controls {
 	inet 10.53.0.4 port 9953 allow { any; } keys { rndc_key; };
+};
+
+zone "." {
+	type master;
+	file "root.db";
 };

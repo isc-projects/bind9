@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.131.26.8 2011/07/28 23:46:13 tbox Exp $ */
+/* $Id: xfrout.c,v 1.131.26.9 2011/12/01 01:05:01 marka Exp $ */
 
 #include <config.h>
 
@@ -1482,6 +1482,13 @@ sendstream(xfrout_ctx_t *xfr) {
 			isc_buffer_free(&xfr->lasttsig);
 
 		/*
+		 * Account for reserved space.
+		 */
+		if (xfr->tsigkey != NULL)
+			INSIST(msg->reserved != 0U);
+		isc_buffer_add(&xfr->buf, msg->reserved);
+
+		/*
 		 * Include a question section in the first message only.
 		 * BIND 8.2.1 will not recognize an IXFR if it does not
 		 * have a question section.
@@ -1519,9 +1526,13 @@ sendstream(xfrout_ctx_t *xfr) {
 			ISC_LIST_APPEND(qname->list, qrdataset, link);
 
 			dns_message_addname(msg, qname, DNS_SECTION_QUESTION);
-		}
-		else
+		} else {
+			/*
+			 * Reserve space for the 12-byte message header
+			 */
+			isc_buffer_add(&xfr->buf, 12);
 			msg->tcp_continuation = 1;
+		}
 	}
 
 	/*
