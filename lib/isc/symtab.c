@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: symtab.c,v 1.33 2011/11/30 23:46:25 tbox Exp $ */
+/* $Id: symtab.c,v 1.34 2011/12/01 01:33:27 marka Exp $ */
 
 /*! \file */
 
@@ -194,6 +194,7 @@ grow_table(isc_symtab_t *symtab) {
 
 	newsize = symtab->size * 2;
 	newmax = newsize * 3 / 4;
+	INSIST(newsize > 0U && newmax > 0U);
 
 	newtable = isc_mem_get(symtab->mctx, newsize * sizeof(eltlist_t));
 	if (newtable == NULL)
