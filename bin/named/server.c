@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.631 2011/11/29 00:49:25 marka Exp $ */
+/* $Id: server.c,v 1.632 2011/12/02 02:44:01 marka Exp $ */
 
 /*! \file */
 
@@ -7383,7 +7383,7 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args,
 		 isc_buffer_t *text)
 {
 	isc_result_t result, tresult;
-	dns_zone_t *zone = NULL;
+	dns_zone_t *zone = NULL, *raw = NULL;
 	dns_zonetype_t type;
 	char classstr[DNS_RDATACLASS_FORMATSIZE];
 	char zonename[DNS_NAME_FORMATSIZE];
@@ -7414,6 +7414,12 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args,
 			      freeze ? "freezing" : "thawing",
 			      isc_result_totext(tresult));
 		return (tresult);
+	}
+	dns_zone_getraw(zone, &raw);
+	if (raw != NULL) {
+		dns_zone_detach(&zone);
+		dns_zone_attach(raw, &zone);
+		dns_zone_detach(&raw);
 	}
 	type = dns_zone_gettype(zone);
 	if (type != dns_zone_master) {

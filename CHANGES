@@ -1,3 +1,6 @@
+3233.	[bug]		'rndc freeze/thaw' didn't work for inline zones.
+			[RT #26632]
+
 3232.	[bug]		Zero zone->curmaster before return in
 			dns_zone_setmasterswithkeys(). [RT #26732]
 

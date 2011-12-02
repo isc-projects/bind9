@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.6 2011/10/30 22:59:45 each Exp $
+# $Id: clean.sh,v 1.7 2011/12/02 02:44:01 marka Exp $
 
 rm -f */named.memstats
 rm -f */named.run
@@ -53,3 +53,5 @@ rm -f */*.jbk
 rm -f random.data
 rm -f dig.out.ns*.test*
 rm -f signing.out*
+rm -f freeze.test*
+rm -f thaw.test*

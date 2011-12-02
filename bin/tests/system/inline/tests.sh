@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.6 2011/10/28 06:20:05 each Exp $
+# $Id: tests.sh,v 1.7 2011/12/02 02:44:01 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -548,5 +548,61 @@ done
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo "I:checking rndc freeze/thaw of dynamic inline zone ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 freeze dynamic > freeze.test$n 2>&1 || ret=1 
+sleep 1
+awk '$2 == ";" && $3 == "serial" { print $1 + 1, $2, $3; next; }
+     { print; }
+     END { print "freeze1.dynamic. 0 TXT freeze1"; } ' ns3/dynamic.db > ns3/dynamic.db.new
+mv ns3/dynamic.db.new ns3/dynamic.db
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 thaw dynamic > thaw.test$n 2>&1 || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:check added record freeze1.dynamic ($n)"
+for i in 1 2 3 4 5 6 7 8 9
+do
+    ret=0
+    $DIG $DIGOPTS @10.53.0.3 -p 5300 freeze1.dynamic TXT > dig.out.ns3.test$n
+    grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
+    grep "ANSWER: 2," dig.out.ns3.test$n > /dev/null || ret=1
+    test $ret = 0 && break
+    sleep 1
+done
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+# allow 1 second so that file time stamps change
+sleep 1
+
+n=`expr $n + 1`
+echo "I:checking rndc freeze/thaw of server ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 freeze > freeze.test$n 2>&1 || ret=1
+sleep 1
+awk '$2 == ";" && $3 == "serial" { print $1 + 1, $2, $3; next; }
+     { print; }
+     END { print "freeze2.dynamic. 0 TXT freeze2"; } ' ns3/dynamic.db > ns3/dynamic.db.new
+mv ns3/dynamic.db.new ns3/dynamic.db
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 thaw > thaw.test$n 2>&1 || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:check added record freeze2.dynamic ($n)"
+for i in 1 2 3 4 5 6 7 8 9
+do
+    ret=0
+    $DIG $DIGOPTS @10.53.0.3 -p 5300 freeze2.dynamic TXT > dig.out.ns3.test$n
+    grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
+    grep "ANSWER: 2," dig.out.ns3.test$n > /dev/null || ret=1
+    test $ret = 0 && break
+    sleep 1
+done
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 exit $status

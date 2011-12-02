@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.c,v 1.56 2011/09/07 00:50:06 marka Exp $ */
+/* $Id: zt.c,v 1.57 2011/12/02 02:44:01 marka Exp $ */
 
 /*! \file */
 
@@ -357,15 +357,25 @@ freezezones(dns_zone_t *zone, void *uap) {
 	isc_result_t result = ISC_R_SUCCESS;
 	char classstr[DNS_RDATACLASS_FORMATSIZE];
 	char zonename[DNS_NAME_FORMATSIZE];
+	dns_zone_t *raw = NULL;
 	dns_view_t *view;
 	const char *vname;
 	const char *sep;
 	int level;
 
-	if (dns_zone_gettype(zone) != dns_zone_master)
+	dns_zone_getraw(zone, &raw);
+	if (raw != NULL)
+		zone = raw;
+	if (dns_zone_gettype(zone) != dns_zone_master) {
+		if (raw != NULL)
+			dns_zone_detach(&raw);
 		return (ISC_R_SUCCESS);
-	if (!dns_zone_isdynamic(zone, ISC_TRUE))
+	}
+	if (!dns_zone_isdynamic(zone, ISC_TRUE)) {
+		if (raw != NULL)
+			dns_zone_detach(&raw);
 		return (ISC_R_SUCCESS);
+	}
 
 	frozen = dns_zone_getupdatedisabled(zone);
 	if (freeze) {
@@ -402,6 +412,8 @@ freezezones(dns_zone_t *zone, void *uap) {
 		      freeze ? "freezing" : "thawing",
 		      zonename, classstr, sep, vname,
 		      isc_result_totext(result));
+	if (raw != NULL)
+		dns_zone_detach(&raw);
 	return (result);
 }
 
