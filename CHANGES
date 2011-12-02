@@ -1,3 +1,5 @@
+3234.	[bug]		'make depend' produced invalid makefiles. [RT #26830]
+
 3233.	[bug]		'rndc freeze/thaw' didn't work for inline zones.
 			[RT #26632]
 
