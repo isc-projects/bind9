@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: errno2result.h,v 1.12 2007/06/19 23:47:18 tbox Exp $ */
+/* $Id: errno2result.h,v 1.13 2011/12/02 07:15:17 marka Exp $ */
 
 #ifndef UNIX_ERRNO2RESULT_H
 #define UNIX_ERRNO2RESULT_H 1
@@ -31,8 +31,10 @@
 
 ISC_LANG_BEGINDECLS
 
+#define isc__errno2result(x) isc___errno2result(x, __FILE__, __LINE__)
+
 isc_result_t
-isc__errno2result(int posixerrno);
+isc___errno2result(int posixerrno, const char *file, unsigned int line);
 
 ISC_LANG_ENDDECLS
 
