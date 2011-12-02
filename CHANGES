@@ -1,3 +1,5 @@
+3234.	[bug]		'make depend' produced invalid makefiles. [RT #26830]
+
 3231.	[bug]		named could fail to send a uncompressable zone.
 			[RT #26796]
 
