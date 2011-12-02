@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: errno2result.c,v 1.17.558.1 2011/12/02 07:16:29 marka Exp $ */
+/* $Id: errno2result.c,v 1.17.558.2 2011/12/02 23:45:51 tbox Exp $ */
 
 /*! \file */
 
@@ -55,7 +55,7 @@ isc___errno2result(int posixerrno, const char *file, unsigned int line) {
 		return (ISC_R_IOERROR);
 	case ENOMEM:
 		return (ISC_R_NOMEMORY);
-	case ENFILE:	
+	case ENFILE:
 	case EMFILE:
 		return (ISC_R_TOOMANYOPENFILES);
 	case EPIPE:
