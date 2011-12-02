@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.6 2011/10/26 23:46:14 tbox Exp $
+# $Id: tests.sh,v 1.7 2011/12/02 04:14:33 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -60,8 +60,13 @@ israw ns2/transfer.db.txt && ret=1
 status=`expr $status + $ret`
 
 echo "I:checking that slave formerly in text format is now raw"
-ret=0
-israw ns2/formerly-text.db || ret=1
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+    ret=0
+    israw ns2/formerly-text.db > /dev/null 2>&1 || ret=1
+    [ $ret -eq 0 ] && break
+    sleep 1
+done
 [ $ret -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 
