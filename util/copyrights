@@ -2731,8 +2731,8 @@
 ./lib/isc/unix/app.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2009
 ./lib/isc/unix/dir.c				C	1999,2000,2001,2004,2005,2007,2008,2009,2011
 ./lib/isc/unix/entropy.c			C	2000,2001,2002,2003,2004,2005,2006,2007,2008
-./lib/isc/unix/errno2result.c			C	2000,2001,2002,2004,2005,2007
-./lib/isc/unix/errno2result.h			C	2000,2001,2004,2005,2007
+./lib/isc/unix/errno2result.c			C	2000,2001,2002,2004,2005,2007,2011
+./lib/isc/unix/errno2result.h			C	2000,2001,2004,2005,2007,2011
 ./lib/isc/unix/file.c				C	2000,2001,2002,2004,2005,2007,2009,2011
 ./lib/isc/unix/fsaccess.c			C	2000,2001,2004,2005,2006,2007
 ./lib/isc/unix/ifiter_getifaddrs.c		C	2003,2004,2005,2007,2008,2009
@@ -3048,7 +3048,7 @@
 ./make/.cvsignore				X	1998,1999,2000,2001
 ./make/Makefile.in				MAKE	1998,1999,2000,2001,2004,2007
 ./make/includes.in				MAKE	1999,2000,2001,2004,2005,2007
-./make/mkdep.in					X	1999,2000,2001,2006
+./make/mkdep.in					X	1999,2000,2001,2006,2011
 ./make/rules.in					MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011
 ./mkinstalldirs					X	1996
 ./release-notes.css				X	2011
