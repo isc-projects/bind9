@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.117 2011/11/28 03:14:58 marka Exp $ */
+/* $Id: journal.c,v 1.118 2011/12/04 23:48:12 marka Exp $ */
 
 #include <config.h>
 
@@ -1910,8 +1910,7 @@ dns_diff_subtract(dns_diff_t diff[2], dns_diff_t *r) {
 }
 
 static isc_result_t
-diff_namespace(isc_mem_t *mctx,
-	       dns_db_t *dba, dns_dbversion_t *dbvera,
+diff_namespace(dns_db_t *dba, dns_dbversion_t *dbvera,
 	       dns_db_t *dbb, dns_dbversion_t *dbverb,
 	       unsigned int options, dns_diff_t *resultdiff)
 {
@@ -1927,8 +1926,8 @@ diff_namespace(isc_mem_t *mctx,
 	db[0] = dba, db[1] = dbb;
 	ver[0] = dbvera, ver[1] = dbverb;
 
-	dns_diff_init(mctx, &diff[0]);
-	dns_diff_init(mctx, &diff[1]);
+	dns_diff_init(resultdiff->mctx, &diff[0]);
+	dns_diff_init(resultdiff->mctx, &diff[1]);
 
 	dns_fixedname_init(&fixname[0]);
 	dns_fixedname_init(&fixname[1]);
@@ -2006,8 +2005,11 @@ diff_namespace(isc_mem_t *mctx,
 
  failure:
 	dns_dbiterator_destroy(&dbit[1]);
+
  cleanup_iterator:
 	dns_dbiterator_destroy(&dbit[0]);
+	dns_diff_clear(&diff[0]);
+	dns_diff_clear(&diff[1]);
 	return (result);
 }
 
@@ -2018,33 +2020,48 @@ diff_namespace(isc_mem_t *mctx,
  * possibly very large transaction.
  */
 isc_result_t
-dns_db_diff(isc_mem_t *mctx,
-	    dns_db_t *dba, dns_dbversion_t *dbvera,
-	    dns_db_t *dbb, dns_dbversion_t *dbverb,
-	    const char *journal_filename)
+dns_db_diff(isc_mem_t *mctx, dns_db_t *dba, dns_dbversion_t *dbvera,
+	    dns_db_t *dbb, dns_dbversion_t *dbverb, const char *filename)
+{
+	isc_result_t result;
+	dns_diff_t diff;
+	
+	dns_diff_init(mctx, &diff);
+
+	result = dns_db_diffx(&diff, dba, dbvera, dbb, dbverb, filename);
+
+	dns_diff_clear(&diff);
+
+	return (result);
+}
+
+isc_result_t
+dns_db_diffx(dns_diff_t *diff, dns_db_t *dba, dns_dbversion_t *dbvera,
+	     dns_db_t *dbb, dns_dbversion_t *dbverb, const char *filename)
 {
 	isc_result_t result;
 	dns_journal_t *journal = NULL;
-	dns_diff_t resultdiff;
 
-	result = dns_journal_open(mctx, journal_filename, ISC_TRUE, &journal);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	dns_diff_init(mctx, &resultdiff);
-
-	CHECK(diff_namespace(mctx, dba, dbvera, dbb, dbverb,
-			     DNS_DB_NONSEC3, &resultdiff));
-	CHECK(diff_namespace(mctx, dba, dbvera, dbb, dbverb,
-			     DNS_DB_NSEC3ONLY, &resultdiff));
-	if (ISC_LIST_EMPTY(resultdiff.tuples)) {
-		isc_log_write(JOURNAL_DEBUG_LOGARGS(3), "no changes");
-	} else {
-		CHECK(dns_journal_write_transaction(journal, &resultdiff));
+	if (filename != NULL) {
+		result = dns_journal_open(diff->mctx, filename, ISC_TRUE,
+					  &journal);
+		if (result != ISC_R_SUCCESS)
+			return (result);
 	}
+
+	CHECK(diff_namespace(dba, dbvera, dbb, dbverb, DNS_DB_NONSEC3, diff));
+	CHECK(diff_namespace(dba, dbvera, dbb, dbverb, DNS_DB_NSEC3ONLY, diff));
+
+	if (journal != NULL) {
+		if (ISC_LIST_EMPTY(diff->tuples))
+			isc_log_write(JOURNAL_DEBUG_LOGARGS(3), "no changes");
+		else
+			CHECK(dns_journal_write_transaction(journal, diff));
+	}
+
  failure:
-	dns_diff_clear(&resultdiff);
-	dns_journal_destroy(&journal);
+	if (journal != NULL)
+		dns_journal_destroy(&journal);
 	return (result);
 }
 

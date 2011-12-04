@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.10 2011/10/28 06:20:07 each Exp $
+# $Id: Makefile.in,v 1.11 2011/12/04 23:48:12 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -38,12 +38,13 @@ LIBS =		@LIBS@ @ATFLIBS@
 
 OBJS =		dnstest.@O@
 SRCS =		dnstest.c master_test.c dbiterator_test.c time_test.c \
-		private_test.c update_test.c zonemgr_test.c zt_test.c
+		private_test.c update_test.c zonemgr_test.c zt_test.c \
+		dbdiff_test.c
 
 SUBDIRS =
 TARGETS =	master_test@EXEEXT@ dbiterator_test@EXEEXT@ time_test@EXEEXT@ \
 		private_test@EXEEXT@ update_test@EXEEXT@ zonemgr_test@EXEEXT@ \
-		zt_test@EXEEXT@ dbversion_test@EXEEXT@
+		zt_test@EXEEXT@ dbversion_test@EXEEXT@ dbdiff_test@EXEEXT@
 
 @BIND9_MAKE_RULES@
 
@@ -75,6 +76,11 @@ zonemgr_test@EXEEXT@: zonemgr_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 dbiterator_test@EXEEXT@: dbiterator_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			dbiterator_test.@O@ dnstest.@O@ ${DNSLIBS} \
+				${ISCLIBS} ${LIBS}
+
+dbdiff_test@EXEEXT@: dbdiff_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+			dbdiff_test.@O@ dnstest.@O@ ${DNSLIBS} \
 				${ISCLIBS} ${LIBS}
 
 dbversion_test@EXEEXT@: dbversion_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}

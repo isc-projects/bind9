@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dbiterator_test.c,v 1.5 2011/08/29 23:44:07 marka Exp $ */
+/* $Id: dbiterator_test.c,v 1.6 2011/12/04 23:48:12 marka Exp $ */
 
 /*! \file */
 
@@ -40,46 +40,6 @@
 #define TEST_ORIGIN	"test"
 
 static isc_result_t
-setup_db(const char *testfile, dns_dbtype_t dbtype, dns_db_t **db) {
-	isc_result_t		result;
-	int			len;
-	char			origin[sizeof(TEST_ORIGIN)];
-	dns_name_t		dns_origin;
-	isc_buffer_t		source;
-	isc_buffer_t		target;
-	unsigned char		name_buf[BUFLEN];
-
-	strcpy(origin, TEST_ORIGIN);
-	len = strlen(origin);
-	isc_buffer_init(&source, origin, len);
-	isc_buffer_add(&source, len);
-	isc_buffer_setactive(&source, len);
-	isc_buffer_init(&target, name_buf, BUFLEN);
-	dns_name_init(&dns_origin, NULL);
-
-	result = dns_name_fromtext(&dns_origin, &source, dns_rootname,
-				   0, &target);
-	if (result != ISC_R_SUCCESS)
-		return(result);
-
-	result = dns_db_create(mctx, "rbt", &dns_origin, dbtype,
-			       dns_rdataclass_in, 0, NULL, db);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	/*
-	 * atf-run changes us to a /tmp directory, so tests
-	 * that access test data files must first chdir to the proper
-	 * location.
-	 */
-	if (chdir(TESTS) == -1)
-		return (ISC_R_FAILURE);
-
-	result = dns_db_load(*db, testfile);
-	return (result);
-}
-
-static isc_result_t
 make_name(const char *src, dns_name_t *name) {
 	isc_buffer_t b;
 	isc_buffer_init(&b, src, strlen(src));
@@ -101,8 +61,8 @@ test_create(const atf_tc_t *tc) {
 	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = setup_db(atf_tc_get_md_var(tc, "X-filename"),
-			  dns_dbtype_cache, &db);
+	result = dns_test_loaddb(&db, dns_dbtype_cache, TEST_ORIGIN,
+				 atf_tc_get_md_var(tc, "X-filename"));
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_db_createiterator(db, 0, &iter);
@@ -150,8 +110,8 @@ test_walk(const atf_tc_t *tc) {
 	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = setup_db(atf_tc_get_md_var(tc, "X-filename"),
-			  dns_dbtype_cache, &db);
+	result = dns_test_loaddb(&db, dns_dbtype_cache, TEST_ORIGIN,
+				 atf_tc_get_md_var(tc, "X-filename"));
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_db_createiterator(db, 0, &iter);
@@ -213,8 +173,8 @@ static void test_reverse(const atf_tc_t *tc) {
 	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = setup_db(atf_tc_get_md_var(tc, "X-filename"),
-			  dns_dbtype_cache, &db);
+	result = dns_test_loaddb(&db, dns_dbtype_cache, TEST_ORIGIN,
+				 atf_tc_get_md_var(tc, "X-filename"));
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_db_createiterator(db, 0, &iter);
@@ -276,8 +236,8 @@ static void test_seek(const atf_tc_t *tc) {
 	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = setup_db(atf_tc_get_md_var(tc, "X-filename"),
-			  dns_dbtype_cache, &db);
+	result = dns_test_loaddb(&db, dns_dbtype_cache, TEST_ORIGIN,
+				 atf_tc_get_md_var(tc, "X-filename"));
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_db_createiterator(db, 0, &iter);
@@ -347,8 +307,8 @@ static void test_seek_empty(const atf_tc_t *tc) {
 	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = setup_db(atf_tc_get_md_var(tc, "X-filename"),
-			  dns_dbtype_cache, &db);
+	result = dns_test_loaddb(&db, dns_dbtype_cache, TEST_ORIGIN,
+				 atf_tc_get_md_var(tc, "X-filename"));
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_db_createiterator(db, 0, &iter);
@@ -404,8 +364,8 @@ static void test_seek_nx(const atf_tc_t *tc) {
 	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = setup_db(atf_tc_get_md_var(tc, "X-filename"),
-			  dns_dbtype_cache, &db);
+	result = dns_test_loaddb(&db, dns_dbtype_cache, TEST_ORIGIN,
+				 atf_tc_get_md_var(tc, "X-filename"));
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_db_createiterator(db, 0, &iter);

@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnstest.c,v 1.8 2011/10/10 02:46:16 marka Exp $ */
+/* $Id: dnstest.c,v 1.9 2011/12/04 23:48:12 marka Exp $ */
 
 /*! \file */
 
@@ -296,4 +296,28 @@ dns_test_nap(isc_uint32_t usec) {
 	 */
 	sleep((usec / 1000000) + 1);
 #endif
+}
+
+isc_result_t
+dns_test_loaddb(dns_db_t **db, dns_dbtype_t dbtype, const char *origin,
+	        const char *testfile)
+{
+	isc_result_t		result;
+	dns_fixedname_t		fixed;
+	dns_name_t		*name;
+
+	dns_fixedname_init(&fixed);
+	name = dns_fixedname_name(&fixed);
+
+	result = dns_name_fromstring(name, origin, 0, NULL);
+	if (result != ISC_R_SUCCESS)
+		return(result);
+
+	result = dns_db_create(mctx, "rbt", name, dbtype, dns_rdataclass_in,
+			       0, NULL, db);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	result = dns_db_load(*db, testfile);
+	return (result);
 }

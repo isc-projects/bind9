@@ -1,3 +1,7 @@
+3235.	[func]		dns_db_diffx, a extended dns_db_diff which returns
+			the generated diff and optionally writes it to a
+			journal. [RT #26386]
+
 3234.	[bug]		'make depend' produced invalid makefiles. [RT #26830]
 
 3233.	[bug]		'rndc freeze/thaw' didn't work for inline zones.

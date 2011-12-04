@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.h,v 1.40 2011/11/28 03:14:59 marka Exp $ */
+/* $Id: journal.h,v 1.41 2011/12/04 23:48:12 marka Exp $ */
 
 #ifndef DNS_JOURNAL_H
 #define DNS_JOURNAL_H 1
@@ -76,7 +76,7 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_db_createsoatuple(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
-		   dns_diffop_t op, dns_difftuple_t **tp);
+		      dns_diffop_t op, dns_difftuple_t **tp);
 /*!< brief
  * Create a diff tuple for the current database SOA.
  * XXX this probably belongs somewhere else.
@@ -270,12 +270,18 @@ dns_db_diff(isc_mem_t *mctx,
 	    dns_db_t *dba, dns_dbversion_t *dbvera,
 	    dns_db_t *dbb, dns_dbversion_t *dbverb,
 	    const char *journal_filename);
+
+isc_result_t
+dns_db_diffx(dns_diff_t *diff, dns_db_t *dba, dns_dbversion_t *dbvera,
+             dns_db_t *dbb, dns_dbversion_t *dbverb,
+             const char *journal_filename);
 /*%<
- * Compare the databases 'dba' and 'dbb' and generate a journal
+ * Compare the databases 'dba' and 'dbb' and generate a diff/journal
  * entry containing the changes to make 'dba' from 'dbb' (note
  * the order).  This journal entry will consist of a single,
  * possibly very large transaction.  Append the journal
- * entry to the journal file specified by 'journal_filename'.
+ * entry to the journal file specified by 'journal_filename' if
+ * non-NULL.
  */
 
 isc_result_t
