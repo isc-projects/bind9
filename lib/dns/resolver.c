@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.413.14.24 2011/12/05 16:57:27 each Exp $ */
+/* $Id: resolver.c,v 1.413.14.25 2011/12/05 17:27:27 each Exp $ */
 
 /*! \file */
 
@@ -1823,7 +1823,6 @@ resquery_send(resquery_t *query) {
 		     fctx->timeouts >= (MAX_EDNS0_TIMEOUTS * 2)) &&
 		    (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
 			query->options |= DNS_FETCHOPT_NOEDNS0;
-			query->options |= DNS_FETCHOPT_CACHENOEDNS;
 			fctx->reason = "disabling EDNS";
 		} else if ((triededns(fctx, &query->addrinfo->sockaddr) ||
 			    fctx->timeouts >= MAX_EDNS0_TIMEOUTS) &&
