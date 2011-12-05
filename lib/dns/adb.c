@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.247.172.11 2011/12/01 00:20:32 smann Exp $ */
+/* $Id: adb.c,v 1.247.172.12 2011/12/05 16:57:26 each Exp $ */
 
 /*! \file
  *
@@ -34,7 +34,6 @@
 #include <isc/netaddr.h>
 #include <isc/random.h>
 #include <isc/stats.h>
-#include <isc/stdio.h>		/* temporary */
 #include <isc/string.h>         /* Required for HP/UX (and others?) */
 #include <isc/task.h>
 #include <isc/util.h>
@@ -65,24 +64,6 @@
 #define DNS_ADBFETCH_VALID(x)     ISC_MAGIC_VALID(x, DNS_ADBFETCH_MAGIC)
 #define DNS_ADBFETCH6_MAGIC       ISC_MAGIC('a', 'd', 'F', '6')
 #define DNS_ADBFETCH6_VALID(x)    ISC_MAGIC_VALID(x, DNS_ADBFETCH6_MAGIC)
-
-/***
- *** Constants for EDNS0 packets
- *** DNS_ADB_EDNS0_MAX_LEN - max udpsize for edns0, should come from
- ***			     named.conf
- *** DNS_ADB_EDNS0_MIN_LEN - min udpsize for edns0
- *** DNS_ADB_EDNS_RESET_TIME - after this period of time, drop count
- ***			       is set to 0 and EDNS may be tried at
- ***			       bigger size - surface to user?
- *** DNS_ADB_EDNS_MAX_DROP_COUNT - after this many times EDNS has been
- ***				   reduced, edns->fetch_flag set
- *** DNS_ADB_EDNS_MAX_DROP_TIME - after this time retry EDNS at larger size
- ***/
-#define DNS_ADB_EDNS0_MAX_LEN   	4096
-#define DNS_ADB_EDNS0_MIN_LEN   	512
-#define DNS_ADB_EDNS_RESET_TIME  	300 /*make this user configurable?*/
-#define DNS_ADB_EDNS_MAX_DROP_COUNT 	5 /*make this user configurable?*/
-#define DNS_ADB_EDNS_MAX_DROP_TIME 	3600 /*make this user configurable?*/
 
 /*!
  * The number of buckets needs to be a prime (for good hashing).
@@ -1462,13 +1443,6 @@ new_adbentry(dns_adb_t *adb) {
 	isc_random_get(&r);
 	e->srtt = (r & 0x1f) + 1;
 	e->expires = 0;
-	e->edns_big_size = 0;
-	e->edns_last_size = 0;
-	e->edns_fetch_flag = 0;
-	e->edns_drop_timestamp = 0;
-	e->edns_drop_count = 0;
-	e->edns_expires_timestamp = 0;
-	e->edns_timer_set = isc_boolean_false;
 	ISC_LIST_INIT(e->lameinfo);
 	ISC_LINK_INIT(e, plink);
 

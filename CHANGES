@@ -1,3 +1,5 @@
+	--- 9.7.5b1 released ---
+
 3234.	[bug]		'make depend' produced invalid makefiles. [RT #26830]
 
 3231.	[bug]		named could fail to send a uncompressable zone.
@@ -16,8 +18,6 @@
 			and getservbyname() self thread safe. [RT #26232]
 
 3226.	[bug]		Address minor resource leakages. [RT #26624]
-
-	--- 9.7.5b1 released ---
 
 3221.	[bug]		Fixed a potential coredump on shutdown due to
 			referencing fetch context after it's been freed.
@@ -84,11 +84,6 @@
 			a hang on shutdown. [RT #26372]
 
 3187.	[port]		win32: support for Visual Studio 2008.	[RT #26356]
-
-3182.   [bug]           Auth servers behind firewalls which block packets
-                        greater than 512 bytes may cause other servers to
-                        perform poorly. Now, adb retains edns information
-                        and caches noedns servers. [RT #23392/24964]
 
 3179.	[port]		kfreebsd: build issues. [RT #26273]
 
