@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnstest.c,v 1.9 2011/12/04 23:48:12 marka Exp $ */
+/* $Id: dnstest.c,v 1.10 2011/12/05 20:51:41 marka Exp $ */
 
 /*! \file */
 
@@ -35,6 +35,7 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
+#include <dns/db.h>
 #include <dns/fixedname.h>
 #include <dns/log.h>
 #include <dns/name.h>
