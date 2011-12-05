@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.h,v 1.41 2011/12/04 23:48:12 marka Exp $ */
+/* $Id: journal.h,v 1.42 2011/12/05 23:46:35 tbox Exp $ */
 
 #ifndef DNS_JOURNAL_H
 #define DNS_JOURNAL_H 1
@@ -273,8 +273,8 @@ dns_db_diff(isc_mem_t *mctx,
 
 isc_result_t
 dns_db_diffx(dns_diff_t *diff, dns_db_t *dba, dns_dbversion_t *dbvera,
-             dns_db_t *dbb, dns_dbversion_t *dbverb,
-             const char *journal_filename);
+	     dns_db_t *dbb, dns_dbversion_t *dbverb,
+	     const char *journal_filename);
 /*%<
  * Compare the databases 'dba' and 'dbb' and generate a diff/journal
  * entry containing the changes to make 'dba' from 'dbb' (note

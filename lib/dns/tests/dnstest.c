@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnstest.c,v 1.10 2011/12/05 20:51:41 marka Exp $ */
+/* $Id: dnstest.c,v 1.11 2011/12/05 23:46:35 tbox Exp $ */
 
 /*! \file */
 
@@ -301,7 +301,7 @@ dns_test_nap(isc_uint32_t usec) {
 
 isc_result_t
 dns_test_loaddb(dns_db_t **db, dns_dbtype_t dbtype, const char *origin,
-	        const char *testfile)
+		const char *testfile)
 {
 	isc_result_t		result;
 	dns_fixedname_t		fixed;

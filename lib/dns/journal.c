@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.118 2011/12/04 23:48:12 marka Exp $ */
+/* $Id: journal.c,v 1.119 2011/12/05 23:46:35 tbox Exp $ */
 
 #include <config.h>
 
@@ -2025,7 +2025,7 @@ dns_db_diff(isc_mem_t *mctx, dns_db_t *dba, dns_dbversion_t *dbvera,
 {
 	isc_result_t result;
 	dns_diff_t diff;
-	
+
 	dns_diff_init(mctx, &diff);
 
 	result = dns_db_diffx(&diff, dba, dbvera, dbb, dbverb, filename);
