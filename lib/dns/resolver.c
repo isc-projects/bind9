@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.443 2011/11/23 22:53:53 each Exp $ */
+/* $Id: resolver.c,v 1.444 2011/12/05 17:10:51 each Exp $ */
 
 /*! \file */
 
@@ -1324,9 +1324,7 @@ fctx_setretryinterval(fetchctx_t *fctx, unsigned int rtt) {
 	 * We retry every .8 seconds the first two times through the address
 	 * list, and then we do exponential back-off.
 	 */
-	if (fctx->restarts == 0)
-		us = 400000;
-	else if (fctx->restarts < 3)
+	if (fctx->restarts < 3)
 		us = 800000;
 	else
 		us = (800000 << (fctx->restarts - 2));
@@ -1687,8 +1685,6 @@ resquery_send(resquery_t *query) {
 	isc_boolean_t cleanup_cctx = ISC_FALSE;
 	isc_boolean_t secure_domain;
 	isc_boolean_t connecting = ISC_FALSE;
-	unsigned int edns_fetchopt_flag;
-	isc_stdtime_t now;
 
 	fctx = query->fctx;
 	QTRACE("send");
@@ -1799,16 +1795,6 @@ resquery_send(resquery_t *query) {
 	(void) dns_peerlist_peerbyaddr(fctx->res->view->peers, &ipaddr, &peer);
 
 	/*
-	 * Get the fetchopt flag for this server from the adb cache
-	 * NOTE: if the NOEDNS flag has been set on addrinfo->flags,
-	 *       it will over write this below.
-	 */
-	isc_stdtime_get(&now);
-	edns_fetchopt_flag = dns_adb_getednsflag(fctx->adb, query->addrinfo,
-						 now);
-	query->options |= edns_fetchopt_flag;
-
-	/*
 	 * The ADB does not know about servers with "edns no".  Check this,
 	 * and then inform the ADB for future use.
 	 */
@@ -1842,24 +1828,18 @@ resquery_send(resquery_t *query) {
 	 *	* packet loss / link outage.
 	 */
 	if (fctx->timeout) {
-		if ((triededns512(fctx, &query->addrinfo->sockaddr) &&
-		     fctx->timeouts > MAX_EDNS0_TIMEOUTS) &&
+		if ((triededns512(fctx, &query->addrinfo->sockaddr) ||
+		     fctx->timeouts >= (MAX_EDNS0_TIMEOUTS * 2)) &&
 		    (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
 			query->options |= DNS_FETCHOPT_NOEDNS0;
 			query->options |= DNS_FETCHOPT_CACHENOEDNS;
 			fctx->reason = "disabling EDNS";
 		} else if ((triededns(fctx, &query->addrinfo->sockaddr) ||
-			    fctx->timeouts >= 1) &&
+			    fctx->timeouts >= MAX_EDNS0_TIMEOUTS) &&
 			   (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
 			query->options |= DNS_FETCHOPT_EDNS512;
-			if (edns_fetchopt_flag != DNS_FETCHOPT_EDNS512) {
-				dns_adb_dropednssize(fctx->adb, query->addrinfo,
-						    512, now);
-				fctx->reason = "reducing the advertised EDNS "
-					       "UDP packet size to 512 octets";
-			} else
-				fctx->reason = "continuing to use lower EDNS "
-					       "UDP packet size of 512 octets";
+			fctx->reason = "reducing the advertised EDNS UDP "
+				       "packet size to 512 octets";
 		}
 		fctx->timeout = ISC_FALSE;
 	}
@@ -1918,12 +1898,11 @@ resquery_send(resquery_t *query) {
 		goto cleanup_message;
 	}
 
-	if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
+	if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0)
 		add_triededns(fctx, &query->addrinfo->sockaddr);
 
-		if ((query->options & DNS_FETCHOPT_EDNS512) != 0)
-			add_triededns512(fctx, &query->addrinfo->sockaddr);
-	}
+	if ((query->options & DNS_FETCHOPT_EDNS512) != 0)
+		add_triededns512(fctx, &query->addrinfo->sockaddr);
 
 	/*
 	 * Clear CD if EDNS is not in use.
@@ -6582,25 +6561,6 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			}
 		}
 		goto done;
-#if 0
-	} else if ((query->options & DNS_FETCHOPT_NOEDNS0) != 0 &&
-		   (query->options & DNS_FETCHOPT_CACHENOEDNS) != 0 &&
-		   triededns512(fctx, &query->addrinfo->sockaddr)) {
-		char addrbuf[ISC_SOCKADDR_FORMATSIZE];
-		isc_sockaddr_format(&query->addrinfo->sockaddr, addrbuf,
-		sizeof(addrbuf));
-		/*
-		 * We had a successful response to a DNS_FETCHOPT_NOEDNS0
-		 * query.
-		 */
-		 isc_log_write(dns_lctx, DNS_LOGCATEGORY_EDNS_DISABLED,
-			       DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
-			       "%s: setting NOEDNS flag in adb cache for '%s'",
-			       fctx->info, addrbuf);
-		dns_adb_changeflags(fctx->adb, query->addrinfo,
-				    DNS_FETCHOPT_NOEDNS0,
-				    DNS_FETCHOPT_NOEDNS0);
-#endif
 	}
 
 	message = fctx->rmessage;
@@ -6744,10 +6704,6 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 		isc_sockaddr_format(&query->addrinfo->sockaddr, addrbuf,
 				    sizeof(addrbuf));
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_EDNS_DISABLED,
-			      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
-			      "%s: changed rcode: setting NOEDNS flag in "
-			      "adb cache for '%s'", fctx->info, addrbuf);
 		dns_adb_changeflags(fctx->adb, query->addrinfo,
 				    DNS_FETCHOPT_NOEDNS0,
 				    DNS_FETCHOPT_NOEDNS0);
@@ -6918,16 +6874,6 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		keep_trying = ISC_TRUE;
 		goto done;
 	}
-
-	/*
-	 * Update the packet received sizes
-	 */
-	if (((query->options & DNS_FETCHOPT_NOEDNS0) == 0) &&
-	    ((devent->attributes & DNS_DISPATCHATTR_UDP) != 0))
-		dns_adb_setednssize(fctx->adb,
-				    query->addrinfo,
-				    devent->buffer.length);
-
 
 	/*
 	 * Enforce delegations only zones like NET and COM.

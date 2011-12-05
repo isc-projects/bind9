@@ -1,3 +1,6 @@
+3236.	[bug]		Backed out changes #3182 and #3202, related to
+			EDNS(0) fallback behavior. [RT #26416]
+
 3235.	[func]		dns_db_diffx, a extended dns_db_diff which returns
 			the generated diff and optionally writes it to a
 			journal. [RT #26386]
