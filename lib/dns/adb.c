@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.254.14.10 2011/12/05 16:58:08 each Exp $ */
+/* $Id: adb.c,v 1.254.14.11 2011/12/05 17:25:04 each Exp $ */
 
 /*! \file
  *
@@ -250,31 +250,6 @@ struct dns_adbentry {
 	 * using dns_adb_findaddrinfo() to persist for a limited time
 	 * even though they are not necessarily associated with a
 	 * name.
-	 */
-
-
-	unsigned int			edns_big_size;
-	unsigned int			edns_last_size;
-	unsigned int			edns_fetch_flag;
-	unsigned int			edns_drop_count;
-	isc_stdtime_t			edns_drop_timestamp;
-	isc_stdtime_t			edns_expires_timestamp;
-	isc_boolean_t			edns_timer_set;
-	/*%<
-	 * The above fields beginning with edns_* determine
-	 * past success with edns for this server.
-	 * edns_big_size - biggest successful size received (e.g., 512)
-	 * edns_last_size - last packet size received
-	 * edns_fetch_flag - current EDNS state for this server (one of
-	 *                   DNS_FETCHOPT_NOEDNS0, DNS_FETCHOPT_EDNS512 or
-	 *		     0 meaning use DNS_ADB_EDNS0_MAX_LEN)
-	 * edns_drop_count - keeps count of the number of times EDNS udpsize
-	 *		     was dropped - reset to 0 every
-	 *		     DNS_ADB_EDNS_RESET_TIME
-	 * edns_drop_timestamp - The time at which the first EDNS drop
-	 *			 in packet size was recorded
-	 *
-	 * See also dns_adb_drop/setednssize()
 	 */
 
 	ISC_LIST(dns_adblameinfo_t)     lameinfo;
@@ -3931,170 +3906,6 @@ dns_adb_adjustsrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 
 	isc_stdtime_get(&now);
 	addr->entry->expires = now + ADB_ENTRY_WINDOW;
-
-	UNLOCK(&adb->entrylocks[bucket]);
-}
-
-unsigned int
-dns_adb_getednsflag(dns_adb_t *adb, dns_adbaddrinfo_t *addr, isc_stdtime_t now)
-{
-	int bucket = 0;
-	int flag_to_use = 0; /* assume max by default */
-
-	REQUIRE(DNS_ADB_VALID(adb));
-	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
-
-	/*
-	 * The purpose of this function is to return
-	 * edns_fetch_flag, which effectively sets the udpsize for EDNS
-	 * or turns off EDNS (if NOEDNS0 has been recorded).
-	 *
-	 * Also, this function checks to see if the timer needs resetting.
-	 * ---> this part should really be done via a callback?
-	 */
-
-	bucket = addr->entry->lock_bucket;
-	LOCK(&adb->entrylocks[bucket]);
-
-	if((addr->entry->edns_timer_set) &&
-	   (now >= addr->entry->edns_expires_timestamp)) {
-
-		/* Eventually, we may support more sizes */
-		if((addr->entry->edns_big_size <= 512) &&
-		   (addr->entry->edns_big_size > 0))
-			flag_to_use = DNS_FETCHOPT_EDNS512;
-
-		addr->entry->edns_fetch_flag = flag_to_use;
-		addr->entry->edns_expires_timestamp = 0;
-		addr->entry->edns_timer_set = isc_boolean_false;
-
-	}
-
-	flag_to_use = addr->entry->edns_fetch_flag;
-
-	UNLOCK(&adb->entrylocks[bucket]);
-
-	return(flag_to_use);
-}
-
-void
-dns_adb_setednssize(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
-		    unsigned int length)
-{
-	int bucket = 0;
-	unsigned int length_to_use;
-
-	REQUIRE(DNS_ADB_VALID(adb));
-	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
-
-	bucket = addr->entry->lock_bucket;
-	LOCK(&adb->entrylocks[bucket]);
-
-	/*
-	 * The purpose of this function is to record
-	 * the maximum sized udp response seen from the
-	 * instant server.
-	 */
-
-	length_to_use = addr->entry->edns_big_size;
-
-	if (length > DNS_ADB_EDNS0_MAX_LEN)
-		length = DNS_ADB_EDNS0_MAX_LEN;
-	if (length < DNS_ADB_EDNS0_MIN_LEN)
-		length = DNS_ADB_EDNS0_MIN_LEN;
-	if (length > length_to_use)
-		length_to_use = length;
-
-	addr->entry->edns_big_size = length_to_use;
-
-	UNLOCK(&adb->entrylocks[bucket]);
-}
-
-void
-dns_adb_dropednssize(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
-		     unsigned int length, isc_stdtime_t now)
-{
-	isc_stdtime_t expires_ts_to_use;
-	isc_boolean_t timer_setting_to_use;
-	unsigned int  length_to_use;
-	unsigned int drop_counter_to_use;
-	unsigned int drop_ts_to_use;
-	unsigned int flag_to_use;
-	int bucket = 0;
-
-	REQUIRE(DNS_ADB_VALID(adb));
-	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
-
-	if (length > DNS_ADB_EDNS0_MAX_LEN)
-		length = DNS_ADB_EDNS0_MAX_LEN;
-	if (length < DNS_ADB_EDNS0_MIN_LEN)
-		length = DNS_ADB_EDNS0_MIN_LEN;
-
-	bucket = addr->entry->lock_bucket;
-	LOCK(&adb->entrylocks[bucket]);
-
-	expires_ts_to_use = addr->entry->edns_expires_timestamp;
-	timer_setting_to_use = addr->entry->edns_timer_set;
-	length_to_use = addr->entry->edns_big_size;
-	drop_ts_to_use = addr->entry->edns_drop_timestamp;
-	flag_to_use = addr->entry->edns_fetch_flag;
-
-	/*
-	 * This function keeps a count of the number of times
-	 * within DNS_ADB_EDNS_RESET_TIME that a particular server
-	 * has dropped the udpsize in order to communicate with the
-	 * server. If the number of times this occurs exceeds
-	 * DNS_ADB_EDNS_MAX_DROP_COUNT, then the udpsize is reduced
-	 * by way of edns_fetch_flag for DNS_ADB_EDNS_MAX_DROP_TIME,
-	 * after which the largest size is retried again.
-	 * NOTE: currently, only 4096 and 512 are supported sizes
-	 */
-
-	if (length > length_to_use)
-		length_to_use = length;
-
-	if ((now - addr->entry->edns_drop_timestamp) >=
-			DNS_ADB_EDNS_RESET_TIME) {
-
-		drop_counter_to_use = 1;
-		drop_ts_to_use = now;
-	} else {
-
-		drop_counter_to_use = addr->entry->edns_drop_count + 1;
-
-		if (drop_counter_to_use >= DNS_ADB_EDNS_MAX_DROP_COUNT) {
-			/*
-			 * At this point, we are dropping down the
-			 * udpsize because we've had too many misses
-			 * at larger sizes.
-			 */
-			if (timer_setting_to_use == isc_boolean_false) {
-				/*
-				 * if we haven't already set a timer,
-				 * do so now. After DNS_ADB_EDNS_MAX_DROP_TIME,
-				 * we'll go back to the largest size
-				 */
-				expires_ts_to_use =
-					now + DNS_ADB_EDNS_MAX_DROP_TIME;
-				timer_setting_to_use = isc_boolean_true;
-			}
-
-			if (length == 0)
-				flag_to_use = DNS_FETCHOPT_NOEDNS0;
-			else /* eventually, more edns sizes here */
-				flag_to_use = DNS_FETCHOPT_EDNS512;
-
-			drop_ts_to_use = 0;
-			drop_counter_to_use = 0;
-		}
-	}
-
-	addr->entry->edns_drop_timestamp = drop_ts_to_use;
-	addr->entry->edns_drop_count = drop_counter_to_use;
-	addr->entry->edns_fetch_flag = flag_to_use;
-	addr->entry->edns_expires_timestamp = expires_ts_to_use;
-	addr->entry->edns_timer_set = timer_setting_to_use;
-	addr->entry->edns_big_size = length_to_use;
 
 	UNLOCK(&adb->entrylocks[bucket]);
 }
