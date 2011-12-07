@@ -1,3 +1,6 @@
+3241.	[bug]		Address race conditions in the resolver code.
+			[RT #26889]
+
 3238.	[bug]		keyrdata was not being reinitialized in
 			lib/dns/rbtdb.c:iszonesecure. [RT#26913]
 
