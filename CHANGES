@@ -1,3 +1,6 @@
+3238.	[bug]		keyrdata was not being reinitialize in
+			lib/dns/rbtdb.c:iszonesecure. [RT#26913]
+
 3237.	[bug]		dig -6 didn't work with +trace. [RT #26906]
 
 3236.	[bug]		Backed out changes #3182 and #3202, related to
