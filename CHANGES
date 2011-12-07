@@ -1,3 +1,6 @@
+3239.	[bug]		dns_dnssec_findmatchingkeys needs to use a consistent
+			timestamp. [RT #26883]
+
 3238.	[bug]		keyrdata was not being reinitialized in
 			lib/dns/rbtdb.c:iszonesecure. [RT#26913]
 

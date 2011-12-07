@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.115.10.8 2011/05/06 21:07:23 each Exp $
+ * $Id: dnssec.c,v 1.115.10.9 2011/12/07 22:39:48 marka Exp $
  */
 
 /*! \file */
@@ -1134,16 +1134,14 @@ dns_dnsseckey_destroy(isc_mem_t *mctx, dns_dnsseckey_t **dkp) {
 }
 
 static void
-get_hints(dns_dnsseckey_t *key) {
+get_hints(dns_dnsseckey_t *key, isc_stdtime_t now) {
 	isc_result_t result;
-	isc_stdtime_t now, publish, active, revoke, inactive, delete;
+	isc_stdtime_t publish, active, revoke, inactive, delete;
 	isc_boolean_t pubset = ISC_FALSE, actset = ISC_FALSE;
 	isc_boolean_t revset = ISC_FALSE, inactset = ISC_FALSE;
 	isc_boolean_t delset = ISC_FALSE;
 
 	REQUIRE(key != NULL && key->key != NULL);
-
-	isc_stdtime_get(&now);
 
 	result = dst_key_gettime(key->key, DST_TIME_PUBLISH, &publish);
 	if (result == ISC_R_SUCCESS)
@@ -1241,6 +1239,7 @@ dns_dnssec_findmatchingkeys(dns_name_t *origin, const char *directory,
 	char namebuf[DNS_NAME_FORMATSIZE], *p;
 	isc_buffer_t b;
 	unsigned int len;
+	isc_stdtime_t now;
 
 	REQUIRE(keylist != NULL);
 	ISC_LIST_INIT(list);
@@ -1255,6 +1254,8 @@ dns_dnssec_findmatchingkeys(dns_name_t *origin, const char *directory,
 		directory = ".";
 	RETERR(isc_dir_open(&dir, directory));
 	dir_open = ISC_TRUE;
+
+	isc_stdtime_get(&now);
 
 	while (isc_dir_read(&dir) == ISC_R_SUCCESS) {
 		if (dir.entry.name[0] == 'K' &&
@@ -1286,7 +1287,7 @@ dns_dnssec_findmatchingkeys(dns_name_t *origin, const char *directory,
 
 			RETERR(dns_dnsseckey_create(mctx, &dstkey, &key));
 			key->source = dns_keysource_repository;
-			get_hints(key);
+			get_hints(key, now);
 
 			if (key->legacy) {
 				dns_dnsseckey_destroy(mctx, &key);
