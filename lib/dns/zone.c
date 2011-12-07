@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.649 2011/12/01 15:58:46 smann Exp $ */
+/* $Id: zone.c,v 1.650 2011/12/07 22:48:22 marka Exp $ */
 
 /*! \file */
 
@@ -14986,6 +14986,9 @@ zone_rekey(dns_zone_t *zone) {
 	CHECK(dns_db_newversion(db, &ver));
 	CHECK(dns_db_getoriginnode(db, &node));
 
+	TIME_NOW(&timenow);
+	now = isc_time_seconds(&timenow);
+
 	dns_zone_log(zone, ISC_LOG_INFO, "reconfiguring zone keys");
 
 	/* Get the SOA record's TTL */
@@ -15085,7 +15088,6 @@ zone_rekey(dns_zone_t *zone) {
 	dns_db_closeversion(db, &ver, commit);
 
 	if (commit) {
-		isc_time_t timenow;
 		dns_difftuple_t *tuple;
 
 		LOCK_ZONE(zone);
@@ -15093,7 +15095,6 @@ zone_rekey(dns_zone_t *zone) {
 
 		zone_needdump(zone, DNS_DUMP_DELAY);
 
-		TIME_NOW(&timenow);
 		zone_settimer(zone, &timenow);
 
 		/* Remove any signatures from removed keys.  */
@@ -15210,13 +15211,6 @@ zone_rekey(dns_zone_t *zone) {
 		UNLOCK_ZONE(zone);
 	}
 
-	/*
-	 * If we are doing automatic key maintenance and the key metadata
-	 * indicates there is a key change event scheduled in the future,
-	 * set the key refresh timer.
-	 */
-	isc_stdtime_get(&now);
-	TIME_NOW(&timenow);
 	isc_time_settoepoch(&zone->refreshkeytime);
 
 	/*
