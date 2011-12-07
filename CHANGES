@@ -1,3 +1,6 @@
+3241.	[bug]		Address race conditions in the resolver code.
+			[RT #26889]
+
 3240.	[bug]		DNSKEY state change events could be missed. [RT #26874]
 
 3239.	[bug]		dns_dnssec_findmatchingkeys needs to use a consistent
