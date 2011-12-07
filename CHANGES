@@ -1,3 +1,5 @@
+3237.	[bug]		dig -6 didn't work with +trace. [RT #26906]
+
 3234.	[bug]		'make depend' produced invalid makefiles. [RT #26830]
 
 3231.	[bug]		named could fail to send a uncompressable zone.
