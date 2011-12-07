@@ -1,3 +1,5 @@
+3237.	[bug]		dig -6 didn't work with +trace. [RT #26906]
+
 3236.	[bug]		Backed out changes #3182 and #3202, related to
 			EDNS(0) fallback behavior. [RT #26416]
 

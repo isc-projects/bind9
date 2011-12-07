@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.344 2011/12/01 00:53:58 marka Exp $ */
+/* $Id: dighost.c,v 1.345 2011/12/07 17:23:28 each Exp $ */
 
 /*! \file
  *  \note
@@ -1705,6 +1705,9 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 	isc_result_t result;
 	isc_boolean_t success = ISC_FALSE;
 	int numLookups = 0;
+	int num;
+	isc_result_t lresult, addresses_result;
+	char bad_namestr[DNS_NAME_FORMATSIZE];
 	dns_name_t *domain;
 	isc_boolean_t horizontal = ISC_FALSE, bad = ISC_FALSE;
 
@@ -1712,6 +1715,8 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 
 	debug("following up %s", query->lookup->textname);
 
+	addresses_result = ISC_R_SUCCESS;
+	bad_namestr[0] = '\0';
 	for (result = dns_message_firstname(msg, section);
 	     result == ISC_R_SUCCESS;
 	     result = dns_message_nextname(msg, section)) {
@@ -1795,9 +1800,22 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 				dns_name_copy(name, domain, NULL);
 			}
 			debug("adding server %s", namestr);
-			numLookups += getaddresses(lookup, namestr);
+			num = getaddresses(lookup, namestr, &lresult);
+			if (lresult != ISC_R_SUCCESS) {
+				debug("couldn't get address for '%s': %s",
+				      namestr, isc_result_totext(lresult));
+				if (addresses_result == ISC_R_SUCCESS) {
+					addresses_result = lresult;
+					strcpy(bad_namestr, namestr);
+				}
+			}
+			numLookups += num;
 			dns_rdata_reset(&rdata);
 		}
+	}
+	if (numLookups == 0 && addresses_result != ISC_R_SUCCESS) {
+		fatal("couldn't get address for '%s': %s",
+		      bad_namestr, isc_result_totext(result));
 	}
 
 	if (lookup == NULL &&
@@ -3547,7 +3565,7 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 }
 
 int
-getaddresses(dig_lookup_t *lookup, const char *host) {
+getaddresses(dig_lookup_t *lookup, const char *host, isc_result_t *resultp) {
 	isc_result_t result;
 	isc_sockaddr_t sockaddrs[DIG_MAX_ADDRESSES];
 	isc_netaddr_t netaddr;
@@ -3557,9 +3575,14 @@ getaddresses(dig_lookup_t *lookup, const char *host) {
 
 	result = bind9_getaddresses(host, 0, sockaddrs,
 				    DIG_MAX_ADDRESSES, &count);
-	if (result != ISC_R_SUCCESS)
-		fatal("couldn't get address for '%s': %s",
-		      host, isc_result_totext(result));
+	if (resultp != NULL)
+		*resultp = result;
+	if (result != ISC_R_SUCCESS) {
+		if (resultp == NULL)
+			fatal("couldn't get address for '%s': %s",
+			      host, isc_result_totext(result));
+		return 0;
+	}
 
 	for (i = 0; i < count; i++) {
 		isc_netaddr_fromsockaddr(&netaddr, &sockaddrs[i]);
