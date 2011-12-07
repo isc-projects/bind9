@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.233.62.6 2011/03/11 07:11:51 marka Exp $ */
+/* $Id: dig.c,v 1.233.62.7 2011/12/07 17:24:25 each Exp $ */
 
 /*! \file */
 
@@ -1518,7 +1518,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 		if (strncmp(rv[0], "%", 1) == 0)
 			break;
 		if (strncmp(rv[0], "@", 1) == 0) {
-			addresscount = getaddresses(lookup, &rv[0][1]);
+			addresscount = getaddresses(lookup, &rv[0][1], NULL);
 		} else if (rv[0][0] == '+') {
 			plus_option(&rv[0][1], is_batchfile,
 				    lookup);
