@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.h,v 1.16 2010/09/07 23:46:59 tbox Exp $ */
+/* $Id: check-tool.h,v 1.17 2011/12/08 16:07:19 each Exp $ */
 
 #ifndef CHECK_TOOL_H
 #define CHECK_TOOL_H
@@ -41,7 +41,8 @@ load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
 
 isc_result_t
 dump_zone(const char *zonename, dns_zone_t *zone, const char *filename,
-	  dns_masterformat_t fileformat, const dns_master_style_t *style);
+	  dns_masterformat_t fileformat, const dns_master_style_t *style,
+	  const isc_uint32_t rawversion);
 
 #ifdef _WIN32
 void InitSockets(void);

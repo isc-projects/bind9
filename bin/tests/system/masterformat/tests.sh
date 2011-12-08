@@ -14,33 +14,51 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.7 2011/12/02 04:14:33 marka Exp $
+# $Id: tests.sh,v 1.8 2011/12/08 16:07:20 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 israw () {
-    cat $1 | perl -e '$input = <STDIN>;
-                      ($style, $version) = unpack("NN", $input);
-                      exit 1 if ($style != 2 || $version != 0);'
+    perl -e '$input = <STDIN>;
+             ($style, $version) = unpack("NN", $input);
+             exit 1 if ($style != 2 || $version > 1);' < $1
     return $?
+}
+
+rawversion () {
+    perl -e '$input = <STDIN>;
+             if (length($input) < 2) { print "not raw\n"; exit 0; };
+             ($style, $version) = unpack("NN", $input);
+             print ($style == 2 ? "$version\n" : "not raw\n");' < $1
 }
 
 DIGOPTS="+tcp +noauth +noadd +nosea +nostat +noquest +nocomm +nocmd"
 
 status=0
 
-echo "I:checking that master file in the raw format worked"
+echo "I:checking that master files in raw format loaded"
 ret=0
-for server in 1 2
-do
-	for name in ns mx a aaaa cname dname txt rrsig nsec dnskey ds
-	do
-		$DIG $DIGOPTS $name.example. $name @10.53.0.$server -p 5300
+for zone in example example-explicit example-compat; do
+    for server in 1 2; do
+	for name in ns mx a aaaa cname dname txt rrsig nsec dnskey ds; do
+		$DIG $DIGOPTS $name.$zone. $name @10.53.0.$server -p 5300
 		echo
-	done > dig.out.$server
+	done > dig.out.$zone.$server
+    done
+    $PERL ../digcomp.pl dig.out.$zone.1 dig.out.$zone.2 || ret=1
 done
-$PERL ../digcomp.pl dig.out.1 dig.out.2 || ret=1
+[ $ret -eq 0 ] || echo "I:failed"
+status=`expr $status + $ret`
+
+echo "I:checking raw format versions"
+ret=0
+israw ns1/example.db.raw || ret=1
+israw ns1/example.db.raw1 || ret=1
+israw ns1/example.db.compat || ret=1
+[ "`rawversion ns1/example.db.raw`" = 1 ] || ret=1
+[ "`rawversion ns1/example.db.raw1`" = 1 ] || ret=1
+[ "`rawversion ns1/example.db.compat`" = 0 ] || ret=1
 [ $ret -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 
@@ -64,6 +82,7 @@ for i in 0 1 2 3 4 5 6 7 8 9
 do
     ret=0
     israw ns2/formerly-text.db > /dev/null 2>&1 || ret=1
+    [ "`rawversion ns2/formerly-text.db`" = 1 ] || ret=1
     [ $ret -eq 0 ] && break
     sleep 1
 done

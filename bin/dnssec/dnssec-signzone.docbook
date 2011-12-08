@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.docbook,v 1.50 2011/11/07 23:16:31 each Exp $ -->
+<!-- $Id: dnssec-signzone.docbook,v 1.51 2011/12/08 16:07:20 each Exp $ -->
 <refentry id="man.dnssec-signzone">
   <refentryinfo>
     <date>June 05, 2009</date>
@@ -435,9 +435,15 @@
           <para>
             The format of the output file containing the signed zone.
 	    Possible formats are <command>"text"</command> (default)
-	    <command>"raw"</command>, and <command>"full"</command>,
-            which is text output in a format suitable for processing
-            by external scripts.
+	    <command>"full"</command>, which is text output in a
+            format suitable for processing by external scripts,
+            and <command>"raw"</command> or <command>"raw=N"</command>,
+            which store the zone in a binary format for rapid loading
+            by <command>named</command>.  <command>"raw=N"</command>
+            specifies the format version of the raw zone file: if N
+            is 0, the raw file can be read by any version of
+            <command>named</command>; if N is 1, the file can be
+            read by release 9.9.0 or higher.  The default is 1.
           </para>
         </listitem>
       </varlistentry>

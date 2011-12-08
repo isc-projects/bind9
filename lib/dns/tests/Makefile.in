@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.11 2011/12/04 23:48:12 marka Exp $
+# $Id: Makefile.in,v 1.12 2011/12/08 16:07:21 each Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -49,6 +49,12 @@ TARGETS =	master_test@EXEEXT@ dbiterator_test@EXEEXT@ time_test@EXEEXT@ \
 @BIND9_MAKE_RULES@
 
 master_test@EXEEXT@: master_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${PERL} mkraw.pl < testdata/master/master12.data.in \
+		> testdata/master/master12.data
+	${PERL} mkraw.pl < testdata/master/master13.data.in \
+		> testdata/master/master13.data
+	${PERL} mkraw.pl < testdata/master/master14.data.in \
+		> testdata/master/master14.data
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			master_test.@O@ dnstest.@O@ ${DNSLIBS} \
 				${ISCLIBS} ${LIBS}
@@ -99,3 +105,5 @@ unit::
 clean distclean::
 	rm -f ${TARGETS}
 	rm -f atf.out
+	rm -f testdata/master/master12.data testdata/master/master13.data \
+		testdata/master/master14.data 
