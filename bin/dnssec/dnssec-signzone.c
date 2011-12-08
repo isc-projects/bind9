@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.283 2011/12/08 16:07:20 each Exp $ */
+/* $Id: dnssec-signzone.c,v 1.284 2011/12/08 23:45:02 marka Exp $ */
 
 /*! \file */
 
@@ -3827,8 +3827,8 @@ main(int argc, char *argv[]) {
 		} else if (strcasecmp(outputformatstr, "raw") == 0) {
 			outputformat = dns_masterformat_raw;
 		} else if (strncasecmp(outputformatstr, "raw=", 4) == 0) {
-			outputformat = dns_masterformat_raw;
 			char *end;
+			outputformat = dns_masterformat_raw;
 
 			outputformat = dns_masterformat_raw;
 			rawversion = strtol(outputformatstr + 4, &end, 10);
