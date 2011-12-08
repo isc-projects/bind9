@@ -435,10 +435,13 @@ rt26523				new	each	// 2011-11-15 16:42 +0000
 rt26587				new	each	// 2011-11-16 00:01 +0000
 rt26587a			new	each	// 2011-12-02 22:59 +0000
 rt26632				new	marka	// 2011-11-30 05:18 +0000
+rt26676				new	each	// 2011-12-08 19:52 +0000
 rt26677				new	marka	// 2011-11-29 23:26 +0000
 rt26830				new	marka	// 2011-11-30 22:58 +0000
+rt26845				new	marka	// 2011-12-08 09:35 +0000
 rt26874				new	marka	// 2011-12-06 12:34 +0000
 rt26889				new	marka	// 2011-12-06 03:42 +0000
+rt26956				new	marka	// 2011-12-08 22:10 +0000
 shane_dbbackend			open	
 skan				open	explorer
 skan-metazones1			private	explorer
