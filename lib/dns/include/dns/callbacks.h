@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: callbacks.h,v 1.24 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: callbacks.h,v 1.25 2011/12/08 16:07:21 each Exp $ */
 
 #ifndef DNS_CALLBACKS_H
 #define DNS_CALLBACKS_H 1
@@ -41,6 +41,14 @@ struct dns_rdatacallbacks {
 	 * dns_load_master calls this when it has rdatasets to commit.
 	 */
 	dns_addrdatasetfunc_t add;
+
+	/*%
+	 * dns_master_load*() call this when loading a raw zonefile,
+	 * to pass back information obtained from the file header
+	 */
+	dns_rawdatafunc_t rawdata;
+	dns_zone_t *zone;
+
 	/*%
 	 * dns_load_master / dns_rdata_fromtext call this to issue a error.
 	 */

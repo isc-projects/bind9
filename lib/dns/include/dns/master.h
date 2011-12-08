@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.h,v 1.53 2009/07/01 23:47:36 tbox Exp $ */
+/* $Id: master.h,v 1.54 2011/12/08 16:07:21 each Exp $ */
 
 #ifndef DNS_MASTER_H
 #define DNS_MASTER_H 1
@@ -66,18 +66,29 @@ ISC_LANG_BEGINDECLS
  * encoding, we directly read/write each field so that the encoded data
  * is always "packed", regardless of the hardware architecture.
  */
-#define DNS_RAWFORMAT_VERSION 0
+#define DNS_RAWFORMAT_VERSION 1
+
+/*
+ * Flags to indicate the status of the data in the raw file header
+ */
+#define DNS_MASTERRAW_COMPAT 		0x01
+#define DNS_MASTERRAW_SOURCESERIALSET	0x02
+#define DNS_MASTERRAW_LASTXFRINSET	0x04
 
 /* Common header */
-typedef struct {
+struct dns_masterrawheader {
 	isc_uint32_t		format;		/* must be
 						 * dns_masterformat_raw */
 	isc_uint32_t		version;	/* compatibility for future
 						 * extensions */
 	isc_uint32_t		dumptime;	/* timestamp on creation
-						 * (currently unused)
-						 */
-} dns_masterrawheader_t;
+						 * (currently unused) */
+	isc_uint32_t		flags;		/* Flags */
+	isc_uint32_t		sourceserial;	/* Source serial number (used
+						 * by inline-signing zones) */
+	isc_uint32_t		lastxfrin;	/* timestamp of last transfer
+						 * (used by slave zones) */
+};
 
 /* The structure for each RRset */
 typedef struct {
@@ -302,6 +313,12 @@ dns_loadctx_cancel(dns_loadctx_t *ctx);
  *\li	'ctx' to be valid
  */
 
+void
+dns_master_initrawheader(dns_masterrawheader_t *header);
+/*%<
+ * Initializes the header for a raw master file, setting all
+ * values to zero.
+ */
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_MASTER_H */

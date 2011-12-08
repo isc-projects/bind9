@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.145 2011/07/01 23:47:44 tbox Exp $ */
+/* $Id: types.h,v 1.146 2011/12/08 16:07:21 each Exp $ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
@@ -85,6 +85,7 @@ typedef struct dns_keytable			dns_keytable_t;
 typedef isc_uint16_t				dns_keytag_t;
 typedef struct dns_loadctx			dns_loadctx_t;
 typedef struct dns_loadmgr			dns_loadmgr_t;
+typedef struct dns_masterrawheader		dns_masterrawheader_t;
 typedef struct dns_message			dns_message_t;
 typedef isc_uint16_t				dns_messageid_t;
 typedef isc_region_t				dns_label_t;
@@ -354,6 +355,9 @@ typedef void
 
 typedef void
 (*dns_loaddonefunc_t)(void *, isc_result_t);
+
+typedef void
+(*dns_rawdatafunc_t)(dns_zone_t *, dns_masterrawheader_t *);
 
 typedef isc_result_t
 (*dns_addrdatasetfunc_t)(void *, dns_name_t *, dns_rdataset_t *);

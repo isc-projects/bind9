@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: callbacks.c,v 1.17 2007/06/19 23:47:16 tbox Exp $ */
+/* $Id: callbacks.c,v 1.18 2011/12/08 16:07:20 each Exp $ */
 
 /*! \file */
 
@@ -88,6 +88,8 @@ dns_rdatacallbacks_initcommon(dns_rdatacallbacks_t *callbacks) {
 	REQUIRE(callbacks != NULL);
 
 	callbacks->add = NULL;
+	callbacks->rawdata = NULL;
+	callbacks->zone = NULL;
 	callbacks->add_private = NULL;
 	callbacks->error_private = NULL;
 	callbacks->warn_private = NULL;

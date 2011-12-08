@@ -1,4 +1,6 @@
-# Copyright (C) 2005-2007, 2011  Internet Systems Consortium, Inc. ("ISC")
+#!/usr/bin/perl -w
+#
+# Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -12,11 +14,18 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.9 2011/12/08 16:07:20 each Exp $
+# $Id: mkraw.pl,v 1.2 2011/12/08 16:07:22 each Exp $
 
-rm -f named-compilezone
-ln -s $CHECKZONE named-compilezone
-rm -f ns1/example.db.raw
-cp ns1/example.db ns2/
-cp ns2/formerly-text.db.in ns2/formerly-text.db
-cd ns1 && sh compile.sh
+# Convert a hexdump to binary format.
+#
+# To convert binary data to the input format for this command,
+# use the following:
+#
+# perl -e 'while (read(STDIN, my $byte, 1)) {
+#              print unpack("H2", $byte);
+#          }
+#          print "\n";' < file > file.in
+
+use strict;
+chomp(my $line = <STDIN>);
+print pack("H*", $line);

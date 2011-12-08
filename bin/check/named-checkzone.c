@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.61 2010/09/07 23:46:59 tbox Exp $ */
+/* $Id: named-checkzone.c,v 1.62 2011/12/08 16:07:19 each Exp $ */
 
 /*! \file */
 
@@ -112,6 +112,7 @@ main(int argc, char **argv) {
 	const char *outputformatstr = NULL;
 	dns_masterformat_t inputformat = dns_masterformat_text;
 	dns_masterformat_t outputformat = dns_masterformat_text;
+	isc_uint32_t rawversion = 1;
 	FILE *errout = stdout;
 
 	outputstyle = &dns_master_style_full;
@@ -397,7 +398,11 @@ main(int argc, char **argv) {
 			inputformat = dns_masterformat_text;
 		else if (strcasecmp(inputformatstr, "raw") == 0)
 			inputformat = dns_masterformat_raw;
-		else {
+		else if (strncasecmp(inputformatstr, "raw=", 4) == 0) {
+			inputformat = dns_masterformat_raw;
+			fprintf(stderr,
+				"WARNING: input format raw, version ignored\n");
+		} else {
 			fprintf(stderr, "unknown file format: %s\n",
 			    inputformatstr);
 			exit(1);
@@ -405,11 +410,22 @@ main(int argc, char **argv) {
 	}
 
 	if (outputformatstr != NULL) {
-		if (strcasecmp(outputformatstr, "text") == 0)
+		if (strcasecmp(outputformatstr, "text") == 0) {
 			outputformat = dns_masterformat_text;
-		else if (strcasecmp(outputformatstr, "raw") == 0)
+		} else if (strcasecmp(outputformatstr, "raw") == 0) {
 			outputformat = dns_masterformat_raw;
-		else {
+		} else if (strncasecmp(outputformatstr, "raw=", 4) == 0) {
+			char *end;
+
+			outputformat = dns_masterformat_raw;
+			rawversion = strtol(outputformatstr + 4, &end, 10);
+			if (end == outputformatstr + 4 || *end != '\0' ||
+			    rawversion > 1U) {
+				fprintf(stderr,
+					"unknown raw format version\n");
+				exit(1);
+			}
+		} else {
 			fprintf(stderr, "unknown file format: %s\n",
 				outputformatstr);
 			exit(1);
@@ -467,7 +483,7 @@ main(int argc, char **argv) {
 			fflush(errout);
 		}
 		result = dump_zone(origin, zone, output_filename,
-				   outputformat, outputstyle);
+				   outputformat, outputstyle, rawversion);
 		if (!quiet && progmode == progmode_compile)
 			fprintf(errout, "done\n");
 	}

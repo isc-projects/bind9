@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.197 2011/11/04 05:51:01 each Exp $ */
+/* $Id: zone.h,v 1.198 2011/12/08 16:07:21 each Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -510,6 +510,10 @@ dns_zone_dumptostream(dns_zone_t *zone, FILE *fd);
 isc_result_t
 dns_zone_dumptostream2(dns_zone_t *zone, FILE *fd, dns_masterformat_t format,
 		       const dns_master_style_t *style);
+isc_result_t
+dns_zone_dumptostream3(dns_zone_t *zone, FILE *fd, dns_masterformat_t format,
+		       const dns_master_style_t *style,
+		       const isc_uint32_t rawversion);
 /*%<
  *    Write the zone to stream 'fd' in the specified 'format'.
  *    If the 'format' is dns_masterformat_text (RFC1035), 'style' also
@@ -519,7 +523,11 @@ dns_zone_dumptostream2(dns_zone_t *zone, FILE *fd, dns_masterformat_t format,
  *    dns_zone_dumptostream2(), which always uses the dns_masterformat_text
  *    format and the dns_master_style_default style.
  *
- *    Note that dns_zone_dumptostream2() is the most flexible form.  It
+ *    dns_zone_dumptostream2() is a backward-compatible form of
+ *    dns_zone_dumptostream3(), which always uses the current
+ *    default raw file format version.
+ *
+ *    Note that dns_zone_dumptostream3() is the most flexible form.  It
  *    can also provide the functionality of dns_zone_fulldumptostream().
  *
  * Require:

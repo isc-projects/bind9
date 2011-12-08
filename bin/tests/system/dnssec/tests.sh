@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.105 2011/11/29 00:49:26 marka Exp $
+# $Id: tests.sh,v 1.106 2011/12/08 16:07:20 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -55,6 +55,22 @@ checkprivate () {
         echo "I:failed"
     }
     return $ret
+}
+
+# check that a zone file is raw format, version 0
+israw0 () {
+    cat $1 | perl -e '$input = <STDIN>;
+                      ($style, $version) = unpack("NN", $input);
+                      exit 1 if ($style != 2 || $version != 0);'
+    return $?
+}
+
+# check that a zone file is raw format, version 1
+israw1 () {
+    cat $1 | perl -e '$input = <STDIN>;
+                      ($style, $version) = unpack("NN", $input);
+                      exit 1 if ($style != 2 || $version != 1);'
+    return $?
 }
 
 # Check the example. domain
@@ -1109,11 +1125,17 @@ echo "I:checking dnssec-signzone output format ($n)"
 ret=0
 (
 cd signer
-$SIGNER -O full -f - -Sxt -o example example.db > signer.out.3 2>&1
-$SIGNER -O text -f - -Sxt -o example example.db > signer.out.4 2>&1
+$SIGNER -O full -f - -Sxt -o example example.db > signer.out.3 2> /dev/null
+$SIGNER -O text -f - -Sxt -o example example.db > signer.out.4 2> /dev/null
+$SIGNER -O raw -f signer.out.5 -Sxt -o example example.db > /dev/null 2>&1
+$SIGNER -O raw=0 -f signer.out.6 -Sxt -o example example.db > /dev/null 2>&1
+$SIGNER -O raw -f - -Sxt -o example example.db > signer.out.7 2> /dev/null
 ) || ret=1
 awk '/IN *SOA/ {if (NF != 11) exit(1)}' signer/signer.out.3 || ret=1
 awk '/IN *SOA/ {if (NF != 7) exit(1)}' signer/signer.out.4 || ret=1
+israw1 signer/signer.out.5 || ret=1
+israw0 signer/signer.out.6 || ret=1
+israw1 signer/signer.out.7 || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 

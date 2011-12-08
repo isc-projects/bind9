@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.282 2011/11/07 23:46:50 tbox Exp $ */
+/* $Id: dnssec-signzone.c,v 1.283 2011/12/08 16:07:20 each Exp $ */
 
 /*! \file */
 
@@ -139,6 +139,7 @@ static char *tempfile = NULL;
 static const dns_master_style_t *masterstyle;
 static dns_masterformat_t inputformat = dns_masterformat_text;
 static dns_masterformat_t outputformat = dns_masterformat_text;
+static unsigned int rawversion = 1;
 static unsigned int nsigned = 0, nretained = 0, ndropped = 0;
 static unsigned int nverified = 0, nverifyfailed = 0;
 static const char *directory = NULL, *dsdir = NULL;
@@ -3808,18 +3809,35 @@ main(int argc, char *argv[]) {
 			inputformat = dns_masterformat_text;
 		else if (strcasecmp(inputformatstr, "raw") == 0)
 			inputformat = dns_masterformat_raw;
-		else
-			fatal("unknown file format: %s\n", inputformatstr);
+		else if (strncasecmp(inputformatstr, "raw=", 4) == 0) {
+			inputformat = dns_masterformat_raw;
+			fprintf(stderr,
+				"WARNING: input format version ignored\n");
+		} else
+			fatal("unknown file format: %s", inputformatstr);
+
 	}
 
 	if (outputformatstr != NULL) {
-		if (strcasecmp(outputformatstr, "text") == 0)
+		if (strcasecmp(outputformatstr, "text") == 0) {
 			outputformat = dns_masterformat_text;
-		else if (strcasecmp(outputformatstr, "raw") == 0)
-			outputformat = dns_masterformat_raw;
-		else if (strcasecmp(outputformatstr, "full") == 0) {
+		} else if (strcasecmp(outputformatstr, "full") == 0) {
 			outputformat = dns_masterformat_text;
 			masterstyle = &dns_master_style_full;
+		} else if (strcasecmp(outputformatstr, "raw") == 0) {
+			outputformat = dns_masterformat_raw;
+		} else if (strncasecmp(outputformatstr, "raw=", 4) == 0) {
+			outputformat = dns_masterformat_raw;
+			char *end;
+
+			outputformat = dns_masterformat_raw;
+			rawversion = strtol(outputformatstr + 4, &end, 10);
+			if (end == outputformatstr + 4 || *end != '\0' ||
+			    rawversion > 1U) {
+				fprintf(stderr,
+					"unknown raw format version\n");
+				exit(1);
+			}
 		} else
 			fatal("unknown file format: %s\n", outputformatstr);
 	}
@@ -4054,11 +4072,15 @@ main(int argc, char *argv[]) {
 	TIME_NOW(&sign_finish);
 	verifyzone();
 
-	if (outputformat != dns_masterformat_text) {
-		result = dns_master_dumptostream2(mctx, gdb, gversion,
+	if (outputformat == dns_masterformat_raw) {
+		dns_masterrawheader_t header;
+		dns_master_initrawheader(&header);
+		if (rawversion == 0U)
+			header.flags = DNS_MASTERRAW_COMPAT;
+		result = dns_master_dumptostream3(mctx, gdb, gversion,
 						  masterstyle, outputformat,
-						  fp);
-		check_result(result, "dns_master_dumptostream2");
+						  &header, fp);
+		check_result(result, "dns_master_dumptostream3");
 	}
 
 	DESTROYLOCK(&namelock);
