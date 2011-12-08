@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.111 2011/12/08 16:07:21 each Exp $ */
+/* $Id: masterdump.c,v 1.112 2011/12/08 23:46:48 tbox Exp $ */
 
 /*! \file */
 
@@ -1593,7 +1593,7 @@ isc_result_t
 dns_master_dumptostream3(isc_mem_t *mctx, dns_db_t *db,
 			 dns_dbversion_t *version,
 			 const dns_master_style_t *style,
-			 dns_masterformat_t format, 
+			 dns_masterformat_t format,
 			 dns_masterrawheader_t *header, FILE *f)
 {
 	dns_dumpctx_t *dctx = NULL;

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.651 2011/12/08 16:07:21 each Exp $ */
+/* $Id: zone.c,v 1.652 2011/12/08 23:46:48 tbox Exp $ */
 
 /*! \file */
 
@@ -1846,7 +1846,7 @@ zone_gotwritehandle(isc_task_t *task, isc_event_t *event) {
 	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
 	dns_db_currentversion(zone->db, &version);
 	dns_master_initrawheader(&rawdata);
-	if (zone->raw != NULL) 
+	if (zone->raw != NULL)
 		get_raw_serial(zone->raw, &rawdata);
 	result = dns_master_dumpinc3(zone->mctx, zone->db, version,
 				     &dns_master_style_default,

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.h,v 1.46 2011/12/08 16:07:21 each Exp $ */
+/* $Id: masterdump.h,v 1.47 2011/12/08 23:46:49 tbox Exp $ */
 
 #ifndef DNS_MASTERDUMP_H
 #define DNS_MASTERDUMP_H 1
@@ -233,7 +233,7 @@ dns_master_dumptostream3(isc_mem_t *mctx, dns_db_t *db,
  * 'style' specifies the file style (e.g., &dns_master_style_default).
  *
  * dns_master_dumptostream() is an old form of dns_master_dumptostream3(),
- * which always specifies the dns_masterformat_text format. 
+ * which always specifies the dns_masterformat_text format.
  * dns_master_dumptostream2() is an old form which always specifies
  * a NULL header.
  *
