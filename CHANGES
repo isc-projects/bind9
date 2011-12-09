@@ -1,4 +1,4 @@
-3241.	[func]		Extended the header of raw-format master files to
+3242.	[func]		Extended the header of raw-format master files to
 			include the serial number of the zone from which
 			they were generated, if different (as in the case
 			of inline-signing zones).  This is to be used in
