@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2011  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: callbacks.h,v 1.25 2011/12/08 16:07:21 each Exp $ */
+/* $Id: callbacks.h,v 1.26 2011/12/09 23:47:05 tbox Exp $ */
 
 #ifndef DNS_CALLBACKS_H
 #define DNS_CALLBACKS_H 1
