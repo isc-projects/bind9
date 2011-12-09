@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named-checkzone.docbook,v 1.41 2011/12/08 16:07:20 each Exp $ -->
+<!-- $Id: named-checkzone.docbook,v 1.42 2011/12/09 01:52:14 marka Exp $ -->
 <refentry id="man.named-checkzone">
   <refentryinfo>
     <date>June 13, 2000</date>
@@ -253,7 +253,7 @@
 	  </para>
 	  <para>
 	    Possible formats are <command>"text"</command> (default)
-	    and <command>"raw"</command> or <command>"raw=N"</comand>,
+	    and <command>"raw"</command> or <command>"raw=N"</command>,
             which store the zone in a binary format for rapid loading
             by <command>named</command>.  <command>"raw=N"</command>
             specifies the format version of the raw zone file: if N
