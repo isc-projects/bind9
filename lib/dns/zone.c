@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.653 2011/12/09 13:32:41 marka Exp $ */
+/* $Id: zone.c,v 1.654 2011/12/09 22:09:26 marka Exp $ */
 
 /*! \file */
 
@@ -205,7 +205,6 @@ struct dns_zone {
 	dns_masterformat_t	masterformat;
 	char			*journal;
 	isc_int32_t		journalsize;
-	char			*privatefile;
 	dns_rdataclass_t	rdclass;
 	dns_zonetype_t		type;
 	unsigned int		flags;
@@ -418,7 +417,6 @@ struct dns_zone {
 #define DNS_ZONEFLG_LOADPENDING	0x10000000U	/*%< Loading scheduled */
 #define DNS_ZONEFLG_NODELAY	0x20000000U
 #define DNS_ZONEFLG_SENDSECURE  0x40000000U
-#define DNS_ZONEFLG_LOADPRIVATE 0x80000000U
 
 #define DNS_ZONE_OPTION(z,o) (((z)->options & (o)) != 0)
 #define DNS_ZONEKEY_OPTION(z,o) (((z)->keyopts & (o)) != 0)
@@ -644,7 +642,6 @@ static isc_result_t zone_replacedb(dns_zone_t *zone, dns_db_t *db,
 static inline void zone_attachdb(dns_zone_t *zone, dns_db_t *db);
 static inline void zone_detachdb(dns_zone_t *zone);
 static isc_result_t default_journal(dns_zone_t *zone);
-static isc_result_t default_private(dns_zone_t *zone);
 static void zone_xfrdone(dns_zone_t *zone, isc_result_t result);
 static isc_result_t zone_postload(dns_zone_t *zone, dns_db_t *db,
 				  isc_time_t loadtime, isc_result_t result);
@@ -809,7 +806,6 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->keydirectory = NULL;
 	zone->journalsize = -1;
 	zone->journal = NULL;
-	zone->privatefile = NULL;
 	zone->rdclass = dns_rdataclass_none;
 	zone->type = dns_zone_none;
 	zone->flags = 0;
@@ -993,9 +989,6 @@ zone_free(dns_zone_t *zone) {
 	if (zone->journal != NULL)
 		isc_mem_free(zone->mctx, zone->journal);
 	zone->journal = NULL;
-	if (zone->privatefile != NULL)
-		isc_mem_free(zone->mctx, zone->privatefile);
-	zone->privatefile = NULL;
 	if (zone->stats != NULL)
 		isc_stats_detach(&zone->stats);
 	if (zone->requeststats != NULL)
@@ -1377,8 +1370,6 @@ dns_zone_setfile2(dns_zone_t *zone, const char *file,
 	if (result == ISC_R_SUCCESS) {
 		zone->masterformat = format;
 		result = default_journal(zone);
-		if (result == ISC_R_SUCCESS)
-			result = default_private(zone);
 	}
 	UNLOCK_ZONE(zone);
 
@@ -1390,31 +1381,6 @@ dns_zone_getfile(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	return (zone->masterfile);
-}
-
-static isc_result_t
-default_private(dns_zone_t *zone) {
-	isc_result_t result;
-	char *private;
-
-	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE(LOCKED_ZONE(zone));
-
-	if (zone->masterfile != NULL) {
-		/* Calculate string length including '\0'. */
-		int len = strlen(zone->masterfile) + sizeof(".pvt");
-		private = isc_mem_allocate(zone->mctx, len);
-		if (private == NULL)
-			return (ISC_R_NOMEMORY);
-		strcpy(private, zone->masterfile);
-		strcat(private, ".pvt");
-	} else {
-		private = NULL;
-	}
-	result = dns_zone_setstring(zone, &zone->privatefile, private);
-	if (private != NULL)
-		isc_mem_free(zone->mctx, private);
-	return (result);
 }
 
 static isc_result_t
@@ -1574,7 +1540,6 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 		if (result == ISC_R_SUCCESS) {
 			if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) &&
 			    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_HASINCLUDE) &&
-			    !isc_time_isepoch( &zone->loadtime) &&
 			    isc_time_compare(&filetime, &zone->loadtime) <= 0 &&
 			    zone->rpz_zone == dns_rpz_needed()) {
 				dns_zone_log(zone, ISC_LOG_DEBUG(1),
@@ -1814,8 +1779,6 @@ zone_gotreadhandle(isc_task_t *task, isc_event_t *event) {
 	dns_load_t *load = event->ev_arg;
 	isc_result_t result = ISC_R_SUCCESS;
 	unsigned int options;
-	const char *masterfile = load->zone->masterfile;
-	dns_masterformat_t masterformat = load->zone->masterformat;
 
 	REQUIRE(DNS_LOAD_VALID(load));
 
@@ -1827,17 +1790,7 @@ zone_gotreadhandle(isc_task_t *task, isc_event_t *event) {
 
 	options = get_master_options(load->zone);
 
-	LOCK(&load->zone->lock);
-	if (load->zone->db == NULL && load->zone->raw == NULL &&
-	    DNS_ZONE_OPTION(load->zone, DNS_ZONEOPT_IXFRFROMDIFFS) &&
-	    load->zone->type == dns_zone_master) {
-		masterfile = load->zone->privatefile;
-		masterformat = dns_masterformat_raw;
-		DNS_ZONE_SETFLAG(load->zone, DNS_ZONEFLG_LOADPRIVATE);
-	}
-	UNLOCK(&load->zone->lock);
- again:
-	result = dns_master_loadfileinc3(masterfile,
+	result = dns_master_loadfileinc3(load->zone->masterfile,
 					 dns_db_origin(load->db),
 					 dns_db_origin(load->db),
 					 load->zone->rdclass, options,
@@ -1845,16 +1798,7 @@ zone_gotreadhandle(isc_task_t *task, isc_event_t *event) {
 					 &load->callbacks, task,
 					 zone_loaddone, load,
 					 &load->zone->lctx, load->zone->mctx,
-					 masterformat);
-	if (result == ISC_R_FILENOTFOUND &&
-	    masterfile == load->zone->privatefile) {
-		LOCK(&load->zone->lock);
-		DNS_ZONE_CLRFLAG(load->zone, DNS_ZONEFLG_LOADPRIVATE);
-		masterfile = load->zone->masterfile;
-		masterformat = load->zone->masterformat;
-		UNLOCK(&load->zone->lock);
-		goto again;
-	}
+					 load->zone->masterformat);
 	if (result != ISC_R_SUCCESS && result != DNS_R_CONTINUE &&
 	    result != DNS_R_SEENINCLUDE)
 		goto fail;
@@ -1887,8 +1831,6 @@ zone_gotwritehandle(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_dbversion_t *version = NULL;
 	dns_masterrawheader_t rawdata;
-	dns_masterformat_t masterformat;
-	char *masterfile;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	INSIST(task == zone->task);
@@ -1901,15 +1843,6 @@ zone_gotwritehandle(isc_task_t *task, isc_event_t *event) {
 		goto fail;
 
 	LOCK_ZONE(zone);
-	if (zone->type == dns_zone_master && zone->raw == NULL &&
-	    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IXFRFROMDIFFS) &&
-	    !dns_zone_isdynamic(zone, ISC_TRUE)) {
-		masterfile = zone->privatefile;
-		masterformat = dns_masterformat_raw;
-	} else {
-		masterfile = zone->masterfile;
-		masterformat = zone->masterformat;
-	}
 	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
 	dns_db_currentversion(zone->db, &version);
 	dns_master_initrawheader(&rawdata);
@@ -1917,8 +1850,9 @@ zone_gotwritehandle(isc_task_t *task, isc_event_t *event) {
 		get_raw_serial(zone->raw, &rawdata);
 	result = dns_master_dumpinc3(zone->mctx, zone->db, version,
 				     &dns_master_style_default,
-				     masterfile, zone->task, dump_done,
-				     zone, &zone->dctx, masterformat, &rawdata);
+				     zone->masterfile, zone->task, dump_done,
+				     zone, &zone->dctx, zone->masterformat,
+				     &rawdata);
 	dns_db_closeversion(zone->db, &version, ISC_FALSE);
 	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 	UNLOCK_ZONE(zone);
@@ -1999,8 +1933,6 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 			result = DNS_R_CONTINUE;
 	} else {
 		dns_rdatacallbacks_t callbacks;
-		char *masterfile = zone->masterfile;
-		dns_masterformat_t masterformat = zone->masterformat;
 
 		dns_rdatacallbacks_init(&callbacks);
 		callbacks.rawdata = zone_setrawdata;
@@ -2011,28 +1943,12 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 			zone_idetach(&callbacks.zone);
 			return (result);
 		}
-		if (zone->db == NULL && zone->raw == NULL &&
-		    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IXFRFROMDIFFS) &&
-		    zone->type == dns_zone_master) {
-			masterfile = zone->privatefile;
-			masterformat = dns_masterformat_raw;
-			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADPRIVATE);
-		}
- again:
-		result = dns_master_loadfile3(masterfile,
+		result = dns_master_loadfile3(zone->masterfile,
 					      &zone->origin, &zone->origin,
 					      zone->rdclass, options,
 					      zone->sigresigninginterval,
 					      &callbacks, zone->mctx,
-					      masterformat);
-		if (result == ISC_R_FILENOTFOUND &&
-		    masterfile == zone->privatefile) {
-			DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_LOADPRIVATE);
-			masterfile = zone->masterfile;
-			masterformat = zone->masterformat;
-			goto again;
-		}
-		
+					      zone->masterformat);
 		tresult = dns_db_endload(db, &callbacks.add_private);
 		if (result == ISC_R_SUCCESS)
 			result = tresult;
@@ -3621,7 +3537,6 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	isc_boolean_t hasinclude = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_HASINCLUDE);
 	isc_boolean_t nomaster = ISC_FALSE;
 	unsigned int options;
-	isc_boolean_t reload = ISC_FALSE;
 
 	TIME_NOW(&now);
 
@@ -3708,23 +3623,19 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 				     "journal rollforward failed: %s",
 				     dns_result_totext(result));
 			goto cleanup;
+
+
 		}
-		if (result == ISC_R_RANGE && zone->type == dns_zone_master &&
-	            !dns_zone_isdynamic(zone, ISC_TRUE) &&
-	            DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IXFRFROMDIFFS)) {
-			dns_zone_log(zone, ISC_LOG_DEBUG(1),
-				     "updated while shut down");
-			reload = ISC_TRUE;
-		} else if (result == ISC_R_NOTFOUND || result == ISC_R_RANGE) {
+		if (result == ISC_R_NOTFOUND || result == ISC_R_RANGE) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "journal rollforward failed: "
 				     "journal out of sync with zone");
 			goto cleanup;
-		} else
-			dns_zone_log(zone, ISC_LOG_DEBUG(1),
-				     "journal rollforward completed "
-				     "successfully: %s",
-				     dns_result_totext(result));
+		}
+		dns_zone_log(zone, ISC_LOG_DEBUG(1),
+			     "journal rollforward completed "
+			     "successfully: %s",
+			     dns_result_totext(result));
 		if (result == ISC_R_SUCCESS)
 			needdump = ISC_TRUE;
 	}
@@ -3779,8 +3690,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		}
 	}
 
-	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADPRIVATE))
-		zone->loadtime = loadtime;
+	zone->loadtime = loadtime;
 
 	dns_zone_log(zone, ISC_LOG_DEBUG(1), "loaded");
 
@@ -3967,15 +3877,6 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			zone_send_securedb(zone, db);
 	}
 
-	if (zone->type == dns_zone_master &&
-	    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IXFRFROMDIFFS) &&
-	    !dns_zone_isdynamic(zone, ISC_TRUE) &&
-	    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADPRIVATE)) {
-		dns_zone_log(zone, ISC_LOG_INFO,
-			     "set 'needdump' for private file");
-		needdump = ISC_TRUE;
-	}
-
 	result = ISC_R_SUCCESS;
 
 	if (needdump) {
@@ -4033,11 +3934,9 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			     dns_db_issecure(db) ? " (DNSSEC signed)" : "");
 
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_LOADPENDING);
-	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_LOADPRIVATE);
 	return (result);
 
  cleanup:
-	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_LOADPRIVATE);
 	if (zone->type == dns_zone_slave ||
 	    zone->type == dns_zone_stub ||
 	    zone->type == dns_zone_key ||
@@ -8866,17 +8765,8 @@ zone_dump(dns_zone_t *zone, isc_boolean_t compact) {
 	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 	LOCK_ZONE(zone);
 	if (zone->masterfile != NULL) {
-		if (zone->type == dns_zone_master && zone->raw == NULL &&
-		    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IXFRFROMDIFFS) &&
-		    !dns_zone_isdynamic(zone, ISC_TRUE)) {
-			masterfile = isc_mem_strdup(zone->mctx,
-						    zone->privatefile);
-			masterformat = dns_masterformat_raw;
-		} else {
-			masterfile = isc_mem_strdup(zone->mctx,
-						    zone->masterfile);
-			masterformat = zone->masterformat;
-		}
+		masterfile = isc_mem_strdup(zone->mctx, zone->masterfile);
+		masterformat = zone->masterformat;
 	}
 	UNLOCK_ZONE(zone);
 	if (db == NULL) {
