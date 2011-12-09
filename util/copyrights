@@ -2472,6 +2472,9 @@
 ./lib/dns/tests/testdata/master/master1.data	X	2011
 ./lib/dns/tests/testdata/master/master10.data	X	2011
 ./lib/dns/tests/testdata/master/master11.data	X	2011
+./lib/dns/tests/testdata/master/master12.data.in	X	2011
+./lib/dns/tests/testdata/master/master13.data.in	X	2011
+./lib/dns/tests/testdata/master/master14.data.in	X	2011
 ./lib/dns/tests/testdata/master/master2.data	X	2011
 ./lib/dns/tests/testdata/master/master3.data	X	2011
 ./lib/dns/tests/testdata/master/master4.data	X	2011
@@ -3485,3 +3488,4 @@
 ./win32utils/updatelibxml2.pl			PERL	2009,2010
 ./win32utils/updateopenssl.pl			PERL	2006,2007,2009,2010
 ./win32utils/win32-build.txt			TXT.BRIEF	2001,2002,2004,2005,2008,2009
+
