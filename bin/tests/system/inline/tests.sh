@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.7 2011/12/02 02:44:01 marka Exp $
+# $Id: tests.sh,v 1.8 2011/12/09 13:32:42 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -597,6 +597,34 @@ for i in 1 2 3 4 5 6 7 8 9
 do
     ret=0
     $DIG $DIGOPTS @10.53.0.3 -p 5300 freeze2.dynamic TXT > dig.out.ns3.test$n
+    grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
+    grep "ANSWER: 2," dig.out.ns3.test$n > /dev/null || ret=1
+    test $ret = 0 && break
+    sleep 1
+done
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:check that changes to master made while server is stopped are detected"
+$PERL ../stop.pl --use-rndc . ns3 || { ret=1; echo "I: failed to stop server"; }
+sleep 1
+awk '$2 == ";" && $3 == "serial" { print $1 + 1, $2, $3; next; }
+     { print; }
+     END { print "stopped.master. 0 TXT stopped"; } ' ns3/master.db > ns3/master.db.new
+mv ns3/master.db.new ns3/master.db
+$PERL ../start.pl --noclean --restart . ns3 || { ret=1; "I: failed to restart server" ; }
+sleep 1;
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 reload master 2>&1 | sed 's/^/I:ns3 /'
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:check added record stopped.master ($n)"
+for i in 1 2 3 4 5 6 7 8 9
+do
+    ret=0
+    $DIG $DIGOPTS @10.53.0.3 -p 5300 stopped.master TXT > dig.out.ns3.test$n
     grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
     grep "ANSWER: 2," dig.out.ns3.test$n > /dev/null || ret=1
     test $ret = 0 && break
