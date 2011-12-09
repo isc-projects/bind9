@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.c,v 1.57 2011/12/02 02:44:01 marka Exp $ */
+/* $Id: zt.c,v 1.58 2011/12/09 20:47:18 marka Exp $ */
 
 /*! \file */
 
@@ -196,8 +196,19 @@ dns_zt_attach(dns_zt_t *zt, dns_zt_t **ztp) {
 
 static isc_result_t
 flush(dns_zone_t *zone, void *uap) {
+	isc_result_t result = ISC_R_SUCCESS, tresult;
+	dns_zone_t *raw = NULL;
+
 	UNUSED(uap);
-	return (dns_zone_flush(zone));
+	dns_zone_getraw(zone, &raw);
+	if (raw != NULL) {
+		result = dns_zone_flush(raw);
+		dns_zone_detach(&raw);
+	}
+	tresult = dns_zone_flush(zone);
+	if (result != ISC_R_SUCCESS)
+		result = tresult;
+	return (tresult);
 }
 
 static void
