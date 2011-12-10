@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-signzone.8,v 1.64 2011/11/08 01:14:49 tbox Exp $
+.\" $Id: dnssec-signzone.8,v 1.65 2011/12/10 01:14:52 tbox Exp $
 .\"
 .hy 0
 .ad l
@@ -233,8 +233,14 @@ The zone origin. If not specified, the name of the zone file is assumed to be th
 The format of the output file containing the signed zone. Possible formats are
 \fB"text"\fR
 (default)
-\fB"raw"\fR, and
-\fB"full"\fR, which is text output in a format suitable for processing by external scripts.
+\fB"full"\fR, which is text output in a format suitable for processing by external scripts, and
+\fB"raw"\fR
+or
+\fB"raw=N"\fR, which store the zone in a binary format for rapid loading by
+\fBnamed\fR.
+\fB"raw=N"\fR
+specifies the format version of the raw zone file: if N is 0, the raw file can be read by any version of
+\fBnamed\fR; if N is 1, the file can be read by release 9.9.0 or higher. The default is 1.
 .RE
 .PP
 \-p
