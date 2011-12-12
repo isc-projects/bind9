@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.38 2011/11/27 12:04:27 marka Exp $
+# $Id: tests.sh,v 1.39 2011/12/12 06:51:12 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -1062,7 +1062,7 @@ status=`expr $status + $ret`
 
 # this confirms that key events are never scheduled more than
 # 'dnssec-loadkeys-interval' minutes in the future, and that the 
-# last event scheduled is precisely that far in the future.
+# event scheduled is within 10 seconds of expected interval.
 check_interval () {
         awk '/next key event/ {print $2 ":" $9}' $1/named.run |
 	sed 's/\.//g' |
@@ -1083,7 +1083,8 @@ check_interval () {
                        if (int(x) > int(interval))
                          exit (1);
                      }
-                     END { if (int(x) != int(interval)) exit(1) }' interval=$2
+                     END { if (int(x) > int(interval) ||
+			       int(x) < int(interval-10)) exit(1) }' interval=$2
         return $?
 }
 
