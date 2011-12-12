@@ -1,0 +1,12 @@
+.deps
+.dirstamp
+.libs
+c_helpers
+config_test
+cpp_helpers
+expect_test
+fork_test
+meta_data_test
+result_test
+sh_helpers
+srcdir_test
