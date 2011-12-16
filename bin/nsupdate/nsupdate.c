@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.197 2011/11/03 04:29:28 each Exp $ */
+/* $Id: nsupdate.c,v 1.198 2011/12/16 23:01:16 each Exp $ */
 
 /*! \file */
 
@@ -85,6 +85,10 @@
 #endif
 #include <bind9/getaddresses.h>
 
+#if defined(HAVE_READLINE)
+#include <readline/readline.h>
+#include <readline/history.h>
+#endif
 
 #ifdef HAVE_ADDRINFO
 #ifdef HAVE_GETADDRINFO
@@ -1154,6 +1158,11 @@ parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 	dns_rdatacallbacks_t callbacks;
 	isc_result_t result;
 
+	if (cmdline == NULL) {
+		rdata->flags = DNS_RDATA_UPDATE;
+		return (STATUS_MORE);
+	}
+
 	while (*cmdline != 0 && isspace((unsigned char)*cmdline))
 		cmdline++;
 
@@ -1800,6 +1809,8 @@ evaluate_update(char *cmdline) {
 	}
 	if (strcasecmp(word, "delete") == 0)
 		isdelete = ISC_TRUE;
+	else if (strcasecmp(word, "del") == 0)
+		isdelete = ISC_TRUE;
 	else if (strcasecmp(word, "add") == 0)
 		isdelete = ISC_FALSE;
 	else {
@@ -1878,27 +1889,13 @@ show_message(FILE *stream, dns_message_t *msg, const char *description) {
 	isc_buffer_free(&buf);
 }
 
-
 static isc_uint16_t
-get_next_command(void) {
-	char cmdlinebuf[MAXCMD];
-	char *cmdline;
+do_next_command(char *cmdline) {
 	char *word;
 
-	ddebug("get_next_command()");
-	if (interactive) {
-		fprintf(stdout, "> ");
-		fflush(stdout);
-	}
-	isc_app_block();
-	cmdline = fgets(cmdlinebuf, MAXCMD, input);
-	isc_app_unblock();
-	if (cmdline == NULL)
-		return (STATUS_QUIT);
+	ddebug("do_next_command()");
 	word = nsu_strsep(&cmdline, " \t\r\n");
 
-	if (feof(input))
-		return (STATUS_QUIT);
 	if (*word == 0)
 		return (STATUS_SEND);
 	if (word[0] == ';')
@@ -1907,8 +1904,22 @@ get_next_command(void) {
 		return (STATUS_QUIT);
 	if (strcasecmp(word, "prereq") == 0)
 		return (evaluate_prereq(cmdline));
+	if (strcasecmp(word, "nxdomain") == 0)
+		return (make_prereq(cmdline, ISC_FALSE, ISC_FALSE));
+	if (strcasecmp(word, "yxdomain") == 0)
+		return (make_prereq(cmdline, ISC_TRUE, ISC_FALSE));
+	if (strcasecmp(word, "nxrrset") == 0)
+		return (make_prereq(cmdline, ISC_FALSE, ISC_TRUE));
+	if (strcasecmp(word, "yxrrset") == 0)
+		return (make_prereq(cmdline, ISC_TRUE, ISC_TRUE));
 	if (strcasecmp(word, "update") == 0)
 		return (evaluate_update(cmdline));
+	if (strcasecmp(word, "delete") == 0)
+		return (update_addordelete(cmdline, ISC_TRUE));
+	if (strcasecmp(word, "del") == 0)
+		return (update_addordelete(cmdline, ISC_TRUE));
+	if (strcasecmp(word, "add") == 0)
+		return (update_addordelete(cmdline, ISC_FALSE));
 	if (strcasecmp(word, "server") == 0)
 		return (evaluate_server(cmdline));
 	if (strcasecmp(word, "local") == 0)
@@ -1975,16 +1986,44 @@ get_next_command(void) {
 "oldgsstsig                (use Microsoft's GSS_TSIG to sign the request)\n"
 "zone name                 (set the zone to be updated)\n"
 "class CLASS               (set the zone's DNS class, e.g. IN (default), CH)\n"
-"prereq nxdomain name      (does this name not exist)\n"
-"prereq yxdomain name      (does this name exist)\n"
-"prereq nxrrset ....       (does this RRset exist)\n"
-"prereq yxrrset ....       (does this RRset not exist)\n"
-"update add ....           (add the given record to the zone)\n"
-"update delete ....        (remove the given record(s) from the zone)\n");
+"[prereq] nxdomain name    (does this name not exist)\n"
+"[prereq] yxdomain name    (does this name exist)\n"
+"[prereq] nxrrset ....     (does this RRset exist)\n"
+"[prereq] yxrrset ....     (does this RRset not exist)\n"
+"[update] add ....         (add the given record to the zone)\n"
+"[update] del[ete] ....    (remove the given record(s) from the zone)\n");
 		return (STATUS_MORE);
 	}
 	fprintf(stderr, "incorrect section name: %s\n", word);
 	return (STATUS_SYNTAX);
+}
+
+static isc_uint16_t
+get_next_command(void) {
+	isc_uint16_t result = STATUS_QUIT;
+	char cmdlinebuf[MAXCMD];
+	char *cmdline;
+
+	isc_app_block();
+	if (interactive) {
+#ifdef HAVE_READLINE
+		cmdline = readline("> ");
+		add_history(cmdline);
+#else
+		fprintf(stdout, "> ");
+		fflush(stdout);
+		cmdline = fgets(cmdlinebuf, MAXCMD, input);
+#endif
+	} else
+		cmdline = fgets(cmdlinebuf, MAXCMD, input);
+	isc_app_unblock();
+	if (cmdline != NULL)
+		result = do_next_command(cmdline);
+#ifdef HAVE_READLINE
+	if (interactive)
+		free(cmdline);
+#endif
+	return (result);
 }
 
 static isc_boolean_t
