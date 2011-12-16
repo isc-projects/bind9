@@ -1,3 +1,6 @@
+3243.	[port]		netbsd,bsdi: the thread defaults were not being
+			properly set.
+
 3241.	[bug]		Address race conditions in the resolver code.
 			[RT #26889]
 
