@@ -1,3 +1,7 @@
+3244.	[func]		Added readline support to nslookup and nsupdate.
+			Also simplified nsupdate syntax to make "update" 
+			and "prereq" optional. [RT #24659]
+
 3243.	[port]		freebsd,netbsd,bsdi: the thread defaults were not
 			being properly set.
 

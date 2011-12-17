@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.531 $)
+AC_REVISION($Revision: 1.532 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -2201,6 +2201,28 @@ AC_CHECK_FUNC(strlcat,
 	[ISC_PLATFORM_NEEDSTRLCAT="#undef ISC_PLATFORM_NEEDSTRLCAT"],
 	[ISC_PLATFORM_NEEDSTRLCAT="#define ISC_PLATFORM_NEEDSTRLCAT 1"])
 AC_SUBST(ISC_PLATFORM_NEEDSTRLCAT)
+
+
+AC_ARG_WITH(readline,
+        [  --with-readline[=LIBSPEC]    specify readline library [default -lreadline]],
+        readline="$withval", readline="-lreadline")
+case "$readline" in
+no)	;;
+*)
+	if test "x$readline" = "xyes"
+	then
+		readline=-lreadline
+	fi
+	saved_LIBS="$LIBS"
+	LIBS="$LIBS $readline"
+	AC_CHECK_FUNCS(readline)
+	if test "$ac_cv_func_readline" = "no" 
+	then
+		LIBS="$saved_LIBS"
+	fi
+        ;;
+esac
+
 
 ISC_PRINT_OBJS=
 ISC_PRINT_SRCS=
