@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.654 2011/12/09 22:09:26 marka Exp $ */
+/* $Id: zone.c,v 1.655 2011/12/19 23:46:12 marka Exp $ */
 
 /*! \file */
 
@@ -3524,6 +3524,20 @@ maybe_send_securedb(dns_zone_t *zone) {
 	UNLOCK_ZONE(zone->raw);
 }
 
+static isc_boolean_t
+zone_unchanged(dns_db_t *db1, dns_db_t *db2, isc_mem_t *mctx) {
+	isc_result_t result;
+	isc_boolean_t answer = ISC_FALSE;
+	dns_diff_t diff;
+
+	dns_diff_init(mctx, &diff);
+	result = dns_db_diffx(&diff, db1, NULL, db2, NULL, NULL);
+	if (result == ISC_R_SUCCESS && ISC_LIST_EMPTY(diff.tuples))
+		answer = ISC_TRUE;
+	dns_diff_clear(&diff);
+	return (answer);
+}
+
 static isc_result_t
 zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	      isc_result_t result)
@@ -3754,6 +3768,14 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 				isc_uint32_t serialmin, serialmax;
 
 				INSIST(zone->type == dns_zone_master);
+
+				if (serial == oldserial &&
+				    zone_unchanged(zone->db, db, zone->mctx)) {
+					dns_zone_log(zone, ISC_LOG_INFO,
+						     "ixfr-from-differences: "
+						     "unchanged");
+					return(ISC_R_SUCCESS);
+				}
 
 				serialmin = (oldserial + 1) & 0xffffffffU;
 				serialmax = (oldserial + 0x7fffffffU) &

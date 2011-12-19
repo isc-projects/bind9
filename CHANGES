@@ -1,3 +1,7 @@
+3245.	[bug]		Don't report a error unchanged serials unless there
+			were other changes when thawing a zone with
+			ixfr-fromdifferences. [RT #26845]
+
 3244.	[func]		Added readline support to nslookup and nsupdate.
 			Also simplified nsupdate syntax to make "update" 
 			and "prereq" optional. [RT #24659]

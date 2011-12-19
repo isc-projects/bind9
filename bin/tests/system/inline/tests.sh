@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.9 2011/12/09 22:09:25 marka Exp $
+# $Id: tests.sh,v 1.10 2011/12/19 23:46:13 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -547,6 +547,18 @@ do
 done
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking rndc freeze/thaw of dynamic inline zone no change ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 freeze dynamic > freeze.test$n 2>&1 || { echo "I: rndc freeze dynamic failed" ; sed 's/^/I:/' < freeze.test$n ; ret=1;  }
+sleep 1
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 thaw dynamic > thaw.test$n 2>&1 || { echo "I: rndc thaw dynamic failed" ; ret=1; }
+sleep 1
+grep "zone dynamic/IN (unsigned): ixfr-from-differences: unchanged" ns3/named.run > /dev/null ||  ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 
 n=`expr $n + 1`
 echo "I:checking rndc freeze/thaw of dynamic inline zone ($n)"
