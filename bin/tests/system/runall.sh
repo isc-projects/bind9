@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: runall.sh,v 1.10.148.2 2011/11/01 23:46:34 tbox Exp $
+# $Id: runall.sh,v 1.10.148.3 2011/12/19 23:11:14 marka Exp $
 
 #
 # Run all the system tests.
@@ -47,5 +47,6 @@ EOF
 
 echo "I:System test result summary:"
 grep '^R:' systests.output | sort | uniq -c | sed -e 's/^/I:   /' -e 's/R://'
+grep '^R:FAIL' systests.output > /dev/null && status=1
 
 exit $status
