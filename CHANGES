@@ -1,3 +1,16 @@
+3249.	[bug]		Update log message when saving slave zones files for
+			analysis after load failures. [RT #27087]
+
+3248.	[bug]		Configure options --enable-fixed-rrset and
+			--enable-exportlib were incompatible with each
+			other. [RT #27087]
+
+3247.	[bug]		'raw' format zones failed to preserve load order
+			breaking 'fixed' sort order. [RT #27087]
+
+3246.	[bug]		Named failed to start with a empty also-notify list.
+			[RT #27087]
+
 3245.	[bug]		Don't report a error unchanged serials unless there
 			were other changes when thawing a zone with
 			ixfr-fromdifferences. [RT #26845]
