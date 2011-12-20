@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.656 2011/12/20 00:06:53 marka Exp $ */
+/* $Id: zone.c,v 1.657 2011/12/20 00:26:52 marka Exp $ */
 
 /*! \file */
 
@@ -14049,7 +14049,7 @@ zone_saveunique(dns_zone_t *zone, const char *path, const char *templat) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	dns_zone_log(zone, ISC_LOG_WARNING, "unable to load from '%'; "
+	dns_zone_log(zone, ISC_LOG_WARNING, "unable to load from '%s'; "
 		     "renaming file to '%s' for failure analysis and "
 		     "retransferring.", path, buf);
 
