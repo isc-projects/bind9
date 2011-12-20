@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.50.186.2 2010/02/25 05:25:52 tbox Exp $ */
+/* $Id: rdataslab.c,v 1.50.186.3 2011/12/20 00:56:32 marka Exp $ */
 
 /*! \file */
 
@@ -53,6 +53,7 @@
  *	record count	(2 bytes)
  *	data records
  *		data length	(2 bytes)
+ *		meta data	(1 byte for RRSIG's)
  *		data		(data length bytes)
  *
  * Offsets are from the end of the header.
