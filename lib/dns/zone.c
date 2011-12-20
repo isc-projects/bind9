@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.582.8.36 2011/12/07 22:49:24 marka Exp $ */
+/* $Id: zone.c,v 1.582.8.37 2011/12/20 00:12:09 marka Exp $ */
 
 /*! \file */
 
@@ -13149,8 +13149,9 @@ zone_saveunique(dns_zone_t *zone, const char *path, const char *templat) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	dns_zone_log(zone, ISC_LOG_WARNING, "saved '%s' as '%s'",
-		     path, buf);
+	dns_zone_log(zone, ISC_LOG_WARNING, "unable to load from '%'; "
+		     "renaming file to '%s' for failure analysis and "
+		     "retransferring.", path, buf);
 
  cleanup:
 	isc_mem_put(zone->mctx, buf, buflen);
