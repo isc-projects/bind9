@@ -1,3 +1,7 @@
+3250.	[func]		'configure --enable-developer'; turn on various
+			configure options, normally off by default, that
+			we want developers to build and test with. [RT #27103]
+
 3249.	[bug]		Update log message when saving slave zones files for
 			analysis after load failures. [RT #27087]
 
