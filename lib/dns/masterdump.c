@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.94.50.11 2011/09/07 19:11:53 each Exp $ */
+/* $Id: masterdump.c,v 1.94.50.12 2011/12/20 00:16:20 marka Exp $ */
 
 /*! \file */
 
@@ -865,6 +865,7 @@ dump_rdataset_raw(isc_mem_t *mctx, dns_name_t *name, dns_rdataset_t *rdataset,
 	REQUIRE(buffer->length > 0);
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 
+	rdataset->attributes |= DNS_RDATASETATTR_LOADORDER;
  restart:
 	totallen = 0;
 	result = dns_rdataset_first(rdataset);

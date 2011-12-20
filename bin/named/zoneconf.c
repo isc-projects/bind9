@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.147.50.5 2011/03/12 04:57:24 tbox Exp $ */
+/* $Id: zoneconf.c,v 1.147.50.6 2011/12/20 00:16:21 marka Exp $ */
 
 /*% */
 
@@ -893,8 +893,11 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 							 &count));
 			result = dns_zone_setmasterswithkeys(zone, addrs,
 							     keynames, count);
-			ns_config_putipandkeylist(mctx, &addrs, &keynames,
-						  count);
+			if (count != 0)
+				ns_config_putipandkeylist(mctx, &addrs,
+							  &keynames, count);
+			else
+				INSIST(addrs == NULL && keynames == NULL);
 		} else
 			result = dns_zone_setmasters(zone, NULL, 0);
 		RETERR(result);

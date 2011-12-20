@@ -1,3 +1,9 @@
+3249.	[bug]		Update log message when saving slave zones files for
+			analysis after load failures. [RT #27087]
+
+3247.	[bug]		'raw' format zones failed to preserve load order
+			breaking 'fixed' sort order. [RT #27087]
+
 3243.	[port]		netbsd,bsdi: the thread defaults were not being
 			properly set.
 
