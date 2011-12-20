@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009-2011  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ecdb.c,v 1.4.24.3 2011/12/20 00:14:15 marka Exp $ */
+/* $Id: ecdb.c,v 1.4.24.4 2011/12/20 23:45:39 tbox Exp $ */
 
 #include "config.h"
 
