@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.60.70.2 2011/03/12 04:57:23 tbox Exp $ */
+/* $Id: controlconf.c,v 1.60.70.3 2011/12/22 08:12:21 marka Exp $ */
 
 /*! \file */
 
@@ -1147,6 +1147,11 @@ add_listener(ns_controls_t *cp, controllistener_t **listenerp,
 					   type, &listener->sock);
 	if (result == ISC_R_SUCCESS)
 		isc_socket_setname(listener->sock, "control", NULL);
+
+#ifndef ISC_ALLOW_MAPPED
+	if (result == ISC_R_SUCCESS)
+		isc_socket_ipv6only(listener->sock, ISC_TRUE);
+#endif
 
 	if (result == ISC_R_SUCCESS)
 		result = isc_socket_bind(listener->sock, &listener->address,

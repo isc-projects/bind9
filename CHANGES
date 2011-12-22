@@ -1,3 +1,6 @@
+3254.	[bug]		Set isc_socket_ipv6only() on the IPv6 control channels.
+			[RT #22249]
+
 3253.	[bug]		Return DNS_R_SYNTAX when the input to a text field is
 			too long. [RT #26956]
 
