@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.59.4.2 2010/09/07 23:46:37 tbox Exp $ */
+/* $Id: named-checkzone.c,v 1.59.4.3 2011/12/22 17:28:32 each Exp $ */
 
 /*! \file */
 
@@ -112,6 +112,7 @@ main(int argc, char **argv) {
 	const char *outputformatstr = NULL;
 	dns_masterformat_t inputformat = dns_masterformat_text;
 	dns_masterformat_t outputformat = dns_masterformat_text;
+	isc_boolean_t logdump = ISC_FALSE;
 	FILE *errout = stdout;
 
 	outputstyle = &dns_master_style_full;
@@ -418,6 +419,7 @@ main(int argc, char **argv) {
 
 	if (progmode == progmode_compile) {
 		dumpzone = 1;	/* always dump */
+		logdump = !quiet;
 		if (output_filename == NULL) {
 			fprintf(stderr,
 				"output file required, but not specified\n");
@@ -436,8 +438,10 @@ main(int argc, char **argv) {
 	    (output_filename == NULL ||
 	     strcmp(output_filename, "-") == 0 ||
 	     strcmp(output_filename, "/dev/fd/1") == 0 ||
-	     strcmp(output_filename, "/dev/stdout") == 0))
+	     strcmp(output_filename, "/dev/stdout") == 0)) {
 		errout = stderr;
+		logdump = ISC_FALSE;
+	}
 
 	if (isc_commandline_index + 2 != argc)
 		usage();
@@ -462,13 +466,13 @@ main(int argc, char **argv) {
 			   &zone);
 
 	if (result == ISC_R_SUCCESS && dumpzone) {
-		if (!quiet && progmode == progmode_compile) {
+		if (logdump) {
 			fprintf(errout, "dump zone to %s...", output_filename);
 			fflush(errout);
 		}
 		result = dump_zone(origin, zone, output_filename,
 				   outputformat, outputstyle);
-		if (!quiet && progmode == progmode_compile)
+		if (logdump)
 			fprintf(errout, "done\n");
 	}
 
