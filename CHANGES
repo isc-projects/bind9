@@ -1,3 +1,6 @@
+3260.	[bug]		"rrset-order cyclic" could appears to not rotate
+			for some query patterns.  [RT #27170]
+
 	--- 9.9.0rc1 released ---
 
 3259.	[bug]		named-compilezone: Suppress "dump zone to <file>"
