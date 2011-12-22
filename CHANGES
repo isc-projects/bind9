@@ -1,3 +1,6 @@
+3259.	[bug]		named-compilezone: Suppress "dump zone to <file>"
+			message when writing to stdout. [RT #27109]
+
 3257.	[bug]		Do not generate a error message when calling fsync()
 			in a pipe or socket. [RT #27109]
 
