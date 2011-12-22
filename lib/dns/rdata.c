@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.199.50.7 2011/11/02 01:16:26 marka Exp $ */
+/* $Id: rdata.c,v 1.199.50.8 2011/12/22 07:45:46 marka Exp $ */
 
 /*! \file */
 
@@ -1108,7 +1108,8 @@ txt_fromtext(isc_textregion_t *source, isc_buffer_t *target) {
 		}
 		escape = ISC_FALSE;
 		if (nrem == 0)
-			return (ISC_R_NOSPACE);
+			return ((tregion.length <= 256U) ?
+				ISC_R_NOSPACE : DNS_R_SYNTAX);
 		*t++ = c;
 		nrem--;
 	}
