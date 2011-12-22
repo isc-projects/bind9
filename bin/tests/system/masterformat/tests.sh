@@ -14,27 +14,30 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.9 2011/12/22 07:32:40 each Exp $
+# $Id: tests.sh,v 1.10 2011/12/22 11:56:07 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 israw () {
-    perl -e '$input = <STDIN>;
+    perl -e 'binmode STDIN;
+             read(STDIN, $input, 8);
              ($style, $version) = unpack("NN", $input);
              exit 1 if ($style != 2 || $version > 1);' < $1
     return $?
 }
 
 rawversion () {
-    perl -e '$input = <STDIN>;
+    perl -e 'binmode STDIN;
+             read(STDIN, $input, 8);
              if (length($input) < 8) { print "not raw\n"; exit 0; };
              ($style, $version) = unpack("NN", $input);
              print ($style == 2 ? "$version\n" : "not raw\n");' < $1
 }
 
 sourceserial () {
-    perl -e '$input = <STDIN>;
+    perl -e 'binmode STDIN;
+             read(STDIN, $input, 20);
              if (length($input) < 20) { print "UNSET\n"; exit; };
              ($format, $version, $dumptime, $flags, $sourceserial) = 
                      unpack("NNNNN", $input);
