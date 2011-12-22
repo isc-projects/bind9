@@ -91,6 +91,7 @@ BIND 9.9.0
         - 'request-ixfr' option can now be set at the per-zone level.
         - 'dig +rrcomments' turns on comments about DNSKEY records,
           indicating their key ID, algorithm and function
+        - Simplified nsupdate syntax and added readline support
 
 BIND 9.8.0
 

@@ -1,3 +1,5 @@
+	--- 9.9.0rc1 released ---
+
 3259.	[bug]		named-compilezone: Suppress "dump zone to <file>"
 			message when writing to stdout. [RT #27109]
 
