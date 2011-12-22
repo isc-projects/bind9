@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.64 2011/12/22 07:32:39 each Exp $ */
+/* $Id: named-checkzone.c,v 1.65 2011/12/22 17:29:22 each Exp $ */
 
 /*! \file */
 
@@ -116,6 +116,7 @@ main(int argc, char **argv) {
 	dns_masterrawheader_t header;
 	isc_uint32_t rawversion = 1, serialnum = 0;
 	isc_boolean_t snset = ISC_FALSE;
+	isc_boolean_t logdump = ISC_FALSE;
 	FILE *errout = stdout;
 	char *endp;
 
@@ -449,6 +450,7 @@ main(int argc, char **argv) {
 
 	if (progmode == progmode_compile) {
 		dumpzone = 1;	/* always dump */
+		logdump = !quiet;
 		if (output_filename == NULL) {
 			fprintf(stderr,
 				"output file required, but not specified\n");
@@ -467,8 +469,10 @@ main(int argc, char **argv) {
 	    (output_filename == NULL ||
 	     strcmp(output_filename, "-") == 0 ||
 	     strcmp(output_filename, "/dev/fd/1") == 0 ||
-	     strcmp(output_filename, "/dev/stdout") == 0))
+	     strcmp(output_filename, "/dev/stdout") == 0)) {
 		errout = stderr;
+		logdump = ISC_FALSE;
+	}
 
 	if (isc_commandline_index + 2 != argc)
 		usage();
@@ -500,13 +504,13 @@ main(int argc, char **argv) {
 	}
 
 	if (result == ISC_R_SUCCESS && dumpzone) {
-		if (!quiet && progmode == progmode_compile) {
+		if (logdump) {
 			fprintf(errout, "dump zone to %s...", output_filename);
 			fflush(errout);
 		}
 		result = dump_zone(origin, zone, output_filename,
 				   outputformat, outputstyle, rawversion);
-		if (!quiet && progmode == progmode_compile)
+		if (logdump)
 			fprintf(errout, "done\n");
 	}
 
