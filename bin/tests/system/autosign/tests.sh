@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.12.18.21 2011/12/12 12:08:59 marka Exp $
+# $Id: tests.sh,v 1.12.18.22 2011/12/22 02:21:04 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -967,8 +967,8 @@ check_interval () {
             awk -F: '
                      {
                        x = ($6+ $5*60000 + $4*3600000) - ($3+ $2*60000 + $1*3600000);
-		       # abs(x) < 500 ms treat as 'now'
-		       if (x < 500 && x > -500)
+		       # abs(x) < 1000 ms treat as 'now'
+		       if (x < 1000 && x > -1000)
                          x = 0;
 		       # convert to seconds
 		       x = x/1000;
