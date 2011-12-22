@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.106 2011/12/08 16:07:20 each Exp $
+# $Id: tests.sh,v 1.107 2011/12/22 12:01:43 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -59,7 +59,8 @@ checkprivate () {
 
 # check that a zone file is raw format, version 0
 israw0 () {
-    cat $1 | perl -e '$input = <STDIN>;
+    cat $1 | perl -e 'binmode STDIN;
+		      read(STDIN, $input, 8);
                       ($style, $version) = unpack("NN", $input);
                       exit 1 if ($style != 2 || $version != 0);'
     return $?
@@ -67,7 +68,8 @@ israw0 () {
 
 # check that a zone file is raw format, version 1
 israw1 () {
-    cat $1 | perl -e '$input = <STDIN>;
+    cat $1 | perl -e 'binmode STDIN;
+		      read(STDIN, $input, 8);
                       ($style, $version) = unpack("NN", $input);
                       exit 1 if ($style != 2 || $version != 1);'
     return $?
