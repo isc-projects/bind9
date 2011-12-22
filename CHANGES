@@ -1,3 +1,8 @@
+3251.	[bug]		Enforce a upper bound (65535 bytes) on the amount of
+			memory dns_sdlz_putrr() can allocate per record to
+			prevent run away memory consumption on ISC_R_NOSPACE.
+			[RT #26956]
+
 3250.	[func]		'configure --enable-developer'; turn on various
 			configure options, normally off by default, that
 			we want developers to build and test with. [RT #27103]
