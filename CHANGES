@@ -1,3 +1,6 @@
+3259.	[bug]		named-compilezone: Suppress "dump zone to <file>"
+			message when writing to stdout. [RT #27109]
+
 3258.	[test]		Add "forcing full sign with unreadable keys" test.
 			[RT #27153]
 
