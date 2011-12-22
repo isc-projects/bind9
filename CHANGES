@@ -1,3 +1,9 @@
+3256.	[bug]		Disable empty zones for lwresd -C. [RT #27139]
+
+3255.	[func]		No longer require that a empty zones be explicitly
+			enabled or that a empty zone is disabled for
+			RFC 1918 empty zones to be configured. [RT #27139]
+
 3254.	[bug]		Set isc_socket_ipv6only() on the IPv6 control channels.
 			[RT #22249]
 
