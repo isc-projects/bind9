@@ -789,6 +789,7 @@ dns_zone_dlzpostload
 dns_zone_dump
 dns_zone_dumptostream
 dns_zone_dumptostream2
+dns_zone_dumptostream3
 dns_zone_expire
 dns_zone_first
 dns_zone_flush
