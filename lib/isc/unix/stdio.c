@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stdio.c,v 1.8.332.2 2011/03/12 04:57:32 tbox Exp $ */
+/* $Id: stdio.c,v 1.8.332.3 2011/12/22 08:53:32 marka Exp $ */
 
 #include <config.h>
 
@@ -110,7 +110,11 @@ isc_stdio_sync(FILE *f) {
 	int r;
 
 	r = fsync(fileno(f));
-	if (r == 0)
+	/*
+	 * fsync is not supported on sockets and pipes which
+	 * result in EINVAL / ENOTSUP.
+	 */
+	if (r == 0 || errno == EINVAL || errno == ENOTSUP)
 		return (ISC_R_SUCCESS);
 	else
 		return (isc__errno2result(errno));
