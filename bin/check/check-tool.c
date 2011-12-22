@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.c,v 1.43 2011/12/09 23:47:02 tbox Exp $ */
+/* $Id: check-tool.c,v 1.44 2011/12/22 07:32:39 each Exp $ */
 
 /*! \file */
 
@@ -661,7 +661,6 @@ dump_zone(const char *zonename, dns_zone_t *zone, const char *filename,
 
 	result = dns_zone_dumptostream3(zone, output, fileformat, style,
 					rawversion);
-
 	if (output != stdout)
 		(void)isc_stdio_close(output);
 

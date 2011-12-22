@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.119 2011/12/05 23:46:35 tbox Exp $ */
+/* $Id: journal.c,v 1.120 2011/12/22 07:32:41 each Exp $ */
 
 #include <config.h>
 
@@ -110,6 +110,8 @@ static isc_boolean_t bind8_compat = ISC_TRUE; /* XXX config */
 	do { result = (op); 					\
 		if (result != ISC_R_SUCCESS) goto failure; 	\
 	} while (0)
+
+#define JOURNAL_SERIALSET	0x01U
 
 static isc_result_t index_to_disk(dns_journal_t *);
 
@@ -215,6 +217,7 @@ typedef union {
 		unsigned char 		index_size[4];
 		/*% Source serial number. */
 		unsigned char           sourceserial[4];
+		unsigned char           flags;
 	} h;
 	/* Pad the header to a fixed size. */
 	unsigned char pad[JOURNAL_HEADER_SIZE];
@@ -255,6 +258,7 @@ typedef struct {
 	journal_pos_t 	end;
 	isc_uint32_t	index_size;
 	isc_uint32_t	sourceserial;
+	isc_boolean_t	serialset;
 } journal_header_t;
 
 /*%
@@ -287,7 +291,7 @@ typedef struct {
  */
 
 static journal_header_t
-initial_journal_header = { ";BIND LOG V9\n", { 0, 0 }, { 0, 0 }, 0, 0 };
+initial_journal_header = { ";BIND LOG V9\n", { 0, 0 }, { 0, 0 }, 0, 0, 0 };
 
 #define JOURNAL_EMPTY(h) ((h)->begin.offset == (h)->end.offset)
 
@@ -358,10 +362,13 @@ journal_header_decode(journal_rawheader_t *raw, journal_header_t *cooked) {
 	journal_pos_decode(&raw->h.end, &cooked->end);
 	cooked->index_size = decode_uint32(raw->h.index_size);
 	cooked->sourceserial = decode_uint32(raw->h.sourceserial);
+	cooked->serialset = ISC_TF(raw->h.flags & JOURNAL_SERIALSET);
 }
 
 static void
 journal_header_encode(journal_header_t *cooked, journal_rawheader_t *raw) {
+	unsigned char flags = 0;
+
 	INSIST(sizeof(cooked->format) == sizeof(raw->h.format));
 	memset(raw->pad, 0, sizeof(raw->pad));
 	memcpy(raw->h.format, cooked->format, sizeof(raw->h.format));
@@ -369,6 +376,9 @@ journal_header_encode(journal_header_t *cooked, journal_rawheader_t *raw) {
 	journal_pos_encode(&raw->h.end, &cooked->end);
 	encode_uint32(cooked->index_size, raw->h.index_size);
 	encode_uint32(cooked->sourceserial, raw->h.sourceserial);
+	if (cooked->serialset)
+		flags |= JOURNAL_SERIALSET;
+	raw->h.flags = flags;
 }
 
 /*
@@ -546,7 +556,8 @@ journal_file_create(isc_mem_t *mctx, const char *filename) {
 
 static isc_result_t
 journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
-	     isc_boolean_t create, dns_journal_t **journalp) {
+	     isc_boolean_t create, dns_journal_t **journalp)
+{
 	FILE *fp = NULL;
 	isc_result_t result;
 	journal_rawheader_t rawheader;
@@ -674,7 +685,8 @@ journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 
 isc_result_t
 dns_journal_open(isc_mem_t *mctx, const char *filename, unsigned int mode,
-		 dns_journal_t **journalp) {
+		 dns_journal_t **journalp)
+{
 	isc_result_t result;
 	int namelen;
 	char backup[1024];
@@ -1164,10 +1176,8 @@ dns_journal_commit(dns_journal_t *j) {
 	/*
 	 * Update the journal header.
 	 */
-	if (JOURNAL_EMPTY(&j->header)) {
+	if (JOURNAL_EMPTY(&j->header))
 		j->header.begin = j->x.pos[0];
-		j->header.sourceserial = j->header.begin.serial;
-	}
 	j->header.end = j->x.pos[1];
 	journal_header_encode(&j->header, &rawheader);
 	CHECK(journal_seek(j, 0));
@@ -1399,7 +1409,7 @@ dns_journal_rollforward2(isc_mem_t *mctx, dns_db_t *db, unsigned int options,
 	REQUIRE(filename != NULL);
 
 	j = NULL;
-	result = dns_journal_open(mctx, filename, ISC_FALSE, &j);
+	result = dns_journal_open(mctx, filename, DNS_JOURNAL_READ, &j);
 	if (result == ISC_R_NOTFOUND) {
 		isc_log_write(JOURNAL_DEBUG_LOGARGS(3),
 			      "no journal file, but that's OK");
@@ -1432,7 +1442,7 @@ dns_journal_print(isc_mem_t *mctx, const char *filename, FILE *file) {
 	REQUIRE(filename != NULL);
 
 	j = NULL;
-	result = dns_journal_open(mctx, filename, ISC_FALSE, &j);
+	result = dns_journal_open(mctx, filename, DNS_JOURNAL_READ, &j);
 	if (result == ISC_R_NOTFOUND) {
 		isc_log_write(JOURNAL_DEBUG_LOGARGS(3), "no journal file");
 		return (DNS_R_NOJOURNAL);
@@ -1445,7 +1455,8 @@ dns_journal_print(isc_mem_t *mctx, const char *filename, FILE *file) {
 		return (result);
 	}
 
-	fprintf(file, "Source serial = %u\n", j->header.sourceserial);
+	if (j->header.serialset)
+		fprintf(file, "Source serial = %u\n", j->header.sourceserial);
 	dns_diff_init(j->mctx, &diff);
 
 	/*
@@ -1546,13 +1557,19 @@ dns_journal_set_sourceserial(dns_journal_t *j, isc_uint32_t sourceserial) {
 		j->state == JOURNAL_STATE_TRANSACTION);
 
 	j->header.sourceserial = sourceserial;
+	j->header.serialset = ISC_TRUE;
 	if (j->state == JOURNAL_STATE_WRITE)
 		j->state = JOURNAL_STATE_INLINE;
 }
 
-isc_uint32_t
-dns_journal_get_sourceserial(dns_journal_t *j) {
-	return (j->header.sourceserial);
+isc_boolean_t
+dns_journal_get_sourceserial(dns_journal_t *j, isc_uint32_t *sourceserial) {
+	REQUIRE(sourceserial != NULL);
+
+	if (!j->header.serialset)
+		return (ISC_FALSE);
+	*sourceserial = j->header.sourceserial;
+	return (ISC_TRUE);
 }
 
 /**************************************************************************/
@@ -2043,8 +2060,8 @@ dns_db_diffx(dns_diff_t *diff, dns_db_t *dba, dns_dbversion_t *dbvera,
 	dns_journal_t *journal = NULL;
 
 	if (filename != NULL) {
-		result = dns_journal_open(diff->mctx, filename, ISC_TRUE,
-					  &journal);
+		result = dns_journal_open(diff->mctx, filename,
+					  DNS_JOURNAL_CREATE, &journal);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 	}
@@ -2213,6 +2230,7 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, isc_uint32_t serial,
 		new->header.end.serial = j->header.end.serial;
 		new->header.end.offset = indexend + copy_length;
 		new->header.sourceserial = j->header.sourceserial;
+		new->header.serialset = j->header.serialset;
 
 		/*
 		 * Update the journal header.

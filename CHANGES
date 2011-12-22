@@ -1,3 +1,8 @@
+3252.	[bug]		When master zones using inline-signing were
+			updated while the server was offline, the source
+			zone could fall out of sync with the signed
+			copy. They can now resynchronize. [RT #26676]
+
 3251.	[bug]		Enforce a upper bound (65535 bytes) on the amount of
 			memory dns_sdlz_putrr() can allocate per record to
 			prevent run away memory consumption on ISC_R_NOSPACE.

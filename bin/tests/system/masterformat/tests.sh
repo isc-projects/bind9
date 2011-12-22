@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.8 2011/12/08 16:07:20 each Exp $
+# $Id: tests.sh,v 1.9 2011/12/22 07:32:40 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -28,9 +28,22 @@ israw () {
 
 rawversion () {
     perl -e '$input = <STDIN>;
-             if (length($input) < 2) { print "not raw\n"; exit 0; };
+             if (length($input) < 8) { print "not raw\n"; exit 0; };
              ($style, $version) = unpack("NN", $input);
              print ($style == 2 ? "$version\n" : "not raw\n");' < $1
+}
+
+sourceserial () {
+    perl -e '$input = <STDIN>;
+             if (length($input) < 20) { print "UNSET\n"; exit; };
+             ($format, $version, $dumptime, $flags, $sourceserial) = 
+                     unpack("NNNNN", $input);
+             if ($format != 2 || $version <  1) { print "UNSET\n"; exit; };
+             if ($flags & 02) {
+                     print $sourceserial . "\n";
+             } else {
+                     print "UNSET\n";
+             }' < $1
 }
 
 DIGOPTS="+tcp +noauth +noadd +nosea +nostat +noquest +nocomm +nocmd"
@@ -59,6 +72,13 @@ israw ns1/example.db.compat || ret=1
 [ "`rawversion ns1/example.db.raw`" = 1 ] || ret=1
 [ "`rawversion ns1/example.db.raw1`" = 1 ] || ret=1
 [ "`rawversion ns1/example.db.compat`" = 0 ] || ret=1
+[ $ret -eq 0 ] || echo "I:failed"
+status=`expr $status + $ret`
+
+echo "I:checking source serial numbers"
+ret=0
+[ "`sourceserial ns1/example.db.raw`" = "UNSET" ] || ret=1
+[ "`sourceserial ns1/example.db.serial.raw`" = "3333" ] || ret=1
 [ $ret -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 
