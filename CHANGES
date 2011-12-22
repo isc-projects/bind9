@@ -1,3 +1,6 @@
+3253.	[bug]		Return DNS_R_SYNTAX when the input to a text field is
+			too long. [RT #26956]
+
 3251.	[bug]		Enforce a upper bound (65535 bytes) on the amount of
 			memory dns_sdlz_putrr() can allocate per record to
 			prevent run away memory consumption on ISC_R_NOSPACE.
