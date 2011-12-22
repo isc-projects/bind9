@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdlz.c,v 1.22.104.5 2011/03/12 04:58:28 tbox Exp $ */
+/* $Id: sdlz.c,v 1.22.104.6 2011/12/22 07:17:37 marka Exp $ */
 
 /*! \file */
 
@@ -1569,7 +1569,11 @@ dns_sdlz_putrr(dns_sdlzlookup_t *lookup, const char *type, dns_ttl_t ttl,
 					    &lookup->callbacks);
 		if (result != ISC_R_SUCCESS)
 			isc_buffer_free(&rdatabuf);
+		if (size >= 65535)
+			break;
 		size *= 2;
+		if (size >= 65535)
+			size = 65535;
 	} while (result == ISC_R_NOSPACE);
 
 	if (result != ISC_R_SUCCESS)
