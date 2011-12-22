@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.633 2011/12/22 08:22:18 marka Exp $ */
+/* $Id: server.c,v 1.634 2011/12/22 12:58:13 marka Exp $ */
 
 /*! \file */
 
@@ -2719,7 +2719,6 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		const char *str;
 		char server[DNS_NAME_FORMATSIZE + 1];
 		char contact[DNS_NAME_FORMATSIZE + 1];
-		isc_boolean_t logit;
 		const char *empty_dbtype[4] =
 				    { "_builtin", "empty", NULL, NULL };
 		int empty_dbtypec = 4;
@@ -2763,7 +2762,6 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		INSIST(result == ISC_R_SUCCESS);
 		zonestats_on = cfg_obj_asboolean(obj);
 
-		logit = ISC_TRUE;
 		for (empty = empty_zones[empty_zone];
 		     empty != NULL;
 		     empty = empty_zones[++empty_zone])
