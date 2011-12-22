@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.520.12.29 2011/10/07 04:41:30 each Exp $ */
+/* $Id: server.c,v 1.520.12.30 2011/12/22 08:29:21 marka Exp $ */
 
 /*! \file */
 
@@ -1858,7 +1858,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 		rfc1918 = ISC_FALSE;
 		empty_zones_enable = ISC_FALSE;
 	}
-	if (empty_zones_enable) {
+	if (empty_zones_enable && !lwresd_g_useresolvconf) {
 		const char *empty;
 		int empty_zone = 0;
 		dns_fixedname_t fixed;
