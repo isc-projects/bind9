@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.4.6.30 2011/12/22 02:21:34 marka Exp $
+# $Id: tests.sh,v 1.4.6.31 2011/12/22 12:08:49 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -990,6 +990,15 @@ ret=0
 check_interval ns1 3600 || ret=1
 check_interval ns2 3600 || ret=1
 check_interval ns3 3600 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:forcing full sign with unreadable keys ($n)"
+chmod 0 ns1/K.+*+*.{key,private}
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 sign . 2>&1 | sed 's/^/I:ns1 /'
+$DIG $DIGOPTS . @10.53.0.1 dnskey > dig.out.ns1.test$n || ret=1
+grep "status: NOERROR" dig.out.ns1.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
