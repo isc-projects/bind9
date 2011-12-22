@@ -1,3 +1,6 @@
+3253.	[bug]		Return DNS_R_SYNTAX when the input to a text field is
+			too long. [RT #26956]
+
 3252.	[bug]		When master zones using inline-signing were
 			updated while the server was offline, the source
 			zone could fall out of sync with the signed
