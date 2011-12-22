@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.41 2011/12/22 02:15:24 marka Exp $
+# $Id: tests.sh,v 1.42 2011/12/22 11:57:30 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -1102,6 +1102,15 @@ ret=0
 rekey_calls=`grep "reconfiguring zone keys" ns*/named.run | wc -l`
 rekey_events=`grep "next key event" ns*/named.run | wc -l`
 [ "$rekey_calls" = "$rekey_events" ] || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:forcing full sign with unreadable keys ($n)"
+chmod 0 ns1/K.+*+*.{key,private}
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 sign . 2>&1 | sed 's/^/I:ns1 /'
+$DIG $DIGOPTS . @10.53.0.1 dnskey > dig.out.ns1.test$n || ret=1
+grep "status: NOERROR" dig.out.ns1.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
