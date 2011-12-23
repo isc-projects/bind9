@@ -14,8 +14,9 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.8 2008/04/24 23:46:59 tbox Exp $
+# $Id: clean.sh,v 1.8.106.1 2011/12/23 00:42:40 marka Exp $
 
+rm -f dig.out.test*
 rm -f dig.out.cyclic dig.out.fixed dig.out.random
 rm -f dig.out.0 dig.out.1 dig.out.2 dig.out.3
 rm -f ns2/root.bk
