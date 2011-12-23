@@ -1,3 +1,5 @@
+	--- 9.7.5rc1 released ---
+
 3260.	[bug]		"rrset-order cyclic" could appear to not rotate
 			for some query patterns.  [RT #27170]
 
