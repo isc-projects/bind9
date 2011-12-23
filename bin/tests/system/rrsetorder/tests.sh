@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.8.264.1 2011/12/23 00:41:43 marka Exp $
+# $Id: tests.sh,v 1.8.264.2 2011/12/23 01:07:21 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -66,10 +66,18 @@ $DIG +nosea +nocomm +nocmd +noquest +noadd +noauth +nocomm +nostat +short \
 	match=0
 	for j in 1 2 3 4
 	do
-		eval "cmp -s dig.out.cyclic dig.out.cyclic.good$j && match$j=1 match=1"
+		if $test_fixed; then
+			cmp -s dig.out.cyclic dig.out.cyclic.fixed$j && {
+				eval "match$j=1 match=1";
+			}
+		else
+			cmp -s dig.out.cyclic dig.out.cyclic.good$j && {
+				eval "match$j=1 match=1";
+			}
+		fi
 		if [ $match -eq 1 ]; then break; fi
 	done
-	if [ $match -eq 0 ]; then ret=1; echo "I:unexpected order"; fi
+	if [ $match -eq 0 ]; then ret=1; echo "I:unexpected order"; cat dig.out.cyclic; fi
 done
 match=0
 for i in 1 2 3 4
@@ -146,7 +154,15 @@ $DIG +nosea +nocomm +nocmd +noquest +noadd +noauth +nocomm +nostat +short \
 	match=0
 	for j in 1 2 3 4
 	do
-		eval "cmp -s dig.out.cyclic dig.out.cyclic.good$j && match$j=1 match=1"
+		if $test_fixed; then
+			cmp -s dig.out.cyclic dig.out.cyclic.fixed$j && {
+				eval "match$j=1 match=1";
+			}
+		else
+			cmp -s dig.out.cyclic dig.out.cyclic.good$j && {
+				eval "match$j=1 match=1";
+			}
+		fi
 		if [ $match -eq 1 ]; then break; fi
 	done
 	if [ $match -eq 0 ]; then ret=1; echo "I:unexpected order"; fi
@@ -246,7 +262,15 @@ $DIG +nosea +nocomm +nocmd +noquest +noadd +noauth +nocomm +nostat +short \
 	match=0
 	for j in 1 2 3 4
 	do
-		eval "cmp -s dig.out.cyclic dig.out.cyclic.good$j && match$j=1 match=1"
+		if $test_fixed; then
+			cmp -s dig.out.cyclic dig.out.cyclic.fixed$j && {
+				eval "match$j=1 match=1";
+			}
+		else
+			cmp -s dig.out.cyclic dig.out.cyclic.good$j && {
+				eval "match$j=1 match=1";
+			}
+		fi
 		if [ $match -eq 1 ]; then break; fi
 	done
 	if [ $match -eq 0 ]; then ret=1; echo "I:unexpected order"; fi
@@ -326,7 +350,15 @@ $DIG +nosea +nocomm +nocmd +noquest +noadd +noauth +nocomm +nostat +short \
 	match=0
 	for j in 1 2 3 4
 	do
-		eval "cmp -s dig.out.cyclic dig.out.cyclic.good$j && match$j=1 match=1"
+		if $test_fixed; then
+			cmp -s dig.out.cyclic dig.out.cyclic.fixed$j && {
+				eval "match$j=1 match=1";
+			}
+		else
+			cmp -s dig.out.cyclic dig.out.cyclic.good$j && {
+				eval "match$j=1 match=1";
+			}
+		fi
 		if [ $match -eq 1 ]; then break; fi
 	done
 	if [ $match -eq 0 ]; then ret=1; echo "I:unexpected order"; fi
