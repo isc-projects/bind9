@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.310.8.12 2011/12/07 22:22:47 marka Exp $ */
+/* $Id: rbtdb.c,v 1.310.8.13 2011/12/23 00:00:48 marka Exp $ */
 
 /*! \file */
 
@@ -2744,6 +2744,14 @@ zone_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 	return (result);
 }
 
+static inline unsigned int
+prand(isc_uint32_t val) {
+	val ^= val >> 16;
+	val ^= val >> 8;
+	val ^= val >> 4;
+	return (val & 0xf);
+}
+
 static inline void
 bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	      rdatasetheader_t *header, isc_stdtime_t now,
@@ -2783,6 +2791,8 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	raw = (unsigned char *)header + sizeof(*header);
 	rdataset->private3 = raw;
 	rdataset->count = header->count++;
+	/* Add a weak pseudo random value [0..15]. */
+	header->count += prand(header->count);
 	if (rdataset->count == ISC_UINT32_MAX)
 		rdataset->count = 0;
 
