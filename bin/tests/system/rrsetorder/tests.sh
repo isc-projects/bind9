@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2006-2008, 2011  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2006-2008  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,13 +14,12 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.11 2011/12/23 23:47:13 tbox Exp $
+# $Id: tests.sh,v 1.8 2008/10/09 21:27:52 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 status=0
-n=0
 
 if grep "^#define DNS_RDATASET_FIXED" $TOP/config.h > /dev/null 2>&1 ; then
         test_fixed=true
@@ -32,65 +31,47 @@ fi
 #
 #
 #
-n=`expr $n + 1`
 if $test_fixed; then
-    echo "I: Checking order fixed (master) ($n)"
+    echo "I: Checking order fixed (master)"
+    ret=0
     for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
     do
-    ret=0
     $DIG +nosea +nocomm +nocmd +noquest +noadd +noauth +nocomm +nostat +short \
-	    -p 5300 @10.53.0.1 fixed.example > dig.out.test$n || ret=1
-    cmp -s dig.out.test$n dig.out.fixed.good || ret=1
-    [ $ret = 0 ] && break
+	    -p 5300 @10.53.0.1 fixed.example > dig.out.fixed || ret=1
+    cmp -s dig.out.fixed dig.out.fixed.good || ret=1
     done
     if [ $ret != 0 ]; then echo "I:failed"; fi
     status=`expr $status + $ret`
-else
-    echo "I: Skipped: Checking order fixed (master) ($n)"
 fi
 
 #
 #
 #
-n=`expr $n + 1`
-echo "I: Checking order cyclic (master) ($n)"
+echo "I: Checking order cyclic (master)"
 ret=0
-for i in 1 2 3 4
+matches=0
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
 do
-	eval match$i=0
+    j=`expr $i % 4`
+    $DIG +nosea +nocomm +nocmd +noquest +noadd +noauth +nocomm +nostat +short \
+	    -p 5300 @10.53.0.1 cyclic.example > dig.out.cyclic || ret=1
+    if [ $i -le 4 ]; then
+        cp dig.out.cyclic dig.out.$j
+    else
+        cmp -s dig.out.cyclic dig.out.$j && matches=`expr $matches + 1`
+    fi
 done
-for i in a b c d e f g h
-do
-$DIG +nosea +nocomm +nocmd +noquest +noadd +noauth +nocomm +nostat +short \
-	-p 5300 @10.53.0.1 cyclic.example > dig.out.cyclic || ret=1
-	match=0
-	for j in 1 2 3 4
-	do
-		if $test_fixed; then
-			cmp -s dig.out.cyclic dig.out.cyclic.fixed$j && {
-				eval "match$j=1 match=1";
-			}
-		else
-			cmp -s dig.out.cyclic dig.out.cyclic.good$j && {
-				eval "match$j=1 match=1";
-			}
-		fi
-		if [ $match -eq 1 ]; then break; fi
-	done
-	if [ $match -eq 0 ]; then ret=1; echo "I:unexpected order"; cat dig.out.cyclic; fi
-done
-match=0
-for i in 1 2 3 4
-do
-	eval "match=\`expr \$match + \$match$i\`"
-done
-echo "I: Cyclic selection return $match of 4 possible orders in 8 samples"
-if [ $match -ne 4 ]; then echo ret=1; fi
+cmp -s dig.out.0 dig.out.1 && ret=1
+cmp -s dig.out.0 dig.out.2 && ret=1
+cmp -s dig.out.0 dig.out.3 && ret=1
+cmp -s dig.out.1 dig.out.2 && ret=1
+cmp -s dig.out.1 dig.out.3 && ret=1
+cmp -s dig.out.2 dig.out.3 && ret=1
+if [ $matches -ne 16 ]; then ret=1; fi
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-n=`expr $n + 1`
-echo "I: Checking order random (master) ($n)"
+echo "I: Checking order random (master)"
 ret=0
 for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
 do
@@ -121,64 +102,47 @@ status=`expr $status + $ret`
 #
 #
 #
-n=`expr $n + 1`
 if $test_fixed; then
-    echo "I: Checking order fixed (slave) ($n)"
+    echo "I: Checking order fixed (slave)"
     ret=0
     for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
     do
     $DIG +nosea +nocomm +nocmd +noquest +noadd +noauth +nocomm +nostat +short \
-	    -p 5300 @10.53.0.2 fixed.example > dig.out.test$n || ret=1
-    cmp -s dig.out.test$n dig.out.fixed.good || ret=1
+	    -p 5300 @10.53.0.2 fixed.example > dig.out.fixed || ret=1
+    cmp -s dig.out.fixed dig.out.fixed.good || ret=1
     done
     if [ $ret != 0 ]; then echo "I:failed"; fi
     status=`expr $status + $ret`
-else
-    echo "I: Skipped: Checking order fixed (slave) ($n)"
 fi
 
 #
 #
 #
-n=`expr $n + 1`
-echo "I: Checking order cyclic (slave) ($n)"
+echo "I: Checking order cyclic (slave)"
 ret=0
-for i in 1 2 3 4
+matches=0
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
 do
-	eval match$i=0
+    j=`expr $i % 4`
+    $DIG +nosea +nocomm +nocmd +noquest +noadd +noauth +nocomm +nostat +short \
+	    -p 5300 @10.53.0.2 cyclic.example > dig.out.cyclic || ret=1
+    if [ $i -le 4 ]; then
+        cp dig.out.cyclic dig.out.$j
+    else
+        cmp -s dig.out.cyclic dig.out.$j && matches=`expr $matches + 1`
+    fi
 done
-for i in a b c d e f g h
-do
-$DIG +nosea +nocomm +nocmd +noquest +noadd +noauth +nocomm +nostat +short \
-	-p 5300 @10.53.0.2 cyclic.example > dig.out.cyclic || ret=1
-	match=0
-	for j in 1 2 3 4
-	do
-		if $test_fixed; then
-			cmp -s dig.out.cyclic dig.out.cyclic.fixed$j && {
-				eval "match$j=1 match=1";
-			}
-		else
-			cmp -s dig.out.cyclic dig.out.cyclic.good$j && {
-				eval "match$j=1 match=1";
-			}
-		fi
-		if [ $match -eq 1 ]; then break; fi
-	done
-	if [ $match -eq 0 ]; then ret=1; echo "I:unexpected order"; fi
-done
-match=0
-for i in 1 2 3 4
-do
-	eval "match=\`expr \$match + \$match$i\`"
-done
-echo "I: Cyclic selection return $match of 4 possible orders in 8 samples"
-if [ $match -ne 4 ]; then echo ret=1; fi
+cmp -s dig.out.0 dig.out.1 && ret=1
+cmp -s dig.out.0 dig.out.2 && ret=1
+cmp -s dig.out.0 dig.out.3 && ret=1
+cmp -s dig.out.1 dig.out.2 && ret=1
+cmp -s dig.out.1 dig.out.3 && ret=1
+cmp -s dig.out.2 dig.out.3 && ret=1
+if [ $matches -ne 16 ]; then ret=1; fi
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-n=`expr $n + 1`
-echo "I: Checking order random (slave) ($n)"
+echo "I: Checking order random (slave)"
 ret=0
 for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
 do
@@ -210,8 +174,7 @@ echo "I: Shutting down slave"
 
 (cd ..; sh stop.sh rrsetorder ns2 )
 
-n=`expr $n + 1`
-echo "I: Checking for slave's on disk copy of zone ($n)"
+echo "I: Checking for slave's on disk copy of zone"
 
 if [ ! -f ns2/root.bk ]
 then
@@ -226,67 +189,47 @@ echo "I: Re-starting slave"
 #
 #
 #
-n=`expr $n + 1`
 if $test_fixed; then
-    echo "I: Checking order fixed (slave loaded from disk) ($n)"
+    echo "I: Checking order fixed (slave loaded from disk)"
+    ret=0
     for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
     do
-    ret=0
     $DIG +nosea +nocomm +nocmd +noquest +noadd +noauth +nocomm +nostat +short \
-	    -p 5300 @10.53.0.2 fixed.example > dig.out.test$n || ret=1
-    cmp -s dig.out.test$n dig.out.fixed.good || ret=1
-    [ $ret = 0 ] && break
-    sleep 1
+	    -p 5300 @10.53.0.2 fixed.example > dig.out.fixed || ret=1
+    cmp -s dig.out.fixed dig.out.fixed.good || ret=1
     done
     if [ $ret != 0 ]; then echo "I:failed"; fi
     status=`expr $status + $ret`
-else
-    echo "I: Skipped: Checking order fixed (slave loaded from disk) ($n)"
-
 fi
 
 #
 #
 #
-n=`expr $n + 1`
-echo "I: Checking order cyclic (slave loaded from disk) ($n)"
+echo "I: Checking order cyclic (slave loaded from disk)"
 ret=0
-for i in 1 2 3 4
+matches=0
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
 do
-	eval match$i=0
+    j=`expr $i % 4`
+    $DIG +nosea +nocomm +nocmd +noquest +noadd +noauth +nocomm +nostat +short \
+	    -p 5300 @10.53.0.2 cyclic.example > dig.out.cyclic || ret=1
+    if [ $i -le 4 ]; then
+        cp dig.out.cyclic dig.out.$j
+    else
+        cmp -s dig.out.cyclic dig.out.$j && matches=`expr $matches + 1`
+    fi
 done
-for i in a b c d e f g h
-do
-$DIG +nosea +nocomm +nocmd +noquest +noadd +noauth +nocomm +nostat +short \
-	-p 5300 @10.53.0.2 cyclic.example > dig.out.cyclic || ret=1
-	match=0
-	for j in 1 2 3 4
-	do
-		if $test_fixed; then
-			cmp -s dig.out.cyclic dig.out.cyclic.fixed$j && {
-				eval "match$j=1 match=1";
-			}
-		else
-			cmp -s dig.out.cyclic dig.out.cyclic.good$j && {
-				eval "match$j=1 match=1";
-			}
-		fi
-		if [ $match -eq 1 ]; then break; fi
-	done
-	if [ $match -eq 0 ]; then ret=1; echo "I:unexpected order"; fi
-done
-match=0
-for i in 1 2 3 4
-do
-	eval "match=\`expr \$match + \$match$i\`"
-done
-echo "I: Cyclic selection return $match of 4 possible orders in 8 samples"
-if [ $match -ne 4 ]; then echo ret=1; fi
+cmp -s dig.out.0 dig.out.1 && ret=1
+cmp -s dig.out.0 dig.out.2 && ret=1
+cmp -s dig.out.0 dig.out.3 && ret=1
+cmp -s dig.out.1 dig.out.2 && ret=1
+cmp -s dig.out.1 dig.out.3 && ret=1
+cmp -s dig.out.2 dig.out.3 && ret=1
+if [ $matches -ne 16 ]; then ret=1; fi
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-n=`expr $n + 1`
-echo "I: Checking order random (slave loaded from disk) ($n)"
+echo "I: Checking order random (slave loaded from disk)"
 ret=0
 for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
 do
@@ -317,65 +260,47 @@ status=`expr $status + $ret`
 #
 #
 #
-n=`expr $n + 1`
 if $test_fixed; then
-    echo "I: Checking order fixed (cache) ($n)"
+    echo "I: Checking order fixed (cache)"
     ret=0
     for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
     do
     $DIG +nosea +nocomm +nocmd +noquest +noadd +noauth +nocomm +nostat +short \
-	    -p 5300 @10.53.0.3 fixed.example > dig.out.test$n || ret=1
-    cmp -s dig.out.test$n dig.out.fixed.good || ret=1
+	    -p 5300 @10.53.0.3 fixed.example > dig.out.fixed || ret=1
+    cmp -s dig.out.fixed dig.out.fixed.good || ret=1
     done
     if [ $ret != 0 ]; then echo "I:failed"; fi
     status=`expr $status + $ret`
-else
-    echo "I: Skipped: Checking order fixed (cache) ($n)"
 fi
 
 #
 #
 #
-n=`expr $n + 1`
-echo "I: Checking order cyclic (cache) ($n)"
+echo "I: Checking order cyclic (cache)"
 ret=0
-for i in 1 2 3 4
+matches=0
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
 do
-	eval match$i=0
+    j=`expr $i % 4`
+    $DIG +nosea +nocomm +nocmd +noquest +noadd +noauth +nocomm +nostat +short \
+	    -p 5300 @10.53.0.3 cyclic.example > dig.out.cyclic || ret=1
+    if [ $i -le 4 ]; then
+        cp dig.out.cyclic dig.out.$j
+    else
+        cmp -s dig.out.cyclic dig.out.$j && matches=`expr $matches + 1`
+    fi
 done
-for i in a b c d e f g h
-do
-$DIG +nosea +nocomm +nocmd +noquest +noadd +noauth +nocomm +nostat +short \
-	-p 5300 @10.53.0.3 cyclic.example > dig.out.cyclic || ret=1
-	match=0
-	for j in 1 2 3 4
-	do
-		if $test_fixed; then
-			cmp -s dig.out.cyclic dig.out.cyclic.fixed$j && {
-				eval "match$j=1 match=1";
-			}
-		else
-			cmp -s dig.out.cyclic dig.out.cyclic.good$j && {
-				eval "match$j=1 match=1";
-			}
-		fi
-		if [ $match -eq 1 ]; then break; fi
-	done
-	if [ $match -eq 0 ]; then ret=1; echo "I:unexpected order"; fi
-done
-match=0
-for i in 1 2 3 4
-do
-	eval "match=\`expr \$match + \$match$i\`"
-done
-echo "I: Cyclic selection return $match of 4 possible orders in 8 samples"
-if [ $match -ne 4 ]; then echo ret=1; fi
+cmp -s dig.out.0 dig.out.1 && ret=1
+cmp -s dig.out.0 dig.out.2 && ret=1
+cmp -s dig.out.0 dig.out.3 && ret=1
+cmp -s dig.out.1 dig.out.2 && ret=1
+cmp -s dig.out.1 dig.out.3 && ret=1
+cmp -s dig.out.2 dig.out.3 && ret=1
+if [ $matches -ne 16 ]; then ret=1; fi
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
-n=`expr $n + 1`
 
-n=`expr $n + 1`
-echo "I: Checking order random (cache) ($n)"
+echo "I: Checking order random (cache)"
 ret=0
 for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
 do

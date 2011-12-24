@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.659 2011/12/22 23:46:20 tbox Exp $ */
+/* $Id: zone.c,v 1.658 2011/12/22 07:32:41 each Exp $ */
 
 /*! \file */
 
@@ -3573,7 +3573,7 @@ maybe_send_secure(dns_zone_t *zone) {
 						       serial);
 		} else
 			zone_send_securedb(zone->raw, ISC_TRUE, zone->raw->db);
-
+	
 	} else
 		DNS_ZONE_SETFLAG(zone->raw, DNS_ZONEFLG_SENDSECURE);
 
@@ -12188,45 +12188,45 @@ sync_secure_journal(dns_zone_t *zone, dns_journal_t *journal,
 		    isc_uint32_t start, isc_uint32_t end,
 		    dns_difftuple_t **soatuplep, dns_diff_t *diff)
 {
-	isc_result_t result;
-	dns_difftuple_t *tuple = NULL;
+ 	isc_result_t result;
+ 	dns_difftuple_t *tuple = NULL;
 	dns_diffop_t op = DNS_DIFFOP_ADD;
 	int n_soa = 0;
 
 	REQUIRE(soatuplep != NULL);
 
-	if (start == end)
+ 	if (start == end)
 		return (DNS_R_UNCHANGED);
 
 	CHECK(dns_journal_iter_init(journal, start, end));
 	for (result = dns_journal_first_rr(journal);
-	     result == ISC_R_SUCCESS;
+ 	     result == ISC_R_SUCCESS;
 	     result = dns_journal_next_rr(journal))
 	{
-		dns_name_t *name = NULL;
-		isc_uint32_t ttl;
-		dns_rdata_t *rdata = NULL;
+ 		dns_name_t *name = NULL;
+ 		isc_uint32_t ttl;
+ 		dns_rdata_t *rdata = NULL;
 		dns_journal_current_rr(journal, &name, &ttl, &rdata);
-
-		if (rdata->type == dns_rdatatype_soa) {
-			n_soa++;
-			if (n_soa == 2) {
-				/*
+ 
+ 		if (rdata->type == dns_rdatatype_soa) {
+ 			n_soa++;
+ 			if (n_soa == 2) {
+ 				/*
 				 * Save the latest raw SOA record.
-				 */
-				if (*soatuplep != NULL)
-					dns_difftuple_free(soatuplep);
+ 				 */
+ 				if (*soatuplep != NULL)
+ 					dns_difftuple_free(soatuplep);
 				CHECK(dns_difftuple_create(diff->mctx,
-							   DNS_DIFFOP_ADD,
-							   name, ttl, rdata,
-							   soatuplep));
-			}
-			if (n_soa == 3)
-				n_soa = 1;
+ 							   DNS_DIFFOP_ADD,
+ 							   name, ttl, rdata,
+ 							   soatuplep));
+ 			}
+ 			if (n_soa == 3)
+ 				n_soa = 1;
 			continue;
 		}
 
-		/* Sanity. */
+ 		/* Sanity. */
 		if (n_soa == 0) {
 			dns_zone_log(zone->raw, ISC_LOG_ERROR,
 				     "corrupt journal file: '%s'\n",
@@ -12251,8 +12251,8 @@ sync_secure_journal(dns_zone_t *zone, dns_journal_t *journal,
 					   &tuple));
 		dns_diff_appendminimal(diff, &tuple);
 	}
-	if (result == ISC_R_NOMORE)
-		result = ISC_R_SUCCESS;
+ 	if (result == ISC_R_NOMORE)
+ 		result = ISC_R_SUCCESS;
 
  failure:
 	return(result);
