@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.10 2011/12/19 23:46:13 marka Exp $
+# $Id: tests.sh,v 1.11 2011/12/22 07:32:40 each Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -352,6 +352,27 @@ do
 	sleep 1
 done
 if [ $ret != 0 ]; then echo "I:failed"; fi
+
+n=`expr $n + 1`
+echo "I:checking master zone that was updated while offline is correct ($n)"
+ret=0
+serial=`$DIG $DIGOPTS +short @10.53.0.3 -p 5300 updated SOA | awk '{print $3}'`
+# serial should have changed
+[ "$serial" = "2000042407" ] && ret=1
+# e.updated should exist and should be signed
+$DIG $DIGOPTS @10.53.0.3 -p 5300 e.updated A > dig.out.ns3.test$n
+grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
+grep "ANSWER: 2," dig.out.ns3.test$n > /dev/null || ret=1
+# updated.db.signed.jnl should exist, should have the source serial
+# of master2.db, and should show a minimal diff: no more than 8 added
+# records (SOA/RRSIG, 2 x NSEC/RRSIG, A/RRSIG), and 4 removed records
+# (SOA/RRSIG, NSEC/RRSIG).
+serial=`$JOURNALPRINT ns3/updated.db.signed.jnl | head -1 | awk '{print $4}'`
+[ "$serial" = "2000042408" ] || ret=1
+diffsize=`$JOURNALPRINT ns3/updated.db.signed.jnl | wc -l`
+[ "$diffsize" -le 13 ] || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo "I:checking adding of record to unsigned master using UPDATE ($n)"

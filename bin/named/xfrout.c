@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.143 2011/12/01 00:53:58 marka Exp $ */
+/* $Id: xfrout.c,v 1.144 2011/12/22 07:32:40 each Exp $ */
 
 #include <config.h>
 
@@ -252,7 +252,7 @@ ixfr_rrstream_create(isc_mem_t *mctx,
 	s->journal = NULL;
 
 	CHECK(dns_journal_open(mctx, journal_filename,
-			       ISC_FALSE, &s->journal));
+			       DNS_JOURNAL_READ, &s->journal));
 	CHECK(dns_journal_iter_init(s->journal, begin_serial, end_serial));
 
 	*sp = (rrstream_t *) s;

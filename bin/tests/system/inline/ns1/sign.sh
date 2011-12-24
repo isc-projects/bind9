@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.2 2011/10/25 01:54:20 marka Exp $
+# $Id: sign.sh,v 1.3 2011/12/22 07:32:40 each Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -26,7 +26,7 @@ rm -f K.+*+*.key
 rm -f K.+*+*.private
 keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 768 -n zone $zone`
 keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone -f KSK $zone`
-$SIGNER -S -x -T 1200 -o ${zone} root.db
+$SIGNER -S -x -T 1200 -o ${zone} root.db > /dev/null 2>&1
 
 cat ${keyname}.key | grep -v '^; ' | $PERL -n -e '
 local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;

@@ -12,11 +12,13 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: compile.sh,v 1.8 2011/12/09 23:47:03 tbox Exp $
+# $Id: compile.sh,v 1.9 2011/12/22 07:32:40 each Exp $
 
 ../named-compilezone -D -F raw -o example.db.raw example \
         example.db > /dev/null 2>&1
 ../named-compilezone -D -F raw=1 -o example.db.raw1 example-explicit \
         example.db > /dev/null 2>&1
 ../named-compilezone -D -F raw=0 -o example.db.compat example-compat \
+        example.db > /dev/null 2>&1
+../named-compilezone -D -F raw -L 3333 -o example.db.serial.raw example \
         example.db > /dev/null 2>&1

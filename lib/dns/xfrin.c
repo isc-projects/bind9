@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.171 2011/08/30 05:16:14 marka Exp $ */
+/* $Id: xfrin.c,v 1.172 2011/12/22 07:32:41 each Exp $ */
 
 /*! \file */
 
@@ -360,7 +360,7 @@ ixfr_init(dns_xfrin_ctx_t *xfr) {
 	journalfile = dns_zone_getjournal(xfr->zone);
 	if (journalfile != NULL)
 		CHECK(dns_journal_open(xfr->mctx, journalfile,
-				       ISC_TRUE, &xfr->ixfr.journal));
+				       DNS_JOURNAL_CREATE, &xfr->ixfr.journal));
 
 	result = ISC_R_SUCCESS;
  failure:

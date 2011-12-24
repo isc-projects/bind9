@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.198 2011/10/28 06:20:04 each Exp $ */
+/* $Id: update.c,v 1.199 2011/12/22 07:32:40 each Exp $ */
 
 #include <config.h>
 
@@ -3095,7 +3095,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 
 			journal = NULL;
 			result = dns_journal_open(mctx, journalfile,
-						  ISC_TRUE, &journal);
+						  DNS_JOURNAL_CREATE, &journal);
 			if (result != ISC_R_SUCCESS)
 				FAILS(result, "journal open failed");
 

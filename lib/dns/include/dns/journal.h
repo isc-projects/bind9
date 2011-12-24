@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.h,v 1.42 2011/12/05 23:46:35 tbox Exp $ */
+/* $Id: journal.h,v 1.43 2011/12/22 07:32:41 each Exp $ */
 
 #ifndef DNS_JOURNAL_H
 #define DNS_JOURNAL_H 1
@@ -106,7 +106,7 @@ dns_journal_open(isc_mem_t *mctx, const char *filename, unsigned int mode,
  *
  * DNS_JOURNAL_CREATE open the journal for reading and writing and create
  * the journal if it does not exist.
- * DNS_JOURNAL_WRITE open the journal for readinge and writing.
+ * DNS_JOURNAL_WRITE open the journal for reading and writing.
  * DNS_JOURNAL_READ open the journal for reading only.
  */
 
@@ -293,12 +293,15 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, isc_uint32_t serial,
  * exists and is non-empty 'serial' must exist in the journal.
  */
 
-isc_uint32_t
-dns_journal_get_sourceserial(dns_journal_t *j);
+isc_boolean_t
+dns_journal_get_sourceserial(dns_journal_t *j, isc_uint32_t *sourceserial);
 void
 dns_journal_set_sourceserial(dns_journal_t *j, isc_uint32_t sourceserial);
 /*%<
  * Get and set source serial.
+ *
+ * Returns:
+ *	 ISC_TRUE if sourceserial has previously been set.
  */
 
 ISC_LANG_ENDDECLS

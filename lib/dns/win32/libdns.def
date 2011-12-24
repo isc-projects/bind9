@@ -99,6 +99,7 @@ dns_db_deleterdataset
 dns_db_detach
 dns_db_detachnode
 dns_db_diff
+dns_db_diffx
 dns_db_dump
 dns_db_endload
 dns_db_expirenode
@@ -242,6 +243,7 @@ dns_journal_current_rr
 dns_journal_destroy
 dns_journal_first_rr
 dns_journal_first_serial
+dns_journal_get_sourceserial
 dns_journal_iter_init
 dns_journal_last_serial
 dns_journal_next_rr
@@ -249,6 +251,7 @@ dns_journal_open
 dns_journal_print
 dns_journal_rollforward
 dns_journal_rollforward2
+dns_journal_set_sourceserial
 dns_journal_write_transaction
 dns_journal_writediff
 dns_keydata_fromdnskey
@@ -286,11 +289,18 @@ dns_lookup_cancel
 dns_lookup_create
 dns_lookup_destroy
 dns_master_dump
+dns_master_dump2
+dns_master_dump3
+dns_master_dumpinc
+dns_master_dumpinc2
+dns_master_dumpinc3
 dns_master_dumpnode
 dns_master_dumpnodetostream
 dns_master_dumptostream
 dns_master_dumptostream2
+dns_master_dumptostream3
 dns_master_dumptostreaminc
+dns_master_initrawheader
 dns_master_loadbuffer
 dns_master_loadbufferinc
 dns_master_loadfile
@@ -779,6 +789,7 @@ dns_zone_dlzpostload
 dns_zone_dump
 dns_zone_dumptostream
 dns_zone_dumptostream2
+dns_zone_dumptostream3
 dns_zone_expire
 dns_zone_first
 dns_zone_flush
@@ -892,6 +903,7 @@ dns_zone_setorigin
 dns_zone_setprivatetype
 dns_zone_setqueryacl
 dns_zone_setqueryonacl
+dns_zone_setrawdata
 dns_zone_setrefreshkeyinterval
 dns_zone_setrequestixfr
 dns_zone_setrequeststats

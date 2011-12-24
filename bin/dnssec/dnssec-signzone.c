@@ -29,7 +29,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.284 2011/12/08 23:45:02 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.285 2011/12/22 07:32:39 each Exp $ */
 
 /*! \file */
 
@@ -139,7 +139,8 @@ static char *tempfile = NULL;
 static const dns_master_style_t *masterstyle;
 static dns_masterformat_t inputformat = dns_masterformat_text;
 static dns_masterformat_t outputformat = dns_masterformat_text;
-static unsigned int rawversion = 1;
+static isc_uint32_t rawversion = 1, serialnum = 0;
+static isc_boolean_t snset = ISC_FALSE;
 static unsigned int nsigned = 0, nretained = 0, ndropped = 0;
 static unsigned int nverified = 0, nverifyfailed = 0;
 static const char *directory = NULL, *dsdir = NULL;
@@ -3470,7 +3471,7 @@ main(int argc, char *argv[]) {
 	isc_boolean_t set_iter = ISC_FALSE;
 
 #define CMDLINE_FLAGS \
-	"3:AaCc:Dd:E:e:f:FghH:i:I:j:K:k:l:m:n:N:o:O:PpRr:s:ST:tuUv:X:xz"
+	"3:AaCc:Dd:E:e:f:FghH:i:I:j:K:k:L:l:m:n:N:o:O:PpRr:s:ST:tuUv:X:xz"
 
 	/*
 	 * Process memory debugging argument first.
@@ -3618,6 +3619,17 @@ main(int argc, char *argv[]) {
 			if (ndskeys == MAXDSKEYS)
 				fatal("too many key-signing keys specified");
 			dskeyfile[ndskeys++] = isc_commandline_argument;
+			break;
+
+		case 'L':
+			snset = ISC_TRUE;
+			endp = NULL;
+			serialnum = strtol(isc_commandline_argument, &endp, 0);
+			if (*endp != '\0') {
+				fprintf(stderr, "source serial number "
+						"must be numeric");
+				exit(1);
+			}
 			break;
 
 		case 'l':
@@ -4077,6 +4089,10 @@ main(int argc, char *argv[]) {
 		dns_master_initrawheader(&header);
 		if (rawversion == 0U)
 			header.flags = DNS_MASTERRAW_COMPAT;
+		else if (snset) {
+			header.flags = DNS_MASTERRAW_SOURCESERIALSET;
+			header.sourceserial = serialnum;
+		}
 		result = dns_master_dumptostream3(mctx, gdb, gversion,
 						  masterstyle, outputformat,
 						  &header, fp);

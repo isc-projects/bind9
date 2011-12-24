@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.docbook,v 1.51 2011/12/08 16:07:20 each Exp $ -->
+<!-- $Id: dnssec-signzone.docbook,v 1.52 2011/12/22 07:32:40 each Exp $ -->
 <refentry id="man.dnssec-signzone">
   <refentryinfo>
     <date>June 05, 2009</date>
@@ -69,6 +69,7 @@
       <arg><option>-h</option></arg>
       <arg><option>-K <replaceable class="parameter">directory</replaceable></option></arg>
       <arg><option>-k <replaceable class="parameter">key</replaceable></option></arg>
+      <arg><option>-L <replaceable class="parameter">serial</replaceable></option></arg>
       <arg><option>-l <replaceable class="parameter">domain</replaceable></option></arg>
       <arg><option>-i <replaceable class="parameter">interval</replaceable></option></arg>
       <arg><option>-I <replaceable class="parameter">input-format</replaceable></option></arg>
@@ -367,6 +368,17 @@
             i.e. if large numbers of RRSIGs don't expire at the same time
             from all caches there will be less congestion than if all
             validators need to refetch at mostly the same time.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-L <replaceable class="parameter">serial</replaceable></term>
+        <listitem>
+          <para>
+            When writing a signed zone to 'raw' format, set the "source serial" 
+            value in the header to the specified serial number.  (This is
+            expected to be used primarily for testing purposes.)
           </para>
         </listitem>
       </varlistentry>

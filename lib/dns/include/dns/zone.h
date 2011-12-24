@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.198 2011/12/08 16:07:21 each Exp $ */
+/* $Id: zone.h,v 1.199 2011/12/22 07:32:41 each Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -32,6 +32,7 @@
 #include <isc/lang.h>
 #include <isc/rwlock.h>
 
+#include <dns/master.h>
 #include <dns/masterdump.h>
 #include <dns/rdatastruct.h>
 #include <dns/types.h>
@@ -2028,6 +2029,13 @@ dns_zone_setnsec3param(dns_zone_t *zone, isc_uint8_t hash, isc_uint8_t flags,
  *
  * Requires:
  * \li	'zone' to be valid.
+ */
+
+void
+dns_zone_setrawdata(dns_zone_t *zone, dns_masterrawheader_t *header);
+/*%
+ * Set the data to be included in the header when the zone is dumped in
+ * binary format.
  */
 ISC_LANG_ENDDECLS
 
