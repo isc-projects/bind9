@@ -1344,7 +1344,7 @@
 ./bin/tests/system/tsiggss/gssapi_krb.c		C	2011
 ./bin/tests/system/tsiggss/ns1/administrator.ccache	X	2010
 ./bin/tests/system/tsiggss/ns1/dns.keytab	X	2010
-./bin/tests/system/tsiggss/ns1/example.nil.db.in	ZONE	2011
+./bin/tests/system/tsiggss/ns1/example.nil.db.in	X	2011
 ./bin/tests/system/tsiggss/ns1/named.conf	CONF-C	2010,2011
 ./bin/tests/system/tsiggss/ns1/testdenied.ccache	X	2010
 ./bin/tests/system/tsiggss/prereq.sh		SH	2010,2011
