@@ -1,7 +1,7 @@
 	--- 9.6-ESV-R6rc1 released ---
 
-3260.	[bug]		"rrset-order cyclic" could appear to not rotate
-			for some query patterns.  [RT #27170]
+3260.	[bug]		"rrset-order cyclic" could appear not to rotate
+			for some query patterns.  [RT #27170/27185]
 
 3259.	[bug]		named-compilezone: Suppress "dump zone to <file>"
 			message when writing to stdout. [RT #27109]
